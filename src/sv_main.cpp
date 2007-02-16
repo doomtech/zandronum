@@ -4386,6 +4386,34 @@ static bool server_VoteNo( void )
 //*****************************************************************************
 //	CONSOLE COMMANDS
 
+CCMD( kick_idx )
+{
+	// Only the server can boot players!
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		return;
+
+	if ( argv.argc( ) < 2 )
+	{
+		Printf( "Usage: kick_idx <player Idx> [reason]\n" );
+		return;
+	}
+	ULONG ulIdx =  atoi(argv[1]);
+	// check if the player idx is identifying an ingame player
+	if ( playeringame[ulIdx] == false )
+		return;
+
+	// you can't kick admins
+	if ( SERVER_ADMIN_IsAdministrator( clients[ulIdx].address ))
+		return;
+
+	// If we provided a reason, give it.
+	if ( argv.argc( ) >= 3 )
+		SERVER_KickPlayer( ulIdx, argv[2] );
+	else
+		SERVER_KickPlayer( ulIdx, "None given." );
+	return;
+}
+
 CCMD( kick )
 {
 	ULONG	ulIdx;
