@@ -2234,9 +2234,10 @@ void D_DoomMain (void)
 	// voices. I never got around to writing the utility to do it, though.
 	// And I probably never will now. But I know at least one person uses
 	// it for something else, so this gets to stay here.
-	wad = BaseFileSearch ("zvox.wad", NULL);
-	if (wad)
-		D_AddFile (wad, false);	// [BC]
+	// [BB] Loading zvox with Skulltag introduces a bag of problems and does't do any good.
+	//wad = BaseFileSearch ("zvox.wad", NULL);
+	//if (wad)
+	//	D_AddFile (wad, false);	// [BC]
 
 
 	// [BC] Also load skulltag.wad.
