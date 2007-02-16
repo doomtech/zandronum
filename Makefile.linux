@@ -1,0 +1,142 @@
+# created on 4/12/2006 by James Bentler
+
+CXX ?= g++
+CC ?= gcc
+NASM ?= nasm
+CCDV = @./ccdv
+ifdef DEBUG
+  CFLAGS ?= -pipe -Wall -Wno-unused -fno-strict-aliasing
+else
+  CFLAGS ?= -pipe -Wall -Wno-unused -fno-strict-aliasing -O2 -fomit-frame-pointer
+  CXXFLAGS ?= -fno-rtti
+endif
+ifdef GC
+  CFLAGS += -ffunction-sections
+  LDFLAGS += -Wl,--gc-sections
+endif
+CFLAGS += -MMD -DHAVE_FILELENGTH -D__forceinline=inline -Izlib -IFLAC `sdl-config --cflags`
+CFLAGS += -Dstricmp=strcasecmp -Dstrnicmp=strncasecmp -DNEED_STRUPR
+LDFLAGS += -lFLAC++ -lFLAC -lz -lfmod `sdl-config --libs`
+NASMFLAGS += -f elf -DM_TARGET_LINUX
+
+SRCDIRS = src/ $(addprefix src/,g_doom/ g_heretic/ g_hexen/ g_raven/ g_shared/ g_strife/ oplsynth/ sound/ sdl/)
+VPATH = $(SRCDIRS)
+INCLUDES = $(addprefix -I,$(SRCDIRS))
+CFLAGS += $(INCLUDES)
+
+RELEASEOBJ ?= releaseobj
+DEBUGOBJ ?= debugobj
+
+CPPSRCS = $(wildcard $(addsuffix *.cpp,$(SRCDIRS)))
+CSRCS = $(wildcard $(addsuffix *.c,$(SRCDIRS)))
+ifdef NOASM
+  CFLAGS += -DNOASM
+else
+  ASRCS = $(wildcard src/*.nas)
+  CFLAGS += -DUSEASM=1
+endif
+SRCS = $(CSRCS) $(CPPSRCS) $(ASRCS)
+CPPOBJFILES = $(notdir $(patsubst %.cpp,%.o,$(CPPSRCS)))
+COBJFILES = $(notdir $(patsubst %.c,%.o,$(CSRCS)))
+AOBJFILES = $(notdir $(patsubst %.nas,%.o,$(ASRCS)))
+
+ZDOOM = zdoom
+ZDOOMDEBUG = zdoomd
+
+ifdef DEBUG
+  OBJDIR = $(DEBUGOBJ)
+  CFLAGS += -D_DEBUG -g3
+  NASMFLAGS += -g
+  ZDOOMBIN = $(ZDOOMDEBUG)
+else
+  OBJDIR = $(RELEASEOBJ)
+  CFLAGS += -DNDEBUG
+  LDFLAGS += -s -Wl,-Map=$(ZDOOM).map
+  ZDOOMBIN = $(ZDOOM)
+endif
+CXXFLAGS += $(CFLAGS)
+
+COBJS = $(addprefix $(OBJDIR)/,$(CPPOBJFILES) $(COBJFILES))
+DEPS = $(patsubst %.o,%.d,$(COBJS))
+OBJS = $(addprefix $(OBJDIR)/,$(AOBJFILES)) $(COBJS)
+
+all: $(ZDOOMBIN) toolsandpk3 zdoom.pk3
+
+$(ZDOOMBIN): ccdv updaterev $(OBJDIR) $(OBJS)
+	$(CCDV) $(CXX) $(LDFLAGS) $(OBJDIR)/autostart.o \
+	$(filter-out %/autostart.o %/autozend.o,$(OBJS)) \
+	$(OBJDIR)/autozend.o -o $(ZDOOMBIN)
+
+$(OBJDIR)/%.o: %.cpp
+	$(CCDV) $(CXX) $(CXXFLAGS) -o $@ -c $<
+
+$(OBJDIR)/%.o: %.c
+	$(CCDV) $(CC) $(CFLAGS) -o $@ -c $<
+
+$(OBJDIR)/%.o: %.nas
+	$(CCDV) $(NASM) -o $@ $(NASMFLAGS) $<
+
+# This file needs special handling so that it actually gets compiled with SSE2 support.
+$(OBJDIR)/nodebuild_classify_sse2.o: nodebuild_classify_sse2.cpp
+	$(CCDV) $(CXX) $(CXXFLAGS) -msse2 -mfpmath=sse -c -o $@ $<
+
+$(OBJDIR):
+	mkdir $(OBJDIR)
+
+toolsandpk3: ccdv tools/makewad/makewad tools/dehsupp/dehsupp tools/xlatcc/xlatcc
+	$(MAKE) -C wadsrc/
+
+zdoom.pk3: toolsandpk3
+	ln -sf wadsrc/zdoom.pk3 ./
+
+tools/makewad/makewad:
+	$(MAKE) -C tools/makewad/
+
+tools/dehsupp/dehsupp:
+	$(MAKE) -C tools/dehsupp/
+
+tools/xlatcc/xlatcc:
+	$(MAKE) -C tools/xlatcc/
+
+
+updaterev: tools/updaterevision/updaterevision
+	@tools/updaterevision/updaterevision . src/svnrevision.h
+
+tools/updaterevision/updaterevision:
+	$(MAKE) -C tools/updaterevision
+
+.PHONY : clean cleandeps cleanobjs distclean toolsandpk3 cleantools updaterev
+
+clean: cleanobjs
+	rm -f $(ZDOOMDEBUG) $(ZDOOM) $(ZDOOM).map
+	rm -f ccdv
+
+cleantools:
+	@$(MAKE) -C tools/makewad clean
+	@$(MAKE) -C tools/dehsupp clean
+	@$(MAKE) -C tools/xlatcc clean
+
+cleandebug:
+	rm -f $(ZDOOMDEBUG) $(DEBUGOBJ)/*.o $(DEBUGOBJ)/*.d
+	-rmdir $(DEBUGOBJ)
+
+cleanrelease:
+	rm -f $(ZDOOM) $(ZDOOM).map $(RELEASEOBJ)/*.o $(RELEASEOBJ)/*.o
+	-rmdir $(RELEASEOBJ)
+
+# I could use a recursive delete instead, but that could be dangerous...
+distclean: clean cleandeps
+	-rmdir $(RELEASEOBJ) $(DEBUGOBJ)
+
+cleandeps:
+	rm -f $(RELEASEOBJ)/*.d $(DEBUGOBJ)/*.d
+
+cleanobjs:
+	rm -f $(RELEASEOBJ)/*.o $(DEBUGOBJ)/*.o 
+   
+ccdv: ccdv-posix.c
+	@gcc -Os -s ccdv-posix.c -o ccdv
+
+ifeq (,$(findstring $(MAKECMDGOALS),clean cleandeps cleanobjs distclean toolsandpk3 cleantools updaterev))
+-include $(DEPS)
+endif

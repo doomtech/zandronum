@@ -1,0 +1,1205 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+#include "../version.h"
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE MOVEABLE PURE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE MOVEABLE PURE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "#include ""../version.h""\0"
+END
+
+3 TEXTINCLUDE MOVEABLE PURE 
+BEGIN
+    "#ifndef NO_MANIFEST\r\n"
+    "   CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST ""zdoom.exe.manifest""\r\n"
+    "#endif\r\n"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON1               ICON    DISCARDABLE     "icon1.ico"
+IDI_BOING1              ICON    DISCARDABLE     "boing1.ico"
+IDI_BOING2              ICON    DISCARDABLE     "boing2.ico"
+IDI_BOING3              ICON    DISCARDABLE     "boing3.ico"
+IDI_BOING4              ICON    DISCARDABLE     "boing4.ico"
+IDI_BOING5              ICON    DISCARDABLE     "boing5.ico"
+IDI_BOING6              ICON    DISCARDABLE     "boing6.ico"
+IDI_BOING7              ICON    DISCARDABLE     "boing7.ico"
+IDI_BOING8              ICON    DISCARDABLE     "boing8.ico"
+IDI_ICON5               ICON    DISCARDABLE     "skulltag.ICO"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO MOVEABLE PURE 
+BEGIN
+    IDD_FMODINITFAILED, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 55
+    END
+
+    IDD_IWADDIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 5
+        RIGHTMARGIN, 205
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 179
+    END
+
+    IDD_EAXPROPERTYLIST, DIALOG
+    BEGIN
+        LEFTMARGIN, 2
+        RIGHTMARGIN, 249
+        VERTGUIDE, 88
+        VERTGUIDE, 122
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 400
+    END
+
+    IDD_EAXEDIT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 273
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 319
+        HORZGUIDE, 299
+    END
+
+    IDD_NEWEAX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 341
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 250
+        HORZGUIDE, 216
+    END
+
+    IDD_SAVEEAX, DIALOG
+    BEGIN
+        LEFTMARGIN, 6
+        RIGHTMARGIN, 377
+        VERTGUIDE, 370
+        BOTTOMMARGIN, 88
+        HORZGUIDE, 12
+    END
+
+    IDD_CRASHDIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 4
+        RIGHTMARGIN, 401
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 303
+        HORZGUIDE, 49
+        HORZGUIDE, 242
+    END
+
+    IDD_CRASHOVERVIEW, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 384
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 257
+    END
+
+    IDD_CRASHDETAILS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 384
+        TOPMARGIN, 7
+        HORZGUIDE, 76
+    END
+
+    IDD_BOING, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        VERTGUIDE, 33
+        TOPMARGIN, 7
+    END
+
+    IDD_ADDBOT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 88
+    END
+
+    IDD_BANIP, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+    END
+
+    IDD_BANLIST, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 220
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 191
+    END
+
+    IDD_BANPLAYER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 88
+    END
+
+    IDD_CHANGEMAP, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+    END
+
+    IDD_DMFLAGS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 354
+    END
+
+    IDD_EDITBAN, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+    END
+
+    IDD_GENERALSETTINGS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        TOPMARGIN, 7
+    END
+
+    IDD_KICKPLAYER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 88
+    END
+
+    IDD_LMSSETTINGS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        TOPMARGIN, 7
+    END
+
+    IDD_MAPROTATION, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 147
+    END
+
+    IDD_MESSAGES, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        TOPMARGIN, 7
+    END
+
+    IDD_REMOVEBOT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 88
+    END
+
+    IDD_SERVERDIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        TOPMARGIN, 7
+    END
+
+    IDD_SERVERINFO, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 286
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 254
+    END
+
+    IDD_SERVERSTATISTICS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        TOPMARGIN, 7
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 0,97,0,0
+ PRODUCTVERSION 0,97,0,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x3L
+#else
+ FILEFLAGS 0x2L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "Comments", "Thanks to id Software for creating DOOM and then releasing the source code. Thanks also to TeamTNT for creating BOOM, which ZDoom (and thus Skulltag) is partially based on.  Giant thanks to Randy Heit for his wonderful ZDoom.\0"
+            VALUE "CompanyName", " \0"
+            VALUE "FileDescription", "Skulltag\0"
+            VALUE "FileVersion", "v0.97c\0"
+            VALUE "InternalName", "Skulltag\0"
+            VALUE "LegalCopyright", "Copyright © 1993-1996, id Software & 1998-2006, Randy Heit\0"
+            VALUE "LegalTrademarks", "Doom® is a Registered Trademark of id Software, Inc.\0"
+            VALUE "OriginalFilename", "skulltag.exe\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductName", "Skulltag\0"
+            VALUE "ProductVersion", "0.97\0"
+            VALUE "SpecialBuild", "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+#endif    // !_MAC
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_FMODINITFAILED DIALOGEX 0, 0, 186, 62
+STYLE DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "ZDoom Sound Initialization Failure"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Retry",IDOK,129,7,50,14,WS_GROUP
+    PUSHBUTTON      "No Sound",IDC_NOSOUND,129,24,50,14,WS_GROUP
+    PUSHBUTTON      "Quit",IDCANCEL,129,41,50,14,WS_GROUP
+    LTEXT           "Could not initialize sound. If the sound hardware is in use, stop the other program that is making sound and click Retry. Alternatively, click No Sound to play without sound.",
+                    IDC_STATIC,7,7,116,42
+END
+
+IDD_IWADDIALOG DIALOGEX 0, 0, 212, 186
+STYLE DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "Select an IWAD to use"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LISTBOX         IDC_IWADLIST,5,25,200,124,LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Don't ask me this again",IDC_DONTASKIWAD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,61,153,89,10
+    DEFPUSHBUTTON   "OK",IDOK,5,165,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,155,165,50,14
+    LTEXT           "ZDoom found more than one IWAD present.",IDC_STATIC,5,5,
+                    140,8
+    LTEXT           "Select from the list below to determine which one to use:",
+                    IDC_STATIC,5,15,200,8
+END
+
+IDD_EAXPROPERTYLIST DIALOGEX 0, 0, 265, 404
+STYLE DS_3DLOOK | DS_FIXEDSYS | DS_CONTROL | WS_CHILD | WS_VSCROLL
+EXSTYLE WS_EX_CLIENTEDGE
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDCE_ENVIRONMENTSIZE,76,7,48,12,ES_AUTOHSCROLL,
+                    WS_EX_RIGHT
+    EDITTEXT        IDCE_ENVIRONMENTDIFFUSION,76,20,48,12,ES_AUTOHSCROLL,
+                    WS_EX_RIGHT
+    EDITTEXT        IDCE_ROOM,76,33,48,12,ES_AUTOHSCROLL,WS_EX_RIGHT
+    EDITTEXT        IDCE_ROOMHF,76,46,48,12,ES_AUTOHSCROLL,WS_EX_RIGHT
+    EDITTEXT        IDCE_ROOMLF,76,59,48,12,ES_AUTOHSCROLL,WS_EX_RIGHT
+    EDITTEXT        IDCE_DECAYTIME,76,72,48,12,ES_AUTOHSCROLL,WS_EX_RIGHT
+    EDITTEXT        IDCE_DECAYHFRATIO,76,85,48,12,ES_AUTOHSCROLL,WS_EX_RIGHT
+    EDITTEXT        IDCE_DECAYLFRATIO,76,98,48,12,ES_AUTOHSCROLL,WS_EX_RIGHT
+    EDITTEXT        IDCE_REFLECTIONS,76,111,48,12,ES_AUTOHSCROLL,WS_EX_RIGHT
+    EDITTEXT        IDCE_REFLECTIONSDELAY,76,124,48,12,ES_AUTOHSCROLL,
+                    WS_EX_RIGHT
+    EDITTEXT        IDCE_REVERB,76,137,48,12,ES_AUTOHSCROLL,WS_EX_RIGHT
+    EDITTEXT        IDCE_REVERBDELAY,76,150,48,12,ES_AUTOHSCROLL,WS_EX_RIGHT
+    EDITTEXT        IDCE_ECHOTIME,76,163,48,12,ES_AUTOHSCROLL,WS_EX_RIGHT
+    EDITTEXT        IDCE_ECHODEPTH,76,176,48,12,ES_AUTOHSCROLL,WS_EX_RIGHT
+    EDITTEXT        IDCE_MODULATIONTIME,76,189,48,12,ES_AUTOHSCROLL,
+                    WS_EX_RIGHT
+    EDITTEXT        IDCE_MODULATIONDEPTH,76,202,48,12,ES_AUTOHSCROLL,
+                    WS_EX_RIGHT
+    EDITTEXT        IDCE_AIRABSORPTIONHF,76,215,48,12,ES_AUTOHSCROLL,
+                    WS_EX_RIGHT
+    EDITTEXT        IDCE_HFREFERENCE,76,228,48,12,ES_AUTOHSCROLL,WS_EX_RIGHT
+    EDITTEXT        IDCE_LFREFERENCE,76,241,48,12,ES_AUTOHSCROLL,WS_EX_RIGHT
+    EDITTEXT        IDCE_ROOMROLLOFFFACTOR,76,254,48,12,ES_AUTOHSCROLL,
+                    WS_EX_RIGHT
+    EDITTEXT        IDCE_REFLECTIONSPANX,76,267,48,12,ES_AUTOHSCROLL,
+                    WS_EX_RIGHT
+    EDITTEXT        IDCE_REFLECTIONSPANY,76,280,48,12,ES_AUTOHSCROLL,
+                    WS_EX_RIGHT
+    EDITTEXT        IDCE_REFLECTIONSPANZ,76,293,48,12,ES_AUTOHSCROLL,
+                    WS_EX_RIGHT
+    EDITTEXT        IDCE_REVERBPANX,76,306,48,12,ES_AUTOHSCROLL,WS_EX_RIGHT
+    EDITTEXT        IDCE_REVERBPANY,76,319,48,12,ES_AUTOHSCROLL,WS_EX_RIGHT
+    EDITTEXT        IDCE_REVERBPANZ,76,332,48,12,ES_AUTOHSCROLL,WS_EX_RIGHT
+    CONTROL         "",IDCS_ENVIRONMENTSIZE,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,126,7,123,12
+    CONTROL         "",IDCS_ENVIRONMENTDIFFUSION,"msctls_trackbar32",
+                    TBS_BOTH | TBS_NOTICKS | WS_TABSTOP,126,20,123,12
+    CONTROL         "",IDCS_ROOM,"msctls_trackbar32",TBS_BOTH | TBS_NOTICKS | 
+                    WS_TABSTOP,126,33,123,12
+    CONTROL         "",IDCS_ROOMHF,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,126,46,123,12
+    CONTROL         "",IDCS_ROOMLF,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,126,59,123,12
+    CONTROL         "",IDCS_DECAYTIME,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,126,72,123,12
+    CONTROL         "",IDCS_DECAYHFRATIO,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,126,85,123,12
+    CONTROL         "",IDCS_DECAYLFRATIO,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,126,98,123,12
+    CONTROL         "",IDCS_REFLECTIONS,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,126,111,123,12
+    CONTROL         "",IDCS_REFLECTIONSDELAY,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,126,124,123,12
+    CONTROL         "",IDCS_REVERB,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,126,137,123,12
+    CONTROL         "",IDCS_REVERBDELAY,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,126,150,123,12
+    CONTROL         "",IDCS_ECHOTIME,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,126,163,123,12
+    CONTROL         "",IDCS_ECHODEPTH,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,126,176,123,12
+    CONTROL         "",IDCS_MODULATIONTIME,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,126,189,123,12
+    CONTROL         "",IDCS_MODULATIONDEPTH,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,126,202,123,12
+    CONTROL         "",IDCS_AIRABSORPTIONHF,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,126,215,123,12
+    CONTROL         "",IDCS_HFREFERENCE,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,126,228,123,12
+    CONTROL         "",IDCS_LFREFERENCE,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,126,241,123,12
+    CONTROL         "",IDCS_ROOMROLLOFFFACTOR,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,126,254,123,12
+    CONTROL         "",IDCS_REFLECTIONSPANX,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,126,267,123,12
+    CONTROL         "",IDCS_REFLECTIONSPANY,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,126,280,123,12
+    CONTROL         "",IDCS_REFLECTIONSPANZ,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,126,293,123,12
+    CONTROL         "",IDCS_REVERBPANX,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,126,306,123,12
+    CONTROL         "",IDCS_REVERBPANY,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,126,319,123,12
+    CONTROL         "",IDCS_REVERBPANZ,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,126,332,123,12
+    CONTROL         "Reflections Scale",IDC_REFLECTIONSSCALE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,19,353,70,10
+    CONTROL         "Reflections Delay Scale",IDC_REFLECTIONSDELAYSCALE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,19,366,90,10
+    CONTROL         "Decay Time Scale",IDC_DECAYTIMESCALE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,19,377,71,10
+    CONTROL         "Decay HF Limit",IDC_DECAYHFLIMIT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,19,390,63,10
+    CONTROL         "Reverb Scale",IDC_REVERBSCALE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,139,353,58,10
+    CONTROL         "Reverb Delay Scale",IDC_REVERBDELAYSCALE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,139,366,78,10
+    CONTROL         "Echo Time Scale",IDC_ECHOTIMESCALE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,139,377,67,10
+    CONTROL         "Modulation Time Scale",IDC_MODULATIONTIMESCALE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,139,390,86,10
+    LTEXT           "Environment Size",IDC_STATIC,17,9,56,8,0,WS_EX_RIGHT
+    LTEXT           "Environment Diffusion",IDC_STATIC,2,22,71,8,0,
+                    WS_EX_RIGHT
+    LTEXT           "Room",IDC_STATIC,53,35,19,8,0,WS_EX_RIGHT
+    LTEXT           "Room HF",IDC_STATIC,43,48,30,8,0,WS_EX_RIGHT
+    LTEXT           "Room LF",IDC_STATIC,45,60,28,8,0,WS_EX_RIGHT
+    LTEXT           "Decay Time",IDC_STATIC,35,74,38,8,0,WS_EX_RIGHT
+    LTEXT           "Decay HF Ratio",IDC_STATIC,23,87,50,8,0,WS_EX_RIGHT
+    LTEXT           "Decay LF Ratio",IDC_STATIC,24,100,49,8,0,WS_EX_RIGHT
+    LTEXT           "Reflections",IDC_STATIC,37,113,36,8,0,WS_EX_RIGHT
+    LTEXT           "Reflections Delay",IDC_STATIC,17,126,56,8,0,WS_EX_RIGHT
+    LTEXT           "Reflections Pan X",IDC_STATIC,17,267,56,8,0,WS_EX_RIGHT
+    LTEXT           "Reflections Pan Y",IDC_STATIC,17,280,56,8,0,WS_EX_RIGHT
+    LTEXT           "Reflections Pan Z",IDC_STATIC,17,293,56,8,0,WS_EX_RIGHT
+    LTEXT           "Reverb",IDC_STATIC,49,137,24,8,0,WS_EX_RIGHT
+    LTEXT           "Reverb Delay",IDC_STATIC,29,150,44,8,0,WS_EX_RIGHT
+    LTEXT           "Reverb Pan X",IDC_STATIC,29,306,44,8,0,WS_EX_RIGHT
+    LTEXT           "Reverb Pan Y",IDC_STATIC,29,319,44,8,0,WS_EX_RIGHT
+    LTEXT           "Reverb Pan Z",IDC_STATIC,29,332,44,8,0,WS_EX_RIGHT
+    LTEXT           "Echo Time",IDC_STATIC,40,163,33,8,0,WS_EX_RIGHT
+    LTEXT           "Echo Depth",IDC_STATIC,35,176,38,8,0,WS_EX_RIGHT
+    LTEXT           "Modulation Time",IDC_STATIC,21,189,52,8,0,WS_EX_RIGHT
+    LTEXT           "Modulation Depth",IDC_STATIC,16,202,57,8,0,WS_EX_RIGHT
+    LTEXT           "Air Absorption HF",IDC_STATIC,16,215,57,8,0,WS_EX_RIGHT
+    LTEXT           "HF Reference",IDC_STATIC,28,228,45,8,0,WS_EX_RIGHT
+    LTEXT           "LF Reference",IDC_STATIC,29,241,44,8,0,WS_EX_RIGHT
+    LTEXT           "Room Rolloff Factor",IDC_STATIC,9,254,64,8,0,
+                    WS_EX_RIGHT
+END
+
+IDD_EAXEDIT DIALOGEX 0, 0, 280, 326
+STYLE DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CLIPSIBLINGS | 
+    WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+EXSTYLE WS_EX_TOOLWINDOW | WS_EX_WINDOWEDGE
+CAPTION "EAX Environment Editor"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    COMBOBOX        IDC_CURRENTENVIRONMENT,7,19,265,14,CBS_DROPDOWNLIST | 
+                    CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Static",IDC_DUMMY,7,36,265,263,0,WS_EX_CLIENTEDGE
+    PUSHBUTTON      "&New...",IDC_NEW,8,305,45,14
+    PUSHBUTTON      "&Save...",IDC_SAVE,60,305,45,14
+    PUSHBUTTON      "&Revert",IDC_REVERT,112,305,45,14
+    CONTROL         "&Test in level",IDC_TESTEAX,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,165,307,54,10
+    PUSHBUTTON      "&Done",IDOK,228,305,45,14
+    CONTROL         "Show &IDs in List",IDC_SHOWIDS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,7,7,66,10
+    LTEXT           "ID 2:",IDC_STATIC,239,7,19,8
+    LTEXT           "ID 1:",IDC_STATIC,198,7,19,8
+    LTEXT           "255",IDC_ID2,258,7,15,8
+    LTEXT           "255",IDC_ID1,218,7,15,8
+END
+
+IDD_NEWEAX DIALOGEX 0, 0, 348, 257
+STYLE DS_MODALFRAME | DS_FIXEDSYS | DS_CENTERMOUSE | WS_POPUP | WS_VISIBLE | 
+    WS_CAPTION | WS_SYSMENU
+CAPTION "Create New EAX Environment..."
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_NEWENVNAME,32,216,187,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDITID1,248,216,32,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "",IDC_SPINID1,"msctls_updown32",UDS_SETBUDDYINT | 
+                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,236,216,
+                    11,14
+    EDITTEXT        IDC_EDITID2,309,216,32,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "",IDC_SPINID2,"msctls_updown32",UDS_SETBUDDYINT | 
+                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,297,216,
+                    11,14
+    CONTROL         "",IDC_ENVIRONMENTLIST,"SysListView32",LVS_LIST | 
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_SORTASCENDING | 
+                    LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,7,18,334,192
+    DEFPUSHBUTTON   "Create",IDOK,246,236,45,14
+    PUSHBUTTON      "Cancel",IDCANCEL,296,236,45,14
+    LTEXT           "Name:",IDC_STATIC,7,218,22,8
+    LTEXT           "ID 1:",IDC_STATIC,226,218,17,8
+    LTEXT           "ID 2:",IDC_STATIC,287,218,17,8
+    LTEXT           "Based on:",IDC_STATIC,7,7,33,8
+END
+
+IDD_SAVEEAX DIALOGEX 0, 0, 394, 95
+STYLE DS_3DLOOK | DS_FIXEDSYS | DS_CONTROL | WS_CHILD | WS_CLIPSIBLINGS | 
+    WS_CLIPCHILDREN | WS_SYSMENU
+EXSTYLE WS_EX_TRANSPARENT
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    GROUPBOX        "Include these environments:",IDC_SAVEGROUP,6,0,371,90,0,
+                    WS_EX_TRANSPARENT
+    CONTROL         "",IDC_ENVLIST,"SysListView32",LVS_LIST | 
+                    LVS_SHOWSELALWAYS | LVS_SORTASCENDING | LVS_ALIGNLEFT | 
+                    WS_BORDER | WS_TABSTOP,12,12,303,72
+    PUSHBUTTON      "Select All",IDC_SELECTALL,320,12,50,14
+    PUSHBUTTON      "Select None",IDC_SELECTNONE,320,31,50,14
+END
+
+IDD_CRASHDIALOG DIALOGEX 0, 0, 405, 308
+STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_FIXEDSYS | DS_CENTER | WS_POPUP | 
+    WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTROLPARENT | WS_EX_APPWINDOW
+CAPTION "Skulltag Very Fatal Error"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    CONTROL         "",IDC_CRASHTAB,"SysTabControl32",WS_TABSTOP,4,4,397,280
+    PUSHBUTTON      "&Send Error Report",IDYES,139,289,91,14,WS_DISABLED
+    PUSHBUTTON      "Save Report to Disk...",IDC_SAVEREPORT,235,289,91,14
+    PUSHBUTTON      "&Discard Report",IDNO,331,289,70,14
+END
+
+IDD_CRASHOVERVIEW DIALOGEX 1, 13, 391, 264
+STYLE DS_FIXEDSYS | DS_CONTROL | WS_CHILD | WS_VISIBLE
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_CRASHINFO,7,126,377,90,ES_MULTILINE | ES_AUTOVSCROLL | 
+                    ES_WANTRETURN | WS_VSCROLL
+    CONTROL         "",IDC_PLEASETELLUS,"RichEdit20A",0x804,7,50,377,54,
+                    WS_EX_TRANSPARENT
+    LTEXT           "(Optional) To help diagnose the cause of this error, please describe what you were doing when the error occured. If you were playing with custom wads, please also indicate where to obtain them:",
+                    IDC_STATIC,7,108,377,16,0,WS_EX_TRANSPARENT
+    CONTROL         131,IDC_DEADGUYVIEWER,"Static",SS_BITMAP,345,7,23,26
+    CONTROL         "",IDC_CRASHHEADER,"RichEdit20A",0x884,18,13,306,25,
+                    WS_EX_TRANSPARENT
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,0,42,407,1
+    GROUPBOX        "Summary",IDC_STATIC,7,223,377,34
+    LTEXT           "Static",IDC_CRASHSUMMARY,14,233,363,20
+END
+
+IDD_CRASHDETAILS DIALOGEX 0, 0, 391, 164
+STYLE DS_3DLOOK | DS_FIXEDSYS | DS_CONTROL | WS_CHILD
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "The error report contains these files:",IDC_STATIC,7,5,
+                    119,8
+    LTEXT           "The selected file contains this information:",
+                    IDC_STATIC,7,74,136,8
+    RTEXT           "Static",IDC_CRASHFILESIZE,329,74,55,8
+    LISTBOX         IDC_CRASHFILES,7,15,377,53,LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",IDC_CRASHFILECONTENTS,"RichEdit20A",WS_BORDER | 
+                    WS_VSCROLL | WS_TABSTOP | 0x804,7,83,377,174
+END
+
+IDD_BOING DIALOGEX 0, 0, 187, 196
+STYLE DS_MODALFRAME | DS_FIXEDSYS | DS_CENTERMOUSE | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Upload status"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Close",IDOK,130,175,50,14,WS_DISABLED
+    ICON            IDI_BOING1,IDC_BOING,7,7,21,20
+    LTEXT           "Static",IDC_BOINGSTATUS,33,12,147,8
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,0,166,189,1
+    CONTROL         "",IDC_BOINGEDIT,"RichEdit20A",WS_BORDER | WS_VSCROLL | 
+                    WS_TABSTOP | 0x804,7,34,173,124
+    CONTROL         "",IDC_BOINGPROGRESS,"msctls_progress32",PBS_SMOOTH | 
+                    NOT WS_VISIBLE | WS_BORDER,33,22,147,9
+END
+
+IDD_ADDBOT DIALOG DISCARDABLE  0, 0, 204, 156
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Add bot"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Add",IDC_ADD,146,18,50,14
+    PUSHBUTTON      "Done",IDOK,146,34,50,14
+    LISTBOX         IDC_BOTLIST,8,18,128,128,LBS_SORT | LBS_NOINTEGRALHEIGHT | 
+                    LBS_DISABLENOSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Bot names:",IDC_STATIC,8,8,36,8
+END
+
+IDD_BANIP DIALOG DISCARDABLE  0, 0, 232, 64
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Ban IP"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,56,42,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,106,42,50,14
+    LTEXT           "Address:",IDC_STATIC,8,8,28,8
+    EDITTEXT        IDC_IPADDRESS,8,18,76,14,ES_AUTOHSCROLL
+    LTEXT           "Comment:",IDC_STATIC,92,8,32,8
+    EDITTEXT        IDC_BANCOMMENT,92,18,128,14,ES_AUTOHSCROLL
+END
+
+IDD_BANLIST DIALOGEX 0, 0, 258, 230
+STYLE DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "Ban list"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LTEXT           "Ban file:",IDC_STATIC,8,8,26,8
+    EDITTEXT        IDC_BANFILE,8,18,176,14,ES_AUTOHSCROLL
+    LTEXT           "Ban list:",IDC_STATIC,8,36,26,8
+    LISTBOX         IDC_BANLIST,8,46,176,160,LBS_NOINTEGRALHEIGHT | 
+                    LBS_DISABLENOSCROLL | WS_VSCROLL | WS_HSCROLL | 
+                    WS_TABSTOP
+    CONTROL         "Enforce bans",IDC_ENFORCEBANS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,68,211,58,10
+    PUSHBUTTON      "Edit",IDC_EDIT,200,46,50,14
+    PUSHBUTTON      "Remove",IDC_REMOVE,200,62,50,14
+    PUSHBUTTON      "Clear",IDC_CLEAR,200,78,50,14
+    DEFPUSHBUTTON   "OK",IDOK,200,192,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,200,208,50,14
+END
+
+IDD_BANPLAYER DIALOG DISCARDABLE  0, 0, 224, 176
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Ban player"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Ban!",IDC_BAN,166,24,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,166,40,50,14
+    LTEXT           "Reason:",IDC_STATIC,8,9,28,8
+    EDITTEXT        IDC_REASON,40,8,110,14,ES_AUTOHSCROLL
+    LISTBOX         IDC_PLAYERNAMES,8,24,142,144,LBS_SORT | 
+                    LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_CHANGEMAP DIALOG DISCARDABLE  0, 0, 226, 46
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Change map"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,168,8,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,168,24,50,14
+    LTEXT           "Map name:",IDC_STATIC,8,11,36,8
+    EDITTEXT        IDC_MAPNAME,45,8,112,14,ES_AUTOHSCROLL
+    CONTROL         "Intermission?",IDC_INTERMISSION,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,8,28,57,10
+END
+
+IDD_DMFLAGS DIALOG DISCARDABLE  0, 0, 464, 374
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Configure DMFlags"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,356,354,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,406,354,50,14
+    GROUPBOX        "DMFlags",IDC_STATIC,8,114,144,214
+    GROUPBOX        "DMFlags2",IDC_STATIC,160,114,144,214
+    GROUPBOX        "Compatflags",IDC_STATIC,312,114,144,214
+    CONTROL         "Falling damage (old)",IDC_FORCE_FALLINGZD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,124,79,10
+    CONTROL         "Falling damage (hexen)",IDC_FORCE_FALLINGHX,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,134,89,10
+    CONTROL         "Weapons stay (DM)",IDC_WEAPONS_STAY,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,144,79,10
+    CONTROL         "Disallow powerups (DM)",IDC_NO_ITEMS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,154,92,10
+    CONTROL         "Disallow health (DM)",IDC_NO_HEALTH,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,164,81,10
+    CONTROL         "Disallow armor (DM)",IDC_NO_ARMOR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,174,79,10
+    CONTROL         "Spawn farthest (DM)",IDC_SPAWN_FARTHEST,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,184,81,10
+    CONTROL         "Same map (DM)",IDC_SAME_LEVEL,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,16,194,67,10
+    CONTROL         "Force respawn (DM)",IDC_FORCE_RESPAWN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,204,80,10
+    CONTROL         "Disallow exit (DM)",IDC_NO_EXIT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,214,72,10
+    CONTROL         "Infinite ammo",IDC_INFINITE_AMMO,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,224,57,10
+    CONTROL         "No monsters",IDC_NO_MONSTERS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,16,234,55,10
+    CONTROL         "Monsters respawn",IDC_MONSTERS_RESPAWN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,244,73,10
+    CONTROL         "Items respawn",IDC_ITEMS_RESPAWN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,254,61,10
+    CONTROL         "Mega powerups respawn",IDC_RESPAWN_SUPER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,264,95,10
+    CONTROL         "Fast monsters",IDC_FAST_MONSTERS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,274,59,10
+    CONTROL         "Disallow jump",IDC_NO_JUMP,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,16,284,59,10
+    CONTROL         "Disallow freelook",IDC_NO_FREELOOK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,294,69,10
+    CONTROL         "Disallow fov",IDC_NO_FOV,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,16,304,54,10
+    CONTROL         "No impaling",IDC_NO_IMPALING,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,168,124,53,10
+    CONTROL         "Drop weapons (DM)",IDC_YES_WEAPONDROP,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,168,134,79,10
+    CONTROL         "Don't spawn runes (DM)",IDC_NO_RUNES,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,168,144,92,10
+    CONTROL         "Instant flag return (ST/CTF)",IDC_INSTANT_RETURN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,168,154,103,10
+    CONTROL         "Allow base colors (ST/CTF)",IDC_ALLOW_BASECOLORS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,168,164,103,10
+    CONTROL         "No team switching (ST/CTF)",IDC_NO_TEAM_SWITCH,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,168,174,106,10
+    CONTROL         "Server picks teams (ST/CTF)",IDC_NO_TEAM_SELECT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,168,184,108,10
+    CONTROL         "Drop runes",IDC_YES_RUNEDROP,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,168,194,51,10
+    CONTROL         "Force 200%/200% max (DM)",IDC_YES_200MAX,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,168,204,106,10
+    CONTROL         "Double ammo (DM)",IDC_YES_DOUBLEAMMO,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,168,214,77,10
+    CONTROL         "Don't clear frags (DM)",IDC_NO_CLEARFRAGS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,168,224,85,10
+    CONTROL         "Degeneration",IDC_YES_DEGENERATION,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,168,234,59,10
+    CONTROL         "Lose frag on death (DM)",IDC_LOSEFRAG_ON_DEATH,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,168,244,93,10
+    CONTROL         "Allow BFG freeaiming",IDC_YES_FREEAIMBFG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,168,254,83,10
+    CONTROL         "Barrels respawn (DM)",IDC_BARRELS_RESPAWN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,168,264,83,10
+    CONTROL         "No respawn protection (DM)",IDC_NO_RESPAWN_INVUL,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,168,274,105,10
+    CONTROL         "Keep keys (CO-OP)",IDC_KEEP_KEYS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,168,284,77,10
+    CONTROL         "Keep weapons (CO-OP)",IDC_KEEP_WEAPONS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,168,294,91,10
+    CONTROL         "Start with shotgun",IDC_SHOTGUN_START,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,168,304,73,10
+    CONTROL         "Spawn where died (CO-OP)",IDC_SAME_SPAWN_SPOT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,168,314,103,10
+    CONTROL         "Find shortest textures like Doom",IDC_SHORTTEX,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,320,124,116,10
+    CONTROL         "Use buggier stair building",IDC_STAIRINDEX,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,320,134,95,10
+    CONTROL         "Limit pain elementals to 20 lost souls",IDC_LIMITPAIN,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,144,129,10
+    CONTROL         "Don't let others hear pickups",IDC_SILENTPICKUP,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,320,154,106,10
+    CONTROL         "Actors are infinitely tall",IDC_NO_PASSMOBJ,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,320,164,85,10
+    CONTROL         "Allow silent BFG trick",IDC_MAGICSILENCE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,320,174,82,10
+    CONTROL         "Enable wall running",IDC_WALLRUN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,320,184,77,10
+    CONTROL         "Spawn item drops on the floor",IDC_NOTOSSDROPS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,320,194,109,10
+    CONTROL         "All special lines can drop use lines",IDC_USEBLOCKING,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,204,123,10
+    CONTROL         "Disable Boom door light effect",IDC_NODOORLIGHT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,320,214,110,10
+    CONTROL         "Limited movement in the air",IDC_LIMITED_AIRMOVEMENT,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,224,101,10
+    CONTROL         "Plasma bump bug",IDC_PLASMA_BUMP_BUG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,320,234,72,10
+    CONTROL         "Allow instant respawn",IDC_INSTANTRESPAWN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,320,244,84,10
+    CONTROL         "Disable taunts",IDC_DISABLETAUNTS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,320,254,61,10
+    CONTROL         "Original sound curve",IDC_ORIGINALSOUNDCURVE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,320,264,81,10
+    LTEXT           "dmflags:",IDC_DMFLAGS,16,332,144,8
+    LTEXT           "dmflags2:",IDC_DMFLAGS2,168,332,144,8
+    LTEXT           "compatflags:",IDC_COMPATFLAGS,320,332,144,8
+    CONTROL         162,IDC_STATIC,"Static",SS_BITMAP,67,12,329,90
+    CONTROL         "Use old intermission screens/music",IDC_OLDINTERMISSION,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,274,126,10
+    CONTROL         "Disable stealth monsters",IDC_DISABLESTEALTHMONSTERS,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,284,92,10
+    CONTROL         "Disable cooperative backpacks",
+                    IDC_DISABLECOOPERATIVEBACKPACKS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,320,294,116,10
+END
+
+IDD_EDITBAN DIALOG DISCARDABLE  0, 0, 227, 42
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Edit ban"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,170,7,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,170,22,50,14
+    EDITTEXT        IDC_BANBOX,7,7,136,14,ES_AUTOHSCROLL
+END
+
+IDD_GENERALSETTINGS DIALOG DISCARDABLE  0, 0, 448, 331
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "General settings"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,172,309,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,222,309,50,14
+    GROUPBOX        "Server",IDC_STATIC,96,16,168,281
+    LTEXT           "Server name:",IDC_STATIC,108,28,43,8
+    EDITTEXT        IDC_SERVERNAME,108,37,144,14,ES_AUTOHSCROLL
+    LTEXT           "Wad URL:",IDC_STATIC,108,54,35,8
+    EDITTEXT        IDC_WADURL,108,63,144,14,ES_AUTOHSCROLL
+    LTEXT           "E-mail address:",IDC_STATIC,108,80,48,8
+    EDITTEXT        IDC_EMAIL,108,89,144,14,ES_AUTOHSCROLL
+    LTEXT           "Connection type:",IDC_STATIC,108,106,54,8
+    COMBOBOX        IDC_CONNECTIONTYPE,108,115,64,60,CBS_DROPDOWNLIST | 
+                    WS_TABSTOP
+    CONTROL         "Broadcast to master server",IDC_UPDATEMASTER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,108,137,100,10
+    CONTROL         "Broadcast on LAN",IDC_BROADCAST,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,108,148,74,10
+    CONTROL         "Show launcher queries",IDC_SHOWLAUNCHERQUERIES,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,108,159,88,10
+    LTEXT           "Master server IP:",IDC_STATIC,108,173,54,8
+    EDITTEXT        IDC_MASTERIP,108,182,144,14,ES_AUTOHSCROLL
+    LTEXT           "Message of the Day:",IDC_STATIC,108,199,97,8
+    EDITTEXT        IDC_MOTD,108,208,144,77,ES_MULTILINE | ES_AUTOVSCROLL | 
+                    ES_AUTOHSCROLL | ES_WANTRETURN
+    GROUPBOX        "Gameplay",IDC_STATIC,272,16,168,147
+    LTEXT           "Fraglimit:",IDC_STATIC,284,28,32,8
+    EDITTEXT        IDC_FRAGLIMIT,284,37,32,14,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Spin2",IDC_SPIN3,"msctls_updown32",UDS_SETBUDDYINT | 
+                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
+                    UDS_NOTHOUSANDS,316,37,11,14
+    LTEXT           "Timelimit:",IDC_STATIC,284,54,32,8
+    EDITTEXT        IDC_TIMELIMIT,284,63,32,14,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Spin3",IDC_SPIN3,"msctls_updown32",UDS_SETBUDDYINT | 
+                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
+                    UDS_NOTHOUSANDS,216,63,11,14
+    LTEXT           "Pointlimit:",IDC_STATIC,322,28,32,8
+    EDITTEXT        IDC_POINTLIMIT,322,37,32,14,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Spin4",IDC_SPIN4,"msctls_updown32",UDS_SETBUDDYINT | 
+                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
+                    UDS_NOTHOUSANDS,354,37,11,14
+    LTEXT           "Duellimit:",IDC_STATIC,322,54,32,8
+    EDITTEXT        IDC_DUELLIMIT,322,63,32,14,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Spin5",IDC_SPIN5,"msctls_updown32",UDS_SETBUDDYINT | 
+                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
+                    UDS_NOTHOUSANDS,354,63,11,14
+    LTEXT           "Winlimit:",IDC_STATIC,360,28,27,8
+    EDITTEXT        IDC_WINLIMIT,360,37,32,14,ES_AUTOHSCROLL
+    CONTROL         "Spin7",IDC_SPIN7,"msctls_updown32",UDS_SETBUDDYINT | 
+                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
+                    UDS_NOTHOUSANDS,392,37,11,14
+    LTEXT           "Gameplay mode:",IDC_STATIC,284,80,54,8
+    COMBOBOX        IDC_GAMEPLAYMODE,284,89,96,205,CBS_DROPDOWNLIST | 
+                    WS_TABSTOP
+    LTEXT           "Skill:",IDC_STATIC,284,106,16,8
+    COMBOBOX        IDC_SKILL,284,115,96,90,CBS_DROPDOWNLIST | WS_TABSTOP
+    LTEXT           "Botskill:",IDC_STATIC,284,130,25,8
+    COMBOBOX        IDC_BOTSKILL,284,139,96,90,CBS_DROPDOWNLIST | WS_TABSTOP
+    GROUPBOX        "Access",IDC_STATIC,272,172,168,125
+    LTEXT           "Connect password:",IDC_STATIC,284,184,71,8
+    EDITTEXT        IDC_PASSWORD,284,193,40,14,ES_AUTOHSCROLL
+    CONTROL         "Require password?",IDC_REQUIREPW,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,330,199,77,10
+    LTEXT           "Join password:",IDC_STATIC,284,210,48,8
+    EDITTEXT        IDC_JOINPASSWORD,284,219,40,14,ES_AUTOHSCROLL
+    CONTROL         "Require join password?",IDC_REQUIREJOINPW,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,330,222,89,10
+    LTEXT           "Remote control (rcon) password:",IDC_STATIC,284,236,103,
+                    8
+    EDITTEXT        IDC_RCONPASSWORD,284,245,40,14,ES_AUTOHSCROLL
+    LTEXT           "Max. clients:",IDC_STATIC,284,262,40,8
+    EDITTEXT        IDC_MAXCLIENTS,284,271,32,14,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Spin1",IDC_SPIN1,"msctls_updown32",UDS_SETBUDDYINT | 
+                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
+                    UDS_NOTHOUSANDS,316,271,11,14
+    LTEXT           "Max. players:",IDC_STATIC,348,262,42,8
+    EDITTEXT        IDC_MAXPLAYERS,348,271,32,14,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Spin6",IDC_SPIN6,"msctls_updown32",UDS_SETBUDDYINT | 
+                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
+                    UDS_NOTHOUSANDS,380,271,10,14
+    CONTROL         160,IDC_STATIC,"Static",SS_BITMAP,4,10,87,310
+END
+
+IDD_KICKPLAYER DIALOG DISCARDABLE  0, 0, 224, 176
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Kick player"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Kick!",IDC_KICK,166,24,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,166,40,50,14
+    LTEXT           "Reason:",IDC_STATIC,8,9,28,8
+    EDITTEXT        IDC_REASON,40,8,110,14,ES_AUTOHSCROLL
+    LISTBOX         IDC_PLAYERNAMES,8,24,142,144,LBS_SORT | 
+                    LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_LMSSETTINGS DIALOG DISCARDABLE  0, 0, 248, 168
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Last man standing settings"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,140,148,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,190,148,50,14
+    GROUPBOX        "Allowed weapons",IDC_STATIC,8,8,112,114
+    GROUPBOX        "Spectator settings",IDC_STATIC,128,8,112,114
+    LTEXT           "lmsallowedweapons:",IDC_LMSALLOWEDWEAPONS,16,126,104,8
+    LTEXT           "lmsspectatorsettings:",IDC_LMSSPECTATORSETTINGS,136,126,
+                    104,8
+    CONTROL         "Chainsaw",IDC_LMS_ALLOWCHAINSAW,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,18,47,10
+    CONTROL         "Pistol",IDC_LMS_ALLOWPISTOL,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,16,28,33,10
+    CONTROL         "Shotgun",IDC_LMS_ALLOWSHOTGUN,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,16,38,43,10
+    CONTROL         "Super shotgun",IDC_LMS_ALLOWSSG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,48,62,10
+    CONTROL         "Chaingun",IDC_LMS_ALLOWCHAINGUN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,58,46,10
+    CONTROL         "Minigun",IDC_LMS_ALLOWMINIGUN,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,16,68,41,10
+    CONTROL         "Rocket launcher",IDC_LMS_ALLOWROCKETLAUNCHER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,78,69,10
+    CONTROL         "Grenade launcher",IDC_LMS_ALLOWGRENADELAUNCHER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,88,73,10
+    CONTROL         "Plasma gun",IDC_LMS_ALLOWPLASMA,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,98,53,10
+    CONTROL         "Railgun",IDC_LMS_ALLOWRAILGUN,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,16,108,40,10
+    CONTROL         "View the game",IDC_LMS_SPECTATORVIEW,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,136,18,63,10
+    CONTROL         "Talk to active players",IDC_LMS_SPECTATORTALK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,136,28,83,10
+END
+
+IDD_MAPROTATION DIALOG DISCARDABLE  0, 0, 224, 182
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Map rotation list"
+FONT 8, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "Cancel",IDCANCEL,166,160,50,14
+    PUSHBUTTON      "OK",IDOK,166,144,50,14
+    LISTBOX         IDC_MAPLISTBOX,8,24,142,130,LBS_SORT | 
+                    LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | 
+                    WS_TABSTOP
+    DEFPUSHBUTTON   "Add",IDC_ADD,166,24,50,14
+    PUSHBUTTON      "Remove",IDC_REMOVE,166,40,50,14
+    PUSHBUTTON      "Clear",IDC_CLEAR,166,56,50,14
+    EDITTEXT        IDC_MAPNAME,48,8,102,14,ES_AUTOHSCROLL
+    LTEXT           "Map name:",IDC_STATIC,8,9,40,8
+    CONTROL         "Use map rotation list?",IDC_USEMAPROTATIONLIST,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,32,156,83,10
+    CONTROL         "Use random map from list",IDC_USERANDOMMAP,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,32,166,95,10
+END
+
+IDD_MESSAGES DIALOG DISCARDABLE  0, 0, 224, 198
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Messages"
+FONT 8, "MS Sans Serif"
+BEGIN
+    GROUPBOX        "Timestamp",IDC_STATIC,8,8,208,48
+    LTEXT           "Timestamp format:",IDC_STATIC,16,20,64,8
+    COMBOBOX        IDC_TIMESTAMPFORMAT,16,30,88,70,CBS_DROPDOWNLIST | 
+                    WS_TABSTOP
+    CONTROL         "Enable timestamp",IDC_TIMESTAMP,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,110,32,71,10
+    GROUPBOX        "Incoming text",IDC_STATIC,8,64,208,48
+    CONTROL         "Strip color codes",IDC_STRIPCODES,"Button",
+                    BS_AUTORADIOBUTTON,16,76,69,10
+    CONTROL         "Do not strip color codes",IDC_DONOTSTRIPCODES,"Button",
+                    BS_AUTORADIOBUTTON,16,86,112,10
+    CONTROL         "Leave in ""\\c<X>"" format",IDC_LEAVEINFORMAT,"Button",
+                    BS_AUTORADIOBUTTON,16,96,93,10
+    GROUPBOX        "Logging",IDC_STATIC,8,120,208,48
+    LTEXT           "Logfile:",IDC_STATIC,16,136,24,8
+    EDITTEXT        IDC_LOGFILE,16,146,128,14,ES_AUTOHSCROLL
+    CONTROL         "Enable logging",IDC_ENABLELOGGING,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,150,148,64,10
+    DEFPUSHBUTTON   "OK",IDOK,64,176,48,14
+    PUSHBUTTON      "Cancel",IDCANCEL,112,176,48,14
+END
+
+IDD_REMOVEBOT DIALOG DISCARDABLE  0, 0, 204, 156
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Remove bot"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Remove",IDC_REMOVE,146,18,50,14
+    PUSHBUTTON      "Remove all",IDC_REMOVEALLBOTS,146,34,50,14
+    PUSHBUTTON      "Done",IDOK,146,50,50,14
+    LISTBOX         IDC_BOTLIST,8,18,128,128,LBS_SORT | LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Bot names:",IDC_STATIC,8,8,36,8
+END
+
+IDD_SERVERDIALOG DIALOG DISCARDABLE  0, 0, 288, 322
+STYLE DS_CENTER | WS_MINIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Skulltag v0.96d Server"
+MENU IDR_MAINMENU
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_INPUTBOX,8,298,214,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "Send",IDC_SEND,229,298,50,14
+    CTEXT           "Server Info Text",IDC_TITLEBOX,32,10,224,20,
+                    SS_CENTERIMAGE | SS_SUNKEN
+    CONTROL         "",IDC_PLAYERLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | WS_BORDER | 
+                    WS_TABSTOP,16,84,256,92
+    GROUPBOX        "Scoreboard",IDC_STATIC,8,40,272,144
+    GROUPBOX        "Console",IDC_STATIC,8,192,272,102
+    EDITTEXT        IDC_CONSOLEBOX,16,205,256,76,ES_MULTILINE | 
+                    ES_AUTOVSCROLL | ES_READONLY | WS_VSCROLL
+    LTEXT           "",IDC_CURRENTMAP,14,282,240,8
+    CTEXT           "",IDC_SCOREBOARD1,16,48,256,8
+    CTEXT           "",IDC_SCOREBOARD2,16,57,256,8
+    CTEXT           "",IDC_SCOREBOARD3,16,66,256,8
+    CTEXT           "",IDC_SCOREBOARD4,16,75,256,8
+END
+
+IDD_SERVERINFO DIALOG DISCARDABLE  0, 0, 272, 272
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Server Information"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CTEXT           "Version @ IP",IDC_VERSION,40,24,192,8
+    GROUPBOX        "System Information",IDC_STATIC,8,48,256,48
+    LTEXT           "Operating system:",IDC_OPERATINGSYSTEM,16,60,224,8
+    LTEXT           "CPU speed:",IDC_CPUSPEED,16,70,224,8
+    LTEXT           "Vendor:",IDC_VENDOR,16,80,224,8
+    GROUPBOX        "Settings",IDC_STATIC,8,104,256,138
+    LTEXT           "Connection type:",IDC_CONNECTIONTYPE,16,116,224,8
+    LTEXT           "Max. clients:",IDC_MAXCLIENTS,16,126,224,8
+    LTEXT           "Max. players:",IDC_MAXPLAYERS,16,136,224,8
+    LTEXT           "Fraglimit:",IDC_FRAGLIMIT,16,146,224,8
+    LTEXT           "Timelimit:",IDC_TIMELIMIT,16,156,224,8
+    LTEXT           "Pointlimit:",IDC_POINTLIMIT,16,166,224,8
+    LTEXT           "Winlimit:",IDC_WINLIMIT,16,176,224,8
+    LTEXT           "Gameplay mode:",IDC_GAMEPLAYMODE,16,186,224,8
+    LTEXT           "Game:",IDC_GAME,16,196,224,8
+    LTEXT           "E-mail address:",IDC_EMAILADDRESS,16,206,224,8
+    LTEXT           "WAD URL:",IDC_WADURL,16,216,224,8
+    LTEXT           "PWADs:",IDC_PWADS,16,226,224,8
+    DEFPUSHBUTTON   "OK",IDOK,112,252,48,14
+END
+
+IDD_SERVERSTATISTICS DIALOG DISCARDABLE  0, 0, 224, 202
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Server statistics"
+FONT 8, "MS Sans Serif"
+BEGIN
+    GROUPBOX        "Transfer statistics",IDC_STATIC,8,8,208,98
+    LTEXT           "Total data transfer (in): 5972389KB (5.70 GB)",
+                    IDC_TOTALINBOUNDDATATRANSFER,16,20,192,8
+    LTEXT           "Total data transfer (out): 5972389KB (5.70 GB)",
+                    IDC_TOTALOUTBOUNDDATATRANSFER,16,30,192,8
+    LTEXT           "Average data transfer (in): 3173B/s (3.10KB/s)",
+                    IDC_AVERAGEINBOUNDDATATRANSFER,16,40,192,8
+    LTEXT           "Average data transfer (out): 3173B/s (3.10KB/s)",
+                    IDC_AVERAGEOUTBOUNDDATATRANSFER,16,50,192,8
+    LTEXT           "Peak data transfer (in): 19612B/s (18.71KB/s)",
+                    IDC_PEAKINBOUNDDATATRANSFER,16,60,192,8
+    LTEXT           "Peak data transfer (out): 19612B/s (18.71KB/s)",
+                    IDC_PEAKOUTBOUNDDATATRANSFER,16,70,192,8
+    LTEXT           "Current data transfer (in): 1024B/s (1.00KB/s)",
+                    IDC_CURRENTINBOUNDDATATRANSFER,16,80,192,8
+    LTEXT           "Current data transfer (out): 1024B/s (1.00KB/s)",
+                    IDC_CURRENTOUTBOUNDDATATRANSFER,16,90,192,8
+    GROUPBOX        "Game statistics",IDC_STATIC,8,114,208,58
+    LTEXT           "Average number of players: 2.38",IDC_AVGNUMPLAYERS,16,
+                    126,192,8
+    LTEXT           "Max. players at one time: 17",IDC_MAXPLAYERSATONETIME,
+                    16,136,192,8
+    LTEXT           "Total number of frags: 9372",IDC_TOTALFRAGS,16,146,192,
+                    8
+    LTEXT           "Total uptime: 4d 23:23:07",IDC_TOTALUPTIME,16,156,192,8
+    DEFPUSHBUTTON   "OK",IDOK,87,180,48,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Cursor
+//
+
+IDC_INVISIBLECURSOR     CURSOR  DISCARDABLE     "cursor1.cur"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_DEADGUY             BITMAP  MOVEABLE PURE   "deadguy.bmp"
+IDB_DMFLAGS             BITMAP  DISCARDABLE     "dmflags256.bmp"
+IDB_GENERALSETTINGS     BITMAP  DISCARDABLE     "serversettings256.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MAINMENU MENU DISCARDABLE 
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "Import configuration...",     ID_FILE_IMPORTCONFIGURATION
+        , GRAYED
+        MENUITEM "Export configuration...",     ID_FILE_EXPORTCONFIGURATION
+        , GRAYED
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit",                       ID_FILE_EXIT
+    END
+    POPUP "&Settings"
+    BEGIN
+        MENUITEM "&General settings...",        ID_SETTINGS_GENERALSETTINGS
+        MENUITEM SEPARATOR
+        MENUITEM "Configure &DMFlags...",       ID_SETTINGS_CONFIGREDMFLAGS
+        MENUITEM "&Map rotation...",            ID_SETTINGS_MAPROTATION
+        MENUITEM "&LMS settings...",            ID_SETTINGS_LMSSETTINGS
+        MENUITEM SEPARATOR
+        MENUITEM "Messa&ges...",                ID_SETTINGS_MESSAGES
+    END
+    POPUP "Ser&ver"
+    BEGIN
+        MENUITEM "&General information...",     ID_SERVER_GENERALINFORMATION
+        MENUITEM "&Statistics....",             ID_SERVER_STATISTICS
+    END
+    POPUP "&Admin"
+    BEGIN
+        MENUITEM "&Add bot...",                 ID_ADMIN_ADDBOT
+        MENUITEM "&Remove bot...",              ID_ADMIN_REMOVEBOT
+        MENUITEM SEPARATOR
+        MENUITEM "&Kick player...",             ID_ADMIN_KICKPLAYER
+        MENUITEM "Kick/&ban player...",         ID_ADMIN_KICKBANPLAYER
+        MENUITEM SEPARATOR
+        MENUITEM "&View banlist...",            ID_ADMIN_VIEWBANLIST
+        MENUITEM "Add &IP ban...",              ID_ADMIN_BANIP
+        MENUITEM SEPARATOR
+        MENUITEM "&Change map...",              ID_ADMIN_CHANGEMAP
+    END
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#ifndef NO_MANIFEST
+   CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "zdoom.exe.manifest"
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

@@ -1,0 +1,281 @@
+# The big list of all things zdoom.wad.
+
+@zdoom.pk3
+
+graphics/invgemr2.lmp    	invgemr2.lmp
+graphics/invgemr1.lmp    	invgemr1.lmp
+graphics/invgeml2.lmp    	invgeml2.lmp
+graphics/invgeml1.lmp    	invgeml1.lmp
+graphics/artibox.png    	artibox.png
+graphics/selectbo.png    	selectbo.png
+graphics/fiteface.lmp       fiteface.lmp
+graphics/mageface.lmp       mageface.lmp
+graphics/clerface.lmp       clerface.lmp
+graphics/hamoback.png       hamoback.png
+
+========			    # Decals
+decaldef.txt                decals/decaldef.txt
+--------
+
+graphics/blast1.png	        decals/blast1.png
+graphics/cbalscr1.png       decals/cbalscr1.png
+graphics/cbalscr2.png       decals/cbalscr2.png
+graphics/bal7scr1.png       decals/bal7scr1.png
+graphics/bal7scr2.png       decals/bal7scr2.png
+graphics/bfglite1.png       decals/bfglite1.png
+graphics/bfglite2.png       decals/bfglite2.png
+graphics/bfgscrc1.png       decals/bfgscrc1.png
+graphics/bfgscrc2.png       decals/bfgscrc2.png
+graphics/plasma1.png        decals/plasma1.png
+graphics/plasma2.png	    decals/plasma2.png
+graphics/scorch1.png        decals/scorch1.png
+graphics/bsplat1.png	    decals/bsplat1.png
+graphics/bsplat2.png	    decals/bsplat2.png
+graphics/bsplat3.png	    decals/bsplat3.png
+graphics/bsplat4.png	    decals/bsplat4.png
+graphics/bsplat5.png	    decals/bsplat5.png
+graphics/bsplat6.png	    decals/bsplat6.png
+graphics/bsplat7.png	    decals/bsplat7.png
+graphics/bsmear1.png	    decals/bsmear1.png
+graphics/bsmear2.png	    decals/bsmear2.png
+graphics/chip1.png	        decals/chip1.png
+graphics/chip2.png	        decals/chip2.png
+graphics/chip3.png 	        decals/chip3.png
+graphics/chip4.png	        decals/chip4.png
+graphics/chip5.png	        decals/chip5.png
+graphics/cbowmark.png       decals/cbowmark.png
+
+========
+# Definition lumps
+
+animdefs.txt                animdefs.txt
+terrain.txt           	    terrain.txt
+in_epi1.txt           		in_epi1.txt
+in_epi2.txt           		in_epi2.txt
+in_epi3.txt           		in_epi3.txt
+in_htc1.txt           		in_htc1.txt
+in_htc2.txt           		in_htc2.txt
+in_htc3.txt           		in_htc3.txt
+lockdefs.txt             	lockdefs.txt
+
+========
+# Support lumps
+
+dehsupp.lmp	                dehsupp.lmp
+
+doomx.lmp	                xlat/doom.x
+hereticx.lmp                xlat/heretic.x
+strifex.lmp	                xlat/strife.x
+
+animated.lmp                animated.lmp
+spaldoom.lmp                spaldoom.lmp
+spalhtic.lmp                spalhtic.lmp
+
+========
+# Language lumps
+
+language.enu                languages/english-us.txt
+language.fr                 languages/french.txt
+language.ita                languages/italian.txt
+
+========
+
+x11r6rgb.txt                x11r6rgb.txt
+graphics/stkeys6.lmp	    stkeys6.lmp
+graphics/stkeys7.lmp	    stkeys7.lmp
+graphics/stkeys8.lmp	    stkeys8.lmp
+dbigfont.lmp                dbigfont.lmp    # The big Doom font
+sbigfont.lmp                sbigfont.lmp    # The big Strife font
+confont.lmp            	    confont.lmp
+graphics/fonta60.lmp	    fonta60.lmp
+graphics/fonta61.lmp	    fonta61.lmp
+graphics/fonta62.lmp	    fonta62.lmp
+graphics/fonta63.lmp	    fonta63.lmp
+graphics/fonta164.lmp	    fonta164.lmp
+graphics/fonta165.lmp	    fonta165.lmp
+graphics/fonta182.lmp	    fonta182.lmp
+graphics/fonta188.lmp	    fonta188.lmp
+graphics/fonta191.lmp	    fonta191.lmp
+graphics/stcfn223.lmp	    stcfn223.lmp
+graphics/stcfn220.lmp	    stcfn220.lmp
+graphics/stcfn214.lmp	    stcfn214.lmp
+graphics/stcfn197.lmp	    stcfn197.lmp
+graphics/stcfn196.lmp	    stcfn196.lmp
+graphics/stpbany.lmp	    stpbany.lmp
+graphics/stfbany.lmp	    stfbany.lmp
+
+========
+# Crosshairs
+graphics/xhairs1.imgz	    xhairs1.imgz
+graphics/xhairs2.imgz	    xhairs2.imgz
+graphics/xhairs3.imgz	    xhairs3.imgz
+graphics/xhairs4.imgz	    xhairs4.imgz
+graphics/xhairs5.imgz	    xhairs5.imgz
+graphics/xhairs6.imgz	    xhairs6.imgz
+graphics/xhairs7.imgz	    xhairs7.imgz
+
+graphics/xhairb1.imgz	    xhairb1.imgz
+graphics/xhairb2.imgz	    xhairb2.png
+graphics/xhairb3.imgz	    xhairb3.imgz
+graphics/xhairb4.imgz	    xhairb4.imgz
+graphics/xhairb5.imgz	    xhairb5.imgz
+graphics/xhairb6.imgz	    xhairb6.imgz
+graphics/xhairb7.imgz	    xhairb7.imgz
+
+# Now some sprites
+sprites/tnt1a0.png		    tnt1a0.png
+sprites/unkna0.png		    unkna0.png
+sprites/tlgla0.png		    tlgl.png
+sprites/tlglb0.png		    tlgl.png
+sprites/tlglc0.png		    tlgl.png
+sprites/tlgld0.png		    tlgl.png
+sprites/tlgle0.png		    tlgl.png
+sprites/iceca0.png		    iceca0.png
+sprites/icecb0.png		    icecb0.png
+sprites/icecc0.png		    icecc0.png
+sprites/icecd0.png		    icecd0.png
+
+# crouching DoomPlayer
+sprites/plyca1.lmp  		crouch/plyca1.lmp
+sprites/plyca2a8.lmp        crouch/plyca2a8.lmp
+sprites/plyca3a7.lmp        crouch/plyca3a7.lmp
+sprites/plyca4a6.lmp        crouch/plyca4a6.lmp
+sprites/plyca5.lmp          crouch/plyca5.lmp
+sprites/plycb1.lmp          crouch/plycb1.lmp
+sprites/plycb2b8.lmp        crouch/plycb2b8.lmp
+sprites/plycb3b7.lmp        crouch/plycb3b7.lmp
+sprites/plycb4b6.lmp        crouch/plycb4b6.lmp
+sprites/plycb5.lmp          crouch/plycb5.lmp
+sprites/plycc1.lmp          crouch/plycc1.lmp
+sprites/plycc2c8.lmp        crouch/plycc2c8.lmp
+sprites/plycc3c7.lmp        crouch/plycc3c7.lmp
+sprites/plycc4c6.lmp        crouch/plycc4c6.lmp
+sprites/plycc5.lmp          crouch/plycc5.lmp
+sprites/plycd1.lmp          crouch/plycd1.lmp
+sprites/plycd2d8.lmp        crouch/plycd2d8.lmp
+sprites/plycd3d7.lmp        crouch/plycd3d7.lmp
+sprites/plycd4d6.lmp        crouch/plycd4d6.lmp
+sprites/plycd5.lmp          crouch/plycd5.lmp
+sprites/plyce1.lmp          crouch/plyce1.lmp
+sprites/plyce2e8.lmp        crouch/plyce2e8.lmp
+sprites/plyce3e7.lmp        crouch/plyce3e7.lmp
+sprites/plyce4e6.lmp        crouch/plyce4e6.lmp
+sprites/plyce5.lmp          crouch/plyce5.lmp
+sprites/plycf1.lmp          crouch/plycf1.lmp
+sprites/plycf2f8.lmp        crouch/plycf2f8.lmp
+sprites/plycf3f7.lmp        crouch/plycf3f7.lmp
+sprites/plycf4f6.lmp        crouch/plycf4f6.lmp
+sprites/plycf5.lmp          crouch/plycf5.lmp
+sprites/plycg1.lmp          crouch/plycg1.lmp
+sprites/plycg2g8.lmp        crouch/plycg2g8.lmp
+sprites/plycg3g7.lmp        crouch/plycg3g7.lmp
+sprites/plycg4g6.lmp        crouch/plycg4g6.lmp
+sprites/plycg5.lmp          crouch/plycg5.lmp
+sprites/plych0.lmp          crouch/plych0.lmp
+sprites/plyci0.lmp          crouch/plyci0.lmp
+sprites/plycj0.lmp          crouch/plycj0.lmp
+sprites/plyck0.lmp          crouch/plyck0.lmp
+sprites/plycl0.lmp          crouch/plycl0.lmp
+sprites/plycm0.lmp          crouch/plycm0.lmp
+sprites/plycn0.lmp          crouch/plycn0.lmp
+sprites/plyco0.lmp          crouch/plyco0.lmp
+sprites/plycp0.lmp          crouch/plycp0.lmp
+sprites/plycq0.lmp          crouch/plycq0.lmp
+sprites/plycr0.lmp          crouch/plycr0.lmp
+sprites/plycs0.lmp          crouch/plycs0.lmp
+sprites/plyct0.lmp          crouch/plyct0.lmp
+sprites/plycu0.lmp          crouch/plycu0.lmp
+sprites/plycv0.lmp          crouch/plycv0.lmp
+sprites/plycw0.lmp          crouch/plycw0.lmp
+
+# The patch substituted when a corrupt patch is detected
+graphics/-badpatc.lmp 	    badpatch.lmp
+
+# The texture substituted when an unknown texture is encountered
+textures/-noflat-.png       noflat.png
+
+========
+# Sounds
+
+sndinfo.txt	    			sndinfo.txt
+sndseq.txt	    			sndseq.txt
+sndeax.txt	    			sndeax.txt
+
+--------
+
+sounds/icedth1.flac		    icedeath.flac
+sounds/icebrk1a.flac	    icebreak.flac
+
+sounds/dsquake.flac		    quake.flac
+sounds/dsempty.lmp		    dsempty.lmp
+sounds/dssecret.flac	    secret.flac
+sounds/spark1.flac		    spark1.flac
+sounds/spark2.flac		    spark2.flac
+sounds/spark3.flac		    spark3.flac
+sounds/railgf1.flac		    railgunfire.flac
+
+========
+# Mapinfos
+
+mapinfo/doom1.txt			mapinfo/doom1.txt
+mapinfo/doom2.txt			mapinfo/doom2.txt
+mapinfo/plutonia.txt			mapinfo/plutonia.txt
+mapinfo/tnt.txt				mapinfo/tnt.txt
+mapinfo/heretic.txt			mapinfo/heretic.txt
+mapinfo/hexen.txt			mapinfo/hexen.txt
+mapinfo/strife.txt			mapinfo/strife.txt
+
+========
+# Strife's helper script
+acs/strfhelp.o				strfhelp.o
+
+
+========
+========
+# Decorate stuff
+
+decorate.txt				decorate/decorate.txt
+
+actors/shared/debris.txt					decorate/shared/debris.txt
+actors/shared/splashes.txt					decorate/shared/splashes.txt
+
+actors/doom/deadthings.txt					decorate/doom/deadthings.txt
+actors/doom/doomammo.txt					decorate/doom/doomammo.txt
+actors/doom/doomarmor.txt					decorate/doom/doomarmor.txt
+actors/doom/doomartifacts.txt				decorate/doom/doomartifacts.txt
+actors/doom/doomhealth.txt					decorate/doom/doomhealth.txt
+actors/doom/doomkeys.txt					decorate/doom/doomkeys.txt
+actors/doom/doomdecorations.txt				decorate/doom/doomdecorations.txt
+actors/doom/stealthmonsters.txt				decorate/doom/stealthmonsters.txt
+
+actors/raven/ravenartifacts.txt				decorate/raven/ravenartifacts.txt
+actors/raven/ravenhealth.txt				decorate/raven/ravenhealth.txt
+
+actors/heretic/hereticammo.txt				decorate/heretic/hereticammo.txt
+actors/heretic/hereticarmor.txt				decorate/heretic/hereticarmor.txt
+actors/heretic/hereticartifacts.txt			decorate/heretic/hereticartifacts.txt
+actors/heretic/heretickeys.txt				decorate/heretic/heretickeys.txt
+actors/heretic/hereticdecorations.txt		decorate/heretic/hereticdecorations.txt
+
+actors/hexen/flame.txt						decorate/hexen/flame.txt
+actors/hexen/hexenarmor.txt					decorate/hexen/hexenarmor.txt
+actors/hexen/hexendecorations.txt			decorate/hexen/hexendecorations.txt
+actors/hexen/hexenkeys.txt					decorate/hexen/hexenkeys.txt
+actors/hexen/hexenspecialdecs.txt			decorate/hexen/hexenspecialdecs.txt
+actors/hexen/mana.txt						decorate/hexen/mana.txt
+actors/hexen/puzzleitems.txt				decorate/hexen/puzzleitems.txt
+actors/hexen/scriptprojectiles.txt			decorate/hexen/scriptprojectiles.txt
+actors/hexen/speedboots.txt					decorate/hexen/speedboots.txt
+
+actors/strife/beggars.txt					decorate/strife/beggars.txt
+actors/strife/merchants.txt                 decorate/strife/merchants.txt
+actors/strife/peasants.txt                  decorate/strife/peasants.txt
+actors/strife/questitems.txt                decorate/strife/questitems.txt
+actors/strife/ratbuddy.txt                  decorate/strife/ratbuddy.txt
+actors/strife/strifeammo.txt                decorate/strife/strifeammo.txt
+actors/strife/strifearmor.txt               decorate/strife/strifearmor.txt
+actors/strife/strifeitems.txt               decorate/strife/strifeitems.txt
+actors/strife/strifekeys.txt                decorate/strife/strifekeys.txt
+actors/strife/strifestuff.txt               decorate/strife/strifestuff.txt
+actors/strife/zombie.txt                    decorate/strife/zombie.txt
+
