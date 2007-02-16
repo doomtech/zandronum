@@ -70,6 +70,7 @@ static	ULONG					g_ulVoteCompletedTicks = 0;
 static	bool					g_bVotePassed;
 static	ULONG					g_ulPlayersWhoVotedYes[(MAXPLAYERS / 2) + 1];
 static	ULONG					g_ulPlayersWhoVotedNo[(MAXPLAYERS / 2) + 1];
+static	ULONG					g_ulKickVoteTargetPlayerIdx;
 
 //*****************************************************************************
 //	PROTOTYPES
@@ -126,9 +127,12 @@ void CALLVOTE_Tick( void )
 			if ( --g_ulVoteCompletedTicks == 0 )
 			{
 				// If the vote passed, execute the command string.
-				if ( g_bVotePassed && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+				if ( g_bVotePassed && ( NETWORK_GetState( ) != NETSTATE_CLIENT )){
+					// If the vote is a kick vote, we have to alter g_szVoteCommand to kick the cached player idx
+					if( strncmp ( g_szVoteCommand, "kick ", 5 ) == 0 )
+						sprintf( g_szVoteCommand, "kick_idx %d", g_ulKickVoteTargetPlayerIdx );
 					AddCommandString( g_szVoteCommand );
-
+				}
 				// Reset the module.
 				CALLVOTE_ClearVote( );
 			}
@@ -542,8 +546,11 @@ static bool callvote_CheckValidity( char *pszCommand, char *pszParameters )
 			// Compare the parameter to the version of the player's name without color codes.
 			sprintf( szPlayerName, players[ulIdx].userinfo.netname );
 			V_RemoveColorCodes( szPlayerName );
-			if ( stricmp( pszParameters, szPlayerName ) == 0 )
+			if ( stricmp( pszParameters, szPlayerName ) == 0 ){
+				// to prevent a player from escaping a kick vote by renaming, we store his ID at the beginning of the vote
+				g_ulKickVoteTargetPlayerIdx = ulIdx;
 				break;
+			}
 		}
 
 		// If we didn't find the player, then don't allow the vote.
