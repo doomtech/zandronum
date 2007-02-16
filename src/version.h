@@ -36,15 +36,14 @@
 
 // The svnrevision.h is automatically updated to grab the revision of
 // of the current source tree so that it can be included with version numbers.
-// [BC] No need for SVN revision stuff.
-//#include "svnrevision.h"
+#include "svnrevision.h"
 
 /** Lots of different version numbers **/
 
-#define DOTVERSIONSTR_NOREV "0.97c2"
+#define DOTVERSIONSTR_NOREV "0.97c3-alpha0"
 
 // The version string the user actually sees.
-#define DOTVERSIONSTR DOTVERSIONSTR_NOREV
+#define DOTVERSIONSTR DOTVERSIONSTR_NOREV "-r" SVN_REVISION_STRING
 
 // [BC] What version of ZDoom is this based off of?
 #define	ZDOOMVERSIONSTR		"2.1.7"
@@ -53,7 +52,7 @@
 #define RC_FILEVERSION 0,0,0,SVN_REVISION_NUMBER
 #define RC_PRODUCTVERSION 0,0,0,97
 #define RC_FILEVERSION2 DOTVERSIONSTR
-#define RC_PRODUCTVERSION2 "97c2"
+#define RC_PRODUCTVERSION2 "97c3-alpha0"
 
 // Version identifier for network games.
 // Bump it every time you do a release unless you're certain you
