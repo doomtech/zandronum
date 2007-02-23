@@ -1928,9 +1928,9 @@ void G_DoCompleted (void)
 		level.maptime = 0;
 	}
 
-	if (!deathmatch &&
-		((level.flags & LEVEL_NOINTERMISSION) ||
-		((nextcluster == thiscluster) && (thiscluster->flags & CLUSTER_HUB))))
+    // [BB] LEVEL_NOINTERMISSION is also respected in deathmatch games
+	if ( ((level.flags & LEVEL_NOINTERMISSION) ||
+		 ( !deathmatch && (nextcluster == thiscluster) && (thiscluster->flags & CLUSTER_HUB))))
 	{
 		G_WorldDone ();
 		return;
