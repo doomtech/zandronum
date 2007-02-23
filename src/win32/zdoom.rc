@@ -749,32 +749,32 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,16,294,69,10
     CONTROL         "Disallow fov",IDC_NO_FOV,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,16,304,54,10
-    CONTROL         "No impaling",IDC_NO_IMPALING,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,168,124,53,10
+    CONTROL         "Don't spawn multi. weapons (CO-OP)",IDC_NO_COOP_MP_WEAPON_SPAWN,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,168,124,130,10
     CONTROL         "Drop weapons (DM)",IDC_YES_WEAPONDROP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,168,134,79,10
     CONTROL         "Don't spawn runes (DM)",IDC_NO_RUNES,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,168,144,92,10
     CONTROL         "Instant flag return (ST/CTF)",IDC_INSTANT_RETURN,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,168,154,103,10
-    CONTROL         "Allow base colors (ST/CTF)",IDC_ALLOW_BASECOLORS,"Button",
+    CONTROL         "Disallow crouch",IDC_DISALLOW_CROUCH,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,168,164,103,10
     CONTROL         "No team switching (ST/CTF)",IDC_NO_TEAM_SWITCH,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,168,174,106,10
     CONTROL         "Server picks teams (ST/CTF)",IDC_NO_TEAM_SELECT,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,168,184,108,10
-    CONTROL         "Drop runes",IDC_YES_RUNEDROP,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,168,194,51,10
-    CONTROL         "Force 200%/200% max (DM)",IDC_YES_200MAX,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,168,204,106,10
+    CONTROL         "Lose inventory (CO-OP)",IDC_COOP_LOSE_INVENTORY,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,168,194,130,10
+    CONTROL         "Lose armor (CO-OP)",IDC_COOP_LOSE_ARMOR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,168,204,130,10
     CONTROL         "Double ammo (DM)",IDC_YES_DOUBLEAMMO,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,168,214,77,10
-    CONTROL         "Don't clear frags (DM)",IDC_NO_CLEARFRAGS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,168,224,85,10
+    CONTROL         "Lose powerups (CO-OP)",IDC_COOP_LOSE_POWERUPS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,168,224,130,10
     CONTROL         "Degeneration",IDC_YES_DEGENERATION,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,168,234,59,10
-    CONTROL         "Lose frag on death (DM)",IDC_LOSEFRAG_ON_DEATH,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,168,244,93,10
+    CONTROL         "Lose ammo (CO-OP)",IDC_COOP_LOSE_AMMO,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,168,244,130,10
     CONTROL         "Allow BFG freeaiming",IDC_YES_FREEAIMBFG,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,168,254,83,10
     CONTROL         "Barrels respawn (DM)",IDC_BARRELS_RESPAWN,"Button",
@@ -827,8 +827,8 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,274,126,10
     CONTROL         "Disable stealth monsters",IDC_DISABLESTEALTHMONSTERS,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,284,92,10
-    CONTROL         "Disable cooperative backpacks",
-                    IDC_DISABLECOOPERATIVEBACKPACKS,"Button",BS_AUTOCHECKBOX | 
+    CONTROL         "Lose half ammo (CO-OP)",
+                    IDC_COOP_HALVE_AMMO,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,320,294,116,10
 END
 
