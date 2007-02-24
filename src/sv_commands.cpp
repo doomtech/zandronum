@@ -170,6 +170,10 @@ void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlay
 		NETWORK_WriteLong( &clients[ulIdx].netbuf, players[ulPlayer].mo->z );
 		NETWORK_WriteByte( &clients[ulIdx].netbuf, players[ulPlayer].userinfo.PlayerClass );
 	}
+	NETWORK_CheckBuffer( ulPlayer, 3 );
+	NETWORK_WriteHeader( &clients[ulPlayer].netbuf, SVC_SETPLAYERHEALTH );
+	NETWORK_WriteByte( &clients[ulPlayer].netbuf, ulPlayer );
+	NETWORK_WriteShort( &clients[ulPlayer].netbuf, players[ulPlayer].health );
 }
 
 //*****************************************************************************
