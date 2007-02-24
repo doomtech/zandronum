@@ -513,24 +513,34 @@ static bool callvote_CheckValidity( char *pszCommand, char *pszParameters )
 	// First, figure out what kind of command we're trying to vote on.
 	if ( stricmp( "kick", pszCommand ) == 0 )
 		ulVoteCmd = VOTECMD_KICK;
-	else if ( stricmp( "map", pszCommand ) == 0 )
-		ulVoteCmd = VOTECMD_MAP;
-	else if ( stricmp( "changemap", pszCommand ) == 0 )
-		ulVoteCmd = VOTECMD_CHANGEMAP;
-	else if ( stricmp( "fraglimit", pszCommand ) == 0 )
-		ulVoteCmd = VOTECMD_FRAGLIMIT;
-	else if ( stricmp( "timelimit", pszCommand ) == 0 )
-		ulVoteCmd = VOTECMD_TIMELIMIT;
-	else if ( stricmp( "winlimit", pszCommand ) == 0 )
-		ulVoteCmd = VOTECMD_WINLIMIT;
-	else if ( stricmp( "duellimit", pszCommand ) == 0 )
-		ulVoteCmd = VOTECMD_DUELLIMIT;
-	else if ( stricmp( "pointlimit", pszCommand ) == 0 )
-		ulVoteCmd = VOTECMD_POINTLIMIT;
-	else
-		return ( false );
+	else {
+		int i = 0;
+		while( pszParameters[i] != '\0' )
+		{
+		  if( pszParameters[i] == ';' || pszParameters[i] == ' ' )
+			  	return ( false );
+		  i++;
+		}
+		if ( stricmp( "map", pszCommand ) == 0 )
+			ulVoteCmd = VOTECMD_MAP;
+		else if ( stricmp( "changemap", pszCommand ) == 0 )
+			ulVoteCmd = VOTECMD_CHANGEMAP;
+		else if ( stricmp( "fraglimit", pszCommand ) == 0 )
+			ulVoteCmd = VOTECMD_FRAGLIMIT;
+		else if ( stricmp( "timelimit", pszCommand ) == 0 )
+			ulVoteCmd = VOTECMD_TIMELIMIT;
+		else if ( stricmp( "winlimit", pszCommand ) == 0 )
+			ulVoteCmd = VOTECMD_WINLIMIT;
+		else if ( stricmp( "duellimit", pszCommand ) == 0 )
+			ulVoteCmd = VOTECMD_DUELLIMIT;
+		else if ( stricmp( "pointlimit", pszCommand ) == 0 )
+			ulVoteCmd = VOTECMD_POINTLIMIT;
+		else
+			return ( false );
+	}
 
 	// Then, make sure the parameter for each vote is valid.
+	int parameterInt = atoi( pszParameters );
 	switch ( ulVoteCmd )
 	{
 	case VOTECMD_KICK:
@@ -572,57 +582,62 @@ static bool callvote_CheckValidity( char *pszCommand, char *pszParameters )
 	case VOTECMD_FRAGLIMIT:
 
 		// Fraglimit must be from 0-255.
-		if (( atoi( pszParameters ) < 0 ) || ( atoi( pszParameters ) >= 256 ))
+		if (( parameterInt < 0 ) || ( parameterInt >= 256 ))
 			return ( false );
-		else if ( atoi( pszParameters ) == 0 )
+		else if ( parameterInt == 0 )
 		{
 			if (( pszParameters[0] != '0' ) || ( strlen( pszParameters ) != 1 ))
 				return ( false );
 		}
+		sprintf( pszParameters, "%d", parameterInt );
 		break;
 	case VOTECMD_TIMELIMIT:
 
-		// Timelimit must be from 0-65536.
-		if (( atof( pszParameters ) < 0.0 ) || ( atoi( pszParameters ) >= 65536.0 ))
+		// Timelimit must be from 0-65535.
+		if (( parameterInt < 0 ) || ( parameterInt >= 65536 ))
 			return ( false );
-		else if ( atoi( pszParameters ) == 0 )
+		else if ( parameterInt == 0 )
 		{
 			if (( pszParameters[0] != '0' ) || ( strlen( pszParameters ) != 1 ))
 				return ( false );
 		}
+		sprintf( pszParameters, "%d", parameterInt );
 		break;
 	case VOTECMD_WINLIMIT:
 
 		// Winlimit must be from 0-255.
-		if (( atoi( pszParameters ) < 0 ) || ( atoi( pszParameters ) >= 256 ))
+		if (( parameterInt < 0 ) || ( parameterInt >= 256 ))
 			return ( false );
-		else if ( atoi( pszParameters ) == 0 )
+		else if ( parameterInt == 0 )
 		{
 			if (( pszParameters[0] != '0' ) || ( strlen( pszParameters ) != 1 ))
 				return ( false );
 		}
+		sprintf( pszParameters, "%d", parameterInt );
 		break;
 	case VOTECMD_DUELLIMIT:
 
 		// Duellimit must be from 0-255.
-		if (( atoi( pszParameters ) < 0 ) || ( atoi( pszParameters ) >= 256 ))
+		if (( parameterInt < 0 ) || ( parameterInt >= 256 ))
 			return ( false );
-		else if ( atoi( pszParameters ) == 0 )
+		else if ( parameterInt == 0 )
 		{
 			if (( pszParameters[0] != '0' ) || ( strlen( pszParameters ) != 1 ))
 				return ( false );
 		}
+		sprintf( pszParameters, "%d", parameterInt );
 		break;
 	case VOTECMD_POINTLIMIT:
 
-		// Pointlimit must be from 0-65526.
-		if (( atoi( pszParameters ) < 0 ) || ( atoi( pszParameters ) >= 65536 ))
+		// Pointlimit must be from 0-65535.
+		if (( parameterInt < 0 ) || ( parameterInt >= 65536 ))
 			return ( false );
-		else if ( atoi( pszParameters ) == 0 )
+		else if ( parameterInt == 0 )
 		{
 			if (( pszParameters[0] != '0' ) || ( strlen( pszParameters ) != 1 ))
 				return ( false );
 		}
+		sprintf( pszParameters, "%d", parameterInt );
 		break;
 	default:
 
