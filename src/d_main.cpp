@@ -928,8 +928,11 @@ void D_DoomLoop ()
 					G_BuildTiccmd (&netcmds[consoleplayer][maketic%BACKUPTICS]);
 					if (advancedemo)
 						D_DoAdvanceDemo ();
+					// Console Ticker
 					C_Ticker ();
+					// Menu Ticker
 					M_Ticker ();
+					// Game Ticker
 					G_Ticker ();
 					gametic++;
 					maketic++;
