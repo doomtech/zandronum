@@ -1011,7 +1011,6 @@ static void R_InitPatches ()
 		"FINAL2",
 		"E2END",
 		// [BC] New Skulltag patches here.
-		"STCREDIT",
 		"STFLA1",
 		"STFLA2",
 		"STFLA3",
