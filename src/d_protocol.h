@@ -69,14 +69,23 @@ struct zdemoheader_s {
 
 struct usercmd_s
 {
-	BYTE	buttons;
-	BYTE	pad;
-	short	pitch;			// up/down
+	// [BB] Added unused dummy variables to prevent sthook from working at all.
+	BYTE	dummy1;
+	BYTE	dummy2;
+	short	dummy3;
+	short	dummy4;
+	short	dummy5;
+	short	dummy6;
+	short	dummy7;
+	short	dummy8;
 	short	yaw;			// left/right	// If you haven't guessed, I just
 	short	roll;			// tilt			// ripped these from Quake2's usercmd.
+	short	pitch;			// up/down
+	BYTE	buttons;
+	BYTE	pad;
+	short	upmove;
 	short	forwardmove;
 	short	sidemove;
-	short	upmove;
 };
 typedef struct usercmd_s usercmd_t;
 
