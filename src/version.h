@@ -57,8 +57,9 @@
 // Version identifier for network games.
 // Bump it every time you do a release unless you're certain you
 // didn't change anything that will affect network protocol.
-// This has been updated for 97d.
-#define NETGAMEVERSION 003
+// NETGAMEVERSION 003 = 0.97c2
+// NETGAMEVERSION 004 = 0.97c3
+#define NETGAMEVERSION 004
 
 // Version stored in the ini's [LastRun] section.
 // Bump it if you made some configuration change that you want to
