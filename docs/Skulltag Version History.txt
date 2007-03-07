@@ -1,0 +1,901 @@
+===============================================================================================================
+= SKULLTAG Version History
+= Skulltag is availible at www.skulltag.com
+===============================================================================================================
+= 
+= *+   Major new feature, or major overhaul to an area.
+= *-   Major bug fix or removal.
+= +    Added feature, or noticeable improvement.
+= -    Bug fix, or something removed.
+= !    Something has changed, or just general information.
+= 
+===============================================================================================================
+
+v0.97c3
+-------
+*+	- Disabled several underground hacks, cheats, and hooks that have been circulating through the community.
++	- NoIntermission is now recognized in multiplayer. Mappers can now use this to create their own intermissions.
++	- Improved Skulltag's credits, which can be seen by waiting at the menu screen. They also use the DEMO3 slot.
+-	- Strengthened the voting mechanism. Kicking should now be easier and less troublesome.
+-	- Disabled loading of zvox.wad, which plagued servers since the release of 97b.
+-	- Fixed the display of server flags.
+-	- Fixed a ZDoom software bug that causes flashing between the MAPINFO and skybox skies.
+-	- Health now correctly updates once you complete a level in cooperative.
+-	- Removed the unused, pre-0.96 credit lump. Skulltag no longer shows this.
+
+v0.97c2
+-------
+
+*+	- Improved packet loss handling! Much less bandwidth and CPU power is now required to handle packet loss. Maps that previously were unplayable due to ACS effects should now be playable.
++	- Added sv_nocallvote, a console variable that gives servers the ability to disable voting.
++	- The skirmish menu now includes the lump name of the selected map in its display (ex. "MAP01 - Entryway").
++	- Added the "use old fullscreen HUD" option to the display options menu.
+*-	- Fixed infinite loop bug that would occur if a player tried to join the blue team, but all blue team starts were blocked.
+-	- The voting module now only allows valid votes to take place. People can no longer call votes like "fraglimit sex time".
+-	- The server statistics and server information dialogs work once again.
+-	- Enter scripts now execute in deathmatch and in teamgames.
+-	- Fixed crash that would occur when killing a summoned doomplayer.
+-	- Fixed crash that would occur when trying to connect to a server and go to a map at the same time in the command line.
+-	- Enter scripts now execute at the proper time in network games so that their effects are visible.
+-	- Custom weapons that use bullet attacks now work properly in network games.
+-	- The A_FireCustomMissile DECORATE function now works properly in network games.
+-	- A new line occurs before printing ALL of the various display messages above the status bar.
+-	- Barrels now respawn properly when the "barrels respawn" dmflag is enabled in network games.
+-	- Increased the resolution of the camera texture on D2LMS2.
+-	- The lava now animates properly on D2LMS5.
+-	- Updated the version info within skulltag.exe so that the program's internal name, internal version, etc. are accurate.
+!	- Values of 0-65536 are now acceptable for pointlimit in network games, as opposed to 0-255.
+!	- Memory for clients' saved packets (which are resent in the case of packet loss) are now allocated based on sv_maxpacketsize when the server starts. This results in less memory being used, but if sv_maxpacketsize changes, the effects don't take place until the server starts.
+!	- Lowered the possession hold time on a few maps to make scoring a bit easier.
+
+v0.97c
+------
+
++	- In invasion, ammo spawners now never run dry in network games.
++	- Added a new cvar, sv_usemapsettingswavelimit! When true, this automatically sets the wavelimit when a map changes based on whatever the wavelimit is for the map during the single player campaign.
++	- Added a new cvar, sv_usemapsettingspossessionholdtime! When true, this automatically sets the possession hold time when a map changes based on whatever the possession hold time is for the map during the single player campaign.
++	- Added a new property that can be set to campaign info for maps: possessionholdtime! This sets the amount of time the possession artifact should be held for to score a point on possession maps.
++	- Added a new lindef special, Teleport_NoStop (154)! This special works like Teleport, except your momentum is not brought to a complete stop. This is now used in D2ST2.
+*-	- Fixed crash that would occur when entering the text scaling menu with con_virtualwidth and con_virtualheight uninitialized.
+*-	- Fixed bug in which if you got respawn telefragged in survival co-op, you would remain dead for the round (now you can play when the number of players exceeds the number of player starts!).
+*-	- Fixed crash that would occur if you had cl_skins set to 0, and someone joined the game.
+-	- Fixed crash that would occur when an obituary with the same person as the victim and the attacker was printed.
+-	- Fixed crash that would occur when trying to select a weapon using the slot command while in spectator mode.
+-	- Fixed glitches that would occur when connecting to a server in which large number of packets are sent out (such as the "no player 1 start" issue that would occur when connecting to large in-progress invasion maps).
+-	- Fixed bug in which the game would go into an infinite loop on a map where a non-monster had the dormant flag when the map tries to reset (ex. at the start of a duel).
+-	- Dehacked pickups now work properly in network games.
+-	- Disabled the cosmetic scripts in D2LMS6 so that it no longer lags people out.
+-	- D2LMS10 now has items placed on it, so it's playable in possession/team possession mode.
+-	- Fixed bug in which after a map change in survival co-op, respawned dead players would float like spectators.
+-	- Fixed bug in which the possession and terminator artifacts would not be properly dropped when someone disconnects from a server.
+-	- Fixed bug in which if a player who was carrying the hellstone got crushed by a ceiling, it would leave behind a ghost hellstone.
+-	- Fixed bug in which monsters respawned on nightmare mode would be invisible on the client end.
+-	- Fixed bug in which if a line's blocking status changed during the course of the map (ex. it started off blocking everything, but was changed to not blocking anything), this information would not be passed along to connecting clients.
+-	- Fixed bug in which ghost flags and skulls could sometimes be present on a map when connecting to a server.
+-	- Fixed bug in which a player's pointcount would not be correctly updated after scoring a point in skulltag.
+-	- Ambient sounds now work properly in network games.
+-	- The SetActorProperty() ACS command now works properly in network games.
+-	- The SetLineTexture() ACS command now works properly in network games.
+-	- Fixed display issue in which there would be too large of a gap between notify messages in certain resolutions/scaling settings.
+-	- Fixed display issue in which HUD messages with newlines would not display properly.
+-	- The grenade launcher spawner now spawns actually spawns the grenade launcher.
+-	- When connecting to a possession or team possession server, the game state is now properly updated.
+-	- The "map", "changemap", and "nextmap" commands now take you to the proper map.
+-	- The join queue now properly lets multiple join at certain events (such as when a round of LMS ends).
+-	- The "centerview" command now works properly in network games.
+-	- Lookspring now works properly in network games.
+-	- Powerups that are given as part of a player's inventory between maps are now handled properly.
+-	- Dead players now spawn in the right location when the "spawn in the same spot" dmflag is enabled after a map change.
+-	- Scripted marines now work properly in network games.
+-	- Actors summoned with the summon cheat now show up properly in network games.
+-	- Fixed bug in which spectators would flicker due to their respawn invulnerability when entering games.
+-	- Speed trails now inherit their x/y scale from their owner.
+-	- Items in sectors that have had their floor height change during the course of the map now revert to the correct Z position when a map resets.
+-	- The countdown for various modules no longer ticks if the game should be paused (ex. if the menu is activated in single player).
+-	- Fixed bug in which lead changes would be announced improperly when spying through the eyes of someone else.
+-	- Fixed bug in which the announcer pickup entry for the random powerup would always be played, even if the person picking it up wasn't the player's camera.
+-	- Fixed bug in which starting a new game while playing a game of survival co-op on a server resulted in the new game being in survival mode as well.
+-	- The BFG10K now uses the proper pickup message.
+-	- The "FIGHT!" message now apperears when a duel begins.
+-	- You can now edit the dmflags for a skirmish while a demo is playing.
+-	- Weapon DECORATE mods that use the "MELEEWEAPON" or "EXPLOSIVE" properties no longer cause an error when loaded.
+-	- A "Victory!" or "Perfect!" medal is no mistakenly awarded to player 0 or player 1 at the conclusion of a team LMS round.
+-	- The melee sound for imps and barons of hell now play properly in network games.
+-	- The HUD now displays the correct number of opponents remaining in LMS games when somebody dies.
+-	- In team possession, the left column on the scoreboard now displays players' points, as opposed to fragcount.
+-	- The correct intermission screen (depending on whether you win or lose) is now displayed in possession.
+-	- First frag medals can no longer be awarded during the countdown phase of a duel.
+-	- Fixed D2DUEL10 so that are no more areas of the void that you can walk on.
+-	- Servers no longer display the "Unknown texture: STFST01" message during intermission.
+-	- Fixed some missing textures on D2LMS5.
+-	- Fixed some missing textures on D2ST4.
+-	- Fixed some texture misalignments on D2INV3.
+-	- The texture WOOD10 is no longer bugged.
+-	- The texture ICKWALL7 is no longer bugged.
+-	- The texture N_CMPT2R now has the proper height.
+!	- The server no longer cares what version of Skulltag you're using, as long as the network version is the same.
+
+v0.97b
+------
+
+*+	- ADDED OPENGL RENDERING! Skulltag now has the ability to use hardware accelerated rendering through the OpenGL graphics library. Enjoy! :)
+*+	- Added POSSESSION DEATHMATCH mode! In this mode, players gain points by possessing a demonic stone that spawns at a random spot when the level begins. Hold onto it for a certain period of time, and you win the round! ... oh yeah, and did I mention you can't use any weapons while in possession of the stone? :)
+*+	- Added TEAM POSSESSION mode! This is just like possession DM, but it is played in teams.
+*+	- Added SURVIVAL COOPERATIVE mode! In this new cooperative mode, players stay dead until one of his buddies ends the level, or all of his buddies die. This new mode is much more hardcore, and should be lots of fun! :D
+*+	- Added INVASION COOPERATIVE mode! In this new cooperative mode, players fight off waves of monsters. Play in single player, or with friends! Whoever survives the longest wins!
+*+	- Added a new EPISODE, "The Impending Nightmare!" This is episode three in the main menu, and features maps from the INVASION game mode!
+*+	- ADDED 8 NEW MAPS of an entirely new type, DUEL! These maps are D2DUEL1-D2DUEL10 (D2DM3 became D2DUEL2, and D2DM9 became D2DUEL9).
+*+	- ADDED 10 NEW MAPS of an entirely new type, LAST MAN STANDING! These maps are D2LMS1-D2LMS10.
+*+	- ADDED 5 NEW MAPS of an entirely new type, INVASION! These maps are D2INV1-D2INV5, and are playable from the episode in the "NEW GAME" menu!
+*+	- ADDED 3 NEW DEATHMATCH MAPS! D2DM3: Combat Center, D2DM9: Infernal Chamber, and D2DM10: Final Atonement.
+*+	- ADDED 2 NEW CTF MAPS! D2CTF9: Disaster, and D2CTF10: Doomed Sea.
+*+	- ADDED 7 NEW ST MAPS! These new maps are D2ST1 (the old D2ST1 has become D2ST3), and D2ST4-D2ST9 (too many to list :D).
+*+	- Added a new powerup, called the "Guardsphere"! This new powerup causes you to take 1/4 of the damage you normally take.
+*+	- Clients now have the ability to call a vote! Clients can now vote on whether or not to kick or ban a player, change the map, or change the limits (fraglimit, timelimit, etc.). Simply use the "callvote" console command, or use the "Call vote" command under the "Multiplayer" menu.
+*+	- Added simple skulltag mode! You can now create a skulltag teamgame map by simply placing two skulls, team starts, and score pillars! NO SCRIPTING REQUIRED! More on how to set up the score pillars later (it's easy!).
+*+	- Instead of being its own game mode, "instagib" is now a cvar that you can set to true or false and use with ANY OTHER GAME MODE! This means that you can how have instagib FFA matches, or instagib duels, or even instagib SKULLTAG!
+*+	- Added the "buckshot" cvar! Similarly to instagib, when this is set to true, players start off with just the SSG, and no items spawn on the level, creating a SSG-only battle!
+*+	- Made changes to almost all of the existing maps to improve their gameplay! Now, Skulltag's existing maps should be even better!
+*+	- Completely rewrote the packet loss system! This fixes MANY of the glitches encountered during multiplayer play, such as ghosts, having a weapon but not being able to switch to it, etc.! This will also make existing games smoother!
+*+	- Upgraded the ZDoom version to 2.1.7! Enjoy all the benefits that result from this, such as greatly advanced DECORATE support!
++	- Added the "text scaling" menu! This menu allows you to scale text to make it display as it would in ANY resolution! So, for all of you who use giant resolutions, now you can easily make the text readable, without making it TOO big!
++	- In cooperative games, players now spawn at a random cooperative starts if they don't have one themselves! This means that you can now have up to 32 man cooperative games, even if the map only has a single player start!
++	- Added cooperative backbacks! Backpacks containing all your items are now dropped whenever you die in cooperative mode! This can be disabled with the "compat_disablecooperativebackpacks" flag. (CURRENTLY DISABLED)
++	- The HUD now displays whomever is the terminator in terminator mode!
++	- The HUD now displays however many players are left standing in LMS mode!
++	- Added several new skins! These include "Nazi Guard", "Nazi Chaingunner", "Seenas" and "Synas"!
++	- The BFG10K has been almost completely redone! The weapon now charges before it fires, and has new graphics! It now also uses the same amount of ammo per shot in deathmatch and teamgames as in single player games.
++	- Improved the fullscreen HUD! Now it does a far better job of arranging things, and shows you what your max. health/armor is, and shows you if you're carrying the flag/skull in CTF/ST! If you wish, you can use the old fullscreen HUD by setting cl_stfullscreenhud to false.
++	- Added a new and improved medal display screen! Now, when you hit the "show medals" button, it shows you the number of medals you've earned in the current match in a much nicer fashion!
++	- Dramatically improved the display of various HUD elements in fullscreen (aka when the status bar doesn't display), such as the scores in CTF and ST!
++	- Added a way to configure the privliges of spectators during LMS games! Now, the server can set "lms_spectatorview" and "lms_spectatorchat" to true or false, to allow/disallow spectators to have the ability to view players or chat respectively while spectating during LMS games.
++	- Added the "First frag!" medal! This medal is awarded to the person who gets the first frag in a deathmatch game.
++	- Added the "Termination!" medal! This medal is awarded when you frag the terminator in terminator mode.
++	- Added the "Spam!" medal! This medal is awarded when you kill more than one person at the SAME TIME with the BFG9000!
++	- Added the "Capture!" medal! This CTF medal is awarded when you successfully capture your opponent's flag.
++	- Added the "Tag!" medal! This ST medal is awarded for successfully tagging your opponent's skull on a score pillar.
++	- Added the "Defense!" medal! This CTF/ST medal is awarded when you frag a flag carrier.
++	- Added the "Assist!" medal! This CTF/ST medal is awarded when you return your flag, prior to your team capturing the flag.
++	- Rewrote the announcer module, so that now CUSTOM announcer entries can be specified! The new entries can be played by specifying an object's pickup announcer entry in DECORATE.
++	- "Victory!" is now awarded for winning a LMS match, and "Perfect!" is now awarded for winning a LMS without losing any health.
++	- Added the ability to use wildcards in server bans! Bans such as 38.38.*.* are now possible.
++	- Added a new cvar, sv_flagreturntime! This sets the amount of time flags/skulls will return in after dropped. The default value is 15.
++	- Added tall versions of the Doom and Doom 2 skies! Thanks, EarthQuake (aka Seismos)! :)
++	- The map now resets to its original state at the start of each duel, and round of LMS.
++	- Added some new textures, featuring blood coming from a cacodemon's mouth, and also a Hell Knight splattered against a wall! Thanks, Baphomet!
++	- Added red and blue evil eye objects, as well as red and blue candles.
++	- Added silver versions of all the red teleport flats.
++	- Text now displays and an announcer sound now plays when a flag or skull is dropped in CTF or skulltag mode.
++	- Added a new "nextmap" command! This is similar to "changemap", except ST advances to the next map, instead of the map specified. The next map is determined by the order in MAPINFO or the map rotation.
++	- Added a new linedef flags that only blocks PLAYERS! It is usable with the new Skulltag DB config file.
++	- Added a new menu option in the server console for managing LMS settings! This option can be used for configuring the allowed weapons in an LMS match, as well as setting the privliges for spectators (can they watch the game, talk to players in the game, etc.).
++	- Addded many, many new textures! Thanks, Nick Baker! :)
++	- You can now choose which powerups the random powerup item cycles through! For instance, you could have it only cycle between the doomsphere and guardsphere! More on this later.
++	- On the HUD during one flag CTF, players names now display entirely in their team's color, so you can tell which team possesses the white flag at a glance.
++	- When spectating through the eyes of another player, a message saying "FOLLOWING - <name of player>" is now displayed at the bottom of the screen.
++	- White flag pickup messages now indicate which team picked up the flag, instead of it merely saying "White flag taken!"
++	- Cameras now work in multiplayer games!
++	- Added death frames for the "Hissy Hogger" skin... eons after being relevant.
++	- Bots can no longer be added past the sv_maxclients limit in servers.
++	- Slightly improved the win sequence of normal deathmatch modes, and team games! Now, instead of exiting to intermission immediately, there's a slight pause where "<name of winner> WINS!" is displayed, similarly to duels and LMS.
++	- Added the "kickfromgame" command for server admins! Instead of kicking the player from the game, this simply removes them from the game by forcing them to spectate.
++	- Added a new "Auto-select" option that is now the default option when choosing a team in various team modes. This selects the most appropriate team for the player to join based on scores, number of players, etc. "Join random" now selects a purely random team.
++	- Added new decorative items: tall and small white torches, tall and small yellow torches, and tall and small red tech lamps!
++	- Made some minor cosmetic improvements to D2DM6 and D2DM7.
++	- Added a new cvar called sv_banfilereparsetime! This new cvar allows servers to periodically re-parse the banfile, with sv_banfilereparsetime being the time in seconds between parsings. This can be quite helpful when running multiple servers, since now if you ban someone, you don't have to manually add the ban on each server!
++	- Added a new cvar called r_maxparticles. This sets the maximum number of particles allowed on the screen. It default value is the same as the previous default value for max. particles, which is 4000. You can still load Skulltag with -numparticles to override this.
++	- Added unique sound lumps for grenades' launch and explosion. Now it's possible to make a new sound for rockets or grenades that do not affect one another.
++	- Increased the power of the prosperity rune! You can now pick up green armor past 100%, AND it raises both your max. health and max. armor to 250%!
++	- The sprites for the red armor have been completely redone, and greatly improved!
++	- The railgun color specified by your userinfo now applied to the inner railgun trail in teamgames (where the outer trail corresponds to your team color).
++	- Added a set of gray nukage flats.
++	- Added a bunch of gory new decorations featuring the doomguy!
++	- Added more frames of animation to the flags, as well as improving their quality.
++	- Added a set of blue teleport flats.
++	- Added a display message and announcer sound for when the white flag is returned.
++	- When r_drawtrans is false, instead of players with the invisibility sphere being fully visible, their effect instead changes to that of the partial invisibility sphere.
++	- Skulltag now displays the ZDoom version along with its version in the lower left corner of the console.
++	- Improved the shading on the shoulder pads of the Base II skin.
++	- Added cleaned up versions of FLAT22 and FLAT24 (the red and blue jump pad flats). These don't have stray red/blue pixels around the edge.
++	- Spectators spying through someone's eyes can now see the effects of that person's regeneration rune.
+*-	- Fixed single player demo recording! You can now record demos in single player without ST crashing immediately.
+-	- The "no exit" dmflags now applies to teamgames as well as deathmatch games.
+-	- The resistance rune (and also the guardsphere) now protects against damage not originating from a player (nukage, etc.)
+-	- Removed D2ST2.
+-	- Fixed bug that allowed certain map specials that execute when all of a certain monster are dead (such as the arachnotrons on MAP07) to execute more than once.
+-	- Fixed bug that allows you to set sv_cheats to true, log onto a server, and use the automap cheat to see other players on the map.
+-	- Fixed bug that allowed you to strafe or run backwards with turbo enabled without getting kicked from the server.
+-	- Frags are no longer awarded for respawn telefragging.
+-	- Grenades no longer bounce off of "line_horizon" lines.
+-	- If the music changes at some point during the level, clients who connect afterwards now have the correct music play on the map (this fixes the problem in which 8bitctf.wad wouldn't play any music in network games). 
+-	- You can no longer change teams continously in teamgames.
+-	- Weapons now give you give you the correct amount of ammo in teamgames.
+-	- Fixed several flats that were either duplicates, or had names of existing textures. As a result, some flats have either been deleted or renamed. I apologize since I know this will screw up some (hopefully not a lot) existing wads, but I would be more than happy to update the wads.
+-	- Your armor points now properly update whenever you're damaged in network games.
+-	- Fixed bug where in terminator mode, the player's body was not flagged as being solid, allowing you to run through other solid objects.
+-	- When connecting to a server, players who are dead when you connect now appear dead.
+-	- People carrying flags/skulls in CTF/ST no longer have the flag/skull appear next to their name on the scoreboard (there's no need; it displays nicely in the bottom-right corner).
+-	- Fixed bug where if you spectated after grabbing a flag in CTF, the scoreboard would still show you as carrying the flag.
+-	- When a player is killed while possessing the terminator orb, the terminator orb is now properly removed from his possession (no more dead players with terminator icons above their head).
+-	- Removed the "cl_scalescoreboard" cvar (it's no longer needed; just use the "text scaling" menu instead).
+-	- The megasphere and soulsphere announcer events now works properly.
+-	- "Spawn farthest" is no longer defaulted to "true" in duel mode.
+-	- Latched cvars are no longer unlatched during map changes on the client end.
+-	- Fixed bug where the white flag would not properly return in simple CTF games if it was dropped in an instant return sector.
+-	- Monsters flagged as multiplayer only no longer count towards the total number of monsters in a level in single player.
+-	- FOV can now be set in client games when the "Disable FOV" dmflags is disabled.
+-	- The terminator ball now respawns if it's destroyed by a closing door, etc.
+-	- Simple CTF mode now works properly if you have two types of player starts in your CTF map (ex. single player starts and teamgame starts).
+-	- The white flag now returns after 30 seconds after being dropped whenever a player switches teams, leaves the game, etc. (previously, it would only return if a player died while holding it).
+-	- Fixed bug where ledges next to spring pads would behave like spring pads.
+-	- Players no longer lose frags for respawn telefragging a teammate, due to lack of starts.
+-	- Monster bodies now disappear upon respawn in multiplayer.
+-	- The red teleport texture from Hexen now animated properly.
+-	- In network games, Teleport_Line now behaves properly.
+-	- Removed instagib mode, team instagib mode, and instagib CTF mode (see above).
+-	- Removed oldschool mode. Deal with it.
+-	- Removed the cacodemon skin and bot.
+-	- Fixed the shape on many of the powerup sprites so that they're more spherical.
+-	- Chasecam can now be used in cooperative mode in multiplayer games.
+-	- Railgun colors are now red/blue in teamplay deathmatch.
+-	- Fixed the misnamed "D2M3_5" flat. It is now as it should be: "DEM3_5".
+-	- Weapon sounds no longer play multiple times when spectating through someone else's eyes.
+-	- Players' max. ammo in LMS/TLMS is now based on the player's editable internal max. ammo setting, instead of hard-coded values.
+-	- In cooperative games, you now respawn properly if you're dead during intermission.
+-	- Removed the survival DM gameplay mode (it's been replaced by survival coop which is MUCH better!).
+-	- The "x frags left!" announcer events now play even if you're a spectator.
+-	- Fixed the sprite alignments on the random powerup.
+-	- Removed "r_drawweapon". "r_drawplayersprites" already exists and does the same thing.
+-	- Fixed bug where the chat bubble could still appear over someone's head even when they run around.
+-	- Reduced the occurance of "SERVER_Addcommand: Server command queue size exceeded!", which would often occur when working with the map rotation list dialog.
+!	- Removed the ZDoom portion of skulltag.wad, and placed it in a new file: skulltag.pk3.
+!	- Replace the skulltag episode, "Tournament of the Damned," with the invasion episode, "The Impending Nightmare."
+!	- D2DM3 has now become D2DUEL2, and D2DM9 has now become D2DUEL9.
+!	- D2ST3 has now become D2ST2, and D2ST1 has become D2ST3 (confused yet?).
+!	- Spawn protection is now disabled when once a new weapon is fully raised.
+!	- Invisibility objects can no longer be carried while carrying a flag or skull.
+!	- Flag icons that display over someone's head when they carry a flag have been scaled down.
+!	- You can now press the "fire" key to resapwn when you die, in addition to being able to press "use".
+!	- Reverted the fix for executing dead boss specials multiple times to the way it was before, because people just have to have their Dehacked patches.
+!	- The "duellimit" and "winlimit" cvars is no longer archived.
+!	- The bots' chat files are now located within skulltag.pk3.
+!	- Skulltag now defaults to being in a window, rather than fullscreen. That way, if people have issues with firewalls (such as ZoneAlarm), they can more easily deal with the problem, and not get hung up.
+!	- blood_fade_scalar, which controls the blood fade brightness, now defaults to "0.5" (it used to be 1.0). Now, new players aren't blinded when they get hit by something.
+!	- Changed the bots "Charon" and "Pluto"'s name to "Seenas" and "Synas" respectively (they also have their own skins!).
+!	- In duel mode, a new duel now starts after intermission, instead of everyone being made a spectator.
+!	- Skins based off monster sprites now have sprite names that are unique.
+!	- cl_startasspectator now defaults to "false," so that new players have a chance to configure their settings without getting shot at.
+!	- Health, armor, etc. now appears blank on the status bar when spectating through the eyes of someone whose health, armor, etc. you are not allowed to know.
+!	- Changed the hectebi's attack to something more reminiscent of a mancubus.
+!	- "cl_cheatskins", the cvar that allows cheat skins to be used, is now "false" by default.
+!	- To score on skulltag mode score pillars, you no longer have to press space! You can now simply bump into them.
+!	- Red/blue skulls can now be picked up like normal in non-skulltag teamgame modes like normal (CTF, default teamgame, etc.)
+!	- If you suicide or are killed by the enviornment while possessing the terminator orb, you now lose 10 frags as opposed to one.
+!	- "Incredible!" medals are now awarded if you get another kill within two seconds of receiving an "Incredible!" medal. In previous versions, an "Excellent!" medal would be awarded in this situation.
+!	- "Most Impressive!" medals are now awarded for every 2 consecutive hits you make with the railgun after receiving a "Most Impressive!" medal. In previous versions, an "Impressive!" medal would be awarded in this situation.
+!	- "Total Domination!" medals are now awarded for every 5 frags you get without dying after receiving a "Total Domination!" medal. In previous versions, a "Domination!" medal would be awarded in this situation.
+!	- "Precision!" medals are now awarded for every 5 consecutive hits you make after receiving a "Precision!" medal. In previous versions, an "Accuracy!" medal would be awarded in this situation.
+!	- The player who "You've taken the lead!", "You've lost the lead", etc. announcer events refers to is now the display player, not the console player.
+!	- Instead of randomly being able to get invulnerability with the random powerup, you now get the guardsphere instead.
+
+v0.96f
+------
+
+*-	- FIXED THE INFINITE LOOP BUG! This means that not only do servers no longer lock up and eat all the CPU, but the "Abnormal number of movement commands" kick should not occur anymore as well (unless of course you're actually cheating!).
+-	- Team scores that do not trigger the announcer are done appropriately in network games.
+-	- Skins that are scaled now appear properly in the finale.
+-	- Players no longer spawn with the super shotgun in Doom 1 in LMS.
+-	- Fixed problem where if you're in freeze mode, and respawn or end the level, you cannot move until turning off freeze mode.
+-	- SetHudSize() now works properly in network games.
+-	- Fixed problem where if the "map" or "changemap" commands were used with map rotation on, it wouldn't adjust the current position in the map rotation list properly.
+!	- Skulltag now allows reuse of the LAN socket. This means that if you have two instances of Skulltag open, you can see LAN servers in the local server browser in both instances.
+
+v0.96e
+------
+
++	- Rewrote the "checksum" aspect of network games! It's now referred to as "level authentication". Now, level authentication is done prior to joining servers (so no more joining the game, and then immediately being kicked afterwards), and has a nicer error message.
+*-	- Fixed the bug where clients would get kicked for "Abnormal level of movement commands detected!" if the CPU on the server machine was overloaded.
+-	- Rewrote the ban system so that it no longer parses the ban file each time it checks to see if an IP is banned. This should eliminate the "Couldn't open banfile!" warning messages.
+-	- If you fire a missile, die, and respawn, you now get credit for the frag if it hits someone.
+-	- Fixed bug where players who joined servers in the middle of a game would sometimes appear in-game on the scoreboard, when they were actually spectators.
+-	- Fixed bug where holding down a button during intermission could sometimes rapidly toggle your "ready to go on" status.
+-	- Fixed bug where bots could not open doors.
+-	- The score in the bottom left now properly displays during Team LMS games.
+-	- Fixed bug where when joining some teamgame maps, you would be spawned as an active player without a team.
+!	- You can now spynext out of the eyes of your teammates in Team LMS when you are killed.
+!	- You can no longer suicide during a duel using the "kill" command.
+!	- Slightly adjusted the position of the "You have the blue flag!", etc. messages so they don't overlap the "You fragged <name>!" messages.
+
+v0.96d
+------
+
+*+	- Upgraded the ZDoom version to 2.0.63a! That means that you can now create custom actors with the DECORATE lump! REJOICE!
+*+	- Revamped the entire sector system in client/server games! Floors, plats, doors, etc. ought to sync up much better now. In addition, many new types of floors, plats, doors, etc. that didn't work before now do (such as perpetually moving floors).
++	- Made a number of small improvments to the "WAITING FOR PLAYERS" and "SPECTATING" displays.
++	- Added a new "Messages..." option in the menu of the server console! The window that comes up has options for timestampping, logging, and more! This is accessible through the "Settings" menu.
++	- Servers now minimize to the system tray! You can disable this if you'd like, by setting "sv_minimizetosystray" to "false".
++	- The server window caption now reflects sv_hostname, instead of always being "Skulltag v0.xxx Server". Now you should be able to distinguish between servers when alt+tabbing through them, and having them all pop up from the taskbar in Windows XP.
++	- Added new and improved Hectebus sprites! Thanks Agent Spork!
++	- Added the ability to configure which weapons you start with in LMS/TLMS! The weapons that you start with are now controlled by the variable "lmsallowedweapons", which can now be changed with the commands "lms_allowpistol false", "lms_allowshotgun true", etc.
++	- Added a nice new set of messages that display in the upper-portion of the screen whenever you frag someone, or are fragged in deathmatch games. Yet more stuff inspired by Quake 3! :) You can disable this in the "Display Options" menu if you wish to.
++	- Greatly improved the method of selecting maps when sv_randommaprotation is enabled! Now, maps are not repeated twice in a row, and there's much more randomization.
++	- Completed the "Server information" dialog box for servers.
++	- Added a new "Statistics" dialog box, selectable in the server menu! It shows you statistics for your server, such as the total data transferred, maximum number of players on the server at one time, etc.
++	- Updated the graphics on the SPREAD rune! It looks great now! Thanks, killingblair! :)
++	- Improved the team picking mechanism for whenever the server chooses a team for a player, and whenever a player selects to pick a random team.
++	- Improved the "Spectating" message that displays when you're spectating. Now, it displays more helpful messages, including your position in line, should be you be in line waiting to play!
++	- If everyone leaves a map when playing on a server, the map now restarts after 5 minutes.
++	- Bots can now use "$level_mapname" and "$level_levelname" in their chat strings to substiture the lump name of the map, and level name of the map respectively.
++	- Added a "Cycle with original order" option to the weapon menu. When enabled, this will pick the next/previous weapon in your weapon slot list when using the weapnext/weapprev commands, instead of using your weapon preference order.
++	- Added a nice little display that shows the current weapon selected when cycling through weapons with the weapnext and weapprev commands. It can be disabled by setting "cl_showweapnameoncycle" to false.
++	- Rewrote a good portion of the scoreboard code. Players are now grouped together better (ex. all spectators are drawn next to each other, all dead players are drawn next to each other, etc.)
++	- Added a new "sv_disallowbots" option. When set to "true", this will prevent bot pathing nodes from being created, and also disallow bots from being used. This allows the memory usage of servers to go down drastically.
++	- The "Frags" column in the server console now changes to "Kills" in cooperative, and "Points" in teamgame modes.
++	- LMS matches can now end in a DRAW GAME! Now, if the last two players left standing die in the same frame, the match ends in a draw game, instead of the loser being whoever's death code was executed first!
++	- Updated the Skulltag parts of the TNT and Plutonia map info lumps to match the default Doom 2 parts. (ARE YOU HAPPY NOW LIN? :P)
++	- Added the ability for maps to disable to creation of bot nodes by specifying "nobotnodes" in the MAPINFO lump. This is to help large levels load faster. (Oh yeah, this also means bots won't work on those levels).
++	- Servers now ignore launcher queries that occur within 10 seconds of each other.
++	- Servers now ignore launcher queries from IPs that have been banned from the server.
++	- Hectebus fireballs now leave scorch marks.
++	- Made a small change to the automatic team picker to avoid constantly having the same teams between maps.
++	- Added a "cap framerate" option to the "Display Options" menu.
++	- A more detailed error message now displays if the ban file could not be opened.
+-	- You can now switch multiple weapons at a time when using the "weapnext" and "weapprev" commands.
+-	- Text colors are no longer a shade brighter than they should be.
+-	- Fixed bug where player's names would remain on the scoreboard window after disconnecting.
+-	- Fixed bug that allowed a sped up computer hack to cause players to move and shoot many times faster.
+-	- All players are now hidden from view for spectators in LMS/TLMS games. Spectators are also no longer allowed to spynext in LMS/TLMS games. This prevents spectators from giving away locations, and other valuable information about players still in the game.
+-	- Fixed the "You lost your body. Bad dehacked work is likely to blame." bug that would happen periodically in multiplayer games.
+-	- The "consecutive deaths without a frag" counter is now reset at the beginning of each duel/LMS match. As a result, you can no longer receive "You Fail It" or YSINE medals after dying once, twice, or any amount lower than the required number of deaths for those medals.
+-	- Fixed bug where if you changed teams, your old body remained solid (you could bounce grenades off it, etc.)
+-	- Fixed bug where some items would always face east in network games, even if they had a different angle.
+-	- Fixed bug where players who joined servers in the middle of a game would sometimes appear in-game on the scoreboard, when they were actually spectators.
+-	- Fixed a problem with the Team_GivePoints() ACS function. It now works properly.
+-	- Spectators can no longer telefrag (however, this only had the potential to occur in single player games).
+-	- Terrains that splash when you land on them (such as water) no longer create multiple splashes in multiplayer.
+-	- Fixed D2DM7, so that you can no longer rocket jump "outside of the level".
+-	- Then proper weapon now displays when spynexting your buddies when you are not a spectator.
+-	- Made some tweaks to D2ST1, so now you're less likely to get snagged on posts.
+-	- Rewrote a portion of the launcher query protocol to make it use less bandwidth.
+-	- You no longer get kicked for cycling through connection types at the multiplayer menu.
+-	- Fixed a problem where you couldn't toggle your "ready to go on" status during intermission in network games.
+-	- Made a fix so that it should now be impossible to be kicked for userinfo flooding while connecting to a server.
+-	- Fixed cooperative problem where the total number of monsters remaining could be negative, due to the total of monsters not being increased when a monster was revived by an arch-vile.
+-	- The level end delay is now reset if you change maps using the "map" command.
+-	- Platforms that aren't activated by a line now work properly.
+-	- The appropriate bullet puff type is set before enemies fire the railgun. This fixes a bug where if the enemy fired the railgun after the BFG10K would shot, all bullet of blood puffs would be BFG10K explosions.
+-	- "Timelimit hit." now displays on the client end when time expires in a multiplayer game.
+-	- Hidden skins are no longer displayed when the "skins" console command is used.
+-	- You can no longer join LMS games during the win sequence.
+-	- Removed the "droprune" command (it didn't do anything).
+-	- Spectators are no longer factored into deciding whether or not your lead state has changed in a deathmatch game (ie. You can't take the lead against a player who's spectating).
+-	- The BFG10K shots now show up properly when "Bullet puff type" is set to "particles".
+-	- Fixed a small problem where a backslash ("\") at the end of a chat string would not show up properly.
+-	- Banning a player with two words in his name now works properly from the "Kick/ban player..." menu item.
+-	- Bot pathing nodes are no longer created in client games. This should cut down on the memory usage.
+!	- Your view is now reset if you're spy's through the eyes of someone who becomes a spectator.
+!	- Players are now sorted by fragcount on the scoreboard in team LMS.
+!	- If a player gets another frag within two seconds of receiving an "Incredible!" medal, he now receives another "Incredible!" medal, instead of an "Excellent!" medal.
+!	- The "Server information" dialog box is now accessible under the "Server" menu, instead of the "File" menu.
+
+v0.96c
+------
+
+*+	- Skulltag now runs FASTER! Skulltag is now compiled with a different program, giving it quite a boost in speed!
++	- You can now set the "chatfrequency" property of custom bots in BOTINFO lumps.
++	- Added a new "mustwinallduels" property in campaigns, which defaults to true. When this is set to true, the player loses the level if he loses ONE duel against a series of bots!
++	- When defining new episodes, you can now set "botepisode"
++	- You can now set compatflags in campaigns.
++	- Added a new skin, "Slyor"! This skin is based on Klesk from Q3A, and is now used by the bot Slyor. Thanks RottKing!
++	- Added new abilities when defining a new episode in MAPINFO lumps. Now, you can specify whether or not an episode is a bot episode, and what graphic/text to display atop the botskill menu. More on this later.
++	- The saving of player's frags mechanism has been expanded and totally redone. In addition to storing frags, wins and points are saved now as well. Also, players frags, etc. are no longer saved when kicked from a server.
++	- Added placeholders for Daisy's death frames. Daisy no longer disappears upon dying.
++	- Added a new "GetFavoriteWeapon" botscript command. Like it says, it returns the favorite weapon of the bot.
++	- Added a "Currently showing <x> servers" display message in the internal server browser window.
++	- Made a fix to a section of the client code that should result in less slowdown.
++	- Bots can now have their chat strings in wads! Several new botscript functions have been added to support this: SayFromLump, SayFromChatLump, ChatSectionExistsInLump, and ChatSectionExistsInChatLump. You can also specify "chatlump" for each bot in BOTINFO.
++	- You can now continue to see what place you're in during LMS games on the scoreboard after you've been killed.
++	- Added a new warning message for whever you try to specify a script lump or chat lump for bots that exceeds 8 characters.
++	- The "invalid checksum" error now has a better error message for clients who get kicked because of it.
+*-	- Fixed bug that crashed servers whenever HudMessage was used within scripts. This prevented the D2ST1-3 from being played in multiplayer games.
+*-	- Fixed error in how deactivated actors are sent to clients who are connecting to a server. This prevented D2DM6 from being played in multiplayer games.
+*-	- Fixed the major slowdown problem with the bots on D2DM2.
+-	- User info sent when a player is connecting to a server is no longer counted towards userinfo spam kick mechanism. This means that players who don't connect to servers quickly are no longer kicked. This hopefully fixes all of the player names left on the scoreboard problems, as well as an error causing the server to be full, when really it wasn't.
+-	- Fixed problem where you could bounce grenades off some dead bodies in Last Man Standing.
+-	- Fixed an exploit that allowed you to change visiblity to full brightness in single player, then connect to a server, retaining full visibility.
+-	- Fixed bug where if a map was changed in a the middle of a Team LMS game, players couldn't rejoin the game because Skulltag still thought a match was going on.
+-	- Fixed problem where after an intermission during some sort of team-based skirmish, bots would constantly respawn.
+-	- When creating no bots in BOTINFO lumps, if no chat frequency is specified, it defaults to 50 (percent). Before, the chat frequency was not initialized, and would often be some completely random. This is why custom bots would rarely (if ever) say their roaming strings, killed strings, etc.
+-	- Winning/losing in campaign maps other than basic deathmatch modes now works properly.
+-	- Servers now spawn clients with their proper handicap on their first spawn.
+-	- The true position and angle of polyobjects that have been either rotated or moved now appear accurately for clients connecting to a server.
+-	- Fixed problems where the handicap would have strange effects if it was set over 200 or less than 0.
+-	- Player's true starting health is now displayed properly on the scoreboard. Before, it could display as less than 1, which isn't possible.
+-	- Fixed all problems with the internal server browser. It should work fine now.
+-	- Frags now display appropriately in the "Frags" column of the scoreboard in Team LMS.
+-	- "Ready to go on" icons now work properly during the intermission of LMS and Team LMS games.
+-	- Fixed a frame of the SS Nazi skin that had a pink spot on it. Thanks RottKing!
+-	- The Duel and Last Man Standing are now properly reset after a level ends. This fixes a bug where if you played a campaign duel map to completion, a second duel map wouldn't load up with the countdown.
+-	- Fixed problem where in multiplayer, sometimes players could run, but not have their body animate properly.
+-	- You can now spynext/spyprev in teamplay deathmatch, Team LMS, team instagib, and cooperative mode, like you're meant to be able to.
+-	- The botscript command CalcSpread() now works appropriately in team-based games.
+-	- Ambient sound triggering now works properly in multiplayer games.
+-	- Fixed a problem where a player could join a server and have wins, even if that player hadn't played on the server (the wins of a previous player weren't cleared).
+-	- The titles of the botskill menus ("DEATHMATCH", "SKULL TAG", etc.) are now properly centered.
+-	- Changing your weapon pickup preference at the weapon setup menu no longer can result in getting kicked from the server in network games.
+-	- Fixed bug where particle fountains that were dormant to the server would appear to be active for clients connecting to that server.
+-	- Made a small change to the bots' roaming function to eliminate an infinite loop that occured in extremely small maps. You can now play with bots in canthide.wad. Ugh.
+-	- Scrolling through autoaim choices on the player setup menu during a network game no longer results in you getting kicked.
+-	- Fixed strange display problem in the server console where two lines would display on one merged line.
+-	- Fixed server console display glitch that would happen in strings that had two or more color codes in a row (ex. "say \cg\cgHI!").
+-	- The "Champion is <name> with <x> wins" string on the server console scoreboard no longer looks odd if the player has colors in his name.
+-	- Scrolling sectors now work in network games.
+-	- The appropriate railgun color now used in Team LMS games.
+-	- Eliminated "You cannot change deathmatch/teamgame during a campaign." messages when trying to start a new game through menus after playing a campaign.
+-	- Spectators are no longer respawned when a match starts in LMS/TLMS.
+-	- Fixed the SINMAP and ABRICK3 textures that somehow got renamed.
+-	- Fixed a problem where players telefragged by their own team members at the beginning of a round in Team LMS couldn't respawn.
+-	- Made a change to reduce, if not eliminate the occurance of no items spawning on a level when connecting to a server.
+-	- Fixed problems relating to the number of duels that have been played on a map.
+-	- Fixed bug where bots would rapidly open and close doors.
+-	- The "Kick player..." and "Kick/ban player..." menus now works properly on the server console.
+-	- Fixed bug where picking up the random powerup would display the pickup message to everyone, not just the person picking it up.
+-	- Decals placed on a map now spawn for clients in a network game.
+-	- Fixed problem in CTF network games where if a player was carrying a flag, the spectated, it spawned two flags on the client end (and one would remain as a ghost if the flag was returned).
+-	- Spawning a bot with an invalid script name no longer results in the game crashing.
+-	- Specifying new start maps for new episodes with the MAPINFO lump now works properly.
+-	- Fixed bug where setting a fraglimit could cause strange problems with Team LMS.
+-	- Fixed a problem with the last frame of the invisibility sphere animation.
+-	- Fixed problem with the SS Nazi's front firing animation.
+-	- "Intellect" is now spelled properly in use with BOTINFO and botscript functions. Setting the "intelect" property in BOTINFO lumps however still works for compatability.
+-	- Fixed bug where people leaving LMS games could produce bizarre results, such as restarting the countdown.
+-	- Botskill icons and players' handicap now show up on the scoreboard in team-based modes.
+-	- Fixed problem where actors who were not players did not have their water level status updated to clients.
+-	- Light_Fade and Light_Glow now work properly in network games.
+-	- Your player rank in LMS is now determined by your number of wins, instead of your fragcount.
+-	- Fixed a problem with a few flats used in D2CTF8 that was causing them to show up as a slightly different color.
+-	- Fixed a number of minor texture misalignments on D2DM8. Thanks Assmaster :P
+-	- Fixed a number of patches for textures that weren't showing up properly in Doom Builder's texture selection window.
+-	- Abaddon no longer fight with Cacolanterns, and Belphegor no longer fight with Hell Knights.
+-	- Removed the "RBAN1" texture, since ST already has a texture that has this. If a map used it, and this breaks it, I can put it back.
+!	- The "Nightmare!" graphic on the botskill menu now uses a different graphic lump than the gameskill menu. The lump name is "M_BNMARE".
+!	- Color codes are no longer used in logfiles. Now, lines with colors in them shouldn't cause logfiles to look strange.
+!	- You can now change variables with the campaign lock flag during a campaign when sv_cheats is enabled.
+!	- Removed the campaign lock from the "botskill" var. You can now change botskill mid-campaign.
+!	- Slyor now appears on D2DM7, instead of Torrent.
+!	- Changed the fraglimit on D2DM7 to 25.
+!	- sv_duelcountdowntime now defaults to 10, instead of 20.
+!	- Handicap can now be set up to 200 in the player setup menu, due to you starting with 200% in LMS and TLMS games.
+!	- Botskill is now clamped between 0 and 4. This should eliminate graphical errors on the scoreboard that would occur when set higher or lower than that range.
+
+v0.96b
+------
+
+*+	- THE BOTS ARE BACK! The bots are once again fully functional, and greatly improved! Enjoy! :)
+*+	- Players can now create their OWN CUSTOM BOTS, with CUSTOMIZEABLE AI! This is due to the fact that all the bots' logic is now scripted! More on this later.
+*+	- Bots now work in multiplayer games!
+*+	- Added two new deathmatch levels! D2DM4: Containment Facility, and D2DM8: Temple of Pain.
+*+	- Added a new skulltag level! D2ST3: Ring of Fire.
+*+	- Added two new CTF levels! D2CTF7: Den of Sanctity, and D2CTF8: Ghastly Abode.
+*+	- D2DM1 and D2DM2 have been completely redetailed! They look fantastic now!
+*+	- D2DM3 has been completely redone! It's much better now! :)
+*+	- Reimplemented, and completed revamped the CAMPAIGN system! (The campaign system controls the single player botmatches.) Now, users can create their OWN campaigns, using the CMPGNINF lump! More on this later.
+*+	- Added new Last Man Standing, and TEAM LMS mode! This works very similarly to Rocket Arena. Players battle each other until only one man is left standing, and then the match restarts.
+*+	- Added Team Instagib mode! It's essentially the teamplay deathmatch mode combined with instagib deathmatch!
+*+	- Added Instagib CTF mode! You can now play capture the flag games... instagib style!
+*+	- Added a new monster, the Hectebus! This monster is a level two Mancubus. Thanks TheDarkArchon for the sprites, and Espi for the fireballs!
+*+	- Added a new monster, the Abaddon! This monster is a level three Cacodemon. Thanks Tormentor667 for the sprites!
+*+	- Added a new SIMPLER method of creating CTF maps! Now, all you have to do is place your flags and starts, and you're done! This also creats a compatible CTF standard with other ports, such as ZDaemon. This also works with ONE FLAG CTF!
+*+	- Added Legacy style weapon preferences! Players can now set their weapon preferences in the weapon setup menu (accessible through the player setup menu), and change their switch weapon on pickup preference to "Never", "Only for higher ranked weapons", and "Always"!
+*+	- Added a graphical server console! It is now far easier for server admins to manage their servers. It's also prettier :)
+*+	- Servers can now ban players! Bans can now be set in the server console, as well as turned on/off with the sv_enforcebans cvar.
++	- Improved the spam chat kicking functionality. People now cannot get away with as much spamming of macros, etc.
++	- Added several new bots! ... but you'll just have to find them yourself! :)
++	- Improved how players join teams in teamplay deathmatch! Now, all players start as spectators, and when they hit space to join the game, select which team they want to join.
++	- The way players now join a team in teamplay deathmatch now applies to teamgame maps that do not have temporary starts (so now level designers aren't forced to make a team selection room).
++	- Rerecorded all the announcer sound effects, so hopefully they're even better! (NOTE: The old one has been left in as a seperate profile!)
++	- Added a new "Fisting!" medal, which is awarded for fragging an opponent with your fist!
++	- Added "You have the flag!", "Your team has the flag!", "The enemy has the flag!", and "White flag returned" announcer events for One Flag CTF.
++	- Implemented "ready to change maps" functionality at the intermission in network games! Players can now hit a button during intermission to incidcate that they're ready to change to the next map.
++	- When bots chat, they can now include player names in their chat string! This is done simply by placing codes such as "$player_killedby", "$player_random_notself", etc. in their chat strings. More on this later.
++	- Chubbs now has more frames of animation! In addition, some of his existing frames have been improved! Thanks Seth Gorden for coming back to us! :)
++	- Improved the hidden bot/skin system! Now, when you add a hidden bot or select a hidden skin, it is then selectable when choosing your skin at the player setup menu, or selecting a bot at the skirmish menu. Revealed bots and skins are also now saved into your config file, so they're available next time you load Skulltag!
++	- Added the "SS Nazi" skin! Now you can play Skulltag as a Wolfenstein character!
++	- Added the "Super Shotgun Guy" skin! Now you can play as one of Skulltag's new monster, the Super Shotgunner!
++	- Added a touched-up "Phobos" skin, based on the character in Q3A! Thanks RottKing!
++	- Added the "Strife Guy" skin, who is based on the guy from Strife! (duh)
++	- Added a new linespecial (153) called Team_GivePoints! This ENSURES that Domination can now be scripted with no problems!
++	- Added several new textures that can be helpful to teamgame map authors! Thanks exp(x)!
++	- The turbosphere is now complete, graphic-wise!
++	- The haste rune is now complete, graphic-wise!
++	- The high jump rune has now been significantly improved, graphic-wise!
++	- The server window now displays "FIGHT!" when duels and last man standing matches start.
++	- Now, when using "rcon", you can see the output on the server window on the client end!
++	- Massmouth is back! He's also sporting a new skin, and new chat lines! Thanks Cyb! :)
++	- Added "sv_randommaprotation", which when used with "sv_maprotation", randomly selects a map from the map rotation list for the next map.
++	- Teammates can now chat with each other by using say_team in teamplay deathmatch.
++	- Added "winlimit", which works similarly to fraglimit, duellimit, etc., but works with Last Man Standing games.
++	- Team scores are now reset to 0 if everyone on the server leaves.
++	- Added a new compatflag for using old intermission screens and music during intermission, as opposed to the new Skulltag ones.
++	- Added a new compatflag to disable stealth monsters.
++	- Your color is now saved while cycling between skins. If you switch to a skin that has a preset color, then switch back to a skin that doesn't have a preset color, your old color will be retained.
++	- Now, when you switch to a map using the "map" command that's in the map rotation list, the current position in the map rotation list is set to that spot in the list.
++	- The "Accuracy" and "Precision" medals now work again.
++	- Skulltag now keeps track of the amount of time each player has been in the current map, and it is displayed on the scoreboard.
++	- In cooperative mode, players are now sorted on the scoreboard based on their kill count.
++	- When Skulltag tries to bind to a port, if the port is not available, it simply finds an available port, and bind to it.
++	- The puff type display options now work in network games.
++	- Added support for skins with sounds that start with '*' in SKININFO.
++	- Added thing 9991, which performs the action attached to it whenever an actor is in the same sector.
++	- If a player has a changed colormap along with the turbosphere or haste rune, the colormap is now applied to the trails.
++	- Added improved the Belphegor's sprites. Thanks Nanami!
++	- Added tall versions of the Doom episode 3 and 4 skies! Thanks Seismos!
++	- Skulltag's invisible bridges now possess the "act like bridge" flag, allowing objects to rest on them. This also fixes the problem on D2CTF1 where flags could drop down below the bridges.
++	- The minigun has new on-ground graphics! Thanks Scuba!
++	- Added "don't restore frags" options for clients who don't want their fragcount to restored when they reconnect to a server.
++	- The fan flats in skulltag.wad now animate by default.
+*-	- Fixed problem where the client side player prediction would cause jerkiness when running up stairs. This means that games will now be much smoother!
+*-	- Fixed annoying problem in network games where you would bob up and down if you were standing on a ledge.
+*-	- Fixed all reported crashes.
+-	- Players who spam user info changes (ex. running scripts that change your skin every few ticks) are now kicked from the server.
+-	- Fixed problem where occasionally hitting the use key against objects (like you do to open doors) would not work right.
+-	- The railgun attacks are now armor piercing, like they were meant to be.
+-	- Fixed problem where you could set a negative handicap, thus allowing you to reach very high health levels.
+-	- Fixed problem where monsters would continue to attack your invisible body if you went into spectator mode.
+-	- The respawn invulnerability now protects against railgun shots in instagib.
+-	- Fixed memory leakage caused by idle servers.
+-	- Thing_Activate/Deactivate now work properly in multiplayer games (YOU'RE WELCOME SPUNKMAN!)
+-	- Fixed STSKY5 so it now repeats vertically properly.
+-	- Fixed bug where the game would freeze up if you tried to suicide during the win sequence of a duel.
+-	- Fixed bug where you could activate the IDDT map cheat in single player, and then connect to a server with the cheat still active.
+-	- Fixed problem where if you ran a server and tried to change a variable that's archived and part of the server info (such as compatflags) with the command line or a config file at startup, it would not set properly.
+-	- Fixed problem where if a player's speed was changed through ACS over the network, his movement could appear to be all jerky.
+-	- The "SetWeapon" ACS command now works properly in multiplayer.
+-	- Fixed problem where if the server had their blood type display option set to "particles only", clients connected to the server would not see any blood sprites.
+-	- Timelimit is now applied in team games.
+-	- Removed the FWFALL1 and FWFALL2 textures. Hope no one was using them! They were the essentially the same as WFALL1.
+-	- Did the same for the WFALLxx patches.
+-	- The sound once again works on the polyobject doors on D2CTF4.
+-	- Fixed the skies on many of the CTF maps so that they scroll, as originally intended.
+-	- Fixed bug that prevented "Press space to see front/back" from showing up on the player setup menu in high resolutions.
+-	- Fixed problem where players' orientations weren't correct after using a teleport without fog in network games.
+-	- A_FireRailgunRight/Left now works correctly in multiplayer games.
+-	- Fixed bug where you couldn't pass arguments that had spaces in them using rcon.
+-	- Fixed bug where intermission animations would display in Doom 1 even when the Skulltag win/loss screen would display.
+-	- Fixed bug where if you joined a game while spectating through someone else's eyes, you continued to spectate through their eyes.
+-	- Fixed bug where the first player would always be the winner of a duel if a timelimit was set and time ran out.
+-	- Fixed the wallrun problem when the "plasma bump bug" or oldschool modes were set.
+-	- Fixed problem where if you tried to connect to a server that was full, you got a garbled error message.
+-	- Spectators no longer make the "oof" noise when slamming into walls.
+-	- Fixed problem where if you were spectating through someone's eyes, and they died, you wouldn't continue to spy through their eyes when they respawned.
+-	- Fixed the IDCHOPPERS cheat. It now works properly.
+-	- Removed the "no respawn" dmflag. It has been replaced by the new "last man standing" mode.
+!	- For items to respawn in cooperative mode, the "alwaysapplydmflags" cvar no longer needs to be set to true.
+!	- Slightly moved where the player who is in your crosshair's name is drawn so that it is not overlapped by "Waiting for players", "Spectating", etc.
+!	- Wads placed in the \BOTS directory are now automatically loaded.
+!	- Gamma has been changed from a human bot to being one of the robot bots. Cygnus is now who he used to be as a human.
+!	- Spectators are now skipped when using the spynext and spyprev commands.
+!	- Gave the "Skulltag" game mode its own cvar. Now, "teamgame" by itself is more generic.
+!	- In team games, players are now sorted according to their frags/points on the scoreboard.
+!	- When messages are off, you no longer hear the "beep" sound when someone talks.
+!	- Running a server with -private now merely makes sv_updatemaster false.
+!	- Changed the amount of time the server gives clients to send their checksum from 5 to 15 seconds. This will hopefully reduce instances of kicks due to "did not receive player's checksum".
+!	- Cheats can now be used in any single player mode (including DM and teamgames) without required sv_cheats to be enabled.
+!	- sv_updatemaster is no longer archived.
+!	- Each level in Skulltag now uses a unique music lump.
+!	- "connectiontype" now defaults to "cable".
+!	- Greatly cleaned up skulltag.wad. It ought to be much less of a pain to navigate now :) (Thanks XWE!)
+!	- Made some slight changes to the player setup menu to accomidate the "user info spam" functionality.
+!	- All the CTF maps included in Skulltag now use the simple CTF map standard.
+!	- The white flag now returns after 30 seconds in One Flag CTF mode, just like normal flags do.
+!	- Weapon switching on pickup is now forced in oldschool mode.
+!	- Oldschool now uses the old intermission screens and music, as opposed to the Skulltag ones.
+!	- The scoreboard and all its messages now display from the display player's point instead of view, instead of the console player's.
+!	- The Reflection rune now hurts the attacker with 75% of the damage done to the one with the rune, instead of 50%.
+!	- Made some tweaks to D2DM1, including minor visual changes and the removal of some health.
+!	- Changed D2DM2 so that you can no longer get up to the rocky waterfall area (and fixed missing textures that were previously viewable from up there).
+!	- Bringing up the "join game" prompt while a spectator is now always activated by hitting space, instead of whatever key "+use" was bound to.
+
+v0.95k
+------
+
+*-	- Duels no longer restart when a spectator leaves the game.
+*-	- Fixed problem where dropped flags were often invisible to clients not using the cable connection type.
+-	- Fixed problem where the duel countdown didn't show up on the client end after the duel limit is hit.
+-	- Spectators can no longer suicide.
+-	- Fixed glitched lift on D2CTF2.
+!	- The settings sv_forcepassword and sv_forcejoinpassword are no longer archived (meaning you have to explicitly set them to TRUE if you want them to be on when you launch a server).
+
+v0.95j
+------
+
++	- The join queue now works in ALL gameplay modes; not just duel. So now, in packed servers, you can "wait in line" to play when all the server slots are taken. When a slot opens up, you will then automatically spawn in, instead of having to manually join the game.
++	- Spectators can now pass through teleports. No more being stuck in the team selection room while spectating!
++	- Added a Doom 64 guy skin. Thanks RottKing!
++	- The room now lights up when you fire the railgun like with other weapons.
++	- Added a missing announcer sound for the Perfect medal.
++	- Added "Wins" display alongside "Rank" and "Spread" while dueling.
+-	- That annoying bug where a letter would rarely, randomly drop out while typing in a chat string should be fixed.
+-	- The time freeze sphere is disabled in multiplayer for now.
+-	- Fixed problem where the effect of the random powerup could be different on the client end from the server end.
+-	- Fixed a bug where dropped weapons were giving twice as much ammo as they were supposed to.
+-	- When a duel begins, any missiles fired during the warmup are now removed.
+-	- Fixed problems relating to duellimit. It should work fine now.
+-	- Fixed problem where you could have up to 350% armor with 150 max. armor bonuses.
+-	- Fixed a small bug where the fragcount would display on the scoreboard under the deaths column in teamplay DM.
+-	- Fixed some problems with the dynamic wad loading related to the MAPINFO lump.
+-	- You can no longer get Excellent/Incredible/Domination/Total Domination medals by fragging your teammates with friendly fire on.
+-	- Players who join a team and them spectate now lose their team affiliation.
+!	- Improved the gameplay and visuals of d2ctf6.
+!	- Improved the gameplay of D2ST2. The lifts have been sped up, and additional ammo and armor has been added.
+!	- Improved the gameplay and visuals of D2ST1. It is now more clear which team the bases and goal areas belong to, and an alternate path into each base has been added.
+
+v0.95i
+------
+
+*+	- Added dynamic wad loading! Wads can now be loaded from inside Skulltag with the "load" command.
+*+	- Added checksum checks on wads! Now, the server makes sure that players aren't using any cheat wads!
+*+	- The ingame browser now automatically loads the appropriate wads when connecting to a server.
++	- Upgraded Skulltag to ZDoom version to 2.0.60.
++	- Added "Allow cheat skins" option. When off, players that use skins flagged as cheat skins will appear to have the default skin. Hissy, Doomcrate, Romero, and Daisy are considered cheat skins.
++	- Added Victory and Perfect medals! Victory is awarded when you win a duel, Perfect is awarded when you win a duel with the other player having zero or less frags.
++	- Added "You Skill Is Not Enough!" medal! This is awarded for dying 10 straight times without a frag.
++	- Implemented join passwords! Servers can now set it so that players must have a certain password to join the game. sv_forcejoinpassword and sv_joinpassword control this on the server end.
++	- Added the "duellimit" variable! Now, when this is set, the level will change after the number of duels equals the number you have "duellimit" set to.
++	- Added an option to scale the scoreboard! The scoreboard now automatically stops scaling when a lot of stuff is being displayed on it so that everything fits onto it!
++	- Filled in missing Daisy skin frames with dummy frames.
++	- Added "r_drawweapon", which controls whether or not to draw your current weapon. Can be useful if you'd like to not draw your weapon while taking a screenshot, for instance.
+*-	- Fixed major security hole where clients could rcon a server that didn't have a password set.
+-	- Fixed reported crashes.
+-	- Fixed bug where gibbed bodies would turn into normal corpses after the player respawned in network games.
+-	- Fixed co-op bug where if people connected to a server where monsters were already dead, and had a DSL connection type or less, they would see blood and missiles would explode if they shot over a corpse.
+-	- Fixed "double explosion" problem that would occasionally happen with missiles.
+-	- Fixed problem where players could hear the chainsaw idle sound from other players even when they weren't using the chainsaw.
+-	- Fixed problem where the railgun could shoot past "block everything" lines.
+-	- Fixed bug in the ingame server browser where you could not scroll down when there were more than 8 servers in the list.
+-	- Fixed bug where the face would sometimes not show up.
+-	- Fixed bug where occasionally, players would get a "Server is full" message when a slot was still left.
+-	- Fixed bug where there was an item on a lowered sector, new clients joining the game would see the item in the original, unlowered position.
+-	- Fixed bug where if you did "weapnext" or "weapprev" while spectating, the game would crash.
+!	- Removed the invisibility sphere from D2DM1.
+!	- Railgun shots that strike team members no longer go toward earning Impressive and Most Impressive medals.
+!	- Made it easier to read chat strings in the console.
+!	- You can no longer kill yourself during intermission.
+!	- Cvar "password" changed to "cl_password".
+!	- Disabled the "kill" console command in oldschool mode.
+!	- The "no exit" dmflag is now applied in oldschool mode. Also, if you try to hit the exit switch while "no exit" is on, the switch will simply not work instead of killing you (oldschool only).
+!	- The behavior of the "allow instant respawn" compatability flag is now always applied in oldschool mode.
+
+v0.95h
+------
+
+*+	- Added the in-game server browser.
+*+	- Greatly revamped the DUEL gameplay mode! Now, players can wait in line and join once the current duel ends. Also, instead of the level changing when a duel ends, the loser is kicked into the spectators, and the next person in line joins him!
+*+	- Dramatically improved the player prediction. Movement is now much less jerky, especially on high ping servers!
++	- Skulltag now broadcasts server information, meaning that if a launcher (such as the in-game browser) listens properly, it can pick up servers on a LAN! (Translation: If you host a server on a LAN, and browser for local servers in the in-game server browser, it will show up!)
++	- Added sv_duelcountdowntime, which controls how long a duel counts down in seconds.
++	- Upgraded Skulltag to ZDoom version 2.0.57.
++	- Skulltag can now go between client mode and single player mode without having to restart.
++	- Now, if users launch a server with "-host #", "#" will become the maximum number of clients.
++	- Made a slight tweak so that plasma bumping on MAP01 behaves exactly like doom2.exe when the plasma bump compat flag is set. (Thanks cph!)
++	- Added dmst-duel.cfg and dmclassic-duel.cfg to the install package.
+-	- Fixed problem where BFG9000 sprays were being done on the client end if you had connection type at 56k or DSL.
+-	- Fixed all reported crashes.
+-	- In co-op, game boes back to the initial episode map after getting to a finale of some sort.
+-	- Fixed problem where scaled skins didn't appear to be scaled in multiplayer.
+-	- Fixed overlapping text problem that occured when some messages were displayed in video modes where the width isn't a multiple of 320.
+-	- Fixed problem where rejoining a teamplay DM server resulting in your saved number of frags being readded to the frag total.
+!	- Icons now inhereit the render properties of their tracers. (ex. If you have an invisibility sphere, your icon will appear invisibile too).
+!	- The quit and exit console commands can no longer be called with the ConsoleCommand ACS function.
+!	- You frag total is no longer subtracted from the team frag total when you go into spectator mode.
+!	- Summon cheats now work in multiplayer if sv_cheats is enabled.
+!	- Sound is now played even when the window is not in focus.
+
+v0.95g
+------
+
+*+	- Upgraded Skulltag to ZDoom version 2.0.53.
+*+	- Made a massive fix to speed up item spawning on the server end. This results in much smoother, less laggy games. (Especially in levels with tons of objects. Co-op games should be MUCH better now.)
+*+	- Made large optimizations to how sectors work over the network. They are now smoother and less laggy!
+*+	- Applied "connection type" to ALL weapons. 56K users are simply told when a weapon is fired, and by who. DSL users are told that, and the actual XYZ, angle, and pitch of the shot, so they can recreate the shot on their end. Cable users get the information about each actual pellet or missile spawned by the weapon firing. The higher the connection type setting, the higher the precision, and the higher bandwidth used.
++	- Added sv_maxplayers, which limits the amount of active players in the game. People who join the game beyond this limit spawn as spectators.
++	- Added a trail effect for when players have the turbosphere or haste rune.
++	- Added field for the password that clients use to connect to passworded servers to the multiplayer menu.
++	- Added new compatibility flag that enables the original Doom sound curve.
++	- Add safety measures to the ConsoleCommand ACS function.
++	- Applied logic for all dmflags that I hadn't gotten around to doing.
++	- Added option to start as a spectator when connecting to servers. The option can be toggled via the multiplayer menu.
++	- Drain and reflection runes now work properly.
++	- Spread now works with all Heretic and Hexen weapons.
++	- Added "taunt" to the customize controls menu.
++	- Added con_textcolor, which allows disabling of color for text strings.
++	- Added chat flood protection. Now, players who spam servers with chat strings get kicked.
++	- TakeInventory called by server-side scripts now shows up properly on the client end.
++	- Improved spying through other people's eyes while in spectator mode.
++	- Added "plasma bump bug" compatibility flag. When this is enabled, plasma bumping on MAP01, BFG bumping on dwango5.wad MAP01, etc. work "properly".
++	- Objects spawned by server-side scripts through Thing_Projectile now work.
++	- Added blue/red leads, teams are tied announcer events for teamplay DM mode.
++	- Added HUD display for team scores during teamplay DM mode.
++	- Added limited support for Heretic/Hexen weapons over the net.
++	- Item respawning has been moved more towards the server end. This removes item respawn problems under certain conditions (ie. item respawn in cooperative).
++	- While spectating, players' whos eyes you spy through, now display the proper view and weapon bobbing.
++	- Added "disable taunts" compatability flag. This is important because before, the silent BFG effect was triggerable by taunting.
+-	- Fixed major server crash where if the level remained unchanged for more than a day or so, and someone joined, it would crash.
+-	- Desaturated sectors now appear that way on the client end.
+-	- Fixed connection problems related to the level being loaded, without having gotten the player spawning packet(s) yet.
+-	- Change music functions called by server-side scripts now work on the client end.
+-	- Fixed problem where if a texture was changed to "-" during the course of a level, it would not show up correctly for connecting clients mid-level.
+-	- Fixed problem where going into spectator mode while carrying an important object such as a flag or the terminator, would result in the object disappearing for good.
+- 	- Textures that have changed during the level are now updated to joining clients.
+-	- Fixed problem where typing a chat string with a % sign would would result in a bunch of different characters instead of the actual % sign.
+-	- Fixed bug where the joystick would not work in multiplayer games.
+-	- Fixed bug where if you fired plasma against the wall, it didn't appear to come out at all on the client end.
+-	- Fixed rcon problems related to the "map" command.
+-	- Fixed problems with "floating missiles" when connecting to servers.
+-	- Made fix to make the BFG firing sound play at the proper time on the client end.
+-	- The HealThing function called by server-side scripts now works.
+-	- Fixed problem where if the was packet loss on the server end, your missiles would appear to come out at the wrong pitch.
+-	- Fixed problem where if you were spying through the eyes of another player during coop, spectator mode, etc., and they disconnected, Skulltag would crash.
+-	- Players now grunt and have their view height shift when hitting the ground hard on the client end.
+-	- Fixed bugs where weapons appeared to be cleared between levels in co-op, but that really isn't the case.
+-	- Fixed bug where spectators did not show up on the scoreboard in teamgame mode.
+-	- Icons now spawn directly over the player instead of at their feet (with framerate uncapped, medals in pervious versions would "float" up to the top of the player).
+-	- Fixed memory leak related to sound on program exit.
+-	- Voodoo dolls now work again.
+-	- Fixed problem where enter scripts would only execute for one player.
+-	- Fixed problem where sometimes "YOU NEED THE <RED, YELLOW, BLUE> KEY" messages sometimes did not appear on the client end.
+-	- Fixed problem with obituary messages for custom wads where when players' had colored names, their color would persist to the end of the message, instead of reverting back to gold.
+-	- Fixed problems where dropped dehacked pickups would appear to not disappear over the client end.
+-	- Clients now receive dmflags, etc. updates if server updates them using "sv_nomonsters", etc. commands.
+-	- Fixed bug where if the "no monsters" flag was set, and a co-op level was being played on, the monsters still spawned, and appeared to stand in place on the client end.
+-	- Added unique spawnable codes for the dark imp fireball and cacolantern fireball.
+-	- Fixed problem where picking up dehacked items on the client end would not make them disappear.
+-	- Fixed problem where score ladder on D2ST2 occasinally could not be climbed.
+-	- Flag return ticks are now reset after each level.
+-	- Fixed problems relating to being permently frozen if you're in time freeze mode, and restart the level.
+-	- Monster pain chance is now no longer factored into the client end.
+-	- Fixed telefrag bug where you appeared to be dead on the client end, but were still alive.
+-	- Normal player sounds are now played when cl_skins is false. Before, even though the player sprite was normal, the sounds associated with the skin would still play.
+-	- Fixed problem where the silent pickups compatability flag wouldn't work if the silent BFG compatibility flag was enabled.
+-	- Autoaim now always works in oldschool mode.
+-	- Fixed a number of minor co-op bugs.
+!	- Removed cl_noalpha. Turns out it just duplicated the effect of r_drawtrans.
+!	- Regeneration and degeneration are no longer handled on the client end.
+!	- Objects are now always infinitely tall in oldschool mode.
+!	- Players in cooperatvie mode are now considered teammates. The teamdamage cvar now affects how much you can damage your teammates.
+!	- Text lines are no longer broken up into two or more lines if they're too long to fit the screen in oldschool.
+!	- The console is now available in oldschool mode.
+!	- Servers can now enable sv_cheats, allowing cheats.
+!	- Made r_drawtrans settings save to config file, instead of being set to the default each time Skulltag is loaded.
+!	- Changed chatting in oldschool mode so it more closely resembles normal chatting.
+!	- Changed grunt when pushing against a wall to being client-side (of course, other clients still hear the sound).
+!	- Changed grunting when landing the ground to being client-side (of course, other clients still hear the sound).
+!	- Split up the "Cable/DSL" connection type into two seperate types. Now, if both the server and client have at least a cable connection, SSG pellets will appear in exactly the right place, as opposed to their position being generated on the client end. (WARNING: This takes a LOT of bandwidth! Only do this if you're hardcore!)
+!	- Slightly lowered the volume of the firing sound for the minigun.
+!	- Railgun and BFG10K now produce decals.
+!	- Missiles now spawn with the exact correctness of speed, position, and angle on the client end if both the server and client have at least a cable connection.
+!	- Custom names are now allowed in oldschool mode (no more "Green", "Indigo", etc.).
+
+v0.95f
+------
+
++	- If the client cannot connect due to the version different, the server says which version it's using.
++	- Made some more optimizations to the player movement network code, so the same results are acheived with less bandwidth (translation: less lag).
++	- Added new fireball graphics for the cacolantern.
++	- Underwater movement is now far less jerky.
++	- Sounds triggered by server-side scripts now work.
+-	- Fixed connection problem where a bunch of garbage would spew in the console, and you'd get a "Waiting for server..." message.
+-	- Fixed crash on client end that would happen if the server told the client to print an invalid type of HUD message (never really should happen).
+-	- Fixed "flashing red screen" problem.
+-	- Chat prompt is now visible for people using "scale text in high res".
+-	- Pistol was being fired both client-side and server-side. Now it is only fired server-side.
+-	- The BFG10k shooting is now server-side (before, the gun would appear to fire on the client end, but other players wouldn't see the shot).
+-	- The BFG10k shot and the BFG9000 shot had the same spawnable code for scripts. This has been changed (BFG10K shot is now 217).
+-	- Fixed problem where GiveInventory called by server-side scripts would spawn a version of the item on the client side that could not be picked up.
+-	- Fixed problem where drain and rage icons were mixed up on the status bar in fullscreen.
+
+v0.95e
+------
+
+*-	- Greatly reduced occurance of connection error occasionally experienced by clients.
+
+v0.95d
+------
++	- Added this file.
++	- Added "connection type" field to the player setup menu, and "sv_connectiontype" for servers, which determines how precise the data sent back and forth between the server and client is. 
++	- Added cl_showcommands, which displays all commands coming to the player from the server.
++	- HUD messages called by scripts run on the server end now show up on the client end.
++	- Actor and player properties set by server side scripts are now sent to the clients.
++	- Now when switches or lines change a sector's light level, it is sent to the clients.
++	- Dormat objects now appear that way on the client end.
++	- Give inventory commands called by server scripts are now reflected on the client end.
++	- Added "<team> has won" to the teamgame intermission screen.
++	- Textures now set by server side scripts now show up on the client end.
++	- Line transparency set on the server side now shows up on the client end.
+-	- Fixed two problems after level change: One where a player's names, skins, etc. would be applied to another player, and where players would bomb to the console with a "no player # start" error message.
+-	- Fixed problems with "double vertical" and "double horiz and vert" detail modes, and all other reported crashes.
+-	- Clients no longer play "blue leads, red flag taken," etc. messages when connecting to an active CTF/ST server.
+-	- Fixed ANIMDEFS lump so switches in Hexen now change graphic when activated.
+-	- Having cl_identifytarget on no longer activates lines activated by shooting when your crosshair is over that line.
+-	- Flags crushed by sectors are now returned.
+-	- If a flag is now slightly within a wall, ceiling, etc. it now spawns anyway. (Before, on d2ctf5, the blue flag would not return if the trap lift was up, making it gone permanently.)
+-	- Fixed flag respawn problems and missing texture on d2ctf5.
+-	- Fixed mancubus firing.
+-	- Weapons are now cleared after intermission in DM, CTF, etc. games.
+-	- Fixed problem where the railgun color was always blue until you changed it.
+-	- Railgun shots that don't strike a player now actually reset your consecutive railgun hits total.
+!	- Player's medals and points (in a teamgame) are now not cleared until the new level begins. Now you can see your score, and the medals you racked up on the level during intermission!
+!	- Dropped flags that have not been returned now result in a "?" flagstatus on the HUD for that team onthe client end.
+!	- Got rid of "You fragged <name>", "You were fragged by <name>" messages in oldschool.
+!	- Defaulted the item respawn and spawn farthest dmflags to OFF when Skulltag is ran with -oldschool (that's altdeath).
+!	- Players' current team is now reset after intermission.
+!	- Color codes are now stripped out of the text in the server window.
+!	- Changed spectator mode so that powerups are cleared once you enter spectator mode. (Before, if you had the doomsphere and would spectate, you appeared to still have the powerup (indefinitely).)
+!	- Move up/down keys now work in spectator mode.
+
+v0.95c
+------
++	- Polyobjects now work in multiplayer games.
++	- Clients now have fade information about sectors (In 95b, the fog on d2ctf4 did not work).
+-	- Fixed problems with changing maps.
+-	- Fixed bug on d2ctf2 where red flag would not respawn.
+-	- Now when clients die, their health does not go below 0%.
+-	- Fixed problem where servers would tell players to disconnect player who encoutered a connection error.
+-	- Fixed crash where players tried to activate lines while dead.
+-	- Fixed problem where spectators on a team would appear on the scoreboard twice.
+-	- If a server used a PWAD in another folder, and the directory structure was represented with "/"s, the server would send out the full directory structure to the launcher. This is fixed.
+-	- Fixed problem where if players who possessed a flag or skull used the "changeteam" command, they would still possess the flag or skull on their end.
+-	- Spectators now retain their spectator status when the level ends.
+-	- Clients now always receive score updates. In 95b, if player 0 left the game, and a team scored, no clients would receive the score update (so the score would appear to be unchanged).
+-	- Fixed problem where gender was not being factored in properly to obituary messages.
+-	- Players who go into spectator mode now get set back to 100%, and are "revived" if they are dead. In 95b, players who went into spectator mode when they were dead would always have the scoreboard up, etc. This is fixed.
+
+v0.95b
+------
+*+	- Upgraded Skulltag to ZDoom v2.0.47q
+*+	- New CTF level! d2ctf6: Ruins of Blood
+*+	- Two new Skulltag levels! d2st1 and d2st2
+*+	- Spectator mode added! Players can now spectate on other games!
+*+	- New weapon added! The minigun.
+*+	- New monster! The Belphegor (third level hell knight).
+*+	- Added the ability to handicap yourself in DM/CTF.
+*+	- Co-op is now supported! Includes scoreboard changes.
+*+	- New duel deathmatch mode added! Designed for 1 on 1 deathmatch.
++	- Third episode of Skulltag now selectable through the menu.
++	- Nicer fadeout on medals.
++	- Added cl_icons and cl_medals, which are options to disable icons and medals.
++	- Also added cl_skins, for disabling skins.
++	- Skirmish menu now allows selecting of levels added from MAPINFO lumps.
++	- Added shootable versions of the invisible bridges. Useful for room over room with Transfer_Heights.
++	- Did basic Skulltag tweaks for Hexen support (That's right, since Skulltag is now based on ZDoom v2.0, it now works with Hexen!).
++	- More frames for the SSG guy.
++	- Dark Imps, Cacolanterns now have sprites.
++	- New fireball for the Dark Imp.
++	- Detail has been increased on d2dm1 and d2dm2.
++	- Added a display option to turn down the intensity of blood on the screen.
+!	- Fraglimit is no longer factored into team games.
+!	- Player can now taunt and jump at the same time.
+!	- Changed method of calculating rank. Should be more accurate now.
+!	- Dark Imps and Cacolanterns now fire faster projectiles.
+!	- Changed how Incredible medals are awarded. It is now given if you get a frag within two seconds of getting an Excellent, instead of getting two frags within two seconds of getting an Excellent. They should be more common now.
+!	- Changed the Doomsphere duration from 30 seconds to 25 seconds.
+
+v0.94c
+------
+*+	- Added new level! d2ctf5: Massmouth Mansion
+*+	- Skulltag now works with Doom 1.
++	- Added "You're tied for/You've taken/lost the lead" announcer events.
++	- Added megasphere, soulsphere, and "You win" announcer events
++	- Added new item: Massmouth statue
++	- Added new "sv_defaultdmflags" cvar, which when turned off, will NOT use the default dmflags for a DM, CTF, etc. level set by Skulltag.
++	- Added MOD for killing yourself with the BFG10K.
+-	- Fixed +moveup and +movedown in client/server games
+-	- Fixed the scoreboard so number of points left in team games displays
+-	- Fixed problem where if you switched from a CTF level to a DM level, the "Welcome to CTF" sound would still play.
+-	- Skulltag now updates the master server right away whenever you change the master server IP.
+-	- Fixed problem where Skulltag couldn't load certain PWADS with custom textures (ex. gothic2).
+-	- Fixed "Unknown item" problem with dropped pistols and BFG10Ks.
+-	- Fixed sound bug in terminator mode.
+-	- Fixed problem where sounds would become out of sync if the server or client didn't have the same skins or announcer wads loaded.
+!	- Announcer wads placed in the /ANNOUNCER directory are now automatically loaded.
+!	- Replaced the "-maxclients" command line parameter with the "sv_maxclients" cvar. It can be changed without restarting the server.
