@@ -40,7 +40,7 @@
 
 /** Lots of different version numbers **/
 
-#define DOTVERSIONSTR_NOREV "0.97c3-rc1"
+#define DOTVERSIONSTR_NOREV "0.97c3"
 
 // The version string the user actually sees.
 #define DOTVERSIONSTR DOTVERSIONSTR_NOREV "-r" SVN_REVISION_STRING
@@ -76,7 +76,7 @@
 #define MINDEMOVERSION 0x205
 
 // [BC] This is what's displayed as the title for server windows.
-#define	SERVERCONSOLE_TITLESTRING	"Skulltag v0.97c3-rc1 Server"
+#define	SERVERCONSOLE_TITLESTRING	"Skulltag v0.97c3 Server"
 
 // SAVEVER is the version of the information stored in level snapshots.
 // Note that SAVEVER is not directly comparable to VERSION.
