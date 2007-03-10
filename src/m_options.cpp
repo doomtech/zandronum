@@ -2961,6 +2961,7 @@ void M_WeaponSetupMenuDrawer( void )
 	ULONG	ulCurYPos;
 	char	szString[256];
 
+	/* [RC] Remove the outmoded text about pressing + and - to change the user's personal weapon order
 	ulCurYPos = 182;
 	ulTextHeight = ( gameinfo.gametype == GAME_Doom ? 8 : 9 );
 
@@ -2971,6 +2972,7 @@ void M_WeaponSetupMenuDrawer( void )
 
 	sprintf( szString, "change your personal weapon ranking" );
 	screen->DrawText( CR_WHITE, 160 - ( SmallFont->StringWidth( szString ) / 2 ), ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
+	*/
 }
 
 static menuitem_t WeaponSetupItems[] = {
