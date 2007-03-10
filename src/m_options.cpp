@@ -35,7 +35,6 @@
 ** make a project of rewriting the entire menu system using Amiga-style
 ** taglists to describe each menu item. We'll see... (Probably not.)
 */
-
 #include "m_alloc.h"
 #include "templates.h"
 
@@ -378,6 +377,7 @@ static menuitem_t OptionItems[] =
 	{ more,		"Mouse options",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)MouseOptions} },
 	{ more,		"Joystick options",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)JoystickOptions} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
+	{ more,		"Player setup",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_PlayerSetup} },
 	{ more,		"Gameplay Options",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)GameplayOptions} },
 	{ more,		"Compatibility Options",{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)CompatibilityOptions} },
 	{ more,		"Sound Options",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)SoundOptions} },
@@ -1511,28 +1511,31 @@ void M_AcceptMultiplayerChanges( void );
 void M_Browse( void );
 void M_Spectate( void );
 void M_CallVote( void );
+void M_ChangeTeam( void );
 void M_Skirmish( void );
 
 static menuitem_t MultiplayerItems[] =
 {
-	{ more,		"Skirmish",				{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_Skirmish} },
+	{ more,		"Offline skirmish",				{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_Skirmish} }, // [RC] Clarification that Skirmish is not hosting
 	{ more,		"Browse servers",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_Browse} },
-	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ more,		"Player setup",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_PlayerSetup} },
 //	{ more,		"Account setup",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_AccountSetup} },
+	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ more,		"Spectate",				{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_Spectate} },
-	{ more,		"Call vote",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_CallVote} },
+	{ more,		"Call a vote",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_CallVote} },
+	{ more,		"Switch teams",				NULL,					0.0, 0.0, 0.0, {(value_t *)M_ChangeTeam} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ discrete, "Allow skins",			{&cl_skins},			{3.0}, {0.0},	{0.0}, {AllowSkinVals} },
-	{ discrete, "Allow medals",			{&cl_medals},			{2.0}, {0.0},	{0.0}, {OnOff} },
-	{ discrete, "Allow icons",			{&cl_icons},			{2.0}, {0.0},	{0.0}, {OnOff} },
 	{ discrete, "Allow taunts",			{&cl_taunts},			{2.0}, {0.0},	{0.0}, {OnOff} },
-	{ discrete,	"Identify target",		&cl_identifytarget,		2.0, 0.0, 0.0, OnOff },
+//	{ discrete, "Allow medals",			{&cl_medals},			{2.0}, {0.0},	{0.0}, {OnOff} },
+//	{ discrete, "Allow icons",			{&cl_icons},			{2.0}, {0.0},	{0.0}, {OnOff} },
+	{ discrete,	"Identify players",		&cl_identifytarget,		2.0, 0.0, 0.0, OnOff },
+	{ discrete,	"Start as spectator",	&cl_startasspectator,	{2.0}, {0.0},	{0.0}, {YesNo} },
+	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ string,	"Server password",		&cl_password,				{0.0}, {0.0},	{0.0}, {NULL} },
 	{ string,	"Join password",		&cl_joinpassword,		{0.0}, {0.0},	{0.0}, {NULL} },
-	{ discrete,	"Start as spectator",	&cl_startasspectator,	{2.0}, {0.0},	{0.0}, {YesNo} },
-	{ discrete, "Connection Type",		&menu_connectiontype,	4.0, 0.0, 0.0, ConnectionTypeVals },
-	{ discrete, "Don't restore frags",	&cl_dontrestorefrags,	2.0, 0.0, 0.0, YesNo },
+	{ discrete, "Connection type",		&menu_connectiontype,	4.0, 0.0, 0.0, ConnectionTypeVals },
+	{ discrete, "Reset frags at join",	&cl_dontrestorefrags,	2.0, 0.0, 0.0, YesNo },
 };
 
 menu_t MultiplayerMenu = {
@@ -1556,7 +1559,7 @@ void M_Spectate( void )
 	if ( gamestate == GS_LEVEL )
 		C_DoCommand( "spectate" );
 	else
-		M_StartMessage( "Cannot spectate if you are not playing!\n\npress any key.", NULL, false );
+		M_StartMessage( "You must be in a game to spectate.\n\npress any key.", NULL, false );
 }
 
 //*****************************************************************************
@@ -1567,7 +1570,7 @@ void M_CallVote( void )
 	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
 	{
 		M_ClearMenus( );
-		M_StartMessage( "You cannot call a vote if you're not a client!\n\npress any key.", NULL, false );
+		M_StartMessage( "You must be in a multiplayer game to vote.\n\npress any key.", NULL, false );
 
 		return;
 	}
@@ -2244,7 +2247,7 @@ void M_GetServerInfo( void )
 
 void M_WeaponSetup( void );
 void M_PlayerSetupDrawer( void );
-void M_ChangeTeam( void );
+
 void M_AcceptPlayerSetupChanges( void );
 void M_UndoPlayerSetupChanges( void );
 bool M_PlayerSetupItemsChanged( void );
@@ -2253,20 +2256,21 @@ void M_AcceptPlayerSetupChangesFromPrompt( int iChar );
 menuitem_t PlayerSetupItems[] = {
 	{ string,	"Name",						&menu_name,				2.0, 0.0, 0.0, NULL  },
 	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
+	{ skintype,	"Skin    ",					&menu_skin,				2.0, 0.0, 0.0, NULL	 },
 	{ slider,	"Red",						&menu_color,			0.0, 255.0, 1.0, NULL  },
 	{ slider,	"Green",					&menu_color,			0.0, 255.0, 1.0, NULL  },
 	{ slider,	"Blue",						&menu_color,			0.0, 255.0, 1.0, NULL  },
+	{ discrete, "Railgun color",			&menu_railcolor,		11.0, 0.0, 0.0, TrailColorVals },
 	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ skintype,	"Skin",						&menu_skin,				2.0, 0.0, 0.0, NULL	 },
-	{ discrete, "Gender",					&menu_gender,			3.0, 0.0, 0.0, GenderVals },
+	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
+	{ discrete,	"Always Run",				&cl_run,				2.0, 0.0, 0.0, OnOff },
 	{ number,	"Handicap",					&menu_handicap,			0.0, 200.0, 5.0, NULL },
 	{ discrete,	"Autoaim",					&menu_autoaim,			7.0, 0.0, 0.0, AutoaimVals },
-	{ discrete, "Railgun color",			&menu_railcolor,		11.0, 0.0, 0.0, TrailColorVals },
-	{ discrete,	"Always Run",				&cl_run,				2.0, 0.0, 0.0, OnOff },
-	{ announcer,"Announcer",				&cl_announcer,			0.0, 0.0, 0.0, NULL },
-	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
 	{ more,		"Weapon setup",				NULL,					0.0, 0.0, 0.0, {(value_t *)M_WeaponSetup} },
-	{ more,		"Change team",				NULL,					0.0, 0.0, 0.0, {(value_t *)M_ChangeTeam} },
+	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
+	{ discrete, "Gender",					&menu_gender,			3.0, 0.0, 0.0, GenderVals },
+	{ announcer,"Announcer",				&cl_announcer,			0.0, 0.0, 0.0, NULL },
+// [RC] Moved switch team to the Multiplayer menu
 	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
 	{ more,		"Undo changes",				NULL,					0.0, 0.0, 0.0, {(value_t *)M_UndoPlayerSetupChanges} },
 };
@@ -2293,6 +2297,15 @@ static int				PlayerTics;
 static int				PlayerRotation;
 DCanvas	*FireScreen;
 BYTE	FireRemap[256];
+
+// [RC] Moved switch team to the Multiplayer menu
+void M_ChangeTeam( void )
+{
+	// Clear the menus, and send the changeteam command.
+	M_ClearMenus( );
+	AddCommandString( "changeteam" );
+}
+
 
 void M_SetupPlayerSetupMenu( void )
 {
@@ -2329,6 +2342,7 @@ void M_AcceptPlayerSetupChanges( void )
 
 	if ( stricmp( menu_name, name ) != 0 )
 		ulUpdateFlags |= USERINFO_NAME;
+
 	Val = menu_name.GetGenericRep( CVAR_String );
 	name.SetGenericRep( Val, CVAR_String );
 
@@ -2418,13 +2432,6 @@ void M_PlayerSetup( void )
 	PlayerTics = PlayerState->GetTics( );
 	if ( FireScreen == NULL )
 		FireScreen = new DSimpleCanvas( 144, 160 );
-}
-
-void M_ChangeTeam( void )
-{
-	// Clear the menus, and send the changeteam command.
-	M_ClearMenus( );
-	AddCommandString( "changeteam" );
 }
 
 // Draw a frame around the specified area using the view border
@@ -2706,8 +2713,8 @@ void M_PlayerSetupDrawer( void )
 	USHORT	usOldPlayerSetupXOffset;
 	USHORT	usOldPlayerSetupYOffset;
 	
-	usOldPlayerSetupXOffset = 48;
-	usOldPlayerSetupYOffset = 47;
+	usOldPlayerSetupXOffset = 72;
+	usOldPlayerSetupYOffset = 36; // [RC] Move the player display up a bit so the text doesn't overlap
 
 	if ( gameinfo.gametype != GAME_Doom )
 		usOldPlayerSetupYOffset -= 7;
@@ -2798,13 +2805,13 @@ void M_PlayerSetupDrawer( void )
 			}
 		}
 
-		const char *str = "PRESS " TEXTCOLOR_WHITE "SPACE";
-		screen->DrawText( CR_GOLD, 320 - 52 - 32 -
+		const char *str = "PRESS SPACE"; // [RC] Color tweak so it sticks out less
+		screen->DrawText( CR_DARKGRAY, 320 - 52 - 32 -
 			SmallFont->StringWidth( str ) / 2,
 			(USHORT)( usOldPlayerSetupYOffset + usLineHeight * 3 + 69 ), str,
 			DTA_Clean, true, TAG_DONE );
 		str = PlayerRotation ? "TO SEE FRONT" : "TO SEE BACK";
-		screen->DrawText( CR_GOLD, 320 - 52 - 32 -
+		screen->DrawText( CR_DARKGRAY, 320 - 52 - 32 -
 			SmallFont->StringWidth( str ) / 2,
 			(USHORT)( usOldPlayerSetupYOffset + usLineHeight * 4 + 69 ), str,
 			DTA_Clean, true, TAG_DONE );
