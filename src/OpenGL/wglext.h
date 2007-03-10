@@ -24,7 +24,7 @@ extern "C" {
 ** 
 ** Original Code. The Original Code is: OpenGL Sample Implementation,
 ** Version 1.2.1, released January 26, 2000, developed by Silicon Graphics,
-** Inc. The Original Code is Copyright (c) 1991-2002 Silicon Graphics, Inc.
+** Inc. The Original Code is Copyright (c) 1991-2004 Silicon Graphics, Inc.
 ** Copyright in any portions created by third parties is as indicated
 ** elsewhere herein. All Rights Reserved.
 ** 
@@ -34,13 +34,16 @@ extern "C" {
 ** version 1.2.1 Specification.
 */
 
-#if defined(_WIN32) && !defined(APIENTRY) && !defined(__CYGWIN__)
-//#define WIN32_LEAN_AND_MEAN 1
+#if defined(_WIN32) && !defined(APIENTRY) && !defined(__CYGWIN__) && !defined(__SCITECH_SNAP__)
+#define WIN32_LEAN_AND_MEAN 1
 #include <windows.h>
 #endif
 
 #ifndef APIENTRY
 #define APIENTRY
+#endif
+#ifndef APIENTRYP
+#define APIENTRYP APIENTRY *
 #endif
 #ifndef GLAPI
 #define GLAPI extern
@@ -49,9 +52,9 @@ extern "C" {
 /*************************************************************/
 
 /* Header file version number */
-/* wglext.h last updated 2002/03/22 */
+/* wglext.h last updated 2005/01/07 */
 /* Current version at http://oss.sgi.com/projects/ogl-sample/registry/ */
-#define WGL_WGLEXT_VERSION 4
+#define WGL_WGLEXT_VERSION 6
 
 #ifndef WGL_ARB_buffer_region
 #define WGL_FRONT_COLOR_BUFFER_BIT_ARB 0x00000001
@@ -170,6 +173,10 @@ extern "C" {
 #define WGL_AUX7_ARB                   0x208E
 #define WGL_AUX8_ARB                   0x208F
 #define WGL_AUX9_ARB                   0x2090
+#endif
+
+#ifndef WGL_ARB_pixel_format_float
+#define WGL_TYPE_RGBA_FLOAT_ARB        0x21A0
 #endif
 
 #ifndef WGL_EXT_make_current_read
@@ -296,6 +303,10 @@ extern "C" {
 #define WGL_TEXTURE_RECTANGLE_NV       0x20A2
 #endif
 
+#ifndef WGL_ATI_pixel_format_float
+#define WGL_TYPE_RGBA_FLOAT_ATI        0x21A0
+#endif
+
 #ifndef WGL_NV_float_buffer
 #define WGL_FLOAT_COMPONENTS_NV        0x20B0
 #define WGL_BIND_TO_TEXTURE_RECTANGLE_FLOAT_R_NV 0x20B1
@@ -392,6 +403,10 @@ extern BOOL WINAPI wglSetPbufferAttribARB (HPBUFFERARB, const int *);
 typedef BOOL (WINAPI * PFNWGLBINDTEXIMAGEARBPROC) (HPBUFFERARB hPbuffer, int iBuffer);
 typedef BOOL (WINAPI * PFNWGLRELEASETEXIMAGEARBPROC) (HPBUFFERARB hPbuffer, int iBuffer);
 typedef BOOL (WINAPI * PFNWGLSETPBUFFERATTRIBARBPROC) (HPBUFFERARB hPbuffer, const int *piAttribList);
+#endif
+
+#ifndef WGL_ARB_pixel_format_float
+#define WGL_ARB_pixel_format_float 1
 #endif
 
 #ifndef WGL_EXT_display_color_table
@@ -598,6 +613,14 @@ typedef BOOL (WINAPI * PFNWGLGETFRAMEUSAGEI3DPROC) (float *pUsage);
 typedef BOOL (WINAPI * PFNWGLBEGINFRAMETRACKINGI3DPROC) (void);
 typedef BOOL (WINAPI * PFNWGLENDFRAMETRACKINGI3DPROC) (void);
 typedef BOOL (WINAPI * PFNWGLQUERYFRAMETRACKINGI3DPROC) (DWORD *pFrameCount, DWORD *pMissedFrames, float *pLastMissedUsage);
+#endif
+
+#ifndef WGL_ATI_pixel_format_float
+#define WGL_ATI_pixel_format_float 1
+#endif
+
+#ifndef WGL_NV_float_buffer
+#define WGL_NV_float_buffer 1
 #endif
 
 
