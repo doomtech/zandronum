@@ -136,8 +136,10 @@ bool MaskSkybox;
 bool DrawingDeferredLines;
 bool InSkybox;
 bool CollectSpecials;
+GLint viewport[4];
 GLdouble viewMatrix[16];
 GLdouble projMatrix[16];
+float FogStartLookup[256];
 
 int totalCoords;
 gl_poly_t *gl_polys;
