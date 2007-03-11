@@ -10338,6 +10338,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\OpenGL\gl_rentex.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\OpenGL\gl_setup.cpp"
 					>
 				</File>
