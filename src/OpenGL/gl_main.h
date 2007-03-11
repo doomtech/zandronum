@@ -98,10 +98,32 @@ typedef enum {
    WT_BTM
 } wallpart_t;
 
+typedef enum {
+   AREA_ABOVE,
+   AREA_NORMAL,
+   AREA_BELOW,
+   AREA_DEFAULT
+} viewarea_t;
+
 // And this?
 enum {
    FRUSTUM_LEFT,
    FRUSTUM_RIGHT
+};
+
+enum {
+   RL_DEPTH,
+   RL_BASE,
+   RL_TEXTURED,
+   RL_TEXTURED_CLAMPED,
+   RL_LIGHTS,
+   RL_FOG_BOUNDARY,
+   RL_FOG,
+   RL_RESET,
+   RL_MASK, // just mask the polygons in the depth buffer
+   RL_DEFERRED,
+   RL_DEFERRED_DEPTH,
+   RL_NUM_MODES
 };
 
 
@@ -433,6 +455,12 @@ void P_LoadGLVertexes(int lumpnum);
 void P_LoadGLSegs(int lumpnum);
 void P_LoadGLSubsectors(int lumpnum);
 void P_LoadGLNodes(int lumpnum);
+
+//
+// gl_fakeflat.cpp stuff
+//
+
+sector_t * GL_FakeFlat(sector_t * sec, sector_t * dest, int *floorlightlevel, int *ceilinglightlevel, bool back);
 
 //
 // misc stuff

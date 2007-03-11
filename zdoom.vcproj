@@ -10302,6 +10302,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\OpenGL\gl_fakeflat.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\OpenGL\gl_fonts.cpp"
 					>
 				</File>
