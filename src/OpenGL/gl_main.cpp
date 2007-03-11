@@ -253,51 +253,47 @@ bool GL_UseStencilBuffer()
 }
 
 
-bool GL_CheckExtension(char *ext)
+bool GL_CheckExtension(const char *ext)
 {
-   int pos, maxpos, len, i;
-   char *other;
-   char *extensions;
+	const char *supported = NULL;
+	int extLen = strlen(ext);
 
-   extensions = (char *)glGetString(GL_EXTENSIONS);
+	PROC wglGetExtString = wglGetProcAddress("wglGetExtensionsStringARB");
+	if (wglGetExtString)
+	{
+		supported = ((char*(__stdcall*)(HDC))wglGetExtString)(wglGetCurrentDC());
+	}
 
-   if (extensions == NULL)
-   {
-      return false;
-   }
+	if (supported)
+	{
+		for (const char *p = supported;;p++)
+		{
+			p = strstr(p, ext);
+			if (!p) break;
 
-   pos = 0;
-   maxpos = strlen(ext) - 1;
-   len = strlen(extensions);
+			if ((p == supported || p[-1] == ' ') && (p[extLen] == '\0' || p[extLen] == ' '))
+			{
+				return true;
+			}
+		}
+	}
 
-   for (i = 0; i < len; i++)
-   {
-      //if ((i == 0) || ((i > 1) && extensions[i - 1] == ' '))
-      if (extensions[i] != ' ')
-      {
-         other = extensions + i;
-         pos = 0;
+	supported = (char *)glGetString(GL_EXTENSIONS);
+	if (supported)
+	{
+		for (const char *p = supported;;p++)
+		{
+			p = strstr(p, ext);
+			if (!p) return false;
 
-         while (extensions[i] != ' ')
-         {
-            if (extensions[i] == ext[pos])
-            {
-               pos++;
-            }
+			if ((p == supported || p[-1] == ' ') && (p[extLen] == '\0' || p[extLen] == ' '))
+			{
+				return true;
+			}
+		}
+	}
 
-            if (pos > maxpos && extensions[i + 1] == ' ')
-            {
-               return true;
-            }
-
-            i++;
-
-            if (i >= len) return false;
-         }
-      }
-   }
-
-   return false;
+	return false;
 }
 
 

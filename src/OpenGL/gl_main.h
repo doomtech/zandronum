@@ -290,7 +290,7 @@ void GL_DrawQuad(int left, int top, int right, int bottom); // for savegame imag
 // gl_main.cpp stuff
 //
 
-bool GL_CheckExtension(char *ext);
+bool GL_CheckExtension(const char *ext);
 void GL_GenerateLevelGeometry();
 void GL_UnloadLevelGeometry();
 void GL_RenderPlayerView(player_t *player, void (*lengthyCallback)());
