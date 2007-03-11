@@ -683,6 +683,20 @@ angle_t CL_FrustumAngle(int whichAngle)
    }
 }
 
+//
+// find the angle to the frustum points of the far plane
+//
+angle_t CL_FrustumAngle()
+{
+   angle_t amt;
+   float pct, vp;
+
+   vp = clamp<float>(fabsf(ANGLE_TO_FLOAT(viewpitch)) + (Player->FOV / 2), 0.f, 90.f);
+   pct = vp / 90.f;
+   amt = (angle_t)(180.f * pct * ANGLE_1);
+
+   return amt;
+}
 
 bool CL_ClipperFull()
 {
