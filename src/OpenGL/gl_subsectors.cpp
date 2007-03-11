@@ -7,6 +7,79 @@
 VisibleSubsector *sortedsubsectors;
 
 
+SubsectorList::SubsectorList() : Head(0), Tail(0)
+{
+}
+
+
+SubsectorList::~SubsectorList()
+{
+   Clear();
+}
+
+
+void SubsectorList::Clear()
+{
+   if (Head) delete Head;
+   Head = NULL;
+   Tail = NULL;
+}
+
+
+void SubsectorList::AddSubsector(subsector_t *subSec)
+{
+   SubsectorList::SubsectorListNode *node = new SubsectorList::SubsectorListNode();
+
+   node->Subsec = subSec;
+
+   if (Tail != NULL)
+   {
+      Tail->Next = node;
+      Tail = Tail->Next;
+   }
+   else
+   {
+      Head = Tail = node;
+   }
+}
+
+
+void SubsectorList::UnlinkList()
+{
+   Head = Tail = NULL;
+}
+
+
+void SubsectorList::LinkList(SubsectorList::SubsectorListNode *node)
+{
+   if (Tail)
+   {
+      Tail->Next = node;
+   }
+   else
+   {
+      Head = Tail = node;
+   }
+
+   while (Tail->Next) Tail = Tail->Next;
+}
+
+
+SubsectorList::SubsectorListNode::SubsectorListNode() : Subsec(0), Next(0)
+{
+}
+
+
+SubsectorList::SubsectorListNode::~SubsectorListNode()
+{
+   if (Next)
+   {
+      delete Next;
+      Next = NULL;
+   }
+}
+
+
 void GL_ClipSubsector(subsector_t *subSec, sector_t *sector)
 {
    int numLines, firstLine, i;
