@@ -76,6 +76,10 @@ void	V_ColorizeString( char *pszString );
 void	V_UnColorizeString( char *pszString, ULONG ulMaxStringLength );
 void	V_RemoveColorCodes( char *pszString );
 
+// [RC] Conforms & cleans user names 
+bool	v_AcceptableNameChar( char c );
+void	V_CleanPlayerName( char *pszString );
+
 FBrokenLines *V_BreakLines (FFont *font, int maxwidth, const BYTE *str);
 void V_FreeBrokenLines (FBrokenLines *lines);
 inline FBrokenLines *V_BreakLines (FFont *font, int maxwidth, const char *str)
