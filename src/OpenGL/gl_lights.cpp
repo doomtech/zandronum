@@ -4,12 +4,13 @@
 #include <gl/glu.h>
 #include <string>
 
+#define USE_WINDOWS_DWORD
 #include "a_doomglobal.h"
 #include "c_cvars.h"
 #include "c_dispatch.h"
 #include "m_random.h"
 #include "gl_lights.h"
-#include "gl_struct.h"
+#include "gl_main.h"
 #include "sc_man.h"
 #include "templates.h"
 #include "w_wad.h"
@@ -206,7 +207,7 @@ FLightDefaults::~FLightDefaults()
 
 ADynamicLight *FLightDefaults::CreateLight(AActor *target, FState *targetState)
 {
-   const TypeInfo *type;
+   const PClass *type;
    char typeName[128];
    ADynamicLight *light = NULL;
 
@@ -219,10 +220,10 @@ ADynamicLight *FLightDefaults::CreateLight(AActor *target, FState *targetState)
       sprintf(typeName, "%s", m_Class);
    }
 
-   type = TypeInfo::IFindType(typeName);
+   type = PClass::FindClass(typeName);
    if (type)
    {
-      light = static_cast<ADynamicLight *>(AActor::StaticSpawn(type, target->x, target->y, target->z));
+      light = static_cast<ADynamicLight *>(AActor::StaticSpawn(type, target->x, target->y, target->z, NO_REPLACE));
       light->angle = this->m_Angle;
       light->SetOffset(m_X, m_Y, m_Z);
       light->lnext = NULL;
@@ -386,7 +387,7 @@ void APointLightPulse::Serialize(FArchive &arc)
       m_cycler.SetParams(args[LIGHT_SECONDARY_INTENSITY], args[LIGHT_INTENSITY], pulseTime);
       m_cycler.ShouldCycle(true);
       m_cycler.SetCycleType(CYCLE_Sin);
-      m_currentIntensity = m_cycler;
+      m_currentIntensity = m_cycler.GetVal();
    }
 }
 
@@ -413,7 +414,7 @@ void APointLightPulse::Tick()
    if (m_enabled)
    {
       m_cycler.Update(diff);
-      m_currentIntensity = m_cycler;
+      m_currentIntensity = m_cycler.GetVal();
    }
 }
 
@@ -597,7 +598,7 @@ ADynamicLight *GL_LightsForState(AActor *actor, FState *state)
    spriteframe_t *sprframe;
    unsigned int i, j;
    FTexture *tex;
-   const TypeInfo *type;
+   const PClass *type;
    FLightAlias *alias;
 
    lights = tmpLight = NULL;
@@ -605,15 +606,15 @@ ADynamicLight *GL_LightsForState(AActor *actor, FState *state)
    sprdef = &sprites[state->sprite.index];
    sprframe = &SpriteFrames[sprdef->spriteframes + state->GetFrame()];
    type = RUNTIME_TYPE(actor);
-   alias = GL_GetLightAlias(type->Name);
+   alias = GL_GetLightAlias(type->TypeName);
    if (alias)
    {
-      type = TypeInfo::FindType(alias->RealName());
+      type = PClass::FindClass(alias->RealName());
    }
 
    for (i = 0; i < LightAssociations.Size(); i++)
    {
-      if (stricmp(type->Name, LightAssociations[i]->ActorName()) == 0)
+      if (stricmp(type->TypeName, LightAssociations[i]->ActorName()) == 0)
       {
          for (j = 0; j < 16; j++)
          {
@@ -652,27 +653,27 @@ void GL_CheckActorLights(AActor *actor)
 {
    int i, numStates;
    FState *state;
-   const TypeInfo *type;
+   const PClass *type;
    FLightAlias *alias;
 
    // lights don't have attached lights...
-   if (actor->IsKindOf(TypeInfo::FindType("DynamicLight"))) return;
+   if (actor->IsKindOf(PClass::FindClass("DynamicLight"))) return;
 
-   if (actor->IsKindOf(TypeInfo::FindType("Actor")))
+   if (actor->IsKindOf(PClass::FindClass("Actor")))
    {
       type = RUNTIME_TYPE(actor);
-      alias = GL_GetLightAlias(type->Name);
+      alias = GL_GetLightAlias(type->TypeName);
       if (alias)
       {
-         type = TypeInfo::FindType(alias->RealName());
+         type = PClass::FindClass(alias->RealName());
       }
       numStates = 0;
       // walk back up the heirarchy to find the parent with the most states
       // usually this is a pretty short trip (1 or 2 parents)
-      while (stricmp("AActor", type->Name) != 0)
+      while (stricmp("AActor", type->TypeName) != 0)
       {
          numStates = MAX<int>(numStates, type->ActorInfo->NumOwnedStates);
-         type = type->ParentType;
+         type = type->ParentClass;
       }
    }
    else
@@ -684,17 +685,17 @@ void GL_CheckActorLights(AActor *actor)
    {
       actor->Lights.Resize(numStates);
       type = RUNTIME_TYPE(actor);
-      alias = GL_GetLightAlias(type->Name);
+      alias = GL_GetLightAlias(type->TypeName);
       if (alias)
       {
-         type = TypeInfo::FindType(alias->RealName());
+         type = PClass::FindClass(alias->RealName());
       }
       for (i = 0; i < numStates; i++)
       {
          // make sure to read the states from the parent classes, as well
          while (i >= type->ActorInfo->NumOwnedStates)
          {
-            type = type->ParentType;
+            type = type->ParentClass;
          }
          state = &type->ActorInfo->OwnedStates[i];
          actor->Lights[i] = GL_LightsForState(actor, state);
