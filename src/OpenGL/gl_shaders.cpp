@@ -55,6 +55,14 @@
 #define MIN(a, b) (a < b ? a : b)
 
 
+extern PFNGLGENPROGRAMSARBPROC glGenProgramsARB;
+extern PFNGLDELETEPROGRAMSARBPROC glDeleteProgramsARB;
+extern PFNGLBINDPROGRAMARBPROC glBindProgramARB;
+extern PFNGLPROGRAMSTRINGARBPROC glProgramStringARB;
+extern PFNGLPROGRAMENVPARAMETER4FARBPROC glProgramEnvParameter4fARB;
+extern PFNGLMULTITEXCOORD2FARBPROC glMultiTexCoord2fARB;
+
+
 EXTERN_CVAR(Int, vid_renderer)
 EXTERN_CVAR(Bool, gl_texture)
 EXTERN_CVAR(Bool, gl_wireframe)
@@ -880,6 +888,96 @@ FShader *GL_ShaderForTexture(FTexture *tex)
    //if (shader) Printf("found shader %s.\n", tex->Name);
 
    return shader;
+}
+
+VertexProgram *GL_ParseVertexProgram()
+{
+   VertexProgram *vp = NULL;
+   FMemLump lumpData;
+   char *vpString, *err;
+   int vpLength;
+
+   if (SC_GetString())
+   {
+      // get internal name of vertex program
+      vp = new VertexProgram;
+      vp->name = new char[strlen(sc_String) + 1];
+      sprintf(vp->name, "%s", sc_String);
+
+      // get lump vertex program is stored in
+      SC_GetString();
+      lumpData = Wads.ReadLump(sc_String);
+
+      vpString = (char *)lumpData.GetMem();
+      vpLength = Wads.LumpLength(Wads.GetNumForName(sc_String));
+
+      glGenProgramsARB(1, &vp->programID);
+      glBindProgramARB(GL_VERTEX_PROGRAM_ARB, vp->programID);
+      glProgramStringARB(GL_VERTEX_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, vpLength, vpString);
+
+      err = (char *)glGetString(GL_PROGRAM_ERROR_STRING_ARB);
+      if (strlen(err))
+      {
+         Printf("ZGL: error reading VP (%s):\n%s", vp->name, err);
+      }
+   }
+
+   return vp;
+}
+
+
+void GL_ReadVertexPrograms()
+{
+   VertexProgram *vp;
+   int progLump, lastLump;
+
+   //Printf("ZGL: Reading vertex programs.\n");
+   VertexPrograms.Clear();
+
+   lastLump = 0;
+   while ((progLump = Wads.FindLump("VERTPROG", &lastLump)) != -1)
+   {
+      SC_OpenLumpNum(progLump, "VERTPROG");
+      while (vp = GL_ParseVertexProgram())
+      {
+         VertexPrograms.Push(vp);
+      }
+      SC_Close();
+   }
+
+   Printf("ZGL: Read %d vertex programs.\n", VertexPrograms.Size());
+}
+
+
+void GL_DeleteVertexPrograms()
+{
+   unsigned int i;
+
+   for (i = 0; i < VertexPrograms.Size(); i++)
+   {
+      glDeleteProgramsARB(1, &VertexPrograms[i]->programID);
+      delete VertexPrograms[i];
+   }
+
+   VertexPrograms.Clear();
+}
+
+
+void GL_BindVertexProgram(char *name)
+{
+   unsigned int i;
+
+   for (i = 0; i < VertexPrograms.Size(); i++)
+   {
+      if (strcmp(name, VertexPrograms[i]->name) == 0)
+      {
+         glBindProgramARB(GL_VERTEX_PROGRAM_ARB, VertexPrograms[i]->programID);
+         return;
+      }
+   }
+
+   Printf("ZGL: Couldn't bind VP %s.\n", name);
+   glBindProgramARB(GL_VERTEX_PROGRAM_ARB, 0);
 }
 
 CCMD(gl_list_shaders)
