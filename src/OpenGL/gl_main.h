@@ -76,8 +76,8 @@ const float INV_FRACUNIT = 1.f / FRACUNIT;
 #define MAP_COEFF 1.f
 #define MAP_SCALE (INV_FRACUNIT * MAP_COEFF)
 #define LIGHTLEVELMAX 255.f
-#define ANGLE_TO_FLOAT(ang) ((float)(ang * 360.0 / ANGLE_MAX))
-#define FIX2FLT(x) ((x) / (float)FRACUNIT)
+#define ANGLE_TO_FLOAT(ang) (ang * 1.f / ANGLE_1)
+#define FIX2FLT(x) ((x) * INV_FRACUNIT)
 #define AccurateDistance(x, y) (sqrtf(FIX2FLT(x)*FIX2FLT(x) + FIX2FLT(y)*FIX2FLT(y)))
 
 //*****************************************************************************
@@ -127,6 +127,29 @@ enum {
 };
 
 
+class SubsectorList
+{
+public:
+   class SubsectorListNode
+   {
+   public:
+      SubsectorListNode();
+      ~SubsectorListNode();
+      subsector_t *Subsec;
+      SubsectorListNode *Next;
+   };
+
+   SubsectorList();
+   ~SubsectorList();
+   void AddSubsector(subsector_t *subSec);
+   void UnlinkList();
+   void LinkList(SubsectorList::SubsectorListNode *node);
+   void Clear();
+
+   SubsectorListNode *Head, *Tail;
+};
+
+
 template <class T>
 class TRenderListArray : public TArray<T>
 {
@@ -151,6 +174,72 @@ public:
 };
 
 
+class Vector
+{
+public:
+   Vector();
+   Vector(float x, float y, float z);
+
+   void Normalize();
+   void UpdateLength();
+   Vector Cross(Vector &v);
+   float Dot(Vector &v);
+   Vector operator- (Vector &v);
+   Vector operator+ (Vector &v);
+   Vector operator* (float f);
+   Vector operator/ (float f);
+   bool operator== (Vector &v);
+   bool operator!= (Vector &v) { return !((*this) == v); }
+
+   float Dist(Vector &v);
+   float Length();
+   void GetRightUp(Vector &up, Vector &right);
+   const float &operator[] (int index) const { return m_vec[index]; }
+   float &operator[] (int index) { return m_vec[index]; }
+   float X() { return m_vec[0]; }
+   float Y() { return m_vec[1]; }
+   float Z() { return m_vec[2]; }
+   void Set(float *v);
+   void Set(float x, float y, float z);
+   void SetX(float x) { m_vec[0] = x; }
+   void SetY(float y) { m_vec[1] = y; }
+   void SetZ(float z) { m_vec[2] = z; }
+   void Scale(float scale);
+
+   Vector ProjectVector(Vector &a);
+   Vector ProjectPlane(Vector &right, Vector &up);
+protected:
+   float m_vec[3];
+   float m_length;
+};
+
+
+class Plane
+{
+public:
+   Plane();
+   ~Plane();
+   void Init(float *v1, float *v2, float *v3);
+   void Init(float a, float b, float c, float d);
+   void Init(float *verts, int numVerts);
+   void Set(secplane_t &plane);
+   float DistToPoint(float x, float y, float z);
+   bool PointOnSide(float x, float y, float z);
+   bool PointOnSide(Vector &v) { return PointOnSide(v.X(), v.Y(), v.Z()); }
+   bool ValidNormal() { return m_normal.Length() == 1.f; }
+
+   float A() { return m_normal.X(); }
+   float B() { return m_normal.Y(); }
+   float C() { return m_normal.Z(); }
+   float D() { return m_d; }
+
+   Vector Normal() { return m_normal; }
+protected:
+   Vector m_normal;
+   float m_d;
+};
+
+
 class gl_poly_t
 {
 public:
@@ -170,6 +259,16 @@ public:
    float *vertices;
    float *texCoords;
 };
+
+class Particle
+{
+public:
+   float x, y, z;
+   BYTE size;
+   BYTE r, g, b, a, lightLevel;
+   BYTE fogR, fogG, fogB;
+};
+
 
 class VertexProgram
 {
