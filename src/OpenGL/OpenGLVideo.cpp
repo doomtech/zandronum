@@ -99,6 +99,13 @@ PFNGLPROGRAMSTRINGARBPROC glProgramStringARB = NULL;
 PFNGLPROGRAMENVPARAMETER4FARBPROC glProgramEnvParameter4fARB = NULL;
 PFNGLPROGRAMLOCALPARAMETER4FARBPROC glProgramLocalParameter4fARB = NULL;
 
+// subtractive blending
+PFNGLBLENDEQUATIONEXTPROC glBlendEquationEXT = NULL;
+
+// point sprites
+PFNGLPOINTPARAMETERFARBPROC glPointParameterfARB;
+PFNGLPOINTPARAMETERFVARBPROC glPointParameterfvARB;
+
 
 extern HWND Window;
 extern HINSTANCE hInstance;
@@ -109,11 +116,15 @@ extern bool FullscreenReset;
 extern bool VidResizing;
 extern bool changerenderer;
 extern int NewWidth, NewHeight, NewBits;
+extern GLint viewport[4];
 
 static bool FlipFlags;
 void I_RestartRenderer();
 
+CVAR (Bool, gl_show_frameinfo, false, 0)
 CVAR (Bool, gl_vid_allowsoftware, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR (Bool, gl_vid_hardwaregamma, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+
 CUSTOM_CVAR (Bool, gl_use_vertex_buffer_objects, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
 {
    I_RestartRenderer();
@@ -127,8 +138,40 @@ EXTERN_CVAR (Bool, vid_fps)
 EXTERN_CVAR (Int, vid_renderer)
 
 
+void GL_EnableVsync(bool enable)
+{
+   if (wglSwapIntervalEXT)
+   {
+      if (enable)
+      {
+         Printf("ZGL: Enabling vsync.\n");
+         wglSwapIntervalEXT(1);
+      }
+      else
+      {
+         Printf("ZGL: Disabling vsync.\n");
+         wglSwapIntervalEXT(0);
+      }
+   }
+}
+
+
+CUSTOM_CVAR(Bool, gl_vid_vsync, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+{
+   if (screen == NULL || wglSwapIntervalEXT == NULL || wglGetSwapIntervalEXT == NULL)
+   {
+      return;
+   }
+
+   if (((OpenGLFrameBuffer *)screen)->SwapControl())
+   {
+	   GL_EnableVsync(self);
+   }
+}
+
 CUSTOM_CVAR(Bool, gl_line_smooth, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 {
+#if 0
    if (self)
    {
       glEnable(GL_LINE_SMOOTH);
@@ -137,6 +180,9 @@ CUSTOM_CVAR(Bool, gl_line_smooth, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
    {
       glDisable(GL_LINE_SMOOTH);
    }
+#else
+   glDisable(GL_LINE_SMOOTH);
+#endif
 }
 
 CUSTOM_CVAR(Int, gl_vid_refresh, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
@@ -151,6 +197,7 @@ CUSTOM_CVAR(Int, gl_vid_stencilbits, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 
 
 extern TextureList textureList;
+extern float FogStartLookup[256];
 
 //*****************************************************************************
 //	PROTOTYPES
@@ -162,6 +209,15 @@ void	DoBlending( const PalEntry *from, PalEntry *to, int count, int r, int g, in
 
 OpenGLVideo::OpenGLVideo( )
 {
+	ShowWindow(Window, SW_NORMAL);
+
+	FogStartLookup[0] = 0.0001f;
+	for (int i = 1; i < 256; i++)
+	{
+		FogStartLookup[i] = powf(65536.f, byte2float[i]);
+		FogStartLookup[i] *= byte2float[i];
+	}
+
 	// Zero out the modes list, and then create it.
 	m_pVideoModeList = NULL;
 	this->MakeModesList( );
@@ -332,27 +388,36 @@ int OpenGLVideo::GetModeCount( void )
 
 //*****************************************************************************
 //
-bool OpenGLVideo::NextMode( int *piWidth, int *piHeight, bool *bFullScreen )
+bool OpenGLVideo::NextMode( int *piWidth, int *piHeight, bool *bLetterbox, ULONG *pulHZ )
 {
 	if ( m_pIteratorVideoMode )
 	{
 		// Search for the next mode that matches our BPP (it might be this one!)
 		while (( m_pIteratorVideoMode ) && ( m_pIteratorVideoMode->ulBPP != m_ulIteratorBPP ))
+		{
 			m_pIteratorVideoMode = m_pIteratorVideoMode->pNext;
+		}
 
 		// If a mode matched our BPP, "return" it.
 		if ( m_pIteratorVideoMode )
 		{
 			*piWidth = m_pIteratorVideoMode->ulWidth;
 			*piHeight = m_pIteratorVideoMode->ulHeight;
+			if (pulHZ != NULL)
+				*pulHZ = m_pIteratorVideoMode->ulHz;
+			if (bLetterbox != NULL)
+				*bLetterbox = m_pIteratorVideoMode->ulRealHeight != m_pIteratorVideoMode->ulHeight;
 			m_pIteratorVideoMode = m_pIteratorVideoMode->pNext;
 			return ( true );
 		}
 	}
-
 	return ( false );
 }
 
+bool OpenGLVideo::NextMode( int *piWidth, int *piHeight, bool *bLetterbox )
+{
+	return NextMode( piWidth, piHeight, bLetterbox, NULL );
+}
 //*****************************************************************************
 //
 void OpenGLVideo::BlankForGDI( void )
@@ -436,59 +501,81 @@ ULONG OpenGLVideo::GetRefreshRate( ULONG ulWidth, ULONG ulHeight, ULONG ulBPP )
 //
 void OpenGLVideo::MakeModesList( void )
 {
-	DEVMODE		DevMode;
-	LONG		lMode;
+	//VIDEOMODEINFO_s *pLastMode = (VIDEOMODEINFO_s *)&m_pVideoModeList;
+	DEVMODE			DevMode;
+	LONG			lMode;
+	VIDEOMODEINFO_s *pMode, *pNextMode;
+
+	memset(&DevMode, 0, sizeof(DEVMODE));
+	DevMode.dmSize = sizeof(DEVMODE);
 
 	lMode = 0;
-	DevMode.dmSize = sizeof( DEVMODE );
-	while ( EnumDisplaySettings( NULL, lMode, &DevMode ))
+	while (EnumDisplaySettings(NULL, lMode, &DevMode))
 	{
-		this->AddMode( DevMode.dmPelsWidth, DevMode.dmPelsHeight, DevMode.dmBitsPerPel, DevMode.dmDisplayFrequency );
+#if 0
+		FILE *f = fopen("modes.txt", "a");
+		fprintf(f, "width: %4d height: %4d bits: %2d hz: %3d\n", DevMode.dmPelsWidth, DevMode.dmPelsHeight, DevMode.dmBitsPerPel, DevMode.dmDisplayFrequency);
+		fclose(f);
+#endif
+		this->AddMode(DevMode.dmPelsWidth, DevMode.dmPelsHeight, DevMode.dmBitsPerPel, DevMode.dmPelsHeight, DevMode.dmDisplayFrequency);
 		lMode++;
+	}
+
+	// Now add 16:9 and 16:10 resolutions you can use in a window or letterboxed
+	for (pMode = m_pVideoModeList; pMode != NULL; pMode = pNextMode)
+	{
+		pNextMode = pMode->pNext;
+		if (pMode->ulRealHeight == pMode->ulHeight && pMode->ulHeight * 4/3 == pMode->ulWidth)
+		{
+			if (pMode->ulWidth >= 360)
+			{
+				AddMode (pMode->ulWidth, pMode->ulWidth * 9/16, pMode->ulBPP, pMode->ulHeight, pMode->ulHz);
+			}
+			if (pMode->ulWidth > 640)
+			{
+				AddMode (pMode->ulWidth, pMode->ulWidth * 10/16, pMode->ulBPP, pMode->ulHeight, pMode->ulHz);
+			}
+		}
 	}
 }
 
 //*****************************************************************************
 //
-void OpenGLVideo::AddMode( ULONG ulWidth, ULONG ulHeight, ULONG ulBPP, ULONG ulHz )
+void OpenGLVideo::AddMode( ULONG ulWidth, ULONG ulHeight, ULONG ulBPP, ULONG ulBaseHeight, ULONG ulHz )
 {
-	VIDEOMODEINFO_s	*pMode;
-	VIDEOMODEINFO_s	*pLastMode;
-	VIDEOMODEINFO_s *pNewMode;
+	VIDEOMODEINFO_s **ppProbe = &m_pVideoModeList;
+	VIDEOMODEINFO_s *pProbe = m_pVideoModeList;
 
-	pLastMode = NULL;
-	pMode = m_pVideoModeList;
-	while ( pMode )
+	if (ulHz < 60) ulHz = 60;
+
+	// This mode may have been already added to the list because it is
+	// enumerated multiple times at different refresh rates. If it's
+	// not present, add it to the right spot in the list; otherwise, do nothing.
+	// Modes are sorted first by width, then by height, then by depth. In each
+	// case the order is ascending.
+	for (; pProbe != 0; ppProbe = &pProbe->pNext, pProbe = pProbe->pNext)
 	{
-		if (( pMode->ulWidth == ulWidth ) && ( pMode->ulHeight == ulHeight ) && ( pMode->ulBPP == ulBPP ))
-		{
-			// If only the hz have changed, just update that.
-			if ( pMode->ulHz < ulHz )
-				pMode->ulHz = ulHz;
-
-			return;
-		}
-
-		pLastMode = pMode;
-		pMode = pMode->pNext;
+		if (pProbe->ulWidth > ulWidth)		break;
+		if (pProbe->ulWidth < ulWidth)		continue;
+		// Width is equal
+		if (pProbe->ulHeight > ulHeight)		break;
+		if (pProbe->ulHeight < ulHeight)		continue;
+		// Height is equal
+		if (pProbe->ulBPP > ulBPP)		break;
+		if (pProbe->ulBPP < ulBPP)		continue;
+		// Bits is equal
+      if (pProbe->ulHz < ulHz)
+      {
+         // adjust the refresh rate for the mode
+         pProbe->ulHz = ulHz;
+      }
+		return;
 	}
 
 	// Allocate memory for the new video mode.
-	pNewMode = new VIDEOMODEINFO_s;
-
-	// Initialize its settings.
-	pNewMode->ulWidth = ulWidth;
-	pNewMode->ulHeight = ulHeight;
-	pNewMode->ulBPP = ulBPP;
-	pNewMode->ulHz = ulHz;
-	pNewMode->pNext = NULL;
-
-	// If there aren't any video modes in the list currently, then this new video
-	// mode becomes the first one in the list.
-	if ( pLastMode == NULL )
-		m_pVideoModeList = pNewMode;
-	else
-		pLastMode->pNext = pNewMode;
+	*ppProbe = new VIDEOMODEINFO_s (ulWidth, ulHeight, ulBPP, ulBaseHeight);
+	(*ppProbe)->ulHz = ulHz;
+	(*ppProbe)->pNext = pProbe;
 }
 
 //*****************************************************************************
@@ -515,7 +602,130 @@ void OpenGLVideo::FreeModesList( void )
 //
 OpenGLFrameBuffer::OpenGLFrameBuffer( ULONG ulWidth, ULONG ulHeight, bool bFullScreen ) : BaseWinFB( ulWidth, ulHeight )
 {
-//	ULONG	ulIdx;
+  // TO-DO: Use the constructor from ZDoomGL 0.81 (at the moment deactivated by "if 0");
+#if 0
+   RECT r;
+   LONG lStyle, lExStyle;
+   int i;
+
+   m_ulDisplayWidth = ulWidth;
+   m_ulDisplayHeight = ulHeight;
+   m_ulDisplayBPP = (int)gl_vid_bitdepth;
+   m_lNumTris = 0;
+
+   m_ulTrueHeight = ulHeight;
+   if (fullscreen)
+   {
+      for (VIDEOMODEINFO_s *mode = static_cast<OpenGLVideo *>(Video)->m_pVideoModeList; mode != NULL; mode = mode->pNext)
+      {
+         if (mode->ulWidth == ulWidth && mode->ulHeight == ulHeight)
+         {
+            m_ulTrueHeight = mode->ulRealHeight;
+            break;
+         }
+      }
+   }
+
+   m_bFullScreen = (static_cast<OpenGLVideo *>(Video)->GoFullscreen(bFullScreen));
+
+   for (i = 0; i < 256; i++)
+   {
+      m_GammaTable[i] = i;
+   }
+   memcpy (m_SourcePalette, GPalette.BaseColors, sizeof(PalEntry)*256);
+
+   GetWindowRect(Window, &r);
+
+   lStyle = WS_VISIBLE | WS_CLIPSIBLINGS;
+   //lExStyle = WS_EX_APPWINDOW;
+   lExStyle = 0;
+
+   if (bFullScreen)
+   {
+      lStyle |= WS_POPUP;
+      MoveWindow(Window, 0, 0, ulWidth, m_ulTrueHeight, FALSE);
+   }
+   else
+   {
+      lStyle |= WS_OVERLAPPEDWINDOW;
+      lExStyle |= WS_EX_WINDOWEDGE;
+      MoveWindow(Window, r.left, r.top, ulWidth + (GetSystemMetrics(SM_CXSIZEFRAME) * 2), ulHeight + (GetSystemMetrics(SM_CYSIZEFRAME) * 2) + GetSystemMetrics(SM_CYCAPTION), FALSE);
+   }
+
+   SetWindowLong(Window, GWL_STYLE, lStyle);
+   SetWindowLong(Window, GWL_EXSTYLE, lExStyle);
+   SetWindowPos(Window, 0, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+
+   m_hDC = GetDC(Window);
+
+   this->SetupPixelFormat();
+   Printf("ZGL: Creating context for %d*%d*%d screen.\n", m_ulDisplayWidth, m_ulDisplayHeight, m_ulDisplayBPP);
+   Printf("ZGL: Stencil depth is %d bpp.\n", (int)gl_vid_stencilbits);
+   m_hRC = wglCreateContext(m_hDC);
+   if (m_hRC == NULL)
+   {
+      I_FatalError("Could not create OpenGL RC.");
+   }
+
+   ResetContext();
+   CL_Init();
+
+   Printf("ZGL: Vendor: %s\n", glGetString(GL_VENDOR));
+   Printf("ZGL: Renderer: %s\n", glGetString(GL_RENDERER));
+   Printf("ZGL: Version: %s\n", glGetString(GL_VERSION));
+
+   if (!this->loadRequiredExtensions())
+   {
+      vid_renderer = 0;
+      Printf("Falling back to software renderer.\n");
+      m_bSupportsVertexProgram = false;
+      m_supportsFragmentProgram = false;
+      m_supportsVBO = false;
+      m_bSupportsSwapInterval = false;
+      m_bSupportsBlendSubtract = false;
+      m_bSupportsRenderTexture = false;
+      m_bCompiledArrays = false;
+      m_bSupportsPointSprites = false;
+   }
+   else
+   {
+      loadExtensions();
+      textureList.Init();
+
+      SetViewport(0, 0, ulWidth, ulHeight);
+      glGetIntegerv(GL_VIEWPORT, viewport);
+
+      if (m_bSupportsVertexProgram)
+      {
+         GL_ReadVertexPrograms();
+      }
+
+      InitializeState();
+
+      glEnableClientState(GL_VERTEX_ARRAY);
+      glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+      for (i = 0; i < textureList.NumTexUnits(); i++)
+      {
+         glClientActiveTextureARB(GL_TEXTURE0_ARB + i);
+         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+      }
+      glClientActiveTextureARB(GL_TEXTURE0_ARB);
+   }
+
+   m_bSupportsGamma = false;
+   if (gl_vid_hardwaregamma)
+   {
+      if (GetDeviceGammaRamp(m_hDC, (void *)m_OrigGamma))
+      {
+         m_bSupportsGamma = true;
+         Printf("ZGL: Using hardware gamma\n");
+      }
+   }
+   CalcGamma(Gamma, m_GammaTable);
+
+#else
+	//	ULONG	ulIdx;
 	ULONG	ulFullWidth;
 	ULONG	ulFullHeight;
 	int		i;
@@ -527,8 +737,23 @@ OpenGLFrameBuffer::OpenGLFrameBuffer( ULONG ulWidth, ULONG ulHeight, bool bFullS
 	m_ulDisplayWidth = ulWidth;
 	m_ulDisplayHeight = ulHeight;
 	m_ulDisplayBPP = (ULONG)gl_vid_bitdepth;
+	m_lNumTris = 0;
 
 	memcpy( m_SourcePalette, GPalette.BaseColors, sizeof( PalEntry ) * 256 );
+
+	m_ulTrueHeight = ulHeight;
+	if (bFullScreen)
+	{
+		for (VIDEOMODEINFO_s *pMode = static_cast<OpenGLVideo *>(Video)->m_pVideoModeList; pMode != NULL; pMode = pMode->pNext)
+		{
+			if (pMode->ulWidth == ulWidth && pMode->ulHeight == ulHeight)
+			{
+				m_ulTrueHeight = pMode->ulRealHeight;
+				break;
+			}
+		}
+	}
+
 
 	// Attempt to go into windowed or fullscreen mode, depending on what's passed into
 	// this function. Then, set the fullscreen member variable to the actual fullscreen status.
@@ -716,6 +941,7 @@ OpenGLFrameBuffer::OpenGLFrameBuffer( ULONG ulWidth, ULONG ulHeight, bool bFullS
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	CL_Init();
+#endif
 }
 
 OpenGLFrameBuffer::~OpenGLFrameBuffer()
@@ -726,6 +952,195 @@ OpenGLFrameBuffer::~OpenGLFrameBuffer()
    wglMakeCurrent(NULL, NULL);
    wglDeleteContext(m_hRC);
    ReleaseDC(Window, m_hDC);
+}
+
+//*****************************************************************************
+//
+void OpenGLFrameBuffer::InitializeState()
+{
+   glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+   glClearDepth(1.0f);
+   glDepthFunc(GL_LEQUAL);
+   glShadeModel(GL_SMOOTH);
+
+   glEnable(GL_DITHER);
+   glEnable(GL_DEPTH_TEST);
+   glDisable(GL_ALPHA_TEST);
+   glDisable(GL_FOG); // make sure to initialize to "off"
+   glEnable(GL_CULL_FACE);
+   glEnable(GL_POLYGON_OFFSET_FILL);
+   glEnable(GL_POLYGON_OFFSET_LINE);
+   glEnable(GL_BLEND);
+#if 0
+   if (gl_line_smooth)
+   {
+      glEnable(GL_LINE_SMOOTH);
+   }
+   else
+   {
+      glDisable(GL_LINE_SMOOTH);
+   }
+#else
+   glDisable(GL_LINE_SMOOTH);
+#endif
+   glAlphaFunc(GL_GREATER, 0.0);
+
+   glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+   glHint(GL_FOG_HINT, GL_NICEST);
+   glFogi(GL_FOG_MODE, GL_EXP);
+   glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+
+   glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+   glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+
+   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+//*****************************************************************************
+//
+bool OpenGLFrameBuffer::loadRequiredExtensions()
+{
+   static const char *requiredExtensions[] = {
+      "GL_ARB_multitexture",
+      "GL_EXT_texture_env_combine",
+      "GL_SGIS_generate_mipmap",
+      NULL
+   };
+   const char *ext = requiredExtensions[0];
+   int i = 0;
+
+   glActiveTextureARB = NULL;
+   glClientActiveTextureARB = NULL;
+   glMultiTexCoord2fARB = NULL;
+
+   while (ext)
+   {
+      if (!GL_CheckExtension(ext))
+      {
+         Printf("ZGL ERROR: Required extension %s missing.\n", ext);
+         return false;
+      }
+      ext = requiredExtensions[++i];
+   }
+
+   glActiveTextureARB = (PFNGLACTIVETEXTUREARBPROC)wglGetProcAddress("glActiveTextureARB");
+   glClientActiveTextureARB = (PFNGLCLIENTACTIVETEXTUREARBPROC)wglGetProcAddress("glClientActiveTextureARB");
+   glMultiTexCoord2fARB = (PFNGLMULTITEXCOORD2FARBPROC)wglGetProcAddress("glMultiTexCoord2fARB");
+
+   if (!glActiveTextureARB || !glClientActiveTextureARB || !glMultiTexCoord2fARB)
+   {
+      Printf("ZGL ERROR: multitexture reported as supported, but functions not found.\n");
+      return false;
+   }
+
+   return true;
+}
+
+//*****************************************************************************
+//
+void OpenGLFrameBuffer::loadExtensions()
+{
+   m_bSupportsVertexProgram = GL_CheckExtension("GL_ARB_vertex_program");
+   if (m_bSupportsVertexProgram)
+   {
+      Printf("ZGL: Enabling vertex program support.\n");
+      glGenProgramsARB = (PFNGLGENPROGRAMSARBPROC)wglGetProcAddress("glGenProgramsARB");
+      glDeleteProgramsARB = (PFNGLDELETEPROGRAMSARBPROC)wglGetProcAddress("glDeleteProgramsARB");
+      glProgramStringARB = (PFNGLPROGRAMSTRINGARBPROC)wglGetProcAddress("glProgramStringARB");
+      glBindProgramARB = (PFNGLBINDPROGRAMARBPROC)wglGetProcAddress("glBindProgramARB");
+      glProgramEnvParameter4fARB = (PFNGLPROGRAMENVPARAMETER4FARBPROC)wglGetProcAddress("glProgramEnvParameter4fARB");
+      glProgramLocalParameter4fARB = (PFNGLPROGRAMLOCALPARAMETER4FARBPROC)wglGetProcAddress("glProgramLocalParameter4fARB");
+   }
+
+   m_supportsFragmentProgram = GL_CheckExtension("GL_ARB_fragment_program");
+   if (m_supportsFragmentProgram)
+   {
+      //Printf("ZGL: Enabling fragment program support.\n");
+   }
+
+   m_supportsVBO = GL_CheckExtension("GL_ARB_vertex_buffer_object");
+   if (m_supportsVBO)
+   {
+      Printf("ZGL: enabling vertex buffers.\n");
+      glGenBuffersARB = (PFNGLGENBUFFERSARBPROC) wglGetProcAddress("glGenBuffersARB");
+      glBindBufferARB = (PFNGLBINDBUFFERARBPROC) wglGetProcAddress("glBindBufferARB");
+      glBufferDataARB = (PFNGLBUFFERDATAARBPROC) wglGetProcAddress("glBufferDataARB");
+      glDeleteBuffersARB = (PFNGLDELETEBUFFERSARBPROC) wglGetProcAddress("glDeleteBuffersARB");
+   }
+   else
+   {
+      glGenBuffersARB = NULL;
+      glBindBufferARB = NULL;
+      glBufferDataARB = NULL;
+      glDeleteBuffersARB = NULL;
+   }
+
+   m_bSupportsSwapInterval = GL_CheckExtension("WGL_EXT_swap_control");
+   if (m_bSupportsSwapInterval)
+   {
+      Printf("ZGL: Enabling vsync control.\n");
+      wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
+      wglGetSwapIntervalEXT = (PFNWGLGETSWAPINTERVALEXTPROC)wglGetProcAddress("wglGetSwapIntervalEXT");
+      GL_EnableVsync(gl_vid_vsync);
+   }
+   else
+   {
+      wglSwapIntervalEXT = NULL;
+      wglGetSwapIntervalEXT = NULL;
+   }
+
+   m_bSupportsBlendSubtract = GL_CheckExtension("GL_EXT_blend_subtract");
+   if (m_bSupportsBlendSubtract)
+   {
+      Printf("ZGL: Enabling subtractive blending.\n");
+      glBlendEquationEXT = (PFNGLBLENDEQUATIONEXTPROC)wglGetProcAddress("glBlendEquationEXT");
+      glBlendEquationEXT(GL_FUNC_ADD);
+   }
+   else
+   {
+      glBlendEquationEXT = NULL;
+   }
+
+   m_bSupportsRenderTexture = GL_CheckExtension("WGL_ARB_render_texture") && GL_CheckExtension("WGL_ARB_pbuffer") && GL_CheckExtension("WGL_ARB_pixel_format");
+   if (m_bSupportsRenderTexture)
+   {
+      //Printf("ZGL: Enabling render to texture.\n");
+   }
+
+   m_bSupportsPointSprites = GL_CheckExtension("GL_ARB_point_sprite") && GL_CheckExtension("GL_ARB_point_parameters");
+   m_bSupportsPointSprites = false; // hmm, pointsprites don't quite look right (can't make them as big as normal particles)
+   if (m_bSupportsPointSprites)
+   {
+      Printf("ZGL: Enabling point sprites.\n");
+      glPointParameterfARB = (PFNGLPOINTPARAMETERFEXTPROC)wglGetProcAddress("glPointParameterfARB");
+      glPointParameterfvARB = (PFNGLPOINTPARAMETERFVEXTPROC)wglGetProcAddress("glPointParameterfvARB");
+
+      glTexEnvf(GL_POINT_SPRITE_ARB, GL_COORD_REPLACE_ARB, GL_TRUE);
+      float quadratic[] =  { 1.0f, 0.0f, 0.01f };
+      glPointParameterfvARB(GL_POINT_DISTANCE_ATTENUATION_ARB, quadratic);
+      float maxSize = 0.0f;
+      glGetFloatv(GL_POINT_SIZE_MAX_ARB, &maxSize);
+      glPointSize(maxSize);
+      glPointParameterfARB(GL_POINT_SIZE_MAX_ARB, maxSize);
+      glPointParameterfARB(GL_POINT_SIZE_MIN_ARB, 1.0f);
+   }
+   else
+   {
+      glPointParameterfARB = NULL;
+      glPointParameterfvARB = NULL;
+   }
+
+   m_bCompiledArrays = GL_CheckExtension("GL_EXT_compiled_vertex_array");
+   if (m_bCompiledArrays)
+   {
+      glLockArraysEXT = (PFNGLLOCKARRAYSEXTPROC)wglGetProcAddress("glLockArraysEXT");
+      glUnlockArraysEXT = (PFNGLUNLOCKARRAYSEXTPROC)wglGetProcAddress("glUnlockArraysEXT");
+   }
+   else
+   {
+      glLockArraysEXT = NULL;
+      glUnlockArraysEXT = NULL;
+   }
 }
 
 //*****************************************************************************
@@ -763,11 +1178,51 @@ bool OpenGLFrameBuffer::PaintToWindow( )
 //*****************************************************************************
 //*****************************************************************************
 //
+void OpenGLFrameBuffer::StartFrame()
+{
+   //SwapBuffers(m_hDC);
+}
+//*****************************************************************************
+//*****************************************************************************
+//
 void OpenGLFrameBuffer::Update( )
 {
 	// Draw the frames per second, etc.
 	DrawRateStuff( );
 
+	if (m_bFullScreen && (m_ulTrueHeight != m_ulDisplayHeight))
+	{
+		// Letterbox time! Draw black top and bottom borders.
+		int borderHeight = (m_ulTrueHeight - m_ulDisplayHeight) / 2;
+
+		glViewport(0, 0, m_ulDisplayWidth, m_ulTrueHeight);
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		glOrtho(0.0, m_ulDisplayWidth * 1.0, 0.0, m_ulTrueHeight * 1.0, -1.0, 1.0);
+		glMatrixMode(GL_MODELVIEW);
+		glColor3f(0.f, 0.f, 0.f);
+		glDisable(GL_TEXTURE_2D);
+
+		glBegin(GL_QUADS);
+			// upper quad
+			glVertex2i(0, borderHeight);
+			glVertex2i(0, 0);
+			glVertex2i(m_ulDisplayWidth, 0);
+			glVertex2i(m_ulDisplayWidth, borderHeight);
+		glEnd();
+
+		glBegin(GL_QUADS);
+			// lower quad
+			glVertex2i(0, m_ulTrueHeight);
+			glVertex2i(0, m_ulTrueHeight - borderHeight);
+			glVertex2i(m_ulDisplayWidth, m_ulTrueHeight - borderHeight);
+			glVertex2i(m_ulDisplayWidth, m_ulTrueHeight);
+		glEnd();
+
+		glEnable(GL_TEXTURE_2D);
+		GL_Set2DMode();
+		SetViewport(0, 0, m_ulDisplayWidth, m_ulDisplayHeight);
+	}
 	// Swap the buffers.
 	SwapBuffers( m_hDC );
 }
@@ -798,13 +1253,24 @@ void OpenGLFrameBuffer::GetFlash( PalEntry &pRGB, int &piAmount )
 
 //*****************************************************************************
 //
-void OpenGLFrameBuffer::Dim( ) const
+void OpenGLFrameBuffer::GetFlash( PalEntry *pRGP, int *piAmount )
 {
-	DWORD	Color;
-	float	fR;
-	float	fG;
-	float	fB;
-	float	fA;
+	pRGP->r = m_Flash.r;
+	pRGP->g = m_Flash.g;
+	pRGP->b = m_Flash.b;
+	*piAmount = m_lFlashAmount;
+}
+
+//*****************************************************************************
+//
+void OpenGLFrameBuffer::Dim() const
+{
+	PalEntry pe;
+	float fA;
+
+	pe.r = (BYTE)(RPART(DWORD(*dimcolor)));
+	pe.g = (BYTE)(GPART(DWORD(*dimcolor)));
+	pe.b = (BYTE)(BPART(DWORD(*dimcolor)));
 
 	// Make sure the cvar dimamount is valid.
 	if ( dimamount < 0.0f )
@@ -815,54 +1281,78 @@ void OpenGLFrameBuffer::Dim( ) const
 	if ( dimamount == 0.0f )
 		return;
 
-	Color = 0;//dimcolor;
+	fA = (float)dimamount;
+
+	Dim(pe, fA, 0, 0, this->GetWidth(), this->GetHeight());
+}
+
+//*****************************************************************************
+//
+void OpenGLFrameBuffer::Dim( PalEntry Color, float fDAmount, int iX1, int iY1, int iW, int iH ) const
+{
+
+	float	fR;
+	float	fG;
+	float	fB;
+	float	fA;
 
 	// Disable the use of textures and set our blend function.
-	glDisable( GL_TEXTURE_2D );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	glDisable(GL_TEXTURE_2D);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	fR = (( Color & 0xFF0000 ) >> 16 ) / 256.f;
-	fG = (( Color & 0x00FF00 ) >> 8 ) / 256.f;
-	fB = ( Color & 0x0000FF ) / 256.f;
+	fR = byte2float[Color.r];
+	fG = byte2float[Color.g];
+	fB = byte2float[Color.b];
 	fA = (float)dimamount;
 
 	glBegin( GL_TRIANGLE_FAN );
 		glColor4f( fR, fG, fB, 0.0f );
-		glVertex2i( this->m_ulDisplayWidth / 2, this->m_ulDisplayHeight / 2 );
-		glColor4f( fR, fG, fB, fA );
-		glVertex2i( 0, 0 );
-		glVertex2i( this->GetWidth( ), 0);
-		glVertex2i( this->GetWidth( ), this->GetHeight( ));
-		glVertex2i( 0, this->GetHeight( ));
-		glVertex2i( 0, 0 );
-	glEnd( );
+		glVertex2i(iX1, this->GetHeight() - iY1);
+		glVertex2i(iX1, this->GetHeight() - (iY1 + iH));
+		glVertex2i(iX1 + iW, this->GetHeight() - (iY1 + iH));
+		glVertex2i(iX1 + iW, this->GetHeight() - iY1);
+	glEnd();
 
 	// Turn the use of textures back on.
-	glEnable( GL_TEXTURE_2D );
+	glEnable(GL_TEXTURE_2D);
 }
 
 //*****************************************************************************
 //
 void OpenGLFrameBuffer::Clear( int iLeft, int iTop, int iRight, int iBottom, int iColor ) const
 {
+	int iRt, iH;
+	int iOffY = 0;
 	PalEntry		*pPaletteEntry;
 
 	pPaletteEntry = &GPalette.BaseColors[iColor];
 
-	glEnable( GL_SCISSOR_TEST );
-	glScissor( iLeft, ( screen->GetHeight( ) - iTop ) - ( iBottom - iTop ), iRight - iLeft, iBottom - iTop );
+	//GL_Set2DMode();
 
-	glClearColor( pPaletteEntry->r / 255.0f, pPaletteEntry->g / 255.0f, pPaletteEntry->b / 255.0f, 1.0f );	
-	glClear( GL_COLOR_BUFFER_BIT );
-	glClearColor( 0.f, 0.f, 0.f, 1.f );
+	iRt = m_ulDisplayHeight - iTop;
+	iH = iBottom - iTop;
 
-	glDisable( GL_SCISSOR_TEST );
+	if (m_bFullScreen && (m_ulTrueHeight != m_ulDisplayHeight))
+	{
+		iOffY = (m_ulTrueHeight - m_ulDisplayHeight) / 2;
+		iRt += iOffY;
+	}
+
+	glEnable(GL_SCISSOR_TEST);
+	glScissor(iLeft, iRt - iH, iRight - iLeft, iH);
+
+	glClearColor(byte2float[pPaletteEntry->r], byte2float[pPaletteEntry->g], byte2float[pPaletteEntry->b], 0.f);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glClearColor(0.f, 0.f, 0.f, 0.f);
+
+	glDisable(GL_SCISSOR_TEST);
 }
 
 //*****************************************************************************
 //
 bool OpenGLFrameBuffer::Lock( )
 {
+	//FIXME
 	return ( true );
 }
 
@@ -870,6 +1360,7 @@ bool OpenGLFrameBuffer::Lock( )
 //
 bool OpenGLFrameBuffer::Lock( bool bBuffer )
 {
+	//FIXME
 	Buffer = MemBuffer;
 	return ( true );
 }
@@ -878,6 +1369,7 @@ bool OpenGLFrameBuffer::Lock( bool bBuffer )
 //
 bool OpenGLFrameBuffer::Relock( )
 {
+	//FIXME
 	return ( true );
 }
 
@@ -885,9 +1377,29 @@ bool OpenGLFrameBuffer::Relock( )
 //
 bool OpenGLFrameBuffer::SetGamma( float fGamma )
 {
-	CalcGamma( fGamma, m_GammaTable );
+	WORD gammaTable[768];
 
-	return ( true );
+	m_fGamma = fGamma;
+	CalcGamma( fGamma, m_GammaTable);
+
+	if (m_bSupportsGamma)
+	{
+		for (int i = 0; i < 256; i++)
+		{
+			gammaTable[i] = gammaTable[i + 256] = gammaTable[i + 512] = (WORD)(byte2float[m_GammaTable[i]] * 65535);
+		}
+		SetDeviceGammaRamp(m_hDC, (void*)gammaTable);
+	}
+	else
+	{
+		// avoid a double-purge when changing renderers
+		if (changerenderer == false)
+		{
+			textureList.Purge();
+		}
+	}
+
+	return true;
 }
 
 //*****************************************************************************
@@ -930,12 +1442,12 @@ void OpenGLFrameBuffer::SetupPixelFormat( )
 
    if (gl_vid_stencilbits && colorDepth > 16)
    {
-      zDepth = 24;
+      zDepth = 32;
       stencilBits = gl_vid_stencilbits;
    }
    else
    {
-      zDepth = 32;
+      zDepth = 16;
       stencilBits = 0;
    }
 
@@ -1024,4 +1536,43 @@ int OpenGLFrameBuffer::GetBitdepth()
 bool OpenGLFrameBuffer::UseVBO()
 {
    return gl_use_vertex_buffer_objects && m_supportsVBO;
+}
+
+BYTE OpenGLFrameBuffer::GetGamma(BYTE input)
+{
+   return m_GammaTable[input];
+}
+
+void OpenGLFrameBuffer::SetViewport(int iX, int iY, int iWidth, int iHeight)
+{
+	int iOffY = 0;
+
+	if (m_bFullScreen && (m_ulTrueHeight != m_ulDisplayHeight))
+	{
+		iOffY = (m_ulTrueHeight - m_ulDisplayHeight) / 2;
+	}
+
+	glViewport(iX, iY + iOffY, iWidth, iHeight);
+}
+
+void OpenGLFrameBuffer::SetNumTris(int iNumTris)
+{
+   //m_lNumTris = iNumTris;
+}
+
+void OpenGLFrameBuffer::ReadPixels(int iX, int iY, int iWidth, int iHeight, BYTE *img)
+{
+	int iOffY = 0;
+
+	if (m_bFullScreen && (m_ulTrueHeight != m_ulDisplayHeight))
+	{
+		iOffY = (m_ulTrueHeight - m_ulDisplayHeight) / 2;
+	}
+
+	glReadPixels(iX, iY + iOffY, iWidth, iHeight, GL_RGB, GL_UNSIGNED_BYTE, img);
+}
+
+void OpenGLFrameBuffer::ResetContext()
+{
+	wglMakeCurrent(m_hDC, m_hRC);
 }

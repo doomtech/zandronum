@@ -54,12 +54,23 @@
 #include "win32iface.h"
 #include <gl/gl.h>
 #include <gl/glu.h>
+#include "Glext.h"
 
 //*****************************************************************************
 //	STRUCTURES
 
 typedef struct _VIDEOMODEINFO_s
 {
+	_VIDEOMODEINFO_s (ULONG inX, ULONG inY, ULONG inBits, ULONG inRealY)
+		: pNext (NULL),
+		  ulWidth (inX),
+		  ulHeight (inY),
+		  ulBPP (inBits),
+		  ulRealHeight (inRealY),
+          ulHz(0)
+		{}
+
+
 	// Pointer to the next mode in the list.
 	struct _VIDEOMODEINFO_s	*pNext;
 
@@ -68,6 +79,7 @@ typedef struct _VIDEOMODEINFO_s
 	ULONG	ulHeight;
 	ULONG	ulBPP;
 	ULONG	ulHz;
+	ULONG	ulRealHeight;
 
 } VIDEOMODEINFO_s;
 
@@ -88,7 +100,8 @@ public:
 	bool			FullscreenChanged( bool bFullScreen );
 	int				GetModeCount( void );
 	void			StartModeIterator( int iBPP );
-	bool			NextMode( int *piWidth, int *piHeight, bool *bFullScreen );
+	bool			NextMode( int *piWidth, int *piHeight, bool *bLetterbox, ULONG *pulHZ );
+	bool			NextMode( int *piWidth, int *piHeight, bool *bLetterbox );
 
 	// New functions.
 	void			BlankForGDI( void );
@@ -131,7 +144,9 @@ private:
 	void FreeModesList( void );
 
 	// Add a possible video mode to the list.
-	void AddMode( ULONG ulWidth, ULONG ulHeight, ULONG ulBPP, ULONG ulHz );
+	void AddMode( ULONG ulWidth, ULONG ulHeight, ULONG ulBPP, ULONG ulBaseHeight, ULONG ulHz );
+
+	friend class OpenGLFrameBuffer;
 };
 
 //*****************************************************************************
@@ -148,12 +163,20 @@ public:
 	bool	PaintToWindow( );
 
 	// New functions.
+	void	StartFrame();
 	void	Update( );
 	void	GetFlashedPalette( PalEntry aPal[256] );
 	void	UpdatePalette( );
 	void	GetFlash( PalEntry &pRGB, int &piAmount );
+	void	GetFlash( PalEntry *pRGP, int *piAmount );
+	void	SetViewport(int iX, int iY, int iWidth, int iHeight);
+	void	ReadPixels(int iX, int iY, int iWidth, int iHeight, BYTE *img);
+	void	ResetContext();
+	void	InitializeState();
+	void	SetNumTris(int iNumTris);
 
 	virtual void Dim( ) const;
+	virtual void Dim ( PalEntry Color, float fDAmount, int iX1, int iY1, int iW, int iH ) const;
 	virtual void Clear( int iLeft, int iTop, int iRight, int iBottom, int iColor ) const;
 
 	bool	Lock( );
@@ -163,19 +186,28 @@ public:
 	bool	SetGamma( float fGamma );
 	bool	GetGammaRamp( void *pv );
 
-   bool SetFlash(PalEntry rgb, int amount);
-   bool MultiTexture() { return m_useMultiTexture; }
-   int NumTexelUnits() { return m_maxTexelUnits; }
-   bool UseVBO();
-   bool SupportsFragmentPrograms() { return m_supportsFragmentProgram; }
+	bool	SetFlash(PalEntry rgb, int amount);
+	bool	SwapControl() { return m_bSupportsSwapInterval; }
+	bool	CompiledArrays() { return m_bCompiledArrays; }
+	bool	MultiTexture() { return m_useMultiTexture; }
+	int		NumTexelUnits() { return m_maxTexelUnits; }
+	bool	UseVBO();
+	bool	SupportsVertexPrograms() { return m_bSupportsVertexProgram; }
+	bool	SupportsFragmentPrograms() { return m_supportsFragmentProgram; }
+	bool	SupportsRenderTexture() { return m_bSupportsRenderTexture; }
+	bool	SupportsPointSprites() { return m_bSupportsPointSprites; }
+	bool	SupportsGamma() { return m_bSupportsGamma; }
 
-   int GetPageCount();
+	int		GetPageCount();
 	void	PaletteChanged( );
 	int		QueryNewPalette( );
-   int GetBitdepth();
+	int		GetBitdepth();
+	int		TrueHeight() { return m_ulTrueHeight; }
 
-   PalEntry *GetPalette();
-   HRESULT GetHR();
+	BYTE	GetGamma( BYTE input );
+	PalEntry *GetPalette();
+	HRESULT	GetHR();
+	virtual int QueryPalette() { return 0; };
 
 protected:
    bool CreateResources() { return true; }
@@ -194,7 +226,15 @@ private:
 	PALETTEENTRY m_palEntries[256];
 	PalEntry			m_Flash;
 
+	WORD		m_OrigGamma[768];
+
 	bool		m_bNeedPalUpdate;
+
+	bool		m_bSupportsSwapInterval;
+	
+	bool		m_bCompiledArrays;
+	
+	bool		m_bSupportsVertexProgram;
 
 	bool		m_bSupportsGamma;
 	
@@ -202,7 +242,17 @@ private:
 
 	bool		m_supportsVBO;
 
+	bool		m_bSupportsBlendSubtract;
+
+	bool		m_bSupportsRenderTexture;
+
+	bool		m_bSupportsPointSprites;
+
 	LONG		m_lFlashAmount;
+
+	LONG		m_lNumTris;
+
+	float		m_fGamma;
 	
 	int			m_maxTexelUnits;
 
@@ -220,14 +270,19 @@ private:
 	// Are we in fullscreen?
 	bool		m_bFullScreen;
 
+	// True height of the current screen (letterbox)
+	ULONG		m_ulTrueHeight;
+
 	BYTE		m_GammaTable[256];
 	WORD		m_OriginalGamma[768];
 
 	void		SetupPixelFormat( );
-   void loadLightInfo();
+	void		loadLightInfo();
+	bool		loadRequiredExtensions();
+	void		loadExtensions();
 
-   // Let the OpenGLVideo class access member variables of this class.
-   friend OpenGLVideo;
+	// Let the OpenGLVideo class access member variables of this class.
+	friend OpenGLVideo;
 };
 
 #endif //__OPENGLVIDEO_H__
