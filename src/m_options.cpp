@@ -37,10 +37,9 @@
 */
 #include "m_alloc.h"
 #include "templates.h"
-
 #include "doomdef.h"
 #include "gstrings.h"
-
+#include <string>
 #include "c_console.h"
 #include "c_dispatch.h"
 #include "c_bind.h"
@@ -2332,7 +2331,7 @@ void M_AcceptPlayerSetupChanges( void )
 {
 	UCVarValue	Val;
 	ULONG		ulUpdateFlags;
-
+	
 	// No need to do this if nothing's changed!
 	if ( M_PlayerSetupItemsChanged( ) == false )
 		return;
@@ -2342,6 +2341,12 @@ void M_AcceptPlayerSetupChanges( void )
 
 	if ( stricmp( menu_name, name ) != 0 )
 		ulUpdateFlags |= USERINFO_NAME;
+
+	// [RC] Clean the name
+		char	szPlayerName[64];
+		sprintf( szPlayerName, menu_name );
+		V_CleanPlayerName(szPlayerName);
+		menu_name = szPlayerName;
 
 	Val = menu_name.GetGenericRep( CVAR_String );
 	name.SetGenericRep( Val, CVAR_String );
@@ -2964,11 +2969,11 @@ EXTERN_CVAR (Int, switchonpickup)
 //
 void M_WeaponSetupMenuDrawer( void )
 {
+	/* [RC] Remove the outmoded text about pressing + and - to change the user's personal weapon order
 	ULONG	ulTextHeight;
 	ULONG	ulCurYPos;
 	char	szString[256];
 
-	/* [RC] Remove the outmoded text about pressing + and - to change the user's personal weapon order
 	ulCurYPos = 182;
 	ulTextHeight = ( gameinfo.gametype == GAME_Doom ? 8 : 9 );
 
