@@ -105,7 +105,7 @@ inline fixed_t MTOF(fixed_t x)
 
 static int WeightingScale;
 
-CVAR (Int,   am_rotate,				0,			CVAR_ARCHIVE);
+CVAR (Bool,  am_rotate,				0,			CVAR_ARCHIVE);
 CVAR (Int,   am_overlay,			0,			CVAR_ARCHIVE);
 CVAR (Bool,  am_showsecrets,		true,		CVAR_ARCHIVE);
 CVAR (Bool,  am_showmonsters,		true,		CVAR_ARCHIVE);
@@ -1269,7 +1269,7 @@ void AM_drawFline (fline_t *fl, int color)
 	// [BC/ZDoomGL] Just let the OpenGL renderer do everything.
 	if ( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL )
 	{
-		GL_DrawLine(fl->a.x, fl->a.y, fl->b.x, fl->b.y, color);
+		GL_DrawLine(fl->a.x, fl->a.y, fl->b.x, fl->b.y, &GPalette.BaseColors[color]);
 		return;
 	}
 

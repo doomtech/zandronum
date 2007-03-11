@@ -41,7 +41,9 @@
 
 CVAR(Bool, gl_automap_dukestyle, false, CVAR_ARCHIVE)
 CVAR(Float, gl_automap_transparency, 0.85f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
-EXTERN_CVAR (Int, am_rotate);
+CVAR(Bool, gl_automap_glow, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
+CVAR(Int, gl_automap_glowsize, 40, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
+EXTERN_CVAR(Bool, am_rotate);
 EXTERN_CVAR(Bool, st_scale);
 EXTERN_CVAR(Int, screenblocks);
 EXTERN_CVAR(Int, am_cheat);
@@ -72,7 +74,8 @@ void GL_DrawMappedSubsector(subsector_t *subSec)
 
    if (subSec->isPoly) return;
 
-   sec = R_FakeFlat(subSec->sector, &ts, &floorLight, &ceilingLight, false);
+   sec = GL_FakeFlat(subSec->render_sector, &ts, &floorLight, &ceilingLight, false);
+   if (!sec) return;
    if (sec->floorpic == skyflatnum) return;
 
    if (viewactive)
@@ -88,9 +91,16 @@ void GL_DrawMappedSubsector(subsector_t *subSec)
    color = floorLight / LIGHTLEVELMAX;
 
    poly = &gl_polys[(subSec->index * 2) + 0];
+   if (!poly) return; // hmm, NULL poly, so somethings wrong...
    // make sure the subsector has been calculated...
-   if (!poly->initialized) GL_RecalcSubsector(subSec, sec);
-   textureList.BindTexture(subSec->sector->floorpic, true);
+   if (!poly->initialized)
+   {
+      GL_RecalcSubsector(subSec, sec);
+      if (!poly->initialized) return;
+   }
+   textureList.SetTranslation(sec->ColorMap->Maps);
+   textureList.BindTexture(sec->floorpic, true);
+   textureList.SetTranslation((byte *)NULL);
 
    glColor4f(color * byte2float[p->r], color * byte2float[p->g], color * byte2float[p->b], alpha);
 
@@ -99,16 +109,16 @@ void GL_DrawMappedSubsector(subsector_t *subSec)
       for (i = subSec->numlines - 1; i >= 0; i--)
       {
          seg = &segs[subSec->firstline + i];
-         x = ((seg->v2->x >> FRACTOMAPBITS) + 0) * automapScale * MAP_SCALE;
-         y = ((seg->v2->y >> FRACTOMAPBITS) + 0) * automapScale * MAP_SCALE;
+         x = (seg->v2->x >> FRACTOMAPBITS) * automapScale * MAP_SCALE;
+         y = (seg->v2->y >> FRACTOMAPBITS) * automapScale * MAP_SCALE;
          tx = poly->texCoords[(index * 2) + 0];
          ty = poly->texCoords[(index * 2) + 1];
          glTexCoord2f(tx, ty);
          glVertex2f(x, y);
          index++;
       }
-      x = ((seg->v1->x >> FRACTOMAPBITS) + 0) * automapScale * MAP_SCALE;
-      y = ((seg->v1->y >> FRACTOMAPBITS) + 0) * automapScale * MAP_SCALE;
+      x = (seg->v1->x >> FRACTOMAPBITS) * automapScale * MAP_SCALE;
+      y = (seg->v1->y >> FRACTOMAPBITS) * automapScale * MAP_SCALE;
       tx = poly->texCoords[(index * 2) + 0];
       ty = poly->texCoords[(index * 2) + 1];
       glTexCoord2f(tx, ty);
@@ -119,47 +129,34 @@ void GL_DrawMappedSubsector(subsector_t *subSec)
 void GL_DrawDukeAutomap()
 {
    subsector_t *subSec;
-   float yaw, x, y, stOffset;
-   int i;
+   float yaw, x, y;
+   int i, sw, sh, stOffset;
 
    automapScale = scale_mtof * (1.f / 0.018f * 2.f) * INV_FRACUNIT;
    automapScale *= 2.3f;
 
    glDisable(GL_DEPTH_TEST);
-
    if (viewactive)
    {
-      glDisable(GL_TEXTURE_2D);
-      glColor4f(0.f, 0.f, 0.f, 0.5f);
-      glBegin(GL_QUADS);
-         glVertex2i(0, screen->GetHeight());
-         glVertex2i(0, 0);
-         glVertex2i(screen->GetWidth(), 0);
-         glVertex2i(screen->GetWidth(), screen->GetHeight());
-      glEnd();
-      glEnable(GL_TEXTURE_2D);
-
+      GL_SetupViewport();
+      sw = realviewwidth;
+      sh = realviewheight;
+      glScalef(screen->GetWidth() * 1.f / sw, screen->GetHeight() * 1.f / sh, 1.f);
+      stOffset = 0;
       glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-   }
-
-   if (screenblocks < 11 || !viewactive)
-   {
-      stOffset = 16.f;
-      if (st_scale)
-      {
-         stOffset = screen->GetHeight() / 200.f * stOffset;
-      }
    }
    else
    {
-      stOffset = 0;
+      sw = screen->GetWidth();
+      sh = screen->GetHeight();
+      stOffset = GL_GetStatusBarOffset();
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
    }
 
-   //Printf("%d %d\n", m_x >> FRACBITS, m_y >> FRACBITS);
    x = (m_x + m_x2) * automapScale * (INV_FRACUNIT / 2);
    y = (m_y + m_y2) * automapScale * (INV_FRACUNIT / 2);
 
-   glTranslatef((screen->GetWidth() / 2.f), ((screen->GetHeight() / 2.f) + stOffset), 0.f);
+   glTranslatef(sw * 0.5f, (sh + stOffset) * 0.5f, 0.f);
 
    if (am_rotate)
    {
@@ -179,16 +176,14 @@ void GL_DrawDukeAutomap()
 
    glEnable(GL_DEPTH_TEST);
 
+   glScalef(1.f, 1.f, 1.f);
    GL_Set2DMode();
+   GL_ResetViewport();
 }
 
 
-void GL_DrawLine(int x1, int y1, int x2, int y2, int color)
+void GL_DrawLine(int x1, int y1, int x2, int y2, PalEntry *p)
 {
-   PalEntry *p;
-
-   p = &GPalette.BaseColors[color];
-
    glDisable(GL_TEXTURE_2D);
    glColor3ub(p->r, p->g, p->b);
    glBegin(GL_LINES);
@@ -197,3 +192,62 @@ void GL_DrawLine(int x1, int y1, int x2, int y2, int color)
    glEnd();
    glEnable(GL_TEXTURE_2D);
 }
+
+
+void GL_DrawGlowLine(int x1, int y1, int x2, int y2, PalEntry *p)
+{
+   float unit[2], normal[2];
+   float dx, dy, length;
+   float thickness = gl_automap_glowsize * (scale_mtof * INV_FRACUNIT) * 2.5f + 3;
+
+   y1 = screen->GetHeight() - y1;
+   y2 = screen->GetHeight() - y2;
+
+   dx = x2 * 1.f - x1;
+   dy = y2 * 1.f - y1;
+
+   length = sqrtf(dx*dx + dy*dy);
+   if (length <= 0.f) return;
+
+   unit[0] = dx / length;
+   unit[1] = dy / length;
+   normal[0] = unit[1];
+   normal[1] = -unit[0];
+
+   textureList.BindTexture("GLPART");
+   glColor3ub(p->r, p->g, p->b);
+
+   glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+   glBegin(GL_QUADS);
+	   // Start of the line.
+	   glTexCoord2f(0.f, 0.f);
+	   glVertex2f(x1 - unit[0] * thickness + normal[0] * thickness, y1 - unit[1] * thickness + normal[1] * thickness);
+	   glTexCoord2f(0.5f, 0.f);
+	   glVertex2f(x1 + normal[0] * thickness, y1 + normal[1] * thickness);
+	   glTexCoord2f(0.5f, 1.f);
+	   glVertex2f(x1 - normal[0] * thickness, y1 - normal[1] * thickness);
+	   glTexCoord2f(0.f, 1.f);
+	   glVertex2f(x1 - unit[0] * thickness - normal[0] * thickness, y1 - unit[1] * thickness - normal[1] * thickness);
+
+	   // The middle part of the line.
+	   glTexCoord2f(0.5f, 0.f);
+	   glVertex2f(x1 + normal[0] * thickness, y1 + normal[1] * thickness);
+	   glVertex2f(x2 + normal[0] * thickness, y2 + normal[1] * thickness);
+	   glTexCoord2f(0.5f, 1.f);
+	   glVertex2f(x2 - normal[0] * thickness, y2 - normal[1] * thickness);
+	   glVertex2f(x1 - normal[0] * thickness, y1 - normal[1] * thickness);
+
+	   // End of the line.
+	   glTexCoord2f(0.5f, 0.f);
+	   glVertex2f(x2 + normal[0] * thickness, y2 + normal[1] * thickness);
+	   glTexCoord2f(1.f, 0.f);
+	   glVertex2f(x2 + unit[0] * thickness + normal[0] * thickness, y2 + unit[1] * thickness + normal[1] * thickness);
+	   glTexCoord2f(1.f, 1.f);
+	   glVertex2f(x2 + unit[0] * thickness - normal[0] * thickness, y2 + unit[1] * thickness - normal[1] * thickness);
+	   glTexCoord2f(0.5f, 1.f);
+	   glVertex2f(x2 - normal[0] * thickness, y2 - normal[1] * thickness);
+   glEnd();
+
+   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+

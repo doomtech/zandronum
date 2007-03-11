@@ -550,7 +550,8 @@ BYTE *GL_ConvertDemo(BYTE *demo_p);
 //
 
 void GL_DrawDukeAutomap();
-void GL_DrawLine(int x1, int y1, int x2, int y2, int color);
+void GL_DrawLine(int x1, int y1, int x2, int y2, PalEntry *p);
+void GL_DrawGlowLine(int x1, int y1, int x2, int y2, PalEntry *p);
 
 //
 // gl_subsectors.cpp stuff
