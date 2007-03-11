@@ -29,9 +29,9 @@ public:
    virtual void Tick();
    virtual bool IsSpotlight() { return false; }
    virtual void Serialize(FArchive &arc);
-   byte GetRed() { return args[LIGHT_RED]; }
-   byte GetGreen() { return args[LIGHT_GREEN]; }
-   byte GetBlue() { return args[LIGHT_BLUE]; }
+   BYTE GetRed() { return args[LIGHT_RED]; }
+   BYTE GetGreen() { return args[LIGHT_GREEN]; }
+   BYTE GetBlue() { return args[LIGHT_BLUE]; }
    virtual float GetIntensity() { return args[LIGHT_INTENSITY] * 1.f; }
    float GetRadius();
    ADynamicLight *lnext;
