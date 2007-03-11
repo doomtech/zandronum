@@ -535,9 +535,9 @@ typedef struct subsector_s
 	// [ZDoomGL]
 	int index;
 	unsigned long verts, texCoords;
-	bool isPoly, isMapped;
+	bool isPoly, isMapped, touched;
 	float bbox[2][3];
-
+	sector_t *render_sector; 
 } subsector_t;
 
 //
