@@ -671,6 +671,7 @@ public:
    bool isTransparent;
    bool isAlpha;
    float cx, cy;
+   float topOffset, bottomOffset;
 };
 
 class FileReader;
@@ -753,6 +754,7 @@ public:
 	// last call to GetPixels(). This should be considered valid only if a call to CheckModified()
 	// is immediately followed by a call to GetPixels().
 	virtual bool CheckModified ();
+	virtual bool CanvasTexture () { return false; } // [ZDoomGL]
 	static void InitGrayMap();
 
 	// [ZDoomGL]
