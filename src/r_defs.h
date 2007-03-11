@@ -373,6 +373,7 @@ struct sector_t
 
 	// [ZDoomGL]
 	fixed_t CenterX, CenterY;
+	unsigned int lastUpdate;
 
 	// Is this sector a floor or ceiling?
 	int		floorOrCeiling;
