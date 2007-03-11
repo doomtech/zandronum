@@ -38,6 +38,7 @@
 
 #define USE_WINDOWS_DWORD
 #include "OpenGLVideo.h"
+#include "Glext.h"
 
 #include "gl_main.h"
 #include "d_player.h"
@@ -46,6 +47,8 @@
 #include "templates.h"
 
 #include "gi.h"
+
+extern PFNGLBLENDEQUATIONEXTPROC glBlendEquationEXT;
 
 #define MAX(a, b) ((a > b) ? a : b)
 #define MIN(a, b) ((a < b) ? a : b)
@@ -1028,6 +1031,177 @@ void RL_Clear()
    }
 }
 
+
+void RL_SetupMode(int mode)
+{
+   switch (mode)
+   {
+   case RL_DEPTH:
+   case RL_DEFERRED_DEPTH:
+      if (glBlendEquationEXT) glBlendEquationEXT(GL_FUNC_ADD);
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+      glEnable(GL_TEXTURE_2D);
+      glEnable(GL_ALPHA_TEST);
+      glDisable(GL_TEXTURE_GEN_S);
+      glDisable(GL_TEXTURE_GEN_T);
+      glDepthFunc(GL_LEQUAL);
+      glDepthMask(GL_TRUE);
+      glDisable(GL_BLEND);
+      glColor3f(1.f, 1.f, 1.f);
+     break;
+   case RL_BASE:
+      if (glBlendEquationEXT) glBlendEquationEXT(GL_FUNC_ADD);
+      if (gl_wireframe)
+      {
+         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+         glDepthFunc(GL_ALWAYS);
+      }
+      else
+      {
+         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+         glDepthFunc(GL_EQUAL);
+         //glDepthFunc(GL_LEQUAL);
+      }
+      glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+      glEnable(GL_TEXTURE_2D);
+      glEnable(GL_ALPHA_TEST);
+      glDisable(GL_TEXTURE_GEN_S);
+      glDisable(GL_TEXTURE_GEN_T);
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_ONE, GL_ZERO);
+      glDepthMask(GL_FALSE);
+      if (gl_depthfog && !Player->fixedcolormap)
+      {
+         glEnable(GL_FOG);
+      }
+      else
+      {
+         glDisable(GL_FOG);
+      }
+      glDisable(GL_TEXTURE_2D);
+      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE); // modulate = A*B
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE1_ARB); // argA
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA_EXT, GL_TEXTURE0_ARB); // argB
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA_EXT, GL_SRC_ALPHA);
+     break;
+   case RL_TEXTURED:
+   case RL_TEXTURED_CLAMPED:
+      if (glBlendEquationEXT) glBlendEquationEXT(GL_FUNC_ADD);
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+      glEnable(GL_TEXTURE_2D);
+      glEnable(GL_ALPHA_TEST);
+      glDisable(GL_TEXTURE_GEN_S);
+      glDisable(GL_TEXTURE_GEN_T);
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_DST_COLOR, GL_ZERO);
+      glDepthFunc(GL_EQUAL);
+      glDepthMask(GL_FALSE);
+     break;
+   case RL_LIGHTS:
+      if (glBlendEquationEXT) glBlendEquationEXT(GL_FUNC_ADD);
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+      glEnable(GL_TEXTURE_2D);
+      glDisable(GL_TEXTURE_GEN_S);
+      glDisable(GL_TEXTURE_GEN_T);
+      glDisable(GL_ALPHA_TEST);
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+      glDepthFunc(GL_EQUAL);
+      glDepthMask(GL_FALSE);
+     break;
+   case RL_FOG:
+   case RL_FOG_BOUNDARY:
+      if (glBlendEquationEXT) glBlendEquationEXT(GL_FUNC_ADD);
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+      glDisable(GL_ALPHA_TEST);
+      glDisable(GL_TEXTURE_2D);
+      glDisable(GL_TEXTURE_GEN_S);
+      glDisable(GL_TEXTURE_GEN_T);
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+      glDepthFunc(GL_EQUAL);
+      glDepthMask(GL_FALSE);
+      glEnable(GL_FOG);
+     break;
+   case RL_RESET:
+      if (glBlendEquationEXT) glBlendEquationEXT(GL_FUNC_ADD);
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+      if (gl_wireframe)
+      {
+         glDisable(GL_TEXTURE_2D);
+      }
+      else
+      {
+         glEnable(GL_TEXTURE_2D);
+      }
+      glDisable(GL_TEXTURE_GEN_S);
+      glDisable(GL_TEXTURE_GEN_T);
+      glEnable(GL_DEPTH_TEST);
+      glEnable(GL_BLEND);
+      glEnable(GL_ALPHA_TEST);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      glDepthFunc(GL_LEQUAL);
+      glDepthMask(GL_TRUE);
+      glAlphaFunc(GL_GREATER, 0.f);
+      if (gl_depthfog && !Player->fixedcolormap)
+      {
+         glEnable(GL_FOG);
+      }
+      else
+      {
+         glDisable(GL_FOG);
+      }
+     break;
+   case RL_MASK:
+      if (glBlendEquationEXT) glBlendEquationEXT(GL_FUNC_ADD);
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+      glDisable(GL_TEXTURE_2D);
+      glDisable(GL_ALPHA_TEST);
+      glDisable(GL_TEXTURE_GEN_S);
+      glDisable(GL_TEXTURE_GEN_T);
+      glDepthFunc(GL_LEQUAL);
+      glDepthMask(GL_TRUE);
+     break;
+   case RL_DEFERRED:
+      if (glBlendEquationEXT) glBlendEquationEXT(GL_FUNC_ADD);
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+      if (gl_wireframe)
+      {
+         glDisable(GL_TEXTURE_2D);
+      }
+      else
+      {
+         glEnable(GL_TEXTURE_2D);
+      }
+      glDisable(GL_TEXTURE_GEN_S);
+      glDisable(GL_TEXTURE_GEN_T);
+      glEnable(GL_BLEND);
+      glEnable(GL_ALPHA_TEST);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      glDepthFunc(GL_LEQUAL);
+      glDepthMask(GL_TRUE);
+      if (gl_depthfog && !Player->fixedcolormap)
+      {
+         glEnable(GL_FOG);
+      }
+      else
+      {
+         glDisable(GL_FOG);
+      }
+     break;
+   default:
+     break;
+   }
+}
 
 // loop through the renderlist and render all polys
 void RL_RenderList()
