@@ -71,26 +71,27 @@ bool changerenderer;
 
 void I_RestartRenderer()
 {
-   FFont *font;
+	FFont *font;
 
-   font = screen->Font;
-   I_ShutdownHardware();
-   I_InitHardware();
-   V_DoModeSetup(NewWidth, NewHeight, 8);
-   screen->SetFont(font);
+	font = screen->Font;
+	I_ShutdownHardware();
+	I_InitHardware();
+	V_DoModeSetup(NewWidth, NewHeight, 8);
+	screen->SetFont(font);
 
-   if (( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL ) && gamestate == GS_LEVEL)
-   {
-	   if ( UsingGLNodes == false )
-		   P_LoadGLNodes( Wads.GetNumForName( level.mapname ));
+	if (( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL ) && gamestate == GS_LEVEL)
+	{
+		if ( UsingGLNodes == false )
+			P_LoadGLNodes( Wads.GetNumForName( level.mapname ));
 
-	   GL_GenerateLevelGeometry();
-   }
+		GL_GenerateLevelGeometry();
+		frameStartMS = I_MSTime(); // reset the frame time so the shaders don't get messed up
+	}
 
-   if ( OPENGL_GetCurrentRenderer( ) == RENDERER_SOFTWARE )
-   {
-      C_GetConback(NewWidth, NewHeight);
-   }
+	if ( OPENGL_GetCurrentRenderer( ) == RENDERER_SOFTWARE )
+	{
+		C_GetConback(NewWidth, NewHeight);
+	}
 }
 
 void I_ShutdownHardware ()
