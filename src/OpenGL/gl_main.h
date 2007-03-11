@@ -339,6 +339,23 @@ struct FAnimDef
 	};
 };
 */
+
+struct FTexInfo
+{
+   FTexture *tex;
+   int x;
+   int y;
+   int width;
+   int height;
+   int clipLeft, clipRight, clipTop, clipBottom;
+   int windowLeft, windowRight;
+   const BYTE *translation;
+   bool loadAlpha, flipX;
+   float alpha;
+   int fillColor;
+};
+
+
 // Oh god...
 extern AnimArray Anims;
 extern float frustum[6][4];
@@ -415,11 +432,14 @@ void GL_DrawQuad(int left, int top, int right, int bottom); // for savegame imag
 // gl_main.cpp stuff
 //
 
+void GL_Init();
+void GL_SetColor(float r, float g, float b, float a);
 bool GL_CheckExtension(const char *ext);
 void GL_GenerateLevelGeometry();
 void GL_UnloadLevelGeometry();
 void GL_RenderPlayerView(player_t *player, void (*lengthyCallback)());
 void GL_Set2DMode();
+void GL_Set3DMode();
 void GL_SetupFog(BYTE lightlevel, BYTE r, BYTE g, BYTE b);
 void GL_ScreenShot(const char *filename);
 void GL_PurgeTextures();
@@ -564,6 +584,25 @@ void P_LoadGLVertexes(int lumpnum);
 void P_LoadGLSegs(int lumpnum);
 void P_LoadGLSubsectors(int lumpnum);
 void P_LoadGLNodes(int lumpnum);
+
+//
+// gl_geometric.cpp stuff
+//
+
+bool GL_PointNearBBox(Vector &p, float bbox[2][3], float dist);
+bool GL_PointNearPoly(Vector &p, gl_poly_t *poly, float dist);
+
+//
+// gl_rentex.cpp stuff
+//
+
+void GL_RenderViewToTexture(AActor *viewpoint, FTexture *tex, int x, int y, int width, int height, int fov);
+
+//
+// gl_defs.cpp stuff
+//
+
+void GL_ParseDefs();
 
 //
 // gl_fakeflat.cpp stuff

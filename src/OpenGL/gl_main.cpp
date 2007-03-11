@@ -228,6 +228,10 @@ void OPENGL_SetCurrentRenderer( RENDERER_e Renderer )
 }
 
 
+void GL_Init()
+{
+}
+
 void GL_SetSubsectorArray(TArray<subsector_t *> *array)
 {
    visibleSubsectors = array;
@@ -307,6 +311,21 @@ void GL_Set2DMode()
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glOrtho(0.0, screen->GetWidth() * 1.0, 0.0, screen->GetHeight() * 1.0, -1.0, 1.0);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+   glEnable(GL_TEXTURE_2D);
+	glDisable(GL_DEPTH_TEST);
+   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+
+
+void GL_Set3DMode()
+{
+   glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0.0, screen->GetWidth() * 1.0, 0.0, screen->GetHeight() * 1.0, -1000.0, 1000.0);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -2072,6 +2091,13 @@ void GL_PurgeTextures()
 {
    textureList.Purge();
 }
+
+
+void GL_SetColor(float r, float g, float b, float a)
+{
+   glColor4f(r, g, b, a);
+}
+
 
 void GL_RenderViewToCanvas(DCanvas *pic, int x, int y, int width, int height)
 {
