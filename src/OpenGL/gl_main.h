@@ -53,6 +53,7 @@
 
 
 #include "gl_texturelist.h"
+#include "gl_lights.h"
 #include "gl_shaders.h"
 #include "gl_sky.h"
 
@@ -258,6 +259,8 @@ public:
    unsigned char fbR, fbG, fbB, fbLightLevel; // fog boundary color
    float *vertices;
    float *texCoords;
+
+   Plane plane;
 };
 
 class Particle
@@ -347,6 +350,7 @@ extern TArray<bool> sectorWasMoving;
 extern VisibleSubsector *sortedsubsectors;
 extern BYTE *glpvs;
 extern subsector_t *PlayerSubsector;
+extern unsigned int frameStartMS;
 
 // Uh...
 const float byte2float[256] = {
