@@ -460,6 +460,59 @@ void V_RemoveColorCodes( char *pszString )
 	*pszString = 0;
 }
 
+// [RC] Returns if this character is allowed in names
+bool v_AcceptableNameChar ( char c ) {
+	if( (((int)c > 33) ||	// no undisplayable system ascii
+		((int)c == 28)) &&  // allow the escape code for colors
+		((int)c != 37) &&	// no % (acts strangely when used in name)
+		((int)c != 38) &&	// no & (not easy to type on US keyboards)
+		((int)c != 92) &&	// no \ (other escape codes that can crash ST)
+		((int)c != 96) &&	// no ` (invisible)
+		((int)c < 123))   	// no ascii above 123 - invisible or hard to type
+		return true;
+	else
+		return false;
+}
+
+
+// [RC] Conforms names to meet standards
+void V_CleanPlayerName( char *pszString )
+{
+	// Checked by both the client and server, similar to sv_cheats
+	char *p; char c; p = pszString;
+	ULONG	ulStringLength = strlen( pszString );
+	ULONG   ulTotalLength = 0;
+	// Mininum length: 3 characters
+		if(ulStringLength < 3)
+			sprintf(pszString,"Player");
+		else {
+			while ( c = *p++ )
+			{
+				if ( !v_AcceptableNameChar(c) )
+				{
+					ULONG	ulPos;
+					ulStringLength = strlen( pszString );
+
+					for ( ulPos = 0; ulPos < ulStringLength; ulPos++ )
+						pszString[ulPos] = pszString[ulPos + 1];
+
+					p--;
+				}
+				else {
+					pszString++;
+					ulTotalLength++;
+				}
+			}
+			*pszString = 0;
+		
+		// Check again as characters were removed
+			if(ulTotalLength < 3) {
+				pszString-=ulTotalLength;
+				sprintf(pszString,"Player");
+			}
+		}
+}
+
 //
 // Break long lines of text into multiple lines no longer than maxwidth pixels
 //
