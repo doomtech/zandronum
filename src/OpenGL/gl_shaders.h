@@ -91,10 +91,14 @@ public:
 
 
 extern TArray<FShader *> Shaders[NUM_ShaderClasses];
+extern TArray<FShader *> ShaderLookup[NUM_ShaderClasses];
+
 void GL_InitShaders();
 void STACK_ARGS GL_ReleaseShaders();
 void GL_UpdateShaders();
 FShader *GL_ShaderForTexture(FTexture *tex);
+
+bool GL_ParseShader();
 
 
 #endif // __GL_SHADERS_H__
