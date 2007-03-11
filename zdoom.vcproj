@@ -10298,6 +10298,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\OpenGL\gl_defs.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\OpenGL\gl_demos.cpp"
 					>
 				</File>
@@ -10315,6 +10319,10 @@
 				</File>
 				<File
 					RelativePath=".\src\OpenGL\gl_geometric.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\OpenGL\gl_lights.cpp"
 					>
 				</File>
 				<File
@@ -10377,6 +10385,10 @@
 			<Filter
 				Name="OpenGL Headers"
 				>
+				<File
+					RelativePath=".\src\OpenGL\gl_lights.h"
+					>
+				</File>
 				<File
 					RelativePath=".\src\OpenGL\gl_main.h"
 					>
