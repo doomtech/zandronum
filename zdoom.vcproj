@@ -10334,6 +10334,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\OpenGL\gl_particles.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\OpenGL\gl_setup.cpp"
 					>
 				</File>
@@ -10395,6 +10399,10 @@
 				</File>
 				<File
 					RelativePath=".\src\OpenGL\gl_models.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\OpenGL\gl_particles.h"
 					>
 				</File>
 				<File
