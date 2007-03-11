@@ -868,6 +868,8 @@ void D_DoomLoop ()
 	{
 		try
 		{
+			frameStartMS = I_MSTime(); // [ZDoomGL]
+
 			switch ( NETWORK_GetState( ))
 			{
 			case NETSTATE_CLIENT:
