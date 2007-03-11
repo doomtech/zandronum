@@ -10314,6 +10314,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\OpenGL\gl_geometric.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\OpenGL\gl_main.cpp"
 					>
 				</File>
