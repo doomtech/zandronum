@@ -426,9 +426,14 @@ void GL_PurgeTextures();
 void GL_DrawMirrors();
 void GL_GetSectorColor(sector_t *sector, float *r, float *g, float *b, int lightLevel);
 void GL_RenderViewToCanvas(DCanvas *pic, int x, int y, int width, int height);
+void GL_RenderActorView(AActor *actor, float aspect, float fov);
 void GL_PrecacheTextures();
 bool GL_UseStencilBuffer();
 bool GL_SegFacingDir(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2);
+void STACK_ARGS GL_ShutDown();
+void GL_SetupViewport();
+void GL_ResetViewport();
+int GL_GetStatusBarOffset();
 
 //
 // gl_walls.cpp stuff
@@ -478,7 +483,7 @@ bool CL_SafeCheckRange(angle_t startAngle, angle_t endAngle);
 bool CL_ShouldClipAgainstSeg(seg_t *seg, sector_t *frontSector, sector_t *backSector);
 bool CL_ClipperFull();
 angle_t CL_FrustumAngle(int whichAngle);
-
+angle_t CL_FrustumAngle();
 
 //
 // gl_sprites.cpp stuff
@@ -500,6 +505,7 @@ void GL_RenderPolyWithShader(gl_poly_t *poly, FShader *shader);
 void RL_AddPoly(unsigned int tex, int polyIndex);
 void RL_Clear();
 void RL_Delete();
+void RL_SetupMode(int mode);
 void RL_RenderList();
 
 

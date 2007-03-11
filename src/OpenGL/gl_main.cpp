@@ -124,6 +124,8 @@ extern int viewpitch;
 
 extern bool ShouldDrawSky;
 
+extern int ST_Y;
+
 
 int playerlight;
 int numTris;
@@ -150,12 +152,13 @@ extern TextureList textureList;
 TArray<subsector_t *> *visibleSubsectors;
 byte *glpvs = NULL;
 subsector_t *PlayerSubsector;
-
+viewarea_t ViewArea, InArea;
 
 
 EXTERN_CVAR (Int, gl_billboard_mode)
 EXTERN_CVAR (Int, gl_vid_stencilbits)
 EXTERN_CVAR (Int, gl_vid_bitdepth)
+EXTERN_CVAR (Int, r_detail)
 
 CCMD (gl_list_extensions)
 {
@@ -984,6 +987,50 @@ void GL_RenderBSPNode(void *node, angle_t left, angle_t right)
 }
 
 
+
+void GL_AddQueuedSubsector(subsector_t *ssec, sector_t *sector, int depthCount)
+{
+   if (!ssec) return;
+
+   if (CL_SubsectorInFrustum(ssec, sector))
+   {
+      visibleSubsectors->Push(ssec);
+   }
+}
+
+sector_t TempSector;
+void GL_QueueSubsectors(subsector_t *ssec, int depthCount)
+{
+   register unsigned long i, firstLine, maxLine;
+   sector_t *sector;
+   seg_t *seg;
+
+   if (!ssec) return;
+   if (ssec->validcount == validcount) return; // already touched
+   ssec->validcount = validcount;
+
+   //Printf("%d\n", depthCount);
+
+   sector = GL_FakeFlat(ssec->render_sector, &TempSector, NULL, NULL, false);
+   GL_RecalcSubsector(ssec, sector);
+   GL_AddQueuedSubsector(ssec, sector, depthCount);
+
+   firstLine = ssec->firstline;
+   maxLine = firstLine + ssec->numlines;
+   seg = segs + firstLine;
+
+   // note: function is recursive, so "sector" may not be valid after this point
+
+   for (i = firstLine; i < maxLine; i++, seg++)
+   {
+      if (seg->PartnerSeg && seg->PartnerSeg->Subsector)
+      {
+         GL_QueueSubsectors(seg->PartnerSeg->Subsector, depthCount + 1);
+      }
+   }
+}
+
+
 void GL_RenderSkybox(ASkyViewpoint *skyBox)
 {
    long oldx, oldy, oldz, angle, oldpitch;
@@ -1382,6 +1429,119 @@ void GL_DrawScene(player_t *player)
    RL_Clear();
 }
 
+void GL_DrawScene()
+{
+   TArray<seg_t *> mirrors;
+   static TArray<subsector_t *> subSecs;
+   int i, numSubSecs;
+   static int lastGametic = gametic;
+   float yaw, pitch;
+   angle_t a1, a2;
+   GLbitfield mask;
+
+   playerlight = Player->extralight;
+
+   CL_CalcFrustumPlanes();
+   GL_ClearSprites();
+   RL_Clear();
+   skyBoxes.Clear();
+   mirrors.Clear();
+   numTris = 0;
+
+   GL_SetSubsectorArray(&subSecs);
+   GL_SetMirrorList(&mirrors);
+
+   CL_ClearClipper();
+   a1 = CL_FrustumAngle();
+   CL_SafeAddClipRange(viewangle + a1, viewangle - a1);
+
+   if (gl_nobsp)
+   {
+      //GL_AddVisibleSubsectors(a1, a2);
+      GL_QueueSubsectors(PlayerSubsector, 0);
+      ShouldDrawSky = true;
+   }
+   else
+   {
+      GL_RenderBSPNode(nodes + numnodes - 1, a1, a2);
+   }
+   CL_ClearClipper();
+
+   numSubSecs = subSecs.Size();
+
+   mask = GL_DEPTH_BUFFER_BIT;
+   if ((gl_draw_sky && ShouldDrawSky) || gl_wireframe)
+   {
+      mask |= GL_COLOR_BUFFER_BIT;
+   }
+   if (GL_UseStencilBuffer())
+   {
+      mask |= GL_STENCIL_BUFFER_BIT;
+   }
+   glClear(mask);
+
+   if (gl_draw_sky && !gl_wireframe && ShouldDrawSky)
+   {
+      glPushMatrix();
+      glLoadIdentity();
+
+      yaw = 270.f - ANGLE_TO_FLOAT(viewangle);
+      pitch = ANGLE_TO_FLOAT(viewpitch);
+
+      glRotatef(pitch, 1.f, 0.f, 0.f);
+      glRotatef(yaw, 0.f, 1.f, 0.f);
+      GL_DrawSky();
+      glPopMatrix();
+   }
+
+   NetUpdate ();
+
+   if (skyBoxes.Size() && gl_draw_skyboxes)
+   {
+      CL_ClearClipper();
+
+      if (GL_UseStencilBuffer())
+      {
+         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+         glDisable(GL_TEXTURE_2D);
+         glEnable(GL_STENCIL_TEST);
+         glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+         MaskSkybox = true;
+         for (i = 0; i < numSubSecs; i++)
+         {
+            GL_RenderSubsector(subSecs[i]);
+         }
+         MaskSkybox = false;
+         CL_ClearClipper();
+         glEnable(GL_TEXTURE_2D);
+         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+      }
+
+      GL_DrawSkyboxes();
+
+      glClear(GL_DEPTH_BUFFER_BIT);
+   }
+
+   if (mirrors.Size() > 0)
+   {
+      GL_DrawMirrors();
+      mirrors.Clear();
+   }
+
+   GL_DrawVisibleSubsectors();
+
+   NetUpdate ();
+
+   if (gl_depthfog)
+   {
+      glDisable(GL_FOG);
+   }
+
+   static_cast<OpenGLFrameBuffer *>(screen)->SetNumTris(numTris);
+
+   RL_Clear();
+}
+
 EXTERN_CVAR( Bool, r_drawplayersprites );
 void GL_DrawPlayerWeapon(player_t *player)
 {
@@ -1561,6 +1721,87 @@ void GL_SetPerspective(float fovY, float aspect, float zNear, float zFar)
    fW = fH * aspect;
 
    glFrustum(-fW, fW, -fH, fH, zNear, zFar);
+}
+
+void GL_RenderActorView(AActor *actor, float aspect, float fov)
+{
+   float yaw, pitch, aspectMul;
+   float x, y, z, r, g, b;
+
+   // correct the aspect ratio
+   aspectMul = FIX2FLT(yaspectmul);
+   // yaspectmul is affected by the detail doubling modes, so account for that
+   switch (r_detail)
+   {
+   case 1:
+      aspectMul *= 0.5f;
+      break;
+   case 2:
+      aspectMul *= 2.f;
+      break;
+   default:
+      break;
+   }
+
+   aspect *= aspectMul;
+
+   R_FindParticleSubsectors();
+
+   InMirror = false;
+   ShouldDrawSky = false;
+
+   R_SetupFrame(actor);
+
+   PlayerSubsector = R_PointInSubsector(viewx, viewy);
+
+   if (PlayerSubsector->render_sector->heightsec && !(PlayerSubsector->render_sector->heightsec->MoreFlags & SECF_IGNOREHEIGHTSEC))
+   {
+      InArea = ViewArea = viewz <= PlayerSubsector->render_sector->heightsec->floorplane.ZatPoint(viewx,viewy) ? AREA_BELOW :
+					   (viewz > PlayerSubsector->render_sector->heightsec->ceilingplane.ZatPoint(viewx,viewy) &&
+					   !(PlayerSubsector->render_sector->heightsec->MoreFlags&SECF_FAKEFLOORONLY)) ? AREA_ABOVE : AREA_NORMAL;
+   }
+   else
+   {
+      ViewArea = AREA_NORMAL;
+      InArea = AREA_DEFAULT;
+   }
+
+   //ViewArea = InArea = AREA_ABOVE;
+
+   glMatrixMode(GL_PROJECTION);
+   glLoadIdentity();
+   GL_SetPerspective(fov * 0.915f, aspect, 1.f, 32768.f);
+   glMatrixMode(GL_MODELVIEW);
+
+   RL_SetupMode(RL_RESET);
+   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+   if (gl_wireframe)
+   {
+      r = g = b = 0.f;
+   }
+   else
+   {
+      GL_GetSkyColor(&r, &g, &b);
+   }
+
+   glClearColor(r, g, b, 0.f);
+   glLoadIdentity();
+
+   yaw = 270.f - ANGLE_TO_FLOAT(viewangle);
+   pitch = ANGLE_TO_FLOAT(viewpitch);
+
+   x = viewx * MAP_SCALE;
+   y = viewy * MAP_SCALE;
+   z = viewz * MAP_SCALE;
+
+   glRotatef(pitch, 1.f, 0.f, 0.f);
+   glRotatef(yaw, 0.f, 1.f, 0.f);
+   glTranslatef(x, -z, -y);
+
+   GL_DrawScene();
+
+   restoreinterpolations ();
 }
 
 void GL_RenderPlayerView(player_t *player, void (*lengthyCallback)())
@@ -1841,4 +2082,36 @@ void GL_RenderViewToCanvas(DCanvas *pic, int x, int y, int width, int height)
    buff = pic->GetBuffer();
    memcpy(buff, fb, width * height);
    delete[] fb;
+}
+
+
+void STACK_ARGS GL_ShutDown()
+{
+   GL_ReleaseShaders();
+   GL_ReleaseLights();
+}
+
+
+int GL_GetStatusBarOffset()
+{
+   if (realviewheight == screen->GetHeight())
+   {
+      return 0;
+   }
+   else
+   {
+      return screen->GetHeight() - ST_Y;
+   }
+}
+
+
+void GL_SetupViewport()
+{
+   static_cast<OpenGLFrameBuffer *>(screen)->SetViewport(viewwindowx, viewwindowy + GL_GetStatusBarOffset(), realviewwidth, realviewheight);
+}
+
+
+void GL_ResetViewport()
+{
+   static_cast<OpenGLFrameBuffer *>(screen)->SetViewport(0, 0, screen->GetWidth(), screen->GetHeight());
 }
