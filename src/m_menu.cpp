@@ -960,7 +960,7 @@ static void M_ExtractSaveData (const FSaveGameNode *node)
 			if ( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL )
 			{
 				SavePic->Lock();
-				textureList.SetSavegameTexture(SavePic->GetBuffer(), SavePic->GetWidth(), SavePic->GetHeight());
+				textureList.SetSavegameTexture(0, SavePic->GetBuffer(), SavePic->GetWidth(), SavePic->GetHeight());
 				SavePic->Unlock();
 			}
 		}
@@ -1022,7 +1022,7 @@ static void M_DrawSaveLoadCommon ()
 	{
 		if ( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL )
 		{
-			textureList.BindSavegameTexture();
+			textureList.BindSavegameTexture(0);
 			GL_DrawQuad(savepicLeft, savepicTop, savepicLeft + savepicWidth, savepicTop + savepicHeight);
 		}
 		else

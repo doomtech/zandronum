@@ -720,7 +720,7 @@ DWORD R_BlendForColormap (DWORD map)
 void R_InitData ()
 {
 	// [BC] ZDoomGL thing.
-	FTexture::Init();
+	//FTexture::Init();
 
 	FTexture::InitGrayMap();
 	TexMan.AddGroup("S_START", "S_END", ns_sprites, FTexture::TEX_Sprite);

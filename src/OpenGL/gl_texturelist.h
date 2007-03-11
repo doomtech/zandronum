@@ -24,7 +24,6 @@ typedef struct
 
 
 extern TArray<remap_tex_t> RemappedTextures;
-extern TArray<FDummyTexture> DefinedTextures;
 
 
 int CeilPow2(int num);
@@ -58,7 +57,6 @@ public:
    FTexture *Tex;
    BYTE *translation;
    unsigned long averageColor;
-   unsigned int glTex;
    bool isTransparent;
    bool isSky;
    bool isAlpha;
@@ -78,38 +76,47 @@ public:
    void Purge();
    void Clear();
    void SetupTexparams();
+   void UnbindTexture();
    void BindTexture(int textureID, bool translate);
    void BindTexture(const char *texName);
    void BindTexture(FTexture *tex);
-   void BindSavegameTexture();
+   void BindSavegameTexture(int index);
    void GetTexture(int textureID, bool translate);
    void GetTexture(FTexture *tex);
    void BindGLTexture(int texId);
-   void LoadAlpha(bool la);
+   void LoadAlpha(bool la) { m_loadAsAlpha = la; }
+   void LoadSaturate(bool ls) { m_loadSaturate = ls; }
    void GetAverageColor(float *r, float *g, float *b);
    void SetTranslation(const BYTE *trans);
    void SetTranslation(unsigned short trans);
-   void SetSavegameTexture(BYTE *img, int width, int height);
+   void SetSavegameTexture(int index, BYTE *img, int width, int height);
    void UpdateForTranslation(BYTE *trans);
    void GrabFB();
-   void AllowScale(bool as);
+   void AllowScale(bool as) { m_allowScale = as; }
+   void AllowMipMap(bool mipmap) { m_allowMipMap = mipmap; }
    void GetCorner(float *x, float *y);
+   void ForceHQ(int mode) { m_forceHQ = mode; }
    int GetTextureMode();
    int GetTextureModeMag();
+   int NumTexUnits() { return m_numTexUnits; }
    unsigned int GetGLTexture();
    bool IsTransparent();
    bool IsLoadingAlpha();
-   BYTE *ReduceFramebufferToPalette(int width, int height);
+   bool SelectTexUnit(int unit);
+   float GetTopYOffset();
+   float GetBottomYOffset();
+   BYTE *ReduceFramebufferToPalette(int width, int height, bool fullScreen = false);
 
 protected:
+   void adjustColor(BYTE *img, int width, int height);
    void colorOutlines(BYTE *img, int width, int height);
    void updateTexture(FTexture *tex);
-   void deleteSavegameTexture();
+   void deleteSavegameTexture(int index);
    void addLuminanceNoise(BYTE *buffer, int width, int height);
-   int checkExternalFile(char *fileName, bool isPatch);
+   int checkExternalFile(char *fileName, BYTE useType, bool isPatch);
    int getTextureFormat(FTexture *tex);
    unsigned long calcAverageColor(BYTE *buffer, int width, int height);
-   BYTE *loadExternalFile(char *fileName, int *width, int *height, bool gameSpecific, bool isPatch);
+   BYTE *loadExternalFile(char *fileName, BYTE useType, int *width, int *height, bool gameSpecific, bool isPatch);
    BYTE *loadFile(char *fileName, int *width, int *height);
    BYTE *loadFromLump(char *lumpName, int *width, int *height);
    BYTE *scaleImage(BYTE *buffer, int *width, int *height, bool highQuality);
@@ -117,10 +124,12 @@ protected:
    unsigned int loadTexture(FTexture *tex);
 
    BYTE m_gammaTable[256], *m_translation;
-   bool m_initialized, m_loadAsAlpha, m_loadAsSky, m_allowScale;
-   int m_maxTextureSize, m_lastBoundTexture;
+   bool m_initialized, m_supportsAnisotropic, m_supportsS3TC, m_supportsPT, m_loadAsAlpha;
+   bool m_loadAsSky, m_loadSaturate, m_allowScale, m_supportsNonPower2, m_allowMipMap;
+   int m_maxTextureSize, m_forceHQ, m_numTexUnits, m_currentTexUnit;
+   unsigned int *m_lastBoundTexture;
    unsigned short m_translationShort;
-   unsigned int m_savegameTex;
+   unsigned int m_savegameTex[2];
    FTextureGLData *m_workingData;
 };
 

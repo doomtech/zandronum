@@ -45,6 +45,7 @@
 #endif
 
 #define USE_WINDOWS_DWORD
+#include "OpenGLVideo.h"
 #include "gl_texturelist.h"
 #include "gl_main.h"
 #include "Image.h"
@@ -89,13 +90,12 @@
 
 TextureList textureList;
 TArray<remap_tex_t> RemappedTextures;
-TArray<FDummyTexture> DefinedTextures;
-FTexture *RootTexture = NULL;
 TArray<FTexture *> TrackedTextures;
 
 extern level_locals_t level;
 extern GameMission_t	gamemission;
 extern FColorMatcher ColorMatcher;
+extern int ST_Y;
 
 int TextureMode;
 
@@ -106,6 +106,12 @@ EXTERN_CVAR (Bool, gl_texture)
 
 CVAR(Bool, gl_texture_anisotropic, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Float, gl_texture_anisotropy_degree, 2.0f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(Bool, gl_sprite_precache, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+
+CUSTOM_CVAR(Int, gl_texture_camtex_format, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
+{
+   textureList.Purge();
+}
 
 CUSTOM_CVAR(Int, gl_texture_hqresize, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
 {
@@ -148,7 +154,9 @@ CCMD (gl_list_remaps)
    for (i = 0; i < RemappedTextures.Size(); i++)
    {
       remap = &RemappedTextures[i];
-      lumpNum = Wads.CheckNumForName(remap->newName);
+      //lumpNum = Wads.CheckNumForName(remap->newName);
+      lumpNum = 0;
+      lumpNum = Wads.FindLump(remap->newName, &lumpNum);
       Printf("%s -> %s (%s)\n", remap->origName, remap->newName, lumpNum != -1 ? "ok" : "not found");
    }
 }
@@ -158,7 +166,7 @@ extern FPalette GPalette;
 void InitLUTs();
 
 
-inline int CeilPow2(int num)
+int CeilPow2(int num)
 {
 	int cumul;
 	for(cumul=1; num > cumul; cumul <<= 1);
@@ -166,7 +174,7 @@ inline int CeilPow2(int num)
 }
 
 
-inline int FloorPow2(int num)
+int FloorPow2(int num)
 {
 	int fl = CeilPow2(num);
 	if(fl > num) fl >>= 1;
@@ -181,15 +189,14 @@ inline int RoundPow2(int num)
 }
 
 
-CVAR (Bool, gl_sprite_precache, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
-
 void GL_PrecacheAnimdef(FAnimDef *anim, float priority)
 {
    unsigned short texNum, i;
+   FTexture *tex;
 
    for (i = 0; i < anim->NumFrames; i++)
    {
-      if (0)//anim->bUniqueFrames)
+      if (0)//(anim->bUniqueFrames)
       {
          texNum = anim->Frames[i].FramePic;
       }
@@ -197,35 +204,42 @@ void GL_PrecacheAnimdef(FAnimDef *anim, float priority)
       {
          texNum = anim->BasePic + i;
       }
-      textureList.GetTexture(TexMan[texNum]);
-      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_PRIORITY, priority);
+      tex = TexMan[texNum];
+      if (tex && tex->UseType != FTexture::TEX_Null)
+      {
+         tex->glData.Clear();
+         textureList.BindTexture(tex);
+      }
    }
 }
 
 void GL_PrecacheShader(FShader *shader, float priority)
 {
    FShaderLayer *layer;
+   FTexture *tex;
    unsigned int i;
 
    for (i = 0; i < shader->layers.Size(); i++)
    {
       layer = shader->layers[i];
-      textureList.GetTexture(TexMan[layer->name]);
-      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_PRIORITY, priority);
+      tex = TexMan[layer->name];
+      if (tex && tex->UseType != FTexture::TEX_Null)
+      {
+         tex->glData.Clear();
+         textureList.GetTexture(tex);
+      }
+      //glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_PRIORITY, priority);
    }
 }
 
 void GL_PrecacheTextures()
 {
-   unsigned int *hitlist, maxHit;
+   unsigned int *hitlist;
 	BYTE *spritelist;
-	int i, totalCount, count;
-   float priority;
+	int i, totalCount;
 
 	textureList.Clear();
    totalCount = 0;
-
-   //Printf("ZGL: Precaching textures...\n");
 
 	hitlist = new unsigned int[TexMan.NumTextures()];
 	
@@ -288,16 +302,6 @@ void GL_PrecacheTextures()
       hitlist[sides[i].bottomtexture]++;
 	}
 
-   count = 0;
-   C_InitTicker ("Precaching Textures", totalCount);
-
-   maxHit = 0;
-   for (i = 0; i < TexMan.NumTextures(); i++)
-   {
-      maxHit = MAX<unsigned int>(maxHit, hitlist[i]);
-   }
-
-#if 1
    // Sky texture is always present.
 	// Note that F_SKY1 is the name used to
 	//	indicate a sky floor/ceiling as a flat,
@@ -307,43 +311,41 @@ void GL_PrecacheTextures()
 	if (sky1texture >= 0)
 	{
       if (hitlist[sky1texture] == 0) totalCount++;
-		hitlist[sky1texture] = maxHit;
+		hitlist[sky1texture] = 1;
 	}
 	if (sky2texture >= 0)
 	{
       if (hitlist[sky2texture] == 0) totalCount++;
-		hitlist[sky2texture] = maxHit;
+		hitlist[sky2texture] = 1;
 	}
-#endif
 
-	for (i = 0; i < TexMan.NumTextures(); i++)
+   Printf("ZGL: Precaching textures...");
+   // start at one to skip over the dummy texture (seems to cause crashes)...
+	for (i = 1; i < TexMan.NumTextures(); i++)
 	{
 		if (hitlist[i])
 		{
 			FTexture *tex = TexMan[i];
-			if (tex != NULL)
+			if (tex != NULL && tex->UseType != FTexture::TEX_Null)
 			{
+            tex->glData.Clear();
             textureList.AllowScale(tex->UseType != FTexture::TEX_Sprite);
-            textureList.GetTexture(tex);
-            priority = hitlist[i] * 1.f / maxHit;
-            //priority = 0.f;
-            //glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_PRIORITY, priority);
+            textureList.BindTexture(tex);
             FAnimDef *anim = GL_GetAnimForLump(i);
             if (anim != NULL)
             {
-               GL_PrecacheAnimdef(anim, priority);
+               GL_PrecacheAnimdef(anim, 0.f);
             }
             FShader *shader = GL_ShaderForTexture(tex);
             if (shader)
             {
-               GL_PrecacheShader(shader, priority);
+               GL_PrecacheShader(shader, 0.f);
             }
 			}
-         C_SetTicker (++count, true);
 		}
 	}
    textureList.AllowScale(true);
-   C_InitTicker (NULL, 0);
+   Printf("done.\n");
 
 	delete[] hitlist;
 }
@@ -458,7 +460,6 @@ FDefinedTexture::FDefinedTexture(const char *name, int width, int height)
    Width = width;
    Height = height;
    UseType = FTexture::TEX_Defined;
-   Next = NULL;
    m_32bit = false;
 }
 
@@ -480,43 +481,6 @@ void FDefinedTexture::SetSize(int width, int height)
 }
 
 
-void FTexture::Init()
-{
-}
-
-
-void FTexture::ClearGLTextures()
-{
-   unsigned int i, j, size;
-   FTexture *tex;
-
-   for (i = 0; i < TrackedTextures.Size(); i++)
-   {
-      tex = TrackedTextures[i];
-      size = tex->glData.Size();
-/*
-      for (j = 0; j < size; j++)
-      {
-         delete (tex->glData[j]);
-      }
-*/
-      tex->glData.Clear();
-   }
-
-   TrackedTextures.Clear();
-}
-
-
-void FTexture::TrackTexture(FTexture *tex)
-{
-   FTexture *first = RootTexture;
-
-   if (tex->glData.Size()) return; // already tracked
-
-   TrackedTextures.Push(tex);
-}
-
-
 FTextureGLData::FTextureGLData()
 {
    glTex = 0;
@@ -524,6 +488,7 @@ FTextureGLData::FTextureGLData()
    isAlpha = false;
    isTransparent = false;
    cx = cy = 1.f;
+   topOffset = bottomOffset = 0.f;
 }
 
 
@@ -535,7 +500,6 @@ FTextureGLData::~FTextureGLData()
 
 TextureList::TextureList()
 {
-   TrackedTextures.Clear();
 }
 
 
@@ -553,16 +517,58 @@ void TextureList::Init()
       iluInit();
       InitLUTs();
 
-      screen->CalcGamma(Gamma, m_gammaTable);
+      TrackedTextures.Clear();
 
       glGetIntegerv(GL_MAX_TEXTURE_SIZE, &m_maxTextureSize);
-      Printf( PRINT_OPENGL, "Max texture size %d\n", m_maxTextureSize);
+      Printf("ZGL: Max texture size %d\n", m_maxTextureSize);
 
+      glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &m_numTexUnits);
+      m_lastBoundTexture = new unsigned int[m_numTexUnits];
+      m_currentTexUnit = 0;
+      for (int i = 0; i < m_numTexUnits; i++)
+      {
+         SelectTexUnit(GL_TEXTURE0_ARB + i);
+         glEnable(GL_TEXTURE_2D);
+         glBindTexture(GL_TEXTURE_2D, 0);
+         m_lastBoundTexture[i] = 0;
+         glDisable(GL_TEXTURE_2D);
+      }
+
+      SelectTexUnit(GL_TEXTURE0_ARB);
+
+      m_supportsAnisotropic = GL_CheckExtension("GL_EXT_texture_filter_anisotropic");
+      if (m_supportsAnisotropic)
+      {
+         Printf("ZGL: Enabling anisotropic texturing support.\n");
+      }
+
+      m_supportsS3TC = GL_CheckExtension("GL_EXT_texture_compression_s3tc");
+      if (m_supportsS3TC)
+      {
+         Printf("ZGL: Enabling texture compression.\n");
+      }
+
+      m_supportsPT = GL_CheckExtension("GL_EXT_paletted_texture");
+      if (m_supportsPT)
+      {
+         //Printf("ZGL: Enabling paletted textures.\n");
+      }
+
+      m_supportsNonPower2 = GL_CheckExtension("GL_ARB_texture_non_power_of_two");
+      if (m_supportsNonPower2)
+      {
+         Printf("ZGL: supports non power 2 textures.\n");
+      }
+
+      m_loadSaturate = false;
       m_loadAsAlpha = false;
       m_translation = NULL;
       m_translationShort = 0;
-      m_savegameTex = 0;
+      m_savegameTex[0] = 0;
+      m_savegameTex[1] = 0;
       m_allowScale = true;
+      m_allowMipMap = true;
+      m_forceHQ = 0;
 
       m_initialized = true;
    }
@@ -573,10 +579,13 @@ void TextureList::ShutDown()
 {
    if (m_initialized)
    {
-      this->Clear();
-      this->deleteSavegameTexture();
+      Clear();
+      deleteSavegameTexture(0);
+      deleteSavegameTexture(1);
 
       ilShutDown();
+
+      delete [] m_lastBoundTexture;
 
       m_initialized = false;
    }
@@ -585,16 +594,26 @@ void TextureList::ShutDown()
 
 void TextureList::Clear()
 {
-   //Printf("ZGL: Clearing textures...\n");
+   FTexture *tex;
 
-   FTexture::ClearGLTextures();
+   for (unsigned int i = 0; i < TrackedTextures.Size(); i++)
+   {
+      tex = TrackedTextures[i];
+      for (unsigned int j = 0; j < tex->glData.Size(); j++)
+      {
+         delete tex->glData[j];
+      }
+      tex->glData.Clear();
+   }
+
+   TrackedTextures.Clear();
 
    m_translation = NULL;
    m_translationShort = 0;
 }
 
 
-void TextureList::colorOutlines(byte *img, int width, int height)
+void TextureList::colorOutlines(BYTE *img, int width, int height)
 {
    int i, j, a, b, index, index2;
 
@@ -625,7 +644,7 @@ void TextureList::colorOutlines(byte *img, int width, int height)
 }
 
 
-int TextureList::checkExternalFile(char *fileName, bool isPatch)
+int TextureList::checkExternalFile(char *fileName, BYTE useType, bool isPatch)
 {
    char fn[80], texType[16], checkName[32];
 
@@ -644,7 +663,15 @@ int TextureList::checkExternalFile(char *fileName, bool isPatch)
    else
    {
       sprintf(checkName, "%s", fileName);
-      sprintf(texType, "textures");
+      switch (useType)
+      {
+      case FTexture::TEX_Flat:
+         sprintf(texType, "flats");
+         break;
+      default:
+         sprintf(texType, "textures");
+         break;
+      }
    }
 
    switch (gameinfo.gametype)
@@ -689,10 +716,10 @@ int TextureList::checkExternalFile(char *fileName, bool isPatch)
 }
 
 
-byte *TextureList::loadExternalFile(char *fileName, int *width, int *height, bool gameSpecific, bool isPatch)
+BYTE *TextureList::loadExternalFile(char *fileName, BYTE useType, int *width, int *height, bool gameSpecific, bool isPatch)
 {
    char fn[80], texType[16], checkName[32];
-   byte *buffer = NULL;
+   BYTE *buffer = NULL;
 
    if (isPatch)
    {
@@ -709,7 +736,15 @@ byte *TextureList::loadExternalFile(char *fileName, int *width, int *height, boo
    else
    {
       sprintf(checkName, "%s", fileName);
-      sprintf(texType, "textures");
+      switch (useType)
+      {
+      case FTexture::TEX_Flat:
+         sprintf(texType, "flats");
+         break;
+      default:
+         sprintf(texType, "textures");
+         break;
+      }
    }
 
    switch (gameinfo.gametype)
@@ -757,12 +792,12 @@ byte *TextureList::loadExternalFile(char *fileName, int *width, int *height, boo
 }
 
 
-byte *TextureList::loadFile(char *fileName, int *width, int *height)
+BYTE *TextureList::loadFile(char *fileName, int *width, int *height)
 {
    byte *buffer = NULL;
    byte *data;
    ILuint imgID;
-   int x, y, index;
+   int imgSize;
 
    ilGenImages(1, &imgID);
    ilBindImage(imgID);
@@ -776,9 +811,12 @@ byte *TextureList::loadFile(char *fileName, int *width, int *height)
 
    *width = ilGetInteger(IL_IMAGE_WIDTH);
    *height = ilGetInteger(IL_IMAGE_HEIGHT);
-   buffer = new byte[*width * *height * 4];
+   imgSize = *width * *height * 4;
+   buffer = new byte[imgSize];
    data = ilGetData();
-
+#if 1
+   memcpy(buffer, data, imgSize);
+#else
    for (y = 0; y < *height; y++)
    {
       for (x = 0; x < *width; x++)
@@ -790,22 +828,28 @@ byte *TextureList::loadFile(char *fileName, int *width, int *height)
          buffer[(index * 4) + 3] = data[(index * 4) + 3];
       }
    }
-
+#endif
    ilDeleteImages(1, &imgID);
 
    return buffer;
 }
 
 
-byte *TextureList::loadFromLump(char *lumpName, int *width, int *height)
+BYTE *TextureList::loadFromLump(char *lumpName, int *width, int *height)
 {
-   byte *buffer = NULL, *data;
+   BYTE *buffer = NULL, *data;
    ILuint imgID;
    void *lumpData;
-   int lumpNum, x, y, index;
+   int lumpNum, tmpLump, lastLump, imgSize;
    FMemLump memLump;
 
-   lumpNum = Wads.CheckNumForName(lumpName);
+   tmpLump = 0;
+   while ((lumpNum = Wads.FindLump (lumpName, &tmpLump)) != -1)
+   {
+      lastLump = lumpNum;
+   }
+   lumpNum = lastLump;
+
    if (lumpNum == -1)
    {
       return NULL;
@@ -822,9 +866,12 @@ byte *TextureList::loadFromLump(char *lumpName, int *width, int *height)
 
    *width = ilGetInteger(IL_IMAGE_WIDTH);
    *height = ilGetInteger(IL_IMAGE_HEIGHT);
-   buffer = new byte[*width * *height * 4];
+   imgSize = *width * *height * 4;
+   buffer = new BYTE[imgSize];
    data = ilGetData();
-
+#if 1
+   memcpy(buffer, data, imgSize);
+#else
    for (y = 0; y < *height; y++)
    {
       for (x = 0; x < *width; x++)
@@ -836,7 +883,7 @@ byte *TextureList::loadFromLump(char *lumpName, int *width, int *height)
          buffer[(index * 4) + 3] = data[(index * 4) + 3];
       }
    }
-
+#endif
    ilDeleteImages(1, &imgID);
 
    return buffer;
@@ -855,6 +902,19 @@ int TextureList::getTextureFormat(FTexture *tex)
       if (static_cast<FDefinedTexture *>(tex)->Is32bit())
       {
          return GL_RGBA8;
+      }
+   }
+
+   if (tex && tex->CanvasTexture())
+   {
+      // only use 16 bit textures for camera textures
+      // keeps the speed up
+      switch (gl_texture_camtex_format)
+      {
+      case 1:
+         return GL_LUMINANCE;
+      default:
+         return GL_RGB5_A1;
       }
    }
 
@@ -881,6 +941,14 @@ int TextureList::getTextureFormat(FTexture *tex)
 
    if (strcmp(gl_texture_format, "GL_INTENSITY") == 0)
       return GL_INTENSITY;
+
+   if (m_supportsS3TC)
+   {
+      if (strcmp(gl_texture_format, "GL_S3TC") == 0)
+      {
+         return COMPRESSED_RGBA_S3TC_DXT3_EXT;
+      }
+   }
 
    return GL_RGB5_A1;
 }
@@ -939,33 +1007,54 @@ void TextureList::SetupTexparams()
    //glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_PRIORITY, 0.0f);
 
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GetTextureModeMag());
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GetTextureMode());
+
+   if (m_allowMipMap)
+   {
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GetTextureMode());
+   }
+   else
+   {
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GetTextureModeMag());
+   }
+
+   if (m_supportsAnisotropic)
+   {
+      if (gl_texture_anisotropic)
+      {
+         gl_texture_anisotropy_degree = gl_texture_anisotropy_degree < 1.0f ? 1.0f : gl_texture_anisotropy_degree;
+         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, gl_texture_anisotropy_degree);
+      }
+      else
+      {
+         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0f);
+      }
+   }
 }
 
 
 void TextureList::Purge()
 {
    this->Clear();
-   screen->CalcGamma(Gamma, m_gammaTable);
    GL_PrecacheTextures();
 }
 
 
 void TextureList::BindGLTexture(int texId)
 {
-   if (m_lastBoundTexture != texId)
+   if (m_lastBoundTexture[m_currentTexUnit] != texId)
    {
       glBindTexture(GL_TEXTURE_2D, texId);
-      m_lastBoundTexture = texId;
+      m_lastBoundTexture[m_currentTexUnit] = texId;
+      SetupTexparams();
    }
 }
 
 
-byte *TextureList::hqresize(byte *buffer, int *width, int *height)
+BYTE *TextureList::hqresize(BYTE *buffer, int *width, int *height)
 {
-   byte *img;
+   BYTE *img;
    CImage hqimage;
-   int w, h;
+   int w, h, type;
 
    w = *width;
    h = *height;
@@ -974,24 +1063,33 @@ byte *TextureList::hqresize(byte *buffer, int *width, int *height)
    delete[] buffer;
    hqimage.Convert32To17();
 
-   switch (gl_texture_hqresize)
+   if (m_forceHQ)
+   {
+      type = m_forceHQ;
+   }
+   else
+   {
+      type = gl_texture_hqresize;
+   }
+
+   switch (type)
    {
    case 3:
       w *= 4;
       h *= 4;
-      img = new byte[w * h * 4];
+      img = new BYTE[w * h * 4];
       hq4x_32((int*)hqimage.m_pBitmap, img, hqimage.m_Xres, hqimage.m_Yres, w * 4);
       break;
    case 2:
       w *= 3;
       h *= 3;
-      img = new byte[w * h * 4];
+      img = new BYTE[w * h * 4];
       hq3x_32((int*)hqimage.m_pBitmap, img, hqimage.m_Xres, hqimage.m_Yres, w * 4);
       break;
    default:
       w *= 2;
       h *= 2;
-      img = new byte[w * h * 4];
+      img = new BYTE[w * h * 4];
       hq2x_32((int*)hqimage.m_pBitmap, img, hqimage.m_Xres, hqimage.m_Yres, w * 4);
       break;
    }
@@ -1005,11 +1103,11 @@ byte *TextureList::hqresize(byte *buffer, int *width, int *height)
 }
 
 
-void TextureList::addLuminanceNoise(byte *buffer, int width, int height)
+void TextureList::addLuminanceNoise(BYTE *buffer, int width, int height)
 {
    // add some random luminance noise to the input image
    int x, y, index;
-   byte r, g, b;
+   BYTE r, g, b;
    float luminance;
    float plusMinus = 0.1f;
 
@@ -1023,26 +1121,35 @@ void TextureList::addLuminanceNoise(byte *buffer, int width, int height)
          b = buffer[index + 2];
          luminance = plusMinus * (rand() * 1.f / RAND_MAX);
          luminance = (1.f - (plusMinus / 2.f)) + luminance;
-         buffer[index + 0] = (byte)clamp<int>((int)(r * luminance), 0, 255);
-         buffer[index + 1] = (byte)clamp<int>((int)(g * luminance), 0, 255);
-         buffer[index + 2] = (byte)clamp<int>((int)(b * luminance), 0, 255);
+         buffer[index + 0] = (BYTE)clamp<int>((int)(r * luminance), 0, 255);
+         buffer[index + 1] = (BYTE)clamp<int>((int)(g * luminance), 0, 255);
+         buffer[index + 2] = (BYTE)clamp<int>((int)(b * luminance), 0, 255);
       }
    }
 }
 
 
-byte *TextureList::scaleImage(byte *buffer, int *width, int *height, bool highQuality)
+BYTE *TextureList::scaleImage(BYTE *buffer, int *width, int *height, bool highQuality)
 {
    int ow, oh, w, h, x, y, indexSrc, indexDst, sx, sy;
    float scaleX, scaleY;
    bool forceScale = false;
-   byte *img;
+   BYTE *img;
 
    ow = *width;
    oh = *height;
 
-   w = CeilPow2(ow);
-   h = CeilPow2(oh);
+   if (m_supportsNonPower2)
+   //if (false)
+   {
+      w = ow;
+      h = oh;
+   }
+   else
+   {
+      w = CeilPow2(ow);
+      h = CeilPow2(oh);
+   }
 
    if (w > m_maxTextureSize)
    {
@@ -1061,7 +1168,7 @@ byte *TextureList::scaleImage(byte *buffer, int *width, int *height, bool highQu
       return buffer;
    }
 
-   img = new byte[w * h * 4];
+   img = new BYTE[w * h * 4];
    memset(img, 0, w * h * 4);
 
    if (m_allowScale || forceScale)
@@ -1107,7 +1214,7 @@ byte *TextureList::scaleImage(byte *buffer, int *width, int *height, bool highQu
 }
 
 
-unsigned long TextureList::calcAverageColor(byte *buffer, int width, int height)
+unsigned long TextureList::calcAverageColor(BYTE *buffer, int width, int height)
 {
    int x, y, index, countX, count;
    int cumulColorX[3], cumulColor[3];
@@ -1162,10 +1269,11 @@ void TextureList::GetAverageColor(float *r, float *g, float *b)
 
 GLuint TextureList::loadTexture(FTexture *tex)
 {
-   const byte *img;
-   byte *buffer, ci, transIndex;
+   const BYTE *img;
+   BYTE *buffer, ci, transIndex;
    int neededSize;
-   int x, y, indexSrc, indexDst, nw, nh, origW, origH, gs;
+   int x, y, indexSrc, indexDst, nw, nh, origW, origH, gs, blankRows;
+   int imgSize;
    PalEntry *p;
    GLuint texID;
    GLint format;
@@ -1175,6 +1283,7 @@ GLuint TextureList::loadTexture(FTexture *tex)
    bool isPatch = false;
    remap_tex_t *remap;
    bool isTransparent;
+   bool rowBlank;
    unsigned long averageColor;
 
    isPatch |= (tex->UseType == FTexture::TEX_Sprite);
@@ -1183,6 +1292,15 @@ GLuint TextureList::loadTexture(FTexture *tex)
 
    nw = tex->GetWidth();
    nh = tex->GetHeight();
+
+   if (nw == 0 || nh == 0 || tex->UseType == FTexture::TEX_Null)
+   {
+      // use an invalid texture for, well, invalid textures!
+      isTransparent = false;
+      m_workingData->isAlpha = m_loadAsAlpha;
+      m_workingData->translation = m_translation;
+      return 0;
+   }
 
    isTransparent = false;
    transIndex = 0x00;
@@ -1209,41 +1327,36 @@ GLuint TextureList::loadTexture(FTexture *tex)
 
    if (gl_texture_usehires && !imgLoaded)
    {
-      if (tex->UseType == FTexture::TEX_Flat)
-      {
-         sprintf(texName, "flat-%s", tex->Name);
-      }
-      else
-      {
-         sprintf(texName, "%s", tex->Name);
-      }
+      sprintf(texName, "%s", tex->Name);
 
       // ooh, jpg support :)
       sprintf(fileName, "%s.jpg", texName);
-      if (!imgLoaded && (gs = checkExternalFile(fileName, isPatch)))
+      if (!imgLoaded && (gs = checkExternalFile(fileName, tex->UseType, isPatch)))
       {
-         buffer = loadExternalFile(fileName, &nw, &nh, gs == 2, isPatch);
+         buffer = loadExternalFile(fileName, tex->UseType, &nw, &nh, gs == 2, isPatch);
          imgLoaded = true;
       }
       sprintf(fileName, "%s.png", texName);
-      if (!imgLoaded && (gs = checkExternalFile(fileName, isPatch)))
+      if (!imgLoaded && (gs = checkExternalFile(fileName, tex->UseType, isPatch)))
       {
-         buffer = loadExternalFile(fileName, &nw, &nh, gs == 2, isPatch);
+         buffer = loadExternalFile(fileName, tex->UseType, &nw, &nh, gs == 2, isPatch);
          imgLoaded = true;
       }
       sprintf(fileName, "%s.tga", texName);
-      if (!imgLoaded && (gs = checkExternalFile(fileName, isPatch)))
+      if (!imgLoaded && (gs = checkExternalFile(fileName, tex->UseType, isPatch)))
       {
-         buffer = loadExternalFile(fileName, &nw, &nh, gs == 2, isPatch);
+         buffer = loadExternalFile(fileName, tex->UseType, &nw, &nh, gs == 2, isPatch);
          imgLoaded = true;
       }
    }
 
+   imgSize = nw * nh;
+   neededSize = imgSize * 4;
+
    if (!imgLoaded)
    {
-      neededSize = nw * nh * 4;
       img = tex->GetPixels();
-      buffer = new byte[neededSize];
+      buffer = new BYTE[neededSize];
       //memset(buffer, 0, neededSize);
 
       isTransparent = m_loadAsAlpha;
@@ -1256,9 +1369,9 @@ GLuint TextureList::loadTexture(FTexture *tex)
             {
                indexSrc = y + (x * nh);
                indexDst = (x + (y * nw)) * 4;
+               ci = img[indexSrc];
                if (m_loadAsAlpha)
                {
-                  ci = img[indexSrc];
                   buffer[indexDst + 0] = 0xff;
                   buffer[indexDst + 1] = 0xff;
                   buffer[indexDst + 2] = 0xff;
@@ -1266,8 +1379,6 @@ GLuint TextureList::loadTexture(FTexture *tex)
                }
                else
                {
-                  ci = img[indexSrc];
-
                   if (ci == transIndex && tex->UseType != FTexture::TEX_Flat)
                   {
                      buffer[indexDst + 3] = 0;
@@ -1283,13 +1394,25 @@ GLuint TextureList::loadTexture(FTexture *tex)
                      ci = m_translation[ci];
                   }
 
-                  p = &GPalette.BaseColors[ci];
-                  c = m_gammaTable[p->r] * gl_texture_color_multiplier;
-                  buffer[indexDst + 0] = (byte)clamp<int>(c, 0, 255);
-                  c = m_gammaTable[p->g] * gl_texture_color_multiplier;
-                  buffer[indexDst + 1] = (byte)clamp<int>(c, 0, 255);
-                  c = m_gammaTable[p->b] * gl_texture_color_multiplier;
-                  buffer[indexDst + 2] = (byte)clamp<int>(c, 0, 255);
+                  p = &screen->GetPalette()[ci];
+                  if (static_cast<OpenGLFrameBuffer *>(screen)->SupportsGamma())
+                  {
+                     c = p->r * gl_texture_color_multiplier;
+                     buffer[indexDst + 0] = (BYTE)clamp<int>(c, 0, 255);
+                     c = p->g * gl_texture_color_multiplier;
+                     buffer[indexDst + 1] = (BYTE)clamp<int>(c, 0, 255);
+                     c = p->b * gl_texture_color_multiplier;
+                     buffer[indexDst + 2] = (BYTE)clamp<int>(c, 0, 255);
+                  }
+                  else
+                  {
+                     c = static_cast<OpenGLFrameBuffer *>(screen)->GetGamma(p->r) * gl_texture_color_multiplier;
+                     buffer[indexDst + 0] = (BYTE)clamp<int>(c, 0, 255);
+                     c = static_cast<OpenGLFrameBuffer *>(screen)->GetGamma(p->g) * gl_texture_color_multiplier;
+                     buffer[indexDst + 1] = (BYTE)clamp<int>(c, 0, 255);
+                     c = static_cast<OpenGLFrameBuffer *>(screen)->GetGamma(p->b) * gl_texture_color_multiplier;
+                     buffer[indexDst + 2] = (BYTE)clamp<int>(c, 0, 255);
+                  }
                }
             }
          }
@@ -1309,30 +1432,74 @@ GLuint TextureList::loadTexture(FTexture *tex)
       }
       else
       {
-         for (y = 0; y < nh; y++)
+         for (indexSrc = 0; indexSrc < neededSize - 1; indexSrc += 4)
          {
-            for (x = 0; x < nw; x++)
-            {
-               if (buffer[((x + (y * nw)) * 4) + 3] < 0xff)
-               {
-                  isTransparent = true;
-               }
-            }
+            if (buffer[indexSrc + 3] != 0xff) isTransparent = true;
          }
       }
    }
 
+   if (tex->CanvasTexture()) isTransparent = false;
+
+   if (isTransparent)
+   {
+      blankRows = 0;
+      for (y = 0; y < nh; y++)
+      {
+         rowBlank = true;
+         for (x = 3; x < nw; x += 4)
+         {
+            if (buffer[((x + (y * nw)) * 4) + 3] == 0xff)
+            {
+               rowBlank = false;
+            }
+         }
+         if (rowBlank)
+         {
+            blankRows++;
+         }
+         else
+         {
+            break;
+         }
+      }
+      m_workingData->topOffset = blankRows / (nh * 1.f);
+
+      blankRows = 0;
+      for (y = nh - 1; y >= 0; y--)
+      {
+         rowBlank = true;
+         for (x = 3; x < nw; x += 4)
+         {
+            if (buffer[((x + (y * nw)) * 4) + 3] == 0xff)
+            {
+               rowBlank = false;
+            }
+         }
+         if (rowBlank)
+         {
+            blankRows++;
+         }
+         else
+         {
+            break;
+         }
+      }
+      m_workingData->bottomOffset = blankRows / (nh * 1.f);
+   }
+
    //isTransparent = tex->bMasked;
 
+   if (m_loadSaturate) adjustColor(buffer, nw, nh);
    averageColor = calcAverageColor(buffer, nw, nh);
-   colorOutlines(buffer, nw, nh);
+   if (!m_loadAsAlpha) colorOutlines(buffer, nw, nh);
    m_workingData->averageColor = averageColor;
    m_workingData->isTransparent = isTransparent;
    m_workingData->isAlpha = m_loadAsAlpha;
    m_workingData->translation = m_translation;
 
    // only resample non-hires images and non-alpha images
-   if (gl_texture_hqresize && !m_loadAsAlpha && !imgLoaded)
+   if ((gl_texture_hqresize || m_forceHQ) && !m_loadAsAlpha && !imgLoaded)
    {
       buffer = hqresize(buffer, &nw, &nh);
       if (!isPatch) addLuminanceNoise(buffer, nw, nh);
@@ -1355,7 +1522,8 @@ GLuint TextureList::loadTexture(FTexture *tex)
 
    format = getTextureFormat(tex);
 
-   gluBuild2DMipmaps(GL_TEXTURE_2D, format, nw, nh, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+   glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
+   glTexImage2D(GL_TEXTURE_2D, 0, format, nw, nh, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 
    delete[] buffer;
 
@@ -1382,24 +1550,28 @@ void TextureList::GetTexture(int textureID, bool translate)
 
 void TextureList::GetTexture(FTexture *tex)
 {
-   unsigned int i, size;
    FTextureGLData *data = NULL;
 
-   size = tex->glData.Size();
-
-   // add it to the "in use" list
-   if (size == 0) FTexture::TrackTexture(tex);
-
-   for (i = 0; i < size; i++)
+   if (tex->UseType == FTexture::TEX_Null)
    {
-      if (tex->glData[i]->translation == m_translation)
+      Printf("ZGL: binding null texture.\n");
+   }
+
+   // this basically just sets up the texture dimensions before grabbing the pixels.
+   tex->GetWidth(); tex->GetHeight();
+
+   for (unsigned int i = 0; i < tex->glData.Size(); i++)
+   {
+      if ((tex->glData[i]->translation == m_translation && tex->glData[i]->isAlpha == m_loadAsAlpha) || tex->CanvasTexture() || tex->UseType == FTexture::TEX_Null)
       {
          m_workingData = tex->glData[i];
+         if (tex->CanvasTexture()) tex->GetPixels(); // flag the texture as dirty
          return;
       }
    }
 
    // no texture matching current translation found, so add the new texture
+   if (tex->glData.Size() == 0) TrackedTextures.Push(tex);
    m_workingData = new FTextureGLData();
    m_workingData->glTex = loadTexture(tex);
    tex->glData.Push(m_workingData);
@@ -1431,7 +1603,13 @@ void TextureList::BindTexture(const char *texName)
 
 void TextureList::BindTexture(FTexture *tex)
 {
+   if (m_workingData)
+   {
+      UnbindTexture();
+   }
+
    GetTexture(tex);
+
    BindGLTexture(m_workingData->glTex);
 
    if (tex->CheckModified())
@@ -1439,7 +1617,12 @@ void TextureList::BindTexture(FTexture *tex)
       updateTexture(tex);
    }
 
-   SetupTexparams();
+   //SetupTexparams();
+}
+
+
+void TextureList::UnbindTexture()
+{
 }
 
 
@@ -1462,15 +1645,9 @@ bool TextureList::IsLoadingAlpha()
 }
 
 
-void TextureList::LoadAlpha(bool la)
+void TextureList::SetTranslation(const BYTE *trans)
 {
-   m_loadAsAlpha = la;
-}
-
-
-void TextureList::SetTranslation(const byte *trans)
-{
-   m_translation = (byte *)trans;
+   m_translation = (BYTE *)trans;
    m_translationShort = 0;
 }
 
@@ -1494,11 +1671,13 @@ void TextureList::updateTexture(FTexture *tex)
 {
    int x, y, width, height;
    int indexSrc, indexDst;
-   const byte *img;
-   byte *buffer, ci, transIndex;
+   const BYTE *img;
+   BYTE *buffer, ci, transIndex;
    PalEntry *p;
    float c;
    bool isTransparent;
+
+   if (tex->CanvasTexture()) return;
 
    isTransparent = false;
    transIndex = 0x00;
@@ -1507,7 +1686,7 @@ void TextureList::updateTexture(FTexture *tex)
    width = tex->GetWidth();
    height = tex->GetHeight();
 
-   buffer = new byte[width * height * 4];
+   buffer = new BYTE[width * height * 4];
 
    for (y = 0; y < height; y++)
    {
@@ -1544,48 +1723,59 @@ void TextureList::updateTexture(FTexture *tex)
                ci = m_translation[ci];
             }
 
-            p = &GPalette.BaseColors[ci];
-            c = m_gammaTable[p->r] * gl_texture_color_multiplier;
-            buffer[indexDst + 0] = (byte)clamp<int>(c, 0, 255);
-            c = m_gammaTable[p->g] * gl_texture_color_multiplier;
-            buffer[indexDst + 1] = (byte)clamp<int>(c, 0, 255);
-            c = m_gammaTable[p->b] * gl_texture_color_multiplier;
-            buffer[indexDst + 2] = (byte)clamp<int>(c, 0, 255);
+            p = &screen->GetPalette()[ci];
+            if (static_cast<OpenGLFrameBuffer *>(screen)->SupportsGamma())
+            {
+               c = p->r * gl_texture_color_multiplier;
+               buffer[indexDst + 0] = (BYTE)clamp<int>(c, 0, 255);
+               c = p->g * gl_texture_color_multiplier;
+               buffer[indexDst + 1] = (BYTE)clamp<int>(c, 0, 255);
+               c = p->b * gl_texture_color_multiplier;
+               buffer[indexDst + 2] = (BYTE)clamp<int>(c, 0, 255);
+            }
+            else
+            {
+               c = static_cast<OpenGLFrameBuffer *>(screen)->GetGamma(p->r) * gl_texture_color_multiplier;
+               buffer[indexDst + 0] = (BYTE)clamp<int>(c, 0, 255);
+               c = static_cast<OpenGLFrameBuffer *>(screen)->GetGamma(p->g) * gl_texture_color_multiplier;
+               buffer[indexDst + 1] = (BYTE)clamp<int>(c, 0, 255);
+               c = static_cast<OpenGLFrameBuffer *>(screen)->GetGamma(p->b) * gl_texture_color_multiplier;
+               buffer[indexDst + 2] = (BYTE)clamp<int>(c, 0, 255);
+            }
          }
       }
    }
 
-   // don't resample constantly changing textures?
-   //  hmm, seems fast enough...
+   if (m_loadSaturate) adjustColor(buffer, width, height);
+
    if (gl_texture_hqresize && !m_loadAsAlpha)
    {
       buffer = hqresize(buffer, &width, &height);
    }
 
-   colorOutlines(buffer, width, height);
+   if (!m_loadAsAlpha) colorOutlines(buffer, width, height);
    this->AllowScale(false);
    buffer = scaleImage(buffer, &width, &height, false);
    this->AllowScale(true);
 
-   //m_workingData->isTransparent = isTransparent;
+   glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
+   glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 
-	gluBuild2DMipmaps(GL_TEXTURE_2D, getTextureFormat(tex), width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
-
-   delete[] buffer;
+   delete [] buffer;
 }
 
 
-void TextureList::UpdateForTranslation(byte *trans)
+void TextureList::UpdateForTranslation(BYTE *trans)
 {
-   byte *oldTrans;
-   FTexture *tex = RootTexture;
-   unsigned int i;
+   BYTE *oldTrans;
+   FTexture *tex;
 
    oldTrans = m_translation;
    m_translation = trans;
-   while (tex)
+   for (unsigned int j = 0; j < TrackedTextures.Size(); j++)
    {
-      for (i = 0; i < tex->glData.Size(); i++)
+      tex = TrackedTextures[j];
+      for (unsigned int i = 0; i < tex->glData.Size(); i++)
       {
          if (tex->glData[i]->translation == m_translation)
          {
@@ -1593,54 +1783,23 @@ void TextureList::UpdateForTranslation(byte *trans)
             updateTexture(tex);
          }
       }
-      tex = tex->Next;
+      //tex = tex->Next;
    }
    m_translation = oldTrans;
 }
 
-#if 0
-void TextureList::recursiveUpdateTranslation(TextureListNode *node, byte *trans)
-{
-   bool wasAlpha;
 
-   if (node)
-   {
-      if (node->left)
-      {
-         recursiveUpdateTranslation(node->left, trans);
-      }
-      if (node->translation == trans)
-      {
-         wasAlpha = m_loadAsAlpha;
-
-         m_loadAsAlpha = node->isAlpha;
-
-         BindGLTexture(node->glTex);
-         updateTexture(node->Tex);
-         node->isTransparent = isTransparent;
-
-         m_loadAsAlpha = wasAlpha;
-      }
-      if (node->right)
-      {
-         recursiveUpdateTranslation(node->right, trans);
-      }
-   }
-}
-#endif
-
-
-void TextureList::SetSavegameTexture(byte *img, int width, int height)
+void TextureList::SetSavegameTexture(int texIndex, BYTE *img, int width, int height)
 {
    int x, y, format, index;
-   byte *buffer, ci;
+   BYTE *buffer, ci;
    PalEntry *p;
 
-   deleteSavegameTexture();
+   deleteSavegameTexture(texIndex);
 
    if (img)
    {
-      buffer = new byte[width * height * 4];
+      buffer = new BYTE[width * height * 4];
 
       for (y = 0; y < height; y++)
       {
@@ -1648,7 +1807,7 @@ void TextureList::SetSavegameTexture(byte *img, int width, int height)
          {
             index = x + (y * width);
             ci = img[index];
-            p = &GPalette.BaseColors[ci];
+            p = &screen->GetPalette()[ci];
             buffer[(index * 4) + 0] = p->r;
             buffer[(index * 4) + 1] = p->g;
             buffer[(index * 4) + 2] = p->b;
@@ -1658,9 +1817,8 @@ void TextureList::SetSavegameTexture(byte *img, int width, int height)
 
       buffer = scaleImage(buffer, &width, &height, false);
 
-      glGenTextures(1, &m_savegameTex);
-      BindGLTexture(m_savegameTex);
-      glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+      glGenTextures(1, &m_savegameTex[texIndex]);
+      BindGLTexture(m_savegameTex[texIndex]);
 
       format = getTextureFormat(NULL);
 
@@ -1671,38 +1829,38 @@ void TextureList::SetSavegameTexture(byte *img, int width, int height)
 }
 
 
-void TextureList::BindSavegameTexture()
+void TextureList::BindSavegameTexture(int index)
 {
-   BindGLTexture(m_savegameTex);
+   BindGLTexture(m_savegameTex[index]);
 }
 
 
-void TextureList::deleteSavegameTexture()
+void TextureList::deleteSavegameTexture(int index)
 {
-   if (m_savegameTex)
+   if (m_savegameTex[index])
    {
-      glDeleteTextures(1, &m_savegameTex);
-      m_savegameTex = 0;
+      glDeleteTextures(1, &m_savegameTex[index]);
+      m_savegameTex[index] = 0;
    }
 }
 
 
 void TextureList::GrabFB()
 {
-   byte *fb, *scaledfb;
+   BYTE *fb, *scaledfb;
    int width, height, format;
 
    width = 256;
    height = 256;
 
-   fb = new byte[screen->GetWidth() * screen->GetHeight() * 4];
-   scaledfb = new byte[width * height * 4];
+   fb = new BYTE[screen->GetWidth() * screen->GetHeight() * 4];
+   scaledfb = new BYTE[width * height * 4];
 
    glReadPixels(0, 0, screen->GetWidth(), screen->GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, fb);
    gluScaleImage(GL_RGBA, screen->GetWidth(), screen->GetHeight(), GL_UNSIGNED_BYTE, fb, width, height, GL_UNSIGNED_BYTE, scaledfb);
    delete[] fb;
 
-   BindSavegameTexture();
+   BindSavegameTexture(0);
    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
    format = getTextureFormat(NULL);
    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaledfb);
@@ -1713,18 +1871,45 @@ void TextureList::GrabFB()
 }
 
 
-byte *TextureList::ReduceFramebufferToPalette(int width, int height)
+// note that this is only used for reading the savegame image (from GL_RenderViewToCanvas)
+BYTE *TextureList::ReduceFramebufferToPalette(int width, int height, bool fullScreen)
 {
-   int x, y, indexSrc, indexDst;
-   byte *img, *fb, *scaledfb;
+   int x, y, indexSrc, indexDst, offset;
+   int capWidth, capHeight, origX, origY;
+   BYTE *img, *fb, *scaledfb;
    PalEntry p;
 
-   fb = new byte[screen->GetWidth() * screen->GetHeight() * 3];
-   scaledfb = new byte[width * height * 3];
-   img = new byte[width * height];
+   if (fullScreen)
+   {
+      capWidth = SCREENWIDTH;
+      capHeight = SCREENHEIGHT;
+      origX = 0;
+      origY = 0;
+   }
+   else
+   {
+      capWidth = realviewwidth;
+      capHeight = realviewheight;
+      origX = viewwindowx;
+      origY = viewwindowy;
+   }
 
-   glReadPixels(0, 0, screen->GetWidth(), screen->GetHeight(), GL_RGB, GL_UNSIGNED_BYTE, fb);
-   gluScaleImage(GL_RGB, screen->GetWidth(), screen->GetHeight(), GL_UNSIGNED_BYTE, fb, width, height, GL_UNSIGNED_BYTE, scaledfb);
+   if ((realviewheight == screen->GetHeight()) || fullScreen)
+   {
+      offset = 0;
+   }
+   else
+   {
+      offset = screen->GetHeight() - ST_Y;
+   }
+
+   fb = new BYTE[capWidth * capHeight * 3];
+   scaledfb = new BYTE[width * height * 3];
+   img = new BYTE[width * height];
+
+   static_cast<OpenGLFrameBuffer *>(screen)->ReadPixels(origX, origY + offset, capWidth, capHeight, fb);
+   //glReadPixels(viewwindowx, viewwindowy + offset, realviewwidth, realviewheight, GL_RGB, GL_UNSIGNED_BYTE, fb);
+   gluScaleImage(GL_RGB, capWidth, capHeight, GL_UNSIGNED_BYTE, fb, width, height, GL_UNSIGNED_BYTE, scaledfb);
    delete[] fb;
 
    for (y = 0; y < height; y++)
@@ -1758,11 +1943,6 @@ unsigned int TextureList::GetGLTexture()
    }
 }
 
-void TextureList::AllowScale(bool as)
-{
-   m_allowScale = as;
-}
-
 
 void TextureList::GetCorner(float *x, float *y)
 {
@@ -1776,4 +1956,77 @@ void TextureList::GetCorner(float *x, float *y)
       *x = 0.f;
       *y = 0.f;
    }
+}
+
+float TextureList::GetTopYOffset()
+{
+   if (m_workingData)
+   {
+      return m_workingData->topOffset;
+   }
+   else
+   {
+      return 0.f;
+   }
+}
+
+
+float TextureList::GetBottomYOffset()
+{
+   if (m_workingData)
+   {
+      return m_workingData->bottomOffset;
+   }
+   else
+   {
+      return 0.f;
+   }
+}
+
+
+void TextureList::adjustColor(BYTE *img, int width, int height)
+{
+   int index;
+   BYTE c;
+
+   for (int y = 0; y < height; y++)
+   {
+      for (int x = 0; x < width; x++)
+      {
+         index = (x + (y * width)) * 4;
+
+         c = img[index + 0];
+         c = c >= 128 ? 255 : c * 2;
+         img[index + 0] = c;
+
+         c = img[index + 1];
+         c = c >= 128 ? 255 : c * 2;
+         img[index + 1] = c;
+
+         c = img[index + 2];
+         c = c >= 128 ? 255 : c * 2;
+         img[index + 2] = c;
+
+         c = img[index + 3];
+         c = c >= 128 ? 255 : c * 2;
+         img[index + 3] = c;
+      }
+   }
+}
+
+
+extern PFNGLACTIVETEXTUREARBPROC glActiveTextureARB;
+
+bool TextureList::SelectTexUnit(int unit)
+{
+   int selUnit = unit - GL_TEXTURE0_ARB;
+
+   if (selUnit < m_numTexUnits)
+   {
+      m_currentTexUnit = selUnit;
+      glActiveTextureARB(unit);
+      return true;
+   }
+
+   return false;
 }

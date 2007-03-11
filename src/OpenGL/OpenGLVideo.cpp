@@ -603,7 +603,7 @@ void OpenGLVideo::FreeModesList( void )
 OpenGLFrameBuffer::OpenGLFrameBuffer( ULONG ulWidth, ULONG ulHeight, bool bFullScreen ) : BaseWinFB( ulWidth, ulHeight )
 {
   // TO-DO: Use the constructor from ZDoomGL 0.81 (at the moment deactivated by "if 0");
-#if 0
+#if 1
    RECT r;
    LONG lStyle, lExStyle;
    int i;
@@ -705,7 +705,8 @@ OpenGLFrameBuffer::OpenGLFrameBuffer( ULONG ulWidth, ULONG ulHeight, bool bFullS
       glEnableClientState(GL_VERTEX_ARRAY);
       glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-      for (i = 0; i < textureList.NumTexUnits(); i++)
+	  // FIX: Crashes for some reason if textureList.NumTexUnits() is used instead of 1
+      for (i = 0; i < 1/*textureList.NumTexUnits()*/; i++)
       {
          glClientActiveTextureARB(GL_TEXTURE0_ARB + i);
          glEnableClientState(GL_TEXTURE_COORD_ARRAY);

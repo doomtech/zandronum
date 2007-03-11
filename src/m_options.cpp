@@ -2672,7 +2672,7 @@ static void M_DrawPlayerBackdrop (int x, int y)
 			}
 		}
     
-		textureList.SetSavegameTexture(img, srcW, srcH);
+		textureList.SetSavegameTexture(0, img, srcW, srcH);
 		delete[] img;
 		GL_DrawQuad(destx, desty, destx + destwidth, desty + destheight);
 		return;
