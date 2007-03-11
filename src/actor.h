@@ -876,6 +876,9 @@ public:
 	void AddToHash ();
 	void RemoveFromHash ();
 
+	// [ZDoomGL]
+	TArray<AActor *> Lights;
+
 private:
 	static AActor *TIDHash[128];
 	static inline int TIDHASH (int key) { return key & 127; }
