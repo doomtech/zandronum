@@ -80,6 +80,7 @@ void	SCOREBOARD_RenderDMStats( void );
 void	SCOREBOARD_RenderTeamStats( player_s *pPlayer );
 void	SCOREBOARD_RenderInvasionStats( void );
 void	SCOREBOARD_RenderInVote( void );
+void	SCOREBOARD_RenderInVoteClassic( void ); // [RC] Full screen display
 void	SCOREBOARD_RenderDuelCountdown( ULONG ulTimeLeft );
 void	SCOREBOARD_RenderLMSCountdown( ULONG ulTimeLeft );
 void	SCOREBOARD_RenderPossessionCountdown( char *pszTitleString, ULONG ulTimeLeft );

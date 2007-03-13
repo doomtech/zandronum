@@ -71,6 +71,7 @@
 #include "v_text.h"
 #include "v_video.h"
 #include "w_wad.h"
+#include "c_bind.h" // [RC] To tell user what key to press to vote
 
 //*****************************************************************************
 //	VARIABLES
@@ -206,8 +207,11 @@ void SCOREBOARD_Render( player_s *pPlayer )
 		switch ( CALLVOTE_GetVoteState( ))
 		{
 		case VOTESTATE_INVOTE:
-
-			SCOREBOARD_RenderInVote( );
+			// [RC] Display either the fullscreen or minimized vote screen
+			if(cl_showfullscreenvote)
+				SCOREBOARD_RenderInVoteClassic( );
+			else
+				SCOREBOARD_RenderInVote( );
 			break;
 		}
 
@@ -2508,7 +2512,7 @@ void SCOREBOARD_RenderInvasionStats( void )
 
 //*****************************************************************************
 //
-void SCOREBOARD_RenderInVote( void )
+void SCOREBOARD_RenderInVoteClassic( void )
 {
 	char				szString[128];
 	ULONG				ulCurYPos = 0;
@@ -2616,6 +2620,80 @@ void SCOREBOARD_RenderInVote( void )
 				DTA_Clean, true, TAG_DONE );
 		}
 	}
+}
+
+void SCOREBOARD_RenderInVote( void ) // [RC] New compact version; RenderInVoteClassic is the fullscreen version
+{
+	char				szString[128];
+	ULONG				ulCurYPos = 0;
+	ULONG				ulIdx;
+	ULONG				ulNumYes;
+	ULONG				ulNumNo;
+	ULONG				*pulPlayersWhoVotedYes;
+	ULONG				*pulPlayersWhoVotedNo;
+
+	// Start at the top of the screen
+	ulCurYPos = 8;
+
+	screen->SetFont( BigFont );
+
+	// Render the title and time left.
+	sprintf( szString, "VOTE NOW! ( %d )", ( CALLVOTE_GetCountdownTicks( ) + TICRATE ) / TICRATE );
+	screen->DrawText( gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
+		160 - ( BigFont->StringWidth( szString ) / 2 ),
+		ulCurYPos,
+		szString,
+		DTA_Clean, true, TAG_DONE );
+
+	screen->SetFont( SmallFont );
+
+	// Render the command being voted on.
+	ulCurYPos += 14;
+	sprintf( szString, "%s", CALLVOTE_GetCommand( ));
+	screen->DrawText( CR_WHITE,
+		160 - ( SmallFont->StringWidth( szString ) / 2 ),
+		ulCurYPos,
+		szString,
+		DTA_Clean, true, TAG_DONE );
+
+
+	// Count how many players voted for what.
+	pulPlayersWhoVotedYes = CALLVOTE_GetPlayersWhoVotedYes( );
+	pulPlayersWhoVotedNo = CALLVOTE_GetPlayersWhoVotedNo( );
+	ulNumYes = 0;
+	ulNumNo = 0;
+	for ( ulIdx = 0; ulIdx < ( MAXPLAYERS / 2 ) + 1; ulIdx++ )
+	{
+		if ( pulPlayersWhoVotedYes[ulIdx] != MAXPLAYERS )
+			ulNumYes++;
+
+		if ( pulPlayersWhoVotedNo[ulIdx] != MAXPLAYERS )
+			ulNumNo++;
+	}
+
+	// Render the numbers
+	ulCurYPos += 8;
+	sprintf( szString, "Yes: %d, No: %d",  ulNumYes, ulNumNo);
+	screen->DrawText( CR_DARKBROWN,
+		160 - ( SmallFont->StringWidth( szString ) / 2 ),
+		ulCurYPos,
+		szString,
+		DTA_Clean, true, TAG_DONE );
+
+	// Render the explanation of keys
+	ulCurYPos += 8;
+	char	szKeyYes[16];
+	char	szKeyNo[16];
+
+	C_FindBind("vote_yes", szKeyYes);
+	C_FindBind("vote_no", szKeyNo);
+	sprintf( szString, "%s | %s", szKeyYes, szKeyNo);
+	screen->DrawText( CR_BLACK,
+		160 - ( SmallFont->StringWidth( szString ) / 2 ),
+		ulCurYPos,
+		szString,
+		DTA_Clean, true, TAG_DONE );
+
 }
 
 //*****************************************************************************
