@@ -70,16 +70,27 @@
 #define M_PI		3.14159265358979323846f	// matches value in gcc v2 math.h
 #endif
 
-// What's this?
 const float INV_FRACUNIT = 1.f / FRACUNIT;
-
-// And these?
 #define MAP_COEFF 1.f
 #define MAP_SCALE (INV_FRACUNIT * MAP_COEFF)
 #define LIGHTLEVELMAX 255.f
 #define ANGLE_TO_FLOAT(ang) (ang * 1.f / ANGLE_1)
 #define FIX2FLT(x) ((x) * INV_FRACUNIT)
 #define AccurateDistance(x, y) (sqrtf(FIX2FLT(x)*FIX2FLT(x) + FIX2FLT(y)*FIX2FLT(y)))
+
+#ifdef NDEBUG
+ #define GL_VERSION_STR "gl 0.75"
+#else
+ #define GL_VERSION_STR "gl 0.75d"
+#endif
+
+
+typedef enum {
+   WT_TOP,
+   WT_MID,
+   WT_BTM
+} wallpart_t;
+
 
 //*****************************************************************************
 // Enumerate the possible renderers (seems out of place here, but... eh).
@@ -92,13 +103,6 @@ typedef enum
 
 } RENDERER_e;
 
-// And this is what?
-typedef enum {
-   WT_TOP,
-   WT_MID,
-   WT_BTM
-} wallpart_t;
-
 typedef enum {
    AREA_ABOVE,
    AREA_NORMAL,
@@ -106,11 +110,12 @@ typedef enum {
    AREA_DEFAULT
 } viewarea_t;
 
-// And this?
+
 enum {
    FRUSTUM_LEFT,
    FRUSTUM_RIGHT
 };
+
 
 enum {
    RL_DEPTH,
@@ -247,21 +252,25 @@ public:
    gl_poly_t();
    ~gl_poly_t();
 
-   bool initialized, isFogBoundary;
+   bool initialized;
    int numPts;
    unsigned int lastUpdate;
-   unsigned int vboVerts, vboTex;
+   unsigned int arrayIndex;
+   unsigned int subsectorIndex;
    float offX, offY, r, g, b, a;
    float rotationX, rotationY;
    float scaleX, scaleY, rot;
    short doomTex;
    unsigned char fogR, fogG, fogB, lightLevel, *translation;
    unsigned char fbR, fbG, fbB, fbLightLevel; // fog boundary color
+   unsigned int numIndices;
+   unsigned int *indices;
    float *vertices;
    float *texCoords;
 
    Plane plane;
 };
+
 
 class Particle
 {
@@ -312,33 +321,7 @@ typedef struct
 } decal_data_t;
 
 extern TArray<decal_data_t> DecalList;
-/*
-// Why is this defined here?
-struct FAnimDef
-{
-	WORD 	BasePic;
-	WORD	NumFrames;
-	WORD	CurFrame;
-	BYTE	bUniqueFrames:1;
-	BYTE	AnimType:2;
-	BYTE	Countdown;
-   WORD  MaxFrame; // added for ZDoomGL blended animations
-   BYTE  StartCount; // also for ZDoomGL
-	struct FAnimFrame
-	{
-		BYTE	SpeedMin;
-		BYTE	SpeedRange;
-		WORD	FramePic;
-	} Frames[1];
-	enum
-	{
-		ANIM_Forward,
-		ANIM_Backward,
-		ANIM_OscillateUp,
-		ANIM_OscillateDown,
-	};
-};
-*/
+
 
 struct FTexInfo
 {
@@ -355,10 +338,8 @@ struct FTexInfo
    int fillColor;
 };
 
-
-// Oh god...
 extern AnimArray Anims;
-extern float frustum[6][4];
+extern int currentrenderer;
 extern TextureList textureList;
 extern int totalCoords;
 extern gl_poly_t *gl_polys;
@@ -369,7 +350,10 @@ extern BYTE *glpvs;
 extern subsector_t *PlayerSubsector;
 extern unsigned int frameStartMS;
 
-// Uh...
+extern unsigned int VertexArraySize;
+extern float *TexCoordArray, *VertexArray;
+
+
 const float byte2float[256] = {
     0.000000f, 0.003922f, 0.007843f, 0.011765f, 0.015686f, 0.019608f, 0.023529f, 0.027451f,
     0.031373f, 0.035294f, 0.039216f, 0.043137f, 0.047059f, 0.050980f, 0.054902f, 0.058824f,
@@ -413,18 +397,13 @@ void		OPENGL_Construct( void );
 RENDERER_e	OPENGL_GetCurrentRenderer( void );
 void		OPENGL_SetCurrentRenderer( RENDERER_e Renderer );
 
-// What are all these other prototypes doing here?
-
 //
 // gl_fonts.cpp stuff
 //
 
 void GL_vDrawConBackG(FTexture *pic, int width,int height);
-void STACK_ARGS GL_DrawTextureVA(FTexture *img, int x, int y, uint32 tags_first, ...);
-void GL_DrawTexture(FTexture *tex, float x, float y);
-void GL_DrawTextureNotClean(FTexture *tex, float x, float y);
-void GL_DrawTextureTiled(FTexture *tex, int x, int y, int width, int height);
-void GL_DrawWeaponTexture(FTexture *tex, float x, float y);
+void GL_DrawTexture(FTexInfo *texInfo);
+void GL_DrawWeaponTexture(FTexture *tex, float x1, float y1, float x2, float y2);
 void GL_DrawQuad(int left, int top, int right, int bottom); // for savegame image
 
 
@@ -461,7 +440,7 @@ int GL_GetStatusBarOffset();
 
 void GL_DrawDecals();
 void GL_DrawDecal(ADecal *actor, seg_t *seg, sector_t *frontSector, sector_t *backSector);
-void GL_DrawWall(seg_t *seg, sector_t *sector, bool isPoly, bool fogBoundary);
+void GL_DrawWall(seg_t *seg, sector_t *sector, bool isPoly);
 void GL_RenderMirror(seg_t *seg);
 bool GL_SkyWall(seg_t *seg);
 
@@ -489,21 +468,20 @@ void GL_ReleaseWipeTexture();
 
 void CL_Init();
 void CL_Shutdown();
+void CL_ClearClipper();
 void CL_CalcFrustumPlanes();
 void CL_AddSegRange(seg_t *seg);
 void CL_SafeAddClipRange(angle_t startAngle, angle_t endAngle);
-void CL_ClearClipper();
-bool CL_NodeVisible(node_t *bsp);
-bool CL_NodeInFrustum(node_t *bsp);
 bool CL_CheckBBox(fixed_t *bspcoord);
 bool CL_CheckSubsector(subsector_t *ssec, sector_t *sector);
-int CL_SubsectorInFrustum(subsector_t *ssec, sector_t *sector);
+bool CL_SubsectorInFrustum(subsector_t *ssec, sector_t *sector);
+bool CL_SphereInFrustum(float x, float y, float z, float radius);
 bool CL_CheckSegRange(seg_t *seg);
 bool CL_SafeCheckRange(angle_t startAngle, angle_t endAngle);
 bool CL_ShouldClipAgainstSeg(seg_t *seg, sector_t *frontSector, sector_t *backSector);
 bool CL_ClipperFull();
-angle_t CL_FrustumAngle(int whichAngle);
 angle_t CL_FrustumAngle();
+
 
 //
 // gl_sprites.cpp stuff
@@ -511,6 +489,7 @@ angle_t CL_FrustumAngle();
 
 void GL_AddSprite(AActor *actor);
 void GL_AddSeg(seg_t *seg);
+void GL_AddParticle(Particle *p);
 void GL_ClearSprites();
 void GL_DrawSprites();
 
@@ -519,14 +498,15 @@ void GL_DrawSprites();
 // gl_geom.cpp stuff
 //
 
+void GL_InitPolygon(gl_poly_t *poly);
 void GL_RecalcSubsector(subsector_t *subSec, sector_t *sector);
-void GL_RenderPoly(gl_poly_t *poly);
-void GL_RenderPolyWithShader(gl_poly_t *poly, FShader *shader);
+void GL_RenderPoly(gl_poly_t *poly, bool deferred);
 void RL_AddPoly(unsigned int tex, int polyIndex);
 void RL_Clear();
 void RL_Delete();
 void RL_SetupMode(int mode);
-void RL_RenderList();
+void RL_RenderList(int mode);
+void RL_RenderPoly(int mode, gl_poly_t *poly);
 
 
 //
@@ -618,4 +598,4 @@ sector_t * GL_FakeFlat(sector_t * sec, sector_t * dest, int *floorlightlevel, in
 bool IsFogBoundary (sector_t *front, sector_t *back);
 
 
-#endif //__GL_MAIN_H__
+#endif //__GL_STRUCT_H__

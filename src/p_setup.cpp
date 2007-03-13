@@ -2842,6 +2842,21 @@ static void P_GroupLines (bool buildmap)
 	unsigned int		ii, jj;
    // [ZDoomGL]
    seg_t *seg;
+   subsector_t *subSec;
+   TArray<subsector_t *> undetermined;
+
+   // [ZDoomGL]
+   // The GL node builder produces screwed output when two-sided walls overlap with one-sides ones!
+	for(i=0;i<numsegs;i++)
+	{
+		int partner = segs[i].PartnerSeg-segs;
+
+		if (partner < 0 || partner >= numsegs || &segs[partner] != segs[i].PartnerSeg)
+		{
+			segs[i].PartnerSeg = NULL;
+		}
+	}
+		
 
 	// look up sector number for each subsector
 	clock (times[0]);
@@ -2867,6 +2882,89 @@ static void P_GroupLines (bool buildmap)
 		}
 		subsectors[i].CenterX = fixed_t(accumx * 0.5 / subsectors[i].numlines);
 		subsectors[i].CenterY = fixed_t(accumy * 0.5 / subsectors[i].numlines);
+      // For rendering pick the sector from the first seg that is a sector boundary
+		// this takes care of self-referencing sectors
+      subSec = &subsectors[i]; // [ZDoomGL]
+      subSec->render_sector = NULL;
+		seg = &segs[subSec->firstline];
+		//M_ClearBox(subSec->bbox);
+		for(jj=0; jj<subSec->numlines; jj++)
+		{
+			//M_AddToBox(ss->bbox,seg->v1->x, seg->v1->y);
+			seg++;
+		}
+
+		seg = &segs[subSec->firstline];
+		for(j=0; j<subSec->numlines; j++)
+		{
+			if(seg->sidedef && (!seg->PartnerSeg || seg->sidedef->sector!=seg->PartnerSeg->sidedef->sector))
+			{
+				subSec->render_sector = seg->sidedef->sector;
+				if (subSec->render_sector!=subSec->sector)
+				{
+					// mark the sector to have self referencing parts.
+					//subSec->sector->MoreFlags |= SECF_SELFREF;
+				}
+				break;
+			}
+			seg++;
+		}
+		if(subSec->render_sector == NULL) 
+		{
+			undetermined.Push(subSec);
+		}
+	}
+
+   // assign a vaild render sector to all subsectors which haven't been processed yet.
+	while (undetermined.Size())
+	{
+		bool deleted=false;
+		for(i=undetermined.Size()-1;i>=0;i--)
+		{
+			subSec = undetermined[i];
+			seg = &segs[subSec->firstline];
+			
+			for(j=0; j<subSec->numlines; j++)
+			{
+				if (seg->PartnerSeg && seg->PartnerSeg->Subsector)
+				{
+					if (seg->PartnerSeg->Subsector->render_sector)
+					{
+						subSec->render_sector=seg->PartnerSeg->Subsector->render_sector;
+						undetermined.Delete(i);
+						deleted=true;
+						break;
+					}
+				}
+				seg++;
+			}
+		}
+		if (!deleted && undetermined.Size()) 
+		{
+			// This only happens when a subsector is off the map.
+			// Don't bother and just assign the real sector for rendering
+			for(i=undetermined.Size()-1;i>=0;i--)
+			{
+				subSec = undetermined[i];
+				subSec->render_sector = subSec->sector;
+			}
+			break;
+		}
+	}
+
+   for (i = 0; i < numsegs; i++)
+   {
+      seg = segs + i;
+      seg->front_render_sector = seg->Subsector->render_sector;
+      if (seg->PartnerSeg)
+      {
+         seg->back_render_sector = seg->PartnerSeg->Subsector->render_sector;
+      }
+      else
+      {
+         seg->back_render_sector = NULL;
+      }
+
 	}
 	unclock (times[0]);
 
@@ -4266,89 +4364,6 @@ void P_SetupLevel (char *lumpname, int position)
 	}
 }
 
-//*****************************************************************************
-//
-void P_LoadGLNodes( int iLumpNum )
-{
-#if 0
-	LONG	lIdx;
-	unsigned int startTime, endTime;
-
-	startTime = I_MSTime ();
-	TArray<FNodeBuilder::FPolyStart> polyspots, anchors;
-	P_GetPolySpots (iLumpNum+ML_THINGS, polyspots, anchors);
-	FNodeBuilder::FLevel leveldata =
-	{
-		vertexes, numvertexes,
-		sides, numsides,
-		lines, numlines
-	};
-	// [ZDoomGL] - always generate GL nodes
-	FNodeBuilder builder (leveldata, polyspots, anchors, true, CPU.bSSE2);
-	UsingGLNodes = true;
-
-	if (nodes != NULL)
-	{
-		delete[] nodes;
-		nodes = NULL;
-	}
-
-	if (segs != NULL)
-	{
-		delete[] segs;
-		segs = NULL;
-	}
-
-	if (subsectors != NULL)
-	{
-		delete[] subsectors;
-		subsectors = NULL;
-	}
-
-	if (vertexes != NULL)
-	{
-		delete[] vertexes;
-		vertexes = NULL;
-	}
-
-	if (LightStacks != NULL)
-	{
-		delete[] LightStacks;
-		LightStacks = NULL;
-	}
-	if (ExtraLights != NULL)
-	{
-		delete[] ExtraLights;
-		ExtraLights = NULL;
-	}
-
-	builder.Extract (nodes, numnodes,
-		segs, numsegs,
-		subsectors, numsubsectors,
-		vertexes, numvertexes);
-/*
-	P_LoadSideDefs (iLumpNum+ML_SIDEDEFS);
-
-	if (!HasBehavior)
-		P_LoadLineDefs (iLumpNum+ML_LINEDEFS);
-	else
-		P_LoadLineDefs2 (iLumpNum+ML_LINEDEFS);	// [RH] Load Hexen-style linedefs
-
-	P_LoadSideDefs2 (iLumpNum+ML_SIDEDEFS);
-
-	P_FinishLoadingLineDefs ();
-
-	P_LoopSidedefs ();
-*/
-	for ( lIdx = 0; lIdx < numsectors; lIdx++ )
-		sectors[lIdx].linecount = 0;
-
-	P_GroupLines (false);
-
-	endTime = I_MSTime ();
-	Printf ("BSP generation took %.3f sec (%d segs)\n", (endTime - startTime) * 0.001, numsegs);
-#endif
-}
 
 
 

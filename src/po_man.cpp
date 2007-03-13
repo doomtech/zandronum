@@ -119,7 +119,8 @@ void DPolyAction::SetInterpolation ()
 	{
 		setinterpolation (INTERP_Vertex, poly->segs[i]->v1);
 		setinterpolation (INTERP_Vertex, poly->segs[i]->v2);
-      sectorMoving[ULONG( poly->segs[i]->frontsector - sectors )] = true; // [ZDoomGL]
+      //sectorMoving[ULONG( poly->segs[i]->frontsector - sectors )] = true; // [ZDoomGL]
+	  poly->segs[i]->frontsector->lastUpdate = validcount; // [ZDoomGL] 
 	}
 }
 

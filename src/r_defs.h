@@ -565,6 +565,8 @@ struct seg_s
 	long index;
 	bool tagged;
 	float length;
+	sector_t *front_render_sector;
+	sector_t *back_render_sector;
 };
 typedef struct seg_s seg_t;
 

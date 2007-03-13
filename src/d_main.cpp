@@ -109,6 +109,9 @@
 #include "survival.h"
 #include "possession.h"
 
+#include "gl_main.h" // [ZDoomGL]
+extern player_t *Player;
+
 // MACROS ------------------------------------------------------------------
 
 // TYPES -------------------------------------------------------------------
@@ -607,8 +610,12 @@ void D_Display (bool screenshot)
 
 			if (viewactive)
 			{
-				if ( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL )
+				if ( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL ){
+					Player = &players[consoleplayer];
+					GL_LinkLights();
+					FCanvasTextureInfo::UpdateAll ();
 					GL_RenderPlayerView(&players[consoleplayer], NetUpdate);
+				}
 				else
 				{
 					R_RefreshViewBorder ();
@@ -2252,6 +2259,13 @@ void D_DoomMain (void)
 	else
 		D_AddFile( wad, false );
 
+	// [ZDoomGL] Make sure zdoomgl.wad is always loaded (contains particle images)
+	wad = BaseFileSearch ("zdoomgl.wad", NULL);
+	if (wad)
+		D_AddFile (wad, false );
+	else
+		I_FatalError ("Cannot find zdoomgl.wad");
+
 	// [RH] Add any .wad files in the skins directory
 #ifdef unix
 	sprintf (file, "%sskins", SHARE_DIR);
@@ -2439,11 +2453,12 @@ void D_DoomMain (void)
 	DecalLibrary.Clear ();
 	DecalLibrary.ReadAllDecals ();
 
-	// [ZDoomGL] - parse shaders in "SHADERS" lump
-	Printf("Init shaders.\n");
+	// [ZDoomGL] - read the *DEFS lump
+	Printf("Init GL defs");
 	GL_ParseRemappedTextures();
-	GL_InitShaders();
-//	atterm(GL_ReleaseShaders); // FIXME: change this to a more general cleanup function to avoid too many atterm handlers
+	GL_ParseDefs();
+
+	//atterm(GL_ShutDown); // [ZDoomGL] - OpenGL shutdown stuff
 
 	// [RH] Try adding .deh and .bex files on the command line.
 	// If there are none, try adding any in the config file.

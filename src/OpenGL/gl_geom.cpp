@@ -38,17 +38,25 @@
 
 #define USE_WINDOWS_DWORD
 #include "OpenGLVideo.h"
-#include "Glext.h"
+#include "glext.h"
 
+#include "gl_lights.h"
 #include "gl_main.h"
 #include "d_player.h"
 #include "p_local.h"
 #include "p_lnspec.h"
 #include "templates.h"
 
+#include "gl_shaders.h"
+
 #include "gi.h"
 
+extern PFNGLGENBUFFERSARBPROC glGenBuffersARB;
+extern PFNGLBINDBUFFERARBPROC glBindBufferARB;
+extern PFNGLBUFFERDATAARBPROC glBufferDataARB;
+extern PFNGLDELETEBUFFERSARBPROC glDeleteBuffersARB;
 extern PFNGLBLENDEQUATIONEXTPROC glBlendEquationEXT;
+
 
 #define MAX(a, b) ((a > b) ? a : b)
 #define MIN(a, b) ((a < b) ? a : b)
@@ -60,6 +68,7 @@ EXTERN_CVAR(Bool, gl_wireframe)
 EXTERN_CVAR(Bool, gl_depthfog)
 EXTERN_CVAR (Bool, r_fogboundary)
 CVAR(Bool, gl_texture_multitexture, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(Bool, gl_lights_checkside, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 
 
 extern level_locals_t level;
@@ -67,15 +76,116 @@ extern float *verts, *texCoords;
 extern int numTris;
 extern bool MaskSkybox, DrawingDeferredLines;
 extern player_t *Player;
+extern TArray<TArray<ADynamicLight *> *> SubsecLights;
+
+extern PFNGLLOCKARRAYSEXTPROC glLockArraysEXT;
+extern PFNGLUNLOCKARRAYSEXTPROC glUnlockArraysEXT;
+extern PFNGLMULTITEXCOORD1FARBPROC glMultiTexCoord1fARB;
+extern PFNGLMULTITEXCOORD2FARBPROC glMultiTexCoord2fARB;
+extern PFNGLMULTITEXCOORD3FARBPROC glMultiTexCoord3fARB;
+extern PFNGLMULTITEXCOORD4FARBPROC glMultiTexCoord4fARB;
+extern PFNGLACTIVETEXTUREARBPROC glActiveTextureARB;
+extern PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTextureARB;
 
 
 TArray<RList> renderList;
 unsigned int maxList;
 unsigned int frameStartMS;
 
+unsigned int VertexArraySize;
+float *TexCoordArray, *VertexArray;
+
+
+class RListNode
+{
+public:
+   RListNode();
+   ~RListNode();
+   void AddPoly(gl_poly_t *poly);
+   RListNode *left, *right, *next;
+   gl_poly_t *poly;
+};
+
+
+RListNode::RListNode()
+{
+   left = right = next = NULL;
+   poly = NULL;
+}
+
+
+RListNode::~RListNode()
+{
+   if (next)
+   {
+      delete next;
+      next = NULL;
+   }
+   if (left)
+   {
+      delete left;
+      left = NULL;
+   }
+   if (right)
+   {
+      delete right;
+      right = NULL;
+   }
+}
+
+
+void RListNode::AddPoly(gl_poly_t *p)
+{
+   if (p->lightLevel == poly->lightLevel)
+   {
+      // add to list
+      RListNode *node;
+      if (next)
+      {
+         node = new RListNode();
+         node->poly = p;
+         node->next = next;
+         next = node;
+      }
+      else
+      {
+         next = new RListNode();
+         next->poly = p;
+      }
+   }
+   else if (p->lightLevel < poly->lightLevel)
+   {
+      // add left
+      if (left)
+      {
+         left->AddPoly(p);
+      }
+      else
+      {
+         left = new RListNode();
+         left->poly = p;
+      }
+   }
+   else
+   {
+      // add right
+      if (right)
+      {
+         right->AddPoly(p);
+      }
+      else
+      {
+         right = new RListNode();
+         right->poly = p;
+      }
+   }
+}
+
 
 gl_poly_t::gl_poly_t()
 {
+   numPts = 0;
+   subsectorIndex = 0;
    rotationX = 0.f;
    rotationY = 0.f;
 }
@@ -87,8 +197,6 @@ gl_poly_t::~gl_poly_t()
 
 void GL_BindArrays(gl_poly_t *poly)
 {
-      glVertexPointer(3, GL_FLOAT, 0, poly->vertices);
-         glTexCoordPointer(2, GL_FLOAT, 0, poly->texCoords);
 }
 
 
@@ -99,10 +207,22 @@ void GL_UnbindArrays(gl_poly_t *poly)
 
 void GL_InitPolygon(gl_poly_t *poly)
 {
-   if (poly->vertices == NULL)
+   int index, i;
+
+   if (poly->numPts == 0) return;
+
+   if (!poly->initialized)
    {
-      poly->vertices = new float[poly->numPts * 3];
-      poly->texCoords = new float[poly->numPts * 2];
+      poly->vertices = VertexArray + (poly->arrayIndex * 3);
+      poly->texCoords = TexCoordArray + (poly->arrayIndex * 2);
+
+      index = 0;
+      for (i = 1; i < poly->numPts - 1; i++)
+      {
+         poly->indices[index++] = poly->arrayIndex;
+         poly->indices[index++] = poly->arrayIndex + i;
+         poly->indices[index++] = poly->arrayIndex + i + 1;
+      }
    }
    poly->initialized = true;
 }
@@ -117,26 +237,12 @@ bool GL_ShouldRecalcPoly(gl_poly_t *poly, sector_t *sector)
       return true;
    }
 
-   if (poly->lastUpdate < frameStartMS)
+   if (sector->lastUpdate > poly->lastUpdate)
    {
-      if (sectorMoving[sector - sectors] && poly->lastUpdate < frameStartMS)
-      {
-         return true;
-      }
-
-      if ((sector->heightsec) && (sectorMoving[sector->heightsec - sectors]))
-      {
-         return true;
-      }
+      return true;
    }
 
-   return false;
-}
-
-
-bool GL_ShouldRecalcSeg(gl_poly_t *poly, seg_t *seg)
-{
-   if (GL_ShouldRecalcPoly(poly, seg->frontsector) || (seg->backsector && GL_ShouldRecalcPoly(poly, seg->backsector)))
+   if ((sector->heightsec) && (sector->heightsec->lastUpdate > poly->lastUpdate))
    {
       return true;
    }
@@ -145,34 +251,23 @@ bool GL_ShouldRecalcSeg(gl_poly_t *poly, seg_t *seg)
 }
 
 
-bool GL_SegTextureChanged(seg_t *seg)
+bool GL_ShouldRecalcSeg(seg_t *seg, gl_poly_t *poly, sector_t *frontSector, sector_t *backSector)
 {
-   gl_poly_t *poly;
-   int index;
-   unsigned int textureChanged;
+   int textureChanged = seg->linedef->textureChanged;
 
-   textureChanged = seg->linedef->textureChanged;
-
-   index = numsubsectors * 2;
-   index += (seg - segs) * 3;
-
-   poly = gl_polys + index;
+   if (seg->bPolySeg) return true;
    if (textureChanged > poly->lastUpdate) return true;
-   poly++;
-   if (textureChanged > poly->lastUpdate) return true;
-   poly++;
-   if (textureChanged > poly->lastUpdate) return true;
+   if (GL_ShouldRecalcPoly(poly, frontSector)) return true;
+   if (backSector && GL_ShouldRecalcPoly(poly, backSector)) return true;
 
    return false;
 }
 
 
-bool GL_SegGeometryChanged(seg_t *seg)
+void GL_RecalcPolyPlane(gl_poly_t *poly)
 {
-   if (sectorMoving[seg->frontsector - sectors]) return true;
-   if (seg->backsector && sectorMoving[seg->backsector - sectors]) return true;
-
-   return false;
+   poly->plane.Init(poly->vertices, poly->numPts);
+   //poly->plane.Init(poly->vertices + 0, poly->vertices + 3, poly->vertices + 6);
 }
 
 
@@ -187,14 +282,12 @@ void GL_RecalcUpperWall(seg_t *seg, sector_t *frontSector, gl_poly_t *poly)
    vertex_t *vert1, *vert2;
 
    if (!poly->initialized) GL_InitPolygon(poly);
-   poly->lastUpdate = frameStartMS;
-   poly->initialized = true;
 
    vert1 = seg->v1;
    vert2 = seg->v2;
    dist = seg->length;
 
-   backSector = R_FakeFlat(seg->backsector, &ts2, NULL, NULL, false);
+   backSector = GL_FakeFlat(seg->backsector, &ts2, NULL, NULL, false);
 
    // texscale: 8 = 1.0, 16 = 2.0, 4 = 0.5
    txScale = tex->ScaleX ? tex->ScaleX / 8.f : 1.f;
@@ -207,10 +300,10 @@ void GL_RecalcUpperWall(seg_t *seg, sector_t *frontSector, gl_poly_t *poly)
    v2[0] = v4[0] = -vert2->x * MAP_SCALE;
    v2[2] = v4[2] = vert2->y * MAP_SCALE;
 
-   v1[1] = (float)backSector->ceilingplane.ZatPoint(vert1);
-   v2[1] = (float)backSector->ceilingplane.ZatPoint(vert2);
-   v3[1] = (float)frontSector->ceilingplane.ZatPoint(vert1);
-   v4[1] = (float)frontSector->ceilingplane.ZatPoint(vert2);
+   v1[1] = backSector->ceilingplane.ZatPoint(vert1);
+   v2[1] = backSector->ceilingplane.ZatPoint(vert2);
+   v3[1] = frontSector->ceilingplane.ZatPoint(vert1);
+   v4[1] = frontSector->ceilingplane.ZatPoint(vert2);
 
    ll.x = xOffset / (tex->GetWidth() * 1.f);
    ul.x = ll.x;
@@ -223,10 +316,13 @@ void GL_RecalcUpperWall(seg_t *seg, sector_t *frontSector, gl_poly_t *poly)
    if (tex)
    {
       texHeight = tex->GetHeight() / tyScale;
-
+#if 0
       lowerHeight = backSector->ceilingtexz * INV_FRACUNIT;
       upperHeight = frontSector->ceilingtexz * INV_FRACUNIT;
-
+#else
+      lowerHeight = seg->backsector->ceilingtexz * INV_FRACUNIT;
+      upperHeight = seg->frontsector->ceilingtexz * INV_FRACUNIT;
+#endif
       if (seg->linedef->flags & ML_DONTPEGTOP)
       {
          yOffset = 0.f;
@@ -265,6 +361,9 @@ void GL_RecalcUpperWall(seg_t *seg, sector_t *frontSector, gl_poly_t *poly)
    memcpy(poly->texCoords + (1 * 2), v1 + 3, sizeof(float) * 2);
    memcpy(poly->texCoords + (2 * 2), v2 + 3, sizeof(float) * 2);
    memcpy(poly->texCoords + (3 * 2), v4 + 3, sizeof(float) * 2);
+
+   GL_RecalcPolyPlane(poly);
+   poly->lastUpdate = MAX<int>(frontSector->lastUpdate, backSector->lastUpdate);
 }
 
 
@@ -275,46 +374,50 @@ void GL_RecalcMidWall(seg_t *seg, sector_t *frontSector, gl_poly_t *poly)
    float upperHeight, lowerHeight;
    float tmpOffset = seg->sidedef->rowoffset * INV_FRACUNIT;
    long offset = 0;
-   int texHeight;
+   float texHeight, texWidth;
    FTexture *tex = NULL;
    texcoord_t ll, ul, lr, ur;
    sector_t *backSector, ts2;
    vertex_t *vert1, *vert2;
 
    if (!poly->initialized) GL_InitPolygon(poly);
-   poly->lastUpdate = frameStartMS;
-   poly->initialized = true;
 
-   tex = TexMan(seg->sidedef->midtexture);
+   if (seg->sidedef->midtexture)
+   {
+      tex = TexMan(seg->sidedef->midtexture);
+   }
+   else
+   {
+      tex = NULL;
+   }
 
    vert1 = seg->v1;
    vert2 = seg->v2;
 
-   backSector = R_FakeFlat(seg->backsector, &ts2, NULL, NULL, false);
+   backSector = GL_FakeFlat(seg->backsector, &ts2, NULL, NULL, false);
 
    v1[0] = -vert1->x * MAP_SCALE;
    v1[2] = vert1->y * MAP_SCALE;
    v2[0] = -vert2->x * MAP_SCALE;
    v2[2] = vert2->y * MAP_SCALE;
-   v1[1] = (float)frontSector->floorplane.ZatPoint(seg->v1);
-   v2[1] = (float)frontSector->floorplane.ZatPoint(seg->v2);
+   v1[1] = frontSector->floorplane.ZatPoint(seg->v1);
+   v2[1] = frontSector->floorplane.ZatPoint(seg->v2);
 
    if ((seg->linedef->special == Line_Mirror && seg->backsector == NULL) || tex == NULL)
    {
       if (backSector)
       {
-         height1 = (float)backSector->ceilingplane.ZatPoint(vert1);
-         height2 = (float)backSector->ceilingplane.ZatPoint(vert2);
+         height1 = backSector->ceilingplane.ZatPoint(vert1);
+         height2 = backSector->ceilingplane.ZatPoint(vert2);
       }
       else
       {
-         height1 = (float)frontSector->ceilingplane.ZatPoint(vert1);
-         height2 = (float)frontSector->ceilingplane.ZatPoint(vert2);
+         height1 = frontSector->ceilingplane.ZatPoint(vert1);
+         height2 = frontSector->ceilingplane.ZatPoint(vert2);
       }
    }
    else
    {
-      //yOffset = seg->sidedef->rowoffset * INV_FRACUNIT;
       yOffset = 0.f;
       tmpOffset = 0.f;
       offset = seg->sidedef->rowoffset;
@@ -324,86 +427,64 @@ void GL_RecalcMidWall(seg_t *seg, sector_t *frontSector, gl_poly_t *poly)
       txScale = tex->ScaleX ? tex->ScaleX / 8.f : 1.f;
       tyScale = tex->ScaleY ? tex->ScaleY / 8.f : 1.f;
 
-      xOffset = (seg->offset * txScale) * INV_FRACUNIT;
+      xOffset = seg->offset * INV_FRACUNIT;
    
-      texHeight = (int)(tex->GetHeight() / tyScale);
+      texHeight = tex->GetHeight() / tyScale;
+      texWidth = tex->GetWidth() / txScale;
       textureList.GetTexture(seg->sidedef->midtexture, true);
 
-      ll.x = xOffset / tex->GetWidth();
+      ll.x = xOffset / texWidth;
       ul.x = ll.x;
-      lr.x = ll.x + (seg->length / tex->GetWidth() * txScale);
+      lr.x = ll.x + (seg->length / texWidth);
       ur.x = lr.x;
 
       if (backSector)
       {
-         height1 = (float)MIN(frontSector->ceilingplane.ZatPoint(vert1), backSector->ceilingplane.ZatPoint(vert1));
-         height2 = (float)MIN(frontSector->ceilingplane.ZatPoint(vert2), backSector->ceilingplane.ZatPoint(vert2));
+         height1 = MIN(frontSector->ceilingplane.ZatPoint(vert1), backSector->ceilingplane.ZatPoint(vert1));
+         height2 = MIN(frontSector->ceilingplane.ZatPoint(vert2), backSector->ceilingplane.ZatPoint(vert2));
       }
       else
       {
-         height1 = (float)frontSector->ceilingplane.ZatPoint(vert1);
-         height2 = (float)frontSector->ceilingplane.ZatPoint(vert2);
+         height1 = frontSector->ceilingplane.ZatPoint(vert1);
+         height2 = frontSector->ceilingplane.ZatPoint(vert2);
       }
 
       if (backSector && (textureList.IsTransparent() || seg->linedef->flags & ML_TWOSIDED))
       {
-         int h = texHeight;
-
 #if 0
-         if (seg->linedef->flags & ML_DONTPEGBOTTOM)
-         {
-            if (backSector)
-            {
-               v1[1] = MAX (frontSector->floortexz, backSector->floortexz) + offset;
-               v2[1] = MAX (frontSector->floortexz, backSector->floortexz) + offset;
-            }
-            else
-            {
-               v1[1] = frontSector->floortexz + offset;
-               v2[1] = frontSector->floortexz + offset;
-            }
-         }
-         else
-         {
-            if (backSector)
-            {
-               v1[1] = MIN (frontSector->ceilingtexz, backSector->ceilingtexz) + offset - (h << FRACBITS);
-               v2[1] = MIN (frontSector->ceilingtexz, backSector->ceilingtexz) + offset - (h << FRACBITS);
-            }
-            else
-            {
-               v1[1] = frontSector->ceilingtexz + offset - (h << FRACBITS);
-               v2[1] = frontSector->ceilingtexz + offset - (h << FRACBITS);
-            }
-         }
-
-         height1 = (h << FRACBITS) + v1[1];
-         height2 = (h << FRACBITS) + v2[1];
+         fixed_t rbceil = backSector->ceilingtexz;
+         fixed_t rbfloor = backSector->floortexz;
+         fixed_t rfceil = frontSector->ceilingtexz;
+         fixed_t rffloor = frontSector->floortexz;
 #else
-         float rbceil = (float)backSector->ceilingtexz,
-				rbfloor = (float)backSector->floortexz,
-				rfceil = (float)frontSector->ceilingtexz,
-				rffloor = (float)frontSector->floortexz;
-			float gaptop, gapbottom;
+         fixed_t rbceil = seg->backsector->ceilingtexz;
+         fixed_t rbfloor = seg->backsector->floortexz;
+         fixed_t rfceil = seg->frontsector->ceilingtexz;
+         fixed_t rffloor = seg->frontsector->floortexz;
+#endif
 
-         yOffset = (float)seg->sidedef->rowoffset;
-         height1 = gaptop = MIN(rbceil, rfceil);
-         v1[1] = gapbottom = MAX(rbfloor, rffloor);
+         yOffset = seg->sidedef->rowoffset;
+         if (!tex->bWorldPanning)
+         {
+            yOffset /= tyScale;
+         }
+
+         height1 = MIN(rbceil, rfceil);
+         v1[1] = MAX(rbfloor, rffloor);
 
          if (seg->linedef->flags & ML_DONTPEGBOTTOM)
          {
             v1[1] += yOffset;
-            height1 = v1[1] + (tex->GetHeight() * FRACUNIT);
+            height1 = v1[1] + (texHeight * FRACUNIT);
          }
          else
          {
             height1 += yOffset;
-            v1[1] = height1 - (tex->GetHeight() * FRACUNIT);
+            v1[1] = height1 - (texHeight * FRACUNIT);
          }
 
          height2 = height1;
          v2[1] = v1[1];
-#endif
       }
    }
 
@@ -430,8 +511,6 @@ void GL_RecalcMidWall(seg_t *seg, sector_t *frontSector, gl_poly_t *poly)
 
    if (tex)
    {
-      yOffset = 0.f;
-
       // code borrowed from Legacy ;)
       // damn pegged/unpegged/two sided lines!
       if (backSector)
@@ -448,7 +527,7 @@ void GL_RecalcMidWall(seg_t *seg, sector_t *frontSector, gl_poly_t *poly)
 
          if (seg->linedef->flags & ML_DONTPEGBOTTOM)
          {
-            polyBottom = openBottom + seg->sidedef->rowoffset * INV_FRACUNIT;
+            polyBottom = openBottom + (seg->sidedef->rowoffset * INV_FRACUNIT / tyScale);
             polyTop = polyBottom + texHeight;
 
             upperHeight = MIN(openTop, polyTop);
@@ -458,7 +537,7 @@ void GL_RecalcMidWall(seg_t *seg, sector_t *frontSector, gl_poly_t *poly)
          }
          else
          {
-            polyTop = openTop + seg->sidedef->rowoffset * INV_FRACUNIT;
+            polyTop = openTop + (seg->sidedef->rowoffset * INV_FRACUNIT / tyScale);
             polyBottom = polyTop - texHeight;
 
             yOffset = polyTop - upperHeight;
@@ -468,22 +547,15 @@ void GL_RecalcMidWall(seg_t *seg, sector_t *frontSector, gl_poly_t *poly)
       {
          lowerHeight = frontSector->floortexz * INV_FRACUNIT;
          upperHeight = frontSector->ceilingtexz * INV_FRACUNIT;
-         yOffset = 0.f;
 
          if (seg->linedef->flags & ML_DONTPEGBOTTOM)
          {
-            yOffset += lowerHeight + texHeight - upperHeight;
+            yOffset = lowerHeight + texHeight - upperHeight;
          }
       }
 
       ll.y = lr.y = yOffset / texHeight;
       ul.y = ur.y = ll.y + ((upperHeight - lowerHeight) / texHeight);
-
-      // scale the coordinates
-      //ul.y *= tyScale;
-      //ur.y *= tyScale;
-      //ll.y *= tyScale;
-      //lr.y *= tyScale;
 
       // clip to slopes
       ul.y -= ((v1[1] * INV_FRACUNIT) - lowerHeight) / texHeight;
@@ -511,6 +583,16 @@ void GL_RecalcMidWall(seg_t *seg, sector_t *frontSector, gl_poly_t *poly)
    memcpy(poly->texCoords + (1 * 2), v1 + 3, sizeof(float) * 2);
    memcpy(poly->texCoords + (2 * 2), v2 + 3, sizeof(float) * 2);
    memcpy(poly->texCoords + (3 * 2), v4 + 3, sizeof(float) * 2);
+
+   GL_RecalcPolyPlane(poly);
+   if (backSector)
+   {
+      poly->lastUpdate = MAX<int>(frontSector->lastUpdate, backSector->lastUpdate);
+   }
+   else
+   {
+      poly->lastUpdate = frontSector->lastUpdate;
+   }
 }
 
 
@@ -526,14 +608,12 @@ void GL_RecalcLowerWall(seg_t *seg, sector_t *frontSector, gl_poly_t *poly)
    fixed_t h1, h2;
 
    if (!poly->initialized) GL_InitPolygon(poly);
-   poly->lastUpdate = frameStartMS;
-   poly->initialized = true;
 
    vert1 = seg->v1;
    vert2 = seg->v2;
    dist = seg->length;
 
-   backSector = R_FakeFlat(seg->backsector, &ts2, NULL, NULL, false);
+   backSector = GL_FakeFlat(seg->backsector, &ts2, NULL, NULL, false);
 
    h1 = (backSector->floorplane.ZatPoint(vert1) - frontSector->floorplane.ZatPoint(vert1));
    h2 = (backSector->floorplane.ZatPoint(vert2) - frontSector->floorplane.ZatPoint(vert2));
@@ -543,8 +623,8 @@ void GL_RecalcLowerWall(seg_t *seg, sector_t *frontSector, gl_poly_t *poly)
    v2[0] = v4[0] = -vert2->x * MAP_SCALE;
    v2[2] = v4[2] = vert2->y * MAP_SCALE;
 
-   v1[1] = (float)frontSector->floorplane.ZatPoint(vert1);
-   v2[1] = (float)frontSector->floorplane.ZatPoint(vert2);
+   v1[1] = frontSector->floorplane.ZatPoint(vert1);
+   v2[1] = frontSector->floorplane.ZatPoint(vert2);
    v3[1] = v1[1] + h1;
    v4[1] = v2[1] + h2;
 
@@ -565,10 +645,13 @@ void GL_RecalcLowerWall(seg_t *seg, sector_t *frontSector, gl_poly_t *poly)
    if (tex)
    {
       texHeight = tex->GetHeight() / tyScale;
-
+#if 0
       lowerHeight = frontSector->floortexz * INV_FRACUNIT;
       upperHeight = backSector->floortexz * INV_FRACUNIT;
-
+#else
+      lowerHeight = seg->frontsector->floortexz * INV_FRACUNIT;
+      upperHeight = seg->backsector->floortexz * INV_FRACUNIT;
+#endif
       if (seg->linedef->flags & ML_DONTPEGBOTTOM)
       {
          yOffset = (frontSector->ceilingtexz - backSector->floortexz) * INV_FRACUNIT;
@@ -613,6 +696,9 @@ void GL_RecalcLowerWall(seg_t *seg, sector_t *frontSector, gl_poly_t *poly)
    memcpy(poly->texCoords + (1 * 2), v1 + 3, sizeof(float) * 2);
    memcpy(poly->texCoords + (2 * 2), v2 + 3, sizeof(float) * 2);
    memcpy(poly->texCoords + (3 * 2), v4 + 3, sizeof(float) * 2);
+
+   GL_RecalcPolyPlane(poly);
+   poly->lastUpdate = MAX<int>(frontSector->lastUpdate, backSector->lastUpdate);
 }
 
 
@@ -621,11 +707,12 @@ void GL_RecalcSeg(seg_t *seg, sector_t *controlSector)
    int index;
    bool fogBoundary = false;
    sector_t *backSector, ts;
+   gl_poly_t *poly;
 
    index = numsubsectors * 2;
    index += (seg - segs) * 3;
 
-   backSector = R_FakeFlat(seg->backsector, &ts, NULL, NULL, false);
+   backSector = GL_FakeFlat(seg->backsector, &ts, NULL, NULL, false);
    if (backSector)
    {
       fogBoundary = IsFogBoundary(controlSector, backSector);
@@ -633,19 +720,25 @@ void GL_RecalcSeg(seg_t *seg, sector_t *controlSector)
 
    if (seg->linedef && seg->sidedef)
    {
-      if (seg->backsector && seg->sidedef->toptexture)
+      poly = gl_polys + index;
+
+      if (seg->backsector && seg->sidedef->toptexture && GL_ShouldRecalcSeg(seg, poly, controlSector, backSector))
       {
-         GL_RecalcUpperWall(seg, controlSector, gl_polys + index);
+         GL_RecalcUpperWall(seg, controlSector, poly);
       }
 
-      if (seg->sidedef->midtexture || fogBoundary)
+      poly++;
+
+      if ((seg->sidedef->midtexture || fogBoundary) && GL_ShouldRecalcSeg(seg, poly, controlSector, backSector))
       {
-         GL_RecalcMidWall(seg, controlSector, gl_polys + (index + 1));
+         GL_RecalcMidWall(seg, controlSector, poly);
       }
 
-      if (seg->backsector && seg->sidedef->bottomtexture)
+      poly++;
+
+      if (seg->backsector && seg->sidedef->bottomtexture && GL_ShouldRecalcSeg(seg, poly, controlSector, backSector))
       {
-         GL_RecalcLowerWall(seg, controlSector, gl_polys + (index + 2));
+         GL_RecalcLowerWall(seg, controlSector, poly);
       }
    }
 }
@@ -675,7 +768,7 @@ void GL_RecalcSubsector(subsector_t *subSec, sector_t *sector)
       {
          seg = segs + i;
 
-         if (seg->linedef && (GL_SegGeometryChanged(seg) || GL_SegTextureChanged(seg)))
+         if (seg->linedef)
          {
             GL_RecalcSeg(seg, sector);
          }
@@ -698,9 +791,6 @@ void GL_RecalcSubsector(subsector_t *subSec, sector_t *sector)
 
    if (!poly1->initialized) GL_InitPolygon(poly1);
    if (!poly2->initialized) GL_InitPolygon(poly2);
-
-   poly1->lastUpdate = frameStartMS;
-   poly2->lastUpdate = frameStartMS;
 
    // sector offsets so rotations happen around sector center
    sox = -subSec->sector->CenterX * MAP_SCALE;
@@ -765,6 +855,13 @@ void GL_RecalcSubsector(subsector_t *subSec, sector_t *sector)
       }
    }
 
+   // plane is already calculated for the floor/ceiling, so just convert it to a format we can use
+   poly1->plane.Set(sector->floorplane);
+   poly2->plane.Set(sector->ceilingplane);
+
+   poly1->lastUpdate = sector->lastUpdate;
+   poly2->lastUpdate = sector->lastUpdate;
+
    if (subSec->poly)
    {
       maxLine = subSec->poly->numsegs;
@@ -777,124 +874,37 @@ void GL_RecalcSubsector(subsector_t *subSec, sector_t *sector)
 }
 
 
-void GL_RenderPolyWithShader(gl_poly_t *poly, FShader *shader)
+void GL_SetupForPoly(gl_poly_t *poly)
 {
-   unsigned int i, numLayers;
-   FShaderLayer *layer;
-   FTexture *tex;
-   float scaleX, scaleY;
-
    GL_BindArrays(poly);
+}
 
-   GL_SetupFog(poly->lightLevel, poly->fogR, poly->fogG, poly->fogB);
 
-   // non-masked, so disable transparency
-   if (!DrawingDeferredLines && poly->a == 1.f)
-   {
-      glDisable(GL_BLEND);
-   }
-
-   numLayers = shader->layers.Size();
-   for (i = 0; i < numLayers; i++)
-   {
-      layer = shader->layers[i];
-      tex = TexMan[layer->name];
-
-      scaleX = TexMan[shader->name]->GetWidth() * 1.f / TexMan[layer->name]->GetWidth();
-      scaleY = TexMan[shader->name]->GetHeight() * 1.f / TexMan[layer->name]->GetHeight();
-
-      scaleX = scaleX * poly->scaleX * layer->scaleX;
-      scaleY = scaleY * poly->scaleY * layer->scaleY;
-
-      glMatrixMode(GL_TEXTURE);
-
-      glLoadIdentity();
-      glScalef(scaleX, scaleY, 1.f);
-      glTranslatef(layer->offsetX + poly->offX, layer->offsetY + poly->offY, 0.f);
-      // layer rotations happen around the center of the sector
-      glTranslatef(-poly->rotationX + layer->centerX, -poly->rotationY + layer->centerY, 0.f);
-      glRotatef(layer->rotation, 0.f, 0.f, 1.f);
-      glTranslatef(poly->rotationX - layer->centerX, poly->rotationY - layer->centerY, 0.f);
-      glRotatef(poly->rot, 0.f, 0.f, 1.f);
-
-      glMatrixMode(GL_MODELVIEW);
-
-      textureList.BindTexture(TexMan[layer->name]);
-
-      glBlendFunc(layer->blendFuncSrc, layer->blendFuncDst);
-      // don't use fog on additive layers if not the first layer
-      if (i && layer->blendFuncDst == GL_ONE)
-      {
-         glDisable(GL_FOG);
-      }
-
-      switch (layer->texGen)
-      {
-      case SHADER_TexGen_Sphere:
-         glEnable(GL_TEXTURE_GEN_S);
-         glEnable(GL_TEXTURE_GEN_T);
-         break;
-      default:
-         glDisable(GL_TEXTURE_GEN_S);
-         glDisable(GL_TEXTURE_GEN_T);
-         break;
-      }
-
-      glColor4f(poly->r * layer->r.GetVal(), poly->g * layer->g.GetVal(), poly->b * layer->b.GetVal(), poly->a * layer->alpha.GetVal());
-      glDrawArrays(GL_TRIANGLE_FAN, 0, poly->numPts);
-
-      if (!i) // this only happens on the first pass
-      {
-         glDepthFunc(GL_EQUAL); // only draw if it matches up with first layer
-         glDepthMask(GL_FALSE); // z values already written!
-         glAlphaFunc(GL_GREATER, 0.f); // always draw the whole layer (masking is handled on the first pass)
-         glEnable(GL_BLEND);
-      }
-      if (gl_depthfog && !Player->fixedcolormap)
-      {
-         glEnable(GL_FOG);
-      }
-   }
-
-   glMatrixMode(GL_TEXTURE);
-   glLoadIdentity();
-   glMatrixMode(GL_MODELVIEW);
-   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-   glDisable(GL_TEXTURE_GEN_S);
-   glDisable(GL_TEXTURE_GEN_T);
-   glDepthFunc(GL_LEQUAL);
-   glDepthMask(GL_TRUE);
-
+void GL_FinishPoly(gl_poly_t *poly)
+{
    GL_UnbindArrays(poly);
 }
 
 
-void GL_RenderPoly(gl_poly_t *poly)
+void GL_RenderPoly(gl_poly_t *poly, bool deferred)
 {
    FAnimDef *anim = NULL;
-//   float alpha;
-  // unsigned short tex1, tex2, curFrame;
+   float alpha;
+   unsigned short tex1, tex2, curFrame;
 
    if (!poly->initialized) return;
 
-   GL_BindArrays(poly);
+   GL_SetupForPoly(poly);
 
    if (MaskSkybox)
    {
       glColor4f(1.f, 1.f, 1.f, 1.f);
-      textureList.BindGLTexture(0);
+      glDisable(GL_TEXTURE_2D);
       glDrawArrays(GL_TRIANGLE_FAN, 0, poly->numPts);
+      glEnable(GL_TEXTURE_2D);
    }
    else
    {
-      GL_SetupFog(poly->lightLevel, poly->fogR, poly->fogG, poly->fogB);
-
-      // non-masked, so disable transparency
-      if (!DrawingDeferredLines && poly->a == 1.f)
-      {
-         glDisable(GL_BLEND);
-      }
-
       if (poly->doomTex > 0)
       {
          if (gl_blend_animations && gl_texture && !gl_wireframe && !textureList.IsTransparent())
@@ -907,16 +917,113 @@ void GL_RenderPoly(gl_poly_t *poly)
          return;
       }
 
-		glMatrixMode(GL_TEXTURE);
-		glLoadIdentity();
-		glScalef(poly->scaleX, poly->scaleY, 1.f);
-		glTranslatef(poly->offX, poly->offY, 0.f);
-		glRotatef(poly->rot, 0.f, 0.f, 1.f);
-		glMatrixMode(GL_MODELVIEW);
-		glColor4f(poly->r, poly->g, poly->b, poly->a);
-		glDrawArrays(GL_TRIANGLE_FAN, 0, poly->numPts);
+      if (anim && gl_texture_multitexture)
+      {
+         curFrame = anim->CurFrame;
 
-		glEnable(GL_BLEND);
+         if (0)//(anim->bUniqueFrames)
+         {
+            tex1 = anim->Frames[curFrame].FramePic;
+         }
+         else
+         {
+            tex1 = anim->BasePic + curFrame;
+         }
+
+         tex2 = GL_NextAnimFrame(anim);
+
+         alpha = 0;//(anim->Countdown - (r_TicFrac * INV_FRACUNIT)) / (anim->StartCount * 1.f);
+
+         // render in 1 pass
+         float colors[4];
+         colors[3] = alpha; // don't care about the other values (unused)
+
+         // first interpolate between the two textures
+         // use the alpha value from the texture environment for the blend amount
+         // this keeps the blending seperate from the geometry alpha (so we can blend semi-transparent walls)
+         textureList.SelectTexUnit(GL_TEXTURE0_ARB);
+         glEnable(GL_TEXTURE_2D);
+         // each texture unit has its own texture matrix, so set texture offset/rotation up for each
+         glMatrixMode(GL_TEXTURE);
+         glLoadIdentity();
+         glScalef(poly->scaleX, poly->scaleY, 1.f);
+         glTranslatef(poly->offX, poly->offY, 0.f);
+         glRotatef(poly->rot, 0.f, 0.f, 1.f);
+         glMatrixMode(GL_MODELVIEW);
+         textureList.BindTexture(tex1, false);
+         glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, colors);
+         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+         glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_INTERPOLATE_EXT); // interpolation = A*C + B*(1-C)
+         glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE0_ARB); // argA
+         glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
+         glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_TEXTURE1_ARB); // argB
+         glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
+         glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_RGB_EXT, GL_CONSTANT_EXT); // argC (GL_CONSTANT_EXT = value from tex env color)
+         glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB_EXT, GL_SRC_ALPHA);
+
+         // blend the resulting texture with the actual geometry color/alpha
+         textureList.SelectTexUnit(GL_TEXTURE1_ARB);
+         glEnable(GL_TEXTURE_2D);
+         // each texture unit has its own texture matrix, so set texture offset/rotation up for each
+         glMatrixMode(GL_TEXTURE);
+         glLoadIdentity();
+         glScalef(poly->scaleX, poly->scaleY, 1.f);
+         glTranslatef(poly->offX, poly->offY, 0.f);
+         glRotatef(poly->rot, 0.f, 0.f, 1.f);
+         glMatrixMode(GL_MODELVIEW);
+         textureList.BindTexture(tex2, false);
+         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+         glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE); // modulate = A*B
+         glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS_EXT); // argA (PREVIOUS = value from previous tex unit (interpolation)
+         glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
+         glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_PRIMARY_COLOR_EXT); // argB (PRIMARY_COLOR = value from glColor*
+         glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
+
+         if (deferred)
+         {
+            glColor4f(poly->r, poly->g, poly->b, poly->a);
+         }
+         else
+         {
+            glColor4f(1.f, 1.f, 1.f, poly->a);
+         }
+         glDrawArrays(GL_TRIANGLE_FAN, poly->arrayIndex, poly->numPts);
+
+         // clean up afterwards, making sure to set TEXTURE0 back to the default setting
+         textureList.SelectTexUnit(GL_TEXTURE1_ARB);
+         glDisable(GL_TEXTURE_2D);
+         textureList.SelectTexUnit(GL_TEXTURE0_ARB);
+         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+         glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE);
+         glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_PREVIOUS_EXT);
+         glEnable(GL_BLEND);
+         glEnable(GL_ALPHA_TEST);
+      }
+      else
+      {
+         glMatrixMode(GL_TEXTURE);
+         glLoadIdentity();
+         glScalef(poly->scaleX, poly->scaleY, 1.f);
+         //glTranslatef(-poly->rotationX, -poly->rotationY, 0.f);
+         glRotatef(poly->rot, 0.f, 0.f, 1.f);
+         //glTranslatef(poly->rotationX, poly->rotationY, 0.f);
+         glTranslatef(poly->offX, poly->offY, 0.f);
+
+         glMatrixMode(GL_MODELVIEW);
+         if (deferred)
+         {
+            glColor4f(poly->r, poly->g, poly->b, poly->a);
+         }
+         else
+         {
+            glColor4f(1.f, 1.f, 1.f, poly->a);
+         }
+
+         glDrawArrays(GL_TRIANGLE_FAN, poly->arrayIndex, poly->numPts);
+
+         glEnable(GL_BLEND);
+         glEnable(GL_ALPHA_TEST);
+      }
 
       glMatrixMode(GL_TEXTURE);
       glLoadIdentity();
@@ -925,52 +1032,370 @@ void GL_RenderPoly(gl_poly_t *poly)
 
    numTris += poly->numPts - 2;
 
-   if (r_fogboundary && poly->isFogBoundary)
+   GL_FinishPoly(poly);
+
+   RL_SetupMode(RL_TEXTURED);
+}
+
+
+void GL_RenderPolyWithShader(gl_poly_t *poly, FShader *shader, bool deferred)
+{
+   unsigned int i, numLayers;
+   FShaderLayer *layer;
+   FTexture *rootTex, *tex;
+   float scaleX, scaleY, r, g, b, a;
+
+   //if (deferred) GL_SetupFog(poly->lightLevel, 0, 0, 0);
+   if (deferred) GL_SetupFog(poly->lightLevel, poly->fogR, poly->fogG, poly->fogB);
+
+   if (!shader)
    {
-#if 0
-      // draw poly again with depth-dependent alpha edges
-      // note that fog boundaries are always walls, so they're always quads
-      float a1, a2;
-      fixed_t x, y, dist;
-      int i;
-
-      glDisable(GL_TEXTURE_2D);
-      glAlphaFunc(GL_GREATER, 0.f);
-
-      x = (fixed_t)(-poly->vertices[3] * MAP_SCALE);
-      y = (fixed_t)(poly->vertices[5] * MAP_SCALE);
-      dist = R_PointToDist2(x, y);
-      a1 = dist / 384.f * INV_FRACUNIT;
-
-      x = (fixed_t)(-poly->vertices[6] * MAP_SCALE);
-      y = (fixed_t)(poly->vertices[8] * MAP_SCALE);
-      dist = R_PointToDist2(x, y);
-      a2 = dist / 384.f * INV_FRACUNIT;
-
-      a1 *= 0.75f * byte2float[poly->fbLightLevel];
-      a2 *= 0.75f * byte2float[poly->fbLightLevel];
-
-      //a1 = 0.f;
-      //a2 = 1.f;
-
-      glColor4f(byte2float[poly->fbR] * byte2float[poly->fbLightLevel], byte2float[poly->fbG] * byte2float[poly->fbLightLevel], byte2float[poly->fbB] * byte2float[poly->fbLightLevel], a1 * a1);
-      glBegin(GL_TRIANGLE_FAN);
-      for (i = 0; i < poly->numPts; i++)
-      {
-         if (i == poly->numPts / 2)
-         {
-            glColor4f(byte2float[poly->fbR] * byte2float[poly->fbLightLevel], byte2float[poly->fbG] * byte2float[poly->fbLightLevel], byte2float[poly->fbB] * byte2float[poly->fbLightLevel], a2 * a2);
-         }
-         glVertex3fv(&poly->vertices[i * 3]);
-      }
-      glEnd();
-
-      glEnable(GL_TEXTURE_2D);
-#endif
+      GL_RenderPoly(poly, deferred);
+      return;
    }
 
-   // all this really does is potentially unlocks the vertex arrays
-   GL_UnbindArrays(poly);
+   GL_SetupForPoly(poly);
+
+   rootTex = TexMan[shader->name];
+
+   numLayers = shader->layers.Size();
+   for (i = 0; i < numLayers; i++)
+   {
+      layer = shader->layers[i];
+
+      if (layer->alpha == 0.f) continue;
+
+      tex = layer->animate ? TexMan(layer->name) : TexMan[layer->name];
+
+      switch (layer->texgen)
+      {
+      case SHADER_TexGen_Sphere:
+         glEnable(GL_TEXTURE_GEN_S);
+         glEnable(GL_TEXTURE_GEN_T);
+         scaleX = 2.f;
+         scaleY = 2.f;
+         break;
+      default:
+         glDisable(GL_TEXTURE_GEN_S);
+         glDisable(GL_TEXTURE_GEN_T);
+         scaleX = rootTex->GetWidth() * 1.f / tex->GetWidth();
+         scaleY = rootTex->GetHeight() * 1.f / tex->GetHeight();
+         scaleX = scaleX * poly->scaleX * layer->scaleX;
+         scaleY = scaleY * poly->scaleY * layer->scaleY;
+         break;
+      }
+
+      glMatrixMode(GL_TEXTURE);
+
+      glLoadIdentity();
+      glTranslatef(-poly->rotationX, -poly->rotationY, 0.f);
+      glRotatef(layer->rotation, 0.f, 0.f, 1.f);
+      glTranslatef(poly->rotationX, poly->rotationY, 0.f);
+      glScalef(scaleX, scaleY, 0.f);
+      glTranslatef(poly->offX + ((layer->offsetX + layer->adjustX) / layer->scaleX), poly->offY + ((layer->offsetY + layer->adjustY) / layer->scaleY), 0.f);
+      glRotatef(poly->rot, 0.f, 0.f, 1.f);
+      glMatrixMode(GL_MODELVIEW);
+
+      // base layer on solid geometry is always blended with lights
+      if (!i && (poly->a == 1.f || !deferred))
+      {
+         glBlendFunc(GL_DST_COLOR, GL_ZERO);
+      }
+      else
+      {
+         glBlendFunc(layer->blendFuncSrc, layer->blendFuncDst);
+      }
+
+      if ((i || deferred) && !layer->emissive)
+      {
+         r = layer->r * poly->r;
+         g = layer->g * poly->g;
+         b = layer->b * poly->b;
+         a = layer->alpha * poly->a;
+      }
+      else
+      {
+         r = layer->r;
+         g = layer->g;
+         b = layer->b;
+         a = layer->alpha * poly->a;
+      }
+
+      glColor4f(r, g, b, a);
+
+      if (layer->layerMask)
+      {
+         textureList.SelectTexUnit(GL_TEXTURE0_ARB);
+         textureList.BindTexture(tex);
+         glEnable(GL_TEXTURE_2D);
+
+         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+         glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE); // modulate = A*B
+         glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE0_ARB); // argA
+         glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
+         glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA_EXT, GL_TEXTURE1_ARB); // argB
+         glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
+
+         // blend the resulting texture with the actual geometry color/alpha
+         textureList.SelectTexUnit(GL_TEXTURE1_ARB);
+         tex = layer->layerMask->animate ? TexMan(layer->layerMask->name) : TexMan[layer->layerMask->name];
+
+         // be sure to calculate the mask scale the same as the layer scale
+         scaleX = rootTex->GetWidth() * 1.f / tex->GetWidth();
+         scaleY = rootTex->GetHeight() * 1.f / tex->GetHeight();
+         scaleX = scaleX * poly->scaleX * layer->layerMask->scaleX;
+         scaleY = scaleY * poly->scaleY * layer->layerMask->scaleY;
+
+         textureList.BindTexture(tex);
+         glEnable(GL_TEXTURE_2D);
+
+         glMatrixMode(GL_TEXTURE);
+         glLoadIdentity();
+         glTranslatef(-poly->rotationX, -poly->rotationY, 0.f);
+         glRotatef(layer->layerMask->rotation, 0.f, 0.f, 1.f);
+         glTranslatef(poly->rotationX, poly->rotationY, 0.f);
+         glScalef(scaleX, scaleY, 0.f);
+         glTranslatef(poly->offX + layer->layerMask->offsetX + layer->layerMask->adjustX, poly->offY + layer->layerMask->offsetY + layer->layerMask->adjustY, 0.f);
+         glRotatef(poly->rot, 0.f, 0.f, 1.f);
+         glMatrixMode(GL_MODELVIEW);
+
+         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+         glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE); // modulate = A*B
+         glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS_EXT);
+         glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
+         glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_PRIMARY_COLOR_EXT); // argB (PRIMARY_COLOR = value from glColor*)
+         glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA_EXT, GL_PRIMARY_COLOR_EXT); // argB (PRIMARY_COLOR = value from glColor*)
+         glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
+         glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA_EXT, GL_SRC_COLOR);
+      }
+      else
+      {
+         textureList.BindTexture(tex);
+      }
+
+      glDrawArrays(GL_TRIANGLE_FAN, poly->arrayIndex, poly->numPts);
+
+      if (layer->layerMask)
+      {
+         textureList.SelectTexUnit(GL_TEXTURE1_ARB);
+         glDisable(GL_TEXTURE_2D);
+         // make sure to change things back to the defaults on the primary texture unit
+         textureList.SelectTexUnit(GL_TEXTURE0_ARB);
+         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+         glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA_EXT, GL_PREVIOUS_EXT);
+      }
+
+      if (!i) // this only happens on the first pass
+      {
+         glAlphaFunc(GL_GREATER, 0.f); // always draw the whole layer (masking is handled on the first pass)
+      }
+   }
+
+   glMatrixMode(GL_TEXTURE);
+   glLoadIdentity();
+   glMatrixMode(GL_MODELVIEW);
+   glDisable(GL_TEXTURE_GEN_S);
+   glDisable(GL_TEXTURE_GEN_T);
+
+   glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+   GL_FinishPoly(poly);
+
+   RL_SetupMode(RL_TEXTURED);
+}
+
+
+void GL_RenderPolyBase(gl_poly_t *poly)
+{
+   GL_SetupForPoly(poly);
+
+   glMatrixMode(GL_TEXTURE);
+   glLoadIdentity();
+   glScalef(poly->scaleX, poly->scaleY, 1.f);
+   glTranslatef(poly->offX, poly->offY, 0.f);
+   glRotatef(poly->rot, 0.f, 0.f, 1.f);
+   glMatrixMode(GL_MODELVIEW);
+
+   // this is the base color pass, so the fog is done here, too
+   GL_SetupFog(poly->lightLevel, 0, 0, 0);
+   glColor3f(poly->r, poly->g, poly->b);
+   //glColor3f(1.f, 1.f, 1.f);
+   glDrawArrays(GL_TRIANGLE_FAN, poly->arrayIndex, poly->numPts);
+
+   GL_FinishPoly(poly);
+}
+
+
+void GL_RenderPolyDepth(gl_poly_t *poly, FShaderLayer *layer)
+{
+   GL_SetupForPoly(poly);
+
+   // have to take into account the texture offset for the mask texture here, as well
+   glMatrixMode(GL_TEXTURE);
+   glLoadIdentity();
+   if (layer)
+   {
+      glTranslatef(layer->offsetX + layer->adjustX, layer->offsetY + layer->adjustY, 0.f);
+   }
+   glScalef(poly->scaleX, poly->scaleY, 1.f);
+   glTranslatef(poly->offX, poly->offY, 0.f);
+   glRotatef(poly->rot, 0.f, 0.f, 1.f);
+   glMatrixMode(GL_MODELVIEW);
+
+   glDrawArrays(GL_TRIANGLE_FAN, poly->arrayIndex, poly->numPts);
+
+   GL_FinishPoly(poly);
+
+   glMatrixMode(GL_TEXTURE);
+   glLoadIdentity();
+   glMatrixMode(GL_MODELVIEW);
+}
+
+
+void GL_RenderPolyFogged(gl_poly_t *poly)
+{
+   if (poly->fogR == 0 && poly->fogG == 0 && poly->fogB == 0) return;
+
+   GL_SetupForPoly(poly);
+   GL_SetupFog(poly->lightLevel, poly->fogR, poly->fogG, poly->fogB);
+
+   glColor4f(0.f, 0.f, 0.f, 1.f);
+   glDrawArrays(GL_TRIANGLE_FAN, poly->arrayIndex, poly->numPts);
+
+   GL_FinishPoly(poly);
+}
+
+
+void GL_RenderPolyFogBoundary(gl_poly_t *poly)
+{
+   //if (poly->fogR == 0 && poly->fogG == 0 && poly->fogB == 0) return;
+
+   GL_SetupForPoly(poly);
+   GL_SetupFog(poly->fbLightLevel, poly->fbR, poly->fbG, poly->fbB);
+
+   glColor4f(0.f, 0.f, 0.f, 1.f);
+   glDrawArrays(GL_TRIANGLE_FAN, poly->arrayIndex, poly->numPts);
+
+   GL_FinishPoly(poly);
+}
+
+
+void GL_RenderPolyLit(gl_poly_t *poly)
+{
+   APointLight *light;
+   fixed_t lx, ly, lz;
+   float x, y, z, radius, dist, scale, cs, u, v, frac, fracRad, r, g, b, a;
+   Vector pos, fn, nearPt, nearToVert, right, up, t1;
+
+   fn = poly->plane.Normal();
+
+   for (unsigned int lindex = 0; lindex < SubsecLights[poly->subsectorIndex]->Size(); lindex++)
+   {
+      light = static_cast<APointLight *>(SubsecLights[poly->subsectorIndex]->Item(lindex));
+
+      lx = light->x;
+      ly = light->y;
+      lz = light->z;
+
+      if (light->IsOwned())
+      {
+         // was just saved, so ignore the light
+         if (light->target == NULL) continue;
+         a = FIX2FLT(light->target->alpha);
+      }
+      else
+      {
+         a = 1.f;
+      }
+
+      x = -light->x * MAP_SCALE;
+      y = light->z * MAP_SCALE;
+      z = light->y * MAP_SCALE;
+      pos.Set(x, y, z);
+      frac = 1.f;
+
+      // get dist from light origin to poly plane
+      dist = fabsf(poly->plane.DistToPoint(x, y, z));
+      radius = light->GetRadius() * MAP_COEFF;
+      scale = 1.0f / ((2.f * radius) - dist);
+
+      if (radius <= 0.f) continue;
+      if (dist > radius) continue;
+
+      // project light position onto plane (find closest point on plane)
+      fn.GetRightUp(right, up);
+      nearPt = pos.ProjectPlane(right, up);
+
+      // check if nearPt is contained within the owner subsector bbox
+      if (!GL_PointNearPoly(nearPt, poly, radius)) continue;
+
+      // don't light the poly if the light is behind it
+      if (gl_lights_checkside && !poly->plane.PointOnSide(x, y, z))
+      {
+         // if the light is close to the plane, allow a bit of light (1/4 of the actual intensity)
+         fracRad = radius / (4.f * MAP_COEFF);
+         if (fracRad < 1.f) fracRad = 1.f;
+         if (dist < fracRad)
+         {
+            frac = 1.f - (dist / fracRad);
+         }
+         else
+         {
+            continue;
+         }
+      }
+
+      cs = 1.0f - (dist / radius);
+      cs *= frac;
+      r = byte2float[light->GetRed()] * cs * a;
+      g = byte2float[light->GetGreen()] * cs * a;
+      b = byte2float[light->GetBlue()] * cs * a;
+
+      // draw light
+      if (light->IsSubtractive())
+      {
+         // ignore subtractive lights if subtractive blending not supported
+         if (!glBlendEquationEXT) continue;
+
+         Vector v;
+
+         glBlendEquationEXT(GL_FUNC_REVERSE_SUBTRACT);
+         v.Set(r, g, b);
+         r = v.Length() - r;
+         g = v.Length() - g;
+         b = v.Length() - b;
+      }
+      else
+      {
+         if (glBlendEquationEXT) glBlendEquationEXT(GL_FUNC_ADD);
+      }
+
+      glColor3f(r, g, b);
+      glBegin(GL_TRIANGLE_FAN);
+         for (int pi = 0; pi < poly->numPts; pi++)
+         {
+            t1.Set(poly->vertices + (pi * 3));
+            nearToVert = t1 - nearPt;
+            u = (nearToVert.Dot(right) * scale) + 0.5f;
+            v = (nearToVert.Dot(up) * scale) + 0.5f;
+            glTexCoord2f(u, v);
+            glVertex3f(t1.X(), t1.Y(), t1.Z());
+         }
+      glEnd();
+   }
+
+   if (glBlendEquationEXT) glBlendEquationEXT(GL_FUNC_ADD);
+}
+
+
+void GL_RenderPolyMask(gl_poly_t *poly)
+{
+   GL_SetupForPoly(poly);
+
+   glColor3f(0.f, 0.f, 0.f);
+   glDrawArrays(GL_TRIANGLE_FAN, poly->arrayIndex, poly->numPts);
+
+   GL_FinishPoly(poly);
 }
 
 
@@ -984,8 +1409,6 @@ void RL_AddPoly(GLuint tex, int polyIndex)
    RList *rl;
    int amt;
    unsigned int lastSize, i;
-
-   //return;
 
    if ((tex + 1) >= renderList.Size())
    {
@@ -1203,61 +1626,279 @@ void RL_SetupMode(int mode)
    }
 }
 
-// loop through the renderlist and render all polys
-void RL_RenderList()
+
+void RL_FinishMode(int mode)
 {
-   unsigned int i, j, numLists, numPolys;
+   switch (mode)
+   {
+   case RL_BASE:
+      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA_EXT, GL_PREVIOUS_EXT);
+      glMatrixMode(GL_TEXTURE);
+      glLoadIdentity();
+      glMatrixMode(GL_MODELVIEW);
+      glDisable(GL_FOG);
+     break;
+   case RL_DEFERRED:
+      glDisable(GL_FOG);
+     break;
+   case RL_FOG:
+   case RL_FOG_BOUNDARY:
+      glDisable(GL_FOG);
+     break;
+   default:
+     break;
+   }
+}
+
+
+FShader *RL_PrepForPoly(int mode, gl_poly_t *poly)
+{
+   FShader *shader;
+
+   shader = (poly->doomTex >= 0 && !MaskSkybox) ? GL_ShaderForTexture(TexMan[poly->doomTex]) : NULL;
+
+   switch (mode)
+   {
+   case RL_DEPTH:
+   case RL_DEFERRED_DEPTH:
+      textureList.SetTranslation(poly->translation);
+      if (shader)
+      {
+         if (shader->layers[0]->animate)
+         {
+            textureList.BindTexture(TexMan(shader->layers[0]->name));
+         }
+         else
+         {
+            textureList.BindTexture(TexMan[shader->layers[0]->name]);
+         }
+      }
+      else
+      {
+         textureList.BindTexture(poly->doomTex, true);
+      }
+      textureList.SetTranslation((byte *)NULL);
+      if (mode == RL_DEPTH)
+      {
+         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+      }
+      else
+      {
+         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+      }
+      break;
+   case RL_BASE:
+      if (shader)
+      {
+         if (shader->layers[0]->animate)
+         {
+            textureList.BindTexture(TexMan(shader->layers[0]->name));
+         }
+         else
+         {
+            textureList.BindTexture(TexMan[shader->layers[0]->name]);
+         }
+      }
+      else
+      {
+         textureList.BindTexture(poly->doomTex, true);
+      }
+      break;
+   case RL_TEXTURED_CLAMPED:
+   case RL_TEXTURED:
+      textureList.SetTranslation(poly->translation);
+      if (shader)
+      {
+         textureList.BindTexture(shader->name);
+      }
+      else
+      {
+         textureList.BindTexture(poly->doomTex, true);
+      }
+      textureList.SetTranslation((byte *)NULL);
+      if (mode == RL_TEXTURED)
+      {
+         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+      }
+      else
+      {
+         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+      }
+      break;
+   case RL_LIGHTS:
+      shader = NULL;
+      // no mipmapping for the light texture (or it smears with the MIN filter)
+      textureList.AllowMipMap(false);
+      textureList.BindTexture("GLLIGHT");
+      textureList.AllowMipMap(true);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+      break;
+   case RL_FOG:
+   case RL_FOG_BOUNDARY:
+      break;
+   case RL_MASK:
+      break;
+   case RL_DEFERRED:
+      textureList.SetTranslation(poly->translation);
+      if (shader)
+      {
+         textureList.BindTexture(shader->name);
+      }
+      else
+      {
+         textureList.BindTexture(poly->doomTex, true);
+      }
+      textureList.SetTranslation((byte *)NULL);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+      break;
+   default:
+      break;
+   }
+
+   return shader;
+}
+
+
+void RL_RenderList(int mode)
+{
    RList *rl;
    gl_poly_t *poly;
    FShader *shader;
+   FShaderLayer *layer;
+   int numLists, numPolys;
+
+   RL_SetupMode(mode);
 
    numLists = renderList.Size();
-   for (i = 0; i < numLists; i++)
+
+   for (int i = 0; i < numLists; i++)
    {
       rl = &renderList[i];
-      numPolys = renderList[i].numPolys;
-      if (numPolys > 0)
+      numPolys = rl->numPolys;
+      if (numPolys)
       {
-         // manually set up first poly to bind texture (so textures can be updated)
-         poly = &gl_polys[renderList[i].polys[0]];
-         // hmm, should translations be applied to shaders??
-         textureList.SetTranslation(poly->translation);
-
-         if ((poly->doomTex >= 0) && !MaskSkybox)
-         {
-            shader = GL_ShaderForTexture(TexMan[poly->doomTex]);
-         }
-         else
-         {
-            shader = NULL;
-         }
-
+         poly = &gl_polys[rl->polys[0]];
+         shader = RL_PrepForPoly(mode, poly);
          if (shader)
          {
-            GL_RenderPolyWithShader(poly, shader);
-            for (j = 1; j < numPolys; j++)
-            {
-               poly = &gl_polys[renderList[i].polys[j]];
-               GL_RenderPolyWithShader(poly, shader);
-            }
+            layer = shader->layers[0];
          }
          else
          {
-            // only bind the texture if no shader is found
-            textureList.BindTexture(poly->doomTex, true);
-            GL_RenderPoly(poly);
-            for (j = 1; j < numPolys; j++)
+            layer = NULL;
+         }
+
+         for (int j = 0; j < numPolys; j++)
+         {
+            poly = &gl_polys[renderList[i].polys[j]];
+
+            if (poly->initialized)
             {
-               poly = &gl_polys[renderList[i].polys[j]];
-               GL_RenderPoly(poly);
+               switch (mode)
+               {
+               case RL_DEPTH:
+               case RL_DEFERRED_DEPTH:
+                  GL_RenderPolyDepth(poly, layer);
+                  break;
+               case RL_BASE:
+                  GL_RenderPolyBase(poly);
+                  break;
+               case RL_TEXTURED:
+               case RL_TEXTURED_CLAMPED:
+                  GL_RenderPolyWithShader(poly, shader, false);
+                  break;
+               case RL_LIGHTS:
+                  GL_RenderPolyLit(poly);
+                  break;
+               case RL_FOG:
+                  GL_RenderPolyFogged(poly);
+                  break;
+               case RL_FOG_BOUNDARY:
+                  GL_RenderPolyFogBoundary(poly);
+                  break;
+               case RL_MASK:
+                  GL_RenderPolyMask(poly);
+                  break;
+               case RL_DEFERRED:
+                  GL_RenderPolyWithShader(poly, shader, true);
+                  break;
+               default:
+                  break;
+               }
             }
          }
       }
    }
 
-   textureList.SetTranslation((byte *)NULL);
-
    glMatrixMode(GL_TEXTURE);
    glLoadIdentity();
    glMatrixMode(GL_MODELVIEW);
+
+   textureList.SetTranslation((byte *)NULL);
+
+   RL_FinishMode(mode);
+}
+
+
+// this renders a single polygon
+void RL_RenderPoly(int mode, gl_poly_t *poly)
+{
+   FShader *shader;
+   FShaderLayer *layer;
+
+   RL_SetupMode(mode);
+   shader = RL_PrepForPoly(mode, poly);
+   if (shader)
+   {
+      layer = shader->layers[0];
+   }
+   else
+   {
+      layer = NULL;
+   }
+
+   if (poly->initialized)
+   {
+      switch (mode)
+      {
+      case RL_DEPTH:
+      case RL_DEFERRED_DEPTH:
+         GL_RenderPolyDepth(poly, layer);
+         break;
+      case RL_BASE:
+         GL_RenderPolyBase(poly);
+         break;
+      case RL_TEXTURED:
+      case RL_TEXTURED_CLAMPED:
+         if (!gl_wireframe && gl_texture) GL_RenderPolyWithShader(poly, shader, false);
+         break;
+      case RL_LIGHTS:
+         if (!gl_wireframe) GL_RenderPolyLit(poly);
+         break;
+      case RL_FOG:
+         if (!gl_wireframe) GL_RenderPolyFogged(poly);
+         break;
+      case RL_FOG_BOUNDARY:
+         if (!gl_wireframe) GL_RenderPolyFogBoundary(poly);
+         break;
+      case RL_MASK:
+         GL_RenderPolyMask(poly);
+         break;
+      case RL_DEFERRED:
+         if (!gl_wireframe && gl_texture) GL_RenderPolyWithShader(poly, shader, true);
+         break;
+      default:
+         break;
+      }
+   }
+
+   RL_FinishMode(mode);
 }

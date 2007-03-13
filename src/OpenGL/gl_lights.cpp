@@ -662,19 +662,24 @@ void GL_CheckActorLights(AActor *actor)
    if (actor->IsKindOf(PClass::FindClass("Actor")))
    {
       type = RUNTIME_TYPE(actor);
-      alias = GL_GetLightAlias(type->TypeName);
-      if (alias)
-      {
-         type = PClass::FindClass(alias->RealName());
-      }
-      numStates = 0;
-      // walk back up the heirarchy to find the parent with the most states
-      // usually this is a pretty short trip (1 or 2 parents)
-      while (stricmp("AActor", type->TypeName) != 0)
-      {
-         numStates = MAX<int>(numStates, type->ActorInfo->NumOwnedStates);
-         type = type->ParentClass;
-      }
+	  if( type != NULL ){
+		alias = GL_GetLightAlias(type->TypeName);
+		if (alias)
+		{
+			type = PClass::FindClass(alias->RealName());
+		}
+		if( type != NULL ){
+			numStates = 0;
+			// walk back up the heirarchy to find the parent with the most states
+			// usually this is a pretty short trip (1 or 2 parents)
+			while ( (type != NULL) && (stricmp("AActor", type->TypeName) != 0) )
+			{
+					if( type->ActorInfo )
+						numStates = MAX<int>(numStates, type->ActorInfo->NumOwnedStates);
+					type = type->ParentClass;
+			}
+		}
+	  }
    }
    else
    {

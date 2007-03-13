@@ -11,8 +11,27 @@ typedef struct
 
 typedef struct
 {
-   unsigned short startVert, endVert, lineDef, sideNum, partnerSeg;
-} glseg_t;
+   WORD startVert;
+   WORD endVert;
+   WORD lineDef;
+   WORD sideNum;
+   WORD partnerSeg;
+} glseg2_t;
+
+typedef struct
+{
+   DWORD startVert;
+   DWORD endVert;
+   WORD lineDef;
+   WORD flags;
+   DWORD partnerSeg;
+} glseg3_t;
+
+typedef struct
+{
+   DWORD numSegs;
+   DWORD firstSeg;
+} glssect3_t;
 
 int numGLverts;
 
@@ -30,6 +49,7 @@ void P_LoadGLVertexes(int lumpnum)
 
    data.Read(&id, 4);
    oldVerts = vertexes;
+
    if (id == MAKE_ID('g', 'N', 'd', '2'))
    {
       //v2 vertexes
@@ -69,66 +89,113 @@ void P_LoadGLVertexes(int lumpnum)
 
    numvertexes += numGLverts;
 
-   Printf( PRINT_OPENGL, "added %d vertices.\n", numGLverts);
+   Printf("ZGL: added %d vertices.\n", numGLverts);
 }
 
 
 void P_LoadGLSegs(int lumpnum)
 {
-   int  i;
-	FMemLump lumpdata;
-	const BYTE *data;
-	BYTE *vertchanged = new BYTE[numvertexes];	// phares 10/4/98
-	DWORD segangle;
-	line_t* line;		// phares 10/4/98
-	int ptp_angle;		// phares 10/4/98
-	int delta_angle;	// phares 10/4/98
-	int dis;			// phares 10/4/98
-	int dx,dy;			// phares 10/4/98
-	int vnum1,vnum2;	// phares 10/4/98
+   FWadLump data;
+   DWORD id;
+   glseg2_t gls2;
+   glseg3_t gls3;
+   bool isV3, validSeg;
+   DWORD vertexBit, segangle;
+   BYTE *vertchanged = new BYTE[numvertexes];
+   int i, ptp_angle, delta_angle, dis, dx, dy, vnum1, vnum2;
+   line_t *line;
    int firstGLvertex = numvertexes - numGLverts;
 
-	memset (vertchanged,0,numvertexes); // phares 10/4/98
+   data = Wads.OpenLumpNum (lumpnum);
+   data.Read(&id, 4);
+   isV3 = id == MAKE_ID('g', 'N', 'd', '3');
 
-	numsegs = Wads.LumpLength (lumpnum) / sizeof(glseg_t);
-
-	segs = new seg_t[numsegs];
-	memset (segs, 0, numsegs*sizeof(seg_t));
-	lumpdata = Wads.ReadLump (lumpnum);
-	data = (const BYTE *)lumpdata.GetMem();
-
-	line = lines;
-	for (i = 0; i < numlines ; i++, line++)
+   line = lines;
+   memset (vertchanged,0,numvertexes);
+   for (i = 0; i < numlines ; i++, line++)
 	{
 		vertchanged[line->v1 - vertexes] = vertchanged[line->v2 - vertexes] = 1;
 	}
 
-	for (i = 0; i < numsegs; i++)
-	{
-		seg_t *li = segs+i;
-		glseg_t *gls = (glseg_t *) data + i;
+   if (isV3)
+   {
+      numsegs = (data.GetLength() - 4) / sizeof(gls3);
+      vertexBit = 1 << 30;
+   }
+   else
+   {
+      data.Seek(0, SEEK_SET);
+      numsegs = data.GetLength() / sizeof(gls2);
+      vertexBit = 1 << 15;
+   }
 
-		int side, linedef;
-		line_t *ldef;
+   segs = new seg_t[numsegs];
+	memset (segs, 0, numsegs * sizeof(seg_t));
 
-      li->v1 = &vertexes[gls->startVert & 0x8000 ? firstGLvertex + (gls->startVert & ~0x8000) : gls->startVert];
-		li->v2 = &vertexes[gls->endVert & 0x8000 ? firstGLvertex + (gls->endVert & ~0x8000) : gls->endVert];
-      if (gls->lineDef != 0xFFFF)
+   for (i = 0; i < numsegs; i++)
+   {
+      seg_t *li = segs + i;
+      line_t *ldef;
+      int side, linedef;
+
+      if (isV3)
       {
-         ldef = &lines[gls->lineDef];
-         if (gls->partnerSeg != 0xFFFF)
+         data >> gls3.startVert >> gls3.endVert >> gls3.lineDef >> gls3.flags >> gls3.partnerSeg;
+         li->v1 = &vertexes[gls3.startVert & vertexBit ? firstGLvertex + (gls3.startVert & ~vertexBit) : gls3.startVert];
+         li->v2 = &vertexes[gls3.endVert & vertexBit ? firstGLvertex + (gls3.endVert & ~vertexBit) : gls3.endVert];
+         validSeg = gls3.lineDef != 0xffff;
+      }
+      else
+      {
+         data >> gls2.startVert >> gls2.endVert >> gls2.lineDef >> gls2.sideNum >> gls2.partnerSeg;
+         li->v1 = &vertexes[gls2.startVert & vertexBit ? firstGLvertex + (gls2.startVert & ~vertexBit) : gls2.startVert];
+         li->v2 = &vertexes[gls2.endVert & vertexBit ? firstGLvertex + (gls2.endVert & ~vertexBit) : gls2.endVert];
+         validSeg = gls2.lineDef != 0xffff;
+      }
+
+      if (validSeg)
+      {
+         if (isV3)
          {
-            li->PartnerSeg = &segs[gls->partnerSeg];
+            ldef = &lines[gls3.lineDef];
+            if (gls3.partnerSeg != DWORD_MAX)
+            {
+               li->PartnerSeg = &segs[gls3.partnerSeg];
+            }
+            else
+            {
+			      li->PartnerSeg = NULL;
+            }
+
+            segangle = R_PointToAngle2(ldef->v1->x, ldef->v1->y, ldef->v2->x, ldef->v2->y);
+            if (gls3.flags & 0x0001)
+            {
+               segangle -= ANGLE_180;
+            }
+
+            linedef = SHORT(gls3.lineDef);
+            side = SHORT(gls3.flags & 0x0001);
          }
          else
          {
-			   li->PartnerSeg = NULL;
-         }
+            ldef = &lines[gls2.lineDef];
+            if (gls2.partnerSeg != 0xFFFF)
+            {
+               li->PartnerSeg = &segs[gls2.partnerSeg];
+            }
+            else
+            {
+			      li->PartnerSeg = NULL;
+            }
 
-         segangle = R_PointToAngle2(ldef->v1->x, ldef->v1->y, ldef->v2->x, ldef->v2->y);
-         if (gls->sideNum)
-         {
-            segangle -= ANGLE_180;
+            segangle = R_PointToAngle2(ldef->v1->x, ldef->v1->y, ldef->v2->x, ldef->v2->y);
+            if (gls2.sideNum)
+            {
+               segangle -= ANGLE_180;
+            }
+
+            linedef = SHORT(gls2.lineDef);
+            side = SHORT(gls2.sideNum);
          }
 
 			ptp_angle = R_PointToAngle2 (li->v1->x, li->v1->y, li->v2->x, li->v2->y);
@@ -165,10 +232,8 @@ void P_LoadGLSegs(int lumpnum)
 				}
 			}
 
-			linedef = SHORT(gls->lineDef);
 			ldef = &lines[linedef];
 			li->linedef = ldef;
-			side = SHORT(gls->sideNum);
 			li->sidedef = &sides[ldef->sidenum[side]];
 			li->frontsector = sides[ldef->sidenum[side]].sector;
 
@@ -191,9 +256,9 @@ void P_LoadGLSegs(int lumpnum)
          li->sidedef = NULL;
          li->linedef = NULL;
       }
-	}
+   }
 
-	delete[] vertchanged; // phares 10/4/98
+   delete [] vertchanged;
 
    Printf("ZGL: read %d segs.\n", numsegs);
 }
@@ -201,30 +266,53 @@ void P_LoadGLSegs(int lumpnum)
 
 void P_LoadGLSubsectors(int lumpnum)
 {
-	FWadLump data;
-	int i;
+   FWadLump data;
+   DWORD id;
+   int i;
 
-	numsubsectors = Wads.LumpLength (lumpnum) / sizeof(mapsubsector_t);
+   data = Wads.OpenLumpNum (lumpnum);
+   data.Read(&id, 4);
 
-	subsectors = new subsector_t[numsubsectors];		
-	data = Wads.OpenLumpNum (lumpnum);
-	memset (subsectors, 0, numsubsectors * sizeof(subsector_t));
-	
-	for (i = 0; i < numsubsectors; i++)
-	{
-		WORD numsegs, firstseg;
+   if (id == MAKE_ID('g', 'N', 'd', '3'))
+   {
+      numsubsectors = Wads.LumpLength (lumpnum) / sizeof(glssect3_t);
 
-		data >> numsegs >> firstseg;
+      subsectors = new subsector_t[numsubsectors];
+      memset (subsectors, 0, numsubsectors * sizeof(subsector_t));
 
-		subsectors[i].numlines = numsegs;
-		subsectors[i].firstline = firstseg;
-	}
+      for (i = 0; i < numsubsectors; i++)
+      {
+         DWORD numsegs, firstseg;
 
-   Printf( PRINT_OPENGL, "read %d subsectors.\n", numsubsectors);
+         data >> numsegs >> firstseg;
+
+         subsectors[i].numlines = numsegs;
+         subsectors[i].firstline = firstseg;
+      }
+   }
+   else
+   {
+      data.Seek(0, SEEK_SET);
+	   numsubsectors = Wads.LumpLength (lumpnum) / sizeof(mapsubsector_t);
+
+	   subsectors = new subsector_t[numsubsectors];
+	   memset (subsectors, 0, numsubsectors * sizeof(subsector_t));
+
+	   for (i = 0; i < numsubsectors; i++)
+	   {
+		   WORD numsegs, firstseg;
+
+		   data >> numsegs >> firstseg;
+
+		   subsectors[i].numlines = numsegs;
+		   subsectors[i].firstline = firstseg;
+	   }
+   }
+
+   Printf("ZGL: read %d subsectors.\n", numsubsectors);
 }
 
-/*
+
 void P_LoadGLNodes(int lumpnum)
 {
 }
-*/

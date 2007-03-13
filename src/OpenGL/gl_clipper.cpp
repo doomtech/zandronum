@@ -47,36 +47,33 @@
 #include "templates.h"
 
 
-class clipnode_t
+#include <vector>
+#include <algorithm>
+using namespace std;
+using std::vector;
+
+
+//#define CLIP_USE_PLANE_CLASS
+
+
+class ClipNode
 {
 public:
-   clipnode_t *prev, *next;
-   angle_t start, end;
-   clipnode_t()
-   {
-      start = end = 0;
-      next = prev = NULL;
-   }
-   clipnode_t(const clipnode_t &other)
-   {
-      start = other.start;
-      end = other.end;
-      next = other.next;
-      prev = other.prev;
-   }
-   ~clipnode_t()
-   {
-      if (next) delete next;
-   }
-   bool operator== (const clipnode_t &other)
-   {
-      return other.start == start && other.end == end;
-   }
-   bool contains(angle_t startAngle, angle_t endAngle)
-   {
-      return (start <= startAngle && end >= endAngle);
-   }
+   ClipNode();
+   bool Contains(angle_t left, angle_t right);
+   bool Contains(angle_t angle);
+   bool ContainedBy(angle_t left, angle_t right);
+   void Merge(ClipNode &clipNode);
+   void Merge(angle_t left, angle_t right);
+   void Set(angle_t left, angle_t right);
+   angle_t Left() { return m_left; }
+   angle_t Right() { return m_right; }
+   static bool RangeExists(ClipNode &node);
+   static bool RangeEqual(ClipNode &node);
+protected:
+   angle_t m_left, m_right;
 };
+
 
 extern TextureList textureList;
 extern seg_t *segs;
@@ -84,25 +81,171 @@ extern int skyflatnum;
 extern bool DrawingDeferredLines;
 extern GLdouble viewMatrix[16];
 extern GLdouble projMatrix[16];
+extern GLint viewport[4];
 
- clipnode_t	*clipnodes;		// The list of clipnodes.
- clipnode_t	*cliphead;		// The head node.
-
-float frustum[6][4];
+vector<ClipNode> Clipper;
+#ifdef CLIP_USE_PLANE_CLASS
+ Plane frustum[4];
+#else
+ float frustum[6][4];
+#endif
+ClipNode Checker;
 
 EXTERN_CVAR (Bool, gl_nobsp)
 
 
+ClipNode::ClipNode()
+{
+   m_left = m_right = 0;
+}
+
+
+bool ClipNode::Contains(angle_t angle)
+{
+   return (m_left <= angle && m_right >= angle);
+}
+
+
+bool ClipNode::Contains(angle_t left, angle_t right)
+{
+   return (m_left <= left && m_right >= right);
+}
+
+
+bool ClipNode::ContainedBy(angle_t left, angle_t right)
+{
+   return (left <= m_left && right >= m_right);
+}
+
+
+void ClipNode::Merge(angle_t left, angle_t right)
+{
+   m_left = MIN<angle_t>(m_left, left);
+   m_left = MAX<angle_t>(m_right, right);
+}
+
+
+void ClipNode::Merge(ClipNode &clipNode)
+{
+   Merge(clipNode.Left(), clipNode.Right());
+}
+
+
+void ClipNode::Set(angle_t left, angle_t right)
+{
+   m_left = left;
+   m_right = right;
+}
+
+
+bool ClipNode::RangeExists(ClipNode &node)
+{
+   return Checker.Contains(node.Left(), node.Right());
+}
+
+
+bool ClipNode::RangeEqual(ClipNode &node)
+{
+   return (Checker.Left() == node.Left() && Checker.Right() == node.Right());
+}
+
+
 void CL_Init()
 {
-   cliphead = NULL;
-   clipnodes = NULL;
+   CL_ClearClipper();
 }
 
 
 void CL_Shutdown()
 {
    CL_ClearClipper();
+}
+
+
+void CL_ClearClipper()
+{
+   Clipper.erase(Clipper.begin(), Clipper.end());
+}
+
+
+void CL_PrintClipper()
+{
+   vector<ClipNode>::iterator it;
+
+   for (it = Clipper.begin(); it != Clipper.end(); ++it)
+   {
+      Printf("%.2f %.2f\n", ANGLE_TO_FLOAT(it->Left()), ANGLE_TO_FLOAT(it->Right()));
+   }
+
+   Printf("\n");
+}
+
+
+void CL_AddRange(angle_t startAngle, angle_t endAngle)
+{
+   vector<ClipNode>::iterator it, temp, where;
+   ClipNode tempNode;
+
+   tempNode.Set(startAngle, endAngle);
+
+   // check if the new range is already occluded
+   for (it = Clipper.begin(); it != Clipper.end(); ++it)
+   {
+      if (it->Contains(startAngle, endAngle)) return;
+   }
+
+   // remove any ranges covered by new range
+   Checker.Set(startAngle, endAngle);
+   where = std::remove_if(Clipper.begin(), Clipper.end(), ClipNode::RangeExists);
+   Clipper.erase(where, Clipper.end());
+
+   // check for overlapping start of new range with end of existing one (and possibly merge into next range as well)
+   for (it = Clipper.begin(); it != Clipper.end(); ++it)
+   {
+      if (it->Contains(startAngle))
+      {
+         temp = it + 1;
+         if (temp != Clipper.end())
+         {
+            if (temp->Contains(endAngle))
+            {
+               it->Set(it->Left(), temp->Right());
+               Checker.Set(temp->Left(), temp->Right());
+               where = std::remove_if(Clipper.begin(), Clipper.end(), ClipNode::RangeEqual);
+               Clipper.erase(where, Clipper.end());
+               return;
+            }
+         }
+
+         it->Set(it->Left(), endAngle);
+         return;
+      }
+      else if (it->Contains(endAngle))
+      {
+         it->Merge(startAngle, endAngle);
+         it->Set(startAngle, it->Right());
+         return;
+      }
+      else if (it->Left() > endAngle)
+      {
+         Clipper.insert(it, tempNode);
+         return;
+      }
+   }
+
+   Clipper.push_back(tempNode);
+}
+
+
+void CL_NormalizePlane(float *p)
+{
+   float mag;
+
+   mag = 1.f / sqrtf(p[0] * p[0] + p[1] * p[1] + p[2] * p[2]);
+   p[0] *= mag;
+   p[1] *= mag;
+   p[2] *= mag;
+   p[3] *= mag;
 }
 
 
@@ -133,11 +276,27 @@ void CL_CalcFrustumPlanes()
    clip[14] = (float)(viewMatrix[12] * projMatrix[ 2] + viewMatrix[13] * projMatrix[ 6] + viewMatrix[14] * projMatrix[10] + viewMatrix[15] * projMatrix[14]);
    clip[15] = (float)(viewMatrix[12] * projMatrix[ 3] + viewMatrix[13] * projMatrix[ 7] + viewMatrix[14] * projMatrix[11] + viewMatrix[15] * projMatrix[15]);
 
+#ifdef CLIP_USE_PLANE_CLASS
+   // extract right plane
+   frustum[0].Init(clip[3] - clip[0], clip[7] - clip[4], clip[11] - clip[8], clip[15] - clip[12]);
+   // extract left plane
+   frustum[1].Init(clip[3] + clip[0], clip[7] + clip[4], clip[11] + clip[8], clip[15] + clip[12]);
+   // extract top plane
+   frustum[2].Init(clip[3] - clip[1], clip[7] - clip[5], clip[11] - clip[9], clip[15] - clip[13]);
+   // extract bottom plane
+   frustum[3].Init(clip[3] + clip[1], clip[7] + clip[5], clip[11] + clip[9], clip[15] + clip[13]);
+   // extract far plane
+   frustum[4].Init(clip[3] - clip[2], clip[7] - clip[6], clip[11] - clip[10], clip[15] - clip[14]);
+   // extract near plane
+   frustum[5].Init(clip[3] + clip[2], clip[7] + clip[6], clip[11] + clip[10], clip[15] + clip[14]);
+#else
    /* Extract the numbers for the RIGHT plane */
    frustum[0][0] = clip[ 3] - clip[ 0];
    frustum[0][1] = clip[ 7] - clip[ 4];
    frustum[0][2] = clip[11] - clip[ 8];
    frustum[0][3] = clip[15] - clip[12];
+
+   CL_NormalizePlane(frustum[0]);
 
    /* Extract the numbers for the LEFT plane */
    frustum[1][0] = clip[ 3] + clip[ 0];
@@ -145,11 +304,15 @@ void CL_CalcFrustumPlanes()
    frustum[1][2] = clip[11] + clip[ 8];
    frustum[1][3] = clip[15] + clip[12];
 
+   CL_NormalizePlane(frustum[1]);
+
    /* Extract the BOTTOM plane */
    frustum[2][0] = clip[ 3] + clip[ 1];
    frustum[2][1] = clip[ 7] + clip[ 5];
    frustum[2][2] = clip[11] + clip[ 9];
    frustum[2][3] = clip[15] + clip[13];
+
+   CL_NormalizePlane(frustum[2]);
 
    /* Extract the TOP plane */
    frustum[3][0] = clip[ 3] - clip[ 1];
@@ -157,234 +320,86 @@ void CL_CalcFrustumPlanes()
    frustum[3][2] = clip[11] - clip[ 9];
    frustum[3][3] = clip[15] - clip[13];
 
+   CL_NormalizePlane(frustum[3]);
+
    /* Extract the FAR plane */
    frustum[4][0] = clip[ 3] - clip[ 2];
    frustum[4][1] = clip[ 7] - clip[ 6];
    frustum[4][2] = clip[11] - clip[10];
    frustum[4][3] = clip[15] - clip[14];
 
+   CL_NormalizePlane(frustum[4]);
+
    /* Extract the NEAR plane */
    frustum[5][0] = clip[ 3] + clip[ 2];
    frustum[5][1] = clip[ 7] + clip[ 6];
    frustum[5][2] = clip[11] + clip[10];
    frustum[5][3] = clip[15] + clip[14];
-}
 
-
-void CL_ClearClipper()
-{
-   delete cliphead;
-   cliphead = NULL;
+   CL_NormalizePlane(frustum[5]);
+#endif
 }
 
 
 bool CL_IsRangeVisible(angle_t startAngle, angle_t endAngle)
 {
-   clipnode_t *ci;
-   ci = cliphead;
-	
-   while (ci != NULL)
-   {
-      if (ci->contains(startAngle, endAngle))
-      {
-			return false;
-      }
+   vector<ClipNode>::iterator it;
 
-      ci = ci->next;
+   for (it = Clipper.begin(); it != Clipper.end(); ++it)
+   {
+      if (it->Contains(startAngle, endAngle)) return false;
    }
 
 	return true;
 }
 
 
-clipnode_t *CL_NewRange(angle_t start, angle_t end)
-{
-   clipnode_t *node;
-
-   node = new clipnode_t;
-
-   node->start = start;
-   node->end = end;
-
-   return node;
-}
-
-
-void CL_RemoveRange(clipnode_t *range)
-{
-   if (range == cliphead)
-   {
-      cliphead = cliphead->next;
-      if (cliphead) cliphead->prev = NULL;
-   }
-   else
-   {
-      if (range->prev) range->prev->next = range->next;
-      if (range->next) range->next->prev = range->prev;
-   }
-
-   // make sure it doesn't delete the rest of the list!
-   range->next = range->prev = NULL;
-
-   delete range;
-}
-
-
-void CL_AddClipRange(angle_t start, angle_t end)
-{
-   clipnode_t *node, *temp, *prevNode;
-
-   if (cliphead)
-   {
-      //check to see if range contains any old ranges
-      node = cliphead;
-      while (node != NULL)
-      {
-         if (node->contains(start, end))
-         {
-            return;
-         }
-         else if (start <= node->start && end >= node->end)
-         {
-            temp = node;
-            node = node->next;
-            CL_RemoveRange(temp);
-         }
-         else
-         {
-            node = node->next;
-         }
-      }
-
-      //check to see if range overlaps a range (or possibly 2)
-      node = cliphead;
-      while (node != NULL)
-      {
-         if (start < node->start && end >= node->start)
-         {
-            node->start = start;
-            return;
-         }
-
-         if (start <= node->end && end > node->end)
-         {
-            // check for possible merger
-            if (node->next)
-            {
-               // merge two nodes
-               if (end >= node->next->start)
-               {
-                  node->end = node->next->end;
-                  CL_RemoveRange(node->next);
-               }
-               else
-               {
-                  node->end = end;
-               }
-            }
-            else
-            {
-               node->end = end;
-            }
-
-            return;
-         }
-
-         node = node->next;
-      }
-
-      //just add range
-      node = cliphead;
-      prevNode = NULL;
-      temp = CL_NewRange(start, end);
-
-      while (node != NULL && end > node->start)
-      {
-         prevNode = node;
-         node = node->next;
-      }
-
-      if (node == NULL)
-      {
-         temp->next = NULL;
-         temp->prev = prevNode;
-         if (prevNode) prevNode->next = temp;
-         if (!cliphead) cliphead = temp;
-      }
-      else
-      {
-         if (node == cliphead)
-         {
-            temp->next = cliphead;
-            cliphead->prev = temp;
-            cliphead = temp;
-         }
-         else
-         {
-            temp->next = node;
-            temp->prev = prevNode;
-            prevNode->next = temp;
-            node->prev = temp;
-         }
-      }
-   }
-   else
-   {
-      temp = CL_NewRange(start, end);
-      cliphead = temp;
-      return;
-   }
-}
-
-
 void CL_SafeAddClipRange(angle_t startAngle, angle_t endAngle)
 {
-   if(startAngle > endAngle)
-	{
-		// The range has to added in two parts.
-		CL_AddClipRange(startAngle, ANGLE_MAX);
-		CL_AddClipRange(0, endAngle);
-	}
-	else
-	{
-		// Add the range as usual.
-		CL_AddClipRange(startAngle, endAngle);
-	}
+   if (endAngle < startAngle)
+   {
+      CL_AddRange(startAngle, ANGLE_MAX);
+      CL_AddRange(0, endAngle);
+   }
+   else
+   {
+      CL_AddRange(startAngle, endAngle);
+   }
 }
 
 
 void CL_AddSegRange(seg_t *seg)
 {
-   angle_t startAngle, endAngle;
+   angle_t a1, a2;
 
-   if (!seg->linedef) return;
+   a2 = R_PointToAngle(seg->v1->x, seg->v1->y);
+   a1 = R_PointToAngle(seg->v2->x, seg->v2->y);
 
-   startAngle = R_PointToAngle(seg->v2->x, seg->v2->y);
-   endAngle = R_PointToAngle(seg->v1->x, seg->v1->y);
-
-   CL_SafeAddClipRange(startAngle, endAngle);
+   CL_SafeAddClipRange(a1, a2);
 }
 
 
 bool CL_SafeCheckRange(angle_t startAngle, angle_t endAngle)
 {
-   if(startAngle > endAngle)
-	{
-		return (CL_IsRangeVisible(startAngle, ANGLE_MAX) || CL_IsRangeVisible(0, endAngle));
-	}
-
-	return CL_IsRangeVisible(startAngle, endAngle);
+   if (endAngle < startAngle)
+   {
+      return (CL_IsRangeVisible(startAngle, ANGLE_MAX) || CL_IsRangeVisible(0, endAngle));
+   }
+   else
+   {
+      return CL_IsRangeVisible(startAngle, endAngle);
+   }
 }
 
 
 bool CL_CheckSegRange(seg_t *seg)
 {
-   angle_t startAngle, endAngle;
+   angle_t a1, a2;
 
-   startAngle = R_PointToAngle(seg->v2->x, seg->v2->y);
-   endAngle = R_PointToAngle(seg->v1->x, seg->v1->y);
+   a2 = R_PointToAngle(seg->v1->x, seg->v1->y);
+   a1 = R_PointToAngle(seg->v2->x, seg->v2->y);
 
-   return CL_SafeCheckRange(startAngle, endAngle);
+   return CL_SafeCheckRange(a1, a2);
 }
 
 
@@ -394,6 +409,16 @@ bool CL_BBoxInFrustum(float bbox[2][3])
 
    for (p = 0; p < 6; p++)
    {
+#ifdef CLIP_USE_PLANE_CLASS
+      if (frustum[p].PointOnSide(bbox[0][0], bbox[0][1], bbox[0][2])) continue;
+      if (frustum[p].PointOnSide(bbox[1][0], bbox[0][1], bbox[0][2])) continue;
+      if (frustum[p].PointOnSide(bbox[0][0], bbox[1][1], bbox[0][2])) continue;
+      if (frustum[p].PointOnSide(bbox[1][0], bbox[1][1], bbox[0][2])) continue;
+      if (frustum[p].PointOnSide(bbox[0][0], bbox[0][1], bbox[1][2])) continue;
+      if (frustum[p].PointOnSide(bbox[1][0], bbox[0][1], bbox[1][2])) continue;
+      if (frustum[p].PointOnSide(bbox[0][0], bbox[1][1], bbox[1][2])) continue;
+      if (frustum[p].PointOnSide(bbox[1][0], bbox[1][1], bbox[1][2])) continue;
+#else
       if (frustum[p][0] * (bbox[0][0]) + frustum[p][1] * (bbox[0][1]) + frustum[p][2] * (bbox[0][2]) + frustum[p][3] > 0)
       {
          continue;
@@ -426,111 +451,37 @@ bool CL_BBoxInFrustum(float bbox[2][3])
       {
          continue;
       }
-      return false;
-   }
-
-   return true;
-}
-
-
-int CL_SubsectorInFrustum(subsector_t *ssec, sector_t *sector)
-{
-   if (CL_BBoxInFrustum(ssec->bbox))
-   {
-      return 1;
-   }
-   else
-   {
-      return 0;
-   }
-}
-
-
-bool CL_NodeInFrustum(node_t *bsp)
-{
-   float bbox[2][3];
-   fixed_t x, z;
-
-   // assume very tall geometry here
-   bbox[0][1] = -150000.f;
-   bbox[1][1] = 150000.f;
-
-   x = MIN<fixed_t>(bsp->bbox[0][BOXLEFT], bsp->bbox[1][BOXLEFT]);
-   z = MAX<fixed_t>(bsp->bbox[0][BOXTOP], bsp->bbox[1][BOXTOP]);
-   bbox[0][0] = -x * MAP_SCALE;
-   bbox[0][2] = z * MAP_SCALE;
-
-   x = MAX<fixed_t>(bsp->bbox[0][BOXRIGHT], bsp->bbox[1][BOXRIGHT]);
-   z = MIN<fixed_t>(bsp->bbox[0][BOXBOTTOM], bsp->bbox[1][BOXBOTTOM]);
-   bbox[1][0] = -x * MAP_SCALE;
-   bbox[1][2] = z * MAP_SCALE;
-
-   return CL_BBoxInFrustum(bbox);
-}
-
-
-bool CL_NodeVisible(node_t *bsp)
-{
-   angle_t a1, a2;
-   fixed_t x1, x2, y1, y2;
-
-   return true;
-
-   if (CL_NodeInFrustum(bsp))
-   {
-#if 0
-      x1 = MIN<fixed_t>(bsp->bbox[0][BOXLEFT], bsp->bbox[1][BOXLEFT]);
-      y2 = MIN<fixed_t>(bsp->bbox[0][BOXBOTTOM], bsp->bbox[1][BOXBOTTOM]);
-      x2 = MAX<fixed_t>(bsp->bbox[0][BOXRIGHT], bsp->bbox[1][BOXRIGHT]);
-      y1 = MAX<fixed_t>(bsp->bbox[0][BOXTOP], bsp->bbox[1][BOXTOP]);
-
-      if (GL_SegFacingDir(x1, y1, x2, y1))
-      {
-         a1 = R_PointToAngle(x1, y1);
-         a2 = R_PointToAngle(x2, y1);
-         if (CL_SafeCheckRange(a1, a2))
-         {
-            return true;
-         }
-      }
-
-      if (GL_SegFacingDir(x2, y1, x2, y2))
-      {
-         a1 = R_PointToAngle(x2, y1);
-         a2 = R_PointToAngle(x2, y2);
-         if (CL_SafeCheckRange(a1, a2))
-         {
-            return true;
-         }
-      }
-
-      if (GL_SegFacingDir(x2, y2, x1, y2))
-      {
-         a1 = R_PointToAngle(x2, y2);
-         a2 = R_PointToAngle(x1, y2);
-         if (CL_SafeCheckRange(a1, a2))
-         {
-            return true;
-         }
-      }
-
-      if (GL_SegFacingDir(x1, y2, x1, y1))
-      {
-
-         a1 = R_PointToAngle(x1, y2);
-         a2 = R_PointToAngle(x1, y1);
-         if (CL_SafeCheckRange(a1, a2))
-         {
-            return true;
-         }
-      }
-      return false;
-#else
-      return true;
 #endif
+      return false;
    }
 
-   return false;
+   return true;
+}
+
+
+bool CL_SphereInFrustum(float x, float y, float z, float radius)
+{
+   int p;
+   float d;
+
+   for (p = 0; p < 6; p++)
+   {
+      // d = A*px + B*py + C*pz + D
+#ifdef CLIP_USE_PLANE_CLASS
+      d = frustum[p].DistToPoint(x, y, z);
+#else
+      d = (frustum[p][0] * x) + (frustum[p][1] * y) + (frustum[p][2] * z) + frustum[p][3];
+#endif
+      if (d + radius < 0) return false;
+   }
+
+   return true;
+}
+
+
+bool CL_SubsectorInFrustum(subsector_t *ssec, sector_t *sector)
+{
+   return CL_BBoxInFrustum(ssec->bbox);
 }
 
 
@@ -539,13 +490,12 @@ bool CL_CheckBBox(fixed_t *bspcoord)
    float bbox[2][3];
 
    // assume very tall geometry here
-   bbox[0][1] = 150000.f;
-   bbox[1][1] = -150000.f;
-
-   bbox[0][0] = -bspcoord[BOXLEFT] * MAP_SCALE;
-   bbox[0][2] = bspcoord[BOXTOP] * MAP_SCALE;
-   bbox[1][0] = -bspcoord[BOXRIGHT] * MAP_SCALE;
-   bbox[1][2] = bspcoord[BOXBOTTOM] * MAP_SCALE;
+   bbox[0][0] = MIN<float>(-bspcoord[BOXLEFT] * MAP_SCALE, -bspcoord[BOXRIGHT] * MAP_SCALE);
+   bbox[0][1] = -150000.f;
+   bbox[0][2] = MIN<float>(bspcoord[BOXTOP] * MAP_SCALE, bspcoord[BOXBOTTOM] * MAP_SCALE);
+   bbox[1][0] = MAX<float>(-bspcoord[BOXLEFT] * MAP_SCALE, -bspcoord[BOXRIGHT] * MAP_SCALE);
+   bbox[1][1] = 150000.f;
+   bbox[1][2] = MAX<float>(bspcoord[BOXTOP] * MAP_SCALE, bspcoord[BOXBOTTOM] * MAP_SCALE);
 
    return CL_BBoxInFrustum(bbox);
 }
@@ -587,71 +537,88 @@ bool CL_CheckSubsector(subsector_t *ssec, sector_t *sector)
 
 bool CL_ShouldClipAgainstSeg(seg_t *seg, sector_t *frontSector, sector_t *backSector)
 {
-   fixed_t x, y;
-   //
-   // never clip minisegs
-   //
-   if (!seg->linedef)
-   {
-      return false;
-   }
+   fixed_t bs_floorheight1, bs_floorheight2, bs_ceilingheight1, bs_ceilingheight2;
+	fixed_t fs_floorheight1, fs_floorheight2, fs_ceilingheight1, fs_ceilingheight2;
 
-   //
-   // make sure seg is facing viewer
-   //
-   if (!GL_SegFacingDir(seg->v1->x, seg->v1->y, seg->v2->x, seg->v2->y))
-   {
-      return false;
-   }
+   if (!seg->linedef) return false; // miniseg!
+   if (seg->length == 0.f) return false;
+   if (!GL_SegFacingDir(seg->v1->x, seg->v1->y, seg->v2->x, seg->v2->y)) return false;
 
-   //
-   // no backsector == solid wall
-   //
+   if (seg->linedef->special == Line_Mirror || seg->linedef->special == Line_Horizon) return true;
+
    if (!backSector)
    {
       return true;
    }
-
-   //
-   // translucent lines shouldn't be clipped against
-   //
-   if (seg->linedef->alpha != 0xff)
+   else if (!seg->bPolySeg)
    {
-      return false;
-   }
-
-   //
-   // check to see if the floor/ceiling planes are closed
-   //
-   if (backSector)
-   {
-      x = (seg->v1->x + seg->v2->x) >> 1;
-      y = (seg->v1->y + seg->v2->y) >> 1;
-
-      if (frontSector->floorplane.ZatPoint(x, y) >= backSector->ceilingplane.ZatPoint(x, y))
+      //if (frontSector->floorplane.Tilted() || frontSector->ceilingplane.Tilted())
+      if (true)
       {
-         return true;
+         fs_floorheight1 = frontSector->floorplane.ZatPoint(seg->v1);
+         fs_floorheight2 = frontSector->floorplane.ZatPoint(seg->v2);
+         fs_ceilingheight1 = frontSector->ceilingplane.ZatPoint(seg->v1);
+         fs_ceilingheight2 = frontSector->ceilingplane.ZatPoint(seg->v2);
+      }
+      else
+      {
+         fs_floorheight1 = fs_floorheight2 = frontSector->floortexz;
+         fs_ceilingheight1 = fs_ceilingheight2 = frontSector->ceilingtexz;
       }
 
-      if (frontSector->ceilingplane.ZatPoint(x, y) <= backSector->floorplane.ZatPoint(x, y))
+      //if (backSector->floorplane.Tilted() || backSector->ceilingplane.Tilted())
+      if (true)
       {
-         return true;
+         bs_floorheight1 = backSector->floorplane.ZatPoint(seg->v1);
+         bs_floorheight2 = backSector->floorplane.ZatPoint(seg->v2);
+         bs_ceilingheight1 = backSector->ceilingplane.ZatPoint(seg->v1);
+         bs_ceilingheight2 = backSector->ceilingplane.ZatPoint(seg->v2);
       }
-   }
+      else
+      {
+         bs_floorheight1 = bs_floorheight2 = backSector->floortexz;
+         bs_ceilingheight1 = bs_ceilingheight2 = backSector->ceilingtexz;
+      }
 
-   //
-   // check for hidden paths (like in Doom E1M1)
-   //
-#if 1
-   if (seg->sidedef->midtexture && seg->PartnerSeg && seg->PartnerSeg->sidedef && !seg->PartnerSeg->sidedef->midtexture)
-   {
-      textureList.GetTexture(seg->sidedef->midtexture, true);
-      if (!textureList.IsTransparent() && (seg->linedef->alpha == 255)) // && (seg->linedef->flags & ML_TWOSIDED == 0))
-      {
-         return true;
-      }
+      // now check for closed sectors!
+	   if (bs_ceilingheight1 <= fs_floorheight1 && bs_ceilingheight2 <= fs_floorheight2) 
+	   {
+		   //FTexture *tex = TexMan(seg->sidedef->toptexture);
+		   //if (!tex || tex->UseType == FTexture::TEX_Null) return false;
+		   //if (backSector->ceilingpic == skyflatnum && frontSector->ceilingpic == skyflatnum) return false;
+
+		   return true;
+	   }
+
+	   if (fs_ceilingheight1 <= bs_floorheight1 && fs_ceilingheight2 <= bs_floorheight2) 
+	   {
+		   //FTexture *tex = TexMan(seg->sidedef->bottomtexture);
+		   //if (!tex || tex->UseType == FTexture::TEX_Null) return false;
+		   //if (backSector->ceilingpic == skyflatnum && frontSector->ceilingpic == skyflatnum) return false;
+
+		   return true;
+	   }
+
+      if (bs_ceilingheight1<=bs_floorheight1 && bs_ceilingheight2<=bs_floorheight2)
+	   {
+		   // preserve a kind of transparent door/lift special effect:
+		   if (bs_ceilingheight1 < fs_ceilingheight1 || bs_ceilingheight2 < fs_ceilingheight2) 
+		   {
+			   FTexture *tex = TexMan(seg->sidedef->toptexture);
+			   if (!tex || tex->UseType == FTexture::TEX_Null) return false;
+		   }
+		   if (bs_floorheight1 > fs_floorheight1 || bs_floorheight2 > fs_floorheight2)
+		   {
+			   FTexture *tex = TexMan(seg->sidedef->bottomtexture);
+			   if (!tex || tex->UseType == FTexture::TEX_Null) return false;
+		   }
+
+		   if (backSector->ceilingpic == skyflatnum && frontSector->ceilingpic == skyflatnum) return false;
+		   if (backSector->floorpic == skyflatnum && frontSector->floorpic == skyflatnum) return false;
+
+		   return true;
+	   }
    }
-#endif
 
    return false;
 }
@@ -659,30 +626,6 @@ bool CL_ShouldClipAgainstSeg(seg_t *seg, sector_t *frontSector, sector_t *backSe
 
 extern int viewpitch;
 extern player_t *Player;
-//
-// find the angle to the frustum points of the far plane
-//
-angle_t CL_FrustumAngle(int whichAngle)
-{
-   angle_t amt;
-   float pct, rem, vp;
-
-   vp = clamp<float>(fabsf(ANGLE_TO_FLOAT(viewpitch)) + (Player->FOV / 2), 0.f, 90.f);
-   pct = vp / 90.f;
-   //rem = (180.f - (Player->FOV)) * pct;
-   //amt = (angle_t)((Player->FOV + rem) * ANGLE_1);
-   amt = (angle_t)(180.f * pct * ANGLE_1);
-
-   if (whichAngle == FRUSTUM_LEFT)
-   {
-      return viewangle - amt;
-   }
-   else
-   {
-      return viewangle + amt;
-   }
-}
-
 //
 // find the angle to the frustum points of the far plane
 //
@@ -698,14 +641,10 @@ angle_t CL_FrustumAngle()
    return amt;
 }
 
+
 bool CL_ClipperFull()
 {
-#if 0
-   angle_t a1, a2;
-   a1 = CL_FrustumAngle(FRUSTUM_LEFT);
-   a2 = CL_FrustumAngle(FRUSTUM_RIGHT);
-   return !CL_SafeCheckRange(a1, a2);
-#else
-   return (cliphead && cliphead->start == 0 && cliphead->end == ANGLE_MAX);
-#endif
+   if (Clipper.empty()) return false;
+   return Clipper.front().Contains(0, ANGLE_MAX);
 }
+

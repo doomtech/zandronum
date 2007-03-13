@@ -166,27 +166,19 @@ void DCanvas::FlatFill (int left, int top, int right, int bottom, FTexture *src)
 	int w = src->GetWidth();
 	int h = src->GetHeight();
 
-	if ( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL )
-		GL_DrawTextureTiled(src, left, top, right, bottom);
-	else
+	// Repeatedly draw the texture, left-to-right, top-to-bottom. The
+	// texture is positioned so that no matter what coordinates you pass
+	// to FlatFill, the origin of the repeating pattern is always (0,0).
+	for (int y = top / h * h; y < bottom; y += h)
 	{
-		int w = src->GetWidth();
-		int h = src->GetHeight();
-
-		// Repeatedly draw the texture, left-to-right, top-to-bottom. The
-		// texture is positioned so that no matter what coordinates you pass
-		// to FlatFill, the origin of the repeating pattern is always (0,0).
-		for (int y = top / h * h; y < bottom; y += h)
+		for (int x = left / w * w; x < right; x += w)
 		{
-			for (int x = left / w * w; x < right; x += w)
-			{
-				DrawTexture (src, x, y,
-					DTA_ClipLeft, left,
-					DTA_ClipRight, right,
-					DTA_ClipTop, top,
-					DTA_ClipBottom, bottom,
-					TAG_DONE);
-			}
+			DrawTexture (src, x, y,
+				DTA_ClipLeft, left,
+				DTA_ClipRight, right,
+				DTA_ClipTop, top,
+				DTA_ClipBottom, bottom,
+				TAG_DONE);
 		}
 	}
 }

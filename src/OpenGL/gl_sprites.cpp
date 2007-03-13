@@ -40,6 +40,7 @@
 #include "OpenGLVideo.h"
 
 #include "g_level.h"
+#include "templates.h"
 #include "w_wad.h"
 #include "gl_main.h"
 
@@ -47,6 +48,7 @@ typedef enum
 {
    TYPE_ACTOR,
    TYPE_SEG,
+   TYPE_PARTICLE,
    NUM_TYPES,
 } DEFERREDTYPE;
 
@@ -64,11 +66,21 @@ using std::list;
 #define MAX(a, b) ((a > b) ? a : b)
 
 
-CVAR (Int, gl_billboard_mode, 2, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR (Int, gl_billboard_mode, 1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR (Bool, gl_particles_additive, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR (Bool, gl_particles_grow, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR (Int, gl_particles_style, 2, CVAR_ARCHIVE | CVAR_GLOBALCONFIG) // 0 = square, 1 = round, 2 = smooth
+CVAR (Bool, gl_particles_usepoints, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR (Bool, gl_sprite_clip_to_floor, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR (Bool, gl_sprite_sharp_edges, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR (Bool, gl_light_sprites, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR (Bool, gl_lights_halos, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 EXTERN_CVAR (Bool, gl_depthfog)
 EXTERN_CVAR (Float, transsouls)
+EXTERN_CVAR (Bool, r_drawfuzz)
+
+extern PFNGLPROGRAMLOCALPARAMETER4FARBPROC glProgramLocalParameter4fARB;
+extern PFNGLBLENDEQUATIONEXTPROC glBlendEquationEXT;
 
 extern player_t *Player;
 extern TextureList textureList;
@@ -79,17 +91,20 @@ extern int numTris;
 extern bool DrawingDeferredLines;
 extern bool InMirror;
 extern bool CollectSpecials;
+extern TArray<ADynamicLight *> HaloLights;
 
 
 class SPRITELIST
 {
 public:
-   char type;
+   SPRITELIST() { object.actor = NULL; }
+   DEFERREDTYPE type;
    union {
       AActor *actor;
       seg_t *seg;
+      Particle *particle;
    } object;
-   fixed_t dist;
+   float dist;
    bool operator== (const SPRITELIST &other)
    {
       if (type == other.type && dist == other.dist)
@@ -100,6 +115,8 @@ public:
             return object.actor == other.object.actor;
          case TYPE_SEG:
             return object.seg == other.object.seg;
+         case TYPE_PARTICLE:
+            return object.particle == other.object.particle;
          default:
             return false;
          }
@@ -109,67 +126,10 @@ public:
 };
 
 TArray<SPRITELIST> visibleSprites;
-VERTEX3D rightVec, upVec;
-
-
-VERTEX3D GL_VectorRotateX(VERTEX3D vec, float angle)
-{
-   //vec.y += sinf(angle);
-   //vec.z += cosf(angle);
-
-   return vec;
-}
-
-
-VERTEX3D GL_VectorRotateY(VERTEX3D vec, float angle)
-{
-   //vec.x += sinf(angle);
-   //vec.z += cosf(angle);
-
-   return vec;
-}
-
-
-VERTEX3D GL_VectorMult(VERTEX3D vec, float scalar)
-{
-   vec.x *= scalar;
-   vec.y *= scalar;
-   vec.z *= scalar;
-
-   return vec;
-}
-
-
-VERTEX3D GL_VectorAdd(VERTEX3D vec1, VERTEX3D vec2)
-{
-   vec1.x += vec2.x;
-   vec1.y += vec2.y;
-   vec1.z += vec2.z;
-
-   return vec1;
-}
 
 
 void GL_CalculateCameraVectors()
 {
-   float yaw, pitch;
-
-   yaw = (270.f - ANGLE_TO_FLOAT(viewangle)) * M_PI / 180.f;
-   pitch = ANGLE_TO_FLOAT(viewpitch) * M_PI / 180.f;
-
-   rightVec.x = 1;
-   rightVec.y = 0;
-   rightVec.z = 0;
-
-   upVec.x = 0;
-   upVec.y = 1;
-   upVec.z = 0;
-
-   rightVec = GL_VectorRotateX(rightVec, pitch);
-   rightVec = GL_VectorRotateY(rightVec, yaw);
-
-   upVec = GL_VectorRotateX(rightVec, pitch);
-   upVec = GL_VectorRotateY(rightVec, yaw);
 }
 
 
@@ -197,6 +157,8 @@ void GL_DrawBillboard(AActor *thing, float x, float y, float z, float w, float h
 
    diff = y - btm;
    if (diff >= 0 || !gl_sprite_clip_to_floor) diff = 0;
+
+   diff += FIX2FLT(thing->floorclip);
 
    glTranslated(x, y - diff, z);
    glRotatef(a, 0.f, 1.f, 0.f);
@@ -265,11 +227,14 @@ void GL_DrawBillboard2(AActor *thing, float x, float y, float z, float w, float 
    diff = cy - btm;
    if (diff >= 0 || !gl_sprite_clip_to_floor) diff = 0;
 
+   diff += FIX2FLT(thing->floorclip);
+
    if (InMirror)
    {
       xMult *= -1;
    }
 
+   glPushAttrib(GL_POLYGON_BIT);
    glCullFace(GL_BACK);
 
    if (xMult < 0.0)
@@ -331,10 +296,12 @@ void GL_DrawBillboard2(AActor *thing, float x, float y, float z, float w, float 
 
    numTris += 2;
 
-   if (InMirror)
-   {
-      glCullFace(GL_FRONT);
-   }
+   glPopAttrib();
+}
+
+
+void GL_DrawBillboard3(AActor *thing, float x, float y, float z, float w, float h, float offX, float offZ, float xMult, int lump)
+{
 }
 
 
@@ -344,46 +311,33 @@ void GL_DrawThing(player_t *player, AActor *thing, float offX, float offZ)
    spritedef_t *sprdef;
    spriteframe_t *sprframe;
    PalEntry *p;
-   int frameIndex, width, height;
-   float x, y, z, ca, xMult, color, w, h, ow, oh;
+   int frameIndex, width, height, lightLevel;
+   float x, y, z, ca, xMult, color, w, h, ow, oh, r, g, b;
    fixed_t fx, fy, fz;
    FTexture *tex;
    int picnum;
+   ADynamicLight *light;
+
+   //if (gl_lights_halos)
+   if (false)
+   {
+      for (unsigned int i = 0; i < thing->Lights.Size(); i++)
+      {
+         light = static_cast<ADynamicLight *>(thing->Lights[i]);
+         while (light)
+         {
+            if (light->halo && light->GetRadius() > 0.f) HaloLights.Push(light);
+            light = light->lnext;
+         }
+      }
+   }
 
    if ((thing->renderflags & RF_INVISIBLE) || thing->RenderStyle == STYLE_None || (thing->RenderStyle >= STYLE_Translucent && thing->alpha == 0))
 	{
       return;
 	}
 
-   sector = R_FakeFlat(thing->floorsector, &tempsec, NULL, NULL, false);
-
-   if (thing->renderflags & RF_FULLBRIGHT || Player->fixedcolormap)
-   {
-      if (!sector->ColorMap->Fade)
-      {
-         glDisable(GL_FOG);
-      }
-      color = 1.f;
-   }
-   else
-   {
-      if (gl_depthfog && !Player->fixedcolormap)
-      {
-         glEnable(GL_FOG);
-      }
-
-      color = (float)(sector->lightlevel + (playerlight << 4)) / LIGHTLEVELMAX;
-      //color = color * 0.95f;
-   }
-
-   if (sector->ColorMap->Fade)
-   {
-      GL_SetupFog(sector->lightlevel, sector->ColorMap->Fade.r, sector->ColorMap->Fade.g, sector->ColorMap->Fade.b);
-   }
-   else
-   {
-      GL_SetupFog(sector->lightlevel, ((level.fadeto & 0xFF0000) >> 16), ((level.fadeto & 0x00FF00) >> 8), level.fadeto & 0x0000FF);
-   }
+   sector = GL_FakeFlat(thing->Sector, &tempsec, NULL, NULL, false);
 
    p = &sector->ColorMap->Color;
 
@@ -405,8 +359,30 @@ void GL_DrawThing(player_t *player, AActor *thing, float offX, float offZ)
 
    case STYLE_Shaded:
    case STYLE_Translucent:
-   case STYLE_OptFuzzy:
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      break;
+
+   case STYLE_OptFuzzy:
+      if (r_drawfuzz)
+      {
+         //glBlendFunc(GL_SRC_ALPHA_SATURATE, GL_ONE_MINUS_SRC_ALPHA);
+         //ca = 0.3f;
+         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+         textureList.LoadAlpha(true);
+         if (glBlendEquationEXT)
+         {
+            glBlendEquationEXT(GL_FUNC_REVERSE_SUBTRACT);
+            ca = 0.4f;
+         }
+         else
+         {
+            ca = 0.75f;
+         }
+      }
+      else
+      {
+         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      }
       break;
 
    case STYLE_SoulTrans:
@@ -447,30 +423,20 @@ void GL_DrawThing(player_t *player, AActor *thing, float offX, float offZ)
 		}
 		xMult = 1.f;
 
-		if (thing->picnum != 0xFFFF)
+		if (tex->Rotations != 0xFFFF)
 		{
-			if (tex->Rotations != 0xFFFF)
-			{
-				// choose a different rotation based on player view
-				spriteframe_t *sprframe = &SpriteFrames[tex->Rotations];
-				angle_t ang = R_PointToAngle (fx, fy);
-				angle_t rot = (ang - thing->angle + (angle_t)(ANGLE_45/2)*9) >> 28;
-				picnum = sprframe->Texture[rot];
-				if (sprframe->Flip & (1 << rot)) xMult = -1.f;
-				tex = TexMan[picnum];	// Do not animate the rotation
-			}
+			// choose a different rotation based on player view
+			spriteframe_t *sprframe = &SpriteFrames[tex->Rotations];
+			angle_t ang = R_PointToAngle (fx, fy);
+			angle_t rot = (ang - thing->angle + (angle_t)(ANGLE_45/2)*9) >> 28;
+			picnum = sprframe->Texture[rot];
+			if (sprframe->Flip & (1 << rot)) xMult = -1.f;
+			tex = TexMan[picnum];	// Do not animate the rotation
 		}
 	}
 	else
 	{
 		// decide which texture to use for the sprite
-#ifdef RANGECHECK
-		if ((unsigned)thing->sprite >= (unsigned)sprites.Size ())
-		{
-			DPrintf ("R_ProjectSprite: invalid sprite number %i\n", thing->sprite);
-			return;
-		}
-#endif
 		spritedef_t *sprdef = &sprites[thing->sprite];
 		if (thing->frame >= sprdef->numframes)
 		{
@@ -479,7 +445,6 @@ void GL_DrawThing(player_t *player, AActor *thing, float offX, float offZ)
 		}
 		else
 		{
-			//picnum = SpriteFrames[sprdef->spriteframes + thing->frame].Texture[0];
 			// choose a different rotation based on player view
 			spriteframe_t *sprframe = &SpriteFrames[sprdef->spriteframes + thing->frame];
 			angle_t ang = R_PointToAngle (fx, fy);
@@ -502,6 +467,7 @@ void GL_DrawThing(player_t *player, AActor *thing, float offX, float offZ)
          textureList.SetTranslation(thing->Sector->ColorMap->Maps);
       }
    }
+
    textureList.AllowScale(false);
    textureList.BindTexture(tex);
    textureList.AllowScale(true);
@@ -521,14 +487,59 @@ void GL_DrawThing(player_t *player, AActor *thing, float offX, float offZ)
    offX = (offX * (tex->LeftOffset / MAP_COEFF * (thing->xscale / 63.f))) - (offX * w);
    offZ = (offZ * (tex->LeftOffset / MAP_COEFF * (thing->xscale / 63.f))) - (offZ * w);
 
-   glColor4f(color * byte2float[p->r], color * byte2float[p->g], color * byte2float[p->b], ca);
+   if ((thing->renderflags & RF_FULLBRIGHT) || Player->fixedcolormap)
+   {
+      if (!sector->ColorMap->Fade)
+      {
+         glDisable(GL_FOG);
+      }
+      lightLevel = (int)LIGHTLEVELMAX;
+   }
+   else
+   {
+      if (gl_depthfog && !Player->fixedcolormap)
+      {
+         glEnable(GL_FOG);
+         // setup fog first, before taking dynamic lights into account
+         if (sector->ColorMap->Fade)
+         {
+            GL_SetupFog(sector->lightlevel, sector->ColorMap->Fade.r, sector->ColorMap->Fade.g, sector->ColorMap->Fade.b);
+         }
+         else
+         {
+            GL_SetupFog(sector->lightlevel, ((level.fadeto & 0xFF0000) >> 16), ((level.fadeto & 0x00FF00) >> 8), level.fadeto & 0x0000FF);
+         }
+      }
+      lightLevel = sector->lightlevel;
+   }
 
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+   if (gl_light_sprites) lightLevel += GL_GetIntensityForPoint(-x, y, z);
+   lightLevel = clamp<int>(lightLevel, 0, 255);
+   color = lightLevel / LIGHTLEVELMAX;
+
+   r = color * byte2float[p->r];
+   g = color * byte2float[p->g];
+   b = color * byte2float[p->b];
+   // thing->height
+   if (gl_light_sprites) GL_GetLightForPoint(-x, y, z, &r, &g, &b);
+   glColor4f(r, g, b, ca);
+
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
    switch (gl_billboard_mode)
    {
    case 3:
+      if (static_cast<OpenGLFrameBuffer *>(screen)->SupportsVertexPrograms())
+      {
+         //GL_DrawBillboard3(thing, -x, y, z, w , h, offX, offZ, xMult, picnum);
+         GL_DrawBillboard2(thing, -x, y, z, w , h, offX, offZ, xMult, picnum);
+      }
+      else
+      {
+         GL_DrawBillboard2(thing, -x, y, z, w , h, offX, offZ, xMult, picnum);
+      }
+      break;
    case 2:
       GL_DrawBillboard2(thing, -x, y, z, w , h, offX, offZ, xMult, picnum);
       break;
@@ -543,7 +554,125 @@ void GL_DrawThing(player_t *player, AActor *thing, float offX, float offZ)
    if (gl_depthfog && !Player->fixedcolormap)
    {
       glEnable(GL_FOG);
+      //glDisable(GL_FOG);
    }
+
+   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+   textureList.LoadAlpha(false);
+   if (glBlendEquationEXT) glBlendEquationEXT(GL_FUNC_ADD);
+}
+
+
+void GL_DrawParticle(float x, float y, float z, PalEntry *p, int size)
+{
+   float rx, ry, rz, ux, uy, uz;
+   float cx, cy, cz;
+   float tx, ty;
+   float w, h;
+   float angle;
+   float grow;
+
+   grow = 1 - byte2float[p->a];
+   grow = (3 * grow) + 1;
+
+   if (gl_particles_style == 0)
+	   w = h = size * 0.18f;
+   else if (gl_particles_style == 1)
+   {
+	   if (gl_particles_grow)
+		   w = h = (size * 0.1f) * grow;
+	   else
+		   w = h = size * 0.2f;
+   }
+   else
+   {
+	   if (gl_particles_grow)
+		   w = h = (size * 0.25f) * grow;
+	   else
+		   w = h = size * 0.5f;
+   }
+
+   rx = viewMatrix[0]; ry = viewMatrix[4]; rz = viewMatrix[8];
+   ux = viewMatrix[1]; uy = viewMatrix[5]; uz = viewMatrix[9];
+   textureList.GetCorner(&tx, &ty);
+
+   angle = byte2float[p->a] * 720.f;
+
+   glColor4f(byte2float[p->r], byte2float[p->g], byte2float[p->b], byte2float[p->a]);
+
+   glPushAttrib(GL_POLYGON_BIT);
+   glCullFace(GL_BACK);
+
+   if (gl_particles_usepoints && static_cast<OpenGLFrameBuffer *>(screen)->SupportsPointSprites())
+   {
+      glEnable(GL_POINT_SPRITE_ARB);
+      //glPointSize(size * 256.f);
+      glBegin(GL_POINTS);
+         glVertex3f(x, y, z);
+      glEnd();
+      glDisable(GL_POINT_SPRITE_ARB);
+   }
+   else
+   {
+      glBegin(GL_TRIANGLE_FAN);
+         cx = x + (ux * -h) + (rx * -w);
+         cy = y + (uy * -h) + (ry * -w);
+         cz = z + (uz * -h) + (rz * -w);
+         glTexCoord2f(0.0, ty);
+         glVertex3f(cx, cy, cz);
+
+         cx = x + (ux * -h) + (rx * w);
+         cy = y + (uy * -h) + (ry * w);
+         cz = z + (uz * -h) + (rz * w);
+         glTexCoord2f(tx, ty);
+         glVertex3f(cx, cy, cz);
+
+         cx = x + (ux * h) + (rx * w);
+         cy = y + (uy * h) + (ry * w);
+         cz = z + (uz * h) + (rz * w);
+         glTexCoord2f(tx, 0.0);
+         glVertex3f(cx, cy, cz);
+
+         cx = x + (ux * h) + (rx * -w);
+         cy = y + (uy * h) + (ry * -w);
+         cz = z + (uz * h) + (rz * -w);
+         glTexCoord2f(0.0, 0.0);
+         glVertex3f(cx, cy, cz);
+      glEnd();
+   }
+
+   glPopAttrib();
+}
+
+
+void GL_DrawParticle(Particle *p)
+{
+   PalEntry pe;
+
+   GL_SetupFog(p->lightLevel, p->fogR, p->fogG, p->fogB);
+
+   if (gl_particles_additive)
+   {
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+   }
+   else
+   {
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+   }
+
+   pe.r = p->r;
+   pe.g = p->g;
+   pe.b = p->b;
+   pe.a = p->a;
+   
+   if (gl_particles_style == 0)
+      textureList.BindTexture("GLPART3");
+   if (gl_particles_style == 1)
+      textureList.BindTexture("GLPART2");
+   if (gl_particles_style == 2)
+      textureList.BindTexture("GLPART");
+
+   GL_DrawParticle(p->x, p->y, p->z, &pe, p->size);
 
    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
@@ -551,8 +680,19 @@ void GL_DrawThing(player_t *player, AActor *thing, float offX, float offZ)
 
 void GL_ClearSprites()
 {
+   int numSprites = visibleSprites.Size();
+
+   for (int i = numSprites - 1; i >= 0; i--)
+   {
+      if (visibleSprites[i].type == TYPE_PARTICLE)
+      {
+         delete visibleSprites[i].object.particle;
+      }
+   }
+
    visibleSprites.Clear();
 }
+
 
 
 extern bool InMirror;
@@ -561,28 +701,17 @@ void GL_AddSeg(seg_t *seg)
 {
    SPRITELIST sprite;
    fixed_t dist;
-   vertex_t vert;
 
    if (DrawingDeferredLines || CollectSpecials)
    {
       return;
    }
 
-   vert.x = (seg->v1->x + seg->v2->x) / 2;
-   vert.y = (seg->v1->y + seg->v2->y) / 2;
-
-   if ((vert.x == viewx) && (vert.y == viewy))
-   {
-      dist = 0;
-   }
-   else
-   {
-      dist = MIN(R_PointToDist2(seg->v1->x, seg->v1->y), R_PointToDist2(seg->v2->x, seg->v2->y));
-   }
+   dist = MIN(R_PointToDist(seg->v1->x, seg->v1->y), R_PointToDist(seg->v2->x, seg->v2->y));
 
    sprite.object.seg = seg;
    sprite.type = TYPE_SEG;
-   sprite.dist = dist;
+   sprite.dist = dist * MAP_SCALE;
    visibleSprites.Push(sprite);
 }
 
@@ -592,6 +721,8 @@ void GL_AddSprite(AActor *actor)
    SPRITELIST sprite;
    fixed_t dist;
    bool drawChase;
+   float x, y, z;
+   Vector v1, v2;
 
    if (DrawingDeferredLines || CollectSpecials)
    {
@@ -608,25 +739,52 @@ void GL_AddSprite(AActor *actor)
       }
    }
 
-   if ((actor->x == viewx) && (actor->y == viewy))
-   {
-      dist = 0;
-   }
-   else
-   {
-      dist = R_PointToDist2(actor->x, actor->y);
-   }
+   x = -viewx * MAP_SCALE;
+   y = viewz * MAP_SCALE;
+   z = viewy * MAP_SCALE;
+   v1.Set(x, y, z);
+
+   x = -actor->x * MAP_SCALE;
+   y = actor->z * MAP_SCALE;
+   z = actor->y * MAP_SCALE;
+   v2.Set(x, y, z);
+
+   dist = (v1 - v2).Length();
 
    sprite.object.actor = actor;
    sprite.type = TYPE_ACTOR;
    sprite.dist = dist;
+   visibleSprites.Push(sprite);
+
+   GL_CheckActorLights(actor);
+}
+
+
+void GL_AddParticle(Particle *p)
+{
+   SPRITELIST sprite;
+   float x, y, z, dist;
+   Vector v1, v2;
+
+   x = -viewx * MAP_SCALE;
+   y = viewz * MAP_SCALE;
+   z = viewy * MAP_SCALE;
+   v1.Set(x, y, z);
+   v2.Set(p->x, p->y, p->z);
+
+   dist = (v1 - v2).Length();
+
+   sprite.object.particle = p;
+   sprite.type = TYPE_PARTICLE;
+   sprite.dist = dist;
+
    visibleSprites.Push(sprite);
 }
 
 
 void GL_spriteQsort(SPRITELIST *left, SPRITELIST *right)
 {
-	SPRITELIST *leftbound, *rightbound, pivot, temp;
+   SPRITELIST *leftbound, *rightbound, pivot, temp;
 
    pivot = left[(right - left) / (2 * sizeof(SPRITELIST))];
    leftbound = left;
@@ -670,12 +828,15 @@ void GL_DrawSprites()
    AActor *thing;
    SPRITELIST *node, *sprites;
    int numSprites, i;
-   float lastAlpha = 0.f, alpha, offX, offZ, ang;
+   float alpha, offX, offZ, ang;
+   bool useVertexPrograms = static_cast<OpenGLFrameBuffer *>(screen)->SupportsVertexPrograms();
 
    if (!DrawingDeferredLines)
    {
       return;
    }
+
+   HaloLights.Clear();
 
    numSprites = visibleSprites.Size();
    if (numSprites == 0) return;
@@ -693,30 +854,43 @@ void GL_DrawSprites()
    offX = cosf(DEG2RAD(ang));
    offZ = sinf(DEG2RAD(ang));
 
+   if (useVertexPrograms && gl_billboard_mode == 3)
+   {
+      GL_BindVertexProgram("BILLBOARD");
+      GL_CalculateCameraVectors();
+   }
+
    for (i = numSprites - 1; i >= 0; i--)
    {
+      RL_SetupMode(RL_RESET);
       node = sprites + i;
       switch (node->type)
       {
       case TYPE_ACTOR:
          thing = node->object.actor;
-         alpha = MAX((thing->alpha / 65535.f) - 0.5f, 0.f);
-         if (alpha != lastAlpha && gl_sprite_sharp_edges)
+         if (gl_sprite_sharp_edges)
          {
-            glAlphaFunc(GL_GREATER, alpha);
-            lastAlpha = alpha;
+            alpha = MAX((thing->alpha / 65535.f) - 0.5f, 0.f);
          }
+         else
+         {
+            alpha = 0.f;
+         }
+         glAlphaFunc(GL_GREATER, alpha);
+         glDepthMask(GL_TRUE);
          GL_DrawThing(Player, thing, offX, offZ);
          break;
       case TYPE_SEG:
-         sec = R_FakeFlat(node->object.seg->frontsector, &tempSec, NULL, NULL, false);
+         sec = GL_FakeFlat(node->object.seg->frontsector, &tempSec, NULL, NULL, false);
          alpha = MAX(byte2float[node->object.seg->linedef->alpha] - 0.5f, 0.f);
-         if (alpha != lastAlpha && gl_sprite_sharp_edges)
-         {
-            glAlphaFunc(GL_GREATER, alpha);
-            lastAlpha = alpha;
-         }
-         GL_DrawWall(node->object.seg, sec, false, false);
+         glAlphaFunc(GL_GREATER, alpha);
+         glDepthMask(GL_TRUE);
+         GL_DrawWall(node->object.seg, sec, false);
+         break;
+      case TYPE_PARTICLE:
+         glDepthMask(GL_FALSE);
+         glAlphaFunc(GL_GREATER, 0.f);
+         GL_DrawParticle(node->object.particle);
          break;
       }
    }
@@ -725,4 +899,5 @@ void GL_DrawSprites()
 
    if (gl_sprite_sharp_edges) glAlphaFunc(GL_GREATER, 0.0);
    glDisable(GL_ALPHA_TEST);
+   glDepthMask(GL_TRUE);
 }

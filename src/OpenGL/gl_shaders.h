@@ -8,16 +8,11 @@
 
 typedef enum
 {
-   SHADER_TexGen_None,
-   SHADER_TexGen_Sphere,
-} shader_param_t;
-
-
-typedef enum
-{
    CYCLE_Linear,
    CYCLE_Sin,
-   CYCLE_Cos
+   CYCLE_Cos,
+   CYCLE_SawTooth,
+   CYCLE_Square
 } CycleType;
 
 
@@ -27,6 +22,13 @@ enum
    SHADER_Hardware,
    SHADER_Software,
    NUM_ShaderClasses,
+};
+
+enum
+{
+   SHADER_TexGen_None = 0,
+   SHADER_TexGen_Sphere,
+   NUM_TexGenTypes
 };
 
 
@@ -39,6 +41,7 @@ public:
    void ShouldCycle(bool sc);
    void SetCycleType(CycleType ct);
    float GetVal();
+   inline operator float () const { return m_current; }
 protected:
    float m_start, m_end, m_current;
    float m_time, m_cycle;
@@ -59,19 +62,25 @@ class FShaderLayer
 public:
    FShaderLayer();
    FShaderLayer(const FShaderLayer &layer);
+   ~FShaderLayer();
+   void Update(float diff);
    char name[9]; // name of the actual texture/flat/whatever to use for the layer
-   shader_param_t texGen;
    bool warp;
-   FCycler vectorX, vectorY;
-   float offsetX, offsetY;
-   float scaleX, scaleY;
+   bool animate;
+   bool emissive;
    float centerX, centerY;
    float rotation;
    float rotate;
+   float offsetX, offsetY;
+   FCycler adjustX, adjustY;
+   FCycler vectorX, vectorY;
+   FCycler scaleX, scaleY;
    FCycler alpha;
    FCycler r, g, b;
    unsigned int flags;
    unsigned int blendFuncSrc, blendFuncDst;
+   unsigned char texgen;
+   FShaderLayer *layerMask;
 };
 
 
@@ -94,8 +103,11 @@ extern TArray<FShader *> Shaders[NUM_ShaderClasses];
 extern TArray<FShader *> ShaderLookup[NUM_ShaderClasses];
 
 void GL_InitShaders();
-void STACK_ARGS GL_ReleaseShaders();
+void GL_ReleaseShaders();
 void GL_UpdateShaders();
+void GL_FakeUpdateShaders();
+void GL_UpdateShader(FShader *shader);
+void GL_DrawShaders();
 FShader *GL_ShaderForTexture(FTexture *tex);
 
 bool GL_ParseShader();

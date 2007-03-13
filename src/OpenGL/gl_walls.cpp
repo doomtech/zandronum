@@ -41,6 +41,7 @@
 #define USE_WINDOWS_DWORD
 #include "gl_main.h"
 #include "gl_texturelist.h"
+#include "glext.h"
 
 #include "a_sharedglobal.h"
 #include "p_lnspec.h"
@@ -51,6 +52,8 @@
 #include "gi.h"
 
 #define MAX(a,b) ((a) >= (b) ? (a) : (b))
+
+#define INVERSECOLORMAP 32
 
 using std::list;
 
@@ -65,6 +68,7 @@ EXTERN_CVAR (Int, tx)
 CVAR (Bool, gl_draw_decals, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR (Bool, gl_show_walltype, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR (Bool, gl_mask_walls, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR (Bool, gl_decals_subtractive, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 
 
 extern TextureList textureList;
@@ -79,6 +83,8 @@ extern int numTris;
 extern list<seg_t *> mirrorLines;
 extern TArray<spritedef_t> sprites;
 extern TArray<spriteframe_t> SpriteFrames;
+
+extern PFNGLBLENDEQUATIONEXTPROC glBlendEquationEXT;
 
 vertex_t *vert1, *vert2;
 TArray<decal_data_t> DecalList;
@@ -138,7 +144,7 @@ bool GL_SkyWall(seg_t *seg)
 
 bool GL_ShouldDrawWall(seg_t *seg)
 {
-   byte special = seg->linedef->special;
+   BYTE special = seg->linedef->special;
 
    if (GL_SkyWall(seg))
    {
@@ -177,26 +183,301 @@ void GL_DrawDecals()
    for (i = 0; i < DecalList.Size(); i++)
    {
       seg = DecalList[i].seg;
-      frontSector = R_FakeFlat(seg->frontsector, &fs, NULL, NULL, false);
-      if (seg->backsector)
-      {
-         backSector = R_FakeFlat(seg->backsector, &bs, NULL, NULL, false);
-      }
-      else
-      {
-         backSector = NULL;
-      }
+      frontSector = GL_FakeFlat(seg->frontsector, &fs, NULL, NULL, false);
+      backSector = GL_FakeFlat(seg->backsector, &bs, NULL, NULL, false);
       GL_DrawDecal(DecalList[i].decal, seg, frontSector, backSector);
    }
 
+   if (glBlendEquationEXT) glBlendEquationEXT(GL_FUNC_ADD);
    glPolygonOffset(0.f, 0.f);
    glDepthMask(GL_TRUE);
 
    DecalList.Clear();
 }
 
+
 void GL_DrawDecal(ADecal *actor, seg_t *seg, sector_t *frontSector, sector_t *backSector)
 {
+#if 0
+   line_t *line = seg->linedef;
+	side_t *side = seg->sidedef;
+	int i;
+	fixed_t zpos;
+	int light;
+	float a;
+	bool flipx, flipy, loadAlpha;
+	PalEntry *p;
+	float dv[4][5];
+	int decalTile;
+   int index;
+   gl_poly_t *poly;
+
+   if (!seg->linedef) return;
+	if (actor->renderflags & RF_INVISIBLE) return;
+
+   index = (numsubsectors * 2);
+   index += seg->index * 3;
+
+	//if (actor->sprite != 0xffff)
+	{
+		decalTile = actor->picnum;
+		flipx = !!(actor->renderflags & RF_XFLIP);
+		flipy = !!(actor->renderflags & RF_YFLIP);
+	}
+
+	switch (actor->renderflags & RF_RELMASK)
+	{
+	default:
+		zpos = actor->z;
+		break;
+
+	case RF_RELUPPER:
+      poly = &gl_polys[index + 0];
+		if (line->flags & ML_DONTPEGTOP)
+		{
+			zpos = actor->z + frontSector->ceilingtexz;
+		}
+		else
+		{
+			zpos = actor->z + backSector->ceilingtexz;
+		}
+		break;
+	case RF_RELLOWER:
+      poly = &gl_polys[index + 2];
+		if (line->flags & ML_DONTPEGBOTTOM)
+		{
+			zpos = actor->z + frontSector->ceilingtexz;
+		}
+		else
+		{
+			zpos = actor->z + backSector->floortexz;
+		}
+		break;
+	case RF_RELMID:
+      poly = &gl_polys[index + 1];
+		if (line->flags & ML_DONTPEGBOTTOM)
+		{
+			zpos = actor->z + frontSector->floortexz;
+		}
+		else
+		{
+			zpos = actor->z + frontSector->ceilingtexz;
+		}
+	}
+
+   if (!poly->vertices) return;
+
+	if (actor->renderflags & RF_FULLBRIGHT)
+	{
+		light=255;
+		// I don't thik this is such a good idea...
+		//glDisable(GL_FOG);	
+	}
+	else
+	{
+		light = MIN<int>(frontSector->lightlevel + (playerlight << 4), 255);
+	}
+	
+	int r = RPART(actor->alphacolor);
+	int g = GPART(actor->alphacolor);
+	int b = BPART(actor->alphacolor);
+	
+	float red, green, blue;
+
+   p = &screen->GetPalette()[frontSector->ColorMap->Maps[APART(actor->alphacolor)]];
+   red = byte2float[p->r];
+   green = byte2float[p->g];
+   blue = byte2float[p->b];
+
+   p = &frontSector->ColorMap->Color;
+   red *= byte2float[p->r];
+   green *= byte2float[p->g];
+   blue *= byte2float[p->b];
+
+	red = r * red / 255.f;
+	green = g * green / 255.f;
+	blue = b * blue / 255.f;
+	a = actor->alpha * INV_FRACUNIT;
+
+	if (actor->RenderStyle == STYLE_Shaded)
+	{
+		loadAlpha = true;
+		//p.a=CM_SHADE;
+	}
+	else
+	{
+		loadAlpha = false;
+		red = 1.f;
+		green = 1.f;
+		blue = 1.f;
+	}
+
+   FTexture *tex = TexMan(decalTile);
+   if (!tex) return;
+
+   textureList.LoadAlpha(loadAlpha);
+   textureList.SetTranslation(actor->Translation);
+   textureList.BindTexture(tex);
+   textureList.SetTranslation((BYTE *)NULL);
+   textureList.LoadAlpha(false);
+	
+	// now clip the decal to the actual polygon - we do this in full texel coordinates
+	int decalwidth=(tex->GetWidth()*actor->xscale)>>6;
+	int decalheight=(tex->GetHeight()*actor->xscale)>>6;
+	int decallefto=(tex->LeftOffset*actor->xscale)>>6;
+	int decaltopo=(tex->TopOffset*actor->xscale)>>6;
+	
+	// texel index of the decal's left edge
+	int decalpixpos = MulScale30(side->TexelLength, actor->floorclip) - (flipx? decalwidth-decallefto : decallefto);
+
+	int left,right;
+	int lefttex,righttex;
+
+	// decal is off the left edge
+	if (decalpixpos<0)
+	{
+		left=0;
+		lefttex=-decalpixpos;
+	}
+	else
+	{
+		left=decalpixpos;
+		lefttex=0;
+	}
+	
+	// decal is off the right edge
+	if (decalpixpos+decalwidth>side->TexelLength)
+	{
+		right=side->TexelLength;
+		righttex=right-decalpixpos;
+	}
+	else
+	{
+		right=decalpixpos+decalwidth;
+		righttex=decalwidth;
+	}
+
+	if (right<=left) return;	// nothing to draw
+
+	glColor4f(red, green, blue, a);
+   glColor3f(1.f, 0.f, 0.f);
+
+	switch(actor->RenderStyle)
+	{
+	case STYLE_Shaded:
+	case STYLE_Translucent:
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glAlphaFunc(GL_GREATER,0.0f);
+		break;
+
+	case STYLE_Add:
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+		glAlphaFunc(GL_GREATER,0.0f);
+		break;
+
+	case STYLE_Fuzzy:
+		glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
+		glAlphaFunc(GL_GREATER,0.0f);
+		break;
+
+	default:
+		glBlendFunc(GL_ONE,GL_ZERO);	
+		glAlphaFunc(GL_GEQUAL,0.5f);
+		break;
+	}
+
+   GL_SetupFog(poly->lightLevel, poly->fogR, poly->fogG, poly->fogB);
+
+   float fleft = left / MAP_COEFF;
+	float fright = right / MAP_COEFF;
+
+	float flength;
+
+	flength = side->TexelLength / MAP_COEFF;
+
+	// one texture unit on the wall as vector
+   float vx = (poly->vertices[(2 * 3) + 0] - poly->vertices[(0 * 3) + 0]) / flength;
+   float vz = (poly->vertices[(2 * 3) + 2] - poly->vertices[(0 * 3) + 2]) / flength;
+	float fracleft=fleft/flength;
+   	
+	dv[1][0]=dv[0][0]=poly->vertices[(0 * 3) + 0]+vx*fleft;
+	dv[1][2]=dv[0][2]=poly->vertices[(0 * 3) + 2]+vz*fleft;
+
+	dv[3][0]=dv[2][0]=poly->vertices[(0 * 3) + 0]+vx*fright;
+	dv[3][2]=dv[2][2]=poly->vertices[(0 * 3) + 2]+vz*fright;
+   	
+	zpos+= FRACUNIT*(flipy? decalheight-decaltopo : decaltopo);
+
+	dv[1][1]=dv[2][1]=zpos * MAP_SCALE;
+	dv[0][1]=dv[3][1]=(zpos-decalheight*FRACUNIT) * MAP_SCALE;
+	dv[1][4]=dv[2][4]=0;
+
+
+	//const PatchTextureInfo * pti=tex->BindPatch(p.a, actor->Translation);
+   float u, v;
+   textureList.GetCorner(&u, &v);
+   dv[1][3]=dv[0][3]=((lefttex*64/actor->xscale) * 1.f / tex->GetWidth()) * 1.f;
+	dv[3][3]=dv[2][3]=((righttex*64/actor->xscale) * 1.f / tex->GetWidth()) * u;
+	dv[0][4]=dv[3][4] = v;
+
+	// now clip to the top plane
+   float topleft, topright;
+   topleft = poly->vertices[(0 * 3) + 1];
+   topright = poly->vertices[(3 * 3) + 1];
+
+	// completely below the wall
+	if (topleft<dv[0][1] && topright<dv[3][1]) return;
+
+	if (topleft<dv[1][1] || topright<dv[2][1])
+	{
+		// decal has to be clipped at the top
+		// let texture clamping handle all extreme cases
+		dv[1][4]=(dv[1][1]-topleft)/(dv[1][1]-dv[0][1])*dv[0][4];
+		dv[2][4]=(dv[2][1]-topright)/(dv[2][1]-dv[3][1])*dv[3][4];
+		dv[1][1]=topleft;
+		dv[2][1]=topright;
+	}
+
+	// now clip to the bottom plane
+   float bottomleft, bottomright;
+   bottomleft = poly->vertices[(1 * 3) + 1];
+   bottomright = poly->vertices[(2 * 3) + 1];
+
+	// completely above the wall
+	if (bottomleft>dv[1][1] && bottomright>dv[2][1]) return;
+
+	if (bottomleft>dv[0][1] || bottomright>dv[3][1])
+	{
+		// decal has to be clipped at the bottom
+		// let texture clamping handle all extreme cases
+		dv[0][4]=(dv[1][1]-bottomleft)/(dv[1][1]-dv[0][1])*(dv[0][4]-dv[1][4]) + dv[1][4];
+		dv[3][4]=(dv[2][1]-bottomright)/(dv[2][1]-dv[3][1])*(dv[3][4]-dv[2][4]) + dv[2][4];
+
+      //Printf("%.2f %.2f  %.2f %.2f\n", bottomleft, bottomright, topleft, topright);
+
+		dv[0][1]=bottomleft;
+		dv[3][1]=bottomright;
+	}
+
+	if (flipx)
+	{
+		float ur=0.f;
+		for(i=0;i<4;i++) dv[i][3]=ur-dv[i][3];
+	}
+	if (flipy)
+	{
+		float vb=v;
+		for(i=0;i<4;i++) dv[i][4]=vb-dv[i][4];
+	}
+
+	glBegin(GL_TRIANGLE_FAN);
+	for(i=3;i>=0;--i)
+	{
+		glTexCoord2f(dv[i][3],dv[i][4]);
+		glVertex3f(dv[i][0],dv[i][1],dv[i][2]);
+	}
+	glEnd();
+#else
    FTexture *tex;
    fixed_t zpos;
    fixed_t ownerAngle;
@@ -206,14 +487,32 @@ void GL_DrawDecal(ADecal *actor, seg_t *seg, sector_t *frontSector, sector_t *ba
    float cx, cy;
    float angle;
    float width, height;
-   float left, right, top, bottom, dist;
-   int decalTile;
+   float left, right, top, bottom;
+   int decalTile, index;
    bool flipx, loadAlpha;
    texcoord_t t1, t2, t3, t4;
+   gl_poly_t *poly;
+   Vector v;
 
    if (actor->renderflags & RF_INVISIBLE)
    {
       return;
+   }
+
+   index = (numsubsectors * 2);
+   index += seg->index * 3;
+
+   if (seg->sidedef->midtexture)
+   {
+      poly = &gl_polys[index + 1];
+   }
+   else if (seg->sidedef->toptexture)
+   {
+      poly = &gl_polys[index + 0];
+   }
+   else
+   {
+      poly = &gl_polys[index + 2];
    }
 
    switch (actor->renderflags & RF_RELMASK)
@@ -250,6 +549,7 @@ void GL_DrawDecal(ADecal *actor, seg_t *seg, sector_t *frontSector, sector_t *ba
 		{
 			zpos = actor->z + frontSector->ceilingtexz;
 		}
+      break;
 	}
 
    if (actor->picnum != 0xffff)
@@ -260,39 +560,56 @@ void GL_DrawDecal(ADecal *actor, seg_t *seg, sector_t *frontSector, sector_t *ba
 	else
 	{
       decalTile = SpriteFrames[sprites[actor->sprite].spriteframes + actor->frame].Texture[0];
-		//flipx = SpriteFrames[sprites[actor->sprite].spriteframes + actor->frame].flip & 1;
-      flipx = 0;
+		flipx = SpriteFrames[sprites[actor->sprite].spriteframes + actor->frame].Flip & 1;
 	}
 
    y = zpos * MAP_SCALE;
    x = -actor->x * MAP_SCALE;
    z = actor->y * MAP_SCALE;
    ownerAngle = R_PointToAngle2(seg->v1->x, seg->v1->y, seg->v2->x, seg->v2->y);
-   //ownerAngle = actor->angle;
-   angle = (ownerAngle / (ANGLE_MAX * 1.f) * 360.f);
+   angle = ANGLE_TO_FLOAT(ownerAngle);
 
-   if (actor->renderflags & RF_FULLBRIGHT)
-   {
-      glDisable(GL_FOG);
-      color = 1.f;
-   }
-   else
-   {
-      color = byte2float[MIN<int>(frontSector->lightlevel + (playerlight << 4), 255)];
-   }
-
-   p = &GPalette.BaseColors[frontSector->ColorMap->Maps[APART(actor->alphacolor)]];
+   p = &screen->GetPalette()[frontSector->ColorMap->Maps[APART(actor->alphacolor)]];
    r = byte2float[p->r];
    g = byte2float[p->g];
    b = byte2float[p->b];
 
    p = &frontSector->ColorMap->Color;
-   r = r * byte2float[p->r] * color;
-   g = g * byte2float[p->g] * color;
-   b = b * byte2float[p->b] * color;
+   r *= byte2float[p->r];
+   g *= byte2float[p->g];
+   b *= byte2float[p->b];
+
+   if (actor->renderflags & RF_FULLBRIGHT)
+   {
+      glDisable(GL_FOG);
+      color = 1.f;
+
+      if (glBlendEquationEXT)
+      {
+         glBlendEquationEXT(GL_FUNC_ADD);
+      }
+   }
+   else
+   {
+      GL_SetupFog(poly->lightLevel, poly->fogR, poly->fogG, poly->fogB);
+      color = byte2float[poly->lightLevel];
+
+      if (gl_decals_subtractive && glBlendEquationEXT)
+      {
+         glBlendEquationEXT(GL_FUNC_REVERSE_SUBTRACT);
+         v.Set(r, g, b);
+         r = (v.Length() - r) * 1.f;
+         g = (v.Length() - g) * 1.f;
+         b = (v.Length() - b) * 1.f;
+      }
+   }
+
+   r *= color;
+   g *= color;
+   b *= color;
 
    tex = TexMan(decalTile);
-   width = (tex->GetWidth() / 2.f) * (actor->xscale / 63.f) / MAP_COEFF;
+   width = (tex->GetWidth() * 0.5f) * (actor->xscale / 63.f) / MAP_COEFF;
    height = tex->GetHeight() * (actor->yscale / 63.f) / MAP_COEFF;
 
    top = (tex->TopOffset * (actor->yscale / 63.f)) / MAP_COEFF;
@@ -326,54 +643,31 @@ void GL_DrawDecal(ADecal *actor, seg_t *seg, sector_t *frontSector, sector_t *ba
    t3.x = cx;  t3.y = 0.f;
    t4.x = cx;  t4.y = cy;
 
+   glColor4f(r, g, b, a);
+
+   if (!flipx)
+   {
+      t1.x *= -1;
+      t2.x *= -1;
+      t3.x *= -1;
+      t4.x *= -1;
+   }
+
    glPushMatrix();
    glTranslatef(x, y, z);
    glRotatef(angle, 0.f, 1.f, 0.f);
-   glColor4f(r, g, b, a);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
-#if 0
-   vertex_t *testvert;
-   testvert = seg->v1;
-   left = 0;
-   glColor4f(0, 0, 0, 0);
-   dist = R_PointToDist3(actor->x, actor->y, testvert->x, testvert->y) * INV_FRACUNIT;
-   if (width > dist)
-   {
-      glColor3f(1, 0, 0);
-   }
-#endif
+   glBegin(GL_TRIANGLE_FAN);
+      glTexCoord2f(t1.x, t1.y);
+      glVertex3f(left, bottom, 0);
+      glTexCoord2f(t2.x, t2.y);
+      glVertex3f(left, top, 0);
+      glTexCoord2f(t3.x, t3.y);
+      glVertex3f(right, top, 0);
+      glTexCoord2f(t4.x, t4.y);
+      glVertex3f(right, bottom, 0);
+   glEnd();
 
-   if (flipx)
-   {
-      glBegin(GL_TRIANGLE_FAN);
-         glTexCoord2f(t1.x, t1.y);
-         glVertex3f(left, bottom, 0);
-         glTexCoord2f(t2.x, t2.y);
-         glVertex3f(left, top, 0);
-         glTexCoord2f(t3.x, t3.y);
-         glVertex3f(right, top, 0);
-         glTexCoord2f(t4.x, t4.y);
-         glVertex3f(right, bottom, 0);
-      glEnd();
-   }
-   else
-   {
-      glBegin(GL_TRIANGLE_FAN);
-         glTexCoord2f(t4.x, t1.y);
-         glVertex3f(left, bottom, 0);
-         glTexCoord2f(t3.x, t2.y);
-         glVertex3f(left, top, 0);
-         glTexCoord2f(t2.x, t3.y);
-         glVertex3f(right, top, 0);
-         glTexCoord2f(t1.x, t4.y);
-         glVertex3f(right, bottom, 0);
-      glEnd();
-   }
-
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
    glPopMatrix();
 
    numTris += 2;
@@ -381,46 +675,7 @@ void GL_DrawDecal(ADecal *actor, seg_t *seg, sector_t *frontSector, sector_t *ba
    if (gl_depthfog && !Player->fixedcolormap)
    {
       glEnable(GL_FOG);
-   }
-}
-
-
-void GL_DrawLineHorizon(seg_t *seg, sector_t *sector)
-{
-   float v1[5], v2[5], v3[5], v4[5];
-   int i;
-
-   // calculate seg coordinates
-   v1[0] = -seg->v1->x * MAP_SCALE;
-   v1[1] = sector->ceilingplane.ZatPoint(seg->v1) * MAP_SCALE;
-   v1[2] = seg->v1->y * MAP_SCALE;
-   v2[0] = -seg->v2->x * MAP_SCALE;
-   v2[1] = sector->ceilingplane.ZatPoint(seg->v2) * MAP_SCALE;
-   v2[2] = seg->v2->y * MAP_SCALE;
-   v1[3] = v2[3] = 0.f;
-   v1[4] = v2[4] = 1.f;
-   // extrude seg ends from center of sector to far plane
-   memcpy(v3, v1, sizeof(float) * 5);
-   memcpy(v4, v2, sizeof(float) * 5);
-   // calc texcoords for 4 points
-
-#if 0
-   if (sector->ceilingpic)
-   {
-      textureList.BindTexture(sector->ceilingpic, true);
-      glBegin(GL_TRIANGLE_FAN);
-         for (i = 0; i < 4; i++)
-         {
-            glTexCoord2f(v1[3], v1[4]);
-            glVertex3f(v1[0], v1[1], v1[2]);
-            glTexCoord2f(v2[3], v2[4]);
-            glVertex3f(v2[0], v2[1], v2[2]);
-            glTexCoord2f(v3[3], v3[4]);
-            glVertex3f(v3[0], v3[1], v3[2]);
-            glTexCoord2f(v4[3], v4[4]);
-            glVertex3f(v4[0], v4[1], v4[2]);
-         }
-      glEnd();
+      //glDisable(GL_FOG);
    }
 #endif
 }
@@ -428,7 +683,8 @@ void GL_DrawLineHorizon(seg_t *seg, sector_t *sector)
 
 void GL_GetOffsetsForSeg(seg_t *seg, float *offX, float *offY, wallpart_t part)
 {
-   float x, y, sx, sy;
+   float x, y;
+   float scaleX, scaleY;
    FTexture *tex;
 
    x = seg->sidedef->textureoffset * INV_FRACUNIT;
@@ -451,8 +707,19 @@ void GL_GetOffsetsForSeg(seg_t *seg, float *offX, float *offY, wallpart_t part)
       break;
    }
 
-   *offX = x / tex->GetWidth();
-   *offY = y / tex->GetHeight();
+   if (tex->bWorldPanning)
+   {
+      scaleX = tex->ScaleX ? tex->ScaleX / 8.f : 1.f;
+      scaleY = tex->ScaleY ? tex->ScaleY / 8.f : 1.f;
+   }
+   else
+   {
+      scaleX = 1.f;
+      scaleY = 1.f;
+   }
+
+   *offX = (x / tex->GetWidth()) * scaleX;
+   *offY = (y / tex->GetHeight()) * scaleY;
 }
 
 
@@ -525,15 +792,16 @@ void GL_MaskLowerWall(seg_t *seg, gl_poly_t *poly)
 }
 
 
-void GL_DrawWall(seg_t *seg, sector_t *frontSector, bool isPoly, bool fogBoundary)
+void GL_DrawWall(seg_t *seg, sector_t *frontSector, bool isPoly)
 {
    int index;
-   bool deferLine = false, validTexture;
-   bool isMirror;
+   bool deferLine, validTexture;
+   bool isMirror, fogBoundary;
    float offX, offY, r, g, b;
    PalEntry p;
    gl_poly_t *poly;
    FTexture *tex;
+   FShader *shader;
    sector_t *backSector, ts;
    int lightLevel;
 
@@ -541,20 +809,6 @@ void GL_DrawWall(seg_t *seg, sector_t *frontSector, bool isPoly, bool fogBoundar
    {
       return;
    }
-
-   backSector = R_FakeFlat(seg->backsector, &ts, NULL, NULL, false);
-   if (backSector)
-   {
-      fogBoundary = IsFogBoundary(frontSector, backSector);
-      fogBoundary = false;
-   }
-   else
-   {
-      fogBoundary = false;
-   }
-
-   index = (numsubsectors * 2);
-   index += seg->index * 3;
 
    if (!GL_ShouldDrawWall(seg))
    {
@@ -566,12 +820,27 @@ void GL_DrawWall(seg_t *seg, sector_t *frontSector, bool isPoly, bool fogBoundar
       return;
    }
 
+   backSector = GL_FakeFlat(seg->backsector, &ts, NULL, NULL, false);
+
+   if (backSector)
+   {
+      fogBoundary = IsFogBoundary(frontSector, backSector) && gl_depthfog;
+   }
+   else
+   {
+      fogBoundary = false;
+   }
+
+   index = (numsubsectors * 2);
+   index += seg->index * 3;
+
+   deferLine = false;
    if (seg->linedef->alpha < 255 && seg->backsector)
    {
       deferLine = true;
    }
 
-   if (fogBoundary && !DrawingDeferredLines)
+   if (fogBoundary)
    {
       deferLine = true;
    }
@@ -579,13 +848,13 @@ void GL_DrawWall(seg_t *seg, sector_t *frontSector, bool isPoly, bool fogBoundar
    if (seg->sidedef->midtexture)
    {
       textureList.GetTexture(seg->sidedef->midtexture, true);
-      if (seg->backsector != NULL && textureList.IsTransparent())
+      if (seg->backsector && textureList.IsTransparent())
       {
          deferLine = true;
       }
    }
 
-   if (deferLine && !DrawingDeferredLines && !CollectSpecials && !MaskSkybox)
+   if (!DrawingDeferredLines && deferLine && !CollectSpecials && !MaskSkybox)
    {
       GL_AddSeg(seg);
       fogBoundary = false;
@@ -599,23 +868,7 @@ void GL_DrawWall(seg_t *seg, sector_t *frontSector, bool isPoly, bool fogBoundar
    else
    {
       // solid geometry is never translucent!
-      p.a = 0xff;
-   }
-
-   if (Player->fixedcolormap)
-   {
-      glDisable(GL_FOG);
-   }
-   else
-   {
-      if (frontSector->ColorMap->Fade)
-      {
-         GL_SetupFog(frontSector->lightlevel, frontSector->ColorMap->Fade.r, frontSector->ColorMap->Fade.g, frontSector->ColorMap->Fade.b);
-      }
-      else
-      {
-         GL_SetupFog(frontSector->lightlevel, ((level.fadeto & 0xFF0000) >> 16), ((level.fadeto & 0x00FF00) >> 8), level.fadeto & 0x0000FF);
-      }
+      p.a = 255;
    }
 
    foggy = level.fadeto || frontSector->ColorMap->Fade;
@@ -641,13 +894,14 @@ void GL_DrawWall(seg_t *seg, sector_t *frontSector, bool isPoly, bool fogBoundar
          v1[2] = v3[2] = seg->v1->y * MAP_SCALE;
          v2[0] = v4[0] = -seg->v2->x * MAP_SCALE;
          v2[2] = v4[2] = seg->v2->y * MAP_SCALE;
-         textureList.BindGLTexture(0);
+         glDisable(GL_TEXTURE_2D);
          glBegin(GL_TRIANGLE_FAN);
             glVertex3fv(v1);
             glVertex3fv(v3);
             glVertex3fv(v4);
             glVertex3fv(v2);
          glEnd();
+         glEnable(GL_TEXTURE_2D);
          glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
       }
    }
@@ -658,19 +912,19 @@ void GL_DrawWall(seg_t *seg, sector_t *frontSector, bool isPoly, bool fogBoundar
          textureList.SetTranslation(seg->frontsector->ColorMap->Maps);
       }
 
-      if (seg->sidedef->toptexture == 0)
+      if (!seg->sidedef->toptexture)
       {
          validTexture = false;
       }
       else
       {
          tex = TexMan(seg->sidedef->toptexture);
-         validTexture = stricmp(tex->Name, "") != 0;
+         validTexture = (tex != NULL) && (tex->UseType != FTexture::TEX_Null) && (stricmp(tex->Name, "") != 0);
       }
 
-      if (seg->backsector && validTexture && !DrawingDeferredLines && !isMirror)
+      if (!DrawingDeferredLines && backSector && validTexture && !isMirror)
       {
-         if (seg->backsector->ceilingpic != skyflatnum || seg->frontsector->ceilingpic != skyflatnum)
+         if (backSector->ceilingpic != skyflatnum || frontSector->ceilingpic != skyflatnum)
          {
             GL_GetOffsetsForSeg(seg, &offX, &offY, WT_TOP);
 
@@ -678,15 +932,22 @@ void GL_DrawWall(seg_t *seg, sector_t *frontSector, bool isPoly, bool fogBoundar
             textureList.GetTexture(seg->sidedef->toptexture, true);
 
             // set up the potentially continuously changing poly stuff here
-            poly->isFogBoundary = false;
             poly->offX = offX;
-            poly->offY = offY;
+            poly->offY = offY + textureList.GetTopYOffset();
             poly->r = r;
             poly->g = g;
             poly->b = b;
             poly->a = 1.f;
             poly->scaleX = 1.f;
-            poly->scaleY = 1.f;
+            if (tex->CanvasTexture())
+            {
+               // these textures are upside down, so make sure to flip them
+               poly->scaleY = -1.f;
+            }
+            else
+            {
+               poly->scaleY = 1.f;
+            }
             poly->rot = 0.f;
             poly->lightLevel = lightLevel;
             poly->doomTex = seg->sidedef->toptexture;
@@ -707,9 +968,9 @@ void GL_DrawWall(seg_t *seg, sector_t *frontSector, bool isPoly, bool fogBoundar
             }
             else
             {
-               poly->fogR = (level.fadeto & 0xFF0000) >> 16;
-               poly->fogG = (level.fadeto & 0x00FF00) >> 8;
-               poly->fogB = level.fadeto & 0x0000FF;
+               poly->fogR = (BYTE)((level.fadeto & 0xFF0000) >> 16);
+               poly->fogG = (BYTE)((level.fadeto & 0x00FF00) >> 8);
+               poly->fogB = (BYTE)(level.fadeto & 0x0000FF);
             }
 
             RL_AddPoly(textureList.GetGLTexture(), index + 0);
@@ -718,29 +979,25 @@ void GL_DrawWall(seg_t *seg, sector_t *frontSector, bool isPoly, bool fogBoundar
          }
       }
 
-      if (seg->sidedef->midtexture == 0)
+      if (!seg->sidedef->midtexture)
       {
          validTexture = false;
       }
       else
       {
          tex = TexMan(seg->sidedef->midtexture);
-         validTexture = tex->UseType != FTexture::TEX_Null;
+         validTexture = (tex != NULL) && (tex->UseType != FTexture::TEX_Null) && (stricmp(tex->Name, "") != 0);
       }
-      if ((validTexture && (deferLine == DrawingDeferredLines) && !(seg->linedef->special == Line_Horizon)) || isMirror || fogBoundary)
+      if (((validTexture || fogBoundary) && (deferLine == DrawingDeferredLines) && !(seg->linedef->special == Line_Horizon)) || isMirror)
       {
-         GL_GetOffsetsForSeg(seg, &offX, &offY, WT_MID);
+         if (validTexture) GL_GetOffsetsForSeg(seg, &offX, &offY, WT_MID);
 
          poly = &gl_polys[index + 1];
          if (isMirror)
          {
-            p.a = 255 / 10; // 10% opacity
-            textureList.BindTexture(TexMan["ENVTEX"]);
-            glEnable(GL_TEXTURE_GEN_S);
-            glEnable(GL_TEXTURE_GEN_T);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+            p.a = 25; // 10% opacity
          }
-         else
+         else if (validTexture)
          {
             textureList.GetTexture(seg->sidedef->midtexture, true);
          }
@@ -748,26 +1005,22 @@ void GL_DrawWall(seg_t *seg, sector_t *frontSector, bool isPoly, bool fogBoundar
          // set up the potentially continuously changing poly stuff here
          if (fogBoundary)
          {
-            poly->isFogBoundary = fogBoundary;
-            if (backSector->ColorMap->Fade)
-            {
-               poly->fbR = backSector->ColorMap->Fade.r;
-               poly->fbG = backSector->ColorMap->Fade.g;
-               poly->fbB = backSector->ColorMap->Fade.b;
-               poly->fbLightLevel = backSector->lightlevel;
-            }
-            else
+            if (frontSector->ColorMap->Fade)
             {
                poly->fbR = frontSector->ColorMap->Fade.r;
                poly->fbG = frontSector->ColorMap->Fade.g;
                poly->fbB = frontSector->ColorMap->Fade.b;
                poly->fbLightLevel = frontSector->lightlevel;
             }
+            else
+            {
+               poly->fbR = backSector->ColorMap->Fade.r;
+               poly->fbG = backSector->ColorMap->Fade.g;
+               poly->fbB = backSector->ColorMap->Fade.b;
+               poly->fbLightLevel = backSector->lightlevel;
+            }
          }
-         else
-         {
-            poly->isFogBoundary = false;
-         }
+
          poly->offX = offX;
          poly->offY = offY;
          poly->r = r;
@@ -775,7 +1028,15 @@ void GL_DrawWall(seg_t *seg, sector_t *frontSector, bool isPoly, bool fogBoundar
          poly->b = b;
          poly->a = byte2float[p.a];
          poly->scaleX = 1.f;
-         poly->scaleY = 1.f;
+         if (validTexture && tex->CanvasTexture())
+         {
+            // these textures are upside down, so make sure to flip them
+            poly->scaleY = -1.f;
+         }
+         else
+         {
+            poly->scaleY = 1.f;
+         }
          poly->rot = 0.f;
          poly->lightLevel = lightLevel;
          poly->doomTex = seg->sidedef->midtexture;
@@ -796,34 +1057,63 @@ void GL_DrawWall(seg_t *seg, sector_t *frontSector, bool isPoly, bool fogBoundar
          }
          else
          {
-            poly->fogR = (level.fadeto & 0xFF0000) >> 16;
-            poly->fogG = (level.fadeto & 0x00FF00) >> 8;
-            poly->fogB = level.fadeto & 0x0000FF;
-         }
-
-         if (p.a < 0xff)
-         {
-            glDepthMask(GL_FALSE);
+            poly->fogR = (BYTE)((level.fadeto & 0xFF0000) >> 16);
+            poly->fogG = (BYTE)((level.fadeto & 0x00FF00) >> 8);
+            poly->fogB = (BYTE)(level.fadeto & 0x0000FF);
          }
 
          if (DrawingDeferredLines || isMirror)
          {
-            FShader *shader = NULL;
-
-            if (!isMirror)
+            if (validTexture)
             {
                textureList.BindTexture(seg->sidedef->midtexture, true);
                shader = GL_ShaderForTexture(TexMan[seg->sidedef->midtexture]);
+               if (!isMirror && poly->a == 1.f)
+               {
+                  // only non-translucent geometry gets lit
+                  RL_RenderPoly(RL_DEPTH, poly);
+                  glAlphaFunc(GL_GREATER, 0.f);
+                  RL_RenderPoly(RL_BASE, poly);
+                  RL_RenderPoly(RL_LIGHTS, poly);
+                  if (!gl_wireframe && gl_texture)
+                  {
+                     RL_RenderPoly(RL_TEXTURED_CLAMPED, poly);
+                  }
+                  if (!fogBoundary && gl_depthfog) RL_RenderPoly(RL_FOG, poly);
+               }
+               else
+               {
+                  if (isMirror)
+                  {
+                     glEnable(GL_TEXTURE_GEN_S);
+                     glEnable(GL_TEXTURE_GEN_T);
+                     glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+                     textureList.BindTexture("ENVTEX");
+                     GL_RenderPoly(poly, true);
+
+                     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                     glDisable(GL_TEXTURE_GEN_S);
+                     glDisable(GL_TEXTURE_GEN_T);
+                  }
+                  else
+                  {
+                     if (!gl_wireframe && gl_texture)
+                     {
+                        //glAlphaFunc(GL_GREATER, 0.f);
+                        RL_RenderPoly(RL_DEFERRED, poly);
+                     }
+                  }
+               }
             }
 
-            if (shader)
+            if (fogBoundary)
             {
-               GL_RenderPolyWithShader(poly, shader);
+               RL_RenderPoly(RL_MASK, poly);
+               RL_RenderPoly(RL_FOG_BOUNDARY, poly);
             }
-            else
-            {
-               GL_RenderPoly(poly);
-            }
+
+            RL_SetupMode(RL_RESET);
          }
          else
          {
@@ -834,32 +1124,20 @@ void GL_DrawWall(seg_t *seg, sector_t *frontSector, bool isPoly, bool fogBoundar
                if (frontSector->floorpic == skyflatnum && !seg->sidedef->bottomtexture) GL_MaskLowerWall(seg, poly);
             }
          }
-
-         if (p.a < 0xff)
-         {
-            glDepthMask(GL_TRUE);
-         }
-
-         if (isMirror)
-         {
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            glDisable(GL_TEXTURE_GEN_S);
-            glDisable(GL_TEXTURE_GEN_T);
-         }
       }
 
-      if (seg->sidedef->bottomtexture == 0)
+      if (!seg->sidedef->bottomtexture)
       {
          validTexture = false;
       }
       else
       {
          tex = TexMan(seg->sidedef->bottomtexture);
-         validTexture = stricmp(tex->Name, "") != 0;
+         validTexture = (tex != NULL) && (tex->UseType != FTexture::TEX_Null) && (stricmp(tex->Name, "") != 0);
       }
-      if (seg->backsector && validTexture && !DrawingDeferredLines && !isMirror)
+      if (!DrawingDeferredLines && backSector && validTexture && !isMirror)
       {
-         if (seg->backsector->floorpic != skyflatnum || seg->frontsector->floorpic != skyflatnum)
+         if (backSector->floorpic != skyflatnum || frontSector->floorpic != skyflatnum)
          {
             GL_GetOffsetsForSeg(seg, &offX, &offY, WT_BTM);
 
@@ -867,15 +1145,22 @@ void GL_DrawWall(seg_t *seg, sector_t *frontSector, bool isPoly, bool fogBoundar
             textureList.GetTexture(seg->sidedef->bottomtexture, true);
 
             // set up the potentially continuously changing poly stuff here
-            poly->isFogBoundary = false;
             poly->offX = offX;
-            poly->offY = offY;
+            poly->offY = offY - textureList.GetBottomYOffset();
             poly->r = r;
             poly->g = g;
             poly->b = b;
             poly->a = 1.f;
             poly->scaleX = 1.f;
-            poly->scaleY = 1.f;
+            if (tex->CanvasTexture())
+            {
+               // these textures are upside down, so make sure to flip them
+               poly->scaleY = -1.f;
+            }
+            else
+            {
+               poly->scaleY = 1.f;
+            }
             poly->rot = 0.f;
             poly->lightLevel = lightLevel;
             poly->doomTex = seg->sidedef->bottomtexture;
@@ -896,9 +1181,9 @@ void GL_DrawWall(seg_t *seg, sector_t *frontSector, bool isPoly, bool fogBoundar
             }
             else
             {
-               poly->fogR = (level.fadeto & 0xFF0000) >> 16;
-               poly->fogG = (level.fadeto & 0x00FF00) >> 8;
-               poly->fogB = level.fadeto & 0x0000FF;
+               poly->fogR = (BYTE)((level.fadeto & 0xFF0000) >> 16);
+               poly->fogG = (BYTE)((level.fadeto & 0x00FF00) >> 8);
+               poly->fogB = (BYTE)(level.fadeto & 0x0000FF);
             }
 
             RL_AddPoly(textureList.GetGLTexture(), index + 2);
@@ -907,17 +1192,18 @@ void GL_DrawWall(seg_t *seg, sector_t *frontSector, bool isPoly, bool fogBoundar
          }
       }
 
-      textureList.SetTranslation((byte *)NULL);
-      if (gl_draw_decals && seg->linedef->special != Line_Mirror && !CollectSpecials && DrawingDeferredLines == deferLine)
+      textureList.SetTranslation((BYTE *)NULL);
+#if 0
+      if (gl_draw_decals && seg->linedef->special != Line_Mirror && !CollectSpecials && DrawingDeferredLines == deferLine && !fogBoundary)
       {
-/*
-         ADecal *decal = seg->sidedef->BoundActors;
+
+		 ADecal *decal = seg->sidedef->AttachedDecals;
          while (decal)
          {
             GL_AddDecal(decal, seg);
             decal = (ADecal *)decal->snext;
          }
-*/
       }
+#endif
    }
 }

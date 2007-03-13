@@ -74,7 +74,7 @@ extern player_t *Player;
 static angle_t maxSideAngle = ANGLE_180 / 3;
 static float texoff;
 static int rows, columns;	
-static fixed_t scale = 10 << FRACBITS;
+static fixed_t scale = 10000 << FRACBITS;
 static bool yflip;
 static int texw,texh;
 static float tx, ty;
@@ -225,6 +225,8 @@ void GL_DrawSky()
 
    glPushMatrix();
 
+   glTranslatef(0.f, -1000.f, 0.f);
+
    angle = s2p * 1.f / (FRACUNIT * 2.f);
    glRotatef(-angle, 0.f, 1.f, 0.f);
 
@@ -259,22 +261,7 @@ void GL_DrawSky()
 
    glEnable(GL_DEPTH_TEST);
    glEnable(GL_ALPHA_TEST);
-   glFogf(GL_FOG_MODE, GL_EXP);
    glDepthMask(GL_TRUE);
-   if (gl_depthfog && !Player->fixedcolormap)
-   {
-      glEnable(GL_FOG);
-   }
-}
-
-
-void GL_BuildSkyDisplayList()
-{
-}
-
-
-void GL_DeleteSkyDisplayList()
-{
 }
 
 
@@ -315,3 +302,4 @@ FSkyDome::~FSkyDome()
 void FSkyDome::Draw()
 {
 }
+

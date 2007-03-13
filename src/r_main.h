@@ -176,6 +176,7 @@ angle_t R_PointToAngle2 (fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2);
 inline angle_t R_PointToAngle (fixed_t x, fixed_t y) { return R_PointToAngle2 (viewx, viewy, x, y); }
 subsector_t *R_PointInSubsector (fixed_t x, fixed_t y);
 fixed_t R_PointToDist2 (fixed_t dx, fixed_t dy);
+inline fixed_t R_PointToDist (fixed_t x, fixed_t y) { return R_PointToDist2(viewx - x, viewy - y); } // [ZDoomGL] - kept since I'm lazy :)
 
 void R_SetFOV (float fov);
 float R_GetFOV ();

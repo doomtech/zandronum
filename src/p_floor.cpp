@@ -1482,7 +1482,8 @@ void DWaggleBase::DoWaggle (bool ceiling)
 	ULONG	ulIdx;
 
 	// [ZDoomGL]
-	sectorMoving[ULONG( m_Sector - sectors )] = true;
+	//sectorMoving[ULONG( m_Sector - sectors )] = true;
+	m_Sector->lastUpdate = validcount; // [ZDoomGL]
 
 	if (ceiling)
 	{

@@ -1952,7 +1952,7 @@ void setinterpolation(EInterpType type, void *posptr)
 	interp->Next = *interp_p;
 	*interp_p = interp;
 	interp->CopyInterpToOld ();
-
+/*
    // [ZDoomGL]
    switch (type)
    {
@@ -1963,6 +1963,7 @@ void setinterpolation(EInterpType type, void *posptr)
    default:
       break;
    }
+*/
 }
 
 void stopinterpolation(EInterpType type, void *posptr)

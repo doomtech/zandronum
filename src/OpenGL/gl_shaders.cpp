@@ -44,6 +44,9 @@
 #include "w_wad.h"
 #include "v_text.h"
 
+#include "gi.h"
+#include "templates.h"
+
 
 #if 0
  #define LOG1(msg, i) { FILE *f = fopen("shaders.log", "a");  fprintf(f, msg, i);  fclose(f); }
@@ -54,7 +57,6 @@
 #define MAX(a, b) (a > b ? a : b)
 #define MIN(a, b) (a < b ? a : b)
 
-
 extern PFNGLGENPROGRAMSARBPROC glGenProgramsARB;
 extern PFNGLDELETEPROGRAMSARBPROC glDeleteProgramsARB;
 extern PFNGLBINDPROGRAMARBPROC glBindProgramARB;
@@ -64,41 +66,53 @@ extern PFNGLMULTITEXCOORD2FARBPROC glMultiTexCoord2fARB;
 
 
 EXTERN_CVAR(Int, vid_renderer)
-EXTERN_CVAR(Bool, gl_texture)
-EXTERN_CVAR(Bool, gl_wireframe)
 CVAR(Bool, gl_texture_useshaders, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 
 TArray<FShader *> Shaders[NUM_ShaderClasses];
 TArray<FShader *> ShaderLookup[NUM_ShaderClasses];
 TArray<VertexProgram *> VertexPrograms;
 int ShaderDepth;
-extern unsigned int frameStartMS;
+
+extern int viewpitch;
 
 
 FShaderLayer::FShaderLayer()
 {
+   sprintf(name, "");
+
+   animate = false;
+   emissive = false;
    blendFuncSrc = GL_SRC_ALPHA;
    blendFuncDst = GL_ONE_MINUS_SRC_ALPHA;
    offsetX = 0.f;
    offsetY = 0.f;
-   centerX = 0.f;
-   centerY = 0.f;
+   centerX = 0.0f;
+   centerY = 0.0f;
    rotate = 0.f;
    rotation = 0.f;
-   scaleX = 1.f;
-   scaleY = 1.f;
-   texGen = SHADER_TexGen_None;
+   adjustX.SetParams(0.f, 0.f, 0.f);
+   adjustY.SetParams(0.f, 0.f, 0.f);
+   scaleX.SetParams(1.f, 1.f, 0.f);
+   scaleY.SetParams(1.f, 1.f, 0.f);
    alpha.SetParams(1.f, 1.f, 0.f);
    r.SetParams(1.f, 1.f, 0.f);
    g.SetParams(1.f, 1.f, 0.f);
    b.SetParams(1.f, 1.f, 0.f);
    flags = 0;
-   sprintf(name, "");
+   layerMask = NULL;
+   texgen = SHADER_TexGen_None;
+   warp = false;
 }
 
 
 FShaderLayer::FShaderLayer(const FShaderLayer &layer)
 {
+   sprintf(name, "%s", layer.name);
+
+   animate = layer.animate;
+   emissive = layer.emissive;
+   adjustX = layer.adjustX;
+   adjustY = layer.adjustY;
    blendFuncSrc = layer.blendFuncSrc;
    blendFuncDst = layer.blendFuncDst;
    offsetX = layer.offsetX;
@@ -109,7 +123,6 @@ FShaderLayer::FShaderLayer(const FShaderLayer &layer)
    rotation = layer.rotation;
    scaleX = layer.scaleX;
    scaleY = layer.scaleY;
-   texGen = layer.texGen;
    vectorX = layer.vectorX;
    vectorY = layer.vectorY;
    alpha = layer.alpha;
@@ -117,7 +130,53 @@ FShaderLayer::FShaderLayer(const FShaderLayer &layer)
    g = layer.g;
    b = layer.b;
    flags = layer.flags;
-   sprintf(name, "%s", layer.name);
+   if (layer.layerMask)
+   {
+      layerMask = new FShaderLayer(*(layer.layerMask));
+   }
+   else
+   {
+      layerMask = NULL;
+   }
+   texgen = layer.texgen;
+   warp = layer.warp;
+}
+
+
+FShaderLayer::~FShaderLayer()
+{
+   if (layerMask)
+   {
+      delete layerMask;
+      layerMask = NULL;
+   }
+}
+
+
+void FShaderLayer::Update(float diff)
+{
+   r.Update(diff);
+   g.Update(diff);
+   b.Update(diff);
+   alpha.Update(diff);
+   vectorY.Update(diff);
+   vectorX.Update(diff);
+   scaleX.Update(diff);
+   scaleY.Update(diff);
+   adjustX.Update(diff);
+   adjustY.Update(diff);
+
+   offsetX += vectorX * diff;
+   if (offsetX >= 1.f) offsetX -= 1.f;
+   if (offsetX < 0.f) offsetX += 1.f;
+
+   offsetY += vectorY * diff;
+   if (offsetY >= 1.f) offsetY -= 1.f;
+   if (offsetY < 0.f) offsetY += 1.f;
+
+   rotation += rotate * diff;
+   if (rotation > 360.f) rotation -= 360.f;
+   if (rotation < 0.f) rotation += 360.f;
 }
 
 
@@ -210,8 +269,10 @@ void FCycler::Update(float diff)
       return;
    }
 
+   if (diff > m_cycle) diff = m_cycle;
+
    m_time += diff;
-   if (m_time >= m_cycle)
+   if (m_time > m_cycle)
    {
       m_time = m_cycle;
    }
@@ -231,16 +292,30 @@ void FCycler::Update(float diff)
       }
       break;
    case CYCLE_Sin:
-      angle = M_PI * 2.f * mult;
+      angle = (float)(M_PI * 2.f * mult);
       mult = sinf(angle);
       mult = (mult + 1.f) / 2.f;
       m_current = m_start + (step * mult);
       break;
    case CYCLE_Cos:
-      angle = M_PI * 2.f * mult;
+      angle = (float)(M_PI * 2.f * mult);
       mult = cosf(angle);
       mult = (mult + 1.f) / 2.f;
       m_current = m_start + (step * mult);
+      break;
+   case CYCLE_SawTooth:
+      m_current = m_start + (step * mult);
+      break;
+   case CYCLE_Square:
+      if (m_increment)
+      {
+         m_current = m_start;
+      }
+      else
+      {
+         m_current = m_end;
+      }
+   default:
       break;
    }
 
@@ -369,12 +444,69 @@ unsigned int GL_GetBlendFromString(char *string)
    return GL_ONE;
 }
 
+static const char *LayerTags[]=
+{
+   "alpha",
+   "animate",
+   "blendFunc",
+   "color",
+   "center",
+   "emissive",
+   "mask",
+   "offset",
+   "offsetFunc",
+   "rotate",
+   "rotation",
+   "scale",
+   "scaleFunc",
+   "texgen",
+   "vector",
+   "vectorFunc",
+   "warp",
+   NULL
+};
+
+enum {
+   LAYERTAG_ALPHA,
+   LAYERTAG_ANIMATE,
+   LAYERTAG_BLENDFUNC,
+   LAYERTAG_COLOR,
+   LAYERTAG_CENTER,
+   LAYERTAG_EMISSIVE,
+   LAYERTAG_MASK,
+   LAYERTAG_OFFSET,
+   LAYERTAG_OFFSETFUNC,
+   LAYERTAG_ROTATE,
+   LAYERTAG_ROTATION,
+   LAYERTAG_SCALE,
+   LAYERTAG_SCALEFUNC,
+   LAYERTAG_TEXGEN,
+   LAYERTAG_VECTOR,
+   LAYERTAG_VECTORFUNC,
+   LAYERTAG_WARP
+};
+
+static const char *CycleTags[]=
+{
+   "linear",
+   "sin",
+   "cos",
+   "sawtooth",
+   "square",
+   NULL
+};
+
 
 bool GL_ParseLayer(FShader *shader)
 {
    unsigned int i;
    float start, end, cycle, r1, r2, g1, g2, b1, b2;
    FShaderLayer sink;
+   FShader *tempShader;
+   int type, incomingDepth;
+   bool overrideBlend = false;
+
+   incomingDepth = ShaderDepth;
 
    if (SC_GetString())
    {
@@ -385,247 +517,426 @@ bool GL_ParseLayer(FShader *shader)
       }
       SC_GetString();
       GL_CheckShaderDepth();
-      while (ShaderDepth > 1)
+      while (ShaderDepth > incomingDepth)
       {
          if (SC_GetString() == false)
          {
-            ShaderDepth = 1;
+            ShaderDepth = incomingDepth;
             Printf("Layer parse error: %s\n", sink.name);
             return false;
          }
 
-         if (SC_Compare("texgen"))
+         if ((type = SC_MatchString(LayerTags)) != -1)
          {
-            SC_GetString();
-            if (SC_Compare("sphere"))
+            switch (type)
             {
-               sink.texGen = SHADER_TexGen_Sphere;
-            }
-            else
-            {
-               sink.texGen = SHADER_TexGen_None;
-            }
-         }
-         else if (SC_Compare("vector"))
-         {
-            SC_GetString();
-            if (SC_Compare("cycle"))
-            {
-               sink.vectorX.ShouldCycle(true);
-               sink.vectorY.ShouldCycle(true);
-
-               SC_GetFloat();
-               r1 = sc_Float;
-               SC_GetFloat();
-               g1 = sc_Float;
-               SC_GetFloat();
-               r2 = sc_Float;
-               SC_GetFloat();
-               g2 = sc_Float;
-               SC_GetFloat();
-               cycle = sc_Float;
-
-               sink.vectorX.SetParams(r1, r2, cycle);
-               sink.vectorY.SetParams(g1, g2, cycle);
-            }
-            else
-            {
-               start = static_cast<float>(atof(sc_String));
-               sink.vectorX.SetParams(start, start, 0.f);
-               SC_GetFloat();
-               start = sc_Float;
-               sink.vectorY.SetParams(start, start, 0.f);
-            }
-         }
-         else if (SC_Compare("vectorFunc"))
-         {
-            SC_GetString();
-            if (SC_Compare("sin"))
-            {
-               sink.vectorX.SetCycleType(CYCLE_Sin);
-            }
-            else if (SC_Compare("cos"))
-            {
-               sink.vectorX.SetCycleType(CYCLE_Cos);
-            }
-            SC_GetString();
-            if (SC_Compare("sin"))
-            {
-               sink.vectorY.SetCycleType(CYCLE_Sin);
-            }
-            else if (SC_Compare("cos"))
-            {
-               sink.vectorX.SetCycleType(CYCLE_Cos);
-            }
-         }
-         else if (SC_Compare("blendFunc"))
-         {
-            SC_GetString();
-            sink.blendFuncSrc = GL_GetBlendFromString(sc_String);
-            SC_GetString();
-            sink.blendFuncDst = GL_GetBlendFromString(sc_String);
-         }
-         else if (SC_Compare("scale"))
-         {
-            SC_GetFloat();
-            sink.scaleX = 1.f / sc_Float;
-            SC_GetFloat();
-            sink.scaleY = 1.f / sc_Float;
-         }
-         else if (SC_Compare("warp"))
-         {
-            SC_GetString();
-            if (SC_Compare("true"))
-            {
-               sink.warp = true;
-            }
-            else
-            {
-               sink.warp = false;
-            }
-         }
-         else if (SC_Compare("offset"))
-         {
-            SC_GetFloat();
-            sink.offsetX = sc_Float;
-            SC_GetFloat();
-            sink.offsetY = sc_Float;
-         }
-         else if (SC_Compare("rotation"))
-         {
-            SC_GetFloat();
-            sink.rotation = sc_Float;
-         }
-         else if (SC_Compare("rotate"))
-         {
-            SC_GetFloat();
-            sink.rotate = sc_Float;
-         }
-         else if (SC_Compare("center"))
-         {
-            SC_GetFloat();
-            sink.centerX = sc_Float;
-            SC_GetFloat();
-            sink.centerY = sc_Float;
-         }
-         else if (SC_Compare("alpha"))
-         {
-            SC_GetString();
-            if (SC_Compare("cycle"))
-            {
-               sink.alpha.ShouldCycle(true);
+            case LAYERTAG_ALPHA:
                SC_GetString();
-               if (SC_Compare("sin"))
+               if (SC_Compare("cycle"))
                {
-                  sink.alpha.SetCycleType(CYCLE_Sin);
-               }
-               else if (SC_Compare("cos"))
-               {
-                  sink.alpha.SetCycleType(CYCLE_Cos);
-               }
-               else if (SC_Compare("linear"))
-               {
-                  sink.alpha.SetCycleType(CYCLE_Linear);
+                  sink.alpha.ShouldCycle(true);
+                  SC_GetString();
+                  switch (SC_MatchString(CycleTags))
+                  {
+                  case CYCLE_Sin:
+                     sink.alpha.SetCycleType(CYCLE_Sin);
+                     break;
+                  case CYCLE_Cos:
+                     sink.alpha.SetCycleType(CYCLE_Cos);
+                     break;
+                  case CYCLE_SawTooth:
+                     sink.alpha.SetCycleType(CYCLE_SawTooth);
+                     break;
+                  case CYCLE_Square:
+                     sink.alpha.SetCycleType(CYCLE_Square);
+                     break;
+                  case CYCLE_Linear:
+                     sink.alpha.SetCycleType(CYCLE_Linear);
+                     break;
+                  default:
+                     // cycle type missing, back script up and default to CYCLE_Linear
+                     sink.alpha.SetCycleType(CYCLE_Linear);
+                     SC_UnGet();
+                     break;
+                  }
+                  SC_GetFloat();
+                  start = sc_Float;
+                  SC_GetFloat();
+                  end = sc_Float;
+                  SC_GetFloat();
+                  cycle = sc_Float;
+
+                  sink.alpha.SetParams(start, end, cycle);
                }
                else
                {
-                  // cycle type missing, back script up and default to CYCLE_Linear
-                  SC_UnGet();
+                  start = static_cast<float>(atof(sc_String));
+                  sink.alpha.SetParams(start, start, 0.f);
                }
-               SC_GetFloat();
-               start = sc_Float;
-               SC_GetFloat();
-               end = sc_Float;
-               SC_GetFloat();
-               cycle = sc_Float;
-
-               sink.alpha.SetParams(start, end, cycle);
-            }
-            else
-            {
-               start = static_cast<float>(atof(sc_String));
-               sink.alpha.SetParams(start, start, 0.f);
-            }
-         }
-         else if (SC_Compare("color"))
-         {
-            SC_GetString();
-            if (SC_Compare("cycle"))
-            {
-               sink.r.ShouldCycle(true);
-               sink.g.ShouldCycle(true);
-               sink.b.ShouldCycle(true);
-               // get color1
+               break;
+            case LAYERTAG_ANIMATE:
                SC_GetString();
+               sink.animate = SC_Compare("true") == TRUE;
+               break;
+            case LAYERTAG_BLENDFUNC:
+               SC_GetString();
+               sink.blendFuncSrc = GL_GetBlendFromString(sc_String);
+               SC_GetString();
+               sink.blendFuncDst = GL_GetBlendFromString(sc_String);
+               overrideBlend = true;
+               break;
+            case LAYERTAG_COLOR:
+               SC_GetString();
+               if (SC_Compare("cycle"))
+               {
+                  sink.r.ShouldCycle(true);
+                  sink.g.ShouldCycle(true);
+                  sink.b.ShouldCycle(true);
+                  // get color1
+                  SC_GetString();
 
-               if (SC_Compare("sin"))
-               {
-                  sink.r.SetCycleType(CYCLE_Sin);
-                  sink.g.SetCycleType(CYCLE_Sin);
-                  sink.b.SetCycleType(CYCLE_Sin);
-               }
-               else if (SC_Compare("cos"))
-               {
-                  sink.r.SetCycleType(CYCLE_Cos);
-                  sink.g.SetCycleType(CYCLE_Cos);
-                  sink.b.SetCycleType(CYCLE_Cos);
-               }
-               else if (SC_Compare("linear"))
-               {
-                  sink.r.SetCycleType(CYCLE_Linear);
-                  sink.g.SetCycleType(CYCLE_Linear);
-                  sink.b.SetCycleType(CYCLE_Linear);
+                  switch (SC_MatchString(CycleTags))
+                  {
+                  case CYCLE_Sin:
+                     sink.r.SetCycleType(CYCLE_Sin);
+                     sink.g.SetCycleType(CYCLE_Sin);
+                     sink.b.SetCycleType(CYCLE_Sin);
+                     break;
+                  case CYCLE_Cos:
+                     sink.r.SetCycleType(CYCLE_Cos);
+                     sink.g.SetCycleType(CYCLE_Cos);
+                     sink.b.SetCycleType(CYCLE_Cos);
+                     break;
+                  case CYCLE_SawTooth:
+                     sink.r.SetCycleType(CYCLE_SawTooth);
+                     sink.g.SetCycleType(CYCLE_SawTooth);
+                     sink.b.SetCycleType(CYCLE_SawTooth);
+                     break;
+                  case CYCLE_Square:
+                     sink.r.SetCycleType(CYCLE_Square);
+                     sink.g.SetCycleType(CYCLE_Square);
+                     sink.b.SetCycleType(CYCLE_Square);
+                     break;
+                  case CYCLE_Linear:
+                     sink.r.SetCycleType(CYCLE_Linear);
+                     sink.g.SetCycleType(CYCLE_Linear);
+                     sink.b.SetCycleType(CYCLE_Linear);
+                     break;
+                  default:
+                     // cycle type missing, back script up and default to CYCLE_Linear
+                     sink.r.SetCycleType(CYCLE_Linear);
+                     sink.g.SetCycleType(CYCLE_Linear);
+                     sink.b.SetCycleType(CYCLE_Linear);
+                     SC_UnGet();
+                     break;
+                  }
+
+                  SC_GetFloat();
+                  r1 = sc_Float;
+                  SC_GetFloat();
+                  g1 = sc_Float;
+                  SC_GetFloat();
+                  b1 = sc_Float;
+
+                  // get color2
+                  SC_GetFloat();
+                  r2 = sc_Float;
+                  SC_GetFloat();
+                  g2 = sc_Float;
+                  SC_GetFloat();
+                  b2 = sc_Float;
+
+                  // get cycle time
+                  SC_GetFloat();
+                  cycle = sc_Float;
+
+                  sink.r.SetParams(r1, r2, cycle);
+                  sink.g.SetParams(g1, g2, cycle);
+                  sink.b.SetParams(b1, b2, cycle);
                }
                else
                {
-                  // cycle type missing, back script up and default to CYCLE_Linear
-                  SC_UnGet();
+                  r1 = static_cast<float>(atof(sc_String));
+                  SC_GetFloat();
+                  g1 = sc_Float;
+                  SC_GetFloat();
+                  b1 = sc_Float;
+
+                  sink.r.SetParams(r1, r1, 0.f);
+                  sink.g.SetParams(g1, g1, 0.f);
+                  sink.b.SetParams(b1, b1, 0.f);
                }
+               break;
+            case LAYERTAG_CENTER:
+               SC_GetFloat();
+               sink.centerX = sc_Float;
+               SC_GetFloat();
+               sink.centerY = sc_Float;
+               break;
+            case LAYERTAG_EMISSIVE:
+               SC_GetString();
+               sink.emissive = SC_Compare("true") == TRUE;
+               break;
+            case LAYERTAG_OFFSET:
+               SC_GetString();
+               if (SC_Compare("cycle"))
+               {
+                  sink.adjustX.ShouldCycle(true);
+                  sink.adjustY.ShouldCycle(true);
 
-               SC_GetFloat();
-               r1 = sc_Float;
-               SC_GetFloat();
-               g1 = sc_Float;
-               SC_GetFloat();
-               b1 = sc_Float;
+                  SC_GetFloat();
+                  r1 = sc_Float;
+                  SC_GetFloat();
+                  r2 = sc_Float;
 
-               // get color2
-               SC_GetFloat();
-               r2 = sc_Float;
-               SC_GetFloat();
-               g2 = sc_Float;
-               SC_GetFloat();
-               b2 = sc_Float;
+                  SC_GetFloat();
+                  g1 = sc_Float;
+                  SC_GetFloat();
+                  g2 = sc_Float;
 
-               // get cycle time
-               SC_GetFloat();
-               cycle = sc_Float;
+                  SC_GetFloat();
+                  cycle = sc_Float;
 
-               sink.r.SetParams(r1, r2, cycle);
-               sink.g.SetParams(g1, g2, cycle);
-               sink.b.SetParams(b1, b2, cycle);
-            }
-            else
-            {
-               r1 = static_cast<float>(atof(sc_String));
-               SC_GetFloat();
-               g1 = sc_Float;
-               SC_GetFloat();
-               b1 = sc_Float;
+                  sink.offsetX = r1;
+                  sink.offsetY = r2;
 
-               sink.r.SetParams(r1, r1, 0.f);
-               sink.g.SetParams(g1, g1, 0.f);
-               sink.b.SetParams(b1, b1, 0.f);
+                  sink.adjustX.SetParams(0.f, g1 - r1, cycle);
+                  sink.adjustY.SetParams(0.f, g2 - r2, cycle);
+               }
+               else
+               {
+                  SC_UnGet();
+                  SC_GetFloat();
+                  sink.offsetX = sc_Float;
+                  SC_GetFloat();
+                  sink.offsetY = sc_Float;
+               }
+               break;
+            case LAYERTAG_OFFSETFUNC:
+               SC_GetString();
+               switch (SC_MatchString(CycleTags))
+               {
+               case CYCLE_Sin:
+                  sink.adjustX.SetCycleType(CYCLE_Sin);
+                  break;
+               case CYCLE_Cos:
+                  sink.adjustX.SetCycleType(CYCLE_Cos);
+                  break;
+               case CYCLE_SawTooth:
+                  sink.adjustX.SetCycleType(CYCLE_SawTooth);
+                  break;
+               case CYCLE_Square:
+                  sink.adjustX.SetCycleType(CYCLE_Square);
+                  break;
+               case CYCLE_Linear:
+               default:
+                  sink.adjustX.SetCycleType(CYCLE_Linear);
+                  break;
+               }
+               SC_GetString();
+               switch (SC_MatchString(CycleTags))
+               {
+               case CYCLE_Sin:
+                  sink.adjustY.SetCycleType(CYCLE_Sin);
+                  break;
+               case CYCLE_Cos:
+                  sink.adjustY.SetCycleType(CYCLE_Cos);
+                  break;
+               case CYCLE_SawTooth:
+                  sink.adjustY.SetCycleType(CYCLE_SawTooth);
+                  break;
+               case CYCLE_Square:
+                  sink.adjustY.SetCycleType(CYCLE_Square);
+                  break;
+               case CYCLE_Linear:
+               default:
+                  sink.adjustY.SetCycleType(CYCLE_Linear);
+                  break;
+               }
+               break;
+            case LAYERTAG_MASK:
+               tempShader = new FShader();
+               GL_ParseLayer(tempShader);
+               sink.layerMask = new FShaderLayer(*tempShader->layers[0]);
+               delete tempShader;
+               break;
+            case LAYERTAG_ROTATE:
+               SC_GetFloat();
+               sink.rotate = sc_Float;
+               break;
+            case LAYERTAG_ROTATION:
+               SC_GetFloat();
+               sink.rotation = sc_Float;
+               break;
+            case LAYERTAG_SCALE:
+               SC_GetString();
+               if (SC_Compare("cycle"))
+               {
+                  sink.scaleX.ShouldCycle(true);
+                  sink.scaleY.ShouldCycle(true);
+
+                  SC_GetFloat();
+                  r1 = sc_Float;
+                  SC_GetFloat();
+                  r2 = sc_Float;
+
+                  SC_GetFloat();
+                  g1 = sc_Float;
+                  SC_GetFloat();
+                  g2 = sc_Float;
+
+                  SC_GetFloat();
+                  cycle = sc_Float;
+
+                  sink.scaleX.SetParams(r1, g1, cycle);
+                  sink.scaleY.SetParams(r2, g2, cycle);
+               }
+               else
+               {
+                  SC_UnGet();
+                  SC_GetFloat();
+                  sink.scaleX.SetParams(sc_Float, sc_Float, 0.f);
+                  SC_GetFloat();
+                  sink.scaleY.SetParams(sc_Float, sc_Float, 0.f);
+               }
+               break;
+            case LAYERTAG_SCALEFUNC:
+               SC_GetString();
+               switch (SC_MatchString(CycleTags))
+               {
+               case CYCLE_Sin:
+                  sink.scaleX.SetCycleType(CYCLE_Sin);
+                  break;
+               case CYCLE_Cos:
+                  sink.scaleX.SetCycleType(CYCLE_Cos);
+                  break;
+               case CYCLE_SawTooth:
+                  sink.scaleX.SetCycleType(CYCLE_SawTooth);
+                  break;
+               case CYCLE_Square:
+                  sink.scaleX.SetCycleType(CYCLE_Square);
+                  break;
+               case CYCLE_Linear:
+               default:
+                  sink.scaleX.SetCycleType(CYCLE_Linear);
+                  break;
+               }
+               SC_GetString();
+               switch (SC_MatchString(CycleTags))
+               {
+               case CYCLE_Sin:
+                  sink.scaleY.SetCycleType(CYCLE_Sin);
+                  break;
+               case CYCLE_Cos:
+                  sink.scaleY.SetCycleType(CYCLE_Cos);
+                  break;
+               case CYCLE_SawTooth:
+                  sink.scaleY.SetCycleType(CYCLE_SawTooth);
+                  break;
+               case CYCLE_Square:
+                  sink.scaleY.SetCycleType(CYCLE_Square);
+                  break;
+               case CYCLE_Linear:
+               default:
+                  sink.scaleY.SetCycleType(CYCLE_Linear);
+                  break;
+               }
+               break;
+            case LAYERTAG_TEXGEN:
+               SC_GetString();
+               if (SC_Compare("sphere"))
+               {
+                  sink.texgen = SHADER_TexGen_Sphere;
+               }
+               else
+               {
+                  sink.texgen = SHADER_TexGen_None;
+               }
+               break;
+            case LAYERTAG_VECTOR:
+               SC_GetString();
+               if (SC_Compare("cycle"))
+               {
+                  sink.vectorX.ShouldCycle(true);
+                  sink.vectorY.ShouldCycle(true);
+
+                  SC_GetFloat();
+                  r1 = sc_Float;
+                  SC_GetFloat();
+                  g1 = sc_Float;
+                  SC_GetFloat();
+                  r2 = sc_Float;
+                  SC_GetFloat();
+                  g2 = sc_Float;
+                  SC_GetFloat();
+                  cycle = sc_Float;
+
+                  sink.vectorX.SetParams(r1, r2, cycle);
+                  sink.vectorY.SetParams(g1, g2, cycle);
+               }
+               else
+               {
+                  start = static_cast<float>(atof(sc_String));
+                  sink.vectorX.SetParams(start, start, 0.f);
+                  SC_GetFloat();
+                  start = sc_Float;
+                  sink.vectorY.SetParams(start, start, 0.f);
+               }
+               break;
+            case LAYERTAG_VECTORFUNC:
+               SC_GetString();
+               switch (SC_MatchString(CycleTags))
+               {
+               case CYCLE_Sin:
+                  sink.vectorX.SetCycleType(CYCLE_Sin);
+                  break;
+               case CYCLE_Cos:
+                  sink.vectorX.SetCycleType(CYCLE_Cos);
+                  break;
+               case CYCLE_SawTooth:
+                  sink.vectorX.SetCycleType(CYCLE_SawTooth);
+                  break;
+               case CYCLE_Square:
+                  sink.vectorX.SetCycleType(CYCLE_Square);
+                  break;
+               case CYCLE_Linear:
+               default:
+                  sink.vectorX.SetCycleType(CYCLE_Linear);
+                  break;
+               }
+               SC_GetString();
+               switch (SC_MatchString(CycleTags))
+               {
+               case CYCLE_Sin:
+                  sink.vectorY.SetCycleType(CYCLE_Sin);
+                  break;
+               case CYCLE_Cos:
+                  sink.vectorY.SetCycleType(CYCLE_Cos);
+                  break;
+               case CYCLE_SawTooth:
+                  sink.vectorY.SetCycleType(CYCLE_SawTooth);
+                  break;
+               case CYCLE_Square:
+                  sink.vectorY.SetCycleType(CYCLE_Square);
+                  break;
+               case CYCLE_Linear:
+               default:
+                  sink.vectorY.SetCycleType(CYCLE_Linear);
+                  break;
+               }
+               break;
+            case LAYERTAG_WARP:
+               SC_GetString();
+               sink.warp = SC_Compare("true") == TRUE;
+               break;
+            default:
+               break;
             }
          }
-
-         GL_CheckShaderDepth();
-      }
-
-      // base layer has to be opaque
-      if (shader->layers.Size() == 0)
-      {
-         sink.alpha.SetParams(1.f, 1.f, 0.f);
+         else
+         {
+            GL_CheckShaderDepth();
+         }
       }
 
       shader->layers.Push(new FShaderLayer(sink));
@@ -637,10 +948,25 @@ bool GL_ParseLayer(FShader *shader)
 }
 
 
+static const char *ShaderTags[]=
+{
+   "compatibility",
+   "detailTex",
+   "layer",
+   NULL
+};
+
+enum {
+   SHADERTAG_COMPATIBILITY,
+   SHADERTAG_DETAILTEX,
+   SHADERTAG_LAYER
+};
+
+
 bool GL_ParseShader()
 {
    unsigned int i;
-   int temp;
+   int temp, type;
    FShader sink;
    TArray<char *> names;
    char *name;
@@ -671,30 +997,36 @@ bool GL_ParseShader()
             Printf("Shader parse error: %s\n", sink.name);
             return false;
          }
-         if (SC_Compare("detail"))
+
+         if ((type = SC_MatchString(ShaderTags)) != -1)
          {
-            SC_GetString();
-            sprintf(sink.detailTex, "%s", sc_String);
-         }
-         else if (SC_Compare("compatibility"))
-         {
-            SC_GetString();
-            if (SC_Compare("hardware"))
+            switch (type)
             {
-               sink.compatibility = SHADER_Hardware;
+            case SHADERTAG_COMPATIBILITY:
+               SC_GetString();
+               if (SC_Compare("hardware"))
+               {
+                  sink.compatibility = SHADER_Hardware;
+               }
+               else if (SC_Compare("software"))
+               {
+                  sink.compatibility = SHADER_Software;
+               }
+               else
+               {
+                  sink.compatibility = SHADER_Generic;
+               }
+               break;
+            case SHADERTAG_DETAILTEX:
+               SC_GetString();
+               sprintf(sink.detailTex, "%s", sc_String);
+               break;
+            case SHADERTAG_LAYER:
+               GL_ParseLayer(&sink);
+               break;
+            default:
+               break;
             }
-            else if (SC_Compare("software"))
-            {
-               sink.compatibility = SHADER_Software;
-            }
-            else
-            {
-               sink.compatibility = SHADER_Generic;
-            }
-         }
-         else if (SC_Compare("layer"))
-         {
-            GL_ParseLayer(&sink);
          }
          else
          {
@@ -728,63 +1060,7 @@ bool GL_ParseShader()
 }
 
 
-void GL_InitShaders()
-{
-   int shaderslump, lastLump = 0;
-   int texIndex, shaderClass, numShaders;
-   unsigned int i;
-   FShader *shader;
-   FTexture *tex;
-
-   for (shaderClass = 0; shaderClass < NUM_ShaderClasses; shaderClass++)
-   {
-      Shaders[shaderClass].Clear();
-   }
-
-   while ((shaderslump = Wads.FindLump("SHADERS", &lastLump)) != -1)
-   {
-      SC_OpenLumpNum(shaderslump, "SHADERS");
-      SC_GetString();
-      while (SC_Compare ("shader"))
-      {
-         GL_ParseShader();
-         SC_GetString();
-      }
-      SC_Close();
-   }
-
-   for (shaderClass = 0; shaderClass < NUM_ShaderClasses; shaderClass++)
-   {
-      Shaders[shaderClass].ShrinkToFit();
-      ShaderLookup[shaderClass].Resize(TexMan.NumTextures());
-   }
-
-   for (texIndex = 0; texIndex < TexMan.NumTextures(); texIndex++)
-   {
-      for (shaderClass = 0; shaderClass < NUM_ShaderClasses; shaderClass++)
-      {
-         ShaderLookup[shaderClass][texIndex] = NULL;
-      }
-   }
-
-   numShaders = 0;
-   for (shaderClass = 0; shaderClass < NUM_ShaderClasses; shaderClass++)
-   {
-      numShaders += Shaders[shaderClass].Size();
-      for (i = 0; i < Shaders[shaderClass].Size(); i++)
-      {
-         shader = Shaders[shaderClass][i];
-         tex = TexMan[shader->name];
-         texIndex = TexMan.GetTexture(tex->Name, tex->UseType);
-         ShaderLookup[shaderClass][texIndex] = shader;
-      }
-   }
-
-   Printf("Parsed %d shader(s).\n", numShaders);
-}
-
-
-void STACK_ARGS GL_ReleaseShaders()
+void GL_ReleaseShaders()
 {
    int shaderClass;
    unsigned int i;
@@ -806,30 +1082,13 @@ void GL_UpdateShader(FShader *shader)
    FShaderLayer *layer;
    float diff = (frameStartMS - shader->lastUpdate) / 1000.f;
 
-   if (shader->lastUpdate != 0)
+   if (shader->lastUpdate != 0 && !paused /*&& !bglobal.freeze*/)
    {
       for (i = 0; i < shader->layers.Size(); i++)
       {
          layer = shader->layers[i];
-
-         layer->r.Update(diff);
-         layer->g.Update(diff);
-         layer->b.Update(diff);
-         layer->alpha.Update(diff);
-         layer->vectorY.Update(diff);
-         layer->vectorX.Update(diff);
-
-         layer->offsetX += layer->vectorX.GetVal() * diff;
-         if (layer->offsetX > 1.f) layer->offsetX -= 1.f;
-         if (layer->offsetX < 0.f) layer->offsetX += 1.f;
-
-         layer->offsetY += layer->vectorY.GetVal() * diff;
-         if (layer->offsetY > 1.f) layer->offsetY -= 1.f;
-         if (layer->offsetY < 0.f) layer->offsetY += 1.f;
-
-         layer->rotation += layer->rotate * diff;
-         if (layer->rotation > 360.f) layer->rotation -= 360.f;
-         if (layer->rotation < 0.f) layer->rotation += 360.f;
+         layer->Update(diff);
+         if (layer->layerMask) layer->layerMask->Update(diff);
       }
    }
 
@@ -852,11 +1111,26 @@ void GL_UpdateShaders()
 }
 
 
+void GL_FakeUpdateShaders()
+{
+   int shaderClass;
+   unsigned int i;
+
+   for (shaderClass = 0; shaderClass < NUM_ShaderClasses; shaderClass++)
+   {
+      for (i = 0; i < Shaders[shaderClass].Size(); i++)
+      {
+         Shaders[shaderClass][i]->lastUpdate = frameStartMS;
+      }
+   }
+}
+
+
 FShader *GL_ShaderForTexture(FTexture *tex)
 {
    FShader *shader = NULL;
 
-   if (!gl_texture_useshaders || !gl_texture || gl_wireframe)
+   if (!gl_texture_useshaders)
    {
       return NULL;
    }
@@ -866,12 +1140,12 @@ FShader *GL_ShaderForTexture(FTexture *tex)
       return NULL;
    }
 
-   if (TexMan.GetTexture(tex->Name, tex->UseType) >= ShaderLookup[SHADER_Generic].Size())
+   if (TexMan.GetTexture(tex->Name, tex->UseType) >= (int)(ShaderLookup[SHADER_Generic].Size()))
    {
       return NULL;
    }
 
-   if ( OPENGL_GetCurrentRenderer( ) == RENDERER_SOFTWARE )
+   if (OPENGL_GetCurrentRenderer( ) != RENDERER_OPENGL)
    {
       shader = ShaderLookup[SHADER_Software][TexMan.GetTexture(tex->Name, tex->UseType)];
    }
@@ -885,10 +1159,115 @@ FShader *GL_ShaderForTexture(FTexture *tex)
       shader = ShaderLookup[SHADER_Generic][TexMan.GetTexture(tex->Name, tex->UseType)];
    }
 
-   //if (shader) Printf("found shader %s.\n", tex->Name);
-
    return shader;
 }
+
+
+void GL_DrawShader(FShader *shader, int x, int y, int width, int height)
+{
+   FShaderLayer *layer, *layerMask;
+
+   for (unsigned int i = 0; i < shader->layers.Size(); ++i)
+   {
+      layer = shader->layers[i];
+      layerMask = layer->layerMask;
+
+      if (i == 0)
+      {
+         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      }
+      else
+      {
+         glBlendFunc(layer->blendFuncSrc, layer->blendFuncDst);
+      }
+
+      glColor4f(layer->r, layer->g, layer->b, layer->alpha);
+
+      switch (layer->texgen)
+      {
+      case SHADER_TexGen_Sphere:
+         glEnable(GL_TEXTURE_GEN_S);
+         glEnable(GL_TEXTURE_GEN_T);
+         break;
+      default:
+         glDisable(GL_TEXTURE_GEN_S);
+         glDisable(GL_TEXTURE_GEN_T);
+         break;
+      }
+
+      textureList.BindTexture(layer->name);
+      if (layerMask)
+      {
+         glBegin(GL_TRIANGLE_STRIP);
+            glMultiTexCoord2fARB(GL_TEXTURE0_ARB, 0.f, 0.f);
+            glVertex2i(x, y);
+            glMultiTexCoord2fARB(GL_TEXTURE0_ARB, 0.f, 1.f);
+            glVertex2i(x, y - height);
+            glMultiTexCoord2fARB(GL_TEXTURE0_ARB, 1.f, 0.f);
+            glVertex2i(x + width, y);
+            glMultiTexCoord2fARB(GL_TEXTURE0_ARB, 1.f, 1.f);
+            glVertex2i(x + width, y - height);
+         glEnd();
+      }
+      else
+      {
+         glBegin(GL_TRIANGLE_STRIP);
+            glTexCoord2f(0.f, 0.f);
+            glVertex2i(x, y);
+            glTexCoord2f(0.f, 1.f);
+            glVertex2i(x, y - height);
+            glTexCoord2f(1.f, 0.f);
+            glVertex2i(x + width, y);
+            glTexCoord2f(1.f, 1.f);
+            glVertex2i(x + width, y - height);
+         glEnd();
+      }
+   }
+
+   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+   glDisable(GL_TEXTURE_GEN_S);
+   glDisable(GL_TEXTURE_GEN_T);
+}
+
+
+void GL_DrawShaders()
+{
+   int curX, curY, shaderClass, maxY;
+   FShader *shader;
+   FTexture *tex;
+
+   curX = 2;
+   curY = screen->GetHeight() - 2;
+   maxY = 0;
+
+   glPushMatrix();
+   glLoadIdentity();
+   glColor3f(1.f, 1.f, 1.f);
+
+   for (shaderClass = 0; shaderClass < NUM_ShaderClasses; shaderClass++)
+   {
+      for (unsigned int i = 0; i < Shaders[shaderClass].Size(); i++)
+      {
+         shader = Shaders[shaderClass][i];
+         tex = TexMan[shader->name];
+
+         if (curX + tex->GetWidth() > screen->GetWidth())
+         {
+            curX = 2;
+            curY -= maxY + 2;
+            maxY = 0;
+         }
+
+         GL_DrawShader(shader, curX, curY, tex->GetWidth(), tex->GetHeight());
+
+         maxY = MAX<int>(maxY, tex->GetHeight());
+         curX += tex->GetWidth() + 2;
+      }
+   }
+
+   glPopMatrix();
+}
+
 
 VertexProgram *GL_ParseVertexProgram()
 {
@@ -979,6 +1358,7 @@ void GL_BindVertexProgram(char *name)
    Printf("ZGL: Couldn't bind VP %s.\n", name);
    glBindProgramARB(GL_VERTEX_PROGRAM_ARB, 0);
 }
+
 
 CCMD(gl_list_shaders)
 {

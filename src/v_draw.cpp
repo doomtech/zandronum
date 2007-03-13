@@ -74,15 +74,6 @@ void STACK_ARGS DCanvas::DrawTexture (FTexture *img, int x0, int y0, DWORD tags_
 		return;
 	}
 
-	// [BC/ZDoomGL] If we're in OpenGL mode, just feed it everything.
-	if ( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL )
-	{
-		va_list taglist;
-		va_start (taglist, *(&tags_first - 1));
-		GL_DrawTextureVA( img, x0, y0, TAG_MORE, &taglist );
-		va_end (taglist);
-		return;
-	}
 	int texwidth = img->GetScaledWidth();
 	int texheight = img->GetScaledHeight();
 
@@ -441,6 +432,26 @@ void STACK_ARGS DCanvas::DrawTexture (FTexture *img, int x0, int y0, DWORD tags_
 
 	x0 -= Scale (left, destwidth, texwidth);
 	y0 -= Scale (top, destheight, texheight);
+
+	switch (OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL)
+	{
+	case true:
+		FTexInfo texInfo;
+		texInfo.tex = img;
+		texInfo.x = x0 >> FRACBITS; texInfo.y = y0 >> FRACBITS;
+		texInfo.width = destwidth >> FRACBITS; texInfo.height = destheight >> FRACBITS;
+		texInfo.translation = translation;
+		texInfo.loadAlpha = alphaChannel == 1;
+		texInfo.clipLeft = lclip; texInfo.clipRight = rclip;
+		texInfo.clipTop = uclip; texInfo.clipBottom = dclip;
+		texInfo.fillColor = fillcolor; texInfo.alpha = alpha * INV_FRACUNIT;
+		texInfo.windowLeft = windowleft; texInfo.windowRight = windowright;
+		texInfo.flipX = flipX == 1;
+		GL_DrawTexture(&texInfo);
+		return;
+	default:
+		break;
+	}
 
 	if (mode != DontDraw)
 	{

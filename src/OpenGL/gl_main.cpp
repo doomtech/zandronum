@@ -55,6 +55,7 @@
 
 #define USE_WINDOWS_DWORD
 #include "OpenGLVideo.h"
+#include "glext.h"
 
 #include "gl_main.h"
 #include "gl_texturelist.h"
@@ -80,6 +81,24 @@
 #include "w_wad.h"
 
 #include "gi.h"
+
+#ifndef M_PI
+ #define M_PI 3.14159265358979323846	// matches value in gcc v2 math.h
+#endif
+
+#define DEG2RAD( a ) (( a * M_PI ) / 180.0)
+#define INVERSECOLORMAP		32
+
+
+extern PFNGLLOCKARRAYSEXTPROC glLockArraysEXT;
+extern PFNGLUNLOCKARRAYSEXTPROC glUnlockArraysEXT;
+extern PFNGLMULTITEXCOORD1FARBPROC glMultiTexCoord1fARB;
+extern PFNGLMULTITEXCOORD2FARBPROC glMultiTexCoord2fARB;
+extern PFNGLMULTITEXCOORD3FARBPROC glMultiTexCoord3fARB;
+extern PFNGLMULTITEXCOORD4FARBPROC glMultiTexCoord4fARB;
+extern PFNGLACTIVETEXTUREARBPROC glActiveTextureARB;
+extern PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTextureARB;
+
 
 extern gameinfo_t gameinfo;
 extern level_locals_t level;
@@ -146,26 +165,72 @@ float FogStartLookup[256];
 int totalCoords;
 gl_poly_t *gl_polys;
 TArray<bool> sectorMoving;
-TArray<bool> sectorWasMoving;;
 
 extern TextureList textureList;
 TArray<subsector_t *> *visibleSubsectors;
-byte *glpvs = NULL;
+BYTE *glpvs = NULL;
 subsector_t *PlayerSubsector;
 viewarea_t ViewArea, InArea;
 
 
+CVAR (Bool, gl_wireframe, false, CVAR_SERVERINFO)
+CVAR (Bool, gl_blend_animations, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR (Bool, gl_texture, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR (Bool, gl_depthfog, true, CVAR_SERVERINFO | CVAR_ARCHIVE)
+CVAR (Float, gl_depthfog_multiplier, 0.60f, CVAR_SERVERINFO | CVAR_ARCHIVE)
+CVAR (Bool, gl_weapon, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR (Bool, gl_draw_sky, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR (Bool, gl_draw_skyboxes, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR (Int, gl_mirror_recursions, 4, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR (Bool, gl_mirror_envmap, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR (Bool, gl_nobsp, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR (Bool, gl_light_particles, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR (Bool, gl_texture_showshaders, false, 0)
+
+CUSTOM_CVAR(Bool, gl_vid_stereoscopy, false, CVAR_NOINITCALL)
+{
+   if (self)
+   {
+      Printf(PRINT_BOLD, "LOL@CYB: NO STEREOSCOPY FOR YOU! :P\n");
+      gl_vid_stereoscopy = false;
+   }
+}
+
 EXTERN_CVAR (Int, gl_billboard_mode)
 EXTERN_CVAR (Int, gl_vid_stencilbits)
 EXTERN_CVAR (Int, gl_vid_bitdepth)
+EXTERN_CVAR (Bool, gl_lights_multiply)
+EXTERN_CVAR (Bool, st_scale)
+EXTERN_CVAR (Bool, r_drawplayersprites)
 EXTERN_CVAR (Int, r_detail)
+
 
 CCMD (gl_list_extensions)
 {
    char *extensions, *tmp, extension[80];
    int length;
-   extensions = (char *)glGetString(GL_EXTENSIONS);
 
+   extensions = NULL;
+
+   PROC wglGetExtString = wglGetProcAddress("wglGetExtensionsStringARB");
+   if (wglGetExtString)
+   {
+      extensions = ((char*(__stdcall*)(HDC))wglGetExtString)(wglGetCurrentDC());
+   }
+
+   if (extensions)
+   {
+      while (tmp = strstr(extensions, " "))
+      {
+         length = tmp - extensions;
+         strncpy(extension, extensions, length);
+         extension[length] = '\0';
+         extensions += length + 1;
+         Printf("%s\n", extension);
+      }
+   }
+
+   extensions = (char *)glGetString(GL_EXTENSIONS);
    while (tmp = strstr(extensions, " "))
    {
       length = tmp - extensions;
@@ -178,32 +243,18 @@ CCMD (gl_list_extensions)
 
 
 bool lockArrays;
-extern bool useMultitexture;
 
 void R_SetupFrame (AActor *actor);
+
+extern PFNGLLOCKARRAYSEXTPROC glLockArraysEXT;
+extern PFNGLUNLOCKARRAYSEXTPROC glUnlockArraysEXT;
+
 
 //*****************************************************************************
 //	VARIABLES
 
 // What is the current renderer we're using?
 static	RENDERER_e			g_CurrentRenderer = RENDERER_SOFTWARE;
-
-//*****************************************************************************
-//	CONSOLE VARIABLES
-
-CVAR( Bool, gl_wireframe, false, CVAR_SERVERINFO )
-CVAR( Bool, gl_blend_animations, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG )
-CVAR( Bool, gl_texture, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG )
-CVAR( Bool, gl_depthfog, true, CVAR_SERVERINFO | CVAR_ARCHIVE )
-CVAR( Float, gl_depthfog_multiplier, 0.60f, CVAR_SERVERINFO | CVAR_ARCHIVE )
-CVAR( Bool, gl_weapon, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG )
-CVAR( Bool, gl_draw_sky, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG )
-CVAR( Bool, gl_draw_skyboxes, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG )
-CVAR( Bool, gl_particles_additive, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG )
-CVAR( Bool, gl_particles_grow, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG )
-CVAR( Int, gl_mirror_recursions, 4, CVAR_ARCHIVE | CVAR_GLOBALCONFIG )
-CVAR( Bool, gl_mirror_envmap, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG )
-CVAR( Bool, gl_nobsp, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG )
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -227,10 +278,10 @@ void OPENGL_SetCurrentRenderer( RENDERER_e Renderer )
 	g_CurrentRenderer = Renderer;
 }
 
-
 void GL_Init()
 {
 }
+
 
 void GL_SetSubsectorArray(TArray<subsector_t *> *array)
 {
@@ -264,45 +315,45 @@ bool GL_UseStencilBuffer()
 
 bool GL_CheckExtension(const char *ext)
 {
-	const char *supported = NULL;
-	int extLen = strlen(ext);
+   const char *supported = NULL;
+   int extLen = strlen(ext);
 
-	PROC wglGetExtString = wglGetProcAddress("wglGetExtensionsStringARB");
-	if (wglGetExtString)
-	{
-		supported = ((char*(__stdcall*)(HDC))wglGetExtString)(wglGetCurrentDC());
-	}
+   PROC wglGetExtString = wglGetProcAddress("wglGetExtensionsStringARB");
+   if (wglGetExtString)
+   {
+      supported = ((char*(__stdcall*)(HDC))wglGetExtString)(wglGetCurrentDC());
+   }
 
-	if (supported)
-	{
-		for (const char *p = supported;;p++)
-		{
-			p = strstr(p, ext);
-			if (!p) break;
+   if (supported)
+   {
+      for (const char *p = supported;;p++)
+      {
+         p = strstr(p, ext);
+         if (!p) break;
 
-			if ((p == supported || p[-1] == ' ') && (p[extLen] == '\0' || p[extLen] == ' '))
-			{
-				return true;
-			}
-		}
-	}
+         if ((p == supported || p[-1] == ' ') && (p[extLen] == '\0' || p[extLen] == ' '))
+         {
+            return true;
+         }
+      }
+   }
 
-	supported = (char *)glGetString(GL_EXTENSIONS);
-	if (supported)
-	{
-		for (const char *p = supported;;p++)
-		{
-			p = strstr(p, ext);
-			if (!p) return false;
+   supported = (char *)glGetString(GL_EXTENSIONS);
+   if (supported)
+   {
+      for (const char *p = supported;;p++)
+      {
+         p = strstr(p, ext);
+         if (!p) return false;
 
-			if ((p == supported || p[-1] == ' ') && (p[extLen] == '\0' || p[extLen] == ' '))
-			{
-				return true;
-			}
-		}
-	}
+         if ((p == supported || p[-1] == ' ') && (p[extLen] == '\0' || p[extLen] == ' '))
+         {
+            return true;
+         }
+      }
+   }
 
-	return false;
+   return false;
 }
 
 
@@ -336,21 +387,22 @@ void GL_Set3DMode()
 }
 
 
-void GL_SetupFog(byte lightlevel, byte r, byte g, byte b)
+extern float CurrentVisibility;
+
+void GL_SetupFog(BYTE lightlevel, BYTE r, BYTE g, BYTE b)
 {
    float fog[4];
    float amt;
 
    if (gl_depthfog)
    {
-      amt = 1.0f - byte2float[lightlevel];
-
       fog[0] = byte2float[r];
       fog[1] = byte2float[g];
       fog[2] = byte2float[b];
-      fog[3] = 1.0f;
+      fog[3] = 1.f;
 
-      amt = ((amt * amt) / 100.f) * gl_depthfog_multiplier * MAP_COEFF;
+      amt = 1.0f - byte2float[lightlevel];
+      amt = (amt * amt) * 0.01f * gl_depthfog_multiplier * MAP_COEFF;
 
       glFogfv(GL_FOG_COLOR, fog);
       glFogf(GL_FOG_DENSITY, amt);
@@ -371,11 +423,11 @@ void GL_GetSectorColor(sector_t *sector, float *r, float *g, float *b, int light
    {
       if (InSkybox)
       {
-         color = lightLevel / LIGHTLEVELMAX;
+         color = lightLevel * 1.f / LIGHTLEVELMAX;
       }
       else
       {
-         color = (lightLevel + (playerlight << 4)) / LIGHTLEVELMAX;
+         color = (lightLevel + (playerlight << 4)) * 1.f / LIGHTLEVELMAX;
       }
    }
 
@@ -387,6 +439,7 @@ void GL_GetSectorColor(sector_t *sector, float *r, float *g, float *b, int light
 }
 
 
+extern fixed_t r_FloorVisibility;
 void GL_DrawFloorCeiling(subsector_t *subSec, sector_t *sector, int floorlightlevel, int ceilinglightlevel)
 {
    angle_t angle;
@@ -397,10 +450,7 @@ void GL_DrawFloorCeiling(subsector_t *subSec, sector_t *sector, int floorlightle
    seg_t *seg;
    FTexture *tex;
 
-   if (subSec->isPoly)
-   {
-      return;
-   }
+   //if (subSec->isPoly) return;
 
    p = &sector->ColorMap->Color;
 
@@ -409,57 +459,58 @@ void GL_DrawFloorCeiling(subsector_t *subSec, sector_t *sector, int floorlightle
       if (sector->floorpic != skyflatnum)
       {
          tex = TexMan(sector->floorpic);
-
-         if (Player->fixedcolormap)
+         if (tex->UseType != FTexture::TEX_Null)
          {
-            glDisable(GL_FOG);
-         }
+            GL_GetSectorColor(sector, &r, &g, &b, floorlightlevel);
+            //floorlightlevel = (int)(floorlightlevel * 0.875f);
 
-         GL_GetSectorColor(sector, &r, &g, &b, floorlightlevel);
+            angle = sector->base_floor_angle + sector->floor_angle;
+            xOffset = sector->floor_xoffs / (tex->GetWidth() * 1.f * FRACUNIT);
+            yOffset = (sector->floor_yoffs + sector->base_floor_yoffs) / (tex->GetHeight() * 1.f * FRACUNIT);
+            xScale = sector->floor_xscale * INV_FRACUNIT;
+            yScale = sector->floor_yscale * INV_FRACUNIT;
 
-         angle = sector->base_floor_angle + sector->floor_angle;
-         xOffset = sector->floor_xoffs / (tex->GetWidth() * 1.f * FRACUNIT);
-         yOffset = (sector->floor_yoffs + sector->base_floor_yoffs) / (tex->GetHeight() * 1.f * FRACUNIT);
-         xScale = sector->floor_xscale * INV_FRACUNIT;
-         yScale = sector->floor_yscale * INV_FRACUNIT;
+            poly = &gl_polys[(subSec->index * 2) + 0];
+            poly->offX = xOffset;
+            poly->offY = yOffset;
+            poly->scaleX = xScale;
+            if (tex->CanvasTexture())
+            {
+               yScale *= -1;
+            }
+            poly->scaleY = yScale;
+            poly->r = r;
+            poly->g = g;
+            poly->b = b;
+            poly->a = 1.f;
+            poly->rot = ANGLE_TO_FLOAT(angle) * -1.f;
+            poly->lightLevel = floorlightlevel;
+            poly->doomTex = sector->floorpic;
+            if (p->r == 0xff && p->g == 0xff && p->b == 0xff)
+            {
+               poly->translation = sector->ColorMap->Maps;
+            }
+            else
+            {
+               poly->translation = NULL;
+            }
 
-         poly = &gl_polys[(subSec->index * 2) + 0];
-         poly->isFogBoundary = false;
-         poly->offX = xOffset;
-         poly->offY = yOffset;
-         poly->scaleX = xScale;
-         poly->scaleY = yScale;
-         poly->r = r;
-         poly->g = g;
-         poly->b = b;
-         poly->a = 1.f;
-         poly->rot = ANGLE_TO_FLOAT(angle) * -1.f;
-         poly->lightLevel = floorlightlevel;
-         poly->doomTex = sector->floorpic;
-         if (p->r == 0xff && p->g == 0xff && p->b == 0xff)
-         {
-            poly->translation = sector->ColorMap->Maps;
-         }
-         else
-         {
-            poly->translation = NULL;
-         }
+            if (sector->ColorMap->Fade)
+            {
+               poly->fogR = sector->ColorMap->Fade.r;
+               poly->fogG = sector->ColorMap->Fade.g;
+               poly->fogB = sector->ColorMap->Fade.b;
+            }
+            else
+            {
+               poly->fogR = (level.fadeto & 0xFF0000) >> 16;
+               poly->fogG = (level.fadeto & 0x00FF00) >> 8;
+               poly->fogB = level.fadeto & 0x0000FF;
+            }
 
-         if (sector->ColorMap->Fade)
-         {
-            poly->fogR = sector->ColorMap->Fade.r;
-            poly->fogG = sector->ColorMap->Fade.g;
-            poly->fogB = sector->ColorMap->Fade.b;
+            textureList.GetTexture(sector->floorpic, true);
+            RL_AddPoly(textureList.GetGLTexture(), (subSec->index * 2) + 0);
          }
-         else
-         {
-            poly->fogR = (level.fadeto & 0xFF0000) >> 16;
-            poly->fogG = (level.fadeto & 0x00FF00) >> 8;
-            poly->fogB = level.fadeto & 0x0000FF;
-         }
-
-         textureList.GetTexture(sector->floorpic, true);
-         RL_AddPoly(textureList.GetGLTexture(), (subSec->index * 2) + 0);
       }
    }
    else
@@ -467,7 +518,7 @@ void GL_DrawFloorCeiling(subsector_t *subSec, sector_t *sector, int floorlightle
       if (subSec->sector->FloorSkyBox && sector->floorpic == skyflatnum)
       {
          glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-         textureList.BindGLTexture(0);
+         glDisable(GL_TEXTURE_2D);
          glStencilFunc(GL_ALWAYS, subSec->sector->FloorSkyBox->refmask, ~0);
          glColor3f(1.f, 1.f, 1.f);
 
@@ -480,6 +531,7 @@ void GL_DrawFloorCeiling(subsector_t *subSec, sector_t *sector, int floorlightle
             glVertex3f(-seg->v1->x * MAP_SCALE, sector->floorplane.ZatPoint(seg->v1) * MAP_SCALE, seg->v1->y * MAP_SCALE);
          glEnd();
 
+         glEnable(GL_TEXTURE_2D);
          glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
       }
    }
@@ -489,57 +541,58 @@ void GL_DrawFloorCeiling(subsector_t *subSec, sector_t *sector, int floorlightle
       if (sector->ceilingpic != skyflatnum)
       {
          tex = TexMan(sector->ceilingpic);
-
-         if (Player->fixedcolormap)
+         if (tex->UseType != FTexture::TEX_Null)
          {
-            glDisable(GL_FOG);
-         }
+            GL_GetSectorColor(sector, &r, &g, &b, ceilinglightlevel);
+            //ceilinglightlevel = (int)(ceilinglightlevel * 0.875f);
 
-         GL_GetSectorColor(sector, &r, &g, &b, ceilinglightlevel);
+            angle = sector->base_ceiling_angle + sector->ceiling_angle;
+            xOffset = sector->ceiling_xoffs / (tex->GetWidth() * 1.f * FRACUNIT);
+            yOffset = (sector->ceiling_yoffs + sector->base_ceiling_yoffs) / (tex->GetHeight() * 1.f * FRACUNIT);
+            xScale = sector->ceiling_xscale * INV_FRACUNIT;
+            yScale = sector->ceiling_yscale * INV_FRACUNIT;
 
-         angle = sector->base_ceiling_angle + sector->ceiling_angle;
-         xOffset = sector->ceiling_xoffs / (tex->GetWidth() * 1.f * FRACUNIT);
-         yOffset = (sector->ceiling_yoffs + sector->base_ceiling_yoffs) / (tex->GetHeight() * 1.f * FRACUNIT);
-         xScale = sector->ceiling_xscale * INV_FRACUNIT;
-         yScale = sector->ceiling_yscale * INV_FRACUNIT;
+            poly = &gl_polys[(subSec->index * 2) + 1];
+            poly->offX = xOffset;
+            poly->offY = yOffset;
+            if (tex->CanvasTexture())
+            {
+               yScale *= -1;
+            }
+            poly->scaleX = xScale;
+            poly->scaleY = yScale;
+            poly->r = r;
+            poly->g = g;
+            poly->b = b;
+            poly->a = 1.f;
+            poly->rot = ANGLE_TO_FLOAT(angle) * -1.f;
+            poly->lightLevel = ceilinglightlevel;
+            poly->doomTex = sector->ceilingpic;
+            if (p->r == 0xff && p->g == 0xff && p->b == 0xff)
+            {
+               poly->translation = sector->ColorMap->Maps;
+            }
+            else
+            {
+               poly->translation = NULL;
+            }
 
-         poly = &gl_polys[(subSec->index * 2) + 1];
-         poly->isFogBoundary = false;
-         poly->offX = xOffset;
-         poly->offY = yOffset;
-         poly->scaleX = xScale;
-         poly->scaleY = yScale;
-         poly->r = r;
-         poly->g = g;
-         poly->b = b;
-         poly->a = 1.f;
-         poly->rot = ANGLE_TO_FLOAT(angle) * -1.f;
-         poly->lightLevel = ceilinglightlevel;
-         poly->doomTex = sector->ceilingpic;
-         if (p->r == 0xff && p->g == 0xff && p->b == 0xff)
-         {
-            poly->translation = sector->ColorMap->Maps;
-         }
-         else
-         {
-            poly->translation = NULL;
-         }
+            if (sector->ColorMap->Fade)
+            {
+               poly->fogR = sector->ColorMap->Fade.r;
+               poly->fogG = sector->ColorMap->Fade.g;
+               poly->fogB = sector->ColorMap->Fade.b;
+            }
+            else
+            {
+               poly->fogR = (level.fadeto & 0xFF0000) >> 16;
+               poly->fogG = (level.fadeto & 0x00FF00) >> 8;
+               poly->fogB = level.fadeto & 0x0000FF;
+            }
 
-         if (sector->ColorMap->Fade)
-         {
-            poly->fogR = sector->ColorMap->Fade.r;
-            poly->fogG = sector->ColorMap->Fade.g;
-            poly->fogB = sector->ColorMap->Fade.b;
+            textureList.GetTexture(sector->ceilingpic, true);
+            RL_AddPoly(textureList.GetGLTexture(), (subSec->index * 2) + 1);
          }
-         else
-         {
-            poly->fogR = (level.fadeto & 0xFF0000) >> 16;
-            poly->fogG = (level.fadeto & 0x00FF00) >> 8;
-            poly->fogB = level.fadeto & 0x0000FF;
-         }
-
-         textureList.GetTexture(sector->ceilingpic, true);
-         RL_AddPoly(textureList.GetGLTexture(), (subSec->index * 2) + 1);
       }
    }
    else
@@ -547,7 +600,7 @@ void GL_DrawFloorCeiling(subsector_t *subSec, sector_t *sector, int floorlightle
       if (subSec->sector->CeilingSkyBox && sector->ceilingpic == skyflatnum)
       {
          glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-         textureList.BindGLTexture(0);
+         glDisable(GL_TEXTURE_2D);
          glStencilFunc(GL_ALWAYS, subSec->sector->CeilingSkyBox->refmask, ~0);
          glColor3f(1.f, 1.f, 1.f);
 
@@ -560,11 +613,12 @@ void GL_DrawFloorCeiling(subsector_t *subSec, sector_t *sector, int floorlightle
             glVertex3f(-seg->v2->x * MAP_SCALE, sector->ceilingplane.ZatPoint(seg->v2) * MAP_SCALE, seg->v2->y * MAP_SCALE);
          glEnd();
 
+         glEnable(GL_TEXTURE_2D);
          glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
       }
    }
 
-   textureList.SetTranslation((byte *)NULL);
+   textureList.SetTranslation((BYTE *)NULL);
 
    glMatrixMode(GL_TEXTURE);
    glLoadIdentity();
@@ -572,96 +626,32 @@ void GL_DrawFloorCeiling(subsector_t *subSec, sector_t *sector, int floorlightle
 }
 
 
-void GL_DrawParticle(float x, float y, float z, PalEntry *p, int size)
-{
-   float rx, ry, rz, ux, uy, uz;
-   float cx, cy, cz;
-   float tx, ty;
-   float w, h;
-   float angle;
-   float grow;
-
-   grow = 1 - byte2float[p->a];
-   grow = (3 * grow) + 1;
-
-   if (gl_particles_grow)
-   {
-      w = h = (size * 0.25f) * grow;
-   }
-   else
-   {
-      w = h = size * 0.5f;
-   }
-
-   rx = viewMatrix[0]; ry = viewMatrix[4]; rz = viewMatrix[8];
-   ux = viewMatrix[1]; uy = viewMatrix[5]; uz = viewMatrix[9];
-   textureList.GetCorner(&tx, &ty);
-
-   angle = byte2float[p->a] * 720.f;
-
-   glColor4f(byte2float[p->r], byte2float[p->g], byte2float[p->b], byte2float[p->a]);
-
-   glBegin(GL_TRIANGLE_FAN);
-      cx = x + (ux * -h) + (rx * -w);
-      cy = y + (uy * -h) + (ry * -w);
-      cz = z + (uz * -h) + (rz * -w);
-      glTexCoord2f(0.0, ty);
-      glVertex3f(cx, cy, cz);
-
-      cx = x + (ux * -h) + (rx * w);
-      cy = y + (uy * -h) + (ry * w);
-      cz = z + (uz * -h) + (rz * w);
-      glTexCoord2f(tx, ty);
-      glVertex3f(cx, cy, cz);
-
-      cx = x + (ux * h) + (rx * w);
-      cy = y + (uy * h) + (ry * w);
-      cz = z + (uz * h) + (rz * w);
-      glTexCoord2f(tx, 0.0);
-      glVertex3f(cx, cy, cz);
-
-      cx = x + (ux * h) + (rx * -w);
-      cy = y + (uy * h) + (ry * -w);
-      cz = z + (uz * h) + (rz * -w);
-      glTexCoord2f(0.0, 0.0);
-      glVertex3f(cx, cy, cz);
-   glEnd();
-}
-
-
-void GL_DrawParticles(int index)
+void GL_CollectParticles(int index)
 {
    particle_t *p;
-   int c;
+   Particle *part;
+   int c, lightLevel;
    float r, g, b, ticFrac;
    PalEntry pe;
    float x, y, z;
    sector_t *sec, tempsec;
+   BYTE fogR, fogG, fogB;
 
    sec = subsectors[index].sector;
-   sec = R_FakeFlat(sec, &tempsec, NULL, NULL, false);
+   sec = GL_FakeFlat(sec, &tempsec, NULL, NULL, false);
 
    if (sec->ColorMap->Fade)
    {
-      GL_SetupFog(sec->lightlevel, sec->ColorMap->Fade.r, sec->ColorMap->Fade.g, sec->ColorMap->Fade.b);
+      fogR = sec->ColorMap->Fade.r;
+      fogG = sec->ColorMap->Fade.g;
+      fogB = sec->ColorMap->Fade.b;
    }
    else
    {
-      GL_SetupFog(sec->lightlevel, ((level.fadeto & 0xFF0000) >> 16), ((level.fadeto & 0x00FF00) >> 8), level.fadeto & 0x0000FF);
+      fogR = (level.fadeto & 0xFF0000) >> 16;
+      fogG = (level.fadeto & 0x00FF00) >> 8;
+      fogB = level.fadeto & 0x0000FF;
    }
-
-   if (gl_particles_additive)
-   {
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-   }
-   else
-   {
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-   }
-
-   glDepthMask(GL_FALSE);
-
-   textureList.BindTexture("GLPART");
 
    ticFrac = r_TicFrac * INV_FRACUNIT;
 
@@ -670,24 +660,38 @@ void GL_DrawParticles(int index)
       p = &Particles[i];
 
       c = p->color;
-      r = byte2float[GPalette.BaseColors[c].r] * byte2float[sec->ColorMap->Color.r];
-      g = byte2float[GPalette.BaseColors[c].g] * byte2float[sec->ColorMap->Color.g];
-      b = byte2float[GPalette.BaseColors[c].b] * byte2float[sec->ColorMap->Color.b];
+      r = byte2float[screen->GetPalette()[c].r] * byte2float[sec->ColorMap->Color.r] * byte2float[sec->lightlevel];
+      g = byte2float[screen->GetPalette()[c].g] * byte2float[sec->ColorMap->Color.g] * byte2float[sec->lightlevel];
+      b = byte2float[screen->GetPalette()[c].b] * byte2float[sec->ColorMap->Color.b] * byte2float[sec->lightlevel];
 
-      x = (p->x + (p->velx * ticFrac)) * MAP_SCALE;
+      x = -(p->x + (p->velx * ticFrac)) * MAP_SCALE;
       y = (p->z + (p->velz * ticFrac)) * MAP_SCALE;
       z = (p->y + (p->vely * ticFrac)) * MAP_SCALE;
 
-      pe.r = (byte)(r * 255);
-      pe.g = (byte)(g * 255);
-      pe.b = (byte)(b * 255);
-      pe.a = (byte)(p->trans - (p->fade * ticFrac));
+      if (gl_light_particles) GL_GetLightForPoint(x, y, z, &r, &g, &b);
 
-      GL_DrawParticle(-x, y, z, &pe, p->size);
+      pe.r = (BYTE)(r * 255);
+      pe.g = (BYTE)(g * 255);
+      pe.b = (BYTE)(b * 255);
+      pe.a = (BYTE)(p->trans - (p->fade * ticFrac));
+
+      lightLevel = sec->lightlevel + GL_GetIntensityForPoint(x, y, z);
+      lightLevel = clamp<int>(lightLevel, 0, 255);
+      part = new Particle();
+      part->r = (BYTE)(r * 255);
+      part->g = (BYTE)(g * 255);
+      part->b = (BYTE)(b * 255);
+      part->a = (BYTE)(p->trans - (p->fade * ticFrac));
+      part->x = x;
+      part->y = y;
+      part->z = z;
+      part->lightLevel = lightLevel;
+      part->size = p->size;
+      part->fogR = fogR;
+      part->fogG = fogG;
+      part->fogB = fogB;
+      GL_AddParticle(part);
 	}
-
-   glDepthMask(GL_TRUE);
-   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 
@@ -745,7 +749,7 @@ void GL_RenderPolyobj(subsector_t *subSec, sector_t *sector)
 
       if (GL_SegFacingDir(seg->v1->x, seg->v1->y, seg->v2->x, seg->v2->y))
       {
-         GL_DrawWall(seg, sector, true, false);
+         GL_DrawWall(seg, sector, true);
       }
    }
 }
@@ -755,14 +759,23 @@ bool GL_RenderSubsector(subsector_t *subSec)
 {
    int i, numLines, firstLine;
    seg_t *seg;
-   AActor *actor;
    int floorlightlevel, ceilinglightlevel;
    sector_t tempSec, *sector;
    line_t *line;
+   AActor *actor;
 
-   if (subSec->isPoly) return false;
+   sector = GL_FakeFlat(subSec->render_sector, &tempSec, &floorlightlevel, &ceilinglightlevel, false);
 
-   sector = R_FakeFlat(subSec->sector, &tempSec, &floorlightlevel, &ceilinglightlevel, false);
+   if (subSec->sector->validcount < validcount)
+   {
+      actor = subSec->sector->thinglist;
+      while (actor)
+      {
+         GL_AddSprite(actor);
+         actor = actor->snext;
+      }
+      subSec->sector->validcount = validcount;
+   }
 
    if (!CollectSpecials)
    {
@@ -788,13 +801,13 @@ bool GL_RenderSubsector(subsector_t *subSec)
                   if (gl_mirror_envmap && !MaskSkybox)
                   {
                      seg->linedef->flags |= ML_MAPPED;
-                     GL_DrawWall(seg, sector, false, false);
+                     GL_DrawWall(seg, sector, false);
                   }
                }
                else
                {
                   seg->linedef->flags |= ML_MAPPED;
-                  GL_DrawWall(seg, sector, false, false);
+                  GL_DrawWall(seg, sector, false);
                }
             }
          }
@@ -803,20 +816,6 @@ bool GL_RenderSubsector(subsector_t *subSec)
       if (subSec->poly)
       {
          GL_RenderPolyobj(subSec, sector);
-      }
-
-      if (subSec->validcount == validcount && !MaskSkybox && !CollectSpecials && !DrawingDeferredLines)
-      {
-         if (subSec->sector->validcount < validcount)
-         {
-            actor = subSec->sector->thinglist;
-            while (actor)
-            {
-               GL_AddSprite(actor);
-               actor = actor->snext;
-            }
-            subSec->sector->validcount = validcount;
-         }
       }
    }
 
@@ -829,7 +828,7 @@ bool GL_RenderSubsector(subsector_t *subSec)
 void GL_DrawVisibleSubsectors()
 {
    subsector_t *subSec;
-   TArray<subsector_t *> reverseSubsectors;
+   //TArray<subsector_t *> reverseSubsectors;
    int i, size;
 
    CL_ClearClipper();
@@ -845,26 +844,47 @@ void GL_DrawVisibleSubsectors()
       subSec->validcount = validcount;
       if (GL_RenderSubsector(subSec))
       {
-         reverseSubsectors.Push(subSec);
+         //reverseSubsectors.Push(subSec);
+         GL_CollectParticles(subSec->index);
       }
    }
 
-   RL_RenderList();
+   // passes go like this:
+   // - depth pass
+   // - color pass (with depthfog)
+   // - lights (n passes)
+   // - texture modulation pass
+   // - sector fog pass (for colored fog)
+   //GL_CollectLights();
+
+   //if (glLockArraysEXT) glLockArraysEXT(0, VertexArraySize);
+
+   RL_RenderList(RL_DEPTH);
+   RL_RenderList(RL_BASE);
+   if (!gl_wireframe)
+   {
+      if (gl_lights_multiply) RL_RenderList(RL_LIGHTS);
+      if (gl_texture) RL_RenderList(RL_TEXTURED);
+      if (!gl_lights_multiply) RL_RenderList(RL_LIGHTS);
+   }
+   if (gl_depthfog) RL_RenderList(RL_FOG);
    RL_Clear();
-   GL_DrawDecals();
+   RL_SetupMode(RL_RESET);
 
-   DrawingDeferredLines = true;
-   GL_DrawSprites();
-   DrawingDeferredLines = false;
-   GL_ClearSprites();
-   GL_DrawDecals();
-
-   glCullFace(GL_BACK);
+   //if (glUnlockArraysEXT) glUnlockArraysEXT();
+#if 0
    for (i = 0; i < reverseSubsectors.Size(); i++)
    {
       subSec = reverseSubsectors[i];
-      GL_DrawParticles(subSec->index);
+      GL_CollectParticles(subSec->index);
    }
+#endif
+   GL_DrawDecals();
+   DrawingDeferredLines = true;
+   GL_DrawSprites();
+   GL_DrawHalos();
+   DrawingDeferredLines = false;
+   GL_ClearSprites();
 
    if (InMirror)
    {
@@ -884,7 +904,7 @@ void GL_AddVisibleSubsector(subsector_t *subSec)
    // completely ignore subsectors used to hold polyobjects
    if (subSec->isPoly) return;
 
-   sector = R_FakeFlat(subSec->sector, &tempSec, NULL, NULL, false);
+   sector = GL_FakeFlat(subSec->render_sector, &tempSec, NULL, NULL, false);
    GL_RecalcSubsector(subSec, sector);
 
    if (CL_CheckSubsector(subSec, sector)) // check if the subsector has been clipped away
@@ -974,37 +994,34 @@ void GL_RenderBSPNode(void *node, angle_t left, angle_t right)
    int side;
    node_t *bsp;
 
-   if (CL_ClipperFull())
-   {
-      return;
-   }
+   if (CL_ClipperFull()) return;
 
    if (numnodes == 0)
 	{
-		//GL_AddVisibleSubsector (subsectors);
-      // no nodes, so use non-bsp renderer :)
-      GL_AddVisibleSubsectors(left, right);
+      GL_AddVisibleSubsector(subsectors);
+      return;
 	}
-   else
-   {
-      while (!((size_t)node & 1))  // Keep going until found a subsector
-	   {
-		   bsp = (node_t *)node;
 
-		   // Decide which side the view point is on.
-		   side = R_PointOnSide(viewx, viewy, bsp);
+   while (!((size_t)node & 1))  // Keep going until found a subsector
+	{
+		bsp = (node_t *)node;
 
-		   // Recursively divide front space (toward the viewer).
-		   GL_RenderBSPNode(bsp->children[side], left, right);
+		// Decide which side the view point is on.
+		side = R_PointOnSide(viewx, viewy, bsp);
 
-		   // Possibly divide back space (away from the viewer).
-		   side ^= 1;
-		   node = bsp->children[side];
-	   }
-	   GL_AddVisibleSubsector((subsector_t *)((BYTE *)node - 1));
-   }
+   	// Recursively divide front space (toward the viewer).
+	   GL_RenderBSPNode(bsp->children[side], left, right);
+
+		// Possibly divide back space (away from the viewer).
+		side ^= 1;
+
+      if (!CL_CheckBBox (bsp->bbox[side])) return;
+
+      node = bsp->children[side];
+	}
+
+	GL_AddVisibleSubsector((subsector_t *)((BYTE *)node - 1));
 }
-
 
 
 void GL_AddQueuedSubsector(subsector_t *ssec, sector_t *sector, int depthCount)
@@ -1016,6 +1033,7 @@ void GL_AddQueuedSubsector(subsector_t *ssec, sector_t *sector, int depthCount)
       visibleSubsectors->Push(ssec);
    }
 }
+
 
 sector_t TempSector;
 void GL_QueueSubsectors(subsector_t *ssec, int depthCount)
@@ -1088,13 +1106,14 @@ void GL_RenderSkybox(ASkyViewpoint *skyBox)
 
    CL_ClearClipper();
 
-   a1 = CL_FrustumAngle(FRUSTUM_LEFT);
-   a2 = CL_FrustumAngle(FRUSTUM_RIGHT);
-   CL_SafeAddClipRange(a2, a1);
+   a1 = CL_FrustumAngle();
+   CL_SafeAddClipRange(viewangle + a1, viewangle - a1);
 
    if (gl_nobsp)
    {
-      GL_AddVisibleSubsectors(a1, a2);
+      //GL_AddVisibleSubsectors(a1, a2);
+      GL_QueueSubsectors(PlayerSubsector, 0);
+      ShouldDrawSky = true;
    }
    else
    {
@@ -1121,12 +1140,15 @@ bool InMirror;
 void GL_RenderMirror(seg_t *seg)
 {
    angle_t startang = viewangle, a1, a2;
-	fixed_t startx = viewx;
-	fixed_t starty = viewy;
+   fixed_t startx = viewx;
+   fixed_t starty = viewy;
    float x, y, z, yaw, pitch;
    static int count = 0;
    TArray<subsector_t *> subSecs, *prevSubSecs;
    TArray<seg_t *> mirrors, *prevMirrors;
+   gl_poly_t *poly;
+   double planeData[4];
+   int index;
 
    if (gl_mirror_recursions == -1)
    {
@@ -1135,34 +1157,46 @@ void GL_RenderMirror(seg_t *seg)
 
    vertex_t *v1 = seg->v1;
 
-	// Reflect the current view behind the mirror.
-	if (seg->linedef->dx == 0)
-	{ // vertical mirror
-		viewx = v1->x - startx + v1->x;
-	}
-	else if (seg->linedef->dy == 0)
-	{ // horizontal mirror
-		viewy = v1->y - starty + v1->y;
-	}
-	else
-	{ // any mirror--use floats to avoid integer overflow
-		vertex_t *v2 = seg->v2;
+   // Reflect the current view behind the mirror.
+   if (seg->linedef->dx == 0)
+   { // vertical mirror
+	   viewx = v1->x - startx + v1->x;
+   }
+   else if (seg->linedef->dy == 0)
+   { // horizontal mirror
+	   viewy = v1->y - starty + v1->y;
+   }
+   else
+   { // any mirror--use floats to avoid integer overflow
+      vertex_t *v2 = seg->v2;
 
-		float dx = FIXED2FLOAT(v2->x - v1->x);
-		float dy = FIXED2FLOAT(v2->y - v1->y);
-		float x1 = FIXED2FLOAT(v1->x);
-		float y1 = FIXED2FLOAT(v1->y);
-		float x = FIXED2FLOAT(startx);
-		float y = FIXED2FLOAT(starty);
+      float dx = FIXED2FLOAT(v2->x - v1->x);
+      float dy = FIXED2FLOAT(v2->y - v1->y);
+      float x1 = FIXED2FLOAT(v1->x);
+      float y1 = FIXED2FLOAT(v1->y);
+      float x = FIXED2FLOAT(startx);
+      float y = FIXED2FLOAT(starty);
 
-		// the above two cases catch len == 0
-		float r = ((x - x1)*dx + (y - y1)*dy) / (dx*dx + dy*dy);
+	   // the above two cases catch len == 0
+	   float r = ((x - x1)*dx + (y - y1)*dy) / (dx*dx + dy*dy);
 
-		viewx = FLOAT2FIXED((x1 + r * dx)*2 - x);
-		viewy = FLOAT2FIXED((y1 + r * dy)*2 - y);
-	}
+	   viewx = FLOAT2FIXED((x1 + r * dx)*2 - x);
+	   viewy = FLOAT2FIXED((y1 + r * dy)*2 - y);
+   }
 
 	viewangle = 2 * R_PointToAngle2 (seg->v1->x, seg->v1->y, seg->v2->x, seg->v2->y) - startang;
+
+   index = numsubsectors * 2;
+   index += (seg - segs) * 3;
+   poly = gl_polys + (index + 1);
+
+   planeData[0] = poly->plane.A() * -1;
+   planeData[1] = poly->plane.B() * -1;
+   planeData[2] = poly->plane.C() * -1;
+   planeData[3] = poly->plane.D() * -1;
+
+   glEnable(GL_CLIP_PLANE0);
+   glClipPlane(GL_CLIP_PLANE0, planeData);
 
    glPushMatrix();
    glLoadIdentity();
@@ -1209,13 +1243,14 @@ void GL_RenderMirror(seg_t *seg)
    CL_ClearClipper();
    CL_AddSegRange(seg);
 
-   a1 = CL_FrustumAngle(FRUSTUM_LEFT);
-   a2 = CL_FrustumAngle(FRUSTUM_RIGHT);
-   CL_SafeAddClipRange(a2, a1);
+   a1 = CL_FrustumAngle();
+   CL_SafeAddClipRange(viewangle + a1, viewangle - a1);
 
    if (gl_nobsp)
    {
-      GL_AddVisibleSubsectors(a1, a2);
+      //GL_AddVisibleSubsectors(a1, a2);
+      GL_QueueSubsectors(PlayerSubsector, 0);
+      ShouldDrawSky = true;
    }
    else
    {
@@ -1257,6 +1292,7 @@ void GL_RenderMirror(seg_t *seg)
    count--;
 
    glCullFace(GL_FRONT);
+   glDisable(GL_CLIP_PLANE0);
 
    glPopMatrix();
 
@@ -1275,7 +1311,7 @@ void GL_DrawMirrors()
    for (i = 0; i < mirrorLines->Size(); i++)
    {
       seg = mirrorLines->Item(i);
-    GL_RenderMirror(seg);
+      GL_RenderMirror(seg);
    }
    mirrorLines->Clear();
 
@@ -1322,131 +1358,6 @@ void GL_DrawSkyboxes()
    }
 }
 
-
-void GL_DrawScene(player_t *player)
-{
-   TArray<seg_t *> mirrors;
-   TArray<subsector_t *> subSecs;
-   int i, numSubSecs;
-   static int lastGametic = gametic;
-   float yaw, pitch;
-   GLbitfield mask;
-   angle_t a1, a2;
-
-   playerlight = player->extralight;
-
-   if (gl_depthfog && !Player->fixedcolormap)
-   {
-      glEnable(GL_FOG);
-   }
-   else
-   {
-      glDisable(GL_FOG);
-   }
-
-   Player = player;
-
-   if (gl_wireframe || !gl_texture)
-   {
-      glDisable(GL_TEXTURE_2D);
-   }
-
-   CL_CalcFrustumPlanes();
-   GL_ClearSprites();
-   RL_Clear();
-   skyBoxes.Clear();
-   mirrors.Clear();
-   numTris = 0;
-
-   GL_SetSubsectorArray(&subSecs);
-   GL_SetMirrorList(&mirrors);
-
-   CL_ClearClipper();
-   a1 = CL_FrustumAngle(FRUSTUM_LEFT);
-   a2 = CL_FrustumAngle(FRUSTUM_RIGHT);
-   CL_SafeAddClipRange(a2, a1);
-
-   if (gl_nobsp)
-   {
-      GL_AddVisibleSubsectors(a1, a2);
-   }
-   else
-   {
-      GL_RenderBSPNode(nodes + numnodes - 1, a1, a2);
-   }
-   CL_ClearClipper();
-
-   numSubSecs = subSecs.Size();
-
-   mask = GL_DEPTH_BUFFER_BIT;
-   if ((gl_draw_sky && ShouldDrawSky) || gl_wireframe)
-   {
-      mask |= GL_COLOR_BUFFER_BIT;
-   }
-   if (GL_UseStencilBuffer())
-   {
-      mask |= GL_STENCIL_BUFFER_BIT;
-   }
-   glClear(mask);
-
-   if (gl_draw_sky && !gl_wireframe && ShouldDrawSky)
-   {
-      glPushMatrix();
-      glLoadIdentity();
-
-      yaw = 270.f - ANGLE_TO_FLOAT(viewangle);
-      pitch = ANGLE_TO_FLOAT(viewpitch);
-
-      glRotatef(pitch, 1.f, 0.f, 0.f);
-      glRotatef(yaw, 0.f, 1.f, 0.f);
-      GL_DrawSky();
-      glPopMatrix();
-   }
-
-   NetUpdate ();
-
-   if (skyBoxes.Size() && gl_draw_skyboxes)
-   {
-      CL_ClearClipper();
-
-      if (GL_UseStencilBuffer())
-      {
-         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-         textureList.BindGLTexture(0);
-         glEnable(GL_STENCIL_TEST);
-         glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-         MaskSkybox = true;
-         for (i = 0; i < numSubSecs; i++)
-         {
-            GL_RenderSubsector(subSecs[i]);
-         }
-         MaskSkybox = false;
-         CL_ClearClipper();
-         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-      }
-
-      GL_DrawSkyboxes();
-
-      glClear(GL_DEPTH_BUFFER_BIT);
-   }
-
-   if (mirrors.Size() > 0)
-   {
-      GL_DrawMirrors();
-      mirrors.Clear();
-   }
-
-   GL_DrawVisibleSubsectors();
-
-   NetUpdate ();
-
-   if (gl_depthfog)
-   {
-      glDisable(GL_FOG);
-   }
-
-   RL_Clear();
-}
 
 void GL_DrawScene()
 {
@@ -1561,106 +1472,160 @@ void GL_DrawScene()
    RL_Clear();
 }
 
-EXTERN_CVAR( Bool, r_drawplayersprites );
+
+extern FTexture *CrosshairImage;
 void GL_DrawPlayerWeapon(player_t *player)
 {
-   pspdef_t *psp;
-   spritedef_t *sprdef;
-   spriteframe_t *sprframe;
-   sector_t *sector, tempsec;
-   short lump;
    int i;
-   float r, g, b, a, color;
-   float x, y;
-   PalEntry *p;
-   FTexture *tex;
+   int lightnum, actualextralight;
+   pspdef_t* psp;
+   sector_t* sec;
+   static sector_t tempsec;
+   int floorlight, ceilinglight;
    fixed_t ofsx, ofsy;
-   AInventory	*pInventory;
+   int centerY = screen->GetHeight() >> 1;
+   int centerX = screen->GetWidth() >> 1;
 
-	if (!r_drawplayersprites ||
-		!camera->player ||
-		(players[consoleplayer].cheats & CF_CHASECAM))
-		return;
+   if (!camera->player || (player->cheats & CF_CHASECAM)) return;
+
+   sec = GL_FakeFlat (camera->Sector, &tempsec, &floorlight, &ceilinglight, false);
+
+	// [RH] set foggy flag
+	foggy = (level.fadeto || sec->ColorMap->Fade || (level.flags & LEVEL_HASFADETABLE));
+	actualextralight = foggy ? 0 : extralight << 4;
+
+	// get light level
+	lightnum = clamp<int>(((floorlight + ceilinglight) >> 1) + actualextralight, 0, 255);
 
    if (camera->player != NULL)
-	{
-      //GL_Set2DMode();
+   {
+      spritedef_t *sprdef;
+      spriteframe_t *sprframe;
+      bool flip;
+      float x1, y1, x2, y2, a, r, g, b, x, y, z;
+      float scaleX, scaleY;
+      FTexture *tex;
+      int picwidth, picheight;
 
-      sector = R_FakeFlat(camera->Sector, &tempsec, NULL, NULL, false);
-      color = (float)(sector->lightlevel + (playerlight << 4)) / LIGHTLEVELMAX;
-      p = &sector->ColorMap->Color;
-      r = color * byte2float[p->r];
-      g = color * byte2float[p->g];
-      b = color * byte2float[p->b];
-
-	  if ( camera->RenderStyle == STYLE_Translucent )
-		  a = (float)camera->alpha / (float)FRACUNIT;
-	  else
-		  a = 1.0f;
-/*
-	  pInventory = player->mo->FindInventory( PClass::FindClass( "BlurSphere" ));
-	  if ( pInventory == NULL )
-		  pInventory = player->mo->FindInventory( PClass::FindClass( "BlurSphere" ));
-      if ( pInventory )
-	   {
-		   APowerup		*pPowerup;
-
-		   pPowerup = static_cast<APowerup *>( pInventory );
-		   if (( pPowerup->EffectTics < 4*32) && !( pPowerup->EffectTics & 8))
-         {
-            a = 1.0;
-         }
-         else
-         {
-		      a = 0.2;
-         }
-	   }
-      else
+      a = FIX2FLT(player->mo->alpha);
+      switch (player->mo->RenderStyle)
       {
-         a = 1.0;
-      }
-*/
-      glColor4f(r, g, b, a);
-/*
-      FWeaponInfo *weapon;
-		if (camera->player->powers[pw_weaponlevel2])
-      {
-			weapon = wpnlev2info[camera->player->readyweapon];
-      }
-		else
-      {
-			weapon = wpnlev1info[camera->player->readyweapon];
-      }
-*/
-      if (p->r == 0xff && p->g == 0xff && p->b == 0xff)
-      {
-         textureList.SetTranslation(camera->Sector->ColorMap->Maps);
+      case STYLE_None:
+         return;
+      case STYLE_Normal:
+         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+         break;
+      case STYLE_Add:
+         glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+         break;
+      case STYLE_Shaded:
+         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+         textureList.LoadAlpha(true);
+         break;
+      default:
+         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+         break;
       }
 
       P_BobWeapon (camera->player, &camera->player->psprites[ps_weapon], &ofsx, &ofsy);
-
-		// add all active psprites
-		for (i = 0, psp = camera->player->psprites; i < NUMPSPRITES; i++, psp++)
+      for (i = 0, psp = camera->player->psprites; i < NUMPSPRITES; i++, psp++)
 		{
-			if (psp->state)
+         // [RH] Don't draw the targeter's crosshair if the player already has a crosshair set.
+         if (psp->state && (i != ps_targetcenter || CrosshairImage == NULL))
          {
+            if ((unsigned)psp->state->sprite.index >= (unsigned)sprites.Size ()) continue;
+
             sprdef = &sprites[psp->state->sprite.index];
             sprframe = &SpriteFrames[sprdef->spriteframes + psp->state->GetFrame()];
-            lump = sprframe->Texture[0];
+            tex = TexMan(sprframe->Texture[0]);
+            picwidth = tex->GetWidth();
+            picheight = tex->GetHeight();
+            flip = sprframe->Flip & 1;
 
-            tex = TexMan[lump];
-            y = ((psp->sy + ofsy) * INV_FRACUNIT) + 0.f;
-			if (camera->player->ReadyWeapon)
-            {
-				y += FixedMul(StatusBar->GetDisplacement(), camera->player->ReadyWeapon->YAdjust) * INV_FRACUNIT;
+            x1 = FIX2FLT(psp->sx + ofsx) - (320/2) - tex->LeftOffset;
+            y1 = FIX2FLT(psp->sy + ofsy) - tex->TopOffset;
+#if 0
+            if (camera->player && (realviewheight == screen->GetHeight() || (screen->GetWidth() > 320 && !st_scale)))
+            {	// Adjust PSprite for fullscreen views
+               AWeapon *weapon;
+               if (camera->player != NULL)
+               {
+                  weapon = camera->player->ReadyWeapon;
+               }
+               if (i <= ps_flash)
+               {
+                  if (weapon != NULL && weapon->YAdjust != 0)
+                  {
+                     if (realviewheight == screen->GetHeight())
+                     {
+                        y1 -= FIX2FLT(weapon->YAdjust);
+                     }
+                     else
+                     {
+                        y1 -= FIX2FLT(FixedMul (StatusBar->GetDisplacement (), weapon->YAdjust));
+                     }
+                  }
+                  y1 -= FIX2FLT(BaseRatioSizes[WidescreenRatio][2]);
+               }
             }
-            x = (psp->sx + ofsx) * INV_FRACUNIT;
+#endif
+            x2 = x1 + tex->GetWidth();
+            y2 = y1 + tex->GetHeight();
 
-            GL_DrawWeaponTexture(tex, x, y);
+            //scaleX = FIX2FLT(pspritexscale);
+            //scaleY = FIX2FLT(pspriteyscale);
+            scaleY = (screen->GetHeight() + GL_GetStatusBarOffset()) / 200.f;
+            scaleX = screen->GetHeight() / 200.f;
+
+            x1 *= scaleX;
+            x2 *= scaleX;
+            y1 *= scaleY;
+            y2 *= scaleY;
+
+            x1 += centerX;
+            x2 += centerX;
+
+            y1 = screen->GetHeight() - y1;
+            y2 = screen->GetHeight() - y2;
+
+            x = -viewx * MAP_SCALE;
+            y = viewz * MAP_SCALE;
+            z = viewy * MAP_SCALE;
+
+            if (sec->ColorMap->Maps)
+            {
+               r = 1.f;
+               g = 1.f;
+               b = 1.f;
+               textureList.SetTranslation(sec->ColorMap->Maps);
+            }
+            else
+            {
+               r = byte2float[sec->ColorMap->Color.r];
+               g = byte2float[sec->ColorMap->Color.g];
+               b = byte2float[sec->ColorMap->Color.b];
+               textureList.SetTranslation((BYTE *)NULL);
+            }
+
+            r *= byte2float[lightnum];
+            g *= byte2float[lightnum];
+            b *= byte2float[lightnum];
+
+            GL_GetLightForPoint(x, y, z, &r, &g, &b);
+
+            glColor4f(r, g, b, a);
+            GL_DrawWeaponTexture(tex, x1, y1, x2, y2);
+            textureList.SetTranslation((BYTE *)NULL);
          }
-		}
-      textureList.SetTranslation((byte *)NULL);
-	}
+         // [RH] Don't bob the targeter.
+         if (i == ps_flash)
+         {
+            ofsx = ofsy = 0;
+         }
+      }
+      textureList.LoadAlpha(false);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+   }
 }
 
 
@@ -1672,7 +1637,7 @@ void GL_DrawFlash()
 
    //GL_Set2DMode();
 
-   ((OpenGLFrameBuffer *)screen)->GetFlash(p, amt);
+   ((OpenGLFrameBuffer *)screen)->GetFlash(&p, &amt);
 
    if (amt == 0)
    {
@@ -1705,7 +1670,8 @@ void GL_DrawBlends(player_t *player)
 {
    GL_DrawFlash();
 
-   if (player->fixedcolormap == NUMCOLORMAPS)
+   if (player->fixedcolormap == INVERSECOLORMAP)
+   //if (player->Powers & PW_INVULNERABILITY)
    {
       glDisable(GL_DEPTH_TEST);
       glDisable(GL_TEXTURE_2D);
@@ -1726,8 +1692,6 @@ void GL_DrawBlends(player_t *player)
    }
 }
 
-
-extern unsigned int frameStartMS;
 unsigned int I_MSTime (void);
 
 void GL_SetPerspective(float fovY, float aspect, float zNear, float zFar)
@@ -1741,6 +1705,7 @@ void GL_SetPerspective(float fovY, float aspect, float zNear, float zFar)
 
    glFrustum(-fW, fW, -fH, fH, zNear, zFar);
 }
+
 
 void GL_RenderActorView(AActor *actor, float aspect, float fov)
 {
@@ -1825,75 +1790,17 @@ void GL_RenderActorView(AActor *actor, float aspect, float fov)
 
 void GL_RenderPlayerView(player_t *player, void (*lengthyCallback)())
 {
-   float yaw, pitch;
-   float x, y, z, r, g, b;
+   // have to fudge the numbers to maintain an apparent aspect ratio of 1.6 for the whole screen
+   // while only drawing in the current viewport
+   int width = realviewwidth;
+   int height = realviewheight;
+   float aspect = width * 1.f / height;
 
-   Player = player;
-   InMirror = false;
-   ShouldDrawSky = false;
+   //Player = player;
 
-   frameStartMS = I_MSTime ();
-
-   R_SetupFrame(player->mo);
-   R_FindParticleSubsectors();
-   GL_UpdateShaders();
-
-   PlayerSubsector = R_PointInSubsector(viewx, viewy);
-
-   glMatrixMode(GL_PROJECTION);
-   glLoadIdentity();
-   GL_SetPerspective(player->FOV * 0.915f, 1.6f, 1.f, 16384.f);
-   glMatrixMode(GL_MODELVIEW);
-
-   glEnable(GL_DEPTH_TEST);
-   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-   if (gl_wireframe || !gl_texture)
-   {
-      glDisable(GL_TEXTURE_2D);
-   }
-   else
-   {
-      glEnable(GL_TEXTURE_2D);
-   }
-
-   if (gl_wireframe)
-   {
-      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-      r = g = b = 0.f;
-   }
-   else
-   {
-      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-      GL_GetSkyColor(&r, &g, &b);
-   }
-
-   glClearColor(r, g, b, 1.f);
-   glLoadIdentity();
-
-   yaw = 270.f - ANGLE_TO_FLOAT(viewangle);
-   pitch = ANGLE_TO_FLOAT(viewpitch);
-
-   //yaw = 270.f - (viewangle * 1.f / (1 << ANGLETOFINESHIFT) * 360.f / FINEANGLES);
-   //pitch = viewpitch * 1.f / (1 << ANGLETOFINESHIFT) * 360.f / FINEANGLES;
-
-   x = viewx * MAP_SCALE;
-   y = viewy * MAP_SCALE;
-   z = viewz * MAP_SCALE;
-
-   glRotatef(pitch, 1.f, 0.f, 0.f);
-   glRotatef(yaw, 0.f, 1.f, 0.f);
-   glTranslatef(x, -z, -y);
-
-   if (lengthyCallback) lengthyCallback();
-   GL_DrawScene(player);
-   if (lengthyCallback) lengthyCallback();
-
-   if (gl_wireframe)
-   {
-      glEnable(GL_TEXTURE_2D);
-      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-   }
+   GL_ResetViewport();
+   GL_SetupViewport();
+   GL_RenderActorView(player->mo, aspect, player->FOV / (BaseRatioSizes[WidescreenRatio][3] / 48.f));
 
    GL_Set2DMode();
 
@@ -1904,22 +1811,24 @@ void GL_RenderPlayerView(player_t *player, void (*lengthyCallback)())
 
    GL_DrawBlends(player);
 
-   restoreinterpolations ();
+   GL_ResetViewport();
+
+   if (gl_texture_showshaders) GL_DrawShaders();
 }
 
 
 void GL_ScreenShot(const char *filename)
 {
    ILuint imgID;
-	byte *screenGL = new byte[screen->GetWidth() * screen->GetHeight() * 3];
+	BYTE *screenGL = new BYTE[screen->GetWidth() * screen->GetHeight() * 3];
 
 	if (!screenGL)
 	{
-		Printf( PRINT_OPENGL, "No memory for screenshot\n");
+		Printf("ZGL: No memory for screenshot\n");
 	}
 	else
 	{
-		glReadPixels(0, 0, screen->GetWidth(), screen->GetHeight(), GL_RGB, GL_UNSIGNED_BYTE, screenGL);
+      static_cast<OpenGLFrameBuffer *>(screen)->ReadPixels(0, 0, screen->GetWidth(), screen->GetHeight(), screenGL);
       ilGenImages(1, &imgID);
       ilBindImage(imgID);
       ilTexImage(screen->GetWidth(), screen->GetHeight(), 1, 3, IL_RGB, IL_UNSIGNED_BYTE, screenGL);
@@ -1933,19 +1842,25 @@ void GL_ScreenShot(const char *filename)
 
 void GL_GenerateLevelGeometry()
 {
-   int i, j, arrayIndex;
+   int i, j, arrayIndex, numPolys, pIndex;;
    subsector_t *subSec;
    seg_t *seg;
    float x, y;
+   int numVerts;
+   gl_poly_t *poly;
 
    //GL_UnloadLevelGeometry();
+
+   ViewArea = AREA_NORMAL;
+   InArea = AREA_DEFAULT;
 
    GL_SetupAnimTables();
    RL_Delete();
 
    // floor + ceiling for each subsector and top + mid + bottom for each seg
    delete[] gl_polys;
-   gl_polys = new gl_poly_t[(numsubsectors * 2) + (numsegs * 3)];
+   numPolys = (numsubsectors * 2) + (numsegs * 3);
+   gl_polys = new gl_poly_t[numPolys];
 
    sector_t *sec;
    arrayIndex = 0;
@@ -1958,6 +1873,7 @@ void GL_GenerateLevelGeometry()
    }
    sortedsubsectors = new VisibleSubsector[numsubsectors];
 
+   numVerts = 0;
    for (i = 0; i < numsubsectors; i++)
    {
       subSec = subsectors + i;
@@ -1975,19 +1891,29 @@ void GL_GenerateLevelGeometry()
       sortedsubsectors[i].subSec = subSec;
       sortedsubsectors[i].dist = 0;
 
-      gl_polys[(i * 2) + 0].numPts = subSec->numlines;
-      gl_polys[(i * 2) + 0].initialized = false;
-      gl_polys[(i * 2) + 0].lastUpdate = 0;
-      gl_polys[(i * 2) + 0].vertices = NULL;
-      gl_polys[(i * 2) + 0].texCoords = NULL;
+      poly = &gl_polys[(i * 2) + 0];
+      poly->subsectorIndex = i;
+      poly->numPts = subSec->numlines;
+      poly->initialized = false;
+      poly->lastUpdate = 0;
+      poly->numIndices = 3 + ((subSec->numlines - 3) * 3);
+      poly->indices = new unsigned int[poly->numIndices];
+      poly->vertices = NULL;
+      poly->texCoords = NULL;
+      poly->arrayIndex = arrayIndex;
 
       arrayIndex += subSec->numlines;
 
-      gl_polys[(i * 2) + 1].numPts = subSec->numlines;
-      gl_polys[(i * 2) + 1].initialized = false;
-      gl_polys[(i * 2) + 1].lastUpdate = 0;
-      gl_polys[(i * 2) + 1].vertices = NULL;
-      gl_polys[(i * 2) + 1].texCoords = NULL;
+      poly = &gl_polys[(i * 2) + 1];
+      poly->subsectorIndex = i;
+      poly->numPts = subSec->numlines;
+      poly->initialized = false;
+      poly->lastUpdate = 0;
+      poly->numIndices = 3 + ((subSec->numlines - 3) * 3);
+      poly->indices = new unsigned int[poly->numIndices];
+      poly->vertices = NULL;
+      poly->texCoords = NULL;
+      poly->arrayIndex = arrayIndex;
 
       arrayIndex += subSec->numlines;
    }
@@ -2008,43 +1934,107 @@ void GL_GenerateLevelGeometry()
       // ignore minisegs!
       if (seg->linedef)
       {
-         gl_polys[(numsubsectors * 2) + ((i * 3) + 0)].numPts = 4;
-         gl_polys[(numsubsectors * 2) + ((i * 3) + 0)].initialized = false;
-         gl_polys[(numsubsectors * 2) + ((i * 3) + 0)].lastUpdate = 0;
-         gl_polys[(numsubsectors * 2) + ((i * 3) + 0)].vertices = NULL;
-         gl_polys[(numsubsectors * 2) + ((i * 3) + 0)].texCoords = NULL;
+         poly = &gl_polys[(numsubsectors * 2) + ((i * 3) + 0)];
+         poly->numPts = 4;
+         poly->initialized = false;
+         poly->lastUpdate = 0;
+         poly->numIndices = 6;
+         poly->indices = new unsigned int[poly->numIndices];
+         poly->vertices = NULL;
+         poly->texCoords = NULL;
+         poly->arrayIndex = arrayIndex;
 
          arrayIndex += 4;
 
-         gl_polys[(numsubsectors * 2) + ((i * 3) + 1)].numPts = 4;
-         gl_polys[(numsubsectors * 2) + ((i * 3) + 1)].initialized = false;
-         gl_polys[(numsubsectors * 2) + ((i * 3) + 1)].lastUpdate = 0;
-         gl_polys[(numsubsectors * 2) + ((i * 3) + 1)].vertices = NULL;
-         gl_polys[(numsubsectors * 2) + ((i * 3) + 1)].texCoords = NULL;
+         poly = &gl_polys[(numsubsectors * 2) + ((i * 3) + 1)];
+         poly->numPts = 4;
+         poly->initialized = false;
+         poly->lastUpdate = 0;
+         poly->numIndices = 6;
+         poly->indices = new unsigned int[poly->numIndices];
+         poly->vertices = NULL;
+         poly->texCoords = NULL;
+         poly->arrayIndex = arrayIndex;
 
          arrayIndex += 4;
 
-         gl_polys[(numsubsectors * 2) + ((i * 3) + 2)].numPts = 4;
-         gl_polys[(numsubsectors * 2) + ((i * 3) + 2)].initialized = false;
-         gl_polys[(numsubsectors * 2) + ((i * 3) + 2)].lastUpdate = 0;
-         gl_polys[(numsubsectors * 2) + ((i * 3) + 2)].vertices = NULL;
-         gl_polys[(numsubsectors * 2) + ((i * 3) + 2)].texCoords = NULL;
+         poly = &gl_polys[(numsubsectors * 2) + ((i * 3) + 2)];
+         poly->numPts = 4;
+         poly->initialized = false;
+         poly->lastUpdate = 0;
+         poly->numIndices = 6;
+         poly->indices = new unsigned int[poly->numIndices];
+         poly->vertices = NULL;
+         poly->texCoords = NULL;
+         poly->arrayIndex = arrayIndex;
 
          arrayIndex += 4;
       }
    }
 
+   // set up the correct subsector indexes for segs and polyobject segs
+   for (i = 0; i < numsubsectors; i++)
+   {
+      subSec = subsectors + i;
+      for (j = 0; j < subSec->numlines; j++)
+      {
+         seg = segs + (subSec->firstline + j);
+         pIndex = (numsubsectors * 2) + (seg->index * 3);
+         if (seg->linedef)
+         {
+            poly = &gl_polys[pIndex + 0];
+            poly->subsectorIndex = i;
+            poly = &gl_polys[pIndex + 1];
+            poly->subsectorIndex = i;
+            poly = &gl_polys[pIndex + 2];
+            poly->subsectorIndex = i;
+         }
+      }
+
+      if (subSec->poly)
+      {
+         for (j = 0; j < subSec->poly->numsegs; j++)
+         {
+            seg = subSec->poly->segs[j];
+            pIndex = (numsubsectors * 2) + (seg->index * 3);
+            if (seg->linedef)
+            {
+               poly = &gl_polys[pIndex + 0];
+               poly->subsectorIndex = i;
+               poly = &gl_polys[pIndex + 1];
+               poly->subsectorIndex = i;
+               poly = &gl_polys[pIndex + 2];
+               poly->subsectorIndex = i;
+            }
+         }
+      }
+   }
+
    totalCoords = arrayIndex;
+   VertexArraySize = totalCoords;
+   VertexArray = new float[totalCoords * 3];
+   TexCoordArray = new float[totalCoords * 2];
+
+   glVertexPointer(3, GL_FLOAT, 0, VertexArray);
+   int numTexelUnits = textureList.NumTexUnits();
+   if (numTexelUnits)
+   {
+      for (i = 0; i < numTexelUnits; i++)
+      {
+         glClientActiveTextureARB(GL_TEXTURE0_ARB + i);
+         glTexCoordPointer(2, GL_FLOAT, 0, TexCoordArray);
+      }
+      glClientActiveTextureARB(GL_TEXTURE0_ARB);
+   }
 
    GL_PrecacheTextures();
-   GL_BuildSkyDisplayList();
-   viewsector = R_PointInSubsector(viewx, viewy)->sector;
 
    for (i = 0; i < numsubsectors; i++)
    {
       subSec = &subsectors[i];
 
       subSec->isPoly = false;
+      subSec->touched = false;
       for (j = 0; j < subSec->numlines; j++)
       {
          if (segs[subSec->firstline + j].bPolySeg)
@@ -2054,6 +2044,8 @@ void GL_GenerateLevelGeometry()
          }
       }
    }
+
+   GL_PrepareSubsectorLights();
 }
 
 
@@ -2061,24 +2053,24 @@ void GL_UnloadLevelGeometry()
 {
    int i, numPolys;
 
-   numPolys = (numsubsectors * 2) + (numsegs * 3);
+   delete[] TexCoordArray;
+   delete[] VertexArray;
 
+   numPolys = (numsubsectors * 2) + (numsegs * 3);
    for (i = 0; i < numPolys; i++)
    {
-      delete[] gl_polys[i].vertices;
-      delete[] gl_polys[i].texCoords;
-      gl_polys[i].vertices = NULL;
-      gl_polys[i].texCoords = NULL;
+      if (gl_polys[i].indices) delete[] gl_polys[i].indices;
    }
+
+   TexCoordArray = NULL;
+   VertexArray = NULL;
 
    delete[] gl_polys;
    delete[] sortedsubsectors;
-   sectorMoving.Clear();
-   sectorWasMoving.Clear();
    if (animLookup) delete[] animLookup;
    textureList.Clear();
    RL_Delete();
-   GL_DeleteSkyDisplayList();
+
    if (glpvs)
    {
       delete[] glpvs;
@@ -2101,7 +2093,7 @@ void GL_SetColor(float r, float g, float b, float a)
 
 void GL_RenderViewToCanvas(DCanvas *pic, int x, int y, int width, int height)
 {
-   byte *fb, *buff;
+   BYTE *fb, *buff;
 
    GL_RenderPlayerView(Player, NULL);
    fb = textureList.ReduceFramebufferToPalette(width, height);
