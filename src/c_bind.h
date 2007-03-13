@@ -52,6 +52,9 @@ void C_DoBind (const char *key, const char *bind, bool doublebind);
 void C_SetDefaultBindings ();
 void C_UnbindAll ();
 
+// [RC] Returns the key used for a command
+void C_FindBind(char *Command, char *Key);
+
 // Returns string bound to given key (NULL if none)
 const char *C_GetBinding (int key);
 

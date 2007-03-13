@@ -682,6 +682,17 @@ int C_GetKeysForCommand (char *cmd, int *first, int *second)
 	return c;
 }
 
+// [RC] Returns the (first) key name, if any, used for a command 
+void C_FindBind(char *Command, char *Key) {
+	int key1 = -1; int key2 = -1;
+	C_GetKeysForCommand(Command, &key1, &key2);
+	if(key1 <= 0)
+		sprintf(Key, "None");
+	else
+		sprintf(Key, KeyNames[key1]);
+}
+
+
 void C_NameKeys (char *str, int first, int second)
 {
 	int c = 0;
