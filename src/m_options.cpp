@@ -738,6 +738,7 @@ static menuitem_t VideoItems[] = {
 	{ discrete, "One key display",		{&cl_onekey},			{2.0}, {0.0},	{0.0}, {YesNo} },
 	{ discrete, "Disable alpha",		{&r_drawtrans},			{2.0}, {0.0},	{0.0}, {NoYes} },
 	{ discrete, "Show large frag messages",	{&cl_showlargefragmessages},{2.0}, {0.0},	{0.0}, {YesNo} },
+	{ discrete, "Show fullscreen vote",	{&cl_showfullscreenvote},{2.0}, {0.0},	{0.0}, {YesNo} },
 	{ discrete, "Use old fullscreen HUD",	{&cl_stfullscreenhud},{2.0}, {0.0},	{0.0}, {NoYes} },
 };
 
