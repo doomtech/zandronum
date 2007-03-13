@@ -652,6 +652,7 @@ static bool callvote_CheckValidity( char *pszCommand, char *pszParameters )
 //	CONSOLE COMMANDS/VARIABLES
 
 CVAR( Bool, sv_nocallvote, false, CVAR_ARCHIVE );
+CVAR( Bool, cl_showfullscreenvote, true, CVAR_ARCHIVE );
 CCMD( callvote )
 {
 	ULONG	ulVoteCmd;
