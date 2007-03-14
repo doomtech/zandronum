@@ -443,7 +443,6 @@ DPlaneWatcher::DPlaneWatcher (AActor *it, line_t *line, int lineSide, bool ceili
 		}
 		LastD = plane.d;
 		plane.ChangeHeight (height << FRACBITS);
-		//sectorMoving[Sector - sectors] = true; // [ZDoomGL]
 		Sector->lastUpdate = validcount; // [ZDoomGL]
 		WatchD = plane.d;
 	}
@@ -1953,7 +1952,6 @@ void DLevelScript::SetLineTexture (int lineid, int side, int position, int name)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SetLineTexture( linenum );
 
-		//sectorMoving[lines[linenum].frontsector - sectors] = true;
 		lines[linenum].frontsector->lastUpdate = validcount; // [ZDoomGL];
 		//lines[linenum].textureChanged = I_MSTime(); // [ZDoomGL]
 	}
