@@ -21,6 +21,11 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <windows.h>
+#include <gl/gl.h>
+#include "glext.h"
+
+#define USE_WINDOWS_DWORD
 #include "i_video.h"
 #include "v_video.h"
 #include "m_random.h"
@@ -125,13 +130,16 @@ int wipe_doMelt (int ticks)
 				dy = (dy * SCREENHEIGHT) / 200;
 				if (y[i]+dy >= SCREENHEIGHT)
 					dy = SCREENHEIGHT - y[i];
-				s = &wipe_scr_end[i*SCREENHEIGHT+y[i]];
-				d = &((short *)screen->GetBuffer())[y[i]*pitch+i];
-				idx = 0;
-				for (j=dy;j;j--)
+				if ( OPENGL_GetCurrentRenderer( ) == RENDERER_SOFTWARE )
 				{
-					d[idx] = *(s++);
-					idx += pitch;
+					s = &wipe_scr_end[i*SCREENHEIGHT+y[i]];
+					d = &((short *)screen->GetBuffer())[y[i]*pitch+i];
+					idx = 0;
+					for (j=dy;j;j--)
+					{
+						d[idx] = *(s++);
+						idx += pitch;
+					}
 				}
 				y[i] += dy;
 				s = &wipe_scr_start[i*SCREENHEIGHT];
@@ -362,8 +370,90 @@ int wipe_exitFade (int ticks)
 	return 0;
 }
 
+float rotAngle;
+int wipe_initGL(int ticks)
+{
+   rotAngle = 0.f;
+   return 0;
+}
+
+int wipe_doGL(int ticks)
+{
+   GL_Set3DMode();
+
+   while (ticks--)
+   {
+      rotAngle += 90.f / 35.f;
+      glColor3f(1.f, 1.f, 1.f);
+
+      glMatrixMode(GL_MODELVIEW);
+      glPushMatrix();
+
+      textureList.BindSavegameTexture(1);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, textureList.GetTextureModeMag());
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, textureList.GetTextureModeMag());
+
+      glBegin(GL_TRIANGLE_FAN);
+         glTexCoord2f(0.f, 0.f);
+         glVertex3f(0, SCREENHEIGHT, 0);
+
+         glTexCoord2f(0.f, 1.f);
+         glVertex3f(0, 0, 0);
+
+         glTexCoord2f(1.f, 1.f);
+         glVertex3f(SCREENWIDTH, 0, 0);
+
+         glTexCoord2f(1.f, 0.f);
+         glVertex3f(SCREENWIDTH, SCREENHEIGHT, 0);
+      glEnd();
+
+      glRotatef(rotAngle, 1.f, 0.f, 0.f);
+
+      textureList.BindSavegameTexture(0);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, textureList.GetTextureModeMag());
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, textureList.GetTextureModeMag());
+
+      glBegin(GL_TRIANGLE_FAN);
+         glTexCoord2f(0.f, 0.f);
+         glVertex3f(0, SCREENHEIGHT, 0);
+
+         glTexCoord2f(0.f, 1.f);
+         glVertex3f(0, 0, 0);
+
+         glTexCoord2f(1.f, 1.f);
+         glVertex3f(SCREENWIDTH, 0, 0);
+
+         glTexCoord2f(1.f, 0.f);
+         glVertex3f(SCREENWIDTH, SCREENHEIGHT, 0);
+      glEnd();
+
+      glPopMatrix();
+   }
+
+   GL_Set2DMode();
+
+   if (rotAngle >= 90.f)
+   {
+      return 1;
+   }
+   else
+   {
+      return 0;
+   }
+}
+
+int wipe_exitGL(int ticks)
+{
+   return 0;
+}
+
 // General Wipe Functions -------------------------------------------
 
+int FloorPow2(int num);
 int wipe_StartScreen (int type)
 {
 	// [BC/ZDoomGL] This hasn't been completed in OpenGL mode yet.
@@ -378,9 +468,19 @@ int wipe_StartScreen (int type)
 
 	if (CurrentWipeType)
 	{
-		wipe_scr_start = new short[SCREENWIDTH * SCREENHEIGHT / 2];
+		if ( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL )
+		{
+			GL_ResetViewport();
+			byte *fb = textureList.ReduceFramebufferToPalette(256, 256, true);
+			textureList.SetSavegameTexture(0, fb, 256, 256);
+			delete [] fb;
+		}
+		else
+		{
+			wipe_scr_start = new short[SCREENWIDTH * SCREENHEIGHT / 2];
 
-		screen->GetBlock (0, 0, SCREENWIDTH, SCREENHEIGHT, (BYTE *)wipe_scr_start);
+			screen->GetBlock (0, 0, SCREENWIDTH, SCREENHEIGHT, (BYTE *)wipe_scr_start);
+		}
 	}
 
 	return 0;
@@ -388,16 +488,22 @@ int wipe_StartScreen (int type)
 
 int wipe_EndScreen (void)
 {
-	// [BC/ZDoomGL] This hasn't been completed in OpenGL mode yet.
-	if ( OPENGL_GetCurrentRenderer( ) != RENDERER_SOFTWARE )
-		return ( 0 );
-
 	if (CurrentWipeType)
 	{
-		wipe_scr_end = new short[SCREENWIDTH * SCREENHEIGHT / 2];
+		if ( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL )
+		{
+			GL_ResetViewport();
+			byte *fb = textureList.ReduceFramebufferToPalette(256, 256);
+			textureList.SetSavegameTexture(1, fb, 256, 256);
+			delete [] fb;
+		}
+		else
+		{
+			wipe_scr_end = new short[SCREENWIDTH * SCREENHEIGHT / 2];
 
-		screen->GetBlock (0, 0, SCREENWIDTH, SCREENHEIGHT, (BYTE *)wipe_scr_end);
-		screen->DrawBlock (0, 0, SCREENWIDTH, SCREENHEIGHT, (BYTE *)wipe_scr_start); // restore start scr.
+			screen->GetBlock (0, 0, SCREENWIDTH, SCREENHEIGHT, (BYTE *)wipe_scr_end);
+			screen->DrawBlock (0, 0, SCREENWIDTH, SCREENHEIGHT, (BYTE *)wipe_scr_start); // restore start scr.
+		}
 	}
 
 	return 0;
@@ -414,29 +520,53 @@ bool wipe_ScreenWipe (int ticks)
 	};
 	int rc;
 
-	// [BC/ZDoomGL] This hasn't been completed in OpenGL mode yet.
-	if ( OPENGL_GetCurrentRenderer( ) != RENDERER_SOFTWARE )
-		return ( true );
-
 	if (CurrentWipeType == wipe_None)
 		return true;
+
+	if ( OPENGL_GetCurrentRenderer( ) != RENDERER_SOFTWARE )
+		GL_ResetViewport();
 
 	// initial stuff
 	if (!go)
 	{
 		go = 1;
-		(*wipes[(CurrentWipeType-1)*3])(ticks);
+		switch ( OPENGL_GetCurrentRenderer( ) != RENDERER_SOFTWARE )
+		{
+		case 1:
+			wipe_initGL(ticks);
+			break;
+		default:
+			(*wipes[(CurrentWipeType-1)*3])(ticks);
+			break;
+		}
 	}
 
 	// do a piece of wipe-in
-	V_MarkRect(0, 0, SCREENWIDTH, SCREENHEIGHT);
-	rc = (*wipes[(CurrentWipeType-1)*3+1])(ticks);
+	switch ( OPENGL_GetCurrentRenderer( ) != RENDERER_SOFTWARE )
+	{
+	case 1:
+		//rc = wipe_doGL(ticks);
+		rc = 1;
+		break;
+	default:
+		V_MarkRect(0, 0, SCREENWIDTH, SCREENHEIGHT);
+		rc = (*wipes[(CurrentWipeType-1)*3+1])(ticks);
+		break;
+	}
 
 	// final stuff
 	if (rc)
 	{
 		go = 0;
-		(*wipes[(CurrentWipeType-1)*3+2])(ticks);
+		switch ( OPENGL_GetCurrentRenderer( ) != RENDERER_SOFTWARE )
+		{
+		case 1:
+			wipe_exitGL(ticks);
+			break;
+		default:
+			(*wipes[(CurrentWipeType-1)*3+2])(ticks);
+			break;
+		}
 	}
 
 	return !go;
