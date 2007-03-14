@@ -66,6 +66,7 @@
 // [BC] New #includes.
 #include "network.h"
 #include "sv_commands.h"
+#include "gl_lights.h"
 
 // [SO] Just the way Randy said to do it :)
 // [RH] Made this CVAR_SERVERINFO
@@ -2553,6 +2554,9 @@ void FinishDehPatch ()
 		defaults1->health = DehackedPickups.Push (subclass);
 		type->ActorInfo->SpawnID = 0;
 		type->ActorInfo->DoomEdNum = -1;
+
+		// [ZDoomGL] - add a light alias for the new class to reference the class it's taking over
+		GL_AddLightAlias(typeNameBuilder, type->TypeName);
 
 		DPrintf ("%s replaces %s\n", subclass->TypeName.GetChars(), type->TypeName.GetChars());
 	}
