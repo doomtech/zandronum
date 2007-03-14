@@ -705,8 +705,7 @@ OpenGLFrameBuffer::OpenGLFrameBuffer( ULONG ulWidth, ULONG ulHeight, bool bFullS
       glEnableClientState(GL_VERTEX_ARRAY);
       glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-	  // FIX: Crashes for some reason if textureList.NumTexUnits() is used instead of 1
-      for (i = 0; i < 1/*textureList.NumTexUnits()*/; i++)
+      for (i = 0; i < textureList.NumTexUnits(); i++)
       {
          glClientActiveTextureARB(GL_TEXTURE0_ARB + i);
          glEnableClientState(GL_TEXTURE_COORD_ARRAY);
