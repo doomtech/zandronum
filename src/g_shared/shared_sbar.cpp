@@ -468,7 +468,7 @@ void FBaseStatusBar::DrawFadedImage (FTexture *img,
 
 void FBaseStatusBar::DrawPartialImage (FTexture *img, int wx, int ww) const
 {
-	if (img != NULL)
+	if (img != NULL && OPENGL_GetCurrentRenderer( ) == RENDERER_SOFTWARE )
 	{
 		screen->DrawTexture (img, ST_X, ST_Y,
 			DTA_WindowLeft, wx,
