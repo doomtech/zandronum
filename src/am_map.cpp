@@ -145,6 +145,7 @@ CVAR (Color, am_ovthingcolor_monster,	0xe88800,	CVAR_ARCHIVE);
 CVAR (Color, am_ovthingcolor_item,		0xe88800,	CVAR_ARCHIVE);
 
 EXTERN_CVAR(Bool, gl_automap_dukestyle); // [ZDoomGL]
+EXTERN_CVAR(Bool, gl_automap_glow);
 
 // drawing stuff
 #define AM_PANDOWNKEY	KEY_DOWNARROW
@@ -1729,6 +1730,56 @@ void DrawTransWuLine (int x0, int y0, int x1, int y1, BYTE baseColor)
 }
 
 //
+// [ZDoomGL] - draws the glow around certain lines (locked doors, etc)
+//
+void AM_drawGlow (mline_t *ml, short keyType)
+{
+   static fline_t fl;
+   static PalEntry p;
+
+   if (OPENGL_GetCurrentRenderer( ) != RENDERER_OPENGL) return;
+
+   switch (keyType)
+   {
+   case 1: // red
+   case 4:
+   case 129:
+      p.r = 255;
+      p.g = 0;
+      p.b = 0;
+      break;
+   case 2: // blue
+   case 5:
+   case 130:
+      p.r = 0;
+      p.g = 0;
+      p.b = 255;
+      break;
+   case 3: // yellow
+   case 6:
+   case 131:
+      p.r = 255;
+      p.g = 255;
+      p.b = 0;
+      break;
+   case 100: // any key
+      break;
+   case 101: // all keys
+      break;
+   case 229: // 3 keys, one of each color
+      break;
+   default:
+      p = GPalette.BaseColors[LockedColor];
+      break;
+   }
+
+   if (AM_clipMline (ml, &fl))
+   {
+      GL_DrawGlowLine(fl.a.x + f_x, fl.a.y + f_y, fl.b.x + f_x, fl.b.y + f_y, &p);
+   }
+}
+
+//
 // Clip lines, draw visible parts of lines.
 //
 void AM_drawMline (mline_t *ml, int color)
@@ -1875,6 +1926,25 @@ void AM_drawWalls (bool allmap)
 						 lines[i].special == ACS_LockedExecute ||
 						 (lines[i].special == Generic_Door && lines[i].args[4]!=0))
 				{
+					if (gl_automap_glow)
+					{
+						switch (OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL)
+						{
+						case true:
+							switch (lines[i].special)
+							{
+							case Door_LockedRaise:
+								AM_drawGlow (&l, lines[i].args[3]);
+								break;
+							case ACS_LockedExecute:
+								AM_drawGlow (&l, lines[i].args[4]);
+								break;
+							}
+							break;
+						default:
+							break;
+						}
+					}
 					if (am_usecustomcolors)
 					{
 						int P_GetMapColorForLock(int lock);
@@ -2234,7 +2304,10 @@ void AM_Drawer ()
 
 	AM_initColors (viewactive);
 
-	fb = screen->GetBuffer ();
+	if (OPENGL_GetCurrentRenderer( ) != RENDERER_OPENGL)
+	{
+		fb = screen->GetBuffer ();
+	}
 	if (!viewactive)
 	{
 		// [RH] Set f_? here now to handle automap overlaying
@@ -2275,7 +2348,7 @@ void AM_Drawer ()
 		AM_drawThings(ThingColor);
 	AM_drawAuthorMarkers ();
 
-	if (!viewactive)
+	if (!viewactive && ( OPENGL_GetCurrentRenderer( ) != RENDERER_OPENGL ))
 		AM_drawCrosshair(XHairColor);
 
 	AM_drawMarks();
