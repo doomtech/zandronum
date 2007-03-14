@@ -233,6 +233,11 @@ static bool NoInterpolateView;
 
 angle_t R_PointToAngle2 (fixed_t x1, fixed_t y1, fixed_t x, fixed_t y)
 {
+#if 1 // [ZDoomGL]
+	// The precision of the code below is abysmal so use the CRT atan2 function instead!
+	// this also fixes all those missing geometry problems where there'd be a problem when you'd cross a bsp line :)
+	return static_cast<angle_t>(atan2(y-y1*1.0, x-x1*1.0) * ANGLE_180/M_PI);
+#else
 	x -= x1;
 	y -= y1;
 
@@ -303,6 +308,7 @@ angle_t R_PointToAngle2 (fixed_t x1, fixed_t y1, fixed_t x, fixed_t y)
 			}
 		}
 	}
+#endif
 }
 
 //==========================================================================
@@ -1812,10 +1818,12 @@ void FActiveInterpolation::DoAnInterpolation (fixed_t smoothratio)
 	case INTERP_SectorFloor:
 		adr1 = &((sector_t*)Address)->floorplane.d;
 		adr2 = &((sector_t*)Address)->floortexz;
+		((sector_t*)Address)->lastUpdate = validcount; // [ZDoomGL]
 		break;
 	case INTERP_SectorCeiling:
 		adr1 = &((sector_t*)Address)->ceilingplane.d;
 		adr2 = &((sector_t*)Address)->ceilingtexz;
+		((sector_t*)Address)->lastUpdate = validcount; // [ZDoomGL]
 		break;
 	case INTERP_Vertex:
 		adr1 = &((vertex_t*)Address)->x;
@@ -1824,14 +1832,17 @@ void FActiveInterpolation::DoAnInterpolation (fixed_t smoothratio)
 	case INTERP_FloorPanning:
 		adr1 = &((sector_t*)Address)->floor_xoffs;
 		adr2 = &((sector_t*)Address)->floor_yoffs;
+		((sector_t*)Address)->lastUpdate = validcount; // [ZDoomGL]
 		break;
 	case INTERP_CeilingPanning:
 		adr1 = &((sector_t*)Address)->ceiling_xoffs;
 		adr2 = &((sector_t*)Address)->ceiling_yoffs;
+		((sector_t*)Address)->lastUpdate = validcount; // [ZDoomGL]
 		break;
 	case INTERP_WallPanning:
 		adr1 = &((side_t*)Address)->rowoffset;
 		adr2 = &((side_t*)Address)->textureoffset;
+		((side_t*)Address)->sector->lastUpdate = validcount; // [ZDoomGL]
 		break;
 	default:
 		return;
