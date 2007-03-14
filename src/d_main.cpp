@@ -171,6 +171,7 @@ extern int testingmode;
 extern bool setmodeneeded;
 extern bool netdemo;
 extern int NewWidth, NewHeight, NewBits, DisplayBits;
+extern unsigned long lastRefresh; // [ZDoomGL]
 EXTERN_CVAR (Bool, st_scale)
 extern bool gameisdead;
 extern bool demorecording;
@@ -534,14 +535,20 @@ void D_Display (bool screenshot)
 		else
 		{
 			I_RestartRenderer();
-			
+			// Let the status bar know the screen size changed
+			if (StatusBar != NULL)
+			{
+				StatusBar->ScreenSizeChanged ();
+			}
+
 			// Refresh the console.
 			C_NewModeAdjust ();
-         
+
 			// Reload crosshair if transitioned to a different size
 			crosshair.Callback ();
 			setmodeneeded = false;
 		}
+		GL_FakeUpdateShaders();
 	}
 
 	RenderTarget = screen;
@@ -586,6 +593,8 @@ void D_Display (bool screenshot)
 		wipe = false;
 	}
 
+	GL_UpdateShaders();
+
 	if (testpolymost)
 	{
 		drawpolymosttest();
@@ -615,6 +624,7 @@ void D_Display (bool screenshot)
 					GL_LinkLights();
 					FCanvasTextureInfo::UpdateAll ();
 					GL_RenderPlayerView(&players[consoleplayer], NetUpdate);
+					R_RefreshViewBorder ();
 				}
 				else
 				{
