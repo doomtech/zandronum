@@ -2556,7 +2556,7 @@ void FinishDehPatch ()
 		type->ActorInfo->DoomEdNum = -1;
 
 		// [ZDoomGL] - add a light alias for the new class to reference the class it's taking over
-		GL_AddLightAlias(typeNameBuilder, type->TypeName);
+		GL_AddLightAlias(typeNameBuilder, type->TypeName.GetChars());
 
 		DPrintf ("%s replaces %s\n", subclass->TypeName.GetChars(), type->TypeName.GetChars());
 	}
