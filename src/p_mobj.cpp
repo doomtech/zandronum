@@ -63,6 +63,9 @@
 #include "team.h"
 #include "sv_commands.h"
 
+// [ZDoomGL]
+#include "gl_lights.h"
+
 // MACROS ------------------------------------------------------------------
 
 #define WATER_SINK_FACTOR		3
@@ -3792,6 +3795,8 @@ void AActor::Deactivate (AActor *activator)
 // P_RemoveMobj
 //
 
+void GL_DestroyActorLights(AActor *actor); // [ZDoomGL]
+
 void AActor::Destroy ()
 {
 	ULONG	ulIdx;
@@ -4459,6 +4464,27 @@ void P_SpawnMapThing (mapthing2_t *mthing, int position)
 				mthing->y << FRACBITS)->sector->seqType = type;
 		}
 		return;
+	}
+
+	// [ZDoomGL] - convert Vavoom lights
+	BYTE args[5];
+	if (mthing->type == 1502)
+	{
+		memcpy(args, mthing->args, 5);
+		mthing->type = 9825;
+		mthing->args[LIGHT_INTENSITY] = args[0];
+		mthing->args[LIGHT_RED] = 128;
+		mthing->args[LIGHT_GREEN] = 128;
+		mthing->args[LIGHT_BLUE] = 128;
+	}
+	else if (mthing->type == 1503)
+	{
+		memcpy(args, mthing->args, 5);
+		mthing->type = 9825;
+		mthing->args[LIGHT_INTENSITY] = args[0];
+		mthing->args[LIGHT_RED] = args[1] >> 1;
+		mthing->args[LIGHT_GREEN] = args[2] >> 1;
+		mthing->args[LIGHT_BLUE] = args[3] >> 1;
 	}
 
 	// [RH] Determine if it is an old ambient thing, and if so,
@@ -5460,6 +5486,13 @@ FArchive &operator<< (FArchive &arc, FSoundIndexWord &snd)
 	arc << snd2;
 	snd.Index = snd2.Index;
 	return arc;
+}
+
+// [ZDoomGL]
+void AActor::PostBeginPlay()
+{
+   Super::PostBeginPlay();
+   Lights.Clear();
 }
 
 // [BC] meh
