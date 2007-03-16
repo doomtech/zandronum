@@ -2467,8 +2467,7 @@ void D_DoomMain (void)
 	Printf("Init GL defs");
 	GL_ParseRemappedTextures();
 	GL_ParseDefs();
-
-	//atterm(GL_ShutDown); // [ZDoomGL] - OpenGL shutdown stuff
+	atterm(GL_ShutDown); // [ZDoomGL] - OpenGL shutdown stuff
 
 	// [RH] Try adding .deh and .bex files on the command line.
 	// If there are none, try adding any in the config file.

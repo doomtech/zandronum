@@ -429,7 +429,7 @@ void GL_RenderActorView(AActor *actor, float aspect, float fov);
 void GL_PrecacheTextures();
 bool GL_UseStencilBuffer();
 bool GL_SegFacingDir(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2);
-void STACK_ARGS GL_ShutDown();
+void GL_ShutDown();
 void GL_SetupViewport();
 void GL_ResetViewport();
 int GL_GetStatusBarOffset();

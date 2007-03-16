@@ -2103,7 +2103,7 @@ void GL_RenderViewToCanvas(DCanvas *pic, int x, int y, int width, int height)
 }
 
 
-void STACK_ARGS GL_ShutDown()
+void GL_ShutDown()
 {
    GL_ReleaseShaders();
    GL_ReleaseLights();
