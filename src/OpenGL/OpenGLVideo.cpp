@@ -83,7 +83,6 @@ PFNGLMULTITEXCOORD3FARBPROC glMultiTexCoord3fARB = NULL;
 PFNGLMULTITEXCOORD4FARBPROC glMultiTexCoord4fARB = NULL;
 PFNGLACTIVETEXTUREARBPROC glActiveTextureARB = NULL;
 PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTextureARB = NULL;
-bool useMultitexture = false;
 
 // vertex buffer objects
 PFNGLGENBUFFERSARBPROC glGenBuffersARB = NULL;
@@ -602,8 +601,6 @@ void OpenGLVideo::FreeModesList( void )
 //
 OpenGLFrameBuffer::OpenGLFrameBuffer( ULONG ulWidth, ULONG ulHeight, bool bFullScreen ) : BaseWinFB( ulWidth, ulHeight )
 {
-  // TO-DO: Use the constructor from ZDoomGL 0.81 (at the moment deactivated by "if 0");
-#if 1
    RECT r;
    LONG lStyle, lExStyle;
    int i;
@@ -723,232 +720,23 @@ OpenGLFrameBuffer::OpenGLFrameBuffer( ULONG ulWidth, ULONG ulHeight, bool bFullS
       }
    }
    CalcGamma(Gamma, m_GammaTable);
-
-#else
-	//	ULONG	ulIdx;
-	ULONG	ulFullWidth;
-	ULONG	ulFullHeight;
-	int		i;
-
-	// Print a nice little message. Maybe have this sooner?
-	Printf( PRINT_OPENGL, "Initializing OpenGL...\n" );
-
-	// Initialize the display width, height, and bits per pixel.
-	m_ulDisplayWidth = ulWidth;
-	m_ulDisplayHeight = ulHeight;
-	m_ulDisplayBPP = (ULONG)gl_vid_bitdepth;
-	m_lNumTris = 0;
-
-	memcpy( m_SourcePalette, GPalette.BaseColors, sizeof( PalEntry ) * 256 );
-
-	m_ulTrueHeight = ulHeight;
-	if (bFullScreen)
-	{
-		for (VIDEOMODEINFO_s *pMode = static_cast<OpenGLVideo *>(Video)->m_pVideoModeList; pMode != NULL; pMode = pMode->pNext)
-		{
-			if (pMode->ulWidth == ulWidth && pMode->ulHeight == ulHeight)
-			{
-				m_ulTrueHeight = pMode->ulRealHeight;
-				break;
-			}
-		}
-	}
-
-
-	// Attempt to go into windowed or fullscreen mode, depending on what's passed into
-	// this function. Then, set the fullscreen member variable to the actual fullscreen status.
-	m_bFullScreen = static_cast<OpenGLVideo *>( Video )->GoFullscreen( bFullScreen );
-
-	// Configure our window based on whether or not we're in fullscreen mode.
-	if ( m_bFullScreen )
-	{
-		// Show the window.
-		ShowWindow( Window, SW_SHOW );
-
-		// Move the window into place. I'm not sure why this is needed on top of the
-		// "SetWindowPos" call, but without it, a little gray bar appears at the top of the
-		// screen.
-		MoveWindow( Window, 0, 0, m_ulDisplayWidth, m_ulDisplayHeight, FALSE );
-
-		// Apply the window's style/extended style settings.
-		SetWindowLongPtr( Window, GWL_STYLE, WS_VISIBLE );
-
-		// Set the window position and size.
-		SetWindowPos( Window,
-			NULL,
-			0,
-			0,
-			m_ulDisplayWidth,
-			m_ulDisplayHeight,
-			SWP_NOCOPYBITS | SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED
-			);
-	}
-	else
-	{
-		// We need to find the full width/height of the window. This includes our resolution,
-		// the borders, and caption.
-		ulFullWidth = m_ulDisplayWidth + ( GetSystemMetrics( SM_CXSIZEFRAME ) * 2 );
-		ulFullHeight = m_ulDisplayHeight + ( GetSystemMetrics( SM_CYSIZEFRAME ) * 2 ) + GetSystemMetrics( SM_CYCAPTION );
-
-		// Set this for some reason.
-		VidResizing = true;
-
-		// Apply the window's style/extended style settings.
-		SetWindowLongPtr( Window, GWL_STYLE, WS_VISIBLE | WS_OVERLAPPEDWINDOW );
-
-		// Set the window position and size.
-		SetWindowPos( Window,
-			NULL,
-			0,
-			0,
-			ulFullWidth,
-			ulFullHeight,
-			SWP_DRAWFRAME | SWP_NOCOPYBITS | SWP_NOMOVE | SWP_NOZORDER 
-			);
-
-		// Same as above.
-		VidResizing = false;
-
-		// Show the window.
-		ShowWindow( Window, SW_SHOW );
-	}
-
-	// Grab the device context for this window.
-	m_hDC = GetDC( Window );
-
-	// Little GZDoom thing here.
-	m_bSupportsGamma = GetGammaRamp( (void *)m_OriginalGamma );
-
-	// Set the pixel format that everything is drawn in (24-bit, etc.).
-	this->SetupPixelFormat( );
-
-	// If this necessary?
-	Printf( PRINT_OPENGL, "Creating context for %dx%dx%d screen.\n", m_ulDisplayWidth, m_ulDisplayHeight, m_ulDisplayBPP );
-	Printf( PRINT_OPENGL, "Stencil depth is %d bpp.\n", (int)gl_vid_stencilbits );
-
-	// Create the OpenGL rendering context. This links all the OpenGL calls to the device context.
-	if (( m_hRC = wglCreateContext( m_hDC )) == NULL )
-		I_FatalError( "Could not create OpenGL rendering context!" );
-	else
-		wglMakeCurrent( m_hDC, m_hRC );
-
-	// Print out some nice information.
-	Printf( PRINT_OPENGL, "Vendor: %s\n", glGetString( GL_VENDOR ));
-	Printf( PRINT_OPENGL, "Renderer: %s\n", glGetString( GL_RENDERER ));
-	Printf( PRINT_OPENGL, "OpenGL version: %s\n", glGetString( GL_VERSION ));
-
-	// Initialize the texture list.
-	textureList.Init( );
-
-	// Set the OpenGL viewport. This is the area of the screen it renders to.
-	glViewport( 0, 0, m_ulDisplayWidth, m_ulDisplayHeight );
-
-	// What's this?
-	m_maxTexelUnits = 1;
-
-	// Now load some extensions.
-   useMultitexture = false;
-   m_useMultiTexture = false;//GL_CheckExtension("GL_EXT_texture_env_combine") && GL_CheckExtension("GL_ARB_multitexture");
-   if (m_useMultiTexture)
-   {
-      glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &m_maxTexelUnits);
-      Printf("ZGL: Enabling multitexturing (%d texel units).\n", m_maxTexelUnits);
-
-      glActiveTextureARB = (PFNGLACTIVETEXTUREARBPROC)wglGetProcAddress("glActiveTextureARB");
-      glClientActiveTextureARB = (PFNGLCLIENTACTIVETEXTUREARBPROC)wglGetProcAddress("glClientActiveTextureARB");
-      glMultiTexCoord2fARB = (PFNGLMULTITEXCOORD2FARBPROC)wglGetProcAddress("glMultiTexCoord2fARB");
-
-      useMultitexture = true;
-   }
-
-   m_supportsFragmentProgram = GL_CheckExtension("GL_ARB_fragment_program");
-   if (m_supportsFragmentProgram)
-   {
-      //Printf("ZGL: Enabling fragment program support.\n");
-   }
-
-   m_supportsVBO = false;GL_CheckExtension("GL_ARB_vertex_buffer_object");
-   glGenBuffersARB = NULL;
-   glBindBufferARB = NULL;
-   glBufferDataARB = NULL;
-   glDeleteBuffersARB = NULL;
-   if (m_supportsVBO)
-   {
-      Printf("ZGL: enabling vertex buffers.\n");
-      glGenBuffersARB = (PFNGLGENBUFFERSARBPROC) wglGetProcAddress("glGenBuffersARB");
-      glBindBufferARB = (PFNGLBINDBUFFERARBPROC) wglGetProcAddress("glBindBufferARB");
-      glBufferDataARB = (PFNGLBUFFERDATAARBPROC) wglGetProcAddress("glBufferDataARB");
-      glDeleteBuffersARB = (PFNGLDELETEBUFFERSARBPROC) wglGetProcAddress("glDeleteBuffersARB");
-   }
-/*
-   m_supportsSwapInterval = GL_CheckExtension("WGL_EXT_swap_control");
-   if (m_supportsSwapInterval)
-   {
-      Printf("ZGL: Enabling vsync control.\n");
-      wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
-      wglGetSwapIntervalEXT = (PFNWGLGETSWAPINTERVALEXTPROC)wglGetProcAddress("wglGetSwapIntervalEXT");
-      GL_EnableVsync(gl_vid_vsync);
-   }
-*/
-
-	// Set the background color of the window to black.
-	glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
-
-	// Set up our depth testing.
-	glEnable( GL_DEPTH_TEST );
-	glClearDepth( 1.0f );
-	glDepthFunc( GL_LEQUAL );
-
-	// Blend colors, and smooth out lighting.
-	glShadeModel( GL_SMOOTH );
-
-	// I need to look up ALLLLLLL of it to see what it is!
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-
-   if (m_useMultiTexture)
-   {
-      for (i = 0; i < m_maxTexelUnits; i++)
-      {
-         glClientActiveTextureARB(GL_TEXTURE0_ARB + i);
-         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-      }
-      glClientActiveTextureARB(GL_TEXTURE0_ARB);
-   }
-
-	glEnable(GL_DITHER);
-	glDisable(GL_ALPHA_TEST);
-	glEnable(GL_CULL_FACE);
-	glEnable(GL_POLYGON_OFFSET_FILL);
-	glEnable(GL_BLEND);
-
-	if (gl_line_smooth)
-		glEnable(GL_LINE_SMOOTH);
-	else
-		glDisable(GL_LINE_SMOOTH);
-
-	glAlphaFunc(GL_GREATER, 0.0);
-
-	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-	glHint(GL_FOG_HINT, GL_NICEST);
-	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-
-	glFogf(GL_FOG_MODE, GL_EXP);
-
-	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
-	glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
-
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	CL_Init();
-#endif
 }
 
 OpenGLFrameBuffer::~OpenGLFrameBuffer()
 {
+   if (m_bSupportsGamma) SetDeviceGammaRamp(m_hDC, (void *)m_OrigGamma);
+
    textureList.ShutDown();
    CL_Shutdown();
 
+   // delete the billboard vertex program
+   if (m_bSupportsVertexProgram)
+   {
+      glBindProgramARB(GL_VERTEX_PROGRAM_ARB, 0);
+      GL_DeleteVertexPrograms();
+   }
+
+   //GL_UnloadLevelGeometry();
    wglMakeCurrent(NULL, NULL);
    wglDeleteContext(m_hRC);
    ReleaseDC(Window, m_hDC);
