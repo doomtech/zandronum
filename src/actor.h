@@ -525,6 +525,8 @@ public:
 	void Destroy ();
 	~AActor ();
 
+	virtual void PostBeginPlay(); // [ZDoomGL]
+
 	void Serialize (FArchive &arc);
 
 	static AActor *StaticSpawn (const PClass *type, fixed_t x, fixed_t y, fixed_t z, replace_t allowreplacement);
