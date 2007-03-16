@@ -606,7 +606,7 @@ ADynamicLight *GL_LightsForState(AActor *actor, FState *state)
    sprdef = &sprites[state->sprite.index];
    sprframe = &SpriteFrames[sprdef->spriteframes + state->GetFrame()];
    type = RUNTIME_TYPE(actor);
-   alias = GL_GetLightAlias(type->TypeName);
+   alias = GL_GetLightAlias(type->TypeName.GetChars());
    if (alias)
    {
       type = PClass::FindClass(alias->RealName());
@@ -614,7 +614,7 @@ ADynamicLight *GL_LightsForState(AActor *actor, FState *state)
 
    for (i = 0; i < LightAssociations.Size(); i++)
    {
-      if (stricmp(type->TypeName, LightAssociations[i]->ActorName()) == 0)
+      if (stricmp(type->TypeName.GetChars(), LightAssociations[i]->ActorName()) == 0)
       {
          for (j = 0; j < 16; j++)
          {
@@ -661,25 +661,21 @@ void GL_CheckActorLights(AActor *actor)
 
    if (actor->IsKindOf(PClass::FindClass("Actor")))
    {
-      type = RUNTIME_TYPE(actor);
-	  if( type != NULL ){
-		alias = GL_GetLightAlias(type->TypeName);
+		type = RUNTIME_TYPE(actor);
+		alias = GL_GetLightAlias(type->TypeName.GetChars());
 		if (alias)
 		{
 			type = PClass::FindClass(alias->RealName());
 		}
-		if( type != NULL ){
-			numStates = 0;
-			// walk back up the heirarchy to find the parent with the most states
-			// usually this is a pretty short trip (1 or 2 parents)
-			while ( (type != NULL) && (stricmp("AActor", type->TypeName) != 0) )
-			{
-					if( type->ActorInfo )
-						numStates = MAX<int>(numStates, type->ActorInfo->NumOwnedStates);
-					type = type->ParentClass;
-			}
+		numStates = 0;
+		// walk back up the heirarchy to find the parent with the most states
+		// usually this is a pretty short trip (1 or 2 parents)
+		while ( (type != NULL) && (stricmp("AActor", type->TypeName.GetChars()) != 0) )
+		{
+			if( type->ActorInfo )
+				numStates = MAX<int>(numStates, type->ActorInfo->NumOwnedStates);
+			type = type->ParentClass;
 		}
-	  }
    }
    else
    {
@@ -690,7 +686,7 @@ void GL_CheckActorLights(AActor *actor)
    {
       actor->Lights.Resize(numStates);
       type = RUNTIME_TYPE(actor);
-      alias = GL_GetLightAlias(type->TypeName);
+      alias = GL_GetLightAlias(type->TypeName.GetChars());
       if (alias)
       {
          type = PClass::FindClass(alias->RealName());
@@ -1334,8 +1330,9 @@ void GL_ParseObject()
 
    // get name
    SC_GetString();
-   name = "A"; // add the A to the start of the actor name
-   name += sc_String;
+   //[BB]: Adding the A is not necessary anymore
+   //name = "A"; // add the A to the start of the actor name
+   name = sc_String;
 
    // check for opening brace
    SC_GetString();
