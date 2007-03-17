@@ -2799,7 +2799,7 @@ void M_PlayerSetupDrawer( void )
 				R_BuildPlayerSetupPlayerTranslation( g_ulPlayerSetupColor, &skins[g_ulPlayerSetupSkin] );
 
 				if ( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL )
-			       textureList.UpdateForTranslation(translationtables[TRANSLATION_Players] + consoleplayer*256);
+			       textureList.UpdateForTranslation(translationtables[TRANSLATION_PlayerSetupMenu] + consoleplayer*256);
 
 				screen->DrawTexture (tex,
 					(320 - 52 - 32 + xo - 160)*CleanXfac + (SCREENWIDTH)/2,
