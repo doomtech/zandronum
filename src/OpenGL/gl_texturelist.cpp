@@ -523,6 +523,7 @@ void TextureList::Init()
       Printf("ZGL: Max texture size %d\n", m_maxTextureSize);
 
       glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &m_numTexUnits);
+      Printf("ZGL: Number of texel units %d\n", m_numTexUnits);
       m_lastBoundTexture = new unsigned int[m_numTexUnits];
       m_currentTexUnit = 0;
       for (int i = 0; i < m_numTexUnits; i++)
@@ -1590,7 +1591,13 @@ void TextureList::BindTexture(int textureID, bool translate)
    {
       tex = TexMan[textureID];
    }
-
+#ifdef _DEBUG
+   if ( tex == NULL )
+   {
+      Printf("ZGL: Trying to bind a NULL FTexture pointer. This should not happen!.\n");
+	  return;
+   }
+#endif
    BindTexture(tex);
 }
 
