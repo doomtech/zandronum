@@ -268,7 +268,7 @@ static	char	*g_pszServerHeaderNames[NUM_SERVER_COMMANDS] =
 
 static	void	network_Error( char *pszError );
 static	SOCKET	network_AllocateSocket( void );
-static	bool	network_BindSocketToPort( int Socket, USHORT usPort, bool bReUse );
+static	bool	network_BindSocketToPort( SOCKET Socket, USHORT usPort, bool bReUse );
 static	void	network_GetLocalAddress( void );
 
 //*****************************************************************************
@@ -660,7 +660,7 @@ void NETWORK_WriteString ( sizebuf_t *pBuffer, char *pszString )
 	if ( pszString == NULL )
 		NETWORK_Write( pBuffer, "", 1 );
 	else
-		NETWORK_Write( pBuffer, pszString, strlen( pszString ) + 1 );
+		NETWORK_Write( pBuffer, pszString, static_cast<int>(strlen( pszString )) + 1 );
 #else
 	if ( pszString == NULL )
 		NETWORK_WriteByte( pszBuffer, 0 );
@@ -1386,7 +1386,7 @@ static SOCKET network_AllocateSocket( void )
 
 //*****************************************************************************
 //
-bool network_BindSocketToPort( int Socket, USHORT usPort, bool bReUse )
+bool network_BindSocketToPort( SOCKET Socket, USHORT usPort, bool bReUse )
 {
 	int		iErrorCode;
 	struct sockaddr_in address;
@@ -1446,7 +1446,7 @@ void I_DoSelect (void)
     FD_SET(g_NetworkSocket, &fdset);
     timeout.tv_sec = 1;
     timeout.tv_usec = 0;
-    if (select (g_NetworkSocket+1, &fdset, NULL, NULL, &timeout) == -1)
+    if (select (static_cast<int>(g_NetworkSocket)+1, &fdset, NULL, NULL, &timeout) == -1)
         return;
 #else
     struct timeval   timeout;
