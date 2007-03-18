@@ -397,7 +397,7 @@ void V_UnColorizeString( char *pszString, ULONG ulMaxStringLength )
 	char	c;
 	ULONG	ulCurStringLength;
 
-	ulCurStringLength = strlen( pszString );
+	ulCurStringLength = static_cast<ULONG>(strlen( pszString ));
 
 	p = pszString;
 	while ( c = *p++ )
@@ -413,7 +413,7 @@ void V_UnColorizeString( char *pszString, ULONG ulMaxStringLength )
 				continue;
 			}
 
-			for ( ulPos = strlen( pszString ) + 1; ulPos > 0; ulPos-- )
+			for ( ulPos = static_cast<ULONG>(strlen( pszString ) + 1); ulPos > 0; ulPos-- )
 				pszString[ulPos] = pszString[ulPos - 1];
 
 			pszString[0] = '\\';
@@ -439,7 +439,7 @@ void V_RemoveColorCodes( char *pszString )
 			ULONG	ulPos;
 			ULONG	ulStringLength;
 
-			ulStringLength = strlen( pszString );
+			ulStringLength = static_cast<ULONG>(strlen( pszString ));
 
 			// If there aren't 3 characters left (the color character, the color code,
 			// and the new text), just terminate the string where the color character is.
@@ -480,7 +480,7 @@ void V_CleanPlayerName( char *pszString )
 {
 	// Checked by both the client and server, similar to sv_cheats
 	char *p; char c; p = pszString;
-	ULONG	ulStringLength = strlen( pszString );
+	ULONG	ulStringLength = static_cast<ULONG>(strlen( pszString ));
 	ULONG   ulTotalLength = 0;
 	// Mininum length: 3 characters
 		if(ulStringLength < 3)
@@ -491,7 +491,7 @@ void V_CleanPlayerName( char *pszString )
 				if ( !v_AcceptableNameChar(c) )
 				{
 					ULONG	ulPos;
-					ulStringLength = strlen( pszString );
+					ulStringLength = static_cast<ULONG>(strlen( pszString ));
 
 					for ( ulPos = 0; ulPos < ulStringLength; ulPos++ )
 						pszString[ulPos] = pszString[ulPos + 1];
