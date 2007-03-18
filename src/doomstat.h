@@ -197,6 +197,12 @@ extern	TArray<mapthing2_t>	BlueTeamStarts;
 // [BC] Red team spawn spots.
 extern	TArray<mapthing2_t>	RedTeamStarts;
 
+// [RC] Possession starts
+extern	TArray<mapthing2_t>	PossessionStarts;
+
+// [RC] Terminator starts
+extern	TArray<mapthing2_t>	TerminatorStarts;
+
 // [BC] Generic invasion spawn spots.
 extern	TArray<mapthing2_t>	GenericInvasionStarts;
 

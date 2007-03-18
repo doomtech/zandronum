@@ -4283,6 +4283,20 @@ void P_SpawnMapThing (mapthing2_t *mthing, int position)
 		return;
 	}
 
+	// [RC] Catalog possession starts
+	if ( mthing->type == 6000 )
+	{
+		PossessionStarts.Push( *mthing );
+		return;
+	}
+
+	// [RC] Catalog terminator starts
+	if ( mthing->type == 6001 )
+	{
+		TerminatorStarts.Push( *mthing );
+		return;
+	}
+
 	// [BC] Count invasion starts.
 	if (( mthing->type >= 5200 ) && ( mthing->type <= 5277 ))
 	{

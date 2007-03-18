@@ -2130,6 +2130,48 @@ static mapthing2_t *SelectRandomDeathmatchSpot (int playernum, unsigned int sele
 	// [RH] return a spot anyway, since we allow telefragging when a player spawns
 	return &deathmatchstarts[i];
 }
+// [RC] Select a possession start
+static mapthing2_t *SelectRandomPossessionSpot (int playernum, unsigned int selections)
+{
+	unsigned int i, j;
+
+	for (j = 0; j < 20; j++)
+	{
+
+		i = pr_dmspawn() % selections;
+
+		if (G_CheckSpot (playernum, &PossessionStarts[i]) )
+		{
+			return &PossessionStarts[i];
+		}
+	}
+		
+	// [RC] All spots are occupied (though they really shouldn't)
+	// This will give the player the sphere at the start
+	return &PossessionStarts[i];
+}
+
+// [RC] Select a terminator start
+static mapthing2_t *SelectRandomTerminatorSpot (int playernum, unsigned int selections)
+{
+	unsigned int i, j;
+
+	for (j = 0; j < 20; j++)
+	{
+
+		i = pr_dmspawn() % selections;
+
+		if (G_CheckSpot (playernum, &TerminatorStarts[i]) )
+		{
+			return &TerminatorStarts[i];
+		}
+	}
+		
+	// [RC] All spots are occupied (though they really shouldn't)
+	// This will give the player the sphere at the start
+	return &TerminatorStarts[i];
+}
+
 
 // Select a temporary team spawn spot at random.
 static mapthing2_t *SelectTemporaryTeamSpot( USHORT usPlayer, ULONG ulNumSelections )
@@ -3269,16 +3311,16 @@ void GAME_SpawnTerminatorArtifact( void )
 {
 	ULONG		ulIdx;
 	AActor		*pTerminatorBall;
-	ULONG		ulNumSelections;
 	mapthing2_t	*pSpot;
 
-	ulNumSelections = deathmatchstarts.Size( );
-	if ( ulNumSelections < 1 )
+	// [RC] Spawn it at a Terminator start, or a deathmatch spot
+	if(TerminatorStarts.Size() > 0) 	// Use the terminator starts, if the mapper added them
+		pSpot = SelectRandomTerminatorSpot(0, TerminatorStarts.Size());
+	else if(deathmatchstarts.Size() > 0) // Or use a deathmatch start, if one exists
+		pSpot = SelectRandomDeathmatchSpot(0, deathmatchstarts.Size());
+	else // Or return! Be that way!
 		return;
 
-	// Find a random deathmatch spot to spawn the ball at.
-	pSpot = SelectRandomDeathmatchSpot( 0, ulNumSelections );
-	
 	// Since G_CheckSpot() clears players' MF_SOLID flag for whatever reason, we have
 	// to restore it manually here.
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -3304,15 +3346,15 @@ void GAME_SpawnPossessionArtifact( void )
 {
 	ULONG		ulIdx;
 	AActor		*pPossessionStone;
-	ULONG		ulNumSelections;
 	mapthing2_t	*pSpot;
 
-	ulNumSelections = deathmatchstarts.Size( );
-	if ( ulNumSelections < 1 )
+	// [RC] Spawn it at a Possession start, or a deathmatch spot
+	if(PossessionStarts.Size() > 0) 	// Did the mapper place possession starts? Use those
+		pSpot = SelectRandomPossessionSpot(0, PossessionStarts.Size());
+	else if(deathmatchstarts.Size() > 0) // Or use a deathmatch start, if one exists
+		pSpot = SelectRandomDeathmatchSpot(0, deathmatchstarts.Size());
+	else // Or return! Be that way!
 		return;
-
-	// Find a random deathmatch spot to spawn the ball at.
-	pSpot = SelectRandomDeathmatchSpot( 0, ulNumSelections );
 
 	// Since G_CheckSpot() clears players' MF_SOLID flag for whatever reason, we have
 	// to restore it manually here.

@@ -693,6 +693,7 @@ AWeapon *APlayerPawn::PickNewWeapon (const PClass *ammotype)
 		// [BC] In client mode, tell the server which weapon we're using.
 		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( player - players == consoleplayer ))
 			CLIENTCOMMANDS_WeaponSelect( (char *)best->GetClass( )->TypeName.GetChars( ));
+		// [RC] TODO: Check if this is a cause of the spectator bug
 	}
 	return best;
 }
@@ -2262,7 +2263,7 @@ bool PLAYER_Responder( event_t *pEvent )
 				M_StartJoinTeamMenu( );
 			}
 			else
-				M_StartMessage( "Join current game?\n\npress y or n.", PLAYER_JoinGameFromSpectators, true );
+				M_StartMessage( "Join current game?\n\npress y or n.", PLAYER_JoinGameFromSpectators, true ); // [RC] TODO: Add readme about this game type
 
 			return ( true );
 		}
@@ -2342,6 +2343,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 				if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) &&
 					(( player - players ) != consoleplayer ))
 				{
+					//PLAYER_SetSpectator(player, true, false);
 					Printf( "P_PlayerThink: No body for player %d!\n", player - players + 1 );
 					return;
 				}

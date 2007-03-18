@@ -1030,6 +1030,7 @@ void SERVER_ConnectNewPlayer( void )
 		return;
 	}
 
+
 	// This player is now in the game.
 	playeringame[parse_cl] = true;
 
@@ -1308,6 +1309,8 @@ void SERVER_ConnectNewPlayer( void )
 	// for him.
 	if ( players[parse_cl].bOnTeam )
 		SERVERCOMMANDS_SetPlayerTeam( parse_cl );
+
+	
 
 	if ( clients[parse_cl].State != CLS_SPAWNED )
 	{
@@ -1652,11 +1655,20 @@ bool SERVER_GetUserInfo( bool bAllowKick )
 	if ( ulFlags & USERINFO_NAME )
 	{
 		sprintf( szOldPlayerName, pPlayer->userinfo.netname );
-
 		pszString = NETWORK_ReadString( );
+
 		if ( strlen( pszString ) > MAXPLAYERNAME )
 			pszString[MAXPLAYERNAME] = '\0';
+
 		strcpy( pPlayer->userinfo.netname, pszString );
+		V_CleanPlayerName(pszString);
+		
+		// The user really shouldn't have an invalid name, unless they are using a hacked executable.
+		if(strcmp(pPlayer->userinfo.netname, pszString) != 0) {
+				SERVER_KickPlayer( parse_cl, "Invalid name." );
+				return ( false );
+		}
+
 
 		// Remove % signs from names.
 		for ( ulIdx = 0; ulIdx < strlen( pPlayer->userinfo.netname ); ulIdx++ )

@@ -195,6 +195,12 @@ TArray<mapthing2_t>	RedTeamStarts( 16 );
 // [BC] Generic invasion spawn spots.
 TArray<mapthing2_t>	GenericInvasionStarts( 16 );
 
+// [RC] Possession starts
+TArray<mapthing2_t> PossessionStarts(16);
+
+// [RC] Terminator starts
+TArray<mapthing2_t> TerminatorStarts(16);
+
 mapthing2_t		playerstarts[MAXPLAYERS];
 
 static void P_AllocateSideDefs (int count);
@@ -4127,6 +4133,9 @@ void P_SetupLevel (char *lumpname, int position)
 	BlueTeamStarts.Clear( );
 	RedTeamStarts.Clear( );
 	GenericInvasionStarts.Clear( );
+	PossessionStarts.Clear();
+	TerminatorStarts.Clear();
+
 	for ( i = 0; i < MAXPLAYERS; i++ )
 		playerstarts[i].type = 0;
 
