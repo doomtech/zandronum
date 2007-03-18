@@ -1595,7 +1595,7 @@ void SERVERCOMMANDS_SetThingSound( AActor *pActor, ULONG ulSound, char *pszSound
 			continue;
 		}
 
-		NETWORK_CheckBuffer( ulIdx, 4 + strlen( pszSound ));
+		NETWORK_CheckBuffer( ulIdx, 4 + static_cast<ULONG>(strlen( pszSound )));
 		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETTHINGSOUND );
 		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->lNetID );
 		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulSound );
