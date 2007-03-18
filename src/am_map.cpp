@@ -1928,9 +1928,8 @@ void AM_drawWalls (bool allmap)
 				{
 					if (gl_automap_glow)
 					{
-						switch (OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL)
+						if (OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL)
 						{
-						case true:
 							switch (lines[i].special)
 							{
 							case Door_LockedRaise:
@@ -1940,9 +1939,6 @@ void AM_drawWalls (bool allmap)
 								AM_drawGlow (&l, lines[i].args[4]);
 								break;
 							}
-							break;
-						default:
-							break;
 						}
 					}
 					if (am_usecustomcolors)
