@@ -758,7 +758,7 @@ menu_t VideoMenu =
  *=======================================*/
 static void StartMapColorsMenu (void);
 
-EXTERN_CVAR (Bool, am_rotate)
+EXTERN_CVAR (Int, am_rotate)
 EXTERN_CVAR (Int, am_overlay)
 EXTERN_CVAR (Bool, am_usecustomcolors)
 EXTERN_CVAR (Bool, am_showitems)

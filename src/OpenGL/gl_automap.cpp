@@ -43,7 +43,7 @@ CVAR(Bool, gl_automap_dukestyle, false, CVAR_ARCHIVE)
 CVAR(Float, gl_automap_transparency, 0.85f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
 CVAR(Bool, gl_automap_glow, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
 CVAR(Int, gl_automap_glowsize, 40, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
-EXTERN_CVAR(Bool, am_rotate);
+EXTERN_CVAR(Int, am_rotate);
 EXTERN_CVAR(Bool, st_scale);
 EXTERN_CVAR(Int, screenblocks);
 EXTERN_CVAR(Int, am_cheat);

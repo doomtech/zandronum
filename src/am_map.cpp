@@ -105,7 +105,7 @@ inline fixed_t MTOF(fixed_t x)
 
 static int WeightingScale;
 
-CVAR (Bool,  am_rotate,				0,			CVAR_ARCHIVE);
+CVAR (Int,   am_rotate,				0,			CVAR_ARCHIVE);
 CVAR (Int,   am_overlay,			0,			CVAR_ARCHIVE);
 CVAR (Bool,  am_showsecrets,		true,		CVAR_ARCHIVE);
 CVAR (Bool,  am_showmonsters,		true,		CVAR_ARCHIVE);
