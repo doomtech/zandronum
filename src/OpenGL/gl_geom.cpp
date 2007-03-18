@@ -253,7 +253,7 @@ bool GL_ShouldRecalcPoly(gl_poly_t *poly, sector_t *sector)
 
 bool GL_ShouldRecalcSeg(seg_t *seg, gl_poly_t *poly, sector_t *frontSector, sector_t *backSector)
 {
-   int textureChanged = seg->linedef->textureChanged;
+   unsigned int textureChanged = seg->linedef->textureChanged;
 
    if (seg->bPolySeg) return true;
    if (textureChanged > poly->lastUpdate) return true;
@@ -300,10 +300,10 @@ void GL_RecalcUpperWall(seg_t *seg, sector_t *frontSector, gl_poly_t *poly)
    v2[0] = v4[0] = -vert2->x * MAP_SCALE;
    v2[2] = v4[2] = vert2->y * MAP_SCALE;
 
-   v1[1] = backSector->ceilingplane.ZatPoint(vert1);
-   v2[1] = backSector->ceilingplane.ZatPoint(vert2);
-   v3[1] = frontSector->ceilingplane.ZatPoint(vert1);
-   v4[1] = frontSector->ceilingplane.ZatPoint(vert2);
+   v1[1] = static_cast<float>(backSector->ceilingplane.ZatPoint(vert1));
+   v2[1] = static_cast<float>(backSector->ceilingplane.ZatPoint(vert2));
+   v3[1] = static_cast<float>(frontSector->ceilingplane.ZatPoint(vert1));
+   v4[1] = static_cast<float>(frontSector->ceilingplane.ZatPoint(vert2));
 
    ll.x = xOffset / (tex->GetWidth() * 1.f);
    ul.x = ll.x;
@@ -400,20 +400,20 @@ void GL_RecalcMidWall(seg_t *seg, sector_t *frontSector, gl_poly_t *poly)
    v1[2] = vert1->y * MAP_SCALE;
    v2[0] = -vert2->x * MAP_SCALE;
    v2[2] = vert2->y * MAP_SCALE;
-   v1[1] = frontSector->floorplane.ZatPoint(seg->v1);
-   v2[1] = frontSector->floorplane.ZatPoint(seg->v2);
+   v1[1] = static_cast<float>(frontSector->floorplane.ZatPoint(seg->v1));
+   v2[1] = static_cast<float>(frontSector->floorplane.ZatPoint(seg->v2));
 
    if ((seg->linedef->special == Line_Mirror && seg->backsector == NULL) || tex == NULL)
    {
       if (backSector)
       {
-         height1 = backSector->ceilingplane.ZatPoint(vert1);
-         height2 = backSector->ceilingplane.ZatPoint(vert2);
+         height1 = static_cast<float>(backSector->ceilingplane.ZatPoint(vert1));
+         height2 = static_cast<float>(backSector->ceilingplane.ZatPoint(vert2));
       }
       else
       {
-         height1 = frontSector->ceilingplane.ZatPoint(vert1);
-         height2 = frontSector->ceilingplane.ZatPoint(vert2);
+         height1 = static_cast<float>(frontSector->ceilingplane.ZatPoint(vert1));
+         height2 = static_cast<float>(frontSector->ceilingplane.ZatPoint(vert2));
       }
    }
    else
@@ -440,13 +440,13 @@ void GL_RecalcMidWall(seg_t *seg, sector_t *frontSector, gl_poly_t *poly)
 
       if (backSector)
       {
-         height1 = MIN(frontSector->ceilingplane.ZatPoint(vert1), backSector->ceilingplane.ZatPoint(vert1));
-         height2 = MIN(frontSector->ceilingplane.ZatPoint(vert2), backSector->ceilingplane.ZatPoint(vert2));
+         height1 = static_cast<float>(MIN(frontSector->ceilingplane.ZatPoint(vert1), backSector->ceilingplane.ZatPoint(vert1)));
+         height2 = static_cast<float>(MIN(frontSector->ceilingplane.ZatPoint(vert2), backSector->ceilingplane.ZatPoint(vert2)));
       }
       else
       {
-         height1 = frontSector->ceilingplane.ZatPoint(vert1);
-         height2 = frontSector->ceilingplane.ZatPoint(vert2);
+         height1 = static_cast<float>(frontSector->ceilingplane.ZatPoint(vert1));
+         height2 = static_cast<float>(frontSector->ceilingplane.ZatPoint(vert2));
       }
 
       if (backSector && (textureList.IsTransparent() || seg->linedef->flags & ML_TWOSIDED))
@@ -463,14 +463,14 @@ void GL_RecalcMidWall(seg_t *seg, sector_t *frontSector, gl_poly_t *poly)
          fixed_t rffloor = seg->frontsector->floortexz;
 #endif
 
-         yOffset = seg->sidedef->rowoffset;
+         yOffset = static_cast<float>(seg->sidedef->rowoffset);
          if (!tex->bWorldPanning)
          {
             yOffset /= tyScale;
          }
 
-         height1 = MIN(rbceil, rfceil);
-         v1[1] = MAX(rbfloor, rffloor);
+         height1 = static_cast<float>(MIN(rbceil, rfceil));
+         v1[1] = static_cast<float>(MAX(rbfloor, rffloor));
 
          if (seg->linedef->flags & ML_DONTPEGBOTTOM)
          {
@@ -623,8 +623,8 @@ void GL_RecalcLowerWall(seg_t *seg, sector_t *frontSector, gl_poly_t *poly)
    v2[0] = v4[0] = -vert2->x * MAP_SCALE;
    v2[2] = v4[2] = vert2->y * MAP_SCALE;
 
-   v1[1] = frontSector->floorplane.ZatPoint(vert1);
-   v2[1] = frontSector->floorplane.ZatPoint(vert2);
+   v1[1] = static_cast<float>(frontSector->floorplane.ZatPoint(vert1));
+   v2[1] = static_cast<float>(frontSector->floorplane.ZatPoint(vert2));
    v3[1] = v1[1] + h1;
    v4[1] = v2[1] + h2;
 
@@ -704,7 +704,7 @@ void GL_RecalcLowerWall(seg_t *seg, sector_t *frontSector, gl_poly_t *poly)
 
 void GL_RecalcSeg(seg_t *seg, sector_t *controlSector)
 {
-   int index;
+   __w64 int index;
    bool fogBoundary = false;
    sector_t *backSector, ts;
    gl_poly_t *poly;
