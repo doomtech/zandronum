@@ -102,7 +102,8 @@ void P_LoadGLSegs(int lumpnum)
    bool isV3, validSeg;
    DWORD vertexBit, segangle;
    BYTE *vertchanged = new BYTE[numvertexes];
-   int i, ptp_angle, delta_angle, dis, dx, dy, vnum1, vnum2;
+   int i, ptp_angle, delta_angle, dis, dx, dy;
+   __w64 int vnum1, vnum2;
    line_t *line;
    int firstGLvertex = numvertexes - numGLverts;
 
