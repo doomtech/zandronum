@@ -433,9 +433,8 @@ void STACK_ARGS DCanvas::DrawTexture (FTexture *img, int x0, int y0, DWORD tags_
 	x0 -= Scale (left, destwidth, texwidth);
 	y0 -= Scale (top, destheight, texheight);
 
-	switch (OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL)
+	if (OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL)
 	{
-	case true:
 		FTexInfo texInfo;
 		texInfo.tex = img;
 		texInfo.x = x0 >> FRACBITS; texInfo.y = y0 >> FRACBITS;
@@ -448,9 +447,6 @@ void STACK_ARGS DCanvas::DrawTexture (FTexture *img, int x0, int y0, DWORD tags_
 		texInfo.windowLeft = windowleft; texInfo.windowRight = windowright;
 		texInfo.flipX = flipX == 1;
 		GL_DrawTexture(&texInfo);
-		return;
-	default:
-		break;
 	}
 
 	if (mode != DontDraw)
