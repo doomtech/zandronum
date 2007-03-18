@@ -32,6 +32,7 @@
 **---------------------------------------------------------------------------
 **
 */
+#define TO_MAP(v) ((float)(v)/FRACUNIT)
 
 #include <windows.h>
 #include <gl/gl.h>
@@ -163,7 +164,7 @@ bool GL_ShouldDrawWall(seg_t *seg)
 }
 
 
-void GL_AddDecal(ADecal *decal, seg_t *seg)
+void GL_AddDecal(DBaseDecal *decal, seg_t *seg)
 {
    DecalList.Resize(DecalList.Size() + 1);
    DecalList[DecalList.Size() - 1].decal = decal;
@@ -196,9 +197,10 @@ void GL_DrawDecals()
 }
 
 
-void GL_DrawDecal(ADecal *actor, seg_t *seg, sector_t *frontSector, sector_t *backSector)
+void GL_DrawDecal(DBaseDecal *decal, seg_t *seg, sector_t *frontSector, sector_t *backSector)
 {
 #if 0
+#if 1
    line_t *line = seg->linedef;
 	side_t *side = seg->sidedef;
 	int i;
@@ -213,61 +215,61 @@ void GL_DrawDecal(ADecal *actor, seg_t *seg, sector_t *frontSector, sector_t *ba
    gl_poly_t *poly;
 
    if (!seg->linedef) return;
-	if (actor->renderflags & RF_INVISIBLE) return;
+	if (decal->RenderFlags & RF_INVISIBLE) return;
 
    index = (numsubsectors * 2);
    index += seg->index * 3;
 
 	//if (actor->sprite != 0xffff)
 	{
-		decalTile = actor->picnum;
-		flipx = !!(actor->renderflags & RF_XFLIP);
-		flipy = !!(actor->renderflags & RF_YFLIP);
+		decalTile = decal->PicNum;
+		flipx = !!(decal->RenderFlags & RF_XFLIP);
+		flipy = !!(decal->RenderFlags & RF_YFLIP);
 	}
 
-	switch (actor->renderflags & RF_RELMASK)
+	switch (decal->RenderFlags & RF_RELMASK)
 	{
 	default:
-		zpos = actor->z;
+		zpos = decal->Z;
 		break;
 
 	case RF_RELUPPER:
       poly = &gl_polys[index + 0];
 		if (line->flags & ML_DONTPEGTOP)
 		{
-			zpos = actor->z + frontSector->ceilingtexz;
+			zpos = decal->Z + frontSector->ceilingtexz;
 		}
 		else
 		{
-			zpos = actor->z + backSector->ceilingtexz;
+			zpos = decal->Z + backSector->ceilingtexz;
 		}
 		break;
 	case RF_RELLOWER:
       poly = &gl_polys[index + 2];
 		if (line->flags & ML_DONTPEGBOTTOM)
 		{
-			zpos = actor->z + frontSector->ceilingtexz;
+			zpos = decal->Z + frontSector->ceilingtexz;
 		}
 		else
 		{
-			zpos = actor->z + backSector->floortexz;
+			zpos = decal->Z + backSector->floortexz;
 		}
 		break;
 	case RF_RELMID:
       poly = &gl_polys[index + 1];
 		if (line->flags & ML_DONTPEGBOTTOM)
 		{
-			zpos = actor->z + frontSector->floortexz;
+			zpos = decal->Z + frontSector->floortexz;
 		}
 		else
 		{
-			zpos = actor->z + frontSector->ceilingtexz;
+			zpos = decal->Z + frontSector->ceilingtexz;
 		}
 	}
 
    if (!poly->vertices) return;
 
-	if (actor->renderflags & RF_FULLBRIGHT)
+	if (decal->RenderFlags & RF_FULLBRIGHT)
 	{
 		light=255;
 		// I don't thik this is such a good idea...
@@ -278,13 +280,13 @@ void GL_DrawDecal(ADecal *actor, seg_t *seg, sector_t *frontSector, sector_t *ba
 		light = MIN<int>(frontSector->lightlevel + (playerlight << 4), 255);
 	}
 	
-	int r = RPART(actor->alphacolor);
-	int g = GPART(actor->alphacolor);
-	int b = BPART(actor->alphacolor);
+	int r = RPART(decal->AlphaColor);
+	int g = GPART(decal->AlphaColor);
+	int b = BPART(decal->AlphaColor);
 	
 	float red, green, blue;
 
-   p = &screen->GetPalette()[frontSector->ColorMap->Maps[APART(actor->alphacolor)]];
+   p = &screen->GetPalette()[frontSector->ColorMap->Maps[APART(decal->AlphaColor)]];
    red = byte2float[p->r];
    green = byte2float[p->g];
    blue = byte2float[p->b];
@@ -297,9 +299,9 @@ void GL_DrawDecal(ADecal *actor, seg_t *seg, sector_t *frontSector, sector_t *ba
 	red = r * red / 255.f;
 	green = g * green / 255.f;
 	blue = b * blue / 255.f;
-	a = actor->alpha * INV_FRACUNIT;
+	a = decal->Alpha * INV_FRACUNIT;
 
-	if (actor->RenderStyle == STYLE_Shaded)
+	if (decal->RenderStyle == STYLE_Shaded)
 	{
 		loadAlpha = true;
 		//p.a=CM_SHADE;
@@ -316,22 +318,37 @@ void GL_DrawDecal(ADecal *actor, seg_t *seg, sector_t *frontSector, sector_t *ba
    if (!tex) return;
 
    textureList.LoadAlpha(loadAlpha);
-   textureList.SetTranslation(actor->Translation);
+   textureList.SetTranslation(decal->Translation);
    textureList.BindTexture(tex);
    textureList.SetTranslation((BYTE *)NULL);
    textureList.LoadAlpha(false);
 	
-	// now clip the decal to the actual polygon - we do this in full texel coordinates
-	int decalwidth=(tex->GetWidth()*actor->xscale)>>6;
-	int decalheight=(tex->GetHeight()*actor->xscale)>>6;
-	int decallefto=(tex->LeftOffset*actor->xscale)>>6;
-	int decaltopo=(tex->TopOffset*actor->xscale)>>6;
-	
-	// texel index of the decal's left edge
-	int decalpixpos = MulScale30(side->TexelLength, actor->floorclip) - (flipx? decalwidth-decallefto : decallefto);
+    // now clip the decal to the actual polygon - we do this in full texel coordinates
+/*
+    int decalwidth=(tex->GetWidth()*decal->ScaleX)>>6;
+	int decalheight=(tex->GetHeight()*decal->ScaleX)>>6;
+	int decallefto=(tex->LeftOffset*decal->ScaleX)>>6;
+	int decaltopo=(tex->TopOffset*decal->ScaleX)>>6;
 
+	// texel index of the decal's left edge
+	//int decalpixpos = MulScale30(side->TexelLength, actor->floorclip) - (flipx? decalwidth-decallefto : decallefto);
+	int decalpixpos = MulScale30(side->TexelLength, 0) - (flipx? decalwidth-decallefto : decallefto);
+   
 	int left,right;
-	int lefttex,righttex;
+    int lefttex,righttex;
+*/
+
+	float decalwidth = tex->GetWidth()  * TO_MAP(decal->ScaleX);
+	float decalheight= tex->GetHeight() * TO_MAP(decal->ScaleY);
+	float decallefto = tex->LeftOffset * TO_MAP(decal->ScaleX);
+	float decaltopo  = tex->TopOffset  * TO_MAP(decal->ScaleY);
+	
+
+	// texel index of the decal's left edge
+	float decalpixpos = (float)side->TexelLength * decal->LeftDistance / (1<<30) - (flipx? decalwidth-decallefto : decallefto);
+
+	float left,right;
+	float lefttex,righttex;
 
 	// decal is off the left edge
 	if (decalpixpos<0)
@@ -360,9 +377,9 @@ void GL_DrawDecal(ADecal *actor, seg_t *seg, sector_t *frontSector, sector_t *ba
 	if (right<=left) return;	// nothing to draw
 
 	glColor4f(red, green, blue, a);
-   glColor3f(1.f, 0.f, 0.f);
+    //glColor3f(1.f, 0.f, 0.f);
 
-	switch(actor->RenderStyle)
+	switch(decal->RenderStyle)
 	{
 	case STYLE_Shaded:
 	case STYLE_Translucent:
@@ -413,11 +430,11 @@ void GL_DrawDecal(ADecal *actor, seg_t *seg, sector_t *frontSector, sector_t *ba
 	dv[1][4]=dv[2][4]=0;
 
 
-	//const PatchTextureInfo * pti=tex->BindPatch(p.a, actor->Translation);
+	//const PatchTextureInfo * pti=tex->BindPatch(p.a, decal->Translation);
    float u, v;
    textureList.GetCorner(&u, &v);
-   dv[1][3]=dv[0][3]=((lefttex*64/actor->xscale) * 1.f / tex->GetWidth()) * 1.f;
-	dv[3][3]=dv[2][3]=((righttex*64/actor->xscale) * 1.f / tex->GetWidth()) * u;
+   dv[1][3]=dv[0][3]=((lefttex*64/decal->ScaleX) * 1.f / tex->GetWidth()) * 1.f;
+	dv[3][3]=dv[2][3]=((righttex*64/decal->ScaleX) * 1.f / tex->GetWidth()) * u;
 	dv[0][4]=dv[3][4] = v;
 
 	// now clip to the top plane
@@ -494,7 +511,7 @@ void GL_DrawDecal(ADecal *actor, seg_t *seg, sector_t *frontSector, sector_t *ba
    gl_poly_t *poly;
    Vector v;
 
-   if (actor->renderflags & RF_INVISIBLE)
+   if (decal->RenderFlags & RF_INVISIBLE)
    {
       return;
    }
@@ -515,61 +532,68 @@ void GL_DrawDecal(ADecal *actor, seg_t *seg, sector_t *frontSector, sector_t *ba
       poly = &gl_polys[index + 2];
    }
 
-   switch (actor->renderflags & RF_RELMASK)
+   switch (decal->RenderFlags & RF_RELMASK)
 	{
 	default:
-		zpos = actor->z;
+		zpos = decal->Z;
 		break;
 	case RF_RELUPPER:
 		if (seg->linedef->flags & ML_DONTPEGTOP)
 		{
-			zpos = actor->z + frontSector->ceilingtexz;
+			zpos = decal->Z + frontSector->ceilingtexz;
 		}
 		else
 		{
-			zpos = actor->z + backSector->ceilingtexz;
+			zpos = decal->Z + backSector->ceilingtexz;
 		}
 		break;
 	case RF_RELLOWER:
 		if (seg->linedef->flags & ML_DONTPEGBOTTOM)
 		{
-			zpos = actor->z + frontSector->ceilingtexz;
+			zpos = decal->Z + frontSector->ceilingtexz;
 		}
 		else
 		{
-			zpos = actor->z + backSector->floortexz;
+			zpos = decal->Z + backSector->floortexz;
 		}
 		break;
 	case RF_RELMID:
 		if (seg->linedef->flags & ML_DONTPEGBOTTOM)
 		{
-			zpos = actor->z + frontSector->floortexz;
+			zpos = decal->Z + frontSector->floortexz;
 		}
 		else
 		{
-			zpos = actor->z + frontSector->ceilingtexz;
+			zpos = decal->Z + frontSector->ceilingtexz;
 		}
       break;
 	}
 
-   if (actor->picnum != 0xffff)
+   if (decal->PicNum != 0xffff)
 	{
-		decalTile = actor->picnum;
-		flipx = actor->renderflags & RF_XFLIP;
+		decalTile = decal->PicNum;
+		flipx = decal->RenderFlags & RF_XFLIP;
 	}
 	else
 	{
-      decalTile = SpriteFrames[sprites[actor->sprite].spriteframes + actor->frame].Texture[0];
-		flipx = SpriteFrames[sprites[actor->sprite].spriteframes + actor->frame].Flip & 1;
+		return;
+	 // FIX!
+      //decalTile = SpriteFrames[sprites[decal->sprite].spriteframes + decal->frame].Texture[0];
+	  //flipx = SpriteFrames[sprites[decal->sprite].spriteframes + decal->frame].Flip & 1;
 	}
 
+	fixed_t decalx, decaly;
+	decal->GetXY (seg->sidedef, decalx, decaly);
    y = zpos * MAP_SCALE;
-   x = -actor->x * MAP_SCALE;
-   z = actor->y * MAP_SCALE;
+   //x = -decal->x * MAP_SCALE;
+   //z = decal->y * MAP_SCALE;
+   x = -decalx * MAP_SCALE;
+   z = decaly * MAP_SCALE;
+
    ownerAngle = R_PointToAngle2(seg->v1->x, seg->v1->y, seg->v2->x, seg->v2->y);
    angle = ANGLE_TO_FLOAT(ownerAngle);
 
-   p = &screen->GetPalette()[frontSector->ColorMap->Maps[APART(actor->alphacolor)]];
+   p = &screen->GetPalette()[frontSector->ColorMap->Maps[APART(decal->AlphaColor)]];
    r = byte2float[p->r];
    g = byte2float[p->g];
    b = byte2float[p->b];
@@ -579,7 +603,7 @@ void GL_DrawDecal(ADecal *actor, seg_t *seg, sector_t *frontSector, sector_t *ba
    g *= byte2float[p->g];
    b *= byte2float[p->b];
 
-   if (actor->renderflags & RF_FULLBRIGHT)
+   if (decal->RenderFlags & RF_FULLBRIGHT)
    {
       glDisable(GL_FOG);
       color = 1.f;
@@ -609,17 +633,17 @@ void GL_DrawDecal(ADecal *actor, seg_t *seg, sector_t *frontSector, sector_t *ba
    b *= color;
 
    tex = TexMan(decalTile);
-   width = (tex->GetWidth() * 0.5f) * (actor->xscale / 63.f) / MAP_COEFF;
-   height = tex->GetHeight() * (actor->yscale / 63.f) / MAP_COEFF;
+   width = (tex->GetWidth() * 0.5f) * (decal->ScaleX / 63.f) / MAP_COEFF;
+   height = tex->GetHeight() * (decal->ScaleY / 63.f) / MAP_COEFF;
 
-   top = (tex->TopOffset * (actor->yscale / 63.f)) / MAP_COEFF;
+   top = (tex->TopOffset * (decal->ScaleY / 63.f)) / MAP_COEFF;
    bottom = top - height;
    left = -width;
    right = width;
 
-   a = actor->alpha * INV_FRACUNIT;
+   a = decal->Alpha * INV_FRACUNIT;
 
-   if (actor->RenderStyle == STYLE_Shaded)
+   if (decal->RenderStyle == STYLE_Shaded)
    {
       loadAlpha = true;
    }
@@ -677,6 +701,7 @@ void GL_DrawDecal(ADecal *actor, seg_t *seg, sector_t *frontSector, sector_t *ba
       glEnable(GL_FOG);
       //glDisable(GL_FOG);
    }
+#endif
 #endif
 }
 
@@ -1194,16 +1219,16 @@ void GL_DrawWall(seg_t *seg, sector_t *frontSector, bool isPoly)
 
       textureList.SetTranslation((BYTE *)NULL);
 #if 0
-      if (gl_draw_decals && seg->linedef->special != Line_Mirror && !CollectSpecials && DrawingDeferredLines == deferLine && !fogBoundary)
-      {
+		if (gl_draw_decals && seg->linedef->special != Line_Mirror && !CollectSpecials && DrawingDeferredLines == deferLine && !fogBoundary)
+		{
 
-		 ADecal *decal = seg->sidedef->AttachedDecals;
-         while (decal)
-         {
-            GL_AddDecal(decal, seg);
-            decal = (ADecal *)decal->snext;
-         }
-      }
+		DBaseDecal *decal = seg->sidedef->AttachedDecals;
+		while (decal)
+			{
+				GL_AddDecal(decal, seg);
+				decal = decal->WallNext;
+			}
+		}
 #endif
    }
 }

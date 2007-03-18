@@ -316,7 +316,7 @@ typedef struct draw_seg_s
 
 typedef struct
 {
-   ADecal *decal;
+   DBaseDecal *decal;
    seg_t *seg;
 } decal_data_t;
 
@@ -439,7 +439,7 @@ int GL_GetStatusBarOffset();
 //
 
 void GL_DrawDecals();
-void GL_DrawDecal(ADecal *actor, seg_t *seg, sector_t *frontSector, sector_t *backSector);
+void GL_DrawDecal(DBaseDecal *actor, seg_t *seg, sector_t *frontSector, sector_t *backSector);
 void GL_DrawWall(seg_t *seg, sector_t *sector, bool isPoly);
 void GL_RenderMirror(seg_t *seg);
 bool GL_SkyWall(seg_t *seg);
