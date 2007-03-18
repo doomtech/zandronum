@@ -1701,7 +1701,7 @@ bool R_AlignFlat (int linenum, int side, int fc)
 
 	// [BC] If we're the server, tell clients to update the sector's angle/y-offset.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetSectorAngleYOffset( sec - sectors );
+		SERVERCOMMANDS_SetSectorAngleYOffset( static_cast<ULONG>(sec - sectors) );
 
 	return true;
 }
