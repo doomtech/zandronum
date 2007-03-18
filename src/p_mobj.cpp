@@ -2895,7 +2895,6 @@ void AActor::Tick ()
 	static const BYTE HereticSpeedMuls[5] = { 5, 10, 25, 30, 35 };
 
 	AActor *onmo;
-	int i;
 
 	assert (state != NULL);
 	if (state == NULL)
@@ -3919,7 +3918,6 @@ void P_SpawnPlayer (mapthing2_t *mthing, bool bClientUpdate, player_t *p, bool t
 	fixed_t		SpawnX;
 	fixed_t		SpawnY;
 	angle_t		SpawnAngle;
-	int			i;
 	// [BC]
 	LONG		lSkin;
 	AInventory	*pInventory;
