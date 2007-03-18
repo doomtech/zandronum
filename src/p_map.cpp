@@ -2300,7 +2300,8 @@ bool P_OldTryMove (AActor *thing, fixed_t x, fixed_t y,
 			}
 			else
 			{
-				if (!dropoff || (dropoff==2 &&  // large jump down (e.g. dogs)
+				// [BB] dropoff is a bool, it can't be equal to 2
+				if (!dropoff || (/*dropoff==2 &&*/ // large jump down (e.g. dogs)
 					(tmfloorz-tmdropoffz > 128*FRACUNIT || 
 					!thing->target || thing->target->z >tmdropoffz)))
 				{
