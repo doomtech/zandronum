@@ -220,8 +220,8 @@ void GL_DrawBillboard2(AActor *thing, float x, float y, float z, float w, float 
    h = h / 2;
    y += h;
 
-   rx = viewMatrix[0]; ry = viewMatrix[4]; rz = viewMatrix[8];
-   ux = viewMatrix[1]; uy = viewMatrix[5]; uz = viewMatrix[9];
+   rx = static_cast<float>(viewMatrix[0]); ry = static_cast<float>(viewMatrix[4]); rz = static_cast<float>(viewMatrix[8]);
+   ux = static_cast<float>(viewMatrix[1]); uy = static_cast<float>(viewMatrix[5]); uz = static_cast<float>(viewMatrix[9]);
 
    cy = y + (uy * -h) + (ry * w);
    diff = cy - btm;
@@ -507,7 +507,8 @@ void GL_DrawThing(player_t *player, AActor *thing, float offX, float offZ)
          }
          else
          {
-            GL_SetupFog(sector->lightlevel, ((level.fadeto & 0xFF0000) >> 16), ((level.fadeto & 0x00FF00) >> 8), level.fadeto & 0x0000FF);
+            //GL_SetupFog(sector->lightlevel, ((level.fadeto & 0xFF0000) >> 16), ((level.fadeto & 0x00FF00) >> 8), level.fadeto & 0x0000FF);
+            GL_SetupFog(sector->lightlevel, static_cast<BYTE>(RPART(level.fadeto)), static_cast<BYTE>(GPART(level.fadeto)), static_cast<BYTE>(BPART(level.fadeto)));
          }
       }
       lightLevel = sector->lightlevel;
@@ -592,8 +593,8 @@ void GL_DrawParticle(float x, float y, float z, PalEntry *p, int size)
 		   w = h = size * 0.5f;
    }
 
-   rx = viewMatrix[0]; ry = viewMatrix[4]; rz = viewMatrix[8];
-   ux = viewMatrix[1]; uy = viewMatrix[5]; uz = viewMatrix[9];
+   rx = static_cast<float>(viewMatrix[0]); ry = static_cast<float>(viewMatrix[4]); rz = static_cast<float>(viewMatrix[8]);
+   ux = static_cast<float>(viewMatrix[1]); uy = static_cast<float>(viewMatrix[5]); uz = static_cast<float>(viewMatrix[9]);
    textureList.GetCorner(&tx, &ty);
 
    angle = byte2float[p->a] * 720.f;
@@ -719,7 +720,7 @@ void GL_AddSeg(seg_t *seg)
 void GL_AddSprite(AActor *actor)
 {
    SPRITELIST sprite;
-   fixed_t dist;
+   float dist;
    bool drawChase;
    float x, y, z;
    Vector v1, v2;
