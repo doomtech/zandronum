@@ -490,7 +490,7 @@ void R_InitSkins (void)
 	int sndlumps[NUMSKINSOUNDS];
 	char key[65];
 	DWORD intname, crouchname;
-	size_t i;
+	int i;
 	int j, k, base;
 	int lastlump;
 	int aliasid;
