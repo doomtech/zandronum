@@ -316,7 +316,7 @@ bool GL_UseStencilBuffer()
 bool GL_CheckExtension(const char *ext)
 {
    const char *supported = NULL;
-   int extLen = strlen(ext);
+   size_t extLen = strlen(ext);
 
    PROC wglGetExtString = wglGetProcAddress("wglGetExtensionsStringARB");
    if (wglGetExtString)
@@ -989,7 +989,8 @@ void GL_AddVisibleSubsectors(angle_t left, angle_t right)
 }
 
 
-void GL_RenderBSPNode(void *node, angle_t left, angle_t right)
+// [BB]: Removed unused argument angle_t right
+void GL_RenderBSPNode(void *node, angle_t left/*, angle_t right*/)
 {
    int side;
    node_t *bsp;
@@ -1010,7 +1011,7 @@ void GL_RenderBSPNode(void *node, angle_t left, angle_t right)
 		side = R_PointOnSide(viewx, viewy, bsp);
 
    	// Recursively divide front space (toward the viewer).
-	   GL_RenderBSPNode(bsp->children[side], left, right);
+	   GL_RenderBSPNode(bsp->children[side], left/*, right*/);
 
 		// Possibly divide back space (away from the viewer).
 		side ^= 1;
@@ -1073,7 +1074,7 @@ void GL_RenderSkybox(ASkyViewpoint *skyBox)
    long oldx, oldy, oldz, angle, oldpitch;
    float yaw, pitch, x, y, z;
    TArray<subsector_t *> subSecs, *prevSubSecs;
-   angle_t a1, a2;
+   angle_t a1/*, a2*/;
 
    oldx = viewx; oldy = viewy; oldz = viewz; angle = viewangle; oldpitch = viewpitch;
 
@@ -1117,7 +1118,7 @@ void GL_RenderSkybox(ASkyViewpoint *skyBox)
    }
    else
    {
-      GL_RenderBSPNode(nodes + numnodes - 1, a1, a2);
+      GL_RenderBSPNode(nodes + numnodes - 1, a1/*, a2*/);
    }
    GL_DrawVisibleSubsectors();
    CL_ClearClipper();
@@ -1139,7 +1140,7 @@ bool InMirror;
 
 void GL_RenderMirror(seg_t *seg)
 {
-   angle_t startang = viewangle, a1, a2;
+   angle_t startang = viewangle, a1/*, a2*/;
    fixed_t startx = viewx;
    fixed_t starty = viewy;
    float x, y, z, yaw, pitch;
@@ -1254,7 +1255,7 @@ void GL_RenderMirror(seg_t *seg)
    }
    else
    {
-      GL_RenderBSPNode(nodes + numnodes - 1, a1, a2);
+      GL_RenderBSPNode(nodes + numnodes - 1, a1/*, a2*/);
    }
 
    if (gl_mirror_recursions >= count && count <= 30)
@@ -1366,7 +1367,7 @@ void GL_DrawScene()
    int i, numSubSecs;
    static int lastGametic = gametic;
    float yaw, pitch;
-   angle_t a1, a2;
+   angle_t a1/*, a2*/;
    GLbitfield mask;
 
    playerlight = Player->extralight;
@@ -1393,7 +1394,7 @@ void GL_DrawScene()
    }
    else
    {
-      GL_RenderBSPNode(nodes + numnodes - 1, a1, a2);
+      GL_RenderBSPNode(nodes + numnodes - 1, a1/*, a2*/);
    }
    CL_ClearClipper();
 
