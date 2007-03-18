@@ -69,7 +69,7 @@ EXTERN_CVAR (Bool, hud_scale)
 
 
 extern TextureList textureList;
-extern float CleanXfac, CleanYfac;
+extern int CleanXfac, CleanYfac;
 extern int NewWidth, NewHeight;
 
 
