@@ -397,16 +397,16 @@ int wipe_doGL(int ticks)
 
       glBegin(GL_TRIANGLE_FAN);
          glTexCoord2f(0.f, 0.f);
-         glVertex3f(0, SCREENHEIGHT, 0);
+         glVertex3f(0.f, static_cast<float>(SCREENHEIGHT), 0.f);
 
          glTexCoord2f(0.f, 1.f);
-         glVertex3f(0, 0, 0);
+         glVertex3f(0.f, 0.f, 0.f);
 
          glTexCoord2f(1.f, 1.f);
-         glVertex3f(SCREENWIDTH, 0, 0);
+         glVertex3f(static_cast<float>(SCREENWIDTH), 0.f, 0.f);
 
          glTexCoord2f(1.f, 0.f);
-         glVertex3f(SCREENWIDTH, SCREENHEIGHT, 0);
+         glVertex3f(static_cast<float>(SCREENWIDTH), static_cast<float>(SCREENHEIGHT), 0.f);
       glEnd();
 
       glRotatef(rotAngle, 1.f, 0.f, 0.f);
@@ -419,16 +419,16 @@ int wipe_doGL(int ticks)
 
       glBegin(GL_TRIANGLE_FAN);
          glTexCoord2f(0.f, 0.f);
-         glVertex3f(0, SCREENHEIGHT, 0);
+         glVertex3f(0.f, static_cast<float>(SCREENHEIGHT), 0.f);
 
          glTexCoord2f(0.f, 1.f);
-         glVertex3f(0, 0, 0);
+         glVertex3f(0.f, 0.f, 0.f);
 
          glTexCoord2f(1.f, 1.f);
-         glVertex3f(SCREENWIDTH, 0, 0);
+         glVertex3f(static_cast<float>(SCREENWIDTH), 0.f, 0.f);
 
          glTexCoord2f(1.f, 0.f);
-         glVertex3f(SCREENWIDTH, SCREENHEIGHT, 0);
+         glVertex3f(static_cast<float>(SCREENWIDTH), static_cast<float>(SCREENHEIGHT), 0.f);
       glEnd();
 
       glPopMatrix();
@@ -530,42 +530,39 @@ bool wipe_ScreenWipe (int ticks)
 	if (!go)
 	{
 		go = 1;
-		switch ( OPENGL_GetCurrentRenderer( ) != RENDERER_SOFTWARE )
+		if ( OPENGL_GetCurrentRenderer( ) != RENDERER_SOFTWARE )
 		{
-		case 1:
 			wipe_initGL(ticks);
-			break;
-		default:
+		}
+		else
+		{
 			(*wipes[(CurrentWipeType-1)*3])(ticks);
-			break;
 		}
 	}
 
 	// do a piece of wipe-in
-	switch ( OPENGL_GetCurrentRenderer( ) != RENDERER_SOFTWARE )
+	if ( OPENGL_GetCurrentRenderer( ) != RENDERER_SOFTWARE )
 	{
-	case 1:
 		//rc = wipe_doGL(ticks);
 		rc = 1;
-		break;
-	default:
+	}
+	else
+	{
 		V_MarkRect(0, 0, SCREENWIDTH, SCREENHEIGHT);
 		rc = (*wipes[(CurrentWipeType-1)*3+1])(ticks);
-		break;
 	}
 
 	// final stuff
 	if (rc)
 	{
 		go = 0;
-		switch ( OPENGL_GetCurrentRenderer( ) != RENDERER_SOFTWARE )
+		if ( OPENGL_GetCurrentRenderer( ) != RENDERER_SOFTWARE )
 		{
-		case 1:
 			wipe_exitGL(ticks);
-			break;
-		default:
+		}
+		else
+		{
 			(*wipes[(CurrentWipeType-1)*3+2])(ticks);
-			break;
 		}
 	}
 
