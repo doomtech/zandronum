@@ -384,7 +384,7 @@ void APointLightPulse::Serialize(FArchive &arc)
    {
       pulseTime = ANGLE_TO_FLOAT(this->angle) / TICRATE;
       m_lastUpdate = frameStartMS;
-      m_cycler.SetParams(args[LIGHT_SECONDARY_INTENSITY], args[LIGHT_INTENSITY], pulseTime);
+      m_cycler.SetParams(static_cast<float>(args[LIGHT_SECONDARY_INTENSITY]), static_cast<float>(args[LIGHT_INTENSITY]), pulseTime);
       m_cycler.ShouldCycle(true);
       m_cycler.SetCycleType(CYCLE_Sin);
       m_currentIntensity = m_cycler.GetVal();
@@ -398,10 +398,10 @@ void APointLightPulse::PostBeginPlay()
    float pulseTime = ANGLE_TO_FLOAT(this->angle) / TICRATE;
 
    m_lastUpdate = frameStartMS;
-   m_cycler.SetParams(args[LIGHT_SECONDARY_INTENSITY], args[LIGHT_INTENSITY], pulseTime);
+   m_cycler.SetParams(static_cast<float>(args[LIGHT_SECONDARY_INTENSITY]), static_cast<float>(args[LIGHT_INTENSITY]), pulseTime);
    m_cycler.ShouldCycle(true);
    m_cycler.SetCycleType(CYCLE_Sin);
-   m_currentIntensity = (byte)m_cycler.GetVal();
+   m_currentIntensity = m_cycler.GetVal();
 }
 
 void APointLightPulse::Tick()
@@ -430,7 +430,7 @@ void APointLightFlicker::PostBeginPlay()
 {
    Super::PostBeginPlay();
 
-   m_currentIntensity = args[LIGHT_INTENSITY];
+   m_currentIntensity = static_cast<float>(args[LIGHT_INTENSITY]);
 }
 
 void APointLightFlicker::Tick()
@@ -442,11 +442,11 @@ void APointLightFlicker::Tick()
 
    if (rnd >= pct * 255)
    {
-      m_currentIntensity = args[LIGHT_SECONDARY_INTENSITY];
+      m_currentIntensity = static_cast<float>(args[LIGHT_SECONDARY_INTENSITY]);
    }
    else
    {
-      m_currentIntensity = args[LIGHT_INTENSITY];
+      m_currentIntensity = static_cast<float>(args[LIGHT_INTENSITY]);
    }
 }
 
@@ -483,7 +483,7 @@ void APointLightFlickerRandom::PostBeginPlay()
 {
    Super::PostBeginPlay();
 
-   m_currentIntensity = args[LIGHT_INTENSITY];
+   m_currentIntensity = static_cast<float>(args[LIGHT_INTENSITY]);
    m_tickCount = 0;
 }
 
