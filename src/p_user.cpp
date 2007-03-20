@@ -1446,6 +1446,10 @@ bool APlayerPawn::DoHealingRadius (APlayerPawn *other)
 void APlayerPawn::SpecialInvulnerabilityHandling (EInvulState setting, fixed_t * pAlpha)
 {
 	if (setting == INVUL_GetAlpha && pAlpha!=NULL) *pAlpha=FIXED_MAX;	// indicates no change
+	if (setting == INVUL_Stop)
+	{
+		alpha = OPAQUE;
+	}
 }
 
 int APlayerPawn::DoSpecialDamage( AActor *target, int damage )
