@@ -1691,6 +1691,51 @@ void GL_DrawBlends(player_t *player)
       glEnable(GL_TEXTURE_2D);
       glEnable(GL_DEPTH_TEST);
    }
+
+   // [RC] Render Doomsphere tanslation
+   if(player->fixedcolormap == REDCOLORMAP)
+   // if (player->Powers & PW_QUADDAMAGE) (Any quad damage)
+   {
+      glDisable(GL_DEPTH_TEST);
+      glDisable(GL_TEXTURE_2D);
+      glBlendFunc(GL_DST_COLOR, GL_SRC_COLOR);
+
+      glColor4d(1, 0, 0, 1);
+
+      glBegin(GL_TRIANGLE_STRIP);
+         glVertex2d(0.0, screen->GetHeight());
+         glVertex2d(0.0, 0.0);
+         glVertex2d(screen->GetWidth(), screen->GetHeight());
+         glVertex2d(screen->GetWidth(), 0.0);
+      glEnd();
+
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      glEnable(GL_TEXTURE_2D);
+      glEnable(GL_DEPTH_TEST);
+   }
+
+   // [RC] Render Guardsphere tanslation
+   if(player->fixedcolormap == GREENCOLORMAP)
+   // if (player->Powers & PW_QUATERDAMAGE) (Any 1/4th damage)
+   {
+      glDisable(GL_DEPTH_TEST);
+      glDisable(GL_TEXTURE_2D);
+      glBlendFunc(GL_DST_COLOR, GL_SRC_COLOR);
+
+      glColor4d(0.2, 0.7, 0.2, 0.4);
+
+      glBegin(GL_TRIANGLE_STRIP);
+         glVertex2d(0.0, screen->GetHeight());
+         glVertex2d(0.0, 0.0);
+         glVertex2d(screen->GetWidth(), screen->GetHeight());
+         glVertex2d(screen->GetWidth(), 0.0);
+      glEnd();
+
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      glEnable(GL_TEXTURE_2D);
+      glEnable(GL_DEPTH_TEST);
+   }
+
 }
 
 unsigned int I_MSTime (void);
