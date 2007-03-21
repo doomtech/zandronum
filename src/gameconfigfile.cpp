@@ -60,6 +60,8 @@ extern HWND Window;
 #include "i_system.h"
 // [BC] New #includes.
 #include "network.h"
+// [RC] For name cleaning
+#include "v_text.h"
 
 EXTERN_CVAR (Bool, con_centernotify)
 EXTERN_CVAR (Int, msg0color)
@@ -435,6 +437,14 @@ void FGameConfigFile::ReadCVars (DWORD flags)
 				CVAR_AUTO|CVAR_UNSETTABLE|CVAR_ARCHIVE|flags);
 		}
 		val.String = const_cast<char *>(value);
+
+		// [RC] Clean player names
+		// This is mainly to ease the transition to the new standards.
+		// In later series (98? 99?), this can be removed to boost speed.
+
+		if(strcmp(key,"name") == 0)
+			V_CleanPlayerName(val.String);
+
 		cvar->SetGenericRep (val, CVAR_String);
 	}
 }

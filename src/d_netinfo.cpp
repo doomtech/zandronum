@@ -631,12 +631,14 @@ void D_ReadUserInfoStrings (int i, BYTE **stream, bool update)
 					strncpy (info->netname, value, MAXPLAYERNAME);
 					info->netname[MAXPLAYERNAME] = 0;
 
-					// Remove % signs from names.
+					V_CleanPlayerName(info->netname);
+
+					/* Remove % signs from names. // [RC] Covered in V_CleanName
 					for ( ulIdx = 0; ulIdx < strlen( info->netname ); ulIdx++ )
 					{
 						if ( info->netname[ulIdx] == '%' )
 							info->netname[ulIdx] = ' ';
-					}
+					}*/
 
 					if (update && strcmp (oldname, info->netname) != 0)
 					{

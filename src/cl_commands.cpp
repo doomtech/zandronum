@@ -53,6 +53,7 @@
 #include "gi.h"
 #include "network.h"
 #include "r_state.h"
+#include "v_text.h" // [RC] To conform player names
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -69,8 +70,10 @@ void CLIENTCOMMANDS_UserInfo( ULONG ulFlags )
 	// Tell the server which items are being updated.
 	NETWORK_WriteShort( CLIENT_GetLocalBuffer( ), ulFlags );
 
-	if ( ulFlags & USERINFO_NAME )
-		NETWORK_WriteString( CLIENT_GetLocalBuffer( ), players[consoleplayer].userinfo.netname );
+	if ( ulFlags & USERINFO_NAME ) { // [RC] Clean the name before we use it
+			V_CleanPlayerName(players[consoleplayer].userinfo.netname);
+			NETWORK_WriteString( CLIENT_GetLocalBuffer( ), players[consoleplayer].userinfo.netname );
+	}
 	if ( ulFlags & USERINFO_GENDER )
 		NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), players[consoleplayer].userinfo.gender );
 	if ( ulFlags & USERINFO_COLOR )

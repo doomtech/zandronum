@@ -462,7 +462,7 @@ void V_RemoveColorCodes( char *pszString )
 
 // [RC] Returns if this character is allowed in names
 bool v_AcceptableNameChar ( char c ) {
-	if( (((int)c > 33) ||	// no undisplayable system ascii
+	if( (((int)c > 31) ||	// no undisplayable system ascii
 		((int)c == 28)) &&  // allow the escape code for colors
 		((int)c != 37) &&	// no % (acts strangely when used in name)
 		((int)c != 38) &&	// no & (not easy to type on US keyboards)
