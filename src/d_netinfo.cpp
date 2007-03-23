@@ -623,7 +623,7 @@ void D_ReadUserInfoStrings (int i, BYTE **stream, bool update)
 
 			case INFO_Name:
 				{
-					ULONG	ulIdx;
+					//ULONG	ulIdx;
 					char oldname[MAXPLAYERNAME+1];
 
 					strncpy (oldname, info->netname, MAXPLAYERNAME);
