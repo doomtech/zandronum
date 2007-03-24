@@ -10451,6 +10451,18 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="GZDoom Renderer"
+			>
+			<Filter
+				Name="GZDoom Source"
+				>
+				<File
+					RelativePath=".\src\gl\gl_cycler.cpp"
+					>
+				</File>
+			</Filter>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>

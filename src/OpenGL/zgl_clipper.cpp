@@ -481,7 +481,7 @@ bool CL_SphereInFrustum(float x, float y, float z, float radius)
 
 bool CL_SubsectorInFrustum(subsector_t *ssec, sector_t *sector)
 {
-   return CL_BBoxInFrustum(ssec->bbox);
+   return CL_BBoxInFrustum(ssec->zgl_bbox);
 }
 
 

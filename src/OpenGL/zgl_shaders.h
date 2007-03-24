@@ -4,17 +4,7 @@
 
 
 #include "tarray.h"
-
-
-typedef enum
-{
-   CYCLE_Linear,
-   CYCLE_Sin,
-   CYCLE_Cos,
-   CYCLE_SawTooth,
-   CYCLE_Square
-} CycleType;
-
+#include "gl/gl_cycler.h"
 
 enum
 {
@@ -29,24 +19,6 @@ enum
    SHADER_TexGen_None = 0,
    SHADER_TexGen_Sphere,
    NUM_TexGenTypes
-};
-
-
-class FCycler
-{
-public:
-   FCycler();
-   void Update(float diff);
-   void SetParams(float start, float end, float cycle);
-   void ShouldCycle(bool sc);
-   void SetCycleType(CycleType ct);
-   float GetVal();
-   inline operator float () const { return m_current; }
-protected:
-   float m_start, m_end, m_current;
-   float m_time, m_cycle;
-   bool m_increment, m_shouldCycle;
-   CycleType m_cycleType;
 };
 
 

@@ -837,21 +837,21 @@ void GL_RecalcSubsector(subsector_t *subSec, sector_t *sector)
       // also add check for highest/lowest point for the surrounding lines...
       if (i == firstLine)
       {
-         subSec->bbox[0][0] = poly2->vertices[vindex + 0];
-         subSec->bbox[1][0] = poly2->vertices[vindex + 0];
-         subSec->bbox[0][2] = poly2->vertices[vindex + 2];
-         subSec->bbox[1][2] = poly2->vertices[vindex + 2];
-         subSec->bbox[0][1] = poly1->vertices[((maxLine - 1 - i) * 3) + 1];
-         subSec->bbox[1][1] = poly2->vertices[vindex + 1];
+         subSec->zgl_bbox[0][0] = poly2->vertices[vindex + 0];
+         subSec->zgl_bbox[1][0] = poly2->vertices[vindex + 0];
+         subSec->zgl_bbox[0][2] = poly2->vertices[vindex + 2];
+         subSec->zgl_bbox[1][2] = poly2->vertices[vindex + 2];
+         subSec->zgl_bbox[0][1] = poly1->vertices[((maxLine - 1 - i) * 3) + 1];
+         subSec->zgl_bbox[1][1] = poly2->vertices[vindex + 1];
       }
       else
       {
-         subSec->bbox[0][0] = MIN<float>(poly2->vertices[vindex + 0], subSec->bbox[0][0]);
-         subSec->bbox[1][0] = MAX<float>(poly2->vertices[vindex + 0], subSec->bbox[1][0]);
-         subSec->bbox[0][2] = MIN<float>(poly2->vertices[vindex + 2], subSec->bbox[0][2]);
-         subSec->bbox[1][2] = MAX<float>(poly2->vertices[vindex + 2], subSec->bbox[1][2]);
-         subSec->bbox[0][1] = MIN<float>(poly1->vertices[((maxLine - 1 - i) * 3) + 1], subSec->bbox[0][1]);
-         subSec->bbox[1][1] = MAX<float>(poly2->vertices[vindex + 1], subSec->bbox[1][1]);
+         subSec->zgl_bbox[0][0] = MIN<float>(poly2->vertices[vindex + 0], subSec->zgl_bbox[0][0]);
+         subSec->zgl_bbox[1][0] = MAX<float>(poly2->vertices[vindex + 0], subSec->zgl_bbox[1][0]);
+         subSec->zgl_bbox[0][2] = MIN<float>(poly2->vertices[vindex + 2], subSec->zgl_bbox[0][2]);
+         subSec->zgl_bbox[1][2] = MAX<float>(poly2->vertices[vindex + 2], subSec->zgl_bbox[1][2]);
+         subSec->zgl_bbox[0][1] = MIN<float>(poly1->vertices[((maxLine - 1 - i) * 3) + 1], subSec->zgl_bbox[0][1]);
+         subSec->zgl_bbox[1][1] = MAX<float>(poly2->vertices[vindex + 1], subSec->zgl_bbox[1][1]);
       }
    }
 
@@ -1285,7 +1285,7 @@ void GL_RenderPolyLit(gl_poly_t *poly)
    APointLight *light;
    fixed_t lx, ly, lz;
    float x, y, z, radius, dist, scale, cs, u, v, frac, fracRad, r, g, b, a;
-   Vector pos, fn, nearPt, nearToVert, right, up, t1;
+   ZGL_Vector pos, fn, nearPt, nearToVert, right, up, t1;
 
    fn = poly->plane.Normal();
 
@@ -1357,7 +1357,7 @@ void GL_RenderPolyLit(gl_poly_t *poly)
          // ignore subtractive lights if subtractive blending not supported
          if (!glBlendEquationEXT) continue;
 
-         Vector v;
+         ZGL_Vector v;
 
          glBlendEquationEXT(GL_FUNC_REVERSE_SUBTRACT);
          v.Set(r, g, b);

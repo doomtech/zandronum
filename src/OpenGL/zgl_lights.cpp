@@ -707,7 +707,7 @@ void GL_CheckActorLights(AActor *actor)
 
 void GL_GetLightForPoint(float x, float y, float z, float *r, float *g, float *b)
 {
-   Vector p, l, t, lightColor;
+   ZGL_Vector p, l, t, lightColor;
    APointLight *light;
    float frac, dist, tr, tg, tb, lr, lg, lb;
    fixed_t fx, fy;
@@ -765,7 +765,7 @@ void GL_GetLightForPoint(float x, float y, float z, float *r, float *g, float *b
 
 int GL_GetIntensityForPoint(float x, float y, float z)
 {
-   Vector p, l, t;
+   ZGL_Vector p, l, t;
    APointLight *light;
    float frac, dist, intensity;
    fixed_t fx, fy;

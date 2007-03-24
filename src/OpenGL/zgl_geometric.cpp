@@ -3,15 +3,15 @@
 #include "zgl_main.h"
 
 
-static Vector axis[3] = 
+static ZGL_Vector axis[3] = 
 {
-   Vector(1.0f, 0.0f, 0.0f),
-   Vector(0.0f, 1.0f, 0.0f),
-   Vector(0.0f, 0.0f, 1.0f)
+   ZGL_Vector(1.0f, 0.0f, 0.0f),
+   ZGL_Vector(0.0f, 1.0f, 0.0f),
+   ZGL_Vector(0.0f, 0.0f, 1.0f)
 };
 
 
-Vector::Vector()
+ZGL_Vector::ZGL_Vector()
 {
    SetX(0.f);
    SetY(1.f);
@@ -21,7 +21,7 @@ Vector::Vector()
 }
 
 
-Vector::Vector(float x, float y, float z)
+ZGL_Vector::ZGL_Vector(float x, float y, float z)
 {
    SetX(x);
    SetY(y);
@@ -31,7 +31,7 @@ Vector::Vector(float x, float y, float z)
 }
 
 
-void Vector::Set(float *v)
+void ZGL_Vector::Set(float *v)
 {
    SetX(v[0]);
    SetY(v[1]);
@@ -41,7 +41,7 @@ void Vector::Set(float *v)
 }
 
 
-void Vector::Set(float x, float y, float z)
+void ZGL_Vector::Set(float x, float y, float z)
 {
    SetX(x);
    SetY(y);
@@ -51,7 +51,7 @@ void Vector::Set(float x, float y, float z)
 }
 
 
-void Vector::Normalize()
+void ZGL_Vector::Normalize()
 {
    float l = 1.f / Length();
 
@@ -63,30 +63,30 @@ void Vector::Normalize()
 }
 
 
-float Vector::Length()
+float ZGL_Vector::Length()
 {
    return m_length;
 }
 
 
-void Vector::UpdateLength()
+void ZGL_Vector::UpdateLength()
 {
    m_length = sqrtf((X() * X()) + (Y() * Y()) + (Z() * Z()));
 }
 
 
-float Vector::Dist(Vector &v)
+float ZGL_Vector::Dist(ZGL_Vector &v)
 {
-   Vector t(X() - v.X(), Y() - v.Y(), Z() - v.Z());
+   ZGL_Vector t(X() - v.X(), Y() - v.Y(), Z() - v.Z());
 
    return t.Length();
 }
 
 
-Vector Vector::Cross(Vector &v)
+ZGL_Vector ZGL_Vector::Cross(ZGL_Vector &v)
 {
    float x, y, z;
-   Vector cp;
+   ZGL_Vector cp;
 
    x = Y() * v.Z() - Z() * v.Y();
    y = Z() * v.X() - X() * v.Z();
@@ -98,16 +98,16 @@ Vector Vector::Cross(Vector &v)
 }
 
 
-float Vector::Dot(Vector &v)
+float ZGL_Vector::Dot(ZGL_Vector &v)
 {
    return (X() * v.X()) + (Y() * v.Y()) + (Z() * v.Z());
 }
 
 
-Vector Vector::operator- (Vector &v)
+ZGL_Vector ZGL_Vector::operator- (ZGL_Vector &v)
 {
    float x, y, z;
-   Vector vec;
+   ZGL_Vector vec;
 
    x = X() - v.X();
    y = Y() - v.Y();
@@ -119,10 +119,10 @@ Vector Vector::operator- (Vector &v)
 }
 
 
-Vector Vector::operator+ (Vector &v)
+ZGL_Vector ZGL_Vector::operator+ (ZGL_Vector &v)
 {
    float x, y, z;
-   Vector vec;
+   ZGL_Vector vec;
 
    x = X() + v.X();
    y = Y() + v.Y();
@@ -134,9 +134,9 @@ Vector Vector::operator+ (Vector &v)
 }
 
 
-Vector Vector::operator* (float f)
+ZGL_Vector ZGL_Vector::operator* (float f)
 {
-   Vector vec(X(), Y(), Z());
+   ZGL_Vector vec(X(), Y(), Z());
 
    vec.Scale(f);
 
@@ -144,9 +144,9 @@ Vector Vector::operator* (float f)
 }
 
 
-Vector Vector::operator/ (float f)
+ZGL_Vector ZGL_Vector::operator/ (float f)
 {
-   Vector vec(X(), Y(), Z());
+   ZGL_Vector vec(X(), Y(), Z());
 
    vec.Scale(1.f / f);
 
@@ -154,16 +154,16 @@ Vector Vector::operator/ (float f)
 }
 
 
-bool Vector::operator== (Vector &v)
+bool ZGL_Vector::operator== (ZGL_Vector &v)
 {
    return X() == v.X() && Y() == v.Y() && Z() == v.Z();
 }
 
 
-void Vector::GetRightUp(Vector &right, Vector &up)
+void ZGL_Vector::GetRightUp(ZGL_Vector &right, ZGL_Vector &up)
 {
-   Vector n(X(), Y(), Z());
-   Vector fn(fabsf(n.X()), fabsf(n.Y()), fabsf(n.Z()));
+   ZGL_Vector n(X(), Y(), Z());
+   ZGL_Vector fn(fabsf(n.X()), fabsf(n.Y()), fabsf(n.Z()));
    int major = 0;
 
    if (fn[1] > fn[major]) major = 1;
@@ -202,7 +202,7 @@ void Vector::GetRightUp(Vector &right, Vector &up)
 }
 
 
-void Vector::Scale(float scale)
+void ZGL_Vector::Scale(float scale)
 {
    float x, y, z;
 
@@ -214,9 +214,9 @@ void Vector::Scale(float scale)
 }
 
 
-Vector Vector::ProjectVector(Vector &a)
+ZGL_Vector ZGL_Vector::ProjectVector(ZGL_Vector &a)
 {
-   Vector res, b;
+   ZGL_Vector res, b;
 
    b.Set(X(), Y(), Z());
    res.Set(a.X(), a.Y(), a.Z());
@@ -227,10 +227,10 @@ Vector Vector::ProjectVector(Vector &a)
 }
 
 
-Vector Vector::ProjectPlane(Vector &right, Vector &up)
+ZGL_Vector ZGL_Vector::ProjectPlane(ZGL_Vector &right, ZGL_Vector &up)
 {
-   Vector src(X(), Y(), Z());
-   Vector t1, t2;
+   ZGL_Vector src(X(), Y(), Z());
+   ZGL_Vector t1, t2;
 
    t1 = src.ProjectVector(right);
    t2 = src.ProjectVector(up);
@@ -253,7 +253,7 @@ Plane::~Plane()
 
 void Plane::Init(float *v1, float *v2, float *v3)
 {
-   Vector vec1, vec2, vec3;
+   ZGL_Vector vec1, vec2, vec3;
 
    vec1.Set(v1);
    vec2.Set(v2);
@@ -323,7 +323,7 @@ void Plane::Set(secplane_t &plane)
 
 float Plane::DistToPoint(float x, float y, float z)
 {
-   Vector p;
+   ZGL_Vector p;
 
    p.Set(x, y, z);
 
@@ -338,18 +338,18 @@ bool Plane::PointOnSide(float x, float y, float z)
 
 
 // point p must be in front of or within dist of each plane of the bbox
-bool GL_PointNearBBox(Vector &p, float bbox[2][3], float dist)
+bool GL_PointNearBBox(ZGL_Vector &p, float bbox[2][3], float dist)
 {
    return true;
 }
 
 
-bool GL_PointNearPoly(Vector &p, gl_poly_t *poly, float dist)
+bool GL_PointNearPoly(ZGL_Vector &p, gl_poly_t *poly, float dist)
 {
    int i;
    float v1[3], v2[3], v3[3], d;
    Plane plane;
-   Vector offset;
+   ZGL_Vector offset;
 
    offset = poly->plane.Normal();
    offset.Scale(-1.f);

@@ -723,7 +723,7 @@ void GL_AddSprite(AActor *actor)
    float dist;
    bool drawChase;
    float x, y, z;
-   Vector v1, v2;
+   ZGL_Vector v1, v2;
 
    if (DrawingDeferredLines || CollectSpecials)
    {
@@ -765,7 +765,7 @@ void GL_AddParticle(Particle *p)
 {
    SPRITELIST sprite;
    float x, y, z, dist;
-   Vector v1, v2;
+   ZGL_Vector v1, v2;
 
    x = -viewx * MAP_SCALE;
    y = viewz * MAP_SCALE;

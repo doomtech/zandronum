@@ -509,7 +509,7 @@ void GL_DrawDecal(DBaseDecal *decal, seg_t *seg, sector_t *frontSector, sector_t
    bool flipx, loadAlpha;
    texcoord_t t1, t2, t3, t4;
    gl_poly_t *poly;
-   Vector v;
+   ZGL_Vector v;
 
    if (decal->RenderFlags & RF_INVISIBLE)
    {

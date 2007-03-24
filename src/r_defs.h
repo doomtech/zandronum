@@ -33,6 +33,7 @@
 // to handle sound origins in sectors.
 // SECTORS do store MObjs anyway.
 #include "actor.h"
+struct FLightNode;
 
 #include "dthinker.h"
 
@@ -437,6 +438,8 @@ struct side_s
 	short		SavedBottomTexture;
 
 	int GetLightLevel (bool foggy, int baselight) const;
+	// [GZDoom]
+	FLightNode * lighthead[2];				// all blended lights that may affect this wall
 };
 typedef struct side_s side_t;
 
@@ -536,8 +539,17 @@ typedef struct subsector_s
 	int index;
 	unsigned long verts, texCoords;
 	bool isPoly, isMapped, touched;
-	float bbox[2][3];
-	sector_t *render_sector; 
+	float zgl_bbox[2][3];
+	// subsector related GL data [GZDoom]
+	FLightNode *	lighthead[2];	// Light nodes (blended and additive)
+	sector_t *		render_sector;	// The sector this belongs to for rendering
+	int				firstvertex;	// index into the gl_vertices array
+	int				numvertices;
+	int				validcount2;	// Second v
+	fixed_t			bbox[4];		// Bounding box
+	bool			degenerate;
+	char			hacked;			// 1: is part of a render hack
+									// 2: has one-sided walls
 } subsector_t;
 
 //

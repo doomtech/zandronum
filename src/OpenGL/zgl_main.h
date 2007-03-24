@@ -180,26 +180,26 @@ public:
 };
 
 
-class Vector
+class ZGL_Vector
 {
 public:
-   Vector();
-   Vector(float x, float y, float z);
+   ZGL_Vector();
+   ZGL_Vector(float x, float y, float z);
 
    void Normalize();
    void UpdateLength();
-   Vector Cross(Vector &v);
-   float Dot(Vector &v);
-   Vector operator- (Vector &v);
-   Vector operator+ (Vector &v);
-   Vector operator* (float f);
-   Vector operator/ (float f);
-   bool operator== (Vector &v);
-   bool operator!= (Vector &v) { return !((*this) == v); }
+   ZGL_Vector Cross(ZGL_Vector &v);
+   float Dot(ZGL_Vector &v);
+   ZGL_Vector operator- (ZGL_Vector &v);
+   ZGL_Vector operator+ (ZGL_Vector &v);
+   ZGL_Vector operator* (float f);
+   ZGL_Vector operator/ (float f);
+   bool operator== (ZGL_Vector &v);
+   bool operator!= (ZGL_Vector &v) { return !((*this) == v); }
 
-   float Dist(Vector &v);
+   float Dist(ZGL_Vector &v);
    float Length();
-   void GetRightUp(Vector &up, Vector &right);
+   void GetRightUp(ZGL_Vector &up, ZGL_Vector &right);
    const float &operator[] (int index) const { return m_vec[index]; }
    float &operator[] (int index) { return m_vec[index]; }
    float X() { return m_vec[0]; }
@@ -212,8 +212,8 @@ public:
    void SetZ(float z) { m_vec[2] = z; }
    void Scale(float scale);
 
-   Vector ProjectVector(Vector &a);
-   Vector ProjectPlane(Vector &right, Vector &up);
+   ZGL_Vector ProjectVector(ZGL_Vector &a);
+   ZGL_Vector ProjectPlane(ZGL_Vector &right, ZGL_Vector &up);
 protected:
    float m_vec[3];
    float m_length;
@@ -231,7 +231,7 @@ public:
    void Set(secplane_t &plane);
    float DistToPoint(float x, float y, float z);
    bool PointOnSide(float x, float y, float z);
-   bool PointOnSide(Vector &v) { return PointOnSide(v.X(), v.Y(), v.Z()); }
+   bool PointOnSide(ZGL_Vector &v) { return PointOnSide(v.X(), v.Y(), v.Z()); }
    bool ValidNormal() { return m_normal.Length() == 1.f; }
 
    float A() { return m_normal.X(); }
@@ -239,9 +239,9 @@ public:
    float C() { return m_normal.Z(); }
    float D() { return m_d; }
 
-   Vector Normal() { return m_normal; }
+   ZGL_Vector Normal() { return m_normal; }
 protected:
-   Vector m_normal;
+   ZGL_Vector m_normal;
    float m_d;
 };
 
@@ -570,8 +570,8 @@ void P_LoadGLNodes(int lumpnum);
 // gl_geometric.cpp stuff
 //
 
-bool GL_PointNearBBox(Vector &p, float bbox[2][3], float dist);
-bool GL_PointNearPoly(Vector &p, gl_poly_t *poly, float dist);
+bool GL_PointNearBBox(ZGL_Vector &p, float bbox[2][3], float dist);
+bool GL_PointNearPoly(ZGL_Vector &p, gl_poly_t *poly, float dist);
 
 //
 // gl_rentex.cpp stuff
