@@ -1,0 +1,421 @@
+#include "gl_pch.h"
+/*
+** gltexture.cpp
+** Low level OpenGL texture handling. These classes are also
+** containers for the various translations a texture can have.
+**
+**---------------------------------------------------------------------------
+** Copyright 2004-2005 Christoph Oelckers
+** All rights reserved.
+**
+** Redistribution and use in source and binary forms, with or without
+** modification, are permitted provided that the following conditions
+** are met:
+**
+** 1. Redistributions of source code must retain the above copyright
+**    notice, this list of conditions and the following disclaimer.
+** 2. Redistributions in binary form must reproduce the above copyright
+**    notice, this list of conditions and the following disclaimer in the
+**    documentation and/or other materials provided with the distribution.
+** 3. The name of the author may not be used to endorse or promote products
+**    derived from this software without specific prior written permission.
+** 4. When not used as part of GZDoom or a GZDoom derivative, this code will be
+**    covered by the terms of the GNU Lesser General Public License as published
+**    by the Free Software Foundation; either version 2.1 of the License, or (at
+**    your option) any later version.
+**
+** THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+** IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+** OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+** IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+** INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+** NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+** DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+** THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+** THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+**---------------------------------------------------------------------------
+**
+*/
+
+#include "templates.h"
+#include "r_draw.h"
+#include "m_crc32.h"
+#include "c_cvars.h"
+#include "c_dispatch.h"
+#include "gl/gl_intern.h"
+#include "gl/gl_texture.h"
+
+//==========================================================================
+//
+// Texture CVARs
+//
+//==========================================================================
+CUSTOM_CVAR(Float,gl_texture_filter_anisotropic,8.0f,CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+{
+	FGLTexture::FlushAll();
+}
+
+CCMD(gl_flush)
+{
+	FGLTexture::FlushAll();
+}
+
+CUSTOM_CVAR(Int, gl_texture_filter, 4, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
+{
+	if (self < 0 || self>4) self=4;
+	FGLTexture::FlushAll();
+}
+
+CUSTOM_CVAR(Int, gl_texture_format, 0, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
+{
+	if (self < 0 || self > 3) self=0;
+	FGLTexture::FlushAll();
+}
+
+//===========================================================================
+// 
+//	This stores all the translations that have been used by textures so far
+//  This way there can be an unlimited amount of translated versions for
+//  any texture and even frequent changes of translation tables by ACS
+//  don't have any significant impact on performance.
+//
+//===========================================================================
+struct TranslationContainer
+{
+	int crc32;
+	int cm;
+	unsigned char translation[256];
+};
+
+static TArray<TranslationContainer> texturetranslations;
+
+static int FindTranslationIndex(int cm, const unsigned char * translation)
+{
+	int crc = CalcCRC32(translation, 256);
+
+	for(int i=0;i<texturetranslations.Size();i++)
+	{
+		if (crc==texturetranslations[i].crc32 && cm==texturetranslations[i].cm)
+		{
+			if (!memcmp(translation, texturetranslations[i].translation, 256)) 
+			{
+				return i;
+			}
+		}
+	}
+	TranslationContainer * t = &texturetranslations[texturetranslations.Reserve(1)];
+	t->crc32=crc;
+	t->cm=cm;
+	memcpy(t->translation, translation, 256);
+	return -(int)texturetranslations.Size()-1;
+}
+
+//===========================================================================
+// 
+//	Static texture data
+//
+//===========================================================================
+unsigned int GLTexture::lastbound=0;
+
+
+GLTexture::TexFilter_s GLTexture::TexFilter[]={
+	{GL_NEAREST,					GL_NEAREST,		false},
+	{GL_NEAREST_MIPMAP_NEAREST,		GL_NEAREST,		true},
+	{GL_LINEAR,						GL_LINEAR,		false},
+	{GL_LINEAR_MIPMAP_NEAREST,		GL_LINEAR,		true},
+	{GL_LINEAR_MIPMAP_LINEAR,		GL_LINEAR,		true},
+};
+
+GLTexture::TexFormat_s GLTexture::TexFormat[]={
+	{GL_RGBA8},
+	{GL_RGB5_A1},
+	{GL_RGBA4},
+	{GL_RGBA2},
+};
+
+//===========================================================================
+// 
+// STATIC - Gets the maximum size of hardware textures
+//
+//===========================================================================
+int GLTexture::GetTexDimension(int value)
+{
+	if (value > gl.max_texturesize) return gl.max_texturesize;
+	if (gl.flags&RFL_NPOT_TEXTURE) return value;
+
+	int i=1;
+	while (i<value) i+=i;
+	return i;
+}
+
+//===========================================================================
+// 
+//	Loads the texture image into the hardware
+//
+// NOTE: For some strange reason I was unable to find the source buffer
+// should be one line higher than the actual texture. I got extremely
+// strange crashes deep inside the GL driver when I didn't do it!
+//
+//===========================================================================
+void GLTexture::LoadImage(unsigned char * buffer,int w, int h, unsigned int & glTexID,int wrapparam, bool alphatexture)
+{
+	int rh,rw;
+	int texformat=TexFormat[gl_texture_format].texformat;
+	bool deletebuffer=false;
+	bool use_mipmapping = TexFilter[gl_texture_filter].mipmapping;
+
+	if (alphatexture) texformat=GL_ALPHA8;
+	if (glTexID==0) gl.GenTextures(1,&glTexID);
+	gl.BindTexture(GL_TEXTURE_2D, glTexID);
+	lastbound=glTexID;
+
+	if (!buffer)
+	{
+		w=texwidth;
+		h=abs(texheight);
+		rw = GetTexDimension (w);
+		rh = GetTexDimension (h);
+
+		// The texture must at least be initialized if no data is present.
+		mipmap=false;
+		gl.TexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, false);
+		buffer=(unsigned char *)calloc(4,rw * (rh+1));
+		deletebuffer=true;
+		//texheight=-h;	
+	}
+	else
+	{
+		rw = GetTexDimension (w);
+		rh = GetTexDimension (h);
+
+		if (gl_vid_compatibility)
+		{
+			mipmap=false;
+		}
+		gl.TexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, (mipmap && use_mipmapping));
+
+		if (rw == w && rh == h)
+		{
+			scalexfac=scaleyfac=1.f;
+		}
+		else if (wrapparam==GL_REPEAT || rw < w || rh < h)
+		{
+			// The image must be scaled to fit the texture
+			unsigned char * scaledbuffer=(unsigned char *)calloc(4,rw * (rh+1));
+			if (scaledbuffer)
+			{
+				gluScaleImage(GL_RGBA,w, h,GL_UNSIGNED_BYTE,buffer, rw, rh, GL_UNSIGNED_BYTE,scaledbuffer);
+				deletebuffer=true;
+				buffer=scaledbuffer;
+			}
+			scalexfac=scaleyfac=1.f;
+		}
+		else
+		{
+			// The image must be copied to a larger buffer
+			unsigned char * scaledbuffer=(unsigned char *)calloc(4,rw * (rh+1));
+			if (scaledbuffer)
+			{
+				for(int y=0;y<h;y++)
+				{
+					memcpy(scaledbuffer + rw * y * 4, buffer + w * y * 4, w * 4);
+					// duplicate the last row to eliminate texture filtering artifacts on borders!
+					if (rw>w) 
+						memcpy(	scaledbuffer + rw * y * 4 + w * 4,
+						scaledbuffer + rw * y * 4 + w * 4 -4, 4);
+				}
+				// also duplicate the last line for the same reason!
+				memcpy(	scaledbuffer + rw * h * 4, 	scaledbuffer + rw * (h-1) * 4, w*4 + 4);
+				
+				deletebuffer=true;
+				buffer=scaledbuffer;
+				scalexfac = (float)w / rw;
+				scaleyfac = (float)h / rh;
+			}
+		}
+	}
+	gl.TexImage2D(GL_TEXTURE_2D, 0, texformat, rw, rh, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+
+	if (deletebuffer) free(buffer);
+
+	if (mipmap && use_mipmapping)
+	{
+		gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, TexFilter[gl_texture_filter].minfilter);
+		if (gl_texture_filter_anisotropic)
+		{
+			gl.TexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, gl_texture_filter_anisotropic);
+		}
+	}
+	else
+	{
+		gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, TexFilter[gl_texture_filter].magfilter);
+	}
+
+	if (wrapparam==GL_CLAMP) wrapparam=GL_CLAMP_TO_EDGE;
+	gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapparam);
+	gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapparam);
+	gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, TexFilter[gl_texture_filter].magfilter);
+}
+
+
+//===========================================================================
+// 
+//	Creates a texture
+//
+//===========================================================================
+GLTexture::GLTexture(int _width, int _height, bool _mipmap, bool wrap) 
+{
+	mipmap=_mipmap;
+	texwidth=_width;
+	texheight=_height;
+
+	if (wrap || (gl.flags&RFL_NPOT_TEXTURE))
+	{
+		scaleyfac=scalexfac=1.f;
+	}
+	else
+	{
+		scalexfac=MIN<float>(1.f,(float)texwidth/GLTexture::GetTexDimension(texwidth));
+		scaleyfac=MIN<float>(1.f,(float)texheight/GLTexture::GetTexDimension(texheight));
+	}
+
+	cm_arraysize=(byte)(CM_FIRSTCOLORMAP + numfakecmaps);
+	glTexID = new unsigned[cm_arraysize];
+	memset(glTexID,0,sizeof(unsigned int)*cm_arraysize);
+}
+
+
+//===========================================================================
+// 
+//	Frees all associated resources
+//
+//===========================================================================
+void GLTexture::Clean(bool all)
+{
+	if (all)
+	{
+
+		for (int i=0;i<cm_arraysize;i++)
+		{
+			if (glTexID[i]!=0) gl.DeleteTextures(1, &glTexID[i]);
+		}
+		//gl.DeleteTextures(cm_arraysize,glTexID);
+		memset(glTexID,0,sizeof(unsigned int)*cm_arraysize);
+	}
+	else
+	{
+		for (int i=1;i<cm_arraysize;i++)
+		{
+			if (glTexID[i]!=0) gl.DeleteTextures(1, &glTexID[i]);
+		}
+		//gl.DeleteTextures(cm_arraysize-1,glTexID+1);
+		memset(glTexID+1,0,sizeof(unsigned int)*(cm_arraysize-1));
+	}
+	for(int i=0;i<glTexID_Translated.Size();i++)
+	{
+		gl.DeleteTextures(1,&glTexID_Translated[i].glTexID);
+	}
+	glTexID_Translated.Clear();
+}
+
+
+//===========================================================================
+// 
+//	Destroys the texture
+//
+//===========================================================================
+GLTexture::~GLTexture() 
+{ 
+	Clean(true); 
+	delete [] glTexID;
+}
+
+
+//===========================================================================
+// 
+//	Gets a texture ID address and validates all required data
+//
+//===========================================================================
+
+unsigned * GLTexture::GetTexID(int cm, int translation, const unsigned char * translationtbl)
+{
+	if (cm>=cm_arraysize || cm<0) cm=CM_DEFAULT;
+
+	if (translation==0)
+	{
+		return &glTexID[cm];
+	}
+
+	int transtype = translation>>8;
+	if (transtype==TRANSLATION_Players || transtype==TRANSLATION_PlayersExtra ||
+		transtype==TRANSLATION_LevelScripted || transtype==TRANSLATION_PlayerCorpses)
+	{
+		// These types are volatile and can change at run time.
+		// Rather than deleting the old texture it is preferable to keep
+		// it. If this is used for translation cycling it can have a significant
+		// impact on performance. This means that the translation index can't
+		// be used as an identifier!
+		translationtbl=&translationtables[translation>>8][256*(translation&0xff)];
+		translation=-1;
+	}
+
+	if (translation==-1) translation = -FindTranslationIndex(cm, translationtbl);
+
+	// normally there aren't more than very few different 
+	// translations here so this isn't performance critical.
+	for(int i=0;i<glTexID_Translated.Size();i++)
+	{
+		if (glTexID_Translated[i].cm == cm &&
+			glTexID_Translated[i].translation == translation)
+		{
+			return &glTexID_Translated[i].glTexID;
+		}
+	}
+
+	int add = glTexID_Translated.Reserve(1);
+	glTexID_Translated[add].cm=cm;
+	glTexID_Translated[add].translation=translation;
+	glTexID_Translated[add].glTexID=0;
+	return &glTexID_Translated[add].glTexID;
+}
+//===========================================================================
+// 
+//	Binds this patch
+//
+// If this has to be extended for multitexturing this function and
+// the lastbound variable will have to be changed
+//
+//===========================================================================
+unsigned int GLTexture::Bind(int cm,int translation, const unsigned char * translationtbl)
+{
+	unsigned int * pTexID=GetTexID(cm, translation, translationtbl);
+
+	if (*pTexID!=0)
+	{
+		if (lastbound==*pTexID) return *pTexID;
+		lastbound=*pTexID;
+		gl.BindTexture(GL_TEXTURE_2D, *pTexID);
+		return *pTexID;
+	}
+	return 0;
+}
+
+
+//===========================================================================
+// 
+//	(re-)creates the texture
+//
+//===========================================================================
+unsigned int GLTexture::CreateTexture(unsigned char * buffer, int w, int h, bool wrap, 
+									  int cm, int translation, const unsigned char * translationtbl)
+{
+	if (cm>=cm_arraysize || cm<0) cm=CM_DEFAULT;
+
+	unsigned int * pTexID=GetTexID(cm, translation, translationtbl);
+
+	LoadImage(buffer, w, h, *pTexID, wrap? GL_REPEAT:GL_CLAMP, cm==CM_SHADE);
+	return Bind(cm, translation);
+}
+
+
