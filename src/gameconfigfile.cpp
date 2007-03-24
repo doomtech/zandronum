@@ -441,10 +441,12 @@ void FGameConfigFile::ReadCVars (DWORD flags)
 		// [RC] Clean player names
 		// This is mainly to ease the transition to the new standards.
 		// In later series (98? 99?), this can be removed to boost speed.
-		// [BB] Calling V_CleanPlayerName here, will destroy color tags contained in the ini file
-		//if(strcmp(key,"name") == 0)
-		//	V_CleanPlayerName(val.String);
 
+		if(strcmp(key,"name") == 0) {
+			V_ColorizeString(val.String); // Convert \ to color escapes
+			V_CleanPlayerName(val.String);
+			V_UnColorizeString(val.String, 64);
+		}
 		cvar->SetGenericRep (val, CVAR_String);
 	}
 }
