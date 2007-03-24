@@ -74,7 +74,7 @@
 #include "gi.h"
 
 #include "gameconfigfile.h"
-#include "gl_main.h"
+#include "zgl_main.h"
 
 FGameConfigFile *GameConfig;
 

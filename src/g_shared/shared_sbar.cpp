@@ -55,7 +55,7 @@
 #include "stats.h"
 #include "chat.h"
 #include "lastmanstanding.h"
-#include "gl_main.h"
+#include "zgl_main.h"
 #include "network.h"
 
 #define XHAIRSHRINKSIZE		(FRACUNIT/18)

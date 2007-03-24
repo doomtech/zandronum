@@ -57,8 +57,8 @@
 #include "OpenGLVideo.h"
 #include "glext.h"
 
-#include "gl_main.h"
-#include "gl_texturelist.h"
+#include "zgl_main.h"
+#include "zgl_texturelist.h"
 
 #include "am_map.h"
 #include "a_sharedglobal.h"

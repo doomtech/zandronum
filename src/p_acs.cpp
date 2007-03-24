@@ -66,7 +66,7 @@
 #include "sc_man.h"
 #include "deathmatch.h"
 #include "team.h"
-#include "gl_main.h"
+#include "zgl_main.h"
 #include "cooperative.h"
 #include "invasion.h"
 #include "sv_commands.h"

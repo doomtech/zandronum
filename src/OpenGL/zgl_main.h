@@ -52,10 +52,10 @@
 #define __GL_MAIN_H__
 
 
-#include "gl_texturelist.h"
-#include "gl_lights.h"
-#include "gl_shaders.h"
-#include "gl_sky.h"
+#include "zgl_texturelist.h"
+#include "zgl_lights.h"
+#include "zgl_shaders.h"
+#include "zgl_sky.h"
 
 #include "r_main.h"
 #include "r_defs.h"

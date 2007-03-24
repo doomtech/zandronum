@@ -49,7 +49,7 @@
 #include "r_state.h"
 #include "r_bsp.h"
 #include "v_palette.h"
-#include "gl_main.h"
+#include "zgl_main.h"
 
 int WallMost (short *mostbuf, const secplane_t &plane);
 

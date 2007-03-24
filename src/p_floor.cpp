@@ -31,7 +31,7 @@
 #include "tables.h"
 #include "network.h"
 #include "sv_commands.h"
-#include "gl_main.h"
+#include "zgl_main.h"
 
 //
 // FLOORS

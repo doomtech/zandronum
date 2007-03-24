@@ -64,7 +64,7 @@
 #include "sv_commands.h"
 
 // [ZDoomGL]
-#include "gl_lights.h"
+#include "zgl_lights.h"
 
 // MACROS ------------------------------------------------------------------
 

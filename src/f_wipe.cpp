@@ -33,7 +33,7 @@
 #include "doomdef.h"
 #include "f_wipe.h"
 #include "c_cvars.h"
-#include "gl_main.h"
+#include "zgl_main.h"
 
 //
 //		SCREEN WIPE PACKAGE

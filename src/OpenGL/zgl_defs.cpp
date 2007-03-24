@@ -1,8 +1,8 @@
 
 
-#include "gl_main.h"
-#include "gl_lights.h"
-#include "gl_shaders.h"
+#include "zgl_main.h"
+#include "zgl_lights.h"
+#include "zgl_shaders.h"
 
 #include "sc_man.h"
 #include "w_wad.h"

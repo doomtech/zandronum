@@ -1,5 +1,5 @@
 
-#include "gl_particles.h"
+#include "zgl_particles.h"
 
 
 IMPLEMENT_STATELESS_ACTOR (AParticleSystem, Any, 9875, 0)

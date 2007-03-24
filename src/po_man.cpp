@@ -25,7 +25,7 @@
 #include "r_main.h"
 // [BC] New #includes.
 #include "network.h"
-#include "gl_main.h"
+#include "zgl_main.h"
 #include "sv_commands.h"
 
 // MACROS ------------------------------------------------------------------

@@ -72,7 +72,7 @@
 #include "network.h"
 #include "team.h"
 #include "lastmanstanding.h"
-#include "gl_main.h"
+#include "zgl_main.h"
 #include "sbar.h"
 #include "sv_commands.h"
 

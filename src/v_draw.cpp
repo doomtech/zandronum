@@ -45,7 +45,7 @@
 #include "i_system.h"
 #include "i_video.h"
 #include "templates.h"
-#include "gl_main.h"
+#include "zgl_main.h"
 
 // [RH] Stretch values to make a 320x200 image best fit the screen
 // without using fractional steppings

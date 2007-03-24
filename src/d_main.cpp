@@ -105,11 +105,11 @@
 #include "sv_admin.h"
 #include "callvote.h"
 #include "invasion.h"
-#include "gl_main.h"
+#include "zgl_main.h"
 #include "survival.h"
 #include "possession.h"
 
-#include "gl_main.h" // [ZDoomGL]
+#include "zgl_main.h" // [ZDoomGL]
 extern player_t *Player;
 
 // MACROS ------------------------------------------------------------------

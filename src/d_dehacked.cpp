@@ -66,7 +66,7 @@
 // [BC] New #includes.
 #include "network.h"
 #include "sv_commands.h"
-#include "gl_lights.h"
+#include "zgl_lights.h"
 
 // [SO] Just the way Randy said to do it :)
 // [RH] Made this CVAR_SERVERINFO

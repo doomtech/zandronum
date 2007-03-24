@@ -76,7 +76,7 @@
 
 // Data.
 #include "m_menu.h"
-#include "gl_main.h"
+#include "zgl_main.h"
 
 #include "announcer.h"
 #include "cl_main.h"

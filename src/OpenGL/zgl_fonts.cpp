@@ -38,8 +38,8 @@
 #include <gl/glu.h>
 #define USE_WINDOWS_DWORD
 #include "OpenGLVideo.h"
-#include "gl_main.h"
-#include "gl_texturelist.h"
+#include "zgl_main.h"
+#include "zgl_texturelist.h"
 #include "doomdef.h"
 #include "r_local.h"
 #include "p_spec.h"

@@ -72,7 +72,7 @@
 #include "team.h"
 #include "campaign.h"
 #include "cooperative.h"
-#include "gl_main.h"
+#include "zgl_main.h"
 
 // MACROS ------------------------------------------------------------------
 

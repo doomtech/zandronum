@@ -92,7 +92,7 @@
 #include "p_acs.h"
 #include "cl_commands.h"
 #include "possession.h"
-#include "gl_main.h"
+#include "zgl_main.h"
 
 #include <zlib.h>
 

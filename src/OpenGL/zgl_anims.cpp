@@ -33,7 +33,7 @@
 **
 */
 
-#include "gl_main.h"
+#include "zgl_main.h"
 
 extern int numtextures;
 extern int numflats;

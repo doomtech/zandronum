@@ -40,14 +40,14 @@
 #include "OpenGLVideo.h"
 #include "glext.h"
 
-#include "gl_lights.h"
-#include "gl_main.h"
+#include "zgl_lights.h"
+#include "zgl_main.h"
 #include "d_player.h"
 #include "p_local.h"
 #include "p_lnspec.h"
 #include "templates.h"
 
-#include "gl_shaders.h"
+#include "zgl_shaders.h"
 
 #include "gi.h"
 

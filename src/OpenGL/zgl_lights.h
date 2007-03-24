@@ -4,7 +4,7 @@
 
 
 #include "actor.h"
-#include "gl_shaders.h"
+#include "zgl_shaders.h"
 
 
 enum

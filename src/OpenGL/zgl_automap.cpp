@@ -36,7 +36,7 @@
 #include <gl/gl.h>
 
 #define USE_WINDOWS_DWORD
-#include "gl_main.h"
+#include "zgl_main.h"
 #include "r_defs.h"
 
 CVAR(Bool, gl_automap_dukestyle, false, CVAR_ARCHIVE)

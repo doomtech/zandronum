@@ -3,7 +3,7 @@
 #include "r_draw.h"
 #include "r_things.h"
 
-#include "gl_main.h"
+#include "zgl_main.h"
 
 
 extern viewarea_t ViewArea;

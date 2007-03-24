@@ -61,7 +61,7 @@
 #include "m_menu.h"
 #include "d_gui.h"
 #include "lastmanstanding.h"
-#include "gl_main.h"
+#include "zgl_main.h"
 #include "cooperative.h"
 #include "survival.h"
 #include "sv_main.h"

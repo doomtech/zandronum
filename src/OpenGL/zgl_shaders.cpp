@@ -39,7 +39,7 @@
 #define USE_WINDOWS_DWORD
 #include "c_cvars.h"
 #include "c_dispatch.h"
-#include "gl_main.h"
+#include "zgl_main.h"
 #include "sc_man.h"
 #include "w_wad.h"
 #include "v_text.h"

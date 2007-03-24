@@ -68,7 +68,7 @@
 #include "campaign.h"
 #include "invasion.h"
 #include "survival.h"
-#include "gl_main.h"
+#include "zgl_main.h"
 #include "possession.h"
 
 extern void P_SpawnMapThing (mapthing2_t *mthing, int position);

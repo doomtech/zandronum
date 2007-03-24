@@ -46,7 +46,7 @@
 #include "i_system.h"
 #include "vectors.h"
 #include "a_sharedglobal.h"
-#include "gl_main.h"
+#include "zgl_main.h"
 // [BC] New #includes.
 #include "sv_commands.h"
 

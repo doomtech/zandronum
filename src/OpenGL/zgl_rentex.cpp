@@ -7,7 +7,7 @@
 
 #define USE_WINDOWS_DWORD
 #include "OpenGLVideo.h"
-#include "gl_main.h"
+#include "zgl_main.h"
 #include "tarray.h"
 
 

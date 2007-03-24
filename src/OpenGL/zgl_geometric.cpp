@@ -1,6 +1,6 @@
 
 #include "templates.h"
-#include "gl_main.h"
+#include "zgl_main.h"
 
 
 static Vector axis[3] = 

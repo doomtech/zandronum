@@ -42,7 +42,7 @@
 #include "g_level.h"
 #include "templates.h"
 #include "w_wad.h"
-#include "gl_main.h"
+#include "zgl_main.h"
 
 typedef enum
 {

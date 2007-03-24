@@ -1,6 +1,6 @@
 
-#include "gl_main.h"
-#include "gl_models.h"
+#include "zgl_main.h"
+#include "zgl_models.h"
 
 
 CBaseModel::CBaseModel()

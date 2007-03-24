@@ -48,7 +48,7 @@
 
 // [ZDoomGL]
 #include "OpenGLVideo.h"
-#include "gl_main.h"
+#include "zgl_main.h"
 
 EXTERN_CVAR (Bool, ticker)
 EXTERN_CVAR (Bool, fullscreen)

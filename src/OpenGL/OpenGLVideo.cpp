@@ -61,7 +61,7 @@
 
 #include "resource.h"
 
-#include "gl_main.h"
+#include "zgl_main.h"
 #include "glext.h"
 #include "wglext.h"
 

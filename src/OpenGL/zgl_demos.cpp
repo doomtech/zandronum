@@ -32,7 +32,7 @@
 **
 */
 
-#include "gl_main.h"
+#include "zgl_main.h"
 
 
 #define DEMOVER_14 0x68

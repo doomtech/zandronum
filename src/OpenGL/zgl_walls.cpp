@@ -40,8 +40,8 @@
 #include <list>
 
 #define USE_WINDOWS_DWORD
-#include "gl_main.h"
-#include "gl_texturelist.h"
+#include "zgl_main.h"
+#include "zgl_texturelist.h"
 #include "glext.h"
 
 #include "a_sharedglobal.h"

@@ -58,7 +58,7 @@
 #include "deathmatch.h"
 #include "network.h"
 #include "scoreboard.h"
-#include "gl_main.h"
+#include "zgl_main.h"
 
 static int Background, YourColor, WallColor, TSWallColor,
 		   FDWallColor, CDWallColor, ThingColor,

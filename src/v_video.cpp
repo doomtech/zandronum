@@ -58,7 +58,7 @@
 #include "gi.h"
 #include "templates.h"
 #include "sbar.h"
-#include "gl_main.h"
+#include "zgl_main.h"
 
 IMPLEMENT_ABSTRACT_CLASS (DCanvas)
 IMPLEMENT_ABSTRACT_CLASS (DFrameBuffer)

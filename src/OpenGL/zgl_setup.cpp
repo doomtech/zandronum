@@ -1,5 +1,5 @@
 
-#include "gl_main.h"
+#include "zgl_main.h"
 #include "w_wad.h"
 
 

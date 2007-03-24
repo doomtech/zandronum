@@ -38,7 +38,7 @@
 #include <gl/glu.h>
 
 #define USE_WINDOWS_DWORD
-#include "gl_main.h"
+#include "zgl_main.h"
 #include "d_player.h"
 #include "g_level.h"
 #include "r_sky.h"

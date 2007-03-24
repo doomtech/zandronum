@@ -66,7 +66,7 @@
 #include "chat.h"
 #include "deathmatch.h"
 #include "network.h"
-#include "gl_main.h"
+#include "zgl_main.h"
 
 #include "gi.h"
 
