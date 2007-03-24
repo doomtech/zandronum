@@ -849,6 +849,33 @@ subsector_t *R_PointInSubsector (fixed_t x, fixed_t y)
 
 //==========================================================================
 //
+// R_PointInSubsector2
+//
+//==========================================================================
+
+subsector_t *R_PointInSubsector2 (fixed_t x, fixed_t y)
+{
+	node_t *node;
+	int side;
+
+	// single subsector is a special case
+	if (numnodes == 0)
+		return subsectors;
+				
+	node = nodes + numnodes - 1;
+
+	do
+	{
+		side = R_PointOnSide (x, y, node);
+		node = (node_t *)node->children[side];
+	}
+	while (!((size_t)node & 1));
+		
+	return (subsector_t *)((BYTE *)node - 1);
+}
+
+//==========================================================================
+//
 // R_InterpolateView
 //
 //==========================================================================
