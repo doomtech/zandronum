@@ -785,8 +785,11 @@ void ACustomSprite::BeginPlay ()
 {
 	Super::BeginPlay ();
 	picnum = args[0] + args[1]*256;
-	xscale = args[2] - 1;
-	yscale = args[3] - 1;
+	// [GZDoom]
+	scaleX = args[2] * (FRACUNIT/64);
+	scaleY = args[3] * (FRACUNIT/64);
+	//xscale = args[2] - 1;
+	//yscale = args[3] - 1;
 
 	if (args[4] & 2)
 	{

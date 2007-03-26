@@ -231,6 +231,45 @@ acs/strfhelp.o				strfhelp.o
 
 
 ========
+# Font color ranges
+textcolors.txt				textcolors.txt
+
+
+========
+#GZDoom additions
+althudcf.txt				gzd/althudcf.txt
+etc.h.txt					gzd/etc.h.txt
+things.h.txt				gzd/things.h.txt
+fontdefs.txt				gzd/fontdefs.txt
+lspec.h.txt					gzd/lspec.h.txt
+indxfont.lmp				gzd/indxfont.lmp
+graphics/i_pistol.lmp		gzd/graphics/i_pistol.lmp
+graphics/invgeml1.png		gzd/graphics/invgeml1.png
+graphics/invgeml2.png		gzd/graphics/invgeml2.png
+graphics/invgemr1.png		gzd/graphics/invgemr1.png
+graphics/invgemr2.png		gzd/graphics/invgemr2.png
+shaders/gold.fp				gzd/shaders/gold.fp		
+shaders/gold.vp             gzd/shaders/gold.vp    
+shaders/inverse.fp          gzd/shaders/inverse.fp 
+shaders/inverse.vp          gzd/shaders/inverse.vp 
+shaders/warp1.fp            gzd/shaders/warp1.fp   
+shaders/warp1.vp            gzd/shaders/warp1.vp   
+shaders/warp1ovr.fp         gzd/shaders/warp1ovr.fp
+shaders/warp1ovr.vp         gzd/shaders/warp1ovr.vp
+shaders/warp2.fp            gzd/shaders/warp2.fp   
+shaders/warp2.vp            gzd/shaders/warp2.vp   
+shaders/warp2ovr.fp         gzd/shaders/warp2ovr.fp
+shaders/warp2ovr.vp         gzd/shaders/warp2ovr.vp
+sprites/rsmka0.png			gzd/sprites/rsmka0.png
+sprites/rsmkb0.png			gzd/sprites/rsmkb0.png
+sprites/rsmkc0.png			gzd/sprites/rsmkc0.png
+sprites/rsmkd0.png			gzd/sprites/rsmkd0.png
+sprites/rsmke0.png			gzd/sprites/rsmke0.png
+textures/gllight.png		gzd/textures/gllight.png
+textures/mirror.png			gzd/textures/mirror.png
+decorate.gzd				gzd/decorate.gzd
+
+========
 ========
 # Decorate stuff
 

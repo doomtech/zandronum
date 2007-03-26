@@ -66,7 +66,6 @@
 #include "sc_man.h"
 #include "deathmatch.h"
 #include "team.h"
-#include "zgl_main.h"
 #include "cooperative.h"
 #include "invasion.h"
 #include "sv_commands.h"
@@ -5016,8 +5015,10 @@ int DLevelScript::RunScript ()
 		case PCD_ENDTRANSLATION:
 			// This might be useful for hardware rendering, but
 			// for software it is superfluous.
+/*
 			if ( OPENGL_GetCurrentRenderer( ) != RENDERER_SOFTWARE )
 				textureList.UpdateForTranslation(translation); // [ZDoomGL]
+*/
 			translation = NULL;
 			break;
 

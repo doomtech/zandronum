@@ -92,7 +92,6 @@
 #include "p_acs.h"
 #include "cl_commands.h"
 #include "possession.h"
-#include "zgl_main.h"
 
 #include <zlib.h>
 
@@ -1118,8 +1117,9 @@ void G_Ticker ()
 
 	if (ToggleFullscreen)
 	{
+		static char toggle_fullscreen[] = "toggle fullscreen";
 		ToggleFullscreen = false;
-		AddCommandString ("toggle fullscreen");
+		AddCommandString (toggle_fullscreen);
 	}
 
 	// do things to change the game state
@@ -3818,7 +3818,7 @@ void G_DoAutoSave ()
 {
 	// Keep up to four autosaves at a time
 	UCVarValue num;
-	char *readableTime;
+	const char *readableTime;
 	int count = autosavecount != 0 ? autosavecount : 1;
 	
 	num.Int = (autosavenum + 1) % count;
@@ -3854,7 +3854,7 @@ static void PutSaveWads (FILE *file)
 static void PutSaveComment (FILE *file)
 {
 	char comment[256];
-	char *readableTime;
+	const char *readableTime;
 	WORD len;
 	int levelTime;
 
@@ -3897,13 +3897,8 @@ static void PutSavePic (FILE *file, int width, int height)
 
 		// Take a snapshot of the player's view
 		pic->Lock ();
-
 		P_CheckPlayerSprites ();
-		if ( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL )
-			GL_RenderViewToCanvas(pic, 0, 0, width, height);
-		else
-			R_RenderViewToCanvas (players[consoleplayer].mo, pic, 0, 0, width, height);
-
+		R_RenderViewToCanvas (players[consoleplayer].mo, pic, 0, 0, width, height);
 		screen->GetFlashedPalette (palette);
 		M_CreatePNG (file, pic, palette);
 		pic->Unlock ();

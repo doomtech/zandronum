@@ -665,7 +665,9 @@ void D_ReadUserInfoStrings (int i, BYTE **stream, bool update)
 						GetDefaultByType (players[i].cls)->SpawnState->sprite.index)
 					{ // Only change the sprite if the player is using a standard one
 						players[i].mo->sprite = skins[info->skin].sprite;
-						players[i].mo->xscale = players[i].mo->yscale = skins[info->skin].scale;
+						// [GZDoom]
+						players[i].mo->scaleX = players[i].mo->scaleY = skins[info->skin].Scale;
+						//players[i].mo->xscale = players[i].mo->yscale = skins[info->skin].scale;
 					}
 				}
 				// Rebuild translation in case the new skin uses a different range

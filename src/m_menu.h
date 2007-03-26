@@ -74,6 +74,9 @@ void M_OptDrawer (void);
 // [RH] Initialize options menu
 void M_OptInit (void);
 
+// [RH] Initialize the video modes menu
+void M_InitVideoModesMenu (void);
+
 struct menu_s;
 void M_SwitchMenu (struct menu_s *menu);
 
@@ -135,7 +138,7 @@ struct GUIDName;
 
 typedef struct menuitem_s {
 	itemtype		  type;
-	char			 *label;
+	const char			 *label;
 	union {
 		FBaseCVar		 *cvar;
 		FIntCVar		 *intcvar;
@@ -182,7 +185,7 @@ typedef struct menuitem_s {
 } menuitem_t;
 
 typedef struct menu_s {
-	char		   *texttitle;
+	const char		   *texttitle;
 	int				lastOn;
 	int				numitems;
 	int				indent;

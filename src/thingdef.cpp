@@ -2522,7 +2522,7 @@ static void ActorMass (AActor *defaults, Baggage &bag)
 static void ActorXScale (AActor *defaults, Baggage &bag)
 {
 	SC_MustGetFloat();
-	defaults->xscale=BYTE(sc_Float*64-1);
+	defaults->scaleX = FLOAT2FIXED(sc_Float);
 }
 
 //==========================================================================
@@ -2531,7 +2531,7 @@ static void ActorXScale (AActor *defaults, Baggage &bag)
 static void ActorYScale (AActor *defaults, Baggage &bag)
 {
 	SC_MustGetFloat();
-	defaults->yscale=BYTE(sc_Float*64-1);
+	defaults->scaleY = FLOAT2FIXED(sc_Float);
 }
 
 //==========================================================================
@@ -2540,7 +2540,7 @@ static void ActorYScale (AActor *defaults, Baggage &bag)
 static void ActorScale (AActor *defaults, Baggage &bag)
 {
 	SC_MustGetFloat();
-	defaults->xscale=defaults->yscale=BYTE(sc_Float*64-1);
+	defaults->scaleX= defaults->scaleY = FLOAT2FIXED(sc_Float);
 }
 
 //==========================================================================

@@ -520,7 +520,8 @@ static struct
 int 			castnum;
 int 			casttics;
 int				castsprite;			// [RH] For overriding the player sprite with a skin
-int				castscale;			// [BC] For overriding the scale of the player with the skin's scale
+// [GZDoom]
+fixed_t			castScale;			// [BC] For overriding the scale of the player with the skin's scale
 const BYTE *	casttranslation;	// [RH] Draw "our hero" with their chosen suit color
 FState*			caststate;
 bool	 		castdeath;
@@ -575,7 +576,9 @@ void F_StartCast (void)
 	castnum = 0;
 	caststate = castorder[castnum].info->SeeState;
 	castsprite = caststate->sprite.index;
-	castscale = 63;
+	// [GZDoom]
+	castScale = 64*(FRACUNIT/64);
+	//castscale = 63;
 	casttranslation = NULL;
 	casttics = caststate->GetTics ();
 	castdeath = false;
@@ -627,13 +630,17 @@ void F_CastTicker (void)
 		{
 			castsprite = skins[players[consoleplayer].userinfo.skin].sprite;
 			casttranslation = translationtables[TRANSLATION_Players] + 256*consoleplayer;
-			castscale = skins[players[consoleplayer].userinfo.skin].scale;
+			// [GZDoom]
+			castScale = skins[players[consoleplayer].userinfo.skin].Scale;
+			//castscale = skins[players[consoleplayer].userinfo.skin].scale;
 		}
 		else
 		{
 			castsprite = caststate->sprite.index;
 			casttranslation = NULL;
-			castscale = 63;
+			// [GZDoom]
+			castScale = 64*(FRACUNIT/64);
+			//castscale = 63;
 		}
 		castframes = 0;
 	}
@@ -763,8 +770,11 @@ void F_CastDrawer (void)
 		screen->DrawTexture (pic, 160, 170,
 			DTA_320x200, true,
 			DTA_FlipX, sprframe->Flip & 1,
-			DTA_DestWidth, MulScale6 (pic->GetWidth() * CleanXfac, castscale + 1),
-			DTA_DestHeight, MulScale6 (pic->GetHeight() * CleanYfac, castscale + 1),
+			// [GZDoom] 
+			DTA_DestWidth, MulScale6 (pic->GetWidth() * CleanXfac, castScale / (FRACUNIT/64) ),
+			DTA_DestHeight, MulScale6 (pic->GetHeight() * CleanYfac, castScale /(FRACUNIT/64) ),
+			//DTA_DestWidth, MulScale6 (pic->GetWidth() * CleanXfac, castscale + 1),
+			//DTA_DestHeight, MulScale6 (pic->GetHeight() * CleanYfac, castscale + 1),
 			DTA_Translation, casttranslation,
 			TAG_DONE);
 	}

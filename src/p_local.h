@@ -315,7 +315,7 @@ void	P_TraceBleed (int damage, AActor *target, AActor *missile);		// missile ver
 void	P_TraceBleed (int damage, AActor *target);		// random direction version
 void	P_RailAttack (AActor *source, int damage, int offset, int color1 = 0, int color2 = 0, float maxdiff = 0, bool silent = false);	// [RH] Shoot a railgun
 bool	P_HitFloor (AActor *thing);
-bool	P_HitWater (AActor *thing, sector_t *sec);
+bool	P_HitWater (AActor *thing, sector_t *sec, fixed_t splashz=FIXED_MIN);
 bool	P_CheckMissileSpawn (AActor *missile);
 
 // [RH] Position the chasecam
@@ -525,7 +525,7 @@ extern int po_NumPolyobjs;
 extern polyspawns_t *polyspawns;	// [RH] list of polyobject things to spawn
 
 
-bool PO_MovePolyobj (int num, int x, int y);
+bool PO_MovePolyobj (int num, int x, int y, bool force=false);
 bool PO_RotatePolyobj (int num, angle_t angle);
 void PO_Init ();
 bool PO_Busy (int polyobj);

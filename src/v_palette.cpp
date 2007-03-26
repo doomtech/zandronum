@@ -96,6 +96,24 @@ CUSTOM_CVAR (Float, Gamma, 1.f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 }
 
 
+CUSTOM_CVAR (Float, vid_brightness, 0.f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+{
+	if (screen != NULL)
+	{
+		screen->SetBrightness (self);
+	}
+}
+
+CUSTOM_CVAR (Float, vid_contrast, 1.f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+{
+	if (screen != NULL)
+	{
+		screen->SetContrast (self);
+	}
+}
+
+
+
 /****************************/
 /* Palette management stuff */
 /****************************/
@@ -643,6 +661,27 @@ void HSVtoRGB (float *r, float *g, float *b, float h, float s, float v)
 
 /****** Colored Lighting Stuffs ******/
 
+void RebuildAllLights()
+{
+	if (currentrenderer==0)
+	{
+		// Since I am not generating the light maps when in hardware mode
+		// this has to be done for all affected colormaps when the
+		// renderer is being switched
+
+		FDynamicColormap *cm;
+
+		for (cm = &NormalLight; cm != NULL; cm = cm->Next)
+		{
+			if (!cm->Maps)
+			{
+				cm->Maps = new BYTE[NUMCOLORMAPS*256];
+				cm->BuildLights ();
+			}
+		}
+	}
+}
+
 FDynamicColormap *GetSpecialLights (PalEntry color, PalEntry fade, int desaturate)
 {
 	FDynamicColormap *colormap;
@@ -659,15 +698,16 @@ FDynamicColormap *GetSpecialLights (PalEntry color, PalEntry fade, int desaturat
 	}
 
 	// Not found. Create it.
-	colormap = new FDynamicColormap;
-	colormap->Maps = new BYTE[NUMCOLORMAPS*256];
+	colormap = new FDynamicColormap;;
+	colormap->Maps = currentrenderer==0? new BYTE[NUMCOLORMAPS*256] : NULL;	// don't need it for hardware rendering!
 	colormap->Next = NormalLight.Next;
 	colormap->Color = color;
 	colormap->Fade = fade;
 	colormap->Desaturate = desaturate;
 	NormalLight.Next = colormap;
 
-	colormap->BuildLights ();
+	if (currentrenderer==0)	// only wastes time in GL mode!
+		colormap->BuildLights ();
 
 	return colormap;
 }
@@ -761,7 +801,7 @@ void FDynamicColormap::ChangeColor (PalEntry lightcolor, int desaturate)
 	{
 		Color = lightcolor;
 		Desaturate = desaturate;
-		BuildLights ();
+		if (Maps) BuildLights ();
 	}
 }
 
@@ -770,7 +810,7 @@ void FDynamicColormap::ChangeFade (PalEntry fadecolor)
 	if (fadecolor != Fade)
 	{
 		Fade = fadecolor;
-		BuildLights ();
+		if (Maps) BuildLights ();
 	}
 }
 
@@ -780,7 +820,7 @@ void FDynamicColormap::ChangeColorFade (PalEntry lightcolor, PalEntry fadecolor)
 	{
 		Color = lightcolor;
 		Fade = fadecolor;
-		BuildLights ();
+		if (Maps) BuildLights ();
 	}
 }
 

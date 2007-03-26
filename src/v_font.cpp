@@ -538,10 +538,11 @@ void FFont::BuildTranslations (const double *luminosity, const BYTE *identity, c
 	const TranslationParm *parmstart = (const TranslationParm *)ranges;
 	BYTE *range;
 
-	range = Ranges = new BYTE[NumTextColors * ActiveColors];
+	range = Ranges = new BYTE[NumTextColors * ActiveColors * 4 + 768 ];	// palette map + true color map + padding
+	BYTE * range2=Ranges + NumTextColors * ActiveColors;					// true color map
 
 	// Create different translations for different color ranges
-	for (i = 0; i < NumTextColors; i++)
+	for (i = 0; i < NUM_TEXT_COLORS; i++)
 	{
 		if (i == CR_UNTRANSLATED)
 		{
@@ -553,6 +554,13 @@ void FFont::BuildTranslations (const double *luminosity, const BYTE *identity, c
 			{
 				memcpy (range, Ranges, ActiveColors);
 			}
+			for (j = 0; j < ActiveColors; j++)
+			{
+				PalEntry pe = GPalette.BaseColors[range[j]];
+				*range2++ =  pe.r;
+				*range2++ =  pe.g;
+				*range2++ =  pe.b;
+			}
 			range += ActiveColors;
 			continue;
 		}
@@ -560,6 +568,10 @@ void FFont::BuildTranslations (const double *luminosity, const BYTE *identity, c
 		assert(parmstart->RangeStart >= 0);
 
 		*range++ = 0;
+
+		*range2++ = 0;
+		*range2++ = 0;
+		*range2++ = 0;
 
 		for (j = 1; j < ActiveColors; j++)
 		{
@@ -584,6 +596,10 @@ void FFont::BuildTranslations (const double *luminosity, const BYTE *identity, c
 			g=clamp(g, 0, 255);
 			b=clamp(b, 0, 255);
 			*range++ = ColorMatcher.Pick (r, g, b);
+
+			*range2++=r;
+			*range2++=g;
+			*range2++=b;
 		}
 
 		// Advance to the next color range.
@@ -1438,15 +1454,22 @@ FSpecialFont::FSpecialFont (const char *name, int first, int count, int *lumplis
 	{
 		int factor = 1;
 		BYTE *oldranges = Ranges;
-		Ranges = new BYTE[NumTextColors * TotalColors * factor];
+
+		Ranges = new BYTE[NumTextColors * TotalColors * 4 + 768 ];	// palette map + true color map + padding
+		BYTE * ranges2=Ranges + NumTextColors * TotalColors;					// true color map
+		BYTE * oldranges2=oldranges + NumTextColors * ActiveColors;			// old true color map
 
 		for (i = 0; i < CR_UNTRANSLATED; i++)
 		{
-			memcpy (&Ranges[i * TotalColors * factor], &oldranges[i * ActiveColors * factor], ActiveColors * factor);
+			memcpy(&Ranges [i * TotalColors    ], &oldranges [i * ActiveColors    ], ActiveColors);
+			memcpy(&ranges2[i * TotalColors * 3], &oldranges2[i * ActiveColors * 3], ActiveColors*3);
 
-			for (j = ActiveColors; j < TotalColors; j++)
+			for(j=ActiveColors;j<TotalColors;j++)
 			{
-				Ranges[TotalColors*i + j] = identity[j];
+				Ranges[TotalColors*i + j]=identity[j];
+				ranges2[(TotalColors*i + j)*3 + 0]=GPalette.BaseColors[identity[j]].r;
+				ranges2[(TotalColors*i + j)*3 + 1]=GPalette.BaseColors[identity[j]].g;
+				ranges2[(TotalColors*i + j)*3 + 2]=GPalette.BaseColors[identity[j]].b;
 			}
 		}
 		delete[] oldranges;
@@ -1471,7 +1494,6 @@ void V_InitCustomFonts()
 	int lumplist[256];
 	bool notranslate[256];
 	char namebuffer[16], templatebuf[16];
-	int adder=0;
 	int i;
 	int llump,lastlump=0;
 	int format;
@@ -1594,7 +1616,7 @@ void V_InitFontColors ()
 {
 	TArray<FName> names;
 	int lump, lastlump = 0;
-	TranslationParm tparm;
+	TranslationParm tparm = { 0 };	// Silence GCC
 	TArray<TranslationParm> parms;
 	TArray<TempParmInfo> parminfo;
 	TArray<TempColorInfo> colorinfo;

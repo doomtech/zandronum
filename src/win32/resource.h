@@ -6,7 +6,6 @@
 #define IDNO2                           9
 #define IDI_ICON1                       101
 #define IDD_MIDASINITERROR              108
-#define IDD_FMODINITFAILED              111
 #define IDD_IWADDIALOG                  112
 #define IDC_INVISIBLECURSOR             114
 #define IDD_CRASHDIALOG                 122
@@ -51,7 +50,8 @@
 #define IDD_SERVERDIALOG                166
 #define IDD_SERVERINFO                  167
 #define IDD_SERVERSTATISTICS            168
-#define IDC_NOSOUND                     1000
+#define IDD_ERRORPANE                   148
+#define IDD_NETSTARTPANE                149
 #define IDC_ERRORMESSAGE                1004
 #define IDQUIT                          1005
 #define IDC_IWADLIST                    1006
@@ -128,6 +128,13 @@
 #define IDC_CRASHTAB                    1074
 #define IDC_RICHEDIT23                  1075
 #define IDC_CRASHSUMMARY                1075
+#define IDC_ERRORTEXT                   1076
+#define IDC_ICONPIC                     1077
+#define IDC_DIVIDERBAR                  1078
+#define IDC_PROGRESS1                   1079
+#define IDC_NETSTARTPROGRESS            1079
+#define IDC_NETSTARTMESSAGE             1080
+#define IDC_NETSTARTCOUNT               1081
 #define IDC_ADD                         1076
 #define IDC_BANCOMMENT                  1077
 #define IDC_CLEAR                       1078

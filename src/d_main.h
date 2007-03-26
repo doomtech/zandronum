@@ -52,7 +52,7 @@ void D_StartTitle (void);
 
 
 // [RH] Set this to something to draw an icon during the next screen refresh.
-extern char *D_DrawIcon;
+extern const char *D_DrawIcon;
 
 
 enum EIWADType
@@ -83,6 +83,13 @@ struct WadStuff
 	EIWADType Type;
 };
 
-extern const char *IWADTypeNames[NUM_IWAD_TYPES];
+struct IWADInfo
+{
+	const char *Name;	// Title banner text for this IWAD
+	DWORD FgColor;		// Foreground color for title banner
+	DWORD BkColor;		// Background color for title banner
+};
+
+extern const IWADInfo IWADInfos[NUM_IWAD_TYPES];
 
 #endif

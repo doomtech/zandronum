@@ -90,6 +90,7 @@
 #include "gi.h"
 
 #include "g_hub.h"
+#include "gl/gl_functions.h"
 
 EXTERN_CVAR (Float, sv_gravity)
 EXTERN_CVAR (Float, sv_aircontrol)
@@ -277,7 +278,10 @@ static const char *MapInfoMapLevel[] =
 	"compat_dropoff",
 	"compat_boomscroll",
 	"nobotnodes",	// [BC] Allow the prevention of spawning bot nodes (helpful for very large maps).
-
+	// new [GZDoom]
+	"fogdensity",
+	"outsidefogdensity",
+	"skyfog",
 	NULL
 };
 
@@ -408,6 +412,10 @@ MapHandlers[] =
 	{ MITYPE_COMPATFLAG, COMPATF_DROPOFF},
 	{ MITYPE_COMPATFLAG, COMPATF_BOOMSCROLL},
 	{ MITYPE_SETFLAG,	LEVEL_NOBOTNODES, 0 },	// [BC]
+	// new [GZDoom]
+	{ MITYPE_INT,		lioffset(fogdensity), 0 },
+	{ MITYPE_INT,		lioffset(outsidefogdensity), 0 },
+	{ MITYPE_INT,		lioffset(skyfog), 0 },
 };
 
 static const char *MapInfoClusterLevel[] =
@@ -485,6 +493,9 @@ static void SetLevelDefaults (level_info_t *levelinfo)
 		levelinfo->flags |= LEVEL_MONSTERFALLINGDAMAGE;
 	}
 	levelinfo->airsupply = 10;
+
+	// new [GZDoom]
+	levelinfo->airsupply = 20;
 }
 
 //
@@ -1727,6 +1738,7 @@ static bool		resetinventory;	// Reset the inventory to the player's default for 
 	{
 		players[i].Uncrouch();
 	}
+	gl_DeleteAllAttachedLights();
 }
 
 void G_ExitLevel (int position, bool keepFacing)
@@ -2791,6 +2803,9 @@ void G_InitLevelLocals ()
 		compatflags.Callback();
 
 	NormalLight.ChangeFade (level.fadeto);
+
+	// new [GZDoom]
+	gl_SetFogParams(info->fogdensity, info->outsidefog, info->outsidefogdensity, info->skyfog);
 }
 
 char *CalcMapName (int episode, int level)
@@ -3076,6 +3091,8 @@ void G_AirControlChanged ()
 void G_SerializeLevel (FArchive &arc, bool hubLoad)
 {
 	int i = level.totaltime;
+	
+	gl_DeleteAllAttachedLights();
 
 	arc << level.flags
 		<< level.fadeto
@@ -3185,6 +3202,12 @@ void G_SerializeLevel (FArchive &arc, bool hubLoad)
 	{
 		P_SerializePlayers (arc);
 	}
+
+	if (arc.IsLoading()) for(i=0;i<numsectors;i++)
+	{
+		P_Recalculate3DFloors(&sectors[i]);
+	}
+	gl_RecreateAllAttachedLights();
 }
 
 // Archives the current level

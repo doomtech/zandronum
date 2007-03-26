@@ -68,8 +68,9 @@
 #include "campaign.h"
 #include "invasion.h"
 #include "survival.h"
-#include "zgl_main.h"
 #include "possession.h"
+
+#include "gl/gl_functions.h"
 
 extern void P_SpawnMapThing (mapthing2_t *mthing, int position);
 extern bool P_LoadBuildMap (BYTE *mapdata, size_t len, mapthing2_t **things, int *numthings);
@@ -219,7 +220,7 @@ static void P_SetSideNum (DWORD *sidenum_p, WORD sidenum);
 
 struct checkstruct
 {
-	char *lumpname;
+	const char lumpname[9];
 	bool  required;
 };
 
@@ -227,7 +228,7 @@ static int GetMapIndex(const char *mapname, int lastindex, const char *lumpname,
 {
 	static const checkstruct check[] = 
 	{
-		{NULL,		 true},
+		{"",		 true},
 		{"THINGS",	 true},
 		{"LINEDEFS", true},
 		{"SIDEDEFS", true},
@@ -444,26 +445,63 @@ static void SetTexture (short *texture, DWORD *blend, char *name8)
 	}
 }
 
-static void SetTextureNoErr (short *texture, DWORD *color, char *name8, bool *validcolor)
+static void SetTextureNoErr (short *texture, DWORD *color, char *name8, bool *validcolor, bool isfog)
 {
 	char name[9];
 	strncpy (name, name8, 8);
 	name[8] = 0;
+	*validcolor = false;
 	if ((*texture = TexMan.CheckForTexture (name, FTexture::TEX_Wall,
 		FTextureManager::TEXMAN_Overridable|FTextureManager::TEXMAN_TryAny)
 		) == -1)
 	{
 		char name2[9];
 		char *stop;
-		strncpy (name2, name, 8);
-		name2[8] = 0;
-		*color = strtoul (name2, &stop, 16);
+		strncpy (name2, name+1, 7);
+		name2[7] = 0;
+		if (*name != '#')
+		{
+			*color = strtoul (name, &stop, 16);
+			*texture = 0;
+			*validcolor = (*stop == 0) && (stop >= name + 2) && (stop <= name + 6);
+			return;
+		}
+		else	// Support for Legacy's color format!
+		{
+			int l=(int)strlen(name);
+			*texture = 0;
+			*validcolor = false;
+			if (l>=7) 
+			{
+				for(stop=name2;stop<name2+6;stop++) if (!isxdigit(*stop)) *stop='0';
+
+				int factor = l==7? 0 : clamp<int> ((name2[6]&223)-'A', 0, 25);
+
+				name2[6]=0; int blue=strtol(name2+4,NULL,16);
+				name2[4]=0; int green=strtol(name2+2,NULL,16);
+				name2[2]=0; int red=strtol(name2,NULL,16);
+
+				if (!isfog) 
+				{
+					if (factor==0) 
+					{
+						*validcolor=false;
+						return;
+					}
+					factor = factor * 255 / 25;
+				}
+				else
+				{
+					factor=0;
+				}
+
+				*color=MAKEARGB(factor, red, green, blue);
+				*texture = 0;
+				*validcolor = true;
+				return;
+			}
+		}
 		*texture = 0;
-		*validcolor = (*stop == 0) && (stop >= name2 + 2) && (stop <= name2 + 6);
-	}
-	else
-	{
-		*validcolor = false;
 	}
 }
 
@@ -1148,6 +1186,7 @@ void P_LoadSectors (MapData * map)
 		ss->SavedCeilingTexZ = ss->ceilingtexz;
 		ss->SavedFloorTexZ = ss->floortexz;
 	}
+	P_CreateExtSectors();
 	delete[] msp;
 }
 
@@ -1512,11 +1551,6 @@ void P_VavoomSlope(sector_t * sec, int id, fixed_t x, fixed_t y, fixed_t z, int 
 			srcplane->d = -TMulScale16 (srcplane->a, x,
 										srcplane->b, y,
 										srcplane->c, z);
-
-			int v=srcplane->ZatPoint(x,y);
-			int w=srcplane->ZatPoint(l->v1->x,l->v1->y);
-			int x=srcplane->ZatPoint(l->v2->x,l->v2->y);
-
 			return;
 		}
 	}
@@ -2265,8 +2299,8 @@ void P_LoadSideDefs2 (MapData * map)
 				DWORD color, fog;
 				bool colorgood, foggood;
 
-				SetTextureNoErr (&sd->bottomtexture, &fog, msd->bottomtexture, &foggood);
-				SetTextureNoErr (&sd->toptexture, &color, msd->toptexture, &colorgood);
+				SetTextureNoErr (&sd->bottomtexture, &fog, msd->bottomtexture, &foggood, true);
+				SetTextureNoErr (&sd->toptexture, &color, msd->toptexture, &colorgood, false);
 				strncpy (name, msd->midtexture, 8);
 				sd->midtexture = TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable);
 
@@ -2292,6 +2326,26 @@ void P_LoadSideDefs2 (MapData * map)
 					}
 				}
 			}
+			break;
+
+		case Sector_Set3DFloor:
+			if (msd->toptexture[0]=='#')
+			{
+				strncpy (name, msd->toptexture, 8);
+				sd->toptexture = -strtol(name+1, NULL, 10);	// store the alpha as a negative texture index
+															// This will be sorted out by the 3D-floor code later.
+			}
+			else
+			{
+				strncpy (name, msd->toptexture, 8);
+				sd->toptexture = TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable);
+			}
+
+			strncpy (name, msd->midtexture, 8);
+			sd->midtexture = TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable);
+
+			strncpy (name, msd->bottomtexture, 8);
+			sd->bottomtexture = TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable);
 			break;
 
 		case TranslucentLine:	// killough 4/11/98: apply translucency to 2s normal texture
@@ -2846,35 +2900,12 @@ static void P_GroupLines (bool buildmap)
 	DBoundingBox		bbox;
 	bool				flaggedNoFronts = false;
 	unsigned int		ii, jj;
-   // [ZDoomGL]
-   seg_t *seg;
-   subsector_t *subSec;
-   TArray<subsector_t *> undetermined;
-
-   // [ZDoomGL]
-   // The GL node builder produces screwed output when two-sided walls overlap with one-sides ones!
-	for(i=0;i<numsegs;i++)
-	{
-		int partner = segs[i].PartnerSeg-segs;
-
-		if (partner < 0 || partner >= numsegs || &segs[partner] != segs[i].PartnerSeg)
-		{
-			segs[i].PartnerSeg = NULL;
-		}
-	}
 		
-
 	// look up sector number for each subsector
 	clock (times[0]);
 	for (i = 0; i < numsubsectors; i++)
 	{
-      // [ZDoomGL] - gl node info may be loaded here, so account for minisegs
-      for (j = 0; j < subsectors[i].numlines; j++)
-      {
-         seg = &segs[subsectors[i].firstline + j];
-         if (seg->sidedef) break;
-      }
-		subsectors[i].sector = seg->sidedef->sector;
+		subsectors[i].sector = segs[subsectors[i].firstline].sidedef->sector;
 		subsectors[i].validcount = validcount;
 
 		double accumx = 0.0, accumy = 0.0;
@@ -2888,89 +2919,6 @@ static void P_GroupLines (bool buildmap)
 		}
 		subsectors[i].CenterX = fixed_t(accumx * 0.5 / subsectors[i].numlines);
 		subsectors[i].CenterY = fixed_t(accumy * 0.5 / subsectors[i].numlines);
-      // For rendering pick the sector from the first seg that is a sector boundary
-		// this takes care of self-referencing sectors
-      subSec = &subsectors[i]; // [ZDoomGL]
-      subSec->render_sector = NULL;
-		seg = &segs[subSec->firstline];
-		//M_ClearBox(subSec->bbox);
-		for(jj=0; jj<subSec->numlines; jj++)
-		{
-			//M_AddToBox(ss->bbox,seg->v1->x, seg->v1->y);
-			seg++;
-		}
-
-		seg = &segs[subSec->firstline];
-		for(j=0; j<subSec->numlines; j++)
-		{
-			if(seg->sidedef && (!seg->PartnerSeg || seg->sidedef->sector!=seg->PartnerSeg->sidedef->sector))
-			{
-				subSec->render_sector = seg->sidedef->sector;
-				if (subSec->render_sector!=subSec->sector)
-				{
-					// mark the sector to have self referencing parts.
-					//subSec->sector->MoreFlags |= SECF_SELFREF;
-				}
-				break;
-			}
-			seg++;
-		}
-		if(subSec->render_sector == NULL) 
-		{
-			undetermined.Push(subSec);
-		}
-	}
-
-   // assign a vaild render sector to all subsectors which haven't been processed yet.
-	while (undetermined.Size())
-	{
-		bool deleted=false;
-		for(i=undetermined.Size()-1;i>=0;i--)
-		{
-			subSec = undetermined[i];
-			seg = &segs[subSec->firstline];
-			
-			for(j=0; j<subSec->numlines; j++)
-			{
-				if (seg->PartnerSeg && seg->PartnerSeg->Subsector)
-				{
-					if (seg->PartnerSeg->Subsector->render_sector)
-					{
-						subSec->render_sector=seg->PartnerSeg->Subsector->render_sector;
-						undetermined.Delete(i);
-						deleted=true;
-						break;
-					}
-				}
-				seg++;
-			}
-		}
-		if (!deleted && undetermined.Size()) 
-		{
-			// This only happens when a subsector is off the map.
-			// Don't bother and just assign the real sector for rendering
-			for(i=undetermined.Size()-1;i>=0;i--)
-			{
-				subSec = undetermined[i];
-				subSec->render_sector = subSec->sector;
-			}
-			break;
-		}
-	}
-
-   for (i = 0; i < numsegs; i++)
-   {
-      seg = segs + i;
-      seg->front_render_sector = seg->Subsector->render_sector;
-      if (seg->PartnerSeg)
-      {
-         seg->back_render_sector = seg->PartnerSeg->Subsector->render_sector;
-      }
-      else
-      {
-         seg->back_render_sector = NULL;
-      }
-
 	}
 	unclock (times[0]);
 
@@ -3583,11 +3531,13 @@ extern polyblock_t **PolyBlockMap;
 
 void P_FreeLevelData ()
 {
+	gl_CleanLevelData();
 	SN_StopAllSequences ();
 	DThinker::DestroyAllThinkers ();
 	level.total_monsters = level.total_items = level.total_secrets =
 		level.killed_monsters = level.found_items = level.found_secrets =
 		wminfo.maxfrags = 0;
+	P_CleanExtSectors();
 	FBehavior::StaticUnloadModules ();
 	if (vertexes != NULL)
 	{
@@ -3708,42 +3658,6 @@ void P_FreeLevelData ()
 		ASTAR_ClearNodes( );
 }
 
-// [ZDoomGL]
-void GL_ClearMappedSubsectors()
-{
-   int i;
-
-   for (i = 0; i < numsubsectors; i++)
-   {
-      subsectors[i].isMapped = false;
-   }
-}
-
-// [ZDoomGL]
-void P_SetSegOffsets()
-{
-   int i;
-   seg_t *li;
-   line_t *ldef;
-
-   for (i = 0; i < numsegs; i++)
-   {
-      li = &segs[i];
-      ldef = li->linedef;
-      if (ldef != NULL)
-      {
-         if (&sides[ldef->sidenum[0]] == li->sidedef)
-         {
-            li->offset = (fixed_t)(AccurateDistance(li->v1->x - ldef->v1->x, li->v1->y - ldef->v1->y) * FRACUNIT);
-         }
-         else 
-         {
-            li->offset = (fixed_t)(AccurateDistance(li->v1->x - ldef->v2->x, li->v1->y - ldef->v2->y) * FRACUNIT);
-         }
-      }
-   }
-}
-
 // [BC] EWEWEWEWEWEWEWEWEW
 extern	bool	g_bFirstFragAwarded;
 
@@ -3788,13 +3702,6 @@ void P_SetupLevel (char *lumpname, int position)
 	int numbuildthings;
 	int i;
 	bool buildmap;
-   // [ZDoomGL]
-   int gl_lumpnum, j;
-   bool foundGLNodeInfo = false;
-   char gl_lumpname[9];
-   sector_t *sector;
-   line_t *line;
-   double accumx, accumy;
 
 	wminfo.partime = 180;
 
@@ -3886,55 +3793,10 @@ void P_SetupLevel (char *lumpname, int position)
 
 		P_LoadStrifeConversations (lumpname);
 
-		// [ZDoomGL]
-		gl_lumpname[8] = '\0';
-		sprintf(gl_lumpname, "GL_");
-		if (sizeof(lumpname) < 6)
-		{
-			memcpy(gl_lumpname + 3, lumpname, sizeof(lumpname) + 1);
-		}
+		clock (times[0]);
+		P_LoadVertexes (map);
+		unclock (times[0]);
 
-		gl_lumpnum = Wads.CheckNumForName(gl_lumpname);
-
-		if (gl_lumpnum > Wads.CheckNumForName(lumpname))
-		{
-			//Printf("ZGL: Loading GL node information.\n");
-			foundGLNodeInfo = true;
-			Wads.GetLumpName(gl_lumpname, gl_lumpnum + 1); // GL_VERT
-			if (strcmp(gl_lumpname, "GL_VERT") == 0)
-			{
-				P_LoadVertexes (map);
-				P_LoadGLVertexes(gl_lumpnum + 1);
-			}
-			else
-			{
-				foundGLNodeInfo = false;
-				ForceNodeBuild = true;
-			}
-
-			// this isn't dependant on the rest of the GL_* information
-			Wads.GetLumpName(gl_lumpname, gl_lumpnum + 5); // GL_PVS
-			if (glpvs) delete[] glpvs;
-			glpvs = NULL;
-			if (strcmp(gl_lumpname, "GL_PVS") == 0)
-			{
-				//Printf("ZGL: loading PVS information.\n");
-				FMemLump pvs = Wads.ReadLump(gl_lumpnum + 5); // GL_PVS
-				if (Wads.LumpLength(gl_lumpnum + 5))
-				{
-					glpvs = new BYTE[Wads.LumpLength(gl_lumpnum + 5)];
-					memcpy(glpvs, pvs.GetMem(), Wads.LumpLength(gl_lumpnum + 5));
-					Printf( PRINT_OPENGL, "loaded PVS information.\n");
-				}
-			}
-		}
-		else
-		{
-			clock (times[0]);
-			P_LoadVertexes (map);
-			unclock (times[0]);
-		}
-		
 		// Check for maps without any BSP data at all (e.g. SLIGE)
 		clock (times[1]);
 		P_LoadSectors (map);
@@ -3973,7 +3835,7 @@ void P_SetupLevel (char *lumpname, int position)
 
 	// [BC] From now on, we're ALWAYS using GL nodes!
 	UsingGLNodes = true;
-	ForceNodeBuild = true;
+	//ForceNodeBuild = true;
 	if (!ForceNodeBuild)
 	{
 		// Check for compressed nodes first, then uncompressed nodes
@@ -4023,57 +3885,24 @@ void P_SetupLevel (char *lumpname, int position)
 		}
 		else
 		{
-			// [ZDoomGL]
-			if (foundGLNodeInfo)
-			{
-				Wads.GetLumpName(gl_lumpname, gl_lumpnum + 3); // GL_SSECT
-				if (strcmp(gl_lumpname, "GL_SSECT") == 0)
-				{
-					P_LoadGLSubsectors(gl_lumpnum + 3);
-				}
-				else
-				{
-					ForceNodeBuild = true;
-				}
+			clock (times[7]);
+			P_LoadSubsectors (map);
+			unclock (times[7]);
 
-				Wads.GetLumpName(gl_lumpname, gl_lumpnum + 4); // GL_NODES
-				if (strcmp(gl_lumpname, "GL_NODES") == 0)
-				{
-//					P_LoadNodes(gl_lumpnum + 4);
-					P_LoadNodes(map);
-				}
-				else
-				{
-					ForceNodeBuild = true;
-				}
+			clock (times[8]);
+			if (!ForceNodeBuild) P_LoadNodes (map);
+			unclock (times[8]);
 
-				Wads.GetLumpName(gl_lumpname, gl_lumpnum + 2); // GL_SEGS
-				if (strcmp(gl_lumpname, "GL_SEGS") == 0)
-				{
-					P_LoadGLSegs(gl_lumpnum + 2);
-				}
-				else
-				{
-					ForceNodeBuild = true;
-				}
+			clock (times[9]);
+			if (!ForceNodeBuild) P_LoadSegs (map);
+			unclock (times[9]);
+		}
 
-				if (!foundGLNodeInfo)
-					ForceNodeBuild = true;
-			}
-			else
-			{
-				clock (times[7]);
-				P_LoadSubsectors (map);
-				unclock (times[7]);
 
-				clock (times[8]);
-				if (!ForceNodeBuild) P_LoadNodes (map);
-				unclock (times[8]);
-
-				clock (times[9]);
-				if (!ForceNodeBuild) P_LoadSegs (map);
-				unclock (times[9]);
-			}
+		// If loading the regular nodes failed try GL nodes before considering a rebuild
+		if (ForceNodeBuild)
+		{
+			 if (gl_LoadGLNodes(map)) ForceNodeBuild=false;
 		}
 	}
 	if (ForceNodeBuild)
@@ -4090,8 +3919,7 @@ void P_SetupLevel (char *lumpname, int position)
 			lines, numlines
 		};
 		leveldata.FindMapBounds ();
-		// [ZDoomGL] - always generate GL nodes
-		UsingGLNodes = true;
+		UsingGLNodes |= genglnodes;
 		FNodeBuilder builder (leveldata, polyspots, anchors, UsingGLNodes, CPU.bSSE2);
 		delete[] vertexes;
 		builder.Extract (nodes, numnodes,
@@ -4099,8 +3927,12 @@ void P_SetupLevel (char *lumpname, int position)
 			subsectors, numsubsectors,
 			vertexes, numvertexes);
 		endTime = I_MSTime ();
-		Printf ("BSP generation took %.3f sec (%d segs)\n", (endTime - startTime) * 0.001, numsegs);
+		DPrintf ("BSP generation took %.3f sec (%d segs)\n", (endTime - startTime) * 0.001, numsegs);
 	}
+
+	// If the nodes being loaded are not GL nodes the GL renderer needs to create a second set of nodes.
+	// The originals have to be kept for use by R_PointInSubsector.
+	gl_CheckNodes(map);
 
 	clock (times[10]);
 	P_LoadBlockMap (map);
@@ -4114,9 +3946,6 @@ void P_SetupLevel (char *lumpname, int position)
 	P_GroupLines (buildmap);
 	unclock (times[12]);
 
-   // [ZDoomGL]
-   P_SetSegOffsets();
-
 	clock (times[13]);
 	P_FloodZones ();
 	unclock (times[13]);
@@ -4129,15 +3958,6 @@ void P_SetupLevel (char *lumpname, int position)
 		bodyque[i] = NULL;
 
 	deathmatchstarts.Clear ();
-	TemporaryTeamStarts.Clear( );
-	BlueTeamStarts.Clear( );
-	RedTeamStarts.Clear( );
-	GenericInvasionStarts.Clear( );
-	PossessionStarts.Clear();
-	TerminatorStarts.Clear();
-
-	for ( i = 0; i < MAXPLAYERS; i++ )
-		playerstarts[i].type = 0;
 
 	if (!buildmap)
 	{
@@ -4167,6 +3987,20 @@ void P_SetupLevel (char *lumpname, int position)
 		delete[] buildthings;
 	}
 	delete map;
+
+	// Reordered the spawning of specials due to the needs of the 
+	// OpenGL renderer!
+
+	// set up world state
+	P_SpawnSpecials ();
+
+	// Spawn extended specials
+	P_SpawnSpecials2();
+
+	// This must be done BEFORE the PolyObj Spawn!!!
+	// [BB] The server may not execute this
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		gl_PreprocessLevel();
 
 	// [BC] Now that all the items have been loaded, potentially set the game mode.
 	GAME_CheckMode( );
@@ -4242,7 +4076,7 @@ void P_SetupLevel (char *lumpname, int position)
 	}
 
 	// set up world state
-	P_SpawnSpecials ();
+	//P_SpawnSpecials ();
 
 	// build subsector connect matrix
 	//	UNUSED P_ConnectSubsectors ();
@@ -4260,37 +4094,6 @@ void P_SetupLevel (char *lumpname, int position)
 		S_PrecacheLevel ();
 	}
 	unclock (times[17]);
-
-   // [ZDoomGL]
-   for (i = 0; i < numsectors; i++)
-   {
-      sector = sectors + i;
-      
-      accumx = 0.0;
-      accumy = 0.0;
-      for (j = 0; j < sector->linecount; j++)
-      {
-         line = sector->lines[j];
-         accumx += sector->lines[j]->v1->x + sector->lines[j]->v2->x;
-         accumy += sector->lines[j]->v1->y + sector->lines[j]->v2->y;
-      }
-      sector->CenterX = fixed_t(accumx * 0.5 / sector->linecount);
-		sector->CenterY = fixed_t(accumy * 0.5 / sector->linecount);
-   }
-
-   // [ZDoomGL]
-   sectorMoving.Clear();
-   sectorMoving.Resize(numsectors);
-   for (i = 0; i < numsectors; i++)
-   {
-      sectorMoving[i] = false;
-   }
-
-   if (( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL ) && ( NETWORK_GetState( ) != NETSTATE_SERVER ))
-   {
-      GL_ClearMappedSubsectors();
-      GL_GenerateLevelGeometry();
-   }
 
 	// Reset announcer "frags/points left" variables.
 	ANNOUNCER_AllowNumFragsAndPointsLeftSounds( );

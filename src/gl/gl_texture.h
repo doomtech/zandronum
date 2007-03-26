@@ -31,6 +31,7 @@ protected:
 
 	void Clean(bool all)
 	{
+		return;
 		if (gltexture) 
 		{
 			if (!all) gltexture->Clean(false);
@@ -59,6 +60,7 @@ protected:
 
 	void Clean(bool all)
 	{
+		return;
 		if (glpatch) 
 		{
 			if (!all) glpatch->Clean(false);

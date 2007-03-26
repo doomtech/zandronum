@@ -63,8 +63,7 @@
 #include "team.h"
 #include "sv_commands.h"
 
-// [ZDoomGL]
-#include "zgl_lights.h"
+#include "gl/gl_functions.h"
 
 // MACROS ------------------------------------------------------------------
 
@@ -212,8 +211,8 @@ void AActor::Serialize (FArchive &arc)
 		<< z
 		<< angle
 		<< frame
-		<< xscale
-		<< yscale
+		<< scaleX
+		<< scaleY
 		<< RenderStyle
 		<< renderflags;
 	if (arc.IsStoring ())
@@ -424,7 +423,9 @@ void AActor::Serialize (FArchive &arc)
 				GetDefaultByType (player->cls)->SpawnState->sprite.index)
 			{ // Give player back the skin
 				sprite = skins[player->userinfo.skin].sprite;
-				xscale = yscale = skins[player->userinfo.skin].scale;
+				// [GZDoom]
+				scaleX = scaleY = skins[player->userinfo.skin].Scale;
+				//xscale = yscale = skins[player->userinfo.skin].scale;
 			}
 			if (Speed == 0)
 			{
@@ -434,6 +435,7 @@ void AActor::Serialize (FArchive &arc)
 		PrevX = x;
 		PrevY = y;
 		PrevZ = z;
+		UpdateWaterLevel(z, false);
 	}
 }
 
@@ -594,6 +596,7 @@ bool AActor::SetState (FState *newstate)
 		newstate = newstate->GetNextState();
 	} while (tics == 0);
 
+	gl_SetActorLights(this);
 	return true;
 }
 
@@ -653,6 +656,7 @@ bool AActor::SetStateNF (FState *newstate)
 		newstate = newstate->GetNextState();
 	} while (tics == 0);
 
+	gl_SetActorLights(this);
 	return true;
 }
 
@@ -843,6 +847,11 @@ AInventory *AActor::FindInventory (const PClass *type) const
 		}
 	}
 	return item;
+}
+
+AInventory *AActor::FindInventory (FName type) const
+{
+	return FindInventory(PClass::FindClass(type));
 }
 
 //============================================================================
@@ -1115,6 +1124,26 @@ void P_ExplodeMissile (AActor *mo, line_t *line, AActor *target)
 					x = line->v1->x + MulScale30 (line->dx, frac);
 					y = line->v1->y + MulScale30 (line->dy, frac);
 					z = mo->z;
+
+					F3DFloor * ffloor=NULL;
+					if (line->sidenum[side^1]!=NO_SIDE && sides[line->sidenum[side^1]].sector->e->ffloors.Size())
+					{
+						// find a 3D-floor to stick to
+						sector_t * backsector=sides[line->sidenum[side^1]].sector;
+						for(int i=0;i<backsector->e->ffloors.Size();i++)
+						{
+							F3DFloor * rover=backsector->e->ffloors[i];
+
+							if ((rover->flags&(FF_EXISTS|FF_SOLID|FF_RENDERSIDES))==(FF_EXISTS|FF_SOLID|FF_RENDERSIDES))
+							{
+								if (z<=rover->top.plane->ZatPoint(x, y) && z>=rover->bottom.plane->ZatPoint( x, y))
+								{
+									ffloor=rover;
+									break;
+								}
+							}
+						}
+					}
 
 					// [BC] Servers don't need to spawn decals.
 					if ( NETWORK_GetState( ) != NETSTATE_SERVER )
@@ -3350,9 +3379,11 @@ void AActor::Tick ()
 //
 //==========================================================================
 
-bool AActor::UpdateWaterLevel (fixed_t oldz)
+bool AActor::UpdateWaterLevel (fixed_t oldz, bool dosplash)
 {
 	BYTE lastwaterlevel = waterlevel;
+	fixed_t fh=FIXED_MIN;
+	bool reset=false;
 
 	// Server will tell us what our waterlevel is.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player == NULL ) || ( player - players != consoleplayer ) || ( player->bSpectating )))
@@ -3374,8 +3405,8 @@ bool AActor::UpdateWaterLevel (fixed_t oldz)
 		const sector_t *hsec = Sector->heightsec;
 		if (hsec != NULL && !(hsec->MoreFlags & SECF_IGNOREHEIGHTSEC))
 		{
-			fixed_t fh = hsec->floorplane.ZatPoint (x, y);
-			if (hsec->MoreFlags & SECF_UNDERWATERMASK)
+			fh = hsec->floorplane.ZatPoint (x, y);
+			//if (hsec->MoreFlags & SECF_UNDERWATERMASK)	// also check Boom-style non-swimmable sectors!
 			{
 				if (z < fh)
 				{
@@ -3394,15 +3425,57 @@ bool AActor::UpdateWaterLevel (fixed_t oldz)
 				{
 					waterlevel = 3;
 				}
+				else
+				{
+					waterlevel=0;
+				}
+			}
+			// even non-swimmable deep water must be checked here to do the splashes correctly
+			// But the water level must be reset when this function returns!
+			if (!(hsec->MoreFlags&SECF_UNDERWATER)) reset=true;
+
 			}
 			else
 			{
-				return (oldz >= fh) && (z < fh);
+			// Check 3D floors as well!
+			for(int i=0;i<Sector->e->ffloors.Size();i++)
+			{
+				F3DFloor*  rover=Sector->e->ffloors[i];
+
+				if (!(rover->flags & FF_EXISTS)) continue;
+				if(!(rover->flags & FF_SWIMMABLE) || rover->flags & FF_SOLID) continue;
+
+				fixed_t ff_bottom=rover->bottom.plane->ZatPoint(x, y);
+				fixed_t ff_top=rover->top.plane->ZatPoint(x, y);
+
+				if(ff_top <= z || ff_bottom > (z + (height >> 1))) continue;
+				
+				fh=ff_top;
+				if (z < fh)
+				{
+					waterlevel = 1;
+					if (z + height/2 < fh)
+					{
+						waterlevel = 2;
+						if ((player && z + player->viewheight <= fh) ||
+							(z + height <= fh))
+						{
+							waterlevel = 3;
+						}
+					}
+				}
+
+				break;
 			}
 		}
 	}
-
-	return (lastwaterlevel == 0 && waterlevel != 0);
+		
+	// some additional checks to make deep sectors à la Boom splash without setting
+	// the water flags. 
+	if (boomwaterlevel == 0 && waterlevel != 0 && dosplash) P_HitWater(this, Sector, fh);
+	boomwaterlevel=waterlevel;
+	if (reset) waterlevel=lastwaterlevel;
+	return false;	// we did the splash ourselves! ;)
 }
 
 //----------------------------------------------------------------------------
@@ -3451,8 +3524,8 @@ FState AActor::States[] =
 };
 
 BEGIN_DEFAULTS (AActor, Any, -1, 0)
-	PROP_XScale (63)
-	PROP_YScale (63)
+	PROP_XScale (FRACUNIT)
+	PROP_YScale (FRACUNIT)
 	PROP_SpawnState (2)
 	PROP_SpawnHealth (1000)
 	PROP_ReactionTime (8)
@@ -4067,7 +4140,9 @@ void P_SpawnPlayer (mapthing2_t *mthing, bool bClientUpdate, player_t *p, bool t
 		lSkin = R_FindSkin( "base", p->CurrentPlayerClass );
 
 	mobj->sprite = skins[lSkin].sprite;
-	mobj->xscale = mobj->yscale = skins[lSkin].scale;
+	// [GZDoom]
+	mobj->scaleX = mobj->scaleY = skins[lSkin].Scale;
+	//mobj->xscale = mobj->yscale = skins[lSkin].scale;
 
 	p->DesiredFOV = p->FOV = 90.f;
 	p->camera = p->mo;
@@ -4478,6 +4553,7 @@ void P_SpawnMapThing (mapthing2_t *mthing, int position)
 		return;
 	}
 
+	/*
 	// [ZDoomGL] - convert Vavoom lights
 	BYTE args[5];
 	if (mthing->type == 1502)
@@ -4498,6 +4574,7 @@ void P_SpawnMapThing (mapthing2_t *mthing, int position)
 		mthing->args[LIGHT_GREEN] = args[2] >> 1;
 		mthing->args[LIGHT_BLUE] = args[3] >> 1;
 	}
+	*/
 
 	// [RH] Determine if it is an old ambient thing, and if so,
 	//		map it to MT_AMBIENT with the proper parameter.
@@ -4833,7 +4910,7 @@ int P_GetThingFloorType (AActor *thing)
 // Returns true if hit liquid and splashed, false if not.
 //---------------------------------------------------------------------------
 
-bool P_HitWater (AActor *thing, sector_t *sec)
+bool P_HitWater (AActor * thing, sector_t * sec, fixed_t z)
 {
 	if (thing->flags2 & MF2_FLOATBOB || thing->flags3 & MF3_DONTSPLASH)
 		return false;
@@ -4848,6 +4925,23 @@ bool P_HitWater (AActor *thing, sector_t *sec)
 	FSplashDef *splash;
 	int terrainnum;
 	
+	if (z==FIXED_MIN) z=thing->z;
+	// don't splash above the object!
+	else if (z>thing->z+(thing->height>>1)) return false;
+
+	for(int i=0;i<sec->e->ffloors.Size();i++)
+	{		
+		F3DFloor * rover = sec->e->ffloors[i];
+		if (!(rover->flags & FF_EXISTS)) continue;
+		if (rover->top.plane->ZatPoint(thing->x, thing->y) == z)
+		{
+			if (rover->flags & (FF_SOLID|FF_SWIMMABLE) )
+			{
+				terrainnum = TerrainTypes[*rover->top.texture];
+				goto foundone;
+			}
+		}
+	}
 	if (sec->heightsec == NULL ||
 		//!sec->heightsec->waterzone ||
 		(sec->heightsec->MoreFlags & SECF_IGNOREHEIGHTSEC) ||
@@ -4859,20 +4953,28 @@ bool P_HitWater (AActor *thing, sector_t *sec)
 	{
 		terrainnum = TerrainTypes[sec->heightsec->floorpic];
 	}
-
+foundone:
+	
 	int splashnum = Terrains[terrainnum].Splash;
 	bool smallsplash = false;
 	const secplane_t *plane;
-	fixed_t z;
+
 
 	if (splashnum == -1)
 		return Terrains[terrainnum].IsLiquid;
+
+	// don't splash when touching an underwater floor
+	if (thing->waterlevel>=1 && z<=thing->floorz) return Terrains[terrainnum].IsLiquid;
 
 	plane = (sec->heightsec != NULL &&
 		//sec->heightsec->waterzone &&
 		!(sec->heightsec->MoreFlags & SECF_IGNOREHEIGHTSEC))
 	  ? &sec->heightsec->floorplane : &sec->floorplane;
-	z = plane->ZatPoint (thing->x, thing->y);
+	//z = plane->ZatPoint (thing->x, thing->y);
+
+	// Don't splash for living things with small vertical velocities.
+	// There are levels where the constant splashing from the monsters gets extremely annoying
+	if ((thing->flags3&MF3_ISMONSTER || thing->player) && thing->momz>=-5*FRACUNIT) return Terrains[terrainnum].IsLiquid;
 
 	splash = &Splashes[splashnum];
 
@@ -4947,6 +5049,20 @@ bool P_HitFloor (AActor *thing)
 		if (thing->z == m->m_sector->floorplane.ZatPoint (thing->x, thing->y))
 		{
 			break;
+		}
+
+		// Check 3D floors
+		for(int i=0;i<m->m_sector->e->ffloors.Size();i++)
+		{		
+			F3DFloor * rover = m->m_sector->e->ffloors[i];
+			if (!(rover->flags & FF_EXISTS)) continue;
+			if (rover->flags & (FF_SOLID|FF_SWIMMABLE))
+			{
+				if (rover->top.plane->ZatPoint(thing->x, thing->y) == thing->z)
+				{
+					return P_HitWater (thing, m->m_sector);
+				}
+			}
 		}
 	}
 	if (m == NULL ||
@@ -5498,13 +5614,6 @@ FArchive &operator<< (FArchive &arc, FSoundIndexWord &snd)
 	arc << snd2;
 	snd.Index = snd2.Index;
 	return arc;
-}
-
-// [ZDoomGL]
-void AActor::PostBeginPlay()
-{
-   Super::PostBeginPlay();
-   Lights.Clear();
 }
 
 // [BC] meh

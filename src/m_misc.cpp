@@ -74,7 +74,8 @@
 #include "gi.h"
 
 #include "gameconfigfile.h"
-#include "zgl_main.h"
+
+#include "gl/gl_functions.h"
 
 FGameConfigFile *GameConfig;
 
@@ -575,7 +576,7 @@ void M_ScreenShot (const char *filename)
 {
 	FILE *file;
 	FString autoname;
-	bool writepcx = (stricmp (screenshot_type, "pcx") == 0);	// PNG is the default
+	bool writepcx = (currentrenderer==0 && stricmp (screenshot_type, "pcx") == 0);	// PNG is the default
 
 	// find a file name to save it to
 	if (filename == NULL || filename[0] == '\0')
@@ -603,21 +604,10 @@ void M_ScreenShot (const char *filename)
 			}
 		}
 
-		if ( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL)
+		if (!FindFreeName (autoname, writepcx ? "pcx" : "png"))
 		{
-			if (!FindFreeName (autoname, "png"))
-			{
-				Printf ("M_ScreenShot: Delete some screenshots\n");
-				return;
-			}
-		}
-		else
-		{
-			if (!FindFreeName (autoname, writepcx ? "pcx" : "png"))
-			{
-				Printf ("M_ScreenShot: Delete some screenshots\n");
-				return;
-			}
+			Printf ("M_ScreenShot: Delete some screenshots\n");
+			return;
 		}
 	}
 	else
@@ -628,10 +618,12 @@ void M_ScreenShot (const char *filename)
 	CreatePath(screenshot_dir);
 
    // save the screenshot
-   if ( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL )
-      GL_ScreenShot(autoname.GetChars());
-   else
-   {
+	if (currentrenderer == 1)
+	{
+		gl_ScreenShot(autoname.GetChars());
+	}
+	else
+	{
 	   screen->Lock (true);
 	   //D_Display (true);
 

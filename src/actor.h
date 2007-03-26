@@ -41,6 +41,7 @@
 
 #include "doomdef.h"
 
+struct subsector_s;
 //
 // NOTES: AActor
 //
@@ -525,8 +526,6 @@ public:
 	void Destroy ();
 	~AActor ();
 
-	virtual void PostBeginPlay(); // [ZDoomGL]
-
 	void Serialize (FArchive &arc);
 
 	static AActor *StaticSpawn (const PClass *type, fixed_t x, fixed_t y, fixed_t z, replace_t allowreplacement);
@@ -640,6 +639,7 @@ public:
 
 	// Finds the first item of a particular type.
 	AInventory *FindInventory (const PClass *type) const;
+	AInventory *FindInventory (FName type) const;
 	template<class T> T *FindInventory () const
 	{
 		return static_cast<T *> (FindInventory (RUNTIME_CLASS(T)));
@@ -701,7 +701,9 @@ public:
 	angle_t			angle;
 	WORD			sprite;				// used to find patch_t and flip value
 	BYTE			frame;				// sprite frame to draw
-	BYTE			xscale, yscale;		// Scaling values; 63 is normal size
+	// [GZDoom]
+	fixed_t			scaleX, scaleY;		// Scaling values; FRACUNIT is normal size
+	//BYTE			xscale, yscale;		// Scaling values; 63 is normal size
 	BYTE			RenderStyle;		// Style to draw this actor with
 	DWORD			renderflags;		// Different rendering flags
 	WORD			picnum;				// Draw this instead of sprite if != 0xffff
@@ -878,9 +880,6 @@ public:
 	void AddToHash ();
 	void RemoveFromHash ();
 
-	// [ZDoomGL]
-	TArray<AActor *> Lights;
-
 private:
 	static AActor *TIDHash[128];
 	static inline int TIDHASH (int key) { return key & 127; }
@@ -899,11 +898,18 @@ public:
 	int GetTics(FState * newstate);
 	bool SetState (FState *newstate);
 	bool SetStateNF (FState *newstate);
-	bool UpdateWaterLevel (fixed_t oldz);
+	bool UpdateWaterLevel (fixed_t oldz, bool splash=true);
 
 	static FState States[];
 
 	enum { S_NULL = 2, S_GENERICFREEZEDEATH = 3 };
+
+	// [GZDoom]
+	BYTE				boomwaterlevel;	// splash information for non-swimmable water sectors
+	TArray<AActor*>		dynamiclights;
+	void *				lightassociations;
+	bool				hasmodel;
+	subsector_s *		subsector;
 };
 
 class FActorIterator
@@ -947,6 +953,25 @@ public:
 			actor = FActorIterator::Next ();
 		} while (actor && !actor->IsKindOf (RUNTIME_CLASS(T)));
 		return static_cast<T *>(actor);
+	}
+};
+
+class NActorIterator : public FActorIterator
+{
+	const PClass *type;
+public:
+	NActorIterator (const PClass *cls, int id) : FActorIterator (id) { type = cls; }
+	NActorIterator (FName cls, int id) : FActorIterator (id) { type = PClass::FindClass(cls); }
+	NActorIterator (const char *cls, int id) : FActorIterator (id) { type = PClass::FindClass(cls); }
+	AActor *Next ()
+	{
+		AActor *actor;
+		if (type == NULL) return NULL;
+		do
+		{
+			actor = FActorIterator::Next ();
+		} while (actor && !actor->IsKindOf (type));
+		return actor;
 	}
 };
 

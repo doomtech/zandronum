@@ -165,6 +165,11 @@ struct level_info_s
 
 	char		soundinfo[9];
 	char		sndseq[9];
+
+	// new properties
+	int			fogdensity;
+	int			outsidefogdensity;
+	int			skyfog;
 	FSpecialAction * specialactions;
 };
 typedef struct level_info_s level_info_t;

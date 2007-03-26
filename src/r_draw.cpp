@@ -1418,6 +1418,7 @@ void tmvline4_addclamp ()
 //
 void R_InitTranslationTables ()
 {
+	// [BB] Here is a difference to GZDoom. Check if it is important!
 	static BYTE MainTranslationTables[256*
 		(NUMCOLORMAPS*16			// Shaded
 		 +MAXPLAYERS*2				// Players + PlayersExtra

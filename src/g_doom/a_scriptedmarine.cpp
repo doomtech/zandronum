@@ -236,8 +236,15 @@ void AScriptedMarine::BeginPlay ()
 	Super::BeginPlay ();
 
 	// Copy the standard player's scaling
-	xscale = GetDefaultByType(RUNTIME_CLASS(ADoomPlayer))->xscale;
-	yscale = GetDefaultByType(RUNTIME_CLASS(ADoomPlayer))->yscale;
+	// [GZDoom]
+	AActor * playerdef = GetDefaultByName("DoomPlayer");
+	if (playerdef != NULL)
+	{
+		scaleX = playerdef->scaleX;
+		scaleY = playerdef->scaleY;
+	}
+	//xscale = GetDefaultByType(RUNTIME_CLASS(ADoomPlayer))->xscale;
+	//yscale = GetDefaultByType(RUNTIME_CLASS(ADoomPlayer))->yscale;
 }
 
 void AScriptedMarine::Tick ()
@@ -1139,13 +1146,22 @@ void AScriptedMarine::SetSprite (const PClass *source)
 	if (source == NULL || source->ActorInfo == NULL)
 	{ // A valid actor class wasn't passed, so use the standard sprite
 		SpriteOverride = sprite = States[0].sprite.index;
-		xscale = GetDefaultByType(RUNTIME_CLASS(ADoomPlayer))->xscale;
-		yscale = GetDefaultByType(RUNTIME_CLASS(ADoomPlayer))->yscale;
+		// Copy the standard player's scaling
+		// [GZDoom]
+		AActor * playerdef = GetDefaultByName("DoomPlayer");
+		if (playerdef == NULL) playerdef = GetDefaultByType(RUNTIME_CLASS(AScriptedMarine));
+		scaleX = playerdef->scaleX;
+		scaleY = playerdef->scaleY;
+		//xscale = GetDefaultByType(RUNTIME_CLASS(ADoomPlayer))->xscale;
+		//yscale = GetDefaultByType(RUNTIME_CLASS(ADoomPlayer))->yscale;
 	}
 	else
 	{ // Use the same sprite the passed class spawns with
 		SpriteOverride = sprite = GetDefaultByType (source)->SpawnState->sprite.index;
-		xscale = GetDefaultByType(source)->xscale;
-		yscale = GetDefaultByType(source)->yscale;
+		// [GZDoom]
+		scaleX = GetDefaultByType(source)->scaleX;
+		scaleY = GetDefaultByType(source)->scaleY;
+		//xscale = GetDefaultByType(source)->xscale;
+		//yscale = GetDefaultByType(source)->yscale;
 	}
 }

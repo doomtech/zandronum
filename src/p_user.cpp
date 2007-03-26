@@ -61,7 +61,6 @@
 #include "m_menu.h"
 #include "d_gui.h"
 #include "lastmanstanding.h"
-#include "zgl_main.h"
 #include "cooperative.h"
 #include "survival.h"
 #include "sv_main.h"
@@ -1525,11 +1524,14 @@ void P_CheckPlayerSprites()
 		if (playeringame[i] && mo != NULL)
 		{
 			int crouchspriteno;
-			int defyscale = mo->GetDefault()->yscale;
+			fixed_t defscaleY = mo->GetDefault()->scaleY;
+			//int defyscale = mo->GetDefault()->yscale;
 			
 			if (player->userinfo.skin != 0)
 			{
-				defyscale = skins[player->userinfo.skin].scale;
+				// [GZDoom]
+				defscaleY = skins[player->userinfo.skin].Scale;
+				//defyscale = skins[player->userinfo.skin].scale;
 			}
 			
 			// Set the crouch sprite
@@ -1554,11 +1556,15 @@ void P_CheckPlayerSprites()
 				if (crouchspriteno > 0) 
 				{
 					mo->sprite = crouchspriteno;
-					mo->yscale = defyscale;
+					// [GZDoom]
+					mo->scaleY = defscaleY;
+					//mo->yscale = defyscale;
 				}
 				else if (player->playerstate != PST_DEAD)
 				{
-					mo->yscale = player->crouchfactor < FRACUNIT*3/4 ? defyscale/2 : defyscale;
+					// [GZDoom]
+					mo->scaleY = player->crouchfactor < FRACUNIT*3/4 ? defscaleY/2 : defscaleY;
+					//mo->yscale = player->crouchfactor < FRACUNIT*3/4 ? defyscale/2 : defyscale;
 				}
 			}
 			else	// Set the normal sprite
@@ -1571,7 +1577,9 @@ void P_CheckPlayerSprites()
 				{
 					mo->sprite = skins[player->userinfo.skin].sprite;
 				}
-				mo->yscale = defyscale;
+				// [GZDoom]
+				mo->scaleY = defscaleY;
+				//mo->yscale = defyscale;
 			}
 		}
 	}
@@ -2423,7 +2431,8 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 				if (look > 0)
 				{ 
 					// look up
-					if (( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL ) && ( cl_disallowfullpitch == false ))
+					// [BB] Check this
+					if (( currentrenderer ) && ( cl_disallowfullpitch == false ))
 					{
 						if (player->mo->pitch < -ANGLE_1*90)
 							player->mo->pitch = -ANGLE_1*90;
@@ -2437,7 +2446,8 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 				else
 				{ 
 					// look down
-					if (( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL ) && ( cl_disallowfullpitch == false ))
+					// [BB] Check this
+					if (( currentrenderer ) && ( cl_disallowfullpitch == false ))
 					{
 						if (player->mo->pitch > ANGLE_1*90)
 							player->mo->pitch = ANGLE_1*90;
@@ -2635,7 +2645,8 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 					if (look > 0)
 					{
 						// look up
-						if (( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL ) && ( cl_disallowfullpitch == false ))
+						// [BB] Check this
+						if (( currentrenderer ) && ( cl_disallowfullpitch == false ))
 						{
 							if (player->mo->pitch < -ANGLE_1*90)
 								player->mo->pitch = -ANGLE_1*90;
@@ -2649,7 +2660,8 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 					else
 					{
 						// look down
-						if (( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL ) && ( cl_disallowfullpitch == false ))
+						// [BB] Check this
+						if (( currentrenderer ) && ( cl_disallowfullpitch == false ))
 						{
 							if (player->mo->pitch > ANGLE_1*90)
 								player->mo->pitch = ANGLE_1*90;
@@ -2724,6 +2736,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 
 	if ( CLIENT_PREDICT_IsPredicting( ) == false )
 	{
+		P_PlayerOnSpecial3DFloor (player);
 		if (player->mo->Sector->special || player->mo->Sector->damage)
 		{
 			P_PlayerInSpecialSector (player);
@@ -2734,7 +2747,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 			player->mo->waterlevel == 0)
 		{
 			int id = S_FindSkinnedSound (player->mo, "*falling");
-			if (id != 0 && !S_GetSoundPlayingInfo (player->mo, id))
+			if (id != 0 && !S_IsActorPlayingSomething (player->mo, CHAN_VOICE, id))
 			{
 				S_SoundID (player->mo, CHAN_VOICE, id, 1, ATTN_NORM);
 			}

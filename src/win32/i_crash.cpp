@@ -1717,7 +1717,7 @@ static INT_PTR CALLBACK CrashDlgProc (HWND hDlg, UINT message, WPARAM wParam, LP
 			tcrect.right - tcrect.left - 8, tcrect.bottom - tcrect.top - tabrect.bottom - 8, 0);
 
 		tcitem.pszText = "Details";
-		tcitem.lParam = (LPARAM)CreateDialogParam (g_hInst, MAKEINTRESOURCE(IDD_CRASHDETAILS), hDlg, DetailsDlgProc, (LPARAM)edit);;
+		tcitem.lParam = (LPARAM)CreateDialogParam (g_hInst, MAKEINTRESOURCE(IDD_CRASHDETAILS), hDlg, DetailsDlgProc, (LPARAM)edit);
 		TabCtrl_InsertItem (edit, 1, &tcitem);
 		SetWindowPos ((HWND)tcitem.lParam, HWND_TOP, tcrect.left + 3, tcrect.top + tabrect.bottom + 3,
 			tcrect.right - tcrect.left - 8, tcrect.bottom - tcrect.top - tabrect.bottom - 8, 0);
@@ -2983,7 +2983,6 @@ static void SaveReport (HANDLE file)
 		else
 		{
 			DWORD fileLen = GetFileSize (file, NULL), fileLeft;
-			DWORD bytesCopied = 0;
 			char xferbuf[1024];
 
 			SetFilePointer (file, 0, NULL, FILE_BEGIN);

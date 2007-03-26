@@ -105,11 +105,18 @@
 #include "sv_admin.h"
 #include "callvote.h"
 #include "invasion.h"
-#include "zgl_main.h"
 #include "survival.h"
 #include "possession.h"
 
-#include "zgl_main.h" // [ZDoomGL]
+#include "st_start.h"
+
+#include "gl/gl_functions.h"
+
+// comment this out if you only want ZDoom's original.
+//#define ALTERNATIVE_HUD
+//EXTERN_CVAR(Bool, hud_althud)
+void DrawHUD();
+
 extern player_t *Player;
 
 // MACROS ------------------------------------------------------------------
@@ -132,7 +139,6 @@ void G_BuildTiccmd (ticcmd_t* cmd);
 void D_DoAdvanceDemo ();
 void D_AddFile (const char *file, bool bLoadedAutomatically);	// [BC]
 void D_AddWildFile (const char *pattern);
-void I_RestartRenderer(); // [ZDoomGL]
 
 // PRIVATE FUNCTION PROTOTYPES ---------------------------------------------
 
@@ -148,12 +154,6 @@ EXTERN_CVAR (Float, m_pitch)
 EXTERN_CVAR (Float, m_yaw)
 EXTERN_CVAR (Bool, invertmouse)
 EXTERN_CVAR (Bool, lookstrafe)
-
-EXTERN_CVAR (Int, vid_renderer) // [ZDoomGL]
-EXTERN_CVAR (Int, vid_defwidth)
-EXTERN_CVAR (Int, vid_defheight)
-EXTERN_CVAR (Int, gl_vid_refresh)
-extern bool changerenderer;
 
 extern gameinfo_t SharewareGameInfo;
 extern gameinfo_t RegisteredGameInfo;
@@ -171,7 +171,6 @@ extern int testingmode;
 extern bool setmodeneeded;
 extern bool netdemo;
 extern int NewWidth, NewHeight, NewBits, DisplayBits;
-extern unsigned long lastRefresh; // [ZDoomGL]
 EXTERN_CVAR (Bool, st_scale)
 extern bool gameisdead;
 extern bool demorecording;
@@ -191,7 +190,7 @@ CVAR (Int, wipetype, 1, CVAR_ARCHIVE);
 bool DrawFSHUD;				// [RH] Draw fullscreen HUD?
 wadlist_t *wadfiles;		// [RH] remove limit on # of loaded wads
 bool devparm;				// started game with -devparm
-char *D_DrawIcon;			// [RH] Patch name of icon to draw on next refresh
+const char *D_DrawIcon;		// [RH] Patch name of icon to draw on next refresh
 int NoWipe;					// [RH] Allow wipe? (Needs to be set each time)
 bool singletics = false;	// debug flag to cancel adaptiveness
 char startmap[8];
@@ -208,22 +207,23 @@ FTexture *Advisory;
 
 cycle_t FrameCycles;
 
-const char *IWADTypeNames[NUM_IWAD_TYPES] =
+const IWADInfo IWADInfos[NUM_IWAD_TYPES] =
 {
-	"DOOM 2: TNT - Evilution",
-	"DOOM 2: Plutonia Experiment",
-	"Hexen: Beyond Heretic",
-	"Hexen: Deathkings of the Dark Citadel",
-	"DOOM 2: Hell on Earth",
-	"Heretic Shareware",
-	"Heretic: Shadow of the Serpent Riders",
-	"Heretic",
-	"DOOM Shareware",
-	"The Ultimate DOOM",
-	"DOOM Registered",
-	"Strife: Quest for the Sigil",
-	"Strife: Teaser (Old Version)",
-	"Strife: Teaser (New Version)"
+	// banner text,								fg color,				bg color
+	{ "DOOM 2: TNT - Evilution",				MAKERGB(168,0,0),		MAKERGB(168,168,168) },
+	{ "DOOM 2: Plutonia Experiment",			MAKERGB(168,0,0),		MAKERGB(168,168,168) },
+	{ "Hexen: Beyond Heretic",					MAKERGB(240,240,240),	MAKERGB(107,44,24) },
+	{ "Hexen: Deathkings of the Dark Citadel",	MAKERGB(240,240,240),	MAKERGB(139,68,9) },
+	{ "DOOM 2: Hell on Earth",					MAKERGB(168,0,0),		MAKERGB(168,168,168) },
+	{ "Heretic Shareware",						MAKERGB(252,252,0),		MAKERGB(168,0,0) },
+	{ "Heretic: Shadow of the Serpent Riders",	MAKERGB(252,252,0),		MAKERGB(168,0,0) },
+	{ "Heretic",								MAKERGB(252,252,0),		MAKERGB(168,0,0) },
+	{ "DOOM Shareware",							MAKERGB(168,0,0),		MAKERGB(168,168,168) },
+	{ "The Ultimate DOOM",						MAKERGB(84,84,84),		MAKERGB(168,168,168) },
+	{ "DOOM Registered",						MAKERGB(84,84,84),		MAKERGB(168,168,168) },
+	{ "Strife: Quest for the Sigil",			MAKERGB(224,173,153),	MAKERGB(0,107,101) },
+	{ "Strife: Teaser (Old Version)",			MAKERGB(224,173,153),	MAKERGB(0,107,101) },
+	{ "Strife: Teaser (New Version)",			MAKERGB(224,173,153),	MAKERGB(0,107,101) }
 };
 
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
@@ -512,10 +512,12 @@ void D_Display (bool screenshot)
 	}
 
 	// [RH] change the screen mode if needed
+	I_CheckRestartRenderer();
 	if (setmodeneeded)
 	{
-		if ( OPENGL_GetCurrentRenderer( ) == RENDERER_SOFTWARE )
+		switch(currentrenderer)
 		{
+		case 0:
 			// Change screen mode.
 			if (V_SetResolution (NewWidth, NewHeight, NewBits))
 			{
@@ -530,25 +532,23 @@ void D_Display (bool screenshot)
 				C_NewModeAdjust ();
 				// Reload crosshair if transitioned to a different size
 				crosshair.Callback ();
+				setmodeneeded = false;
 			}
-		}
-		else
-		{
+			break;
+
+		case 1:
 			I_RestartRenderer();
 			// Let the status bar know the screen size changed
 			if (StatusBar != NULL)
 			{
 				StatusBar->ScreenSizeChanged ();
 			}
-
 			// Refresh the console.
 			C_NewModeAdjust ();
-
 			// Reload crosshair if transitioned to a different size
 			crosshair.Callback ();
-			setmodeneeded = false;
+			break;
 		}
-		GL_FakeUpdateShaders();
 	}
 
 	RenderTarget = screen;
@@ -567,10 +567,10 @@ void D_Display (bool screenshot)
 	}
 
 	// [RH] Allow temporarily disabling wipes
-	if (NoWipe)
+	if (NoWipe || currentrenderer == 1)
 	{
 		BorderNeedRefresh = screen->GetPageCount ();
-		NoWipe--;
+		if (currentrenderer==0) NoWipe--;
 		wipe = false;
 		wipegamestate = gamestate;
 	}
@@ -592,8 +592,6 @@ void D_Display (bool screenshot)
 	{
 		wipe = false;
 	}
-
-	GL_UpdateShaders();
 
 	if (testpolymost)
 	{
@@ -617,30 +615,41 @@ void D_Display (bool screenshot)
 			if (!gametic)
 				break;
 
-			if (viewactive)
-			{
-				if ( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL ){
-					Player = &players[consoleplayer];
-					GL_LinkLights();
-					FCanvasTextureInfo::UpdateAll ();
-					GL_RenderPlayerView(&players[consoleplayer], NetUpdate);
-					R_RefreshViewBorder ();
-				}
-				else
+			// [BB] Necessary?
+			//if (viewactive)
+			//{
+				R_RefreshViewBorder ();
+				P_CheckPlayerSprites();
+				if (currentrenderer==0)
 				{
-					R_RefreshViewBorder ();
-					P_CheckPlayerSprites();
-					if ( players[consoleplayer].mo )
-						R_RenderActorView (players[consoleplayer].mo);
+					R_RenderActorView (players[consoleplayer].mo);
 					R_DetailDouble ();		// [RH] Apply detail mode expansion
 					// [RH] Let cameras draw onto textures that were visible this frame.
 					FCanvasTextureInfo::UpdateAll ();
 				}
-			}
+				else
+				{
+					gl_RenderPlayerView (&players[consoleplayer]);
+				}
+			//}
+
 			if (automapactive)
 			{
+				int saved_ST_Y=ST_Y;
+				//if (hud_althud && realviewheight == SCREENHEIGHT) ST_Y=realviewheight;
 				AM_Drawer ();
+				ST_Y = saved_ST_Y;
 			}
+
+	#ifdef ALTERNATIVE_HUD
+
+			if (hud_althud && realviewheight == SCREENHEIGHT)
+			{
+				if (DrawFSHUD || automapactive) DrawHUD();
+				StatusBar->DrawTopStuff (DrawFSHUD ? HUD_Fullscreen : HUD_None);
+			}
+			else 
+	#endif
 			if (realviewheight == SCREENHEIGHT && viewactive)
 			{
 				StatusBar->Draw (DrawFSHUD ? HUD_Fullscreen : HUD_None);
@@ -796,7 +805,7 @@ void D_Display (bool screenshot)
 
 	NetUpdate ();			// send out any new accumulation
 
-	if (!wipe || screenshot)
+	if (!wipe || screenshot || currentrenderer==1)
 	{
 		// normal update
 		C_DrawConsole ();	// draw console
@@ -885,8 +894,6 @@ void D_DoomLoop ()
 	{
 		try
 		{
-			frameStartMS = I_MSTime(); // [ZDoomGL]
-
 			switch ( NETWORK_GetState( ))
 			{
 			case NETSTATE_CLIENT:
@@ -916,7 +923,7 @@ void D_DoomLoop ()
 //		players[consoleplayer].viewz = players[consoleplayer].mo->z + 41*FRACUNIT;
 
 				D_Display( false );
-
+/*
 				if (changerenderer)
 				{
 					OPENGL_SetCurrentRenderer( (RENDERER_e)(LONG)vid_renderer );
@@ -924,6 +931,7 @@ void D_DoomLoop ()
 					I_RestartRenderer();
 					changerenderer = false;
 				}
+*/
 				break;
 			case NETSTATE_SERVER:
 
@@ -967,7 +975,7 @@ void D_DoomLoop ()
 				// Update display, next frame, with current state.
 				I_StartTic ();
 				D_Display (false);
-
+/*
 				if (changerenderer)
 				{
 					OPENGL_SetCurrentRenderer( (RENDERER_e)(LONG)vid_renderer );
@@ -975,6 +983,7 @@ void D_DoomLoop ()
 					I_RestartRenderer();
 					changerenderer = false;
 				}
+*/
 				break;
 			}
 		}
@@ -2238,6 +2247,8 @@ void D_DoomMain (void)
 	rngseed = (DWORD)time (NULL);
 	FRandom::StaticClearRandom ();
 	M_FindResponseFile ();
+
+	Printf ("M_LoadDefaults: Load system defaults.\n");
 	M_LoadDefaults ();			// load before initing other systems
 
 	// [RH] Make sure zdoom.pk3 is always loaded,
@@ -2249,67 +2260,61 @@ void D_DoomMain (void)
 		I_FatalError ("Cannot find " BASEWAD);
 	}
 
-	I_SetTitleString (IWADTypeNames[IdentifyVersion(wad)]);
+	I_SetIWADInfo (&IWADInfos[IdentifyVersion(wad)]);
 	GameConfig->DoGameSetup (GameNames[gameinfo.gametype]);
-	// [RH] zvox.wad - A wad I had intended to be automatically generated
-	// from Q2's pak0.pak so the female and cyborg player could have
-	// voices. I never got around to writing the utility to do it, though.
-	// And I probably never will now. But I know at least one person uses
-	// it for something else, so this gets to stay here.
-	// [BB] Loading zvox with Skulltag introduces a bag of problems and does't do any good.
-	//wad = BaseFileSearch ("zvox.wad", NULL);
-	//if (wad)
-	//	D_AddFile (wad, false);	// [BC]
-
-
-	// [BC] Also load skulltag.wad.
-	wad = BaseFileSearch( "skulltag.wad", NULL, true );
-	if ( wad == NULL )
-		I_FatalError( "Cannot find skulltag.wad" );
-	else
-		D_AddFile( wad, false );
-
-	// [ZDoomGL] Make sure zdoomgl.wad is always loaded (contains particle images)
-	wad = BaseFileSearch ("zdoomgl.wad", NULL);
-	if (wad)
-		D_AddFile (wad, false );
-	else
-		I_FatalError ("Cannot find zdoomgl.wad");
-
-	// [RH] Add any .wad files in the skins directory
-#ifdef unix
-	sprintf (file, "%sskins", SHARE_DIR);
-#else
-	sprintf (file, "%sskins", progdir);
-#endif
-	D_AddDirectory (file);
-
-	// [BC] Add any .wad files in the \ANNOUNCER directory.
-#ifdef unix
-	sprintf (file, "%sannouncer", SHARE_DIR);
-#else
-	sprintf (file, "%sannouncer", progdir);
-#endif
-	D_AddDirectory (file);
-
-	// Add any .wad files in the \BOTS directory.
-#ifdef unix
-	sprintf (file, "%sbots", SHARE_DIR);
-#else
-	sprintf (file, "%sbots", progdir);
-#endif
-	D_AddDirectory (file);
-
-	const char *home = getenv ("HOME");
-	if (home)
-	{
-		sprintf (file, "%s%s.zdoom/skins", home,
-			home[strlen(home)-1] == '/' ? "" : "/");
-		D_AddDirectory (file);
-	}
 
 	if (!(gameinfo.flags & GI_SHAREWARE))
 	{
+		// [RH] zvox.wad - A wad I had intended to be automatically generated
+		// from Q2's pak0.pak so the female and cyborg player could have
+		// voices. I never got around to writing the utility to do it, though.
+		// And I probably never will now. But I know at least one person uses
+		// it for something else, so this gets to stay here.
+		// [BB] Loading zvox with Skulltag introduces a bag of problems and does't do any good.
+		//wad = BaseFileSearch ("zvox.wad", NULL);
+		//if (wad)
+		//	D_AddFile (wad, false);	// [BC]
+
+
+		// [BC] Also load skulltag.wad.
+		wad = BaseFileSearch( "skulltag.wad", NULL, true );
+		if ( wad == NULL )
+			I_FatalError( "Cannot find skulltag.wad" );
+		else
+			D_AddFile( wad, false );
+
+		// [RH] Add any .wad files in the skins directory
+#ifdef unix
+		sprintf (file, "%sskins", SHARE_DIR);
+#else
+		sprintf (file, "%sskins", progdir);
+#endif
+		D_AddDirectory (file);
+
+		// [BC] Add any .wad files in the \ANNOUNCER directory.
+#ifdef unix
+		sprintf (file, "%sannouncer", SHARE_DIR);
+#else
+		sprintf (file, "%sannouncer", progdir);
+#endif
+		D_AddDirectory (file);
+
+		// Add any .wad files in the \BOTS directory.
+#ifdef unix
+		sprintf (file, "%sbots", SHARE_DIR);
+#else
+		sprintf (file, "%sbots", progdir);
+#endif
+		D_AddDirectory (file);
+
+		const char *home = getenv ("HOME");
+		if (home)
+		{
+			sprintf (file, "%s%s.zdoom/skins", home,
+				home[strlen(home)-1] == '/' ? "" : "/");
+			D_AddDirectory (file);
+		}
+
 		// Add common (global) wads
 		D_AddConfigWads ("Global.Autoload");
 
@@ -2360,6 +2365,7 @@ void D_DoomMain (void)
 	delete files1;
 	delete files2;
 
+	Printf ("W_Init: Init WADfiles.\n");
 	Wads.InitMultipleFiles (&wadfiles);
 
 	// Initialize the chat module.
@@ -2406,40 +2412,47 @@ void D_DoomMain (void)
 	// [RH] Initialize localizable strings.
 	GStrings.LoadStrings (false);
 
+/*
 	// Initialize the renderer.
 	if (( vid_renderer >= 0 ) && ( vid_renderer < NUM_RENDERERS ))
 		OPENGL_SetCurrentRenderer( (RENDERER_e)(LONG)vid_renderer );
 	else
 		OPENGL_SetCurrentRenderer( RENDERER_SOFTWARE );
+*/
 
 	// [RH] Moved these up here so that we can do most of our
 	//		startup output in a fullscreen console.
 
+	Printf ("I_Init: Setting up machine state.\n");
 	I_Init ();
 
 	// Server doesn't need video.
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
+		Printf ("V_Init: allocate screen.\n");
 		V_Init ();
-
-		// Construct the OpenGL module.
-		OPENGL_Construct( );
 	}
 
 	// Base systems have been inited; enable cvar callbacks
 	FBaseCVar::EnableCallbacks ();
 
+	Printf ("S_Init: Setting up sound.\n");
+	S_Init ();
+
+	Printf ("ST_Init: Init startup screen.\n");
+	ST_Init (R_GuesstimateNumTextures() + 5);
 
 	// [RH] Now that all text strings are set up,
 	// insert them into the level and cluster data.
 	G_MakeEpisodes ();
 	
 	// [RH] Parse through all loaded mapinfo lumps
+	Printf ("G_ParseMapInfo: Load map definitions.\n");
 	G_ParseMapInfo ();
 
 	// [RH] Parse any SNDINFO lumps
-	S_ParseSndInfo ();
-	S_ParseSndEax ();
+	Printf ("S_InitData: Load sound definitions.\n");
+	S_InitData ();
 
 	FActorInfo::StaticInit ();
 
@@ -2456,18 +2469,14 @@ void D_DoomMain (void)
 	}
 
 	FActorInfo::StaticGameSet ();
+	ST_Progress ();
 
-	Printf ("Init DOOM refresh subsystem.\n");
+	Printf ("R_Init: Init %s refresh subsystem\n", GameNames[gameinfo.gametype]);
 	R_Init ();
 
+	Printf ("DecalLibrary: Load decals.\n");
 	DecalLibrary.Clear ();
 	DecalLibrary.ReadAllDecals ();
-
-	// [ZDoomGL] - read the *DEFS lump
-	Printf("Init GL defs");
-	GL_ParseRemappedTextures();
-	GL_ParseDefs();
-	atterm(GL_ShutDown); // [ZDoomGL] - OpenGL shutdown stuff
 
 	// [RH] Try adding .deh and .bex files on the command line.
 	// If there are none, try adding any in the config file.
@@ -2515,6 +2524,7 @@ void D_DoomMain (void)
 
 	flags = dmflags;
 		
+	Printf ("P_Init: Checking cmd-line parameters...\n");
 	if (Args.CheckParm ("-nomonsters"))		flags |= DF_NO_MONSTERS;
 	if (Args.CheckParm ("-respawn"))		flags |= DF_MONSTERS_RESPAWN;
 	if (Args.CheckParm ("-fast"))			flags |= DF_FAST_MONSTERS;
@@ -2632,7 +2642,6 @@ void D_DoomMain (void)
 		autostart = true;
 	}
 
-	//I_Error ("Oh gnos!");
 	// [RH] Hack to handle +map
 	p = Args.CheckParm ("+map");
 	if (p && p < Args.NumArgs()-1)
@@ -2669,10 +2678,11 @@ void D_DoomMain (void)
 	// turbo option  // [RH] (now a cvar)
 	{
 		UCVarValue value;
+		static char one_hundred[] = "100";
 
 		value.String = Args.CheckValue ("-turbo");
 		if (value.String == NULL)
-			value.String = "100";
+			value.String = one_hundred;
 		else
 			Printf ("turbo scale: %s%%\n", value.String);
 
@@ -2694,16 +2704,13 @@ void D_DoomMain (void)
 		timelimit = 20.f;
 	}
 
-	Printf ("Init miscellaneous info.\n");
+	Printf ("M_Init: Init miscellaneous info.\n");
 	M_Init ();
 
-	Printf ("Init Playloop state.\n");
+	Printf ("P_Init: Init Playloop state.\n");
 	P_Init ();
 
-	Printf ("Setting up sound.\n");
-	S_Init ();
-
-	Printf ("Checking network game status.\n");
+	Printf ("D_CheckNetGame: Checking network game status.\n");
 	D_CheckNetGame ();
 
 	// [BC] 
@@ -2742,6 +2749,9 @@ void D_DoomMain (void)
 			G_RecordDemo (v);
 			autostart = true;
 		}
+
+		ST_Done();
+		V_Init2();
 
 		files = Args.GatherFiles ("-playdemo", ".lmp", false);
 		if (files->NumArgs() > 0)
@@ -2784,7 +2794,6 @@ void D_DoomMain (void)
 		}
 		else
 		{
-			BorderNeedRefresh = screen->GetPageCount ();
 			if (autostart)// || ( NETWORK_GetState( ) != NETSTATE_SINGLE ))
 			{
 				CheckWarpTransMap (startmap, true);

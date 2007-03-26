@@ -25,7 +25,6 @@
 #include "r_main.h"
 // [BC] New #includes.
 #include "network.h"
-#include "zgl_main.h"
 #include "sv_commands.h"
 
 // MACROS ------------------------------------------------------------------
@@ -36,7 +35,6 @@
 
 // EXTERNAL FUNCTION PROTOTYPES --------------------------------------------
 
-bool PO_MovePolyobj (int num, int x, int y);
 bool PO_RotatePolyobj (int num, angle_t angle);
 void PO_Init (void);
 
@@ -119,8 +117,6 @@ void DPolyAction::SetInterpolation ()
 	{
 		setinterpolation (INTERP_Vertex, poly->segs[i]->v1);
 		setinterpolation (INTERP_Vertex, poly->segs[i]->v2);
-      //sectorMoving[ULONG( poly->segs[i]->frontsector - sectors )] = true; // [ZDoomGL]
-	  poly->segs[i]->frontsector->lastUpdate = validcount; // [ZDoomGL] 
 	}
 }
 
@@ -1043,12 +1039,9 @@ static void UpdateSegBBox (seg_t *seg)
 //
 //==========================================================================
 
-bool PO_MovePolyobj (int num, int x, int y)
+bool PO_MovePolyobj (int num, int x, int y, bool force)
 {
-	int count;
-	seg_t **segList;
 	polyobj_t *po;
-	bool blocked;
 
 	if (!(po = GetPolyobj (num)))
 	{
@@ -1058,30 +1051,32 @@ bool PO_MovePolyobj (int num, int x, int y)
 	UnLinkPolyobj (po);
 	DoMovePolyobj (po, x, y);
 
-	segList = po->segs;
-	blocked = false;
-
-	// Don't check if the polyobject was blocked by something in client mode. The server will
-	// tell us if something is blocking its path.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (!force)
 	{
-		for (count = po->numsegs; count; count--, segList++)
+		seg_t **segList = po->segs;
+		bool blocked = false;
+
+		// Don't check if the polyobject was blocked by something in client mode. The server will
+		// tell us if something is blocking its path.
+		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
 		{
-			if (CheckMobjBlocking(*segList, po))
+			for (int count = po->numsegs; count; count--, segList++)
 			{
-				blocked = true;
-				break;
+				if (CheckMobjBlocking(*segList, po))
+				{
+					blocked = true;
+					break;
+				}
 			}
 		}
-	}
 
-	if (blocked)
-	{
-		DoMovePolyobj (po, -x, -y);
-		LinkPolyobj(po);
-		return false;
+		if (blocked)
+		{
+			DoMovePolyobj (po, -x, -y);
+			LinkPolyobj(po);
+			return false;
+		}
 	}
-
 	po->startSpot[0] += x;
 	po->startSpot[1] += y;
 	LinkPolyobj (po);
@@ -1768,7 +1763,7 @@ static void TranslateToStartSpot (int tag, int originX, int originY)
 	}
 	avg.x /= po->numsegs;
 	avg.y /= po->numsegs;
-	sub = R_PointInSubsector (avg.x<<FRACBITS, avg.y<<FRACBITS);
+	sub = R_PointInSubsector2 (avg.x<<FRACBITS, avg.y<<FRACBITS);
 	if (sub->poly != NULL)
 	{
 		I_Error ("PO_TranslateToStartSpot: Multiple polyobjs in a single subsector.\n");

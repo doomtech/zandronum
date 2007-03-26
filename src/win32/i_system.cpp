@@ -23,7 +23,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <conio.h>
 #include <io.h>
 #include <direct.h>
 #include <string.h>
@@ -82,7 +81,7 @@ extern "C"
 	CPUInfo		CPU;
 }
 
-extern HWND Window, ConWindow;
+extern HWND Window, ConWindow, GameTitleWindow;
 extern HINSTANCE g_hInst;
 
 UINT TimerPeriod;
@@ -91,6 +90,8 @@ UINT MillisecondsPerTic;
 HANDLE NewTicArrived;
 uint32 LanguageIDs[4];
 void CalculateCPUSpeed ();
+
+const IWADInfo *DoomStartupInfo;
 
 int (*I_GetTime) (bool saveMS);
 int (*I_WaitForTic) (int);
@@ -241,7 +242,6 @@ void I_WaitVBL (int count)
 }
 
 // [RH] Detect the OS the game is running under
-void			SERVERCONSOLE_UpdateOperatingSystem( char *pszString );
 void I_DetectOS (void)
 {
 	OSVERSIONINFO info;
@@ -298,27 +298,19 @@ void I_DetectOS (void)
 		break;
 	}
 
-	Printf ("OS: Windows %s %lu.%lu (Build %lu)\n",
-			osname,
-			info.dwMajorVersion, info.dwMinorVersion,
-			OSPlatform == os_Win95 ? info.dwBuildNumber & 0xffff : info.dwBuildNumber);
-
-	if ( Args.CheckParm( "-host" ))
+	if (OSPlatform == os_Win95)
 	{
-		char	szString[256];
-
-		sprintf( szString,
-			"Windows %s %lu.%lu (Build %lu)",
-			osname,
-			info.dwMajorVersion, info.dwMinorVersion,
-			OSPlatform == os_Win95 ? info.dwBuildNumber & 0xffff : info.dwBuildNumber );
-
-		SERVERCONSOLE_UpdateOperatingSystem( szString );
+		Printf ("OS: Windows %s %lu.%lu.%lu %s\n",
+				osname,
+				info.dwMajorVersion, info.dwMinorVersion,
+				info.dwBuildNumber & 0xffff, info.szCSDVersion);
 	}
-
-	if (info.szCSDVersion[0])
+	else
 	{
-		Printf ("    %s\n", info.szCSDVersion);
+		Printf ("OS: Windows %s %lu.%lu (Build %lu)\n    %s\n",
+				osname,
+				info.dwMajorVersion, info.dwMinorVersion,
+				info.dwBuildNumber, info.szCSDVersion);
 	}
 
 	if (OSPlatform == os_unknown)
@@ -382,7 +374,6 @@ void SetLanguageIDs ()
 //
 // I_Init
 //
-void SERVERCONSOLE_UpdateVendor( char *pszString );
 void I_Init (void)
 {
 #ifndef USEASM
@@ -410,9 +401,6 @@ void I_Init (void)
 	if (CPU.VendorID[0])
 	{
 		Printf ("CPU Vendor ID: %s\n", CPU.VendorID);
-		if ( Args.CheckParm( "-host" ))
-			SERVERCONSOLE_UpdateVendor( CPU.VendorID );
-
 		if (CPU.CPUString[0])
 		{
 			Printf ("  Name: %s\n", CPU.CPUString);
@@ -466,9 +454,7 @@ void I_Init (void)
 			);
 		MillisecondsPerTic = delay;
 	}
-	
-	// Server is never a timer event.
-	if (( TimerEventID != 0 ) && ( NETWORK_GetState( ) != NETSTATE_SERVER ))
+	if (TimerEventID != 0)
 	{
 		I_GetTime = I_GetTimeEventDriven;
 		I_WaitForTic = I_WaitForTicEvent;
@@ -479,16 +465,10 @@ void I_Init (void)
 		I_WaitForTic = I_WaitForTicPolled;
 	}
 
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-	{
-		atterm (I_ShutdownSound);
-		I_InitSound ();
-		I_InitInput (Window);
-		I_InitHardware ();
-	}
+	atterm (I_ShutdownSound);
+	I_InitSound ();
 }
 
-void SERVERCONSOLE_UpdateCPUSpeed( char *pszString );
 void CalculateCPUSpeed ()
 {
 	LARGE_INTEGER freq;
@@ -532,25 +512,9 @@ void CalculateCPUSpeed ()
 	else
 	{
 		Printf ("Can't determine CPU speed, so pretending.\n");
-
-		if ( Args.CheckParm( "-host" ))
-		{
-			char	szString[256];
-
-			sprintf( szString, "Can't determine CPU speed, so pretending.", CyclesPerSecond / 1e6 );
-			SERVERCONSOLE_UpdateCPUSpeed( szString );
-		}
 	}
 
 	Printf ("CPU Speed: %f MHz\n", CyclesPerSecond / 1e6);
-
-	if ( Args.CheckParm( "-host" ))
-	{
-		char	szString[256];
-
-		sprintf( szString, "%f MHz", CyclesPerSecond / 1e6 );
-		SERVERCONSOLE_UpdateCPUSpeed( szString );
-	}
 }
 
 //
@@ -592,13 +556,12 @@ void STACK_ARGS I_FatalError (const char *error, ...)
 
 	if (!alreadyThrown)		// ignore all but the first message -- killough
 	{
+		alreadyThrown = true;
 		char errortext[MAX_ERRORTEXT];
 		int index;
 		va_list argptr;
 		va_start (argptr, error);
 		index = vsprintf (errortext, error, argptr);
-// GetLastError() is usually useless because we don't do a lot of Win32 stuff
-//		sprintf (errortext + index, "\nGetLastError = %ld", GetLastError());
 		va_end (argptr);
 
 		// Record error to log (if logging)
@@ -627,38 +590,38 @@ void STACK_ARGS I_Error (const char *error, ...)
 	throw CRecoverableError (errortext);
 }
 
-char DoomStartupTitle[256] = { 0 };
+extern void LayoutMainWindow (HWND hWnd, HWND pane);
 
-void I_SetTitleString (const char *title)
+void I_SetIWADInfo (const IWADInfo *info)
 {
-	int i;
+	DoomStartupInfo = info;
 
-	for (i = 0; title[i]; i++)
-		DoomStartupTitle[i] = title[i];
+	// Make the startup banner show itself
+	LayoutMainWindow (Window, NULL);
 }
 
-void I_PrintStr (const char *cp, bool lineBreak)
+void I_PrintStr (const char *cp)
 {
 	if (ConWindow == NULL)
 		return;
 
 	static bool newLine = true;
-	HWND edit = (HWND)(LONG_PTR)GetWindowLongPtr (ConWindow, GWLP_USERDATA);
+	HWND edit = ConWindow;
 	char buf[256];
 	int bpos = 0;
+	INTBOOL visible = GetWindowLongPtr (ConWindow, GWL_STYLE) & WS_VISIBLE;
 
-	int selstart, selend;
-	SendMessage (edit, EM_GETSEL, (WPARAM)&selstart, (LPARAM)&selend);
+	int maxsel, selstart, selend, numlines1, numlines2;
 
-//	SendMessage (edit, EM_SETSEL, (WPARAM)-1, 0);
-	SendMessage (edit, EM_SETSEL, INT_MAX, INT_MAX);
-
-	if (lineBreak && !newLine)
+	if (visible)
 	{
-		buf[0] = '\r';
-		buf[1] = '\n';
-		bpos = 2;
+		SendMessage (edit, WM_SETREDRAW, FALSE, 0);
 	}
+	numlines1 = SendMessage (edit, EM_GETLINECOUNT, 0, 0);
+	maxsel = SendMessage (edit, WM_GETTEXTLENGTH, 0, 0);
+	SendMessage (edit, EM_GETSEL, (WPARAM)&selstart, (LPARAM)&selend);
+	SendMessage (edit, EM_SETSEL, maxsel, maxsel);
+
 	while (*cp != 0)
 	{
 		if (*cp == 28)
@@ -691,6 +654,16 @@ void I_PrintStr (const char *cp, bool lineBreak)
 		newLine = buf[bpos-1] == '\n';
 	}
 	SendMessage (edit, EM_SETSEL, selstart, selend);
+	numlines2 = SendMessage (edit, EM_GETLINECOUNT, 0, 0);
+	if (numlines2 > numlines1)
+	{
+		SendMessage (edit, EM_LINESCROLL, 0, numlines2 - numlines1);
+	}
+	if (visible)
+	{
+		SendMessage (edit, WM_SETREDRAW, TRUE, 0);
+		I_GetEvent ();
+	}
 }
 
 EXTERN_CVAR (Bool, queryiwad);
@@ -744,7 +717,7 @@ BOOL CALLBACK IWADBoxCallback (HWND hDlg, UINT message, WPARAM wParam, LPARAM lP
 				filepart = WadList[i].Path;
 			else
 				filepart++;
-			work.Format ("%s (%s)", IWADTypeNames[WadList[i].Type], filepart);
+			work.Format ("%s (%s)", IWADInfos[WadList[i].Type].Name, filepart);
 			SendMessage (ctrl, LB_ADDSTRING, 0, (LPARAM)work.GetChars());
 			SendMessage (ctrl, LB_SETITEMDATA, i, (LPARAM)i);
 		}
@@ -835,67 +808,4 @@ int I_FindNext (void *handle, findstate_t *fileinfo)
 int I_FindClose (void *handle)
 {
 	return FindClose ((HANDLE)handle);
-}
-
-//
-// I_ConsoleInput - [NightFang] - pulled from the old 0.99 code
-//
-char *I_ConsoleInput (void)
-{
-#ifndef	WIN32
-	static 	char text[256];
-	int	len;
-	if (!stdin_ready || !do_stdin)
-	{ return NULL; }
-
-	stdin_ready = 0;
-
-	len = read(0, text, sizeof(text));
-	if (len < 1)
-	{ return NULL; }
-
-	text[len-1] = 0;
-
-	return text;
-#else
-	
-// Windows code
-	static char     text[256];
-    static int              len;
-    int             c;
-
-    // read a line out
-    while (_kbhit())
-    {
-		c = _getch();
-        putch (c);
-        if (c == '\r')
-        {
-			text[len] = 0;
-            putch ('\n');
-            len = 0;
-            return text;
-        }
-        
-		if (c == 8)
-        {
-			if (len)
-            {
-				putch (' ');
-                putch (c);
-                len--;
-                text[len] = 0;
-            }
-            continue;
-        }
-    
-		text[len] = c;
-        len++;
-        text[len] = 0;
-        if (len == sizeof(text))
-		    len = 0;
-	}
-
-    return NULL;
-#endif
 }

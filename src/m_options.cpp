@@ -76,7 +76,6 @@
 
 // Data.
 #include "m_menu.h"
-#include "zgl_main.h"
 
 #include "announcer.h"
 #include "cl_main.h"
@@ -98,7 +97,19 @@
 #include "sbar.h"
 #include "p_effect.h"
 
+#include "gl/gl_functions.h"
+
+void StartGLMenu (void);
+EXTERN_CVAR(Int, vid_renderer)
 EXTERN_CVAR(Bool, nomonsterinterpolation)
+
+static value_t Renderers[] = {
+	{ 0.0, "Software" },
+	{ 1.0, "OpenGL" },
+};
+//EXTERN_CVAR(Bool, hud_althud)
+extern bool gl_disabled;
+
 //
 // defaulted values
 //
@@ -125,7 +136,6 @@ EXTERN_CVAR (Int, snd_buffersize)
 EXTERN_CVAR (Int, snd_samplerate)
 EXTERN_CVAR (Bool, snd_3d)
 EXTERN_CVAR (Bool, snd_waterreverb)
-EXTERN_CVAR (Int, vid_renderer) // [ZDoomGL]
 
 /*static*/	ULONG		g_ulPlayerSetupSkin;
 /*static*/	ULONG		g_ulPlayerSetupColor;
@@ -307,7 +317,7 @@ value_t VoteCommandVals[8] = {
 
 menu_t  *CurrentMenu;
 int		CurrentItem;
-static char	   *OldMessage;
+static const char	   *OldMessage;
 static itemtype OldType;
 
 extern	IVideo	*Video;
@@ -330,7 +340,7 @@ enum
  * Confirm Menu - Used by safemore
  *
  *=======================================*/
-static void ActivateConfirm (char *text, void (*func)());
+static void ActivateConfirm (const char *text, void (*func)());
 static void ConfirmIsAGo ();
 
 static menuitem_t ConfirmItems[] = {
@@ -551,7 +561,7 @@ menu_t JoystickMenu =
  *
  *=======================================*/
 
-static menuitem_t ControlsItems[] =
+menuitem_t ControlsItems[] =
 {
 	{ redtext,"ENTER to change, BACKSPACE to clear", {NULL}, {0.0}, {0.0}, {0.0}, {NULL} },
 	{ redtext,	" ",					{NULL},	{0.0}, {0.0}, {0.0}, {NULL} },
@@ -707,17 +717,20 @@ static value_t RespawnInvulEffectTypes[] = {
 
 static menuitem_t VideoItems[] = {
 	{ more,		"Message Options",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)StartMessagesMenu} },
+	{ more,     "OpenGL Options",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)StartGLMenu} },
 	{ more,		"Automap Options",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)StartAutomapMenu} },
-	{ more,		"OpenGL Options",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)StartOpenGLMenu} }, // [ZDoomGL]
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ slider,	"Screen size",			{&screenblocks},	   	{3.0}, {12.0},	{1.0}, {NULL} },
-	{ slider,	"Brightness",			{&Gamma},			   	{1.0}, {3.0},	{0.1}, {NULL} },
+	{ slider,	"Gamma correction",		{&Gamma},			   	{0.1}, {3.0},	{0.1}, {NULL} },
+	{ slider,	"Brightness",			{&vid_brightness},		{-0.8}, {0.8},	{0.05}, {NULL} },
+	{ slider,	"Contrast",				{&vid_contrast},	   	{0.1}, {3.0},	{0.1}, {NULL} },
 	{ slider,	"Blood brightness",		{&blood_fade_scalar},  	{0.0}, {1.0},	{0.05}, {NULL} },
 	{ discrete,	"Crosshair",			{&crosshair},		   	{8.0}, {0.0},	{0.0}, {Crosshairs} },
 	{ discrete, "Column render mode",	{&r_columnmethod},		{2.0}, {0.0},	{0.0}, {ColumnMethods} },
 	{ discrete, "Detail mode",			{&r_detail},		   	{4.0}, {0.0},	{0.0}, {DetailModes} },
 	{ discrete, "Stretch short skies",	{&r_stretchsky},	   	{2.0}, {0.0},	{0.0}, {OnOff} },
 	{ discrete, "Stretch status bar",	{&st_scale},			{2.0}, {0.0},	{0.0}, {OnOff} },
+	//{ discrete, "Alternative HUD",		{&hud_althud},			{2.0}, {0.0},	{0.0}, {OnOff} },
 	{ discrete, "Screen wipe style",	{&wipetype},			{4.0}, {0.0},	{0.0}, {Wipes} },
 #ifdef _WIN32
 	{ discrete, "DirectDraw palette hack", {&vid_palettehack},	{2.0}, {0.0},	{0.0}, {OnOff} },
@@ -900,7 +913,7 @@ menu_t MapColorsMenu =
  * Color Picker Sub-menu
  *
  *=======================================*/
-static void StartColorPickerMenu (char *colorname, FColorCVar *cvar);
+static void StartColorPickerMenu (const char *colorname, FColorCVar *cvar);
 static void ColorPickerReset ();
 static int CurrColorIndex;
 static int SelColorIndex;
@@ -1095,12 +1108,6 @@ static value_t RatiosTFT[] =
 static char VMEnterText[] = "Press ENTER to set mode";
 static char VMTestText[] = "T to test mode for 5 seconds";
 
-// [ZDoomGL]
-static value_t Renderers[] = {
-	{ 0.0, "Software" },
-	{ 1.0, "OpenGL" },
-};
-
 static menuitem_t ModesItems[] = {
 //	{ discrete, "Screen mode",			{&DummyDepthCvar},		{0.0}, {0.0},	{0.0}, {Depths} },
 	{ discrete, "Aspect ratio",			{&menu_screenratios},	{4.0}, {0.0},	{0.0}, {Ratios} },
@@ -1161,7 +1168,6 @@ CUSTOM_CVAR (Bool, vid_tft, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 			menu_screenratios = 0;
 		}
 	}
-	BuildModesList (SCREENWIDTH, SCREENHEIGHT, DisplayBits);
 }
 
 /*=======================================
@@ -1413,6 +1419,14 @@ static menu_t AdvSoundMenu =
 	0,
 	AdvSoundItems,
 };
+
+static void ActivateConfirm (const char *text, void (*func)())
+{
+	ConfirmItems[0].label = text;
+	ConfirmItems[0].e.mfunc = func;
+	ConfirmMenu.lastOn = 3;
+	M_SwitchMenu (&ConfirmMenu);
+}
 
 /*=======================================
  *
@@ -2662,9 +2676,9 @@ static void M_DrawPlayerBackdrop (int x, int y)
 	const fixed_t fracystep = FRACUNIT*2 / CleanYfac;
 	fixed_t fracx, fracy = 0;
 
-	// [ZDoomGL]
-	if ( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL )
+	if (currentrenderer == 1)
 	{
+		// Why? :(
 		int srcW, srcH;
 		srcW = src->GetWidth();
 		srcH = src->GetHeight();
@@ -2674,13 +2688,11 @@ static void M_DrawPlayerBackdrop (int x, int y)
 		{
 			for (x = 0; x < srcW; x++)
 			{
-	            img[x + (y * srcW)] = FireRemap[srcImg[x + (y * srcW)]];
+				img[x + (y * srcW)] = FireRemap[srcImg[x + (y * srcW)]];
 			}
 		}
-    
-		textureList.SetSavegameTexture(0, img, srcW, srcH);
-		delete[] img;
-		GL_DrawQuad(destx, desty, destx + destwidth, desty + destheight);
+		gl_DrawBuffer(img, srcW, srcH, destx, desty, destwidth, destheight, NULL);
+		delete [] img;
 		return;
 	}
 
@@ -2770,18 +2782,24 @@ void M_PlayerSetupDrawer( void )
 	// This part renders the actual character.
 	{
 		spriteframe_t *sprframe;
-		int scale;
+		// [GZDoom]
+		fixed_t Scale;
+		//int scale;
 		
 		if (gameinfo.gametype != GAME_Hexen)
 		{
 			sprframe =
 				&SpriteFrames[sprites[skins[g_ulPlayerSetupSkin].sprite].spriteframes + PlayerState->GetFrame()];
-			scale = skins[g_ulPlayerSetupSkin].scale + 1;
+			// [GZDoom]
+			Scale = skins[g_ulPlayerSetupSkin].Scale;
+			//scale = skins[g_ulPlayerSetupSkin].scale + 1;
 		}
 		else
 		{
 			sprframe = &SpriteFrames[sprites[PlayerState->sprite.index].spriteframes + PlayerState->GetFrame()];
-			scale = GetDefault<APlayerPawn>()->xscale + 1;
+			// [GZDoom]
+			Scale = GetDefault<APlayerPawn>()->scaleX;
+			//scale = GetDefault<APlayerPawn>()->xscale + 1;
 		}
 
 		if (sprframe != NULL)
@@ -2797,15 +2815,18 @@ void M_PlayerSetupDrawer( void )
 
 				// Build the translation for the character that's going to draw.
 				R_BuildPlayerSetupPlayerTranslation( g_ulPlayerSetupColor, &skins[g_ulPlayerSetupSkin] );
-
+/*
 				if ( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL )
 			       textureList.UpdateForTranslation(translationtables[TRANSLATION_PlayerSetupMenu] + consoleplayer*256);
-
+*/
 				screen->DrawTexture (tex,
 					(320 - 52 - 32 + xo - 160)*CleanXfac + (SCREENWIDTH)/2,
 					(usOldPlayerSetupYOffset + usLineHeight*3 + 57 - 104)*CleanYfac + (SCREENHEIGHT/2),
-					DTA_DestWidth, MulScale6 (tex->GetWidth() * CleanXfac, scale),
-					DTA_DestHeight, MulScale6 (tex->GetHeight() * CleanYfac, scale),
+					// [GZDoom]
+					DTA_DestWidth, MulScale6 (tex->GetWidth() * CleanXfac, Scale),
+					DTA_DestHeight, MulScale6 (tex->GetHeight() * CleanYfac, Scale),
+					//DTA_DestWidth, MulScale6 (tex->GetWidth() * CleanXfac, scale),
+					//DTA_DestHeight, MulScale6 (tex->GetHeight() * CleanYfac, scale),
 					DTA_Translation, translationtables[TRANSLATION_PlayerSetupMenu],
 					TAG_DONE);
 			}
@@ -3658,8 +3679,7 @@ menu_t JoinTeamMenu =
  * [ZDoomGL]: OpenGL Menu
  *
  *=======================================*/
-
-static void PurgeTextures ();
+/*
 static void ApplyFilterChanges ();
 static void ApplyFormatChanges ();
 
@@ -3670,7 +3690,7 @@ static void StartGLSpriteMenu (void);
 
 static FIntCVar DummyFilterCvar (NULL, 0, 0);
 static FIntCVar DummyFormatCvar (NULL, 0, 0);
-
+*/
 EXTERN_CVAR(Bool, gl_depthfog)
 EXTERN_CVAR(Bool, gl_wireframe)
 EXTERN_CVAR(Bool, gl_line_smooth)
@@ -3692,10 +3712,6 @@ EXTERN_CVAR(Bool, gl_lights_multiply)
 EXTERN_CVAR(Bool, gl_nobsp)
 EXTERN_CVAR(Bool, gl_mask_walls)
 EXTERN_CVAR(Bool, gl_mirror_envmap)
-EXTERN_CVAR(Bool, gl_automap_dukestyle)
-EXTERN_CVAR(Bool, gl_automap_glow)
-EXTERN_CVAR(Int, gl_automap_glowsize)
-EXTERN_CVAR(Float, gl_automap_transparency)
 EXTERN_CVAR(Bool, gl_sprite_precache)
 EXTERN_CVAR(Bool, gl_sprite_sharp_edges)
 EXTERN_CVAR(Bool, gl_sprite_clip_to_floor)
@@ -3752,7 +3768,7 @@ static value_t Anisotropy[] =
 	{ 8.0, "8x" },
 	{ 16.0, "16x" },
 };
-
+/*
 static menuitem_t GLSpriteItems[] = {
 	{ discrete, "Sprite billboard",			{&gl_billboard_mode}, {2.0}, {0.0}, {0.0}, {BillboardModes} },
 	{ discrete, "Precache sprites",			{&gl_sprite_precache}, {2.0}, {0.0}, {0.0}, {YesNo} },
@@ -3786,7 +3802,8 @@ static menuitem_t OpenGLItems[] = {
    { discrete, "Particles grow",			{&gl_particles_grow}, {2.0}, {0.0}, {0.0}, {OnOff} },
    { discrete, "Additive particles",		{&gl_particles_additive}, {2.0}, {0.0}, {0.0}, {OnOff} },
 };
-
+*/
+/*
 static menuitem_t GLTextureItems[] = {
 	{ discrete, "Textures enabled",			{&gl_texture},					{2.0}, {0.0}, {0.0}, {YesNo} },
 	{ discrete, "Multitexturing enabled",	{&gl_texture_multitexture},		{2.0}, {0.0}, {0.0}, {YesNo} },
@@ -3802,7 +3819,7 @@ static menuitem_t GLTextureItems[] = {
 	{ discrete, "Texture Format",			{&DummyFormatCvar},				{3.0}, {0.0}, {0.0}, {TextureFormats} },
 	{ more,		"Apply Format",				{NULL},							{0.0}, {0.0}, {0.0}, {(value_t *)ApplyFormatChanges} },
 	{ redtext,	" ",						{NULL},							{0.0}, {0.0}, {0.0}, {NULL} },
-	{ more,		"Purge Textures",			{NULL},							{0.0}, {0.0}, {0.0}, {(value_t *)PurgeTextures} },
+//	{ more,		"Purge Textures",			{NULL},							{0.0}, {0.0}, {0.0}, {(value_t *)PurgeTextures} },
 };
 
 static menuitem_t GLLightItems[] = {
@@ -3813,15 +3830,6 @@ static menuitem_t GLLightItems[] = {
 	{ discrete, "Lights affect particles",	{&gl_light_particles},	{2.0}, {0.0}, {0.0}, {YesNo} },
 	{ slider,	"Light intensity",			{&gl_lights_intensity}, {0.0}, {1.0}, {0.1}, {NULL} },
 	{ slider,	"Light size",				{&gl_lights_size},		{0.0}, {2.0}, {0.1}, {NULL} },
-};
-
-menu_t OpenGLMenu = {
-   "OPENGL OPTIONS",
-   0,
-   sizeof(OpenGLItems)/sizeof(OpenGLItems[0]),
-   0,
-   OpenGLItems,
-   0,
 };
 
 menu_t GLTextureMenu = {
@@ -3859,7 +3867,7 @@ menu_t GLSpriteMenu = {
    GLSpriteItems,
    0,
 };
-
+*/
 /*=======================================
  *
  * Text Scaling Menu
@@ -3904,7 +3912,7 @@ void SetupTextScalingMenu( void )
 	bool		bLetterBox;
 
 	iNumModes = 0;
-	Video->StartModeIterator (8);
+	Video->StartModeIterator (8, true);
 	while (Video->NextMode (&iWidth, &iHeight, &bLetterBox))
 	{
 		if (( iWidth <= con_virtualwidth ) && ( iHeight <= con_virtualheight ))
@@ -4007,6 +4015,35 @@ static BYTE BitTranslate[16];
 
 void M_OptInit (void)
 {
+	if (gameinfo.gametype == GAME_Doom)
+	{
+		LabelColor = CR_UNTRANSLATED;
+		ValueColor = CR_GRAY;
+		MoreColor = CR_GRAY;
+	}
+	else if (gameinfo.gametype == GAME_Heretic)
+	{
+		LabelColor = CR_GREEN;
+		ValueColor = CR_UNTRANSLATED;
+		MoreColor = CR_UNTRANSLATED;
+	}
+	else // Hexen
+	{
+		LabelColor = CR_RED;
+		ValueColor = CR_UNTRANSLATED;
+		MoreColor = CR_UNTRANSLATED;
+	}
+
+	if (gl_disabled)
+	{
+		// If the GL system is permanently disabled change the GL menu items.
+		VideoItems[1].label = "Enable OpenGL system";
+		ModesItems[1].type = nochoice;
+	}
+}
+
+void M_InitVideoModesMenu ()
+{
 	int dummy1, dummy2;
 	size_t currval = 0;
 	char name[24];
@@ -4015,10 +4052,12 @@ void M_OptInit (void)
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		return;
 
+	M_RefreshModesList();
+
 	for (unsigned int i = 1; i < 32 && currval < countof(Depths); i++)
 	{
-		I_StartModeIterator (i);
-		if (I_NextMode (&dummy1, &dummy2, NULL))
+		Video->StartModeIterator (i, screen->IsFullscreen());
+		if (Video->NextMode (&dummy1, &dummy2, NULL))
 		{
 			Depths[currval].value = currval;
 			sprintf (name, "%d bit", i);
@@ -4030,7 +4069,7 @@ void M_OptInit (void)
 
 	//ModesItems[VM_DEPTHITEM].b.min = (float)currval;
 
-	switch (I_DisplayType ())
+	switch (Video->GetDisplayType ())
 	{
 	case DISPLAY_FullscreenOnly:
 		ModesItems[2].type = nochoice;
@@ -4067,6 +4106,45 @@ void M_OptInit (void)
 	g_lSavedColor = 0;
 }
 
+/*
+void M_InitVideoModesMenu ()
+{
+	int dummy1, dummy2;
+	size_t currval = 0;
+	char name[24];
+
+	M_RefreshModesList();
+
+	for (unsigned int i = 1; i < 32 && currval < countof(Depths); i++)
+	{
+		Video->StartModeIterator (i, screen->IsFullscreen());
+		if (Video->NextMode (&dummy1, &dummy2, NULL))
+		{
+			Depths[currval].value = currval;
+			sprintf (name, "%d bit", i);
+			Depths[currval].name = copystring (name);
+			BitTranslate[currval] = i;
+			currval++;
+		}
+	}
+
+	//ModesItems[VM_DEPTHITEM].b.min = (float)currval;
+
+	switch (Video->GetDisplayType ())
+	{
+	case DISPLAY_FullscreenOnly:
+		ModesItems[2].type = nochoice;
+		ModesItems[2].b.min = 1.f;
+		break;
+	case DISPLAY_WindowOnly:
+		ModesItems[2].type = nochoice;
+		ModesItems[2].b.min = 0.f;
+		break;
+	default:
+		break;
+	}
+}
+*/
 
 //
 //		Toggle messages on/off
@@ -4373,7 +4451,32 @@ void M_OptDrawer ()
 					screen->DrawText (CR_GREY, x, y, tbuf, DTA_Clean, true, TAG_DONE);
 				}
 				break;
+/*
+			case bitmask:
+			{
+				int v, vals;
 
+				value = item->a.cvar->GetGenericRep (CVAR_Int);
+				value.Float = value.Int & int(item->c.max);
+				vals = (int)item->b.numvalues;
+
+				v = M_FindCurVal (value.Float, item->e.values, vals);
+
+				if (v == vals)
+				{
+					screen->DrawText (ValueColor, CurrentMenu->indent + 14, y, "Unknown",
+						DTA_Clean, true, TAG_DONE);
+				}
+				else
+				{
+					screen->DrawText (item->type == cdiscrete ? v : ValueColor,
+						CurrentMenu->indent + 14, y, item->e.values[v].name,
+						DTA_Clean, true, TAG_DONE);
+				}
+
+			}
+			break;
+*/	
 			case discrete:
 			case cdiscrete:
 			case inverter:
@@ -4558,7 +4661,7 @@ void M_OptDrawer ()
 			case bitflag:
 			{
 				value_t *value;
-				char *str;
+				const char *str;
 
 				if (item->b.min)
 					value = NoYes;
@@ -5402,7 +5505,26 @@ void M_OptResponder (event_t *ev)
 				}
 				S_Sound (CHAN_VOICE, "menu/change", 1, ATTN_NONE);
 				break;
+/*
+			case bitmask:
+				{
+					int cur;
+					int numvals;
+					int bmask = int(item->c.max);
 
+					numvals = (int)item->b.min;
+					value = item->a.cvar->GetGenericRep (CVAR_Int);
+					
+					cur = M_FindCurVal (value.Int & bmask, item->e.values, numvals);
+					if (--cur < 0)
+						cur = numvals - 1;
+
+					value.Int = (value.Int & ~bmask) | int(item->e.values[cur].value);
+					item->a.cvar->SetGenericRep (value, CVAR_Int);
+				}
+				S_Sound (CHAN_VOICE, "menu/change", 1, ATTN_NONE);
+				break;
+*/
 			case discrete_guid:
 				{
 					int cur;
@@ -5609,7 +5731,8 @@ void M_OptResponder (event_t *ev)
 						newval.Float = item->c.max;
 
 					iMode = 0;
-					Video->StartModeIterator (8);
+					// [BB] check true
+					Video->StartModeIterator (8, true);
 					while (Video->NextMode (&iWidth, &iHeight, &bLetterBox))
 					{
 						if ( iMode == newval.Float )
@@ -5763,7 +5886,26 @@ void M_OptResponder (event_t *ev)
 				}
 				S_Sound (CHAN_VOICE, "menu/change", 1, ATTN_NONE);
 				break;
+/*
+			case bitmask:
+				{
+					int cur;
+					int numvals;
+					int bmask = int(item->c.max);
 
+					numvals = (int)item->b.min;
+					value = item->a.cvar->GetGenericRep (CVAR_Int);
+					
+					cur = M_FindCurVal (value.Int & bmask, item->e.values, numvals);
+					if (++cur >= numvals)
+						cur = 0;
+
+					value.Int = (value.Int & ~bmask) | int(item->e.values[cur].value);
+					item->a.cvar->SetGenericRep (value, CVAR_Int);
+				}
+				S_Sound (CHAN_VOICE, "menu/change", 1, ATTN_NONE);
+				break;
+*/
 			case discrete_guid:
 				{
 					int cur;
@@ -5973,7 +6115,8 @@ void M_OptResponder (event_t *ev)
 						newval.Float = item->b.min;
 
 					iMode = 0;
-					Video->StartModeIterator (8);
+					// [BB] Check true
+					Video->StartModeIterator (8, true);
 					while (Video->NextMode (&iWidth, &iHeight, &bLetterBox))
 					{
 						if ( iMode == newval.Float )
@@ -6387,7 +6530,7 @@ static void ActivateColorChoice ()
 	ColorPickerItems[0].a.colorcvar->SetGenericRep (val, CVAR_Int);
 }
 
-static void StartColorPickerMenu (char *colorname, FColorCVar *cvar)
+static void StartColorPickerMenu (const char *colorname, FColorCVar *cvar)
 {
 	ColorPickerMenu.PreDraw = ColorPickerDrawer;
 	ColorPickerMenu.EscapeHandler = ActivateColorChoice;
@@ -6621,7 +6764,8 @@ CCMD (menu_mididevice)
 
 static void MakeSoundChanges (void)
 {
-	AddCommandString ("snd_reset");
+	static char snd_reset[] = "snd_reset";
+	AddCommandString (snd_reset);
 }
 
 static void VideoOptions (void)
@@ -6654,14 +6798,18 @@ static void BuildModesList (int hiwidth, int hiheight, int hi_bits)
 	}
 	showbits = BitTranslate[DummyDepthCvar];
 
-	I_StartModeIterator (showbits);
+	if (Video != NULL)
+	{
+		Video->StartModeIterator (showbits, screen->IsFullscreen());
+	}
 
 	for (i = VM_RESSTART; ModesItems[i].type == screenres; i++)
 	{
 		ModesItems[i].e.highlight = -1;
 		for (c = 0; c < 3; c++)
 		{
-			bool haveMode;
+			bool haveMode = false;
+
 
 			switch (c)
 			{
@@ -6669,9 +6817,12 @@ static void BuildModesList (int hiwidth, int hiheight, int hi_bits)
 			case 1:  str = &ModesItems[i].c.res2; break;
 			case 2:  str = &ModesItems[i].d.res3; break;
 			}
-			while ((haveMode = I_NextMode (&width, &height, &letterbox)) &&
-				(ratiomatch >= 0 && CheckRatio (width, height) != ratiomatch))
+			if (Video != NULL)
 			{
+				while ((haveMode = Video->NextMode (&width, &height, &letterbox)) &&
+					(ratiomatch >= 0 && CheckRatio (width, height) != ratiomatch))
+				{
+				}
 			}
 
 			if (haveMode)
@@ -6768,7 +6919,7 @@ static void SetModesMenu (int w, int h, int bits)
 	if (testingmode <= 1)
 	{
 		if (ModesItems[VM_ENTERLINE].label != VMEnterText)
-			free (ModesItems[VM_ENTERLINE].label);
+			free (const_cast<char *>(ModesItems[VM_ENTERLINE].label));
 		ModesItems[VM_ENTERLINE].label = VMEnterText;
 		ModesItems[VM_TESTLINE].label = VMTestText;
 	}
@@ -7022,6 +7173,7 @@ CCMD (addmenukey)
 	ControlsMenu.numitems = (int)CustomControlsItems.Size();
 }
 
+/*
 // [ZDoomGL]
 static void StartOpenGLMenu (void)
 {
@@ -7091,11 +7243,11 @@ static void StartGLTextureMenu (void)
 	}
 }
 
+
 static void PurgeTextures (void)
 {
    textureList.Purge();
 }
-
 
 static void ApplyFilterChanges()
 {
@@ -7140,7 +7292,7 @@ static void ApplyFormatChanges()
       break;
    }
 }
-
+*/
 void M_Deinit ()
 {
 	// Free bitdepth names for the modes menu.

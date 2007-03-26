@@ -39,6 +39,8 @@
 #include "r_data.h"
 #include "templates.h"
 
+#include "gl/gl_texture.h"
+
 typedef bool (*CheckFunc)(FileReader & file);
 typedef FTexture * (*CreateFunc)(FileReader & file, int lumpnum);
 
@@ -119,11 +121,13 @@ FTexture::FTexture ()
   bMasked(true), bAlphaTexture(false), bHasCanvas(false), bWarped(0), bIsPatch(false),
   Rotations(0xFFFF), Width(0), Height(0), WidthMask(0)
 {
+	gltex=NULL;
 	*Name=0;
 }
 
 FTexture::~FTexture ()
 {
+	if (gltex) delete gltex;
 }
 
 bool FTexture::CheckModified ()

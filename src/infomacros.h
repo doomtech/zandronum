@@ -65,6 +65,8 @@ typedef void (*voidfunc_)();
 ************** Visual C++ macros ****************
 ************************************************/
 
+#pragma warning(disable: 4207)	// nonstandard extension used : extended initializer form
+
 #pragma data_seg(".areg$u")		// ActorInfo initializer list
 #pragma data_seg(".greg$u")		// AT_GAME_SET list
 #pragma data_seg(".sreg$u")		// AT_SPEED_SET list
@@ -87,7 +89,7 @@ typedef void (*voidfunc_)();
 #endif
 
 #define ADD_BYTE_PROP(prop,val) BREAK_WORD(prop|ADEFTYPE_Byte), val,
-#define ADD_FIXD_PROP(prop,val) BREAK_WORD(prop|ADEFTYPE_FixedMul), val,
+#define ADD_FIXD_PROP(prop,val) BREAK_WORD(prop|ADEFTYPE_FixedMul), (BYTE)(val),
 #define ADD_WORD_PROP(prop,val) BREAK_WORD(prop|ADEFTYPE_Word), BREAK_WORD(val),
 #define ADD_LONG_PROP(prop,val) BREAK_WORD(prop|ADEFTYPE_Long), BREAK_LONG(val),
 #ifdef WORDS_BIGENDIAN
@@ -221,8 +223,8 @@ public:
 // [BC] Announcer pickup entry property.
 #define PROP_Inventory_PickupAnnouncerEntry(x)	ADD_STRING_PROP(ADEF_Inventory_PickupAnnouncerEntry,"\31",x)
 
-#define PROP_XScale(x)					ADD_BYTE_PROP(ADEF_XScale,x)
-#define PROP_YScale(x)					ADD_BYTE_PROP(ADEF_YScale,x)
+#define PROP_XScale(x)					ADD_LONG_PROP(ADEF_XScale,x)
+#define PROP_YScale(x)					ADD_LONG_PROP(ADEF_YScale,x)
 #define PROP_SpawnHealth(x)				ADD_WORD_PROP(ADEF_SpawnHealth,x)
 #define PROP_SpawnHealthLong(x)			ADD_LONG_PROP(ADEF_SpawnHealth,x)
 #define PROP_ReactionTime(x)			ADD_BYTE_PROP(ADEF_ReactionTime,x)
@@ -337,6 +339,7 @@ public:
 #define PROP_Weapon_Kickback(x)			ADD_BYTE_PROP(ADEF_Weapon_Kickback,x)
 #define PROP_Weapon_YAdjust(x)			ADD_FIXD_PROP(ADEF_Weapon_YAdjust,x)
 #define PROP_Weapon_SelectionOrder(x)	ADD_WORD_PROP(ADEF_Weapon_SelectionOrder,x)
+#define PROP_Weapon_MoveCombatDist(x)	ADD_LONG_PROP(ADEF_Weapon_MoveCombatDist,x)
 #define PROP_Weapon_UpState(x)			ADD_BYTE_PROP(ADEF_Weapon_UpState,x)
 #define PROP_Weapon_DownState(x)		ADD_BYTE_PROP(ADEF_Weapon_DownState,x)
 #define PROP_Weapon_ReadyState(x)		ADD_BYTE_PROP(ADEF_Weapon_ReadyState,x)

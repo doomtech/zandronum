@@ -287,7 +287,7 @@ int FWadCollection::AddExternalFile(const char *filename)
 	LumpRecord lump;
 
 	lump.fullname = copystring(filename);
-	lump.name[0]=0;
+	memset(lump.name, 0, sizeof(lump.name));
 	lump.wadnum=-1;
 	lump.flags = LUMPF_EXTERNAL;
 	lump.position = 0;
@@ -1699,7 +1699,7 @@ FWadLump FWadCollection::OpenLumpNum (int lump)
 
 	if ((unsigned)lump >= (unsigned)LumpInfo.Size())
 	{
-		I_Error ("W_MapLumpNum: %u >= NumLumps",lump);
+		I_Error ("W_OpenLumpNum: %u >= NumLumps", lump);
 	}
 
 	l = &LumpInfo[lump];
@@ -1723,7 +1723,9 @@ FWadLump FWadCollection::OpenLumpNum (int lump)
 	}
 	else if (l->flags & LUMPF_EXTERNAL)
 	{
-		FILE * f;
+		static char zero = '\0';
+		FILE *f;
+
 		if (wad != NULL)	// The WadRecord in this case is just a means to store a path
 		{
 			FString name;
@@ -1739,7 +1741,7 @@ FWadLump FWadCollection::OpenLumpNum (int lump)
 		// the complete contents into a memory buffer first
 		if (f != NULL)
 		{
-			char * buffer = new char[l->size+1];	// the last byte is used as a reference counter
+			char *buffer = new char[l->size+1];	// the last byte is used as a reference counter
 			buffer[l->size] = 0;
 			fread(buffer, 1, l->size, f);
 			fclose(f);
@@ -1747,7 +1749,7 @@ FWadLump FWadCollection::OpenLumpNum (int lump)
 		}
 		// The file got deleted or worse. At least return something.
 		Printf("%s: Unable to open file\n", l->fullname);
-		return FWadLump("", 1, false);
+		return FWadLump(&zero, 1, false);
 	}
 	else if (wad->MemoryData != NULL)
 	{
@@ -1781,7 +1783,7 @@ FWadLump *FWadCollection::ReopenLumpNum (int lump)
 
 	if ((unsigned)lump >= (unsigned)LumpInfo.Size())
 	{
-		I_Error ("W_MapLumpNum: %u >= NumLumps",lump);
+		I_Error ("W_ReopenLumpNum: %u >= NumLumps", lump);
 	}
 
 	l = &LumpInfo[lump];
@@ -1805,7 +1807,9 @@ FWadLump *FWadCollection::ReopenLumpNum (int lump)
 	}
 	else if (l->flags & LUMPF_EXTERNAL)
 	{
-		FILE * f;
+		static char zero = '\0';
+		FILE *f;
+
 		if (wad != NULL)	// The WadRecord in this case is just a means to store a path
 		{
 			FString name;
@@ -1821,7 +1825,7 @@ FWadLump *FWadCollection::ReopenLumpNum (int lump)
 		// the complete contents into a memory buffer first
 		if (f != NULL)
 		{
-			char * buffer = new char[l->size+1];	// the last byte is used as a reference counter
+			char *buffer = new char[l->size+1];	// the last byte is used as a reference counter
 			buffer[l->size] = 0;
 			fread(buffer, 1, l->size, f);
 			fclose(f);
@@ -1829,7 +1833,7 @@ FWadLump *FWadCollection::ReopenLumpNum (int lump)
 		}
 		// The file got deleted or worse. At least return something.
 		Printf("%s: Unable to open file\n", l->fullname);
-		return new FWadLump("", 1, false);
+		return new FWadLump(&zero, 1, false);
 	}
 	else if (wad->MemoryData!=NULL)
 	{

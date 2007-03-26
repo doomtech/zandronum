@@ -25,7 +25,6 @@
 #include "dsectoreffect.h"
 #include "gi.h"
 #include "p_local.h"
-#include "zgl_main.h"
 
 IMPLEMENT_CLASS (DSectorEffect)
 

@@ -58,10 +58,45 @@
 #include "gi.h"
 #include "templates.h"
 #include "sbar.h"
-#include "zgl_main.h"
+#include "hardware.h"
 
 IMPLEMENT_ABSTRACT_CLASS (DCanvas)
 IMPLEMENT_ABSTRACT_CLASS (DFrameBuffer)
+
+#if defined(_DEBUG) && defined(_M_IX86)
+#define DBGBREAK	{ __asm int 3 }
+#else
+#define DBGBREAK
+#endif
+
+class DDummyFrameBuffer : public DFrameBuffer
+{
+	DECLARE_CLASS (DDummyFrameBuffer, DFrameBuffer);
+public:
+	DDummyFrameBuffer (int width, int height)
+		: DFrameBuffer (0, 0)
+	{
+		Width = width;
+		Height = height;
+	}
+	bool Lock(bool buffered) { DBGBREAK; return false; }
+	void Update() { DBGBREAK; }
+	PalEntry *GetPalette() { DBGBREAK; return NULL; }
+	void GetFlashedPalette(PalEntry palette[256]) { DBGBREAK; }
+	void UpdatePalette() { DBGBREAK; }
+	bool SetGamma(float gamma) { Gamma = gamma; return true; }
+	bool SetFlash(PalEntry rgb, int amount) { DBGBREAK; return false; }
+	void GetFlash(PalEntry &rgb, int &amount) { DBGBREAK; }
+	int GetPageCount() { DBGBREAK; return 0; }
+	bool IsFullscreen() { DBGBREAK; return 0; }
+#ifdef _WIN32
+	void PaletteChanged() {}
+	int QueryNewPalette() { return 0; }
+#endif
+
+	float Gamma;
+};
+IMPLEMENT_ABSTRACT_CLASS (DDummyFrameBuffer)
 
 // SimpleCanvas is not really abstract, but this macro does not
 // try to generate a CreateNew() function.
@@ -86,10 +121,16 @@ DFrameBuffer *screen;
 CVAR (Int, vid_defwidth, 640, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (Int, vid_defheight, 480, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (Int, vid_defbits, 8, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
-CVAR (Int, gl_vid_bitdepth, 16, CVAR_ARCHIVE|CVAR_GLOBALCONFIG) // [ZDoomGL]
 CVAR (Bool, vid_fps, false, 0)
 CVAR (Bool, ticker, false, 0)
 CVAR (Int, vid_showpalette, 0, 0)
+CUSTOM_CVAR (Bool, vid_vsync, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+{
+	if (screen != NULL)
+	{
+		screen->SetVSync (*self);
+	}
+}
 
 CUSTOM_CVAR (Float, dimamount, 0.2f, CVAR_ARCHIVE)
 {
@@ -590,6 +631,7 @@ DSimpleCanvas::DSimpleCanvas (int width, int height)
 		}
 	}
 	MemBuffer = new BYTE[Pitch * height];
+	memset (MemBuffer, 0, Pitch * height);
 }
 
 DSimpleCanvas::~DSimpleCanvas ()
@@ -663,7 +705,7 @@ void DFrameBuffer::DrawRateStuff ()
 
 	// draws little dots on the bottom of the screen
 	// [BC] Don't draw this in OpenGL mode.
-	if (ticker && ( OPENGL_GetCurrentRenderer( ) == RENDERER_SOFTWARE ))
+	if (ticker)
 	{
 		int i = I_GetTime(false);
 		int tics = i - LastTic;
@@ -727,6 +769,10 @@ void DFrameBuffer::CopyFromBuff (BYTE *src, int srcPitch, int width, int height,
 	}
 }
 
+void DFrameBuffer::SetVSync (bool vsync)
+{
+}
+
 //
 // V_SetResolution
 //
@@ -759,10 +805,11 @@ bool V_DoModeSetup (int width, int height, int bits)
 			cwidth = width * BaseRatioSizes[ratio][3] / 48;
 			cheight = height;
 		}
-		CleanXfac = MAX ((float)cwidth / 320, 1.0f);
-		CleanYfac = MAX ((float)cheight / 200, 1.0f);
+		CleanXfac = MAX (cwidth / 320, 1);
+		CleanYfac = MAX (cheight / 200, 1);
+		//CleanXfac = MAX ((float)cwidth / 320, 1.0f);
+		//CleanYfac = MAX ((float)cheight / 200, 1.0f);
 	}
-/*
 	if (CleanXfac > 1 && CleanYfac > 1 && CleanXfac != CleanYfac)
 	{
 		if (CleanXfac < CleanYfac)
@@ -770,7 +817,7 @@ bool V_DoModeSetup (int width, int height, int bits)
 		else
 			CleanXfac = CleanYfac;
 	}
-*/
+
 	CleanWidth = width / CleanXfac;
 	CleanHeight = height / CleanYfac;
 
@@ -778,7 +825,6 @@ bool V_DoModeSetup (int width, int height, int bits)
 	DisplayHeight = height;
 	DisplayBits = bits;
 
-	R_InitColumnDrawers ();
 	R_MultiresInit ();
 
 	RenderTarget = screen;
@@ -919,16 +965,37 @@ void V_Init (void)
 		bits = vid_defbits;
 	}
 
-	I_ClosestResolution (&width, &height, bits);
+	screen = new DDummyFrameBuffer (width, height);
 
-	if (!V_SetResolution (width, height, bits))
-		I_FatalError ("Could not set resolution to %d x %d x %d", width, height, bits);
+	BuildTransTable (GPalette.BaseColors);
+}
+
+void V_Init2()
+{
+	assert (screen->IsKindOf(RUNTIME_CLASS(DDummyFrameBuffer)));
+	int width = screen->GetWidth();
+	int height = screen->GetHeight();
+	float gamma = static_cast<DDummyFrameBuffer *>(screen)->Gamma;
+	FFont *font = screen->Font;
+
+	delete screen;
+	screen = NULL;
+
+	I_InitGraphics();
+	I_ClosestResolution (&width, &height, 8);
+
+	if (!V_SetResolution (width, height, 8))
+		I_FatalError ("Could not set resolution to %d x %d x %d", width, height, 8);
 	else
 		Printf ("Resolution: %d x %d\n", SCREENWIDTH, SCREENHEIGHT);
 
+	screen->SetGamma (gamma);
+	screen->SetFont (font);
 	FBaseCVar::ResetColors ();
-
-	BuildTransTable (GPalette.BaseColors);
+	C_NewModeAdjust();
+	M_InitVideoModesMenu();
+	BorderNeedRefresh = screen->GetPageCount ();
+	setsizeneeded = true;
 }
 
 void V_Shutdown()

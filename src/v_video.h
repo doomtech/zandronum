@@ -70,7 +70,7 @@ class FTexture;
 #define TAG_MORE	(2)  /* Ends this list and continues with the	*/
 						 /* list pointed to in ti_Data 				*/
 
-#define TAG_USER	((DWORD)(1u<<31))
+#define TAG_USER	((DWORD)(1u<<30))
 
 enum
 {
@@ -173,7 +173,7 @@ public:
 	virtual void SetFont (FFont *font);
 
 	// 2D Texture drawing
-	void STACK_ARGS DrawTexture (FTexture *img, int x, int y, DWORD tags, ...);
+	void STACK_ARGS DrawTexture (FTexture *img, int x, int y, int tags, ...);
 	void FillBorder (FTexture *img);	// Fills the border around a 4:3 part of the screen on non-4:3 displays
 
 	// 2D Text drawing
@@ -188,6 +188,8 @@ protected:
 	int LockCount;
 
 	bool ClipBox (int &left, int &top, int &width, int &height, const BYTE *&src, const int srcpitch) const;
+
+	DCanvas() {}
 
 private:
 	// Keep track of canvases, for automatic destruction at exit
@@ -210,6 +212,8 @@ public:
 
 protected:
 	BYTE *MemBuffer;
+
+	DSimpleCanvas() {}
 };
 
 // A canvas that represents the actual display. The video code is responsible
@@ -241,6 +245,8 @@ public:
 	// gamma changing. (Always true for now, since palettes can always be
 	// gamma adjusted.)
 	virtual bool SetGamma (float gamma) = 0;
+	virtual bool SetBrightness (float bright) { return false; }
+	virtual bool SetContrast (float contrast) { return false; }
 
 	// Sets a color flash. RGB is the color, and amount is 0-256, with 256
 	// being all flash and 0 being no flash. Returns false if the hardware
@@ -257,6 +263,9 @@ public:
 	// Returns true if running fullscreen.
 	virtual bool IsFullscreen () = 0;
 
+	// Changes the vsync setting, if supported by the device.
+	virtual void SetVSync (bool vsync);
+
 #ifdef _WIN32
 	virtual void PaletteChanged () = 0;
 	virtual int QueryNewPalette () = 0;
@@ -265,6 +274,8 @@ public:
 protected:
 	void DrawRateStuff ();
 	void CopyFromBuff (BYTE *src, int srcPitch, int width, int height, BYTE *dest);
+
+	DFrameBuffer () {}
 
 private:
 	DWORD LastMS, LastSec, FrameCount, LastCount, LastTic;
@@ -280,6 +291,8 @@ extern DFrameBuffer *screen;
 #define SCREENPITCH (screen->GetPitch ())
 
 EXTERN_CVAR (Float, Gamma)
+EXTERN_CVAR (Float, vid_brightness)
+EXTERN_CVAR (Float, vid_contrast)
 
 // Translucency tables
 extern "C" DWORD Col2RGB8[65][256];
@@ -288,6 +301,9 @@ extern "C" DWORD *Col2RGB8_LessPrecision[65];
 
 // Allocates buffer screens, call before R_Init.
 void V_Init ();
+
+// Initializes graphics mode for the first time.
+void V_Init2 ();
 
 void V_Shutdown ();
 
@@ -311,5 +327,7 @@ extern "C" void ASM_PatchPitch (void);
 
 int CheckRatio (int width, int height);
 extern const int BaseRatioSizes[5][4];
+
+extern int currentrenderer;
 
 #endif // __V_VIDEO_H__

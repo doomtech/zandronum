@@ -66,7 +66,6 @@
 #include "chat.h"
 #include "deathmatch.h"
 #include "network.h"
-#include "zgl_main.h"
 
 #include "gi.h"
 
@@ -261,54 +260,6 @@ static void maybedrawnow (bool tick, bool force)
 	}
 }
 
-//
-// [ZDoomGL]: this added as an optimization of the switchable renderer
-//
-void C_GetConback(int width, int height)
-{
-   int i;
-
-   if (gotconback)
-   {
-      return;
-   }
-
-   conback = TexMan.CheckForTexture ("CONBACK", FTexture::TEX_MiscPatch);
-
-	if (conback <= 0)
-	{
-		BYTE unremap[256];
-		BYTE shadetmp[256];
-
-		conback = TexMan.GetTexture (gameinfo.titlePage, FTexture::TEX_MiscPatch);
-
-		FWadLump palookup = Wads.OpenLumpName ("COLORMAP");
-		palookup.Seek (22*256, SEEK_CUR);
-		palookup.Read (shadetmp, 256);
-		memset (unremap, 0, 256);
-		for (i = 0; i < 256; ++i)
-		{
-			unremap[GPalette.Remap[i]] = i;
-		}
-		for (i = 0; i < 256; ++i)
-		{
-			conshade[i] = GPalette.Remap[shadetmp[unremap[i]]];
-		}
-		conline = true;
-		conshade[0] = GPalette.Remap[0];
-	}
-	else
-	{
-		for (i = 0; i < 256; ++i)
-		{
-			conshade[i] = i;
-		}
-		conline = false;
-	}
-
-   gotconback = true;
-}
-
 struct TextQueue
 {
 	TextQueue (bool notify, int printlevel, const char *text)
@@ -365,8 +316,42 @@ void C_InitConsole (int width, int height, bool ingame)
 	{
 		if (!gotconback)
 		{
-			// [BC] ZDoomGL moved all the code that used to be here is now in C_GetConback().
-			C_GetConback(width, height);
+			int i;
+
+			conback = TexMan.CheckForTexture ("CONBACK", FTexture::TEX_MiscPatch);
+
+			if (conback <= 0)
+			{
+				BYTE unremap[256];
+				BYTE shadetmp[256];
+
+				conback = TexMan.GetTexture (gameinfo.titlePage, FTexture::TEX_MiscPatch);
+
+				FWadLump palookup = Wads.OpenLumpName ("COLORMAP");
+				palookup.Seek (22*256, SEEK_CUR);
+				palookup.Read (shadetmp, 256);
+				memset (unremap, 0, 256);
+				for (i = 0; i < 256; ++i)
+				{
+					unremap[GPalette.Remap[i]] = i;
+				}
+				for (i = 0; i < 256; ++i)
+				{
+					conshade[i] = GPalette.Remap[shadetmp[unremap[i]]];
+				}
+				conline = true;
+				conshade[0] = GPalette.Remap[0];
+			}
+			else
+			{
+				for (i = 0; i < 256; ++i)
+				{
+					conshade[i] = i;
+				}
+				conline = false;
+			}
+
+			gotconback = true;
 		}
 	}
 
@@ -454,10 +439,6 @@ void C_InitConsole (int width, int height, bool ingame)
 			free (fmtLines);
 	}
 
-	if (ingame && gamestate == GS_STARTUP)
-	{
-		C_FullConsole ();
-	}
 }
 
 //==========================================================================
@@ -785,7 +766,8 @@ void AddToConsole (int printlevel, const char *text)
 	}
 	if (work == NULL)
 	{
-		work = TEXTCOLOR_RED "*** OUT OF MEMORY ***";
+		static char oom[] = TEXTCOLOR_RED "*** OUT OF MEMORY ***";
+		work = oom;
 		worklen = 0;
 	}
 	else
@@ -957,14 +939,15 @@ int PrintString (int printlevel, const char *outline)
 		return ( (int)strlen( outline ));
 	}
 
-	if ( g_bAllowColorCodes )
-		V_ColorizeString( (char *)outline );
+	// [BB] Fix this!
+	//if ( g_bAllowColorCodes )
+	//	V_ColorizeString( (char *)outline );
 
 	// Allow option to strip color codes out of text string.
 	if ( con_textcolor == false )
 		V_RemoveColorCodes( (char *)outline );
 
-	I_PrintStr (outline, false);
+	I_PrintStr (outline);
 
 	AddToConsole (printlevel, outline);
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
@@ -1260,9 +1243,6 @@ void C_DrawConsole ()
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		return;
 
-	if ( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL )
-		GL_Set2DMode();
-
 	left = LEFTMARGIN;
 	lines = (ConBottom-ConFont->GetHeight()*2)/ConFont->GetHeight();
 	if (-ConFont->GetHeight() + lines*ConFont->GetHeight() > ConBottom - ConFont->GetHeight()*7/2)
@@ -1298,18 +1278,24 @@ void C_DrawConsole ()
 		visheight = ConBottom;
 		realheight = (visheight * conpic->GetHeight()) / SCREENHEIGHT;
 
-		// [ZDoomGL]: this would still work if I used DrawTexture, but then it wouldn't be all transparent and stuff :)
-		if ( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL )
-			GL_vDrawConBackG( conpic, screen->GetWidth(), visheight );
-		else
+		if (currentrenderer==1)	// take advantage of hardware rendering here!
 		{
+			bool fullconsole = visheight==screen->GetHeight();
+			screen->DrawTexture (conpic, 0, visheight - screen->GetHeight(),
+				DTA_DestWidth, screen->GetWidth(),
+				DTA_DestHeight, screen->GetHeight(),
+				DTA_Alpha, (fixed_t)(FRACUNIT*(fullconsole? 1.0f : 0.75f)),
+				DTA_FillColor, fullconsole? 0x4c4c4c : 0x1a1a1a,	// This is hardware only so no palette indices are needed.
+				DTA_Masked, false,
+				TAG_DONE);
+		}
+		else
 			screen->DrawTexture( conpic, 0, visheight - screen->GetHeight( ),
 				DTA_DestWidth, screen->GetWidth(),
 				DTA_DestHeight, screen->GetHeight(),
 				DTA_Translation, conshade,
 				DTA_Masked, false,
 				TAG_DONE );
-		}
 
 		if (conline && visheight < screen->GetHeight())
 		{
@@ -1428,11 +1414,7 @@ void C_DrawConsole ()
 
 		if (ConBottom >= 20)
 		{
-			if (gamestate == GS_STARTUP)
-			{
-				screen->DrawText (CR_GREEN, LEFTMARGIN, bottomline, DoomStartupTitle, TAG_DONE);
-			}
-			else
+			if (gamestate != GS_STARTUP)
 			{
 				// Make a copy of the command line, in case an input event is handled
 				// while we draw the console and it changes.
@@ -1517,9 +1499,7 @@ void C_HideConsole ()
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		return;
 
-	if (gamestate != GS_FULLCONSOLE &&
-		gamestate != GS_STARTUP &&
-		ConsoleState != c_up)
+	if (gamestate != GS_FULLCONSOLE)
 	{
 		ConsoleState = c_up;
 		ConBottom = 0;

@@ -121,7 +121,8 @@ extern bool SpawnEAXWindow;
 static HMODULE DInputDLL;
 
 static void KeyRead ();
-static BOOL DI_Init2 ();
+static BOOL I_StartupKeyboard ();
+static void I_StartupMouse ();
 static void MouseRead_DI ();
 static void MouseRead_Win32 ();
 static void GrabMouse_Win32 ();
@@ -144,7 +145,7 @@ bool VidResizing;
 
 extern bool SpawnEAXWindow;
 extern BOOL vidactive;
-extern HWND Window;
+extern HWND Window, ConWindow;
 extern HWND EAXEditWindow;
 
 extern void UpdateJoystickMenu ();
@@ -326,7 +327,7 @@ static FBaseCVar * const JoyConfigVars[] =
 	&joy_upspeed
 };
 
-CUSTOM_CVAR (Int, in_mouse, 0, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+CUSTOM_CVAR (Int, in_mouse, 0, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
 {
 	if (self < 0)
 	{
@@ -342,22 +343,7 @@ CUSTOM_CVAR (Int, in_mouse, 0, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 	}
 	else
 	{
-		int new_mousemode;
-
-		if (self == 1 || (self == 0 && OSPlatform == os_WinNT4))
-			new_mousemode = win32;
-		else
-			new_mousemode = dinput;
-
-		if (new_mousemode != mousemode)
-		{
-			if (new_mousemode == win32)
-				I_GetWin32Mouse ();
-			else
-				if (!I_GetDIMouse ())
-					I_GetWin32Mouse ();
-			NativeMouse = false;
-		}
+		I_StartupMouse();
 	}
 }
 
@@ -415,7 +401,7 @@ static void I_CheckGUICapture ()
 
 	if (menuactive == MENU_Off)
 	{
-		wantCapt = ConsoleState == c_down || ConsoleState == c_falling || ( CHAT_GetChatMode( ) != CHATMODE_NONE );
+		wantCapt = ConsoleState == c_down || ConsoleState == c_falling || CHAT_GetChatMode();
 	}
 	else
 	{
@@ -515,6 +501,7 @@ LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			g_pKey->Acquire();
 		}
 		HaveFocus = true;
+		I_CheckNativeMouse (false);
 		break;
 
 	case WM_SIZE:
@@ -1409,6 +1396,7 @@ bool I_InitInput (void *hwnd)
 {
 	HRESULT hr;
 
+	Printf ("I_InitInput\n");
 	atterm (I_ShutdownInput);
 
 	NativeMouse = true;
@@ -1481,7 +1469,15 @@ bool I_InitInput (void *hwnd)
 		}
 	}
 
-	DI_Init2();
+	Printf ("I_StartupMouse\n");
+	I_StartupMouse();
+
+	Printf ("I_StartupJoystick\n");
+	DI_EnumJoy ();
+	DI_InitJoy ();
+
+	Printf ("I_StartupKeyboard\n");
+	I_StartupKeyboard();
 
 	return TRUE;
 }
@@ -1533,7 +1529,7 @@ static void SetSoundPaused (int state)
 		if (paused <= 0)
 		{
 			S_ResumeSound ();
-			if ( NETWORK_GetState( ) == NETSTATE_SINGLE
+			if (NETWORK_GetState( ) == NETSTATE_SINGLE
 #ifdef _DEBUG
 				&& !demoplayback
 #endif
@@ -1548,7 +1544,7 @@ static void SetSoundPaused (int state)
 		if (paused == 0)
 		{
 			S_PauseSound (false);
-			if ( NETWORK_GetState( ) == NETSTATE_SINGLE
+			if (NETWORK_GetState( ) == NETSTATE_SINGLE
 #ifdef _DEBUG
 				&& !demoplayback
 #endif
@@ -1561,6 +1557,24 @@ static void SetSoundPaused (int state)
 }
 
 static LONG PrevX, PrevY;
+
+static void I_StartupMouse ()
+{
+	int new_mousemode;
+
+	if (in_mouse == 1 || (in_mouse == 0 && OSPlatform == os_WinNT4))
+		new_mousemode = win32;
+	else
+		new_mousemode = dinput;
+
+	if (new_mousemode != mousemode)
+	{
+		if (new_mousemode == win32 || !I_GetDIMouse())
+			I_GetWin32Mouse ();
+		NativeMouse = false;
+	}
+	HaveFocus = GetFocus() == Window;
+}
 
 static void CenterMouse_Win32 (LONG curx, LONG cury)
 {
@@ -1794,7 +1808,7 @@ static void MouseRead_DI ()
 }
 
 // Initialize the keyboard
-static BOOL DI_Init2 (void)
+static BOOL I_StartupKeyboard (void)
 {
 	HRESULT hr;
 
@@ -1830,9 +1844,6 @@ static BOOL DI_Init2 (void)
 	}
 
 	g_pKey->Acquire ();
-
-	DI_EnumJoy ();
-	DI_InitJoy ();
 	return TRUE;
 }
 
@@ -1842,6 +1853,11 @@ static void KeyRead ()
 	event_t event;
 	BYTE *fromState, *toState;
 	int i;
+
+	if (g_pKey == NULL)
+	{
+		return;
+	}
 
 	memset (&event, 0, sizeof(event));
 	fromState = DIKState[ActiveDIKState];

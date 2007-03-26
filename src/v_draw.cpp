@@ -45,7 +45,9 @@
 #include "i_system.h"
 #include "i_video.h"
 #include "templates.h"
-#include "zgl_main.h"
+
+#include "gl/gl_functions.h"
+
 
 // [RH] Stretch values to make a 320x200 image best fit the screen
 // without using fractional steppings
@@ -56,7 +58,7 @@ int CleanWidth, CleanHeight;
 
 CVAR (Bool, hud_scale, false, CVAR_ARCHIVE);
 
-void STACK_ARGS DCanvas::DrawTexture (FTexture *img, int x0, int y0, DWORD tags_first, ...)
+void STACK_ARGS DCanvas::DrawTexture (FTexture *img, int x0, int y0, int tags_first, ...)
 {
 	FTexture::Span unmaskedSpan[2];
 	const FTexture::Span **spanptr, *spans;
@@ -433,20 +435,23 @@ void STACK_ARGS DCanvas::DrawTexture (FTexture *img, int x0, int y0, DWORD tags_
 	x0 -= Scale (left, destwidth, texwidth);
 	y0 -= Scale (top, destheight, texheight);
 
-	if (OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL)
+	if (currentrenderer == 1)
 	{
 		FTexInfo texInfo;
 		texInfo.tex = img;
-		texInfo.x = x0 >> FRACBITS; texInfo.y = y0 >> FRACBITS;
-		texInfo.width = destwidth >> FRACBITS; texInfo.height = destheight >> FRACBITS;
+		texInfo.font = Font;
+		texInfo.x = x0 / (float)FRACUNIT; texInfo.y = y0 / (float)FRACUNIT;
+		texInfo.width = destwidth / (float)FRACUNIT; texInfo.height = destheight / (float)FRACUNIT;
 		texInfo.translation = translation;
 		texInfo.loadAlpha = alphaChannel == 1;
 		texInfo.clipLeft = lclip; texInfo.clipRight = rclip;
 		texInfo.clipTop = uclip; texInfo.clipBottom = dclip;
-		texInfo.fillColor = fillcolor; texInfo.alpha = alpha * INV_FRACUNIT;
+		texInfo.fillColor = fillcolor; texInfo.alpha = alpha / (float)FRACUNIT;
 		texInfo.windowLeft = windowleft; texInfo.windowRight = windowright;
 		texInfo.flipX = flipX == 1;
-		GL_DrawTexture(&texInfo);
+		texInfo.masked = spanptr != NULL;
+		gl_DrawTexture(&texInfo);
+		return;
 	}
 
 	if (mode != DontDraw)

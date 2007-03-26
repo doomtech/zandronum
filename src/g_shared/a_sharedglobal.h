@@ -83,6 +83,7 @@ public:
 	WORD PicNum;
 	DWORD RenderFlags;
 	BYTE RenderStyle;
+	sector_t * Sector;	// required for 3D floors
 
 protected:
 	virtual DBaseDecal *CloneSelf (const FDecalTemplate *tpl, fixed_t x, fixed_t y, fixed_t z, side_s *wall) const;

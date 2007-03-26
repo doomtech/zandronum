@@ -66,7 +66,6 @@
 // [BC] New #includes.
 #include "network.h"
 #include "sv_commands.h"
-#include "zgl_lights.h"
 
 // [SO] Just the way Randy said to do it :)
 // [RH] Made this CVAR_SERVERINFO
@@ -801,8 +800,10 @@ static int PatchThing (int thingy)
 			}
 			else if (stricmp (Line1, "Scale") == 0)
 			{
-				info->xscale = clamp ((int)(atof (Line2) * 64), 1, 256) - 1;
-				info->yscale = clamp ((int)(atof (Line2) * 64), 1, 256) - 1;
+				// [GZDoom]
+				info->scaleY = info->scaleX = clamp<fixed_t> (FLOAT2FIXED(atof (Line2)), 1, 256*FRACUNIT);
+				//info->xscale = clamp ((int)(atof (Line2) * 64), 1, 256) - 1;
+				//info->yscale = clamp ((int)(atof (Line2) * 64), 1, 256) - 1;
 			}
 			else if (stricmp (Line1, "Decal") == 0)
 			{
@@ -2554,9 +2555,6 @@ void FinishDehPatch ()
 		defaults1->health = DehackedPickups.Push (subclass);
 		type->ActorInfo->SpawnID = 0;
 		type->ActorInfo->DoomEdNum = -1;
-
-		// [ZDoomGL] - add a light alias for the new class to reference the class it's taking over
-		GL_AddLightAlias(typeNameBuilder, type->TypeName.GetChars());
 
 		DPrintf ("%s replaces %s\n", subclass->TypeName.GetChars(), type->TypeName.GetChars());
 	}

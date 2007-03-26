@@ -53,12 +53,12 @@
 #include "am_map.h"
 #include "a_artifacts.h"
 
+#include "gl/gl_functions.h"
 // [BC] New #includes.
 #include "team.h"
 #include "deathmatch.h"
 #include "network.h"
 #include "scoreboard.h"
-#include "zgl_main.h"
 
 static int Background, YourColor, WallColor, TSWallColor,
 		   FDWallColor, CDWallColor, ThingColor,
@@ -88,7 +88,7 @@ static BYTE DoomPaletteVals[11*3] =
 // scale on entry
 #define INITSCALEMTOF (.2*MAPUNIT)
 // used by MTOF to scale from map-to-frame-buffer coords
-fixed_t scale_mtof = (fixed_t)INITSCALEMTOF; // [ZDoomGL]: was static
+static fixed_t scale_mtof = (fixed_t)INITSCALEMTOF;
 // used by FTOM to scale from frame-buffer-to-map coords (=1/scale_mtof)
 static fixed_t scale_ftom;
 
@@ -143,9 +143,6 @@ CVAR (Color, am_thingcolor_item,		0xfcfcfc,	CVAR_ARCHIVE);
 CVAR (Color, am_ovthingcolor_friend,	0xe88800,	CVAR_ARCHIVE);
 CVAR (Color, am_ovthingcolor_monster,	0xe88800,	CVAR_ARCHIVE);
 CVAR (Color, am_ovthingcolor_item,		0xe88800,	CVAR_ARCHIVE);
-
-EXTERN_CVAR(Bool, gl_automap_dukestyle); // [ZDoomGL]
-EXTERN_CVAR(Bool, gl_automap_glow);
 
 // drawing stuff
 #define AM_PANDOWNKEY	KEY_DOWNARROW
@@ -281,14 +278,12 @@ static int 	leveljuststarted = 1; 	// kluge until AM_LevelInit() is called
 bool		automapactive = false;
 
 // location of window on screen
-// [ZDoomGL]: was static
-int	f_x;
-int	f_y;
+static int	f_x;
+static int	f_y;
 
 // size of window on screen
-// [ZDoomGL]: was static
-int	f_w;
-int	f_h;
+static int	f_w;
+static int	f_h;
 static int	f_p;				// [RH] # of bytes from start of a line to start of next
 
 static BYTE *fb;				// pseudo-frame buffer
@@ -298,16 +293,14 @@ static mpoint_t	m_paninc;		// how far the window pans each tic (map coords)
 static fixed_t	mtof_zoommul;	// how far the window zooms in each tic (map coords)
 static fixed_t	ftom_zoommul;	// how far the window zooms in each tic (fb coords)
 
-// [ZDoomGL]: these were static
-fixed_t	m_x, m_y;		// LL x,y where the window is on the map (map coords)
-fixed_t	m_x2, m_y2;		// UR x,y where the window is on the map (map coords)
+static fixed_t	m_x, m_y;		// LL x,y where the window is on the map (map coords)
+static fixed_t	m_x2, m_y2;		// UR x,y where the window is on the map (map coords)
 
 //
 // width/height of window on map (map coords)
 //
-// [ZDoomGL]: was static
-fixed_t	m_w;
-fixed_t	m_h;
+static fixed_t	m_w;
+static fixed_t	m_h;
 
 // based on level size
 static fixed_t	min_x, min_y, max_x, max_y;
@@ -1149,7 +1142,7 @@ bool AM_clipMline (mline_t *ml, fline_t *fl)
 	register int outcode2 = 0;
 	register int outside;
 
-	fpoint_t tmp;
+	fpoint_t tmp = { 0, 0 };
 	int dx;
 	int dy;
 
@@ -1267,10 +1260,9 @@ void AM_drawFline (fline_t *fl, int color)
 	fl->a.y += f_y;
 	fl->b.y += f_y;
 
-	// [BC/ZDoomGL] Just let the OpenGL renderer do everything.
-	if ( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL )
+	if (currentrenderer == 1)
 	{
-		GL_DrawLine(fl->a.x, fl->a.y, fl->b.x, fl->b.y, &GPalette.BaseColors[color]);
+		gl_DrawLine(fl->a.x, fl->a.y, fl->b.x, fl->b.y, color);
 		return;
 	}
 
@@ -1354,7 +1346,7 @@ void AM_drawFline (fline_t *fl, int color)
  * IntensityBits = log base 2 of NumLevels; the # of bits used to describe
  *          the intensity of the drawing color. 2**IntensityBits==NumLevels
  */
-void PUTDOT (int xx, int yy,BYTE *cc, BYTE *cm)
+void PUTDOT (int xx, int yy, BYTE *cc, BYTE *cm)
 {
 	static int oldyy;
 	static int oldyyshifted;
@@ -1730,56 +1722,6 @@ void DrawTransWuLine (int x0, int y0, int x1, int y1, BYTE baseColor)
 }
 
 //
-// [ZDoomGL] - draws the glow around certain lines (locked doors, etc)
-//
-void AM_drawGlow (mline_t *ml, short keyType)
-{
-   static fline_t fl;
-   static PalEntry p;
-
-   if (OPENGL_GetCurrentRenderer( ) != RENDERER_OPENGL) return;
-
-   switch (keyType)
-   {
-   case 1: // red
-   case 4:
-   case 129:
-      p.r = 255;
-      p.g = 0;
-      p.b = 0;
-      break;
-   case 2: // blue
-   case 5:
-   case 130:
-      p.r = 0;
-      p.g = 0;
-      p.b = 255;
-      break;
-   case 3: // yellow
-   case 6:
-   case 131:
-      p.r = 255;
-      p.g = 255;
-      p.b = 0;
-      break;
-   case 100: // any key
-      break;
-   case 101: // all keys
-      break;
-   case 229: // 3 keys, one of each color
-      break;
-   default:
-      p = GPalette.BaseColors[LockedColor];
-      break;
-   }
-
-   if (AM_clipMline (ml, &fl))
-   {
-      GL_DrawGlowLine(fl.a.x + f_x, fl.a.y + f_y, fl.b.x + f_x, fl.b.y + f_y, &p);
-   }
-}
-
-//
 // Clip lines, draw visible parts of lines.
 //
 void AM_drawMline (mline_t *ml, int color)
@@ -1926,21 +1868,6 @@ void AM_drawWalls (bool allmap)
 						 lines[i].special == ACS_LockedExecute ||
 						 (lines[i].special == Generic_Door && lines[i].args[4]!=0))
 				{
-					if (gl_automap_glow)
-					{
-						if (OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL)
-						{
-							switch (lines[i].special)
-							{
-							case Door_LockedRaise:
-								AM_drawGlow (&l, lines[i].args[3]);
-								break;
-							case ACS_LockedExecute:
-								AM_drawGlow (&l, lines[i].args[4]);
-								break;
-							}
-						}
-					}
 					if (am_usecustomcolors)
 					{
 						int P_GetMapColorForLock(int lock);
@@ -1954,7 +1881,8 @@ void AM_drawWalls (bool allmap)
 
 						if (color > 0)
 						{
-							color = ColorMatcher.Pick(RPART(color), GPART(color), BPART(color));
+							if (currentrenderer == 1) color |= 0xff000000;
+							else color = ColorMatcher.Pick(RPART(color), GPART(color), BPART(color));
 						}
 						else color = LockedColor;
 
@@ -2188,7 +2116,7 @@ void AM_drawThings (int _color)
 }
 
 static void DrawMarker (FTexture *tex, fixed_t x, fixed_t y, int yadjust,
-	INTBOOL flip, int xscale, int yscale, int translation, fixed_t alpha, DWORD alphacolor, int renderstyle)
+	INTBOOL flip, fixed_t xscale, fixed_t yscale, int translation, fixed_t alpha, DWORD alphacolor, int renderstyle)
 {
 	if (tex == NULL || tex->UseType == FTexture::TEX_Null)
 	{
@@ -2199,8 +2127,8 @@ static void DrawMarker (FTexture *tex, fixed_t x, fixed_t y, int yadjust,
 		AM_rotatePoint (&x, &y);
 	}
 	screen->DrawTexture (tex, CXMTOF(x) + f_x, CYMTOF(y) + yadjust + f_y,
-		DTA_DestWidth, MulScale6 (tex->GetScaledWidth() * CleanXfac, xscale),
-		DTA_DestHeight, MulScale6 (tex->GetScaledHeight() * CleanYfac, yscale),
+		DTA_DestWidth, MulScale16 (tex->GetScaledWidth() * CleanXfac, xscale),
+		DTA_DestHeight, MulScale16 (tex->GetScaledHeight() * CleanYfac, yscale),
 		DTA_ClipTop, f_y,
 		DTA_ClipBottom, f_y + f_h,
 		DTA_ClipLeft, f_x,
@@ -2277,7 +2205,7 @@ void AM_drawAuthorMarkers ()
 			if (mark->args[1] == 0 || (mark->args[1] == 1 && marked->Sector->MoreFlags & SECF_DRAWN))
 			{
 				DrawMarker (tex, marked->x >> FRACTOMAPBITS, marked->y >> FRACTOMAPBITS, 0,
-					flip, mark->xscale+1, mark->yscale+1, mark->Translation,
+					flip, mark->scaleX, mark->scaleY, mark->Translation,
 					mark->alpha, mark->alphacolor, mark->RenderStyle);
 			}
 			marked = mark->args[0] != 0 ? it.Next() : NULL;
@@ -2287,7 +2215,15 @@ void AM_drawAuthorMarkers ()
 
 void AM_drawCrosshair (int color)
 {
-	fb[f_p*((f_h+1)/2)+(f_w/2)] = (BYTE)color; // single point for now
+	if (currentrenderer==0) 
+	{
+		fb[f_p*((f_h+1)/2)+(f_w/2)] = (BYTE)color; // single point for now
+	}
+	else
+	{
+		gl_DrawLine((f_w/2)-1, (f_h/2), (f_w/2)+1, (f_h/2), color);
+		gl_DrawLine((f_w/2), (f_h/2)-1, (f_w/2), (f_h/2)+1, color);
+	}
 }
 
 void AM_Drawer ()
@@ -2300,10 +2236,8 @@ void AM_Drawer ()
 
 	AM_initColors (viewactive);
 
-	if (OPENGL_GetCurrentRenderer( ) != RENDERER_OPENGL)
-	{
-		fb = screen->GetBuffer ();
-	}
+	fb = screen->GetBuffer ();
+
 	if (!viewactive)
 	{
 		// [RH] Set f_? here now to handle automap overlaying
@@ -2334,17 +2268,13 @@ void AM_Drawer ()
 	if (grid)	
 		AM_drawGrid(GridColor);
 
-	// [BC/ZDoomGL] Potentially render the automap in DUKESTYLE!
-	if (( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL ) && ( gl_automap_dukestyle ))
-		GL_DrawDukeAutomap();
-
 	AM_drawWalls(allmap);
 	AM_drawPlayers();
 	if (am_cheat >= 2 || allthings)
 		AM_drawThings(ThingColor);
-	AM_drawAuthorMarkers ();
+	AM_drawAuthorMarkers();
 
-	if (!viewactive && ( OPENGL_GetCurrentRenderer( ) != RENDERER_OPENGL ))
+	if (!viewactive)
 		AM_drawCrosshair(XHairColor);
 
 	AM_drawMarks();

@@ -44,15 +44,14 @@
 #include "c_cvars.h"
 #include "c_dispatch.h"
 #include "v_text.h"
-#include "network.h"
-
-// [ZDoomGL]
-#include "OpenGLVideo.h"
-#include "zgl_main.h"
 
 EXTERN_CVAR (Bool, ticker)
 EXTERN_CVAR (Bool, fullscreen)
 EXTERN_CVAR (Float, vid_winscale)
+
+
+#include "gl/win32gliface.h"
+#include "gl/gl_texture.h"
 
 bool ForceWindowed;
 
@@ -61,40 +60,89 @@ IVideo *Video;
 //static IMouse *Mouse;
 //static IJoystick *Joystick;
 
-// [ZDoomGL]
-static bool initialized = false;
+
 extern int NewWidth, NewHeight, NewBits, DisplayBits;
-extern BOOL vidactive;
-extern bool UsingGLNodes;
 bool V_DoModeSetup (int width, int height, int bits);
+void I_RestartRenderer();
+void RebuildAllLights();
+int currentrenderer=1;
 bool changerenderer;
+bool gl_disabled;
+EXTERN_CVAR(Bool, gl_nogl)
+
+// [ZDoomGL]
+CUSTOM_CVAR (Int, vid_renderer, 1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
+{
+	// 0: Software renderer
+	// 1: OpenGL renderer
+
+	if (gl_disabled) 
+	{
+		return;
+	}
+
+	if (self != currentrenderer)
+	{
+		switch (self)
+		{
+		case 0:
+			Printf("Switching to software renderer...\n");
+			break;
+		case 1:
+			Printf("Switching to OpenGL renderer...\n");
+			break;
+		default:
+			Printf("Unknown renderer (%d).  Falling back to software renderer...\n", vid_renderer);
+			self = 0; // make sure to actually switch to the software renderer
+			break;
+		}
+		//changerenderer = true;
+		Printf("You must restart GZDoom to switch the rendere\n");
+	}
+}
+
+CCMD (vid_restart)
+{
+	if (!gl_disabled) changerenderer = true;
+}
+
+void I_CheckRestartRenderer()
+{
+	if (gl_disabled) return;
+	
+	while (changerenderer)
+	{
+		currentrenderer = vid_renderer;
+		I_RestartRenderer();
+		if (currentrenderer == vid_renderer) changerenderer = false;
+	}
+}
 
 void I_RestartRenderer()
 {
 	FFont *font;
-
+	int bits;
+	
+	FGLTexture::FlushAll();
 	font = screen->Font;
-	I_ShutdownHardware();
-	I_InitHardware();
-	V_DoModeSetup(NewWidth, NewHeight, 8);
+	I_ShutdownGraphics();
+	RebuildAllLights();	// Build the lightmaps for all colormaps. If the hardware renderer is active 
+						// this time consuming step is skipped.
+	
+	changerenderer=false;
+	if (gl_disabled) currentrenderer=0;
+	if (currentrenderer==1) Video = new Win32GLVideo(0);
+	else Video = new Win32Video (0);
+	if (Video == NULL) I_FatalError ("Failed to initialize display");
+	
+	if (currentrenderer==0) bits=8;
+	else bits=32;
+	
+	V_DoModeSetup(NewWidth, NewHeight, bits);
 	screen->SetFont(font);
-
-	if (( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL ) && gamestate == GS_LEVEL)
-	{
-		if ( UsingGLNodes == false )
-			P_LoadGLNodes( Wads.GetNumForName( level.mapname ));
-
-		GL_GenerateLevelGeometry();
-		frameStartMS = I_MSTime(); // reset the frame time so the shaders don't get messed up
-	}
-
-	if ( OPENGL_GetCurrentRenderer( ) == RENDERER_SOFTWARE )
-	{
-		C_GetConback(NewWidth, NewHeight);
-	}
 }
 
-void I_ShutdownHardware ()
+void I_ShutdownGraphics ()
 {
 	if (screen)
 		delete screen, screen = NULL;
@@ -102,39 +150,30 @@ void I_ShutdownHardware ()
 		delete Video, Video = NULL;
 }
 
-void I_InitHardware ()
+void I_InitGraphics ()
 {
 	UCVarValue val;
 
+	gl_disabled = gl_nogl;
 	val.Bool = !!Args.CheckParm ("-devparm");
 	ticker.SetGenericRepDefault (val, CVAR_Bool);
-	
-	if ( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL )
-		Video = new OpenGLVideo( );
-	else
-		Video = new Win32Video (0);
+
+	if (gl_disabled) currentrenderer=0;
+	else currentrenderer = vid_renderer;
+	if (currentrenderer==1) Video = new Win32GLVideo(0);
+	else Video = new Win32Video (0);
 
 	if (Video == NULL)
 		I_FatalError ("Failed to initialize display");
-
-	if (!initialized) // [ZDoomGL]
-   {
-	   atterm (I_ShutdownHardware);
-   }
-
+	
+	atterm (I_ShutdownGraphics);
+	
 	Video->SetWindowedScale (vid_winscale);
-
-   initialized = true; // [ZDoomGL]
 }
 
 /** Remaining code is common to Win32 and Linux **/
 
 // VIDEO WRAPPERS ---------------------------------------------------------
-
-EDisplayType I_DisplayType ()
-{
-	return Video->GetDisplayType ();
-}
 
 DFrameBuffer *I_SetMode (int &width, int &height, DFrameBuffer *old)
 {
@@ -160,12 +199,12 @@ DFrameBuffer *I_SetMode (int &width, int &height, DFrameBuffer *old)
 	}
 	DFrameBuffer *res = Video->CreateFrameBuffer (width, height, fs, old);
 
-	/* Right now, CreateFrameBuffer cannot return NULL
+	//* Right now, CreateFrameBuffer cannot return NULL
 	if (res == NULL)
 	{
 		I_FatalError ("Mode %dx%d is unavailable\n", width, height);
 	}
-	*/
+	//*/
 	return res;
 }
 
@@ -173,8 +212,7 @@ bool I_CheckResolution (int width, int height, int bits)
 {
 	int twidth, theight;
 
-	Video->FullscreenChanged (screen ? screen->IsFullscreen() : fullscreen);
-	Video->StartModeIterator (bits);
+	Video->StartModeIterator (bits, screen ? screen->IsFullscreen() : fullscreen);
 	while (Video->NextMode (&twidth, &theight, NULL))
 	{
 		if (width == twidth && height == theight)
@@ -190,10 +228,9 @@ void I_ClosestResolution (int *width, int *height, int bits)
 	int iteration;
 	DWORD closest = 4294967295u;
 
-	Video->FullscreenChanged (screen ? screen->IsFullscreen() : fullscreen);
 	for (iteration = 0; iteration < 2; iteration++)
 	{
-		Video->StartModeIterator (bits);
+		Video->StartModeIterator (bits, screen ? screen->IsFullscreen() : fullscreen);
 		while (Video->NextMode (&twidth, &theight, NULL))
 		{
 			if (twidth == *width && theight == *height)
@@ -221,35 +258,14 @@ void I_ClosestResolution (int *width, int *height, int bits)
 	}
 }	
 
-void I_StartModeIterator (int bits)
-{
-	Video->StartModeIterator (bits);
-}
-
-bool I_NextMode (int *width, int *height, bool *letterbox)
-{
-	return Video->NextMode (width, height, letterbox);
-}
-
-DCanvas *I_NewStaticCanvas (int width, int height)
-{
-	return new DSimpleCanvas (width, height);
-}
-
 extern int NewWidth, NewHeight, NewBits, DisplayBits;
 
-CUSTOM_CVAR (Bool, fullscreen, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+CUSTOM_CVAR (Bool, fullscreen, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
 {
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		return;
-
-	if (Video->FullscreenChanged (self))
-	{
-		NewWidth = screen->GetWidth();
-		NewHeight = screen->GetHeight();
-		NewBits = DisplayBits;
-		setmodeneeded = true;
-	}
+	NewWidth = screen->GetWidth();
+	NewHeight = screen->GetHeight();
+	NewBits = DisplayBits;
+	setmodeneeded = true;
 }
 
 CUSTOM_CVAR (Float, vid_winscale, 1.f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
@@ -264,7 +280,7 @@ CUSTOM_CVAR (Float, vid_winscale, 1.f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 		NewWidth = screen->GetWidth();
 		NewHeight = screen->GetHeight();
 		NewBits = DisplayBits;
-		setmodeneeded = true;
+		//setmodeneeded = true;	// This CVAR doesn't do anything and only causes problems!
 	}
 }
 
@@ -274,9 +290,14 @@ CCMD (vid_listmodes)
 	int width, height, bits;
 	bool letterbox;
 
+	if (Video == NULL)
+	{
+		return;
+	}
+
 	for (bits = 1; bits <= 32; bits++)
 	{
-		Video->StartModeIterator (bits);
+		Video->StartModeIterator (bits, screen->IsFullscreen());
 		while (Video->NextMode (&width, &height, &letterbox))
 		{
 			bool thisMode = (width == DisplayWidth && height == DisplayHeight && bits == DisplayBits);
@@ -297,37 +318,3 @@ CCMD (vid_currentmode)
 	Printf ("%dx%dx%d\n", DisplayWidth, DisplayHeight, DisplayBits);
 }
 
-CUSTOM_CVAR( Int, vid_renderer, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL )
-{
-	if ( self != OPENGL_GetCurrentRenderer( ))
-	{
-		switch (self)
-		{
-		case RENDERER_SOFTWARE:
-        
-			Printf( "Switching to software renderer...\n" );
-			break;
-		case RENDERER_OPENGL:
-			
-			Printf( "Switching to OpenGL renderer...\n" );
-			break;
-		default:
-			
-			Printf( "Unknown renderer: %d! Falling back to software renderer...\n", vid_renderer );
-			
-			// Set this back to the software renderer.
-			self = RENDERER_SOFTWARE;
-			break;
-		}
-
-		// This can be different if we were in software mode, and tried to change to an invalid
-		// renderer.
-		if ( self != OPENGL_GetCurrentRenderer( ))
-			changerenderer = true;
-   }
-}
-
-CCMD (vid_restart)
-{
-	changerenderer = true;
-}

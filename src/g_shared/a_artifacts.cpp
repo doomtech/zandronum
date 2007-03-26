@@ -1051,8 +1051,11 @@ void APowerSpeed::DoEffect ()
 		speedMo->floorclip = Owner->floorclip;
 
 		// [BC] Also get the scale from the owner.
-		speedMo->xscale = Owner->xscale;
-		speedMo->yscale = Owner->yscale;
+		// [GZDoom]
+		speedMo->scaleX = Owner->scaleX;
+		speedMo->scaleY = Owner->scaleY;
+		//speedMo->xscale = Owner->xscale;
+		//speedMo->yscale = Owner->yscale;
 
 		if (Owner == players[consoleplayer].camera &&
 			!(Owner->player->cheats & CF_CHASECAM))
@@ -2179,8 +2182,11 @@ void ARuneSpeed25::DoEffect ()
 		speedMo->floorclip = Owner->floorclip;
 
 		// [BC] Also get the scale from the owner.
-		speedMo->xscale = Owner->xscale;
-		speedMo->yscale = Owner->yscale;
+		// [GZDoom]
+		speedMo->scaleX = Owner->scaleX;
+		speedMo->scaleY = Owner->scaleY;
+		//speedMo->xscale = Owner->xscale;
+		//speedMo->yscale = Owner->yscale;
 
 		if (Owner == players[consoleplayer].camera &&
 			!(Owner->player->cheats & CF_CHASECAM))

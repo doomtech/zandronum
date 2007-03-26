@@ -3102,7 +3102,7 @@ static void client_SpawnPlayer( void )
 		lSkin = R_FindSkin( "base", pPlayer->CurrentPlayerClass );
 
 	pActor->sprite = skins[lSkin].sprite;
-	pActor->xscale = pActor->yscale = skins[lSkin].scale;
+	pActor->scaleX = pActor->scaleY = skins[lSkin].Scale;
 
 	pPlayer->DesiredFOV = pPlayer->FOV = 90.f;
 	pPlayer->camera = pActor;
@@ -3655,7 +3655,7 @@ static void client_SetPlayerUserInfo( void )
 		if ( pPlayer->mo )
 		{
 			pPlayer->mo->sprite = skins[lSkin].sprite;
-			pPlayer->mo->xscale = pPlayer->mo->yscale = skins[lSkin].scale;
+			pPlayer->mo->scaleX = pPlayer->mo->scaleY = skins[lSkin].Scale;
 		}
 	}
 

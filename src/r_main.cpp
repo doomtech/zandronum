@@ -46,7 +46,11 @@
 #include "i_system.h"
 #include "vectors.h"
 #include "a_sharedglobal.h"
-#include "zgl_main.h"
+// [GZDoom]
+#include "gl/gl_data.h"
+#include "gl/gl_texture.h"
+#include "gl/gl_functions.h"
+
 // [BC] New #includes.
 #include "sv_commands.h"
 
@@ -235,8 +239,7 @@ angle_t R_PointToAngle2 (fixed_t x1, fixed_t y1, fixed_t x, fixed_t y)
 {
 #if 1 // [ZDoomGL]
 	// The precision of the code below is abysmal so use the CRT atan2 function instead!
-	// this also fixes all those missing geometry problems where there'd be a problem when you'd cross a bsp line :)
-	return static_cast<angle_t>(atan2(y-y1*1.0, x-x1*1.0) * ANGLE_180/M_PI);
+	return quickertoint((float)atan2f(y-y1, x-x1) * ANGLE_180/M_PI);
 #else
 	x -= x1;
 	y -= y1;
@@ -793,6 +796,7 @@ void R_Init ()
 	R_InitTranslationTables ();
 
 	R_InitParticles ();	// [RH] Setup particle engine
+	R_InitColumnDrawers ();
 
 	colfunc = basecolfunc = R_DrawColumn;
 	fuzzcolfunc = R_DrawFuzzColumn;
@@ -822,6 +826,19 @@ static void R_Shutdown ()
 
 //==========================================================================
 //
+// I am keeping both the original nodes from the WAD and the ones
+// created for the GL renderer. THe original set is only being used
+// to get the sector for in-game positioning of actors but not for rendering.
+//
+// Unfortunately this is necessary because ZDBSP is much more sensitive
+// to sloppy mapping practices that produce overlapping sectors.
+// The crane in P:AR E1M3 is a good example that would be broken If
+// I didn't do this.
+//
+//==========================================================================
+
+//==========================================================================
+//
 // R_PointInSubsector
 //
 //==========================================================================
@@ -832,10 +849,10 @@ subsector_t *R_PointInSubsector (fixed_t x, fixed_t y)
 	int side;
 
 	// single subsector is a special case
-	if (numnodes == 0)
-		return subsectors;
+	if (numgamenodes == 0)
+		return gamesubsectors;
 				
-	node = nodes + numnodes - 1;
+	node = gamenodes + numgamenodes - 1;
 
 	do
 	{
@@ -925,7 +942,7 @@ void R_InterpolateView (player_t *player, fixed_t frac, InterpolationViewer *ivi
 	}
 	
 	// Due to interpolation this is not necessarily the same as the sector the camera is in.
-	viewsector = R_PointInSubsector(viewx, viewy)->sector;
+	viewsector = R_PointInSubsector2(viewx, viewy)->sector;
 }
 
 //==========================================================================
@@ -973,7 +990,8 @@ static InterpolationViewer *FindPastViewer (AActor *actor)
 	}
 
 	// Not found, so make a new one
-	InterpolationViewer iview;
+	// [GZDoom]
+	InterpolationViewer iview = { 0 };
 	iview.ViewActor = actor;
 	iview.otic = -1;
 	return &PastViewers[PastViewers.Push (iview)];
@@ -1014,6 +1032,11 @@ void R_CopyStackedViewParameters()
 
 void R_SetupFrame (AActor *actor)
 {
+	if (actor == NULL)
+	{
+		I_Error ("Tried to render from a NULL actor.");
+	}
+
 	player_t *player = actor->player;
 	unsigned int newblend;
 	InterpolationViewer *iview;
@@ -1576,6 +1599,11 @@ void R_RenderActorView (AActor *actor, bool dontmaplines)
 void R_RenderViewToCanvas (AActor *actor, DCanvas *canvas,
 	int x, int y, int width, int height, bool dontmaplines)
 {
+	if (currentrenderer==1)
+	{
+		gl_RenderViewToCanvas(canvas, x, y, width, height);
+		return;
+	}
 	const int saveddetail = detailxshift | (detailyshift << 1);
 	const bool savedviewactive = viewactive;
 
@@ -1666,7 +1694,8 @@ void FCanvasTextureInfo::UpdateAll ()
 	{
 		if (probe->Viewpoint != NULL && probe->Texture->bNeedsUpdate)
 		{
-			probe->Texture->RenderView (probe->Viewpoint, probe->FOV);
+			if (currentrenderer == 0) probe->Texture->RenderView (probe->Viewpoint, probe->FOV);
+			else probe->Texture->RenderGLView (probe->Viewpoint, probe->FOV);
 		}
 	}
 }
@@ -1812,10 +1841,12 @@ void FActiveInterpolation::CopyBakToInterp ()
 	case INTERP_SectorFloor:
 		((sector_t*)Address)->floorplane.d = bakipos[0];
 		((sector_t*)Address)->floortexz = bakipos[1];
+		P_RecalculateAttached3DFloors((sector_t*)Address);
 		break;
 	case INTERP_SectorCeiling:
 		((sector_t*)Address)->ceilingplane.d = bakipos[0];
 		((sector_t*)Address)->ceilingtexz = bakipos[1];
+		P_RecalculateAttached3DFloors((sector_t*)Address);
 		break;
 	case INTERP_Vertex:
 		((vertex_t*)Address)->x = bakipos[0];
@@ -1839,18 +1870,19 @@ void FActiveInterpolation::CopyBakToInterp ()
 void FActiveInterpolation::DoAnInterpolation (fixed_t smoothratio)
 {
 	fixed_t *adr1, *adr2, pos;
+	bool recalc=false; // [GZDoom]
 
 	switch (Type)
 	{
 	case INTERP_SectorFloor:
 		adr1 = &((sector_t*)Address)->floorplane.d;
 		adr2 = &((sector_t*)Address)->floortexz;
-		((sector_t*)Address)->lastUpdate = validcount; // [ZDoomGL]
+		recalc=true; // [GZDoom]
 		break;
 	case INTERP_SectorCeiling:
 		adr1 = &((sector_t*)Address)->ceilingplane.d;
 		adr2 = &((sector_t*)Address)->ceilingtexz;
-		((sector_t*)Address)->lastUpdate = validcount; // [ZDoomGL]
+		recalc=true; // [GZDoom]
 		break;
 	case INTERP_Vertex:
 		adr1 = &((vertex_t*)Address)->x;
@@ -1859,17 +1891,14 @@ void FActiveInterpolation::DoAnInterpolation (fixed_t smoothratio)
 	case INTERP_FloorPanning:
 		adr1 = &((sector_t*)Address)->floor_xoffs;
 		adr2 = &((sector_t*)Address)->floor_yoffs;
-		((sector_t*)Address)->lastUpdate = validcount; // [ZDoomGL]
 		break;
 	case INTERP_CeilingPanning:
 		adr1 = &((sector_t*)Address)->ceiling_xoffs;
 		adr2 = &((sector_t*)Address)->ceiling_yoffs;
-		((sector_t*)Address)->lastUpdate = validcount; // [ZDoomGL]
 		break;
 	case INTERP_WallPanning:
 		adr1 = &((side_t*)Address)->rowoffset;
 		adr2 = &((side_t*)Address)->textureoffset;
-		((side_t*)Address)->sector->lastUpdate = validcount; // [ZDoomGL]
 		break;
 	default:
 		return;
@@ -1880,6 +1909,8 @@ void FActiveInterpolation::DoAnInterpolation (fixed_t smoothratio)
 
 	pos = bakipos[1] = *adr2;
 	*adr2 = oldipos[1] + FixedMul (pos - oldipos[1], smoothratio);
+
+	if (recalc) P_RecalculateAttached3DFloors((sector_t*)Address); // [GZDoom]
 }
 
 size_t FActiveInterpolation::HashKey (EInterpType type, void *interptr)
@@ -1990,18 +2021,6 @@ void setinterpolation(EInterpType type, void *posptr)
 	interp->Next = *interp_p;
 	*interp_p = interp;
 	interp->CopyInterpToOld ();
-/*
-   // [ZDoomGL]
-   switch (type)
-   {
-   case INTERP_SectorFloor:
-   case INTERP_SectorCeiling:
-      sectorMoving[(sector_t *)posptr - sectors] = true;
-      break;
-   default:
-      break;
-   }
-*/
 }
 
 void stopinterpolation(EInterpType type, void *posptr)

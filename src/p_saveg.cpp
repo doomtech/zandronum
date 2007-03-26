@@ -332,6 +332,7 @@ void P_SerializeWorld (FArchive &arc)
 				<< desaturate;
 			sec->ColorMap = GetSpecialLights (color, fade, desaturate);
 		}
+		arc << sec->ceiling_reflect << sec->floor_reflect;
 	}
 
 	// do lines

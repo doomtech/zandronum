@@ -72,7 +72,6 @@
 #include "network.h"
 #include "team.h"
 #include "lastmanstanding.h"
-#include "zgl_main.h"
 #include "sbar.h"
 #include "sv_commands.h"
 
@@ -395,9 +394,11 @@ bool P_TestActivateLine (line_t *line, AActor *mo, int side, int activationType)
 // Called every tic frame
 //	that the player origin is in a special sector
 //
-void P_PlayerInSpecialSector (player_t *player)
+void P_PlayerInSpecialSector (player_t *player, sector_t * sector)
 {
-	sector_t *sector = player->mo->Sector;
+	// [BB] Check this!
+	if (sector == NULL)
+		sector = player->mo->Sector;
 	int special = sector->special & ~SECRET_MASK;
 
 	// [BC] Sector specials are server-side.

@@ -88,6 +88,9 @@ public:
 	void Unload ();
 	virtual void SetFrontSkyLayer ();
 
+	// [GZDoom]
+	void CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
+
 protected:
 	BYTE *Pixels;
 	Span **Spans;
@@ -237,6 +240,9 @@ public:
 	const BYTE *GetPixels ();
 	void Unload ();
 
+	// [GZDoom]
+	void CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
+
 protected:
 
 	static bool Check (FileReader &file);
@@ -310,6 +316,9 @@ public:
 	const BYTE *GetPixels ();
 	void Unload ();
 
+	// [GZDoom]
+	void CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
+
 protected:
 
 	static bool Check (FileReader &file);
@@ -356,6 +365,9 @@ public:
 	const BYTE *GetColumn (unsigned int column, const Span **spans_out);
 	const BYTE *GetPixels ();
 	void Unload ();
+
+	// [GZDoom]
+	void CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
 
 protected:
 	int SourceLump;
@@ -409,6 +421,9 @@ public:
 	const BYTE *GetPixels ();
 	void Unload ();
 
+	// [GZDoom]
+	void CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
+
 protected:
 	int SourceLump;
 	BYTE *Pixels;
@@ -432,6 +447,7 @@ protected:
 // A texture that returns a wiggly version of another texture.
 class FWarpTexture : public FTexture
 {
+	friend class FGLTexture;
 public:
 	FWarpTexture (FTexture *source);
 	~FWarpTexture ();
@@ -440,6 +456,9 @@ public:
 	const BYTE *GetPixels ();
 	void Unload ();
 	bool CheckModified ();
+
+	// [GZDoom]
+	void CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
 
 protected:
 	FTexture *SourcePic;
@@ -455,6 +474,9 @@ class FWarp2Texture : public FWarpTexture
 {
 public:
 	FWarp2Texture (FTexture *source);
+
+	// [GZDoom]
+	void CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
 
 protected:
 	void MakeTexture (DWORD time);
@@ -473,6 +495,8 @@ public:
 	void Unload ();
 	bool CheckModified ();
 	void RenderView (AActor *viewpoint, int fov);
+	void RenderGLView(AActor *viewpoint, int fov);
+	void NeedUpdate() { bNeedsUpdate=true; }
 
 protected:
 	DSimpleCanvas *Canvas;

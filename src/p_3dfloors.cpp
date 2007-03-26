@@ -272,7 +272,7 @@ bool P_CheckFor3DFloorHit(AActor * mo)
 {
 	sector_t * sector = mo->Sector;
 
-	if ((mo->player && (mo->player->cheats & CF_PREDICTING))) return false;
+	//if ((mo->player && (mo->player->cheats & CF_PREDICTING))) return false;
 
 	for(unsigned i=0;i<sector->e->ffloors.Size();i++)
 	{
@@ -302,7 +302,7 @@ bool P_CheckFor3DCeilingHit(AActor * mo)
 {
 	sector_t * sector = mo->Sector;
 
-	if ((mo->player && (mo->player->cheats & CF_PREDICTING))) return false;
+	//if ((mo->player && (mo->player->cheats & CF_PREDICTING))) return false;
 
 	for(unsigned i=0;i<sector->e->ffloors.Size();i++)
 	{

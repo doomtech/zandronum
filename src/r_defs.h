@@ -212,6 +212,9 @@ inline FArchive &operator<< (FArchive &arc, secplane_t &plane)
 	return arc;
 }
 
+#include "p_3dfloors.h"
+struct subsector_s;
+
 // Ceiling/floor flags
 enum
 {
@@ -371,6 +374,16 @@ struct sector_t
 
 	vertex_t *Triangle[3];	// Three points that can define a plane
 	short						oldspecial;			//jff 2/16/98 remembers if sector WAS secret (automap)
+
+	// [GZDoom]
+	extsector_t	*				e;
+	float						ceiling_reflect, floor_reflect;
+	int							sectornum;			// for comparing sector copies
+
+	bool						transdoor;			// For transparent door hacks
+	fixed_t						transdoorheight;	// for transparent door hacks
+	int							subsectorcount;		// list of subsectors
+	subsector_s **				subsectors;
 
 	// [ZDoomGL]
 	fixed_t CenterX, CenterY;
@@ -689,6 +702,7 @@ public:
    float topOffset, bottomOffset;
 };
 
+class FGLTexture;
 class FileReader;
 
 // Base texture class
@@ -749,6 +763,10 @@ public:
 
 	// Returns the whole texture, stored in column-major order
 	virtual const BYTE *GetPixels () = 0;
+
+	// [OpenGL]
+	virtual void CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
+	FGLTexture * gltex;
 
 	virtual void Unload () = 0;
 
@@ -836,7 +854,7 @@ public:
 			{
 				totexnum = fromtexnum;
 			}
-			Translation[fromtexnum] = totexnum;
+			Translation[fromtexnum] = WORD(totexnum);
 		}
 	}
 
@@ -976,7 +994,9 @@ public:
 	BYTE		gender;		// This skin's gender (not really used)
 	BYTE		range0start;
 	BYTE		range0end;
-	BYTE		scale;
+	// [GZDoom]
+	fixed_t		Scale;
+	//BYTE		scale;
 	bool		othergame;	// [GRB]
 	int			sprite;
 	int			crouchsprite;

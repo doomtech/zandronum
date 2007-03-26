@@ -72,7 +72,9 @@
 #include "team.h"
 #include "campaign.h"
 #include "cooperative.h"
-#include "zgl_main.h"
+
+
+#include "gl/gl_functions.h"
 
 // MACROS ------------------------------------------------------------------
 
@@ -216,7 +218,7 @@ static const char cursName[8][8] =	// graphic names of Strife menu selector
 static oldmenu_t *currentMenu;		// current menudef
 static oldmenu_t *TopLevelMenu;		// The main menu everything hangs off of
 
-static char		*genders[3] = { "male", "female", "other" };
+static const char		*genders[3] = { "male", "female", "other" };
 static const PClass *PlayerClass;
 static int		PlayerTics;
 static int		PlayerRotation;
@@ -956,13 +958,6 @@ static void M_ExtractSaveData (const FSaveGameNode *node)
 			SavePic = M_CreateCanvasFromPNG (png);
 
 			delete png;
-
-			if ( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL )
-			{
-				SavePic->Lock();
-				textureList.SetSavegameTexture(0, SavePic->GetBuffer(), SavePic->GetWidth(), SavePic->GetHeight());
-				SavePic->Unlock();
-			}
 		}
 		fclose (file);
 	}
@@ -1020,15 +1015,20 @@ static void M_DrawSaveLoadCommon ()
 	M_DrawFrame (savepicLeft, savepicTop, savepicWidth, savepicHeight);
 	if (SavePic != NULL)
 	{
-		if ( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL )
+		if (currentrenderer==0)
 		{
-			textureList.BindSavegameTexture(0);
-			GL_DrawQuad(savepicLeft, savepicTop, savepicLeft + savepicWidth, savepicTop + savepicHeight);
+			// The most important question here is:
+			// Why the fuck is it necessary to do this in a way that
+			// reqires making this distinction here and not by virtually
+			// calling an appropriate Blit method for the destination?
+			// 
+			// Making Blit part of the source buffer is just stupid!
+			SavePic->Blit (0, 0, SavePic->GetWidth(), SavePic->GetHeight(),
+				screen, savepicLeft, savepicTop, savepicWidth, savepicHeight);
 		}
 		else
 		{
-			SavePic->Blit (0, 0, SavePic->GetWidth(), SavePic->GetHeight(),
-			   screen, savepicLeft, savepicTop, savepicWidth, savepicHeight);
+			gl_DrawSavePic(SavePic, SelSaveGame->Filename.GetChars(), savepicLeft, savepicTop, savepicWidth, savepicHeight);
 		}
 	}
 	else
