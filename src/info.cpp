@@ -67,6 +67,11 @@ extern void LoadDecorations (void (*process)(FState *, int));
 
 #define NULL_STATE_INDEX	127
 
+//==========================================================================
+//
+//
+//==========================================================================
+
 FArchive &operator<< (FArchive &arc, FState *&state)
 {
 	const PClass *info;
@@ -122,7 +127,12 @@ FArchive &operator<< (FArchive &arc, FState *&state)
 	return arc;
 }
 
+//==========================================================================
+//
 // Find the actor that a state belongs to.
+//
+//==========================================================================
+
 const PClass *FState::StaticFindStateOwner (const FState *state)
 {
 	const FActorInfo *info = RUNTIME_CLASS(AActor)->ActorInfo;
@@ -156,8 +166,13 @@ const PClass *FState::StaticFindStateOwner (const FState *state)
 	return NULL;
 }
 
+//==========================================================================
+//
 // Find the actor that a state belongs to, but restrict the search to
 // the specified type and its ancestors.
+//
+//==========================================================================
+
 const PClass *FState::StaticFindStateOwner (const FState *state, const FActorInfo *info)
 {
 	while (info != NULL)
@@ -171,6 +186,11 @@ const PClass *FState::StaticFindStateOwner (const FState *state, const FActorInf
 	}
 	return NULL;
 }
+
+//==========================================================================
+//
+//
+//==========================================================================
 
 int GetSpriteIndex(const char * spritename)
 {
@@ -190,7 +210,12 @@ int GetSpriteIndex(const char * spritename)
 }
 
 
+//==========================================================================
+//
 // Change sprite names to indices
+//
+//==========================================================================
+
 static void ProcessStates (FState *states, int numstates)
 {
 	int sprite = -1;
@@ -207,6 +232,12 @@ static void ProcessStates (FState *states, int numstates)
 		states++;
 	}
 }
+
+
+//==========================================================================
+//
+//
+//==========================================================================
 
 void FActorInfo::StaticInit ()
 {
@@ -247,10 +278,16 @@ void FActorInfo::StaticInit ()
 		reg->BuildDefaults ();
 	}
 
+	Printf ("LoadDecorations: Load external actors.\n");
 	LoadDecorations (ProcessStates);
 }
 
+//==========================================================================
+//
 // Called after the IWAD has been identified
+//
+//==========================================================================
+
 void FActorInfo::StaticGameSet ()
 {
 	// Run every AT_GAME_SET function
@@ -261,7 +298,12 @@ void FActorInfo::StaticGameSet ()
 	}
 }
 
+//==========================================================================
+//
 // Called after Dehacked patches are applied
+//
+//==========================================================================
+
 void FActorInfo::StaticSetActorNums ()
 {
 	memset (SpawnableThings, 0, sizeof(SpawnableThings));
@@ -281,6 +323,11 @@ void FActorInfo::StaticSetActorNums ()
 	}
 }
 
+//==========================================================================
+//
+//
+//==========================================================================
+
 void FActorInfo::RegisterIDs ()
 {
 	if (GameFilter == GAME_Any || (GameFilter & gameinfo.gametype))
@@ -296,8 +343,12 @@ void FActorInfo::RegisterIDs ()
 	}
 }
 
+//==========================================================================
+//
 // Called when a new game is started, but only if the game
 // speed has changed.
+//
+//==========================================================================
 
 void FActorInfo::StaticSpeedSet ()
 {
@@ -307,6 +358,11 @@ void FActorInfo::StaticSpeedSet ()
 		((void (*)(int))setters) (GameSpeed);
 	}
 }
+
+//==========================================================================
+//
+//
+//==========================================================================
 
 FActorInfo *FActorInfo::GetReplacement ()
 {
@@ -322,6 +378,11 @@ FActorInfo *FActorInfo::GetReplacement ()
 	Replacement = savedrep;
 	return rep;
 }
+
+//==========================================================================
+//
+//
+//==========================================================================
 
 FActorInfo *FActorInfo::GetReplacee ()
 {

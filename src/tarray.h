@@ -190,7 +190,6 @@ public:
 		{
 			const unsigned int choicea = Count + amount;
 			const unsigned int choiceb = Most = (Most >= 16) ? Most + Most / 2 : 16;
-	        const unsigned int base = Most;	// [ZDoomGL]
 			Most = (choicea > choiceb ? choicea : choiceb);
 			DoResize ();
 		}
@@ -239,8 +238,7 @@ public:
 			Count = 0;
 		}
 	}
-//private: // [ZDoomGL] make this protected so subclasses can have access
-protected:
+private:
 	T *Array;
 	unsigned int Most;
 	unsigned int Count;

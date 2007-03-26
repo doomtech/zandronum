@@ -76,6 +76,8 @@ public:
 
 private:
 	TWeightedList<FDecalBase *> Choices;
+
+	FDecalGroup &operator= (const FDecalGroup &) { return *this; }
 };
 
 struct FDecalLib::FTranslation
@@ -1396,5 +1398,5 @@ DThinker *FDecalColorerAnim::CreateThinker (DBaseDecal *actor, side_t *wall) con
 static fixed_t ReadScale ()
 {
 	SC_MustGetFloat ();
-	return fixed_t(clamp (sc_Float * FRACUNIT, 256.f, 256.f*FRACUNIT));
+	return fixed_t(clamp (sc_Float * FRACUNIT, 256.0, 256.0*FRACUNIT));
 }

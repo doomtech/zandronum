@@ -568,7 +568,7 @@ CCMD (exec)
 
 CCMD (logfile)
 {
-	char *timestr = myasctime ();
+	const char *timestr = myasctime ();
 
 	// This function may not be used by ConsoleCommand.
 	if ( ACS_IsCalledFromConsoleCommand( ))
