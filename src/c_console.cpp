@@ -898,11 +898,17 @@ int PrintString (int printlevel, const char *outline)
 		return 0;
 	}
 
+	// [BB]: outline is const, it may NOT be altered! Since some of the functions below 
+	// alter the output string, we have to make a copy of it and only alter this.
+
+	char *outlinecopy = new char[strlen(outline)+1];
+	strcpy (outlinecopy,outline);
+
 	if (Logfile)
 	{
 		// Strip out any color escape sequences before writing to the log file
-		char * copy = new char[strlen(outline)+1];
-		const char * srcp = outline;
+		char * copy = new char[strlen(outlinecopy)+1];
+		const char * srcp = outlinecopy;
 		char * dstp = copy;
 
 		while (*srcp != 0)
@@ -929,36 +935,42 @@ int PrintString (int printlevel, const char *outline)
 	// For servers, dump message to console window.
 	if ( Args.CheckParm( "-host" ))
 	{
-		if ( printlevel == PRINT_LOW )
-			return ( (int)strlen( outline ));
+		if ( printlevel == PRINT_LOW ){
+			const int length = static_cast<int>(strlen (outlinecopy));
+			delete [] outlinecopy;
+			return length;
+		}
 
 		if ( g_ulRCONPlayer != MAXPLAYERS )
-			SERVER_PrintfPlayer( printlevel, g_ulRCONPlayer, outline );
+			SERVER_PrintfPlayer( printlevel, g_ulRCONPlayer, outlinecopy );
 
-		SERVERCONSOLE_Print((char *)outline );
-		return ( (int)strlen( outline ));
+		SERVERCONSOLE_Print( outlinecopy );
+		const int length = static_cast<int>(strlen (outlinecopy));
+		delete [] outlinecopy;
+		return length;
 	}
 
-	// [BB] Fix this!
-	//if ( g_bAllowColorCodes )
-	//	V_ColorizeString( (char *)outline );
+	if ( g_bAllowColorCodes )
+		V_ColorizeString( outlinecopy );
 
 	// Allow option to strip color codes out of text string.
 	if ( con_textcolor == false )
-		V_RemoveColorCodes( (char *)outline );
+		V_RemoveColorCodes( outlinecopy );
 
-	I_PrintStr (outline);
+	I_PrintStr (outlinecopy);
 
-	AddToConsole (printlevel, outline);
+	AddToConsole (printlevel, outlinecopy);
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
 		if (vidactive && screen && screen->Font)
 		{
-			C_AddNotifyString (printlevel, outline);
+			C_AddNotifyString (printlevel, outlinecopy);
 			maybedrawnow (false, false);
 		}
 	}
-	return (int)strlen (outline);
+	const int length = static_cast<int>(strlen (outlinecopy));
+	delete [] outlinecopy;
+	return length;
 }
 
 extern bool gameisdead;
