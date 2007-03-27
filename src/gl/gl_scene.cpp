@@ -920,35 +920,37 @@ void gl_RenderPlayerView (player_t* player)
 	gl_fixedcolormap=CM_DEFAULT;
 
 	// check for special colormaps
-	player_t * cplayer = player->camera->player;
-	if (cplayer) 
-	{
-		if (cplayer->extralight<0)
+	if ( player->camera ){
+		player_t * cplayer = player->camera->player;
+		if (cplayer) 
 		{
-			gl_fixedcolormap=CM_INVERT;
-			extralight=0;
-		}
-		else if (cplayer->fixedcolormap==INVERSECOLORMAP) gl_fixedcolormap=CM_INVERT;
-		else if (cplayer->fixedcolormap==GOLDCOLORMAP) gl_fixedcolormap=CM_GOLDMAP;
-		else if (cplayer->fixedcolormap!=0 && cplayer->fixedcolormap<NUMCOLORMAPS) 
-		{
-			for(AInventory * in = cplayer->mo->Inventory; in; in = in->Inventory)
+			// [BB] Look for the Doomsphere/Guardsphere color change here
+			if (cplayer->extralight<0)
 			{
-				PalEntry color = in->GetBlend ();
+				gl_fixedcolormap=CM_INVERT;
+				extralight=0;
+			}
+			else if (cplayer->fixedcolormap==INVERSECOLORMAP) gl_fixedcolormap=CM_INVERT;
+			else if (cplayer->fixedcolormap==GOLDCOLORMAP) gl_fixedcolormap=CM_GOLDMAP;
+			else if (cplayer->fixedcolormap!=0 && cplayer->fixedcolormap<NUMCOLORMAPS) 
+			{
+				for(AInventory * in = cplayer->mo->Inventory; in; in = in->Inventory)
+				{
+					PalEntry color = in->GetBlend ();
 
-				// Need special handling for light amplifiers 
-				if (in->IsA(RUNTIME_CLASS(APowerTorch)))
-				{
-					gl_fixedcolormap = cplayer->fixedcolormap + CM_TORCH;
-				}
-				else if (in->IsA(RUNTIME_CLASS(APowerLightAmp)))
-				{
-					gl_fixedcolormap = CM_LITE;
+					// Need special handling for light amplifiers 
+					if (in->IsA(RUNTIME_CLASS(APowerTorch)))
+					{
+						gl_fixedcolormap = cplayer->fixedcolormap + CM_TORCH;
+					}
+					else if (in->IsA(RUNTIME_CLASS(APowerLightAmp)))
+					{
+						gl_fixedcolormap = CM_LITE;
+					}
 				}
 			}
 		}
 	}
-
 	#define RMUL (1.6f/1.333333f)
 	static float ratios[]={RMUL*1.333333f, RMUL*1.777777f, RMUL*1.6f, RMUL*1.333333f, RMUL*1.2f};
 
