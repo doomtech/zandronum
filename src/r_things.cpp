@@ -1648,10 +1648,7 @@ void R_DrawVisSprite (vissprite_t *vis)
 		}
 
 		tex = vis->pic;
-		if( vis->yscale > 100 )
-		  spryscale = vis->yscale;
-		else
-		  spryscale = 100000;
+		spryscale = vis->yscale;
 		sprflipvert = false;
 		dc_iscale = 0xffffffffu / (unsigned)vis->yscale;
 		dc_texturemid = vis->texturemid;
