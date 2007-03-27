@@ -1418,14 +1418,13 @@ void tmvline4_addclamp ()
 //
 void R_InitTranslationTables ()
 {
-	// [BB] Here is a difference to GZDoom. Check if it is important!
+	// [BB] Changed to use the ZDoom way for the menu player color
 	static BYTE MainTranslationTables[256*
 		(NUMCOLORMAPS*16			// Shaded
-		 +MAXPLAYERS*2				// Players + PlayersExtra
+		 +MAXPLAYERS*2+1			// Players + PlayersExtra + Menu player
 		 +8							// Standard	(7 for Strife, 3 for the rest)
 		 +MAX_ACS_TRANSLATIONS		// LevelScripted
 		 +BODYQUESIZE				// PlayerCorpses
-		 +1							// Player setup menu
 		 )];
 	int i, j;
 
@@ -1440,7 +1439,7 @@ void R_InitTranslationTables ()
 
 	// Extra player translations, one for each player, unused by Doom
 	translationtables[TRANSLATION_PlayersExtra] =
-		translationtables[TRANSLATION_Players] + MAXPLAYERS*256;
+		translationtables[TRANSLATION_Players] + (MAXPLAYERS+1)*256;
 
 	// The three standard translations from Doom or Heretic (seven for Strife),
 	// plus the generic ice translation.
@@ -1452,10 +1451,6 @@ void R_InitTranslationTables ()
 
 	translationtables[TRANSLATION_PlayerCorpses] =
 		translationtables[TRANSLATION_LevelScripted] + MAX_ACS_TRANSLATIONS*256;
-
-	// [BC] New translation for the player setup menu that's seperate from the 32 player translations.
-	translationtables[TRANSLATION_PlayerSetupMenu] =
-		translationtables[TRANSLATION_PlayerCorpses] + BODYQUESIZE*256;
 
 	translationtables[TRANSLATION_Decorate] = decorate_translations;
 	translationtables[TRANSLATION_Blood] = decorate_translations + MAX_DECORATE_TRANSLATIONS*256;

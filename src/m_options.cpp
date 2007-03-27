@@ -99,7 +99,11 @@
 
 #include "gl/gl_functions.h"
 
+// EXTERNAL FUNCTION PROTOTYPES --------------------------------------------
+
+void R_GetPlayerTranslation (int color, FPlayerSkin *skin, BYTE *table);
 void StartGLMenu (void);
+
 EXTERN_CVAR(Int, vid_renderer)
 EXTERN_CVAR(Bool, nomonsterinterpolation)
 
@@ -2813,11 +2817,11 @@ void M_PlayerSetupDrawer( void )
 				}
 
 				// Build the translation for the character that's going to draw.
-				R_BuildPlayerSetupPlayerTranslation( g_ulPlayerSetupColor, &skins[g_ulPlayerSetupSkin] );
-/*
-				if ( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL )
-			       textureList.UpdateForTranslation(translationtables[TRANSLATION_PlayerSetupMenu] + consoleplayer*256);
-*/
+				// [BB] Changed to use the ZDoom way to display player menu color
+				R_GetPlayerTranslation (g_ulPlayerSetupColor,
+					&skins[g_ulPlayerSetupSkin], translationtables[TRANSLATION_Players] + 256 * MAXPLAYERS);
+				//R_BuildPlayerSetupPlayerTranslation( g_ulPlayerSetupColor, &skins[g_ulPlayerSetupSkin] );
+
 				screen->DrawTexture (tex,
 					(320 - 52 - 32 + xo - 160)*CleanXfac + (SCREENWIDTH)/2,
 					(usOldPlayerSetupYOffset + usLineHeight*3 + 57 - 104)*CleanYfac + (SCREENHEIGHT/2),
@@ -2826,7 +2830,8 @@ void M_PlayerSetupDrawer( void )
 					DTA_DestHeight, MulScale16 (tex->GetHeight() * CleanYfac, Scale),
 					//DTA_DestWidth, MulScale6 (tex->GetWidth() * CleanXfac, scale),
 					//DTA_DestHeight, MulScale6 (tex->GetHeight() * CleanYfac, scale),
-					DTA_Translation, translationtables[TRANSLATION_PlayerSetupMenu],
+					DTA_Translation, translationtables[TRANSLATION_Players] + 256 * MAXPLAYERS,
+					//DTA_Translation, translationtables[TRANSLATION_PlayerSetupMenu],
 					TAG_DONE);
 			}
 		}
