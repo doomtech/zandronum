@@ -2822,8 +2822,8 @@ void M_PlayerSetupDrawer( void )
 					(320 - 52 - 32 + xo - 160)*CleanXfac + (SCREENWIDTH)/2,
 					(usOldPlayerSetupYOffset + usLineHeight*3 + 57 - 104)*CleanYfac + (SCREENHEIGHT/2),
 					// [GZDoom]
-					DTA_DestWidth, MulScale6 (tex->GetWidth() * CleanXfac, Scale),
-					DTA_DestHeight, MulScale6 (tex->GetHeight() * CleanYfac, Scale),
+					DTA_DestWidth, MulScale16 (tex->GetWidth() * CleanXfac, Scale),
+					DTA_DestHeight, MulScale16 (tex->GetHeight() * CleanYfac, Scale),
 					//DTA_DestWidth, MulScale6 (tex->GetWidth() * CleanXfac, scale),
 					//DTA_DestHeight, MulScale6 (tex->GetHeight() * CleanYfac, scale),
 					DTA_Translation, translationtables[TRANSLATION_PlayerSetupMenu],
