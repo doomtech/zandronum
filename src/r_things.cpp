@@ -891,7 +891,9 @@ void R_InitSkins (void)
 						for ( ulIdx = 0; ulIdx < 4; ulIdx++ )
 							szValue[ulIdx] = toupper( szValue[ulIdx] );
 		
-						sprintf( szSpriteName, szValue );
+						// [BB]: One has to do a strncpy here: sprintf writes 5 chars ( 4 + terminator)
+						// and szValue is only a char array of length 4!
+						strncpy( szSpriteName, szValue, 4 );
 					}
 					else if ( stricmp( szKey, "face" ) == 0 )
 					{
