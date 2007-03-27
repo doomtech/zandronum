@@ -575,7 +575,12 @@ void gl_CleanLevelData()
 		delete [] sectors[0].subsectors;
 		sectors[0].subsectors=NULL;
 	}
-	if (gl_linebuffer) delete [] gl_linebuffer;
+	// [BB] After deleting gl_linebuffer you have to set the pointer to NULL.
+	// Otherwise it could be deleted twice.
+	if (gl_linebuffer){
+		delete [] gl_linebuffer;
+		gl_linebuffer = NULL;
+	}
 
 	if (gamenodes && gamenodes!=nodes)
 	{
