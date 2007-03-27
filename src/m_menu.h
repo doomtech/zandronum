@@ -113,6 +113,7 @@ typedef enum {
 	control,
 	screenres,
 	bitflag,
+	bitmask,
 	listelement,
 	nochoice,
 	numberedmore,
@@ -203,7 +204,7 @@ typedef struct menu_s {
 
 typedef struct value_s {
 	float		value;
-	char		*name;
+	const char	*name;
 } value_t;
 
 typedef struct

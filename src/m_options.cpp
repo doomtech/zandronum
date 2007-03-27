@@ -645,7 +645,6 @@ menu_t ControlsMenu =
  *=======================================*/
 static void StartMessagesMenu (void);
 static void StartAutomapMenu (void);
-static void StartOpenGLMenu (void); // [ZDoomGL]
 
 EXTERN_CVAR (Bool, st_scale)
 EXTERN_CVAR (Int,  r_detail)
@@ -3674,55 +3673,6 @@ menu_t JoinTeamMenu =
 	MNF_CENTERED,
 };
 
-/*=======================================
- *
- * [ZDoomGL]: OpenGL Menu
- *
- *=======================================*/
-/*
-static void ApplyFilterChanges ();
-static void ApplyFormatChanges ();
-
-static void StartGLTextureMenu (void);
-static void StartGLLightMenu (void);
-static void StartGLAutoMapMenu (void);
-static void StartGLSpriteMenu (void);
-
-static FIntCVar DummyFilterCvar (NULL, 0, 0);
-static FIntCVar DummyFormatCvar (NULL, 0, 0);
-*/
-EXTERN_CVAR(Bool, gl_depthfog)
-EXTERN_CVAR(Bool, gl_wireframe)
-EXTERN_CVAR(Bool, gl_line_smooth)
-EXTERN_CVAR(Int, gl_billboard_mode)
-EXTERN_CVAR(Float, gl_texture_color_multiplier)
-EXTERN_CVAR(Bool, gl_texture_anisotropic)
-EXTERN_CVAR(Float, gl_texture_anisotropy_degree)
-EXTERN_CVAR(Bool, gl_texture)
-EXTERN_CVAR(Bool, gl_texture_multitexture)
-EXTERN_CVAR(Bool, gl_texture_usehires)
-EXTERN_CVAR(Bool, gl_blend_animations)
-EXTERN_CVAR(Bool, gl_vid_vsync)
-EXTERN_CVAR(String, gl_texture_mode)
-EXTERN_CVAR(String, gl_texture_format)
-EXTERN_CVAR(Int, gl_texture_hqresize)
-EXTERN_CVAR(Bool, gl_lights)
-EXTERN_CVAR(Bool, gl_lights_checkside)
-EXTERN_CVAR(Bool, gl_lights_multiply)
-EXTERN_CVAR(Bool, gl_nobsp)
-EXTERN_CVAR(Bool, gl_mask_walls)
-EXTERN_CVAR(Bool, gl_mirror_envmap)
-EXTERN_CVAR(Bool, gl_sprite_precache)
-EXTERN_CVAR(Bool, gl_sprite_sharp_edges)
-EXTERN_CVAR(Bool, gl_sprite_clip_to_floor)
-EXTERN_CVAR(Int, gl_particles_style)
-EXTERN_CVAR(Bool, gl_particles_grow)
-EXTERN_CVAR(Bool, gl_particles_additive)
-EXTERN_CVAR(Float, gl_lights_intensity)
-EXTERN_CVAR(Float, gl_lights_size)
-EXTERN_CVAR(Bool, gl_light_particles)
-EXTERN_CVAR(Bool, gl_light_sprites)
-
 
 static value_t BillboardModes[] =
 {
@@ -3768,106 +3718,7 @@ static value_t Anisotropy[] =
 	{ 8.0, "8x" },
 	{ 16.0, "16x" },
 };
-/*
-static menuitem_t GLSpriteItems[] = {
-	{ discrete, "Sprite billboard",			{&gl_billboard_mode}, {2.0}, {0.0}, {0.0}, {BillboardModes} },
-	{ discrete, "Precache sprites",			{&gl_sprite_precache}, {2.0}, {0.0}, {0.0}, {YesNo} },
-	{ discrete, "Sharp edges",				{&gl_sprite_sharp_edges}, {2.0}, {0.0}, {0.0}, {OnOff} },
-	{ discrete, "Clip to floor",			{&gl_sprite_clip_to_floor}, {2.0}, {0.0}, {0.0}, {OnOff} },
-};
 
-static menuitem_t GLAutoMapItems[] = {
-	{ discrete, "Duke3d style automap",				{&gl_automap_dukestyle},		{2.0}, {0.0}, {0.0}, {OnOff} },
-	{ slider,	"Automap transparency",				{&gl_automap_transparency},		{0.0}, {1.0}, {0.1}, {NULL} },
-	{ discrete, "Key door lines glow",				{&gl_automap_glow},				{2.0}, {0.0}, {0.0}, {OnOff} },
-	{ slider,	"Glow size",						{&gl_automap_glowsize},			{0.0}, {50.0}, {5.0}, {NULL} },
-};
-
-static menuitem_t OpenGLItems[] = {
-	{ more,     "Texture Options", {NULL}, {0.0}, {0.0},	{0.0}, {(value_t *)StartGLTextureMenu} },
-	{ more,     "Light Options", {NULL}, {0.0}, {0.0},	{0.0}, {(value_t *)StartGLLightMenu} },
-	{ more,     "Automap Options", {NULL}, {0.0}, {0.0},	{0.0}, {(value_t *)StartGLAutoMapMenu} },
-	{ more,     "Sprite Options", {NULL}, {0.0}, {0.0},	{0.0}, {(value_t *)StartGLSpriteMenu} },
-	{ redtext,	" ",						{NULL},							{0.0}, {0.0}, {0.0}, {NULL} },
-   { discrete, "Vertical Sync",				{&gl_vid_vsync},      {2.0}, {0.0}, {0.0}, {YesNo} },
-   { discrete, "Depth fog",					{&gl_depthfog},       {2.0}, {0.0}, {0.0}, {OnOff} },
-   { discrete, "Wireframe mode",			{&gl_wireframe},      {2.0}, {0.0}, {0.0}, {OnOff} },
-   { discrete, "Smooth lines",				{&gl_line_smooth},    {2.0}, {0.0}, {0.0}, {OnOff} },
-   { discrete, "Blend animations",			{&gl_blend_animations}, {2.0}, {0.0}, {0.0}, {YesNo} },
-   { discrete, "Environment map on mirrors",{&gl_mirror_envmap}, {2.0}, {0.0}, {0.0}, {OnOff} },
-   { discrete, "Mask walls",				{&gl_mask_walls}, {2.0}, {0.0}, {0.0}, {OnOff} },
-   { discrete, "No BSP",					{&gl_nobsp}, {2.0}, {0.0}, {0.0}, {OnOff} },
-   { redtext,	" ",						{NULL},							{0.0}, {0.0}, {0.0}, {NULL} },
-   { discrete, "Particles style",			{&gl_particles_style}, {3.0}, {0.0}, {0.0}, {ParticleStyles} },
-   { discrete, "Particles grow",			{&gl_particles_grow}, {2.0}, {0.0}, {0.0}, {OnOff} },
-   { discrete, "Additive particles",		{&gl_particles_additive}, {2.0}, {0.0}, {0.0}, {OnOff} },
-};
-*/
-/*
-static menuitem_t GLTextureItems[] = {
-	{ discrete, "Textures enabled",			{&gl_texture},					{2.0}, {0.0}, {0.0}, {YesNo} },
-	{ discrete, "Multitexturing enabled",	{&gl_texture_multitexture},		{2.0}, {0.0}, {0.0}, {YesNo} },
-	{ discrete, "Anisotropic texturing",	{&gl_texture_anisotropic},		{2.0}, {0.0}, {0.0}, {OnOff} },
-	{ discrete, "Anisotropy Degree",		{&gl_texture_anisotropy_degree},{4.0}, {0.0}, {0.0}, {Anisotropy} },
-	{ discrete, "Use Hi-Res Textures",		{&gl_texture_usehires},			{2.0}, {0.0}, {0.0}, {YesNo} },
-	{ discrete, "High Quality Resize mode",	{&gl_texture_hqresize},			{4.0}, {0.0}, {0.0}, {HqResizeModes} },
-	{ slider,	"Texture contrast",			{&gl_texture_color_multiplier}, {0.0}, {2.0}, {0.1}, {NULL} },
-	{ redtext,	" ",						{NULL},							{0.0}, {0.0}, {0.0}, {NULL} },
-	{ discrete, "Filter mode",				{&DummyFilterCvar},				{5.0}, {0.0}, {0.0}, {FilterModes} },
-	{ more,		"Apply Filter",				{NULL},							{0.0}, {0.0}, {0.0}, {(value_t *)ApplyFilterChanges} },
-	{ redtext,	" ",						{NULL},							{0.0}, {0.0}, {0.0}, {NULL} },
-	{ discrete, "Texture Format",			{&DummyFormatCvar},				{3.0}, {0.0}, {0.0}, {TextureFormats} },
-	{ more,		"Apply Format",				{NULL},							{0.0}, {0.0}, {0.0}, {(value_t *)ApplyFormatChanges} },
-	{ redtext,	" ",						{NULL},							{0.0}, {0.0}, {0.0}, {NULL} },
-//	{ more,		"Purge Textures",			{NULL},							{0.0}, {0.0}, {0.0}, {(value_t *)PurgeTextures} },
-};
-
-static menuitem_t GLLightItems[] = {
-	{ discrete, "Dynamic Lights enabled",	{&gl_lights},			{2.0}, {0.0}, {0.0}, {YesNo} },
-	{ discrete, "Clip lights",				{&gl_lights_checkside},	{2.0}, {0.0}, {0.0}, {YesNo} },
-	{ discrete, "Multiply blend",			{&gl_lights_multiply},	{2.0}, {0.0}, {0.0}, {YesNo} },
-   { discrete, "Lights affect sprites",	{&gl_light_sprites},	{2.0}, {0.0}, {0.0}, {YesNo} },
-	{ discrete, "Lights affect particles",	{&gl_light_particles},	{2.0}, {0.0}, {0.0}, {YesNo} },
-	{ slider,	"Light intensity",			{&gl_lights_intensity}, {0.0}, {1.0}, {0.1}, {NULL} },
-	{ slider,	"Light size",				{&gl_lights_size},		{0.0}, {2.0}, {0.1}, {NULL} },
-};
-
-menu_t GLTextureMenu = {
-   "TEXTURE OPTIONS",
-   0,
-   sizeof(GLTextureItems)/sizeof(GLTextureItems[0]),
-   0,
-   GLTextureItems,
-   0,
-};
-
-menu_t GLLightMenu = {
-   "LIGHT OPTIONS",
-   0,
-   sizeof(GLLightItems)/sizeof(GLLightItems[0]),
-   0,
-   GLLightItems,
-   0,
-};
-
-menu_t GLAutoMapMenu = {
-   "AUTOMAP OPTIONS",
-   0,
-   sizeof(GLAutoMapItems)/sizeof(GLAutoMapItems[0]),
-   0,
-   GLAutoMapItems,
-   0,
-};
-
-menu_t GLSpriteMenu = {
-   "SPRITE OPTIONS",
-   0,
-   sizeof(GLSpriteItems)/sizeof(GLSpriteItems[0]),
-   0,
-   GLSpriteItems,
-   0,
-};
-*/
 /*=======================================
  *
  * Text Scaling Menu
@@ -3974,23 +3825,6 @@ void TextScalingMenuDrawer( void )
 			DTA_VirtualWidth, ValWidth.Int,
 			DTA_VirtualHeight, ValHeight.Int,
 			TAG_DONE );
-	}
-}
-
-void M_FreeValues (value_t **values, int num)
-{
-	int i;
-
-	if (*values)
-	{
-		for (i = 0; i < num; i++)
-		{
-			if ((*values)[i].name)
-				free ((*values)[i].name);
-		}
-
-		free (*values);
-		*values = NULL;
 	}
 }
 
@@ -4451,7 +4285,6 @@ void M_OptDrawer ()
 					screen->DrawText (CR_GREY, x, y, tbuf, DTA_Clean, true, TAG_DONE);
 				}
 				break;
-/*
 			case bitmask:
 			{
 				int v, vals;
@@ -4476,7 +4309,6 @@ void M_OptDrawer ()
 
 			}
 			break;
-*/	
 			case discrete:
 			case cdiscrete:
 			case inverter:
@@ -5505,7 +5337,6 @@ void M_OptResponder (event_t *ev)
 				}
 				S_Sound (CHAN_VOICE, "menu/change", 1, ATTN_NONE);
 				break;
-/*
 			case bitmask:
 				{
 					int cur;
@@ -5524,7 +5355,6 @@ void M_OptResponder (event_t *ev)
 				}
 				S_Sound (CHAN_VOICE, "menu/change", 1, ATTN_NONE);
 				break;
-*/
 			case discrete_guid:
 				{
 					int cur;
@@ -5886,7 +5716,6 @@ void M_OptResponder (event_t *ev)
 				}
 				S_Sound (CHAN_VOICE, "menu/change", 1, ATTN_NONE);
 				break;
-/*
 			case bitmask:
 				{
 					int cur;
@@ -5905,7 +5734,6 @@ void M_OptResponder (event_t *ev)
 				}
 				S_Sound (CHAN_VOICE, "menu/change", 1, ATTN_NONE);
 				break;
-*/
 			case discrete_guid:
 				{
 					int cur;
@@ -7173,126 +7001,6 @@ CCMD (addmenukey)
 	ControlsMenu.numitems = (int)CustomControlsItems.Size();
 }
 
-/*
-// [ZDoomGL]
-static void StartOpenGLMenu (void)
-{
-   M_SwitchMenu(&OpenGLMenu);
-}
-
-static void StartGLLightMenu (void)
-{
-	M_SwitchMenu(&GLLightMenu);
-}
-
-static void StartGLAutoMapMenu (void)
-{
-	M_SwitchMenu(&GLAutoMapMenu);
-}
-
-static void StartGLSpriteMenu (void)
-{
-	M_SwitchMenu(&GLSpriteMenu);
-}
-
-static void StartGLTextureMenu (void)
-{
-	M_SwitchMenu(&GLTextureMenu);
-
-	if (strcmp(gl_texture_mode, "GL_NEAREST") == 0)
-	{
-		DummyFilterCvar = 1;
-	}
-	else if (strcmp(gl_texture_mode, "GL_LINEAR") == 0)
-	{
-		DummyFilterCvar = 2;
-	}
-	else if (strcmp(gl_texture_mode, "GL_NEAREST_MIPMAP_NEAREST") == 0)
-	{
-		DummyFilterCvar = 3;
-	}
-	else if (strcmp(gl_texture_mode, "GL_LINEAR_MIPMAP_NEAREST") == 0)
-	{
-		DummyFilterCvar = 4;
-	}
-	else if (strcmp(gl_texture_mode, "GL_LINEAR_MIPMAP_LINEAR") == 0)
-	{
-		DummyFilterCvar = 5;
-	}
-	else
-	{
-		DummyFilterCvar = 4;
-	}
-
-	
-	if (strcmp(gl_texture_format, "GL_RGBA2") == 0)
-	{
-		DummyFormatCvar = 1;
-	}
-	else if (strcmp(gl_texture_format, "GL_RGB5_A1") == 0)
-	{
-		DummyFormatCvar = 2;
-	}
-	else if (strcmp(gl_texture_format, "GL_RGBA8") == 0)
-	{
-		DummyFormatCvar = 3;
-	}
-	else
-	{
-		DummyFormatCvar = 2;
-	}
-}
-
-
-static void PurgeTextures (void)
-{
-   textureList.Purge();
-}
-
-static void ApplyFilterChanges()
-{
-   switch (DummyFilterCvar)
-   {
-   case 1:
-      gl_texture_mode = "GL_NEAREST";
-      break;
-   case 2:
-      gl_texture_mode = "GL_LINEAR";
-      break;
-   case 3:
-      gl_texture_mode = "GL_NEAREST_MIPMAP_NEAREST";
-      break;
-   case 4:
-      gl_texture_mode = "GL_LINEAR_MIPMAP_NEAREST";
-      break;
-   case 5:
-      gl_texture_mode = "GL_LINEAR_MIPMAP_LINEAR";
-      break;
-   default:
-      gl_texture_mode = "GL_LINEAR_MIPMAP_NEAREST";
-      break;
-   }
-}
-
-static void ApplyFormatChanges()
-{
-   switch (DummyFormatCvar)
-   {
-   case 1:
-      gl_texture_format = "GL_RGBA2";
-      break;
-   case 2:
-      gl_texture_format = "GL_RGB5_A1";
-      break;
-   case 3:
-      gl_texture_format = "GL_RGBA8";
-      break;
-   default:
-      gl_texture_format = "GL_RGB5_A1";
-      break;
-   }
-}
-*/
 void M_Deinit ()
 {
 	// Free bitdepth names for the modes menu.
