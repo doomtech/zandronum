@@ -3958,6 +3958,15 @@ void P_SetupLevel (char *lumpname, int position)
 		bodyque[i] = NULL;
 
 	deathmatchstarts.Clear ();
+	TemporaryTeamStarts.Clear( );
+	BlueTeamStarts.Clear( );
+	RedTeamStarts.Clear( );
+	GenericInvasionStarts.Clear( );
+	PossessionStarts.Clear();
+	TerminatorStarts.Clear();
+
+	for ( i = 0; i < MAXPLAYERS; i++ )
+		playerstarts[i].type = 0;
 
 	if (!buildmap)
 	{
