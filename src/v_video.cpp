@@ -805,11 +805,13 @@ bool V_DoModeSetup (int width, int height, int bits)
 			cwidth = width * BaseRatioSizes[ratio][3] / 48;
 			cheight = height;
 		}
-		CleanXfac = MAX (cwidth / 320, 1);
-		CleanYfac = MAX (cheight / 200, 1);
-		//CleanXfac = MAX ((float)cwidth / 320, 1.0f);
-		//CleanYfac = MAX ((float)cheight / 200, 1.0f);
+		// [BB] Necessary change here since CleanX/Yfac are floats in Skulltag.
+		//CleanXfac = MAX (cwidth / 320, 1);
+		//CleanYfac = MAX (cheight / 200, 1);
+		CleanXfac = MAX ((float)cwidth / 320, 1.0f);
+		CleanYfac = MAX ((float)cheight / 200, 1.0f);
 	}
+/*
 	if (CleanXfac > 1 && CleanYfac > 1 && CleanXfac != CleanYfac)
 	{
 		if (CleanXfac < CleanYfac)
@@ -817,7 +819,7 @@ bool V_DoModeSetup (int width, int height, int bits)
 		else
 			CleanXfac = CleanYfac;
 	}
-
+*/
 	CleanWidth = width / CleanXfac;
 	CleanHeight = height / CleanYfac;
 

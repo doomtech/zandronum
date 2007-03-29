@@ -51,7 +51,7 @@
 
 // [RH] Stretch values to make a 320x200 image best fit the screen
 // without using fractional steppings
-int CleanXfac, CleanYfac;
+float CleanXfac, CleanYfac;
 
 // [RH] Effective screen sizes that the above scale values give you
 int CleanWidth, CleanHeight;

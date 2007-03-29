@@ -47,8 +47,8 @@
 #include "r_data.h"
 
 // [BC] Make CleanX/Yfac floats in Skulltag.
-// [BB] Changed CleanX/Yfac back to int in Skulltag. I see no reason why they should be float. This also removes some warnings.
-extern int CleanXfac, CleanYfac;
+// [BB] This is at least needed to display the medals at the correct position.
+extern float CleanXfac, CleanYfac;
 extern int CleanWidth, CleanHeight;
 extern int DisplayWidth, DisplayHeight, DisplayBits;
 
