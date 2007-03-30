@@ -318,6 +318,20 @@ void GLSprite::SetThingColor(PalEntry pe)
 			green=clamp<int>(gray,0,255);
 			blue=0;
 		}
+		else if (Colormap.LightColor.a==CM_REDMAP)
+		{
+			gray=(red*77 + green*143 + blue*36)>>8;
+			red=clamp<int>(gray+(gray>>1),0,255);
+			green=0;
+			blue=0;
+		}
+		else if (Colormap.LightColor.a==CM_GREENMAP)
+		{
+			gray=(red*77 + green*143 + blue*36)>>8;
+			red=clamp<int>(gray+(gray>>1),0,255);
+			green=clamp<int>(gray+(gray>>1),0,255);
+			blue=clamp<int>(gray,0,255);
+		}
 		else if (Colormap.LightColor.a>=CM_DESAT1 && Colormap.LightColor.a<=CM_DESAT31)
 		{
 			fac=Colormap.LightColor.a-CM_DESAT0;

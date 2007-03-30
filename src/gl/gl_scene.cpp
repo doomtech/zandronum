@@ -924,7 +924,6 @@ void gl_RenderPlayerView (player_t* player)
 		player_t * cplayer = player->camera->player;
 		if (cplayer) 
 		{
-			// [BB] Look for the Doomsphere/Guardsphere color change here
 			if (cplayer->extralight<0)
 			{
 				gl_fixedcolormap=CM_INVERT;
@@ -932,6 +931,8 @@ void gl_RenderPlayerView (player_t* player)
 			}
 			else if (cplayer->fixedcolormap==INVERSECOLORMAP) gl_fixedcolormap=CM_INVERT;
 			else if (cplayer->fixedcolormap==GOLDCOLORMAP) gl_fixedcolormap=CM_GOLDMAP;
+			else if (cplayer->fixedcolormap==REDCOLORMAP) gl_fixedcolormap=CM_REDMAP;
+			else if (cplayer->fixedcolormap==GREENCOLORMAP) gl_fixedcolormap=CM_GREENMAP;
 			else if (cplayer->fixedcolormap!=0 && cplayer->fixedcolormap<NUMCOLORMAPS) 
 			{
 				for(AInventory * in = cplayer->mo->Inventory; in; in = in->Inventory)

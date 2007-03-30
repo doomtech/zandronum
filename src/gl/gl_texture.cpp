@@ -231,6 +231,34 @@ void CopyColors(unsigned char * pout, const unsigned char * pin, int cm, int cou
 		}
 		break;
 
+	case CM_REDMAP:
+		// Skulltags's Doomsphere map
+		for(i=0;i<count;i++)
+		{
+			int gray = T::Gray(pin);
+			pout[0] = clamp<int>(gray+(gray>>1), 0, 255);
+			pout[1] = 0;
+			pout[2] = 0;
+			pout[3] = T::A(pin);
+			pout+=4;
+			pin+=step;
+		}
+		break;
+
+	case CM_GREENMAP:
+		// Skulltags's Guardsphere map
+		for(i=0;i<count;i++)
+		{
+			int gray = T::Gray(pin);
+			pout[0] = clamp<int>(gray+(gray>>1), 0, 255);
+			pout[1] = clamp<int>(gray+(gray>>1), 0, 255);
+			pout[2] = clamp<int>(gray-(gray>>2), 0, 255);
+			pout[3] = T::A(pin);
+			pout+=4;
+			pin+=step;
+		}
+		break;
+
 	case CM_GRAY:
 		// this is used for colorization of blood.
 		// To get the best results the brightness is taken from 
@@ -369,6 +397,30 @@ void ModifyPalette(PalEntry * pout, PalEntry * pin, int cm, int count)
 			pout[i].r = clamp<int>(gray+(gray>>1), 0, 255);
 			pout[i].g = clamp<int>(gray-(gray>>2), 0, 255);
 			pout[i].b = 0;
+			pout[i].a = pin[i].a;
+		}
+		break;
+
+	case CM_REDMAP:
+		// Skulltags's Doomsphere map
+		for(i=0;i<count;i++)
+		{
+			int gray = (pin[i].r*77 + pin[i].g*143 + pin[i].b*37)>>8;
+			pout[i].r = clamp<int>(gray+(gray>>1), 0, 255);
+			pout[i].g = 0;
+			pout[i].b = 0;
+			pout[i].a = pin[i].a;
+		}
+		break;
+
+	case CM_GREENMAP:
+		// Skulltags's Guardsphere map
+		for(i=0;i<count;i++)
+		{
+			int gray = (pin[i].r*77 + pin[i].g*143 + pin[i].b*37)>>8;
+			pout[i].r = clamp<int>(gray+(gray>>1), 0, 255);
+			pout[i].g = clamp<int>(gray+(gray>>1), 0, 255);
+			pout[i].b = clamp<int>(gray-(gray>>2), 0, 255);
 			pout[i].a = pin[i].a;
 		}
 		break;
