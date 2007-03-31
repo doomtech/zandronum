@@ -78,6 +78,7 @@ void	MAPROTATION_AdvanceMap( void );
 char	*MAPROTATION_GetCurrentMapName( void );
 char	*MAPROTATION_GetMapName( ULONG ulIdx );
 void	MAPROTATION_SetPositionToMap( char *pszMapName );
+bool	MAPROTATION_IsMapInRotaion( char *pszMapName );
 
 //*****************************************************************************
 //  EXTERNAL CONSOLE VARIABLES

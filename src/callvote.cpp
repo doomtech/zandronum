@@ -58,6 +58,7 @@
 #include "sbar.h"
 #include "sv_commands.h"
 #include "v_video.h"
+#include "maprotation.h"
 
 //*****************************************************************************
 //	VARIABLES
@@ -572,12 +573,32 @@ static bool callvote_CheckValidity( char *pszCommand, char *pszParameters )
 		// Don't allow the command if the map doesn't exist.
 		if ( Wads.CheckNumForName( pszParameters ) == -1 )
 			return ( false );
+		// Don't allow to leave the maprotation (Only the server knows the maprotation)
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			if ( sv_maprotation )
+			{
+				Printf ( "%s\n", pszParameters );
+				if( !MAPROTATION_IsMapInRotaion( pszParameters ) )
+				return ( false );
+			}
+		}
 		break;
 	case VOTECMD_CHANGEMAP:
 
 		// Don't allow the command if the map doesn't exist.
 		if ( Wads.CheckNumForName( pszParameters ) == -1 )
 			return ( false );
+		// Don't allow to leave the maprotation (Only the server knows the maprotation)
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			if ( sv_maprotation )
+			{
+				Printf ( "%s\n", pszParameters );
+				if( !MAPROTATION_IsMapInRotaion( pszParameters ) )
+				return ( false );
+			}
+		}
 		break;
 	case VOTECMD_FRAGLIMIT:
 

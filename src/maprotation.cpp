@@ -188,6 +188,24 @@ void MAPROTATION_SetPositionToMap( char *pszMapName )
 }
 
 //*****************************************************************************
+//
+bool MAPROTATION_IsMapInRotaion( char *pszMapName )
+{
+	ULONG	ulIdx;
+
+	for ( ulIdx = 0; ulIdx < MAX_MAPROTATIONLIST_ENTRIES; ulIdx++ )
+	{
+		if ( g_MapRotationEntries[ulIdx].szMapName[0] == 0 )
+			return false;
+
+		if ( stricmp( g_MapRotationEntries[ulIdx].szMapName, pszMapName ) == 0 )
+		{
+			return true;
+		}
+	}
+}
+
+//*****************************************************************************
 //*****************************************************************************
 //
 static void maprotation_AddMap( char *pszMapName )
