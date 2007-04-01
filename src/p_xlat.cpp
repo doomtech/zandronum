@@ -102,8 +102,9 @@ void P_TranslateLineDef (line_t *ld, maplinedef_t *mld)
 			}
 		}
 		passthrough = (flags & ML_PASSUSE_BOOM);
+		if (flags&0x400) flags|=0x4000;	// 3DMIDTEX
 	}
-	flags = flags & 0xFFFF01FF;	// Ignore flags unknown to DOOM
+	flags = flags & 0xFFFFC1FF;	// Ignore flags unknown to DOOM
 
 	// For purposes of maintaining BOOM compatibility, each
 	// line also needs to have its ID set to the same as its tag.

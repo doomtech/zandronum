@@ -339,17 +339,38 @@ void DElevator::Tick ()
 {
 	EResult res;
 
+	fixed_t oldfloor, oldceiling;
+
+	oldfloor = m_Sector->floorplane.d;
+	oldceiling = m_Sector->ceilingplane.d;
+
 	if (m_Direction < 0)	// moving down
 	{
 		res = MoveCeiling (m_Speed, m_CeilingDestDist, m_Direction);
 		if (res == ok || res == pastdest)
-			MoveFloor (m_Speed, m_FloorDestDist, m_Direction);
+		{
+			res = MoveFloor (m_Speed, m_FloorDestDist, m_Direction);
+			// When used with 3D-floors this may very well block!
+			if (res == crushed)
+			{
+				// The move was blocked so readjust the ceiling.
+				MoveCeiling (m_Speed, oldceiling, -m_Direction);
+			}
+		}
 	}
 	else // up
 	{
 		res = MoveFloor (m_Speed, m_FloorDestDist, m_Direction);
 		if (res == ok || res == pastdest)
-			MoveCeiling (m_Speed, m_CeilingDestDist, m_Direction);
+		{
+			res = MoveCeiling (m_Speed, m_CeilingDestDist, m_Direction);
+			// When used with 3D-floors this may very well block!
+			if (res == crushed)
+			{
+				// The move was blocked so readjust the ceiling.
+				MoveFloor (m_Speed, oldfloor, -m_Direction);
+			}
+		}
 	}
 
 	// [BC] This is all we need to do in client mode.
@@ -1479,10 +1500,6 @@ void DWaggleBase::DoWaggle (bool ceiling)
 	fixed_t dist;
 	// [BC]
 	ULONG	ulIdx;
-
-	// [ZDoomGL]
-	//sectorMoving[ULONG( m_Sector - sectors )] = true;
-	m_Sector->lastUpdate = validcount; // [ZDoomGL]
 
 	if (ceiling)
 	{

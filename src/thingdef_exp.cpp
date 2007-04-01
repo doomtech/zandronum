@@ -52,7 +52,7 @@
 void InitExpressions ();
 void ClearExpressions ();
 
-static FRandom pr_exrandom ("EX_Random");
+FRandom pr_exrandom ("EX_Random");
 
 enum ExpOp
 {

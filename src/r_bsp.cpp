@@ -337,11 +337,6 @@ sector_t *R_FakeFlat(sector_t *sec, sector_t *tempsec,
 					 int *floorlightlevel, int *ceilinglightlevel,
 					 bool back)
 {
-   // [ZDoomGL] - convenience, so you don't have to check for NULL before calling function
-   if (!sec)
-   {
-      return NULL;
-   }
 	// [RH] allow per-plane lighting
 	if (floorlightlevel != NULL)
 	{

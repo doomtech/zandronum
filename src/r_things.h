@@ -40,9 +40,9 @@ struct particle_t
 	subsector_t * subsector;
 };
 
-extern int	NumParticles;
-extern int	ActiveParticles;
-extern int	InactiveParticles;
+extern WORD	NumParticles;
+extern WORD	ActiveParticles;
+extern WORD	InactiveParticles;
 extern particle_t *Particles;
 
 const WORD NO_PARTICLE = 0xffff;
@@ -55,7 +55,7 @@ inline particle_t *NewParticle (void)
 		result = Particles + InactiveParticles;
 		InactiveParticles = result->tnext;
 		result->tnext = ActiveParticles;
-		ActiveParticles = (int)(result - Particles);
+		ActiveParticles = WORD(result - Particles);
 	}
 	return result;
 }

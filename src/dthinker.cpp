@@ -414,6 +414,7 @@ void FThinkerIterator::Reinit ()
 
 DThinker *FThinkerIterator::Next ()
 {
+	if (m_ParentType == NULL) return NULL;
 	do
 	{
 		do

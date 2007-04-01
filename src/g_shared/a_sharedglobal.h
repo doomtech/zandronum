@@ -50,6 +50,7 @@ class ARealGibs : public AActor
 };
 
 struct side_s;
+struct F3DFloor;
 
 class DBaseDecal : public DThinker
 {
@@ -63,11 +64,11 @@ public:
 
 	void Serialize (FArchive &arc);
 	void Destroy ();
-	int StickToWall (side_s *wall, fixed_t x, fixed_t y);
+	int StickToWall (side_s *wall, fixed_t x, fixed_t y, F3DFloor * ffloor = NULL);
 	fixed_t GetRealZ (const side_s *wall) const;
 	void SetShade (DWORD rgb);
 	void SetShade (int r, int g, int b);
-	void Spread (const FDecalTemplate *tpl, side_s *wall, fixed_t x, fixed_t y, fixed_t z);
+	void Spread (const FDecalTemplate *tpl, side_s *wall, fixed_t x, fixed_t y, fixed_t z, F3DFloor * ffloor = NULL);
 	void GetXY (side_s *side, fixed_t &x, fixed_t &y) const;
 
 	static void SerializeChain (FArchive &arc, DBaseDecal **firstptr);
@@ -86,12 +87,12 @@ public:
 	sector_t * Sector;	// required for 3D floors
 
 protected:
-	virtual DBaseDecal *CloneSelf (const FDecalTemplate *tpl, fixed_t x, fixed_t y, fixed_t z, side_s *wall) const;
+	virtual DBaseDecal *CloneSelf (const FDecalTemplate *tpl, fixed_t x, fixed_t y, fixed_t z, side_s *wall, F3DFloor * ffloor = NULL) const;
 	void CalcFracPos (side_s *wall, fixed_t x, fixed_t y);
 	void Remove ();
 
-	static void SpreadLeft (fixed_t r, vertex_s *v1, side_s *feelwall);
-	static void SpreadRight (fixed_t r, side_s *feelwall, fixed_t wallsize);
+	static void SpreadLeft (fixed_t r, vertex_s *v1, side_s *feelwall, F3DFloor * ffloor = NULL);
+	static void SpreadRight (fixed_t r, side_s *feelwall, fixed_t wallsize, F3DFloor * ffloor = NULL);
 };
 
 class DImpactDecal : public DBaseDecal
@@ -101,8 +102,8 @@ public:
 	DImpactDecal (fixed_t z);
 	DImpactDecal (side_s *wall, const FDecalTemplate *templ);
 
-	static DImpactDecal *StaticCreate (const char *name, fixed_t x, fixed_t y, fixed_t z, side_s *wall, PalEntry color=0);
-	static DImpactDecal *StaticCreate (const FDecalTemplate *tpl, fixed_t x, fixed_t y, fixed_t z, side_s *wall, PalEntry color=0);
+	static DImpactDecal *StaticCreate (const char *name, fixed_t x, fixed_t y, fixed_t z, side_s *wall, F3DFloor * ffloor = NULL, PalEntry color=0);
+	static DImpactDecal *StaticCreate (const FDecalTemplate *tpl, fixed_t x, fixed_t y, fixed_t z, side_s *wall, F3DFloor * ffloor = NULL, PalEntry color=0);
 
 	void BeginPlay ();
 	void Destroy ();
@@ -111,7 +112,7 @@ public:
 	static void SerializeTime (FArchive &arc);
 
 protected:
-	DBaseDecal *CloneSelf (const FDecalTemplate *tpl, fixed_t x, fixed_t y, fixed_t z, side_s *wall) const;
+	DBaseDecal *CloneSelf (const FDecalTemplate *tpl, fixed_t x, fixed_t y, fixed_t z, side_s *wall, F3DFloor * ffloor = NULL) const;
 	static void CheckMax ();
 
 private:
@@ -128,7 +129,6 @@ public:
 	void Tick ();
 	void Activate (AActor *activator);
 	void Deactivate (AActor *activator);
-	bool GetActive( );
 
 protected:
 	bool bActive;
@@ -159,7 +159,6 @@ public:
 	bool bAlways;
 	ASkyViewpoint *Mate;
 	fixed_t PlaneAlpha;
-	unsigned int refmask; // [ZDoomGL] index/stencil mask
 };
 
 class DFlashFader : public DThinker
@@ -253,14 +252,6 @@ public:
 	void BeginPlay ();
 	void Activate (AActor *activator);
 	void Deactivate (AActor *activator);
-};
-
-// [BC] Moved here so the OpenGL renderer can use it.
-class ADecal : public AActor
-{
-	DECLARE_STATELESS_ACTOR (ADecal, AActor);
-public:
-	void BeginPlay ();
 };
 
 // [BC] Cooperative backpacks.

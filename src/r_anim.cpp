@@ -53,8 +53,6 @@
 // [RH] Expanded to work with a Hexen ANIMDEFS lump
 //
 
-// [BC] Moved so OpenGL can use it.
-/*
 struct FAnimDef
 {
 	WORD 	BasePic;
@@ -89,7 +87,7 @@ public:
 	void AddAnim (FAnimDef *anim);
 	void FixAnimations ();
 };
-*/
+
 // PRIVATE FUNCTION PROTOTYPES ---------------------------------------------
 
 static void R_InitAnimDefs ();
@@ -104,8 +102,7 @@ static void ParseTime (DWORD &min, DWORD &max);
 
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 
-// [BC] ZDoomGL needs this to not be static.
-/*static*/ AnimArray Anims;
+static AnimArray Anims;
 static FRandom pr_animatepictures ("AnimatePics");
 
 // CODE --------------------------------------------------------------------

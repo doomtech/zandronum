@@ -52,7 +52,6 @@ extern constate_e ConsoleState;
 // Initialize the console
 void C_InitConsole (int width, int height, bool ingame);
 void C_DeinitConsole ();
-void C_GetConback(int width, int height); // [ZDoomGL]
 
 // Adjust the console for a new screen mode
 void C_NewModeAdjust (void);

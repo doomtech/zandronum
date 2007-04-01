@@ -249,6 +249,53 @@ void FRandom::StaticReadRNGState (PNGHandle *png)
 	}
 }
 
+// This function attempts to find an RNG with the given name.
+// If it can't it will create a new one. Duplicate CRCs will
+// be ignored and if it happens map to the same RNG.
+// This is for use by DECORATE.
+extern FRandom pr_exrandom;
+
+class NewRNGList : public TArray<FRandom*>
+{
+public:
+	~NewRNGList()
+	{
+		for(unsigned i=0;i<Size();i++)
+		{
+			delete (*this)[i];
+		}
+	}
+};
+
+static NewRNGList NewRNGs;
+
+FRandom *FRandom::StaticFindRNG (const char *name)
+{
+	DWORD NameCRC = CalcCRC32 ((const BYTE *)name, (unsigned int)strlen (name));
+
+	// Use the default RNG if this one happens to have a CRC of 0.
+	if (NameCRC==0) return &pr_exrandom;
+
+	// Find the RNG in the list, sorted by CRC
+	FRandom **prev = &RNGList, *probe = RNGList;
+
+	while (probe != NULL && probe->NameCRC < NameCRC)
+	{
+		prev = &probe->Next;
+		probe = probe->Next;
+	}
+	// Found one so return it.
+	if (probe == NULL || probe->NameCRC != NameCRC)
+	{
+		// A matching RNG doesn't exist yet so create it.
+		probe = new FRandom(name);
+
+		// Store the new RNG for destruction when ZDoom quits.
+		NewRNGs.Push(probe);
+	}
+	return probe;
+}
+
 #ifdef _DEBUG
 void FRandom::StaticPrintSeeds ()
 {
@@ -256,7 +303,7 @@ void FRandom::StaticPrintSeeds ()
 
 	while (rng != NULL)
 	{
-		Printf ("%s: %08lx\n", rng->Name, rng->Seed);
+		Printf ("%s: %08x\n", rng->Name, rng->Seed);
 		rng = rng->Next;
 	}
 }
@@ -266,3 +313,4 @@ CCMD (showrngs)
 	FRandom::StaticPrintSeeds ();
 }
 #endif
+

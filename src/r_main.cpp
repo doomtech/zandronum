@@ -237,7 +237,7 @@ static bool NoInterpolateView;
 
 angle_t R_PointToAngle2 (fixed_t x1, fixed_t y1, fixed_t x, fixed_t y)
 {
-#if 1 // [ZDoomGL]
+#if 1
 	// The precision of the code below is abysmal so use the CRT atan2 function instead!
 	return quickertoint((float)atan2f(y-y1, x-x1) * ANGLE_180/M_PI);
 #else
@@ -794,7 +794,6 @@ void R_Init ()
 	R_SetViewSize (screenblocks);
 	R_InitPlanes ();
 	R_InitTranslationTables ();
-
 	R_InitParticles ();	// [RH] Setup particle engine
 	R_InitColumnDrawers ();
 
@@ -836,6 +835,7 @@ static void R_Shutdown ()
 // I didn't do this.
 //
 //==========================================================================
+
 
 //==========================================================================
 //
@@ -1604,6 +1604,7 @@ void R_RenderViewToCanvas (AActor *actor, DCanvas *canvas,
 		gl_RenderViewToCanvas(canvas, x, y, width, height);
 		return;
 	}
+
 	const int saveddetail = detailxshift | (detailyshift << 1);
 	const bool savedviewactive = viewactive;
 

@@ -442,7 +442,6 @@ DPlaneWatcher::DPlaneWatcher (AActor *it, line_t *line, int lineSide, bool ceili
 		}
 		LastD = plane.d;
 		plane.ChangeHeight (height << FRACBITS);
-		Sector->lastUpdate = validcount; // [ZDoomGL]
 		WatchD = plane.d;
 	}
 	else
@@ -1951,8 +1950,6 @@ void DLevelScript::SetLineTexture (int lineid, int side, int position, int name)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SetLineTexture( linenum );
 
-		lines[linenum].frontsector->lastUpdate = validcount; // [ZDoomGL];
-		//lines[linenum].textureChanged = I_MSTime(); // [ZDoomGL]
 	}
 }
 
@@ -4459,17 +4456,29 @@ int DLevelScript::RunScript ()
 
 		case PCD_SETTHINGSPECIAL:
 			{
-				FActorIterator iterator (STACK(7));
-				AActor *actor;
-
-				while ( (actor = iterator.Next ()) )
+				if (STACK(7) != 0)
 				{
-					actor->special = STACK(6);
-					actor->args[0] = STACK(5);
-					actor->args[1] = STACK(4);
-					actor->args[2] = STACK(3);
-					actor->args[3] = STACK(2);
-					actor->args[4] = STACK(1);
+					FActorIterator iterator (STACK(7));
+					AActor *actor;
+
+					while ( (actor = iterator.Next ()) )
+					{
+						actor->special = STACK(6);
+						actor->args[0] = STACK(5);
+						actor->args[1] = STACK(4);
+						actor->args[2] = STACK(3);
+						actor->args[3] = STACK(2);
+						actor->args[4] = STACK(1);
+					}
+				}
+				else if (activator != NULL)
+				{
+					activator->special = STACK(6);
+					activator->args[0] = STACK(5);
+					activator->args[1] = STACK(4);
+					activator->args[2] = STACK(3);
+					activator->args[3] = STACK(2);
+					activator->args[4] = STACK(1);
 				}
 				sp -= 7;
 			}
@@ -5015,10 +5024,6 @@ int DLevelScript::RunScript ()
 		case PCD_ENDTRANSLATION:
 			// This might be useful for hardware rendering, but
 			// for software it is superfluous.
-/*
-			if ( OPENGL_GetCurrentRenderer( ) != RENDERER_SOFTWARE )
-				textureList.UpdateForTranslation(translation); // [ZDoomGL]
-*/
 			translation = NULL;
 			break;
 

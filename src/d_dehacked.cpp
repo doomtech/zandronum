@@ -340,7 +340,7 @@ static BitName *BitNames;
 static int NumBitNames;
 
 struct Key {
-	char *name;
+	const char *name;
 	ptrdiff_t offset;
 };
 
@@ -360,7 +360,7 @@ static int PatchCodePtrs (int);
 static int DoInclude (int);
 
 static const struct {
-	char *name;
+	const char *name;
 	int (*func)(int);
 } Modes[] = {
 	// These appear in .deh and .bex files

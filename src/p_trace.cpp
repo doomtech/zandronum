@@ -47,8 +47,14 @@ static fixed_t EnterDist;
 static bool (*TraceCallback)(FTraceResults &res);
 static DWORD TraceFlags;
 
+// These are required for 3D-floor checking
+// to create a fake sector with a floor 
+// or ceiling plane coming from a 3D-floor
+static sector_t DummySector[2];	
+static int sectorsel;		
+
 static bool PTR_TraceIterator (intercept_t *);
-static bool CheckSectorPlane (const sector_t *sector, bool checkFloor);
+static bool CheckSectorPlane (const sector_t *sector, bool checkFloor, divline_t & trace);
 static bool EditTraceResult (DWORD flags, FTraceResults &res);
 
 bool Trace (fixed_t x, fixed_t y, fixed_t z, sector_t *sector,
@@ -57,6 +63,11 @@ bool Trace (fixed_t x, fixed_t y, fixed_t z, sector_t *sector,
 			FTraceResults &res,
 			DWORD flags, bool (*callback)(FTraceResults &res))
 {
+	// Under extreme circumstances ADecal::DoTrace can call this from inside a linespecial call!
+	static bool recursion;
+	if (recursion) return false;
+	recursion=true;
+
 	int ptflags;
 
 	ptflags = actorMask ? PT_ADDLINES|PT_ADDTHINGS : PT_ADDLINES;
@@ -78,12 +89,86 @@ bool Trace (fixed_t x, fixed_t y, fixed_t z, sector_t *sector,
 
 	res.HitType = TRACE_HitNone;
 
+	// Do a 3D floor check in the starting sector
+	res.ffloor=NULL;
+	sectorsel=0;
+
+	if (sector->e->ffloors.Size())
+	{
+		memcpy(&DummySector[0],sector,sizeof(sector_t));
+		CurSector=sector=&DummySector[0];
+		sectorsel=1;
+		fixed_t bf = sector->floorplane.ZatPoint (x, y);
+		fixed_t bc = sector->ceilingplane.ZatPoint (x, y);
+
+		for(unsigned int i=0;i<sector->e->ffloors.Size();i++)
+		{
+			F3DFloor * rover=sector->e->ffloors[i];
+
+			if (rover->flags&FF_SOLID && rover->flags&FF_EXISTS)
+			{
+				fixed_t ff_bottom=rover->bottom.plane->ZatPoint(x, y);
+				fixed_t ff_top=rover->top.plane->ZatPoint(x, y);
+				// clip to the part of the sector we are in
+				if (z>ff_top)
+				{
+					// above
+					if (bf<ff_top)
+					{
+						sector->floorplane=*rover->top.plane;
+						sector->floorpic=*rover->top.texture;
+						bf=ff_top;
+					}
+				}
+				else if (z<ff_bottom)
+				{
+					//below
+					if (bc>ff_bottom)
+					{
+						sector->ceilingplane=*rover->bottom.plane;
+						sector->ceilingpic=*rover->bottom.texture;
+						bc=ff_bottom;
+					}
+				}
+			}
+		}
+	}
+
+	// check for overflows and clip if necessary
+	SQWORD xd= (SQWORD)x + ( ( SQWORD(vx) * SQWORD(maxDist) )>>16);
+
+	if (xd>SQWORD(32767)*FRACUNIT)
+	{
+		maxDist=FixedDiv(FIXED_MAX-x,vx);
+	}
+	else if (xd<-SQWORD(32767)*FRACUNIT)
+	{
+		maxDist=FixedDiv(FIXED_MIN-x,vx);
+	}
+
+
+	SQWORD yd= (SQWORD)y + ( ( SQWORD(vy) * SQWORD(maxDist) )>>16);
+
+	if (yd>SQWORD(32767)*FRACUNIT)
+	{
+		maxDist=FixedDiv(FIXED_MAX-y,vy);
+	}
+	else if (yd<-SQWORD(32767)*FRACUNIT)
+	{
+		maxDist=FixedDiv(FIXED_MIN-y,vy);
+	}
+
+	// recalculate the trace's end points for robustness
 	if (P_PathTraverse (x, y, x + FixedMul (vx, maxDist), y + FixedMul (vy, maxDist),
 		ptflags, PTR_TraceIterator))
 	{ // check for intersection with floor/ceiling
 		res.Sector = CurSector;
+		divline_t trace;
 
-		if (CheckSectorPlane (CurSector, true))
+		trace.x=x;
+		trace.y=y;
+
+		if (CheckSectorPlane (CurSector, true, trace))
 		{
 			res.HitType = TRACE_HitFloor;
 			if (res.CrossedWater == NULL &&
@@ -93,12 +178,13 @@ bool Trace (fixed_t x, fixed_t y, fixed_t z, sector_t *sector,
 				res.CrossedWater = CurSector;
 			}
 		}
-		else if (CheckSectorPlane (CurSector, false))
+		else if (CheckSectorPlane (CurSector, false, trace))
 		{
 			res.HitType = TRACE_HitCeiling;
 		}
 	}
 
+	recursion=false;
 	if (res.HitType != TRACE_HitNone)
 	{
 		if (flags)
@@ -139,11 +225,12 @@ static bool PTR_TraceIterator (intercept_t *in)
 
 		fixed_t ff, fc, bf = 0, bc = 0;
 
-		if (in->d.line->frontsector == CurSector)
+		// CurSector may be a copy so we must compare the sector number, not the index!
+		if (in->d.line->frontsector->sectornum == CurSector->sectornum)
 		{
 			lineside = 0;
 		}
-		else if (in->d.line->backsector == CurSector)
+		else if (in->d.line->backsector && in->d.line->backsector->sectornum == CurSector->sectornum)
 		{
 			lineside = 1;
 		}
@@ -197,17 +284,18 @@ static bool PTR_TraceIterator (intercept_t *in)
 		}
 
 		if (hitz <= ff)
-		{ // hit floor in front of wall
+		{	// hit floor in front of wall
 			Results->HitType = TRACE_HitFloor;
 		}
 		else if (hitz >= fc)
-		{ // hit ceiling in front of wall
+		{ 	// hit ceiling in front of wall
 			Results->HitType = TRACE_HitCeiling;
 		}
 		else if (entersector == NULL ||
 			hitz <= bf || hitz >= bc ||
 			in->d.line->flags & WallMask)
-		{ // hit the wall
+		{	// hit the wall
+			
 			Results->HitType = TRACE_HitWall;
 			Results->Tier =
 				entersector == NULL ? TIER_Middle :
@@ -219,7 +307,62 @@ static bool PTR_TraceIterator (intercept_t *in)
 			}
 		}
 		else
-		{ // made it past the wall
+		{ 	// made it past the wall
+			// check for 3D floors first
+			if (entersector->e->ffloors.Size())
+			{
+				memcpy(&DummySector[sectorsel],entersector,sizeof(sector_t));
+				entersector=&DummySector[sectorsel];
+				sectorsel^=1;
+
+				for(unsigned int i=0;i<entersector->e->ffloors.Size();i++)
+				{
+					F3DFloor * rover=entersector->e->ffloors[i];
+
+					if (rover->flags&FF_SOLID && rover->flags&FF_EXISTS)
+					{
+						fixed_t ff_bottom=rover->bottom.plane->ZatPoint(hitx, hity);
+						fixed_t ff_top=rover->top.plane->ZatPoint(hitx, hity);
+
+						// clip to the part of the sector we are in
+						if (hitz>ff_top)
+						{
+							// above
+							if (bf<ff_top)
+							{
+								entersector->floorplane=*rover->top.plane;
+								entersector->floorpic=*rover->top.texture;
+								bf=ff_top;
+							}
+						}
+						else if (hitz<ff_bottom)
+						{
+							//below
+							if (bc>ff_bottom)
+							{
+								entersector->ceilingplane=*rover->bottom.plane;
+								entersector->ceilingpic=*rover->bottom.texture;
+								bc=ff_bottom;
+							}
+						}
+						else
+						{
+							//hit the edge - equivalent to hitting the wall
+							Results->HitType = TRACE_HitWall;
+							Results->Tier = TIER_FFloor;
+							Results->ffloor = rover;
+							if ((TraceFlags & TRACE_Impact) && in->d.line->special)
+							{
+								P_ActivateLine (in->d.line, IgnoreThis, lineside, SPAC_IMPACT);
+							}
+							goto cont;
+						}
+					}
+				}
+			}
+
+
+
 			Results->HitType = TRACE_HitNone;
 			if (TraceFlags & TRACE_PCross)
 			{
@@ -231,6 +374,7 @@ static bool PTR_TraceIterator (intercept_t *in)
 				P_ActivateLine (in->d.line, IgnoreThis, lineside, SPAC_IMPACT);
 			}
 		}
+cont:
 
 		if (Results->HitType != TRACE_HitNone)
 		{
@@ -238,7 +382,7 @@ static bool PTR_TraceIterator (intercept_t *in)
 			Results->Sector = CurSector;
 
 			if (Results->HitType != TRACE_HitWall &&
-				!CheckSectorPlane (CurSector, Results->HitType == TRACE_HitFloor))
+				!CheckSectorPlane (CurSector, Results->HitType == TRACE_HitFloor, trace))
 			{ // trace is parallel to the plane (or right on it)
 				if (entersector == NULL)
 				{
@@ -261,7 +405,7 @@ static bool PTR_TraceIterator (intercept_t *in)
 				}
 				if (Results->HitType == TRACE_HitWall && TraceFlags & TRACE_Impact)
 				{
-					P_ActivateLine (in->d.line, IgnoreThis, lineside, SPAC_IMPACT);
+					P_ActivateLine(in->d.line, IgnoreThis, lineside, SPAC_IMPACT);
 				}
 			}
 
@@ -315,6 +459,42 @@ static bool PTR_TraceIterator (intercept_t *in)
 		return true;
 	}
 
+	// check for fake floors first
+	if (CurSector->e->ffloors.Size())
+	{
+		fixed_t ff_floor=CurSector->floorplane.ZatPoint(hitx, hity);
+		fixed_t ff_ceiling=CurSector->ceilingplane.ZatPoint(hitx, hity);
+
+		if (hitz>ff_ceiling)	// actor is hit above the current ceiling
+		{
+			Results->HitType=TRACE_HitCeiling;
+		}
+		else if (hitz<ff_floor)	// actor is hit below the current floor
+		{
+			Results->HitType=TRACE_HitFloor;
+		}
+		else goto cont1;
+
+		// the trace hit a 3D-floor before the thing.
+		// Calculate an intersection and abort.
+		Results->Sector = CurSector;
+		if (!CheckSectorPlane(CurSector, Results->HitType==TRACE_HitFloor, trace))
+		{
+			Results->HitType=TRACE_HitNone;
+		}
+		if (TraceCallback != NULL)
+		{
+			return TraceCallback (*Results);
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+
+cont1:
+
 	Results->HitType = TRACE_HitActor;
 	Results->X = hitx;
 	Results->Y = hity;
@@ -333,7 +513,7 @@ static bool PTR_TraceIterator (intercept_t *in)
 	}
 }
 
-static bool CheckSectorPlane (const sector_t *sector, bool checkFloor)
+static bool CheckSectorPlane (const sector_t *sector, bool checkFloor, divline_t & trace)
 {
 	secplane_t plane;
 

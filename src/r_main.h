@@ -177,7 +177,6 @@ inline angle_t R_PointToAngle (fixed_t x, fixed_t y) { return R_PointToAngle2 (v
 subsector_t *R_PointInSubsector (fixed_t x, fixed_t y);
 subsector_t *R_PointInSubsector2 (fixed_t x, fixed_t y);
 fixed_t R_PointToDist2 (fixed_t dx, fixed_t dy);
-inline fixed_t R_PointToDist (fixed_t x, fixed_t y) { return R_PointToDist2(viewx - x, viewy - y); } // [ZDoomGL] - kept since I'm lazy :)
 
 void R_SetFOV (float fov);
 float R_GetFOV ();
@@ -211,41 +210,6 @@ void R_MultiresInit (void);
 
 // BUILD stuff for interpolating between frames, but modified (rather a lot)
 #define INTERPOLATION_BUCKETS 107
-
-struct FAnimDef
-{
-	WORD 	BasePic;
-	WORD	NumFrames;
-	WORD	CurFrame;
-	BYTE	AnimType;
-	DWORD	SwitchTime;			// Time to advance to next frame
-	struct FAnimFrame
-	{
-		DWORD	SpeedMin;		// Speeds are in ms, not tics
-		DWORD	SpeedRange;
-		WORD	FramePic;
-	} Frames[1];
-	enum
-	{
-		ANIM_Forward,
-		ANIM_Backward,
-		ANIM_OscillateUp,
-		ANIM_OscillateDown,
-		ANIM_DiscreteFrames
-	};
-
-	void SetSwitchTime (DWORD mstime);
-};
-
-// This is an array of pointers to animation definitions.
-// When it is destroyed, it deletes any animations it points to as well.
-class AnimArray : public TArray<FAnimDef *>
-{
-public:
-	~AnimArray();
-	void AddAnim (FAnimDef *anim);
-	void FixAnimations ();
-};
 
 enum EInterpType
 {

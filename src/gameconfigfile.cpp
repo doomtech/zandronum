@@ -75,7 +75,7 @@ EXTERN_CVAR (Color, am_wallcolor)
 EXTERN_CVAR (Color, am_fdwallcolor)
 EXTERN_CVAR (Color, am_cdwallcolor)
 
-char *WeaponSection;
+FString WeaponSection;
 
 FGameConfigFile::FGameConfigFile ()
 {
@@ -498,13 +498,13 @@ void FGameConfigFile::ArchiveGameData (const char *gamename)
 	ClearCurrentSection ();
 	C_ArchiveBindings (this, true);
 
-	if (WeaponSection == NULL)
+	if (WeaponSection.IsEmpty())
 	{
 		strcpy (subsection, "WeaponSlots");
 	}
 	else
 	{
-		sprintf (subsection, "%s.WeaponSlots", WeaponSection);
+		sprintf (subsection, "%s.WeaponSlots", WeaponSection.GetChars());
 	}
 	SetSection (section, true);
 	ClearCurrentSection ();

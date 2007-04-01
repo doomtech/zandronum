@@ -36,6 +36,8 @@
 
 #include "r_defs.h"
 
+struct F3DFloor;
+
 enum ETraceResult
 {
 	TRACE_HitNone,
@@ -49,7 +51,8 @@ enum
 {
 	TIER_Middle,
 	TIER_Upper,
-	TIER_Lower
+	TIER_Lower,
+	TIER_FFloor,
 };
 
 struct FTraceResults
@@ -66,6 +69,7 @@ struct FTraceResults
 	BYTE Tier;
 	ETraceResult HitType;
 	sector_t *CrossedWater;
+	F3DFloor * ffloor;
 };
 
 enum

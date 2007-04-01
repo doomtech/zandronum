@@ -603,7 +603,6 @@ void M_ScreenShot (const char *filename)
 				}
 			}
 		}
-
 		if (!FindFreeName (autoname, writepcx ? "pcx" : "png"))
 		{
 			Printf ("M_ScreenShot: Delete some screenshots\n");
@@ -617,38 +616,38 @@ void M_ScreenShot (const char *filename)
 	}
 	CreatePath(screenshot_dir);
 
-   // save the screenshot
+	// save the screenshot
 	if (currentrenderer == 1)
 	{
 		gl_ScreenShot(autoname.GetChars());
 	}
 	else
 	{
-	   screen->Lock (true);
-	   //D_Display (true);
+		screen->Lock (true);
+		//D_Display (true);
 
-	   PalEntry palette[256];
-	   screen->GetFlashedPalette (palette);
+		PalEntry palette[256];
+		screen->GetFlashedPalette (palette);
 
-	   file = fopen (autoname.GetChars(), "wb");
-	   if (file == NULL)
-	   {
-		   Printf ("Could not open %s\n", autoname.GetChars());
-		   screen->Unlock ();
-		   return;
-	   }
+		file = fopen (autoname.GetChars(), "wb");
+		if (file == NULL)
+		{
+			Printf ("Could not open %s\n", autoname.GetChars());
+			screen->Unlock ();
+			return;
+		}
 
-	   if (writepcx)
-	   {
-		   WritePCXfile (file, screen, palette);
-	   }
-	   else
-	   {
-		   WritePNGfile (file, screen, palette);
-	   }
-	   fclose (file);
-	   screen->Unlock ();
-   }
+		if (writepcx)
+		{
+			WritePCXfile (file, screen, palette);
+		}
+		else
+		{
+			WritePNGfile (file, screen, palette);
+		}
+		fclose (file);
+		screen->Unlock ();
+	}
 
 	if (!screenshot_quiet)
 	{

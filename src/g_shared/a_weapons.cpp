@@ -898,7 +898,7 @@ CCMD (setslot)
 {
 	int slot, i;
 
-	if (ParsingKeyConf && !WeaponSection)
+	if (ParsingKeyConf && WeaponSection.IsEmpty())
 	{
 		Printf ("You need to use weaponsection before using setslot\n");
 		return;
@@ -967,7 +967,7 @@ CCMD (weaponsection)
 		{
 			argv[1][32] = 0;
 		}
-		ReplaceString (&WeaponSection, argv[1]);
+		WeaponSection = argv[1];
 
 		// If the ini already has definitions for this section, load them
 		char fullSection[32*3];
@@ -994,7 +994,7 @@ CCMD (weaponsection)
 			tackOn = fullSection + 4;
 		}
 
-		sprintf (tackOn, ".%s.WeaponSlots", WeaponSection);
+		sprintf (tackOn, ".%s.WeaponSlots", WeaponSection.GetChars());
 		if (GameConfig->SetSection (fullSection))
 		{
 			LocalWeapons.RestoreSlots (*GameConfig);
@@ -1013,7 +1013,7 @@ CCMD (addslotdefault)
 		return;
 	}
 
-	if (ParsingKeyConf && !WeaponSection)
+	if (ParsingKeyConf && WeaponSection.IsEmpty())
 	{
 		Printf ("You need to use weaponsection before using addslotdefault\n");
 		return;

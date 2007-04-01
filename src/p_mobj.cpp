@@ -1409,7 +1409,7 @@ void P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 	fixed_t ptryx, ptryy;
 	player_t *player;
 	fixed_t xmove, ymove;
-	bool walkplane;
+	const secplane_t * walkplane;
 	static const int windTab[3] = {2048*5, 2048*10, 2048*25};
 	int steps, step, totalsteps;
 	fixed_t startx, starty;
@@ -1854,7 +1854,18 @@ explode:
 			|| mo->momy > FRACUNIT/4 || mo->momy < -FRACUNIT/4)
 		{
 			if (mo->floorz > mo->Sector->floorplane.ZatPoint (mo->x, mo->y))
-				return;
+			{
+				unsigned i;
+				for(i=0;i<mo->Sector->e->ffloors.Size();i++)
+				{
+					// Sliding around on 3D floors looks extremely bad so
+					// if the floor comes from one in the current sector stop sliding the corpse!
+					F3DFloor * rover=mo->Sector->e->ffloors[i];
+					if (!(rover->flags&FF_EXISTS)) continue;
+					if (rover->flags&FF_SOLID && rover->top.plane->ZatPoint(mo->x,mo->y)==mo->floorz) break;
+				}
+				if (i==mo->Sector->e->ffloors.Size()) return;
+			}
 		}
 	}
 

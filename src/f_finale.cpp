@@ -70,7 +70,7 @@ static bool FinaleHasPic;
 
 static FString FinaleText;
 static size_t FinaleTextLen;
-static char *FinaleFlat;
+static const char *FinaleFlat;
 
 void	F_StartCast (void);
 void	F_CastTicker (void);
@@ -863,18 +863,17 @@ void F_DrawUnderwater(void)
 			*palette++ = PalEntry (orgpal[0], orgpal[1], orgpal[2]);
 		}
 		screen->UpdatePalette ();
+		FinaleStage = 2;
+		}
 
+		// intentional fall-through
+	case 2:
 		pic = TexMan("E2END");
 		screen->DrawTexture (pic, 0, 0,
 			DTA_VirtualWidth, pic->GetWidth(),
 			DTA_VirtualHeight, pic->GetHeight(),
 			TAG_DONE);
 		screen->FillBorder (NULL);
-		FinaleStage = 2;
-		}
-
-		// intentional fall-through
-	case 2:
 		paused = false;
 		menuactive = MENU_Off;
 		break;

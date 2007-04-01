@@ -116,8 +116,6 @@ DMover::EResult DMover::MovePlane (fixed_t speed, fixed_t dest, int crush,
 	//fixed_t		destheight;	//jff 02/04/98 used to keep floors/ceilings
 							// from moving thru each other
 
-	m_Sector->lastUpdate = validcount; // [ZDoomGL]
-
 	// [BC] Flag this sector's height as changed, so we can tell new clients that connect the
 	// new height.
 	m_Sector->floorOrCeiling = floorOrCeiling;

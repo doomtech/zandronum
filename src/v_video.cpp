@@ -704,7 +704,6 @@ void DFrameBuffer::DrawRateStuff ()
 	}
 
 	// draws little dots on the bottom of the screen
-	// [BC] Don't draw this in OpenGL mode.
 	if (ticker)
 	{
 		int i = I_GetTime(false);

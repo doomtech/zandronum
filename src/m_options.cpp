@@ -2451,6 +2451,7 @@ void M_PlayerSetup( void )
 	M_SwitchMenu( &PlayerSetupMenu );
 	PlayerClass = &PlayerClasses[g_ulPlayerSetupClass];
 	PlayerSkin = g_ulPlayerSetupSkin;
+	R_GetPlayerTranslation (g_ulPlayerSetupColor, &skins[g_ulPlayerSetupSkin], translationtables[TRANSLATION_Players] + 256 * MAXPLAYERS);
 	PlayerState = GetDefaultByType( PlayerClass->Type )->SeeState;
 	PlayerTics = PlayerState->GetTics( );
 	if ( FireScreen == NULL )

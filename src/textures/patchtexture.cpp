@@ -39,12 +39,12 @@
 #include "w_wad.h"
 #include "templates.h"
 
+
 bool FPatchTexture::Check(FileReader & file)
 {
 	if (file.GetLength() < 13) return false;	// minimum length of a valid Doom patch
 	
 	BYTE *data = new BYTE[file.GetLength()];
-
 	file.Seek(0, SEEK_SET);
 	file.Read(data, file.GetLength());
 	
@@ -52,7 +52,6 @@ bool FPatchTexture::Check(FileReader & file)
 	
 	int height = LittleShort(foo->height);
 	int width = LittleShort(foo->width);
-	bool gapAtStart=true;
 	
 	if (height > 0 && height < 2048 && width > 0 && width <= 2048 && width < file.GetLength()/4)
 	{

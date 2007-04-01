@@ -2237,7 +2237,6 @@ void AM_Drawer ()
 	AM_initColors (viewactive);
 
 	fb = screen->GetBuffer ();
-
 	if (!viewactive)
 	{
 		// [RH] Set f_? here now to handle automap overlaying

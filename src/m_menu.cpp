@@ -95,6 +95,7 @@ struct FSaveGameNode : public Node
 // EXTERNAL FUNCTION PROTOTYPES --------------------------------------------
 
 void M_DrawSlider (int x, int y, float min, float max, float cur);
+void R_GetPlayerTranslation (int color, FPlayerSkin *skin, BYTE *table);
 
 // PUBLIC FUNCTION PROTOTYPES ----------------------------------------------
 
@@ -1912,6 +1913,7 @@ void M_QuitDOOM (int choice)
 }
 
 extern	ULONG	g_ulPlayerSetupColor;
+extern	ULONG	g_ulPlayerSetupSkin;
 void SendNewColor (int red, int green, int blue)
 {
 	char command[24];
@@ -1921,6 +1923,8 @@ void SendNewColor (int red, int green, int blue)
 
 	sprintf (command, "menu_color \"%02x %02x %02x\"", red, green, blue );
 	C_DoCommand (command);
+
+	R_GetPlayerTranslation (MAKERGB (red, green, blue), &skins[g_ulPlayerSetupSkin], translationtables[TRANSLATION_Players] + 256 * MAXPLAYERS);
 }
 
 //

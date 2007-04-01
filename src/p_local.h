@@ -286,7 +286,7 @@ bool	P_CheckPosition (AActor *thing, fixed_t x, fixed_t y);
 bool	P_OldCheckPosition (AActor *thing, fixed_t x, fixed_t y);
 AActor	*P_CheckOnmobj (AActor *thing);
 void	P_FakeZMovement (AActor *mo);
-bool	P_TryMove (AActor* thing, fixed_t x, fixed_t y, bool dropoff, bool onfloor = false);
+bool	P_TryMove (AActor* thing, fixed_t x, fixed_t y, bool dropoff, const secplane_t * onfloor = NULL);
 bool	P_OldTryMove (AActor* thing, fixed_t x, fixed_t y, bool dropoff, bool onfloor = false);
 bool	P_TeleportMove (AActor* thing, fixed_t x, fixed_t y, fixed_t z, bool telefrag);	// [RH] Added z and telefrag parameters
 void	P_PlayerStartStomp (AActor *actor);		// [RH] Stomp on things for a newly spawned player
@@ -307,7 +307,7 @@ bool	P_ChangeSector (sector_t* sector, int crunch, int amt, int floorOrCeil);
 extern	AActor*	linetarget; 	// who got hit (or NULL)
 extern	AActor *PuffSpawned;	// points to last puff spawned
 
-fixed_t P_AimLineAttack (AActor *t1, angle_t angle, fixed_t distance, fixed_t vrange=0);
+fixed_t P_AimLineAttack (AActor *t1, angle_t angle, fixed_t distance, fixed_t vrange=0, bool forcenosmart=false);
 void	P_LineAttack (AActor *t1, angle_t angle, fixed_t distance, int pitch, int damage, int damageType, const PClass *pufftype);
 void	P_TraceBleed (int damage, fixed_t x, fixed_t y, fixed_t z, AActor *target, angle_t angle, int pitch);
 void	P_TraceBleed (int damage, AActor *target, angle_t angle, int pitch);
@@ -334,7 +334,7 @@ int		P_GetFriction(const AActor *mo, int *frictionfactor);
 bool	Check_Sides(AActor *, int, int);					// phares
 
 // [RH] 
-bool	P_CheckSlopeWalk (AActor *actor, fixed_t &xmove, fixed_t &ymove);
+const secplane_t * P_CheckSlopeWalk (AActor *actor, fixed_t &xmove, fixed_t &ymove);
 
 //
 // P_SETUP

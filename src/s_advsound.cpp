@@ -1689,8 +1689,3 @@ void AAmbientSound::Deactivate (AActor *activator)
 		}
 	}
 }
-
-bool AAmbientSound::GetActive( void )
-{
-	return ( bActive );
-}

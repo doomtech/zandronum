@@ -705,7 +705,7 @@ void EV_StartLightGlowing (int tag, int upper, int lower, int tics)
 void EV_StartLightFading (int tag, int value, int tics)
 {
 	int secnum;
-		
+
 	secnum = -1;
 	while ((secnum = P_FindSectorFromTag (tag,secnum)) >= 0)
 	{

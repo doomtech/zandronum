@@ -385,11 +385,7 @@ struct sector_t
 	int							subsectorcount;		// list of subsectors
 	subsector_s **				subsectors;
 
-	// [ZDoomGL]
-	fixed_t CenterX, CenterY;
-	unsigned int lastUpdate;
-
-	// Is this sector a floor or ceiling?
+	// [BC] Is this sector a floor or ceiling?
 	int		floorOrCeiling;
 
 	// [BC] Has the height changed during the course of the level?
@@ -491,9 +487,6 @@ struct line_s
 	sector_t	*frontsector, *backsector;
 	int 		validcount;	// if == validcount, already checked
 
-	// [ZDoomGL]
-	unsigned int textureChanged;
-
 	// [BC] Have any of this line's textures been changed during the course of the level?
 	ULONG		ulTexChangeFlags;
 
@@ -548,11 +541,7 @@ typedef struct subsector_s
 	FPolyObj	*poly;
 	int			validcount;
 	fixed_t		CenterX, CenterY;
-	// [ZDoomGL]
-	int index;
-	unsigned long verts, texCoords;
-	bool isPoly, isMapped, touched;
-	float zgl_bbox[2][3];
+
 	// subsector related GL data [GZDoom]
 	FLightNode *	lighthead[2];	// Light nodes (blended and additive)
 	sector_t *		render_sector;	// The sector this belongs to for rendering
@@ -584,14 +573,6 @@ struct seg_s
 	seg_s*			PartnerSeg;
 
 	BITFIELD		bPolySeg:1;
-
-	// [ZDoomGL] added for GL node compatibility and texturing
-	long offset;
-	long index;
-	bool tagged;
-	float length;
-	sector_t *front_render_sector;
-	sector_t *back_render_sector;
 };
 typedef struct seg_s seg_t;
 
@@ -686,21 +667,6 @@ struct patch_t
 	// the [0] is &columnofs[width] 
 };
 
-// [ZDoomGL]
-class FTextureGLData
-{
-public:
-   FTextureGLData();
-   ~FTextureGLData();
-
-   BYTE *translation;
-   unsigned int glTex;
-   unsigned long averageColor;
-   bool isTransparent;
-   bool isAlpha;
-   float cx, cy;
-   float topOffset, bottomOffset;
-};
 
 class FGLTexture;
 class FileReader;
@@ -719,7 +685,6 @@ public:
 
 	char Name[9];
 	BYTE UseType;	// This texture's primary purpose
-	int index; // [ZDoomGL] - quick lookup for the TexMan index
 
 	BYTE bNoDecals:1;		// Decals should not stick to texture
 	BYTE bNoRemap0:1;		// Do not remap color 0 (used by front layer of parallax skies)
@@ -731,8 +696,6 @@ public:
 	BYTE bIsPatch:1;		// 1 if an FPatchTexture. Required to fix FMultipatchTexture::CheckForHacks
 
 	WORD Rotations;
-
-	TArray<FTextureGLData *> glData; // [ZDoomGL]
 
 	enum // UseTypes
 	{
@@ -748,7 +711,6 @@ public:
 		TEX_FontChar,
 		TEX_Override,	// For patches between TX_START/TX_END
 		TEX_Autopage,	// Automap background - used to enable the use of FAutomapTexture
-		TEX_Defined, // [ZDoomGL] - special defined textures for shaders
 		TEX_Null,
 	};
 
@@ -787,17 +749,7 @@ public:
 	// last call to GetPixels(). This should be considered valid only if a call to CheckModified()
 	// is immediately followed by a call to GetPixels().
 	virtual bool CheckModified ();
-	virtual bool CanvasTexture () { return false; } // [ZDoomGL]
 	static void InitGrayMap();
-
-	// [ZDoomGL]
-	static void ClearGLTextures();
-	static void TrackTexture(FTexture *tex);
-	static void Init();
-
-	// [ZDoomGL]
-	FTexture *Next;
-	static FTexture *FirstTexture;
 
 protected:
 	WORD Width, Height, WidthMask;
@@ -895,11 +847,6 @@ public:
 
 	int NumTextures () const { return (int)Textures.Size(); }
 
-	// [ZDoomGL]: used to get the real unique id for the resource
-	int TextureTranslation(int texnum)
-	{
-		return Translation[texnum];
-	}
 
 private:
 	struct TextureHash

@@ -70,6 +70,6 @@ private:
 	char *subsection;
 };
 
-extern char *WeaponSection;
+extern FString WeaponSection;
 
 #endif //__GAMECONFIGFILE_H__

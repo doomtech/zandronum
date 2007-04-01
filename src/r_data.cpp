@@ -375,7 +375,7 @@ void FTextureManager::LoadHiresTex()
 	char src[9];
 	bool is32bit;
 	int width, height;
-	int type,mode;
+	int type, mode;
 
 	lastLump = 0;
 	src[8] = '\0';
@@ -401,7 +401,7 @@ void FTextureManager::LoadHiresTex()
 
 				if (tex<0)
 				{
-					tex=AddPatch(sc_String);
+					tex= AddPatch(sc_String);
 				}
 
 				SC_MustGetString();
@@ -451,7 +451,7 @@ void FTextureManager::LoadHiresTex()
 						// Replace the entire texture and adjust the scaling and offset factors.
 						newtex->bWorldPanning = true;
 						newtex->ScaleX = 8 * newtex->GetWidth() / width;
-						newtex->ScaleY = 8 *  newtex->GetHeight() / height;
+						newtex->ScaleY = 8 * newtex->GetHeight() / height;
 						memcpy(newtex->Name, src, sizeof(newtex->Name));
 
 						int oldtex = TexMan.CheckForTexture(src, FTexture::TEX_Override);
@@ -747,7 +747,6 @@ void R_InitData ()
 	gl_ParseDefs();
 	V_InitFonts();
 	ST_Progress();
-
 	R_InitColormaps ();
 	ST_Progress();
 	// [BC] Server has no need for the console.
@@ -884,7 +883,6 @@ void R_DeinitData ()
 		free (drawsegs);
 		drawsegs = NULL;
 	}
-
 }
 
 //===========================================================================

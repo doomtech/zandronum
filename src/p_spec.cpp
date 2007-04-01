@@ -225,7 +225,7 @@ bool P_ActivateLine (line_t *line, AActor *mo, int side, int activationType)
 	buttonSuccess = LineSpecials[line->special]
 					(line, mo, side == 1, line->args[0],
 					line->args[1], line->args[2],
-						line->args[3], line->args[4]);
+					line->args[3], line->args[4]);
 
 	special = line->special;
 	if (!repeat && buttonSuccess)

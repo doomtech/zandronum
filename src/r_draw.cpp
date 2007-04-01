@@ -1762,25 +1762,6 @@ void R_BuildPlayerTranslation (int player)
 		&translationtables[TRANSLATION_PlayersExtra][player*256]);
 }
 
-// [BC] We need a seperate function to build a player translation for the player setup
-// menu, because as we edit our color and skin at the menu, we don't actually change the
-// player's color and skin until we exit the menu and save our changes.
-// NOTE: This should be more or less the same as R_BuildPlayerTranslation.
-void R_BuildPlayerSetupPlayerTranslation( ULONG ulColor, FPlayerSkin *pSkin )
-{
-	float	h, s, v;
-
-	RGBtoHSV( RPART( ulColor ) / 255.f,
-		GPART(ulColor) / 255.f,
-		BPART(ulColor) / 255.f,
-		&h, &s, &v );
-
-	R_CreatePlayerTranslation( h, s, v,
-		pSkin,
-		&translationtables[TRANSLATION_PlayerSetupMenu][0],
-		&translationtables[TRANSLATION_PlayersExtra][consoleplayer * 256] );
-}
-
 void R_GetPlayerTranslation (int color, FPlayerSkin *skin, BYTE *table)
 {
 	float h, s, v;

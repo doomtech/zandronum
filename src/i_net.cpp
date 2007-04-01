@@ -164,7 +164,7 @@ void BindToLocalPort (SOCKET s, u_short port)
 		I_FatalError ("BindToPort: %s", neterror ());
 }
 
-int FindNode (sockaddr_in *address)
+int FindNode (const sockaddr_in *address)
 {
 	int i;
 
@@ -221,7 +221,7 @@ void PacketGet (void)
 		if (err == WSAECONNRESET)
 		{ // The remote node aborted unexpectedly, so pretend it sent an exit packet
 
-			Printf (PRINT_BOLD, "The connection from %s was dropped\n",
+			Printf (PRINT_BOLD, "The connection from %s was dropped.\n",
 				players[sendplayer[node]].userinfo.netname);
 
 			doomcom.data[0] = 0x80;	// NCMD_EXIT
@@ -262,9 +262,9 @@ sockaddr_in *PreGet (void *buffer, int bufferlen, bool noabort)
 	return &fromaddress;
 }
 
-void PreSend (const void *buffer, int bufferlen, sockaddr_in *to)
+void PreSend (const void *buffer, int bufferlen, const sockaddr_in *to)
 {
-	sendto (mysocket, (const char *)buffer, bufferlen, 0, (sockaddr *)to, sizeof(*to));
+	sendto (mysocket, (const char *)buffer, bufferlen, 0, (const sockaddr *)to, sizeof(*to));
 }
 
 void BuildAddress (sockaddr_in *address, char *name)
@@ -306,7 +306,7 @@ void BuildAddress (sockaddr_in *address, char *name)
 	if (!isnamed)
 	{
 		address->sin_addr.s_addr = inet_addr (name);
-		Printf ("Node number %d address %s\n", doomcom.numnodes, name);
+		Printf ("Node number %d, address %s\n", doomcom.numnodes, name);
 	}
 	else
 	{
@@ -314,7 +314,7 @@ void BuildAddress (sockaddr_in *address, char *name)
 		if (!hostentry)
 			I_FatalError ("gethostbyname: couldn't find %s\n%s", name, neterror());
 		address->sin_addr.s_addr = *(int *)hostentry->h_addr_list[0];
-		Printf ("Node number %d hostname %s\n",
+		Printf ("Node number %d, hostname %s\n",
 			doomcom.numnodes, hostentry->h_name);
 	}
 
@@ -472,7 +472,7 @@ void HostGame (int i)
 					node = FindNode (from);
 					if (node >= 0)
 					{
-						Printf ("Got disconnect from node %d\n", node);
+						Printf ("Got disconnect from node %d.\n", node);
 						doomcom.numnodes--;
 						while (node < doomcom.numnodes)
 						{

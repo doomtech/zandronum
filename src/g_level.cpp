@@ -155,7 +155,25 @@ TArray<level_info_t> wadlevelinfos;
 // MAPINFO is parsed slightly differently when the map name is just a number.
 static bool HexenHack;
 
-static level_info_t TheDefaultLevelInfo = { "", 0, "", "", "", "SKY1", 0, 0, 0, 0, NULL, "Unnamed", "COLORMAP", +8, -8 };
+static char unnamed[] = "Unnamed";
+static level_info_t TheDefaultLevelInfo =
+{
+ 	"",			// mapname
+ 	0, 			// levelnum
+ 	"", 		// pname,
+ 	"", 		// nextmap
+ 	"",			// secretmap
+ 	"SKY1",		// skypic1
+ 	0, 			// cluster
+ 	0, 			// partime
+ 	0, 			// sucktime
+ 	0, 			// flags
+ 	NULL, 		// music
+ 	unnamed, 	// level_name
+ 	"COLORMAP",	// fadetable
+ 	+8, 		// WallVertLight
+ 	-8 			// WallHorizLight
+};
 
 static cluster_info_t TheDefaultClusterInfo = { 0 };
 
@@ -577,6 +595,8 @@ static void G_DoParseMapInfo (int lump)
 		switch (SC_MustMatchString (MapInfoTopLevel))
 		{
 		case MITL_DEFAULTMAP:
+			if (defaultinfo.music != NULL) delete [] defaultinfo.music;
+			if (defaultinfo.intermusic != NULL) delete [] defaultinfo.intermusic;
 			SetLevelDefaults (&defaultinfo);
 			ParseMapInfoLower (MapHandlers, MapInfoMapLevel, &defaultinfo, NULL, defaultinfo.flags);
 			break;
@@ -611,6 +631,10 @@ static void G_DoParseMapInfo (int lump)
 			if (levelinfo->music != NULL)
 			{
 				levelinfo->music = copystring (levelinfo->music);
+			}
+			if (levelinfo->intermusic != NULL)
+			{
+				levelinfo->intermusic = copystring (levelinfo->intermusic);
 			}
 			if (HexenHack)
 			{
@@ -705,6 +729,14 @@ static void G_DoParseMapInfo (int lump)
 		}
 	}
 	SC_Close ();
+	if (defaultinfo.music != NULL)
+	{
+		delete [] defaultinfo.music;
+	}
+	if (defaultinfo.intermusic != NULL)
+	{
+		delete [] defaultinfo.intermusic;
+	}
 }
 
 static void ClearLevelInfoStrings(level_info_t *linfo)
@@ -713,6 +745,11 @@ static void ClearLevelInfoStrings(level_info_t *linfo)
 	{
 		delete[] linfo->music;
 		linfo->music = NULL;
+	}
+	if (linfo->intermusic != NULL)
+	{
+		delete[] linfo->intermusic;
+		linfo->intermusic = NULL;
 	}
 	if (linfo->level_name != NULL)
 	{
@@ -1379,7 +1416,7 @@ bool CheckWarpTransMap (char mapname[9], bool substitute)
 //
 static char d_mapname[256];
 
-void G_DeferedInitNew (char *mapname)
+void G_DeferedInitNew (const char *mapname)
 {
 	strncpy (d_mapname, mapname, 8);
 	CheckWarpTransMap (d_mapname, true);
@@ -1508,7 +1545,7 @@ void G_DoNewGame (void)
 }
 
 void SERVERCONSOLE_SetupColumns( void );
-void G_InitNew (char *mapname, bool bTitleLevel)
+void G_InitNew (const char *mapname, bool bTitleLevel)
 {
 	EGameSpeed oldSpeed;
 	bool wantFast;
@@ -2232,7 +2269,7 @@ void G_DoLoadLevel (int position, bool autosave)
 				level.mapname, level.level_name);
 	}
 
-	if (wipegamestate == GS_LEVEL) 
+	if (wipegamestate == GS_LEVEL)
 		wipegamestate = GS_FORCEWIPE;
 
 	if (gamestate != GS_TITLELEVEL)
