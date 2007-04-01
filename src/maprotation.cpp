@@ -203,6 +203,7 @@ bool MAPROTATION_IsMapInRotaion( char *pszMapName )
 			return true;
 		}
 	}
+	return false;
 }
 
 //*****************************************************************************
