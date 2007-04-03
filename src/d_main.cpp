@@ -615,9 +615,10 @@ void D_Display (bool screenshot)
 			if (!gametic)
 				break;
 
-			// [BB] Necessary?
-			//if (viewactive)
-			//{
+			// [BB] if is necessary here. Otherwise it could try to render a NULL actor.
+			// This happens for example if you start a new game, while being on a server.
+			if (viewactive)
+			{
 				R_RefreshViewBorder ();
 				P_CheckPlayerSprites();
 				if (currentrenderer==0)
@@ -631,7 +632,7 @@ void D_Display (bool screenshot)
 				{
 					gl_RenderPlayerView (&players[consoleplayer]);
 				}
-			//}
+			}
 
 			if (automapactive)
 			{
