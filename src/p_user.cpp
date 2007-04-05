@@ -3022,7 +3022,8 @@ void player_s::Serialize (FArchive &arc)
 		<< (DWORD &)ulRailgunShots
 		<< (DWORD &)lMaxHealthBonus
 		<< (DWORD &)lMaxArmorBonus
-		<< LogText;
+		<< LogText
+		<< Powers; // [RC] Save rune effects
 	for (i = 0; i < NUMPSPRITES; i++)
 		arc << psprites[i];
 
