@@ -540,6 +540,27 @@ void POSSESSION_ScorePossessionPoint( player_s *pPlayer )
 
 		StatusBar->AttachMessage( pMsg, 'CNTR' );
 		screen->SetFont( SmallFont );
+
+		// [RC] On team possession, state who scored.
+		if ( teampossession && ( pPlayer->bOnTeam )) {
+			if ( pPlayer->ulTeam == TEAM_BLUE )
+				sprintf( szString, "\\chScored by: %s", pPlayer->userinfo.netname);
+			else
+				sprintf( szString, "\\cgScored by: %s", pPlayer->userinfo.netname);
+			V_RemoveColorCodes( szString );
+			V_ColorizeString( szString );
+
+			// Display small HUD message.
+			pMsg = new DHUDMessageFadeOut( szString,
+				160.4f,
+				90.0f,
+				320,
+				200,
+				CR_RED,
+				3.0f,
+				2.0f );
+			StatusBar->AttachMessage( pMsg, 'SUBS' );
+		}
 	}
 	else
 	{
