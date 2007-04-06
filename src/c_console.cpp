@@ -1318,7 +1318,7 @@ void C_DrawConsole ()
 		{
 			// [BC] In addition to drawing the program version, draw
 			// the ZDoom version as well.
-			sprintf( szString, "\\cIv%s (\\cDv%s\\cI)", DOTVERSIONSTR, ZDOOMVERSIONSTR );
+			sprintf( szString, "\\cIv%s (\\cDv%s\\cI)", DOTVERSIONSTR_REV, ZDOOMVERSIONSTR );
 			V_ColorizeString( szString );
 
 			screen->SetFont( ConFont );

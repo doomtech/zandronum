@@ -174,7 +174,7 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 				MAKEINTRESOURCE( IDI_ICON5 )));
 
 			// Initialize the server console text.
-			sprintf( szString, "=== S K U L L T A G  v%s ===", DOTVERSIONSTR );
+			sprintf( szString, "=== S K U L L T A G  v%s ===", DOTVERSIONSTR_REV );
 			SetDlgItemText( hDlg, IDC_CONSOLEBOX, szString );
 			Printf( "\n\n" );
 
