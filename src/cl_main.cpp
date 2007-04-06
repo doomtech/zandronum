@@ -1079,6 +1079,9 @@ void CLIENT_QuitNetworkGame( void )
 
 	// Set the network state back to single player.
 	NETWORK_SetState( NETSTATE_SINGLE );
+
+	// [BB] This prevents the status bar from showing up shortly, if you start a new game, while connected to a server.
+	gamestate = GS_FULLCONSOLE;
 }
 
 //*****************************************************************************
@@ -7435,9 +7438,10 @@ static void client_MapLoad( void )
 	{
 		// Start new level.
 		G_InitNew( pszMap, false );
-	
+
+		// [BB] viewactive is set in G_InitNew
 		// For right now, the view is not active.
-//		viewactive = false;
+		//viewactive = false;
 
 		// Kill the console.
 		C_HideConsole( );
