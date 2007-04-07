@@ -615,8 +615,9 @@ void D_Display (bool screenshot)
 			if (!gametic)
 				break;
 
-			// [BB] if is necessary here. Otherwise it could try to render a NULL actor.
+			// [BB] if (viewactive) is necessary here. Otherwise it could try to render a NULL actor.
 			// This happens for example if you start a new game, while being on a server.
+			// [BB] Possibly it's necessary to check for (players[consoleplayer].mo != NULL) too
 			if (viewactive)
 			{
 				R_RefreshViewBorder ();
@@ -630,7 +631,10 @@ void D_Display (bool screenshot)
 				}
 				else
 				{
-					gl_RenderPlayerView (&players[consoleplayer]);
+					// [BB] This check shouldn't be necessary, but should completely prevent
+					// the "tried to render NULL actor" errors.
+					if( players[consoleplayer].camera != NULL )
+						gl_RenderPlayerView (&players[consoleplayer]);
 				}
 			}
 
