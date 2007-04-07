@@ -2025,13 +2025,16 @@ public:
 
 FState ABFG10kShot::States[] =
 {
+// [BB] Due to Carn's request I removed the 1 frame delay between when the BFG10K shot
+// explodes and the damages is dealt. This probably breaks the obituaries of the 10K online.
+// The delay causes a huge problem with time freeze spheres: Turns out if you fire it a bunch
+// and run up to the explosions, once the time freeze wears off you kind of die unexpectedly.
 #define S_BFG10KSHOT (0)
-	S_BRIGHT (BFE1, 'A',	1, NULL							, &States[S_BFG10KSHOT+1]),
-	S_BRIGHT (BFE1, 'A',	2, A_Detonate					, &States[S_BFG10KSHOT+2]),
-	S_BRIGHT (BFE1, 'B',	3, NULL 						, &States[S_BFG10KSHOT+3]),
-	S_BRIGHT (BFE1, 'C',	3, NULL							, &States[S_BFG10KSHOT+4]),
-	S_BRIGHT (BFE1, 'D',	3, NULL 						, &States[S_BFG10KSHOT+5]),
-	S_BRIGHT (BFE1, 'E',	3, NULL 						, &States[S_BFG10KSHOT+6]),
+	S_BRIGHT (BFE1, 'A',	3, A_Detonate					, &States[S_BFG10KSHOT+1]),
+	S_BRIGHT (BFE1, 'B',	3, NULL 						, &States[S_BFG10KSHOT+2]),
+	S_BRIGHT (BFE1, 'C',	3, NULL							, &States[S_BFG10KSHOT+3]),
+	S_BRIGHT (BFE1, 'D',	3, NULL 						, &States[S_BFG10KSHOT+4]),
+	S_BRIGHT (BFE1, 'E',	3, NULL 						, &States[S_BFG10KSHOT+5]),
 	S_BRIGHT (BFE1, 'F',	3, NULL 						, NULL)
 };
 
