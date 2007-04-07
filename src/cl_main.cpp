@@ -1213,91 +1213,100 @@ void CLIENT_SendCmd( void )
 //
 void CLIENT_AuthenticateLevel( char *pszMapName )
 {
-	LONG		lBaseLumpNum;
-	LONG		lCurLumpNum;
-	LONG		lLumpSize;
-	char		szChecksum[64];
-	FWadLump	Data;
-	BYTE		*pbData;
+	// [BB] Check if the wads contain the map at all. If not, don't send any checksums.
+	if( Wads.CheckNumForName( pszMapName ) == -1 )
+	{
+		Printf( "map %s not found!\n", pszMapName );
+		return;
+	}
+	else{
 
-	// This is the lump number of the current map we're on.
-	lBaseLumpNum = Wads.GetNumForName( pszMapName );
+		LONG		lBaseLumpNum;
+		LONG		lCurLumpNum;
+		LONG		lLumpSize;
+		char		szChecksum[64];
+		FWadLump	Data;
+		BYTE		*pbData;
 
-	//*************************************************************************
-	//	VERTICIES
+		// This is the lump number of the current map we're on.
+		lBaseLumpNum = Wads.GetNumForName( pszMapName );
 
-	// Get the vertex lump.
-	lCurLumpNum = lBaseLumpNum + ML_VERTEXES;
-	lLumpSize = Wads.LumpLength( lCurLumpNum );
+		//*************************************************************************
+		//	VERTICIES
 
-	// Open the vertex lump, and dump the data from it into our data buffer.
-	Data = Wads.OpenLumpNum( lCurLumpNum );
-	pbData = new BYTE[lLumpSize];
-	Data.Read( pbData, lLumpSize );
+		// Get the vertex lump.
+		lCurLumpNum = lBaseLumpNum + ML_VERTEXES;
+		lLumpSize = Wads.LumpLength( lCurLumpNum );
 
-	// Perform the checksum on our buffer, and free it.
-	CMD5Checksum::GetMD5( pbData, lLumpSize, szChecksum );
-	delete ( pbData );
+		// Open the vertex lump, and dump the data from it into our data buffer.
+		Data = Wads.OpenLumpNum( lCurLumpNum );
+		pbData = new BYTE[lLumpSize];
+		Data.Read( pbData, lLumpSize );
 
-	// Now, send the vertex checksum string.
-	NETWORK_WriteString( &g_LocalBuffer, szChecksum );
+		// Perform the checksum on our buffer, and free it.
+		CMD5Checksum::GetMD5( pbData, lLumpSize, szChecksum );
+		delete ( pbData );
 
-	//*************************************************************************
-	//	LINEDEFS
+		// Now, send the vertex checksum string.
+		NETWORK_WriteString( &g_LocalBuffer, szChecksum );
 
-	// Get the linedefs lump.
-	lCurLumpNum = lBaseLumpNum + ML_LINEDEFS;
-	lLumpSize = Wads.LumpLength( lCurLumpNum );
+		//*************************************************************************
+		//	LINEDEFS
 
-	// Open the linedefs lump, and dump the data from it into our data buffer.
-	Data = Wads.OpenLumpNum( lCurLumpNum );
-	pbData = new BYTE[lLumpSize];
-	Data.Read( pbData, lLumpSize );
+		// Get the linedefs lump.
+		lCurLumpNum = lBaseLumpNum + ML_LINEDEFS;
+		lLumpSize = Wads.LumpLength( lCurLumpNum );
 
-	// Perform the checksum on our buffer, and free it.
-	CMD5Checksum::GetMD5( pbData, lLumpSize, szChecksum );
-	delete ( pbData );
+		// Open the linedefs lump, and dump the data from it into our data buffer.
+		Data = Wads.OpenLumpNum( lCurLumpNum );
+		pbData = new BYTE[lLumpSize];
+		Data.Read( pbData, lLumpSize );
 
-	// Now, send the linedefs checksum string.
-	NETWORK_WriteString( &g_LocalBuffer, szChecksum );
+		// Perform the checksum on our buffer, and free it.
+		CMD5Checksum::GetMD5( pbData, lLumpSize, szChecksum );
+		delete ( pbData );
 
-	//*************************************************************************
-	//	SIDEDEFS
+		// Now, send the linedefs checksum string.
+		NETWORK_WriteString( &g_LocalBuffer, szChecksum );
 
-	// Get the sidedefs lump.
-	lCurLumpNum = lBaseLumpNum + ML_SIDEDEFS;
-	lLumpSize = Wads.LumpLength( lCurLumpNum );
+		//*************************************************************************
+		//	SIDEDEFS
 
-	// Open the sidedefs lump, and dump the data from it into our data buffer.
-	Data = Wads.OpenLumpNum( lCurLumpNum );
-	pbData = new BYTE[lLumpSize];
-	Data.Read( pbData, lLumpSize );
+		// Get the sidedefs lump.
+		lCurLumpNum = lBaseLumpNum + ML_SIDEDEFS;
+		lLumpSize = Wads.LumpLength( lCurLumpNum );
 
-	// Perform the checksum on our buffer, and free it.
-	CMD5Checksum::GetMD5( pbData, lLumpSize, szChecksum );
-	delete ( pbData );
+		// Open the sidedefs lump, and dump the data from it into our data buffer.
+		Data = Wads.OpenLumpNum( lCurLumpNum );
+		pbData = new BYTE[lLumpSize];
+		Data.Read( pbData, lLumpSize );
 
-	// Now, send the sidedefs checksum string.
-	NETWORK_WriteString( &g_LocalBuffer, szChecksum );
+		// Perform the checksum on our buffer, and free it.
+		CMD5Checksum::GetMD5( pbData, lLumpSize, szChecksum );
+		delete ( pbData );
 
-	//*************************************************************************
-	//	SECTORS
+		// Now, send the sidedefs checksum string.
+		NETWORK_WriteString( &g_LocalBuffer, szChecksum );
 
-	// Get the sectors lump.
-	lCurLumpNum = lBaseLumpNum + ML_SECTORS;
-	lLumpSize = Wads.LumpLength( lCurLumpNum );
+		//*************************************************************************
+		//	SECTORS
 
-	// Open the sectors lump, and dump the data from it into our data buffer.
-	Data = Wads.OpenLumpNum( lCurLumpNum );
-	pbData = new BYTE[lLumpSize];
-	Data.Read( pbData, lLumpSize );
+		// Get the sectors lump.
+		lCurLumpNum = lBaseLumpNum + ML_SECTORS;
+		lLumpSize = Wads.LumpLength( lCurLumpNum );
 
-	// Perform the checksum on our buffer, and free it.
-	CMD5Checksum::GetMD5( pbData, lLumpSize, szChecksum );
-	delete ( pbData );
+		// Open the sectors lump, and dump the data from it into our data buffer.
+		Data = Wads.OpenLumpNum( lCurLumpNum );
+		pbData = new BYTE[lLumpSize];
+		Data.Read( pbData, lLumpSize );
 
-	// Now, send the sectors checksum string.
-	NETWORK_WriteString( &g_LocalBuffer, szChecksum );
+		// Perform the checksum on our buffer, and free it.
+		CMD5Checksum::GetMD5( pbData, lLumpSize, szChecksum );
+		delete ( pbData );
+
+		// Now, send the sectors checksum string.
+		NETWORK_WriteString( &g_LocalBuffer, szChecksum );
+	}
 }
 
 //*****************************************************************************
