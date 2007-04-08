@@ -444,6 +444,33 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 			Colormap.LightColor.g=
 			Colormap.LightColor.b=(255+v+v)/3;
 		}
+		// [BB] This makes sure that actors, which have lFixedColormap set, are renderes accordingly.
+		// For example a player using a doom sphere is rendered red for the other palyers.
+		if ( thing->lFixedColormap )
+		{
+			switch ( thing->lFixedColormap )
+			{
+			case REDCOLORMAP:
+
+				Colormap.LightColor.a = CM_REDMAP;
+				break;
+			case GREENCOLORMAP:
+
+				Colormap.LightColor.a = CM_GREENMAP;
+				break;
+			case GOLDCOLORMAP:
+
+				Colormap.LightColor.a = CM_GOLDMAP;
+				break;
+			case NUMCOLORMAPS:
+
+				Colormap.LightColor.a = CM_INVERT;
+				break;
+			default:
+
+				break;
+			}
+		}
 	}
 
 	translation=thing->Translation;
