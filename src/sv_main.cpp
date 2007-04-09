@@ -4319,34 +4319,50 @@ static bool server_CallVote( void )
 	{
 	case VOTECMD_KICK:
 
+		if ( sv_nokickvote )
+			return ( false );
 		sprintf( szCommand, "kick" );
 		break;
 	case VOTECMD_MAP:
 
+		if ( sv_nomapvote )
+			return ( false );
 		sprintf( szCommand, "map" );
 		break;
 	case VOTECMD_CHANGEMAP:
 
+		if ( sv_nochangemapvote )
+			return ( false );
 		sprintf( szCommand, "changemap" );
 		break;
 	case VOTECMD_FRAGLIMIT:
 
+		if ( sv_nofraglimitvote )
+			return ( false );
 		sprintf( szCommand, "fraglimit" );
 		break;
 	case VOTECMD_TIMELIMIT:
 
+		if ( sv_notimelimitvote )
+			return ( false );
 		sprintf( szCommand, "timelimit" );
 		break;
 	case VOTECMD_WINLIMIT:
 
+		if ( sv_nowinlimitvote )
+			return ( false );
 		sprintf( szCommand, "winlimit" );
 		break;
 	case VOTECMD_DUELLIMIT:
 
+		if ( sv_noduellimitvote )
+			return ( false );
 		sprintf( szCommand, "duellimit" );
 		break;
 	case VOTECMD_POINTLIMIT:
 
+		if ( sv_nopointlimitvote )
+			return ( false );
 		sprintf( szCommand, "pointlimit" );
 		break;
 	default:

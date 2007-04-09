@@ -2361,10 +2361,10 @@ void M_AcceptPlayerSetupChanges( void )
 		ulUpdateFlags |= USERINFO_NAME;
 
 	// [RC] Clean the name
-		char	szPlayerName[64];
-		sprintf( szPlayerName, menu_name );
-		V_CleanPlayerName(szPlayerName);
-		menu_name = szPlayerName;
+	char	szPlayerName[64];
+	sprintf( szPlayerName, menu_name );
+	V_CleanPlayerName(szPlayerName);
+	menu_name = szPlayerName;
 
 	Val = menu_name.GetGenericRep( CVAR_String );
 	name.SetGenericRep( Val, CVAR_String );
