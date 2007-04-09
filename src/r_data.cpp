@@ -978,16 +978,20 @@ void R_PrecacheLevel (void)
 				if (currentrenderer != 1) tex->GetPixels ();
 				else if (gl_precache)
 				{
-					FGLTexture * gltex = FGLTexture::ValidateTexture(tex);
-					if (gltex) 
+					// [BB] The server may not do this.
+					if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 					{
-						if (tex->UseType==FTexture::TEX_Sprite) 
+						FGLTexture * gltex = FGLTexture::ValidateTexture(tex);
+						if (gltex) 
 						{
-							gltex->BindPatch(CM_DEFAULT);
-						}
-						else 
-						{
-							gltex->Bind (CM_DEFAULT);
+							if (tex->UseType==FTexture::TEX_Sprite) 
+							{
+								gltex->BindPatch(CM_DEFAULT);
+							}
+							else 
+							{
+								gltex->Bind (CM_DEFAULT);
+							}
 						}
 					}
 				}
