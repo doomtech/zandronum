@@ -918,7 +918,7 @@ void P_UpdateSpecials ()
 					}
 					else
 					{
-						SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.375f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", 'CNTR' );
+						SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", 'CNTR' );
 					}
 
 					GAME_SetEndLevelDelay( 5 * TICRATE );
