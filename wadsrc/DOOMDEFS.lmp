@@ -1355,7 +1355,7 @@ object PossessionStone
 // Terminator Ball
 flickerlight TERMINATORBALL
 {
-    color 0.0 1.0 0.0
+    color 1.0 0.0 0.0
     size 56
     secondarySize 64
     chance 0.25
@@ -1363,7 +1363,7 @@ flickerlight TERMINATORBALL
 
 flickerlight TERMINATORBALL_X1
 {
-    color 0.0 1.0 0.0
+    color 1.0 0.0 0.0
     size 72
     secondarySize 80
     chance 0.25
@@ -1371,7 +1371,7 @@ flickerlight TERMINATORBALL_X1
 
 flickerlight TERMINATORBALL_X2
 {
-    color 0.0 0.9 0.0
+    color 0.8 0.0 0.0
     size 88
     secondarySize 96
     chance 0.25
@@ -1379,13 +1379,13 @@ flickerlight TERMINATORBALL_X2
 
 flickerlight TERMINATORBALL_X3
 {
-    color 0.0 0.7 0.0
+    color 0.5 0.0 0.0
     size 104
     secondarySize 112
     chance 0.25
 }
 
-object TerminatorArtifact
+object Terminator
 {
     frame ARNOA0 { light TERMINATORBALL }
     frame ARNOB0 { light TERMINATORBALL }
@@ -1671,14 +1671,45 @@ object RedArmor
 // -- Weapons --
 // ------------------
 
+// Grenade
+pointlight GRENADE
+{
+    color 8.0 0.5 0.0
+    size 22
+}
+
+flickerlight GRENADE_X1
+{
+    color 8.0 0.5 0.0
+    size 22
+    secondarySize 72
+    chance 0.3
+}
+
+flickerlight GRENADE_X2
+{
+    color 0.3 0.0 0.0
+    size 28
+    secondarySize 88
+    chance 0.3
+}
+
+flickerlight GRENADE_X3
+{
+    color 0.2 0.0 0.0
+    size 32
+    secondarySize 104
+    chance 0.3
+}
+
 object Grenade
 {
-    frame GRENA1 { light ROCKET    }
-    frame GRENA5 { light ROCKET    }
+    frame GRENA1 { light GRENADE    }
+    frame GRENA5 { light GRENADE    }
 
-    frame GRENA6A4 { light ROCKET_X1 }
-    frame GRENA7A3 { light ROCKET_X2 }
-    frame GRENA8A2 { light ROCKET_X3 }
+    frame GRENA6A4 { light GRENADE_X1 }
+    frame GRENA7A3 { light GRENADE_X2 }
+    frame GRENA8A2 { light GRENADE_X3 }
 }
 
 // BFG10K
