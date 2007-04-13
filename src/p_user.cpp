@@ -2431,7 +2431,6 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 				if (look > 0)
 				{ 
 					// look up
-					// [BB] Check this
 					if (( currentrenderer ) && ( cl_disallowfullpitch == false ))
 					{
 						if (player->mo->pitch < -ANGLE_1*90)
@@ -2446,7 +2445,6 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 				else
 				{ 
 					// look down
-					// [BB] Check this
 					if (( currentrenderer ) && ( cl_disallowfullpitch == false ))
 					{
 						if (player->mo->pitch > ANGLE_1*90)
@@ -2645,7 +2643,6 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 					if (look > 0)
 					{
 						// look up
-						// [BB] Check this
 						if (( currentrenderer ) && ( cl_disallowfullpitch == false ))
 						{
 							if (player->mo->pitch < -ANGLE_1*90)
@@ -2660,7 +2657,6 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 					else
 					{
 						// look down
-						// [BB] Check this
 						if (( currentrenderer ) && ( cl_disallowfullpitch == false ))
 						{
 							if (player->mo->pitch > ANGLE_1*90)

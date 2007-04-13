@@ -3965,6 +3965,15 @@ static void client_UpdatePlayerExtraData( void )
 	if (( players[ulPlayer].mo == NULL ) || ( playeringame[ulPlayer] == false ))
 		return;
 
+	// [BB] If the spectated player uses the GL renderer and we are using software,
+	// the viewangle has to be limited.	We don't care about cl_disallowfullpitch here.
+	if ( !currentrenderer )
+	{
+		if (lPitch < -ANGLE_1*32)
+			lPitch = -ANGLE_1*32;
+		if (lPitch > ANGLE_1*56)
+			lPitch = ANGLE_1*56;
+	}
 	players[ulPlayer].mo->pitch = lPitch;
 	players[ulPlayer].mo->waterlevel = ulWaterLevel;
 	players[ulPlayer].cmd.ucmd.buttons = ulButtons;
