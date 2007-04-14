@@ -744,7 +744,9 @@ void R_InitData ()
 	TexMan.AddHiresTextures ();
 	TexMan.LoadHiresTex ();
 	TexMan.DefaultTexture = TexMan.CheckForTexture ("-NOFLAT-", FTexture::TEX_Override, 0);
-	gl_ParseDefs();
+	// [BB]: The server doesn't need the lights
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		gl_ParseDefs();
 	V_InitFonts();
 	ST_Progress();
 	R_InitColormaps ();
