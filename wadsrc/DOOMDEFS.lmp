@@ -481,6 +481,44 @@ object BlurSphere
     frame PINSD { light BLURSPHERE5 }
 }
 
+// Mega Sphere
+pointlight MEGASPHERE1
+{
+    color 0.7 0.59 0.51
+    size 40
+    offset 0 16 0
+}
+
+pointlight MEGASPHERE2
+{
+    color 0.7 0.59 0.51
+    size 32
+    offset 0 16 0
+}
+
+pointlight MEGASPHERE3
+{
+    color 0.7 0.59 0.51
+    size 24
+    offset 0 16 0
+}
+
+pointlight MEGASPHERE4
+{
+    color 0.7 0.59 0.51
+    size 16
+    offset 0 16 0
+}
+
+object MegaSphere
+{
+    frame MEGAA0 { light MEGASPHERE1 }
+
+    frame MEGAB0 { light MEGASPHERE2 }
+    frame MEGAC0 { light MEGASPHERE3 }
+    frame MEGAD0 { light MEGASPHERE4 }
+}
+
 // Health Potion
 pulselight HEALTHPOTION
 {

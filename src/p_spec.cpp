@@ -145,7 +145,9 @@ bool CheckIfExitIsGood (AActor *self)
 //	if (deathmatch || teamgame)
 	if ( NETWORK_GetState( ) != NETSTATE_SINGLE )
 	{
-		Printf ("%s \\c-exited the level.\n", self->player->userinfo.netname);
+		// [BB] It's possible, that a monster exits the level, so self->player can be 0.
+		if( self->player != 0 )
+			Printf ("%s \\c-exited the level.\n", self->player->userinfo.netname);
 	}
 	return true;
 }
