@@ -4,6 +4,12 @@
 # Where did you install the FMOD API to? Change this line so that the build process can find it.
 FMODDIR = "c:/program files/fmodapi375win"
 
+ifeq (msys,$(OSTYPE))
+  WINCMD=0
+else
+  WINCMD=1
+endif
+
 CC ?= gcc
 CXX ?= g++
 
@@ -16,11 +22,11 @@ DEBUGTARGET ?= zdoomgccd.exe
 DEBUGOBJDIR ?= debugobj
 RELEASEOBJDIR ?= releaseobj
 
-CCDV = @ccdv
+CCDV ?= @ccdv
 RE2C = tools/re2c/re2c
 
-CPPFLAGS = -DWIN32 -D_WIN32 -D_WINDOWS -DHAVE_STRUPR -DHAVE_FILELENGTH -DI_DO_NOT_LIKE_BIG_DOWNLOADS -D__forceinline=inline -MMD -Izlib -IFLAC -Isrc -Isrc/win32 -Isrc/g_doom -Isrc/g_heretic -I src/g_hexen -Isrc/g_raven -Isrc/g_strife -Isrc/g_shared -Isrc/oplsynth -Isrc/sound
-LDFLAGS += flac/libflac.a zlib/libz.a -lfmod -lwsock32 -lwinmm -lddraw -ldsound -ldxguid -ldinput8 -lole32 -luser32 -lgdi32 -lcomctl32 -lcomdlg32 -lsetupapi -lws2_32 -Wl,--subsystem,windows
+CPPFLAGS = -DWIN32 -D_WIN32 -D_WINDOWS -DHAVE_STRUPR -DHAVE_FILELENGTH -DI_DO_NOT_LIKE_BIG_DOWNLOADS -D__forceinline=inline -MMD -Izlib -IFLAC -Ijpeg-6b -Isrc -Isrc/win32 -Isrc/g_doom -Isrc/g_heretic -I src/g_hexen -Isrc/g_raven -Isrc/g_strife -Isrc/g_shared -Isrc/oplsynth -Isrc/sound
+LDFLAGS += flac/libflac.a zlib/libz.a jpeg-6b/libjpeg.a -lfmod -lwsock32 -lwinmm -lddraw -ldsound -ldxguid -ldinput8 -lole32 -luser32 -lgdi32 -lcomctl32 -lcomdlg32 -lsetupapi -lws2_32 -Wl,--subsystem,windows
 
 ifdef FMODDIR
   CPPFLAGS += -I$(FMODDIR)/api/inc
@@ -46,7 +52,7 @@ ifeq ($(CONFIG),Release)
   TARGET = $(RELEASETARGET)
 endif
 
-SRCDIRS = src/ $(addprefix src/,g_doom/ g_heretic/ g_hexen/ g_raven/ g_shared/ g_strife/ oplsynth/ sound/ win32/)
+SRCDIRS = src/ $(addprefix src/,g_doom/ g_heretic/ g_hexen/ g_raven/ g_shared/ g_strife/ oplsynth/ sound/ win32/ textures/)
 VPATH = $(SRCDIRS)
 
 CPPSRCS = $(wildcard $(addsuffix *.cpp,$(SRCDIRS)))
@@ -61,7 +67,8 @@ endif
 SRCS = $(CSRCS) $(CPPSRCS) $(ASRCS)
 CPPOBJFILES = $(notdir $(CPPSRCS:%.cpp=%.o))
 COBJFILES = $(notdir $(CSRCS:%.c=%.o))
-AOBJFILES = $(notdir $(ASRCS:%.nas=%.o))
+# win32/wrappers.nas should be built *only* for Visual C++ 2005 to enable execution on Windows 95
+AOBJFILES = $(filter-out %/wrappers.o,$(notdir $(ASRCS:%.nas=%.o)))
 RCOBJFILES = $(notdir $(RCSRCS:%.rc=%.o))
 
 COBJS = $(addprefix $(OBJDIR)/,$(CPPOBJFILES) $(COBJFILES) $(RCOBJFILES))
@@ -92,6 +99,7 @@ $(OBJDIR)/%.o : %.rc
 $(TARGET): testobjdir updaterev $(OBJS)
 	$(CCDV) $(CXX) -o $@ $(OBJS) $(LDFLAGS)
 
+ifeq (1,$(WINCMD))
 clean:
 	-del /q /f $(RELEASETARGET) 2>nul
 	-del /q /f $(DEBUGTARGET) 2>nul
@@ -101,9 +109,24 @@ clean:
 cleandep:
 	-del /q /f $(DEBUGOBJDIR)\*.d 2>nul
 	-del /q /f $(RELEASEOBJDIR)\*.d 2>nul
+else
+clean:
+	rm -f $(RELEASETARGET)
+	rm -f $(DEBUGTARGET)
+	rm -fr $(DEBUGOBJDIR)
+	rm -fr $(RELEASEOBJDIR)
+
+cleandep:
+	rm -f $(DEBUGOBJDIR)\*.d
+	rm -f $(RELEASEOBJDIR)\*.d
+endif
 	
 testobjdir:
+ifeq (1,$(WINCMD))
 	-@if not exist $(OBJDIR) mkdir $(OBJDIR)
+else
+	-@if [ ! -e $(OBJDIR) ]; then mkdir $(OBJDIR); fi
+endif
 
 updaterev: tools/updaterevision/updaterevision.exe
 	@tools/updaterevision/updaterevision . src/svnrevision.h
