@@ -426,6 +426,7 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 {
 	lightlist_t * light;
 
+#ifdef _MSC_VER
 #ifdef _DEBUG
 	if (frontsector==NULL)
 	{
@@ -435,6 +436,7 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 	{
 		__asm nop
 	}
+#endif
 #endif
 
 	// Get the real sector for this one.

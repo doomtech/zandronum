@@ -2817,7 +2817,7 @@ void SCOREBOARD_RenderLMSCountdown( ULONG ulTimeLeft )
 
 //*****************************************************************************
 //
-void SCOREBOARD_RenderPossessionCountdown( char *pszString, ULONG ulTimeLeft )
+void SCOREBOARD_RenderPossessionCountdown( const char *pszString, ULONG ulTimeLeft )
 {
 	char				szString[128];
 	ULONG				ulCurYPos = 0;

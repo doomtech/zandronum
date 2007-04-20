@@ -515,7 +515,7 @@ float		NETWORK_ReadFloat( void );
 void		NETWORK_WriteFloat( sizebuf_t *pBuffer, float Float );
 
 char		*NETWORK_ReadString( void );
-void		NETWORK_WriteString( sizebuf_t *pBuffer, char *pszString );
+void		NETWORK_WriteString( sizebuf_t *pBuffer, const char *pszString );
 
 // Debugging function.
 void		NETWORK_WriteHeader( sizebuf_t *pBuffer, int Byte );
@@ -531,7 +531,7 @@ void		NETWORK_InitBuffer( sizebuf_t *pBuffer, ULONG ulLength );
 void		NETWORK_FreeBuffer( sizebuf_t *pBuffer );
 void		NETWORK_ClearBuffer( sizebuf_t *pBuffer );
 BYTE		*NETWORK_GetSpace( sizebuf_t *pBuffer, ULONG ulLength );
-void		NETWORK_Write( sizebuf_t *pBuffer, void *pvData, int nLength );
+void		NETWORK_Write( sizebuf_t *pBuffer, const void *pvData, int nLength );
 void		NETWORK_Write( sizebuf_t *pBuffer, BYTE *pbData, int nStartPos, int nLength );
 void		NETWORK_Print( sizebuf_t *pBuffer, char *pszData );	// strcats onto the sizebuf
 char		*NETWORK_AddressToString( netadr_t Address );

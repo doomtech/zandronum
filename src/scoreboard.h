@@ -83,7 +83,7 @@ void	SCOREBOARD_RenderInVote( void );
 void	SCOREBOARD_RenderInVoteClassic( void ); // [RC] Full screen display
 void	SCOREBOARD_RenderDuelCountdown( ULONG ulTimeLeft );
 void	SCOREBOARD_RenderLMSCountdown( ULONG ulTimeLeft );
-void	SCOREBOARD_RenderPossessionCountdown( char *pszTitleString, ULONG ulTimeLeft );
+void	SCOREBOARD_RenderPossessionCountdown( const char *pszTitleString, ULONG ulTimeLeft );
 void	SCOREBOARD_RenderSurvivalCountdown( ULONG ulTimeLeft );
 void	SCOREBOARD_RenderInvasionFirstCountdown( ULONG ulTimeLeft );
 void	SCOREBOARD_RenderInvasionCountdown( ULONG ulTimeLeft );

@@ -4590,13 +4590,13 @@ void SERVERCONSOLE_UpdateGeneralSettings( HWND hDlg )
 
 	if ( SendDlgItemMessage( hDlg, IDC_SKILL, CB_GETCURSEL, 0, 0 ) != gameskill )
 	{
-		sprintf( szString, "skill %d", SendDlgItemMessage( hDlg, IDC_SKILL, CB_GETCURSEL, 0, 0 ));
+		sprintf( szString, "skill %ld", SendDlgItemMessage( hDlg, IDC_SKILL, CB_GETCURSEL, 0, 0 ));
 		SERVER_AddCommand( szString );
 	}
 
 	if ( SendDlgItemMessage( hDlg, IDC_BOTSKILL, CB_GETCURSEL, 0, 0 ) != botskill )
 	{
-		sprintf( szString, "botskill %d", SendDlgItemMessage( hDlg, IDC_BOTSKILL, CB_GETCURSEL, 0, 0 ));
+		sprintf( szString, "botskill %ld", SendDlgItemMessage( hDlg, IDC_BOTSKILL, CB_GETCURSEL, 0, 0 ));
 		SERVER_AddCommand( szString );
 	}
 

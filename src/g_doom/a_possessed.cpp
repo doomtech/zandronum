@@ -472,7 +472,7 @@ void ASuperShotgunGuy::NoBlockingSet ()
 	P_DropItem (this, "SuperShotgun", -1, 256);
 }
 
-static void A_GPosAttack (AActor *self)
+void A_GPosAttack (AActor *self)
 {
 	int 		i;
 	angle_t 	angle;

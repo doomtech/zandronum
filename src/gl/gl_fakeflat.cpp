@@ -52,11 +52,13 @@ sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, bool back)
 {
 	if (!sec->heightsec || sec->heightsec->MoreFlags & SECF_IGNOREHEIGHTSEC || sec->heightsec==sec) return sec;
 
+#ifdef _MSC_VER
 #ifdef _DEBUG
 	if (sec-sectors==560)
 	{
 		__asm nop
 	}
+#endif
 #endif
 
 

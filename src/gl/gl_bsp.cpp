@@ -365,11 +365,13 @@ static void DoSubsector(subsector_t * sub)
 	// check for visibility of this entire subsector! This requires GL nodes!
 	if (!clipper.CheckBox(sub->bbox)) return;
 
+#ifdef _MSC_VER
 #ifdef _DEBUG
 	if (sub->sector-sectors==931)
 	{
 		__asm nop
 	}
+#endif
 #endif
 
 	sector=sub->sector;

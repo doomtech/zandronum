@@ -262,9 +262,11 @@ void GLWall::SplitWall(sector_t * frontsector, bool translucent)
 		return;
 	}
 
+#ifdef _MSC_VER
 #ifdef _DEBUG
 	if (seg->linedef-lines==1)
 		__asm nop
+#endif
 #endif
 
 	if (lightlist.Size()>1)
@@ -1349,9 +1351,11 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 	sector_t * realfront;
 	sector_t * realback;
 
+#ifdef _MSC_VER
 #ifdef _DEBUG
 	if (seg->linedef-lines==341)
 		__asm nop
+#endif
 #endif
 
 	this->seg=seg;

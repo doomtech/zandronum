@@ -1977,7 +1977,7 @@ void G_DoCompleted (void)
 		level.maptime = 0;
 	}
 
-    // [BB] LEVEL_NOINTERMISSION is also respected in deathmatch games
+	// [BB] LEVEL_NOINTERMISSION is also respected in deathmatch games
 	if ( ((level.flags & LEVEL_NOINTERMISSION) ||
 		 ( !deathmatch && (nextcluster == thiscluster) && (thiscluster->flags & CLUSTER_HUB))))
 	{

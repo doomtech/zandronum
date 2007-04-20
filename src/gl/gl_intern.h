@@ -6,7 +6,9 @@
 #include "r_defs.h"
 #include "c_cvars.h"
 
+#ifdef _MSC_VER
 #pragma warning(disable:4244)
+#endif
 
 EXTERN_CVAR(Bool, gl_vid_compatibility)
 EXTERN_CVAR(Bool,gl_enhanced_lightamp)

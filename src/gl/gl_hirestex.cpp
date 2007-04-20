@@ -258,6 +258,3 @@ unsigned char *FGLTexture::LoadHiresTexture(int *width, int *height,intptr_t cm)
 	}
 	return NULL;
 }
-
-
-	

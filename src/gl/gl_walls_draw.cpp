@@ -310,9 +310,11 @@ void GLWall::Draw(int pass)
 {
 	FLightNode * node;
 
+#ifdef _MSC_VER
 #ifdef _DEBUG
 	if (seg->linedef-lines==879)
 		__asm nop
+#endif
 #endif
 
 

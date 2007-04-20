@@ -654,7 +654,7 @@ char *NETWORK_ReadString( void )
 
 //*****************************************************************************
 //
-void NETWORK_WriteString ( sizebuf_t *pBuffer, char *pszString )
+void NETWORK_WriteString ( sizebuf_t *pBuffer, const char *pszString )
 {
 #ifdef	WIN32
 	if ( pszString == NULL )
@@ -1136,7 +1136,7 @@ BYTE *NETWORK_GetSpace( sizebuf_t *pBuffer, ULONG ulLength )
 
 //*****************************************************************************
 //
-void NETWORK_Write( sizebuf_t *pBuffer, void *pvData, int nLength )
+void NETWORK_Write( sizebuf_t *pBuffer, const void *pvData, int nLength )
 {
 	BYTE	*pbDatapos;
 

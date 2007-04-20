@@ -338,11 +338,13 @@ static void PrepareTransparentDoors(sector_t * sector)
 	int i;
 	sector_t * nextsec=NULL;
 
+#ifdef _MSC_VER
 #ifdef _DEBUG
 	if (sector-sectors==590)
 	{
 		__asm nop
 	}
+#endif
 #endif
 
 	P_Recalculate3DFloors(sector);

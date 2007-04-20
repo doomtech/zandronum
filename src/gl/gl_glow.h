@@ -4,7 +4,9 @@
 
 #include "gl/gl_renderstruct.h"
 
+#ifdef _MSC_VER
 #pragma warning(disable:4018)
+#endif
 
 #ifndef NO_GLOW
 

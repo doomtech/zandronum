@@ -41,6 +41,10 @@
 
 #include "w_wad.h"
 #include "m_png.h"
+// [BB] Ugly hack to define boolean used by libjpeg
+#ifndef _MSC_VER
+#undef __RPCNDR_H__
+#endif
 #include "r_draw.h"
 #define XMD_H
 #include "r_jpeg.h"

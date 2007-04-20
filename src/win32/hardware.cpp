@@ -92,7 +92,7 @@ CUSTOM_CVAR (Int, vid_renderer, 1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINI
 			Printf("Switching to OpenGL renderer...\n");
 			break;
 		default:
-			Printf("Unknown renderer (%d).  Falling back to software renderer...\n", vid_renderer);
+			Printf("Unknown renderer (%d).  Falling back to software renderer...\n", int(vid_renderer));
 			self = 0; // make sure to actually switch to the software renderer
 			break;
 		}
