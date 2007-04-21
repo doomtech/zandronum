@@ -176,7 +176,12 @@ void Plane::Init(float *v1, float *v2, float *v3)
    vec2.Set(v2);
    vec3.Set(v3);
 
+#ifdef _MSC_VER
    m_normal = (vec2 - vec1).Cross(vec3 - vec1);
+#else
+   Vector tmpVec = vec3 - vec1;
+   m_normal = (vec2 - vec1).Cross(tmpVec);
+#endif
    m_normal.Normalize();
    m_d = vec3.Dot(m_normal) * -1.f;
 }

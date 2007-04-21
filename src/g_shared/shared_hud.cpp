@@ -45,6 +45,8 @@
 #include "sbar.h"
 #include "sc_man.h"
 #include "templates.h"
+#include "deathmatch.h"
+#include "network.h"
 
 #define HUMETA_AltIcon 0x10f000
 
@@ -222,7 +224,7 @@ static void DrawStatus(player_t * CPlayer, int x, int y)
 				DTA_KeepRatio, true,
 				DTA_VirtualWidth, hudwidth, DTA_VirtualHeight, hudheight, DTA_Alpha, 0xc000, TAG_DONE);
 
-			sprintf(tempstr, "%i/%i ", multiplayer? CPlayer->secretcount : level.found_secrets, level.total_secrets);
+			sprintf(tempstr, "%i/%i ", (NETWORK_GetState( ) != NETSTATE_SINGLE) ? CPlayer->secretcount : level.found_secrets, level.total_secrets);
 			screen->DrawText(hudcolor_stats, x+space, y, tempstr,
 				DTA_KeepRatio, true,
 				DTA_VirtualWidth, hudwidth, DTA_VirtualHeight, hudheight, DTA_Alpha, 0xc000, TAG_DONE);
@@ -235,7 +237,7 @@ static void DrawStatus(player_t * CPlayer, int x, int y)
 				DTA_KeepRatio, true,
 				DTA_VirtualWidth, hudwidth, DTA_VirtualHeight, hudheight, DTA_Alpha, 0xc000, TAG_DONE);
 
-			sprintf(tempstr, "%i/%i ", multiplayer? CPlayer->itemcount : level.found_items, level.total_items);
+			sprintf(tempstr, "%i/%i ",  (NETWORK_GetState( ) != NETSTATE_SINGLE )? CPlayer->itemcount : level.found_items, level.total_items);
 			screen->DrawText(hudcolor_stats, x+space, y, tempstr,
 				DTA_KeepRatio, true,
 				DTA_VirtualWidth, hudwidth, DTA_VirtualHeight, hudheight, DTA_Alpha, 0xc000, TAG_DONE);
@@ -248,7 +250,7 @@ static void DrawStatus(player_t * CPlayer, int x, int y)
 				DTA_KeepRatio, true,
 				DTA_VirtualWidth, hudwidth, DTA_VirtualHeight, hudheight, DTA_Alpha, 0xc000, TAG_DONE);
 
-			sprintf(tempstr, "%i/%i ", multiplayer? CPlayer->killcount : level.killed_monsters, level.total_monsters);
+			sprintf(tempstr, "%i/%i ", (NETWORK_GetState( ) != NETSTATE_SINGLE) ? CPlayer->killcount : level.killed_monsters, level.total_monsters);
 			screen->DrawText(hudcolor_stats, x+space, y, tempstr,
 				DTA_KeepRatio, true,
 				DTA_VirtualWidth, hudwidth, DTA_VirtualHeight, hudheight, DTA_Alpha, 0xc000, TAG_DONE);
@@ -584,10 +586,13 @@ static void DrawOneWeapon(player_t * CPlayer, int x, int & y, AWeapon * weapon)
 			state = weapon->SpawnState;
 		}
 		// no spawn state - now try the ready state
+		// [BB] Custom states are not ported to ST yet.
+		/*
 		else if ((ReadyState = weapon->FindState(NAME_Ready)) && ReadyState->sprite.index!=0)
 		{
 			state = ReadyState;
 		}
+		*/
 		if (state &&  (unsigned)state->sprite.index < (unsigned)sprites.Size ())
 		{
 			spritedef_t * sprdef = &sprites[state->sprite.index];

@@ -403,7 +403,12 @@ bool gl_SetupLight(Plane & p, ADynamicLight * light, Vector & nearPt, Vector & u
 	fn=p.Normal();
 	fn.GetRightUp(right, up);
 
+#ifdef _MSC_VER
 	nearPt = pos + fn * dist;
+#else
+	Vector tmpVec = fn * dist;
+	nearPt = pos + tmpVec;
+#endif
 
 	float cs = 1.0f - (dist / radius);
 	if (gl_lights_additive || light->flags4&MF4_ADDITIVE || forceadditive) cs*=0.2f;	// otherwise the light gets too strong.

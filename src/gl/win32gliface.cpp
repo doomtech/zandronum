@@ -305,7 +305,10 @@ void Win32GLFrameBuffer::InitializeState()
 	if (first)
 	{
 		first=false;
+		// [BB] For some reason this crashes, if compiled with MinGW and optimization. Has to be investigated.
+#ifdef _MSC_VER
 		gl.PrintStartupLog(DoPrintText);
+#endif
 
 		if (gl.flags&RFL_NPOT_TEXTURE)
 		{

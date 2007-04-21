@@ -308,7 +308,15 @@ void gl_DrawSavePic(DCanvas * canvas, const char * Filename, int x, int y, int d
 //==========================================================================
 void gl_DrawLine(int x1, int y1, int x2, int y2, int color)
 {
+#ifdef _MSC_VER
 	PalEntry p = color&0xff000000? color : GPalette.BaseColors[color];
+#else
+	PalEntry p;
+	if ( color&0xff000000 )
+		p = color;
+	else
+		p = GPalette.BaseColors[color];
+#endif
 	gl_EnableTexture(false);
 	gl.Color3ub(p.r, p.g, p.b);
 	gl.Begin(GL_LINES);

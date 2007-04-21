@@ -1957,33 +1957,33 @@ BOOL CALLBACK SERVERCONSOLE_ServerStatisticsCallback( HWND hDlg, UINT Message, W
 			// Peak INBOUND data transfer.
 			lData = SERVER_STATISTIC_GetPeakInboundDataTransfer( );
 			if ( lData > KILOBYTE )
-				sprintf( szString, "Peak data transfer (in): %dB/s (%0.2fKB/s)", lData, (float)lData / (float)KILOBYTE );
+				sprintf( szString, "Peak data transfer (in): %ldB/s (%0.2fKB/s)", lData, (float)lData / (float)KILOBYTE );
 			else
-				sprintf( szString, "Peak data transfer (in): %dB/s", lData );
+				sprintf( szString, "Peak data transfer (in): %ldB/s", lData );
 			SetDlgItemText( hDlg, IDC_PEAKINBOUNDDATATRANSFER, szString );
 
 			// Peak OUTBOUND data transfer.
 			lData = SERVER_STATISTIC_GetPeakOutboundDataTransfer( );
 			if ( lData > KILOBYTE )
-				sprintf( szString, "Peak data transfer (out): %dB/s (%0.2fKB/s)", lData, (float)lData / (float)KILOBYTE );
+				sprintf( szString, "Peak data transfer (out): %ldB/s (%0.2fKB/s)", lData, (float)lData / (float)KILOBYTE );
 			else
-				sprintf( szString, "Peak data transfer (out): %dB/s", lData );
+				sprintf( szString, "Peak data transfer (out): %ldB/s", lData );
 			SetDlgItemText( hDlg, IDC_PEAKOUTBOUNDDATATRANSFER, szString );
 
 			// Current INBOUND data transfer.
 			lData = SERVER_STATISTIC_GetCurrentInboundDataTransfer( );
 			if ( lData > KILOBYTE )
-				sprintf( szString, "Current data transfer (in): %dB/s (%0.2fKB/s)", lData, (float)lData / (float)KILOBYTE );
+				sprintf( szString, "Current data transfer (in): %ldB/s (%0.2fKB/s)", lData, (float)lData / (float)KILOBYTE );
 			else
-				sprintf( szString, "Current data transfer (in): %dB/s", lData );
+				sprintf( szString, "Current data transfer (in): %ldB/s", lData );
 			SetDlgItemText( hDlg, IDC_CURRENTINBOUNDDATATRANSFER, szString );
 
 			// Current OUTBOUND data transfer.
 			lData = SERVER_STATISTIC_GetCurrentOutboundDataTransfer( );
 			if ( lData > KILOBYTE )
-				sprintf( szString, "Current data transfer (out): %dB/s (%0.2fKB/s)", lData, (float)lData / (float)KILOBYTE );
+				sprintf( szString, "Current data transfer (out): %ldB/s (%0.2fKB/s)", lData, (float)lData / (float)KILOBYTE );
 			else
-				sprintf( szString, "Current data transfer (out): %dB/s", lData );
+				sprintf( szString, "Current data transfer (out): %ldB/s", lData );
 			SetDlgItemText( hDlg, IDC_CURRENTOUTBOUNDDATATRANSFER, szString );
 
 			if ( SERVER_STATISTIC_GetTotalSecondsElapsed( ) == 0 )
@@ -1992,21 +1992,21 @@ BOOL CALLBACK SERVERCONSOLE_ServerStatisticsCallback( HWND hDlg, UINT Message, W
 				sprintf( szString, "Average number of players: %0.2f", (float)SERVER_STATISTIC_GetTotalPlayers( ) / (float)SERVER_STATISTIC_GetTotalSecondsElapsed( ));
 			SetDlgItemText( hDlg, IDC_AVGNUMPLAYERS, szString );
 
-			sprintf( szString, "Max. players at one time: %d", SERVER_STATISTIC_GetMaxNumPlayers( ));
+			sprintf( szString, "Max. players at one time: %ld", SERVER_STATISTIC_GetMaxNumPlayers( ));
 			SetDlgItemText( hDlg, IDC_MAXPLAYERSATONETIME, szString );
 
-			sprintf( szString, "Total number of frags: %d", SERVER_STATISTIC_GetTotalFrags( ));
+			sprintf( szString, "Total number of frags: %ld", SERVER_STATISTIC_GetTotalFrags( ));
 			SetDlgItemText( hDlg, IDC_TOTALFRAGS, szString );
 
 			lData = SERVER_STATISTIC_GetTotalSecondsElapsed( );
 			if ( lData >= DAY )
-				sprintf( szString, "Total uptime: %dd%dh%dm%ds", lData / DAY, ( lData / HOUR ) % 24, ( lData / MINUTE ) % 60, lData % MINUTE );
+				sprintf( szString, "Total uptime: %ldd%ldh%ldm%lds", lData / DAY, ( lData / HOUR ) % 24, ( lData / MINUTE ) % 60, lData % MINUTE );
 			else if ( lData >= HOUR )
-				sprintf( szString, "Total uptime: %dh%dm%ds", ( lData / HOUR ) % 24, ( lData / MINUTE ) % 60, lData % MINUTE  );
+				sprintf( szString, "Total uptime: %ldh%ldm%lds", ( lData / HOUR ) % 24, ( lData / MINUTE ) % 60, lData % MINUTE  );
 			else if ( lData >= MINUTE )
-				sprintf( szString, "Total uptime: %dm%ds", ( lData / MINUTE ) % 60, lData % MINUTE  );
+				sprintf( szString, "Total uptime: %ldm%lds", ( lData / MINUTE ) % 60, lData % MINUTE  );
 			else
-				sprintf( szString, "Total uptime: %ds", lData );
+				sprintf( szString, "Total uptime: %lds", lData );
 			SetDlgItemText( hDlg, IDC_TOTALUPTIME, szString );
 		}
 		break;
@@ -2198,7 +2198,7 @@ void SERVERCONSOLE_UpdateScoreboard( void )
 			ulFragsLeft = fraglimit;
 		else
 			ulFragsLeft = fraglimit - lHighestFragcount;
-		sprintf( szString, "%d frag%s remain%s", ulFragsLeft, ( ulFragsLeft != 1 ) ? "s" : "", ( ulFragsLeft == 1 ) ? "s" : "" );
+		sprintf( szString, "%ld frag%s remain%s", ulFragsLeft, ( ulFragsLeft != 1 ) ? "s" : "", ( ulFragsLeft == 1 ) ? "s" : "" );
 		switch ( ulLine )
 		{
 		case 0:
@@ -2233,7 +2233,7 @@ void SERVERCONSOLE_UpdateScoreboard( void )
 		// Get the number of duels that have been played.
 		lNumDuels = DUEL_GetNumDuels( );
 
-		sprintf( szString, "%d duel%s remain%s", duellimit - lNumDuels, (( duellimit - lNumDuels ) == 1 ) ? "" : "s", (( duellimit - lNumDuels ) == 1 ) ? "s" : "" );
+		sprintf( szString, "%ld duel%s remain%s", duellimit - lNumDuels, (( duellimit - lNumDuels ) == 1 ) ? "" : "s", (( duellimit - lNumDuels ) == 1 ) ? "s" : "" );
 
 		switch ( ulLine )
 		{
@@ -2285,7 +2285,7 @@ void SERVERCONSOLE_UpdateScoreboard( void )
 				bDraw = false;
 		}
 		else
-			sprintf( szString, "Champion is %s \\c-with %d win%s", players[lWinner].userinfo.netname, players[lWinner].ulWins, players[lWinner].ulWins == 1 ? "" : "s" );
+			sprintf( szString, "Champion is %s \\c-with %ld win%s", players[lWinner].userinfo.netname, players[lWinner].ulWins, players[lWinner].ulWins == 1 ? "" : "s" );
 
 		if ( bDraw )
 		{
@@ -2329,7 +2329,7 @@ void SERVERCONSOLE_UpdateScoreboard( void )
 		ulRedPoints = TEAM_GetScore( TEAM_RED );
 
 		ulPointsLeft = pointlimit - (( ulBluePoints >= ulRedPoints ) ? ulBluePoints : ulRedPoints );
-		sprintf( szString, "%d points remain", ulPointsLeft );
+		sprintf( szString, "%ld points remain", ulPointsLeft );
 		switch ( ulLine )
 		{
 		case 0:
@@ -2394,7 +2394,7 @@ void SERVERCONSOLE_UpdateScoreboard( void )
 			ulWinsLeft = winlimit;
 		else
 			ulWinsLeft = winlimit - lHighestWincount;
-		sprintf( szString, "%d win%s remain%s", ulWinsLeft, ( ulWinsLeft != 1 ) ? "s" : "", ( ulWinsLeft == 1 ) ? "s" : "" );
+		sprintf( szString, "%ld win%s remain%s", ulWinsLeft, ( ulWinsLeft != 1 ) ? "s" : "", ( ulWinsLeft == 1 ) ? "s" : "" );
 		switch ( ulLine )
 		{
 		case 0:
@@ -2443,16 +2443,16 @@ void SERVERCONSOLE_UpdateScoreboard( void )
 		if ( lastmanstanding || teamlms )
 		{
 			if ( ulHours )
-				sprintf( szString, "Round ends in %02d:%02d:%02d", ulHours, ulMinutes, ulSeconds );
+				sprintf( szString, "Round ends in %02ld:%02ld:%02ld", ulHours, ulMinutes, ulSeconds );
 			else
-				sprintf( szString, "Round ends in %02d:%02d", ulMinutes, ulSeconds );
+				sprintf( szString, "Round ends in %02ld:%02ld", ulMinutes, ulSeconds );
 		}
 		else
 		{
 			if ( ulHours )
-				sprintf( szString, "Level ends in %02d:%02d:%02d", ulHours, ulMinutes, ulSeconds );
+				sprintf( szString, "Level ends in %02ld:%02ld:%02ld", ulHours, ulMinutes, ulSeconds );
 			else
-				sprintf( szString, "Level ends in %02d:%02d", ulMinutes, ulSeconds );
+				sprintf( szString, "Level ends in %02ld:%02ld", ulMinutes, ulSeconds );
 		}
 		
 		switch ( ulLine )
@@ -2491,7 +2491,7 @@ void SERVERCONSOLE_UpdateScoreboard( void )
 				// If the teams are tied...
 				if ( TEAM_GetFragCount( TEAM_RED ) == TEAM_GetFragCount( TEAM_BLUE ))
 				{
-					sprintf( szString, "Teams are tied at %d\n", TEAM_GetFragCount( TEAM_RED ));
+					sprintf( szString, "Teams are tied at %ld\n", TEAM_GetFragCount( TEAM_RED ));
 					switch ( ulLine )
 					{
 					case 0:
@@ -2520,9 +2520,9 @@ void SERVERCONSOLE_UpdateScoreboard( void )
 				else
 				{
 					if ( TEAM_GetFragCount( TEAM_RED ) > TEAM_GetFragCount( TEAM_BLUE ))
-						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_RED ), TEAM_GetFragCount( TEAM_RED ), TEAM_GetFragCount( TEAM_BLUE ));
+						sprintf( szString, "%s leads %ld to %ld", TEAM_GetName( TEAM_RED ), TEAM_GetFragCount( TEAM_RED ), TEAM_GetFragCount( TEAM_BLUE ));
 					else
-						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_BLUE ), TEAM_GetFragCount( TEAM_BLUE ), TEAM_GetFragCount( TEAM_RED ));
+						sprintf( szString, "%s leads %ld to %ld", TEAM_GetName( TEAM_BLUE ), TEAM_GetFragCount( TEAM_BLUE ), TEAM_GetFragCount( TEAM_RED ));
 
 					switch ( ulLine )
 					{
@@ -2555,7 +2555,7 @@ void SERVERCONSOLE_UpdateScoreboard( void )
 				// If the teams are tied...
 				if ( TEAM_GetWinCount( TEAM_RED ) == TEAM_GetWinCount( TEAM_BLUE ))
 				{
-					sprintf( szString, "Teams are tied at %d\n", TEAM_GetWinCount( TEAM_RED ));
+					sprintf( szString, "Teams are tied at %ld\n", TEAM_GetWinCount( TEAM_RED ));
 					switch ( ulLine )
 					{
 					case 0:
@@ -2584,9 +2584,9 @@ void SERVERCONSOLE_UpdateScoreboard( void )
 				else
 				{
 					if ( TEAM_GetWinCount( TEAM_RED ) > TEAM_GetWinCount( TEAM_BLUE ))
-						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_RED ), TEAM_GetWinCount( TEAM_RED ), TEAM_GetWinCount( TEAM_BLUE ));
+						sprintf( szString, "%s leads %ld to %ld", TEAM_GetName( TEAM_RED ), TEAM_GetWinCount( TEAM_RED ), TEAM_GetWinCount( TEAM_BLUE ));
 					else
-						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_BLUE ), TEAM_GetWinCount( TEAM_BLUE ), TEAM_GetWinCount( TEAM_RED ));
+						sprintf( szString, "%s leads %ld to %ld", TEAM_GetName( TEAM_BLUE ), TEAM_GetWinCount( TEAM_BLUE ), TEAM_GetWinCount( TEAM_RED ));
 
 					switch ( ulLine )
 					{
@@ -2619,7 +2619,7 @@ void SERVERCONSOLE_UpdateScoreboard( void )
 				// If the teams are tied...
 				if ( TEAM_GetScore( TEAM_RED ) == TEAM_GetScore( TEAM_BLUE ))
 				{
-					sprintf( szString, "Teams are tied at %d\n", TEAM_GetScore( TEAM_RED ));
+					sprintf( szString, "Teams are tied at %ld\n", TEAM_GetScore( TEAM_RED ));
 					switch ( ulLine )
 					{
 					case 0:
@@ -2648,9 +2648,9 @@ void SERVERCONSOLE_UpdateScoreboard( void )
 				else
 				{
 					if ( TEAM_GetScore( TEAM_RED ) > TEAM_GetScore( TEAM_BLUE ))
-						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_RED ), TEAM_GetScore( TEAM_RED ), TEAM_GetScore( TEAM_BLUE ));
+						sprintf( szString, "%s leads %ld to %ld", TEAM_GetName( TEAM_RED ), TEAM_GetScore( TEAM_RED ), TEAM_GetScore( TEAM_BLUE ));
 					else
-						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_BLUE ), TEAM_GetScore( TEAM_BLUE ), TEAM_GetScore( TEAM_RED ));
+						sprintf( szString, "%s leads %ld to %ld", TEAM_GetName( TEAM_BLUE ), TEAM_GetScore( TEAM_BLUE ), TEAM_GetScore( TEAM_RED ));
 
 					switch ( ulLine )
 					{
@@ -2686,7 +2686,7 @@ void SERVERCONSOLE_UpdateScoreboard( void )
 				// If the teams are tied...
 				if ( TEAM_GetFragCount( TEAM_RED ) == TEAM_GetFragCount( TEAM_BLUE ))
 				{
-					sprintf( szString, "Teams tied at %d\n", TEAM_GetFragCount( TEAM_RED ));
+					sprintf( szString, "Teams tied at %ld\n", TEAM_GetFragCount( TEAM_RED ));
 					switch ( ulLine )
 					{
 					case 0:
@@ -2715,9 +2715,9 @@ void SERVERCONSOLE_UpdateScoreboard( void )
 				else
 				{
 					if ( TEAM_GetFragCount( TEAM_RED ) > TEAM_GetFragCount( TEAM_BLUE ))
-						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_RED ), TEAM_GetFragCount( TEAM_RED ), TEAM_GetFragCount( TEAM_BLUE ));
+						sprintf( szString, "%s has won %ld to %ld", TEAM_GetName( TEAM_RED ), TEAM_GetFragCount( TEAM_RED ), TEAM_GetFragCount( TEAM_BLUE ));
 					else
-						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_BLUE ), TEAM_GetFragCount( TEAM_BLUE ), TEAM_GetFragCount( TEAM_RED ));
+						sprintf( szString, "%s has won %ld to %ld", TEAM_GetName( TEAM_BLUE ), TEAM_GetFragCount( TEAM_BLUE ), TEAM_GetFragCount( TEAM_RED ));
 
 					switch ( ulLine )
 					{
@@ -2750,7 +2750,7 @@ void SERVERCONSOLE_UpdateScoreboard( void )
 				// If the teams are tied...
 				if ( TEAM_GetScore( TEAM_RED ) == TEAM_GetScore( TEAM_BLUE ))
 				{
-					sprintf( szString, "Teams tied at %d\n", TEAM_GetScore( TEAM_RED ));
+					sprintf( szString, "Teams tied at %ld\n", TEAM_GetScore( TEAM_RED ));
 					switch ( ulLine )
 					{
 					case 0:
@@ -2779,9 +2779,9 @@ void SERVERCONSOLE_UpdateScoreboard( void )
 				else
 				{
 					if ( TEAM_GetScore( TEAM_RED ) > TEAM_GetScore( TEAM_BLUE ))
-						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_RED ), TEAM_GetScore( TEAM_RED ), TEAM_GetScore( TEAM_BLUE ));
+						sprintf( szString, "%s has won %ld to %ld", TEAM_GetName( TEAM_RED ), TEAM_GetScore( TEAM_RED ), TEAM_GetScore( TEAM_BLUE ));
 					else
-						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_BLUE ), TEAM_GetScore( TEAM_BLUE ), TEAM_GetScore( TEAM_RED ));
+						sprintf( szString, "%s has won %ld to %ld", TEAM_GetName( TEAM_BLUE ), TEAM_GetScore( TEAM_BLUE ), TEAM_GetScore( TEAM_RED ));
 
 					switch ( ulLine )
 					{
@@ -2818,7 +2818,7 @@ void SERVERCONSOLE_UpdateScoreboard( void )
 		LONG	lNumMonstersRemaining;
 
 		lNumMonstersRemaining = level.total_monsters - level.killed_monsters;
-		sprintf( szString, "%d monster%s remaining", lNumMonstersRemaining, lNumMonstersRemaining == 1 ? "" : "s" );
+		sprintf( szString, "%ld monster%s remaining", lNumMonstersRemaining, lNumMonstersRemaining == 1 ? "" : "s" );
 		switch ( ulLine )
 		{
 		case 0:
@@ -2899,9 +2899,9 @@ void SERVERCONSOLE_UpdatePeakOutboundDataTransfer( LONG lData )
 		return;
 
 	if ( lData > KILOBYTE )
-		sprintf( szString, "Peak data transfer (out): %dB/s (%0.2fKB/s)", lData, (float)lData / (float)KILOBYTE );
+		sprintf( szString, "Peak data transfer (out): %ldB/s (%0.2fKB/s)", lData, (float)lData / (float)KILOBYTE );
 	else
-		sprintf( szString, "Peak data transfer (out): %dB/s", lData );
+		sprintf( szString, "Peak data transfer (out): %ldB/s", lData );
 
 	SetDlgItemText( g_hStatisticDlg, IDC_PEAKOUTBOUNDDATATRANSFER, szString );
 }
@@ -2916,9 +2916,9 @@ void SERVERCONSOLE_UpdateCurrentOutboundDataTransfer( LONG lData )
 		return;
 
 	if ( lData > KILOBYTE )
-		sprintf( szString, "Current data transfer (out): %dB/s (%0.2fKB/s)", lData, (float)lData / (float)KILOBYTE );
+		sprintf( szString, "Current data transfer (out): %ldB/s (%0.2fKB/s)", lData, (float)lData / (float)KILOBYTE );
 	else
-		sprintf( szString, "Current data transfer (out): %dB/s", lData );
+		sprintf( szString, "Current data transfer (out): %ldB/s", lData );
 
 	SetDlgItemText( g_hStatisticDlg, IDC_CURRENTOUTBOUNDDATATRANSFER, szString );
 }
@@ -2976,9 +2976,9 @@ void SERVERCONSOLE_UpdatePeakInboundDataTransfer( LONG lData )
 		return;
 
 	if ( lData > KILOBYTE )
-		sprintf( szString, "Peak data transfer (in): %dB/s (%0.2fKB/s)", lData, (float)lData / (float)KILOBYTE );
+		sprintf( szString, "Peak data transfer (in): %ldB/s (%0.2fKB/s)", lData, (float)lData / (float)KILOBYTE );
 	else
-		sprintf( szString, "Peak data transfer (in): %dB/s", lData );
+		sprintf( szString, "Peak data transfer (in): %ldB/s", lData );
 
 	SetDlgItemText( g_hStatisticDlg, IDC_PEAKINBOUNDDATATRANSFER, szString );
 }
@@ -2993,9 +2993,9 @@ void SERVERCONSOLE_UpdateCurrentInboundDataTransfer( LONG lData )
 		return;
 
 	if ( lData > KILOBYTE )
-		sprintf( szString, "Current data transfer (in): %dB/s (%0.2fKB/s)", lData, (float)lData / (float)KILOBYTE );
+		sprintf( szString, "Current data transfer (in): %ldB/s (%0.2fKB/s)", lData, (float)lData / (float)KILOBYTE );
 	else
-		sprintf( szString, "Current data transfer (in): %dB/s", lData );
+		sprintf( szString, "Current data transfer (in): %ldB/s", lData );
 
 	SetDlgItemText( g_hStatisticDlg, IDC_CURRENTINBOUNDDATATRANSFER, szString );
 }
@@ -3010,13 +3010,13 @@ void SERVERCONSOLE_UpdateTotalUptime( LONG lData )
 		return;
 
 	if ( lData >= DAY )
-		sprintf( szString, "Total uptime: %dd%dh%dm%ds", lData / DAY, ( lData / HOUR ) % 24, ( lData / MINUTE ) % 60, lData % MINUTE );
+		sprintf( szString, "Total uptime: %ldd%ldh%ldm%lds", lData / DAY, ( lData / HOUR ) % 24, ( lData / MINUTE ) % 60, lData % MINUTE );
 	else if ( lData >= HOUR )
-		sprintf( szString, "Total uptime: %dh%dm%ds", ( lData / HOUR ) % 24, ( lData / MINUTE ) % 60, lData % MINUTE  );
+		sprintf( szString, "Total uptime: %ldh%ldm%lds", ( lData / HOUR ) % 24, ( lData / MINUTE ) % 60, lData % MINUTE  );
 	else if ( lData >= MINUTE )
-		sprintf( szString, "Total uptime: %dm%ds", ( lData / MINUTE ) % 60, lData % MINUTE  );
+		sprintf( szString, "Total uptime: %ldm%lds", ( lData / MINUTE ) % 60, lData % MINUTE  );
 	else
-		sprintf( szString, "Total uptime: %ds", lData );
+		sprintf( szString, "Total uptime: %lds", lData );
 	SetDlgItemText( g_hStatisticDlg, IDC_TOTALUPTIME, szString );
 }
 
@@ -3124,16 +3124,16 @@ void SERVERCONSOLE_UpdatePlayerInfo( LONG lPlayer, ULONG ulUpdateFlags )
 			if ( players[lPlayer].health <=0 )
 				sprintf( szString, "Dead" );
 			else if ( lastmanstanding )
-				sprintf( szString, "%d", players[lPlayer].ulWins );
+				sprintf( szString, "%ld", players[lPlayer].ulWins );
 			else
 				sprintf( szString, "%d", players[lPlayer].fragcount );
 		}
 		else if ( possession || teampossession )
-			sprintf( szString, "%d", players[lPlayer].lPointCount );
+			sprintf( szString, "%ld", players[lPlayer].lPointCount );
 		else if ( deathmatch )
 			sprintf( szString, "%d", players[lPlayer].fragcount );
 		else if ( teamgame )
-			sprintf( szString, "%d", players[lPlayer].lPointCount );
+			sprintf( szString, "%ld", players[lPlayer].lPointCount );
 		else
 			sprintf( szString, "%d", players[lPlayer].killcount );
 		Item.pszText = szString;
@@ -3147,7 +3147,7 @@ void SERVERCONSOLE_UpdatePlayerInfo( LONG lPlayer, ULONG ulUpdateFlags )
 		if ( players[lPlayer].bIsBot )
 			sprintf( szString, "Bot" );
 		else
-			sprintf( szString, "%d", players[lPlayer].ulPing );
+			sprintf( szString, "%ld", players[lPlayer].ulPing );
 		Item.pszText = szString;
 
 		SendDlgItemMessage( g_hDlg, IDC_PLAYERLIST, LVM_SETITEM, lIndex, (LPARAM)&Item );
@@ -3156,7 +3156,7 @@ void SERVERCONSOLE_UpdatePlayerInfo( LONG lPlayer, ULONG ulUpdateFlags )
 	if ( ulUpdateFlags & UDF_TIME )
 	{
 		Item.iSubItem = COLUMN_TIME;
-		sprintf( szString, "%d", ( players[lPlayer].ulTime / ( TICRATE * 60 )));
+		sprintf( szString, "%ld", ( players[lPlayer].ulTime / ( TICRATE * 60 )));
 		Item.pszText = szString;
 
 		SendDlgItemMessage( g_hDlg, IDC_PLAYERLIST, LVM_SETITEM, lIndex, (LPARAM)&Item );
@@ -3567,7 +3567,7 @@ void SERVERCONSOLE_UpdateDMFlagsDisplay( HWND hDlg )
 	if ( SendDlgItemMessage( hDlg, IDC_COOP_HALVE_AMMO, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
 		ulDMFlags |= DF_COOP_HALVE_AMMO;
 
-	sprintf( szString, "dmflags: %d", ulDMFlags );
+	sprintf( szString, "dmflags: %ld", ulDMFlags );
 	SetDlgItemText( hDlg, IDC_DMFLAGS, szString );
 
 	// DMFLAGS2
@@ -3596,7 +3596,7 @@ void SERVERCONSOLE_UpdateDMFlagsDisplay( HWND hDlg )
 	if ( SendDlgItemMessage( hDlg, IDC_SAME_SPAWN_SPOT, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
 		ulDMFlags2 |= DF2_SAME_SPAWN_SPOT;
 
-	sprintf( szString, "dmflags2: %d", ulDMFlags2 );
+	sprintf( szString, "dmflags2: %ld", ulDMFlags2 );
 	SetDlgItemText( hDlg, IDC_DMFLAGS2, szString );
 
 	// COMPATFLAGS
@@ -3637,7 +3637,7 @@ void SERVERCONSOLE_UpdateDMFlagsDisplay( HWND hDlg )
 //	if ( SendDlgItemMessage( hDlg, IDC_DISABLECOOPERATIVEBACKPACKS, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
 //		ulCompatflags |= COMPATF_DISABLECOOPERATIVEBACKPACKS;
 
-	sprintf( szString, "compatflags: %d", ulCompatflags );
+	sprintf( szString, "compatflags: %ld", ulCompatflags );
 	SetDlgItemText( hDlg, IDC_COMPATFLAGS, szString );
 }
 
@@ -3711,7 +3711,7 @@ void SERVERCONSOLE_UpdateDMFlags( HWND hDlg )
 	// If the DMFlags have changed, send the update.
 	if ( g_ulStoredDMFlags != ulDMFlags )
 	{
-		sprintf( szString, "dmflags %d", ulDMFlags );
+		sprintf( szString, "dmflags %ld", ulDMFlags );
 		SERVER_AddCommand( szString );
 	}
 
@@ -3744,7 +3744,7 @@ void SERVERCONSOLE_UpdateDMFlags( HWND hDlg )
 	// If the DMFlags2 have changed, send the update.
 	if ( g_ulStoredDMFlags2 != ulDMFlags2 )
 	{
-		sprintf( szString, "dmflags2 %d", ulDMFlags2 );
+		sprintf( szString, "dmflags2 %ld", ulDMFlags2 );
 		SERVER_AddCommand( szString );
 	}
 
@@ -3789,7 +3789,7 @@ void SERVERCONSOLE_UpdateDMFlags( HWND hDlg )
 	// If the compatflags have changed, send the update.
 	if ( g_ulStoredCompatflags != ulCompatflags )
 	{
-		sprintf( szString, "compatflags %d", ulCompatflags );
+		sprintf( szString, "compatflags %ld", ulCompatflags );
 		SERVER_AddCommand( szString );
 	}
 }
@@ -3899,7 +3899,7 @@ void SERVERCONSOLE_UpdateLMSSettingsDisplay( HWND hDlg )
 	if ( SendDlgItemMessage( hDlg, IDC_LMS_ALLOWRAILGUN, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
 		ulLMSAllowedWeapons |= LMS_AWF_RAILGUN;
 
-	sprintf( szString, "lmsallowedweapons: %d", ulLMSAllowedWeapons );
+	sprintf( szString, "lmsallowedweapons: %ld", ulLMSAllowedWeapons );
 	SetDlgItemText( hDlg, IDC_LMSALLOWEDWEAPONS, szString );
 
 	// LMSSPECTATORSETTINGS
@@ -3908,7 +3908,7 @@ void SERVERCONSOLE_UpdateLMSSettingsDisplay( HWND hDlg )
 	if ( SendDlgItemMessage( hDlg, IDC_LMS_SPECTATORTALK, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
 		ulLMSSpectatorSettings |= LMS_SPF_CHAT;
 
-	sprintf( szString, "lmsspectatorsettings: %d", ulLMSSpectatorSettings );
+	sprintf( szString, "lmsspectatorsettings: %ld", ulLMSSpectatorSettings );
 	SetDlgItemText( hDlg, IDC_LMSSPECTATORSETTINGS, szString );
 }
 
@@ -3945,7 +3945,7 @@ void SERVERCONSOLE_UpdateLMSSettings( HWND hDlg )
 	// If lmsallowedweapons has changed, send the update.
 	if ( g_ulStoredLMSAllowedWeapons != ulLMSAllowedWeapons )
 	{
-		sprintf( szString, "lmsallowedweapons %d", ulLMSAllowedWeapons );
+		sprintf( szString, "lmsallowedweapons %ld", ulLMSAllowedWeapons );
 		SERVER_AddCommand( szString );
 	}
 
@@ -3958,7 +3958,7 @@ void SERVERCONSOLE_UpdateLMSSettings( HWND hDlg )
 	// If lmsspectatorsettings has changed, send the update.
 	if ( g_ulStoredLMSSpectatorSettings != ulLMSSpectatorSettings )
 	{
-		sprintf( szString, "lmsspectatorsettings %d", ulLMSSpectatorSettings );
+		sprintf( szString, "lmsspectatorsettings %ld", ulLMSSpectatorSettings );
 		SERVER_AddCommand( szString );
 	}
 }

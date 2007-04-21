@@ -88,7 +88,14 @@ void gl_CollectMissingLines()
 			// collect all the segs and calculate the length they occupy on their sidedef
 
 			//added_seglen[seg->linedef-lines + side]+= (*seg->v2 - *seg->v1).Length();
+#ifdef _MSC_VER
 			added_seglen[seg->sidedef - sides]+= (Vector(seg->v2)-Vector(seg->v1)).Length();
+#else
+			Vector vec1(Vector(seg->v1));
+			Vector vec2(Vector(seg->v2));
+			Vector tmpVec = vec2-vec1;
+			added_seglen[seg->sidedef - sides]+= tmpVec.Length();
+#endif
 			linesegs[seg->sidedef - sides].Push(seg);
 		}
 	}
@@ -99,7 +106,14 @@ void gl_CollectMissingLines()
 		line_t * line = &lines[side->linenum];
 
 		//float linelen = (*line->v2 - *line->v1).Length();
+#ifdef _MSC_VER
 		float linelen = (Vector(line->v2)-Vector(line->v1)).Length();
+#else
+		Vector vec1(Vector(line->v1));
+		Vector vec2(Vector(line->v2));
+		Vector tmpVec = (vec2-vec1);
+		float linelen = tmpVec.Length();
+#endif
 
 		if (added_seglen[i] < linelen -1)
 		{
