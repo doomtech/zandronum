@@ -2,16 +2,13 @@
 # And then tweaked by hand
 
 # Where did you install the FMOD API to? Change this line so that the build process can find it.
-FMODDIR = "c:/Programme/util/fmodapi375win/"
+#FMODDIR = "c:/Programme/util/fmodapi375win/"
 
-ifeq (msys,$(OSTYPE))
-  WINCMD=0
-else
-  WINCMD=1
-endif
+WINCMD=0
+NOASM=1
 
-CC ?= gcc
-CXX ?= g++
+CC = winegcc
+CXX = wineg++
 
 CONFIG ?= Release
 OPTLEVEL ?= 2
@@ -22,11 +19,12 @@ DEBUGTARGET ?= zdoomgccd.exe
 DEBUGOBJDIR ?= debugobj
 RELEASEOBJDIR ?= releaseobj
 
-CCDV ?= @ccdv
+CCDV ?= @./ccdv
 RE2C = tools/re2c/re2c
 
-CPPFLAGS = -DWIN32 -D_WIN32 -D_WINDOWS -DHAVE_STRUPR -DHAVE_FILELENGTH -DI_DO_NOT_LIKE_BIG_DOWNLOADS -D__forceinline=inline -MMD -Izlib -IFLAC -Ijpeg-6b -Isrc -Isrc/win32 -Isrc/g_doom -Isrc/g_heretic -I src/g_hexen -Isrc/g_raven -Isrc/g_strife -Isrc/g_shared -Isrc/MD5 -Isrc/oplsynth -Isrc/sound
-LDFLAGS += flac/libflac.a zlib/libz.a jpeg-6b/libjpeg.a -lfmod -lwsock32 -lwinmm -lddraw -ldsound -ldxguid -ldinput8 -lole32 -luser32 -lgdi32 -lcomctl32 -lcomdlg32 -lsetupapi -lws2_32 -lopengl32 -lglu32 -Wl,--subsystem,windows
+CPPFLAGS = -mno-cygwin -DWIN32 -D_WIN32 -D_WINDOWS -DHAVE_STRUPR -DHAVE_FILELENGTH -DI_DO_NOT_LIKE_BIG_DOWNLOADS -D__forceinline=inline -MMD -Izlib -IFLAC -Ijpeg-6b -Isrc -Isrc/win32 -Isrc/g_doom -Isrc/g_heretic -I src/g_hexen -Isrc/g_raven -Isrc/g_strife -Isrc/g_shared -Isrc/MD5 -Isrc/oplsynth -Isrc/sound -I../fmodapi375linux/api/inc/
+LDFLAGS += -lFLAC++ -lFLAC -lz -ljpeg -lfmod -lwsock32 -lwinmm -lddraw -ldsound -ldinput8 -ldinput -lole32 -luser32 -lgdi32 -lcomctl32 -lcomdlg32 -lsetupapi -lws2_32 -lopengl32 -lglu32 -mno-cygwin -mwindows -ldxguid
+#-ldxguid 
 
 ifdef FMODDIR
   CPPFLAGS += -I$(FMODDIR)/api/inc
@@ -81,58 +79,58 @@ all: $(TARGET)
 
 # This file needs special handling so that it actually gets compiled with SSE2 support.
 $(OBJDIR)/nodebuild_classify_sse2.o: src/nodebuild_classify_sse2.cpp
-	$(CCDV) $(CXX) $(CXXFLAGS) -msse2 -mfpmath=sse -c -o $@ $<
+    $(CCDV) $(CXX) $(CXXFLAGS) -msse2 -mfpmath=sse -c -o $@ $<
 
 src/sc_man_scanner.h: src/sc_man_scanner.re
-	$(CCDV) $(RE2C) -s -o $@ $<
+    $(CCDV) $(RE2C) -s -o $@ $<
 
 $(OBJDIR)/%.o : %.cpp
-	$(CCDV) $(CXX) $(CXXFLAGS) -o $@ -c $<
+    $(CCDV) $(CXX) $(CXXFLAGS) -o $@ -c $<
 
 $(OBJDIR)/%.o : %.nas
-	$(CCDV) nasmw -o $@ -f win32 $<
+    $(CCDV) nasm -o $@ -f elf -DM_TARGET_LINUX $<
 
 $(OBJDIR)/%.o : %.rc
-	$(CCDV) windres --include-dir=src/win32 -o $@ -i $<
+    $(CCDV) wrc -DNO_MANIFEST --include-dir=src/win32 -o $@ -i $<
 
 
 $(TARGET): testobjdir updaterev $(OBJS)
-	$(CCDV) $(CXX) -o $@ $(OBJS) $(LDFLAGS)
+    $(CCDV) $(CXX) -o $@ $(OBJS) $(LDFLAGS)
 
 ifeq (1,$(WINCMD))
 clean:
-	-del /q /f $(RELEASETARGET) 2>nul
-	-del /q /f $(DEBUGTARGET) 2>nul
-	-del /q /f $(DEBUGOBJDIR) 2>nul
-	-del /q /f $(RELEASEOBJDIR) 2>nul
+    -del /q /f $(RELEASETARGET) 2>nul
+    -del /q /f $(DEBUGTARGET) 2>nul
+    -del /q /f $(DEBUGOBJDIR) 2>nul
+    -del /q /f $(RELEASEOBJDIR) 2>nul
 
 cleandep:
-	-del /q /f $(DEBUGOBJDIR)\*.d 2>nul
-	-del /q /f $(RELEASEOBJDIR)\*.d 2>nul
+    -del /q /f $(DEBUGOBJDIR)\*.d 2>nul
+    -del /q /f $(RELEASEOBJDIR)\*.d 2>nul
 else
 clean:
-	rm -f $(RELEASETARGET)
-	rm -f $(DEBUGTARGET)
-	rm -fr $(DEBUGOBJDIR)
-	rm -fr $(RELEASEOBJDIR)
+    rm -f $(RELEASETARGET)
+    rm -f $(DEBUGTARGET)
+    rm -fr $(DEBUGOBJDIR)
+    rm -fr $(RELEASEOBJDIR)
 
 cleandep:
-	rm -f $(DEBUGOBJDIR)\*.d
-	rm -f $(RELEASEOBJDIR)\*.d
+    rm -f $(DEBUGOBJDIR)\*.d
+    rm -f $(RELEASEOBJDIR)\*.d
 endif
-	
+    
 testobjdir:
 ifeq (1,$(WINCMD))
-	-@if not exist $(OBJDIR) mkdir $(OBJDIR)
+    -@if not exist $(OBJDIR) mkdir $(OBJDIR)
 else
-	-@if [ ! -e $(OBJDIR) ]; then mkdir $(OBJDIR); fi
+    -@if [ ! -e $(OBJDIR) ]; then mkdir $(OBJDIR); fi
 endif
 
 updaterev: tools/updaterevision/updaterevision.exe
-	@tools/updaterevision/updaterevision . src/svnrevision.h
+    @tools/updaterevision/updaterevision . src/svnrevision.h
 
 tools/updaterevision/updaterevision.exe:
-	$(MAKE) -C tools/updaterevision
+    $(MAKE) -C tools/updaterevision
 
 
 ifeq (,$(findstring $(MAKECMDGOALS),clean cleandep updaterev))

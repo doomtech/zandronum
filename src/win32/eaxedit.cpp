@@ -9,6 +9,10 @@
 #include <string.h>
 #include <stdio.h>
 
+#ifdef __WINE__
+#define PATH_MAX 260
+#endif
+
 #define USE_WINDOWS_DWORD
 #include "resource.h"
 #include "s_sound.h"

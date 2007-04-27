@@ -13,12 +13,14 @@
 #include <windows.h>
 #include <mmsystem.h>
 #include <winsock.h>
+#ifndef __WINE__
 #include <dshow.h>
+#endif
 #include <d3d9.h>
-#include <dsound.h>
-#include <dinput.h>
-#include <lmcons.h>
-#include <shlobj.h>
+//#include <dsound.h>
+//#include <dinput.h>
+//#include <lmcons.h>
+//#include <shlobj.h>
 #endif
 
 #undef DWORD
@@ -54,13 +56,15 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include <gl/gl.h>
-#include <gl/glu.h>
-#include <gl/glext.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <GL/glext.h>
 #ifdef _WIN32
 #define DWORD WINDOWS_DWORD	// I don't want to depend on this throughout the GL code!
-#include <gl/wglext.h>
+#include <GL/wglext.h>
+#ifndef __WINE__
 #undef DWORD
+#endif
 #endif
 #include "r_render/r_render.h"
 

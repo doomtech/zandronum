@@ -50,7 +50,9 @@
 
 // [Petteri] Check if compiling for Win32:
 #if defined(__WINDOWS__) || defined(__NT__) || defined(_MSC_VER) || defined(_WIN32)
+#ifndef __WIN32__
 #	define __WIN32__
+#endif
 #endif
 // Follow #ifdef __WIN32__ marks
 /*
@@ -1322,7 +1324,9 @@ netadr_t NETWORK_GetLocalAddress( void )
 	struct sockaddr_in	address;
 	int		namelen;
 
+#ifndef __WINE__
 	gethostname(buff, 512);
+#endif
 	buff[512-1] = 0;
 
 	NETWORK_StringToAddress( buff, &g_LocalNetworkAddress );
@@ -1417,7 +1421,9 @@ void network_GetLocalAddress( void )
 	struct sockaddr_in	address;
 	int		namelen;
 
+#ifndef __WINE__
 	gethostname(buff, 512);
+#endif
 	buff[512-1] = 0;
 
 	NETWORK_StringToAddress( buff, &g_LocalNetworkAddress );

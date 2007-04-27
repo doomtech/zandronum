@@ -95,8 +95,13 @@ typedef uint64_t				QWORD;
 // [BC] New additions.
 typedef	unsigned short			USHORT;
 typedef	short					SHORT;
+#ifdef __WINE__
+typedef unsigned int ULONG;
+typedef int LONG;
+#else
 typedef	unsigned long			ULONG;
 typedef	long					LONG;
+#endif
 typedef unsigned int			UINT;
 typedef	int						INT;
 

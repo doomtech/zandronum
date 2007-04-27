@@ -496,7 +496,9 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 				DesktopRect.top = DesktopRect.bottom;
 
 				// Do the little animation showing the window moving to the systray.
+#ifndef __WINE__
 				DrawAnimatedRects( hDlg, IDANI_CAPTION, &ThisWindowRect,&DesktopRect );
+#endif
 			}
 
 			// Hide the window.
@@ -546,7 +548,9 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 				GetWindowRect( hDlg, &ThisWindowRect );
 
 				// Animate the maximization.
+#ifndef __WINE__
 				DrawAnimatedRects( hDlg, IDANI_CAPTION, &DesktopRect, &ThisWindowRect );
+#endif
 
 				ShowWindow( hDlg, SW_SHOW );
 				SetActiveWindow( hDlg );

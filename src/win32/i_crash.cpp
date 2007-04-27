@@ -890,6 +890,7 @@ static void AddStackInfo (HANDLE file, void *dumpaddress, DWORD code)
 
 static void StackWalk (HANDLE file, void *dumpaddress, DWORD *topOfStack, DWORD *jump)
 {
+#ifndef __WINE__
 	DWORD *addr = (DWORD *)dumpaddress;
 
 	BYTE *pBaseOfImage = (BYTE *)GetModuleHandle (0);
@@ -1069,6 +1070,7 @@ static void StackWalk (HANDLE file, void *dumpaddress, DWORD *topOfStack, DWORD 
 		}
 	}
 	Writef (file, "\r\n");
+#endif
 }
 
 //==========================================================================

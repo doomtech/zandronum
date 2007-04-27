@@ -27,6 +27,9 @@
 // HEADER FILES ------------------------------------------------------------
 
 #ifdef _WIN32
+#ifdef unix
+#undef unix
+#endif
 #include <direct.h>
 #define mkdir(a,b) _mkdir (a)
 #else

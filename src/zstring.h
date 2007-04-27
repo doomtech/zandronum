@@ -7,6 +7,25 @@
 #include <stddef.h>
 #include "tarray.h"
 
+// [BB] Some Winelib specfic things. Should be moved to an appropriate location.
+#ifdef __WINE__
+#ifdef _WIN32
+#ifdef unix
+#undef unix
+#endif
+#endif
+
+#include <cmath>
+#define sqrtf sqrt
+#define sinf sin
+#define cosf cos
+#define fabsf(x) static_cast<float>(fabs(x))
+#define ceilf(x) static_cast<float>(ceil(x))
+#define atan2f(x,y) static_cast<float>(atan2(x,y))
+#define fmodf(x,y) static_cast<float>(fmod(x,y))
+#define modff(x,y)  ((float)modf((double)(x), (double *)(y)))
+#endif
+
 #ifdef __GNUC__
 #define PRINTFISH(x) __attribute__((format(printf, 2, x)))
 #else

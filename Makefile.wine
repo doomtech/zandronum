@@ -1,0 +1,39 @@
+RELEASETARGET = zdoomgcc.exe
+DEBUGTARGET = zdoomgccd.exe
+
+all: basetools game
+debug: basetools debuggame
+release: basetools game
+
+ifndef CONFIG
+  CONFIG=Release
+endif
+
+game: basetools ccdv.exe
+    @$(MAKE) -f Makefile.winelib
+
+debuggame: basetools ccdv.exe
+    @$(MAKE) CONFIG=Debug -f Makefile.winelib
+
+$(RELEASETARGET): game
+$(DEBUGTARGET): debuggame
+
+basetools: ccdv.exe
+    $(MAKE) -C tools/lemon
+    $(MAKE) -C tools/makewad
+    $(MAKE) -C tools/dehsupp
+    $(MAKE) -C tools/xlatcc
+
+cleanexe:
+    @$(MAKE) -C . -f Makefile.winelib clean
+
+clean:
+    @$(MAKE) -C tools/lemon clean
+    @$(MAKE) -C tools/dehsupp clean
+    @$(MAKE) -C tools/makewad clean
+    @$(MAKE) -C tools/xlatcc clean
+    @$(MAKE) -C . -f Makefile.winelib clean
+    rm -f ccdv
+
+ccdv.exe:  ccdv-win32.c
+    @gcc -Os -s ccdv-posix.c -o ccdv

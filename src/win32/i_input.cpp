@@ -762,6 +762,7 @@ LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				// disconnecting it, and the session will be unlocked before reconnecting it.
 				// For our purposes, video output will only happen when the session is
 				// both unlocked and connected (that is, SessionState is 0).
+#ifndef __WINE__
 				switch (wParam)
 				{
 				case WTS_SESSION_LOCK:
@@ -779,6 +780,7 @@ LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					//I_MovieResumeSound ();
 					break;
 				}
+#endif
 			}
 			else if (message == WM_POWERBROADCAST)
 			{
@@ -813,9 +815,13 @@ LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 
 	case WM_DEVICECHANGE:
+#ifndef __WINE__
 		if (wParam == DBT_DEVNODES_CHANGED ||
 			wParam == DBT_DEVICEARRIVAL ||
 			wParam == DBT_CONFIGCHANGED)
+#else
+		if (0)
+#endif
 		{
 			unsigned int i;
 			TArray<GUID> oldjoys;

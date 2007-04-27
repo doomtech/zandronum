@@ -26,7 +26,7 @@
 #include <io.h>
 #include <direct.h>
 #include <string.h>
-#include <process.h>
+//#include <process.h>
 
 #include <stdarg.h>
 #include <sys/types.h>
@@ -444,6 +444,7 @@ void I_Init (void)
 		{
 			delay = 1000/TICRATE;
 		}
+#ifndef __WINE__
 		TimerEventID = timeSetEvent
 			(
 				delay,
@@ -452,6 +453,7 @@ void I_Init (void)
 				0,
 				TIME_PERIODIC
 			);
+#endif
 		MillisecondsPerTic = delay;
 	}
 	if (TimerEventID != 0)

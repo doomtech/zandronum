@@ -64,7 +64,7 @@ IDI_BOING5              ICON    DISCARDABLE     "boing5.ico"
 IDI_BOING6              ICON    DISCARDABLE     "boing6.ico"
 IDI_BOING7              ICON    DISCARDABLE     "boing7.ico"
 IDI_BOING8              ICON    DISCARDABLE     "boing8.ico"
-IDI_ICON5               ICON    DISCARDABLE     "skulltag.ICO"
+IDI_ICON5               ICON    DISCARDABLE     "skulltag.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

@@ -39,7 +39,7 @@
 #include "templates.h"
 #include "doomdef.h"
 #include "gstrings.h"
-#include <string>
+#include <string.h>
 #include "c_console.h"
 #include "c_dispatch.h"
 #include "c_bind.h"

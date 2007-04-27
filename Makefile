@@ -8,5 +8,5 @@ endif
 ifeq (1,$(WIN))
 include Makefile.mgw
 else
-include Makefile.linux
+include Makefile.wine
 endif
