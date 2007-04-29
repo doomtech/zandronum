@@ -326,6 +326,8 @@ char	*SERVER_GetMapMusic( void );
 void	SERVER_SetMapMusic( const char *pszMusic );
 void	SERVER_ResetInventory( ULONG ulClient );
 void	SERVER_ParseCommands( void );
+ULONG	SERVER_GetPlayerIndexFromName( const char *pszString );
+void	SERVER_GiveInventoryToPlayer( const player_t *player, AInventory *pInventory );
 
 // From sv_master.cpp
 void	SERVER_MASTER_Construct( void );

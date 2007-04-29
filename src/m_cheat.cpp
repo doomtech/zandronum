@@ -479,6 +479,8 @@ void GiveSpawner (player_t *player, const PClass *type, int amount)
 		}
 		else
 		{
+			// [BB] This construction is more or less a hack, but at least the give cheats are now working.
+			SERVER_GiveInventoryToPlayer( player, item );
 			// [BC] Play the announcer sound.
 			if ( players[consoleplayer].camera == players[consoleplayer].mo )
 				ANNOUNCER_PlayEntry( cl_announcer, item->PickupAnnouncerEntry( ));
@@ -579,6 +581,8 @@ void cht_Give (player_t *player, const char *name, int amount)
 				{
 					ammo->Amount = ammo->MaxAmount;
 				}
+				// [BB] This construction is more or less a hack, but at least the give cheats are now working.
+				SERVER_GiveInventoryToPlayer( player, ammo );
 			}
 		}
 
@@ -597,6 +601,11 @@ void cht_Give (player_t *player, const char *name, int amount)
 			{
 				armor->Destroy ();
 			}
+			else
+			{
+				// [BB] This construction is more or less a hack, but at least the give cheats are now working.
+				SERVER_GiveInventoryToPlayer( player, armor );
+			}
 		}
 		else
 		{
@@ -608,6 +617,11 @@ void cht_Give (player_t *player, const char *name, int amount)
 				if (!armor->TryPickup (player->mo))
 				{
 					armor->Destroy ();
+				}
+				else
+				{
+					// [BB] This construction is more or less a hack, but at least the give cheats are now working.
+					SERVER_GiveInventoryToPlayer( player, armor );
 				}
 			}
 		}
@@ -629,6 +643,11 @@ void cht_Give (player_t *player, const char *name, int amount)
 					if (!key->TryPickup (player->mo))
 					{
 						key->Destroy ();
+					}
+					else
+					{
+						// [BB] This construction is more or less a hack, but at least the give cheats are now working.
+						SERVER_GiveInventoryToPlayer( player, key );
 					}
 				}
 			}

@@ -3184,6 +3184,39 @@ void SERVER_ParseCommands( void )
 //*****************************************************************************
 //*****************************************************************************
 //
+ULONG SERVER_GetPlayerIndexFromName( const char *pszString ){
+	ULONG ulIdx = 0;
+	ULONG playerIdx = MAXPLAYERS;
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if (( playeringame[ulIdx] == false ) ||
+			( players[ulIdx].bIsBot ))
+		{
+			continue;
+		}
+
+		if ( stricmp( pszString, players[ulIdx].userinfo.netname ) == 0 ){
+			playerIdx = ulIdx;
+			break;
+		}
+	}
+	return playerIdx;
+}
+
+//*****************************************************************************
+//*****************************************************************************
+//
+void SERVER_GiveInventoryToPlayer( const player_t *player, AInventory *pInventory ){
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER ){
+		ULONG playerIdx = SERVER_GetPlayerIndexFromName( player->userinfo.netname );
+		if ( playerIdx < MAXPLAYERS )
+			SERVERCOMMANDS_GiveInventory( playerIdx, pInventory, playerIdx, SVCF_ONLYTHISCLIENT );
+	}
+}
+
+//*****************************************************************************
+//*****************************************************************************
+//
 static bool server_StartChat( void )
 {
 	players[parse_cl].bChatting = true;
