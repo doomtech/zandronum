@@ -108,6 +108,19 @@ typedef int SOCKET;
 //*****************************************************************************
 //	VARIABLES
 
+// [BB]: Some optimization. For some actors that are sent in bunches, to reduce the size,
+// just send some key letter that identifies the actor, instead of the full name.
+char	*g_szActorKeyLetter[NUMBER_OF_ACTOR_NAME_KEY_LETTERS] = 
+{
+	"1",
+	"2",
+};
+char	*g_szActorFullName[NUMBER_OF_ACTOR_NAME_KEY_LETTERS] =
+{
+	"BulletPuff",
+	"Blood",
+};
+
 static	LONG		g_lNetworkState = NETSTATE_SINGLE;
 static	sizebuf_t	g_NetworkMessage;
 static	netadr_t	g_LocalNetworkAddress;

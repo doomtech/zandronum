@@ -190,6 +190,10 @@ enum
 									USERINFO_AIMDISTANCE | USERINFO_SKIN | USERINFO_RAILCOLOR | \
 									USERINFO_HANDICAP | USERINFO_CONNECTIONTYPE | USERINFO_PLAYERCLASS )
 
+// [BB]: Some optimization. For some actors that are sent in bunches, to reduce the size,
+// just send some key letter that identifies the actor, instead of the full name.
+#define NUMBER_OF_ACTOR_NAME_KEY_LETTERS 2
+
 //*****************************************************************************
 typedef enum
 {

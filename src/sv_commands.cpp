@@ -70,10 +70,25 @@
 
 // :((((((
 polyobj_t	*GetPolyobj( int polyNum );
+extern char *g_szActorKeyLetter[NUMBER_OF_ACTOR_NAME_KEY_LETTERS];
+extern char *g_szActorFullName[NUMBER_OF_ACTOR_NAME_KEY_LETTERS];
 
 //*****************************************************************************
 //	FUNCTIONS
 
+inline void initNetNameString( AActor *pActor, const char *&pszName ){
+	pszName = NULL;
+	for( int i = 0; i < NUMBER_OF_ACTOR_NAME_KEY_LETTERS; i++ ){
+		if ( stricmp( pActor->GetClass( )->TypeName.GetChars( ), g_szActorFullName[i] ) == 0 ){
+			pszName = g_szActorKeyLetter[i];
+			break;
+		}
+	}
+	if( pszName == NULL )
+		pszName = pActor->GetClass( )->TypeName.GetChars( );
+}
+
+	
 void SERVERCOMMANDS_Ping( ULONG ulTime )
 {
 	ULONG	ulIdx;
@@ -1020,12 +1035,7 @@ void SERVERCOMMANDS_SpawnThing( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFla
 
 	// Some optimization. For some actors that are sent in bunches, to reduce the size,
 	// just send some key letter that identifies the actor, instead of the full name.
-	if ( stricmp( pActor->GetClass( )->TypeName.GetChars( ), "BulletPuff" ) == 0 )
-		pszName = "1";
-	else if ( stricmp( pActor->GetClass( )->TypeName.GetChars( ), "Blood" ) == 0 )
-		pszName = "2";
-	else
-		pszName = pActor->GetClass( )->TypeName.GetChars( );
+	initNetNameString( pActor, pszName );
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -1060,12 +1070,7 @@ void SERVERCOMMANDS_SpawnThingNoNetID( AActor *pActor, ULONG ulPlayerExtra, ULON
 
 	// Some optimization. For some actors that are sent in bunches, to reduce the size,
 	// just send some key letter that identifies the actor, instead of the full name.
-	if ( stricmp( pActor->GetClass( )->TypeName.GetChars( ), "BulletPuff" ) == 0 )
-		pszName = "1";
-	else if ( stricmp( pActor->GetClass( )->TypeName.GetChars( ), "Blood" ) == 0 )
-		pszName = "2";
-	else
-		pszName = pActor->GetClass( )->TypeName.GetChars( );
+	initNetNameString( pActor, pszName );
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -1106,12 +1111,7 @@ void SERVERCOMMANDS_SpawnThingExact( AActor *pActor, ULONG ulPlayerExtra, ULONG 
 
 	// Some optimization. For some actors that are sent in bunches, to reduce the size,
 	// just send some key letter that identifies the actor, instead of the full name.
-	if ( stricmp( pActor->GetClass( )->TypeName.GetChars( ), "BulletPuff" ) == 0 )
-		pszName = "1";
-	else if ( stricmp( pActor->GetClass( )->TypeName.GetChars( ), "Blood" ) == 0 )
-		pszName = "2";
-	else
-		pszName = pActor->GetClass( )->TypeName.GetChars( );
+	initNetNameString( pActor, pszName );
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -1146,12 +1146,7 @@ void SERVERCOMMANDS_SpawnThingExactNoNetID( AActor *pActor, ULONG ulPlayerExtra,
 
 	// Some optimization. For some actors that are sent in bunches, to reduce the size,
 	// just send some key letter that identifies the actor, instead of the full name.
-	if ( stricmp( pActor->GetClass( )->TypeName.GetChars( ), "BulletPuff" ) == 0 )
-		pszName = "1";
-	else if ( stricmp( pActor->GetClass( )->TypeName.GetChars( ), "Blood" ) == 0 )
-		pszName = "2";
-	else
-		pszName = pActor->GetClass( )->TypeName.GetChars( );
+	initNetNameString( pActor, pszName );
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{

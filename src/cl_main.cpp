@@ -122,6 +122,9 @@ EXTERN_CVAR( Int, cl_pufftype )
 EXTERN_CVAR( String, playerclass )
 EXTERN_CVAR( Int, am_cheat )
 
+extern char *g_szActorKeyLetter[NUMBER_OF_ACTOR_NAME_KEY_LETTERS];
+extern char *g_szActorFullName[NUMBER_OF_ACTOR_NAME_KEY_LETTERS];
+
 //*****************************************************************************
 //	PROTOTYPES
 
@@ -2279,10 +2282,15 @@ void CLIENT_SpawnThing( char *pszName, fixed_t X, fixed_t Y, fixed_t Z, LONG lNe
 
 	// Some optimization. For some actors that are sent in bunches, to reduce the size,
 	// just send some key letter that identifies the actor, instead of the full name.
-	if ( stricmp( pszName, "1" ) == 0 )
-		pszName = "BulletPuff";
-	else if ( stricmp( pszName, "2" ) == 0 )
-		pszName = "Blood";
+
+	for( int i = 0; i < NUMBER_OF_ACTOR_NAME_KEY_LETTERS; i++ ){
+		if ( stricmp( pszName, g_szActorKeyLetter[i] ) == 0 ){
+			if ( cl_showspawnnames )
+				Printf( "Key Letter: %s ", pszName );
+			pszName = g_szActorFullName[i];
+			break;
+		}
+	}
 
 	// Potentially print the name, position, and network ID of the thing spawning.
 	if ( cl_showspawnnames )
