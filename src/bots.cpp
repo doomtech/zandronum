@@ -4736,12 +4736,15 @@ POS_t CSkullBot::GetLastEnemyPosition( void )
 //
 void CSkullBot::AddEventToQueue( BOTEVENT_e Event, LONG lTick )
 {
-	m_StoredEventQueue[m_lQueueTail].Event = Event;
-	m_StoredEventQueue[m_lQueueTail++].lTick = lTick;
-	m_lQueueTail = m_lQueueTail % MAX_STORED_EVENTS;
+	// [BB]: Just ignore additional events, if the queue is full, since the queue fills easily in timefreeze mode.
+	if( ((m_lQueueTail+1) % MAX_STORED_EVENTS)  != m_lQueueHead ){
+		m_StoredEventQueue[m_lQueueTail].Event = Event;
+		m_StoredEventQueue[m_lQueueTail++].lTick = lTick;
+		m_lQueueTail = m_lQueueTail % MAX_STORED_EVENTS;
 
-	if ( m_lQueueTail == m_lQueueHead )
-		I_Error( "AddEventToQueue: Event queue size exceeded!" );
+		if ( m_lQueueTail == m_lQueueHead )
+			I_Error( "AddEventToQueue: Event queue size exceeded!" );
+	}
 }
 
 //*****************************************************************************
