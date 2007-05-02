@@ -79,6 +79,9 @@ typedef struct
 	// Points?
 	LONG		lPointCount;
 
+	// [RC] Time
+	ULONG		ulTime;
+
 } PLAYERSAVEDINFO_t;
 
 //*****************************************************************************
