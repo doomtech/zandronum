@@ -1303,6 +1303,9 @@ void SERVER_ConnectNewPlayer( void )
 
 		if ( teamgame )
 			SERVERCOMMANDS_SetPlayerPoints( parse_cl );
+
+		// [RC] Also restore his playing time. This should agree with 'restore frags' as a whole, clean slate option.
+			players[parse_cl].ulTime = pSavedInfo->ulTime;
 	}
 
 	// If this player is on a team, tell all the other clients that a team has been selected
@@ -1665,17 +1668,20 @@ bool SERVER_GetUserInfo( bool bAllowKick )
 		
 		// The user really shouldn't have an invalid name, unless they are using a hacked executable.
 		if(strcmp(pPlayer->userinfo.netname, pszString) != 0) {
-				SERVER_KickPlayer( parse_cl, "Invalid name." );
+				// [RC][BETA ONLY] Explain for the poor 97c3 souls why their juicy names do not work.
+					SERVER_KickPlayer( parse_cl, "Invalid name. If you are connecting with 0.97c3, this is a 0.97d server." );
+				// SERVER_KickPlayer( parse_cl, "Name contains illegal characters!");
 				return ( false );
 		}
 
 
+		/* [RC] V_CleanName already does this.
 		// Remove % signs from names.
 		for ( ulIdx = 0; ulIdx < strlen( pPlayer->userinfo.netname ); ulIdx++ )
 		{
 			if ( pPlayer->userinfo.netname[ulIdx] == '%' )
 				pPlayer->userinfo.netname[ulIdx] = ' ';
-		}
+		} */
 
 		if ( clients[parse_cl].State == CLS_SPAWNED )
 		{
@@ -2160,6 +2166,7 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 		Info.lFragCount		= players[ulClient].fragcount;
 		Info.lPointCount	= players[ulClient].lPointCount;
 		Info.lWinCount		= players[ulClient].ulWins;
+		Info.ulTime			= players[ulClient].ulTime; // [RC] Save time
 		sprintf( Info.szName, players[ulClient].userinfo.netname );
 
 		SERVER_SAVE_SaveInfo( &Info );
