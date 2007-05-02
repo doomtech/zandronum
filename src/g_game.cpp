@@ -402,6 +402,8 @@ CCMD (weapprev)
 		
 		// Build the string and text color;
 		sprintf( szString, "%s", SendItemUse->GetClass( )->TypeName.GetChars( ));
+		// [RC] Set the font
+		screen->SetFont( SmallFont );
 
 		pMsg = new DHUDMessageFadeOut( szString,
 			1.5f,
