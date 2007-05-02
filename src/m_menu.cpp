@@ -1361,6 +1361,40 @@ void M_DrawReadThis ()
 	else
 	{
 		tex = TexMan[gameinfo.info.infoPage[InfoType-1]];
+		// [RC] Show game-sensitive help, if the lumps exists
+		if(deathmatch) {
+			if(teamplay) {
+				if(TexMan.CheckForTexture("F1_TDM",0,0) != -1)
+				tex = TexMan["F1_TDM"];
+			}
+			else if(duel) {
+				if(TexMan.CheckForTexture("F1_DUEL",0,0) != -1)
+				tex = TexMan["F1_DUEL"];
+			}
+			else if(terminator) {
+				if(TexMan.CheckForTexture("F1_TERM",0,0) != -1)
+				tex = TexMan["F1_TERM"];
+			}
+			else if(lastmanstanding) {
+				if(TexMan.CheckForTexture("F1_LMS",0,0) != -1)
+				tex = TexMan["F1_LMS"];
+			}
+			else {
+				if(TexMan.CheckForTexture("F1_DM",0,0) != -1)
+				tex = TexMan["F1_DM"];
+			}
+		}
+		if(ctf) {
+				if(TexMan.CheckForTexture("F1_CTF",0,0) != -1)
+					tex = TexMan["F1_CTF"];
+			}
+			if(skulltag) {
+				if(TexMan.CheckForTexture("F1_ST",0,0) != -1)
+					tex = TexMan["F1_ST"];
+			} // dm
+
+
+
 		if (InfoType > 1)
 		{
 			prevpic = TexMan[gameinfo.info.infoPage[InfoType-2]];

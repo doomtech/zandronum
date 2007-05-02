@@ -1190,6 +1190,14 @@ static void R_InitPatches ()
 		"M_BNMARE",
 		"TERMINAT",
 		"HELLSTON",
+		"F1_DM", // [RC] F1 help pictures
+		"F1_TDM",
+		"F1_DUEL",
+		"F1_TERM",
+		"F1_LMS",
+		"F1_CTF",
+		"F1_ST",
+
 	};
 	static const char spinners[][9] =
 	{
