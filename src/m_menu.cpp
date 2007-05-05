@@ -72,7 +72,7 @@
 #include "team.h"
 #include "campaign.h"
 #include "cooperative.h"
-
+#include "g_level.h"
 
 #include "gl/gl_functions.h"
 
@@ -1379,21 +1379,55 @@ void M_DrawReadThis ()
 				if(TexMan.CheckForTexture("F1_LMS",0,0) != -1)
 				tex = TexMan["F1_LMS"];
 			}
+			else if(teamlms) {
+				if(TexMan.CheckForTexture("F1_TLMS",0,0) != -1)
+					tex = TexMan["F1_TLMS"];
+			}
+			else if(possession) {
+				if(TexMan.CheckForTexture("F1_POSS",0,0) != -1)
+					tex = TexMan["F1_POSS"];
+			}
+			else if(teampossession) {
+				if(TexMan.CheckForTexture("F1_TPOSS",0,0) != -1)
+					tex = TexMan["F1_TPOSS"];
+			}
 			else {
 				if(TexMan.CheckForTexture("F1_DM",0,0) != -1)
 				tex = TexMan["F1_DM"];
 			}
 		}
-		if(ctf) {
+		else if(ctf) {
 				if(TexMan.CheckForTexture("F1_CTF",0,0) != -1)
 					tex = TexMan["F1_CTF"];
-			}
-			if(skulltag) {
+		}
+		else if(skulltag) {
 				if(TexMan.CheckForTexture("F1_ST",0,0) != -1)
 					tex = TexMan["F1_ST"];
-			} // dm
+		}
+		else if(invasion) {
+				if(TexMan.CheckForTexture("F1_INV",0,0) != -1)
+					tex = TexMan["F1_INV"];
+		}
 
+		else if(survival) {
+				if(TexMan.CheckForTexture("F1_SCP",0,0) != -1)
+					tex = TexMan["F1_SCP"];
+		}
+		else if(oneflagctf) {
+				if(TexMan.CheckForTexture("F1_1FCTF",0,0) != -1)
+					tex = TexMan["F1_1FCTF"];
+		}
+		else if(cooperative){
+				if(TexMan.CheckForTexture("F1_COOP",0,0) != -1)
+					tex = TexMan["F1_COOP"];
+		}
 
+		// Did the mapper choose a custom sky via MAPINFO?
+		if((level.f1 != NULL) && (strcmp(level.f1, "") != 0)) {
+			if(TexMan.CheckForTexture(level.f1,0,0) == -1)
+				TexMan.AddPatch(level.f1); // Needs to be marked as a patch.
+			tex = TexMan[level.f1];
+		}
 
 		if (InfoType > 1)
 		{

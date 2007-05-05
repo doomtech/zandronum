@@ -26,6 +26,8 @@
 #include <stddef.h>
 #include <malloc.h>
 #include <stdio.h>
+#include <string>
+
 
 #include "i_system.h"
 #include "m_alloc.h"
@@ -1024,6 +1026,7 @@ const BYTE *R_GetColumn (FTexture *tex, int col)
 
 static void R_InitPatches ()
 {
+
 	static const char patches[][9] = 
 	{
 		"CONBACK",
@@ -1197,8 +1200,17 @@ static void R_InitPatches ()
 		"F1_LMS",
 		"F1_CTF",
 		"F1_ST",
-
+		"F1_INV",
+		"F1_POSS",
+		"F1_TLMS",
+		"F1_TPOSS",
+		"F1_SCP",
+		"F1_COOP",
+		"F1_1FCTF",
+		// Custom F1 patches, defined by mapinfo, are added dynamically.
 	};
+	
+	//for(int i = 0; i < 
 	static const char spinners[][9] =
 	{
 		"SPINBK%d",

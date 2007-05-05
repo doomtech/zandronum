@@ -3618,6 +3618,7 @@ static	void	AutoSelectTeam( void );
 static	void	JoinRed( void );
 static	void	JoinBlue( void );
 static	void	JoinRandom( void );
+static	void	ShowHelp( void );
 
 static menuitem_t JoinTeamItems[] =
 {
@@ -3633,7 +3634,7 @@ static menuitem_t JoinTeamItems[] =
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ more,		"Join random",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)JoinRandom} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
-	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
+	{ more,		"How to play",			{NULL},					{0.0}, {0.0},	{0.0}, { (value_t *)ShowHelp} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
@@ -3643,6 +3644,13 @@ static void AutoSelectTeam( void )
 {
 	AddCommandString( "team autoselect" );
 	M_ClearMenus( );
+}
+
+// [RC]  ...F1 DAMMIT!
+static void ShowHelp( void )
+{
+	M_ClearMenus( );
+	AddCommandString( "menu_help" );
 }
 
 static void JoinRed( void )
