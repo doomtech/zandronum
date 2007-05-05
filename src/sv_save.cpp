@@ -115,6 +115,7 @@ void SERVER_SAVE_ClearList( void )
 		g_SavedPlayerInfo[ulIdx].lPointCount = 0;
 		g_SavedPlayerInfo[ulIdx].lWinCount = 0;
 		g_SavedPlayerInfo[ulIdx].szName[0] = 0;
+		g_SavedPlayerInfo[ulIdx].ulTime = 0; // [RC] Time
 	}
 }
 
