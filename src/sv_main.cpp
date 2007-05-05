@@ -187,7 +187,7 @@ static	ULONG	g_ulMaxPacketSize = 0;
 //*****************************************************************************
 //	CONSOLE VARIABLES
 
-CVAR( String, sv_motd, "\\cgWelcome to this Skulltag v0.97c3 server!\n\n\\ccHope you enjoy your stay!\n\\ccIf you have any questions or requests,\n\\ccplease talk to the admin of this server. Thanks!", CVAR_ARCHIVE )
+CVAR( String, sv_motd, "\\cgWelcome to this Skulltag v" DOTVERSIONSTR " server!\n\n\\ccHope you enjoy your stay!\n\\ccIf you have any questions or requests,\n\\ccplease talk to the admin of this server. Thanks!", CVAR_ARCHIVE )
 CVAR( Bool, sv_defaultdmflags, true, 0 )
 CVAR( Bool, sv_forcepassword, false, CVAR_ARCHIVE )
 CVAR( Bool, sv_forcejoinpassword, false, CVAR_ARCHIVE )

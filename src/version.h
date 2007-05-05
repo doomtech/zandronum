@@ -40,10 +40,10 @@
 
 /** Lots of different version numbers **/
 
-#define DOTVERSIONSTR "0.97c3"
+#define DOTVERSIONSTR "0.97d-beta1"
 
 // [BB] Define DOTVERSIONSTR_NOREV to stay compatible with IWADBoxCallback in I_system.cpp
-#define DOTVERSIONSTR_NOREV "0.97c3"
+#define DOTVERSIONSTR_NOREV DOTVERSIONSTR
 
 // [BB] The version string displayed in the console.
 #define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING
@@ -55,7 +55,7 @@
 #define RC_FILEVERSION 0,0,0,SVN_REVISION_NUMBER
 #define RC_PRODUCTVERSION 0,0,0,97
 #define RC_FILEVERSION2 DOTVERSIONSTR
-#define RC_PRODUCTVERSION2 "97c3-alpha0"
+#define RC_PRODUCTVERSION2 DOTVERSIONSTR
 
 // Version identifier for network games.
 // Bump it every time you do a release unless you're certain you
@@ -79,7 +79,7 @@
 #define MINDEMOVERSION 0x205
 
 // [BC] This is what's displayed as the title for server windows.
-#define	SERVERCONSOLE_TITLESTRING	"Skulltag v0.97c3 Server"
+#define	SERVERCONSOLE_TITLESTRING	"Skulltag v" DOTVERSIONSTR " Server"
 
 // SAVEVER is the version of the information stored in level snapshots.
 // Note that SAVEVER is not directly comparable to VERSION.
