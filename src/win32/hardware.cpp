@@ -97,7 +97,7 @@ CUSTOM_CVAR (Int, vid_renderer, 1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINI
 			break;
 		}
 		//changerenderer = true;
-		Printf("You must restart GZDoom to switch the rendere\n");
+		Printf("You must restart Skulltag to switch the renderer\n");
 	}
 }
 
