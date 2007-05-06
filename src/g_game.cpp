@@ -3182,83 +3182,87 @@ void GAME_ResetMap( void )
 
 		pNewActor = Spawn( RUNTIME_TYPE( pActor ), X, Y, Z, NO_REPLACE );
 
-		// Adjust the Z position after it's spawned.
-		if ( Z == ONFLOORZ )
-			pNewActor->z += pActor->SpawnPoint[2] << FRACBITS;
-		else if ( Z == ONCEILINGZ )
-			pNewActor->z -= pActor->SpawnPoint[2] << FRACBITS;
+		// [BB] This if fixes a server crash, if ambient sounds are currently playing
+		// at the end of a countdown (DUEL start countdown for example).
+		if( pNewActor != NULL ){
+			// Adjust the Z position after it's spawned.
+			if ( Z == ONFLOORZ )
+				pNewActor->z += pActor->SpawnPoint[2] << FRACBITS;
+			else if ( Z == ONCEILINGZ )
+				pNewActor->z -= pActor->SpawnPoint[2] << FRACBITS;
 /*
-		pSector = R_PointInSubsector( X, Y )->sector;
-		pNewActor->z = pSector->floorplane.ZatPoint( X, Y );
+			pSector = R_PointInSubsector( X, Y )->sector;
+			pNewActor->z = pSector->floorplane.ZatPoint( X, Y );
 
-		// Determine the Z position to spawn this actor in.
-		if ( pActorInfo->flags & MF_SPAWNCEILING )
-			pNewActor->z = pNewActor->ceilingz - pNewActor->height - ( pActor->SpawnPoint[2] << FRACBITS );
-		else if ( pActorInfo->flags2 & MF2_SPAWNFLOAT )
-		{
-			Space = pNewActor->ceilingz - pNewActor->height - pNewActor->floorz;
-			if ( Space > 48*FRACUNIT )
+			// Determine the Z position to spawn this actor in.
+			if ( pActorInfo->flags & MF_SPAWNCEILING )
+				pNewActor->z = pNewActor->ceilingz - pNewActor->height - ( pActor->SpawnPoint[2] << FRACBITS );
+			else if ( pActorInfo->flags2 & MF2_SPAWNFLOAT )
 			{
-				Space -= 40*FRACUNIT;
-				pNewActor->z = (( Space * M_Random( )) >>8 ) + pNewActor->floorz + ( 40 * FRACUNIT );
+				Space = pNewActor->ceilingz - pNewActor->height - pNewActor->floorz;
+				if ( Space > 48*FRACUNIT )
+				{
+					Space -= 40*FRACUNIT;
+					pNewActor->z = (( Space * M_Random( )) >>8 ) + pNewActor->floorz + ( 40 * FRACUNIT );
+				}
+				else
+				{
+					pNewActor->z = pNewActor->floorz;
+				}
 			}
-			else
-			{
-				pNewActor->z = pNewActor->floorz;
-			}
-		}
-		else if ( pActorInfo->flags2 & MF2_FLOATBOB )
-			pNewActor->z = pActor->SpawnPoint[2] << FRACBITS;
+			else if ( pActorInfo->flags2 & MF2_FLOATBOB )
+				pNewActor->z = pActor->SpawnPoint[2] << FRACBITS;
 */
-		// Inherit attributes from the old actor.
-		pNewActor->SpawnPoint[0] = pActor->SpawnPoint[0];
-		pNewActor->SpawnPoint[1] = pActor->SpawnPoint[1];
-		pNewActor->SpawnPoint[2] = pActor->SpawnPoint[2];
-		pNewActor->SpawnAngle = pActor->SpawnAngle;
-		pNewActor->SpawnFlags = pActor->SpawnFlags;
-		pNewActor->angle = ANG45 * ( pActor->SpawnAngle / 45 );
-		pNewActor->tid = pActor->tid;
-		pNewActor->AddToHash( );
+			// Inherit attributes from the old actor.
+			pNewActor->SpawnPoint[0] = pActor->SpawnPoint[0];
+			pNewActor->SpawnPoint[1] = pActor->SpawnPoint[1];
+			pNewActor->SpawnPoint[2] = pActor->SpawnPoint[2];
+			pNewActor->SpawnAngle = pActor->SpawnAngle;
+			pNewActor->SpawnFlags = pActor->SpawnFlags;
+			pNewActor->angle = ANG45 * ( pActor->SpawnAngle / 45 );
+			pNewActor->tid = pActor->tid;
+			pNewActor->AddToHash( );
 
-		// Just do this stuff for monsters.
-		if ( pActor->flags & MF_COUNTKILL )
-		{
-			if ( pActor->SpawnFlags & MTF_AMBUSH )
-				pNewActor->flags |= MF_AMBUSH;
+			// Just do this stuff for monsters.
+			if ( pActor->flags & MF_COUNTKILL )
+			{
+				if ( pActor->SpawnFlags & MTF_AMBUSH )
+					pNewActor->flags |= MF_AMBUSH;
 
-			pNewActor->reactiontime = 18;
+				pNewActor->reactiontime = 18;
 
-			pNewActor->TIDtoHate = pActor->TIDtoHate;
-			pNewActor->LastLook = pActor->LastLook;
-			pNewActor->flags3 |= pActor->flags3 & MF3_HUNTPLAYERS;
-			pNewActor->flags4 |= pActor->flags4 & MF4_NOHATEPLAYERS;
+				pNewActor->TIDtoHate = pActor->TIDtoHate;
+				pNewActor->LastLook = pActor->LastLook;
+				pNewActor->flags3 |= pActor->flags3 & MF3_HUNTPLAYERS;
+				pNewActor->flags4 |= pActor->flags4 & MF4_NOHATEPLAYERS;
+			}
+
+			pNewActor->flags &= ~MF_DROPPED;
+			pNewActor->ulSTFlags |= STFL_LEVELSPAWNED;
+
+			// Handle the spawn flags of the item.
+			pNewActor->HandleSpawnFlags( );
+
+			// If the old actor counts as a kill, remove it from the total monster count
+			// since it's being deleted.
+			if ( pActor->CountsAsKill( ))
+				level.total_monsters--;
+
+			// If the old actor counts as an item, remove it from the total item count
+			// since it's being deleted.
+			if ( pActor->flags & MF_COUNTITEM )
+				level.total_items--;
+
+			// Remove the old actor.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_DestroyThing( pActor );
+
+			pActor->Destroy( );
+
+			// Tell clients to spawn the new actor.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SpawnThing( pNewActor );
 		}
-
-		pNewActor->flags &= ~MF_DROPPED;
-		pNewActor->ulSTFlags |= STFL_LEVELSPAWNED;
-
-		// Handle the spawn flags of the item.
-		pNewActor->HandleSpawnFlags( );
-
-		// If the old actor counts as a kill, remove it from the total monster count
-		// since it's being deleted.
-		if ( pActor->CountsAsKill( ))
-			level.total_monsters--;
-
-		// If the old actor counts as an item, remove it from the total item count
-		// since it's being deleted.
-		if ( pActor->flags & MF_COUNTITEM )
-			level.total_items--;
-
-		// Remove the old actor.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_DestroyThing( pActor );
-
-		pActor->Destroy( );
-
-		// Tell clients to spawn the new actor.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SpawnThing( pNewActor );
 	}
 
 	// If we're the server, tell clients the new number of total items/monsters.
