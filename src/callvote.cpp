@@ -681,7 +681,7 @@ CVAR( Bool, sv_notimelimitvote, false, CVAR_ARCHIVE );
 CVAR( Bool, sv_nowinlimitvote, false, CVAR_ARCHIVE );
 CVAR( Bool, sv_noduellimitvote, false, CVAR_ARCHIVE );
 CVAR( Bool, sv_nopointlimitvote, false, CVAR_ARCHIVE );
-CVAR( Bool, cl_showfullscreenvote, true, CVAR_ARCHIVE );
+CVAR( Bool, cl_showfullscreenvote, false, CVAR_ARCHIVE );
 CCMD( callvote )
 {
 	ULONG	ulVoteCmd;
