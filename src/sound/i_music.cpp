@@ -118,7 +118,7 @@ void I_InitMusic (void)
 
 	snd_musicvolume.Callback ();
 
-	nomusic = !!Args.CheckParm("-nomusic") || !!Args.CheckParm("-nosound");
+	nomusic = !!Args.CheckParm("-nomusic") || !!Args.CheckParm("-nosound") || !!Args.CheckParm("-host");
 
 #ifdef _WIN32
 	I_InitMusicWin32 ();
