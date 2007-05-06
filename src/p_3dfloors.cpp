@@ -675,6 +675,9 @@ void P_LineOpening (AActor * thing,const line_t *linedef, fixed_t x, fixed_t y, 
 			if(lowestfloor > lowfloor) lowfloor = lowestfloor;
 		}
 
+		// [BB] This makes the translucent lines in D2INV1 block missiles, which they should not.
+		// I have no idea why ML_3DMIDTEX is set for them. Should be investigated.
+/*
 		// some rudimentary 3DMidtex handling
 		if((linedef->flags & ML_3DMIDTEX) && 
 			P_GetMidTexturePosition(linedef, 0, &tt, &tb))
@@ -688,6 +691,7 @@ void P_LineOpening (AActor * thing,const line_t *linedef, fixed_t x, fixed_t y, 
 				if(tt > openbottom) openbottom = tt;
 			}
 		}
+*/
     }
 
 	openrange = opentop - openbottom;
