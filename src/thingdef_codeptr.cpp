@@ -934,6 +934,41 @@ void A_FireBullets (AActor *self)
 // A_FireProjectile
 //
 //==========================================================================
+
+// [BB] This functions is needed to keep code duplication at a minimum while applying the spread power.
+void A_FireCustomMissileHelper ( AActor * self,
+								 const fixed_t x,
+								 const fixed_t y,
+								 const fixed_t z,
+								 const fixed_t shootangle,
+								 const PClass * ti,
+								 const angle_t Angle,
+								 const INTBOOL AimAtAngle )
+{
+	AActor * misl=P_SpawnPlayerMissile (self, self->x+x, self->y+y, self->z+z, ti, shootangle);
+	// automatic handling of seeker missiles
+	if (misl)
+	{
+		if (linetarget && misl->flags2&MF2_SEEKERMISSILE) misl->tracer=linetarget;
+		if (!AimAtAngle)
+		{
+			// This original implementation is to aim straight ahead and then offset
+			// the angle from the resulting direction. 
+			vec3_t velocity = { misl->momx, misl->momy, 0 };
+			fixed_t missilespeed=(fixed_t)VectorLength(velocity);
+			misl->angle += Angle;
+			angle_t an = misl->angle >> ANGLETOFINESHIFT;
+			misl->momx = FixedMul (missilespeed, finecosine[an]);
+			misl->momy = FixedMul (missilespeed, finesine[an]);
+		}
+		if (misl->flags4&MF4_SPECTRAL) misl->health=-1;
+
+		// [BC] If we're the server, tell clients to spawn this missile.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SpawnMissile( misl );
+	}
+}
+
 void A_FireCustomMissile (AActor * self)
 {
 	int index=CheckIndex(6);
@@ -969,6 +1004,18 @@ void A_FireCustomMissile (AActor * self)
 
 		if (AimAtAngle) shootangle+=Angle;
 
+		A_FireCustomMissileHelper( self, x, y, z, shootangle, ti, Angle , AimAtAngle );
+
+		if (NULL != self->player )
+		{
+			if ( self->player->Powers & PW_SPREAD )
+			{
+				A_FireCustomMissileHelper( self, x, y, z, shootangle + ( ANGLE_45 / 3 ), ti, Angle, AimAtAngle );
+				A_FireCustomMissileHelper( self, x, y, z, shootangle - ( ANGLE_45 / 3 ), ti, Angle, AimAtAngle );
+			}
+		}
+
+/*
 		AActor * misl=P_SpawnPlayerMissile (self, self->x+x, self->y+y, self->z+z, ti, shootangle);
 		// automatic handling of seeker missiles
 		if (misl)
@@ -991,6 +1038,7 @@ void A_FireCustomMissile (AActor * self)
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SpawnMissile( misl );
 		}
+*/
 	}
 }
 
