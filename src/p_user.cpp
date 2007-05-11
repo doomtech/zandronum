@@ -1448,6 +1448,9 @@ void APlayerPawn::SpecialInvulnerabilityHandling (EInvulState setting, fixed_t *
 	if (setting == INVUL_Stop)
 	{
 		alpha = OPAQUE;
+		// [BB] It can't hurt to reset the colormap after invulnerability wears off.
+		if( lFixedColormap == INVERSECOLORMAP )
+			lFixedColormap = 0;
 	}
 }
 
