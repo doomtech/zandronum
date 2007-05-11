@@ -4268,6 +4268,29 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 		SERVERCOMMANDS_WeaponRailgun( source, start, end, color1, color2, maxdiff, silent );
 }
 
+void P_RailAttackWithPossibleSpread (AActor *source, int damage, int offset, int color1, int color2, float maxdiff, bool silent)
+{
+	P_RailAttack (source, damage, offset, color1, color2, maxdiff, silent );
+
+	// [BB] Apply spread.
+	if (NULL != source->player )
+	{
+		if ( source->player->Powers & PW_SPREAD )
+		{
+			fixed_t		SavedActorAngle;
+
+			SavedActorAngle = source->angle;
+
+			source->angle += ( ANGLE_45 / 3 );
+			P_RailAttack (source, damage, offset, color1, color2, maxdiff, silent );
+			source->angle = SavedActorAngle;
+
+			source->angle -= ( ANGLE_45 / 3 );
+			P_RailAttack (source, damage, offset, color1, color2, maxdiff, silent );
+			source->angle = SavedActorAngle;
+		}
+	}
+}
 //
 // [RH] P_AimCamera
 //
