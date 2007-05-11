@@ -858,6 +858,36 @@ void A_JumpIfNoAmmo(AActor * self)
 // An even more customizable hitscan attack
 //
 //==========================================================================
+
+// [BB] This functions is needed to keep code duplication at a minimum while applying the spread power.
+void A_FireBulletsHelper ( AActor *self,
+						   int NumberOfBullets,
+						   const int DamagePerBullet,
+						   const player_t * player,
+						   const int bangle,
+						   const int bslope,
+						   const fixed_t Range,
+						   const PClass * PuffType,
+						   const angle_t Spread_XY,
+						   const angle_t Spread_Z )
+{
+	if ((NumberOfBullets==1 && !player->refire) || NumberOfBullets==0)
+	{
+		int damage = ((pr_cwbullet()%3)+1)*DamagePerBullet;
+		P_LineAttack(self, bangle, Range, bslope, damage, GetDefaultByType(PuffType)->DamageType, PuffType);
+	}
+	else 
+	{
+		if (NumberOfBullets == -1) NumberOfBullets = 1;
+		for (int i=0 ; i<NumberOfBullets ; i++)
+		{
+			int angle = bangle + pr_cwbullet.Random2() * (Spread_XY / 255);
+			int slope = bslope + pr_cwbullet.Random2() * (Spread_Z / 255);
+			int damage = ((pr_cwbullet()%3)+1) * DamagePerBullet;
+			P_LineAttack(self, angle, Range, slope, damage, GetDefaultByType(PuffType)->DamageType, PuffType);
+		}
+	}
+}
 void A_FireBullets (AActor *self)
 {
 	int index=CheckIndex(7);
@@ -876,7 +906,7 @@ void A_FireBullets (AActor *self)
 	player_t * player=self->player;
 	AWeapon * weapon=player->ReadyWeapon;
 
-	int i;
+	//int i;
 	int bangle;
 	int bslope;
 
@@ -910,6 +940,15 @@ void A_FireBullets (AActor *self)
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 		return;
 
+	
+	A_FireBulletsHelper ( self, NumberOfBullets, DamagePerBullet, player, bangle, bslope, Range, PuffType, Spread_XY, Spread_Z );
+
+	if ( self->player->Powers & PW_SPREAD )
+	{
+		A_FireBulletsHelper ( self, NumberOfBullets, DamagePerBullet, player, bangle + ( ANGLE_45 / 3 ), bslope, Range, PuffType, Spread_XY, Spread_Z );
+		A_FireBulletsHelper ( self, NumberOfBullets, DamagePerBullet, player, bangle - ( ANGLE_45 / 3 ), bslope, Range, PuffType, Spread_XY, Spread_Z );
+	}
+/*
 	if ((NumberOfBullets==1 && !player->refire) || NumberOfBullets==0)
 	{
 		int damage = ((pr_cwbullet()%3)+1)*DamagePerBullet;
@@ -926,6 +965,7 @@ void A_FireBullets (AActor *self)
 			P_LineAttack(self, angle, Range, slope, damage, GetDefaultByType(PuffType)->DamageType, PuffType);
 		}
 	}
+*/
 }
 
 
@@ -1127,7 +1167,7 @@ void A_RailAttack (AActor * self)
 		if (!weapon->DepleteAmmo(weapon->bAltFire, true)) return;	// out of ammo
 	}
 
-	P_RailAttack (self, Damage, Spawnofs_XY, Color1, Color2, MaxDiff, Silent);
+	P_RailAttackWithPossibleSpread (self, Damage, Spawnofs_XY, Color1, Color2, MaxDiff, Silent);
 }
 
 //==========================================================================
@@ -1184,7 +1224,7 @@ void A_CustomRailgun (AActor *actor)
 		}
 	}
 
-	P_RailAttack (actor, Damage, Spawnofs_XY, Color1, Color2, MaxDiff, Silent);
+	P_RailAttackWithPossibleSpread (actor, Damage, Spawnofs_XY, Color1, Color2, MaxDiff, Silent);
 }
 
 //===========================================================================
