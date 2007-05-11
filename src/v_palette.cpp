@@ -799,6 +799,11 @@ void FDynamicColormap::ChangeColor (PalEntry lightcolor, int desaturate)
 	if (lightcolor != Color || desaturate != Desaturate)
 	{
 		Color = lightcolor;
+		// [BB] desaturate must be in [0,255]
+		if( desaturate > 255 )
+			desaturate = 255;
+		else if ( desaturate < 0 )
+			desaturate = 0;
 		Desaturate = desaturate;
 		if (Maps) BuildLights ();
 	}
