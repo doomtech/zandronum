@@ -439,6 +439,7 @@ typedef enum
 	SVC_DOSCROLLER,
 	SVC_GENERICCHEAT,
 	SVC_SETCAMERATOTEXTURE,
+	SVC_UPDATEPLAYERARMORDISPLAY,		// [BB] This should be reordered, once we break network compatibility with 97c3
 
 	NUM_SERVER_COMMANDS
 };

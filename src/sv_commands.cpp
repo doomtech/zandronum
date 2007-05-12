@@ -186,6 +186,7 @@ void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlay
 		NETWORK_WriteByte( &clients[ulIdx].netbuf, players[ulPlayer].userinfo.PlayerClass );
 	}
 	// [BB]: Inform the player about its health, otherwise it won't be displayed properly.
+	// The armor display is handled in SERVER_ResetInventory.
 	SERVERCOMMANDS_SetPlayerHealth( ulPlayer, ulPlayer, SVCF_ONLYTHISCLIENT );
 }
 
@@ -376,6 +377,21 @@ void SERVERCOMMANDS_SetPlayerHealth( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG 
 			NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPlayer );
 			NETWORK_WriteShort( &clients[ulIdx].netbuf, players[ulPlayer].health );
 		}
+	}
+}
+
+//*****************************************************************************
+//
+void SERVERCOMMANDS_UpdatePlayerArmorDisplay( ULONG ulPlayer )
+{
+	AInventory *pArmor = players[ulPlayer].mo->FindInventory< ABasicArmor >( );
+	ULONG ulArmorPoints = ( pArmor != NULL ) ? pArmor->Amount : 0;
+	if ( ulArmorPoints > 0 ){
+		NETWORK_CheckBuffer( ulPlayer, 3 + (ULONG)strlen( TexMan( pArmor->Icon )->Name ) );
+		NETWORK_WriteHeader( &clients[ulPlayer].netbuf, SVC_UPDATEPLAYERARMORDISPLAY );
+		NETWORK_WriteByte( &clients[ulPlayer].netbuf, ulPlayer );
+		NETWORK_WriteShort( &clients[ulPlayer].netbuf, ulArmorPoints );
+		NETWORK_WriteString( &clients[ulPlayer].netbuf, TexMan( pArmor->Icon )->Name );
 	}
 }
 

@@ -141,6 +141,7 @@ static	void	client_MovePlayer( void );
 static	void	client_DamagePlayer( void );
 static	void	client_KillPlayer( void );
 static	void	client_SetPlayerHealth( void );
+static	void	client_UpdatePlayerArmorDisplay( void );
 static	void	client_SetPlayerState( void );
 static	void	client_SetPlayerUserInfo( void );
 static	void	client_SetPlayerFrags( void );
@@ -618,6 +619,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_DOSCROLLER",
 	"SVC_GENERICCHEAT",
 	"SVC_SETCAMERATOTEXTURE",
+	"SVC_UPDATEPLAYERARMORDISPLAY",
 
 };
 
@@ -1551,6 +1553,10 @@ void CLIENT_ParsePacket( bool bSequencedPacket )
 		case SVC_SETPLAYERHEALTH:
 
 			client_SetPlayerHealth( );
+			break;
+		case SVC_UPDATEPLAYERARMORDISPLAY:
+
+			client_UpdatePlayerArmorDisplay( );
 			break;
 		case SVC_SETPLAYERSTATE:
 
@@ -3503,6 +3509,32 @@ static void client_SetPlayerHealth( void )
 	players[ulPlayer].health = lHealth;
 	if ( players[ulPlayer].mo )
 		players[ulPlayer].mo->health = lHealth;
+}
+
+//*****************************************************************************
+//
+static void client_UpdatePlayerArmorDisplay( void )
+{
+	LONG	lArmorAmount;
+	char*	pszArmorIconName;
+	ULONG	ulPlayer;
+
+	// Read in the player whose armor display is updated.
+	ulPlayer = NETWORK_ReadByte( );
+
+	// Read in the armor amount and icon;
+	lArmorAmount = NETWORK_ReadShort( );
+	pszArmorIconName = NETWORK_ReadString( );
+
+	// If this is an invalid player, break out.
+	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+		return;
+
+	AInventory *armor = players[ulPlayer].mo ? players[ulPlayer].mo->FindInventory<ABasicArmor>() : NULL;
+	if ( armor != NULL ){
+		armor->Amount = lArmorAmount;
+		armor->Icon = TexMan.GetTexture( pszArmorIconName, 0 );
+	}
 }
 
 //*****************************************************************************

@@ -2884,7 +2884,13 @@ void SERVER_ResetInventory( ULONG ulClient )
 			}
 		}
 		else
+		{
 			SERVERCOMMANDS_GiveInventory( ulClient, pInventory, ulClient, SVCF_ONLYTHISCLIENT );
+			// [BB] The armor display has to be updated seperately, otherwise
+			// the client thinks the armor is green and its amount is equal to 1.
+			if ( (pInventory->IsKindOf( RUNTIME_CLASS( AArmor ))) )
+				SERVERCOMMANDS_UpdatePlayerArmorDisplay( ulClient );
+		}
 	}
 
 	for ( pInventory = players[ulClient].mo->Inventory; pInventory != NULL; pInventory = pInventory->Inventory )

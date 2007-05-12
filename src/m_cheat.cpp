@@ -611,6 +611,12 @@ void cht_Give (player_t *player, const char *name, int amount)
 			{
 				// [BB] This construction is more or less a hack, but at least the give cheats are now working.
 				SERVER_GiveInventoryToPlayer( player, armor );
+				// [BB] The amount is not set properly with the command above, so we have to update the client side display.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER ){
+					ULONG playerIdx = SERVER_GetPlayerIndexFromName( player->userinfo.netname );
+					if ( playerIdx < MAXPLAYERS )
+						SERVERCOMMANDS_UpdatePlayerArmorDisplay( playerIdx );
+				}
 			}
 		}
 		else
@@ -628,6 +634,7 @@ void cht_Give (player_t *player, const char *name, int amount)
 				{
 					// [BB] This construction is more or less a hack, but at least the give cheats are now working.
 					SERVER_GiveInventoryToPlayer( player, armor );
+					// [BB] Should have the same problem as in the case above, but I don't care about Hexen compatibility at the moment.
 				}
 			}
 		}
