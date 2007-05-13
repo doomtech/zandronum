@@ -211,6 +211,13 @@ bool MAPROTATION_IsMapInRotaion( char *pszMapName )
 //
 static void maprotation_AddMap( char *pszMapName )
 {
+	// [BB] Check if the wads contain the map at all. If not, don't add it to the map rotation.
+	if( Wads.CheckNumForName( pszMapName ) == -1 )
+	{
+		Printf( "map %s not found!\n", pszMapName );
+		return;
+	}
+
 	ULONG	ulIdx;
 
 	for ( ulIdx = 0; ulIdx < MAX_MAPROTATIONLIST_ENTRIES; ulIdx++ )
