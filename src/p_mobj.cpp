@@ -3775,6 +3775,8 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 			TEAM_ExecuteReturnRoutine( NUM_TEAMS, NULL );
 	}
 
+	gl_SetActorLights(actor);
+
 	unclock( g_SpawnCycles );
 	return actor;
 }
