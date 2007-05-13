@@ -2796,7 +2796,15 @@ void D_DoomMain (void)
 
 			// Check if we have map rotation setup. If we do, use the first map there.
 			if (( sv_maprotation ) && ( MAPROTATION_GetNumEntries( ) > 0 ))
-				G_InitNew( MAPROTATION_GetMapName( 0 ), false );
+			{
+				// [BB] G_InitNew seems to alter the contents of the first argument, which it shouldn't.
+				// This causes the "Frags" bug. The following is just a workaround, the behavior of
+				// G_InitNew should be fixed.
+				char levelname[10];
+				sprintf( levelname, "%s", MAPROTATION_GetMapName( 0 ));
+				G_InitNew( levelname, false );
+				//G_InitNew( MAPROTATION_GetMapName( 0 ), false );
+			}
 			else
 				G_InitNew( startmap, false );
 		}

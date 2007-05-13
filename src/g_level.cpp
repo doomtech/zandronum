@@ -1737,6 +1737,7 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 	{
 		gamestate = GS_LEVEL;
 	}
+	// [BB] Somehow G_DoLoadLevel alters the contents of mapname. This causes the "Frags" bug.
 	G_DoLoadLevel (0, false);
 
 //	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
