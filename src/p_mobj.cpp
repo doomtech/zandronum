@@ -2175,6 +2175,28 @@ void P_ZMovement (AActor *mo)
 	fixed_t delta;
 	fixed_t oldz = mo->z;
 
+	// Intercept the stupid 'fall through 3dfloors' bug SSNTails 06-13-2002
+
+	// [GrafZahl] This is a really ugly workaround... :(
+	// But unless the collision code is completely rewritten it is the 
+	// only way to avoid problems caused by incorrect positioning info...
+	for(int i=0;i<mo->Sector->e->ffloors.Size();i++)
+    {
+		F3DFloor*  rover=mo->Sector->e->ffloors[i];
+
+		if (!(rover->flags&FF_EXISTS)) continue;
+		if(!(rover->flags & FF_SOLID) || !(rover->flags & FF_EXISTS)) continue;
+
+		fixed_t ff_bottom=rover->bottom.plane->ZatPoint(mo->x, mo->y);
+		fixed_t ff_top=rover->top.plane->ZatPoint(mo->x, mo->y);
+		
+		fixed_t delta1 = mo->z - (ff_bottom + ((ff_top-ff_bottom)/2));
+		fixed_t delta2 = mo->z + mo->height - (ff_bottom + ((ff_top-ff_bottom)/2));
+
+		if(ff_top > mo->floorz && abs(delta1) < abs(delta2)) mo->floorz = ff_top;
+		if(ff_bottom < mo->ceilingz && abs(delta1) >= abs(delta2)) mo->ceilingz = ff_bottom;
+    }
+
 //	
 // check for smooth step up
 //
@@ -2259,6 +2281,7 @@ void P_ZMovement (AActor *mo)
 		{ // [RH] Let the sector do something to the actor
 			mo->Sector->SecActTarget->TriggerAction (mo, SECSPAC_HitFloor);
 		}
+		P_CheckFor3DFloorHit(mo);
 		// [RH] Need to recheck this because the sector action might have
 		// teleported the actor so it is no longer below the floor.
 		if (mo->z <= mo->floorz)
@@ -2396,6 +2419,7 @@ void P_ZMovement (AActor *mo)
 		{ // [RH] Let the sector do something to the actor
 			mo->Sector->SecActTarget->TriggerAction (mo, SECSPAC_HitCeiling);
 		}
+		P_CheckFor3DCeilingHit(mo);
 		// [RH] Need to recheck this because the sector action might have
 		// teleported the actor so it is no longer above the ceiling.
 		if (mo->z + mo->height > mo->ceilingz)
@@ -3189,6 +3213,23 @@ void AActor::Tick ()
 		floorz == z)
 	{
 		const secplane_t * floorplane = &floorsector->floorplane;
+		static secplane_t copyplane;
+
+		// Check 3D floors as well
+		for(unsigned int i=0;i<floorsector->e->ffloors.Size();i++)
+		{
+			F3DFloor * rover= floorsector->e->ffloors[i];
+			if(!(rover->flags & FF_SOLID) || !(rover->flags & FF_EXISTS)) continue;
+
+			if (rover->top.plane->ZatPoint(x, y) == floorz)
+			{
+				copyplane = *rover->top.plane;
+				if (copyplane.c<0) copyplane.FlipVert();
+				floorplane = &copyplane;
+				break;
+			}
+		}
+
 		if (floorplane->c < STEEPSLOPE &&
 			floorplane->ZatPoint (x, y) <= floorz)
 		{
@@ -3880,8 +3921,6 @@ void AActor::Deactivate (AActor *activator)
 // P_RemoveMobj
 //
 
-void GL_DestroyActorLights(AActor *actor); // [ZDoomGL]
-
 void AActor::Destroy ()
 {
 	ULONG	ulIdx;
@@ -3952,6 +3991,9 @@ void AActor::AdjustFloorClip ()
 	fixed_t oldclip = floorclip;
 	fixed_t shallowestclip = FIXED_MAX;
 	const msecnode_t *m;
+
+	// possibly standing on a 3D-floor!
+	if (Sector->e->ffloors.Size() && z>Sector->floorplane.ZatPoint(x,y)) floorclip=0;
 
 	// [RH] clip based on shallowest floor player is standing on
 	// If the sector has a deep water effect, then let that effect
@@ -4290,6 +4332,12 @@ void P_SpawnPlayer (mapthing2_t *mthing, bool bClientUpdate, player_t *p, bool t
 			// having been killed (ex. when a player changes teams).
 			if ( oldactor != NULL )
 				DObject::PointerSubstitution (oldactor, p->mo);
+/* [BB] Check if this neeeds to be done
+			// PointerSubstitution() will also affect the bodyque, so undo that now.
+			for (int ii=0; ii < BODYQUESIZE; ++ii)
+				if (bodyque[ii] == p->mo)
+					bodyque[ii] = oldactor;
+*/
 			FBehavior::StaticStartTypedScripts (SCRIPT_Respawn, p->mo, true);
 		}
 	}
@@ -4566,29 +4614,6 @@ void P_SpawnMapThing (mapthing2_t *mthing, int position)
 		return;
 	}
 
-	/*
-	// [ZDoomGL] - convert Vavoom lights
-	BYTE args[5];
-	if (mthing->type == 1502)
-	{
-		memcpy(args, mthing->args, 5);
-		mthing->type = 9825;
-		mthing->args[LIGHT_INTENSITY] = args[0];
-		mthing->args[LIGHT_RED] = 128;
-		mthing->args[LIGHT_GREEN] = 128;
-		mthing->args[LIGHT_BLUE] = 128;
-	}
-	else if (mthing->type == 1503)
-	{
-		memcpy(args, mthing->args, 5);
-		mthing->type = 9825;
-		mthing->args[LIGHT_INTENSITY] = args[0];
-		mthing->args[LIGHT_RED] = args[1] >> 1;
-		mthing->args[LIGHT_GREEN] = args[2] >> 1;
-		mthing->args[LIGHT_BLUE] = args[3] >> 1;
-	}
-	*/
-
 	// [RH] Determine if it is an old ambient thing, and if so,
 	//		map it to MT_AMBIENT with the proper parameter.
 	if (mthing->type >= 14001 && mthing->type <= 14064)
@@ -4797,9 +4822,11 @@ AActor *P_SpawnPuff (const PClass *pufftype, fixed_t x, fixed_t y, fixed_t z, an
 
 
 
+//---------------------------------------------------------------------------
 //
 // P_SpawnBlood
 // 
+//---------------------------------------------------------------------------
 void P_SpawnBlood (fixed_t x, fixed_t y, fixed_t z, angle_t dir, int damage, AActor *originator)
 {
 	ABlood *th;
