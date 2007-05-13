@@ -1665,7 +1665,10 @@ CCMD( changeteam )
 
 	// Not a team mode.
 	if (( teamgame == false ) && ( teamplay == false ) && ( teamlms == false ) && ( teampossession == false ))
+	{
+		Printf( "You can only change your team in a team game.\n" );
 		return;
+	}
 
 	// "No team change" dmflag is set. Ignore this.
 	if ( dmflags2 & DF2_NO_TEAM_SWITCH )
