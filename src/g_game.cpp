@@ -93,6 +93,8 @@
 #include "cl_commands.h"
 #include "possession.h"
 
+#include "gl/gl_lights.h"
+
 #include <zlib.h>
 
 #include "g_hub.h"
@@ -3147,7 +3149,10 @@ void GAME_ResetMap( void )
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_DestroyThing( pActor );
 
-			pActor->Destroy( );
+			// [BB] Destroying lights here will result in crashes after the countdown
+			// of a duel ends in skirmish. Has to be investigated.
+			if( !pActor->IsKindOf( RUNTIME_CLASS( ADynamicLight ) ) )
+				pActor->Destroy( );
 			continue;
 		}
 
