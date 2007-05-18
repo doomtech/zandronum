@@ -51,6 +51,8 @@ FShader * activeShader;
 FShader * shader_Null;
 FShader * shader_InverseMap;
 FShader * shader_GoldMap;
+FShader * shader_RedMap;
+FShader * shader_GreenMap;
 FShader * shader_Warp1;
 FShader * shader_Warp1_NoFog;
 FShader * shader_Warp2;
@@ -224,6 +226,20 @@ void gl_InitShaders()
 			shader_GoldMap=NULL;
 		}
 
+		shader_RedMap = new FShader;
+		if (!shader_RedMap->Load("Red", "shaders/red.vp", "shaders/red.fp"))
+		{
+			delete shader_RedMap;
+			shader_RedMap=NULL;
+		}
+
+		shader_GreenMap = new FShader;
+		if (!shader_GreenMap->Load("Green", "shaders/green.vp", "shaders/green.fp"))
+		{
+			delete shader_GreenMap;
+			shader_GreenMap=NULL;
+		}
+
 		shader_Warp1 = new FShader;
 		if (!shader_Warp1->Load("Warp1", "shaders/warp1.vp", "shaders/warp1.fp"))
 		{
@@ -292,6 +308,14 @@ bool gl_SetColorMode(int cm, bool force)
 		case CM_GOLDMAP:
 			if (!shader_GoldMap) return false;
 			shader_GoldMap->Bind();
+			break;
+		case CM_REDMAP:
+			if (!shader_RedMap) return false;
+			shader_RedMap->Bind();
+			break;
+		case CM_GREENMAP:
+			if (!shader_GreenMap) return false;
+			shader_GreenMap->Bind();
 			break;
 		}
 		lastcmap=cm;

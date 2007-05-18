@@ -213,8 +213,7 @@ void CopyColors(unsigned char * pout, const unsigned char * pin, int cm, int cou
 		// Doom's inverted invulnerability map
 		for(i=0;i<count;i++)
 		{
-			int gray = 255 - T::Gray(pin);
-			pout[0] = pout[1] = pout[2] = clamp<int>(gray, 0, 255);
+			gl_InverseMap(T::Gray(pin), pout[0], pout[1], pout[2]);
 			pout[3] = T::A(pin);
 			pout+=4;
 			pin+=step;
@@ -225,10 +224,7 @@ void CopyColors(unsigned char * pout, const unsigned char * pin, int cm, int cou
 		// Heretic's golden invulnerability map
 		for(i=0;i<count;i++)
 		{
-			int gray = T::Gray(pin);
-			pout[0] = clamp<int>(gray+(gray>>1), 0, 255);
-			pout[1] = clamp<int>(gray-(gray>>2), 0, 255);
-			pout[2] = 0;
+			gl_GoldMap(T::Gray(pin), pout[0], pout[1], pout[2]);
 			pout[3] = T::A(pin);
 			pout+=4;
 			pin+=step;
@@ -236,13 +232,10 @@ void CopyColors(unsigned char * pout, const unsigned char * pin, int cm, int cou
 		break;
 
 	case CM_REDMAP:
-		// Skulltags's Doomsphere map
+		// Skulltag's red Doomsphere map
 		for(i=0;i<count;i++)
 		{
-			int gray = T::Gray(pin);
-			pout[0] = clamp<int>(gray+(gray>>1), 0, 255);
-			pout[1] = 0;
-			pout[2] = 0;
+			gl_RedMap(T::Gray(pin), pout[0], pout[1], pout[2]);
 			pout[3] = T::A(pin);
 			pout+=4;
 			pin+=step;
@@ -253,10 +246,7 @@ void CopyColors(unsigned char * pout, const unsigned char * pin, int cm, int cou
 		// Skulltags's Guardsphere map
 		for(i=0;i<count;i++)
 		{
-			int gray = T::Gray(pin);
-			pout[0] = clamp<int>(gray+(gray>>1), 0, 255);
-			pout[1] = clamp<int>(gray+(gray>>1), 0, 255);
-			pout[2] = clamp<int>(gray-(gray>>2), 0, 255);
+			gl_GreenMap(T::Gray(pin), pout[0], pout[1], pout[2]);
 			pout[3] = T::A(pin);
 			pout+=4;
 			pin+=step;
@@ -281,7 +271,7 @@ void CopyColors(unsigned char * pout, const unsigned char * pin, int cm, int cou
 		// Since this is done in True Color the purplish tint is fully preserved - even in Doom!
 		for(i=0;i<count;i++)
 		{
-			int gray = T::Gray(pin);
+			int gray = T::Gray(pin)>>4;
 
 			pout[0] = IcePalette[gray][0];
 			pout[1] = IcePalette[gray][1];
@@ -299,11 +289,7 @@ void CopyColors(unsigned char * pout, const unsigned char * pin, int cm, int cou
 			fac=cm-CM_DESAT0;
 			for(i=0;i<count;i++)
 			{
-				int gray = T::Gray(pin);
-
-				pout[0] = (T::R(pin)*(31-fac) + gray*fac)/31;
-				pout[1] = (T::G(pin)*(31-fac) + gray*fac)/31;
-				pout[2] = (T::B(pin)*(31-fac) + gray*fac)/31;
+				gl_Desaturate(T::Gray(pin), T::R(pin), T::G(pin), T::B(pin), pout[0], pout[1], pout[2], fac);
 				pout[3] = T::A(pin);
 				pout+=4;
 				pin+=step;
@@ -387,9 +373,8 @@ void ModifyPalette(PalEntry * pout, PalEntry * pin, int cm, int count)
 		// Doom's inverted invulnerability map
 		for(i=0;i<count;i++)
 		{
-			int gray = 255-((pin[i].r*77 + pin[i].g*143 + pin[i].b*37) >> 8);
-			pout[i].r = pout[i].g = pout[i].b = clamp<int>(gray, 0, 255);
-			pout[i].a = pin[i].a;
+			int gray = (pin[i].r*77 + pin[i].g*143 + pin[i].b*37) >> 8;
+			gl_InverseMap(gray, pout[i].r, pout[i].g, pout[i].b);
 		}
 		break;
 
@@ -397,23 +382,17 @@ void ModifyPalette(PalEntry * pout, PalEntry * pin, int cm, int count)
 		// Heretic's golden invulnerability map
 		for(i=0;i<count;i++)
 		{
-			int gray = (pin[i].r*77 + pin[i].g*143 + pin[i].b*37)>>8;
-			pout[i].r = clamp<int>(gray+(gray>>1), 0, 255);
-			pout[i].g = clamp<int>(gray-(gray>>2), 0, 255);
-			pout[i].b = 0;
-			pout[i].a = pin[i].a;
+			int gray = (pin[i].r*77 + pin[i].g*143 + pin[i].b*37) >> 8;
+			gl_GoldMap(gray, pout[i].r, pout[i].g, pout[i].b);
 		}
 		break;
 
 	case CM_REDMAP:
-		// Skulltags's Doomsphere map
+		// Skulltag's red Doomsphere map
 		for(i=0;i<count;i++)
 		{
-			int gray = (pin[i].r*77 + pin[i].g*143 + pin[i].b*37)>>8;
-			pout[i].r = clamp<int>(gray+(gray>>1), 0, 255);
-			pout[i].g = 0;
-			pout[i].b = 0;
-			pout[i].a = pin[i].a;
+			int gray = (pin[i].r*77 + pin[i].g*143 + pin[i].b*37) >> 8;
+			gl_RedMap(gray, pout[i].r, pout[i].g, pout[i].b);
 		}
 		break;
 
@@ -421,11 +400,8 @@ void ModifyPalette(PalEntry * pout, PalEntry * pin, int cm, int count)
 		// Skulltags's Guardsphere map
 		for(i=0;i<count;i++)
 		{
-			int gray = (pin[i].r*77 + pin[i].g*143 + pin[i].b*37)>>8;
-			pout[i].r = clamp<int>(gray+(gray>>1), 0, 255);
-			pout[i].g = clamp<int>(gray+(gray>>1), 0, 255);
-			pout[i].b = clamp<int>(gray-(gray>>2), 0, 255);
-			pout[i].a = pin[i].a;
+			int gray = (pin[i].r*77 + pin[i].g*143 + pin[i].b*37) >> 8;
+			gl_GreenMap(gray, pout[i].r, pout[i].g, pout[i].b);
 		}
 		break;
 
@@ -488,10 +464,7 @@ void ModifyPalette(PalEntry * pout, PalEntry * pin, int cm, int count)
 			for(i=0;i<count;i++)
 			{
 				int gray=(pin[i].r*77 + pin[i].g*143 + pin[i].b*36)>>8;
-
-				pout[i].r = (pin[i].r*(31-fac) + gray*fac)/31;
-				pout[i].g = (pin[i].g*(31-fac) + gray*fac)/31;
-				pout[i].b = (pin[i].b*(31-fac) + gray*fac)/31;
+				gl_Desaturate(gray, pin[i].r, pin[i].g, pin[i].b, pout[i].r, pout[i].g, pout[i].b, fac);
 				pout[i].a = pin[i].a;
 			}
 		}
@@ -1042,6 +1015,7 @@ void FPCXTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_heig
 			BYTE c;
 			lump.Seek(-769, SEEK_END);
 			lump >> c;
+			c=0x0c;	// Apparently there's many non-compliant PCXs out there...
 			if (c !=0x0c) 
 			{
 				for(int i=0;i<256;i++) pe[i]=PalEntry(0,i,i,i);	// default to a gray map
@@ -1611,21 +1585,6 @@ const PatchTextureInfo * FGLTexture::GetPatchTextureInfo()
 	if (!glpatch) 
 	{
 		glpatch=new GLTexture(Width, Height, false, false);
-
-		/* disabled because it doesn't work and because anything that is drawn as patch cannot
-		// be replaced this way anyway.
-		if (!(gl.flags&RFL_NPOT_TEXTURE) && CheckExternalFile()>0) 
-		{
-			int w,h;
-
-			// Special handling required for hires sprites:
-			// To get the real texture size I have to create the actual texture here!
-			unsigned char * buffer = CreateTexBuffer(CM_DEFAULT, 0, NULL, w, h);
-			ProcessData(buffer, w, h, CM_DEFAULT, false);
-			glpatch->CreateTexture(buffer, w, h, false, CM_DEFAULT);
-			delete buffer;
-		}
-		*/
 	}
 	if (glpatch) return (PatchTextureInfo*)this; 	
 	return NULL;

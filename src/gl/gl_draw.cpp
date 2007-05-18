@@ -56,12 +56,11 @@ void gl_DrawTexture(FTexInfo *texInfo)
 {
 	float x, y, w, h;
 	float ox, oy, cx, cy, r, g, b;
+	float light = 1.f;
 	
 	x = texInfo->x;
 	y = texInfo->y;
 	w = texInfo->width;
-	// add one since it looks like the software functions are inclusive of the entire height (0..n) while
-	// the GL functions are exclusive (0..n-1)
 	h = texInfo->height;
 	
 	FGLTexture * gltex = FGLTexture::ValidateTexture(texInfo->tex);
@@ -94,13 +93,20 @@ void gl_DrawTexture(FTexInfo *texInfo)
 			}
 			else
 			{
-				// Aside from fonts these are the only ones being used by ZDoom and they are better passed by ID.
+				// If ZDoom changes its use of translation tables this has to be adjusted for it
+				// because the texture manager doesn't implement a generic translation table handling.
 				//
-				// If ZDoom changes its use of translation tables this has to be adjusted for it!
-				//
-				if (texInfo->translation >= translationtables[TRANSLATION_Players] &&
+				if (texInfo->translation == DIM_MAP)
+				{
+					// reducing the light produces better results than using a palette-limited translation table.
+					light = .5f;
+					translationindex = 0;
+				}
+				else if (texInfo->translation >= translationtables[TRANSLATION_Players] &&
 					texInfo->translation <  translationtables[TRANSLATION_Players] + (MAXPLAYERS+1)*256)
 				{
+					// Aside from fonts these are the only ones being used by ZDoom and they are better passed by ID.
+					//
 					int in = texInfo->translation - translationtables[TRANSLATION_Players];
 					translationindex = TRANSLATION(TRANSLATION_Players, in);
 				}
@@ -150,7 +156,7 @@ void gl_DrawTexture(FTexInfo *texInfo)
 	}
 	else
 	{
-		r = g = b = 1.f;
+		r = g = b = light;
 	}
 	
 	// scissor test doesn't use the current viewport for the coordinates, so use real screen coordinates
@@ -308,15 +314,7 @@ void gl_DrawSavePic(DCanvas * canvas, const char * Filename, int x, int y, int d
 //==========================================================================
 void gl_DrawLine(int x1, int y1, int x2, int y2, int color)
 {
-#ifdef _MSC_VER
-	PalEntry p = color&0xff000000? color : GPalette.BaseColors[color];
-#else
-	PalEntry p;
-	if ( color&0xff000000 )
-		p = color;
-	else
-		p = GPalette.BaseColors[color];
-#endif
+	PalEntry p = color&0xff000000? (PalEntry)color : GPalette.BaseColors[color];
 	gl_EnableTexture(false);
 	gl.Color3ub(p.r, p.g, p.b);
 	gl.Begin(GL_LINES);

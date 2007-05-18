@@ -3,6 +3,7 @@
 
 #include "doomtype.h"
 #include "templates.h"
+#include "m_fixed.h"
 
 class FArchive;
 
@@ -177,5 +178,41 @@ void I_RestartRenderer();
 void I_CheckRestartRenderer();
 
 EXTERN_CVAR(Int, screenblocks)
+
+
+__forceinline void gl_InverseMap(int gray, BYTE & red, BYTE & green, BYTE & blue)
+{
+	red = green = blue = clamp<int>(255-gray,0,255);
+}
+
+__forceinline void gl_GoldMap(int gray, BYTE & red, BYTE & green, BYTE & blue)
+{
+	red=clamp<int>(gray+(gray>>1),0,255);
+	green=clamp<int>(gray-(gray>>2),0,255);
+	blue=0;
+}
+
+__forceinline void gl_RedMap(int gray, BYTE & red, BYTE & green, BYTE & blue)
+{
+	red=clamp<int>(gray+(gray>>1),0,255);
+	green=0;
+	blue=0;
+}
+
+__forceinline void gl_GreenMap(int gray, BYTE & red, BYTE & green, BYTE & blue)
+{
+	red=clamp<int>(gray+(gray>>1),0,255);
+	green=clamp<int>(gray+(gray>>1),0,255);
+	blue=gray;
+}
+
+__forceinline void gl_Desaturate(int gray, int ired, int igreen, int iblue, BYTE & red, BYTE & green, BYTE & blue, int fac)
+{
+	red = (ired*(31-fac) + gray*fac)/31;
+	green = (igreen*(31-fac) + gray*fac)/31;
+	blue = (iblue*(31-fac) + gray*fac)/31;
+}
+
+void gl_ModifyColor(BYTE & red, BYTE & green, BYTE & blue, int cm);
 
 #endif

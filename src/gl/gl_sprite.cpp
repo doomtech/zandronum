@@ -252,21 +252,19 @@ void GLSprite::SplitSprite(sector_t * frontsector, bool translucent)
 			copySprite.lightlevel=*lightlist[i].p_lightlevel;
 			copySprite.Colormap.CopyLightColor(*lightlist[i].p_extra_colormap);
 
+			if (gl_nocoloredspritelighting)
+			{
+				int v = (copySprite.Colormap.LightColor.r + copySprite.Colormap.LightColor.g + copySprite.Colormap.LightColor.b )/3;
+				copySprite.Colormap.LightColor.r=
+				copySprite.Colormap.LightColor.g=
+				copySprite.Colormap.LightColor.b=(255+v+v)/3;
+			}
+
 			if (!gl_isWhite(ThingColor))
 			{
-				if (gl_nocoloredspritelighting)
-				{
-					int v = (copySprite.Colormap.LightColor.r + copySprite.Colormap.LightColor.g + copySprite.Colormap.LightColor.b )/3;
-					Colormap.LightColor.r=
-					Colormap.LightColor.g=
-					Colormap.LightColor.b=(255+v+v)/3;
-				}
-				else
-				{
-					copySprite.Colormap.LightColor.r=(copySprite.Colormap.LightColor.r*ThingColor.r)>>8;
-					copySprite.Colormap.LightColor.g=(copySprite.Colormap.LightColor.g*ThingColor.g)>>8;
-					copySprite.Colormap.LightColor.b=(copySprite.Colormap.LightColor.b*ThingColor.b)>>8;
-				}
+				copySprite.Colormap.LightColor.r=(copySprite.Colormap.LightColor.r*ThingColor.r)>>8;
+				copySprite.Colormap.LightColor.g=(copySprite.Colormap.LightColor.g*ThingColor.g)>>8;
+				copySprite.Colormap.LightColor.b=(copySprite.Colormap.LightColor.b*ThingColor.b)>>8;
 			}
 
 			z1=copySprite.z2=maplightbottom;
@@ -281,69 +279,6 @@ void GLSprite::SplitSprite(sector_t * frontsector, bool translucent)
 
 
 
-//==========================================================================
-//
-// 
-//
-//==========================================================================
-void GLSprite::SetThingColor(PalEntry pe)
-{
-	byte red=pe.r;
-	byte green=pe.g;
-	byte blue=pe.b;
-	int gray;
-	int fac;
-
-	if (Colormap.LightColor.a>=CM_FIRSTCOLORMAP)
-	{
-		// Get the most appropriate translated color from the colormap
-		int palindex = ColorMatcher.Pick(red, green, blue);
-		int newindex = realcolormaps [NUMCOLORMAPS*256*(Colormap.LightColor.a - CM_FIRSTCOLORMAP) + palindex];
-
-		red = GPalette.BaseColors[newindex].r;
-		green = GPalette.BaseColors[newindex].g;
-		blue = GPalette.BaseColors[newindex].b;
-	}
-	else //if (!gl_shaderactive)
-	{
-		if (Colormap.LightColor.a==CM_INVERT || Colormap.LightColor.a==CM_LITE)
-		{
-			gray=255-((red*77 + green*143 + blue*36)>>8);
-			red=green=blue=clamp<int>(gray,0,255);
-		}
-		else if (Colormap.LightColor.a==CM_GOLDMAP)
-		{
-			gray=(red*77 + green*143 + blue*36)>>8;
-			red=clamp<int>(gray+(gray>>1),0,255);
-			green=clamp<int>(gray,0,255);
-			blue=0;
-		}
-		else if (Colormap.LightColor.a==CM_REDMAP)
-		{
-			gray=(red*77 + green*143 + blue*36)>>8;
-			red=clamp<int>(gray+(gray>>1),0,255);
-			green=0;
-			blue=0;
-		}
-		else if (Colormap.LightColor.a==CM_GREENMAP)
-		{
-			gray=(red*77 + green*143 + blue*36)>>8;
-			red=clamp<int>(gray+(gray>>1),0,255);
-			green=clamp<int>(gray+(gray>>1),0,255);
-			blue=clamp<int>(gray,0,255);
-		}
-		else if (Colormap.LightColor.a>=CM_DESAT1 && Colormap.LightColor.a<=CM_DESAT31)
-		{
-			fac=Colormap.LightColor.a-CM_DESAT0;
-			gray=(red*77 + green*143 + blue*36)>>8;
-			red  = (red  *(31-fac)+ gray*fac)/31;
-			green= (green*(31-fac)+ gray*fac)/31;
-			blue = (blue *(31-fac)+ gray*fac)/31;
-		}
-	}
-
-	ThingColor=PalEntry(red, green, blue);
-}
 
 //==========================================================================
 //
@@ -480,7 +415,11 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 	if ((translation>>8)==TRANSLATION_Blood)
 	{
 		extern PalEntry BloodTranslations[256];
-		SetThingColor(BloodTranslations[translation&255]);
+
+		ThingColor = BloodTranslations[translation&255];
+		gl_ModifyColor(ThingColor.r, ThingColor.g, ThingColor.b, Colormap.LightColor.a);
+		ThingColor.a=0;
+
 		translation = TRANSLATION(TRANSLATION_Standard, 8);
 	}
 	else ThingColor=0xffffff;
@@ -681,7 +620,9 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 
 	trans=particle->trans/255.0f;
 
-	SetThingColor(GPalette.BaseColors[particle->color]);
+	ThingColor = GPalette.BaseColors[particle->color];
+	gl_ModifyColor(ThingColor.r, ThingColor.g, ThingColor.b, Colormap.LightColor.a);
+	ThingColor.a=0;
 
 	modelframe=NULL;
 	gltexture=NULL;

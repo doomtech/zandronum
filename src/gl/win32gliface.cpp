@@ -14,7 +14,7 @@
 
 CUSTOM_CVAR(Int, gl_vid_multisample, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL )
 {
-	Printf("This won't take effect until Skulltag is restarted.\n");
+	Printf("This won't take effect until "GAMENAME" is restarted.\n");
 }
 
 RenderContext gl;
@@ -271,6 +271,7 @@ Win32GLFrameBuffer::Win32GLFrameBuffer(int width, int height, int bits, int refr
 	SetWindowLong(Window, GWL_STYLE, style);
 	SetWindowLong(Window, GWL_EXSTYLE, exStyle);
 	SetWindowPos(Window, 0, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+	I_RestoreWindowedPos();
 
 	if (!gl.InitHardware(Window, gl_vid_allowsoftware, gl_vid_compatibility, localmultisample, DoPrintText))
 	{
@@ -282,12 +283,11 @@ Win32GLFrameBuffer::Win32GLFrameBuffer(int width, int height, int bits, int refr
 	DoSetGamma();
 
 	InitializeState();
-
-
 }
 
 Win32GLFrameBuffer::~Win32GLFrameBuffer()
 {
+	I_SaveWindowedPos();
 	gl_ClearShaders();
 	if (m_supportsGamma) 
 	{

@@ -176,44 +176,15 @@ void GLWall::DrawDecal(DBaseDecal *actor, seg_t *seg, sector_t *frontSector, sec
 			blue = clamp<float>(result[2]+blue, 0, 1.0f);
 		}
 
-		red = r * red / 255.f;
-		green = g * green / 255.f;
-		blue = b * blue / 255.f;
-		
-		// adjust colors to current colormap
-		if (Colormap.LightColor.a>=CM_FIRSTCOLORMAP)
-		{
-			// Get the most appropriate translated color from the colormap
-			int palindex = ColorMatcher.Pick(quickertoint(red*255), quickertoint(green*255), quickertoint(blue*255));
-			int newindex = realcolormaps [NUMCOLORMAPS*256*(Colormap.LightColor.a - CM_FIRSTCOLORMAP) + palindex];
+		BYTE R = quickertoint(r * red);
+		BYTE G = quickertoint(g * green);
+		BYTE B = quickertoint(b * blue);
 
-			red = GPalette.BaseColors[newindex].r / 255.f;
-			green = GPalette.BaseColors[newindex].g / 255.f;
-			blue = GPalette.BaseColors[newindex].b / 255.f;
-		}
-		else //if (!gl_shaderactive)
-		{
-			if (Colormap.LightColor.a>=1 && Colormap.LightColor.a<=CM_DESAT31)
-			{
-				int fac=Colormap.LightColor.a-CM_DESAT0;
-				float gray=(red*77 + green*143 + blue*37)/257.0f;
+		gl_ModifyColor(R,G,B, Colormap.LightColor.a);
 
-				red =   (red  *(31-fac)+ gray*fac)/31;
-				green = (green*(31-fac)+ gray*fac)/31;
-				blue =  (blue *(31-fac)+ gray*fac)/31;
-			}
-			else if (Colormap.LightColor.a==CM_INVERT)
-			{
-				red=green=blue=clamp<float>(255-(red*77 + green*143 + blue*37)/257.0f,0.0f,1.0f);
-			}
-			else if (Colormap.LightColor.a==CM_GOLDMAP)
-			{
-				float gray=(red*77 + green*143 + blue*37)/257.0f;
-				red=clamp<float>(gray*1.5f, 0.0f, 1.0f);
-				green=clamp<float>(gray, 0.0f, 1.0f);
-				blue=0;
-			}
-		}
+		red = R/255.f;
+		green = G/255.f;
+		blue = B/255.f;
 	}	
 	else
 	{

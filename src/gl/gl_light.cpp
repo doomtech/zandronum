@@ -141,6 +141,32 @@ void gl_SetFogParams(int _fogdensity, PalEntry _outsidefogcolor, int _outsidefog
 	fogdensity>>=1;
 }
 
+
+void gl_ModifyColor(BYTE & red, BYTE & green, BYTE & blue, int cm)
+{
+	int gray = (red*77 + green*143 + blue*36)>>8;
+	if (cm == CM_INVERT || cm == CM_LITE)
+	{
+		gl_InverseMap(gray, red, green, blue);
+	}
+	else if (cm == CM_GOLDMAP)
+	{
+		gl_GoldMap(gray, red, green, blue);
+	}
+	else if (cm == CM_REDMAP)
+	{
+		gl_RedMap(gray, red, green, blue);
+	}
+	else if (cm == CM_GREENMAP)
+	{
+		gl_GreenMap(gray, red, green, blue);
+	}
+	else if (cm >= CM_DESAT1 && cm <= CM_DESAT31)
+	{
+		gl_Desaturate(gray, red, green, blue, red, green, blue, cm - CM_DESAT0);
+	}
+}
+
 //==========================================================================
 //
 // Get current light color

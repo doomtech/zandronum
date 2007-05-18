@@ -221,7 +221,7 @@ void gl_DrawPlayerSprites(sector_t * viewsector)
 		break;
 	case STYLE_Normal:
 
-		if (gl_light_sprites && !fullbright)
+		if (gl_light_sprites && gl_lights && !fullbright)
 		{
 			gl_SetSpriteLight(playermo, lightlevel, 0, &cm, 1.0, (PalEntry)0xffffff, true);
 		}

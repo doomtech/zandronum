@@ -592,7 +592,7 @@ static void gl_DrawBlend(sector_t * viewsector)
 		}
 	}
 
-	if (gl_blendcolormaps && blendv.a==0)
+	if (/*gl_blendcolormaps &&*/ blendv.a==0)
 	{
 		blendv = R_BlendForColormap(blendv);
 		if (blendv.a==255)
@@ -758,6 +758,7 @@ sector_t * gl_RenderView (AActor * camera, GL_IRECT * bounds, float fov, float r
 
 	// Handle Boom colormaps
 	gl_boomcolormap=CM_DEFAULT;
+	/*
 	if (mainview && !gl_blendcolormaps)
 	{
 		if (!viewsector->e->ffloors.Size() && gl_fixedcolormap==CM_DEFAULT && 
@@ -773,6 +774,7 @@ sector_t * gl_RenderView (AActor * camera, GL_IRECT * bounds, float fov, float r
 			if (blendv.a==0 && blendv<numfakecmaps) gl_boomcolormap=blendv+CM_FIRSTCOLORMAP;
 		}
 	}
+	*/
 	retval = viewsector;
 
 
