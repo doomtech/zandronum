@@ -1,6 +1,8 @@
 #ifndef __SECTORE_H
 #define __SECTORE_H
 
+#define ML_3DMIDTEX		0x40000000
+
 
 // 3D floor flags. Most are the same as in Legacy but I added some for EDGE's and Vavoom's features as well.
 
