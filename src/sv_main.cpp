@@ -2667,14 +2667,14 @@ void SERVER_KickPlayerFromGame( ULONG ulPlayer, char *pszReason )
 	sprintf( szKickString, "\\ci%s\\ci has been forced to spectate! Reason: %s\n", players[ulPlayer].userinfo.netname, pszReason );
 
 	// Already a spectator! This should not happen.
-	if ( PLAYER_IsTrueSpectator( &players[parse_cl] ))
+	if ( PLAYER_IsTrueSpectator( &players[ulPlayer] ))
 		return;
 
 	// Make this player a spectator.
-	PLAYER_SetSpectator( &players[parse_cl], true, false );
+	PLAYER_SetSpectator( &players[ulPlayer], true, false );
 
 	// Send the message out to all clients.
-	SERVERCOMMANDS_PlayerIsSpectator( parse_cl );
+	SERVERCOMMANDS_PlayerIsSpectator( ulPlayer );
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		if ( SERVER_IsValidClient( ulIdx ) == false )
