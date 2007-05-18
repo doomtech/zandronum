@@ -6327,8 +6327,8 @@ static void client_WeaponChange( void )
 static void client_WeaponRailgun( void )
 {
 	LONG		lID;
-	vec3_t		Start;
-	vec3_t		End;
+	FVector3	Start;
+	FVector3	End;
 	LONG		lColor1;
 	LONG		lColor2;
 	float		fMaxDiff;
@@ -6339,14 +6339,14 @@ static void client_WeaponRailgun( void )
 	lID = NETWORK_ReadShort( );
 
 	// Read in the XYZ position of the start of the trail.
-	Start[0] = NETWORK_ReadFloat( );
-	Start[1] = NETWORK_ReadFloat( );
-	Start[2] = NETWORK_ReadFloat( );
+	Start.X = NETWORK_ReadFloat( );
+	Start.Y = NETWORK_ReadFloat( );
+	Start.Z = NETWORK_ReadFloat( );
 
 	// Read in the XYZ position of the end of the trail.
-	End[0] = NETWORK_ReadFloat( );
-	End[1] = NETWORK_ReadFloat( );
-	End[2] = NETWORK_ReadFloat( );
+	End.X = NETWORK_ReadFloat( );
+	End.Y = NETWORK_ReadFloat( );
+	End.Z = NETWORK_ReadFloat( );
 
 	// Read in the colors of the trail.
 	lColor1 = NETWORK_ReadLong( );

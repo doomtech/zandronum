@@ -647,8 +647,8 @@ void GLMirrorPortal::DrawContents()
 		viewy = FROM_MAP((y1 + r * dy)*2 - y);
 
 		// Compensation for reendering inaccuracies
-		vec3_t v = { -dx,dy, 0};
-		VectorNormalize(v);
+		FVector2 v(-dx, dy);
+		v.MakeUnit();
 
 		viewx+= FROM_MAP(v[1] * renderdepth / 2);
 		viewy+= FROM_MAP(v[0] * renderdepth / 2);

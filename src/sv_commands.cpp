@@ -2724,7 +2724,7 @@ void SERVERCOMMANDS_WeaponChange( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulF
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_WeaponRailgun( AActor *pSource, vec3_t Start, vec3_t End, LONG lColor1, LONG lColor2, float fMaxDiff, bool bSilent, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_WeaponRailgun( AActor *pSource, const FVector3 &Start, const FVector3 &End, LONG lColor1, LONG lColor2, float fMaxDiff, bool bSilent, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 
@@ -2746,12 +2746,12 @@ void SERVERCOMMANDS_WeaponRailgun( AActor *pSource, vec3_t Start, vec3_t End, LO
 		NETWORK_CheckBuffer( ulIdx, 40 );
 		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_WEAPONRAILGUN );
 		NETWORK_WriteShort( &clients[ulIdx].netbuf, pSource->lNetID );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, Start[0] );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, Start[1] );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, Start[2] );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, End[0] );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, End[1] );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, End[2] );
+		NETWORK_WriteFloat( &clients[ulIdx].netbuf, Start.X );
+		NETWORK_WriteFloat( &clients[ulIdx].netbuf, Start.Y );
+		NETWORK_WriteFloat( &clients[ulIdx].netbuf, Start.Z );
+		NETWORK_WriteFloat( &clients[ulIdx].netbuf, End.X );
+		NETWORK_WriteFloat( &clients[ulIdx].netbuf, End.Y );
+		NETWORK_WriteFloat( &clients[ulIdx].netbuf, End.Z );
 		NETWORK_WriteLong( &clients[ulIdx].netbuf, lColor1 );
 		NETWORK_WriteLong( &clients[ulIdx].netbuf, lColor2 );
 		NETWORK_WriteFloat( &clients[ulIdx].netbuf, fMaxDiff );

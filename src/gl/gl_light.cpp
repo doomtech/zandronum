@@ -471,9 +471,8 @@ inline fixed_t P_AproxDistance3(fixed_t dx, fixed_t dy, fixed_t dz)
 //==========================================================================
 void gl_GetSpriteLight(fixed_t x, fixed_t y, fixed_t z, subsector_t * subsec, int desaturation, float * out)
 {
-	Vector lightColor;
 	ADynamicLight *light;
-	float frac, dist, lr, lg, lb;
+	float frac, lr, lg, lb;
 	float radius;
 	
 	out[0]=out[1]=out[2]=0;
@@ -487,10 +486,7 @@ void gl_GetSpriteLight(fixed_t x, fixed_t y, fixed_t z, subsector_t * subsec, in
 			light=node->lightsource;
 			if (!(light->flags2&MF2_DORMANT))
 			{
-				vec3_t lvec = { TO_MAP(x - light->x), TO_MAP(y - light->y), 
-								TO_MAP(z - light->z) };
-
-				dist = VectorLength(lvec);
+				float dist = FVector3( TO_MAP(x - light->x), TO_MAP(y - light->y), TO_MAP(z - light->z) ).Length();
 				radius = light->GetRadius() * gl_lights_size;
 				
 				if (dist < radius)
@@ -504,10 +500,11 @@ void gl_GetSpriteLight(fixed_t x, fixed_t y, fixed_t z, subsector_t * subsec, in
 						lb = light->GetBlue() / 255.0f * gl_lights_intensity;
 						if (light->IsSubtractive())
 						{
-							lightColor.Set(lr, lg, lb);
-							lr = (lightColor.Length() - lightColor.X()) * -1;
-							lg = (lightColor.Length() - lightColor.Y()) * -1;
-							lb = (lightColor.Length() - lightColor.Z()) * -1;
+							float bright = FVector3(lr, lg, lb).Length();
+							FVector3 lightColor(lr, lg, lb);
+							lr = (bright - lr) * -1;
+							lg = (bright - lg) * -1;
+							lb = (bright - lb) * -1;
 						}
 						
 						out[0] += lr * frac;

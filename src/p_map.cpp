@@ -4133,7 +4133,7 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 	fixed_t vx, vy, vz;
 	angle_t angle, pitch;
 	fixed_t x1, y1;
-	vec3_t start, end;
+	FVector3 start, end;
 	FTraceResults trace;
 	bool			bHitPlayer;
 
@@ -4153,7 +4153,9 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 	y1 += offset*finesine[angle];
 
 	RailHits.Clear ();
-	VectorFixedSet (start, x1, y1, shootz);
+	start.X = FIXED2FLOAT(x1);
+	start.Y = FIXED2FLOAT(y1);
+	start.Z = FIXED2FLOAT(shootz);
 
 	Trace (x1, y1, shootz, source->Sector, vx, vy, vz,
 		8192*FRACUNIT, MF_SHOOTABLE, ML_BLOCKEVERYTHING, source, trace,
@@ -4277,7 +4279,9 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 			source->player->ulConsecutiveRailgunHits = 0;
 	}
 
-	VectorFixedSet (end, trace.X, trace.Y, trace.Z);
+	end.X = FIXED2FLOAT(trace.X);
+	end.Y = FIXED2FLOAT(trace.Y);
+	end.Z = FIXED2FLOAT(trace.Z);
 	P_DrawRailTrail (source, start, end, color1, color2, maxdiff, silent);
 
 	// [BC] If we're the server, tell clients to create a railgun trail.
@@ -4847,7 +4851,7 @@ int		bombdistance;
 float	bombdistancefloat;
 bool	DamageSource;
 int		bombmod;
-vec3_t	bombvec;
+FVector3 bombvec;
 bool	bombdodamage;
 
 //=============================================================================
@@ -5068,7 +5072,9 @@ void P_RadiusAttack (AActor *spot, AActor *source, int damage, int distance, int
 	bombdamagefloat = (float)damage;
 	bombmod = damageType;
 	bombdodamage = dodamage;
-	VectorPosition (spot, bombvec);
+	bombvec.X = FIXED2FLOAT(spot->x);
+	bombvec.Y = FIXED2FLOAT(spot->y);
+	bombvec.Z = FIXED2FLOAT(spot->z);
 
 	radbt.Clear();
 
