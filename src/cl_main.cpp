@@ -9542,6 +9542,7 @@ CVAR( Bool, cl_startasspectator, true, CVAR_ARCHIVE )
 CVAR( Bool, cl_dontrestorefrags, false, CVAR_ARCHIVE )
 CVAR( String, cl_password, "password", CVAR_ARCHIVE )
 CVAR( String, cl_joinpassword, "password", CVAR_ARCHIVE )
+CVAR( Bool, cl_hitscandecalhack, true, CVAR_ARCHIVE )
 
 //*****************************************************************************
 //	STATISTICS

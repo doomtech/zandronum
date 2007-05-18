@@ -17,6 +17,7 @@
 #include "sv_commands.h"
 #include "team.h"
 #include "p_enemy.h"
+#include "cl_main.h"
 
 static FRandom pr_punch ("Punch");
 static FRandom pr_saw ("Saw");
@@ -665,7 +666,8 @@ void A_FireShotgun2 (AActor *actor)
 		SERVERCOMMANDS_SetPlayerState( ULONG( player - players ), STATE_PLAYER_ATTACK2, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 
 	// [BC] Weapons are handled by the server.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	// [BB] To make hitscan decals kinda work online, we may not stop here yet.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT && !cl_hitscandecalhack )
 		return;
 
 	P_BulletSlope (actor);
@@ -704,6 +706,10 @@ void A_FireShotgun2 (AActor *actor)
 						  MOD_UNKNOWN, RUNTIME_CLASS(ABulletPuff));
 		}
 	}
+
+	// [BB] Even with the online hitscan decal hack, a client has to stop here.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		return;
 
 	// [BC] If the player hit a player with his attack, potentially give him a medal.
 	if ( player->bStruckPlayer )

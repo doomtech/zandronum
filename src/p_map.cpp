@@ -58,6 +58,7 @@
 #include "g_game.h"
 #include "cooperative.h"
 #include "sv_commands.h"
+#include "cl_main.h"
 
 #define WATER_SINK_FACTOR		3
 #define WATER_SINK_SMALL_FACTOR	4
@@ -3794,6 +3795,9 @@ static bool CheckForSpectral (FTraceResults &res)
 void P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 				   int pitch, int damage, int damageType, const PClass *pufftype)
 {
+	// [BB] The only reason the client should try to execute P_LineAttack, is the online hitscan decal fix. 
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT && !cl_hitscandecalhack )
+		return;
 	fixed_t vx, vy, vz, shootz;
 	FTraceResults trace;
 	angle_t srcangle = angle;
@@ -3819,6 +3823,9 @@ void P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 		MF_SHOOTABLE, ML_BLOCKEVERYTHING, t1, trace,
 		TRACE_NoSky|TRACE_Impact, hitGhosts ? CheckForGhost : CheckForSpectral))
 	{ // hit nothing
+		// [BB] No decal will be spawned, so the client stops here. 
+		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+			return;
 		AActor *puffDefaults = GetDefaultByType (pufftype);
 		if (puffDefaults->ActiveSound)
 		{ // Play miss sound
@@ -3840,13 +3847,16 @@ void P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 
 		if (trace.HitType != TRACE_HitActor)
 		{
-			// position a bit closer for puffs
-			if (trace.HitType != TRACE_HitWall || trace.Line->special != Line_Horizon)
-			{
-				fixed_t closer = trace.Distance - 4*FRACUNIT;
-				puff = P_SpawnPuff (pufftype, t1->x + FixedMul (vx, closer),
-					t1->y + FixedMul (vy, closer),
-					shootz + FixedMul (vz, closer), angle - ANG90, 0);
+			// [BB] The client only spawns decals, no puffs.
+			if ( NETWORK_GetState( ) != NETSTATE_CLIENT ){
+				// position a bit closer for puffs
+				if (trace.HitType != TRACE_HitWall || trace.Line->special != Line_Horizon)
+				{
+					fixed_t closer = trace.Distance - 4*FRACUNIT;
+					puff = P_SpawnPuff (pufftype, t1->x + FixedMul (vx, closer),
+						t1->y + FixedMul (vy, closer),
+						shootz + FixedMul (vz, closer), angle - ANG90, 0);
+				}
 			}
 
 			// [RH] Spawn a decal
@@ -3861,9 +3871,16 @@ void P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 			{
 				P_HitWater (puff, trace.Sector);
 			}
+			// [BB] Decal has been spawned, so the client stops here. 
+			if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+				return;
 		}
 		else
 		{
+			// [BB] No decal will be spawned, so the client stops here. 
+			if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+				return;
+
 			bool bloodsplatter = (t1->flags5 & MF5_BLOODSPLATTER) ||
 									(t1->player != NULL &&	t1->player->ReadyWeapon != NULL &&
 										(t1->player->ReadyWeapon->WeaponFlags & WIF_AXEBLOOD));
