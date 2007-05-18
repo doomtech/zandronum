@@ -681,7 +681,10 @@ public:
 	SWORD LeftOffset, TopOffset;
 
 	BYTE WidthBits, HeightBits;
-	BYTE ScaleX, ScaleY;
+	//BYTE ScaleX, ScaleY;
+
+	fixed_t		xScale;
+	fixed_t		yScale;
 
 	char Name[9];
 	BYTE UseType;	// This texture's primary purpose
@@ -735,11 +738,11 @@ public:
 	int GetWidth () { return Width; }
 	int GetHeight () { return Height; }
 
-	int GetScaledWidth () { return ScaleX ? DivScale3(Width, ScaleX) : Width; }
-	int GetScaledHeight () { return ScaleY ? DivScale3(Height, ScaleY) : Height; }
+	int GetScaledWidth () { return DivScale16(Width, xScale); }
+	int GetScaledHeight () { return DivScale16(Height, yScale); }
 
-	int GetScaledLeftOffset () { return ScaleX ? DivScale3(LeftOffset, ScaleX) : Width; }
-	int GetScaledTopOffset () { return ScaleY ? DivScale3(TopOffset, ScaleY) : Height; }
+	int GetScaledLeftOffset () { return DivScale16(LeftOffset, xScale); }
+	int GetScaledTopOffset () { return DivScale16(TopOffset, yScale); }
 
 	virtual void SetFrontSkyLayer();
 
@@ -750,6 +753,28 @@ public:
 	// is immediately followed by a call to GetPixels().
 	virtual bool CheckModified ();
 	static void InitGrayMap();
+
+	void CopySize(FTexture *BaseTexture)
+	{
+		Width = BaseTexture->GetWidth();
+		Height = BaseTexture->GetHeight();
+		TopOffset = BaseTexture->TopOffset;
+		LeftOffset = BaseTexture->LeftOffset;
+		WidthBits = BaseTexture->WidthBits;
+		HeightBits = BaseTexture->HeightBits;
+		xScale = BaseTexture->xScale;
+		yScale = BaseTexture->yScale;
+		WidthMask = (1 << WidthBits) - 1;
+	}
+
+	void SetScaledSize(int fitwidth, int fitheight)
+	{
+		xScale = DivScale16(Width, fitwidth);
+		yScale = DivScale16(Height,fitheight);
+		// compensate for roundoff errors
+		if (MulScale16(xScale, fitwidth) != Width) xScale++;
+		if (MulScale16(yScale, fitheight) != Height) yScale++;
+	}
 
 protected:
 	WORD Width, Height, WidthMask;

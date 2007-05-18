@@ -194,12 +194,12 @@ public:
 
 	int GetScaledLeftOffset() const
 	{
-		return DivScale3(LeftOffset, tex->ScaleX);
+		return DivScale16(LeftOffset, tex->xScale);
 	}
 
 	int GetScaledTopOffset() const
 	{
-		return DivScale3(TopOffset, tex->ScaleY);
+		return DivScale16(TopOffset, tex->yScale);
 	}
 
 	int GetIndex() const

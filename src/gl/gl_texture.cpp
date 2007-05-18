@@ -1291,12 +1291,12 @@ FGLTexture::FGLTexture(FTexture * tx)
 	Height = tex->GetHeight();
 	LeftOffset = tex->LeftOffset;
 	TopOffset = tex->TopOffset;
+	RenderWidth = tex->GetScaledWidth();
+	RenderHeight = tex->GetScaledHeight();
 
-	scalex = tex->ScaleX ? tex->ScaleX/8.f:1.f;
-	scaley = tex->ScaleY ? tex->ScaleY/8.f:1.f;
+	scalex = tex->xScale/(float)FRACUNIT;
+	scaley = tex->yScale/(float)FRACUNIT;
 
-	RenderWidth=(short)(Width/scalex);
-	RenderHeight=(short)(Height/scaley);
 
 	// a little adjustment to make sprites look better with texture filtering:
 	// create a 1 pixel wide empty frame around them.
@@ -1348,10 +1348,10 @@ FGLTexture::~FGLTexture()
 //===========================================================================
 void FGLTexture::GetRect(GL_RECT * r) const
 {
-	r->left=-(float)LeftOffset;
-	r->top=-(float)TopOffset;
-	r->width=(float)RenderWidth;
-	r->height=(float)RenderHeight;
+	r->left=-(float)GetLeftOffset();
+	r->top=-(float)GetTopOffset();
+	r->width=(float)TextureWidth();
+	r->height=(float)TextureHeight();
 }
 
 //===========================================================================
@@ -1567,16 +1567,16 @@ unsigned char * FGLTexture::CreateTexBuffer(int _cm, int translation, const byte
 
 	if (cm<CM_FIRSTCOLORMAP || translation==DIRECT_PALETTE)
 	{
-		tex->CopyTrueColorPixels(buffer, Width, Height, LeftOffset - tex->LeftOffset, TopOffset - tex->TopOffset,
-								cm, translation);
+		tex->CopyTrueColorPixels(buffer, GetWidth(), GetHeight(), GetLeftOffset() - tex->LeftOffset, 
+				GetTopOffset() - tex->TopOffset, cm, translation);
 	}
 	else
 	{
 		// For Boom colormaps it is easiest to pass a buffer that has been mapped to the base palette
 		// Since FTexture's method is doing exactly that by calling GetPixels let's use that here
 		// to do all the dirty work for us. ;)
-		tex->FTexture::CopyTrueColorPixels(buffer, Width, Height, LeftOffset - tex->LeftOffset, 
-											TopOffset - tex->TopOffset,	cm, translation);
+		tex->FTexture::CopyTrueColorPixels(buffer, GetWidth(), GetHeight(), GetLeftOffset() - tex->LeftOffset, 
+				GetTopOffset() - tex->TopOffset, cm, translation);
 	}
 
 	return buffer;

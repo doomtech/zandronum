@@ -555,10 +555,10 @@ bool P_GetMidTexturePosition(const line_t * line, int sideno, fixed_t * ptextop,
 
 	fixed_t rowoffset=side->rowoffset;
 	fixed_t textureheight=tex->GetHeight()<<FRACBITS;
-	if (tex->ScaleY != 8 && tex->ScaleY != 0 && !tex->bWorldPanning)
+	if (tex->yScale != FRACUNIT && !tex->bWorldPanning)
 	{
-		rowoffset = DivScale3(rowoffset, tex->ScaleY);
-		textureheight = DivScale3(textureheight, tex->ScaleY);
+		rowoffset = DivScale16(rowoffset, tex->yScale);
+		textureheight = DivScale16(textureheight, tex->yScale);
 	}
 
 

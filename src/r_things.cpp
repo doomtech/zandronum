@@ -110,8 +110,6 @@ CUSTOM_CVAR( Int, cl_skins, 1, CVAR_ARCHIVE )
 		if (( lSkin >= 0 ) && ( lSkin < numskins ))
 		{
 			players[ulIdx].mo->sprite = skins[lSkin].sprite;
-			// [GZDoom]
-			//players[ulIdx].mo->xscale = players[ulIdx].mo->yscale = skins[lSkin].scale;
 			players[ulIdx].mo->scaleX = players[ulIdx].mo->scaleY = skins[lSkin].Scale;
 /*
 			// Make sure the player doesn't change sprites when his state changes.
@@ -214,7 +212,7 @@ static void R_InstallSpriteLump (int lump, unsigned frame, char rot, bool flippe
 
 	if ((int)frame > maxframe)
 		maxframe = frame;
-				
+
 	if (rotation == 0)
 	{
 		// the lump should be used for all rotations
@@ -575,9 +573,7 @@ void R_InitSkins (void)
 			}
 			else if (0 == stricmp (key, "scale"))
 			{
-				// [GZDoom]
 				skins[i].Scale = clamp<fixed_t> (FLOAT2FIXED(atof (sc_String)), 1, 256*FRACUNIT);
-				//skins[i].scale = clamp ((int)(atof (sc_String) * 64), 1, 256) - 1;
 			}
 			else if (0 == stricmp (key, "game"))
 			{
@@ -928,9 +924,7 @@ void R_InitSkins (void)
 					else if ( stricmp( szKey, "color" ) == 0 )
 						sprintf( skins[i].szColor, szValue );
 					else if ( stricmp( szKey, "scale" ) == 0 )
-						// [GZDoom]
 						skins[i].Scale = clamp<fixed_t> (FLOAT2FIXED(atof (szValue)), 1, 256*FRACUNIT);
-						//skins[i].scale = clamp ((int)(atof( szValue ) * 64), 1, 256) - 1;
 					else if ( stricmp( szKey, "game" ) == 0 )
 					{
 						// If the user is specifying another game, then select a different
@@ -1405,9 +1399,7 @@ void R_InitSprites ()
 		const PClass *type = PlayerClasses[0].Type;
 		skins[i].range0start = type->Meta.GetMetaInt (APMETA_ColorRange) & 255;
 		skins[i].range0end = type->Meta.GetMetaInt (APMETA_ColorRange) >> 8;
-		// [GZDoom]
 		skins[i].Scale = GetDefaultByType (type)->scaleX;
-		//skins[i].scale = GetDefaultByType (type)->xscale;
 		// [BC] We need to initialize the default sprite, because when we create a skin
 		// using SKININFO, we don't necessarily specify a sprite.
 		skins[i].sprite = GetDefaultByType (type)->SpawnState->sprite.index;
@@ -1431,9 +1423,7 @@ void R_InitSprites ()
 		skins[i].face[2] = 'F';
 		skins[i].range0start = basetype->Meta.GetMetaInt (APMETA_ColorRange) & 255;
 		skins[i].range0end = basetype->Meta.GetMetaInt (APMETA_ColorRange) >> 8;
-		// [GZDoom]
 		skins[i].Scale = GetDefaultByType (basetype)->scaleX;
-		//skins[i].scale = GetDefaultByType (basetype)->xscale;
 		skins[i].sprite = GetDefaultByType (basetype)->SpawnState->sprite.index;
 		skins[i].namespc = ns_global;
 
@@ -1858,11 +1848,8 @@ void R_ProjectSprite (AActor *thing, int fakeside)
 	}
 
 	// [RH] Added scaling
-	// [GZDoom]
-	gzt = fz + MulScale3(thing->scaleY, tex->TopOffset * tex->ScaleX);
-	gzb = fz + MulScale3(thing->scaleY, (tex->TopOffset - tex->GetHeight()) * tex->ScaleY);
-	//gzt = fz + (TopOffset << (FRACBITS-6-3)) * (thing->yscale+1) * tex->ScaleX;
-	//gzb = fz + ((TopOffset - tex->GetHeight()) << (FRACBITS-6-3)) * (thing->yscale+1) * tex->ScaleY;
+	gzt = fz + MulScale16(thing->scaleY, tex->TopOffset * tex->yScale);
+	gzb = fz + MulScale16(thing->scaleY, (tex->TopOffset - tex->GetHeight()) * tex->yScale);
 
 	// [RH] Reject sprites that are off the top or bottom of the screen
 	if (MulScale12 (globaluclip, tz) > viewz - gzb ||
@@ -1878,9 +1865,7 @@ void R_ProjectSprite (AActor *thing, int fakeside)
 	}
 
 	// calculate edges of the shape
-	// [GZDoom]
-	const fixed_t thingxscalemul = MulScale3(thing->scaleX, tex->ScaleX);
-	//const fixed_t thingxscalemul = ((thing->xscale+1) * tex->ScaleX) << (16-6-3);
+	const fixed_t thingxscalemul = MulScale16(thing->scaleX, tex->xScale);
 
 	tx -= (flip ? (tex->GetWidth() - tex->LeftOffset - 1) : tex->LeftOffset) * thingxscalemul;
 	x1 = centerx + MulScale32 (tx, xscale);
@@ -1896,9 +1881,7 @@ void R_ProjectSprite (AActor *thing, int fakeside)
 	if (x2 < WindowLeft || x2 <= x1)
 		return;
 
-	// [GZDoom]
-	xscale = MulScale19 (thing->scaleX, xscale * tex->ScaleX);
-	//xscale = MulScale9 (thing->xscale+1, xscale * tex->ScaleX);
+	xscale = FixedMul(FixedMul(thing->scaleX, xscale), tex->xScale);
 	iscale = (tex->GetWidth() << FRACBITS) / (x2 - x1);
 	x2--;
 
@@ -1945,22 +1928,16 @@ void R_ProjectSprite (AActor *thing, int fakeside)
 	vis->RenderStyle = thing->RenderStyle;
 	vis->AlphaColor = thing->alphacolor;
 	vis->xscale = xscale;
-	// [GZDoom]
-	vis->yscale = Scale (InvZtoScale, MulScale3(thing->scaleY, tex->ScaleY), tz)>>4;
-	//vis->yscale = Scale (InvZtoScale, ((thing->yscale+1) * tex->ScaleY) << (6-3), tz);
+	vis->yscale = Scale (InvZtoScale, MulScale16(thing->scaleY, tex->yScale), tz)>>4;
 	vis->idepth = (DWORD)DivScale32 (1, tz) >> 1;	// tz is 20.12, so idepth ought to be 12.20, but
 	vis->cx = tx2;									// signed math makes it 13.19
 	vis->gx = fx;
 	vis->gy = fy;
 	vis->gz = gzb;		// [RH] use gzb, not thing->z
 	vis->gzt = gzt;		// killough 3/27/98
-	// [GZDoom]
-	vis->floorclip = FixedDiv (thing->floorclip, MulScale3(thing->scaleY, tex->ScaleY));
+	vis->floorclip = FixedDiv (thing->floorclip, MulScale16(thing->scaleY, tex->yScale));
 	vis->texturemid = (tex->TopOffset << FRACBITS) - 
-		FixedDiv (viewz-fz+thing->floorclip, MulScale3(thing->scaleY, tex->ScaleY));
-	//vis->floorclip = SafeDivScale9 (thing->floorclip, (thing->yscale+1) * tex->ScaleY);
-	//vis->texturemid = (TopOffset << FRACBITS)
-	//	- SafeDivScale9 (viewz-fz+thing->floorclip, (thing->yscale+1) * tex->ScaleY);
+		FixedDiv (viewz-fz+thing->floorclip, MulScale16(thing->scaleY, tex->yScale));
 	vis->x1 = x1 < WindowLeft ? WindowLeft : x1;
 	vis->x2 = x2 > WindowRight ? WindowRight : x2;
 	vis->Translation = thing->Translation;		// [RH] thing translation table
@@ -2123,7 +2100,7 @@ void R_DrawPSprite (pspdef_t* psp, int pspnum, AActor *owner, fixed_t sx, fixed_
 	vis->floorclip = 0;
 
 
-	vis->texturemid = MulScale3((BASEYCENTER<<FRACBITS) - sy, tex->ScaleY) + (tex->TopOffset << FRACBITS);
+	vis->texturemid = MulScale16((BASEYCENTER<<FRACBITS) - sy, tex->yScale) + (tex->TopOffset << FRACBITS);
 
 
 	if (camera->player && (RenderTarget != screen ||
@@ -2154,19 +2131,19 @@ void R_DrawPSprite (pspdef_t* psp, int pspnum, AActor *owner, fixed_t sx, fixed_
 	}
 	vis->x1 = x1 < 0 ? 0 : x1;
 	vis->x2 = x2 >= viewwidth ? viewwidth-1 : x2;
-	vis->xscale = DivScale3(pspritexscale, tex->ScaleX);
-	vis->yscale = DivScale3(pspriteyscale, tex->ScaleY);
+	vis->xscale = DivScale16(pspritexscale, tex->xScale);
+	vis->yscale = DivScale16(pspriteyscale, tex->yScale);
 	vis->Translation = 0;		// [RH] Use default colors
 	vis->pic = tex;
 
 	if (flip)
 	{
-		vis->xiscale = -MulScale3(pspritexiscale, tex->ScaleX);
+		vis->xiscale = -MulScale16(pspritexiscale, tex->xScale);
 		vis->startfrac = (tex->GetWidth() << FRACBITS) - 1;
 	}
 	else
 	{
-		vis->xiscale = MulScale3(pspritexiscale, tex->ScaleX);
+		vis->xiscale = MulScale16(pspritexiscale, tex->xScale);
 		vis->startfrac = 0;
 	}
 
