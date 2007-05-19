@@ -46,7 +46,10 @@ bool FPCXTexture::Check(FileReader & file)
 	PCXHeader hdr;
 
 	file.Seek(0, SEEK_SET);
-	file.Read(&hdr, sizeof(hdr));
+	if (file.Read(&hdr, sizeof(hdr)) != sizeof(hdr))
+	{
+		return false;
+	}
 
 #ifdef WORDS_BIGENDIAN
 	hdr.xmin = LittleShort(hdr.xmin);
@@ -360,8 +363,9 @@ void FPCXTexture::MakeTexture()
 			BYTE c;
 			lump.Seek(-769, SEEK_END);
 			lump >> c;
-			if (c !=0x0c) memcpy(PaletteMap, GrayMap, 256);	// Fallback for files without palette
-			else for(int i=0;i<256;i++)
+			//if (c !=0x0c) memcpy(PaletteMap, GrayMap, 256);	// Fallback for files without palette
+			//else 
+			for(int i=0;i<256;i++)
 			{
 				BYTE r,g,b;
 				lump >> r >> g >> b;

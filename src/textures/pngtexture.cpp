@@ -45,8 +45,7 @@ bool FPNGTexture::Check(FileReader & file)
 {
 	DWORD id;
 	file.Seek(0, SEEK_SET);
-	file.Read(&id, 4);
-	return (id == MAKE_ID(137,'P','N','G'));
+	return file.Read(&id, 4) == 4 && id == MAKE_ID(137,'P','N','G');
 }
 
 FTexture *FPNGTexture::Create(FileReader & data, int lumpnum)
@@ -154,10 +153,23 @@ FPNGTexture::FPNGTexture (FileReader &lump, int lumpnum, int width, int height,
 			// This is like GRAB found in an ILBM, except coordinates use 4 bytes
 			{
 				DWORD hotx, hoty;
-
+				int ihotx, ihoty;
+				
 				lump >> hotx >> hoty;
-				LeftOffset = BigLong((int)hotx);
-				TopOffset = BigLong((int)hoty);
+				ihotx = BigLong((int)hotx);
+				ihoty = BigLong((int)hoty);
+				if (ihotx < -32768 || ihotx > 32767)
+				{
+					Printf ("X-Offset for PNG texture %s is bad: %d (0x%08x)\n", Wads.GetLumpFullName (lumpnum), ihotx, ihotx);
+					ihotx = 0;
+				}
+				if (ihoty < -32768 || ihoty > 32767)
+				{
+					Printf ("Y-Offset for PNG texture %s is bad: %d (0x%08x)\n", Wads.GetLumpFullName (lumpnum), ihoty, ihoty);
+					ihoty = 0;
+				}
+				LeftOffset = (int)ihotx;
+				TopOffset = (int)ihoty;
 			}
 			break;
 

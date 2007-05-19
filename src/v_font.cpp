@@ -57,6 +57,8 @@
 
 // MACROS ------------------------------------------------------------------
 
+#define DEFAULT_LOG_COLOR	PalEntry(223,223,223)
+
 // TYPES -------------------------------------------------------------------
 
 // This structure is used by BuildTranslations() to hold color information.
@@ -123,6 +125,7 @@ struct TempColorInfo
 {
 	FName Name;
 	unsigned int ParmInfo;
+	PalEntry LogColor;
 };
 
 // EXTERNAL FUNCTION PROTOTYPES --------------------------------------------
@@ -164,6 +167,7 @@ static const BYTE myislower[256] =
 
 static TArray<TranslationParm> TranslationParms[2];
 static TArray<TranslationMap> TranslationLookup;
+static TArray<PalEntry> TranslationColors;
 
 // CODE --------------------------------------------------------------------
 
@@ -542,7 +546,7 @@ void FFont::BuildTranslations (const double *luminosity, const BYTE *identity, c
 	BYTE * range2=Ranges + NumTextColors * ActiveColors;					// true color map
 
 	// Create different translations for different color ranges
-	for (i = 0; i < NUM_TEXT_COLORS; i++)
+	for (i = 0; i < NumTextColors; i++)
 	{
 		if (i == CR_UNTRANSLATED)
 		{
@@ -1615,6 +1619,7 @@ void V_InitFontColors ()
 	int c, parmchoice;
 	TempParmInfo info;
 	TempColorInfo cinfo;
+	PalEntry logcolor;
 	unsigned int i, j;
 	int k, index;
 
@@ -1626,6 +1631,8 @@ void V_InitFontColors ()
 		while (SC_GetString())
 		{
 			names.Clear();
+
+			logcolor = DEFAULT_LOG_COLOR;
 
 			// Everything until the '{' is considered a valid name for the
 			// color range.
@@ -1657,6 +1664,11 @@ void V_InitFontColors ()
 					info.StartParm[1] = parms.Size();
 					info.ParmLen[0] = info.StartParm[1] - info.StartParm[0];
 					tparm.RangeEnd = tparm.RangeStart = -1;
+				}
+				else if (SC_Compare ("Flat:"))
+				{
+					SC_MustGetString();
+					logcolor = V_GetColor (NULL, sc_String);
 				}
 				else
 				{
@@ -1748,12 +1760,14 @@ void V_InitFontColors ()
 					if (colorinfo[j].Name == names[i])
 					{
 						colorinfo[j].ParmInfo = cinfo.ParmInfo;
+						colorinfo[j].LogColor = logcolor;
 						break;
 					}
 				}
 				if (j == colorinfo.Size())
 				{
 					cinfo.Name = names[i];
+					cinfo.LogColor = logcolor;
 					colorinfo.Push (cinfo);
 				}
 			}
@@ -1778,6 +1792,7 @@ void V_InitFontColors ()
 					TranslationParms[k].Push (parms[pinfo->StartParm[k] + j]);
 				}
 			}
+			TranslationColors.Push (colorinfo[i].LogColor);
 			pinfo->Index = index++;
 		}
 		tmap.Number = pinfo->Index;
@@ -1835,6 +1850,77 @@ EColorRange V_FindFontColor (FName name)
 		}
 	}
 	return CR_UNTRANSLATED;
+}
+
+//==========================================================================
+//
+// V_LogColorFromColorRange
+//
+// Returns the color to use for text in the startup/error log window.
+//
+//==========================================================================
+
+PalEntry V_LogColorFromColorRange (EColorRange range)
+{
+	if ((unsigned int)range >= TranslationColors.Size())
+	{ // Return default color
+		return DEFAULT_LOG_COLOR;
+	}
+	return TranslationColors[range];
+}
+
+//==========================================================================
+//
+// V_ParseFontColor
+//
+// Given a pointer to a color identifier (presumably just after a color
+// escape character), return the color it identifies and advances
+// color_value to just past it.
+//
+//==========================================================================
+
+EColorRange V_ParseFontColor (const BYTE *&color_value, int normalcolor, int boldcolor)
+{
+	const BYTE *ch = color_value;
+	int newcolor = *ch++;
+
+	if (newcolor == '-')		// Normal
+	{
+		newcolor = normalcolor;
+	}
+	else if (newcolor == '+')		// Bold
+	{
+		newcolor = boldcolor;
+	}
+	else if (newcolor == '[')		// Named
+	{
+		const BYTE *namestart = ch;
+		while (*ch != ']' && *ch != '\0')
+		{
+			ch++;
+		}
+		FName rangename((const char *)namestart, int(ch - namestart), true);
+		if (*ch != '\0')
+		{
+			ch++;
+		}
+		newcolor = V_FindFontColor (rangename);
+	}
+	else if (newcolor >= 'A' && newcolor < NUM_TEXT_COLORS + 'A')	// Standard, uppercase
+	{
+		newcolor -= 'A';
+	}
+	else if (newcolor >= 'a' && newcolor < NUM_TEXT_COLORS + 'a')	// Standard, lowercase
+	{
+		newcolor -= 'a';
+	}
+	else							// Incomplete!
+	{
+		color_value = ch - (*ch == '\0');
+		return CR_UNDEFINED;
+	}
+	color_value = ch;
+	return EColorRange(newcolor);
 }
 
 //==========================================================================
