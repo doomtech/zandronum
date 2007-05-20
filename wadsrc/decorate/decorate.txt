@@ -1,3 +1,4 @@
+#include "actors/shared/blood.txt"
 #include "actors/shared/debris.txt"
 #include "actors/shared/splashes.txt"
 
@@ -10,6 +11,7 @@
 #include "actors/doom/doomdecorations.txt"
 #include "actors/doom/stealthmonsters.txt"
 
+#include "actors/raven/artiegg.txt"
 #include "actors/raven/ravenartifacts.txt"
 #include "actors/raven/ravenhealth.txt"
 
@@ -28,6 +30,16 @@
 #include "actors/hexen/puzzleitems.txt"
 #include "actors/hexen/scriptprojectiles.txt"
 #include "actors/hexen/speedboots.txt"
+
+// [BC] New Skulltag actor definitions.
+#include "actors/skulltag/skulltagarmor.txt"
+#include "actors/skulltag/skulltagartifacts.txt"
+#include "actors/skulltag/skulltagdeadthings.txt"
+#include "actors/skulltag/skulltagdecorations.txt"
+#include "actors/skulltag/skulltaghealth.txt"
+#include "actors/skulltag/skulltagrunes.txt"
+#include "actors/skulltag/skulltagscorepillars.txt"
+#include "actors/skulltag/skulltagstatues.txt"
 
 #include "actors/strife/beggars.txt"
 #include "actors/strife/merchants.txt"
