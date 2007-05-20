@@ -1,3 +1,4 @@
+// [BC] I've applied +USESPECIAL to all solid decorations.
 
 // Tech lamp ---------------------------------------------------------------
 
@@ -7,6 +8,7 @@ ACTOR TechLamp 85
 	Radius 16
 	Height 80
 	+SOLID
+	+USESPECIAL
 	States
 	{
 	Spawn:
@@ -23,6 +25,7 @@ ACTOR TechLamp2 86
 	Radius 16
 	Height 60
 	+SOLID
+	+USESPECIAL
 	States
 	{
 	Spawn:
@@ -39,6 +42,7 @@ ACTOR Column 2028
 	Radius 16
 	Height 48
 	+SOLID
+	+USESPECIAL
 	States
 	{
 	Spawn:
@@ -55,6 +59,7 @@ ACTOR TallGreenColumn 30
 	Radius 16
 	Height 52
 	+SOLID
+	+USESPECIAL
 	States
 	{
 	Spawn:
@@ -71,6 +76,7 @@ ACTOR ShortGreenColumn 31
 	Radius 16
 	Height 40
 	+SOLID
+	+USESPECIAL
 	States
 	{
 	Spawn:
@@ -87,6 +93,7 @@ ACTOR TallRedColumn 32
 	Radius 16
 	Height 52
 	+SOLID
+	+USESPECIAL
 	States
 	{
 	Spawn:
@@ -103,6 +110,7 @@ ACTOR ShortRedColumn 33
 	Radius 16
 	Height 40
 	+SOLID
+	+USESPECIAL
 	States
 	{
 	Spawn:
@@ -119,6 +127,7 @@ ACTOR SkullColumn 37
 	Radius 16
 	Height 40
 	+SOLID
+	+USESPECIAL
 	States
 	{
 	Spawn:
@@ -135,6 +144,7 @@ ACTOR HeartColumn 36
 	Radius 16
 	Height 40
 	+SOLID
+	+USESPECIAL
 	States
 	{
 	Spawn:
@@ -151,6 +161,7 @@ ACTOR EvilEye 41
 	Radius 16
 	Height 54
 	+SOLID
+	+USESPECIAL
 	States
 	{
 	Spawn:
@@ -167,6 +178,7 @@ ACTOR FloatingSkull 42
 	Radius 16
 	Height 26
 	+SOLID
+	+USESPECIAL
 	States
 	{
 	Spawn:
@@ -183,6 +195,7 @@ ACTOR TorchTree 43
 	Radius 16
 	Height 56
 	+SOLID
+	+USESPECIAL
 	States
 	{
 	Spawn:
@@ -199,6 +212,7 @@ ACTOR BlueTorch 44
 	Radius 16
 	Height 68
 	+SOLID
+	+USESPECIAL
 	States
 	{
 	Spawn:
@@ -215,6 +229,7 @@ ACTOR GreenTorch 45
 	Radius 16
 	Height 68
 	+SOLID
+	+USESPECIAL
 	States
 	{
 	Spawn:
@@ -231,6 +246,7 @@ ACTOR RedTorch 46
 	Radius 16
 	Height 68
 	+SOLID
+	+USESPECIAL
 	States
 	{
 	Spawn:
@@ -247,6 +263,7 @@ ACTOR ShortBlueTorch 55
 	Radius 16
 	Height 37
 	+SOLID
+	+USESPECIAL
 	States
 	{
 	Spawn:
@@ -263,6 +280,7 @@ ACTOR ShortGreenTorch 56
 	Radius 16
 	Height 37
 	+SOLID
+	+USESPECIAL
 	States
 	{
 	Spawn:
@@ -279,6 +297,7 @@ ACTOR ShortRedTorch 57
 	Radius 16
 	Height 37
 	+SOLID
+	+USESPECIAL
 	States
 	{
 	Spawn:
@@ -295,6 +314,7 @@ ACTOR Stalagtite 47
 	Radius 16
 	Height 40
 	+SOLID
+	+USESPECIAL
 	States
 	{
 	Spawn:
@@ -311,6 +331,7 @@ ACTOR TechPillar 48
 	Radius 16
 	Height 128
 	+SOLID
+	+USESPECIAL
 	States
 	{
 	Spawn:
@@ -342,6 +363,7 @@ ACTOR Candelabra 35
 	Radius 16
 	Height 60
 	+SOLID
+	+USESPECIAL
 	States
 	{
 	Spawn:
@@ -490,6 +512,7 @@ ACTOR HeadOnAStick 27
 	Radius 16
 	Height 56
 	+SOLID
+	+USESPECIAL
 	States
 	{
 	Spawn:
@@ -506,6 +529,7 @@ ACTOR HeadsOnAStick 28
 	Radius 16
 	Height 64
 	+SOLID
+	+USESPECIAL
 	States
 	{
 	Spawn:
@@ -522,6 +546,7 @@ ACTOR HeadCandles 29
 	Radius 16
 	Height 42
 	+SOLID
+	+USESPECIAL
 	States
 	{
 	Spawn:
@@ -538,6 +563,7 @@ ACTOR DeadStick 25
 	Radius 16
 	Height 64
 	+SOLID
+	+USESPECIAL
 	States
 	{
 	Spawn:
@@ -554,6 +580,7 @@ ACTOR LiveStick 26
 	Radius 16
 	Height 64
 	+SOLID
+	+USESPECIAL
 	States
 	{
 	Spawn:
@@ -571,6 +598,7 @@ ACTOR BigTree 54
 	Radius 32
 	Height 108
 	+SOLID
+	+USESPECIAL
 	States
 	{
 	Spawn:
@@ -588,6 +616,7 @@ ACTOR BurningBarrel 70
 	Radius 16
 	Height 32
 	+SOLID
+	+USESPECIAL
 	States
 	{
 	Spawn:
