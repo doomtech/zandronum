@@ -95,7 +95,7 @@ void A_Punch (AActor *actor)
 }
 
 // Pistol -------------------------------------------------------------------
-
+/*
 void A_FirePistol (AActor *);
 
 class APistol : public AWeapon
@@ -155,7 +155,7 @@ IMPLEMENT_ACTOR (APistol, Doom, 5010, 162)
 	PROP_Obituary("$OB_MPPISTOL")
 	PROP_Inventory_PickupMessage("$PICKUP_PISTOL_DROPPED")
 END_DEFAULTS
-
+*/
 //
 // A_FirePistol
 //
