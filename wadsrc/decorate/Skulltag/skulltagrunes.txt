@@ -200,6 +200,7 @@ ACTOR ReflectionRune : RuneGiver 5107
 	Inventory.MaxAmount 0
 	Rune.Type Reflection
 	Inventory.PickupMessage "$PICKUP_REFLECTION"
+	Inventory.PickupAnnouncerEntry "reflection"
 	States
 	{
 	Spawn:
