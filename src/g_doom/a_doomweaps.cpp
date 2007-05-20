@@ -26,48 +26,6 @@ static FRandom pr_fireplasma ("FirePlasma");
 static FRandom pr_firerail ("FireRail");
 static FRandom pr_bfgspray ("BFGSpray");
 
-// Fist ---------------------------------------------------------------------
-
-void A_Punch (AActor *);
-
-class AFist : public AWeapon
-{
-	DECLARE_ACTOR (AFist, AWeapon)
-};
-
-FState AFist::States[] =
-{
-#define S_PUNCH 0
-	S_NORMAL (PUNG, 'A',	1, A_WeaponReady		, &States[S_PUNCH]),
-
-#define S_PUNCHDOWN (S_PUNCH+1)
-	S_NORMAL (PUNG, 'A',	1, A_Lower				, &States[S_PUNCHDOWN]),
-
-#define S_PUNCHUP (S_PUNCHDOWN+1)
-	S_NORMAL (PUNG, 'A',	1, A_Raise				, &States[S_PUNCHUP]),
-
-#define S_PUNCH1 (S_PUNCHUP+1)
-	S_NORMAL (PUNG, 'B',	4, NULL 				, &States[S_PUNCH1+1]),
-	S_NORMAL (PUNG, 'C',	4, A_Punch				, &States[S_PUNCH1+2]),
-	S_NORMAL (PUNG, 'D',	5, NULL 				, &States[S_PUNCH1+3]),
-	S_NORMAL (PUNG, 'C',	4, NULL 				, &States[S_PUNCH1+4]),
-	S_NORMAL (PUNG, 'B',	5, A_ReFire 			, &States[S_PUNCH])
-};
-
-IMPLEMENT_ACTOR (AFist, Doom, -1, 0)
-	PROP_Weapon_SelectionOrder (3700)
-	// [BC] We can use this weapon while respawn invulnerability is active.
-	PROP_Weapon_Flags (WIF_WIMPY_WEAPON|WIF_ALLOW_WITH_RESPAWN_INVUL)
-	PROP_Weapon_UpState (S_PUNCHUP)
-	PROP_Weapon_DownState (S_PUNCHDOWN)
-	PROP_Weapon_ReadyState (S_PUNCH)
-	PROP_Weapon_AtkState (S_PUNCH1)
-	PROP_Weapon_HoldAtkState (S_PUNCH1)
-	PROP_Weapon_Kickback (100)
-	PROP_Obituary("$OB_MPFIST")
-
-END_DEFAULTS
-
 //
 // A_Punch
 //
@@ -269,55 +227,6 @@ void A_FirePistol (AActor *actor)
 		BOTS_PostWeaponFiredEvent( ULONG( actor->player - players ), BOTEVENT_FIREDPISTOL, BOTEVENT_ENEMY_FIREDPISTOL, BOTEVENT_PLAYER_FIREDPISTOL );
 	}
 }
-
-// Chainsaw -----------------------------------------------------------------
-
-void A_Saw (AActor *);
-
-class AChainsaw : public AWeapon
-{
-	DECLARE_ACTOR (AChainsaw, AWeapon)
-};
-
-FState AChainsaw::States[] =
-{
-#define S_SAW 0
-	S_NORMAL (SAWG, 'C',	4, A_WeaponReady		, &States[S_SAW+1]),
-	S_NORMAL (SAWG, 'D',	4, A_WeaponReady		, &States[S_SAW+0]),
-
-#define S_SAWDOWN (S_SAW+2)
-	S_NORMAL (SAWG, 'C',	1, A_Lower				, &States[S_SAWDOWN]),
-
-#define S_SAWUP (S_SAWDOWN+1)
-	S_NORMAL (SAWG, 'C',	1, A_Raise				, &States[S_SAWUP]),
-
-#define S_SAW1 (S_SAWUP+1)
-	S_NORMAL (SAWG, 'A',	4, A_Saw				, &States[S_SAW1+1]),
-	S_NORMAL (SAWG, 'B',	4, A_Saw				, &States[S_SAW1+2]),
-	S_NORMAL (SAWG, 'B',	0, A_ReFire 			, &States[S_SAW]),
-
-#define S_CSAW (S_SAW1+3)
-	S_NORMAL (CSAW, 'A',   -1, NULL 				, NULL)
-};
-
-IMPLEMENT_ACTOR (AChainsaw, Doom, 2005, 32)
-	PROP_RadiusFixed (20)
-	PROP_HeightFixed (16)
-	PROP_Flags (MF_SPECIAL)
-	PROP_SpawnState (S_CSAW)
-
-	PROP_Weapon_SelectionOrder (2200)
-	PROP_Weapon_Flags (WIF_ALLOW_WITH_RESPAWN_INVUL)
-	PROP_Weapon_UpState (S_SAWUP)
-	PROP_Weapon_DownState (S_SAWDOWN)
-	PROP_Weapon_ReadyState (S_SAW)
-	PROP_Weapon_AtkState (S_SAW1)
-	PROP_Weapon_HoldAtkState (S_SAW1)
-	PROP_Weapon_UpSound ("weapons/sawup")
-	PROP_Weapon_ReadySound ("weapons/sawidle")
-	PROP_Obituary("$OB_MPCHAINSAW")
-	PROP_Inventory_PickupMessage("$GOTCHAINSAW")
-END_DEFAULTS
 
 //
 // A_Saw

@@ -100,7 +100,7 @@ FGameConfigFile::FGameConfigFile ()
 	// directory, this effectively does nothing.
 	pathname = GetConfigPath (false);
 	ChangePathName (pathname);
-	
+
 	// Set default IWAD search paths if none present
 	if (!SetSection ("IWADSearch.Directories"))
 	{
@@ -409,8 +409,13 @@ void FGameConfigFile::DoGameSetup (const char *gamename)
 			}
 		}
 	}
+}
 
+// Separated from DoGameSetup because it needs all the weapons properly defined
+void FGameConfigFile::DoWeaponSetup (const char *gamename)
+{
 	strcpy (subsection, "WeaponSlots");
+
 	if (!SetSection (section) || !LocalWeapons.RestoreSlots (*this))
 	{
 		SetupWeaponList (gamename);
