@@ -17,6 +17,7 @@ ACTOR Fist : Weapon
 	Obituary "$OB_MPFIST"
 	+WEAPON.WIMPY_WEAPON
 	+WEAPON.MELEEWEAPON
+	+WEAPON.ALLOW_WITH_RESPAWN_INVUL
 	States
 	{
 	Ready:
@@ -55,6 +56,7 @@ ACTOR Chainsaw : Weapon 2005
 	Inventory.PickupMessage "$GOTCHAINSAW"
 	Obituary "$OB_MPCHAINSAW"
 	+WEAPON.MELEEWEAPON		
+	+WEAPON.ALLOW_WITH_RESPAWN_INVUL
 	States
 	{
 	Ready:
@@ -75,4 +77,3 @@ ACTOR Chainsaw : Weapon 2005
 		Stop
 	}
 }
-	
