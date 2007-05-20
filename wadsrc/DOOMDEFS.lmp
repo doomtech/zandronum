@@ -1567,33 +1567,33 @@ object DarkImpBall
 // Hectabus Fireball
 flickerlight HECTSHOT
 {
-    color 0.0 0.8 0.0
-    size 48
-    secondarySize 64
+    color 0.0 0.5 0.0
+    size 20
+    secondarySize 25
     chance 0.5
 }
 
 flickerlight HECTSHOT_X1
 {
-    color 0.0 0.8 0.0
-    size 64
-    secondarySize 80
+    color 0.0 0.5 0.0
+    size 20
+    secondarySize 25
     chance 0.25
 }
 
 flickerlight HECTSHOT_X2
 {
-    color 0.0 0.5 0.0
-    size 80
-    secondarySize 96
+    color 0.0 0.3 0.0
+    size 20
+    secondarySize 25
     chance 0.25
 }
 
 flickerlight HECTSHOT_X3
 {
-    color 0.0 0.2 0.0
-    size 96
-    secondarySize 112
+    color 0.0 0.1 0.0
+    size 20
+    secondarySize 25
     chance 0.25
 }
 
@@ -1789,4 +1789,128 @@ object BFG10kShot
     frame BFE1C0 { light BFG10KSHOT_X1 }
     frame BFE1D0 { light BFG10KSHOT_X2 }
     frame BFE1E0 { light BFG10KSHOT_X3 }
+}
+
+// ------------------
+// -- Decor --
+// ------------------
+
+// Evil Eye Red
+flickerlight2 RedEvilEye
+{
+    color 1.0 0.0 0.0
+    size 30
+    secondarySize 50
+    interval 0.1
+    offset 0 60 0
+}
+
+object RedEvilEye
+{
+    frame CEYR { light RedEvilEye }
+}
+
+// Evil Eye Blue
+flickerlight2 BlueEvilEye
+{
+    color 0.0 0.0 1.0
+    size 30
+    secondarySize 50
+    interval 0.1
+    offset 0 60 0
+}
+
+object BlueEvilEye
+{
+    frame CEYB { light BlueEvilEye }
+}
+
+// Red Candle Stick
+flickerlight2 RedCandleStick
+{
+    color 1.0 0.0 0.0
+    size 40
+    secondarySize 60
+    interval 0.1
+    offset 0 60 0
+}
+
+object RedCandleStick
+{
+    frame CANR { light RedCandleStick }
+}
+
+// Blue Candle Stick
+flickerlight2 BlueCandleStick
+{
+    color 0.0 0.0 1.0
+    size 40
+    secondarySize 60
+    interval 0.1
+    offset 0 60 0
+}
+
+object BlueCandleStick
+{
+    frame CANB { light BlueCandleStick }
+}
+
+// Red Tech Lamp
+flickerlight2 RedTechLamp
+{
+    color 1.0 0.0 0.0
+    size 48
+    secondarySize 64
+    interval 0.1
+    offset 0 60 0
+}
+
+object RedTechLamp
+{
+    frame TLP3 { light RedTechLamp }
+}
+
+// Red Tech Lamp 2
+flickerlight2 RedTechLamp2
+{
+    color 1.0 0.0 0.0
+    size 48
+    secondarySize 64
+    interval 0.1
+    offset 0 60 0
+}
+
+object RedTechLamp2
+{
+    frame TLP4 { light RedTechLamp2 }
+}
+
+// Red Column
+flickerlight2 RedColumn
+{
+    color 1.0 0.0 0.0
+    size 48
+    secondarySize 64
+    interval 0.1
+    offset 0 60 0
+}
+
+object RedColumn
+{
+    frame RCOL { light RedColumn }
+}
+
+// Blue Column
+flickerlight2 BlueColumn
+{
+    color 1.0 0.0 0.0
+    size 48
+    secondarySize 64
+    interval 0.1
+    offset 0 60 0
+}
+
+object BlueColumn
+{
+    frame BCOL { light BlueColumn }
 }
