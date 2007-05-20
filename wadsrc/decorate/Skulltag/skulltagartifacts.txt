@@ -1,0 +1,189 @@
+//=================================================================================================
+//
+// Turbosphere
+//
+//=================================================================================================
+
+ACTOR Turbosphere : PowerupGiver 5030
+{
+	Game Doom
+	SpawnID 169
+	+COUNTITEM
+	+NOGRAVITY
+	+INVENTORY.AUTOACTIVATE
+	+INVENTORY.ALWAYSPICKUP
+	Inventory.MaxAmount 0
+	Powerup.Type Speed
+	Powerup.Duration 1050
+	Inventory.PickupMessage "$PICKUP_TURBOSPHERE"
+	Inventory.PickupAnnouncerEntry "turbosphere"
+	States
+	{
+	Spawn:
+		TURB ABCD 3 Bright
+		Loop
+	}
+}
+
+//=================================================================================================
+//
+// Time freeze sphere
+//
+//=================================================================================================
+
+ACTOR TimeFreezeSphere : PowerupGiver 5032
+{
+	Game Doom
+	SpawnID 171
+	+COUNTITEM
+	+NOGRAVITY
+	+INVENTORY.AUTOACTIVATE
+	+INVENTORY.ALWAYSPICKUP
+	Inventory.MaxAmount 0
+	Powerup.Type TimeFreezer
+	Powerup.Color GoldMap
+	Inventory.PickupMessage "$PICKUP_TIMEFREEZER"
+	Inventory.PickupAnnouncerEntry "timefreeze"
+	States
+	{
+	Spawn:
+		TIME ABCD 6 Bright
+		Loop
+	}
+}
+
+//=================================================================================================
+//
+// Skulltag's invisibility sphere. It's a little different in that it alters your alpha.
+//
+//=================================================================================================
+
+ACTOR InvisibilitySphere : PowerupGiver 5035
+{
+	Game Doom
+	SpawnID 174
+	+COUNTITEM
+	+NOGRAVITY
+	+VISIBILITYPULSE
+	+INVENTORY.AUTOACTIVATE
+	+INVENTORY.ALWAYSPICKUP
+	Inventory.MaxAmount 0
+	Powerup.Type Translucency
+	RenderStyle Translucent
+	Inventory.PickupMessage "$PICKUP_INVISIBILITY"
+	Inventory.PickupAnnouncerEntry "invisibility"
+	States
+	{
+	Spawn:
+		INVS ABCD 6 Bright
+		Loop
+	}
+}	
+
+//=================================================================================================
+//
+// Doomsphere
+//
+//=================================================================================================
+
+ACTOR Doomsphere : PowerupGiver 5036
+{
+	Game Doom
+	SpawnID 175
+	+COUNTITEM
+	+NOGRAVITY
+	+INVENTORY.AUTOACTIVATE
+	+INVENTORY.ALWAYSPICKUP
+	Inventory.MaxAmount 0
+	Powerup.Type QuadDamage
+	Powerup.Color RedMap
+	Inventory.PickupMessage "$PICKUP_DOOMSPHERE"
+	Inventory.PickupAnnouncerEntry "doomsphere"
+	States
+	{
+	Spawn:
+		DOOM A 10 Bright
+		DOOM B 15 Bright
+		DOOM C 8 Bright
+		DOOM D 6 Bright
+		Loop
+	}
+}
+
+//=================================================================================================
+//
+// Guardsphere
+//
+//=================================================================================================
+
+ACTOR Guardsphere : PowerupGiver 5037
+{
+	Game Doom
+	SpawnID 0
+	+COUNTITEM
+	+NOGRAVITY
+	+INVENTORY.AUTOACTIVATE
+	+INVENTORY.ALWAYSPICKUP
+	Inventory.MaxAmount 0
+	Powerup.Type QuarterDamage
+	Powerup.Color GreenMap
+	Inventory.PickupMessage "$PICKUP_GUARDSPHERE"
+	Inventory.PickupAnnouncerEntry "guardsphere"
+	States
+	{
+	Spawn:
+		GARD ABCD 6 Bright
+		Loop
+	}
+}
+
+//=================================================================================================
+//
+// Terminator
+//
+//=================================================================================================
+
+ACTOR Terminator : PowerupGiver -1
+{
+	Game Doom
+	SpawnID 0
+	+COUNTITEM
+	+NOGRAVITY
+	+INVENTORY.AUTOACTIVATE
+	+INVENTORY.ALWAYSPICKUP
+	Inventory.MaxAmount 0
+	Powerup.Type TerminatorArtifact
+	Inventory.PickupMessage "$PICKUP_TERMINATOR"
+	Inventory.PickupAnnouncerEntry "terminator"
+	States
+	{
+	Spawn:
+		ARNO ABCD 6 Bright
+		Loop
+	}
+}
+
+//=================================================================================================
+//
+// Possession stone
+//
+//=================================================================================================
+
+ACTOR PossessionStone : PowerupGiver -1
+{
+	Game Doom
+	SpawnID 0
+	+COUNTITEM
+	+NOGRAVITY
+	+INVENTORY.AUTOACTIVATE
+	+INVENTORY.ALWAYSPICKUP
+	Inventory.MaxAmount 0
+	Powerup.Type PossessionArtifact
+	Inventory.PickupMessage "$PICKUP_POSSESSIONSTONE"
+	States
+	{
+	Spawn:
+		PPOS ABCDEF 6 Bright
+		Loop
+	}
+}

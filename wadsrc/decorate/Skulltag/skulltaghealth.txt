@@ -1,0 +1,23 @@
+//=================================================================================================
+//
+// Max. health bonus
+//
+//=================================================================================================
+
+ACTOR MaxHealthBonus : MaxHealth 5090
+{
+	Game Doom
+	SpawnID 166
+	+COUNTITEM
+	+INVENTORY.ALWAYSPICKUP
+	Inventory.Amount 1
+	Inventory.MaxAmount 50
+	Health 200
+	Inventory.PickupMessage "$PICKUP_MAXHEALTHBONUS"
+	States
+	{
+	Spawn:
+		BON3 ABCDCB 6
+		Loop
+	}
+}

@@ -1,0 +1,29 @@
+//=================================================================================================
+//
+// Hell score pillar
+//
+//=================================================================================================
+
+ACTOR HellScorePillar 5020
+{
+	Game Doom
+	Radius 16
+	Height 40
+	+SOLID
+	+BUMPSPECIAL
+	+SCOREPILLAR
+	States
+	{
+	Spawn:
+		HLSP A -1
+		Stop
+	Melee:
+		HLSP B 35
+		HLSP c 140
+		Goto Spawn
+	Missile:
+		HLSP D 35
+		HLSP E 140
+		Goto Spawn	
+	}
+}
