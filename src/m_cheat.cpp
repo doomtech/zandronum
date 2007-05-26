@@ -43,6 +43,7 @@
 #include "p_lnspec.h"
 #include "deathmatch.h"
 #include "announcer.h"
+#include "team.h"
 
 // [RH] Actually handle the cheat. The cheat code in st_stuff.c now just
 // writes some bytes to the network data stream, and the network code
@@ -401,12 +402,14 @@ void cht_DoCheat (player_t *player, int cheat)
 	if (!*msg)              // [SO] Don't print blank lines!
 		return;
 
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVER_Printf( PRINT_HIGH, "%s is a cheater: %s\n", player->userinfo.netname, msg );
-	else if (player == &players[consoleplayer])
-		Printf ("%s\n", msg);
-	else
-		Printf ("%s is a cheater: %s\n", player->userinfo.netname, msg);
+	if( ( cheat != CHT_CHASECAM ) || ( deathmatch == true ) || ( teamgame == true ) ){
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVER_Printf( PRINT_HIGH, "%s is a cheater: %s\n", player->userinfo.netname, msg );
+		else if (player == &players[consoleplayer])
+			Printf ("%s\n", msg);
+		else
+			Printf ("%s is a cheater: %s\n", player->userinfo.netname, msg);
+	}
 }
 
 const char *cht_Morph (player_t *player, const PClass *morphclass, bool quickundo)
