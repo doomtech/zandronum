@@ -2059,24 +2059,25 @@ void SERVER_WriteCommands( void )
 			if ( playeringame[ulIdx] == false )
 				continue;
 
+			// [BB] You can be watching through the eyes of someone, even if you are not a spectator.
+			// If this player is watching through the eyes of another player, send this
+			// player some extra info about that player to make for a better watching
+			// experience.
+			if (( clients[ulIdx].ulDisplayPlayer != ulIdx ) &&
+				( clients[ulIdx].ulDisplayPlayer <= MAXPLAYERS ) &&
+				( players[clients[ulIdx].ulDisplayPlayer].mo != NULL ))
+			{
+				SERVERCOMMANDS_UpdatePlayerExtraData( ulIdx, clients[ulIdx].ulDisplayPlayer );
+			}
+
 			// Spectators can move around freely, without us telling it what to do (lag-less).
 			if ( players[ulIdx].bSpectating ) 
 			{
 				// Don't send this to bots.
-				if ((( gametic % ( 3 * TICRATE )) == 0 ) && ( players[ulIdx].bIsBot == false )) 
+				if ((( gametic % ( 3 * TICRATE )) == 0 ) && ( players[ulIdx].bIsBot == false ) ) 
 				{
 					// Just send them one byte to let them know they're still alive.
 					SERVERCOMMANDS_Nothing( ulIdx );
-				}
-
-				// If this player is watching through the eyes of another player, send this
-				// player some extra info about that player to make for a better watching
-				// experience.
-				if (( clients[ulIdx].ulDisplayPlayer != ulIdx ) &&
-					( clients[ulIdx].ulDisplayPlayer <= MAXPLAYERS ) &&
-					( players[clients[ulIdx].ulDisplayPlayer].mo != NULL ))
-				{
-					SERVERCOMMANDS_UpdatePlayerExtraData( ulIdx, clients[ulIdx].ulDisplayPlayer );
 				}
 
 				continue;
@@ -3725,6 +3726,9 @@ static bool server_RequestJoin( void )
 	// Everything's okay! Go ahead and join!
 	players[parse_cl].playerstate = PST_REBORNNOINVENTORY;
 	players[parse_cl].bSpectating = false;
+	// [BB] It's possible that you are watching through the eyes of someone else
+	// upon joining. Doesn't hurt to reset it.
+	clients[parse_cl].ulDisplayPlayer = parse_cl;
 	if ( teamplay || ( teamgame && TemporaryTeamStarts.Size( ) == 0 ) || teamlms || teampossession )
 	{
 		players[parse_cl].bOnTeam = true;
