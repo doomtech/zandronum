@@ -66,6 +66,7 @@
 #include "thingdef.h"
 #include "v_video.h"
 #include "deathmatch.h"
+#include "cl_main.h"
 
 
 static FRandom pr_camissile ("CustomActorfire");
@@ -937,7 +938,8 @@ void A_FireBullets (AActor *self)
 	S_SoundID (self, CHAN_WEAPON, weapon->AttackSound, 1, ATTN_NORM);
 
 	// [BC] Weapons are handled by the server.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	// [BB] To make hitscan decals kinda work online, we may not stop here yet.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT && !cl_hitscandecalhack )
 		return;
 
 	
@@ -947,6 +949,29 @@ void A_FireBullets (AActor *self)
 	{
 		A_FireBulletsHelper ( self, NumberOfBullets, DamagePerBullet, player, bangle + ( ANGLE_45 / 3 ), bslope, Range, PuffType, Spread_XY, Spread_Z );
 		A_FireBulletsHelper ( self, NumberOfBullets, DamagePerBullet, player, bangle - ( ANGLE_45 / 3 ), bslope, Range, PuffType, Spread_XY, Spread_Z );
+	}
+
+	// [BB] Even with the online hitscan decal hack, a client has to stop here.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		return;
+
+	// [BB] If the player hit a player with his attack, potentially give him a medal.
+	if ( player->bStruckPlayer )
+		PLAYER_StruckPlayer( player );
+	else
+		player->ulConsecutiveHits = 0;
+
+	// [BB] Tell all the bots that a weapon was fired.
+	// This is more or less a hack, so that the bots are notified when the
+	// decorate versions of the Doom weapons are fired.
+	const char* pzsWeaponName = weapon->GetClass( )->TypeName.GetChars( );
+	if ( stricmp( pzsWeaponName, "Pistol" ) == 0 )
+	{
+		BOTS_PostWeaponFiredEvent( ULONG( player - players ), BOTEVENT_FIREDPISTOL, BOTEVENT_ENEMY_FIREDPISTOL, BOTEVENT_PLAYER_FIREDPISTOL );
+	}
+	else if ( stricmp( pzsWeaponName, "Shotgun" ) == 0 )
+	{
+		BOTS_PostWeaponFiredEvent( ULONG( player - players ), BOTEVENT_FIREDSHOTGUN, BOTEVENT_ENEMY_FIREDSHOTGUN, BOTEVENT_PLAYER_FIREDSHOTGUN );
 	}
 /*
 	if ((NumberOfBullets==1 && !player->refire) || NumberOfBullets==0)

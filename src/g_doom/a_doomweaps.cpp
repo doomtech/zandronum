@@ -348,7 +348,7 @@ void A_Saw (AActor *actor)
 // Shotgun ------------------------------------------------------------------
 
 void A_FireShotgun (AActor *);
-
+/*
 class AShotgun : public AWeapon
 {
 	DECLARE_ACTOR (AShotgun, AWeapon)
@@ -404,7 +404,7 @@ IMPLEMENT_ACTOR (AShotgun, Doom, 2001, 27)
 	PROP_Obituary("$OB_MPSHOTGUN")
 	PROP_Inventory_PickupMessage("$GOTSHOTGUN")
 END_DEFAULTS
-
+*/
 //
 // A_FireShotgun
 //
