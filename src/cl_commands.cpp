@@ -137,31 +137,12 @@ void CLIENTCOMMANDS_Pong( ULONG ulTime )
 
 //*****************************************************************************
 //
-void CLIENTCOMMANDS_WeaponSelect( char *pszWeapon )
+void CLIENTCOMMANDS_WeaponSelect( const char *pszWeapon )
 {
 	// Some optimization. For standard Doom weapons, to reduce the size of the string
 	// that's sent out, just send some key character that identifies the weapon, instead
 	// of the full name.
-	if ( stricmp( pszWeapon, "Fist" ) == 0 )
-		pszWeapon = "1";
-	else if ( stricmp( pszWeapon, "Pistol" ) == 0 )
-		pszWeapon = "2";
-	else if ( stricmp( pszWeapon, "Shotgun" ) == 0 )
-		pszWeapon = "3";
-	else if ( stricmp( pszWeapon, "SuperShotgun" ) == 0 )
-		pszWeapon = "4";
-	else if ( stricmp( pszWeapon, "RocketLauncher" ) == 0 )
-		pszWeapon = "5";
-	else if ( stricmp( pszWeapon, "GrenadeLauncher" ) == 0 )
-		pszWeapon = "6";
-	else if ( stricmp( pszWeapon, "PlasmaRifle" ) == 0 )
-		pszWeapon = "7";
-	else if ( stricmp( pszWeapon, "Railgun" ) == 0 )
-		pszWeapon = "8";
-	else if ( stricmp( pszWeapon, "BFG9000" ) == 0 )
-		pszWeapon = "9";
-	else if ( stricmp( pszWeapon, "BFG10K" ) == 0 )
-		pszWeapon = "0";
+	convertWeaponNameToKeyLetter( pszWeapon );
 
 	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_WEAPONSELECT );
 	NETWORK_WriteString( CLIENT_GetLocalBuffer( ), pszWeapon );

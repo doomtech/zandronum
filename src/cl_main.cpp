@@ -155,6 +155,7 @@ static	void	client_SetPlayerTeam( void );
 static	void	client_SetPlayerCamera( void );
 static	void	client_UpdatePlayerPing( void );
 static	void	client_UpdatePlayerExtraData( void );
+static	void	client_UpdatePlayerPendingWeapon( void );
 static	void	client_UpdatePlayerTime( void );
 static	void	client_MoveLocalPlayer( void );
 static	void	client_DisconnectPlayer( void );
@@ -620,6 +621,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_GENERICCHEAT",
 	"SVC_SETCAMERATOTEXTURE",
 	"SVC_UPDATEPLAYERARMORDISPLAY",
+	"SVC_UPDATEPLAYEREPENDINGWEAPON",
 
 };
 
@@ -1609,6 +1611,10 @@ void CLIENT_ParsePacket( bool bSequencedPacket )
 		case SVC_UPDATEPLAYEREXTRADATA:
 
 			client_UpdatePlayerExtraData( );
+			break;
+		case SVC_UPDATEPLAYEREPENDINGWEAPON:
+
+			client_UpdatePlayerPendingWeapon( );
 			break;
 		case SVC_UPDATEPLAYERTIME:
 
@@ -4021,6 +4027,50 @@ static void client_UpdatePlayerExtraData( void )
 //	players[ulPlayer].momy = lMomY;
 	players[ulPlayer].viewz = lViewZ;
 	players[ulPlayer].bob = lBob;
+}
+
+//*****************************************************************************
+//
+static void client_UpdatePlayerPendingWeapon( void )
+{
+	ULONG	ulPlayer;
+
+	// Read in the player who's info is about to be updated.
+	ulPlayer = NETWORK_ReadByte( );
+	const char *pszPendingWeaponString = NETWORK_ReadString( );
+	// Some optimization. For standard Doom weapons, to reduce the size of the string
+	// that's sent out, just send some key character that identifies the weapon, instead
+	// of the full name.
+	convertWeaponKeyLetterToFullString( pszPendingWeaponString );
+
+	// If the player doesn't exist, get out!
+	if (( players[ulPlayer].mo == NULL ) || ( playeringame[ulPlayer] == false ))
+		return;
+
+	const PClass *pType = NULL;
+	AWeapon *pWeapon = NULL;
+
+	if ( strcmp (pszPendingWeaponString, "NULL") && pszPendingWeaponString[0] != '\0' )
+	{
+		pType = PClass::FindClass( pszPendingWeaponString );
+		if ( ( pType != NULL ) && ( pType->IsDescendantOf( RUNTIME_CLASS( AWeapon ))) )
+		{
+			// If we dont have this weapon already, we do now!
+			AWeapon *pWeapon = static_cast<AWeapon *>( players[ulPlayer].mo->FindInventory( pType ));
+			if ( pWeapon == NULL )
+				pWeapon = static_cast<AWeapon *>( players[ulPlayer].mo->GiveInventoryType( pType ));
+
+			// If he still doesn't have the object after trying to give it to him... then YIKES!
+			if ( pWeapon == NULL )
+			{
+#ifdef CLIENT_WARNING_MESSAGES
+				Printf( "client_WeaponChange: Failed to give inventory type, %s!\n", pszName );
+#endif
+				return;
+			}
+			players[ulPlayer].PendingWeapon = pWeapon;
+		}
+	}
 }
 
 //*****************************************************************************

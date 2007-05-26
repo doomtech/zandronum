@@ -88,7 +88,8 @@ inline void initNetNameString( AActor *pActor, const char *&pszName ){
 		pszName = pActor->GetClass( )->TypeName.GetChars( );
 }
 
-	
+//*****************************************************************************
+//
 void SERVERCOMMANDS_Ping( ULONG ulTime )
 {
 	ULONG	ulIdx;
@@ -746,6 +747,43 @@ void SERVERCOMMANDS_UpdatePlayerExtraData( ULONG ulPlayer, ULONG ulDisplayPlayer
 	NETWORK_WriteByte( &clients[ulPlayer].UnreliablePacketBuffer, players[ulDisplayPlayer].cmd.ucmd.buttons );
 	NETWORK_WriteLong( &clients[ulPlayer].UnreliablePacketBuffer, players[ulDisplayPlayer].viewz );
 	NETWORK_WriteLong( &clients[ulPlayer].UnreliablePacketBuffer, players[ulDisplayPlayer].bob );
+
+}
+
+//*****************************************************************************
+//
+void SERVERCOMMANDS_UpdatePlayerPendingWeapon( ULONG ulPlayer )
+{
+	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+		return;
+
+	const char* pszPendingWeaponString = "NULL";
+	if ( players[ulPlayer].PendingWeapon != WP_NOCHANGE && players[ulPlayer].PendingWeapon != NULL )
+		pszPendingWeaponString = players[ulPlayer].PendingWeapon->GetClass( )->TypeName.GetChars( );
+	else
+		return;
+	// Some optimization. For standard Doom weapons, to reduce the size of the string
+	// that's sent out, just send some key character that identifies the weapon, instead
+	// of the full name.
+	convertWeaponNameToKeyLetter( pszPendingWeaponString );
+
+	ULONG	ulIdx;
+
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_IsValidClient( ulIdx ) == false )
+			continue;
+
+		if ( ulPlayer == ulIdx )
+		{
+			continue;
+		}
+
+		NETWORK_CheckBuffer( ulIdx, 2 + (ULONG)strlen( pszPendingWeaponString ) );
+		NETWORK_WriteHeader( &clients[ulIdx].UnreliablePacketBuffer, SVC_UPDATEPLAYEREPENDINGWEAPON );
+		NETWORK_WriteByte( &clients[ulIdx].UnreliablePacketBuffer, ulPlayer );
+		NETWORK_WriteString( &clients[ulIdx].UnreliablePacketBuffer, pszPendingWeaponString );
+	}
 }
 
 //*****************************************************************************

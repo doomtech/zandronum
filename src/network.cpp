@@ -120,6 +120,32 @@ char	*g_szActorFullName[NUMBER_OF_ACTOR_NAME_KEY_LETTERS] =
 	"BulletPuff",
 	"Blood",
 };
+char	*g_szWeaponKeyLetter[NUMBER_OF_WEAPON_NAME_KEY_LETTERS] = 
+{
+	"1",
+	"2",
+	"3",
+	"4",
+	"5",
+	"6",
+	"7",
+	"8",
+	"9",
+	"0",
+};
+char	*g_szWeaponFullName[NUMBER_OF_WEAPON_NAME_KEY_LETTERS] =
+{
+	"Fist",
+	"Pistol",
+	"Shotgun",
+	"SuperShotgun",
+	"RocketLauncher",
+	"GrenadeLauncher",
+	"PlasmaRifle",
+	"Railgun",
+	"BFG9000",
+	"BFG10K",
+};
 
 static	LONG		g_lNetworkState = NETSTATE_SINGLE;
 static	sizebuf_t	g_NetworkMessage;
@@ -1489,6 +1515,32 @@ void I_DoSelect (void)
 void I_SetPort( netadr_t &addr, int port )
 {
    addr.port = htons(port);
+}
+
+//*****************************************************************************
+//
+void convertWeaponNameToKeyLetter( const char *&pszName ){
+	//Printf( "converted %s ", pszName );
+	for( int i = 0; i < NUMBER_OF_WEAPON_NAME_KEY_LETTERS; i++ ){
+		if ( stricmp( pszName, g_szWeaponFullName[i] ) == 0 ){
+			pszName = g_szWeaponKeyLetter[i];
+			break;
+		}
+	}
+	//Printf( "to to %s\n", pszName );
+}
+
+//*****************************************************************************
+//
+void convertWeaponKeyLetterToFullString( const char *&pszName ){
+	//Printf( "recieved %s ", pszName );
+	for( int i = 0; i < NUMBER_OF_WEAPON_NAME_KEY_LETTERS; i++ ){
+		if ( stricmp( pszName, g_szWeaponKeyLetter[i] ) == 0 ){
+			pszName = g_szWeaponFullName[i];
+			break;
+		}
+	}
+	//Printf( "converted to %s\n", pszName );
 }
 
 //*****************************************************************************

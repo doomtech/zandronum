@@ -3585,7 +3585,7 @@ static bool server_UpdateClientPing( void )
 //
 static bool server_WeaponSelect( void )
 {
-	char			*pszWeapon;
+	const char		*pszWeapon;
 	const PClass	*pType;
 	AInventory		*pInventory;
 
@@ -3599,26 +3599,7 @@ static bool server_WeaponSelect( void )
 	// Some optimization. For standard Doom weapons, to reduce the size of the string
 	// that's sent out, just send some key character that identifies the weapon, instead
 	// of the full name.
-	if ( stricmp( pszWeapon, "1" ) == 0 )
-		pszWeapon = "Fist";
-	else if ( stricmp( pszWeapon, "2" ) == 0 )
-		pszWeapon = "Pistol";
-	else if ( stricmp( pszWeapon, "3" ) == 0 )
-		pszWeapon = "Shotgun";
-	else if ( stricmp( pszWeapon, "4" ) == 0 )
-		pszWeapon = "SuperShotgun";
-	else if ( stricmp( pszWeapon, "5" ) == 0 )
-		pszWeapon = "RocketLauncher";
-	else if ( stricmp( pszWeapon, "6" ) == 0 )
-		pszWeapon = "GrenadeLauncher";
-	else if ( stricmp( pszWeapon, "7" ) == 0 )
-		pszWeapon = "PlasmaRifle";
-	else if ( stricmp( pszWeapon, "8" ) == 0 )
-		pszWeapon = "Railgun";
-	else if ( stricmp( pszWeapon, "9" ) == 0 )
-		pszWeapon = "BFG9000";
-	else if ( stricmp( pszWeapon, "0" ) == 0 )
-		pszWeapon = "BFG10K";
+	convertWeaponKeyLetterToFullString( pszWeapon );
 
 	// Try to find the class that corresponds to the name of the weapon the client
 	// is sending us. If it doesn't exist, or the class isn't a type of weapon, boot
@@ -3642,6 +3623,8 @@ static bool server_WeaponSelect( void )
 	// Finally, switch the player's pending weapon.
 	players[parse_cl].PendingWeapon = static_cast<AWeapon *>( pInventory );
 
+	// [BB] Tell the other clients about the change. This should fix the spectator bug and the railgun pistol sound bug.
+	SERVERCOMMANDS_UpdatePlayerPendingWeapon( parse_cl );
 	return ( false );
 }
 

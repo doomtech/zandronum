@@ -193,6 +193,7 @@ enum
 // [BB]: Some optimization. For some actors that are sent in bunches, to reduce the size,
 // just send some key letter that identifies the actor, instead of the full name.
 #define NUMBER_OF_ACTOR_NAME_KEY_LETTERS 2
+#define NUMBER_OF_WEAPON_NAME_KEY_LETTERS 10
 
 //*****************************************************************************
 typedef enum
@@ -440,6 +441,7 @@ typedef enum
 	SVC_GENERICCHEAT,
 	SVC_SETCAMERATOTEXTURE,
 	SVC_UPDATEPLAYERARMORDISPLAY,		// [BB] This should be reordered, once we break network compatibility with 97c3
+	SVC_UPDATEPLAYEREPENDINGWEAPON,
 
 	NUM_SERVER_COMMANDS
 };
@@ -553,6 +555,9 @@ ULONG		NETWORK_ntohs( ULONG ul );
 
 void	I_DoSelect( void );
 void	I_SetPort( netadr_t &addr, int port );
+
+void convertWeaponNameToKeyLetter( const char *&pszName );
+void convertWeaponKeyLetterToFullString( const char *&pszName );
 
 // DEBUG FUNCTION!
 void	NETWORK_FillBufferWithShit( sizebuf_t *pBuffer, ULONG ulSize );
