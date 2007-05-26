@@ -157,6 +157,9 @@ static void DoClearInv (AActor *actor)
 		actor->player->PendingWeapon = WP_NOCHANGE;
 		actor->player->psprites[ps_weapon].state = NULL;
 		actor->player->psprites[ps_flash].state = NULL;
+		// [BB] If we're the server, tell the client he lost his inventory.
+		if (( NETWORK_GetState( ) == NETSTATE_SERVER ))
+			SERVERCOMMANDS_DestroyAllInventory( actor->player - players );
 	}
 }
 
