@@ -1322,8 +1322,8 @@ FGLTexture::~FGLTexture()
 //===========================================================================
 void FGLTexture::GetRect(GL_RECT * r) const
 {
-	r->left=-(float)GetLeftOffset();
-	r->top=-(float)GetTopOffset();
+	r->left=-(float)GetScaledLeftOffset();
+	r->top=-(float)GetScaledTopOffset();
 	r->width=(float)TextureWidth();
 	r->height=(float)TextureHeight();
 }
