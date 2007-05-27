@@ -973,6 +973,11 @@ void A_FireBullets (AActor *self)
 	{
 		BOTS_PostWeaponFiredEvent( ULONG( player - players ), BOTEVENT_FIREDSHOTGUN, BOTEVENT_ENEMY_FIREDSHOTGUN, BOTEVENT_PLAYER_FIREDSHOTGUN );
 	}
+	else if ( stricmp( pzsWeaponName, "Chaingun" ) == 0 )
+	{
+		BOTS_PostWeaponFiredEvent( ULONG( player - players ), BOTEVENT_FIREDCHAINGUN, BOTEVENT_ENEMY_FIREDCHAINGUN, BOTEVENT_PLAYER_FIREDCHAINGUN );
+	}
+
 /*
 	if ((NumberOfBullets==1 && !player->refire) || NumberOfBullets==0)
 	{

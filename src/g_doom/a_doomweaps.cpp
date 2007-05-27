@@ -661,7 +661,7 @@ void A_CloseShotgun2 (AActor *actor)
 // Chaingun -----------------------------------------------------------------
 
 void A_FireCGun (AActor *);
-
+/*
 class AChaingun : public AWeapon
 {
 	DECLARE_ACTOR (AChaingun, AWeapon)
@@ -711,7 +711,7 @@ IMPLEMENT_ACTOR (AChaingun, Doom, 2002, 28)
 	PROP_Obituary("$OB_MPCHAINGUN")
 	PROP_Inventory_PickupMessage("$GOTCHAINGUN")
 END_DEFAULTS
-
+*/
 //
 // A_FireCGun
 //
