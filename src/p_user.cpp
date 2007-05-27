@@ -2842,7 +2842,9 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 			}
 			else if (player->air_finished <= level.time && !(level.time & 31))
 			{
-				P_DamageMobj (player->mo, NULL, NULL, 2 + 2*((level.time-player->air_finished)/TICRATE), MOD_WATER);
+				// [BB] The server handles damaging the players.
+				if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+					P_DamageMobj (player->mo, NULL, NULL, 2 + 2*((level.time-player->air_finished)/TICRATE), MOD_WATER);
 			}
 		}
 	}

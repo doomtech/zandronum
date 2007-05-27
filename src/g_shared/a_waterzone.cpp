@@ -45,6 +45,10 @@ public:
 IMPLEMENT_STATELESS_ACTOR (AWaterZone, Any, 9045, 0)
 	PROP_Flags (MF_NOBLOCKMAP|MF_NOSECTOR|MF_NOGRAVITY)
 	PROP_Flags3 (MF3_DONTSPLASH)
+	// [BB] This fixes jerky movement in a WaterZone online.
+	// Client side drowning damage handling has to deactivated in P_PlayerThink.
+	// I'm not sure, if it has more undesired side effects.
+	PROP_FlagsNetwork( NETFL_ALLOWCLIENTSPAWN )
 END_DEFAULTS
 
 void AWaterZone::PostBeginPlay ()
