@@ -4018,7 +4018,14 @@ static bool server_GenericCheat( void )
 
 		// Tell clients about this cheat.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_GenericCheat( parse_cl, ulCheat );
+		{
+			// [BB] You only need to notify the client who wants to use chasecam about it.
+			// If you tell it to all clients, it looks weird for a client spying someone with chasecam on.
+			if (( ulCheat == CHT_CHASECAM ) &&	( deathmatch == false ) && ( teamgame == false ))
+				SERVERCOMMANDS_GenericCheat( parse_cl, ulCheat, parse_cl, SVCF_ONLYTHISCLIENT );
+			else
+				SERVERCOMMANDS_GenericCheat( parse_cl, ulCheat );
+		}
 	}
 	// If not, boot their ass!
 	else
