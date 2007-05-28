@@ -198,6 +198,7 @@ CVAR( Int, sv_colorstripmethod, 0, CVAR_ARCHIVE )
 CVAR( Bool, sv_disallowbots, false, CVAR_ARCHIVE )
 CVAR( Bool, sv_minimizetosystray, true, CVAR_ARCHIVE )
 CVAR( Int, sv_queryignoretime, 10, CVAR_ARCHIVE )
+CVAR( Bool, sv_stay97c3compatible, true, CVAR_ARCHIVE )
 
 //*****************************************************************************
 //
@@ -1500,14 +1501,18 @@ void SERVER_SetupNewConnection( bool bNewPlayer )
 	// Setup the client.
 	clients[lClient].State = CLS_CHALLENGE;
 	clients[lClient].address = g_AddressFrom;
-/*
-	// Make sure the version matches.
-	if ( stricmp( szClientVersion, DOTVERSIONSTR ) != 0 )
+
+	// [BB] If we don't keep backwards compatibility with 97c3, we may not allow 97c3 clients to join.
+	if( !sv_stay97c3compatible )
 	{
-		SERVER_ClientError( lClient, NETWORK_ERRORCODE_WRONGVERSION );
-		return;
+		// Make sure the version matches.
+		if ( stricmp( szClientVersion, DOTVERSIONSTR ) != 0 )
+		{
+			SERVER_ClientError( lClient, NETWORK_ERRORCODE_WRONGVERSION );
+			return;
+		}
 	}
-*/
+
 	// Make sure the network game version matches.
 	if ( NETGAMEVERSION != lClientNetworkGameVersion )
 	{
