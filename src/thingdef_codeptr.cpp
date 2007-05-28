@@ -889,19 +889,19 @@ void A_FireBulletsHelper ( AActor *self,
 		}
 	}
 }
-void A_FireBullets (AActor *self)
-{
-	int index=CheckIndex(7);
-	if (index<0 || !self->player) return;
 
-	angle_t Spread_XY=angle_t(EvalExpressionF (StateParameters[index], self) * ANGLE_1);
-	angle_t Spread_Z=angle_t(EvalExpressionF (StateParameters[index+1], self) * ANGLE_1);
-	int NumberOfBullets=EvalExpressionI (StateParameters[index+2], self);
-	int DamagePerBullet=EvalExpressionI (StateParameters[index+3], self);
-	ENamedName PuffTypeName=(ENamedName)StateParameters[index+4];
-	bool UseAmmo=EvalExpressionN (StateParameters[index+5], self);
-	fixed_t Range=fixed_t(EvalExpressionF (StateParameters[index+6], self) * FRACUNIT);
-	
+// [BB] This function should be called by all bullet firing weapons to reduce code duplication.
+void A_CustomFireBullets( AActor *self,
+						  angle_t Spread_XY,
+						  angle_t Spread_Z, 
+						  int NumberOfBullets,
+						  int DamagePerBullet,
+						  FName PuffTypeName,
+						  bool UseAmmo,
+						  fixed_t Range){
+  	if ( self->player == NULL)
+		return;
+
 	const PClass * PuffType;
 
 	player_t * player=self->player;
@@ -977,25 +977,27 @@ void A_FireBullets (AActor *self)
 	{
 		BOTS_PostWeaponFiredEvent( ULONG( player - players ), BOTEVENT_FIREDCHAINGUN, BOTEVENT_ENEMY_FIREDCHAINGUN, BOTEVENT_PLAYER_FIREDCHAINGUN );
 	}
+	else if ( stricmp( pzsWeaponName, "SuperShotgun" ) == 0 )
+	{
+		BOTS_PostWeaponFiredEvent( ULONG( player - players ), BOTEVENT_FIREDSSG, BOTEVENT_ENEMY_FIREDSSG, BOTEVENT_PLAYER_FIREDSSG );
+	}
+}
 
-/*
-	if ((NumberOfBullets==1 && !player->refire) || NumberOfBullets==0)
-	{
-		int damage = ((pr_cwbullet()%3)+1)*DamagePerBullet;
-		P_LineAttack(self, bangle, Range, bslope, damage, GetDefaultByType(PuffType)->DamageType, PuffType);
-	}
-	else 
-	{
-		if (NumberOfBullets == -1) NumberOfBullets = 1;
-		for (i=0 ; i<NumberOfBullets ; i++)
-		{
-			int angle = bangle + pr_cwbullet.Random2() * (Spread_XY / 255);
-			int slope = bslope + pr_cwbullet.Random2() * (Spread_Z / 255);
-			int damage = ((pr_cwbullet()%3)+1) * DamagePerBullet;
-			P_LineAttack(self, angle, Range, slope, damage, GetDefaultByType(PuffType)->DamageType, PuffType);
-		}
-	}
-*/
+
+void A_FireBullets (AActor *self)
+{
+	int index=CheckIndex(7);
+	if (index<0 || !self->player) return;
+
+	angle_t Spread_XY=angle_t(EvalExpressionF (StateParameters[index], self) * ANGLE_1);
+	angle_t Spread_Z=angle_t(EvalExpressionF (StateParameters[index+1], self) * ANGLE_1);
+	int NumberOfBullets=EvalExpressionI (StateParameters[index+2], self);
+	int DamagePerBullet=EvalExpressionI (StateParameters[index+3], self);
+	ENamedName PuffTypeName=(ENamedName)StateParameters[index+4];
+	bool UseAmmo=EvalExpressionN (StateParameters[index+5], self);
+	fixed_t Range=fixed_t(EvalExpressionF (StateParameters[index+6], self) * FRACUNIT);
+	
+	A_CustomFireBullets( self, Spread_XY, Spread_Z, NumberOfBullets, DamagePerBullet, PuffTypeName, UseAmmo, Range);
 }
 
 

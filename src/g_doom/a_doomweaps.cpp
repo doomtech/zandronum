@@ -539,13 +539,27 @@ IMPLEMENT_ACTOR (ASuperShotgun, Doom, 82, 33)
 	PROP_Weapon_AmmoType1 ("Shell")
 	PROP_Obituary("$OB_MPSSHOTGUN")
 	PROP_Inventory_PickupMessage("$GOTSHOTGUN2")
+	PROP_AttackSound("weapons/sshotf")
 END_DEFAULTS
 
 //
 // A_FireShotgun2
 //
+void A_CustomFireBullets( AActor *self,
+						  angle_t Spread_XY,
+						  angle_t Spread_Z, 
+						  int NumberOfBullets,
+						  int DamagePerBullet,
+						  FName PuffTypeName = "BulletPuff",
+						  bool UseAmmo = true,
+						  fixed_t Range = 0);
+
 void A_FireShotgun2 (AActor *actor)
 {
+	// [BB] A_FireShotgun2 is only kept to stay compatible with Dehacked.
+	A_CustomFireBullets( actor, angle_t( 11.2 * ANGLE_1), angle_t( 7.1 * ANGLE_1), 20, 5 );
+	A_GunFlash( actor );
+/*
 	int 		i;
 	angle_t 	angle;
 	int 		damage;
@@ -628,6 +642,7 @@ void A_FireShotgun2 (AActor *actor)
 
 	// [BC] Tell all the bots that a weapon was fired.
 	BOTS_PostWeaponFiredEvent( ULONG( player - players ), BOTEVENT_FIREDSSG, BOTEVENT_ENEMY_FIREDSSG, BOTEVENT_PLAYER_FIREDSSG );
+*/
 }
 
 void A_OpenShotgun2 (AActor *actor)
