@@ -89,7 +89,8 @@ void CLIENTCOMMANDS_UserInfo( ULONG ulFlags )
 	if ( ulFlags & USERINFO_CONNECTIONTYPE )
 		NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), players[consoleplayer].userinfo.lConnectionType );
 	if (( gameinfo.gametype == GAME_Hexen ) && ( ulFlags & USERINFO_PLAYERCLASS ))
-		NETWORK_WriteString( CLIENT_GetLocalBuffer( ), (char *)PlayerClasses[players[consoleplayer].userinfo.PlayerClass].Type->TypeName.GetChars( ));
+		NETWORK_WriteString( CLIENT_GetLocalBuffer( ), (char *)PlayerClasses[players[consoleplayer].userinfo.PlayerClass].Type->Meta.GetMetaString (APMETA_DisplayName));
+		//NETWORK_WriteString( CLIENT_GetLocalBuffer( ), (char *)PlayerClasses[players[consoleplayer].userinfo.PlayerClass].Type->TypeName.GetChars( ));
 }
 
 //*****************************************************************************
