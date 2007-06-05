@@ -574,7 +574,6 @@ void APlayerPawn::RemoveInventory (AInventory *item)
 	}
 	Super::RemoveInventory (item);
 	if (pickWeap && player->mo == this && player->PendingWeapon == WP_NOCHANGE)
-		
 	{
 		PickNewWeapon (NULL);
 	}
