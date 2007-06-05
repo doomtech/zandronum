@@ -630,6 +630,48 @@ OB_SNAKE = "%o was rattled by an ophidian.";
 OB_WIZARD = "%o was cursed by a wizard.";
 OB_WIZARDHIT = "%o was palpated by a wizard.";
 
+OB_FIREDEMON = "%o tasted an Afrit's fire.";
+OB_DEMON1 = "%o was scalded by a Serpent.";
+OB_DEMON2 = "%o was poisoned by a Serpent.";
+OB_ETTIN = "%o was mashed by an Ettin.";
+OB_CENTAUR = "%o was cut up by a Centaur.";
+OB_SLAUGHTAURHIT = "%o was cut up by a Slaughtaur.";
+OB_SLAUGHTAUR = "%o was struck down by a Slaughtaur's fireball.";
+OB_BISHOP = "%o succumbed to a Bishop's dark power.";
+OB_ICEGUY = "%o was frozen solid by a Wendigo.";
+OB_SERPENTHIT = "%o was mauled by a Stalker.";
+OB_SERPENT = "%o was melted by a Stalker.";
+OB_WRAITH = "%o was charred by a Reiver.";
+OB_WRAITHHIT = "%o had %p life stolen by a Reiver.";
+OB_DRAGON = "%o was incinerated by the Death Wyvern.";
+OB_KORAX = "%o was swept from the board by Korax.";
+OB_FBOSS = "%o was slain by Zedek.";
+OB_MBOSS = "%o couldn't absorb Menelkir's Mana.";
+OB_CBOSS = "%o was baptized by Traductus.";
+OB_HERESIARCH = "%o had %p bones rolled by the Heresiarch.";
+
+OB_ACOLYTE = "%o was zealously shot down by an Acolyte.";
+OB_MACIL = "%o should have never rebelled against Macil.";
+OB_REBEL = "%o was gunned down by a Rebel.";
+OB_BEGGAR = "%o was beaten to death by the poor.";
+OB_PEASANT = "%o should have never picked fights with civilians."
+OB_ALIENSPECTE = "%o was struck down by the Spectre";
+OB_ENTITY = "%o felt the wrath of The One God.";
+OB_LOREMASTER = "%o couldn't escape from the Lore Master's grasp.";
+OB_PROGRAMMER = "%o was deleted by the Programmer.";
+OB_STFBISHOP = "%o was blown away by the Bishop.";
+OB_SENTINEL = "%o was shot down by a Sentinel.";
+OB_CRUSADER = "%o was swept away by a Crusader.";
+OB_INQUISITOR = "%o was sentenced by an Inquisitor.";
+OB_STALKER = "%o was bugged by a Stalker.";
+OB_TURRET = "%o triggered the automatic defenses.";
+OB_TEMPLARHIT = "%o was clawed by a Templar.";
+OB_TEMPLAR = "%o was vaporized by a Templar.";
+OB_REAVERHIT = "%o was sliced open by a Reaver.";
+OB_REAVER = "%o was shot down by a Reaver.";
+
+
+
 OB_MPFIST = "%o chewed on %k's fist.";
 OB_MPCHAINSAW = "%o was mowed over by %k's chainsaw.";
 OB_MPPISTOL = "%o was tickled by %k's pea shooter.";
@@ -659,6 +701,234 @@ STARTUP2 = "";
 STARTUP3 = "";
 STARTUP4 = "";
 STARTUP5 = "";
+
+// [BC] Start of Skulltag strings.
+// Pickup strings.
+PICKUP_REDARMOR = "Picked up the red armor!";
+PICKUP_MAXHEALTHBONUS = "Picked up a max. health bonus.";
+PICKUP_MAXARMORBONUS = "Picked up a max. armor bonus.";
+
+PICKUP_TURBOSPHERE = "Turbosphere!";
+PICKUP_ANTIGRAVBELT = "Anti-gravity belt! Wheee!";
+PICKUP_TIMEFREEZER = "Time freeze!";
+PICKUP_INFRAREDGOGGLES = "Infrared Goggles";
+PICKUP_INFRAREDTRACKER = "Infrared tracker";
+PICKUP_INVISIBILITY = "Invisibility";
+PICKUP_DOOMSPHERE = "Doomsphere";
+PICKUP_GUARDSPHERE = "Guardsphere";
+PICKUP_TERMINATOR = "Terminator!";
+PICKUP_POSSESSIONSTONE = "Hellstone!";
+
+PICKUP_BLUEFLAG = "You got the blue flag!";
+PICKUP_BLUESKULL_ST = "You got the blue skull!";
+PICKUP_REDFLAG = "You got the red flag!";
+PICKUP_REDSKULL_ST = "You got the red skull!";
+PICKUP_WHITEFLAG = "You got the flag!";
+
+PICKUP_COOPERATIVEBACKPACK = "Picked up a backpack full of weapons and ammo!";
+
+PICKUP_STRENGTH = "Strength!";
+PICKUP_RAGE = "Rage!";
+PICKUP_DRAIN = "Drain!";
+PICKUP_SPREAD = "Spread!";
+PICKUP_RESISTANCE = "Resistance!";
+PICKUP_REGENERATION = "Regeneration!";
+PICKUP_PROSPERITY = "Prosperity!";
+PICKUP_REFLECTION = "Reflection!";
+PICKUP_HIGHJUMP = "High jump!";
+PICKUP_HASTE = "Haste!";
+
+PICKUP_PISTOL_DROPPED = "Picked up a pistol.";
+PICKUP_PISTOL = "You got your pistol back!  Whew!";
+PICKUP_MINIGUN = "You got the minigun!";
+PICKUP_GRENADELAUNCHER = "You got the grenade launcher!";
+PICKUP_RAILGUN = "You got the railgun!";
+PICKUP_BFG10K = "You got the BFG10000!  Hell, yes!";
+
+// Possession strings.
+POSSESSIONARTIFACT_PICKEDUP = "Hellstone picked up!";
+POSSESSIONARTIFACT_DROPPED = "Hellstone dropped!";
+
+// Obituary strings.
+OB_FIST_2 = "%o was fisted by %k.";
+OB_FIST_RARE = "%o was molested by %k's fist.";
+OB_PISTOL_RARE = "%o got a cap popped in %p ass by %k.";
+OB_CHAINSAW_RARE = "%o was h4x0r3d by %k's chainsaw.";
+OB_MINIGUN = "%o was drilled by %k's minigun.";
+OB_MINIGUN_2 = "%o was pelted by %k's minigun.";
+OB_ROCKET_GIB = "%o was gibbed by %k's rocket.";
+OB_ROCKET_GIB_2 = "%o was souped by %k's rocket.";
+OB_ROCKET_GIB_3 = "%o was blown to bits by %k's rocket.";
+OB_ROCKET_GIB_4 = "%o was shredded by %k's rocket.";
+OB_ROCKET_RARE = "%o was assraped by %k's rocket.";
+OB_ROCKET_SELF_2 = "%o discovers splash damage.";
+OB_ROCKET_SELF_3 = "%o blew %hself up.";
+OB_ROCKET_SELF_RARE = "%o blew %p own dumbass up.";
+OB_GRENADE = "%o caught %k's grenade.";
+OB_GRENADE_SPLASH = "%o was shredded by %k's shrapnel.";
+OB_GRENADE_SELF = "%o tripped %p own grenade.";
+OB_PLASMARIFLE_RARE = "%o was owned %k's plasma gun.";
+OB_BFG_GIB_RARE = "%o was gibbed by %k's big fucking gun.";
+OB_BFG10K = "%o was blasted by %k's BFG10K.";
+OB_BFG10K_RARE = "%o got a blast in the ass from %k's BFG10K.";
+OB_BFG10K_SELF = "%o got wreckless with %p BFG10K.";
+
+OB_CACODEMON_MELEE_RARE = "%o tried to get friendly with a cacodemon.";
+OB_BARON_MELEE_RARE = "%o was bitchslapped by a Baron of Hell.";
+OB_DARKIMP_MELEE = "%o was slashed by a dark imp.";
+OB_DARKIMP = "%o was burned by a dark imp.";
+OB_BLOODDEMON_MELEE = "%o was chomped on by a blood demon.";
+OB_SSGGUY = "%o was jacked by a super shotgun guy.";
+OB_BELPHEGOR_MELEE = "%o was slain by a Belphegor.";
+OB_BELPHEGOR = "%o was slain by a Belphegor.";
+OB_CACOLANTERN_MELEE = "%o got too close to a cacolantern.";
+OB_CACOLANTERN = "%o was smitten by a cacolantern.";
+OB_ABADDON_MELEE = "%o became food for an abaddon.";
+OB_ABADDON = "%o was smitten by an abaddon.";
+OB_HECTEBUS = "%o was cremated by a hectebus.";
+
+OB_IMPALED = "%o got impaled on a stick.";
+OB_SPACE = "%o tried to explore space.";
+OB_SELF_2 = "%o had a heart attack.";
+OB_FALL_2 = "%o went splat.";
+OB_EXIT_2 = "%o seems bored on this level.";
+OB_REFLECTION = "%o was killed via %k's reflection rune.";
+
+// Medal strings. (THESE ARE NOT USED ATM).
+MEDALSTRING_EXCELLENT = "Excellent!";
+MEDALSTRING_INCREDIBLE = "Incredible!";
+MEDALSTRING_IMPRESSIVE = "Impressive!";
+MEDALSTRING_MOSTIMPRESSIVE = "Most Impressive!";
+MEDALSTRING_DOMINATION = "Domination!";
+MEDALSTRING_TOTALDOMINATION = "Total Domination!";
+MEDALSTRING_ACCURACY = "Accuracy!";
+MEDALSTRING_PRECISION = "Precision!";
+MEDALSTRING_LLAMA = "Llama!";
+MEDALSTRING_YOUFAILIT = "You Fail It!";
+
+// Level names.
+LEVEL_SP_PRE_1 = "level 1";
+LEVEL_SP_PRE_2 = "level 2";
+LEVEL_SP_PRE_3 = "level 3";
+LEVEL_SP_PRE_4 = "level 4";
+LEVEL_SP_PRE_5 = "level 5";
+LEVEL_SP_PRE_6 = "level 6";
+LEVEL_SP_PRE_7 = "level 7";
+LEVEL_SP_PRE_8 = "level 8";
+LEVEL_SP_PRE_9 = "level 9";
+LEVEL_SP_PRE_10 = "level 10";
+LEVEL_SP_PRE_11 = "level 11";
+LEVEL_SP_PRE_12 = "level 12";
+LEVEL_SP_PRE_13 = "level 13";
+LEVEL_SP_PRE_14 = "level 14";
+LEVEL_SP_PRE_15 = "level 15";
+LEVEL_SP_PRE_16 = "level 16";
+LEVEL_SP_PRE_17 = "level 17";
+LEVEL_SP_PRE_18 = "level 18";
+LEVEL_SP_PRE_19 = "level 19";
+LEVEL_SP_PRE_20 = "level 20";
+LEVEL_SP_PRE_21 = "level 21";
+LEVEL_SP_PRE_22 = "level 22";
+LEVEL_SP_PRE_23 = "level 23";
+LEVEL_SP_PRE_24 = "level 24";
+LEVEL_SP_PRE_25 = "level 25";
+LEVEL_SP_PRE_26 = "level 26";
+LEVEL_SP_PRE_27 = "level 27";
+LEVEL_SP_PRE_28 = "level 28";
+LEVEL_SP_PRE_29 = "level 29";
+LEVEL_SP_PRE_30 = "level 30";
+LEVEL_SP_PRE_31 = "level 31";
+LEVEL_SP_PRE_32 = "level 32";
+
+LEVEL_DM_1 = "Training Center";
+LEVEL_DM_2 = "Testing Center";
+LEVEL_DM_3 = "Combat Center";
+LEVEL_DM_4 = "Containment Facility";
+LEVEL_DM_5 = "The Volcano Installation";
+LEVEL_DM_6 = "Last Bastion";
+LEVEL_DM_7 = "Linguica's Lair";
+LEVEL_DM_8 = "Temple of Pain";
+LEVEL_DM_9 = "Infernal Chamber";
+LEVEL_DM_10 = "Final Atonement";
+LEVEL_DM_SEC = "Some Secret Level";
+
+LEVEL_DUEL_1 = "Alpha Station";
+LEVEL_DUEL_2 = "Delta Base";
+LEVEL_DUEL_3 = "Sigma Junction";
+LEVEL_DUEL_4 = "Disposal Site";
+LEVEL_DUEL_5 = "Courtyard of Ruin";
+LEVEL_DUEL_6 = "Edge of Despair";
+LEVEL_DUEL_7 = "To Hell";
+LEVEL_DUEL_8 = "Impious Demesne";
+LEVEL_DUEL_9 = "Judgement Day";
+LEVEL_DUEL_10 = "Void of Damnation";
+LEVEL_DUEL_SEC = "Battle Corridor";
+
+LEVEL_LMS_1 = "Stealth Corridor";
+LEVEL_LMS_2 = "Survival Corridor";
+LEVEL_LMS_3 = "Death Corridor";
+LEVEL_LMS_4 = "Storage Area";
+LEVEL_LMS_5 = "Hollowed Ground";
+LEVEL_LMS_6 = "Incessant Nightmare";
+LEVEL_LMS_7 = "Sweltering Badlands";
+LEVEL_LMS_8 = "Forgotten Lair";
+LEVEL_LMS_9 = "Cliffside Bunker";
+LEVEL_LMS_10 = "Dark Hatred";
+
+LEVEL_CTF_1 = "McKinley Heritage";
+LEVEL_CTF_2 = "Mt. Capture";
+LEVEL_CTF_3 = "Verflutcher Tempel";
+LEVEL_CTF_4 = "Area -51 Degrees Celsius";
+LEVEL_CTF_5 = "Massmouth Mansion";
+LEVEL_CTF_6 = "Ruins of Blood";
+LEVEL_CTF_7 = "Den of Sanctity";
+LEVEL_CTF_8 = "Ghastly Abode";
+LEVEL_CTF_9 = "Disaster";
+LEVEL_CTF_10 = "Doomed Sea";
+
+LEVEL_ST_1 = "Doom Keep";
+LEVEL_ST_2 = "Ring of Fire";
+LEVEL_ST_3 = "Blood Fortress";
+LEVEL_ST_4 = "'O' of Devastation";
+LEVEL_ST_5 = "Acid Trip";
+LEVEL_ST_6 = "Rocket Jump Canyon";
+LEVEL_ST_7 = "Infinite Void";
+LEVEL_ST_8 = "Station 12";
+LEVEL_ST_9 = "Galactic Orbiter";
+LEVEL_ST_10 = "Oblivion Run";
+
+// Cluster strings.
+DM1TEXT =
+		"CONGRATULATIONS, YOU'VE FOUND WHAT NO\n"
+		"ONE PROBABLY WOULD HAVE EVER SUSPECTED:\n"
+		"THE SECRET DEATHMATCH LEVEL! PAT YOURSELF\n"
+		"ON THE BACK AND GET READY... IT'S FIGHTIN'\n"
+		"TIME!";
+DM2TEXT =
+		"THE GREATEST EVIL THE WORLD HAS EVER\n"
+		"KNOWN HAS FINALLY BEEN SLAIN. LINGUICA,\n"
+		"THE \"SAUSAGE OF DEATH\", WILL HOLD PLUSH\n"
+		"CACODEMONS CAPTIVE NO LONGER. YOU WATCH\n"
+		"FROM AFAR AS LINGUICA'S LAIR, WHICH SERVED\n"
+		"AS HISSY'S PRISON, CRUMBLES TO THE GROUND.\n"
+		"\n"
+		"HISSY IS FREE! YOU WATCH WITH DELIGHT\n"
+		"AS THE PLUSH CACODEMON KNOWN AS HISSY\n"
+		"EMERGES FROM THE RUBBLE, GIVES YOU A\n"
+		"\"HISS\" GOODBYE, AND FLOATS AWAY HAPPILY.\n"
+		"YOU BREATHE A SIGH OF RELIEF, KNOWING THAT\n"
+		"HISSY, AND ALL OTHER PLUSH CACODEMONS,\n"
+		"CAN ROAM FREE ONCE AGAIN.";
+
+// Cast call.
+CC_SSGGUY = "SUPER SHOTGUN GUY";
+CC_DARKIMP = "DARK IMP";
+CC_BLOODDEMON = "BLOOD DEMON";
+CC_CACOLANTERN = "CACOLANTERN";
+CC_HECTEBUS = "HECTEBUS";
+
+//	{ str_notchanged, "STSTR_HISSYON", "Fearless Rage Mode ON", NULL },
+//	{ str_notchanged, "STSTR_HISSYOFF", "Fearless Rage Mode OFF", NULL },
 
 // Heretic strings
 HE1TEXT =
@@ -1138,6 +1408,66 @@ TXT_RANDOMGOODBYE_1 = "Bye!";
 TXT_RANDOMGOODBYE_2 = "Thanks, bye!";
 TXT_RANDOMGOODBYE_3 = "See you later!";
 
+
+
+// Menu
+MNU_NEWGAME			= "NEW GAME";
+MNU_MULTIPLAYER			= "MULTIPLAYER";
+MNU_OPTIONS			= "OPTIONS";
+MNU_GAMEFILES		= "GAME FILES";
+MNU_INFO			= "INFO";
+MNU_QUITGAME		= "QUIT GAME";
+
+MNU_FIGHTER			= "FIGHTER";
+MNU_CLERIC			= "CLERIC";
+MNU_MAGE			= "MAGE";
+MNU_RANDOM			= "RANDOM";
+
+MNU_LOADGAME		= "LOAD GAME";
+MNU_SAVEGAME		= "SAVE GAME";
+
+MNU_COTD			= "CITY OF THE DAMNED";
+MNU_HELLSMAW		= "HELL'S MAW";
+MNU_DOME			= "THE DOME OF D'SPARIL";
+MNU_OSSUARY			= "THE OSSUARY";
+MNU_DEMESNE			= "THE STAGNANT DEMESNE";
+
+MNU_WETNURSE		= "THOU NEEDETH A WET-NURSE";
+MNU_YELLOWBELLIES	= "YELLOWBELLIES-R-US";
+MNU_BRINGEST		= "BRINGEST THEM ONETH";
+MNU_SMITE			= "THOU ART A SMITE-MEISTER";
+MNU_BLACKPLAGUE		= "BLACK PLAGUE POSSESSES THEE";
+
+MNU_NOPICTURE		= "No Picture";
+MNU_DIFFVERSION		= "Different\nVersion";
+MNU_NOFILES			= "No files";
+
+MNU_CHOOSECLASS		= "CHOOSE CLASS:";
+MNU_CHOOSESKILL		= "CHOOSE SKILL LEVEL:";
+
+MNU_SQUIRE			= "SQUIRE";
+MNU_KNIGHT			= "KNIGHT";
+MNU_WARRIOR			= "WARRIOR";
+MNU_BERSERKER		= "BERSERKER";
+MNU_TITAN			= "TITAN";
+
+MNU_ALTARBOY		= "ALTAR BOY";
+MNU_ACOLYTE			= "ACOLYTE";
+MNU_PRIEST			= "PRIEST";
+MNU_CARDINAL		= "CARDINAL";
+MNU_POPE			= "POPE";
+
+MNU_APPRENTICE		= "APPRENTICE";
+MNU_ENCHANTER		= "ENCHANTER";
+MNU_SORCERER        = "SORCERER";
+MNU_WARLOCK			= "WARLOCK";
+MNU_ARCHMAGE		= "ARCHMAGE";
+
+MNU_PLAYERSETUP		= "PLAYER SETUP";
+
+MNU_DELETESG		= "Do you really want to delete the savegame\n";
+
+MNU_ONLYREGISTERED	= "ONLY AVAILABLE IN THE REGISTERED VERSION";
 
 // Bloodbath announcer
 
