@@ -931,15 +931,6 @@ void D_DoomLoop ()
 //		players[consoleplayer].viewz = players[consoleplayer].mo->z + 41*FRACUNIT;
 
 				D_Display( false );
-/*
-				if (changerenderer)
-				{
-					OPENGL_SetCurrentRenderer( (RENDERER_e)(LONG)vid_renderer );
-
-					I_RestartRenderer();
-					changerenderer = false;
-				}
-*/
 				break;
 			case NETSTATE_SERVER:
 
@@ -983,15 +974,6 @@ void D_DoomLoop ()
 				// Update display, next frame, with current state.
 				I_StartTic ();
 				D_Display (false);
-/*
-				if (changerenderer)
-				{
-					OPENGL_SetCurrentRenderer( (RENDERER_e)(LONG)vid_renderer );
-
-					I_RestartRenderer();
-					changerenderer = false;
-				}
-*/
 				break;
 			}
 		}
@@ -2420,14 +2402,6 @@ void D_DoomMain (void)
 	// [RH] Initialize localizable strings.
 	GStrings.LoadStrings (false);
 
-/*
-	// Initialize the renderer.
-	if (( vid_renderer >= 0 ) && ( vid_renderer < NUM_RENDERERS ))
-		OPENGL_SetCurrentRenderer( (RENDERER_e)(LONG)vid_renderer );
-	else
-		OPENGL_SetCurrentRenderer( RENDERER_SOFTWARE );
-*/
-
 	// [RH] Moved these up here so that we can do most of our
 	//		startup output in a fullscreen console.
 
@@ -2450,92 +2424,8 @@ void D_DoomMain (void)
 	Printf ("ST_Init: Init startup screen.\n");
 	ST_Init (R_GuesstimateNumTextures() + 5);
 
-	// [RH] Now that all text strings are set up,
-	// insert them into the level and cluster data.
-	G_MakeEpisodes ();
-	
-	// [RH] Parse through all loaded mapinfo lumps
-	Printf ("G_ParseMapInfo: Load map definitions.\n");
-	G_ParseMapInfo ();
-
-	// [RH] Parse any SNDINFO lumps
-	Printf ("S_InitData: Load sound definitions.\n");
-	S_InitData ();
-
-	FActorInfo::StaticInit ();
-
-	// Now that all actors have been defined we can finally set up the weapon slots
-	GameConfig->DoWeaponSetup (GameNames[gameinfo.gametype]);
-
-	// [GRB] Initialize player class list
-	SetupPlayerClasses ();
-
-	// [RH] Load custom key and weapon settings from WADs
-	D_LoadWadSettings ();
-
-	// [GRB] Check if someone used clearplayerclasses but not addplayerclass
-	if (PlayerClasses.Size () == 0)
-	{
-		I_FatalError ("No player classes defined");
-	}
-
-	FActorInfo::StaticGameSet ();
-	ST_Progress ();
-
-	Printf ("R_Init: Init %s refresh subsystem\n", GameNames[gameinfo.gametype]);
-	R_Init ();
-
-	Printf ("DecalLibrary: Load decals.\n");
-	DecalLibrary.Clear ();
-	DecalLibrary.ReadAllDecals ();
-
-	// [RH] Try adding .deh and .bex files on the command line.
-	// If there are none, try adding any in the config file.
-
-	//if (gameinfo.gametype == GAME_Doom)
-	{
-		if (!ConsiderPatches ("-deh", ".deh") &&
-			!ConsiderPatches ("-bex", ".bex") &&
-			(gameinfo.gametype == GAME_Doom) &&
-			GameConfig->SetSection ("Doom.DefaultDehacked"))
-		{
-			const char *key;
-			const char *value;
-
-			while (GameConfig->NextInSection (key, value))
-			{
-				if (stricmp (key, "Path") == 0 && FileExists (value))
-				{
-					Printf ("Applying patch %s\n", value);
-					DoDehPatch (value, true);
-				}
-			}
-		}
-
-		DoDehPatch (NULL, true);	// See if there's a patch in a PWAD
-		FinishDehPatch ();			// Create replacements for dehacked pickups
-	}
-	HandleNoSector ();	// clear NOSECTOR flag off all actors modified by Dehacked and the BossEye.
-
-	FActorInfo::StaticSetActorNums ();
-
-
-	// [RH] User-configurable startup strings. Because BOOM does.
-	static const char *startupString[5] = {
-		"STARTUP1", "STARTUP2", "STARTUP3", "STARTUP4", "STARTUP5"
-	};
-	for (p = 0; p < 5; ++p)
-	{
-		const char *str = GStrings[startupString[p]];
-		if (str != NULL && str[0] != '\0')
-		{
-			Printf ("%s\n", str);
-		}
-	}
-
-	flags = dmflags;
-		
 	Printf ("P_Init: Checking cmd-line parameters...\n");
+	flags = dmflags;
 	if (Args.CheckParm ("-nomonsters"))		flags |= DF_NO_MONSTERS;
 	if (Args.CheckParm ("-respawn"))		flags |= DF_MONSTERS_RESPAWN;
 	if (Args.CheckParm ("-fast"))			flags |= DF_FAST_MONSTERS;
@@ -2617,7 +2507,11 @@ void D_DoomMain (void)
 	}
 	else
 	{
-		strcpy (startmap, "&wt@01");
+		// [BB] The server crashes, if you select "&wt@01" as startmap.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			strcpy (startmap, "MAP01");
+		else
+			strcpy (startmap, "&wt@01");
 	}
 	autostart = false;
 				
@@ -2713,6 +2607,89 @@ void D_DoomMain (void)
 	{
 		Printf ("Austin Virtual Gaming: Levels will end after 20 minutes\n");
 		timelimit = 20.f;
+	}
+
+	// [RH] Now that all text strings are set up,
+	// insert them into the level and cluster data.
+	G_MakeEpisodes ();
+	
+	// [RH] Parse through all loaded mapinfo lumps
+	Printf ("G_ParseMapInfo: Load map definitions.\n");
+	G_ParseMapInfo ();
+
+	// [RH] Parse any SNDINFO lumps
+	Printf ("S_InitData: Load sound definitions.\n");
+	S_InitData ();
+
+	FActorInfo::StaticInit ();
+
+	// Now that all actors have been defined we can finally set up the weapon slots
+	GameConfig->DoWeaponSetup (GameNames[gameinfo.gametype]);
+
+	// [GRB] Initialize player class list
+	SetupPlayerClasses ();
+
+	// [RH] Load custom key and weapon settings from WADs
+	D_LoadWadSettings ();
+
+	// [GRB] Check if someone used clearplayerclasses but not addplayerclass
+	if (PlayerClasses.Size () == 0)
+	{
+		I_FatalError ("No player classes defined");
+	}
+
+	FActorInfo::StaticGameSet ();
+	ST_Progress ();
+
+	Printf ("R_Init: Init %s refresh subsystem\n", GameNames[gameinfo.gametype]);
+	R_Init ();
+
+	Printf ("DecalLibrary: Load decals.\n");
+	DecalLibrary.Clear ();
+	DecalLibrary.ReadAllDecals ();
+
+	// [RH] Try adding .deh and .bex files on the command line.
+	// If there are none, try adding any in the config file.
+
+	//if (gameinfo.gametype == GAME_Doom)
+	{
+		if (!ConsiderPatches ("-deh", ".deh") &&
+			!ConsiderPatches ("-bex", ".bex") &&
+			(gameinfo.gametype == GAME_Doom) &&
+			GameConfig->SetSection ("Doom.DefaultDehacked"))
+		{
+			const char *key;
+			const char *value;
+
+			while (GameConfig->NextInSection (key, value))
+			{
+				if (stricmp (key, "Path") == 0 && FileExists (value))
+				{
+					Printf ("Applying patch %s\n", value);
+					DoDehPatch (value, true);
+				}
+			}
+		}
+
+		DoDehPatch (NULL, true);	// See if there's a patch in a PWAD
+		FinishDehPatch ();			// Create replacements for dehacked pickups
+	}
+	HandleNoSector ();	// clear NOSECTOR flag off all actors modified by Dehacked and the BossEye.
+
+	FActorInfo::StaticSetActorNums ();
+
+
+	// [RH] User-configurable startup strings. Because BOOM does.
+	static const char *startupString[5] = {
+		"STARTUP1", "STARTUP2", "STARTUP3", "STARTUP4", "STARTUP5"
+	};
+	for (p = 0; p < 5; ++p)
+	{
+		const char *str = GStrings[startupString[p]];
+		if (str != NULL && str[0] != '\0')
+		{
+			Printf ("%s\n", str);
+		}
 	}
 
 	Printf ("M_Init: Init miscellaneous info.\n");
