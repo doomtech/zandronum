@@ -2208,6 +2208,8 @@ void P_DeathThink (player_t *player)
 */
 }
 
+
+
 //*****************************************************************************
 //
 void PLAYER_JoinGameFromSpectators( int iChar )
@@ -2250,6 +2252,10 @@ void PLAYER_JoinGameFromSpectators( int iChar )
 	Printf( "%s \\c-joined the game.\n", players[consoleplayer].userinfo.netname );
 }
 
+CCMD( join ) {
+	PLAYER_JoinGameFromSpectators('y');
+}
+
 void M_StartMessage (const char *string, void(*routine)(int), bool input);
 
 //*****************************************************************************
@@ -2276,8 +2282,10 @@ bool PLAYER_Responder( event_t *pEvent )
 				M_StartControlPanel( true );
 				M_StartJoinTeamMenu( );
 			}
-			else
-				M_StartMessage( "Join current game?\n\npress y or n.", PLAYER_JoinGameFromSpectators, true ); // [RC] TODO: Add readme about this game type
+			else {
+				M_StartControlPanel( true );
+				M_StartJoinMenu( );
+			}
 
 			return ( true );
 		}

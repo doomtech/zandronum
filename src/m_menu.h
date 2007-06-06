@@ -65,6 +65,9 @@ bool M_StartOptionsMenu (void);
 //  Setup join team menu
 bool M_StartJoinTeamMenu (void);
 
+// [RC] Join, but no teams
+bool M_StartJoinMenu (void);
+
 // [RH] Handle keys for options menu
 void M_OptResponder (event_t *ev);
 

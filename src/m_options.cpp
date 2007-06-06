@@ -3109,6 +3109,9 @@ void M_BotSetup( void )
 	}
 }
 
+
+
+
 /*=======================================
  *
  * Join Team Menu
@@ -3188,6 +3191,53 @@ menu_t JoinTeamMenu =
 	MNF_CENTERED,
 };
 
+/*=======================================
+ *
+ * Join Game Menu [RC]
+ *
+ *=======================================*/
+
+static	void	JoinGame( void );
+
+static menuitem_t JoinItems[] =
+{
+	{ redtext,	"You are spectating.",	{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
+	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
+	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
+	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
+	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
+	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
+	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
+	{ more,		"Join game",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)JoinGame} },
+	{ more,		"How to play",			{NULL},					{0.0}, {0.0},	{0.0}, { (value_t *)ShowHelp} },
+	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
+	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
+	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
+};
+
+
+// [RC] For the join menu
+static void JoinGame( void )
+{
+	AddCommandString( "join" );
+	M_ClearMenus( );
+}
+
+menu_t JoinMenu =
+{
+	"JOIN Game",
+	7,
+	countof(JoinItems),
+	0,
+	JoinItems,
+	0,
+	0,
+	0,
+	NULL,
+	false,
+	NULL,
+	MNF_CENTERED,
+};
 
 static value_t BillboardModes[] =
 {
@@ -3607,6 +3657,14 @@ bool M_StartJoinTeamMenu (void)
 	M_SwitchMenu (&JoinTeamMenu);
 	return true;
 }
+
+bool M_StartJoinMenu (void)
+{
+	OptionsActive = true;
+	M_SwitchMenu (&JoinMenu);
+	return true;
+}
+
 
 void M_DrawSlider (int x, int y, float min, float max, float cur)
 {
