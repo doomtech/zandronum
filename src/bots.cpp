@@ -2817,9 +2817,9 @@ CSkullBot::CSkullBot( char *pszName, char *pszTeamName, ULONG ulPlayerNum )
 			// See if the given class name matches one in the global list.
 			for ( ulIdx = 0; ulIdx < PlayerClasses.Size( ); ulIdx++ )
 			{
-				if ( stricmp( g_BotInfo[m_ulBotInfoIdx]->szClassName, PlayerClasses[ulIdx].Type->TypeName.GetChars( )) == 0 )
+				if ( stricmp( g_BotInfo[m_ulBotInfoIdx]->szClassName, PlayerClasses[ulIdx].Type->Meta.GetMetaString (APMETA_DisplayName)) == 0 )
 				{
-					m_pPlayer->userinfo.PlayerClass = ( ulIdx - 1 );
+					m_pPlayer->userinfo.PlayerClass = ( ulIdx );
 					break;
 				}
 			}

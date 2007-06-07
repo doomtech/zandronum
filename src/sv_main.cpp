@@ -1687,9 +1687,14 @@ bool SERVER_GetUserInfo( bool bAllowKick )
 		szClass[0] = 0;
 
 	if ( szClass[0] )
+	{
 		pPlayer->userinfo.PlayerClass = D_PlayerClassToInt( szClass );
+		// If the player class is changed, we also have to reset cls.
+		// Otherwise cls will not be reinitialized in P_SpawnPlayer. 
+		pPlayer->cls = NULL;
+	}
 
-	// If the player's class in valid, pick a new class for him.
+	// If the player's class is invalid, pick a new class for him.
 	if ( pPlayer->userinfo.PlayerClass < 0 )
 		pPlayer->userinfo.PlayerClass = 0;
 

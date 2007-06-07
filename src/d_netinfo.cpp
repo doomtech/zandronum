@@ -327,7 +327,7 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 	}
 	else if ( cvar == &connectiontype )
 		ulUpdateFlags |= USERINFO_CONNECTIONTYPE;
-	else if (( cvar == &playerclass ) && ( gameinfo.gametype == GAME_Hexen ))
+	else if (( cvar == &playerclass ) && ( (gameinfo.gametype == GAME_Hexen) || (PlayerClasses.Size() > 1) ))
 		ulUpdateFlags |= USERINFO_PLAYERCLASS;
 
 	val = cvar->GetGenericRep (CVAR_String);

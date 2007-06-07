@@ -186,7 +186,8 @@ void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlay
 		NETWORK_WriteLong( &clients[ulIdx].netbuf, players[ulPlayer].mo->x );
 		NETWORK_WriteLong( &clients[ulIdx].netbuf, players[ulPlayer].mo->y );
 		NETWORK_WriteLong( &clients[ulIdx].netbuf, players[ulPlayer].mo->z );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, players[ulPlayer].userinfo.PlayerClass );
+		NETWORK_WriteByte( &clients[ulIdx].netbuf, players[ulPlayer].CurrentPlayerClass );
+		//NETWORK_WriteByte( &clients[ulIdx].netbuf, players[ulPlayer].userinfo.PlayerClass );
 	}
 	// [BB]: Inform the player about its health, otherwise it won't be displayed properly.
 	// The armor display is handled in SERVER_ResetInventory.

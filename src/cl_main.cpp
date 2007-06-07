@@ -3662,7 +3662,7 @@ static void client_SetPlayerUserInfo( void )
 	}
 
 	// Read in the player's class.
-	if (( gameinfo.gametype == GAME_Hexen ) && ( ulFlags & USERINFO_PLAYERCLASS ))
+	if (( (gameinfo.gametype == GAME_Hexen) || (PlayerClasses.Size() > 1) ) && ( ulFlags & USERINFO_PLAYERCLASS ))
 		pPlayer->userinfo.PlayerClass = lClass;
 
 	// Build translation tables, always gotta do this!

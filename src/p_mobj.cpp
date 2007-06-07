@@ -4089,7 +4089,8 @@ void P_SpawnPlayer (mapthing2_t *mthing, bool bClientUpdate, player_t *p, bool t
 			int type;
 
 			// [BC] Cooperative is !deathmatch && !teamgame.
-			if ((!deathmatch && !teamgame) || ( NETWORK_GetState( ) == NETSTATE_SINGLE ))
+			// [BB] The server host always picks the multiplayer class choice.
+			if ( ((!deathmatch && !teamgame) || ( NETWORK_GetState( ) == NETSTATE_SINGLE )) && !( NETWORK_GetState( ) == NETSTATE_SERVER ) )
 			{
 				type = SinglePlayerClass[playernum];
 			}
