@@ -54,6 +54,7 @@
 #include "c_cvars.h"
 #include "d_player.h"
 #include "i_net.h"
+#include "p_setup.h"
 #include "sv_main.h"
 
 //*****************************************************************************
@@ -558,6 +559,7 @@ void	I_SetPort( netadr_t &addr, int port );
 
 void convertWeaponNameToKeyLetter( const char *&pszName );
 void convertWeaponKeyLetterToFullString( const char *&pszName );
+void generateMapLumpMD5Hash( MapData *Map, const LONG LumpNumber, char *MD5Hash );
 
 // DEBUG FUNCTION!
 void	NETWORK_FillBufferWithShit( sizebuf_t *pBuffer, ULONG ulSize );

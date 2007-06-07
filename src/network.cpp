@@ -105,6 +105,8 @@ typedef int SOCKET;
 #include "network.h"
 #include "sbar.h"
 
+#include "MD5Checksum.h"
+
 //*****************************************************************************
 //	VARIABLES
 
@@ -1541,6 +1543,20 @@ void convertWeaponKeyLetterToFullString( const char *&pszName ){
 		}
 	}
 	//Printf( "converted to %s\n", pszName );
+}
+
+//*****************************************************************************
+//
+void generateMapLumpMD5Hash( MapData *Map, const LONG LumpNumber, char *MD5Hash ){
+	LONG lLumpSize = Map->Size( LumpNumber );
+	BYTE *pbData = new BYTE[lLumpSize];
+
+	// Dump the data from the lump into our data buffer.
+	Map->Read( LumpNumber, pbData );
+
+	// Perform the checksum on our buffer, and free it.
+	CMD5Checksum::GetMD5( pbData, lLumpSize, MD5Hash );
+	delete ( pbData );
 }
 
 //*****************************************************************************

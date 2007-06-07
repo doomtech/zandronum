@@ -100,8 +100,6 @@
 #include "invasion.h"
 #include "r_sky.h"
 
-#include "MD5Checksum.h"
-
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
 
@@ -1218,101 +1216,37 @@ void CLIENT_SendCmd( void )
 
 //*****************************************************************************
 //
+
+void client_GenerateAndSendMapLumpMD5Hash( MapData *Map, const LONG LumpNumber ){
+	char		szChecksum[64];
+	// Generate the checksum string.
+	generateMapLumpMD5Hash( Map, LumpNumber, szChecksum );
+	// Now, send the vertex checksum string.
+	NETWORK_WriteString( &g_LocalBuffer, szChecksum );
+}
+
+//*****************************************************************************
+//
 void CLIENT_AuthenticateLevel( char *pszMapName )
 {
 	// [BB] Check if the wads contain the map at all. If not, don't send any checksums.
-	if( Wads.CheckNumForName( pszMapName ) == -1 )
+	MapData* map = P_OpenMapData( pszMapName );
+	if(  map == NULL )
 	{
 		Printf( "map %s not found!\n", pszMapName );
 		return;
 	}
 	else{
-
-		LONG		lBaseLumpNum;
-		LONG		lCurLumpNum;
-		LONG		lLumpSize;
-		char		szChecksum[64];
-		FWadLump	Data;
-		BYTE		*pbData;
-
-		// This is the lump number of the current map we're on.
-		lBaseLumpNum = Wads.GetNumForName( pszMapName );
-
-		//*************************************************************************
-		//	VERTICIES
-
-		// Get the vertex lump.
-		lCurLumpNum = lBaseLumpNum + ML_VERTEXES;
-		lLumpSize = Wads.LumpLength( lCurLumpNum );
-
-		// Open the vertex lump, and dump the data from it into our data buffer.
-		Data = Wads.OpenLumpNum( lCurLumpNum );
-		pbData = new BYTE[lLumpSize];
-		Data.Read( pbData, lLumpSize );
-
-		// Perform the checksum on our buffer, and free it.
-		CMD5Checksum::GetMD5( pbData, lLumpSize, szChecksum );
-		delete ( pbData );
-
-		// Now, send the vertex checksum string.
-		NETWORK_WriteString( &g_LocalBuffer, szChecksum );
-
-		//*************************************************************************
-		//	LINEDEFS
-
-		// Get the linedefs lump.
-		lCurLumpNum = lBaseLumpNum + ML_LINEDEFS;
-		lLumpSize = Wads.LumpLength( lCurLumpNum );
-
-		// Open the linedefs lump, and dump the data from it into our data buffer.
-		Data = Wads.OpenLumpNum( lCurLumpNum );
-		pbData = new BYTE[lLumpSize];
-		Data.Read( pbData, lLumpSize );
-
-		// Perform the checksum on our buffer, and free it.
-		CMD5Checksum::GetMD5( pbData, lLumpSize, szChecksum );
-		delete ( pbData );
-
-		// Now, send the linedefs checksum string.
-		NETWORK_WriteString( &g_LocalBuffer, szChecksum );
-
-		//*************************************************************************
-		//	SIDEDEFS
-
-		// Get the sidedefs lump.
-		lCurLumpNum = lBaseLumpNum + ML_SIDEDEFS;
-		lLumpSize = Wads.LumpLength( lCurLumpNum );
-
-		// Open the sidedefs lump, and dump the data from it into our data buffer.
-		Data = Wads.OpenLumpNum( lCurLumpNum );
-		pbData = new BYTE[lLumpSize];
-		Data.Read( pbData, lLumpSize );
-
-		// Perform the checksum on our buffer, and free it.
-		CMD5Checksum::GetMD5( pbData, lLumpSize, szChecksum );
-		delete ( pbData );
-
-		// Now, send the sidedefs checksum string.
-		NETWORK_WriteString( &g_LocalBuffer, szChecksum );
-
-		//*************************************************************************
-		//	SECTORS
-
-		// Get the sectors lump.
-		lCurLumpNum = lBaseLumpNum + ML_SECTORS;
-		lLumpSize = Wads.LumpLength( lCurLumpNum );
-
-		// Open the sectors lump, and dump the data from it into our data buffer.
-		Data = Wads.OpenLumpNum( lCurLumpNum );
-		pbData = new BYTE[lLumpSize];
-		Data.Read( pbData, lLumpSize );
-
-		// Perform the checksum on our buffer, and free it.
-		CMD5Checksum::GetMD5( pbData, lLumpSize, szChecksum );
-		delete ( pbData );
-
-		// Now, send the sectors checksum string.
-		NETWORK_WriteString( &g_LocalBuffer, szChecksum );
+		// Generate and send checksums for the map lumps:
+		// VERTICIES
+		client_GenerateAndSendMapLumpMD5Hash( map, ML_VERTEXES );
+		// LINEDEFS
+		client_GenerateAndSendMapLumpMD5Hash( map, ML_LINEDEFS );
+		// SIDEDEFS
+		client_GenerateAndSendMapLumpMD5Hash( map, ML_SIDEDEFS );
+		// SECTORS
+		client_GenerateAndSendMapLumpMD5Hash( map, ML_SECTORS );
+		delete map;
 	}
 }
 
@@ -7542,8 +7476,13 @@ static void client_MapLoad( void )
 	pszMap = NETWORK_ReadString( );
 
 	// Check to see if we have the map.
-	if ( Wads.CheckNumForName( pszMap ) != -1 )
+	MapData* map = P_OpenMapData( pszMap );
+	if ( map != NULL )
 	{
+		// We only created the map pointer to check if we have the map.
+		// We don't need it anymore.
+		delete map;
+
 		// Start new level.
 		G_InitNew( pszMap, false );
 

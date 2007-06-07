@@ -897,11 +897,6 @@ void SERVER_AuthenticateClientLevel( void )
 //
 bool SERVER_PerformAuthenticationChecksum( void )
 {
-	LONG		lBaseLumpNum;
-	LONG		lCurLumpNum;
-	LONG		lLumpSize;
-	FWadLump	Data;
-	BYTE		*pbData;
 	char		szServerVertexString[64];
 	char		szServerLinedefString[64];
 	char		szServerSidedefString[64];
@@ -911,72 +906,20 @@ bool SERVER_PerformAuthenticationChecksum( void )
 	char		szClientSidedefString[64];
 	char		szClientSectorString[64];
 
-	// This is the lump number of the current map we're on.
-	lBaseLumpNum = Wads.GetNumForName( level.mapname );
+	// [BB] Open the map. Since we are already using the map, we won't get a NULL pointer.
+	MapData* map = P_OpenMapData( level.mapname );
+	// Generate checksums for the map lumps:
+	// VERTICIES
+	generateMapLumpMD5Hash( map, ML_VERTEXES, szServerVertexString );
+	// LINEDEFS
+	generateMapLumpMD5Hash( map, ML_LINEDEFS, szServerLinedefString );
+	// SIDEDEFS
+	generateMapLumpMD5Hash( map, ML_SIDEDEFS, szServerSidedefString );
+	// SECTORS
+	generateMapLumpMD5Hash( map, ML_SECTORS, szServerSectorString );
 
-	//*************************************************************************
-	//	VERTICIES
-
-	// Get the vertex lump.
-	lCurLumpNum = lBaseLumpNum + ML_VERTEXES;
-	lLumpSize = Wads.LumpLength( lCurLumpNum );
-
-	// Open the vertex lump, and dump the data from it into our data buffer.
-	Data = Wads.OpenLumpNum( lCurLumpNum );
-	pbData = new BYTE[lLumpSize];
-	Data.Read( pbData, lLumpSize );
-
-	// Perform the checksum on our buffer, and free it.
-	CMD5Checksum::GetMD5( pbData, lLumpSize, szServerVertexString );
-	delete ( pbData );
-
-	//*************************************************************************
-	//	LINEDEFS
-
-	// Get the linedefs lump.
-	lCurLumpNum = lBaseLumpNum + ML_LINEDEFS;
-	lLumpSize = Wads.LumpLength( lCurLumpNum );
-
-	// Open the linedefs lump, and dump the data from it into our data buffer.
-	Data = Wads.OpenLumpNum( lCurLumpNum );
-	pbData = new BYTE[lLumpSize];
-	Data.Read( pbData, lLumpSize );
-
-	// Perform the checksum on our buffer, and free it.
-	CMD5Checksum::GetMD5( pbData, lLumpSize, szServerLinedefString );
-	delete ( pbData );
-
-	//*************************************************************************
-	//	SIDEDEFS
-
-	// Get the sidedefs lump.
-	lCurLumpNum = lBaseLumpNum + ML_SIDEDEFS;
-	lLumpSize = Wads.LumpLength( lCurLumpNum );
-
-	// Open the sidedefs lump, and dump the data from it into our data buffer.
-	Data = Wads.OpenLumpNum( lCurLumpNum );
-	pbData = new BYTE[lLumpSize];
-	Data.Read( pbData, lLumpSize );
-
-	// Perform the checksum on our buffer, and free it.
-	CMD5Checksum::GetMD5( pbData, lLumpSize, szServerSidedefString );
-	delete ( pbData );
-
-	//*************************************************************************
-	//	SECTORS
-
-	// Get the sectors lump.
-	lCurLumpNum = lBaseLumpNum + ML_SECTORS;
-	lLumpSize = Wads.LumpLength( lCurLumpNum );
-
-	// Open the sectors lump, and dump the data from it into our data buffer.
-	Data = Wads.OpenLumpNum( lCurLumpNum );
-	pbData = new BYTE[lLumpSize];
-	Data.Read( pbData, lLumpSize );
-
-	// Perform the checksum on our buffer, and free it.
-	CMD5Checksum::GetMD5( pbData, lLumpSize, szServerSectorString );
-	delete ( pbData );
+	// Free the map pointer, we don't need it anymore.
+	delete map;
 
 	// Read in the client's checksum strings.
 	strncpy( szClientVertexString, NETWORK_ReadString( ), 64 );
