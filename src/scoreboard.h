@@ -74,6 +74,8 @@ enum
 //*****************************************************************************
 //	PROTOTYPES
 
+LONG	GAME_CountLivingPlayers( );
+ULONG	SCOREBOARD_GetLeftToLimit ( );
 void	SCOREBOARD_Render( player_s *pPlayer );
 void	SCOREBOARD_RenderBoard( player_s *pPlayer );
 void	SCOREBOARD_RenderDMStats( void );

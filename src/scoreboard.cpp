@@ -94,6 +94,9 @@ static	bool	g_bIsTied = false;
 // How many opponents are left standing in LMS?
 static	LONG	g_lNumOpponentsLeft = 0;
 
+// [RC] How many allies are alive in Survival?
+static	LONG	g_lNumAlliesLeft = 0;
+
 // Who has the terminator artifact?
 static	player_s	*g_pTerminatorArtifactCarrier = NULL;
 
@@ -124,6 +127,155 @@ static	void			scoreboard_RenderIndividualPlayer( bool bScale, ULONG ulYPos, ULON
 
 //*****************************************************************************
 //	FUNCTIONS
+
+
+
+//*****************************************************************************
+//
+
+LONG GAME_CountLivingPlayers( void )
+{
+	// Exactly like LASTMANSTANDING_CountMenStanding, but for any mode.
+	// I really didn't want to bork anything there yet.
+	ULONG	ulIdx;
+	ULONG	ulNumMenStanding;
+
+	ulNumMenStanding = 0;
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( playeringame[ulIdx] && ( players[ulIdx].bSpectating == false ) && ( players[ulIdx].health > 0 ))
+			ulNumMenStanding++;
+	}
+
+	return ( ulNumMenStanding );
+}
+
+
+//*****************************************************************************
+// [RC] Returns the number of frags, kills,  or points remaining, or 0 if invalid.
+
+ULONG SCOREBOARD_GetLeftToLimit( )
+{
+	ULONG ulIdx;
+	// FRAG based mode
+	if (( lastmanstanding == false ) && ( teamlms == false ) && ( possession == false ) && ( teampossession == false ) && deathmatch && (fraglimit > 0) && gamestate == GS_LEVEL )
+	{
+		LONG	lHighestFragcount;
+		ULONG	ulFragsLeft;
+		
+		// If we're in a teamplay, just go by whichever team has the most frags.
+		if ( teamplay )
+		{
+			if ( TEAM_GetFragCount( TEAM_BLUE ) >= TEAM_GetFragCount( TEAM_RED ))
+				lHighestFragcount = TEAM_GetFragCount( TEAM_BLUE );
+			else
+				lHighestFragcount = TEAM_GetFragCount( TEAM_RED );
+		}
+		// Otherwise, find the player with the most frags.
+		else
+		{
+			lHighestFragcount = INT_MIN;
+			for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+			{
+				if ( playeringame[ulIdx] == false )
+					continue;
+
+				if ( players[ulIdx].fragcount > lHighestFragcount )
+					lHighestFragcount = players[ulIdx].fragcount;
+			}
+		}
+
+		ulFragsLeft = fraglimit - lHighestFragcount;
+		return ulFragsLeft;
+	}
+
+	// POINT based mode
+	else if (( teamgame || possession || teampossession ) && ( pointlimit > 0 ) && ( gamestate == GS_LEVEL ))
+	{
+		ULONG	ulPointsLeft;
+		ULONG	ulBluePoints;
+		ULONG	ulRedPoints;
+		ULONG	ulIdx;
+		LONG	lHighestPointCount;
+
+		if ( teamgame || teampossession )
+		{
+			ulBluePoints = TEAM_GetScore( TEAM_BLUE );
+			ulRedPoints = TEAM_GetScore( TEAM_RED );
+
+			ulPointsLeft = pointlimit - (( ulBluePoints >= ulRedPoints ) ? ulBluePoints : ulRedPoints );
+		}
+		// Must be possession mode.
+		else
+		{
+			lHighestPointCount = INT_MIN;
+			for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+			{
+				if ( playeringame[ulIdx] == false )
+					continue;
+
+				if ( (LONG)players[ulIdx].lPointCount > lHighestPointCount )
+					lHighestPointCount = players[ulIdx].lPointCount;
+			}
+
+			ulPointsLeft = pointlimit - (ULONG)lHighestPointCount;
+			
+		}
+		return ulPointsLeft;
+	}
+
+	// KILL based mode
+	else if (( deathmatch == false ) && ( teamgame == false ) && ( gamestate == GS_LEVEL ))
+	{
+		if ( invasion )
+			return (LONG)INVASION_GetNumMonstersLeft( );
+		else
+			return level.total_monsters - level.killed_monsters;
+	}
+
+	// WIN based mode (LMS)
+	else if (( lastmanstanding || teamlms ) && winlimit && gamestate == GS_LEVEL )
+	{
+		bool	bFoundPlayer = false;
+		LONG	lHighestWincount;
+		ULONG	ulWinsLeft;
+
+		// If we're in a teamplay, just go by whichever team has the most frags.
+		if ( teamlms )
+		{
+			if ( TEAM_GetWinCount( TEAM_BLUE ) >= TEAM_GetWinCount( TEAM_RED ))
+				lHighestWincount = TEAM_GetWinCount( TEAM_BLUE );
+			else
+				lHighestWincount = TEAM_GetWinCount( TEAM_RED );
+		}
+		// Otherwise, find the player with the most frags.
+		else
+		{
+			for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+			{
+				if ( playeringame[ulIdx] == false )
+					continue;
+
+				if ( bFoundPlayer == false )
+				{
+					lHighestWincount = players[ulIdx].ulWins;
+					bFoundPlayer = true;
+					continue;
+				}
+				else if ( players[ulIdx].ulWins > (ULONG)lHighestWincount )
+					lHighestWincount = players[ulIdx].ulWins;
+			}
+		}
+
+		return winlimit - lHighestWincount;
+	}
+
+	// None of the above
+	return 0;
+
+
+}
+
 
 void SCOREBOARD_Render( player_s *pPlayer )
 {
@@ -182,12 +334,16 @@ void SCOREBOARD_Render( player_s *pPlayer )
 		else
 			g_BottomString += "\\cdSPECTATING - SPACE TO JOIN";
 
+		// [RC] Moved to CHAT_render, so it shows only when chatting.
+/*
 		if (( lastmanstanding || teamlms ) && 
 			(( lmsspectatorsettings & LMS_SPF_CHAT ) == false ) &&
 			( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ))
 		{
 			g_BottomString += "\n\\cgNOTE: \\ccPLAYERS CANNOT HEAR YOU CHAT";
 		}
+*/
+
 /*
 		pMsg = new DHUDMessageFadeOut( szString,
 			1.5f,
@@ -432,6 +588,18 @@ void SCOREBOARD_Render( player_s *pPlayer )
 	// Allow the client to always draw certain team stats.
 	else if ( teamgame && ( cl_alwaysdrawteamstats || automapactive ))
 		SCOREBOARD_RenderTeamStats( pPlayer );
+	
+	// [RC] In Survival, print how many other players are alive
+	if ( SURVIVAL_GetState( ) == SURVS_INPROGRESS )
+		{
+			g_BottomString += "\\cg";
+			if(g_lNumAlliesLeft < 1)
+				g_BottomString += "LAST PLAYER ALIVE"; // Uh-oh.
+			else {
+				g_BottomString.AppendFormat( "%d ", g_lNumAlliesLeft );
+				g_BottomString.AppendFormat( "\\cA ALL%s LEFT", ( g_lNumAlliesLeft != 1 ) ? "IES" : "Y" );
+			}
+		}
 
 	// Display the message before we get out of here.
 	V_ColorizeString( (char *)g_BottomString.GetChars( ));
@@ -532,54 +700,31 @@ void SCOREBOARD_RenderBoard( player_s *pPlayer )
 		ulCurYPos += 22;
 	if (( lastmanstanding == false ) && ( teamlms == false ) && ( possession == false ) && ( teampossession == false ) && deathmatch && fraglimit && gamestate == GS_LEVEL )
 	{
-		LONG	lHighestFragcount;
-		ULONG	ulFragsLeft;
+		ULONG ulFragsLeft = SCOREBOARD_GetLeftToLimit( );
+		if(ulFragsLeft > 0) {
+			sprintf( szString, "%d frag%s remain%s", ulFragsLeft, ( ulFragsLeft != 1 ) ? "s" : "", ( ulFragsLeft == 1 ) ? "s" : "" );
 
-		// If we're in a teamplay, just go by whichever team has the most frags.
-		if ( teamplay )
-		{
-			if ( TEAM_GetFragCount( TEAM_BLUE ) >= TEAM_GetFragCount( TEAM_RED ))
-				lHighestFragcount = TEAM_GetFragCount( TEAM_BLUE );
-			else
-				lHighestFragcount = TEAM_GetFragCount( TEAM_RED );
-		}
-		// Otherwise, find the player with the most frags.
-		else
-		{
-			lHighestFragcount = INT_MIN;
-			for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+			if ( bScale )
 			{
-				if ( playeringame[ulIdx] == false )
-					continue;
-
-				if ( players[ulIdx].fragcount > lHighestFragcount )
-					lHighestFragcount = players[ulIdx].fragcount;
+				screen->DrawText( CR_GREY,
+					(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
+					ulCurYPos,
+					szString,
+					DTA_VirtualWidth, ValWidth.Int,
+					DTA_VirtualHeight, ValHeight.Int,
+					TAG_DONE );
 			}
-		}
+			else
+			{
+				screen->DrawText( CR_GREY,
+					( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
+					ulCurYPos,
+					szString,
+					TAG_DONE );
+			}
 
-		ulFragsLeft = fraglimit - lHighestFragcount;
-		sprintf( szString, "%d frag%s remain%s", ulFragsLeft, ( ulFragsLeft != 1 ) ? "s" : "", ( ulFragsLeft == 1 ) ? "s" : "" );
-
-		if ( bScale )
-		{
-			screen->DrawText( CR_GREY,
-				(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-				ulCurYPos,
-				szString,
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
-				TAG_DONE );
+			ulCurYPos += 10;
 		}
-		else
-		{
-			screen->DrawText( CR_GREY,
-				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-				ulCurYPos,
-				szString,
-				TAG_DONE );
-		}
-
-		ulCurYPos += 10;
 	}
 
 	// Render the duellimit string.
@@ -670,94 +815,38 @@ void SCOREBOARD_RenderBoard( player_s *pPlayer )
 	// Render the pointlimit string.
 	if (( teamgame || possession || teampossession ) && ( pointlimit ) && ( gamestate == GS_LEVEL ))
 	{
-		ULONG	ulPointsLeft;
-		ULONG	ulBluePoints;
-		ULONG	ulRedPoints;
-		ULONG	ulIdx;
-		LONG	lHighestPointCount;
 
-		if ( teamgame || teampossession )
-		{
-			ulBluePoints = TEAM_GetScore( TEAM_BLUE );
-			ulRedPoints = TEAM_GetScore( TEAM_RED );
+		ULONG	ulPointsLeft = SCOREBOARD_GetLeftToLimit( );
+		if(ulPointsLeft > 0) {
+			sprintf( szString, "%d point%s remain%s", ulPointsLeft, ( ulPointsLeft != 1 ) ? "s" : "", ( ulPointsLeft == 1 ) ? "s" : "" );
 
-			ulPointsLeft = pointlimit - (( ulBluePoints >= ulRedPoints ) ? ulBluePoints : ulRedPoints );
-		}
-		// Must be possession mode.
-		else
-		{
-			lHighestPointCount = INT_MIN;
-			for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+			if ( bScale )
 			{
-				if ( playeringame[ulIdx] == false )
-					continue;
-
-				if ( (LONG)players[ulIdx].lPointCount > lHighestPointCount )
-					lHighestPointCount = players[ulIdx].lPointCount;
+				screen->DrawText( CR_GREY,
+					(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
+					ulCurYPos,
+					szString,
+					DTA_VirtualWidth, ValWidth.Int,
+					DTA_VirtualHeight, ValHeight.Int,
+					TAG_DONE );
+			}
+			else
+			{
+				screen->DrawText( CR_GREY,
+					( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
+					ulCurYPos,
+					szString,
+					TAG_DONE );
 			}
 
-			ulPointsLeft = pointlimit - (ULONG)lHighestPointCount;
+			ulCurYPos += 10;
 		}
-
-		sprintf( szString, "%d points remain", ulPointsLeft );
-
-		if ( bScale )
-		{
-			screen->DrawText( CR_GREY,
-				(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-				ulCurYPos,
-				szString,
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
-				TAG_DONE );
-		}
-		else
-		{
-			screen->DrawText( CR_GREY,
-				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-				ulCurYPos,
-				szString,
-				TAG_DONE );
-		}
-
-		ulCurYPos += 10;
 	}
 
 	// Render the winlimit string.
 	if (( lastmanstanding || teamlms ) && winlimit && gamestate == GS_LEVEL )
 	{
-		bool	bFoundPlayer = false;
-		LONG	lHighestWincount;
-		ULONG	ulWinsLeft;
-
-		// If we're in a teamplay, just go by whichever team has the most frags.
-		if ( teamlms )
-		{
-			if ( TEAM_GetWinCount( TEAM_BLUE ) >= TEAM_GetWinCount( TEAM_RED ))
-				lHighestWincount = TEAM_GetWinCount( TEAM_BLUE );
-			else
-				lHighestWincount = TEAM_GetWinCount( TEAM_RED );
-		}
-		// Otherwise, find the player with the most frags.
-		else
-		{
-			for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-			{
-				if ( playeringame[ulIdx] == false )
-					continue;
-
-				if ( bFoundPlayer == false )
-				{
-					lHighestWincount = players[ulIdx].ulWins;
-					bFoundPlayer = true;
-					continue;
-				}
-				else if ( players[ulIdx].ulWins > (ULONG)lHighestWincount )
-					lHighestWincount = players[ulIdx].ulWins;
-			}
-		}
-
-		ulWinsLeft = winlimit - lHighestWincount;
+		ULONG	ulWinsLeft = SCOREBOARD_GetLeftToLimit( );
 		sprintf( szString, "%d win%s remain%s", ulWinsLeft, ( ulWinsLeft != 1 ) ? "s" : "", ( ulWinsLeft == 1 ) ? "s" : "" );
 		
 		if ( bScale )
@@ -1267,12 +1356,7 @@ void SCOREBOARD_RenderBoard( player_s *pPlayer )
 	// Render the number of monsters left in coop.
 	if (( deathmatch == false ) && ( teamgame == false ) && ( gamestate == GS_LEVEL ))
 	{
-		LONG	lNumMonstersRemaining;
-
-		if ( invasion )
-			lNumMonstersRemaining = (LONG)INVASION_GetNumMonstersLeft( );
-		else
-			lNumMonstersRemaining = level.total_monsters - level.killed_monsters;
+		LONG	lNumMonstersRemaining = SCOREBOARD_GetLeftToLimit( );
 		sprintf( szString, "%d monster%s remaining", lNumMonstersRemaining, lNumMonstersRemaining == 1 ? "" : "s" );
 		
 		if ( bScale )
@@ -1930,6 +2014,13 @@ void SCOREBOARD_RenderDMStats( void )
 	LONG		lRedScore;
 	LONG		lBlueScore;
 
+	if ( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS )
+		{
+			g_BottomString += "\\cC";
+			g_BottomString.AppendFormat( "%d ", g_lNumOpponentsLeft );
+			g_BottomString.AppendFormat( "\\cGOPPONENT%s LEFT", ( g_lNumOpponentsLeft != 1 ) ? "s" : "" );
+		}
+
 	// No need to do anything if the automap is active or there's no status bar (we do something different then).
 	if (( automapactive ) || 
 		(( lastmanstanding ) && ( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) && ( players[consoleplayer].camera->health <= 0 )))
@@ -2226,36 +2317,6 @@ void SCOREBOARD_RenderDMStats( void )
 					TAG_DONE );
 			}
 		}
-
-		if ( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS )
-		{
-			g_BottomString += "\\cC";
-			g_BottomString.AppendFormat( "%d ", g_lNumOpponentsLeft );
-			g_BottomString.AppendFormat( "\\cGOPPONENT%s LEFT", ( g_lNumOpponentsLeft != 1 ) ? "s" : "" );
-/*
-			sprintf( szString, "\\cC%d \\cGOPPONENT%s LEFT", g_lNumOpponentsLeft, ( g_lNumOpponentsLeft != 1 ) ? "s" : "" );
-			V_ColorizeString( szString );
-
-			if ( bScale )
-			{
-				screen->DrawText( CR_GRAY,
-					( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-					(LONG)( ulYPos * fYScale ),
-					szString,
-					DTA_VirtualWidth, ValWidth.Int,
-					DTA_VirtualHeight, ValHeight.Int,
-					TAG_DONE );
-			}
-			else
-			{
-				screen->DrawText( CR_GRAY,
-					( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-					ulYPos,
-					szString,
-					TAG_DONE );
-			}
-*/
-		}
 	}
 }
 
@@ -2501,13 +2562,14 @@ void SCOREBOARD_RenderTeamStats( player_s *pPlayer )
 //
 void SCOREBOARD_RenderInvasionStats( void )
 {
-	char			szString[128];
+/*	char			szString[128];
 	DHUDMessage		*pMsg;
 
 	sprintf( szString, "WAVE: %d  MONSTERS: %d  ARCH-VILES: %d", INVASION_GetCurrentWave( ), INVASION_GetNumMonstersLeft( ), INVASION_GetNumArchVilesLeft( ));
 	pMsg = new DHUDMessage( szString, 0.5f, 0.075f, 0, 0, CR_RED, 0.1f );
 
 	StatusBar->AttachMessage( pMsg, 'INVS' );
+*/
 }
 
 //*****************************************************************************
@@ -3515,6 +3577,7 @@ void SCOREBOARD_RefreshHUD( void )
 		g_lSpread = SCOREBOARD_CalcSpread( ULONG( players[consoleplayer].camera->player - players ));
 		g_bIsTied = SCOREBOARD_IsTied( ULONG( players[consoleplayer].camera->player - players ));
 		g_lNumOpponentsLeft = LASTMANSTANDING_CountMenStanding( ) - 1;
+		g_lNumAlliesLeft = GAME_CountLivingPlayers( ) -1;
 	}
 }
 
