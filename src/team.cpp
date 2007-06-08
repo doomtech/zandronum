@@ -791,21 +791,69 @@ void TEAM_ScoreSkulltagPoint( player_s *pPlayer, ULONG ulNumPoints, AActor *pPil
 	{
 		screen->SetFont( BigFont );
 		pMsg = new DHUDMessageFadeOut( szString,
-			1.5f,
-			0.425f,
-			0,
-			0,
+			160.4f,
+			75.0f,
+			320,
+			200,
 			CR_BLUE,
 			3.0f,
-			0.25f );
+			0.5f );
 		StatusBar->AttachMessage( pMsg, 'CNTR' );
 		screen->SetFont( SmallFont );
 	}
 	// If necessary, send it to clients.
 	else
 	{
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.425f, 0, 0, CR_BLUE, 3.0f, 0.25f, "BigFont", 'CNTR' );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_BLUE, 3.0f, 0.5f, "BigFont", 'CNTR' );
 	}
+
+	// [RC] Create the "scored by" message.
+	sprintf( szString, "\\c%sScored by: %s", pPlayer->ulTeam == TEAM_BLUE ? "H" : "G", pPlayer->userinfo.netname);
+	V_ColorizeString( szString );
+
+	// Now, print it.
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+	{
+		screen->SetFont( SmallFont );
+		pMsg = new DHUDMessageFadeOut( szString,
+			160.4f,
+			90.0f,
+			320,
+			200,
+			CR_BLUE,
+			3.0f,
+			0.5f );
+		StatusBar->AttachMessage( pMsg, 'SCOR' );
+	}
+	// If necessary, send it to clients.
+	else
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 90.0f, 320, 200, CR_BLUE, 3.0f, 0.5f, "SmallFont", 'SCOR' );
+
+	// [RC] Create the "assisted by" message.
+	if ( TEAM_GetAssistPlayer( pPlayer->ulTeam ) != MAXPLAYERS )
+	{
+		sprintf( szString, "\\c%sAssisted by: %s", pPlayer->ulTeam == TEAM_BLUE ? "H" : "G", players[TEAM_GetAssistPlayer( pPlayer->ulTeam )].userinfo.netname);
+		V_ColorizeString( szString );
+
+		// Now, print it.
+		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		{
+			screen->SetFont( SmallFont );
+			pMsg = new DHUDMessageFadeOut( szString,
+				160.4f,
+				100.0f,
+				320,
+				200,
+				CR_BLUE,
+				3.0f,
+				0.5f );
+			StatusBar->AttachMessage( pMsg, 'ASSI' );
+		}
+		// If necessary, send it to clients.
+		else
+			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 100.0f, 320, 200, CR_BLUE, 3.0f, 0.5f, "SmallFont", 'ASSI' );
+		}
+
 
 	// Give his team a point.
 	TEAM_SetScore( pPlayer->ulTeam, TEAM_GetScore( pPlayer->ulTeam ) + ulNumPoints, true );
