@@ -1534,74 +1534,80 @@ void M_DrawReadThis ()
 	else
 	{
 		tex = TexMan[gameinfo.info.infoPage[InfoType-1]];
-		// [RC] Show game-sensitive help, if the lumps exists
-		if(deathmatch) {
-			if(teamplay) {
-				if(TexMan.CheckForTexture("F1_TDM",0,0) != -1)
-				tex = TexMan["F1_TDM"];
-			}
-			else if(duel) {
-				if(TexMan.CheckForTexture("F1_DUEL",0,0) != -1)
-				tex = TexMan["F1_DUEL"];
-			}
-			else if(terminator) {
-				if(TexMan.CheckForTexture("F1_TERM",0,0) != -1)
-				tex = TexMan["F1_TERM"];
-			}
-			else if(lastmanstanding) {
-				if(TexMan.CheckForTexture("F1_LMS",0,0) != -1)
-				tex = TexMan["F1_LMS"];
-			}
-			else if(teamlms) {
-				if(TexMan.CheckForTexture("F1_TLMS",0,0) != -1)
-					tex = TexMan["F1_TLMS"];
-			}
-			else if(possession) {
-				if(TexMan.CheckForTexture("F1_POSS",0,0) != -1)
-					tex = TexMan["F1_POSS"];
-			}
-			else if(teampossession) {
-				if(TexMan.CheckForTexture("F1_TPOSS",0,0) != -1)
-					tex = TexMan["F1_TPOSS"];
-			}
-			else {
-				if(TexMan.CheckForTexture("F1_DM",0,0) != -1)
-				tex = TexMan["F1_DM"];
-			}
-		}
-		else if(ctf) {
-				if(TexMan.CheckForTexture("F1_CTF",0,0) != -1)
-					tex = TexMan["F1_CTF"];
-		}
-		else if(skulltag) {
-				if(TexMan.CheckForTexture("F1_ST",0,0) != -1)
-					tex = TexMan["F1_ST"];
-		}
-		else if(invasion) {
-				if(TexMan.CheckForTexture("F1_INV",0,0) != -1)
-					tex = TexMan["F1_INV"];
-		}
 
-		else if(survival) {
-				if(TexMan.CheckForTexture("F1_SCP",0,0) != -1)
-					tex = TexMan["F1_SCP"];
-		}
-		else if(oneflagctf) {
-				if(TexMan.CheckForTexture("F1_1FCTF",0,0) != -1)
-					tex = TexMan["F1_1FCTF"];
-		}
-		else if(cooperative){
-				if(TexMan.CheckForTexture("F1_COOP",0,0) != -1)
-					tex = TexMan["F1_COOP"];
-		}
+		/*====================
+		Game-Sensitive F1 Help
+		====================*/
+		if((gamestate == GS_LEVEL ) || (gamestate == GS_INTERMISSION )) {
 
-		// Did the mapper choose a custom sky via MAPINFO?
-		if((level.f1 != NULL) && (strcmp(level.f1, "") != 0)) {
-			if(TexMan.CheckForTexture(level.f1,0,0) == -1)
-				TexMan.AddPatch(level.f1); // Needs to be marked as a patch.
-			tex = TexMan[level.f1];
-		}
+			// Stock F1 screens
+			if(deathmatch) {
+				if(teamplay) {
+					if(TexMan.CheckForTexture("F1_TDM",0,0) != -1)
+					tex = TexMan["F1_TDM"];
+				}
+				else if(duel) {
+					if(TexMan.CheckForTexture("F1_DUEL",0,0) != -1)
+					tex = TexMan["F1_DUEL"];
+				}
+				else if(terminator) {
+					if(TexMan.CheckForTexture("F1_TERM",0,0) != -1)
+					tex = TexMan["F1_TERM"];
+				}
+				else if(lastmanstanding) {
+					if(TexMan.CheckForTexture("F1_LMS",0,0) != -1)
+					tex = TexMan["F1_LMS"];
+				}
+				else if(teamlms) {
+					if(TexMan.CheckForTexture("F1_TLMS",0,0) != -1)
+						tex = TexMan["F1_TLMS"];
+				}
+				else if(possession) {
+					if(TexMan.CheckForTexture("F1_POSS",0,0) != -1)
+						tex = TexMan["F1_POSS"];
+				}
+				else if(teampossession) {
+					if(TexMan.CheckForTexture("F1_TPOSS",0,0) != -1)
+						tex = TexMan["F1_TPOSS"];
+				}
+				else {
+					if(TexMan.CheckForTexture("F1_DM",0,0) != -1)
+					tex = TexMan["F1_DM"];
+				}
+			}
+			else if(ctf) {
+					if(TexMan.CheckForTexture("F1_CTF",0,0) != -1)
+						tex = TexMan["F1_CTF"];
+			}
+			else if(skulltag) {
+					if(TexMan.CheckForTexture("F1_ST",0,0) != -1)
+						tex = TexMan["F1_ST"];
+			}
+			else if(invasion) {
+					if(TexMan.CheckForTexture("F1_INV",0,0) != -1)
+						tex = TexMan["F1_INV"];
+			}
 
+			else if(survival) {
+					if(TexMan.CheckForTexture("F1_SCP",0,0) != -1)
+						tex = TexMan["F1_SCP"];
+			}
+			else if(oneflagctf) {
+					if(TexMan.CheckForTexture("F1_1FCTF",0,0) != -1)
+						tex = TexMan["F1_1FCTF"];
+			}
+			else if(cooperative){
+					if(TexMan.CheckForTexture("F1_COOP",0,0) != -1)
+						tex = TexMan["F1_COOP"];
+			}
+
+			// Custom F1 screens via MAPINFO
+			if((level.f1 != NULL) && (strcmp(level.f1, "") != 0)) {
+				if(TexMan.CheckForTexture(level.f1,0,0) == -1)
+					TexMan.AddPatch(level.f1); // Needs to be marked as a patch.
+				tex = TexMan[level.f1];
+			}
+		}
 		if (InfoType > 1)
 		{
 			prevpic = TexMan[gameinfo.info.infoPage[InfoType-2]];
