@@ -691,7 +691,6 @@ AWeapon *APlayerPawn::PickNewWeapon (const PClass *ammotype)
 		// [BC] In client mode, tell the server which weapon we're using.
 		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( player - players == consoleplayer ))
 			CLIENTCOMMANDS_WeaponSelect( (char *)best->GetClass( )->TypeName.GetChars( ));
-		// [RC] TODO: Check if this is a cause of the spectator bug
 	}
 	return best;
 }
