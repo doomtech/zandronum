@@ -470,6 +470,7 @@ void POSSESSION_DoFight( void )
 void POSSESSION_ScorePossessionPoint( player_s *pPlayer )
 {
 	char				szString[64];
+	char				szScorer[64];
 	DHUDMessageFadeOut	*pMsg;
 	bool				bPointLimitReached;
 
@@ -511,12 +512,22 @@ void POSSESSION_ScorePossessionPoint( player_s *pPlayer )
 	}
 
 	// Next, build the string that's displayed in big letters in the center of the screen.
+	// [RC] On team possession, state who scored.
 	if ( teampossession && ( pPlayer->bOnTeam ))
 	{
 		if ( pPlayer->ulTeam == TEAM_BLUE )
+		{
 			sprintf( szString, "\\chBLUE %s!", bPointLimitReached ? "WINS" : "SCORES" );
+			sprintf( szScorer, "\\chScored by: %s", pPlayer->userinfo.netname);
+		}
 		else
+		{
 			sprintf( szString, "\\cGRED %s!", bPointLimitReached ? "WINS" : "SCORES" );
+			sprintf( szScorer, "\\cgScored by: %s", pPlayer->userinfo.netname);
+		}
+
+		V_RemoveColorCodes( szScorer );
+		V_ColorizeString( szScorer );
 	}
 	else
 		sprintf( szString, "%s \\c-%s!", pPlayer->userinfo.netname, bPointLimitReached ? "WINS" : "SCORES" );
@@ -541,30 +552,26 @@ void POSSESSION_ScorePossessionPoint( player_s *pPlayer )
 		StatusBar->AttachMessage( pMsg, 'CNTR' );
 		screen->SetFont( SmallFont );
 
-		// [RC] On team possession, state who scored.
-		if ( teampossession && ( pPlayer->bOnTeam )) {
-			if ( pPlayer->ulTeam == TEAM_BLUE )
-				sprintf( szString, "\\chScored by: %s", pPlayer->userinfo.netname);
-			else
-				sprintf( szString, "\\cgScored by: %s", pPlayer->userinfo.netname);
-			V_RemoveColorCodes( szString );
-			V_ColorizeString( szString );
+		// [RC] Display small HUD message for the scorer
+		if ( teampossession && ( pPlayer->bOnTeam ))
+			pMsg = new DHUDMessageFadeOut( szScorer,
+					160.4f,
+					90.0f,
+					320,
+					200,
+					CR_RED,
+					3.0f,
+					2.0f );
+				StatusBar->AttachMessage( pMsg, 'SUBS' );
 
-			// Display small HUD message.
-			pMsg = new DHUDMessageFadeOut( szString,
-				160.4f,
-				90.0f,
-				320,
-				200,
-				CR_RED,
-				3.0f,
-				2.0f );
-			StatusBar->AttachMessage( pMsg, 'SUBS' );
-		}
+
+		
 	}
 	else
 	{
 		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", 'CNTR' );
+		if ( teampossession && ( pPlayer->bOnTeam ))
+			SERVERCOMMANDS_PrintHUDMessageFadeOut( szScorer, 160.4f, 90.0f, 320, 200, CR_RED, 3.0f, 2.0f, "SmallFont", 'SUBS' );
 	}
 
 	// End the round, or level after seconds (depending on whether or not the pointlimit
