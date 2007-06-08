@@ -69,6 +69,8 @@
 #include "v_text.h"
 #include "v_video.h"
 #include "w_wad.h"
+#include "lastmanstanding.h"
+#include "sbar.h"
 
 //*****************************************************************************
 //	VARIABLES
@@ -227,6 +229,7 @@ void CHAT_Render( void )
 		bScale = true;
 
 		ulYPos = (( gamestate == GS_INTERMISSION ) ? SCREENHEIGHT : ST_Y ) - ( Scale( SCREENHEIGHT, SmallFont->GetHeight( ) + 1, ValHeight.Int )) + 1;
+
 	}
 	else
 	{
@@ -236,7 +239,7 @@ void CHAT_Render( void )
 
 		ulYPos = (( gamestate == GS_INTERMISSION ) ? SCREENHEIGHT : ST_Y ) - SmallFont->GetHeight( ) + 1;
 	}
-
+	
 	// Use the small font.
 	screen->SetFont( SmallFont );
 
@@ -328,6 +331,34 @@ void CHAT_Render( void )
 				TAG_DONE );
 		}
 	}
+
+	// [RC] Tell chatters about the iron curtain of LMS chat.
+		if (( lastmanstanding || teamlms ) && 
+				(( lmsspectatorsettings & LMS_SPF_CHAT ) == false ) &&
+				( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ))	{
+
+				// Go up or down, depending on whether the HUD is fullscreen
+				if (((realviewheight == SCREENHEIGHT ) && viewactive )) {
+					ulYPos += SmallFont->GetHeight( ) + 1;
+				}
+				else
+					ulYPos -= SmallFont->GetHeight( ) + 1;
+					
+					// Is this the spectator talking?
+					if ( players[consoleplayer].bSpectating )
+						screen->DrawText( CR_BRICK,
+							0,
+							ulYPos,
+							"Players can't hear you chat.",
+							TAG_DONE );
+					else
+						screen->DrawText( CR_GREY,
+							0,
+							ulYPos,
+							"Spectators can't talk to you.",
+							TAG_DONE );
+
+			}
 
 	g_szChatBuffer[g_lStringLength] = 0;
 	BorderTopRefresh = screen->GetPageCount ();
