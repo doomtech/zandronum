@@ -18,6 +18,8 @@
 #include "team.h"
 #include "scoreboard.h"
 #include "chat.h"
+#include "cooperative.h"
+#include "invasion.h"
 
 #define ST_EVILGRINCOUNT		(2*TICRATE)
 #define ST_STRAIGHTFACECOUNT	(TICRATE/2)
@@ -680,6 +682,7 @@ private:
 			if ( pRune )
 			{
 //				Printf( "%s\n", TexMan[pRune->Icon]->Name );
+//				pRune->~AActor
 				screen->DrawTexture( TexMan( pRune->Icon ), -76, -2,
 					DTA_HUDRules, HUD_Normal,
 					DTA_CenterBottomOffset, true,
@@ -933,221 +936,36 @@ private:
 			ulCurYPos = ValHeight.Int - 4;
 		else
 			ulCurYPos = SCREENHEIGHT - 4;
-
-		// Start by drawing the medkit.
-		if ( bScale )
-		{
-			screen->DrawTexture( TexMan["MEDIA0"],
-				ulCurXPos + ( TexMan["MEDIA0"]->GetWidth( ) / 2 ),
-				ulCurYPos,
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
-				TAG_DONE );
-		}
-		else
-		{
-			screen->DrawTexture( TexMan["MEDIA0"],
-				ulCurXPos + ( TexMan["MEDIA0"]->GetWidth( ) / 2 ),
-				ulCurYPos,
-				TAG_DONE );
-		}
-
-		// Next, draw the health xxx/xxx string. This has to be done in parts to get the right
-		// spacing.
-		{
-			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players )) == false ))
-				sprintf( szString, "???" );
-			else
-				sprintf( szString, "%d", CPlayer->health );
+		if(!instagib) {
+			// Start by drawing the medkit.
 			if ( bScale )
 			{
-				screen->DrawText( CR_RED,
-					ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200" ) - ConFont->StringWidth( szString ),
-					ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
-					szString,
+				screen->DrawTexture( TexMan["MEDIA0"],
+					ulCurXPos + ( TexMan["MEDIA0"]->GetWidth( ) / 2 ),
+					ulCurYPos,
 					DTA_VirtualWidth, ValWidth.Int,
 					DTA_VirtualHeight, ValHeight.Int,
 					TAG_DONE );
 			}
 			else
 			{
-				screen->DrawText( CR_RED,
-					ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200" ) - ConFont->StringWidth( szString ),
-					ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
-					szString,
+				screen->DrawTexture( TexMan["MEDIA0"],
+					ulCurXPos + ( TexMan["MEDIA0"]->GetWidth( ) / 2 ),
+					ulCurYPos,
 					TAG_DONE );
 			}
 
-			sprintf( szString, "/" );
-			if ( bScale )
-			{
-				screen->DrawText( CR_WHITE,
-					ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200" ),
-					ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
-					szString,
-					DTA_VirtualWidth, ValWidth.Int,
-					DTA_VirtualHeight, ValHeight.Int,
-					TAG_DONE );
-			}
-			else
-			{
-				screen->DrawText( CR_WHITE,
-					ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200" ),
-					ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
-					szString,
-					TAG_DONE );
-			}
-
-			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players )) == false ))
-				sprintf( szString, "???" );
-			else
-				sprintf( szString, "%d", ( CPlayer->Powers & PW_PROSPERITY ) ? ( deh.MaxSoulsphere + 50 ) : deh.StartHealth + CPlayer->lMaxHealthBonus );
-			if ( bScale )
-			{
-				screen->DrawText( CR_RED,
-					ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200/200" ) - ConFont->StringWidth( szString ),
-					ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
-					szString,
-					DTA_VirtualWidth, ValWidth.Int,
-					DTA_VirtualHeight, ValHeight.Int,
-					TAG_DONE );
-			}
-			else
-			{
-				screen->DrawText( CR_RED,
-					ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200/200" ) - ConFont->StringWidth( szString ),
-					ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
-					szString,
-					TAG_DONE );
-			}
-		}
-
-		// Next, draw the armor.
-		ulCurYPos -= TexMan["MEDIA0"]->GetHeight( ) + 4;
-		if ( CPlayer->mo )
-			pArmor = CPlayer->mo->FindInventory<ABasicArmor>( );
-		else
-			pArmor = NULL;
-			
-		if ( pArmor )
-			sprintf( szPatchName, TexMan[pArmor->Icon]->Name );
-		else
-			sprintf( szPatchName, "ARM1A0" );
-
-		if ( bScale )
-		{
-			screen->DrawTexture( TexMan[szPatchName],
-				ulCurXPos + ( TexMan[szPatchName]->GetWidth( ) / 2 ),
-				ulCurYPos,
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
-				TAG_DONE );
-		}
-		else
-		{
-			screen->DrawTexture( TexMan[szPatchName],
-				ulCurXPos + ( TexMan[szPatchName]->GetWidth( ) / 2 ),
-				ulCurYPos,
-				TAG_DONE );
-		}
-
-		// Next, draw the armor xxx/xxx string. This has to be done in parts to get the right
-		// spacing.
-		{
-			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players )) == false ))
-				sprintf( szString, "???" );
-			else
-				sprintf( szString, "%d", pArmor ? pArmor->Amount : 0 );
-			if ( bScale )
-			{
-				screen->DrawText( CR_RED,
-					ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200" ) - ConFont->StringWidth( szString ),
-					ulCurYPos - ( TexMan["ARM1A0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
-					szString,
-					DTA_VirtualWidth, ValWidth.Int,
-					DTA_VirtualHeight, ValHeight.Int,
-					TAG_DONE );
-			}
-			else
-			{
-				screen->DrawText( CR_RED,
-					ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200" ) - ConFont->StringWidth( szString ),
-					ulCurYPos - ( TexMan["ARM1A0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
-					szString,
-					TAG_DONE );
-			}
-
-			sprintf( szString, "/" );
-			if ( bScale )
-			{
-				screen->DrawText( CR_WHITE,
-					ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200" ),
-					ulCurYPos - ( TexMan["ARM1A0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
-					szString,
-					DTA_VirtualWidth, ValWidth.Int,
-					DTA_VirtualHeight, ValHeight.Int,
-					TAG_DONE );
-			}
-			else
-			{
-				screen->DrawText( CR_WHITE,
-					ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200" ),
-					ulCurYPos - ( TexMan["ARM1A0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
-					szString,
-					TAG_DONE );
-			}
-
-			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players )) == false ))
-				sprintf( szString, "???" );
-			else
-				sprintf( szString, "%d", ( CPlayer->Powers & PW_PROSPERITY ) ? (( 100 * deh.BlueAC ) + 50 ) : ( 100 * deh.GreenAC ) + CPlayer->lMaxArmorBonus );
-			if ( bScale )
-			{
-				screen->DrawText( CR_RED,
-					ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200/200" ) - ConFont->StringWidth( szString ),
-					ulCurYPos - ( TexMan["ARM1A0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
-					szString,
-					DTA_VirtualWidth, ValWidth.Int,
-					DTA_VirtualHeight, ValHeight.Int,
-					TAG_DONE );
-			}
-			else
-			{
-				screen->DrawText( CR_RED,
-					ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200/200" ) - ConFont->StringWidth( szString ),
-					ulCurYPos - ( TexMan["ARM1A0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
-					szString,
-					TAG_DONE );
-			}
-		}
-
-		// Now draw the ammo.
-		GetCurrentAmmo( pAmmo1, pAmmo2, iAmmoCount1, iAmmoCount2 );
-		if ( pAmmo1 )
-		{
-			if ( bScale )
-			{
-				ulCurXPos = ValWidth.Int - 4 - ConFont->StringWidth( "200/200" ) - TexMan["STIMA0"]->GetWidth( ) - 8;
-				ulCurYPos = ValHeight.Int - 4;
-			}
-			else
-			{
-				ulCurXPos = SCREENWIDTH - 4 - ConFont->StringWidth( "200/200" ) - TexMan["STIMA0"]->GetWidth( ) - 8;
-				ulCurYPos = SCREENHEIGHT - 4;
-			}
-
-			// First, draw the ammo xxx/xxx string. This is the reverse way from how the
-			// health and armor are done.
+			// Next, draw the health xxx/xxx string. This has to be done in parts to get the right
+			// spacing.
 			{
 				if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players )) == false ))
 					sprintf( szString, "???" );
 				else
-					sprintf( szString, "%d", pAmmo1->Amount );
-
+					sprintf( szString, "%d", CPlayer->health );
 				if ( bScale )
 				{
-					screen->DrawText( CR_YELLOW,
-						ulCurXPos + ConFont->StringWidth( "200" ) - ConFont->StringWidth( szString ),
+					screen->DrawText( CR_RED,
+						ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200" ) - ConFont->StringWidth( szString ),
 						ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 						szString,
 						DTA_VirtualWidth, ValWidth.Int,
@@ -1156,8 +974,8 @@ private:
 				}
 				else
 				{
-					screen->DrawText( CR_YELLOW,
-						ulCurXPos + ConFont->StringWidth( "200" ) - ConFont->StringWidth( szString ),
+					screen->DrawText( CR_RED,
+						ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200" ) - ConFont->StringWidth( szString ),
 						ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 						szString,
 						TAG_DONE );
@@ -1167,7 +985,7 @@ private:
 				if ( bScale )
 				{
 					screen->DrawText( CR_WHITE,
-						ulCurXPos + ConFont->StringWidth( "200/" ) - ConFont->StringWidth( szString ),
+						ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200" ),
 						ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 						szString,
 						DTA_VirtualWidth, ValWidth.Int,
@@ -1177,7 +995,7 @@ private:
 				else
 				{
 					screen->DrawText( CR_WHITE,
-						ulCurXPos + ConFont->StringWidth( "200/" ) - ConFont->StringWidth( szString ),
+						ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200" ),
 						ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 						szString,
 						TAG_DONE );
@@ -1186,12 +1004,11 @@ private:
 				if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players )) == false ))
 					sprintf( szString, "???" );
 				else
-					sprintf( szString, "%d", pAmmo1->MaxAmount );
-
+					sprintf( szString, "%d", ( CPlayer->Powers & PW_PROSPERITY ) ? ( deh.MaxSoulsphere + 50 ) : deh.StartHealth + CPlayer->lMaxHealthBonus );
 				if ( bScale )
 				{
-					screen->DrawText( CR_YELLOW,
-						ulCurXPos + ConFont->StringWidth( "200/200" ) - ConFont->StringWidth( szString ),						
+					screen->DrawText( CR_RED,
+						ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200/200" ) - ConFont->StringWidth( szString ),
 						ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 						szString,
 						DTA_VirtualWidth, ValWidth.Int,
@@ -1200,19 +1017,31 @@ private:
 				}
 				else
 				{
-					screen->DrawText( CR_YELLOW,
-						ulCurXPos + ConFont->StringWidth( "200/200" ) - ConFont->StringWidth( szString ),
+					screen->DrawText( CR_RED,
+						ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200/200" ) - ConFont->StringWidth( szString ),
 						ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
 						szString,
 						TAG_DONE );
 				}
 			}
+			}
+		// Next, draw the armor.
+		if(!instagib) {
+			ulCurYPos -= TexMan["MEDIA0"]->GetHeight( ) + 4;
+			if ( CPlayer->mo )
+				pArmor = CPlayer->mo->FindInventory<ABasicArmor>( );
+			else
+				pArmor = NULL;
+				
+			if ( pArmor )
+				sprintf( szPatchName, TexMan[pArmor->Icon]->Name );
+			else
+				sprintf( szPatchName, "ARM1A0" );
 
-			// Now draw the patch.
 			if ( bScale )
 			{
-				screen->DrawTexture( TexMan( pAmmo1->Icon ),
-					( ValWidth.Int + ( ulCurXPos + ConFont->StringWidth( "200/200" ))) / 2,
+				screen->DrawTexture( TexMan[szPatchName],
+					ulCurXPos + ( TexMan[szPatchName]->GetWidth( ) / 2 ),
 					ulCurYPos,
 					DTA_VirtualWidth, ValWidth.Int,
 					DTA_VirtualHeight, ValHeight.Int,
@@ -1220,10 +1049,189 @@ private:
 			}
 			else
 			{
-				screen->DrawTexture( TexMan( pAmmo1->Icon ),
-					( SCREENWIDTH + ( ulCurXPos + ConFont->StringWidth( "200/200" ))) / 2 ,
+				screen->DrawTexture( TexMan[szPatchName],
+					ulCurXPos + ( TexMan[szPatchName]->GetWidth( ) / 2 ),
 					ulCurYPos,
 					TAG_DONE );
+			}
+
+			// Next, draw the armor xxx/xxx string. This has to be done in parts to get the right
+			// spacing.
+			{
+				if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players )) == false ))
+					sprintf( szString, "???" );
+				else
+					sprintf( szString, "%d", pArmor ? pArmor->Amount : 0 );
+				if ( bScale )
+				{
+					screen->DrawText( CR_RED,
+						ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200" ) - ConFont->StringWidth( szString ),
+						ulCurYPos - ( TexMan["ARM1A0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
+						szString,
+						DTA_VirtualWidth, ValWidth.Int,
+						DTA_VirtualHeight, ValHeight.Int,
+						TAG_DONE );
+				}
+				else
+				{
+					screen->DrawText( CR_RED,
+						ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200" ) - ConFont->StringWidth( szString ),
+						ulCurYPos - ( TexMan["ARM1A0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
+						szString,
+						TAG_DONE );
+				}
+
+				sprintf( szString, "/" );
+				if ( bScale )
+				{
+					screen->DrawText( CR_WHITE,
+						ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200" ),
+						ulCurYPos - ( TexMan["ARM1A0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
+						szString,
+						DTA_VirtualWidth, ValWidth.Int,
+						DTA_VirtualHeight, ValHeight.Int,
+						TAG_DONE );
+				}
+				else
+				{
+					screen->DrawText( CR_WHITE,
+						ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200" ),
+						ulCurYPos - ( TexMan["ARM1A0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
+						szString,
+						TAG_DONE );
+				}
+
+				if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players )) == false ))
+					sprintf( szString, "???" );
+				else
+					sprintf( szString, "%d", ( CPlayer->Powers & PW_PROSPERITY ) ? (( 100 * deh.BlueAC ) + 50 ) : ( 100 * deh.GreenAC ) + CPlayer->lMaxArmorBonus );
+				if ( bScale )
+				{
+					screen->DrawText( CR_RED,
+						ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200/200" ) - ConFont->StringWidth( szString ),
+						ulCurYPos - ( TexMan["ARM1A0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
+						szString,
+						DTA_VirtualWidth, ValWidth.Int,
+						DTA_VirtualHeight, ValHeight.Int,
+						TAG_DONE );
+				}
+				else
+				{
+					screen->DrawText( CR_RED,
+						ulCurXPos + ( TexMan["ARM1A0"]->GetWidth( )) + 8 + ConFont->StringWidth( "200/200" ) - ConFont->StringWidth( szString ),
+						ulCurYPos - ( TexMan["ARM1A0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
+						szString,
+						TAG_DONE );
+				}
+			}
+
+		}
+
+		// Now draw the ammo.
+		if(!(dmflags & DF_INFINITE_AMMO)) { // [RC] Because then you wouldn't need this.
+			GetCurrentAmmo( pAmmo1, pAmmo2, iAmmoCount1, iAmmoCount2 );
+			if ( pAmmo1 )
+			{
+				if ( bScale )
+				{
+					ulCurXPos = ValWidth.Int - 4 - ConFont->StringWidth( "200/200" ) - TexMan["STIMA0"]->GetWidth( ) - 8;
+					ulCurYPos = ValHeight.Int - 4;
+				}
+				else
+				{
+					ulCurXPos = SCREENWIDTH - 4 - ConFont->StringWidth( "200/200" ) - TexMan["STIMA0"]->GetWidth( ) - 8;
+					ulCurYPos = SCREENHEIGHT - 4;
+				}
+
+				// First, draw the ammo xxx/xxx string. This is the reverse way from how the
+				// health and armor are done.
+				{
+					if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players )) == false ))
+						sprintf( szString, "???" );
+					else
+						sprintf( szString, "%d", pAmmo1->Amount );
+
+					if ( bScale )
+					{
+						screen->DrawText( CR_YELLOW,
+							ulCurXPos + ConFont->StringWidth( "200" ) - ConFont->StringWidth( szString ),
+							ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
+							szString,
+							DTA_VirtualWidth, ValWidth.Int,
+							DTA_VirtualHeight, ValHeight.Int,
+							TAG_DONE );
+					}
+					else
+					{
+						screen->DrawText( CR_YELLOW,
+							ulCurXPos + ConFont->StringWidth( "200" ) - ConFont->StringWidth( szString ),
+							ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
+							szString,
+							TAG_DONE );
+					}
+
+					sprintf( szString, "/" );
+					if ( bScale )
+					{
+						screen->DrawText( CR_WHITE,
+							ulCurXPos + ConFont->StringWidth( "200/" ) - ConFont->StringWidth( szString ),
+							ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
+							szString,
+							DTA_VirtualWidth, ValWidth.Int,
+							DTA_VirtualHeight, ValHeight.Int,
+							TAG_DONE );
+					}
+					else
+					{
+						screen->DrawText( CR_WHITE,
+							ulCurXPos + ConFont->StringWidth( "200/" ) - ConFont->StringWidth( szString ),
+							ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
+							szString,
+							TAG_DONE );
+					}
+
+					if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players )) == false ))
+						sprintf( szString, "???" );
+					else
+						sprintf( szString, "%d", pAmmo1->MaxAmount );
+
+					if ( bScale )
+					{
+						screen->DrawText( CR_YELLOW,
+							ulCurXPos + ConFont->StringWidth( "200/200" ) - ConFont->StringWidth( szString ),						
+							ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
+							szString,
+							DTA_VirtualWidth, ValWidth.Int,
+							DTA_VirtualHeight, ValHeight.Int,
+							TAG_DONE );
+					}
+					else
+					{
+						screen->DrawText( CR_YELLOW,
+							ulCurXPos + ConFont->StringWidth( "200/200" ) - ConFont->StringWidth( szString ),
+							ulCurYPos - ( TexMan["MEDIA0"]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
+							szString,
+							TAG_DONE );
+					}
+				}
+
+				// Now draw the patch.
+				if ( bScale )
+				{
+					screen->DrawTexture( TexMan( pAmmo1->Icon ),
+						( ValWidth.Int + ( ulCurXPos + ConFont->StringWidth( "200/200" ))) / 2,
+						ulCurYPos,
+						DTA_VirtualWidth, ValWidth.Int,
+						DTA_VirtualHeight, ValHeight.Int,
+						TAG_DONE );
+				}
+				else
+				{
+					screen->DrawTexture( TexMan( pAmmo1->Icon ),
+						( SCREENWIDTH + ( ulCurXPos + ConFont->StringWidth( "200/200" ))) / 2 ,
+						ulCurYPos,
+						TAG_DONE );
+				}
 			}
 		}
 
@@ -1233,7 +1241,7 @@ private:
 		else
 			ulCurXPos = SCREENWIDTH - 4;
 		ulCurYPos = 4;
-		if ( deathmatch || teamgame )
+		if ( deathmatch || teamgame || invasion)
 		{
 			if ( possession || teampossession )
 				sprintf( szString, "%d", CPlayer->lPointCount );
@@ -1241,9 +1249,16 @@ private:
 				sprintf( szString, "%d", CPlayer->ulWins );
 			else if ( deathmatch )
 				sprintf( szString, "%d", CPlayer->fragcount );
-			// Must be teamgame.
-			else
+			else if (teamgame)
 				sprintf( szString, "%d", CPlayer->lPointCount );
+			else if( invasion )
+				sprintf( szString, "%d", CPlayer->killcount );
+
+			ULONG left = SCOREBOARD_GetLeftToLimit( );
+			if(left > 0)
+				sprintf( szString, "%s \\cb(%d left)", szString, left );
+			
+			V_ColorizeString( szString );
 
 			if ( bScale )
 			{
@@ -1263,6 +1278,7 @@ private:
 					szString,
 					TAG_DONE );
 			}
+
 		}
 		// Otherwise, draw the keys.
 		else
@@ -1309,65 +1325,11 @@ private:
 				}
 			}
 		}
+		// [RC] Restructured for greater intellegence
 
-		// Next, draw rank/spread in deathmatch.
-		if ( deathmatch )
-		{
-			ulCurXPos = 4;
-			if ( bScale )
-				ulCurYPos = ValHeight.Int - 4 - ( TexMan["MEDIA0"]->GetHeight( ) + 4 ) - ( TexMan["ARM1A0"]->GetHeight( ) + 4 ) - 14;
-			else
-				ulCurYPos = SCREENHEIGHT - 4 - ( TexMan["MEDIA0"]->GetHeight( ) + 4 ) - ( TexMan["ARM1A0"]->GetHeight( ) + 4 ) - 14;
-
-			sprintf( szString, "spread: \\cC%s%d", SCOREBOARD_GetSpread( ) > 0 ? "+" : "", SCOREBOARD_GetSpread( ));
-			V_ColorizeString( szString );
-
-			if ( bScale )
-			{
-				screen->DrawText( CR_RED,
-					ulCurXPos,
-					ulCurYPos - ConFont->GetHeight( ),
-					szString,
-					DTA_VirtualWidth, ValWidth.Int,
-					DTA_VirtualHeight, ValHeight.Int,
-					TAG_DONE );
-			}
-			else
-			{
-				screen->DrawText( CR_RED,
-					ulCurXPos,
-					ulCurYPos - ConFont->GetHeight( ),
-					szString,
-					TAG_DONE );
-			}
-
-			ulCurYPos -= ConFont->GetHeight( ) + 4;
-
-			sprintf( szString, "rank: \\cC%d/%s%d", SCOREBOARD_GetRank( ) + 1, SCOREBOARD_IsTied( ) ? "\\cG" : "", SCOREBOARD_GetNumPlayers( ));
-			V_ColorizeString( szString );
-
-			if ( bScale )
-			{
-				screen->DrawText( CR_RED,
-					ulCurXPos,
-					ulCurYPos - ConFont->GetHeight( ),
-					szString,
-					DTA_VirtualWidth, ValWidth.Int,
-					DTA_VirtualHeight, ValHeight.Int,
-					TAG_DONE );
-			}
-			else
-			{
-				screen->DrawText( CR_RED,
-					ulCurXPos,
-					ulCurYPos - ConFont->GetHeight( ),
-					szString,
-					TAG_DONE );
-			}
-		}
 		// If this isn't DM, draw the skull/flag if the player is carrying it in ST/CTF, and
 		// the ST/CTF score.
-		else if ( skulltag || ctf || oneflagctf )
+		if ( skulltag || ctf || oneflagctf )
 		{
 			if ( CPlayer->bOnTeam )
 			{
@@ -1501,6 +1463,215 @@ private:
 					TAG_DONE );
 			}
 		}
+		// [RC] If the game is team-based but isn't an a team
+		// article game (ST/CTF), just show the scores / frags.
+		else if ( teamplay || teamgame || teamlms || teampossession)
+		{
+			ULONG	ulRedPoints; // Frags or points
+			ULONG	ulBluePoints;
+			
+			if(deathmatch) {
+				ulBluePoints = TEAM_GetFragCount( TEAM_BLUE );
+				ulRedPoints = TEAM_GetFragCount( TEAM_RED );
+			}
+			else {
+				ulBluePoints = TEAM_GetScore( TEAM_BLUE );
+				ulRedPoints = TEAM_GetScore( TEAM_RED );
+			}
+			ulCurXPos = 4;
+			if ( bScale )
+				ulCurYPos = ValHeight.Int - 4 - ( TexMan["MEDIA0"]->GetHeight( ) + 4 ) - ( TexMan["ARM1A0"]->GetHeight( ) + 4 ) - 14;
+			else
+				ulCurYPos = SCREENHEIGHT - 4 - ( TexMan["MEDIA0"]->GetHeight( ) + 4 ) - ( TexMan["ARM1A0"]->GetHeight( ) + 4 ) - 14;
+
+			sprintf( szString , "\\cG%s: \\cC%d", TEAM_GetName( TEAM_RED ), ulRedPoints);
+			V_ColorizeString( szString );
+			ulCurYPos -= ((ConFont->GetHeight( ) + 1) * 5);
+
+			if ( bScale )
+			{
+				screen->DrawText( CR_GRAY,
+					ulCurXPos,
+					(LONG)( ulCurYPos * fYScale ),
+					szString,
+					DTA_VirtualWidth, ValWidth.Int,
+					DTA_VirtualHeight, ValHeight.Int,
+					TAG_DONE );
+			}
+			else
+			{
+				screen->DrawText( CR_GRAY,
+					ulCurXPos,
+					ulCurYPos,
+					szString,
+					TAG_DONE );
+			}
+
+			ulCurYPos += ConFont->GetHeight( ) + 1;
+
+			sprintf( szString , "\\cG%s: \\cC%d", TEAM_GetName( TEAM_BLUE ), ulBluePoints);
+			V_ColorizeString( szString );
+
+			if ( bScale )
+			{
+				screen->DrawText( CR_GRAY,
+					ulCurXPos,
+					(LONG)( ulCurYPos * fYScale ),
+					szString,
+					DTA_VirtualWidth, ValWidth.Int,
+					DTA_VirtualHeight, ValHeight.Int,
+					TAG_DONE );
+			}
+			else
+			{
+				screen->DrawText( CR_GRAY,
+					ulCurXPos,
+					ulCurYPos,
+					szString,
+					TAG_DONE );
+			}
+
+			
+		}
+		// Or it's just simple deathmatch.
+		// Draw the individual rank/spread.
+		else if ( deathmatch )
+		{
+			ulCurXPos = 4;
+			if ( bScale )
+				ulCurYPos = ValHeight.Int - 4 - ( TexMan["MEDIA0"]->GetHeight( ) + 4 ) * 2 - ( TexMan["ARM1A0"]->GetHeight( ) + 4 ) - 14;
+			else
+				ulCurYPos = SCREENHEIGHT - 4 - ( TexMan["MEDIA0"]->GetHeight( ) + 4 ) *2 - ( TexMan["ARM1A0"]->GetHeight( ) + 4 ) - 14;
+			
+			sprintf( szString, "spread: \\cC%s%d", SCOREBOARD_GetSpread( ) > 0 ? "+" : "", SCOREBOARD_GetSpread( ));
+			V_ColorizeString( szString );
+
+			if ( bScale )
+			{
+				screen->DrawText( CR_RED,
+					ulCurXPos,
+					ulCurYPos - ConFont->GetHeight( ),
+					szString,
+					DTA_VirtualWidth, ValWidth.Int,
+					DTA_VirtualHeight, ValHeight.Int,
+					TAG_DONE );
+			}
+			else
+			{
+				screen->DrawText( CR_RED,
+					ulCurXPos,
+					ulCurYPos - ConFont->GetHeight( ),
+					szString,
+					TAG_DONE );
+			}
+
+			if(!duel) { // [RC] Have spread, don't need rank. I mean, come on, there's only two players.
+				ulCurYPos += ConFont->GetHeight( ) + 4;
+				sprintf( szString, "rank: \\cC%d/%s%d", SCOREBOARD_GetRank( ) + 1, SCOREBOARD_IsTied( ) ? "\\cG" : "", SCOREBOARD_GetNumPlayers( ));
+				V_ColorizeString( szString );
+				if ( bScale )
+				{
+					screen->DrawText( CR_RED,
+						ulCurXPos,
+						ulCurYPos - ConFont->GetHeight( ),
+						szString,
+						DTA_VirtualWidth, ValWidth.Int,
+						DTA_VirtualHeight, ValHeight.Int,
+						TAG_DONE );
+				}
+				else
+				{
+					screen->DrawText( CR_RED,
+						ulCurXPos,
+						ulCurYPos - ConFont->GetHeight( ),
+						szString,
+						TAG_DONE );
+				}
+			}
+		}
+		// [RC] Draw wave and arch-viles (if any) in Invasion
+		else if( invasion ) {
+			if((INVASION_GetState( ) == IS_INPROGRESS) || (INVASION_GetState( ) == IS_BOSSFIGHT)) {
+				ulCurXPos = 4;
+				if ( bScale )
+					ulCurYPos = ValHeight.Int - 4 - ( TexMan["MEDIA0"]->GetHeight( ) + 4 ) * 4 - ( TexMan["ARM1A0"]->GetHeight( ) + 4 ) - 14;
+				else
+					ulCurYPos = SCREENHEIGHT - 4 - ( TexMan["MEDIA0"]->GetHeight( ) + 4 ) * 4 - ( TexMan["ARM1A0"]->GetHeight( ) + 4 ) - 14;
+				
+				// Wave
+				sprintf( szString, "Wave: %d \\cbof %d", INVASION_GetCurrentWave( ), (ULONG) wavelimit);
+				V_ColorizeString( szString );
+				if ( bScale )
+				{
+					screen->DrawText( CR_RED,
+						ulCurXPos,
+						ulCurYPos,
+						szString,
+						DTA_VirtualWidth, ValWidth.Int,
+						DTA_VirtualHeight, ValHeight.Int,
+						TAG_DONE );
+				}
+				else
+				{
+					screen->DrawText( CR_RED,
+						ulCurXPos,
+						ulCurYPos,
+						szString,
+						TAG_DONE );
+				}
+				ulCurYPos += ConFont->GetHeight( ) + 4;
+
+				/* Monsters
+				sprintf( szString, "Monsters: %d", INVASION_GetNumMonstersLeft( ));
+				V_ColorizeString( szString );
+				if ( bScale )
+				{
+					screen->DrawText( CR_RED,
+						ulCurXPos,
+						ulCurYPos,
+						szString,
+						DTA_VirtualWidth, ValWidth.Int,
+						DTA_VirtualHeight, ValHeight.Int,
+						TAG_DONE );
+				}
+				else
+				{
+					screen->DrawText( CR_RED,
+						ulCurXPos,
+						ulCurYPos,
+						szString,
+						TAG_DONE );
+				}
+				ulCurYPos += ConFont->GetHeight( ) + 4;*/
+
+				// Arch-viles
+				if(INVASION_GetNumArchVilesLeft( ) > 0) {
+					sprintf( szString, "Arch-viles: %d", INVASION_GetNumArchVilesLeft( ));
+					V_ColorizeString( szString );
+					if ( bScale )
+					{
+						screen->DrawText( CR_RED,
+							ulCurXPos,
+							ulCurYPos,
+							szString,
+							DTA_VirtualWidth, ValWidth.Int,
+							DTA_VirtualHeight, ValHeight.Int,
+							TAG_DONE );
+					}
+					else
+					{
+						screen->DrawText( CR_RED,
+							ulCurXPos,
+							ulCurYPos,
+							szString,
+							TAG_DONE );
+					}
+				}
+			}
+
+		}
+		
+
 
 		// Finally, draw the rune we're carrying (if any).
 		if ( CPlayer->mo )
