@@ -95,7 +95,7 @@ void A_Punch (AActor *actor)
 }
 
 // Pistol -------------------------------------------------------------------
-/*
+
 void A_FirePistol (AActor *);
 
 class APistol : public AWeapon
@@ -154,13 +154,27 @@ IMPLEMENT_ACTOR (APistol, Doom, 5010, 162)
 	PROP_Weapon_AmmoType1 ("Clip")
 	PROP_Obituary("$OB_MPPISTOL")
 	PROP_Inventory_PickupMessage("$PICKUP_PISTOL_DROPPED")
+	PROP_AttackSound("weapons/pistol")	
 END_DEFAULTS
-*/
+
 //
 // A_FirePistol
 //
+void A_CustomFireBullets( AActor *self,
+						  angle_t Spread_XY,
+						  angle_t Spread_Z, 
+						  int NumberOfBullets,
+						  int DamagePerBullet,
+						  FName PuffTypeName = "BulletPuff",
+						  bool UseAmmo = true,
+						  fixed_t Range = 0);
+
 void A_FirePistol (AActor *actor)
 {
+	// [BB] A_FirePistol is only kept to stay compatible with Dehacked.
+	A_CustomFireBullets( actor, angle_t( 5.6 * ANGLE_1), angle_t( 0 * ANGLE_1), 1, 5 );
+	A_GunFlash( actor );
+/*
 	bool accurate;
 
 	if (actor->player != NULL)
@@ -226,6 +240,7 @@ void A_FirePistol (AActor *actor)
 		// Tell all the bots that a weapon was fired.
 		BOTS_PostWeaponFiredEvent( ULONG( actor->player - players ), BOTEVENT_FIREDPISTOL, BOTEVENT_ENEMY_FIREDPISTOL, BOTEVENT_PLAYER_FIREDPISTOL );
 	}
+*/
 }
 
 //
@@ -348,7 +363,7 @@ void A_Saw (AActor *actor)
 // Shotgun ------------------------------------------------------------------
 
 void A_FireShotgun (AActor *);
-/*
+
 class AShotgun : public AWeapon
 {
 	DECLARE_ACTOR (AShotgun, AWeapon)
@@ -403,13 +418,18 @@ IMPLEMENT_ACTOR (AShotgun, Doom, 2001, 27)
 	PROP_Weapon_AmmoType1 ("Shell")
 	PROP_Obituary("$OB_MPSHOTGUN")
 	PROP_Inventory_PickupMessage("$GOTSHOTGUN")
+	PROP_AttackSound("weapons/shotgf")	
 END_DEFAULTS
-*/
+
 //
 // A_FireShotgun
 //
 void A_FireShotgun (AActor *actor)
 {
+	// [BB] A_FireShotgun is only kept to stay compatible with Dehacked.
+	A_CustomFireBullets( actor, angle_t( 5.6 * ANGLE_1), angle_t( 0 * ANGLE_1), 7, 5 );
+	A_GunFlash( actor );
+/*
 	int i;
 	player_t *player;
 
@@ -471,6 +491,7 @@ void A_FireShotgun (AActor *actor)
 
 	// [BC] Tell all the bots that a weapon was fired.
 	BOTS_PostWeaponFiredEvent( ULONG( player - players ), BOTEVENT_FIREDSHOTGUN, BOTEVENT_ENEMY_FIREDSHOTGUN, BOTEVENT_PLAYER_FIREDSHOTGUN );
+*/
 }
 
 // Super Shotgun ------------------------------------------------------------
@@ -545,15 +566,6 @@ END_DEFAULTS
 //
 // A_FireShotgun2
 //
-void A_CustomFireBullets( AActor *self,
-						  angle_t Spread_XY,
-						  angle_t Spread_Z, 
-						  int NumberOfBullets,
-						  int DamagePerBullet,
-						  FName PuffTypeName = "BulletPuff",
-						  bool UseAmmo = true,
-						  fixed_t Range = 0);
-
 void A_FireShotgun2 (AActor *actor)
 {
 	// [BB] A_FireShotgun2 is only kept to stay compatible with Dehacked.
@@ -676,7 +688,7 @@ void A_CloseShotgun2 (AActor *actor)
 // Chaingun -----------------------------------------------------------------
 
 void A_FireCGun (AActor *);
-/*
+
 class AChaingun : public AWeapon
 {
 	DECLARE_ACTOR (AChaingun, AWeapon)
@@ -725,13 +737,18 @@ IMPLEMENT_ACTOR (AChaingun, Doom, 2002, 28)
 	PROP_Weapon_AmmoType1 ("Clip")
 	PROP_Obituary("$OB_MPCHAINGUN")
 	PROP_Inventory_PickupMessage("$GOTCHAINGUN")
+	PROP_AttackSound("weapons/chngun")
 END_DEFAULTS
-*/
+
 //
 // A_FireCGun
 //
 void A_FireCGun (AActor *actor)
 {
+	// [BB] A_FireCGun is only kept to stay compatible with Dehacked.
+	A_CustomFireBullets( actor, angle_t( 5.6 * ANGLE_1), angle_t( 0 * ANGLE_1), 1, 5 );
+	A_GunFlash( actor );
+/*
 	player_t *player;
 
 	if (actor == NULL || NULL == (player = actor->player))
@@ -800,6 +817,7 @@ void A_FireCGun (AActor *actor)
 
 	// [BC] Tell all the bots that a weapon was fired.
 	BOTS_PostWeaponFiredEvent( ULONG( player - players ), BOTEVENT_FIREDCHAINGUN, BOTEVENT_ENEMY_FIREDCHAINGUN, BOTEVENT_PLAYER_FIREDCHAINGUN );
+*/
 }
 
 // Minigun -----------------------------------------------------------------
