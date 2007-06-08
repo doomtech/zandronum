@@ -1241,7 +1241,7 @@ private:
 		else
 			ulCurXPos = SCREENWIDTH - 4;
 		ulCurYPos = 4;
-		if ( deathmatch || teamgame || invasion)
+		if ( deathmatch || teamgame || invasion || (cooperative && ( NETWORK_GetState( ) != NETSTATE_SINGLE )))
 		{
 			if ( possession || teampossession )
 				sprintf( szString, "%d", CPlayer->lPointCount );
@@ -1251,7 +1251,7 @@ private:
 				sprintf( szString, "%d", CPlayer->fragcount );
 			else if (teamgame)
 				sprintf( szString, "%d", CPlayer->lPointCount );
-			else if( invasion )
+			else if( invasion || cooperative)
 				sprintf( szString, "%d", CPlayer->killcount );
 
 			ULONG left = SCOREBOARD_GetLeftToLimit( );
