@@ -71,6 +71,7 @@
 #include "possession.h"
 
 #include "gl/gl_functions.h"
+#include "gl/gl_lights.h"
 
 extern void P_SpawnMapThing (mapthing2_t *mthing, int position);
 extern bool P_LoadBuildMap (BYTE *mapdata, size_t len, mapthing2_t **things, int *numthings);
@@ -3398,7 +3399,10 @@ void P_RemoveThings( void )
 		{
 			if (( pActor->SpawnFlags & MTF_COOPERATIVE ) == false )
 			{
-				pActor->Destroy( );
+				// [BB] We may not delete the dynamic lights here!
+				// If we do, the game crashes directly in a cooperative skirmish.
+				if( !pActor->IsKindOf( RUNTIME_CLASS( ADynamicLight ) ) )
+					pActor->Destroy( );
 				continue;
 			}
 		}
