@@ -1137,6 +1137,78 @@ bool ABlueFlag::HandlePickup( AInventory *pItem )
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_GivePlayerMedal( ULONG( Owner->player - players ), MEDAL_CAPTURE );
 
+			// Create the "captured" message.
+			sprintf( szString, "\\cGRed team scores!" );
+			V_ColorizeString( szString );
+
+			// Now, print it.
+			if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+			{
+				screen->SetFont( BigFont );
+				pMsg = new DHUDMessageFadeOut( szString,
+					160.4f,
+					75.0f,
+					320,
+					200,
+					CR_RED,
+					3.0f,
+					0.5f );
+				StatusBar->AttachMessage( pMsg, 'CNTR' );
+				screen->SetFont( SmallFont );
+			}
+			// If necessary, send it to clients.
+			else
+			{
+				SERVERCOMMANDS_SetPlayerPoints( ULONG( Owner->player - players ));
+				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 0.5f, "BigFont", 'CNTR' );
+			}
+
+			// [RC] Create the "scorer" message.
+			sprintf( szString, "\\cGScored by: %s", Owner->player->userinfo.netname );
+			V_ColorizeString( szString );
+
+			// Now, print it.
+			if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+			{
+				screen->SetFont( SmallFont );
+				pMsg = new DHUDMessageFadeOut( szString,
+					160.4f,
+					90.0f,
+					320,
+					200,
+					CR_RED,
+					3.0f,
+					0.5f );
+				StatusBar->AttachMessage( pMsg, 'SCOR' );
+			}
+			// If necessary, send it to clients.
+			else
+				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 90.0f, 320, 200, CR_RED, 3.0f, 0.5f, "SmallFont", 'SCOR' );
+
+			// [RC] Create the "assisted by" message.
+			if ( TEAM_GetAssistPlayer( Owner->player->ulTeam ) != MAXPLAYERS ) {
+				sprintf( szString, "\\cGAssisted by: %s", players[TEAM_GetAssistPlayer( Owner->player->ulTeam )].userinfo.netname );
+				V_ColorizeString( szString );
+
+				// Now, print it.
+				if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+				{
+					screen->SetFont( SmallFont );
+					pMsg = new DHUDMessageFadeOut( szString,
+						160.4f,
+						100.0f,
+						320,
+						200,
+						CR_RED,
+						3.0f,
+						0.5f );
+					StatusBar->AttachMessage( pMsg, 'ASSI' );
+				}
+				// If necessary, send it to clients.
+				else
+					SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 100.0f, 320, 200, CR_RED, 3.0f, 0.5f, "SmallFont", 'ASSI' );
+			}
+			
 			// If someone just recently returned the flag, award him with an "Assist!" medal.
 			if ( TEAM_GetAssistPlayer( Owner->player->ulTeam ) != MAXPLAYERS )
 			{
@@ -1147,32 +1219,6 @@ bool ABlueFlag::HandlePickup( AInventory *pItem )
 					SERVERCOMMANDS_GivePlayerMedal( TEAM_GetAssistPlayer( Owner->player->ulTeam ), MEDAL_ASSIST );
 
 				TEAM_SetAssistPlayer( Owner->player->ulTeam, MAXPLAYERS );
-			}
-
-			// Create the "captured" message.
-			sprintf( szString, "\\cGRed team scores!" );
-			V_ColorizeString( szString );
-
-			// Now, print it.
-			if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-			{
-				screen->SetFont( BigFont );
-				pMsg = new DHUDMessageFadeOut( szString,
-					1.5f,
-					0.425f,
-					0,
-					0,
-					CR_RED,
-					3.0f,
-					0.25f );
-				StatusBar->AttachMessage( pMsg, 'CNTR' );
-				screen->SetFont( SmallFont );
-			}
-			// If necessary, send it to clients.
-			else
-			{
-				SERVERCOMMANDS_SetPlayerPoints( ULONG( Owner->player - players ));
-				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.425f, 0, 0, CR_RED, 3.0f, 0.25f, "BigFont", 'CNTR' );
 			}
 
 			// Take the flag away.
@@ -1744,6 +1790,78 @@ bool ARedFlag::HandlePickup( AInventory *pItem )
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_GivePlayerMedal( ULONG( Owner->player - players ), MEDAL_CAPTURE );
 
+			// Create the "captured" message.
+			sprintf( szString, "\\cHBlue team scores!" );
+			V_ColorizeString( szString );
+
+			// Now, print it.
+			if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+			{
+				screen->SetFont( BigFont );
+				pMsg = new DHUDMessageFadeOut( szString,
+					160.4f,
+					75.0f,
+					320,
+					200,
+					CR_BLUE,
+					3.0f,
+					0.5f );
+				StatusBar->AttachMessage( pMsg, 'CNTR' );
+				screen->SetFont( SmallFont );
+			}
+			// If necessary, send it to clients.
+			else
+			{
+				SERVERCOMMANDS_SetPlayerPoints( ULONG( Owner->player - players ));
+				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_BLUE, 3.0f, 0.5f, "BigFont", 'CNTR' );
+			}
+			
+			// [RC] Create the "scorer" message.
+			sprintf( szString, "\\cHScored by: %s", Owner->player->userinfo.netname );
+			V_ColorizeString( szString );
+
+			// Now, print it.
+			if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+			{
+				screen->SetFont( SmallFont );
+				pMsg = new DHUDMessageFadeOut( szString,
+					160.4f,
+					90.0f,
+					320,
+					200,
+					CR_RED,
+					3.0f,
+					0.5f );
+				StatusBar->AttachMessage( pMsg, 'SCOR' );
+			}
+			// If necessary, send it to clients.
+			else
+				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 90.0f, 320, 200, CR_RED, 3.0f, 0.5f, "SmallFont", 'SCOR' );
+
+			// [RC] Create the "assisted by" message.
+			if ( TEAM_GetAssistPlayer( Owner->player->ulTeam ) != MAXPLAYERS ) {
+				sprintf( szString, "\\cHAssisted by: %s", players[TEAM_GetAssistPlayer( Owner->player->ulTeam )].userinfo.netname );
+				V_ColorizeString( szString );
+
+				// Now, print it.
+				if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+				{
+					screen->SetFont( SmallFont );
+					pMsg = new DHUDMessageFadeOut( szString,
+						160.4f,
+						100.0f,
+						320,
+						200,
+						CR_RED,
+						3.0f,
+						0.5f );
+					StatusBar->AttachMessage( pMsg, 'ASSI' );
+				}
+				// If necessary, send it to clients.
+				else
+					SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 100.0f, 320, 200, CR_RED, 3.0f, 0.5f, "SmallFont", 'ASSI' );
+			}
+
 			// If someone just recently returned the flag, award him with an "Assist!" medal.
 			if ( TEAM_GetAssistPlayer( Owner->player->ulTeam ) != MAXPLAYERS )
 			{
@@ -1754,32 +1872,6 @@ bool ARedFlag::HandlePickup( AInventory *pItem )
 					SERVERCOMMANDS_GivePlayerMedal( TEAM_GetAssistPlayer( Owner->player->ulTeam ), MEDAL_ASSIST );
 
 				TEAM_SetAssistPlayer( Owner->player->ulTeam, MAXPLAYERS );
-			}
-
-			// Create the "captured" message.
-			sprintf( szString, "\\cHBlue team scores!" );
-			V_ColorizeString( szString );
-
-			// Now, print it.
-			if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-			{
-				screen->SetFont( BigFont );
-				pMsg = new DHUDMessageFadeOut( szString,
-					1.5f,
-					0.425f,
-					0,
-					0,
-					CR_BLUE,
-					3.0f,
-					0.25f );
-				StatusBar->AttachMessage( pMsg, 'CNTR' );
-				screen->SetFont( SmallFont );
-			}
-			// If necessary, send it to clients.
-			else
-			{
-				SERVERCOMMANDS_SetPlayerPoints( ULONG( Owner->player - players ));
-				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.425f, 0, 0, CR_BLUE, 3.0f, 0.25f, "BigFont", 'CNTR' );
 			}
 
 			// Take the flag away.
