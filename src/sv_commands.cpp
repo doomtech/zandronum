@@ -192,9 +192,6 @@ void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlay
 	// [BB]: Inform the player about its health, otherwise it won't be displayed properly.
 	// The armor display is handled in SERVER_ResetInventory.
 	SERVERCOMMANDS_SetPlayerHealth( ulPlayer, ulPlayer, SVCF_ONLYTHISCLIENT );
-	// [BB]: Inform the player about his weapon. This at least partly fixes
-	// the "Using unknown weapon type" bug.
-	SERVERCOMMANDS_ChangePlayerWeapon( ulPlayer );
 }
 
 //*****************************************************************************

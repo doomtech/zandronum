@@ -2854,6 +2854,9 @@ void SERVER_ResetInventory( ULONG ulClient )
 
 		SERVERCOMMANDS_GiveInventory( ulClient, pInventory, ulClient, SVCF_ONLYTHISCLIENT );
 	}
+	// [BB]: After giving back the inventory, inform the player about which weapon he is using.
+	// This at least partly fixes the "Using unknown weapon type" bug.
+	SERVERCOMMANDS_ChangePlayerWeapon( ulClient );
 }
 
 //*****************************************************************************
