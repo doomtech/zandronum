@@ -192,6 +192,9 @@ void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlay
 	// [BB]: Inform the player about its health, otherwise it won't be displayed properly.
 	// The armor display is handled in SERVER_ResetInventory.
 	SERVERCOMMANDS_SetPlayerHealth( ulPlayer, ulPlayer, SVCF_ONLYTHISCLIENT );
+	// [BB]: Inform the player about his weapon. This at least partly fixes
+	// the "Using unknown weapon type" bug.
+	SERVERCOMMANDS_ChangePlayerWeapon( ulPlayer );
 }
 
 //*****************************************************************************
@@ -795,6 +798,32 @@ void SERVERCOMMANDS_UpdatePlayerPendingWeapon( ULONG ulPlayer )
 		NETWORK_WriteByte( &clients[ulIdx].UnreliablePacketBuffer, ulPlayer );
 		NETWORK_WriteString( &clients[ulIdx].UnreliablePacketBuffer, pszPendingWeaponString );
 	}
+}
+
+//*****************************************************************************
+//
+void SERVERCOMMANDS_ChangePlayerWeapon( ULONG ulPlayer )
+{
+	// [BB] 97c3 clients don't know this command.
+	if( sv_stay97c3compatible )
+		return;
+
+	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+		return;
+
+	const char* pszWeaponString = "NULL";
+	if ( players[ulPlayer].ReadyWeapon != NULL )
+		pszWeaponString = players[ulPlayer].ReadyWeapon->GetClass( )->TypeName.GetChars( );
+	else
+		return;
+	// Some optimization. For standard Doom weapons, to reduce the size of the string
+	// that's sent out, just send some key character that identifies the weapon, instead
+	// of the full name.
+	convertWeaponNameToKeyLetter( pszWeaponString );
+
+	NETWORK_CheckBuffer( ulPlayer, 1 + (ULONG)strlen( pszWeaponString ) );
+	NETWORK_WriteHeader( &clients[ulPlayer].UnreliablePacketBuffer, SVC_WEAPONCHANGE );
+	NETWORK_WriteString( &clients[ulPlayer].UnreliablePacketBuffer, pszWeaponString );
 }
 
 //*****************************************************************************

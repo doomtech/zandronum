@@ -6273,18 +6273,22 @@ static void client_WeaponSound( void )
 static void client_WeaponChange( void )
 {
 	const PClass	*pType;
-	char			*pszString;
+	const char		*pszString;
 	AWeapon			*pWeapon;
 
 	// Read in the name of the weapon we're supposed to switch to.
 	pszString = NETWORK_ReadString( );
+	// Some optimization. For standard Doom weapons, to reduce the size of the string
+	// that's sent out, just send some key character that identifies the weapon, instead
+	// of the full name.
+	convertWeaponKeyLetterToFullString( pszString );
 
 	if ( players[consoleplayer].mo == NULL )
 		return;
 
 	// If it's an invalid class, or not a weapon, don't switch.
 	pType = PClass::FindClass( pszString );
-	if (( pType == NULL ) || ( pType->IsDescendantOf( RUNTIME_CLASS( AWeapon ))))
+	if (( pType == NULL ) || !( pType->IsDescendantOf( RUNTIME_CLASS( AWeapon ))))
 		return;
 
 	// If we dont have this weapon already, we do now!

@@ -3337,8 +3337,18 @@ static bool server_ClientMove( void )
 				}
 				else
 				{
-					SERVER_KickPlayer( parse_cl, "Using unknown weapon type." );
-					return ( true );
+					if( stricmp( pszWeapon, "NULL" ) == 0 )
+					{
+						// [BB] For some reason the clients think he as no ready weapon, 
+						// but the server thinks he as one. Although this should not happen,
+						// we make a workaround for this here. Just tell the client to bring
+						// up the weapon, the server thinks he is using.
+						SERVERCOMMANDS_ChangePlayerWeapon( parse_cl );
+					}
+					else{
+						SERVER_KickPlayer( parse_cl, "Using unknown weapon type." );
+						return ( true );
+					}
 				}
 			}
 		}
