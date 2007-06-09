@@ -7480,13 +7480,8 @@ static void client_MapLoad( void )
 	pszMap = NETWORK_ReadString( );
 
 	// Check to see if we have the map.
-	MapData* map = P_OpenMapData( pszMap );
-	if ( map != NULL )
+	if ( P_CheckIfMapExists( pszMap ) )
 	{
-		// We only created the map pointer to check if we have the map.
-		// We don't need it anymore.
-		delete map;
-
 		// Start new level.
 		G_InitNew( pszMap, false );
 

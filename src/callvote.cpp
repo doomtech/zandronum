@@ -571,7 +571,7 @@ static bool callvote_CheckValidity( char *pszCommand, char *pszParameters )
 	case VOTECMD_MAP:
 
 		// Don't allow the command if the map doesn't exist.
-		if ( Wads.CheckNumForName( pszParameters ) == -1 )
+		if ( !P_CheckIfMapExists( pszParameters ) )
 			return ( false );
 		// Don't allow to leave the maprotation (Only the server knows the maprotation)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -587,7 +587,7 @@ static bool callvote_CheckValidity( char *pszCommand, char *pszParameters )
 	case VOTECMD_CHANGEMAP:
 
 		// Don't allow the command if the map doesn't exist.
-		if ( Wads.CheckNumForName( pszParameters ) == -1 )
+		if ( !P_CheckIfMapExists( pszParameters ) )
 			return ( false );
 		// Don't allow to leave the maprotation (Only the server knows the maprotation)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )

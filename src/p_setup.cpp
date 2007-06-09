@@ -413,6 +413,25 @@ MapData *P_OpenMapData(const char * mapname)
 
 //===========================================================================
 //
+// [BB] Check if a map with name mapname exists. Also works, if the map is contained in a pk3.
+//
+//===========================================================================
+
+bool P_CheckIfMapExists(const char * mapname){
+	MapData* map = P_OpenMapData( mapname );
+	if( map == NULL )
+	{
+		return false;
+	}
+	// We only created the map pointer to check if we have the map.
+	// We don't need it anymore.
+	delete map;
+	return true;
+}
+
+
+//===========================================================================
+//
 // [RH] Figure out blends for deep water sectors
 //
 //===========================================================================

@@ -54,7 +54,7 @@
 #include "g_level.h"
 #include "m_random.h"
 #include "maprotation.h"
-#include "w_wad.h"
+#include "p_setup.h"
 
 //*****************************************************************************
 //	VARIABLES
@@ -212,7 +212,7 @@ bool MAPROTATION_IsMapInRotaion( char *pszMapName )
 static void maprotation_AddMap( char *pszMapName )
 {
 	// [BB] Check if the wads contain the map at all. If not, don't add it to the map rotation.
-	if( Wads.CheckNumForName( pszMapName ) == -1 )
+	if( !P_CheckIfMapExists( pszMapName ) )
 	{
 		Printf( "map %s not found!\n", pszMapName );
 		return;
