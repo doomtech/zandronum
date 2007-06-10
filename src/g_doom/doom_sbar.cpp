@@ -781,7 +781,7 @@ private:
 			}
 		}
 
-		{ // Draw keys (not DM)
+		else { // Draw keys (not DM)
 			int maxw = 0;
 			int count = 0;
 			int x =  -2;
