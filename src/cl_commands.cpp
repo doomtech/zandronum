@@ -286,3 +286,25 @@ void CLIENTCOMMANDS_VoteNo( void )
 	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_VOTENO );
 }
 
+//*****************************************************************************
+//
+void CLIENTCOMMANDS_RequestInventoryUseAll( void )
+{
+	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_INVENTORYUSEALL );
+}
+
+//*****************************************************************************
+//
+void CLIENTCOMMANDS_RequestInventoryUse( AInventory *item )
+{
+	if ( item == NULL )
+		return;
+
+	const char *pszString = item->GetClass( )->TypeName.GetChars( );
+
+	if ( pszString == NULL )
+		return;
+
+	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_INVENTORYUSE );
+	NETWORK_WriteString( CLIENT_GetLocalBuffer( ), pszString );
+}

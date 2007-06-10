@@ -52,6 +52,7 @@
 #define __CL_COMMANDS_H__
 
 #include "doomtype.h"
+#include "a_pickups.h"
 
 //*****************************************************************************
 //	PROTOTYPES
@@ -81,5 +82,7 @@ void	CLIENTCOMMANDS_AuthenticateLevel( void );
 void	CLIENTCOMMANDS_CallVote( LONG lVoteCommand, char *pszArgument );
 void	CLIENTCOMMANDS_VoteYes( void );
 void	CLIENTCOMMANDS_VoteNo( void );
+void	CLIENTCOMMANDS_RequestInventoryUseAll( void );
+void	CLIENTCOMMANDS_RequestInventoryUse( AInventory *item );
 
 #endif	// __CL_COMMANDS_H__

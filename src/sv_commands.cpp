@@ -799,6 +799,27 @@ void SERVERCOMMANDS_UpdatePlayerPendingWeapon( ULONG ulPlayer )
 
 //*****************************************************************************
 //
+void SERVERCOMMANDS_DoInventoryUse( ULONG ulPlayer, AInventory *item )
+{
+	// [BB] 97c3 clients don't know this command.
+	if( sv_stay97c3compatible )
+		return;
+
+	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+		return;
+
+	const char *pszString = item->GetClass( )->TypeName.GetChars( );
+
+	if ( pszString == NULL )
+		return;
+
+	NETWORK_CheckBuffer( ulPlayer, 1 + (ULONG)strlen( pszString ));
+	NETWORK_WriteHeader( &clients[ulPlayer].netbuf, SVC_USEINVENTORY );
+	NETWORK_WriteString( &clients[ulPlayer].netbuf, pszString );
+}
+
+//*****************************************************************************
+//
 void SERVERCOMMANDS_ChangePlayerWeapon( ULONG ulPlayer )
 {
 	// [BB] 97c3 clients don't know this command.
@@ -5430,4 +5451,3 @@ void SERVERCOMMANDS_SetCameraToTexture( AActor *pCamera, char *pszTexture, LONG 
 		NETWORK_WriteByte( &clients[ulIdx].netbuf, lFOV );
 	}
 }
-

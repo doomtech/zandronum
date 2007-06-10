@@ -478,23 +478,48 @@ CCMD (invprev)
 
 CCMD (invuseall)
 {
-	SendItemUse = (const AInventory *)1;
+	// [BB] If we are a client, we have to bypass the way ZDoom handles the item usage.
+	if( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		CLIENTCOMMANDS_RequestInventoryUseAll();
+	else
+		SendItemUse = (const AInventory *)1;
 }
 
 CCMD (invuse)
 {
-	if (players[consoleplayer].inventorytics == 0 || gameinfo.gametype == GAME_Strife)
+	// [BB] If we are a client, we have to bypass the way ZDoom handles the item usage.
+	if( NETWORK_GetState( ) == NETSTATE_CLIENT )
 	{
-		SendItemUse = players[consoleplayer].mo->InvSel;
+		AInventory *item = players[consoleplayer].mo->InvSel;
+		CLIENTCOMMANDS_RequestInventoryUse( item );
 	}
-	players[consoleplayer].inventorytics = 0;
+	else
+	{
+		if (players[consoleplayer].inventorytics == 0 || gameinfo.gametype == GAME_Strife)
+		{
+			SendItemUse = players[consoleplayer].mo->InvSel;
+		}
+		players[consoleplayer].inventorytics = 0;
+	}
 }
 
 CCMD (use)
 {
-	if (argv.argc() > 1 && who != NULL)
+	// [BB] If we are a client, we have to bypass the way ZDoom handles the item usage.
+	if( NETWORK_GetState( ) == NETSTATE_CLIENT )
 	{
-		SendItemUse = who->FindInventory (PClass::FindClass (argv[1]));
+		if (argv.argc() > 1)
+		{
+			AInventory *item = players[consoleplayer].mo->FindInventory (PClass::FindClass (argv[1]));
+			CLIENTCOMMANDS_RequestInventoryUse( item );
+		}
+	}
+	else
+	{
+		if (argv.argc() > 1 && who != NULL)
+		{
+			SendItemUse = who->FindInventory (PClass::FindClass (argv[1]));
+		}
 	}
 }
 

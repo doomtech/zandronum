@@ -138,6 +138,8 @@ static	bool	server_AuthenticateLevel( void );
 static	bool	server_CallVote( void );
 static	bool	server_VoteYes( void );
 static	bool	server_VoteNo( void );
+static	bool	server_InventoryUseAll( void );
+static	bool	server_InventoryUse( void );
 
 //*****************************************************************************
 //	VARIABLES
@@ -3138,6 +3140,16 @@ void SERVER_ParseCommands( void )
 			// Client wishes to vote "no" on the current vote.
 			bPlayerKicked = server_VoteNo( );
 			break;
+		case CLC_INVENTORYUSEALL:
+
+			// Client wishes to use all inventory items he has.
+			bPlayerKicked = server_InventoryUseAll( );
+			break;
+		case CLC_INVENTORYUSE:
+
+			// Client wishes to use a specfic inventory items he has.
+			bPlayerKicked = server_InventoryUse( );
+			break;
 		default:
 
 			Printf( PRINT_HIGH, "SERVER_ParseCommands: Unknown client message: %d\n", lCommand );
@@ -4414,6 +4426,46 @@ static bool server_VoteNo( void )
 		SERVERCOMMANDS_PlayerVote( parse_cl, false );
 	}
 
+	return ( false );
+}
+
+
+//*****************************************************************************
+//
+static bool server_InventoryUseAll( void )
+{
+	if (gamestate == GS_LEVEL && !paused)
+	{
+		AInventory *item = players[parse_cl].mo->Inventory;
+
+		while (item != NULL)
+		{
+			AInventory *next = item->Inventory;
+			if (item->ItemFlags & IF_INVBAR && !(item->IsKindOf(RUNTIME_CLASS(APuzzleItem))))
+			{
+				players[parse_cl].mo->UseInventory (item);
+			}
+			item = next;
+		}
+	}
+	return ( false );
+}
+
+//*****************************************************************************
+//
+static bool server_InventoryUse( void )
+{
+	const char* pszString = NETWORK_ReadString();
+	
+	if (gamestate == GS_LEVEL && !paused)
+	{
+		AInventory *item = players[parse_cl].mo->FindInventory (PClass::FindClass (pszString));
+		if (item != NULL)
+		{
+			players[consoleplayer].mo->UseInventory (item);
+		}
+	}
+	
 	return ( false );
 }
 

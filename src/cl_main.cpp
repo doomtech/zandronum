@@ -154,6 +154,7 @@ static	void	client_SetPlayerCamera( void );
 static	void	client_UpdatePlayerPing( void );
 static	void	client_UpdatePlayerExtraData( void );
 static	void	client_UpdatePlayerPendingWeapon( void );
+static	void	client_DoInventoryUse( void );
 static	void	client_UpdatePlayerTime( void );
 static	void	client_MoveLocalPlayer( void );
 static	void	client_DisconnectPlayer( void );
@@ -620,6 +621,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETCAMERATOTEXTURE",
 	"SVC_UPDATEPLAYERARMORDISPLAY",
 	"SVC_UPDATEPLAYEREPENDINGWEAPON",
+	"SVC_USEINVENTORY",
 
 };
 
@@ -1549,6 +1551,10 @@ void CLIENT_ParsePacket( bool bSequencedPacket )
 		case SVC_UPDATEPLAYEREPENDINGWEAPON:
 
 			client_UpdatePlayerPendingWeapon( );
+			break;
+		case SVC_USEINVENTORY:
+
+			client_DoInventoryUse( );
 			break;
 		case SVC_UPDATEPLAYERTIME:
 
@@ -4004,6 +4010,25 @@ static void client_UpdatePlayerPendingWeapon( void )
 			}
 			players[ulPlayer].PendingWeapon = pWeapon;
 		}
+	}
+}
+
+//*****************************************************************************
+//
+static void client_DoInventoryUse( void )
+{
+	// Read the name of the inventory item we shall use.
+	const char *pszString = NETWORK_ReadString( );
+
+	// Check to make sure everything is valid. If not, break out.
+	if ( players[consoleplayer].mo == NULL )
+		return;
+
+	AInventory *item = players[consoleplayer].mo->FindInventory (PClass::FindClass (pszString));
+
+	if (item != NULL)
+	{
+		players[consoleplayer].mo->UseInventory (item);
 	}
 }
 

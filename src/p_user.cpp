@@ -601,8 +601,17 @@ bool APlayerPawn::UseInventory (AInventory *item)
 	}
 	if (player == &players[consoleplayer])
 	{
-		S_SoundID (this, CHAN_ITEM, item->UseSound, 1, ATTN_NORM);
-		StatusBar->FlashItem (itemtype);
+		// [BB] The server only has to tell the client, that he successfully used
+		// the item. The sound and the status bar flashing are handled by the client.
+		if( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			SERVERCOMMANDS_DoInventoryUse( ULONG( this->player - players ), item );
+		}
+		else
+		{
+			S_SoundID (this, CHAN_ITEM, item->UseSound, 1, ATTN_NORM);
+			StatusBar->FlashItem (itemtype);
+		}
 	}
 	return true;
 }
