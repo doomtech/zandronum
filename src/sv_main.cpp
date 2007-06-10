@@ -4456,13 +4456,13 @@ static bool server_InventoryUseAll( void )
 static bool server_InventoryUse( void )
 {
 	const char* pszString = NETWORK_ReadString();
-	
+
 	if (gamestate == GS_LEVEL && !paused)
 	{
 		AInventory *item = players[parse_cl].mo->FindInventory (PClass::FindClass (pszString));
 		if (item != NULL)
 		{
-			players[consoleplayer].mo->UseInventory (item);
+			players[parse_cl].mo->UseInventory (item);
 		}
 	}
 	
