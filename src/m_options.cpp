@@ -650,6 +650,7 @@ menu_t ControlsMenu =
  *=======================================*/
 static void StartMessagesMenu (void);
 static void StartAutomapMenu (void);
+static void StartHUDMenu (void);
 
 EXTERN_CVAR (Bool, st_scale)
 EXTERN_CVAR (Int,  r_detail)
@@ -665,10 +666,9 @@ EXTERN_CVAR (Bool, vid_attachedsurfaces)
 EXTERN_CVAR (Int,  screenblocks)
 EXTERN_CVAR (Int,  cl_grenadetrails)
 EXTERN_CVAR (Float,  blood_fade_scalar)
-EXTERN_CVAR (Bool, cl_onekey)
 EXTERN_CVAR (Bool, r_drawtrans)
 EXTERN_CVAR (Bool, cl_capfps)
-EXTERN_CVAR( Bool, cl_stfullscreenhud )
+
 
 static value_t Crosshairs[] =
 {
@@ -723,40 +723,32 @@ static menuitem_t VideoItems[] = {
 	{ more,		"Message Options",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)StartMessagesMenu} },
 	{ more,     "OpenGL Options",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)StartGLMenu} },
 	{ more,		"Automap Options",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)StartAutomapMenu} },
+	{ more,		"HUD Options",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)StartHUDMenu} },
+
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
-	{ slider,	"Screen size",			{&screenblocks},	   	{3.0}, {12.0},	{1.0}, {NULL} },
 	{ slider,	"Gamma correction",		{&Gamma},			   	{0.1}, {3.0},	{0.1}, {NULL} },
 	{ slider,	"Brightness",			{&vid_brightness},		{-0.8}, {0.8},	{0.05}, {NULL} },
 	{ slider,	"Contrast",				{&vid_contrast},	   	{0.1}, {3.0},	{0.1}, {NULL} },
 	{ slider,	"Blood brightness",		{&blood_fade_scalar},  	{0.0}, {1.0},	{0.05}, {NULL} },
-	{ discrete,	"Crosshair",			{&crosshair},		   	{8.0}, {0.0},	{0.0}, {Crosshairs} },
-	{ discrete, "Column render mode",	{&r_columnmethod},		{2.0}, {0.0},	{0.0}, {ColumnMethods} },
-	{ discrete, "Detail mode",			{&r_detail},		   	{4.0}, {0.0},	{0.0}, {DetailModes} },
-	{ discrete, "Stretch short skies",	{&r_stretchsky},	   	{2.0}, {0.0},	{0.0}, {OnOff} },
-	{ discrete, "Stretch status bar",	{&st_scale},			{2.0}, {0.0},	{0.0}, {OnOff} },
-	//{ discrete, "Alternative HUD",		{&hud_althud},			{2.0}, {0.0},	{0.0}, {OnOff} },
-	{ discrete, "Screen wipe style",	{&wipetype},			{4.0}, {0.0},	{0.0}, {Wipes} },
-#ifdef _WIN32
-	{ discrete, "DirectDraw palette hack", {&vid_palettehack},	{2.0}, {0.0},	{0.0}, {OnOff} },
-	{ discrete, "Use attached surfaces", {&vid_attachedsurfaces},{2.0}, {0.0},	{0.0}, {OnOff} },
-#endif
-	{ discrete, "Cap framerate",		{&cl_capfps},			{4.0}, {0.0},	{0.0}, {YesNo} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
+	{ discrete, "Cap framerate",		{&cl_capfps},			{4.0}, {0.0},	{0.0}, {YesNo} },
+	{ discrete, "Screen wipe style",	{&wipetype},			{4.0}, {0.0},	{0.0}, {Wipes} },
 	{ discrete, "Use fuzz effect",		{&r_drawfuzz},			{2.0}, {0.0},	{0.0}, {YesNo} },
 	{ discrete, "Respawn invul effect",	{&cl_respawninvuleffect},	{3.0}, {0.0},	{0.0}, {RespawnInvulEffectTypes} },
 	{ discrete, "Rocket Trails",		{&cl_rockettrails},		{2.0}, {0.0},	{0.0}, {OnOff} },
 	{ discrete, "Grenade Trails",		{&cl_grenadetrails},		{2.0}, {0.0},	{0.0}, {OnOff} },
 	{ discrete, "Blood Type",			{&cl_bloodtype},	   	{3.0}, {0.0},	{0.0}, {BloodTypes} },
 	{ discrete, "Bullet Puff Type",		{&cl_pufftype},			{2.0}, {0.0},	{0.0}, {PuffTypes} },
+	{ discrete, "Stretch short skies",	{&r_stretchsky},	   	{2.0}, {0.0},	{0.0}, {OnOff} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
-	{ discrete, "Always display DM stats",	{&cl_alwaysdrawdmstats},	{2.0}, {0.0},	{0.0}, {YesNo} },
-	{ discrete, "Always display team stats",{&cl_alwaysdrawteamstats},	{2.0}, {0.0},	{0.0}, {YesNo} },
-	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
-	{ discrete, "One key display",		{&cl_onekey},			{2.0}, {0.0},	{0.0}, {YesNo} },
+	{ discrete, "Column render mode",	{&r_columnmethod},		{2.0}, {0.0},	{0.0}, {ColumnMethods} },
+	{ discrete, "Detail mode",			{&r_detail},		   	{4.0}, {0.0},	{0.0}, {DetailModes} },
 	{ discrete, "Disable alpha",		{&r_drawtrans},			{2.0}, {0.0},	{0.0}, {NoYes} },
-	{ discrete, "Show large frag messages",	{&cl_showlargefragmessages},{2.0}, {0.0},	{0.0}, {YesNo} },
-	{ discrete, "Show fullscreen vote",	{&cl_showfullscreenvote},{2.0}, {0.0},	{0.0}, {YesNo} },
-	{ discrete, "Use old fullscreen HUD",	{&cl_stfullscreenhud},{2.0}, {0.0},	{0.0}, {NoYes} },
+#ifdef _WIN32
+	{ discrete, "DirectDraw palette hack", {&vid_palettehack},	{2.0}, {0.0},	{0.0}, {OnOff} },
+	{ discrete, "Use attached surfaces", {&vid_attachedsurfaces},{2.0}, {0.0},	{0.0}, {OnOff} },
+#endif
+
 };
 
 menu_t VideoMenu =
@@ -767,6 +759,54 @@ menu_t VideoMenu =
 	0,
 	VideoItems,
 };
+
+/*=======================================
+ *
+ * HUD Menu [RC]
+ *
+ *=======================================*/
+
+EXTERN_CVAR (Bool, cl_onekey)
+EXTERN_CVAR( Bool, cl_stfullscreenhud )
+
+static value_t VoteScreenTypes[] = {
+	{ 0, "Minimal" },
+	{ 1, "Fullscreen" },
+};
+
+static value_t FullscreenHUDStyle[] = {
+	{ 0, "Classic style" },
+	{ 1, "New style" },
+};
+
+
+static menuitem_t HUDMenuItems[] = {
+	{ slider,	"Screen size",				{&screenblocks},	   	{3.0}, {12.0},	{1.0}, {NULL} },
+	{ discrete, "Voting display",			{&cl_showfullscreenvote},{2.0}, {0.0},	{0.0}, {VoteScreenTypes} },
+	{ redtext,	" ",						{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
+	{ discrete,	"Crosshair",				{&crosshair},		   	{8.0}, {0.0},	{0.0}, {Crosshairs} },
+	{ discrete, "Large frag messages",		{&cl_showlargefragmessages},{2.0}, {0.0},	{0.0}, {YesNo} },
+	{ discrete, "Fullscreen HUD",			{&cl_stfullscreenhud},{2.0}, {0.0},	{0.0}, {FullscreenHUDStyle} },
+	//{ discrete, "GZDoom HUD",		{&hud_althud},			{2.0}, {0.0},	{0.0}, {OnOff} },
+	{ discrete, "Stretch status bar",	{&st_scale},			{2.0}, {0.0},	{0.0}, {OnOff} },
+	{ redtext,	" ",						{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
+	{ discrete, "Always show DM stats",		{&cl_alwaysdrawdmstats},	{2.0}, {0.0},	{0.0}, {YesNo} },
+	{ discrete, "Always show team stats",	{&cl_alwaysdrawteamstats},	{2.0}, {0.0},	{0.0}, {YesNo} },
+	{ discrete, "One key display",			{&cl_onekey},			{2.0}, {0.0},	{0.0}, {YesNo} },
+
+
+};
+
+menu_t HUDMenu =
+{
+	"HUD OPTIONS",
+	0,
+	countof(HUDMenuItems),
+	0,
+	HUDMenuItems,
+};
+
+
 
 /*=======================================
  *
@@ -5853,6 +5893,10 @@ static void StartAutomapMenu (void)
 	M_SwitchMenu (&AutomapMenu);
 }
 
+static void StartHUDMenu (void)
+{
+	M_SwitchMenu (&HUDMenu);
+}
 CCMD (menu_automap)
 {
 	M_StartControlPanel (true);
