@@ -99,7 +99,6 @@ static value_t Hz[] =
 
 menuitem_t OpenGLItems[] = {
 	{ more,     "Dynamic Light Options", {NULL}, {0.0}, {0.0},	{0.0}, {(value_t *)StartGLLightMenu} },
-	{ more,     "Disable GL system",	 {NULL}, {0.0}, {0.0},	{0.0}, {(value_t *)StartDisableGL} },
 	{ redtext,	" ",						{NULL},							{0.0}, {0.0}, {0.0}, {NULL} },
 	{ discrete, "Vertical Sync",			{&vid_vsync},					{2.0}, {0.0}, {0.0}, {OnOff} },
 //	{ discrete, "Refresh rate",				{&gl_vid_refreshHz},			{7.0}, {0.0}, {0.0}, {Hz} },
