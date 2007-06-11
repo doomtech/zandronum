@@ -294,22 +294,18 @@ ULONG LASTMANSTANDING_TeamCountActivePlayers( ULONG ulTeam )
 }
 
 //*****************************************************************************
-//
+// Counts all of the players still standing. Teams are ignored.
 LONG LASTMANSTANDING_CountMenStanding( void )
 {
-	ULONG	ulIdx;
-	ULONG	ulNumMenStanding;
+	ULONG	ulNumMenStanding = 0;
 
-	// Not in lastmanstanding mode.
-	if ( lastmanstanding == false )
+	// Not in LMS or team LMS.
+	if ( !lastmanstanding && !teamlms)
 		return ( -1 );
 
-	ulNumMenStanding = 0;
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 		if ( playeringame[ulIdx] && ( players[ulIdx].bSpectating == false ) && ( players[ulIdx].health > 0 ))
 			ulNumMenStanding++;
-	}
 
 	return ( ulNumMenStanding );
 }
@@ -318,21 +314,25 @@ LONG LASTMANSTANDING_CountMenStanding( void )
 //
 LONG LASTMANSTANDING_TeamCountMenStanding( ULONG ulTeam )
 {
-	ULONG	ulIdx;
-	ULONG	ulNumMenStanding;
+	ULONG	ulNumMenStanding = 0;
 
 	// Not in team LMS mode.
-	if ( teamlms == false )
+	if ( !teamlms )
 		return ( -1 );
 
-	ulNumMenStanding = 0;
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 		if ( playeringame[ulIdx] && ( players[ulIdx].bSpectating == false ) && ( players[ulIdx].health > 0 ) && ( players[ulIdx].bOnTeam ) && ( players[ulIdx].ulTeam == ulTeam ))
 			ulNumMenStanding++;
-	}
 
 	return ( ulNumMenStanding );
+}
+
+//*****************************************************************************
+// Counts the number of enemies alive in team LMS.
+LONG LASTMANSTANDING_TeamCountEnemiesStanding( ULONG ulTeam )
+{
+	// Total living players - team living players
+	return ( LASTMANSTANDING_CountMenStanding( ) - LASTMANSTANDING_TeamCountMenStanding(ulTeam) );
 }
 
 //*****************************************************************************
