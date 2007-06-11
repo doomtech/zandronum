@@ -1241,10 +1241,12 @@ private:
 		else
 			ulCurXPos = SCREENWIDTH - 4;
 		ulCurYPos = 4;
-		if ( deathmatch || teamgame || invasion || (cooperative && ( NETWORK_GetState( ) != NETSTATE_SINGLE )))
+		if (deathmatch || teamgame || invasion || (cooperative && ( NETWORK_GetState( ) != NETSTATE_SINGLE )))
 		{
 			if ( possession || teampossession )
 				sprintf( szString, "%d", CPlayer->lPointCount );
+			else if ( teamlms )
+				sprintf( szString, ""); // Frags would be distracting and confusing with the 'x left' being wins.
 			else if ( lastmanstanding )
 				sprintf( szString, "%d", CPlayer->ulWins );
 			else if ( deathmatch )
@@ -1469,8 +1471,11 @@ private:
 		{
 			ULONG	ulRedPoints; // Frags or points
 			ULONG	ulBluePoints;
-			
-			if(deathmatch) {
+			if(teamlms) {
+				ulBluePoints = TEAM_GetWinCount( TEAM_BLUE );
+				ulRedPoints = TEAM_GetWinCount( TEAM_RED );
+			}			
+			else if(teamplay) {
 				ulBluePoints = TEAM_GetFragCount( TEAM_BLUE );
 				ulRedPoints = TEAM_GetFragCount( TEAM_RED );
 			}
@@ -1484,7 +1489,7 @@ private:
 			else
 				ulCurYPos = SCREENHEIGHT - 4 - ( TexMan["MEDIA0"]->GetHeight( ) + 4 ) - ( TexMan["ARM1A0"]->GetHeight( ) + 4 ) - 14;
 
-			sprintf( szString , "\\cG%s: \\cC%d", TEAM_GetName( TEAM_RED ), ulRedPoints);
+			sprintf( szString , "\\cG%d \\cb- \\ch%d", ulRedPoints, ulBluePoints);
 			V_ColorizeString( szString );
 			ulCurYPos -= ((ConFont->GetHeight( ) + 1) * 5);
 
@@ -1506,31 +1511,6 @@ private:
 					szString,
 					TAG_DONE );
 			}
-
-			ulCurYPos += ConFont->GetHeight( ) + 1;
-
-			sprintf( szString , "\\cG%s: \\cC%d", TEAM_GetName( TEAM_BLUE ), ulBluePoints);
-			V_ColorizeString( szString );
-
-			if ( bScale )
-			{
-				screen->DrawText( CR_GRAY,
-					ulCurXPos,
-					(LONG)( ulCurYPos * fYScale ),
-					szString,
-					DTA_VirtualWidth, ValWidth.Int,
-					DTA_VirtualHeight, ValHeight.Int,
-					TAG_DONE );
-			}
-			else
-			{
-				screen->DrawText( CR_GRAY,
-					ulCurXPos,
-					ulCurYPos,
-					szString,
-					TAG_DONE );
-			}
-
 			
 		}
 		// Or it's just simple deathmatch.
