@@ -200,7 +200,7 @@ CVAR( Int, sv_colorstripmethod, 0, CVAR_ARCHIVE )
 CVAR( Bool, sv_disallowbots, false, CVAR_ARCHIVE )
 CVAR( Bool, sv_minimizetosystray, true, CVAR_ARCHIVE )
 CVAR( Int, sv_queryignoretime, 10, CVAR_ARCHIVE )
-CVAR( Bool, sv_stay97c3compatible, true, CVAR_ARCHIVE )
+CVAR( Bool, sv_stay97c3compatible, false, CVAR_ARCHIVE )
 
 //*****************************************************************************
 //
