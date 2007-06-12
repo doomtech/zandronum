@@ -312,12 +312,15 @@ private:
 			DrawImage (Images[imgUSEARTIA + ArtifactFlash], 182, 3);
 			oldarti = NULL; // so that the correct artifact fills in after the flash
 		}
-		else if (oldarti != CPlayer->mo->InvSel
-			|| (oldarti != NULL && oldartiCount != oldarti->Amount))
+		else if( CPlayer->mo != NULL )
 		{
-			oldarti = CPlayer->mo->InvSel;
-			oldartiCount = oldarti != NULL ? oldarti->Amount : 0;
-			ArtiRefresh = screen->GetPageCount ();
+			if (oldarti != CPlayer->mo->InvSel
+				|| (oldarti != NULL && oldartiCount != oldarti->Amount))
+			{
+				oldarti = CPlayer->mo->InvSel;
+				oldartiCount = oldarti != NULL ? oldarti->Amount : 0;
+				ArtiRefresh = screen->GetPageCount ();
+			}
 		}
 		if (ArtiRefresh)
 		{
@@ -369,14 +372,17 @@ private:
 		// Keys
 		playerkeys = 0;
 
-		for (item = CPlayer->mo->Inventory; item != NULL; item = item->Inventory)
+		if( CPlayer->mo != NULL )
 		{
-			if (item->IsKindOf (RUNTIME_CLASS(AKey)))
+			for (item = CPlayer->mo->Inventory; item != NULL; item = item->Inventory)
 			{
-				int keynum = static_cast<AKey*>(item)->KeyNumber;
-				if (keynum >= 1 && keynum <= 3)
+				if (item->IsKindOf (RUNTIME_CLASS(AKey)))
 				{
-					playerkeys |= 1 << (keynum-1);
+					int keynum = static_cast<AKey*>(item)->KeyNumber;
+					if (keynum >= 1 && keynum <= 3)
+					{
+						playerkeys |= 1 << (keynum-1);
+					}
 				}
 			}
 		}
@@ -453,7 +459,7 @@ private:
 		}
 
 		// Armor
-		AInventory *armor = CPlayer->mo->FindInventory<ABasicArmor>();
+		AInventory *armor = (CPlayer->mo != NULL) ? CPlayer->mo->FindInventory<ABasicArmor>() : NULL;
 		int armorpoints = armor != NULL ? armor->Amount : 0;
 		if (oldarmor != armorpoints)
 		{
