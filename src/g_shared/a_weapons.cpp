@@ -273,11 +273,17 @@ void AWeapon::AttachToOwner (AActor *other)
 		else if (( pCompareWeapon == NULL ) ||
 			(( Owner->player->userinfo.switchonpickup == 1 ) && ( SelectionOrder < pCompareWeapon->SelectionOrder )))
 		{
-			Owner->player->PendingWeapon = this;
+			// [BB] Because of ST's special switchonpickup == 1 handling, we have to make sure here
+			// that we don't pick a powered up version, if we don't have a PowerWeaponLevel2 active.
+			if( (WeaponFlags & WIF_POWERED_UP && Owner->FindInventory (RUNTIME_CLASS(APowerWeaponLevel2)))
+				  || !(WeaponFlags & WIF_POWERED_UP) )
+			{
+				Owner->player->PendingWeapon = this;
 
-			// [BC] If we're a client, tell the server we're switching weapons.
-			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( Owner->player - players ) == consoleplayer ))
-				CLIENTCOMMANDS_WeaponSelect( (char *)this->GetClass( )->TypeName.GetChars( ));
+				// [BC] If we're a client, tell the server we're switching weapons.
+				if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( Owner->player - players ) == consoleplayer ))
+					CLIENTCOMMANDS_WeaponSelect( (char *)this->GetClass( )->TypeName.GetChars( ));
+			}
 		}
 		// [BC] The server doesn't have a status bar.
 		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
