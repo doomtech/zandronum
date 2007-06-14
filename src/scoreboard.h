@@ -60,6 +60,25 @@
 #define	COLUMN3_XPOS	192
 #define	COLUMN4_XPOS	256
 
+// Types of columns and data
+#define COLUMNS_MAX		8
+#define COL_EMPTY			0
+#define COL_NAME			1
+#define COL_TIME			2
+#define COL_PING			3
+#define COL_FRAGS			4
+#define COL_POINTS			5
+#define	COL_DEATHS			6
+#define COL_WINS			7
+#define	COL_KILLS			8
+#define COL_POINTSASSISTS	9
+#define COL_SECRETS			10
+#define	COL_MEDALS			11
+
+
+
+
+
 //*****************************************************************************
 enum
 {
@@ -80,7 +99,6 @@ void	SCOREBOARD_Render( player_s *pPlayer );
 void	SCOREBOARD_RenderBoard( player_s *pPlayer );
 void	SCOREBOARD_RenderDMStats( void );
 void	SCOREBOARD_RenderTeamStats( player_s *pPlayer );
-void	SCOREBOARD_RenderInvasionStats( void );
 void	SCOREBOARD_RenderInVote( void );
 void	SCOREBOARD_RenderInVoteClassic( void ); // [RC] Full screen display
 void	SCOREBOARD_RenderDuelCountdown( ULONG ulTimeLeft );
