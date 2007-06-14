@@ -37,6 +37,7 @@ v0.97d-beta3
 + - Added netcode to handle the use of inventory items online. This should fix the CCMDs "invuseall", "invuse" and "use" - dropping items is not yet supported. (Needs *heavy* testing - brand new code). [Torr Samaho]
 + - Pistol, shotgun and chaingun decals now work online. [Torr Samaho]
 + - Added the 'chatting' icon to the scoreboard. [Rivecoder]
++ - IDESE now supports pk3 files! [Bond]
 - - The Reflection rune announcer is now played on pickup. [Torr Samaho]
 - - Converted Fist and Chainsaw to DECORATE. [Torr Samaho]
 - - Fixed ACS functions ClearInventory/DoClearInv online. [Torr Samaho]
