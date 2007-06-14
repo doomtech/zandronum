@@ -17,6 +17,7 @@ v0.97d-beta3
 *- - FIXED THE SPECTATOR WEAPONS BUG! All of the oinformation is updated properly now. No more rocket shotguns. :*( [Torr Samaho]
 *- - Fixed the silent railgun shots bug, and other sound related errors. [Torr Samaho]
 + - Added Hectabus fireball fix and several new light definitions. [Metalhead]
++ - Fixed: BlueColumn emits red light, not blue.[Metalhead]
 + - Added support for hosting/joining servers with PK3 files! [Torr Samaho]
 + - Added CVAR sv_stay97c3compatible. If it's true the server will allow 97c3 clients to connect and won't use any network commands they don't understand, i.e. bug fixes, which require network changes, won't be used. If it's false, 97c3 clients can't connect or will desync. [Torr Samaho]
 + - DECORATE guns now spawn decals online with cl_hitscandecalhack=true. [Torr Samaho]
