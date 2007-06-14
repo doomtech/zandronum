@@ -11,6 +11,134 @@
 = 
 ===============================================================================================================
 
+v0.97d-beta3
+------------
+
+*- - FIXED THE SPECTATOR WEAPONS BUG! All of the oinformation is updated properly now. No more rocket shotguns. :*( [Torr Samaho]
+*- - Fixed the silent railgun shots bug, and other sound related errors. [Torr Samaho]
++ - Added Hectabus fireball fix and several new light definitions. [Metalhead]
++ - Added support for hosting/joining servers with PK3 files! [Torr Samaho]
++ - Added CVAR sv_stay97c3compatible. If it's true the server will allow 97c3 clients to connect and won't use any network commands they don't understand, i.e. bug fixes, which require network changes, won't be used. If it's false, 97c3 clients can't connect or will desync. [Torr Samaho]
++ - DECORATE guns now spawn decals online with cl_hitscandecalhack=true. [Torr Samaho]
++ - DECORATE guns now award accuracy/precision medals to players. [Torr Samaho]
++ - DECORATE guns now notify bots if the DECORATE versions of the Doom weapons are used. [Torr Samaho]
++ - Enhanced the 97 fullscreen HUD! [Rivecoder]
++ - When a team scores in ST/CTF, it now shows who scored and who assisted! [Rivecoder]
++ - All gamemodes: A small blurb in the top-right corner, next to your frags/points, shows the amount of remaining frags/scores/etc until the level ends. [Rivecoder]
++ - Team Games: Team scores now appear on the HUD. [Rivecoder]
++ - Instagib: Health/armor display is automatically hidden. [Rivecoder]
++ - Infinite ammo: the ammo display is automatically hidden. [Rivecoder]
++ - LMS: The 'x opponents left' display at the bottom now appears in the fullscreen HUD. [Rivecoder]
++ - Survival: A new line in survival now shows similar to that of LMS -- it shows how many allies are still alive. [Rivecoder]
++ - Invasion: Your kill count is now shown in the top-right of the screen. [Rivecoder]
++ - Duel: Rank is now hidden. [Rivecoder]
++ - LMS: The line about how spectators can't talk to living players now shows next to the chat prompt, and shows for players too. [Rivecoder]
++ - Team Possession: Now shows who scored in online games. [Rivecoder]
++ - Added netcode to handle the use of inventory items online. This should fix the CCMDs "invuseall", "invuse" and "use" - dropping items is not yet supported. (Needs *heavy* testing - brand new code). [Torr Samaho]
++ - Pistol, shotgun and chaingun decals now work online. [Torr Samaho]
++ - Added the 'chatting' icon to the scoreboard. [Rivecoder]
+- - The Reflection rune announcer is now played on pickup. [Torr Samaho]
+- - Converted Fist and Chainsaw to DECORATE. [Torr Samaho]
+- - Fixed ACS functions ClearInventory/DoClearInv online. [Torr Samaho]
+- - Players' extra data is now update when spying after joining (possible in coop, for example). [Torr Samaho]
+- - Deactivated chasecam cheat message, in any non deathmatch/teamgame game. [Torr Samaho]
+- - Fixed: The Chainsaw's kickback was initialized to the default - not 0. (ported from ZDoom) [Torr Samaho]
+- - Fixed: Hirestex replacements for sprites didn't work properly (ported from GZDoom, kudos to Graf for fixing this in no time!) [Torr Samaho]
+- - server_GenericCheat only tells the client who toggled chasecam of the cheat, the others don't need to know about it. This fixes display problems, when spying someone who has chasecam on. [Torr Samaho]
+- - Fixed: jerky movement online in a WaterZone. [Torr Samaho]
+- - Fixed: Game crashes directly in a cooperative skirmish, e.g. if you start with "+multiplayer +map map01". [Torr Samaho]
+- - Fixed: player classes not working online. (Needs extensive testing) [Torr Samaho]
+- - Single player class selection menu now works in singleplayer. (Tested with Hexen and Ghouls vs Marines) [Torr Samaho]
+- - Class selection are respected in offline skirmish. [Torr Samaho]
+- - Fixed crashes of the player setup menu. [Torr Samaho]
+- - Cleaned up the F1 help code; it now only shows during a level or intermission, fixing some bugs. [Rivecoder]
+- - Positions of Heretic monsters are now updated properly online. [Torr Samaho]
+- - Positions of Hexen monsters are now updated properly online. [Torr Samaho]
+- - Fixed: Server crashes at startup, if you try to host a Hexen server without selection a map. [Torr Samaho]
+- - "addmap", "callvote map" and "callvote changemap" now work on maps contained in pk3s. Maplist now works as well. [Torr Samaho]
+- - Fixed the "Using unknown weapon type" bug, which happened in Ghouls vs Marines, if you are a Ghoul and fire your weapon after a map change. This should fix this bug once and for all (it occurred for Metal occasionally before) and could also fix the "player starts with fists" in coop bug. [Torr Samaho]
+- - Fixed: a Heretic client crashes if the server changes the map with the CCMD map. [Torr Samaho]
+- - Fixed: With switchonpickup == 1, some weapons are brought up powered up on pickup, even if the player doesn't have a PowerWeaponLevel2 active. Affects the mace in Heretic, for example. [Torr Samaho]
+! - Generalized the way key letters are handled, which are used for weapon changes to reduce network traffic. [Torr Samaho]
+! - Added the join game menu, which now shows in a team-less game instead of the y/n prompt. This way there can be the 'how to play' choice. [Rivecoder]
+! - In the oldstyle fullscreen HUD, keys are only shown in coop now. [Rivecoder]
+! - Reorganized the Display Options menu; added the HUD menu. [Rivecoder]
+
+v0.97d-beta2
+------------
+
++ - Skulltag now erases ZDoomGL settings (any renderer settings, really) the first time you run it on an old profile. [Rivecoder]
++ - Added spread support rune for your custom DECORATE weapons! [Torr Samaho]
++ - Upgraded the GZDoom renderer to 1.0.24! [Torr Samaho]
++ - Updated to Randy's new vector math routines. [Torr Samaho]
+- - This new vector code fixes a Software bleeding sector rendering bug.
+- - Fixed the 'change renderer' messages and fixed a typo. [Torr Samaho]
+- - When hosting a server, sound is automatically disabled. This fixes problems when running Skulltag on servers without sound cards. [Torr Samaho]
+- - Fixed a server crash with custom ambient sounds (and possibly other undiscovered crashes). [Torr Samaho]
+- - Fixed transparent textures that blocked projectiles or monsters. [Torr Samaho]
+- - Fixed the TESTCOLOR grayscale bugs and crashes. [Torr Samaho]
+- - (Possibly) fixed the respawn invunerability palete bug. This needs testing. [Torr Samaho]
+- - Fixed the cooperative HUD armor display bug! [Torr Samaho]
+- - Dynamic lights with a duration of -1 work now. [Torr Samaho]
+- - Fixed the server maplist "FRAGS" bugs! This needs thorough testing. [Torr Samaho]
+- - Console command 'addmap' now will only add the map if it exists. [Torr Samaho]
+- - Console command 'changeteam' now gives an error when used in non-teamgame modes. [Torr Samaho]
+- - Fixed a crash when the map was reset after the countdown. [Torr Samaho]
+- - The online hitscan decal fix has now been declared bug-free and officially included for the SSG. [Torr Samaho]
++ - You can toggle the hitscan decals with the CVAR cl_hitscandecalhack. [Torr Samaho]
+- - Increased the prescision of texture scaling from GZDoom. [Torr Samaho]
+- - Removed the old tx and ty CVARs, as they've been removed in ZDoom. [Torr Samaho]
+! - Reactivated 3DMidtex support and changed ML_3DMIDTEX from 0x4000 to 0x40000000 (same as GZDoom) to fix conflicts. [Torr Samaho]
+    
+v0.97d-beta1
+------------
+
+*+ - ADDED GZDOOM RENDERING! Skulltag has switched renderers and we've dropped the slow and buggy ZDoomGL renderer. This entails fantastic support for ZDoom's features, blistering speed, and fewer bugs! [Torr Samaho!]
+*+ - Added dynamic lighting for ALL items for the new renderer! These include Doom items and Skulltag ones. Torches now cast light, plasma shots let out an eeire glow, and the spheres pulse ominously. [Metalhead]
++ - Added name restrictions on all player names! Players can no longer create line breaks in the middle of their names, use invisible or strange characters, or use blank names! This should make vote kicking easier, and help stem name abuse. [Rivecoder]
++ - NEW minimal vote screen! A display option, the "Vote Now!" screen takes up a small area at the top of the screen, instead of the entire screen. This should make votes less painful. [Rivecoder]
++ - Added game-sensitive F1 help. What this does is changes the help screen to match whatever mode you're playing. If, for example, you are playing Possession, the help screen will show you how to play, etc. This can help new players learn the modes, as well as relieve experienced members from having to explain them. Ever had someone not know to score in Skulltag? "F1 DAMMIT!" [Rivecoder]
++ - Created a new mapinfo entry, "f1"! Mappers can create CUSTOM F1 screens that can explain their ACS mod or level! Each map can have its own screen. Hopefully this should become the standard place to explain your game mode. [Rivecoder]
++ - Voting can be fined tuned! Added these server cvars: sv_nokickvote, sv_nomapvote, sv_nochangemapvote, sv_nofraglimitvote, sv_notimelimitvote, _nowinlimitvote, sv_noduellimitvote and sv_nopointlimitvote. This way each vote type can be deactivated individually. [Torr Samaho]
++ - You can longer leave the map rotation with a vote. [Torr Samaho]
++ - Updated Skulltag's internals to use a hybrid of ZDoom 2.1.8 trunk and GZDoom 2.0.22 code. Not all of the new features (such as custom states) have been used yet. [Torr Samaho]
++ - Added support for Terminator and Possession starts! TIDs 6000 and 6001, these allow mappers to choose where the Terminator ball and Hellstone spawn at the start of a level! If you don't use these starts, a deathmatch start will be used as normal. [Rivecoder]
++ - When a player leaves a server, in addition to his frags and wins, his playing time is saved. This means that if you reconnect, your time isn't reset. [Rivecoder]
++ - Added death frames for Ultimus! [Doomjedi]
+- - When you get the Doom or Guard sphere, your vision is properly rendered. [Torr Samaho]
+- - Fixed Teleport to Map special online. [Torr Samaho]
+- - Fixed a server crash when monsters left a level. [Torr Samaho]
+- - A player using a doom or guard sphere is rendered in the correct color for the other players. [Torr Samaho]
+- - Removed the 1 frame delay between when the BFG10K shot explodes and the damages is dealt. This fixes time freeze mode. [Torr Samaho]
+- - Fixed a crash where if you try to join a server, when having wads with the correct names, but which don't contain the map the server is running. [Torr Samaho]
+- - Fixed bug where runes weren't stored when you saved the game. Wart 04 is playable now! [Rivecoder]
+- - Bots ignore additional events if their queue is full (since the queue fills easily in time freeze mode). This should fix the "Event queue size exceeded" bug. [Torr Samaho]
+- - Added a experimental hack to fix the decals of the super shotgun online. If this works properly, it will be used for all hitscan weapons. [Torr Samaho]
+- - Fixed the give cheats online. [Torr Samaho]
++ - When a team scores in possession, the name of the scorer is also shown. [Rivecoder]
+! - Reorganized the player setup and multiplayer menu. [Rivecoder]
+! - Some internal changes how Actors are spawned online. I hope this can be used in the future to reduce the problems some have joining a server hosting UTNT. [Torr Samaho]
+! - Skulltag does not include most of GZDoom's gl-only features for now, such as 3D floors and reflective flats, to prevent advantages over software users.
+! - 0.97d briefly used ZDoomGL 0.81, but it caused more bugs than it helped. Major props to Torr for his hours of work to get both renderers working.
+
+----------------------------------------------------------------------------------------------------------
+One remark about texture filtering: Because of countless complains in the past that the GL mode in general (regardless if ZDoomGL or GZDoom) is just too blurry and not doomish at all we decided to set the default filtering values in such a way, that the filtering resembles the software mode as closely as possible. These are not the recommended values, but the default ones, so that hopefully software renderer fans won't get scared away by the new renderer seconds after starting it for the first time.
+The recommended values are as follows:
+
+If you want to keep the sharpness of software more, but still enjoy filtering benefits, we recommend the settings
+
+texture filter mode = none (mipmapped)
+anisotropic filter = 16x
+
+If you don't mind loosing a bit of the sharpness and want to enjoy all OpenGL benefits (as I do), we recommend
+
+texture filter mode = trilinear
+anisotropic filter = 16x
+
+Especially if you use the high res textures, the latter is the way to go. Depending on the speed of your graphics card you can lower the anisotropic filter to improve performance.
+----------------------------------------------------------------------------------------------------------
+
+
 v0.97c3
 -------
 
