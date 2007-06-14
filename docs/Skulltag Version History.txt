@@ -16,6 +16,7 @@ v0.97d-beta3
 
 *- - FIXED THE SPECTATOR WEAPONS BUG! All of the oinformation is updated properly now. No more rocket shotguns. :*( [Torr Samaho]
 *- - Fixed the silent railgun shots bug, and other sound related errors. [Torr Samaho]
+*+ - Rewrote the scoreboard code! The scoreboard now shows fewer columns in lower resolutions, has a new 5 column display for CTF/ST/LMS (in 800x600 or higher), and sports a 'chatting' icon for when players are typing. [Rivecoder]
 + - Added Hectabus fireball and several new light definitions. [Metalhead]
 + - Added a new female skin, Illucia! [Lazureus]
 + - Added support for hosting/joining servers with PK3 files! [Torr Samaho]
