@@ -13,6 +13,7 @@
 
 v0.97c3
 -------
+
 *+	- Disabled several underground hacks, cheats, and hooks that have been circulating through the community.
 +	- NoIntermission is now recognized in multiplayer. Mappers can now use this to create their own intermissions.
 +	- Improved Skulltag's credits, which can be seen by waiting at the menu screen. They also use the DEMO3 slot.
