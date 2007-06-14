@@ -1903,7 +1903,7 @@ object RedColumn
 // Blue Column
 flickerlight2 BlueColumn
 {
-    color 1.0 0.0 0.0
+    color 0.0 0.0 1.0
     size 48
     secondarySize 64
     interval 0.1
