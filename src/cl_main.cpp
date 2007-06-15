@@ -5452,8 +5452,9 @@ static void client_PrintHUDMessage( void )
 		return;
 
 	pOldFont = screen->Font;
-	if ( FFont::FindFont( pszFont ))
-		screen->SetFont( FFont::FindFont( pszFont ));
+	if ( V_GetFont( pszFont ))
+		screen->SetFont( V_GetFont( pszFont ));
+
 
 	// Create the message.
 	pMsg = new DHUDMessage( szString,
@@ -5519,8 +5520,8 @@ static void client_PrintHUDMessageFadeOut( void )
 		return;
 
 	pOldFont = screen->Font;
-	if ( FFont::FindFont( pszFont ))
-		screen->SetFont( FFont::FindFont( pszFont ));
+	if ( V_GetFont( pszFont ))
+		screen->SetFont( V_GetFont( pszFont ));
 
 	// Create the message.
 	pMsg = new DHUDMessageFadeOut( szString,
@@ -5591,8 +5592,8 @@ static void client_PrintHUDMessageFadeInOut( void )
 		return;
 
 	pOldFont = screen->Font;
-	if ( FFont::FindFont( pszFont ))
-		screen->SetFont( FFont::FindFont( pszFont ));
+	if ( V_GetFont( pszFont ))
+		screen->SetFont( V_GetFont( pszFont ));
 
 	// Create the message.
 	pMsg = new DHUDMessageFadeInOut( szString,
@@ -5664,8 +5665,8 @@ static void client_PrintHUDMessageTypeOnFadeOut( void )
 		return;
 
 	pOldFont = screen->Font;
-	if ( FFont::FindFont( pszFont ))
-		screen->SetFont( FFont::FindFont( pszFont ));
+	if ( V_GetFont( pszFont ))
+		screen->SetFont( V_GetFont( pszFont ));
 
 	// Create the message.
 	pMsg = new DHUDMessageTypeOnFadeOut( szString,
