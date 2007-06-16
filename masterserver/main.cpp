@@ -88,12 +88,14 @@ typedef int SOCKET;
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <iostream>
 
 #include <ctype.h>
 #include <math.h>
 
 #include "network.h"
 #include "main.h"
+#include "sv_banfuncs.h"
 
 //*****************************************************************************
 //	VARIABLES
@@ -106,7 +108,7 @@ static	sizebuf_t	g_MessageBuffer;
 
 static	int		    nowtime;
 
-static	netadr_t	g_BannedIPs[MAX_BANNED_IPS];
+static	BAN_t		g_BannedIPs[MAX_BANNED_IPS];
 
 static	char		g_cCurChar;
 
@@ -227,78 +229,6 @@ char MASTERSERVER_SkipComment( FILE *pFile )
 
 //*****************************************************************************
 //
-void MASTERSERVER_ParseNextLine( FILE *pFile )
-{
-	netadr_t	BanAddress;
-	char		szIP[64];
-	char		lPosition;
-
-	lPosition = 0;
-	szIP[0] = 0;
-
-	g_cCurChar = fgetc( pFile );
-
-	// Skip whitespace.
-	if ( g_cCurChar == ' ' )
-	{
-		g_cCurChar = MASTERSERVER_SkipWhitespace( pFile );
-
-		if ( feof( pFile ))
-		{
-			fclose( pFile );
-			return;
-		}
-	}
-
-	while ( 1 )
-	{
-		if ( g_cCurChar == '\r' || g_cCurChar == '\n' || g_cCurChar == ':' || g_cCurChar == '/' || g_cCurChar == -1 )
-		{
-			if ( lPosition > 0 )
-			{
-				if ( NETWORK_StringToAddress( szIP, &BanAddress ))
-				{
-					if ( g_lCurBanIdx < MAX_BANNED_IPS )
-					{
-						BanAddress.port = 0;
-						g_BannedIPs[g_lCurBanIdx] = BanAddress;
-						g_lCurBanIdx++;
-						if ( g_lCurBanIdx >= MAX_BANNED_IPS )
-							printf( "WARNING! Maxmium number of bans reached!\n" );
-					}
-				}
-			}
-
-			if ( feof( pFile ))
-			{
-				fclose( pFile );
-				return;
-			}
-			// If we've hit a comment, skip until the end of the line (or the end of the file) and get out.
-			else if ( g_cCurChar == ':' || g_cCurChar == '/' )
-			{
-				MASTERSERVER_SkipComment( pFile );
-				return;
-			}
-			else
-				return;
-		}
-
-		szIP[lPosition++] = g_cCurChar;
-		szIP[lPosition] = 0;
-
-		if ( lPosition == 256 )
-		{
-			fclose( pFile );
-			return;
-		}
-
-		g_cCurChar = fgetc( pFile );
-	}
-}
-
-//*****************************************************************************
-//
 void MASTERSERVER_InitializeBans( void )
 {
 	FILE			*pFile;
@@ -308,34 +238,59 @@ void MASTERSERVER_InitializeBans( void )
 
 	for ( ulIdx = 0; ulIdx < MAX_BANNED_IPS; ulIdx++ )
 	{
-		g_BannedIPs[ulIdx].ip[0] = 0;
-		g_BannedIPs[ulIdx].ip[1] = 0;
-		g_BannedIPs[ulIdx].ip[2] = 0;
-		g_BannedIPs[ulIdx].ip[3] = 0;
-		g_BannedIPs[ulIdx].port = 0;
+		sprintf( g_BannedIPs[ulIdx].szBannedIP[0], "0" );
+		sprintf( g_BannedIPs[ulIdx].szBannedIP[1], "0" );
+		sprintf( g_BannedIPs[ulIdx].szBannedIP[2], "0" );
+		sprintf( g_BannedIPs[ulIdx].szBannedIP[3], "0" );
+
+		g_BannedIPs[ulIdx].szComment[0] = 0;
 	}
 
 	g_cCurChar = 0;
 	if (( pFile = fopen( "banlist.txt", "r" )) != NULL )
 	{
+		char errorMessage[1024];
+		errorMessage[0] = '\0';
+
 		// -1 == EOF char.
-		while ( g_cCurChar != -1 )
-			MASTERSERVER_ParseNextLine( pFile );
+		while ( true /*g_cCurChar != -1*/ )
+		{
+			bool parsingDone = !serverban_ParseNextLine( pFile, g_BannedIPs[g_lCurBanIdx], g_lCurBanIdx, errorMessage );
+
+			if ( errorMessage[0] != '\0' )
+				std::cerr << errorMessage;
+
+			if ( parsingDone == true )
+				break;
+		}
 	}
 	else
-		printf( "WARNING! Could not open banlist.txt!\n" );
+		std::cerr << "WARNING! Could not open banlist.txt!\n";
+
+/*
+	// [BB] Print all banned IPs, to make sure banlist.txt has been parsed successfully.
+	for ( ulIdx = 0; ulIdx < MAX_BANNED_IPS; ulIdx++ )
+	{
+		std::cerr << g_BannedIPs[ulIdx].szBannedIP[0] << "." << g_BannedIPs[ulIdx].szBannedIP[1] << "." << g_BannedIPs[ulIdx].szBannedIP[2] << "." << g_BannedIPs[ulIdx].szBannedIP[3] << std::endl;
+	}
+*/
 }
 
 //*****************************************************************************
 //
-bool MASTERSERVER_IsIPBanned( netadr_t Address )
+bool MASTERSERVER_IsIPBanned( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 )
 {
 	unsigned long	ulIdx;
 
 	for ( ulIdx = 0; ulIdx < MAX_BANNED_IPS; ulIdx++ )
 	{
-		if ( NETWORK_CompareAddress( g_BannedIPs[ulIdx], Address, true ))
+		if ((( g_BannedIPs[ulIdx].szBannedIP[0][0] == '*' ) || ( stricmp( pszIP0, g_BannedIPs[ulIdx].szBannedIP[0] ) == 0 )) &&
+			(( g_BannedIPs[ulIdx].szBannedIP[1][0] == '*' ) || ( stricmp( pszIP1, g_BannedIPs[ulIdx].szBannedIP[1] ) == 0 )) &&
+			(( g_BannedIPs[ulIdx].szBannedIP[2][0] == '*' ) || ( stricmp( pszIP2, g_BannedIPs[ulIdx].szBannedIP[2] ) == 0 )) &&
+			(( g_BannedIPs[ulIdx].szBannedIP[3][0] == '*' ) || ( stricmp( pszIP3, g_BannedIPs[ulIdx].szBannedIP[3] ) == 0 )))
+		{
 			return ( true );
+		}
 	}
 
 	return ( false );
@@ -353,8 +308,15 @@ void MASTERSERVER_ParseCommands( void )
 	// First, is this IP banned from the master server? If so, ignore the request.
 	AddressTemp = g_AddressFrom;
 	AddressTemp.port = 0;
-	if ( MASTERSERVER_IsIPBanned( AddressTemp ))
+	char		szAddress[4][4];
+	itoa( AddressTemp.ip[0], szAddress[0], 10 );
+	itoa( AddressTemp.ip[1], szAddress[1], 10 );
+	itoa( AddressTemp.ip[2], szAddress[2], 10 );
+	itoa( AddressTemp.ip[3], szAddress[3], 10 );
+	if ( MASTERSERVER_IsIPBanned( szAddress[0], szAddress[1], szAddress[2], szAddress[3] ))
 	{
+		printf( "Ignoring challenge from banned IP: %s.\n", NETWORK_AddressToString( g_AddressFrom ));
+
 		// Clear out the message buffer.
 		NETWORK_ClearBuffer( &g_MessageBuffer );
 

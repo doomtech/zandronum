@@ -417,6 +417,16 @@ typedef struct
    unsigned short  pad;
 } netadr_t;
 
+typedef struct
+{
+	// The IP address that is banned in char form. Can be a number or a wildcard.
+	char		szBannedIP[4][4];
+
+	// Comment regarding the banned address.
+	char		szComment[128];
+
+} BAN_t;
+
 //*****************************************************************************
 typedef struct sizebuf_s
 {
