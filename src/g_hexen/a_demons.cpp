@@ -549,6 +549,9 @@ END_DEFAULTS
 
 void A_DemonAttack1 (AActor *actor)
 {
+	if (!actor->target)
+		return;
+
 	if (actor->CheckMeleeRange ())
 	{
 		int damage = pr_atk.HitDice (2);
@@ -566,6 +569,9 @@ void A_DemonAttack1 (AActor *actor)
 
 void A_DemonAttack2_1 (AActor *actor)
 {
+	if (!actor->target)
+		return;
+
 	AActor *mo;
 
 	// Improve the aiming of this code!
@@ -586,6 +592,9 @@ void A_DemonAttack2_1 (AActor *actor)
 
 void A_DemonAttack2_2 (AActor *actor)
 {
+	if (!actor->target)
+		return;
+
 	AActor *mo;
 
 	// Improve the aiming of this code!
