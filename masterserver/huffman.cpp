@@ -33,7 +33,7 @@
 #include <ctype.h>
 #include <math.h>
 
-#include "m_alloc.h"
+//#include "m_alloc.h"
 
 int LastCompMessageSize = 0;
 
@@ -389,7 +389,7 @@ void BuildTree(float *freq)
 	huffnode_t *tmp;	
 	for (i=0;i<256;i++)
 	{
-		work[i]=(huffnode_s *)Malloc(sizeof(huffnode_t));
+		work[i]=(huffnode_s *)malloc(sizeof(huffnode_t));
 		
 		
 		work[i]->val=(unsigned char)i;
@@ -421,7 +421,7 @@ void BuildTree(float *freq)
 				min2=work[j]->freq;
 			}
 		}
-		tmp=(huffnode_s *)Malloc(sizeof(huffnode_t));
+		tmp=(huffnode_s *)malloc(sizeof(huffnode_t));
 		
 		
 		tmp->zero=work[minat2];
@@ -502,7 +502,7 @@ void HuffEncode(unsigned char *in,unsigned char *out,int inlen,int *outlen)
 		unsigned char *buf;
 		int tlen;
 		
-		buf= (unsigned char *)Malloc(inlen);
+		buf= (unsigned char *)malloc(inlen);
 		
 		HuffDecode(out,buf,*outlen,&tlen);
 		if(!tlen==inlen)
