@@ -382,6 +382,10 @@ private:
 
 	void DrawMainBar ()
 	{
+		// [BB] The following code relies on CPlayer->mo != NULL.
+		if( CPlayer->mo == NULL )
+			return;
+
 		int temp;
 
 		// Ready artifact
