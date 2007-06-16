@@ -178,6 +178,7 @@ static	void	client_KillThing( void );
 static	void	client_SetThingState( void );
 static	void	client_DestroyThing( void );
 static	void	client_SetThingAngle( void );
+static	void	client_SetThingTID( void );
 static	void	client_SetThingWaterLevel( void );
 static	void	client_SetThingFlags( void );
 static	void	client_SetThingArguments( void );
@@ -622,6 +623,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_UPDATEPLAYERARMORDISPLAY",
 	"SVC_UPDATEPLAYEREPENDINGWEAPON",
 	"SVC_USEINVENTORY",
+	"SVC_SETTHINGTID",
 
 };
 
@@ -1639,6 +1641,10 @@ void CLIENT_ParsePacket( bool bSequencedPacket )
 		case SVC_SETTHINGANGLE:
 
 			client_SetThingAngle( );
+			break;
+		case SVC_SETTHINGTID:
+
+			client_SetThingTID( );
 			break;
 		case SVC_SETTHINGWATERLEVEL:
 
@@ -4737,6 +4743,35 @@ static void client_SetThingAngle( void )
 
 	// Finally, set the angle.
 	pActor->angle = Angle;
+}
+
+//*****************************************************************************
+//
+static void client_SetThingTID( void )
+{
+	AActor		*pActor;
+	LONG		lID;
+	LONG		lTid;
+
+	// Read in the thing's network ID.
+	lID = NETWORK_ReadShort( );
+
+	// Read in the thing's new angle.
+	lTid = NETWORK_ReadShort( );
+
+	// Now try to find the thing.
+	pActor = NETWORK_FindThingByNetID( lID );
+	if ( pActor == NULL )
+	{
+#ifdef CLIENT_WARNING_MESSAGES
+		Printf( "client_SetThingTID: Couldn't find thing: %d\n", lID );
+#endif
+		return;
+	}
+
+	// Finally, set the tid.
+	pActor->tid = lTid;
+	pActor->AddToHash();
 }
 
 //*****************************************************************************

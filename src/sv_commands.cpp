@@ -1160,12 +1160,14 @@ void SERVERCOMMANDS_SpawnThing( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFla
 			continue;
 		}
 
-		NETWORK_CheckBuffer( ulIdx, 9 + (ULONG)strlen( pActor->GetClass( )->TypeName.GetChars( )));
+		// [BB] I'm sure it has to be strlen(pszName) here.
+		//NETWORK_CheckBuffer( ulIdx, 9 + (ULONG)strlen( pActor->GetClass( )->TypeName.GetChars( )));
+		NETWORK_CheckBuffer( ulIdx, 9 + (ULONG)strlen( pszName ));
 		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SPAWNTHING );
 		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->x >> FRACBITS );
 		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->y >> FRACBITS );
 		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->z >> FRACBITS );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, (char *)pszName );
+		NETWORK_WriteString( &clients[ulIdx].netbuf, pszName );
 		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->lNetID );
 	}
 }
@@ -1195,12 +1197,14 @@ void SERVERCOMMANDS_SpawnThingNoNetID( AActor *pActor, ULONG ulPlayerExtra, ULON
 			continue;
 		}
 
-		NETWORK_CheckBuffer( ulIdx, 7 + (ULONG)strlen( pActor->GetClass( )->TypeName.GetChars( )));
+		// [BB] I'm sure it has to be strlen(pszName) here.
+		//NETWORK_CheckBuffer( ulIdx, 7 + (ULONG)strlen( pActor->GetClass( )->TypeName.GetChars( )));
+		NETWORK_CheckBuffer( ulIdx, 7 + (ULONG)strlen( pszName ));
 		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SPAWNTHINGNONETID );
 		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->x >> FRACBITS );
 		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->y >> FRACBITS );
 		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->z >> FRACBITS );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, (char *)pszName );
+		NETWORK_WriteString( &clients[ulIdx].netbuf, pszName );
 	}
 }
 
@@ -1236,12 +1240,14 @@ void SERVERCOMMANDS_SpawnThingExact( AActor *pActor, ULONG ulPlayerExtra, ULONG 
 			continue;
 		}
 
-		NETWORK_CheckBuffer( ulIdx, 15 + (ULONG)strlen( pActor->GetClass( )->TypeName.GetChars( )));
+		// [BB] I'm sure it has to be strlen(pszName) here.
+		//NETWORK_CheckBuffer( ulIdx, 15 + (ULONG)strlen( pActor->GetClass( )->TypeName.GetChars( )));
+		NETWORK_CheckBuffer( ulIdx, 15 + (ULONG)strlen( pszName ));
 		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SPAWNTHINGEXACT );
 		NETWORK_WriteLong( &clients[ulIdx].netbuf, pActor->x );
 		NETWORK_WriteLong( &clients[ulIdx].netbuf, pActor->y );
 		NETWORK_WriteLong( &clients[ulIdx].netbuf, pActor->z );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, (char *)pszName );
+		NETWORK_WriteString( &clients[ulIdx].netbuf, pszName );
 		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->lNetID );
 	}
 }
@@ -1271,12 +1277,14 @@ void SERVERCOMMANDS_SpawnThingExactNoNetID( AActor *pActor, ULONG ulPlayerExtra,
 			continue;
 		}
 
-		NETWORK_CheckBuffer( ulIdx, 13 + (ULONG)strlen( pActor->GetClass( )->TypeName.GetChars( )));
+		// [BB] I'm sure it has to be strlen(pszName) here.
+		//NETWORK_CheckBuffer( ulIdx, 13 + (ULONG)strlen( pActor->GetClass( )->TypeName.GetChars( )));
+		NETWORK_CheckBuffer( ulIdx, 13 + (ULONG)strlen( pszName ));
 		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SPAWNTHINGEXACTNONETID );
 		NETWORK_WriteLong( &clients[ulIdx].netbuf, pActor->x );
 		NETWORK_WriteLong( &clients[ulIdx].netbuf, pActor->y );
 		NETWORK_WriteLong( &clients[ulIdx].netbuf, pActor->z );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, (char *)pszName );
+		NETWORK_WriteString( &clients[ulIdx].netbuf, pszName );
 	}
 }
 
@@ -1455,6 +1463,37 @@ void SERVERCOMMANDS_SetThingAngle( AActor *pActor, ULONG ulPlayerExtra, ULONG ul
 		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETTHINGANGLE );
 		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->lNetID );
 		NETWORK_WriteLong( &clients[ulIdx].netbuf, pActor->angle );
+	}
+}
+
+//*****************************************************************************
+//
+void SERVERCOMMANDS_SetThingTID( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	// [BB] 97c3 clients don't know this command.
+	if( sv_stay97c3compatible )
+		return;
+
+	ULONG	ulIdx;
+
+	if ( pActor == NULL )
+		return;
+
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_IsValidClient( ulIdx ) == false )
+			continue;
+
+		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
+			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
+		{
+			continue;
+		}
+
+		NETWORK_CheckBuffer( ulIdx, 5 );
+		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETTHINGTID );
+		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->lNetID );
+		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->tid );
 	}
 }
 

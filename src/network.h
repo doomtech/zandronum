@@ -444,6 +444,7 @@ typedef enum
 	SVC_UPDATEPLAYERARMORDISPLAY,		// [BB] This should be reordered, once we break network compatibility with 97c3
 	SVC_UPDATEPLAYEREPENDINGWEAPON,
 	SVC_USEINVENTORY,
+	SVC_SETTHINGTID,
 
 	NUM_SERVER_COMMANDS
 };

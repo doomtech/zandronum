@@ -1928,8 +1928,16 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 			SERVERCOMMANDS_SpawnThing( pActor, ulClient, SVCF_ONLYTHISCLIENT );
 
 			// If it's important to update this thing's arguments, do that now.
+			// [BB] Wouldn't it be better, if this is done for all things, for which
+			// at least one of the arguments is not equal to zero?
 			if ( pActor->ulNetworkFlags & NETFL_UPDATEARGUMENTS )
 				SERVERCOMMANDS_SetThingArguments( pActor, ulClient, SVCF_ONLYTHISCLIENT );
+
+			// [BB] Some things like AMovingCamera rely on the AActor tid.
+			// So tell it to the client. I have no idea if this has unwanted side
+			// effects. Has to be checked.
+			if ( pActor->tid != 0 )
+				SERVERCOMMANDS_SetThingTID( pActor, ulClient, SVCF_ONLYTHISCLIENT );
 
 			// If this thing's translation has been altered, tell the client.
 			if ( pActor->Translation != 0 )

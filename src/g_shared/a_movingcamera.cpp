@@ -37,6 +37,8 @@
 #include "p_local.h"
 #include "p_lnspec.h"
 #include "vectors.h"
+#include "network.h"
+#include "sv_commands.h"
 
 /*
 == InterpolationPoint: node along a camera's path
@@ -72,6 +74,7 @@ BEGIN_STATELESS_DEFAULTS (AInterpolationPoint, Any, 9070, 0)
 	PROP_Flags (MF_NOBLOCKMAP|MF_NOGRAVITY)
 	PROP_Flags3 (MF3_DONTSPLASH)
 	PROP_RenderStyle (STYLE_None)
+	PROP_FlagsNetwork( NETFL_UPDATEARGUMENTS )
 END_DEFAULTS
 
 void AInterpolationPoint::Serialize (FArchive &arc)
@@ -194,6 +197,7 @@ END_POINTERS
 BEGIN_STATELESS_DEFAULTS (APathFollower, Any, 9071, 0)
 	PROP_Flags (MF_NOBLOCKMAP|MF_NOSECTOR|MF_NOGRAVITY)
 	PROP_Flags3 (MF3_DONTSPLASH)
+	PROP_FlagsNetwork( NETFL_UPDATEARGUMENTS )
 END_DEFAULTS
 
 void APathFollower::Serialize (FArchive &arc)
@@ -302,6 +306,9 @@ void APathFollower::Activate (AActor *activator)
 			bActive = true;
 		}
 	}
+	// If we're the server, tell clients to activate this actor.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_ThingActivate( this, activator );
 }
 
 void APathFollower::Tick ()
