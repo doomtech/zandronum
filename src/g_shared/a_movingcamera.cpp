@@ -187,6 +187,9 @@ protected:
 	AInterpolationPoint *PrevNode, *CurrNode;
 	float Time;		// Runs from 0.0 to 1.0 between CurrNode and CurrNode->Next
 	int HoldTime;
+
+	bool bPostBeginPlayCalled;
+	bool bActivateCalledBeforePostBeginPlay;
 };
 
 IMPLEMENT_POINTY_CLASS (APathFollower)
@@ -231,10 +234,14 @@ void APathFollower::BeginPlay ()
 	Super::BeginPlay ();
 	PrevNode = CurrNode = NULL;
 	bActive = false;
+	bPostBeginPlayCalled = false;
+	bActivateCalledBeforePostBeginPlay = false;
 }
 
 void APathFollower::PostBeginPlay ()
 {
+	bPostBeginPlayCalled = true;
+
 	// Find first node of path
 	TActorIterator<AInterpolationPoint> iterator (args[0] + 256 * args[1]);
 	AInterpolationPoint *node = iterator.Next ();
@@ -282,6 +289,17 @@ void APathFollower::PostBeginPlay ()
 			lastenemy = prevnode;
 		}
 	}
+
+	// [BB] ATTENTION: Ugly hack here! Find a cleaner way to do this!
+	// APathFollower::Activate does not work if it's called before APathFollower::PostBeginPlay.
+	// In the client/server mode it's possible, that the functions are called in this order
+	// on the client, so apply a workaround for this here. If Activate has been called before
+	// PostBeginPlay we have to call Actiate again here.
+	if( bActivateCalledBeforePostBeginPlay && ( NETWORK_GetState( ) == NETSTATE_CLIENT ) )
+	{
+		APathFollower::Activate (NULL);
+		bActivateCalledBeforePostBeginPlay = false;
+	}
 }
 
 void APathFollower::Deactivate (AActor *activator)
@@ -291,6 +309,9 @@ void APathFollower::Deactivate (AActor *activator)
 
 void APathFollower::Activate (AActor *activator)
 {
+	if ( !bPostBeginPlayCalled )
+		bActivateCalledBeforePostBeginPlay = true;
+
 	if (!bActive)
 	{
 		CurrNode = static_cast<AInterpolationPoint *>(target);
