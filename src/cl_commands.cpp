@@ -67,12 +67,17 @@ void CLIENTCOMMANDS_UserInfo( ULONG ulFlags )
 {
 	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_USERINFO );
 
+	// [BB] This prevents accessing PlayerClasses[-1], when trying to send the class name.
+	if ( (ulFlags & USERINFO_PLAYERCLASS) && (players[consoleplayer].userinfo.PlayerClass == -1) )
+		ulFlags ^= USERINFO_PLAYERCLASS;
+
 	// Tell the server which items are being updated.
 	NETWORK_WriteShort( CLIENT_GetLocalBuffer( ), ulFlags );
 
-	if ( ulFlags & USERINFO_NAME ) { // [RC] Clean the name before we use it
-			V_CleanPlayerName(players[consoleplayer].userinfo.netname);
-			NETWORK_WriteString( CLIENT_GetLocalBuffer( ), players[consoleplayer].userinfo.netname );
+	if ( ulFlags & USERINFO_NAME )
+	{ // [RC] Clean the name before we use it
+		V_CleanPlayerName(players[consoleplayer].userinfo.netname);
+		NETWORK_WriteString( CLIENT_GetLocalBuffer( ), players[consoleplayer].userinfo.netname );
 	}
 	if ( ulFlags & USERINFO_GENDER )
 		NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), players[consoleplayer].userinfo.gender );
