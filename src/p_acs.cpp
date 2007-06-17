@@ -3992,8 +3992,14 @@ int DLevelScript::RunScript ()
 				{
 					screen = screen->target;
 				}
+
+				// [BB] This construction is necessary, to fix the ACS command HudMessage.
+				// You can't just use players[consoleplayer].mo
+				int activatorPlayer = 0;
+				if( activator->player )
+					activatorPlayer = activator->player - players;
 				if (pcd == PCD_ENDHUDMESSAGEBOLD || screen == NULL ||
-					players[consoleplayer].mo == screen)
+					players[activatorPlayer].mo == screen)
 				{
 					int type = Stack[optstart-6];
 					int id = Stack[optstart-5];
