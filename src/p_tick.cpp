@@ -310,7 +310,13 @@ void P_Ticker (void)
 	}
 
 	level.Tick ();			// [RH] let the level tick
-	DThinker::RunThinkers ();
+
+	// [BB] Some things like AMovingCamera rely on the AActor tid in the PostBeginPlay functions,
+	// which are called by DThinker::RunThinkers (). The client only knows these tids once the
+	// server send him a full update, i.e. CLIENT_GetConnectionState() == CTS_ACTIVE.
+	// I have no idea if this has unwanted side effects. Has to be checked.
+	if(( NETWORK_GetState( ) != NETSTATE_CLIENT ) || (CLIENT_GetConnectionState() == CTS_ACTIVE))
+		DThinker::RunThinkers ();
 
 	// Don't do this stuff while in freeze mode.
 	if ( GAME_GetFreezeMode( ) == false )
