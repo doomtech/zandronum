@@ -2344,6 +2344,11 @@ void M_SetupPlayerSetupMenu( void )
 
 	menu_gender = D_GenderToInt( gender );
 
+	// [BB] I don't want to worry about random class selection in the player setup menu,
+	// so I pick a random class here. The rest of the code relies on (g_ulPlayerSetupClass != 1).
+	if( players[consoleplayer].userinfo.PlayerClass < 0 )
+		players[consoleplayer].userinfo.PlayerClass = ( M_Random(PlayerClasses.Size()) );
+
 	g_ulPlayerSetupSkin = R_FindSkin( skin, players[consoleplayer].userinfo.PlayerClass );
 	g_ulPlayerSetupColor = players[consoleplayer].userinfo.color;
 	g_ulPlayerSetupClass = players[consoleplayer].userinfo.PlayerClass;
