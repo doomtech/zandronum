@@ -8,6 +8,7 @@
 #include "s_sound.h"
 #include "m_random.h"
 #include "a_sharedglobal.h"
+#include "sv_commands.h"
 
 #define MORPHTICS (40*TICRATE)
 
@@ -210,6 +211,9 @@ bool P_MorphMonster (AActor *actor, const PClass *spawntype)
 	}
 
 	morphed = static_cast<AMorphedMonster *>(Spawn (spawntype, actor->x, actor->y, actor->z, NO_REPLACE));
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_DestroyThing( actor );
+
 	DObject::PointerSubstitution (actor, morphed);
 	morphed->tid = actor->tid;
 	morphed->angle = actor->angle;
@@ -234,7 +238,11 @@ bool P_MorphMonster (AActor *actor, const PClass *spawntype)
 	actor->flags &= ~(MF_SOLID|MF_SHOOTABLE);
 	actor->flags |= MF_UNMORPHED;
 	actor->renderflags |= RF_INVISIBLE;
-	Spawn<ATeleportFog> (actor->x, actor->y, actor->z + TELEFOGHEIGHT, ALLOW_REPLACE);
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SpawnThing( morphed );
+	AActor* fog = Spawn<ATeleportFog> (actor->x, actor->y, actor->z + TELEFOGHEIGHT, ALLOW_REPLACE);
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SpawnThingNoNetID( fog );
 	return true;
 }
 
@@ -288,8 +296,14 @@ bool P_UpdateMorphedMonster (AMorphedMonster *beast)
 	actor->AddToHash ();
 	beast->UnmorphedMe = NULL;
 	DObject::PointerSubstitution (beast, actor);
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_DestroyThing( beast );
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SpawnThing( actor );
 	beast->Destroy ();
-	Spawn<ATeleportFog> (beast->x, beast->y, beast->z + TELEFOGHEIGHT, ALLOW_REPLACE);
+	AActor* fog = Spawn<ATeleportFog> (beast->x, beast->y, beast->z + TELEFOGHEIGHT, ALLOW_REPLACE);
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SpawnThingNoNetID( fog );
 	return true;
 }
 
@@ -351,7 +365,9 @@ void AMorphedMonster::Destroy ()
 void AMorphedMonster::Die (AActor *source, AActor *inflictor)
 {
 	// Dead things don't unmorph
-	source->flags3 |= MF3_STAYMORPHED;
+	// [BB] On clients this is called with NULL pointers as arguments.
+	if( source != NULL )
+		source->flags3 |= MF3_STAYMORPHED;
 	Super::Die (source, inflictor);
 	if (UnmorphedMe != NULL && (UnmorphedMe->flags & MF_UNMORPHED))
 	{
