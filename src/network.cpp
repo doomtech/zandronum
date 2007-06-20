@@ -1025,6 +1025,10 @@ void NETWORK_LaunchPacket( sizebuf_t *netbuf, netadr_t to )
 
 			  Printf( "NETWORK_LaunchPacket: Error #%d, WSAEADDRENOTAVAIL: Address %s not available\n", iError, NETWORK_AddressToString( to ));
 			  return;
+		  case WSAEHOSTUNREACH:
+
+				Printf( "NETWORK_LaunchPacket: Error #%d, WSAEHOSTUNREACH: Address %s unreachable\n", iError, NETWORK_AddressToString( to ));
+			  return;				
 		  default:
 
 			Printf( "NETWORK_LaunchPacket: Error #%d\n", iError );
