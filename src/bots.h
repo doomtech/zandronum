@@ -521,7 +521,7 @@ typedef struct
 	bool			bRevealedByDefault;
 
 	// Name of the lump that contains this bot's script.
-	char			szScriptName[9];
+	char			szScriptName[65];
 
 	// The default chatfile used by this bot.
 	char			szChatFile[128];

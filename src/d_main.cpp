@@ -2265,14 +2265,14 @@ void D_DoomMain (void)
 		//if (wad)
 		//	D_AddFile (wad, false);	// [BC]
 
-
+/*
 		// [BC] Also load skulltag.wad.
 		wad = BaseFileSearch( "skulltag.wad", NULL, true );
 		if ( wad == NULL )
 			I_FatalError( "Cannot find skulltag.wad" );
 		else
 			D_AddFile( wad, false );
-
+*/
 		// [RH] Add any .wad files in the skins directory
 #ifdef unix
 		sprintf (file, "%sskins", SHARE_DIR);
