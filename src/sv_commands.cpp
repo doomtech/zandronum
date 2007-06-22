@@ -192,6 +192,10 @@ void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlay
 	// [BB]: Inform the player about its health, otherwise it won't be displayed properly.
 	// The armor display is handled in SERVER_ResetInventory.
 	SERVERCOMMANDS_SetPlayerHealth( ulPlayer, ulPlayer, SVCF_ONLYTHISCLIENT );
+	// [BB]: If the player still has NOCLIP activated from the last level, tell
+	// him about it. Not doing this leads to jerky movement on client side.
+	if( players[ulPlayer].cheats & CF_NOCLIP )
+		SERVERCOMMANDS_GenericCheat( ulPlayer, CF_NOCLIP, ulPlayer, SVCF_ONLYTHISCLIENT );
 }
 
 //*****************************************************************************
