@@ -1420,9 +1420,29 @@ void D_AddConfigWads (const char *section)
 //
 // D_AddDirectory
 //
-// Add all .wad files in a directory. Does not descend into subdirectories.
+// Add all .wad and .pk3 files in a directory. Does not descend into subdirectories.
 //
 //==========================================================================
+
+// [BB] To prevent any code duplication from loading .wad and .pk3 instead of just .wad,
+// I moved all code that needs to be excecuted separately for wad and pk3 into this helper function.
+void D_AddDirectoryHelper( const char* FileMask, char skindir[PATH_MAX], size_t stuffstart )
+{
+	void *handle;
+	findstate_t findstate;
+	if ((handle = I_FindFirst (FileMask, &findstate)) != (void *)-1)
+	{
+		do
+		{
+			if (!(I_FindAttr (&findstate) & FA_DIREC))
+			{
+				strcpy (skindir + stuffstart, I_FindName (&findstate));
+				D_AddFile (skindir, true);	// [BC]
+			}
+		} while (I_FindNext (handle, &findstate) == 0);
+		I_FindClose (handle);
+	}
+}
 
 static void D_AddDirectory (const char *dir)
 {
@@ -1431,8 +1451,6 @@ static void D_AddDirectory (const char *dir)
 	if (getcwd (curdir, PATH_MAX))
 	{
 		char skindir[PATH_MAX];
-		findstate_t findstate;
-		void *handle;
 		size_t stuffstart;
 
 		stuffstart = strlen (dir);
@@ -1447,18 +1465,8 @@ static void D_AddDirectory (const char *dir)
 		if (!chdir (skindir))
 		{
 			skindir[stuffstart++] = '/';
-			if ((handle = I_FindFirst ("*.wad", &findstate)) != (void *)-1)
-			{
-				do
-				{
-					if (!(I_FindAttr (&findstate) & FA_DIREC))
-					{
-						strcpy (skindir + stuffstart, I_FindName (&findstate));
-						D_AddFile (skindir, true);	// [BC]
-					}
-				} while (I_FindNext (handle, &findstate) == 0);
-				I_FindClose (handle);
-			}
+			D_AddDirectoryHelper( "*.wad", skindir, stuffstart );
+			D_AddDirectoryHelper( "*.pk3", skindir, stuffstart );
 		}
 		chdir (curdir);
 	}
