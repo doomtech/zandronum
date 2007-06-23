@@ -681,7 +681,10 @@ LONG SERVER_FindFreeClientSlot( void )
 	ULONG	ulIdx;
 	ULONG	ulNumSlots;
 
-	ulNumSlots = sv_maxclients;
+	// [BB] Even if maxclients is reached, we allow one additional connection from localhost.
+	// The check (SERVER_CalcNumPlayers( ) >= sv_maxclients) for a non local connection attempt
+	// is done in SERVER_SetupNewConnection.
+	ulNumSlots = sv_maxclients + 1;
 
 	// If the number of players in the game is greater than or equal to the number of current
 	// players, disallow the join.
@@ -1030,6 +1033,10 @@ void SERVER_ConnectNewPlayer( void )
 	Val = sv_motd.GetGenericRep( CVAR_String );
 	if ( Val.String[0] != '\0' )
 		SERVERCOMMANDS_PrintMOTD( Val.String, parse_cl, SVCF_ONLYTHISCLIENT );
+
+	// [BB] Client is using the "join full server from localhost" hack. Inform him about it!
+	if ( ( SERVER_CalcNumPlayers( ) > sv_maxclients ) )
+		SERVERCOMMANDS_PrintMOTD( "Emergency!\n\nYou are joining from localhost even though the server is full.\nDo whatever is necessary to clean the situation and disconnect afterwards.\n", parse_cl, SVCF_ONLYTHISCLIENT );
 
 	// If we're in a duel or LMS mode, tell him the state of the game mode.
 	if ( duel || lastmanstanding || teamlms || possession || teampossession || survival || invasion )
@@ -1388,11 +1395,21 @@ void SERVER_SetupNewConnection( bool bNewPlayer )
 
 	if ( bNewPlayer )
 	{
+		// [BB]: In case of emergency you should be able to join your own server,
+		// even if it is full. Here we check, if the connection request comes from
+		// localhost, i.e. 127.0.0.1. If it does, we allow a connect even in case of
+		// SERVER_CalcNumPlayers( ) >= sv_maxclients as long as SERVER_FindFreeClientSlot( )
+		// finds a free slot.
+		bool bLocalClientConnecting = false;
+		if( g_AddressFrom.ip[0] == 127 && g_AddressFrom.ip[1] == 0 && g_AddressFrom.ip[2] == 0 &&  g_AddressFrom.ip[3] == 1 )
+			bLocalClientConnecting = true;
+
 		// Try to find a player slot for the connecting client.
 		lClient = SERVER_FindFreeClientSlot( );
 
 		// If the server is full, send him a packet saying that it is.
-		if ( lClient == -1 || ( SERVER_CalcNumPlayers( ) >= sv_maxclients ))
+
+		if ( lClient == -1 || ( SERVER_CalcNumPlayers( ) >= sv_maxclients && !bLocalClientConnecting ))
 		{
 			// Tell the client a packet saying the server is full.
 			SERVER_ConnectionError( g_AddressFrom, "Server is full." );
