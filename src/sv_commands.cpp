@@ -1384,7 +1384,7 @@ void SERVERCOMMANDS_DamageThing( AActor *pActor )
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_KillThing( AActor *pActor )
+void SERVERCOMMANDS_KillThing( AActor *pActor, bool bGib )
 {
 	ULONG	ulIdx;
 
@@ -1397,7 +1397,12 @@ void SERVERCOMMANDS_KillThing( AActor *pActor )
 			continue;
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_KILLTHING );
+		// [BB] Tell the client if the thing should be gibbed or just killed.
+		// [BB] 97c3 clients don't know SVC_GIBTHING.
+		if( bGib == false || sv_stay97c3compatible == true )
+			NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_KILLTHING );
+		else
+			NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_GIBTHING );
 		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->lNetID );
 	}
 }

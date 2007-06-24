@@ -174,7 +174,7 @@ static	void	client_SpawnThingExact( void );
 static	void	client_SpawnThingExactNoNetID( void );
 static	void	client_MoveThing( void );
 static	void	client_DamageThing( void );
-static	void	client_KillThing( void );
+static	void	client_KillThing( bool bGib = false );
 static	void	client_SetThingState( void );
 static	void	client_DestroyThing( void );
 static	void	client_SetThingAngle( void );
@@ -624,6 +624,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_UPDATEPLAYEREPENDINGWEAPON",
 	"SVC_USEINVENTORY",
 	"SVC_SETTHINGTID",
+	"SVC_GIBTHING",
 
 };
 
@@ -1629,6 +1630,10 @@ void CLIENT_ParsePacket( bool bSequencedPacket )
 		case SVC_KILLTHING:
 
 			client_KillThing( );
+			break;
+		case SVC_GIBTHING:
+
+			client_KillThing( true );
 			break;
 		case SVC_SETTHINGSTATE:
 
@@ -4547,7 +4552,7 @@ static void client_DamageThing( void )
 
 //*****************************************************************************
 //
-static void client_KillThing( void )
+static void client_KillThing( bool bGib )
 {
 	AActor	*pActor;
 	LONG	lID;
@@ -4568,6 +4573,13 @@ static void client_KillThing( void )
 #endif
 		return;
 	}
+
+	// [BB] If the thing should be gibbed, set its health low enough
+	// to make it be gibbed by AActor::Die. The proper calculation of
+	// gibhealth is missing, but hopefully -666 will always be lower
+	// than the correct gibhealth.
+	if( bGib )
+		pActor->health = -666;
 
 	// Kill the thing.
 	pActor->Die( NULL, NULL );
