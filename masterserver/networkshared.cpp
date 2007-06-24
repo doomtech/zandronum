@@ -41,21 +41,71 @@
 //
 //
 //
-// Filename: sv_banfuncs.h
+// Filename: networkshared.cpp
 //
-// Description: Contains routines related banning shared between
+// Description: Contains network related code shared between
 // Skulltag and the master server.
 //
 //-----------------------------------------------------------------------------
 
-#ifndef __SV_BANFUNCS_H__
-#define __SV_BANFUNCS_H__
-
-#define	MAX_SERVER_BANS			256
+#include "networkshared.h"
 
 //*****************************************************************************
 //
-bool SERVERBAN_StringToBan( char *pszAddress, char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 )
+bool NETWORK_StringToAddress( char *s, netadr_t *a )
+{
+     struct hostent  *h;
+     struct sockaddr_in sadr;
+     char    *colon;
+     char    copy[128];
+
+     memset (&sadr, 0, sizeof(sadr));
+     sadr.sin_family = AF_INET;
+
+     sadr.sin_port = 0;
+
+     strcpy (copy, s);
+     // strip off a trailing :port if present
+     for (colon = copy ; *colon ; colon++)
+          if (*colon == ':')
+          {
+             *colon = 0;
+             sadr.sin_port = htons(atoi(colon+1));
+          }
+
+	{
+		LONG	lRet;
+
+		lRet = inet_addr( copy );
+
+		// If our return value is INADDR_NONE, the IP specified is not a valid IPv4 string.
+		if ( lRet == INADDR_NONE )
+		{
+			// If the string cannot be resolved to a valid IP address, return false.
+          if (( h = gethostbyname( copy )) == NULL )
+                return ( false );
+          *(int *)&sadr.sin_addr = *(int *)h->h_addr_list[0];
+		}
+		else
+			*(int *)&sadr.sin_addr = lRet;
+	}
+
+	NETWORK_SocketAddressToNetAddress (&sadr, a);
+
+     return true;
+}
+
+//*****************************************************************************
+//
+void NETWORK_SocketAddressToNetAddress( struct sockaddr_in *s, netadr_t *a )
+{
+     *(int *)&a->ip = *(int *)&s->sin_addr;
+     a->port = s->sin_port;
+}
+
+//*****************************************************************************
+//
+bool NETWORK_StringToIP( char *pszAddress, char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 )
 {
 	char	szCopy[16];
 	char	*pszCopy;
@@ -137,135 +187,15 @@ bool SERVERBAN_StringToBan( char *pszAddress, char *pszIP0, char *pszIP1, char *
 	strcpy( pszIP3, szTemp );
 
 	// Finally, make sure each entry of our string is valid.
-	if ((( atoi( pszIP0 ) < 0 ) || ( atoi( pszIP0 ) > 255 )) && ( stricmp( "*", pszIP0 ) != 0 ))
+	if ((( atoi( pszIP0 ) < 0 ) || ( atoi( pszIP0 ) > 255 )) && ( _stricmp( "*", pszIP0 ) != 0 ))
 		return ( false );
-	if ((( atoi( pszIP1 ) < 0 ) || ( atoi( pszIP1 ) > 255 )) && ( stricmp( "*", pszIP1 ) != 0 ))
+	if ((( atoi( pszIP1 ) < 0 ) || ( atoi( pszIP1 ) > 255 )) && ( _stricmp( "*", pszIP1 ) != 0 ))
 		return ( false );
-	if ((( atoi( pszIP2 ) < 0 ) || ( atoi( pszIP2 ) > 255 )) && ( stricmp( "*", pszIP2 ) != 0 ))
+	if ((( atoi( pszIP2 ) < 0 ) || ( atoi( pszIP2 ) > 255 )) && ( _stricmp( "*", pszIP2 ) != 0 ))
 		return ( false );
-	if ((( atoi( pszIP3 ) < 0 ) || ( atoi( pszIP3 ) > 255 )) && ( stricmp( "*", pszIP3 ) != 0 ))
+	if ((( atoi( pszIP3 ) < 0 ) || ( atoi( pszIP3 ) > 255 )) && ( _stricmp( "*", pszIP3 ) != 0 ))
 		return ( false );
 
     return ( true );
 }
 
-//*****************************************************************************
-//*****************************************************************************
-//
-static char serverban_SkipWhitespace( FILE *pFile )
-{
-	char curChar = fgetc( pFile );
-	while (( curChar == ' ' ) && ( curChar != -1 ))
-		curChar = fgetc( pFile );
-
-	return ( curChar );
-}
-
-//*****************************************************************************
-//
-static char serverban_SkipComment( FILE *pFile )
-{
-	char curChar = fgetc( pFile );
-	while (( curChar != '\r' ) && ( curChar != '\n' ) && ( curChar != -1 ))
-		curChar = fgetc( pFile );
-
-	return ( curChar );
-}
-
-//*****************************************************************************
-//
-static bool serverban_ParseNextLine( FILE *pFile, BAN_t &Ban, LONG &BanIdx, char *ErrorMessage )
-{
-	netadr_t	BanAddress;
-	char		szIP[256];
-	char		lPosition;
-
-	lPosition = 0;
-	szIP[0] = 0;
-
-	char curChar = fgetc( pFile );
-
-	// Skip whitespace.
-	if ( curChar == ' ' )
-	{
-		curChar = serverban_SkipWhitespace( pFile );
-
-		if ( feof( pFile ))
-		{
-			fclose( pFile );
-			return ( false );
-		}
-	}
-
-	while ( 1 )
-	{
-		if ( curChar == '\r' || curChar == '\n' || curChar == ':' || curChar == '/' || curChar == -1 )
-		{
-			if ( lPosition > 0 )
-			{
-				if ( SERVERBAN_StringToBan( szIP, Ban.szBannedIP[0], Ban.szBannedIP[1], Ban.szBannedIP[2], Ban.szBannedIP[3] ))
-				{
-					if ( BanIdx == MAX_SERVER_BANS )
-					{
-						sprintf( ErrorMessage, "serverban_ParseNextLine: WARNING! Maximum number of bans (%d) exceeded!\n", MAX_SERVER_BANS );
-						return ( false );
-					}
-
-					BanIdx++;
-					return ( true );
-				}
-				else if ( NETWORK_StringToAddress( szIP, &BanAddress ))
-				{
-					if ( BanIdx == MAX_SERVER_BANS )
-					{
-						sprintf( ErrorMessage, "serverban_ParseNextLine: WARNING! Maximum number of bans (%d) exceeded!\n", MAX_SERVER_BANS );
-						return ( false );
-					}
-
-					itoa( BanAddress.ip[0], Ban.szBannedIP[0], 10 );
-					itoa( BanAddress.ip[1], Ban.szBannedIP[1], 10 );
-					itoa( BanAddress.ip[2], Ban.szBannedIP[2], 10 );
-					itoa( BanAddress.ip[3], Ban.szBannedIP[3], 10 );
-					BanIdx++;
-					return ( true );
-				}
-				else
-				{
-					Ban.szBannedIP[0][0] = 0;
-					Ban.szBannedIP[1][0] = 0;
-					Ban.szBannedIP[2][0] = 0;
-					Ban.szBannedIP[3][0] = 0;
-				}
-			}
-
-			if ( feof( pFile ))
-			{
-				fclose( pFile );
-				return ( false );
-			}
-			// If we've hit a comment, skip until the end of the line (or the end of the file) and get out.
-			else if ( curChar == ':' || curChar == '/' )
-			{
-				serverban_SkipComment( pFile );
-				return ( true );
-			}
-			else
-				return ( true );
-		}
-
-		szIP[lPosition++] = curChar;
-		szIP[lPosition] = 0;
-
-		if ( lPosition == 256 )
-		{
-			fclose( pFile );
-			return ( false );
-		}
-
-		curChar = fgetc( pFile );
-	}
-}
-
-
-
-#endif	// __SV_BANFUNCS_H__

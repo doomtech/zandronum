@@ -107,164 +107,6 @@ static	SOCKET		g_NetworkSocket;
 static	SOCKET		g_LANSocket;
 static	USHORT		g_usLocalPort;
 
-static	char	*g_pszServerHeaderNames[NUM_SERVER_COMMANDS] =
-{
-	"SVC_HEADER",
-	"SVC_PRINT",
-	"SVC_CONSOLEPLAYER",
-	"SVC_DMFLAGS",
-	"SVC_GAMESKILL",
-	"SVC_GAMETYPE",
-	"SVC_LIMITS",
-	"SVC_LOADMAP",
-	"SVC_SPAWNPLAYER",
-	"SVC_DISCONNECTCLIENT",
-	"SVC_TOUCHTHING",
-	"SVC_STARTCHAT",
-	"SVC_ENDCHAT",
-	"SVC_SAY",
-	"SVC_MOVEPLAYER",
-	"SVC_UPDATELOCALPLAYER",
-	"SVC_SPAWNMOBJ",
-	"SVC_MISSEDPACKET",
-	"SVC_UPDATEPING",
-	"SVC_PING",
-	"SVC_USERINFO",
-	"SVC_UPDATEFRAGS",
-	"SVC_MOBJANGLE",
-	"SVC_CORPSE",
-	"SVC_SPAWNGENERICMISSILE",
-	"SVC_EXPLODEMISSILE",
-	"SVC_RESPAWNITEM",
-	"SVC_DAMAGEMOBJ",
-	"SVC_DAMAGEPLAYER",
-	"SVC_MOVETHING",
-	"SVC_KILLMOBJ",
-	"SVC_KILLPLAYER",
-	"SVC_GIVEMEDAL",
-	"SVC_TOGGLELINE",
-	"SVC_TAUNT",
-	"SVC_MOBJSTATE",
-	"SVC_FIST",
-	"SVC_SAW",
-	"SVC_FIREPISTOL",
-	"SVC_FIRESHOTGUN",
-	"SVC_FIRESUPERSHOTGUN",
-	"SVC_OPENSUPERSHOTGUN",
-	"SVC_LOADSUPERSHOTGUN",
-	"SVC_CLOSESUPERSHOTGUN",
-	"SVC_FIRECHAINGUN",
-	"SVC_FIREMINIGUN",
-	"SVC_FIREROCKETLAUNCHER",
-	"SVC_FIREGRENADELAUNCHER",
-	"SVC_FIREPLASMAGUN",
-	"SVC_FIRERAILGUN",
-	"SVC_FIREBFG",
-	"SVC_FIREBFG10K",
-	"SVC_UPDATESECTORFLAT",
-	"SVC_NEWMAP",
-	"SVC_EXITLEVEL",
-	"SVC_NEWMAP2",
-	"SVC_SECTORSOUND",
-	"SVC_SECTORSOUNDID",
-	"SVC_STOPSECTORSEQUENCE",
-	"SVC_ENDLEVELDELAY",
-	"SVC_UPDATETEAMFRAGS",
-	"SVC_UPDATETEAMSCORES",
-	"SVC_UPDATEPLAYERTEAM",
-	"SVC_TELEPORT",
-	"SVC_HIDEMOBJ",
-	"SVC_FLAGRETURNED",
-	"SVC_REMOVEPLAYERITEM",
-	"SVC_DESTROYTHING",
-	"SVC_GIVETHING",
-	"SVC_MIDPRINT",
-	"SVC_UPDATEPOINTS",
-	"SVC_DROPPEDITEM",
-	"SVC_PLAYERSPECTATING",
-	"SVC_WEAPONCHANGE",
-	"SVC_PLAYERNOWAY",
-	"SVC_FLATTEXTURE",
-	"SVC_UPDATEKILLCOUNT",
-	"SVC_PLAYERKILLEDMONSTER",
-	"SVC_PLAYERSTATE",
-	"SVC_MOTD",
-	"SVC_KEYFAIL",
-	"SVC_KICKED",
-	"SVC_UPDATECOLORMAP",
-	"SVC_UPDATEPLAYEREXTRA",
-	"SVC_LEVELTIME",
-	"SVC_NOTHING",
-	"SVC_CLIENTLAGGING",
-	"SVC_CLIENTNOTLAGGING",
-	"SVC_ARCHVILEATTACK",
-	"SVC_SETFRAME",
-	"SVC_SPAWNPLASMABALL",
-	"SVC_SPAWNROCKET",
-	"SVC_SPAWNGRENADE",
-	"SVC_RESPAWNITEMNOFOG",
-	"SVC_CEILINGPANNING",
-	"SVC_FLOORPANNING",
-	"SVC_SECTORCOLOR",
-	"SVC_SECTORROTATION",
-	"SVC_SECTORFADE",
-	"SVC_ROTATEPOLY",
-	"SVC_MOVEPOLY",
-	"SVC_OPENPOLYDOOR",
-	"SVC_SPAWNFATSHOT",
-	"SVC_HUDMESSAGE",
-	"SVC_ACTORPROPERTY",
-	"SVC_PLAYERPROPERTY",
-	"SVC_SECTORLIGHTLEVEL",
-	"SVC_ACTORACTIVATE",
-	"SVC_ACTORDEACTIVATE",
-	"SVC_GIVEINVENTORY",
-	"SVC_BEGINSNAPSHOT",
-	"SVC_ENDSNAPSHOT",
-	"SVC_RETURNTICKS",
-	"SVC_LINEALPHA",
-	"SVC_LINETEXTURE",
-	"SVC_SOUND",
-	"SVC_SOUNDACTOR",
-	"SVC_SOUNDPOINT",
-	"SVC_USEINVENTORY",
-	"SVC_PLAYERHEALTH",
-	"SVC_PLAYERLANDED",
-	"SVC_TAKEINVENTORY",
-	"SVC_FLASHFADER",
-	"SVC_CHANGEMUSIC",
-	"SVC_DODOOR",
-	"SVC_DOFLOOR",
-	"SVC_DOCEILING",
-	"SVC_DOPLAT",
-	"SVC_BUILDSTAIRS",
-	"SVC_GENERICCHEAT",
-	"SVC_GIVECHEAT",
-	"SVC_DOELEVATOR",
-	"SVC_STARTWAGGLE",
-	"SVC_SETFLOORPLANE",
-	"SVC_SETCEILINGPLANE",
-	"SVC_SPAWNBULLETPUFF",
-	"SVC_DODONUT",
-	"SVC_SPRINGPADZONE",
-	"SVC_ACTORFLAGS",
-	"SVC_SETPOLYPOSITION",
-	"SVC_FIGHT",
-	"SVC_STARTCOUNTDOWN",
-	"SVC_DOWINSEQUENCE",
-	"SVC_UPDATEWINS",
-	"SVC_PLAYWEAPONIDLESOUND",
-	"SVC_UPDATEPOWERUP",
-	"SVC_UPDATERUNE",
-	"SVC_REQUESTCHECKSUM",
-	"SVC_UPDATEDUELS",
-	"SVC_RANDOMPOWERUP",
-	"SVC_READYTOGOON",
-	"SVC_UPDATETIME",
-	"SVC_MODESTATE",
-
-};
-
 //*****************************************************************************
 //	PROTOTYPES
 
@@ -276,47 +118,8 @@ static	void	network_GetLocalAddress( void );
 //*****************************************************************************
 //	FUNCTIONS
 
-void NETWORK_Construct( void )
-{
-/*
-	if ( Args.CheckParm( "-host" ))
-	{
-		char	*pszMaxClients;
-
-		SERVER_Construct( );
-
-		// If they used "-host <#>", make <#> the max number of players.
-		pszMaxClients = Args.CheckValue( "-host" );
-		if ( pszMaxClients )
-			sv_maxclients = atoi( pszMaxClients );
-	}
-	else
-		CLIENT_Construct( );
-*/
-}
-
 //*****************************************************************************
 //
-LONG NETWORK_GetState( void )
-{
-	return ( g_lNetworkState );
-}
-
-//*****************************************************************************
-//
-void NETWORK_SetState( LONG lState )
-{
-	if ( lState >= NUM_NETSTATES || lState < 0 )
-		return;
-
-	g_lNetworkState = lState;
-/*
-	// Alert the status bar that multiplayer status has changed.
-	if ( g_lNetworkState != NETSTATE_SERVER && StatusBar )
-		StatusBar->MultiplayerChanged( );
-*/
-}
-
 //*****************************************************************************
 //
 USHORT NETWORK_GetLocalPort( void )
@@ -1038,51 +841,6 @@ char *NETWORK_AddressToString( netadr_t a )
 
 //*****************************************************************************
 //
-bool NETWORK_StringToAddress( char *s, netadr_t *a )
-{
-     struct hostent  *h;
-     struct sockaddr_in sadr;
-     char    *colon;
-     char    copy[128];
-
-     memset (&sadr, 0, sizeof(sadr));
-     sadr.sin_family = AF_INET;
-
-     sadr.sin_port = 0;
-
-     strcpy (copy, s);
-     // strip off a trailing :port if present
-     for (colon = copy ; *colon ; colon++)
-          if (*colon == ':')
-          {
-             *colon = 0;
-             sadr.sin_port = htons(atoi(colon+1));
-          }
-
-	{
-		LONG	lRet;
-
-		lRet = inet_addr( copy );
-
-		// If our return value is INADDR_NONE, the IP specified is not a valid IPv4 string.
-		if ( lRet == INADDR_NONE )
-		{
-			// If the string cannot be resolved to a valid IP address, return false.
-          if (( h = gethostbyname( copy )) == NULL )
-                return ( false );
-          *(int *)&sadr.sin_addr = *(int *)h->h_addr_list[0];
-		}
-		else
-			*(int *)&sadr.sin_addr = lRet;
-	}
-
-	NETWORK_SocketAddressToNetAddress (&sadr, a);
-
-     return true;
-}
-
-//*****************************************************************************
-//
 void NETWORK_NetAddressToSocketAddress( netadr_t *a, struct sockaddr_in *s )
 {
      memset (s, 0, sizeof(*s));
@@ -1103,14 +861,6 @@ bool NETWORK_CompareAddress( netadr_t a, netadr_t b, bool bIgnorePort )
 		return ( true );
 
 	return ( false );
-}
-
-//*****************************************************************************
-//
-void NETWORK_SocketAddressToNetAddress( struct sockaddr_in *s, netadr_t *a )
-{
-     *(int *)&a->ip = *(int *)&s->sin_addr;
-     a->port = s->sin_port;
 }
 
 //*****************************************************************************

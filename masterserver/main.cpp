@@ -93,9 +93,9 @@ typedef int SOCKET;
 #include <ctype.h>
 #include <math.h>
 
+#include "networkshared.h"
 #include "network.h"
 #include "main.h"
-#include "sv_banfuncs.h"
 
 //*****************************************************************************
 //	VARIABLES
@@ -108,7 +108,7 @@ static	sizebuf_t	g_MessageBuffer;
 
 static	int		    nowtime;
 
-static	BAN_t		g_BannedIPs[MAX_BANNED_IPS];
+static	IPAddress_t		g_BannedIPs[MAX_BANNED_IPS];
 
 static	char		g_cCurChar;
 
@@ -231,47 +231,16 @@ char MASTERSERVER_SkipComment( FILE *pFile )
 //
 void MASTERSERVER_InitializeBans( void )
 {
-	FILE			*pFile;
-	unsigned long	ulIdx;
+	std::cerr << "Initializing ban list...\n";
 
-	printf( "Initializing bans...\n" );
-
-	for ( ulIdx = 0; ulIdx < MAX_BANNED_IPS; ulIdx++ )
-	{
-		sprintf( g_BannedIPs[ulIdx].szBannedIP[0], "0" );
-		sprintf( g_BannedIPs[ulIdx].szBannedIP[1], "0" );
-		sprintf( g_BannedIPs[ulIdx].szBannedIP[2], "0" );
-		sprintf( g_BannedIPs[ulIdx].szBannedIP[3], "0" );
-
-		g_BannedIPs[ulIdx].szComment[0] = 0;
-	}
-
-	g_cCurChar = 0;
-	if (( pFile = fopen( "banlist.txt", "r" )) != NULL )
-	{
-		char errorMessage[1024];
-		errorMessage[0] = '\0';
-
-		// -1 == EOF char.
-		while ( true /*g_cCurChar != -1*/ )
-		{
-			bool parsingDone = !serverban_ParseNextLine( pFile, g_BannedIPs[g_lCurBanIdx], g_lCurBanIdx, errorMessage );
-
-			if ( errorMessage[0] != '\0' )
-				std::cerr << errorMessage;
-
-			if ( parsingDone == true )
-				break;
-		}
-	}
-	else
-		std::cerr << "WARNING! Could not open banlist.txt!\n";
-
+	IPFileParser parser( MAX_BANNED_IPS );
+	if ( !(parser.parseIPList( "banlist.txt", g_BannedIPs )) )
+		std::cerr << parser.getErrorMessage() ;
 /*
-	// [BB] Print all banned IPs, to make sure banlist.txt has been parsed successfully.
-	for ( ulIdx = 0; ulIdx < MAX_BANNED_IPS; ulIdx++ )
+	// [BB] Print all banned IPs, to make sure the IP list has been parsed successfully.
+	for ( ULONG ulIdx = 0; ulIdx < MAX_BANNED_IPS; ulIdx++ )
 	{
-		std::cerr << g_BannedIPs[ulIdx].szBannedIP[0] << "." << g_BannedIPs[ulIdx].szBannedIP[1] << "." << g_BannedIPs[ulIdx].szBannedIP[2] << "." << g_BannedIPs[ulIdx].szBannedIP[3] << std::endl;
+		std::cerr << g_BannedIPs[ulIdx].szIP[0] << "." << g_BannedIPs[ulIdx].szIP[1] << "." << g_BannedIPs[ulIdx].szIP[2] << "." << g_BannedIPs[ulIdx].szIP[3] << std::endl;
 	}
 */
 }
@@ -284,10 +253,10 @@ bool MASTERSERVER_IsIPBanned( char *pszIP0, char *pszIP1, char *pszIP2, char *ps
 
 	for ( ulIdx = 0; ulIdx < MAX_BANNED_IPS; ulIdx++ )
 	{
-		if ((( g_BannedIPs[ulIdx].szBannedIP[0][0] == '*' ) || ( stricmp( pszIP0, g_BannedIPs[ulIdx].szBannedIP[0] ) == 0 )) &&
-			(( g_BannedIPs[ulIdx].szBannedIP[1][0] == '*' ) || ( stricmp( pszIP1, g_BannedIPs[ulIdx].szBannedIP[1] ) == 0 )) &&
-			(( g_BannedIPs[ulIdx].szBannedIP[2][0] == '*' ) || ( stricmp( pszIP2, g_BannedIPs[ulIdx].szBannedIP[2] ) == 0 )) &&
-			(( g_BannedIPs[ulIdx].szBannedIP[3][0] == '*' ) || ( stricmp( pszIP3, g_BannedIPs[ulIdx].szBannedIP[3] ) == 0 )))
+		if ((( g_BannedIPs[ulIdx].szIP[0][0] == '*' ) || ( _stricmp( pszIP0, g_BannedIPs[ulIdx].szIP[0] ) == 0 )) &&
+			(( g_BannedIPs[ulIdx].szIP[1][0] == '*' ) || ( _stricmp( pszIP1, g_BannedIPs[ulIdx].szIP[1] ) == 0 )) &&
+			(( g_BannedIPs[ulIdx].szIP[2][0] == '*' ) || ( _stricmp( pszIP2, g_BannedIPs[ulIdx].szIP[2] ) == 0 )) &&
+			(( g_BannedIPs[ulIdx].szIP[3][0] == '*' ) || ( _stricmp( pszIP3, g_BannedIPs[ulIdx].szIP[3] ) == 0 )))
 		{
 			return ( true );
 		}
@@ -309,10 +278,10 @@ void MASTERSERVER_ParseCommands( void )
 	AddressTemp = g_AddressFrom;
 	AddressTemp.port = 0;
 	char		szAddress[4][4];
-	itoa( AddressTemp.ip[0], szAddress[0], 10 );
-	itoa( AddressTemp.ip[1], szAddress[1], 10 );
-	itoa( AddressTemp.ip[2], szAddress[2], 10 );
-	itoa( AddressTemp.ip[3], szAddress[3], 10 );
+	_itoa( AddressTemp.ip[0], szAddress[0], 10 );
+	_itoa( AddressTemp.ip[1], szAddress[1], 10 );
+	_itoa( AddressTemp.ip[2], szAddress[2], 10 );
+	_itoa( AddressTemp.ip[3], szAddress[3], 10 );
 	if ( MASTERSERVER_IsIPBanned( szAddress[0], szAddress[1], szAddress[2], szAddress[3] ))
 	{
 		printf( "Ignoring challenge from banned IP: %s.\n", NETWORK_AddressToString( g_AddressFrom ));

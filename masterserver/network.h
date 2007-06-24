@@ -56,6 +56,7 @@
 //#include "d_player.h"
 //#include "i_net.h"
 //#include "sv_main.h"
+#include "networkshared.h"
 
 //*****************************************************************************
 //	DEFINES
@@ -66,9 +67,6 @@
 // Server is letting master server of its existance, along with sending an IP the master server
 // should use for this server.
 #define	MASTER_CHALLENGE_OVERRIDE	5660021
-
-// Maximum size of the packets sent out by the server.
-#define	MAX_UDP_PACKET				8192
 
 // Launcher is querying the server, or master server.
 #define	LAUNCHER_CHALLENGE		199
@@ -160,24 +158,6 @@
 //*****************************************************************************
 enum
 {
-	// Client has the wrong password.
-	NETWORK_ERRORCODE_WRONGPASSWORD,
-
-	// Client has the wrong version.
-	NETWORK_ERRORCODE_WRONGVERSION,
-
-	// Client has been banned.
-	NETWORK_ERRORCODE_BANNED,
-
-	// The server is full.
-	NETWORK_ERRORCODE_SERVERISFULL,
-
-	NUM_NETWORK_ERRORCODES
-};
-
-//*****************************************************************************
-enum
-{
 	// Program is being run in single player mode.
 	NETSTATE_SINGLE,
 
@@ -191,205 +171,6 @@ enum
 	NETSTATE_SERVER,
 
 	NUM_NETSTATES
-};
-
-//*****************************************************************************
-// Note: If the number of enumerated messages goes beyond 255, commands will need 
-// to be changed to a short.
-typedef enum
-{
-	SVC_HEADER,
-	SVC_PRINT,
-	SVC_CONSOLEPLAYER,
-	SVC_DMFLAGS,
-	SVC_GAMESKILL,
-	SVC_GAMETYPE,
-	SVC_LIMITS,
-	SVC_LOADMAP,
-	SVC_SPAWNPLAYER,
-	SVC_DISCONNECTCLIENT,
-	SVC_TOUCHTHING,				// 10
-	SVC_STARTCHAT,
-	SVC_ENDCHAT,
-	SVC_SAY,
-	SVC_MOVEPLAYER,
-	SVC_UPDATELOCALPLAYER,
-	SVC_SPAWNMOBJ,
-	SVC_MISSEDPACKET,
-	SVC_UPDATEPING,
-	SVC_PING,
-	SVC_USERINFO,				// 20
-	SVC_UPDATEFRAGS,
-	SVC_MOBJANGLE,
-	SVC_CORPSE,
-	SVC_SPAWNGENERICMISSILE,
-	SVC_EXPLODEMISSILE,
-	SVC_RESPAWNITEM,
-	SVC_DAMAGEMOBJ,
-	SVC_DAMAGEPLAYER,
-	SVC_MOVETHING,
-	SVC_KILLMOBJ,				// 30
-	SVC_KILLPLAYER,
-	SVC_GIVEMEDAL,
-	SVC_TOGGLELINE,
-	SVC_TAUNT,
-	SVC_MOBJSTATE,
-	SVC_FIST,
-	SVC_SAW,
-	SVC_FIREPISTOL,
-	SVC_FIRESHOTGUN,
-	SVC_FIRESUPERSHOTGUN,		// 40
-	SVC_OPENSUPERSHOTGUN,
-	SVC_LOADSUPERSHOTGUN,
-	SVC_CLOSESUPERSHOTGUN,
-	SVC_FIRECHAINGUN,
-	SVC_FIREMINIGUN,
-	SVC_FIREROCKETLAUNCHER,
-	SVC_FIREGRENADELAUNCHER,
-	SVC_FIREPLASMAGUN,
-	SVC_FIRERAILGUN,
-	SVC_FIREBFG,				// 50
-	SVC_FIREBFG10K,
-	SVC_UPDATESECTORFLAT,
-	SVC_NEWMAP,
-	SVC_EXITLEVEL,
-	SVC_NEWMAP2,
-	SVC_SECTORSOUND,
-	SVC_SECTORSOUNDID,
-	SVC_STOPSECTORSEQUENCE,
-	SVC_ENDLEVELDELAY,
-	SVC_UPDATETEAMFRAGS,		// 60
-	SVC_UPDATETEAMSCORES,
-	SVC_UPDATEPLAYERTEAM,
-//	SVC_FLAGTAKEN,
-	SVC_TELEPORT,
-	SVC_HIDEMOBJ,
-	SVC_FLAGRETURNED,
-	SVC_REMOVEPLAYERITEM,
-	SVC_DESTROYTHING,
-	SVC_GIVETHING,
-	SVC_MIDPRINT,				// 70
-	SVC_UPDATEPOINTS,
-	SVC_DROPPEDITEM,
-	SVC_PLAYERSPECTATING,
-	SVC_WEAPONCHANGE,
-	SVC_PLAYERNOWAY,
-	SVC_FLATTEXTURE,
-	SVC_UPDATEKILLCOUNT,
-	SVC_PLAYERKILLEDMONSTER,
-	SVC_PLAYERSTATE,
-	SVC_MOTD,					// 80
-	SVC_KEYFAIL,
-	SVC_KICKED,
-	SVC_UPDATECOLORMAP,
-	SVC_UPDATEPLAYEREXTRA,
-	SVC_LEVELTIME,
-	SVC_NOTHING,
-	SVC_CLIENTLAGGING,
-	SVC_CLIENTNOTLAGGING,
-	SVC_ARCHVILEATTACK,
-	SVC_SETFRAME,				// 90
-	SVC_SPAWNPLASMABALL,
-	SVC_SPAWNROCKET,
-	SVC_SPAWNGRENADE,
-	SVC_RESPAWNITEMNOFOG,
-	SVC_CEILINGPANNING,
-	SVC_FLOORPANNING,
-	SVC_SECTORCOLOR,
-	SVC_SECTORROTATION,
-	SVC_SECTORFADE,
-	SVC_ROTATEPOLY,				// 100
-	SVC_MOVEPOLY,
-	SVC_OPENPOLYDOOR,
-	SVC_SPAWNFATSHOT,
-	SVC_HUDMESSAGE,
-	SVC_ACTORPROPERTY,
-	SVC_PLAYERPROPERTY,
-	SVC_SECTORLIGHTLEVEL,
-	SVC_ACTORACTIVATE,
-	SVC_ACTORDEACTIVATE,
-	SVC_GIVEINVENTORY,			// 110
-	SVC_BEGINSNAPSHOT,
-	SVC_ENDSNAPSHOT,
-	SVC_RETURNTICKS,
-	SVC_LINEALPHA,
-	SVC_LINETEXTURE,
-	SVC_SOUND,
-	SVC_SOUNDACTOR,
-	SVC_SOUNDPOINT,
-	SVC_USEINVENTORY,	
-	SVC_PLAYERHEALTH,			// 120
-	SVC_PLAYERLANDED,
-	SVC_TAKEINVENTORY,
-	SVC_FLASHFADER,
-	SVC_CHANGEMUSIC,
-	SVC_DODOOR,
-	SVC_DOFLOOR,
-	SVC_DOCEILING,
-	SVC_DOPLAT,
-	SVC_BUILDSTAIRS,
-	SVC_GENERICCHEAT,			// 130
-	SVC_GIVECHEAT,
-	SVC_DOELEVATOR,
-	SVC_STARTWAGGLE,
-	SVC_SETFLOORPLANE,
-	SVC_SETCEILINGPLANE,
-	SVC_SPAWNBULLETPUFF,
-	SVC_DODONUT,
-	SVC_SPRINGPADZONE,
-	SVC_ACTORFLAGS,
-	SVC_SETPOLYPOSITION,		// 140
-	SVC_FIGHT,
-	SVC_STARTCOUNTDOWN,
-	SVC_DOWINSEQUENCE,
-	SVC_UPDATEWINS,
-	SVC_PLAYWEAPONIDLESOUND,
-	SVC_UPDATEPOWERUP,
-	SVC_UPDATERUNE,
-	SVC_REQUESTCHECKSUM,
-	SVC_UPDATEDUELS,
-	SVC_RANDOMPOWERUP,			// 150
-	SVC_READYTOGOON,
-	SVC_UPDATETIME,
-	SVC_MODESTATE,
-	SVC_RAILOFFSET,
-	SVC_CEILINGINPROGRESS,
-
-	NUM_SERVER_COMMANDS
-
-};
-
-//*****************************************************************************
-enum
-{
-	CLC_USERINFO,
-	CLC_STARTCHAT,
-	CLC_ENDCHAT,
-	CLC_SAY,
-	CLC_CLIENTMOVE,
-	CLC_ACK,
-	CLC_PONG,
-	CLC_WEAPONSLOT,
-	CLC_WEAPONSELECT,
-	CLC_MISSINGPLAYER,
-	CLC_TAUNT,
-	CLC_SPECTATE,
-	CLC_REQUESTJOIN,
-	CLC_QUERYTHING,
-	CLC_REQUESTRCON,
-	CLC_RCONCOMMAND,
-	CLC_SUICIDE,
-	CLC_CHANGETEAM,
-	CLC_USEINVENTORY,
-	CLC_SPECTATEINFO,
-	CLC_GENERICCHEAT,
-	CLC_GIVECHEAT,
-	CLC_SUMMONCHEAT,
-	CLC_CHECKSUM,
-	CLC_READYTOGOON,
-
-	NUM_CLIENT_COMMANDS
-
 };
 
 //*****************************************************************************
@@ -410,50 +191,10 @@ typedef	long				LONG;
 
 //typedef	signed char			BYTE;
 
-typedef struct
-{
-   BYTE    ip[4];
-   unsigned short  port;
-   unsigned short  pad;
-} netadr_t;
-
-typedef struct
-{
-	// The IP address that is banned in char form. Can be a number or a wildcard.
-	char		szBannedIP[4][4];
-
-	// Comment regarding the banned address.
-	char		szComment[128];
-
-} BAN_t;
-
 //*****************************************************************************
-typedef struct sizebuf_s
-{
-	bool	allowoverflow;	// if false, do a Com_Error
-	bool	overflowed;		// set to true if the buffer size failed
-
-	// Unfortunaly, ZDaemon uses two different definitions of sizebuf_t. Attempt
-	// to combine the structures here by having two sets of data.
-	// Servers use this.
-	BYTE	*pbData;
-
-	// Clients use this this.
-	BYTE	bData[MAX_UDP_PACKET];
-
-	int		maxsize;
-	int		cursize;
-	int		readcount;
-
-} sizebuf_t;
 
 //*****************************************************************************
 //	PROTOTYPES
-
-void	NETWORK_Construct( void );
-
-LONG	NETWORK_GetState( void );
-void	NETWORK_SetState( LONG lState );
 
 USHORT	NETWORK_GetLocalPort( void );
 void	NETWORK_SetLocalPort( USHORT usPort );
@@ -493,9 +234,9 @@ void	NETWORK_Write( sizebuf_t *pBuffer, void *pvData, int nLength );
 void	NETWORK_Write( sizebuf_t *pBuffer, BYTE *pbData, int nStartPos, int nLength );
 void	NETWORK_Print( sizebuf_t *pBuffer, char *pszData );	// strcats onto the sizebuf
 char	*NETWORK_AddressToString( netadr_t Address );
-bool	NETWORK_StringToAddress( char *pszString, netadr_t *pAddress );
+//bool	NETWORK_StringToAddress( char *pszString, netadr_t *pAddress );
 bool	NETWORK_CompareAddress( netadr_t a, netadr_t b, bool bIgnorePort );
-void	NETWORK_SocketAddressToNetAddress( struct sockaddr_in *s, netadr_t *a );
+//void	NETWORK_SocketAddressToNetAddress( struct sockaddr_in *s, netadr_t *a );
 void	NETWORK_NetAddressToSocketAddress( netadr_t *a, struct sockaddr_in *s );
 
 void	I_DoSelect( void );
