@@ -241,9 +241,12 @@ void CLIENTCOMMANDS_GiveCheat( char *pszItem, LONG lAmount )
 
 //*****************************************************************************
 //
-void CLIENTCOMMANDS_SummonCheat( char *pszItem )
+void CLIENTCOMMANDS_SummonCheat( char *pszItem, bool bFriend )
 {
-	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_SUMMONCHEAT );
+	if( !bFriend )
+		NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_SUMMONCHEAT );
+	else
+		NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_SUMMONFRIENDCHEAT );
 	NETWORK_WriteString( CLIENT_GetLocalBuffer( ), pszItem );
 }
 

@@ -558,6 +558,12 @@ CCMD (summonfriend)
 
 	if (argv.argc() > 1)
 	{
+		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		{
+			CLIENTCOMMANDS_SummonCheat( argv[1], true );
+			return;
+		}
+
 		const PClass *type = PClass::FindClass (argv[1]);
 		if (type == NULL)
 		{

@@ -131,7 +131,7 @@ static	bool	server_ChangeTeam( void );
 static	bool	server_SpectateInfo( void );
 static	bool	server_GenericCheat( void );
 static	bool	server_GiveCheat( void );
-static	bool	server_SummonCheat( void );
+static	bool	server_SummonCheat( bool bFriend = false );
 static	bool	server_ReadyToGoOn( void );
 static	bool	server_ChangeDisplayPlayer( void );
 static	bool	server_AuthenticateLevel( void );
@@ -3135,6 +3135,11 @@ void SERVER_ParseCommands( void )
 			// Client is attempting to use the summon cheat. Only legal if sv_cheats is enabled.
 			bPlayerKicked = server_SummonCheat( );
 			break;
+		case CLC_SUMMONFRIENDCHEAT:
+
+			// Client is attempting to use the summonfriend cheat. Only legal if sv_cheats is enabled.
+			bPlayerKicked = server_SummonCheat( true );
+			break;
 		case CLC_READYTOGOON:
 
 			// Client is ready to go on to the next level.
@@ -4089,7 +4094,7 @@ static bool server_GiveCheat( void )
 
 //*****************************************************************************
 //
-static bool server_SummonCheat( void )
+static bool server_SummonCheat( bool bFriend )
 {
 	char			*pszName;
 	AActor			*pSource;
@@ -4127,6 +4132,19 @@ static bool server_SummonCheat( void )
 			pActor = Spawn( pType, pSource->x + FixedMul( pDef->radius * 2 + pSource->radius, finecosine[pSource->angle>>ANGLETOFINESHIFT] ),
 						pSource->y + FixedMul( pDef->radius * 2 + pSource->radius, finesine[pSource->angle>>ANGLETOFINESHIFT] ),
 						pSource->z + 8 * FRACUNIT, ALLOW_REPLACE );
+
+			// [BB] If this is the summonfriend cheat, we have to make the monster friendly.
+			if (pActor != NULL && bFriend)
+			{
+				if (pActor->CountsAsKill()) 
+				{
+					level.total_monsters--;
+				}
+				pActor->FriendPlayer = parse_cl + 1;
+				pActor->flags |= MF_FRIENDLY;
+				pActor->LastHeard = players[parse_cl].mo;
+			}
+
 
 			if ( pActor )
 				SERVERCOMMANDS_SpawnThing( pActor );
