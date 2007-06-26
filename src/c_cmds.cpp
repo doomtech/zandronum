@@ -83,6 +83,7 @@ extern bool insave;
 extern char g_szLogFilename[256];
 
 CVAR (Bool, sv_cheats, false, CVAR_SERVERINFO | CVAR_LATCH)
+CVAR (Bool, sv_logfilenametimestamp, true, CVAR_ARCHIVE)
 
 CCMD (toggleconsole)
 {
@@ -583,7 +584,19 @@ CCMD (logfile)
 
 	if (argv.argc() >= 2)
 	{
-		if ( (Logfile = fopen (argv[1], "w")) )
+		// [BB] In case (sv_logfilenametimestamp == true) we append the current date/time to the logfile name
+		char logfilename[256];
+
+		time_t clock;
+		struct tm *lt;
+		time (&clock);
+		lt = localtime (&clock);
+		if (lt != NULL && sv_logfilenametimestamp )
+			sprintf( logfilename, "%s__%d_%02d_%02d-%02d_%02d_%02d", argv[1], lt->tm_year + 1900, lt->tm_mon + 1, lt->tm_mday, lt->tm_hour, lt->tm_min, lt->tm_sec);
+		else
+			sprintf( logfilename, "%s", argv[1]);
+
+		if ( (Logfile = fopen (logfilename, "w")) )
 		{
 			sprintf( g_szLogFilename, argv[1] );
 			Printf ("Log started: %s\n", timestr);
