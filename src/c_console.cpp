@@ -39,6 +39,7 @@
 #include <string.h>
 #include <math.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "version.h"
 #include "g_game.h"
@@ -166,6 +167,9 @@ CVAR( Bool, con_textcolor, true, CVAR_ARCHIVE )
 
 // Command to run when Ctrl-D is pressed at start of line
 CVAR (String, con_ctrl_d, "", CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+
+// [BB] Add a timestamp to every string printed to the logfile.
+CVAR (Bool, sv_logfiletimestamp, true, CVAR_ARCHIVE)
 
 #define NUMNOTIFIES 4
 #define NOTIFYFADETIME 6
@@ -924,6 +928,18 @@ int PrintString (int printlevel, const char *outline)
 			}
 		}
 		*dstp=0;
+
+		if( sv_logfiletimestamp )
+		{
+			// [BB] Generate time string "[HH:MM:SS] " and write it to the logfile.
+			time_t clock;
+			struct tm *lt;
+			time (&clock);
+			lt = localtime (&clock);
+			char time[16];
+			sprintf( time, "[%02d:%02d:%02d] ", lt->tm_hour, lt->tm_min, lt->tm_sec);
+			fputs (time, Logfile);
+		}
 
 		fputs (copy, Logfile);
 		delete [] copy;
