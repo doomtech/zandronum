@@ -55,29 +55,32 @@
 //*****************************************************************************
 //	DEFINES
 
-#define	COLUMN1_XPOS	24
-#define	COLUMN2_XPOS	72
-#define	COLUMN3_XPOS	192
-#define	COLUMN4_XPOS	256
+#define	COLUMN1_XPOS		24
+#define	COLUMN2_XPOS		72
+#define	COLUMN3_XPOS		192
+#define	COLUMN4_XPOS		256
 
-// Types of columns and data
-#define COLUMNS_MAX		8
-#define COL_EMPTY			0
-#define COL_NAME			1
-#define COL_TIME			2
-#define COL_PING			3
-#define COL_FRAGS			4
-#define COL_POINTS			5
-#define	COL_DEATHS			6
-#define COL_WINS			7
-#define	COL_KILLS			8
-#define COL_POINTSASSISTS	9
-#define COL_SECRETS			10
-#define	COL_MEDALS			11
+// Maximum number of columns.
+#define MAX_COLUMNS			8
 
+//*****************************************************************************
+enum
+{
+	COLUMN_EMPTY,
+	COLUMN_NAME,
+	COLUMN_TIME,
+	COLUMN_PING,
+	COLUMN_FRAGS,
+	COLUMN_POINTS,
+	COLUMN_DEATHS,
+	COLUMN_WINS,
+	COLUMN_KILLS,
+	COLUMN_POINTSASSISTS,
+	COLUMN_SECRETS,
+	COLUMN_MEDALS,
 
-
-
+	NUM_COLUMN_TYPES
+};
 
 //*****************************************************************************
 enum
@@ -93,12 +96,11 @@ enum
 //*****************************************************************************
 //	PROTOTYPES
 
-LONG	GAME_CountLivingPlayers( );
-ULONG	SCOREBOARD_GetLeftToLimit ( );
 void	SCOREBOARD_Render( player_s *pPlayer );
 void	SCOREBOARD_RenderBoard( player_s *pPlayer );
 void	SCOREBOARD_RenderDMStats( void );
 void	SCOREBOARD_RenderTeamStats( player_s *pPlayer );
+void	SCOREBOARD_RenderInvasionStats( void );
 void	SCOREBOARD_RenderInVote( void );
 void	SCOREBOARD_RenderInVoteClassic( void ); // [RC] Full screen display
 void	SCOREBOARD_RenderDuelCountdown( ULONG ulTimeLeft );
@@ -116,6 +118,7 @@ void	SCOREBOARD_RefreshHUD( void );
 ULONG	SCOREBOARD_GetNumPlayers( void );
 ULONG	SCOREBOARD_GetRank( void );
 LONG	SCOREBOARD_GetSpread( void );
+LONG	SCOREBOARD_GetLeftToLimit( void );
 bool	SCOREBOARD_IsTied( void );
 
 //*****************************************************************************

@@ -3497,6 +3497,23 @@ LONG GAME_GetGameType( void )
 	return ( lGameType );
 }
 
+//*****************************************************************************
+//
+LONG GAME_CountLivingPlayers( void )
+{
+	ULONG	ulIdx;
+	ULONG	ulNumLivingPlayers;
+
+	ulNumLivingPlayers = 0;
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if (( playeringame[ulIdx] ) && ( players[ulIdx].bSpectating == false ) && ( players[ulIdx].health > 0 ))
+			ulNumLivingPlayers++;
+	}
+
+	return ( ulNumLivingPlayers );
+}
+
 void G_ScreenShot (char *filename)
 {
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )

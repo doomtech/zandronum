@@ -195,6 +195,7 @@ void SERVER_MASTER_SendServerInfo( netadr_t Address, ULONG ulFlags, ULONG ulTime
 	ULONG		ulIdx;
 	ULONG		ulBits;
 	ULONG		ulNumPWADs;
+	ULONG		ulRealIWADIdx;
 
 	// Let's just use the master server buffer! It gets cleared again when we need it anyway!
 	NETWORK_ClearBuffer( &g_MasterServerBuffer );
@@ -263,6 +264,24 @@ void SERVER_MASTER_SendServerInfo( netadr_t Address, ULONG ulFlags, ULONG ulTime
 	g_lStoredQueryIPTail = g_lStoredQueryIPTail % MAX_STORED_QUERY_IPS;
 	if ( g_lStoredQueryIPTail == g_lStoredQueryIPHead )
 		Printf( "SERVER_MASTER_SendServerInfo: WARNING! g_lStoredQueryIPTail == g_lStoredQueryIPHead\n" );
+
+	// This is a little tricky. Since WADs can now be loaded within pk3 files, we have
+	// to skip over all the ones automatically loaded. To my knowledge, the only way to
+	// do this is to skip wads that have a colon in them.
+	ulNumPWADs = 0;
+	for ( ulIdx = 0; Wads.GetWadName( ulIdx ) != NULL; ulIdx++ )
+	{
+		if ( strchr( Wads.GetWadName( ulIdx ), ':' ) == NULL )
+		{
+			if ( ulNumPWADs == FWadCollection::IWAD_FILENUM )
+			{
+				ulRealIWADIdx = ulIdx;
+				break;
+			}
+
+			ulNumPWADs++;
+		}
+	}
 
 	// Write our header.
 	NETWORK_WriteLong( &g_MasterServerBuffer, SERVER_LAUNCHER_CHALLENGE );
@@ -335,12 +354,13 @@ void SERVER_MASTER_SendServerInfo( netadr_t Address, ULONG ulFlags, ULONG ulTime
 		ulNumPWADs = 0;
 		for ( ulIdx = 0; Wads.GetWadName( ulIdx ) != NULL; ulIdx++ )
 		{
-			// Skip the IWAD file index, skulltag.wad/pk3, and files that were automatically
-			// loaded from subdirectories (such as skin files).
-			if (( ulIdx == FWadCollection::IWAD_FILENUM ) ||
-				( stricmp( Wads.GetWadName( ulIdx ), "skulltag.wad" ) == 0 ) ||
+			// Skip the IWAD file index, skulltag.wad/pk3, files that were automatically
+			// loaded from subdirectories (such as skin files), and WADs loaded automatically
+			// within pk3 files.
+			if (( ulIdx == ulRealIWADIdx ) ||
 				( stricmp( Wads.GetWadName( ulIdx ), "skulltag.pk3" ) == 0 ) ||
-				( Wads.GetLoadedAutomatically( ulIdx )))
+				( Wads.GetLoadedAutomatically( ulIdx )) ||
+				( strchr( Wads.GetWadName( ulIdx ), ':' ) != NULL ))
 			{
 				continue;
 			}
@@ -351,12 +371,13 @@ void SERVER_MASTER_SendServerInfo( netadr_t Address, ULONG ulFlags, ULONG ulTime
 		NETWORK_WriteByte( &g_MasterServerBuffer, ulNumPWADs );
 		for ( ulIdx = 0; Wads.GetWadName( ulIdx ) != NULL; ulIdx++ )
 		{
-			// Skip the IWAD file index, skulltag.wad/pk3, and files that were automatically
-			// loaded from subdirectories (such as skin files).
-			if (( ulIdx == FWadCollection::IWAD_FILENUM ) ||
-				( stricmp( Wads.GetWadName( ulIdx ), "skulltag.wad" ) == 0 ) ||
+			// Skip the IWAD file index, skulltag.wad/pk3, files that were automatically
+			// loaded from subdirectories (such as skin files), and WADs loaded automatically
+			// within pk3 files.
+			if (( ulIdx == ulRealIWADIdx ) ||
 				( stricmp( Wads.GetWadName( ulIdx ), "skulltag.pk3" ) == 0 ) ||
-				( Wads.GetLoadedAutomatically( ulIdx )))
+				( Wads.GetLoadedAutomatically( ulIdx )) ||
+				( strchr( Wads.GetWadName( ulIdx ), ':' ) != NULL ))
 			{
 				continue;
 			}
@@ -376,7 +397,7 @@ void SERVER_MASTER_SendServerInfo( netadr_t Address, ULONG ulFlags, ULONG ulTime
 		NETWORK_WriteString( &g_MasterServerBuffer, SERVER_MASTER_GetGameName( ));
 
 	if ( ulBits & SQF_IWAD )
-		NETWORK_WriteString( &g_MasterServerBuffer, (char *)Wads.GetWadName( FWadCollection::IWAD_FILENUM ));
+		NETWORK_WriteString( &g_MasterServerBuffer, (char *)Wads.GetWadName( ulRealIWADIdx ));
 
 	if ( ulBits & SQF_FORCEPASSWORD )
 		NETWORK_WriteByte( &g_MasterServerBuffer, sv_forcepassword );
@@ -536,19 +557,38 @@ CVAR( String, sv_masteroverrideip, "", CVAR_ARCHIVE )
 CCMD( wads )
 {
 	ULONG		ulIdx;
+	ULONG		ulRealIWADIdx;
 	ULONG		ulNumPWADs;
 
-	Printf( "IWAD: %s\n", Wads.GetWadName( FWadCollection::IWAD_FILENUM ));
+	// This is a little tricky. Since WADs can now be loaded within pk3 files, we have
+	// to skip over all the ones automatically loaded. To my knowledge, the only way to
+	// do this is to skip wads that have a colon in them.
+	ulNumPWADs = 0;
+	for ( ulIdx = 0; Wads.GetWadName( ulIdx ) != NULL; ulIdx++ )
+	{
+		if ( strchr( Wads.GetWadName( ulIdx ), ':' ) == NULL )
+		{
+			if ( ulNumPWADs == FWadCollection::IWAD_FILENUM )
+			{
+				ulRealIWADIdx = ulIdx;
+				Printf( "IWAD: %s\n", Wads.GetWadName( ulRealIWADIdx ));
+				break;
+			}
+
+			ulNumPWADs++;
+		}
+	}
 
 	ulNumPWADs = 0;
 	for ( ulIdx = 0; Wads.GetWadName( ulIdx ) != NULL; ulIdx++ )
 	{
-		// Skip the IWAD file index, skulltag.wad/pk3, and files that were automatically
-		// loaded from subdirectories (such as skin files).
-		if (( ulIdx == FWadCollection::IWAD_FILENUM ) ||
-			( stricmp( Wads.GetWadName( ulIdx ), "skulltag.wad" ) == 0 ) ||
+		// Skip the IWAD file index, skulltag.wad/pk3, files that were automatically
+		// loaded from subdirectories (such as skin files), and WADs loaded automatically
+		// within pk3 files.
+		if (( ulIdx == ulRealIWADIdx ) ||
 			( stricmp( Wads.GetWadName( ulIdx ), "skulltag.pk3" ) == 0 ) ||
-			( Wads.GetLoadedAutomatically( ulIdx )))
+			( Wads.GetLoadedAutomatically( ulIdx )) ||
+			( strchr( Wads.GetWadName( ulIdx ), ':' ) != NULL ))
 		{
 			continue;
 		}
@@ -559,12 +599,13 @@ CCMD( wads )
 	Printf( "Num PWADs: %d\n", ulNumPWADs );
 	for ( ulIdx = 0; Wads.GetWadName( ulIdx ) != NULL; ulIdx++ )
 	{
-		// Skip the IWAD file index, skulltag.wad/pk3, and files that were automatically
-		// loaded from subdirectories (such as skin files).
-		if (( ulIdx == FWadCollection::IWAD_FILENUM ) ||
-			( stricmp( Wads.GetWadName( ulIdx ), "skulltag.wad" ) == 0 ) ||
+		// Skip the IWAD file index, skulltag.wad/pk3, files that were automatically
+		// loaded from subdirectories (such as skin files), and WADs loaded automatically
+		// within pk3 files.
+		if (( ulIdx == ulRealIWADIdx ) ||
 			( stricmp( Wads.GetWadName( ulIdx ), "skulltag.pk3" ) == 0 ) ||
-			( Wads.GetLoadedAutomatically( ulIdx )))
+			( Wads.GetLoadedAutomatically( ulIdx )) ||
+			( strchr( Wads.GetWadName( ulIdx ), ':' ) != NULL ))
 		{
 			continue;
 		}

@@ -153,7 +153,7 @@ void LASTMANSTANDING_Tick( void )
 		if ( lastmanstanding )
 		{
 			// If only one man is left standing, somebody just won!
-			if ( LASTMANSTANDING_CountMenStanding( ) == 1 )
+			if ( GAME_CountLivingPlayers( ) == 1 )
 			{
 				LONG	lWinner;
 
@@ -179,7 +179,7 @@ void LASTMANSTANDING_Tick( void )
 				}
 			}
 			// If NOBODY is left standing, it's a draw game!
-			else if ( LASTMANSTANDING_CountMenStanding( ) == 0 )
+			else if ( GAME_CountLivingPlayers( ) == 0 )
 			{
 				ULONG	ulIdx;
 
@@ -294,23 +294,6 @@ ULONG LASTMANSTANDING_TeamCountActivePlayers( ULONG ulTeam )
 }
 
 //*****************************************************************************
-// Counts all of the players still standing. Teams are ignored.
-LONG LASTMANSTANDING_CountMenStanding( void )
-{
-	ULONG	ulNumMenStanding = 0;
-
-	// Not in LMS or team LMS.
-	if ( !lastmanstanding && !teamlms)
-		return ( -1 );
-
-	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-		if ( playeringame[ulIdx] && ( players[ulIdx].bSpectating == false ) && ( players[ulIdx].health > 0 ))
-			ulNumMenStanding++;
-
-	return ( ulNumMenStanding );
-}
-
-//*****************************************************************************
 //
 LONG LASTMANSTANDING_TeamCountMenStanding( ULONG ulTeam )
 {
@@ -332,7 +315,7 @@ LONG LASTMANSTANDING_TeamCountMenStanding( ULONG ulTeam )
 LONG LASTMANSTANDING_TeamCountEnemiesStanding( ULONG ulTeam )
 {
 	// Total living players - team living players
-	return ( LASTMANSTANDING_CountMenStanding( ) - LASTMANSTANDING_TeamCountMenStanding(ulTeam) );
+	return ( GAME_CountLivingPlayers( ) - LASTMANSTANDING_TeamCountMenStanding( ulTeam ));
 }
 
 //*****************************************************************************

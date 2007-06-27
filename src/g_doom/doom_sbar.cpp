@@ -1246,14 +1246,14 @@ private:
 			if ( possession || teampossession )
 				sprintf( szString, "%d", CPlayer->lPointCount );
 			else if ( teamlms )
-				sprintf( szString, ""); // Frags would be distracting and confusing with the 'x left' being wins.
+				sprintf( szString, "" ); // Frags would be distracting and confusing with the 'x left' being wins.
 			else if ( lastmanstanding )
 				sprintf( szString, "%d", CPlayer->ulWins );
 			else if ( deathmatch )
 				sprintf( szString, "%d", CPlayer->fragcount );
 			else if (teamgame)
 				sprintf( szString, "%d", CPlayer->lPointCount );
-			else if( invasion || cooperative)
+			else if ( invasion || cooperative )
 				sprintf( szString, "%d", CPlayer->killcount );
 
 			ULONG left = SCOREBOARD_GetLeftToLimit( );
@@ -1280,7 +1280,6 @@ private:
 					szString,
 					TAG_DONE );
 			}
-
 		}
 		// Otherwise, draw the keys.
 		else

@@ -60,6 +60,10 @@ void	GAME_SetFreezeMode( bool bFreeze );
 bool	GAME_GetFreezeMode( void );
 
 LONG	GAME_GetGameType( void );
+
+// [BC] Rivecoder's function.
+LONG	GAME_CountLivingPlayers( void );
+
 // [BC] End changes.
 
 void G_DeferedPlayDemo (char* demo);

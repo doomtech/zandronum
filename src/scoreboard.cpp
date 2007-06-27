@@ -56,6 +56,7 @@
 #include "duel.h"
 #include "doomtype.h"
 #include "d_player.h"
+#include "g_game.h"
 #include "gi.h"
 #include "invasion.h"
 #include "joinqueue.h"
@@ -71,7 +72,7 @@
 #include "v_text.h"
 #include "v_video.h"
 #include "w_wad.h"
-#include "c_bind.h" // [RC] To tell user what key to press to vote
+#include "c_bind.h"	// [RC] To tell user what key to press to vote.
 
 //*****************************************************************************
 //	VARIABLES
@@ -115,6 +116,49 @@ static	player_s	*g_pWhiteCarrier = NULL;
 // Centered text that displays in the bottom of the screen.
 static	FString		g_BottomString;
 
+// Current position of our "pen".
+static	ULONG		g_ulCurYPos;
+
+// Is text scaling enabled?
+static	bool		g_bScale;
+
+// What are the virtual dimensions of our screen?
+static	UCVarValue	g_ValWidth;
+static	UCVarValue	g_ValHeight;
+
+// How much bigger is the virtual screen than the base 320x200 screen?
+static	float		g_fXScale;
+static	float		g_fYScale;
+
+// How many columns are we using in our scoreboard display?
+static	ULONG		g_ulNumColumnsUsed = 0;
+
+// Array that has the type of each column.
+static	ULONG		g_aulColumnType[MAX_COLUMNS];
+
+// X position of each column.
+static	ULONG		g_aulColumnX[MAX_COLUMNS];
+
+// What font are the column headers using?
+static	FFont		*g_pColumnHeaderFont = NULL;
+
+// This is the header for each column type.
+static	const char	*g_pszColumnHeaders[NUM_COLUMN_TYPES] =
+{
+	"",
+	"NAME",
+	"TIME",
+	"PING",
+	"FRAGS",
+	"POINTS",
+	"DEATHS",
+	"WINS",
+	"KILLS",
+	"POINTSASSISTS",
+	"SECRETS",
+	"MEDALS",
+};
+
 //*****************************************************************************
 //	PROTOTYPES
 
@@ -123,199 +167,39 @@ static	int	STACK_ARGS	scoreboard_FragCompareFunc( const void *arg1, const void *
 static	int	STACK_ARGS	scoreboard_PointsCompareFunc( const void *arg1, const void *arg2 );
 static	int	STACK_ARGS	scoreboard_KillsCompareFunc( const void *arg1, const void *arg2 );
 static	int	STACK_ARGS	scoreboard_WinsCompareFunc( const void *arg1, const void *arg2 );
-static void scoreboard_RenderIndividualPlayer( ULONG pIdx );
+static	void			scoreboard_RenderIndividualPlayer( ULONG ulPlayer );
+static	void			scoreboard_DrawHeader( void );
+static	void			scoreboard_DrawLimits( void );
+static	void			scoreboard_DrawTeamScores( ULONG ulPlayer );
+static	void			scoreboard_DrawMyRank( ULONG ulPlayer );
+static	void			scoreboard_ClearColumns( void );
+static	void			scoreboard_Prepare5ColumnDisplay( void );
+static	void			scoreboard_Prepare4ColumnDisplay( void );
+static	void			scoreboard_Prepare3ColumnDisplay( void );
+static	void			scoreboard_DoRankingListPass( LONG lSpectators, LONG lDead, LONG lNotPlaying, LONG lNoTeam, LONG lWrongTeam, ULONG ulDesiredTeam );
+static	void			scoreboard_DrawRankings( void );
 
 //*****************************************************************************
 //	FUNCTIONS
 
-
-
 //*****************************************************************************
-//
-
-LONG GAME_CountLivingPlayers( void )
-{
-	// Exactly like LASTMANSTANDING_CountMenStanding, but for any mode.
-	// I really didn't want to bork anything there yet.
-	ULONG	ulIdx;
-	ULONG	ulNumMenStanding;
-
-	ulNumMenStanding = 0;
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( playeringame[ulIdx] && ( players[ulIdx].bSpectating == false ) && ( players[ulIdx].health > 0 ))
-			ulNumMenStanding++;
-	}
-
-	return ( ulNumMenStanding );
-}
-
-
-//*****************************************************************************
-// [RC] Returns the number of frags, kills,  or points remaining, or 0 if invalid.
-
-ULONG SCOREBOARD_GetLeftToLimit( )
-{
-	ULONG ulIdx;
-	// FRAG based mode
-	if (( lastmanstanding == false ) && ( teamlms == false ) && ( possession == false ) && ( teampossession == false ) && deathmatch && (fraglimit > 0) && gamestate == GS_LEVEL )
-	{
-		LONG	lHighestFragcount;
-		ULONG	ulFragsLeft;
-		
-		// If we're in a teamplay, just go by whichever team has the most frags.
-		if ( teamplay )
-		{
-			if ( TEAM_GetFragCount( TEAM_BLUE ) >= TEAM_GetFragCount( TEAM_RED ))
-				lHighestFragcount = TEAM_GetFragCount( TEAM_BLUE );
-			else
-				lHighestFragcount = TEAM_GetFragCount( TEAM_RED );
-		}
-		// Otherwise, find the player with the most frags.
-		else
-		{
-			lHighestFragcount = INT_MIN;
-			for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-			{
-				if ( playeringame[ulIdx] == false )
-					continue;
-
-				if ( players[ulIdx].fragcount > lHighestFragcount )
-					lHighestFragcount = players[ulIdx].fragcount;
-			}
-		}
-
-		ulFragsLeft = fraglimit - lHighestFragcount;
-		return ulFragsLeft;
-	}
-
-	// POINT based mode
-	else if (( teamgame || possession || teampossession ) && ( pointlimit > 0 ) && ( gamestate == GS_LEVEL ))
-	{
-		ULONG	ulPointsLeft;
-		ULONG	ulBluePoints;
-		ULONG	ulRedPoints;
-		ULONG	ulIdx;
-		LONG	lHighestPointCount;
-
-		if ( teamgame || teampossession )
-		{
-			ulBluePoints = TEAM_GetScore( TEAM_BLUE );
-			ulRedPoints = TEAM_GetScore( TEAM_RED );
-
-			ulPointsLeft = pointlimit - (( ulBluePoints >= ulRedPoints ) ? ulBluePoints : ulRedPoints );
-		}
-		// Must be possession mode.
-		else
-		{
-			lHighestPointCount = INT_MIN;
-			for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-			{
-				if ( playeringame[ulIdx] == false )
-					continue;
-
-				if ( (LONG)players[ulIdx].lPointCount > lHighestPointCount )
-					lHighestPointCount = players[ulIdx].lPointCount;
-			}
-
-			ulPointsLeft = pointlimit - (ULONG)lHighestPointCount;
-			
-		}
-		return ulPointsLeft;
-	}
-
-	// KILL based mode
-	else if (( deathmatch == false ) && ( teamgame == false ) && ( gamestate == GS_LEVEL ))
-	{
-		if ( invasion )
-			return (LONG)INVASION_GetNumMonstersLeft( );
-		else
-			return level.total_monsters - level.killed_monsters;
-	}
-
-	// WIN based mode (LMS)
-	else if (( lastmanstanding || teamlms ) && winlimit && gamestate == GS_LEVEL )
-	{
-		bool	bFoundPlayer = false;
-		LONG	lHighestWincount;
-		ULONG	ulWinsLeft;
-
-		// If we're in a teamplay, just go by whichever team has the most frags.
-		if ( teamlms )
-		{
-			if ( TEAM_GetWinCount( TEAM_BLUE ) >= TEAM_GetWinCount( TEAM_RED ))
-				lHighestWincount = TEAM_GetWinCount( TEAM_BLUE );
-			else
-				lHighestWincount = TEAM_GetWinCount( TEAM_RED );
-		}
-		// Otherwise, find the player with the most frags.
-		else
-		{
-			for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-			{
-				if ( playeringame[ulIdx] == false )
-					continue;
-
-				if ( bFoundPlayer == false )
-				{
-					lHighestWincount = players[ulIdx].ulWins;
-					bFoundPlayer = true;
-					continue;
-				}
-				else if ( players[ulIdx].ulWins > (ULONG)lHighestWincount )
-					lHighestWincount = players[ulIdx].ulWins;
-			}
-		}
-
-		return winlimit - lHighestWincount;
-	}
-
-	// None of the above
-	return 0;
-
-
-}
-// Scoreboard data variables
-	bool		bScale;
-	char		szString[128];
-	ULONG		ulPlayerNum;
-	ULONG		ulCurYPos = 0;
-	ULONG		ulIdx;
-	ULONG		ulColor;
-	char		szColumn1[16];
-	char		szColumn3[16];
-	char		szColumn4[16];
-	ULONG		ulNumPlayers;
-	UCVarValue	ValWidth;
-	UCVarValue	ValHeight;
-	float		fXScale;
-	float		fYScale;
-	player_s    *pPlayer;
-
-	// Type of data for each column
-	int			columns_used = 0;
-	FFont		*column_header_font;
-	int			columns[COLUMNS_MAX];
-	int		columnsXPos[COLUMNS_MAX];
-
 // Renders some HUD strings, and the main board if the player is pushing the keys.
-void SCOREBOARD_Render( player_s *pPlayerIn )
+void SCOREBOARD_Render( player_s *pPlayer )
 {
 	DHUDMessageFadeOut	*pMsg;
 	LONG				lPosition;
-	ValWidth = con_virtualwidth.GetGenericRep( CVAR_Int );
-	ValHeight = con_virtualheight.GetGenericRep( CVAR_Int );
-	pPlayer = pPlayerIn; // Store for helper methods
+
+	g_ValWidth = con_virtualwidth.GetGenericRep( CVAR_Int );
+	g_ValHeight = con_virtualheight.GetGenericRep( CVAR_Int );
 
 	if (( con_scaletext ) && ( con_virtualwidth > 0 ) && ( con_virtualheight > 0 ))
 	{
-		fXScale =  (float)ValWidth.Int / 320.0f;
-		fYScale =  (float)ValHeight.Int / 200.0f;
-		bScale = true;
+		g_fXScale =  (float)g_ValWidth.Int / 320.0f;
+		g_fYScale =  (float)g_ValHeight.Int / 200.0f;
+		g_bScale = true;
 	}
 	else
-		bScale = false;
-
+		g_bScale = false;
 
 	// Draw the main scoreboard.
 	if (
@@ -375,8 +259,9 @@ void SCOREBOARD_Render( player_s *pPlayerIn )
 		switch ( CALLVOTE_GetVoteState( ))
 		{
 		case VOTESTATE_INVOTE:
-			// [RC] Display either the fullscreen or minimized vote screen
-			if(cl_showfullscreenvote)
+			
+			// [RC] Display either the fullscreen or minimized vote screen.
+			if ( cl_showfullscreenvote )
 				SCOREBOARD_RenderInVoteClassic( );
 			else
 				SCOREBOARD_RenderInVote( );
@@ -567,7 +452,9 @@ void SCOREBOARD_Render( player_s *pPlayerIn )
 			break;
 		case IS_INPROGRESS:
 		case IS_BOSSFIGHT:
-			// [RC] This display moved to the HUD.
+
+			// Render the number of monsters left, etc.
+			SCOREBOARD_RenderInvasionStats( );
 			break;
 		}
 	}
@@ -629,1110 +516,60 @@ void SCOREBOARD_Render( player_s *pPlayerIn )
 }
 
 //*****************************************************************************
+//*****************************************************************************
 //
-
-//*****************************************************************************
-// Scoreboard helper methods
-//*****************************************************************************
-
-void SCOREBOARD_DrawHeader( void ) {
-	ulCurYPos = 4;
-	if ( gamestate == GS_LEVEL ) // Don't draw it if we're in intermission.
-	{
-		screen->SetFont( BigFont );
-
-		if ( bScale )
-		{
-			screen->DrawText( gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
-				(LONG)(( ValWidth.Int / 2 ) - ( BigFont->StringWidth( "RANKINGS" ) / 2 )),
-				ulCurYPos,
-				"RANKINGS",
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
-				TAG_DONE );
-		}
-		else
-		{
-			screen->DrawText( gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
-				( SCREENWIDTH / 2 ) - ( BigFont->StringWidth( "RANKINGS" ) / 2 ),
-				ulCurYPos,
-				"RANKINGS",
-				TAG_DONE );
-		}
-
-		screen->SetFont( SmallFont );
-	}
-	ulCurYPos += 22;
-}
-void SCOREBOARD_DrawLimits( void ) {
-if (( lastmanstanding == false ) && ( teamlms == false ) && ( possession == false ) && ( teampossession == false ) && deathmatch && fraglimit && gamestate == GS_LEVEL )
-	{
-		ULONG ulFragsLeft = SCOREBOARD_GetLeftToLimit( );
-		if(ulFragsLeft > 0) {
-			sprintf( szString, "%d frag%s remain%s", ulFragsLeft, ( ulFragsLeft != 1 ) ? "s" : "", ( ulFragsLeft == 1 ) ? "s" : "" );
-
-			if ( bScale )
-			{
-				screen->DrawText( CR_GREY,
-					(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-					ulCurYPos,
-					szString,
-					DTA_VirtualWidth, ValWidth.Int,
-					DTA_VirtualHeight, ValHeight.Int,
-					TAG_DONE );
-			}
-			else
-			{
-				screen->DrawText( CR_GREY,
-					( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-					ulCurYPos,
-					szString,
-					TAG_DONE );
-			}
-
-			ulCurYPos += 10;
-		}
-	}
-
-	// Render the duellimit string.
-	if ( duellimit && duel && gamestate == GS_LEVEL )
-	{
-		LONG	lNumDuels;
-
-		// Get the number of duels that have been played.
-		lNumDuels = DUEL_GetNumDuels( );
-
-		sprintf( szString, "%d duel%s remain%s", duellimit - lNumDuels, (( duellimit - lNumDuels ) == 1 ) ? "" : "s", (( duellimit - lNumDuels ) == 1 ) ? "s" : "" );
-
-		if ( bScale )
-		{
-			screen->DrawText( CR_GREY,
-				(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-				ulCurYPos,
-				szString,
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
-				TAG_DONE );
-		}
-		else
-		{
-			screen->DrawText( CR_GREY,
-				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-				ulCurYPos,
-				szString,
-				TAG_DONE );
-		}
-
-		ulCurYPos += 10;
-	}
-
-	// Render the "wins" string.
-	if ( duel && gamestate == GS_LEVEL )
-	{
-		LONG	lWinner = -1;
-		ULONG	ulIdx;
-		bool	bDraw = true;
-
-		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-		{
-			if ( playeringame[ulIdx] && players[ulIdx].ulWins )
-			{
-				lWinner = ulIdx;
-				break;
-			}
-		}
-
-		if ( lWinner == -1 )
-		{
-			if ( DUEL_CountActiveDuelers( ) == 2 )
-				sprintf( szString, "First match between the two" );
-			else
-				bDraw = false;
-		}
-		else
-			sprintf( szString, "Champion is %s \\c-with %d win%s", players[lWinner].userinfo.netname, players[lWinner].ulWins, players[lWinner].ulWins == 1 ? "" : "s" );
-
-		if ( bDraw )
-		{
-			V_ColorizeString( szString );
-
-			if ( bScale )
-			{
-				screen->DrawText( CR_GREY,
-					(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-					ulCurYPos,
-					szString,
-					DTA_VirtualWidth, ValWidth.Int,
-					DTA_VirtualHeight, ValHeight.Int,
-					TAG_DONE );
-			}
-			else
-			{
-				screen->DrawText( CR_GREY,
-					( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-					ulCurYPos,
-					szString,
-					TAG_DONE );
-			}
-			
-			ulCurYPos += 10;
-		}
-	}
-
-	// Render the pointlimit string.
-	if (( teamgame || possession || teampossession ) && ( pointlimit ) && ( gamestate == GS_LEVEL ))
-	{
-
-		ULONG	ulPointsLeft = SCOREBOARD_GetLeftToLimit( );
-		if(ulPointsLeft > 0) {
-			sprintf( szString, "%d point%s remain%s", ulPointsLeft, ( ulPointsLeft != 1 ) ? "s" : "", ( ulPointsLeft == 1 ) ? "s" : "" );
-
-			if ( bScale )
-			{
-				screen->DrawText( CR_GREY,
-					(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-					ulCurYPos,
-					szString,
-					DTA_VirtualWidth, ValWidth.Int,
-					DTA_VirtualHeight, ValHeight.Int,
-					TAG_DONE );
-			}
-			else
-			{
-				screen->DrawText( CR_GREY,
-					( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-					ulCurYPos,
-					szString,
-					TAG_DONE );
-			}
-
-			ulCurYPos += 10;
-		}
-	}
-
-	// Render the winlimit string.
-	if (( lastmanstanding || teamlms ) && winlimit && gamestate == GS_LEVEL )
-	{
-		ULONG	ulWinsLeft = SCOREBOARD_GetLeftToLimit( );
-		sprintf( szString, "%d win%s remain%s", ulWinsLeft, ( ulWinsLeft != 1 ) ? "s" : "", ( ulWinsLeft == 1 ) ? "s" : "" );
-		
-		if ( bScale )
-		{
-			screen->DrawText( CR_GREY,
-				(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-				ulCurYPos,
-				szString,
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
-				TAG_DONE );
-		}
-		else
-		{
-			screen->DrawText( CR_GREY,
-				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-				ulCurYPos,
-				szString,
-				TAG_DONE );
-		}
-
-		ulCurYPos += 10;
-	}
-
-	// Render the wavelimit string.
-	if ( invasion && wavelimit && gamestate == GS_LEVEL )
-	{
-		ULONG	ulWavesLeft;
-
-		ulWavesLeft = wavelimit - INVASION_GetCurrentWave( );
-		sprintf( szString, "%d wave%s remain%s", ulWavesLeft, ( ulWavesLeft != 1 ) ? "s" : "", ( ulWavesLeft == 1 ) ? "s" : "" );
-		
-		if ( bScale )
-		{
-			screen->DrawText( CR_GREY,
-				(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-				ulCurYPos,
-				szString,
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
-				TAG_DONE );
-		}
-		else
-		{
-			screen->DrawText( CR_GREY,
-				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-				ulCurYPos,
-				szString,
-				TAG_DONE );
-		}
-
-		ulCurYPos += 10;
-	}
-
-	// Render the timelimit string.
-	if (( deathmatch || teamgame ) && timelimit && gamestate == GS_LEVEL )
-	{
-		LONG	lTimeLeft = (LONG)( timelimit * ( TICRATE * 60 )) - level.time;
-		ULONG	ulHours;
-		ULONG	ulMinutes;
-		ULONG	ulSeconds;
-
-		if ( lTimeLeft <= 0 )
-			ulHours = ulMinutes = ulSeconds = 0;
-		else
-		{
-			ulHours = lTimeLeft / ( TICRATE * 3600 );
-			lTimeLeft -= ulHours * TICRATE * 3600;
-			ulMinutes = lTimeLeft / ( TICRATE * 60 );
-			lTimeLeft -= ulMinutes * TICRATE * 60;
-			ulSeconds = lTimeLeft / TICRATE;
-		}
-
-		if ( lastmanstanding || teamlms )
-		{
-			if ( ulHours )
-				sprintf( szString, "Round ends in %02d:%02d:%02d", ulHours, ulMinutes, ulSeconds );
-			else
-				sprintf( szString, "Round ends in %02d:%02d", ulMinutes, ulSeconds );
-		}
-		else
-		{
-			if ( ulHours )
-				sprintf( szString, "Level ends in %02d:%02d:%02d", ulHours, ulMinutes, ulSeconds );
-			else
-				sprintf( szString, "Level ends in %02d:%02d", ulMinutes, ulSeconds );
-		}
-		
-		if ( bScale )
-		{
-			screen->DrawText( CR_GREY,
-				(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-				ulCurYPos,
-				szString,
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
-				TAG_DONE );
-		}
-		else
-		{
-			screen->DrawText( CR_GREY,
-				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-				ulCurYPos,
-				szString,
-				TAG_DONE );
-		}
-
-		ulCurYPos += 10;
-	}
-	// Render the number of monsters left in coop.
-	if (( deathmatch == false ) && ( teamgame == false ) && ( gamestate == GS_LEVEL ))
-	{
-		LONG	lNumMonstersRemaining = SCOREBOARD_GetLeftToLimit( );
-		sprintf( szString, "%d monster%s remaining", lNumMonstersRemaining, lNumMonstersRemaining == 1 ? "" : "s" );
-		
-		if ( bScale )
-		{
-			screen->DrawText( CR_GREY,
-				(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-				ulCurYPos,
-				szString,
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
-				TAG_DONE );
-		}
-		else
-		{
-			screen->DrawText( CR_GREY,
-				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-				ulCurYPos,
-				szString,
-				TAG_DONE );
-		}
-
-		ulCurYPos += 10;
-	}
-
-
-
-
-}
-
-
-void SCOREBOARD_DrawTeamScores( void )
-{
-	if ( teamplay || teamgame || teamlms || teampossession )
-	{
-		if ( gamestate == GS_LEVEL )
-		{
-			if ( teamplay )
-			{
-				// If the teams are tied...
-				if ( TEAM_GetFragCount( TEAM_RED ) == TEAM_GetFragCount( TEAM_BLUE ))
-				{
-					sprintf( szString, "Teams are tied at %d\n", TEAM_GetFragCount( TEAM_RED ));
-					if ( bScale )
-					{
-						screen->DrawText( CR_GREY,
-							(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-							ulCurYPos,
-							szString,
-							DTA_VirtualWidth, ValWidth.Int,
-							DTA_VirtualHeight, ValHeight.Int,
-							TAG_DONE );
-					}
-					else
-					{
-						screen->DrawText( CR_GREY,
-							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-							ulCurYPos,
-							szString,
-							TAG_DONE );
-					}
-				}
-				else
-				{
-					if ( TEAM_GetFragCount( TEAM_RED ) > TEAM_GetFragCount( TEAM_BLUE ))
-						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_RED ), TEAM_GetFragCount( TEAM_RED ), TEAM_GetFragCount( TEAM_BLUE ));
-					else
-						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_BLUE ), TEAM_GetFragCount( TEAM_BLUE ), TEAM_GetFragCount( TEAM_RED ));
-
-					if ( bScale )
-					{
-						screen->DrawText( CR_GREY,
-							(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-							ulCurYPos,
-							szString,
-							DTA_VirtualWidth, ValWidth.Int,
-							DTA_VirtualHeight, ValHeight.Int,
-							TAG_DONE );
-					}
-					else
-					{
-						screen->DrawText( CR_GREY,
-							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-							ulCurYPos,
-							szString,
-							TAG_DONE );
-					}
-				}
-			}
-			else if ( teamlms )
-			{
-				// If the teams are tied...
-				if ( TEAM_GetWinCount( TEAM_RED ) == TEAM_GetWinCount( TEAM_BLUE ))
-				{
-					sprintf( szString, "Teams are tied at %d\n", TEAM_GetWinCount( TEAM_RED ));
-					if ( bScale )
-					{
-						screen->DrawText( CR_GREY,
-							(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-							ulCurYPos,
-							szString,
-							DTA_VirtualWidth, ValWidth.Int,
-							DTA_VirtualHeight, ValHeight.Int,
-							TAG_DONE );
-					}
-					else
-					{
-						screen->DrawText( CR_GREY,
-							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-							ulCurYPos,
-							szString,
-							TAG_DONE );
-					}
-				}
-				else
-				{
-					if ( TEAM_GetWinCount( TEAM_RED ) > TEAM_GetWinCount( TEAM_BLUE ))
-						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_RED ), TEAM_GetWinCount( TEAM_RED ), TEAM_GetWinCount( TEAM_BLUE ));
-					else
-						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_BLUE ), TEAM_GetWinCount( TEAM_BLUE ), TEAM_GetWinCount( TEAM_RED ));
-
-					if ( bScale )
-					{
-						screen->DrawText( CR_GREY,
-							(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-							ulCurYPos,
-							szString,
-							DTA_VirtualWidth, ValWidth.Int,
-							DTA_VirtualHeight, ValHeight.Int,
-							TAG_DONE );
-					}
-					else
-					{
-						screen->DrawText( CR_GREY,
-							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-							ulCurYPos,
-							szString,
-							TAG_DONE );
-					}
-				}
-			}
-			else
-			{
-				// If the teams are tied...
-				if ( TEAM_GetScore( TEAM_RED ) == TEAM_GetScore( TEAM_BLUE ))
-				{
-					sprintf( szString, "Teams are tied at %d\n", TEAM_GetScore( TEAM_RED ));
-					if ( bScale )
-					{
-						screen->DrawText( CR_GREY,
-							(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-							ulCurYPos,
-							szString,
-							DTA_VirtualWidth, ValWidth.Int,
-							DTA_VirtualHeight, ValHeight.Int,
-							TAG_DONE );
-					}
-					else
-					{
-						screen->DrawText( CR_GREY,
-							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-							ulCurYPos,
-							szString,
-							TAG_DONE );
-					}
-				}
-				else
-				{
-					if ( TEAM_GetScore( TEAM_RED ) > TEAM_GetScore( TEAM_BLUE ))
-						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_RED ), TEAM_GetScore( TEAM_RED ), TEAM_GetScore( TEAM_BLUE ));
-					else
-						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_BLUE ), TEAM_GetScore( TEAM_BLUE ), TEAM_GetScore( TEAM_RED ));
-
-					if ( bScale )
-					{
-						screen->DrawText( CR_GREY,
-							(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-							ulCurYPos,
-							szString,
-							DTA_VirtualWidth, ValWidth.Int,
-							DTA_VirtualHeight, ValHeight.Int,
-							TAG_DONE );
-					}
-					else
-					{
-						screen->DrawText( CR_GREY,
-							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-							ulCurYPos,
-							szString,
-							TAG_DONE );
-					}
-				}
-			}
-
-			// Draw the team info information.
-			// If this variable is true, it's already been drawn. No need to do it again.
-			if ( cl_alwaysdrawteamstats == false )
-				SCOREBOARD_RenderTeamStats( pPlayer );
-		}
-		else
-		{
-			ulCurYPos += 10;
-			if ( teamplay )
-			{
-				// If the teams are tied...
-				if ( TEAM_GetFragCount( TEAM_RED ) == TEAM_GetFragCount( TEAM_BLUE ))
-				{
-					sprintf( szString, "Teams tied at %d\n", TEAM_GetFragCount( TEAM_RED ));
-					if ( bScale )
-					{
-						screen->DrawText( CR_GREY,
-							(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-							ulCurYPos,
-							szString,
-							DTA_VirtualWidth, ValWidth.Int,
-							DTA_VirtualHeight, ValHeight.Int,
-							TAG_DONE );
-					}
-					else
-					{
-						screen->DrawText( CR_GREY,
-							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-							ulCurYPos,
-							szString,
-							TAG_DONE );
-					}
-				}
-				else
-				{
-					if ( TEAM_GetFragCount( TEAM_RED ) > TEAM_GetFragCount( TEAM_BLUE ))
-						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_RED ), TEAM_GetFragCount( TEAM_RED ), TEAM_GetFragCount( TEAM_BLUE ));
-					else
-						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_BLUE ), TEAM_GetFragCount( TEAM_BLUE ), TEAM_GetFragCount( TEAM_RED ));
-
-					if ( bScale )
-					{
-						screen->DrawText( CR_GREY,
-							(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-							ulCurYPos,
-							szString,
-							DTA_VirtualWidth, ValWidth.Int,
-							DTA_VirtualHeight, ValHeight.Int,
-							TAG_DONE );
-					}
-					else
-					{
-						screen->DrawText( CR_GREY,
-							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-							ulCurYPos,
-							szString,
-							TAG_DONE );
-					}
-				}
-			}
-			else if ( teamlms )
-			{
-				// If the teams are tied...
-				if ( TEAM_GetWinCount( TEAM_RED ) == TEAM_GetWinCount( TEAM_BLUE ))
-				{
-					sprintf( szString, "Teams tied at %d\n", TEAM_GetWinCount( TEAM_RED ));
-					if ( bScale )
-					{
-						screen->DrawText( CR_GREY,
-							(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-							ulCurYPos,
-							szString,
-							DTA_VirtualWidth, ValWidth.Int,
-							DTA_VirtualHeight, ValHeight.Int,
-							TAG_DONE );
-					}
-					else
-					{
-						screen->DrawText( CR_GREY,
-							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-							ulCurYPos,
-							szString,
-							TAG_DONE );
-					}
-				}
-				else
-				{
-					if ( TEAM_GetWinCount( TEAM_RED ) > TEAM_GetWinCount( TEAM_BLUE ))
-						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_RED ), TEAM_GetWinCount( TEAM_RED ), TEAM_GetWinCount( TEAM_BLUE ));
-					else
-						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_BLUE ), TEAM_GetWinCount( TEAM_BLUE ), TEAM_GetWinCount( TEAM_RED ));
-
-					if ( bScale )
-					{
-						screen->DrawText( CR_GREY,
-							(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-							ulCurYPos,
-							szString,
-							DTA_VirtualWidth, ValWidth.Int,
-							DTA_VirtualHeight, ValHeight.Int,
-							TAG_DONE );
-					}
-					else
-					{
-						screen->DrawText( CR_GREY,
-							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-							ulCurYPos,
-							szString,
-							TAG_DONE );
-					}
-				}
-			}
-			else
-			{
-				// If the teams are tied...
-				if ( TEAM_GetScore( TEAM_RED ) == TEAM_GetScore( TEAM_BLUE ))
-				{
-					sprintf( szString, "Teams tied at %d\n", TEAM_GetScore( TEAM_RED ));
-					if ( bScale )
-					{
-						screen->DrawText( CR_GREY,
-							(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-							ulCurYPos,
-							szString,
-							DTA_VirtualWidth, ValWidth.Int,
-							DTA_VirtualHeight, ValHeight.Int,
-							TAG_DONE );
-					}
-					else
-					{
-						screen->DrawText( CR_GREY,
-							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-							ulCurYPos,
-							szString,
-							TAG_DONE );
-					}
-				}
-				else
-				{
-					if ( TEAM_GetScore( TEAM_RED ) > TEAM_GetScore( TEAM_BLUE ))
-						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_RED ), TEAM_GetScore( TEAM_RED ), TEAM_GetScore( TEAM_BLUE ));
-					else
-						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_BLUE ), TEAM_GetScore( TEAM_BLUE ), TEAM_GetScore( TEAM_RED ));
-
-					if ( bScale )
-					{
-						screen->DrawText( CR_GREY,
-							(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-							ulCurYPos,
-							szString,
-							DTA_VirtualWidth, ValWidth.Int,
-							DTA_VirtualHeight, ValHeight.Int,
-							TAG_DONE );
-					}
-					else
-					{
-						screen->DrawText( CR_GREY,
-							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-							ulCurYPos,
-							szString,
-							TAG_DONE );
-					}
-				}
-			}
-		}
-
-		ulCurYPos += 10;
-	}
-}
-void SCOREBOARD_DrawMyRank( void ) {
-// Render the current ranking string.
-	if ( deathmatch && ( teamplay == false ) && ( teamlms == false ) && ( teampossession == false ) && ( PLAYER_IsTrueSpectator( &players[ulPlayerNum] ) == false ) && gamestate == GS_LEVEL )
-	{
-		bool	bIsTied;
-
-		bIsTied	= SCOREBOARD_IsTied( ulPlayerNum );
-
-		// If the player is tied with someone else, add a "tied for" to their string.
-		if ( bIsTied )
-			sprintf( szString, "Tied for " );
-		else
-			sprintf( szString, "" );
-
-		// Determine  what color and number to print for their rank.
-		switch ( g_ulRank )
-		{
-		case 0:
-
-			sprintf( szString, "%s\\cH1st ", szString );
-			break;
-		case 1:
-
-			sprintf( szString, "%s\\cG2nd ", szString );
-			break;
-		case 2:
-
-			sprintf( szString, "%s\\cD3rd ", szString );
-			break;
-		default:
-
-			sprintf( szString, "%s%dth ", szString, ( g_ulRank + 1 ));
-			break;
-		}
-
-		// Tack on the rest of the string.
-		if ( lastmanstanding )
-			sprintf( szString, "%s\\c-place with %d win%s", szString, players[ulPlayerNum].ulWins, players[ulPlayerNum].ulWins == 1 ? "" : "s" );
-		else if ( possession )
-			sprintf( szString, "%s\\c-place with %d point%s", szString, players[ulPlayerNum].lPointCount, players[ulPlayerNum].fragcount == 1 ? "" : "s" );
-		else
-			sprintf( szString, "%s\\c-place with %d frag%s", szString, players[ulPlayerNum].fragcount, players[ulPlayerNum].fragcount == 1 ? "" : "s" );
-		V_ColorizeString( szString );
-
-		if ( bScale )
-		{
-			screen->DrawText( CR_GREY,
-				(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-				ulCurYPos,
-				szString,
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
-				TAG_DONE );
-		}
-		else
-		{
-			screen->DrawText( CR_GREY,
-				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-				ulCurYPos,
-				szString,
-				TAG_DONE );
-		}
-
-		ulCurYPos += 10;
-	}
-
-}
-void SCOREBOARD_ClearColumns( void ) {
-	for(int i = 0; i < COLUMNS_MAX; i++)
-		columns[i] = COL_EMPTY;
-	columns_used = 0;
-}
-void SCOREBOARD_Prepare5ColumnDisplay( void ) {
-	SCOREBOARD_ClearColumns( ); // Set all to empty.
-	columns_used = 5;
-	column_header_font = BigFont;
-	
-	// Locations of the columns
-	columnsXPos[0] = 8;
-	columnsXPos[1] = 48;
-	columnsXPos[2] = 96;
-	columnsXPos[3] = 212;
-	columnsXPos[4] = 272;
-
-	// Content types
-	
-	if(teamgame || possession || teampossession || ctf || skulltag) {
-		columns[0] = COL_POINTS;
-		if(ctf || skulltag) // Can have assists
-			columns[0] = COL_POINTS;
-		columns[1] = COL_FRAGS;
-		columns[2] = COL_NAME;
-		columns[3] = COL_EMPTY;
-		if(NETWORK_GetState() == NETSTATE_CLIENT )
-			columns[3] = COL_PING;
-		columns[4] = COL_TIME;
-		scoreboard_SortPlayers( ST_POINTCOUNT );
-	}
-
-	if(lastmanstanding || teamlms) {
-		columns[0] = COL_WINS;
-		columns[1] = COL_FRAGS;
-		columns[2] = COL_NAME;
-		columns[3] = COL_EMPTY;
-		if(NETWORK_GetState() == NETSTATE_CLIENT )
-			columns[3] = COL_PING;
-		columns[4] = COL_TIME;
-		scoreboard_SortPlayers( ST_WINCOUNT );
-	}
-}
-
-void SCOREBOARD_Prepare4ColumnDisplay( void ) {
-	SCOREBOARD_ClearColumns( ); // Set all to empty.
-	columns_used = 4;
-	column_header_font = BigFont;
-	
-	// Locations of the columns
-	columnsXPos[0] = 24;
-	columnsXPos[1] = 84;
-	columnsXPos[2] = 192;
-	columnsXPos[3] = 256;
-
-	// Content types
-	if(cooperative || survival || invasion) {
-		columns[0] = COL_KILLS;
-		columns[1] = COL_NAME;
-		columns[2] = COL_DEATHS;
-		if(NETWORK_GetState() == NETSTATE_CLIENT )
-			columns[2] = COL_PING;
-		columns[3] = COL_TIME;
-		scoreboard_SortPlayers( ST_KILLCOUNT );
-	}
-
-	if(deathmatch || teamplay) {
-		columns[0] = COL_FRAGS;
-		columns[1] = COL_NAME;
-		columns[2] = COL_DEATHS;
-		if(NETWORK_GetState() == NETSTATE_CLIENT )
-			columns[2] = COL_PING;
-		columns[3] = COL_TIME;
-		scoreboard_SortPlayers( ST_FRAGCOUNT );
-	}
-	
-	if(teamgame || possession || teampossession || ctf || skulltag) {
-		if(ctf || skulltag) // Can have assists
-			columns[0] = COL_POINTS;
-		columns[1] = COL_NAME;
-		columns[2] = COL_DEATHS;
-		if(NETWORK_GetState() == NETSTATE_CLIENT )
-			columns[2] = COL_PING;
-		columns[3] = COL_TIME;
-		scoreboard_SortPlayers( ST_POINTCOUNT );
-	}
-
-	if(lastmanstanding || teamlms) {
-		columns[0] = COL_WINS;
-		columns[1] = COL_NAME;
-		columns[2] = COL_FRAGS;
-		if(NETWORK_GetState() == NETSTATE_CLIENT )
-			columns[2] = COL_PING;
-		columns[3] = COL_TIME;
-		scoreboard_SortPlayers( ST_WINCOUNT );
-	}
-}
-
-void SCOREBOARD_Prepare3ColumnDisplay( void ) {
-	SCOREBOARD_ClearColumns( ); // Set all to empty.
-	columns_used = 3;
-	column_header_font = SmallFont;
-	
-	// Locations of the columns
-	columnsXPos[0] = 16;
-	columnsXPos[1] = 96;
-	columnsXPos[2] = 272;
-
-	// Content types
-	if(cooperative || survival || invasion) {
-		columns[0] = COL_KILLS;
-		columns[1] = COL_NAME;
-		columns[2] = COL_TIME;
-		scoreboard_SortPlayers( ST_KILLCOUNT );
-	}
-
-	if(deathmatch || teamplay) {
-		columns[0] = COL_FRAGS;
-		columns[1] = COL_NAME;
-		columns[2] = COL_TIME;
-		scoreboard_SortPlayers( ST_FRAGCOUNT );
-	}
-	
-	if(teamgame || possession || teampossession || ctf || skulltag) {
-		if(ctf || skulltag) // Can have assists
-			columns[0] = COL_POINTS;
-		columns[1] = COL_NAME;
-		columns[2] = COL_TIME;
-		scoreboard_SortPlayers( ST_POINTCOUNT );
-	}
-
-	if(lastmanstanding || teamlms) {
-		columns[0] = COL_WINS;
-		columns[1] = COL_NAME;
-		columns[2] = COL_TIME;
-		scoreboard_SortPlayers( ST_WINCOUNT );
-	}
-}
-void SCOREBOARD_GetColumnNameFromType( int cType,  char *pszString ) {
-	switch( cType ) {
-		case COL_NAME:
-			sprintf(pszString, "NAME");
-			break;
-		case COL_TIME:
-			sprintf(pszString, "TIME");
-			break;
-		case COL_PING:
-			sprintf(pszString, "PING");
-			break;
-		case COL_FRAGS:
-			sprintf(pszString, "FRAGS");
-			break;
-		case COL_POINTS:
-			sprintf(pszString, "POINTS");
-			break;
-		case COL_DEATHS:
-			sprintf(pszString, "DEATHS");
-			break;
-		case COL_WINS:
-			sprintf(pszString, "WINS");
-			break;
-		case COL_KILLS:
-			sprintf(pszString, "KILLS");
-			break;
-		case COL_POINTSASSISTS:
-			sprintf(pszString, "SCORE");
-			break;
-		case COL_SECRETS:
-			sprintf(pszString, "SECRETS");
-			break;
-		default:
-			sprintf(pszString, "");
-	}
-
-}
-// These parameters are filters.
-// If 1, players with this trait will be skipped.
-// If 2, players *without* this trait will be skipped.
-void SCOREBOARD_DoRankingListPass( int cSpectators, int cDead, int cNotPlaying, int cNoTeam, int cWrongTeam, ULONG desiredTeam ) {
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		// Skip or require players not in the game.
-		if (((cNotPlaying == 1) && (playeringame[g_iSortedPlayers[ulIdx]] == false )) ||
-			((cNotPlaying == 2) && (!playeringame[g_iSortedPlayers[ulIdx]] == false )))
-			continue;
-
-		// Skip or require players not on a team.
-		 if(((cNoTeam == 1) && (!players[g_iSortedPlayers[ulIdx]].bOnTeam)) ||
-			 ((cNoTeam == 2) && (players[g_iSortedPlayers[ulIdx]].bOnTeam)))
-			continue;
-
-		// Skip or require spectators.
-		if (((cSpectators == 1) && PLAYER_IsTrueSpectator( &players[g_iSortedPlayers[ulIdx]])) ||
-			((cSpectators == 2) && !PLAYER_IsTrueSpectator( &players[g_iSortedPlayers[ulIdx]])))
-			continue;
-
-		// In LMS, skip or require dead players.
-		if( gamestate != GS_INTERMISSION ){
-			/*(( lastmanstanding ) && (( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) || ( LASTMANSTANDING_GetState( ) == LMSS_WINSEQUENCE ))) ||
-			(( survival ) && (( SURVIVAL_GetState( ) == SURVS_INPROGRESS ) || ( SURVIVAL_GetState( ) == SURVS_MISSIONFAILED )))*/
-			
-			if((( players[g_iSortedPlayers[ulIdx]].health <= 0) && (cDead == 1)) || 
-				(( players[g_iSortedPlayers[ulIdx]].health > 0) && (cDead == 2)))
-				continue;
-		}
-
-		// Skip or require players that aren't on this team.
-		if (((cWrongTeam == 1) && (players[g_iSortedPlayers[ulIdx]].ulTeam != desiredTeam)) ||
-			((cWrongTeam == 2) && (players[g_iSortedPlayers[ulIdx]].ulTeam == desiredTeam)))
-			continue;
-
-		scoreboard_RenderIndividualPlayer(g_iSortedPlayers[ulIdx]);
-		ulCurYPos += 10;
-		ulNumPlayers++;
-	}
-		if ( ulNumPlayers )
-		{
-			ulNumPlayers = 0;
-			ulCurYPos += 10;
-		}
-}
-void SCOREBOARD_DrawRankings( void ) {
-
-	/*=================
-	Draw column headers
-	=================*/
-
-		// Nothing to do?
-		if(columns_used < 1)
-			return;
-		char	szString[16];
-		ulCurYPos += 8;
-
-		// Center this a little better in intermission
-		if ( gamestate != GS_LEVEL )
-			ulCurYPos = ( bScale == true ) ? (LONG)( 48 * fYScale ) : (LONG)( 48 * CleanYfac );
-
-		screen->SetFont( column_header_font );
-
-		// Draw the titles for the columns.
-		for(int i = 0; i < columns_used; i++) {
-			SCOREBOARD_GetColumnNameFromType(columns[i], szString);
-			if ( bScale )
-			{
-				screen->DrawText( CR_RED,
-					(LONG)( columnsXPos[i] * fXScale ),
-					ulCurYPos,
-					szString,
-					DTA_VirtualWidth, ValWidth.Int,
-					DTA_VirtualHeight, ValHeight.Int,
-					TAG_DONE );
-			}
-			else
-			{
-				screen->DrawText( CR_RED,
-					(LONG)( columnsXPos[i] * CleanXfac ),
-					ulCurYPos,
-					szString,
-					TAG_DONE );
-			}
-		}
-
-	/*==============
-	Draw player list
-	==============*/
-
-		screen->SetFont( SmallFont );
-		ulCurYPos += 24;
-		ulNumPlayers = 0;
-
-		/*==============================
-		Team Games: Divide up the teams.
-		==============================*/
-
-		if ( teamgame || teamplay || teamlms || teampossession )
-		{
-			// Draw players on teams.
-			for ( ULONG ulTeamIdx = NUM_TEAMS; ulTeamIdx > 0; ulTeamIdx-- ) {
-			
-				// In team LMS, separate the dead players from the living.
-					if (( teamlms ) && ( gamestate != GS_INTERMISSION ) && ( LASTMANSTANDING_GetState( ) != LMSS_COUNTDOWN ) && ( LASTMANSTANDING_GetState( ) != LMSS_WAITINGFORPLAYERS )) {
-						SCOREBOARD_DoRankingListPass(1, 1, 1, 1, 1, ulTeamIdx - 1); // Living in this team
-						SCOREBOARD_DoRankingListPass(1, 2, 1, 1, 1, ulTeamIdx -1); // Dead in this team
-					}
-
-				// Otherwise, draw all players all in one group.
-					else
-						SCOREBOARD_DoRankingListPass(1, 0, 1, 1, 1, ulTeamIdx - 1); 
-
-			}
-
-			// Players that aren't on a team.
-				SCOREBOARD_DoRankingListPass(1, 1, 1, 2, 0, 0); 
-
-			// Spectators are last.
-				SCOREBOARD_DoRankingListPass(2, 0, 1, 0, 0, 0);
-		}
-
-		/*======================================
-		Other modes: Just players and spectators
-		======================================*/
-
-		else
-		{
-			// In LMS or Survival, dead players are drawn after living ones.
-				if (( gamestate != GS_INTERMISSION ) && (
-					(( lastmanstanding ) && (( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) || ( LASTMANSTANDING_GetState( ) == LMSS_WINSEQUENCE ))) ||
-					(( survival ) && (( SURVIVAL_GetState( ) == SURVS_INPROGRESS ) || ( SURVIVAL_GetState( ) == SURVS_MISSIONFAILED ))))) {
-					SCOREBOARD_DoRankingListPass(1, 1, 1, 0, 0, 0); // Living
-					SCOREBOARD_DoRankingListPass(1, 2, 1, 0, 0, 0); // Dead
-				}
-
-			// Othrwise, draw all active players in the game together.
-				else
-					SCOREBOARD_DoRankingListPass(1, 0, 1, 0, 0, 0);
-
-			// Spectators are last.
-				SCOREBOARD_DoRankingListPass(2, 0, 1, 0, 0, 0);
-		}
-
-		BorderNeedRefresh = true;
-}
-//*****************************************************************************
-//*****************************************************************************
 void SCOREBOARD_RenderBoard( player_s *pPlayer )
 {
+	ULONG	ulPlayerNum;
+	ULONG	ulNumIdealColumns;
+
 	// Calculate the playernum of the given player.
 	ulPlayerNum = ULONG( pPlayer - players );
 
-	/*==================================
-	Draw the "RANKINGS" text at the top.
-	==================================*/
-		SCOREBOARD_DrawHeader( );
+	// Draw the "RANKINGS" text at the top.
+	scoreboard_DrawHeader( );
 	
-	/*=======================================================================
-	Draw the time, frags, points, or kills we have left until the level ends.
-	=======================================================================*/
-		SCOREBOARD_DrawLimits( );
+	// Draw the time, frags, points, or kills we have left until the level ends.
+	if ( gamestate == GS_LEVEL )
+		scoreboard_DrawLimits( );
 
-	/*=============================================================
-	Draw the team scores and their relation (tied, red leads, etc).
-	=============================================================*/
-		SCOREBOARD_DrawTeamScores( );
+	// Draw the team scores and their relation (tied, red leads, etc).
+	scoreboard_DrawTeamScores( ulPlayerNum );
 	
-	/*===================================
-	Draw my rank and my frags/points/etc.
-	===================================*/
-		SCOREBOARD_DrawMyRank( );
+	// Draw my rank and my frags, points, etc.
+	if ( gamestate == GS_LEVEL )
+		scoreboard_DrawMyRank( ulPlayerNum );
 	
-	/*===============================
-	Draw the player list and its data
-	================================*/
-		// First, determine how many columns we can use, based on our screen resolution.
-		int IdealColumns = 3;
-		if( bScale ) {
-			if(ValWidth.Int > 480)
-				IdealColumns = 4;
-		}
-		else {
-			if(SCREENWIDTH >= 480)
-				IdealColumns = 4;
-			if(SCREENWIDTH >= 800)
-				IdealColumns = 5;
-		}
+	// Draw the player list and its data.
+	// First, determine how many columns we can use, based on our screen resolution.
+	ulNumIdealColumns = 3;
+	if ( g_bScale )
+	{
+		if ( g_ValWidth.Int >= 480 )
+			ulNumIdealColumns = 4;
+		if ( g_ValWidth.Int >= 800 )
+			ulNumIdealColumns = 5;
+	}
+	else
+	{
+		if ( SCREENWIDTH >= 480 )
+			ulNumIdealColumns = 4;
+		if ( SCREENWIDTH >= 800 )
+			ulNumIdealColumns = 5;
+	}
 
-		if((IdealColumns == 5) && !(teamgame || possession || teampossession || ctf || skulltag || teamlms || lastmanstanding))
-			IdealColumns = 4;
-		if(IdealColumns == 5)
-			SCOREBOARD_Prepare5ColumnDisplay( );
-		else if(IdealColumns == 4)
-			SCOREBOARD_Prepare4ColumnDisplay( );
-		else
-			SCOREBOARD_Prepare3ColumnDisplay( );
+	if (( ulNumIdealColumns == 5 ) && !( teamgame || possession || teampossession || ctf || skulltag || teamlms || lastmanstanding ))
+		ulNumIdealColumns = 4;
 
-		// Draw the headers, list, entries, everything.
-		SCOREBOARD_DrawRankings( );
+	if ( ulNumIdealColumns == 5 )
+		scoreboard_Prepare5ColumnDisplay( );
+	else if( ulNumIdealColumns == 4 )
+		scoreboard_Prepare4ColumnDisplay( );
+	else
+		scoreboard_Prepare3ColumnDisplay( );
 
+	// Draw the headers, list, entries, everything.
+	scoreboard_DrawRankings( );
 }
 
 //*****************************************************************************
@@ -2315,6 +1152,19 @@ void SCOREBOARD_RenderTeamStats( player_s *pPlayer )
 
 //*****************************************************************************
 //
+void SCOREBOARD_RenderInvasionStats( void )
+{
+	char			szString[128];
+	DHUDMessage		*pMsg;
+
+	sprintf( szString, "WAVE: %d  MONSTERS: %d  ARCH-VILES: %d", INVASION_GetCurrentWave( ), INVASION_GetNumMonstersLeft( ), INVASION_GetNumArchVilesLeft( ));
+	pMsg = new DHUDMessage( szString, 0.5f, 0.075f, 0, 0, CR_RED, 0.1f );
+
+	StatusBar->AttachMessage( pMsg, 'INVS' );
+}
+
+//*****************************************************************************
+//
 void SCOREBOARD_RenderInVoteClassic( void )
 {
 	char				szString[128];
@@ -2425,9 +1275,13 @@ void SCOREBOARD_RenderInVoteClassic( void )
 	}
 }
 
-void SCOREBOARD_RenderInVote( void ) // [RC] New compact version; RenderInVoteClassic is the fullscreen version
+//*****************************************************************************
+// [RC] New compact version; RenderInVoteClassic is the fullscreen version
+void SCOREBOARD_RenderInVote( void )
 {
 	char				szString[128];
+	char				szKeyYes[16];
+	char				szKeyNo[16];
 	ULONG				ulCurYPos = 0;
 	ULONG				ulIdx;
 	ULONG				ulNumYes;
@@ -2459,8 +1313,7 @@ void SCOREBOARD_RenderInVote( void ) // [RC] New compact version; RenderInVoteCl
 		szString,
 		DTA_Clean, true, TAG_DONE );
 
-
-	// Count how many players voted for what.
+	// Get how many players voted for what.
 	pulPlayersWhoVotedYes = CALLVOTE_GetPlayersWhoVotedYes( );
 	pulPlayersWhoVotedNo = CALLVOTE_GetPlayersWhoVotedNo( );
 	ulNumYes = 0;
@@ -2474,29 +1327,26 @@ void SCOREBOARD_RenderInVote( void ) // [RC] New compact version; RenderInVoteCl
 			ulNumNo++;
 	}
 
-	// Render the numbers
+	// Render the numbers.
 	ulCurYPos += 8;
-	sprintf( szString, "Yes: %d, No: %d",  ulNumYes, ulNumNo);
+	sprintf( szString, "Yes: %d, No: %d",  ulNumYes, ulNumNo );
 	screen->DrawText( CR_DARKBROWN,
 		160 - ( SmallFont->StringWidth( szString ) / 2 ),
 		ulCurYPos,
 		szString,
 		DTA_Clean, true, TAG_DONE );
 
-	// Render the explanation of keys
+	// Render the explanation of keys.
 	ulCurYPos += 8;
-	char	szKeyYes[16];
-	char	szKeyNo[16];
 
-	C_FindBind("vote_yes", szKeyYes);
-	C_FindBind("vote_no", szKeyNo);
+	C_FindBind( "vote_yes", szKeyYes );
+	C_FindBind( "vote_no", szKeyNo );
 	sprintf( szString, "%s | %s", szKeyYes, szKeyNo);
 	screen->DrawText( CR_BLACK,
 		160 - ( SmallFont->StringWidth( szString ) / 2 ),
 		ulCurYPos,
 		szString,
 		DTA_Clean, true, TAG_DONE );
-
 }
 
 //*****************************************************************************
@@ -3104,7 +1954,7 @@ void SCOREBOARD_DisplayFragMessage( player_s *pFraggedPlayer )
 	{
 		LONG	lMenLeftStanding;
 
-		lMenLeftStanding = LASTMANSTANDING_CountMenStanding( ) - 1;
+		lMenLeftStanding = GAME_CountLivingPlayers( ) - 1;
 		sprintf( szString, "%d opponent%s left standing", lMenLeftStanding, ( lMenLeftStanding != 1 ) ? "s" : "" );
 
 		V_ColorizeString( szString );
@@ -3320,13 +2170,16 @@ void SCOREBOARD_RefreshHUD( void )
 
 		//  "x opponents left", "x allies alive", etc
 		if ( lastmanstanding )
-			g_lNumOpponentsLeft = LASTMANSTANDING_CountMenStanding( ) - 1;
-		if ( teamlms ) {
+			g_lNumOpponentsLeft = GAME_CountLivingPlayers( ) - 1;
+
+		if ( teamlms )
+		{
 			g_lNumOpponentsLeft = LASTMANSTANDING_TeamCountEnemiesStanding( players[consoleplayer].ulTeam );
 			g_lNumAlliesLeft = LASTMANSTANDING_TeamCountMenStanding( players[consoleplayer].ulTeam) - 1;
 		}
+
 		if ( survival )
-		g_lNumAlliesLeft = GAME_CountLivingPlayers( ) - 1;
+			g_lNumAlliesLeft = GAME_CountLivingPlayers( ) - 1;
 	}
 }
 
@@ -3349,6 +2202,126 @@ ULONG SCOREBOARD_GetRank( void )
 LONG SCOREBOARD_GetSpread( void )
 {
 	return ( g_lSpread );
+}
+
+//*****************************************************************************
+//
+LONG SCOREBOARD_GetLeftToLimit( void )
+{
+	ULONG	ulIdx;
+
+	// If we're not in a level, then clearly there's no need for this.
+	if ( gamestate == GS_LEVEL )
+		return ( 0 );
+
+	// FRAG-based mode.
+	if (( lastmanstanding == false ) && ( teamlms == false ) && ( possession == false ) && ( teampossession == false ) && deathmatch && ( fraglimit > 0 ))
+	{
+		LONG	lHighestFragcount;
+		
+		// If we're in a teamplay, just go by whichever team has the most frags.
+		if ( teamplay )
+		{
+			if ( TEAM_GetFragCount( TEAM_BLUE ) >= TEAM_GetFragCount( TEAM_RED ))
+				lHighestFragcount = TEAM_GetFragCount( TEAM_BLUE );
+			else
+				lHighestFragcount = TEAM_GetFragCount( TEAM_RED );
+		}
+		// Otherwise, find the player with the most frags.
+		else
+		{
+			lHighestFragcount = INT_MIN;
+			for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+			{
+				if ( playeringame[ulIdx] == false )
+					continue;
+
+				if ( players[ulIdx].fragcount > lHighestFragcount )
+					lHighestFragcount = players[ulIdx].fragcount;
+			}
+		}
+
+		return ( fraglimit - lHighestFragcount );
+	}
+	// POINT-based mode.
+	else if (( teamgame || possession || teampossession ) && ( pointlimit > 0 ))
+	{
+		ULONG	ulPointsLeft;
+		ULONG	ulBluePoints;
+		ULONG	ulRedPoints;
+		ULONG	ulIdx;
+		LONG	lHighestPointCount;
+
+		if ( teamgame || teampossession )
+		{
+			ulBluePoints = TEAM_GetScore( TEAM_BLUE );
+			ulRedPoints = TEAM_GetScore( TEAM_RED );
+
+			ulPointsLeft = pointlimit - (( ulBluePoints >= ulRedPoints ) ? ulBluePoints : ulRedPoints );
+		}
+		// Must be possession mode.
+		else
+		{
+			lHighestPointCount = INT_MIN;
+			for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+			{
+				if ( playeringame[ulIdx] == false )
+					continue;
+
+				if ( (LONG)players[ulIdx].lPointCount > lHighestPointCount )
+					lHighestPointCount = players[ulIdx].lPointCount;
+			}
+
+			ulPointsLeft = pointlimit - (ULONG)lHighestPointCount;
+		}
+		return ulPointsLeft;
+	}
+	// KILL-based mode.
+	else if (( deathmatch == false ) && ( teamgame == false ))
+	{
+		if ( invasion )
+			return (LONG)INVASION_GetNumMonstersLeft( );
+		else
+			return ( level.total_monsters - level.killed_monsters );
+	}
+	// WIN-based mode (LMS).
+	else if (( lastmanstanding || teamlms ) && ( winlimit > 0 ))
+	{
+		bool	bFoundPlayer = false;
+		LONG	lHighestWincount;
+
+		// If we're in a teamplay, just go by whichever team has the most frags.
+		if ( teamlms )
+		{
+			if ( TEAM_GetWinCount( TEAM_BLUE ) >= TEAM_GetWinCount( TEAM_RED ))
+				lHighestWincount = TEAM_GetWinCount( TEAM_BLUE );
+			else
+				lHighestWincount = TEAM_GetWinCount( TEAM_RED );
+		}
+		// Otherwise, find the player with the most frags.
+		else
+		{
+			for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+			{
+				if ( playeringame[ulIdx] == false )
+					continue;
+
+				if ( bFoundPlayer == false )
+				{
+					lHighestWincount = players[ulIdx].ulWins;
+					bFoundPlayer = true;
+					continue;
+				}
+				else if ( players[ulIdx].ulWins > (ULONG)lHighestWincount )
+					lHighestWincount = players[ulIdx].ulWins;
+			}
+		}
+
+		return ( winlimit - lHighestWincount );
+	}
+
+	// None of the above.
+	return ( -1 );
 }
 
 //*****************************************************************************
@@ -3408,246 +2381,1336 @@ static int STACK_ARGS scoreboard_WinsCompareFunc( const void *arg1, const void *
 
 //*****************************************************************************
 //
-static void scoreboard_RenderIndividualPlayer( ULONG pIdx )
+static void scoreboard_RenderIndividualPlayer( ULONG ulPlayer )
 {
-	char		szPatchName[9];
-	char		szTextToPrint[64];
+	ULONG	ulIdx;
+	ULONG	ulColor;
+	char	szPatchName[9];
+	char	szString[64];
 
 	// Draw the data for each column.
-	for(int i = 0; i < columns_used; i++) {
-		sprintf(szTextToPrint, "");
+	for( ulIdx = 0; ulIdx < g_ulNumColumnsUsed; ulIdx++ )
+	{
+		szString[0] = 0;
 
-		/*=======================
-		What color should we use?
-		=======================*/
-
-		ULONG ulColor = CR_GRAY;
-		if (( terminator ) && ( players[pIdx].Powers & PW_TERMINATORARTIFACT ))
+		ulColor = CR_GRAY;
+		if (( terminator ) && ( players[ulIdx].Powers & PW_TERMINATORARTIFACT ))
 			ulColor = CR_RED;
 
-		if ( players[pIdx].bOnTeam == true)
-			ulColor = TEAM_GetTextColor( players[pIdx].ulTeam );
-		else if ( pIdx == (int)ulPlayerNum )
+		if ( players[ulPlayer].bOnTeam == true )
+			ulColor = TEAM_GetTextColor( players[ulPlayer].ulTeam );
+		else if ( ulIdx == ulPlayer )
 			ulColor = demoplayback ? CR_GOLD : CR_GREEN;
 
-		/*==================================================
-		Determine what needs to be displayed in this column.
-		===================================================*/
+		// Determine what needs to be displayed in this column.
+		switch ( g_aulColumnType[ulIdx] )
+		{
+			case COLUMN_NAME:
 
-		switch(columns[i]) {
+				sprintf( szString, "%s", players[ulPlayer].userinfo.netname );
 
-			case COL_NAME:
-				sprintf(szTextToPrint, "%s", players[pIdx].userinfo.netname);
-				// Bot icon
-					if ( players[pIdx].bIsBot )
+				// Draw a chat icon if this player is chatting.
+				if ( players[ulPlayer].bChatting )
+				{
+					sprintf( szPatchName, "TLKMINI");
+
+					if ( g_bScale )
 					{
-						sprintf( szPatchName, "BOTSKIL%d", botskill.GetGenericRep( CVAR_Int ));
-
-						if ( bScale )
-						{
-							screen->DrawTexture( TexMan[szPatchName],
-								(LONG)(  columnsXPos[i] * fXScale ) - SmallFont->StringWidth("  ") - TexMan[szPatchName]->GetWidth( ),
-								ulCurYPos,
-								DTA_VirtualWidth, ValWidth.Int,
-								DTA_VirtualHeight, ValHeight.Int,
-								TAG_DONE );
-						}
-						else
-						{
-							screen->DrawTexture( TexMan[szPatchName],
-								(LONG)( columnsXPos[i] * CleanXfac ) - SmallFont->StringWidth("  ") - TexMan[szPatchName]->GetWidth( ),
-								ulCurYPos,
-								DTA_Clean,
-								bScale,
-								TAG_DONE );
-						}
+						screen->DrawTexture( TexMan[szPatchName],
+							(LONG)(  g_aulColumnX[ulIdx] * g_fXScale ) - SmallFont->StringWidth("  ") - TexMan[szPatchName]->GetWidth( ),
+							g_ulCurYPos - 1,
+							DTA_VirtualWidth, g_ValWidth.Int,
+							DTA_VirtualHeight, g_ValHeight.Int,
+							TAG_DONE );
 					}
-				// Chatting icon
-					else if ( players[pIdx].bChatting )
+					else
 					{
-						sprintf( szPatchName, "TLKMINI");
+						screen->DrawTexture( TexMan[szPatchName],
+							(LONG)( g_aulColumnX[ulIdx] * CleanXfac ) - SmallFont->StringWidth("  ") - TexMan[szPatchName]->GetWidth( ),
+							g_ulCurYPos - 1,
+							DTA_Clean,
+							g_bScale,
+							TAG_DONE );
+					}
+				}
+				// Draw a bot icon if this player is a bot.
+				else if ( players[ulPlayer].bIsBot )
+				{
+					sprintf( szPatchName, "BOTSKIL%d", botskill.GetGenericRep( CVAR_Int ));
 
-						if ( bScale )
-						{
-							screen->DrawTexture( TexMan[szPatchName],
-								(LONG)(  columnsXPos[i] * fXScale ) - SmallFont->StringWidth("  ") - TexMan[szPatchName]->GetWidth( ),
-								ulCurYPos - 1,
-								DTA_VirtualWidth, ValWidth.Int,
-								DTA_VirtualHeight, ValHeight.Int,
-								TAG_DONE );
-						}
-						else
-						{
-							screen->DrawTexture( TexMan[szPatchName],
-								(LONG)( columnsXPos[i] * CleanXfac ) - SmallFont->StringWidth("  ") - TexMan[szPatchName]->GetWidth( ),
-								ulCurYPos - 1,
-								DTA_Clean,
-								bScale,
-								TAG_DONE );
-						}
-					}
-				// Ready icon
-					if ( players[pIdx].bReadyToGoOn )
+					if ( g_bScale )
 					{
-						sprintf( szPatchName, "RDYTOGO" );
-						if ( bScale )
-						{
-							screen->DrawTexture( TexMan[szPatchName],
-								(LONG)( columnsXPos[i] * fXScale ) - SmallFont->StringWidth("  ") - TexMan[szPatchName]->GetWidth( ),
-								ulCurYPos - (( TexMan[szPatchName]->GetHeight( ) - SmallFont->GetHeight( )) / 2 ),
-								DTA_VirtualWidth, ValWidth.Int,
-								DTA_VirtualHeight, ValHeight.Int,
-								TAG_DONE );
-						}
-						else
-						{
-							screen->DrawTexture( TexMan[szPatchName],
-								(LONG)( columnsXPos[i] * CleanXfac ) - SmallFont->StringWidth("  ") - TexMan[szPatchName]->GetWidth( ),
-								ulCurYPos - (( TexMan[szPatchName]->GetHeight( ) - SmallFont->GetHeight( )) / 2 ),
-								TAG_DONE );
-						}
+						screen->DrawTexture( TexMan[szPatchName],
+							(LONG)(  g_aulColumnX[ulIdx] * g_fXScale ) - SmallFont->StringWidth("  ") - TexMan[szPatchName]->GetWidth( ),
+							g_ulCurYPos,
+							DTA_VirtualWidth, g_ValWidth.Int,
+							DTA_VirtualHeight, g_ValHeight.Int,
+							TAG_DONE );
 					}
+					else
+					{
+						screen->DrawTexture( TexMan[szPatchName],
+							(LONG)( g_aulColumnX[ulIdx] * CleanXfac ) - SmallFont->StringWidth("  ") - TexMan[szPatchName]->GetWidth( ),
+							g_ulCurYPos,
+							DTA_Clean,
+							g_bScale,
+							TAG_DONE );
+					}
+				}
+				// Draw an icon if this player is a ready to go on.
+				else if ( players[ulPlayer].bReadyToGoOn )
+				{
+					sprintf( szPatchName, "RDYTOGO" );
+					if ( g_bScale )
+					{
+						screen->DrawTexture( TexMan[szPatchName],
+							(LONG)( g_aulColumnX[ulIdx] * g_fXScale ) - SmallFont->StringWidth("  ") - TexMan[szPatchName]->GetWidth( ),
+							g_ulCurYPos - (( TexMan[szPatchName]->GetHeight( ) - SmallFont->GetHeight( )) / 2 ),
+							DTA_VirtualWidth, g_ValWidth.Int,
+							DTA_VirtualHeight, g_ValHeight.Int,
+							TAG_DONE );
+					}
+					else
+					{
+						screen->DrawTexture( TexMan[szPatchName],
+							(LONG)( g_aulColumnX[ulIdx] * CleanXfac ) - SmallFont->StringWidth("  ") - TexMan[szPatchName]->GetWidth( ),
+							g_ulCurYPos - (( TexMan[szPatchName]->GetHeight( ) - SmallFont->GetHeight( )) / 2 ),
+							TAG_DONE );
+					}
+				}
+
 				// Handicap text
-					if ( players[pIdx].userinfo.lHandicap > 0 )
+				if ( players[ulPlayer].userinfo.lHandicap > 0 )
+				{
+					char	szHandicapString[8];
+
+					if ( lastmanstanding || teamlms )
 					{
-						char	szHandicapString[8];
-
-						if ( lastmanstanding || teamlms )
-						{
-							if (( deh.MaxSoulsphere - (LONG)players[pIdx].userinfo.lHandicap ) < 1 )
-								sprintf( szHandicapString, "(1)" );
-							else
-								sprintf( szHandicapString, "(%d)", deh.MaxArmor - (LONG)players[pIdx].userinfo.lHandicap );
-						}
+						if (( deh.MaxSoulsphere - (LONG)players[ulPlayer].userinfo.lHandicap ) < 1 )
+							sprintf( szHandicapString, "(1)" );
 						else
-						{
-							if (( deh.StartHealth - (LONG)players[pIdx].userinfo.lHandicap ) < 1 )
-								sprintf( szHandicapString, "(1)" );
-							else
-								sprintf( szHandicapString, "(%d)", deh.StartHealth - (LONG)players[pIdx].userinfo.lHandicap );
-						}
-						
-						if ( bScale )
-						{
-							screen->DrawText( ulColor,
-								(LONG)( columnsXPos[i] * fXScale ) - SmallFont->StringWidth (" ") - SmallFont->StringWidth( szHandicapString ),
-								ulCurYPos,
-								szHandicapString,
-								DTA_VirtualWidth, ValWidth.Int,
-								DTA_VirtualHeight, ValHeight.Int,
-								TAG_DONE );
-						}
-						else
-						{
-							screen->DrawText( ulColor,
-								(LONG)( columnsXPos[i] * CleanXfac ) - SmallFont->StringWidth (" ") - SmallFont->StringWidth( szHandicapString ),
-								ulCurYPos,
-								szHandicapString,
-								DTA_Clean,
-								bScale,
-								TAG_DONE );
-						}
+							sprintf( szHandicapString, "(%d)", deh.MaxArmor - (LONG)players[ulPlayer].userinfo.lHandicap );
 					}
+					else
+					{
+						if (( deh.StartHealth - (LONG)players[ulPlayer].userinfo.lHandicap ) < 1 )
+							sprintf( szHandicapString, "(1)" );
+						else
+							sprintf( szHandicapString, "(%d)", deh.StartHealth - (LONG)players[ulPlayer].userinfo.lHandicap );
+					}
+					
+					if ( g_bScale )
+					{
+						screen->DrawText( ulColor,
+							(LONG)( g_aulColumnX[ulIdx] * g_fXScale ) - SmallFont->StringWidth (" ") - SmallFont->StringWidth( szHandicapString ),
+							g_ulCurYPos,
+							szHandicapString,
+							DTA_VirtualWidth, g_ValWidth.Int,
+							DTA_VirtualHeight, g_ValHeight.Int,
+							TAG_DONE );
+					}
+					else
+					{
+						screen->DrawText( ulColor,
+							(LONG)( g_aulColumnX[ulIdx] * CleanXfac ) - SmallFont->StringWidth (" ") - SmallFont->StringWidth( szHandicapString ),
+							g_ulCurYPos,
+							szHandicapString,
+							DTA_Clean,
+							g_bScale,
+							TAG_DONE );
+					}
+				}
+				break;
+			case COLUMN_TIME:	
+
+				sprintf( szString, "%d", players[ulPlayer].ulTime / ( TICRATE * 60 ));
+				break;
+			case COLUMN_PING:
+
+				sprintf( szString, "%d", players[ulPlayer].ulPing );
+				break;
+			case COLUMN_FRAGS:
+
+				sprintf( szString, "%d", players[ulPlayer].fragcount );
+
+				// If the player isn't really playing, change this.
+				if(!players[ulPlayer].bOnTeam && teamplay)
+					sprintf(szString, "NO TEAM");
+				if(PLAYER_IsTrueSpectator( &players[ulPlayer] ))
+					sprintf(szString, "SPECT");
+				break;
+			case COLUMN_POINTS:
+
+				sprintf( szString, "%d", players[ulPlayer].lPointCount );
+				
+				// If the player isn't really playing, change this.
+				if(!players[ulPlayer].bOnTeam)
+					sprintf(szString, "NO TEAM");
+				if(PLAYER_IsTrueSpectator( &players[ulPlayer] ))
+					sprintf(szString, "SPECT");
 				break;
 
-			case COL_TIME:	
-				sprintf( szTextToPrint, "%d", players[pIdx].ulTime / (TICRATE * 60));
+			case COLUMN_POINTSASSISTS:
+				sprintf(szString, "%d / %d", players[ulPlayer].lPointCount, players[ulPlayer].ulMedalCount[14]);
+
+				// If the player isn't really playing, change this.
+				if(!players[ulPlayer].bOnTeam)
+					sprintf(szString, "NO TEAM");
+				if(PLAYER_IsTrueSpectator( &players[ulPlayer] ))
+					sprintf(szString, "SPECT");
 				break;
 
-			case COL_PING:
-				sprintf(szTextToPrint, "%d", players[pIdx].ulPing);
+			case COLUMN_DEATHS:
+				sprintf(szString, "%d", players[ulPlayer].ulDeathCount);
 				break;
 
-			case COL_FRAGS:
-				sprintf(szTextToPrint, "%d", players[pIdx].fragcount);
+			case COLUMN_WINS:
+				sprintf(szString, "%d", players[ulPlayer].ulWins);
 					// If the player isn't really playing, change this.
-					if(!players[pIdx].bOnTeam && teamplay)
-						sprintf(szTextToPrint, "NO TEAM");
-					if(PLAYER_IsTrueSpectator( &players[pIdx] ))
-						sprintf(szTextToPrint, "SPECT");
+					if(!players[ulPlayer].bOnTeam && teamlms)
+						sprintf(szString, "NO TEAM");
+					if(PLAYER_IsTrueSpectator( &players[ulPlayer] ))
+						sprintf(szString, "SPECT");
+					if((players[ulPlayer].health <= 0) && (gamestate != GS_INTERMISSION))
+						sprintf(szString, "DEAD");
 				break;
 
-			case COL_POINTS:
-				sprintf(szTextToPrint, "%d", players[pIdx].lPointCount);
+			case COLUMN_KILLS:
+				sprintf(szString, "%d", players[ulPlayer].killcount);
 					// If the player isn't really playing, change this.
-					if(!players[pIdx].bOnTeam)
-						sprintf(szTextToPrint, "NO TEAM");
-					if(PLAYER_IsTrueSpectator( &players[pIdx] ))
-						sprintf(szTextToPrint, "SPECT");
+					if(PLAYER_IsTrueSpectator( &players[ulPlayer] ))
+						sprintf(szString, "SPECT");
+					if((players[ulPlayer].health <= 0) && (gamestate != GS_INTERMISSION))
+						sprintf(szString, "DEAD");
 				break;
-
-			case COL_POINTSASSISTS:
-				sprintf(szTextToPrint, "%d / %d", players[pIdx].lPointCount, players[pIdx].ulMedalCount[14]);
+			case COLUMN_SECRETS:
+				sprintf(szString, "%d", players[ulPlayer].secretcount);
 					// If the player isn't really playing, change this.
-					if(!players[pIdx].bOnTeam)
-						sprintf(szTextToPrint, "NO TEAM");
-					if(PLAYER_IsTrueSpectator( &players[pIdx] ))
-						sprintf(szTextToPrint, "SPECT");
-				break;
-
-			case COL_DEATHS:
-				sprintf(szTextToPrint, "%d", players[pIdx].ulDeathCount);
-				break;
-
-			case COL_WINS:
-				sprintf(szTextToPrint, "%d", players[pIdx].ulWins);
-					// If the player isn't really playing, change this.
-					if(!players[pIdx].bOnTeam && teamlms)
-						sprintf(szTextToPrint, "NO TEAM");
-					if(PLAYER_IsTrueSpectator( &players[pIdx] ))
-						sprintf(szTextToPrint, "SPECT");
-					if((players[pIdx].health <= 0) && (gamestate != GS_INTERMISSION))
-						sprintf(szTextToPrint, "DEAD");
-				break;
-
-			case COL_KILLS:
-				sprintf(szTextToPrint, "%d", players[pIdx].killcount);
-					// If the player isn't really playing, change this.
-					if(PLAYER_IsTrueSpectator( &players[pIdx] ))
-						sprintf(szTextToPrint, "SPECT");
-					if((players[pIdx].health <= 0) && (gamestate != GS_INTERMISSION))
-						sprintf(szTextToPrint, "DEAD");
-				break;
-			case COL_SECRETS:
-				sprintf(szTextToPrint, "%d", players[pIdx].secretcount);
-					// If the player isn't really playing, change this.
-					if(PLAYER_IsTrueSpectator( &players[pIdx] ))
-						sprintf(szTextToPrint, "SPECT");
-					if((players[pIdx].health <= 0) && (gamestate != GS_INTERMISSION))
-						sprintf(szTextToPrint, "DEAD");
+					if(PLAYER_IsTrueSpectator( &players[ulPlayer] ))
+						sprintf(szString, "SPECT");
+					if((players[ulPlayer].health <= 0) && (gamestate != GS_INTERMISSION))
+						sprintf(szString, "DEAD");
 				break;
 				
 		}
 
-		/*=======
-		Print it!
-		=======*/
-		if( strcmp(szTextToPrint, "") != 0) {
-			if( bScale ) {
+		if ( szString[0] != 0 )
+		{
+			if ( g_bScale )
+			{
 				screen->DrawText( ulColor,
-						(LONG)( columnsXPos[i] * fXScale ),
-						ulCurYPos,
-						szTextToPrint,
-						DTA_VirtualWidth, ValWidth.Int,
-						DTA_VirtualHeight, ValHeight.Int,
-						TAG_DONE );
-				}
-			else {
-				screen->DrawText( ulColor,
-						(LONG)( columnsXPos[i] * CleanXfac ),
-						ulCurYPos,
-						szTextToPrint,
+						(LONG)( g_aulColumnX[ulIdx] * g_fXScale ),
+						g_ulCurYPos,
+						szString,
+						DTA_VirtualWidth, g_ValWidth.Int,
+						DTA_VirtualHeight, g_ValHeight.Int,
 						TAG_DONE );
 			}
+			else
+			{
+				screen->DrawText( ulColor,
+						(LONG)( g_aulColumnX[ulIdx] * CleanXfac ),
+						g_ulCurYPos,
+						szString,
+						TAG_DONE );
+			}
+		}
+	}
+}
 
+//*****************************************************************************
+//
+static void scoreboard_DrawHeader( void )
+{
+	g_ulCurYPos = 4;
+
+	// Don't draw it if we're in intermission.
+	if ( gamestate == GS_LEVEL )
+	{
+		screen->SetFont( BigFont );
+
+		if ( g_bScale )
+		{
+			screen->DrawText( gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
+				(LONG)(( g_ValWidth.Int / 2 ) - ( BigFont->StringWidth( "RANKINGS" ) / 2 )),
+				g_ulCurYPos,
+				"RANKINGS",
+				DTA_VirtualWidth, g_ValWidth.Int,
+				DTA_VirtualHeight, g_ValHeight.Int,
+				TAG_DONE );
+		}
+		else
+		{
+			screen->DrawText( gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
+				( SCREENWIDTH / 2 ) - ( BigFont->StringWidth( "RANKINGS" ) / 2 ),
+				g_ulCurYPos,
+				"RANKINGS",
+				TAG_DONE );
+		}
+
+		screen->SetFont( SmallFont );
+	}
+
+	g_ulCurYPos += 22;
+}
+
+//*****************************************************************************
+//
+static void scoreboard_DrawLimits( void )
+{
+	LONG	lNumDuels;
+	LONG	lWinner;
+	LONG	lFragsLeft;
+	ULONG	ulIdx;
+	bool	bDraw;
+	char	szString[128];
+
+	if (( lastmanstanding == false ) && ( teamlms == false ) && ( possession == false ) && ( teampossession == false ) && deathmatch && fraglimit )
+	{
+		lFragsLeft = SCOREBOARD_GetLeftToLimit( );
+
+		if ( lFragsLeft > 0 )
+		{
+			if ( lFragsLeft < 0 )
+				lFragsLeft = 0;
+
+			sprintf( szString, "%d frag%s remain%s", lFragsLeft, ( lFragsLeft != 1 ) ? "s" : "", ( lFragsLeft == 1 ) ? "s" : "" );
+
+			if ( g_bScale )
+			{
+				screen->DrawText( CR_GREY,
+					(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
+					g_ulCurYPos,
+					szString,
+					DTA_VirtualWidth, g_ValWidth.Int,
+					DTA_VirtualHeight, g_ValHeight.Int,
+					TAG_DONE );
+			}
+			else
+			{
+				screen->DrawText( CR_GREY,
+					( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
+					g_ulCurYPos,
+					szString,
+					TAG_DONE );
+			}
+
+			g_ulCurYPos += 10;
+		}
+	}
+
+	// Render the duellimit string.
+	if ( duellimit && duel )
+	{
+		// Get the number of duels that have been played.
+		lNumDuels = DUEL_GetNumDuels( );
+
+		sprintf( szString, "%d duel%s remain%s", duellimit - lNumDuels, (( duellimit - lNumDuels ) == 1 ) ? "" : "s", (( duellimit - lNumDuels ) == 1 ) ? "s" : "" );
+
+		if ( g_bScale )
+		{
+			screen->DrawText( CR_GREY,
+				(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
+				g_ulCurYPos,
+				szString,
+				DTA_VirtualWidth, g_ValWidth.Int,
+				DTA_VirtualHeight, g_ValHeight.Int,
+				TAG_DONE );
+		}
+		else
+		{
+			screen->DrawText( CR_GREY,
+				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
+				g_ulCurYPos,
+				szString,
+				TAG_DONE );
+		}
+
+		g_ulCurYPos += 10;
+	}
+
+	// Render the "wins" string.
+	if ( duel && gamestate == GS_LEVEL )
+	{
+		lWinner = -1;
+		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+		{
+			if ( playeringame[ulIdx] && players[ulIdx].ulWins )
+			{
+				lWinner = ulIdx;
+				break;
+			}
+		}
+
+		bDraw = true;
+		if ( lWinner == -1 )
+		{
+			if ( DUEL_CountActiveDuelers( ) == 2 )
+				sprintf( szString, "First match between the two" );
+			else
+				bDraw = false;
+		}
+		else
+			sprintf( szString, "Champion is %s \\c-with %d win%s", players[lWinner].userinfo.netname, players[lWinner].ulWins, players[lWinner].ulWins == 1 ? "" : "s" );
+
+		if ( bDraw )
+		{
+			V_ColorizeString( szString );
+
+			if ( g_bScale )
+			{
+				screen->DrawText( CR_GREY,
+					(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
+					g_ulCurYPos,
+					szString,
+					DTA_VirtualWidth, g_ValWidth.Int,
+					DTA_VirtualHeight, g_ValHeight.Int,
+					TAG_DONE );
+			}
+			else
+			{
+				screen->DrawText( CR_GREY,
+					( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
+					g_ulCurYPos,
+					szString,
+					TAG_DONE );
+			}
+			
+			g_ulCurYPos += 10;
+		}
+	}
+
+	// Render the pointlimit string.
+	if (( teamgame || possession || teampossession ) && ( pointlimit ) && ( gamestate == GS_LEVEL ))
+	{
+		ULONG	ulPointsLeft;
+		
+		ulPointsLeft = SCOREBOARD_GetLeftToLimit( );
+		if ( ulPointsLeft > 0 )
+		{
+			sprintf( szString, "%d point%s remain%s", ulPointsLeft, ( ulPointsLeft != 1 ) ? "s" : "", ( ulPointsLeft == 1 ) ? "s" : "" );
+
+			if ( g_bScale )
+			{
+				screen->DrawText( CR_GREY,
+					(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
+					g_ulCurYPos,
+					szString,
+					DTA_VirtualWidth, g_ValWidth.Int,
+					DTA_VirtualHeight, g_ValHeight.Int,
+					TAG_DONE );
+			}
+			else
+			{
+				screen->DrawText( CR_GREY,
+					( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
+					g_ulCurYPos,
+					szString,
+					TAG_DONE );
+			}
+
+			g_ulCurYPos += 10;
+		}
+	}
+
+	// Render the winlimit string.
+	if (( lastmanstanding || teamlms ) && winlimit && gamestate == GS_LEVEL )
+	{
+		ULONG	ulWinsLeft = SCOREBOARD_GetLeftToLimit( );
+		sprintf( szString, "%d win%s remain%s", ulWinsLeft, ( ulWinsLeft != 1 ) ? "s" : "", ( ulWinsLeft == 1 ) ? "s" : "" );
+		
+		if ( g_bScale )
+		{
+			screen->DrawText( CR_GREY,
+				(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
+				g_ulCurYPos,
+				szString,
+				DTA_VirtualWidth, g_ValWidth.Int,
+				DTA_VirtualHeight, g_ValHeight.Int,
+				TAG_DONE );
+		}
+		else
+		{
+			screen->DrawText( CR_GREY,
+				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
+				g_ulCurYPos,
+				szString,
+				TAG_DONE );
+		}
+
+		g_ulCurYPos += 10;
+	}
+
+	// Render the wavelimit string.
+	if ( invasion && wavelimit && gamestate == GS_LEVEL )
+	{
+		ULONG	ulWavesLeft;
+
+		ulWavesLeft = wavelimit - INVASION_GetCurrentWave( );
+		sprintf( szString, "%d wave%s remain%s", ulWavesLeft, ( ulWavesLeft != 1 ) ? "s" : "", ( ulWavesLeft == 1 ) ? "s" : "" );
+		
+		if ( g_bScale )
+		{
+			screen->DrawText( CR_GREY,
+				(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
+				g_ulCurYPos,
+				szString,
+				DTA_VirtualWidth, g_ValWidth.Int,
+				DTA_VirtualHeight, g_ValHeight.Int,
+				TAG_DONE );
+		}
+		else
+		{
+			screen->DrawText( CR_GREY,
+				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
+				g_ulCurYPos,
+				szString,
+				TAG_DONE );
+		}
+
+		g_ulCurYPos += 10;
+	}
+
+	// Render the timelimit string.
+	if (( deathmatch || teamgame ) && timelimit && gamestate == GS_LEVEL )
+	{
+		LONG	lTimeLeft = (LONG)( timelimit * ( TICRATE * 60 )) - level.time;
+		ULONG	ulHours;
+		ULONG	ulMinutes;
+		ULONG	ulSeconds;
+
+		if ( lTimeLeft <= 0 )
+			ulHours = ulMinutes = ulSeconds = 0;
+		else
+		{
+			ulHours = lTimeLeft / ( TICRATE * 3600 );
+			lTimeLeft -= ulHours * TICRATE * 3600;
+			ulMinutes = lTimeLeft / ( TICRATE * 60 );
+			lTimeLeft -= ulMinutes * TICRATE * 60;
+			ulSeconds = lTimeLeft / TICRATE;
+		}
+
+		if ( lastmanstanding || teamlms )
+		{
+			if ( ulHours )
+				sprintf( szString, "Round ends in %02d:%02d:%02d", ulHours, ulMinutes, ulSeconds );
+			else
+				sprintf( szString, "Round ends in %02d:%02d", ulMinutes, ulSeconds );
+		}
+		else
+		{
+			if ( ulHours )
+				sprintf( szString, "Level ends in %02d:%02d:%02d", ulHours, ulMinutes, ulSeconds );
+			else
+				sprintf( szString, "Level ends in %02d:%02d", ulMinutes, ulSeconds );
+		}
+		
+		if ( g_bScale )
+		{
+			screen->DrawText( CR_GREY,
+				(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
+				g_ulCurYPos,
+				szString,
+				DTA_VirtualWidth, g_ValWidth.Int,
+				DTA_VirtualHeight, g_ValHeight.Int,
+				TAG_DONE );
+		}
+		else
+		{
+			screen->DrawText( CR_GREY,
+				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
+				g_ulCurYPos,
+				szString,
+				TAG_DONE );
+		}
+
+		g_ulCurYPos += 10;
+	}
+
+	// Render the number of monsters left in coop.
+	if (( deathmatch == false ) && ( teamgame == false ) && ( gamestate == GS_LEVEL ))
+	{
+		LONG	lNumMonstersRemaining = SCOREBOARD_GetLeftToLimit( );
+		sprintf( szString, "%d monster%s remaining", lNumMonstersRemaining, lNumMonstersRemaining == 1 ? "" : "s" );
+		
+		if ( g_bScale )
+		{
+			screen->DrawText( CR_GREY,
+				(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
+				g_ulCurYPos,
+				szString,
+				DTA_VirtualWidth, g_ValWidth.Int,
+				DTA_VirtualHeight, g_ValHeight.Int,
+				TAG_DONE );
+		}
+		else
+		{
+			screen->DrawText( CR_GREY,
+				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
+				g_ulCurYPos,
+				szString,
+				TAG_DONE );
+		}
+
+		g_ulCurYPos += 10;
+	}
+}
+
+//*****************************************************************************
+//
+static void scoreboard_DrawTeamScores( ULONG ulPlayer )
+{
+	char	szString[128];
+
+	if ( teamplay || teamgame || teamlms || teampossession )
+	{
+		if ( gamestate == GS_LEVEL )
+		{
+			if ( teamplay )
+			{
+				// If the teams are tied...
+				if ( TEAM_GetFragCount( TEAM_RED ) == TEAM_GetFragCount( TEAM_BLUE ))
+				{
+					sprintf( szString, "Teams are tied at %d\n", TEAM_GetFragCount( TEAM_RED ));
+					if ( g_bScale )
+					{
+						screen->DrawText( CR_GREY,
+							(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
+							g_ulCurYPos,
+							szString,
+							DTA_VirtualWidth, g_ValWidth.Int,
+							DTA_VirtualHeight, g_ValHeight.Int,
+							TAG_DONE );
+					}
+					else
+					{
+						screen->DrawText( CR_GREY,
+							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
+							g_ulCurYPos,
+							szString,
+							TAG_DONE );
+					}
+				}
+				else
+				{
+					if ( TEAM_GetFragCount( TEAM_RED ) > TEAM_GetFragCount( TEAM_BLUE ))
+						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_RED ), TEAM_GetFragCount( TEAM_RED ), TEAM_GetFragCount( TEAM_BLUE ));
+					else
+						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_BLUE ), TEAM_GetFragCount( TEAM_BLUE ), TEAM_GetFragCount( TEAM_RED ));
+
+					if ( g_bScale )
+					{
+						screen->DrawText( CR_GREY,
+							(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
+							g_ulCurYPos,
+							szString,
+							DTA_VirtualWidth, g_ValWidth.Int,
+							DTA_VirtualHeight, g_ValHeight.Int,
+							TAG_DONE );
+					}
+					else
+					{
+						screen->DrawText( CR_GREY,
+							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
+							g_ulCurYPos,
+							szString,
+							TAG_DONE );
+					}
+				}
+			}
+			else if ( teamlms )
+			{
+				// If the teams are tied...
+				if ( TEAM_GetWinCount( TEAM_RED ) == TEAM_GetWinCount( TEAM_BLUE ))
+				{
+					sprintf( szString, "Teams are tied at %d\n", TEAM_GetWinCount( TEAM_RED ));
+					if ( g_bScale )
+					{
+						screen->DrawText( CR_GREY,
+							(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
+							g_ulCurYPos,
+							szString,
+							DTA_VirtualWidth, g_ValWidth.Int,
+							DTA_VirtualHeight, g_ValHeight.Int,
+							TAG_DONE );
+					}
+					else
+					{
+						screen->DrawText( CR_GREY,
+							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
+							g_ulCurYPos,
+							szString,
+							TAG_DONE );
+					}
+				}
+				else
+				{
+					if ( TEAM_GetWinCount( TEAM_RED ) > TEAM_GetWinCount( TEAM_BLUE ))
+						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_RED ), TEAM_GetWinCount( TEAM_RED ), TEAM_GetWinCount( TEAM_BLUE ));
+					else
+						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_BLUE ), TEAM_GetWinCount( TEAM_BLUE ), TEAM_GetWinCount( TEAM_RED ));
+
+					if ( g_bScale )
+					{
+						screen->DrawText( CR_GREY,
+							(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
+							g_ulCurYPos,
+							szString,
+							DTA_VirtualWidth, g_ValWidth.Int,
+							DTA_VirtualHeight, g_ValHeight.Int,
+							TAG_DONE );
+					}
+					else
+					{
+						screen->DrawText( CR_GREY,
+							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
+							g_ulCurYPos,
+							szString,
+							TAG_DONE );
+					}
+				}
+			}
+			else
+			{
+				// If the teams are tied...
+				if ( TEAM_GetScore( TEAM_RED ) == TEAM_GetScore( TEAM_BLUE ))
+				{
+					sprintf( szString, "Teams are tied at %d\n", TEAM_GetScore( TEAM_RED ));
+					if ( g_bScale )
+					{
+						screen->DrawText( CR_GREY,
+							(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
+							g_ulCurYPos,
+							szString,
+							DTA_VirtualWidth, g_ValWidth.Int,
+							DTA_VirtualHeight, g_ValHeight.Int,
+							TAG_DONE );
+					}
+					else
+					{
+						screen->DrawText( CR_GREY,
+							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
+							g_ulCurYPos,
+							szString,
+							TAG_DONE );
+					}
+				}
+				else
+				{
+					if ( TEAM_GetScore( TEAM_RED ) > TEAM_GetScore( TEAM_BLUE ))
+						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_RED ), TEAM_GetScore( TEAM_RED ), TEAM_GetScore( TEAM_BLUE ));
+					else
+						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_BLUE ), TEAM_GetScore( TEAM_BLUE ), TEAM_GetScore( TEAM_RED ));
+
+					if ( g_bScale )
+					{
+						screen->DrawText( CR_GREY,
+							(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
+							g_ulCurYPos,
+							szString,
+							DTA_VirtualWidth, g_ValWidth.Int,
+							DTA_VirtualHeight, g_ValHeight.Int,
+							TAG_DONE );
+					}
+					else
+					{
+						screen->DrawText( CR_GREY,
+							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
+							g_ulCurYPos,
+							szString,
+							TAG_DONE );
+					}
+				}
+			}
+
+			// Draw the team info information.
+			// If this variable is true, it's already been drawn. No need to do it again.
+			if ( cl_alwaysdrawteamstats == false )
+				SCOREBOARD_RenderTeamStats( &players[ulPlayer] );
+		}
+		else
+		{
+			g_ulCurYPos += 10;
+			if ( teamplay )
+			{
+				// If the teams are tied...
+				if ( TEAM_GetFragCount( TEAM_RED ) == TEAM_GetFragCount( TEAM_BLUE ))
+				{
+					sprintf( szString, "Teams tied at %d\n", TEAM_GetFragCount( TEAM_RED ));
+					if ( g_bScale )
+					{
+						screen->DrawText( CR_GREY,
+							(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
+							g_ulCurYPos,
+							szString,
+							DTA_VirtualWidth, g_ValWidth.Int,
+							DTA_VirtualHeight, g_ValHeight.Int,
+							TAG_DONE );
+					}
+					else
+					{
+						screen->DrawText( CR_GREY,
+							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
+							g_ulCurYPos,
+							szString,
+							TAG_DONE );
+					}
+				}
+				else
+				{
+					if ( TEAM_GetFragCount( TEAM_RED ) > TEAM_GetFragCount( TEAM_BLUE ))
+						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_RED ), TEAM_GetFragCount( TEAM_RED ), TEAM_GetFragCount( TEAM_BLUE ));
+					else
+						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_BLUE ), TEAM_GetFragCount( TEAM_BLUE ), TEAM_GetFragCount( TEAM_RED ));
+
+					if ( g_bScale )
+					{
+						screen->DrawText( CR_GREY,
+							(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
+							g_ulCurYPos,
+							szString,
+							DTA_VirtualWidth, g_ValWidth.Int,
+							DTA_VirtualHeight, g_ValHeight.Int,
+							TAG_DONE );
+					}
+					else
+					{
+						screen->DrawText( CR_GREY,
+							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
+							g_ulCurYPos,
+							szString,
+							TAG_DONE );
+					}
+				}
+			}
+			else if ( teamlms )
+			{
+				// If the teams are tied...
+				if ( TEAM_GetWinCount( TEAM_RED ) == TEAM_GetWinCount( TEAM_BLUE ))
+				{
+					sprintf( szString, "Teams tied at %d\n", TEAM_GetWinCount( TEAM_RED ));
+					if ( g_bScale )
+					{
+						screen->DrawText( CR_GREY,
+							(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
+							g_ulCurYPos,
+							szString,
+							DTA_VirtualWidth, g_ValWidth.Int,
+							DTA_VirtualHeight, g_ValHeight.Int,
+							TAG_DONE );
+					}
+					else
+					{
+						screen->DrawText( CR_GREY,
+							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
+							g_ulCurYPos,
+							szString,
+							TAG_DONE );
+					}
+				}
+				else
+				{
+					if ( TEAM_GetWinCount( TEAM_RED ) > TEAM_GetWinCount( TEAM_BLUE ))
+						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_RED ), TEAM_GetWinCount( TEAM_RED ), TEAM_GetWinCount( TEAM_BLUE ));
+					else
+						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_BLUE ), TEAM_GetWinCount( TEAM_BLUE ), TEAM_GetWinCount( TEAM_RED ));
+
+					if ( g_bScale )
+					{
+						screen->DrawText( CR_GREY,
+							(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
+							g_ulCurYPos,
+							szString,
+							DTA_VirtualWidth, g_ValWidth.Int,
+							DTA_VirtualHeight, g_ValHeight.Int,
+							TAG_DONE );
+					}
+					else
+					{
+						screen->DrawText( CR_GREY,
+							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
+							g_ulCurYPos,
+							szString,
+							TAG_DONE );
+					}
+				}
+			}
+			else
+			{
+				// If the teams are tied...
+				if ( TEAM_GetScore( TEAM_RED ) == TEAM_GetScore( TEAM_BLUE ))
+				{
+					sprintf( szString, "Teams tied at %d\n", TEAM_GetScore( TEAM_RED ));
+					if ( g_bScale )
+					{
+						screen->DrawText( CR_GREY,
+							(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
+							g_ulCurYPos,
+							szString,
+							DTA_VirtualWidth, g_ValWidth.Int,
+							DTA_VirtualHeight, g_ValHeight.Int,
+							TAG_DONE );
+					}
+					else
+					{
+						screen->DrawText( CR_GREY,
+							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
+							g_ulCurYPos,
+							szString,
+							TAG_DONE );
+					}
+				}
+				else
+				{
+					if ( TEAM_GetScore( TEAM_RED ) > TEAM_GetScore( TEAM_BLUE ))
+						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_RED ), TEAM_GetScore( TEAM_RED ), TEAM_GetScore( TEAM_BLUE ));
+					else
+						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_BLUE ), TEAM_GetScore( TEAM_BLUE ), TEAM_GetScore( TEAM_RED ));
+
+					if ( g_bScale )
+					{
+						screen->DrawText( CR_GREY,
+							(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
+							g_ulCurYPos,
+							szString,
+							DTA_VirtualWidth, g_ValWidth.Int,
+							DTA_VirtualHeight, g_ValHeight.Int,
+							TAG_DONE );
+					}
+					else
+					{
+						screen->DrawText( CR_GREY,
+							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
+							g_ulCurYPos,
+							szString,
+							TAG_DONE );
+					}
+				}
+			}
+		}
+
+		g_ulCurYPos += 10;
+	}
+}
+
+//*****************************************************************************
+//
+static void scoreboard_DrawMyRank( ULONG ulPlayer )
+{
+	char	szString[128];
+	bool	bIsTied;
+
+	// Render the current ranking string.
+	if ( deathmatch && ( teamplay == false ) && ( teamlms == false ) && ( teampossession == false ) && ( PLAYER_IsTrueSpectator( &players[ulPlayer] ) == false ))
+	{
+		bIsTied	= SCOREBOARD_IsTied( ulPlayer );
+
+		// If the player is tied with someone else, add a "tied for" to their string.
+		if ( bIsTied )
+			sprintf( szString, "Tied for " );
+		else
+			sprintf( szString, "" );
+
+		// Determine  what color and number to print for their rank.
+		switch ( g_ulRank )
+		{
+		case 0:
+
+			sprintf( szString, "%s\\cH1st ", szString );
+			break;
+		case 1:
+
+			sprintf( szString, "%s\\cG2nd ", szString );
+			break;
+		case 2:
+
+			sprintf( szString, "%s\\cD3rd ", szString );
+			break;
+		default:
+
+			sprintf( szString, "%s%dth ", szString, ( g_ulRank + 1 ));
+			break;
+		}
+
+		// Tack on the rest of the string.
+		if ( lastmanstanding )
+			sprintf( szString, "%s\\c-place with %d win%s", szString, players[ulPlayer].ulWins, players[ulPlayer].ulWins == 1 ? "" : "s" );
+		else if ( possession )
+			sprintf( szString, "%s\\c-place with %d point%s", szString, players[ulPlayer].lPointCount, players[ulPlayer].fragcount == 1 ? "" : "s" );
+		else
+			sprintf( szString, "%s\\c-place with %d frag%s", szString, players[ulPlayer].fragcount, players[ulPlayer].fragcount == 1 ? "" : "s" );
+		V_ColorizeString( szString );
+
+		if ( g_bScale )
+		{
+			screen->DrawText( CR_GREY,
+				(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
+				g_ulCurYPos,
+				szString,
+				DTA_VirtualWidth, g_ValWidth.Int,
+				DTA_VirtualHeight, g_ValHeight.Int,
+				TAG_DONE );
+		}
+		else
+		{
+			screen->DrawText( CR_GREY,
+				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
+				g_ulCurYPos,
+				szString,
+				TAG_DONE );
+		}
+
+		g_ulCurYPos += 10;
+	}
+}
+
+//*****************************************************************************
+//
+static void scoreboard_ClearColumns( void )
+{
+	ULONG	ulIdx;
+
+	for ( ulIdx = 0; ulIdx < MAX_COLUMNS; ulIdx++ )
+		g_aulColumnType[ulIdx] = COLUMN_EMPTY;
+
+	g_ulNumColumnsUsed = 0;
+}
+
+//*****************************************************************************
+//
+static void scoreboard_Prepare5ColumnDisplay( void )
+{
+	// Set all to empty.
+	scoreboard_ClearColumns( );
+
+	g_ulNumColumnsUsed = 5;
+	g_pColumnHeaderFont = BigFont;
+
+	// Set up the location of each column.
+	g_aulColumnX[0] = 8;
+	g_aulColumnX[1] = 48;
+	g_aulColumnX[2] = 96;
+	g_aulColumnX[3] = 212;
+	g_aulColumnX[4] = 272;
+
+	// Build columns for modes in which players try to earn points.
+	if ( teamgame || possession || teampossession || ctf || skulltag )
+	{
+		g_aulColumnType[0] = COLUMN_POINTS;
+		// [BC] Doesn't look like this is being used right now (at least not properly).
+/*
+		// Can have assists.
+		if ( ctf || skulltag )
+			g_aulColumnType[0] = COLUMN_POINTS;
+*/
+		g_aulColumnType[1] = COLUMN_FRAGS;
+		g_aulColumnType[2] = COLUMN_NAME;
+		g_aulColumnType[3] = COLUMN_DEATHS;
+		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+			g_aulColumnType[3] = COLUMN_PING;
+		g_aulColumnType[4] = COLUMN_TIME;
+
+		// Sort players based on their pointcount.
+		scoreboard_SortPlayers( ST_POINTCOUNT );
+	}
+
+	// Build columns for modes in which players try to earn wins.
+	if ( lastmanstanding || teamlms )
+	{
+		g_aulColumnType[0] = COLUMN_WINS;
+		g_aulColumnType[1] = COLUMN_FRAGS;
+		g_aulColumnType[2] = COLUMN_NAME;
+		g_aulColumnType[3] = COLUMN_EMPTY;
+		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+			g_aulColumnType[3] = COLUMN_PING;
+		g_aulColumnType[4] = COLUMN_TIME;
+
+		// Sort players based on their pointcount.
+		scoreboard_SortPlayers( ST_WINCOUNT );
+	}
+}
+
+//*****************************************************************************
+//
+static void scoreboard_Prepare4ColumnDisplay( void )
+{
+	// Set all to empty.
+	scoreboard_ClearColumns( );
+
+	g_ulNumColumnsUsed = 4;
+	g_pColumnHeaderFont = BigFont;
+
+	// Set up the location of each column.
+	g_aulColumnX[0] = 24;
+	g_aulColumnX[1] = 84;
+	g_aulColumnX[2] = 192;
+	g_aulColumnX[3] = 256;
+
+	// Build columns for modes in which players try to earn kills.
+	if ( cooperative || survival || invasion )
+	{
+		g_aulColumnType[0] = COLUMN_KILLS;
+		g_aulColumnType[1] = COLUMN_NAME;
+		g_aulColumnType[2] = COLUMN_DEATHS;
+		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+			g_aulColumnType[2] = COLUMN_PING;
+		g_aulColumnType[3] = COLUMN_TIME;
+
+		// Sort players based on their killcount.
+		scoreboard_SortPlayers( ST_KILLCOUNT );
+	}
+
+	// Build columns for modes in which players try to earn frags.
+	if ( deathmatch || teamplay )
+	{
+		g_aulColumnType[0] = COLUMN_FRAGS;
+		g_aulColumnType[1] = COLUMN_NAME;
+		g_aulColumnType[2] = COLUMN_DEATHS;
+		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+			g_aulColumnType[2] = COLUMN_PING;
+		g_aulColumnType[3] = COLUMN_TIME;
+
+		// Sort players based on their fragcount.
+		scoreboard_SortPlayers( ST_FRAGCOUNT );
+	}
+	
+	// Build columns for modes in which players try to earn points.
+	if ( teamgame || possession || teampossession || ctf || skulltag )
+	{
+//		if ( ctf || skulltag ) // Can have assists
+//			g_aulColumnType[0] = COL_POINTS;
+		g_aulColumnType[0] = COLUMN_POINTS;
+		g_aulColumnType[1] = COLUMN_NAME;
+		g_aulColumnType[2] = COLUMN_DEATHS;
+		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+			g_aulColumnType[2] = COLUMN_PING;
+		g_aulColumnType[3] = COLUMN_TIME;
+
+		// Sort players based on their pointcount.
+		scoreboard_SortPlayers( ST_POINTCOUNT );
+	}
+
+	// Build columns for modes in which players try to earn wins.
+	if ( lastmanstanding || teamlms )
+	{
+		g_aulColumnType[0] = COLUMN_WINS;
+		g_aulColumnType[1] = COLUMN_NAME;
+		g_aulColumnType[2] = COLUMN_FRAGS;
+		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+			g_aulColumnType[2] = COLUMN_PING;
+		g_aulColumnType[3] = COLUMN_TIME;
+
+		// Sort players based on their wincount.
+		scoreboard_SortPlayers( ST_WINCOUNT );
+	}
+}
+
+//*****************************************************************************
+//
+static void scoreboard_Prepare3ColumnDisplay( void )
+{
+	// Set all to empty.
+	scoreboard_ClearColumns( );
+
+	g_ulNumColumnsUsed = 3;
+	g_pColumnHeaderFont = SmallFont;
+
+	// Set up the location of each column.
+	g_aulColumnX[0] = 16;
+	g_aulColumnX[1] = 96;
+	g_aulColumnX[2] = 272;
+
+	// Build columns for modes in which players try to earn kills.
+	if ( cooperative || survival || invasion )
+	{
+		g_aulColumnType[0] = COLUMN_KILLS;
+		g_aulColumnType[1] = COLUMN_NAME;
+		g_aulColumnType[2] = COLUMN_TIME;
+
+		// Sort players based on their killcount.
+		scoreboard_SortPlayers( ST_KILLCOUNT );
+	}
+
+	// Build columns for modes in which players try to earn frags.
+	if ( deathmatch || teamplay )
+	{
+		g_aulColumnType[0] = COLUMN_FRAGS;
+		g_aulColumnType[1] = COLUMN_NAME;
+		g_aulColumnType[2] = COLUMN_TIME;
+
+		// Sort players based on their fragcount.
+		scoreboard_SortPlayers( ST_FRAGCOUNT );
+	}
+	
+	// Build columns for modes in which players try to earn points.
+	if ( teamgame || possession || teampossession || ctf || skulltag )
+	{
+//		if ( ctf || skulltag ) // Can have assists
+//			g_aulColumnType[0] = COL_POINTS;
+
+		g_aulColumnType[0] = COLUMN_POINTS;
+		g_aulColumnType[1] = COLUMN_NAME;
+		g_aulColumnType[2] = COLUMN_TIME;
+
+		// Sort players based on their pointcount.
+		scoreboard_SortPlayers( ST_POINTCOUNT );
+	}
+
+	// Build columns for modes in which players try to earn wins.
+	if ( lastmanstanding || teamlms )
+	{
+		g_aulColumnType[0] = COLUMN_WINS;
+		g_aulColumnType[1] = COLUMN_NAME;
+		g_aulColumnType[2] = COLUMN_TIME;
+
+		// Sort players based on their wincount.
+		scoreboard_SortPlayers( ST_WINCOUNT );
+	}
+}
+
+//*****************************************************************************
+//	These parameters are filters.
+//	If 1, players with this trait will be skipped.
+//	If 2, players *without* this trait will be skipped.
+static void scoreboard_DoRankingListPass( LONG lSpectators, LONG lDead, LONG lNotPlaying, LONG lNoTeam, LONG lWrongTeam, ULONG ulDesiredTeam )
+{
+	ULONG	ulIdx;
+	ULONG	ulNumPlayers;
+
+	ulNumPlayers = 0;
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		// Skip or require players not in the game.
+		if (((lNotPlaying == 1) && (playeringame[g_iSortedPlayers[ulIdx]] == false )) ||
+			((lNotPlaying == 2) && (!playeringame[g_iSortedPlayers[ulIdx]] == false )))
+			continue;
+
+		// Skip or require players not on a team.
+		 if(((lNoTeam == 1) && (!players[g_iSortedPlayers[ulIdx]].bOnTeam)) ||
+			 ((lNoTeam == 2) && (players[g_iSortedPlayers[ulIdx]].bOnTeam)))
+			continue;
+
+		// Skip or require spectators.
+		if (((lSpectators == 1) && PLAYER_IsTrueSpectator( &players[g_iSortedPlayers[ulIdx]])) ||
+			((lSpectators == 2) && !PLAYER_IsTrueSpectator( &players[g_iSortedPlayers[ulIdx]])))
+			continue;
+
+		// In LMS, skip or require dead players.
+		if( gamestate != GS_INTERMISSION ){
+			/*(( lastmanstanding ) && (( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) || ( LASTMANSTANDING_GetState( ) == LMSS_WINSEQUENCE ))) ||
+			(( survival ) && (( SURVIVAL_GetState( ) == SURVS_INPROGRESS ) || ( SURVIVAL_GetState( ) == SURVS_MISSIONFAILED )))*/
+			
+			if((( players[g_iSortedPlayers[ulIdx]].health <= 0) && (lDead == 1)) || 
+				(( players[g_iSortedPlayers[ulIdx]].health > 0) && (lDead == 2)))
+				continue;
+		}
+
+		// Skip or require players that aren't on this team.
+		if (((lWrongTeam == 1) && (players[g_iSortedPlayers[ulIdx]].ulTeam != ulDesiredTeam)) ||
+			((lWrongTeam == 2) && (players[g_iSortedPlayers[ulIdx]].ulTeam == ulDesiredTeam)))
+			continue;
+
+		scoreboard_RenderIndividualPlayer( g_iSortedPlayers[ulIdx] );
+		g_ulCurYPos += 10;
+		ulNumPlayers++;
+	}
+
+	if ( ulNumPlayers )
+		g_ulCurYPos += 10;
+}
+
+//*****************************************************************************
+//
+static void scoreboard_DrawRankings( void )
+{
+	ULONG	ulIdx;
+	ULONG	ulTeamIdx;
+	char	szString[16];
+
+	// Nothing to do.
+	if ( g_ulNumColumnsUsed < 1 )
+		return;
+
+	g_ulCurYPos += 8;
+
+	// Center this a little better in intermission
+	if ( gamestate != GS_LEVEL )
+		g_ulCurYPos = ( g_bScale == true ) ? (LONG)( 48 * g_fYScale ) : (LONG)( 48 * CleanYfac );
+
+	screen->SetFont( g_pColumnHeaderFont );
+
+	// Draw the titles for the columns.
+	for ( ulIdx = 0; ulIdx < g_ulNumColumnsUsed; ulIdx++ )
+	{
+		sprintf( szString, "%s", g_pszColumnHeaders[g_aulColumnType[ulIdx]] );
+		if ( g_bScale )
+		{
+			screen->DrawText( CR_RED,
+				(LONG)( g_aulColumnX[ulIdx] * g_fXScale ),
+				g_ulCurYPos,
+				szString,
+				DTA_VirtualWidth, g_ValWidth.Int,
+				DTA_VirtualHeight, g_ValHeight.Int,
+				TAG_DONE );
+		}
+		else
+		{
+			screen->DrawText( CR_RED,
+				(LONG)( g_aulColumnX[ulIdx] * CleanXfac ),
+				g_ulCurYPos,
+				szString,
+				TAG_DONE );
+		}
+	}
+
+	// Draw the player list.
+	screen->SetFont( SmallFont );
+	g_ulCurYPos += 24;
+
+	// Team-based games: Divide up the teams.
+	if ( teamgame || teamplay || teamlms || teampossession )
+	{
+		// Draw players on teams.
+		for ( ulTeamIdx = 0; ulTeamIdx < NUM_TEAMS; ulTeamIdx++ )
+		{
+			// In team LMS, separate the dead players from the living.
+			if (( teamlms ) && ( gamestate != GS_INTERMISSION ) && ( LASTMANSTANDING_GetState( ) != LMSS_COUNTDOWN ) && ( LASTMANSTANDING_GetState( ) != LMSS_WAITINGFORPLAYERS ))
+			{
+				scoreboard_DoRankingListPass(1, 1, 1, 1, 1, ulTeamIdx ); // Living in this team
+				scoreboard_DoRankingListPass(1, 2, 1, 1, 1, ulTeamIdx ); // Dead in this team
+			}
+			// Otherwise, draw all players all in one group.
+			else
+				scoreboard_DoRankingListPass(1, 0, 1, 1, 1, ulTeamIdx ); 
 
 		}
 
+		// Players that aren't on a team.
+		scoreboard_DoRankingListPass(1, 1, 1, 2, 0, 0); 
 
-
-
-
+		// Spectators are last.
+		scoreboard_DoRankingListPass(2, 0, 1, 0, 0, 0);
 	}
+	// Other modes: Just players and spectators.
+	else
+	{
+		// In LMS or Survival, dead players are drawn after living ones.
+		if (( gamestate != GS_INTERMISSION ) && (
+			(( lastmanstanding ) && (( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) || ( LASTMANSTANDING_GetState( ) == LMSS_WINSEQUENCE ))) ||
+			(( survival ) && (( SURVIVAL_GetState( ) == SURVS_INPROGRESS ) || ( SURVIVAL_GetState( ) == SURVS_MISSIONFAILED )))))
+		{
+			scoreboard_DoRankingListPass(1, 1, 1, 0, 0, 0); // Living
+			scoreboard_DoRankingListPass(1, 2, 1, 0, 0, 0); // Dead
+		}
+		// Othrwise, draw all active players in the game together.
+		else
+			scoreboard_DoRankingListPass(1, 0, 1, 0, 0, 0);
+
+		// Spectators are last.
+		scoreboard_DoRankingListPass(2, 0, 1, 0, 0, 0);
+	}
+
+	BorderNeedRefresh = true;
 }
 
 //*****************************************************************************
