@@ -875,7 +875,9 @@ void P_RandomChaseDir (AActor *actor)
 			player = players[i].mo;
 		}
 
-		if (pr_newchasedir() & 1 || !P_CheckSight (actor, player))
+		// [BB] It's possibly that player == NULL. For instance this happens,
+		// if a player uses summonfriend online and leaves the server afterwards.
+		if ( (pr_newchasedir() & 1 || !P_CheckSight (actor, player)) && player )
 		{
 			deltax = player->x - actor->x;
 			deltay = player->y - actor->y;
