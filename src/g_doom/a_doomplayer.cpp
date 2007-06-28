@@ -109,20 +109,12 @@ END_DEFAULTS
 void ADoomPlayer::GiveDefaultInventory ()
 {
 	AInventory *fist, *pistol, *bullets;
-	AInventory			*pChainsaw;
-	AInventory			*pShotgun;
-	AInventory			*pSSG;
-	AInventory			*pChaingun;
-	AInventory			*pMinigun;
-	AInventory			*pRocketLauncher;
-	AInventory			*pGrenadeLauncher;
-	AInventory			*pPlasmaRifle;
-	AInventory			*pRailgun;
-	AInventory			*pShells;
-	AInventory			*pRockets;
-	AInventory			*pCells;
-	APowerStrength		*pBerserk;
-	AWeapon				*pPendingWeapon;
+	ULONG						ulIdx;
+	const PClass				*pType;
+	AWeapon						*pWeapon;
+	APowerStrength				*pBerserk;
+	AWeapon						*pPendingWeapon;
+	AInventory					*pInventory;
 
 	Super::GiveDefaultInventory ();
 
@@ -131,94 +123,141 @@ void ADoomPlayer::GiveDefaultInventory ()
 	if (( instagib ) && ( deathmatch || teamgame ))
 	{
 		// Give the player the weapon.
-		pRailgun = player->mo->GiveInventoryType( PClass::FindClass( "Railgun" ));
+		pInventory = player->mo->GiveInventoryType( PClass::FindClass( "Railgun" ));
 
-		// Find the player's ammo for the weapon in his inventory, and max. out the amount.
-		pCells = player->mo->FindInventory( PClass::FindClass( "CellAmmo" ));
-		if ( pCells != NULL )
-			pCells->Amount = pCells->MaxAmount;
-
-		// Finally, make the weapon the player's ready weapon.
-		player->ReadyWeapon = player->PendingWeapon = static_cast<AWeapon *>( pRailgun );
+		// Make the weapon the player's ready weapon.
+		player->ReadyWeapon = player->PendingWeapon = static_cast<AWeapon *>( pInventory );
 
 		// [BC] If we're a client, tell the server we're switching weapons.
 		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) == consoleplayer ))
-			CLIENTCOMMANDS_WeaponSelect( (char *)pRailgun->GetClass( )->TypeName.GetChars( ));
+			CLIENTCOMMANDS_WeaponSelect( (char *)pInventory->GetClass( )->TypeName.GetChars( ));
+
+		// Find the player's ammo for the weapon in his inventory, and max. out the amount.
+		pInventory = player->mo->FindInventory( PClass::FindClass( "CellAmmo" ));
+		if ( pInventory != NULL )
+			pInventory->Amount = pInventory->MaxAmount;
 	}
 	// [BC] In buckshot mode, give the player the SSG, and the maximum amount of shells
 	// possible.
 	else if (( buckshot ) && ( deathmatch || teamgame ))
 	{
 		// Give the player the weapon.
-		pSSG = player->mo->GiveInventoryType( PClass::FindClass( "SuperShotgun" ));
+		pInventory = player->mo->GiveInventoryType( PClass::FindClass( "SuperShotgun" ));
+
+		// Make the weapon the player's ready weapon.
+		player->ReadyWeapon = player->PendingWeapon = static_cast<AWeapon *>( pInventory );
 
 		// Find the player's ammo for the weapon in his inventory, and max. out the amount.
-		pShells = player->mo->FindInventory( PClass::FindClass( "ShellAmmo" ));
-		if ( pShells != NULL )
-			pShells->Amount = pShells->MaxAmount;
-
-		// Finally, make the weapon the player's ready weapon.
-		player->ReadyWeapon = player->PendingWeapon = static_cast<AWeapon *>( pSSG );
+		pInventory = player->mo->FindInventory( PClass::FindClass( "ShellAmmo" ));
+		if ( pInventory != NULL )
+			pInventory->Amount = pInventory->MaxAmount;
 
 		// [BC] If we're a client, tell the server we're switching weapons.
 		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) == consoleplayer ))
-			CLIENTCOMMANDS_WeaponSelect( (char *)pSSG->GetClass( )->TypeName.GetChars( ));
+			CLIENTCOMMANDS_WeaponSelect( (char *)pInventory->GetClass( )->TypeName.GetChars( ));
 	}
 	// [BC] Give a bunch of weapons in LMS mode, depending on the LMS allowed weapon flags.
 	else if ( lastmanstanding || teamlms )
 	{
-		// First, give weapons.
+		// Give the player all the weapons, and the maximum amount of every type of
+		// ammunition.
+		pPendingWeapon = NULL;
+		for ( ulIdx = 0; ulIdx < PClass::m_Types.Size( ); ulIdx++ )
+		{
+			pType = PClass::m_Types[ulIdx];
 
-		// The player always has the fist.
-		fist = player->mo->GiveInventoryType( PClass::FindClass( "Fist" ));
-		pPendingWeapon = static_cast<AWeapon *>( fist );
+			// Potentially disallow certain weapons.
+			if ((( lmsallowedweapons & LMS_AWF_CHAINSAW ) == false ) &&
+				( pType == PClass::FindClass( "Chainsaw" )))
+			{
+				continue;
+			}
+			if ((( lmsallowedweapons & LMS_AWF_PISTOL ) == false ) &&
+				( pType == PClass::FindClass( "Pistol" )))
+			{
+				continue;
+			}
+			if ((( lmsallowedweapons & LMS_AWF_SHOTGUN ) == false ) &&
+				( pType == PClass::FindClass( "Shotgun" )))
+			{
+				continue;
+			}
+			if (( pType == PClass::FindClass( "SuperShotgun" )) &&
+				((( lmsallowedweapons & LMS_AWF_SSG ) == false ) ||
+				(( gameinfo.flags & GI_MAPxx ) == false )))
+			{
+				continue;
+			}
+			if ((( lmsallowedweapons & LMS_AWF_CHAINGUN ) == false ) &&
+				( pType == PClass::FindClass( "Chaingun" )))
+			{
+				continue;
+			}
+			if ((( lmsallowedweapons & LMS_AWF_MINIGUN ) == false ) &&
+				( pType == PClass::FindClass( "Minigun" )))
+			{
+				continue;
+			}
+			if ((( lmsallowedweapons & LMS_AWF_ROCKETLAUNCHER ) == false ) &&
+				( pType == PClass::FindClass( "RocketLauncher" )))
+			{
+				continue;
+			}
+			if ((( lmsallowedweapons & LMS_AWF_GRENADELAUNCHER ) == false ) &&
+				( pType == PClass::FindClass( "GrenadeLauncher" )))
+			{
+				continue;
+			}
+			if ((( lmsallowedweapons & LMS_AWF_PLASMA ) == false ) &&
+				( pType == PClass::FindClass( "PlasmaRifle" )))
+			{
+				continue;
+			}
+			if ((( lmsallowedweapons & LMS_AWF_RAILGUN ) == false ) &&
+				( pType == PClass::FindClass( "Railgun" )))
+			{
+				continue;
+			}
 
-		if ( lmsallowedweapons & LMS_AWF_CHAINSAW )
-		{
-			pChainsaw = player->mo->GiveInventoryType( PClass::FindClass( "Chainsaw" ));
-			pPendingWeapon = static_cast<AWeapon *>( pChainsaw );
-		}
-		if ( lmsallowedweapons & LMS_AWF_PISTOL )
-		{
-			pistol = player->mo->GiveInventoryType( PClass::FindClass( "Pistol" ));
-			pPendingWeapon = static_cast<AWeapon *>( pistol );
-		}
-		if ( lmsallowedweapons & LMS_AWF_SHOTGUN )
-		{
-			pShotgun = player->mo->GiveInventoryType( PClass::FindClass( "Shotgun" ));
-			pPendingWeapon = static_cast<AWeapon *>( pShotgun );
-		}
-		if (( lmsallowedweapons & LMS_AWF_SSG ) && ( gameinfo.flags & GI_MAPxx ))
-		{
-			pSSG = player->mo->GiveInventoryType( PClass::FindClass( "SuperShotgun" ));
-			pPendingWeapon = static_cast<AWeapon *>( pSSG );
-		}
-		if ( lmsallowedweapons & LMS_AWF_CHAINGUN )
-			pChaingun = player->mo->GiveInventoryType( PClass::FindClass( "Chaingun" ));
-		if ( lmsallowedweapons & LMS_AWF_MINIGUN )
-			pMinigun = player->mo->GiveInventoryType( PClass::FindClass( "Minigun" ));
-		if ( lmsallowedweapons & LMS_AWF_ROCKETLAUNCHER )
-			pRocketLauncher = player->mo->GiveInventoryType( PClass::FindClass( "RocketLauncher" ));
-		if ( lmsallowedweapons & LMS_AWF_GRENADELAUNCHER )
-			pGrenadeLauncher = player->mo->GiveInventoryType( PClass::FindClass( "GrenadeLauncher" ));
-		if ( lmsallowedweapons & LMS_AWF_PLASMA )
-			pPlasmaRifle = player->mo->GiveInventoryType( PClass::FindClass( "PlasmaRifle" ));
-		if ( lmsallowedweapons & LMS_AWF_RAILGUN )
-			pRailgun = player->mo->GiveInventoryType( PClass::FindClass( "Railgun" ));
+			if ( pType->ParentClass->IsDescendantOf( RUNTIME_CLASS( AWeapon )))
+			{
+				pInventory = player->mo->GiveInventoryType( pType );
 
-		// Now, give ammo.
-		bullets = player->mo->FindInventory( PClass::FindClass( "Clip" ));
-		if ( bullets != NULL )
-			bullets->Amount = bullets->MaxAmount;
-		pShells = player->mo->FindInventory( PClass::FindClass( "Shell" ));
-		if ( pShells != NULL )
-			pShells->Amount = pShells->MaxAmount;
-		pRockets = player->mo->FindInventory( PClass::FindClass( "RocketAmmo" ));
-		if ( pRockets != NULL )
-			pRockets->Amount = pRockets->MaxAmount;
-		pCells = player->mo->FindInventory( PClass::FindClass( "Cell" ));
-		if ( pCells != NULL )
-			pCells->Amount = pCells->MaxAmount;
+				// Make this weapon the player's pending weapon if it ranks higher.
+				pWeapon = static_cast<AWeapon *>( pInventory );
+				if ( pWeapon != NULL )
+				{
+					if ( pWeapon->WeaponFlags & WIF_NOLMS )
+					{
+						player->mo->RemoveInventory( pWeapon );
+						continue;
+					}
+
+					if (( pPendingWeapon == NULL ) || 
+						( pWeapon->SelectionOrder < pPendingWeapon->SelectionOrder ))
+					{
+						pPendingWeapon = static_cast<AWeapon *>( pInventory );
+					}
+
+					if ( pWeapon->Ammo1 )
+					{
+						pInventory = player->mo->FindInventory( pWeapon->Ammo1->GetClass( ));
+
+						// Give the player the maximum amount of this type of ammunition.
+						if ( pInventory != NULL )
+							pInventory->Amount = pInventory->MaxAmount;
+					}
+					if ( pWeapon->Ammo2 )
+					{
+						pInventory = player->mo->FindInventory( pWeapon->Ammo2->GetClass( ));
+
+						// Give the player the maximum amount of this type of ammunition.
+						if ( pInventory != NULL )
+							pInventory->Amount = pInventory->MaxAmount;
+					}
+				}
+			}
+		}
 
 		// Also give the player berserk.
 		player->mo->GiveInventoryType( PClass::FindClass( "Berserk" ));
@@ -253,22 +292,22 @@ void ADoomPlayer::GiveDefaultInventory ()
 		}
 		player->ReadyWeapon = player->PendingWeapon =
 			static_cast<AWeapon *> (deh.StartBullets > 0 ? pistol : fist);
-		if ( player->ReadyWeapon == NULL )
-			Printf( "OH CRAP\n" );
 
 		// [BC] If the user has the shotgun start flag set, do that!
 		if (( dmflags2 & DF2_COOP_SHOTGUNSTART ) &&
 			( deathmatch == false ) &&
 			( teamgame == false ))
 		{
-			pShotgun = player->mo->GiveInventoryType( PClass::FindClass( "Shotgun" ));
-			pShells = player->mo->FindInventory( PClass::FindClass( "Shell" ));
+			pInventory = player->mo->GiveInventoryType( PClass::FindClass( "Shotgun" ));
+			if ( pInventory )
+			{
+				player->ReadyWeapon = player->PendingWeapon = static_cast<AWeapon *>( pInventory );
 
-			// Start them off with two clips.
-			if (( pShells != NULL ) && ( pShotgun != NULL ))
-				pShells->Amount = static_cast<AWeapon *>( pShotgun )->AmmoGive1 * 2;
-
-			player->ReadyWeapon = player->PendingWeapon = static_cast<AWeapon *>( pShotgun );
+				// Start them off with two clips.
+				pInventory = player->mo->FindInventory( PClass::FindClass( "Shell" ));
+				if ( pInventory != NULL )
+					pInventory->Amount = static_cast<AWeapon *>( player->ReadyWeapon )->AmmoGive1 * 2;
+			}
 		}
 
 		// [BC] If we're a client, tell the server we're switching weapons.

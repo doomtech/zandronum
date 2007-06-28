@@ -14,6 +14,7 @@
 v0.97d-beta4
 ------------
 
++	- All weapons are now given in LMS/team LMS mode, except for those excluded by the allowed weapon flags, and those flagged as not appearing in LMS mode. [Carnevil]
 -	- Fixed issues with the IWAD/PWAD list for servers when hosting .pk3s with embedded .wad files. [Carnevil]
 !	- Brought back elements of the old invasion HUD. [Carnevil]
 
