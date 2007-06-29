@@ -1140,7 +1140,8 @@ FUNC(LS_Thing_Damage)
 	FActorIterator iterator (arg0);
 	AActor *actor;
 
-	actor = iterator.Next ();
+	// [BB] Needed to make Thing_Damage work with tid == 0.
+	actor = (arg0 == 0 ? it : iterator.Next());
 	while (actor)
 	{
 		AActor *next = iterator.Next ();
