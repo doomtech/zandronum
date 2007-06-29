@@ -2216,7 +2216,7 @@ LONG SCOREBOARD_GetLeftToLimit( void )
 	ULONG	ulIdx;
 
 	// If we're not in a level, then clearly there's no need for this.
-	if ( gamestate == GS_LEVEL )
+	if ( gamestate != GS_LEVEL )
 		return ( 0 );
 
 	// FRAG-based mode.
