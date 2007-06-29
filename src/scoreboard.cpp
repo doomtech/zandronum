@@ -1152,8 +1152,13 @@ void SCOREBOARD_RenderTeamStats( player_s *pPlayer )
 
 //*****************************************************************************
 //
+EXTERN_CVAR( Bool, cl_stfullscreenhud );
 void SCOREBOARD_RenderInvasionStats( void )
 {
+	// [RC] In fullscreen, don't render these as they're done with the other fullscreen elements in doom_sbar.
+	if (( realviewheight == SCREENHEIGHT ) && viewactive && cl_stfullscreenhud)
+		return;
+
 	char			szString[128];
 	DHUDMessage		*pMsg;
 
