@@ -48,54 +48,14 @@
 //
 //-----------------------------------------------------------------------------
 
-// [Petteri] Check if compiling for Win32:
-#if defined(__WINDOWS__) || defined(__NT__) || defined(_MSC_VER) || defined(_WIN32)
-#	define __WIN32__
-#endif
-// Follow #ifdef __WIN32__ marks
-/*
-#include <stdio.h>
-#ifdef	WIN32
-#include <conio.h>
-#endif
-
-// [Petteri] Use Winsock for Win32:
-#ifdef __WIN32__
-#	define WIN32_LEAN_AND_MEAN
-#	include <windows.h>
-#	include <winsock.h>
-#else
-#	include <sys/socket.h>
-#	include <netinet/in.h>
-#	include <arpa/inet.h>
-#	include <errno.h>
-#	include <unistd.h>
-#	include <netdb.h>
-#	include <sys/ioctl.h>
-#endif
-
-#ifndef __WIN32__
-typedef int SOCKET;
-#define SOCKET_ERROR -1
-#define INVALID_SOCKET -1
-#define closesocket close
-#define ioctlsocket ioctl
-#define Sleep(x)        usleep (x * 1000)
-#endif
-*/
-#include <winsock2.h>
-
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <iostream>
-
-#include <ctype.h>
-#include <math.h>
-
 #include "networkshared.h"
 #include "network.h"
 #include "main.h"
+
+// [BB] Needed for I_GetTime.
+#ifdef _MSC_VER
+#include <mmsystem.h>
+#endif
 
 //*****************************************************************************
 //	VARIABLES
@@ -471,7 +431,7 @@ void MASTERSERVER_CheckTimeouts( void )
 
 //*****************************************************************************
 //
-long main( )
+int main( )
 {
 	unsigned long	ulIdx;
 
