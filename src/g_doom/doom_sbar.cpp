@@ -890,10 +890,59 @@ private:
 		}
 	}
 
+	// [BB] Draws the keys in Skulltag's new fullscreen HUD.
+	void DrawFullScreenKeysST( const bool bScale, UCVarValue &ValWidth, UCVarValue &ValHeight, ULONG &ulCurXPos, ULONG &ulCurYPos, ULONG ulYOffset = 0 )
+	{
+		LONG			lKeyCount;
+		LONG			lMaxKeyWidth;
+		AInventory		*pInventory;
+		lKeyCount = 0;
+		lMaxKeyWidth = 0;
+		ulCurYPos += ulYOffset;
+		if ( CPlayer->mo )
+			pInventory = CPlayer->mo->Inventory;
+		else
+			pInventory = NULL;
+		for ( ; pInventory != NULL; pInventory = pInventory->Inventory )
+		{
+			if (( pInventory->IsKindOf( RUNTIME_CLASS( AKey ))) && ( pInventory->Icon > 0 ))
+			{
+				if ( bScale )
+				{
+					screen->DrawTexture( TexMan( pInventory->Icon ),
+						ulCurXPos - TexMan( pInventory->Icon )->GetWidth( ),
+						ulCurYPos,
+						DTA_VirtualWidth, ValWidth.Int,
+						DTA_VirtualHeight, ValHeight.Int,
+						TAG_DONE );
+				}
+				else
+				{
+					screen->DrawTexture( TexMan( pInventory->Icon ),
+						ulCurXPos - TexMan( pInventory->Icon )->GetWidth( ),
+						ulCurYPos,
+						TAG_DONE );
+				}
+
+				ulCurYPos += TexMan( pInventory->Icon )->GetHeight( ) + 2;
+
+				if ( TexMan( pInventory->Icon )->GetWidth( ) > lMaxKeyWidth )
+					lMaxKeyWidth = TexMan( pInventory->Icon )->GetWidth( );
+
+				if ( ++lKeyCount == 3 )
+				{
+					ulCurXPos -= lMaxKeyWidth + 2;
+					ulCurYPos = 4 + ulYOffset;
+
+					lMaxKeyWidth = 0;
+				}
+			}
+		}
+	}
 	// [BC] Skulltag's new fullscreen HUD.
 	void DrawFullScreenStuffST( void )
 	{
-		float			bScale;
+		bool			bScale;
 		UCVarValue		ValWidth;
 		UCVarValue		ValHeight;
 		float			fXScale;
@@ -908,8 +957,6 @@ private:
 		AAmmo			*pAmmo2;
 		int				iAmmoCount1;
 		int				iAmmoCount2;
-		LONG			lKeyCount;
-		LONG			lMaxKeyWidth;
 
 		// No need to draw this if we're spectating.
 		if ( CPlayer->bSpectating )
@@ -1280,51 +1327,16 @@ private:
 					szString,
 					TAG_DONE );
 			}
+			// [BB] In cooperative games we want to see the kill count and the keys.
+			if ( cooperative )
+			{
+				DrawFullScreenKeysST( bScale, ValWidth, ValHeight, ulCurXPos, ulCurYPos, 10 );
+			}
 		}
 		// Otherwise, draw the keys.
 		else
 		{
-			lKeyCount = 0;
-			lMaxKeyWidth = 0;
-			if ( CPlayer->mo )
-				pInventory = CPlayer->mo->Inventory;
-			else
-				pInventory = NULL;
-			for ( ; pInventory != NULL; pInventory = pInventory->Inventory )
-			{
-				if (( pInventory->IsKindOf( RUNTIME_CLASS( AKey ))) && ( pInventory->Icon > 0 ))
-				{
-					if ( bScale )
-					{
-						screen->DrawTexture( TexMan( pInventory->Icon ),
-							ulCurXPos - TexMan( pInventory->Icon )->GetWidth( ),
-							ulCurYPos,
-							DTA_VirtualWidth, ValWidth.Int,
-							DTA_VirtualHeight, ValHeight.Int,
-							TAG_DONE );
-					}
-					else
-					{
-						screen->DrawTexture( TexMan( pInventory->Icon ),
-							ulCurXPos - TexMan( pInventory->Icon )->GetWidth( ),
-							ulCurYPos,
-							TAG_DONE );
-					}
-
-					ulCurYPos += TexMan( pInventory->Icon )->GetHeight( ) + 2;
-
-					if ( TexMan( pInventory->Icon )->GetWidth( ) > lMaxKeyWidth )
-						lMaxKeyWidth = TexMan( pInventory->Icon )->GetWidth( );
-
-					if ( ++lKeyCount == 3 )
-					{
-						ulCurXPos -= lMaxKeyWidth + 2;
-						ulCurYPos = 4;
-
-						lMaxKeyWidth = 0;
-					}
-				}
-			}
+			DrawFullScreenKeysST( bScale, ValWidth, ValHeight, ulCurXPos, ulCurYPos );
 		}
 		// [RC] Restructured for greater intellegence
 
