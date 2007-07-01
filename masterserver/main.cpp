@@ -48,7 +48,8 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "networkshared.h"
+#include "../src/networkheaders.h"
+#include "../src/networkshared.h"
 #include "network.h"
 #include "main.h"
 

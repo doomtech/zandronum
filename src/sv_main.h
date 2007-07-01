@@ -55,6 +55,7 @@
 #include "d_player.h"
 #include "i_net.h"
 #include "s_sndseq.h"
+#include "networkshared.h"
 
 //*****************************************************************************
 //	DEFINES
@@ -72,7 +73,7 @@
 #define CLIENT_TIMEOUT				65
 
 // Maximum size of the packets sent out by the server.
-#define	MAX_UDP_PACKET				8192
+//#define	MAX_UDP_PACKET				8192
 
 // How many commands can be stored at one time?
 #define	MAX_STORED_SERVER_COMMANDS	64
@@ -150,36 +151,6 @@ typedef enum
 	CLS_SPAWNED,
 
 } CLIENTSTATE_e;
-
-//*****************************************************************************
-//	STRUCTURES
-
-typedef struct
-{
-	BYTE    ip[4];
-	unsigned short  port;
-	unsigned short  pad;
-} netadr_t;
-
-//*****************************************************************************
-typedef struct sizebuf_s
-{
-	bool	allowoverflow;	// if false, do a Com_Error
-	bool	overflowed;		// set to true if the buffer size failed
-
-	// Unfortunaly, ZDaemon uses two different definitions of sizebuf_t. Attempt
-	// to combine the structures here by having two sets of data.
-	// Servers use this.
-	BYTE	*pbData;
-
-	// Clients use this this.
-	BYTE	bData[MAX_UDP_PACKET];
-
-	int		maxsize;
-	int		cursize;
-	int		readcount;
-
-} sizebuf_t;
 
 //*****************************************************************************
 typedef struct

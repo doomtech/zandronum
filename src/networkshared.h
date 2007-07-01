@@ -51,44 +51,6 @@
 #ifndef __NETWORKSHARED_H__
 #define __NETWORKSHARED_H__
 
-// [Petteri] Check if compiling for Win32:
-#if defined(__WINDOWS__) || defined(__NT__) || defined(_MSC_VER) || defined(_WIN32)
-#	define __WIN32__
-#endif
-// Follow #ifdef __WIN32__ marks
-
-#include <stdio.h>
-#ifdef	WIN32
-#include <conio.h>
-#endif
-
-// [Petteri] Use Winsock for Win32:
-#ifdef __WIN32__
-#	define WIN32_LEAN_AND_MEAN
-// [BB] We have to use the Windows DWORD.
-#	define USE_WINDOWS_DWORD
-#	include <windows.h>
-// [BB] Include winsock2.h instead of winsock.h
-#	include <winsock2.h>
-#else
-#	include <sys/socket.h>
-#	include <netinet/in.h>
-#	include <arpa/inet.h>
-#	include <errno.h>
-#	include <unistd.h>
-#	include <netdb.h>
-#	include <sys/ioctl.h>
-#endif
-
-#ifndef __WIN32__
-typedef int SOCKET;
-#define SOCKET_ERROR -1
-#define INVALID_SOCKET -1
-#define closesocket close
-#define ioctlsocket ioctl
-#define Sleep(x)        usleep (x * 1000)
-#endif
-
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -97,8 +59,6 @@ typedef int SOCKET;
 #include <ctype.h>
 #include <math.h>
 
-#include "../src/doomtype.h"
-
 //*****************************************************************************
 //	DEFINES
 
@@ -106,13 +66,16 @@ typedef int SOCKET;
 #define	MAX_UDP_PACKET				8192
 
 //*****************************************************************************
+//	STRUCTURES
+
 typedef struct
 {
-   BYTE    ip[4];
-   unsigned short  port;
-   unsigned short  pad;
+	BYTE    ip[4];
+	unsigned short  port;
+	unsigned short  pad;
 } netadr_t;
 
+//*****************************************************************************
 typedef struct sizebuf_s
 {
 	bool	allowoverflow;	// if false, do a Com_Error
@@ -132,6 +95,7 @@ typedef struct sizebuf_s
 
 } sizebuf_t;
 
+//*****************************************************************************
 typedef struct
 {
 	// The IP address that is banned in char form. Can be a number or a wildcard.

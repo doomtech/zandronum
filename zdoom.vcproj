@@ -2143,6 +2143,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\networkshared.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\nodebuild.cpp"
 				>
 			</File>
@@ -4515,6 +4519,14 @@
 			</File>
 			<File
 				RelativePath=".\src\network.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\networkheaders.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\networkshared.h"
 				>
 			</File>
 			<File

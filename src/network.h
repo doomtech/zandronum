@@ -550,9 +550,9 @@ void		NETWORK_Write( sizebuf_t *pBuffer, BYTE *pbData, int nStartPos, int nLengt
 void		NETWORK_Print( sizebuf_t *pBuffer, char *pszData );	// strcats onto the sizebuf
 char		*NETWORK_AddressToString( netadr_t Address );
 char		*NETWORK_AddressToStringIgnorePort( netadr_t Address );
-bool		NETWORK_StringToAddress( char *pszString, netadr_t *pAddress );
+//bool		NETWORK_StringToAddress( char *pszString, netadr_t *pAddress );
 bool		NETWORK_CompareAddress( netadr_t a, netadr_t b, bool bIgnorePort );
-void		NETWORK_SocketAddressToNetAddress( struct sockaddr_in *s, netadr_t *a );
+//void		NETWORK_SocketAddressToNetAddress( struct sockaddr_in *s, netadr_t *a );
 void		NETWORK_NetAddressToSocketAddress( netadr_t *a, struct sockaddr_in *s );
 AActor		*NETWORK_FindThingByNetID( LONG lID );
 netadr_t	NETWORK_GetLocalAddress( void );

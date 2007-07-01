@@ -264,7 +264,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\networkshared.cpp"
+				RelativePath="..\src\networkshared.cpp"
 				>
 			</File>
 		</Filter>
@@ -285,7 +285,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\networkshared.h"
+				RelativePath="..\src\networkheaders.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\networkshared.h"
 				>
 			</File>
 		</Filter>

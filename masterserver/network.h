@@ -56,7 +56,7 @@
 //#include "d_player.h"
 //#include "i_net.h"
 //#include "sv_main.h"
-#include "networkshared.h"
+#include "../src/networkshared.h"
 
 //*****************************************************************************
 //	DEFINES

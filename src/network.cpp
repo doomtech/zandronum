@@ -1273,51 +1273,6 @@ char *NETWORK_AddressToStringIgnorePort( netadr_t a )
 
 //*****************************************************************************
 //
-bool NETWORK_StringToAddress( char *s, netadr_t *a )
-{
-     struct hostent  *h;
-     struct sockaddr_in sadr;
-     char    *colon;
-     char    copy[128];
-
-     memset (&sadr, 0, sizeof(sadr));
-     sadr.sin_family = AF_INET;
-
-     sadr.sin_port = 0;
-
-     strcpy (copy, s);
-     // strip off a trailing :port if present
-     for (colon = copy ; *colon ; colon++)
-          if (*colon == ':')
-          {
-             *colon = 0;
-             sadr.sin_port = htons(atoi(colon+1));
-          }
-
-	{
-		LONG	lRet;
-
-		lRet = inet_addr( copy );
-
-		// If our return value is INADDR_NONE, the IP specified is not a valid IPv4 string.
-		if ( lRet == INADDR_NONE )
-		{
-			// If the string cannot be resolved to a valid IP address, return false.
-          if (( h = gethostbyname( copy )) == NULL )
-                return ( false );
-          *(int *)&sadr.sin_addr = *(int *)h->h_addr_list[0];
-		}
-		else
-			*(int *)&sadr.sin_addr = lRet;
-	}
-
-	NETWORK_SocketAddressToNetAddress (&sadr, a);
-
-     return true;
-}
-
-//*****************************************************************************
-//
 void NETWORK_NetAddressToSocketAddress( netadr_t *a, struct sockaddr_in *s )
 {
      memset (s, 0, sizeof(*s));
@@ -1338,14 +1293,6 @@ bool NETWORK_CompareAddress( netadr_t a, netadr_t b, bool bIgnorePort )
 		return ( true );
 
 	return ( false );
-}
-
-//*****************************************************************************
-//
-void NETWORK_SocketAddressToNetAddress( struct sockaddr_in *s, netadr_t *a )
-{
-     *(int *)&a->ip = *(int *)&s->sin_addr;
-     a->port = s->sin_port;
 }
 
 //*****************************************************************************
