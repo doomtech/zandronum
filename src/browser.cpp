@@ -48,9 +48,7 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <winsock2.h>
-
-#define USE_WINDOWS_DWORD
+#include "networkheaders.h"
 #include "browser.h"
 #include "c_dispatch.h"
 #include "cl_main.h"

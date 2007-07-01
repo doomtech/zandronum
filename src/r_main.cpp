@@ -28,6 +28,10 @@
 #include <stdlib.h>
 #include <math.h>
 
+// [BB] network.h has to be included before stats.h under Linux.
+// The reason should be investigated.
+#include "network.h"
+
 #include "templates.h"
 #include "m_alloc.h"
 #include "doomdef.h"

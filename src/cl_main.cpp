@@ -48,8 +48,7 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <windows.h>
-#define USE_WINDOWS_DWORD
+#include "networkheaders.h"
 #include "a_action.h"
 #include "a_sharedglobal.h"
 #include "a_doomglobal.h"

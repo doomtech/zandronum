@@ -32,13 +32,16 @@
 **
 */
 
+// [BB] network.h has to be included before stats.h under Linux.
+// The reason should be investigated.
+#include "network.h"
+
 #include "dthinker.h"
 #include "stats.h"
 #include "p_local.h"
 #include "statnums.h"
 #include "i_system.h"
 #include "doomerrors.h"
-#include "network.h"
 
 
 static cycle_t ThinkCycles;

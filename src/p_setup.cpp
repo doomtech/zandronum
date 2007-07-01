@@ -28,6 +28,10 @@
 #include <malloc.h>		// for alloca()
 #endif
 
+// [BB] network.h has to be included before stats.h under Linux.
+// The reason should be investigated.
+#include "network.h"
+
 #include "templates.h"
 #include "m_alloc.h"
 #include "m_argv.h"
@@ -62,7 +66,6 @@
 #include "duel.h"
 #include "team.h"
 #include "a_doomglobal.h"
-#include "network.h"
 #include "lastmanstanding.h"
 #include "astar.h"
 #include "campaign.h"

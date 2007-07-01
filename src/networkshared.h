@@ -139,7 +139,7 @@ public:
 		}
 
 		char curChar = 0;
-		long curIPIdx = 0;
+		ULONG curIPIdx = 0;
 		if (( pFile = fopen( FileName, "r" )) != NULL )
 		{
 			while ( true )
@@ -182,7 +182,7 @@ private:
 
 		return ( curChar );
 	}
-	bool parseNextLine( FILE *pFile, IPAddress_t &IP, LONG &BanIdx )
+	bool parseNextLine( FILE *pFile, IPAddress_t &IP, ULONG &BanIdx )
 	{
 		netadr_t	IPAddress;
 		char		szIP[257];

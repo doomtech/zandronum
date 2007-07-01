@@ -49,11 +49,15 @@
 //-----------------------------------------------------------------------------
 
 #include <stdarg.h>
-#include <windows.h>
 
-#define USE_WINDOWS_DWORD
+#include "networkheaders.h"
 #include "MD5Checksum.h"
 #include "MD5ChecksumDefines.h"
+
+// [BB] Needed for timeGetTime() in SERVER_Tick().
+#ifdef _MSC_VER
+#include <mmsystem.h>
+#endif 
 
 #include "a_doomglobal.h"
 #include "a_pickups.h"

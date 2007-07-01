@@ -1,30 +1,4 @@
-
-#if defined(__WINDOWS__) || defined(__NT__) || defined(_MSC_VER) || defined(_WIN32)
-#       define __WIN32__
-#endif
-
-
-#include <stdio.h>
-#ifdef	WIN32
-#include <conio.h>
-#endif
-
-
-#ifdef  __WIN32__
-#       define WIN32_LEAN_AND_MEAN
-#       include <windows.h>
-#       include <winsock.h>
-#else
-#       include <sys/types.h>
-#       include <sys/socket.h>
-#       include <netinet/in.h>
-#       include <arpa/inet.h>
-#       include <errno.h>
-#       include <unistd.h>
-#       include <netdb.h>
-#       include <sys/ioctl.h>
-#       include <sys/time.h>
-#endif
+#include "networkheaders.h"
 
 #include <stdlib.h>
 #include <string.h>

@@ -35,6 +35,10 @@
 #include <stdlib.h>
 #include <float.h>
 
+// [BB] network.h has to be included before stats.h under Linux.
+// The reason should be investigated.
+#include "network.h"
+
 #include "templates.h"
 #include "i_system.h"
 #include "w_wad.h"
@@ -51,7 +55,6 @@
 #include "vectors.h"
 #include "a_sharedglobal.h"
 // [BC] New #includes.
-#include "network.h"
 #include "sv_commands.h"
 
 //EXTERN_CVAR (Int, tx)

@@ -57,6 +57,9 @@
 #ifdef _MSC_VER
 #include <mmsystem.h>
 #endif
+#ifndef _WIN32
+#include <sys/time.h>
+#endif
 
 //*****************************************************************************
 //	VARIABLES

@@ -175,7 +175,7 @@ static void M_ChangeGender (int choice);
 static void M_ChangeSkin (int choice);
 static void M_ChangeAutoAim (int choice);
 */
-void PickPlayerClass ();
+static void PickPlayerClass ();
 
 // EXTERNAL DATA DECLARATIONS ----------------------------------------------
 

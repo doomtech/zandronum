@@ -48,44 +48,7 @@
 //
 //-----------------------------------------------------------------------------
 
-// [Petteri] Check if compiling for Win32:
-#if defined(__WINDOWS__) || defined(__NT__) || defined(_MSC_VER) || defined(_WIN32)
-#ifndef __WIN32__
-#	define __WIN32__
-#endif
-#endif
-// Follow #ifdef __WIN32__ marks
-/*
-#include <stdio.h>
-#ifdef	WIN32
-#include <conio.h>
-#endif
-
-// [Petteri] Use Winsock for Win32:
-#ifdef __WIN32__
-#	define WIN32_LEAN_AND_MEAN
-#	include <windows.h>
-#	include <winsock.h>
-#else
-#	include <sys/socket.h>
-#	include <netinet/in.h>
-#	include <arpa/inet.h>
-#	include <errno.h>
-#	include <unistd.h>
-#	include <netdb.h>
-#	include <sys/ioctl.h>
-#endif
-
-#ifndef __WIN32__
-typedef int SOCKET;
-#define SOCKET_ERROR -1
-#define INVALID_SOCKET -1
-#define closesocket close
-#define ioctlsocket ioctl
-#define Sleep(x)        usleep (x * 1000)
-#endif
-*/
-#include <winsock2.h>
+#include "networkheaders.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -94,7 +57,6 @@ typedef int SOCKET;
 #include <ctype.h>
 #include <math.h>
 
-#define USE_WINDOWS_DWORD
 #include "c_dispatch.h"
 #include "cl_main.h"
 #include "doomtype.h"
@@ -559,7 +521,7 @@ int NETWORK_ReadShort( void )
 //
 void NETWORK_WriteShort( sizebuf_t *pBuffer, int Short )
 {
-	byte	*pbBuf;
+	BYTE	*pbBuf;
 	
 #ifdef PARANOID
 	if ( Short < ((short)0x8000) || Short > (short)0x7fff )
@@ -706,7 +668,7 @@ void NETWORK_WriteString ( sizebuf_t *pBuffer, const char *pszString )
 		NETWORK_Write( pBuffer, pszString, static_cast<int>(strlen( pszString )) + 1 );
 #else
 	if ( pszString == NULL )
-		NETWORK_WriteByte( pszBuffer, 0 );
+		NETWORK_WriteByte( pBuffer, 0 );
 	else
 	{
 		NETWORK_Write( pBuffer, pszString, strlen( pszString ));
@@ -1325,7 +1287,7 @@ netadr_t NETWORK_GetLocalAddress( void )
 
 	namelen = sizeof(address);
 #ifndef	WIN32
-	if (getsockname ( g_NetworkSocket (struct sockaddr *)&address, (socklen_t *)&namelen) == -1)
+	if (getsockname ( g_NetworkSocket, (struct sockaddr *)&address, (socklen_t *)&namelen) == -1)
 #else
 	if (getsockname ( g_NetworkSocket, (struct sockaddr *)&address, &namelen) == -1)
 #endif
@@ -1422,7 +1384,7 @@ void network_GetLocalAddress( void )
 
 	namelen = sizeof(address);
 #ifndef	WIN32
-	if (getsockname ( g_NetworkSocket (struct sockaddr *)&address, (socklen_t *)&namelen) == -1)
+	if (getsockname ( g_NetworkSocket, (struct sockaddr *)&address, (socklen_t *)&namelen) == -1)
 #else
 	if (getsockname ( g_NetworkSocket, (struct sockaddr *)&address, &namelen) == -1)
 #endif
@@ -1436,7 +1398,6 @@ void network_GetLocalAddress( void )
 
 void I_DoSelect (void)
 {
-#ifdef		WIN32
     struct timeval   timeout;
     fd_set           fdset;
 
@@ -1446,21 +1407,6 @@ void I_DoSelect (void)
     timeout.tv_usec = 0;
     if (select (static_cast<int>(g_NetworkSocket)+1, &fdset, NULL, NULL, &timeout) == -1)
         return;
-#else
-    struct timeval   timeout;
-    fd_set           fdset;
-
-    FD_ZERO(&fdset);
-    if (do_stdin)
-    	FD_SET(0, &fdset);
-    FD_SET(g_NetworkSocket, &fdset);
-    timeout.tv_sec = 1;
-    timeout.tv_usec = 0;
-    if (select (g_NetworkSocket+1, &fdset, NULL, NULL, &timeout) == -1)
-        return;
-
-    stdin_ready = FD_ISSET(0, &fdset);
-#endif
 }
 
 //*****************************************************************************

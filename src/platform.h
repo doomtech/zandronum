@@ -22,13 +22,14 @@
 
 // [BB] Linux specific thigs, mostly missing functions.
 #ifndef _WIN32
-#include <sys/time.h>
 
 #define stricmp(x,y) strcasecmp(x,y)
 #define _stricmp(x,y) strcasecmp(x,y)
 #define _itoa(x,y,z) itoa(x,y,z)
 
-void itoa(int value, char* str, int base);
+char* itoa(int value, char* str, int base);
+
+typedef unsigned char UCHAR;
 
 #endif
 

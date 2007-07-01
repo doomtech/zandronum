@@ -14,14 +14,14 @@ void strreverse(char* begin, char* end) {
 		aux=*end, *end--=*begin, *begin++=aux;
 }
 	
-void itoa(int value, char* str, int base) {
+char* itoa(int value, char* str, int base) {
 	static char num[] = "0123456789abcdefghijklmnopqrstuvwxyz";
 	char* wstr=str;
 	int sign;
 	div_t res;
 	
 	// Validate base
-	if (base<2 || base>35){ *wstr='\0'; return; }
+	if (base<2 || base>35){ *wstr='\0'; return str; }
 
 	// Take care of sign
 	if ((sign=value) < 0) value = -value;
@@ -36,5 +36,7 @@ void itoa(int value, char* str, int base) {
 
 	// Reverse string
 	strreverse(str,wstr-1);
+	
+	return str;
 }
 #endif
