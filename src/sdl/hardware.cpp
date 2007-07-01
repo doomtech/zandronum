@@ -49,7 +49,63 @@ EXTERN_CVAR (Float, vid_winscale)
 
 IVideo *Video;
 
-void I_ShutdownHardware ()
+int currentrenderer=0;
+bool changerenderer;
+bool gl_disabled;
+EXTERN_CVAR(Bool, gl_nogl)
+
+// [ZDoomGL]
+CUSTOM_CVAR (Int, vid_renderer, 1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)// | CVAR_NOINITCALL)
+{
+	// 0: Software renderer
+	// 1: OpenGL renderer
+	if (gl_disabled)
+	{
+		return;
+	}
+
+	if (self != currentrenderer)
+	{
+		switch (self)
+		{
+		case 0:
+			Printf("Switching to software renderer...\n");
+			break;
+		case 1:
+			Printf("Switching to OpenGL renderer...\n");
+			break;
+		default:
+			Printf("Unknown renderer (%d).  Falling back to software renderer...\n", (int) vid_renderer);
+			self = 0; // make sure to actually switch to the software renderer
+			break;
+		}
+		changerenderer = true;
+	}
+}
+
+CCMD (vid_restart)
+{
+	if (!gl_disabled) changerenderer = true;
+}
+
+void I_CheckRestartRenderer()
+{
+	if (gl_disabled) return;
+
+	/*while (changerenderer)
+	{
+		currentrenderer = vid_renderer;
+		I_RestartRenderer();
+		if (currentrenderer == vid_renderer) changerenderer = false;
+	}*/
+}
+
+void I_RestartRenderer()
+{
+	// FIXME:write me
+}
+
+void I_ShutdownGraphics ()
 {
 	if (screen)
 		delete screen, screen = NULL;
@@ -57,7 +113,7 @@ void I_ShutdownHardware ()
 		delete Video, Video = NULL;
 }
 
-void I_InitHardware ()
+void I_InitGraphics ()
 {
 	UCVarValue val;
 
@@ -68,7 +124,7 @@ void I_InitHardware ()
 	if (Video == NULL)
 		I_FatalError ("Failed to initialize display");
 
-	atterm (I_ShutdownHardware);
+	atterm (I_ShutdownGraphics);
 
 	Video->SetWindowedScale (vid_winscale);
 }
@@ -76,11 +132,6 @@ void I_InitHardware ()
 /** Remaining code is common to Win32 and Linux **/
 
 // VIDEO WRAPPERS ---------------------------------------------------------
-
-EDisplayType I_DisplayType ()
-{
-	return Video->GetDisplayType ();
-}
 
 DFrameBuffer *I_SetMode (int &width, int &height, DFrameBuffer *old)
 {
@@ -112,8 +163,7 @@ bool I_CheckResolution (int width, int height, int bits)
 {
 	int twidth, theight;
 
-	Video->FullscreenChanged (screen ? screen->IsFullscreen() : fullscreen);
-	Video->StartModeIterator (bits);
+	Video->StartModeIterator (bits, screen ? screen->IsFullscreen() : fullscreen);
 	while (Video->NextMode (&twidth, &theight, NULL))
 	{
 		if (width == twidth && height == theight)
@@ -129,10 +179,9 @@ void I_ClosestResolution (int *width, int *height, int bits)
 	int iteration;
 	DWORD closest = 4294967295u;
 
-	Video->FullscreenChanged (screen ? screen->IsFullscreen() : fullscreen);
 	for (iteration = 0; iteration < 2; iteration++)
 	{
-		Video->StartModeIterator (bits);
+		Video->StartModeIterator (bits, screen ? screen->IsFullscreen() : fullscreen);
 		while (Video->NextMode (&twidth, &theight, NULL))
 		{
 			if (twidth == *width && theight == *height)
@@ -160,32 +209,14 @@ void I_ClosestResolution (int *width, int *height, int bits)
 	}
 }	
 
-void I_StartModeIterator (int bits)
-{
-	Video->StartModeIterator (bits);
-}
-
-bool I_NextMode (int *width, int *height, bool *letterbox)
-{
-	return Video->NextMode (width, height, letterbox);
-}
-
-DCanvas *I_NewStaticCanvas (int width, int height)
-{
-	return new DSimpleCanvas (width, height);
-}
-
 extern int NewWidth, NewHeight, NewBits, DisplayBits;
 
-CUSTOM_CVAR (Bool, fullscreen, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+CUSTOM_CVAR (Bool, fullscreen, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 {
-	if (Video->FullscreenChanged (self))
-	{
-		NewWidth = screen->GetWidth();
-		NewHeight = screen->GetHeight();
-		NewBits = DisplayBits;
-		setmodeneeded = true;
-	}
+	NewWidth = screen->GetWidth();
+	NewHeight = screen->GetHeight();
+	NewBits = DisplayBits;
+	setmodeneeded = true;
 }
 
 CUSTOM_CVAR (Float, vid_winscale, 1.f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
@@ -210,9 +241,13 @@ CCMD (vid_listmodes)
 	int width, height, bits;
 	bool letterbox;
 
+	if (Video == NULL)
+	{
+		return;
+	}
 	for (bits = 1; bits <= 32; bits++)
 	{
-		Video->StartModeIterator (bits);
+		Video->StartModeIterator (bits, screen->IsFullscreen());
 		while (Video->NextMode (&width, &height, &letterbox))
 		{
 			bool thisMode = (width == DisplayWidth && height == DisplayHeight && bits == DisplayBits);

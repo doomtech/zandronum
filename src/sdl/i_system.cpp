@@ -226,7 +226,6 @@ void I_Init (void)
 	I_GetTime = I_GetTimePolled;
 	I_WaitForTic = I_WaitForTicPolled;
     I_InitSound ();
-	I_InitHardware ();
 }
 
 void CalculateCPUSpeed ()
@@ -329,18 +328,13 @@ void STACK_ARGS I_Error (const char *error, ...)
     throw CRecoverableError (errortext);
 }
 
-char DoomStartupTitle[256] = { 0 };
-
-void I_SetTitleString (const char *title)
+void I_SetIWADInfo (const IWADInfo *info)
 {
-	strcpy (DoomStartupTitle, title);
 }
 
-void I_PrintStr (const char *cp, bool scroll)
+void I_PrintStr (const char *cp)
 {
 	fputs (cp, stdout);
-	if (scroll)
-		putc ('\n', stdout);
 	fflush (stdout);
 }
 
@@ -348,7 +342,7 @@ int I_PickIWad (WadStuff *wads, int numwads, bool queryiwad, int defaultiwad)
 {
 	int i;
 	
-	printf ("Please select a game wad:\n");
+	printf ("Please select a game wad (or 0 to exit):\n");
 	for (i = 0; i < numwads; ++i)
 	{
 		const char *filepart = strrchr (wads[i].Path, '/');
@@ -356,7 +350,7 @@ int I_PickIWad (WadStuff *wads, int numwads, bool queryiwad, int defaultiwad)
 			filepart = wads[i].Path;
 		else
 			filepart++;
-		printf ("%d. %s (%s)\n", i+1, IWADTypeNames[wads[i].Type], filepart);
+		printf ("%d. %s (%s)\n", i+1, IWADInfos[wads[i].Type].Name, filepart);
 	}
 	printf ("Which one? ");
 	scanf ("%d", &i);
@@ -422,7 +416,7 @@ int I_FindNext (void *handle, findstate_t *fileinfo)
 int I_FindClose (void *handle)
 {
 	findstate_t *state = (findstate_t *)handle;
-	if (state->count > 0)
+	if (handle != (void*)-1 && state->count > 0)
 	{
 		state->count = 0;
 		free (state->namelist);
