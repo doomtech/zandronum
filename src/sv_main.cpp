@@ -401,23 +401,24 @@ void SERVER_Tick( void )
 	LONG			lPreviousTics;
 	LONG			lCurTics;
 	ULONG			ulIdx;
-	static DWORD	dwBaseTime = 0;
+	//[BB] Looks like dwBaseTime is not used at all.
+	//static DWORD	dwBaseTime = 0;
 
 //	I_DoSelect();
 
-	if ( dwBaseTime == 0 )
-		dwBaseTime = timeGetTime( );
+	//if ( dwBaseTime == 0 )
+	//	dwBaseTime = timeGetTime( );
 
 	lPreviousTics = g_lGameTime / (( 1.0 / (double)35.75 ) * 1000.0 );
 
-	lNowTime = I_GetMSElapsed( );
+	lNowTime = I_MSTime( );
 	lNewTics = lNowTime / (( 1.0 / (double)35.75 ) * 1000.0 );
 
 	lCurTics = lNewTics - lPreviousTics;
 	while ( lCurTics <= 0 )
 	{
 		I_Sleep( 1 );
-		lNowTime = I_GetMSElapsed( );
+		lNowTime = I_MSTime( );
 		lNewTics = lNowTime / (( 1.0 / (double)35.75 ) * 1000.0 );
 		lCurTics = lNewTics - lPreviousTics;
 	}

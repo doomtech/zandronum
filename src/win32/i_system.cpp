@@ -159,6 +159,7 @@ float I_GetTimeFloat( void )
 	return (( (float)tm - (float)basetime ) * (float)TICRATE ) / 1000.0f;
 }
 
+/*
 int I_GetMSElapsed( void )
 {
 	DWORD tm;
@@ -169,6 +170,7 @@ int I_GetMSElapsed( void )
 
 	return ( tm - basetime );
 }
+*/
 
 void I_Sleep( int iMS )
 {

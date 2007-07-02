@@ -140,7 +140,8 @@ int I_GetTimeFake (void);
 fixed_t I_GetTimeFrac (uint32 *ms);
 
 float	I_GetTimeFloat( void );
-int		I_GetMSElapsed( void );
+// [BB] Use I_MSTime instead, since it does the same as I_GetMSElapsed did and is also available under Linux.
+//int		I_GetMSElapsed( void );
 void	I_Sleep( int iMS );
 
 //
