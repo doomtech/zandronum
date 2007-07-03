@@ -49,9 +49,7 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <winsock2.h>
-
-#define USE_WINDOWS_DWORD
+#include "networkheaders.h"
 #include "c_dispatch.h"
 #include "cooperative.h"
 #include "deathmatch.h"

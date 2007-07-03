@@ -28,6 +28,9 @@
 #define _itoa(x,y,z) itoa(x,y,z)
 
 char* itoa(int value, char* str, int base);
+char *strupr(char *string);
+
+void I_Sleep( int iMS );
 
 typedef unsigned char UCHAR;
 
