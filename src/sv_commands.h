@@ -115,7 +115,7 @@ void	SERVERCOMMANDS_SpawnThingExact( AActor *pActor, ULONG ulPlayerExtra = MAXPL
 void	SERVERCOMMANDS_SpawnThingExactNoNetID( AActor *pActor, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_MoveThing( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_DamageThing( AActor *pActor );
-void	SERVERCOMMANDS_KillThing( AActor *pActor, bool bGib );
+void	SERVERCOMMANDS_KillThing( AActor *pActor );
 void	SERVERCOMMANDS_SetThingState( AActor *pActor, ULONG ulState );
 void	SERVERCOMMANDS_DestroyThing( AActor *pActor );
 void	SERVERCOMMANDS_SetThingAngle( AActor *pActor, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );

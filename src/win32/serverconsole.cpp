@@ -126,7 +126,7 @@ extern	char		g_szLogFilename[256];
 
 //*****************************************************************************
 //	FUNCTIONS
-
+LONG WINAPI CatchAllExceptions (LPEXCEPTION_POINTERS info);
 BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WPARAM wParam, LPARAM lParam )
 {
 	switch ( Message )

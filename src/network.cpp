@@ -123,151 +123,6 @@ static	USHORT		g_usLocalPort;
 // Buffer for the Huffman encoding.
 static	UCHAR		g_ucHuffmanBuffer[131072];
 
-static	char	*g_pszServerHeaderNames[NUM_SERVER_COMMANDS] =
-{
-	"SVC_HEADER",
-	"SVC_PRINT",
-	"SVC_SETCONSOLEPLAYER",
-	"SVC_DMFLAGS",
-	"SVC_GAMESKILL",
-	"SVC_GAMETYPE",
-	"SVC_LIMITS",
-	"SVC_LOADMAP",
-	"SVC_SPAWNPLAYER",
-	"SVC_DISCONNECTPLAYER",
-	"SVC_SETPLAYERCHATSTATUS",
-	"SVC_PLAYERSAY",
-	"SVC_MOVEPLAYER",
-	"SVC_UPDATELOCALPLAYER",
-	"SVC_SPAWNTHING",
-	"SVC_UNRELIABLEPACKET",
-	"SVC_UPDATEPING",
-	"SVC_PING",
-	"SVC_UPDATEPLAYERUSERINFO",
-	"SVC_SETPLAYERFRAGS",
-	"SVC_THINGANGLE",
-	"SVC_CORPSE",
-	"SVC_SPAWNMISSILE",
-	"SVC_EXPLODEMISSILE",
-	"SVC_RESPAWNITEM",
-	"SVC_DAMAGETHING",
-	"SVC_DAMAGEPLAYER",
-	"SVC_MOVETHING",
-	"SVC_KILLTHING",
-	"SVC_KILLPLAYER",
-	"SVC_GIVEMEDAL",
-	"SVC_TOGGLELINE",
-	"SVC_TAUNT",
-	"SVC_THINGSTATE",
-	"SVC_FIST",
-	"SVC_SAW",
-	"SVC_FIREPISTOL",
-	"SVC_FIRESHOTGUN",
-	"SVC_FIRESUPERSHOTGUN",
-	"SVC_OPENSUPERSHOTGUN",
-	"SVC_LOADSUPERSHOTGUN",
-	"SVC_CLOSESUPERSHOTGUN",
-	"SVC_FIRECHAINGUN",
-	"SVC_FIREMINIGUN",
-	"SVC_FIREROCKETLAUNCHER",
-	"SVC_FIREGRENADELAUNCHER",
-	"SVC_FIREPLASMAGUN",
-	"SVC_FIRERAILGUN",
-	"SVC_FIREBFG",
-	"SVC_FIREBFG10K",
-	"SVC_UPDATESECTORFLAT",
-	"SVC_NEWMAP",
-	"SVC_EXITLEVEL",
-	"SVC_SECTORSOUND",
-	"SVC_SECTORSOUNDID",
-//	"SVC_STOPSECTORSEQUENCE",
-	"SVC_ENDLEVELDELAY",
-	"SVC_UPDATETEAMFRAGS",
-	"SVC_UPDATETEAMSCORES",
-	"SVC_SETPLAYERTEAM",
-	"SVC_TELEPORT",
-	"SVC_HIDEMOBJ",
-	"SVC_FLAGRETURNED",
-	"SVC_REMOVEPLAYERITEM",
-	"SVC_DESTROYTHING",
-	"SVC_GIVETHING",
-	"SVC_MIDPRINT",
-	"SVC_UPDATEPLAYERPOINTS",
-	"SVC_PLAYERSPECTATING",
-	"SVC_WEAPONCHANGE",
-	"SVC_UPDATEPLAYERKILLCOUNT",
-	"SVC_SETPLAYERSTATE",
-	"SVC_MOTD",
-	"SVC_CONSOLEPLAYERKICKED",
-	"SVC_UPDATEPLAYEREXTRA",
-	"SVC_LEVELTIME",
-	"SVC_NOTHING",
-	"SVC_CLIENTLAGGING",
-	"SVC_CLIENTNOTLAGGING",
-	"SVC_SPAWNPLASMABALL",
-	"SVC_SPAWNROCKET",
-	"SVC_SPAWNGRENADE",
-	"SVC_RESPAWNITEMNOFOG",
-	"SVC_CEILINGPANNING",
-	"SVC_FLOORPANNING",
-	"SVC_SECTORCOLOR",
-	"SVC_SECTORROTATION",
-	"SVC_SECTORFADE",
-	"SVC_ROTATEPOLY",
-	"SVC_MOVEPOLY",
-	"SVC_CREATEPOLYDOOR",
-	"SVC_SPAWNFATSHOT",
-	"SVC_HUDMESSAGE",
-	"SVC_ACTORPROPERTY",
-	"SVC_PLAYERPROPERTY",
-	"SVC_SECTORLIGHTLEVEL",
-	"SVC_ACTORACTIVATE",
-	"SVC_ACTORDEACTIVATE",
-//	"SVC_GIVEINVENTORY",
-	"SVC_BEGINSNAPSHOT",
-	"SVC_ENDSNAPSHOT",
-	"SVC_RETURNTICKS",
-	"SVC_LINEALPHA",
-	"SVC_LINETEXTURE",
-	"SVC_SOUND",
-	"SVC_SOUNDACTOR",
-	"SVC_SOUNDPOINT",
-//	"SVC_USEINVENTORY",
-	"SVC_PLAYERHEALTH",
-//	"SVC_TAKEINVENTORY",
-	"SVC_FLASHFADER",
-	"SVC_CHANGEMUSIC",
-	"SVC_DODOOR",
-	"SVC_DOFLOOR",
-	"SVC_DOCEILING",
-	"SVC_DOPLAT",
-	"SVC_BUILDSTAIRS",
-	"SVC_GENERICCHEAT",
-	"SVC_GIVECHEAT",
-	"SVC_DOELEVATOR",
-	"SVC_STARTWAGGLE",
-	"SVC_SETFLOORPLANE",
-	"SVC_SETCEILINGPLANE",
-	"SVC_SPAWNBULLETPUFF",
-	"SVC_DODONUT",
-	"SVC_SPRINGPADZONE",
-//	"SVC_ACTORFLAGS",
-	"SVC_SETPOLYPOSITION",
-	"SVC_FIGHT",
-	"SVC_STARTCOUNTDOWN",
-	"SVC_DOWINSEQUENCE",
-	"SVC_UPDATEWINS",
-//	"SVC_UPDATEPOWERUP",
-//	"SVC_UPDATERUNE",
-	"SVC_REQUESTCHECKSUM",
-	"SVC_UPDATEDUELS",
-//	"SVC_RANDOMPOWERUP",
-	"SVC_READYTOGOON",
-	"SVC_UPDATEPLAYERTIME",
-	"SVC_MODESTATE",
-
-};
-
 //*****************************************************************************
 //	PROTOTYPES
 
@@ -281,10 +136,10 @@ static	void	network_GetLocalAddress( void );
 
 void NETWORK_Construct( void )
 {
+	char	*pszMaxClients;
+
 	if ( Args.CheckParm( "-host" ))
 	{
-		char	*pszMaxClients;
-
 		SERVER_Construct( );
 
 		// If they used "-host <#>", make <#> the max number of players.
@@ -294,41 +149,6 @@ void NETWORK_Construct( void )
 	}
 	else
 		CLIENT_Construct( );
-}
-
-//*****************************************************************************
-//
-LONG NETWORK_GetState( void )
-{
-	return ( g_lNetworkState );
-}
-
-//*****************************************************************************
-//
-void NETWORK_SetState( LONG lState )
-{
-	if ( lState >= NUM_NETSTATES || lState < 0 )
-		return;
-
-	g_lNetworkState = lState;
-
-	// Alert the status bar that multiplayer status has changed.
-	if ( g_lNetworkState != NETSTATE_SERVER && StatusBar )
-		StatusBar->MultiplayerChanged( );
-}
-
-//*****************************************************************************
-//
-USHORT NETWORK_GetLocalPort( void )
-{
-	return ( g_usLocalPort );
-}
-
-//*****************************************************************************
-//
-void NETWORK_SetLocalPort( USHORT usPort )
-{
-	g_usLocalPort = usPort;
 }
 
 //*****************************************************************************
@@ -455,7 +275,7 @@ void NETWORK_WriteChar( sizebuf_t *pBuffer, char cChar )
 int NETWORK_ReadByte( void )
 {
 	int	Byte;
-	
+
 	// Don't read past the size of the packet.
 	if ( g_NetworkMessage.readcount + 1 > g_NetworkMessage.cursize )
 		Byte = -1;
@@ -469,7 +289,7 @@ int NETWORK_ReadByte( void )
 
 	// Move the "pointer".
 	g_NetworkMessage.readcount++;
-	
+
 	return ( Byte );
 }
 
@@ -493,7 +313,7 @@ void NETWORK_WriteByte( sizebuf_t *pBuffer, int Byte )
 int NETWORK_ReadShort( void )
 {
 	int	Short;
-	
+
 	// Don't read past the size of the packet.
 	if ( g_NetworkMessage.readcount + 2 > g_NetworkMessage.cursize )
 		Short = -1;
@@ -501,19 +321,19 @@ int NETWORK_ReadShort( void )
 	{
 		if ( g_lNetworkState == NETSTATE_SERVER )
 		{
-			Short = (short)( g_NetworkMessage.pbData[g_NetworkMessage.readcount]
-			+ ( g_NetworkMessage.pbData[g_NetworkMessage.readcount+1]<<8 ));
+			Short = (short)(( g_NetworkMessage.pbData[g_NetworkMessage.readcount] << 8 )
+			+ ( g_NetworkMessage.pbData[g_NetworkMessage.readcount + 1] ));
 		}
 		else
 		{
-			Short = (short)( g_NetworkMessage.bData[g_NetworkMessage.readcount]
-			+ ( g_NetworkMessage.bData[g_NetworkMessage.readcount+1]<<8 ));
+			Short = (short)(( g_NetworkMessage.bData[g_NetworkMessage.readcount] << 8 )
+			+ ( g_NetworkMessage.bData[g_NetworkMessage.readcount + 1] ));
 		}
 	}
 
 	// Move the "pointer".
 	g_NetworkMessage.readcount += 2;
-	
+
 	return ( Short );
 }
 
@@ -522,15 +342,10 @@ int NETWORK_ReadShort( void )
 void NETWORK_WriteShort( sizebuf_t *pBuffer, int Short )
 {
 	BYTE	*pbBuf;
-	
-#ifdef PARANOID
-	if ( Short < ((short)0x8000) || Short > (short)0x7fff )
-		Printf( "NETWORK_WriteShort: Range error %d\n", Short );
-#endif
 
 	pbBuf = NETWORK_GetSpace( pBuffer, 2 );
-	pbBuf[0] = Short & 0xff;
-	pbBuf[1] = Short >> 8;
+	pbBuf[0] = Short >> 8;
+	pbBuf[1] = Short & 0xff;
 }
 
 //*****************************************************************************
@@ -538,7 +353,7 @@ void NETWORK_WriteShort( sizebuf_t *pBuffer, int Short )
 int NETWORK_ReadLong( void )
 {
 	int	Long;
-	
+
 	// Don't read past the size of the packet.
 	if ( g_NetworkMessage.readcount + 4 > g_NetworkMessage.cursize )
 		Long = -1;
@@ -546,23 +361,23 @@ int NETWORK_ReadLong( void )
 	{
 		if ( g_lNetworkState == NETSTATE_SERVER )
 		{
-			Long = g_NetworkMessage.pbData[g_NetworkMessage.readcount]
-			+ ( g_NetworkMessage.pbData[g_NetworkMessage.readcount+1] << 8 )
-			+ ( g_NetworkMessage.pbData[g_NetworkMessage.readcount+2] << 16 )
-			+ ( g_NetworkMessage.pbData[g_NetworkMessage.readcount+3] << 24 );
+			Long = ( g_NetworkMessage.pbData[g_NetworkMessage.readcount] << 24 )
+			+ ( g_NetworkMessage.pbData[g_NetworkMessage.readcount + 1] << 16 )
+			+ ( g_NetworkMessage.pbData[g_NetworkMessage.readcount + 2] << 8 )
+			+ ( g_NetworkMessage.pbData[g_NetworkMessage.readcount + 3] );
 		}
 		else
 		{
-			Long = g_NetworkMessage.bData[g_NetworkMessage.readcount]
-			+ ( g_NetworkMessage.bData[g_NetworkMessage.readcount+1] << 8 )
-			+ ( g_NetworkMessage.bData[g_NetworkMessage.readcount+2] << 16 )
-			+ ( g_NetworkMessage.bData[g_NetworkMessage.readcount+3] << 24 );
+			Long = ( g_NetworkMessage.bData[g_NetworkMessage.readcount] << 24 )
+			+ ( g_NetworkMessage.bData[g_NetworkMessage.readcount + 1] << 16 )
+			+ ( g_NetworkMessage.bData[g_NetworkMessage.readcount + 2] << 8 )
+			+ ( g_NetworkMessage.bData[g_NetworkMessage.readcount + 3] );
 		}
 	}
-	
+
 	// Move the "pointer".
 	g_NetworkMessage.readcount += 4;
-	
+
 	return ( Long );
 }
 
@@ -571,12 +386,12 @@ int NETWORK_ReadLong( void )
 void NETWORK_WriteLong( sizebuf_t *pBuffer, int Long )
 {
 	BYTE	*pbBuf;
-	
+
 	pbBuf = NETWORK_GetSpace( pBuffer, 4 );
-	pbBuf[0] = Long & 0xff;
-	pbBuf[1] = ( Long >> 8 ) & 0xff;
-	pbBuf[2] = ( Long >> 16 ) & 0xff;
-	pbBuf[3] = ( Long >> 24 );
+	pbBuf[0] = ( Long >> 24 );
+	pbBuf[1] = ( Long >> 16 ) & 0xff;
+	pbBuf[2] = ( Long >> 8 ) & 0xff;
+	pbBuf[3] = Long & 0xff;
 }
 
 //*****************************************************************************
@@ -589,7 +404,10 @@ float NETWORK_ReadFloat( void )
 		float	f;
 		int	l;
 	} dat;
-	
+
+	dat.l = NETWORK_ReadLong( );
+	return ( dat.f );
+/*
 	// Don't read past the size of the packet.
 	if ( g_NetworkMessage.readcount + 4 > g_NetworkMessage.cursize )
 		dat.f = -1;
@@ -614,7 +432,8 @@ float NETWORK_ReadFloat( void )
 	// Move the "pointer".
 	g_NetworkMessage.readcount += 4;
 	
-	return ( dat.f );	
+	return ( dat.f );
+*/
 }
 
 //*****************************************************************************
@@ -630,7 +449,7 @@ void NETWORK_WriteFloat( sizebuf_t *pBuffer, float Float )
 	dat.f = Float;
 	//dat.l = LittleLong (dat.l);
 
-	NETWORK_Write( pBuffer, &dat.l, 4 );
+	NETWORK_WriteLong( pBuffer, dat.l );
 }
 
 //*****************************************************************************
@@ -681,14 +500,7 @@ void NETWORK_WriteString ( sizebuf_t *pBuffer, const char *pszString )
 //
 void NETWORK_WriteHeader( sizebuf_t *pBuffer, int Byte )
 {
-//#ifdef	_DEBUG
-	if ( g_lNetworkState == NETSTATE_SERVER )
-	{
-		if ( debugfile )
-			fprintf( debugfile, "Wrote: %s\n", g_pszServerHeaderNames[Byte] );
-//		Printf( "Wrote: %s\n", g_pszServerHeaderNames[Byte] );
-	}
-//#endif
+//	Printf( "%s\n", g_pszHeaderNames[Byte] );
 	NETWORK_WriteByte( pBuffer, Byte );
 }
 
@@ -873,6 +685,16 @@ int NETWORK_GetLANPackets( void )
     NETWORK_SocketAddressToNetAddress( &SocketFrom, &g_AddressFrom );
 
 	return ( g_NetworkMessage.cursize );
+}
+
+//*****************************************************************************
+//
+BYTE *NETWORK_GetBuffer( void )
+{
+	if ( g_lNetworkState == NETSTATE_SERVER )
+		return ( &g_NetworkMessage.pbData[g_NetworkMessage.readcount] );
+	else
+		return ( &g_NetworkMessage.bData[g_NetworkMessage.readcount] );
 }
 
 //*****************************************************************************
@@ -1192,27 +1014,6 @@ void NETWORK_Write( sizebuf_t *pBuffer, BYTE *pbData, int nStartPos, int nLength
 
 //*****************************************************************************
 //
-void NETWORK_Print( sizebuf_t *pBuffer, char *pszData )
-{
-/*
-	USHORT	usLength;
-	
-	usLength = strlen( pszData ) + 1;
-
-	if ( pBuffer->cursize )
-	{
-		if ( pBuffer->data[pBuffer->cursize - 1] )
-			memcpy ((BYTE *)NETWORK_GetSpace( pBuffer, usLength ), pszData, usLength ); // no trailing 0
-		else
-			memcpy ((BYTE *)NETWORK_GetSpace( pBuffer, usLength - 1 ) - 1, pszData, usLength ); // write over trailing 0
-	}
-	else
-		memcpy ((BYTE *)NETWORK_GetSpace( pBuffer, usLength ), pszData, usLength );
-*/
-}
-
-//*****************************************************************************
-//
 char *NETWORK_AddressToString( netadr_t a )
 {
 	static char	s_szAddress[64];
@@ -1243,6 +1044,7 @@ void NETWORK_NetAddressToSocketAddress( netadr_t *a, struct sockaddr_in *s )
      *(int *)&s->sin_addr = *(int *)&a->ip;
      s->sin_port = a->port;
 }
+
 //*****************************************************************************
 //
 bool NETWORK_CompareAddress( netadr_t a, netadr_t b, bool bIgnorePort )
@@ -1252,7 +1054,9 @@ bool NETWORK_CompareAddress( netadr_t a, netadr_t b, bool bIgnorePort )
 		( a.ip[2] == b.ip[2] ) &&
 		( a.ip[3] == b.ip[3] ) &&
 		( bIgnorePort ? 1 : ( a.port == b.port )))
+	{
 		return ( true );
+	}
 
 	return ( false );
 }
@@ -1318,6 +1122,42 @@ sizebuf_t *NETWORK_GetNetworkMessageBuffer( void )
 ULONG NETWORK_ntohs( ULONG ul )
 {
 	return ( ntohs( (u_short)ul ));
+}
+
+//*****************************************************************************
+//*****************************************************************************
+//
+LONG NETWORK_GetState( void )
+{
+	return ( g_lNetworkState );
+}
+
+//*****************************************************************************
+//
+void NETWORK_SetState( LONG lState )
+{
+	if ( lState >= NUM_NETSTATES || lState < 0 )
+		return;
+
+	g_lNetworkState = lState;
+
+	// Alert the status bar that multiplayer status has changed.
+	if ( g_lNetworkState != NETSTATE_SERVER && StatusBar )
+		StatusBar->MultiplayerChanged( );
+}
+
+//*****************************************************************************
+//
+USHORT NETWORK_GetLocalPort( void )
+{
+	return ( g_usLocalPort );
+}
+
+//*****************************************************************************
+//
+void NETWORK_SetLocalPort( USHORT usPort )
+{
+	g_usLocalPort = usPort;
 }
 
 //*****************************************************************************

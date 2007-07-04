@@ -445,7 +445,6 @@ typedef enum
 	SVC_UPDATEPLAYEREPENDINGWEAPON,
 	SVC_USEINVENTORY,
 	SVC_SETTHINGTID,
-	SVC_GIBTHING,
 
 	NUM_SERVER_COMMANDS
 };
@@ -504,13 +503,6 @@ enum
 //	PROTOTYPES
 
 void		NETWORK_Construct( void );
-
-LONG		NETWORK_GetState( void );
-void		NETWORK_SetState( LONG lState );
-
-USHORT		NETWORK_GetLocalPort( void );
-void		NETWORK_SetLocalPort( USHORT usPort );
-
 void		NETWORK_Initialize( void );
 
 int			NETWORK_ReadChar( void );
@@ -537,6 +529,7 @@ void		NETWORK_WriteHeader( sizebuf_t *pBuffer, int Byte );
 void		NETWORK_CheckBuffer( ULONG ulClient, ULONG ulSize );
 int			NETWORK_GetPackets( void );
 int			NETWORK_GetLANPackets( void );
+BYTE		*NETWORK_GetBuffer( void );
 //void		NETWORK_LaunchPacket( sizebuf_t netbuf, netadr_t to, bool bCompression );
 void		NETWORK_LaunchPacket( sizebuf_t *netbuf, netadr_t to );
 void		NETWORK_SendPacket( ULONG ulClient );
@@ -547,7 +540,6 @@ void		NETWORK_ClearBuffer( sizebuf_t *pBuffer );
 BYTE		*NETWORK_GetSpace( sizebuf_t *pBuffer, ULONG ulLength );
 void		NETWORK_Write( sizebuf_t *pBuffer, const void *pvData, int nLength );
 void		NETWORK_Write( sizebuf_t *pBuffer, BYTE *pbData, int nStartPos, int nLength );
-void		NETWORK_Print( sizebuf_t *pBuffer, char *pszData );	// strcats onto the sizebuf
 char		*NETWORK_AddressToString( netadr_t Address );
 char		*NETWORK_AddressToStringIgnorePort( netadr_t Address );
 //bool		NETWORK_StringToAddress( char *pszString, netadr_t *pAddress );
@@ -559,6 +551,13 @@ netadr_t	NETWORK_GetLocalAddress( void );
 LONG		NETWORK_GetPacketSize( void );
 sizebuf_t	*NETWORK_GetNetworkMessageBuffer( void );
 ULONG		NETWORK_ntohs( ULONG ul );
+
+// Access functions.
+LONG		NETWORK_GetState( void );
+void		NETWORK_SetState( LONG lState );
+
+USHORT		NETWORK_GetLocalPort( void );
+void		NETWORK_SetLocalPort( USHORT usPort );
 
 void	I_DoSelect( void );
 void	I_SetPort( netadr_t &addr, int port );

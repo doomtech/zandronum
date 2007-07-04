@@ -79,6 +79,7 @@
 #include "a_doomglobal.h"
 #include "sv_commands.h"
 #include "medal.h"
+#include "cl_demo.h"
 #include "cl_main.h"
 #include "browser.h"
 #include "lastmanstanding.h"
@@ -1243,6 +1244,7 @@ void G_Ticker ()
 			UCVarValue	Val;
 			netadr_t	MasterAddress;
 			char		*pszMasterPort;
+			BYTE		*pbStream;
 
 			Val = cl_masterip.GetGenericRep( CVAR_String );
 			NETWORK_StringToAddress( Val.String, &MasterAddress );
@@ -1282,14 +1284,17 @@ void G_Ticker ()
 //						break;
 				}
 #endif
+				// Get a pointer to the data in our packet.
+				pbStream = NETWORK_GetBuffer( );
+
 				// We've gotten a packet! Now figure out what it's saying.
-				if ( CLIENT_ReadPacketHeader( ))
-					CLIENT_ParsePacket( false );
+				if ( CLIENT_ReadPacketHeader( &pbStream ))
+					CLIENT_ParsePacket( &pbStream, NETWORK_GetNetworkMessageBuffer( )->cursize - 1, false );
 				else
 				{
-					while ( CLIENT_GetNextPacket( ))
+					while ( CLIENT_GetNextPacket( &pbStream ))
 					{
-						CLIENT_ParsePacket( true );
+						CLIENT_ParsePacket( &pbStream, NETWORK_GetNetworkMessageBuffer( )->cursize, true );
 
 						// Don't continue parsing if we've exited the network game.
 						if ( CLIENT_GetConnectionState( ) == CTS_DISCONNECTED )
@@ -1407,14 +1412,16 @@ void G_Ticker ()
 				{
 					RunNetSpecs (i, buf);
 				}
-				if (demorecording)
+				// [BC] Support for client-side demos.
+				if (demorecording || CLIENTDEMO_IsRecording( ))
 				{
 					G_WriteDemoTiccmd (newcmd, i, buf);
 				}
 				// If the user alt-tabbed away, paused gets set to -1. In this case,
 				// we do not want to read more demo commands until paused is no
 				// longer negative.
-				if (demoplayback && paused >= 0)
+				// [BC] Support for client-side demos.
+				if ((demoplayback || CLIENTDEMO_IsPlaying( )) && paused >= 0)
 				{
 					G_ReadDemoTiccmd (cmd, i);
 				}
