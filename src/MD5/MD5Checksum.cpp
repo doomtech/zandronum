@@ -72,7 +72,11 @@ libraries, I've gone ahead and modified parts of this code to make it standalone
 */
 
 #include <assert.h>
+#ifdef _WIN32
 #include <windows.h>
+#else
+typedef unsigned long DWORD;
+#endif
 
 #define USE_WINDOWS_DWORD
 #include "MD5Checksum.h"
