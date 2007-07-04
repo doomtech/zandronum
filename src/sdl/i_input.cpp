@@ -17,6 +17,8 @@
 #include "templates.h"
 #include "s_sound.h"
 
+#include "chat.h"
+
 static void I_CheckGUICapture ();
 static void I_CheckNativeMouse ();
 
@@ -137,7 +139,7 @@ static FBaseCVar * const JoyConfigVars[] =
 
 EXTERN_CVAR (Bool, fullscreen)
 
-extern int WaitingForKey, chatmodeon;
+extern int WaitingForKey;
 extern constate_e ConsoleState;
 
 static BYTE KeySymToDIK[SDLK_LAST], DownState[SDLK_LAST];
@@ -200,7 +202,7 @@ static void I_CheckGUICapture ()
 
     if (menuactive == MENU_Off)
     {
-        wantCapt = ConsoleState == c_down || ConsoleState == c_falling || chatmodeon;
+        wantCapt = ConsoleState == c_down || ConsoleState == c_falling || CHAT_GetChatMode();
     }
     else
     {

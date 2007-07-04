@@ -108,6 +108,19 @@ void SERVERCONSOLE_Print( char *pszString ) { std::cerr << pszString; }
 #include "gl/gl_functions.h"
 #include "gl/gl_texture.h"
 #include "gl/gl_lights.h"
+
+// [BB] We need the gl nodes even if we don't display anything on the screen, i.e. on the server.
+#include "gl/gl_nodes.cpp"
+/*
+// [BB] This are the necessary things from gl_nodes.cpp
+void gl_CheckNodes(MapData * map) {}
+bool gl_LoadGLNodes(MapData * map) { return false; }
+node_t * gamenodes = NULL;
+int numgamenodes = 0;
+subsector_t * gamesubsectors = NULL;
+*/
+
+#ifdef _WIN32
 typedef unsigned char byte;
 void gl_DrawLine(int x1, int y1, int x2, int y2, int color) {}
 void gl_RenderPlayerView (player_t* player) {}
@@ -124,17 +137,6 @@ void gl_DrawTexture(FTexInfo *texInfo) {}
 void gl_ParseDefs(void) {}
 void gl_RenderViewToCanvas(DCanvas * pic, int x, int y, int width, int height) {}
 void StartGLMenu (void) {}
-
-// [BB] We need the gl nodes even if we don't display anything on the screen, i.e. on the server.
-#include "gl/gl_nodes.cpp"
-/*
-// [BB] This are the necessary things from gl_nodes.cpp
-void gl_CheckNodes(MapData * map) {}
-bool gl_LoadGLNodes(MapData * map) { return false; }
-node_t * gamenodes = NULL;
-int numgamenodes = 0;
-subsector_t * gamesubsectors = NULL;
-*/
 
 void FTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, 
 																	 intptr_t cm, int translation) {}
@@ -175,4 +177,5 @@ void ADynamicLight::PostBeginPlay(void) {}
 void ADynamicLight::BeginPlay(void) {}
 void ADynamicLight::Activate(class AActor *) {}
 void ADynamicLight::Deactivate(class AActor *) {}
+#endif //_WIN32
 #endif

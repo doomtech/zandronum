@@ -213,8 +213,11 @@ extern int NewWidth, NewHeight, NewBits, DisplayBits;
 
 CUSTOM_CVAR (Bool, fullscreen, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 {
-	NewWidth = screen->GetWidth();
-	NewHeight = screen->GetHeight();
+	if ( screen )
+	{
+		NewWidth = screen->GetWidth();
+		NewHeight = screen->GetHeight();
+	}
 	NewBits = DisplayBits;
 	setmodeneeded = true;
 }

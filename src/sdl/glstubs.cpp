@@ -135,3 +135,19 @@ void FWarp2Texture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_he
 	Unload ();
 	delete SourcePic;
 }*/
+
+void FJPEGTexture::CopyTrueColorPixels(BYTE *, int , int , int , int , intptr_t, int)
+{
+}
+
+void FTGATexture::CopyTrueColorPixels(BYTE *, int , int , int , int , intptr_t, int)
+{
+}
+
+void FPCXTexture::CopyTrueColorPixels(BYTE *, int , int , int , int , intptr_t, int)
+{
+}
+
+void FCanvasTexture::RenderGLView (AActor *viewpoint, int fov)
+{
+}
