@@ -1125,6 +1125,26 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE nothing, LPSTR cmdline, int n
 	return 0;
 }
 
+//=============================================================================
+//
+//	[BC] MainDoomThread
+//
+//	This is the new thread created by the server console.
+//
+//=============================================================================
+DWORD WINAPI MainDoomThread( LPVOID )
+{
+	// Setup our main thread ID so that if we have a crash, it crashes properly.
+	MainThread = INVALID_HANDLE_VALUE;
+	DuplicateHandle (GetCurrentProcess(), GetCurrentThread(), GetCurrentProcess(), &MainThread,
+		0, FALSE, DUPLICATE_SAME_ACCESS);
+	MainThreadID = GetCurrentThreadId();
+
+	D_DoomMain( );
+
+	return ( 0 );
+}
+
 //===========================================================================
 //
 // CCMD crashout

@@ -15,8 +15,10 @@ v0.97d-beta4
 ------------
 
 +	- Added custom invasion spots! You can now use your own custom monsters, pickups, and weapons in invasion mode! [Carnevil]
++	- The crash dialog now works for servers as well! Now, if a Skulltag server crashes, it can be debugged and fixed! [Carnevil]
 +	- All weapons are now given in LMS/team LMS mode, except for those excluded by the allowed weapon flags, and those flagged as not appearing in LMS mode. [Carnevil]
 -	- Fixed issues with the IWAD/PWAD list for servers when hosting .pk3s with embedded .wad files. [Carnevil]
+-	- The crash dialog now displays properly whenever Skulltag crashes. [Carnevil]
 !	- Brought back elements of the old invasion HUD. [Carnevil]
 
 v0.97d-beta3
