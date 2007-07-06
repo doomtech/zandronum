@@ -67,7 +67,7 @@ enum
 typedef struct
 {
 	// Network address of the administrator.
-	netadr_t	Address;
+	NETADDRESS_s	Address;
 
 } ADMININFO_t;
 
@@ -75,6 +75,6 @@ typedef struct
 //	PROTOTYPES
 
 void		SERVER_ADMIN_Construct( void );
-bool		SERVER_ADMIN_IsAdministrator( netadr_t IP );
+bool		SERVER_ADMIN_IsAdministrator( NETADDRESS_s IP );
 
 #endif	// __SV_ADMIN_H__

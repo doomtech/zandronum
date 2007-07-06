@@ -96,91 +96,91 @@ typedef struct
 typedef struct
 {
 	// What's the state of this server's activity?
-	ULONG		ulActiveState;
+	ULONG			ulActiveState;
 
-	// IP address of this server.
-	netadr_t	Address;
+	// Network address of this server.
+	NETADDRESS_s	Address;
 
 	// Name of the server.
-	char		szHostName[256];
+	char			szHostName[256];
 
 	// Website URL of the wad the server is using.
-	char		szWadURL[256];
+	char			szWadURL[256];
 
 	// Host's email address.
-	char		szEmailAddress[128];
+	char			szEmailAddress[128];
 
 	// Mapname of the level the server is currently on.
-	char		szMapname[32];
+	char			szMapname[32];
 
 	// Maximum number of players that can join the server.
-	LONG		lMaxClients;
+	LONG			lMaxClients;
 
 	// Number of PWADs the server is using.
-	LONG		lNumPWADs;
+	LONG			lNumPWADs;
 
 	// Names of each PWAD the server is using.
-	char		szPWADNames[32][32];
+	char			szPWADNames[32][32];
 
 	// Name of the IWAD being used.
-	char		szIWADName[32];
+	char			szIWADName[32];
 
 	// Gametype of the server.
-	LONG		lGameType;
+	LONG			lGameType;
 
 	// Number of players on the server.
-	LONG		lNumPlayers;
+	LONG			lNumPlayers;
 
 	// Player's playing on the server.
 	SERVERPLAYER_t	Players[MAXPLAYERS];
 
 	// Version of the server.
-	char		szVersion[32];
+	char			szVersion[32];
 
 	// Was this server broadcasted to us on a LAN?
-	bool		bLAN;
+	bool			bLAN;
 
 	// MS time of when we queried this server.
-	LONG		lMSTime;
+	LONG			lMSTime;
 
 	// Ping to this server.
-	LONG		lPing;
+	LONG			lPing;
 
 } SERVER_t;
 
 //*****************************************************************************
 //	PROTOTYPES
 
-void	BROWSER_Construct( void );
+void			BROWSER_Construct( void );
 
-bool		BROWSER_IsActive( ULONG ulServer );
-bool		BROWSER_IsLAN( ULONG ulServer );
-netadr_t	BROWSER_GetAddress( ULONG ulServer );
-char		*BROWSER_GetHostName( ULONG ulServer );
-char		*BROWSER_GetWadURL( ULONG ulServer );
-char		*BROWSER_GetEmailAddress( ULONG ulServer );
-char		*BROWSER_GetMapname( ULONG ulServer );
-LONG		BROWSER_GetMaxClients( ULONG ulServer );
-LONG		BROWSER_GetNumPWADs( ULONG ulServer );
-char		*BROWSER_GetPWADName( ULONG ulServer, ULONG ulWadIdx );
-char		*BROWSER_GetIWADName( ULONG ulServer );
-LONG		BROWSER_GetGameType( ULONG ulServer );
-LONG		BROWSER_GetNumPlayers( ULONG ulServer );
-char		*BROWSER_GetPlayerName( ULONG ulServer, ULONG ulPlayer );
-LONG		BROWSER_GetPlayerFragcount( ULONG ulServer, ULONG ulPlayer );
-LONG		BROWSER_GetPlayerPing( ULONG ulServer, ULONG ulPlayer );
-LONG		BROWSER_GetPlayerSpectating( ULONG ulServer, ULONG ulPlayer );
-LONG		BROWSER_GetPing( ULONG ulServer );
-char		*BROWSER_GetVersion( ULONG ulServer );
+bool			BROWSER_IsActive( ULONG ulServer );
+bool			BROWSER_IsLAN( ULONG ulServer );
+NETADDRESS_s	BROWSER_GetAddress( ULONG ulServer );
+char			*BROWSER_GetHostName( ULONG ulServer );
+char			*BROWSER_GetWadURL( ULONG ulServer );
+char			*BROWSER_GetEmailAddress( ULONG ulServer );
+char			*BROWSER_GetMapname( ULONG ulServer );
+LONG			BROWSER_GetMaxClients( ULONG ulServer );
+LONG			BROWSER_GetNumPWADs( ULONG ulServer );
+char			*BROWSER_GetPWADName( ULONG ulServer, ULONG ulWadIdx );
+char			*BROWSER_GetIWADName( ULONG ulServer );
+LONG			BROWSER_GetGameType( ULONG ulServer );
+LONG			BROWSER_GetNumPlayers( ULONG ulServer );
+char			*BROWSER_GetPlayerName( ULONG ulServer, ULONG ulPlayer );
+LONG			BROWSER_GetPlayerFragcount( ULONG ulServer, ULONG ulPlayer );
+LONG			BROWSER_GetPlayerPing( ULONG ulServer, ULONG ulPlayer );
+LONG			BROWSER_GetPlayerSpectating( ULONG ulServer, ULONG ulPlayer );
+LONG			BROWSER_GetPing( ULONG ulServer );
+char			*BROWSER_GetVersion( ULONG ulServer );
 
-void	BROWSER_ClearServerList( void );
-void	BROWSER_DeactivateAllServers( void );
-void	BROWSER_GetServerList( void );
-void	BROWSER_ParseServerQuery( bool bLAN );
-void	BROWSER_QueryMasterServer( void );
-bool	BROWSER_WaitingForMasterResponse( void );
-void	BROWSER_QueryAllServers( void );
-LONG	BROWSER_CalcNumServers( void );
+void			BROWSER_ClearServerList( void );
+void			BROWSER_DeactivateAllServers( void );
+void			BROWSER_GetServerList( void );
+void			BROWSER_ParseServerQuery( bool bLAN );
+void			BROWSER_QueryMasterServer( void );
+bool			BROWSER_WaitingForMasterResponse( void );
+void			BROWSER_QueryAllServers( void );
+LONG			BROWSER_CalcNumServers( void );
 
 //*****************************************************************************
 //	EXTERNAL CONSOLE VARIABLES

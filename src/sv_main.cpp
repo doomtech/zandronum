@@ -148,47 +148,51 @@ static	bool	server_InventoryUse( void );
 //*****************************************************************************
 //	VARIABLES
 
-short		parse_cl;
-CLIENT_t	clients[MAXPLAYERS];
+// Global array of clients.
+static	CLIENT_s		g_aClients[MAXPLAYERS];
+
+// The last client we received a packet from.
+static	LONG			g_lCurrentClient;
 
 // Number of ticks that have passed since start of... level?
-static	LONG		g_lGameTime = 0;
+static	LONG			g_lGameTime = 0;
 
 // Storage for commands issued through various menu options to be executed all at once.
-static	char		g_szServerCommandQueue[MAX_STORED_SERVER_COMMANDS][256];
+static	char			g_szServerCommandQueue[MAX_STORED_SERVER_COMMANDS][256];
 
 // Head/tail of that queue.
-static	LONG		g_lServerCommandQueueHead;
-static	LONG		g_lServerCommandQueueTail;
+static	LONG			g_lServerCommandQueueHead;
+static	LONG			g_lServerCommandQueueTail;
 
 // Timer for restarting the map.
-static	LONG		g_lMapRestartTimer;
+static	LONG			g_lMapRestartTimer;
 
 // Buffer that we use for handling packet loss.
-static	sizebuf_t	g_PacketLossBuffer;
+static	NETBUFFER_s		g_PacketLossBuffer;
 
 // Statistics.
-static	LONG	g_lTotalServerSeconds = 0;
-static	LONG	g_lTotalNumPlayers = 0;
-static	LONG	g_lMaxNumPlayers = 0;
-static	LONG	g_lTotalNumFrags = 0;
-static	LONG	g_lTotalOutboundDataTransferred = 0;
-static	LONG	g_lMaxOutboundDataTransfer = 0;
-static	LONG	g_lCurrentOutboundDataTransfer = 0;
-static	LONG	g_lOutboundDataTransferLastSecond = 0;
-static	LONG	g_lTotalInboundDataTransferred = 0;
-static	LONG	g_lMaxInboundDataTransfer = 0;
-static	LONG	g_lCurrentInboundDataTransfer = 0;
-static	LONG	g_lInboundDataTransferLastSecond = 0;
+static	LONG		g_lTotalServerSeconds = 0;
+static	LONG		g_lTotalNumPlayers = 0;
+static	LONG		g_lMaxNumPlayers = 0;
+static	LONG		g_lTotalNumFrags = 0;
+static	LONG		g_lTotalOutboundDataTransferred = 0;
+static	LONG		g_lMaxOutboundDataTransfer = 0;
+static	LONG		g_lCurrentOutboundDataTransfer = 0;
+static	LONG		g_lOutboundDataTransferLastSecond = 0;
+static	LONG		g_lTotalInboundDataTransferred = 0;
+static	LONG		g_lMaxInboundDataTransfer = 0;
+static	LONG		g_lCurrentInboundDataTransfer = 0;
+static	LONG		g_lInboundDataTransferLastSecond = 0;
 
 // This is the current font the "screen" is using when it displays messages.
-static	char	g_szCurrentFont[16];
-static	char	g_szScriptActiveFont[16];
+static	char		g_szCurrentFont[16];
+static	char		g_szScriptActiveFont[16];
 
 // This is the music the loaded map is currently using.
-static	char	g_szMapMusic[16];
+static	char		g_szMapMusic[16];
 
-static	ULONG	g_ulMaxPacketSize = 0;
+// Maximum packet size.
+static	ULONG		g_ulMaxPacketSize = 0;
 
 //*****************************************************************************
 //	CONSOLE VARIABLES
@@ -324,20 +328,22 @@ CUSTOM_CVAR( Int, sv_connectiontype, 2, CVAR_ARCHIVE )
 void SERVER_Construct( void )
 {
     char		*pszPort;
+	char		*pszMaxClients;
 	ULONG		ulIdx;
- 
+	USHORT		usPort;
+
 	// Check if the user wants to use an alternate port for the server.
 	pszPort = Args.CheckValue( "-port" );
     if ( pszPort )
     {
-       NETWORK_SetLocalPort( atoi( pszPort ));
-       Printf( PRINT_HIGH, "Server using alternate port %i.\n", NETWORK_GetLocalPort( ));
+       usPort = atoi( pszPort );
+       Printf( PRINT_HIGH, "Server using alternate port %i.\n", usPort );
     }
 	else 
-	   NETWORK_SetLocalPort( DEFAULT_SERVER_PORT );
-	
+	   usPort = DEFAULT_SERVER_PORT;
+
 	// Set up a socket and network message buffer.
-	NETWORK_Initialize( );
+	NETWORK_Construct( usPort, false );
 
 	// Initizlize the playeringame array (is this necessary?).
 	memset( playeringame, 0, sizeof( playeringame ));
@@ -349,20 +355,25 @@ void SERVER_Construct( void )
 	g_ulMaxPacketSize = sv_maxpacketsize;
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
     {
-		NETWORK_InitBuffer( &clients[ulIdx].netbuf, MAX_UDP_PACKET );
-		NETWORK_ClearBuffer( &clients[ulIdx].netbuf );
+		NETWORK_InitBuffer( &g_aClients[ulIdx].PacketBuffer, MAX_UDP_PACKET );
+		NETWORK_ClearBuffer( &g_aClients[ulIdx].PacketBuffer );
 
-		// Initialize the reliable packet buffer.
-		NETWORK_InitBuffer( &clients[ulIdx].relpackets, g_ulMaxPacketSize * 256 );
-		NETWORK_ClearBuffer( &clients[ulIdx].relpackets );
+		// Initialize the saved packet buffer.
+		NETWORK_InitBuffer( &g_aClients[ulIdx].SavedPacketBuffer, g_ulMaxPacketSize * 256 );
+		NETWORK_ClearBuffer( &g_aClients[ulIdx].SavedPacketBuffer );
 
 		// Initialize the unreliable packet buffer.
-		NETWORK_InitBuffer( &clients[ulIdx].UnreliablePacketBuffer, MAX_UDP_PACKET );
-		NETWORK_ClearBuffer( &clients[ulIdx].UnreliablePacketBuffer );
+		NETWORK_InitBuffer( &g_aClients[ulIdx].UnreliablePacketBuffer, MAX_UDP_PACKET );
+		NETWORK_ClearBuffer( &g_aClients[ulIdx].UnreliablePacketBuffer );
 
-		clients[ulIdx].State = CLS_FREE;
-		clients[ulIdx].bDeadLastLevel = false;
+		// This is currently an open slot.
+		g_aClients[ulIdx].State = CLS_FREE;
 	}
+
+	// If they used "-host <#>", make <#> the max number of players.
+	pszMaxClients = Args.CheckValue( "-host" );
+	if ( pszMaxClients )
+		sv_maxclients = atoi( pszMaxClients );
 
 	for ( ulIdx = 0; ulIdx < MAX_STORED_SERVER_COMMANDS; ulIdx++ )
 		g_szServerCommandQueue[ulIdx][0] = 0;
@@ -533,7 +544,7 @@ void SERVER_Tick( void )
 			// Send out player's true position, etc.
 			SERVER_WriteCommands( );
 
-			// Check everyone's netbuf for anything that needs to be sent.
+			// Check everyone's PacketBuffer for anything that needs to be sent.
 			SERVER_SendOutPackets( );
 
 			// Potentially send an update to the master server.
@@ -553,10 +564,10 @@ void SERVER_Tick( void )
 				if (( SERVER_IsValidClient( ulIdx ) == false ) || ( players[ulIdx].bSpectating ))
 					continue;
 
-				if ( clients[ulIdx].lLastMoveTick != gametic )
+				if ( g_aClients[ulIdx].lLastMoveTick != gametic )
 				{
-					clients[ulIdx].lOverMovementLevel--;
-//					Printf( "%s: -- (%d)\n", players[ulIdx].userinfo.netname, clients[ulIdx].lOverMovementLevel );
+					g_aClients[ulIdx].lOverMovementLevel--;
+//					Printf( "%s: -- (%d)\n", players[ulIdx].userinfo.netname, g_aClients[ulIdx].lOverMovementLevel );
 				}
 			}
 
@@ -648,7 +659,7 @@ void SERVER_Tick( void )
 		if (( SERVER_IsValidClient( ulIdx ) == false ) || ( players[ulIdx].bSpectating ))
 			continue;
 
-		if ( clients[ulIdx].lOverMovementLevel >= MAX_OVERMOVEMENT_LEVEL )
+		if ( g_aClients[ulIdx].lOverMovementLevel >= MAX_OVERMOVEMENT_LEVEL )
 			SERVER_KickPlayer( ulIdx, "Abnormal level of movement commands detected!" );
 	}
 }
@@ -665,16 +676,16 @@ void SERVER_SendOutPackets( void )
 		if ( SERVER_IsValidClient( ulIdx ) == false )
 			continue;
 
-		if ( clients[ulIdx].netbuf.cursize > 0 )
+		if ( g_aClients[ulIdx].PacketBuffer.ulCurrentSize > 0 )
 		{
 			NETWORK_SendPacket( ulIdx );
-			NETWORK_ClearBuffer( &clients[ulIdx].netbuf );
+			NETWORK_ClearBuffer( &g_aClients[ulIdx].PacketBuffer );
 		}
 
-		if ( clients[ulIdx].UnreliablePacketBuffer.cursize > 0 )
+		if ( g_aClients[ulIdx].UnreliablePacketBuffer.ulCurrentSize > 0 )
 		{
 			NETWORK_SendUnreliablePacket( ulIdx );
-			NETWORK_ClearBuffer( &clients[ulIdx].UnreliablePacketBuffer );
+			NETWORK_ClearBuffer( &g_aClients[ulIdx].UnreliablePacketBuffer );
 		}
 	}
 }
@@ -699,7 +710,7 @@ LONG SERVER_FindFreeClientSlot( void )
 	// Look for a free player slot.
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
-		if (( clients[ulIdx].State == CLS_FREE ) && ( playeringame[ulIdx] == false ))
+		if (( g_aClients[ulIdx].State == CLS_FREE ) && ( playeringame[ulIdx] == false ))
 			return ( ulIdx );
 	}
 
@@ -709,22 +720,32 @@ LONG SERVER_FindFreeClientSlot( void )
 
 //*****************************************************************************
 //
-LONG SERVER_FindClientByAddress( netadr_t Address )
+LONG SERVER_FindClientByAddress( NETADDRESS_s Address )
 {
 	ULONG	ulIdx;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
-	   if ( clients[ulIdx].State == CLS_FREE )
+	   if ( g_aClients[ulIdx].State == CLS_FREE )
 	       continue;
 
 	   // If the client's address matches the IP of the last received packet, return
 	   // the client's index.
-	   if ( NETWORK_CompareAddress( clients[ulIdx].address, Address, false ))
+	   if ( NETWORK_CompareAddress( g_aClients[ulIdx].Address, Address, false ))
 	       return ( ulIdx );
 	}
 	
 	return ( -1 );
+}
+
+//*****************************************************************************
+//
+CLIENT_s *SERVER_GetClient( ULONG ulIdx )
+{
+	if ( ulIdx >= MAXPLAYERS )
+		return ( NULL );
+
+	return ( &g_aClients[ulIdx] );
 }
 
 //*****************************************************************************
@@ -778,7 +799,7 @@ void SERVER_CheckTimeouts( void )
 
 		// If we haven't gotten a packet from this client in CLIENT_TIMEOUT seconds,
 		// disconnect him.
-		if ( gametic - clients[ulIdx].lastcmdtic >= ( CLIENT_TIMEOUT * TICRATE ))
+		if (( gametic - g_aClients[ulIdx].ulLastCommandTic ) >= ( CLIENT_TIMEOUT * TICRATE ))
 		{
 		    SERVER_DisconnectClient( ulIdx, true, true );
 			continue;
@@ -788,7 +809,7 @@ void SERVER_CheckTimeouts( void )
 			continue;
 
 		// Also check to see if the client is lagging.
-		if ( gametic - clients[ulIdx].lastcmdtic >= TICRATE )
+		if (( gametic - g_aClients[ulIdx].ulLastCommandTic ) >= TICRATE )
 		{
 			// Have not heard from the client in at least one second; mark him as
 			// lagging and tell clients.
@@ -822,10 +843,10 @@ void SERVER_GetPackets( void )
 	while ( NETWORK_GetPackets( ) > 0 )
     {
 		// We've gotten a packet. Try to figure out if it's from a connected client.
-        parse_cl = SERVER_FindClientByAddress( g_AddressFrom );
+        g_lCurrentClient = SERVER_FindClientByAddress( NETWORK_GetFromAddress( ));
 
 		// Packet is not from an existing client; must be someone trying to connect!
-		if ( parse_cl == -1 )
+		if ( g_lCurrentClient == -1 )
 		{
 			SERVER_DetermineConnectionType( );
             continue;
@@ -889,18 +910,18 @@ void SERVER_AuthenticateClientLevel( void )
 {
 	if ( SERVER_PerformAuthenticationChecksum( ) == false )
 	{
-		SERVER_ClientError( parse_cl, NETWORK_ERRORCODE_AUTHENTICATIONFAILED );
+		SERVER_ClientError( g_lCurrentClient, NETWORK_ERRORCODE_AUTHENTICATIONFAILED );
 		return;
 	}
 
 	// The client has now had his level authenticated.
-	clients[parse_cl].State = CLS_AUTHENTICATED;
+	g_aClients[g_lCurrentClient].State = CLS_AUTHENTICATED;
 
 	// Tell the client his level was authenticated.
-	NETWORK_ClearBuffer( &clients[parse_cl].netbuf );
-	NETWORK_WriteByte( &clients[parse_cl].netbuf, CONNECT_AUTHENTICATED );
-	NETWORK_SendPacket( parse_cl );
-	NETWORK_ClearBuffer( &clients[parse_cl].netbuf );
+	NETWORK_ClearBuffer( &g_aClients[g_lCurrentClient].PacketBuffer );
+	NETWORK_WriteByte( &g_aClients[g_lCurrentClient].PacketBuffer, CONNECT_AUTHENTICATED );
+	NETWORK_SendPacket( g_lCurrentClient );
+	NETWORK_ClearBuffer( &g_aClients[g_lCurrentClient].PacketBuffer );
 }
 
 //*****************************************************************************
@@ -978,70 +999,70 @@ void SERVER_ConnectNewPlayer( void )
 	TThinkerIterator<DScroller>			ScrollerIterator;
 
 	// If the client hasn't authenticated his level, don't accept this connection.
-	if ( clients[parse_cl].State < CLS_AUTHENTICATED )
+	if ( g_aClients[g_lCurrentClient].State < CLS_AUTHENTICATED )
 	{
-		SERVER_ClientError( parse_cl, NETWORK_ERRORCODE_AUTHENTICATIONFAILED );
+		SERVER_ClientError( g_lCurrentClient, NETWORK_ERRORCODE_AUTHENTICATIONFAILED );
 		return;
 	}
 
 
 	// This player is now in the game.
-	playeringame[parse_cl] = true;
+	playeringame[g_lCurrentClient] = true;
 
 	// Check and see if this player should spawn as a spectator.
-	players[parse_cl].bSpectating = (( PLAYER_ShouldSpawnAsSpectator( &players[parse_cl] )) || ( clients[parse_cl].bWantStartAsSpectator ));
+	players[g_lCurrentClient].bSpectating = (( PLAYER_ShouldSpawnAsSpectator( &players[g_lCurrentClient] )) || ( g_aClients[g_lCurrentClient].bWantStartAsSpectator ));
 
 	// Don't restart the map! There's people here!
 	g_lMapRestartTimer = 0;
 
-	clients[parse_cl].lastgametic = gametic;
-	clients[parse_cl].lastcmdtic = gametic;
+	g_aClients[g_lCurrentClient].ulLastGameTic = gametic;
+	g_aClients[g_lCurrentClient].ulLastCommandTic = gametic;
 
 	// Clear out the client's netbuffer.
-	NETWORK_ClearBuffer( &clients[parse_cl].netbuf );
+	NETWORK_ClearBuffer( &g_aClients[g_lCurrentClient].PacketBuffer );
 
 	// Tell the client that we're about to send him a snapshot of the level.
-	SERVERCOMMANDS_BeginSnapshot( parse_cl );
+	SERVERCOMMANDS_BeginSnapshot( g_lCurrentClient );
 
 	// Send welcome message.
-	SERVER_PrintfPlayer( PRINT_HIGH, parse_cl, "Version %s Server\n", DOTVERSIONSTR );
+	SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "Version %s Server\n", DOTVERSIONSTR );
 
 	// Send consoleplayer number.
-	SERVERCOMMANDS_SetConsolePlayer( parse_cl );
+	SERVERCOMMANDS_SetConsolePlayer( g_lCurrentClient );
 
 	// Send dmflags.
-	SERVERCOMMANDS_SetGameDMFlags( parse_cl, SVCF_ONLYTHISCLIENT );
+	SERVERCOMMANDS_SetGameDMFlags( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 	// Send skill level.
-	SERVERCOMMANDS_SetGameSkill( parse_cl, SVCF_ONLYTHISCLIENT );
+	SERVERCOMMANDS_SetGameSkill( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 	// Send special settings like teamplay and deathmatch.
-	SERVERCOMMANDS_SetGameMode( parse_cl, SVCF_ONLYTHISCLIENT );
+	SERVERCOMMANDS_SetGameMode( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 	// Send timelimit, fraglimit, etc.
-	SERVERCOMMANDS_SetGameModeLimits( parse_cl, SVCF_ONLYTHISCLIENT );
+	SERVERCOMMANDS_SetGameModeLimits( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 	// If this is LMS, send the allowed weapons.
 	if ( lastmanstanding || teamlms )
 	{
-		SERVERCOMMANDS_SetLMSAllowedWeapons( parse_cl, SVCF_ONLYTHISCLIENT );
-		SERVERCOMMANDS_SetLMSSpectatorSettings( parse_cl, SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_SetLMSAllowedWeapons( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_SetLMSSpectatorSettings( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 	}
 
 	// Send the map name, and have the client load it.
-	SERVERCOMMANDS_MapLoad( parse_cl, SVCF_ONLYTHISCLIENT );
+	SERVERCOMMANDS_MapLoad( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 	// Send the map music.
-	SERVERCOMMANDS_SetMapMusic( SERVER_GetMapMusic( ), parse_cl, SVCF_ONLYTHISCLIENT );
+	SERVERCOMMANDS_SetMapMusic( SERVER_GetMapMusic( ), g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 	// Send the message of the day.
 	Val = sv_motd.GetGenericRep( CVAR_String );
 	if ( Val.String[0] != '\0' )
-		SERVERCOMMANDS_PrintMOTD( Val.String, parse_cl, SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_PrintMOTD( Val.String, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 	// [BB] Client is using the "join full server from localhost" hack. Inform him about it!
 	if ( ( SERVER_CalcNumPlayers( ) > sv_maxclients ) )
-		SERVERCOMMANDS_PrintMOTD( "Emergency!\n\nYou are joining from localhost even though the server is full.\nDo whatever is necessary to clean the situation and disconnect afterwards.\n", parse_cl, SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_PrintMOTD( "Emergency!\n\nYou are joining from localhost even though the server is full.\nDo whatever is necessary to clean the situation and disconnect afterwards.\n", g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 	// If we're in a duel or LMS mode, tell him the state of the game mode.
 	if ( duel || lastmanstanding || teamlms || possession || teampossession || survival || invasion )
@@ -1057,11 +1078,11 @@ void SERVER_ConnectNewPlayer( void )
 		else
 			ulState = LASTMANSTANDING_GetState( );
 
-		SERVERCOMMANDS_SetGameModeState( ulState, parse_cl, SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_SetGameModeState( ulState, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 		// Also, if we're in invasion mode, tell the client what wave we're on.
 		if ( invasion )
-			SERVERCOMMANDS_SetInvasionWave( parse_cl, SVCF_ONLYTHISCLIENT );
+			SERVERCOMMANDS_SetInvasionWave( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 	}
 
 	// In a game mode that involves teams, potentially decide a team for him.
@@ -1070,18 +1091,18 @@ void SERVER_ConnectNewPlayer( void )
 		// The server will decide his team!
 		if ( dmflags2 & DF2_NO_TEAM_SELECT )
 		{
-			players[parse_cl].bOnTeam = true;
-			players[parse_cl].ulTeam = TEAM_ChooseBestTeamForPlayer( );
+			players[g_lCurrentClient].bOnTeam = true;
+			players[g_lCurrentClient].ulTeam = TEAM_ChooseBestTeamForPlayer( );
 
 		}
 		else
-			players[parse_cl].bOnTeam = false;
+			players[g_lCurrentClient].bOnTeam = false;
 	}
 
 	lCommand = NETWORK_ReadByte( );
 	if ( lCommand != CLC_USERINFO )
 	{
-		SERVER_ClientError( parse_cl, NETWORK_ERRORCODE_FAILEDTOSENDUSERINFO );
+		SERVER_ClientError( g_lCurrentClient, NETWORK_ERRORCODE_FAILEDTOSENDUSERINFO );
 		return;
 	}
 
@@ -1094,65 +1115,65 @@ void SERVER_ConnectNewPlayer( void )
 	// client dosent know this. So instead of calling multiple 
 	// P_SpawnPlayers and messing ourselves up, we just re-send
 	// the spawn data. Make sense?
-	if (( clients[parse_cl].State == CLS_SPAWNED ) && ( players[parse_cl].mo != NULL ))
-		SERVERCOMMANDS_SpawnPlayer( parse_cl, PST_REBORNNOINVENTORY, parse_cl, SVCF_ONLYTHISCLIENT );
+	if (( g_aClients[g_lCurrentClient].State == CLS_SPAWNED ) && ( players[g_lCurrentClient].mo != NULL ))
+		SERVERCOMMANDS_SpawnPlayer( g_lCurrentClient, PST_REBORNNOINVENTORY, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 	else
 	{
-		players[parse_cl].playerstate = PST_ENTER;
+		players[g_lCurrentClient].playerstate = PST_ENTER;
 
 		// Spawn the player at their appropriate team start.
 		if ( teamgame )
 		{
-			if ( players[parse_cl].bOnTeam )
-				G_TeamgameSpawnPlayer( parse_cl, players[parse_cl].ulTeam, true );
+			if ( players[g_lCurrentClient].bOnTeam )
+				G_TeamgameSpawnPlayer( g_lCurrentClient, players[g_lCurrentClient].ulTeam, true );
 			else
-				G_TemporaryTeamSpawnPlayer( parse_cl, true );
+				G_TemporaryTeamSpawnPlayer( g_lCurrentClient, true );
 		}
 		// If deathmatch, just spawn at a random spot.
 		else if ( deathmatch )
-			G_DeathMatchSpawnPlayer( parse_cl, true );
+			G_DeathMatchSpawnPlayer( g_lCurrentClient, true );
 		// Otherwise, just spawn at their normal player start.
 		else
-			G_CooperativeSpawnPlayer( parse_cl, true );
+			G_CooperativeSpawnPlayer( g_lCurrentClient, true );
 	}
 
 	// Tell the client of any lines that have been altered since the level start.
-	SERVER_UpdateLines( parse_cl );
+	SERVER_UpdateLines( g_lCurrentClient );
 
 	// Tell the client of any sectors that have been altered since the level start.
-	SERVER_UpdateSectors( parse_cl );
+	SERVER_UpdateSectors( g_lCurrentClient );
 
 	// Tell the client about any active doors.
 	while (( pDoor = DoorIterator.Next( )))
-		pDoor->UpdateToClient( parse_cl );
+		pDoor->UpdateToClient( g_lCurrentClient );
 
 	// Tell the client about any active plats.
 	while (( pPlat = PlatIterator.Next( )))
-		pPlat->UpdateToClient( parse_cl );
+		pPlat->UpdateToClient( g_lCurrentClient );
 
 	// Tell the client about any active floors.
 	while (( pFloor = FloorIterator.Next( )))
-		pFloor->UpdateToClient( parse_cl );
+		pFloor->UpdateToClient( g_lCurrentClient );
 
 	// Tell the client about any active elevators.
 	while (( pElevator = ElevatorIterator.Next( )))
-		pElevator->UpdateToClient( parse_cl );
+		pElevator->UpdateToClient( g_lCurrentClient );
 
 	// Tell the client about any active waggles.
 	while (( pWaggle = WaggleIterator.Next( )))
-		pWaggle->UpdateToClient( parse_cl );
+		pWaggle->UpdateToClient( g_lCurrentClient );
 
 	// Tell the client about any active pillars.
 	while (( pPillar = PillarIterator.Next( )))
-		pPillar->UpdateToClient( parse_cl );
+		pPillar->UpdateToClient( g_lCurrentClient );
 
 	// Tell the client about any active ceilings.
 	while (( pCeiling = CeilingIterator.Next( )))
-		pCeiling->UpdateToClient( parse_cl );
+		pCeiling->UpdateToClient( g_lCurrentClient );
 
 	// Tell the client about any active scrollers.
 	while (( pScroller = ScrollerIterator.Next( )))
-		pScroller->UpdateToClient( parse_cl );
+		pScroller->UpdateToClient( g_lCurrentClient );
 
 	// Tell the client about any active rotate polyobjects.
 	{
@@ -1160,7 +1181,7 @@ void SERVER_ConnectNewPlayer( void )
 		TThinkerIterator<DRotatePoly>	Iterator;
 
 		while (( pRotatePoly = Iterator.Next( )))
-			pRotatePoly->UpdateToClient( parse_cl );
+			pRotatePoly->UpdateToClient( g_lCurrentClient );
 	}
 
 	// Tell the client about any move polyobjects.
@@ -1169,7 +1190,7 @@ void SERVER_ConnectNewPlayer( void )
 		TThinkerIterator<DMovePoly>		Iterator;
 
 		while (( pMovePoly = Iterator.Next( )))
-			pMovePoly->UpdateToClient( parse_cl );
+			pMovePoly->UpdateToClient( g_lCurrentClient );
 	}
 
 	// Tell the client about any active door polyobjects.
@@ -1178,17 +1199,17 @@ void SERVER_ConnectNewPlayer( void )
 		TThinkerIterator<DPolyDoor>		Iterator;
 
 		while (( pPolyDoor = Iterator.Next( )))
-			pPolyDoor->UpdateToClient( parse_cl );
+			pPolyDoor->UpdateToClient( g_lCurrentClient );
 	}
 
 	// Send a snapshot of the level.
-	SERVER_SendFullUpdate( parse_cl );
+	SERVER_SendFullUpdate( g_lCurrentClient );
 
 	// If we need to start this client's enter scripts, do that now.
-	if ( clients[parse_cl].bRunEnterScripts )
+	if ( g_aClients[g_lCurrentClient].bRunEnterScripts )
 	{
-		FBehavior::StaticStartTypedScripts( SCRIPT_Enter, players[parse_cl].mo, true );
-		clients[parse_cl].bRunEnterScripts = false;
+		FBehavior::StaticStartTypedScripts( SCRIPT_Enter, players[g_lCurrentClient].mo, true );
+		g_aClients[g_lCurrentClient].bRunEnterScripts = false;
 	}
 
 	if ( teamgame )
@@ -1206,19 +1227,19 @@ void SERVER_ConnectNewPlayer( void )
 			// See if this player is carrying the opponents flag/skull.
 			pInventory = players[ulIdx].mo->FindInventory( TEAM_GetFlagItem( !players[ulIdx].ulTeam ));
 			if ( pInventory )
-				SERVERCOMMANDS_GiveInventory( ulIdx, pInventory, parse_cl, SVCF_ONLYTHISCLIENT );
+				SERVERCOMMANDS_GiveInventory( ulIdx, pInventory, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 			// See if the player is carrying the white flag in OFCTF.
 			pInventory = players[ulIdx].mo->FindInventory( PClass::FindClass( "WhiteFlag" ));
 			if (( oneflagctf ) && ( pInventory ))
-				SERVERCOMMANDS_GiveInventory( ulIdx, pInventory, parse_cl, SVCF_ONLYTHISCLIENT );
+				SERVERCOMMANDS_GiveInventory( ulIdx, pInventory, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 		}
 
 		// Also let the client know if flags/skulls are on the ground.
 		for ( ulIdx = 0; ulIdx < NUM_TEAMS; ulIdx++ )
-			SERVERCOMMANDS_SetTeamReturnTicks( ulIdx, TEAM_GetReturnTicks( ulIdx ), parse_cl, SVCF_ONLYTHISCLIENT );
+			SERVERCOMMANDS_SetTeamReturnTicks( ulIdx, TEAM_GetReturnTicks( ulIdx ), g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
-		SERVERCOMMANDS_SetTeamReturnTicks( NUM_TEAMS, TEAM_GetReturnTicks( NUM_TEAMS ), parse_cl, SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_SetTeamReturnTicks( NUM_TEAMS, TEAM_GetReturnTicks( NUM_TEAMS ), g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 	}
 
 	// If we're playing terminator, potentially tell the client who's holding the terminator
@@ -1232,7 +1253,7 @@ void SERVER_ConnectNewPlayer( void )
 
 			pInventory = players[ulIdx].mo->FindInventory( PClass::FindClass( "PowerTerminatorArtifact" ));
 			if ( pInventory )
-				SERVERCOMMANDS_GiveInventory( ulIdx, pInventory, parse_cl, SVCF_ONLYTHISCLIENT );
+				SERVERCOMMANDS_GiveInventory( ulIdx, pInventory, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 		}
 	}
 
@@ -1247,41 +1268,39 @@ void SERVER_ConnectNewPlayer( void )
 
 			pInventory = players[ulIdx].mo->FindInventory( PClass::FindClass( "PowerPossessionArtifact" ));
 			if ( pInventory )
-				SERVERCOMMANDS_GiveInventory( ulIdx, pInventory, parse_cl, SVCF_ONLYTHISCLIENT );
+				SERVERCOMMANDS_GiveInventory( ulIdx, pInventory, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 		}
 	}
 
 	// Check and see if this is a disconnected player. If so, restore his fragcount.
-	pSavedInfo = SERVER_SAVE_GetSavedInfo( players[parse_cl].userinfo.netname, clients[parse_cl].address );
-	if (( pSavedInfo ) && ( clients[parse_cl].bWantNoRestoreFrags == false ))
+	pSavedInfo = SERVER_SAVE_GetSavedInfo( players[g_lCurrentClient].userinfo.netname, g_aClients[g_lCurrentClient].Address );
+	if (( pSavedInfo ) && ( g_aClients[g_lCurrentClient].bWantNoRestoreFrags == false ))
 	{
-		PLAYER_SetFragcount( &players[parse_cl], pSavedInfo->lFragCount, false, false );
-		PLAYER_SetWins( &players[parse_cl], pSavedInfo->lWinCount );
-		players[parse_cl].lPointCount = pSavedInfo->lPointCount;
+		PLAYER_SetFragcount( &players[g_lCurrentClient], pSavedInfo->lFragCount, false, false );
+		PLAYER_SetWins( &players[g_lCurrentClient], pSavedInfo->lWinCount );
+		players[g_lCurrentClient].lPointCount = pSavedInfo->lPointCount;
 
 		if ( teamgame )
-			SERVERCOMMANDS_SetPlayerPoints( parse_cl );
+			SERVERCOMMANDS_SetPlayerPoints( g_lCurrentClient );
 
 		// [RC] Also restore his playing time. This should agree with 'restore frags' as a whole, clean slate option.
-			players[parse_cl].ulTime = pSavedInfo->ulTime;
+		players[g_lCurrentClient].ulTime = pSavedInfo->ulTime;
 	}
 
 	// If this player is on a team, tell all the other clients that a team has been selected
 	// for him.
-	if ( players[parse_cl].bOnTeam )
-		SERVERCOMMANDS_SetPlayerTeam( parse_cl );
+	if ( players[g_lCurrentClient].bOnTeam )
+		SERVERCOMMANDS_SetPlayerTeam( g_lCurrentClient );
 
-	
-
-	if ( clients[parse_cl].State != CLS_SPAWNED )
+	if ( g_aClients[g_lCurrentClient].State != CLS_SPAWNED )
 	{
-		if ( players[parse_cl].bSpectating )
-			SERVER_Printf( PRINT_HIGH, "%s \\c-has connected.\n", players[parse_cl].userinfo.netname );
+		if ( players[g_lCurrentClient].bSpectating )
+			SERVER_Printf( PRINT_HIGH, "%s \\c-has connected.\n", players[g_lCurrentClient].userinfo.netname );
 		else
-			SERVER_Printf( PRINT_HIGH, "%s \\c-entered the game.\n", players[parse_cl].userinfo.netname );
+			SERVER_Printf( PRINT_HIGH, "%s \\c-entered the game.\n", players[g_lCurrentClient].userinfo.netname );
 	}
 
-	BOTCMD_SetLastJoinedPlayer( players[parse_cl].userinfo.netname );
+	BOTCMD_SetLastJoinedPlayer( players[g_lCurrentClient].userinfo.netname );
 
 	// Tell the bots that a new players has joined the game!
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1293,14 +1312,14 @@ void SERVER_ConnectNewPlayer( void )
 			players[ulIdx].pSkullBot->PostEvent( BOTEVENT_PLAYER_JOINEDGAME );
 	}
 
-	if ( clients[parse_cl].State != CLS_SPAWNED )
-		SERVERCONSOLE_AddNewPlayer( parse_cl );
+	if ( g_aClients[g_lCurrentClient].State != CLS_SPAWNED )
+		SERVERCONSOLE_AddNewPlayer( g_lCurrentClient );
 
 	// Update this client's state. He's in the game now!
-	clients[parse_cl].State = CLS_SPAWNED;
+	g_aClients[g_lCurrentClient].State = CLS_SPAWNED;
 
 	// Tell the client that the snapshot is done.
-	SERVERCOMMANDS_EndSnapshot( parse_cl );
+	SERVERCOMMANDS_EndSnapshot( g_lCurrentClient );
 }
 
 //*****************************************************************************
@@ -1341,9 +1360,9 @@ void SERVER_DetermineConnectionType( void )
 
 				// Received launcher query!
 				if ( sv_showlauncherqueries )
-					Printf( "Launcher challenge from: %s\n", NETWORK_AddressToString( g_AddressFrom ));
+					Printf( "Launcher challenge from: %s\n", NETWORK_AddressToString( NETWORK_GetFromAddress( )));
 
-				SERVER_MASTER_SendServerInfo( g_AddressFrom, ulFlags, ulTime );
+				SERVER_MASTER_SendServerInfo( NETWORK_GetFromAddress( ), ulFlags, ulTime );
 				return;
 			// Ignore; possibly a client who thinks he's still in a game, but isn't.
 			case CLC_USERINFO:
@@ -1372,7 +1391,7 @@ void SERVER_DetermineConnectionType( void )
 				return;
 			default:
 
-				Printf( "Unknown challenge (%d) from %s.\n", lCommand, NETWORK_AddressToString( g_AddressFrom ));
+				Printf( "Unknown challenge (%d) from %s.\n", lCommand, NETWORK_AddressToString( NETWORK_GetFromAddress( )));
 				return;
 			}
 		}
@@ -1390,13 +1409,19 @@ void SERVER_DetermineConnectionType( void )
 //
 void SERVER_SetupNewConnection( bool bNewPlayer )
 {
-	LONG		lClient;
-	char		szClientVersion[16];
-	char		szClientPassword[64];
-	LONG		lClientNetworkGameVersion;
-	char		szAddress[4][4];
-	UCVarValue	Val;
-	ULONG		ulIdx;
+	LONG			lClient;
+	char			szClientVersion[16];
+	char			szClientPassword[64];
+	char			szServerPassword[64];
+	LONG			lClientNetworkGameVersion;
+	char			szAddress[4][4];
+	UCVarValue		Val;
+	ULONG			ulIdx;
+	NETADDRESS_s	AddressFrom;
+	bool			bLocalClientConnecting;
+
+	// Grab the IP address of the packet we've just received.
+	AddressFrom = NETWORK_GetFromAddress( );
 
 	if ( bNewPlayer )
 	{
@@ -1405,19 +1430,23 @@ void SERVER_SetupNewConnection( bool bNewPlayer )
 		// localhost, i.e. 127.0.0.1. If it does, we allow a connect even in case of
 		// SERVER_CalcNumPlayers( ) >= sv_maxclients as long as SERVER_FindFreeClientSlot( )
 		// finds a free slot.
-		bool bLocalClientConnecting = false;
-		if( g_AddressFrom.ip[0] == 127 && g_AddressFrom.ip[1] == 0 && g_AddressFrom.ip[2] == 0 &&  g_AddressFrom.ip[3] == 1 )
+		bLocalClientConnecting = false;
+		if (( AddressFrom.abIP[0] == 127 ) &&
+			( AddressFrom.abIP[1] == 0 ) &&
+			( AddressFrom.abIP[2] == 0 ) &&
+			( AddressFrom.abIP[3] == 1 ))
+		{
 			bLocalClientConnecting = true;
+		}
 
 		// Try to find a player slot for the connecting client.
 		lClient = SERVER_FindFreeClientSlot( );
 
 		// If the server is full, send him a packet saying that it is.
-
-		if ( lClient == -1 || ( SERVER_CalcNumPlayers( ) >= sv_maxclients && !bLocalClientConnecting ))
+		if (( lClient == -1 ) || ( SERVER_CalcNumPlayers( ) >= sv_maxclients && !bLocalClientConnecting ))
 		{
 			// Tell the client a packet saying the server is full.
-			SERVER_ConnectionError( g_AddressFrom, "Server is full." );
+			SERVER_ConnectionError( AddressFrom, "Server is full." );
 
 			// User sent the version, password, start as spectator, restore frags, and network protcol version along with the challenge.
 			NETWORK_ReadString( );
@@ -1429,9 +1458,9 @@ void SERVER_SetupNewConnection( bool bNewPlayer )
 		}
 	}
 	else
-		lClient = parse_cl;
+		lClient = g_lCurrentClient;
 
-	if ( clients[lClient].State == CLS_SPAWNED )
+	if ( g_aClients[lClient].State == CLS_SPAWNED )
 		SERVER_DisconnectClient( lClient, false, true );
 
 	// Read in the client version info.
@@ -1441,33 +1470,33 @@ void SERVER_SetupNewConnection( bool bNewPlayer )
 	strncpy( szClientPassword, strupr( NETWORK_ReadString( )), 64 );
 
 	// Read in whether or not the client wants to start as a spectator.
-	clients[lClient].bWantStartAsSpectator = !!NETWORK_ReadByte( );
+	g_aClients[lClient].bWantStartAsSpectator = !!NETWORK_ReadByte( );
 
 	// Read in whether or not the client wants to start as a spectator.
-	clients[lClient].bWantNoRestoreFrags = !!NETWORK_ReadByte( );
+	g_aClients[lClient].bWantNoRestoreFrags = !!NETWORK_ReadByte( );
 
 	// Read in the client's network game version.
 	lClientNetworkGameVersion = NETWORK_ReadByte( );
 
-	NETWORK_ClearBuffer( &clients[lClient].netbuf );
-	NETWORK_ClearBuffer( &clients[lClient].relpackets );
-	NETWORK_ClearBuffer( &clients[lClient].UnreliablePacketBuffer );
+	NETWORK_ClearBuffer( &g_aClients[lClient].PacketBuffer );
+	NETWORK_ClearBuffer( &g_aClients[lClient].SavedPacketBuffer );
+	NETWORK_ClearBuffer( &g_aClients[lClient].UnreliablePacketBuffer );
 	for ( ulIdx = 0; ulIdx < 256; ulIdx++ )
 	{
-		clients[lClient].lPacketBeginning[ulIdx] = 0;
-		clients[lClient].lPacketSize[ulIdx] = 0;
-		clients[lClient].lPacketSequence[ulIdx] = 0;
+		g_aClients[lClient].lPacketBeginning[ulIdx] = 0;
+		g_aClients[lClient].lPacketSize[ulIdx] = 0;
+		g_aClients[lClient].lPacketSequence[ulIdx] = 0;
 	}
-	clients[lClient].ulPacketSequence = 0;
-	memset( clients[lClient].relpackets.pbData, -1, sizeof ( clients[lClient].relpackets.pbData ));
-	memset( clients[lClient].UnreliablePacketBuffer.pbData, -1, sizeof ( clients[lClient].UnreliablePacketBuffer.pbData ));
+	g_aClients[lClient].ulPacketSequence = 0;
+	memset( g_aClients[lClient].SavedPacketBuffer.pbData, -1, sizeof ( g_aClients[lClient].SavedPacketBuffer.pbData ));
+	memset( g_aClients[lClient].UnreliablePacketBuffer.pbData, -1, sizeof ( g_aClients[lClient].UnreliablePacketBuffer.pbData ));
 
 	// Who is connecting?
-	Printf( "Connect (v%s): %s\n", szClientVersion, NETWORK_AddressToString( g_AddressFrom ));
+	Printf( "Connect (v%s): %s\n", szClientVersion, NETWORK_AddressToString( NETWORK_GetFromAddress( )));
 
 	// Setup the client.
-	clients[lClient].State = CLS_CHALLENGE;
-	clients[lClient].address = g_AddressFrom;
+	g_aClients[lClient].State = CLS_CHALLENGE;
+	g_aClients[lClient].Address = AddressFrom;
 
 	// [BB] If we don't keep backwards compatibility with 97c3, we may not allow 97c3 clients to join.
 	if( !sv_stay97c3compatible )
@@ -1488,14 +1517,12 @@ void SERVER_SetupNewConnection( bool bNewPlayer )
 	}
 
 	// Client is now in the loop, prevent from a early timeout
-	clients[lClient].lastcmdtic = clients[lClient].lastgametic = gametic;
+	g_aClients[lClient].ulLastCommandTic = g_aClients[lClient].ulLastGameTic = gametic;
 
 	// Check if we require a password to join this server.
 	Val = sv_password.GetGenericRep( CVAR_String );
 	if (( sv_forcepassword ) && ( strlen( Val.String )))
 	{
-		char	szServerPassword[64];
-
 		// Store password in temporary buffer (becuase we strupr it).
 		strcpy( szServerPassword, Val.String );
 
@@ -1509,11 +1536,11 @@ void SERVER_SetupNewConnection( bool bNewPlayer )
 	}
 
 	// Check if this IP has been banned.
-	itoa( clients[lClient].address.ip[0], szAddress[0], 10 );
-	itoa( clients[lClient].address.ip[1], szAddress[1], 10 );
-	itoa( clients[lClient].address.ip[2], szAddress[2], 10 );
-	itoa( clients[lClient].address.ip[3], szAddress[3], 10 );
-	if (( sv_enforcebans ) && ( SERVERBAN_IsIPBanned( szAddress[0], szAddress[1], szAddress[2], szAddress[3] )) && ( SERVER_ADMIN_IsAdministrator( clients[lClient].address ) == false ))
+	itoa( g_aClients[lClient].Address.abIP[0], szAddress[0], 10 );
+	itoa( g_aClients[lClient].Address.abIP[1], szAddress[1], 10 );
+	itoa( g_aClients[lClient].Address.abIP[2], szAddress[2], 10 );
+	itoa( g_aClients[lClient].Address.abIP[3], szAddress[3], 10 );
+	if (( sv_enforcebans ) && ( SERVERBAN_IsIPBanned( szAddress[0], szAddress[1], szAddress[2], szAddress[3] )) && ( SERVER_ADMIN_IsAdministrator( g_aClients[lClient].Address ) == false ))
 	{
 		// Client has been banned! GET THE FUCK OUT OF HERE!
 		SERVER_ClientError( lClient, NETWORK_ERRORCODE_BANNED );
@@ -1521,7 +1548,7 @@ void SERVER_SetupNewConnection( bool bNewPlayer )
 	}
 
 	// Client is now connected to the server.
-	clients[lClient].State = CLS_CONNECTED;
+	g_aClients[lClient].State = CLS_CONNECTED;
 
 	// Reset stats, and a couple other things.
 	players[lClient].fragcount = 0;
@@ -1541,26 +1568,26 @@ void SERVER_SetupNewConnection( bool bNewPlayer )
 	players[lClient].bSpectating = false;
 	players[lClient].bDeadSpectator = false;
 
-	clients[lClient].bRCONAccess = false;
-	clients[lClient].ulDisplayPlayer = lClient;
+	g_aClients[lClient].bRCONAccess = false;
+	g_aClients[lClient].ulDisplayPlayer = lClient;
 	for ( ulIdx = 0; ulIdx < MAX_CHATINSTANCE_STORAGE; ulIdx++ )
-		clients[lClient].lChatInstances[ulIdx] = 0;
-	clients[lClient].ulLastChatInstance = 0;
+		g_aClients[lClient].lChatInstances[ulIdx] = 0;
+	g_aClients[lClient].ulLastChatInstance = 0;
 	for ( ulIdx = 0; ulIdx < MAX_USERINFOINSTANCE_STORAGE; ulIdx++ )
-		clients[lClient].lUserInfoInstances[ulIdx] = 0;
-	clients[lClient].ulLastUserInfoInstance = 0;
-	clients[lClient].ulLastChangeTeamTime = 0;
-	clients[lClient].lLastPacketLossTick = 0;
-	clients[lClient].lLastMoveTick = 0;
-	clients[lClient].lOverMovementLevel = 0;
-	clients[lClient].bRunEnterScripts = false;
+		g_aClients[lClient].lUserInfoInstances[ulIdx] = 0;
+	g_aClients[lClient].ulLastUserInfoInstance = 0;
+	g_aClients[lClient].ulLastChangeTeamTime = 0;
+	g_aClients[lClient].lLastPacketLossTick = 0;
+	g_aClients[lClient].lLastMoveTick = 0;
+	g_aClients[lClient].lOverMovementLevel = 0;
+	g_aClients[lClient].bRunEnterScripts = false;
 
 	// Send heartbeat back.
-	NETWORK_ClearBuffer( &clients[lClient].netbuf );
-	NETWORK_WriteByte( &clients[lClient].netbuf, CONNECT_READY );
-	NETWORK_WriteString( &clients[lClient].netbuf, level.mapname );
+	NETWORK_ClearBuffer( &g_aClients[lClient].PacketBuffer );
+	NETWORK_WriteByte( &g_aClients[lClient].PacketBuffer, CONNECT_READY );
+	NETWORK_WriteString( &g_aClients[lClient].PacketBuffer, level.mapname );
 	NETWORK_SendPacket( lClient );
-	NETWORK_ClearBuffer( &clients[lClient].netbuf );
+	NETWORK_ClearBuffer( &g_aClients[lClient].PacketBuffer );
 }
 
 //*****************************************************************************
@@ -1576,48 +1603,48 @@ bool SERVER_GetUserInfo( bool bAllowKick )
 	char		szOldPlayerName[32];
 	ULONG		ulUserInfoInstance;
 
-    pPlayer = &players[parse_cl];
+    pPlayer = &players[g_lCurrentClient];
 
 	if ( bAllowKick )
 	{
-		ulUserInfoInstance = ( ++clients[parse_cl].ulLastUserInfoInstance % MAX_USERINFOINSTANCE_STORAGE );
-		clients[parse_cl].lUserInfoInstances[ulUserInfoInstance] = gametic;
+		ulUserInfoInstance = ( ++g_aClients[g_lCurrentClient].ulLastUserInfoInstance % MAX_USERINFOINSTANCE_STORAGE );
+		g_aClients[g_lCurrentClient].lUserInfoInstances[ulUserInfoInstance] = gametic;
 
 		// If this is the second time a player has updated their userinfo in a 7 tick interval (~1/5 of a second, ~1/5 of a second update interval),
 		// kick him.
-		if (( clients[parse_cl].lUserInfoInstances[( ulUserInfoInstance + MAX_USERINFOINSTANCE_STORAGE - 1 ) % MAX_USERINFOINSTANCE_STORAGE] ) > 0 )
+		if (( g_aClients[g_lCurrentClient].lUserInfoInstances[( ulUserInfoInstance + MAX_USERINFOINSTANCE_STORAGE - 1 ) % MAX_USERINFOINSTANCE_STORAGE] ) > 0 )
 		{
-			if ( ( clients[parse_cl].lUserInfoInstances[ulUserInfoInstance] ) -
-				( clients[parse_cl].lUserInfoInstances[( ulUserInfoInstance + MAX_USERINFOINSTANCE_STORAGE - 1 ) % MAX_USERINFOINSTANCE_STORAGE] )
+			if ( ( g_aClients[g_lCurrentClient].lUserInfoInstances[ulUserInfoInstance] ) -
+				( g_aClients[g_lCurrentClient].lUserInfoInstances[( ulUserInfoInstance + MAX_USERINFOINSTANCE_STORAGE - 1 ) % MAX_USERINFOINSTANCE_STORAGE] )
 				<= 7 )
 			{
-				SERVER_KickPlayer( parse_cl, "User info change flood." );
+				SERVER_KickPlayer( g_lCurrentClient, "User info change flood." );
 				return ( false );
 			}
 		}
 
 		// If this is the third time a player has updated their userinfo in a 42 tick interval (~1.5 seconds, ~.75 second update interval),
 		// kick him.
-		if (( clients[parse_cl].lUserInfoInstances[( ulUserInfoInstance + MAX_USERINFOINSTANCE_STORAGE - 2 ) % MAX_USERINFOINSTANCE_STORAGE] ) > 0 )
+		if (( g_aClients[g_lCurrentClient].lUserInfoInstances[( ulUserInfoInstance + MAX_USERINFOINSTANCE_STORAGE - 2 ) % MAX_USERINFOINSTANCE_STORAGE] ) > 0 )
 		{
-			if ( ( clients[parse_cl].lUserInfoInstances[ulUserInfoInstance] ) -
-				( clients[parse_cl].lUserInfoInstances[( ulUserInfoInstance + MAX_USERINFOINSTANCE_STORAGE - 2 ) % MAX_USERINFOINSTANCE_STORAGE] )
+			if ( ( g_aClients[g_lCurrentClient].lUserInfoInstances[ulUserInfoInstance] ) -
+				( g_aClients[g_lCurrentClient].lUserInfoInstances[( ulUserInfoInstance + MAX_USERINFOINSTANCE_STORAGE - 2 ) % MAX_USERINFOINSTANCE_STORAGE] )
 				<= 42 )
 			{
-				SERVER_KickPlayer( parse_cl, "User info change flood." );
+				SERVER_KickPlayer( g_lCurrentClient, "User info change flood." );
 				return ( false );
 			}
 		}
 
 		// If this is the fourth time a player has updated their userinfo in a 105 tick interval (~3 seconds, ~1 second interval ),
 		// kick him.
-		if (( clients[parse_cl].lUserInfoInstances[( ulUserInfoInstance + MAX_USERINFOINSTANCE_STORAGE - 3 ) % MAX_USERINFOINSTANCE_STORAGE] ) > 0 )
+		if (( g_aClients[g_lCurrentClient].lUserInfoInstances[( ulUserInfoInstance + MAX_USERINFOINSTANCE_STORAGE - 3 ) % MAX_USERINFOINSTANCE_STORAGE] ) > 0 )
 		{
-			if ( ( clients[parse_cl].lUserInfoInstances[ulUserInfoInstance] ) -
-				( clients[parse_cl].lUserInfoInstances[( ulUserInfoInstance + MAX_USERINFOINSTANCE_STORAGE - 3 ) % MAX_USERINFOINSTANCE_STORAGE] )
+			if ( ( g_aClients[g_lCurrentClient].lUserInfoInstances[ulUserInfoInstance] ) -
+				( g_aClients[g_lCurrentClient].lUserInfoInstances[( ulUserInfoInstance + MAX_USERINFOINSTANCE_STORAGE - 3 ) % MAX_USERINFOINSTANCE_STORAGE] )
 				<= 105 )
 			{
-				SERVER_KickPlayer( parse_cl, "User info change flood." );
+				SERVER_KickPlayer( g_lCurrentClient, "User info change flood." );
 				return ( false );
 			}
 		}
@@ -1641,8 +1668,8 @@ bool SERVER_GetUserInfo( bool bAllowKick )
 		// The user really shouldn't have an invalid name, unless they are using a hacked executable.
 		if(strcmp(pPlayer->userinfo.netname, pszString) != 0) {
 				// [RC][BETA ONLY] Explain for the poor 97c3 souls why their juicy names do not work.
-					SERVER_KickPlayer( parse_cl, "Invalid name. If you are connecting with 0.97c3, this is a 0.97d server." );
-				// SERVER_KickPlayer( parse_cl, "Name contains illegal characters!");
+					SERVER_KickPlayer( g_lCurrentClient, "Invalid name. If you are connecting with 0.97c3, this is a 0.97d server." );
+				// SERVER_KickPlayer( g_lCurrentClient, "Name contains illegal characters!");
 				return ( false );
 		}
 
@@ -1655,7 +1682,7 @@ bool SERVER_GetUserInfo( bool bAllowKick )
 				pPlayer->userinfo.netname[ulIdx] = ' ';
 		} */
 
-		if ( clients[parse_cl].State == CLS_SPAWNED )
+		if ( g_aClients[g_lCurrentClient].State == CLS_SPAWNED )
 		{
 			char	szPlayerNameNoColor[32];
 			char	szOldPlayerNameNoColor[32];
@@ -1728,10 +1755,10 @@ bool SERVER_GetUserInfo( bool bAllowKick )
 		pPlayer->userinfo.skin = R_FindSkin( szSkin, pPlayer->userinfo.PlayerClass );
 
 	// Now send out the player's userinfo out to other players.
-	SERVERCOMMANDS_SetPlayerUserInfo( parse_cl, ulFlags, parse_cl, SVCF_SKIPTHISCLIENT );
+	SERVERCOMMANDS_SetPlayerUserInfo( g_lCurrentClient, ulFlags, g_lCurrentClient, SVCF_SKIPTHISCLIENT );
 
 	// Also, update the scoreboard.
-	SERVERCONSOLE_UpdatePlayerInfo( parse_cl, UDF_NAME );
+	SERVERCONSOLE_UpdatePlayerInfo( g_lCurrentClient, UDF_NAME );
 
 	// Success!
 	return ( true );
@@ -1739,9 +1766,9 @@ bool SERVER_GetUserInfo( bool bAllowKick )
 
 //*****************************************************************************
 //
-void SERVER_ConnectionError( netadr_t Address, char *pszMessage )
+void SERVER_ConnectionError( NETADDRESS_s Address, char *pszMessage )
 {
-	sizebuf_t	TempBuffer;
+	NETBUFFER_s	TempBuffer;
 
 	NETWORK_InitBuffer( &TempBuffer, MAX_UDP_PACKET );
 	NETWORK_ClearBuffer( &TempBuffer );
@@ -1765,8 +1792,8 @@ void SERVER_ConnectionError( netadr_t Address, char *pszMessage )
 //
 void SERVER_ClientError( ULONG ulClient, ULONG ulErrorCode )
 {
-	NETWORK_WriteByte( &clients[ulClient].netbuf, NETWORK_ERROR );
-	NETWORK_WriteByte( &clients[ulClient].netbuf, ulErrorCode );
+	NETWORK_WriteByte( &g_aClients[ulClient].PacketBuffer, NETWORK_ERROR );
+	NETWORK_WriteByte( &g_aClients[ulClient].PacketBuffer, ulErrorCode );
 
 		// Display error message locally in the console.
 	switch ( ulErrorCode )
@@ -1780,7 +1807,7 @@ void SERVER_ClientError( ULONG ulClient, ULONG ulErrorCode )
 		Printf( "Incorrect version.\n" );
 
 		// Tell the client what version this server using.
-		NETWORK_WriteString( &clients[ulClient].netbuf, DOTVERSIONSTR );
+		NETWORK_WriteString( &g_aClients[ulClient].PacketBuffer, DOTVERSIONSTR );
 		break;
 	case NETWORK_ERRORCODE_BANNED:
 
@@ -1796,13 +1823,13 @@ void SERVER_ClientError( ULONG ulClient, ULONG ulErrorCode )
 		break;
 	}
 	NETWORK_SendPacket( ulClient );
-	NETWORK_ClearBuffer( &clients[ulClient].netbuf );
+	NETWORK_ClearBuffer( &g_aClients[ulClient].PacketBuffer );
 
-	Printf( "%s \\c-disconnected.\n", NETWORK_AddressToString( clients[ulClient].address ));
+	Printf( "%s \\c-disconnected.\n", NETWORK_AddressToString( g_aClients[ulClient].Address ));
 
-	memset( &clients[ulClient].address, 0, sizeof( clients[ulClient].address ));
-	clients[ulClient].State = CLS_FREE;
-	clients[ulClient].lastgametic = 0;
+	memset( &g_aClients[ulClient].Address, 0, sizeof( g_aClients[ulClient].Address ));
+	g_aClients[ulClient].State = CLS_FREE;
+	g_aClients[ulClient].ulLastGameTic = 0;
 	playeringame[ulClient] = false;
 }
 
@@ -2048,11 +2075,11 @@ void SERVER_WriteCommands( void )
 			// If this player is watching through the eyes of another player, send this
 			// player some extra info about that player to make for a better watching
 			// experience.
-			if (( clients[ulIdx].ulDisplayPlayer != ulIdx ) &&
-				( clients[ulIdx].ulDisplayPlayer <= MAXPLAYERS ) &&
-				( players[clients[ulIdx].ulDisplayPlayer].mo != NULL ))
+			if (( g_aClients[ulIdx].ulDisplayPlayer != ulIdx ) &&
+				( g_aClients[ulIdx].ulDisplayPlayer <= MAXPLAYERS ) &&
+				( players[g_aClients[ulIdx].ulDisplayPlayer].mo != NULL ))
 			{
-				SERVERCOMMANDS_UpdatePlayerExtraData( ulIdx, clients[ulIdx].ulDisplayPlayer );
+				SERVERCOMMANDS_UpdatePlayerExtraData( ulIdx, g_aClients[ulIdx].ulDisplayPlayer );
 			}
 
 			// Spectators can move around freely, without us telling it what to do (lag-less).
@@ -2128,12 +2155,12 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 
 	if ( bBroadcast )
 	{
-		if (( gametic - clients[ulClient].lastcmdtic ) == ( CLIENT_TIMEOUT * 35 ) && players[ulClient].userinfo.netname )
+		if (( gametic - g_aClients[ulClient].ulLastCommandTic ) == ( CLIENT_TIMEOUT * 35 ) && players[ulClient].userinfo.netname )
 			SERVER_Printf( PRINT_HIGH, "%s \\c-timed out.\n", players[ulClient].userinfo.netname );
 		else if ( players[ulClient].userinfo.netname )
 			SERVER_Printf( PRINT_HIGH, "client %s \\c-disconnected.\n", players[ulClient].userinfo.netname );
 		else
-			Printf( "%s \\c-disconnected.\n", NETWORK_AddressToString( clients[ulClient].address ));
+			Printf( "%s \\c-disconnected.\n", NETWORK_AddressToString( g_aClients[ulClient].Address ));
 	}
 
 	// Inform the other clients that this player has been disconnected.
@@ -2148,7 +2175,7 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 	{
 		PLAYERSAVEDINFO_t	Info;
 
-		Info.Address		= clients[ulClient].address;
+		Info.Address		= g_aClients[ulClient].Address;
 		Info.lFragCount		= players[ulClient].fragcount;
 		Info.lPointCount	= players[ulClient].lPointCount;
 		Info.lWinCount		= players[ulClient].ulWins;
@@ -2161,14 +2188,14 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 	{
 		PLAYERSAVEDINFO_t	*pInfo;
 
-		pInfo = SERVER_SAVE_GetSavedInfo( players[ulClient].userinfo.netname, clients[ulClient].address );
+		pInfo = SERVER_SAVE_GetSavedInfo( players[ulClient].userinfo.netname, g_aClients[ulClient].Address );
 		if ( pInfo )
 		{
-			pInfo->Address.ip[0] = 0;
-			pInfo->Address.ip[1] = 0;
-			pInfo->Address.ip[2] = 0;
-			pInfo->Address.ip[3] = 0;
-			pInfo->Address.port = 0;
+			pInfo->Address.abIP[0] = 0;
+			pInfo->Address.abIP[1] = 0;
+			pInfo->Address.abIP[2] = 0;
+			pInfo->Address.abIP[3] = 0;
+			pInfo->Address.usPort = 0;
 			pInfo->bInitialized = false;
 			pInfo->lFragCount = 0;
 			pInfo->lPointCount = 0;
@@ -2194,9 +2221,9 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 		players[ulClient].mo = NULL;
 	}
 
-	memset( &clients[ulClient].address, 0, sizeof( clients[ulClient].address ));
-	clients[ulClient].State = CLS_FREE;
-	clients[ulClient].lastgametic = 0;
+	memset( &g_aClients[ulClient].Address, 0, sizeof( g_aClients[ulClient].Address ));
+	g_aClients[ulClient].State = CLS_FREE;
+	g_aClients[ulClient].ulLastGameTic = 0;
 	playeringame[ulClient] = false;
 
 	// Tell the join queue module that a player has left the game.
@@ -2250,7 +2277,7 @@ void SERVER_SendHeartBeat( void )
 	// Save the time we pinged them at. The client's ping can be calculated
 	// subtracting the client's pong from this.
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-		clients[ulIdx].lastgametic = I_MSTime( );
+		g_aClients[ulIdx].ulLastGameTic = I_MSTime( );
 }
 
 //*****************************************************************************
@@ -2555,7 +2582,7 @@ void SERVER_ReconnectNewLevel( char *pszMapName )
 
 		// Make sure the commands we sent out get sent right away.
 		NETWORK_SendPacket( ulIdx );
-		NETWORK_ClearBuffer( &clients[ulIdx].netbuf );
+		NETWORK_ClearBuffer( &g_aClients[ulIdx].PacketBuffer );
 
 		// Disconnect the client.
 		SERVER_DisconnectClient( ulIdx, false, false );
@@ -2575,7 +2602,7 @@ void SERVER_LoadNewLevel( char *pszMapName )
 
 		// Initialize this client's buffer.
 		NETWORK_SendPacket( ulIdx );
-		NETWORK_ClearBuffer( &clients[ulIdx].netbuf );
+		NETWORK_ClearBuffer( &g_aClients[ulIdx].PacketBuffer );
 	}
 
 	// Tell the client to authenticate his level.
@@ -2588,7 +2615,7 @@ void SERVER_LoadNewLevel( char *pszMapName )
 
 		// Send out the packet and clear out the client's buffer.
 		NETWORK_SendPacket( ulIdx );
-		NETWORK_ClearBuffer( &clients[ulIdx].netbuf );
+		NETWORK_ClearBuffer( &g_aClients[ulIdx].PacketBuffer );
 	}
 }
 
@@ -2627,7 +2654,7 @@ void SERVER_KickPlayer( ULONG ulPlayer, char *pszReason )
 		// Tell the player that he's been kicked.
 		SERVERCOMMANDS_ConsolePlayerKicked( ulPlayer );
 		NETWORK_SendPacket( ulPlayer );
-		NETWORK_ClearBuffer( &clients[ulPlayer].netbuf );
+		NETWORK_ClearBuffer( &g_aClients[ulPlayer].PacketBuffer );
 
 		// Tell the other players that this player has been kicked.
 		SERVER_DisconnectClient( ulPlayer, true, false );
@@ -2715,7 +2742,7 @@ bool SERVER_IsPlayerVisible( ULONG ulPlayer, ULONG ulPlayer2 )
 	if (( teamlms || lastmanstanding ) &&
 		(( lmsspectatorsettings & LMS_SPF_VIEW ) == false ) &&
 		( players[ulPlayer].bSpectating ) &&
-		( clients[ulPlayer].ulDisplayPlayer == ulPlayer ) &&
+		( g_aClients[ulPlayer].ulDisplayPlayer == ulPlayer ) &&
 		( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ))
 	{
 		return ( false );
@@ -3016,7 +3043,7 @@ void SERVER_ParseCommands( void )
 		case CONNECT_QUIT:
 
 			// Client has left the game.
-			SERVER_DisconnectClient( parse_cl, true, true );
+			SERVER_DisconnectClient( g_lCurrentClient, true, true );
 			break;
 		case CONNECT_AUTHENTICATING:
 
@@ -3055,16 +3082,16 @@ void SERVER_ParseCommands( void )
 			// Client is sending movement information.
 			bPlayerKicked = server_ClientMove( );
 
-			if ( gametic == clients[parse_cl].lLastMoveTick )
+			if ( gametic == g_aClients[g_lCurrentClient].lLastMoveTick )
 			{
-				clients[parse_cl].lOverMovementLevel++;
-//				Printf( "%s: ++ (%d)\n", players[parse_cl].userinfo.netname, clients[parse_cl].lOverMovementLevel );
+				g_aClients[g_lCurrentClient].lOverMovementLevel++;
+//				Printf( "%s: ++ (%d)\n", players[g_lCurrentClient].userinfo.netname, g_aClients[g_lCurrentClient].lOverMovementLevel );
 
-//				if ( clients[parse_cl].lOverMovementLevel >= MAX_OVERMOVEMENT_LEVEL )
-//					SERVER_KickPlayer( parse_cl, "Abnormal level of movement commands detected!" );
+//				if ( g_aClients[g_lCurrentClient].lOverMovementLevel >= MAX_OVERMOVEMENT_LEVEL )
+//					SERVER_KickPlayer( g_lCurrentClient, "Abnormal level of movement commands detected!" );
 			}
 
-			clients[parse_cl].lLastMoveTick = gametic;
+			g_aClients[g_lCurrentClient].lLastMoveTick = gametic;
 #else
 			// Client is sending movement information.
 			server_ClientMove( );
@@ -3188,7 +3215,7 @@ void SERVER_ParseCommands( void )
 		default:
 
 			Printf( PRINT_HIGH, "SERVER_ParseCommands: Unknown client message: %d\n", lCommand );
-//         	SERVER_DisconnectClient( parse_cl, true );
+//         	SERVER_DisconnectClient( g_lCurrentClient, true );
             return;
 		}
 
@@ -3236,10 +3263,10 @@ void SERVER_GiveInventoryToPlayer( const player_t *player, AInventory *pInventor
 //
 static bool server_StartChat( void )
 {
-	players[parse_cl].bChatting = true;
+	players[g_lCurrentClient].bChatting = true;
 
 	// Tell clients about the change in this player's chatting status.
-	SERVERCOMMANDS_SetPlayerChatStatus( parse_cl );
+	SERVERCOMMANDS_SetPlayerChatStatus( g_lCurrentClient );
 
 	return ( false );
 }
@@ -3248,10 +3275,10 @@ static bool server_StartChat( void )
 //
 static bool server_EndChat( void )
 {
-	players[parse_cl].bChatting = false;
+	players[g_lCurrentClient].bChatting = false;
 
 	// Tell clients about the change in this player's chatting status.
-	SERVERCOMMANDS_SetPlayerChatStatus( parse_cl );
+	SERVERCOMMANDS_SetPlayerChatStatus( g_lCurrentClient );
 
 	return ( false );
 }
@@ -3265,7 +3292,7 @@ static bool server_Say( void )
 	char	*pszChatString;
 	ULONG	ulChatInstance;
 
-	ulPlayer = parse_cl;
+	ulPlayer = g_lCurrentClient;
 
 	// Read in the chat mode (normal, team, etc.)
 	ulChatMode = NETWORK_ReadByte( );
@@ -3273,13 +3300,13 @@ static bool server_Say( void )
 	// Read in the chat string.
 	pszChatString = NETWORK_ReadString( );
 
-	ulChatInstance = ( ++clients[ulPlayer].ulLastChatInstance % MAX_CHATINSTANCE_STORAGE );
-	clients[ulPlayer].lChatInstances[ulChatInstance] = gametic;
+	ulChatInstance = ( ++g_aClients[ulPlayer].ulLastChatInstance % MAX_CHATINSTANCE_STORAGE );
+	g_aClients[ulPlayer].lChatInstances[ulChatInstance] = gametic;
 
 	// If this is the second time a player has chatted in a 7 tick interval (~1/5 of a second, ~1/5 of a second chat interval),
 	// kick him.
-	if ( ( clients[ulPlayer].lChatInstances[ulChatInstance] ) -
-		( clients[ulPlayer].lChatInstances[( ulChatInstance + MAX_CHATINSTANCE_STORAGE - 1 ) % MAX_CHATINSTANCE_STORAGE] )
+	if ( ( g_aClients[ulPlayer].lChatInstances[ulChatInstance] ) -
+		( g_aClients[ulPlayer].lChatInstances[( ulChatInstance + MAX_CHATINSTANCE_STORAGE - 1 ) % MAX_CHATINSTANCE_STORAGE] )
 		<= 7 )
 	{
 		SERVER_KickPlayer( ulPlayer, "Excess chat flood." );
@@ -3288,8 +3315,8 @@ static bool server_Say( void )
 
 	// If this is the third time a player has chatted in a 42 tick interval (~1.5 seconds, ~.75 second chat interval),
 	// kick him.
-	if ( ( clients[ulPlayer].lChatInstances[ulChatInstance] ) -
-		( clients[ulPlayer].lChatInstances[( ulChatInstance + MAX_CHATINSTANCE_STORAGE - 2 ) % MAX_CHATINSTANCE_STORAGE] )
+	if ( ( g_aClients[ulPlayer].lChatInstances[ulChatInstance] ) -
+		( g_aClients[ulPlayer].lChatInstances[( ulChatInstance + MAX_CHATINSTANCE_STORAGE - 2 ) % MAX_CHATINSTANCE_STORAGE] )
 		<= 42 )
 	{
 		SERVER_KickPlayer( ulPlayer, "Excess chat flood." );
@@ -3298,8 +3325,8 @@ static bool server_Say( void )
 
 	// If this is the fourth time a player has chatted in a 105 tick interval (~3 seconds, ~1 second interval ),
 	// kick him.
-	if ( ( clients[ulPlayer].lChatInstances[ulChatInstance] ) -
-		( clients[ulPlayer].lChatInstances[( ulChatInstance + MAX_CHATINSTANCE_STORAGE - 3 ) % MAX_CHATINSTANCE_STORAGE] )
+	if ( ( g_aClients[ulPlayer].lChatInstances[ulChatInstance] ) -
+		( g_aClients[ulPlayer].lChatInstances[( ulChatInstance + MAX_CHATINSTANCE_STORAGE - 3 ) % MAX_CHATINSTANCE_STORAGE] )
 		<= 105 )
 	{
 		SERVER_KickPlayer( ulPlayer, "Excess chat flood." );
@@ -3327,7 +3354,7 @@ static bool server_ClientMove( void )
 	AInventory		*pInventory;
 //	ULONG			ulIdx;
 
-	pPlayer = &players[parse_cl];
+	pPlayer = &players[g_lCurrentClient];
 	pCmd = &pPlayer->cmd;
 
 	// Read in the client's gametic.
@@ -3380,7 +3407,7 @@ static bool server_ClientMove( void )
 							pPlayer->PendingWeapon = static_cast<AWeapon *>( pInventory );
 //						else if ( g_ulWeaponCheckGracePeriodTicks == 0 )
 //						{
-//							SERVER_KickPlayer( parse_cl, "Using unowned weapon." );
+//							SERVER_KickPlayer( g_lCurrentClient, "Using unowned weapon." );
 //							return ( true );
 //						}
 					}
@@ -3393,10 +3420,10 @@ static bool server_ClientMove( void )
 						// but the server thinks he as one. Although this should not happen,
 						// we make a workaround for this here. Just tell the client to bring
 						// up the weapon, the server thinks he is using.
-						SERVERCOMMANDS_ChangePlayerWeapon( parse_cl );
+						SERVERCOMMANDS_ChangePlayerWeapon( g_lCurrentClient );
 					}
 					else{
-						SERVER_KickPlayer( parse_cl, "Using unknown weapon type." );
+						SERVER_KickPlayer( g_lCurrentClient, "Using unknown weapon type." );
 						return ( true );
 					}
 				}
@@ -3405,8 +3432,8 @@ static bool server_ClientMove( void )
 	}
 
 	// Don't timeout.
-	clients[parse_cl].lastcmdtic = gametic;
-	clients[parse_cl].gametics = ulGametic;
+	g_aClients[g_lCurrentClient].ulLastCommandTic = gametic;
+	g_aClients[g_lCurrentClient].ulClientGameTic = ulGametic;
 
 	if ( gamestate == GS_LEVEL )
 	{
@@ -3438,7 +3465,7 @@ static bool server_ClientMove( void )
 		( pCmd->ucmd.upmove != 0 )))
 	{
 		pPlayer->bChatting = false;
-		SERVERCOMMANDS_SetPlayerChatStatus( parse_cl );
+		SERVERCOMMANDS_SetPlayerChatStatus( g_lCurrentClient );
 	}
 
 	return ( false );
@@ -3454,7 +3481,7 @@ static bool server_MissingPacket( void )
 	bool	bFullUpdateRequired;
 
 	// If this client just requested missing packets, ignore the request.
-	if ( gametic <= ( clients[parse_cl].lLastPacketLossTick + ( TICRATE / 4 )))
+	if ( gametic <= ( g_aClients[g_lCurrentClient].lLastPacketLossTick + ( TICRATE / 4 )))
 	{
 		while ( NETWORK_ReadLong( ) != -1 )
 			;
@@ -3473,7 +3500,7 @@ static bool server_MissingPacket( void )
 			while ( NETWORK_ReadLong( ) != -1 )
 				;
 
-			SERVER_KickPlayer( parse_cl, "Invalid missing packet request." );
+			SERVER_KickPlayer( g_lCurrentClient, "Invalid missing packet request." );
 			return ( true );
 		}
 		lLastPacket = lPacket;
@@ -3484,7 +3511,7 @@ static bool server_MissingPacket( void )
 		bFullUpdateRequired = true;
 		for ( ulIdx = 0; ulIdx < 256; ulIdx++ )
 		{
-			if ( clients[parse_cl].lPacketSequence[ulIdx] == lPacket )
+			if ( g_aClients[g_lCurrentClient].lPacketSequence[ulIdx] == lPacket )
 			{
 				bFullUpdateRequired = false;
 				break;
@@ -3496,8 +3523,8 @@ static bool server_MissingPacket( void )
 		if  ( bFullUpdateRequired )
 		{
 			// Do we really need to print this? Nah.
-//			Printf( "*** Sequence screwed for client %d, %s!\n", parse_cl, players[parse_cl].userinfo.netname );
-			SERVER_KickPlayer( parse_cl, "Too many missed packets." );
+//			Printf( "*** Sequence screwed for client %d, %s!\n", g_lCurrentClient, players[g_lCurrentClient].userinfo.netname );
+			SERVER_KickPlayer( g_lCurrentClient, "Too many missed packets." );
 			return ( true );
 		}
 
@@ -3506,18 +3533,18 @@ static bool server_MissingPacket( void )
 		NETWORK_ClearBuffer( &g_PacketLossBuffer );
 		NETWORK_WriteHeader( &g_PacketLossBuffer, SVC_HEADER );
 		NETWORK_WriteLong( &g_PacketLossBuffer, lPacket );
-		if ( clients[parse_cl].lPacketSize[ulIdx] )
+		if ( g_aClients[g_lCurrentClient].lPacketSize[ulIdx] )
 		{
-			NETWORK_Write( &g_PacketLossBuffer, clients[parse_cl].relpackets.pbData, 
-				clients[parse_cl].lPacketBeginning[ulIdx], clients[parse_cl].lPacketSize[ulIdx] );
+			NETWORK_Write( &g_PacketLossBuffer, g_aClients[g_lCurrentClient].SavedPacketBuffer.pbData, 
+				g_aClients[g_lCurrentClient].lPacketBeginning[ulIdx], g_aClients[g_lCurrentClient].lPacketSize[ulIdx] );
 		}
 //		else
 //			Printf( "server_MissingPacket: WARNING! Packet %d has no size!\n", ulIdx );
-		NETWORK_LaunchPacket( &g_PacketLossBuffer, clients[parse_cl].address );
+		NETWORK_LaunchPacket( &g_PacketLossBuffer, g_aClients[g_lCurrentClient].Address );
 	}
 
 	// Mark this client as having requested missing packets.
-	clients[parse_cl].lLastPacketLossTick = gametic;
+	g_aClients[g_lCurrentClient].lLastPacketLossTick = gametic;
 
 	return ( false );
 /*
@@ -3530,15 +3557,15 @@ static bool server_MissingPacket( void )
 	ulSequence = NETWORK_ReadLong( );
 
 	// How could the client receive a packet higher than what was sent to him?
-	if ( ulSequence > clients[parse_cl].ulPacketSequence )
-		Printf( "WARNING: Client %d received packet > highest send packet! (%d, %d)\n", parse_cl, ulSequence, clients[parse_cl].ulPacketSequence );
+	if ( ulSequence > g_aClients[g_lCurrentClient].ulPacketSequence )
+		Printf( "WARNING: Client %d received packet > highest send packet! (%d, %d)\n", g_lCurrentClient, ulSequence, g_aClients[g_lCurrentClient].ulPacketSequence );
 	// If the packet the client is acknowledging is not the next packet from the last
 	// packet he acknowledged, then he must have missed a packet.
-	else if (( (LONG)ulSequence - (LONG)clients[parse_cl].ulLastAcknowledgedSequence ) > 1 )
+	else if (( (LONG)ulSequence - (LONG)g_aClients[g_lCurrentClient].ulLastAcknowledgedSequence ) > 1 )
 	{
 		// Begin resending missed packets. Also, be sure to resend this packet so the client
 		// can parse the packets in the proper order.
-		for ( ulIdx = clients[parse_cl].ulLastAcknowledgedSequence + 1; ulIdx <= ulSequence; ulIdx++ )
+		for ( ulIdx = g_aClients[g_lCurrentClient].ulLastAcknowledgedSequence + 1; ulIdx <= ulSequence; ulIdx++ )
 		{
 			// Search through all 256 of the stored packets. We're looking for the packet that
 			// that we want to send to the client by matching the sequences. If we cannot find
@@ -3546,7 +3573,7 @@ static bool server_MissingPacket( void )
 			bFullUpdateRequired = true;
 			for ( ulIdx2 = 0; ulIdx2 < 256; ulIdx2++ )
 			{
-				if ( clients[parse_cl].ulPacketSequence[ulIdx2] == ulIdx )
+				if ( g_aClients[g_lCurrentClient].ulPacketSequence[ulIdx2] == ulIdx )
 				{
 					bFullUpdateRequired = false;
 					break;
@@ -3558,28 +3585,28 @@ static bool server_MissingPacket( void )
 			if  ( bFullUpdateRequired )
 			{
 				// do full update
-				Printf( "*** Sequence screwed for client %d, %s! Sending full update...\n", parse_cl, players[parse_cl].userinfo.netname );
-				SERVER_SendFullUpdate( parse_cl );
-				clients[parse_cl].ulLastAcknowledgedSequence = ulSequence;
+				Printf( "*** Sequence screwed for client %d, %s! Sending full update...\n", g_lCurrentClient, players[g_lCurrentClient].userinfo.netname );
+				SERVER_SendFullUpdate( g_lCurrentClient );
+				g_aClients[g_lCurrentClient].ulLastAcknowledgedSequence = ulSequence;
 				return;
 			}
 
 			// Now that we've found the missed packet that we need to send to the client,
 			// send it.
-			NETWORK_CheckBuffer( parse_cl, clients[parse_cl].ulPacketSize[ulIdx2] + 5 );
-			NETWORK_WriteHeader( &clients[parse_cl].netbuf, SVC_MISSEDPACKET );
-			NETWORK_WriteLong( &clients[parse_cl].netbuf, ulIdx );
-//			NETWORK_WriteShort( &clients[parse_cl].netbuf, clients[parse_cl].ulPacketSize[ulIdx2] );
-			if ( clients[parse_cl].ulPacketSize[ulIdx2] )
+			NETWORK_CheckBuffer( g_lCurrentClient, g_aClients[g_lCurrentClient].ulPacketSize[ulIdx2] + 5 );
+			NETWORK_WriteHeader( &g_aClients[g_lCurrentClient].PacketBuffer, SVC_MISSEDPACKET );
+			NETWORK_WriteLong( &g_aClients[g_lCurrentClient].PacketBuffer, ulIdx );
+//			NETWORK_WriteShort( &g_aClients[g_lCurrentClient].PacketBuffer, g_aClients[g_lCurrentClient].ulPacketSize[ulIdx2] );
+			if ( g_aClients[g_lCurrentClient].ulPacketSize[ulIdx2] )
 			{
-				NETWORK_Write( &clients[parse_cl].netbuf, clients[parse_cl].relpackets.pbData, 
-					clients[parse_cl].lPacketBeginning[ulIdx2], clients[parse_cl].ulPacketSize[ulIdx2] );
+				NETWORK_Write( &g_aClients[g_lCurrentClient].PacketBuffer, g_aClients[g_lCurrentClient].relpackets.pbData, 
+					g_aClients[g_lCurrentClient].lPacketBeginning[ulIdx2], g_aClients[g_lCurrentClient].ulPacketSize[ulIdx2] );
 			}
 		}
 	}
 
 	// Update the last acknowledged sequence.
-	clients[parse_cl].ulLastAcknowledgedSequence = ulSequence;
+	g_aClients[g_lCurrentClient].ulLastAcknowledgedSequence = ulSequence;
 */
 }
 
@@ -3590,7 +3617,7 @@ static bool server_UpdateClientPing( void )
 	ULONG	ulPing;
 
 	ulPing = NETWORK_ReadLong( );
-	players[parse_cl].ulPing = I_MSTime( ) - ulPing;
+	players[g_lCurrentClient].ulPing = I_MSTime( ) - ulPing;
 
 	return ( false );
 }
@@ -3607,7 +3634,7 @@ static bool server_WeaponSelect( void )
 	pszWeapon = NETWORK_ReadString( );
 
 	// If the player doesn't have a body, break out.
-	if ( players[parse_cl].mo == NULL )
+	if ( players[g_lCurrentClient].mo == NULL )
 		return ( false );
 
 	// Some optimization. For standard Doom weapons, to reduce the size of the string
@@ -3622,23 +3649,23 @@ static bool server_WeaponSelect( void )
 	if (( pType == NULL ) ||
 		( pType->IsDescendantOf( RUNTIME_CLASS( AWeapon )) == false ))
 	{
-		SERVER_KickPlayer( parse_cl, "Tried to switch to unknown weapon type." );
+		SERVER_KickPlayer( g_lCurrentClient, "Tried to switch to unknown weapon type." );
 		return ( true );
 	}
 
-	pInventory = players[parse_cl].mo->FindInventory( pType );
+	pInventory = players[g_lCurrentClient].mo->FindInventory( pType );
 	if ( pInventory == NULL )
 	{
-//		SERVER_KickPlayer( parse_cl, "Tried to select unowned weapon." );
+//		SERVER_KickPlayer( g_lCurrentClient, "Tried to select unowned weapon." );
 //		return ( true );
 		return ( false );
 	}
 
 	// Finally, switch the player's pending weapon.
-	players[parse_cl].PendingWeapon = static_cast<AWeapon *>( pInventory );
+	players[g_lCurrentClient].PendingWeapon = static_cast<AWeapon *>( pInventory );
 
 	// [BB] Tell the other clients about the change. This should fix the spectator bug and the railgun pistol sound bug.
-	SERVERCOMMANDS_UpdatePlayerPendingWeapon( parse_cl );
+	SERVERCOMMANDS_UpdatePlayerPendingWeapon( g_lCurrentClient );
 	return ( false );
 }
 
@@ -3651,15 +3678,15 @@ static bool server_Taunt( void )
 		return ( false );
 
 	// Spectating players and dead players cannot taunt.
-	if (( players[parse_cl].bSpectating ) ||
-		( players[parse_cl].health <= 0 ) ||
-		( players[parse_cl].mo == NULL ) ||
+	if (( players[g_lCurrentClient].bSpectating ) ||
+		( players[g_lCurrentClient].health <= 0 ) ||
+		( players[g_lCurrentClient].mo == NULL ) ||
 		( i_compatflags & COMPATF_DISABLETAUNTS ))
 	{
 		return ( false );
 	}
 
-	SERVERCOMMANDS_PlayerTaunt( parse_cl, parse_cl, SVCF_SKIPTHISCLIENT );
+	SERVERCOMMANDS_PlayerTaunt( g_lCurrentClient, g_lCurrentClient, SVCF_SKIPTHISCLIENT );
 
 	return ( false );
 }
@@ -3669,14 +3696,14 @@ static bool server_Taunt( void )
 static bool server_Spectate( void )
 {
 	// Already a spectator!
-	if ( PLAYER_IsTrueSpectator( &players[parse_cl] ))
+	if ( PLAYER_IsTrueSpectator( &players[g_lCurrentClient] ))
 		return ( false );
 
 	// Make this player a spectator.
-	PLAYER_SetSpectator( &players[parse_cl], true, false );
+	PLAYER_SetSpectator( &players[g_lCurrentClient], true, false );
 
 	// Tell the other players to mark this player as a spectator.
-	SERVERCOMMANDS_PlayerIsSpectator( parse_cl );
+	SERVERCOMMANDS_PlayerIsSpectator( g_lCurrentClient );
 
 	return ( false );
 }
@@ -3692,11 +3719,11 @@ static bool server_RequestJoin( void )
 	strncpy( szClientJoinPassword, strupr( NETWORK_ReadString( )), 64 );
 
 	// Player can't rejoin game if he's not spectating!
-	if (( playeringame[parse_cl] == false ) || ( players[parse_cl].bSpectating == false ))
+	if (( playeringame[g_lCurrentClient] == false ) || ( players[g_lCurrentClient].bSpectating == false ))
 		return ( false );
 
 	// Player can't rejoin their LMS/survival game if they are dead.
-	if (( lastmanstanding || teamlms || survival ) && ( players[parse_cl].bDeadSpectator ))
+	if (( lastmanstanding || teamlms || survival ) && ( players[g_lCurrentClient].bDeadSpectator ))
 		return ( false );
 
 	// If we're forcing a join password, kick him if it doesn't match.
@@ -3712,7 +3739,7 @@ static bool server_RequestJoin( void )
 		if ( strcmp( strupr( szServerJoinPassword ), szClientJoinPassword ) != 0 )
 		{
 			// Tell the client that the password didn't match.
-			SERVER_PrintfPlayer( PRINT_HIGH, parse_cl, "Incorrect join password.\n" );
+			SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "Incorrect join password.\n" );
 			return ( false );
 		}
 	}
@@ -3727,36 +3754,36 @@ static bool server_RequestJoin( void )
 	{
 		JOINSLOT_t	JoinSlot;
 
-		JoinSlot.ulPlayer = parse_cl;
+		JoinSlot.ulPlayer = g_lCurrentClient;
 		JoinSlot.ulTeam = NUM_TEAMS;
 		JOINQUEUE_AddPlayer( JoinSlot );
 
 		// Tell the client what his position in line is.
-		SERVERCOMMANDS_SetQueuePosition( parse_cl, SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_SetQueuePosition( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 		return ( false );
 	}
 
 	// Everything's okay! Go ahead and join!
-	players[parse_cl].playerstate = PST_REBORNNOINVENTORY;
-	players[parse_cl].bSpectating = false;
+	players[g_lCurrentClient].playerstate = PST_REBORNNOINVENTORY;
+	players[g_lCurrentClient].bSpectating = false;
 	// [BB] It's possible that you are watching through the eyes of someone else
 	// upon joining. Doesn't hurt to reset it.
-	clients[parse_cl].ulDisplayPlayer = parse_cl;
+	g_aClients[g_lCurrentClient].ulDisplayPlayer = g_lCurrentClient;
 	if ( teamplay || ( teamgame && TemporaryTeamStarts.Size( ) == 0 ) || teamlms || teampossession )
 	{
-		players[parse_cl].bOnTeam = true;
-		players[parse_cl].ulTeam = TEAM_ChooseBestTeamForPlayer( );
+		players[g_lCurrentClient].bOnTeam = true;
+		players[g_lCurrentClient].ulTeam = TEAM_ChooseBestTeamForPlayer( );
 
 		// If this player is on a team, tell all the other clients that a team has been selected
 		// for him.
-		if ( players[parse_cl].bOnTeam )
-			SERVERCOMMANDS_SetPlayerTeam( parse_cl );
+		if ( players[g_lCurrentClient].bOnTeam )
+			SERVERCOMMANDS_SetPlayerTeam( g_lCurrentClient );
 	}
 
-	SERVER_Printf( PRINT_HIGH, "%s \\c-joined the game.\n", players[parse_cl].userinfo.netname );
+	SERVER_Printf( PRINT_HIGH, "%s \\c-joined the game.\n", players[g_lCurrentClient].userinfo.netname );
 
 	// Update this player's info on the scoreboard.
-	SERVERCONSOLE_UpdatePlayerInfo( parse_cl, UDF_FRAGS );
+	SERVERCONSOLE_UpdatePlayerInfo( g_lCurrentClient, UDF_FRAGS );
 
 	return ( false );
 }
@@ -3774,15 +3801,15 @@ static bool server_RequestRCON( void )
 	pszUserPassword = NETWORK_ReadString( );
 	if (( strlen( Val.String )) && ( strcmp( Val.String, pszUserPassword ) == 0 ))
 	{
-		clients[parse_cl].bRCONAccess = true;
-		SERVER_PrintfPlayer( PRINT_HIGH, parse_cl, "RCON access granted.\n" );
-		Printf( "RCON access for %s is granted!\n", players[parse_cl].userinfo.netname );
+		g_aClients[g_lCurrentClient].bRCONAccess = true;
+		SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "RCON access granted.\n" );
+		Printf( "RCON access for %s is granted!\n", players[g_lCurrentClient].userinfo.netname );
 	}
 	else
 	{
-		clients[parse_cl].bRCONAccess = false;
-		SERVER_PrintfPlayer( PRINT_HIGH, parse_cl, "Incorrect RCON password.\n" );
-		Printf( "Incorrect RCON password attempt from %s.\n", players[parse_cl].userinfo.netname );
+		g_aClients[g_lCurrentClient].bRCONAccess = false;
+		SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "Incorrect RCON password.\n" );
+		Printf( "Incorrect RCON password attempt from %s.\n", players[g_lCurrentClient].userinfo.netname );
 	}
 
 	return ( false );
@@ -3798,15 +3825,15 @@ static bool server_RCONCommand( void )
 	pszCommand = NETWORK_ReadString( );
 
 	// If they don't have RCON access, and aren't an adminstrator, deny them the ability to do this.
-	if (( clients[parse_cl].bRCONAccess == false ) && ( SERVER_ADMIN_IsAdministrator( clients[parse_cl].address ) == false ))
+	if (( g_aClients[g_lCurrentClient].bRCONAccess == false ) && ( SERVER_ADMIN_IsAdministrator( g_aClients[g_lCurrentClient].Address ) == false ))
 		return ( false );
 
 	// Admins can operate incognito.
-	if ( SERVER_ADMIN_IsAdministrator( clients[parse_cl].address ) == false )
-		Printf( "%s RCON (%s)\n", players[parse_cl].userinfo.netname, pszCommand );
+	if ( SERVER_ADMIN_IsAdministrator( g_aClients[g_lCurrentClient].Address ) == false )
+		Printf( "%s RCON (%s)\n", players[g_lCurrentClient].userinfo.netname, pszCommand );
 
 	// Set the RCON player so that output displays on his end.
-	CONSOLE_SetRCONPlayer( parse_cl );
+	CONSOLE_SetRCONPlayer( g_lCurrentClient );
 
 	// Now, execute the player's command.
 	C_DoCommand( pszCommand );
@@ -3822,14 +3849,14 @@ static bool server_RCONCommand( void )
 static bool server_Suicide( void )
 {
 	// Spectators cannot suicide.
-	if ( players[parse_cl].bSpectating || playeringame[parse_cl] == false )
+	if ( players[g_lCurrentClient].bSpectating || playeringame[g_lCurrentClient] == false )
 		return ( false );
 
 	// Don't allow suiciding during a duel.
 	if ( duel && ( DUEL_GetState( ) == DS_INDUEL ))
 		return ( false );
 
-	cht_Suicide( &players[parse_cl] );
+	cht_Suicide( &players[g_lCurrentClient] );
 
 	return ( false );
 }
@@ -3847,7 +3874,7 @@ static bool server_ChangeTeam( void )
 	strncpy( szClientJoinPassword, strupr( NETWORK_ReadString( )), 64 );
 
 	lDesiredTeam = NETWORK_ReadByte( );
-	if ( playeringame[parse_cl] == false )
+	if ( playeringame[g_lCurrentClient] == false )
 		return ( false );
 
 	// Not in a level.
@@ -3859,34 +3886,34 @@ static bool server_ChangeTeam( void )
 		return ( false );
 
 	// Player can't rejoin their LMS game if they are dead.
-	if ( teamlms && ( players[parse_cl].bDeadSpectator ))
+	if ( teamlms && ( players[g_lCurrentClient].bDeadSpectator ))
 		return ( false );
 
 	// "No team change" dmflag is set. Ignore this.
-	if ( players[parse_cl].bOnTeam && ( dmflags2 & DF2_NO_TEAM_SWITCH ))
+	if ( players[g_lCurrentClient].bOnTeam && ( dmflags2 & DF2_NO_TEAM_SWITCH ))
 		return ( false );
 
 	// If this player has tried to change teams recently, ignore the request.
-	if ( gametic < ( clients[parse_cl].ulLastChangeTeamTime + ( TICRATE * 10 )))
+	if ( gametic < ( g_aClients[g_lCurrentClient].ulLastChangeTeamTime + ( TICRATE * 10 )))
 		return ( false );
 
-	clients[parse_cl].ulLastChangeTeamTime = gametic;
+	g_aClients[g_lCurrentClient].ulLastChangeTeamTime = gametic;
 
 	// If the team isn't "blue" or "red", just pick the best team for the player to be on.
 	if (( lDesiredTeam != TEAM_BLUE ) && ( lDesiredTeam != TEAM_RED ))
 		lDesiredTeam = TEAM_ChooseBestTeamForPlayer( );
 
 	// If the desired team matches our current team, break out.
-	if (( players[parse_cl].bOnTeam ) && ( lDesiredTeam == players[parse_cl].ulTeam ))
+	if (( players[g_lCurrentClient].bOnTeam ) && ( lDesiredTeam == players[g_lCurrentClient].ulTeam ))
 	{
-		SERVER_PrintfPlayer( PRINT_HIGH, parse_cl, "You are already on the %s team!\n", TEAM_GetName( lDesiredTeam ));
+		SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "You are already on the %s team!\n", TEAM_GetName( lDesiredTeam ));
 		return ( false );
 	}
 
 	// Don't allow players to switch teams in the middle of a team LMS game.
-	if ( teamlms && ( players[parse_cl].bSpectating == false ) && (( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) || ( LASTMANSTANDING_GetState( ) == LMSS_WINSEQUENCE )))
+	if ( teamlms && ( players[g_lCurrentClient].bSpectating == false ) && (( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) || ( LASTMANSTANDING_GetState( ) == LMSS_WINSEQUENCE )))
 	{
-		SERVER_PrintfPlayer( PRINT_HIGH, parse_cl, "You cannot switch teams in the middle of a match!\n" );
+		SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "You cannot switch teams in the middle of a match!\n" );
 		return ( false );
 	}
 
@@ -3903,85 +3930,85 @@ static bool server_ChangeTeam( void )
 		if ( strcmp( strupr( szServerJoinPassword ), szClientJoinPassword ) != 0 )
 		{
 			// Tell the client that the password didn't match.
-			SERVER_PrintfPlayer( PRINT_HIGH, parse_cl, "Incorrect join password.\n" );
+			SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "Incorrect join password.\n" );
 			return ( false );
 		}
 	}
 
 	Val = sv_maxplayers.GetGenericRep( CVAR_Int );
-	if (( players[parse_cl].bSpectating ) && 
+	if (( players[g_lCurrentClient].bSpectating ) && 
 		(( SERVER_CalcNumNonSpectatingPlayers( MAXPLAYERS ) >= Val.Int ) ||		
-		( teamlms && ( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) && ( PLAYER_IsTrueSpectator( &players[parse_cl] )))))
+		( teamlms && ( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) && ( PLAYER_IsTrueSpectator( &players[g_lCurrentClient] )))))
 	{
 		JOINSLOT_t	JoinSlot;
 
-		JoinSlot.ulPlayer = parse_cl;
+		JoinSlot.ulPlayer = g_lCurrentClient;
 		JoinSlot.ulTeam = lDesiredTeam;
 		JOINQUEUE_AddPlayer( JoinSlot );
 
 		// Tell the client what his position in line is.
-		SERVERCOMMANDS_SetQueuePosition( parse_cl, SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_SetQueuePosition( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 		return ( false );
 	}
 
 	// If this player was eligible to get an assist, cancel that.
-	if ( TEAM_GetAssistPlayer( TEAM_BLUE ) == parse_cl )
+	if ( TEAM_GetAssistPlayer( TEAM_BLUE ) == g_lCurrentClient )
 		TEAM_SetAssistPlayer( TEAM_BLUE, MAXPLAYERS );
-	if ( TEAM_GetAssistPlayer( TEAM_RED ) == parse_cl )
+	if ( TEAM_GetAssistPlayer( TEAM_RED ) == g_lCurrentClient )
 		TEAM_SetAssistPlayer( TEAM_RED, MAXPLAYERS );
 
 	// Don't allow him to "take" flags or skulls with him. If he was carrying any,
 	// spawn what he was carrying on the ground.
-	players[parse_cl].mo->DropImportantItems( false );
+	players[g_lCurrentClient].mo->DropImportantItems( false );
 
 	// Save this. This will determine our message.
-	bOnTeam = players[parse_cl].bOnTeam;
+	bOnTeam = players[g_lCurrentClient].bOnTeam;
 
 	// Set the new team.
-	PLAYER_SetTeam( &players[parse_cl], lDesiredTeam, true );
+	PLAYER_SetTeam( &players[g_lCurrentClient], lDesiredTeam, true );
 
 	// Player was on a team, so tell everyone that he's changing teams.
 	if ( bOnTeam )
 	{
-		if ( players[parse_cl].ulTeam == TEAM_BLUE )
-			SERVER_Printf( PRINT_HIGH, "%s \\c-defected to the \\ch%s \\c-team.\n", players[parse_cl].userinfo.netname, TEAM_GetName( players[parse_cl].ulTeam ));
+		if ( players[g_lCurrentClient].ulTeam == TEAM_BLUE )
+			SERVER_Printf( PRINT_HIGH, "%s \\c-defected to the \\ch%s \\c-team.\n", players[g_lCurrentClient].userinfo.netname, TEAM_GetName( players[g_lCurrentClient].ulTeam ));
 		else
-			SERVER_Printf( PRINT_HIGH, "%s \\c-defected to the \\cg%s \\c-team.\n", players[parse_cl].userinfo.netname, TEAM_GetName( players[parse_cl].ulTeam ));
+			SERVER_Printf( PRINT_HIGH, "%s \\c-defected to the \\cg%s \\c-team.\n", players[g_lCurrentClient].userinfo.netname, TEAM_GetName( players[g_lCurrentClient].ulTeam ));
 	}
 	// Otherwise, tell everyone he's joining a team.
 	else
 	{
-		if ( players[parse_cl].ulTeam == TEAM_BLUE )
-			SERVER_Printf( PRINT_HIGH, "%s \\c-joined the \\ch%s \\c-team.\n", players[parse_cl].userinfo.netname, TEAM_GetName( players[parse_cl].ulTeam ));
+		if ( players[g_lCurrentClient].ulTeam == TEAM_BLUE )
+			SERVER_Printf( PRINT_HIGH, "%s \\c-joined the \\ch%s \\c-team.\n", players[g_lCurrentClient].userinfo.netname, TEAM_GetName( players[g_lCurrentClient].ulTeam ));
 		else
-			SERVER_Printf( PRINT_HIGH, "%s \\c-joined the \\cg%s \\c-team.\n", players[parse_cl].userinfo.netname, TEAM_GetName( players[parse_cl].ulTeam ));
+			SERVER_Printf( PRINT_HIGH, "%s \\c-joined the \\cg%s \\c-team.\n", players[g_lCurrentClient].userinfo.netname, TEAM_GetName( players[g_lCurrentClient].ulTeam ));
 	}
 
-	if ( players[parse_cl].mo )
+	if ( players[g_lCurrentClient].mo )
 	{
-		SERVERCOMMANDS_DestroyThing( players[parse_cl].mo );
+		SERVERCOMMANDS_DestroyThing( players[g_lCurrentClient].mo );
 
-		players[parse_cl].mo->Destroy( );
-		players[parse_cl].mo = NULL;
+		players[g_lCurrentClient].mo->Destroy( );
+		players[g_lCurrentClient].mo = NULL;
 	}
 
 	// Now respawn the player at the appropriate spot. Set the player state to
 	// PST_REBORNNOINVENTORY so everything (weapons, etc.) is cleared.
-	players[parse_cl].playerstate = PST_REBORNNOINVENTORY;
+	players[g_lCurrentClient].playerstate = PST_REBORNNOINVENTORY;
 
 	// Also, take away spectator status.
-	players[parse_cl].bSpectating = false;
+	players[g_lCurrentClient].bSpectating = false;
 
 	if ( teamgame )
-		G_TeamgameSpawnPlayer( parse_cl, players[parse_cl].ulTeam, true );
+		G_TeamgameSpawnPlayer( g_lCurrentClient, players[g_lCurrentClient].ulTeam, true );
 	else
-		G_DeathMatchSpawnPlayer( parse_cl, true );
+		G_DeathMatchSpawnPlayer( g_lCurrentClient, true );
 
 	// Tell the join queue that a player "sort of" left the game.
 	JOINQUEUE_PlayerLeftGame( false );
 
 	// Update this player's info on the scoreboard.
-	SERVERCONSOLE_UpdatePlayerInfo( parse_cl, UDF_FRAGS );
+	SERVERCONSOLE_UpdatePlayerInfo( g_lCurrentClient, UDF_FRAGS );
 
 	return ( false );
 }
@@ -3993,7 +4020,7 @@ static bool server_SpectateInfo( void )
 	player_t	*pPlayer;
 	ULONG		ulGametic;
 
-	pPlayer = &players[parse_cl];
+	pPlayer = &players[g_lCurrentClient];
 
 	// Read in the client's gametic.
 	ulGametic = NETWORK_ReadLong( );
@@ -4008,8 +4035,8 @@ static bool server_SpectateInfo( void )
 	}
 
 	// Don't timeout.
-	clients[parse_cl].lastcmdtic = gametic;
-	clients[parse_cl].gametics = ulGametic;
+	g_aClients[g_lCurrentClient].ulLastCommandTic = gametic;
+	g_aClients[g_lCurrentClient].ulClientGameTic = ulGametic;
 
 	return ( false );
 }
@@ -4027,7 +4054,7 @@ static bool server_GenericCheat( void )
 	if (( sv_cheats ) ||
 		(( ulCheat == CHT_CHASECAM ) &&	( deathmatch == false ) && ( teamgame == false )))
 	{
-		cht_DoCheat( &players[parse_cl], ulCheat );
+		cht_DoCheat( &players[g_lCurrentClient], ulCheat );
 
 		// Tell clients about this cheat.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -4035,15 +4062,15 @@ static bool server_GenericCheat( void )
 			// [BB] You only need to notify the client who wants to use chasecam about it.
 			// If you tell it to all clients, it looks weird for a client spying someone with chasecam on.
 			if (( ulCheat == CHT_CHASECAM ) &&	( deathmatch == false ) && ( teamgame == false ))
-				SERVERCOMMANDS_GenericCheat( parse_cl, ulCheat, parse_cl, SVCF_ONLYTHISCLIENT );
+				SERVERCOMMANDS_GenericCheat( g_lCurrentClient, ulCheat, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 			else
-				SERVERCOMMANDS_GenericCheat( parse_cl, ulCheat );
+				SERVERCOMMANDS_GenericCheat( g_lCurrentClient, ulCheat );
 		}
 	}
 	// If not, boot their ass!
 	else
 	{
-		SERVER_KickPlayer( parse_cl, "Attempted to cheat whith sv_cheats being false!" );
+		SERVER_KickPlayer( g_lCurrentClient, "Attempted to cheat whith sv_cheats being false!" );
 		return ( true );
 	}
 
@@ -4066,7 +4093,7 @@ static bool server_GiveCheat( void )
 	// If it's legal, do the cheat.
 	if ( sv_cheats )
 	{
-		cht_Give( &players[parse_cl], pszItemName, ulAmount );
+		cht_Give( &players[g_lCurrentClient], pszItemName, ulAmount );
 /*
 		// Tell clients about this cheat.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -4079,10 +4106,10 @@ static bool server_GiveCheat( void )
 					continue;
 
 				NETWORK_CheckBuffer( ulIdx, 3 + strlen( pszItemName ));
-				NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_GIVECHEAT );
-				NETWORK_WriteByte( &clients[ulIdx].netbuf, parse_cl );
-				NETWORK_WriteString( &clients[ulIdx].netbuf, pszItemName );
-				NETWORK_WriteByte( &clients[ulIdx].netbuf, ulAmount );
+				NETWORK_WriteHeader( &g_aClients[ulIdx].PacketBuffer, SVC_GIVECHEAT );
+				NETWORK_WriteByte( &g_aClients[ulIdx].PacketBuffer, g_lCurrentClient );
+				NETWORK_WriteString( &g_aClients[ulIdx].PacketBuffer, pszItemName );
+				NETWORK_WriteByte( &g_aClients[ulIdx].PacketBuffer, ulAmount );
 			}
 		}
 */
@@ -4090,7 +4117,7 @@ static bool server_GiveCheat( void )
 	// If not, boot their ass!
 	else
 	{
-		SERVER_KickPlayer( parse_cl, "Attempted to cheat whith sv_cheats being false!" );
+		SERVER_KickPlayer( g_lCurrentClient, "Attempted to cheat whith sv_cheats being false!" );
 		return ( true );
 	}
 
@@ -4109,7 +4136,7 @@ static bool server_SummonCheat( bool bFriend )
 	// Read in the item name.
 	pszName = NETWORK_ReadString( );
 
-	pSource = players[parse_cl].mo;
+	pSource = players[g_lCurrentClient].mo;
 	if ( pSource == NULL )
 		return ( false );
 
@@ -4145,9 +4172,9 @@ static bool server_SummonCheat( bool bFriend )
 				{
 					level.total_monsters--;
 				}
-				pActor->FriendPlayer = parse_cl + 1;
+				pActor->FriendPlayer = g_lCurrentClient + 1;
 				pActor->flags |= MF_FRIENDLY;
-				pActor->LastHeard = players[parse_cl].mo;
+				pActor->LastHeard = players[g_lCurrentClient].mo;
 			}
 
 
@@ -4158,7 +4185,7 @@ static bool server_SummonCheat( bool bFriend )
 	// If not, boot their ass!
 	else
 	{
-		SERVER_KickPlayer( parse_cl, "Attempted to cheat whith sv_cheats being false!" );
+		SERVER_KickPlayer( g_lCurrentClient, "Attempted to cheat whith sv_cheats being false!" );
 		return ( true );
 	}
 
@@ -4170,23 +4197,23 @@ static bool server_SummonCheat( bool bFriend )
 static bool server_ReadyToGoOn( void )
 {
 	// Toggle this player (specator)'s "ready to go on" status.
-	players[parse_cl].bReadyToGoOn = !players[parse_cl].bReadyToGoOn;
+	players[g_lCurrentClient].bReadyToGoOn = !players[g_lCurrentClient].bReadyToGoOn;
 
 	if ( SERVER_IsEveryoneReadyToGoOn( ) == false )
-		SERVERCOMMANDS_SetPlayerReadyToGoOnStatus( parse_cl );
+		SERVERCOMMANDS_SetPlayerReadyToGoOnStatus( g_lCurrentClient );
 
 	return ( false );
 
-//	players[parse_cl].cmd.ucmd.buttons |= BT_USE;
+//	players[g_lCurrentClient].cmd.ucmd.buttons |= BT_USE;
 /*
 	ULONG		ulIdx;
 	bool		bChangeLevel = true;
 	player_s	*pPlayer;
 
-	if ( playeringame[parse_cl] == false )
+	if ( playeringame[g_lCurrentClient] == false )
 		return;
 
-	pPlayer = &players[parse_cl];
+	pPlayer = &players[g_lCurrentClient];
 
 	pPlayer->bReadyToGoOn = !pPlayer->bReadyToGoOn;
 
@@ -4207,7 +4234,7 @@ static bool server_ReadyToGoOn( void )
 	if ( bChangeLevel == true )
 		acceleratestage = 1;
 	else
-		SERVERCOMMANDS_SetPlayerReadyToGoOnStatus( parse_cl );
+		SERVERCOMMANDS_SetPlayerReadyToGoOnStatus( g_lCurrentClient );
 */
 }
 
@@ -4220,7 +4247,7 @@ static bool server_ChangeDisplayPlayer( void )
 	// Read in their display player.
 	ulDisplayPlayer = NETWORK_ReadByte( );
 	if (( ulDisplayPlayer < MAXPLAYERS ) && playeringame[ulDisplayPlayer] )
-		clients[parse_cl].ulDisplayPlayer = ulDisplayPlayer;
+		g_aClients[g_lCurrentClient].ulDisplayPlayer = ulDisplayPlayer;
 
 	return ( false );
 }
@@ -4249,33 +4276,33 @@ static bool server_AuthenticateLevel( void )
 
 	if ( SERVER_PerformAuthenticationChecksum( ) == false )
 	{
-		SERVER_KickPlayer( parse_cl, "Level authentication failed." );
+		SERVER_KickPlayer( g_lCurrentClient, "Level authentication failed." );
 		return ( true );
 	}
 
 	// Now that the level has been authenticated, send all the level data for the client.
 
 	// Send skill level.
-	SERVERCOMMANDS_SetGameSkill( parse_cl, SVCF_ONLYTHISCLIENT );
+	SERVERCOMMANDS_SetGameSkill( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 	// Send special settings like teamplay and deathmatch.
-	SERVERCOMMANDS_SetGameMode( parse_cl, SVCF_ONLYTHISCLIENT );
+	SERVERCOMMANDS_SetGameMode( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 	// Send timelimit, fraglimit, etc.
-	SERVERCOMMANDS_SetGameModeLimits( parse_cl, SVCF_ONLYTHISCLIENT );
+	SERVERCOMMANDS_SetGameModeLimits( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 	// If this is LMS, send the allowed weapons.
 	if ( lastmanstanding || teamlms )
 	{
-		SERVERCOMMANDS_SetLMSAllowedWeapons( parse_cl, SVCF_ONLYTHISCLIENT );
-		SERVERCOMMANDS_SetLMSSpectatorSettings( parse_cl, SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_SetLMSAllowedWeapons( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_SetLMSSpectatorSettings( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 	}
 
 	// Send the map name, and have the client load it.
-	SERVERCOMMANDS_MapLoad( parse_cl, SVCF_ONLYTHISCLIENT );
+	SERVERCOMMANDS_MapLoad( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 	// Send the map music.
-	SERVERCOMMANDS_SetMapMusic( SERVER_GetMapMusic( ), parse_cl, SVCF_ONLYTHISCLIENT );
+	SERVERCOMMANDS_SetMapMusic( SERVER_GetMapMusic( ), g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 	// If we're in a duel or LMS mode, tell him the state of the game mode.
 	if ( duel || lastmanstanding || teamlms || possession || teampossession || survival || invasion )
@@ -4291,73 +4318,73 @@ static bool server_AuthenticateLevel( void )
 		else
 			ulState = LASTMANSTANDING_GetState( );
 
-		SERVERCOMMANDS_SetGameModeState( ulState, parse_cl, SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_SetGameModeState( ulState, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 		// Also, if we're in invasion mode, tell the client what wave we're on.
 		if ( invasion )
-			SERVERCOMMANDS_SetInvasionWave( parse_cl, SVCF_ONLYTHISCLIENT );
+			SERVERCOMMANDS_SetInvasionWave( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 	}
 
 	// Tell the client of any lines that have been altered since the level start.
-	SERVER_UpdateLines( parse_cl );
+	SERVER_UpdateLines( g_lCurrentClient );
 
 	// Tell the client of any sectors that have been altered since the level start.
-	SERVER_UpdateSectors( parse_cl );
+	SERVER_UpdateSectors( g_lCurrentClient );
 
 	// Tell the client about any active doors.
 	while (( pDoor = DoorIterator.Next( )) != NULL )
-		pDoor->UpdateToClient( parse_cl );
+		pDoor->UpdateToClient( g_lCurrentClient );
 
 	// Tell the client about any active plats.
 	while (( pPlat = PlatIterator.Next( )) != NULL )
-		pPlat->UpdateToClient( parse_cl );
+		pPlat->UpdateToClient( g_lCurrentClient );
 
 	// Tell the client about any active floors.
 	while (( pFloor = FloorIterator.Next( )) != NULL )
-		pFloor->UpdateToClient( parse_cl );
+		pFloor->UpdateToClient( g_lCurrentClient );
 
 	// Tell the client about any active elevators.
 	while (( pElevator = ElevatorIterator.Next( )))
-		pElevator->UpdateToClient( parse_cl );
+		pElevator->UpdateToClient( g_lCurrentClient );
 
 	// Tell the client about any active waggles.
 	while (( pWaggle = WaggleIterator.Next( )))
-		pWaggle->UpdateToClient( parse_cl );
+		pWaggle->UpdateToClient( g_lCurrentClient );
 
 	// Tell the client about any active pillars.
 	while (( pPillar = PillarIterator.Next( )) != NULL )
-		pPillar->UpdateToClient( parse_cl );
+		pPillar->UpdateToClient( g_lCurrentClient );
 
 	// Tell the client about any active ceilings.
 	while (( pCeiling = CeilingIterator.Next( )) != NULL )
-		pCeiling->UpdateToClient( parse_cl );
+		pCeiling->UpdateToClient( g_lCurrentClient );
 
 	// Tell the client about any active scrollers.
 	while (( pScroller = ScrollerIterator.Next( )) != NULL )
-		pScroller->UpdateToClient( parse_cl );
+		pScroller->UpdateToClient( g_lCurrentClient );
 
 	// Tell client to spawn themselves (this doesn't happen in the full update).
-	if ( players[parse_cl].mo != NULL )
-		SERVERCOMMANDS_SpawnPlayer( parse_cl, PST_REBORNNOINVENTORY, parse_cl, SVCF_ONLYTHISCLIENT );
+	if ( players[g_lCurrentClient].mo != NULL )
+		SERVERCOMMANDS_SpawnPlayer( g_lCurrentClient, PST_REBORNNOINVENTORY, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 	// If this player travelled from the last level, we need to reset his inventory so that
 	// he still has it on the client end.
 	if ( G_AllowTravel( ))
-		SERVER_ResetInventory( parse_cl );
+		SERVER_ResetInventory( g_lCurrentClient );
 
 	// Send a snapshot of the level.
-	SERVER_SendFullUpdate( parse_cl );
+	SERVER_SendFullUpdate( g_lCurrentClient );
 
 	// If we need to start this client's enter scripts, do that now.
-	if ( clients[parse_cl].bRunEnterScripts )
+	if ( g_aClients[g_lCurrentClient].bRunEnterScripts )
 	{
-		FBehavior::StaticStartTypedScripts( SCRIPT_Enter, players[parse_cl].mo, true );
-		clients[parse_cl].bRunEnterScripts = false;
+		FBehavior::StaticStartTypedScripts( SCRIPT_Enter, players[g_lCurrentClient].mo, true );
+		g_aClients[g_lCurrentClient].bRunEnterScripts = false;
 	}
 
 	// Finally, send out the packet and clear out the client's buffer.
-	NETWORK_SendPacket( parse_cl );
-	NETWORK_ClearBuffer( &clients[parse_cl].netbuf );
+	NETWORK_SendPacket( g_lCurrentClient );
+	NETWORK_ClearBuffer( &g_aClients[g_lCurrentClient].PacketBuffer );
 
 	return ( false );
 }
@@ -4437,10 +4464,10 @@ static bool server_CallVote( void )
 	}
 	
 	// Display the callvote in the console for logging purposes.
-	Printf( "Vote (\"%s %s\") called by %s (%s)\n", szCommand, pszParameters, players[parse_cl].userinfo.netname, NETWORK_AddressToString( clients[parse_cl].address ));
+	Printf( "Vote (\"%s %s\") called by %s (%s)\n", szCommand, pszParameters, players[g_lCurrentClient].userinfo.netname, NETWORK_AddressToString( g_aClients[g_lCurrentClient].Address ));
 
 	// Begin the vote.
-	CALLVOTE_BeginVote( szCommand, pszParameters, parse_cl );
+	CALLVOTE_BeginVote( szCommand, pszParameters, g_lCurrentClient );
 
 	return ( false );
 }
@@ -4450,12 +4477,12 @@ static bool server_CallVote( void )
 static bool server_VoteYes( void )
 {
 	// If the player successfully was able to vote, inform other clients.
-	if ( CALLVOTE_VoteYes( parse_cl ))
+	if ( CALLVOTE_VoteYes( g_lCurrentClient ))
 	{
 		// Display the vote in the console for logging purposes.
-		Printf( "%s (%s) votes \"yes\".\n", players[parse_cl].userinfo.netname, NETWORK_AddressToString( clients[parse_cl].address ));
+		Printf( "%s (%s) votes \"yes\".\n", players[g_lCurrentClient].userinfo.netname, NETWORK_AddressToString( g_aClients[g_lCurrentClient].Address ));
 
-		SERVERCOMMANDS_PlayerVote( parse_cl, true );
+		SERVERCOMMANDS_PlayerVote( g_lCurrentClient, true );
 	}
 
 	return ( false );
@@ -4466,12 +4493,12 @@ static bool server_VoteYes( void )
 static bool server_VoteNo( void )
 {
 	// If the player successfully was able to vote, inform other clients.
-	if ( CALLVOTE_VoteNo( parse_cl ))
+	if ( CALLVOTE_VoteNo( g_lCurrentClient ))
 	{
 		// Display the vote in the console for logging purposes.
-		Printf( "%s (%s) votes \"no\".\n", players[parse_cl].userinfo.netname, NETWORK_AddressToString( clients[parse_cl].address ));
+		Printf( "%s (%s) votes \"no\".\n", players[g_lCurrentClient].userinfo.netname, NETWORK_AddressToString( g_aClients[g_lCurrentClient].Address ));
 
-		SERVERCOMMANDS_PlayerVote( parse_cl, false );
+		SERVERCOMMANDS_PlayerVote( g_lCurrentClient, false );
 	}
 
 	return ( false );
@@ -4484,14 +4511,14 @@ static bool server_InventoryUseAll( void )
 {
 	if (gamestate == GS_LEVEL && !paused)
 	{
-		AInventory *item = players[parse_cl].mo->Inventory;
+		AInventory *item = players[g_lCurrentClient].mo->Inventory;
 
 		while (item != NULL)
 		{
 			AInventory *next = item->Inventory;
 			if (item->ItemFlags & IF_INVBAR && !(item->IsKindOf(RUNTIME_CLASS(APuzzleItem))))
 			{
-				players[parse_cl].mo->UseInventory (item);
+				players[g_lCurrentClient].mo->UseInventory (item);
 			}
 			item = next;
 		}
@@ -4507,10 +4534,10 @@ static bool server_InventoryUse( void )
 
 	if (gamestate == GS_LEVEL && !paused)
 	{
-		AInventory *item = players[parse_cl].mo->FindInventory (PClass::FindClass (pszString));
+		AInventory *item = players[g_lCurrentClient].mo->FindInventory (PClass::FindClass (pszString));
 		if (item != NULL)
 		{
-			players[parse_cl].mo->UseInventory (item);
+			players[g_lCurrentClient].mo->UseInventory (item);
 		}
 	}
 	
@@ -4537,7 +4564,7 @@ CCMD( kick_idx )
 		return;
 
 	// you can't kick admins
-	if ( SERVER_ADMIN_IsAdministrator( clients[ulIdx].address ))
+	if ( SERVER_ADMIN_IsAdministrator( g_aClients[ulIdx].Address ))
 		return;
 
 	// If we provided a reason, give it.
@@ -4575,7 +4602,7 @@ CCMD( kick )
 
 		if ( stricmp( szPlayerName, argv[1] ) == 0 )
 		{
-			if ( SERVER_ADMIN_IsAdministrator( clients[ulIdx].address ))
+			if ( SERVER_ADMIN_IsAdministrator( g_aClients[ulIdx].Address ))
 				continue;
 
 			// If we provided a reason, give it.
@@ -4622,11 +4649,11 @@ CCMD( kickfromgame )
 
 		if ( stricmp( szPlayerName, argv[1] ) == 0 )
 		{
-			if ( SERVER_ADMIN_IsAdministrator( clients[ulIdx].address ))
+			if ( SERVER_ADMIN_IsAdministrator( g_aClients[ulIdx].Address ))
 				continue;
 
 			// Already a spectator!
-			if ( PLAYER_IsTrueSpectator( &players[parse_cl] ))
+			if ( PLAYER_IsTrueSpectator( &players[g_lCurrentClient] ))
 				continue;
 
 			// If we provided a reason, give it.
@@ -4757,9 +4784,9 @@ CCMD( trytocrashclient )
 				continue;
 
 			NETWORK_CheckBuffer( ulIdx, 256 );
-			NETWORK_WriteByte( &clients[ulIdx].netbuf, M_Random( ) % NUM_SERVER_COMMANDS );
+			NETWORK_WriteByte( &g_aClients[ulIdx].PacketBuffer, M_Random( ) % NUM_SERVER_COMMANDS );
 			for ( ulIdx2 = 0; ulIdx2 < 512; ulIdx2++ )
-				NETWORK_WriteByte( &clients[ulIdx].netbuf, M_Random( ));
+				NETWORK_WriteByte( &g_aClients[ulIdx].PacketBuffer, M_Random( ));
 
 		}
 	}

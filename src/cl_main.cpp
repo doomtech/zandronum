@@ -371,9 +371,13 @@ static	void	client_SetCameraToTexture( BYTE **pbStream );
 //	VARIABLES
 
 // Local network buffer for the client.
-static	sizebuf_t			g_LocalBuffer;
-static	netadr_t			g_AddressServer;
-static	netadr_t			g_AddressLastConnected;
+static	NETBUFFER_s			g_LocalBuffer;
+
+// The address of the server we're connected to or trying to connect to.
+static	NETADDRESS_s		g_AddressServer;
+
+// The address of the last server we tried to connect to/we're connected to.
+static	NETADDRESS_s		g_AddressLastConnected;
 
 // Last time we heard from the server.
 static	ULONG				g_ulLastServerTick;
@@ -636,6 +640,7 @@ void CLIENT_Construct( void )
 	char		*pszIPAddress;
 	char		*pszDemoName;
 	ULONG		ulIdx;
+	USHORT		usPort;
 	UCVarValue	Val;
 
 	// Start off as being disconnected.
@@ -645,14 +650,14 @@ void CLIENT_Construct( void )
 	pszPort = Args.CheckValue( "-port" );
     if ( pszPort )
     {
-       NETWORK_SetLocalPort( atoi( pszPort ));
-       Printf( PRINT_HIGH, "Connecting using alternate port %i.\n", NETWORK_GetLocalPort( ));
+       usPort = atoi( pszPort );
+       Printf( PRINT_HIGH, "Connecting using alternate port %i.\n", usPort );
     }
 	else 
-	   NETWORK_SetLocalPort( DEFAULT_CLIENT_PORT );
-	
+	   usPort = DEFAULT_CLIENT_PORT;
+
 	// Set up a socket and network message buffer.
-	NETWORK_Initialize( );
+	NETWORK_Construct( usPort, true );
 
 	NETWORK_InitBuffer( &g_LocalBuffer, MAX_UDP_PACKET * 8 );
 	NETWORK_ClearBuffer( &g_LocalBuffer );
@@ -670,8 +675,8 @@ void CLIENT_Construct( void )
 		NETWORK_StringToAddress( pszIPAddress, &g_AddressServer );
 
 		// If the user didn't specify a port, use the default one.
-		if ( g_AddressServer.port == 0 )
-			I_SetPort( g_AddressServer, DEFAULT_SERVER_PORT );
+		if ( g_AddressServer.usPort == 0 )
+			NETWORK_SetAddressPort( g_AddressServer, DEFAULT_SERVER_PORT );
 
 		// If we try to reconnect, use this address.
 		g_AddressLastConnected = g_AddressServer;
@@ -747,7 +752,7 @@ void CLIENT_Tick( void )
 		g_bClientLagging = false;
 
 		// If we're not connected to a server, and have an IP specified, try to connect.
-		if ( g_AddressServer.ip[0] )
+		if ( g_AddressServer.abIP[0] )
 			CLIENT_SendConnectionSignal( );
 		break;
 	// A connection has been established with the server; now authenticate the level.
@@ -826,14 +831,14 @@ void CLIENT_SetConnectionState( CONNECTIONSTATE_e State )
 
 //*****************************************************************************
 //
-sizebuf_t *CLIENT_GetLocalBuffer( void )
+NETBUFFER_s *CLIENT_GetLocalBuffer( void )
 {
 	return ( &g_LocalBuffer );
 }
 
 //*****************************************************************************
 //
-void CLIENT_SetLocalBuffer( sizebuf_t *pBuffer )
+void CLIENT_SetLocalBuffer( NETBUFFER_s *pBuffer )
 {
 	g_LocalBuffer = *pBuffer;
 }
@@ -896,14 +901,14 @@ void CLIENT_SetClientLagging( bool bLagging )
 
 //*****************************************************************************
 //
-netadr_t CLIENT_GetServerAddress( void )
+NETADDRESS_s CLIENT_GetServerAddress( void )
 {
 	return ( g_AddressServer );
 }
 
 //*****************************************************************************
 //
-void CLIENT_SetServerAddress( netadr_t Address )
+void CLIENT_SetServerAddress( NETADDRESS_s Address )
 {
 	g_AddressServer = Address;
 }
@@ -961,7 +966,7 @@ void CLIENT_SendConnectionSignal( void )
 		NETWORK_WriteByte( &g_LocalBuffer, cl_dontrestorefrags );
 		NETWORK_WriteByte( &g_LocalBuffer, NETGAMEVERSION );
 
-		g_lBytesSent += g_LocalBuffer.cursize;
+		g_lBytesSent += g_LocalBuffer.ulCurrentSize;
 		if ( g_lBytesSent > g_lMaxBytesSent )
 			g_lMaxBytesSent = g_lBytesSent;
 		NETWORK_LaunchPacket( &g_LocalBuffer, g_AddressServer );
@@ -992,7 +997,7 @@ void CLIENT_AttemptAuthentication( char *pszMapName )
 		// Send a checksum of our verticies, linedefs, sidedefs, and sectors.
 		CLIENT_AuthenticateLevel( pszMapName );
 
-		g_lBytesSent += g_LocalBuffer.cursize;
+		g_lBytesSent += g_LocalBuffer.ulCurrentSize;
 		if ( g_lBytesSent > g_lMaxBytesSent )
 			g_lMaxBytesSent = g_lBytesSent;
 		NETWORK_LaunchPacket( &g_LocalBuffer, g_AddressServer );
@@ -1031,7 +1036,7 @@ void CLIENT_AttemptConnection( void )
 		NETWORK_WriteByte( &g_LocalBuffer, CONNECT_GETDATA );
 		CLIENT_SendUserInfo( USERINFO_ALL );
 
-		g_lBytesSent += g_LocalBuffer.cursize;
+		g_lBytesSent += g_LocalBuffer.ulCurrentSize;
 		if ( g_lBytesSent > g_lMaxBytesSent )
 			g_lMaxBytesSent = g_lBytesSent;
 		NETWORK_LaunchPacket( &g_LocalBuffer, g_AddressServer );
@@ -1070,7 +1075,7 @@ void CLIENT_QuitNetworkGame( void )
 	{
 		NETWORK_WriteByte( &g_LocalBuffer, CONNECT_QUIT );
 
-		g_lBytesSent += g_LocalBuffer.cursize;
+		g_lBytesSent += g_LocalBuffer.ulCurrentSize;
 		if ( g_lBytesSent > g_lMaxBytesSent )
 			g_lMaxBytesSent = g_lBytesSent;
 		NETWORK_LaunchPacket( &g_LocalBuffer, g_AddressServer );
@@ -1158,9 +1163,9 @@ void CLIENT_SendCmd( void )
 	// Not in a level or spectating; nothing to do!
 	if (( gamestate != GS_LEVEL ) || ( players[consoleplayer].bSpectating ))
 	{
-		if ( g_LocalBuffer.cursize )
+		if ( g_LocalBuffer.ulCurrentSize )
 		{
-			g_lBytesSent += g_LocalBuffer.cursize;
+			g_lBytesSent += g_LocalBuffer.ulCurrentSize;
 			if ( g_lBytesSent > g_lMaxBytesSent )
 				g_lMaxBytesSent = g_lBytesSent;
 			NETWORK_LaunchPacket( &g_LocalBuffer, g_AddressServer );
@@ -1217,7 +1222,7 @@ void CLIENT_SendCmd( void )
 			NETWORK_WriteString( &g_LocalBuffer, (char *)players[consoleplayer].ReadyWeapon->GetClass( )->TypeName.GetChars( ));
 	}
 
-	g_lBytesSent += g_LocalBuffer.cursize;
+	g_lBytesSent += g_LocalBuffer.ulCurrentSize;
 	if ( g_lBytesSent > g_lMaxBytesSent )
 		g_lMaxBytesSent = g_lBytesSent;
 	NETWORK_LaunchPacket( &g_LocalBuffer, g_AddressServer );
@@ -1302,7 +1307,7 @@ bool CLIENT_ReadPacketHeader( BYTE **pbStream )
 	g_lPacketSequence[g_bPacketNum] = lSequence;
 
 	// Save the received packet.
-	memcpy( g_ReceivedPacketBuffer.abData + g_lPacketBeginning[g_bPacketNum], NETWORK_GetNetworkMessageBuffer( )->bData + 5, NETWORK_GetPacketSize( ) - 5 );
+	memcpy( g_ReceivedPacketBuffer.abData + g_lPacketBeginning[g_bPacketNum], NETWORK_GetNetworkMessageBuffer( )->pbData + 5, NETWORK_GetPacketSize( ) - 5 );
 	g_ReceivedPacketBuffer.lCurrentPosition += NETWORK_GetPacketSize( );
 
 	if ( lSequence > g_lHighestReceivedSequence )
@@ -2795,10 +2800,10 @@ bool CLIENT_GetNextPacket( BYTE **pbStream )
 		// Found it!
 		if ( g_lPacketSequence[ulIdx] == ( g_lLastParsedSequence + 1 ))
 		{
-			memset( NETWORK_GetNetworkMessageBuffer( )->bData, -1, MAX_UDP_PACKET );
-			memcpy( NETWORK_GetNetworkMessageBuffer( )->bData, g_ReceivedPacketBuffer.abData + g_lPacketBeginning[ulIdx], g_lPacketSize[ulIdx] );
-			NETWORK_GetNetworkMessageBuffer( )->cursize = g_lPacketSize[ulIdx];
-			NETWORK_GetNetworkMessageBuffer( )->readcount = 0;
+			memset( NETWORK_GetNetworkMessageBuffer( )->pbData, -1, MAX_UDP_PACKET );
+			memcpy( NETWORK_GetNetworkMessageBuffer( )->pbData, g_ReceivedPacketBuffer.abData + g_lPacketBeginning[ulIdx], g_lPacketSize[ulIdx] );
+			NETWORK_GetNetworkMessageBuffer( )->ulCurrentSize = g_lPacketSize[ulIdx];
+			NETWORK_GetNetworkMessageBuffer( )->ulCurrentPosition = 0;
 
 			*pbStream = NETWORK_GetBuffer( );
 			return ( true );
@@ -8318,7 +8323,7 @@ static void client_MapAuthenticate( BYTE **pbStream )
 	// Send a checksum of our verticies, linedefs, sidedefs, and sectors.
 	CLIENT_AuthenticateLevel( pszMapName );
 
-	g_lBytesSent += g_LocalBuffer.cursize;
+	g_lBytesSent += g_LocalBuffer.ulCurrentSize;
 	if ( g_lBytesSent > g_lMaxBytesSent )
 		g_lMaxBytesSent = g_lBytesSent;
 	NETWORK_LaunchPacket( &g_LocalBuffer, g_AddressServer );
@@ -10343,8 +10348,8 @@ CCMD( connect )
 	NETWORK_StringToAddress( argv[1], &g_AddressServer );
 
 	// If the user didn't specify a port, use the default port.
-	if ( g_AddressServer.port == 0 )
-		I_SetPort( g_AddressServer, DEFAULT_SERVER_PORT );
+	if ( g_AddressServer.usPort == 0 )
+		NETWORK_SetAddressPort( g_AddressServer, DEFAULT_SERVER_PORT );
 
 	g_AddressLastConnected = g_AddressServer;
 
@@ -10424,7 +10429,7 @@ CCMD( reconnect )
 		CLIENT_QuitNetworkGame( );
 	
 	// Store the address of the server we were on.
-	if ( g_AddressLastConnected.ip[0] == 0 )
+	if ( g_AddressLastConnected.abIP[0] == 0 )
 	{
 		Printf( "Unknown IP for last server. Use \"connect <server ip>\".\n" );
 		return;

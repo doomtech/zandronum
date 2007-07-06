@@ -4144,9 +4144,6 @@ void P_SpawnPlayer (mapthing2_t *mthing, bool bClientUpdate, player_t *p, bool t
 	if (state == PST_REBORN || state == PST_ENTER || state == PST_REBORNNOINVENTORY || state == PST_ENTERNOINVENTORY)
 	{
 		G_PlayerReborn (playernum);
-
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			clients[playernum].bDeadLastLevel = true;
 	}
 	else if (oldactor != NULL && oldactor->player == p && !tempplayer)
 	{
@@ -4324,7 +4321,7 @@ void P_SpawnPlayer (mapthing2_t *mthing, bool bClientUpdate, player_t *p, bool t
 			// [BC] If we're the server, just mark this client as needing to have his enter
 			// scripts run when he actually authenticates the level.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				clients[p - players].bRunEnterScripts = true;
+				SERVER_GetClient( p - players )->bRunEnterScripts = true;
 			else
 				FBehavior::StaticStartTypedScripts (SCRIPT_Enter, p->mo, true);
 		}

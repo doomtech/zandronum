@@ -53,7 +53,7 @@
 
 //*****************************************************************************
 //
-bool NETWORK_StringToAddress( char *s, netadr_t *a )
+bool NETWORK_StringToAddress( char *s, NETADDRESS_s *a )
 {
      struct hostent  *h;
      struct sockaddr_in sadr;
@@ -98,10 +98,10 @@ bool NETWORK_StringToAddress( char *s, netadr_t *a )
 
 //*****************************************************************************
 //
-void NETWORK_SocketAddressToNetAddress( struct sockaddr_in *s, netadr_t *a )
+void NETWORK_SocketAddressToNetAddress( struct sockaddr_in *s, NETADDRESS_s *a )
 {
-     *(int *)&a->ip = *(int *)&s->sin_addr;
-     a->port = s->sin_port;
+     *(int *)&a->abIP = *(int *)&s->sin_addr;
+     a->usPort = s->sin_port;
 }
 
 //*****************************************************************************

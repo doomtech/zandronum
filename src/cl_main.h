@@ -115,8 +115,8 @@ void	CLIENT_Tick( void );
 CONNECTIONSTATE_e	CLIENT_GetConnectionState( void );
 void				CLIENT_SetConnectionState( CONNECTIONSTATE_e State );
 
-sizebuf_t	*CLIENT_GetLocalBuffer( void );
-void		CLIENT_SetLocalBuffer( sizebuf_t *pBuffer );
+NETBUFFER_s	*CLIENT_GetLocalBuffer( void );
+void		CLIENT_SetLocalBuffer( NETBUFFER_s *pBuffer );
 
 ULONG	CLIENT_GetLastServerTick( void );
 void	CLIENT_SetLastServerTick( ULONG ulTick );
@@ -130,8 +130,8 @@ void	CLIENT_SetServerLagging( bool bLagging );
 bool	CLIENT_GetClientLagging( void );
 void	CLIENT_SetClientLagging( bool bLagging );
 
-netadr_t	CLIENT_GetServerAddress( void );
-void		CLIENT_SetServerAddress( netadr_t Address );
+NETADDRESS_s	CLIENT_GetServerAddress( void );
+void			CLIENT_SetServerAddress( NETADDRESS_s Address );
 
 ULONG	CLIENT_GetBytesReceived( void );
 void	CLIENT_AddBytesReceived( ULONG ulBytes );

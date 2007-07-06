@@ -212,13 +212,13 @@ bool CALLVOTE_VoteYes( ULONG ulPlayer )
 		{
 			if ( g_ulPlayersWhoVotedYes[ulIdx] < MAXPLAYERS )
 			{
-				if ( NETWORK_CompareAddress( clients[g_ulPlayersWhoVotedYes[ulIdx]].address, clients[ulPlayer].address, true ))
+				if ( NETWORK_CompareAddress( SERVER_GetClient( g_ulPlayersWhoVotedYes[ulIdx] )->Address, SERVER_GetClient( ulPlayer )->Address, true ))
 					return ( false );
 			}
 
 			if ( g_ulPlayersWhoVotedNo[ulIdx] < MAXPLAYERS )
 			{
-				if ( NETWORK_CompareAddress( clients[g_ulPlayersWhoVotedNo[ulIdx]].address, clients[ulPlayer].address, true ))
+				if ( NETWORK_CompareAddress( SERVER_GetClient( g_ulPlayersWhoVotedNo[ulIdx] )->Address, SERVER_GetClient( ulPlayer )->Address, true ))
 					return ( false );
 			}
 		}
@@ -278,13 +278,13 @@ bool CALLVOTE_VoteNo( ULONG ulPlayer )
 		{
 			if ( g_ulPlayersWhoVotedYes[ulIdx] < MAXPLAYERS )
 			{
-				if ( NETWORK_CompareAddress( clients[g_ulPlayersWhoVotedYes[ulIdx]].address, clients[ulPlayer].address, true ))
+				if ( NETWORK_CompareAddress( SERVER_GetClient( g_ulPlayersWhoVotedYes[ulIdx] )->Address, SERVER_GetClient( ulPlayer )->Address, true ))
 					return ( false );
 			}
 
 			if ( g_ulPlayersWhoVotedNo[ulIdx] < MAXPLAYERS )
 			{
-				if ( NETWORK_CompareAddress( clients[g_ulPlayersWhoVotedNo[ulIdx]].address, clients[ulPlayer].address, true ))
+				if ( NETWORK_CompareAddress( SERVER_GetClient( g_ulPlayersWhoVotedNo[ulIdx] )->Address, SERVER_GetClient( ulPlayer )->Address, true ))
 					return ( false );
 			}
 		}
@@ -346,7 +346,7 @@ ULONG CALLVOTE_CountNumEligibleVoters( void )
 					}
 
 					// If the two IP addresses match, break out.
-					if ( NETWORK_CompareAddress( clients[ulIdx].address, clients[ulIdx2].address, true ))
+					if ( NETWORK_CompareAddress( SERVER_GetClient( ulIdx )->Address, SERVER_GetClient( ulIdx2 )->Address, true ))
 						break;
 				}
 

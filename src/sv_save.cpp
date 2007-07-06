@@ -74,7 +74,7 @@ void SERVER_SAVE_Construct( void )
 
 //*****************************************************************************
 //
-PLAYERSAVEDINFO_t *SERVER_SAVE_GetSavedInfo( char *pszPlayerName, netadr_t Address )
+PLAYERSAVEDINFO_t *SERVER_SAVE_GetSavedInfo( char *pszPlayerName, NETADDRESS_s Address )
 {
 	ULONG	ulIdx;
 	char	szPlayerName[128];
@@ -105,11 +105,11 @@ void SERVER_SAVE_ClearList( void )
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
-		g_SavedPlayerInfo[ulIdx].Address.ip[0] = 0;
-		g_SavedPlayerInfo[ulIdx].Address.ip[1] = 0;
-		g_SavedPlayerInfo[ulIdx].Address.ip[2] = 0;
-		g_SavedPlayerInfo[ulIdx].Address.ip[3] = 0;
-		g_SavedPlayerInfo[ulIdx].Address.port = 0;
+		g_SavedPlayerInfo[ulIdx].Address.abIP[0] = 0;
+		g_SavedPlayerInfo[ulIdx].Address.abIP[1] = 0;
+		g_SavedPlayerInfo[ulIdx].Address.abIP[2] = 0;
+		g_SavedPlayerInfo[ulIdx].Address.abIP[3] = 0;
+		g_SavedPlayerInfo[ulIdx].Address.usPort = 0;
 		g_SavedPlayerInfo[ulIdx].bInitialized = false;
 		g_SavedPlayerInfo[ulIdx].lFragCount = 0;
 		g_SavedPlayerInfo[ulIdx].lPointCount = 0;

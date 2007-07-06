@@ -126,7 +126,6 @@ extern	char		g_szLogFilename[256];
 
 //*****************************************************************************
 //	FUNCTIONS
-LONG WINAPI CatchAllExceptions (LPEXCEPTION_POINTERS info);
 BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WPARAM wParam, LPARAM lParam )
 {
 	switch ( Message )
@@ -1742,6 +1741,7 @@ BOOL CALLBACK SERVERCONSOLE_ServerInformationCallback( HWND hDlg, UINT Message, 
 {
 	ULONG	ulIdx;
 	ULONG	ulNumPWADs;
+	ULONG	ulRealIWADIdx;
 
 	switch ( Message )
 	{
@@ -1824,16 +1824,34 @@ BOOL CALLBACK SERVERCONSOLE_ServerInformationCallback( HWND hDlg, UINT Message, 
 			sprintf( szString, "WAD URL: %s", Val.String );
 			SetDlgItemText( hDlg, IDC_WADURL, szString );
 
-			// Go through and see how many PWADs are loaded.
+			// This is a little tricky. Since WADs can now be loaded within pk3 files, we have
+			// to skip over all the ones automatically loaded. To my knowledge, the only way to
+			// do this is to skip wads that have a colon in them.
 			ulNumPWADs = 0;
 			for ( ulIdx = 0; Wads.GetWadName( ulIdx ) != NULL; ulIdx++ )
 			{
-				// Skip the IWAD file index, skulltag.wad/pk3, and files that were automatically
-				// loaded from subdirectories (such as skin files).
-				if (( ulIdx == FWadCollection::IWAD_FILENUM ) ||
-					( stricmp( Wads.GetWadName( ulIdx ), "skulltag.wad" ) == 0 ) ||
+				if ( strchr( Wads.GetWadName( ulIdx ), ':' ) == NULL )
+				{
+					if ( ulNumPWADs == FWadCollection::IWAD_FILENUM )
+					{
+						ulRealIWADIdx = ulIdx;
+						break;
+					}
+
+					ulNumPWADs++;
+				}
+			}
+
+			ulNumPWADs = 0;
+			for ( ulIdx = 0; Wads.GetWadName( ulIdx ) != NULL; ulIdx++ )
+			{
+				// Skip the IWAD file index, skulltag.wad/pk3, files that were automatically
+				// loaded from subdirectories (such as skin files), and WADs loaded automatically
+				// within pk3 files.
+				if (( ulIdx == ulRealIWADIdx ) ||
 					( stricmp( Wads.GetWadName( ulIdx ), "skulltag.pk3" ) == 0 ) ||
-					( Wads.GetLoadedAutomatically( ulIdx )))
+					( Wads.GetLoadedAutomatically( ulIdx )) ||
+					( strchr( Wads.GetWadName( ulIdx ), ':' ) != NULL ))
 				{
 					continue;
 				}
@@ -1849,12 +1867,13 @@ BOOL CALLBACK SERVERCONSOLE_ServerInformationCallback( HWND hDlg, UINT Message, 
 
 				for ( ulIdx = 0; Wads.GetWadName( ulIdx ) != NULL; ulIdx++ )
 				{
-					// Skip the IWAD file index, skulltag.wad/pk3, and files that were automatically
-					// loaded from subdirectories (such as skin files).
-					if (( ulIdx == FWadCollection::IWAD_FILENUM ) ||
-						( stricmp( Wads.GetWadName( ulIdx ), "skulltag.wad" ) == 0 ) ||
+					// Skip the IWAD file index, skulltag.wad/pk3, files that were automatically
+					// loaded from subdirectories (such as skin files), and WADs loaded automatically
+					// within pk3 files.
+					if (( ulIdx == ulRealIWADIdx ) ||
 						( stricmp( Wads.GetWadName( ulIdx ), "skulltag.pk3" ) == 0 ) ||
-						( Wads.GetLoadedAutomatically( ulIdx )))
+						( Wads.GetLoadedAutomatically( ulIdx )) ||
+						( strchr( Wads.GetWadName( ulIdx ), ':' ) != NULL ))
 					{
 						continue;
 					}

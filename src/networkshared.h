@@ -70,30 +70,34 @@
 
 typedef struct
 {
-	BYTE    ip[4];
-	unsigned short  port;
-	unsigned short  pad;
-} netadr_t;
+	// Four digit IP address.
+	BYTE		abIP[4];
+
+	// The IP address's port extension.
+	USHORT		usPort;
+
+	// What's this for?
+	USHORT		usPad;
+
+} NETADDRESS_s;
 
 //*****************************************************************************
-typedef struct sizebuf_s
+typedef struct
 {
-	bool	allowoverflow;	// if false, do a Com_Error
-	bool	overflowed;		// set to true if the buffer size failed
+	// This is the data in our packet.
+	BYTE		*pbData;
 
-	// Unfortunaly, ZDaemon uses two different definitions of sizebuf_t. Attempt
-	// to combine the structures here by having two sets of data.
-	// Servers use this.
-	BYTE	*pbData;
+	// The maximum amount of data this packet can hold.
+	ULONG		ulMaxSize;
 
-	// Clients use this this.
-	BYTE	bData[MAX_UDP_PACKET];
+	// How much data is currently in this packet?
+	ULONG		ulCurrentSize;
 
-	int		maxsize;
-	int		cursize;
-	int		readcount;
+	// TEMPORARY
+	// How far along are we in reading this buffer?
+	ULONG		ulCurrentPosition;
 
-} sizebuf_t;
+} NETBUFFER_s;
 
 //*****************************************************************************
 typedef struct
@@ -104,10 +108,13 @@ typedef struct
 	// Comment regarding the banned address.
 	char		szComment[128];
 
-} IPAddress_t;
+} IPADDRESSBAN_s;
 
-bool	NETWORK_StringToAddress( char *pszString, netadr_t *pAddress );
-void	NETWORK_SocketAddressToNetAddress( struct sockaddr_in *s, netadr_t *a );
+//*****************************************************************************
+//	PROTOTYPES
+
+bool	NETWORK_StringToAddress( char *pszString, NETADDRESS_s *pAddress );
+void	NETWORK_SocketAddressToNetAddress( struct sockaddr_in *s, NETADDRESS_s *a );
 bool	NETWORK_StringToIP( char *pszAddress, char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 );
 
 class IPFileParser{
@@ -124,7 +131,7 @@ public:
 	{
 		return _errorMessage;
 	}
-	bool parseIPList( const char* FileName, IPAddress_t* IPArray ){
+	bool parseIPList( const char* FileName, IPADDRESSBAN_s* IPArray ){
 		FILE			*pFile;
 		unsigned long	ulIdx;
 
@@ -182,11 +189,11 @@ private:
 
 		return ( curChar );
 	}
-	bool parseNextLine( FILE *pFile, IPAddress_t &IP, ULONG &BanIdx )
+	bool parseNextLine( FILE *pFile, IPADDRESSBAN_s &IP, ULONG &BanIdx )
 	{
-		netadr_t	IPAddress;
-		char		szIP[257];
-		int		lPosition;
+		NETADDRESS_s	IPAddress;
+		char			szIP[257];
+		int				lPosition;
 
 		lPosition = 0;
 		szIP[0] = 0;
@@ -230,10 +237,10 @@ private:
 							return ( false );
 						}
 
-						_itoa( IPAddress.ip[0], IP.szIP[0], 10 );
-						_itoa( IPAddress.ip[1], IP.szIP[1], 10 );
-						_itoa( IPAddress.ip[2], IP.szIP[2], 10 );
-						_itoa( IPAddress.ip[3], IP.szIP[3], 10 );
+						_itoa( IPAddress.abIP[0], IP.szIP[0], 10 );
+						_itoa( IPAddress.abIP[1], IP.szIP[1], 10 );
+						_itoa( IPAddress.abIP[2], IP.szIP[2], 10 );
+						_itoa( IPAddress.abIP[3], IP.szIP[3], 10 );
 						BanIdx++;
 						return ( true );
 					}

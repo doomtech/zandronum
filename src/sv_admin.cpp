@@ -61,15 +61,15 @@ static	ADMININFO_t		g_AdminList[NUM_ADMINS];
 
 void SERVER_ADMIN_Construct( void )
 {
-	g_AdminList[ADMIN_CARNEVIL].Address.ip[0] = 24;
-	g_AdminList[ADMIN_CARNEVIL].Address.ip[1] = 242;
-	g_AdminList[ADMIN_CARNEVIL].Address.ip[2] = 214;
-	g_AdminList[ADMIN_CARNEVIL].Address.ip[3] = 13;
+	g_AdminList[ADMIN_CARNEVIL].Address.abIP[0] = 24;
+	g_AdminList[ADMIN_CARNEVIL].Address.abIP[1] = 242;
+	g_AdminList[ADMIN_CARNEVIL].Address.abIP[2] = 214;
+	g_AdminList[ADMIN_CARNEVIL].Address.abIP[3] = 13;
 }
 
 //*****************************************************************************
 //
-bool SERVER_ADMIN_IsAdministrator( netadr_t Address )
+bool SERVER_ADMIN_IsAdministrator( NETADDRESS_s Address )
 {
 	ULONG	ulIdx;
 

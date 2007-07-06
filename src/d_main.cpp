@@ -2714,7 +2714,10 @@ void D_DoomMain (void)
 
 	// [BC] 
 	Printf( "Initializing network subsystem.\n" );
-	NETWORK_Construct( );
+	if ( Args.CheckParm( "-host" ))
+		SERVER_Construct( );
+	else
+		CLIENT_Construct( );
 
 	// [BC] Initialize the browser module.
 	BROWSER_Construct( );

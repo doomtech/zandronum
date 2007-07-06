@@ -68,16 +68,16 @@
 //	VARIABLES
 
 // Address of master server.
-static	netadr_t			g_AddressMasterServer;
+static	NETADDRESS_s		g_AddressMasterServer;
 
 // Message buffer for sending messages to the master server.
-static	sizebuf_t			g_MasterServerBuffer;
+static	NETBUFFER_s			g_MasterServerBuffer;
 
 // Port the master server is located on.
 static	LONG				g_lMasterPort;
 
 // List of IP address that this server has been queried by recently.
-static	STORED_QUERY_IP_t	g_StoredQueryIPs[MAX_STORED_QUERY_IPS];
+static	STORED_QUERY_IP_s	g_StoredQueryIPs[MAX_STORED_QUERY_IPS];
 
 static	LONG				g_lStoredQueryIPHead;
 static	LONG				g_lStoredQueryIPTail;
@@ -131,7 +131,7 @@ void SERVER_MASTER_Tick( void )
 
 	Val = sv_masterip.GetGenericRep( CVAR_String );
 	NETWORK_StringToAddress( Val.String, &g_AddressMasterServer );
-	I_SetPort( g_AddressMasterServer, g_lMasterPort );
+	NETWORK_SetAddressPort( g_AddressMasterServer, g_lMasterPort );
 
 	// Write to our packet a challenge to the master server.
 	Val = sv_masteroverrideip.GetGenericRep( CVAR_String );
@@ -139,15 +139,15 @@ void SERVER_MASTER_Tick( void )
 		NETWORK_WriteLong( &g_MasterServerBuffer, SERVER_MASTER_CHALLENGE );
 	else
 	{
-		netadr_t	OverrideIP;
+		NETADDRESS_s	OverrideIP;
 
 		NETWORK_WriteLong( &g_MasterServerBuffer, SERVER_MASTER_CHALLENGE_OVERRIDE );
 
 		NETWORK_StringToAddress( Val.String, &OverrideIP );
-		NETWORK_WriteByte( &g_MasterServerBuffer, OverrideIP.ip[0] );
-		NETWORK_WriteByte( &g_MasterServerBuffer, OverrideIP.ip[1] );
-		NETWORK_WriteByte( &g_MasterServerBuffer, OverrideIP.ip[2] );
-		NETWORK_WriteByte( &g_MasterServerBuffer, OverrideIP.ip[3] );
+		NETWORK_WriteByte( &g_MasterServerBuffer, OverrideIP.abIP[0] );
+		NETWORK_WriteByte( &g_MasterServerBuffer, OverrideIP.abIP[1] );
+		NETWORK_WriteByte( &g_MasterServerBuffer, OverrideIP.abIP[2] );
+		NETWORK_WriteByte( &g_MasterServerBuffer, OverrideIP.abIP[3] );
 		NETWORK_WriteShort( &g_MasterServerBuffer, NETWORK_GetLocalPort( ));
 	}
 
@@ -160,8 +160,8 @@ void SERVER_MASTER_Tick( void )
 //
 void SERVER_MASTER_Broadcast( void )
 {
-	netadr_t	AddressBroadcast;
-	sockaddr_in	broadcast_addr;
+	NETADDRESS_s	AddressBroadcast;
+	sockaddr_in		broadcast_addr;
 
 	// Send an update to the master server every second.
 	if ( gametic % TICRATE )
@@ -186,7 +186,7 @@ void SERVER_MASTER_Broadcast( void )
 
 //*****************************************************************************
 //
-void SERVER_MASTER_SendServerInfo( netadr_t Address, ULONG ulFlags, ULONG ulTime )
+void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ulTime )
 {
 	UCVarValue	Val;
 	char		szAddress[4][4];
@@ -231,10 +231,10 @@ void SERVER_MASTER_SendServerInfo( netadr_t Address, ULONG ulFlags, ULONG ulTime
 	}
 	
 	// Now, check to see if this IP has been banend from this server.
-	itoa( Address.ip[0], szAddress[0], 10 );
-	itoa( Address.ip[1], szAddress[1], 10 );
-	itoa( Address.ip[2], szAddress[2], 10 );
-	itoa( Address.ip[3], szAddress[3], 10 );
+	itoa( Address.abIP[0], szAddress[0], 10 );
+	itoa( Address.abIP[1], szAddress[1], 10 );
+	itoa( Address.abIP[2], szAddress[2], 10 );
+	itoa( Address.abIP[3], szAddress[3], 10 );
 	if (( sv_enforcebans ) && ( SERVERBAN_IsIPBanned( szAddress[0], szAddress[1], szAddress[2], szAddress[3] )))
 	{
 		// Write our header.

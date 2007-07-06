@@ -4105,7 +4105,6 @@ void P_SetupLevel (char *lumpname, int position)
 			continue;
 		}
 
-		clients[i].bDeadLastLevel = false;
 		if ( NETWORK_GetState( ) != NETSTATE_SINGLE )
 			P_SpawnPlayer( &playerstarts[i], false, NULL );
 	}

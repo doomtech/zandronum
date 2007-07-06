@@ -1241,10 +1241,10 @@ void G_Ticker ()
 	{
 		while (( lSize = NETWORK_GetPackets( )) > 0 )
 		{
-			UCVarValue	Val;
-			netadr_t	MasterAddress;
-			char		*pszMasterPort;
-			BYTE		*pbStream;
+			UCVarValue		Val;
+			NETADDRESS_s	MasterAddress;
+			char			*pszMasterPort;
+			BYTE			*pbStream;
 
 			Val = cl_masterip.GetGenericRep( CVAR_String );
 			NETWORK_StringToAddress( Val.String, &MasterAddress );
@@ -1252,13 +1252,13 @@ void G_Ticker ()
 			// Allow the user to specify which port the master server is on.
 			pszMasterPort = Args.CheckValue( "-masterport" );
 			if ( pszMasterPort )
-			   MasterAddress.port = NETWORK_ntohs( atoi( pszMasterPort ));
+				MasterAddress.usPort = NETWORK_ntohs( atoi( pszMasterPort ));
 			else 
-			   MasterAddress.port = NETWORK_ntohs( DEFAULT_MASTER_PORT );
+				MasterAddress.usPort = NETWORK_ntohs( DEFAULT_MASTER_PORT );
 
 			// If we're a client and receiving a message from the server...
 			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) &&
-				( NETWORK_CompareAddress( g_AddressFrom, CLIENT_GetServerAddress( ), false )))
+				( NETWORK_CompareAddress( NETWORK_GetFromAddress( ), CLIENT_GetServerAddress( ), false )))
 			{
 				// Statistics.
 				CLIENT_AddBytesReceived( lSize );
@@ -1289,12 +1289,12 @@ void G_Ticker ()
 
 				// We've gotten a packet! Now figure out what it's saying.
 				if ( CLIENT_ReadPacketHeader( &pbStream ))
-					CLIENT_ParsePacket( &pbStream, NETWORK_GetNetworkMessageBuffer( )->cursize - 1, false );
+					CLIENT_ParsePacket( &pbStream, NETWORK_GetNetworkMessageBuffer( )->ulCurrentSize - 1, false );
 				else
 				{
 					while ( CLIENT_GetNextPacket( &pbStream ))
 					{
-						CLIENT_ParsePacket( &pbStream, NETWORK_GetNetworkMessageBuffer( )->cursize, true );
+						CLIENT_ParsePacket( &pbStream, NETWORK_GetNetworkMessageBuffer( )->ulCurrentSize, true );
 
 						// Don't continue parsing if we've exited the network game.
 						if ( CLIENT_GetConnectionState( ) == CTS_DISCONNECTED )
@@ -1308,15 +1308,15 @@ void G_Ticker ()
 			}
 			else
 			{
-				char		*pszPrefix1 = "127.0.0.1";
-				char		*pszPrefix2 = "10.";
-				char		*pszPrefix3 = "172.16.";
-				char		*pszPrefix4 = "192.168.";
-				char		*pszAddressBuf;
-				netadr_t	AddressFrom;
-				LONG		lCommand;
+				char			*pszPrefix1 = "127.0.0.1";
+				char			*pszPrefix2 = "10.";
+				char			*pszPrefix3 = "172.16.";
+				char			*pszPrefix4 = "192.168.";
+				char			*pszAddressBuf;
+				NETADDRESS_s	AddressFrom;
+				LONG			lCommand;
 				
-				pszAddressBuf = NETWORK_AddressToString( g_AddressFrom );
+				pszAddressBuf = NETWORK_AddressToString( NETWORK_GetFromAddress( ));
 
 				// Skulltag is receiving a message from something on the LAN.
 				if (( strncmp( pszAddressBuf, pszPrefix1, 9 ) == 0 ) || 
@@ -1327,10 +1327,10 @@ void G_Ticker ()
 					AddressFrom = MasterAddress;
 
 					// Keep the same port as the from address.
-					AddressFrom.port = g_AddressFrom.port;
+					AddressFrom.usPort = NETWORK_GetFromAddress( ).usPort;
 				}
 				else
-					AddressFrom = g_AddressFrom;
+					AddressFrom = NETWORK_GetFromAddress( );
 
 				// If we're receiving info from the master server...
 				if ( NETWORK_CompareAddress( AddressFrom, MasterAddress, false ))

@@ -54,8 +54,8 @@
 #include "actor.h"
 #include "d_player.h"
 #include "i_net.h"
-#include "s_sndseq.h"
 #include "networkshared.h"
+#include "s_sndseq.h"
 
 //*****************************************************************************
 //	DEFINES
@@ -155,22 +155,39 @@ typedef enum
 //*****************************************************************************
 typedef struct
 {
-	netadr_t		address;
+	// The network address of this client.
+	NETADDRESS_s	Address;
 
-	// Client state (free, in game, etc.)
+	// Client state (free, in game, etc.).
 	CLIENTSTATE_e	State;
-	
-	sizebuf_t		netbuf;
 
-	sizebuf_t		UnreliablePacketBuffer;
+	// The buffer in which this client's commands are written.
+	NETBUFFER_s		PacketBuffer;
 
-	int				lastcmdtic;
+	// A seperate buffer for non-critical commands that do not require sequencing.
+	NETBUFFER_s		UnreliablePacketBuffer;
+
+	// We back up the last 256 packets we've sent to the client so that we can
+	// retransmit them if necessary.
+	NETBUFFER_s		SavedPacketBuffer;
+
+	// This is the position of each saved packet within SavedPacketBuffer.
+	LONG			lPacketBeginning[256];
+
+	// This is the packet size for each of the 256 stored packets.
+	LONG			lPacketSize[256];
+
+	// This is the packet sequence for each of the 256 stored packets.
+	LONG			lPacketSequence[256];
+
+	// Last packet number sent to this client.
+	ULONG			ulPacketSequence;
+
+	// This is the last tic in which we received a command from this client. Used for timeouts.
+	ULONG			ulLastCommandTic;
 
 	// Used for calculating pings.
-    int				lastgametic;
-
-	// Client needs full update.
-	bool			needfullupdate;
+    ULONG			ulLastGameTic;
 
 	// Can client remotely control server?
 	bool			bRCONAccess;
@@ -178,155 +195,136 @@ typedef struct
 	// Which pair of eyes is this client spying through (spectator)?
 	ULONG			ulDisplayPlayer;
 
-	// Client's gametics.
-	int				gametics;
-
-	sizebuf_t	relpackets; // save reliable packets here
-
-	LONG		lPacketBeginning[256];
-
-	// This is the packet size for each of the 256 stored packets.
-	LONG		lPacketSize[256];
-
-	// This is the packet sequence for each of the 256 stored packets.
-	LONG		lPacketSequence[256];
+	// This is the gametic that the client sent to us. We simply send this back to him
+	// so he can determine whether or not he's lagging.
+	ULONG			ulClientGameTic;
 
 	// Client wants tp start each round as a spectator.
-	bool		bWantStartAsSpectator;
+	bool			bWantStartAsSpectator;
 
 	// Client doesn't want his fragcount restored if he is reconnecting to the server.
-	bool		bWantNoRestoreFrags;
-
-	// Last packet number sent to this client.
-	ULONG		ulPacketSequence;
-
-	// If this client was dead at the end of the last level, he needs to be "reborn" when 
-	// he respawns.
-	bool		bDeadLastLevel;
+	bool			bWantNoRestoreFrags;
 
 	// A record of the gametic the client spoke at. We store the last MAX_CHATINSTANCE_STORAGE
 	// times the client chatted. This is used to chat spam protection.
-	LONG		lChatInstances[MAX_CHATINSTANCE_STORAGE];
-	ULONG		ulLastChatInstance;
+	LONG			lChatInstances[MAX_CHATINSTANCE_STORAGE];
+	ULONG			ulLastChatInstance;
 
 	// A record of the gametic the client spoke at. We store the last MAX_CHATINSTANCE_STORAGE
 	// times the client chatted. This is used to chat spam protection.
-	LONG		lUserInfoInstances[MAX_USERINFOINSTANCE_STORAGE];
-	ULONG		ulLastUserInfoInstance;
+	LONG			lUserInfoInstances[MAX_USERINFOINSTANCE_STORAGE];
+	ULONG			ulLastUserInfoInstance;
 
 	// Record the last time this player changed teams, so we can potentially forbid him from
 	// doing it again.
-	ULONG		ulLastChangeTeamTime;
+	ULONG			ulLastChangeTeamTime;
 
 	// Last tick the client requested missing packets.
-	LONG		lLastPacketLossTick;
+	LONG			lLastPacketLossTick;
 
 	// Last tick we received a movement command.
-	LONG		lLastMoveTick;
+	LONG			lLastMoveTick;
 
-	LONG		lOverMovementLevel;
+	// We keep track of how many extra movement commands we get from the client. If it
+	// exceeds a certain level over time, we kick him.
+	LONG			lOverMovementLevel;
 
 	// When the client authenticates his level, should enter scripts be run as well?
-	bool		bRunEnterScripts;
+	bool			bRunEnterScripts;
 
-} CLIENT_t;
+} CLIENT_s;
 
 //*****************************************************************************
 typedef struct
 {
 	// Address of the person who queried us.
-	netadr_t	Address;
+	NETADDRESS_s	Address;
 
 	// Gametic when we allow another query.
-	LONG		lNextAllowedGametic;
+	LONG			lNextAllowedGametic;
 
-} STORED_QUERY_IP_t;
+} STORED_QUERY_IP_s;
 
 //*****************************************************************************
 //	PROTOTYPES
 
-void	SERVER_Construct( void );
-void	SERVER_Tick( void );
+void		SERVER_Construct( void );
+void		SERVER_Tick( void );
 
-void	SERVER_SendOutPackets( void );
-LONG	SERVER_FindFreeClientSlot( void );
-LONG	SERVER_FindClientByAddress( netadr_t Address );
-ULONG	SERVER_CalcNumPlayers( void );
-ULONG	SERVER_CalcNumNonSpectatingPlayers( ULONG ulExcludePlayer );
-void	SERVER_CheckTimeouts( void );
-void	SERVER_GetPackets( void );
-void	SERVER_SendChatMessage( ULONG ulPlayer, ULONG ulMode, char *pszString );
-void	SERVER_DetermineConnectionType( void );
-void	SERVER_SetupNewConnection( bool bNewPlayer );
-void	SERVER_AuthenticateClientLevel( void );
-bool	SERVER_PerformAuthenticationChecksum( void );
-void	SERVER_ConnectNewPlayer( bool bNewPlayer );
-bool	SERVER_GetUserInfo( bool bAllowKick );
-void	SERVER_ConnectionError( netadr_t Address, char *pszMessage );
-void	SERVER_ClientError( ULONG ulClient, ULONG ulErrorCode );
-void	SERVER_SendFullUpdate( ULONG ulClient );
-void	SERVER_WriteCommands( void );
-bool	SERVER_IsValidClient( ULONG ulClient );
-bool	SERVER_IsValidPlayer( ULONG ulPlayer );
-void	SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo );
-void	SERVER_SendHeartBeat( void );
-void	SERVER_UpdateThings( void );
-void	STACK_ARGS SERVER_Printf( ULONG ulPrintLevel, const char *pszString, ... );
-void	STACK_ARGS SERVER_PrintfPlayer( ULONG ulPrintLevel, ULONG ulPlayer, const char *pszString, ... );
-void	SERVER_UpdateSectors( ULONG ulClient );
-void	SERVER_UpdateLines( ULONG ulClient );
-void	SERVER_ReconnectNewLevel( char *pszMapName );
-void	SERVER_LoadNewLevel( char *pszMapName );
-void	SERVER_KickPlayer( ULONG ulPlayer, char *pszReason );
-void	SERVER_KickPlayerFromGame( ULONG ulPlayer, char *pszReason );
-void	SERVER_AddCommand( char *pszCommand );
-void	SERVER_DeleteCommand( void );
-bool	SERVER_IsEveryoneReadyToGoOn( void );
-bool	SERVER_IsPlayerVisible( ULONG ulPlayer, ULONG ulPlayer2 );
-bool	SERVER_IsPlayerAllowedToKnowHealth( ULONG ulPlayer, ULONG ulPlayer2 );
-char	*SERVER_GetCurrentFont( void );
-void	SERVER_SetCurrentFont( char *pszFont );
-char	*SERVER_GetScriptActiveFont( void );
-void	SERVER_SetScriptActiveFont( const char *pszFont );
-LONG	SERVER_AdjustDoorDirection( LONG lDirection );
-LONG	SERVER_AdjustFloorDirection( LONG lDirection );
-LONG	SERVER_AdjustCeilingDirection( LONG lDirection );
-LONG	SERVER_AdjustElevatorDirection( LONG lDirection );
-ULONG	SERVER_GetMaxPacketSize( void );
-char	*SERVER_GetMapMusic( void );
-void	SERVER_SetMapMusic( const char *pszMusic );
-void	SERVER_ResetInventory( ULONG ulClient );
-void	SERVER_ParseCommands( void );
-ULONG	SERVER_GetPlayerIndexFromName( const char *pszString );
-void	SERVER_GiveInventoryToPlayer( const player_t *player, AInventory *pInventory );
+void		SERVER_SendOutPackets( void );
+LONG		SERVER_FindFreeClientSlot( void );
+LONG		SERVER_FindClientByAddress( NETADDRESS_s *pAddress );
+CLIENT_s	*SERVER_GetClient( ULONG ulIdx );
+ULONG		SERVER_CalcNumPlayers( void );
+ULONG		SERVER_CalcNumNonSpectatingPlayers( ULONG ulExcludePlayer );
+void		SERVER_CheckTimeouts( void );
+void		SERVER_GetPackets( void );
+void		SERVER_SendChatMessage( ULONG ulPlayer, ULONG ulMode, char *pszString );
+void		SERVER_DetermineConnectionType( void );
+void		SERVER_SetupNewConnection( bool bNewPlayer );
+void		SERVER_AuthenticateClientLevel( void );
+bool		SERVER_PerformAuthenticationChecksum( void );
+void		SERVER_ConnectNewPlayer( bool bNewPlayer );
+bool		SERVER_GetUserInfo( bool bAllowKick );
+void		SERVER_ConnectionError( NETADDRESS_s Address, char *pszMessage );
+void		SERVER_ClientError( ULONG ulClient, ULONG ulErrorCode );
+void		SERVER_SendFullUpdate( ULONG ulClient );
+void		SERVER_WriteCommands( void );
+bool		SERVER_IsValidClient( ULONG ulClient );
+bool		SERVER_IsValidPlayer( ULONG ulPlayer );
+void		SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo );
+void		SERVER_SendHeartBeat( void );
+void		SERVER_UpdateThings( void );
+void		STACK_ARGS SERVER_Printf( ULONG ulPrintLevel, const char *pszString, ... );
+void		STACK_ARGS SERVER_PrintfPlayer( ULONG ulPrintLevel, ULONG ulPlayer, const char *pszString, ... );
+void		SERVER_UpdateSectors( ULONG ulClient );
+void		SERVER_UpdateLines( ULONG ulClient );
+void		SERVER_ReconnectNewLevel( char *pszMapName );
+void		SERVER_LoadNewLevel( char *pszMapName );
+void		SERVER_KickPlayer( ULONG ulPlayer, char *pszReason );
+void		SERVER_KickPlayerFromGame( ULONG ulPlayer, char *pszReason );
+void		SERVER_AddCommand( char *pszCommand );
+void		SERVER_DeleteCommand( void );
+bool		SERVER_IsEveryoneReadyToGoOn( void );
+bool		SERVER_IsPlayerVisible( ULONG ulPlayer, ULONG ulPlayer2 );
+bool		SERVER_IsPlayerAllowedToKnowHealth( ULONG ulPlayer, ULONG ulPlayer2 );
+char		*SERVER_GetCurrentFont( void );
+void		SERVER_SetCurrentFont( char *pszFont );
+char		*SERVER_GetScriptActiveFont( void );
+void		SERVER_SetScriptActiveFont( const char *pszFont );
+LONG		SERVER_AdjustDoorDirection( LONG lDirection );
+LONG		SERVER_AdjustFloorDirection( LONG lDirection );
+LONG		SERVER_AdjustCeilingDirection( LONG lDirection );
+LONG		SERVER_AdjustElevatorDirection( LONG lDirection );
+ULONG		SERVER_GetMaxPacketSize( void );
+char		*SERVER_GetMapMusic( void );
+void		SERVER_SetMapMusic( const char *pszMusic );
+void		SERVER_ResetInventory( ULONG ulClient );
+void		SERVER_ParseCommands( void );
+ULONG		SERVER_GetPlayerIndexFromName( const char *pszString );
+void		SERVER_GiveInventoryToPlayer( const player_t *player, AInventory *pInventory );
 
 // From sv_master.cpp
-void	SERVER_MASTER_Construct( void );
-void	SERVER_MASTER_Tick( void );
-void	SERVER_MASTER_Broadcast( void );
-void	SERVER_MASTER_SendServerInfo( netadr_t Address, ULONG ulFlags, ULONG ulTime );
-char	*SERVER_MASTER_GetGameName( void );
+void		SERVER_MASTER_Construct( void );
+void		SERVER_MASTER_Tick( void );
+void		SERVER_MASTER_Broadcast( void );
+void		SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ulTime );
+char		*SERVER_MASTER_GetGameName( void );
 
 // Statistic functions.
-LONG	SERVER_STATISTIC_GetTotalSecondsElapsed( void );
-LONG	SERVER_STATISTIC_GetTotalPlayers( void );
-LONG	SERVER_STATISTIC_GetMaxNumPlayers( void );
-LONG	SERVER_STATISTIC_GetTotalFrags( void );
-void	SERVER_STATISTIC_AddToTotalFrags( void );
-LONG	SERVER_STATISTIC_GetTotalOutboundDataTransferred( void );
-LONG	SERVER_STATISTIC_GetPeakOutboundDataTransfer( void );
-void	SERVER_STATISTIC_AddToOutboundDataTransfer( ULONG ulNumBytes );
-LONG	SERVER_STATISTIC_GetCurrentOutboundDataTransfer( void );
-LONG	SERVER_STATISTIC_GetTotalInboundDataTransferred( void );
-LONG	SERVER_STATISTIC_GetPeakInboundDataTransfer( void );
-void	SERVER_STATISTIC_AddToInboundDataTransfer( ULONG ulNumBytes );
-LONG	SERVER_STATISTIC_GetCurrentInboundDataTransfer( void );
-
-//*****************************************************************************
-//	EXTERNAL VARIABLES THAT NEED TO GO AWAY
-
-extern	CLIENT_t	clients[MAXPLAYERS];
-extern short parse_cl;
+LONG		SERVER_STATISTIC_GetTotalSecondsElapsed( void );
+LONG		SERVER_STATISTIC_GetTotalPlayers( void );
+LONG		SERVER_STATISTIC_GetMaxNumPlayers( void );
+LONG		SERVER_STATISTIC_GetTotalFrags( void );
+void		SERVER_STATISTIC_AddToTotalFrags( void );
+LONG		SERVER_STATISTIC_GetTotalOutboundDataTransferred( void );
+LONG		SERVER_STATISTIC_GetPeakOutboundDataTransfer( void );
+void		SERVER_STATISTIC_AddToOutboundDataTransfer( ULONG ulNumBytes );
+LONG		SERVER_STATISTIC_GetCurrentOutboundDataTransfer( void );
+LONG		SERVER_STATISTIC_GetTotalInboundDataTransferred( void );
+LONG		SERVER_STATISTIC_GetPeakInboundDataTransfer( void );
+void		SERVER_STATISTIC_AddToInboundDataTransfer( ULONG ulNumBytes );
+LONG		SERVER_STATISTIC_GetCurrentInboundDataTransfer( void );
 
 //*****************************************************************************
 //	EXTERNAL CONSOLE VARIABLES

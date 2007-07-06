@@ -102,8 +102,8 @@ void SERVERCOMMANDS_Ping( ULONG ulTime )
 			continue;
 
 		NETWORK_CheckBuffer( ulIdx, 5 );
-		NETWORK_WriteHeader( &clients[ulIdx].UnreliablePacketBuffer, SVC_PING );
-		NETWORK_WriteLong( &clients[ulIdx].UnreliablePacketBuffer, ulTime );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer, SVC_PING );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer, ulTime );
 	}
 }
 
@@ -115,7 +115,7 @@ void SERVERCOMMANDS_Nothing( ULONG ulPlayer )
 		return;
 
 	NETWORK_CheckBuffer( ulPlayer, 1 );
-	NETWORK_WriteHeader( &clients[ulPlayer].UnreliablePacketBuffer, SVC_NOTHING );
+	NETWORK_WriteHeader( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer, SVC_NOTHING );
 }
 
 //*****************************************************************************
@@ -126,7 +126,7 @@ void SERVERCOMMANDS_ResetSequence( ULONG ulPlayer )
 		return;
 
 	NETWORK_CheckBuffer( ulPlayer, 1 );
-	NETWORK_WriteHeader( &clients[ulPlayer].netbuf, SVC_RESETSEQUENCE );
+	NETWORK_WriteHeader( &SERVER_GetClient( ulPlayer )->PacketBuffer, SVC_RESETSEQUENCE );
 }
 
 //*****************************************************************************
@@ -137,7 +137,7 @@ void SERVERCOMMANDS_BeginSnapshot( ULONG ulPlayer )
 		return;
 
 	NETWORK_CheckBuffer( ulPlayer, 1 );
-	NETWORK_WriteHeader( &clients[ulPlayer].netbuf, SVC_BEGINSNAPSHOT );
+	NETWORK_WriteHeader( &SERVER_GetClient( ulPlayer )->PacketBuffer, SVC_BEGINSNAPSHOT );
 }
 
 //*****************************************************************************
@@ -148,7 +148,7 @@ void SERVERCOMMANDS_EndSnapshot( ULONG ulPlayer )
 		return;
 
 	NETWORK_CheckBuffer( ulPlayer, 1 );
-	NETWORK_WriteHeader( &clients[ulPlayer].netbuf, SVC_ENDSNAPSHOT );
+	NETWORK_WriteHeader( &SERVER_GetClient( ulPlayer )->PacketBuffer, SVC_ENDSNAPSHOT );
 }
 
 //*****************************************************************************
@@ -173,21 +173,21 @@ void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlay
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 25 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SPAWNPLAYER );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPlayer );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lPlayerState );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, players[ulPlayer].bIsBot );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SPAWNPLAYER );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPlayer );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lPlayerState );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, players[ulPlayer].bIsBot );
 		// Do we really need to send this? Shouldn't it always be PST_LIVE?
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, players[ulPlayer].playerstate );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, players[ulPlayer].bSpectating );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, players[ulPlayer].bDeadSpectator );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, players[ulPlayer].mo->lNetID );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, players[ulPlayer].mo->angle );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, players[ulPlayer].mo->x );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, players[ulPlayer].mo->y );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, players[ulPlayer].mo->z );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, players[ulPlayer].CurrentPlayerClass );
-		//NETWORK_WriteByte( &clients[ulIdx].netbuf, players[ulPlayer].userinfo.PlayerClass );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, players[ulPlayer].playerstate );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, players[ulPlayer].bSpectating );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, players[ulPlayer].bDeadSpectator );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, players[ulPlayer].mo->lNetID );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, players[ulPlayer].mo->angle );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, players[ulPlayer].mo->x );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, players[ulPlayer].mo->y );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, players[ulPlayer].mo->z );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, players[ulPlayer].CurrentPlayerClass );
+		//NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, players[ulPlayer].userinfo.PlayerClass );
 	}
 	// [BB]: Inform the player about its health, otherwise it won't be displayed properly.
 	// The armor display is handled in SERVER_ResetInventory.
@@ -219,33 +219,33 @@ void SERVERCOMMANDS_MovePlayer( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFla
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 20 );
-		NETWORK_WriteHeader( &clients[ulIdx].UnreliablePacketBuffer, SVC_MOVEPLAYER );
-		NETWORK_WriteByte( &clients[ulIdx].UnreliablePacketBuffer, ulPlayer );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer, SVC_MOVEPLAYER );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer, ulPlayer );
 
 		// If this player cannot be seen by (or is not allowed to be seen by) the
 		// player, don't send position information.
 		if ( SERVER_IsPlayerVisible( ulIdx, ulPlayer ) == false )
-			NETWORK_WriteByte( &clients[ulIdx].UnreliablePacketBuffer, false );
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer, false );
 		else
 		{
 			// The player IS visible, so his info is coming!
-			NETWORK_WriteByte( &clients[ulIdx].UnreliablePacketBuffer, true );
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer, true );
 
 			// Write position.
-			NETWORK_WriteShort( &clients[ulIdx].UnreliablePacketBuffer, players[ulPlayer].mo->x >> FRACBITS );
-			NETWORK_WriteShort( &clients[ulIdx].UnreliablePacketBuffer, players[ulPlayer].mo->y >> FRACBITS );
-			NETWORK_WriteShort( &clients[ulIdx].UnreliablePacketBuffer, players[ulPlayer].mo->z >> FRACBITS );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer, players[ulPlayer].mo->x >> FRACBITS );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer, players[ulPlayer].mo->y >> FRACBITS );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer, players[ulPlayer].mo->z >> FRACBITS );
 
 			// Write angle.
-			NETWORK_WriteLong( &clients[ulIdx].UnreliablePacketBuffer, players[ulPlayer].mo->angle );
+			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer, players[ulPlayer].mo->angle );
 
 			// Write velocity.
-			NETWORK_WriteShort( &clients[ulIdx].UnreliablePacketBuffer, players[ulPlayer].mo->momx >> FRACBITS );
-			NETWORK_WriteShort( &clients[ulIdx].UnreliablePacketBuffer, players[ulPlayer].mo->momy >> FRACBITS );
-			NETWORK_WriteShort( &clients[ulIdx].UnreliablePacketBuffer, players[ulPlayer].mo->momz >> FRACBITS );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer, players[ulPlayer].mo->momx >> FRACBITS );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer, players[ulPlayer].mo->momy >> FRACBITS );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer, players[ulPlayer].mo->momz >> FRACBITS );
 
 			// Write whether or not the player is crouching.
-			NETWORK_WriteByte( &clients[ulIdx].UnreliablePacketBuffer, ( players[ulPlayer].crouchdir >= 0 ) ? true : false );
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer, ( players[ulPlayer].crouchdir >= 0 ) ? true : false );
 		}
 	}
 }
@@ -279,21 +279,21 @@ void SERVERCOMMANDS_DamagePlayer( ULONG ulPlayer )
 			continue;
 
 		NETWORK_CheckBuffer( ulIdx, 4 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DAMAGEPLAYER );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPlayer );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DAMAGEPLAYER );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPlayer );
 
 		// Only send the player who's being damaged to this player if this player is
 		// allowed to know what his health is. Otherwise, just tell them it's 100/100
 		// (WHICH IS A LIE!!!!!!).
 		if ( SERVER_IsPlayerAllowedToKnowHealth( ulIdx, ulPlayer ))
 		{
-			NETWORK_WriteShort( &clients[ulIdx].netbuf, players[ulPlayer].health );
-			NETWORK_WriteShort( &clients[ulIdx].netbuf, ulArmorPoints );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, players[ulPlayer].health );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulArmorPoints );
 		}
 		else
 		{
-			NETWORK_WriteShort( &clients[ulIdx].netbuf, 100 );
-			NETWORK_WriteShort( &clients[ulIdx].netbuf, 100 );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, 100 );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, 100 );
 		}
 	}
 }
@@ -348,13 +348,13 @@ void SERVERCOMMANDS_KillPlayer( ULONG ulPlayer, AActor *pSource, AActor *pInflic
 			NETWORK_CheckBuffer( ulIdx, 9 + (ULONG)strlen( pszString ));
 		else
 			NETWORK_CheckBuffer( ulIdx, 9 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_KILLPLAYER );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPlayer );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lSourceID );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lInflictorID );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, players[ulPlayer].mo->health );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulMOD );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszString );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_KILLPLAYER );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPlayer );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lSourceID );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lInflictorID );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, players[ulPlayer].mo->health );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulMOD );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszString );
 	}
 }
 
@@ -381,9 +381,9 @@ void SERVERCOMMANDS_SetPlayerHealth( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG 
 		if ( SERVER_IsPlayerAllowedToKnowHealth( ulIdx, ulPlayer ))
 		{
 			NETWORK_CheckBuffer( ulIdx, 3 );
-			NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETPLAYERHEALTH );
-			NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPlayer );
-			NETWORK_WriteShort( &clients[ulIdx].netbuf, players[ulPlayer].health );
+			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETPLAYERHEALTH );
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPlayer );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, players[ulPlayer].health );
 		}
 	}
 }
@@ -400,10 +400,10 @@ void SERVERCOMMANDS_UpdatePlayerArmorDisplay( ULONG ulPlayer )
 	ULONG ulArmorPoints = ( pArmor != NULL ) ? pArmor->Amount : 0;
 	if ( ulArmorPoints > 0 ){
 		NETWORK_CheckBuffer( ulPlayer, 3 + (ULONG)strlen( TexMan( pArmor->Icon )->Name ) );
-		NETWORK_WriteHeader( &clients[ulPlayer].netbuf, SVC_UPDATEPLAYERARMORDISPLAY );
-		NETWORK_WriteByte( &clients[ulPlayer].netbuf, ulPlayer );
-		NETWORK_WriteShort( &clients[ulPlayer].netbuf, ulArmorPoints );
-		NETWORK_WriteString( &clients[ulPlayer].netbuf, TexMan( pArmor->Icon )->Name );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulPlayer )->PacketBuffer, SVC_UPDATEPLAYERARMORDISPLAY );
+		NETWORK_WriteByte( &SERVER_GetClient( ulPlayer )->PacketBuffer, ulPlayer );
+		NETWORK_WriteShort( &SERVER_GetClient( ulPlayer )->PacketBuffer, ulArmorPoints );
+		NETWORK_WriteString( &SERVER_GetClient( ulPlayer )->PacketBuffer, TexMan( pArmor->Icon )->Name );
 	}
 }
 
@@ -428,9 +428,9 @@ void SERVERCOMMANDS_SetPlayerState( ULONG ulPlayer, ULONG ulState, ULONG ulPlaye
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETPLAYERSTATE );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPlayer );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulState );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETPLAYERSTATE );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPlayer );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulState );
 	}
 }
 
@@ -455,29 +455,29 @@ void SERVERCOMMANDS_SetPlayerUserInfo( ULONG ulPlayer, ULONG ulUserInfoFlags, UL
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 13 + (ULONG)( strlen( players[ulPlayer].userinfo.netname ) + strlen( skins[players[ulPlayer].userinfo.skin].name )));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETPLAYERUSERINFO );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPlayer );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ulUserInfoFlags );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETPLAYERUSERINFO );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPlayer );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulUserInfoFlags );
 		if ( ulUserInfoFlags & USERINFO_NAME )
-			NETWORK_WriteString( &clients[ulIdx].netbuf, players[ulPlayer].userinfo.netname );
+			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, players[ulPlayer].userinfo.netname );
 
 		if ( ulUserInfoFlags & USERINFO_GENDER )
-			NETWORK_WriteByte( &clients[ulIdx].netbuf, players[ulPlayer].userinfo.gender );
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, players[ulPlayer].userinfo.gender );
 
 		if ( ulUserInfoFlags & USERINFO_COLOR )
-			NETWORK_WriteLong( &clients[ulIdx].netbuf, players[ulPlayer].userinfo.color );
+			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, players[ulPlayer].userinfo.color );
 
 		if ( ulUserInfoFlags & USERINFO_RAILCOLOR )
-			NETWORK_WriteByte( &clients[ulIdx].netbuf, players[ulPlayer].userinfo.lRailgunTrailColor );
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, players[ulPlayer].userinfo.lRailgunTrailColor );
 
 		if ( ulUserInfoFlags & USERINFO_SKIN )
-			NETWORK_WriteString( &clients[ulIdx].netbuf, (char *)skins[players[ulPlayer].userinfo.skin].name );
+			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, (char *)skins[players[ulPlayer].userinfo.skin].name );
 
 		if ( ulUserInfoFlags & USERINFO_HANDICAP )
-			NETWORK_WriteByte( &clients[ulIdx].netbuf, players[ulPlayer].userinfo.lHandicap );
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, players[ulPlayer].userinfo.lHandicap );
 
 		if ( ulUserInfoFlags & USERINFO_PLAYERCLASS )
-			NETWORK_WriteByte( &clients[ulIdx].netbuf, players[ulPlayer].userinfo.PlayerClass );
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, players[ulPlayer].userinfo.PlayerClass );
 	}
 }
 
@@ -502,9 +502,9 @@ void SERVERCOMMANDS_SetPlayerFrags( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG u
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 4 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETPLAYERFRAGS );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPlayer );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, players[ulPlayer].fragcount );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETPLAYERFRAGS );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPlayer );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, players[ulPlayer].fragcount );
 	}
 }
 
@@ -529,9 +529,9 @@ void SERVERCOMMANDS_SetPlayerPoints( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG 
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 4 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETPLAYERPOINTS );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPlayer );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, players[ulPlayer].lPointCount );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETPLAYERPOINTS );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPlayer );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, players[ulPlayer].lPointCount );
 	}
 }
 
@@ -556,9 +556,9 @@ void SERVERCOMMANDS_SetPlayerWins( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ul
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETPLAYERWINS );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPlayer );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, players[ulPlayer].ulWins );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETPLAYERWINS );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPlayer );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, players[ulPlayer].ulWins );
 	}
 }
 
@@ -583,9 +583,9 @@ void SERVERCOMMANDS_SetPlayerKillCount( ULONG ulPlayer, ULONG ulPlayerExtra, ULO
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETPLAYERKILLCOUNT );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPlayer );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, players[ulPlayer].killcount );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETPLAYERKILLCOUNT );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPlayer );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, players[ulPlayer].killcount );
 	}
 }
 
@@ -610,9 +610,9 @@ void SERVERCOMMANDS_SetPlayerChatStatus( ULONG ulPlayer, ULONG ulPlayerExtra, UL
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETPLAYERCHATSTATUS );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPlayer );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, players[ulPlayer].bChatting );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETPLAYERCHATSTATUS );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPlayer );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, players[ulPlayer].bChatting );
 	}
 }
 
@@ -637,9 +637,9 @@ void SERVERCOMMANDS_SetPlayerLaggingStatus( ULONG ulPlayer, ULONG ulPlayerExtra,
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETPLAYERLAGGINGSTATUS );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPlayer );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, players[ulPlayer].bLagging );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETPLAYERLAGGINGSTATUS );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPlayer );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, players[ulPlayer].bLagging );
 	}
 }
 
@@ -664,9 +664,9 @@ void SERVERCOMMANDS_SetPlayerReadyToGoOnStatus( ULONG ulPlayer, ULONG ulPlayerEx
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETPLAYERREADYTOGOONSTATUS );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPlayer );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, players[ulPlayer].bReadyToGoOn );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETPLAYERREADYTOGOONSTATUS );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPlayer );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, players[ulPlayer].bReadyToGoOn );
 	}
 }
 
@@ -691,12 +691,12 @@ void SERVERCOMMANDS_SetPlayerTeam( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ul
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETPLAYERTEAM );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPlayer );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETPLAYERTEAM );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPlayer );
 		if ( players[ulPlayer].bOnTeam == false )
-			NETWORK_WriteByte( &clients[ulIdx].netbuf, NUM_TEAMS );
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, NUM_TEAMS );
 		else
-			NETWORK_WriteByte( &clients[ulIdx].netbuf, players[ulPlayer].ulTeam );
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, players[ulPlayer].ulTeam );
 	}
 }
 
@@ -708,9 +708,9 @@ void SERVERCOMMANDS_SetPlayerCamera( ULONG ulPlayer, LONG lCameraNetID, bool bRe
 		return;
 
 	NETWORK_CheckBuffer( ulPlayer, 4 );
-	NETWORK_WriteHeader( &clients[ulPlayer].netbuf, SVC_SETPLAYERCAMERA );
-	NETWORK_WriteShort( &clients[ulPlayer].netbuf, lCameraNetID );
-	NETWORK_WriteByte( &clients[ulPlayer].netbuf, bRevertPlease );
+	NETWORK_WriteHeader( &SERVER_GetClient( ulPlayer )->PacketBuffer, SVC_SETPLAYERCAMERA );
+	NETWORK_WriteShort( &SERVER_GetClient( ulPlayer )->PacketBuffer, lCameraNetID );
+	NETWORK_WriteByte( &SERVER_GetClient( ulPlayer )->PacketBuffer, bRevertPlease );
 }
 
 //*****************************************************************************
@@ -734,9 +734,9 @@ void SERVERCOMMANDS_UpdatePlayerPing( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 4 );
-		NETWORK_WriteHeader( &clients[ulIdx].UnreliablePacketBuffer, SVC_UPDATEPLAYERPING );
-		NETWORK_WriteByte( &clients[ulIdx].UnreliablePacketBuffer, ulPlayer );
-		NETWORK_WriteShort( &clients[ulIdx].UnreliablePacketBuffer, players[ulPlayer].ulPing );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer, SVC_UPDATEPLAYERPING );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer, ulPlayer );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer, players[ulPlayer].ulPing );
 	}
 }
 
@@ -748,16 +748,16 @@ void SERVERCOMMANDS_UpdatePlayerExtraData( ULONG ulPlayer, ULONG ulDisplayPlayer
 		return;
 
 	NETWORK_CheckBuffer( ulPlayer, 18 );
-	NETWORK_WriteHeader( &clients[ulPlayer].UnreliablePacketBuffer, SVC_UPDATEPLAYEREXTRADATA );
-	NETWORK_WriteByte( &clients[ulPlayer].UnreliablePacketBuffer, ulDisplayPlayer );
+	NETWORK_WriteHeader( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer, SVC_UPDATEPLAYEREXTRADATA );
+	NETWORK_WriteByte( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer, ulDisplayPlayer );
 
-//	NETWORK_WriteByte( &clients[ulPlayer].UnreliablePacketBuffer, players[ulDisplayPlayer].pendingweapon );
-//	NETWORK_WriteByte( &clients[ulPlayer].UnreliablePacketBuffer, players[ulDisplayPlayer].readyweapon );
-	NETWORK_WriteLong( &clients[ulPlayer].UnreliablePacketBuffer, players[ulDisplayPlayer].mo->pitch );
-	NETWORK_WriteByte( &clients[ulPlayer].UnreliablePacketBuffer, players[ulDisplayPlayer].mo->waterlevel );
-	NETWORK_WriteByte( &clients[ulPlayer].UnreliablePacketBuffer, players[ulDisplayPlayer].cmd.ucmd.buttons );
-	NETWORK_WriteLong( &clients[ulPlayer].UnreliablePacketBuffer, players[ulDisplayPlayer].viewz );
-	NETWORK_WriteLong( &clients[ulPlayer].UnreliablePacketBuffer, players[ulDisplayPlayer].bob );
+//	NETWORK_WriteByte( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer, players[ulDisplayPlayer].pendingweapon );
+//	NETWORK_WriteByte( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer, players[ulDisplayPlayer].readyweapon );
+	NETWORK_WriteLong( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer, players[ulDisplayPlayer].mo->pitch );
+	NETWORK_WriteByte( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer, players[ulDisplayPlayer].mo->waterlevel );
+	NETWORK_WriteByte( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer, players[ulDisplayPlayer].cmd.ucmd.buttons );
+	NETWORK_WriteLong( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer, players[ulDisplayPlayer].viewz );
+	NETWORK_WriteLong( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer, players[ulDisplayPlayer].bob );
 
 }
 
@@ -795,9 +795,9 @@ void SERVERCOMMANDS_UpdatePlayerPendingWeapon( ULONG ulPlayer )
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 2 + (ULONG)strlen( pszPendingWeaponString ) );
-		NETWORK_WriteHeader( &clients[ulIdx].UnreliablePacketBuffer, SVC_UPDATEPLAYEREPENDINGWEAPON );
-		NETWORK_WriteByte( &clients[ulIdx].UnreliablePacketBuffer, ulPlayer );
-		NETWORK_WriteString( &clients[ulIdx].UnreliablePacketBuffer, pszPendingWeaponString );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer, SVC_UPDATEPLAYEREPENDINGWEAPON );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer, ulPlayer );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer, pszPendingWeaponString );
 	}
 }
 
@@ -818,8 +818,8 @@ void SERVERCOMMANDS_DoInventoryUse( ULONG ulPlayer, AInventory *item )
 		return;
 
 	NETWORK_CheckBuffer( ulPlayer, 1 + (ULONG)strlen( pszString ));
-	NETWORK_WriteHeader( &clients[ulPlayer].netbuf, SVC_USEINVENTORY );
-	NETWORK_WriteString( &clients[ulPlayer].netbuf, pszString );
+	NETWORK_WriteHeader( &SERVER_GetClient( ulPlayer )->PacketBuffer, SVC_USEINVENTORY );
+	NETWORK_WriteString( &SERVER_GetClient( ulPlayer )->PacketBuffer, pszString );
 }
 
 //*****************************************************************************
@@ -844,8 +844,8 @@ void SERVERCOMMANDS_ChangePlayerWeapon( ULONG ulPlayer )
 	convertWeaponNameToKeyLetter( pszWeaponString );
 
 	NETWORK_CheckBuffer( ulPlayer, 1 + (ULONG)strlen( pszWeaponString ) );
-	NETWORK_WriteHeader( &clients[ulPlayer].UnreliablePacketBuffer, SVC_WEAPONCHANGE );
-	NETWORK_WriteString( &clients[ulPlayer].UnreliablePacketBuffer, pszWeaponString );
+	NETWORK_WriteHeader( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer, SVC_WEAPONCHANGE );
+	NETWORK_WriteString( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer, pszWeaponString );
 }
 
 //*****************************************************************************
@@ -869,9 +869,9 @@ void SERVERCOMMANDS_UpdatePlayerTime( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG
 		}
 
 		NETWORK_CheckBuffer( ulPlayer, 4 );
-		NETWORK_WriteHeader( &clients[ulIdx].UnreliablePacketBuffer, SVC_UPDATEPLAYERTIME );
-		NETWORK_WriteByte( &clients[ulIdx].UnreliablePacketBuffer, ulPlayer );
-		NETWORK_WriteShort( &clients[ulIdx].UnreliablePacketBuffer, ( players[ulPlayer].ulTime / ( TICRATE * 60 )));
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer, SVC_UPDATEPLAYERTIME );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer, ulPlayer );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer, ( players[ulPlayer].ulTime / ( TICRATE * 60 )));
 	}
 }
 
@@ -883,22 +883,22 @@ void SERVERCOMMANDS_MoveLocalPlayer( ULONG ulPlayer )
 		return;
 
 	NETWORK_CheckBuffer( ulPlayer, 30 );
-	NETWORK_WriteHeader( &clients[ulPlayer].UnreliablePacketBuffer, SVC_MOVELOCALPLAYER );
+	NETWORK_WriteHeader( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer, SVC_MOVELOCALPLAYER );
 
-	NETWORK_WriteLong( &clients[ulPlayer].UnreliablePacketBuffer, clients[ulPlayer].gametics );
+	NETWORK_WriteLong( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer, SERVER_GetClient( ulPlayer )->ulClientGameTic );
 
 	// Write position.
-	NETWORK_WriteLong( &clients[ulPlayer].UnreliablePacketBuffer, players[ulPlayer].mo->x );
-	NETWORK_WriteLong( &clients[ulPlayer].UnreliablePacketBuffer, players[ulPlayer].mo->y );
-	NETWORK_WriteLong( &clients[ulPlayer].UnreliablePacketBuffer, players[ulPlayer].mo->z );
+	NETWORK_WriteLong( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer, players[ulPlayer].mo->x );
+	NETWORK_WriteLong( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer, players[ulPlayer].mo->y );
+	NETWORK_WriteLong( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer, players[ulPlayer].mo->z );
 
 	// Write velocity.
-	NETWORK_WriteLong( &clients[ulPlayer].UnreliablePacketBuffer, players[ulPlayer].mo->momx );
-	NETWORK_WriteLong( &clients[ulPlayer].UnreliablePacketBuffer, players[ulPlayer].mo->momy );
-	NETWORK_WriteLong( &clients[ulPlayer].UnreliablePacketBuffer, players[ulPlayer].mo->momz );
+	NETWORK_WriteLong( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer, players[ulPlayer].mo->momx );
+	NETWORK_WriteLong( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer, players[ulPlayer].mo->momy );
+	NETWORK_WriteLong( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer, players[ulPlayer].mo->momz );
 
 	// Write waterlevel.
-	NETWORK_WriteByte( &clients[ulPlayer].UnreliablePacketBuffer, players[ulPlayer].mo->waterlevel );
+	NETWORK_WriteByte( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer, players[ulPlayer].mo->waterlevel );
 }
 
 //*****************************************************************************
@@ -922,8 +922,8 @@ void SERVERCOMMANDS_DisconnectPlayer( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 2 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DISCONNECTPLAYER );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPlayer );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DISCONNECTPLAYER );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPlayer );
 	}
 }
 
@@ -935,8 +935,8 @@ void SERVERCOMMANDS_SetConsolePlayer( ULONG ulPlayer )
 		return;
 
 	NETWORK_CheckBuffer( ulPlayer, 2 );
-	NETWORK_WriteHeader( &clients[ulPlayer].netbuf, SVC_SETCONSOLEPLAYER );
-	NETWORK_WriteByte( &clients[ulPlayer].netbuf, ulPlayer );
+	NETWORK_WriteHeader( &SERVER_GetClient( ulPlayer )->PacketBuffer, SVC_SETCONSOLEPLAYER );
+	NETWORK_WriteByte( &SERVER_GetClient( ulPlayer )->PacketBuffer, ulPlayer );
 }
 
 //*****************************************************************************
@@ -947,7 +947,7 @@ void SERVERCOMMANDS_ConsolePlayerKicked( ULONG ulPlayer )
 		return;
 
 	NETWORK_CheckBuffer( ulPlayer, 1 );
-	NETWORK_WriteHeader( &clients[ulPlayer].netbuf, SVC_CONSOLEPLAYERKICKED );
+	NETWORK_WriteHeader( &SERVER_GetClient( ulPlayer )->PacketBuffer, SVC_CONSOLEPLAYERKICKED );
 }
 
 //*****************************************************************************
@@ -971,9 +971,9 @@ void SERVERCOMMANDS_GivePlayerMedal( ULONG ulPlayer, ULONG ulMedal, ULONG ulPlay
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_GIVEPLAYERMEDAL );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPlayer );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulMedal );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_GIVEPLAYERMEDAL );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPlayer );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulMedal );
 	}
 }
 
@@ -995,7 +995,7 @@ void SERVERCOMMANDS_ResetAllPlayersFragcount( ULONG ulPlayerExtra, ULONG ulFlags
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 1 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_RESETALLPLAYERSFRAGCOUNT );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_RESETALLPLAYERSFRAGCOUNT );
 	}
 }
 
@@ -1020,9 +1020,9 @@ void SERVERCOMMANDS_PlayerIsSpectator( ULONG ulPlayer, ULONG ulPlayerExtra, ULON
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_PLAYERISSPECTATOR );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPlayer );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, players[ulPlayer].bDeadSpectator );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_PLAYERISSPECTATOR );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPlayer );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, players[ulPlayer].bDeadSpectator );
 	}
 }
 
@@ -1072,10 +1072,10 @@ void SERVERCOMMANDS_PlayerSay( ULONG ulPlayer, char *pszString, ULONG ulMode, bo
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 + (ULONG)strlen( pszString ));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_PLAYERSAY );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPlayer );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulMode );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszString );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_PLAYERSAY );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPlayer );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulMode );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszString );
 	}
 }
 
@@ -1100,8 +1100,8 @@ void SERVERCOMMANDS_PlayerTaunt( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFl
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 2 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_PLAYERTAUNT );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPlayer );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_PLAYERTAUNT );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPlayer );
 	}
 }
 
@@ -1126,8 +1126,8 @@ void SERVERCOMMANDS_PlayerRespawnInvulnerability( ULONG ulPlayer, ULONG ulPlayer
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 2 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_PLAYERRESPAWNINVULNERABILITY );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPlayer );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_PLAYERRESPAWNINVULNERABILITY );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPlayer );
 	}
 }
 
@@ -1167,12 +1167,12 @@ void SERVERCOMMANDS_SpawnThing( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFla
 		// [BB] I'm sure it has to be strlen(pszName) here.
 		//NETWORK_CheckBuffer( ulIdx, 9 + (ULONG)strlen( pActor->GetClass( )->TypeName.GetChars( )));
 		NETWORK_CheckBuffer( ulIdx, 9 + (ULONG)strlen( pszName ));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SPAWNTHING );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->x >> FRACBITS );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->y >> FRACBITS );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->z >> FRACBITS );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszName );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->lNetID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SPAWNTHING );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->x >> FRACBITS );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->y >> FRACBITS );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->z >> FRACBITS );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszName );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->lNetID );
 	}
 }
 
@@ -1204,11 +1204,11 @@ void SERVERCOMMANDS_SpawnThingNoNetID( AActor *pActor, ULONG ulPlayerExtra, ULON
 		// [BB] I'm sure it has to be strlen(pszName) here.
 		//NETWORK_CheckBuffer( ulIdx, 7 + (ULONG)strlen( pActor->GetClass( )->TypeName.GetChars( )));
 		NETWORK_CheckBuffer( ulIdx, 7 + (ULONG)strlen( pszName ));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SPAWNTHINGNONETID );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->x >> FRACBITS );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->y >> FRACBITS );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->z >> FRACBITS );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszName );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SPAWNTHINGNONETID );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->x >> FRACBITS );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->y >> FRACBITS );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->z >> FRACBITS );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszName );
 	}
 }
 
@@ -1247,12 +1247,12 @@ void SERVERCOMMANDS_SpawnThingExact( AActor *pActor, ULONG ulPlayerExtra, ULONG 
 		// [BB] I'm sure it has to be strlen(pszName) here.
 		//NETWORK_CheckBuffer( ulIdx, 15 + (ULONG)strlen( pActor->GetClass( )->TypeName.GetChars( )));
 		NETWORK_CheckBuffer( ulIdx, 15 + (ULONG)strlen( pszName ));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SPAWNTHINGEXACT );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, pActor->x );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, pActor->y );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, pActor->z );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszName );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->lNetID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SPAWNTHINGEXACT );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->x );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->y );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->z );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszName );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->lNetID );
 	}
 }
 
@@ -1284,11 +1284,11 @@ void SERVERCOMMANDS_SpawnThingExactNoNetID( AActor *pActor, ULONG ulPlayerExtra,
 		// [BB] I'm sure it has to be strlen(pszName) here.
 		//NETWORK_CheckBuffer( ulIdx, 13 + (ULONG)strlen( pActor->GetClass( )->TypeName.GetChars( )));
 		NETWORK_CheckBuffer( ulIdx, 13 + (ULONG)strlen( pszName ));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SPAWNTHINGEXACTNONETID );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, pActor->x );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, pActor->y );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, pActor->z );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszName );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SPAWNTHINGEXACTNONETID );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->x );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->y );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->z );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszName );
 	}
 }
 
@@ -1335,30 +1335,30 @@ void SERVERCOMMANDS_MoveThing( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra
 		}
 
 		NETWORK_CheckBuffer( ulIdx, ulSize );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_MOVETHING );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->lNetID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_MOVETHING );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->lNetID );
 
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ulBits );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulBits );
 
 		// Write position.
 		if ( ulBits & CM_X )
-			NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->x >> FRACBITS );				
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->x >> FRACBITS );				
 		if ( ulBits & CM_Y )
-			NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->y >> FRACBITS );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->y >> FRACBITS );
 		if ( ulBits & CM_Z )
-			NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->z >> FRACBITS );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->z >> FRACBITS );
 		
 		// Write angle.
 		if ( ulBits & CM_ANGLE )
-			NETWORK_WriteLong( &clients[ulIdx].netbuf, pActor->angle );
+			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->angle );
 
 		// Write velocity.
 		if ( ulBits & CM_MOMX )
-			NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->momx >> FRACBITS );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->momx >> FRACBITS );
 		if ( ulBits & CM_MOMY )
-			NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->momy >> FRACBITS );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->momy >> FRACBITS );
 		if ( ulBits & CM_MOMZ )
-			NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->momz >> FRACBITS );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->momz >> FRACBITS );
 	}
 }
 
@@ -1377,8 +1377,8 @@ void SERVERCOMMANDS_DamageThing( AActor *pActor )
 			continue;
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DAMAGETHING );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->lNetID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DAMAGETHING );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->lNetID );
 	}
 }
 
@@ -1397,9 +1397,9 @@ void SERVERCOMMANDS_KillThing( AActor *pActor )
 			continue;
 
 		NETWORK_CheckBuffer( ulIdx, 5 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_KILLTHING );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->lNetID );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->health );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_KILLTHING );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->lNetID );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->health );
 	}
 }
 
@@ -1418,9 +1418,9 @@ void SERVERCOMMANDS_SetThingState( AActor *pActor, ULONG ulState )
 			continue;
 
 		NETWORK_CheckBuffer( ulIdx, 4 );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, SVC_SETTHINGSTATE );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->lNetID );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulState );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETTHINGSTATE );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->lNetID );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulState );
 	}
 }
 
@@ -1439,8 +1439,8 @@ void SERVERCOMMANDS_DestroyThing( AActor *pActor )
 			continue;
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DESTROYTHING );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->lNetID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DESTROYTHING );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->lNetID );
 	}
 }
 
@@ -1465,9 +1465,9 @@ void SERVERCOMMANDS_SetThingAngle( AActor *pActor, ULONG ulPlayerExtra, ULONG ul
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 7 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETTHINGANGLE );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->lNetID );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, pActor->angle );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETTHINGANGLE );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->lNetID );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->angle );
 	}
 }
 
@@ -1496,9 +1496,9 @@ void SERVERCOMMANDS_SetThingTID( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFl
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 5 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETTHINGTID );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->lNetID );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->tid );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETTHINGTID );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->lNetID );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->tid );
 	}
 }
 
@@ -1523,9 +1523,9 @@ void SERVERCOMMANDS_SetThingWaterLevel( AActor *pActor, ULONG ulPlayerExtra, ULO
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 4 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETTHINGWATERLEVEL );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->lNetID );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, pActor->waterlevel );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETTHINGWATERLEVEL );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->lNetID );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->waterlevel );
 	}
 }
 
@@ -1582,10 +1582,10 @@ void SERVERCOMMANDS_SetThingFlags( AActor *pActor, ULONG ulFlagSet, ULONG ulPlay
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 8 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETTHINGFLAGS );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->lNetID );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulFlagSet );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, ulActorFlags );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETTHINGFLAGS );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->lNetID );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulFlagSet );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, ulActorFlags );
 	}
 }
 
@@ -1610,13 +1610,13 @@ void SERVERCOMMANDS_SetThingArguments( AActor *pActor, ULONG ulPlayerExtra, ULON
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 8 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETTHINGARGUMENTS );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->lNetID );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, pActor->args[0] );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, pActor->args[1] );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, pActor->args[2] );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, pActor->args[3] );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, pActor->args[4] );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETTHINGARGUMENTS );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->lNetID );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->args[0] );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->args[1] );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->args[2] );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->args[3] );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->args[4] );
 	}
 }
 
@@ -1645,9 +1645,9 @@ void SERVERCOMMANDS_SetThingTranslation( AActor *pActor, ULONG ulPlayerExtra, UL
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 7 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETTHINGTRANSLATION );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->lNetID );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, pActor->Translation );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETTHINGTRANSLATION );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->lNetID );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->Translation );
 	}
 }
 
@@ -1717,10 +1717,10 @@ void SERVERCOMMANDS_SetThingProperty( AActor *pActor, ULONG ulProperty, ULONG ul
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 7 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETTHINGPROPERTY );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->lNetID );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulProperty );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, ulPropertyValue );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETTHINGPROPERTY );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->lNetID );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulProperty );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPropertyValue );
 	}
 }
 
@@ -1745,10 +1745,10 @@ void SERVERCOMMANDS_SetThingSound( AActor *pActor, ULONG ulSound, char *pszSound
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 4 + static_cast<ULONG>(strlen( pszSound )));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETTHINGSOUND );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->lNetID );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulSound );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszSound );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETTHINGSOUND );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->lNetID );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulSound );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszSound );
 	}
 }
 
@@ -1776,10 +1776,10 @@ void SERVERCOMMANDS_SetWeaponAmmoGive( AActor *pActor, ULONG ulPlayerExtra, ULON
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 7 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETWEAPONAMMOGIVE );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->lNetID );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, static_cast<AWeapon *>( pActor )->AmmoGive1 );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, static_cast<AWeapon *>( pActor )->AmmoGive2 );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETWEAPONAMMOGIVE );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->lNetID );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, static_cast<AWeapon *>( pActor )->AmmoGive1 );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, static_cast<AWeapon *>( pActor )->AmmoGive2 );
 	}
 }
 
@@ -1804,9 +1804,9 @@ void SERVERCOMMANDS_ThingIsCorpse( AActor *pActor, ULONG ulPlayerExtra, ULONG ul
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 4 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_THINGISCORPSE );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->lNetID );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, pActor->CountsAsKill( ) ? true : false );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_THINGISCORPSE );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->lNetID );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->CountsAsKill( ) ? true : false );
 	}
 }
 
@@ -1831,8 +1831,8 @@ void SERVERCOMMANDS_HideThing( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlag
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_HIDETHING );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->lNetID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_HIDETHING );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->lNetID );
 	}
 }
 
@@ -1857,19 +1857,19 @@ void SERVERCOMMANDS_TeleportThing( AActor *pActor, bool bSourceFog, bool bDestFo
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 24 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_TELEPORTTHING );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->lNetID );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->x >> FRACBITS );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->y >> FRACBITS );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->z >> FRACBITS );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->momx >> FRACBITS );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->momy >> FRACBITS );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->momz >> FRACBITS );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->reactiontime );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, pActor->angle );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, bSourceFog );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, bDestFog );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, bTeleZoom );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_TELEPORTTHING );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->lNetID );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->x >> FRACBITS );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->y >> FRACBITS );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->z >> FRACBITS );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->momx >> FRACBITS );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->momy >> FRACBITS );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->momz >> FRACBITS );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->reactiontime );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->angle );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, bSourceFog );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, bDestFog );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, bTeleZoom );
 	}
 }
 
@@ -1894,12 +1894,12 @@ void SERVERCOMMANDS_ThingActivate( AActor *pActor, AActor *pActivator, ULONG ulP
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 5 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_THINGACTIVATE );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->lNetID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_THINGACTIVATE );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->lNetID );
 		if ( pActivator )
-			NETWORK_WriteShort( &clients[ulIdx].netbuf, pActivator->lNetID );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActivator->lNetID );
 		else
-			NETWORK_WriteShort( &clients[ulIdx].netbuf, -1 );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, -1 );
 	}
 }
 
@@ -1924,12 +1924,12 @@ void SERVERCOMMANDS_ThingDeactivate( AActor *pActor, AActor *pActivator, ULONG u
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 5 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_THINGDEACTIVATE );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->lNetID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_THINGDEACTIVATE );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->lNetID );
 		if ( pActivator )
-			NETWORK_WriteShort( &clients[ulIdx].netbuf, pActivator->lNetID );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActivator->lNetID );
 		else
-			NETWORK_WriteShort( &clients[ulIdx].netbuf, -1 );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, -1 );
 	}
 }
 
@@ -1954,9 +1954,9 @@ void SERVERCOMMANDS_RespawnThing( AActor *pActor, bool bFog, ULONG ulPlayerExtra
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 4 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_RESPAWNTHING );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->lNetID );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, bFog );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_RESPAWNTHING );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->lNetID );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, bFog );
 	}
 }
 
@@ -1979,9 +1979,9 @@ void SERVERCOMMANDS_Print( char *pszString, ULONG ulPrintLevel, ULONG ulPlayerEx
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 2 + (ULONG)strlen( pszString ));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_PRINT );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPrintLevel );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszString );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_PRINT );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPrintLevel );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszString );
     }
 }
 
@@ -2003,8 +2003,8 @@ void SERVERCOMMANDS_PrintMid( char *pszString, ULONG ulPlayerExtra, ULONG ulFlag
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 1 + (ULONG)strlen( pszString ));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_PRINTMID );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszString );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_PRINTMID );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszString );
     }
 }
 
@@ -2026,8 +2026,8 @@ void SERVERCOMMANDS_PrintMOTD( char *pszString, ULONG ulPlayerExtra, ULONG ulFla
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 1 + (ULONG)strlen( pszString ));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_PRINTMOTD );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszString );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_PRINTMOTD );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszString );
     }
 }
 
@@ -2049,16 +2049,16 @@ void SERVERCOMMANDS_PrintHUDMessage( char *pszString, float fX, float fY, LONG l
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 22 + (ULONG)strlen( pszString ) + (ULONG)strlen( pszFont ));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_PRINTHUDMESSAGE );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszString );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, fX );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, fY );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lHUDWidth );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lHUDHeight );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lColor );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, fHoldTime );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszFont );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_PRINTHUDMESSAGE );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszString );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer, fX );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer, fY );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lHUDWidth );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lHUDHeight );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lColor );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer, fHoldTime );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszFont );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lID );
     }
 }
 
@@ -2080,17 +2080,17 @@ void SERVERCOMMANDS_PrintHUDMessageFadeOut( char *pszString, float fX, float fY,
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 26 + (ULONG)strlen( pszString ) + (ULONG)strlen( pszFont ));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_PRINTHUDMESSAGEFADEOUT );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszString );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, fX );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, fY );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lHUDWidth );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lHUDHeight );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lColor );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, fHoldTime );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, fFadeOutTime );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszFont );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_PRINTHUDMESSAGEFADEOUT );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszString );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer, fX );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer, fY );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lHUDWidth );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lHUDHeight );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lColor );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer, fHoldTime );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer, fFadeOutTime );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszFont );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lID );
     }
 }
 
@@ -2112,18 +2112,18 @@ void SERVERCOMMANDS_PrintHUDMessageFadeInOut( char *pszString, float fX, float f
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 30 + (ULONG)strlen( pszString ) + (ULONG)strlen( pszFont ));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_PRINTHUDMESSAGEFADEINOUT );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszString );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, fX );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, fY );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lHUDWidth );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lHUDHeight );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lColor );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, fHoldTime );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, fFadeInTime );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, fFadeOutTime );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszFont );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_PRINTHUDMESSAGEFADEINOUT );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszString );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer, fX );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer, fY );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lHUDWidth );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lHUDHeight );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lColor );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer, fHoldTime );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer, fFadeInTime );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer, fFadeOutTime );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszFont );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lID );
     }
 }
 
@@ -2145,18 +2145,18 @@ void SERVERCOMMANDS_PrintHUDMessageTypeOnFadeOut( char *pszString, float fX, flo
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 30 + (ULONG)strlen( pszString ) + (ULONG)strlen( pszFont ));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_PRINTHUDMESSAGETYPEONFADEOUT );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszString );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, fX );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, fY );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lHUDWidth );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lHUDHeight );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lColor );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, fTypeTime );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, fHoldTime );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, fFadeOutTime );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszFont );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_PRINTHUDMESSAGETYPEONFADEOUT );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszString );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer, fX );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer, fY );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lHUDWidth );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lHUDHeight );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lColor );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer, fTypeTime );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer, fHoldTime );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer, fFadeOutTime );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszFont );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lID );
     }
 }
 
@@ -2179,10 +2179,10 @@ void SERVERCOMMANDS_SetGameMode( ULONG ulPlayerExtra, ULONG ulFlags )
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 4 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETGAMEMODE );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, GAME_GetGameType( ));
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, instagib );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, buckshot );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETGAMEMODE );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, GAME_GetGameType( ));
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, instagib );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, buckshot );
     }
 }
 
@@ -2204,9 +2204,9 @@ void SERVERCOMMANDS_SetGameSkill( ULONG ulPlayerExtra, ULONG ulFlags )
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETGAMESKILL );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, gameskill );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, botskill );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETGAMESKILL );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, gameskill );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, botskill );
     }
 }
 
@@ -2233,10 +2233,10 @@ void SERVERCOMMANDS_SetGameDMFlags( ULONG ulPlayerExtra, ULONG ulFlags )
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 13 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETGAMEDMFLAGS );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lDMFlags );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, dmflags2 );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, compatflags );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETGAMEDMFLAGS );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lDMFlags );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, dmflags2 );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, compatflags );
     }
 }
 
@@ -2258,14 +2258,14 @@ void SERVERCOMMANDS_SetGameModeLimits( ULONG ulPlayerExtra, ULONG ulFlags )
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 12 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETGAMEMODELIMITS );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, fraglimit );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, timelimit );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pointlimit );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, duellimit );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, winlimit );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, wavelimit );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, sv_cheats );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETGAMEMODELIMITS );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, fraglimit );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer, timelimit );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pointlimit );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, duellimit );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, winlimit );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, wavelimit );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, sv_cheats );
     }
 }
 
@@ -2287,8 +2287,8 @@ void SERVERCOMMANDS_SetGameEndLevelDelay( ULONG ulEndLevelDelay, ULONG ulPlayerE
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETGAMEENDLEVELDELAY );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ulEndLevelDelay );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETGAMEENDLEVELDELAY );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulEndLevelDelay );
     }
 }
 
@@ -2310,8 +2310,8 @@ void SERVERCOMMANDS_SetGameModeState( ULONG ulState, ULONG ulPlayerExtra, ULONG 
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 2 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETGAMEMODESTATE );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulState );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETGAMEMODESTATE );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulState );
     }
 }
 
@@ -2333,8 +2333,8 @@ void SERVERCOMMANDS_SetDuelNumDuels( ULONG ulNumDuels, ULONG ulPlayerExtra, ULON
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 2 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETDUELNUMDUELS );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulNumDuels );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETDUELNUMDUELS );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulNumDuels );
     }
 }
 
@@ -2356,8 +2356,8 @@ void SERVERCOMMANDS_SetLMSSpectatorSettings( ULONG ulPlayerExtra, ULONG ulFlags 
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 5 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETLMSSPECTATORSETTINGS );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lmsspectatorsettings );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETLMSSPECTATORSETTINGS );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lmsspectatorsettings );
     }
 }
 
@@ -2379,8 +2379,8 @@ void SERVERCOMMANDS_SetLMSAllowedWeapons( ULONG ulPlayerExtra, ULONG ulFlags )
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 5 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETLMSALLOWEDWEAPONS );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lmsallowedweapons );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETLMSALLOWEDWEAPONS );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lmsallowedweapons );
     }
 }
 
@@ -2402,9 +2402,9 @@ void SERVERCOMMANDS_SetInvasionNumMonstersLeft( ULONG ulPlayerExtra, ULONG ulFla
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 5 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETINVASIONNUMMONSTERSLEFT );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, INVASION_GetNumMonstersLeft( ));
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, INVASION_GetNumArchVilesLeft( ));
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETINVASIONNUMMONSTERSLEFT );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, INVASION_GetNumMonstersLeft( ));
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, INVASION_GetNumArchVilesLeft( ));
     }
 }
 
@@ -2426,8 +2426,8 @@ void SERVERCOMMANDS_SetInvasionWave( ULONG ulPlayerExtra, ULONG ulFlags )
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 2 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETINVASIONWAVE );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, INVASION_GetCurrentWave( ));
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETINVASIONWAVE );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, INVASION_GetCurrentWave( ));
     }
 }
 
@@ -2452,9 +2452,9 @@ void SERVERCOMMANDS_DoPossessionArtifactPickedUp( ULONG ulPlayer, ULONG ulTicks,
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 4 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DOPOSSESSIONARTIFACTPICKEDUP );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPlayer );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ulTicks );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DOPOSSESSIONARTIFACTPICKEDUP );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPlayer );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulTicks );
     }
 }
 
@@ -2476,7 +2476,7 @@ void SERVERCOMMANDS_DoPossessionArtifactDropped( ULONG ulPlayerExtra, ULONG ulFl
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 1 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DOPOSSESSIONARTIFACTDROPPED );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DOPOSSESSIONARTIFACTDROPPED );
     }
 }
 
@@ -2498,8 +2498,8 @@ void SERVERCOMMANDS_DoGameModeFight( ULONG ulCurrentWave, ULONG ulPlayerExtra, U
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 2 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DOGAMEMODEFIGHT );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulCurrentWave );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DOGAMEMODEFIGHT );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulCurrentWave );
     }
 }
 
@@ -2521,8 +2521,8 @@ void SERVERCOMMANDS_DoGameModeCountdown( ULONG ulTicks, ULONG ulPlayerExtra, ULO
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DOGAMEMODECOUNTDOWN );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ulTicks );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DOGAMEMODECOUNTDOWN );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulTicks );
     }
 }
 
@@ -2544,8 +2544,8 @@ void SERVERCOMMANDS_DoGameModeWinSequence( ULONG ulWinner, ULONG ulPlayerExtra, 
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 2 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DOGAMEMODEWINSEQUENCE );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulWinner );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DOGAMEMODEWINSEQUENCE );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulWinner );
     }
 }
 
@@ -2571,10 +2571,10 @@ void SERVERCOMMANDS_SetTeamFrags( ULONG ulTeam, LONG lFrags, bool bAnnounce, ULO
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 5 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETTEAMFRAGS );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulTeam );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lFrags );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, bAnnounce );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETTEAMFRAGS );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulTeam );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lFrags );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, bAnnounce );
     }
 }
 
@@ -2599,10 +2599,10 @@ void SERVERCOMMANDS_SetTeamScore( ULONG ulTeam, LONG lScore, bool bAnnounce, ULO
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 5 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETTEAMSCORE );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulTeam );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lScore );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, bAnnounce );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETTEAMSCORE );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulTeam );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lScore );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, bAnnounce );
     }
 }
 
@@ -2627,10 +2627,10 @@ void SERVERCOMMANDS_SetTeamWins( ULONG ulTeam, LONG lWins, bool bAnnounce, ULONG
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 5 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETTEAMWINS );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulTeam );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lWins );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, bAnnounce );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETTEAMWINS );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulTeam );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lWins );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, bAnnounce );
     }
 }
 
@@ -2656,9 +2656,9 @@ void SERVERCOMMANDS_SetTeamReturnTicks( ULONG ulTeam, ULONG ulReturnTicks, ULONG
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 4 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETTEAMRETURNTICKS );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulTeam );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ulReturnTicks );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETTEAMRETURNTICKS );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulTeam );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulReturnTicks );
     }
 }
 
@@ -2683,8 +2683,8 @@ void SERVERCOMMANDS_TeamFlagReturned( ULONG ulTeam, ULONG ulPlayerExtra, ULONG u
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 2 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_TEAMFLAGRETURNED );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulTeam );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_TEAMFLAGRETURNED );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulTeam );
     }
 }
 
@@ -2718,19 +2718,19 @@ void SERVERCOMMANDS_SpawnMissile( AActor *pMissile, ULONG ulPlayerExtra, ULONG u
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 23 + (ULONG)strlen( pMissile->GetClass( )->TypeName.GetChars( )));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SPAWNMISSILE );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pMissile->x >> FRACBITS );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pMissile->y >> FRACBITS );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pMissile->z >> FRACBITS );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, pMissile->momx );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, pMissile->momy );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, pMissile->momz );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, (char *)pszName );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pMissile->lNetID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SPAWNMISSILE );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pMissile->x >> FRACBITS );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pMissile->y >> FRACBITS );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pMissile->z >> FRACBITS );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, pMissile->momx );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, pMissile->momy );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, pMissile->momz );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, (char *)pszName );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pMissile->lNetID );
 		if ( pMissile->target )
-			NETWORK_WriteShort( &clients[ulIdx].netbuf, pMissile->target->lNetID );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pMissile->target->lNetID );
 		else
-			NETWORK_WriteShort( &clients[ulIdx].netbuf, -1 );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, -1 );
 	}
 }
 
@@ -2763,19 +2763,19 @@ void SERVERCOMMANDS_SpawnMissileExact( AActor *pMissile, ULONG ulPlayerExtra, UL
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 29 + (ULONG)strlen( pMissile->GetClass( )->TypeName.GetChars( )));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SPAWNMISSILEEXACT );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, pMissile->x );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, pMissile->y );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, pMissile->z );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, pMissile->momx );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, pMissile->momy );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, pMissile->momz );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, (char *)pszName );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pMissile->lNetID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SPAWNMISSILEEXACT );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, pMissile->x );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, pMissile->y );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, pMissile->z );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, pMissile->momx );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, pMissile->momy );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, pMissile->momz );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, (char *)pszName );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pMissile->lNetID );
 		if ( pMissile->target )
-			NETWORK_WriteShort( &clients[ulIdx].netbuf, pMissile->target->lNetID );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pMissile->target->lNetID );
 		else
-			NETWORK_WriteShort( &clients[ulIdx].netbuf, -1 );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, -1 );
 	}
 }
 
@@ -2800,15 +2800,15 @@ void SERVERCOMMANDS_MissileExplode( AActor *pMissile, line_t *pLine, ULONG ulPla
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 9 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_MISSILEEXPLODE );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pMissile->lNetID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_MISSILEEXPLODE );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pMissile->lNetID );
 		if ( pLine )
-			NETWORK_WriteShort( &clients[ulIdx].netbuf, ULONG( pLine - lines ));
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ULONG( pLine - lines ));
 		else
-			NETWORK_WriteShort( &clients[ulIdx].netbuf, -1 );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pMissile->x >> FRACBITS );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pMissile->y >> FRACBITS );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pMissile->z >> FRACBITS );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, -1 );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pMissile->x >> FRACBITS );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pMissile->y >> FRACBITS );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pMissile->z >> FRACBITS );
 	}
 }
 
@@ -2834,9 +2834,9 @@ void SERVERCOMMANDS_WeaponSound( ULONG ulPlayer, char *pszSound, ULONG ulPlayerE
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 2 + (ULONG)strlen( pszSound ));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_WEAPONSOUND );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPlayer );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszSound );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_WEAPONSOUND );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPlayer );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszSound );
 	}
 }
 
@@ -2884,18 +2884,18 @@ void SERVERCOMMANDS_WeaponRailgun( AActor *pSource, const FVector3 &Start, const
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 40 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_WEAPONRAILGUN );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pSource->lNetID );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, Start.X );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, Start.Y );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, Start.Z );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, End.X );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, End.Y );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, End.Z );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lColor1 );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lColor2 );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, fMaxDiff );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, bSilent );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_WEAPONRAILGUN );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pSource->lNetID );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer, Start.X );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer, Start.Y );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer, Start.Z );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer, End.X );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer, End.Y );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer, End.Z );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lColor1 );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lColor2 );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer, fMaxDiff );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, bSilent );
 	}
 }
 
@@ -2921,9 +2921,9 @@ void SERVERCOMMANDS_SetSectorFloorPlane( ULONG ulSector, ULONG ulPlayerExtra, UL
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 5 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETSECTORFLOORPLANE );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ulSector );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, sectors[ulSector].floorplane.d >> FRACBITS );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETSECTORFLOORPLANE );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulSector );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, sectors[ulSector].floorplane.d >> FRACBITS );
 	}
 }
 
@@ -2948,9 +2948,9 @@ void SERVERCOMMANDS_SetSectorCeilingPlane( ULONG ulSector, ULONG ulPlayerExtra, 
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 5 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETSECTORCEILINGPLANE );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ulSector );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, sectors[ulSector].ceilingplane.d >> FRACBITS );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETSECTORCEILINGPLANE );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulSector );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, sectors[ulSector].ceilingplane.d >> FRACBITS );
 	}
 }
 
@@ -2975,9 +2975,9 @@ void SERVERCOMMANDS_SetSectorLightLevel( ULONG ulSector, ULONG ulPlayerExtra, UL
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 4 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETSECTORLIGHTLEVEL );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ulSector );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, sectors[ulSector].lightlevel );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETSECTORLIGHTLEVEL );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulSector );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, sectors[ulSector].lightlevel );
 	}
 }
 
@@ -3002,12 +3002,12 @@ void SERVERCOMMANDS_SetSectorColor( ULONG ulSector, ULONG ulPlayerExtra, ULONG u
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 7 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETSECTORCOLOR );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ulSector );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, sectors[ulSector].ColorMap->Color.r );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, sectors[ulSector].ColorMap->Color.g );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, sectors[ulSector].ColorMap->Color.b );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, sectors[ulSector].ColorMap->Desaturate );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETSECTORCOLOR );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulSector );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, sectors[ulSector].ColorMap->Color.r );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, sectors[ulSector].ColorMap->Color.g );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, sectors[ulSector].ColorMap->Color.b );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, sectors[ulSector].ColorMap->Desaturate );
 	}
 }
 
@@ -3032,11 +3032,11 @@ void SERVERCOMMANDS_SetSectorFade( ULONG ulSector, ULONG ulPlayerExtra, ULONG ul
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 6 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETSECTORFADE );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ulSector );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, sectors[ulSector].ColorMap->Fade.r );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, sectors[ulSector].ColorMap->Fade.g );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, sectors[ulSector].ColorMap->Fade.b );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETSECTORFADE );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulSector );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, sectors[ulSector].ColorMap->Fade.r );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, sectors[ulSector].ColorMap->Fade.g );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, sectors[ulSector].ColorMap->Fade.b );
 	}
 }
 
@@ -3061,10 +3061,10 @@ void SERVERCOMMANDS_SetSectorFlat( ULONG ulSector, ULONG ulPlayerExtra, ULONG ul
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 + (ULONG)strlen( TexMan( sectors[ulSector].floorpic )->Name ) + (ULONG)strlen( TexMan( sectors[ulSector].ceilingpic )->Name ));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETSECTORFLAT );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ulSector );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, TexMan( sectors[ulSector].ceilingpic )->Name );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, TexMan( sectors[ulSector].floorpic )->Name );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETSECTORFLAT );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulSector );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, TexMan( sectors[ulSector].ceilingpic )->Name );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, TexMan( sectors[ulSector].floorpic )->Name );
 	}
 }
 
@@ -3089,12 +3089,12 @@ void SERVERCOMMANDS_SetSectorPanning( ULONG ulSector, ULONG ulPlayerExtra, ULONG
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 7 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETSECTORPANNING );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ulSector );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, sectors[ulSector].ceiling_xoffs / FRACUNIT );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, sectors[ulSector].ceiling_yoffs / FRACUNIT );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, sectors[ulSector].floor_xoffs / FRACUNIT );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, sectors[ulSector].floor_yoffs / FRACUNIT );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETSECTORPANNING );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulSector );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, sectors[ulSector].ceiling_xoffs / FRACUNIT );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, sectors[ulSector].ceiling_yoffs / FRACUNIT );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, sectors[ulSector].floor_xoffs / FRACUNIT );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, sectors[ulSector].floor_yoffs / FRACUNIT );
 	}
 }
 
@@ -3119,10 +3119,10 @@ void SERVERCOMMANDS_SetSectorRotation( ULONG ulSector, ULONG ulPlayerExtra, ULON
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 7 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETSECTORROTATION );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ulSector );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ( sectors[ulSector].ceiling_angle / ANGLE_1 ));
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ( sectors[ulSector].floor_angle / ANGLE_1 ));
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETSECTORROTATION );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulSector );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ( sectors[ulSector].ceiling_angle / ANGLE_1 ));
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ( sectors[ulSector].floor_angle / ANGLE_1 ));
 	}
 }
 
@@ -3147,12 +3147,12 @@ void SERVERCOMMANDS_SetSectorScale( ULONG ulSector, ULONG ulPlayerExtra, ULONG u
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 11 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETSECTORSCALE );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ulSector );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ( sectors[ulSector].ceiling_xscale / FRACBITS ));
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ( sectors[ulSector].ceiling_yscale / FRACBITS ));
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ( sectors[ulSector].floor_xscale / FRACBITS ));
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ( sectors[ulSector].floor_yscale / FRACBITS ));
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETSECTORSCALE );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulSector );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ( sectors[ulSector].ceiling_xscale / FRACBITS ));
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ( sectors[ulSector].ceiling_yscale / FRACBITS ));
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ( sectors[ulSector].floor_xscale / FRACBITS ));
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ( sectors[ulSector].floor_yscale / FRACBITS ));
 	}
 }
 
@@ -3177,10 +3177,10 @@ void SERVERCOMMANDS_SetSectorFriction( ULONG ulSector, ULONG ulPlayerExtra, ULON
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 11 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETSECTORFRICTION );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ulSector );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, sectors[ulSector].friction );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, sectors[ulSector].movefactor );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETSECTORFRICTION );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulSector );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, sectors[ulSector].friction );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, sectors[ulSector].movefactor );
 	}
 }
 
@@ -3205,12 +3205,12 @@ void SERVERCOMMANDS_SetSectorAngleYOffset( ULONG ulSector, ULONG ulPlayerExtra, 
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 19 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETSECTORANGLEYOFFSET );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ulSector );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, sectors[ulSector].base_ceiling_angle );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, sectors[ulSector].base_ceiling_yoffs );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, sectors[ulSector].base_floor_angle );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, sectors[ulSector].base_floor_yoffs );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETSECTORANGLEYOFFSET );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulSector );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, sectors[ulSector].base_ceiling_angle );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, sectors[ulSector].base_ceiling_yoffs );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, sectors[ulSector].base_floor_angle );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, sectors[ulSector].base_floor_yoffs );
 	}
 }
 
@@ -3235,9 +3235,9 @@ void SERVERCOMMANDS_SetSectorGravity( ULONG ulSector, ULONG ulPlayerExtra, ULONG
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 7 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETSECTORGRAVITY );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ulSector );
-		NETWORK_WriteFloat( &clients[ulIdx].netbuf, sectors[ulSector].gravity );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETSECTORGRAVITY );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulSector );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer, sectors[ulSector].gravity );
 	}
 }
 
@@ -3262,8 +3262,8 @@ void SERVERCOMMANDS_StopSectorLightEffect( ULONG ulSector, ULONG ulPlayerExtra, 
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_STOPSECTORLIGHTEFFECT );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ulSector );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_STOPSECTORLIGHTEFFECT );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulSector );
 	}
 }
 
@@ -3285,7 +3285,7 @@ void SERVERCOMMANDS_DestroyAllSectorMovers( ULONG ulPlayerExtra, ULONG ulFlags )
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 1 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DESTROYALLSECTORMOVERS );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DESTROYALLSECTORMOVERS );
 	}
 }
 
@@ -3311,10 +3311,10 @@ void SERVERCOMMANDS_DoSectorLightFireFlicker( ULONG ulSector, LONG lMaxLight, LO
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 5 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DOSECTORLIGHTFIREFLICKER );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ulSector );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lMaxLight );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lMinLight );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DOSECTORLIGHTFIREFLICKER );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulSector );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lMaxLight );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lMinLight );
 	}
 }
 
@@ -3339,10 +3339,10 @@ void SERVERCOMMANDS_DoSectorLightFlicker( ULONG ulSector, LONG lMaxLight, LONG l
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DOSECTORLIGHTFLICKER );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ulSector );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lMaxLight );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lMinLight );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DOSECTORLIGHTFLICKER );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulSector );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lMaxLight );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lMinLight );
 	}
 }
 
@@ -3367,10 +3367,10 @@ void SERVERCOMMANDS_DoSectorLightLightFlash( ULONG ulSector, LONG lMaxLight, LON
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 5 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DOSECTORLIGHTLIGHTFLASH );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ulSector );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lMaxLight );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lMinLight );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DOSECTORLIGHTLIGHTFLASH );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulSector );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lMaxLight );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lMinLight );
 	}
 }
 
@@ -3395,13 +3395,13 @@ void SERVERCOMMANDS_DoSectorLightStrobe( ULONG ulSector, LONG lDarkTime, LONG lB
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 10 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DOSECTORLIGHTSTROBE );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ulSector );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lDarkTime );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lBrightTime );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lMaxLight );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lMinLight );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lCount );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DOSECTORLIGHTSTROBE );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulSector );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lDarkTime );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lBrightTime );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lMaxLight );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lMinLight );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lCount );
 	}
 }
 
@@ -3426,8 +3426,8 @@ void SERVERCOMMANDS_DoSectorLightGlow( ULONG ulSector, ULONG ulPlayerExtra, ULON
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DOSECTORLIGHTGLOW );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ulSector );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DOSECTORLIGHTGLOW );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulSector );
 	}
 }
 
@@ -3452,13 +3452,13 @@ void SERVERCOMMANDS_DoSectorLightGlow2( ULONG ulSector, LONG lStart, LONG lEnd, 
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 10 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DOSECTORLIGHTGLOW2 );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ulSector );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lStart );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lEnd );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lTics );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lMaxTics );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, bOneShot );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DOSECTORLIGHTGLOW2 );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulSector );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lStart );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lEnd );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lTics );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lMaxTics );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, bOneShot );
 	}
 }
 
@@ -3483,10 +3483,10 @@ void SERVERCOMMANDS_DoSectorLightPhased( ULONG ulSector, LONG lBaseLevel, LONG l
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 5 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DOSECTORLIGHTPHASED );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ulSector );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lBaseLevel );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lPhase );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DOSECTORLIGHTPHASED );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulSector );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lBaseLevel );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lPhase );
 	}
 }
 
@@ -3512,9 +3512,9 @@ void SERVERCOMMANDS_SetLineAlpha( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulFla
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 4 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETLINEALPHA );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ulLine );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lines[ulLine].alpha );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETLINEALPHA );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulLine );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lines[ulLine].alpha );
 	}
 }
 
@@ -3545,31 +3545,31 @@ void SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulF
 		if ( lines[ulLine].ulTexChangeFlags & TEXCHANGE_FRONTTOP )
 		{
 			NETWORK_CheckBuffer( ulIdx, 5 + 8 );
-			NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETLINETEXTURE );
-			NETWORK_WriteShort( &clients[ulIdx].netbuf, ulLine );
-			NETWORK_WriteString( &clients[ulIdx].netbuf, sides[lines[ulLine].sidenum[0]].toptexture ? TexMan[sides[lines[ulLine].sidenum[0]].toptexture]->Name : "-" );
-			NETWORK_WriteByte( &clients[ulIdx].netbuf, 0 );
-			NETWORK_WriteByte( &clients[ulIdx].netbuf, 0 );
+			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETLINETEXTURE );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulLine );
+			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, sides[lines[ulLine].sidenum[0]].toptexture ? TexMan[sides[lines[ulLine].sidenum[0]].toptexture]->Name : "-" );
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, 0 );
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, 0 );
 		}
 
 		if ( lines[ulLine].ulTexChangeFlags & TEXCHANGE_FRONTMEDIUM )
 		{
 			NETWORK_CheckBuffer( ulIdx, 5 + 8 );
-			NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETLINETEXTURE );
-			NETWORK_WriteShort( &clients[ulIdx].netbuf, ulLine );
-			NETWORK_WriteString( &clients[ulIdx].netbuf, sides[lines[ulLine].sidenum[0]].midtexture ? TexMan[sides[lines[ulLine].sidenum[0]].midtexture]->Name : "-" );
-			NETWORK_WriteByte( &clients[ulIdx].netbuf, 0 );
-			NETWORK_WriteByte( &clients[ulIdx].netbuf, 1 );
+			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETLINETEXTURE );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulLine );
+			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, sides[lines[ulLine].sidenum[0]].midtexture ? TexMan[sides[lines[ulLine].sidenum[0]].midtexture]->Name : "-" );
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, 0 );
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, 1 );
 		}
 
 		if ( lines[ulLine].ulTexChangeFlags & TEXCHANGE_FRONTBOTTOM )
 		{
 			NETWORK_CheckBuffer( ulIdx, 5 + 8 );
-			NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETLINETEXTURE );
-			NETWORK_WriteShort( &clients[ulIdx].netbuf, ulLine );
-			NETWORK_WriteString( &clients[ulIdx].netbuf, sides[lines[ulLine].sidenum[0]].bottomtexture ? TexMan[sides[lines[ulLine].sidenum[0]].bottomtexture]->Name : "-" );
-			NETWORK_WriteByte( &clients[ulIdx].netbuf, 0 );
-			NETWORK_WriteByte( &clients[ulIdx].netbuf, 2 );
+			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETLINETEXTURE );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulLine );
+			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, sides[lines[ulLine].sidenum[0]].bottomtexture ? TexMan[sides[lines[ulLine].sidenum[0]].bottomtexture]->Name : "-" );
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, 0 );
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, 2 );
 		}
 
 		if (( lines[ulLine].sidenum[1] == NO_INDEX ) || ( lines[ulLine].sidenum[1] >= (ULONG)numsides ))
@@ -3578,31 +3578,31 @@ void SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulF
 		if ( lines[ulLine].ulTexChangeFlags & TEXCHANGE_BACKTOP )
 		{
 			NETWORK_CheckBuffer( ulIdx, 5 + 8 );
-			NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETLINETEXTURE );
-			NETWORK_WriteShort( &clients[ulIdx].netbuf, ulLine );
-			NETWORK_WriteString( &clients[ulIdx].netbuf, sides[lines[ulLine].sidenum[1]].toptexture ? TexMan[sides[lines[ulLine].sidenum[1]].toptexture]->Name : "-" );
-			NETWORK_WriteByte( &clients[ulIdx].netbuf, 1 );
-			NETWORK_WriteByte( &clients[ulIdx].netbuf, 0 );
+			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETLINETEXTURE );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulLine );
+			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, sides[lines[ulLine].sidenum[1]].toptexture ? TexMan[sides[lines[ulLine].sidenum[1]].toptexture]->Name : "-" );
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, 1 );
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, 0 );
 		}
 
 		if ( lines[ulLine].ulTexChangeFlags & TEXCHANGE_BACKMEDIUM )
 		{
 			NETWORK_CheckBuffer( ulIdx, 5 + 8 );
-			NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETLINETEXTURE );
-			NETWORK_WriteShort( &clients[ulIdx].netbuf, ulLine );
-			NETWORK_WriteString( &clients[ulIdx].netbuf, sides[lines[ulLine].sidenum[1]].midtexture ? TexMan[sides[lines[ulLine].sidenum[1]].midtexture]->Name : "-" );
-			NETWORK_WriteByte( &clients[ulIdx].netbuf, 1 );
-			NETWORK_WriteByte( &clients[ulIdx].netbuf, 1 );
+			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETLINETEXTURE );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulLine );
+			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, sides[lines[ulLine].sidenum[1]].midtexture ? TexMan[sides[lines[ulLine].sidenum[1]].midtexture]->Name : "-" );
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, 1 );
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, 1 );
 		}
 
 		if ( lines[ulLine].ulTexChangeFlags & TEXCHANGE_BACKBOTTOM )
 		{
 			NETWORK_CheckBuffer( ulIdx, 5 + 8 );
-			NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETLINETEXTURE );
-			NETWORK_WriteShort( &clients[ulIdx].netbuf, ulLine );
-			NETWORK_WriteString( &clients[ulIdx].netbuf, sides[lines[ulLine].sidenum[1]].bottomtexture ? TexMan[sides[lines[ulLine].sidenum[1]].bottomtexture]->Name : "-" );
-			NETWORK_WriteByte( &clients[ulIdx].netbuf, 1 );
-			NETWORK_WriteByte( &clients[ulIdx].netbuf, 2 );
+			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETLINETEXTURE );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulLine );
+			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, sides[lines[ulLine].sidenum[1]].bottomtexture ? TexMan[sides[lines[ulLine].sidenum[1]].bottomtexture]->Name : "-" );
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, 1 );
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, 2 );
 		}
 	}
 }
@@ -3641,9 +3641,9 @@ void SERVERCOMMANDS_SetLineBlocking( ULONG ulLine, ULONG ulPlayerExtra, ULONG ul
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 7 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETLINEBLOCKING );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ulLine );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lBlockFlags );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETLINEBLOCKING );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulLine );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lBlockFlags );
 	}
 }
 
@@ -3666,11 +3666,11 @@ void SERVERCOMMANDS_Sound( LONG lChannel, char *pszSound, LONG lVolume, LONG lAt
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 4 + (ULONG)strlen( pszSound ));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SOUND );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lChannel );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszSound );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lVolume );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lAttenuation );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SOUND );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lChannel );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszSound );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lVolume );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lAttenuation );
 	}
 }
 
@@ -3692,13 +3692,13 @@ void SERVERCOMMANDS_SoundID( LONG lX, LONG lY, LONG lChannel, LONG lSoundID, LON
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 10 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SOUNDID );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lX >> FRACBITS );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lY >> FRACBITS );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lSoundID );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lChannel );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lVolume );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lAttenuation );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SOUNDID );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lX >> FRACBITS );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lY >> FRACBITS );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lSoundID );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lChannel );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lVolume );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lAttenuation );
 	}
 }
 
@@ -3723,12 +3723,12 @@ void SERVERCOMMANDS_SoundActor( AActor *pActor, LONG lChannel, char *pszSound, L
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 6 + (ULONG)strlen( pszSound ));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SOUNDACTOR );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->lNetID );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lChannel );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszSound );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lVolume );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lAttenuation );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SOUNDACTOR );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->lNetID );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lChannel );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszSound );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lVolume );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lAttenuation );
 	}
 }
 
@@ -3753,12 +3753,12 @@ void SERVERCOMMANDS_SoundIDActor( AActor *pActor, LONG lChannel, LONG lSoundID, 
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 8 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SOUNDIDACTOR );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pActor->lNetID );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lChannel );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lSoundID );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lVolume );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lAttenuation );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SOUNDIDACTOR );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pActor->lNetID );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lChannel );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lSoundID );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lVolume );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lAttenuation );
 	}
 }
 
@@ -3780,13 +3780,13 @@ void SERVERCOMMANDS_SoundPoint( LONG lX, LONG lY, LONG lChannel, char *pszSound,
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 8 + (ULONG)strlen( pszSound ));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SOUNDPOINT );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lX >> FRACBITS );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lY >> FRACBITS );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lChannel );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszSound );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lVolume );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lAttenuation );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SOUNDPOINT );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lX >> FRACBITS );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lY >> FRACBITS );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lChannel );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszSound );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lVolume );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lAttenuation );
 	}
 }
 
@@ -3814,9 +3814,9 @@ void SERVERCOMMANDS_StartSectorSequence( sector_t *pSector, char *pszSequence, U
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 + (ULONG)strlen( pszSequence ));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_STARTSECTORSEQUENCE );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lSectorID );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszSequence );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_STARTSECTORSEQUENCE );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lSectorID );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszSequence );
 	}
 }
 
@@ -3843,8 +3843,8 @@ void SERVERCOMMANDS_StopSectorSequence( sector_t *pSector, ULONG ulPlayerExtra, 
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_STOPSECTORSEQUENCE );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lSectorID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_STOPSECTORSEQUENCE );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lSectorID );
 	}
 }
 
@@ -3873,10 +3873,10 @@ void SERVERCOMMANDS_CallVote( ULONG ulPlayer, char *pszCommand, char *pszParamet
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 2 + (ULONG)strlen( pszCommand ) + (ULONG)strlen( pszParameters ));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_CALLVOTE );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPlayer );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszCommand );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszParameters );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_CALLVOTE );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPlayer );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszCommand );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszParameters );
 	}
 }
 
@@ -3901,9 +3901,9 @@ void SERVERCOMMANDS_PlayerVote( ULONG ulPlayer, bool bVoteYes, ULONG ulPlayerExt
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_PLAYERVOTE );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPlayer );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, bVoteYes );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_PLAYERVOTE );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPlayer );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, bVoteYes );
 	}
 }
 
@@ -3925,8 +3925,8 @@ void SERVERCOMMANDS_VoteEnded( bool bVotePassed, ULONG ulPlayerExtra, ULONG ulFl
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 2 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_VOTEENDED );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, bVotePassed );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_VOTEENDED );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, bVotePassed );
 	}
 }
 
@@ -3949,8 +3949,8 @@ void SERVERCOMMANDS_MapLoad( ULONG ulPlayerExtra, ULONG ulFlags )
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 1 + (ULONG)strlen( level.mapname ));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_MAPLOAD );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, level.mapname );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_MAPLOAD );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, level.mapname );
 	}
 }
 
@@ -3972,8 +3972,8 @@ void SERVERCOMMANDS_MapNew( char *pszMapName, ULONG ulPlayerExtra, ULONG ulFlags
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 1 + (ULONG)strlen( pszMapName ));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_MAPNEW );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszMapName );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_MAPNEW );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszMapName );
 	}
 }
 
@@ -3995,8 +3995,8 @@ void SERVERCOMMANDS_MapExit( LONG lPosition, ULONG ulPlayerExtra, ULONG ulFlags 
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 2 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_MAPEXIT );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lPosition );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_MAPEXIT );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lPosition );
 	}
 }
 
@@ -4018,8 +4018,8 @@ void SERVERCOMMANDS_MapAuthenticate( char *pszMapName, ULONG ulPlayerExtra, ULON
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 1 + (ULONG)strlen( pszMapName ));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_MAPAUTHENTICATE );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszMapName );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_MAPAUTHENTICATE );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszMapName );
 	}
 }
 
@@ -4041,8 +4041,8 @@ void SERVERCOMMANDS_SetMapTime( ULONG ulPlayerExtra, ULONG ulFlags )
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 5 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETMAPTIME );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, level.maptime );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETMAPTIME );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, level.maptime );
 	}
 }
 
@@ -4064,8 +4064,8 @@ void SERVERCOMMANDS_SetMapNumKilledMonsters( ULONG ulPlayerExtra, ULONG ulFlags 
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETMAPNUMKILLEDMONSTERS );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, level.killed_monsters );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETMAPNUMKILLEDMONSTERS );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, level.killed_monsters );
 	}
 }
 
@@ -4087,8 +4087,8 @@ void SERVERCOMMANDS_SetMapNumFoundItems( ULONG ulPlayerExtra, ULONG ulFlags )
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETMAPNUMFOUNDITEMS );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, level.found_items );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETMAPNUMFOUNDITEMS );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, level.found_items );
 	}
 }
 
@@ -4110,8 +4110,8 @@ void SERVERCOMMANDS_SetMapNumFoundSecrets( ULONG ulPlayerExtra, ULONG ulFlags )
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETMAPNUMFOUNDSECRETS );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, level.found_secrets );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETMAPNUMFOUNDSECRETS );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, level.found_secrets );
 	}
 }
 
@@ -4133,8 +4133,8 @@ void SERVERCOMMANDS_SetMapNumTotalMonsters( ULONG ulPlayerExtra, ULONG ulFlags )
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETMAPNUMTOTALMONSTERS );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, level.total_monsters );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETMAPNUMTOTALMONSTERS );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, level.total_monsters );
 	}
 }
 
@@ -4156,8 +4156,8 @@ void SERVERCOMMANDS_SetMapNumTotalItems( ULONG ulPlayerExtra, ULONG ulFlags )
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETMAPNUMTOTALITEMS );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, level.total_items );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETMAPNUMTOTALITEMS );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, level.total_items );
 	}
 }
 
@@ -4179,8 +4179,8 @@ void SERVERCOMMANDS_SetMapMusic( char *pszMusic, ULONG ulPlayerExtra, ULONG ulFl
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 1 + (ULONG)strlen( pszMusic ));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETMAPMUSIC );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszMusic );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETMAPMUSIC );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszMusic );
 	}
 }
 
@@ -4202,9 +4202,9 @@ void SERVERCOMMANDS_SetMapSky( ULONG ulPlayerExtra, ULONG ulFlags )
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 1 + (ULONG)strlen( level.skypic1 ) + (ULONG)strlen( level.skypic2 ));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETMAPSKY );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, level.skypic1 );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, level.skypic2 );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETMAPSKY );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, level.skypic1 );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, level.skypic2 );
 	}
 }
 
@@ -4233,10 +4233,10 @@ void SERVERCOMMANDS_GiveInventory( ULONG ulPlayer, AInventory *pInventory, ULONG
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 4 + (ULONG)strlen( pInventory->GetClass( )->TypeName.GetChars( )));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_GIVEINVENTORY );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPlayer );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, (char *)pInventory->GetClass( )->TypeName.GetChars( ));
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pInventory->Amount );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_GIVEINVENTORY );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPlayer );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, (char *)pInventory->GetClass( )->TypeName.GetChars( ));
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pInventory->Amount );
 	}
 }
 
@@ -4261,10 +4261,10 @@ void SERVERCOMMANDS_TakeInventory( ULONG ulPlayer, char *pszClassName, ULONG ulA
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 4 + (ULONG)strlen( pszClassName ));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_TAKEINVENTORY );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPlayer );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszClassName );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, ulAmount );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_TAKEINVENTORY );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPlayer );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszClassName );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, ulAmount );
 	}
 }
 
@@ -4292,12 +4292,12 @@ void SERVERCOMMANDS_GivePowerup( ULONG ulPlayer, APowerup *pPowerup, ULONG ulPla
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 4 + (ULONG)strlen( pPowerup->GetClass( )->TypeName.GetChars( )));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_GIVEPOWERUP );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPlayer );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, (char *)pPowerup->GetClass( )->TypeName.GetChars( ));
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_GIVEPOWERUP );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPlayer );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, (char *)pPowerup->GetClass( )->TypeName.GetChars( ));
 		// Can we have multiple amounts of a powerup? Probably not, but I'll be safe for now.
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pPowerup->Amount );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pPowerup->EffectTics );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pPowerup->Amount );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pPowerup->EffectTics );
 	}
 }
 
@@ -4329,10 +4329,10 @@ void SERVERCOMMANDS_DoInventoryPickup( ULONG ulPlayer, char *pszClassName, char 
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 2 + lLength );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DOINVENTORYPICKUP );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPlayer );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszClassName );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszPickupMessage );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DOINVENTORYPICKUP );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPlayer );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszClassName );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszPickupMessage );
 	}
 }
 
@@ -4354,8 +4354,8 @@ void SERVERCOMMANDS_DestroyAllInventory( ULONG ulPlayer, ULONG ulPlayerExtra, UL
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 2 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DESTROYALLINVENTORY );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPlayer );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DESTROYALLINVENTORY );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPlayer );
 	}
 }
 
@@ -4389,12 +4389,12 @@ void SERVERCOMMANDS_DoDoor( sector_t *pSector, LONG lSpeed, LONG lDirection, LON
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 12 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DODOOR );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lSectorID );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lSpeed );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lDirection );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lLightTag );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DODOOR );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lSectorID );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lSpeed );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lDirection );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lLightTag );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lID );
 	}
 }
 
@@ -4416,8 +4416,8 @@ void SERVERCOMMANDS_DestroyDoor( LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DESTROYDOOR );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DESTROYDOOR );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lID );
 	}
 }
 
@@ -4445,9 +4445,9 @@ void SERVERCOMMANDS_ChangeDoorDirection( LONG lID, LONG lDirection, ULONG ulPlay
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 4 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_CHANGEDOORDIRECTION );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lID );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lDirection );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_CHANGEDOORDIRECTION );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lID );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lDirection );
 	}
 }
 
@@ -4481,13 +4481,13 @@ void SERVERCOMMANDS_DoFloor( DFloor::EFloor Type, sector_t *pSector, LONG lDirec
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 15 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DOFLOOR );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, (ULONG)Type );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lSectorID );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lDirection );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lSpeed );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lFloorDestDist );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DOFLOOR );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, (ULONG)Type );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lSectorID );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lDirection );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lSpeed );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lFloorDestDist );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lID );
 	}
 }
 
@@ -4509,8 +4509,8 @@ void SERVERCOMMANDS_DestroyFloor( LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DESTROYFLOOR );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DESTROYFLOOR );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lID );
 	}
 }
 
@@ -4538,9 +4538,9 @@ void SERVERCOMMANDS_ChangeFloorDirection( LONG lID, LONG lDirection, ULONG ulPla
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 4 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_CHANGEFLOORDIRECTION );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lID );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lDirection );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_CHANGEFLOORDIRECTION );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lID );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lDirection );
 	}
 }
 
@@ -4562,9 +4562,9 @@ void SERVERCOMMANDS_ChangeFloorType( LONG lID, DFloor::EFloor Type, ULONG ulPlay
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 4 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_CHANGEFLOORTYPE );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lID );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, (ULONG)Type );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_CHANGEFLOORTYPE );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lID );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, (ULONG)Type );
 	}
 }
 
@@ -4586,9 +4586,9 @@ void SERVERCOMMANDS_ChangeFloorDestDist( LONG lID, LONG lFloorDestDist, ULONG ul
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 7 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_CHANGEFLOORDESTDIST );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lID );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lFloorDestDist );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_CHANGEFLOORDESTDIST );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lID );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lFloorDestDist );
 	}
 }
 
@@ -4610,8 +4610,8 @@ void SERVERCOMMANDS_StartFloorSound( LONG lID, ULONG ulPlayerExtra, ULONG ulFlag
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_STARTFLOORSOUND );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_STARTFLOORSOUND );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lID );
 	}
 }
 
@@ -4645,16 +4645,16 @@ void SERVERCOMMANDS_DoCeiling( DCeiling::ECeiling Type, sector_t *pSector, LONG 
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 22 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DOCEILING );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, (ULONG)Type );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lSectorID );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lDirection );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lBottomHeight );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lTopHeight );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lSpeed );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ( lCrush == 1 ));
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, bSilent );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DOCEILING );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, (ULONG)Type );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lSectorID );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lDirection );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lBottomHeight );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lTopHeight );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lSpeed );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ( lCrush == 1 ));
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, bSilent );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lID );
 	}
 }
 
@@ -4676,8 +4676,8 @@ void SERVERCOMMANDS_DestroyCeiling( LONG lID, ULONG ulPlayerExtra, ULONG ulFlags
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DESTROYCEILING );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DESTROYCEILING );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lID );
 	}
 }
 
@@ -4705,9 +4705,9 @@ void SERVERCOMMANDS_ChangeCeilingDirection( LONG lID, LONG lDirection, ULONG ulP
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 4 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_CHANGECEILINGDIRECTION );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lID );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lDirection );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_CHANGECEILINGDIRECTION );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lID );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lDirection );
 	}
 }
 
@@ -4729,9 +4729,9 @@ void SERVERCOMMANDS_ChangeCeilingSpeed( LONG lID, LONG lSpeed, ULONG ulPlayerExt
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 7 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_CHANGECEILINGSPEED );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lID );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lSpeed );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_CHANGECEILINGSPEED );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lID );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lSpeed );
 	}
 }
 
@@ -4753,8 +4753,8 @@ void SERVERCOMMANDS_PlayCeilingSound( LONG lID, ULONG ulPlayerExtra, ULONG ulFla
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_PLAYCEILINGSOUND );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_PLAYCEILINGSOUND );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lID );
 	}
 }
 
@@ -4782,14 +4782,14 @@ void SERVERCOMMANDS_DoPlat( DPlat::EPlatType Type, sector_t *pSector, DPlat::EPl
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 19 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DOPLAT );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, (ULONG)Type );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lSectorID );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, (ULONG)Status );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lHigh );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lLow );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lSpeed );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DOPLAT );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, (ULONG)Type );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lSectorID );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, (ULONG)Status );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lHigh );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lLow );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lSpeed );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lID );
 	}
 }
 
@@ -4811,8 +4811,8 @@ void SERVERCOMMANDS_DestroyPlat( LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DESTROYPLAT );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DESTROYPLAT );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lID );
 	}
 }
 
@@ -4834,9 +4834,9 @@ void SERVERCOMMANDS_ChangePlatStatus( LONG lID, DPlat::EPlatState Status, ULONG 
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 4 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_CHANGEPLATSTATUS );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lID );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, (ULONG)Status );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_CHANGEPLATSTATUS );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lID );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, (ULONG)Status );
 	}
 }
 
@@ -4858,9 +4858,9 @@ void SERVERCOMMANDS_PlayPlatSound( LONG lID, LONG lSound, ULONG ulPlayerExtra, U
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 4 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_PLAYPLATSOUND );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lID );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lSound );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_PLAYPLATSOUND );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lID );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lSound );
 	}
 }
 
@@ -4894,14 +4894,14 @@ void SERVERCOMMANDS_DoElevator( DElevator::EElevator Type, sector_t *pSector, LO
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 13 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DOELEVATOR );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, Type );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lSectorID );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lSpeed );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lDirection );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lFloorDestDist );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lCeilingDestDist );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DOELEVATOR );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, Type );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lSectorID );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lSpeed );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lDirection );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lFloorDestDist );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lCeilingDestDist );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lID );
 	}
 }
 
@@ -4923,8 +4923,8 @@ void SERVERCOMMANDS_DestroyElevator( LONG lID, ULONG ulPlayerExtra, ULONG ulFlag
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DESTROYELEVATOR );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DESTROYELEVATOR );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lID );
 	}
 }
 
@@ -4946,8 +4946,8 @@ void SERVERCOMMANDS_StartElevatorSound( LONG lID, ULONG ulPlayerExtra, ULONG ulF
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_STARTELEVATORSOUND );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_STARTELEVATORSOUND );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lID );
 	}
 }
 
@@ -4975,14 +4975,14 @@ void SERVERCOMMANDS_DoPillar( DPillar::EPillar Type, sector_t *pSector, LONG lFl
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 22 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DOPILLAR );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, Type );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lSectorID );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lFloorSpeed );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lCeilingSpeed );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lFloorTarget );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lCeilingTarget );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DOPILLAR );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, Type );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lSectorID );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lFloorSpeed );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lCeilingSpeed );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lFloorTarget );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lCeilingTarget );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lID );
 	}
 }
 
@@ -5004,8 +5004,8 @@ void SERVERCOMMANDS_DestroyPillar( LONG lID, ULONG ulPlayerExtra, ULONG ulFlags 
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DESTROYPILLAR );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DESTROYPILLAR );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lID );
 	}
 }
 
@@ -5033,18 +5033,18 @@ void SERVERCOMMANDS_DoWaggle( bool bCeiling, sector_t *pSector, LONG lOriginalDi
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 35 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DOWAGGLE );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, !!bCeiling );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lSectorID );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lOriginalDistance );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lAccumulator );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lAccelerationDelta );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lTargetScale );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lScale );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lScaleDelta );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lTicker );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lState );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DOWAGGLE );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, !!bCeiling );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lSectorID );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lOriginalDistance );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lAccumulator );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lAccelerationDelta );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lTargetScale );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lScale );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lScaleDelta );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lTicker );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lState );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lID );
 	}
 }
 
@@ -5066,8 +5066,8 @@ void SERVERCOMMANDS_DestroyWaggle( LONG lID, ULONG ulPlayerExtra, ULONG ulFlags 
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DESTROYWAGGLE );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lID );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DESTROYWAGGLE );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lID );
 	}
 }
 
@@ -5089,9 +5089,9 @@ void SERVERCOMMANDS_UpdateWaggle( LONG lID, LONG lAccumulator, ULONG ulPlayerExt
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 7 );
-		NETWORK_WriteHeader( &clients[ulIdx].UnreliablePacketBuffer, SVC_UPDATEWAGGLE );
-		NETWORK_WriteShort( &clients[ulIdx].UnreliablePacketBuffer, lID );
-		NETWORK_WriteLong( &clients[ulIdx].UnreliablePacketBuffer, lAccumulator );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer, SVC_UPDATEWAGGLE );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer, lID );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer, lAccumulator );
 	}
 }
 
@@ -5114,9 +5114,9 @@ void SERVERCOMMANDS_DoRotatePoly( LONG lSpeed, LONG lPolyNum, ULONG ulPlayerExtr
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 7 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DOROTATEPOLY );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lSpeed );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lPolyNum );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DOROTATEPOLY );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lSpeed );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lPolyNum );
 	}
 }
 
@@ -5138,8 +5138,8 @@ void SERVERCOMMANDS_DestroyRotatePoly( LONG lPolyNum, ULONG ulPlayerExtra, ULONG
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DESTROYROTATEPOLY );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lPolyNum );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DESTROYROTATEPOLY );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lPolyNum );
 	}
 }
 
@@ -5162,10 +5162,10 @@ void SERVERCOMMANDS_DoMovePoly( LONG lXSpeed, LONG lYSpeed, LONG lPolyNum, ULONG
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 11 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DOMOVEPOLY );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lXSpeed );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lYSpeed );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lPolyNum );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DOMOVEPOLY );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lXSpeed );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lYSpeed );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lPolyNum );
 	}
 }
 
@@ -5187,8 +5187,8 @@ void SERVERCOMMANDS_DestroyMovePoly( LONG lPolyNum, ULONG ulPlayerExtra, ULONG u
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DESTROYMOVEPOLY );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lPolyNum );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DESTROYMOVEPOLY );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lPolyNum );
 	}
 }
 
@@ -5211,12 +5211,12 @@ void SERVERCOMMANDS_DoPolyDoor( LONG lType, LONG lXSpeed, LONG lYSpeed, LONG lSp
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 16 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DOPOLYDOOR );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lType );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lXSpeed );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lYSpeed );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lSpeed );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lPolyNum );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DOPOLYDOOR );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lType );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lXSpeed );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lYSpeed );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lSpeed );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lPolyNum );
 	}
 }
 
@@ -5238,8 +5238,8 @@ void SERVERCOMMANDS_DestroyPolyDoor( LONG lPolyNum, ULONG ulPlayerExtra, ULONG u
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DESTROYPOLYDOOR );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lPolyNum );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DESTROYPOLYDOOR );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lPolyNum );
 	}
 }
 
@@ -5261,12 +5261,12 @@ void SERVERCOMMANDS_SetPolyDoorSpeedPosition( LONG lPolyNum, LONG lXSpeed, LONG 
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 19 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETPOLYDOORSPEEDPOSITION );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lPolyNum );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lXSpeed );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lYSpeed );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lX );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lY );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETPOLYDOORSPEEDPOSITION );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lPolyNum );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lXSpeed );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lYSpeed );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lX );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lY );
 	}
 }
 
@@ -5289,9 +5289,9 @@ void SERVERCOMMANDS_PlayPolyobjSound( LONG lPolyNum, NETWORK_POLYOBJSOUND_e Soun
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 4 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_PLAYPOLYOBJSOUND );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lPolyNum );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, (ULONG)Sound );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_PLAYPOLYOBJSOUND );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lPolyNum );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, (ULONG)Sound );
 	}
 }
 
@@ -5318,10 +5318,10 @@ void SERVERCOMMANDS_SetPolyobjPosition( LONG lPolyNum, ULONG ulPlayerExtra, ULON
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 11 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETPOLYOBJPOSITION );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lPolyNum );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, pPoly->startSpot[0] );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, pPoly->startSpot[1] );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETPOLYOBJPOSITION );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lPolyNum );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, pPoly->startSpot[0] );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, pPoly->startSpot[1] );
 	}
 }
 
@@ -5348,9 +5348,9 @@ void SERVERCOMMANDS_SetPolyobjRotation( LONG lPolyNum, ULONG ulPlayerExtra, ULON
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 7 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETPOLYOBJROTATION );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lPolyNum );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, pPoly->angle );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETPOLYOBJROTATION );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lPolyNum );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, pPoly->angle );
 	}
 }
 
@@ -5376,11 +5376,11 @@ void SERVERCOMMANDS_Earthquake( AActor *pCenter, LONG lIntensity, LONG lDuration
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 6 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_EARTHQUAKE );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pCenter->lNetID );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lIntensity );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lDuration );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lTemorRadius );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_EARTHQUAKE );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pCenter->lNetID );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lIntensity );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lDuration );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lTemorRadius );
 	}
 }
 
@@ -5406,8 +5406,8 @@ void SERVERCOMMANDS_SetQueuePosition( ULONG ulPlayerExtra, ULONG ulFlags )
 		if ( lPosition != -1 )
 		{
 			NETWORK_CheckBuffer( ulIdx, 2 );
-			NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETQUEUEPOSITION );
-			NETWORK_WriteByte( &clients[ulIdx].netbuf, lPosition );
+			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETQUEUEPOSITION );
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lPosition );
 		}
 	}
 }
@@ -5430,11 +5430,11 @@ void SERVERCOMMANDS_DoScroller( LONG lType, LONG lXSpeed, LONG lYSpeed, LONG lAf
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 8 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_DOSCROLLER );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lType );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lXSpeed );
-		NETWORK_WriteLong( &clients[ulIdx].netbuf, lYSpeed );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, lAffectee );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_DOSCROLLER );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lType );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lXSpeed );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer, lYSpeed );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, lAffectee );
 	}
 }
 
@@ -5459,9 +5459,9 @@ void SERVERCOMMANDS_GenericCheat( ULONG ulPlayer, ULONG ulCheat, ULONG ulPlayerE
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 );
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_GENERICCHEAT );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulPlayer );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, ulCheat );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_GENERICCHEAT );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulPlayer );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, ulCheat );
 	}
 }
 
@@ -5489,9 +5489,9 @@ void SERVERCOMMANDS_SetCameraToTexture( AActor *pCamera, char *pszTexture, LONG 
 		}
 
 		NETWORK_CheckBuffer( ulIdx, 3 + (ULONG)strlen( pszTexture ));
-		NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_SETCAMERATOTEXTURE );
-		NETWORK_WriteShort( &clients[ulIdx].netbuf, pCamera->lNetID );
-		NETWORK_WriteString( &clients[ulIdx].netbuf, pszTexture );
-		NETWORK_WriteByte( &clients[ulIdx].netbuf, lFOV );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer, SVC_SETCAMERATOTEXTURE );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer, pCamera->lNetID );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer, pszTexture );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer, lFOV );
 	}
 }

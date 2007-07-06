@@ -53,7 +53,7 @@
 //		arg[2]: This delays the spawn of this item from the start of the round this number of ticks. (NOTE: If this is set to 255, the monster will spawn after all other monsters are killed).
 //		arg[3]: This is the first wave this item should spawn in (this can be left at 0).
 //		arg[4]: This is the maximum number of items that can be spawned from this spawner in a round.
-
+//
 //-----------------------------------------------------------------------------
 
 #include "actor.h"
@@ -61,6 +61,7 @@
 #include "cooperative.h"
 #include "g_game.h"
 #include "gi.h"
+#include "i_system.h"
 #include "invasion.h"
 #include "m_png.h"
 #include "m_random.h"
@@ -68,6 +69,7 @@
 #include "p_local.h"
 #include "sbar.h"
 #include "sv_commands.h"
+#include "thingdef.h"
 #include "v_video.h"
 
 void	SERVERCONSOLE_UpdateScoreboard( );
@@ -226,25 +228,56 @@ END_DEFAULTS
 
 //*****************************************************************************
 //*****************************************************************************
-class AGenericMonsterInvasionSpot : public ABaseMonsterInvasionSpot
+class ACustomMonsterInvasionSpot : public ABaseMonsterInvasionSpot
 {
-	DECLARE_STATELESS_ACTOR( AGenericMonsterInvasionSpot, ABaseMonsterInvasionSpot )
+	DECLARE_STATELESS_ACTOR( ACustomMonsterInvasionSpot, ABaseMonsterInvasionSpot )
 public:
 
 	virtual char	*GetSpawnName( void );
-
-	char	szSpawnName[32];
 };
 
 //*****************************************************************************
 //
-char *AGenericMonsterInvasionSpot::GetSpawnName( void )
+char *ACustomMonsterInvasionSpot::GetSpawnName( void )
 {
-	return ( szSpawnName );
+	ULONG		ulNumDropItems;
+	FDropItem	*pDropItem;
+
+	ulNumDropItems = 0;
+
+	pDropItem = GetDropItems( this );
+	while ( pDropItem )
+	{
+		if ( pDropItem->Name != NAME_None )
+			ulNumDropItems++;
+
+		pDropItem = pDropItem->Next;
+	}
+
+	if ( ulNumDropItems == 0 )
+		I_Error( "Custom monster invasion spot has no defined monsters!" );
+
+	ulNumDropItems = M_Random( ) % ( ulNumDropItems );
+	
+	pDropItem = GetDropItems( this );
+	while ( pDropItem )
+	{
+		if ( pDropItem->Name != NAME_None )
+		{
+			if ( ulNumDropItems == 0 )
+				return ( (char *)pDropItem->Name.GetChars( ));
+			else
+				ulNumDropItems--;
+		}
+
+		pDropItem = pDropItem->Next;
+	}
+
+	return ( NULL );
 }
 
 //*****************************************************************************
-IMPLEMENT_STATELESS_ACTOR( AGenericMonsterInvasionSpot, Any, 5200, 0 )
+IMPLEMENT_STATELESS_ACTOR( ACustomMonsterInvasionSpot, Any, -1, 0 )
 	PROP_Flags( MF_NOBLOCKMAP|MF_NOSECTOR|MF_NOGRAVITY )
 	PROP_RenderStyle( STYLE_None )
 END_DEFAULTS
@@ -1200,6 +1233,62 @@ void ABasePickupInvasionSpot::PickedUp( void )
 
 //*****************************************************************************
 IMPLEMENT_STATELESS_ACTOR( ABasePickupInvasionSpot, Any, -1, 0 )
+	PROP_Flags( MF_NOBLOCKMAP|MF_NOSECTOR|MF_NOGRAVITY )
+	PROP_RenderStyle( STYLE_None )
+END_DEFAULTS
+
+//*****************************************************************************
+//*****************************************************************************
+class ACustomPickupInvasionSpot : public ABasePickupInvasionSpot
+{
+	DECLARE_STATELESS_ACTOR( ACustomPickupInvasionSpot, ABasePickupInvasionSpot )
+public:
+
+	virtual char	*GetSpawnName( void );
+};
+
+//*****************************************************************************
+//
+char *ACustomPickupInvasionSpot::GetSpawnName( void )
+{
+	ULONG		ulNumDropItems;
+	FDropItem	*pDropItem;
+
+	ulNumDropItems = 0;
+
+	pDropItem = GetDropItems( this );
+	while ( pDropItem )
+	{
+		if ( pDropItem->Name != NAME_None )
+			ulNumDropItems++;
+
+		pDropItem = pDropItem->Next;
+	}
+
+	if ( ulNumDropItems == 0 )
+		I_Error( "Custom monster invasion spot has no defined monsters!" );
+
+	ulNumDropItems = M_Random( ) % ( ulNumDropItems );
+	
+	pDropItem = GetDropItems( this );
+	while ( pDropItem )
+	{
+		if ( pDropItem->Name != NAME_None )
+		{
+			if ( ulNumDropItems == 0 )
+				return ( (char *)pDropItem->Name.GetChars( ));
+			else
+				ulNumDropItems--;
+		}
+
+		pDropItem = pDropItem->Next;
+	}
+
+	return ( NULL );
+}
+
+//*****************************************************************************
+IMPLEMENT_STATELESS_ACTOR( ACustomPickupInvasionSpot, Any, -1, 0 )
 	PROP_Flags( MF_NOBLOCKMAP|MF_NOSECTOR|MF_NOGRAVITY )
 	PROP_RenderStyle( STYLE_None )
 END_DEFAULTS
@@ -2258,6 +2347,61 @@ void ABaseWeaponInvasionSpot::Serialize( FArchive &arc )
 
 //*****************************************************************************
 IMPLEMENT_STATELESS_ACTOR( ABaseWeaponInvasionSpot, Any, -1, 0 )
+	PROP_Flags( MF_NOBLOCKMAP|MF_NOSECTOR|MF_NOGRAVITY )
+	PROP_RenderStyle( STYLE_None )
+END_DEFAULTS
+
+//*****************************************************************************
+class ACustomWeaponInvasionSpot : public ABaseWeaponInvasionSpot
+{
+	DECLARE_STATELESS_ACTOR( ACustomWeaponInvasionSpot, ABaseWeaponInvasionSpot )
+public:
+
+	virtual char	*GetSpawnName( void );
+};
+
+//*****************************************************************************
+//
+char *ACustomWeaponInvasionSpot::GetSpawnName( void )
+{
+	ULONG		ulNumDropItems;
+	FDropItem	*pDropItem;
+
+	ulNumDropItems = 0;
+
+	pDropItem = GetDropItems( this );
+	while ( pDropItem )
+	{
+		if ( pDropItem->Name != NAME_None )
+			ulNumDropItems++;
+
+		pDropItem = pDropItem->Next;
+	}
+
+	if ( ulNumDropItems == 0 )
+		I_Error( "Custom monster invasion spot has no defined monsters!" );
+
+	ulNumDropItems = M_Random( ) % ( ulNumDropItems );
+	
+	pDropItem = GetDropItems( this );
+	while ( pDropItem )
+	{
+		if ( pDropItem->Name != NAME_None )
+		{
+			if ( ulNumDropItems == 0 )
+				return ( (char *)pDropItem->Name.GetChars( ));
+			else
+				ulNumDropItems--;
+		}
+
+		pDropItem = pDropItem->Next;
+	}
+
+	return ( NULL );
+}
+
+//*****************************************************************************
+IMPLEMENT_STATELESS_ACTOR( ACustomWeaponInvasionSpot, Any, -1, 0 )
 	PROP_Flags( MF_NOBLOCKMAP|MF_NOSECTOR|MF_NOGRAVITY )
 	PROP_RenderStyle( STYLE_None )
 END_DEFAULTS

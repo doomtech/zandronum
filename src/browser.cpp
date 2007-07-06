@@ -61,28 +61,28 @@
 //	VARIABLES
 
 // List of all parsed servers.
-static	SERVER_t	g_BrowserServerList[MAX_BROWSER_SERVERS];
+static	SERVER_t		g_BrowserServerList[MAX_BROWSER_SERVERS];
 
 // Address of master server.
-static	netadr_t	g_AddressMasterServer;
+static	NETADDRESS_s	g_AddressMasterServer;
 
 // Message buffer for sending messages to the master server.
-static	sizebuf_t	g_MasterServerBuffer;
+static	NETBUFFER_s		g_MasterServerBuffer;
 
 // Message buffer for sending messages to each individual server.
-static	sizebuf_t	g_ServerBuffer;
+static	NETBUFFER_s		g_ServerBuffer;
 
 // Port the master server is located on.
-static	LONG		g_lMasterPort;
+static	USHORT			g_usMasterPort;
 
 // Are we waiting for master server response?
-static	bool		g_bWaitingForMasterResponse;
+static	bool			g_bWaitingForMasterResponse;
 
 //*****************************************************************************
 //	PROTOTYPES
 
 static	LONG	browser_GetNewListID( void );
-static	LONG	browser_GetListIDByAddress( netadr_t Address );
+static	LONG	browser_GetListIDByAddress( NETADDRESS_s Address );
 static	void	browser_QueryServer( ULONG ulServer );
 
 //*****************************************************************************
@@ -106,11 +106,11 @@ void BROWSER_Construct( void )
 	pszPort = Args.CheckValue( "-masterport" );
     if ( pszPort )
     {
-       g_lMasterPort = atoi( pszPort );
-       Printf( PRINT_HIGH, "Alternate master server port: %d.\n", g_lMasterPort );
+       g_usMasterPort = atoi( pszPort );
+       Printf( PRINT_HIGH, "Alternate master server port: %d.\n", g_usMasterPort );
     }
 	else 
-	   g_lMasterPort = DEFAULT_MASTER_PORT;
+	   g_usMasterPort = DEFAULT_MASTER_PORT;
 
 	// Initialize the browser list.
 	BROWSER_ClearServerList( );
@@ -139,17 +139,17 @@ bool BROWSER_IsLAN( ULONG ulServer )
 
 //*****************************************************************************
 //
-netadr_t BROWSER_GetAddress( ULONG ulServer )
+NETADDRESS_s BROWSER_GetAddress( ULONG ulServer )
 {
 	if (( ulServer >= MAX_BROWSER_SERVERS ) || ( g_BrowserServerList[ulServer].ulActiveState != AS_ACTIVE ))
 	{
-		netadr_t	Dummy;
+		NETADDRESS_s	Dummy;
 
-		Dummy.ip[0] = 0;
-		Dummy.ip[1] = 0;
-		Dummy.ip[2] = 0;
-		Dummy.ip[3] = 0;
-		Dummy.port = 0;
+		Dummy.abIP[0] = 0;
+		Dummy.abIP[1] = 0;
+		Dummy.abIP[2] = 0;
+		Dummy.abIP[3] = 0;
+		Dummy.usPort = 0;
 
 		return ( Dummy );
 	}
@@ -340,11 +340,11 @@ void BROWSER_ClearServerList( void )
 	{
 		g_BrowserServerList[ulIdx].ulActiveState = AS_INACTIVE;
 
-		g_BrowserServerList[ulIdx].Address.ip[0] = 0;
-		g_BrowserServerList[ulIdx].Address.ip[1] = 0;
-		g_BrowserServerList[ulIdx].Address.ip[2] = 0;
-		g_BrowserServerList[ulIdx].Address.ip[3] = 0;
-		g_BrowserServerList[ulIdx].Address.port = 0;
+		g_BrowserServerList[ulIdx].Address.abIP[0] = 0;
+		g_BrowserServerList[ulIdx].Address.abIP[1] = 0;
+		g_BrowserServerList[ulIdx].Address.abIP[2] = 0;
+		g_BrowserServerList[ulIdx].Address.abIP[3] = 0;
+		g_BrowserServerList[ulIdx].Address.usPort = 0;
 	}
 }
 
@@ -381,11 +381,11 @@ void BROWSER_GetServerList( void )
 		g_BrowserServerList[ulServer].ulActiveState = AS_WAITINGFORREPLY;
 
 		// Read in address information.
-		g_BrowserServerList[ulServer].Address.ip[0] = NETWORK_ReadByte( );
-		g_BrowserServerList[ulServer].Address.ip[1] = NETWORK_ReadByte( );
-		g_BrowserServerList[ulServer].Address.ip[2] = NETWORK_ReadByte( );
-		g_BrowserServerList[ulServer].Address.ip[3] = NETWORK_ReadByte( );
-		g_BrowserServerList[ulServer].Address.port = htons( NETWORK_ReadShort( ));
+		g_BrowserServerList[ulServer].Address.abIP[0] = NETWORK_ReadByte( );
+		g_BrowserServerList[ulServer].Address.abIP[1] = NETWORK_ReadByte( );
+		g_BrowserServerList[ulServer].Address.abIP[2] = NETWORK_ReadByte( );
+		g_BrowserServerList[ulServer].Address.abIP[3] = NETWORK_ReadByte( );
+		g_BrowserServerList[ulServer].Address.usPort = htons( NETWORK_ReadShort( ));
 	}
 }
 
@@ -403,7 +403,7 @@ void BROWSER_ParseServerQuery( bool bLAN )
 	ULONG		ulFlags;
 	bool		bResortList = true;
 
-	lServer = browser_GetListIDByAddress( g_AddressFrom );
+	lServer = browser_GetListIDByAddress( NETWORK_GetFromAddress( ));
 
 	// If this is a LAN server and it's already on the list, there's no
 	// need to resort the server list.
@@ -597,7 +597,7 @@ void BROWSER_ParseServerQuery( bool bLAN )
 	if ( bLAN )
 	{
 		// If this is a LAN server, the IP address has not be set up yet.
-		g_BrowserServerList[lServer].Address = g_AddressFrom;
+		g_BrowserServerList[lServer].Address = NETWORK_GetFromAddress( );
 		g_BrowserServerList[lServer].lPing = 0;
 	}
 	else
@@ -783,7 +783,7 @@ void BROWSER_QueryMasterServer( void )
 
 	// Setup the master server IP.
 	NETWORK_StringToAddress( cl_masterip.GetGenericRep( CVAR_String ).String, &g_AddressMasterServer );
-	I_SetPort( g_AddressMasterServer, g_lMasterPort );
+	NETWORK_SetAddressPort( g_AddressMasterServer, g_usMasterPort );
 
 	// Clear out the buffer, and write out launcher challenge.
 	NETWORK_ClearBuffer( &g_MasterServerBuffer );
@@ -849,7 +849,7 @@ static LONG browser_GetNewListID( void )
 
 //*****************************************************************************
 //
-static LONG browser_GetListIDByAddress( netadr_t Address )
+static LONG browser_GetListIDByAddress( NETADDRESS_s Address )
 {
 	ULONG	ulIdx;
 
@@ -901,7 +901,7 @@ CCMD( dumpserverlist )
 
 	for ( ulIdx = 0; ulIdx < MAX_BROWSER_SERVERS; ulIdx++ )
 	{
-		if ( g_BrowserServerList[ulIdx].ulActiveState == AS_ACTIVE )
+		if ( g_BrowserServerList[ulIdx].ulActiveState != AS_ACTIVE )
 			continue;
 
 		Printf( "\nServer #%d\n----------------\n", ulIdx );

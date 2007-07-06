@@ -428,9 +428,9 @@ static char serverban_SkipComment( FILE *pFile )
 //
 static bool serverban_ParseNextLine( FILE *pFile )
 {
-	netadr_t	BanAddress;
-	char		szIP[256];
-	char		lPosition;
+	NETADDRESS_s	BanAddress;
+	char			szIP[256];
+	char			lPosition;
 
 	lPosition = 0;
 	szIP[0] = 0;
@@ -474,10 +474,10 @@ static bool serverban_ParseNextLine( FILE *pFile )
 						return ( false );
 					}
 
-					itoa( BanAddress.ip[0], g_ServerBans[g_lBanIdx].szBannedIP[0], 10 );
-					itoa( BanAddress.ip[1], g_ServerBans[g_lBanIdx].szBannedIP[1], 10 );
-					itoa( BanAddress.ip[2], g_ServerBans[g_lBanIdx].szBannedIP[2], 10 );
-					itoa( BanAddress.ip[3], g_ServerBans[g_lBanIdx].szBannedIP[3], 10 );
+					itoa( BanAddress.abIP[0], g_ServerBans[g_lBanIdx].szBannedIP[0], 10 );
+					itoa( BanAddress.abIP[1], g_ServerBans[g_lBanIdx].szBannedIP[1], 10 );
+					itoa( BanAddress.abIP[2], g_ServerBans[g_lBanIdx].szBannedIP[2], 10 );
+					itoa( BanAddress.abIP[3], g_ServerBans[g_lBanIdx].szBannedIP[3], 10 );
 					g_lBanIdx++;
 					return ( true );
 				}
@@ -653,10 +653,10 @@ CCMD( ban )
 				return;
 			}
 
-			itoa( clients[ulIdx].address.ip[0], szBanAddress[0], 10 );
-			itoa( clients[ulIdx].address.ip[1], szBanAddress[1], 10 );
-			itoa( clients[ulIdx].address.ip[2], szBanAddress[2], 10 );
-			itoa( clients[ulIdx].address.ip[3], szBanAddress[3], 10 );
+			itoa( SERVER_GetClient( ulIdx )->Address.abIP[0], szBanAddress[0], 10 );
+			itoa( SERVER_GetClient( ulIdx )->Address.abIP[1], szBanAddress[1], 10 );
+			itoa( SERVER_GetClient( ulIdx )->Address.abIP[2], szBanAddress[2], 10 );
+			itoa( SERVER_GetClient( ulIdx )->Address.abIP[3], szBanAddress[3], 10 );
 			// Add the new ban and kick the player.
 			if ( argv.argc( ) >= 3 )
 			{
@@ -683,8 +683,8 @@ CCMD( ban )
 //
 CCMD( addban )
 {
-	netadr_t	BanAddress;
-	char		szStringBan[4][4];
+	NETADDRESS_s	BanAddress;
+	char			szStringBan[4][4];
 
 	if ( argv.argc( ) < 2 )
 	{
@@ -701,10 +701,10 @@ CCMD( addban )
 	}
 	else if ( NETWORK_StringToAddress( argv[1], &BanAddress ))
 	{
-		itoa( BanAddress.ip[0], szStringBan[0], 10 );
-		itoa( BanAddress.ip[1], szStringBan[1], 10 );
-		itoa( BanAddress.ip[2], szStringBan[2], 10 );
-		itoa( BanAddress.ip[3], szStringBan[3], 10 );
+		itoa( BanAddress.abIP[0], szStringBan[0], 10 );
+		itoa( BanAddress.abIP[1], szStringBan[1], 10 );
+		itoa( BanAddress.abIP[2], szStringBan[2], 10 );
+		itoa( BanAddress.abIP[3], szStringBan[3], 10 );
 
 		if ( argv.argc( ) >= 3 )
 			SERVERBAN_AddBan( szStringBan[0], szStringBan[1], szStringBan[2], szStringBan[3], NULL, argv[2] );

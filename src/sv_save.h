@@ -62,25 +62,25 @@
 typedef struct
 {
 	// Name of the player.
-	char		szName[32];
+	char			szName[32];
 
 	// Address of the player whose information is being saved.
-	netadr_t	Address;
+	NETADDRESS_s	Address;
 
 	// Is this slot initialzed?
-	bool		bInitialized;
+	bool			bInitialized;
 
 	// How many frags did this player have?
-	LONG		lFragCount;
+	LONG			lFragCount;
 
 	// How many wins?
-	LONG		lWinCount;
+	LONG			lWinCount;
 
 	// Points?
-	LONG		lPointCount;
+	LONG			lPointCount;
 
 	// [RC] Time
-	ULONG		ulTime;
+	ULONG			ulTime;
 
 } PLAYERSAVEDINFO_t;
 
@@ -88,7 +88,7 @@ typedef struct
 //	PROTOTYPES
 
 void				SERVER_SAVE_Construct( void );
-PLAYERSAVEDINFO_t	*SERVER_SAVE_GetSavedInfo( char *pszPlayerName, netadr_t Address );
+PLAYERSAVEDINFO_t	*SERVER_SAVE_GetSavedInfo( char *pszPlayerName, NETADDRESS_s Address );
 void				SERVER_SAVE_ClearList( void );
 void				SERVER_SAVE_SaveInfo( PLAYERSAVEDINFO_t *pInfo );
 
