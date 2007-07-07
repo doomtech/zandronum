@@ -70,7 +70,7 @@
 typedef struct
 {
 	// The IP address of this server.
-	netadr_t	Address;
+	NETADDRESS_s	Address;
 
 	// The last time we heard from this server (used for timeouts).
 	long		lLastReceived;
@@ -84,7 +84,7 @@ typedef struct
 typedef struct
 {
 	// The IP address of someone who just queried the master server.
-	netadr_t	Address;
+	NETADDRESS_s	Address;
 
 	// This is the next time we're allowed to respond to a query from this IP address.
 	long		lNextAllowedTime;

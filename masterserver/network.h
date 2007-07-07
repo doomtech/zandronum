@@ -202,53 +202,53 @@ void	NETWORK_SetLocalPort( USHORT usPort );
 void	NETWORK_Initialize( void );
 
 int		NETWORK_ReadChar( void );
-void	NETWORK_WriteChar( sizebuf_t *pBuffer, int Char );
+void	NETWORK_WriteChar( NETBUFFER_s *pBuffer, int Char );
 
 int		NETWORK_ReadByte( void );
-void	NETWORK_WriteByte( sizebuf_t *pBuffer, int Byte );
+void	NETWORK_WriteByte( NETBUFFER_s *pBuffer, int Byte );
 
 int		NETWORK_ReadShort( void );
-void	NETWORK_WriteShort( sizebuf_t *pBuffer, int Short );
+void	NETWORK_WriteShort( NETBUFFER_s *pBuffer, int Short );
 
 int		NETWORK_ReadLong( void );
-void	NETWORK_WriteLong( sizebuf_t *pBuffer, int Long );
+void	NETWORK_WriteLong( NETBUFFER_s *pBuffer, int Long );
 
 float	NETWORK_ReadFloat( void );
-void	NETWORK_WriteFloat( sizebuf_t *pBuffer, float Float );
+void	NETWORK_WriteFloat( NETBUFFER_s *pBuffer, float Float );
 
 char	*NETWORK_ReadString( void );
-void	NETWORK_WriteString( sizebuf_t *pBuffer, char *pszString );
+void	NETWORK_WriteString( NETBUFFER_s *pBuffer, char *pszString );
 
 // Debugging function.
-void	NETWORK_WriteHeader( sizebuf_t *pBuffer, int Byte );
+void	NETWORK_WriteHeader( NETBUFFER_s *pBuffer, int Byte );
 
 void	NETWORK_CheckBuffer( ULONG ulClient, ULONG ulSize );
 int		NETWORK_GetPackets( void );
-void	NETWORK_LaunchPacket( sizebuf_t netbuf, netadr_t to, bool bCompression );
-void	NETWORK_LaunchPacket( sizebuf_t netbuf, netadr_t to );
-void	NETWORK_InitBuffer( sizebuf_t *pBuffer, USHORT usLength );
-void	NETWORK_FreeBuffer( sizebuf_t *pBuffer );
-void	NETWORK_ClearBuffer( sizebuf_t *pBuffer );
-BYTE	*NETWORK_GetSpace( sizebuf_t *pBuffer, USHORT usLength );
-void	NETWORK_Write( sizebuf_t *pBuffer, void *pvData, int nLength );
-void	NETWORK_Write( sizebuf_t *pBuffer, BYTE *pbData, int nStartPos, int nLength );
-void	NETWORK_Print( sizebuf_t *pBuffer, char *pszData );	// strcats onto the sizebuf
-char	*NETWORK_AddressToString( netadr_t Address );
-//bool	NETWORK_StringToAddress( char *pszString, netadr_t *pAddress );
-bool	NETWORK_CompareAddress( netadr_t a, netadr_t b, bool bIgnorePort );
-//void	NETWORK_SocketAddressToNetAddress( struct sockaddr_in *s, netadr_t *a );
-void	NETWORK_NetAddressToSocketAddress( netadr_t *a, struct sockaddr_in *s );
+void	NETWORK_LaunchPacket( NETBUFFER_s netbuf, NETADDRESS_s to, bool bCompression );
+void	NETWORK_LaunchPacket( NETBUFFER_s netbuf, NETADDRESS_s to );
+void	NETWORK_InitBuffer( NETBUFFER_s *pBuffer, USHORT usLength );
+void	NETWORK_FreeBuffer( NETBUFFER_s *pBuffer );
+void	NETWORK_ClearBuffer( NETBUFFER_s *pBuffer );
+BYTE	*NETWORK_GetSpace( NETBUFFER_s *pBuffer, USHORT usLength );
+void	NETWORK_Write( NETBUFFER_s *pBuffer, void *pvData, int nLength );
+void	NETWORK_Write( NETBUFFER_s *pBuffer, BYTE *pbData, int nStartPos, int nLength );
+void	NETWORK_Print( NETBUFFER_s *pBuffer, char *pszData );	// strcats onto the sizebuf
+char	*NETWORK_AddressToString( NETADDRESS_s Address );
+//bool	NETWORK_StringToAddress( char *pszString, NETADDRESS_s *pAddress );
+bool	NETWORK_CompareAddress( NETADDRESS_s a, NETADDRESS_s b, bool bIgnorePort );
+//void	NETWORK_SocketAddressToNetAddress( struct sockaddr_in *s, NETADDRESS_s *a );
+void	NETWORK_NetAddressToSocketAddress( NETADDRESS_s *a, struct sockaddr_in *s );
 
 void	I_DoSelect( void );
-void	I_SetPort( netadr_t &addr, int port );
+void	I_SetPort( NETADDRESS_s &addr, int usPort );
 
 // DEBUG FUNCTION!
-void	NETWORK_FillBufferWithShit( sizebuf_t *pBuffer, ULONG ulSize );
+void	NETWORK_FillBufferWithShit( NETBUFFER_s *pBuffer, ULONG ulSize );
 
 //*****************************************************************************
 //	EXTERNAL VARIABLES THAT MUST BE FIXED
 
-extern	netadr_t	g_AddressFrom;
+extern	NETADDRESS_s	g_AddressFrom;
 
 
 #endif	// __NETWORK_H__

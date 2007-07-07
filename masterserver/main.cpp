@@ -68,11 +68,11 @@
 static	SERVER_t	g_Servers[MAX_SERVERS];
 
 // Message buffer we write our commands to.
-static	sizebuf_t	g_MessageBuffer;
+static	NETBUFFER_s	g_MessageBuffer;
 
 static	int		    nowtime;
 
-static	IPAddress_t		g_BannedIPs[MAX_BANNED_IPS];
+static	IPADDRESSBAN_s		g_BannedIPs[MAX_BANNED_IPS];
 
 static	char		g_cCurChar;
 
@@ -124,7 +124,7 @@ int I_GetTime(void)
 
 //*****************************************************************************
 //
-long MASTERSERVER_CheckIfServerAlreadyExists( netadr_t Address )
+long MASTERSERVER_CheckIfServerAlreadyExists( NETADDRESS_s Address )
 {
 	unsigned long	ulIdx;
 
@@ -145,7 +145,7 @@ long MASTERSERVER_CheckIfServerAlreadyExists( netadr_t Address )
 
 //*****************************************************************************
 //
-long MASTERSERVER_AddServerToList( netadr_t Address )
+long MASTERSERVER_AddServerToList( NETADDRESS_s Address )
 {
 	unsigned long	ulIdx;
 
@@ -234,18 +234,18 @@ bool MASTERSERVER_IsIPBanned( char *pszIP0, char *pszIP1, char *pszIP2, char *ps
 void MASTERSERVER_ParseCommands( void )
 {
 	long		lCommand;
-	netadr_t	AddressTemp;
+	NETADDRESS_s	AddressTemp;
 
 	lCommand = NETWORK_ReadLong( );
 
 	// First, is this IP banned from the master server? If so, ignore the request.
 	AddressTemp = g_AddressFrom;
-	AddressTemp.port = 0;
+	AddressTemp.usPort = 0;
 	char		szAddress[4][4];
-	_itoa( AddressTemp.ip[0], szAddress[0], 10 );
-	_itoa( AddressTemp.ip[1], szAddress[1], 10 );
-	_itoa( AddressTemp.ip[2], szAddress[2], 10 );
-	_itoa( AddressTemp.ip[3], szAddress[3], 10 );
+	_itoa( AddressTemp.abIP[0], szAddress[0], 10 );
+	_itoa( AddressTemp.abIP[1], szAddress[1], 10 );
+	_itoa( AddressTemp.abIP[2], szAddress[2], 10 );
+	_itoa( AddressTemp.abIP[3], szAddress[3], 10 );
 	if ( MASTERSERVER_IsIPBanned( szAddress[0], szAddress[1], szAddress[2], szAddress[3] ))
 	{
 		printf( "Ignoring challenge from banned IP: %s.\n", NETWORK_AddressToString( g_AddressFrom ));
@@ -269,7 +269,7 @@ void MASTERSERVER_ParseCommands( void )
 
 		{
 			long		lServerIdx;
-			netadr_t	Address;
+			NETADDRESS_s	Address;
 
 			if ( lCommand == MASTER_CHALLENGE )
 			{
@@ -393,11 +393,11 @@ void MASTERSERVER_ParseCommands( void )
 
 				// Tell the launcher the IP of this server on the list.
 				NETWORK_WriteByte( &g_MessageBuffer, MSC_SERVER );
-				NETWORK_WriteByte( &g_MessageBuffer, g_Servers[ulIdx].Address.ip[0] );
-				NETWORK_WriteByte( &g_MessageBuffer, g_Servers[ulIdx].Address.ip[1] );
-				NETWORK_WriteByte( &g_MessageBuffer, g_Servers[ulIdx].Address.ip[2] );
-				NETWORK_WriteByte( &g_MessageBuffer, g_Servers[ulIdx].Address.ip[3] );
-				NETWORK_WriteShort( &g_MessageBuffer, ntohs( g_Servers[ulIdx].Address.port ));
+				NETWORK_WriteByte( &g_MessageBuffer, g_Servers[ulIdx].Address.abIP[0] );
+				NETWORK_WriteByte( &g_MessageBuffer, g_Servers[ulIdx].Address.abIP[1] );
+				NETWORK_WriteByte( &g_MessageBuffer, g_Servers[ulIdx].Address.abIP[2] );
+				NETWORK_WriteByte( &g_MessageBuffer, g_Servers[ulIdx].Address.abIP[3] );
+				NETWORK_WriteShort( &g_MessageBuffer, ntohs( g_Servers[ulIdx].Address.usPort ));
 			}
 
 			// Tell the launcher that we're done sending servers.

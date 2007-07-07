@@ -56,9 +56,9 @@
 //	VARIABLES
 
 static	LONG		g_lNetworkState = NETSTATE_SINGLE;
-static	sizebuf_t	g_NetworkMessage;
-static	netadr_t	g_LocalNetworkAddress;
-/*static*/	netadr_t	g_AddressFrom;
+static	NETBUFFER_s	g_NetworkMessage;
+static	NETADDRESS_s	g_LocalNetworkAddress;
+/*static*/	NETADDRESS_s	g_AddressFrom;
 //static	int			g_lMessagePosition;
 static	SOCKET		g_NetworkSocket;
 static	SOCKET		g_LANSocket;
@@ -169,7 +169,7 @@ void NETWORK_Initialize( void )
 //
 void NETWORK_BeginReading( void )
 {
-	g_NetworkMessage.readcount = 0;
+	g_NetworkMessage.ulCurrentPosition = 0;
 }
 
 //*****************************************************************************
@@ -179,25 +179,25 @@ int NETWORK_ReadChar( void )
 	int	Char;
 	
 	// Don't read past the size of the packet.
-	if ( g_NetworkMessage.readcount + 1 > g_NetworkMessage.cursize )
+	if ( g_NetworkMessage.ulCurrentPosition + 1 > g_NetworkMessage.ulCurrentSize )
 		Char = -1;
 	else
 	{
 		if ( g_lNetworkState == NETSTATE_SERVER )
-			Char = (signed char)g_NetworkMessage.pbData[g_NetworkMessage.readcount];
+			Char = (signed char)g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition];
 		else
-			Char = (signed char)g_NetworkMessage.bData[g_NetworkMessage.readcount];
+			Char = (signed char)g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition];
 	}
 
 	// Move the "pointer".
-	g_NetworkMessage.readcount++;
+	g_NetworkMessage.ulCurrentPosition++;
 	
 	return ( Char );
 }
 
 //*****************************************************************************
 //
-void NETWORK_WriteChar( sizebuf_t *pBuffer, char cChar )
+void NETWORK_WriteChar( NETBUFFER_s *pBuffer, char cChar )
 {
 	BYTE	*pbBuf;
 	
@@ -217,25 +217,25 @@ int NETWORK_ReadByte( void )
 	int	Byte;
 	
 	// Don't read past the size of the packet.
-	if ( g_NetworkMessage.readcount + 1 > g_NetworkMessage.cursize )
+	if ( g_NetworkMessage.ulCurrentPosition + 1 > g_NetworkMessage.ulCurrentSize )
 		Byte = -1;
 	else
 	{
 		if ( g_lNetworkState == NETSTATE_SERVER )
-			Byte = (unsigned char)g_NetworkMessage.pbData[g_NetworkMessage.readcount];
+			Byte = (unsigned char)g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition];
 		else
-			Byte = (unsigned char)g_NetworkMessage.bData[g_NetworkMessage.readcount];
+			Byte = (unsigned char)g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition];
 	}
 
 	// Move the "pointer".
-	g_NetworkMessage.readcount++;
+	g_NetworkMessage.ulCurrentPosition++;
 	
 	return ( Byte );
 }
 
 //*****************************************************************************
 //
-void NETWORK_WriteByte( sizebuf_t *pBuffer, int Byte )
+void NETWORK_WriteByte( NETBUFFER_s *pBuffer, int Byte )
 {
 	BYTE	*pbBuf;
 	
@@ -255,31 +255,31 @@ int NETWORK_ReadShort( void )
 	int	Short;
 	
 	// Don't read past the size of the packet.
-	if ( g_NetworkMessage.readcount + 2 > g_NetworkMessage.cursize )
+	if ( g_NetworkMessage.ulCurrentPosition + 2 > g_NetworkMessage.ulCurrentSize )
 		Short = -1;
 	else		
 	{
 		if ( g_lNetworkState == NETSTATE_SERVER )
 		{
-			Short = (short)( g_NetworkMessage.pbData[g_NetworkMessage.readcount]
-			+ ( g_NetworkMessage.pbData[g_NetworkMessage.readcount+1]<<8 ));
+			Short = (short)( g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition]
+			+ ( g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition+1]<<8 ));
 		}
 		else
 		{
-			Short = (short)( g_NetworkMessage.bData[g_NetworkMessage.readcount]
-			+ ( g_NetworkMessage.bData[g_NetworkMessage.readcount+1]<<8 ));
+			Short = (short)( g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition]
+			+ ( g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition+1]<<8 ));
 		}
 	}
 
 	// Move the "pointer".
-	g_NetworkMessage.readcount += 2;
+	g_NetworkMessage.ulCurrentPosition += 2;
 	
 	return ( Short );
 }
 
 //*****************************************************************************
 //
-void NETWORK_WriteShort( sizebuf_t *pBuffer, int Short )
+void NETWORK_WriteShort( NETBUFFER_s *pBuffer, int Short )
 {
 	BYTE	*pbBuf;
 	
@@ -300,35 +300,35 @@ int NETWORK_ReadLong( void )
 	int	Long;
 	
 	// Don't read past the size of the packet.
-	if ( g_NetworkMessage.readcount + 4 > g_NetworkMessage.cursize )
+	if ( g_NetworkMessage.ulCurrentPosition + 4 > g_NetworkMessage.ulCurrentSize )
 		Long = -1;
 	else
 	{
 		if ( g_lNetworkState == NETSTATE_SERVER )
 		{
-			Long = g_NetworkMessage.pbData[g_NetworkMessage.readcount]
-			+ ( g_NetworkMessage.pbData[g_NetworkMessage.readcount+1] << 8 )
-			+ ( g_NetworkMessage.pbData[g_NetworkMessage.readcount+2] << 16 )
-			+ ( g_NetworkMessage.pbData[g_NetworkMessage.readcount+3] << 24 );
+			Long = g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition]
+			+ ( g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition+1] << 8 )
+			+ ( g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition+2] << 16 )
+			+ ( g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition+3] << 24 );
 		}
 		else
 		{
-			Long = g_NetworkMessage.bData[g_NetworkMessage.readcount]
-			+ ( g_NetworkMessage.bData[g_NetworkMessage.readcount+1] << 8 )
-			+ ( g_NetworkMessage.bData[g_NetworkMessage.readcount+2] << 16 )
-			+ ( g_NetworkMessage.bData[g_NetworkMessage.readcount+3] << 24 );
+			Long = g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition]
+			+ ( g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition+1] << 8 )
+			+ ( g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition+2] << 16 )
+			+ ( g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition+3] << 24 );
 		}
 	}
 	
 	// Move the "pointer".
-	g_NetworkMessage.readcount += 4;
+	g_NetworkMessage.ulCurrentPosition += 4;
 	
 	return ( Long );
 }
 
 //*****************************************************************************
 //
-void NETWORK_WriteLong( sizebuf_t *pBuffer, int Long )
+void NETWORK_WriteLong( NETBUFFER_s *pBuffer, int Long )
 {
 	BYTE	*pbBuf;
 	
@@ -351,35 +351,35 @@ float NETWORK_ReadFloat( void )
 	} dat;
 	
 	// Don't read past the size of the packet.
-	if ( g_NetworkMessage.readcount + 4 > g_NetworkMessage.cursize )
+	if ( g_NetworkMessage.ulCurrentPosition + 4 > g_NetworkMessage.ulCurrentSize )
 		dat.f = -1;
 	else
 	{
 		if ( g_lNetworkState == NETSTATE_SERVER )
 		{
-			dat.b[0] =	g_NetworkMessage.pbData[g_NetworkMessage.readcount];
-			dat.b[1] =	g_NetworkMessage.pbData[g_NetworkMessage.readcount+1];
-			dat.b[2] =	g_NetworkMessage.pbData[g_NetworkMessage.readcount+2];
-			dat.b[3] =	g_NetworkMessage.pbData[g_NetworkMessage.readcount+3];
+			dat.b[0] =	g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition];
+			dat.b[1] =	g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition+1];
+			dat.b[2] =	g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition+2];
+			dat.b[3] =	g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition+3];
 		}
 		else
 		{
-			dat.b[0] =	g_NetworkMessage.bData[g_NetworkMessage.readcount];
-			dat.b[1] =	g_NetworkMessage.bData[g_NetworkMessage.readcount+1];
-			dat.b[2] =	g_NetworkMessage.bData[g_NetworkMessage.readcount+2];
-			dat.b[3] =	g_NetworkMessage.bData[g_NetworkMessage.readcount+3];
+			dat.b[0] =	g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition];
+			dat.b[1] =	g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition+1];
+			dat.b[2] =	g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition+2];
+			dat.b[3] =	g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition+3];
 		}
 	}
 
 	// Move the "pointer".
-	g_NetworkMessage.readcount += 4;
+	g_NetworkMessage.ulCurrentPosition += 4;
 	
 	return ( dat.f );	
 }
 
 //*****************************************************************************
 //
-void NETWORK_WriteFloat( sizebuf_t *pBuffer, float Float )
+void NETWORK_WriteFloat( NETBUFFER_s *pBuffer, float Float )
 {
 	union
 	{
@@ -419,7 +419,7 @@ char *NETWORK_ReadString( void )
 
 //*****************************************************************************
 //
-void NETWORK_WriteString ( sizebuf_t *pBuffer, char *pszString )
+void NETWORK_WriteString ( NETBUFFER_s *pBuffer, char *pszString )
 {
 #ifdef	WIN32
 	if ( pszString == NULL )
@@ -439,7 +439,7 @@ void NETWORK_WriteString ( sizebuf_t *pBuffer, char *pszString )
 
 //*****************************************************************************
 //
-void NETWORK_WriteHeader( sizebuf_t *pBuffer, int Byte )
+void NETWORK_WriteHeader( NETBUFFER_s *pBuffer, int Byte )
 {
 //#ifdef	_DEBUG
 //	if ( g_lNetworkState == NETSTATE_SERVER )
@@ -458,12 +458,12 @@ void NETWORK_CheckBuffer( ULONG ulClient, ULONG ulSize )
 {
 /*
 //	if ( debugfile )
-//		fprintf( debugfile, "Current packet size: %d\nSize of data being added to packet: %d\n", clients[ulClient].netbuf.cursize, ulSize );
+//		fprintf( debugfile, "Current packet size: %d\nSize of data being added to packet: %d\n", clients[ulClient].netbuf.ulCurrentSize, ulSize );
 
 	// Make sure we have enough room for the upcoming message. If not, send
 	// out the current buffer and clear the packet.
-//	if (( clients[ulClient].netbuf.cursize + ( ulSize + 5 )) >= (ULONG)clients[ulClient].netbuf.maxsize )
-	if (( clients[ulClient].netbuf.cursize + ( ulSize + 5 )) >= (ULONG)sv_maxpacketsize )
+//	if (( clients[ulClient].netbuf.ulCurrentSize + ( ulSize + 5 )) >= (ULONG)clients[ulClient].netbuf.ulMaxSize )
+	if (( clients[ulClient].netbuf.ulCurrentSize + ( ulSize + 5 )) >= (ULONG)sv_maxpacketsize )
 	{
 //		Printf( "Launching premature packet\n" );
 		if ( debugfile )
@@ -535,41 +535,41 @@ int NETWORK_GetPackets( void )
 	if ( g_lNetworkState == NETSTATE_SERVER )
 		HuffDecode(huffbuff, (unsigned char *)g_NetworkMessage.pbData,ret,&ret);
 	else
-		HuffDecode(huffbuff, (unsigned char *)g_NetworkMessage.bData,ret,&ret);
+		HuffDecode(huffbuff, (unsigned char *)g_NetworkMessage.pbData,ret,&ret);
 
-	g_NetworkMessage.readcount = 0;
-	g_NetworkMessage.cursize = ret;
+	g_NetworkMessage.ulCurrentPosition = 0;
+	g_NetworkMessage.ulCurrentSize = ret;
 
     NETWORK_SocketAddressToNetAddress( &from, &g_AddressFrom );
 
-//	Printf( PRINT_HIGH, "*** got THIS: %d\n", g_NetworkMessage.cursize );
+//	Printf( PRINT_HIGH, "*** got THIS: %d\n", g_NetworkMessage.ulCurrentSize );
 	
-	return ( g_NetworkMessage.cursize );
+	return ( g_NetworkMessage.ulCurrentSize );
 }
 
 //*****************************************************************************
 //
-void NETWORK_LaunchPacket( sizebuf_t netbuf, netadr_t to, bool bCompression )
+void NETWORK_LaunchPacket( NETBUFFER_s netbuf, NETADDRESS_s to, bool bCompression )
 {
 	int ret;
 	int	outlen;
 	struct sockaddr_in	addr;
 
-	if ( netbuf.cursize <= 0 )
+	if ( netbuf.ulCurrentSize <= 0 )
 		return;
 
 	if ( g_lNetworkState == NETSTATE_SERVER )
 	{
 		if ( bCompression )
-			HuffEncode((unsigned char *)netbuf.pbData, huffbuff, netbuf.cursize, &outlen);
+			HuffEncode((unsigned char *)netbuf.pbData, huffbuff, netbuf.ulCurrentSize, &outlen);
 		else
 		{
-			memcpy( huffbuff, netbuf.pbData, netbuf.cursize );
-			outlen = netbuf.cursize;
+			memcpy( huffbuff, netbuf.pbData, netbuf.ulCurrentSize );
+			outlen = netbuf.ulCurrentSize;
 		}
 	}
 	else
-		HuffEncode((unsigned char *)netbuf.bData, huffbuff, netbuf.cursize, &outlen);
+		HuffEncode((unsigned char *)netbuf.pbData, huffbuff, netbuf.ulCurrentSize, &outlen);
 
 	NETWORK_NetAddressToSocketAddress( &to, &addr );
 
@@ -612,22 +612,22 @@ void NETWORK_LaunchPacket( sizebuf_t netbuf, netadr_t to, bool bCompression )
 
 //*****************************************************************************
 //
-void NETWORK_LaunchPacket( sizebuf_t netbuf, netadr_t to )
+void NETWORK_LaunchPacket( NETBUFFER_s netbuf, NETADDRESS_s to )
 {
 	int ret;
 	struct sockaddr_in	addr;
 	//int		 r;
 	int		outlen;
 
-	if ( netbuf.cursize <= 0 )
+	if ( netbuf.ulCurrentSize <= 0 )
 		return;
 
     NETWORK_NetAddressToSocketAddress(&to, &addr);
 
 	if ( g_lNetworkState == NETSTATE_SERVER )
-		HuffEncode((unsigned char *)netbuf.pbData,huffbuff,netbuf.cursize,&outlen);
+		HuffEncode((unsigned char *)netbuf.pbData,huffbuff,netbuf.ulCurrentSize,&outlen);
 	else
-		HuffEncode((unsigned char *)netbuf.bData,huffbuff,netbuf.cursize,&outlen);
+		HuffEncode((unsigned char *)netbuf.pbData,huffbuff,netbuf.ulCurrentSize,&outlen);
 
 	ret = sendto (g_NetworkSocket, (const char*)huffbuff, outlen, 0, (struct sockaddr *)&addr, sizeof(addr));
     
@@ -653,10 +653,10 @@ void NETWORK_LaunchPacket( sizebuf_t netbuf, netadr_t to )
 
 //*****************************************************************************
 //
-void NETWORK_InitBuffer( sizebuf_t *pBuffer, USHORT usLength )
+void NETWORK_InitBuffer( NETBUFFER_s *pBuffer, USHORT usLength )
 {
 	memset( pBuffer, 0, sizeof( *pBuffer ));
-	pBuffer->maxsize = usLength;
+	pBuffer->ulMaxSize = usLength;
 
 	if ( g_lNetworkState == NETSTATE_SERVER )
 		pBuffer->pbData = new BYTE[usLength];
@@ -664,7 +664,7 @@ void NETWORK_InitBuffer( sizebuf_t *pBuffer, USHORT usLength )
 
 //*****************************************************************************
 //
-void NETWORK_FreeBuffer( sizebuf_t *pBuffer )
+void NETWORK_FreeBuffer( NETBUFFER_s *pBuffer )
 {
 	if ( g_lNetworkState == NETSTATE_SERVER )
 	{
@@ -678,22 +678,22 @@ void NETWORK_FreeBuffer( sizebuf_t *pBuffer )
 
 //*****************************************************************************
 //
-void NETWORK_ClearBuffer( sizebuf_t *pBuffer )
+void NETWORK_ClearBuffer( NETBUFFER_s *pBuffer )
 {
-	pBuffer->cursize = 0;
+	pBuffer->ulCurrentSize = 0;
 //	pBuffer->overflowed = false;
 }
 
 //*****************************************************************************
 //
-BYTE *NETWORK_GetSpace( sizebuf_t *pBuffer, USHORT usLength )
+BYTE *NETWORK_GetSpace( NETBUFFER_s *pBuffer, USHORT usLength )
 {
 	BYTE	*pbData;
 
 	// Make sure we have enough room left in the packet.
-	if ( pBuffer->cursize + usLength > pBuffer->maxsize )
+	if ( pBuffer->ulCurrentSize + usLength > pBuffer->ulMaxSize )
 	{
-		if ( usLength > pBuffer->maxsize )
+		if ( usLength > pBuffer->ulMaxSize )
 			printf( "NETWORK_GetSpace: %i is > full buffer size.\n", usLength );
 		else
 			printf( "NETWORK_GetSpace: Overflow!\n" );
@@ -712,17 +712,17 @@ BYTE *NETWORK_GetSpace( sizebuf_t *pBuffer, USHORT usLength )
 	}
 
 	if ( g_lNetworkState == NETSTATE_SERVER )
-		pbData = pBuffer->pbData + pBuffer->cursize;
+		pbData = pBuffer->pbData + pBuffer->ulCurrentSize;
 	else
-		pbData = pBuffer->bData + pBuffer->cursize;
-	pBuffer->cursize += usLength;
+		pbData = pBuffer->pbData + pBuffer->ulCurrentSize;
+	pBuffer->ulCurrentSize += usLength;
 	
 	return ( pbData );
 }
 
 //*****************************************************************************
 //
-void NETWORK_Write( sizebuf_t *pBuffer, void *pvData, int nLength )
+void NETWORK_Write( NETBUFFER_s *pBuffer, void *pvData, int nLength )
 {
 	BYTE	*pbDatapos;
 
@@ -742,7 +742,7 @@ void NETWORK_Write( sizebuf_t *pBuffer, void *pvData, int nLength )
 
 //*****************************************************************************
 //
-void NETWORK_Write( sizebuf_t *pBuffer, BYTE *pbData, int nStartPos, int nLength )
+void NETWORK_Write( NETBUFFER_s *pBuffer, BYTE *pbData, int nStartPos, int nLength )
 {
 	BYTE	*pbDatapos;
 
@@ -766,16 +766,16 @@ void NETWORK_Write( sizebuf_t *pBuffer, BYTE *pbData, int nStartPos, int nLength
 
 //*****************************************************************************
 //
-void NETWORK_Print( sizebuf_t *pBuffer, char *pszData )
+void NETWORK_Print( NETBUFFER_s *pBuffer, char *pszData )
 {
 /*
 	USHORT	usLength;
 	
 	usLength = strlen( pszData ) + 1;
 
-	if ( pBuffer->cursize )
+	if ( pBuffer->ulCurrentSize )
 	{
-		if ( pBuffer->data[pBuffer->cursize - 1] )
+		if ( pBuffer->data[pBuffer->ulCurrentSize - 1] )
 			memcpy ((BYTE *)NETWORK_GetSpace( pBuffer, usLength ), pszData, usLength ); // no trailing 0
 		else
 			memcpy ((BYTE *)NETWORK_GetSpace( pBuffer, usLength - 1 ) - 1, pszData, usLength ); // write over trailing 0
@@ -787,34 +787,34 @@ void NETWORK_Print( sizebuf_t *pBuffer, char *pszData )
 
 //*****************************************************************************
 //
-char *NETWORK_AddressToString( netadr_t a )
+char *NETWORK_AddressToString( NETADDRESS_s a )
 {
      static  char    s[64];
 
-     sprintf (s, "%i.%i.%i.%i:%i", a.ip[0], a.ip[1], a.ip[2], a.ip[3], ntohs(a.port));
+     sprintf (s, "%i.%i.%i.%i:%i", a.abIP[0], a.abIP[1], a.abIP[2], a.abIP[3], ntohs(a.usPort));
 
      return s;
 }
 
 //*****************************************************************************
 //
-void NETWORK_NetAddressToSocketAddress( netadr_t *a, struct sockaddr_in *s )
+void NETWORK_NetAddressToSocketAddress( NETADDRESS_s *a, struct sockaddr_in *s )
 {
      memset (s, 0, sizeof(*s));
      s->sin_family = AF_INET;
 
-     *(int *)&s->sin_addr = *(int *)&a->ip;
-     s->sin_port = a->port;
+     *(int *)&s->sin_addr = *(int *)&a->abIP;
+     s->sin_port = a->usPort;
 }
 //*****************************************************************************
 //
-bool NETWORK_CompareAddress( netadr_t a, netadr_t b, bool bIgnorePort )
+bool NETWORK_CompareAddress( NETADDRESS_s a, NETADDRESS_s b, bool bIgnorePort )
 {
-	if (( a.ip[0] == b.ip[0] ) &&
-		( a.ip[1] == b.ip[1] ) &&
-		( a.ip[2] == b.ip[2] ) &&
-		( a.ip[3] == b.ip[3] ) &&
-		( bIgnorePort ? 1 : ( a.port == b.port )))
+	if (( a.abIP[0] == b.abIP[0] ) &&
+		( a.abIP[1] == b.abIP[1] ) &&
+		( a.abIP[2] == b.abIP[2] ) &&
+		( a.abIP[3] == b.abIP[3] ) &&
+		( bIgnorePort ? 1 : ( a.usPort == b.usPort )))
 		return ( true );
 
 	return ( false );
@@ -895,7 +895,7 @@ void network_GetLocalAddress( void )
 	{
 		network_Error( "NET_Init: getsockname:" );//, strerror(errno));
 	}
-	g_LocalNetworkAddress.port = address.sin_port;
+	g_LocalNetworkAddress.usPort = address.sin_port;
 
 	printf( "IP address %s\n", NETWORK_AddressToString( g_LocalNetworkAddress ));
 }
@@ -915,7 +915,7 @@ void I_DoSelect (void)
 
 //*****************************************************************************
 //
-void I_SetPort( netadr_t &addr, int port )
+void I_SetPort( NETADDRESS_s &addr, int usPort )
 {
-   addr.port = htons(port);
+   addr.usPort = htons(usPort);
 }
