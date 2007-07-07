@@ -1,7 +1,7 @@
 # created on 4/12/2006 by James Bentler
 
-CXX ?= g++
-CC ?= gcc
+CXX = apg++
+CC = apgcc
 NASM ?= nasm
 CCDV = @./ccdv
 ifdef DEBUG
@@ -40,8 +40,8 @@ CPPOBJFILES = $(notdir $(patsubst %.cpp,%.o,$(CPPSRCS)))
 COBJFILES = $(notdir $(patsubst %.c,%.o,$(CSRCS)))
 AOBJFILES = $(notdir $(patsubst %.nas,%.o,$(ASRCS)))
 
-ZDOOM = zdoom
-ZDOOMDEBUG = zdoomd
+ZDOOM = ../skulltag
+ZDOOMDEBUG = ../skulltag-debug
 
 ifdef DEBUG
   OBJDIR = $(DEBUGOBJ)
