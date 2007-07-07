@@ -1244,7 +1244,7 @@ void G_Ticker ()
 			UCVarValue		Val;
 			NETADDRESS_s	MasterAddress;
 			char			*pszMasterPort;
-			BYTE			*pbStream;
+			BYTESTREAM_s	*pByteStream;
 
 			Val = cl_masterip.GetGenericRep( CVAR_String );
 			NETWORK_StringToAddress( Val.String, &MasterAddress );
@@ -1255,6 +1255,8 @@ void G_Ticker ()
 				MasterAddress.usPort = NETWORK_ntohs( atoi( pszMasterPort ));
 			else 
 				MasterAddress.usPort = NETWORK_ntohs( DEFAULT_MASTER_PORT );
+
+			pByteStream = &NETWORK_GetNetworkMessageBuffer( )->ByteStream;
 
 			// If we're a client and receiving a message from the server...
 			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) &&
@@ -1284,17 +1286,15 @@ void G_Ticker ()
 //						break;
 				}
 #endif
-				// Get a pointer to the data in our packet.
-				pbStream = NETWORK_GetBuffer( );
-
 				// We've gotten a packet! Now figure out what it's saying.
-				if ( CLIENT_ReadPacketHeader( &pbStream ))
-					CLIENT_ParsePacket( &pbStream, NETWORK_GetNetworkMessageBuffer( )->ulCurrentSize - 1, false );
+				if ( CLIENT_ReadPacketHeader( pByteStream ))
+					CLIENT_ParsePacket( pByteStream, false );
 				else
 				{
-					while ( CLIENT_GetNextPacket( &pbStream ))
+					while ( CLIENT_GetNextPacket( ))
 					{
-						CLIENT_ParsePacket( &pbStream, NETWORK_GetNetworkMessageBuffer( )->ulCurrentSize, true );
+						pByteStream = &NETWORK_GetNetworkMessageBuffer( )->ByteStream;
+						CLIENT_ParsePacket( pByteStream, true );
 
 						// Don't continue parsing if we've exited the network game.
 						if ( CLIENT_GetConnectionState( ) == CTS_DISCONNECTED )
@@ -1335,13 +1335,13 @@ void G_Ticker ()
 				// If we're receiving info from the master server...
 				if ( NETWORK_CompareAddress( AddressFrom, MasterAddress, false ))
 				{
-					lCommand = NETWORK_ReadLong( );
+					lCommand = NETWORK_ReadLong( pByteStream );
 					switch ( lCommand )
 					{
 					case MSC_BEGINSERVERLIST:
 
 						// Get the list of servers.
-						BROWSER_GetServerList( );
+						BROWSER_GetServerList( pByteStream );
 
 						// Now, query all the servers on the list.
 						BROWSER_QueryAllServers( );
@@ -1359,9 +1359,9 @@ void G_Ticker ()
 				// Perhaps it's a message from a server we're queried.
 				else
 				{
-					lCommand = NETWORK_ReadLong( );
+					lCommand = NETWORK_ReadLong( pByteStream );
 					if ( lCommand == SERVER_LAUNCHER_CHALLENGE )
-						BROWSER_ParseServerQuery( false );
+						BROWSER_ParseServerQuery( pByteStream, false );
 					else if ( lCommand == SERVER_LAUNCHER_IGNORING )
 						Printf( "WARNING! Please wait a full 10 seconds before refreshing the server list.\n" );
 //					else
@@ -1372,11 +1372,14 @@ void G_Ticker ()
 
 		while (( lSize = NETWORK_GetLANPackets( )) > 0 )
 		{
-			LONG	lCommand;
+			LONG			lCommand;
+			BYTESTREAM_s	*pByteStream;
 
-			lCommand = NETWORK_ReadLong( );
+			pByteStream = &NETWORK_GetNetworkMessageBuffer( )->ByteStream;
+
+			lCommand = NETWORK_ReadLong( pByteStream );
 			if ( lCommand == SERVER_LAUNCHER_CHALLENGE )
-				BROWSER_ParseServerQuery( true );
+				BROWSER_ParseServerQuery( pByteStream, true );
 		}
 
 		// Now that we're done parsing the multiple packets the server has sent our way, check

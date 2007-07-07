@@ -216,7 +216,7 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 	}
 
 	// Init our read buffer.
-	NETWORK_InitBuffer( &g_NetworkMessage, MAX_UDP_PACKET );
+	NETWORK_InitBuffer( &g_NetworkMessage, MAX_UDP_PACKET, BUFFERTYPE_READ );
 	NETWORK_ClearBuffer( &g_NetworkMessage );
 
 	// Print out our local IP address.
@@ -228,38 +228,20 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 
 //*****************************************************************************
 //
-int NETWORK_ReadChar( void )
-{
-	int	Char;
-
-	// Don't read past the size of the packet.
-	if ( g_NetworkMessage.ulCurrentPosition + 1 > g_NetworkMessage.ulCurrentSize )
-		Char = -1;
-	else
-		Char = (signed char)g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition];
-
-	// Move the "pointer".
-	g_NetworkMessage.ulCurrentPosition++;
-
-	return ( Char );
-}
-
-//*****************************************************************************
-//
-void NETWORK_WriteChar( NETBUFFER_s *pBuffer, char cChar )
-{
-	BYTE	*pbBuf;
-
-	pbBuf = NETWORK_GetSpace( pBuffer, 1 );
-	pbBuf[0] = cChar;
-}
-
-//*****************************************************************************
-//
-int NETWORK_ReadByte( void )
+int NETWORK_ReadByte( BYTESTREAM_s *pByteStream )
 {
 	int	Byte;
 
+	if (( pByteStream->pbStream + 1 ) > pByteStream->pbStreamEnd )
+		Byte = -1;
+	else
+		Byte = *pByteStream->pbStream;
+
+	// Advance the pointer.
+	pByteStream->pbStream += 1;
+
+	return ( Byte );
+/*
 	// Don't read past the size of the packet.
 	if ( g_NetworkMessage.ulCurrentPosition + 1 > g_NetworkMessage.ulCurrentSize )
 		Byte = -1;
@@ -270,24 +252,50 @@ int NETWORK_ReadByte( void )
 	g_NetworkMessage.ulCurrentPosition++;
 
 	return ( Byte );
+*/
 }
 
 //*****************************************************************************
 //
-void NETWORK_WriteByte( NETBUFFER_s *pBuffer, int Byte )
+void NETWORK_WriteByte( BYTESTREAM_s *pByteStream, int Byte )
 {
+	if (( pByteStream->pbStream + 1 ) > pByteStream->pbStreamEnd )
+	{
+		Printf( "NETWORK_WriteByte: Overflow!\n" );
+		return;
+	}
+
+	*pByteStream->pbStream = Byte;
+
+	// Advance the pointer.
+	pByteStream->pbStream += 1;
+/*
 	BYTE	*pbBuf;
 
 	pbBuf = NETWORK_GetSpace( pBuffer, 1 );
 	pbBuf[0] = Byte;
+*/
 }
 
 //*****************************************************************************
 //
-int NETWORK_ReadShort( void )
+int NETWORK_ReadShort( BYTESTREAM_s *pByteStream )
 {
 	int	Short;
 
+	if (( pByteStream->pbStream + 2 ) > pByteStream->pbStreamEnd )
+		Short = -1;
+	else
+	{
+		Short = (short)(( pByteStream->pbStream[0] )
+		+ ( pByteStream->pbStream[1] << 8 ));
+	}
+
+	// Advance the pointer.
+	pByteStream->pbStream += 2;
+
+	return ( Short );
+/*
 	// Don't read past the size of the packet.
 	if ( g_NetworkMessage.ulCurrentPosition + 2 > g_NetworkMessage.ulCurrentSize )
 		Short = -1;
@@ -301,25 +309,54 @@ int NETWORK_ReadShort( void )
 	g_NetworkMessage.ulCurrentPosition += 2;
 
 	return ( Short );
+*/
 }
 
 //*****************************************************************************
 //
-void NETWORK_WriteShort( NETBUFFER_s *pBuffer, int Short )
+void NETWORK_WriteShort( BYTESTREAM_s *pByteStream, int Short )
 {
+	if (( pByteStream->pbStream + 2 ) > pByteStream->pbStreamEnd )
+	{
+		Printf( "NETWORK_WriteShort: Overflow!\n" );
+		return;
+	}
+
+	pByteStream->pbStream[0] = Short & 0xff;
+	pByteStream->pbStream[1] = Short >> 8;
+
+	// Advance the pointer.
+	pByteStream->pbStream += 2;
+/*
 	BYTE	*pbBuf;
 
 	pbBuf = NETWORK_GetSpace( pBuffer, 2 );
 	pbBuf[0] = Short & 0xff;
 	pbBuf[1] = Short >> 8;
+*/
 }
 
 //*****************************************************************************
 //
-int NETWORK_ReadLong( void )
+int NETWORK_ReadLong( BYTESTREAM_s *pByteStream )
 {
 	int	Long;
 
+	if (( pByteStream->pbStream + 4 ) > pByteStream->pbStreamEnd )
+		Long = -1;
+	else
+	{
+		Long = (( pByteStream->pbStream[0] )
+		+ ( pByteStream->pbStream[1] << 8 )
+		+ ( pByteStream->pbStream[2] << 16 )
+		+ ( pByteStream->pbStream[3] << 24 ));
+	}
+
+	// Advance the pointer.
+	pByteStream->pbStream += 4;
+
+	return ( Long );
+/*
 	// Don't read past the size of the packet.
 	if ( g_NetworkMessage.ulCurrentPosition + 4 > g_NetworkMessage.ulCurrentSize )
 		Long = -1;
@@ -335,12 +372,27 @@ int NETWORK_ReadLong( void )
 	g_NetworkMessage.ulCurrentPosition += 4;
 
 	return ( Long );
+*/
 }
 
 //*****************************************************************************
 //
-void NETWORK_WriteLong( NETBUFFER_s *pBuffer, int Long )
+void NETWORK_WriteLong( BYTESTREAM_s *pByteStream, int Long )
 {
+	if (( pByteStream->pbStream + 4 ) > pByteStream->pbStreamEnd )
+	{
+		Printf( "NETWORK_WriteLong: Overflow!\n" );
+		return;
+	}
+
+	pByteStream->pbStream[0] = Long & 0xff;
+	pByteStream->pbStream[1] = ( Long >> 8 ) & 0xff;
+	pByteStream->pbStream[2] = ( Long >> 16 ) & 0xff;
+	pByteStream->pbStream[3] = ( Long >> 24 );
+
+	// Advance the pointer.
+	pByteStream->pbStream += 4;
+/*
 	BYTE	*pbBuf;
 
 	pbBuf = NETWORK_GetSpace( pBuffer, 4 );
@@ -348,20 +400,20 @@ void NETWORK_WriteLong( NETBUFFER_s *pBuffer, int Long )
 	pbBuf[1] = ( Long >> 8 ) & 0xff;
 	pbBuf[2] = ( Long >> 16 ) & 0xff;
 	pbBuf[3] = ( Long >> 24 );
+*/
 }
 
 //*****************************************************************************
 //
-float NETWORK_ReadFloat( void )
+float NETWORK_ReadFloat( BYTESTREAM_s *pByteStream )
 {
 	union
 	{
-		BYTE	b[4];
 		float	f;
-		int	l;
+		int		i;
 	} dat;
 
-	dat.l = NETWORK_ReadLong( );
+	dat.i = NETWORK_ReadLong( pByteStream );
 	return ( dat.f );
 /*
 	// Don't read past the size of the packet.
@@ -394,7 +446,7 @@ float NETWORK_ReadFloat( void )
 
 //*****************************************************************************
 //
-void NETWORK_WriteFloat( NETBUFFER_s *pBuffer, float Float )
+void NETWORK_WriteFloat( BYTESTREAM_s *pByteStream, float Float )
 {
 	union
 	{
@@ -405,102 +457,105 @@ void NETWORK_WriteFloat( NETBUFFER_s *pBuffer, float Float )
 	dat.f = Float;
 	//dat.l = LittleLong (dat.l);
 
-	NETWORK_WriteLong( pBuffer, dat.l );
+	NETWORK_WriteLong( pByteStream, dat.l );
 }
 
 //*****************************************************************************
 //
-char *NETWORK_ReadString( void )
+char *NETWORK_ReadString( BYTESTREAM_s *pByteStream )
 {
-	static char	string[2048];
-	//int		l,c;
-	signed	char	c;
-	unsigned int	l;
+	char			c;
+	ULONG			ulIdx;
+	static char		s_szString[MAX_NETWORK_STRING];
 
-	l = 0;
+	// Build our string by reading in one character at a time. If the character is 0 or
+	// -1, we've reached the end of the string.
+	ulIdx = 0;
 	do
 	{
-		c = NETWORK_ReadChar ();
-		if (c == -1 || c == 0)
+		c = NETWORK_ReadByte( pByteStream );
+		if (( c == -1 ) ||
+			( c == 0 ))
+		{
 			break;
-		string[l] = c;
-		l++;
-	} while (l < sizeof(string)-1);
+		}
 
-	string[l] = '\0';
+		// Place this character into our string.
+		s_szString[ulIdx++] = c;
 
-	return string;
+	} while ( ulIdx < ( MAX_NETWORK_STRING - 1 ));
+
+	s_szString[ulIdx] = '\0';
+	return ( s_szString );
 }
 
 //*****************************************************************************
 //
-void NETWORK_WriteString ( NETBUFFER_s *pBuffer, const char *pszString )
+void NETWORK_WriteString( BYTESTREAM_s *pByteStream, const char *pszString )
 {
+	if (( pszString ) && ( strlen( pszString ) > MAX_NETWORK_STRING ))
+	{
+		Printf( "NETWORK_WriteString: String exceeds %d characters!\n", MAX_NETWORK_STRING );
+		return;
+	}
+
 #ifdef	WIN32
 	if ( pszString == NULL )
-		NETWORK_Write( pBuffer, "", 1 );
+		NETWORK_WriteBuffer( pByteStream, "", 1 );
 	else
-		NETWORK_Write( pBuffer, pszString, static_cast<int>(strlen( pszString )) + 1 );
+		NETWORK_WriteBuffer( pByteStream, pszString, (int)( strlen( pszString )) + 1 );
 #else
 	if ( pszString == NULL )
-		NETWORK_WriteByte( pBuffer, 0 );
+		NETWORK_WriteBuffer( pStream, pStreamEnd, 0 );
 	else
 	{
-		NETWORK_Write( pBuffer, pszString, strlen( pszString ));
-		NETWORK_WriteByte( pBuffer, 0 );
+		NETWORK_WriteBuffer( pStream, pStreamEnd, pszString, strlen( pszString ));
+		NETWORK_WriteByte( pStream, pStreamEnd, 0 );
 	}
 #endif
 }
 
 //*****************************************************************************
 //
-void NETWORK_WriteHeader( NETBUFFER_s *pBuffer, int Byte )
+void NETWORK_WriteBuffer( BYTESTREAM_s *pByteStream, const void *pvBuffer, int nLength )
 {
-//	Printf( "%s\n", g_pszHeaderNames[Byte] );
-	NETWORK_WriteByte( pBuffer, Byte );
+	if (( pByteStream->pbStream + nLength ) > pByteStream->pbStreamEnd )
+	{
+		Printf( "NETWORK_WriteLBuffer: Overflow!\n" );
+		return;
+	}
+
+	memcpy( pByteStream->pbStream, pvBuffer, nLength );
+
+	// Advance the pointer.
+	pByteStream->pbStream += nLength;
+/*
+	BYTE	*pbDatapos;
+
+	if ( g_lNetworkState == NETSTATE_CLIENT )
+		memcpy( NETWORK_GetSpace( pBuffer, nLength ), pvData, nLength );
+	else
+	{
+		pbDatapos = NETWORK_GetSpace( pBuffer, nLength );
+
+		// Bad getspace.
+		if ( pbDatapos == 0 )
+		{
+			Printf( "NETWORK_Write: Couldn't get %d bytes of space!\n", nLength );
+			return;
+		}
+		
+		memcpy( pbDatapos, pvData, nLength );
+	}
+*/
 }
 
 //*****************************************************************************
 //
-void NETWORK_CheckBuffer( ULONG ulClient, ULONG ulSize )
+void NETWORK_WriteHeader( BYTESTREAM_s *pByteStream, int Byte )
 {
-	CLIENT_s	*pClient;
-
-	pClient = SERVER_GetClient( ulClient );
-	if ( pClient == NULL )
-		return;
-
-	if ( debugfile )
-		fprintf( debugfile, "Current packet size: %d\nSize of data being added to packet: %d\n", pClient->PacketBuffer.ulCurrentSize, ulSize );
-
-	// Make sure we have enough room for the upcoming message. If not, send
-	// out the current buffer and clear the packet.
-//	if (( clients[ulClient].netbuf.ulCurrentSize + ( ulSize + 5 )) >= (ULONG)clients[ulClient].netbuf.maxsize )
-	if (( pClient->PacketBuffer.ulCurrentSize + ( ulSize + 5 )) >= SERVER_GetMaxPacketSize( ))
-	{
-//		Printf( "Launching premature packet (%d bytes)\n", clients[ulClient].netbuf.ulCurrentSize );
-		if ( debugfile )
-			fprintf( debugfile, "Launching premature packet (reliable)\n" );
-
-		// Lanch the packet so we can prepare another.
-		NETWORK_SendPacket( ulClient );
-
-		// Now that the packet has been sent, clear it.
-		NETWORK_ClearBuffer( &pClient->PacketBuffer );
-	}
-
-	if (( pClient->UnreliablePacketBuffer.ulCurrentSize + ( ulSize + 5 )) >= MAX_UDP_PACKET )
-	{
-//		Printf( "Launching premature packet (unreliable) (%d bytes)\n", clients[ulClient].netbuf.ulCurrentSize );
-		if ( debugfile )
-			fprintf( debugfile, "Launching premature packet (unreliable)\n" );
-
-		// Lanch the packet so we can prepare another.
-		NETWORK_SendUnreliablePacket( ulClient );
-
-		// Now that the packet has been sent, clear it.
-		NETWORK_ClearBuffer( &pClient->UnreliablePacketBuffer );
-	}
+//	Printf( "%s\n", g_pszHeaderNames[Byte] );
+	NETWORK_WriteByte( pByteStream, Byte );
 }
 
 //*****************************************************************************
@@ -553,7 +608,7 @@ int NETWORK_GetPackets( void )
 #endif
     }
 
-	// No packets or an error, dont process anything.
+	// No packets or an error, so don't process anything.
 	if ( lNumBytes <= 0 )
 		return ( 0 );
 
@@ -563,9 +618,9 @@ int NETWORK_GetPackets( void )
 
 	// Decode the huffman-encoded message we received.
 	HuffDecode( g_ucHuffmanBuffer, (unsigned char *)g_NetworkMessage.pbData, lNumBytes, &iDecodedNumBytes );
-
-	g_NetworkMessage.ulCurrentPosition = 0;
 	g_NetworkMessage.ulCurrentSize = iDecodedNumBytes;
+	g_NetworkMessage.ByteStream.pbStream = g_NetworkMessage.pbData;
+	g_NetworkMessage.ByteStream.pbStreamEnd = g_NetworkMessage.ByteStream.pbStream + g_NetworkMessage.ulCurrentSize;
 
 	// Store the IP address of the sender.
     NETWORK_SocketAddressToNetAddress( &SocketFrom, &g_AddressFrom );
@@ -633,21 +688,12 @@ int NETWORK_GetLANPackets( void )
 
 	// Decode the huffman-encoded message we received.
 	HuffDecode( g_ucHuffmanBuffer, (unsigned char *)g_NetworkMessage.pbData, lNumBytes, &iDecodedNumBytes );
-
-	g_NetworkMessage.ulCurrentPosition = 0;
 	g_NetworkMessage.ulCurrentSize = iDecodedNumBytes;
 
 	// Store the IP address of the sender.
     NETWORK_SocketAddressToNetAddress( &SocketFrom, &g_AddressFrom );
 
 	return ( g_NetworkMessage.ulCurrentSize );
-}
-
-//*****************************************************************************
-//
-BYTE *NETWORK_GetBuffer( void )
-{
-	return ( &g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition] );
 }
 
 //*****************************************************************************
@@ -659,81 +705,13 @@ NETADDRESS_s NETWORK_GetFromAddress( void )
 
 //*****************************************************************************
 //
-/*
-void NETWORK_LaunchPacket( NETBUFFER_s netbuf, NETADDRESS_s to, bool bCompression )
-{
-	int ret;
-	int	outlen;
-	struct sockaddr_in	addr;
-
-	if ( netbuf.ulCurrentSize <= 0 )
-		return;
-
-	if ( g_lNetworkState == NETSTATE_SERVER )
-	{
-		if ( bCompression )
-			HuffEncode((unsigned char *)netbuf.pbData, huffbuff, netbuf.ulCurrentSize, &outlen);
-		else
-		{
-			memcpy( huffbuff, netbuf.pbData, netbuf.ulCurrentSize );
-			outlen = netbuf.ulCurrentSize;
-		}
-
-		SERVER_STATISTIC_AddToOutboundDataTransfer( outlen );
-	}
-	else
-		HuffEncode((unsigned char *)netbuf.bData, huffbuff, netbuf.ulCurrentSize, &outlen);
-
-	Printf( "NETWORK_LaunchPacket1: Huffman saved %d bytes\n", netbuf.ulCurrentSize - outlen );
-	g_lRunningHuffmanTotal += ( netbuf.ulCurrentSize - outlen );
-	Printf( "Running total: %d bytes\n", g_lRunningHuffmanTotal );
-
-	NETWORK_NetAddressToSocketAddress( &to, &addr );
-
-	ret = sendto( g_NetworkSocket, (const char*)huffbuff, outlen, 0, (struct sockaddr *)&addr, sizeof(addr));
-    
-    if (ret == -1) 
-    {
-#ifdef __WIN32__
-          int err = WSAGetLastError();
-
-          // wouldblock is silent
-          if (err == WSAEWOULDBLOCK)
-              return;
-
-		  switch ( err )
-		  {
-		  case WSAEACCES:
-
-			  Printf( "NETWORK_LaunchPacket: Error #%d, WSAEACCES: Permission denied for address: %s\n", err, NETWORK_AddressToString( to ));
-			  break;
-		  case WSAEADDRNOTAVAIL:
-
-			  Printf( "NETWORK_LaunchPacket: Error #%d, WSAEADDRENOTAVAIL: Address %s not available\n", err, NETWORK_AddressToString( to ));
-			  break;
-		  default:
-
-			Printf( "NETWORK_LaunchPacket: Error #%d\n", err );
-			break;
-		  }
-#else	  
-          if (errno == EWOULDBLOCK)
-              return;
-          if (errno == ECONNREFUSED)
-              return;
-          Printf ("NET_SendPacket: %s\n", strerror(errno));
-#endif	  
-    }
-
-}
-*/
-//*****************************************************************************
-//
 void NETWORK_LaunchPacket( NETBUFFER_s *pBuffer, NETADDRESS_s Address )
 {
 	LONG				lNumBytes;
 	INT					iNumBytesOut;
 	struct sockaddr_in	SocketAddress;
+
+	pBuffer->ulCurrentSize = pBuffer->ByteStream.pbStream - pBuffer->pbData;
 
 	// Nothing to do.
 	if ( pBuffer->ulCurrentSize == 0 )
@@ -793,83 +771,12 @@ void NETWORK_LaunchPacket( NETBUFFER_s *pBuffer, NETADDRESS_s Address )
 
 //*****************************************************************************
 //
-void NETWORK_SendPacket( ULONG ulClient )
-{
-    NETBUFFER_s		TempBuffer;
-	BYTE			abData[MAX_UDP_PACKET];
-	CLIENT_s		*pClient;
-
-	pClient = SERVER_GetClient( ulClient );
-	if ( pClient == NULL )
-		return;
-
-	TempBuffer.pbData = abData;
-	TempBuffer.ulMaxSize = sizeof( abData );
-	TempBuffer.ulCurrentSize = 0;
-
-	// If we've reached the end of our reliable packets buffer, start writing at the beginning.
-	if (( pClient->SavedPacketBuffer.ulCurrentSize + pClient->PacketBuffer.ulCurrentSize ) >= pClient->SavedPacketBuffer.ulMaxSize )
-		pClient->SavedPacketBuffer.ulCurrentSize = 0;
-
-	// Save where the beginning is and the size of each packet within the reliable packets
-	// buffer.
-	pClient->lPacketBeginning[( pClient->ulPacketSequence ) % 256] = pClient->SavedPacketBuffer.ulCurrentSize;
-	pClient->lPacketSize[( pClient->ulPacketSequence ) % 256] = pClient->PacketBuffer.ulCurrentSize;
-	pClient->lPacketSequence[( pClient->ulPacketSequence ) % 256] = pClient->ulPacketSequence;
-
-	// Write what we want to send out to our reliable packets buffer, so that it can be
-	// retransmitted later if necessary.
-	if ( pClient->PacketBuffer.ulCurrentSize )
-		NETWORK_Write( &pClient->SavedPacketBuffer, pClient->PacketBuffer.pbData, pClient->PacketBuffer.ulCurrentSize );
-
-	// Write the header to our temporary buffer.
-	NETWORK_WriteByte( &TempBuffer, SVC_HEADER );
-	NETWORK_WriteLong( &TempBuffer, pClient->ulPacketSequence );
-
-	// Write the body of the message to our temporary buffer.
-    if ( pClient->PacketBuffer.ulCurrentSize )
-		NETWORK_Write( &TempBuffer, pClient->PacketBuffer.pbData, pClient->PacketBuffer.ulCurrentSize );
-
-	pClient->ulPacketSequence++;
-
-	// Finally, send the packet.
-	NETWORK_LaunchPacket( &TempBuffer, pClient->Address );
-}
-
-//*****************************************************************************
-//
-void NETWORK_SendUnreliablePacket( ULONG ulClient )
-{
-    NETBUFFER_s		TempBuffer;
-	BYTE			abData[MAX_UDP_PACKET];
-	CLIENT_s		*pClient;
-
-	pClient = SERVER_GetClient( ulClient );
-	if ( pClient == NULL )
-		return;
-
-	TempBuffer.pbData = abData;
-	TempBuffer.ulMaxSize = sizeof(abData);
-	TempBuffer.ulCurrentSize = 0;
-
-	// Write the header to our temporary buffer.
-	NETWORK_WriteByte( &TempBuffer, SVC_UNRELIABLEPACKET );
-
-	// Write the body of the message to our temporary buffer.
-    if ( pClient->UnreliablePacketBuffer.ulCurrentSize )
-		NETWORK_Write( &TempBuffer, pClient->UnreliablePacketBuffer.pbData, pClient->UnreliablePacketBuffer.ulCurrentSize );
-
-	// Finally, send the packet.
-	NETWORK_LaunchPacket( &TempBuffer, pClient->Address );
-}
-
-//*****************************************************************************
-//
-void NETWORK_InitBuffer( NETBUFFER_s *pBuffer, ULONG ulLength )
+void NETWORK_InitBuffer( NETBUFFER_s *pBuffer, ULONG ulLength, BUFFERTYPE_e BufferType )
 {
 	memset( pBuffer, 0, sizeof( *pBuffer ));
 	pBuffer->ulMaxSize = ulLength;
 	pBuffer->pbData = new BYTE[ulLength];
+	pBuffer->BufferType = BufferType;
 }
 
 //*****************************************************************************
@@ -888,77 +795,21 @@ void NETWORK_FreeBuffer( NETBUFFER_s *pBuffer )
 void NETWORK_ClearBuffer( NETBUFFER_s *pBuffer )
 {
 	pBuffer->ulCurrentSize = 0;
-}
-
-//*****************************************************************************
-//
-BYTE *NETWORK_GetSpace( NETBUFFER_s *pBuffer, ULONG ulLength )
-{
-	BYTE	*pbData;
-
-	// Make sure we have enough room left in the packet.
-	if (( pBuffer->ulCurrentSize + ulLength ) > pBuffer->ulMaxSize )
-	{
-		if ( ulLength > pBuffer->ulMaxSize )
-			Printf( "NETWORK_GetSpace: %i is > full buffer size.\n", ulLength );
-		else
-			Printf( "NETWORK_GetSpace: Overflow!\n" );
-
-		NETWORK_ClearBuffer( pBuffer );
-		return ( NULL );
-	}
-
-	pbData = pBuffer->pbData + pBuffer->ulCurrentSize;
-	pBuffer->ulCurrentSize += ulLength;
-	
-	return ( pbData );
-}
-
-//*****************************************************************************
-//
-void NETWORK_Write( NETBUFFER_s *pBuffer, const void *pvData, int nLength )
-{
-	BYTE	*pbDatapos;
-
-	if ( g_lNetworkState == NETSTATE_CLIENT )
-		memcpy( NETWORK_GetSpace( pBuffer, nLength ), pvData, nLength );
+	pBuffer->ByteStream.pbStream = pBuffer->pbData;
+	if ( pBuffer->BufferType == BUFFERTYPE_READ )
+		pBuffer->ByteStream.pbStreamEnd = pBuffer->ByteStream.pbStream;
 	else
-	{
-		pbDatapos = NETWORK_GetSpace( pBuffer, nLength );
-
-		// Bad getspace.
-		if ( pbDatapos == 0 )
-		{
-			Printf( "NETWORK_Write: Couldn't get %d bytes of space!\n", nLength );
-			return;
-		}
-		
-		memcpy( pbDatapos, pvData, nLength );
-	}
+		pBuffer->ByteStream.pbStreamEnd = pBuffer->ByteStream.pbStream + pBuffer->ulMaxSize;
 }
 
 //*****************************************************************************
 //
-void NETWORK_Write( NETBUFFER_s *pBuffer, BYTE *pbData, int nStartPos, int nLength )
+LONG NETWORK_CalcBufferSize( NETBUFFER_s *pBuffer )
 {
-	BYTE	*pbDatapos;
-
-	if ( g_lNetworkState == NETSTATE_CLIENT )
-	{
-		pbData += nStartPos;
-		memcpy( NETWORK_GetSpace( pBuffer, nLength ), pbData, nLength );
-	}
+	if ( pBuffer->BufferType == BUFFERTYPE_READ )
+		return ( pBuffer->ByteStream.pbStreamEnd - pBuffer->ByteStream.pbStream );
 	else
-	{
-		pbDatapos = NETWORK_GetSpace( pBuffer, nLength );
-
-		// Bad getspace.
-		if ( pbDatapos == 0 )
-			return;
-		
-		pbData += nStartPos;
-		memcpy( pbDatapos, pbData, nLength );
-	}
+		return ( pBuffer->ByteStream.pbStream - pBuffer->pbData );
 }
 
 //*****************************************************************************
@@ -1067,13 +918,6 @@ NETADDRESS_s NETWORK_GetLocalAddress( void )
 
 //*****************************************************************************
 //
-LONG NETWORK_GetPacketSize( void )
-{
-	return ( g_NetworkMessage.ulCurrentSize );
-}
-
-//*****************************************************************************
-//
 NETBUFFER_s *NETWORK_GetNetworkMessageBuffer( void )
 {
 	return ( &g_NetworkMessage );
@@ -1111,7 +955,7 @@ void NETWORK_SetState( LONG lState )
 	g_lNetworkState = lState;
 
 	// Alert the status bar that multiplayer status has changed.
-	if ( g_lNetworkState != NETSTATE_SERVER && StatusBar )
+	if (( g_lNetworkState != NETSTATE_SERVER ) && StatusBar )
 		StatusBar->MultiplayerChanged( );
 }
 
@@ -1261,20 +1105,20 @@ CCMD( netstate )
 
 #ifdef	_DEBUG
 // DEBUG FUNCTION!
-void NETWORK_FillBufferWithShit( NETBUFFER_s *pBuffer, ULONG ulSize )
+void NETWORK_FillBufferWithShit( BYTESTREAM_s *pByteStream, ULONG ulSize )
 {
 	ULONG	ulIdx;
 
-	// Fill the packet with 1k of SHIT!
 	for ( ulIdx = 0; ulIdx < ulSize; ulIdx++ )
-		NETWORK_WriteByte( pBuffer, M_Random( ));
+		NETWORK_WriteByte( pByteStream, M_Random( ));
 
 //	NETWORK_ClearBuffer( &g_NetworkMessage );
 }
 
 CCMD( fillbufferwithshit )
 {
-	NETWORK_FillBufferWithShit( &g_NetworkMessage, 1024 );
+	// Fill the packet with 1k of SHIT!
+	NETWORK_FillBufferWithShit( &g_NetworkMessage.ByteStream, 1024 );
 /*
 	ULONG	ulIdx;
 

@@ -196,6 +196,9 @@ enum
 #define NUMBER_OF_ACTOR_NAME_KEY_LETTERS 2
 #define NUMBER_OF_WEAPON_NAME_KEY_LETTERS 10
 
+// This is the longest possible string we can pass over the network.
+#define	MAX_NETWORK_STRING			2048
+
 //*****************************************************************************
 typedef enum
 {
@@ -504,42 +507,34 @@ enum
 
 void			NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket );
 
-int				NETWORK_ReadChar( void );
-void			NETWORK_WriteChar( NETBUFFER_s *pBuffer, int Char );
+int				NETWORK_ReadByte( BYTESTREAM_s *pByteStream );
+void			NETWORK_WriteByte( BYTESTREAM_s *pByteStream, int Byte );
 
-int				NETWORK_ReadByte( void );
-void			NETWORK_WriteByte( NETBUFFER_s *pBuffer, int Byte );
+int				NETWORK_ReadShort( BYTESTREAM_s *pByteStream );
+void			NETWORK_WriteShort( BYTESTREAM_s *pByteStream, int Short );
 
-int				NETWORK_ReadShort( void );
-void			NETWORK_WriteShort( NETBUFFER_s *pBuffer, int Short );
+int				NETWORK_ReadLong( BYTESTREAM_s *pByteStream );
+void			NETWORK_WriteLong( BYTESTREAM_s *pByteStream, int Long );
 
-int				NETWORK_ReadLong( void );
-void			NETWORK_WriteLong( NETBUFFER_s *pBuffer, int Long );
+float			NETWORK_ReadFloat( BYTESTREAM_s *pByteStream );
+void			NETWORK_WriteFloat( BYTESTREAM_s *pByteStream, float Float );
 
-float			NETWORK_ReadFloat( void );
-void			NETWORK_WriteFloat( NETBUFFER_s *pBuffer, float Float );
+char			*NETWORK_ReadString( BYTESTREAM_s *pByteStream );
+void			NETWORK_WriteString( BYTESTREAM_s *pByteStream, const char *pszString );
 
-char			*NETWORK_ReadString( void );
-void			NETWORK_WriteString( NETBUFFER_s *pBuffer, const char *pszString );
+void			NETWORK_WriteBuffer( BYTESTREAM_s *pByteStream, const void *pvBuffer, int nLength );
 
 // Debugging function.
-void			NETWORK_WriteHeader( NETBUFFER_s *pBuffer, int Byte );
+void			NETWORK_WriteHeader( BYTESTREAM_s *pByteStream, int Byte );
 
-void			NETWORK_CheckBuffer( ULONG ulClient, ULONG ulSize );
 int				NETWORK_GetPackets( void );
 int				NETWORK_GetLANPackets( void );
-BYTE			*NETWORK_GetBuffer( void );
 NETADDRESS_s	NETWORK_GetFromAddress( void );
-//void			NETWORK_LaunchPacket( NETBUFFER_s netbuf, NETADDRESS_s to, bool bCompression );
 void			NETWORK_LaunchPacket( NETBUFFER_s *pBuffer, NETADDRESS_s Address );
-void			NETWORK_SendPacket( ULONG ulClient );
-void			NETWORK_SendUnreliablePacket( ULONG ulClient );
-void			NETWORK_InitBuffer( NETBUFFER_s *pBuffer, ULONG ulLength );
+void			NETWORK_InitBuffer( NETBUFFER_s *pBuffer, ULONG ulLength, BUFFERTYPE_e BufferType );
 void			NETWORK_FreeBuffer( NETBUFFER_s *pBuffer );
 void			NETWORK_ClearBuffer( NETBUFFER_s *pBuffer );
-BYTE			*NETWORK_GetSpace( NETBUFFER_s *pBuffer, ULONG ulLength );
-void			NETWORK_Write( NETBUFFER_s *pBuffer, const void *pvData, int nLength );
-void			NETWORK_Write( NETBUFFER_s *pBuffer, BYTE *pbData, int nStartPos, int nLength );
+LONG			NETWORK_CalcBufferSize( NETBUFFER_s *pBuffer );
 char			*NETWORK_AddressToString( NETADDRESS_s Address );
 char			*NETWORK_AddressToStringIgnorePort( NETADDRESS_s Address );
 //bool			NETWORK_StringToAddress( char *pszString, NETADDRESS_s *pAddress );
@@ -549,7 +544,6 @@ void			NETWORK_NetAddressToSocketAddress( NETADDRESS_s &Address, struct sockaddr
 void			NETWORK_SetAddressPort( NETADDRESS_s &Address, USHORT usPort );
 AActor			*NETWORK_FindThingByNetID( LONG lID );
 NETADDRESS_s	NETWORK_GetLocalAddress( void );
-LONG			NETWORK_GetPacketSize( void );
 NETBUFFER_s		*NETWORK_GetNetworkMessageBuffer( void );
 ULONG			NETWORK_ntohs( ULONG ul );
 USHORT			NETWORK_GetLocalPort( void );

@@ -118,32 +118,32 @@ EXTERN_CVAR( Bool, sv_cheats );
 //*****************************************************************************
 //	PROTOTYPES
 
-static	bool	server_StartChat( void );
-static	bool	server_EndChat( void );
-static	bool	server_Say( void );
-static	bool	server_ClientMove( void );
-static	bool	server_MissingPacket( void );
-static	bool	server_UpdateClientPing( void );
-static	bool	server_WeaponSelect( void );
-static	bool	server_Taunt( void );
-static	bool	server_Spectate( void );
-static	bool	server_RequestJoin( void );
-static	bool	server_RequestRCON( void );
-static	bool	server_RCONCommand( void );
-static	bool	server_Suicide( void );
-static	bool	server_ChangeTeam( void );
-static	bool	server_SpectateInfo( void );
-static	bool	server_GenericCheat( void );
-static	bool	server_GiveCheat( void );
-static	bool	server_SummonCheat( bool bFriend = false );
-static	bool	server_ReadyToGoOn( void );
-static	bool	server_ChangeDisplayPlayer( void );
-static	bool	server_AuthenticateLevel( void );
-static	bool	server_CallVote( void );
-static	bool	server_VoteYes( void );
-static	bool	server_VoteNo( void );
-static	bool	server_InventoryUseAll( void );
-static	bool	server_InventoryUse( void );
+static	bool	server_StartChat( BYTESTREAM_s *pByteStream );
+static	bool	server_EndChat( BYTESTREAM_s *pByteStream );
+static	bool	server_Say( BYTESTREAM_s *pByteStream );
+static	bool	server_ClientMove( BYTESTREAM_s *pByteStream );
+static	bool	server_MissingPacket( BYTESTREAM_s *pByteStream );
+static	bool	server_UpdateClientPing( BYTESTREAM_s *pByteStream );
+static	bool	server_WeaponSelect( BYTESTREAM_s *pByteStream );
+static	bool	server_Taunt( BYTESTREAM_s *pByteStream );
+static	bool	server_Spectate( BYTESTREAM_s *pByteStream );
+static	bool	server_RequestJoin( BYTESTREAM_s *pByteStream );
+static	bool	server_RequestRCON( BYTESTREAM_s *pByteStream );
+static	bool	server_RCONCommand( BYTESTREAM_s *pByteStream );
+static	bool	server_Suicide( BYTESTREAM_s *pByteStream );
+static	bool	server_ChangeTeam( BYTESTREAM_s *pByteStream );
+static	bool	server_SpectateInfo( BYTESTREAM_s *pByteStream );
+static	bool	server_GenericCheat( BYTESTREAM_s *pByteStream );
+static	bool	server_GiveCheat( BYTESTREAM_s *pByteStream );
+static	bool	server_SummonCheat( BYTESTREAM_s *pByteStream, bool bFriend = false );
+static	bool	server_ReadyToGoOn( BYTESTREAM_s *pByteStream );
+static	bool	server_ChangeDisplayPlayer( BYTESTREAM_s *pByteStream );
+static	bool	server_AuthenticateLevel( BYTESTREAM_s *pByteStream );
+static	bool	server_CallVote( BYTESTREAM_s *pByteStream );
+static	bool	server_VoteYes( BYTESTREAM_s *pByteStream );
+static	bool	server_VoteNo( BYTESTREAM_s *pByteStream );
+static	bool	server_InventoryUseAll( BYTESTREAM_s *pByteStream );
+static	bool	server_InventoryUse( BYTESTREAM_s *pByteStream );
 
 //*****************************************************************************
 //	VARIABLES
@@ -348,22 +348,22 @@ void SERVER_Construct( void )
 	// Initizlize the playeringame array (is this necessary?).
 	memset( playeringame, 0, sizeof( playeringame ));
 
-	NETWORK_InitBuffer( &g_PacketLossBuffer, MAX_UDP_PACKET );
+	NETWORK_InitBuffer( &g_PacketLossBuffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
 	NETWORK_ClearBuffer( &g_PacketLossBuffer );
 
 	// Initialize clients.
 	g_ulMaxPacketSize = sv_maxpacketsize;
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
     {
-		NETWORK_InitBuffer( &g_aClients[ulIdx].PacketBuffer, MAX_UDP_PACKET );
+		NETWORK_InitBuffer( &g_aClients[ulIdx].PacketBuffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
 		NETWORK_ClearBuffer( &g_aClients[ulIdx].PacketBuffer );
 
 		// Initialize the saved packet buffer.
-		NETWORK_InitBuffer( &g_aClients[ulIdx].SavedPacketBuffer, g_ulMaxPacketSize * 256 );
+		NETWORK_InitBuffer( &g_aClients[ulIdx].SavedPacketBuffer, g_ulMaxPacketSize * 256, BUFFERTYPE_WRITE );
 		NETWORK_ClearBuffer( &g_aClients[ulIdx].SavedPacketBuffer );
 
 		// Initialize the unreliable packet buffer.
-		NETWORK_InitBuffer( &g_aClients[ulIdx].UnreliablePacketBuffer, MAX_UDP_PACKET );
+		NETWORK_InitBuffer( &g_aClients[ulIdx].UnreliablePacketBuffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
 		NETWORK_ClearBuffer( &g_aClients[ulIdx].UnreliablePacketBuffer );
 
 		// This is currently an open slot.
@@ -676,17 +676,105 @@ void SERVER_SendOutPackets( void )
 		if ( SERVER_IsValidClient( ulIdx ) == false )
 			continue;
 
-		if ( g_aClients[ulIdx].PacketBuffer.ulCurrentSize > 0 )
-		{
-			NETWORK_SendPacket( ulIdx );
-			NETWORK_ClearBuffer( &g_aClients[ulIdx].PacketBuffer );
-		}
+		if ( NETWORK_CalcBufferSize( &g_aClients[ulIdx].PacketBuffer ) > 0 )
+			SERVER_SendClientPacket( ulIdx, true );
 
-		if ( g_aClients[ulIdx].UnreliablePacketBuffer.ulCurrentSize > 0 )
-		{
-			NETWORK_SendUnreliablePacket( ulIdx );
-			NETWORK_ClearBuffer( &g_aClients[ulIdx].UnreliablePacketBuffer );
-		}
+		if ( NETWORK_CalcBufferSize( &g_aClients[ulIdx].UnreliablePacketBuffer ) > 0 )
+			SERVER_SendClientPacket( ulIdx, false );
+	}
+}
+
+//*****************************************************************************
+//
+void SERVER_SendClientPacket( ULONG ulClient, bool bReliable )
+{
+	NETBUFFER_s		*pBuffer;
+    NETBUFFER_s		TempBuffer;
+	BYTE			abData[MAX_UDP_PACKET];
+	CLIENT_s		*pClient;
+
+	pClient = SERVER_GetClient( ulClient );
+	if ( pClient == NULL )
+		return;
+
+	TempBuffer.pbData = abData;
+	TempBuffer.ulMaxSize = sizeof( abData );
+	TempBuffer.ulCurrentSize = 0;
+	TempBuffer.BufferType = BUFFERTYPE_WRITE;
+	TempBuffer.ByteStream.pbStream = abData;
+	TempBuffer.ByteStream.pbStreamEnd = TempBuffer.ByteStream.pbStream + TempBuffer.ulMaxSize;
+
+	if ( bReliable )
+		pBuffer = &pClient->PacketBuffer;
+	else
+		pBuffer = &pClient->UnreliablePacketBuffer;
+
+	pBuffer->ulCurrentSize = pBuffer->ByteStream.pbStream - pBuffer->pbData;
+	if ( bReliable )
+	{
+		// If we've reached the end of our reliable packets buffer, start writing at the beginning.
+		if (( pClient->SavedPacketBuffer.ulCurrentSize + pClient->PacketBuffer.ulCurrentSize ) >= pClient->SavedPacketBuffer.ulMaxSize )
+			pClient->SavedPacketBuffer.ulCurrentSize = 0;
+
+		// Save where the beginning is and the size of each packet within the reliable packets
+		// buffer.
+		pClient->lPacketBeginning[( pClient->ulPacketSequence ) % 256] = pClient->SavedPacketBuffer.ulCurrentSize;
+		pClient->lPacketSize[( pClient->ulPacketSequence ) % 256] = pClient->PacketBuffer.ulCurrentSize;
+		pClient->lPacketSequence[( pClient->ulPacketSequence ) % 256] = pClient->ulPacketSequence;
+
+		// Write what we want to send out to our reliable packets buffer, so that it can be
+		// retransmitted later if necessary.
+		if ( pClient->PacketBuffer.ulCurrentSize )
+			NETWORK_WriteBuffer( &pClient->SavedPacketBuffer.ByteStream, pClient->PacketBuffer.pbData, pClient->PacketBuffer.ulCurrentSize );
+
+		// Write the header to our temporary buffer.
+		NETWORK_WriteByte( &TempBuffer.ByteStream, SVC_HEADER );
+		NETWORK_WriteLong( &TempBuffer.ByteStream, pClient->ulPacketSequence );
+
+		pClient->ulPacketSequence++;
+	}
+	else
+	{
+		// Write the header to our temporary buffer.
+		NETWORK_WriteByte( &TempBuffer.ByteStream, SVC_UNRELIABLEPACKET );
+	}
+
+	// Write the body of the message to our temporary buffer.
+	pBuffer->ulCurrentSize = pBuffer->ByteStream.pbStream - pBuffer->pbData;
+	if ( pBuffer->ulCurrentSize != 0 )
+		NETWORK_WriteBuffer( &TempBuffer.ByteStream, pBuffer->pbData, pBuffer->ulCurrentSize );
+
+	// Finally, send the packet, and clear the buffer.
+	NETWORK_LaunchPacket( &TempBuffer, pClient->Address );
+	NETWORK_ClearBuffer( pBuffer );
+}
+
+//*****************************************************************************
+//
+void SERVER_CheckClientBuffer( ULONG ulClient, ULONG ulSize, bool bReliable )
+{
+	NETBUFFER_s	*pBuffer;
+	CLIENT_s	*pClient;
+
+	pClient = SERVER_GetClient( ulClient );
+	if ( pClient == NULL )
+		return;
+
+	if ( bReliable )
+		pBuffer = &pClient->PacketBuffer;
+	else
+		pBuffer = &pClient->UnreliablePacketBuffer;
+
+	// Make sure we have enough room for the upcoming message. If not, send
+	// out the current buffer and clear the packet.
+	pBuffer->ulCurrentSize = pBuffer->ByteStream.pbStream - pBuffer->pbData;
+	if (( pBuffer->ulCurrentSize + ( ulSize + 5 )) >= SERVER_GetMaxPacketSize( ))
+	{
+		if ( debugfile )
+			fprintf( debugfile, "Launching premature packet: %d\n", bReliable );
+
+		// Lanch the packet so we can prepare another.
+		SERVER_SendClientPacket( ulClient, bReliable );
 	}
 }
 
@@ -840,15 +928,22 @@ CVAR( Bool, sv_emulatepacketloss, false, 0 )
 
 void SERVER_GetPackets( void )
 {
+	BYTESTREAM_s	*pByteStream;
+
 	while ( NETWORK_GetPackets( ) > 0 )
     {
+		// Set up our byte stream.
+		pByteStream = &NETWORK_GetNetworkMessageBuffer( )->ByteStream;
+		pByteStream->pbStream = NETWORK_GetNetworkMessageBuffer( )->pbData;
+		pByteStream->pbStreamEnd = pByteStream->pbStream + NETWORK_GetNetworkMessageBuffer( )->ulCurrentSize;
+
 		// We've gotten a packet. Try to figure out if it's from a connected client.
         g_lCurrentClient = SERVER_FindClientByAddress( NETWORK_GetFromAddress( ));
 
 		// Packet is not from an existing client; must be someone trying to connect!
 		if ( g_lCurrentClient == -1 )
 		{
-			SERVER_DetermineConnectionType( );
+			SERVER_DetermineConnectionType( pByteStream );
             continue;
         }
 
@@ -862,7 +957,7 @@ void SERVER_GetPackets( void )
 #endif
 
 		// Parse the information sent by the clients.
-		SERVER_ParseCommands( );
+		SERVER_ParsePacket( pByteStream );
     }
 }
 
@@ -906,9 +1001,9 @@ void SERVER_SendChatMessage( ULONG ulPlayer, ULONG ulMode, char *pszString )
 
 //*****************************************************************************
 //
-void SERVER_AuthenticateClientLevel( void )
+void SERVER_AuthenticateClientLevel( BYTESTREAM_s *pByteStream )
 {
-	if ( SERVER_PerformAuthenticationChecksum( ) == false )
+	if ( SERVER_PerformAuthenticationChecksum( pByteStream ) == false )
 	{
 		SERVER_ClientError( g_lCurrentClient, NETWORK_ERRORCODE_AUTHENTICATIONFAILED );
 		return;
@@ -919,14 +1014,15 @@ void SERVER_AuthenticateClientLevel( void )
 
 	// Tell the client his level was authenticated.
 	NETWORK_ClearBuffer( &g_aClients[g_lCurrentClient].PacketBuffer );
-	NETWORK_WriteByte( &g_aClients[g_lCurrentClient].PacketBuffer, CONNECT_AUTHENTICATED );
-	NETWORK_SendPacket( g_lCurrentClient );
-	NETWORK_ClearBuffer( &g_aClients[g_lCurrentClient].PacketBuffer );
+	NETWORK_WriteByte( &g_aClients[g_lCurrentClient].PacketBuffer.ByteStream, CONNECT_AUTHENTICATED );
+	
+	// Send the packet off.
+	SERVER_SendClientPacket( g_lCurrentClient, true );
 }
 
 //*****************************************************************************
 //
-bool SERVER_PerformAuthenticationChecksum( void )
+bool SERVER_PerformAuthenticationChecksum( BYTESTREAM_s *pByteStream )
 {
 	char		szServerVertexString[64];
 	char		szServerLinedefString[64];
@@ -953,10 +1049,10 @@ bool SERVER_PerformAuthenticationChecksum( void )
 	delete map;
 
 	// Read in the client's checksum strings.
-	strncpy( szClientVertexString, NETWORK_ReadString( ), 64 );
-	strncpy( szClientLinedefString, NETWORK_ReadString( ), 64 );
-	strncpy( szClientSidedefString, NETWORK_ReadString( ), 64 );
-	strncpy( szClientSectorString, NETWORK_ReadString( ), 64 );
+	strncpy( szClientVertexString, NETWORK_ReadString( pByteStream ), 64 );
+	strncpy( szClientLinedefString, NETWORK_ReadString( pByteStream ), 64 );
+	strncpy( szClientSidedefString, NETWORK_ReadString( pByteStream ), 64 );
+	strncpy( szClientSectorString, NETWORK_ReadString( pByteStream ), 64 );
 
 	// Checksums did not match! Therefore, the level authentication has failed.
 	if (( strcmp( szServerVertexString, szClientVertexString ) != 0 ) ||
@@ -973,7 +1069,7 @@ bool SERVER_PerformAuthenticationChecksum( void )
 //*****************************************************************************
 //
 void SERVERCONSOLE_AddNewPlayer( LONG lPlayer );
-void SERVER_ConnectNewPlayer( void )
+void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 {
 	UCVarValue							Val;
 	LONG								lCommand;
@@ -1099,7 +1195,7 @@ void SERVER_ConnectNewPlayer( void )
 			players[g_lCurrentClient].bOnTeam = false;
 	}
 
-	lCommand = NETWORK_ReadByte( );
+	lCommand = NETWORK_ReadByte( pByteStream );
 	if ( lCommand != CLC_USERINFO )
 	{
 		SERVER_ClientError( g_lCurrentClient, NETWORK_ERRORCODE_FAILEDTOSENDUSERINFO );
@@ -1108,7 +1204,7 @@ void SERVER_ConnectNewPlayer( void )
 
 	// Read in the user's userinfo. If it returns false, the player was kicked for flooding
 	// (though this shouldn't happen anymore).
-	if ( SERVER_GetUserInfo( false ) == false )
+	if ( SERVER_GetUserInfo( pByteStream, false ) == false )
 		return;
 
 	// Apparently, we know the client is in the game, but the 
@@ -1324,7 +1420,7 @@ void SERVER_ConnectNewPlayer( void )
 
 //*****************************************************************************
 //
-void SERVER_DetermineConnectionType( void )
+void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 {
 	ULONG	ulFlags;
 	ULONG	ulTime;
@@ -1333,7 +1429,7 @@ void SERVER_DetermineConnectionType( void )
 	{
 		LONG	lCommand;
 
-		lCommand = NETWORK_ReadByte( );
+		lCommand = NETWORK_ReadByte( pByteStream );
 
 		// End of message.
 		if ( lCommand == -1 )
@@ -1348,15 +1444,15 @@ void SERVER_DetermineConnectionType( void )
 			case LAUNCHER_SERVER_CHALLENGE:
 
 				// Read in three more bytes, because it was a long that was sent to us.
-				NETWORK_ReadByte( );
-				NETWORK_ReadByte( );
-				NETWORK_ReadByte( );
+				NETWORK_ReadByte( pByteStream );
+				NETWORK_ReadByte( pByteStream );
+				NETWORK_ReadByte( pByteStream );
 
 				// Read in what the query wants to know.
-				ulFlags = NETWORK_ReadLong( );
+				ulFlags = NETWORK_ReadLong( pByteStream );
 
 				// Read in the time the launcher sent us.
-				ulTime = NETWORK_ReadLong( );
+				ulTime = NETWORK_ReadLong( pByteStream );
 
 				// Received launcher query!
 				if ( sv_showlauncherqueries )
@@ -1401,13 +1497,13 @@ void SERVER_DetermineConnectionType( void )
 			return;
 
 		// Setup a new player (setup CLIENT_t and player_t)
-		SERVER_SetupNewConnection( true );
+		SERVER_SetupNewConnection( pByteStream, true );
 	}
 }
 
 //*****************************************************************************
 //
-void SERVER_SetupNewConnection( bool bNewPlayer )
+void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 {
 	LONG			lClient;
 	char			szClientVersion[16];
@@ -1449,11 +1545,11 @@ void SERVER_SetupNewConnection( bool bNewPlayer )
 			SERVER_ConnectionError( AddressFrom, "Server is full." );
 
 			// User sent the version, password, start as spectator, restore frags, and network protcol version along with the challenge.
-			NETWORK_ReadString( );
-			NETWORK_ReadString( );
-			NETWORK_ReadByte( );
-			NETWORK_ReadByte( );
-			NETWORK_ReadByte( );
+			NETWORK_ReadString( pByteStream );
+			NETWORK_ReadString( pByteStream );
+			NETWORK_ReadByte( pByteStream );
+			NETWORK_ReadByte( pByteStream );
+			NETWORK_ReadByte( pByteStream );
 			return;
 		}
 	}
@@ -1464,19 +1560,19 @@ void SERVER_SetupNewConnection( bool bNewPlayer )
 		SERVER_DisconnectClient( lClient, false, true );
 
 	// Read in the client version info.
-	strncpy( szClientVersion, NETWORK_ReadString( ), 16 );
+	strncpy( szClientVersion, NETWORK_ReadString( pByteStream ), 16 );
 
 	// Read in the client's password.
-	strncpy( szClientPassword, strupr( NETWORK_ReadString( )), 64 );
+	strncpy( szClientPassword, strupr( NETWORK_ReadString( pByteStream )), 64 );
 
 	// Read in whether or not the client wants to start as a spectator.
-	g_aClients[lClient].bWantStartAsSpectator = !!NETWORK_ReadByte( );
+	g_aClients[lClient].bWantStartAsSpectator = !!NETWORK_ReadByte( pByteStream );
 
 	// Read in whether or not the client wants to start as a spectator.
-	g_aClients[lClient].bWantNoRestoreFrags = !!NETWORK_ReadByte( );
+	g_aClients[lClient].bWantNoRestoreFrags = !!NETWORK_ReadByte( pByteStream );
 
 	// Read in the client's network game version.
-	lClientNetworkGameVersion = NETWORK_ReadByte( );
+	lClientNetworkGameVersion = NETWORK_ReadByte( pByteStream );
 
 	NETWORK_ClearBuffer( &g_aClients[lClient].PacketBuffer );
 	NETWORK_ClearBuffer( &g_aClients[lClient].SavedPacketBuffer );
@@ -1584,17 +1680,18 @@ void SERVER_SetupNewConnection( bool bNewPlayer )
 
 	// Send heartbeat back.
 	NETWORK_ClearBuffer( &g_aClients[lClient].PacketBuffer );
-	NETWORK_WriteByte( &g_aClients[lClient].PacketBuffer, CONNECT_READY );
-	NETWORK_WriteString( &g_aClients[lClient].PacketBuffer, level.mapname );
-	NETWORK_SendPacket( lClient );
-	NETWORK_ClearBuffer( &g_aClients[lClient].PacketBuffer );
+	NETWORK_WriteByte( &g_aClients[lClient].PacketBuffer.ByteStream, CONNECT_READY );
+	NETWORK_WriteString( &g_aClients[lClient].PacketBuffer.ByteStream, level.mapname );
+
+	// Send the packet off.
+	SERVER_SendClientPacket( lClient, true );
 }
 
 //*****************************************************************************
 //
-bool SERVER_GetUserInfo( bool bAllowKick )
+bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 {
-	ULONG		ulIdx;
+//	ULONG		ulIdx;
 	ULONG		ulFlags;
     player_t	*pPlayer;
 	char		*pszString;
@@ -1651,13 +1748,13 @@ bool SERVER_GetUserInfo( bool bAllowKick )
 	}
 
 	// Read in which userinfo entries the client is sending us.
-	ulFlags = NETWORK_ReadShort( );
+	ulFlags = NETWORK_ReadShort( pByteStream );
 
 	// Read in the player's name.
 	if ( ulFlags & USERINFO_NAME )
 	{
 		sprintf( szOldPlayerName, pPlayer->userinfo.netname );
-		pszString = NETWORK_ReadString( );
+		pszString = NETWORK_ReadString( pByteStream );
 
 		if ( strlen( pszString ) > MAXPLAYERNAME )
 			pszString[MAXPLAYERNAME] = '\0';
@@ -1702,26 +1799,26 @@ bool SERVER_GetUserInfo( bool bAllowKick )
 
     // Read in gender, color, and aim distance.
 	if ( ulFlags & USERINFO_GENDER )
-		pPlayer->userinfo.gender = NETWORK_ReadByte( );
+		pPlayer->userinfo.gender = NETWORK_ReadByte( pByteStream );
 	if ( ulFlags & USERINFO_COLOR )
-		pPlayer->userinfo.color = NETWORK_ReadLong( );
+		pPlayer->userinfo.color = NETWORK_ReadLong( pByteStream );
 	if ( ulFlags & USERINFO_AIMDISTANCE )
-		pPlayer->userinfo.aimdist = NETWORK_ReadLong( );
+		pPlayer->userinfo.aimdist = NETWORK_ReadLong( pByteStream );
 
 	// Read in the player's skin, and make sure it's valid.
 	if ( ulFlags & USERINFO_SKIN )
-		sprintf( szSkin, NETWORK_ReadString( ));
+		sprintf( szSkin, NETWORK_ReadString( pByteStream ));
 	else
 		szSkin[0] = '\0';
 
 	// Read in the player's railgun color.
 	if ( ulFlags & USERINFO_RAILCOLOR )
-		pPlayer->userinfo.lRailgunTrailColor = NETWORK_ReadLong( );
+		pPlayer->userinfo.lRailgunTrailColor = NETWORK_ReadLong( pByteStream );
 
 	// Read in the player's handicap.
 	if ( ulFlags & USERINFO_HANDICAP )
 	{
-		pPlayer->userinfo.lHandicap = NETWORK_ReadByte( );
+		pPlayer->userinfo.lHandicap = NETWORK_ReadByte( pByteStream );
 		if ( pPlayer->userinfo.lHandicap < 0 )
 			pPlayer->userinfo.lHandicap = 0;
 		else if ( pPlayer->userinfo.lHandicap > deh.MaxSoulsphere )
@@ -1729,11 +1826,11 @@ bool SERVER_GetUserInfo( bool bAllowKick )
 	}
 
 	if ( ulFlags & USERINFO_CONNECTIONTYPE )
-		pPlayer->userinfo.lConnectionType = NETWORK_ReadByte( );
+		pPlayer->userinfo.lConnectionType = NETWORK_ReadByte( pByteStream );
 
 	// If this is a Hexen game, read in the player's class.
 	if ( ulFlags & USERINFO_PLAYERCLASS )
-		sprintf( szClass, NETWORK_ReadString( ));
+		sprintf( szClass, NETWORK_ReadString( pByteStream ));
 	else
 		szClass[0] = 0;
 
@@ -1770,18 +1867,18 @@ void SERVER_ConnectionError( NETADDRESS_s Address, char *pszMessage )
 {
 	NETBUFFER_s	TempBuffer;
 
-	NETWORK_InitBuffer( &TempBuffer, MAX_UDP_PACKET );
+	NETWORK_InitBuffer( &TempBuffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
 	NETWORK_ClearBuffer( &TempBuffer );
 
 	// Display error message locally in the console.
 	Printf( "%s\n", pszMessage );
 
 	// Make sure the packet has a packet header. The client is expecting this!
-	NETWORK_WriteHeader( &TempBuffer, SVC_HEADER );
-	NETWORK_WriteLong( &TempBuffer, 0 );
+	NETWORK_WriteHeader( &TempBuffer.ByteStream, SVC_HEADER );
+	NETWORK_WriteLong( &TempBuffer.ByteStream, 0 );
 
-	NETWORK_WriteByte( &TempBuffer, NETWORK_ERROR );
-	NETWORK_WriteByte( &TempBuffer, NETWORK_ERRORCODE_SERVERISFULL );
+	NETWORK_WriteByte( &TempBuffer.ByteStream, NETWORK_ERROR );
+	NETWORK_WriteByte( &TempBuffer.ByteStream, NETWORK_ERRORCODE_SERVERISFULL );
 
 //	NETWORK_LaunchPacket( TempBuffer, Address, true );
 	NETWORK_LaunchPacket( &TempBuffer, Address );
@@ -1792,10 +1889,10 @@ void SERVER_ConnectionError( NETADDRESS_s Address, char *pszMessage )
 //
 void SERVER_ClientError( ULONG ulClient, ULONG ulErrorCode )
 {
-	NETWORK_WriteByte( &g_aClients[ulClient].PacketBuffer, NETWORK_ERROR );
-	NETWORK_WriteByte( &g_aClients[ulClient].PacketBuffer, ulErrorCode );
+	NETWORK_WriteByte( &g_aClients[ulClient].PacketBuffer.ByteStream, NETWORK_ERROR );
+	NETWORK_WriteByte( &g_aClients[ulClient].PacketBuffer.ByteStream, ulErrorCode );
 
-		// Display error message locally in the console.
+	// Display error message locally in the console.
 	switch ( ulErrorCode )
 	{
 	case NETWORK_ERRORCODE_WRONGPASSWORD:
@@ -1807,7 +1904,7 @@ void SERVER_ClientError( ULONG ulClient, ULONG ulErrorCode )
 		Printf( "Incorrect version.\n" );
 
 		// Tell the client what version this server using.
-		NETWORK_WriteString( &g_aClients[ulClient].PacketBuffer, DOTVERSIONSTR );
+		NETWORK_WriteString( &g_aClients[ulClient].PacketBuffer.ByteStream, DOTVERSIONSTR );
 		break;
 	case NETWORK_ERRORCODE_BANNED:
 
@@ -1822,8 +1919,9 @@ void SERVER_ClientError( ULONG ulClient, ULONG ulErrorCode )
 		Printf( "Failed to send userinfo.\n" );
 		break;
 	}
-	NETWORK_SendPacket( ulClient );
-	NETWORK_ClearBuffer( &g_aClients[ulClient].PacketBuffer );
+
+	// Send the packet off.
+	SERVER_SendClientPacket( ulClient, true );
 
 	Printf( "%s \\c-disconnected.\n", NETWORK_AddressToString( g_aClients[ulClient].Address ));
 
@@ -2581,8 +2679,7 @@ void SERVER_ReconnectNewLevel( char *pszMapName )
 		}
 
 		// Make sure the commands we sent out get sent right away.
-		NETWORK_SendPacket( ulIdx );
-		NETWORK_ClearBuffer( &g_aClients[ulIdx].PacketBuffer );
+		SERVER_SendClientPacket( ulIdx, true );
 
 		// Disconnect the client.
 		SERVER_DisconnectClient( ulIdx, false, false );
@@ -2601,8 +2698,7 @@ void SERVER_LoadNewLevel( char *pszMapName )
 			continue;
 
 		// Initialize this client's buffer.
-		NETWORK_SendPacket( ulIdx );
-		NETWORK_ClearBuffer( &g_aClients[ulIdx].PacketBuffer );
+		SERVER_SendClientPacket( ulIdx, true );
 	}
 
 	// Tell the client to authenticate his level.
@@ -2614,8 +2710,7 @@ void SERVER_LoadNewLevel( char *pszMapName )
 			continue;
 
 		// Send out the packet and clear out the client's buffer.
-		NETWORK_SendPacket( ulIdx );
-		NETWORK_ClearBuffer( &g_aClients[ulIdx].PacketBuffer );
+		SERVER_SendClientPacket( ulIdx, true );
 	}
 }
 
@@ -2653,8 +2748,7 @@ void SERVER_KickPlayer( ULONG ulPlayer, char *pszReason )
 	{
 		// Tell the player that he's been kicked.
 		SERVERCOMMANDS_ConsolePlayerKicked( ulPlayer );
-		NETWORK_SendPacket( ulPlayer );
-		NETWORK_ClearBuffer( &g_aClients[ulPlayer].PacketBuffer );
+		SERVER_SendClientPacket( ulIdx, true );
 
 		// Tell the other players that this player has been kicked.
 		SERVER_DisconnectClient( ulPlayer, true, false );
@@ -3019,14 +3113,14 @@ LONG SERVER_STATISTIC_GetCurrentInboundDataTransfer( void )
 //*****************************************************************************
 //*****************************************************************************
 //
-void SERVER_ParseCommands( void )
+void SERVER_ParsePacket( BYTESTREAM_s *pByteStream )
 {
 	bool	bPlayerKicked;
 	LONG	lCommand;
 
 	while ( 1 )	 
 	{  
-		lCommand = NETWORK_ReadByte( );
+		lCommand = NETWORK_ReadByte( pByteStream );
 
 		// End of message.
 		if ( lCommand == -1 )
@@ -3038,7 +3132,7 @@ void SERVER_ParseCommands( void )
 		case CONNECT_CHALLENGE:
 
 			// Client is trying to connect to the server, but is disconnected on his end.
-			SERVER_SetupNewConnection( false );
+			SERVER_SetupNewConnection( pByteStream, false );
 			break;
 		case CONNECT_QUIT:
 
@@ -3048,181 +3142,167 @@ void SERVER_ParseCommands( void )
 		case CONNECT_AUTHENTICATING:
 
 			// Client is attempting to authenticate his level.
-			SERVER_AuthenticateClientLevel( );
+			SERVER_AuthenticateClientLevel( pByteStream );
 			break;
 		case CONNECT_GETDATA:
 
 			// Client has gotten a connection from the server, and is sending userinfo.
-			SERVER_ConnectNewPlayer( );
+			SERVER_ConnectNewPlayer( pByteStream );
 			break;
-        case CLC_USERINFO:
+		default:
 
-			// Client is sending us his userinfo.
-			SERVER_GetUserInfo( true );
+			// This returns true if the player was kicked as a result.
+			if ( SERVER_ProcessCommand( lCommand, pByteStream ))
+				return;
+
 			break;
-		case CLC_STARTCHAT:
+		}
+	}
+}
 
-			// Client is beginning to type.
-			bPlayerKicked = server_StartChat( );
-			break;
-		case CLC_ENDCHAT:
+//*****************************************************************************
+//
+bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
+{
+	switch ( lCommand )
+	{
+	case CLC_USERINFO:
 
-			// Client is done talking.
-			bPlayerKicked = server_EndChat( );
-			break;
-		case CLC_SAY:
+		// Client is sending us his userinfo.
+		SERVER_GetUserInfo( pByteStream, true );
+		break;
+	case CLC_STARTCHAT:
 
-			// Client is talking.
-			bPlayerKicked = server_Say( );
-			break;
-		case CLC_CLIENTMOVE:
+		// Client is beginning to type.
+		return ( server_StartChat( pByteStream ));
+	case CLC_ENDCHAT:
 
+		// Client is done talking.
+		return ( server_EndChat( pByteStream ));
+	case CLC_SAY:
+
+		// Client is talking.
+		return ( server_Say( pByteStream ));
+	case CLC_CLIENTMOVE:
+		{
+			bool	bPlayerKicked;
 #ifndef	MULTITICK_HACK_FIX
 
 			// Client is sending movement information.
-			bPlayerKicked = server_ClientMove( );
+			bPlayerKicked = server_ClientMove( pByteStream );
 
-			if ( gametic == g_aClients[g_lCurrentClient].lLastMoveTick )
-			{
+			if ( g_aClients[g_lCurrentClient].lLastMoveTick == gametic )
 				g_aClients[g_lCurrentClient].lOverMovementLevel++;
-//				Printf( "%s: ++ (%d)\n", players[g_lCurrentClient].userinfo.netname, g_aClients[g_lCurrentClient].lOverMovementLevel );
-
-//				if ( g_aClients[g_lCurrentClient].lOverMovementLevel >= MAX_OVERMOVEMENT_LEVEL )
-//					SERVER_KickPlayer( g_lCurrentClient, "Abnormal level of movement commands detected!" );
-			}
 
 			g_aClients[g_lCurrentClient].lLastMoveTick = gametic;
+			return ( bPlayerKicked );
 #else
 			// Client is sending movement information.
 			server_ClientMove( );
 #endif
-			break;
-		case CLC_MISSINGPACKET:
-
-			// Client is missing a packet; it's our job to resend it!
-			bPlayerKicked = server_MissingPacket( );
-			break;
-		case CLC_PONG:
-
-			// Ping response from client.
-			bPlayerKicked = server_UpdateClientPing( );
-			break;
-		case CLC_WEAPONSELECT:
-
-			// Client has sent a weapon change.
-			bPlayerKicked = server_WeaponSelect( );
-			break;
-		case CLC_TAUNT:
-
-			// Client is taunting! Broadcast it to other clients.
-			bPlayerKicked = server_Taunt( );
-			break;
-		case CLC_SPECTATE:
-
-			// Client now wishes to spectate.
-			bPlayerKicked = server_Spectate( );
-			break;
-		case CLC_REQUESTJOIN:
-
-			// Client wishes to join the game after spectating.
-			bPlayerKicked = server_RequestJoin( );
-			break;
-		case CLC_REQUESTRCON:
-
-			// Client is attempting to gain remote control access to the server.
-			bPlayerKicked = server_RequestRCON( );
-			break;
-		case CLC_RCONCOMMAND:
-
-			// Client is sending a remote control command to the server.
-			bPlayerKicked = server_RCONCommand( );
-			break;
-		case CLC_SUICIDE:
-
-			// Client wishes to kill himself.
-			bPlayerKicked = server_Suicide( );
-			break;
-		case CLC_CHANGETEAM:
-
-			// Client wishes to change his team.
-			bPlayerKicked = server_ChangeTeam( );
-			break;
-		case CLC_SPECTATEINFO:
-
-			// Client is sending special spectator information.
-			bPlayerKicked = server_SpectateInfo( );
-			break;
-		case CLC_GENERICCHEAT:
-
-			// Client is attempting to use a cheat. Only legal if sv_cheats is enabled.
-			bPlayerKicked = server_GenericCheat( );
-			break;
-		case CLC_GIVECHEAT:
-
-			// Client is attempting to use the give cheat. Only legal if sv_cheats is enabled.
-			bPlayerKicked = server_GiveCheat( );
-			break;
-		case CLC_SUMMONCHEAT:
-
-			// Client is attempting to use the summon cheat. Only legal if sv_cheats is enabled.
-			bPlayerKicked = server_SummonCheat( );
-			break;
-		case CLC_SUMMONFRIENDCHEAT:
-
-			// Client is attempting to use the summonfriend cheat. Only legal if sv_cheats is enabled.
-			bPlayerKicked = server_SummonCheat( true );
-			break;
-		case CLC_READYTOGOON:
-
-			// Client is ready to go on to the next level.
-			bPlayerKicked = server_ReadyToGoOn( );
-			break;
-		case CLC_CHANGEDISPLAYPLAYER:
-
-			// Client is changing the player whose eyes he is looking through.
-			bPlayerKicked = server_ChangeDisplayPlayer( );
-			break;
-		case CLC_AUTHENTICATELEVEL:
-
-			// Client is attempting to authenticate his level.
-			bPlayerKicked = server_AuthenticateLevel( );
-			break;
-		case CLC_CALLVOTE:
-
-			// Client wishes to call a vote.
-			bPlayerKicked = server_CallVote( );
-			break;
-		case CLC_VOTEYES:
-
-			// Client wishes to vote "yes" on the current vote.
-			bPlayerKicked = server_VoteYes( );
-			break;
-		case CLC_VOTENO:
-
-			// Client wishes to vote "no" on the current vote.
-			bPlayerKicked = server_VoteNo( );
-			break;
-		case CLC_INVENTORYUSEALL:
-
-			// Client wishes to use all inventory items he has.
-			bPlayerKicked = server_InventoryUseAll( );
-			break;
-		case CLC_INVENTORYUSE:
-
-			// Client wishes to use a specfic inventory items he has.
-			bPlayerKicked = server_InventoryUse( );
-			break;
-		default:
-
-			Printf( PRINT_HIGH, "SERVER_ParseCommands: Unknown client message: %d\n", lCommand );
-//         	SERVER_DisconnectClient( g_lCurrentClient, true );
-            return;
 		}
+		break;
+	case CLC_MISSINGPACKET:
 
-		// If the player got kicked during the parsing of his packet, then stop parsing.
-		if ( bPlayerKicked )
-			return;
+		// Client is missing a packet; it's our job to resend it!
+		return ( server_MissingPacket( pByteStream ));
+	case CLC_PONG:
+
+		// Ping response from client.
+		return ( server_UpdateClientPing( pByteStream ));
+	case CLC_WEAPONSELECT:
+
+		// Client has sent a weapon change.
+		return ( server_WeaponSelect( pByteStream ));
+	case CLC_TAUNT:
+
+		// Client is taunting! Broadcast it to other clients.
+		return ( server_Taunt( pByteStream ));
+	case CLC_SPECTATE:
+
+		// Client now wishes to spectate.
+		return ( server_Spectate( pByteStream ));
+	case CLC_REQUESTJOIN:
+
+		// Client wishes to join the game after spectating.
+		return ( server_RequestJoin( pByteStream ));
+	case CLC_REQUESTRCON:
+
+		// Client is attempting to gain remote control access to the server.
+		return ( server_RequestRCON( pByteStream ));
+	case CLC_RCONCOMMAND:
+
+		// Client is sending a remote control command to the server.
+		return ( server_RCONCommand( pByteStream ));
+	case CLC_SUICIDE:
+
+		// Client wishes to kill himself.
+		return ( server_Suicide( pByteStream ));
+	case CLC_CHANGETEAM:
+
+		// Client wishes to change his team.
+		return ( server_ChangeTeam( pByteStream ));
+	case CLC_SPECTATEINFO:
+
+		// Client is sending special spectator information.
+		return ( server_SpectateInfo( pByteStream ));
+	case CLC_GENERICCHEAT:
+
+		// Client is attempting to use a cheat. Only legal if sv_cheats is enabled.
+		return ( server_GenericCheat( pByteStream ));
+	case CLC_GIVECHEAT:
+
+		// Client is attempting to use the give cheat. Only legal if sv_cheats is enabled.
+		return ( server_GiveCheat( pByteStream ));
+	case CLC_SUMMONCHEAT:
+
+		// Client is attempting to use the summon cheat. Only legal if sv_cheats is enabled.
+		return ( server_SummonCheat( pByteStream ));
+	case CLC_SUMMONFRIENDCHEAT:
+
+		// Client is attempting to use the summonfriend cheat. Only legal if sv_cheats is enabled.
+		return ( server_SummonCheat( pByteStream, true ));
+	case CLC_READYTOGOON:
+
+		// Client is ready to go on to the next level.
+		return ( server_ReadyToGoOn( pByteStream ));
+	case CLC_CHANGEDISPLAYPLAYER:
+
+		// Client is changing the player whose eyes he is looking through.
+		return ( server_ChangeDisplayPlayer( pByteStream ));
+	case CLC_AUTHENTICATELEVEL:
+
+		// Client is attempting to authenticate his level.
+		return ( server_AuthenticateLevel( pByteStream ));
+	case CLC_CALLVOTE:
+
+		// Client wishes to call a vote.
+		return ( server_CallVote( pByteStream ));
+	case CLC_VOTEYES:
+
+		// Client wishes to vote "yes" on the current vote.
+		return ( server_VoteYes( pByteStream ));
+	case CLC_VOTENO:
+
+		// Client wishes to vote "no" on the current vote.
+		return ( server_VoteNo( pByteStream ));
+	case CLC_INVENTORYUSEALL:
+
+		// Client wishes to use all inventory items he has.
+		return ( server_InventoryUseAll( pByteStream ));
+	case CLC_INVENTORYUSE:
+
+		// Client wishes to use a specfic inventory items he has.
+		return ( server_InventoryUse( pByteStream ));
+	default:
+
+		Printf( PRINT_HIGH, "SERVER_ParseCommands: Unknown client message: %d\n", lCommand );
+        return ( true );
 	}
+
+	// Return false if the player was not kicked as a result of processing
+	// this command.
+	return ( false );
 }
 
 //*****************************************************************************
@@ -3261,7 +3341,7 @@ void SERVER_GiveInventoryToPlayer( const player_t *player, AInventory *pInventor
 //*****************************************************************************
 //*****************************************************************************
 //
-static bool server_StartChat( void )
+static bool server_StartChat( BYTESTREAM_s *pByteStream )
 {
 	players[g_lCurrentClient].bChatting = true;
 
@@ -3273,7 +3353,7 @@ static bool server_StartChat( void )
 
 //*****************************************************************************
 //
-static bool server_EndChat( void )
+static bool server_EndChat( BYTESTREAM_s *pByteStream )
 {
 	players[g_lCurrentClient].bChatting = false;
 
@@ -3285,7 +3365,7 @@ static bool server_EndChat( void )
 
 //*****************************************************************************
 //
-static bool server_Say( void )
+static bool server_Say( BYTESTREAM_s *pByteStream )
 {
 	ULONG	ulPlayer;
 	ULONG	ulChatMode;
@@ -3295,10 +3375,10 @@ static bool server_Say( void )
 	ulPlayer = g_lCurrentClient;
 
 	// Read in the chat mode (normal, team, etc.)
-	ulChatMode = NETWORK_ReadByte( );
+	ulChatMode = NETWORK_ReadByte( pByteStream );
 
 	// Read in the chat string.
-	pszChatString = NETWORK_ReadString( );
+	pszChatString = NETWORK_ReadString( pByteStream );
 
 	ulChatInstance = ( ++g_aClients[ulPlayer].ulLastChatInstance % MAX_CHATINSTANCE_STORAGE );
 	g_aClients[ulPlayer].lChatInstances[ulChatInstance] = gametic;
@@ -3341,7 +3421,7 @@ static bool server_Say( void )
 
 //*****************************************************************************
 //
-static bool server_ClientMove( void )
+static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 {
 	player_t		*pPlayer;
 	ticcmd_t		*pCmd;
@@ -3358,39 +3438,39 @@ static bool server_ClientMove( void )
 	pCmd = &pPlayer->cmd;
 
 	// Read in the client's gametic.
-	ulGametic = NETWORK_ReadLong( );
+	ulGametic = NETWORK_ReadLong( pByteStream );
 
 	// Read in the information the client is sending us.
-	ulBits = NETWORK_ReadByte( );
+	ulBits = NETWORK_ReadByte( pByteStream );
 
 	if ( ulBits & CLIENT_UPDATE_BUTTONS )
-		pCmd->ucmd.buttons = NETWORK_ReadByte( );
+		pCmd->ucmd.buttons = NETWORK_ReadByte( pByteStream );
 	else
 		pCmd->ucmd.buttons = 0;
 
 	if ( ulBits & CLIENT_UPDATE_FORWARDMOVE )
-		pCmd->ucmd.forwardmove = NETWORK_ReadShort( );
+		pCmd->ucmd.forwardmove = NETWORK_ReadShort( pByteStream );
 	else
 		pCmd->ucmd.forwardmove = 0;
 
 	if ( ulBits & CLIENT_UPDATE_SIDEMOVE )
-		pCmd->ucmd.sidemove = NETWORK_ReadShort( );
+		pCmd->ucmd.sidemove = NETWORK_ReadShort( pByteStream );
 	else
 		pCmd->ucmd.sidemove = 0;
 
 	if ( ulBits & CLIENT_UPDATE_UPMOVE )
-		pCmd->ucmd.upmove = NETWORK_ReadShort( );
+		pCmd->ucmd.upmove = NETWORK_ReadShort( pByteStream );
 	else
 		pCmd->ucmd.upmove = 0;
 
 	// Always read in the angle and pitch.
-	Angle = NETWORK_ReadLong( );
-	Pitch = NETWORK_ReadLong( );
+	Angle = NETWORK_ReadLong( pByteStream );
+	Pitch = NETWORK_ReadLong( pByteStream );
 
 	// If the client is attacking, he always sends the name of the weapon he's using.
 	if ( pCmd->ucmd.buttons & BT_ATTACK )
 	{
-		pszWeapon = NETWORK_ReadString( );
+		pszWeapon = NETWORK_ReadString( pByteStream );
 		if ( pPlayer->ReadyWeapon )
 		{
 			// If the name of the weapon the client is using doesn't match the name of the
@@ -3473,7 +3553,7 @@ static bool server_ClientMove( void )
 
 //*****************************************************************************
 //
-static bool server_MissingPacket( void )
+static bool server_MissingPacket( BYTESTREAM_s *pByteStream )
 {
 	ULONG	ulIdx;
 	LONG	lPacket;
@@ -3483,7 +3563,7 @@ static bool server_MissingPacket( void )
 	// If this client just requested missing packets, ignore the request.
 	if ( gametic <= ( g_aClients[g_lCurrentClient].lLastPacketLossTick + ( TICRATE / 4 )))
 	{
-		while ( NETWORK_ReadLong( ) != -1 )
+		while ( NETWORK_ReadLong( pByteStream ) != -1 )
 			;
 
 		return ( false );
@@ -3491,13 +3571,13 @@ static bool server_MissingPacket( void )
 
 	// Keep reading in packets until we hit -1.
 	lLastPacket = -1;
-	while (( lPacket = NETWORK_ReadLong( )) != -1 )
+	while (( lPacket = NETWORK_ReadLong( pByteStream )) != -1 )
 	{
 		// The missing packet sequence must be sent to us in ascending order. If it's not,
 		// the server could potentially go into an infinite loop, or be lagged heavily.
 		if (( lPacket <= lLastPacket ) || ( lPacket < 0 ))
 		{
-			while ( NETWORK_ReadLong( ) != -1 )
+			while ( NETWORK_ReadLong( pByteStream ) != -1 )
 				;
 
 			SERVER_KickPlayer( g_lCurrentClient, "Invalid missing packet request." );
@@ -3531,12 +3611,13 @@ static bool server_MissingPacket( void )
 		// Now that we've found the missed packet that we need to send to the client,
 		// send it.
 		NETWORK_ClearBuffer( &g_PacketLossBuffer );
-		NETWORK_WriteHeader( &g_PacketLossBuffer, SVC_HEADER );
-		NETWORK_WriteLong( &g_PacketLossBuffer, lPacket );
+		NETWORK_WriteHeader( &g_PacketLossBuffer.ByteStream, SVC_HEADER );
+		NETWORK_WriteLong( &g_PacketLossBuffer.ByteStream, lPacket );
 		if ( g_aClients[g_lCurrentClient].lPacketSize[ulIdx] )
 		{
-			NETWORK_Write( &g_PacketLossBuffer, g_aClients[g_lCurrentClient].SavedPacketBuffer.pbData, 
-				g_aClients[g_lCurrentClient].lPacketBeginning[ulIdx], g_aClients[g_lCurrentClient].lPacketSize[ulIdx] );
+			NETWORK_WriteBuffer( &g_PacketLossBuffer.ByteStream,
+				g_aClients[g_lCurrentClient].SavedPacketBuffer.pbData + g_aClients[g_lCurrentClient].lPacketBeginning[ulIdx],
+				g_aClients[g_lCurrentClient].lPacketSize[ulIdx] );
 		}
 //		else
 //			Printf( "server_MissingPacket: WARNING! Packet %d has no size!\n", ulIdx );
@@ -3554,7 +3635,7 @@ static bool server_MissingPacket( void )
 	bool	bFullUpdateRequired;
 
 	// Read in the sequence.
-	ulSequence = NETWORK_ReadLong( );
+	ulSequence = NETWORK_ReadLong( pByteStream );
 
 	// How could the client receive a packet higher than what was sent to him?
 	if ( ulSequence > g_aClients[g_lCurrentClient].ulPacketSequence )
@@ -3612,11 +3693,11 @@ static bool server_MissingPacket( void )
 
 //*****************************************************************************
 //
-static bool server_UpdateClientPing( void )
+static bool server_UpdateClientPing( BYTESTREAM_s *pByteStream )
 {
 	ULONG	ulPing;
 
-	ulPing = NETWORK_ReadLong( );
+	ulPing = NETWORK_ReadLong( pByteStream );
 	players[g_lCurrentClient].ulPing = I_MSTime( ) - ulPing;
 
 	return ( false );
@@ -3624,14 +3705,14 @@ static bool server_UpdateClientPing( void )
 
 //*****************************************************************************
 //
-static bool server_WeaponSelect( void )
+static bool server_WeaponSelect( BYTESTREAM_s *pByteStream )
 {
 	const char		*pszWeapon;
 	const PClass	*pType;
 	AInventory		*pInventory;
 
 	// Read in the name of the weapon the player is selecting.
-	pszWeapon = NETWORK_ReadString( );
+	pszWeapon = NETWORK_ReadString( pByteStream );
 
 	// If the player doesn't have a body, break out.
 	if ( players[g_lCurrentClient].mo == NULL )
@@ -3671,7 +3752,7 @@ static bool server_WeaponSelect( void )
 
 //*****************************************************************************
 //
-static bool server_Taunt( void )
+static bool server_Taunt( BYTESTREAM_s *pByteStream )
 {
 	// Don't taunt if we're not in a level!
 	if ( gamestate != GS_LEVEL )
@@ -3693,7 +3774,7 @@ static bool server_Taunt( void )
 
 //*****************************************************************************
 //
-static bool server_Spectate( void )
+static bool server_Spectate( BYTESTREAM_s *pByteStream )
 {
 	// Already a spectator!
 	if ( PLAYER_IsTrueSpectator( &players[g_lCurrentClient] ))
@@ -3710,13 +3791,13 @@ static bool server_Spectate( void )
 
 //*****************************************************************************
 //
-static bool server_RequestJoin( void )
+static bool server_RequestJoin( BYTESTREAM_s *pByteStream )
 {
 	UCVarValue	Val;
 	char		szClientJoinPassword[64];
 
 	// Read in the join password.
-	strncpy( szClientJoinPassword, strupr( NETWORK_ReadString( )), 64 );
+	strncpy( szClientJoinPassword, strupr( NETWORK_ReadString( pByteStream )), 64 );
 
 	// Player can't rejoin game if he's not spectating!
 	if (( playeringame[g_lCurrentClient] == false ) || ( players[g_lCurrentClient].bSpectating == false ))
@@ -3790,7 +3871,7 @@ static bool server_RequestJoin( void )
 
 //*****************************************************************************
 //
-static bool server_RequestRCON( void )
+static bool server_RequestRCON( BYTESTREAM_s *pByteStream )
 {
 	UCVarValue	Val;
 	char		*pszUserPassword;
@@ -3798,7 +3879,7 @@ static bool server_RequestRCON( void )
 	Val = sv_rconpassword.GetGenericRep( CVAR_String );
 
 	// If the user password matches our PW, and we have a PW set, give him RCON access.
-	pszUserPassword = NETWORK_ReadString( );
+	pszUserPassword = NETWORK_ReadString( pByteStream );
 	if (( strlen( Val.String )) && ( strcmp( Val.String, pszUserPassword ) == 0 ))
 	{
 		g_aClients[g_lCurrentClient].bRCONAccess = true;
@@ -3817,12 +3898,12 @@ static bool server_RequestRCON( void )
 
 //*****************************************************************************
 //
-static bool server_RCONCommand( void )
+static bool server_RCONCommand( BYTESTREAM_s *pByteStream )
 {
 	char	*pszCommand;
 
 	// Read in the command the user sent us.
-	pszCommand = NETWORK_ReadString( );
+	pszCommand = NETWORK_ReadString( pByteStream );
 
 	// If they don't have RCON access, and aren't an adminstrator, deny them the ability to do this.
 	if (( g_aClients[g_lCurrentClient].bRCONAccess == false ) && ( SERVER_ADMIN_IsAdministrator( g_aClients[g_lCurrentClient].Address ) == false ))
@@ -3846,7 +3927,7 @@ static bool server_RCONCommand( void )
 
 //*****************************************************************************
 //
-static bool server_Suicide( void )
+static bool server_Suicide( BYTESTREAM_s *pByteStream )
 {
 	// Spectators cannot suicide.
 	if ( players[g_lCurrentClient].bSpectating || playeringame[g_lCurrentClient] == false )
@@ -3863,7 +3944,7 @@ static bool server_Suicide( void )
 
 //*****************************************************************************
 //
-static bool server_ChangeTeam( void )
+static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 {
 	LONG		lDesiredTeam;
 	bool		bOnTeam;
@@ -3871,9 +3952,9 @@ static bool server_ChangeTeam( void )
 	char		szClientJoinPassword[64];
 
 	// Read in the join password.
-	strncpy( szClientJoinPassword, strupr( NETWORK_ReadString( )), 64 );
+	strncpy( szClientJoinPassword, strupr( NETWORK_ReadString( pByteStream )), 64 );
 
-	lDesiredTeam = NETWORK_ReadByte( );
+	lDesiredTeam = NETWORK_ReadByte( pByteStream );
 	if ( playeringame[g_lCurrentClient] == false )
 		return ( false );
 
@@ -4015,7 +4096,7 @@ static bool server_ChangeTeam( void )
 
 //*****************************************************************************
 //
-static bool server_SpectateInfo( void )
+static bool server_SpectateInfo( BYTESTREAM_s *pByteStream )
 {
 	player_t	*pPlayer;
 	ULONG		ulGametic;
@@ -4023,7 +4104,7 @@ static bool server_SpectateInfo( void )
 	pPlayer = &players[g_lCurrentClient];
 
 	// Read in the client's gametic.
-	ulGametic = NETWORK_ReadLong( );
+	ulGametic = NETWORK_ReadLong( pByteStream );
 
 	if ( gamestate == GS_LEVEL )
 	{
@@ -4043,12 +4124,12 @@ static bool server_SpectateInfo( void )
 
 //*****************************************************************************
 //
-static bool server_GenericCheat( void )
+static bool server_GenericCheat( BYTESTREAM_s *pByteStream )
 {
 	ULONG	ulCheat;
 
 	// Read in the cheat.
-	ulCheat = NETWORK_ReadByte( );
+	ulCheat = NETWORK_ReadByte( pByteStream );
 
 	// If it's legal, do the cheat.
 	if (( sv_cheats ) ||
@@ -4079,16 +4160,16 @@ static bool server_GenericCheat( void )
 
 //*****************************************************************************
 //
-static bool server_GiveCheat( void )
+static bool server_GiveCheat( BYTESTREAM_s *pByteStream )
 {
 	char	*pszItemName;
 	ULONG	ulAmount;
 
 	// Read in the item name.
-	pszItemName = NETWORK_ReadString( );
+	pszItemName = NETWORK_ReadString( pByteStream );
 
 	// Read in the amount.
-	ulAmount = NETWORK_ReadByte( );
+	ulAmount = NETWORK_ReadByte( pByteStream );
 
 	// If it's legal, do the cheat.
 	if ( sv_cheats )
@@ -4126,7 +4207,7 @@ static bool server_GiveCheat( void )
 
 //*****************************************************************************
 //
-static bool server_SummonCheat( bool bFriend )
+static bool server_SummonCheat( BYTESTREAM_s *pByteStream, bool bFriend )
 {
 	char			*pszName;
 	AActor			*pSource;
@@ -4134,7 +4215,7 @@ static bool server_SummonCheat( bool bFriend )
 	AActor			*pActor;
 
 	// Read in the item name.
-	pszName = NETWORK_ReadString( );
+	pszName = NETWORK_ReadString( pByteStream );
 
 	pSource = players[g_lCurrentClient].mo;
 	if ( pSource == NULL )
@@ -4194,7 +4275,7 @@ static bool server_SummonCheat( bool bFriend )
 
 //*****************************************************************************
 //
-static bool server_ReadyToGoOn( void )
+static bool server_ReadyToGoOn( BYTESTREAM_s *pByteStream )
 {
 	// Toggle this player (specator)'s "ready to go on" status.
 	players[g_lCurrentClient].bReadyToGoOn = !players[g_lCurrentClient].bReadyToGoOn;
@@ -4240,12 +4321,12 @@ static bool server_ReadyToGoOn( void )
 
 //*****************************************************************************
 //
-static bool server_ChangeDisplayPlayer( void )
+static bool server_ChangeDisplayPlayer( BYTESTREAM_s *pByteStream )
 {
 	ULONG		ulDisplayPlayer;
 
 	// Read in their display player.
-	ulDisplayPlayer = NETWORK_ReadByte( );
+	ulDisplayPlayer = NETWORK_ReadByte( pByteStream );
 	if (( ulDisplayPlayer < MAXPLAYERS ) && playeringame[ulDisplayPlayer] )
 		g_aClients[g_lCurrentClient].ulDisplayPlayer = ulDisplayPlayer;
 
@@ -4254,7 +4335,7 @@ static bool server_ChangeDisplayPlayer( void )
 
 //*****************************************************************************
 //
-static bool server_AuthenticateLevel( void )
+static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 {
 	ULONG								ulState;
 	DDoor								*pDoor;
@@ -4274,7 +4355,7 @@ static bool server_AuthenticateLevel( void )
 	TThinkerIterator<DCeiling>			CeilingIterator;
 	TThinkerIterator<DScroller>			ScrollerIterator;
 
-	if ( SERVER_PerformAuthenticationChecksum( ) == false )
+	if ( SERVER_PerformAuthenticationChecksum( pByteStream ) == false )
 	{
 		SERVER_KickPlayer( g_lCurrentClient, "Level authentication failed." );
 		return ( true );
@@ -4382,26 +4463,25 @@ static bool server_AuthenticateLevel( void )
 		g_aClients[g_lCurrentClient].bRunEnterScripts = false;
 	}
 
-	// Finally, send out the packet and clear out the client's buffer.
-	NETWORK_SendPacket( g_lCurrentClient );
-	NETWORK_ClearBuffer( &g_aClients[g_lCurrentClient].PacketBuffer );
+	// Finally, send out the packet.
+	SERVER_SendClientPacket( g_lCurrentClient, true );
 
 	return ( false );
 }
 
 //*****************************************************************************
 //
-static bool server_CallVote( void )
+static bool server_CallVote( BYTESTREAM_s *pByteStream )
 {
 	ULONG	ulVoteCmd;
 	char	*pszParameters;
 	char	szCommand[128];
 
 	// Read in the type of vote happening.
-	ulVoteCmd = NETWORK_ReadByte( );
+	ulVoteCmd = NETWORK_ReadByte( pByteStream );
 
 	// Read in the parameters for the vote.
-	pszParameters = NETWORK_ReadString( );
+	pszParameters = NETWORK_ReadString( pByteStream );
 
 	// Don't allow one person to call a vote, and vote by himself.
 	// Also, don't allow votes if the server has them disabled.
@@ -4474,7 +4554,7 @@ static bool server_CallVote( void )
 
 //*****************************************************************************
 //
-static bool server_VoteYes( void )
+static bool server_VoteYes( BYTESTREAM_s *pByteStream )
 {
 	// If the player successfully was able to vote, inform other clients.
 	if ( CALLVOTE_VoteYes( g_lCurrentClient ))
@@ -4490,7 +4570,7 @@ static bool server_VoteYes( void )
 
 //*****************************************************************************
 //
-static bool server_VoteNo( void )
+static bool server_VoteNo( BYTESTREAM_s *pByteStream )
 {
 	// If the player successfully was able to vote, inform other clients.
 	if ( CALLVOTE_VoteNo( g_lCurrentClient ))
@@ -4507,7 +4587,7 @@ static bool server_VoteNo( void )
 
 //*****************************************************************************
 //
-static bool server_InventoryUseAll( void )
+static bool server_InventoryUseAll( BYTESTREAM_s *pByteStream )
 {
 	if (gamestate == GS_LEVEL && !paused)
 	{
@@ -4528,9 +4608,9 @@ static bool server_InventoryUseAll( void )
 
 //*****************************************************************************
 //
-static bool server_InventoryUse( void )
+static bool server_InventoryUse( BYTESTREAM_s *pByteStream )
 {
-	const char* pszString = NETWORK_ReadString();
+	const char* pszString = NETWORK_ReadString( pByteStream );
 
 	if (gamestate == GS_LEVEL && !paused)
 	{
@@ -4783,10 +4863,10 @@ CCMD( trytocrashclient )
 			if ( SERVER_IsValidClient( ulIdx ) == false )
 				continue;
 
-			NETWORK_CheckBuffer( ulIdx, 256 );
-			NETWORK_WriteByte( &g_aClients[ulIdx].PacketBuffer, M_Random( ) % NUM_SERVER_COMMANDS );
+			SERVER_CheckClientBuffer( ulIdx, 256, true );
+			NETWORK_WriteByte( &g_aClients[ulIdx].PacketBuffer.ByteStream, M_Random( ) % NUM_SERVER_COMMANDS );
 			for ( ulIdx2 = 0; ulIdx2 < 512; ulIdx2++ )
-				NETWORK_WriteByte( &g_aClients[ulIdx].PacketBuffer, M_Random( ));
+				NETWORK_WriteByte( &g_aClients[ulIdx].PacketBuffer.ByteStream, M_Random( ));
 
 		}
 	}

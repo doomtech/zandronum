@@ -56,7 +56,7 @@
 #include "v_text.h" // [RC] To conform player names
 
 //*****************************************************************************
-//	FUNCTIONS
+//	VARIABLES
 
 static	ULONG	g_ulLastChangeTeamTime = 0;
 
@@ -65,59 +65,59 @@ static	ULONG	g_ulLastChangeTeamTime = 0;
 
 void CLIENTCOMMANDS_UserInfo( ULONG ulFlags )
 {
-	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_USERINFO );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_USERINFO );
 
 	// [BB] This prevents accessing PlayerClasses[-1], when trying to send the class name.
 	if ( (ulFlags & USERINFO_PLAYERCLASS) && (players[consoleplayer].userinfo.PlayerClass == -1) )
 		ulFlags ^= USERINFO_PLAYERCLASS;
 
 	// Tell the server which items are being updated.
-	NETWORK_WriteShort( CLIENT_GetLocalBuffer( ), ulFlags );
+	NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, ulFlags );
 
 	if ( ulFlags & USERINFO_NAME )
 	{ // [RC] Clean the name before we use it
 		V_CleanPlayerName(players[consoleplayer].userinfo.netname);
-		NETWORK_WriteString( CLIENT_GetLocalBuffer( ), players[consoleplayer].userinfo.netname );
+		NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].userinfo.netname );
 	}
 	if ( ulFlags & USERINFO_GENDER )
-		NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), players[consoleplayer].userinfo.gender );
+		NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].userinfo.gender );
 	if ( ulFlags & USERINFO_COLOR )
-		NETWORK_WriteLong( CLIENT_GetLocalBuffer( ), players[consoleplayer].userinfo.color );
+		NETWORK_WriteLong( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].userinfo.color );
 	if ( ulFlags & USERINFO_AIMDISTANCE )
-		NETWORK_WriteLong( CLIENT_GetLocalBuffer( ), players[consoleplayer].userinfo.aimdist );
+		NETWORK_WriteLong( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].userinfo.aimdist );
 	if ( ulFlags & USERINFO_SKIN )
-		NETWORK_WriteString( CLIENT_GetLocalBuffer( ), skins[players[consoleplayer].userinfo.skin].name );
+		NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, skins[players[consoleplayer].userinfo.skin].name );
 	if ( ulFlags & USERINFO_RAILCOLOR )
-		NETWORK_WriteLong( CLIENT_GetLocalBuffer( ), players[consoleplayer].userinfo.lRailgunTrailColor );
+		NETWORK_WriteLong( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].userinfo.lRailgunTrailColor );
 	if ( ulFlags & USERINFO_HANDICAP )
-		NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), players[consoleplayer].userinfo.lHandicap );
+		NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].userinfo.lHandicap );
 	if ( ulFlags & USERINFO_CONNECTIONTYPE )
-		NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), players[consoleplayer].userinfo.lConnectionType );
+		NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].userinfo.lConnectionType );
 	if (( (gameinfo.gametype == GAME_Hexen) || (PlayerClasses.Size() > 1) ) && ( ulFlags & USERINFO_PLAYERCLASS ))
-		NETWORK_WriteString( CLIENT_GetLocalBuffer( ), PlayerClasses[players[consoleplayer].userinfo.PlayerClass].Type->Meta.GetMetaString (APMETA_DisplayName));
+		NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, PlayerClasses[players[consoleplayer].userinfo.PlayerClass].Type->Meta.GetMetaString (APMETA_DisplayName));
 }
 
 //*****************************************************************************
 //
 void CLIENTCOMMANDS_StartChat( void )
 {
-	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_STARTCHAT );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_STARTCHAT );
 }
 
 //*****************************************************************************
 //
 void CLIENTCOMMANDS_EndChat( void )
 {
-	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_ENDCHAT );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_ENDCHAT );
 }
 
 //*****************************************************************************
 //
 void CLIENTCOMMANDS_Say( ULONG ulMode, char *pszString )
 {
-	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_SAY );
-	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), ulMode );
-	NETWORK_WriteString( CLIENT_GetLocalBuffer( ), (char *)pszString );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_SAY );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, ulMode );
+	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, (char *)pszString );
 }
 
 //*****************************************************************************
@@ -136,8 +136,8 @@ void CLIENTCOMMANDS_MissingPacket( void )
 //
 void CLIENTCOMMANDS_Pong( ULONG ulTime )
 {
-	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_PONG );
-	NETWORK_WriteLong( CLIENT_GetLocalBuffer( ), ulTime );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_PONG );
+	NETWORK_WriteLong( &CLIENT_GetLocalBuffer( )->ByteStream, ulTime );
 }
 
 //*****************************************************************************
@@ -149,53 +149,53 @@ void CLIENTCOMMANDS_WeaponSelect( const char *pszWeapon )
 	// of the full name.
 	convertWeaponNameToKeyLetter( pszWeapon );
 
-	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_WEAPONSELECT );
-	NETWORK_WriteString( CLIENT_GetLocalBuffer( ), pszWeapon );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_WEAPONSELECT );
+	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, pszWeapon );
 }
 
 //*****************************************************************************
 //
 void CLIENTCOMMANDS_Taunt( void )
 {
-	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_TAUNT );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_TAUNT );
 }
 
 //*****************************************************************************
 //
 void CLIENTCOMMANDS_Spectate( void )
 {
-	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_SPECTATE );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_SPECTATE );
 }
 
 //*****************************************************************************
 //
 void CLIENTCOMMANDS_RequestJoin( char *pszJoinPassword )
 {
-	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_REQUESTJOIN );
-	NETWORK_WriteString( CLIENT_GetLocalBuffer( ), pszJoinPassword );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_REQUESTJOIN );
+	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, pszJoinPassword );
 }
 
 //*****************************************************************************
 //
 void CLIENTCOMMANDS_RequestRCON( char *pszRCONPassword )
 {
-	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_REQUESTRCON );
-	NETWORK_WriteString( CLIENT_GetLocalBuffer( ), pszRCONPassword );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_REQUESTRCON );
+	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, pszRCONPassword );
 }
 
 //*****************************************************************************
 //
 void CLIENTCOMMANDS_RCONCommand( char *pszCommand )
 {
-	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_RCONCOMMAND );
-	NETWORK_WriteString( CLIENT_GetLocalBuffer( ), pszCommand );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_RCONCOMMAND );
+	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, pszCommand );
 }
 
 //*****************************************************************************
 //
 void CLIENTCOMMANDS_Suicide( void )
 {
-	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_SUICIDE );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_SUICIDE );
 }
 
 //*****************************************************************************
@@ -209,34 +209,34 @@ void CLIENTCOMMANDS_ChangeTeam( char *pszJoinPassword, LONG lDesiredTeam )
 	}
 
 	g_ulLastChangeTeamTime = gametic;
-	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_CHANGETEAM );
-	NETWORK_WriteString( CLIENT_GetLocalBuffer( ), pszJoinPassword );
-	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), lDesiredTeam );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_CHANGETEAM );
+	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, pszJoinPassword );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, lDesiredTeam );
 }
 
 //*****************************************************************************
 //
 void CLIENTCOMMANDS_SpectateInfo( void )
 {
-	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_SPECTATEINFO );
-	NETWORK_WriteLong( CLIENT_GetLocalBuffer( ), gametic );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_SPECTATEINFO );
+	NETWORK_WriteLong( &CLIENT_GetLocalBuffer( )->ByteStream, gametic );
 }
 
 //*****************************************************************************
 //
 void CLIENTCOMMANDS_GenericCheat( LONG lCheat )
 {
-	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_GENERICCHEAT );
-	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), lCheat );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_GENERICCHEAT );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, lCheat );
 }
 
 //*****************************************************************************
 //
 void CLIENTCOMMANDS_GiveCheat( char *pszItem, LONG lAmount )
 {
-	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_GIVECHEAT );
-	NETWORK_WriteString( CLIENT_GetLocalBuffer( ), pszItem );
-	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), lAmount );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_GIVECHEAT );
+	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, pszItem );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, lAmount );
 }
 
 //*****************************************************************************
@@ -244,25 +244,25 @@ void CLIENTCOMMANDS_GiveCheat( char *pszItem, LONG lAmount )
 void CLIENTCOMMANDS_SummonCheat( char *pszItem, bool bFriend )
 {
 	if( !bFriend )
-		NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_SUMMONCHEAT );
+		NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_SUMMONCHEAT );
 	else
-		NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_SUMMONFRIENDCHEAT );
-	NETWORK_WriteString( CLIENT_GetLocalBuffer( ), pszItem );
+		NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_SUMMONFRIENDCHEAT );
+	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, pszItem );
 }
 
 //*****************************************************************************
 //
 void CLIENTCOMMANDS_ReadyToGoOn( void )
 {
-	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_READYTOGOON );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_READYTOGOON );
 }
 
 //*****************************************************************************
 //
 void CLIENTCOMMANDS_ChangeDisplayPlayer( LONG lDisplayPlayer )
 {
-	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_CHANGEDISPLAYPLAYER );
-	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), lDisplayPlayer );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_CHANGEDISPLAYPLAYER );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, lDisplayPlayer );
 }
 
 //*****************************************************************************
@@ -275,30 +275,30 @@ void CLIENTCOMMANDS_AuthenticateLevel( void )
 //
 void CLIENTCOMMANDS_CallVote( LONG lVoteCommand, char *pszArgument )
 {
-	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_CALLVOTE );
-	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), lVoteCommand );
-	NETWORK_WriteString( CLIENT_GetLocalBuffer( ), pszArgument );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_CALLVOTE );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, lVoteCommand );
+	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, pszArgument );
 }
 
 //*****************************************************************************
 //
 void CLIENTCOMMANDS_VoteYes( void )
 {
-	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_VOTEYES );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_VOTEYES );
 }
 
 //*****************************************************************************
 //
 void CLIENTCOMMANDS_VoteNo( void )
 {
-	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_VOTENO );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_VOTENO );
 }
 
 //*****************************************************************************
 //
 void CLIENTCOMMANDS_RequestInventoryUseAll( void )
 {
-	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_INVENTORYUSEALL );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_INVENTORYUSEALL );
 }
 
 //*****************************************************************************
@@ -313,6 +313,6 @@ void CLIENTCOMMANDS_RequestInventoryUse( AInventory *item )
 	if ( pszString == NULL )
 		return;
 
-	NETWORK_WriteByte( CLIENT_GetLocalBuffer( ), CLC_INVENTORYUSE );
-	NETWORK_WriteString( CLIENT_GetLocalBuffer( ), pszString );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_INVENTORYUSE );
+	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, pszString );
 }

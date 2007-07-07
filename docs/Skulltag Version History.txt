@@ -27,7 +27,7 @@ v0.97d-beta3
 *- 	- FIXED THE SPECTATOR WEAPONS BUG! All of the information is updated properly now. No more rocket shotguns. :*( [Torr Samaho]
 *-	- Fixed the silent railgun shots bug, and other sound related errors. [Torr Samaho]
 *+	- Rewrote the scoreboard code! The scoreboard now shows fewer columns in lower resolutions, has a new 5 column display for CTF/ST/LMS (in 800x600 or higher), and sports a 'chatting' icon for when players are typing. [Rivecoder]
-+	- Added Hectabus fireball and several new light definitions. [Metalhead]
++	- Added Hectebus fireball and several new light definitions. [Metalhead]
 +	- Added a new female skin, Illucia! [Lazureus]
 +	- Added support for hosting/joining servers with PK3 files! [Torr Samaho]
 +	- Added CVAR sv_stay97c3compatible. If it's true the server will allow 97c3 clients to connect and won't use any network commands they don't understand, i.e. bug fixes, which require network changes, won't be used. If it's false, 97c3 clients can't connect or will desync. [Torr Samaho]

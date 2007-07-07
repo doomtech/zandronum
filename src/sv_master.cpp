@@ -74,7 +74,7 @@ static	NETADDRESS_s		g_AddressMasterServer;
 static	NETBUFFER_s			g_MasterServerBuffer;
 
 // Port the master server is located on.
-static	LONG				g_lMasterPort;
+static	USHORT				g_usMasterPort;
 
 // List of IP address that this server has been queried by recently.
 static	STORED_QUERY_IP_s	g_StoredQueryIPs[MAX_STORED_QUERY_IPS];
@@ -90,18 +90,18 @@ void SERVER_MASTER_Construct( void )
 	char	*pszPort;
 
 	// Setup our message buffer.
-	NETWORK_InitBuffer( &g_MasterServerBuffer, MAX_UDP_PACKET );
+	NETWORK_InitBuffer( &g_MasterServerBuffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
 	NETWORK_ClearBuffer( &g_MasterServerBuffer );
 
 	// Allow the user to specify which port the master server is on.
 	pszPort = Args.CheckValue( "-masterport" );
     if ( pszPort )
     {
-       g_lMasterPort = atoi( pszPort );
-       Printf( PRINT_HIGH, "Alternate master server port: %d.\n", g_lMasterPort );
+       g_usMasterPort = atoi( pszPort );
+       Printf( PRINT_HIGH, "Alternate master server port: %d.\n", g_usMasterPort );
     }
 	else 
-	   g_lMasterPort = DEFAULT_MASTER_PORT;
+	   g_usMasterPort = DEFAULT_MASTER_PORT;
 
 	g_lStoredQueryIPHead = 0;
 	g_lStoredQueryIPTail = 0;
@@ -111,7 +111,7 @@ void SERVER_MASTER_Construct( void )
 //
 void SERVER_MASTER_Tick( void )
 {
-	UCVarValue	Val;
+	UCVarValue		Val;
 
 	while (( g_lStoredQueryIPHead != g_lStoredQueryIPTail ) && ( gametic >= g_StoredQueryIPs[g_lStoredQueryIPHead].lNextAllowedGametic ))
 	{
@@ -131,24 +131,24 @@ void SERVER_MASTER_Tick( void )
 
 	Val = sv_masterip.GetGenericRep( CVAR_String );
 	NETWORK_StringToAddress( Val.String, &g_AddressMasterServer );
-	NETWORK_SetAddressPort( g_AddressMasterServer, g_lMasterPort );
+	NETWORK_SetAddressPort( g_AddressMasterServer, g_usMasterPort );
 
 	// Write to our packet a challenge to the master server.
 	Val = sv_masteroverrideip.GetGenericRep( CVAR_String );
 	if ( Val.String[0] == '\0' )
-		NETWORK_WriteLong( &g_MasterServerBuffer, SERVER_MASTER_CHALLENGE );
+		NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, SERVER_MASTER_CHALLENGE );
 	else
 	{
 		NETADDRESS_s	OverrideIP;
 
-		NETWORK_WriteLong( &g_MasterServerBuffer, SERVER_MASTER_CHALLENGE_OVERRIDE );
+		NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, SERVER_MASTER_CHALLENGE_OVERRIDE );
 
 		NETWORK_StringToAddress( Val.String, &OverrideIP );
-		NETWORK_WriteByte( &g_MasterServerBuffer, OverrideIP.abIP[0] );
-		NETWORK_WriteByte( &g_MasterServerBuffer, OverrideIP.abIP[1] );
-		NETWORK_WriteByte( &g_MasterServerBuffer, OverrideIP.abIP[2] );
-		NETWORK_WriteByte( &g_MasterServerBuffer, OverrideIP.abIP[3] );
-		NETWORK_WriteShort( &g_MasterServerBuffer, NETWORK_GetLocalPort( ));
+		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, OverrideIP.abIP[0] );
+		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, OverrideIP.abIP[1] );
+		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, OverrideIP.abIP[2] );
+		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, OverrideIP.abIP[3] );
+		NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, NETWORK_GetLocalPort( ));
 	}
 
 	// Send the master server our packet.
@@ -209,10 +209,10 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 			if ( NETWORK_CompareAddress( Address, g_StoredQueryIPs[ulIdx].Address, true ))
 			{
 				// Write our header.
-				NETWORK_WriteLong( &g_MasterServerBuffer, SERVER_LAUNCHER_IGNORING );
+				NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, SERVER_LAUNCHER_IGNORING );
 
 				// Send the time the launcher sent to us.
-				NETWORK_WriteLong( &g_MasterServerBuffer, ulTime );
+				NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, ulTime );
 
 				// Send the packet.
 //				NETWORK_LaunchPacket( &g_MasterServerBuffer, Address, true );
@@ -238,10 +238,10 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 	if (( sv_enforcebans ) && ( SERVERBAN_IsIPBanned( szAddress[0], szAddress[1], szAddress[2], szAddress[3] )))
 	{
 		// Write our header.
-		NETWORK_WriteLong( &g_MasterServerBuffer, SERVER_LAUNCHER_BANNED );
+		NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, SERVER_LAUNCHER_BANNED );
 
 		// Send the time the launcher sent to us.
-		NETWORK_WriteLong( &g_MasterServerBuffer, ulTime );
+		NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, ulTime );
 
 		// Send the packet.
 		NETWORK_LaunchPacket( &g_MasterServerBuffer, Address );
@@ -282,13 +282,13 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 	}
 
 	// Write our header.
-	NETWORK_WriteLong( &g_MasterServerBuffer, SERVER_LAUNCHER_CHALLENGE );
+	NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, SERVER_LAUNCHER_CHALLENGE );
 
 	// Send the time the launcher sent to us.
-	NETWORK_WriteLong( &g_MasterServerBuffer, ulTime );
+	NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, ulTime );
 
 	// Send our version.
-	NETWORK_WriteString( &g_MasterServerBuffer, DOTVERSIONSTR );
+	NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, DOTVERSIONSTR );
 
 	// Send the information about the data that will be sent.
 	ulBits = ulFlags;
@@ -314,37 +314,37 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 	if ( ulBits & SQF_PLAYERDATA )
 		ulBits |= SQF_NUMPLAYERS;
 
-	NETWORK_WriteLong( &g_MasterServerBuffer, ulBits );
+	NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, ulBits );
 
 	// Send the server name.
 	if ( ulBits & SQF_NAME )
 	{
 		Val = sv_hostname.GetGenericRep( CVAR_String );
-		NETWORK_WriteString( &g_MasterServerBuffer, Val.String );
+		NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, Val.String );
 	}
 
 	// Send the website URL.
 	if ( ulBits & SQF_URL )
 	{
 		Val = sv_website.GetGenericRep( CVAR_String );
-		NETWORK_WriteString( &g_MasterServerBuffer, Val.String );
+		NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, Val.String );
 	}
 
 	// Send the host's e-mail address.
 	if ( ulBits & SQF_EMAIL )
 	{
 		Val = sv_hostemail.GetGenericRep( CVAR_String );
-		NETWORK_WriteString( &g_MasterServerBuffer, Val.String );
+		NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, Val.String );
 	}
 
 	if ( ulBits & SQF_MAPNAME )
-		NETWORK_WriteString( &g_MasterServerBuffer, level.mapname );
+		NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, level.mapname );
 
 	if ( ulBits & SQF_MAXCLIENTS )
-		NETWORK_WriteByte( &g_MasterServerBuffer, sv_maxclients );
+		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, sv_maxclients );
 
 	if ( ulBits & SQF_MAXPLAYERS )
-		NETWORK_WriteByte( &g_MasterServerBuffer, sv_maxplayers );
+		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, sv_maxplayers );
 
 	// Send out the PWAD information.
 	if ( ulBits & SQF_PWADS )
@@ -366,7 +366,7 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 			ulNumPWADs++;
 		}
 
-		NETWORK_WriteByte( &g_MasterServerBuffer, ulNumPWADs );
+		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, ulNumPWADs );
 		for ( ulIdx = 0; Wads.GetWadName( ulIdx ) != NULL; ulIdx++ )
 		{
 			// Skip the IWAD file index, skulltag.wad/pk3, files that were automatically
@@ -380,46 +380,46 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 				continue;
 			}
 
-			NETWORK_WriteString( &g_MasterServerBuffer, (char *)Wads.GetWadName( ulIdx ));
+			NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, (char *)Wads.GetWadName( ulIdx ));
 		}
 	}
 
 	if ( ulBits & SQF_GAMETYPE )
 	{
-		NETWORK_WriteByte( &g_MasterServerBuffer, GAME_GetGameType( ));
-		NETWORK_WriteByte( &g_MasterServerBuffer, instagib );
-		NETWORK_WriteByte( &g_MasterServerBuffer, buckshot );
+		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, GAME_GetGameType( ));
+		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, instagib );
+		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, buckshot );
 	}
 
 	if ( ulBits & SQF_GAMENAME )
-		NETWORK_WriteString( &g_MasterServerBuffer, SERVER_MASTER_GetGameName( ));
+		NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, SERVER_MASTER_GetGameName( ));
 
 	if ( ulBits & SQF_IWAD )
-		NETWORK_WriteString( &g_MasterServerBuffer, (char *)Wads.GetWadName( ulRealIWADIdx ));
+		NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, (char *)Wads.GetWadName( ulRealIWADIdx ));
 
 	if ( ulBits & SQF_FORCEPASSWORD )
-		NETWORK_WriteByte( &g_MasterServerBuffer, sv_forcepassword );
+		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, sv_forcepassword );
 
 	if ( ulBits & SQF_FORCEJOINPASSWORD )
-		NETWORK_WriteByte( &g_MasterServerBuffer, sv_forcejoinpassword );
+		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, sv_forcejoinpassword );
 
 	if ( ulBits & SQF_GAMESKILL )
-		NETWORK_WriteByte( &g_MasterServerBuffer, gameskill );
+		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, gameskill );
 
 	if ( ulBits & SQF_BOTSKILL )
-		NETWORK_WriteByte( &g_MasterServerBuffer, botskill );
+		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, botskill );
 
 	if ( ulBits & SQF_DMFLAGS )
 	{
-		NETWORK_WriteLong( &g_MasterServerBuffer, dmflags );
-		NETWORK_WriteLong( &g_MasterServerBuffer, dmflags2 );
-		NETWORK_WriteLong( &g_MasterServerBuffer, compatflags );
+		NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, dmflags );
+		NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, dmflags2 );
+		NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, compatflags );
 	}
 
 	if ( ulBits & SQF_LIMITS )
 	{
-		NETWORK_WriteShort( &g_MasterServerBuffer, fraglimit );
-		NETWORK_WriteShort( &g_MasterServerBuffer, (SHORT)timelimit );
+		NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, fraglimit );
+		NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, (SHORT)timelimit );
 		if ( timelimit )
 		{
 			LONG	lTimeLeft;
@@ -427,18 +427,18 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 			lTimeLeft = (LONG)( timelimit - ( level.time / ( TICRATE * 60 )));
 			if ( lTimeLeft < 0 )
 				lTimeLeft = 0;
-			NETWORK_WriteShort( &g_MasterServerBuffer, lTimeLeft );
+			NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, lTimeLeft );
 		}
-		NETWORK_WriteShort( &g_MasterServerBuffer, duellimit );
-		NETWORK_WriteShort( &g_MasterServerBuffer, pointlimit );
-		NETWORK_WriteShort( &g_MasterServerBuffer, winlimit );
+		NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, duellimit );
+		NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, pointlimit );
+		NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, winlimit );
 	}
 
 	// Send the team damage scale.
 	if ( teamplay || teamgame || teamlms || teampossession || (( deathmatch == false ) && ( teamgame == false )))
 	{
 		if ( ulBits & SQF_TEAMDAMAGE )
-			NETWORK_WriteFloat( &g_MasterServerBuffer, teamdamage );
+			NETWORK_WriteFloat( &g_MasterServerBuffer.ByteStream, teamdamage );
 	}
 
 	// Send the team scores.
@@ -449,17 +449,17 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 			for ( ulIdx = 0; ulIdx < NUM_TEAMS; ulIdx++ )
 			{
 				if ( teamplay )
-					NETWORK_WriteShort( &g_MasterServerBuffer, TEAM_GetFragCount( ulIdx ));
+					NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, TEAM_GetFragCount( ulIdx ));
 				else if ( teamlms )
-					NETWORK_WriteShort( &g_MasterServerBuffer, TEAM_GetWinCount( ulIdx ));
+					NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, TEAM_GetWinCount( ulIdx ));
 				else
-					NETWORK_WriteShort( &g_MasterServerBuffer, TEAM_GetScore( ulIdx ));
+					NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, TEAM_GetScore( ulIdx ));
 			}
 		}
 	}
 
 	if ( ulBits & SQF_NUMPLAYERS )
-		NETWORK_WriteByte( &g_MasterServerBuffer, SERVER_CalcNumPlayers( ));
+		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, SERVER_CalcNumPlayers( ));
 
 	if ( ulBits & SQF_PLAYERDATA )
 	{
@@ -468,27 +468,27 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 			if ( playeringame[ulIdx] == false )
 				continue;
 
-			NETWORK_WriteString( &g_MasterServerBuffer, players[ulIdx].userinfo.netname );
+			NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, players[ulIdx].userinfo.netname );
 			if ( teamgame || possession || teampossession )
-				NETWORK_WriteShort( &g_MasterServerBuffer, players[ulIdx].lPointCount );
+				NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, players[ulIdx].lPointCount );
 			else if ( deathmatch )
-				NETWORK_WriteShort( &g_MasterServerBuffer, players[ulIdx].fragcount );
+				NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, players[ulIdx].fragcount );
 			else
-				NETWORK_WriteShort( &g_MasterServerBuffer, players[ulIdx].killcount );
+				NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, players[ulIdx].killcount );
 
-			NETWORK_WriteShort( &g_MasterServerBuffer, players[ulIdx].ulPing );
-			NETWORK_WriteByte( &g_MasterServerBuffer, PLAYER_IsTrueSpectator( &players[ulIdx] ));
-			NETWORK_WriteByte( &g_MasterServerBuffer, players[ulIdx].bIsBot );
+			NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, players[ulIdx].ulPing );
+			NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, PLAYER_IsTrueSpectator( &players[ulIdx] ));
+			NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, players[ulIdx].bIsBot );
 
 			if ( teamplay || teamgame || teamlms || teampossession )
 			{
 				if ( players[ulIdx].bOnTeam == false )
-					NETWORK_WriteByte( &g_MasterServerBuffer, 255 );
+					NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, 255 );
 				else
-					NETWORK_WriteByte( &g_MasterServerBuffer, players[ulIdx].ulTeam );
+					NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, players[ulIdx].ulTeam );
 			}
 
-			NETWORK_WriteByte( &g_MasterServerBuffer, players[ulIdx].ulTime / ( TICRATE * 60 ));
+			NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, players[ulIdx].ulTime / ( TICRATE * 60 ));
 		}
 	}
 

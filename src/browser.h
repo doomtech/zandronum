@@ -175,8 +175,8 @@ char			*BROWSER_GetVersion( ULONG ulServer );
 
 void			BROWSER_ClearServerList( void );
 void			BROWSER_DeactivateAllServers( void );
-void			BROWSER_GetServerList( void );
-void			BROWSER_ParseServerQuery( bool bLAN );
+void			BROWSER_GetServerList( BYTESTREAM_s *pByteStream );
+void			BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN );
 void			BROWSER_QueryMasterServer( void );
 bool			BROWSER_WaitingForMasterResponse( void );
 void			BROWSER_QueryAllServers( void );

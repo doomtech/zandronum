@@ -66,6 +66,14 @@
 #define	MAX_UDP_PACKET				8192
 
 //*****************************************************************************
+typedef enum
+{
+	BUFFERTYPE_READ,
+	BUFFERTYPE_WRITE,
+
+} BUFFERTYPE_e;
+
+//*****************************************************************************
 //	STRUCTURES
 
 typedef struct
@@ -84,18 +92,33 @@ typedef struct
 //*****************************************************************************
 typedef struct
 {
+	// Pointer to our stream of data.
+	BYTE		*pbStream;
+
+	// Pointer to the end of the stream. When pbStream > pbStreamEnd, the
+	// entire stream has been read.
+	BYTE		*pbStreamEnd;
+
+} BYTESTREAM_s;
+
+//*****************************************************************************
+typedef struct
+{
 	// This is the data in our packet.
-	BYTE		*pbData;
+	BYTE			*pbData;
 
 	// The maximum amount of data this packet can hold.
-	ULONG		ulMaxSize;
+	ULONG			ulMaxSize;
 
 	// How much data is currently in this packet?
-	ULONG		ulCurrentSize;
+	ULONG			ulCurrentSize;
 
-	// TEMPORARY
-	// How far along are we in reading this buffer?
-	ULONG		ulCurrentPosition;
+	// Byte stream for this buffer for managing our current position and where
+	// the end of the stream is.
+	BYTESTREAM_s	ByteStream;
+
+	// Is this a buffer that we write to, or read from?
+	BUFFERTYPE_e	BufferType;
 
 } NETBUFFER_s;
 
