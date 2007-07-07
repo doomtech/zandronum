@@ -648,6 +648,10 @@ inline static bool isMissile(AActor * self, bool precise=true)
 //==========================================================================
 void A_CustomMissile(AActor * self)
 {
+	// [BB] The server handles the spawning of the missle.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		return;
+
 	int index=CheckIndex(6);
 	if (index<0) return;
 
@@ -1398,6 +1402,10 @@ void A_SpawnItem(AActor * self)
 		if (!weapon) return;
 		if (useammo && !weapon->DepleteAmmo(weapon->bAltFire)) return;
 	}
+
+	// [BB] The server handles the spawning of the item.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		return;
 
 	AActor * mo = Spawn( missile, 
 					self->x + FixedMul(distance, finecosine[self->angle>>ANGLETOFINESHIFT]), 
