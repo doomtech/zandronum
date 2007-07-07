@@ -1163,7 +1163,7 @@ void CLIENT_SendCmd( void )
 	// Not in a level or spectating; nothing to do!
 	if (( gamestate != GS_LEVEL ) || ( players[consoleplayer].bSpectating ))
 	{
-		if ( g_LocalBuffer.ulCurrentSize )
+		if ( NETWORK_CalcBufferSize( &g_LocalBuffer ))
 		{
 			g_lBytesSent += g_LocalBuffer.ulCurrentSize;
 			if ( g_lBytesSent > g_lMaxBytesSent )
