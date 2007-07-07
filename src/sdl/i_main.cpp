@@ -140,7 +140,7 @@ static int DoomSpecificInfo (char *buffer, char *end)
 
 int main (int argc, char **argv)
 {
-	printf("ZDoom v%s - SVN revision %s - SDL version\nCompiled on %s\n\n",
+	printf("Skulltag v%s - SVN revision %s - SDL version\nCompiled on %s\n\n",
 		DOTVERSIONSTR_NOREV,SVN_REVISION_STRING,__DATE__);
 
 	{
@@ -151,18 +151,31 @@ int main (int argc, char **argv)
 	seteuid (getuid ());
     std::set_new_handler (NewFailure);
 
-	if (SDL_Init (SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_NOPARACHUTE) == -1)
+	Args.SetArgs (argc, argv);
+
+	if ( Args.CheckParm( "-host" ))
 	{
-		fprintf (stderr, "Could not initialize SDL:\n%s\n", SDL_GetError());
-		return -1;
+		if (SDL_Init (SDL_INIT_TIMER|SDL_INIT_NOPARACHUTE) == -1)
+		{
+			fprintf (stderr, "Could not initialize SDL:\n%s\n", SDL_GetError());
+			return -1;
+		}
 	}
+	else
+	{
+		if (SDL_Init (SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_NOPARACHUTE) == -1)
+		{
+			fprintf (stderr, "Could not initialize SDL:\n%s\n", SDL_GetError());
+			return -1;
+		}
+	}
+
 	atterm (SDL_Quit);
 
 	SDL_WM_SetCaption (GAMESIG " " DOTVERSIONSTR " (" __DATE__ ")", NULL);
 	
     try
     {
-		Args.SetArgs (argc, argv);
 
 		/*
 		  killough 1/98:
