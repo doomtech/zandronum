@@ -324,6 +324,7 @@ void CAMPAIGN_ParseCampaignInfo( void )
 					char	szIndex[16];
 					char	*pszIndex;
 					LONG	lBotIndex;
+					int	iIndex = 0;
 
 					pszString = szKey + strlen( "bot" );
 					if ( *pszString != '[' )
@@ -336,10 +337,16 @@ void CAMPAIGN_ParseCampaignInfo( void )
 						if ( *pszString == 0 )
 							I_Error( "CAMPAIGN_ParseCampaignInfo: Missing ']' after \"bot\"!" );
 
+						if ( iIndex == 15 )
+							I_Error( "CAMPAIGN_ParseCampaignInfo: Too many chars after \"bot\" and before ']'!" );
+
 						*pszIndex = *pszString;
 						pszIndex++;
 						pszString++;
+						iIndex++;
 					}
+					// [BB] We need to terminate szIndex. 
+					*pszIndex = '\0';
 
 					lBotIndex = atoi( szIndex );
 					if (( lBotIndex < 0 ) || ( lBotIndex >= MAXPLAYERS ))
