@@ -415,7 +415,7 @@ void SERVER_Tick( void )
 	//[BB] Looks like dwBaseTime is not used at all.
 	//static DWORD	dwBaseTime = 0;
 
-//	I_DoSelect();
+	I_DoSelect();
 
 	//if ( dwBaseTime == 0 )
 	//	dwBaseTime = timeGetTime( );
@@ -434,19 +434,16 @@ void SERVER_Tick( void )
 		lCurTics = lNewTics - lPreviousTics;
 	}
 
-// Can't use this ifdef since we can't include serverconsole.h ;_;
-/*
-#ifndef GUI_SERVER_CONSOLE
+#ifdef NO_SERVER_GUI
 	// console input
 	char *cmd = I_ConsoleInput();
 	if (cmd)
 		AddCommandString (cmd);
 #else
-*/
 	// Execute any commands that have been issued through server menus.
 	while ( g_lServerCommandQueueHead != g_lServerCommandQueueTail )
 		SERVER_DeleteCommand( );
-//#endif
+#endif
 /*
 		int			entertic;
 		static	int	oldentertics;

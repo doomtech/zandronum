@@ -154,13 +154,14 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 	ULONG			ulArg;
 	USHORT			usNewPort;
 	NETADDRESS_s	LocalAddress;
-	WSADATA			WSAData;
 	bool			bSuccess;
 
 	// Initialize the Huffman buffer.
 	HuffInit( );
 
 #ifdef __WIN32__
+	// [BB] Linux doesn't know WSADATA, so this may not be moved outside the ifdef.
+	WSADATA			WSAData;
 	if ( WSAStartup( 0x0101, &WSAData ))
 		network_Error( "Winsock initialization failed!\n" );
 
@@ -506,11 +507,11 @@ void NETWORK_WriteString( BYTESTREAM_s *pByteStream, const char *pszString )
 		NETWORK_WriteBuffer( pByteStream, pszString, (int)( strlen( pszString )) + 1 );
 #else
 	if ( pszString == NULL )
-		NETWORK_WriteBuffer( pStream, pStreamEnd, 0 );
+		NETWORK_WriteByte( pByteStream, 0 );
 	else
 	{
-		NETWORK_WriteBuffer( pStream, pStreamEnd, pszString, strlen( pszString ));
-		NETWORK_WriteByte( pStream, pStreamEnd, 0 );
+		NETWORK_WriteBuffer( pByteStream, pszString, strlen( pszString ));
+		NETWORK_WriteByte( pByteStream, 0 );
 	}
 #endif
 }
@@ -718,51 +719,53 @@ void NETWORK_LaunchPacket( NETBUFFER_s *pBuffer, NETADDRESS_s Address )
 		return;
 
 	// Convert the IP address to a socket address.
-    NETWORK_NetAddressToSocketAddress( Address, SocketAddress );
+	NETWORK_NetAddressToSocketAddress( Address, SocketAddress );
 
 	HuffEncode( (unsigned char *)pBuffer->pbData, g_ucHuffmanBuffer, pBuffer->ulCurrentSize, &iNumBytesOut );
 
 	lNumBytes = sendto( g_NetworkSocket, (const char*)g_ucHuffmanBuffer, iNumBytesOut, 0, (struct sockaddr *)&SocketAddress, sizeof( SocketAddress ));
 
 	// If sendto returns -1, there was an error.
-    if ( lNumBytes == -1 )
-    {
+	if ( lNumBytes == -1 )
+	{
 #ifdef __WIN32__
-          INT	iError = WSAGetLastError( );
+		INT	iError = WSAGetLastError( );
 
-          // Wouldblock is silent.
-          if ( iError == WSAEWOULDBLOCK )
-              return;
+		// Wouldblock is silent.
+		if ( iError == WSAEWOULDBLOCK )
+			return;
 
-		  switch ( iError )
-		  {
-		  case WSAEACCES:
+		switch ( iError )
+		{
+		case WSAEACCES:
 
-			  Printf( "NETWORK_LaunchPacket: Error #%d, WSAEACCES: Permission denied for address: %s\n", iError, NETWORK_AddressToString( Address ));
-			  return;
-		  case WSAEADDRNOTAVAIL:
+			Printf( "NETWORK_LaunchPacket: Error #%d, WSAEACCES: Permission denied for address: %s\n", iError, NETWORK_AddressToString( Address ));
+			return;
+		case WSAEADDRNOTAVAIL:
 
-			  Printf( "NETWORK_LaunchPacket: Error #%d, WSAEADDRENOTAVAIL: Address %s not available\n", iError, NETWORK_AddressToString( Address ));
-			  return;
-		  case WSAEHOSTUNREACH:
+			Printf( "NETWORK_LaunchPacket: Error #%d, WSAEADDRENOTAVAIL: Address %s not available\n", iError, NETWORK_AddressToString( Address ));
+			return;
+		case WSAEHOSTUNREACH:
 
-				Printf( "NETWORK_LaunchPacket: Error #%d, WSAEHOSTUNREACH: Address %s unreachable\n", iError, NETWORK_AddressToString( Address ));
-			  return;				
-		  default:
+			Printf( "NETWORK_LaunchPacket: Error #%d, WSAEHOSTUNREACH: Address %s unreachable\n", iError, NETWORK_AddressToString( Address ));
+			return;				
+		default:
 
 			Printf( "NETWORK_LaunchPacket: Error #%d\n", iError );
 			return;
-		  }
-#else	  
-          if ( errno == EWOULDBLOCK )
-              return;
+		}
+#else
+	if ( errno == EWOULDBLOCK )
+return;
 
           if ( errno == ECONNREFUSED )
               return;
 
-          Printf( "NETWORK_LaunchPacket: %s\n", strerror( errno ));
-#endif	  
-    }
+		Printf( "NETWORK_LaunchPacket: %s\n", strerror( errno ));
+		Printf( "NETWORK_LaunchPacket: Address %s\n", NETWORK_AddressToString( Address ));
+
+#endif
+	}
 
 	// Record this for our statistics window.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -1006,8 +1009,17 @@ bool network_BindSocketToPort( SOCKET Socket, USHORT usPort, bool bReUse )
 	return ( true );
 }
 
+
+#ifndef	WIN32
+extern int	stdin_ready;
+extern int	do_stdin;
+#endif
+
+// [BB] We only need this for the server console input under Linux.
 void I_DoSelect (void)
 {
+#ifdef		WIN32
+/*
     struct timeval   timeout;
     fd_set           fdset;
 
@@ -1017,7 +1029,24 @@ void I_DoSelect (void)
     timeout.tv_usec = 0;
     if (select (static_cast<int>(g_NetworkSocket)+1, &fdset, NULL, NULL, &timeout) == -1)
         return;
-}
+*/
+#else
+    struct timeval   timeout;
+    fd_set           fdset;
+
+    FD_ZERO(&fdset);
+    if (do_stdin)
+    	FD_SET(0, &fdset);
+
+    FD_SET(g_NetworkSocket, &fdset);
+    timeout.tv_sec = 1;
+    timeout.tv_usec = 0;
+    if (select (static_cast<int>(g_NetworkSocket)+1, &fdset, NULL, NULL, &timeout) == -1)
+        return;
+
+    stdin_ready = FD_ISSET(0, &fdset);
+#endif
+} 
 
 //*****************************************************************************
 //

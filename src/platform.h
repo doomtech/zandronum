@@ -31,6 +31,7 @@ char* itoa(int value, char* str, int base);
 char *strupr(char *string);
 
 void I_Sleep( int iMS );
+char *I_ConsoleInput (void);
 
 typedef unsigned char UCHAR;
 

@@ -179,3 +179,72 @@ void ADynamicLight::Activate(class AActor *) {}
 void ADynamicLight::Deactivate(class AActor *) {}
 #endif //_WIN32
 #endif
+
+//
+// I_ConsoleInput - [NightFang] - pulled from the old 0.99 code
+//
+#ifndef	WIN32
+int		stdin_ready = 0;
+int		do_stdin = 1;
+#else
+#include "conio.h"
+#endif
+
+char *I_ConsoleInput (void)
+{
+#ifndef	WIN32
+	static 	char text[256];
+	int	len;
+	if (!stdin_ready || !do_stdin)
+	{ return NULL; }
+
+	stdin_ready = 0;
+
+	len = read(0, text, sizeof(text));
+	if (len < 1)
+	{ return NULL; }
+
+	text[len-1] = 0;
+
+	return text;
+#else
+	// Windows code
+	static char     text[256];
+    static int              len;
+    int             c;
+
+    // read a line out
+    while (_kbhit())
+    {
+		c = _getch();
+        putch (c);
+        if (c == '\r')
+        {
+			text[len] = 0;
+            putch ('\n');
+            len = 0;
+            return text;
+        }
+        
+		if (c == 8)
+        {
+			if (len)
+            {
+				putch (' ');
+                putch (c);
+                len--;
+                text[len] = 0;
+            }
+            continue;
+        }
+    
+		text[len] = c;
+        len++;
+        text[len] = 0;
+        if (len == sizeof(text))
+		    len = 0;
+	}
+
+    return NULL;
+#endif
+}
