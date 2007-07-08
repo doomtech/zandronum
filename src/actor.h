@@ -898,6 +898,7 @@ public:
 	int GetTics(FState * newstate);
 	bool SetState (FState *newstate);
 	bool SetStateNF (FState *newstate);
+	bool InDeathState();
 	bool UpdateWaterLevel (fixed_t oldz, bool splash=true);
 
 	static FState States[];

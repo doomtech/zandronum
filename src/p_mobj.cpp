@@ -538,6 +538,10 @@ bool AActor::SetState (FState *newstate)
 			Destroy ();
 			return false;
 		}
+		// [BB] Dead things should not have positive health.
+		if ( (newstate == DeathState) && (health > 0) )
+			health = 0;
+
 		int prevsprite, newsprite;
 
 		if (state != NULL)
@@ -661,6 +665,33 @@ bool AActor::SetStateNF (FState *newstate)
 
 	gl_SetActorLights(this);
 	return true;
+}
+
+//----------------------------------------------------------------------------
+//
+// AActor::InDeathState
+//
+//----------------------------------------------------------------------------
+
+bool AActor::InDeathState()
+{
+	if( state != NULL )
+	{
+		FState *pDeadState = DeathState;
+		FState *pState = NULL;
+		while ( pDeadState != NULL )
+		{
+			if ( state == pDeadState )
+				return true;
+			pState = pDeadState;
+			pDeadState = pDeadState->GetNextState( );
+
+			// If the state loops back to the beginning of the death state, or to itself, break out.
+			if (( pDeadState == DeathState ) || ( pState == pDeadState ))
+				break;
+		}
+	}
+	return false;
 }
 
 //============================================================================
