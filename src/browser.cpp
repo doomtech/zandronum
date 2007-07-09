@@ -99,7 +99,7 @@ void BROWSER_Construct( void )
 	NETWORK_ClearBuffer( &g_MasterServerBuffer );
 
 	// Setup our server message buffer.
-	NETWORK_InitBuffer( &g_ServerBuffer, MAX_UDP_PACKET, BUFFERTYPE_READ );
+	NETWORK_InitBuffer( &g_ServerBuffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
 	NETWORK_ClearBuffer( &g_ServerBuffer );
 
 	// Allow the user to specify which port the master server is on.
@@ -880,7 +880,6 @@ static void browser_QueryServer( ULONG ulServer )
 	NETWORK_WriteLong( &g_ServerBuffer.ByteStream, I_MSTime( ));
 
 	// Send the server our packet.
-//	NETWORK_LaunchPacket( &g_ServerBuffer, g_BrowserServerList[ulServer].Address, true );
 	NETWORK_LaunchPacket( &g_ServerBuffer, g_BrowserServerList[ulServer].Address );
 
 	// Keep track of the time we queried this server at.
