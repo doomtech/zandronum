@@ -2052,10 +2052,12 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 
 		// Don't spawn players, items about to be deleted, inventory items
 		// that have an owner, or items that the client spawns himself.
+		// [BB] Don't spawn dead actors that are not corpses.
 		if (( pActor->IsKindOf( RUNTIME_CLASS( APlayerPawn ))) ||
 			( pActor->state == &AInventory::States[16] ) ||	// S_HOLDANDDESTROY
 			( pActor->state == &AInventory::States[15] ) || // S_HELD
-			( pActor->ulNetworkFlags & NETFL_ALLOWCLIENTSPAWN ))
+			( pActor->ulNetworkFlags & NETFL_ALLOWCLIENTSPAWN ) ||
+			!( ( pActor->health ) > 0 || ( pActor->flags & MF_COUNTKILL ) || !(pActor->InDeathState()) ) )
 		{
 			continue;
 		}
