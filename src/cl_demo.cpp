@@ -56,6 +56,8 @@
 #include "doomtype.h"
 #include "i_system.h"
 #include "m_random.h"
+#include "network.h"
+#include "networkshared.h"
 #include "version.h"
 
 //*****************************************************************************
@@ -66,6 +68,9 @@ static	bool				g_bDemoRecording;
 
 // Buffer for our demo.
 static	BYTE				*g_pbDemoBuffer;
+
+// Our byte stream that points to where we are in our demo.
+static	BYTESTREAM_s		g_ByteStream;
 
 // Name of our demo.
 static	char				g_szDemoName[8];
@@ -89,38 +94,38 @@ void CLIENTDEMO_BeginRecording( char *pszDemoName )
 	// Allocate memory for the demo buffer.
 	g_bDemoRecording = true;
 	g_pbDemoBuffer = (BYTE *)malloc( 0x20000 );
+	g_ByteStream.pbStream = g_pbDemoBuffer;
+	g_ByteStream.pbStreamEnd = g_pbDemoBuffer + 0x20000;
 
 	// Write our header.
-	StartChunk( CLD_DEMOSTART, &g_pbDemoBuffer );
-	WriteLong( 12345678, &g_pbDemoBuffer );
-	FinishChunk( &g_pbDemoBuffer );
+	NETWORK_WriteByte( &g_ByteStream, CLD_DEMOSTART );
+	NETWORK_WriteLong( &g_ByteStream, 12345678 );
 
 	// Write the length of the demo. Of course, we can't complete this quite yet!
-	StartChunk( CLD_DEMOLENGTH, &g_pbDemoBuffer );
-	g_pbDemoBuffer += 4;
-	FinishChunk( &g_pbDemoBuffer );
+	NETWORK_WriteByte( &g_ByteStream, CLD_DEMOLENGTH );
+	g_ByteStream.pbStream += 4;
 
 	// Write version information helpful for this demo.
-	StartChunk( CLD_DEMOVERSION, &g_pbDemoBuffer );
-	WriteWord( DEMOGAMEVERSION, &g_pbDemoBuffer );
-	WriteString( DOTVERSIONSTR, &g_pbDemoBuffer );
-	WriteLong( rngseed, &g_pbDemoBuffer );
-	FinishChunk( &g_pbDemoBuffer );
-
+	NETWORK_WriteByte( &g_ByteStream, CLD_DEMOVERSION );
+	NETWORK_WriteShort( &g_ByteStream, DEMOGAMEVERSION );
+	NETWORK_WriteString( &g_ByteStream, DOTVERSIONSTR );
+	NETWORK_WriteLong( &g_ByteStream, rngseed );
+/*
 	// Write cvars chunk.
 	StartChunk( CLD_CVARS, &g_pbDemoBuffer );
 	C_WriteCVars( &g_pbDemoBuffer, CVAR_SERVERINFO|CVAR_DEMOSAVE );
 	FinishChunk( &g_pbDemoBuffer );
-
+*/
+/*
 	// Write the console player's userinfo.
 	StartChunk( CLD_USERINFO, &g_pbDemoBuffer );
 	WriteByte( (BYTE)consoleplayer, &g_pbDemoBuffer );
 	D_WriteUserInfoStrings( consoleplayer, &g_pbDemoBuffer );
 	FinishChunk( &g_pbDemoBuffer );
-
+*/
 	// Indicate that we're done with header information, and are ready
 	// to move onto the body of the demo.
-	StartChunk( CLD_BODYSTART, &g_pbDemoBuffer );
+	NETWORK_WriteByte( &g_ByteStream, CLD_BODYSTART );
 }
 
 //*****************************************************************************
@@ -130,55 +135,65 @@ bool CLIENTDEMO_ProcessDemoHeader( void )
 	bool	bBodyStart;
 	LONG	lDemoVersion;
 	LONG	lCommand;
-	BYTE	*pDemoEnd;
 
-	if (( ReadLong( &g_pbDemoBuffer ) != CLD_DEMOSTART ) ||
-		( ReadLong( &g_pbDemoBuffer ) != 12345678 ))
+	g_ByteStream.pbStream = g_pbDemoBuffer;
+	g_ByteStream.pbStreamEnd = g_pbDemoBuffer + 0x20000;
+
+	if (( NETWORK_ReadLong( &g_ByteStream ) != CLD_DEMOSTART ) ||
+		( NETWORK_ReadLong( &g_ByteStream ) != 12345678 ))
 	{
 		I_Error( "CLIENTDEMO_ProcessDemoHeader: Expected CLD_DEMOSTART.\n" );
 		return ( false );
 	}
 
-	if ( ReadLong( &g_pbDemoBuffer ) != CLD_DEMOLENGTH )
+	if ( NETWORK_ReadLong( &g_ByteStream ) != CLD_DEMOLENGTH )
 	{
 		I_Error( "CLIENTDEMO_ProcessDemoHeader: Expected CLD_DEMOLENGTH.\n" );
 		return ( false );
 	}
 
-	g_lDemoLength = ReadLong( &g_pbDemoBuffer );
-	pDemoEnd = g_pbDemoBuffer + g_lDemoLength + ( g_lDemoLength & 1 );
+	g_lDemoLength = NETWORK_ReadLong( &g_ByteStream );
+	g_ByteStream.pbStreamEnd = g_pbDemoBuffer + g_lDemoLength + ( g_lDemoLength & 1 );
 
 	// Continue to read header commands until we reach the body of the demo.
 	bBodyStart = false;
-	while (( g_pbDemoBuffer < pDemoEnd ) && ( bBodyStart == false ))
+	while ( bBodyStart == false )
 	{  
-		lCommand = ReadLong( &g_pbDemoBuffer );
+		lCommand = NETWORK_ReadLong( &g_ByteStream );
+
+		// End of message.
+		if ( lCommand == -1 )
+			break;
 
 		switch ( lCommand )
 		{
 		case CLD_DEMOVERSION:
 
 			// Read in the DEMOGAMEVERSION the demo was recorded with.
-			lDemoVersion = ReadWord( &g_pbDemoBuffer );
+			lDemoVersion = NETWORK_ReadShort( &g_ByteStream );
 			if ( lDemoVersion < MINDEMOVERSION )
 				I_Error( "Demo requires an older version of Skulltag!\n" );
 
 			// Read in the DOTVERSIONSTR the demo was recorded with.
-			Printf( "Version %s demo\n", ReadString( &g_pbDemoBuffer ));
+			Printf( "Version %s demo\n", NETWORK_ReadString( &g_ByteStream ));
 
 			// Read in the random number generator seed.
-			rngseed = ReadLong( &g_pbDemoBuffer );
+			rngseed = NETWORK_ReadLong( &g_ByteStream );
 			FRandom::StaticClearRandom( );
 			break;
+/*
 		case CLD_CVARS:
 
 			C_ReadCVars( &g_pbDemoBuffer );
 			break;
+*/
+/*
 		case CLD_USERINFO:
 
 			consoleplayer = ReadByte( &g_pbDemoBuffer );
 			D_ReadUserInfoStrings( consoleplayer, &g_pbDemoBuffer, false );
 			break;
+*/
 		case CLD_BODYSTART:
 
 			bBodyStart = true;
