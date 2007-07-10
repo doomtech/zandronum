@@ -51,6 +51,10 @@
 #ifndef __CL_DEMO_H__
 #define __CL_DEMO_H__
 
+#include "d_ticcmd.h"
+#include "network.h"
+#include "networkshared.h"
+
 //*****************************************************************************
 //	DEFINES
 
@@ -60,20 +64,39 @@ typedef enum
 	// [BC] Message headers with bytes starting with 0 and going sequentially
 	// isn't very distinguishing from other formats (such as normal ZDoom demos),
 	// but does that matter?
-	CLD_DEMOSTART,
+	CLD_DEMOSTART = NUM_SERVER_COMMANDS,
 	CLD_DEMOLENGTH,
 	CLD_DEMOVERSION,
 	CLD_CVARS,
 	CLD_USERINFO,
 	CLD_BODYSTART,
+	CLD_TICCMD,
+	CLD_INVUSE,
+	CLD_CENTERVIEW,
+	CLD_TAUNT,
+	CLD_DEMOEND,
 };
 
 //*****************************************************************************
 //	PROTOTYPES
 
-void	CLIENTDEMO_BeginRecording( char *pszDemoName );
-bool	CLIENTDEMO_ProcessDemoHeader( void );
-bool	CLIENTDEMO_IsRecording( void );
-bool	CLIENTDEMO_IsPlaying( void );
+void		CLIENTDEMO_BeginRecording( char *pszDemoName );
+bool		CLIENTDEMO_ProcessDemoHeader( void );
+void		CLIENTDEMO_WriteUserInfo( void );
+void		CLIENTDEMO_ReadUserInfo( void );
+void		CLIENTDEMO_WriteTiccmd( ticcmd_t *pCmd );
+void		CLIENTDEMO_ReadTiccmd( ticcmd_t *pCmd );
+void		CLIENTDEMO_WritePacket( BYTESTREAM_s *pByteStream );
+void		CLIENTDEMO_ReadPacket( void );
+void		CLIENTDEMO_FinishRecording( void );
+void		CLIENTDEMO_DoPlayDemo( char *pszDemoName );
+void		CLIENTDEMO_FinishPlaying( void );
+LONG		CLIENTDEMO_GetGameticOffset( void );
+void		CLIENTDEMO_WriteLocalCommand( LONG lCommand, char *pszArg );
+
+bool		CLIENTDEMO_IsRecording( void );
+void		CLIENTDEMO_SetRecording( bool bRecording );
+bool		CLIENTDEMO_IsPlaying( void );
+void		CLIENTDEMO_SetPlaying( bool bPlaying );
 
 #endif // __CL_DEMO__

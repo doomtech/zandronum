@@ -51,6 +51,7 @@
 #include "a_action.h"
 #include "announcer.h"
 #include "c_cvars.h"
+#include "cl_demo.h"
 #include "cl_main.h"
 #include "deathmatch.h"
 #include "g_game.h"
@@ -494,7 +495,7 @@ void LASTMANSTANDING_DoWinSequence( ULONG ulWinner )
 	ULONG	ulIdx;
 
 	// Put the game state in the win sequence state.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 		LASTMANSTANDING_SetState( LMSS_WINSEQUENCE );
 
 	// Tell clients to do the win sequence.
@@ -561,7 +562,7 @@ void LASTMANSTANDING_DoWinSequence( ULONG ulWinner )
 	}
 
 	// Award a victory or perfect medal to the winner.
-	if (( lastmanstanding ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+	if (( lastmanstanding ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		LONG	lMedal;
 

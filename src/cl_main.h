@@ -98,9 +98,6 @@ typedef struct
 	// This array of bytes is the storage for the packet data.
 	BYTE	abData[MAX_UDP_PACKET * 256];
 
-	// What is the current position in the array?
-	LONG	lCurrentPosition;
-
 	// This is the number of bytes in paData.
 	LONG	lMaxSize;
 

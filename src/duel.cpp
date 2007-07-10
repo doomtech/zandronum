@@ -50,6 +50,7 @@
 
 #include "announcer.h"
 #include "c_cvars.h"
+#include "cl_demo.h"
 #include "cl_main.h"
 #include "deathmatch.h"
 #include "duel.h"
@@ -295,7 +296,7 @@ void DUEL_DoWinSequence( ULONG ulPlayer )
 	ULONG	ulIdx;
 
 	// Put the duel state in the win sequence state.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 		DUEL_SetState( DS_WINSEQUENCE );
 
 	// Tell clients to do the win sequence.
@@ -327,7 +328,7 @@ void DUEL_DoWinSequence( ULONG ulPlayer )
 	}
 
 	// Award a victory or perfect medal to the winner.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		LONG	lMedal;
 

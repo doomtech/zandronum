@@ -86,6 +86,7 @@
 #include "cooperative.h"
 #include "invasion.h"
 #include "possession.h"
+#include "cl_demo.h"
 
 #include "gi.h"
 
@@ -1532,6 +1533,12 @@ void G_NewInit ()
 		demoplayback = false;
 		D_SetupUserInfo ();
 	}
+	// [BC] Support for client-side demos.
+	if ( CLIENTDEMO_IsPlaying( ))
+	{
+		CLIENTDEMO_SetPlaying( false );
+		D_SetupUserInfo( );
+	}
 	for (i = 0; i < MAXPLAYERS; ++i)
 	{
 		player_t *p = &players[i];
@@ -1678,7 +1685,8 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 
 	if (!savegamerestore)
 	{
-		if (!demoplayback)
+		// [BC] Support for client-side demos.
+		if (!demoplayback && ( CLIENTDEMO_IsPlaying( ) == false ))
 		{
 			if ( NETWORK_GetState( ) == NETSTATE_SINGLE )
 			{ // [RH] Change the random seed for each new single player game
@@ -1718,6 +1726,8 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 	paused = 0;
 	demoplayback = false;
 	automapactive = false;
+	// [BC] Support for client-side demos.
+	CLIENTDEMO_SetPlaying( false );
 
 	// [BC] If we're a client receiving a snapshot, don't make the view active just yet.
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) || ( CLIENT_GetConnectionState( ) != CTS_RECEIVINGSNAPSHOT ))
@@ -2377,7 +2387,9 @@ void G_DoLoadLevel (int position, bool autosave)
 
 	// [RH] Start lightning, if MAPINFO tells us to
 	// [BC] Don't do this in client mode.
-	if ((level.flags & LEVEL_STARTLIGHTNING) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+	if ((level.flags & LEVEL_STARTLIGHTNING) &&
+		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		P_StartLightning ();
 	}
@@ -2419,13 +2431,15 @@ void G_DoLoadLevel (int position, bool autosave)
 		StatusBar->AttachToPlayer (&players[consoleplayer]);
 	P_DoDeferedScripts ();	// [RH] Do script actions that were triggered on another map.
 	
-	if (demoplayback || oldgs == GS_STARTUP || oldgs == GS_TITLELEVEL)
+	// [BC] Support for client-side demos.
+	if (demoplayback || ( CLIENTDEMO_IsPlaying( )) || oldgs == GS_STARTUP || oldgs == GS_TITLELEVEL)
 		C_HideConsole ();
 
 	C_FlushDisplay ();
 
 	// [BC] Spawn various necessary game objects at the start of the map.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		// Spawn the terminator artifact in terminator mode.
 		if ( terminator )
@@ -2498,7 +2512,7 @@ void G_WorldDone (void)
 	char *nextmap;
 
 	// [BC] Clients don't need to do this, otherwise they'll try to load the map on their end.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 		gameaction = ga_worlddone; 
 
 	if (level.flags & LEVEL_CHANGEMAPCHEAT)
@@ -2735,7 +2749,7 @@ void G_FinishTravel ()
 
 bool G_AllowTravel( void )
 {
-	if ( deathmatch || teamgame || invasion || ( NETWORK_GetState( ) == NETSTATE_CLIENT ))
+	if ( deathmatch || teamgame || invasion || ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 		return ( false );
 
 	return ( true );

@@ -302,6 +302,9 @@ CCMD (slot)
 				( CLIENT_GetConnectionState( ) == CTS_ACTIVE ))
 			{
 				players[consoleplayer].mo->UseInventory( (AInventory *)SendItemUse );
+
+				if ( CLIENTDEMO_IsRecording( ))
+					CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)SendItemUse->GetClass( )->TypeName.GetChars( ));
 			}
 		}
 	}
@@ -316,6 +319,9 @@ CCMD (centerview)
 	{
 		if ( players[consoleplayer].mo )
 			players[consoleplayer].mo->pitch = 0;
+
+		if ( CLIENTDEMO_IsRecording( ))
+			CLIENTDEMO_WriteLocalCommand( CLD_CENTERVIEW, NULL );
 	}
 }
 
@@ -356,6 +362,9 @@ CCMD (weapnext)
 		( CLIENT_GetConnectionState( ) == CTS_ACTIVE ))
 	{
 		players[consoleplayer].mo->UseInventory( (AInventory *)SendItemUse );
+
+		if ( CLIENTDEMO_IsRecording( ))
+			CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)SendItemUse->GetClass( )->TypeName.GetChars( ));
 	}
 
 	// [BC] Option to display the name of the weapon being cycled to.
@@ -395,6 +404,9 @@ CCMD (weapprev)
 		( CLIENT_GetConnectionState( ) == CTS_ACTIVE ))
 	{
 		players[consoleplayer].mo->UseInventory( (AInventory *)SendItemUse );
+
+		if ( CLIENTDEMO_IsRecording( ))
+			CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)SendItemUse->GetClass( )->TypeName.GetChars( ));
 	}
 
 	// [BC] Option to display the name of the weapon being cycled to.
@@ -839,6 +851,7 @@ static void ChangeSpy (bool forward)
 
 	// [BC] Check a wide array of conditions to see if this is legal.
 	if (( demoplayback == false ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ) &&
 		( players[consoleplayer].bSpectating == false ) &&
 		( NETWORK_GetState( ) == NETSTATE_CLIENT ) &&
 		( teamgame == false ) &&
@@ -984,10 +997,14 @@ static void FinishChangeSpy( int pnum )
 	players[consoleplayer].camera = players[pnum].mo;
 	S_UpdateSounds(players[consoleplayer].camera);
 	StatusBar->AttachToPlayer (&players[pnum]);
+	// [BC] We really no longer need to do this since we have a message
+	// that says "FOLLOWING - xxx" on the status bar.
+/*
 	if (demoplayback || ( NETWORK_GetState( ) != NETSTATE_SINGLE ))
 	{
 		StatusBar->ShowPlayerName ();
 	}
+*/
 
 	// [BC] If we're a client, tell the server that we're switching our displayplayer.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
@@ -1018,8 +1035,9 @@ bool G_Responder (event_t *ev)
 {
 	// any other key pops up menu if in demos
 	// [RH] But only if the key isn't bound to a "special" command
+	// [BC] Support for client-side demos.
 	if (gameaction == ga_nothing && 
-		(demoplayback || gamestate == GS_DEMOSCREEN || gamestate == GS_TITLELEVEL))
+		(demoplayback || CLIENTDEMO_IsPlaying( ) || gamestate == GS_DEMOSCREEN || gamestate == GS_TITLELEVEL))
 	{
 		const char *cmd = C_GetBinding (ev->data1);
 
@@ -1288,12 +1306,24 @@ void G_Ticker ()
 #endif
 				// We've gotten a packet! Now figure out what it's saying.
 				if ( CLIENT_ReadPacketHeader( pByteStream ))
+				{
+					// If we're recording a demo, write the contents of this packet.
+					if ( CLIENTDEMO_IsRecording( ))
+						CLIENTDEMO_WritePacket( pByteStream );
+
 					CLIENT_ParsePacket( pByteStream, false );
+				}
 				else
 				{
 					while ( CLIENT_GetNextPacket( ))
 					{
 						pByteStream = &NETWORK_GetNetworkMessageBuffer( )->ByteStream;
+
+						// If we're recording a demo, write the contents of this packet.
+						if ( CLIENTDEMO_IsRecording( ))
+							CLIENTDEMO_WritePacket( pByteStream );
+
+						// Parse this packet.
 						CLIENT_ParsePacket( pByteStream, true );
 
 						// Don't continue parsing if we've exited the network game.
@@ -1388,6 +1418,10 @@ void G_Ticker ()
 			CLIENT_CheckForMissingPackets( );
 	}
 
+	// If we're playing back a demo, read packets and ticcmds now.
+	if ( CLIENTDEMO_IsPlaying( ))
+		CLIENTDEMO_ReadPacket( );
+
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 	{
 		// Check if either us or the server is lagging.
@@ -1396,9 +1430,15 @@ void G_Ticker ()
 		// If all is good, send our commands.
 		if ( CLIENT_GetServerLagging( ) == false )
 			CLIENT_SendCmd( );
+
+		// If we're recording a demo, write the player's commands.
+		if ( CLIENTDEMO_IsRecording( ))
+			CLIENTDEMO_WriteTiccmd( &players[consoleplayer].cmd );
 	}
 
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT && NETWORK_GetState( ) != NETSTATE_SERVER )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( NETWORK_GetState( ) != NETSTATE_SERVER ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		// [RH] Include some random seeds and player stuff in the consistancy
 		// check, not just the player's x position like BOOM.
@@ -1415,16 +1455,14 @@ void G_Ticker ()
 				{
 					RunNetSpecs (i, buf);
 				}
-				// [BC] Support for client-side demos.
-				if (demorecording || CLIENTDEMO_IsRecording( ))
+				if (demorecording)
 				{
 					G_WriteDemoTiccmd (newcmd, i, buf);
 				}
 				// If the user alt-tabbed away, paused gets set to -1. In this case,
 				// we do not want to read more demo commands until paused is no
 				// longer negative.
-				// [BC] Support for client-side demos.
-				if ((demoplayback || CLIENTDEMO_IsPlaying( )) && paused >= 0)
+				if (demoplayback && paused >= 0)
 				{
 					G_ReadDemoTiccmd (cmd, i);
 				}
@@ -2489,7 +2527,7 @@ void G_DoReborn (int playernum, bool freshbot)
 	AActor	*pOldBody;
 
 	// All of this is done remotely.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 		return;
 	else if ( NETWORK_GetState( ) == NETSTATE_SINGLE )
 	{
@@ -4504,6 +4542,8 @@ void G_DoPlayDemo (void)
 {
 	char mapname[9];
 	int demolump;
+	// [BC] For saving the output of ReadLong().
+	int	i;
 
 	gameaction = ga_nothing;
 
@@ -4517,6 +4557,17 @@ void G_DoPlayDemo (void)
 	}
 	else
 	{
+		// [BC] First, see if a .cld demo with this name exists.
+		FixPathSeperator (defdemoname);
+		DefaultExtension (defdemoname, ".cld");
+		if ( M_DoesFileExist( defdemoname ))
+		{
+			CLIENTDEMO_DoPlayDemo( defdemoname );
+			return;
+		}
+		else
+			defdemoname[strlen( defdemoname ) - 4] = 0;
+
 		FixPathSeperator (defdemoname);
 		DefaultExtension (defdemoname, ".lmp");
 		M_ReadFile (defdemoname, &demobuffer);
@@ -4527,9 +4578,17 @@ void G_DoPlayDemo (void)
 
 	C_BackupCVars ();		// [RH] Save cvars that might be affected by demo
 
-	if (ReadLong (&demo_p) != FORM_ID)
+	if (( i = ReadLong (&demo_p)) != FORM_ID)
 	{
 		const char *eek = "Cannot play non-ZDoom demos.\n(They would go out of sync badly.)\n";
+
+		// [BC] Check if this is one of Skulltag's client-side demos.
+		// [BC] THIS IS BROKEN NOW
+		if ( i == CLD_DEMOSTART )
+		{
+			CLIENTDEMO_DoPlayDemo( defdemoname );
+			return;
+		}
 
 		if (singledemo)
 		{
@@ -4588,7 +4647,8 @@ void G_TimeDemo (char* name)
 
 bool G_CheckDemoStatus (void)
 {
-	if (!demorecording)
+	// [BC] Support for client-side demos.
+	if (!demorecording && ( CLIENTDEMO_IsRecording( ) == false ))
 	{ // [RH] Restore the player's userinfo settings.
 		D_SetupUserInfo();
 	}
@@ -4681,6 +4741,14 @@ bool G_CheckDemoStatus (void)
 		stoprecording = false;
 		Printf ("Demo %s recorded\n", demoname); 
 	}
+
+	// [BC] Support for client-side demos.
+	if ( CLIENTDEMO_IsPlaying( ))
+		CLIENTDEMO_FinishPlaying( );
+
+	// [BC] Support for client-side demos.
+	if ( CLIENTDEMO_IsRecording( ))
+		CLIENTDEMO_FinishRecording( );
 
 	return false; 
 }

@@ -274,7 +274,8 @@ void I_Quit (void)
 {
     has_exited = 1;		/* Prevent infinitely recursive exits -- killough */
 
-    if (demorecording)
+	// [BC] Support for client-side demos.
+    if (demorecording || ( CLIENTDEMO_IsRecording( )))
 		G_CheckDemoStatus();
     G_ClearSnapshots ();
 }

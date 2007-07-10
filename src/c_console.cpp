@@ -65,6 +65,7 @@
 #include "v_video.h"
 // [BC] New #includes.
 #include "chat.h"
+#include "cl_demo.h"
 #include "deathmatch.h"
 #include "network.h"
 
@@ -1477,7 +1478,8 @@ void C_FullConsole ()
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		return;
 
-	if (demoplayback)
+	// [BC] Support for client-side demos.
+	if (demoplayback || ( CLIENTDEMO_IsPlaying( )))
 		G_CheckDemoStatus ();
 	D_QuitNetGame ();
 	advancedemo = false;
@@ -1504,7 +1506,8 @@ void C_ToggleConsole ()
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		return;
 
-	if (gamestate == GS_DEMOSCREEN || demoplayback)
+	// [BC] Support for client-side demos.
+	if (gamestate == GS_DEMOSCREEN || demoplayback || ( CLIENTDEMO_IsPlaying( )))
 	{
 		gameaction = ga_fullconsole;
 	}

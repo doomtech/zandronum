@@ -65,6 +65,7 @@
 #include "scoreboard.h"
 #include "team.h"
 #include "sv_commands.h"
+#include "cl_demo.h"
 
 #include "gl/gl_functions.h"
 
@@ -3828,7 +3829,9 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 		level.total_items++;
 	}
 
-	if ((( actor->ulNetworkFlags & NETFL_NONETID ) == false ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+	if ((( actor->ulNetworkFlags & NETFL_NONETID ) == false ) &&
+		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		actor->lNetID = ACTOR_GetNewNetID( );
 		g_NetIDList[actor->lNetID].pActor = actor;
@@ -4739,11 +4742,15 @@ void P_SpawnMapThing (mapthing2_t *mthing, int position)
 	}
 */
 	// [BC] If we're a client, there's no need to spawn map things (unless specified).
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && 
+	if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( ))) && 
 		(( info->ulNetworkFlags & NETFL_ALLOWCLIENTSPAWN ) == false ))
 	{
 		return;
 	}
+
+	if ( mthing->type == 9080 )
+		Printf( "WTF!!!\n" );
 
 	// spawn it
 	x = mthing->x << FRACBITS;

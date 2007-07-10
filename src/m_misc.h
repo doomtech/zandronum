@@ -32,6 +32,8 @@ extern FGameConfigFile *GameConfig;
 
 bool M_WriteFile (char const *name, void *source, int length);
 int M_ReadFile (char const *name, BYTE **buffer);
+// [BC] Returns true if the file exists.
+bool M_DoesFileExist( const char *pszFileName );
 void M_FindResponseFile (void);
 
 // [RH] M_ScreenShot now accepts a filename parameter.

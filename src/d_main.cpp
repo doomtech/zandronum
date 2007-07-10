@@ -113,6 +113,7 @@
 #include "invasion.h"
 #include "survival.h"
 #include "possession.h"
+#include "cl_demo.h"
 
 #include "st_start.h"
 
@@ -739,7 +740,7 @@ void D_Display (bool screenshot)
 		}
 	}
 
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 	{
 		// Draw a "Waiting for server..." message if the server is lagging.
 		if ( CLIENT_GetServerLagging( ) == true )
@@ -872,7 +873,8 @@ void D_ErrorCleanup ()
 	BOTS_RemoveAllBots( false );
 
 	D_QuitNetGame ();
-	if (demorecording || demoplayback)
+	// [BC] Support for client-side demos.
+	if (demorecording || demoplayback || ( CLIENTDEMO_IsRecording( )) || ( CLIENTDEMO_IsPlaying( )))
 		G_CheckDemoStatus ();
 	Net_ClearBuffers ();
 	G_NewInit ();
@@ -2743,13 +2745,18 @@ void D_DoomMain (void)
 	// Server doesn't record/play demos, etc.
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
-		// start the apropriate game based on parms
-		v = Args.CheckValue ("-record");
-
-		if (v)
+		// Make sure that if we're using the -record parameter to record a client demo, we
+		// also don't record a regular demo.
+		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
 		{
-			G_RecordDemo (v);
-			autostart = true;
+			// start the apropriate game based on parms
+			v = Args.CheckValue ("-record");
+
+			if (v)
+			{
+				G_RecordDemo (v);
+				autostart = true;
+			}
 		}
 
 		ST_Done();

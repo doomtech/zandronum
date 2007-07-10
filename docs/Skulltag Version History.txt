@@ -14,6 +14,7 @@
 v0.97d-beta4
 ------------
 
+*+	- ADDED CLIENT-SIDE DEMO RECORDING! You can now record a demo when connecting to a server with the "-record" <demo name> command line argument. Demos can be played back with the "playdemo" console command. [Carnevil]
 +	- Added custom invasion spots! You can now use your own custom monsters, pickups, and weapons in invasion mode! [Carnevil]
 +	- The crash dialog now works for servers as well! Now, if a Skulltag server crashes, it can be debugged and fixed! [Carnevil]
 +	- All weapons are now given in LMS/team LMS mode, except for those excluded by the allowed weapon flags, and those flagged as not appearing in LMS mode. [Carnevil]

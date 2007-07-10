@@ -648,8 +648,11 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 	if ( ulFlags & SQF_PWADS )
 	{
 		g_BrowserServerList[lServer].lNumPWADs = NETWORK_ReadByte( pByteStream );
-		for ( ulIdx = 0; ulIdx < (ULONG)g_BrowserServerList[lServer].lNumPWADs; ulIdx++ )
-			sprintf( g_BrowserServerList[lServer].szPWADNames[ulIdx], NETWORK_ReadString( pByteStream ));
+		if ( g_BrowserServerList[lServer].lNumPWADs > 0 )
+		{
+			for ( ulIdx = 0; ulIdx < (ULONG)g_BrowserServerList[lServer].lNumPWADs; ulIdx++ )
+				sprintf( g_BrowserServerList[lServer].szPWADNames[ulIdx], NETWORK_ReadString( pByteStream ));
+		}
 	}
 
 	if ( ulFlags & SQF_GAMETYPE )
@@ -736,36 +739,39 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 
 	if ( ulFlags & SQF_PLAYERDATA )
 	{
-		for ( ulIdx = 0; ulIdx < (ULONG)g_BrowserServerList[lServer].lNumPlayers; ulIdx++ )
+		if ( g_BrowserServerList[lServer].lNumPlayers > 0 )
 		{
-			// Read in this player's name.
-			sprintf( g_BrowserServerList[lServer].Players[ulIdx].szName, NETWORK_ReadString( pByteStream ));
-
-			// Read in "fragcount" (could be frags, points, etc.)
-			g_BrowserServerList[lServer].Players[ulIdx].lFragcount = NETWORK_ReadShort( pByteStream );
-
-			// Read in the player's ping.
-			g_BrowserServerList[lServer].Players[ulIdx].lPing = NETWORK_ReadShort( pByteStream );
-
-			// Read in whether or not the player is spectating.
-			g_BrowserServerList[lServer].Players[ulIdx].bSpectating = !!NETWORK_ReadByte( pByteStream );
-
-			// Read in whether or not the player is a bot.
-			g_BrowserServerList[lServer].Players[ulIdx].bIsBot = !!NETWORK_ReadByte( pByteStream );
-
-			if (( g_BrowserServerList[lServer].lGameType == GAMETYPE_TEAMPLAY ) ||
-				( g_BrowserServerList[lServer].lGameType == GAMETYPE_TEAMLMS ) ||
-				( g_BrowserServerList[lServer].lGameType == GAMETYPE_TEAMPOSSESSION ) ||
-				( g_BrowserServerList[lServer].lGameType == GAMETYPE_SKULLTAG ) ||
-				( g_BrowserServerList[lServer].lGameType == GAMETYPE_CTF ) ||
-				( g_BrowserServerList[lServer].lGameType == GAMETYPE_ONEFLAGCTF ))
+			for ( ulIdx = 0; ulIdx < (ULONG)g_BrowserServerList[lServer].lNumPlayers; ulIdx++ )
 			{
-				// Team.
+				// Read in this player's name.
+				sprintf( g_BrowserServerList[lServer].Players[ulIdx].szName, NETWORK_ReadString( pByteStream ));
+
+				// Read in "fragcount" (could be frags, points, etc.)
+				g_BrowserServerList[lServer].Players[ulIdx].lFragcount = NETWORK_ReadShort( pByteStream );
+
+				// Read in the player's ping.
+				g_BrowserServerList[lServer].Players[ulIdx].lPing = NETWORK_ReadShort( pByteStream );
+
+				// Read in whether or not the player is spectating.
+				g_BrowserServerList[lServer].Players[ulIdx].bSpectating = !!NETWORK_ReadByte( pByteStream );
+
+				// Read in whether or not the player is a bot.
+				g_BrowserServerList[lServer].Players[ulIdx].bIsBot = !!NETWORK_ReadByte( pByteStream );
+
+				if (( g_BrowserServerList[lServer].lGameType == GAMETYPE_TEAMPLAY ) ||
+					( g_BrowserServerList[lServer].lGameType == GAMETYPE_TEAMLMS ) ||
+					( g_BrowserServerList[lServer].lGameType == GAMETYPE_TEAMPOSSESSION ) ||
+					( g_BrowserServerList[lServer].lGameType == GAMETYPE_SKULLTAG ) ||
+					( g_BrowserServerList[lServer].lGameType == GAMETYPE_CTF ) ||
+					( g_BrowserServerList[lServer].lGameType == GAMETYPE_ONEFLAGCTF ))
+				{
+					// Team.
+					NETWORK_ReadByte( pByteStream );
+				}
+
+				// Time.
 				NETWORK_ReadByte( pByteStream );
 			}
-
-			// Time.
-			NETWORK_ReadByte( pByteStream );
 		}
 	}
 

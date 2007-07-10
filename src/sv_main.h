@@ -311,7 +311,7 @@ void		SERVER_GiveInventoryToPlayer( const player_t *player, AInventory *pInvento
 void		SERVER_MASTER_Construct( void );
 void		SERVER_MASTER_Tick( void );
 void		SERVER_MASTER_Broadcast( void );
-void		SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ulTime );
+void		SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ulTime, bool bBroadcasting );
 char		*SERVER_MASTER_GetGameName( void );
 
 // Statistic functions.

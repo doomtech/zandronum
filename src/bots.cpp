@@ -53,6 +53,7 @@
 #include "c_cvars.h"
 #include "c_dispatch.h"
 #include "campaign.h"
+#include "cl_demo.h"
 #include "cmdlib.h"
 #include "configfile.h"
 #include "deathmatch.h"
@@ -3044,8 +3045,12 @@ void CSkullBot::Tick( void )
 	clock( g_BotCycles );
 
 	// Don't execute bot logic during demos, or if the console player is a client.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || demoplayback )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )) ||
+		( demoplayback ))
+	{
 		return;
+	}
 
 	// Reset the bots keypresses.
 	memset( cmd, 0, sizeof( ticcmd_t ));

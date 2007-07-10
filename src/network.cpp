@@ -242,18 +242,6 @@ int NETWORK_ReadByte( BYTESTREAM_s *pByteStream )
 	pByteStream->pbStream += 1;
 
 	return ( Byte );
-/*
-	// Don't read past the size of the packet.
-	if ( g_NetworkMessage.ulCurrentPosition + 1 > g_NetworkMessage.ulCurrentSize )
-		Byte = -1;
-	else
-		Byte = (unsigned char)g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition];
-
-	// Move the "pointer".
-	g_NetworkMessage.ulCurrentPosition++;
-
-	return ( Byte );
-*/
 }
 
 //*****************************************************************************
@@ -296,21 +284,6 @@ int NETWORK_ReadShort( BYTESTREAM_s *pByteStream )
 	pByteStream->pbStream += 2;
 
 	return ( Short );
-/*
-	// Don't read past the size of the packet.
-	if ( g_NetworkMessage.ulCurrentPosition + 2 > g_NetworkMessage.ulCurrentSize )
-		Short = -1;
-	else		
-	{
-		Short = (short)(( g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition] )
-		+ ( g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition + 1] << 8 ));
-	}
-
-	// Move the "pointer".
-	g_NetworkMessage.ulCurrentPosition += 2;
-
-	return ( Short );
-*/
 }
 
 //*****************************************************************************
@@ -357,23 +330,6 @@ int NETWORK_ReadLong( BYTESTREAM_s *pByteStream )
 	pByteStream->pbStream += 4;
 
 	return ( Long );
-/*
-	// Don't read past the size of the packet.
-	if ( g_NetworkMessage.ulCurrentPosition + 4 > g_NetworkMessage.ulCurrentSize )
-		Long = -1;
-	else
-	{
-		Long = ( g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition] )
-		+ ( g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition + 1] << 8 )
-		+ ( g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition + 2] << 16 )
-		+ ( g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition + 3] << 24 );
-	}
-
-	// Move the "pointer".
-	g_NetworkMessage.ulCurrentPosition += 4;
-
-	return ( Long );
-*/
 }
 
 //*****************************************************************************
@@ -416,33 +372,6 @@ float NETWORK_ReadFloat( BYTESTREAM_s *pByteStream )
 
 	dat.i = NETWORK_ReadLong( pByteStream );
 	return ( dat.f );
-/*
-	// Don't read past the size of the packet.
-	if ( g_NetworkMessage.ulCurrentPosition + 4 > g_NetworkMessage.ulCurrentSize )
-		dat.f = -1;
-	else
-	{
-		if ( g_lNetworkState == NETSTATE_SERVER )
-		{
-			dat.b[0] =	g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition];
-			dat.b[1] =	g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition+1];
-			dat.b[2] =	g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition+2];
-			dat.b[3] =	g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition+3];
-		}
-		else
-		{
-			dat.b[0] =	g_NetworkMessage.bData[g_NetworkMessage.ulCurrentPosition];
-			dat.b[1] =	g_NetworkMessage.bData[g_NetworkMessage.ulCurrentPosition+1];
-			dat.b[2] =	g_NetworkMessage.bData[g_NetworkMessage.ulCurrentPosition+2];
-			dat.b[3] =	g_NetworkMessage.bData[g_NetworkMessage.ulCurrentPosition+3];
-		}
-	}
-
-	// Move the "pointer".
-	g_NetworkMessage.ulCurrentPosition += 4;
-	
-	return ( dat.f );
-*/
 }
 
 //*****************************************************************************
@@ -690,6 +619,8 @@ int NETWORK_GetLANPackets( void )
 	// Decode the huffman-encoded message we received.
 	HuffDecode( g_ucHuffmanBuffer, (unsigned char *)g_NetworkMessage.pbData, lNumBytes, &iDecodedNumBytes );
 	g_NetworkMessage.ulCurrentSize = iDecodedNumBytes;
+	g_NetworkMessage.ByteStream.pbStream = g_NetworkMessage.pbData;
+	g_NetworkMessage.ByteStream.pbStreamEnd = g_NetworkMessage.ByteStream.pbStream + g_NetworkMessage.ulCurrentSize;
 
 	// Store the IP address of the sender.
     NETWORK_SocketAddressToNetAddress( &SocketFrom, &g_AddressFrom );
@@ -712,7 +643,7 @@ void NETWORK_LaunchPacket( NETBUFFER_s *pBuffer, NETADDRESS_s Address )
 	INT					iNumBytesOut;
 	struct sockaddr_in	SocketAddress;
 
-	pBuffer->ulCurrentSize = pBuffer->ByteStream.pbStream - pBuffer->pbData;
+	pBuffer->ulCurrentSize = NETWORK_CalcBufferSize( pBuffer );
 
 	// Nothing to do.
 	if ( pBuffer->ulCurrentSize == 0 )

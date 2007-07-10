@@ -426,6 +426,9 @@ static	LONG				g_lPacketSize[256];
 // This is the index of the incoming packet.
 static	BYTE				g_bPacketNum;
 
+// This is the current position in the received packet buffer.
+static	LONG				g_lCurrentPosition;
+
 // This is the sequence of the last packet we parsed.
 static	LONG				g_lLastParsedSequence;
 
@@ -663,7 +666,6 @@ void CLIENT_Construct( void )
 	NETWORK_ClearBuffer( &g_LocalBuffer );
 
 	// Initialize the stored packets buffer.
-	g_ReceivedPacketBuffer.lCurrentPosition = 0;
 	g_ReceivedPacketBuffer.lMaxSize = MAX_UDP_PACKET * 256;
 	memset( g_ReceivedPacketBuffer.abData, 0, MAX_UDP_PACKET * 256 );
 
@@ -953,6 +955,7 @@ void CLIENT_SendConnectionSignal( void )
 		}
 
 		g_bPacketNum = 0;
+		g_lCurrentPosition = 0;
 		g_lLastParsedSequence = -1;
 		g_lHighestReceivedSequence = -1;
 
@@ -1102,6 +1105,10 @@ void CLIENT_QuitNetworkGame( void )
 
 	// [BB] This prevents the status bar from showing up shortly, if you start a new game, while connected to a server.
 	gamestate = GS_FULLCONSOLE;
+
+	// If we're recording a demo, then finish it!
+	if ( CLIENTDEMO_IsRecording( ))
+		G_CheckDemoStatus( );
 }
 
 //*****************************************************************************
@@ -1296,17 +1303,17 @@ bool CLIENT_ReadPacketHeader( BYTESTREAM_s *pByteStream )
 	}
 
 	// The end of the buffer has been reached.
-	if (( g_ReceivedPacketBuffer.lCurrentPosition + ( NETWORK_CalcBufferSize( NETWORK_GetNetworkMessageBuffer( )))) >= g_ReceivedPacketBuffer.lMaxSize )
-		g_ReceivedPacketBuffer.lCurrentPosition = 0;
+	if (( g_lCurrentPosition + ( NETWORK_CalcBufferSize( NETWORK_GetNetworkMessageBuffer( )))) >= g_ReceivedPacketBuffer.lMaxSize )
+		g_lCurrentPosition = 0;
 
 	// Save a bunch of information about this incoming packet.
-	g_lPacketBeginning[g_bPacketNum] = g_ReceivedPacketBuffer.lCurrentPosition;
+	g_lPacketBeginning[g_bPacketNum] = g_lCurrentPosition;
 	g_lPacketSize[g_bPacketNum] = NETWORK_CalcBufferSize( NETWORK_GetNetworkMessageBuffer( ));
 	g_lPacketSequence[g_bPacketNum] = lSequence;
 
 	// Save the received packet.
 	memcpy( g_ReceivedPacketBuffer.abData + g_lPacketBeginning[g_bPacketNum], NETWORK_GetNetworkMessageBuffer( )->ByteStream.pbStream, NETWORK_CalcBufferSize( NETWORK_GetNetworkMessageBuffer( )));
-	g_ReceivedPacketBuffer.lCurrentPosition += NETWORK_CalcBufferSize( NETWORK_GetNetworkMessageBuffer( ));
+	g_lCurrentPosition += NETWORK_CalcBufferSize( NETWORK_GetNetworkMessageBuffer( ));
 
 	if ( lSequence > g_lHighestReceivedSequence )
 		g_lHighestReceivedSequence = lSequence;
@@ -1336,83 +1343,8 @@ void CLIENT_ParsePacket( BYTESTREAM_s *pByteStream, bool bSequencedPacket )
 			CLIENT_PrintCommand( lCommand );
 #endif
 
-		// First byte is the message header.
-		switch ( lCommand )
-		{
-		case CONNECT_READY:
-
-			// Print a status message.
-			Printf( "Connected!\n" );
-
-			// Read in the map name we now need to authenticate.
-			sprintf( g_szMapName, "%s", NETWORK_ReadString( pByteStream ));
-
-			// The next step is the authenticate the level.
-			CLIENT_SetConnectionState( CTS_AUTHENTICATINGLEVEL );
-			CLIENT_AttemptAuthentication( g_szMapName );
-			break;
-		case CONNECT_AUTHENTICATED:
-
-			// Print a status message.
-			Printf( "Level authenticated!\n" );
-
-			// We've been authenticated, and are waiting to receive a snapshot.
-			CLIENT_SetConnectionState( CTS_CONNECTED );
-			CLIENT_AttemptConnection( );
-			break;
-		case NETWORK_ERROR:
-			{
-				char	szErrorString[256];
-				ULONG	ulErrorCode;
-
-				// Read in the error code.
-				ulErrorCode = NETWORK_ReadByte( pByteStream );
-
-				// Build the error string based on the error code.
-				switch ( ulErrorCode )
-				{
-				case NETWORK_ERRORCODE_WRONGPASSWORD:
-
-					sprintf( szErrorString, "Incorrect password." );
-					break;
-				case NETWORK_ERRORCODE_WRONGVERSION:
-
-					sprintf( szErrorString, "Failed connect. Your version is different.\nThis server is using version: %s\nPlease check http://www.skulltag.com/ for updates.", NETWORK_ReadString( pByteStream ));
-					break;
-				case NETWORK_ERRORCODE_WRONGPROTOCOLVERSION:
-
-					sprintf( szErrorString, "Failed connect. Your version uses outdated network code.\nPlease check http://www.skulltag.com/ for updates." );
-					break;
-				case NETWORK_ERRORCODE_BANNED:
-
-					sprintf( szErrorString, "Couldn't connect. You have been banned from this server!" );
-					break;
-				case NETWORK_ERRORCODE_SERVERISFULL:
-
-					sprintf( szErrorString, "Server is full." );
-					break;
-				case NETWORK_ERRORCODE_AUTHENTICATIONFAILED:
-
-					sprintf( szErrorString, "Level authentication failed.\nPlease make sure you are using the exact same WAD(s) as the server, and try again." );
-					break;
-				case NETWORK_ERRORCODE_FAILEDTOSENDUSERINFO:
-
-					sprintf( szErrorString, "Failed to send userinfo." );
-					break;
-				default:
-
-					sprintf( szErrorString, "Unknown error code: %d!\n\nYour version may be different. Please check http://www.skulltag.com/ for updates.", ulErrorCode );
-					break;
-				}
-
-				CLIENT_QuitNetworkGame( szErrorString );
-			}
-			return;
-		default:
-
-			CLIENT_ProcessCommand( lCommand, pByteStream );
-			break;
-		}
+		// Process this command.
+		CLIENT_ProcessCommand( lCommand, pByteStream );
 
 		g_lLastCmd = lCommand;
 	}
@@ -1475,6 +1407,81 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 	switch ( lCommand )
 	{
+	case CONNECT_READY:
+
+		// Print a status message.
+		Printf( "Connected!\n" );
+
+		// Read in the map name we now need to authenticate.
+		sprintf( g_szMapName, "%s", NETWORK_ReadString( pByteStream ));
+
+		// The next step is the authenticate the level.
+		if ( CLIENTDEMO_IsPlaying( ) == false )
+		{
+			CLIENT_SetConnectionState( CTS_AUTHENTICATINGLEVEL );
+			CLIENT_AttemptAuthentication( g_szMapName );
+		}
+		break;
+	case CONNECT_AUTHENTICATED:
+
+		// Print a status message.
+		Printf( "Level authenticated!\n" );
+
+		// We've been authenticated, and are waiting to receive a snapshot.
+		if ( CLIENTDEMO_IsPlaying( ) == false )
+		{
+			CLIENT_SetConnectionState( CTS_CONNECTED );
+			CLIENT_AttemptConnection( );
+		}
+		break;
+	case NETWORK_ERROR:
+		{
+			char	szErrorString[256];
+			ULONG	ulErrorCode;
+
+			// Read in the error code.
+			ulErrorCode = NETWORK_ReadByte( pByteStream );
+
+			// Build the error string based on the error code.
+			switch ( ulErrorCode )
+			{
+			case NETWORK_ERRORCODE_WRONGPASSWORD:
+
+				sprintf( szErrorString, "Incorrect password." );
+				break;
+			case NETWORK_ERRORCODE_WRONGVERSION:
+
+				sprintf( szErrorString, "Failed connect. Your version is different.\nThis server is using version: %s\nPlease check http://www.skulltag.com/ for updates.", NETWORK_ReadString( pByteStream ));
+				break;
+			case NETWORK_ERRORCODE_WRONGPROTOCOLVERSION:
+
+				sprintf( szErrorString, "Failed connect. Your version uses outdated network code.\nPlease check http://www.skulltag.com/ for updates." );
+				break;
+			case NETWORK_ERRORCODE_BANNED:
+
+				sprintf( szErrorString, "Couldn't connect. You have been banned from this server!" );
+				break;
+			case NETWORK_ERRORCODE_SERVERISFULL:
+
+				sprintf( szErrorString, "Server is full." );
+				break;
+			case NETWORK_ERRORCODE_AUTHENTICATIONFAILED:
+
+				sprintf( szErrorString, "Level authentication failed.\nPlease make sure you are using the exact same WAD(s) as the server, and try again." );
+				break;
+			case NETWORK_ERRORCODE_FAILEDTOSENDUSERINFO:
+
+				sprintf( szErrorString, "Failed to send userinfo." );
+				break;
+			default:
+
+				sprintf( szErrorString, "Unknown error code: %d!\n\nYour version may be different. Please check http://www.skulltag.com/ for updates.", ulErrorCode );
+				break;
+			}
+
+			CLIENT_QuitNetworkGame( szErrorString );
+		}
+		return;
 	case SVC_HEADER:
 
 		client_Header( pByteStream );
@@ -2504,14 +2511,20 @@ void CLIENT_WaitForServer( void )
 	if ( players[consoleplayer].bSpectating )
 	{
 		// If the last time we heard from the server exceeds five seconds, we're lagging!
-		if ((( gametic - g_ulLastServerTick ) >= ( TICRATE * 5 )) && ( gametic > ( TICRATE * 5 )))
+		if ((( gametic - CLIENTDEMO_GetGameticOffset( ) - g_ulLastServerTick ) >= ( TICRATE * 5 )) &&
+			(( gametic - CLIENTDEMO_GetGameticOffset( )) > ( TICRATE * 5 )))
+		{
 			g_bServerLagging = true;
+		}
 	}
 	else
 	{
 		// If the last time we heard from the server exceeds one second, we're lagging!
-		if ((( gametic - g_ulLastServerTick ) >= TICRATE ) && ( gametic > TICRATE ))
+		if ((( gametic - CLIENTDEMO_GetGameticOffset( ) - g_ulLastServerTick ) >= TICRATE ) &&
+			(( gametic - CLIENTDEMO_GetGameticOffset( )) > TICRATE ))
+		{
 			g_bServerLagging = true;
+		}
 	}
 }
 
@@ -2757,7 +2770,7 @@ void CLIENT_CheckForMissingPackets( void )
 	if ( g_lLastParsedSequence != g_lHighestReceivedSequence )
 	{
 		NETWORK_WriteByte( &g_LocalBuffer.ByteStream, CLC_MISSINGPACKET );
-		
+
 		// Now, go through and figure out what packets we're missing. Request these from the server.
 		for ( ulIdx = g_lLastParsedSequence + 1; ulIdx <= g_lHighestReceivedSequence - 1; ulIdx++ )
 		{
@@ -2770,10 +2783,7 @@ void CLIENT_CheckForMissingPackets( void )
 
 			// If we didn't find the packet, tell the server we're missing it.
 			if ( ulIdx2 == 256 )
-			{
-				Printf( "Requesting packet: %d\n", ulIdx );
 				NETWORK_WriteLong( &g_LocalBuffer.ByteStream, ulIdx );
-			}
 		}
 
 		// When we're done, write -1 to indicate that we're finished.
@@ -4118,7 +4128,7 @@ static void client_MoveLocalPlayer( BYTESTREAM_s *pByteStream )
 	CLIENT_SetLastConsolePlayerUpdateTick( ulClientTicOnServerEnd );
 
 	// If the last time the server heard from us exceeds one second, the client is lagging!
-	if (( gametic - ulClientTicOnServerEnd >= TICRATE ) && ( gametic > TICRATE ))
+	if (( gametic - CLIENTDEMO_GetGameticOffset( ) - ulClientTicOnServerEnd >= TICRATE ) && (( gametic + CLIENTDEMO_GetGameticOffset( )) > TICRATE ))
 		g_bClientLagging = true;
 	else
 		g_bClientLagging = false;
@@ -4193,6 +4203,10 @@ static void client_SetConsolePlayer( BYTESTREAM_s *pByteStream )
 	// If this index is invalid, break out.
 	if ( lConsolePlayer >= MAXPLAYERS )
 		return;
+
+	// In a client demo, don't lose the userinfo we gave to our console player.
+	if ( CLIENTDEMO_IsPlaying( ))
+		memcpy( &players[lConsolePlayer].userinfo, &players[consoleplayer].userinfo, sizeof( userinfo_t ));
 
 	// Otherwise, since it's valid, set our local player index to this.
 	consoleplayer = lConsolePlayer;
@@ -7565,6 +7579,7 @@ static void client_VoteEnded( BYTESTREAM_s *pByteStream )
 //
 static void client_MapLoad( BYTESTREAM_s *pByteStream )
 {
+	bool	bPlaying;
 	char	*pszMap;
 	
 	// Read in the lumpname of the map we're about to load.
@@ -7573,8 +7588,14 @@ static void client_MapLoad( BYTESTREAM_s *pByteStream )
 	// Check to see if we have the map.
 	if ( P_CheckIfMapExists( pszMap ))
 	{
+		// Save our demo recording status since G_InitNew resets it.
+		bPlaying = CLIENTDEMO_IsPlaying( );
+
 		// Start new level.
 		G_InitNew( pszMap, false );
+
+		// Restore our demo recording status.
+		CLIENTDEMO_SetPlaying( bPlaying );
 
 		// [BB] viewactive is set in G_InitNew
 		// For right now, the view is not active.
@@ -7636,6 +7657,10 @@ static void client_MapAuthenticate( BYTESTREAM_s *pByteStream )
 	char	*pszMapName;
 
 	pszMapName = NETWORK_ReadString( pByteStream );
+
+	// Nothing to do in demo mode.
+	if ( CLIENTDEMO_IsPlaying( ))
+		return;
 
 	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, CLC_AUTHENTICATELEVEL );
 
@@ -9447,7 +9472,7 @@ CCMD( connect )
 
 	// If we've elected to record a demo, begin that process now.
 	pszDemoName = Args.CheckValue( "-record" );
-	if (( gamestate == GS_STARTUP) && ( pszDemoName ))
+	if (( gamestate == GS_STARTUP ) && ( pszDemoName ))
 		CLIENTDEMO_BeginRecording( pszDemoName );
 }
 

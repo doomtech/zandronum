@@ -140,6 +140,27 @@ int M_ReadFile (char const *name, BYTE **buffer)
 	return length;
 }
 
+//=============================================================================
+//
+// [BC] M_DoesFileExist
+//
+// Returns true if the file exists. Largely the same as the above function.
+//
+//=============================================================================
+bool M_DoesFileExist( const char *pszFileName )
+{
+	int handle;
+	struct stat fileinfo;
+
+	handle = open (pszFileName, O_RDONLY | O_BINARY, 0666);
+	if (handle == -1)
+		return ( false );
+	if (fstat (handle,&fileinfo) == -1)
+		return ( false );
+
+	return ( true );
+}
+
 //---------------------------------------------------------------------------
 //
 // PROC M_FindResponseFile

@@ -52,6 +52,7 @@
 #include "p_trace.h"
 #include "a_sharedglobal.h"
 // [BC] New #includes.
+#include "cl_demo.h"
 #include "deathmatch.h"
 #include "network.h"
 #include "team.h"
@@ -1871,7 +1872,8 @@ void TryRunTics (void)
 					 "=======real: %i  avail: %i  game: %i\n",
 					 realtics, availabletics, counts);
 
-		if (!demoplayback)
+		// [BC] Support for client-side demos.
+		if (!demoplayback && ( CLIENTDEMO_IsPlaying( ) == false ))
 		{
 			// ideally nettics[0] should be 1 - 3 tics above lowtic
 			// if we are consistantly slower, speed up time
@@ -2322,8 +2324,10 @@ void Net_DoCommand (int type, BYTE **stream, int player)
 		// Do not autosave in multiplayer games or when dead.
 		// For demo playback, DEM_DOAUTOSAVE already exists in the demo if the
 		// autosave happened. And if it doesn't, we must not generate it.
+		// [BC] Support for client-side demos.
 		if (( NETWORK_GetState( ) != NETSTATE_SINGLE ) ||
 			demoplayback ||
+			CLIENTDEMO_IsPlaying( ) ||
 			players[consoleplayer].playerstate != PST_LIVE ||
 			disableautosave >= 2 ||
 			autosavecount == 0)

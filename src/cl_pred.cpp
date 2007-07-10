@@ -61,6 +61,7 @@
 #include "m_argv.h"
 #include "p_effect.h"
 #include "c_console.h"
+#include "cl_demo.h"
 #include "cl_main.h"
 
 void P_MovePlayer (player_s *player, ticcmd_t *cmd);
@@ -103,7 +104,7 @@ void CLIENT_PREDICT_PlayerPredict( void )
 	fixed_t		SavedX;
 	fixed_t		SavedY;
 	fixed_t		SavedZ;
-	LONG		lPredictedTicks = gametic - CLIENT_GetLastConsolePlayerUpdateTick( ) - 1;
+	LONG		lPredictedTicks = gametic - CLIENTDEMO_GetGameticOffset( ) - CLIENT_GetLastConsolePlayerUpdateTick( ) - 1;
 #endif
 
 	// Always predict only the console player.
@@ -153,10 +154,10 @@ void CLIENT_PREDICT_PlayerPredict( void )
 	lTick = CLIENT_GetLastConsolePlayerUpdateTick( ) + 1;
 
 		// How many ticks of prediction do we need?
-	if (( CLIENT_GetLastConsolePlayerUpdateTick( ) - 1 ) > gametic )
+	if (( CLIENT_GetLastConsolePlayerUpdateTick( ) - 1 ) > ( gametic - CLIENTDEMO_GetGameticOffset( )))
 		ulPredictionTicks = 0;
 	else
-		ulPredictionTicks = gametic - CLIENT_GetLastConsolePlayerUpdateTick( ) - 1;
+		ulPredictionTicks = gametic - CLIENTDEMO_GetGameticOffset( ) - CLIENT_GetLastConsolePlayerUpdateTick( ) - 1;
 
 #ifdef	_DEBUG
 	if (( cl_showonetickpredictionerrors ) && ( ulPredictionTicks == 0 ))
@@ -232,16 +233,16 @@ void CLIENT_PREDICT_PlayerPredict( void )
 			g_bPredicting = true;
 
 			// Use backed up values for prediction.
-			pPlayer->mo->angle = g_SavedAngle[lTick % MAXSAVETICS];
-			pPlayer->mo->pitch = g_SavedPitch[lTick % MAXSAVETICS];
-			pPlayer->jumpTics = g_lSavedJumpTicks[lTick % MAXSAVETICS];
-			pPlayer->mo->reactiontime = g_lSavedReactionTime[lTick % MAXSAVETICS];
-			pPlayer->mo->waterlevel = g_lSavedWaterLevel[lTick % MAXSAVETICS];
-			pPlayer->viewheight = g_SavedViewHeight[lTick % MAXSAVETICS];
-			pPlayer->deltaviewheight = g_SavedDeltaViewHeight[lTick % MAXSAVETICS];
-//			pPlayer->mo->floorz = g_SavedFloorZ[lTick % MAXSAVETICS];
+			pPlayer->mo->angle = g_SavedAngle[( lTick + CLIENTDEMO_GetGameticOffset( )) % MAXSAVETICS];
+			pPlayer->mo->pitch = g_SavedPitch[( lTick + CLIENTDEMO_GetGameticOffset( )) % MAXSAVETICS];
+			pPlayer->jumpTics = g_lSavedJumpTicks[( lTick + CLIENTDEMO_GetGameticOffset( )) % MAXSAVETICS];
+			pPlayer->mo->reactiontime = g_lSavedReactionTime[( lTick + CLIENTDEMO_GetGameticOffset( )) % MAXSAVETICS];
+			pPlayer->mo->waterlevel = g_lSavedWaterLevel[( lTick + CLIENTDEMO_GetGameticOffset( )) % MAXSAVETICS];
+			pPlayer->viewheight = g_SavedViewHeight[( lTick + CLIENTDEMO_GetGameticOffset( )) % MAXSAVETICS];
+			pPlayer->deltaviewheight = g_SavedDeltaViewHeight[( lTick + CLIENTDEMO_GetGameticOffset( )) % MAXSAVETICS];
+//			pPlayer->mo->floorz = g_SavedFloorZ[( lTick + CLIENTDEMO_GetGameticOffset( )) % MAXSAVETICS];
 
-			P_PlayerThink( pPlayer, &g_SavedTiccmd[lTick % MAXSAVETICS] );
+			P_PlayerThink( pPlayer, &g_SavedTiccmd[( lTick + CLIENTDEMO_GetGameticOffset( )) % MAXSAVETICS] );
 
 			pPlayer->mo->Tick( );				
 			ulPredictionTicks--;

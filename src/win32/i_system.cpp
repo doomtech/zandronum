@@ -63,6 +63,7 @@
 // [BC] New #includes.
 #include "announcer.h"
 #include "network.h"
+#include "cl_demo.h"
 #include "cl_main.h"
 #include "campaign.h"
 
@@ -541,7 +542,8 @@ void I_Quit (void)
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 		CLIENT_QuitNetworkGame( );
 
-	if (demorecording)
+	// [BC] Support for client-side demos.
+	if (demorecording || ( CLIENTDEMO_IsRecording( )))
 		G_CheckDemoStatus();
 	G_ClearSnapshots ();
 }

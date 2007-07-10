@@ -68,6 +68,7 @@
 #include "p_setup.h"
 // [BC] New #includes.
 #include "deathmatch.h"
+#include "cl_demo.h"
 #include "cl_main.h"
 #include "network.h"
 #include "p_local.h"
@@ -318,7 +319,8 @@ EXTERN_CVAR (Bool, chasedemo)
 
 CCMD (chase)
 {
-	if (demoplayback)
+	// [BC] Support for client-side demos.
+	if (demoplayback || ( CLIENTDEMO_IsPlaying( )))
 	{
 		int i;
 

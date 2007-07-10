@@ -54,6 +54,7 @@
 #include "m_random.h"
 // [BC] New #includes.
 #include "network.h"
+#include "cl_demo.h"
 #include "cl_main.h"
 #include "deathmatch.h"
 #include "team.h"
@@ -218,9 +219,12 @@ void D_SetupUserInfo ()
 	ULONG	ulIdx;
 	userinfo_t *coninfo = &players[consoleplayer].userinfo;
 
-	// [BC] Server doesn't do this.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	// [BC] Servers and client demos don't do this.
+	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	// [BC] Don't reset everyone's userinfo in client mode, since we don't want to erase
 	// EVERYONE'S userinfo if we change ours.

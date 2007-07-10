@@ -49,6 +49,7 @@
 //-----------------------------------------------------------------------------
 
 #include "campaign.h"
+#include "cl_demo.h"
 #include "deathmatch.h"
 #include "i_system.h"
 #include "network.h"
@@ -399,8 +400,10 @@ void CAMPAIGN_DisableCampaign( void )
 //
 bool CAMPAIGN_AllowCampaign( void )
 {
-	return (( g_bDisableCampaign == false ) && ( NETWORK_GetState( ) != NETSTATE_SERVER ) &&
-		( NETWORK_GetState( ) != NETSTATE_CLIENT ));
+	return (( g_bDisableCampaign == false ) &&
+		( NETWORK_GetState( ) != NETSTATE_SERVER ) &&
+		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ));
 }
 
 //*****************************************************************************

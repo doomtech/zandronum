@@ -33,6 +33,7 @@
 #include "team.h"
 #include "network.h"
 #include "sv_commands.h"
+#include "cl_demo.h"
 #include "cl_main.h"
 #include "astar.h"
 #include "botpath.h"
@@ -58,6 +59,8 @@ bool P_CheckTickerPaused ()
 			 ConsoleState == c_down || ConsoleState == c_falling)
 		 && !demoplayback
 		 && !demorecording
+		 && CLIENTDEMO_IsPlaying( ) == false
+		 && CLIENTDEMO_IsRecording( ) == false
 		 && players[consoleplayer].viewz != 1
 		 && wipegamestate == gamestate)
 	{
@@ -128,7 +131,7 @@ void P_Ticker (void)
 	}
 
 	// Predict the console player's position.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 	{
 		if (( CLIENT_GetServerLagging( ) == false ) && ( CLIENT_GetClientLagging( ) == false ))
 			CLIENT_PREDICT_PlayerPredict( );
@@ -302,8 +305,11 @@ void P_Ticker (void)
 #endif
 
 		// Console player thinking is handled by player prediction.
-		if (( ulIdx == consoleplayer ) &&  ( NETWORK_GetState( ) == NETSTATE_CLIENT ))
+		if (( ulIdx == consoleplayer ) &&
+			(( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))))
+		{
 			continue;
+		}
 
 		if ( playeringame[ulIdx] )
 			P_PlayerThink( &players[ulIdx] );

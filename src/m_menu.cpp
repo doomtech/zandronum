@@ -66,6 +66,7 @@
 #include "p_tick.h"
 // [BC] New #includes.
 #include "chat.h"
+#include "cl_demo.h"
 #include "cl_main.h"
 #include "network.h"
 #include "deathmatch.h"
@@ -2298,7 +2299,7 @@ extern	ULONG		g_ulPlayerSetupClass;
 //
 void M_PlayerSetup (void)
 {
-	if ( demoplayback )
+	if (( demoplayback ) || ( CLIENTDEMO_IsPlaying( )))
 		G_CheckDemoStatus( );
 
 	// Copy all userinfo variables into menu_xxx.

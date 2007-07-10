@@ -168,7 +168,7 @@ void SERVER_MASTER_Broadcast( void )
 		return;
 
 	// User doesn't wish to broadcast this server.
-	if (( sv_broadcast == false ) || Args.CheckParm( "-nobroadcast" ))
+	if (( sv_broadcast == false ) || ( Args.CheckParm( "-nobroadcast" )))
 		return;
 
 //	NETWORK_ClearBuffer( &g_MasterServerBuffer );
@@ -179,14 +179,14 @@ void SERVER_MASTER_Broadcast( void )
 	NETWORK_SocketAddressToNetAddress( &broadcast_addr, &AddressBroadcast );
 
 	// Broadcast our packet.
-	SERVER_MASTER_SendServerInfo( AddressBroadcast, SQF_ALL, 0 );
+	SERVER_MASTER_SendServerInfo( AddressBroadcast, SQF_ALL, 0, true );
 //	NETWORK_WriteLong( &g_MasterServerBuffer, MASTER_CHALLENGE );
 //	NETWORK_LaunchPacket( g_MasterServerBuffer, AddressBroadcast, true );
 }
 
 //*****************************************************************************
 //
-void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ulTime )
+void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ulTime, bool bBroadcasting )
 {
 	UCVarValue	Val;
 	char		szAddress[4][4];
@@ -198,70 +198,73 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 	// Let's just use the master server buffer! It gets cleared again when we need it anyway!
 	NETWORK_ClearBuffer( &g_MasterServerBuffer );
 
-	// First, check to see if we've been queried by this address recently.
-	if ( g_lStoredQueryIPHead != g_lStoredQueryIPTail )
+	if ( bBroadcasting == false )
 	{
-		ulIdx = g_lStoredQueryIPHead;
-		while ( ulIdx != (ULONG)g_lStoredQueryIPTail )
+		// First, check to see if we've been queried by this address recently.
+		if ( g_lStoredQueryIPHead != g_lStoredQueryIPTail )
 		{
-			// Check to see if this IP exists in our stored query IP list. If it does, then
-			// ignore it, since it queried us less than 10 seconds ago.
-			if ( NETWORK_CompareAddress( Address, g_StoredQueryIPs[ulIdx].Address, true ))
+			ulIdx = g_lStoredQueryIPHead;
+			while ( ulIdx != (ULONG)g_lStoredQueryIPTail )
 			{
-				// Write our header.
-				NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, SERVER_LAUNCHER_IGNORING );
+				// Check to see if this IP exists in our stored query IP list. If it does, then
+				// ignore it, since it queried us less than 10 seconds ago.
+				if ( NETWORK_CompareAddress( Address, g_StoredQueryIPs[ulIdx].Address, true ))
+				{
+					// Write our header.
+					NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, SERVER_LAUNCHER_IGNORING );
 
-				// Send the time the launcher sent to us.
-				NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, ulTime );
+					// Send the time the launcher sent to us.
+					NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, ulTime );
 
-				// Send the packet.
-//				NETWORK_LaunchPacket( &g_MasterServerBuffer, Address, true );
-				NETWORK_LaunchPacket( &g_MasterServerBuffer, Address );
+					// Send the packet.
+	//				NETWORK_LaunchPacket( &g_MasterServerBuffer, Address, true );
+					NETWORK_LaunchPacket( &g_MasterServerBuffer, Address );
 
-				if ( sv_showlauncherqueries )
-					Printf( "Ignored IP launcher challenge.\n" );
+					if ( sv_showlauncherqueries )
+						Printf( "Ignored IP launcher challenge.\n" );
 
-				// Nothing more to do here.
-				return;
+					// Nothing more to do here.
+					return;
+				}
+
+				ulIdx++;
+				ulIdx = ulIdx % MAX_STORED_QUERY_IPS;
 			}
-
-			ulIdx++;
-			ulIdx = ulIdx % MAX_STORED_QUERY_IPS;
 		}
-	}
 	
-	// Now, check to see if this IP has been banend from this server.
-	itoa( Address.abIP[0], szAddress[0], 10 );
-	itoa( Address.abIP[1], szAddress[1], 10 );
-	itoa( Address.abIP[2], szAddress[2], 10 );
-	itoa( Address.abIP[3], szAddress[3], 10 );
-	if (( sv_enforcebans ) && ( SERVERBAN_IsIPBanned( szAddress[0], szAddress[1], szAddress[2], szAddress[3] )))
-	{
-		// Write our header.
-		NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, SERVER_LAUNCHER_BANNED );
+		// Now, check to see if this IP has been banend from this server.
+		itoa( Address.abIP[0], szAddress[0], 10 );
+		itoa( Address.abIP[1], szAddress[1], 10 );
+		itoa( Address.abIP[2], szAddress[2], 10 );
+		itoa( Address.abIP[3], szAddress[3], 10 );
+		if (( sv_enforcebans ) && ( SERVERBAN_IsIPBanned( szAddress[0], szAddress[1], szAddress[2], szAddress[3] )))
+		{
+			// Write our header.
+			NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, SERVER_LAUNCHER_BANNED );
 
-		// Send the time the launcher sent to us.
-		NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, ulTime );
+			// Send the time the launcher sent to us.
+			NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, ulTime );
 
-		// Send the packet.
-		NETWORK_LaunchPacket( &g_MasterServerBuffer, Address );
+			// Send the packet.
+			NETWORK_LaunchPacket( &g_MasterServerBuffer, Address );
 
-		if ( sv_showlauncherqueries )
-			Printf( "Denied BANNED IP launcher challenge.\n" );
+			if ( sv_showlauncherqueries )
+				Printf( "Denied BANNED IP launcher challenge.\n" );
 
-		// Nothing more to do here.
-		return;
+			// Nothing more to do here.
+			return;
+		}
+
+		// This IP didn't exist in the list. and it wasn't banned. 
+		// So, add it, and keep it there for 10 seconds.
+		g_StoredQueryIPs[g_lStoredQueryIPTail].Address = Address;
+		g_StoredQueryIPs[g_lStoredQueryIPTail].lNextAllowedGametic = gametic + ( TICRATE * ( sv_queryignoretime ));
+
+		g_lStoredQueryIPTail++;
+		g_lStoredQueryIPTail = g_lStoredQueryIPTail % MAX_STORED_QUERY_IPS;
+		if ( g_lStoredQueryIPTail == g_lStoredQueryIPHead )
+			Printf( "SERVER_MASTER_SendServerInfo: WARNING! g_lStoredQueryIPTail == g_lStoredQueryIPHead\n" );
 	}
-
-	// This IP didn't exist in the list. and it wasn't banned. 
-	// So, add it, and keep it there for 10 seconds.
-	g_StoredQueryIPs[g_lStoredQueryIPTail].Address = Address;
-	g_StoredQueryIPs[g_lStoredQueryIPTail].lNextAllowedGametic = gametic + ( TICRATE * ( sv_queryignoretime ));
-
-	g_lStoredQueryIPTail++;
-	g_lStoredQueryIPTail = g_lStoredQueryIPTail % MAX_STORED_QUERY_IPS;
-	if ( g_lStoredQueryIPTail == g_lStoredQueryIPHead )
-		Printf( "SERVER_MASTER_SendServerInfo: WARNING! g_lStoredQueryIPTail == g_lStoredQueryIPHead\n" );
 
 	// This is a little tricky. Since WADs can now be loaded within pk3 files, we have
 	// to skip over all the ones automatically loaded. To my knowledge, the only way to

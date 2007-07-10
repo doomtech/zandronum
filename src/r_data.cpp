@@ -56,6 +56,7 @@
 #include "cmdlib.h"
 #include "templates.h"
 #include "network.h"
+#include "cl_demo.h"
 
 #include "st_start.h"
 
@@ -900,7 +901,8 @@ void R_PrecacheLevel (void)
 	BYTE *spritelist;
 	int i;
 
-	if (demoplayback)
+	// [BC] Support for client-side demos.
+	if (demoplayback || CLIENTDEMO_IsPlaying( ))
 		return;
 
 	hitlist = new BYTE[TexMan.NumTextures()];

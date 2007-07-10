@@ -42,6 +42,7 @@
 #include "statnums.h"
 #include "i_system.h"
 #include "doomerrors.h"
+#include "cl_demo.h"
 
 
 static cycle_t ThinkCycles;
@@ -334,21 +335,19 @@ int DThinker::TickThinkers (List *list, List *dest)
 #ifndef	MULTITICK_HACK_FIX
 			bool	bTickThinker = true;
 
-			switch ( NETWORK_GetState( ))
+			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+				( CLIENTDEMO_IsPlaying( )))
 			{
-			case NETSTATE_CLIENT:
-
 				// Don't tick the consoleplayer's actor in client
 				// mode, because that's done in the main prediction function
 				if (( thinker->IsKindOf( RUNTIME_CLASS( AActor ))) && ( static_cast<AActor *>(thinker) == players[consoleplayer].mo ))
 					bTickThinker = false;
-				break;
-			case NETSTATE_SERVER:
-
+			}
+			else if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			{
 				// Player's actors are ticked whenever we receive a movement command from them, so don't do it here.
 				if (( thinker->IsKindOf( RUNTIME_CLASS( AActor ))) && ( static_cast<AActor *>(thinker)->player ) && ( static_cast<AActor *>(thinker)->player->bIsBot == false ))
 					bTickThinker = false;
-				break;
 			}
 
 			if ( bTickThinker )

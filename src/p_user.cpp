@@ -64,6 +64,7 @@
 #include "cooperative.h"
 #include "survival.h"
 #include "sv_main.h"
+#include "cl_demo.h"
 #include "cl_main.h"
 #include "scoreboard.h"
 #include "p_acs.h"
@@ -1049,7 +1050,7 @@ void APlayerPawn::Die (AActor *source, AActor *inflictor)
 	Super::Die (source, inflictor);
 
 	// [BC] Nothing for the client to do here.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 		return;
 
 	if (player != NULL && player->mo != this)
@@ -1137,7 +1138,7 @@ void APlayerPawn::Die (AActor *source, AActor *inflictor)
 	}
 
 	// If this is a teamgame and the player is carrying the opponents "flag", drop it.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && teamgame && player->bOnTeam )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ) && ( CLIENTDEMO_IsPlaying( ) == false ) && teamgame && player->bOnTeam )
 	{
 		pInventory = this->FindInventory( TEAM_GetFlagItem( !player->ulTeam ));
 		if ( pInventory )

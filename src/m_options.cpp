@@ -78,6 +78,7 @@
 #include "m_menu.h"
 
 #include "announcer.h"
+#include "cl_demo.h"
 #include "cl_main.h"
 #include "deathmatch.h"
 #include "duel.h"
@@ -4628,7 +4629,7 @@ void M_OptResponder (event_t *ev)
 	
 	if (item->type == bitflag &&
 		(ch == GK_LEFT || ch == GK_RIGHT || ch == '\r')
-		&& (!demoplayback || CurrentMenu == &SkirmishDMFlagsMenu))	// [BC] Allow people to toggle dmflags at the skirmish dmflags menu.
+		&& (!demoplayback || ( CLIENTDEMO_IsPlaying( ) == false ) || CurrentMenu == &SkirmishDMFlagsMenu))	// [BC] Allow people to toggle dmflags at the skirmish dmflags menu.
 	{
 		*(item->a.intcvar) = (*(item->a.intcvar)) ^ item->e.flagmask;
 		return;

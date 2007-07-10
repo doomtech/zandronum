@@ -706,7 +706,8 @@ void SERVER_SendClientPacket( ULONG ulClient, bool bReliable )
 	else
 		pBuffer = &pClient->UnreliablePacketBuffer;
 
-	pBuffer->ulCurrentSize = pBuffer->ByteStream.pbStream - pBuffer->pbData;
+	pBuffer->ulCurrentSize = NETWORK_CalcBufferSize( pBuffer );//pBuffer->ByteStream.pbStream - pBuffer->pbData;
+	pClient->SavedPacketBuffer.ulCurrentSize = NETWORK_CalcBufferSize( &pClient->SavedPacketBuffer );
 	if ( bReliable )
 	{
 		// If we've reached the end of our reliable packets buffer, start writing at the beginning.
@@ -1455,7 +1456,7 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 				if ( sv_showlauncherqueries )
 					Printf( "Launcher challenge from: %s\n", NETWORK_AddressToString( NETWORK_GetFromAddress( )));
 
-				SERVER_MASTER_SendServerInfo( NETWORK_GetFromAddress( ), ulFlags, ulTime );
+				SERVER_MASTER_SendServerInfo( NETWORK_GetFromAddress( ), ulFlags, ulTime, false );
 				return;
 			// Ignore; possibly a client who thinks he's still in a game, but isn't.
 			case CLC_USERINFO:
@@ -3627,67 +3628,6 @@ static bool server_MissingPacket( BYTESTREAM_s *pByteStream )
 	g_aClients[g_lCurrentClient].lLastPacketLossTick = gametic;
 
 	return ( false );
-/*
-	ULONG	ulIdx;
-	ULONG	ulIdx2;
-	ULONG	ulSequence;
-	bool	bFullUpdateRequired;
-
-	// Read in the sequence.
-	ulSequence = NETWORK_ReadLong( pByteStream );
-
-	// How could the client receive a packet higher than what was sent to him?
-	if ( ulSequence > g_aClients[g_lCurrentClient].ulPacketSequence )
-		Printf( "WARNING: Client %d received packet > highest send packet! (%d, %d)\n", g_lCurrentClient, ulSequence, g_aClients[g_lCurrentClient].ulPacketSequence );
-	// If the packet the client is acknowledging is not the next packet from the last
-	// packet he acknowledged, then he must have missed a packet.
-	else if (( (LONG)ulSequence - (LONG)g_aClients[g_lCurrentClient].ulLastAcknowledgedSequence ) > 1 )
-	{
-		// Begin resending missed packets. Also, be sure to resend this packet so the client
-		// can parse the packets in the proper order.
-		for ( ulIdx = g_aClients[g_lCurrentClient].ulLastAcknowledgedSequence + 1; ulIdx <= ulSequence; ulIdx++ )
-		{
-			// Search through all 256 of the stored packets. We're looking for the packet that
-			// that we want to send to the client by matching the sequences. If we cannot find
-			// the packet, then we much send a full update to the client.
-			bFullUpdateRequired = true;
-			for ( ulIdx2 = 0; ulIdx2 < 256; ulIdx2++ )
-			{
-				if ( g_aClients[g_lCurrentClient].ulPacketSequence[ulIdx2] == ulIdx )
-				{
-					bFullUpdateRequired = false;
-					break;
-				}
-			}
-
-			// We could not find the correct packet to resend to the client. We must send him
-			// a full update.
-			if  ( bFullUpdateRequired )
-			{
-				// do full update
-				Printf( "*** Sequence screwed for client %d, %s! Sending full update...\n", g_lCurrentClient, players[g_lCurrentClient].userinfo.netname );
-				SERVER_SendFullUpdate( g_lCurrentClient );
-				g_aClients[g_lCurrentClient].ulLastAcknowledgedSequence = ulSequence;
-				return;
-			}
-
-			// Now that we've found the missed packet that we need to send to the client,
-			// send it.
-			NETWORK_CheckBuffer( g_lCurrentClient, g_aClients[g_lCurrentClient].ulPacketSize[ulIdx2] + 5 );
-			NETWORK_WriteHeader( &g_aClients[g_lCurrentClient].PacketBuffer, SVC_MISSEDPACKET );
-			NETWORK_WriteLong( &g_aClients[g_lCurrentClient].PacketBuffer, ulIdx );
-//			NETWORK_WriteShort( &g_aClients[g_lCurrentClient].PacketBuffer, g_aClients[g_lCurrentClient].ulPacketSize[ulIdx2] );
-			if ( g_aClients[g_lCurrentClient].ulPacketSize[ulIdx2] )
-			{
-				NETWORK_Write( &g_aClients[g_lCurrentClient].PacketBuffer, g_aClients[g_lCurrentClient].relpackets.pbData, 
-					g_aClients[g_lCurrentClient].lPacketBeginning[ulIdx2], g_aClients[g_lCurrentClient].ulPacketSize[ulIdx2] );
-			}
-		}
-	}
-
-	// Update the last acknowledged sequence.
-	g_aClients[g_lCurrentClient].ulLastAcknowledgedSequence = ulSequence;
-*/
 }
 
 //*****************************************************************************

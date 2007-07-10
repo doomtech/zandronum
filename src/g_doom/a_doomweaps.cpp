@@ -17,6 +17,7 @@
 #include "sv_commands.h"
 #include "team.h"
 #include "p_enemy.h"
+#include "cl_demo.h"
 #include "cl_main.h"
 
 static FRandom pr_punch ("Punch");
@@ -36,8 +37,11 @@ void A_Punch (AActor *actor)
 	int 		pitch;
 
 	// [BC] Weapons are handled by the server.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (actor->player != NULL)
 	{
@@ -253,8 +257,11 @@ void A_Saw (AActor *actor)
 	player_t *player;
 
 	// [BC] Weapons are handled by the server.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 	
 	int fullsound;
 	int hitsound;
@@ -920,8 +927,11 @@ void A_FireMiniGun( AActor *actor )
 		SERVERCOMMANDS_SetPlayerState( ULONG( pPlayer - players ), STATE_PLAYER_ATTACK2, ULONG( pPlayer - players ), SVCF_SKIPTHISCLIENT );
 
 	// Weapon firing is server side.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	P_BulletSlope( actor );
 
@@ -1065,8 +1075,11 @@ void A_FireMissile (AActor *actor)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	P_SpawnPlayerMissile (actor, RUNTIME_CLASS(ARocket));
 
@@ -1183,8 +1196,11 @@ void AGrenade::Tick( )
 	Super::Tick( );
 
 	// Server takes care of exploding missiles.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if ( this->special1 && GAME_GetFreezeMode( ) == false )
 	{
@@ -1249,8 +1265,11 @@ void A_FireSTGrenade (AActor *actor)
 	}
 
 	// Weapons are handled by the server.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	SavedActorPitch = actor->pitch;
 
@@ -1399,8 +1418,11 @@ void A_FirePlasma (AActor *actor)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	P_SpawnPlayerMissile (actor, RUNTIME_CLASS(APlasmaBall));
 
@@ -1445,8 +1467,11 @@ void A_FireRailgun (AActor *actor)
 	}
 
 	// Weapons are handled by the server.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	damage = 200;
 	if ( deathmatch || teamgame )
@@ -1770,8 +1795,11 @@ void A_FireBFG (AActor *actor)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (( dmflags2 & DF2_YES_FREEAIMBFG ) == false )
 	{
@@ -1809,8 +1837,11 @@ void A_BFGSpray (AActor *mo)
 	AActor				*pActor;
 
 	// [BC] This is not done on the client end.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	int index = CheckIndex (3, NULL);
 	if (index >= 0) 
@@ -2041,8 +2072,11 @@ void A_FireBFG10k( AActor *pActor )
 	}
 
 	// Weapons are handled by the server.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	P_BulletSlope( pActor );
 	P_GunShot( pActor, true, RUNTIME_CLASS( ABFG10kShot ));

@@ -58,6 +58,7 @@
 #include "g_game.h"
 #include "cooperative.h"
 #include "sv_commands.h"
+#include "cl_demo.h"
 #include "cl_main.h"
 
 #define WATER_SINK_FACTOR		3
@@ -1234,8 +1235,11 @@ bool PIT_CheckThing (AActor *thing)
 	{ // Can be picked up by tmthing
 	
 		// Server decides what items are touched.
-		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+			( CLIENTDEMO_IsPlaying( ) == false ))
+		{
 			P_TouchSpecialThing (thing, tmthing);	// can remove thing
+		}
 	}
 
 	// If this object has the bumpspecial flag, try to activate the item's special.
@@ -1402,8 +1406,11 @@ static bool PIT_OldCheckThing(AActor *thing) // killough 3/26/98: make static
 	{ // Can be picked up by tmthing
 
 		// [BC] Server decides what items are touched.
-		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+			( CLIENTDEMO_IsPlaying( ) == false ))
+		{
 			P_TouchSpecialThing (thing, tmthing);	// can remove thing
+		}
 	}
 
   // killough 3/16/98: Allow non-solid moving objects to move through solid
@@ -4250,7 +4257,7 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 					// If the player gets 4+ straight hits with the railgun, award a "Most Impressive" medal.
 					if ( source->player->ulConsecutiveRailgunHits >= 4 )
 					{
-						if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+						if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 							MEDAL_GiveMedal( ULONG( source->player - players ), MEDAL_MOSTIMPRESSIVE );
 
 						// Tell clients about the medal that been given.
@@ -4260,7 +4267,7 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 					// Otherwise, award an "Impressive" medal.
 					else
 					{
-						if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+						if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 							MEDAL_GiveMedal( ULONG( source->player - players ), MEDAL_IMPRESSIVE );
 
 						// Tell clients about the medal that been given.

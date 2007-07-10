@@ -49,6 +49,7 @@
 //-----------------------------------------------------------------------------
 
 #include "cl_commands.h"
+#include "cl_demo.h"
 #include "cl_main.h"
 #include "gi.h"
 #include "network.h"

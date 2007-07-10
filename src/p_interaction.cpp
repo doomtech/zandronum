@@ -69,6 +69,7 @@
 #include "survival.h"
 #include "team.h"
 #include "cl_commands.h"
+#include "cl_demo.h"
 
 // [BC] Ugh.
 void SERVERCONSOLE_UpdatePlayerInfo( LONG lPlayer, ULONG ulUpdateFlags );
@@ -445,7 +446,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 	if (source && source->player)
 	{
 		// [BC] Don't do this in client mode.
-		if ((CountsAsKill()) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+		if ((CountsAsKill()) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 		{ // count for intermission
 			source->player->killcount++;
 			
@@ -490,13 +491,13 @@ void AActor::Die (AActor *source, AActor *inflictor)
 			if (player == source->player)	// [RH] Cumulative frag count
 			{
 				// [BC] Frags are server side.
-				if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 					PLAYER_SetFragcount( player, player->fragcount - (( bPossessedTerminatorArtifact ) ? 10 : 1 ), true, true );
 			}
 			else
 			{
 				// [BC] Don't award frags here in client mode.
-				if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 				{
 					if ( bPossessedTerminatorArtifact )
 					{
@@ -538,7 +539,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 						(( duel == false ) || ( DUEL_GetState( ) == DS_INDUEL )) &&
 						( g_bFirstFragAwarded == false ))
 					{
-						if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+						if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 							MEDAL_GiveMedal( source->player - players, MEDAL_FIRSTFRAG );
 
 						// Tell clients about the medal that been given.
@@ -549,7 +550,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 					}
 
 					// [BC] Don't do this block in client mode.
-					if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+					if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 					{
 						// [BC] Increment frags without death.
 						source->player->ulFragsWithoutDeath++;
@@ -580,7 +581,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 				}
 
 				// [BC] Don't do this block in client mode.
-				if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 				{
 					// [BC] Reset deaths without frag.
 					source->player->ulDeathsWithoutFrag = 0;
@@ -781,7 +782,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 		if (( player ) && ( lastmanstanding || teamlms || survival ) && ( MeansOfDeath == MOD_SPAWNTELEFRAG ))
 			player->bSpawnTelefragged = true;
 	}
-	else if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && (CountsAsKill()))
+	else if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ) && (CountsAsKill()))
 	{
 		// count all monster deaths,
 		// even those caused by other monsters
@@ -812,7 +813,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 	}
 	
 	// [BC] Don't do this block in client mode.
-	if (player && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+	if (player && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		// [BC] If this is a bot, tell it it died.
 		if ( player->pSkullBot )
@@ -1006,6 +1007,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 	if (( deathmatch || teamgame ) &&
 		( NETWORK_GetState( ) != NETSTATE_SERVER ) &&
 		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ) &&
 		( cl_showlargefragmessages ) &&
 		((( duel ) && (( DUEL_GetState( ) == DS_WINSEQUENCE ) || ( DUEL_GetState( ) == DS_COUNTDOWN ))) == false ) &&
 		((( lastmanstanding || teamlms ) && (( LASTMANSTANDING_GetState( ) == LMSS_WINSEQUENCE ) || ( LASTMANSTANDING_GetState( ) == LMSS_COUNTDOWN ))) == false ))
@@ -1028,7 +1030,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 	}
 
 	// [RH] Death messages
-	if (( player ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+	if (( player ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 		ClientObituary (this, inflictor, source, MeansOfDeath);
 
 	tics -= pr_killmobj() & 3;
@@ -1278,7 +1280,12 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 
 	// [BC] If the target player has the reflection rune, damage the source with 50% of the
 	// this player is being damaged with.
-	if ( target->player && ( target->player->Powers & PW_REFLECTION ) && source && ( mod != MOD_REFLECTION ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+	if (( target->player ) &&
+		( target->player->Powers & PW_REFLECTION ) &&
+		( source ) &&
+		( mod != MOD_REFLECTION ) &&
+		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		if ( target != source )
 		{
@@ -1454,7 +1461,11 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 
 	// If the damaging player has the power of drain, give the player 50% of the damage
 	// done in health.
-	if ( source && source->player && ( source->player->Powers & PW_DRAIN ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+	if ( source &&
+		source->player &&
+		( source->player->Powers & PW_DRAIN ) &&
+		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		if (( target->player == false ) || ( target->player != source->player ))
 		{
@@ -1528,7 +1539,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 		}
 
 		// Deaths are server side.
-		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 			target->Die (source, inflictor);
 		return;
 	}
@@ -1544,7 +1555,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 	}
 	if ((pr_damagemobj() < target->PainChance) && target->PainState != NULL
 		 && !(target->flags & MF_SKULLFLY) && 
-		 ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+		 ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		if (inflictor && inflictor->IsKindOf (RUNTIME_CLASS(ALightning)))
 		{
@@ -1589,7 +1600,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 	}
 
 	// Nothing more to do!
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 		return;
 
 	target->reactiontime = 0;			// we're awake now...	
@@ -2084,7 +2095,7 @@ void PLAYER_SetSpectator( player_s *pPlayer, bool bBroadcast, bool bDeadSpectato
 		{
 			pPlayer->bDeadSpectator = false;
 
-			if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 			{
 				// Tell the join queue module that a player is leaving the game.
 				JOINQUEUE_PlayerLeftGame( true );
@@ -2105,7 +2116,7 @@ void PLAYER_SetSpectator( player_s *pPlayer, bool bBroadcast, bool bDeadSpectato
 		// This player no longer has a team affiliation.
 		pPlayer->bOnTeam = false;
 
-		if (( pPlayer->fragcount > 0 ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+		if (( pPlayer->fragcount > 0 ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 			PLAYER_SetFragcount( pPlayer, 0, false, false );
 
 		return;
@@ -2116,7 +2127,7 @@ void PLAYER_SetSpectator( player_s *pPlayer, bool bBroadcast, bool bDeadSpectato
 	pPlayer->bDeadSpectator = bDeadSpectator;
 
 	// If this player was eligible to get an assist, cancel that.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		if ( TEAM_GetAssistPlayer( TEAM_BLUE ) == pPlayer - players )
 			TEAM_SetAssistPlayer( TEAM_BLUE, MAXPLAYERS );
@@ -2128,7 +2139,7 @@ void PLAYER_SetSpectator( player_s *pPlayer, bool bBroadcast, bool bDeadSpectato
 	{
 		// Before we start fucking with the player's body, drop important items
 		// like flags, etc.
-		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 			pPlayer->mo->DropImportantItems( false );
 
 		// Is this player tagged as a dead spectator, give him life.
@@ -2176,11 +2187,11 @@ void PLAYER_SetSpectator( player_s *pPlayer, bool bBroadcast, bool bDeadSpectato
 	// Player's lose all their frags when they become a spectator.
 	if ( bDeadSpectator == false )
 	{
-		if (( pPlayer->fragcount > 0 ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+		if (( pPlayer->fragcount > 0 ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 			PLAYER_SetFragcount( pPlayer, 0, false, false );
 
 		// Also, tell the joinqueue module that a player has left the game.
-		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 		{
 			// Tell the join queue module that a player is leaving the game.
 			JOINQUEUE_PlayerLeftGame( true );
@@ -2191,7 +2202,7 @@ void PLAYER_SetSpectator( player_s *pPlayer, bool bBroadcast, bool bDeadSpectato
 	}
 
 	// Player's also lose all of their wins in duel mode.
-	if (( duel || ( lastmanstanding && ( bDeadSpectator == false ))) && ( pPlayer->ulWins > 0 ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+	if (( duel || ( lastmanstanding && ( bDeadSpectator == false ))) && ( pPlayer->ulWins > 0 ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 		PLAYER_SetWins( pPlayer, 0 );
 
 	// Update this player's info on the scoreboard.
@@ -2242,7 +2253,7 @@ bool PLAYER_IsTrueSpectator( player_s *pPlayer )
 //
 void PLAYER_StruckPlayer( player_s *pPlayer )
 {
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 		return;
 
 	pPlayer->ulConsecutiveHits++;
@@ -2413,5 +2424,8 @@ CCMD( taunt )
 		// Tell the server we taunted!
 		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 			CLIENTCOMMANDS_Taunt( );
+
+		if ( CLIENTDEMO_IsRecording( ))
+			CLIENTDEMO_WriteLocalCommand( CLD_TAUNT, NULL );
 	}
 }

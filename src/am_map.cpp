@@ -56,6 +56,7 @@
 #include "gl/gl_functions.h"
 // [BC] New #includes.
 #include "team.h"
+#include "cl_demo.h"
 #include "deathmatch.h"
 #include "network.h"
 #include "scoreboard.h"
@@ -2021,6 +2022,7 @@ void AM_drawPlayers ()
 		
 		// [BC] Do this in teamgame mode too.
 		if (( deathmatch || teamgame ) && !demoplayback &&
+			( CLIENTDEMO_IsPlaying( ) == false ) &&
 			!p->mo->IsTeammate (players[consoleplayer].mo) &&
 			p != players[consoleplayer].camera->player)
 		{

@@ -50,6 +50,7 @@
 
 #include "a_doomglobal.h"
 #include "announcer.h"
+#include "cl_demo.h"
 #include "cl_main.h"
 #include "network.h"
 #include "p_acs.h"
@@ -530,7 +531,7 @@ bool AWhiteFlag::HandlePickup( AInventory *pItem )
 	// carrying the white flag.
 	if ( pItem->GetClass( ) == TEAM_GetFlagItem( !Owner->player->ulTeam ))
 	{
-		if (( TEAM_GetSimpleCTFMode( )) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+		if (( TEAM_GetSimpleCTFMode( )) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 		{
 			// Give his team a point.
 			TEAM_SetScore( Owner->player->ulTeam, TEAM_GetScore( Owner->player->ulTeam ) + 1, true );
@@ -1124,7 +1125,7 @@ bool ABlueFlag::HandlePickup( AInventory *pItem )
 		if ( static_cast<AFlag *>( pItem )->AllowFlagPickup( Owner ) == RETURN_FLAG )
 			return ( Super::HandlePickup( pItem ));
 
-		if (( TEAM_GetSimpleCTFMode( )) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+		if (( TEAM_GetSimpleCTFMode( )) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 		{
 			// Give his team a point.
 			TEAM_SetScore( Owner->player->ulTeam, TEAM_GetScore( Owner->player->ulTeam ) + 1, true );
@@ -1777,7 +1778,7 @@ bool ARedFlag::HandlePickup( AInventory *pItem )
 		if ( static_cast<AFlag *>( pItem )->AllowFlagPickup( Owner ) == RETURN_FLAG )
 			return ( Super::HandlePickup( pItem ));
 
-		if (( TEAM_GetSimpleCTFMode( )) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+		if (( TEAM_GetSimpleCTFMode( )) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 		{
 			// Give his team a point.
 			TEAM_SetScore( Owner->player->ulTeam, TEAM_GetScore( Owner->player->ulTeam ) + 1, true );

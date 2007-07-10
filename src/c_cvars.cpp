@@ -59,6 +59,7 @@
 #include "campaign.h"
 #include "sv_commands.h"
 #include "network.h"
+#include "cl_demo.h"
 
 struct FLatchedValue
 {
@@ -175,7 +176,8 @@ void FBaseCVar::SetGenericRep (UCVarValue value, ECVarType type)
 			latch.Value.String = copystring(value.String);
 		LatchedValues.Push (latch);
 	}
-	else if ((Flags & CVAR_SERVERINFO) && gamestate != GS_STARTUP && !demoplayback)
+	// [BC] Support for client-side demos.
+	else if ((Flags & CVAR_SERVERINFO) && gamestate != GS_STARTUP && !demoplayback && ( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
 		{
