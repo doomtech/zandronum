@@ -1170,7 +1170,9 @@ bool PIT_CheckThing (AActor *thing)
 				}
 				S_Sound (tmthing, CHAN_BODY, "misc/ripslop", 1, ATTN_IDLE);
 				damage = tmthing->GetMissileDamage (3, 2);
-				P_DamageMobj (thing, tmthing, tmthing->target, damage, tmthing->DamageType);
+				// [BB] The server handles the damage of RIPPER weapons.
+				if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+					P_DamageMobj (thing, tmthing, tmthing->target, damage, tmthing->DamageType);
 				if (!(tmthing->flags3 & MF3_BLOODLESSIMPACT))
 				{
 					P_TraceBleed (damage, thing, tmthing);
