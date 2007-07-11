@@ -178,6 +178,36 @@ void SERVER_MASTER_Broadcast( void )
 	broadcast_addr.sin_port = htons( DEFAULT_BROADCAST_PORT );
 	NETWORK_SocketAddressToNetAddress( &broadcast_addr, &AddressBroadcast );
 
+	// [BB] Based on the local adress, we find out the class
+	// of the network, we are in and set the broadcast address
+	// accordingly. Broadcasts to INADDR_BROADCAST = 255.255.255.255
+	// should be circumvented if possible and is seem that they
+	// aren't	even permitted in the Linux kernel at all.
+	// If the server has the ip A.B.C.D depending on the class
+	// broadcasts should go to:
+	// Class A: A.255.255.255
+	// Class B: A. B .255.255
+	// Class C: A. B . C .255
+	// 
+	// Class A comprises networks 1.0.0.0 through 127.0.0.0. The network number is contained in the first octet.
+	// Class B contains networks 128.0.0.0 through 191.255.0.0; the network number is in the first two octets.
+	// Class C networks range from 192.0.0.0 through 223.255.255.0, with the network number contained in the first three octets.
+
+
+	NETADDRESS_s LocalAddress = NETWORK_GetLocalAddress( );
+	int classIndex = 0;
+
+	const int locIP0 = LocalAddress.abIP[0];
+	if ( (locIP0 >= 1) && (locIP0 <= 127) )
+		classIndex = 1;
+	else if ( (locIP0 >= 128 ) && (locIP0 <= 191) )
+		classIndex = 2;
+	else if ( (locIP0 >= 192 ) && (locIP0 <= 223) )
+		classIndex = 3;
+
+	for( int i = 0; i < classIndex; i++ )
+		AddressBroadcast.abIP[i] = LocalAddress.abIP[i];
+
 	// Broadcast our packet.
 	SERVER_MASTER_SendServerInfo( AddressBroadcast, SQF_ALL, 0, true );
 //	NETWORK_WriteLong( &g_MasterServerBuffer, MASTER_CHALLENGE );
