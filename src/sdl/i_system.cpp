@@ -31,6 +31,8 @@
 #include <sys/types.h>
 #include <sys/time.h>
 
+#include "networkheaders.h"
+
 #include "doomerrors.h"
 #include <math.h>
 
@@ -56,6 +58,8 @@
 #include "hardware.h"
 #include "zstring.h"
 #include "gameconfigfile.h"
+
+#include "cl_demo.h"
 
 EXTERN_CVAR (String, language)
 
