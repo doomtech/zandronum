@@ -338,7 +338,12 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 	if (4 + strlen (cvar->GetName ()) + strlen (val.String) > 256)
 		I_Error ("User info descriptor too big");
 
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	// [BB] D_SetupUserInfo has to be executed in any case, if we are
+	// not the server. If we for example are not connected to a server,
+	// change our name in the console and connect to a server then,
+	// we won't tell the new name to the server.
+	// Is the demo stuff necessary at all for ST?
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
 		sprintf (foo, "\\%s\\%s", cvar->GetName (), val.String);
 
