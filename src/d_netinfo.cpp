@@ -353,7 +353,12 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 
 	// Send updated userinfo to the server.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( CLIENT_GetConnectionState( ) >= CTS_CONNECTED ) && ( ulUpdateFlags > 0 ))
+	{
 		CLIENT_SendUserInfo( ulUpdateFlags );
+
+		if ( CLIENTDEMO_IsRecording( ))
+			CLIENTDEMO_WriteUserInfo( );
+	}
 }
 
 static const char *SetServerVar (char *name, ECVarType type, BYTE **stream, bool singlebit)

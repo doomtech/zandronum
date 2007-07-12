@@ -16,6 +16,7 @@
 #include "deathmatch.h"
 #include "team.h"
 #include "cl_commands.h"
+#include "cl_demo.h"
 #include "network.h"
 #include "sv_commands.h"
 
@@ -114,7 +115,12 @@ bool AWeapon::Use (bool pickup)
 
 		// [BC] If we're a client, tell the server we're switching weapons.
 		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( Owner->player - players ) == consoleplayer ))
+		{
 			CLIENTCOMMANDS_WeaponSelect( ( char *)useweap->GetClass( )->TypeName.GetChars( ));
+
+			if ( CLIENTDEMO_IsRecording( ))
+				CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)useweap->GetClass( )->TypeName.GetChars( ));
+		}
 	}
 	// Return false so that the weapon is not removed from the inventory.
 	return false;
@@ -267,7 +273,12 @@ void AWeapon::AttachToOwner (AActor *other)
 
 			// [BC] If we're a client, tell the server we're switching weapons.
 			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( Owner->player - players ) == consoleplayer ))
+			{
 				CLIENTCOMMANDS_WeaponSelect( (char *)this->GetClass( )->TypeName.GetChars( ));
+
+				if ( CLIENTDEMO_IsRecording( ))
+					CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)this->GetClass( )->TypeName.GetChars( ));
+			}
 		}
 		// If it's 1, then only switch if it ranks higher than our current weapon.
 		else if (( pCompareWeapon == NULL ) ||
@@ -282,7 +293,12 @@ void AWeapon::AttachToOwner (AActor *other)
 
 				// [BC] If we're a client, tell the server we're switching weapons.
 				if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( Owner->player - players ) == consoleplayer ))
+				{
 					CLIENTCOMMANDS_WeaponSelect( (char *)this->GetClass( )->TypeName.GetChars( ));
+
+//					if ( CLIENTDEMO_IsRecording( ))
+//						CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)this->GetClass( )->TypeName.GetChars( ));
+				}
 			}
 		}
 		// [BC] The server doesn't have a status bar.
@@ -593,7 +609,12 @@ void AWeapon::EndPowerup ()
 
 			// [BC] If we're a client, tell the server we're switching weapons.
 			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( Owner->player - players ) == consoleplayer ))
+			{
 				CLIENTCOMMANDS_WeaponSelect( ( char *)this->GetClass( )->TypeName.GetChars( ));
+
+				if ( CLIENTDEMO_IsRecording( ))
+					CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)this->GetClass( )->TypeName.GetChars( ));
+			}
 		}
 		else
 		{
@@ -601,7 +622,12 @@ void AWeapon::EndPowerup ()
 
 			// [BC] If we're a client, tell the server we're switching weapons.
 			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( Owner->player - players ) == consoleplayer ))
+			{
 				CLIENTCOMMANDS_WeaponSelect( ( char *)SisterWeapon->GetClass( )->TypeName.GetChars( ));
+
+				if ( CLIENTDEMO_IsRecording( ))
+					CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)SisterWeapon->GetClass( )->TypeName.GetChars( ));
+			}
 		}
 	}
 }

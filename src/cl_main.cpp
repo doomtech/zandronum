@@ -4937,6 +4937,11 @@ static void client_SetThingArguments( BYTESTREAM_s *pByteStream )
 	pActor->args[2] = ulArgs2;
 	pActor->args[3] = ulArgs3;
 	pActor->args[4] = ulArgs4;
+
+	// Gross hack for invisible bridges, since they set their height/radius
+	// based on their args the instant they're spawned.
+	if ( pActor->GetClass( ) == PClass::FindClass( "InvisibleBridge" ))
+		pActor->BeginPlay( );
 }
 
 //*****************************************************************************

@@ -1759,7 +1759,7 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 
 		strcpy( pPlayer->userinfo.netname, pszString );
 		V_CleanPlayerName(pszString);
-		
+
 		// The user really shouldn't have an invalid name, unless they are using a hacked executable.
 		if(strcmp(pPlayer->userinfo.netname, pszString) != 0) {
 				// [RC][BETA ONLY] Explain for the poor 97c3 souls why their juicy names do not work.

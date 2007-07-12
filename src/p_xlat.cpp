@@ -102,7 +102,9 @@ void P_TranslateLineDef (line_t *ld, maplinedef_t *mld)
 			}
 		}
 		passthrough = (flags & ML_PASSUSE_BOOM);
-		if (flags&0x400) flags|=0x4000;	// 3DMIDTEX
+		// [BC] I'm commenting this out for now. 0x4000 is ML_BLOCKEVERYTHING, and the value
+		// doesn't appear to be used for anything else. This appears to not be needed.
+//		if (flags&0x400) flags|=0x4000;	// 3DMIDTEX
 	}
 	flags = flags & 0xFFFFC1FF;	// Ignore flags unknown to DOOM
 

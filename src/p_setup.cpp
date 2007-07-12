@@ -72,6 +72,7 @@
 #include "invasion.h"
 #include "survival.h"
 #include "possession.h"
+#include "cl_demo.h"
 
 #include "gl/gl_functions.h"
 #include "gl/gl_lights.h"
@@ -1981,6 +1982,9 @@ void P_LoadLineDefs (MapData * map)
 		// [BC] Backup certain properties of the line.
 		ld->SavedSpecial = ld->special;
 		ld->SavedFlags = ld->flags;
+
+		if ( ld->flags & ML_BLOCKPLAYERS )
+			Printf( "Line: %d\n", ld - lines );
 
 		if (level.flags & LEVEL_CLIPMIDTEX) ld->flags |= ML_CLIP_MIDTEX;
 		if (level.flags & LEVEL_WRAPMIDTEX) ld->flags |= ML_WRAP_MIDTEX;
@@ -4062,7 +4066,7 @@ void P_SetupLevel (char *lumpname, int position)
 		}
 
 		// Clients don't do anything else.
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 			continue;
 
 		// If the player should spawn as a spectator, set that flag now.

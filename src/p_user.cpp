@@ -697,7 +697,12 @@ AWeapon *APlayerPawn::PickNewWeapon (const PClass *ammotype)
 
 		// [BC] In client mode, tell the server which weapon we're using.
 		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( player - players == consoleplayer ))
+		{
 			CLIENTCOMMANDS_WeaponSelect( (char *)best->GetClass( )->TypeName.GetChars( ));
+
+			if ( CLIENTDEMO_IsRecording( ))
+				CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)best->GetClass( )->TypeName.GetChars( ));
+		}
 	}
 	return best;
 }

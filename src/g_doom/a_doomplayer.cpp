@@ -11,6 +11,7 @@
 #include "lastmanstanding.h"
 #include "team.h"
 #include "cl_commands.h"
+#include "cl_demo.h"
 
 void A_Pain (AActor *);
 void A_PlayerScream (AActor *);
@@ -130,7 +131,12 @@ void ADoomPlayer::GiveDefaultInventory ()
 
 		// [BC] If we're a client, tell the server we're switching weapons.
 		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) == consoleplayer ))
+		{
 			CLIENTCOMMANDS_WeaponSelect( (char *)pInventory->GetClass( )->TypeName.GetChars( ));
+
+			if ( CLIENTDEMO_IsRecording( ))
+				CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)pInventory->GetClass( )->TypeName.GetChars( ));
+		}
 
 		// Find the player's ammo for the weapon in his inventory, and max. out the amount.
 		pInventory = player->mo->FindInventory( PClass::FindClass( "CellAmmo" ));
@@ -154,7 +160,12 @@ void ADoomPlayer::GiveDefaultInventory ()
 
 		// [BC] If we're a client, tell the server we're switching weapons.
 		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) == consoleplayer ))
+		{
 			CLIENTCOMMANDS_WeaponSelect( (char *)pInventory->GetClass( )->TypeName.GetChars( ));
+
+			if ( CLIENTDEMO_IsRecording( ))
+				CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)pInventory->GetClass( )->TypeName.GetChars( ));
+		}
 	}
 	// [BC] Give a bunch of weapons in LMS mode, depending on the LMS allowed weapon flags.
 	else if ( lastmanstanding || teamlms )
@@ -278,7 +289,12 @@ void ADoomPlayer::GiveDefaultInventory ()
 
 		// [BC] If we're a client, tell the server we're switching weapons.
 		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) == consoleplayer ))
+		{
 			CLIENTCOMMANDS_WeaponSelect( (char *)pPendingWeapon->GetClass( )->TypeName.GetChars( ));
+
+			if ( CLIENTDEMO_IsRecording( ))
+				CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)pPendingWeapon->GetClass( )->TypeName.GetChars( ));
+		}
 	}
 	else if (!Inventory)
 	{
@@ -312,7 +328,12 @@ void ADoomPlayer::GiveDefaultInventory ()
 
 		// [BC] If we're a client, tell the server we're switching weapons.
 		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) == consoleplayer ))
+		{
 			CLIENTCOMMANDS_WeaponSelect( (char *)player->ReadyWeapon->GetClass( )->TypeName.GetChars( ));
+
+			if ( CLIENTDEMO_IsRecording( ))
+				CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)player->ReadyWeapon->GetClass( )->TypeName.GetChars( ));
+		}
 	}
 }
 

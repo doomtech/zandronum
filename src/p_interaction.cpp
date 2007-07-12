@@ -198,8 +198,10 @@ void ClientObituary (AActor *self, AActor *inflictor, AActor *attacker, LONG lMe
 	INTBOOL friendly;
 	int  gender;
 	bool	bGibbed;
-	char	szAttacker[32];
-	char	szVictim[32];
+	// We enough characters for the player's name, the terminating zero, and 4 characters
+	// to strip the color codes (I actually believe it's 3, but let's play it safe).
+	char	szAttacker[MAXPLAYERNAME+1+4];
+	char	szVictim[MAXPLAYERNAME+1+4];
 
 	// No obituaries for non-players, voodoo dolls or when not wanted
 	if (self->player == NULL || self->player->mo != self || !show_obituaries)

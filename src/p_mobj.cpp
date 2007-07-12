@@ -4749,9 +4749,6 @@ void P_SpawnMapThing (mapthing2_t *mthing, int position)
 		return;
 	}
 
-	if ( mthing->type == 9080 )
-		Printf( "WTF!!!\n" );
-
 	// spawn it
 	x = mthing->x << FRACBITS;
 	y = mthing->y << FRACBITS;

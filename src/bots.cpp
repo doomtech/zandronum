@@ -1785,7 +1785,7 @@ void BOTS_ParseBotInfo( void )
 				// Now try to match our key with a valid bot info field.
 				if ( stricmp( szKey, "name" ) == 0 )
 				{
-					sprintf( BotInfo.szName, szValue );
+					strncpy( BotInfo.szName, szValue, 32 );
 				}
 				else if ( stricmp( szKey, "accuracy" ) == 0 )
 				{
@@ -2791,7 +2791,7 @@ CSkullBot::CSkullBot( char *pszName, char *pszTeamName, ULONG ulPlayerNum )
 	playeringame[ulPlayerNum] = true;
 
 	// Setup the player's userinfo based on the bot's botinfo.
-	sprintf( m_pPlayer->userinfo.netname, "%s", g_BotInfo[m_ulBotInfoIdx]->szName );
+	strncpy( m_pPlayer->userinfo.netname, g_BotInfo[m_ulBotInfoIdx]->szName, MAXPLAYERNAME );
 	V_ColorizeString( m_pPlayer->userinfo.netname );
 	m_pPlayer->userinfo.color = V_GetColorFromString( NULL, g_BotInfo[m_ulBotInfoIdx]->szColor );
 	if ( gameinfo.gametype != GAME_Hexen )

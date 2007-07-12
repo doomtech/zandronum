@@ -302,9 +302,6 @@ CCMD (slot)
 				( CLIENT_GetConnectionState( ) == CTS_ACTIVE ))
 			{
 				players[consoleplayer].mo->UseInventory( (AInventory *)SendItemUse );
-
-				if ( CLIENTDEMO_IsRecording( ))
-					CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)SendItemUse->GetClass( )->TypeName.GetChars( ));
 			}
 		}
 	}
@@ -362,9 +359,6 @@ CCMD (weapnext)
 		( CLIENT_GetConnectionState( ) == CTS_ACTIVE ))
 	{
 		players[consoleplayer].mo->UseInventory( (AInventory *)SendItemUse );
-
-		if ( CLIENTDEMO_IsRecording( ))
-			CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)SendItemUse->GetClass( )->TypeName.GetChars( ));
 	}
 
 	// [BC] Option to display the name of the weapon being cycled to.
@@ -404,9 +398,6 @@ CCMD (weapprev)
 		( CLIENT_GetConnectionState( ) == CTS_ACTIVE ))
 	{
 		players[consoleplayer].mo->UseInventory( (AInventory *)SendItemUse );
-
-		if ( CLIENTDEMO_IsRecording( ))
-			CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)SendItemUse->GetClass( )->TypeName.GetChars( ));
 	}
 
 	// [BC] Option to display the name of the weapon being cycled to.

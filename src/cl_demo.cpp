@@ -88,7 +88,7 @@ static	BYTE				*g_pbDemoBuffer;
 static	BYTESTREAM_s		g_ByteStream;
 
 // Name of our demo.
-static	char				g_szDemoName[8];
+static	char				g_szDemoName[256];
 
 // Length of the demo.
 static	LONG				g_lDemoLength;
@@ -138,7 +138,6 @@ void CLIENTDEMO_BeginRecording( char *pszDemoName )
 	C_WriteCVars( &g_pbDemoBuffer, CVAR_SERVERINFO|CVAR_DEMOSAVE );
 	FinishChunk( &g_pbDemoBuffer );
 */
-
 	// Write the console player's userinfo.
 	CLIENTDEMO_WriteUserInfo( );
 
@@ -223,6 +222,13 @@ bool CLIENTDEMO_ProcessDemoHeader( void )
 //
 void CLIENTDEMO_WriteUserInfo( void )
 {
+	// First, make sure we have enough space to write this command. If not, add
+	// more space.
+	clientdemo_CheckDemoBuffer( 16 +
+		(ULONG)strlen( players[consoleplayer].userinfo.netname ) +
+		(ULONG)strlen( skins[players[consoleplayer].userinfo.skin].name ) +
+		(ULONG)strlen( PlayerClasses[players[consoleplayer].userinfo.PlayerClass].Type->Meta.GetMetaString( APMETA_DisplayName )));
+
 	// Write the header.
 	NETWORK_WriteByte( &g_ByteStream, CLD_USERINFO );
 
@@ -334,6 +340,10 @@ void CLIENTDEMO_ReadPacket( void )
 
 		switch ( lCommand )
 		{
+		case CLD_USERINFO:
+
+			CLIENTDEMO_ReadUserInfo( );
+			break;
 		case CLD_TICCMD:
 
 			CLIENTDEMO_ReadTiccmd( &players[consoleplayer].cmd );
@@ -504,7 +514,7 @@ LONG CLIENTDEMO_GetGameticOffset( void )
 void CLIENTDEMO_WriteLocalCommand( LONG lCommand, char *pszArg )
 {
 	if ( pszArg )
-		clientdemo_CheckDemoBuffer( strlen( pszArg ) + 1 );
+		clientdemo_CheckDemoBuffer( (ULONG)strlen( pszArg ) + 1 );
 	else
 		clientdemo_CheckDemoBuffer( 1 );
 

@@ -136,7 +136,7 @@ bool AFlag::TryPickup( AActor *pToucher )
 	case RETURN_FLAG:
 
 		// Execute the return scripts.
-		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 		{
 			// I don't like these hacks :((((((((((((((
 			if ( this->GetClass( ) == PClass::FindClass( "WhiteFlag" ))
@@ -194,7 +194,7 @@ bool AFlag::TryPickup( AActor *pToucher )
 	AnnounceFlagPickup( pToucher );
 
 	// Player is picking up the flag.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		FBehavior::StaticStartTypedScripts( SCRIPT_Pickup, pToucher, true );
 

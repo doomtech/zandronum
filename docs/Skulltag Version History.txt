@@ -20,6 +20,9 @@ v0.97d-beta4
 +	- All weapons are now given in LMS/team LMS mode, except for those excluded by the allowed weapon flags, and those flagged as not appearing in LMS mode. [Carnevil]
 -	- Fixed issues with the IWAD/PWAD list for servers when hosting .pk3s with embedded .wad files. [Carnevil]
 -	- The crash dialog now displays properly whenever Skulltag crashes. [Carnevil]
+-	- Fixed bug in which obituary messages would get screwed up when players had long names.
+-	- Fixed bug in which some BOOM format maps would mistakenly have lines that block players. [Carnevil]
+-	- Custom invisible bridges now have their radius/height properly updated in network games. [Carnevil]
 !	- Brought back elements of the old invasion HUD. [Carnevil]
 
 v0.97d-beta3

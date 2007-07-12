@@ -172,6 +172,7 @@ IMPLEMENT_ACTOR (AInvisibleBridge, Any, 9990, 0)
 	PROP_RadiusFixed (32)
 	PROP_HeightFixed (4)
 	PROP_Flags4 (MF4_ACTLIKEBRIDGE)
+	PROP_FlagsNetwork( NETFL_UPDATEARGUMENTS )
 END_DEFAULTS
 
 void AInvisibleBridge::BeginPlay ()
