@@ -54,6 +54,7 @@
 #include "c_dispatch.h"
 #include "campaign.h"
 #include "cl_commands.h"
+#include "cl_demo.h"
 #include "cl_main.h"
 #include "cooperative.h"
 #include "deathmatch.h"
@@ -259,7 +260,7 @@ void TEAM_ExecuteReturnRoutine( ULONG ulTeamIdx, AActor *pReturner )
 		return;
 
 	// Execute the return scripts.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		// I don't like these hacks :((((((((((((((
 		if ( ulTeamIdx == NUM_TEAMS )
@@ -283,7 +284,7 @@ void TEAM_ExecuteReturnRoutine( ULONG ulTeamIdx, AActor *pReturner )
 	// In non-simple CTF mode, scripts take care of the returning and displaying messages.
 	if ( TEAM_GetSimpleCTFMode( ) || TEAM_GetSimpleSTMode( ))
 	{
-		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 			static_cast<AFlag *>( pFlag )->ReturnFlag( pReturner );
 		static_cast<AFlag *>( pFlag )->DisplayFlagReturn( );
 	}
@@ -297,7 +298,7 @@ void TEAM_ExecuteReturnRoutine( ULONG ulTeamIdx, AActor *pReturner )
 
 	// Destroy any sitting flags that being returned from the return ticks running out,
 	// or whatever reason.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		while ( pFlag = Iterator.Next( ))
 		{
@@ -1141,7 +1142,7 @@ void TEAM_SetScore( ULONG ulTeamIdx, LONG lScore, bool bAnnouncer )
 	}
 
 	// Implement the pointlimit.
-	if ( pointlimit <= 0 || ( NETWORK_GetState( ) == NETSTATE_CLIENT ))
+	if ( pointlimit <= 0 || ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ) == false ))
 		return;
 /*
 	// Potentially play the "3 points left", etc. announcer sounds.
