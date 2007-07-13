@@ -2212,6 +2212,10 @@ void D_MultiExec (DArgs *list, bool usePullin)
 //
 //==========================================================================
 
+#ifndef	WIN32
+extern int do_stdin;
+#endif
+
 void D_DoomMain (void)
 {
 	int p, flags;
@@ -2237,6 +2241,12 @@ void D_DoomMain (void)
 	// Determine if we're going to be a server, client, or local player.
 	if ( Args.CheckParm( "-host" ))
 		NETWORK_SetState( NETSTATE_SERVER );
+
+#ifndef	WIN32
+	// Check if we should read standard input.
+	if (Args.CheckParm("-noinput"))
+		do_stdin = 0;
+#endif
 
 	SetLanguageIDs ();
 
