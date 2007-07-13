@@ -2733,6 +2733,10 @@ void SERVERCOMMANDS_SpawnMissile( AActor *pMissile, ULONG ulPlayerExtra, ULONG u
 		else
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, -1 );
 	}
+	// [BB] It's possible that the angle can't be derived from the momentum
+	// of the missle. In this case the correct angle has to be told to the clients.
+ 	if( pMissile->angle != R_PointToAngle2( 0, 0, pMissile->momx, pMissile->momy ) )
+		SERVERCOMMANDS_SetThingAngle( pMissile, ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
@@ -2778,6 +2782,10 @@ void SERVERCOMMANDS_SpawnMissileExact( AActor *pMissile, ULONG ulPlayerExtra, UL
 		else
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, -1 );
 	}
+	// [BB] It's possible that the angle can't be derived from the momentum
+	// of the missle. In this case the correct angle has to be told to the clients.
+ 	if( pMissile->angle != R_PointToAngle2( 0, 0, pMissile->momx, pMissile->momy ) )
+		SERVERCOMMANDS_SetThingAngle( pMissile, ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************
