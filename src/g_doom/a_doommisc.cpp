@@ -9,8 +9,9 @@
 #include "doomstat.h"
 #include "gstrings.h"
 // [BC] New #includes.
-#include "deathmatch.h"
 #include "cooperative.h"
+#include "gamemode.h"
+#include "deathmatch.h"
 
 static FRandom pr_spawnpuffx ("SpawnPuffX");
 
@@ -72,7 +73,7 @@ void A_BarrelDestroy (AActor *actor)
 	else
 	{
 		// [BC] We may need to preserve these.
-		if ( survival || duel || lastmanstanding || teamlms || invasion )
+		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_MAPRESETS )
 		{
 			actor->SetState( &AInventory::States[17] );
 

@@ -56,6 +56,7 @@
 #include "d_player.h"
 #include "duel.h"
 #include "g_game.h"
+#include "gamemode.h"
 #include "gi.h"
 #include "lastmanstanding.h"
 #include "team.h"
@@ -336,7 +337,7 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 
 	// If the launcher desires to know the team score, but we're not in a game mode where
 	// teams have scores, then don't send back team score information.
-	if (( teamplay || teamgame || teamlms || teampossession ) == false )
+	if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) == false )
 	{
 		if ( ulBits & SQF_TEAMSCORES )
 			ulBits &= ~SQF_TEAMSCORES;
@@ -419,7 +420,7 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 
 	if ( ulBits & SQF_GAMETYPE )
 	{
-		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, GAME_GetGameType( ));
+		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, GAMEMODE_GetCurrentMode( ));
 		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, instagib );
 		NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, buckshot );
 	}
@@ -475,7 +476,7 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 	}
 
 	// Send the team scores.
-	if ( teamplay || teamgame || teamlms || teampossession )
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 	{
 		if ( ulBits & SQF_TEAMSCORES )
 		{
@@ -513,7 +514,7 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 			NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, PLAYER_IsTrueSpectator( &players[ulIdx] ));
 			NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, players[ulIdx].bIsBot );
 
-			if ( teamplay || teamgame || teamlms || teampossession )
+			if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 			{
 				if ( players[ulIdx].bOnTeam == false )
 					NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, 255 );

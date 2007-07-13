@@ -23,6 +23,7 @@
 #include "cl_demo.h"
 #include "announcer.h"
 #include "scoreboard.h"
+#include "gamemode.h"
 
 static FRandom pr_restore ("RestorePos");
 
@@ -172,7 +173,7 @@ AInventory *AAmmo::CreateCopy (AActor *other)
 		{
 			// [BC] In certain modes, hide this item indefinitely so we can respawn it if
 			// necessary.
-			if ((( flags & MF_DROPPED ) == false ) && ( survival || duel || lastmanstanding || teamlms || invasion ))
+			if ((( flags & MF_DROPPED ) == false ) && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_MAPRESETS ))
 				SetState( &AInventory::States[17] );
 			// [BC] Changed this so it stays around for one frame.
 			else
@@ -657,7 +658,7 @@ bool AInventory::GoAway ()
 		}
 /*
 		// [BC] Test
-		if ( invasion || survival || duel || lastmanstanding || teamlms )
+		if ( GAMEMODE_GetFlags( ) & GMF_MAPRESETS )
 			HideIndefinitely( );
 		else
 */
@@ -688,7 +689,7 @@ void AInventory::GoAwayAndDie ()
 
 		// [BC] In certain modes, hide this item indefinitely so we can respawn it if
 		// necessary.
-		if ((( flags & MF_DROPPED ) == false ) && ( survival || duel || lastmanstanding || teamlms || invasion ))
+		if ((( flags & MF_DROPPED ) == false ) && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_MAPRESETS ))
 			SetState( &States[S_HIDEINDEFINITELY] );
 		else
 			SetState (&States[S_HOLDANDDESTROY]);

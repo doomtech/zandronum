@@ -51,6 +51,7 @@
 #ifndef __BROWSER_H__
 #define __BROWSER_H__
 
+#include "gamemode.h"
 #include "network.h"
 
 //*****************************************************************************
@@ -125,8 +126,8 @@ typedef struct
 	// Name of the IWAD being used.
 	char			szIWADName[32];
 
-	// Gametype of the server.
-	LONG			lGameType;
+	// Game mode of the server.
+	GAMEMODE_e		GameMode;
 
 	// Number of players on the server.
 	LONG			lNumPlayers;
@@ -164,7 +165,7 @@ LONG			BROWSER_GetMaxClients( ULONG ulServer );
 LONG			BROWSER_GetNumPWADs( ULONG ulServer );
 char			*BROWSER_GetPWADName( ULONG ulServer, ULONG ulWadIdx );
 char			*BROWSER_GetIWADName( ULONG ulServer );
-LONG			BROWSER_GetGameType( ULONG ulServer );
+GAMEMODE_e		BROWSER_GetGameMode( ULONG ulServer );
 LONG			BROWSER_GetNumPlayers( ULONG ulServer );
 char			*BROWSER_GetPlayerName( ULONG ulServer, ULONG ulPlayer );
 LONG			BROWSER_GetPlayerFragcount( ULONG ulServer, ULONG ulPlayer );

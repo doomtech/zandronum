@@ -1,7 +1,7 @@
 //-----------------------------------------------------------------------------
 //
 // Skulltag Source
-// Copyright (C) 2003 Brad Carney
+// Copyright (C) 2007 Brad Carney
 // Copyright (C) 2007-2012 Skulltag Development Team
 // All rights reserved.
 //

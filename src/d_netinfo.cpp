@@ -57,6 +57,7 @@
 #include "cl_demo.h"
 #include "cl_main.h"
 #include "deathmatch.h"
+#include "gamemode.h"
 #include "team.h"
 
 static FRandom pr_pickteam ("PickRandomTeam");
@@ -160,7 +161,7 @@ void D_GetPlayerColor (int player, float *h, float *s, float *v)
 	RGBtoHSV (RPART(color)/255.f, GPART(color)/255.f, BPART(color)/255.f,
 		h, s, v);
 
-	if ( teamgame || teamplay || teamlms || teampossession )
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 	{
 		if ( players[player].bOnTeam )
 		{

@@ -59,6 +59,7 @@
 #include "deathmatch.h"
 #include "duel.h"
 #include "g_game.h"
+#include "gamemode.h"
 #include "cl_main.h"
 #include "cooperative.h"
 #include "invasion.h"
@@ -762,7 +763,7 @@ void AActor::DestroyAllInventory ()
 		AInventory *item = Inventory;
 		// [BC] In certain modes, we may need to keep this item around.
 		if (( item->ulSTFlags & STFL_LEVELSPAWNED ) &&
-			( survival || duel || lastmanstanding || teamlms || invasion ))
+			( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_MAPRESETS ))
 		{
 			item->HideIndefinitely( );
 
@@ -5504,7 +5505,7 @@ bool AActor::IsTeammate (AActor *other)
 		return ( true );
 
 	// Teamplay deathmatch, CTF, Skulltag, etc.
-	if ( teamgame || teamplay || teamlms || teampossession )
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 	{
 		// If either player isn't on a team...
 		if ( player->bOnTeam == false || other->player->bOnTeam == false )

@@ -1526,9 +1526,9 @@ void WI_UpdateCampaignStats( void )
 				cnt_Rank = WI_CalcRank( );
 		}
 
-		if ( cnt_NumPlayers >= (( teamplay || teamlms || teamgame || teampossession ) ? 2 : SERVER_CalcNumPlayers( )))
+		if ( cnt_NumPlayers >= (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) ? 2 : SERVER_CalcNumPlayers( )))
 		{
-			cnt_NumPlayers = (( teamplay || teamlms || teamgame || teampossession ) ? 2 : SERVER_CalcNumPlayers( ));
+			cnt_NumPlayers = (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) ? 2 : SERVER_CalcNumPlayers( ));
 			S_Sound( CHAN_VOICE, NEXTSTAGE, 1, ATTN_NONE );
 			cp_state++;
 		}
@@ -1589,17 +1589,17 @@ void WI_DrawCampaignStats (void)
 	WI_drawLF();
 
 	screen->SetFont (BigFont);
-	if ( lastmanstanding || teamlms )
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNWINS )
 	{
 		screen->DrawText (CR_RED, SP_STATSX, SP_STATSY, "WINS", DTA_Clean, true, DTA_Shadow, true, TAG_DONE);
 		screen->DrawText (CR_RED, SP_STATSX, SP_STATSY+lh, "FRAGS", DTA_Clean, true, DTA_Shadow, true, TAG_DONE);
 	}
-	else if ( teamgame )
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNPOINTS )
 	{
 		screen->DrawText (CR_RED, SP_STATSX, SP_STATSY, "POINTS", DTA_Clean, true, DTA_Shadow, true, TAG_DONE);
 		screen->DrawText (CR_RED, SP_STATSX, SP_STATSY+lh, "FRAGS", DTA_Clean, true, DTA_Shadow, true, TAG_DONE);
 	}
-	else
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNFRAGS )
 	{
 		screen->DrawText (CR_RED, SP_STATSX, SP_STATSY, "FRAGS", DTA_Clean, true, DTA_Shadow, true, TAG_DONE);
 		screen->DrawText (CR_RED, SP_STATSX, SP_STATSY+lh, "DEATHS", DTA_Clean, true, DTA_Shadow, true, TAG_DONE);
@@ -1628,7 +1628,7 @@ void WI_DrawCampaignStats (void)
 
 		if ( cp_state >= 7 )
 		{
-			if ( teamplay || teamlms || teamgame || teampossession )
+			if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 			{
 				if ( CAMPAIGN_DidPlayerBeatMap( ))
 					sprintf( szString, "YOU WIN!" );

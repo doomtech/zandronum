@@ -55,6 +55,7 @@
 #include "deathmatch.h"
 #include "duel.h"
 #include "g_game.h"
+#include "gstrings.h"
 #include "network.h"
 #include "p_effect.h"
 #include "sbar.h"
@@ -257,8 +258,7 @@ void DUEL_DoFight( void )
 		Printf( "FIGHT!\n" );
 
 	// Reset the map.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
-		GAME_ResetMap( );
+	GAME_ResetMap( );
 
 	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
 	{
@@ -375,6 +375,107 @@ bool DUEL_IsDueler( ULONG ulPlayer )
 		return ( false );
 
 	return (( playeringame[ulPlayer] ) && ( players[ulPlayer].bSpectating == false ));
+}
+
+//*****************************************************************************
+//
+void DUEL_TimeExpired( void )
+{
+	LONG				lDueler1 = -1;
+	LONG				lDueler2 = -1;
+	LONG				lWinner = -1;
+	LONG				lLoser = -1;
+	ULONG				ulIdx;
+	DHUDMessageFadeOut	*pMsg;
+	char				szString[64];
+
+	// Don't end the level if we're not in a duel.
+	if ( DUEL_GetState( ) != DS_INDUEL )
+		return;
+
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( DUEL_IsDueler( ulIdx ))
+		{
+			if ( lDueler1 == -1 )
+				lDueler1 = ulIdx;
+			else if ( lDueler2 == -1 )
+				lDueler2 = ulIdx;
+		}
+	}
+
+	// If for some reason we don't have two duelers, just end the map like normal.
+	if (( lDueler1 == -1 ) || ( lDueler2 == -1 ))
+	{
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVER_Printf( PRINT_HIGH, "%s\n", GStrings( "TXT_TIMELIMIT" ));
+		else
+			Printf( "%s\n", GStrings( "TXT_TIMELIMIT" ));
+
+		GAME_SetEndLevelDelay( 5 * TICRATE );
+		return;
+	}
+
+	// If the timelimit is reached, and both duelers have the same fragcount, 
+	// sudden death is reached!
+	if (( players[lDueler1].fragcount ) == ( players[lDueler2].fragcount ))
+	{
+		// Only print the message the instant we reach sudden death.
+		if ( level.time == (int)( timelimit * TICRATE * 60 ))
+		{
+			if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+			{
+				screen->SetFont( BigFont );
+
+				sprintf( szString, "\\cdSUDDEN DEATH!" );
+				V_ColorizeString( szString );
+
+				// Display the HUD message.
+				pMsg = new DHUDMessageFadeOut( szString,
+					160.4f,
+					75.0f,
+					320,
+					200,
+					CR_RED,
+					3.0f,
+					2.0f );
+
+				StatusBar->AttachMessage( pMsg, 'CNTR' );
+				screen->SetFont( SmallFont );
+			}
+			else
+			{
+				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", 'CNTR' );
+			}
+		}
+
+		return;
+	}
+
+	if (( players[lDueler1].fragcount ) > ( players[lDueler2].fragcount ))
+	{
+		lWinner = lDueler1;
+		lLoser = lDueler2;
+	}
+	else
+	{
+		lWinner = lDueler2;
+		lLoser = lDueler1;
+	}
+
+	// Also, do the win sequence for the player.
+	DUEL_SetLoser( lLoser );
+	DUEL_DoWinSequence( lWinner );
+
+	// Give the winner a win.
+	PLAYER_SetWins( &players[lWinner], players[lWinner].ulWins + 1 );
+
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVER_Printf( PRINT_HIGH, "%s\n", GStrings( "TXT_TIMELIMIT" ));
+	else
+		Printf( "%s\n", GStrings( "TXT_TIMELIMIT" ));
+
+	GAME_SetEndLevelDelay( 5 * TICRATE );
 }
 
 //*****************************************************************************

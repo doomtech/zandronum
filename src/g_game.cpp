@@ -93,6 +93,7 @@
 #include "p_acs.h"
 #include "cl_commands.h"
 #include "possession.h"
+#include "statnums.h"
 
 #include "gl/gl_lights.h"
 
@@ -937,7 +938,7 @@ static void ChangeSpy (bool forward)
 	}
 
 	// [BC] Allow view switch to players on our team.
-	if ( teamgame || teamplay || teamlms || teampossession )
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 	{
 		// Break if the player isn't on a team.
 		if ( players[consoleplayer].bOnTeam == false )
@@ -2979,6 +2980,20 @@ void GAME_ResetMap( void )
 	fixed_t							Y;
 	fixed_t							Z;
 	TThinkerIterator<AActor>		ActorIterator;
+	DThinker						*pThinker;
+
+	// Unload decals.
+	do
+	{
+		pThinker = DThinker::FirstThinker( STAT_AUTODECAL );
+		if ( pThinker != NULL )
+			pThinker->Destroy( );
+
+	} while ( pThinker );
+
+	// This is all we do in client mode.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+		return;
 
 	for ( ulIdx = 0; ulIdx < (ULONG)numlines; ulIdx++ )
 	{
@@ -3093,14 +3108,14 @@ void GAME_ResetMap( void )
 
 		sky1texture = TexMan.GetTexture( level.skypic1, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable );
 		sky2texture = TexMan.GetTexture( level.skypic2, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable );
-		
+
 		R_InitSkyMap( );
 
 		// If we're the server, tell clients to update their sky.
 		if (( bSendSkyUpdate ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
 			SERVERCOMMANDS_SetMapSky( );
 	}
-	
+
 	// Reset the number of monsters killed,  items picked up, and found secrets on the level.
 	level.killed_monsters = 0;
 	level.found_items = 0;
@@ -3495,45 +3510,6 @@ void GAME_SetFreezeMode( bool bFreeze )
 bool GAME_GetFreezeMode( void )
 {
 	return ( g_bFreezeMode );
-}
-
-//*****************************************************************************
-//
-LONG GAME_GetGameType( void )
-{
-	LONG	lGameType;
-
-	lGameType = GAMETYPE_COOPERATIVE;
-	if ( survival )
-		lGameType = GAMETYPE_SURVIVAL;
-	if ( invasion )
-		lGameType = GAMETYPE_INVASION;
-	if ( deathmatch )
-		lGameType = GAMETYPE_DEATHMATCH;
-	if ( teamplay )
-		lGameType = GAMETYPE_TEAMPLAY;
-	if ( duel )
-		lGameType = GAMETYPE_DUEL;
-	if ( terminator )
-		lGameType = GAMETYPE_TERMINATOR;
-	if ( lastmanstanding )
-		lGameType = GAMETYPE_LASTMANSTANDING;
-	if ( teamlms )
-		lGameType = GAMETYPE_TEAMLMS;
-	if ( possession )
-		lGameType = GAMETYPE_POSSESSION;
-	if ( teampossession )
-		lGameType = GAMETYPE_TEAMPOSSESSION;
-	if ( teamgame )
-		lGameType = GAMETYPE_TEAMGAME;
-	if ( ctf )
-		lGameType = GAMETYPE_CTF;
-	if ( oneflagctf )
-		lGameType = GAMETYPE_ONEFLAGCTF;
-	if ( skulltag )
-		lGameType = GAMETYPE_SKULLTAG;
-
-	return ( lGameType );
 }
 
 //*****************************************************************************

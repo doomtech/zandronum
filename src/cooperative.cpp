@@ -50,6 +50,7 @@
 
 #include "cooperative.h"
 #include "deathmatch.h"
+#include "gamemode.h"
 #include "team.h"
 
 //*****************************************************************************
@@ -77,6 +78,9 @@ CUSTOM_CVAR( Bool, cooperative, true, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAI
 		survival.ForceSet( Val, CVAR_Bool );
 		invasion.ForceSet( Val, CVAR_Bool );
 	}
+
+	// Reset what the current game mode is.
+	GAMEMODE_DetermineGameMode( );
 }
 
 //*****************************************************************************
@@ -97,6 +101,9 @@ CUSTOM_CVAR( Bool, survival, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGN
 		// Disable other modes.
 		invasion.ForceSet( Val, CVAR_Bool );
 	}
+
+	// Reset what the current game mode is.
+	GAMEMODE_DetermineGameMode( );
 }
 
 //*****************************************************************************
@@ -117,6 +124,9 @@ CUSTOM_CVAR( Bool, invasion, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGN
 		// Disable other modes.
 		survival.ForceSet( Val, CVAR_Bool );
 	}
+
+	// Reset what the current game mode is.
+	GAMEMODE_DetermineGameMode( );
 }
 
 //*****************************************************************************

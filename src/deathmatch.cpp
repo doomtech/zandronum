@@ -55,6 +55,7 @@
 #include "cooperative.h"
 #include "deathmatch.h"
 #include "g_game.h"
+#include "gamemode.h"
 #include "network.h"
 #include "p_effect.h"
 #include "r_state.h"
@@ -108,6 +109,9 @@ CUSTOM_CVAR( Bool, deathmatch, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAI
 				cooperative.ForceSet( Val, CVAR_Bool );
 		}
 	}
+
+	// Reset what the current game mode is.
+	GAMEMODE_DetermineGameMode( );
 }
 
 //*****************************************************************************
@@ -131,6 +135,9 @@ CUSTOM_CVAR( Bool, teamplay, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGN
 		possession.ForceSet( Val, CVAR_Bool );
 		teampossession.ForceSet( Val, CVAR_Bool );
 	}
+
+	// Reset what the current game mode is.
+	GAMEMODE_DetermineGameMode( );
 }
 
 //*****************************************************************************
@@ -154,6 +161,9 @@ CUSTOM_CVAR( Bool, duel, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGNLOCK
 		possession.ForceSet( Val, CVAR_Bool );
 		teampossession.ForceSet( Val, CVAR_Bool );
 	}
+
+	// Reset what the current game mode is.
+	GAMEMODE_DetermineGameMode( );
 }
 
 //*****************************************************************************
@@ -177,6 +187,9 @@ CUSTOM_CVAR( Bool, terminator, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAI
 		possession.ForceSet( Val, CVAR_Bool );
 		teampossession.ForceSet( Val, CVAR_Bool );
 	}
+
+	// Reset what the current game mode is.
+	GAMEMODE_DetermineGameMode( );
 }
 
 //*****************************************************************************
@@ -200,6 +213,9 @@ CUSTOM_CVAR( Bool, lastmanstanding, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_C
 		possession.ForceSet( Val, CVAR_Bool );
 		teampossession.ForceSet( Val, CVAR_Bool );
 	}
+
+	// Reset what the current game mode is.
+	GAMEMODE_DetermineGameMode( );
 }
 
 //*****************************************************************************
@@ -223,6 +239,9 @@ CUSTOM_CVAR( Bool, teamlms, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGNL
 		possession.ForceSet( Val, CVAR_Bool );
 		teampossession.ForceSet( Val, CVAR_Bool );
 	}
+
+	// Reset what the current game mode is.
+	GAMEMODE_DetermineGameMode( );
 }
 
 //*****************************************************************************
@@ -246,6 +265,9 @@ CUSTOM_CVAR( Bool, possession, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAI
 		teamlms.ForceSet( Val, CVAR_Bool );
 		teampossession.ForceSet( Val, CVAR_Bool );
 	}
+
+	// Reset what the current game mode is.
+	GAMEMODE_DetermineGameMode( );
 }
 
 //*****************************************************************************
@@ -269,6 +291,9 @@ CUSTOM_CVAR( Bool, teampossession, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CA
 		teamlms.ForceSet( Val, CVAR_Bool );
 		possession.ForceSet( Val, CVAR_Bool );
 	}
+
+	// Reset what the current game mode is.
+	GAMEMODE_DetermineGameMode( );
 }
 
 //*****************************************************************************

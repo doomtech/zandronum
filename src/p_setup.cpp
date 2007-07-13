@@ -3400,7 +3400,7 @@ void P_RemoveThings( void )
 	while ( pActor = iterator.Next( ))
 	{
 		// No special items are spawned during instagib, shotgun battle, or LMS.
-		if ((( instagib || buckshot ) && ( deathmatch || teamgame )) || lastmanstanding || teamlms )
+		if ((( instagib || buckshot ) && ( deathmatch || teamgame )) || ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DONTSPAWNMAPTHINGS ))
 		{
 			if ( pActor->flags & MF_SPECIAL )
 			{

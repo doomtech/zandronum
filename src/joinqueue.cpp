@@ -54,6 +54,7 @@
 #include "deathmatch.h"
 #include "duel.h"
 #include "g_game.h"
+#include "gamemode.h"
 #include "invasion.h"
 #include "lastmanstanding.h"
 #include "joinqueue.h"
@@ -332,7 +333,7 @@ void JOINQUEUE_PopQueue( LONG lNumSlots )
 			if ( players[g_lJoinQueue[ulIdx].ulPlayer].pSkullBot )
 				players[g_lJoinQueue[ulIdx].ulPlayer].pSkullBot->PostEvent( BOTEVENT_JOINEDGAME );
 
-			if ( teamplay || teamgame || teamlms || teampossession )
+			if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 			{
 				if (( g_lJoinQueue[ulIdx].ulTeam == TEAM_BLUE ) || ( g_lJoinQueue[ulIdx].ulTeam == TEAM_RED ))
 					PLAYER_SetTeam( &players[g_lJoinQueue[ulIdx].ulPlayer], g_lJoinQueue[ulIdx].ulTeam, true );

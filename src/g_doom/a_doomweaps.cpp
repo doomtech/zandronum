@@ -19,6 +19,7 @@
 #include "p_enemy.h"
 #include "cl_demo.h"
 #include "cl_main.h"
+#include "gamemode.h"
 
 static FRandom pr_punch ("Punch");
 static FRandom pr_saw ("Saw");
@@ -752,9 +753,26 @@ END_DEFAULTS
 //
 void A_FireCGun (AActor *actor)
 {
+	// [BC] I guess we have to do all this old stuff to ensure that the flash state on the
+	// chaingun ends up on the right frame. Shouldn't it just work?
+	player_t *player = actor->player;
+
+	if (NULL == player)
+	{
+		return;
+	}
+	player->mo->PlayAttacking2 ();
+
+	int theflash = clamp (int(players->psprites[ps_weapon].state - player->ReadyWeapon->AtkState), 0, 1);
+	if (player->ReadyWeapon->FlashState[theflash].sprite.index != player->ReadyWeapon->FlashState->sprite.index)
+	{
+		theflash = 0;
+	}
+	P_SetPsprite (player, ps_flash, player->ReadyWeapon->FlashState + theflash);
+
 	// [BB] A_FireCGun is only kept to stay compatible with Dehacked.
 	A_CustomFireBullets( actor, angle_t( 5.6 * ANGLE_1), angle_t( 0 * ANGLE_1), 1, 5 );
-	A_GunFlash( actor );
+//	A_GunFlash( actor );
 /*
 	player_t *player;
 
@@ -916,8 +934,17 @@ void A_FireMiniGun( AActor *actor )
 			return;
 
 		if ( pWeapon->FlashState != NULL )
-			P_SetPsprite( pPlayer, ps_flash, pWeapon->FlashState );
+		{
+			// [RH] Fix for Sparky's messed-up Dehacked patch! Blargh!
+			int theflash = clamp (int(players->psprites[ps_weapon].state - pWeapon->AtkState), 0, 1);
 
+			if ( pWeapon->FlashState[theflash].sprite.index != pWeapon->FlashState->sprite.index)
+			{
+				theflash = 0;
+			}
+
+			P_SetPsprite( pPlayer, ps_flash, pWeapon->FlashState + theflash );
+		}
 	}
 
 	pPlayer->mo->PlayAttacking2( );
@@ -1532,7 +1559,7 @@ void A_FireRailgun (AActor *actor)
 		break;
 	}
 
-	if (( teamgame || teamplay || teamlms || teampossession ) && ( player->bOnTeam ))
+	if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) && ( player->bOnTeam ))
 	{
 		lOuterColor = TEAM_GetRailgunColor( player->ulTeam );
 		lInnerColor = lColor;

@@ -71,28 +71,6 @@ enum
 };
 
 //*****************************************************************************
-enum
-{
-	GAMETYPE_COOPERATIVE,
-	GAMETYPE_SURVIVAL,
-	GAMETYPE_INVASION,
-	GAMETYPE_DEATHMATCH,
-	GAMETYPE_TEAMPLAY,
-	GAMETYPE_DUEL,
-	GAMETYPE_TERMINATOR,
-	GAMETYPE_LASTMANSTANDING,
-	GAMETYPE_TEAMLMS,
-	GAMETYPE_POSSESSION,
-	GAMETYPE_TEAMPOSSESSION,
-	GAMETYPE_TEAMGAME,
-	GAMETYPE_CTF,
-	GAMETYPE_ONEFLAGCTF,
-	GAMETYPE_SKULLTAG,
-
-	NUM_GAMETYPES
-};
-
-//*****************************************************************************
 //  EXTERNAL CONSOLE VARIABLES
 
 EXTERN_CVAR( Bool, deathmatch )

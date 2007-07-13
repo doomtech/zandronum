@@ -2024,7 +2024,7 @@ bool M_ShouldShowServer( LONG lServer )
 	// Don't show servers that have the gameplay mode we want.
 	if ( menu_browser_gametype != 0 )
 	{
-		if ( BROWSER_GetGameType( lServer ) != ( menu_browser_gametype - 1 ))
+		if ( BROWSER_GetGameMode( lServer ) != ( menu_browser_gametype - 1 ))
 			return ( false );
 	}
 
@@ -2219,7 +2219,7 @@ void M_DrawServerInfo( void )
 
 	ulCurYPos += ulTextHeight;
 
-	sprintf( szString, "Gametype: \\cc%s", GameModeVals[BROWSER_GetGameType( g_lSelectedServer )].name );
+	sprintf( szString, "Gametype: \\cc%s", GameModeVals[BROWSER_GetGameMode( g_lSelectedServer )].name );
 	V_ColorizeString( szString );
 	screen->DrawText( CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
 
@@ -2746,13 +2746,13 @@ void M_ClearBotSlotList( void )
 	char		szCVarName[32];
 
 	// Initialize bot spawn times.
-	if (( menu_gamemode == GAMETYPE_TEAMPLAY ) ||
-		( menu_gamemode == GAMETYPE_TEAMPOSSESSION ) ||
-		( menu_gamemode == GAMETYPE_TEAMLMS ) ||
-		( menu_gamemode == GAMETYPE_TEAMGAME ) ||
-		( menu_gamemode == GAMETYPE_CTF ) ||
-		( menu_gamemode == GAMETYPE_ONEFLAGCTF ) ||
-		( menu_gamemode == GAMETYPE_SKULLTAG ))
+	if (( menu_gamemode == GAMEMODE_TEAMPLAY ) ||
+		( menu_gamemode == GAMEMODE_TEAMPOSSESSION ) ||
+		( menu_gamemode == GAMEMODE_TEAMLMS ) ||
+		( menu_gamemode == GAMEMODE_TEAMGAME ) ||
+		( menu_gamemode == GAMEMODE_CTF ) ||
+		( menu_gamemode == GAMEMODE_ONEFLAGCTF ) ||
+		( menu_gamemode == GAMEMODE_SKULLTAG ))
 	{
 		for ( ulIdx = 0; ulIdx < 16; ulIdx++ )
 		{
@@ -2805,13 +2805,13 @@ void M_StartSkirmishGame( void )
 	BOTSPAWN_ClearTable( );
 
 	// Initialize bot spawn times.
-	if (( menu_gamemode == GAMETYPE_TEAMPLAY ) ||
-		( menu_gamemode == GAMETYPE_TEAMPOSSESSION ) ||
-		( menu_gamemode == GAMETYPE_TEAMLMS ) ||
-		( menu_gamemode == GAMETYPE_TEAMGAME ) ||
-		( menu_gamemode == GAMETYPE_CTF ) ||
-		( menu_gamemode == GAMETYPE_ONEFLAGCTF ) ||
-		( menu_gamemode == GAMETYPE_SKULLTAG ))
+	if (( menu_gamemode == GAMEMODE_TEAMPLAY ) ||
+		( menu_gamemode == GAMEMODE_TEAMPOSSESSION ) ||
+		( menu_gamemode == GAMEMODE_TEAMLMS ) ||
+		( menu_gamemode == GAMEMODE_TEAMGAME ) ||
+		( menu_gamemode == GAMEMODE_CTF ) ||
+		( menu_gamemode == GAMEMODE_ONEFLAGCTF ) ||
+		( menu_gamemode == GAMEMODE_SKULLTAG ))
 	{
 		for ( ulIdx = 0; ulIdx < 16; ulIdx++ )
 		{
@@ -2892,63 +2892,63 @@ void M_StartSkirmishGame( void )
 	Val.Bool = true;
 	switch ( menu_gamemode )
 	{
-	case GAMETYPE_COOPERATIVE:
+	case GAMEMODE_COOPERATIVE:
 
 		cooperative.ForceSet( Val, CVAR_Bool );
 		break;
-	case GAMETYPE_SURVIVAL:
+	case GAMEMODE_SURVIVAL:
 
 		survival.ForceSet( Val, CVAR_Bool );
 		break;
-	case GAMETYPE_INVASION:
+	case GAMEMODE_INVASION:
 
 		invasion.ForceSet( Val, CVAR_Bool );
 		break;
-	case GAMETYPE_DEATHMATCH:
+	case GAMEMODE_DEATHMATCH:
 
 		deathmatch.ForceSet( Val, CVAR_Bool );
 		break;
-	case GAMETYPE_TEAMPLAY:
+	case GAMEMODE_TEAMPLAY:
 
 		teamplay.ForceSet( Val, CVAR_Bool );
 		break;
-	case GAMETYPE_DUEL:
+	case GAMEMODE_DUEL:
 
 		duel.ForceSet( Val, CVAR_Bool );
 		break;
-	case GAMETYPE_TERMINATOR:
+	case GAMEMODE_TERMINATOR:
 
 		terminator.ForceSet( Val, CVAR_Bool );
 		break;
-	case GAMETYPE_LASTMANSTANDING:
+	case GAMEMODE_LASTMANSTANDING:
 
 		lastmanstanding.ForceSet( Val, CVAR_Bool );
 		break;
-	case GAMETYPE_TEAMLMS:
+	case GAMEMODE_TEAMLMS:
 
 		teamlms.ForceSet( Val, CVAR_Bool );
 		break;
-	case GAMETYPE_POSSESSION:
+	case GAMEMODE_POSSESSION:
 
 		possession.ForceSet( Val, CVAR_Bool );
 		break;
-	case GAMETYPE_TEAMPOSSESSION:
+	case GAMEMODE_TEAMPOSSESSION:
 
 		teampossession.ForceSet( Val, CVAR_Bool );
 		break;
-	case GAMETYPE_TEAMGAME:
+	case GAMEMODE_TEAMGAME:
 
 		teamgame.ForceSet( Val, CVAR_Bool );
 		break;
-	case GAMETYPE_CTF:
+	case GAMEMODE_CTF:
 
 		ctf.ForceSet( Val, CVAR_Bool );
 		break;
-	case GAMETYPE_ONEFLAGCTF:
+	case GAMEMODE_ONEFLAGCTF:
 
 		oneflagctf.ForceSet( Val, CVAR_Bool );
 		break;
-	case GAMETYPE_SKULLTAG:
+	case GAMEMODE_SKULLTAG:
 
 		skulltag.ForceSet( Val, CVAR_Bool );
 		break;
@@ -3111,13 +3111,13 @@ void M_BotSetup( void )
 	UCVarValue	Val;
 	char		szCVarName[32];
 
-	if (( menu_gamemode == GAMETYPE_TEAMPLAY ) ||
-		( menu_gamemode == GAMETYPE_TEAMPOSSESSION ) ||
-		( menu_gamemode == GAMETYPE_TEAMLMS ) ||
-		( menu_gamemode == GAMETYPE_TEAMGAME ) ||
-		( menu_gamemode == GAMETYPE_CTF ) ||
-		( menu_gamemode == GAMETYPE_ONEFLAGCTF ) ||
-		( menu_gamemode == GAMETYPE_SKULLTAG ))
+	if (( menu_gamemode == GAMEMODE_TEAMPLAY ) ||
+		( menu_gamemode == GAMEMODE_TEAMPOSSESSION ) ||
+		( menu_gamemode == GAMEMODE_TEAMLMS ) ||
+		( menu_gamemode == GAMEMODE_TEAMGAME ) ||
+		( menu_gamemode == GAMEMODE_CTF ) ||
+		( menu_gamemode == GAMEMODE_ONEFLAGCTF ) ||
+		( menu_gamemode == GAMEMODE_SKULLTAG ))
 	{
 		for ( ulIdx = 0; ulIdx < 16; ulIdx++ )
 		{
@@ -4212,13 +4212,13 @@ void M_OptDrawer ()
 					char		szCVarName[32];
 					char		szBuffer[256];
 
-					if (( menu_gamemode == GAMETYPE_TEAMPLAY ) ||
-						( menu_gamemode == GAMETYPE_TEAMPOSSESSION ) ||
-						( menu_gamemode == GAMETYPE_TEAMLMS ) ||
-						( menu_gamemode == GAMETYPE_TEAMGAME ) ||
-						( menu_gamemode == GAMETYPE_CTF ) ||
-						( menu_gamemode == GAMETYPE_ONEFLAGCTF ) ||
-						( menu_gamemode == GAMETYPE_SKULLTAG ))
+					if (( menu_gamemode == GAMEMODE_TEAMPLAY ) ||
+						( menu_gamemode == GAMEMODE_TEAMPOSSESSION ) ||
+						( menu_gamemode == GAMEMODE_TEAMLMS ) ||
+						( menu_gamemode == GAMEMODE_TEAMGAME ) ||
+						( menu_gamemode == GAMEMODE_CTF ) ||
+						( menu_gamemode == GAMEMODE_ONEFLAGCTF ) ||
+						( menu_gamemode == GAMEMODE_SKULLTAG ))
 					{
 						if ( i < 13 )
 							sprintf( szCVarName, "menu_teambotspawn%d", i - 5 );
@@ -4372,76 +4372,14 @@ void M_OptDrawer ()
 				// Draw map.
 				strncpy( szString, BROWSER_GetMapname( lServer ), 8 );
 				screen->DrawText( lColor, /*128*/160, y, szString, DTA_Clean, true, TAG_DONE );
-	/*
+/*
 				// Draw wad.
 				if ( BROWSER_Get
 				sprintf( szString, "%d", BROWSER_GetPing( lServer ));
 				screen->DrawText( CR_GRAY, 160, y, "WAD", DTA_Clean, true, TAG_DONE );
-	*/
+*/
 				// Draw gametype.
-				switch ( BROWSER_GetGameType( lServer ))
-				{
-				case GAMETYPE_COOPERATIVE:
-
-					sprintf( szString, "%s", "CO-OP" );
-					break;
-				case GAMETYPE_SURVIVAL:
-
-					sprintf( szString, "%s", "SURV" );
-					break;
-				case GAMETYPE_INVASION:
-
-					sprintf( szString, "%s", "INVAS" );
-					break;
-				case GAMETYPE_DEATHMATCH:
-
-					sprintf( szString, "%s", "DM" );
-					break;
-				case GAMETYPE_TEAMPLAY:
-
-					sprintf( szString, "%s", "TDM" );
-					break;
-				case GAMETYPE_DUEL:
-
-					sprintf( szString, "%s", "DUEL" );
-					break;
-				case GAMETYPE_TERMINATOR:
-
-					sprintf( szString, "%s", "TERM" );
-					break;
-				case GAMETYPE_LASTMANSTANDING:
-
-					sprintf( szString, "%s", "LMS" );
-					break;
-				case GAMETYPE_TEAMLMS:
-
-					sprintf( szString, "%s", "TM LMS" );
-					break;
-				case GAMETYPE_POSSESSION:
-
-					sprintf( szString, "%s", "POSS" );
-					break;
-				case GAMETYPE_TEAMPOSSESSION:
-
-					sprintf( szString, "%s", "TM POSS" );
-					break;
-				case GAMETYPE_SKULLTAG:
-
-					sprintf( szString, "%s", "ST" );
-					break;
-				case GAMETYPE_CTF:
-
-					sprintf( szString, "%s", "CTF" );
-					break;
-				case GAMETYPE_ONEFLAGCTF:
-
-					sprintf( szString, "%s", "OFCTF" );
-					break;
-				default:
-
-					sprintf( szString, "%s", "UNKNOWN" );
-					break;
-				}
+				strncpy( szString, GAMEMODE_GetShortName( BROWSER_GetGameMode( lServer )), 8 );
 				screen->DrawText( lColor, 224, y, szString, DTA_Clean, true, TAG_DONE );
 
 				// Draw players.
@@ -5100,13 +5038,13 @@ void M_OptResponder (event_t *ev)
 					UCVarValue	Val;
 					char		szCVarName[32];
 
-					if (( menu_gamemode == GAMETYPE_TEAMPLAY ) ||
-						( menu_gamemode == GAMETYPE_TEAMPOSSESSION ) ||
-						( menu_gamemode == GAMETYPE_TEAMLMS ) ||
-						( menu_gamemode == GAMETYPE_TEAMGAME ) ||
-						( menu_gamemode == GAMETYPE_CTF ) ||
-						( menu_gamemode == GAMETYPE_ONEFLAGCTF ) ||
-						( menu_gamemode == GAMETYPE_SKULLTAG ))
+					if (( menu_gamemode == GAMEMODE_TEAMPLAY ) ||
+						( menu_gamemode == GAMEMODE_TEAMPOSSESSION ) ||
+						( menu_gamemode == GAMEMODE_TEAMLMS ) ||
+						( menu_gamemode == GAMEMODE_TEAMGAME ) ||
+						( menu_gamemode == GAMEMODE_CTF ) ||
+						( menu_gamemode == GAMEMODE_ONEFLAGCTF ) ||
+						( menu_gamemode == GAMEMODE_SKULLTAG ))
 					{
 						if ( CurrentItem < 13 )
 							sprintf( szCVarName, "menu_teambotspawn%d", CurrentItem - 5 );
@@ -5484,13 +5422,13 @@ void M_OptResponder (event_t *ev)
 					UCVarValue	Val;
 					char		szCVarName[32];
 
-					if (( menu_gamemode == GAMETYPE_TEAMPLAY ) ||
-						( menu_gamemode == GAMETYPE_TEAMPOSSESSION ) ||
-						( menu_gamemode == GAMETYPE_TEAMLMS ) ||
-						( menu_gamemode == GAMETYPE_TEAMGAME ) ||
-						( menu_gamemode == GAMETYPE_CTF ) ||
-						( menu_gamemode == GAMETYPE_ONEFLAGCTF ) ||
-						( menu_gamemode == GAMETYPE_SKULLTAG ))
+					if (( menu_gamemode == GAMEMODE_TEAMPLAY ) ||
+						( menu_gamemode == GAMEMODE_TEAMPOSSESSION ) ||
+						( menu_gamemode == GAMEMODE_TEAMLMS ) ||
+						( menu_gamemode == GAMEMODE_TEAMGAME ) ||
+						( menu_gamemode == GAMEMODE_CTF ) ||
+						( menu_gamemode == GAMEMODE_ONEFLAGCTF ) ||
+						( menu_gamemode == GAMEMODE_SKULLTAG ))
 					{
 						if ( CurrentItem < 13 )
 							sprintf( szCVarName, "menu_teambotspawn%d", CurrentItem - 5 );

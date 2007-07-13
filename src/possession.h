@@ -72,21 +72,22 @@ typedef enum
 //*****************************************************************************
 //	PROTOTYPES
 
-void	POSSESSION_Construct( void );
-void	POSSESSION_Tick( void );
-void	POSSESSION_Render( void );
+void		POSSESSION_Construct( void );
+void		POSSESSION_Tick( void );
+void		POSSESSION_Render( void );
 
-void	POSSESSION_StartCountdown( ULONG ulTicks );
-void	POSSESSION_StartNextRoundCountdown( ULONG ulTicks );
-void	POSSESSION_DoFight( void );
-void	POSSESSION_ScorePossessionPoint( player_s *pPlayer );
-void	POSSESSION_ArtifactPickedUp( player_s *pPlayer, ULONG ulTicks );
-void	POSSESSION_ArtifactDropped( void );
-bool	POSSESSION_ShouldRespawnArtifact( void );
+void		POSSESSION_StartCountdown( ULONG ulTicks );
+void		POSSESSION_StartNextRoundCountdown( ULONG ulTicks );
+void		POSSESSION_DoFight( void );
+void		POSSESSION_ScorePossessionPoint( player_s *pPlayer );
+void		POSSESSION_ArtifactPickedUp( player_s *pPlayer, ULONG ulTicks );
+void		POSSESSION_ArtifactDropped( void );
+bool		POSSESSION_ShouldRespawnArtifact( void );
+void		POSSESSION_TimeExpired( void );
 
 // Access functions.
-ULONG	POSSESSION_GetCountdownTicks( void );
-void	POSSESSION_SetCountdownTicks( ULONG ulTicks );
+ULONG		POSSESSION_GetCountdownTicks( void );
+void		POSSESSION_SetCountdownTicks( ULONG ulTicks );
 
 PSNSTATE_e	POSSESSION_GetState( void );
 void		POSSESSION_SetState( PSNSTATE_e State );

@@ -74,6 +74,8 @@
 #include "lastmanstanding.h"
 #include "sbar.h"
 #include "sv_commands.h"
+#include "cl_demo.h"
+#include "possession.h"
 
 static FRandom pr_playerinspecialsector ("PlayerInSpecialSector");
 
@@ -625,234 +627,20 @@ void P_UpdateSpecials ()
 //	size_t j;
 //	int i;
 	
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		// LEVEL TIMER
-		if (( deathmatch || teamgame ) && timelimit && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+		if (( deathmatch || teamgame ) && timelimit )
 		{
-			if ( level.time >= (int)(timelimit * TICRATE * 60) && ( GAME_GetEndLevelDelay( ) == 0 ))
+			if (( level.time >= (int)( timelimit * TICRATE * 60 )) && ( GAME_GetEndLevelDelay( ) == 0 ))
 			{
 				// Pause for five seconds for the win sequence.
 				if ( duel )
-				{
-					if ( DUEL_GetState( ) == DS_INDUEL )
-					{
-						LONG	lDueler1 = -1;
-						LONG	lDueler2 = -1;
-						LONG	lWinner = -1;
-						LONG	lLoser = -1;
-						ULONG	ulIdx;
-
-						for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-						{
-							if ( playeringame[ulIdx] && ( players[ulIdx].bSpectating == false ))
-							{
-								if ( lDueler1 == -1 )
-									lDueler1 = ulIdx;
-								else if ( lDueler2 == -1 )
-									lDueler2 = ulIdx;
-							}
-						}
-
-						if (( lDueler1 != -1 ) && ( lDueler2 != -1 ))
-						{
-							if (( players[lDueler1].fragcount ) == ( players[lDueler2].fragcount ))
-							{
-								// If the timlimit is reached, and both duelers have the same fragcount, 
-								// sudden death is reached!
-								if ( level.time == (int)(timelimit * TICRATE * 60 ))
-								{
-									if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-										SERVER_Printf( PRINT_HIGH, "SUDDEN DEATH!\n" );
-									else
-										Printf( "SUDDEN DEATH!\n" );
-								}
-							}
-							else
-							{
-								if (( players[lDueler1].fragcount ) > ( players[lDueler2].fragcount ))
-								{
-									lWinner = lDueler1;
-									lLoser = lDueler2;
-								}
-								else
-								{
-									lWinner = lDueler2;
-									lLoser = lDueler1;
-								}
-
-								// Also, do the win sequence for the player.
-								DUEL_SetLoser( lLoser );
-								DUEL_DoWinSequence( lWinner );
-
-								// Give the winner a win.
-								PLAYER_SetWins( &players[lWinner], players[lWinner].ulWins + 1 );
-
-								if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-									SERVER_Printf( PRINT_HIGH, "%s\n", GStrings( "TXT_TIMELIMIT" ));
-								else
-									Printf( "%s\n", GStrings( "TXT_TIMELIMIT" ));
-
-								GAME_SetEndLevelDelay( 5 * TICRATE );
-							}
-						}
-						else
-						{
-							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-								SERVER_Printf( PRINT_HIGH, "%s\n", GStrings( "TXT_TIMELIMIT" ));
-							else
-								Printf( "%s\n", GStrings( "TXT_TIMELIMIT" ));
-
-							GAME_SetEndLevelDelay( 5 * TICRATE );
-						}
-					}
-				}
-				else if ( lastmanstanding )
-				{
-					if ( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS )
-					{
-						LONG	ulIdx;
-						LONG	lHighestHealth;
-						bool	bTie = false;
-						bool	bFoundPlayer = false;
-						LONG	lWinner = -1;
-
-						for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-						{
-							if ( playeringame[ulIdx] == false )
-								continue;
-
-							if ( players[ulIdx].bSpectating )
-								continue;
-
-							if ( bFoundPlayer == false )
-							{
-								lHighestHealth = players[ulIdx].health;
-								bFoundPlayer = true;
-								lWinner = ulIdx;
-							}
-							else
-							{
-								if ( players[ulIdx].health > lHighestHealth )
-								{
-									lHighestHealth = players[ulIdx].health;
-									bTie = false;
-									lWinner = ulIdx;
-								}
-								else if ( players[ulIdx].health == lHighestHealth )
-									bTie = true;
-							}
-						}
-
-						// No possible winner found. Maybe someone left...
-						if ( lWinner == -1 )
-						{
-							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-								SERVER_Printf( PRINT_HIGH, "%s\n", GStrings( "TXT_TIMELIMIT" ));
-							else
-								Printf( "%s\n", GStrings( "TXT_TIMELIMIT" ));
-
-							G_ExitLevel( 0, false );
-						}
-						// If there was a tie, declare a draw game, and issue a win to all those who are tied.
-						else if ( bTie )
-						{
-							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-								SERVER_Printf( PRINT_HIGH, "%s\n", GStrings( "TXT_TIMELIMIT" ));
-							else
-								Printf( "%s\n", GStrings( "TXT_TIMELIMIT" ));
-
-							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-								SERVER_Printf( PRINT_HIGH, "DRAW GAME!\n" );
-							else
-								Printf( "DRAW GAME!\n" );
-
-							for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-							{
-								if ( playeringame[ulIdx] == false )
-									continue;
-
-								if ( players[ulIdx].bSpectating )
-									continue;
-
-								if ( players[ulIdx].health == lHighestHealth )
-									PLAYER_SetWins( &players[ulIdx], players[ulIdx].ulWins + 1 );
-							}
-
-							// Pause for five seconds for the win sequence.
-							LASTMANSTANDING_DoWinSequence( MAXPLAYERS );
-
-							GAME_SetEndLevelDelay( 5 * TICRATE );
-						}
-						else
-						{
-							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-								SERVER_Printf( PRINT_HIGH, "%s\n", GStrings( "TXT_TIMELIMIT" ));
-							else
-								Printf( "%s\n", GStrings( "TXT_TIMELIMIT" ));
-
-							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-								SERVER_Printf( PRINT_HIGH, "%s \\c-wins!\n", players[lWinner].userinfo.netname );
-							else
-							{
-								Printf( "%s \\c-wins!\n", players[lWinner].userinfo.netname );
-
-								if ( lWinner == consoleplayer )
-									ANNOUNCER_PlayEntry( cl_announcer, "YouWin" );
-							}
-
-							// Give the winner a win.
-							PLAYER_SetWins( &players[lWinner], players[lWinner].ulWins + 1 );
-
-							// Pause for five seconds for the win sequence.
-							LASTMANSTANDING_DoWinSequence( lWinner );
-
-							GAME_SetEndLevelDelay( 5 * TICRATE );
-						}
-					}
-					else
-						G_ExitLevel( 0, false );
-				}
-				else if ( teamlms )
-				{
-					if ( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS )
-					{
-						LONG	lWinner;
-						LONG	lDifference;
-
-						lDifference = TEAM_CountLivingPlayers( TEAM_BLUE ) - TEAM_CountLivingPlayers( TEAM_RED );
-						if ( lDifference > 0 )
-							lWinner = TEAM_BLUE;
-						else if ( lDifference < 0 )
-							lWinner = TEAM_RED;
-						else
-							lWinner = NUM_TEAMS;
-
-						// If there was a tie, declare a draw game, and issue a win to both teams.
-						if ( lWinner == NUM_TEAMS )
-						{
-							TEAM_SetWinCount( TEAM_BLUE, TEAM_GetWinCount( TEAM_BLUE ) + 1, false );
-							TEAM_SetWinCount( TEAM_RED, TEAM_GetWinCount( TEAM_RED ) + 1, false );
-						}
-						else
-						{
-							// Give the winner a win.
-							TEAM_SetWinCount( lWinner, TEAM_GetWinCount( lWinner ) + 1, false );
-						}
-
-						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-							SERVER_Printf( PRINT_HIGH, "%s\n", GStrings( "TXT_TIMELIMIT" ));
-						else
-							Printf( "%s\n", GStrings( "TXT_TIMELIMIT" ));
-
-						// Pause for five seconds for the win sequence.
-						LASTMANSTANDING_DoWinSequence( lWinner );
-
-						GAME_SetEndLevelDelay( 5 * TICRATE );
-					}
-					else
-						G_ExitLevel( 0, false );
-				}
+					DUEL_TimeExpired( );
+				else if ( lastmanstanding || teamlms )
+					LASTMANSTANDING_TimeExpired( );
+				else if ( possession || teampossession )
+					POSSESSION_TimeExpired( );
 				// End the level after one second.
 				else
 				{

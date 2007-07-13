@@ -62,6 +62,11 @@
 #include "scoreboard.h"
 
 //*****************************************************************************
+//	PROTOTYPES
+
+static	void			possession_DisplayScoreInfo( ULONG ulPlayer );
+
+//*****************************************************************************
 //	VARIABLES
 
 static	player_s		*g_pPossessionArtifactCarrier = NULL;
@@ -346,6 +351,7 @@ void POSSESSION_DoFight( void )
 
 	// Make sure this is 0. Can be non-zero in network games if they're slightly out of sync.
 	g_ulPSNCountdownTicks = 0;
+	g_pPossessionArtifactCarrier = NULL;
 
 	// Reset level time to 0.
 	level.time = 0;
@@ -469,9 +475,6 @@ void POSSESSION_DoFight( void )
 //
 void POSSESSION_ScorePossessionPoint( player_s *pPlayer )
 {
-	char				szString[64];
-	char				szScorer[64];
-	DHUDMessageFadeOut	*pMsg;
 	bool				bPointLimitReached;
 
 	if ( pPlayer == NULL )
@@ -511,68 +514,8 @@ void POSSESSION_ScorePossessionPoint( player_s *pPlayer )
 			Printf( "Pointlimit hit.\n" );
 	}
 
-	// Next, build the string that's displayed in big letters in the center of the screen.
-	// [RC] On team possession, state who scored.
-	if ( teampossession && ( pPlayer->bOnTeam ))
-	{
-		if ( pPlayer->ulTeam == TEAM_BLUE )
-		{
-			sprintf( szString, "\\chBLUE %s!", bPointLimitReached ? "WINS" : "SCORES" );
-			sprintf( szScorer, "\\chScored by: %s", pPlayer->userinfo.netname);
-		}
-		else
-		{
-			sprintf( szString, "\\cGRED %s!", bPointLimitReached ? "WINS" : "SCORES" );
-			sprintf( szScorer, "\\cgScored by: %s", pPlayer->userinfo.netname);
-		}
-
-		V_RemoveColorCodes( szScorer );
-		V_ColorizeString( szScorer );
-	}
-	else
-		sprintf( szString, "%s \\c-%s!", pPlayer->userinfo.netname, bPointLimitReached ? "WINS" : "SCORES" );
-	V_ColorizeString( szString );
-
-	// Print out the HUD message that displays who scored/won. If we're the server, just
-	// send the parameters to the client.
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-	{
-		screen->SetFont( BigFont );
-
-		// Display "%s WINS!" HUD message.
-		pMsg = new DHUDMessageFadeOut( szString,
-			160.4f,
-			75.0f,
-			320,
-			200,
-			CR_RED,
-			3.0f,
-			2.0f );
-
-		StatusBar->AttachMessage( pMsg, 'CNTR' );
-		screen->SetFont( SmallFont );
-
-		// [RC] Display small HUD message for the scorer
-		if ( teampossession && ( pPlayer->bOnTeam ))
-			pMsg = new DHUDMessageFadeOut( szScorer,
-					160.4f,
-					90.0f,
-					320,
-					200,
-					CR_RED,
-					3.0f,
-					2.0f );
-				StatusBar->AttachMessage( pMsg, 'SUBS' );
-
-
-		
-	}
-	else
-	{
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", 'CNTR' );
-		if ( teampossession && ( pPlayer->bOnTeam ))
-			SERVERCOMMANDS_PrintHUDMessageFadeOut( szScorer, 160.4f, 90.0f, 320, 200, CR_RED, 3.0f, 2.0f, "SmallFont", 'SUBS' );
-	}
+	// Display the score info.
+	possession_DisplayScoreInfo( pPlayer - players );
 
 	// End the round, or level after seconds (depending on whether or not the pointlimit
 	// has been reached).
@@ -691,6 +634,81 @@ bool POSSESSION_ShouldRespawnArtifact( void )
 }
 
 //*****************************************************************************
+//
+void POSSESSION_TimeExpired( void )
+{
+	DHUDMessageFadeOut	*pMsg;
+	char				szString[64];
+
+	// Don't end the level if we're not playing.
+	if (( POSSESSION_GetState( ) == PSNS_WAITINGFORPLAYERS ) ||
+		( POSSESSION_GetState( ) == PSNS_COUNTDOWN ) ||
+		( POSSESSION_GetState( ) == PSNS_PRENEXTROUNDCOUNTDOWN ) ||
+		( POSSESSION_GetState( ) == PSNS_NEXTROUNDCOUNTDOWN ))
+	{
+		return;
+	}
+
+	// If the timelimit is reached, and no one is holding the stone,
+	// sudden death is reached!
+	if ( g_pPossessionArtifactCarrier == NULL )
+	{
+		// Only print the message the instant we reach sudden death.
+		if ( level.time == (int)( timelimit * TICRATE * 60 ))
+		{
+			if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+			{
+				screen->SetFont( BigFont );
+
+				sprintf( szString, "\\cdSUDDEN DEATH!" );
+				V_ColorizeString( szString );
+
+				// Display the HUD message.
+				pMsg = new DHUDMessageFadeOut( szString,
+					160.4f,
+					75.0f,
+					320,
+					200,
+					CR_RED,
+					3.0f,
+					2.0f );
+
+				StatusBar->AttachMessage( pMsg, 'CNTR' );
+				screen->SetFont( SmallFont );
+			}
+			else
+			{
+				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", 'CNTR' );
+			}
+		}
+
+		return;
+	}
+
+	// Change the game state to the score sequence.
+	POSSESSION_SetState( PSNS_HOLDERSCORED );
+
+	// Give the player holding the artifact a point.
+	g_pPossessionArtifactCarrier->lPointCount++;
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SetPlayerPoints( ULONG( g_pPossessionArtifactCarrier - players ));
+
+	// Also, display the score info for the player.
+	possession_DisplayScoreInfo( g_pPossessionArtifactCarrier - players );
+
+	// If the player's on a team in team possession mode, give the player's point a team.
+	if ( teampossession && g_pPossessionArtifactCarrier->bOnTeam )
+		TEAM_SetScore( g_pPossessionArtifactCarrier->ulTeam, TEAM_GetScore( g_pPossessionArtifactCarrier->ulTeam ) + 1, true );
+
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVER_Printf( PRINT_HIGH, "%s\n", GStrings( "TXT_TIMELIMIT" ));
+	else
+		Printf( "%s\n", GStrings( "TXT_TIMELIMIT" ));
+
+	GAME_SetEndLevelDelay( 5 * TICRATE );
+}
+
+//*****************************************************************************
 //*****************************************************************************
 //
 ULONG POSSESSION_GetCountdownTicks( void )
@@ -721,6 +739,88 @@ void POSSESSION_SetState( PSNSTATE_e State )
 	// Tell clients about the state change.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_SetGameModeState( State );
+}
+
+//*****************************************************************************
+//*****************************************************************************
+//
+void possession_DisplayScoreInfo( ULONG ulPlayer )
+{
+	char				szString[64];
+	char				szScorer[64];
+	bool				bPointLimitReached;
+	DHUDMessageFadeOut	*pMsg;
+
+	if ( ulPlayer >= MAXPLAYERS )
+		return;
+
+	// First, determine if the pointlimit has been reached.
+	if (( teampossession ) && ( players[ulPlayer].bOnTeam ))
+		bPointLimitReached = ( pointlimit && ( TEAM_GetScore( players[ulPlayer].ulTeam ) >= pointlimit ));
+	else
+		bPointLimitReached = ( pointlimit && ( players[ulPlayer].lPointCount >= pointlimit ));
+
+	// Build the string that's displayed in big letters in the center of the screen.
+	// [RC] On team possession, state who scored.
+	if ( teampossession && ( players[ulPlayer].bOnTeam ))
+	{
+		if ( players[ulPlayer].ulTeam == TEAM_BLUE )
+		{
+			sprintf( szString, "\\chBLUE %s!", bPointLimitReached ? "WINS" : "SCORES" );
+			sprintf( szScorer, "\\chScored by: %s", players[ulPlayer].userinfo.netname );
+		}
+		else
+		{
+			sprintf( szString, "\\cGRED %s!", bPointLimitReached ? "WINS" : "SCORES" );
+			sprintf( szScorer, "\\cgScored by: %s", players[ulPlayer].userinfo.netname );
+		}
+
+		V_RemoveColorCodes( szScorer );
+		V_ColorizeString( szScorer );
+	}
+	else
+		sprintf( szString, "%s \\c-%s!", players[ulPlayer].userinfo.netname, bPointLimitReached ? "WINS" : "SCORES" );
+	V_ColorizeString( szString );
+
+	// Print out the HUD message that displays who scored/won. If we're the server, just
+	// send the parameters to the client.
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+	{
+		screen->SetFont( BigFont );
+
+		// Display "%s WINS!" HUD message.
+		pMsg = new DHUDMessageFadeOut( szString,
+			160.4f,
+			75.0f,
+			320,
+			200,
+			CR_RED,
+			3.0f,
+			2.0f );
+
+		StatusBar->AttachMessage( pMsg, 'CNTR' );
+		screen->SetFont( SmallFont );
+
+		// [RC] Display small HUD message for the scorer
+		if ( teampossession && ( players[ulPlayer].bOnTeam ))
+		{
+			pMsg = new DHUDMessageFadeOut( szScorer,
+					160.4f,
+					90.0f,
+					320,
+					200,
+					CR_RED,
+					3.0f,
+					2.0f );
+			StatusBar->AttachMessage( pMsg, 'SUBS' );
+		}
+	}
+	else
+	{
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", 'CNTR' );
+		if ( teampossession && ( players[ulPlayer].bOnTeam ))
+			SERVERCOMMANDS_PrintHUDMessageFadeOut( szScorer, 160.4f, 90.0f, 320, 200, CR_RED, 3.0f, 2.0f, "SmallFont", 'SUBS' );
+	}
 }
 
 //*****************************************************************************

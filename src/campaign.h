@@ -53,6 +53,7 @@
 
 #include "doomdef.h"
 #include "doomtype.h"
+#include "gamemode.h"
 
 //*****************************************************************************
 //	STRUCTURES
@@ -89,7 +90,7 @@ typedef struct CAMPAIGNINFO_s
 	LONG			lWaveLimit;
 
 	// The game mode that's being played in this map.
-	LONG			lGameMode;
+	GAMEMODE_e		GameMode;
 
 	// The dmflags that are to be used on this map.
 	LONG			lDMFlags;

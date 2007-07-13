@@ -103,6 +103,7 @@
 #include "sv_admin.h"
 #include "sv_commands.h"
 #include "sv_save.h"
+#include "gamemode.h"
 
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
@@ -1180,7 +1181,7 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 	}
 
 	// In a game mode that involves teams, potentially decide a team for him.
-	if ( teamgame || teamplay || teamlms || teampossession )
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 	{
 		// The server will decide his team!
 		if ( dmflags2 & DF2_NO_TEAM_SELECT )
@@ -1953,7 +1954,7 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 		SERVERCOMMANDS_SetPlayerUserInfo( ulIdx, USERINFO_ALL, ulClient, SVCF_ONLYTHISCLIENT );
 
 		// Also send this player's team.
-		if ( teamgame || teamplay || teamlms || teampossession )
+		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 			SERVERCOMMANDS_SetPlayerTeam( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
 
 		// Check if we need to tell the incoming player about any powerups this player may have.
@@ -1969,7 +1970,7 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 	}
 
 	// Server may have already picked a team for the incoming player. If so, tell him!
-	if (( teamgame || teamplay || teamlms || teampossession ) && players[ulClient].bOnTeam )
+	if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) && players[ulClient].bOnTeam )
 		SERVERCOMMANDS_SetPlayerTeam( ulClient, ulClient, SVCF_ONLYTHISCLIENT );
 
 	// Tell scores to the client.
@@ -2058,7 +2059,7 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 			( pActor->state == &AInventory::States[16] ) ||	// S_HOLDANDDESTROY
 			( pActor->state == &AInventory::States[15] ) || // S_HELD
 			( pActor->ulNetworkFlags & NETFL_ALLOWCLIENTSPAWN ) ||
-			!( ( pActor->health ) > 0 || ( pActor->flags & MF_COUNTKILL ) || !(pActor->InDeathState()) ) )
+			(( pActor->health <= 0 ) && (( pActor->flags & MF_COUNTKILL ) == false ) && ( pActor->InDeathState( ))))
 		{
 			continue;
 		}
@@ -2077,6 +2078,9 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 			// If it's important to update this thing's arguments, do that now.
 			// [BB] Wouldn't it be better, if this is done for all things, for which
 			// at least one of the arguments is not equal to zero?
+			// [BC] It's not necessarily important for clients to know this, such
+			// as with invasion spawners. You can do it if you want, though! It would
+			// probably save headache later on.
 			if ( pActor->ulNetworkFlags & NETFL_UPDATEARGUMENTS )
 				SERVERCOMMANDS_SetThingArguments( pActor, ulClient, SVCF_ONLYTHISCLIENT );
 
@@ -2136,7 +2140,7 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 			SERVERCOMMANDS_SetThingAngle( pActor, ulClient, SVCF_ONLYTHISCLIENT );
 
 		// Spawned monster is a corpse.
-		if (( pActor->health ) <= 0 && ( pActor->flags & MF_COUNTKILL ))
+		if (( pActor->health <= 0 ) && ( pActor->flags & MF_COUNTKILL ))
 			SERVERCOMMANDS_ThingIsCorpse( pActor, ulClient, SVCF_ONLYTHISCLIENT );
     }
 
@@ -2341,7 +2345,7 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 	}
 
 	// If nobody's left on the server, zero out the scores.
-	if (( teamgame || teamlms || teamplay || teampossession ) && ( SERVER_CalcNumPlayers( ) == 0 ))
+	if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) && ( SERVER_CalcNumPlayers( ) == 0 ))
 	{
 		TEAM_SetScore( TEAM_BLUE, 0, false );
 		TEAM_SetScore( TEAM_RED, 0, false );
@@ -3743,7 +3747,7 @@ static bool server_RequestJoin( BYTESTREAM_s *pByteStream )
 		return ( false );
 
 	// Player can't rejoin their LMS/survival game if they are dead.
-	if (( lastmanstanding || teamlms || survival ) && ( players[g_lCurrentClient].bDeadSpectator ))
+	if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DEADSPECTATORS ) && ( players[g_lCurrentClient].bDeadSpectator ))
 		return ( false );
 
 	// If we're forcing a join password, kick him if it doesn't match.

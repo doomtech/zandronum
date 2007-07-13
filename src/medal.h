@@ -61,8 +61,8 @@
 // Same values as defined in AFloatyIcon::States[].
 #define	S_TERMINATORARTIFACT			0
 #define S_CHAT					( S_TERMINATORARTIFACT + 4 )
-#define S_ENEMY					( S_CHAT + 1 )
-#define	S_BLUEFLAG				( S_ENEMY + 1 )
+#define S_ALLY					( S_CHAT + 1 )
+#define	S_BLUEFLAG				( S_ALLY + 1 )
 #define	S_REDFLAG				( S_BLUEFLAG + 6 )
 #define	S_WHITEFLAG				( S_REDFLAG + 6 )
 #define	S_BLUESKULL				( S_WHITEFLAG + 6 )

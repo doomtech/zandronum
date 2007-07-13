@@ -60,6 +60,7 @@
 #include "network.h"
 #include "sv_commands.h"
 #include "g_game.h"
+#include "gamemode.h"
 #include "cl_main.h"
 #include "joinqueue.h"
 #include "lastmanstanding.h"
@@ -1843,7 +1844,7 @@ void PLAYER_SetFragcount( player_s *pPlayer, LONG lFragCount, bool bAnnounce, bo
 	// If this is a teamplay deathmatch, update the team frags.
 	if ( bUpdateTeamFrags )
 	{
-		if (( teamplay || teamlms || teamgame || teampossession ) && ( pPlayer->bOnTeam ))
+		if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) && ( pPlayer->bOnTeam ))
 			TEAM_SetFragCount( pPlayer->ulTeam, TEAM_GetFragCount( pPlayer->ulTeam ) + ( lFragCount - pPlayer->fragcount ), bAnnounce );
 	}
 
@@ -2245,7 +2246,7 @@ void PLAYER_GetName( player_s *pPlayer, char *pszOutBuf )
 //
 bool PLAYER_IsTrueSpectator( player_s *pPlayer )
 {
-	if ( lastmanstanding || teamlms || survival )
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DEADSPECTATORS )
 		return (( pPlayer->bSpectating ) && ( pPlayer->bDeadSpectator == false ));
 
 	return ( pPlayer->bSpectating );

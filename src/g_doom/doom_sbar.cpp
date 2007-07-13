@@ -20,6 +20,7 @@
 #include "chat.h"
 #include "cooperative.h"
 #include "invasion.h"
+#include "gamemode.h"
 
 #define ST_EVILGRINCOUNT		(2*TICRATE)
 #define ST_STRAIGHTFACECOUNT	(TICRATE/2)
@@ -1478,7 +1479,7 @@ private:
 		}
 		// [RC] If the game is team-based but isn't an a team
 		// article game (ST/CTF), just show the scores / frags.
-		else if ( teamplay || teamgame || teamlms || teampossession)
+		else if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 		{
 			ULONG	ulRedPoints; // Frags or points
 			ULONG	ulBluePoints;

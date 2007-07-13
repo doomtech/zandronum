@@ -160,7 +160,7 @@ void CAMPAIGN_ParseCampaignInfo( void )
 			pInfo->lDuelLimit			= 0;
 			pInfo->lWinLimit			= 0;
 			pInfo->lWaveLimit			= 0;
-			pInfo->lGameMode			= GAMETYPE_DEATHMATCH;
+			pInfo->GameMode				= GAMEMODE_DEATHMATCH;
 			pInfo->lDMFlags				= -1;
 			pInfo->lDMFlags2			= -1;
 			pInfo->lCompatFlags			= -1;
@@ -229,35 +229,35 @@ void CAMPAIGN_ParseCampaignInfo( void )
 				{
 					// Find out what gamemode they want.
 					if ( stricmp( szValue, "cooperative" ) == 0 )
-						pInfo->lGameMode = GAMETYPE_COOPERATIVE;
+						pInfo->GameMode = GAMEMODE_COOPERATIVE;
 					else if ( stricmp( szValue, "survival" ) == 0 )
-						pInfo->lGameMode = GAMETYPE_SURVIVAL;
+						pInfo->GameMode = GAMEMODE_SURVIVAL;
 					else if ( stricmp( szValue, "invasion" ) == 0 )
-						pInfo->lGameMode = GAMETYPE_INVASION;
+						pInfo->GameMode = GAMEMODE_INVASION;
 					else if ( stricmp( szValue, "deathmatch" ) == 0 )
-						pInfo->lGameMode = GAMETYPE_DEATHMATCH;
+						pInfo->GameMode = GAMEMODE_DEATHMATCH;
 					else if ( stricmp( szValue, "teamplay" ) == 0 )
-						pInfo->lGameMode = GAMETYPE_TEAMPLAY;
+						pInfo->GameMode = GAMEMODE_TEAMPLAY;
 					else if ( stricmp( szValue, "duel" ) == 0 )
-						pInfo->lGameMode = GAMETYPE_DUEL;
+						pInfo->GameMode = GAMEMODE_DUEL;
 					else if ( stricmp( szValue, "terminator" ) == 0 )
-						pInfo->lGameMode = GAMETYPE_TERMINATOR;
+						pInfo->GameMode = GAMEMODE_TERMINATOR;
 					else if ( stricmp( szValue, "lastmanstanding" ) == 0 )
-						pInfo->lGameMode = GAMETYPE_LASTMANSTANDING;
+						pInfo->GameMode = GAMEMODE_LASTMANSTANDING;
 					else if ( stricmp( szValue, "teamlms" ) == 0 )
-						pInfo->lGameMode = GAMETYPE_TEAMLMS;
+						pInfo->GameMode = GAMEMODE_TEAMLMS;
 					else if ( stricmp( szValue, "possession" ) == 0 )
-						pInfo->lGameMode = GAMETYPE_POSSESSION;
+						pInfo->GameMode = GAMEMODE_POSSESSION;
 					else if ( stricmp( szValue, "teampossession" ) == 0 )
-						pInfo->lGameMode = GAMETYPE_TEAMPOSSESSION;
+						pInfo->GameMode = GAMEMODE_TEAMPOSSESSION;
 					else if ( stricmp( szValue, "teamgame" ) == 0 )
-						pInfo->lGameMode = GAMETYPE_TEAMGAME;
+						pInfo->GameMode = GAMEMODE_TEAMGAME;
 					else if ( stricmp( szValue, "ctf" ) == 0 )
-						pInfo->lGameMode = GAMETYPE_CTF;
+						pInfo->GameMode = GAMEMODE_CTF;
 					else if ( stricmp( szValue, "oneflagctf" ) == 0 )
-						pInfo->lGameMode = GAMETYPE_ONEFLAGCTF;
+						pInfo->GameMode = GAMEMODE_ONEFLAGCTF;
 					else if ( stricmp( szValue, "skulltag" ) == 0 )
-						pInfo->lGameMode = GAMETYPE_SKULLTAG;
+						pInfo->GameMode = GAMEMODE_SKULLTAG;
 					else
 						I_Error( "CAMPAIGN_ParseCampaignInfo: Unknown gamemode type, \"%s\"!", szValue );
 				}
@@ -425,7 +425,7 @@ void CAMPAIGN_SetInCampaign( bool bInCampaign )
 bool CAMPAIGN_DidPlayerBeatMap( void )
 {
 	// Preliminary check.
-	if ( teamplay || teampossession || teamlms || teamgame )
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 	{
 		// If the console player isn't on a team, he DEFINITELY lost.
 		if ( players[consoleplayer].bOnTeam == false )

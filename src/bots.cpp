@@ -2831,7 +2831,7 @@ CSkullBot::CSkullBot( char *pszName, char *pszTeamName, ULONG ulPlayerNum )
 	if ( pszTeamName )
 	{
 		// If we're in teamgame mode, put the bot on red or blue.
-		if ( teamplay || teamgame || teamlms || teampossession )
+		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 		{
 			// Pick a team for our bot
 			if ( !stricmp( pszTeamName, TEAM_GetName( TEAM_BLUE )))
@@ -2846,7 +2846,7 @@ CSkullBot::CSkullBot( char *pszName, char *pszTeamName, ULONG ulPlayerNum )
 	{
 		// In certain modes, the bot NEEDS to be placed on a team, or else he will constantly
 		// respawn.
-		if ( teamplay || teamlms || teampossession )
+		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 			PLAYER_SetTeam( m_pPlayer, TEAM_ChooseBestTeamForPlayer( ), true );
 	}
 

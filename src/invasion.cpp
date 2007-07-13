@@ -2774,8 +2774,7 @@ void INVASION_StartFirstCountdown( ULONG ulTicks )
 		SERVERCOMMANDS_DoGameModeCountdown( ulTicks );
 
 	// Reset the map.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
-		GAME_ResetMap( );
+	GAME_ResetMap( );
 }
 
 //*****************************************************************************

@@ -17,12 +17,17 @@ v0.97d-beta4
 *+	- ADDED CLIENT-SIDE DEMO RECORDING! You can now record a demo when connecting to a server with the "-record" <demo name> command line argument. Demos can be played back with the "playdemo" console command. [Carnevil]
 +	- Added custom invasion spots! You can now use your own custom monsters, pickups, and weapons in invasion mode! [Carnevil]
 +	- The crash dialog now works for servers as well! Now, if a Skulltag server crashes, it can be debugged and fixed! [Carnevil]
++	- Blood brightness is now properly applied in OpenGL mode. [Carnevil]
 +	- All weapons are now given in LMS/team LMS mode, except for those excluded by the allowed weapon flags, and those flagged as not appearing in LMS mode. [Carnevil]
++	- When time expires in a possession game, it now goes into sudden death until someone holds the stone. [Carnevil]
 -	- Fixed issues with the IWAD/PWAD list for servers when hosting .pk3s with embedded .wad files. [Carnevil]
 -	- The crash dialog now displays properly whenever Skulltag crashes. [Carnevil]
 -	- Fixed bug in which obituary messages would get screwed up when players had long names.
 -	- Fixed bug in which some BOOM format maps would mistakenly have lines that block players. [Carnevil]
 -	- Custom invisible bridges now have their radius/height properly updated in network games. [Carnevil]
+-	- Decals now properly disappear when maps reset. [Carnevil]
+-	- The muzzle flash on the chaingun and minigun now works properly. [Carnevil]
+!	- Changed the "enemy" to an "ally" icon that displays over your allies in team games. [Carnevil]
 !	- Brought back elements of the old invasion HUD. [Carnevil]
 
 v0.97d-beta3

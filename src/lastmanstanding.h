@@ -98,6 +98,7 @@ LONG	LASTMANSTANDING_TeamGetLastManStanding( void );
 void	LASTMANSTANDING_StartCountdown( ULONG ulTicks );
 void	LASTMANSTANDING_DoFight( void );
 void	LASTMANSTANDING_DoWinSequence( ULONG ulWinner );
+void	LASTMANSTANDING_TimeExpired( void );
 
 // Access functions.
 ULONG	LASTMANSTANDING_GetCountdownTicks( void );

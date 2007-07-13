@@ -77,6 +77,7 @@ void	DUEL_DoFight( void );
 void	DUEL_DoWinSequence( ULONG ulPlayer );
 void	DUEL_SendLoserToSpectators( void );
 bool	DUEL_IsDueler( ULONG ulPlayer );
+void	DUEL_TimeExpired( void );
 
 // Access functions
 ULONG	DUEL_GetCountdownTicks( void );

@@ -52,6 +52,7 @@
 #include "chat.h"
 #include "deathmatch.h"
 #include "gi.h"
+#include "gamemode.h"
 #include "info.h"
 #include "medal.h"
 #include "p_local.h"
@@ -948,10 +949,10 @@ void medal_SelectIcon( ULONG ulPlayer )
 			else
 				ulActualSprite = 0;
 			break;
-		// Enemy icon. Delete it if the player is now on our team.
-		case S_ENEMY:
+		// Ally icon. Delete it if the player is now our enemy.
+		case S_ALLY:
 
-			if ( pPlayer->mo->IsTeammate( players[consoleplayer].mo ) == true )
+			if ( pPlayer->mo->IsTeammate( players[consoleplayer].mo ) == false )
 			{
 				pPlayer->pIcon->Destroy( );
 				pPlayer->pIcon = NULL;
@@ -1062,12 +1063,13 @@ void medal_SelectIcon( ULONG ulPlayer )
 		ULONG	ulFrame = 65535;
 		ULONG	ulDesiredSprite = 65535;
 
-		// Draw an enemy icon if this person isn't on our team.
-		if ( teamgame || teamplay || teamlms || teampossession )
+		// Draw an ally icon if this person is on our team.
+		// Would this be useful for co-op, too?
+		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 		{
-			if ( pPlayer->mo->IsTeammate( players[consoleplayer].mo ) == false )
+			if ( pPlayer->mo->IsTeammate( players[consoleplayer].mo ))
 			{
-				ulFrame = S_ENEMY;
+				ulFrame = S_ALLY;
 				ulDesiredSprite = 1;
 			}
 		}

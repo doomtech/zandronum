@@ -2162,71 +2162,71 @@ void G_DoLoadLevel (int position, bool autosave)
 			teamgame.ForceSet( Val, CVAR_Bool );
 
 			Val.Bool = true;
-			switch ( pInfo->lGameMode )
+			switch ( pInfo->GameMode )
 			{
-			case GAMETYPE_COOPERATIVE:
+			case GAMEMODE_COOPERATIVE:
 
 				cooperative.ForceSet( Val, CVAR_Bool );
 				break;
-			case GAMETYPE_SURVIVAL:
+			case GAMEMODE_SURVIVAL:
 
 				survival.ForceSet( Val, CVAR_Bool );
 				break;
-			case GAMETYPE_INVASION:
+			case GAMEMODE_INVASION:
 
 				invasion.ForceSet( Val, CVAR_Bool );
 				break;
-			case GAMETYPE_DEATHMATCH:
+			case GAMEMODE_DEATHMATCH:
 
 				deathmatch.ForceSet( Val, CVAR_Bool );
 				break;
-			case GAMETYPE_TEAMPLAY:
+			case GAMEMODE_TEAMPLAY:
 
 				teamplay.ForceSet( Val, CVAR_Bool );
 				break;
-			case GAMETYPE_DUEL:
+			case GAMEMODE_DUEL:
 
 				duel.ForceSet( Val, CVAR_Bool );
 				break;
-			case GAMETYPE_TERMINATOR:
+			case GAMEMODE_TERMINATOR:
 
 				terminator.ForceSet( Val, CVAR_Bool );
 				break;
-			case GAMETYPE_LASTMANSTANDING:
+			case GAMEMODE_LASTMANSTANDING:
 
 				lastmanstanding.ForceSet( Val, CVAR_Bool );
 				break;
-			case GAMETYPE_TEAMLMS:
+			case GAMEMODE_TEAMLMS:
 
 				teamlms.ForceSet( Val, CVAR_Bool );
 				break;
-			case GAMETYPE_POSSESSION:
+			case GAMEMODE_POSSESSION:
 
 				possession.ForceSet( Val, CVAR_Bool );
 				break;
-			case GAMETYPE_TEAMPOSSESSION:
+			case GAMEMODE_TEAMPOSSESSION:
 
 				teampossession.ForceSet( Val, CVAR_Bool );
 				break;
-			case GAMETYPE_TEAMGAME:
+			case GAMEMODE_TEAMGAME:
 
 				teamgame.ForceSet( Val, CVAR_Bool );
 				break;
-			case GAMETYPE_CTF:
+			case GAMEMODE_CTF:
 
 				ctf.ForceSet( Val, CVAR_Bool );
 				break;
-			case GAMETYPE_ONEFLAGCTF:
+			case GAMEMODE_ONEFLAGCTF:
 
 				oneflagctf.ForceSet( Val, CVAR_Bool );
 				break;
-			case GAMETYPE_SKULLTAG:
+			case GAMEMODE_SKULLTAG:
 
 				skulltag.ForceSet( Val, CVAR_Bool );
 				break;
 			default:
 
-				I_Error( "G_DoLoadLevel: Invalid campaign game type, %d!", pInfo->lGameMode );
+				I_Error( "G_DoLoadLevel: Invalid campaign game type, %d!", pInfo->GameMode );
 				break;
 			}
 
@@ -2242,7 +2242,7 @@ void G_DoLoadLevel (int position, bool autosave)
 			// We're now in a campaign.
 			CAMPAIGN_SetInCampaign( true );
 
-			if (( teamgame || teamplay || teamlms || teampossession ) && ( pInfo->szPlayerTeam[0] != 0 ))
+			if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) && ( pInfo->szPlayerTeam[0] != 0 ))
 			{
 				if ( stricmp( pInfo->szPlayerTeam, "red" ) == 0 )
 				{

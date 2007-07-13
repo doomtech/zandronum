@@ -54,6 +54,7 @@
 #include "doomtype.h"
 #include "duel.h"
 #include "g_game.h"
+#include "gamemode.h"
 #include "gi.h"
 #include "invasion.h"
 #include "joinqueue.h"
@@ -1056,7 +1057,7 @@ void SERVERCOMMANDS_PlayerSay( ULONG ulPlayer, char *pszString, ULONG ulMode, bo
 		// The player is sending a message to his teammates.
 		if ( ulMode == CHATMODE_TEAM )
 		{
-			if ( teamgame || teamplay || teamlms || teampossession )
+			if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 			{
 				// If either player is not on a team, don't send the message.
 				if (( players[ulIdx].bOnTeam == false ) || ( players[ulPlayer].bOnTeam == false ))
@@ -2180,7 +2181,7 @@ void SERVERCOMMANDS_SetGameMode( ULONG ulPlayerExtra, ULONG ulFlags )
 
 		SERVER_CheckClientBuffer( ulIdx, 4, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETGAMEMODE );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, GAME_GetGameType( ));
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, GAMEMODE_GetCurrentMode( ));
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, instagib );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, buckshot );
     }

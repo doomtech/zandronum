@@ -56,6 +56,7 @@
 #include "d_gui.h"
 #include "deathmatch.h"
 #include "gi.h"
+#include "gamemode.h"
 #include "hu_stuff.h"
 #include "i_input.h"
 #include "d_gui.h"
@@ -596,7 +597,7 @@ CCMD( say_team )
 	char	szChatString[128];
 
 	// Make sure we have teammates to talk to before we use team chat.
-	if ( teamplay || teamgame || teamlms || teampossession )
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 	{
 		// Not on a team. No one to talk to.
 		if ( players[consoleplayer].bOnTeam == false )

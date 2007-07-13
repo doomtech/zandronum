@@ -57,6 +57,7 @@
 #include "doomtype.h"
 #include "d_player.h"
 #include "g_game.h"
+#include "gamemode.h"
 #include "gi.h"
 #include "invasion.h"
 #include "joinqueue.h"
@@ -2967,7 +2968,7 @@ static void scoreboard_DrawTeamScores( ULONG ulPlayer )
 {
 	char	szString[128];
 
-	if ( teamplay || teamgame || teamlms || teampossession )
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 	{
 		if ( gamestate == GS_LEVEL )
 		{
@@ -3399,7 +3400,7 @@ static void scoreboard_Prepare5ColumnDisplay( void )
 	g_aulColumnX[4] = 272;
 
 	// Build columns for modes in which players try to earn points.
-	if ( teamgame || possession || teampossession || ctf || skulltag )
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNPOINTS )
 	{
 		g_aulColumnType[0] = COLUMN_POINTS;
 		// [BC] Doesn't look like this is being used right now (at least not properly).
@@ -3452,7 +3453,7 @@ static void scoreboard_Prepare4ColumnDisplay( void )
 	g_aulColumnX[3] = 256;
 
 	// Build columns for modes in which players try to earn kills.
-	if ( cooperative || survival || invasion )
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNKILLS )
 	{
 		g_aulColumnType[0] = COLUMN_KILLS;
 		g_aulColumnType[1] = COLUMN_NAME;
@@ -3480,10 +3481,11 @@ static void scoreboard_Prepare4ColumnDisplay( void )
 	}
 	
 	// Build columns for modes in which players try to earn points.
-	if ( teamgame || possession || teampossession || ctf || skulltag )
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNPOINTS )
 	{
 //		if ( ctf || skulltag ) // Can have assists
 //			g_aulColumnType[0] = COL_POINTS;
+
 		g_aulColumnType[0] = COLUMN_POINTS;
 		g_aulColumnType[1] = COLUMN_NAME;
 		g_aulColumnType[2] = COLUMN_DEATHS;
@@ -3526,7 +3528,7 @@ static void scoreboard_Prepare3ColumnDisplay( void )
 	g_aulColumnX[2] = 272;
 
 	// Build columns for modes in which players try to earn kills.
-	if ( cooperative || survival || invasion )
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNKILLS )
 	{
 		g_aulColumnType[0] = COLUMN_KILLS;
 		g_aulColumnType[1] = COLUMN_NAME;
@@ -3548,7 +3550,7 @@ static void scoreboard_Prepare3ColumnDisplay( void )
 	}
 	
 	// Build columns for modes in which players try to earn points.
-	if ( teamgame || possession || teampossession || ctf || skulltag )
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNPOINTS )
 	{
 //		if ( ctf || skulltag ) // Can have assists
 //			g_aulColumnType[0] = COL_POINTS;
@@ -3673,7 +3675,7 @@ static void scoreboard_DrawRankings( void )
 	g_ulCurYPos += 24;
 
 	// Team-based games: Divide up the teams.
-	if ( teamgame || teamplay || teamlms || teampossession )
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 	{
 		// Draw players on teams.
 		for ( ulTeamIdx = 0; ulTeamIdx < NUM_TEAMS; ulTeamIdx++ )

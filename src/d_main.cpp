@@ -114,6 +114,7 @@
 #include "survival.h"
 #include "possession.h"
 #include "cl_demo.h"
+#include "gamemode.h"
 
 #include "st_start.h"
 
@@ -2230,6 +2231,9 @@ void D_DoomMain (void)
 
 	gamestate = GS_STARTUP;
 
+	// Initialize the game mode module.
+	GAMEMODE_Construct( );
+
 	// Determine if we're going to be a server, client, or local player.
 	if ( Args.CheckParm( "-host" ))
 		NETWORK_SetState( NETSTATE_SERVER );
@@ -2278,14 +2282,13 @@ void D_DoomMain (void)
 		//if (wad)
 		//	D_AddFile (wad, false);	// [BC]
 
-/*
 		// [BC] Also load skulltag.wad.
 		wad = BaseFileSearch( "skulltag.wad", NULL, true );
 		if ( wad == NULL )
 			I_FatalError( "Cannot find skulltag.wad" );
 		else
-			D_AddFile( wad, false );
-*/
+			D_AddFile( wad, true );
+
 		// [RH] Add any .wad files in the skins directory
 #ifdef unix
 		sprintf (file, "%sskins", SHARE_DIR);

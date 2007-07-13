@@ -255,8 +255,7 @@ void SURVIVAL_DoFight( void )
 		Printf( "FIGHT!\n" );
 
 	// Revert the map to how it was in its original state.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
-		GAME_ResetMap( );
+	GAME_ResetMap( );
 /*
 	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
 	{

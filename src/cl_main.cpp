@@ -60,6 +60,7 @@
 #include "doomstat.h"
 #include "d_player.h"
 #include "g_game.h"
+#include "gamemode.h"
 #include "d_net.h"
 #include "p_local.h"
 #include "s_sound.h"
@@ -5775,63 +5776,63 @@ static void client_SetGameMode( BYTESTREAM_s *pByteStream )
 	Value.Bool = true;
 	switch ( NETWORK_ReadByte( pByteStream ))
 	{
-	case GAMETYPE_COOPERATIVE:
+	case GAMEMODE_COOPERATIVE:
 
 		cooperative.ForceSet( Value, CVAR_Bool );
 		break;
-	case GAMETYPE_SURVIVAL:
+	case GAMEMODE_SURVIVAL:
 
 		survival.ForceSet( Value, CVAR_Bool );
 		break;
-	case GAMETYPE_INVASION:
+	case GAMEMODE_INVASION:
 
 		invasion.ForceSet( Value, CVAR_Bool );
 		break;
-	case GAMETYPE_DEATHMATCH:
+	case GAMEMODE_DEATHMATCH:
 
 		deathmatch.ForceSet( Value, CVAR_Bool );
 		break;
-	case GAMETYPE_TEAMPLAY:
+	case GAMEMODE_TEAMPLAY:
 
 		teamplay.ForceSet( Value, CVAR_Bool );
 		break;
-	case GAMETYPE_DUEL:
+	case GAMEMODE_DUEL:
 
 		duel.ForceSet( Value, CVAR_Bool );
 		break;
-	case GAMETYPE_TERMINATOR:
+	case GAMEMODE_TERMINATOR:
 
 		terminator.ForceSet( Value, CVAR_Bool );
 		break;
-	case GAMETYPE_LASTMANSTANDING:
+	case GAMEMODE_LASTMANSTANDING:
 
 		lastmanstanding.ForceSet( Value, CVAR_Bool );
 		break;
-	case GAMETYPE_TEAMLMS:
+	case GAMEMODE_TEAMLMS:
 
 		teamlms.ForceSet( Value, CVAR_Bool );
 		break;
-	case GAMETYPE_POSSESSION:
+	case GAMEMODE_POSSESSION:
 
 		possession.ForceSet( Value, CVAR_Bool );
 		break;
-	case GAMETYPE_TEAMPOSSESSION:
+	case GAMEMODE_TEAMPOSSESSION:
 
 		teampossession.ForceSet( Value, CVAR_Bool );
 		break;
-	case GAMETYPE_TEAMGAME:
+	case GAMEMODE_TEAMGAME:
 
 		teamgame.ForceSet( Value, CVAR_Bool );
 		break;
-	case GAMETYPE_CTF:
+	case GAMEMODE_CTF:
 
 		ctf.ForceSet( Value, CVAR_Bool );
 		break;
-	case GAMETYPE_ONEFLAGCTF:
+	case GAMEMODE_ONEFLAGCTF:
 
 		oneflagctf.ForceSet( Value, CVAR_Bool );
 		break;
-	case GAMETYPE_SKULLTAG:
+	case GAMEMODE_SKULLTAG:
 
 		skulltag.ForceSet( Value, CVAR_Bool );
 		break;

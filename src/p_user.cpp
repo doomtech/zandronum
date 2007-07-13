@@ -70,6 +70,7 @@
 #include "p_acs.h"
 #include "possession.h"
 #include "cl_commands.h"
+#include "gamemode.h"
 
 static FRandom pr_healradius ("HealRadius");
 
@@ -2282,7 +2283,7 @@ bool PLAYER_Responder( event_t *pEvent )
 		// If the player hits the spacebar, ask them if they'd like to join the current game.
  		if ( pEvent->data2 == ' ' )
 		{
-			if (( lastmanstanding || teamlms || survival ) && players[consoleplayer].bDeadSpectator )
+			if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DEADSPECTATORS ) && players[consoleplayer].bDeadSpectator )
 			{
 				Printf( "You cannot rejoin the game until the round is over!\n" );
 				return ( true );

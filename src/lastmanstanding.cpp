@@ -55,6 +55,7 @@
 #include "cl_main.h"
 #include "deathmatch.h"
 #include "g_game.h"
+#include "gstrings.h"
 #include "joinqueue.h"
 #include "lastmanstanding.h"
 #include "network.h"
@@ -456,8 +457,7 @@ void LASTMANSTANDING_DoFight( void )
 		Printf( "FIGHT!\n" );
 
 	// Reset the map.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
-		GAME_ResetMap( );
+	GAME_ResetMap( );
 
 	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
 	{
@@ -583,6 +583,130 @@ void LASTMANSTANDING_DoWinSequence( ULONG ulWinner )
 		if (( playeringame[ulIdx] ) && ( players[ulIdx].pSkullBot ))
 			players[ulIdx].pSkullBot->PostEvent( BOTEVENT_LMS_WINSEQUENCE );
 	}
+}
+
+//*****************************************************************************
+//
+void LASTMANSTANDING_TimeExpired( void )
+{
+	LONG				ulIdx;
+	LONG				lHighestHealth;
+	bool				bTie = false;
+	bool				bAllDead = false;
+	bool				bFoundPlayer = false;
+	LONG				lWinner = -1;
+	LONG				lDifference;
+	DHUDMessageFadeOut	*pMsg;
+	char				szString[64];
+
+	// Don't end the level if we're not in a game.
+	if ( LASTMANSTANDING_GetState( ) != LMSS_INPROGRESS )
+		return;
+
+	// Try to find the player with the highest health.
+	if ( lastmanstanding )
+	{
+		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+		{
+			if (( playeringame[ulIdx] == false ) ||
+				( players[ulIdx].bSpectating ))
+			{
+				continue;
+			}
+
+			if ( bFoundPlayer == false )
+			{
+				lHighestHealth = players[ulIdx].health;
+				bFoundPlayer = true;
+				lWinner = ulIdx;
+			}
+			else
+			{
+				if ( players[ulIdx].health > lHighestHealth )
+				{
+					lHighestHealth = players[ulIdx].health;
+					bTie = false;
+					lWinner = ulIdx;
+				}
+				else if ( players[ulIdx].health == lHighestHealth )
+					bTie = true;
+			}
+		}
+	}
+	else if ( teamlms )
+	{
+		lDifference = TEAM_CountLivingPlayers( TEAM_BLUE ) - TEAM_CountLivingPlayers( TEAM_RED );
+		if ( lDifference > 0 )
+			lWinner = TEAM_BLUE;
+		else if ( lDifference < 0 )
+			lWinner = TEAM_RED;
+		else
+		{
+			lWinner = NUM_TEAMS;
+			bTie = true;
+		}
+	}
+
+	// If for some reason we don't have any players, just end the map like normal.
+	if ( lWinner == -1 )
+	{
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVER_Printf( PRINT_HIGH, "%s\n", GStrings( "TXT_TIMELIMIT" ));
+		else
+			Printf( "%s\n", GStrings( "TXT_TIMELIMIT" ));
+
+		GAME_SetEndLevelDelay( 5 * TICRATE );
+		return;
+	}
+
+	// If there was a tie, then go into sudden death!
+	if ( bTie )
+	{
+		// Only print the message the instant we reach sudden death.
+		if ( level.time == (int)( timelimit * TICRATE * 60 ))
+		{
+			if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+			{
+				screen->SetFont( BigFont );
+
+				sprintf( szString, "\\cdSUDDEN DEATH!" );
+				V_ColorizeString( szString );
+
+				// Display the HUD message.
+				pMsg = new DHUDMessageFadeOut( szString,
+					160.4f,
+					75.0f,
+					320,
+					200,
+					CR_RED,
+					3.0f,
+					2.0f );
+
+				StatusBar->AttachMessage( pMsg, 'CNTR' );
+				screen->SetFont( SmallFont );
+			}
+			else
+			{
+				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", 'CNTR' );
+			}
+		}
+
+		return;
+	}
+
+	// Also, do the win sequence for the player.
+	LASTMANSTANDING_DoWinSequence( lWinner );
+
+	// Give the winner a win.
+	if ( lastmanstanding )
+		PLAYER_SetWins( &players[lWinner], players[lWinner].ulWins + 1 );
+
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVER_Printf( PRINT_HIGH, "%s\n", GStrings( "TXT_TIMELIMIT" ));
+	else
+		Printf( "%s\n", GStrings( "TXT_TIMELIMIT" ));
+
+	GAME_SetEndLevelDelay( 5 * TICRATE );
 }
 
 //*****************************************************************************

@@ -54,6 +54,7 @@
 #include "cl_main.h"
 #include "deathmatch.h"
 #include "doomtype.h"
+#include "gamemode.h"
 #include "i_system.h"
 #include "version.h"
 
@@ -239,12 +240,12 @@ char *BROWSER_GetIWADName( ULONG ulServer )
 
 //*****************************************************************************
 //
-LONG BROWSER_GetGameType( ULONG ulServer )
+GAMEMODE_e BROWSER_GetGameMode( ULONG ulServer )
 {
 	if (( ulServer >= MAX_BROWSER_SERVERS ) || ( g_BrowserServerList[ulServer].ulActiveState != AS_ACTIVE ))
-		return ( false );
+		return ( (GAMEMODE_e)false );
 
-	return ( g_BrowserServerList[ulServer].lGameType );
+	return ( g_BrowserServerList[ulServer].GameMode );
 }
 
 //*****************************************************************************
@@ -397,7 +398,7 @@ void M_BuildServerList( void );
 
 void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 {
-	LONG		lGameType = GAMETYPE_COOPERATIVE;
+	GAMEMODE_e	GameMode = GAMEMODE_COOPERATIVE;
 	ULONG		ulIdx;
 	LONG		lServer;
 	ULONG		ulFlags;
@@ -470,7 +471,7 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 
 		if ( ulFlags & SQF_GAMETYPE )
 		{
-			lGameType = NETWORK_ReadByte( pByteStream );
+			GameMode = (GAMEMODE_e)NETWORK_ReadByte( pByteStream );
 			NETWORK_ReadByte( pByteStream );
 			NETWORK_ReadByte( pByteStream );
 		}
@@ -568,12 +569,12 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 				// Is bot.
 				NETWORK_ReadByte( pByteStream );
 
-				if (( lGameType == GAMETYPE_TEAMPLAY ) ||
-					( lGameType == GAMETYPE_TEAMLMS ) ||
-					( lGameType == GAMETYPE_TEAMPOSSESSION ) ||
-					( lGameType == GAMETYPE_SKULLTAG ) ||
-					( lGameType == GAMETYPE_CTF ) ||
-					( lGameType == GAMETYPE_ONEFLAGCTF ))
+				if (( GameMode == GAMEMODE_TEAMPLAY ) ||
+					( GameMode == GAMEMODE_TEAMLMS ) ||
+					( GameMode == GAMEMODE_TEAMPOSSESSION ) ||
+					( GameMode == GAMEMODE_SKULLTAG ) ||
+					( GameMode == GAMEMODE_CTF ) ||
+					( GameMode == GAMEMODE_ONEFLAGCTF ))
 				{
 					// Team.
 					NETWORK_ReadByte( pByteStream );
@@ -657,7 +658,7 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 
 	if ( ulFlags & SQF_GAMETYPE )
 	{
-		g_BrowserServerList[lServer].lGameType = NETWORK_ReadByte( pByteStream );
+		g_BrowserServerList[lServer].GameMode = (GAMEMODE_e)NETWORK_ReadByte( pByteStream );
 		NETWORK_ReadByte( pByteStream );
 		NETWORK_ReadByte( pByteStream );
 	}
@@ -758,12 +759,12 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 				// Read in whether or not the player is a bot.
 				g_BrowserServerList[lServer].Players[ulIdx].bIsBot = !!NETWORK_ReadByte( pByteStream );
 
-				if (( g_BrowserServerList[lServer].lGameType == GAMETYPE_TEAMPLAY ) ||
-					( g_BrowserServerList[lServer].lGameType == GAMETYPE_TEAMLMS ) ||
-					( g_BrowserServerList[lServer].lGameType == GAMETYPE_TEAMPOSSESSION ) ||
-					( g_BrowserServerList[lServer].lGameType == GAMETYPE_SKULLTAG ) ||
-					( g_BrowserServerList[lServer].lGameType == GAMETYPE_CTF ) ||
-					( g_BrowserServerList[lServer].lGameType == GAMETYPE_ONEFLAGCTF ))
+				if (( g_BrowserServerList[lServer].GameMode == GAMEMODE_TEAMPLAY ) ||
+					( g_BrowserServerList[lServer].GameMode == GAMEMODE_TEAMLMS ) ||
+					( g_BrowserServerList[lServer].GameMode == GAMEMODE_TEAMPOSSESSION ) ||
+					( g_BrowserServerList[lServer].GameMode == GAMEMODE_SKULLTAG ) ||
+					( g_BrowserServerList[lServer].GameMode == GAMEMODE_CTF ) ||
+					( g_BrowserServerList[lServer].GameMode == GAMEMODE_ONEFLAGCTF ))
 				{
 					// Team.
 					NETWORK_ReadByte( pByteStream );
@@ -912,7 +913,7 @@ CCMD( dumpserverlist )
 		Printf( "\nServer #%d\n----------------\n", ulIdx );
 		Printf( "Name: %s\n", g_BrowserServerList[ulIdx].szHostName );
 		Printf( "Address: %s\n", NETWORK_AddressToString( g_BrowserServerList[ulIdx].Address ));
-		Printf( "Gametype: %d\n", g_BrowserServerList[ulIdx].lGameType );
+		Printf( "Gametype: %d\n", g_BrowserServerList[ulIdx].GameMode );
 		Printf( "Num PWADs: %d\n", g_BrowserServerList[ulIdx].lNumPWADs );
 		Printf( "Players: %d/%d\n", g_BrowserServerList[ulIdx].lNumPlayers, g_BrowserServerList[ulIdx].lMaxClients );
 		Printf( "Ping: %d\n", g_BrowserServerList[ulIdx].lPing );

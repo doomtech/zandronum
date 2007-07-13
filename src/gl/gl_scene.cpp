@@ -526,6 +526,8 @@ void gl_DrawScene()
 // the blend in time.
 //
 //==========================================================================
+// [BC] Blah. Not a great place to include this.
+EXTERN_CVAR (Float,  blood_fade_scalar)
 static void gl_DrawBlend(sector_t * viewsector)
 {
 	float blend[4]={0,0,0,0};
@@ -656,6 +658,9 @@ static void gl_DrawBlend(sector_t * viewsector)
 		// FIXME!
 		cnt = DamageToAlpha[MIN (113, player->damagecount)];
 		
+		// [BC] Allow users to tone down the intensity of the blood on the screen.
+		cnt = (int)( cnt * blood_fade_scalar );
+
 		if (cnt)
 		{
 			if (cnt > 175) cnt = 175; // too strong and it gets too opaque

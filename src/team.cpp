@@ -1558,7 +1558,7 @@ CUSTOM_CVAR( Bool, teamgame, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGN
 	if ( self == true )
 	{
 		Val.Bool = false;
-		
+
 		// Disable deathmatch if we're setting a teamgame.
 		deathmatch.ForceSet( Val, CVAR_Bool );
 
@@ -1582,6 +1582,9 @@ CUSTOM_CVAR( Bool, teamgame, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGN
 				cooperative.ForceSet( Val, CVAR_Bool );
 		}
 	}
+
+	// Reset what the current game mode is.
+	GAMEMODE_DetermineGameMode( );
 }
 
 //*****************************************************************************
@@ -1617,6 +1620,9 @@ CUSTOM_CVAR( Bool, ctf, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGNLOCK 
 		}
 	}
 */
+
+	// Reset what the current game mode is.
+	GAMEMODE_DetermineGameMode( );
 }
 
 //*****************************************************************************
@@ -1639,6 +1645,9 @@ CUSTOM_CVAR( Bool, oneflagctf, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAI
 		g_Team[TEAM_BLUE].FlagItem = PClass::FindClass( "BlueFlag" );
 		g_Team[TEAM_RED].FlagItem = PClass::FindClass( "RedFlag" );
 	}
+
+	// Reset what the current game mode is.
+	GAMEMODE_DetermineGameMode( );
 }
 
 //*****************************************************************************
@@ -1661,6 +1670,9 @@ CUSTOM_CVAR( Bool, skulltag, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGN
 		g_Team[TEAM_BLUE].FlagItem = PClass::FindClass( "BlueSkullST" );
 		g_Team[TEAM_RED].FlagItem = PClass::FindClass( "RedSkullST" );
 	}
+
+	// Reset what the current game mode is.
+	GAMEMODE_DetermineGameMode( );
 }
 
 //*****************************************************************************
@@ -1713,7 +1725,7 @@ CCMD( changeteam )
 		return;
 
 	// Not a team mode.
-	if (( teamgame == false ) && ( teamplay == false ) && ( teamlms == false ) && ( teampossession == false ))
+	if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) == false )
 	{
 		Printf( "You can only change your team in a team game.\n" );
 		return;

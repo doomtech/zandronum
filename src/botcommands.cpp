@@ -59,6 +59,7 @@
 #include "deathmatch.h"
 #include "duel.h"
 #include "g_game.h"
+#include "gamemode.h"
 #include "gi.h"
 #include "joinqueue.h"
 #include "lastmanstanding.h"
@@ -2452,7 +2453,7 @@ static void botcmd_TryToJoinGame( CSkullBot *pBot )
 	// Everything's okay! Go ahead and join!
 	pBot->GetPlayer( )->playerstate = PST_ENTERNOINVENTORY;
 	pBot->GetPlayer( )->bSpectating = false;
-	if ( teamgame || teamlms || teamplay || teampossession )
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 	{
 		pBot->GetPlayer( )->bOnTeam = true;
 		pBot->GetPlayer( )->ulTeam = TEAM_ChooseBestTeamForPlayer( );
@@ -2600,7 +2601,7 @@ static void botcmd_IsSkillDecreased( CSkullBot *pBot )
 //
 static void botcmd_GetGameMode( CSkullBot *pBot )
 {
-	g_iReturnInt = GAME_GetGameType( );
+	g_iReturnInt = GAMEMODE_GetCurrentMode( );
 }
 
 //*****************************************************************************
