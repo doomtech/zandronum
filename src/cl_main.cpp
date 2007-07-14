@@ -112,6 +112,7 @@ int		D_PlayerClassToInt (const char *classname);
 bool	P_AdjustFloorCeil (AActor *thing);
 void	ClientObituary (AActor *self, AActor *inflictor, AActor *attacker, LONG lMeansOfDeath);
 void	P_CrouchMove(player_t * player, int direction);
+bool	DoThingRaise( AActor *thing );
 extern	bool	SpawningMapThing;
 
 EXTERN_CVAR( Bool, telezoom )
@@ -4695,8 +4696,9 @@ static void client_SetThingState( BYTESTREAM_s *pByteStream )
 		break;
 	case STATE_RAISE:
 
-		pNewState = pActor->RaiseState;
-		break;
+		// When an actor raises, we need to do a whole bunch of other stuff.
+		DoThingRaise( pActor );
+		return;
 	case STATE_HEAL:
 
 		if ( pActor->HealState )

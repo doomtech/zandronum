@@ -194,7 +194,7 @@ value_t OnOff[2] = {
 value_t GenderVals[3] = {
 	{ 0.0, "Male" },
 	{ 1.0, "Female" },
-	{ 2.0, "Neither" },
+	{ 2.0, "Other" },
 };
 
 value_t AutoaimVals[7] = {

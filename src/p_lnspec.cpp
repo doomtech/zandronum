@@ -60,6 +60,7 @@
 #include "sv_commands.h"
 #include "network.h"
 #include "invasion.h"
+#include "cl_demo.h"
 
 #define FUNC(a) static int a (line_t *ln, AActor *it, bool backSide, \
 	int arg0, int arg1, int arg2, int arg3, int arg4)
@@ -1377,7 +1378,8 @@ FUNC(LS_Thing_SpawnFacing)
 	return P_Thing_Spawn (arg0, it, arg1, ANGLE_MAX, arg2 ? false : true, arg3);
 }
 
-static bool DoThingRaise(AActor *thing)
+// [BC] No longer static so clients can call this function.
+/*static*/ bool DoThingRaise(AActor *thing)
 {
 	if (thing == NULL)
 		return false;	// not valid
@@ -1432,7 +1434,7 @@ static bool DoThingRaise(AActor *thing)
 		level.total_monsters++;
 
 		// [BC] Update invasion's HUD.
-		if ( invasion )
+		if (( invasion ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 		{
 			INVASION_SetNumMonstersLeft( INVASION_GetNumMonstersLeft( ) + 1 );
 
@@ -1442,13 +1444,9 @@ static bool DoThingRaise(AActor *thing)
 		}
 	}
 
-	// [BC] If we're the server, tell clients to play the sound, and put the things into
-	// its raise state.
+	// [BC] If we're the server, tell clients to put the thing into its raise state.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-	{
-		SERVERCOMMANDS_SoundActor( thing, CHAN_BODY, "vile/raise", 127, ATTN_IDLE );
 		SERVERCOMMANDS_SetThingState( thing, STATE_RAISE );
-	}
 
 	return true;
 }

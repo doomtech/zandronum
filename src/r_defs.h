@@ -45,6 +45,9 @@ struct FLightNode;
 const WORD NO_INDEX = 0xffffu;
 const DWORD NO_SIDE = 0xffffffffu;
 
+// [BC] This is the maximum length a skin name can be.
+#define	MAX_SKIN_NAME					24
+
 // Silhouette, needed for clipping Segs (mainly)
 // and sprites representing things.
 enum
@@ -961,7 +964,8 @@ extern TArray<spriteframe_t> SpriteFrames;
 class FPlayerSkin
 {
 public:
-	char		name[17];	// 16 chars + NULL
+	// [BC] Changed to MAX_SKIN_NAME.
+	char		name[MAX_SKIN_NAME+1];	// MAX_SKIN_NAME chars + NULL
 	char		face[3];
 	BYTE		gender;		// This skin's gender (not really used)
 	BYTE		range0start;

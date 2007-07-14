@@ -175,7 +175,7 @@ FState ARandomPowerup::States[] =
 	S_BRIGHT (GARD, 'A',	6, A_RandomPowerupFrame			, &States[3]),
 	S_BRIGHT (PINS, 'A',	6, A_RandomPowerupFrame			, &States[4]),
 	S_BRIGHT (TIME, 'A',	6, A_RandomPowerupFrame			, &States[5]),
-	S_BRIGHT (INVS, 'A',	6, A_RandomPowerupFrame			, &States[6]),
+	S_BRIGHT (SINV, 'A',	6, A_RandomPowerupFrame			, &States[6]),
 	S_BRIGHT (DOOM, 'A',	6, A_RandomPowerupFrame			, &States[7]),
 	S_BRIGHT (TURB, 'A',	6, A_RandomPowerupFrame			, &States[0]),
 };

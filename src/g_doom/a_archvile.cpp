@@ -273,19 +273,10 @@ void A_VileChase (AActor *self)
 					info = corpsehit->GetDefault ();
 					
 					// [BC] If we are the server, tell clients about the state change.
-					// to play the raise sound.
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 						SERVERCOMMANDS_SetThingState( self, STATE_HEAL );
 
 					corpsehit->SetState (info->RaiseState);
-
-					// [BC] If we are the server, tell clients about the state change, and
-					// to play the sound.
-					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					{
-						SERVERCOMMANDS_SoundActor( corpsehit, CHAN_BODY, "vile/raise", 127, ATTN_IDLE );
-						SERVERCOMMANDS_SetThingState( corpsehit, STATE_RAISE );
-					}
 
 					corpsehit->height = info->height;	// [RH] Use real mobj height
 					corpsehit->radius = info->radius;	// [RH] Use real radius
@@ -325,6 +316,9 @@ void A_VileChase (AActor *self)
 					// You are the Archvile's minion now, so hate what it hates
 					corpsehit->CopyFriendliness (self, false);
 
+					// [BC] If we're the server, tell clients to put the thing into its raise state.
+					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						SERVERCOMMANDS_SetThingState( corpsehit, STATE_RAISE );
 
 					return;
 				}

@@ -538,7 +538,8 @@ void R_InitSkins (void)
 			SC_GetString ();
 			if (0 == stricmp (key, "name"))
 			{
-				strncpy (skins[i].name, sc_String, 16);
+				// [BC] MAX_SKIN_NAME.
+				strncpy (skins[i].name, sc_String, MAX_SKIN_NAME);
 				for (j = 0; (size_t)j < i; j++)
 				{
 					if (stricmp (skins[i].name, skins[j].name) == 0)
@@ -881,7 +882,7 @@ void R_InitSkins (void)
 
 					// Now try to match our key with a valid bot info field.
 					if ( stricmp( szKey, "name" ) == 0 )
-						sprintf( skins[i].name, szValue );
+						strncpy( skins[i].name, szValue, MAX_SKIN_NAME );
 					else if ( stricmp( szKey, "sprite" ) == 0 )
 					{
 						for ( ulIdx = 0; ulIdx < 4; ulIdx++ )
@@ -1254,7 +1255,8 @@ int R_FindSkin (const char *name, int pclass)
 	while (min <= max)
 	{
 		mid = (min + max)/2;
-		lexx = strnicmp (skins[mid].name, name, 16);
+		// [BC] Changed from 16 to MAX_SKIN_NAME.
+		lexx = strnicmp (skins[mid].name, name, MAX_SKIN_NAME);
 		if (lexx == 0)
 		{
 			if (PlayerClasses[pclass].CheckSkin (mid))
