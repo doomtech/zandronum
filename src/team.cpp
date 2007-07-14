@@ -792,10 +792,10 @@ void TEAM_ScoreSkulltagPoint( player_s *pPlayer, ULONG ulNumPoints, AActor *pPil
 	{
 		screen->SetFont( BigFont );
 		pMsg = new DHUDMessageFadeOut( szString,
-			160.4f,
-			75.0f,
-			320,
-			200,
+			1.5,
+			0.425f,
+			0,
+			0,
 			CR_BLUE,
 			3.0f,
 			0.5f );
@@ -805,11 +805,24 @@ void TEAM_ScoreSkulltagPoint( player_s *pPlayer, ULONG ulNumPoints, AActor *pPil
 	// If necessary, send it to clients.
 	else
 	{
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_BLUE, 3.0f, 0.5f, "BigFont", 'CNTR' );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.425f, 0, 0, CR_BLUE, 3.0f, 0.5f, "BigFont", 'CNTR' );
 	}
 
-	// [RC] Create the "scored by" message.
+	// [RC] Create the "scored by" and "assisted by" message.
 	sprintf( szString, "\\c%sScored by: %s", pPlayer->ulTeam == TEAM_BLUE ? "H" : "G", pPlayer->userinfo.netname);
+	if ( TEAM_GetAssistPlayer( pPlayer->ulTeam ) != MAXPLAYERS ) {
+		bool selfAssist = false;
+		for(ULONG i = 0; i < MAXPLAYERS; i++)
+			if(&players[i] == pPlayer)
+				if( TEAM_GetAssistPlayer( pPlayer->ulTeam ) == i)
+					selfAssist = true;
+
+		if ( selfAssist )
+			sprintf( szString, "%s\\n\\c%[ Self-Assisted ]", szString, pPlayer->ulTeam == TEAM_BLUE ? "H" : "G");
+		else
+			sprintf( szString, "%s\\n\\c%sAssisted by: %s", szString, pPlayer->ulTeam == TEAM_BLUE ? "H" : "G", players[TEAM_GetAssistPlayer( pPlayer->ulTeam )].userinfo.netname);
+	}
+	
 	V_ColorizeString( szString );
 
 	// Now, print it.
@@ -817,44 +830,18 @@ void TEAM_ScoreSkulltagPoint( player_s *pPlayer, ULONG ulNumPoints, AActor *pPil
 	{
 		screen->SetFont( SmallFont );
 		pMsg = new DHUDMessageFadeOut( szString,
-			160.4f,
-			90.0f,
-			320,
-			200,
-			CR_BLUE,
+			1.5f,
+			0.475f,
+			0,
+			0,
+			pPlayer->ulTeam == TEAM_BLUE ? CR_BLUE : CR_RED,
 			3.0f,
 			0.5f );
-		StatusBar->AttachMessage( pMsg, 'SCOR' );
+		StatusBar->AttachMessage( pMsg, 'SUBS' );
 	}
 	// If necessary, send it to clients.
 	else
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 90.0f, 320, 200, CR_BLUE, 3.0f, 0.5f, "SmallFont", 'SCOR' );
-
-	// [RC] Create the "assisted by" message.
-	if ( TEAM_GetAssistPlayer( pPlayer->ulTeam ) != MAXPLAYERS )
-	{
-		sprintf( szString, "\\c%sAssisted by: %s", pPlayer->ulTeam == TEAM_BLUE ? "H" : "G", players[TEAM_GetAssistPlayer( pPlayer->ulTeam )].userinfo.netname);
-		V_ColorizeString( szString );
-
-		// Now, print it.
-		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-		{
-			screen->SetFont( SmallFont );
-			pMsg = new DHUDMessageFadeOut( szString,
-				160.4f,
-				100.0f,
-				320,
-				200,
-				CR_BLUE,
-				3.0f,
-				0.5f );
-			StatusBar->AttachMessage( pMsg, 'ASSI' );
-		}
-		// If necessary, send it to clients.
-		else
-			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 100.0f, 320, 200, CR_BLUE, 3.0f, 0.5f, "SmallFont", 'ASSI' );
-		}
-
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.475f, 0, 0, CR_BLUE, 3.0f, 0.5f, "SmallFont", 'SUBS' );
 
 	// Give his team a point.
 	TEAM_SetScore( pPlayer->ulTeam, TEAM_GetScore( pPlayer->ulTeam ) + ulNumPoints, true );
