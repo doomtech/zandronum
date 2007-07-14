@@ -2328,6 +2328,30 @@ void ABlueSkullST::DisplayFlagTaken( AActor *pToucher )
 		V_ColorizeString( szString );
 		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.425f, 0, 0, CR_BLUE, 3.0f, 0.25f, "BigFont", 'CNTR', ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT );
 	}
+
+	// [RC] Create the "held by" message for blue.
+		ULONG playerIndex = ULONG( pToucher->player - players );
+		sprintf( szString, "\\chHeld by: %s",players[playerIndex].userinfo.netname);
+
+		V_ColorizeString( szString );
+
+		// Now, print it.
+		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		{
+			screen->SetFont( SmallFont );
+			pMsg = new DHUDMessageFadeOut( szString,
+				1.5f,
+				0.475f,
+				0,
+				0,
+				CR_BLUE,
+				3.0f,
+				0.25f );
+			StatusBar->AttachMessage( pMsg, 'SUBS' );
+		}
+		// If necessary, send it to clients.
+		else
+			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.475f, 0, 0, CR_BLUE, 3.0f, 0.25f, "SmallFont", 'SUBS' );
 }
 
 //===========================================================================
@@ -2391,6 +2415,62 @@ void ABlueSkullST::ReturnFlag( AActor *pReturner )
 		if ( pReturner && pReturner->player )
 			TEAM_SetAssistPlayer( TEAM_BLUE, ULONG( pReturner->player - players ));
 	}
+	if ( pReturner && pReturner->player )
+	{
+		// [RC] Create the "returned by" message for blue.
+		char szString[256];
+		DHUDMessageFadeOut	*pMsg;
+		ULONG playerIndex = ULONG( pReturner->player - players );
+		sprintf( szString, "\\chReturned by: %s", players[playerIndex].userinfo.netname);
+
+		V_ColorizeString( szString );
+
+		// Now, print it.
+		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		{
+			screen->SetFont( SmallFont );
+			pMsg = new DHUDMessageFadeOut( szString,
+				1.5f,
+				0.475f,
+				0,
+				0,
+				CR_BLUE,
+				3.0f,
+				0.25f );
+			StatusBar->AttachMessage( pMsg, 'SUBS' );
+		}
+		// If necessary, send it to clients.
+		else
+			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.475f, 0, 0, CR_BLUE, 3.0f, 0.25f, "SmallFont", 'SUBS' );
+	}
+	else
+	{
+		// [RC] Create the "returned automatically" message for red.
+		char szString[256];
+		DHUDMessageFadeOut	*pMsg;
+		sprintf( szString, "\\chReturned automatically.");
+
+		V_ColorizeString( szString );
+
+		// Now, print it.
+		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		{
+			screen->SetFont( SmallFont );
+			pMsg = new DHUDMessageFadeOut( szString,
+				1.5f,
+				0.475f,
+				0,
+				0,
+				CR_RED,
+				3.0f,
+				0.25f );
+			StatusBar->AttachMessage( pMsg, 'SUBS' );
+		}
+		// If necessary, send it to clients.
+		else
+			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.475f, 0, 0, CR_RED, 3.0f, 0.25f, "SmallFont", 'SUBS' );
+	}
+
 }
 
 //===========================================================================
@@ -2668,6 +2748,30 @@ void ARedSkullST::DisplayFlagTaken( AActor *pToucher )
 		V_ColorizeString( szString );
 		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.425f, 0, 0, CR_RED, 3.0f, 0.25f, "BigFont", 'CNTR', ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT );
 	}
+
+	// [RC] Create the "held by" message for red.
+		ULONG playerIndex = ULONG( pToucher->player - players );
+		sprintf( szString, "\\cgHeld by: %s",players[playerIndex].userinfo.netname);
+
+		V_ColorizeString( szString );
+
+		// Now, print it.
+		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		{
+			screen->SetFont( SmallFont );
+			pMsg = new DHUDMessageFadeOut( szString,
+				1.5f,
+				0.475f,
+				0,
+				0,
+				CR_RED,
+				3.0f,
+				0.25f );
+			StatusBar->AttachMessage( pMsg, 'SUBS' );
+		}
+		// If necessary, send it to clients.
+		else
+			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.475f, 0, 0, CR_RED, 3.0f, 0.25f, "SmallFont", 'SUBS' );
 }
 
 //===========================================================================
@@ -2731,6 +2835,62 @@ void ARedSkullST::ReturnFlag( AActor *pReturner )
 		if ( pReturner && pReturner->player )
 			TEAM_SetAssistPlayer( TEAM_RED, ULONG( pReturner->player - players ));
 	}
+	if ( pReturner && pReturner->player )
+	{
+		// [RC] Create the "returned by" message for red.
+		char szString[256];
+		DHUDMessageFadeOut	*pMsg;
+		ULONG playerIndex = ULONG( pReturner->player - players );
+		sprintf( szString, "\\cgReturned by: %s",players[playerIndex].userinfo.netname);
+
+		V_ColorizeString( szString );
+
+		// Now, print it.
+		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		{
+			screen->SetFont( SmallFont );
+			pMsg = new DHUDMessageFadeOut( szString,
+				1.5f,
+				0.475f,
+				0,
+				0,
+				CR_RED,
+				3.0f,
+				0.25f );
+			StatusBar->AttachMessage( pMsg, 'SUBS' );
+		}
+		// If necessary, send it to clients.
+		else
+			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.475f, 0, 0, CR_RED, 3.0f, 0.25f, "SmallFont", 'SUBS' );
+	}
+	else
+	{
+		// [RC] Create the "returned automatically" message for red.
+		char szString[256];
+		DHUDMessageFadeOut	*pMsg;
+		sprintf( szString, "\\cgReturned automatically.");
+
+		V_ColorizeString( szString );
+
+		// Now, print it.
+		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		{
+			screen->SetFont( SmallFont );
+			pMsg = new DHUDMessageFadeOut( szString,
+				1.5f,
+				0.475f,
+				0,
+				0,
+				CR_RED,
+				3.0f,
+				0.25f );
+			StatusBar->AttachMessage( pMsg, 'SUBS' );
+		}
+		// If necessary, send it to clients.
+		else
+			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.475f, 0, 0, CR_RED, 3.0f, 0.25f, "SmallFont", 'SUBS' );
+	}
+
 }
 
 //===========================================================================
