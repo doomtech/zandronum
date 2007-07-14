@@ -394,7 +394,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_CHUBBS].ulChatFrequency = 75;
 	g_HardcodedBotInfo[BOT_CHUBBS].bRevealed = true;
 	g_HardcodedBotInfo[BOT_CHUBBS].bRevealedByDefault = true;
-	sprintf( g_HardcodedBotInfo[BOT_CHUBBS].szScriptName, "fatbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_CHUBBS].szScriptName, "fatbot" );
 	g_HardcodedBotInfo[BOT_CHUBBS].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_CHUBBS].szChatLump, "bots/chatfiles/chubbs.txt" );
 
@@ -416,7 +416,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_DEIMOS].bRevealed = true;
 	g_HardcodedBotInfo[BOT_DEIMOS].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_DEIMOS].szScriptName, "SOLDRBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_DEIMOS].szScriptName, "humanbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_DEIMOS].szScriptName, "humanbot" );
 	g_HardcodedBotInfo[BOT_DEIMOS].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_DEIMOS].szChatLump, "bots/chatfiles/soldier.txt" );
 
@@ -438,7 +438,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_ALDEBARAN].bRevealed = true;
 	g_HardcodedBotInfo[BOT_ALDEBARAN].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_ALDEBARAN].szScriptName, "SOLDRBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_ALDEBARAN].szScriptName, "humanbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_ALDEBARAN].szScriptName, "humanbot" );
 	g_HardcodedBotInfo[BOT_ALDEBARAN].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_ALDEBARAN].szChatLump, "bots/chatfiles/soldier.txt" );
 
@@ -459,7 +459,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_CRASH].ulChatFrequency = 90;
 	g_HardcodedBotInfo[BOT_CRASH].bRevealed = true;
 	g_HardcodedBotInfo[BOT_CRASH].bRevealedByDefault = true;
-	sprintf( g_HardcodedBotInfo[BOT_CRASH].szScriptName, "crashbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_CRASH].szScriptName, "crashbot" );
 	g_HardcodedBotInfo[BOT_CRASH].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_CRASH].szChatLump, "bots/chatfiles/crash.txt" );
 
@@ -481,7 +481,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_PROCYON].bRevealed = true;
 	g_HardcodedBotInfo[BOT_PROCYON].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_PROCYON].szScriptName, "SOLDRBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_PROCYON].szScriptName, "humanbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_PROCYON].szScriptName, "humanbot" );
 	g_HardcodedBotInfo[BOT_PROCYON].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_PROCYON].szChatLump, "bots/chatfiles/soldier.txt" );
 
@@ -503,7 +503,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_SIRIUS].bRevealed = true;
 	g_HardcodedBotInfo[BOT_SIRIUS].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_SIRIUS].szScriptName, "SOLDRBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_SIRIUS].szScriptName, "humanbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_SIRIUS].szScriptName, "humanbot" );
 	g_HardcodedBotInfo[BOT_SIRIUS].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_SIRIUS].szChatLump, "bots/chatfiles/soldier.txt" );
 
@@ -525,7 +525,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_RIGEL].bRevealed = true;
 	g_HardcodedBotInfo[BOT_RIGEL].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_RIGEL].szScriptName, "SOLDRBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_RIGEL].szScriptName, "humanbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_RIGEL].szScriptName, "humanbot" );
 	g_HardcodedBotInfo[BOT_RIGEL].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_RIGEL].szChatLump, "bots/chatfiles/soldier.txt" );
 
@@ -547,7 +547,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_SEENAS].bRevealed = true;
 	g_HardcodedBotInfo[BOT_SEENAS].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_SEENAS].szScriptName, "SOLDRBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_SEENAS].szScriptName, "humanbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_SEENAS].szScriptName, "humanbot" );
 	g_HardcodedBotInfo[BOT_SEENAS].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_SEENAS].szChatLump, "bots/chatfiles/soldier.txt" );
 
@@ -569,7 +569,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_SYNAS].bRevealed = true;
 	g_HardcodedBotInfo[BOT_SYNAS].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_SYNAS].szScriptName, "SOLDRBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_SYNAS].szScriptName, "humanbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_SYNAS].szScriptName, "humanbot" );
 	g_HardcodedBotInfo[BOT_SYNAS].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_SYNAS].szChatLump, "bots/chatfiles/soldier.txt" );
 
@@ -591,7 +591,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_CYGNUS].bRevealed = true;
 	g_HardcodedBotInfo[BOT_CYGNUS].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_CYGNUS].szScriptName, "CYGNSBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_CYGNUS].szScriptName, "humanbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_CYGNUS].szScriptName, "humanbot" );
 	g_HardcodedBotInfo[BOT_CYGNUS].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_CYGNUS].szChatLump, "bots/chatfiles/cygnus.txt" );
 
@@ -615,7 +615,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_ALPHUS].bRevealed = true;
 	g_HardcodedBotInfo[BOT_ALPHUS].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_ALPHUS].szScriptName, "ROBOBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_ALPHUS].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_ALPHUS].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_ALPHUS].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_ALPHUS].szChatLump, "bots/chatfiles/robot.txt" );
 
@@ -637,7 +637,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_PROTOS].bRevealed = true;
 	g_HardcodedBotInfo[BOT_PROTOS].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_PROTOS].szScriptName, "ROBOBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_PROTOS].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_PROTOS].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_PROTOS].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_PROTOS].szChatLump, "bots/chatfiles/robot.txt" );
 
@@ -659,7 +659,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_BETUS].bRevealed = true;
 	g_HardcodedBotInfo[BOT_BETUS].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_BETUS].szScriptName, "ROBOBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_BETUS].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_BETUS].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_BETUS].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_BETUS].szChatLump, "bots/chatfiles/robot.txt" );
 
@@ -681,7 +681,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_SCYON].bRevealed = true;
 	g_HardcodedBotInfo[BOT_SCYON].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_SCYON].szScriptName, "ROBOBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_SCYON].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_SCYON].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_SCYON].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_SCYON].szChatLump, "bots/chatfiles/robot.txt" );
 
@@ -703,7 +703,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_GAMMA].bRevealed = true;
 	g_HardcodedBotInfo[BOT_GAMMA].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_GAMMA].szScriptName, "ROBOBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_GAMMA].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_GAMMA].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_GAMMA].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_GAMMA].szChatLump, "bots/chatfiles/robot.txt" );
 
@@ -725,7 +725,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_SCYTHE].bRevealed = true;
 	g_HardcodedBotInfo[BOT_SCYTHE].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_SCYTHE].szScriptName, "ROBOBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_SCYTHE].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_SCYTHE].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_SCYTHE].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_SCYTHE].szChatLump, "bots/chatfiles/robot.txt" );
 
@@ -747,7 +747,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_ELECTRA].bRevealed = true;
 	g_HardcodedBotInfo[BOT_ELECTRA].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_ELECTRA].szScriptName, "ROBOBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_ELECTRA].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_ELECTRA].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_ELECTRA].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_ELECTRA].szChatLump, "bots/chatfiles/robot.txt" );
 
@@ -769,7 +769,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_OMICRON].bRevealed = true;
 	g_HardcodedBotInfo[BOT_OMICRON].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_OMICRON].szScriptName, "ROBOBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_OMICRON].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_OMICRON].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_OMICRON].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_OMICRON].szChatLump, "bots/chatfiles/robot.txt" );
 
@@ -791,7 +791,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_CRYON].bRevealed = true;
 	g_HardcodedBotInfo[BOT_CRYON].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_CRYON].szScriptName, "ROBOBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_CRYON].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_CRYON].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_CRYON].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_CRYON].szChatLump, "bots/chatfiles/robot.txt" );
 
@@ -813,7 +813,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_OMEGA].bRevealed = true;
 	g_HardcodedBotInfo[BOT_OMEGA].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_OMEGA].szScriptName, "ROBOBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_OMEGA].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_OMEGA].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_OMEGA].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_OMEGA].szChatLump, "bots/chatfiles/robot.txt" );
 
@@ -837,7 +837,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_PREY].bRevealed = true;
 	g_HardcodedBotInfo[BOT_PREY].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_PREY].szScriptName, "INSCTBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_PREY].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_PREY].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_PREY].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_PREY].szChatLump, "bots/chatfiles/insect.txt" );
 
@@ -859,7 +859,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_MANEK].bRevealed = true;
 	g_HardcodedBotInfo[BOT_MANEK].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_MANEK].szScriptName, "INSCTBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_MANEK].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_MANEK].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_MANEK].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_MANEK].szChatLump, "bots/chatfiles/insect.txt" );
 
@@ -882,7 +882,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_LINGUICA].ulChatFrequency = 75;
 	g_HardcodedBotInfo[BOT_LINGUICA].bRevealed = true;
 	g_HardcodedBotInfo[BOT_LINGUICA].bRevealedByDefault = true;
-	sprintf( g_HardcodedBotInfo[BOT_LINGUICA].szScriptName, "sausgbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_LINGUICA].szScriptName, "sausgbot" );
 	g_HardcodedBotInfo[BOT_LINGUICA].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_LINGUICA].szChatLump, "bots/chatfiles/linguica.txt" );
 
@@ -904,7 +904,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_TORRENT].bRevealed = true;
 	g_HardcodedBotInfo[BOT_TORRENT].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_TORRENT].szScriptName, "DEMONBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_TORRENT].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_TORRENT].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_TORRENT].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_TORRENT].szChatLump, "bots/chatfiles/demon.txt" );
 
@@ -926,7 +926,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_CATACLYSM].bRevealed = true;
 	g_HardcodedBotInfo[BOT_CATACLYSM].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_CATACLYSM].szScriptName, "DEMONBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_CATACLYSM].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_CATACLYSM].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_CATACLYSM].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_CATACLYSM].szChatLump, "bots/chatfiles/demon.txt" );
 
@@ -948,7 +948,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_VEX].bRevealed = true;
 	g_HardcodedBotInfo[BOT_VEX].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_VEX].szScriptName, "DEMONBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_VEX].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_VEX].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_VEX].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_VEX].szChatLump, "bots/chatfiles/demon.txt" );
 
@@ -970,7 +970,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_OBELISK].bRevealed = true;
 	g_HardcodedBotInfo[BOT_OBELISK].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_OBELISK].szScriptName, "DEMONBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_OBELISK].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_OBELISK].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_OBELISK].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_OBELISK].szChatLump, "bots/chatfiles/demon.txt" );
 
@@ -992,7 +992,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_DAEMOS].bRevealed = true;
 	g_HardcodedBotInfo[BOT_DAEMOS].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_DAEMOS].szScriptName, "DEMONBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_DAEMOS].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_DAEMOS].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_DAEMOS].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_DAEMOS].szChatLump, "bots/chatfiles/demon.txt" );
 
@@ -1014,7 +1014,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_MAABUS].bRevealed = true;
 	g_HardcodedBotInfo[BOT_MAABUS].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_MAABUS].szScriptName, "DEMONBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_MAABUS].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_MAABUS].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_MAABUS].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_MAABUS].szChatLump, "bots/chatfiles/demon.txt" );
 
@@ -1036,7 +1036,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_SLYOR].bRevealed = true;
 	g_HardcodedBotInfo[BOT_SLYOR].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_SLYOR].szScriptName, "DEMONBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_SLYOR].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_SLYOR].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_SLYOR].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_SLYOR].szChatLump, "bots/chatfiles/demon.txt" );
 
@@ -1060,7 +1060,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_ORION].bRevealed = true;
 	g_HardcodedBotInfo[BOT_ORION].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_ORION].szScriptName, "OREOBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_ORION].szScriptName, "humanbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_ORION].szScriptName, "humanbot" );
 	g_HardcodedBotInfo[BOT_ORION].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_ORION].szChatLump, "bots/chatfiles/orion.txt" );
 
@@ -1082,7 +1082,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_ULTIMUS].bRevealed = true;
 	g_HardcodedBotInfo[BOT_ULTIMUS].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_ULTIMUS].szScriptName, "ULTIBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_ULTIMUS].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_ULTIMUS].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_ULTIMUS].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_ULTIMUS].szChatLump, "bots/chatfiles/ultimus.txt" );
 
@@ -1106,7 +1106,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_ROMERO].bRevealed = false;
 	g_HardcodedBotInfo[BOT_ROMERO].bRevealedByDefault = false;
 //	sprintf( g_HardcodedBotInfo[BOT_ROMERO].szScriptName, "POGOBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_ROMERO].szScriptName, "humanbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_ROMERO].szScriptName, "humanbot" );
 	g_HardcodedBotInfo[BOT_ROMERO].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_ROMERO].szChatLump, "bots/chatfiles/romero.txt" );
 
@@ -1128,7 +1128,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_H4X0R].bRevealed = true;
 	g_HardcodedBotInfo[BOT_H4X0R].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_H4X0R].szScriptName, "HAXORBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_H4X0R].szScriptName, "humanbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_H4X0R].szScriptName, "humanbot" );
 	g_HardcodedBotInfo[BOT_H4X0R].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_H4X0R].szChatLump, "bots/chatfiles/1337.txt" );
 
@@ -1150,7 +1150,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_FRAD].bRevealed = false;
 	g_HardcodedBotInfo[BOT_FRAD].bRevealedByDefault = false;
 //	sprintf( g_HardcodedBotInfo[BOT_FRAD].szScriptName, "FRADBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_FRAD].szScriptName, "humanbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_FRAD].szScriptName, "humanbot" );
 	g_HardcodedBotInfo[BOT_FRAD].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_FRAD].szChatLump, "bots/chatfiles/frad.txt" );
 
@@ -1172,7 +1172,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_MEWSE].bRevealed = false;
 	g_HardcodedBotInfo[BOT_MEWSE].bRevealedByDefault = false;
 //	sprintf( g_HardcodedBotInfo[BOT_MEWSE].szScriptName, "MEWSEBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_MEWSE].szScriptName, "humanbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_MEWSE].szScriptName, "humanbot" );
 	g_HardcodedBotInfo[BOT_MEWSE].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_MEWSE].szChatLump, "bots/chatfiles/mewse.txt" );
 
@@ -1194,7 +1194,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_HISSY].bRevealed = true;
 	g_HardcodedBotInfo[BOT_HISSY].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_HISSY].szScriptName, "HISSYBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_HISSY].szScriptName, "humanbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_HISSY].szScriptName, "humanbot" );
 	g_HardcodedBotInfo[BOT_HISSY].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_HISSY].szChatLump, "bots/chatfiles/hissy.txt" );
 
@@ -1216,7 +1216,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_MASSMOUTH].bRevealed = true;
 	g_HardcodedBotInfo[BOT_MASSMOUTH].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_MASSMOUTH].szScriptName, "MOUTHBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_MASSMOUTH].szScriptName, "humanbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_MASSMOUTH].szScriptName, "humanbot" );
 	g_HardcodedBotInfo[BOT_MASSMOUTH].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_MASSMOUTH].szChatLump, "bots/chatfiles/massmouth.txt" );
 
@@ -1238,7 +1238,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_DOOMCRATE].bRevealed = true;
 	g_HardcodedBotInfo[BOT_DOOMCRATE].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_DOOMCRATE].szScriptName, "BOXBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_DOOMCRATE].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_DOOMCRATE].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_DOOMCRATE].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_DOOMCRATE].szChatLump, "bots/chatfiles/doomcrate.txt" );
 
@@ -1260,7 +1260,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_ZOMBIEMAN].bRevealed = true;
 	g_HardcodedBotInfo[BOT_ZOMBIEMAN].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_ZOMBIEMAN].szScriptName, "ZMBIEBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_ZOMBIEMAN].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_ZOMBIEMAN].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_ZOMBIEMAN].szChatFile[0] = 0;
 	g_HardcodedBotInfo[BOT_ZOMBIEMAN].szChatLump[0] = 0;
 
@@ -1282,7 +1282,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_SHOTGUNGUY].bRevealed = true;
 	g_HardcodedBotInfo[BOT_SHOTGUNGUY].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_SHOTGUNGUY].szScriptName, "ZMBIEBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_SHOTGUNGUY].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_SHOTGUNGUY].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_SHOTGUNGUY].szChatFile[0] = 0;
 	g_HardcodedBotInfo[BOT_SHOTGUNGUY].szChatLump[0] = 0;
 
@@ -1304,7 +1304,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_BIGCHAINGUNGUY].bRevealed = true;
 	g_HardcodedBotInfo[BOT_BIGCHAINGUNGUY].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_BIGCHAINGUNGUY].szScriptName, "ZMBIEBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_BIGCHAINGUNGUY].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_BIGCHAINGUNGUY].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_BIGCHAINGUNGUY].szChatFile[0] = 0;
 	g_HardcodedBotInfo[BOT_BIGCHAINGUNGUY].szChatLump[0] = 0;
 
@@ -1326,7 +1326,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_SUPERSHOTGUNNER].bRevealed = true;
 	g_HardcodedBotInfo[BOT_SUPERSHOTGUNNER].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_SUPERSHOTGUNNER].szScriptName, "ZMBIEBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_SUPERSHOTGUNNER].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_SUPERSHOTGUNNER].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_SUPERSHOTGUNNER].szChatFile[0] = 0;
 	g_HardcodedBotInfo[BOT_SUPERSHOTGUNNER].szChatLump[0] = 0;
 
@@ -1348,7 +1348,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_SSNAZI].bRevealed = true;
 	g_HardcodedBotInfo[BOT_SSNAZI].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_SSNAZI].szScriptName, "ENEMYBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_SSNAZI].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_SSNAZI].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_SSNAZI].szChatFile[0] = 0;
 	g_HardcodedBotInfo[BOT_SSNAZI].szChatLump[0] = 0;
 
@@ -1370,7 +1370,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_NAZIGUARD].bRevealed = true;
 	g_HardcodedBotInfo[BOT_NAZIGUARD].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_NAZIGUARD].szScriptName, "ENEMYBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_NAZIGUARD].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_NAZIGUARD].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_NAZIGUARD].szChatFile[0] = 0;
 	g_HardcodedBotInfo[BOT_NAZIGUARD].szChatLump[0] = 0;
 
@@ -1392,7 +1392,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_NAZICHAINGUNNER].bRevealed = true;
 	g_HardcodedBotInfo[BOT_NAZICHAINGUNNER].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_NAZICHAINGUNNER].szScriptName, "ENEMYBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_NAZICHAINGUNNER].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_NAZICHAINGUNNER].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_NAZICHAINGUNNER].szChatFile[0] = 0;
 	g_HardcodedBotInfo[BOT_NAZICHAINGUNNER].szChatLump[0] = 0;
 
@@ -1414,7 +1414,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_STRIFEGUY].bRevealed = true;
 	g_HardcodedBotInfo[BOT_STRIFEGUY].bRevealedByDefault = true;
 //	sprintf( g_HardcodedBotInfo[BOT_STRIFEGUY].szScriptName, "ENEMYBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_STRIFEGUY].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_STRIFEGUY].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_STRIFEGUY].szChatFile[0] = 0;
 	g_HardcodedBotInfo[BOT_STRIFEGUY].szChatLump[0] = 0;
 
@@ -1436,7 +1436,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_XXENEMYXX].bRevealed = false;
 	g_HardcodedBotInfo[BOT_XXENEMYXX].bRevealedByDefault = false;
 //	sprintf( g_HardcodedBotInfo[BOT_XXENEMYXX].szScriptName, "ENEMYBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_XXENEMYXX].szScriptName, "humanbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_XXENEMYXX].szScriptName, "humanbot" );
 	g_HardcodedBotInfo[BOT_XXENEMYXX].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_XXENEMYXX].szChatLump, "bots/chatfiles/xxenemyxx.txt" );
 
@@ -1458,7 +1458,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_FIFFY].bRevealed = false;
 	g_HardcodedBotInfo[BOT_FIFFY].bRevealedByDefault = false;
 //	sprintf( g_HardcodedBotInfo[BOT_FIFFY].szScriptName, "REOLBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_FIFFY].szScriptName, "humanbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_FIFFY].szScriptName, "humanbot" );
 	g_HardcodedBotInfo[BOT_FIFFY].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_FIFFY].szChatLump, "bots/chatfiles/reol.txt" );
 
@@ -1480,7 +1480,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_MEEPY].bRevealed = false;
 	g_HardcodedBotInfo[BOT_MEEPY].bRevealedByDefault = false;
 //	sprintf( g_HardcodedBotInfo[BOT_MEEPY].szScriptName, "MEEPYBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_MEEPY].szScriptName, "humanbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_MEEPY].szScriptName, "humanbot" );
 	g_HardcodedBotInfo[BOT_MEEPY].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_MEEPY].szChatLump, "bots/chatfiles/meepy.txt" );
 
@@ -1502,7 +1502,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_CHEXMAN].bRevealed = false;
 	g_HardcodedBotInfo[BOT_CHEXMAN].bRevealedByDefault = false;
 //	sprintf( g_HardcodedBotInfo[BOT_CHEXMAN].szScriptName, "CHEXBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_CHEXMAN].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_CHEXMAN].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_CHEXMAN].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_CHEXMAN].szChatLump, "bots/chatfiles/chexman.txt" );
 
@@ -1523,7 +1523,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_DAISY].ulChatFrequency = 50;
 	g_HardcodedBotInfo[BOT_DAISY].bRevealed = false;
 	g_HardcodedBotInfo[BOT_DAISY].bRevealedByDefault = false;
-	sprintf( g_HardcodedBotInfo[BOT_DAISY].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_DAISY].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_DAISY].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_DAISY].szChatLump, "bots/chatfiles/daisy.txt" );
 
@@ -1544,7 +1544,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_LINMENGJU].ulChatFrequency = 80;
 	g_HardcodedBotInfo[BOT_LINMENGJU].bRevealed = false;
 	g_HardcodedBotInfo[BOT_LINMENGJU].bRevealedByDefault = false;
-	sprintf( g_HardcodedBotInfo[BOT_LINMENGJU].szScriptName, "humanbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_LINMENGJU].szScriptName, "humanbot" );
 	g_HardcodedBotInfo[BOT_LINMENGJU].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_LINMENGJU].szChatLump, "bots/chatfiles/fob.txt" );
 
@@ -1565,8 +1565,8 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_GOLDENFATTIE].ulChatFrequency = 33;
 	g_HardcodedBotInfo[BOT_GOLDENFATTIE].bRevealed = false;
 	g_HardcodedBotInfo[BOT_GOLDENFATTIE].bRevealedByDefault = false;
-	sprintf( g_HardcodedBotInfo[BOT_GOLDENFATTIE].szScriptName, "fatbot.bso" );
-//	sprintf( g_HardcodedBotInfo[BOT_GOLDENFATTIE].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_GOLDENFATTIE].szScriptName, "fatbot" );
+//	sprintf( g_HardcodedBotInfo[BOT_GOLDENFATTIE].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_GOLDENFATTIE].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_GOLDENFATTIE].szChatLump, "bots/chatfiles/chubbs.txt" );
 
@@ -1588,7 +1588,7 @@ void BOTS_Construct( void )
 	g_HardcodedBotInfo[BOT_QUOTEBOT].bRevealed = false;
 	g_HardcodedBotInfo[BOT_QUOTEBOT].bRevealedByDefault = false;
 //	sprintf( g_HardcodedBotInfo[BOT_QUOTEBOT].szScriptName, "QUOTEBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_QUOTEBOT].szScriptName, "dfultbot.bso" );
+	sprintf( g_HardcodedBotInfo[BOT_QUOTEBOT].szScriptName, "dfultbot" );
 	g_HardcodedBotInfo[BOT_QUOTEBOT].szChatFile[0] = 0;
 	sprintf( g_HardcodedBotInfo[BOT_QUOTEBOT].szChatLump, "bots/chatfiles/quotebot.txt" );
 
