@@ -98,7 +98,7 @@ void SERVERCONSOLE_RemovePlayer( LONG lPlayer ) {}
 void SERVERCONSOLE_UpdateOperatingSystem( char *pszString ) {}
 void SERVERCONSOLE_UpdateCPUSpeed( char *pszString ) {}
 void SERVERCONSOLE_UpdateVendor( char *pszString ) {}
-void SERVERCONSOLE_Print( char *pszString ) { std::cerr << pszString; }
+void SERVERCONSOLE_Print( char *pszString ) { std::cout << pszString; }
 
 // ------------------- GL related stuff ------------------- 
 #include "d_player.h"
