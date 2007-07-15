@@ -789,8 +789,11 @@ void MEDAL_RenderAllMedalsFullscreen( player_s *pPlayer )
 //
 ULONG MEDAL_GetDisplayedMedal( ULONG ulPlayer )
 {
-	if ( g_MedalQueue[ulPlayer][0].ulTick )
-		return ( g_MedalQueue[ulPlayer][0].ulMedal );
+	if( ulPlayer < MAXPLAYERS )
+	{
+		if ( g_MedalQueue[ulPlayer][0].ulTick )
+			return ( g_MedalQueue[ulPlayer][0].ulMedal );
+	}
 
 	return ( NUM_MEDALS );
 }
