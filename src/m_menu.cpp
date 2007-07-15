@@ -2390,10 +2390,19 @@ static void M_PlayerSetupDrawer( void )
 				}
 
 				// Build the translation for the character that's going to draw.
+/*
 				// [BB] Changed to use the ZDoom way to display player menu color
-				R_GetPlayerTranslation (g_ulPlayerSetupColor,
-					&skins[g_ulPlayerSetupSkin], translationtables[TRANSLATION_Players] + 256 * MAXPLAYERS);
+				R_GetPlayerTranslation( g_ulPlayerSetupColor,
+					&skins[g_ulPlayerSetupSkin],
+					translationtables[TRANSLATION_Players] + 256 * MAXPLAYERS );
+*/
 				//R_BuildPlayerSetupPlayerTranslation( g_ulPlayerSetupColor, &skins[g_ulPlayerSetupSkin] );
+
+				// [BC] Temporary solution. Copy the translation to the consoleplayer's
+				// translation slot.
+				R_GetPlayerTranslation( g_ulPlayerSetupColor,
+					&skins[g_ulPlayerSetupSkin],
+					translationtables[TRANSLATION_Players] + 256 * consoleplayer );
 
 				screen->DrawTexture (tex,
 					(320 - 52 - 32 + xo - 160)*CleanXfac + (SCREENWIDTH)/2,
@@ -2406,6 +2415,14 @@ static void M_PlayerSetupDrawer( void )
 					DTA_Translation, translationtables[TRANSLATION_Players] + 256 * MAXPLAYERS,
 					//DTA_Translation, translationtables[TRANSLATION_PlayerSetupMenu],
 					TAG_DONE);
+
+				// [BC] Temporary solution. Once we've drawn the translated player, restore
+				// the console player's translation.
+				// translation slot.
+				R_GetPlayerTranslation( players[consoleplayer].userinfo.color,
+					&skins[g_ulPlayerSetupSkin],
+					translationtables[TRANSLATION_Players] + 256 * consoleplayer );
+
 			}
 		}
 
@@ -2657,13 +2674,11 @@ void SendNewColor (int red, int green, int blue)
 {
 	char command[24];
 
-	sprintf( command, "%02x %02x %02x", red, green, blue );
-	g_ulPlayerSetupColor = V_GetColorFromString( NULL, command );
-
-	sprintf (command, "menu_color \"%02x %02x %02x\"", red, green, blue );
+	sprintf (command, "menu_color \"%02x %02x %02x\"", red, green, blue);
 	C_DoCommand (command);
 
-	R_GetPlayerTranslation (MAKERGB (red, green, blue), &skins[g_ulPlayerSetupSkin], translationtables[TRANSLATION_Players] + 256 * MAXPLAYERS);
+	g_ulPlayerSetupColor = MAKERGB( red, green, blue );
+	R_GetPlayerTranslation (g_ulPlayerSetupColor, &skins[g_ulPlayerSetupSkin], translationtables[TRANSLATION_Players] + 256 * MAXPLAYERS);
 }
 
 //

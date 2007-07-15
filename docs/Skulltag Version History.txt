@@ -41,6 +41,7 @@ v0.97d-beta4
 -	- The muzzle flash on the chaingun and minigun now works properly. [Carnevil]
 -	- The "block players" flag on lines is now cleared when SetLineBlocking sets the line to BLOCK_NOTHING. [Carnevil]
 -	- Monsters' radius, height, and other properties are now properly restored when resurrected by arch-viles and other means. [Carnevil]
+-	- Your color now updates properly when making changes to your color in the player setup menu. [Carnevil]
 -	- Setting your gender to "other" now works properly. [Carnevil]
 -	- Fixed: SetFont() not working online. [Torr Samaho]
 -	- Fixed: AInterpolationPoint and APathFollower not properly working online. This should also fix the problems with AAimingCamera online in KDiZD. [Torr Samaho]
