@@ -94,6 +94,7 @@
 
 // More stuff that needs to be different for derivatives.
 #define GAMENAME "Skulltag"
+#define GAMENAMELOWERCASE "skulltag"
 #define FORUM_URL "http://www.skulltag.com/forum/"
 
 #ifdef unix

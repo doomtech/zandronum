@@ -620,7 +620,7 @@ void ShowErrorPane(const char *text)
 	if (ErrorPane == NULL)
 	{
 		MessageBox (Window, text,
-			"ZDOOM Fatal Error", MB_OK|MB_ICONSTOP|MB_TASKMODAL);
+			GAMENAME" Fatal Error", MB_OK|MB_ICONSTOP|MB_TASKMODAL);
 	}
 	else
 	{
@@ -634,7 +634,7 @@ void ShowErrorPane(const char *text)
 			if (bRet == -1)
 			{
 				MessageBox (Window, text,
-					"ZDOOM Fatal Error", MB_OK|MB_ICONSTOP|MB_TASKMODAL);
+					GAMENAME" Fatal Error", MB_OK|MB_ICONSTOP|MB_TASKMODAL);
 				return;
 			}
 			else if (!IsDialogMessage (ErrorPane, &msg))

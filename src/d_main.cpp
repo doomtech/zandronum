@@ -1934,10 +1934,10 @@ static EIWADType IdentifyVersion (const char *zdoom_wad)
 	if (numwads == 0)
 	{
 		I_FatalError ("Cannot find a game IWAD (doom.wad, doom2.wad, heretic.wad, etc.).\n"
-					  "Did you install Skulltag properly? You can do either of the following:\n"
+					  "Did you install "GAMENAME" properly? You can do either of the following:\n"
 					  "\n"
-					  "1. Place one or more of these wads in the same directory as Skulltag.\n"
-					  "2. Edit your zdoom-username.ini and add the directories of your iwads\n"
+					  "1. Place one or more of these wads in the same directory as "GAMENAME".\n"
+					  "2. Edit your "GAMENAMELOWERCASE"-username.ini and add the directories of your iwads\n"
 					  "to the list beneath [IWADSearch.Directories]");
 	}
 

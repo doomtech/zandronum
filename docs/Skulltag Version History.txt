@@ -63,6 +63,7 @@ v0.97d-beta4
 -	- Fixed: RIPPER weapons deal damage on the server and on the client. [Torr Samaho]
 -	- Fixed: If the angle can't be derived from the momentum of a missle, the missle is spawned with the wrong angle on the clients. [Torr Samaho]
 -	- Fixed: User info is in some cases not updated to the server properly on connect, if it was changed when not connected to a server. [Torr Samaho]
+-	- Fixed: A few strings in error messages were referring to ZDoom instead of Skulltag. [Torr Samaho]
 !	- Changed the "enemy" to an "ally" icon that displays over your allies in team games. [Carnevil]
 !	- Brought back elements of the old invasion HUD. [Carnevil]
 
