@@ -1304,7 +1304,7 @@ private:
 			else if ( invasion || cooperative )
 				sprintf( szString, "%d", CPlayer->killcount );
 
-			ULONG left = SCOREBOARD_GetLeftToLimit( );
+			LONG left = SCOREBOARD_GetLeftToLimit( );
 			if(left > 0)
 				sprintf( szString, "%s \\cb(%d left)", szString, left );
 			
