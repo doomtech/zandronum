@@ -287,6 +287,9 @@ ASTARRETURNSTRUCT_t ASTAR_Path( ULONG ulPathIdx, POS_t GoalPoint, float fMaxSear
 	pPath->pStartNode = astar_GetNodeFromPoint( StartPoint );
 	if ( pPath->pStartNode == NULL )
 	{
+		// [BB] The bot spawned outside the map. This really should NOT happen.
+		// But if it does, we have to do something about it, otherwise ST will
+		// crash. So we kill the bot and hope he respawns inside the level.
 		Printf( "WARNING! Cannot find start point: (%d, %d)\n", StartPoint.x / FRACUNIT, StartPoint.y / FRACUNIT );
 		ReturnVal.bIsGoal = false;
 		ReturnVal.pNode = NULL;
