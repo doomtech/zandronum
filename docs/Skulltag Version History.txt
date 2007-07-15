@@ -69,6 +69,7 @@ v0.97d-beta4
 -	- Fixed: A few strings in error messages were referring to ZDoom instead of Skulltag. [Torr Samaho]
 -	- Fixed: ST crashes if a bot is spawned outside a map. Although bots should not be spawned there, ST should not crash in case such a thing happens. [Torr Samaho]
 -	- IDESE: Changed server gametype setup: "+gametype 1" in .rsp file. This fixes that some dmflags were not respected in some gametypes. [Bond]
+-	- IDESE: Fixed a problem with bot names (prevented to add bot>6). [Bond]
 !	- Changed the "enemy" to an "ally" icon that displays over your allies in team games. [Carnevil]
 !	- Brought back elements of the old invasion HUD. [Carnevil]
 
