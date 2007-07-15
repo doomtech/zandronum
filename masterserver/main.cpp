@@ -65,24 +65,22 @@
 //	VARIABLES
 
 // Global server list.
-static	SERVER_t	g_Servers[MAX_SERVERS];
+static	SERVER_s				g_Servers[MAX_SERVERS];
 
 // Message buffer we write our commands to.
-static	NETBUFFER_s	g_MessageBuffer;
+static	NETBUFFER_s				g_MessageBuffer;
 
-static	int		    nowtime;
+// This is the current time for the master server.
+static	long					g_lCurrentTime;
 
-static	IPADDRESSBAN_s		g_BannedIPs[MAX_BANNED_IPS];
-
-static	char		g_cCurChar;
-
-static	long		g_lCurBanIdx = 0;
+// Global list of banned IPs.
+static	IPADDRESSBAN_s			g_BannedIPs[MAX_BANNED_IPS];
 
 // List of IP address that this server has been queried by recently.
-static	STORED_QUERY_IP_t	g_StoredQueryIPs[MAX_STORED_QUERY_IPS];
+static	STORED_QUERY_IP_t		g_StoredQueryIPs[MAX_STORED_QUERY_IPS];
 
-static	LONG				g_lStoredQueryIPHead;
-static	LONG				g_lStoredQueryIPTail;
+static	LONG					g_lStoredQueryIPHead;
+static	LONG					g_lStoredQueryIPTail;
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -164,31 +162,9 @@ long MASTERSERVER_AddServerToList( NETADDRESS_s Address )
 			return ( ulIdx );
 		}
 	}
-	
+
 	// Could not find an available slot to put the server in.
 	return ( -1 );
-}
-
-//*****************************************************************************
-//
-char MASTERSERVER_SkipWhitespace( FILE *pFile )
-{
-	g_cCurChar = fgetc( pFile );
-	while (( g_cCurChar == ' ' ) && ( g_cCurChar != -1 ))
-		g_cCurChar = fgetc( pFile );
-
-	return ( g_cCurChar );
-}
-
-//*****************************************************************************
-//
-char MASTERSERVER_SkipComment( FILE *pFile )
-{
-	g_cCurChar = fgetc( pFile );
-	while (( g_cCurChar != '\r' ) && ( g_cCurChar != '\n' ) && ( g_cCurChar != -1 ))
-		g_cCurChar = fgetc( pFile );
-
-	return ( g_cCurChar );
 }
 
 //*****************************************************************************
@@ -231,49 +207,52 @@ bool MASTERSERVER_IsIPBanned( char *pszIP0, char *pszIP1, char *pszIP2, char *ps
 
 //*****************************************************************************
 //
-void MASTERSERVER_ParseCommands( void )
+void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 {
-	long		lCommand;
+	long			lCommand;
+	char			szAddress[4][4];
 	NETADDRESS_s	AddressTemp;
+	NETADDRESS_s	AddressFrom;
 
-	lCommand = NETWORK_ReadLong( );
+	lCommand = NETWORK_ReadLong( pByteStream );
 
 	// First, is this IP banned from the master server? If so, ignore the request.
-	AddressTemp = g_AddressFrom;
+	AddressFrom = NETWORK_GetFromAddress( );
+	AddressTemp = AddressFrom;
 	AddressTemp.usPort = 0;
-	char		szAddress[4][4];
+
 	_itoa( AddressTemp.abIP[0], szAddress[0], 10 );
 	_itoa( AddressTemp.abIP[1], szAddress[1], 10 );
 	_itoa( AddressTemp.abIP[2], szAddress[2], 10 );
 	_itoa( AddressTemp.abIP[3], szAddress[3], 10 );
 	if ( MASTERSERVER_IsIPBanned( szAddress[0], szAddress[1], szAddress[2], szAddress[3] ))
 	{
-		printf( "Ignoring challenge from banned IP: %s.\n", NETWORK_AddressToString( g_AddressFrom ));
+		printf( "Ignoring challenge from banned IP: %s.\n", NETWORK_AddressToString( AddressFrom ));
 
 		// Clear out the message buffer.
 		NETWORK_ClearBuffer( &g_MessageBuffer );
 
 		// Write our message header to the launcher.
-		NETWORK_WriteLong( &g_MessageBuffer, MSC_IPISBANNED );
+		NETWORK_WriteLong( &g_MessageBuffer.ByteStream, MSC_IPISBANNED );
 
 		// Send the launcher our packet.
-		NETWORK_LaunchPacket( g_MessageBuffer, g_AddressFrom, true );
+		NETWORK_LaunchPacket( &g_MessageBuffer, AddressFrom );
 		return;
 	}
 
 	switch ( lCommand )
 	{
 	// Server is telling master server of its existance.
-	case MASTER_CHALLENGE:
-	case MASTER_CHALLENGE_OVERRIDE:
+	case SERVER_MASTER_CHALLENGE:
+	case SERVER_MASTER_CHALLENGE_OVERRIDE:
 
 		{
-			long		lServerIdx;
+			long			lServerIdx;
 			NETADDRESS_s	Address;
 
-			if ( lCommand == MASTER_CHALLENGE )
+			if ( lCommand == SERVER_MASTER_CHALLENGE )
 			{
-				Address = g_AddressFrom;
+				Address = AddressFrom;
 				lServerIdx = MASTERSERVER_CheckIfServerAlreadyExists( Address );
 			}
 			else
@@ -286,11 +265,11 @@ void MASTERSERVER_ParseCommands( void )
 				ULONG	ulPort;
 
 				// Read in the data for the overridden IP the server is sending us.
-				ulIP1 = NETWORK_ReadByte( );
-				ulIP2 = NETWORK_ReadByte( );
-				ulIP3 = NETWORK_ReadByte( );
-				ulIP4 = NETWORK_ReadByte( );
-				ulPort = NETWORK_ReadShort( );
+				ulIP1 = NETWORK_ReadByte( pByteStream );
+				ulIP2 = NETWORK_ReadByte( pByteStream );
+				ulIP3 = NETWORK_ReadByte( pByteStream );
+				ulIP4 = NETWORK_ReadByte( pByteStream );
+				ulPort = NETWORK_ReadShort( pByteStream );
 
 				// Make sure it's valid.
 				if (( ulIP1 > 255 ) ||
@@ -299,7 +278,7 @@ void MASTERSERVER_ParseCommands( void )
 					( ulIP4 > 255 ) ||
 					( ulPort > 65535 ))
 				{
-					printf( "Invalid overriden IP (%d.%d.%d.%d:%d) from %s.\n", ulIP1, ulIP2, ulIP3, ulIP4, ulPort, NETWORK_AddressToString( g_AddressFrom ));
+					printf( "Invalid overriden IP (%d.%d.%d.%d:%d) from %s.\n", ulIP1, ulIP2, ulIP3, ulIP4, ulPort, NETWORK_AddressToString( NETWORK_GetFromAddress( )));
 					return;
 				}
 
@@ -309,11 +288,12 @@ void MASTERSERVER_ParseCommands( void )
 				NETWORK_StringToAddress( szAddress, &Address );
 				lServerIdx = MASTERSERVER_CheckIfServerAlreadyExists( Address );
 			}
+
 			if ( lServerIdx != -1 )
 			{
 				// Command is from a server already on the list. It's
 				// just sending us a heartbeat.
-				g_Servers[lServerIdx].lLastReceived = nowtime;
+				g_Servers[lServerIdx].lLastReceived = g_lCurrentTime;
 				return;
 			}
 			else
@@ -326,20 +306,20 @@ void MASTERSERVER_ParseCommands( void )
 					return;
 				}
 
-				g_Servers[lServerIdx].lLastReceived = nowtime;
+				g_Servers[lServerIdx].lLastReceived = g_lCurrentTime;
 				printf( "Server challenge from: %s.\n", NETWORK_AddressToString( g_Servers[lServerIdx].Address ));
 
 				return;
 			}
 		}
 	// Launcher is asking master server for server list.
-	case LAUNCHER_CHALLENGE:
+	case LAUNCHER_SERVER_CHALLENGE:
 
 		{
 			unsigned long	ulIdx;
 
 			// Display the launcher challenge in the main window.
-			printf( "Launcher challenge from: %s.\n", NETWORK_AddressToString( g_AddressFrom ));
+			printf( "Launcher challenge from: %s.\n", NETWORK_AddressToString( AddressFrom ));
 
 			// Clear out the message buffer.
 			NETWORK_ClearBuffer( &g_MessageBuffer );
@@ -352,13 +332,13 @@ void MASTERSERVER_ParseCommands( void )
 				{
 					// Check to see if this IP exists in our stored query IP list. If it does, then
 					// ignore it, since it queried us less than 10 seconds ago.
-					if ( NETWORK_CompareAddress( g_AddressFrom, g_StoredQueryIPs[ulIdx].Address, true ))
+					if ( NETWORK_CompareAddress( AddressFrom, g_StoredQueryIPs[ulIdx].Address, true ))
 					{
 						// Write our header.
-						NETWORK_WriteLong( &g_MessageBuffer, MSC_REQUESTIGNORED );
+						NETWORK_WriteLong( &g_MessageBuffer.ByteStream, MSC_REQUESTIGNORED );
 
 						// Send the packet.
-						NETWORK_LaunchPacket( g_MessageBuffer, g_AddressFrom, true );
+						NETWORK_LaunchPacket( &g_MessageBuffer, AddressFrom );
 
 						printf( "Ignored launcher challenge.\n" );
 
@@ -373,8 +353,8 @@ void MASTERSERVER_ParseCommands( void )
 			
 			// This IP didn't exist in the list. and it wasn't banned. 
 			// So, add it, and keep it there for 10 seconds.
-			g_StoredQueryIPs[g_lStoredQueryIPTail].Address = g_AddressFrom;
-			g_StoredQueryIPs[g_lStoredQueryIPTail].lNextAllowedTime = nowtime + 10;
+			g_StoredQueryIPs[g_lStoredQueryIPTail].Address = AddressFrom;
+			g_StoredQueryIPs[g_lStoredQueryIPTail].lNextAllowedTime = g_lCurrentTime + 10;
 
 			g_lStoredQueryIPTail++;
 			g_lStoredQueryIPTail = g_lStoredQueryIPTail % MAX_STORED_QUERY_IPS;
@@ -382,7 +362,7 @@ void MASTERSERVER_ParseCommands( void )
 				printf( "WARNING! g_lStoredQueryIPTail == g_lStoredQueryIPHead\n" );
 
 			// Write our message header to the launcher.
-			NETWORK_WriteLong( &g_MessageBuffer, MSC_BEGINSERVERLIST );
+			NETWORK_WriteLong( &g_MessageBuffer.ByteStream, MSC_BEGINSERVERLIST );
 
 			// Now, loop through and send back the data of each active server.
 			for ( ulIdx = 0; ulIdx < MAX_SERVERS; ulIdx++ )
@@ -392,24 +372,24 @@ void MASTERSERVER_ParseCommands( void )
 					continue;
 
 				// Tell the launcher the IP of this server on the list.
-				NETWORK_WriteByte( &g_MessageBuffer, MSC_SERVER );
-				NETWORK_WriteByte( &g_MessageBuffer, g_Servers[ulIdx].Address.abIP[0] );
-				NETWORK_WriteByte( &g_MessageBuffer, g_Servers[ulIdx].Address.abIP[1] );
-				NETWORK_WriteByte( &g_MessageBuffer, g_Servers[ulIdx].Address.abIP[2] );
-				NETWORK_WriteByte( &g_MessageBuffer, g_Servers[ulIdx].Address.abIP[3] );
-				NETWORK_WriteShort( &g_MessageBuffer, ntohs( g_Servers[ulIdx].Address.usPort ));
+				NETWORK_WriteByte( &g_MessageBuffer.ByteStream, MSC_SERVER );
+				NETWORK_WriteByte( &g_MessageBuffer.ByteStream, g_Servers[ulIdx].Address.abIP[0] );
+				NETWORK_WriteByte( &g_MessageBuffer.ByteStream, g_Servers[ulIdx].Address.abIP[1] );
+				NETWORK_WriteByte( &g_MessageBuffer.ByteStream, g_Servers[ulIdx].Address.abIP[2] );
+				NETWORK_WriteByte( &g_MessageBuffer.ByteStream, g_Servers[ulIdx].Address.abIP[3] );
+				NETWORK_WriteShort( &g_MessageBuffer.ByteStream, ntohs( g_Servers[ulIdx].Address.usPort ));
 			}
 
 			// Tell the launcher that we're done sending servers.
-			NETWORK_WriteByte( &g_MessageBuffer, MSC_ENDSERVERLIST );
+			NETWORK_WriteByte( &g_MessageBuffer.ByteStream, MSC_ENDSERVERLIST );
 
 			// Send the launcher our packet.
-			NETWORK_LaunchPacket( g_MessageBuffer, g_AddressFrom, true );
+			NETWORK_LaunchPacket( &g_MessageBuffer, AddressFrom );
 			return;
 		}
 	}
 
-	printf( "WARNING: Unknown challenge (%d) from: %s!\n", lCommand, NETWORK_AddressToString( g_AddressFrom ));
+	printf( "WARNING: Unknown challenge (%d) from: %s!\n", lCommand, NETWORK_AddressToString( AddressFrom ));
 }
 
 //*****************************************************************************
@@ -425,7 +405,7 @@ void MASTERSERVER_CheckTimeouts( void )
 			continue;
 
 		// If the server has timed out, make it an open slot!
-		if (( nowtime - g_Servers[ulIdx].lLastReceived ) >= 60 )
+		if (( g_lCurrentTime - g_Servers[ulIdx].lLastReceived ) >= 60 )
 		{
 			g_Servers[ulIdx].bAvailable = true;
 			printf( "Server %s timed out.\n", NETWORK_AddressToString( g_Servers[ulIdx].Address ));
@@ -437,22 +417,22 @@ void MASTERSERVER_CheckTimeouts( void )
 //
 int main( )
 {
+	BYTESTREAM_s	*pByteStream;
 	unsigned long	ulIdx;
 
 	printf( "=== S K U L L T A G ===\n" );
-	printf( "\nMaster server v1.5\n" );
+	printf( "\nMaster server v1.6\n" );
 
 	printf( "Initializing on port: %d\n", DEFAULT_MASTER_PORT );
-	NETWORK_SetLocalPort( DEFAULT_MASTER_PORT );
 
 	// Initialize the network system.
-	NETWORK_Initialize( );
+	NETWORK_Construct( DEFAULT_MASTER_PORT );
 
 	for ( ulIdx = 0; ulIdx < MAX_SERVERS; ulIdx++ )
 		g_Servers[ulIdx].bAvailable = true;
 
 	// Initialize the message buffer we send messages to the launcher in.
-	NETWORK_InitBuffer( &g_MessageBuffer, MAX_UDP_PACKET );
+	NETWORK_InitBuffer( &g_MessageBuffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
 	NETWORK_ClearBuffer( &g_MessageBuffer );
 
 	// Initialize the bans subsystem.
@@ -466,18 +446,27 @@ int main( )
 
 	while ( 1 )
 	{
-		nowtime = I_GetTime( );
+		g_lCurrentTime = I_GetTime( );
 		I_DoSelect( );
-		
+	
 		while ( NETWORK_GetPackets( ))
-			MASTERSERVER_ParseCommands( );
+		{
+			// Set up our byte stream.
+			pByteStream = &NETWORK_GetNetworkMessageBuffer( )->ByteStream;
+			pByteStream->pbStream = NETWORK_GetNetworkMessageBuffer( )->pbData;
+			pByteStream->pbStreamEnd = pByteStream->pbStream + NETWORK_GetNetworkMessageBuffer( )->ulCurrentSize;
 
-		while (( g_lStoredQueryIPHead != g_lStoredQueryIPTail ) && ( nowtime >= g_StoredQueryIPs[g_lStoredQueryIPHead].lNextAllowedTime ))
+			// Now parse the packet.
+			MASTERSERVER_ParseCommands( pByteStream );
+		}
+
+		while (( g_lStoredQueryIPHead != g_lStoredQueryIPTail ) && ( g_lCurrentTime >= g_StoredQueryIPs[g_lStoredQueryIPHead].lNextAllowedTime ))
 		{
 			g_lStoredQueryIPHead++;
 			g_lStoredQueryIPHead = g_lStoredQueryIPHead % MAX_STORED_QUERY_IPS;
 		}
 
+		// See if any servers have timed out.
 		MASTERSERVER_CheckTimeouts( );
 	}	
 	

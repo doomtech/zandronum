@@ -61,117 +61,48 @@
 //*****************************************************************************
 //	DEFINES
 
-// Server is letting master server of its existance, or sending info to the launcher.
-#define	MASTER_CHALLENGE		5660020
+enum
+{
+	// Server is letting master server of its existance.
+	SERVER_MASTER_CHALLENGE = 5660020,
 
-// Server is letting master server of its existance, along with sending an IP the master server
-// should use for this server.
-#define	MASTER_CHALLENGE_OVERRIDE	5660021
+	// Server is letting master server of its existance, along with sending an IP the master server
+	// should use for this server.
+	SERVER_MASTER_CHALLENGE_OVERRIDE,
+
+	// Server is sending some statistics to the master server.
+	SERVER_MASTER_STATISTICS,
+
+	// Server is sending its info to the launcher.
+	SERVER_LAUNCHER_CHALLENGE,
+
+	// Server is telling a launcher that it's ignoring it.
+	SERVER_LAUNCHER_IGNORING,
+
+	// Server is telling a launcher that his IP is banned from the server.
+	SERVER_LAUNCHER_BANNED,
+
+	// Client is trying to create a new account with the master server.
+	CLIENT_MASTER_NEWACCOUNT,
+
+	// Client is trying to log in with the master server.
+	CLIENT_MASTER_LOGIN,
+
+};
 
 // Launcher is querying the server, or master server.
-#define	LAUNCHER_CHALLENGE		199
+#define	LAUNCHER_SERVER_CHALLENGE	199
 
 #define	DEFAULT_SERVER_PORT		10666
 #define	DEFAULT_CLIENT_PORT		10667
 #define	DEFAULT_MASTER_PORT		15300
 #define	DEFAULT_BROADCAST_PORT	15101
 
-// Connection messages.
-#define CONNECT_CHALLENGE		200
-#define	CONNECT_READY			201
-#define	CONNECT_GETDATA			202
-#define	CONNECT_QUIT			203
-
 // Network messages (universal)
 #define	NETWORK_ERROR			254
 
-// Movement stuff.
-#define CM_X			1
-#define CM_Y			2
-#define CM_Z			4
-#define CM_ANGLE		8
-#define CM_MOMX			16
-#define CM_MOMY			32
-#define CM_MOMZ			64
-#define CM_COLORMAP		128
-#define	CM_WATERLEVEL	256
-
-// Extra player update info for spectators.
-#define	PLAYER_UPDATE_WEAPON	1
-#define	PLAYER_UPDATE_PITCH		2
-
-// Movement flags being sent by the client.
-#define	CLIENT_UPDATE_BUTTONS		1
-#define	CLIENT_UPDATE_PITCH			2
-#define	CLIENT_UPDATE_YAW			4
-#define	CLIENT_UPDATE_FORWARDMOVE	8
-#define	CLIENT_UPDATE_SIDEMOVE		16
-#define	CLIENT_UPDATE_UPMOVE		32
-#define	CLIENT_UPDATE_ROLL			64
-
-// Identifying states (the cheap & easy way out)
-#define	STATE_SPAWN				1
-#define	STATE_SEE				2
-#define	STATE_PAIN				3
-#define	STATE_MELEE				4					
-#define	STATE_MISSILE			5
-#define	STATE_DEATH				6
-#define	STATE_XDEATH			7
-#define	STATE_RAISE				8
-#define	STATE_HEAL				9
-
-// Identifying player states (again, cheap & easy)
-#define	STATE_PLAYER_IDLE		1
-#define	STATE_PLAYER_SEE		2
-#define	STATE_PLAYER_ATTACK		3
-#define	STATE_PLAYER_ATTACK2	4
-
-// HUD message types.
-#define	HUDMESSAGETYPE_NORMAL			1
-#define	HUDMESSAGETYPE_FADEOUT			2
-#define	HUDMESSAGETYPE_TYPEONFADEOUT	3
-
-// Different levels of network messages.
-#define	NETMSG_LITE		0
-#define	NETMSG_MEDIUM	1
-#define	NETMSG_HIGH		2
-
-// Which actor flags are being updated?
-#define	UPDATE_ACTORFLAGS		1
-#define	UPDATE_ACTORFLAGS2		2
-#define	UPDATE_ACTORFLAGS3		4
-#define	UPDATE_ACTORFLAGS4		8
-#define	UPDATE_ACTORFLAGS5		16
-#define	UPDATE_ACTORFLAGS6		32
-
-// Which userinfo categories are being updated?
-#define	USERINFO_NAME				1
-#define	USERINFO_GENDER				2
-#define	USERINFO_COLOR				4
-#define	USERINFO_AIMDISTANCE		8
-#define	USERINFO_SKIN				16
-#define	USERINFO_RAILCOLOR			32
-#define	USERINFO_HANDICAP			64
-#define	USERINFO_CONNECTIONTYPE		128
-#define	USERINFO_PLAYERCLASS		256
-
-//*****************************************************************************
-enum
-{
-	// Program is being run in single player mode.
-	NETSTATE_SINGLE,
-
-	// Program is being run in single player mode, emulating a network game (bots, etc).
-	NETSTATE_SINGLE_MULTIPLAYER,
-
-	// Program is a client playing a network game.
-	NETSTATE_CLIENT,
-
-	// Program is a server, hosting a game.
-	NETSTATE_SERVER,
-
-	NUM_NETSTATES
-};
+// This is the longest possible string we can pass over the network.
+#define	MAX_NETWORK_STRING			2048
 
 //*****************************************************************************
 enum
@@ -183,72 +114,66 @@ enum
 	MSC_REQUESTIGNORED,
 };
 
+// [BC] We're defining this here? Eh, not great, but it'll do for now.
 typedef	unsigned short		USHORT;
 typedef	short				SHORT;
 
 typedef	unsigned long		ULONG;
 typedef	long				LONG;
 
-//typedef	signed char			BYTE;
-
-//*****************************************************************************
-
 //*****************************************************************************
 //	PROTOTYPES
 
-USHORT	NETWORK_GetLocalPort( void );
-void	NETWORK_SetLocalPort( USHORT usPort );
+void			NETWORK_Construct( USHORT usPort );
 
-void	NETWORK_Initialize( void );
+int				NETWORK_ReadByte( BYTESTREAM_s *pByteStream );
+void			NETWORK_WriteByte( BYTESTREAM_s *pByteStream, int Byte );
 
-int		NETWORK_ReadChar( void );
-void	NETWORK_WriteChar( NETBUFFER_s *pBuffer, int Char );
+int				NETWORK_ReadShort( BYTESTREAM_s *pByteStream );
+void			NETWORK_WriteShort( BYTESTREAM_s *pByteStream, int Short );
 
-int		NETWORK_ReadByte( void );
-void	NETWORK_WriteByte( NETBUFFER_s *pBuffer, int Byte );
+int				NETWORK_ReadLong( BYTESTREAM_s *pByteStream );
+void			NETWORK_WriteLong( BYTESTREAM_s *pByteStream, int Long );
 
-int		NETWORK_ReadShort( void );
-void	NETWORK_WriteShort( NETBUFFER_s *pBuffer, int Short );
+float			NETWORK_ReadFloat( BYTESTREAM_s *pByteStream );
+void			NETWORK_WriteFloat( BYTESTREAM_s *pByteStream, float Float );
 
-int		NETWORK_ReadLong( void );
-void	NETWORK_WriteLong( NETBUFFER_s *pBuffer, int Long );
+char			*NETWORK_ReadString( BYTESTREAM_s *pByteStream );
+void			NETWORK_WriteString( BYTESTREAM_s *pByteStream, const char *pszString );
 
-float	NETWORK_ReadFloat( void );
-void	NETWORK_WriteFloat( NETBUFFER_s *pBuffer, float Float );
-
-char	*NETWORK_ReadString( void );
-void	NETWORK_WriteString( NETBUFFER_s *pBuffer, char *pszString );
+void			NETWORK_WriteBuffer( BYTESTREAM_s *pByteStream, const void *pvBuffer, int nLength );
 
 // Debugging function.
-void	NETWORK_WriteHeader( NETBUFFER_s *pBuffer, int Byte );
+void			NETWORK_WriteHeader( BYTESTREAM_s *pByteStream, int Byte );
 
-void	NETWORK_CheckBuffer( ULONG ulClient, ULONG ulSize );
-int		NETWORK_GetPackets( void );
-void	NETWORK_LaunchPacket( NETBUFFER_s netbuf, NETADDRESS_s to, bool bCompression );
-void	NETWORK_LaunchPacket( NETBUFFER_s netbuf, NETADDRESS_s to );
-void	NETWORK_InitBuffer( NETBUFFER_s *pBuffer, USHORT usLength );
-void	NETWORK_FreeBuffer( NETBUFFER_s *pBuffer );
-void	NETWORK_ClearBuffer( NETBUFFER_s *pBuffer );
-BYTE	*NETWORK_GetSpace( NETBUFFER_s *pBuffer, USHORT usLength );
-void	NETWORK_Write( NETBUFFER_s *pBuffer, void *pvData, int nLength );
-void	NETWORK_Write( NETBUFFER_s *pBuffer, BYTE *pbData, int nStartPos, int nLength );
-void	NETWORK_Print( NETBUFFER_s *pBuffer, char *pszData );	// strcats onto the sizebuf
-char	*NETWORK_AddressToString( NETADDRESS_s Address );
-//bool	NETWORK_StringToAddress( char *pszString, NETADDRESS_s *pAddress );
-bool	NETWORK_CompareAddress( NETADDRESS_s a, NETADDRESS_s b, bool bIgnorePort );
-//void	NETWORK_SocketAddressToNetAddress( struct sockaddr_in *s, NETADDRESS_s *a );
-void	NETWORK_NetAddressToSocketAddress( NETADDRESS_s *a, struct sockaddr_in *s );
+int				NETWORK_GetPackets( void );
+int				NETWORK_GetLANPackets( void );
+NETADDRESS_s	NETWORK_GetFromAddress( void );
+void			NETWORK_LaunchPacket( NETBUFFER_s *pBuffer, NETADDRESS_s Address );
+void			NETWORK_InitBuffer( NETBUFFER_s *pBuffer, ULONG ulLength, BUFFERTYPE_e BufferType );
+void			NETWORK_FreeBuffer( NETBUFFER_s *pBuffer );
+void			NETWORK_ClearBuffer( NETBUFFER_s *pBuffer );
+LONG			NETWORK_CalcBufferSize( NETBUFFER_s *pBuffer );
+char			*NETWORK_AddressToString( NETADDRESS_s Address );
+char			*NETWORK_AddressToStringIgnorePort( NETADDRESS_s Address );
+//bool			NETWORK_StringToAddress( char *pszString, NETADDRESS_s *pAddress );
+bool			NETWORK_CompareAddress( NETADDRESS_s Address1, NETADDRESS_s Address2, bool bIgnorePort );
+//void			NETWORK_SocketAddressToNetAddress( struct sockaddr_in *s, NETADDRESS_s *a );
+void			NETWORK_NetAddressToSocketAddress( NETADDRESS_s &Address, struct sockaddr_in &SocketAddress );
+void			NETWORK_SetAddressPort( NETADDRESS_s &Address, USHORT usPort );
+//AActor			*NETWORK_FindThingByNetID( LONG lID );
+NETADDRESS_s	NETWORK_GetLocalAddress( void );
+NETBUFFER_s		*NETWORK_GetNetworkMessageBuffer( void );
+ULONG			NETWORK_ntohs( ULONG ul );
+USHORT			NETWORK_GetLocalPort( void );
 
-void	I_DoSelect( void );
-void	I_SetPort( NETADDRESS_s &addr, int usPort );
+// Access functions.
+LONG			NETWORK_GetState( void );
+void			NETWORK_SetState( LONG lState );
+
+void			I_DoSelect( void );
 
 // DEBUG FUNCTION!
 void	NETWORK_FillBufferWithShit( NETBUFFER_s *pBuffer, ULONG ulSize );
-
-//*****************************************************************************
-//	EXTERNAL VARIABLES THAT MUST BE FIXED
-
-extern	NETADDRESS_s	g_AddressFrom;
-
 
 #endif	// __NETWORK_H__

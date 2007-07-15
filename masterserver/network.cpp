@@ -48,682 +48,344 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "huffman.h"
 #include "../src/networkheaders.h"
+
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+
+#include <ctype.h>
+#include <math.h>
+
+#include "huffman.h"
 #include "network.h"
 
 //*****************************************************************************
 //	VARIABLES
 
-static	LONG		g_lNetworkState = NETSTATE_SINGLE;
-static	NETBUFFER_s	g_NetworkMessage;
-static	NETADDRESS_s	g_LocalNetworkAddress;
-/*static*/	NETADDRESS_s	g_AddressFrom;
-//static	int			g_lMessagePosition;
-static	SOCKET		g_NetworkSocket;
-static	SOCKET		g_LANSocket;
-static	USHORT		g_usLocalPort;
+// Buffer that holds the data from the most recently received packet.
+static	NETBUFFER_s		g_NetworkMessage;
+
+// Network address that the most recently received packet came from.
+static	NETADDRESS_s	g_AddressFrom;
+
+// Our network socket.
+static	SOCKET			g_NetworkSocket;
+
+// Our local port.
+static	USHORT			g_usLocalPort;
+
+// Buffer for the Huffman encoding.
+static	UCHAR			g_ucHuffmanBuffer[131072];
 
 //*****************************************************************************
 //	PROTOTYPES
 
-static	void	network_Error( char *pszError );
-static	SOCKET	network_AllocateSocket( void );
-static	bool	network_BindSocketToPort( int Socket, USHORT usPort );
-static	void	network_GetLocalAddress( void );
+static	void			network_Error( char *pszError );
+static	SOCKET			network_AllocateSocket( void );
+static	bool			network_BindSocketToPort( SOCKET Socket, USHORT usPort, bool bReUse );
 
 //*****************************************************************************
 //	FUNCTIONS
 
-//*****************************************************************************
-//
-//*****************************************************************************
-//
-USHORT NETWORK_GetLocalPort( void )
+void NETWORK_Construct( USHORT usPort )
 {
-	return ( g_usLocalPort );
-}
+	char			szString[128];
+	ULONG			ulArg;
+	USHORT			usNewPort;
+	NETADDRESS_s	LocalAddress;
+	bool			bSuccess;
 
-//*****************************************************************************
-//
-void NETWORK_SetLocalPort( USHORT usPort )
-{
-	g_usLocalPort = usPort;
-}
-
-//*****************************************************************************
-//
-void NETWORK_Initialize( void )
-{
-	char	szString[128];
-	unsigned long _true = true;
-
+	// Initialize the Huffman buffer.
 	HuffInit( );
 
 #ifdef __WIN32__
-	WSADATA   wsad;
-	int r = WSAStartup( 0x0101, &wsad );
-
-	if (r)
+	// [BB] Linux doesn't know WSADATA, so this may not be moved outside the ifdef.
+	WSADATA			WSAData;
+	if ( WSAStartup( 0x0101, &WSAData ))
 		network_Error( "Winsock initialization failed!\n" );
 
 	printf( "Winsock initialization succeeded!\n" );
 #endif
 
-	g_NetworkSocket = network_AllocateSocket( );
-	if ( network_BindSocketToPort( g_NetworkSocket, g_usLocalPort ) == false )
-	{
-		USHORT	usPort;
-		bool	bSuccess;
+	g_usLocalPort = usPort;
 
+	// Allocate a socket, and attempt to bind it to the given port.
+	g_NetworkSocket = network_AllocateSocket( );
+	if ( network_BindSocketToPort( g_NetworkSocket, g_usLocalPort, false ) == false )
+	{
 		bSuccess = true;
-		usPort = g_usLocalPort;
-		while ( network_BindSocketToPort( g_NetworkSocket, ++usPort ) == false )
+		usNewPort = g_usLocalPort;
+		while ( network_BindSocketToPort( g_NetworkSocket, ++usNewPort, false ) == false )
 		{
 			// Didn't find an available port. Oh well...
-			if ( usPort == g_usLocalPort )
+			if ( usNewPort == g_usLocalPort )
 			{
-				bSuccess = false;
+				usNewPort = false;
 				break;
 			}
 		}
 
 		if ( bSuccess == false )
 		{
-			sprintf( szString, "network_BindSocketToPort: Couldn't bind socket to port: %d\n", g_usLocalPort );
+			sprintf( szString, "NETWORK_Construct: Couldn't bind socket to port: %d\n", g_usLocalPort );
 			network_Error( szString );
 		}
 		else
 		{
-			printf( "NETWORK_Initialize: Couldn't bind to %d. Binding to %d instead...\n", g_usLocalPort, usPort );
-			g_usLocalPort = usPort;
+			printf( "NETWORK_Construct: Couldn't bind to %d. Binding to %d instead...\n", g_usLocalPort, usNewPort );
+			g_usLocalPort = usNewPort;
 		}
 	}
-	if ( ioctlsocket( g_NetworkSocket, FIONBIO, &_true ) == -1 )
+
+	ulArg = true;
+	if ( ioctlsocket( g_NetworkSocket, FIONBIO, &ulArg ) == -1 )
 		printf( "network_AllocateSocket: ioctl FIONBIO: %s", strerror( errno ));
-/*
-	// If we're not starting a server, setup a socket to listen for LAN servers.
-	if ( Args.CheckParm( "-host" ) == false )
-	{
-		g_LANSocket = network_AllocateSocket( );
-		if ( network_BindSocketToPort( g_LANSocket, DEFAULT_BROADCAST_PORT ) == false )
-		{
-			sprintf( szString, "network_BindSocketToPort: Couldn't bind LAN socket to port: %d. You will not be able to see LAN servers in the browser.", DEFAULT_BROADCAST_PORT );
-			network_Error( szString );
-		}
-		if ( ioctlsocket( g_LANSocket, FIONBIO, &_true ) == -1 )
-			printf( "network_AllocateSocket: ioctl FIONBIO: %s", strerror( errno ));
-	}
-*/
+
 	// Init our read buffer.
-	NETWORK_InitBuffer( &g_NetworkMessage, MAX_UDP_PACKET );
+	NETWORK_InitBuffer( &g_NetworkMessage, MAX_UDP_PACKET, BUFFERTYPE_READ );
 	NETWORK_ClearBuffer( &g_NetworkMessage );
 
-	// Determine local name & address.
-	network_GetLocalAddress( );
+	// Print out our local IP address.
+	LocalAddress = NETWORK_GetLocalAddress( );
+	printf( "IP address %s\n", NETWORK_AddressToString( LocalAddress ));
 
 	printf( "UDP Initialized.\n" );
 }
 
 //*****************************************************************************
 //
-void NETWORK_BeginReading( void )
-{
-	g_NetworkMessage.ulCurrentPosition = 0;
-}
-
-//*****************************************************************************
-//
-int NETWORK_ReadChar( void )
-{
-	int	Char;
-	
-	// Don't read past the size of the packet.
-	if ( g_NetworkMessage.ulCurrentPosition + 1 > g_NetworkMessage.ulCurrentSize )
-		Char = -1;
-	else
-	{
-		if ( g_lNetworkState == NETSTATE_SERVER )
-			Char = (signed char)g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition];
-		else
-			Char = (signed char)g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition];
-	}
-
-	// Move the "pointer".
-	g_NetworkMessage.ulCurrentPosition++;
-	
-	return ( Char );
-}
-
-//*****************************************************************************
-//
-void NETWORK_WriteChar( NETBUFFER_s *pBuffer, char cChar )
-{
-	BYTE	*pbBuf;
-	
-#ifdef PARANOID
-	if ( cChar < -128 || cChar > 127 )
-		Printf( "NETWORK_WriteChar: Range error!\n" );
-#endif
-
-	pbBuf = NETWORK_GetSpace( pBuffer, 1 );
-	pbBuf[0] = cChar;
-}
-
-//*****************************************************************************
-//
-int NETWORK_ReadByte( void )
+int NETWORK_ReadByte( BYTESTREAM_s *pByteStream )
 {
 	int	Byte;
-	
-	// Don't read past the size of the packet.
-	if ( g_NetworkMessage.ulCurrentPosition + 1 > g_NetworkMessage.ulCurrentSize )
+
+	if (( pByteStream->pbStream + 1 ) > pByteStream->pbStreamEnd )
 		Byte = -1;
 	else
-	{
-		if ( g_lNetworkState == NETSTATE_SERVER )
-			Byte = (unsigned char)g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition];
-		else
-			Byte = (unsigned char)g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition];
-	}
+		Byte = *pByteStream->pbStream;
 
-	// Move the "pointer".
-	g_NetworkMessage.ulCurrentPosition++;
-	
+	// Advance the pointer.
+	pByteStream->pbStream += 1;
+
 	return ( Byte );
 }
 
 //*****************************************************************************
 //
-void NETWORK_WriteByte( NETBUFFER_s *pBuffer, int Byte )
+void NETWORK_WriteByte( BYTESTREAM_s *pByteStream, int Byte )
 {
+	if (( pByteStream->pbStream + 1 ) > pByteStream->pbStreamEnd )
+	{
+		printf( "NETWORK_WriteByte: Overflow!\n" );
+		return;
+	}
+
+	*pByteStream->pbStream = Byte;
+
+	// Advance the pointer.
+	pByteStream->pbStream += 1;
+/*
 	BYTE	*pbBuf;
-	
-#ifdef PARANOID
-	if ( Byte < 0 || Byte > 255 )
-		Printf( "NETWORK_WriteByte: Range error %d\n", Byte );
-#endif
 
 	pbBuf = NETWORK_GetSpace( pBuffer, 1 );
 	pbBuf[0] = Byte;
-}
-
-//*****************************************************************************
-//
-int NETWORK_ReadShort( void )
-{
-	int	Short;
-	
-	// Don't read past the size of the packet.
-	if ( g_NetworkMessage.ulCurrentPosition + 2 > g_NetworkMessage.ulCurrentSize )
-		Short = -1;
-	else		
-	{
-		if ( g_lNetworkState == NETSTATE_SERVER )
-		{
-			Short = (short)( g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition]
-			+ ( g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition+1]<<8 ));
-		}
-		else
-		{
-			Short = (short)( g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition]
-			+ ( g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition+1]<<8 ));
-		}
-	}
-
-	// Move the "pointer".
-	g_NetworkMessage.ulCurrentPosition += 2;
-	
-	return ( Short );
-}
-
-//*****************************************************************************
-//
-void NETWORK_WriteShort( NETBUFFER_s *pBuffer, int Short )
-{
-	BYTE	*pbBuf;
-	
-#ifdef PARANOID
-	if ( Short < ((short)0x8000) || Short > (short)0x7fff )
-		Printf( "NETWORK_WriteShort: Range error %d\n", Short );
-#endif
-
-	pbBuf = NETWORK_GetSpace( pBuffer, 2 );
-	pbBuf[0] = Short & 0xff;
-	pbBuf[1] = Short >> 8;
-}
-
-//*****************************************************************************
-//
-int NETWORK_ReadLong( void )
-{
-	int	Long;
-	
-	// Don't read past the size of the packet.
-	if ( g_NetworkMessage.ulCurrentPosition + 4 > g_NetworkMessage.ulCurrentSize )
-		Long = -1;
-	else
-	{
-		if ( g_lNetworkState == NETSTATE_SERVER )
-		{
-			Long = g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition]
-			+ ( g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition+1] << 8 )
-			+ ( g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition+2] << 16 )
-			+ ( g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition+3] << 24 );
-		}
-		else
-		{
-			Long = g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition]
-			+ ( g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition+1] << 8 )
-			+ ( g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition+2] << 16 )
-			+ ( g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition+3] << 24 );
-		}
-	}
-	
-	// Move the "pointer".
-	g_NetworkMessage.ulCurrentPosition += 4;
-	
-	return ( Long );
-}
-
-//*****************************************************************************
-//
-void NETWORK_WriteLong( NETBUFFER_s *pBuffer, int Long )
-{
-	BYTE	*pbBuf;
-	
-	pbBuf = NETWORK_GetSpace( pBuffer, 4 );
-	pbBuf[0] = Long & 0xff;
-	pbBuf[1] = ( Long >> 8 ) & 0xff;
-	pbBuf[2] = ( Long >> 16 ) & 0xff;
-	pbBuf[3] = ( Long >> 24 );
-}
-
-//*****************************************************************************
-//
-float NETWORK_ReadFloat( void )
-{
-	union
-	{
-		BYTE	b[4];
-		float	f;
-		int	l;
-	} dat;
-	
-	// Don't read past the size of the packet.
-	if ( g_NetworkMessage.ulCurrentPosition + 4 > g_NetworkMessage.ulCurrentSize )
-		dat.f = -1;
-	else
-	{
-		if ( g_lNetworkState == NETSTATE_SERVER )
-		{
-			dat.b[0] =	g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition];
-			dat.b[1] =	g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition+1];
-			dat.b[2] =	g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition+2];
-			dat.b[3] =	g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition+3];
-		}
-		else
-		{
-			dat.b[0] =	g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition];
-			dat.b[1] =	g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition+1];
-			dat.b[2] =	g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition+2];
-			dat.b[3] =	g_NetworkMessage.pbData[g_NetworkMessage.ulCurrentPosition+3];
-		}
-	}
-
-	// Move the "pointer".
-	g_NetworkMessage.ulCurrentPosition += 4;
-	
-	return ( dat.f );	
-}
-
-//*****************************************************************************
-//
-void NETWORK_WriteFloat( NETBUFFER_s *pBuffer, float Float )
-{
-	union
-	{
-		float	f;
-		int	l;
-	} dat;
-	
-	dat.f = Float;
-	//dat.l = LittleLong (dat.l);
-
-	NETWORK_Write( pBuffer, &dat.l, 4 );
-}
-
-//*****************************************************************************
-//
-char *NETWORK_ReadString( void )
-{
-	static char	string[2048];
-	//int		l,c;
-	signed	char	c;
-	unsigned int	l;
-
-	l = 0;
-	do
-	{
-		c = NETWORK_ReadChar ();
-		if (c == -1 || c == 0)
-			break;
-		string[l] = c;
-		l++;
-	} while (l < sizeof(string)-1);
-
-	string[l] = '\0';
-
-	return string;
-}
-
-//*****************************************************************************
-//
-void NETWORK_WriteString ( NETBUFFER_s *pBuffer, char *pszString )
-{
-#ifdef	WIN32
-	if ( pszString == NULL )
-		NETWORK_Write( pBuffer, "", 1 );
-	else
-		NETWORK_Write( pBuffer, pszString, strlen( pszString ) + 1 );
-#else
-	if ( pszString == NULL )
-		NETWORK_WriteByte( pBuffer, 0 );
-	else
-	{
-		NETWORK_Write( pBuffer, pszString, strlen( pszString ));
-		NETWORK_WriteByte( pBuffer, 0 );
-	}
-#endif
-}
-
-//*****************************************************************************
-//
-void NETWORK_WriteHeader( NETBUFFER_s *pBuffer, int Byte )
-{
-//#ifdef	_DEBUG
-//	if ( g_lNetworkState == NETSTATE_SERVER )
-//	{
-//		if ( debugfile )
-//			fprintf( debugfile, "Wrote: %s\n", g_pszServerHeaderNames[Byte] );
-//		Printf( "Wrote: %s\n", g_pszServerHeaderNames[Byte] );
-//	}
-//#endif
-	NETWORK_WriteByte( pBuffer, Byte );
-}
-
-//*****************************************************************************
-//
-void NETWORK_CheckBuffer( ULONG ulClient, ULONG ulSize )
-{
-/*
-//	if ( debugfile )
-//		fprintf( debugfile, "Current packet size: %d\nSize of data being added to packet: %d\n", clients[ulClient].netbuf.ulCurrentSize, ulSize );
-
-	// Make sure we have enough room for the upcoming message. If not, send
-	// out the current buffer and clear the packet.
-//	if (( clients[ulClient].netbuf.ulCurrentSize + ( ulSize + 5 )) >= (ULONG)clients[ulClient].netbuf.ulMaxSize )
-	if (( clients[ulClient].netbuf.ulCurrentSize + ( ulSize + 5 )) >= (ULONG)sv_maxpacketsize )
-	{
-//		Printf( "Launching premature packet\n" );
-		if ( debugfile )
-			fprintf( debugfile, "Launching premature packet\n" );
-
-		// Lanch the packet so we can prepare another.
-		NETWORK_SendPacket( ulClient );
-
-		// Now that the packet has been sent, clear it.
-		NETWORK_ClearBuffer( &clients[ulClient].netbuf );
-	}
 */
 }
 
 //*****************************************************************************
 //
-static unsigned char huffbuff[65536];
-int NETWORK_GetPackets( void )
+int NETWORK_ReadShort( BYTESTREAM_s *pByteStream )
 {
-	int 	ret;
-	struct sockaddr_in	from;
-	int		fromlen;
+	int	Short;
 
-    fromlen = sizeof(from);
-    
-#ifdef	WIN32
-	ret = recvfrom( g_NetworkSocket, (char *)huffbuff, sizeof(huffbuff), 0, (struct sockaddr *)&from, &fromlen);
-#else
-	ret = recvfrom( g_NetworkSocket, (char *)huffbuff, sizeof(huffbuff), 0, (struct sockaddr *)&from, (socklen_t *)&fromlen);
-#endif
-
-    if (ret == -1) 
-    { 
-#ifdef __WIN32__
-        errno = WSAGetLastError();
-
-        if (errno == WSAEWOULDBLOCK)
-            return false;
-		
-		// connection reset by peer...dosent mean anything to the server
-		if (errno == WSAECONNRESET)
-			return false;
-
-        if (errno == WSAEMSGSIZE) 
-		{
-             printf ("Warning:  Oversize packet from %s\n",
-                      NETWORK_AddressToString( g_AddressFrom ));
-             return false;
-        }
-
-        printf ("ZD_GetPackets(%d) Error(%d): %s\n", ret, errno, strerror(errno));
-		return false;
-#else
-        if (errno == EWOULDBLOCK)
-            return false;
-        if (errno == ECONNREFUSED)
-            return false;
-	    
-        printf ("ZD_GetPackets: %s\n", strerror(errno));
-        return false;
-#endif
-    }
-
-	// No packets or an error, dont process anything.
-	if ( ret <= 0 )
-		return 0;
-
-	// Not using anymore gay ass huffman encoding
-	if ( g_lNetworkState == NETSTATE_SERVER )
-		HuffDecode(huffbuff, (unsigned char *)g_NetworkMessage.pbData,ret,&ret);
+	if (( pByteStream->pbStream + 2 ) > pByteStream->pbStreamEnd )
+		Short = -1;
 	else
-		HuffDecode(huffbuff, (unsigned char *)g_NetworkMessage.pbData,ret,&ret);
+	{
+		Short = (short)(( pByteStream->pbStream[0] )
+		+ ( pByteStream->pbStream[1] << 8 ));
+	}
 
-	g_NetworkMessage.ulCurrentPosition = 0;
-	g_NetworkMessage.ulCurrentSize = ret;
+	// Advance the pointer.
+	pByteStream->pbStream += 2;
 
-    NETWORK_SocketAddressToNetAddress( &from, &g_AddressFrom );
-
-//	Printf( PRINT_HIGH, "*** got THIS: %d\n", g_NetworkMessage.ulCurrentSize );
-	
-	return ( g_NetworkMessage.ulCurrentSize );
+	return ( Short );
 }
 
 //*****************************************************************************
 //
-void NETWORK_LaunchPacket( NETBUFFER_s netbuf, NETADDRESS_s to, bool bCompression )
+void NETWORK_WriteShort( BYTESTREAM_s *pByteStream, int Short )
 {
-	int ret;
-	int	outlen;
-	struct sockaddr_in	addr;
-
-	if ( netbuf.ulCurrentSize <= 0 )
-		return;
-
-	if ( g_lNetworkState == NETSTATE_SERVER )
+	if (( pByteStream->pbStream + 2 ) > pByteStream->pbStreamEnd )
 	{
-		if ( bCompression )
-			HuffEncode((unsigned char *)netbuf.pbData, huffbuff, netbuf.ulCurrentSize, &outlen);
-		else
-		{
-			memcpy( huffbuff, netbuf.pbData, netbuf.ulCurrentSize );
-			outlen = netbuf.ulCurrentSize;
-		}
+		printf( "NETWORK_WriteShort: Overflow!\n" );
+		return;
 	}
+
+	pByteStream->pbStream[0] = Short & 0xff;
+	pByteStream->pbStream[1] = Short >> 8;
+
+	// Advance the pointer.
+	pByteStream->pbStream += 2;
+/*
+	BYTE	*pbBuf;
+
+	pbBuf = NETWORK_GetSpace( pBuffer, 2 );
+	pbBuf[0] = Short & 0xff;
+	pbBuf[1] = Short >> 8;
+*/
+}
+
+//*****************************************************************************
+//
+int NETWORK_ReadLong( BYTESTREAM_s *pByteStream )
+{
+	int	Long;
+
+	if (( pByteStream->pbStream + 4 ) > pByteStream->pbStreamEnd )
+		Long = -1;
 	else
-		HuffEncode((unsigned char *)netbuf.pbData, huffbuff, netbuf.ulCurrentSize, &outlen);
+	{
+		Long = (( pByteStream->pbStream[0] )
+		+ ( pByteStream->pbStream[1] << 8 )
+		+ ( pByteStream->pbStream[2] << 16 )
+		+ ( pByteStream->pbStream[3] << 24 ));
+	}
 
-	NETWORK_NetAddressToSocketAddress( &to, &addr );
+	// Advance the pointer.
+	pByteStream->pbStream += 4;
 
-	ret = sendto( g_NetworkSocket, (const char*)huffbuff, outlen, 0, (struct sockaddr *)&addr, sizeof(addr));
-    
-    if (ret == -1) 
-    {
-#ifdef __WIN32__
-          int err = WSAGetLastError();
+	return ( Long );
+}
 
-          // wouldblock is silent
-          if (err == WSAEWOULDBLOCK)
-              return;
+//*****************************************************************************
+//
+void NETWORK_WriteLong( BYTESTREAM_s *pByteStream, int Long )
+{
+	if (( pByteStream->pbStream + 4 ) > pByteStream->pbStreamEnd )
+	{
+		printf( "NETWORK_WriteLong: Overflow!\n" );
+		return;
+	}
 
-		  switch ( err )
-		  {
-		  case WSAEACCES:
+	pByteStream->pbStream[0] = Long & 0xff;
+	pByteStream->pbStream[1] = ( Long >> 8 ) & 0xff;
+	pByteStream->pbStream[2] = ( Long >> 16 ) & 0xff;
+	pByteStream->pbStream[3] = ( Long >> 24 );
 
-			  printf( "NETWORK_LaunchPacket: Error #%d, WSAEACCES: Permission denied for address: %s\n", err, NETWORK_AddressToString( to ));
-			  break;
-		  case WSAEADDRNOTAVAIL:
+	// Advance the pointer.
+	pByteStream->pbStream += 4;
+/*
+	BYTE	*pbBuf;
 
-			  printf( "NETWORK_LaunchPacket: Error #%d, WSAEADDRENOTAVAIL: Address %s not available\n", err, NETWORK_AddressToString( to ));
-			  break;
-		  default:
+	pbBuf = NETWORK_GetSpace( pBuffer, 4 );
+	pbBuf[0] = Long & 0xff;
+	pbBuf[1] = ( Long >> 8 ) & 0xff;
+	pbBuf[2] = ( Long >> 16 ) & 0xff;
+	pbBuf[3] = ( Long >> 24 );
+*/
+}
 
-			printf( "NETWORK_LaunchPacket: Error #%d\n", err );
+//*****************************************************************************
+//
+float NETWORK_ReadFloat( BYTESTREAM_s *pByteStream )
+{
+	union
+	{
+		float	f;
+		int		i;
+	} dat;
+
+	dat.i = NETWORK_ReadLong( pByteStream );
+	return ( dat.f );
+}
+
+//*****************************************************************************
+//
+void NETWORK_WriteFloat( BYTESTREAM_s *pByteStream, float Float )
+{
+	union
+	{
+		float	f;
+		int	l;
+	} dat;
+
+	dat.f = Float;
+	//dat.l = LittleLong (dat.l);
+
+	NETWORK_WriteLong( pByteStream, dat.l );
+}
+
+//*****************************************************************************
+//
+char *NETWORK_ReadString( BYTESTREAM_s *pByteStream )
+{
+	char			c;
+	ULONG			ulIdx;
+	static char		s_szString[MAX_NETWORK_STRING];
+
+	// Build our string by reading in one character at a time. If the character is 0 or
+	// -1, we've reached the end of the string.
+	ulIdx = 0;
+	do
+	{
+		c = NETWORK_ReadByte( pByteStream );
+		if (( c == -1 ) ||
+			( c == 0 ))
+		{
 			break;
-		  }
-#else	  
-          if (errno == EWOULDBLOCK)
-              return;
-          if (errno == ECONNREFUSED)
-              return;
-          printf ("NET_SendPacket: %s\n", strerror(errno));
-#endif	  
-    }
-
-}
-
-//*****************************************************************************
-//
-void NETWORK_LaunchPacket( NETBUFFER_s netbuf, NETADDRESS_s to )
-{
-	int ret;
-	struct sockaddr_in	addr;
-	//int		 r;
-	int		outlen;
-
-	if ( netbuf.ulCurrentSize <= 0 )
-		return;
-
-    NETWORK_NetAddressToSocketAddress(&to, &addr);
-
-	if ( g_lNetworkState == NETSTATE_SERVER )
-		HuffEncode((unsigned char *)netbuf.pbData,huffbuff,netbuf.ulCurrentSize,&outlen);
-	else
-		HuffEncode((unsigned char *)netbuf.pbData,huffbuff,netbuf.ulCurrentSize,&outlen);
-
-	ret = sendto (g_NetworkSocket, (const char*)huffbuff, outlen, 0, (struct sockaddr *)&addr, sizeof(addr));
-    
-    if (ret == -1) 
-    {
-#ifdef __WIN32__
-          int err = WSAGetLastError();
-
-          // wouldblock is silent
-          if (err == WSAEWOULDBLOCK)
-              return;
-#else	  
-          if (errno == EWOULDBLOCK)
-              return;
-          if (errno == ECONNREFUSED)
-              return;
-          //Printf ("NET_SendPacket: %s\n", strerror(errno));
-#endif	  
-    }
-
-//	zd_outbytes += outlen;
-}
-
-//*****************************************************************************
-//
-void NETWORK_InitBuffer( NETBUFFER_s *pBuffer, USHORT usLength )
-{
-	memset( pBuffer, 0, sizeof( *pBuffer ));
-	pBuffer->ulMaxSize = usLength;
-
-	if ( g_lNetworkState == NETSTATE_SERVER )
-		pBuffer->pbData = new BYTE[usLength];
-}
-
-//*****************************************************************************
-//
-void NETWORK_FreeBuffer( NETBUFFER_s *pBuffer )
-{
-	if ( g_lNetworkState == NETSTATE_SERVER )
-	{
-		if ( pBuffer->pbData )
-		{
-			delete ( pBuffer->pbData );
-			pBuffer->pbData = NULL;
 		}
-	}
+
+		// Place this character into our string.
+		s_szString[ulIdx++] = c;
+
+	} while ( ulIdx < ( MAX_NETWORK_STRING - 1 ));
+
+	s_szString[ulIdx] = '\0';
+	return ( s_szString );
 }
 
 //*****************************************************************************
 //
-void NETWORK_ClearBuffer( NETBUFFER_s *pBuffer )
+void NETWORK_WriteString( BYTESTREAM_s *pByteStream, const char *pszString )
 {
-	pBuffer->ulCurrentSize = 0;
-//	pBuffer->overflowed = false;
-}
-
-//*****************************************************************************
-//
-BYTE *NETWORK_GetSpace( NETBUFFER_s *pBuffer, USHORT usLength )
-{
-	BYTE	*pbData;
-
-	// Make sure we have enough room left in the packet.
-	if ( pBuffer->ulCurrentSize + usLength > pBuffer->ulMaxSize )
+	if (( pszString ) && ( strlen( pszString ) > MAX_NETWORK_STRING ))
 	{
-		if ( usLength > pBuffer->ulMaxSize )
-			printf( "NETWORK_GetSpace: %i is > full buffer size.\n", usLength );
-		else
-			printf( "NETWORK_GetSpace: Overflow!\n" );
-
-// [NightFang] Purposely make this crash to find out what caused the overflow
-#ifdef	_DEBUG
-		int one=1, two=0;
-		int t;
-		t = one/two;
-#endif
-
-		NETWORK_ClearBuffer( pBuffer );
-
-		if ( g_lNetworkState == NETSTATE_SERVER )
-			return ( 0 );
+		printf( "NETWORK_WriteString: String exceeds %d characters!\n", MAX_NETWORK_STRING );
+		return;
 	}
 
-	if ( g_lNetworkState == NETSTATE_SERVER )
-		pbData = pBuffer->pbData + pBuffer->ulCurrentSize;
+#ifdef	WIN32
+	if ( pszString == NULL )
+		NETWORK_WriteBuffer( pByteStream, "", 1 );
 	else
-		pbData = pBuffer->pbData + pBuffer->ulCurrentSize;
-	pBuffer->ulCurrentSize += usLength;
-	
-	return ( pbData );
+		NETWORK_WriteBuffer( pByteStream, pszString, (int)( strlen( pszString )) + 1 );
+#else
+	if ( pszString == NULL )
+		NETWORK_WriteByte( pByteStream, 0 );
+	else
+	{
+		NETWORK_WriteBuffer( pByteStream, pszString, strlen( pszString ));
+		NETWORK_WriteByte( pByteStream, 0 );
+	}
+#endif
 }
 
 //*****************************************************************************
 //
-void NETWORK_Write( NETBUFFER_s *pBuffer, void *pvData, int nLength )
+void NETWORK_WriteBuffer( BYTESTREAM_s *pByteStream, const void *pvBuffer, int nLength )
 {
+	if (( pByteStream->pbStream + nLength ) > pByteStream->pbStreamEnd )
+	{
+		printf( "NETWORK_WriteLBuffer: Overflow!\n" );
+		return;
+	}
+
+	memcpy( pByteStream->pbStream, pvBuffer, nLength );
+
+	// Advance the pointer.
+	pByteStream->pbStream += nLength;
+/*
 	BYTE	*pbDatapos;
 
 	if ( g_lNetworkState == NETSTATE_CLIENT )
@@ -733,91 +395,315 @@ void NETWORK_Write( NETBUFFER_s *pBuffer, void *pvData, int nLength )
 		pbDatapos = NETWORK_GetSpace( pBuffer, nLength );
 
 		// Bad getspace.
-		if( pbDatapos == 0 )
+		if ( pbDatapos == 0 )
+		{
+			printf( "NETWORK_Write: Couldn't get %d bytes of space!\n", nLength );
 			return;
+		}
 		
 		memcpy( pbDatapos, pvData, nLength );
 	}
-}
-
-//*****************************************************************************
-//
-void NETWORK_Write( NETBUFFER_s *pBuffer, BYTE *pbData, int nStartPos, int nLength )
-{
-	BYTE	*pbDatapos;
-
-	if ( g_lNetworkState == NETSTATE_CLIENT )
-	{
-		pbData += nStartPos;
-		memcpy( NETWORK_GetSpace( pBuffer, nLength ), pbData, nLength );
-	}
-	else
-	{
-		pbDatapos = NETWORK_GetSpace( pBuffer, nLength );
-
-		// Bad getspace.
-		if( pbDatapos == 0 )
-			return;
-		
-		pbData += nStartPos;
-		memcpy( pbDatapos, pbData, nLength );
-	}
-}
-
-//*****************************************************************************
-//
-void NETWORK_Print( NETBUFFER_s *pBuffer, char *pszData )
-{
-/*
-	USHORT	usLength;
-	
-	usLength = strlen( pszData ) + 1;
-
-	if ( pBuffer->ulCurrentSize )
-	{
-		if ( pBuffer->data[pBuffer->ulCurrentSize - 1] )
-			memcpy ((BYTE *)NETWORK_GetSpace( pBuffer, usLength ), pszData, usLength ); // no trailing 0
-		else
-			memcpy ((BYTE *)NETWORK_GetSpace( pBuffer, usLength - 1 ) - 1, pszData, usLength ); // write over trailing 0
-	}
-	else
-		memcpy ((BYTE *)NETWORK_GetSpace( pBuffer, usLength ), pszData, usLength );
 */
 }
 
 //*****************************************************************************
 //
-char *NETWORK_AddressToString( NETADDRESS_s a )
+void NETWORK_WriteHeader( BYTESTREAM_s *pByteStream, int Byte )
 {
-     static  char    s[64];
-
-     sprintf (s, "%i.%i.%i.%i:%i", a.abIP[0], a.abIP[1], a.abIP[2], a.abIP[3], ntohs(a.usPort));
-
-     return s;
+//	printf( "%s\n", g_pszHeaderNames[Byte] );
+	NETWORK_WriteByte( pByteStream, Byte );
 }
 
 //*****************************************************************************
 //
-void NETWORK_NetAddressToSocketAddress( NETADDRESS_s *a, struct sockaddr_in *s )
+int NETWORK_GetPackets( void )
 {
-     memset (s, 0, sizeof(*s));
-     s->sin_family = AF_INET;
+	LONG				lNumBytes;
+	INT					iDecodedNumBytes;
+	struct sockaddr_in	SocketFrom;
+	INT					iSocketFromLength;
 
-     *(int *)&s->sin_addr = *(int *)&a->abIP;
-     s->sin_port = a->usPort;
+    iSocketFromLength = sizeof( SocketFrom );
+
+#ifdef	WIN32
+	lNumBytes = recvfrom( g_NetworkSocket, (char *)g_ucHuffmanBuffer, sizeof( g_ucHuffmanBuffer ), 0, (struct sockaddr *)&SocketFrom, &iSocketFromLength );
+#else
+	lNumBytes = recvfrom( g_NetworkSocket, (char *)g_ucHuffmanBuffer, sizeof( g_ucHuffmanBuffer ), 0, (struct sockaddr *)&SocketFrom, (socklen_t *)&iSocketFromLength );
+#endif
+
+	// If the number of bytes returned is -1, an error has occured.
+    if ( lNumBytes == -1 ) 
+    { 
+#ifdef __WIN32__
+        errno = WSAGetLastError( );
+
+        if ( errno == WSAEWOULDBLOCK )
+            return ( false );
+
+		// Connection reset by peer. Doesn't mean anything to the server.
+		if ( errno == WSAECONNRESET )
+			return ( false );
+
+        if ( errno == WSAEMSGSIZE )
+		{
+             printf( "NETWORK_GetPackets:  WARNING! Oversize packet from %s\n", NETWORK_AddressToString( g_AddressFrom ));
+             return ( false );
+        }
+
+        printf( "NETWORK_GetPackets: WARNING!: Error #%d: %s\n", errno, strerror( errno ));
+		return ( false );
+#else
+        if ( errno == EWOULDBLOCK )
+            return ( false );
+
+        if ( errno == ECONNREFUSED )
+            return ( false );
+
+        printf( "NETWORK_GetPackets: WARNING!: Error #%d: %s\n", errno, strerror( errno ));
+        return ( false );
+#endif
+    }
+
+	// No packets or an error, so don't process anything.
+	if ( lNumBytes <= 0 )
+		return ( 0 );
+
+	// Decode the huffman-encoded message we received.
+	HuffDecode( g_ucHuffmanBuffer, (unsigned char *)g_NetworkMessage.pbData, lNumBytes, &iDecodedNumBytes );
+	g_NetworkMessage.ulCurrentSize = iDecodedNumBytes;
+	g_NetworkMessage.ByteStream.pbStream = g_NetworkMessage.pbData;
+	g_NetworkMessage.ByteStream.pbStreamEnd = g_NetworkMessage.ByteStream.pbStream + g_NetworkMessage.ulCurrentSize;
+
+	// Store the IP address of the sender.
+    NETWORK_SocketAddressToNetAddress( &SocketFrom, &g_AddressFrom );
+
+	return ( g_NetworkMessage.ulCurrentSize );
 }
+
 //*****************************************************************************
 //
-bool NETWORK_CompareAddress( NETADDRESS_s a, NETADDRESS_s b, bool bIgnorePort )
+NETADDRESS_s NETWORK_GetFromAddress( void )
 {
-	if (( a.abIP[0] == b.abIP[0] ) &&
-		( a.abIP[1] == b.abIP[1] ) &&
-		( a.abIP[2] == b.abIP[2] ) &&
-		( a.abIP[3] == b.abIP[3] ) &&
-		( bIgnorePort ? 1 : ( a.usPort == b.usPort )))
+	return ( g_AddressFrom );
+}
+
+//*****************************************************************************
+//
+void NETWORK_LaunchPacket( NETBUFFER_s *pBuffer, NETADDRESS_s Address )
+{
+	LONG				lNumBytes;
+	INT					iNumBytesOut;
+	struct sockaddr_in	SocketAddress;
+
+	pBuffer->ulCurrentSize = NETWORK_CalcBufferSize( pBuffer );
+
+	// Nothing to do.
+	if ( pBuffer->ulCurrentSize == 0 )
+		return;
+
+	// Convert the IP address to a socket address.
+	NETWORK_NetAddressToSocketAddress( Address, SocketAddress );
+
+	HuffEncode( (unsigned char *)pBuffer->pbData, g_ucHuffmanBuffer, pBuffer->ulCurrentSize, &iNumBytesOut );
+
+	lNumBytes = sendto( g_NetworkSocket, (const char*)g_ucHuffmanBuffer, iNumBytesOut, 0, (struct sockaddr *)&SocketAddress, sizeof( SocketAddress ));
+
+	// If sendto returns -1, there was an error.
+	if ( lNumBytes == -1 )
+	{
+#ifdef __WIN32__
+		INT	iError = WSAGetLastError( );
+
+		// Wouldblock is silent.
+		if ( iError == WSAEWOULDBLOCK )
+			return;
+
+		switch ( iError )
+		{
+		case WSAEACCES:
+
+			printf( "NETWORK_LaunchPacket: Error #%d, WSAEACCES: Permission denied for address: %s\n", iError, NETWORK_AddressToString( Address ));
+			return;
+		case WSAEADDRNOTAVAIL:
+
+			printf( "NETWORK_LaunchPacket: Error #%d, WSAEADDRENOTAVAIL: Address %s not available\n", iError, NETWORK_AddressToString( Address ));
+			return;
+		case WSAEHOSTUNREACH:
+
+			printf( "NETWORK_LaunchPacket: Error #%d, WSAEHOSTUNREACH: Address %s unreachable\n", iError, NETWORK_AddressToString( Address ));
+			return;				
+		default:
+
+			printf( "NETWORK_LaunchPacket: Error #%d\n", iError );
+			return;
+		}
+#else
+	if ( errno == EWOULDBLOCK )
+return;
+
+          if ( errno == ECONNREFUSED )
+              return;
+
+		printf( "NETWORK_LaunchPacket: %s\n", strerror( errno ));
+		printf( "NETWORK_LaunchPacket: Address %s\n", NETWORK_AddressToString( Address ));
+
+#endif
+	}
+}
+
+//*****************************************************************************
+//
+void NETWORK_InitBuffer( NETBUFFER_s *pBuffer, ULONG ulLength, BUFFERTYPE_e BufferType )
+{
+	memset( pBuffer, 0, sizeof( *pBuffer ));
+	pBuffer->ulMaxSize = ulLength;
+	pBuffer->pbData = new BYTE[ulLength];
+	pBuffer->BufferType = BufferType;
+}
+
+//*****************************************************************************
+//
+void NETWORK_FreeBuffer( NETBUFFER_s *pBuffer )
+{
+	if ( pBuffer->pbData )
+	{
+		delete ( pBuffer->pbData );
+		pBuffer->pbData = NULL;
+	}
+}
+
+//*****************************************************************************
+//
+void NETWORK_ClearBuffer( NETBUFFER_s *pBuffer )
+{
+	pBuffer->ulCurrentSize = 0;
+	pBuffer->ByteStream.pbStream = pBuffer->pbData;
+	if ( pBuffer->BufferType == BUFFERTYPE_READ )
+		pBuffer->ByteStream.pbStreamEnd = pBuffer->ByteStream.pbStream;
+	else
+		pBuffer->ByteStream.pbStreamEnd = pBuffer->ByteStream.pbStream + pBuffer->ulMaxSize;
+}
+
+//*****************************************************************************
+//
+LONG NETWORK_CalcBufferSize( NETBUFFER_s *pBuffer )
+{
+	if ( pBuffer->BufferType == BUFFERTYPE_READ )
+		return ( pBuffer->ByteStream.pbStreamEnd - pBuffer->ByteStream.pbStream );
+	else
+		return ( pBuffer->ByteStream.pbStream - pBuffer->pbData );
+}
+
+//*****************************************************************************
+//
+char *NETWORK_AddressToString( NETADDRESS_s Address )
+{
+	static char	s_szAddress[64];
+
+	sprintf( s_szAddress, "%i.%i.%i.%i:%i", Address.abIP[0], Address.abIP[1], Address.abIP[2], Address.abIP[3], ntohs( Address.usPort ));
+
+	return ( s_szAddress );
+}
+
+//*****************************************************************************
+//
+char *NETWORK_AddressToStringIgnorePort( NETADDRESS_s Address )
+{
+	static char	s_szAddress[64];
+
+	sprintf( s_szAddress, "%i.%i.%i.%i", Address.abIP[0], Address.abIP[1], Address.abIP[2], Address.abIP[3] );
+
+	return ( s_szAddress );
+}
+
+//*****************************************************************************
+//
+void NETWORK_NetAddressToSocketAddress( NETADDRESS_s &Address, struct sockaddr_in &SocketAddress )
+{
+	// Initialize the socket address.
+	memset( &SocketAddress, 0, sizeof( SocketAddress ));
+
+	// Set the socket's address and port.
+	*(int *)&SocketAddress.sin_addr = *(int *)&Address.abIP;
+	SocketAddress.sin_port = Address.usPort;
+
+	// Set the socket address's family (what does this do?).
+	SocketAddress.sin_family = AF_INET;
+}
+
+//*****************************************************************************
+//
+void NETWORK_SetAddressPort( NETADDRESS_s &Address, USHORT usPort )
+{
+	Address.usPort = htons( usPort );
+}
+
+//*****************************************************************************
+//
+bool NETWORK_CompareAddress( NETADDRESS_s Address1, NETADDRESS_s Address2, bool bIgnorePort )
+{
+	if (( Address1.abIP[0] == Address2.abIP[0] ) &&
+		( Address1.abIP[1] == Address2.abIP[1] ) &&
+		( Address1.abIP[2] == Address2.abIP[2] ) &&
+		( Address1.abIP[3] == Address2.abIP[3] ) &&
+		( bIgnorePort ? 1 : ( Address1.usPort == Address2.usPort )))
+	{
 		return ( true );
+	}
 
 	return ( false );
+}
+
+//*****************************************************************************
+//
+NETADDRESS_s NETWORK_GetLocalAddress( void )
+{
+	char				szBuffer[512];
+	struct sockaddr_in	SocketAddress;
+	NETADDRESS_s		Address;
+	int					iNameLength;
+
+#ifndef __WINE__
+	gethostname( szBuffer, 512 );
+#endif
+	szBuffer[512-1] = 0;
+
+	// Convert the host name to our local 
+	NETWORK_StringToAddress( szBuffer, &Address );
+
+	iNameLength = sizeof( SocketAddress );
+#ifndef	WIN32
+	if ( getsockname ( g_NetworkSocket, (struct sockaddr *)&SocketAddress, (socklen_t *)&iNameLength) == -1 )
+#else
+	if ( getsockname ( g_NetworkSocket, (struct sockaddr *)&SocketAddress, &iNameLength ) == -1 )
+#endif
+	{
+		printf( "NETWORK_GetLocalAddress: Error getting socket name: %s", strerror( errno ));
+	}
+
+	Address.usPort = SocketAddress.sin_port;
+	return ( Address );
+}
+
+//*****************************************************************************
+//
+NETBUFFER_s *NETWORK_GetNetworkMessageBuffer( void )
+{
+	return ( &g_NetworkMessage );
+}
+
+//*****************************************************************************
+//
+ULONG NETWORK_ntohs( ULONG ul )
+{
+	return ( ntohs( (u_short)ul ));
+}
+
+//*****************************************************************************
+//
+USHORT NETWORK_GetLocalPort( void )
+{
+	return ( g_usLocalPort );
 }
 
 //*****************************************************************************
@@ -844,7 +730,7 @@ static SOCKET network_AllocateSocket( void )
 
 //*****************************************************************************
 //
-bool network_BindSocketToPort( int Socket, USHORT usPort )
+bool network_BindSocketToPort( SOCKET Socket, USHORT usPort, bool bReUse )
 {
 	int		iErrorCode;
 	struct sockaddr_in address;
@@ -857,51 +743,27 @@ bool network_BindSocketToPort( int Socket, USHORT usPort )
 
 	// Allow the network socket to broadcast.
 	setsockopt( Socket, SOL_SOCKET, SO_BROADCAST, (const char *)&bBroadCast, sizeof( bBroadCast ));
+	if ( bReUse )
+		setsockopt( Socket, SOL_SOCKET, SO_REUSEADDR, (const char *)&bBroadCast, sizeof( bBroadCast ));
 
 	iErrorCode = bind( Socket, (sockaddr *)&address, sizeof( address ));
 	if ( iErrorCode == SOCKET_ERROR )
-	{
-/*
-		char	szString[128];
-
-		sprintf( szString, "network_BindSocketToPort: Couldn't bind socket to port: %d", usPort );
-		network_Error( szString );
-*/
 		return ( false );
-	}
 
 	return ( true );
 }
 
-//*****************************************************************************
-//
-void network_GetLocalAddress( void )
-{
-	char	buff[512];
-	struct sockaddr_in	address;
-	int		namelen;
 
-	gethostname(buff, 512);
-	buff[512-1] = 0;
-
-	NETWORK_StringToAddress( buff, &g_LocalNetworkAddress );
-
-	namelen = sizeof(address);
 #ifndef	WIN32
-	if (getsockname ( g_NetworkSocket, (struct sockaddr *)&address, (socklen_t *)&namelen) == -1)
-#else
-	if (getsockname ( g_NetworkSocket, (struct sockaddr *)&address, &namelen) == -1)
+extern int	stdin_ready;
+extern int	do_stdin;
 #endif
-	{
-		network_Error( "NET_Init: getsockname:" );//, strerror(errno));
-	}
-	g_LocalNetworkAddress.usPort = address.sin_port;
 
-	printf( "IP address %s\n", NETWORK_AddressToString( g_LocalNetworkAddress ));
-}
-
+// [BB] We only need this for the server console input under Linux.
 void I_DoSelect (void)
 {
+#ifdef		WIN32
+/*
     struct timeval   timeout;
     fd_set           fdset;
 
@@ -909,13 +771,23 @@ void I_DoSelect (void)
     FD_SET(g_NetworkSocket, &fdset);
     timeout.tv_sec = 1;
     timeout.tv_usec = 0;
-    if (select (g_NetworkSocket+1, &fdset, NULL, NULL, &timeout) == -1)
+    if (select (static_cast<int>(g_NetworkSocket)+1, &fdset, NULL, NULL, &timeout) == -1)
         return;
-}
+*/
+#else
+    struct timeval   timeout;
+    fd_set           fdset;
 
-//*****************************************************************************
-//
-void I_SetPort( NETADDRESS_s &addr, int usPort )
-{
-   addr.usPort = htons(usPort);
-}
+    FD_ZERO(&fdset);
+    if (do_stdin)
+    	FD_SET(0, &fdset);
+
+    FD_SET(g_NetworkSocket, &fdset);
+    timeout.tv_sec = 1;
+    timeout.tv_usec = 0;
+    if (select (static_cast<int>(g_NetworkSocket)+1, &fdset, NULL, NULL, &timeout) == -1)
+        return;
+
+    stdin_ready = FD_ISSET(0, &fdset);
+#endif
+} 

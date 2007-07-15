@@ -56,13 +56,13 @@
 
 // This is the maximum number of servers we can store in our list. Hopefully ST won't grow
 // so big that this number can't hold them all!
-#define	MAX_SERVERS				512
+#define	MAX_SERVERS						512
 
 // This is the maximum number of IPs that we can ban.
-#define	MAX_BANNED_IPS			256
+#define	MAX_BANNED_IPS					256
 
 // This is the maximum number of IPs that we can store in our query list.
-#define	MAX_STORED_QUERY_IPS	512
+#define	MAX_STORED_QUERY_IPS			512
 
 //*****************************************************************************
 //	STRUCTURES
@@ -73,12 +73,12 @@ typedef struct
 	NETADDRESS_s	Address;
 
 	// The last time we heard from this server (used for timeouts).
-	long		lLastReceived;
+	long			lLastReceived;
 
 	// Is this server slot active or inactive?
-	bool		bAvailable;
+	bool			bAvailable;
 
-} SERVER_t;
+} SERVER_s;
 
 //*****************************************************************************
 typedef struct
@@ -87,7 +87,7 @@ typedef struct
 	NETADDRESS_s	Address;
 
 	// This is the next time we're allowed to respond to a query from this IP address.
-	long		lNextAllowedTime;
+	long			lNextAllowedTime;
 
 } STORED_QUERY_IP_t;
 
