@@ -95,7 +95,7 @@ static int DoomSpecificInfo (char *buffer, char *end)
 	SDL_Quit();
 
 	p = 0;
-	p += snprintf (buffer+p, size-p, "ZDoom version " DOTVERSIONSTR " (" __DATE__ ")\n");
+	p += snprintf (buffer+p, size-p, GAMENAME" version " DOTVERSIONSTR " (" __DATE__ ")\n");
 	p += snprintf (buffer+p, size-p, "\nCommand line:");
 	for (i = 0; i < Args.NumArgs(); ++i)
 	{
@@ -140,12 +140,12 @@ static int DoomSpecificInfo (char *buffer, char *end)
 
 int main (int argc, char **argv)
 {
-	printf("Skulltag v%s - SVN revision %s - SDL version\nCompiled on %s\n\n",
+	printf(GAMENAME" v%s - SVN revision %s - SDL version\nCompiled on %s\n\n",
 		DOTVERSIONSTR_NOREV,SVN_REVISION_STRING,__DATE__);
 
 	{
 		int s[4] = { SIGSEGV, SIGILL, SIGFPE, SIGBUS };
-		cc_install_handlers(4, s, "zdoom-crash.log", DoomSpecificInfo);
+		cc_install_handlers(4, s, GAMENAMELOWERCASE"-crash.log", DoomSpecificInfo);
 	}
 
 	seteuid (getuid ());
