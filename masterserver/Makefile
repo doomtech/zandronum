@@ -1,3 +1,3 @@
 all:
-	g++ *.cpp ../src/networkshared.cpp ../src/platform.cpp -o master-97
+	apg++ *.cpp ../src/networkshared.cpp ../src/platform.cpp -o master-97
 
