@@ -241,6 +241,18 @@ static void DoGiveInv (AActor *actor, const PClass *info, int amount)
 		actor->player->PendingWeapon = savedPendingWeap;
 	}
 
+	// [BB] Since SERVERCOMMANDS_GiveInventory overwrites the item amount
+	// of the client with item->Amount, we have have to set this to the
+	// correct amount the player has.
+	AInventory *pInventory = NULL;
+	if( actor->player )
+	{
+		if ( actor->player->mo )
+			pInventory = actor->player->mo->FindInventory( info );
+	}
+	if ( pInventory != NULL && item != NULL )
+		item->Amount = pInventory->Amount;
+
 	// [BC] If we're the server, give the item to clients.
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( actor->player ) && ( item ))
 		SERVERCOMMANDS_GiveInventory( actor->player - players, item );
