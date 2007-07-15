@@ -285,6 +285,17 @@ ASTARRETURNSTRUCT_t ASTAR_Path( ULONG ulPathIdx, POS_t GoalPoint, float fMaxSear
 	}
 
 	pPath->pStartNode = astar_GetNodeFromPoint( StartPoint );
+	if ( pPath->pStartNode == NULL )
+	{
+		Printf( "WARNING! Cannot find start point: (%d, %d)\n", StartPoint.x / FRACUNIT, StartPoint.y / FRACUNIT );
+		ReturnVal.bIsGoal = false;
+		ReturnVal.pNode = NULL;
+		ReturnVal.ulFlags = 0;
+		ReturnVal.lTotalCost = 0;
+
+		pPath->pActor->Die(NULL, NULL);
+		return ( ReturnVal );
+	}
 
 //	ASTAR_ClearPath( pPath );
 
