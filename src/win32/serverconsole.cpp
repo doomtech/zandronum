@@ -4681,25 +4681,7 @@ void SERVERCONSOLE_Print( char *pszString )
 	char	c;
 	bool	bScroll = false;
 
-	switch ( sv_colorstripmethod )
-	{
-	// Strip messages here of color codes.
-	case 0:
-
-		V_ColorizeString( pszString );
-		V_RemoveColorCodes( pszString );
-		break;
-	// Don't strip out the color codes.
-	case 1:
-
-		V_ColorizeString( pszString );
-		break;
-	// Just leave the damn thing alone!
-	case 2:
-	default:
-
-		break;
-	}
+	V_StripColors( pszString );
 
 	if (( sv_timestamp ) && ( gamestate == GS_LEVEL ))
 	{

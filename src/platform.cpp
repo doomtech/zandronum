@@ -71,6 +71,7 @@ void I_Sleep( int iMS )
 
 #include <iostream>
 #include "networkheaders.h"
+#include "v_text.h"
 
 // [BB] I collect dummy implementations of many functions, which are either
 // GL or server console gui related, here. This way one doesn't have to make
@@ -98,7 +99,11 @@ void SERVERCONSOLE_RemovePlayer( LONG lPlayer ) {}
 void SERVERCONSOLE_UpdateOperatingSystem( char *pszString ) {}
 void SERVERCONSOLE_UpdateCPUSpeed( char *pszString ) {}
 void SERVERCONSOLE_UpdateVendor( char *pszString ) {}
-void SERVERCONSOLE_Print( char *pszString ) { std::cout << pszString; }
+void SERVERCONSOLE_Print( char *pszString )
+{
+	V_StripColors( pszString );
+	std::cout << pszString;
+}
 
 // ------------------- GL related stuff ------------------- 
 #include "d_player.h"

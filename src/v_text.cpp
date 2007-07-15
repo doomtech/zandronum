@@ -47,6 +47,8 @@
 #include "doomstat.h"
 #include "templates.h"
 
+#include "sv_main.h"
+
 //
 // SetFont
 //
@@ -458,6 +460,30 @@ void V_RemoveColorCodes( char *pszString )
 			pszString++;
 	}
 	*pszString = 0;
+}
+
+// [BB] Strips color codes from a string respecting sv_colorstripmethod.
+void V_StripColors( char *pszString )
+{
+	switch ( sv_colorstripmethod )
+	{
+	// Strip messages here of color codes.
+	case 0:
+
+		V_ColorizeString( pszString );
+		V_RemoveColorCodes( pszString );
+		break;
+	// Don't strip out the color codes.
+	case 1:
+
+		V_ColorizeString( pszString );
+		break;
+	// Just leave the damn thing alone!
+	case 2:
+	default:
+
+		break;
+	}
 }
 
 // [RC] Returns if this character is allowed in names
