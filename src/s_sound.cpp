@@ -701,12 +701,17 @@ static void S_StartSound (fixed_t *pt, AActor *mover, int channel,
 
 			ulMaxSoundDistance = 1200;
 
-			AbsoluteDistanceX = abs( players[consoleplayer].camera->x - x );
-			AbsoluteDistanceY = abs( players[consoleplayer].camera->y - y );
+			if ( players[consoleplayer].camera )
+			{
+				AbsoluteDistanceX = abs( players[consoleplayer].camera->x - x );
+				AbsoluteDistanceY = abs( players[consoleplayer].camera->y - y );
 
-			// From _GG1_ p.428. Appox. eucledian distance fast.
-			dist = AbsoluteDistanceX + AbsoluteDistanceY - ((( AbsoluteDistanceX < AbsoluteDistanceY ) ? AbsoluteDistanceX : AbsoluteDistanceY ) >> 1 );
-			dist >>= FRACBITS;
+				// From _GG1_ p.428. Appox. eucledian distance fast.
+				dist = AbsoluteDistanceX + AbsoluteDistanceY - ((( AbsoluteDistanceX < AbsoluteDistanceY ) ? AbsoluteDistanceX : AbsoluteDistanceY ) >> 1 );
+				dist >>= FRACBITS;
+			}
+			else
+				dist = 0;
 		}
 		else
 		{
@@ -1431,24 +1436,28 @@ void S_UpdateSounds (void *listener_p)
 			}
 
 			// doom2.exe clipped sounds > 1200 units away. The following code is based on prBoom code.
-			if ( i_compatflags & COMPATF_ORIGINALSOUNDCURVE )
+			if ( listener )
 			{
 				fixed_t		AbsoluteDistanceX;
 				fixed_t		AbsoluteDistanceY;
 
 				ulMaxSoundDistance = 1200;
 
-				AbsoluteDistanceX = abs( players[consoleplayer].camera->x - x );
-				AbsoluteDistanceY = abs( players[consoleplayer].camera->y - y );
+				if ( players[consoleplayer].camera )
+				{
+					AbsoluteDistanceX = abs( listener[0] - x );
+					AbsoluteDistanceY = abs( listener[1] - y );
 
-				// From _GG1_ p.428. Appox. eucledian distance fast.
-				dist = AbsoluteDistanceX + AbsoluteDistanceY - ((( AbsoluteDistanceX < AbsoluteDistanceY ) ? AbsoluteDistanceX : AbsoluteDistanceY ) >> 1 );
-				dist >>= FRACBITS;
+					// From _GG1_ p.428. Appox. eucledian distance fast.
+					dist = AbsoluteDistanceX + AbsoluteDistanceY - ((( AbsoluteDistanceX < AbsoluteDistanceY ) ? AbsoluteDistanceX : AbsoluteDistanceY ) >> 1 );
+					dist >>= FRACBITS;
+				}
+				else
+					dist = 0;
 			}
 			else
 			{
 				ulMaxSoundDistance = MAX_SND_DIST;
-
 
 				dist = (int)(FIXED2FLOAT(P_AproxDistance2 (listener, x, y))
 						* Channel[i].attenuation);
