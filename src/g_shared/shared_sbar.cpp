@@ -56,6 +56,7 @@
 #include "chat.h"
 #include "lastmanstanding.h"
 #include "network.h"
+#include "gamemode.h"
 
 #define XHAIRSHRINKSIZE		(FRACUNIT/18)
 #define XHAIRPICKUPSIZE		(FRACUNIT*2+XHAIRSHRINKSIZE)
@@ -1037,11 +1038,17 @@ void FBaseStatusBar::DrawCrosshair ()
 			}
 			color = (red<<16) | (green<<8);
 		}
+
+		// [RC] If we're following somebody and we shouldn't know their health, use a nuetral color.
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players )) == false ))
+			color = 666666;
 	}
 	else
 	{
 		color = crosshaircolor;
 	}
+
+	
 
 	if (color != prevcolor)
 	{
@@ -1505,30 +1512,30 @@ void FBaseStatusBar::DrawTargetName ()
 
 		// Build the string and text color;
 		sprintf( szString, "%s", pTargetPlayer->userinfo.netname );
+		ulTextColor = CR_GRAY;
 
-		if ( deathmatch )
-		{
-			if ( terminator )
-			{
-				// If this player is carrying the terminator artifact, display his name in red.
-				if ( pTargetPlayer->Powers & PW_TERMINATORARTIFACT )
-					ulTextColor = CR_RED;
-				else
-					ulTextColor = CR_GRAY;
-			}
-			else
-				ulTextColor = CR_GRAY;
-		}
+		// [RC] Assume everyone's your enemy to crete consistency, even in deathmatch when you have no allies.
+		char	szDiplomacyStatus[9];
+		strcpy(szDiplomacyStatus,  "\\crEnemy");
+
 		// Attempt to use the team color.
-		else if ( teamgame )
+		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 		{
+			if( pTargetPlayer->mo->IsTeammate( players[consoleplayer].mo) )
+				strcpy(szDiplomacyStatus, "\\cqAlly");
+				
 			if ( pTargetPlayer->bOnTeam )
 				ulTextColor = TEAM_GetTextColor( pTargetPlayer->ulTeam );
-			else
-				ulTextColor = CR_GRAY;
 		}
 		else
-			ulTextColor = CR_GRAY;
+		{
+			// If this player is carrying the terminator artifact, display his name in red.
+			if ( (terminator) && (pTargetPlayer->Powers & PW_TERMINATORARTIFACT) )
+					ulTextColor = CR_RED;
+		}
+
+		sprintf(szString, "%s\\n%s", szString, szDiplomacyStatus);
+		V_ColorizeString(szString);
 
 		pMsg = new DHUDMessageFadeOut( szString,
 			1.5f,
