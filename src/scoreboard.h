@@ -96,8 +96,8 @@ enum
 //*****************************************************************************
 //	PROTOTYPES
 
-void	SCOREBOARD_Render( player_s *pPlayer );
-void	SCOREBOARD_RenderBoard( player_s *pPlayer );
+void	SCOREBOARD_Render( ULONG ulDisplayPlayer );
+void	SCOREBOARD_RenderBoard( ULONG ulDisplayPlayer );
 void	SCOREBOARD_RenderDMStats( void );
 void	SCOREBOARD_RenderTeamStats( player_s *pPlayer );
 void	SCOREBOARD_RenderInvasionStats( void );

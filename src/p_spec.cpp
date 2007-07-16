@@ -641,6 +641,8 @@ void P_UpdateSpecials ()
 					LASTMANSTANDING_TimeExpired( );
 				else if ( possession || teampossession )
 					POSSESSION_TimeExpired( );
+				else if ( teamgame )
+					TEAM_TimeExpired( );
 				// End the level after one second.
 				else
 				{

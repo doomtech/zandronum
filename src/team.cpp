@@ -1013,6 +1013,109 @@ WORD TEAM_GetReturnScriptOffset( ULONG ulTeamIdx )
 		return ( -1 );
 }
 
+//*****************************************************************************
+//
+void TEAM_DoWinSequence( ULONG ulTeamIdx )
+{
+	char				szString[32];
+	DHUDMessageFadeOut	*pMsg;
+
+	// Display "%s WINS!" HUD message.
+	if ( ulTeamIdx == TEAM_BLUE )
+		sprintf( szString, "\\chBLUE WINS!" );
+	else
+		sprintf( szString, "\\cgRED WINS!" );
+
+	V_ColorizeString( szString );
+
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+	{
+		screen->SetFont( BigFont );
+		pMsg = new DHUDMessageFadeOut( szString,
+			160.4f,
+			75.0f,
+			320,
+			200,
+			CR_RED,
+			3.0f,
+			2.0f );
+
+		StatusBar->AttachMessage( pMsg, 'CNTR' );
+		screen->SetFont( SmallFont );
+	}
+	else
+	{
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 0.25f, "BigFont", 'CNTR' );
+	}
+}
+
+//*****************************************************************************
+//
+void TEAM_TimeExpired( void )
+{
+	LONG				lDifference;
+	LONG				lWinner;
+	DHUDMessageFadeOut	*pMsg;
+	char				szString[64];
+
+	// If there are players on the map, either declare a winner or sudden death. If
+	// there aren't any, then just end the map.
+	if ( SERVER_CalcNumPlayers( ))
+	{
+		lDifference = TEAM_GetScore( TEAM_BLUE ) - TEAM_GetScore( TEAM_RED );
+		if ( lDifference > 0 )
+			lWinner = TEAM_BLUE;
+		else if ( lDifference < 0 )
+			lWinner = TEAM_RED;
+		else
+			lWinner = NUM_TEAMS;
+
+		// If there was a tie, then go into sudden death!
+		if ( lWinner == NUM_TEAMS )
+		{
+			// Only print the message the instant we reach sudden death.
+			if ( level.time == (int)( timelimit * TICRATE * 60 ))
+			{
+				sprintf( szString, "\\cdSUDDEN DEATH!" );
+				V_ColorizeString( szString );
+
+				if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+				{
+					screen->SetFont( BigFont );
+
+					// Display the HUD message.
+					pMsg = new DHUDMessageFadeOut( szString,
+						160.4f,
+						75.0f,
+						320,
+						200,
+						CR_RED,
+						3.0f,
+						2.0f );
+
+					StatusBar->AttachMessage( pMsg, 'CNTR' );
+					screen->SetFont( SmallFont );
+				}
+				else
+				{
+					SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", 'CNTR' );
+				}
+			}
+
+			return;
+		}
+
+		// Also, do the win sequence for the player.
+		TEAM_DoWinSequence( lWinner );
+	}
+
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVER_Printf( PRINT_HIGH, "%s\n", GStrings( "TXT_TIMELIMIT" ));
+	else
+		Printf( "%s\n", GStrings( "TXT_TIMELIMIT" ));
+
+	GAME_SetEndLevelDelay( 5 * TICRATE );
+}
 
 //*****************************************************************************
 //*****************************************************************************
@@ -1102,8 +1205,6 @@ LONG TEAM_GetScore( ULONG ulTeamIdx )
 void TEAM_SetScore( ULONG ulTeamIdx, LONG lScore, bool bAnnouncer )
 {
 	LONG				lOldScore;
-	char				szString[32];
-	DHUDMessageFadeOut	*pMsg;
 
 	if ( ulTeamIdx >= NUM_TEAMS )
 		return;
@@ -1131,33 +1232,7 @@ void TEAM_SetScore( ULONG ulTeamIdx, LONG lScore, bool bAnnouncer )
 	// Implement the pointlimit.
 	if ( pointlimit <= 0 || ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 		return;
-/*
-	// Potentially play the "3 points left", etc. announcer sounds.
-	if ( teampossession && pointlimit )
-	{
-		if (( pointlimit - g_Team[ulTeamIdx].lScore ) == 3 && ( g_bThreePointsLeftSoundPlayed == false ))
-		{
-			if ( ANNOUNCER_GetThreePointsLeftSound( cl_announcer ))
-				S_Sound( CHAN_VOICE, ANNOUNCER_GetThreePointsLeftSound( cl_announcer ), 1, ATTN_NONE );
 
-			g_bThreePointsLeftSoundPlayed = true;
-		}
-		if (( pointlimit - g_Team[ulTeamIdx].lScore ) == 2 && ( g_bTwoPointsLeftSoundPlayed == false ))
-		{
-			if ( ANNOUNCER_GetTwoPointsLeftSound( cl_announcer ))
-				S_Sound( CHAN_VOICE, ANNOUNCER_GetTwoPointsLeftSound( cl_announcer ), 1, ATTN_NONE );
-
-			g_bTwoPointsLeftSoundPlayed = true;
-		}
-		if (( pointlimit - g_Team[ulTeamIdx].lScore ) == 1 && ( g_bOnePointLeftSoundPlayed == false ))
-		{
-			if ( ANNOUNCER_GetOnePointLeftSound( cl_announcer ))
-				S_Sound( CHAN_VOICE, ANNOUNCER_GetOnePointLeftSound( cl_announcer ), 1, ATTN_NONE );
-
-			g_bOnePointLeftSoundPlayed = true;
-		}
-	}
-*/
 	if ( g_Team[ulTeamIdx].lScore >= (LONG)pointlimit )
 	{
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -1165,33 +1240,8 @@ void TEAM_SetScore( ULONG ulTeamIdx, LONG lScore, bool bAnnouncer )
 		else
 			Printf( "%s has won the game!\n", g_Team[ulTeamIdx].szName );
 
-		// Display "%s WINS!" HUD message.
-		if ( ulTeamIdx == TEAM_BLUE )
-			sprintf( szString, "\\chBLUE WINS!" );
-		else
-			sprintf( szString, "\\cgRED WINS!" );
-
-		V_ColorizeString( szString );
-
-		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-		{
-			screen->SetFont( BigFont );
-			pMsg = new DHUDMessageFadeOut( szString,
-				160.4f,
-				75.0f,
-				320,
-				200,
-				CR_RED,
-				3.0f,
-				2.0f );
-
-			StatusBar->AttachMessage( pMsg, 'CNTR' );
-			screen->SetFont( SmallFont );
-		}
-		else
-		{
-			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 0.25f, "BigFont", 'CNTR' );
-		}
+		// Do the win sequence for the winner.
+		TEAM_DoWinSequence( ulTeamIdx );
 
 		// End the level after five seconds.
 		GAME_SetEndLevelDelay( 5 * TICRATE );

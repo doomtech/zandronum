@@ -123,8 +123,10 @@ void		TEAM_ScoreSkulltagPoint( player_s *pPlayer, ULONG ulNumPoints, AActor *pPi
 void		TEAM_DisplayNeedToReturnSkullMessage( player_s *pPlayer );
 void		TEAM_FlagDropped( player_s *pPlayer );
 WORD		TEAM_GetReturnScriptOffset( ULONG ulTeamIdx );
+void		TEAM_DoWinSequence( ULONG ulTeamIdx );
+void		TEAM_TimeExpired( void );
 
-// Access functions
+// Access functions.
 char		*TEAM_GetName( ULONG ulTeamIdx );
 void		TEAM_SetName( ULONG ulTeamIdx, char *pszName );
 

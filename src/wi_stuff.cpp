@@ -1809,7 +1809,7 @@ void WI_drawDeathmatchStats ()
 	// [RH] Draw heads-up scores display
 //	HU_DrawScores (&players[me]);
 	// [BC] Use this display instead.
-	SCOREBOARD_RenderBoard( &players[me] );
+	SCOREBOARD_RenderBoard( me );
 
 /*
 	int 		i;
@@ -2098,7 +2098,7 @@ void WI_drawNetgameStats ()
 	WI_drawLF();
 
 	// [BC] In cooperative mode, just draw the scoreboard.
-	SCOREBOARD_RenderBoard( &players[me] );
+	SCOREBOARD_RenderBoard( me );
 /*
 	if (gameinfo.gametype == GAME_Doom)
 	{

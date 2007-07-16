@@ -51,6 +51,7 @@
 #include "c_dispatch.h"
 #include "callvote.h"
 #include "chat.h"
+#include "cl_demo.h"
 #include "cooperative.h"
 #include "deathmatch.h"
 #include "duel.h"
@@ -168,7 +169,7 @@ static	int	STACK_ARGS	scoreboard_FragCompareFunc( const void *arg1, const void *
 static	int	STACK_ARGS	scoreboard_PointsCompareFunc( const void *arg1, const void *arg2 );
 static	int	STACK_ARGS	scoreboard_KillsCompareFunc( const void *arg1, const void *arg2 );
 static	int	STACK_ARGS	scoreboard_WinsCompareFunc( const void *arg1, const void *arg2 );
-static	void			scoreboard_RenderIndividualPlayer( ULONG ulPlayer );
+static	void			scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPlayer );
 static	void			scoreboard_DrawHeader( void );
 static	void			scoreboard_DrawLimits( void );
 static	void			scoreboard_DrawTeamScores( ULONG ulPlayer );
@@ -177,18 +178,22 @@ static	void			scoreboard_ClearColumns( void );
 static	void			scoreboard_Prepare5ColumnDisplay( void );
 static	void			scoreboard_Prepare4ColumnDisplay( void );
 static	void			scoreboard_Prepare3ColumnDisplay( void );
-static	void			scoreboard_DoRankingListPass( LONG lSpectators, LONG lDead, LONG lNotPlaying, LONG lNoTeam, LONG lWrongTeam, ULONG ulDesiredTeam );
-static	void			scoreboard_DrawRankings( void );
+static	void			scoreboard_DoRankingListPass( ULONG ulPlayer, LONG lSpectators, LONG lDead, LONG lNotPlaying, LONG lNoTeam, LONG lWrongTeam, ULONG ulDesiredTeam );
+static	void			scoreboard_DrawRankings( ULONG ulPlayer );
 
 //*****************************************************************************
 //	FUNCTIONS
 
 //*****************************************************************************
 // Renders some HUD strings, and the main board if the player is pushing the keys.
-void SCOREBOARD_Render( player_s *pPlayer )
+void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 {
 	DHUDMessageFadeOut	*pMsg;
 	LONG				lPosition;
+
+	// Make sure the display player is valid.
+	if ( ulDisplayPlayer >= MAXPLAYERS )
+		return;
 
 	g_ValWidth = con_virtualwidth.GetGenericRep( CVAR_Int );
 	g_ValHeight = con_virtualheight.GetGenericRep( CVAR_Int );
@@ -205,10 +210,10 @@ void SCOREBOARD_Render( player_s *pPlayer )
 	// Draw the main scoreboard.
 	if (
 		(( NETWORK_GetState( ) != NETSTATE_SINGLE ) || ( deathmatch || teamgame || invasion )) &&
-		( Button_ShowScores.bDown || (( pPlayer->camera && pPlayer->camera->health <= 0 ) && (( lastmanstanding || teamlms ) && (( LASTMANSTANDING_GetState( ) == LMSS_COUNTDOWN ) || ( LASTMANSTANDING_GetState( ) == LMSS_WAITINGFORPLAYERS )))  && ( teamlms == false ) && ( duel == false || ( DUEL_GetState( ) != DS_WINSEQUENCE ))))
+		( Button_ShowScores.bDown || (( players[ulDisplayPlayer].camera && players[ulDisplayPlayer].camera->health <= 0 ) && (( lastmanstanding || teamlms ) && (( LASTMANSTANDING_GetState( ) == LMSS_COUNTDOWN ) || ( LASTMANSTANDING_GetState( ) == LMSS_WAITINGFORPLAYERS )))  && ( teamlms == false ) && ( duel == false || ( DUEL_GetState( ) != DS_WINSEQUENCE ))))
 		)
 	{
-		SCOREBOARD_RenderBoard( pPlayer );
+		SCOREBOARD_RenderBoard( ulDisplayPlayer );
 	}
 
 	g_BottomString = "";
@@ -224,8 +229,8 @@ void SCOREBOARD_Render( player_s *pPlayer )
 	if ( players[consoleplayer].bSpectating )
 	{
 		g_BottomString += "\n";
-		lPosition = JOINQUEUE_GetPositionInLine( ULONG( pPlayer - players ));
-		if ( pPlayer->bDeadSpectator )
+		lPosition = JOINQUEUE_GetPositionInLine( ULONG( ulDisplayPlayer ));
+		if ( players[ulDisplayPlayer].bDeadSpectator )
 			g_BottomString += "\\cdSPECTATING - WAITING TO RESPAWN";
 		else if ( lPosition != -1 )
 		{
@@ -299,7 +304,7 @@ void SCOREBOARD_Render( player_s *pPlayer )
 			break;
 		case DS_WAITINGFORPLAYERS:
 
-			if ( pPlayer->bSpectating == false )
+			if ( players[ulDisplayPlayer].bSpectating == false )
 			{
 				g_BottomString += "\\cgWAITING FOR PLAYERS";
 
@@ -336,7 +341,7 @@ void SCOREBOARD_Render( player_s *pPlayer )
 			break;
 		case LMSS_WAITINGFORPLAYERS:
 
-			if ( pPlayer->bSpectating == false )
+			if ( players[ulDisplayPlayer].bSpectating == false )
 			{
 				g_BottomString += "\\cgWAITING FOR PLAYERS";
 
@@ -374,7 +379,7 @@ void SCOREBOARD_Render( player_s *pPlayer )
 			break;
 		case PSNS_WAITINGFORPLAYERS:
 
-			if ( pPlayer->bSpectating == false )
+			if ( players[ulDisplayPlayer].bSpectating == false )
 			{
 				g_BottomString += "\\cgWAITING FOR PLAYERS";
 
@@ -411,7 +416,7 @@ void SCOREBOARD_Render( player_s *pPlayer )
 			break;
 		case SURVS_WAITINGFORPLAYERS:
 
-			if ( pPlayer->bSpectating == false )
+			if ( players[ulDisplayPlayer].bSpectating == false )
 			{
 				g_BottomString += "\\cgWAITING FOR PLAYERS";
 
@@ -461,7 +466,7 @@ void SCOREBOARD_Render( player_s *pPlayer )
 	}
 
 	// Don't draw this other stuff for spectators.
-	if ( pPlayer->bSpectating )
+	if ( players[ulDisplayPlayer].bSpectating )
 	{
 		// Display the message before we get out of here.
 		V_ColorizeString( (char *)g_BottomString.GetChars( ));
@@ -485,7 +490,7 @@ void SCOREBOARD_Render( player_s *pPlayer )
 		SCOREBOARD_RenderDMStats( );
 	// Allow the client to always draw certain team stats.
 	else if ( teamgame && ( cl_alwaysdrawteamstats || automapactive ))
-		SCOREBOARD_RenderTeamStats( pPlayer );
+		SCOREBOARD_RenderTeamStats( &players[ulDisplayPlayer] );
 	
 	// [RC] In Survival, print how many other players are alive
 	if ( SURVIVAL_GetState( ) == SURVS_INPROGRESS )
@@ -519,28 +524,28 @@ void SCOREBOARD_Render( player_s *pPlayer )
 //*****************************************************************************
 //*****************************************************************************
 //
-void SCOREBOARD_RenderBoard( player_s *pPlayer )
+void SCOREBOARD_RenderBoard( ULONG ulDisplayPlayer )
 {
-	ULONG	ulPlayerNum;
 	ULONG	ulNumIdealColumns;
 
-	// Calculate the playernum of the given player.
-	ulPlayerNum = ULONG( pPlayer - players );
+	// Make sure the display player is valid.
+	if ( ulDisplayPlayer >= MAXPLAYERS )
+		return;
 
 	// Draw the "RANKINGS" text at the top.
 	scoreboard_DrawHeader( );
-	
+
 	// Draw the time, frags, points, or kills we have left until the level ends.
 	if ( gamestate == GS_LEVEL )
 		scoreboard_DrawLimits( );
 
 	// Draw the team scores and their relation (tied, red leads, etc).
-	scoreboard_DrawTeamScores( ulPlayerNum );
-	
+	scoreboard_DrawTeamScores( ulDisplayPlayer );
+
 	// Draw my rank and my frags, points, etc.
 	if ( gamestate == GS_LEVEL )
-		scoreboard_DrawMyRank( ulPlayerNum );
-	
+		scoreboard_DrawMyRank( ulDisplayPlayer );
+
 	// Draw the player list and its data.
 	// First, determine how many columns we can use, based on our screen resolution.
 	ulNumIdealColumns = 3;
@@ -570,7 +575,7 @@ void SCOREBOARD_RenderBoard( player_s *pPlayer )
 		scoreboard_Prepare3ColumnDisplay( );
 
 	// Draw the headers, list, entries, everything.
-	scoreboard_DrawRankings( );
+	scoreboard_DrawRankings( ulDisplayPlayer );
 }
 
 //*****************************************************************************
@@ -2387,7 +2392,7 @@ static int STACK_ARGS scoreboard_WinsCompareFunc( const void *arg1, const void *
 
 //*****************************************************************************
 //
-static void scoreboard_RenderIndividualPlayer( ULONG ulPlayer )
+static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPlayer )
 {
 	ULONG	ulIdx;
 	ULONG	ulColor;
@@ -2405,7 +2410,7 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulPlayer )
 
 		if ( players[ulPlayer].bOnTeam == true )
 			ulColor = TEAM_GetTextColor( players[ulPlayer].ulTeam );
-		else if ( ulIdx == ulPlayer )
+		else if ( ulDisplayPlayer == ulPlayer )
 			ulColor = demoplayback ? CR_GOLD : CR_GREEN;
 
 		// Determine what needs to be displayed in this column.
@@ -3412,7 +3417,7 @@ static void scoreboard_Prepare5ColumnDisplay( void )
 		g_aulColumnType[1] = COLUMN_FRAGS;
 		g_aulColumnType[2] = COLUMN_NAME;
 		g_aulColumnType[3] = COLUMN_DEATHS;
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 			g_aulColumnType[3] = COLUMN_PING;
 		g_aulColumnType[4] = COLUMN_TIME;
 
@@ -3427,7 +3432,7 @@ static void scoreboard_Prepare5ColumnDisplay( void )
 		g_aulColumnType[1] = COLUMN_FRAGS;
 		g_aulColumnType[2] = COLUMN_NAME;
 		g_aulColumnType[3] = COLUMN_EMPTY;
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 			g_aulColumnType[3] = COLUMN_PING;
 		g_aulColumnType[4] = COLUMN_TIME;
 
@@ -3458,7 +3463,7 @@ static void scoreboard_Prepare4ColumnDisplay( void )
 		g_aulColumnType[0] = COLUMN_KILLS;
 		g_aulColumnType[1] = COLUMN_NAME;
 		g_aulColumnType[2] = COLUMN_DEATHS;
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 			g_aulColumnType[2] = COLUMN_PING;
 		g_aulColumnType[3] = COLUMN_TIME;
 
@@ -3472,7 +3477,7 @@ static void scoreboard_Prepare4ColumnDisplay( void )
 		g_aulColumnType[0] = COLUMN_FRAGS;
 		g_aulColumnType[1] = COLUMN_NAME;
 		g_aulColumnType[2] = COLUMN_DEATHS;
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 			g_aulColumnType[2] = COLUMN_PING;
 		g_aulColumnType[3] = COLUMN_TIME;
 
@@ -3489,7 +3494,7 @@ static void scoreboard_Prepare4ColumnDisplay( void )
 		g_aulColumnType[0] = COLUMN_POINTS;
 		g_aulColumnType[1] = COLUMN_NAME;
 		g_aulColumnType[2] = COLUMN_DEATHS;
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 			g_aulColumnType[2] = COLUMN_PING;
 		g_aulColumnType[3] = COLUMN_TIME;
 
@@ -3503,7 +3508,7 @@ static void scoreboard_Prepare4ColumnDisplay( void )
 		g_aulColumnType[0] = COLUMN_WINS;
 		g_aulColumnType[1] = COLUMN_NAME;
 		g_aulColumnType[2] = COLUMN_FRAGS;
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 			g_aulColumnType[2] = COLUMN_PING;
 		g_aulColumnType[3] = COLUMN_TIME;
 
@@ -3579,7 +3584,7 @@ static void scoreboard_Prepare3ColumnDisplay( void )
 //	These parameters are filters.
 //	If 1, players with this trait will be skipped.
 //	If 2, players *without* this trait will be skipped.
-static void scoreboard_DoRankingListPass( LONG lSpectators, LONG lDead, LONG lNotPlaying, LONG lNoTeam, LONG lWrongTeam, ULONG ulDesiredTeam )
+static void scoreboard_DoRankingListPass( ULONG ulPlayer, LONG lSpectators, LONG lDead, LONG lNotPlaying, LONG lNoTeam, LONG lWrongTeam, ULONG ulDesiredTeam )
 {
 	ULONG	ulIdx;
 	ULONG	ulNumPlayers;
@@ -3617,7 +3622,7 @@ static void scoreboard_DoRankingListPass( LONG lSpectators, LONG lDead, LONG lNo
 			((lWrongTeam == 2) && (players[g_iSortedPlayers[ulIdx]].ulTeam == ulDesiredTeam)))
 			continue;
 
-		scoreboard_RenderIndividualPlayer( g_iSortedPlayers[ulIdx] );
+		scoreboard_RenderIndividualPlayer( ulPlayer, g_iSortedPlayers[ulIdx] );
 		g_ulCurYPos += 10;
 		ulNumPlayers++;
 	}
@@ -3628,7 +3633,7 @@ static void scoreboard_DoRankingListPass( LONG lSpectators, LONG lDead, LONG lNo
 
 //*****************************************************************************
 //
-static void scoreboard_DrawRankings( void )
+static void scoreboard_DrawRankings( ULONG ulPlayer )
 {
 	ULONG	ulIdx;
 	ULONG	ulTeamIdx;
@@ -3683,20 +3688,20 @@ static void scoreboard_DrawRankings( void )
 			// In team LMS, separate the dead players from the living.
 			if (( teamlms ) && ( gamestate != GS_INTERMISSION ) && ( LASTMANSTANDING_GetState( ) != LMSS_COUNTDOWN ) && ( LASTMANSTANDING_GetState( ) != LMSS_WAITINGFORPLAYERS ))
 			{
-				scoreboard_DoRankingListPass(1, 1, 1, 1, 1, ulTeamIdx ); // Living in this team
-				scoreboard_DoRankingListPass(1, 2, 1, 1, 1, ulTeamIdx ); // Dead in this team
+				scoreboard_DoRankingListPass( ulPlayer, 1, 1, 1, 1, 1, ulTeamIdx ); // Living in this team
+				scoreboard_DoRankingListPass( ulPlayer, 1, 2, 1, 1, 1, ulTeamIdx ); // Dead in this team
 			}
 			// Otherwise, draw all players all in one group.
 			else
-				scoreboard_DoRankingListPass(1, 0, 1, 1, 1, ulTeamIdx ); 
+				scoreboard_DoRankingListPass( ulPlayer, 1, 0, 1, 1, 1, ulTeamIdx ); 
 
 		}
 
 		// Players that aren't on a team.
-		scoreboard_DoRankingListPass(1, 1, 1, 2, 0, 0); 
+		scoreboard_DoRankingListPass( ulPlayer, 1, 1, 1, 2, 0, 0 ); 
 
 		// Spectators are last.
-		scoreboard_DoRankingListPass(2, 0, 1, 0, 0, 0);
+		scoreboard_DoRankingListPass( ulPlayer, 2, 0, 1, 0, 0, 0 );
 	}
 	// Other modes: Just players and spectators.
 	else
@@ -3706,15 +3711,15 @@ static void scoreboard_DrawRankings( void )
 			(( lastmanstanding ) && (( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) || ( LASTMANSTANDING_GetState( ) == LMSS_WINSEQUENCE ))) ||
 			(( survival ) && (( SURVIVAL_GetState( ) == SURVS_INPROGRESS ) || ( SURVIVAL_GetState( ) == SURVS_MISSIONFAILED )))))
 		{
-			scoreboard_DoRankingListPass(1, 1, 1, 0, 0, 0); // Living
-			scoreboard_DoRankingListPass(1, 2, 1, 0, 0, 0); // Dead
+			scoreboard_DoRankingListPass( ulPlayer, 1, 1, 1, 0, 0, 0 ); // Living
+			scoreboard_DoRankingListPass( ulPlayer, 1, 2, 1, 0, 0, 0 ); // Dead
 		}
 		// Othrwise, draw all active players in the game together.
 		else
-			scoreboard_DoRankingListPass(1, 0, 1, 0, 0, 0);
+			scoreboard_DoRankingListPass( ulPlayer, 1, 0, 1, 0, 0, 0 );
 
 		// Spectators are last.
-		scoreboard_DoRankingListPass(2, 0, 1, 0, 0, 0);
+		scoreboard_DoRankingListPass( ulPlayer, 2, 0, 1, 0, 0, 0 );
 	}
 
 	BorderNeedRefresh = true;

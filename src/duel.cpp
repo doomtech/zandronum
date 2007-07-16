@@ -423,12 +423,12 @@ void DUEL_TimeExpired( void )
 		// Only print the message the instant we reach sudden death.
 		if ( level.time == (int)( timelimit * TICRATE * 60 ))
 		{
+			sprintf( szString, "\\cdSUDDEN DEATH!" );
+			V_ColorizeString( szString );
+
 			if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 			{
 				screen->SetFont( BigFont );
-
-				sprintf( szString, "\\cdSUDDEN DEATH!" );
-				V_ColorizeString( szString );
 
 				// Display the HUD message.
 				pMsg = new DHUDMessageFadeOut( szString,

@@ -681,9 +681,9 @@ void D_Display (bool screenshot)
 
 				// [BC] Render the scoreboard.
 				if (( players[consoleplayer].camera != NULL ) && ( players[consoleplayer].camera->player != NULL ))
-					SCOREBOARD_Render( players[consoleplayer].mo->player );
+					SCOREBOARD_Render( players[consoleplayer].camera->player - players );
 				else
-					SCOREBOARD_Render( &players[consoleplayer] );
+					SCOREBOARD_Render( consoleplayer );
 
 				// Render any medals the player might have been awarded.
 				MEDAL_Render( );
@@ -719,9 +719,9 @@ void D_Display (bool screenshot)
 			{
 				// Render the scoreboard.
 				if (( players[consoleplayer].camera != NULL ) && ( players[consoleplayer].camera->player != NULL ))
-					SCOREBOARD_RenderBoard( players[consoleplayer].mo->player );
+					SCOREBOARD_RenderBoard( players[consoleplayer].camera->player - players );
 				else
-					SCOREBOARD_RenderBoard( &players[consoleplayer] );
+					SCOREBOARD_RenderBoard( consoleplayer );
 			}
 
 			// Render chat prompt.

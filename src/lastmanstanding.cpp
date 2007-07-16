@@ -589,7 +589,7 @@ void LASTMANSTANDING_DoWinSequence( ULONG ulWinner )
 //
 void LASTMANSTANDING_TimeExpired( void )
 {
-	LONG				ulIdx;
+	ULONG				ulIdx;
 	LONG				lHighestHealth;
 	bool				bTie = false;
 	bool				bAllDead = false;
@@ -665,12 +665,12 @@ void LASTMANSTANDING_TimeExpired( void )
 		// Only print the message the instant we reach sudden death.
 		if ( level.time == (int)( timelimit * TICRATE * 60 ))
 		{
+			sprintf( szString, "\\cdSUDDEN DEATH!" );
+			V_ColorizeString( szString );
+
 			if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 			{
 				screen->SetFont( BigFont );
-
-				sprintf( szString, "\\cdSUDDEN DEATH!" );
-				V_ColorizeString( szString );
 
 				// Display the HUD message.
 				pMsg = new DHUDMessageFadeOut( szString,
