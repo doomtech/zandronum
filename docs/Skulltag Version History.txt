@@ -23,6 +23,7 @@ v0.97d-beta4-hotfix
 -	- Error handing (not the same as a crash) is now properly handled on the server end. [Carnevil]
 -	- The correct name is now highlighted on the scoreboard. [Carnevil]
 -	- Ping is now displayed on the scoreboard during client demo playback. [Carnevil]
+-	- Restructred the way the contents of the autoload directories are loaded. Now the Linux version also loads files in the subdirectories of the Skulltag directory. [Torr Samaho]
 
 v0.97d-beta4
 ------------

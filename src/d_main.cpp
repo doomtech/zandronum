@@ -1486,6 +1486,37 @@ static void D_AddDirectory (const char *dir)
 
 //==========================================================================
 //
+// D_AddSubdirectory
+//
+// [BB] Add all .wad and .pk3 files in a subdirectory of the program-
+// directory and of HOME/.zdoom (if the enviroment variable HOME is defined).
+// Under Unix in addition all these files in the subdirectory of SHARE_DIR
+// are loaded.
+//
+//==========================================================================
+
+void D_AddSubdirectory (const char *Subdirectory)
+{
+	char dirName[1024];
+#ifdef unix
+	sprintf (dirName, "%s%s", SHARE_DIR, Subdirectory);
+	D_AddDirectory (dirName);
+#endif
+	sprintf (dirName, "%s%s", progdir, Subdirectory);
+	D_AddDirectory (dirName);
+
+	const char *home = getenv ("HOME");
+	if (home)
+	{
+		sprintf (dirName, "%s%s.zdoom/%s", home,
+			home[strlen(home)-1] == '/' ? "" : "/", Subdirectory);
+		D_AddDirectory (dirName);
+	}
+
+}
+
+//==========================================================================
+//
 // SetIWAD
 //
 // Sets parameters for the game using the specified IWAD.
@@ -2306,36 +2337,13 @@ void D_DoomMain (void)
 			D_AddFile( wad, true );
 
 		// [RH] Add any .wad files in the skins directory
-#ifdef unix
-		sprintf (file, "%sskins", SHARE_DIR);
-#else
-		sprintf (file, "%sskins", progdir);
-#endif
-		D_AddDirectory (file);
-
-		// [BC] Add any .wad files in the \ANNOUNCER directory.
-#ifdef unix
-		sprintf (file, "%sannouncer", SHARE_DIR);
-#else
-		sprintf (file, "%sannouncer", progdir);
-#endif
-		D_AddDirectory (file);
-
-		// Add any .wad files in the \BOTS directory.
-#ifdef unix
-		sprintf (file, "%sbots", SHARE_DIR);
-#else
-		sprintf (file, "%sbots", progdir);
-#endif
-		D_AddDirectory (file);
-
-		const char *home = getenv ("HOME");
-		if (home)
-		{
-			sprintf (file, "%s%s.zdoom/skins", home,
-				home[strlen(home)-1] == '/' ? "" : "/");
-			D_AddDirectory (file);
-		}
+		// [BB] Also add pk3 files and add the files from
+		// the announcer and bots directories.
+		// Under Unix looks into SHARE_DIR, progdir and HOME/.zdoom dir.
+		// Under Windows looks into progdir and HOME/.zdoom dir.
+		D_AddSubdirectory ( "skins" );
+		D_AddSubdirectory ( "announcer" );
+		D_AddSubdirectory ( "bots" );
 
 		// Add common (global) wads
 		D_AddConfigWads ("Global.Autoload");
