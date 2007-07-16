@@ -1140,7 +1140,20 @@ DWORD WINAPI MainDoomThread( LPVOID )
 		0, FALSE, DUPLICATE_SAME_ACCESS);
 	MainThreadID = GetCurrentThreadId();
 
-	D_DoomMain( );
+	try
+	{
+		D_DoomMain( );
+	}
+	catch (class CDoomError &error)
+	{
+//		I_ShutdownGraphics ();
+//		RestoreConView ();
+		if (error.GetMessage ())
+		{
+			ShowErrorPane (error.GetMessage());
+		}
+		exit (-1);
+	}
 
 	return ( 0 );
 }

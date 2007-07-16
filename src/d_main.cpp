@@ -867,10 +867,16 @@ void D_Display (bool screenshot)
 
 void D_ErrorCleanup ()
 {
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-		screen->Unlock ();
+	// [BC] Handle server error cleanup seperately.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		SERVER_ErrorCleanup( );
+		return;
+	}
 
-	// Remove all the bots from this game.
+	screen->Unlock ();
+
+	// [BC] Remove all the bots from this game.
 	BOTS_RemoveAllBots( false );
 
 	D_QuitNetGame ();
@@ -880,12 +886,8 @@ void D_ErrorCleanup ()
 	Net_ClearBuffers ();
 	G_NewInit ();
 	singletics = false;
-	// [BC] Don't do this in server mode.
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-	{
-		playeringame[0] = 1;
-		players[0].playerstate = PST_LIVE;
-	}
+	playeringame[0] = 1;
+	players[0].playerstate = PST_LIVE;
 	gameaction = ga_fullconsole;
 	menuactive = MENU_Off;
 	insave = false;
@@ -987,7 +989,11 @@ void D_DoomLoop ()
 		{
 			if (error.GetMessage ())
 			{
-				Printf (PRINT_BOLD, "\n%s\n", error.GetMessage());
+				// [BC] Give this message a little more presence in server mode.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					Printf( "*** ERROR: %s\n", error.GetMessage( ));
+				else
+					Printf (PRINT_BOLD, "\n%s\n", error.GetMessage());
 			}
 			D_ErrorCleanup ();
 		}

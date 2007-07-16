@@ -2328,6 +2328,11 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 	g_aClients[ulClient].ulLastGameTic = 0;
 	playeringame[ulClient] = false;
 
+	// Clear the client's buffers.
+	NETWORK_ClearBuffer( &g_aClients[ulClient].PacketBuffer );
+	NETWORK_ClearBuffer( &g_aClients[ulClient].UnreliablePacketBuffer );
+	NETWORK_ClearBuffer( &g_aClients[ulClient].SavedPacketBuffer );
+
 	// Tell the join queue module that a player has left the game.
 	if ( PLAYER_IsTrueSpectator( &players[ulClient] ) == false )
 		JOINQUEUE_PlayerLeftGame( true );
@@ -2752,7 +2757,7 @@ void SERVER_KickPlayer( ULONG ulPlayer, char *pszReason )
 	{
 		// Tell the player that he's been kicked.
 		SERVERCOMMANDS_ConsolePlayerKicked( ulPlayer );
-		SERVER_SendClientPacket( ulIdx, true );
+		SERVER_SendClientPacket( ulPlayer, true );
 
 		// Tell the other players that this player has been kicked.
 		SERVER_DisconnectClient( ulPlayer, true, false );
@@ -3014,6 +3019,28 @@ void SERVER_ResetInventory( ULONG ulClient )
 	// [BB]: After giving back the inventory, inform the player about which weapon he is using.
 	// This at least partly fixes the "Using unknown weapon type" bug.
 	SERVERCOMMANDS_ChangePlayerWeapon( ulClient );
+}
+
+//*****************************************************************************
+//
+void SERVER_ErrorCleanup( void )
+{
+	ULONG	ulIdx;
+	char	szString[16];
+
+	// Disconnect all the clients.
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_IsValidClient( ulIdx ))
+			SERVER_KickPlayer( ulIdx, "Server encountered an error." );
+	}
+
+	// [BC] Remove all the bots from this game.
+	BOTS_RemoveAllBots( false );
+
+	// Reload the map.
+	sprintf( szString, "map %s", level.mapname );
+	AddCommandString( szString );
 }
 
 //*****************************************************************************

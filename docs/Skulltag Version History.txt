@@ -19,6 +19,7 @@ v0.97d-beta4-hotfix
 +	- When spying somebody who's health you don't know, the crosshair is now a neutral color. [Rivecoder]
 -	- Fixed client-side crash that would occur when connecting to buckshot servers. [Carnevil]
 -	- Pointlimit is now properly implemented in team games. [Carnevil]
+-	- Error handing (not the same as a crash) is now properly handled on the server end. [Carnevil]
 -	- The correct name is now highlighted on the scoreboard. [Carnevil]
 -	- Ping is now displayed on the scoreboard during client demo playback. [Carnevil]
 

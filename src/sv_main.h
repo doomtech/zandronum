@@ -302,6 +302,7 @@ ULONG		SERVER_GetMaxPacketSize( void );
 char		*SERVER_GetMapMusic( void );
 void		SERVER_SetMapMusic( const char *pszMusic );
 void		SERVER_ResetInventory( ULONG ulClient );
+void		SERVER_ErrorCleanup( void );
 void		SERVER_ParsePacket( BYTESTREAM_s *pByteStream );
 bool		SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream );
 ULONG		SERVER_GetPlayerIndexFromName( const char *pszString );
