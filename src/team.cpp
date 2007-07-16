@@ -1129,7 +1129,7 @@ void TEAM_SetScore( ULONG ulTeamIdx, LONG lScore, bool bAnnouncer )
 	}
 
 	// Implement the pointlimit.
-	if ( pointlimit <= 0 || ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ) == false ))
+	if ( pointlimit <= 0 || ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 		return;
 /*
 	// Potentially play the "3 points left", etc. announcer sounds.

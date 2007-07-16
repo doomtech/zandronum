@@ -126,20 +126,23 @@ void ADoomPlayer::GiveDefaultInventory ()
 		// Give the player the weapon.
 		pInventory = player->mo->GiveInventoryType( PClass::FindClass( "Railgun" ));
 
-		// Make the weapon the player's ready weapon.
-		player->ReadyWeapon = player->PendingWeapon = static_cast<AWeapon *>( pInventory );
-
-		// [BC] If we're a client, tell the server we're switching weapons.
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) == consoleplayer ))
+		if ( pInventory )
 		{
-			CLIENTCOMMANDS_WeaponSelect( (char *)pInventory->GetClass( )->TypeName.GetChars( ));
+			// Make the weapon the player's ready weapon.
+			player->ReadyWeapon = player->PendingWeapon = static_cast<AWeapon *>( pInventory );
 
-			if ( CLIENTDEMO_IsRecording( ))
-				CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)pInventory->GetClass( )->TypeName.GetChars( ));
+			// [BC] If we're a client, tell the server we're switching weapons.
+			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) == consoleplayer ))
+			{
+				CLIENTCOMMANDS_WeaponSelect( (char *)pInventory->GetClass( )->TypeName.GetChars( ));
+
+				if ( CLIENTDEMO_IsRecording( ))
+					CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)pInventory->GetClass( )->TypeName.GetChars( ));
+			}
 		}
 
 		// Find the player's ammo for the weapon in his inventory, and max. out the amount.
-		pInventory = player->mo->FindInventory( PClass::FindClass( "CellAmmo" ));
+		pInventory = player->mo->FindInventory( PClass::FindClass( "Cell" ));
 		if ( pInventory != NULL )
 			pInventory->Amount = pInventory->MaxAmount;
 	}
@@ -150,22 +153,25 @@ void ADoomPlayer::GiveDefaultInventory ()
 		// Give the player the weapon.
 		pInventory = player->mo->GiveInventoryType( PClass::FindClass( "SuperShotgun" ));
 
-		// Make the weapon the player's ready weapon.
-		player->ReadyWeapon = player->PendingWeapon = static_cast<AWeapon *>( pInventory );
+		if ( pInventory )
+		{
+			// Make the weapon the player's ready weapon.
+			player->ReadyWeapon = player->PendingWeapon = static_cast<AWeapon *>( pInventory );
+
+			// [BC] If we're a client, tell the server we're switching weapons.
+			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) == consoleplayer ))
+			{
+				CLIENTCOMMANDS_WeaponSelect( (char *)pInventory->GetClass( )->TypeName.GetChars( ));
+
+				if ( CLIENTDEMO_IsRecording( ))
+					CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)pInventory->GetClass( )->TypeName.GetChars( ));
+			}
+		}
 
 		// Find the player's ammo for the weapon in his inventory, and max. out the amount.
-		pInventory = player->mo->FindInventory( PClass::FindClass( "ShellAmmo" ));
+		pInventory = player->mo->FindInventory( PClass::FindClass( "Shell" ));
 		if ( pInventory != NULL )
 			pInventory->Amount = pInventory->MaxAmount;
-
-		// [BC] If we're a client, tell the server we're switching weapons.
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) == consoleplayer ))
-		{
-			CLIENTCOMMANDS_WeaponSelect( (char *)pInventory->GetClass( )->TypeName.GetChars( ));
-
-			if ( CLIENTDEMO_IsRecording( ))
-				CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)pInventory->GetClass( )->TypeName.GetChars( ));
-		}
 	}
 	// [BC] Give a bunch of weapons in LMS mode, depending on the LMS allowed weapon flags.
 	else if ( lastmanstanding || teamlms )
