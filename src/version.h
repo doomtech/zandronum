@@ -40,7 +40,7 @@
 
 /** Lots of different version numbers **/
 
-#define DOTVERSIONSTR "0.97d-beta4"
+#define DOTVERSIONSTR "0.97d-beta4.1"
 
 // [BB] Define DOTVERSIONSTR_NOREV to stay compatible with IWADBoxCallback in I_system.cpp
 #define DOTVERSIONSTR_NOREV DOTVERSIONSTR
