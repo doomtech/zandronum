@@ -11,6 +11,13 @@
 = 
 ===============================================================================================================
 
+v0.97d-beta4-hotfix
+-------------------
+
++	- Added a new display on the 'Target Identification' to help shift to the new ally icon. [Rivecoder]
++	- Added a new 'information unknown' display for when spying. [Rivecoder]
++	- When spying somebody who's health you don't know, the crosshair is now a neutral color. [Rivecoder]
+
 v0.97d-beta4
 ------------
 
