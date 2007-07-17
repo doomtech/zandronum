@@ -1534,6 +1534,13 @@ void FBaseStatusBar::DrawTargetName ()
 					ulTextColor = CR_RED;
 		}
 
+
+		// In cooperative modes, all players are allies.
+		if(GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE)
+			strcpy(szDiplomacyStatus, "\\cqAlly");
+
+
+
 		sprintf(szString, "%s\\n%s", szString, szDiplomacyStatus);
 		V_ColorizeString(szString);
 
