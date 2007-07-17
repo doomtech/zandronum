@@ -1733,7 +1733,9 @@ void P_CalcHeight (player_t *player)
 	{
 		if (player->health > 0)
 		{
-			angle = DivScale13 (level.time, 120*TICRATE/35) & FINEMASK;
+			// [BC] We need to cap level.time, because if it gets too big, DivScale
+			// can crash.
+			angle = DivScale13 (level.time % 65536, 120*TICRATE/35) & FINEMASK;
 			bob = FixedMul (player->userinfo.StillBob, finesine[angle]);
 		}
 		else
@@ -1744,7 +1746,9 @@ void P_CalcHeight (player_t *player)
 	else
 	{
 		// DivScale 13 because FINEANGLES == (1<<13)
-		angle = DivScale13 (level.time, 20*TICRATE/35) & FINEMASK;
+		// [BC] We need to cap level.time, because if it gets too big, DivScale
+		// can crash.
+		angle = DivScale13 (level.time % 65536, 20*TICRATE/35) & FINEMASK;
 		bob = FixedMul (player->bob>>(player->mo->waterlevel > 1 ? 2 : 1), finesine[angle]);
 	}
 
