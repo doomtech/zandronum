@@ -707,13 +707,17 @@ void SERVER_SendClientPacket( ULONG ulClient, bool bReliable )
 	else
 		pBuffer = &pClient->UnreliablePacketBuffer;
 
-	pBuffer->ulCurrentSize = NETWORK_CalcBufferSize( pBuffer );//pBuffer->ByteStream.pbStream - pBuffer->pbData;
-	pClient->SavedPacketBuffer.ulCurrentSize = NETWORK_CalcBufferSize( &pClient->SavedPacketBuffer );
+	pBuffer->ulCurrentSize = NETWORK_CalcBufferSize( pBuffer );
 	if ( bReliable )
 	{
+		pClient->SavedPacketBuffer.ulCurrentSize = NETWORK_CalcBufferSize( &pClient->SavedPacketBuffer );
+
 		// If we've reached the end of our reliable packets buffer, start writing at the beginning.
 		if (( pClient->SavedPacketBuffer.ulCurrentSize + pClient->PacketBuffer.ulCurrentSize ) >= pClient->SavedPacketBuffer.ulMaxSize )
+		{
+			pClient->SavedPacketBuffer.ByteStream.pbStream = pClient->SavedPacketBuffer.pbData;
 			pClient->SavedPacketBuffer.ulCurrentSize = 0;
+		}
 
 		// Save where the beginning is and the size of each packet within the reliable packets
 		// buffer.

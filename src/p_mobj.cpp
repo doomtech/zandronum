@@ -1916,10 +1916,9 @@ explode:
 		// if in a walking frame, stop moving
 		// killough 10/98:
 		// Don't affect main player when voodoo dolls stop:
-		if (player && player->mo == mo)// && !(player->cheats & CF_PREDICTING))
+		if ((player && player->mo == mo) && ( CLIENT_PREDICT_IsPredicting( ) == false ))// && !(player->cheats & CF_PREDICTING))
 		{
-			if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) != consoleplayer )) == false )
-				player->mo->PlayIdle ();
+			player->mo->PlayIdle ();
 		}
 
 		mo->momx = mo->momy = 0;
@@ -2130,10 +2129,9 @@ void P_OldXYMovement( AActor *mo, bool bForceSlide )
 		// if in a walking frame, stop moving
 		// killough 10/98:
 		// Don't affect main player when voodoo dolls stop:
-		if (player && player->mo == mo)// && !(player->cheats & CF_PREDICTING))
+		if ((player && player->mo == mo) && ( CLIENT_PREDICT_IsPredicting( ) == false ))// && !(player->cheats & CF_PREDICTING))
 		{
-			if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) != consoleplayer )) == false )
-				player->mo->PlayIdle ();
+			player->mo->PlayIdle ();
 		}
 
 		mo->momx = mo->momy = 0;
@@ -3006,14 +3004,6 @@ void AActor::Tick ()
 	// [BC] There are times when we don't want to tick this actor if it's a player.
 	if ( player )
 	{
-		// In client mode, only allow the prediction module to tick the console player.
-		if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) &&
-			( player - players == consoleplayer ) &&
-			( CLIENT_PREDICT_IsPredicting( ) == false ))
-		{
-			return;
-		}
-
 		// In server mode, only allow the ticking of a player if he's a client currently
 		// having his movement commands executed.
 		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&

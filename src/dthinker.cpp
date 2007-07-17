@@ -42,6 +42,7 @@
 #include "statnums.h"
 #include "i_system.h"
 #include "doomerrors.h"
+#include "cl_demo.h"
 
 
 static cycle_t ThinkCycles;
@@ -327,7 +328,15 @@ int DThinker::TickThinkers (List *list, List *dest)
 
 		if (!(thinker->ObjectFlags & OF_MassDestruction))
 		{ // Only tick thinkers not scheduled for destruction
-			thinker->Tick ();
+
+			// [BC] Don't tick the consoleplayer's actor in client
+			// mode, because that's done in the main prediction function
+			if (((( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))) ||
+				( thinker->IsKindOf( RUNTIME_CLASS( AActor )) == false ) ||
+				( static_cast<AActor *>( thinker ) != players[consoleplayer].mo ))
+			{
+				thinker->Tick ();
+			}
 		}
 		node = NextToThink;
 	}
