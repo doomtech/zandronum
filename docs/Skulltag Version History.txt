@@ -17,6 +17,7 @@ v0.97d-beta4-hotfix
 +	- Added a new display on the 'Target Identification' to help shift to the new ally icon. [Rivecoder]
 +	- Added a new 'information unknown' display for when spying. [Rivecoder]
 +	- When spying somebody who's health you don't know, the crosshair is now a neutral color. [Rivecoder]
++	- If a definition of an already defined decorate actor is encountered, instead of exiting with an error, it's simply ignored. [Torr Samaho]
 -	- Fixed client-side crash that would occur when connecting to buckshot servers. [Carnevil]
 -	- Fixed server-side error that would result in numerous overflow messages and strange behavior on the client end. [Carnevil]
 -	- Fixed client-side crash that would occur when a sound played with the original sound curve compatflag enabled and the player's view was not active. [Carnevil]

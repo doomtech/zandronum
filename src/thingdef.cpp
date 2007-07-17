@@ -1198,7 +1198,12 @@ static FActorInfo * CreateNewActor(FActorInfo ** parentc, Baggage *bag)
 
 	if (PClass::FindClass (sc_String) != NULL)
 	{
-		SC_ScriptError ("Actor %s is already defined.", sc_String);
+		// [BB] I'm tired of the problems caused by PWADs using
+		// Skulltag actor names. If we encounter an already defined
+		// actor, we just ignore the new definition.
+		Printf( "WARNING: Actor %s is already defined.\n", sc_String);
+		return NULL;
+		//SC_ScriptError ("Actor %s is already defined.", sc_String);
 	}
 
 	typeName = sc_String;
@@ -2230,6 +2235,24 @@ void ProcessActor(void (*process)(FState *, int))
 
 
 		info=CreateNewActor(&parent, &bag);
+		// [BB] If CreateNewActor returns a NULL pointer, the actor definition
+		// should be ignored. In this case we have to parse the whole definition
+		// of the actor to be ignored (everything in the next brace pair).
+		if( info == NULL )
+		{
+				ChkBraceOpn ();
+				while (!TestBraceCls())
+				{
+					if (sc_End)
+						SC_ScriptError("Unexpected end of file encountered");
+
+					// Parse everything in the braces.
+					SC_GetString ();
+				}
+				// Parse the closing brace.
+				SC_GetString ();
+				return;
+		}
 		defaults=(AActor*)info->Class->Defaults;
 		bag.StateSet = false;
 		bag.DropItemSet = false;
