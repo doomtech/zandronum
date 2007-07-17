@@ -2545,8 +2545,11 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 				sprintf( szString, "%d", players[ulPlayer].fragcount );
 
 				// If the player isn't really playing, change this.
-				if(!players[ulPlayer].bOnTeam && teamplay)
-					sprintf(szString, "NO TEAM");
+				if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) &&
+					( players[ulPlayer].bOnTeam == false ))
+				{
+					sprintf( szString, "NO TEAM" );
+				}
 				if(PLAYER_IsTrueSpectator( &players[ulPlayer] ))
 					sprintf(szString, "SPECT");
 				break;
@@ -2555,8 +2558,11 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 				sprintf( szString, "%d", players[ulPlayer].lPointCount );
 				
 				// If the player isn't really playing, change this.
-				if(!players[ulPlayer].bOnTeam)
-					sprintf(szString, "NO TEAM");
+				if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) &&
+					( players[ulPlayer].bOnTeam == false ))
+				{
+					sprintf( szString, "NO TEAM" );
+				}
 				if(PLAYER_IsTrueSpectator( &players[ulPlayer] ))
 					sprintf(szString, "SPECT");
 				break;
@@ -2565,8 +2571,11 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 				sprintf(szString, "%d / %d", players[ulPlayer].lPointCount, players[ulPlayer].ulMedalCount[14]);
 
 				// If the player isn't really playing, change this.
-				if(!players[ulPlayer].bOnTeam)
-					sprintf(szString, "NO TEAM");
+				if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) &&
+					( players[ulPlayer].bOnTeam == false ))
+				{
+					sprintf( szString, "NO TEAM" );
+				}
 				if(PLAYER_IsTrueSpectator( &players[ulPlayer] ))
 					sprintf(szString, "SPECT");
 				break;
@@ -2577,13 +2586,17 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 
 			case COLUMN_WINS:
 				sprintf(szString, "%d", players[ulPlayer].ulWins);
-					// If the player isn't really playing, change this.
-					if(!players[ulPlayer].bOnTeam && teamlms)
-						sprintf(szString, "NO TEAM");
-					if(PLAYER_IsTrueSpectator( &players[ulPlayer] ))
-						sprintf(szString, "SPECT");
-					if((players[ulPlayer].health <= 0) && (gamestate != GS_INTERMISSION))
-						sprintf(szString, "DEAD");
+
+				// If the player isn't really playing, change this.
+				if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) &&
+					( players[ulPlayer].bOnTeam == false ))
+				{
+					sprintf( szString, "NO TEAM" );
+				}
+				if(PLAYER_IsTrueSpectator( &players[ulPlayer] ))
+					sprintf(szString, "SPECT");
+				if((players[ulPlayer].health <= 0) && (gamestate != GS_INTERMISSION))
+					sprintf(szString, "DEAD");
 				break;
 
 			case COLUMN_KILLS:
