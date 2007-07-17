@@ -957,6 +957,9 @@ void SERVER_GetPackets( void )
 
 		// Parse the information sent by the clients.
 		SERVER_ParsePacket( pByteStream );
+
+		// Invalidate this.
+		g_lCurrentClient = -1;
     }
 }
 
@@ -3339,29 +3342,34 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 //*****************************************************************************
 //*****************************************************************************
 //
-ULONG SERVER_GetPlayerIndexFromName( const char *pszString ){
-	ULONG ulIdx = 0;
-	ULONG playerIdx = MAXPLAYERS;
+ULONG SERVER_GetPlayerIndexFromName( const char *pszString )
+{
+	ULONG ulIdx;
+
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
-		if (( playeringame[ulIdx] == false ) ||
-			( players[ulIdx].bIsBot ))
-		{
+		if ( SERVER_IsValidClient( ulIdx ) == false )
 			continue;
-		}
 
-		if ( stricmp( pszString, players[ulIdx].userinfo.netname ) == 0 ){
-			playerIdx = ulIdx;
-			break;
-		}
+		if ( stricmp( pszString, players[ulIdx].userinfo.netname ) == 0 )
+			return ( ulIdx );
 	}
-	return playerIdx;
+
+	return ( MAXPLAYERS );
+}
+
+//*****************************************************************************
+//
+LONG SERVER_GetCurrentClient( void )
+{
+	return ( g_lCurrentClient );
 }
 
 //*****************************************************************************
 //*****************************************************************************
 //
-void SERVER_GiveInventoryToPlayer( const player_t *player, AInventory *pInventory ){
+void SERVER_GiveInventoryToPlayer( const player_t *player, AInventory *pInventory )
+{
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER ){
 		ULONG playerIdx = SERVER_GetPlayerIndexFromName( player->userinfo.netname );
 		if ( playerIdx < MAXPLAYERS )

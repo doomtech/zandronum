@@ -42,12 +42,9 @@
 #include "statnums.h"
 #include "i_system.h"
 #include "doomerrors.h"
-#include "cl_demo.h"
 
 
 static cycle_t ThinkCycles;
-// [BC] Show the number of ticked thinkers this tick.
-static	LONG	g_lTickedThinkers;
 
 IMPLEMENT_CLASS (DThinker)
 
@@ -280,9 +277,7 @@ void DThinker::RunThinkers ()
 {
 	int i, count;
 
-	// [BC] Reset the number of thinkers ticked.
 	ThinkCycles = 0;
-	g_lTickedThinkers = 0;
 
 	clock (ThinkCycles);
 
@@ -332,31 +327,7 @@ int DThinker::TickThinkers (List *list, List *dest)
 
 		if (!(thinker->ObjectFlags & OF_MassDestruction))
 		{ // Only tick thinkers not scheduled for destruction
-#ifndef	MULTITICK_HACK_FIX
-			bool	bTickThinker = true;
-
-			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-				( CLIENTDEMO_IsPlaying( )))
-			{
-				// Don't tick the consoleplayer's actor in client
-				// mode, because that's done in the main prediction function
-				if (( thinker->IsKindOf( RUNTIME_CLASS( AActor ))) && ( static_cast<AActor *>(thinker) == players[consoleplayer].mo ))
-					bTickThinker = false;
-			}
-			else if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			{
-				// Player's actors are ticked whenever we receive a movement command from them, so don't do it here.
-				if (( thinker->IsKindOf( RUNTIME_CLASS( AActor ))) && ( static_cast<AActor *>(thinker)->player ) && ( static_cast<AActor *>(thinker)->player->bIsBot == false ))
-					bTickThinker = false;
-			}
-
-			if ( bTickThinker )
-#endif
-			{
-				// [BC] Tick the thinker, and make a note of it.
-				thinker->Tick ();
-				g_lTickedThinkers++;
-			}
+			thinker->Tick ();
 		}
 		node = NextToThink;
 	}
@@ -453,9 +424,7 @@ DThinker *FThinkerIterator::Next ()
 ADD_STAT (think)
 {
 	FString out;
-	// [BC] Show the number of ticked thinkers this tick.
-	out.Format ("Think time = %04.1f ms, %3d",
-		SecondsPerCycle * (double)ThinkCycles * 1000,
-		g_lTickedThinkers );
+	out.Format ("Think time = %04.1f ms",
+		SecondsPerCycle * (double)ThinkCycles * 1000);
 	return out;
 }

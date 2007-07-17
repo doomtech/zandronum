@@ -3003,6 +3003,26 @@ void AActor::Tick ()
 		return;
 	}
 
+	// [BC] There are times when we don't want to tick this actor if it's a player.
+	if ( player )
+	{
+		// In client mode, only allow the prediction module to tick the console player.
+		if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) &&
+			( player - players == consoleplayer ) &&
+			( CLIENT_PREDICT_IsPredicting( ) == false ))
+		{
+			return;
+		}
+
+		// In server mode, only allow the ticking of a player if he's a client currently
+		// having his movement commands executed.
+		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+			( SERVER_GetCurrentClient( ) != ( player - players )))
+		{
+			return;
+		}
+	}
+
 	PrevX = x;
 	PrevY = y;
 	PrevZ = z;
