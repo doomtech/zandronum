@@ -1076,7 +1076,7 @@ private:
 		}
 		else
 		{
-			if( !instagib )
+			if( !( instagib && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DEATHMATCH ) )) // [RC] Hide in instagib (when playing instagib)
 			{
 				// Start by drawing the medkit.
 				if ( bScale )
@@ -1158,10 +1158,10 @@ private:
 							TAG_DONE );
 					}
 				}
-				}
+			}
 
 			// Next, draw the armor.
-			if( !instagib )
+			if( !( instagib && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DEATHMATCH ) )) // [RC] Hide in instagib (when playing instagib)
 			{
 				ulCurYPos -= TexMan["MEDIA0"]->GetHeight( ) + 4;
 				if ( CPlayer->mo )

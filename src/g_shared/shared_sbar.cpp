@@ -1514,7 +1514,7 @@ void FBaseStatusBar::DrawTargetName ()
 		sprintf( szString, "%s", pTargetPlayer->userinfo.netname );
 		ulTextColor = CR_GRAY;
 
-		// [RC] Assume everyone's your enemy to crete consistency, even in deathmatch when you have no allies.
+		// [RC] Assume everyone's your enemy to create consistency, even in deathmatch when you have no allies.
 		char	szDiplomacyStatus[9];
 		strcpy(szDiplomacyStatus,  "\\crEnemy");
 
