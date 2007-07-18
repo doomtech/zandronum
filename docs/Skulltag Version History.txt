@@ -11,13 +11,14 @@
 = 
 ===============================================================================================================
 
-v0.97d-beta4-hotfix
--------------------
+v0.97d-beta4.1
+--------------
 
 +	- Added a new display on the 'Target Identification' to help shift to the new ally icon. [Rivecoder]
 +	- Added a new 'information unknown' display for when spying. [Rivecoder]
 +	- When spying somebody who's health you don't know, the crosshair is now a neutral color. [Rivecoder]
 +	- If a definition of an already defined decorate actor is encountered, instead of exiting with an error, it's simply ignored. [Torr Samaho]
++	- Refined the code that hides health/armor in instagib. It now only hides it in deathmatch. (You could set the instagib flag and play coop, for example). [Rivecoder]
 -	- Fixed client-side crash that would occur when connecting to buckshot servers. [Carnevil]
 -	- Fixed server-side error that would result in numerous overflow messages and strange behavior on the client end. [Carnevil]
 -	- Fixed client-side crash that would occur when a sound played with the original sound curve compatflag enabled and the player's view was not active. [Carnevil]
@@ -28,7 +29,8 @@ v0.97d-beta4-hotfix
 -	- The correct name is now highlighted on the scoreboard. [Carnevil]
 -	- Fixed issues with player prediction that could cause noticeable issues when running up stairs. [Carnevil]
 -	- Ping is now displayed on the scoreboard during client demo playback. [Carnevil]
--	- Restructred the way the contents of the autoload directories are loaded. Now the Linux version also loads files in the subdirectories of the Skulltag directory. [Torr Samaho]
+-	- Restructured the way the contents of the autoload directories are loaded. Now the Linux version also loads files in the subdirectories of the Skulltag directory. [Torr Samaho]
+-	- Removed d2st10 from Skulltag's maplist. It should no longer appear in the Skirmish menu or default rotation. [Aabra and Rivecoder]
 
 v0.97d-beta4
 ------------
@@ -37,6 +39,8 @@ v0.97d-beta4
 *+	- ADDED CLIENT-SIDE DEMO RECORDING! You can now record a demo when connecting to a server with the "-record" <demo name> command line argument. Demos can be played back with the "playdemo" console command. [Carnevil]
 +	- Added custom invasion spots! You can now use your own custom monsters, pickups, and weapons in invasion mode! [Carnevil]
 +	- The crash dialog now works for servers as well! Now, if a Skulltag server crashes, it can be debugged and fixed! [Carnevil]
++	- Added new messages for Skulltag and Capture the Flag for returned and taken messages! [Rivecoder]
++	- Improved the display of the scored messages, adding support for self assists and making them smaller. [Rivecoder]
 +	- Blood brightness is now properly applied in OpenGL mode. [Carnevil]
 +	- All weapons are now given in LMS/team LMS mode, except for those excluded by the allowed weapon flags, and those flagged as not appearing in LMS mode. [Carnevil]
 +	- When time expires in a possession game, it now goes into sudden death until someone holds the stone. [Carnevil]
@@ -62,6 +66,7 @@ v0.97d-beta4
 -	- Monsters' radius, height, and other properties are now properly restored when resurrected by arch-viles and other means. [Carnevil]
 -	- Your color now updates properly when making changes to your color in the player setup menu. [Carnevil]
 -	- Setting your gender to "other" now works properly. [Carnevil]
+-	- Fixed the 'ZDoom found more than one IWAD' message. [Rivecoder]
 -	- Fixed: SetFont() not working online. [Torr Samaho]
 -	- Fixed: AInterpolationPoint and APathFollower not properly working online. This should also fix the problems with AAimingCamera online in KDiZD. [Torr Samaho]
 -	- Fixed: Online clients may crash during the attack of the Hexen monsters Demon1 or Demon2. [Torr Samaho]
@@ -87,9 +92,11 @@ v0.97d-beta4
 -	- Fixed: User info is in some cases not updated to the server properly on connect, if it was changed when not connected to a server. [Torr Samaho]
 -	- Fixed: A few strings in error messages were referring to ZDoom instead of Skulltag. [Torr Samaho]
 -	- Fixed: ST crashes if a bot is spawned outside a map. Although bots should not be spawned there, ST should not crash in case such a thing happens. [Torr Samaho]
+-	- Fixed: ACS function GiveInventory doesn't tell the correct inventory amount to a client. [Torr Samaho]
 -	- IDESE: Changed server gametype setup: "+gametype 1" in .rsp file. This fixes that some dmflags were not respected in some gametypes. [Bond]
+-	- IDESE: Fixed a problem with bot names (prevented to add bot>6). [Bond]
 !	- Changed the "enemy" to an "ally" icon that displays over your allies in team games. [Carnevil]
-!	- Brought back elements of the old invasion HUD. [Carnevil]
+!	- Brought back elements of the old invasion HUD. [Carnevil] (And made them show up at appropiate times - [Rivecoder])
 
 v0.97d-beta3
 ------------
