@@ -75,7 +75,7 @@ ACTOR InvisibilitySphere : PowerupGiver 5035
 	States
 	{
 	Spawn:
-		INVS ABCD 6 Bright
+		SINV ABCD 6 Bright
 		Loop
 	}
 }	

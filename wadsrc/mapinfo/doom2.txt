@@ -685,18 +685,11 @@ music D_STAT12
 forcenoskystretch
 
 map D2ST9 lookup LEVEL_ST_9
-next D2ST10
-secretnext D2ST10
+next D2ST1
+secretnext D2ST1
 sky1 STSKY8 0
 cluster 11
 music D_VRACK
-
-map D2ST10 lookup LEVEL_ST_10
-next D2ST1
-secretnext D2ST1
-sky1 STSKY7 0
-cluster 11
-music D_OBLIVI
 
 map D2INV1 "Belphegor's Glory"
 next D2INV2
