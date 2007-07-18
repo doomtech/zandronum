@@ -2238,9 +2238,11 @@ void ProcessActor(void (*process)(FState *, int))
 		// [BB] If CreateNewActor returns a NULL pointer, the actor definition
 		// should be ignored. In this case we have to parse the whole definition
 		// of the actor to be ignored (everything in the next brace pair).
+		// We also have to ignore everything before the opening brace cause
+		// CreateNewActor only parsed the actor name in case it has returned
+		// NULL. It did not parse any "replace" or ":" after the actor name yet.
 		if( info == NULL )
 		{
-				ChkBraceOpn ();
 				while (!TestBraceCls())
 				{
 					if (sc_End)

@@ -2,14 +2,19 @@
 = SKULLTAG Version History
 = Skulltag is availible at www.skulltag.com
 ===============================================================================================================
-= 
+=
 = *+   Major new feature, or major overhaul to an area.
 = *-   Major bug fix or removal.
 = +    Added feature, or noticeable improvement.
 = -    Bug fix, or something removed.
 = !    Something has changed, or just general information.
-= 
+=
 ===============================================================================================================
+
+v0.97d-beta5
+------------
+
+-	- Fixed: Ignoring definitions of already defined decorate actors which use ":" or "replace" didn't work. [Torr Samaho]
 
 v0.97d-beta4.1
 --------------
@@ -180,7 +185,7 @@ v0.97d-beta2
 -	- Increased the prescision of texture scaling from GZDoom. [Torr Samaho]
 -	- Removed the old tx and ty CVARs, as they've been removed in ZDoom. [Torr Samaho]
 !	- Reactivated 3DMidtex support and changed ML_3DMIDTEX from 0x4000 to 0x40000000 (same as GZDoom) to fix conflicts. [Torr Samaho]
-    
+
 v0.97d-beta1
 ------------
 
@@ -427,7 +432,7 @@ v0.97b
 -	- Fixed bug that allowed you to strafe or run backwards with turbo enabled without getting kicked from the server.
 -	- Frags are no longer awarded for respawn telefragging.
 -	- Grenades no longer bounce off of "line_horizon" lines.
--	- If the music changes at some point during the level, clients who connect afterwards now have the correct music play on the map (this fixes the problem in which 8bitctf.wad wouldn't play any music in network games). 
+-	- If the music changes at some point during the level, clients who connect afterwards now have the correct music play on the map (this fixes the problem in which 8bitctf.wad wouldn't play any music in network games).
 -	- You can no longer change teams continously in teamgames.
 -	- Weapons now give you give you the correct amount of ammo in teamgames.
 -	- Fixed several flats that were either duplicates, or had names of existing textures. As a result, some flats have either been deleted or renamed. I apologize since I know this will screw up some (hopefully not a lot) existing wads, but I would be more than happy to update the wads.
@@ -1022,7 +1027,7 @@ v0.95e
 v0.95d
 ------
 +	- Added this file.
-+	- Added "connection type" field to the player setup menu, and "sv_connectiontype" for servers, which determines how precise the data sent back and forth between the server and client is. 
++	- Added "connection type" field to the player setup menu, and "sv_connectiontype" for servers, which determines how precise the data sent back and forth between the server and client is.
 +	- Added cl_showcommands, which displays all commands coming to the player from the server.
 +	- HUD messages called by scripts run on the server end now show up on the client end.
 +	- Actor and player properties set by server side scripts are now sent to the clients.
