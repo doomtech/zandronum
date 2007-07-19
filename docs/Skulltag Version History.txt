@@ -15,6 +15,7 @@ v0.97d-beta5
 ------------
 
 -	- Fixed: Ignoring definitions of already defined decorate actors which use ":" or "replace" didn't work. [Torr Samaho]
+-	- Fixed: After a map change some type of custom weapons are lost on the client side (Fist and NewPistol in KDiZD for example). [Torr Samaho]
 
 v0.97d-beta4.1
 --------------

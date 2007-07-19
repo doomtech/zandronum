@@ -3008,6 +3008,15 @@ void SERVER_ResetInventory( ULONG ulClient )
 		}
 		else
 		{
+			// [BB] We want to give things here, but giving an item with an amount of 0
+			// will cause the client to destory the item on his side. For unknown reasons
+			// some custom weapons only have an amount of zero after a map change
+			// (Fist and NewPistol in KDiZD for example) and will be lost on the client
+			// side. Raising the amount to one fixes the problem. This is only a workaraound,
+			// one should identify the reason for the zero amount.
+			if ( pInventory->IsKindOf( RUNTIME_CLASS( AWeapon )) && pInventory->Amount == 0 )
+				pInventory->Amount = 1;
+
 			SERVERCOMMANDS_GiveInventory( ulClient, pInventory, ulClient, SVCF_ONLYTHISCLIENT );
 			// [BB] The armor display has to be updated seperately, otherwise
 			// the client thinks the armor is green and its amount is equal to 1.
