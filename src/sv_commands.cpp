@@ -74,8 +74,6 @@ polyobj_t	*GetPolyobj( int polyNum );
 extern char *g_szActorKeyLetter[NUMBER_OF_ACTOR_NAME_KEY_LETTERS];
 extern char *g_szActorFullName[NUMBER_OF_ACTOR_NAME_KEY_LETTERS];
 
-EXTERN_CVAR( Bool, sv_stay97c3compatible )
-
 //*****************************************************************************
 //	FUNCTIONS
 
@@ -393,10 +391,6 @@ void SERVERCOMMANDS_SetPlayerHealth( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG 
 //
 void SERVERCOMMANDS_UpdatePlayerArmorDisplay( ULONG ulPlayer )
 {
-	// [BB] 97c3 clients don't know this command.
-	if( sv_stay97c3compatible )
-		return;
-
 	AInventory *pArmor = players[ulPlayer].mo->FindInventory< ABasicArmor >( );
 	ULONG ulArmorPoints = ( pArmor != NULL ) ? pArmor->Amount : 0;
 	if ( ulArmorPoints > 0 ){
@@ -766,10 +760,6 @@ void SERVERCOMMANDS_UpdatePlayerExtraData( ULONG ulPlayer, ULONG ulDisplayPlayer
 //
 void SERVERCOMMANDS_UpdatePlayerPendingWeapon( ULONG ulPlayer )
 {
-	// [BB] 97c3 clients don't know this command.
-	if( sv_stay97c3compatible )
-		return;
-
 	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
@@ -806,10 +796,6 @@ void SERVERCOMMANDS_UpdatePlayerPendingWeapon( ULONG ulPlayer )
 //
 void SERVERCOMMANDS_DoInventoryUse( ULONG ulPlayer, AInventory *item )
 {
-	// [BB] 97c3 clients don't know this command.
-	if( sv_stay97c3compatible )
-		return;
-
 	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
@@ -827,10 +813,6 @@ void SERVERCOMMANDS_DoInventoryUse( ULONG ulPlayer, AInventory *item )
 //
 void SERVERCOMMANDS_ChangePlayerWeapon( ULONG ulPlayer )
 {
-	// [BB] 97c3 clients don't know this command.
-	if( sv_stay97c3compatible )
-		return;
-
 	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
@@ -1476,10 +1458,6 @@ void SERVERCOMMANDS_SetThingAngle( AActor *pActor, ULONG ulPlayerExtra, ULONG ul
 //
 void SERVERCOMMANDS_SetThingTID( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	// [BB] 97c3 clients don't know this command.
-	if( sv_stay97c3compatible )
-		return;
-
 	ULONG	ulIdx;
 
 	if ( pActor == NULL )
