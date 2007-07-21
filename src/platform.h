@@ -37,6 +37,11 @@ typedef unsigned char UCHAR;
 
 #endif
 
+// [BB] FreeBSD specific defines
+#ifdef __FreeBSD__
+#define __va_copy(x,y) va_copy(x,y)
+#endif
+
 #ifdef _MSC_VER
 // [BB] Silence the "'stricmp': The POSIX name for this item is deprecated." warning.
 #pragma warning(disable:4996)

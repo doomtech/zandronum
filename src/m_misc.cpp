@@ -29,7 +29,6 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <malloc.h>
 
 #include "doomtype.h"
 #include "version.h"

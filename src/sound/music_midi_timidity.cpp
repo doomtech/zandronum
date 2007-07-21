@@ -2,6 +2,10 @@
 #include "c_cvars.h"
 #include "cmdlib.h"
 
+#ifdef __FreeBSD__
+#include <signal.h>
+#endif
+
 #if !defined(_WIN32) && 0
 // Under Linux, buffer output from Timidity to try to avoid "bubbles"
 // in the sound output.
