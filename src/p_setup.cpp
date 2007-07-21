@@ -3395,9 +3395,9 @@ void P_GetPolySpots (MapData * map, TArray<FNodeBuilder::FPolyStart> &spots, TAr
 void P_RemoveThings( void )
 {
 	AActor						*pActor;
-	TThinkerIterator<AActor>	iterator;
+	TThinkerIterator<AActor>	Iterator;
 
-	while ( pActor = iterator.Next( ))
+	while ( pActor = Iterator.Next( ))
 	{
 		// No special items are spawned during instagib, shotgun battle, or LMS.
 		if ((( instagib || buckshot ) && ( deathmatch || teamgame )) || ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DONTSPAWNMAPTHINGS ))
@@ -3420,16 +3420,80 @@ void P_RemoveThings( void )
 			continue;
 		}
 
-		// [RH] don't spawn extra weapons in coop
-		if (( NETWORK_GetState( ) != NETSTATE_SINGLE ) && (( deathmatch || teamgame ) == false ))
+		// [RH] don't spawn extra weapons in coop if so desired
+		if (( NETWORK_GetState( ) != NETSTATE_SINGLE ) &&
+			( deathmatch == false ) &&
+			( teamgame == false ) &&
+			( dmflags & DF_NO_COOP_WEAPON_SPAWN ))
 		{
-			if (( pActor->SpawnFlags & MTF_COOPERATIVE ) == false )
+			if ( pActor->GetClass( )->IsDescendantOf( RUNTIME_CLASS( AWeapon )))
 			{
-				// [BB] We may not delete the dynamic lights here!
-				// If we do, the game crashes directly in a cooperative skirmish.
-				if( !pActor->IsKindOf( RUNTIME_CLASS( ADynamicLight ) ) )
+				if (( pActor->SpawnFlags & ( MTF_DEATHMATCH|MTF_SINGLE )) == MTF_DEATHMATCH )
+				{
 					pActor->Destroy( );
-				continue;
+					continue;
+				}
+			}
+		}
+
+		// don't spawn any monsters if -nomonsters
+		if (( dmflags & DF_NO_MONSTERS ) &&
+			( pActor->flags3 & MF3_ISMONSTER ))
+		{
+			pActor->Destroy( );
+			continue;
+		}
+
+		// [RH] Other things that shouldn't be spawned depending on dmflags
+		if ( deathmatch || teamgame || alwaysapplydmflags )
+		{
+			if ( dmflags & DF_NO_HEALTH )
+			{
+				if (( pActor->GetClass( )->IsDescendantOf( RUNTIME_CLASS( AHealth ))) ||
+					( pActor->GetClass( )->IsDescendantOf( RUNTIME_CLASS( AMaxHealth ))))
+				{
+					pActor->Destroy( );
+					continue;
+				}
+				if (( pActor->GetClass( )->TypeName == NAME_Berserk ) ||
+					( pActor->GetClass( )->TypeName == NAME_Soulsphere ) ||
+					( pActor->GetClass( )->TypeName == NAME_Megasphere ))
+				{
+					pActor->Destroy( );
+					continue;
+				}
+			}
+/*
+			if ( dmflags & DF_NO_ITEMS )
+			{
+				if ( pActor->GetClass( )->IsDescendantOf( RUNTIME_CLASS( AArtifact )))
+				{
+					pActor->Destroy( );
+					continue;
+				}
+			}
+*/
+			if ( dmflags & DF_NO_ARMOR )
+			{
+				if ( pActor->GetClass( )->IsDescendantOf( RUNTIME_CLASS( AArmor )))
+				{
+					pActor->Destroy( );
+					continue;
+				}
+				if ( pActor->GetClass( )->TypeName == NAME_Megasphere )
+				{
+					pActor->Destroy( );
+					continue;
+				}
+			}
+
+			if ( dmflags2 & DF2_NO_RUNES )
+			{
+				if ( pActor->GetClass( )->IsDescendantOf( PClass::FindClass( "RuneGiver" )))
+				{
+					pActor->Destroy( );
+					continue;
+				}
 			}
 		}
 
@@ -3456,11 +3520,31 @@ void P_RemoveThings( void )
 				if ( pActor->flags & MF_COUNTKILL )
 					level.total_monsters--;
 
-				pActor->Destroy( );
+				// [BB] We may not delete the dynamic lights here!
+				// If we do, the game crashes directly in a cooperative skirmish.
+				if( !pActor->IsKindOf( RUNTIME_CLASS( ADynamicLight ) ) )
+					pActor->Destroy( );
 				continue;
 			}
 		}
-
+		
+		// [BC] I don't see this point of this block. It seems like it does the same thing
+		// as an earlier block, and I don't see it in the original ZDoom code from
+		// P_SpawnMapThing(). Therefore, I'm commenting it out.
+/*
+		// [RH] don't spawn extra weapons in coop
+		if (( NETWORK_GetState( ) != NETSTATE_SINGLE ) && (( deathmatch || teamgame ) == false ))
+		{
+			if (( pActor->SpawnFlags & MTF_COOPERATIVE ) == false )
+			{
+				// [BB] We may not delete the dynamic lights here!
+				// If we do, the game crashes directly in a cooperative skirmish.
+				if( !pActor->IsKindOf( RUNTIME_CLASS( ADynamicLight ) ) )
+					pActor->Destroy( );
+				continue;
+			}
+		}
+*/
 		// I haven't seen a need for this block of code. If I get complaints, I'll uncomment it.
 /*
 		if ( NETWORK_GetState( ) == NETSTATE_SINGLE && ( deathmatch || teamgame ) == false )
@@ -3472,77 +3556,6 @@ void P_RemoveThings( void )
 			}
 		}
 */
-		// don't spawn any monsters if -nomonsters
-		if ( deathmatch || teamgame || alwaysapplydmflags || ( NETWORK_GetState( ) != NETSTATE_SINGLE ))
-		{
-			if (( dmflags & DF_NO_MONSTERS ) && ( pActor->GetClass( )->IsDescendantOf( RUNTIME_CLASS( ALostSoul )) || ( pActor->flags3 & MF3_ISMONSTER )))
-			{
-				pActor->Destroy( );
-				continue;
-			}
-		}
-
-		// [RH] Other things that shouldn't be spawned depending on dmflags
-		if ( deathmatch || teamgame || alwaysapplydmflags )
-		{
-			if ( dmflags & DF_NO_HEALTH )
-			{
-				if (( pActor->GetClass( )->IsDescendantOf( RUNTIME_CLASS( AHealth ))) || ( pActor->GetClass( )->IsDescendantOf( RUNTIME_CLASS( AMaxHealth ))))
-				{
-					pActor->Destroy( );
-					continue;
-				}
-				if ( strcmp( pActor->GetClass( )->TypeName.GetChars( ), "Berserk" ) == 0 )
-				{
-					pActor->Destroy( );
-					continue;
-				}
-				if ( strcmp( pActor->GetClass( )->TypeName.GetChars( ), "Soulsphere" ) == 0 )
-				{
-					pActor->Destroy( );
-					continue;
-				}
-				if ( strcmp( pActor->GetClass( )->TypeName.GetChars( ), "Megasphere" ) == 0 )
-				{
-					pActor->Destroy( );
-					continue;
-				}
-			}
-/*
-			if ( dmflags & DF_NO_ITEMS )
-			{
-				if ( pActor->GetClass( )->IsDescendantOf( RUNTIME_CLASS( AArtifact )))
-				{
-					pActor->Destroy( );
-					continue;
-				}
-			}
-*/
-			if ( dmflags & DF_NO_ARMOR )
-			{
-				if ( pActor->GetClass( )->IsDescendantOf( RUNTIME_CLASS( AArmor )))
-				{
-					pActor->Destroy( );
-					continue;
-				}
-				if ( strcmp( pActor->GetClass( )->TypeName.GetChars( ), "Megasphere" ) == 0 )
-				{
-					pActor->Destroy( );
-					continue;
-				}
-			}
-
-			if ( dmflags2 & DF2_NO_RUNES )
-			{
-				if ( pActor->GetClass( )->IsDescendantOf( PClass::FindClass( "RuneGiver" )))
-				{
-					pActor->Destroy( );
-					continue;
-				}
-
-			}
-		}
-
 		// If we're in a team game, and it's not one flag CTF, make sure
 		// to delete the white flags, which are used for one flag CTF.
 		if (( teamgame ) && ( oneflagctf == false ))

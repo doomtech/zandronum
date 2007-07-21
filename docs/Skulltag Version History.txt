@@ -24,6 +24,7 @@ v0.97d-beta5
 -	- Fixed crash that would occur when flags/skulls were returned on maps where point (0,0) was an instant return zone. [Carnevil]
 -	- The "actor hits ceiling" sector action now works properly. [Carnevil]
 -	- The reminder that displays when the chat prompt comes up that reminds you that you cannot talk to players/spectators is now affected by text scaling. [Carnevil]
+-	- The dmflag "Don't spawn multiplayer weapons in co-op games" now works properly. [Carnevil]
 -	- Skulltag score pillars now go into the correct frame when the blue team scores a point. [Carnevil]
 -	- The music now stays off when you pick up a second time freeze sphere. [Carnevil]
 !	- You can no longer exit a map during the countdown in survival invasion. [Carnevil]
