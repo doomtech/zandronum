@@ -29,6 +29,7 @@
 #include "doomstat.h"
 #include "r_state.h"
 #include "tables.h"
+#include "cl_demo.h"
 #include "network.h"
 #include "sv_commands.h"
 
@@ -153,7 +154,7 @@ void DFloor::Tick ()
 {
 	EResult res;
 
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		// [RH] Handle resetting stairs
 		if (m_Type == buildStair || m_Type == waitStair)
@@ -203,7 +204,7 @@ void DFloor::Tick ()
 
 	// [BC] If we're in client mode, just move the floor and get out. The server will
 	// tell us when it stops.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 		return;
 
 	if (res == pastdest)
@@ -374,7 +375,7 @@ void DElevator::Tick ()
 	}
 
 	// [BC] This is all we need to do in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 		return;
 
 	if (res == pastdest)	// if destination height acheived
@@ -592,7 +593,7 @@ manual_floor:
 		floor->m_OrgDist = sec->floorplane.d;	// [RH]
 
 		// [BC] Assign the floor's network ID. However, don't do this on the client end.
-		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 			floor->m_lFloorID = P_GetFirstFreeFloorID( );
 		else
 			floor->m_lFloorID = -1;
@@ -1060,7 +1061,7 @@ manual_stair:
 		osecnum = secnum;				//jff 3/4/98 preserve loop index
 
 		// [BC] Assign the floor's network ID. However, don't do this on the client end.
-		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 			floor->m_lFloorID = P_GetFirstFreeFloorID( );
 		else
 			floor->m_lFloorID = -1;
@@ -1172,7 +1173,7 @@ manual_stair:
 				floor->m_OrgDist = sec->floorplane.d;	// [RH] Height to reset to
 
 				// [BC] Assign the floor's network ID. However, don't do this on the client end.
-				if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 					floor->m_lFloorID = P_GetFirstFreeFloorID( );
 				else
 					floor->m_lFloorID = -1;
@@ -1252,7 +1253,7 @@ bool EV_DoDonut (int tag, fixed_t pillarspeed, fixed_t slimespeed)
 			floor->StartFloorSound ();
 			
 			// [BC] Assign the floor's network ID. However, don't do this on the client end.
-			if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 				floor->m_lFloorID = P_GetFirstFreeFloorID( );
 			else
 				floor->m_lFloorID = -1;
@@ -1276,7 +1277,7 @@ bool EV_DoDonut (int tag, fixed_t pillarspeed, fixed_t slimespeed)
 			floor->StartFloorSound ();
 
 			// [BC] Assign the floor's network ID. However, don't do this on the client end.
-			if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 				floor->m_lFloorID = P_GetFirstFreeFloorID( );
 			else
 				floor->m_lFloorID = -1;
@@ -1346,7 +1347,7 @@ bool EV_DoElevator (line_t *line, DElevator::EElevator elevtype,
 		elevator->StartFloorSound ();
 
 		// [BC] Assign the floor's network ID. However, don't do this on the client end.
-		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 			elevator->m_lElevatorID = P_GetFirstFreeElevatorID( );
 		else
 			elevator->m_lElevatorID = -1;
@@ -1672,7 +1673,7 @@ bool EV_StartWaggle (int tag, int height, int speed, int offset,
 		waggle->m_State = WGLSTATE_EXPAND;
 
 		// [BC] Assign the waggle's network ID. However, don't do this on the client end.
-		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 			waggle->m_lWaggleID = P_GetFirstFreeWaggleID( );
 		else
 			waggle->m_lWaggleID = -1;

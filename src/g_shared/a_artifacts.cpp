@@ -1294,9 +1294,6 @@ void APowerTimeFreezer::EndEffect( )
 	// Allow other actors to move about freely once again.
 	GAME_SetFreezeMode( false );
 
-	// Also, turn the music back on.
-	S_ResumeSound( );
-
 	// Nothing more to do if there's no owner.
 	if (( Owner == NULL ) || ( Owner->player == NULL ))
 	{
@@ -1316,6 +1313,19 @@ void APowerTimeFreezer::EndEffect( )
 		}
 
 		players[ulIdx].Powers &= ~PW_TIMEFREEZE;
+	}
+
+	// If nobody has a time freeze sphere anymore, turn the music back on.
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if (( playeringame[ulIdx] == false ) ||
+			(( players[ulIdx].Powers & PW_TIMEFREEZE ) == false ))
+		{
+			continue;
+		}
+
+		S_ResumeSound( );
+		break;
 	}
 
 	// Reset the player's view colormap, as well as the colormap that's applied to

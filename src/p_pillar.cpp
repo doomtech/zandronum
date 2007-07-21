@@ -38,6 +38,7 @@
 #include "g_level.h"
 #include "s_sndseq.h"
 // [BC] New #includes.
+#include "cl_demo.h"
 #include "network.h"
 #include "sv_commands.h"
 
@@ -278,7 +279,7 @@ bool EV_DoPillar (DPillar::EPillar type, int tag, fixed_t speed, fixed_t height,
 		if ( pPillar )
 		{
 			// [BC] Assign the mover's network ID. However, don't do this on the client end.
-			if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 				pPillar->m_lPillarID = P_GetFirstFreePillarID( );
 			else
 				pPillar->m_lPillarID = -1;

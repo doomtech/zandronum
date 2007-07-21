@@ -2447,7 +2447,7 @@ void P_ZMovement (AActor *mo)
 
 	if (mo->z + mo->height > mo->ceilingz)
 	{ // hit the ceiling
-		if ((!mo->player /*|| !(mo->player->cheats & CF_PREDICTING)*/) &&
+		if (/*(!mo->player || !(mo->player->cheats & CF_PREDICTING)) &&*/
 			mo->Sector->SecActTarget != NULL &&
 			mo->Sector->ceilingplane.ZatPoint (mo->x, mo->y) == mo->ceilingz)
 		{ // [RH] Let the sector do something to the actor
@@ -3853,7 +3853,10 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 		actor->lNetID = -1;
 
 	// Check if the flag or skull has spawned in an instant return zone.
-	if (( actor->Sector->MoreFlags & SECF_RETURNZONE ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+	if (( TEAM_SpawningTemporaryFlag( ) == false ) &&
+		( actor->Sector->MoreFlags & SECF_RETURNZONE ) &&
+		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		if ( actor->GetClass( ) == TEAM_GetFlagItem( TEAM_BLUE ))
 			TEAM_ExecuteReturnRoutine( TEAM_BLUE, NULL );

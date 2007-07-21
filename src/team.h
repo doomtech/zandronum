@@ -125,6 +125,7 @@ void		TEAM_FlagDropped( player_s *pPlayer );
 WORD		TEAM_GetReturnScriptOffset( ULONG ulTeamIdx );
 void		TEAM_DoWinSequence( ULONG ulTeamIdx );
 void		TEAM_TimeExpired( void );
+bool		TEAM_SpawningTemporaryFlag( void );
 
 // Access functions.
 char		*TEAM_GetName( ULONG ulTeamIdx );

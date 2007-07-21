@@ -34,6 +34,7 @@
 #include "a_keys.h"
 #include "i_system.h"
 #include "sc_man.h"
+#include "cl_demo.h"
 #include "network.h"
 #include "sv_commands.h"
 
@@ -88,7 +89,7 @@ void DDoor::Tick ()
 			// [BC] If we're the client, don't change the door's direction. It could
 			// de-sync the game. Instead, wait for the server to tell us to change
 			// the door's direction.
-			if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 				break;
 
 			switch (m_Type)
@@ -126,7 +127,7 @@ void DDoor::Tick ()
 			// [BC] If we're the client, don't change the door's direction. It could
 			// de-sync the game. Instead, wait for the server to tell us to change
 			// the door's direction.
-			if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 				break;
 
 			switch (m_Type)
@@ -161,7 +162,7 @@ void DDoor::Tick ()
 
 		// [BC] If we're the client, don't do any of the following. Wait for the server
 		// to tell us what to do.
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 			break;
 
 		if (res == pastdest)
@@ -238,7 +239,7 @@ void DDoor::Tick ()
 
 		// [BC] If we're the client, don't do any of the following. Wait for the server
 		// to tell us what to do.
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 			break;
 
 		if (res == pastdest)
@@ -458,7 +459,7 @@ DDoor::DDoor (sector_t *sec, EVlDoor type, fixed_t speed, int delay, int lightTa
 	m_OldFloorDist = sec->floorplane.d;
 
 	// [BC] Assign the door's network ID.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 		m_lDoorID = P_GetFirstFreeDoorID( );
 	else
 		m_lDoorID = -1;

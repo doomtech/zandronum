@@ -29,6 +29,7 @@
 #include "thingdef.h"
 #include "deathmatch.h"
 #include "network.h"
+#include "cl_demo.h"
 
 // MACROS ------------------------------------------------------------------
 
@@ -630,7 +631,9 @@ void A_Raise (AActor *actor)
 
 	// [BC] If this player has respawn invulnerability, disable it if they're done raising
 	// a weapon that isn't the pistol or their fist.
-	if (( player->mo ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+	if (( player->mo ) &&
+		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		APowerInvulnerable	*pInvulnerability;
 

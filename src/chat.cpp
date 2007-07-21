@@ -215,6 +215,7 @@ void CHAT_Render( void )
 	ULONG		ulYPos;
 	LONG		lIdx;
 	LONG		lX;
+	char		szString[64];
 
 	if ( g_ulChatMode == CHATMODE_NONE )
 		return;
@@ -334,35 +335,63 @@ void CHAT_Render( void )
 	}
 
 	// [RC] Tell chatters about the iron curtain of LMS chat.
-		if (( lastmanstanding || teamlms ) && 
-				(( lmsspectatorsettings & LMS_SPF_CHAT ) == false ) &&
-				( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ))	{
+	if (( lastmanstanding || teamlms ) && 
+		(( lmsspectatorsettings & LMS_SPF_CHAT ) == false ) &&
+		( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ))
+	{
+		// Is this the spectator talking?
+		if ( players[consoleplayer].bSpectating )
+		{
+			sprintf( szString, "\\cdNOTE: \\ccPlayers cannot hear you chat" );
 
-				// Go up or down, depending on whether the HUD is fullscreen
-				if (((realviewheight == SCREENHEIGHT ) && viewactive )) {
-					ulYPos += SmallFont->GetHeight( ) + 1;
-				}
-				else
-					ulYPos -= SmallFont->GetHeight( ) + 1;
-					
-					// Is this the spectator talking?
-					if ( players[consoleplayer].bSpectating )
-						screen->DrawText( CR_BRICK,
-							0,
-							ulYPos,
-							"Players can't hear you chat.",
-							TAG_DONE );
-					else
-						screen->DrawText( CR_GREY,
-							0,
-							ulYPos,
-							"Spectators can't talk to you.",
-							TAG_DONE );
-
+			V_ColorizeString( szString );
+			if ( bScale )
+			{
+				screen->DrawText( CR_UNTRANSLATED,
+					(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
+					(LONG)(( ulYPos * fYScale ) - ( SmallFont->GetHeight( ) * 2 ) + 1 ),
+					szString,
+					DTA_VirtualWidth, ValWidth.Int,
+					DTA_VirtualHeight, ValHeight.Int,
+					TAG_DONE );
 			}
+			else
+			{
+				screen->DrawText( CR_UNTRANSLATED,
+					(LONG)(( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
+					(LONG)(( ulYPos * fYScale ) - ( SmallFont->GetHeight( ) * 2 ) + 1 ),
+					szString,
+					TAG_DONE );
+			}
+		}
+		else
+		{
+			sprintf( szString, "\\cdNOTE: \\ccSpectators cannot talk to you" );
+
+			V_ColorizeString( szString );
+			if ( bScale )
+			{
+				screen->DrawText( CR_UNTRANSLATED,
+					(LONG)(( ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
+					(LONG)(( ulYPos * fYScale ) - ( SmallFont->GetHeight( ) * 2 ) + 1 ),
+					szString,
+					DTA_VirtualWidth, ValWidth.Int,
+					DTA_VirtualHeight, ValHeight.Int,
+					TAG_DONE );
+			}
+			else
+			{
+				screen->DrawText( CR_UNTRANSLATED,
+					(LONG)(( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
+					(LONG)(( ulYPos * fYScale ) - ( SmallFont->GetHeight( ) * 2 ) + 1 ),
+					szString,
+					TAG_DONE );
+			}
+		}
+	}
 
 	g_szChatBuffer[g_lStringLength] = 0;
-	BorderTopRefresh = screen->GetPageCount ();
+	BorderTopRefresh = screen->GetPageCount( );
 }
 
 //*****************************************************************************

@@ -379,6 +379,12 @@ void CLIENTDEMO_ReadPacket( void )
 			return;
 		default:
 
+#ifdef _DEBUG
+			// Option to print commands for debugging purposes.
+			if ( cl_showcommands )
+				CLIENT_PrintCommand( lCommand );
+#endif
+
 			CLIENT_ProcessCommand( lCommand, &g_ByteStream );
 			break;
 		}

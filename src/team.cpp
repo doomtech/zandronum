@@ -103,6 +103,9 @@ static	ULONG	g_ulWhiteFlagReturnTicks;
 // Keep track of players eligable for assist medals.
 static	ULONG	g_ulAssistPlayer[NUM_TEAMS] = { MAXPLAYERS, MAXPLAYERS };
 
+// Are we spawning a temporary flag? If so, ignore return zones.
+static	bool	g_bSpawningTemporaryFlag = false;
+
 static FRandom	g_JoinTeamSeed( "JoinTeamSeed" );
 
 //*****************************************************************************
@@ -274,7 +277,9 @@ void TEAM_ExecuteReturnRoutine( ULONG ulTeamIdx, AActor *pReturner )
 	else
 		pClass = TEAM_GetFlagItem( ulTeamIdx );
 
+	g_bSpawningTemporaryFlag = true;
 	pFlag = Spawn( pClass, 0, 0, 0, NO_REPLACE );
+	g_bSpawningTemporaryFlag = false;
 	if ( pFlag->IsKindOf( PClass::FindClass( "Flag" )) == false )
 	{
 		pFlag->Destroy( );
@@ -914,7 +919,7 @@ void TEAM_ScoreSkulltagPoint( player_s *pPlayer, ULONG ulNumPoints, AActor *pPil
 			pPillar->SetState( pPillar->MissileState );
 
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SetThingState( pPillar, STATE_MELEE );
+				SERVERCOMMANDS_SetThingState( pPillar, STATE_MISSILE );
 		}
 	}
 }
@@ -1115,6 +1120,13 @@ void TEAM_TimeExpired( void )
 		Printf( "%s\n", GStrings( "TXT_TIMELIMIT" ));
 
 	GAME_SetEndLevelDelay( 5 * TICRATE );
+}
+
+//*****************************************************************************
+//
+bool TEAM_SpawningTemporaryFlag( void )
+{
+	return ( g_bSpawningTemporaryFlag );
 }
 
 //*****************************************************************************

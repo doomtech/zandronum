@@ -849,7 +849,8 @@ void AActor::Die (AActor *source, AActor *inflictor)
 		FBehavior::StaticStartTypedScripts (SCRIPT_Death, this, true);
 
 		// [RH] Force a delay between death and respawn
-		if (( i_compatflags & COMPATF_INSTANTRESPAWN ) == false )
+		if ((( i_compatflags & COMPATF_INSTANTRESPAWN ) == false ) ||
+			( player->bSpawnTelefragged ))
 		{
 			player->respawn_time = level.time + TICRATE;
 
@@ -1703,8 +1704,8 @@ bool AActor::OkayToSwitchTarget (AActor *other)
 
 void P_PoisonPlayer (player_t *player, AActor *poisoner, AActor *source, int poison)
 {
-	// This is handled server side.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	// [BC] This is handled server side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 		return;
 
 	if((player->cheats&CF_GODMODE) || (player->mo->flags2 & MF2_INVULNERABLE))

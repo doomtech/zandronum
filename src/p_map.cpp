@@ -312,7 +312,7 @@ bool PIT_StompThing (AActor *thing)
 	if (StompAlwaysFrags || (tmthing->flags2 & MF2_TELESTOMP))
 	{
 		// [BC] Damage is never done client-side.
-		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 			P_DamageMobj (thing, tmthing, tmthing, 1000000, MOD_TELEFRAG);
 		return true;
 	}
@@ -1038,7 +1038,7 @@ bool PIT_CheckThing (AActor *thing)
 	if (tmthing->flags & MF_MISSILE)
 	{
 		// Server decides collision.
-//		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+//		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 //			return ( true );
 
 		// Check for a non-shootable mobj
@@ -1171,7 +1171,7 @@ bool PIT_CheckThing (AActor *thing)
 				S_Sound (tmthing, CHAN_BODY, "misc/ripslop", 1, ATTN_IDLE);
 				damage = tmthing->GetMissileDamage (3, 2);
 				// [BB] The server handles the damage of RIPPER weapons.
-				if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 					P_DamageMobj (thing, tmthing, tmthing->target, damage, tmthing->DamageType);
 				if (!(tmthing->flags3 & MF3_BLOODLESSIMPACT))
 				{
@@ -1189,13 +1189,13 @@ bool PIT_CheckThing (AActor *thing)
 		}
 		// Do damage
 		damage = tmthing->GetMissileDamage ((tmthing->flags4 & MF4_STRIFEDAMAGE) ? 3 : 7, 1);
-		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 		{
 			if (damage > 0)
 			{
 				if ( tmthing->target && tmthing->target->player && thing->player && ( thing->IsTeammate( tmthing ) == false ))
 					tmthing->target->player->bStruckPlayer = true;
-	//				PLAYER_StruckPlayer( tmthing->target->player );
+//					PLAYER_StruckPlayer( tmthing->target->player );
 
 				P_DamageMobj (thing, tmthing, tmthing->target, damage, tmthing->DamageType);
 				if ((tmthing->flags5 & MF5_BLOODSPLATTER) &&
@@ -1245,7 +1245,10 @@ bool PIT_CheckThing (AActor *thing)
 	}
 
 	// If this object has the bumpspecial flag, try to activate the item's special.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( solid ) && ( thing->ulSTFlags & STFL_BUMPSPECIAL ))
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ) &&
+		( solid ) &&
+		( thing->ulSTFlags & STFL_BUMPSPECIAL ))
 	{
 		if (( TEAM_GetSimpleSTMode( )) && ( tmthing->player ) && ( tmthing->player->bOnTeam ))
 		{
@@ -1970,7 +1973,7 @@ static void CheckForPushSpecial (line_t *line, int side, AActor *mobj)
 	if (line->special)
 	{
 		// [BC] In a netgame, since mobj->target is never valid, we must go this route to avoid a crash.
-		if ((mobj->flags2 & MF2_PUSHWALL) || ( NETWORK_GetState( ) == NETSTATE_CLIENT ))
+		if ((mobj->flags2 & MF2_PUSHWALL) || ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 		{
 			P_ActivateLine (line, mobj, side, SPAC_PUSH);
 		}
@@ -4242,7 +4245,7 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 			P_SpawnBlood (x, y, z, source->angle - ANG180, damage, RailHits[i].HitActor);
 		}
 		// Damage is server side.
-		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 			P_DamageMobj (RailHits[i].HitActor, source, source, damage, MOD_RAILGUN, DMG_NO_ARMOR);
 		P_TraceBleed (damage, x, y, z, RailHits[i].HitActor, angle, pitch);
 
@@ -4439,7 +4442,7 @@ blocked:
 
 			// [BC] Just skip right over this in client mode so we don't try to trigger any
 			// actions.
-			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && sec->SecActTarget && sec->SecActTarget->TriggerAction (usething, SECSPAC_Use))
+			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ) && sec->SecActTarget && sec->SecActTarget->TriggerAction (usething, SECSPAC_Use))
 			{
 				return false;
 			}
@@ -4634,7 +4637,7 @@ void P_UseLines (player_t *player)
 			spac |= SECSPAC_UseWall;
 
 		// Don't try to trigger sector actions in client mode.
-		if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || !sec->SecActTarget ||
+		if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )) || !sec->SecActTarget ||
 			 !sec->SecActTarget->TriggerAction (usething, spac)) &&
 			!P_PathTraverse (x1, y1, x2, y2, PT_ADDLINES, PTR_NoWayTraverse))
 		{
@@ -4666,7 +4669,7 @@ void P_UseItems (player_s *player)
 	fixed_t		vrange;
 
 	// "Using" is server side.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 		return;
 
 	usething = player->mo;
@@ -4976,7 +4979,7 @@ bool PIT_RadiusAttack (AActor *thing)
 			int damage = (int)points;
 
 			// [BC] Damage is server side.
-			if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 			{
 				if (bombdodamage) P_DamageMobj (thing, bombspot, bombsource, damage, bombmod);
 				else thing->flags2 |= MF2_BLASTED;
@@ -5042,7 +5045,7 @@ bool PIT_RadiusAttack (AActor *thing)
 			if (damage > 0)
 			{
 				// Damage is server side.
-				if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 					P_DamageMobj (thing, bombspot, bombsource, damage, bombmod);
 				P_TraceBleed (damage, thing, bombspot);
 			}
@@ -5310,7 +5313,7 @@ void P_DoCrunch (AActor *thing)
 	ULONG	ulIdx;
 
 	// [BC] Don't handle the respawning of crunched items on the client end.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		// [BC] If this item is a flag belonging to a team, return it, and/or don't do shit!
 		for ( ulIdx = 0; ulIdx < NUM_TEAMS; ulIdx++ )
@@ -5398,7 +5401,7 @@ void P_DoCrunch (AActor *thing)
 			SERVERCOMMANDS_DestroyThing( thing );
 
 		// [BC] Don't destroy items in client mode; the server will tell us to.
-		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 			thing->Destroy ();
 		return;		// keep checking
 	}
@@ -5418,7 +5421,7 @@ void P_DoCrunch (AActor *thing)
 	if ((crushchange > 0) && !(level.maptime & 3))
 	{
 		// [BC] Damage is done server-side.
-		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 			P_DamageMobj (thing, NULL, NULL, crushchange, MOD_CRUSH);
 
 		// spray blood in a random direction

@@ -33,6 +33,7 @@
 #include "gi.h"
 #include "network.h"
 #include "sv_commands.h"
+#include "cl_demo.h"
 
 static FRandom pr_doplat ("DoPlat");
 
@@ -78,7 +79,7 @@ void DPlat::Tick ()
 		res = MoveFloor (m_Speed, m_High, m_Crush, 1);
 		
 		// [BC] That's all we need to do in client mode.
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 			break;
 
 		if (res == crushed && (m_Crush == -1))
@@ -155,7 +156,7 @@ void DPlat::Tick ()
 		res = MoveFloor (m_Speed, m_Low, -1, -1);
 
 		// [BC] That's all we need to do in client mode.
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 			break;
 
 		if (res == pastdest)
@@ -238,7 +239,7 @@ void DPlat::Tick ()
 	case waiting:
 
 		// [BC] That's all we need to do in client mode.
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 			break;
 
 		if (m_Count > 0 && !--m_Count)
@@ -431,7 +432,7 @@ manual_plat:
 		plat->m_Wait = delay;
 
 		// [BC] Potentially create the platform's network ID.
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 			plat->m_lPlatID = -1;
 		else
 			plat->m_lPlatID = P_GetFirstFreePlatID( );

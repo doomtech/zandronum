@@ -76,6 +76,8 @@
 #include "sv_commands.h"
 #include "cl_demo.h"
 #include "possession.h"
+#include "cooperative.h"
+#include "survival.h"
 
 static FRandom pr_playerinspecialsector ("PlayerInSpecialSector");
 
@@ -134,6 +136,13 @@ bool CheckIfExitIsGood (AActor *self)
 	// The world can always exit itself.
 	if (self == NULL)
 		return true;
+
+	// [BC] Don't allow exiting in survival mode if the map hasn't finished counting down yet.
+	if (( survival ) &&
+		( SURVIVAL_GetState( ) == SURVS_COUNTDOWN ))
+	{
+		return ( false );
+	}
 
 	// [BC] Teamgame, too.
 	if ((deathmatch || teamgame || alwaysapplydmflags) && (dmflags & DF_NO_EXIT))

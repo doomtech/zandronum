@@ -43,6 +43,7 @@
 #include "a_sharedglobal.h"
 #include "a_doomglobal.h"
 #include "a_action.h"
+#include "cl_demo.h"
 #include "cooperative.h"
 #include "deathmatch.h"
 #include "network.h"
@@ -380,7 +381,7 @@ bool P_Move (AActor *actor)
 	int friction = ORIG_FRICTION;
 
 	// [BC] This is handled server side.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 		return ( false );
 
 	if (actor->flags2 & MF2_BLASTED)
@@ -561,7 +562,7 @@ bool P_Move (AActor *actor)
 bool P_TryWalk (AActor *actor)
 {
 	// [BC] This is handled server side.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 		return ( false );
 
 	if (!P_Move (actor))
@@ -759,7 +760,7 @@ void P_NewChaseDir(AActor * actor)
 	fixed_t deltay;
 
 	// [BC] This is handled server side.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 		return;
 
 	if ((actor->flags5&MF5_CHASEGOAL || actor->goal == actor->target) && actor->goal!=NULL)
@@ -1012,7 +1013,7 @@ bool P_LookForMonsters (AActor *actor)
 	TThinkerIterator<AActor> iterator;
 
 	// [BC] This is handled server side.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 		return ( false );
 
 	if (!P_CheckSight (players[0].mo, actor, 2))
@@ -1593,7 +1594,7 @@ void A_Look (AActor *actor)
 	AActor *targ;
 
 	// [BC] This is handled server side.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 		return;
 
 	// [RH] Set goal now if appropriate
@@ -1823,7 +1824,7 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 	int delta;
 
 	// [BC] This is handled server side.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 	{
 		// Just play the active sound and get out.
 		if ( playactive && ( pr_chase( ) < 3 ))
@@ -2299,7 +2300,7 @@ CVAR(Int, sv_dropstyle, 0, CVAR_SERVERINFO | CVAR_ARCHIVE);
 AInventory *P_DropItem (AActor *source, const PClass *type, int special, int chance)
 {
 	// [BC] This is handled server side.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 		return ( NULL );
 
 	if (type != NULL && pr_dropitem() <= chance)
@@ -2418,7 +2419,7 @@ void A_Pain (AActor *actor)
 void A_Die (AActor *actor)
 {
 	// [BC] This is handled server side.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 		return;
 
 	P_DamageMobj (actor, NULL, NULL, actor->health, MOD_UNKNOWN);
@@ -2529,7 +2530,7 @@ void A_BossDeath (AActor *actor)
 	FName type = actor->GetClass()->ActorInfo->GetReplacee()->Class->TypeName;
 	
 	// [BC] This is handled server side.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 		return;
 
 	// Do generic special death actions first
@@ -2643,7 +2644,7 @@ int P_Massacre ()
 	TThinkerIterator<AActor> iterator;
 
 	// [BC] This is handled server side.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 		return ( 0 );
 
 	while ( (actor = iterator.Next ()) )

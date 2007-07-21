@@ -30,6 +30,7 @@
 #include "doomstat.h"
 #include "r_state.h"
 #include "gi.h"
+#include "cl_demo.h"
 #include "network.h"
 #include "sv_commands.h"
 
@@ -95,7 +96,7 @@ void DCeiling::Tick ()
 		res = MoveCeiling (m_Speed, m_TopHeight, m_Direction);
 		
 		// [BC] Don't need to do anything more here if we're a client.
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 			break;
 
 		if (res == pastdest)
@@ -162,7 +163,7 @@ void DCeiling::Tick ()
 		res = MoveCeiling (m_Speed, m_BottomHeight, m_Crush, m_Direction);
 		
 		// [BC] Don't need to do anything more here if we're a client.
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 			break;
 
 		if (res == pastdest)
@@ -400,7 +401,7 @@ manual_ceiling:
 		spot = sec->lines[0]->v1;
 
 		// [BC] If we're not a client, assign a network ID to the ceiling.
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 			ceiling->m_lCeilingID = -1;
 		else
 			ceiling->m_lCeilingID = P_GetFirstFreeCeilingID( );

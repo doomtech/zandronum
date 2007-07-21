@@ -1396,6 +1396,10 @@ void CLIENT_PrintCommand( LONG lCommand )
 	{
 		if (( cl_showcommands >= 2 ) && ( lCommand == SVC_MOVELOCALPLAYER ))
 			return;
+		if (( cl_showcommands >= 3 ) && ( lCommand == SVC_MOVEPLAYER ))
+			return;
+		if (( cl_showcommands >= 4 ) && ( lCommand == SVC_UPDATEPLAYEREXTRADATA ))
+			return;
 
 		Printf( "%s\n", g_pszHeaderNames[lCommand] );
 	}

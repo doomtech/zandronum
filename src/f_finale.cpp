@@ -577,7 +577,7 @@ void F_StartCast (void)
 	caststate = castorder[castnum].info->SeeState;
 	castsprite = caststate->sprite.index;
 	// [GZDoom]
-	castScale = 64*(FRACUNIT/64);
+	castScale = castorder[castnum].info->scaleX;
 	//castscale = 63;
 	casttranslation = NULL;
 	casttics = caststate->GetTics ();
@@ -639,7 +639,7 @@ void F_CastTicker (void)
 			castsprite = caststate->sprite.index;
 			casttranslation = NULL;
 			// [GZDoom]
-			castScale = 64*(FRACUNIT/64);
+			castScale = castorder[castnum].info->scaleX;//castScale = FRACUNIT;
 			//castscale = 63;
 		}
 		castframes = 0;
@@ -771,8 +771,8 @@ void F_CastDrawer (void)
 			DTA_320x200, true,
 			DTA_FlipX, sprframe->Flip & 1,
 			// [GZDoom] 
-			DTA_DestWidth, MulScale6 (pic->GetWidth() * CleanXfac, castScale / (FRACUNIT/64) ),
-			DTA_DestHeight, MulScale6 (pic->GetHeight() * CleanYfac, castScale /(FRACUNIT/64) ),
+			DTA_DestWidth, MulScale16 (pic->GetWidth(), castScale ),
+			DTA_DestHeight, MulScale16 (pic->GetHeight(), castScale ),
 			//DTA_DestWidth, MulScale6 (pic->GetWidth() * CleanXfac, castscale + 1),
 			//DTA_DestHeight, MulScale6 (pic->GetHeight() * CleanYfac, castscale + 1),
 			DTA_Translation, casttranslation,
