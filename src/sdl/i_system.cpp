@@ -60,6 +60,7 @@
 #include "gameconfigfile.h"
 
 #include "cl_demo.h"
+#include "cl_main.h"
 
 EXTERN_CVAR (String, language)
 
@@ -276,12 +277,16 @@ static int has_exited;
 
 void I_Quit (void)
 {
-    has_exited = 1;		/* Prevent infinitely recursive exits -- killough */
+	has_exited = 1;		/* Prevent infinitely recursive exits -- killough */
+
+	// [BB] Tell the server we're leaving the game.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		CLIENT_QuitNetworkGame( );
 
 	// [BC] Support for client-side demos.
-    if (demorecording || ( CLIENTDEMO_IsRecording( )))
+	if (demorecording || ( CLIENTDEMO_IsRecording( )))
 		G_CheckDemoStatus();
-    G_ClearSnapshots ();
+	G_ClearSnapshots ();
 }
 
 
