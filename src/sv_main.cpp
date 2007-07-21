@@ -1965,7 +1965,11 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 		for ( pInventory = pPlayer->mo->Inventory; pInventory != NULL; pInventory = pInventory->Inventory )
 		{
 			if ( pInventory->IsKindOf( RUNTIME_CLASS( APowerup )))
+			{
 				SERVERCOMMANDS_GivePowerup( ulIdx, static_cast<APowerup *>( pInventory ), ulClient, SVCF_ONLYTHISCLIENT );
+				if ( pInventory == pPlayer->mo->FindInventory( RUNTIME_CLASS( APowerInvulnerable )))
+					SERVERCOMMANDS_PlayerRespawnInvulnerability( ulIdx );
+			}
 		}
 
 		// Also if this player is currently dead, let the incoming player know that.
@@ -4434,7 +4438,13 @@ static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 
 	// Tell client to spawn themselves (this doesn't happen in the full update).
 	if ( players[g_lCurrentClient].mo != NULL )
+	{
 		SERVERCOMMANDS_SpawnPlayer( g_lCurrentClient, PST_REBORNNOINVENTORY, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+
+		// If the client is dead, tell them that.
+		if ( players[g_lCurrentClient].mo->health <= 0 )
+			SERVERCOMMANDS_ThingIsCorpse( players[g_lCurrentClient].mo, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+	}
 
 	// If this player travelled from the last level, we need to reset his inventory so that
 	// he still has it on the client end.

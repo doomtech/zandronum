@@ -23,6 +23,7 @@ v0.97d-beta5
 -	- Fixed: A disconnecting Linux client doesn't tell the server that he is quitting. [Torr Samaho]
 -	- Fixed crash that would occur when flags/skulls were returned on maps where point (0,0) was an instant return zone. [Carnevil]
 -	- The "actor hits ceiling" sector action now works properly. [Carnevil]
+-	- Fixed glitches that would occur when changing to a map without enough starts for the number of players playing. [Carnevil]
 -	- The reminder that displays when the chat prompt comes up that reminds you that you cannot talk to players/spectators is now affected by text scaling. [Carnevil]
 -	- The dmflag "Don't spawn multiplayer weapons in co-op games" now works properly. [Carnevil]
 -	- Skulltag score pillars now go into the correct frame when the blue team scores a point. [Carnevil]
