@@ -33,6 +33,7 @@ struct RenderContext
 	void (APIENTRY * SetTextureMode) (int type);
 	void (APIENTRY * ArrayPointer) (void * data, int stride);
 	void (APIENTRY * PrintStartupLog) (PrintTextFunc pf);
+#ifdef WIN32
 	BOOL (APIENTRY * SetVSync) (int on);
 	bool (APIENTRY * InitHardware) (HWND, bool allowsoftware, bool nostencil, int multisample, PrintTextFunc pf);
 	void (APIENTRY * Shutdown) ();
@@ -40,7 +41,7 @@ struct RenderContext
 	void (APIENTRY * SetGammaRamp) (void * ramp);
 	BOOL (APIENTRY * GetGammaRamp) (void * ramp);
 	BOOL (APIENTRY * SetFullscreen) (int w, int h, int bits, int hz);
-
+#endif
 
 	void (APIENTRY * Begin) (GLenum mode);
 	void (APIENTRY * End) (void);
@@ -190,47 +191,3 @@ typedef void (APIENTRY * GetContextProc)(RenderContext & gl);
 void APIENTRY GetContext(RenderContext & gl);
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

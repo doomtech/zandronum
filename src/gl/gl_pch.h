@@ -32,7 +32,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <direct.h>
+//#include <direct.h>
 #include <stddef.h>
 #include <string.h>
 #include <ctype.h>
@@ -65,6 +65,12 @@
 #ifndef __WINE__
 #undef DWORD
 #endif
+#else
+typedef unsigned char 	byte;
+typedef float		FLOAT;
+#define max(a,b)	(((a)>(b)) ? (a) : (b))
+#define __cdecl
+#define _access(a,b)	access(a,b)
 #endif
 #include "r_render/r_render.h"
 
