@@ -1508,8 +1508,8 @@ void D_AddSubdirectory (const char *Subdirectory)
 	const char *home = getenv ("HOME");
 	if (home)
 	{
-		sprintf (dirName, "%s%s.zdoom/%s", home,
-			home[strlen(home)-1] == '/' ? "" : "/", Subdirectory);
+		sprintf (dirName, "%s%s.%s/%s", home,
+			home[strlen(home)-1] == '/' ? "" : "/", GAMENAMELOWERCASE, Subdirectory);
 		D_AddDirectory (dirName);
 	}
 

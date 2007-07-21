@@ -329,9 +329,9 @@ FString GetUserFile (const char *file, bool nodir)
 
 	FString path = home;
 	if (path[path.Len()-1] != '/')
-		path += nodir ? "/" : "/.zdoom";
+		path += nodir ? "/" : "/."GAMENAMELOWERCASE;
 	else if (!nodir)
-		path += ".zdoom";
+		path += "."GAMENAMELOWERCASE;
 
 	if (!nodir)
 	{

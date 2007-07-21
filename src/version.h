@@ -98,7 +98,7 @@
 #define FORUM_URL "http://www.skulltag.com/forum/"
 
 #ifdef unix
-#define HOME_DIR "~/.zdoom"
+#define HOME_DIR "~/." GAMENAMELOWERCASE
 #endif
 
 // MINSAVEVER is the minimum level snapshot version that can be loaded.
