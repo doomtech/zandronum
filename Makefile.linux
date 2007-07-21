@@ -5,9 +5,9 @@ CC = apgcc
 NASM ?= nasm
 CCDV = @./ccdv
 ifdef DEBUG
-  CFLAGS ?= -pipe -Wall -Wno-unused -fno-strict-aliasing
+  CFLAGS ?= -pipe -Wall -Wno-unused -Wno-format -fno-strict-aliasing
 else
-  CFLAGS ?= -pipe -Wall -Wno-unused -fno-strict-aliasing -O2 -fomit-frame-pointer
+  CFLAGS ?= -pipe -Wall -Wno-unused -Wno-format -fno-strict-aliasing -O2 -fomit-frame-pointer
   CXXFLAGS ?= -fno-rtti
 endif
 ifdef GC
