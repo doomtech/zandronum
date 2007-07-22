@@ -140,7 +140,10 @@ public:
 	void BeginPlay ();
 };
 
-IMPLEMENT_ABSTRACT_ACTOR (AStackPoint)
+IMPLEMENT_STATELESS_ACTOR(AStackPoint,Any,-1,0)
+	// [BB] This fixes problems with stacked sectors online.
+	PROP_FlagsNetwork( NETFL_UPDATEARGUMENTS )
+END_DEFAULTS
 
 void AStackPoint::BeginPlay ()
 {
