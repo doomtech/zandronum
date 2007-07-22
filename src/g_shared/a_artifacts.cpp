@@ -1590,6 +1590,9 @@ bool ARuneGiver::Use (bool pickup)
 		rune->BlendColor = BlendColor;
 	}
 
+	// [RC] Apply rune icons. For some obscure reason, the bulk of which is in debugger hieroglyphics, only the RuneGivers have icons.
+	rune->Icon = ARuneGiver::Icon;
+
 	rune->ItemFlags |= ItemFlags & IF_ALWAYSPICKUP;
 	if (rune->TryPickup (Owner))
 	{
@@ -1735,6 +1738,8 @@ void ARune::Destroy ()
 
 bool ARune::DrawPowerup (int x, int y)
 {
+/* [RC] Runes are drawn by the HUD.
+
 	if (Icon <= 0)
 	{
 		return false;
@@ -1746,7 +1751,7 @@ bool ARune::DrawPowerup (int x, int y)
 //		DTA_TopOffset, pic->GetHeight()/2,
 //		DTA_LeftOffset, pic->GetWidth()/2,
 		TAG_DONE);
-
+*/
 	return true;
 }
 
