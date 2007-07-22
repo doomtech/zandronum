@@ -763,7 +763,7 @@ void A_FireCGun (AActor *actor)
 	}
 	player->mo->PlayAttacking2 ();
 
-	int theflash = clamp (int(players->psprites[ps_weapon].state - player->ReadyWeapon->AtkState), 0, 1);
+	int theflash = clamp (int(player->psprites[ps_weapon].state - player->ReadyWeapon->AtkState), 0, 1);
 	if (player->ReadyWeapon->FlashState[theflash].sprite.index != player->ReadyWeapon->FlashState->sprite.index)
 	{
 		theflash = 0;
@@ -936,7 +936,7 @@ void A_FireMiniGun( AActor *actor )
 		if ( pWeapon->FlashState != NULL )
 		{
 			// [RH] Fix for Sparky's messed-up Dehacked patch! Blargh!
-			int theflash = clamp (int(players->psprites[ps_weapon].state - pWeapon->AtkState), 0, 1);
+			int theflash = clamp (int(pPlayer->psprites[ps_weapon].state - pWeapon->AtkState), 0, 1);
 
 			if ( pWeapon->FlashState[theflash].sprite.index != pWeapon->FlashState->sprite.index)
 			{
