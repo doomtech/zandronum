@@ -168,6 +168,7 @@ static	void	client_PlayerIsSpectator( BYTESTREAM_s *pByteStream );
 static	void	client_PlayerSay( BYTESTREAM_s *pByteStream );
 static	void	client_PlayerTaunt( BYTESTREAM_s *pByteStream );
 static	void	client_PlayerRespawnInvulnerability( BYTESTREAM_s *pByteStream );
+static	void	client_SetPlayerAmmoCapacity( BYTESTREAM_s *pByteStream );
 
 // Thing functions.
 static	void	client_SpawnThing( BYTESTREAM_s *pByteStream );
@@ -633,12 +634,52 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_UPDATEPLAYEREPENDINGWEAPON",
 	"SVC_USEINVENTORY",
 	"SVC_SETTHINGTID",
+	"SVC_SETPLAYERAMMOCAPACITY",
 
 };
 
 //*****************************************************************************
 //	FUNCTIONS
 
+// [BB] Some helper functions here to reduce the amunt of code duplications.
+// TO-DO: Use them where suitably. As of now they are only used in
+// client_SetPlayerAmmoCapacity
+//*****************************************************************************
+//
+AInventory* FindPlayerInventory( ULONG ulPlayer, const PClass *pType )
+{
+	AInventory		*pInventory;
+	// Try to find this object within the player's personal inventory.
+	pInventory = players[ulPlayer].mo->FindInventory( pType );
+
+	// If the player doesn't have this type, give it to him.
+	if ( pInventory == NULL )
+		pInventory = players[ulPlayer].mo->GiveInventoryType( pType );
+
+	// If he still doesn't have the object after trying to give it to him... then YIKES!
+	if ( pInventory == NULL )
+	{
+#ifdef CLIENT_WARNING_MESSAGES
+		Printf( "EnsurePlayerHasInventory: Failed to give inventory type, %s!\n", pType->TypeName.GetChars( ) );
+#endif
+	}
+	return pInventory;
+}
+
+//*****************************************************************************
+//
+AInventory* FindPlayerInventory( ULONG ulPlayer, const char	*pszName )
+{
+	const PClass	*pType;
+	pType = PClass::FindClass( pszName );
+	if ( pType == NULL )
+		return NULL;
+	else
+		return FindPlayerInventory( ulPlayer, pType );
+}
+
+//*****************************************************************************
+//
 void CLIENT_Construct( void )
 {
     char		*pszPort;
@@ -1638,6 +1679,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_PLAYERRESPAWNINVULNERABILITY:
 
 		client_PlayerRespawnInvulnerability( pByteStream );
+		break;
+	case SVC_SETPLAYERAMMOCAPACITY:
+
+		client_SetPlayerAmmoCapacity( pByteStream );
 		break;
 	case SVC_SPAWNTHING:
 
@@ -4402,6 +4447,42 @@ static void client_PlayerRespawnInvulnerability( BYTESTREAM_s *pByteStream )
 	}
 }
 
+//*****************************************************************************
+//
+static void client_SetPlayerAmmoCapacity( BYTESTREAM_s *pByteStream )
+{
+	ULONG			ulPlayer;
+	char			*pszName;
+	LONG			lMaxAmount;
+	AInventory		*pAmmo;
+
+	// Read in the player ID.
+	ulPlayer = NETWORK_ReadByte( pByteStream );
+
+	// Read in the name of the type of item to give.
+	pszName = NETWORK_ReadString( pByteStream );
+
+	// Read in the amount of this inventory type the player has.
+	lMaxAmount = NETWORK_ReadShort( pByteStream );
+
+	// Check to make sure everything is valid. If not, break out.
+	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
+		return;
+
+	pAmmo = FindPlayerInventory( ulPlayer, pszName );
+
+	if ( pAmmo == NULL )
+		return;
+
+	if ( !(pAmmo->GetClass()->IsDescendantOf (RUNTIME_CLASS(AAmmo))) )
+		return;
+
+	// Set the new maximum amount of the inventory object.
+	pAmmo->MaxAmount = lMaxAmount;
+
+	// Since an item displayed on the HUD may have been given, refresh the HUD.
+	SCOREBOARD_RefreshHUD( );
+}
 //*****************************************************************************
 //
 static void client_SpawnThing( BYTESTREAM_s *pByteStream )

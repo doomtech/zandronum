@@ -4725,6 +4725,9 @@ int DLevelScript::RunScript ()
 						item->MaxAmount = STACK(1);
 						item->Amount = 0;
 					}
+					// [BB] If the activator is a player, tell the clients about the changed capacity.
+					if ( activator->player )
+						SERVERCOMMANDS_SetPlayerAmmoCapacity( activator->player - players, item );
 				}
 			}
 			sp -= 2;
