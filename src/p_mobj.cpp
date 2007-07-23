@@ -4907,7 +4907,14 @@ void P_SpawnBlood (fixed_t x, fixed_t y, fixed_t z, angle_t dir, int damage, AAc
 
 		// [BC] If we're the server, tell clients to spawn the blood.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SpawnThingNoNetID( th );
+		{
+			// [BB] If the bloodcolor is not the standard one, we have to inform the client 
+			// about the correct color.
+			if ( bloodcolor == 0 )
+				SERVERCOMMANDS_SpawnThingNoNetID( th );
+			else
+				SERVERCOMMANDS_SpawnThingNoNetID( th, MAXPLAYERS, 0, true );
+		}
 	}
 
 	if (cl_bloodtype >= 1)

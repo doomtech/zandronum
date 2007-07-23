@@ -145,7 +145,7 @@ bool	CLIENT_ReadPacketHeader( BYTESTREAM_s *pByteStream );
 void	CLIENT_ParsePacket( BYTESTREAM_s *pByteStream, bool bSequencedPacket );
 void	CLIENT_PrintCommand( LONG lCommand );
 void	CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream );
-void	CLIENT_SpawnThing( char *pszName, fixed_t X, fixed_t Y, fixed_t Z, LONG lNetID );
+AActor*	CLIENT_SpawnThing( char *pszName, fixed_t X, fixed_t Y, fixed_t Z, LONG lNetID );
 void	CLIENT_SpawnMissile( char *pszName, fixed_t X, fixed_t Y, fixed_t Z, fixed_t MomX, fixed_t MomY, fixed_t MomZ, LONG lNetID, LONG lTargetNetID );
 void	CLIENT_MoveThing( AActor *pActor, fixed_t X, fixed_t Y, fixed_t Z );
 void	CLIENT_RestoreSpecialPosition( AActor *pActor );

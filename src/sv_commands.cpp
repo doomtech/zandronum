@@ -1196,7 +1196,7 @@ void SERVERCOMMANDS_SpawnThing( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFla
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SpawnThingNoNetID( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SpawnThingNoNetID( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags, bool bSendTranslation )
 {
 	ULONG		ulIdx;
 	const char	*pszName;
@@ -1219,14 +1219,22 @@ void SERVERCOMMANDS_SpawnThingNoNetID( AActor *pActor, ULONG ulPlayerExtra, ULON
 			continue;
 		}
 
-		// [BB] I'm sure it has to be strlen(pszName) here.
-		//SERVER_CheckClientBuffer( ulIdx, 7 + (ULONG)strlen( pActor->GetClass( )->TypeName.GetChars( )), true );
-		SERVER_CheckClientBuffer( ulIdx, 7 + (ULONG)strlen( pszName ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SPAWNTHINGNONETID );
+		// [BB] Take into account if we send the translation or not.
+		ULONG ulSize = 7 + (ULONG)strlen( pszName );
+		if( bSendTranslation )
+			ulSize += 4;
+		SERVER_CheckClientBuffer( ulIdx, ulSize, true );
+		if( bSendTranslation )
+			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SPAWNTHINGWITHTRANSNONETID );
+		else
+			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SPAWNTHINGNONETID );
+
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->x >> FRACBITS );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->y >> FRACBITS );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->z >> FRACBITS );
 		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszName );
+		if( bSendTranslation )
+			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->Translation );
 	}
 }
 

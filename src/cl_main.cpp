@@ -172,7 +172,7 @@ static	void	client_SetPlayerAmmoCapacity( BYTESTREAM_s *pByteStream );
 
 // Thing functions.
 static	void	client_SpawnThing( BYTESTREAM_s *pByteStream );
-static	void	client_SpawnThingNoNetID( BYTESTREAM_s *pByteStream );
+static	void	client_SpawnThingNoNetID( BYTESTREAM_s *pByteStream, bool bReceiveTranslation = false );
 static	void	client_SpawnThingExact( BYTESTREAM_s *pByteStream );
 static	void	client_SpawnThingExactNoNetID( BYTESTREAM_s *pByteStream );
 static	void	client_MoveThing( BYTESTREAM_s *pByteStream );
@@ -635,6 +635,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_USEINVENTORY",
 	"SVC_SETTHINGTID",
 	"SVC_SETPLAYERAMMOCAPACITY",
+	"SVC_SPAWNTHINGWITHTRANSNONETID",
 
 };
 
@@ -1692,6 +1693,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		client_SpawnThingNoNetID( pByteStream );
 		break;
+	case SVC_SPAWNTHINGWITHTRANSNONETID:
+
+		client_SpawnThingNoNetID( pByteStream, true );
+		break;
 	case SVC_SPAWNTHINGEXACT:
 
 		client_SpawnThingExact( pByteStream );
@@ -2294,14 +2299,14 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-void CLIENT_SpawnThing( char *pszName, fixed_t X, fixed_t Y, fixed_t Z, LONG lNetID )
+AActor* CLIENT_SpawnThing( char *pszName, fixed_t X, fixed_t Y, fixed_t Z, LONG lNetID )
 {
 	AActor			*pActor;
 	const PClass	*pType;
 
 	// Only spawn actors if we're actually in a level.
 	if ( gamestate != GS_LEVEL )
-		return;
+		return NULL;
 
 	// Some optimization. For some actors that are sent in bunches, to reduce the size,
 	// just send some key letter that identifies the actor, instead of the full name.
@@ -2340,7 +2345,7 @@ void CLIENT_SpawnThing( char *pszName, fixed_t X, fixed_t Y, fixed_t Z, LONG lNe
 	if ( pType == NULL )
 	{
 		Printf( "CLIENT_SpawnThing: Unknown actor type: %s!\n", pszName );
-		return;
+		return NULL;
 	}
 
 	// Handle sprite/particle display options.
@@ -2356,7 +2361,7 @@ void CLIENT_SpawnThing( char *pszName, fixed_t X, fixed_t Y, fixed_t Z, LONG lNe
 
 		// Just do particles.
 		if ( cl_bloodtype == 2 )
-			return;
+			return NULL;
 	}
 
 	// Now that all checks have been done, spawn the actor.
@@ -2380,6 +2385,7 @@ void CLIENT_SpawnThing( char *pszName, fixed_t X, fixed_t Y, fixed_t Z, LONG lNe
 		if ( invasion )
 			pActor->ulInvasionWave = INVASION_GetCurrentWave( );
 	}
+	return pActor;
 }
 
 //*****************************************************************************
@@ -4510,7 +4516,7 @@ static void client_SpawnThing( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-static void client_SpawnThingNoNetID( BYTESTREAM_s *pByteStream )
+static void client_SpawnThingNoNetID( BYTESTREAM_s *pByteStream, bool bReceiveTranslation )
 {
 	fixed_t			X;
 	fixed_t			Y;
@@ -4526,7 +4532,16 @@ static void client_SpawnThingNoNetID( BYTESTREAM_s *pByteStream )
 	pszName = NETWORK_ReadString( pByteStream );
 
 	// Finally, spawn the thing.
-	CLIENT_SpawnThing( pszName, X, Y, Z, -1 );
+	AActor *pActor = CLIENT_SpawnThing( pszName, X, Y, Z, -1 );
+
+	// [BB] If we are supposed to set the translation, read in the translation
+	// and set it, if we sucessfully spawned the actor.
+	if( bReceiveTranslation )
+	{
+		LONG lTranslation = NETWORK_ReadLong( pByteStream );
+		if( pActor )
+			pActor->Translation = lTranslation;
+	}
 }
 
 //*****************************************************************************
