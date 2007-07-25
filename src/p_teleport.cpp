@@ -658,7 +658,11 @@ static bool DoGroupForOne (AActor *victim, AActor *source, AActor *dest, bool fl
 							0, fog, fog, !fog);
 	// P_Teleport only changes angle if fog is true
 	victim->angle = dest->angle + offAngle;
-
+	// [BB] If we change the angle of a player, we have to inform the client.
+	// For proper demo recording, we inform all clients about the angle of
+	// all players.
+	if( victim->player && NETWORK_GetState() == NETSTATE_SERVER )
+		SERVERCOMMANDS_SetThingAngle( victim );
 	return res;
 }
 

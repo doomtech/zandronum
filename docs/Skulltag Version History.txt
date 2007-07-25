@@ -33,6 +33,7 @@ v0.97d-beta5
 -	- Fixed: The muzzle flash on the chaingun and minigun only works online properly for player one. [Torr Samaho]
 -	- Fixed: Stacked sectors not working properly online. [Torr Samaho]
 -	- Fixed: Changing bloodcolor via DECORATE doesn't work properly online. [Torr Samaho]
+-	- Fixed: Teleport in Sector doesn't tell the clients the correct player angles online. [Torr Samaho]
 !	- You can no longer exit a map during the countdown in survival invasion. [Carnevil]
 
 v0.97d-beta4.1
