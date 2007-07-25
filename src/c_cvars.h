@@ -67,6 +67,9 @@ enum
 
 	// [BC] Cvar is a password; don't display it when typed in the console, etc.
 	CVAR_PASSWORD		= 16384,
+
+	// [BB] Cvar value must be within [0,255], only applies to CVars of type FIntCVar.
+	CVAR_CLAMPINT0255		= 32768,
 };
 
 union UCVarValue

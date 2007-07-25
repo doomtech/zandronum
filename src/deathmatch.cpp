@@ -318,7 +318,7 @@ CCMD( spectate )
 //*****************************************************************************
 //*****************************************************************************
 //
-CUSTOM_CVAR( Int, fraglimit, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK )
+CUSTOM_CVAR( Int, fraglimit, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK | CVAR_CLAMPINT0255 )
 {
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( gamestate != GS_STARTUP ))
 	{
