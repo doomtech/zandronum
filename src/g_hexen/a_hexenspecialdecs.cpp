@@ -11,6 +11,8 @@
 #include "p_local.h"
 #include "p_lnspec.h"
 #include "a_hexenglobal.h"
+#include "network.h"
+#include "sv_commands.h"
 
 static FRandom pr_pottery ("PotteryExplode");
 static FRandom pr_bit ("PotteryChooseBit");
@@ -197,13 +199,25 @@ void A_PotteryExplode (AActor *actor)
 		}
 	}
 	S_Sound (mo, CHAN_BODY, "PotteryExplode", 1, ATTN_NORM);
+
+	// [BC] Don't spawn the item in client mode.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		return;
+
 	if (actor->args[0]>=0 && actor->args[0]<=255 && SpawnableThings[actor->args[0]])
 	{ // Spawn an item
 		if (!(dmflags & DF_NO_MONSTERS) 
 		|| !(GetDefaultByType (SpawnableThings[actor->args[0]])->flags3 & MF3_ISMONSTER))
 		{ // Only spawn monsters if not -nomonsters
-			Spawn (SpawnableThings[actor->args[0]],
+			// [BC]
+			AActor	*pActor;
+
+			pActor = Spawn (SpawnableThings[actor->args[0]],
 				actor->x, actor->y, actor->z, ALLOW_REPLACE);
+
+			// [BC] If we're the server, spawn the thing.
+			if (( pActor ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
+				SERVERCOMMANDS_SpawnThing( pActor );
 		}
 	}
 }

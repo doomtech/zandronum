@@ -11,6 +11,7 @@
 #include "gstrings.h"
 #include "a_hexenglobal.h"
 #include "network.h"
+#include "sv_commands.h"
 
 static FRandom pr_smoke ("MWandSmoke");
 
@@ -201,10 +202,17 @@ void A_MWandAttack (AActor *actor)
 {
 	AActor *mo;
 
-	// [BC] Weapons are handled by the server.
+	// [BC] If we're the client, just play the sound and get out.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	{
+		S_Sound (actor, CHAN_WEAPON, "MageWandFire", 1, ATTN_NORM);
 		return;
+	}
 
 	mo = P_SpawnPlayerMissile (actor, RUNTIME_CLASS(AMageWandMissile));
 	S_Sound (actor, CHAN_WEAPON, "MageWandFire", 1, ATTN_NORM);
+
+	// [BC] If we're the server, play the sound.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_WeaponSound( ULONG( actor->player - players ), "MageWandFire", ULONG( actor->player - players ), SVCF_SKIPTHISCLIENT );
 }

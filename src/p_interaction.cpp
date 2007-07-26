@@ -937,6 +937,18 @@ void AActor::Die (AActor *source, AActor *inflictor)
 		return;
 	}
 
+	// [BC] Tell clients that this thing died.
+	// [BC] We need to move this block a little higher, otherwise things can be destroyed
+	// before we tell the client to kill them.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		// If there isn't a player attached to this object, treat it like a normal thing.
+		if ( player == NULL )
+			SERVERCOMMANDS_KillThing( this );
+		else
+			SERVERCOMMANDS_KillPlayer( ULONG( player - players ), source, inflictor, MeansOfDeath );
+	}
+
 	if (DamageType == MOD_DISINTEGRATE && EDeathState)
 	{ // Electrocution death
 		SetState (EDeathState);
@@ -996,16 +1008,6 @@ void AActor::Die (AActor *source, AActor *inflictor)
 				Destroy();
 			}
 		}
-	}
-
-	// [BC] Tell clients that this thing died.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-	{
-		// If there isn't a player attached to this object, treat it like a normal thing.
-		if ( player == NULL )
-			SERVERCOMMANDS_KillThing( this );
-		else
-			SERVERCOMMANDS_KillPlayer( ULONG( player - players ), source, inflictor, MeansOfDeath );
 	}
 
 	if (( deathmatch || teamgame ) &&

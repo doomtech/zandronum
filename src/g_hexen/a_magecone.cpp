@@ -11,6 +11,7 @@
 #include "gstrings.h"
 #include "a_hexenglobal.h"
 #include "network.h"
+#include "sv_commands.h"
 
 const int SHARDSPAWN_LEFT	= 1;
 const int SHARDSPAWN_RIGHT	= 2;
@@ -177,6 +178,10 @@ void A_FireConePL1 (AActor *actor)
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 		return;
 
+	// [BC] If we're the server, play the sound.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_WeaponSound( ULONG( player - players ), "MageShardsFire", ULONG( player - players ), SVCF_SKIPTHISCLIENT );
+
 	damage = 90+(pr_cone()&15);
 	for (i = 0; i < 16; i++)
 	{
@@ -217,6 +222,10 @@ void A_ShedShard (AActor *actor)
 	int spawndir = actor->special1;
 	int spermcount = actor->special2;
 
+	// [BC] Let the server do this.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		return;
+
 	if (spermcount <= 0) return;				// No sperm left
 	actor->special2 = 0;
 	spermcount--;
@@ -232,6 +241,10 @@ void A_ShedShard (AActor *actor)
 			mo->special2 = spermcount;
 			mo->momz = actor->momz;
 			mo->args[0] = (spermcount==3)?2:0;
+
+			// [BC] Tell clients to spawn the shard.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SpawnMissileExact( mo );
 		}
 	}
 	if (spawndir & SHARDSPAWN_RIGHT)
@@ -244,6 +257,10 @@ void A_ShedShard (AActor *actor)
 			mo->special2 = spermcount;
 			mo->momz = actor->momz;
 			mo->args[0] = (spermcount==3)?2:0;
+
+			// [BC] Tell clients to spawn the shard.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SpawnMissileExact( mo );
 		}
 	}
 	if (spawndir & SHARDSPAWN_UP)
@@ -259,6 +276,10 @@ void A_ShedShard (AActor *actor)
 				mo->special1 = SHARDSPAWN_UP;
 			mo->special2 = spermcount;
 			mo->args[0] = (spermcount==3)?2:0;
+
+			// [BC] Tell clients to spawn the shard.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SpawnMissileExact( mo );
 		}
 	}
 	if (spawndir & SHARDSPAWN_DOWN)
@@ -275,6 +296,10 @@ void A_ShedShard (AActor *actor)
 			mo->special2 = spermcount;
 			mo->target = actor->target;
 			mo->args[0] = (spermcount==3)?2:0;
+
+			// [BC] Tell clients to spawn the shard.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SpawnMissileExact( mo );
 		}
 	}
 }

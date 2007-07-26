@@ -15,8 +15,10 @@ v0.97d-beta5
 ------------
 
 +	- Added the dynamic light definitions for Heretic and Hexen from ZDoomGL. [Torr Samaho]
++	- Rune icons now show up correctly on the fullscreen HUD. [Rivecoder]
 -	- Fixed: Ignoring definitions of already defined decorate actors which use ":" or "replace" didn't work. [Torr Samaho]
 -	- Fixed: After a map change some type of custom weapons are lost on the client side (Fist and NewPistol in KDiZD for example). [Torr Samaho]
+-	- Fixed many problems with Heretic and Hexen during network games. Both games should be quite playable now online! [Carnevil]
 -	- Removed CVAR sv_stay97c3compatible, since beta4 broke network compatibility with 97c3 even with sv_stay97c3compatible set to true. [Torr Samaho]
 -	- When respawn telefragged in LMS and survival games, you no longer instantly respawn when the "Allow instant respawn" compatflag is enabled. [Carnevil]
 -	- The cast pics in the finale are now scaled properly. [Carnevil]

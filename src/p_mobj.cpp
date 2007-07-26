@@ -540,10 +540,13 @@ bool AActor::SetState (FState *newstate)
 			Destroy ();
 			return false;
 		}
+		// [BC] What's this block for? It's currently breaking Heretic's tomed
+		// hellstaff's rain.
+/*
 		// [BB] Dead things should not have positive health.
 		if ( (newstate == DeathState) && (health > 0) )
 			health = 0;
-
+*/
 		int prevsprite, newsprite;
 
 		if (state != NULL)

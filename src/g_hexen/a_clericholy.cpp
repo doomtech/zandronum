@@ -8,6 +8,7 @@
 #include "gstrings.h"
 #include "deathmatch.h"
 #include "network.h"
+#include "sv_commands.h"
 
 #define BLAST_FULLSTRENGTH	255
 
@@ -568,13 +569,21 @@ void A_CHolyAttack (AActor *actor)
 
 	// [BC] Weapons are handled by the server.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	{
+		weapon->CHolyCount = 3;
+		S_Sound (actor, CHAN_WEAPON, "HolySymbolFire", 1, ATTN_NORM);
 		return;
+	}
 
 	AActor * missile = P_SpawnPlayerMissile (actor, RUNTIME_CLASS(AHolyMissile));
 	if (missile != NULL) missile->tracer = linetarget;
 
 	weapon->CHolyCount = 3;
 	S_Sound (actor, CHAN_WEAPON, "HolySymbolFire", 1, ATTN_NORM);
+
+	// [BC] If we're the server, play this sound to clients.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_WeaponSound( ULONG( player - players ), "HolySymbolFire", ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 }
 
 //============================================================================

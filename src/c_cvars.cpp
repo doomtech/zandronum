@@ -60,7 +60,6 @@
 #include "sv_commands.h"
 #include "network.h"
 #include "cl_demo.h"
-#include "templates.h"
 
 struct FLatchedValue
 {
@@ -729,11 +728,7 @@ void FIntCVar::SetGenericRepDefault (UCVarValue value, ECVarType type)
 
 void FIntCVar::DoSet (UCVarValue value, ECVarType type)
 {
-	int newValue = ToInt (value, type);
-	// [BB] Clamp the new value to [0,255] in case CVAR_CLAMPINT0255 is set.
-	if ( Flags & CVAR_CLAMPINT0255 )
-		newValue = clamp<int>(newValue, 0, 255);
-	Value = newValue;
+	Value = ToInt (value, type);
 }
 
 //

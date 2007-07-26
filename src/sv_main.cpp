@@ -2067,7 +2067,7 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 			( pActor->state == &AInventory::States[16] ) ||	// S_HOLDANDDESTROY
 			( pActor->state == &AInventory::States[15] ) || // S_HELD
 			( pActor->ulNetworkFlags & NETFL_ALLOWCLIENTSPAWN ) ||
-			(( pActor->health <= 0 ) && (( pActor->flags & MF_COUNTKILL ) == false ) && ( pActor->InDeathState( ))))
+			(/*( pActor->health <= 0 ) && */(( pActor->flags & MF_COUNTKILL ) == false ) && ( pActor->InDeathState( ))))
 		{
 			continue;
 		}

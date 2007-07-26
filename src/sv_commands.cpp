@@ -1353,7 +1353,7 @@ void SERVERCOMMANDS_MoveThing( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra
 	{ 
 		if ( SERVER_IsValidClient( ulIdx ) == false )
 			continue;
-		
+
 		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
 			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
 		{
@@ -1368,12 +1368,12 @@ void SERVERCOMMANDS_MoveThing( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra
 
 		// Write position.
 		if ( ulBits & CM_X )
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->x >> FRACBITS );				
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->x >> FRACBITS );
 		if ( ulBits & CM_Y )
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->y >> FRACBITS );
 		if ( ulBits & CM_Z )
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->z >> FRACBITS );
-		
+
 		// Write angle.
 		if ( ulBits & CM_ANGLE )
 			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->angle );
@@ -1385,6 +1385,76 @@ void SERVERCOMMANDS_MoveThing( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->momy >> FRACBITS );
 		if ( ulBits & CM_MOMZ )
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->momz >> FRACBITS );
+	}
+}
+
+//*****************************************************************************
+//
+void SERVERCOMMANDS_MoveThingExact( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	ULONG	ulIdx;
+	ULONG	ulSize;
+
+	if ( pActor == NULL )
+		return;
+
+	ulSize = 0;
+	if ( ulBits & CM_X )
+		ulSize += 2;
+	if ( ulBits & CM_Y )
+		ulSize += 2;
+	if ( ulBits & CM_Z )
+		ulSize += 2;
+	if ( ulBits & CM_ANGLE )
+		ulSize += 4;
+	if ( ulBits & CM_MOMX )
+		ulSize += 2;
+	if ( ulBits & CM_MOMY )
+		ulSize += 2;
+	if ( ulBits & CM_MOMZ )
+		ulSize += 2;
+
+	// Nothing to update.
+	if ( ulSize == 0 )
+		return;
+
+	ulSize += 5;
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{ 
+		if ( SERVER_IsValidClient( ulIdx ) == false )
+			continue;
+
+		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
+			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
+		{
+			continue;
+		}
+
+		SERVER_CheckClientBuffer( ulIdx, ulSize, true );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_MOVETHINGEXACT );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
+
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulBits );
+
+		// Write position.
+		if ( ulBits & CM_X )
+			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->x );
+		if ( ulBits & CM_Y )
+			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->y );
+		if ( ulBits & CM_Z )
+			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->z );
+
+		// Write angle.
+		if ( ulBits & CM_ANGLE )
+			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->angle );
+
+		// Write velocity.
+		if ( ulBits & CM_MOMX )
+			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->momx );
+		if ( ulBits & CM_MOMY )
+			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->momy );
+		if ( ulBits & CM_MOMZ )
+			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->momz );
 	}
 }
 
@@ -1771,6 +1841,33 @@ void SERVERCOMMANDS_SetThingSound( AActor *pActor, ULONG ulSound, char *pszSound
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSound );
 		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszSound );
+	}
+}
+
+//*****************************************************************************
+//
+void SERVERCOMMANDS_SetThingSpecial2( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	ULONG	ulIdx;
+
+	if ( pActor == NULL )
+		return;
+
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_IsValidClient( ulIdx ) == false )
+			continue;
+
+		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
+			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
+		{
+			continue;
+		}
+
+		SERVER_CheckClientBuffer( ulIdx, 5, true );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGSPECIAL2 );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->special2 );
 	}
 }
 
@@ -2279,9 +2376,9 @@ void SERVERCOMMANDS_SetGameModeLimits( ULONG ulPlayerExtra, ULONG ulFlags )
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 12, true );
+		SERVER_CheckClientBuffer( ulIdx, 13, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETGAMEMODELIMITS );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fraglimit );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fraglimit );
 		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, timelimit );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pointlimit );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, duellimit );

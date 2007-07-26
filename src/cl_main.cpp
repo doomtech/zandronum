@@ -176,6 +176,7 @@ static	void	client_SpawnThingNoNetID( BYTESTREAM_s *pByteStream, bool bReceiveTr
 static	void	client_SpawnThingExact( BYTESTREAM_s *pByteStream );
 static	void	client_SpawnThingExactNoNetID( BYTESTREAM_s *pByteStream );
 static	void	client_MoveThing( BYTESTREAM_s *pByteStream );
+static	void	client_MoveThingExact( BYTESTREAM_s *pByteStream );
 static	void	client_DamageThing( BYTESTREAM_s *pByteStream );
 static	void	client_KillThing( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingState( BYTESTREAM_s *pByteStream );
@@ -188,6 +189,7 @@ static	void	client_SetThingArguments( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingTranslation( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingProperty( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingSound( BYTESTREAM_s *pByteStream );
+static	void	client_SetThingSpecial2( BYTESTREAM_s *pByteStream );
 static	void	client_SetWeaponAmmoGive( BYTESTREAM_s *pByteStream );
 static	void	client_ThingIsCorpse( BYTESTREAM_s *pByteStream );
 static	void	client_HideThing( BYTESTREAM_s *pByteStream );
@@ -486,6 +488,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SPAWNTHINGEXACT",
 	"SVC_SPAWNTHINGEXACTNONETID",
 	"SVC_MOVETHING",
+	"SVC_MOVETHINGEXACT",
 	"SVC_DAMAGETHING",
 	"SVC_KILLTHING",
 	"SVC_SETTHINGSTATE",
@@ -497,6 +500,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETTHINGTRANSLATION",
 	"SVC_SETTHINGPROPERTY",
 	"SVC_SETTHINGSOUND",
+	"SVC_SETTHINGSPECIAL2",
 	"SVC_SETWEAPONAMMOGIVE",
 	"SVC_THINGISCORPSE",
 	"SVC_HIDETHING",
@@ -1404,33 +1408,35 @@ void CLIENT_ParsePacket( BYTESTREAM_s *pByteStream, bool bSequencedPacket )
 //
 void CLIENT_PrintCommand( LONG lCommand )
 {
+	char	*pszString;
+
 	if ( lCommand >= NUM_SERVER_COMMANDS )
 	{
 		switch ( lCommand )
 		{
 		case CONNECT_CHALLENGE:
 
-			Printf( "CONNECT_CHALLENGE\n" );
+			pszString = "CONNECT_CHALLENGE";
 			break;
 		case CONNECT_READY:
 
-			Printf( "CONNECT_READY\n" );
+			pszString = "CONNECT_READY";
 			break;
 		case CONNECT_GETDATA:
 
-			Printf( "CONNECT_GETDATA\n" );
+			pszString = "CONNECT_GETDATA";
 			break;
 		case CONNECT_QUIT:
 
-			Printf( "CONNECT_QUIT\n" );
+			pszString = "CONNECT_QUIT";
 			break;
 		case CONNECT_AUTHENTICATED:
 
-			Printf( "CONNECT_AUTHENTICATED\n" );
+			pszString = "CONNECT_AUTHENTICATED";
 			break;
 		case CONNECT_AUTHENTICATING:
 
-			Printf( "CONNECT_AUTHENTICATING\n" );
+			pszString = "CONNECT_AUTHENTICATING";
 			break;
 		}
 	}
@@ -1443,8 +1449,13 @@ void CLIENT_PrintCommand( LONG lCommand )
 		if (( cl_showcommands >= 4 ) && ( lCommand == SVC_UPDATEPLAYEREXTRADATA ))
 			return;
 
-		Printf( "%s\n", g_pszHeaderNames[lCommand] );
+		pszString = g_pszHeaderNames[lCommand];
 	}
+
+	Printf( "%s\n", pszString );
+
+	if ( debugfile )
+		fprintf( debugfile, "%s\n", pszString );
 }
 
 //*****************************************************************************
@@ -1709,6 +1720,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		client_MoveThing( pByteStream );
 		break;
+	case SVC_MOVETHINGEXACT:
+
+		client_MoveThingExact( pByteStream );
+		break;
 	case SVC_DAMAGETHING:
 
 		client_DamageThing( pByteStream );
@@ -1756,6 +1771,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETTHINGSOUND:
 
 		client_SetThingSound( pByteStream );
+		break;
+	case SVC_SETTHINGSPECIAL2:
+
+		client_SetThingSpecial2( pByteStream );
 		break;
 	case SVC_SETWEAPONAMMOGIVE:
 
@@ -2403,6 +2422,10 @@ void CLIENT_SpawnMissile( char *pszName, fixed_t X, fixed_t Y, fixed_t Z, fixed_
 	// just send some key letter that identifies the actor, instead of the full name.
 	if ( stricmp( pszName, "1" ) == 0 )
 		pszName = "PlasmaBall";
+
+	// Potentially print the name, position, and network ID of the thing spawning.
+	if ( cl_showspawnnames )
+		Printf( "Name: %s: (%d, %d, %d), %d\n", pszName, X >> FRACBITS, Y >> FRACBITS, Z >> FRACBITS, lNetID );
 
 	// If there's already an actor with the network ID of the thing we're spawning, kill it!
 	pActor = NETWORK_FindThingByNetID( lNetID );
@@ -4654,6 +4677,68 @@ static void client_MoveThing( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
+static void client_MoveThingExact( BYTESTREAM_s *pByteStream )
+{
+	LONG	lID;
+	LONG	lBits;
+	AActor	*pActor;
+	fixed_t	X;
+	fixed_t	Y;
+	fixed_t	Z;
+
+	// Read in the network ID of the thing to update.
+	lID = NETWORK_ReadShort( pByteStream );
+
+	// Read in the data that will be updated.
+	lBits = NETWORK_ReadShort( pByteStream );
+
+	// Try to find the corresponding actor.
+	pActor = NETWORK_FindThingByNetID( lID );
+
+	if (( pActor == NULL ) || gamestate != GS_LEVEL )
+	{
+		// No thing up update; skip the rest of the message.
+		if ( lBits & CM_X ) NETWORK_ReadLong( pByteStream );
+		if ( lBits & CM_Y ) NETWORK_ReadLong( pByteStream );
+		if ( lBits & CM_Z ) NETWORK_ReadLong( pByteStream );
+		if ( lBits & CM_ANGLE ) NETWORK_ReadLong( pByteStream );
+		if ( lBits & CM_MOMX ) NETWORK_ReadLong( pByteStream );
+		if ( lBits & CM_MOMY ) NETWORK_ReadLong( pByteStream );
+		if ( lBits & CM_MOMZ ) NETWORK_ReadLong( pByteStream );
+
+		return;
+	}
+
+	X = pActor->x;
+	Y = pActor->y;
+	Z = pActor->z;
+
+	// Read in the position data.
+	if ( lBits & CM_X )
+		X = NETWORK_ReadLong( pByteStream );
+	if ( lBits & CM_Y )
+		Y = NETWORK_ReadLong( pByteStream );
+	if ( lBits & CM_Z )
+		Z = NETWORK_ReadLong( pByteStream );
+
+	// Update the thing's position.
+	CLIENT_MoveThing( pActor, X, Y, Z );
+
+	// Read in the angle data.
+	if ( lBits & CM_ANGLE )
+		pActor->angle = NETWORK_ReadLong( pByteStream );
+
+	// Read in the momentum data.
+	if ( lBits & CM_MOMX )
+		pActor->momx = NETWORK_ReadLong( pByteStream );
+	if ( lBits & CM_MOMY )
+		pActor->momy = NETWORK_ReadLong( pByteStream );
+	if ( lBits & CM_MOMZ )
+		pActor->momz = NETWORK_ReadLong( pByteStream );
+}
+
+//*****************************************************************************
+//
 static void client_DamageThing( BYTESTREAM_s *pByteStream )
 {
 	LONG		lID;
@@ -5205,6 +5290,34 @@ static void client_SetThingSound( BYTESTREAM_s *pByteStream )
 		Printf( "client_SetThingSound: Unknown sound, %d!\n", ulSound );
 		return;
 	}
+}
+
+//*****************************************************************************
+//
+static void client_SetThingSpecial2( BYTESTREAM_s *pByteStream )
+{
+	LONG	lID;
+	LONG	lSpecial2;
+	AActor	*pActor;
+
+	// Get the ID of the actor whose special2 is being updated.
+	lID = NETWORK_ReadShort( pByteStream );
+
+	// Get the actor's special2.
+	lSpecial2 = NETWORK_ReadShort( pByteStream );
+
+	// Now try to find the corresponding actor.
+	pActor = NETWORK_FindThingByNetID( lID );
+	if ( pActor == NULL )
+	{
+#ifdef CLIENT_WARNING_MESSAGES
+		Printf( "client_SetThingSpecial2: Couldn't find thing: %d\n", lID );
+#endif
+		return;
+	}
+
+	// Set one of the actor's special2.
+	pActor->special2 = lSpecial2;
 }
 
 //*****************************************************************************
@@ -5992,7 +6105,7 @@ static void client_SetGameModeLimits( BYTESTREAM_s *pByteStream )
 	UCVarValue	Value;
 
 	// Read in, and set the value for fraglimit.
-	Value.Int = NETWORK_ReadByte( pByteStream );
+	Value.Int = NETWORK_ReadShort( pByteStream );
 	fraglimit.ForceSet( Value, CVAR_Int );
 
 	// Read in, and set the value for timelimit.

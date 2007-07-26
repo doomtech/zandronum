@@ -15,6 +15,7 @@
 #include "gi.h"
 #include "deathmatch.h"
 #include "network.h"
+#include "sv_commands.h"
 
 static FRandom pr_sap ("StaffAtkPL1");
 static FRandom pr_sap2 ("StaffAtkPL2");
@@ -232,6 +233,10 @@ void A_StaffAttackPL1 (AActor *actor)
 		// turn to face target
 		player->mo->angle = R_PointToAngle2 (player->mo->x,
 			player->mo->y, linetarget->x, linetarget->y);
+
+		// [BC] If we're the server, tell clients to adjust the player's angle.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingAngle( player->mo );
 	}
 }
 
@@ -276,6 +281,10 @@ void A_StaffAttackPL2 (AActor *actor)
 		// turn to face target
 		player->mo->angle = R_PointToAngle2 (player->mo->x,
 			player->mo->y, linetarget->x, linetarget->y);
+
+		// [BC] If we're the server, tell clients to adjust the player's angle.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingAngle( player->mo );
 	}
 }
 
@@ -462,10 +471,10 @@ void A_FireGoldWandPL1 (AActor *actor)
 			return;
 	}
 
-	// [BC] Weapons are handled by the server.
+	// [BC] If we're the client, just play the sound and get out.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 	{
-		S_Sound (player->mo, CHAN_WEAPON, "weapons/wandhit", 1, ATTN_NORM);
+		S_Sound( player->mo, CHAN_WEAPON, "weapons/wandhit", 1, ATTN_NORM );
 		return;
 	}
 
@@ -478,6 +487,10 @@ void A_FireGoldWandPL1 (AActor *actor)
 	}
 	P_LineAttack (mo, angle, PLAYERMISSILERANGE, bulletpitch, damage, MOD_UNKNOWN, RUNTIME_CLASS(AGoldWandPuff1));
 	S_Sound (player->mo, CHAN_WEAPON, "weapons/wandhit", 1, ATTN_NORM);
+
+	// [BC] If we're the server, tell clients that a weapon is being fired.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_WeaponSound( ULONG( player - players ), "weapons/wandhit", ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 }
 
 //----------------------------------------------------------------------------
@@ -494,6 +507,7 @@ void A_FireGoldWandPL2 (AActor *actor)
 	int damage;
 	fixed_t momz;
 	player_t *player;
+	AActor	*pMissile;
 
 	if (NULL == (player = actor->player))
 	{
@@ -508,18 +522,22 @@ void A_FireGoldWandPL2 (AActor *actor)
 			return;
 	}
 
-	// [BC] Weapons are handled by the server.
+	// [BC] If we're the client, just play the sound and get out.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 	{
-		S_Sound (player->mo, CHAN_WEAPON, "weapons/wandhit", 1, ATTN_NORM);
+		S_Sound( player->mo, CHAN_WEAPON, "weapons/wandhit", 1, ATTN_NORM );
 		return;
 	}
 
 	P_BulletSlope (mo);
 	momz = FixedMul (GetDefault<AGoldWandFX2>()->Speed,
 		finetangent[FINEANGLES/4-((signed)bulletpitch>>ANGLETOFINESHIFT)]);
-	P_SpawnMissileAngle (mo, RUNTIME_CLASS(AGoldWandFX2), mo->angle-(ANG45/8), momz);
-	P_SpawnMissileAngle (mo, RUNTIME_CLASS(AGoldWandFX2), mo->angle+(ANG45/8), momz);
+	pMissile = P_SpawnMissileAngle (mo, RUNTIME_CLASS(AGoldWandFX2), mo->angle-(ANG45/8), momz);
+	if ( pMissile )
+		SERVERCOMMANDS_SpawnMissileExact( pMissile );
+	pMissile = P_SpawnMissileAngle (mo, RUNTIME_CLASS(AGoldWandFX2), mo->angle+(ANG45/8), momz);
+	if ( pMissile )
+		SERVERCOMMANDS_SpawnMissileExact( pMissile );
 	angle = mo->angle-(ANG45/8);
 	for(i = 0; i < 5; i++)
 	{
@@ -528,6 +546,10 @@ void A_FireGoldWandPL2 (AActor *actor)
 		angle += ((ANG45/8)*2)/4;
 	}
 	S_Sound (player->mo, CHAN_WEAPON, "weapons/wandhit", 1, ATTN_NORM);
+
+	// [BC] If we're the server, tell clients that a weapon is being fired.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_WeaponSound( ULONG( player - players ), "weapons/wandhit", ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 }
 
 // --- Crossbow -------------------------------------------------------------
@@ -1098,6 +1120,10 @@ void A_SpawnMace (AActor *self)
 		return;
 	}
 
+	// [BC] Let the server respawn this in client mode.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		return;
+
 	TThinkerIterator<AMaceSpawner> iterator;
 	AActor *spot;
 	AMaceSpawner *firstSpot;
@@ -1133,6 +1159,10 @@ void A_SpawnMace (AActor *self)
 		mace->FirstSpot = firstSpot;
 		mace->NumMaceSpots = numspots;
 		mace->DoRespawn ();
+
+		// [BC] If we're the server, spawn the mace for clients.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SpawnThing( mace );
 	}
 }
 
@@ -1200,6 +1230,14 @@ void A_FireMacePL1B (AActor *actor)
 	ball->momx = (pmo->momx>>1)+FixedMul(ball->Speed, finecosine[angle]);
 	ball->momy = (pmo->momy>>1)+FixedMul(ball->Speed, finesine[angle]);
 	S_Sound (ball, CHAN_BODY, "weapons/maceshoot", 1, ATTN_NORM);
+
+	// [BC] If we're the server, spawn the ball and play the sound.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		SERVERCOMMANDS_SpawnMissileExact( ball );
+		SERVERCOMMANDS_SoundActor( ball, CHAN_BODY, "weapons/maceshoot", 127, ATTN_NORM );
+	}
+
 	P_CheckMissileSpawn (ball);
 }
 
@@ -1253,6 +1291,10 @@ void A_FireMacePL1 (AActor *actor)
 
 void A_MacePL1Check (AActor *ball)
 {
+	// [BC] Let the server handle this.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		return;
+
 	if (ball->special1 == 0)
 	{
 		return;
@@ -1278,6 +1320,14 @@ void A_MacePL1Check (AActor *ball)
 	ball->momy = (int)(ball->momy * momscale);
 #endif
 	ball->momz -= ball->momz>>1;
+
+	// [BC] If we're the server, tell clients to move the object.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		SERVERCOMMANDS_SetThingFlags( ball, FLAGSET_FLAGS );
+		SERVERCOMMANDS_SetThingFlags( ball, FLAGSET_FLAGS2 );
+		SERVERCOMMANDS_MoveThingExact( ball, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -1288,6 +1338,16 @@ void A_MacePL1Check (AActor *ball)
 
 void A_MaceBallImpact (AActor *ball)
 {
+	// [BC] Let the server handle this.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	{
+		// We need to make sure the ball doesn't temporary go into it's death frame.
+		if ( ball->flags & MF_INBOUNCE )
+			ball->SetState (ball->SpawnState);
+
+		return;
+	}
+
 	if ((ball->health != MAGIC_JUNK) && (ball->flags & MF_INBOUNCE))
 	{ // Bounce
 		ball->health = MAGIC_JUNK;
@@ -1295,6 +1355,15 @@ void A_MaceBallImpact (AActor *ball)
 		ball->flags2 &= ~MF2_BOUNCETYPE;
 		ball->SetState (ball->SpawnState);
 		S_Sound (ball, CHAN_BODY, "weapons/macebounce", 1, ATTN_NORM);
+
+		// [BC] If we're the server, tell clients to move the object.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			SERVERCOMMANDS_SetThingFlags( ball, FLAGSET_FLAGS2 );
+			SERVERCOMMANDS_SetThingState( ball, STATE_SPAWN );
+			SERVERCOMMANDS_MoveThingExact( ball, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
+			SERVERCOMMANDS_SoundActor( ball, CHAN_BODY, "weapons/macebounce", 127, ATTN_NORM );
+		}
 	}
 	else
 	{ // Explode
@@ -1302,6 +1371,15 @@ void A_MaceBallImpact (AActor *ball)
 		ball->flags |= MF_NOGRAVITY;
 		ball->flags2 &= ~MF2_LOGRAV;
 		S_Sound (ball, CHAN_BODY, "weapons/macehit", 1, ATTN_NORM);
+
+		// [BC] If we're the server, tell clients to move the object.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			SERVERCOMMANDS_SetThingFlags( ball, FLAGSET_FLAGS );
+			SERVERCOMMANDS_SetThingFlags( ball, FLAGSET_FLAGS2 );
+			SERVERCOMMANDS_MoveThingExact( ball, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
+			SERVERCOMMANDS_SoundActor( ball, CHAN_BODY, "weapons/macebounce", 127, ATTN_NORM );
+		}
 	}
 }
 
@@ -1315,6 +1393,31 @@ void A_MaceBallImpact2 (AActor *ball)
 {
 	AActor *tiny;
 	angle_t angle;
+
+	// [BC] Let the server handle this.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	{
+		// We need to make sure the ball doesn't temporary go into it's death frame.
+		if ( ball->flags & MF_INBOUNCE )
+		{
+			fixed_t floordist = ball->z - ball->floorz;
+			fixed_t ceildist = ball->ceilingz - ball->z;
+			fixed_t vel;
+
+			if (floordist <= ceildist)
+			{
+				vel = MulScale32 (ball->momz, ball->Sector->floorplane.c);
+			}
+			else
+			{
+				vel = MulScale32 (ball->momz, ball->Sector->ceilingplane.c);
+			}
+			if (vel >= 2)
+				ball->SetState (ball->SpawnState);
+		}
+
+		return;
+	}
 
 	if (ball->flags & MF_INBOUNCE)
 	{
@@ -1339,6 +1442,10 @@ void A_MaceBallImpact2 (AActor *ball)
 		ball->momz = (ball->momz * 192) >> 8;
 		ball->SetState (ball->SpawnState);
 
+		// [BC] If we're the server, send the state change and move it.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_MoveThingExact( ball, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
+
 		tiny = Spawn<AMaceFX3> (ball->x, ball->y, ball->z, ALLOW_REPLACE);
 		angle = ball->angle+ANG90;
 		tiny->target = ball->target;
@@ -1349,6 +1456,11 @@ void A_MaceBallImpact2 (AActor *ball)
 		tiny->momy = (ball->momy>>1)+FixedMul(ball->momz-FRACUNIT,
 			finesine[angle]);
 		tiny->momz = ball->momz;
+
+		// [BC] If we're the server, spawn this missile.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SpawnMissileExact( tiny );
+
 		P_CheckMissileSpawn (tiny);
 
 		tiny = Spawn<AMaceFX3> (ball->x, ball->y, ball->z, ALLOW_REPLACE);
@@ -1361,6 +1473,11 @@ void A_MaceBallImpact2 (AActor *ball)
 		tiny->momy = (ball->momy>>1)+FixedMul(ball->momz-FRACUNIT,
 			finesine[angle]);
 		tiny->momz = ball->momz;
+
+		// [BC] If we're the server, spawn this missile.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SpawnMissileExact( tiny );
+
 		P_CheckMissileSpawn (tiny);
 	}
 	else
@@ -1369,6 +1486,15 @@ boom:
 		ball->momx = ball->momy = ball->momz = 0;
 		ball->flags |= MF_NOGRAVITY;
 		ball->flags2 &= ~(MF2_LOGRAV|MF2_BOUNCETYPE);
+
+		// [BC] If we're the server, tell clients to move the object.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			SERVERCOMMANDS_SetThingState( ball, STATE_DEATH );
+			SERVERCOMMANDS_MoveThingExact( ball, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
+			SERVERCOMMANDS_SetThingFlags( ball, FLAGSET_FLAGS );
+			SERVERCOMMANDS_SetThingFlags( ball, FLAGSET_FLAGS2 );
+		}
 	}
 }
 
@@ -1395,9 +1521,12 @@ void A_FireMacePL2 (AActor *actor)
 			return;
 	}
 
-	// [BC] Weapons are handled by the server.
+	// [BC] If we're the client, play the sound and get out.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	{
+		S_Sound( player->mo, CHAN_WEAPON, "weapons/maceshoot", 1, ATTN_NORM );
 		return;
+	}
 
 	mo = P_SpawnPlayerMissile (player->mo, RUNTIME_CLASS(AMaceFX4));
 	if (mo)
@@ -1412,6 +1541,13 @@ void A_FireMacePL2 (AActor *actor)
 		}
 	}
 	S_Sound (player->mo, CHAN_WEAPON, "weapons/maceshoot", 1, ATTN_NORM);
+
+	// [BC] If we're the server, play the sound.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		SERVERCOMMANDS_MoveThingExact( mo, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
+		SERVERCOMMANDS_WeaponSound( ULONG( player - players ), "weapons/maceshoot", ULONG( player - players ), SVCF_SKIPTHISCLIENT );
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -1426,6 +1562,31 @@ void A_DeathBallImpact (AActor *ball)
 	AActor *target;
 	angle_t angle = 0;
 	bool newAngle;
+
+	// [BC] Let the server handle this.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	{
+		// We need to make sure the ball doesn't temporary go into it's death frame.
+		if ( ball->flags & MF_INBOUNCE )
+		{
+			fixed_t floordist = ball->z - ball->floorz;
+			fixed_t ceildist = ball->ceilingz - ball->z;
+			fixed_t vel;
+
+			if (floordist <= ceildist)
+			{
+				vel = MulScale32 (ball->momz, ball->Sector->floorplane.c);
+			}
+			else
+			{
+				vel = MulScale32 (ball->momz, ball->Sector->ceilingplane.c);
+			}
+			if (vel >= 2)
+				ball->SetState (ball->SpawnState);
+		}
+
+		return;
+	}
 
 	if ((ball->z <= ball->floorz) && P_HitFloor (ball))
 	{ // Landed in some sort of liquid
@@ -1493,6 +1654,13 @@ void A_DeathBallImpact (AActor *ball)
 		}
 		ball->SetState (ball->SpawnState);
 		S_Sound (ball, CHAN_BODY, "weapons/macestop", 1, ATTN_NORM);
+
+		// [BC] If we're the server, send the state change and move it.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			SERVERCOMMANDS_MoveThingExact( ball, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
+			SERVERCOMMANDS_SoundActor( ball, CHAN_BODY, "weapons/macestop", 127, ATTN_NORM );
+		}
 	}
 	else
 	{ // Explode
@@ -1501,6 +1669,16 @@ boom:
 		ball->flags |= MF_NOGRAVITY;
 		ball->flags2 &= ~MF2_LOGRAV;
 		S_Sound (ball, CHAN_BODY, "weapons/maceexplode", 1, ATTN_NORM);
+
+		// [BC] If we're the server, do some stuff.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			SERVERCOMMANDS_SetThingState( ball, STATE_DEATH );
+			SERVERCOMMANDS_MoveThing( ball, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
+			SERVERCOMMANDS_SetThingFlags( ball, FLAGSET_FLAGS );
+			SERVERCOMMANDS_SetThingFlags( ball, FLAGSET_FLAGS2 );
+			SERVERCOMMANDS_SoundActor( ball, CHAN_BODY, "weapons/maceexplode", 127, ATTN_NORM );
+		}
 	}
 }
 
@@ -1712,6 +1890,11 @@ void A_GauntletAttack (AActor *actor)
 		{
 			player->extralight = !player->extralight;
 		}
+
+		// [BC] If we're the server, tell clients that a weapon is being fired.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_WeaponSound( ULONG( player - players ), "weapons/gauntletson", ULONG( player - players ), SVCF_SKIPTHISCLIENT );
+
 		S_Sound (player->mo, CHAN_AUTO, "weapons/gauntletson", 1, ATTN_NORM);
 		return;
 	}
@@ -1731,10 +1914,23 @@ void A_GauntletAttack (AActor *actor)
 	if (power)
 	{
 		P_GiveBody (player->mo, damage>>1);
+
+		// [BC] If we're the server, tell clients that a weapon is being fired, and send out
+		// the health change.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			SERVERCOMMANDS_SetPlayerHealth( ULONG( player - players ));
+			SERVERCOMMANDS_WeaponSound( ULONG( player - players ), "weapons/gauntletspowhit", ULONG( player - players ), SVCF_SKIPTHISCLIENT );
+		}
+
 		S_Sound (player->mo, CHAN_AUTO, "weapons/gauntletspowhit", 1, ATTN_NORM);
 	}
 	else
 	{
+		// [BC] If we're the server, tell clients that a weapon is being fired.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_WeaponSound( ULONG( player - players ), "weapons/gauntletshit", ULONG( player - players ), SVCF_SKIPTHISCLIENT );
+
 		S_Sound (player->mo, CHAN_AUTO, "weapons/gauntletshit", 1, ATTN_NORM);
 	}
 	// turn to face target
@@ -1755,6 +1951,10 @@ void A_GauntletAttack (AActor *actor)
 			player->mo->angle += ANG90/20;
 	}
 	player->mo->flags |= MF_JUSTATTACKED;
+
+	// [BC] If we're the server, tell clients to adjust the player's angle.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SetThingAngle( actor );
 }
 
 // --- Blaster (aka Claw) ---------------------------------------------------
@@ -2023,9 +2223,12 @@ void A_FireBlasterPL1 (AActor *actor)
 			return;
 	}
 
-	// [BC] Weapons are handled by the server.
+	// [BC] If we're the client, just play the sound and get out.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	{
+		S_Sound( player->mo, CHAN_WEAPON, "weapons/blastershoot", 1, ATTN_NORM );
 		return;
+	}
 
 	P_BulletSlope(actor);
 	damage = pr_fb1.HitDice (4);
@@ -2036,6 +2239,10 @@ void A_FireBlasterPL1 (AActor *actor)
 	}
 	P_LineAttack (actor, angle, PLAYERMISSILERANGE, bulletpitch, damage, MOD_UNKNOWN, RUNTIME_CLASS(ABlasterPuff));
 	S_Sound (actor, CHAN_WEAPON, "weapons/blastershoot", 1, ATTN_NORM);
+
+	// [BC] If we're the server, tell clients that a weapon is being fired.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_WeaponSound( ULONG( player - players ), "weapons/blastershoot", ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 }
 
 //----------------------------------------------------------------------------
@@ -2061,12 +2268,19 @@ void A_FireBlasterPL2 (AActor *actor)
 			return;
 	}
 
-	// [BC] Weapons are handled by the server.
+	// [BC] If we're the client, just play the sound and get out.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	{
+		S_Sound( player->mo, CHAN_WEAPON, "weapons/blastershoot", 1, ATTN_NORM );
 		return;
+	}
 
 	mo = P_SpawnPlayerMissile (actor, RUNTIME_CLASS(ABlasterFX1));
 	S_Sound (mo, CHAN_WEAPON, "weapons/blastershoot", 1, ATTN_NORM);
+
+	// [BC] If we're the server, tell clients that a weapon is being fired.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_WeaponSound( ULONG( player - players ), "weapons/blastershoot", ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 }
 
 //----------------------------------------------------------------------------
@@ -2485,6 +2699,10 @@ void A_FireSkullRodPL2 (AActor *actor)
 			MissileActor->tracer = linetarget;
 		}
 		S_Sound (MissileActor, CHAN_WEAPON, "weapons/hornrodpowshoot", 1, ATTN_NORM);
+
+		// [BC] If we're the server, play this sound.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SoundActor( MissileActor, CHAN_WEAPON, "weapons/hornrodpowshoot", 127, ATTN_NORM );
 	}
 }
 
@@ -2508,6 +2726,10 @@ void A_SkullRodPL2Seek (AActor *actor)
 void A_AddPlayerRain (AActor *actor)
 {
 	ARainTracker *tracker;
+
+	// [BC] Let the server spawn rain.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		return;
 
 	if (actor->target == NULL || actor->target->health <= 0)
 	{ // Shooter is dead or nonexistant
@@ -2971,6 +3193,17 @@ void A_FirePhoenixPL2 (AActor *actor)
 		S_StopSound (player->mo, CHAN_WEAPON);
 		return;
 	}
+
+	// [BC] If we're the client, just play the sound and get out.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	{
+		if (!player->refire || !S_IsActorPlayingSomething (player->mo, CHAN_WEAPON, -1))
+		{
+			S_LoopedSoundID (player->mo, CHAN_WEAPON, soundid, 1, ATTN_NORM);
+		}
+		return;
+	}
+
 	pmo = player->mo;
 	angle = pmo->angle;
 	x = pmo->x + (pr_fp2.Random2() << 9);
@@ -2987,7 +3220,12 @@ void A_FirePhoenixPL2 (AActor *actor)
 	if (!player->refire || !S_IsActorPlayingSomething (pmo, CHAN_WEAPON, -1))
 	{
 		S_LoopedSoundID (pmo, CHAN_WEAPON, soundid, 1, ATTN_NORM);
-	}	
+	}
+
+	// [BC] If we're the server, spawn this missile.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SpawnMissile( mo );
+
 	P_CheckMissileSpawn (mo);
 }
 

@@ -5,6 +5,8 @@
 #include "p_enemy.h"
 #include "a_action.h"
 #include "m_random.h"
+#include "network.h"
+#include "sv_commands.h"
 
 #define FIREDEMON_ATTACK_RANGE	64*8*FRACUNIT
 
@@ -351,6 +353,10 @@ void A_FiredSpawnRock (AActor *actor)
 	int x,y,z;
 	const PClass *rtype;
 
+	// [BC] Let the server handle this.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		return;
+
 	switch (pr_firedemonrock() % 5)
 	{
 		case 0:
@@ -382,6 +388,13 @@ void A_FiredSpawnRock (AActor *actor)
 		mo->momy = (pr_firedemonrock() - 128) <<10;
 		mo->momz = (pr_firedemonrock() << 10);
 		mo->special1 = 2;		// Number bounces
+
+		// [BC] If we're the server, tell clients to spawn this.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			SERVERCOMMANDS_SpawnThing( mo );
+			SERVERCOMMANDS_MoveThingExact( mo, CM_MOMX|CM_MOMY|CM_MOMZ );
+		}
 	}
 
 	// Initialize fire demon
@@ -412,10 +425,24 @@ void A_SmBounce (AActor *actor)
 
 void A_FiredAttack (AActor *actor)
 {
+	// [BC] Let the server do this.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		return;
+
 	if (actor->target == NULL)
 		return;
 	AActor *mo = P_SpawnMissile (actor, actor->target, RUNTIME_CLASS(AFireDemonMissile));
-	if (mo) S_Sound (actor, CHAN_BODY, "FireDemonAttack", 1, ATTN_NORM);
+	if (mo)
+	{
+		S_Sound (actor, CHAN_BODY, "FireDemonAttack", 1, ATTN_NORM);
+
+		// [BC] If we're the server, spawn this and make the sound for clients.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			SERVERCOMMANDS_SpawnMissile( mo );
+			SERVERCOMMANDS_SoundActor( actor, CHAN_BODY, "FireDemonAttack", 127, ATTN_NORM );
+		}
+	}
 }
 
 //============================================================================
@@ -430,6 +457,18 @@ void A_FiredChase (AActor *actor)
 	AActor *target = actor->target;
 	angle_t ang;
 	fixed_t dist;
+
+	// [BC] Let the server do this.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	{
+		// make active sound
+		if (pr_firedemonchase() < 3)
+		{
+			actor->PlayActiveSound ();
+		}
+
+		return;
+	}
 
 	if (actor->reactiontime) actor->reactiontime--;
 	if (actor->threshold) actor->threshold--;
@@ -495,6 +534,10 @@ void A_FiredChase (AActor *actor)
 		{
 			actor->SetState (actor->MissileState);
 			actor->flags |= MF_JUSTATTACKED;
+
+			// [BC] If we're the server, tell clients to change this monster's state.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingState( actor, STATE_MISSILE );
 			return;
 		}
 	}

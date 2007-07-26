@@ -11,6 +11,7 @@
 #include "gstrings.h"
 #include "a_hexenglobal.h"
 #include "network.h"
+#include "sv_commands.h"
 
 #define ZAGSPEED	FRACUNIT
 
@@ -353,6 +354,10 @@ void A_LightningReady (AActor *actor)
 	if (pr_lightningready() < 160)
 	{
 		S_Sound (actor, CHAN_WEAPON, "MageLightningReady", 1, ATTN_NORM);
+
+		// [BC] If we're the server, play sound for clients.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_WeaponSound( ULONG( actor->player - players ), "MageLightningReady", ULONG( actor->player - players ), SVCF_SKIPTHISCLIENT );
 	}
 }
 
@@ -485,7 +490,10 @@ void A_MLightningAttack2 (AActor *actor)
 
 	// [BC] Weapons are handled by the server.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	{
+		S_Sound (actor, CHAN_BODY, "MageLightningFire", 1, ATTN_NORM);
 		return;
+	}
 
 	fmo = P_SpawnPlayerMissile (actor, RUNTIME_CLASS(ALightningFloor));
 	cmo = P_SpawnPlayerMissile (actor, RUNTIME_CLASS(ALightningCeiling));
@@ -502,6 +510,10 @@ void A_MLightningAttack2 (AActor *actor)
 		A_LightningZap (cmo);	
 	}
 	S_Sound (actor, CHAN_BODY, "MageLightningFire", 1, ATTN_NORM);
+
+	// [BC] If we're the server, play sound for clients.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_WeaponSound( ULONG( actor->player - players ), "MageLightningFire", ULONG( actor->player - players ), SVCF_SKIPTHISCLIENT );
 }
 
 //============================================================================

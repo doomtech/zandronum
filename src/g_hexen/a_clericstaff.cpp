@@ -11,6 +11,7 @@
 #include "gstrings.h"
 #include "a_hexenglobal.h"
 #include "network.h"
+#include "sv_commands.h"
 
 static FRandom pr_staffcheck ("CStaffCheck");
 static FRandom pr_blink ("CStaffBlink");
@@ -190,6 +191,10 @@ void A_CStaffCheck (AActor *actor)
 	int i;
 	player_t *player;
 
+	// [BC] Don't do this in client mode.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		return;
+
 	if (NULL == (player = actor->player))
 	{
 		return;
@@ -269,12 +274,19 @@ void A_CStaffAttack (AActor *actor)
 
 	// [BC] Weapons are handled by the server.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	{
+		S_Sound (actor, CHAN_WEAPON, "ClericCStaffFire", 1, ATTN_NORM);
 		return;
+	}
 
 	mo = P_SpawnPlayerMissile (actor, RUNTIME_CLASS(ACStaffMissile), actor->angle-(ANG45/15));
 	if (mo)
 	{
 		mo->special2 = 32;
+
+		// [BC] Clients need to have this information.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingSpecial2( mo );
 	}
 	mo = P_SpawnPlayerMissile (actor, RUNTIME_CLASS(ACStaffMissile), actor->angle+(ANG45/15));
 	if (mo)
@@ -282,6 +294,10 @@ void A_CStaffAttack (AActor *actor)
 		mo->special2 = 0;
 	}
 	S_Sound (actor, CHAN_WEAPON, "ClericCStaffFire", 1, ATTN_NORM);
+
+	// [BC] If we're the server, play the sound for clients.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_WeaponSound( ULONG( player - players ), "ClericCStaffFire", ULONG( player - players ));
 }
 
 //============================================================================

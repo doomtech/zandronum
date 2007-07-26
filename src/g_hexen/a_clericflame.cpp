@@ -11,6 +11,7 @@
 #include "gstrings.h"
 #include "a_hexenglobal.h"
 #include "network.h"
+#include "sv_commands.h"
 
 const fixed_t FLAMESPEED	= fixed_t(0.45*FRACUNIT);
 const fixed_t CFLAMERANGE	= 12*64*FRACUNIT;
@@ -394,10 +395,17 @@ void A_CFlameAttack (AActor *actor)
 
 	// [BC] Weapons are handled by the server.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	{
+		S_Sound (actor, CHAN_WEAPON, "ClericFlameFire", 1, ATTN_NORM);
 		return;
+	}
 
 	P_SpawnPlayerMissile (actor, RUNTIME_CLASS(ACFlameMissile));
 	S_Sound (actor, CHAN_WEAPON, "ClericFlameFire", 1, ATTN_NORM);
+
+	// [BC] If we're the server, tell other clients to make the sound.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_WeaponSound( ULONG( player - players ), "ClericFlameFire", ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 }
 
 //============================================================================
@@ -430,6 +438,11 @@ void A_CFlameMissile (AActor *actor)
 	
 	A_UnHideThing (actor);
 	S_Sound (actor, CHAN_BODY, "ClericFlameExplode", 1, ATTN_NORM);
+
+	// [BC] Let the server handle this.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		return;
+
 	if (BlockingMobj && BlockingMobj->flags&MF_SHOOTABLE)
 	{ // Hit something, so spawn the flame circle around the thing
 		dist = BlockingMobj->radius+18*FRACUNIT;
@@ -447,6 +460,10 @@ void A_CFlameMissile (AActor *actor)
 				mo->momx = mo->special1 = FixedMul(FLAMESPEED, finecosine[an]);
 				mo->momy = mo->special2 = FixedMul(FLAMESPEED, finesine[an]);
 				mo->tics -= pr_missile()&3;
+
+				// [BC] If we're the server, spawn this to clients.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_SpawnThingExact( mo );
 			}
 			mo = Spawn<ACircleFlame> (BlockingMobj->x-FixedMul(dist, finecosine[an]),
 				BlockingMobj->y-FixedMul(dist, finesine[an]), 
@@ -458,6 +475,10 @@ void A_CFlameMissile (AActor *actor)
 				mo->momx = mo->special1 = FixedMul(-FLAMESPEED, finecosine[an]);
 				mo->momy = mo->special2 = FixedMul(-FLAMESPEED, finesine[an]);
 				mo->tics -= pr_missile()&3;
+
+				// [BC] If we're the server, spawn this to clients.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_SpawnThingExact( mo );
 			}
 		}
 		actor->SetState (&AFlamePuff2::States[0]);
