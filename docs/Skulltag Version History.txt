@@ -38,6 +38,7 @@ v0.97d-beta5
 -	- Fixed: Stacked sectors not working properly online. [Torr Samaho]
 -	- Fixed: Changing bloodcolor via DECORATE doesn't work properly online. [Torr Samaho]
 -	- Fixed: Teleport in Sector doesn't tell the clients the correct player angles online. [Torr Samaho]
+-	- Fixed: ASkyViewpoint and ASkyPicker not working properly online. [Torr Samaho]
 !	- You can no longer exit a map during the countdown in survival invasion. [Carnevil]
 
 v0.97d-beta4.1

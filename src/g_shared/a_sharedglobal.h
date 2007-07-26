@@ -154,7 +154,7 @@ class ASkyViewpoint : public AActor
 	DECLARE_STATELESS_ACTOR (ASkyViewpoint, AActor)
 public:
 	void Serialize (FArchive &arc);
-	void BeginPlay ();
+	void PostBeginPlay ();
 	bool bInSkybox;
 	bool bAlways;
 	ASkyViewpoint *Mate;

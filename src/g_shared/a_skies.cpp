@@ -35,6 +35,7 @@
 #include "actor.h"
 #include "a_sharedglobal.h"
 #include "p_local.h"
+#include "network.h"
 
 // arg0 = Visibility*4 for this skybox
 
@@ -44,9 +45,11 @@ IMPLEMENT_STATELESS_ACTOR (ASkyViewpoint, Any, 9080, 0)
 END_DEFAULTS
 
 // If this actor has no TID, make it the default sky box
-void ASkyViewpoint::BeginPlay ()
+// [BB] The clients don't know the TIDs yet when calling
+// BeginPlay, so we have to do the following in PostBeginPlay.
+void ASkyViewpoint::PostBeginPlay ()
 {
-	Super::BeginPlay ();
+	Super::PostBeginPlay ();
 
 	if (tid == 0)
 	{
@@ -92,6 +95,7 @@ public:
 IMPLEMENT_STATELESS_ACTOR (ASkyPicker, Any, 9081, 0)
 	PROP_Flags (MF_NOBLOCKMAP|MF_NOSECTOR|MF_NOGRAVITY)
 	PROP_Flags3 (MF3_DONTSPLASH)
+	PROP_FlagsNetwork( NETFL_UPDATEARGUMENTS )
 END_DEFAULTS
 
 void ASkyPicker::PostBeginPlay ()
@@ -125,7 +129,10 @@ void ASkyPicker::PostBeginPlay ()
 			Sector->FloorSkyBox = box;
 		}
 	}
-	Destroy ();
+	// [BB] The server may not destroy the SkyPicker, otherwise he can't
+	// inform the client about it during a full update.
+	if( NETWORK_GetState() != NETSTATE_SERVER )
+		Destroy ();
 }
 
 //---------------------------------------------------------------------------
