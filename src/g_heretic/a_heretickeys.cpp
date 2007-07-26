@@ -30,6 +30,8 @@ IMPLEMENT_ACTOR (AKeyGizmo, Heretic, -1, 0)
 	PROP_Flags (MF_SOLID)
 
 	PROP_SpawnState (0)
+	// [BC]
+	PROP_FlagsNetwork( NETFL_ALLOWCLIENTSPAWN )
 END_DEFAULTS
 
 class AKeyGizmoFloat : public AActor
