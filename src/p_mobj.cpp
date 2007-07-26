@@ -537,6 +537,20 @@ bool AActor::SetState (FState *newstate)
 		if (newstate == NULL)
 		{
 			state = NULL;
+
+			// [BC] If we're playing a game mode in which the map resets, and this is something
+			// that is level spawned, don't destroy it. Instead, put it in a temporary invisibile
+			// state.
+			if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_MAPRESETS ) &&
+				( ulSTFlags & STFL_LEVELSPAWNED ) &&
+				( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+			{
+				renderflags |= RF_INVISIBLE;
+				flags &= ~MF_SOLID;
+				SetState( &AInventory::States[17] );
+				return ( false );
+			}
+
 			Destroy ();
 			return false;
 		}

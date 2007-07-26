@@ -19,6 +19,7 @@ v0.97d-beta5
 -	- Fixed: Ignoring definitions of already defined decorate actors which use ":" or "replace" didn't work. [Torr Samaho]
 -	- Fixed: After a map change some type of custom weapons are lost on the client side (Fist and NewPistol in KDiZD for example). [Torr Samaho]
 -	- Fixed many problems with Heretic and Hexen during network games. Both games should be quite playable now online! [Carnevil]
+-	- Monsters that do not leave a corpse now respawn properly in survival co-op. [Carnevil]
 -	- Removed CVAR sv_stay97c3compatible, since beta4 broke network compatibility with 97c3 even with sv_stay97c3compatible set to true. [Torr Samaho]
 -	- When respawn telefragged in LMS and survival games, you no longer instantly respawn when the "Allow instant respawn" compatflag is enabled. [Carnevil]
 -	- The cast pics in the finale are now scaled properly. [Carnevil]
