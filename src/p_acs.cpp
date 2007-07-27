@@ -5381,6 +5381,9 @@ int DLevelScript::RunScript ()
 			if (STACK(2) == 0)
 			{
 				activator->angle = STACK(1) << 16;
+				// [BB] Tell the clients about the changed angle.
+				if( NETWORK_GetState() == NETSTATE_SERVER )
+					SERVERCOMMANDS_SetThingAngle( activator );
 			}
 			else
 			{
@@ -5390,6 +5393,10 @@ int DLevelScript::RunScript ()
 				while ( (actor = iterator.Next ()) )
 				{
 					actor->angle = STACK(1) << 16;
+					// [BB] Tell the clients about the changed angle.
+					// This fixes the "rave room" in SPACEDM5.wad.
+					if( NETWORK_GetState() == NETSTATE_SERVER )
+						SERVERCOMMANDS_SetThingAngle( actor );
 				}
 			}
 			sp -= 2;
