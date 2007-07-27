@@ -46,6 +46,7 @@ v0.97d-beta5
 -	- Fixed: Teleport in Sector doesn't tell the clients the correct player angles online. [Torr Samaho]
 -	- Fixed: ASkyViewpoint and ASkyPicker not working properly online. [Torr Samaho]
 -	- Fixed: If the ACS function SetActorAngle is called on a server, the clients are not notified about the updated angle. [Torr Samaho]
+-	- Changed: If the CCMD changemus is called on the server, the music is changed on all clients now. [Torr Samaho]
 !	- You can no longer exit a map during the countdown in survival invasion. [Carnevil]
 
 v0.97d-beta4.1

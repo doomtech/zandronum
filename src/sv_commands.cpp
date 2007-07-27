@@ -4290,7 +4290,7 @@ void SERVERCOMMANDS_SetMapNumTotalItems( ULONG ulPlayerExtra, ULONG ulFlags )
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetMapMusic( char *pszMusic, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetMapMusic( const char *pszMusic, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 

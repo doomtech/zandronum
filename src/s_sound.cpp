@@ -53,6 +53,7 @@
 #include "zstring.h"
 #include "deathmatch.h"
 #include "network.h"
+#include "sv_commands.h"
 
 // MACROS ------------------------------------------------------------------
 
@@ -1919,6 +1920,14 @@ CCMD (changemus)
 			PlayList = NULL;
 		}
 		S_ChangeMusic (argv[1], argv.argc() > 2 ? atoi (argv[2]) : 0);
+
+		// [BB] If we're the server, tell clients to change the music, and
+		// save the current music setting for when new clients connect.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			SERVERCOMMANDS_SetMapMusic( argv[1] );
+			SERVER_SetMapMusic( argv[1] );
+		}
 	}
 }
 
