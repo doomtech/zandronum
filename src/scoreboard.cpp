@@ -180,15 +180,53 @@ static	void			scoreboard_Prepare4ColumnDisplay( void );
 static	void			scoreboard_Prepare3ColumnDisplay( void );
 static	void			scoreboard_DoRankingListPass( ULONG ulPlayer, LONG lSpectators, LONG lDead, LONG lNotPlaying, LONG lNoTeam, LONG lWrongTeam, ULONG ulDesiredTeam );
 static	void			scoreboard_DrawRankings( ULONG ulPlayer );
+static	void			scoreboard_DrawWaiting( void );
+static	void			scoreboard_DrawBottomString( void );
+
+
+// [RC] A flag to hide the 'spectating...' string for screenshots or movies.
+CVAR (Bool, r_drawspectatingstring, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG);
 
 //*****************************************************************************
 //	FUNCTIONS
+
+
+static void SCOREBOARD_DrawBottomString( void )
+{
+	// [RC] Draw the centered bottom message (spectating, following, waiting, etc).
+	if ( g_BottomString.Len( ) > 0 )
+	{
+		DHUDMessageFadeOut	*pMsg;
+		V_ColorizeString( (char *)g_BottomString.GetChars( ));
+
+		pMsg = new DHUDMessageFadeOut( g_BottomString,
+			1.5f,
+			1.0f,
+			0,
+			0,
+			CR_WHITE,
+			0.10f,
+			0.15f );
+
+		StatusBar->AttachMessage( pMsg, 'WAIT' );
+	}
+}
+
+static void SCOREBOARD_DrawWaiting( void )
+{
+	// [RC] Formatting linebreak.
+	if ((( players[consoleplayer].camera ) && ( players[consoleplayer].camera != players[consoleplayer].mo ) && ( players[consoleplayer].camera->player )))
+		g_BottomString += "\n";
+	
+	g_BottomString += "\\cgWAITING FOR PLAYERS";
+	SCOREBOARD_DrawBottomString();
+}
+
 
 //*****************************************************************************
 // Renders some HUD strings, and the main board if the player is pushing the keys.
 void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 {
-	DHUDMessageFadeOut	*pMsg;
 	LONG				lPosition;
 
 	// Make sure the display player is valid.
@@ -225,8 +263,53 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 		g_BottomString += players[consoleplayer].camera->player->userinfo.netname;
 	}
 
+	// Print the totals for living and dead allies/enemies.
+	if ( !players[ulDisplayPlayer].bSpectating )
+	{
+		// Survival
+		if ( ( SURVIVAL_GetState( ) == SURVS_INPROGRESS ) && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE ) )
+		{
+			if (( players[consoleplayer].camera ) && ( players[consoleplayer].camera != players[consoleplayer].mo ) && ( players[consoleplayer].camera->player ))
+				g_BottomString.AppendFormat(" - ");
+
+			if(g_lNumAlliesLeft < 1)
+				g_BottomString += "\\cgLAST PLAYER ALIVE"; // Uh-oh.
+			else {
+				g_BottomString.AppendFormat( "\\cc%d ", g_lNumAlliesLeft );
+				g_BottomString.AppendFormat( "\\cGALL%s LEFT", ( g_lNumAlliesLeft != 1 ) ? "IES" : "Y" );
+			}
+		}
+
+		// Last Man Standing
+		if ( ( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DEATHMATCH ) )
+		{
+			if (( players[consoleplayer].camera ) && ( players[consoleplayer].camera != players[consoleplayer].mo ) && ( players[consoleplayer].camera->player ))
+				g_BottomString.AppendFormat(" - ");
+
+			if( teamlms ) {
+				g_BottomString += "\\cC";
+				g_BottomString.AppendFormat( "%d ", g_lNumOpponentsLeft );
+				g_BottomString.AppendFormat( "\\cGOPPONENT%s", ( g_lNumOpponentsLeft != 1 ) ? "s" : "" );
+				g_BottomString += "\\cC";					
+				if(g_lNumAlliesLeft > 0)
+				{
+					g_BottomString.AppendFormat( ", %d ", g_lNumAlliesLeft );
+					g_BottomString.AppendFormat( "\\cGALL%s LEFT ", ( g_lNumAlliesLeft != 1 ) ? "IES" : "Y" );
+				}
+				else
+					g_BottomString += "\\cG LEFT - ALLIES DEAD";
+			}
+			else
+			{
+				g_BottomString += "\\cC";
+				g_BottomString.AppendFormat( "%d ", g_lNumOpponentsLeft );
+				g_BottomString.AppendFormat( "\\cGOPPONENT%s LEFT", ( g_lNumOpponentsLeft != 1 ) ? "S" : "" );
+			}
+		}
+	}
+
 	// If the console player is spectating, draw the spectator message.
-	if ( players[consoleplayer].bSpectating )
+	if (( players[consoleplayer].bSpectating ) && r_drawspectatingstring)
 	{
 		g_BottomString += "\n";
 		lPosition = JOINQUEUE_GetPositionInLine( ULONG( ulDisplayPlayer ));
@@ -274,21 +357,8 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 			break;
 		}
 
-		// Display the message before we get out of here.
-		V_ColorizeString( (char *)g_BottomString.GetChars( ));
-
-		pMsg = new DHUDMessageFadeOut( g_BottomString,
-			1.5f,
-			1.0f,
-			0,
-			0,
-			CR_WHITE,
-			0.10f,
-			0.15f );
-
-		StatusBar->AttachMessage( pMsg, 'WAIT' );
-
-		// This overrides everything.
+		// Display the message and nothing else here.
+		SCOREBOARD_DrawBottomString();
 		return;
 	}
 
@@ -306,22 +376,7 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 
 			if ( players[ulDisplayPlayer].bSpectating == false )
 			{
-				g_BottomString += "\\cgWAITING FOR PLAYERS";
-
-				// Display the message before we get out of here.
-				V_ColorizeString( (char *)g_BottomString.GetChars( ));
-
-				pMsg = new DHUDMessageFadeOut( g_BottomString,
-					1.5f,
-					1.0f,
-					0,
-					0,
-					CR_WHITE,
-					0.10f,
-					0.15f );
-
-				StatusBar->AttachMessage( pMsg, 'WAIT' );
-
+				SCOREBOARD_DrawWaiting();
 				// Nothing more to do if we're just waiting for players.
 				return;
 			}
@@ -343,22 +398,7 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 
 			if ( players[ulDisplayPlayer].bSpectating == false )
 			{
-				g_BottomString += "\\cgWAITING FOR PLAYERS";
-
-				// Display the message before we get out of here.
-				V_ColorizeString( (char *)g_BottomString.GetChars( ));
-
-				pMsg = new DHUDMessageFadeOut( g_BottomString,
-					1.5f,
-					1.0f,
-					0,
-					0,
-					CR_WHITE,
-					0.10f,
-					0.15f );
-
-				StatusBar->AttachMessage( pMsg, 'WAIT' );
-
+				SCOREBOARD_DrawWaiting();				
 				// Nothing more to do if we're just waiting for players.
 				return;
 			}
@@ -381,22 +421,7 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 
 			if ( players[ulDisplayPlayer].bSpectating == false )
 			{
-				g_BottomString += "\\cgWAITING FOR PLAYERS";
-
-				// Display the message before we get out of here.
-				V_ColorizeString( (char *)g_BottomString.GetChars( ));
-
-				pMsg = new DHUDMessageFadeOut( g_BottomString,
-					1.5f,
-					1.0f,
-					0,
-					0,
-					CR_WHITE,
-					0.10f,
-					0.15f );
-
-				StatusBar->AttachMessage( pMsg, 'WAIT' );
-
+				SCOREBOARD_DrawWaiting();
 				// Nothing more to do if we're just waiting for players.
 				return;
 			}
@@ -418,22 +443,7 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 
 			if ( players[ulDisplayPlayer].bSpectating == false )
 			{
-				g_BottomString += "\\cgWAITING FOR PLAYERS";
-
-				// Display the message before we get out of here.
-				V_ColorizeString( (char *)g_BottomString.GetChars( ));
-
-				pMsg = new DHUDMessageFadeOut( g_BottomString,
-					1.5f,
-					1.0f,
-					0,
-					0,
-					CR_WHITE,
-					0.10f,
-					0.15f );
-
-				StatusBar->AttachMessage( pMsg, 'WAIT' );
-
+				SCOREBOARD_DrawWaiting();
 				// Nothing more to do if we're just waiting for players.
 				return;
 			}
@@ -468,20 +478,8 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 	// Don't draw this other stuff for spectators.
 	if ( players[ulDisplayPlayer].bSpectating )
 	{
-		// Display the message before we get out of here.
-		V_ColorizeString( (char *)g_BottomString.GetChars( ));
-
-		pMsg = new DHUDMessageFadeOut( g_BottomString,
-			1.5f,
-			1.0f,
-			0,
-			0,
-			CR_WHITE,
-			0.10f,
-			0.15f );
-
-		StatusBar->AttachMessage( pMsg, 'WAIT' );
-
+		// Display the message and nothing else here.
+		SCOREBOARD_DrawBottomString();
 		return;
 	}
 
@@ -492,34 +490,11 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 	else if ( teamgame && ( cl_alwaysdrawteamstats || automapactive ))
 		SCOREBOARD_RenderTeamStats( &players[ulDisplayPlayer] );
 	
-	// [RC] In Survival, print how many other players are alive
-	if ( SURVIVAL_GetState( ) == SURVS_INPROGRESS )
-		{
-			if(g_lNumAlliesLeft < 1)
-				g_BottomString += "\\cgLAST PLAYER ALIVE"; // Uh-oh.
-			else {
-				g_BottomString.AppendFormat( "\\cc%d ", g_lNumAlliesLeft );
-				g_BottomString.AppendFormat( "\\cGALL%s LEFT", ( g_lNumAlliesLeft != 1 ) ? "IES" : "Y" );
-			}
-		}
-
-	// Display the message before we get out of here.
-	V_ColorizeString( (char *)g_BottomString.GetChars( ));
-
-	if ( g_BottomString.Len( ) > 0 )
-	{
-		pMsg = new DHUDMessageFadeOut( g_BottomString,
-			1.5f,
-			1.0f,
-			0,
-			0,
-			CR_WHITE,
-			0.10f,
-			0.15f );
-
-		StatusBar->AttachMessage( pMsg, 'WAIT' );
-	}
+	// Display the message and nothing else here.
+	SCOREBOARD_DrawBottomString();
+	return;
 }
+
 
 //*****************************************************************************
 //*****************************************************************************
@@ -594,29 +569,6 @@ void SCOREBOARD_RenderDMStats( void )
 	char		szName[32];
 	LONG		lRedScore;
 	LONG		lBlueScore;
-
-	if ( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS )
-		{
-			if( teamlms ) {
-				g_BottomString += "\\cC";
-				g_BottomString.AppendFormat( "%d ", g_lNumOpponentsLeft );
-				g_BottomString.AppendFormat( "\\cGOPPONENT%s", ( g_lNumOpponentsLeft != 1 ) ? "s" : "" );
-				g_BottomString += "\\cC";
-				if(g_lNumAlliesLeft > 0) {
-					g_BottomString.AppendFormat( ", %d ", g_lNumAlliesLeft );
-					g_BottomString.AppendFormat( "\\cGALL%s LEFT ", ( g_lNumAlliesLeft != 1 ) ? "ies" : "y" );
-				}
-				else
-					g_BottomString += "\\cG LEFT - ALLIES DEAD";
-
-
-			}
-			else {
-				g_BottomString += "\\cC";
-				g_BottomString.AppendFormat( "%d ", g_lNumOpponentsLeft );
-				g_BottomString.AppendFormat( "\\cGOPPONENT%s LEFT", ( g_lNumOpponentsLeft != 1 ) ? "s" : "" );
-			}
-		}
 
 	// No need to do anything if the automap is active or there's no status bar (we do something different then).
 	if (( automapactive ) || 
@@ -2185,8 +2137,17 @@ void SCOREBOARD_RefreshHUD( void )
 
 		if ( teamlms )
 		{
-			g_lNumOpponentsLeft = LASTMANSTANDING_TeamCountEnemiesStanding( players[consoleplayer].ulTeam );
-			g_lNumAlliesLeft = LASTMANSTANDING_TeamCountMenStanding( players[consoleplayer].ulTeam) - 1;
+			// [RC] If we're spying someone, use their team for the counts.
+			if (( players[consoleplayer].camera ) && ( players[consoleplayer].camera != players[consoleplayer].mo ) && ( players[consoleplayer].camera->player ))
+			{
+				g_lNumOpponentsLeft = LASTMANSTANDING_TeamCountEnemiesStanding( players[consoleplayer].camera->player->ulTeam );
+				g_lNumAlliesLeft = LASTMANSTANDING_TeamCountMenStanding( players[consoleplayer].camera->player->ulTeam) - 1;
+			}
+			else
+			{
+				g_lNumOpponentsLeft = LASTMANSTANDING_TeamCountEnemiesStanding( players[consoleplayer].ulTeam );
+				g_lNumAlliesLeft = LASTMANSTANDING_TeamCountMenStanding( players[consoleplayer].ulTeam) - 1;
+			}
 		}
 
 		if ( survival )
