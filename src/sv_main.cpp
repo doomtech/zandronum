@@ -209,6 +209,7 @@ CVAR( Int, sv_colorstripmethod, 0, CVAR_ARCHIVE )
 CVAR( Bool, sv_disallowbots, false, CVAR_ARCHIVE )
 CVAR( Bool, sv_minimizetosystray, true, CVAR_ARCHIVE )
 CVAR( Int, sv_queryignoretime, 10, CVAR_ARCHIVE )
+CVAR( Bool, sv_markchatlines, false, CVAR_ARCHIVE )
 
 //*****************************************************************************
 //
@@ -986,6 +987,10 @@ void SERVER_SendChatMessage( ULONG ulPlayer, ULONG ulMode, char *pszString )
 
 	SERVERCOMMANDS_PlayerSay( ulPlayer, pszString, ulMode, bFordidChatToPlayers );
 
+	// [BB] This is to make the lines readily identifiable, necessary
+	// for MiX-MaN's IRC server control tool for example.
+	if( sv_markchatlines )
+		Printf( "CHAT\n" );
 	// Print this message in the server's local window.
 	if ( strnicmp( "/me", pszString, 3 ) == 0 )
 	{
