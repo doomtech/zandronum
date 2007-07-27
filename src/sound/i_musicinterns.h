@@ -13,9 +13,11 @@
 #include <SDL.h>
 #define FALSE 0
 #define TRUE 1
+//[BB] fmod.h is not needed here under Windows.
+#ifndef NO_SOUND
+#include <fmod.h>
 #endif
-//[BB] fmod.h is not needed here.
-//#include <fmod.h>
+#endif
 #include "tempfiles.h"
 #include "oplsynth/opl_mus_player.h"
 #include "c_cvars.h"
@@ -194,6 +196,7 @@ protected:
 
 // SPC file, rendered with SNESAPU.DLL and streamed through FMOD ------------
 
+#if !defined(_WIN32) && !defined(NO_SOUND)
 typedef void (__stdcall *SNESAPUInfo_TYPE) (DWORD*, DWORD*, DWORD*);
 typedef void (__stdcall *GetAPUData_TYPE) (void**, BYTE**, BYTE**, DWORD**, void**, void**, DWORD**, DWORD**);
 typedef void (__stdcall *LoadSPCFile_TYPE) (void*);
@@ -237,6 +240,7 @@ protected:
 	SetAPUOpt_TYPE SetAPUOpt;
 	EmuAPU_TYPE EmuAPU;
 };
+#endif
 
 // MIDI file played with Timidity and possibly streamed through FMOD --------
 
