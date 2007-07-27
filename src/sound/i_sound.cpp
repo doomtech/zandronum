@@ -53,7 +53,9 @@ extern HINSTANCE g_hInst;
 #include "m_alloc.h"
 #include <math.h>
 
+#ifndef NO_SOUND
 #include "fmodsound.h"
+#endif
 #ifdef _WIN32
 #include "altsound.h"
 #endif
@@ -153,6 +155,10 @@ CUSTOM_CVAR (Float, snd_sfxvolume, 0.5f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOI
 
 void I_InitSound ()
 {
+#ifdef NO_SOUND
+	GSnd = NULL;
+	I_InitMusic ();
+#else
 	/* Get command line options: */
 	bool nosound = !!Args.CheckParm ("-nosfx") || !!Args.CheckParm ("-nosound") || !!Args.CheckParm("-host");
 
@@ -198,6 +204,7 @@ void I_InitSound ()
 	}
 	I_InitMusic ();
 	snd_sfxvolume.Callback ();
+#endif
 }
 
 

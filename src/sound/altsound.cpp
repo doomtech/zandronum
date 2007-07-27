@@ -719,9 +719,13 @@ void AltSoundRenderer::LoadSound (sfxinfo_t *sfx)
 		else if (*(DWORD *)sfxdata == ID_fLaC)
 		{
 			delete[] sfxdata;
+#ifndef NO_SOUND
 			FLACSampleLoader loader (sfx);
 			signed8 = true;
 			sfxstart = sfxdata = loader.ReadSample (&len);
+#else
+			sfxdata = NULL;
+#endif
 			if (sfxdata == NULL)
 			{
 				goto badwave;

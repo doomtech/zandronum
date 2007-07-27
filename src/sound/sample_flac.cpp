@@ -1,3 +1,4 @@
+#ifndef NO_SOUND
 #include <string.h>
 
 #include "sample_flac.h"
@@ -298,3 +299,4 @@ void FLACSampleLoader::error_callback(::FLAC__StreamDecoderErrorStatus status)
 {
 	status = status;
 }
+#endif

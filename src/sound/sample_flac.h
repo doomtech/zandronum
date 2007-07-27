@@ -1,3 +1,4 @@
+#ifndef NO_SOUND
 #define FLAC__NO_DLL
 #include <fmod.h>
 #include <FLAC++/decoder.h>
@@ -32,3 +33,4 @@ protected:
 	sfxinfo_t *Sfx;
 	bool Dest8;
 };
+#endif

@@ -45,7 +45,9 @@ extern HWND Window;
 #endif
 
 #include "templates.h"
+#ifndef NO_SOUND
 #include "fmodsound.h"
+#endif
 #include "c_cvars.h"
 #include "i_system.h"
 #include "gi.h"
@@ -77,6 +79,7 @@ EXTERN_CVAR (Bool, snd_pitched)
 static const ReverbContainer *PrevEnvironment;
 ReverbContainer *ForcedEnvironment;
 
+#ifndef NO_SOUND
 static const char *OutputNames[] =
 {
 	"No sound",
@@ -1293,3 +1296,4 @@ void FMODSoundRenderer::UncheckSound (sfxinfo_t *sfx, bool looped)
 			sfx->normal--;
 	}
 }
+#endif //NO_SOUND

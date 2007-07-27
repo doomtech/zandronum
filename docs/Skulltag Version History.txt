@@ -20,6 +20,7 @@ v0.97d-beta5
 +	- Added more version detail to skulltag.exe's metadata; it now includes the SVN revision number and whether it's a released or internal build. [Rivecoder]
 +	- Improved the revision display in the console. [Rivecoder]
 +	- Added the r_drawspectatingstring CVAR, which can be used to hide that message for screenshots or movies. [Rivecoder]
++	- Skulltag can be build and run without FMOD now (with no sound of course). This makes it possible to build servers for systems that FMOD doesn't support, like FreeBSD. [Torr Samaho]
 -	- Fixed: Ignoring definitions of already defined decorate actors which use ":" or "replace" didn't work. [Torr Samaho]
 -	- Fixed: After a map change some type of custom weapons are lost on the client side (Fist and NewPistol in KDiZD for example). [Torr Samaho]
 -	- Fixed many problems with Heretic and Hexen during network games. Both games should be quite playable now online! [Carnevil]
