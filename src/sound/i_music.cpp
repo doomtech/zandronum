@@ -70,14 +70,16 @@ extern void ChildSigHandler (int signum);
 #include "tempfiles.h"
 #include "templates.h"
 
-#include <fmod.h>
+//[BB] fmod.h is not needed here.
+//#include <fmod.h>
 
 EXTERN_CVAR (Float, snd_midivolume)
 EXTERN_CVAR (Int, snd_samplerate)
 EXTERN_CVAR (Int, snd_mididevice)
 
-void Enable_FSOUND_IO_Loader ();
-void Disable_FSOUND_IO_Loader ();
+//[BB] Not used anywhere.
+//void Enable_FSOUND_IO_Loader ();
+//void Disable_FSOUND_IO_Loader ();
 
 static bool MusicDown = true;
 
