@@ -1333,9 +1333,9 @@ void C_DrawConsole ()
 
 		if (ConBottom >= 12)
 		{
-			// [BC] In addition to drawing the program version, draw
-			// the ZDoom version as well.
-			sprintf( szString, "\\cIv%s (\\cDv%s\\cI)", DOTVERSIONSTR_REV, ZDOOMVERSIONSTR );
+			// [BC] In addition to drawing the program version, draw the ZDoom version as well.
+			// [RC] Also draw revision number, but break these up so it's legible.
+			sprintf( szString, "\\cIv%s (\\cD%s\\cI) \\ch%s", DOTVERSIONSTR, ZDOOMVERSIONSTR, SVN_REVISION_STRING );
 			V_ColorizeString( szString );
 
 			screen->SetFont( ConFont );

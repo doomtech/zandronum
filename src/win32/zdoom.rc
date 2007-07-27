@@ -312,7 +312,7 @@ BEGIN
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "Skulltag\0"
             VALUE "ProductVersion", "0.97\0"
-            VALUE "SpecialBuild", "\0"
+            VALUE "SpecialBuild", BUILDTYPE "-" SVN_REVISION_STRING "\0"
         END
     END
     BLOCK "VarFileInfo"

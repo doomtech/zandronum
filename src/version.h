@@ -42,10 +42,16 @@
 
 #define DOTVERSIONSTR "0.97d-beta4.1"
 
+// [RC] Is this a 'stable' release or an internal build?
+// Used for file metadata, hopefully to help sort builds.
+#define BUILDTYPE "Internal"
+		// BUILDTYPE "Release"
+
 // [BB] Define DOTVERSIONSTR_NOREV to stay compatible with IWADBoxCallback in I_system.cpp
 #define DOTVERSIONSTR_NOREV DOTVERSIONSTR
 
 // [BB] The version string displayed in the console.
+// [RC] No longer used in the console, but still perfectly valid.
 #define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING
 
 // [BC] What version of ZDoom is this based off of?
@@ -63,7 +69,7 @@
 // NETGAMEVERSION 003 = 0.97c2
 // NETGAMEVERSION 004 = 0.97c3
 // NETGAMEVERSION 005 = 0.97d-beta4
-// NETGAMEVERSION 006 = 0.97d
+// NETGAMEVERSION 006 = 0.97d-beta4.1+
 #define NETGAMEVERSION 006
 
 // Version stored in the ini's [LastRun] section.
