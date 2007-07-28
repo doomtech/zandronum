@@ -3054,18 +3054,21 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream )
 		if ( pOldActor->health > 0 )
 		{
 			FState	*pDeadState;
+			FState	*pBaseState;
 
 			A_NoBlocking( pOldActor );
+
+			// Put him in the last frame of his death state.
 			pDeadState = pOldActor->DeathState;
-			if ( pDeadState != NULL )
+			do
 			{
-				// Put him in the last frame of his death state.
-				while ( pDeadState->GetNextState( ) != NULL )
+				pBaseState = pDeadState;
+				if ( pDeadState != NULL )
 				{
-					pDeadState = pDeadState->GetNextState( );
 					pOldActor->SetStateNF( pDeadState );
+					pDeadState = pDeadState->GetNextState( );
 				}
-			}
+			} while (( pDeadState != NULL ) && ( pBaseState == pDeadState + 1 ));
 		}
 
 		// Check to see if the console player is spectating through this player's eyes.
@@ -5364,6 +5367,7 @@ static void client_ThingIsCorpse( BYTESTREAM_s *pByteStream )
 	AActor	*pActor;
 	LONG	lID;
 	FState	*pDeadState;
+	FState	*pBaseState;
 	bool	bIsMonster;
 
 	// Read in the network ID of the thing to make dead.
@@ -5390,11 +5394,15 @@ static void client_ThingIsCorpse( BYTESTREAM_s *pByteStream )
 
 	// Set the thing to the last frame of its death state.
 	pDeadState = pActor->DeathState;
-	while ( pDeadState != NULL )
+	do
 	{
-		pActor->SetStateNF( pDeadState );
-		pDeadState = pDeadState->GetNextState( );
-	}
+		pBaseState = pDeadState;
+		if ( pDeadState != NULL )
+		{
+			pActor->SetStateNF( pDeadState );
+			pDeadState = pDeadState->GetNextState( );
+		}
+	} while (( pDeadState != NULL ) && ( pBaseState == pDeadState + 1 ));
 
 	if ( bIsMonster )
 		level.killed_monsters++;

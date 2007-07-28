@@ -3442,6 +3442,11 @@ static ULONG invasion_GetNumThingsThisWave( ULONG ulNumOnFirstWave, ULONG ulWave
 CVAR( Int, sv_invasioncountdowntime, 10, CVAR_ARCHIVE );
 CUSTOM_CVAR( Int, wavelimit, 0, CVAR_CAMPAIGNLOCK )
 {
+	if ( self >= 256 )
+		self = 255;
+	if ( self < 0 )
+		self = 0;
+
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( gamestate != GS_STARTUP ))
 	{
 		SERVER_Printf( PRINT_HIGH, "%s changed to: %d\n", self.GetName( ), (LONG)self );

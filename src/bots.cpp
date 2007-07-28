@@ -360,8 +360,7 @@ CUSTOM_CVAR( Int, botdebug_shownodes, 0, CVAR_ARCHIVE )
 //*****************************************************************************
 //	PROTOTYPES
 
-void	SERVERCONSOLE_AddNewPlayer( LONG lPlayer );
-void	SERVERCONSOLE_RemovePlayer( LONG lPlayer );
+void	SERVERCONSOLE_ReListPlayers( void );
 
 // Ugh.
 EXTERN_CVAR( Bool, sv_cheats );
@@ -2042,11 +2041,11 @@ void BOTS_RemoveBot( ULONG ulPlayerIdx, bool bExitMsg )
 {
 	ULONG	ulIdx;
 
-	if ( ulPlayerIdx >= MAXPLAYERS )
+	if (( ulPlayerIdx >= MAXPLAYERS ) ||
+		( players[ulPlayerIdx].pSkullBot == false ))
+	{
 		return;
-
-	if ( players[ulPlayerIdx].pSkullBot == false )
-		return;
+	}
 
 	if ( bExitMsg )
 	{
@@ -2056,14 +2055,9 @@ void BOTS_RemoveBot( ULONG ulPlayerIdx, bool bExitMsg )
 			SERVER_Printf( PRINT_HIGH, "%s \\c-left the game.\n", players[ulPlayerIdx].userinfo.netname );
 	}
 
+	// Remove the bot from the game.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-	{
-		// Remove the bot from the game.
 		SERVERCOMMANDS_DisconnectPlayer( ulPlayerIdx, ulPlayerIdx, SVCF_SKIPTHISCLIENT );
-
-		// Update the scoreboard.
-		SERVERCONSOLE_RemovePlayer( ulPlayerIdx );
-	}
 
 	// If he's carrying an important item like a flag, etc., make sure he, 
 	// drops it before he leaves.
@@ -2077,6 +2071,10 @@ void BOTS_RemoveBot( ULONG ulPlayerIdx, bool bExitMsg )
 		TEAM_SetAssistPlayer( TEAM_RED, MAXPLAYERS );
 
 	playeringame[ulPlayerIdx] = false;
+
+	// Redo the scoreboard.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCONSOLE_ReListPlayers( );
 
 	if ( g_bBotIsInitialized[ulPlayerIdx] )
 		players[ulPlayerIdx].pSkullBot->PreDelete( );
@@ -2992,8 +2990,8 @@ CSkullBot::CSkullBot( char *pszName, char *pszTeamName, ULONG ulPlayerNum )
 		// Let the other players know that this bot has entered the game.
 		SERVER_Printf( PRINT_HIGH, "%s \\c-entered the game.\n", players[ulPlayerNum].userinfo.netname );
 
-		// Add this player to the scoreboard.
-		SERVERCONSOLE_AddNewPlayer( ulPlayerNum );
+		// Redo the scoreboard.
+		SERVERCONSOLE_ReListPlayers( );
 
 		// Now send out the player's userinfo out to other players.
 		SERVERCOMMANDS_SetPlayerUserInfo( ulPlayerNum, USERINFO_ALL );

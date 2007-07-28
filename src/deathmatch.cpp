@@ -320,7 +320,7 @@ CCMD( spectate )
 //
 CUSTOM_CVAR( Int, fraglimit, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK )
 {
-	if ( self > 65536 )
+	if ( self >= 65536 )
 		self = 65535;
 	if ( self < 0 )
 		self = 0;

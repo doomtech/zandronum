@@ -1911,6 +1911,9 @@ void M_ChooseSkill (int choice)
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 		CLIENT_QuitNetworkGame( );
 
+	// [BC] Put us back in single player mode.
+	NETWORK_SetState( NETSTATE_SINGLE );
+
 	// Assume normal mode for going through the menu.
 	Val.Bool = false;
 

@@ -112,7 +112,7 @@ void	G_PlayerReborn( int player );
 polyobj_t	*GetPolyobj( int polyNum );
 
 void SERVERCONSOLE_UpdatePlayerInfo( LONG lPlayer, ULONG ulUpdateFlags );
-void SERVERCONSOLE_RemovePlayer( LONG lPlayer );
+void SERVERCONSOLE_ReListPlayers( void );
 
 EXTERN_CVAR( Bool, sv_cheats );
 
@@ -1078,7 +1078,7 @@ bool SERVER_PerformAuthenticationChecksum( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-void SERVERCONSOLE_AddNewPlayer( LONG lPlayer );
+void SERVERCONSOLE_ReListPlayers( void );
 void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 {
 	UCVarValue							Val;
@@ -1419,7 +1419,7 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 	}
 
 	if ( g_aClients[g_lCurrentClient].State != CLS_SPAWNED )
-		SERVERCONSOLE_AddNewPlayer( g_lCurrentClient );
+		SERVERCONSOLE_ReListPlayers( );
 
 	// Update this client's state. He's in the game now!
 	g_aClients[g_lCurrentClient].State = CLS_SPAWNED;
@@ -2278,12 +2278,6 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 			Printf( "%s \\c-disconnected.\n", NETWORK_AddressToString( g_aClients[ulClient].Address ));
 	}
 
-	// Inform the other clients that this player has been disconnected.
-	SERVERCOMMANDS_DisconnectPlayer( ulClient );
-
-	// Update the scoreboard.
-	SERVERCONSOLE_RemovePlayer( ulClient );
-
 	// Potentially back up the player's score in the game, so that if he rejoins, he hasn't
 	// lost everything.
 	if ( bSaveInfo )
@@ -2340,6 +2334,12 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 	g_aClients[ulClient].State = CLS_FREE;
 	g_aClients[ulClient].ulLastGameTic = 0;
 	playeringame[ulClient] = false;
+
+	// Inform the other clients that this player has been disconnected.
+	SERVERCOMMANDS_DisconnectPlayer( ulClient );
+
+	// Redo the scoreboard.
+	SERVERCONSOLE_ReListPlayers( );
 
 	// Clear the client's buffers.
 	NETWORK_ClearBuffer( &g_aClients[ulClient].PacketBuffer );

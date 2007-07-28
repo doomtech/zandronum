@@ -3086,28 +3086,45 @@ void SERVERCONSOLE_SetupColumns( void )
 
 //*****************************************************************************
 //
-void SERVERCONSOLE_AddNewPlayer( LONG lPlayer )
+void SERVERCONSOLE_ReListPlayers( void )
 {
-	LVITEM	Item;
-	char	szString[32];
-	LONG	lIndex;
+	LVITEM		Item;
+	char		szString[32];
+	LONG		lIndex;
+	LONG		lIdx;
+
+	// Find the player in the global player indicies array.
+	for ( lIdx = 0; lIdx < MAXPLAYERS; lIdx++ )
+	{
+		g_lPlayerIndicies[lIdx] = -1;
+
+		// Delete the list view item.
+		SendDlgItemMessage( g_hDlg, IDC_PLAYERLIST, LVM_DELETEITEM, 0, 0 );
+	}
 
 	Item.mask = LVIF_TEXT;
 	Item.iSubItem = COLUMN_NAME;
 	Item.iItem = MAXPLAYERS;
 
-	sprintf( szString, "%s", players[lPlayer].userinfo.netname );
-	V_RemoveColorCodes( szString );
-	Item.pszText = szString;
+	// Add each player.
+	for ( lIdx = 0; lIdx < MAXPLAYERS; lIdx++ )
+	{
+		if ( playeringame[lIdx] == false )
+			continue;
 
-	lIndex = SendDlgItemMessage( g_hDlg, IDC_PLAYERLIST, LVM_INSERTITEM, 0, (LPARAM)&Item );
-	if ( lIndex == -1 )
-		return;
+		sprintf( szString, "%s", players[lIdx].userinfo.netname );
+		V_RemoveColorCodes( szString );
+		Item.pszText = szString;
 
-	g_lPlayerIndicies[lIndex] = lPlayer;
+		lIndex = SendDlgItemMessage( g_hDlg, IDC_PLAYERLIST, LVM_INSERTITEM, 0, (LPARAM)&Item );
+		if ( lIndex == -1 )
+			return;
 
-	// Initialize all the fields for this player.
-	SERVERCONSOLE_UpdatePlayerInfo( lPlayer, UDF_NAME|UDF_FRAGS|UDF_PING|UDF_TIME );
+		g_lPlayerIndicies[lIndex] = lIdx;
+
+		// Initialize all the fields for this player.
+		SERVERCONSOLE_UpdatePlayerInfo( lIdx, UDF_NAME|UDF_FRAGS|UDF_PING|UDF_TIME );
+	}
 }
 
 //*****************************************************************************
@@ -3193,33 +3210,6 @@ void SERVERCONSOLE_UpdatePlayerInfo( LONG lPlayer, ULONG ulUpdateFlags )
 
 		SendDlgItemMessage( g_hDlg, IDC_PLAYERLIST, LVM_SETITEM, lIndex, (LPARAM)&Item );
 	}
-}
-
-//*****************************************************************************
-//
-void SERVERCONSOLE_RemovePlayer( LONG lPlayer )
-{
-	LONG		lIndex = -1;
-	LONG		lIdx;
-
-	// Find the player in the global player indicies array.
-	for ( lIdx = 0; lIdx < MAXPLAYERS; lIdx++ )
-	{
-		if ( g_lPlayerIndicies[lIdx] == lPlayer )
-		{
-			lIndex = lIdx;
-			break;
-		}
-	}
-
-	// Now, move the indicies back one.
-	for ( lIdx = lIndex; lIdx < ( MAXPLAYERS - 1 ); lIdx++ )
-		g_lPlayerIndicies[lIdx] = g_lPlayerIndicies[lIdx + 1];
-
-	g_lPlayerIndicies[MAXPLAYERS - 1] = -1;
-
-	// Delete the list view item.
-	SendDlgItemMessage( g_hDlg, IDC_PLAYERLIST, LVM_DELETEITEM, lIndex, 0 );
 }
 
 //*****************************************************************************
