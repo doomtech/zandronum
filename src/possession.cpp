@@ -435,7 +435,7 @@ void POSSESSION_DoFight( void )
 
 				// Tell clients to respawn this item (without fog).
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_RespawnThing( pActor, false );
+					SERVERCOMMANDS_RespawnDoomThing( pActor, false );
 			}
 		}
 	}
@@ -517,7 +517,7 @@ void POSSESSION_ScorePossessionPoint( player_s *pPlayer )
 	}
 
 	// Display the score info.
-	possession_DisplayScoreInfo( pPlayer - players );
+	possession_DisplayScoreInfo( ULONG( pPlayer - players ));
 
 	// End the round, or level after seconds (depending on whether or not the pointlimit
 	// has been reached).
@@ -696,7 +696,7 @@ void POSSESSION_TimeExpired( void )
 		SERVERCOMMANDS_SetPlayerPoints( ULONG( g_pPossessionArtifactCarrier - players ));
 
 	// Also, display the score info for the player.
-	possession_DisplayScoreInfo( g_pPossessionArtifactCarrier - players );
+	possession_DisplayScoreInfo( ULONG( g_pPossessionArtifactCarrier - players ));
 
 	// If the player's on a team in team possession mode, give the player's point a team.
 	if ( teampossession && g_pPossessionArtifactCarrier->bOnTeam )

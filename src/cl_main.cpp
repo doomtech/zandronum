@@ -196,7 +196,8 @@ static	void	client_HideThing( BYTESTREAM_s *pByteStream );
 static	void	client_TeleportThing( BYTESTREAM_s *pByteStream );
 static	void	client_ThingActivate( BYTESTREAM_s *pByteStream );
 static	void	client_ThingDeactivate( BYTESTREAM_s *pByteStream );
-static	void	client_RespawnThing( BYTESTREAM_s *pByteStream );
+static	void	client_RespawnDoomThing( BYTESTREAM_s *pByteStream );
+static	void	client_RespawnRavenThing( BYTESTREAM_s *pByteStream );
 
 // Print commands.
 static	void	client_Print( BYTESTREAM_s *pByteStream );
@@ -1800,9 +1801,13 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		client_ThingDeactivate( pByteStream );
 		break;
-	case SVC_RESPAWNTHING:
+	case SVC_RESPAWNDOOMTHING:
 
-		client_RespawnThing( pByteStream );
+		client_RespawnDoomThing( pByteStream );
+		break;
+	case SVC_RESPAWNRAVENTHING:
+
+		client_RespawnRavenThing( pByteStream );
 		break;
 	case SVC_PRINT:
 
@@ -5599,7 +5604,7 @@ static void client_ThingDeactivate( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-static void client_RespawnThing( BYTESTREAM_s *pByteStream )
+static void client_RespawnDoomThing( BYTESTREAM_s *pByteStream )
 {
 	LONG	lID;
 	bool	bFog;
@@ -5621,7 +5626,7 @@ static void client_RespawnThing( BYTESTREAM_s *pByteStream )
 	if ( pActor == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
-		Printf( "client_RespawnThing: Couldn't find thing: %d\n", sID );
+		Printf( "client_RespawnDoomThing: Couldn't find thing: %d\n", sID );
 #endif
 		return; 
 	}
@@ -5629,6 +5634,37 @@ static void client_RespawnThing( BYTESTREAM_s *pByteStream )
 	// Finally, respawn the item.
 	CLIENT_RestoreSpecialPosition( pActor );
 	CLIENT_RestoreSpecialDoomThing( pActor, bFog );
+}
+
+//*****************************************************************************
+//
+static void client_RespawnRavenThing( BYTESTREAM_s *pByteStream )
+{
+	LONG	lID;
+	AActor	*pActor;
+
+	// Read in the thing's network ID.
+	lID = NETWORK_ReadShort( pByteStream );
+
+	// Nothing to do if the level isn't loaded!
+	if ( gamestate != GS_LEVEL )
+		return;
+
+	pActor = NETWORK_FindThingByNetID( lID );
+
+	// Couldn't find a matching actor. Ignore...
+	if ( pActor == NULL )
+	{
+#ifdef CLIENT_WARNING_MESSAGES
+		Printf( "client_RespawnSpecialThing1: Couldn't find thing: %d\n", sID );
+#endif
+		return; 
+	}
+
+	pActor->renderflags &= ~RF_INVISIBLE;
+	S_Sound( pActor, CHAN_VOICE, "misc/spawn", 1, ATTN_IDLE );
+
+	pActor->SetState( &AInventory::States[6] );
 }
 
 //*****************************************************************************

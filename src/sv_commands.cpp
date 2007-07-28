@@ -2054,7 +2054,7 @@ void SERVERCOMMANDS_ThingDeactivate( AActor *pActor, AActor *pActivator, ULONG u
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_RespawnThing( AActor *pActor, bool bFog, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_RespawnDoomThing( AActor *pActor, bool bFog, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 
@@ -2073,9 +2073,35 @@ void SERVERCOMMANDS_RespawnThing( AActor *pActor, bool bFog, ULONG ulPlayerExtra
 		}
 
 		SERVER_CheckClientBuffer( ulIdx, 4, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_RESPAWNTHING );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_RESPAWNDOOMTHING );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, bFog );
+	}
+}
+
+//*****************************************************************************
+//
+void SERVERCOMMANDS_RespawnRavenThing( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	ULONG	ulIdx;
+
+	if ( pActor == NULL )
+		return;
+
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_IsValidClient( ulIdx ) == false )
+			continue;
+
+		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
+			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
+		{
+			continue;
+		}
+
+		SERVER_CheckClientBuffer( ulIdx, 3, true );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_RESPAWNRAVENTHING );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
 	}
 }
 

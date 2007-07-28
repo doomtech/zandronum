@@ -357,7 +357,7 @@ void SURVIVAL_DoFight( void )
 
 				// Tell clients to respawn this item (without fog).
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_RespawnThing( pActor, false );
+					SERVERCOMMANDS_RespawnDoomThing( pActor, false );
 			}
 
 			// If this is an enemy, respawn it.

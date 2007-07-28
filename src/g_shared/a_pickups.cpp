@@ -287,9 +287,21 @@ bool P_GiveBody (AActor *actor, int num)
 
 void A_RestoreSpecialThing1 (AActor *thing)
 {
+	// [BC] Clients have their own version of this function.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	{
+		// Just go back into hiding until the server tells this item to respawn.
+		static_cast<AInventory *>( thing )->Hide( );
+		return;
+	}
+
 	thing->renderflags &= ~RF_INVISIBLE;
 	if (static_cast<AInventory *>(thing)->DoRespawn ())
 	{
+		// [BC] Tell clients that this item has respawned.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_RespawnRavenThing( thing );
+
 		S_Sound (thing, CHAN_VOICE, "misc/spawn", 1, ATTN_IDLE);
 	}
 }
@@ -361,7 +373,7 @@ void A_RestoreSpecialDoomThing (AActor *self)
 	{
 		// [BC] Tell clients that this item has respawned.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_RespawnThing( self, true );
+			SERVERCOMMANDS_RespawnDoomThing( self, true );
 
 		self->SetState (self->SpawnState);
 		S_Sound (self, CHAN_VOICE, "misc/spawn", 1, ATTN_IDLE);
@@ -1085,7 +1097,8 @@ void AInventory::Touch (AActor *toucher)
 		}
 		// If this item was hidden, tell clients to hide the object.
 		else if (( this->state == &States[S_HIDEINDEFINITELY] ) ||
-			( this->state == &States[S_HIDEDOOMISH] ))
+			( this->state == &States[S_HIDEDOOMISH] ) ||
+			( this->state == &States[S_HIDESPECIAL] ))
 		{
 			SERVERCOMMANDS_HideThing( this );
 		}
