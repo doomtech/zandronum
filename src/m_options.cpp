@@ -3067,7 +3067,7 @@ menu_t BotSetupMenu = {
 
 static menuitem_t TeamBotSetupItems[] = {
 	{ discrete,	"Botskill",					&menu_botskill,			5.0, 0.0, 1.0, BotskillVals },
-	{ discrete,	"Player team",				&menu_team,				5.0, 0.0, 1.0, TeamVals },
+	{ discrete,	"Player team",				&menu_team,				2.0, 0.0, 1.0, TeamVals },
 	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
 	{ redtext,	"Red Team",					NULL,					0.0, 0.0, 0.0, NULL  },
 	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },

@@ -49,6 +49,7 @@ v0.97d-beta5
 -	- Fixed: ASkyViewpoint and ASkyPicker not working properly online. [Torr Samaho]
 -	- Fixed: If the ACS function SetActorAngle is called on a server, the clients are not notified about the updated angle. [Torr Samaho]
 -	- Changed: If the CCMD changemus is called on the server, the music is changed on all clients now. [Torr Samaho]
+-	- The "player team" menu item now has the proper number of options. [Carnevil]
 !	- You can no longer exit a map during the countdown in survival invasion. [Carnevil]
 !	- Starting a new game from the main menu now disables multiplayer emulation and resets dmflags. [Carnevil]
 
