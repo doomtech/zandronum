@@ -423,6 +423,8 @@ void LASTMANSTANDING_DoFight( void )
 		players[ulIdx].ulLastFragTick = 0;
 		players[ulIdx].ulLastBFGFragTick = 0;
 
+		players[ulIdx].ulConsecutiveHits = 0;
+		players[ulIdx].ulConsecutiveRailgunHits = 0;
 		players[ulIdx].ulDeathsWithoutFrag = 0;
 		players[ulIdx].ulFragsWithoutDeath = 0;
 		players[ulIdx].ulRailgunShots = 0;

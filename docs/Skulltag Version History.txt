@@ -51,6 +51,7 @@ v0.97d-beta5
 -	- Fixed: If the ACS function SetActorAngle is called on a server, the clients are not notified about the updated angle. [Torr Samaho]
 -	- Changed: If the CCMD changemus is called on the server, the music is changed on all clients now. [Torr Samaho]
 -	- The "player team" menu item now has the proper number of options. [Carnevil]
+-	- The number of consecutive regular and railgun hits are now reset whenever a new duel, LMS round, or possession round begins. [Carnevil]
 !	- You can no longer exit a map during the countdown in survival invasion. [Carnevil]
 !	- Starting a new game from the main menu now disables multiplayer emulation and resets dmflags. [Carnevil]
 
