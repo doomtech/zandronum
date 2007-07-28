@@ -497,6 +497,7 @@ CCMD (invuse)
 	{
 		AInventory *item = players[consoleplayer].mo->InvSel;
 		CLIENTCOMMANDS_RequestInventoryUse( item );
+		players[consoleplayer].inventorytics = 0;
 	}
 	else
 	{
