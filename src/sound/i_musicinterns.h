@@ -196,7 +196,7 @@ protected:
 
 // SPC file, rendered with SNESAPU.DLL and streamed through FMOD ------------
 
-#if !defined(_WIN32) && !defined(NO_SOUND)
+#if defined(_WIN32) || !defined(NO_SOUND)
 typedef void (__stdcall *SNESAPUInfo_TYPE) (DWORD*, DWORD*, DWORD*);
 typedef void (__stdcall *GetAPUData_TYPE) (void**, BYTE**, BYTE**, DWORD**, void**, void**, DWORD**, DWORD**);
 typedef void (__stdcall *LoadSPCFile_TYPE) (void*);
