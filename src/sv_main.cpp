@@ -1671,6 +1671,8 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	players[lClient].ulTime = 0;
 	players[lClient].bSpectating = false;
 	players[lClient].bDeadSpectator = false;
+	players[lClient].ulTeam = NUM_TEAMS;
+	players[lClient].bOnTeam = false;
 
 	g_aClients[lClient].bRCONAccess = false;
 	g_aClients[lClient].ulDisplayPlayer = lClient;
