@@ -93,9 +93,8 @@ void SERVERCONSOLE_UpdateCurrentInboundDataTransfer( LONG lData ) {}
 void SERVERCONSOLE_UpdateTotalUptime( LONG lData ) {}
 void SERVERCONSOLE_SetCurrentMapname( char *pszString ) {}
 void SERVERCONSOLE_SetupColumns( void ) {}
-void SERVERCONSOLE_AddNewPlayer( LONG lPlayer ) {}
+void SERVERCONSOLE_ReListPlayers( void ) {}
 void SERVERCONSOLE_UpdatePlayerInfo( LONG lPlayer, ULONG ulUpdateFlags ) {}
-void SERVERCONSOLE_RemovePlayer( LONG lPlayer ) {}
 void SERVERCONSOLE_UpdateOperatingSystem( char *pszString ) {}
 void SERVERCONSOLE_UpdateCPUSpeed( char *pszString ) {}
 void SERVERCONSOLE_UpdateVendor( char *pszString ) {}
