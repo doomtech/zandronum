@@ -50,9 +50,13 @@
 // [BB] Define DOTVERSIONSTR_NOREV to stay compatible with IWADBoxCallback in I_system.cpp
 #define DOTVERSIONSTR_NOREV DOTVERSIONSTR
 
-// [BB] The version string displayed in the console.
+// [BB] The version string displayed in the console and printed in the server console.
 // [RC] No longer used in the console, but still perfectly valid.
+#ifdef STAY_NETWORK_COMPATIBLE
+#define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING "NC"
+#else
 #define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING
+#endif
 
 // [BC] What version of ZDoom is this based off of?
 #define	ZDOOMVERSIONSTR		"2.1.7"
@@ -70,7 +74,11 @@
 // NETGAMEVERSION 004 = 0.97c3
 // NETGAMEVERSION 005 = 0.97d-beta4
 // NETGAMEVERSION 006 = 0.97d-beta4.1+
+#ifdef STAY_NETWORK_COMPATIBLE
+#define NETGAMEVERSION 005
+#else
 #define NETGAMEVERSION 006
+#endif
 
 // Version stored in the ini's [LastRun] section.
 // Bump it if you made some configuration change that you want to

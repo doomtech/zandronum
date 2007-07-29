@@ -1119,6 +1119,7 @@ void SERVERCOMMANDS_PlayerRespawnInvulnerability( ULONG ulPlayer, ULONG ulPlayer
 //
 void SERVERCOMMANDS_SetPlayerAmmoCapacity( ULONG ulPlayer, AInventory *pAmmo, ULONG ulPlayerExtra, ULONG ulFlags )
 {
+#ifndef STAY_NETWORK_COMPATIBLE
 	ULONG	ulIdx;
 
 	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
@@ -1147,6 +1148,7 @@ void SERVERCOMMANDS_SetPlayerAmmoCapacity( ULONG ulPlayer, AInventory *pAmmo, UL
 		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, (char *)pAmmo->GetClass( )->TypeName.GetChars( ));
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pAmmo->MaxAmount );
 	}
+#endif
 }
 
 //*****************************************************************************
@@ -1198,6 +1200,9 @@ void SERVERCOMMANDS_SpawnThing( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFla
 //
 void SERVERCOMMANDS_SpawnThingNoNetID( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags, bool bSendTranslation )
 {
+#ifdef STAY_NETWORK_COMPATIBLE
+	bSendTranslation = false;
+#endif
 	ULONG		ulIdx;
 	const char	*pszName;
 
@@ -1392,6 +1397,7 @@ void SERVERCOMMANDS_MoveThing( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra
 //
 void SERVERCOMMANDS_MoveThingExact( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra, ULONG ulFlags )
 {
+#ifndef STAY_NETWORK_COMPATIBLE
 	ULONG	ulIdx;
 	ULONG	ulSize;
 
@@ -1456,6 +1462,7 @@ void SERVERCOMMANDS_MoveThingExact( AActor *pActor, ULONG ulBits, ULONG ulPlayer
 		if ( ulBits & CM_MOMZ )
 			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->momz );
 	}
+#endif
 }
 
 //*****************************************************************************
@@ -1848,6 +1855,7 @@ void SERVERCOMMANDS_SetThingSound( AActor *pActor, ULONG ulSound, char *pszSound
 //
 void SERVERCOMMANDS_SetThingSpecial2( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
+#ifndef STAY_NETWORK_COMPATIBLE
 	ULONG	ulIdx;
 
 	if ( pActor == NULL )
@@ -1869,6 +1877,7 @@ void SERVERCOMMANDS_SetThingSpecial2( AActor *pActor, ULONG ulPlayerExtra, ULONG
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->special2 );
 	}
+#endif
 }
 
 //*****************************************************************************
@@ -2083,6 +2092,7 @@ void SERVERCOMMANDS_RespawnDoomThing( AActor *pActor, bool bFog, ULONG ulPlayerE
 //
 void SERVERCOMMANDS_RespawnRavenThing( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
+#ifndef STAY_NETWORK_COMPATIBLE
 	ULONG	ulIdx;
 
 	if ( pActor == NULL )
@@ -2103,6 +2113,7 @@ void SERVERCOMMANDS_RespawnRavenThing( AActor *pActor, ULONG ulPlayerExtra, ULON
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_RESPAWNRAVENTHING );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
 	}
+#endif
 }
 
 //*****************************************************************************
@@ -2402,9 +2413,17 @@ void SERVERCOMMANDS_SetGameModeLimits( ULONG ulPlayerExtra, ULONG ulFlags )
 			continue;
 		}
 
+#ifdef STAY_NETWORK_COMPATIBLE
+		SERVER_CheckClientBuffer( ulIdx, 12, true );
+#else
 		SERVER_CheckClientBuffer( ulIdx, 13, true );
+#endif
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETGAMEMODELIMITS );
+#ifdef STAY_NETWORK_COMPATIBLE
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fraglimit );
+#else
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fraglimit );
+#endif
 		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, timelimit );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pointlimit );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, duellimit );

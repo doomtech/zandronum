@@ -489,7 +489,6 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SPAWNTHINGEXACT",
 	"SVC_SPAWNTHINGEXACTNONETID",
 	"SVC_MOVETHING",
-	"SVC_MOVETHINGEXACT",
 	"SVC_DAMAGETHING",
 	"SVC_KILLTHING",
 	"SVC_SETTHINGSTATE",
@@ -501,7 +500,6 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETTHINGTRANSLATION",
 	"SVC_SETTHINGPROPERTY",
 	"SVC_SETTHINGSOUND",
-	"SVC_SETTHINGSPECIAL2",
 	"SVC_SETWEAPONAMMOGIVE",
 	"SVC_THINGISCORPSE",
 	"SVC_HIDETHING",
@@ -509,7 +507,6 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_THINGACTIVATE",
 	"SVC_THINGDEACTIVATE",
 	"SVC_RESPAWNDOOMTHING",
-	"SVC_RESPAWNRAVENTHING",
 	"SVC_PRINT",
 	"SVC_PRINTMID",
 	"SVC_PRINTMOTD",
@@ -642,6 +639,10 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETTHINGTID",
 	"SVC_SETPLAYERAMMOCAPACITY",
 	"SVC_SPAWNTHINGWITHTRANSNONETID",
+	"SVC_RESPAWNRAVENTHING",
+	"SVC_MOVETHINGEXACT",
+	"SVC_SETTHINGSPECIAL2",
+
 
 };
 
@@ -6150,7 +6151,11 @@ static void client_SetGameModeLimits( BYTESTREAM_s *pByteStream )
 	UCVarValue	Value;
 
 	// Read in, and set the value for fraglimit.
+#ifdef STAY_NETWORK_COMPATIBLE
+	Value.Int = NETWORK_ReadByte( pByteStream );
+#else
 	Value.Int = NETWORK_ReadShort( pByteStream );
+#endif
 	fraglimit.ForceSet( Value, CVAR_Int );
 
 	// Read in, and set the value for timelimit.
