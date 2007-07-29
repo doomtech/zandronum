@@ -1138,6 +1138,24 @@ void ABasePickupInvasionSpot::Deactivate( AActor *pActivator )
 
 //*****************************************************************************
 //
+void ABasePickupInvasionSpot::Destroy( )
+{
+	AActor						*pActor;
+	TThinkerIterator<AActor>	Iterator;
+
+	// [BB] The pickups spawned by this spot may no longer retain a pointer to the
+	// destroyed spot.
+	while (( pActor = Iterator.Next( )))
+	{
+	if ( pActor->InvasionSpot.pPickupSpot == this)
+		pActor->InvasionSpot.pPickupSpot = NULL;
+	}
+
+	Super::Destroy ();
+}
+
+//*****************************************************************************
+//
 void ABasePickupInvasionSpot::Tick( void )
 {
 	AActor			*pActor;

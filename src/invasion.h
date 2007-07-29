@@ -101,6 +101,7 @@ public:
 	virtual	char	*GetSpawnName( void );
 	virtual	void	Activate( AActor *pActivator );
 	virtual	void	Deactivate( AActor *pActivator );
+	virtual void	Destroy ();
 	
 	void		Tick( void );
 	void		Serialize( FArchive &arc );
