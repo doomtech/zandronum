@@ -264,7 +264,7 @@ static BYTE		FireRemap[256];
 static const char		*genders[3] = { "male", "female", "other" };
 /*static*/ FPlayerClass	*PlayerClass;
 /*static*/ int			PlayerSkin;
-/*static*/ FState		*PlayerState;
+static FState		*PlayerState;
 static int		PlayerTics;
 /*static*/ int		PlayerRotation;
 
@@ -3383,7 +3383,7 @@ void M_Ticker (void)
 		skullAnimCounter = 8;
 	}
 	//if (currentMenu == &PSetupDef || currentMenu == &ClassMenuDef)
-	if ( CurrentMenu == &PlayerSetupMenu )
+	if ( CurrentMenu == &PlayerSetupMenu || currentMenu == &ClassMenuDef )
 		M_PlayerSetupTicker ();
 }
 

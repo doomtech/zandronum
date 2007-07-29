@@ -2316,7 +2316,6 @@ extern menu_t PlayerSetupMenu;
 
 extern FPlayerClass		*PlayerClass;
 extern int				PlayerSkin;
-extern FState			*PlayerState;
 //static int				PlayerTics;
 extern int				PlayerRotation;
 
