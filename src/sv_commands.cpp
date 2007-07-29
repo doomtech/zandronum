@@ -2462,9 +2462,12 @@ void SERVERCOMMANDS_SetGameModeState( ULONG ulState, ULONG ulPlayerExtra, ULONG 
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetDuelNumDuels( ULONG ulNumDuels, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetDuelNumDuels( ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
+	ULONG	ulNumDuels;
+
+	ulNumDuels = DUEL_GetNumDuels( );
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{

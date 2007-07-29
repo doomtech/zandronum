@@ -560,7 +560,7 @@ void DUEL_SetNumDuels( ULONG ulNumDuels )
 
 	// If we're the server, tell the clients that the number of duels has changed.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetDuelNumDuels( ulNumDuels );
+		SERVERCOMMANDS_SetDuelNumDuels( );
 }
 
 //*****************************************************************************

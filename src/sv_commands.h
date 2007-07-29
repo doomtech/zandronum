@@ -154,7 +154,7 @@ void	SERVERCOMMANDS_SetGameDMFlags( ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFl
 void	SERVERCOMMANDS_SetGameModeLimits( ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_SetGameEndLevelDelay( ULONG ulEndLevelDelay, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_SetGameModeState( ULONG ulState, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
-void	SERVERCOMMANDS_SetDuelNumDuels( ULONG ulNumDuels, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
+void	SERVERCOMMANDS_SetDuelNumDuels( ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_SetLMSSpectatorSettings( ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_SetLMSAllowedWeapons( ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_SetInvasionNumMonstersLeft( ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
