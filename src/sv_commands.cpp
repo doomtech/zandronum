@@ -1944,7 +1944,8 @@ void SERVERCOMMANDS_HideThing( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlag
 {
 	ULONG	ulIdx;
 
-	if ( pActor == NULL )
+	// [BB] The client will call HideIndefinitely on the actor, which only is possible on AInventory and descendants.
+	if ( pActor == NULL || !(pActor->IsKindOf( RUNTIME_CLASS( AInventory ))) )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
