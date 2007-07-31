@@ -2046,8 +2046,12 @@ FUNC(LS_Scroll_Texture_Both)
 	return true;
 }
 
-static void SetScroller (int tag, DScroller::EScrollType type, fixed_t dx, fixed_t dy)
+/*static*/ void SetScroller (int tag, DScroller::EScrollType type, fixed_t dx, fixed_t dy)
 {
+	// [BB] The server has to tell the clients to call SetScroller.
+	if( NETWORK_GetState() == NETSTATE_SERVER )
+		SERVERCOMMANDS_SetScroller(type, dx, dy, tag);
+
 	TThinkerIterator<DScroller> iterator (STAT_SCROLLER);
 	DScroller *scroller;
 	int i;

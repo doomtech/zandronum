@@ -56,6 +56,7 @@ v0.97d-beta5
 -	- The number of duels remaining is now reflected correctly on the scoreboard. [Carnevil]
 -	- The number of consecutive regular and railgun hits are now reset whenever a new duel, LMS round, or possession round begins. [Carnevil]
 -	- Fixed: Thing_Remove called on an invasion pickup spawner leads to crashes when a player picks up something spawned by the destroyed spawner. [Torr Samaho]
+-	- Fixed: The line special Scroll_Floor doesn't work properly online. [Torr Samaho]
 !	- You can no longer exit a map during the countdown in survival invasion. [Carnevil]
 !	- Starting a new game from the main menu now disables multiplayer emulation and resets dmflags. [Carnevil]
 

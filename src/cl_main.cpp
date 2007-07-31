@@ -370,6 +370,7 @@ static	void	client_SetPolyobjRotation( BYTESTREAM_s *pByteStream );
 static	void	client_EarthQuake( BYTESTREAM_s *pByteStream );
 static	void	client_SetQueuePosition( BYTESTREAM_s *pByteStream );
 static	void	client_DoScroller( BYTESTREAM_s *pByteStream );
+static	void	client_SetScroller( BYTESTREAM_s *pByteStream );
 static	void	client_GenericCheat( BYTESTREAM_s *pByteStream );
 static	void	client_SetCameraToTexture( BYTESTREAM_s *pByteStream );
 
@@ -642,6 +643,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_RESPAWNRAVENTHING",
 	"SVC_MOVETHINGEXACT",
 	"SVC_SETTHINGSPECIAL2",
+	"SVC_SETSCROLLER",
 
 
 };
@@ -2306,6 +2308,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_DOSCROLLER:
 
 		client_DoScroller( pByteStream );
+		break;
+	case SVC_SETSCROLLER:
+
+		client_SetScroller( pByteStream );
 		break;
 	case SVC_GENERICCHEAT:
 
@@ -9637,6 +9643,41 @@ static void client_DoScroller( BYTESTREAM_s *pByteStream )
 
 	// Finally, create the scroller.
 	new DScroller( Type, dX, dY, -1, lSector, 0 );
+}
+
+//*****************************************************************************
+//
+void SetScroller (int tag, DScroller::EScrollType type, fixed_t dx, fixed_t dy);
+
+static void client_SetScroller( BYTESTREAM_s *pByteStream )
+{
+	DScroller::EScrollType	Type;
+	fixed_t					dX;
+	fixed_t					dY;
+	LONG					lTag;
+
+	// Read in the type of scroller.
+	Type = (DScroller::EScrollType)NETWORK_ReadByte( pByteStream );
+
+	// Read in the X speed.
+	dX = NETWORK_ReadLong( pByteStream );
+
+	// Read in the Y speed.
+	dY = NETWORK_ReadLong( pByteStream );
+
+	// Read in the sector being scrolled.
+	lTag = NETWORK_ReadShort( pByteStream );
+
+	// Check to make sure what we've read in is valid.
+	if (( Type != DScroller::sc_floor ) && ( Type != DScroller::sc_ceiling ) &&
+		( Type != DScroller::sc_carry ) && ( Type != DScroller::sc_carry_ceiling ))
+	{
+		Printf( "client_SetScroller: Unknown type: %d!\n", (LONG)Type );
+		return;
+	}
+
+	// Finally, create or update the scroller.
+	SetScroller (lTag, Type, dX, dY );
 }
 
 //*****************************************************************************
