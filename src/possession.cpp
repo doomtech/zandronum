@@ -261,6 +261,22 @@ void POSSESSION_Render( void )
 	sprintf( szString , "%02d:%02d", ( g_ulPSNArtifactHoldTicks + TICRATE ) / ( TICRATE * 60 ), (( g_ulPSNArtifactHoldTicks + TICRATE ) - ((( g_ulPSNArtifactHoldTicks + TICRATE ) / ( TICRATE * 60 )) * ( TICRATE * 60 ))) / TICRATE );
 	V_ColorizeString( szString );
 
+	// [RC] Hide this when the scoreboard is up to prevent overlapping.
+	if( SCOREBOARD_ShouldDrawBoard( consoleplayer ) )
+		return;
+
+	// [RC] Use a bolder display, at resolutions large enough.
+	if ( bScale )
+	{
+		if ( con_virtualwidth.GetGenericRep( CVAR_Int ).Int >= 640 )
+			screen->SetFont(BigFont);
+	}
+	else
+	{
+		if ( SCREENWIDTH >= 640 )
+			screen->SetFont(BigFont);
+	}
+
 	if ( bScale )
 	{
 		screen->DrawText( ulColor,
@@ -279,6 +295,7 @@ void POSSESSION_Render( void )
 			szString,
 			TAG_DONE );
 	}
+	screen->SetFont(SmallFont);
 }
 
 //*****************************************************************************
