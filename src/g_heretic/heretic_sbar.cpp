@@ -549,11 +549,17 @@ private:
 		if (armor != NULL && armor->Amount != 0)
 		{
 			pic = TexMan(armor->Icon);
-			screen->DrawTexture (pic, 56, -24,
-				DTA_HUDRules, HUD_Normal,
-				DTA_LeftOffset, pic->GetWidth()/2,
-				DTA_TopOffset, pic->GetHeight(),
-				TAG_DONE);
+			// [BB] This check shouldn't be necessary, but seems to
+			// fix the crash that sometimes occures when you pick up
+			// a terminator sphere.
+			if( pic )
+			{
+				screen->DrawTexture (pic, 56, -24,
+					DTA_HUDRules, HUD_Normal,
+					DTA_LeftOffset, pic->GetWidth()/2,
+					DTA_TopOffset, pic->GetHeight(),
+					TAG_DONE);
+			}
 			DrBNumberOuter (armor->Amount, 5, -43);
 		}
 
