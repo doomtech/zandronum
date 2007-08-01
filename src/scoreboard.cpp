@@ -190,7 +190,6 @@ CVAR (Bool, r_drawspectatingstring, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG);
 //*****************************************************************************
 //	FUNCTIONS
 
-
 static void SCOREBOARD_DrawBottomString( void )
 {
 	// [RC] Draw the centered bottom message (spectating, following, waiting, etc).
@@ -212,6 +211,7 @@ static void SCOREBOARD_DrawBottomString( void )
 	}
 }
 
+//*****************************************************************************
 static void SCOREBOARD_DrawWaiting( void )
 {
 	// [RC] Formatting linebreak.
@@ -220,6 +220,19 @@ static void SCOREBOARD_DrawWaiting( void )
 	
 	g_BottomString += "\\cgWAITING FOR PLAYERS";
 	SCOREBOARD_DrawBottomString();
+}
+
+//*****************************************************************************
+// Checks if the user wants to see the scoreboard and is allowed to.
+bool SCOREBOARD_ShouldDrawBoard( ULONG ulDisplayPlayer )
+{
+	if(
+		(( NETWORK_GetState( ) != NETSTATE_SINGLE ) || ( deathmatch || teamgame || invasion )) &&
+		( Button_ShowScores.bDown || (( players[ulDisplayPlayer].camera && players[ulDisplayPlayer].camera->health <= 0 ) && (( lastmanstanding || teamlms ) && (( LASTMANSTANDING_GetState( ) == LMSS_COUNTDOWN ) || ( LASTMANSTANDING_GetState( ) == LMSS_WAITINGFORPLAYERS )))  && ( teamlms == false ) && ( duel == false || ( DUEL_GetState( ) != DS_WINSEQUENCE ))))
+		)
+		return true;
+	else
+		return false;
 }
 
 
@@ -246,13 +259,8 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 		g_bScale = false;
 
 	// Draw the main scoreboard.
-	if (
-		(( NETWORK_GetState( ) != NETSTATE_SINGLE ) || ( deathmatch || teamgame || invasion )) &&
-		( Button_ShowScores.bDown || (( players[ulDisplayPlayer].camera && players[ulDisplayPlayer].camera->health <= 0 ) && (( lastmanstanding || teamlms ) && (( LASTMANSTANDING_GetState( ) == LMSS_COUNTDOWN ) || ( LASTMANSTANDING_GetState( ) == LMSS_WAITINGFORPLAYERS )))  && ( teamlms == false ) && ( duel == false || ( DUEL_GetState( ) != DS_WINSEQUENCE ))))
-		)
-	{
+	if (SCOREBOARD_ShouldDrawBoard( ulDisplayPlayer ))
 		SCOREBOARD_RenderBoard( ulDisplayPlayer );
-	}
 
 	g_BottomString = "";
 
@@ -495,8 +503,6 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 	return;
 }
 
-
-//*****************************************************************************
 //*****************************************************************************
 //
 void SCOREBOARD_RenderBoard( ULONG ulDisplayPlayer )
@@ -539,6 +545,7 @@ void SCOREBOARD_RenderBoard( ULONG ulDisplayPlayer )
 			ulNumIdealColumns = 5;
 	}
 
+	// The 5 column display is only availible for modes that support it.
 	if (( ulNumIdealColumns == 5 ) && !( teamgame || possession || teampossession || ctf || skulltag || teamlms || lastmanstanding ))
 		ulNumIdealColumns = 4;
 
@@ -3511,7 +3518,7 @@ static void scoreboard_Prepare3ColumnDisplay( void )
 	{
 		g_aulColumnType[0] = COLUMN_KILLS;
 		g_aulColumnType[1] = COLUMN_NAME;
-		g_aulColumnType[2] = COLUMN_TIME;
+		g_aulColumnType[2] = COLUMN_PING;
 
 		// Sort players based on their killcount.
 		scoreboard_SortPlayers( ST_KILLCOUNT );
@@ -3522,7 +3529,7 @@ static void scoreboard_Prepare3ColumnDisplay( void )
 	{
 		g_aulColumnType[0] = COLUMN_FRAGS;
 		g_aulColumnType[1] = COLUMN_NAME;
-		g_aulColumnType[2] = COLUMN_TIME;
+		g_aulColumnType[2] = COLUMN_PING;
 
 		// Sort players based on their fragcount.
 		scoreboard_SortPlayers( ST_FRAGCOUNT );
@@ -3536,7 +3543,7 @@ static void scoreboard_Prepare3ColumnDisplay( void )
 
 		g_aulColumnType[0] = COLUMN_POINTS;
 		g_aulColumnType[1] = COLUMN_NAME;
-		g_aulColumnType[2] = COLUMN_TIME;
+		g_aulColumnType[2] = COLUMN_PING;
 
 		// Sort players based on their pointcount.
 		scoreboard_SortPlayers( ST_POINTCOUNT );
@@ -3547,7 +3554,7 @@ static void scoreboard_Prepare3ColumnDisplay( void )
 	{
 		g_aulColumnType[0] = COLUMN_WINS;
 		g_aulColumnType[1] = COLUMN_NAME;
-		g_aulColumnType[2] = COLUMN_TIME;
+		g_aulColumnType[2] = COLUMN_PING;
 
 		// Sort players based on their wincount.
 		scoreboard_SortPlayers( ST_WINCOUNT );
