@@ -1689,10 +1689,18 @@ void A_Look (AActor *actor)
 		if (actor->flags2 & MF2_BOSS)
 		{ // full volume
 			S_SoundID (actor, CHAN_VOICE, actor->SeeSound, 1, ATTN_SURROUND);
+
+			// [BC] Play the sound for clients.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SoundIDActor( actor, CHAN_VOICE, actor->SeeSound, 127, ATTN_SURROUND );
 		}
 		else
 		{
 			S_SoundID (actor, CHAN_VOICE, actor->SeeSound, 1, ATTN_NORM);
+
+			// [BC] Play the sound for clients.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SoundIDActor( actor, CHAN_VOICE, actor->SeeSound, 127, ATTN_NORM );
 		}
 	}
 
@@ -2073,9 +2081,13 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 			actor->SetState (meleestate);
 			actor->flags &= ~MF_INCHASE;
 
-			// [BC] If we are the server, tell clients about the state change.
+			// [BC] If we are the server, tell clients about the state change, and play
+			// the attack sound.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			{
+				SERVERCOMMANDS_SoundIDActor( actor, CHAN_WEAPON, actor->AttackSound, 127, ATTN_NORM );
 				SERVERCOMMANDS_SetThingState( actor, STATE_MELEE );
+			}
 
 			return;
 		}

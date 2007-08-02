@@ -304,6 +304,10 @@ void A_SkullPop (AActor *actor)
 			player->camera = mo;
 		}
 		player->damagecount = 32;
+
+		// [BC] Attach the player's icon to the skull.
+		if ( player->pIcon )
+			player->pIcon->SetTracer( mo );
 	}
 }
 

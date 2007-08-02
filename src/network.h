@@ -137,7 +137,7 @@ enum
 #define	STATE_SPAWN				1
 #define	STATE_SEE				2
 #define	STATE_PAIN				3
-#define	STATE_MELEE				4					
+#define	STATE_MELEE				4
 #define	STATE_MISSILE			5
 #define	STATE_DEATH				6
 #define	STATE_XDEATH			7

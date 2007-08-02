@@ -1443,6 +1443,10 @@ void CLIENT_PrintCommand( LONG lCommand )
 
 			pszString = "CONNECT_AUTHENTICATING";
 			break;
+		case NETWORK_ERROR:
+
+			pszString = "NETWORK_ERROR";
+			break;
 		}
 	}
 	else
@@ -4845,21 +4849,51 @@ static void client_SetThingState( BYTESTREAM_s *pByteStream )
 		// There should probably be the potential for a warning message here.
 		return;
 	}
+/*
+	switch ( lState )
+	{
+	case STATE_SPAWN:
 
+		Printf( "STATE_SPAWN\n" );
+		break;
+	case STATE_SEE:
+
+		Printf( "STATE_SEE\n" );
+		break;
+	case STATE_PAIN:
+
+		Printf( "STATE_PAIN\n" );
+		break;
+	case STATE_MELEE:
+
+		Printf( "STATE_MELEE\n" );
+		break;
+	case STATE_MISSILE:
+
+		Printf( "STATE_MISSILE\n" );
+		break;
+	case STATE_DEATH:
+
+		Printf( "STATE_DEATH\n" );
+		break;
+	case STATE_XDEATH:
+
+		Printf( "STATE_XDEATH\n" );
+		break;
+	case STATE_RAISE:
+
+		Printf( "STATE_RAISE\n" );
+		break;
+	case STATE_HEAL:
+
+		Printf( "STATE_HEAL\n" );
+		break;
+	}
+*/
 	switch ( lState )
 	{
 	case STATE_SEE:
 
-		// Seestates require a sound to be played about here
-		if ( pActor->SeeSound )
-		{	
-			// Boss activation sounds are played at full volume.
-			if ( pActor->flags2 & MF2_BOSS )
-				S_SoundID( pActor, CHAN_VOICE, pActor->SeeSound, 1, ATTN_SURROUND );
-			else
-				S_SoundID( pActor, CHAN_VOICE, pActor->SeeSound, 1, ATTN_NORM );
-		}
-		
 		pNewState = pActor->SeeState;
 		break;
 	case STATE_SPAWN:
@@ -4872,18 +4906,9 @@ static void client_SetThingState( BYTESTREAM_s *pByteStream )
 		break;
 	case STATE_MELEE:
 
-		// Seems like we always play the attack sound when the actor goes to a melee state,
-		// so just do that here.
-		if ( pActor->AttackSound )
-			S_SoundID( pActor, CHAN_WEAPON, pActor->AttackSound, 1, ATTN_NORM );
-
 		pNewState = pActor->MeleeState;
 		break;
 	case STATE_MISSILE:
-
-		// Hack for 95g. Lost souls play their attack sound when they enter their missile state.
-		if ( pActor->GetClass( ) == RUNTIME_CLASS( ALostSoul ))
-			S_SoundID( pActor, CHAN_WEAPON, pActor->AttackSound, 1, ATTN_NORM );
 
 		pNewState = pActor->MissileState;
 		break;

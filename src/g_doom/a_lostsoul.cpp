@@ -89,6 +89,11 @@ void A_SkullAttack (AActor *self)
 	self->flags |= MF_SKULLFLY;
 
 	S_SoundID (self, CHAN_VOICE, self->AttackSound, 1, ATTN_NORM);
+
+	// [BC] If we're the server, tell clients play this sound.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SoundIDActor( self, CHAN_VOICE, self->AttackSound, 127, ATTN_NORM );
+
 	A_FaceTarget (self);
 	an = self->angle >> ANGLETOFINESHIFT;
 	self->momx = FixedMul (SKULLSPEED, finecosine[an]);
