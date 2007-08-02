@@ -57,6 +57,8 @@ IMPLEMENT_ACTOR (AKeyGizmoFloat, Heretic, -1, 0)
 	PROP_Flags (MF_SOLID|MF_NOGRAVITY)
 
 	PROP_SpawnState (0)
+	// [BC]
+	PROP_FlagsNetwork( NETFL_ALLOWCLIENTSPAWN )
 END_DEFAULTS
 
 // Blue gizmo ---------------------------------------------------------------
