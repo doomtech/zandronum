@@ -16,6 +16,7 @@
 #include "deathmatch.h"
 #include "network.h"
 #include "sv_commands.h"
+#include "gamemode.h"
 
 static FRandom pr_sap ("StaffAtkPL1");
 static FRandom pr_sap2 ("StaffAtkPL2");
@@ -1120,6 +1121,12 @@ void A_SpawnMace (AActor *self)
 		return;
 	}
 
+	// [BC] The mace spawner object isn't an object that can be picked up, therefore it is
+	// spawned on the map for modes that do not have special objects. Therefore, we need
+	// to do an additional check to not spawn the mace in these modes.
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DONTSPAWNMAPTHINGS )
+		return;
+
 	// [BC] Let the server respawn this in client mode.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 		return;
@@ -1184,6 +1191,10 @@ bool AMace::DoRespawn ()
 
 		SetOrigin (spot->x, spot->y, spot->z);
 		z = floorz;
+
+		// [BC] Tell clients the new position of the mace.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_MoveThingExact( this, CM_X|CM_Y|CM_Z );
 	}
 	return true;
 }
