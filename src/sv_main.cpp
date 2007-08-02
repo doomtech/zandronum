@@ -2280,6 +2280,9 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 			Printf( "%s \\c-disconnected.\n", NETWORK_AddressToString( g_aClients[ulClient].Address ));
 	}
 
+	// Inform the other clients that this player has been disconnected.
+	SERVERCOMMANDS_DisconnectPlayer( ulClient );
+
 	// Potentially back up the player's score in the game, so that if he rejoins, he hasn't
 	// lost everything.
 	if ( bSaveInfo )
@@ -2336,9 +2339,6 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 	g_aClients[ulClient].State = CLS_FREE;
 	g_aClients[ulClient].ulLastGameTic = 0;
 	playeringame[ulClient] = false;
-
-	// Inform the other clients that this player has been disconnected.
-	SERVERCOMMANDS_DisconnectPlayer( ulClient );
 
 	// Redo the scoreboard.
 	SERVERCONSOLE_ReListPlayers( );
