@@ -614,9 +614,6 @@ CCMD (puke)
 {
 	int argc = argv.argc();
 
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
-		return;
-
 	if (argc < 2 || argc > 5)
 	{
 		Printf (" puke <script> [arg1] [arg2] [arg3]\n");
@@ -637,20 +634,30 @@ CCMD (puke)
 			arg[i] = atoi (argv[2+i]);
 		}
 
-		if (script > 0)
+		// [BB] The check if the client is allowed to execute the script
+		// is done in P_StartScript, no need to check here.
+		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 		{
-			Net_WriteByte (DEM_RUNSCRIPT);
-			Net_WriteWord (script);
+			P_StartScript (players[consoleplayer].mo, NULL, script, level.mapname, false,
+				arg[0], arg[1], arg[2], (script < 0), false, true);
 		}
 		else
 		{
-			Net_WriteByte (DEM_RUNSCRIPT2);
-			Net_WriteWord (-script);
-		}
-		Net_WriteByte (argn);
-		for (i = 0; i < argn; ++i)
-		{
-			Net_WriteLong (arg[i]);
+			if (script > 0)
+			{
+				Net_WriteByte (DEM_RUNSCRIPT);
+				Net_WriteWord (script);
+			}
+			else
+			{
+				Net_WriteByte (DEM_RUNSCRIPT2);
+				Net_WriteWord (-script);
+			}
+			Net_WriteByte (argn);
+			for (i = 0; i < argn; ++i)
+			{
+				Net_WriteLong (arg[i]);
+			}
 		}
 	}
 }
