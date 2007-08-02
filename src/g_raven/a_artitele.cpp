@@ -7,6 +7,8 @@
 #include "s_sound.h"
 #include "m_random.h"
 #include "deathmatch.h"
+#include "network.h"
+#include "sv_commands.h"
 
 static FRandom pr_tele ("TeleportSelf");
 
@@ -44,6 +46,10 @@ bool AArtiTeleport::Use (bool pickup)
 	fixed_t destY;
 	angle_t destAngle;
 
+	// [BC] Let the server decide where we go.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		return ( true );
+
 	if (deathmatch)
 	{
 		unsigned int selections = deathmatchstarts.Size ();
@@ -66,6 +72,10 @@ bool AArtiTeleport::Use (bool pickup)
 	if (gameinfo.gametype == GAME_Heretic)
 	{ // Full volume laugh
 		S_Sound (Owner, CHAN_VOICE, "*evillaugh", 1, ATTN_NONE);
+
+		// [BC] Play the laugh for clients.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SoundActor( Owner, CHAN_VOICE, "*evillaugh", 127, ATTN_NONE );
 	}
 	return true;
 }
