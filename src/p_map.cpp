@@ -60,6 +60,7 @@
 #include "sv_commands.h"
 #include "cl_demo.h"
 #include "cl_main.h"
+#include "gamemode.h"
 
 #define WATER_SINK_FACTOR		3
 #define WATER_SINK_SMALL_FACTOR	4
@@ -5388,6 +5389,19 @@ void P_DoCrunch (AActor *thing)
 		}
 		else
 		{
+			// [BC] If we're playing a game mode in which the map resets, and this is something
+			// that is level spawned, don't destroy it. Instead, put it in a temporary invisibile
+			// state.
+			if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_MAPRESETS ) &&
+				( thing->ulSTFlags & STFL_LEVELSPAWNED ) &&
+				( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+			{
+				thing->renderflags |= RF_INVISIBLE;
+				thing->flags &= ~MF_SOLID;
+				thing->SetState( &AInventory::States[17] );
+				return;
+			}
+
 			thing->Destroy ();
 		}
 		return;		// keep checking
@@ -5402,7 +5416,22 @@ void P_DoCrunch (AActor *thing)
 
 		// [BC] Don't destroy items in client mode; the server will tell us to.
 		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+		{
+			// [BC] If we're playing a game mode in which the map resets, and this is something
+			// that is level spawned, don't destroy it. Instead, put it in a temporary invisibile
+			// state.
+			if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_MAPRESETS ) &&
+				( thing->ulSTFlags & STFL_LEVELSPAWNED ) &&
+				( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+			{
+				thing->renderflags |= RF_INVISIBLE;
+				thing->flags &= ~MF_SOLID;
+				thing->SetState( &AInventory::States[17] );
+				return;
+			}
+
 			thing->Destroy ();
+		}
 		return;		// keep checking
 	}
 
