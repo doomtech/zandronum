@@ -34,7 +34,7 @@
 void G_DeathMatchSpawnPlayer( int playernum, bool bClientUpdate );
 void G_TemporaryTeamSpawnPlayer( ULONG ulPlayer, bool bClientUpdate );
 void G_TeamgameSpawnPlayer( ULONG ulPlayer, ULONG ulTeam, bool bClientUpdate );
-void G_CooperativeSpawnPlayer( ULONG ulPlayer, bool bClientUpdate );
+void G_CooperativeSpawnPlayer( ULONG ulPlayer, bool bClientUpdate, bool bTempPlayer = false );
 
 // [BC] Determines the game type by map spots and other items placed on the level.
 void	GAME_CheckMode( void );

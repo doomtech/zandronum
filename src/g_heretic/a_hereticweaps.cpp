@@ -1178,6 +1178,10 @@ void A_SpawnMace (AActor *self)
 
 bool AMace::DoRespawn ()
 {
+	// [BC] Don't do this in client mode.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		return ( true );
+
 	if (NumMaceSpots > 0)
 	{
 		int spotnum = pr_macerespawn () % NumMaceSpots;

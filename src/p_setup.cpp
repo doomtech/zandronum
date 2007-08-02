@@ -4123,7 +4123,7 @@ void P_SetupLevel (char *lumpname, int position)
 		}
 
 		if ( NETWORK_GetState( ) != NETSTATE_SINGLE )
-			P_SpawnPlayer( &playerstarts[i], false, NULL );
+			G_CooperativeSpawnPlayer( i, false );
 	}
 
 	// set up world state

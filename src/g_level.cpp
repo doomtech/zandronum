@@ -2682,7 +2682,7 @@ void G_FinishTravel ()
 
 			// The player being spawned here is a short lived dummy and
 			// must not start any ENTER script or big problems will happen.
-			P_SpawnPlayer (&playerstarts[pawn->player - players], false, pawn->player, true);
+			G_CooperativeSpawnPlayer( pawn->player - players, false, true );
 
 			// [BC]
 			lSavedNetID = pawndup->lNetID;

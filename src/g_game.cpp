@@ -2449,7 +2449,7 @@ void G_TeamgameSpawnPlayer( ULONG ulPlayer, ULONG ulTeam, bool bClientUpdate )
 	P_SpawnPlayer( pSpot, bClientUpdate, &players[ulPlayer] );
 }
 
-void G_CooperativeSpawnPlayer( ULONG ulPlayer, bool bClientUpdate )
+void G_CooperativeSpawnPlayer( ULONG ulPlayer, bool bClientUpdate, bool bTempPlayer )
 {
 	ULONG		ulNumSpots;
 	ULONG		ulIdx;
@@ -2483,7 +2483,7 @@ void G_CooperativeSpawnPlayer( ULONG ulPlayer, bool bClientUpdate )
 	if ( pSpot == NULL )
 		I_Error( "Could not find a valid deathmatch spot! (this should not happen)" );
 
-	P_SpawnPlayer( pSpot, bClientUpdate, &players[ulPlayer] );
+	P_SpawnPlayer( pSpot, bClientUpdate, &players[ulPlayer], bTempPlayer );
 }
 
 //
