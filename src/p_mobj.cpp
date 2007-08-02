@@ -706,7 +706,10 @@ bool AActor::InDeathState()
 			pDeadState = pDeadState->GetNextState( );
 
 			// If the state loops back to the beginning of the death state, or to itself, break out.
-			if (( pDeadState == DeathState ) || ( pState == pDeadState ))
+			// [BC] The bell in Hexen goes back to its idle state at the end of its death state.
+			// Therefore, let's instead break out if the death state jumps around.
+//			if (( pDeadState == DeathState ) || ( pState == pDeadState ))
+			if ( pDeadState != pState + 1 )
 				break;
 		}
 	}
