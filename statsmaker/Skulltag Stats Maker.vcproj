@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="8,00"
 	Name="Skulltag Stats Maker"
 	ProjectGUID="{45BB0A1D-9FC1-49C7-AABB-9066DC64D2A9}"
 	>
@@ -72,7 +72,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib wsock32.lib winmm.lib"
+				AdditionalDependencies="user32.lib wsock32.lib winmm.lib"
 				OutputFile=".\Debug/Skulltag Stats Maker.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -167,7 +167,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib wsock32.lib winmm.lib"
+				AdditionalDependencies="user32.lib wsock32.lib winmm.lib"
 				OutputFile=".\Release/Skulltag Stats Maker.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
