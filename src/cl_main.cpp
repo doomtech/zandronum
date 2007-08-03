@@ -8096,7 +8096,16 @@ static void client_GiveInventory( BYTESTREAM_s *pByteStream )
 
 	// If the player doesn't have this type, give it to him.
 	if ( pInventory == NULL )
+	{
 		pInventory = players[ulPlayer].mo->GiveInventoryType( pType );
+
+		// Don't count this towards the level statistics.
+		if ( pInventory->flags & MF_COUNTITEM )
+		{
+			pInventory->flags &= ~MF_COUNTITEM;
+			level.total_items--;
+		}
+	}
 
 	// If he still doesn't have the object after trying to give it to him... then YIKES!
 	if ( pInventory == NULL )
@@ -8277,6 +8286,13 @@ static void client_DoInventoryPickup( BYTESTREAM_s *pByteStream )
 	pInventory = static_cast<AInventory *>( Spawn( PClass::FindClass( szClassName ), 0, 0, 0, NO_REPLACE ));
 	if ( pInventory == NULL )
 		return;
+
+	// Don't count this towards the level statistics.
+	if ( pInventory->flags & MF_COUNTITEM )
+	{
+		pInventory->flags &= ~MF_COUNTITEM;
+		level.total_items--;
+	}
 
 	// Print out the pickup message.
 	if (( players[ulPlayer].mo->CheckLocalView( consoleplayer )) &&

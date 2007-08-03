@@ -1079,6 +1079,10 @@ void AInventory::Touch (AActor *toucher)
 			toucher->player->itemcount++;
 		}
 		level.found_items++;
+
+		// [BC] Tell clients the new found item count.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetMapNumFoundItems( );
 	}
 
 	// [BC] If the item has an announcer sound, play it.

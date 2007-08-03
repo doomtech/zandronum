@@ -2159,6 +2159,13 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 			SERVERCOMMANDS_ThingIsCorpse( pActor, ulClient, SVCF_ONLYTHISCLIENT );
     }
 
+	// Tell clients the found/total item count.
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE )
+	{
+		SERVERCOMMANDS_SetMapNumFoundItems( ulClient, SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_SetMapNumTotalItems( ulClient, SVCF_ONLYTHISCLIENT );
+	}
+
 	// Also let the client know about any cameras set to textures.
 	FCanvasTextureInfo::UpdateToClient( ulClient );
 }

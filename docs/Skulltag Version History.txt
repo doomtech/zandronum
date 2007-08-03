@@ -43,6 +43,7 @@ v0.97d-beta5
 -	- The reminder that displays when the chat prompt comes up that reminds you that you cannot talk to players/spectators is now affected by text scaling. [Carnevil]
 -	- The dmflag "Don't spawn multiplayer weapons in co-op games" now works properly. [Carnevil]
 -	- Skulltag score pillars now go into the correct frame when the blue team scores a point. [Carnevil]
+-	- The number of found and total items on the map now updates properly. [Carnevil]
 -	- The music now stays off when you pick up a second time freeze sphere. [Carnevil]
 -	- Heretic key markers now display the proper color in network games. [Carnevil]
 -	- The inventory bar now closes if you use an inventory item in network games. [Carnevil]
