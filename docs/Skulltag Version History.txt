@@ -57,6 +57,7 @@ v0.97d-beta5
 -	- Changed: If the CCMD changemus is called on the server, the music is changed on all clients now. [Torr Samaho]
 -	- The "player team" menu item now has the proper number of options. [Carnevil]
 -	- The number of duels remaining is now reflected correctly on the scoreboard. [Carnevil]
+-	- Color codes that span multiple characters are now properly removed when stripping color codes from strings. [Carnevil]
 -	- The number of consecutive regular and railgun hits are now reset whenever a new duel, LMS round, or possession round begins. [Carnevil]
 -	- Fixed: Thing_Remove called on an invasion pickup spawner leads to crashes when a player picks up something spawned by the destroyed spawner. [Torr Samaho]
 -	- Fixed: The line special Scroll_Floor doesn't work properly online. [Torr Samaho]

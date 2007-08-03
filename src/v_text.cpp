@@ -430,36 +430,44 @@ void V_UnColorizeString( char *pszString, ULONG ulMaxStringLength )
 // [BC] This strips color codes from a string.
 void V_RemoveColorCodes( char *pszString )
 {
-	char *p;
-	char c;
+	char	*p;
+	char	c;
+	char	*pszEnd;
 
+	// Start at the beginning of the string.
 	p = pszString;
-	while ( c = *p++ )
+
+	// Look at the current character.
+	while ( c = *p )
 	{
+		// If this is a color character, remove it along with the color code from the string.
 		if ( c == TEXTCOLOR_ESCAPE )
 		{
-			ULONG	ulPos;
-			ULONG	ulStringLength;
+			pszEnd = p + 1;
 
-			ulStringLength = static_cast<ULONG>(strlen( pszString ));
-
-			// If there aren't 3 characters left (the color character, the color code,
-			// and the new text), just terminate the string where the color character is.
-			if ( ulStringLength < 3 )
+			// This character is the color code. Ones that start with a left bracket are
+			// multiple characters and end with the right bracket.
+			switch ( *pszEnd )
 			{
-				pszString[0] = 0;
-				return;
+			case '[':
+
+				while (( *pszEnd != ']' ) && ( *pszEnd != 0 ))
+					pszEnd++;
+				break;
+			default:
+
+				break;
 			}
 
-			for ( ulPos = 0; ulPos < ulStringLength; ulPos++ )
-				pszString[ulPos] = pszString[ulPos + 2];
+			pszEnd++;
 
-			p--;
+			// Make sure we copy the terminating null character, too.
+			memcpy( p, pszEnd, strlen( pszEnd ) + 1 );
 		}
+		// Otherwise, look at the next character.
 		else
-			pszString++;
+			p++;
 	}
-	*pszString = 0;
 }
 
 // [BB] Strips color codes from a string respecting sv_colorstripmethod.
