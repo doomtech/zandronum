@@ -53,8 +53,11 @@
 #include "a_sharedglobal.h"
 // [BC] New #includes.
 #include "cl_demo.h"
+#include "cooperative.h"
 #include "deathmatch.h"
+#include "invasion.h"
 #include "network.h"
+#include "sv_commands.h"
 #include "team.h"
 #include "chat.h"
 
@@ -2235,6 +2238,21 @@ void Net_DoCommand (int type, BYTE **stream, int player)
 							spawned->FriendPlayer = player + 1;
 							spawned->flags |= MF_FRIENDLY;
 							spawned->LastHeard = players[player].mo;
+
+							// [BC] Do some invasion mode stuff.
+							if (( invasion ) &&
+								( INVASION_IncreaseNumMonstersOnSpawn( )) &&
+								( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+							{
+								INVASION_SetNumMonstersLeft( INVASION_GetNumMonstersLeft( ) - 1 );
+
+								if ( spawned->GetClass( ) == PClass::FindClass( "Archvile" ))
+									INVASION_SetNumArchVilesLeft( INVASION_GetNumArchVilesLeft( ) - 1 );
+
+								// [BC] If we're the server, tell the client how many monsters are left.
+								if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+									SERVERCOMMANDS_SetInvasionNumMonstersLeft( );
+							}
 						}
 					}
 				}
