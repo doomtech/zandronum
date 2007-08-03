@@ -2397,7 +2397,19 @@ AActor* CLIENT_SpawnThing( char *pszName, fixed_t X, fixed_t Y, fixed_t Z, LONG 
 
 		// Just do particles.
 		if ( cl_bloodtype == 2 )
-			return NULL;
+			return ( NULL );
+	}
+
+	if ( stricmp( pszName, "BulletPuff" ) == 0 )
+	{
+		if ( cl_pufftype )
+		{
+			angle_t	Angle;
+
+			Angle = ( M_Random( ) - 128 ) << 24;
+			P_DrawSplash2( 32, X, Y, Z, Angle, 1, 1 );
+			return ( NULL );
+		}
 	}
 
 	// Now that all checks have been done, spawn the actor.
