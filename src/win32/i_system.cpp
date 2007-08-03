@@ -71,6 +71,11 @@
 
 EXTERN_CVAR (String, language)
 
+// Used on welcome/IWAD screen
+EXTERN_CVAR (Int, vid_renderer)
+EXTERN_CVAR (Bool, fullscreen)
+EXTERN_CVAR (Bool, gl_vid_compatibility)
+
 #ifdef USEASM
 extern "C" void STACK_ARGS CheckMMX (CPUInfo *cpu);
 #endif
@@ -683,16 +688,6 @@ static void SetQueryIWad (HWND dialog)
 	HWND checkbox = GetDlgItem (dialog, IDC_DONTASKIWAD);
 	int state = SendMessage (checkbox, BM_GETCHECK, 0, 0);
 	bool query = (state != BST_CHECKED);
-
-	if (!query && queryiwad)
-	{
-		MessageBox (dialog,
-			"You have chosen not to show this dialog box in the future.\n"
-			"If you wish to see it again, hold down SHIFT while starting " GAMENAME ".",
-			"Don't ask me this again",
-			MB_OK | MB_ICONINFORMATION);
-	}
-
 	queryiwad = query;
 }
 
@@ -704,16 +699,21 @@ BOOL CALLBACK IWADBoxCallback (HWND hDlg, UINT message, WPARAM wParam, LPARAM lP
 	switch (message)
 	{
 	case WM_INITDIALOG:
-		// Add our program name to the window title
-		{
-			TCHAR label[256];
-			FString newlabel;
+		char	szString[256];
 
-			GetWindowText (hDlg, label, countof(label));
-			newlabel.Format (GAMESIG " " DOTVERSIONSTR_NOREV ": %s", label);
-			SetWindowText (hDlg, newlabel.GetChars());
-		}
-		// Populate the list with all the IWADs found
+		// Set up our version string.
+		sprintf(szString, "You are running version %s.", DOTVERSIONSTR_REV);
+		SetDlgItemText (hDlg, IDC_WELCOME_VERSION, szString);
+
+		// Check the current video settings.
+		SendDlgItemMessage( hDlg, vid_renderer ? IDC_WELCOME_OPENGL : IDC_WELCOME_SOFTWARE, BM_SETCHECK, BST_CHECKED, 0 );
+		SendDlgItemMessage( hDlg, IDC_WELCOME_FULLSCREEN, BM_SETCHECK, fullscreen ? BST_CHECKED : BST_UNCHECKED, 0 );
+		SendDlgItemMessage( hDlg, IDC_WELCOME_COMPAT, BM_SETCHECK, gl_vid_compatibility ? BST_CHECKED : BST_UNCHECKED, 0 );
+
+		// Set the state of the "Don't ask me again" checkbox.
+		SendDlgItemMessage ( hDlg, IDC_DONTASKIWAD, BM_SETCHECK, queryiwad ? BST_UNCHECKED : BST_CHECKED, 0);
+				
+		// Populate the list with all the IWADs found.
 		ctrl = GetDlgItem (hDlg, IDC_IWADLIST);
 		for (i = 0; i < NumWads; i++)
 		{
@@ -727,13 +727,12 @@ BOOL CALLBACK IWADBoxCallback (HWND hDlg, UINT message, WPARAM wParam, LPARAM lP
 			SendMessage (ctrl, LB_ADDSTRING, 0, (LPARAM)work.GetChars());
 			SendMessage (ctrl, LB_SETITEMDATA, i, (LPARAM)i);
 		}
+
+		// Select the current IWAD in the list.
 		SendMessage (ctrl, LB_SETCURSEL, DefaultWad, 0);
 		SetFocus (ctrl);
-		// Set the state of the "Don't ask me again" checkbox
-		ctrl = GetDlgItem (hDlg, IDC_DONTASKIWAD);
-		SendMessage (ctrl, BM_SETCHECK, queryiwad ? BST_UNCHECKED : BST_CHECKED, 0);
-		// Make sure the dialog is in front. If SHIFT was pressed to force it visible,
-		// then the other window will normally be on top.
+
+		// Make sure the dialog is in front. If SHIFT was pressed to force it visible, then the main window will normally be on top.
 		SetForegroundWindow (hDlg);
 		break;
 
@@ -742,10 +741,40 @@ BOOL CALLBACK IWADBoxCallback (HWND hDlg, UINT message, WPARAM wParam, LPARAM lP
 		{
 			EndDialog (hDlg, -1);
 		}
-		else if (LOWORD(wParam) == IDOK ||
-			(LOWORD(wParam) == IDC_IWADLIST && HIWORD(wParam) == LBN_DBLCLK))
+		else if(LOWORD(wParam) == IDC_DONTASKIWAD)
+		{
+			char	szString[256];
+			char	szKey[6];
+
+			// Determine the curent setting.
+			I_GetWelcomeScreenKeyString( szKey );
+
+			// If checked, show the label indicating which key to press.
+			if(SendDlgItemMessage( hDlg, IDC_DONTASKIWAD, BM_GETCHECK, 0, 0 ) == BST_CHECKED)
+				sprintf(szString, "Hold <%s> on startup to show this screen.", szKey);
+			else
+				strcpy(szString, "");	// Hide it.
+
+			SetDlgItemText (hDlg, IDC_WELCOME_SHIFTLABEL, szString);
+		}
+		else if(LOWORD(wParam) == IDC_WELCOME_COMPAT)
+		{
+			// Tell the user about this setting.
+			if(SendDlgItemMessage( hDlg, IDC_WELCOME_COMPAT, BM_GETCHECK, 0, 0 ) == BST_CHECKED)
+				strcpy(szString, "This setting should only be used if you're having problems.");
+			else
+				strcpy(szString, "");	// Hide it.
+
+			SetDlgItemText (hDlg, IDC_WELCOME_SHIFTLABEL, szString);
+		}
+
+
+		else if (LOWORD(wParam) == IDOK
+			/* [RC] No longer the primary control. > || (LOWORD(wParam) == IDC_IWADLIST && HIWORD(wParam) == LBN_DBLCLK)<*/)
 		{
 			SetQueryIWad (hDlg);
+			vid_renderer = SendDlgItemMessage( hDlg, IDC_WELCOME_OPENGL, BM_GETCHECK, 0, 0 ) == BST_CHECKED;
+			gl_vid_compatibility = SendDlgItemMessage( hDlg, IDC_WELCOME_COMPAT, BM_GETCHECK, 0, 0 ) == BST_CHECKED;
 			ctrl = GetDlgItem (hDlg, IDC_IWADLIST);
 			EndDialog (hDlg, SendMessage (ctrl, LB_GETCURSEL, 0, 0));
 		}
@@ -754,22 +783,35 @@ BOOL CALLBACK IWADBoxCallback (HWND hDlg, UINT message, WPARAM wParam, LPARAM lP
 	return FALSE;
 }
 
-int I_PickIWad (WadStuff *wads, int numwads, bool showwin, int defaultiwad)
+int I_GetWelcomeScreenKeyCode( void )
 {
-	int vkey;
+	int vkey = 0;
 
 	if (stricmp (queryiwad_key, "shift") == 0)
-	{
 		vkey = VK_SHIFT;
-	}
 	else if (stricmp (queryiwad_key, "control") == 0 || stricmp (queryiwad_key, "ctrl") == 0)
-	{
 		vkey = VK_CONTROL;
-	}
-	else
+
+	return vkey;
+}
+
+
+void I_GetWelcomeScreenKeyString( char *pszString )
+{
+	switch(I_GetWelcomeScreenKeyCode())
 	{
-		vkey = 0;
+		case VK_CONTROL:
+			strcpy(pszString, "CTRL");
+			break;
+		default:
+		case VK_SHIFT:
+			strcpy(pszString, "SHIFT");
 	}
+}
+
+int I_PickIWad (WadStuff *wads, int numwads, bool showwin, int defaultiwad)
+{
+	int vkey = I_GetWelcomeScreenKeyCode();
 	if (showwin || (vkey != 0 && GetAsyncKeyState(vkey)))
 	{
 		WadList = wads;

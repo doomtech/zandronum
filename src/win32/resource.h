@@ -352,13 +352,18 @@
 #define ID_ADMIN_VIEWBANLIST            40015
 #define ID_ADMIN_BANIP                  40016
 #define ID_ADMIN_CHANGEMAP              40017
-
+#define IDC_WELCOME_VERSION				40019
+#define IDC_WELCOME_OPENGL				40020
+#define IDC_WELCOME_SOFTWARE			40021
+#define IDC_WELCOME_FULLSCREEN			40022
+#define IDC_WELCOME_COMPAT				40023
+#define IDC_WELCOME_SHIFTLABEL			40024
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        169
-#define _APS_NEXT_COMMAND_VALUE         40018
+#define _APS_NEXT_COMMAND_VALUE         40025
 #define _APS_NEXT_CONTROL_VALUE         1224
 #define _APS_NEXT_SYMED_VALUE           103
 #endif

@@ -192,6 +192,10 @@ void I_PaintConsole (void);
 // Print a console string
 void I_PrintStr (const char *cp);
 
+// [RC] Get the key associated with the Welcome/IWAD box.
+int I_GetWelcomeScreenKeyCode( void );
+void I_GetWelcomeScreenKeyString( char *pszString );
+
 // Set the title string of the startup window
 struct IWADInfo;
 void I_SetIWADInfo (const IWADInfo *title);
