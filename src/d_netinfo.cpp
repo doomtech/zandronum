@@ -227,9 +227,9 @@ void D_SetupUserInfo ()
 		return;
 	}
 
-	// [BC] Don't reset everyone's userinfo in client mode, since we don't want to erase
-	// EVERYONE'S userinfo if we change ours.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	// [BC] Don't reset everyone's userinfo in multiplayer games, since we don't want to
+	// erase EVERYONE'S userinfo if we change ours.
+	if ( NETWORK_GetState( ) == NETSTATE_SINGLE )
 	{
 		for (i = 0; i < MAXPLAYERS; i++)
 			memset (&players[i].userinfo, 0, sizeof(userinfo_t));
