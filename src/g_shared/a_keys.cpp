@@ -408,14 +408,17 @@ bool P_CheckKeys (AActor *owner, int keynum, bool remote)
 	{
 		PrintMessage(failtext);
 		S_SoundID (owner, CHAN_VOICE, failsound, 1, ATTN_NORM);
+	}
 
+	if ( owner->player )
+	{
 		// [BC] If we're the server, print the message to 
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
 			if ( failtext[0] == '$' )
 				failtext = GStrings( failtext + 1 );
 
-			SERVERCOMMANDS_PrintMid( (char *)failtext, consoleplayer, SVCF_ONLYTHISCLIENT );
+			SERVERCOMMANDS_PrintMid( (char *)failtext, owner->player - players, SVCF_ONLYTHISCLIENT );
 			SERVERCOMMANDS_SoundIDActor( owner, CHAN_VOICE, failsound, 127, ATTN_NORM );
 		}
 	}

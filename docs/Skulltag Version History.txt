@@ -58,6 +58,7 @@ v0.97d-beta5
 -	- Changed: If the CCMD changemus is called on the server, the music is changed on all clients now. [Torr Samaho]
 -	- The "player team" menu item now has the proper number of options. [Carnevil]
 -	- The number of duels remaining is now reflected correctly on the scoreboard. [Carnevil]
+-	- Players other than the first player can now see locked door messages in network games. [Carnevil]
 -	- Color codes that span multiple characters are now properly removed when stripping color codes from strings. [Carnevil]
 -	- The number of consecutive regular and railgun hits are now reset whenever a new duel, LMS round, or possession round begins. [Carnevil]
 -	- The bots now retain their userinfo properties if you change your during the course of a bot match. [Carnevil]
