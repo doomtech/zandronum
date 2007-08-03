@@ -2462,7 +2462,7 @@ void G_CooperativeSpawnPlayer( ULONG ulPlayer, bool bClientUpdate, bool bTempPla
 	// If there's a valid start for this player, spawn him there.
 	if (( playerstarts[ulPlayer].type != 0 ) && ( G_CheckSpot( ulPlayer, &playerstarts[ulPlayer] )))
 	{
-		P_SpawnPlayer( &playerstarts[ulPlayer], bClientUpdate, NULL );
+		P_SpawnPlayer( &playerstarts[ulPlayer], bClientUpdate, NULL, bTempPlayer );
 		return;
 	}
 
