@@ -494,7 +494,7 @@ FState AWhiteFlag::States[] =
 	S_BRIGHT (WFLA, 'F',   3, NULL 				, &States[0]),
 };
 
-IMPLEMENT_ACTOR( AWhiteFlag, Doom, 5132, 179 )
+IMPLEMENT_ACTOR( AWhiteFlag, Any, 5132, 179 )
 	PROP_RadiusFixed( 20 )
 	PROP_HeightFixed( 16 )
 	PROP_Flags( MF_SPECIAL|MF_NOTDMATCH )
@@ -1087,7 +1087,7 @@ FState ABlueFlag::States[] =
 	S_BRIGHT (BFLA, 'F',   3, NULL 				, &States[0]),
 };
 
-IMPLEMENT_ACTOR( ABlueFlag, Doom, 5130, 177 )
+IMPLEMENT_ACTOR( ABlueFlag, Any, 5130, 177 )
 	PROP_RadiusFixed( 20 )
 	PROP_HeightFixed( 16 )
 	PROP_Flags( MF_SPECIAL|MF_NOTDMATCH )
@@ -1825,7 +1825,7 @@ FState ARedFlag::States[] =
 	S_BRIGHT (RFLA, 'F',   3, NULL 				, &States[0]),
 };
 
-IMPLEMENT_ACTOR( ARedFlag, Doom, 5131, 178 )
+IMPLEMENT_ACTOR( ARedFlag, Any, 5131, 178 )
 	PROP_RadiusFixed( 20 )
 	PROP_HeightFixed( 16 )
 	PROP_Flags( MF_SPECIAL|MF_NOTDMATCH )
@@ -2399,7 +2399,7 @@ FState ABlueSkullST::States[] =
 	S_BRIGHT( BSKU, 'B',   10, NULL 				, &States[0] ),
 };
 
-IMPLEMENT_ACTOR( ABlueSkullST, Doom, -1, -1 )
+IMPLEMENT_ACTOR( ABlueSkullST, Any, -1, -1 )
 	PROP_RadiusFixed( 20 )
 	PROP_HeightFixed( 16 )
 	PROP_Flags( MF_SPECIAL|MF_NOTDMATCH )
@@ -2822,7 +2822,7 @@ FState ARedSkullST::States[] =
 	S_BRIGHT( RSKU, 'B',   10, NULL 				, &States[0] ),
 };
 
-IMPLEMENT_ACTOR( ARedSkullST, Doom, -1, -1 )
+IMPLEMENT_ACTOR( ARedSkullST, Any, -1, -1 )
 	PROP_RadiusFixed( 20 )
 	PROP_HeightFixed( 16 )
 	PROP_Flags( MF_SPECIAL|MF_NOTDMATCH )
