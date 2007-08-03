@@ -27,6 +27,7 @@ v0.97d-beta5
 -	- Fixed many problems with Heretic and Hexen during network games. Both games should be quite playable now online! [Carnevil]
 -	- Monsters that do not leave a corpse now respawn properly in survival co-op. [Carnevil]
 -	- Monsters that are crushed by moving ceilings now respawn properly in survival co-op. [Carnevil]
+-	- Players no longer get stuck in their idle animation if they bump into something in network games. [Carnevil]
 -	- Players are now properly spawned when switching to a map with less player starts than players in cooperative mode. [Carnevil]
 -	- The list of players displayed by the server console should no longer have any ghost players. [Carnevil]
 -	- Removed CVAR sv_stay97c3compatible, since beta4 broke network compatibility with 97c3 even with sv_stay97c3compatible set to true. [Torr Samaho]

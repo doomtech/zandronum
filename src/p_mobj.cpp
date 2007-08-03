@@ -1938,7 +1938,14 @@ explode:
 		// Don't affect main player when voodoo dolls stop:
 		if ((player && player->mo == mo) && ( CLIENT_PREDICT_IsPredicting( ) == false ))// && !(player->cheats & CF_PREDICTING))
 		{
-			player->mo->PlayIdle ();
+			// [BC] In client mode, we don't know if other players have any forwardmove or
+			// sidemove values, so the server will tell us when to put other players in
+			// idle mode.
+			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) ||
+				(( player - players ) == consoleplayer ))
+			{
+				player->mo->PlayIdle ();
+			}
 		}
 
 		mo->momx = mo->momy = 0;
@@ -2151,7 +2158,14 @@ void P_OldXYMovement( AActor *mo, bool bForceSlide )
 		// Don't affect main player when voodoo dolls stop:
 		if ((player && player->mo == mo) && ( CLIENT_PREDICT_IsPredicting( ) == false ))// && !(player->cheats & CF_PREDICTING))
 		{
-			player->mo->PlayIdle ();
+			// [BC] In client mode, we don't know if other players have any forwardmove or
+			// sidemove values, so the server will tell us when to put other players in
+			// idle mode.
+			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) ||
+				(( player - players ) == consoleplayer ))
+			{
+				player->mo->PlayIdle ();
+			}
 		}
 
 		mo->momx = mo->momy = 0;
