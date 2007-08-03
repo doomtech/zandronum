@@ -4726,7 +4726,7 @@ int DLevelScript::RunScript ()
 						item->Amount = 0;
 					}
 					// [BB] If the activator is a player, tell the clients about the changed capacity.
-					if ( activator->player )
+					if ( activator->player && NETWORK_GetState() == NETSTATE_SERVER )
 						SERVERCOMMANDS_SetPlayerAmmoCapacity( activator->player - players, item );
 				}
 			}
