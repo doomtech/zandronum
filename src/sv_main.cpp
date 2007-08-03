@@ -4262,6 +4262,21 @@ static bool server_SummonCheat( BYTESTREAM_s *pByteStream, bool bFriend )
 				pActor->FriendPlayer = g_lCurrentClient + 1;
 				pActor->flags |= MF_FRIENDLY;
 				pActor->LastHeard = players[g_lCurrentClient].mo;
+
+				// [BC] Do some invasion mode stuff.
+				if (( invasion ) &&
+					( INVASION_IncreaseNumMonstersOnSpawn( )) &&
+					( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+				{
+					INVASION_SetNumMonstersLeft( INVASION_GetNumMonstersLeft( ) - 1 );
+
+					if ( pActor->GetClass( ) == PClass::FindClass( "Archvile" ))
+						INVASION_SetNumArchVilesLeft( INVASION_GetNumArchVilesLeft( ) - 1 );
+
+					// [BC] If we're the server, tell the client how many monsters are left.
+					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						SERVERCOMMANDS_SetInvasionNumMonstersLeft( );
+				}
 			}
 
 
