@@ -566,6 +566,27 @@ CUSTOM_CVAR (Int, cl_maxdecals, 1024, CVAR_ARCHIVE)
 	}
 }
 
+//=============================================================================
+//
+//	[BC] DECAL_ClearDecals
+//
+//	Clears all decals. This is slightly more elegant than setting cl_maxdecals
+//	to zero, and then back to its real value.
+//
+//=============================================================================
+
+void DECAL_ClearDecals( void )
+{
+	DThinker	*pThinker;
+
+	while ( ImpactCount > 0 )
+	{
+		pThinker = DThinker::FirstThinker( STAT_AUTODECAL );
+		if ( pThinker != NULL )
+			pThinker->Destroy( );
+	}
+}
+
 // Uses: target points to previous impact decal
 //		 tracer points to next impact decal
 //

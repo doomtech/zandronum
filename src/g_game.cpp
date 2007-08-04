@@ -2966,6 +2966,7 @@ bool GAME_DormantStatusMatchesOriginal( AActor *pActor )
 //
 // Ugh.
 void P_LoadBehavior( MapData *pMap );
+void DECAL_ClearDecals( void );
 void GAME_ResetMap( void )
 {
 	ULONG							ulIdx;
@@ -2984,13 +2985,7 @@ void GAME_ResetMap( void )
 	DThinker						*pThinker;
 
 	// Unload decals.
-	do
-	{
-		pThinker = DThinker::FirstThinker( STAT_AUTODECAL );
-		if ( pThinker != NULL )
-			pThinker->Destroy( );
-
-	} while ( pThinker );
+	DECAL_ClearDecals( );
 
 	// This is all we do in client mode.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
@@ -3238,7 +3233,7 @@ void GAME_ResetMap( void )
 
 		// Get the default information for this actor, so we can determine how to
 		// respawn it.
-		pActorInfo =	 pActor->GetDefault( );
+		pActorInfo = pActor->GetDefault( );
 
 		// This item appears to be untouched; no need to respawn it.
 		if (( pActor->x == pActor->SpawnPoint[0] << FRACBITS ) &&
