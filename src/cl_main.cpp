@@ -8108,16 +8108,7 @@ static void client_GiveInventory( BYTESTREAM_s *pByteStream )
 
 	// If the player doesn't have this type, give it to him.
 	if ( pInventory == NULL )
-	{
 		pInventory = players[ulPlayer].mo->GiveInventoryType( pType );
-
-		// Don't count this towards the level statistics.
-		if ( pInventory->flags & MF_COUNTITEM )
-		{
-			pInventory->flags &= ~MF_COUNTITEM;
-			level.total_items--;
-		}
-	}
 
 	// If he still doesn't have the object after trying to give it to him... then YIKES!
 	if ( pInventory == NULL )
@@ -8126,6 +8117,13 @@ static void client_GiveInventory( BYTESTREAM_s *pByteStream )
 		Printf( "client_TakeInventory: Failed to give inventory type, %s!\n", pszName );
 #endif
 		return;
+	}
+
+	// Don't count this towards the level statistics.
+	if ( pInventory->flags & MF_COUNTITEM )
+	{
+		pInventory->flags &= ~MF_COUNTITEM;
+		level.total_items--;
 	}
 
 	// Set the new amount of the inventory object.
