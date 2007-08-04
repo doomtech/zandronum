@@ -459,7 +459,8 @@ void V_RemoveColorCodes( char *pszString )
 				break;
 			}
 
-			pszEnd++;
+			if ( *pszEnd != 0 )
+				pszEnd++;
 
 			// Make sure we copy the terminating null character, too.
 			memcpy( p, pszEnd, strlen( pszEnd ) + 1 );
