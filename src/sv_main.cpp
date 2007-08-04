@@ -3853,6 +3853,7 @@ static bool server_RequestJoin( BYTESTREAM_s *pByteStream )
 	// Everything's okay! Go ahead and join!
 	players[g_lCurrentClient].playerstate = PST_REBORNNOINVENTORY;
 	players[g_lCurrentClient].bSpectating = false;
+	players[g_lCurrentClient].bDeadSpectator = false;
 	// [BB] It's possible that you are watching through the eyes of someone else
 	// upon joining. Doesn't hurt to reset it.
 	g_aClients[g_lCurrentClient].ulDisplayPlayer = g_lCurrentClient;
@@ -4085,6 +4086,7 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 
 	// Also, take away spectator status.
 	players[g_lCurrentClient].bSpectating = false;
+	players[g_lCurrentClient].bDeadSpectator = false;
 
 	if ( teamgame )
 		G_TeamgameSpawnPlayer( g_lCurrentClient, players[g_lCurrentClient].ulTeam, true );

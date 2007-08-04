@@ -32,6 +32,7 @@ v0.97d-beta5
 -	- Players no longer get stuck in their idle animation if they bump into something in network games. [Carnevil]
 -	- Players are now properly spawned when switching to a map with less player starts than players in cooperative mode. [Carnevil]
 -	- The list of players displayed by the server console should no longer have any ghost players. [Carnevil]
+-	- Fixed glitch that could result in a duel being reset when a spectator leaves the game. [Carnevil]
 -	- Removed CVAR sv_stay97c3compatible, since beta4 broke network compatibility with 97c3 even with sv_stay97c3compatible set to true. [Torr Samaho]
 -	- When respawn telefragged in LMS and survival games, you no longer instantly respawn when the "Allow instant respawn" compatflag is enabled. [Carnevil]
 -	- Players can no longer be put into a team game without being assigned a team. [Carnevil]

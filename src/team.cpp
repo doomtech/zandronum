@@ -1920,6 +1920,7 @@ CCMD( changeteam )
 
 		// Also, take away spectator status.
 		players[consoleplayer].bSpectating = false;
+		players[consoleplayer].bDeadSpectator = false;
 
 		if ( teamgame )
 			G_TeamgameSpawnPlayer( consoleplayer, players[consoleplayer].ulTeam, true );

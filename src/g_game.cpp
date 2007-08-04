@@ -2982,7 +2982,6 @@ void GAME_ResetMap( void )
 	fixed_t							Y;
 	fixed_t							Z;
 	TThinkerIterator<AActor>		ActorIterator;
-	DThinker						*pThinker;
 
 	// Unload decals.
 	DECAL_ClearDecals( );

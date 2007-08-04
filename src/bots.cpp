@@ -2784,6 +2784,7 @@ CSkullBot::CSkullBot( char *pszName, char *pszTeamName, ULONG ulPlayerNum )
 	m_pPlayer->pSkullBot = this;
 	m_pPlayer->bIsBot = true;
 	m_pPlayer->bSpectating = false;
+	m_pPlayer->bDeadSpectator = false;
 
 	// Update the playeringame slot.
 	playeringame[ulPlayerNum] = true;

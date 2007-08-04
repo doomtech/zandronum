@@ -204,6 +204,7 @@ void JOINQUEUE_PlayerLeftGame( bool bWantPop )
 		{
 			players[g_lJoinQueue[ulIdx].ulPlayer].playerstate = PST_REBORNNOINVENTORY;
 			players[g_lJoinQueue[ulIdx].ulPlayer].bSpectating = false;
+			players[g_lJoinQueue[ulIdx].ulPlayer].bDeadSpectator = false;
 
 			if ( players[g_lJoinQueue[ulIdx].ulPlayer].pSkullBot )
 				players[g_lJoinQueue[ulIdx].ulPlayer].pSkullBot->PostEvent( BOTEVENT_JOINEDGAME );
@@ -329,6 +330,7 @@ void JOINQUEUE_PopQueue( LONG lNumSlots )
 		{
 			players[g_lJoinQueue[ulIdx].ulPlayer].playerstate = PST_REBORNNOINVENTORY;
 			players[g_lJoinQueue[ulIdx].ulPlayer].bSpectating = false;
+			players[g_lJoinQueue[ulIdx].ulPlayer].bDeadSpectator = false;
 
 			if ( players[g_lJoinQueue[ulIdx].ulPlayer].pSkullBot )
 				players[g_lJoinQueue[ulIdx].ulPlayer].pSkullBot->PostEvent( BOTEVENT_JOINEDGAME );
