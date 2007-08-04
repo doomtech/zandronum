@@ -785,6 +785,8 @@ void P_SpawnSpecials2 (void)
 			break;
 
 		case Sector_Set3DFloor:
+			// [BB] 3D floors are deactivated for now.
+/*
 			if (line->args[1]&8)
 			{
 				line->id = line->args[4];
@@ -796,7 +798,7 @@ void P_SpawnSpecials2 (void)
 			}
 			P_Set3DFloor(line, line->args[1]&~8, line->args[2], line->args[3]);
 			break;
-
+*/
 		default:
 			continue;
 		}

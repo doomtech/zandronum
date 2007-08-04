@@ -70,6 +70,7 @@ v0.97d-beta5
 -	- The bots now retain their userinfo properties if you change your during the course of a bot match. [Carnevil]
 -	- Fixed: Thing_Remove called on an invasion pickup spawner leads to crashes when a player picks up something spawned by the destroyed spawner. [Torr Samaho]
 -	- Fixed: The line special Scroll_Floor doesn't work properly online. [Torr Samaho]
+-	- Fixed: ExtraFloor LightOnly didn't work in GL. [Torr Samaho]
 -	- The CCMD puke didn't do anything when executed on a client. Now clients can always puke net scripts and if sv_cheats is true they may puke all scripts. [Torr Samaho]
 !	- You can no longer exit a map during the countdown in survival invasion. [Carnevil]
 !	- Starting a new game from the main menu now disables multiplayer emulation and resets dmflags. [Carnevil]

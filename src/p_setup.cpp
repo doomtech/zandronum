@@ -4046,8 +4046,7 @@ void P_SetupLevel (char *lumpname, int position)
 	P_SpawnSpecials ();
 
 	// Spawn extended specials
-	// [BB] 3D floors are deactivated for now.
-	//P_SpawnSpecials2();
+	P_SpawnSpecials2();
 
 	// This must be done BEFORE the PolyObj Spawn!!!
 	// [BB] The server may not execute this
