@@ -156,7 +156,7 @@ static	const char	*g_pszColumnHeaders[NUM_COLUMN_TYPES] =
 	"DEATHS",
 	"WINS",
 	"KILLS",
-	"POINTSASSISTS",
+	"SCORE",
 	"SECRETS",
 	"MEDALS",
 };
@@ -546,7 +546,7 @@ void SCOREBOARD_RenderBoard( ULONG ulDisplayPlayer )
 	}
 
 	// The 5 column display is only availible for modes that support it.
-	if (( ulNumIdealColumns == 5 ) && !( teamgame || possession || teampossession || ctf || skulltag || teamlms || lastmanstanding ))
+	if (( ulNumIdealColumns == 5 ) && !( teamgame || possession || teampossession || ctf || skulltag || lastmanstanding ))
 		ulNumIdealColumns = 4;
 
 	if ( ulNumIdealColumns == 5 )
@@ -3393,7 +3393,7 @@ static void scoreboard_Prepare5ColumnDisplay( void )
 /*
 		// Can have assists.
 		if ( ctf || skulltag )
-			g_aulColumnType[0] = COLUMN_POINTS;
+			g_aulColumnType[0] = COL_POINTSASSISTS;
 */
 		g_aulColumnType[1] = COLUMN_FRAGS;
 		g_aulColumnType[2] = COLUMN_NAME;
@@ -3407,7 +3407,7 @@ static void scoreboard_Prepare5ColumnDisplay( void )
 	}
 
 	// Build columns for modes in which players try to earn wins.
-	if ( lastmanstanding || teamlms )
+	if ( lastmanstanding )
 	{
 		g_aulColumnType[0] = COLUMN_WINS;
 		g_aulColumnType[1] = COLUMN_FRAGS;
@@ -3437,7 +3437,7 @@ static void scoreboard_Prepare4ColumnDisplay( void )
 	g_aulColumnX[1] = 84;
 	g_aulColumnX[2] = 192;
 	g_aulColumnX[3] = 256;
-
+	
 	// Build columns for modes in which players try to earn kills.
 	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNKILLS )
 	{
@@ -3470,7 +3470,7 @@ static void scoreboard_Prepare4ColumnDisplay( void )
 	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNPOINTS )
 	{
 //		if ( ctf || skulltag ) // Can have assists
-//			g_aulColumnType[0] = COL_POINTS;
+//			g_aulColumnType[0] = COL_POINTSASSISTS;
 
 		g_aulColumnType[0] = COLUMN_POINTS;
 		g_aulColumnType[1] = COLUMN_NAME;
@@ -3484,7 +3484,7 @@ static void scoreboard_Prepare4ColumnDisplay( void )
 	}
 
 	// Build columns for modes in which players try to earn wins.
-	if ( lastmanstanding || teamlms )
+	if ( lastmanstanding )
 	{
 		g_aulColumnType[0] = COLUMN_WINS;
 		g_aulColumnType[1] = COLUMN_NAME;
@@ -3496,6 +3496,19 @@ static void scoreboard_Prepare4ColumnDisplay( void )
 		// Sort players based on their wincount.
 		scoreboard_SortPlayers( ST_WINCOUNT );
 	}
+	if ( teamlms )
+	{
+		g_aulColumnType[0] = COLUMN_FRAGS;
+		g_aulColumnType[1] = COLUMN_NAME;
+		g_aulColumnType[2] = COLUMN_EMPTY;
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+			g_aulColumnType[2] = COLUMN_PING;
+		g_aulColumnType[3] = COLUMN_TIME;
+
+		// Sort players based on their wincount.
+		scoreboard_SortPlayers( ST_WINCOUNT );
+	}
+
 }
 
 //*****************************************************************************
@@ -3513,12 +3526,16 @@ static void scoreboard_Prepare3ColumnDisplay( void )
 	g_aulColumnX[1] = 96;
 	g_aulColumnX[2] = 272;
 
+	// All boards share these two columns. However, you can still deviant on these columns if you want.
+	g_aulColumnType[1] = COLUMN_NAME;
+	g_aulColumnType[2] = COLUMN_TIME;
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+		g_aulColumnType[2] = COLUMN_PING;
+
 	// Build columns for modes in which players try to earn kills.
 	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNKILLS )
 	{
 		g_aulColumnType[0] = COLUMN_KILLS;
-		g_aulColumnType[1] = COLUMN_NAME;
-		g_aulColumnType[2] = COLUMN_PING;
 
 		// Sort players based on their killcount.
 		scoreboard_SortPlayers( ST_KILLCOUNT );
@@ -3528,8 +3545,6 @@ static void scoreboard_Prepare3ColumnDisplay( void )
 	if ( deathmatch || teamplay )
 	{
 		g_aulColumnType[0] = COLUMN_FRAGS;
-		g_aulColumnType[1] = COLUMN_NAME;
-		g_aulColumnType[2] = COLUMN_PING;
 
 		// Sort players based on their fragcount.
 		scoreboard_SortPlayers( ST_FRAGCOUNT );
@@ -3539,26 +3554,30 @@ static void scoreboard_Prepare3ColumnDisplay( void )
 	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNPOINTS )
 	{
 //		if ( ctf || skulltag ) // Can have assists
-//			g_aulColumnType[0] = COL_POINTS;
+//			g_aulColumnType[0] = COL_POINTSASSISTS;
 
 		g_aulColumnType[0] = COLUMN_POINTS;
-		g_aulColumnType[1] = COLUMN_NAME;
-		g_aulColumnType[2] = COLUMN_PING;
 
 		// Sort players based on their pointcount.
 		scoreboard_SortPlayers( ST_POINTCOUNT );
 	}
 
 	// Build columns for modes in which players try to earn wins.
-	if ( lastmanstanding || teamlms )
+	if ( lastmanstanding )
 	{
 		g_aulColumnType[0] = COLUMN_WINS;
-		g_aulColumnType[1] = COLUMN_NAME;
-		g_aulColumnType[2] = COLUMN_PING;
 
 		// Sort players based on their wincount.
 		scoreboard_SortPlayers( ST_WINCOUNT );
 	}
+	if ( teamlms )
+	{
+		g_aulColumnType[0] = COLUMN_FRAGS;
+
+		// Sort players based on their wincount.
+		scoreboard_SortPlayers( ST_WINCOUNT );
+	}
+
 }
 
 //*****************************************************************************
