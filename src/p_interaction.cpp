@@ -2090,8 +2090,12 @@ void PLAYER_SetTeam( player_s *pPlayer, ULONG ulTeam, bool bNoBroadcast )
 
 //*****************************************************************************
 //
+// [BC] *grumble*
+void	G_DoReborn (int playernum, bool freshbot);
 void PLAYER_SetSpectator( player_s *pPlayer, bool bBroadcast, bool bDeadSpectator )
 {
+	AActor	*pOldBody;
+
 	// Already a spectator. Check if their spectating state is changing.
 	if ( pPlayer->bSpectating == true )
 	{
@@ -2152,6 +2156,22 @@ void PLAYER_SetSpectator( player_s *pPlayer, bool bBroadcast, bool bDeadSpectato
 		pPlayer->playerstate = PST_LIVE;
 		if ( bDeadSpectator == false )
 			pPlayer->health = pPlayer->mo->health = deh.StartHealth;
+
+		// If this player is being forced into spectatorship, don't destroy his or her
+		// old body.
+		if ( bDeadSpectator )
+		{
+			// Save the player's old body, and respawn him or her.
+			pOldBody = pPlayer->mo;
+			G_DoReborn( pPlayer - players, false );
+
+			// Set the player's new body to the position of his or her old body.
+			if (( pPlayer->mo ) &&
+				( pOldBody ))
+			{
+				pPlayer->mo->SetOrigin( pOldBody->x, pOldBody->y, pOldBody->z );
+			}
+		}
 
 		// Make the player unshootable, etc.
 		pPlayer->mo->flags2 |= (MF2_CANNOTPUSH);

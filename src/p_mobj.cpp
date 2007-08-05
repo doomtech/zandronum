@@ -4340,7 +4340,10 @@ void P_SpawnPlayer (mapthing2_t *mthing, bool bClientUpdate, player_t *p, bool t
 		StatusBar->AttachToPlayer (p);
 	}
 
-	if ( NETWORK_GetState( ) != NETSTATE_SINGLE )
+	// [BC] Don't spawn fog for dead spectators. They are spawned when they leave their
+	// body to disassociate with their corpse.
+	if (( NETWORK_GetState( ) != NETSTATE_SINGLE ) &&
+		( p->bDeadSpectator == false ))
 	{
 		unsigned an = ( ANG45 * (mthing->angle/45) ) >> ANGLETOFINESHIFT;
 		Spawn ("TeleportFog", mobj->x+20*finecosine[an], mobj->y+20*finesine[an], mobj->z + TELEFOGHEIGHT, ALLOW_REPLACE);

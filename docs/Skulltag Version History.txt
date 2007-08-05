@@ -44,6 +44,7 @@ v0.97d-beta5
 -	- The "actor hits ceiling" sector action now works properly. [Carnevil]
 -	- Objects moved by thing_move now show up in the proper location on the client end. [Carnevil]
 -	- The class selection menu now properly animates. [Carnevil]
+-	- Players who become spectators when killed now have their bodies left on the field. [Carnevil]
 -	- Fixed glitches that would occur when changing to a map without enough starts for the number of players playing. [Carnevil]
 -	- The reminder that displays when the chat prompt comes up that reminds you that you cannot talk to players/spectators is now affected by text scaling. [Carnevil]
 -	- The dmflag "Don't spawn multiplayer weapons in co-op games" now works properly. [Carnevil]
