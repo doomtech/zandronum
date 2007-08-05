@@ -4043,13 +4043,14 @@ void SERVERCONSOLE_InitializeGeneralSettingsDisplay( HWND hDlg )
 	Val = sv_motd.GetGenericRep( CVAR_String );
 	// Turn "\n" into carriage returns.
 	{
-		char	szBuffer[256];
-		char	szInputString[256];
+		char	szBuffer[512];
+		char	szInputString[512];
 		char	*psz;
 		char	*pszString;
 		char	c;
 
-		sprintf( szInputString, "%s", Val.String );
+		strncpy( szInputString, Val.String, 512 );
+		szInputString[512-1] = 0;
 
 		// Nifty little trick to turn "\n" into '\n', while mantaining the "\c" color codes.
 		V_ColorizeString( szInputString );
