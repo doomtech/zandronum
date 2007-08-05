@@ -1401,6 +1401,10 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 			damage = newdam;
 			if (damage <= 0)
 			{
+				// [BB] The player didn't lose health but armor. The server needs
+				// to tell the client about this.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_UpdatePlayerArmorDisplay( player - players );
 				return;
 			}
 		}

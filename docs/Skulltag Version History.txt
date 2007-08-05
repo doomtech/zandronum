@@ -76,6 +76,7 @@ v0.97d-beta5
 -	- Fixed: The line special Scroll_Floor doesn't work properly online. [Torr Samaho]
 -	- Fixed: ExtraFloor LightOnly didn't work in GL. [Torr Samaho]
 -	- The CCMD puke didn't do anything when executed on a client. Now clients can always puke net scripts and if sv_cheats is true they may puke all scripts. [Torr Samaho]
+-	- Fixed: Clients using an armor with savepercent 100 don't get informed by the server if they lose armor but no health. [Torr Samaho]
 !	- You can no longer exit a map during the countdown in survival invasion. [Carnevil]
 !	- Starting a new game from the main menu now disables multiplayer emulation and resets dmflags. [Carnevil]
 
