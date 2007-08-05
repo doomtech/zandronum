@@ -423,6 +423,7 @@ void APlayerPawn::Serialize (FArchive &arc)
 
 	arc << JumpZ
 		<< MaxHealth
+		<< RunHealth
 		<< SpawnMask
 		<< ForwardMove1
 		<< ForwardMove2
@@ -1409,6 +1410,13 @@ void APlayerPawn::DropImportantItems( bool bLeavingGame )
 
 void APlayerPawn::TweakSpeeds (int &forward, int &side)
 {
+	// Strife's player can't run when its healh is below 10
+	if (health <= RunHealth)
+	{
+		forward = clamp(forward, -0x1900, 0x1900);
+		side = clamp(side, -0x1800, 0x1800);
+	}
+
 	// [GRB]
 	if ((unsigned int)(forward + 0x31ff) < 0x63ff)
 	{

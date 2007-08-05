@@ -114,6 +114,7 @@ public:
 
 	int			crouchsprite;
 	int			MaxHealth;
+	int			RunHealth;
 	AInventory *InvFirst;				// first inventory item displayed on inventory bar
 	AInventory *InvSel;					// selected inventory item
 
