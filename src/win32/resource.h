@@ -37,12 +37,16 @@
 #define IDD_ADDBOT                      153
 #define IDD_BANIP                       154
 #define IDD_BANLIST                     155
-#define IDD_BANPLAYER                   156
+#define IDD_KICKBAN		                156
 #define IDD_CHANGEMAP                   157
 #define IDD_DMFLAGS                     158
 #define IDD_EDITBAN                     159
 #define IDD_GENERALSETTINGS             160
-#define IDD_KICKPLAYER                  161
+
+// 161 was the old kick dialog, which was merged
+// with the ban dialog. To fix a compile warning,
+// I gave IDC_SPIN3 its slot here. [RC]
+
 #define IDD_LMSSETTINGS                 162
 #define IDD_MAPROTATION                 163
 #define IDD_MESSAGES                    164
@@ -307,7 +311,7 @@
 #define IDC_POINTLIMIT                  1196
 #define IDC_DUELLIMIT                   1197
 #define IDC_WINLIMIT                    1198
-#define IDC_SPIN3                       1199
+#define IDC_SPIN3                       161 // [RC] See note above.
 #define IDC_SPIN2                       1199
 #define IDC_SPIN4                       1200
 #define IDC_SPIN5                       1201
@@ -347,8 +351,8 @@
 #define ID_SERVER_STATISTICS            40010
 #define ID_ADMIN_ADDBOT                 40011
 #define ID_ADMIN_REMOVEBOT              40012
-#define ID_ADMIN_KICKPLAYER             40013
-#define ID_ADMIN_KICKBANPLAYER          40014
+//#define ID_ADMIN_KICKPLAYER             40013
+#define ID_ADMIN_KICKBAN		        40014
 #define ID_ADMIN_VIEWBANLIST            40015
 #define ID_ADMIN_BANIP                  40016
 #define ID_ADMIN_CHANGEMAP              40017
@@ -358,6 +362,20 @@
 #define IDC_WELCOME_FULLSCREEN			40022
 #define IDC_WELCOME_COMPAT				40023
 #define IDC_WELCOME_SHIFTLABEL			40024
+#define	IDR_PLAYER_KICK					40025
+#define	IDR_PLAYER_KICK_WHY				40026
+#define	IDR_PLAYER_BAN					40027
+#define	IDR_PLAYER_BAN_WHY				40028
+#define	IDR_BOT_REMOVE					40029
+#define	IDR_BOT_REMOVEALL				40030
+#define	IDR_BOT_CLONE					40031
+#define	IDD_REASON						40032
+#define	IDC_REASON_NAME					40033
+#define IDC_REASON_DETAILS				40034
+#define	IDC_REASON_BAN					40035
+#define IDC_KICKBAN_KICK				40036
+#define IDC_KICKBAN_KICKANDBAN			40037
+
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED

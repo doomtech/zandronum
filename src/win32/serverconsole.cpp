@@ -127,6 +127,11 @@ extern	HINSTANCE	g_hInst;
 extern	FILE		*Logfile;
 extern	char		g_szLogFilename[256];
 
+// Used in sending data between the right click-to-kick
+// menu and the dialogs they produce (the 'why' options).
+bool	g_Scoreboard_IsBan;
+char	g_szScoreboard_SelectedUser[64];
+
 //*****************************************************************************
 //	FUNCTIONS
 BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WPARAM wParam, LPARAM lParam )
@@ -160,9 +165,6 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 			g_hDlg = hDlg;
 
 			// Load the icons.
-//			SendMessage( hDlg, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)LoadIcon( g_hInst, 
-//				MAKEINTRESOURCE( IDI_SMALLICON )));
-
 			g_hSmallIcon = (HICON)LoadImage( g_hInst,
 					MAKEINTRESOURCE( IDI_ICON5 ),
 					IMAGE_ICON,
@@ -171,17 +173,15 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 					LR_SHARED );
 
 			SendMessage( hDlg, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)g_hSmallIcon );
-//			SendMessage( hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)g_hSmallIcon );
-			SendMessage( hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)LoadIcon( g_hInst, 
-				MAKEINTRESOURCE( IDI_ICON5 )));
+			SendMessage( hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)LoadIcon( g_hInst, MAKEINTRESOURCE( IDI_ICON5 )));
 
 			// Initialize the server console text.
-			sprintf( szString, "=== S K U L L T A G  v%s ===", DOTVERSIONSTR_REV );
-			SetDlgItemText( hDlg, IDC_CONSOLEBOX, szString );
-			Printf( "\n\n" );
+			SetDlgItemText( hDlg, IDC_CONSOLEBOX, "=== S K U L L T A G | S E R V E R ===" );
+			sprintf( szString, "\nRunning version: %s\n\n", DOTVERSIONSTR_REV );
+			Printf( szString );
 
 			// Initialize the title string.
-			sprintf( szString, "Skulltag v%s server", DOTVERSIONSTR );//Val = sv_hostname.GetGenericRep( CVAR_String );
+			sprintf( szString, "Server running version: %s", DOTVERSIONSTR_REV );
 			SERVERCONSOLE_UpdateTitleString( szString );
 
 			// Set the text limits for the console and input boxes.
@@ -237,6 +237,117 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 			g_hThread = CreateThread( NULL, 0, MainDoomThread, 0, 0, 0 );
 		}
 		break;
+	case WM_NOTIFY:
+		{
+			// Show a pop-up menu to kick or ban users.
+			LPNMHDR	nmhdr = (LPNMHDR)lParam;
+			if((nmhdr->code == NM_RCLICK) && (nmhdr->idFrom == IDC_PLAYERLIST))
+			{										
+				char	szString[64];
+
+				HWND	hList = GetDlgItem( hDlg, IDC_PLAYERLIST );
+				LVITEM	pItem;
+
+				// First, we check if the selected user is a bot by looking at the ping column.
+				pItem.pszText = szString;
+				pItem.mask = LVIF_TEXT;
+				pItem.iItem = ListView_GetHotItem(hList);
+				pItem.iSubItem = COLUMN_PING;
+				pItem.cchTextMax = 16;
+
+				// Grab it. If it fails, nothing is selected.
+				if(!ListView_GetItem(hList, &pItem))
+					break;
+
+				// So, is it a bot?
+				bool bIsBot = (strcmp(pItem.pszText, "Bot") == 0);
+				
+				// Next get the player/bot/aardvark's name.
+				pItem.pszText = g_szScoreboard_SelectedUser;
+				pItem.mask = LVIF_TEXT;
+				pItem.iItem = ListView_GetHotItem(hList);
+				pItem.iSubItem = COLUMN_NAME;
+				pItem.cchTextMax = 64;
+
+				if(!ListView_GetItem(hList, &pItem))
+					break; // This shouldn't really happen by here.
+
+				// Show our menus, based on whether it's a bot or a human player.
+				if( bIsBot )
+				{
+					// Set up our menu.
+					HMENU hMenu = CreatePopupMenu();
+					AppendMenu(hMenu, MF_STRING, IDR_BOT_CLONE, "Clone");
+					AppendMenu(hMenu, MF_STRING, IDR_BOT_REMOVE, "Remove");
+					AppendMenu(hMenu, MF_STRING, IDR_BOT_REMOVEALL, "Remove all bots");
+
+					// Show the menu and get the selected item.
+					POINT pt;
+					GetCursorPos(&pt);
+					int iSelection = ::TrackPopupMenu(hMenu,
+					TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_RETURNCMD | TPM_HORIZONTAL,
+					pt.x,pt.y, 0,hDlg,NULL);
+					DestroyMenu(hMenu);
+
+					char	szCommand[96];
+
+					// Clone the bot; add him in again.
+					if(iSelection == IDR_BOT_CLONE)
+						sprintf( szCommand, "addbot \"%s\" red", g_szScoreboard_SelectedUser );
+
+					// Remove the bot.
+					else if(iSelection == IDR_BOT_REMOVE)
+						sprintf( szCommand, "removebot \"%s\"", g_szScoreboard_SelectedUser );
+					
+					// Clear all bots.
+					else if(iSelection == IDR_BOT_REMOVEALL)
+						strcpy( szCommand, "removebots" );
+
+					SERVER_AddCommand( szCommand );
+				}
+				else
+				{
+
+					// Set up our menu.
+					HMENU hMenu = CreatePopupMenu();
+					AppendMenu(hMenu, MF_STRING, IDR_PLAYER_KICK, "Kick");
+					AppendMenu(hMenu, MF_STRING, IDR_PLAYER_KICK_WHY, "Kick (why)");
+					AppendMenu(hMenu, MF_STRING, IDR_PLAYER_BAN, "Ban and kick");
+					AppendMenu(hMenu, MF_STRING, IDR_PLAYER_BAN_WHY, "Ban and kick (why)");
+
+					// Show the menu and get the selected item.
+					POINT pt;
+					GetCursorPos(&pt);
+					int iSelection = ::TrackPopupMenu(hMenu,
+					TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_RETURNCMD | TPM_HORIZONTAL,
+					pt.x,pt.y, 0,hDlg,NULL);
+					DestroyMenu(hMenu);
+
+					char	szCommand[96];
+
+					// Immediately kick or ban the player.
+					if(iSelection == IDR_PLAYER_KICK)
+					{
+						sprintf( szCommand, "kick \"%s\"", g_szScoreboard_SelectedUser );
+						SERVER_AddCommand( szCommand );
+					}
+					else if(iSelection == IDR_PLAYER_BAN)
+					{
+						sprintf( szCommand, "ban \"%s\"", g_szScoreboard_SelectedUser );
+						SERVER_AddCommand( szCommand );
+					}
+
+					// Show a dialog first and handle things there.
+					else if((iSelection == IDR_PLAYER_KICK_WHY) || (iSelection == IDR_PLAYER_BAN_WHY))
+					{
+						g_Scoreboard_IsBan = (iSelection == IDR_PLAYER_BAN_WHY);
+						DialogBox( g_hInst, MAKEINTRESOURCE( IDD_REASON ), hDlg, SERVERCONSOLE_ReasonCallback );			
+					}
+				}
+
+			}
+			break;
+		}
 	case WM_COMMAND:
 
 		{
@@ -450,13 +561,9 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 
 				DialogBox( g_hInst, MAKEINTRESOURCE( IDD_REMOVEBOT ), hDlg, SERVERCONSOLE_RemoveBotCallback );
 				break;
-			case ID_ADMIN_KICKPLAYER:
+			case ID_ADMIN_KICKBAN:
 
-				DialogBox( g_hInst, MAKEINTRESOURCE( IDD_KICKPLAYER ), hDlg, SERVERCONSOLE_KickPlayerCallback );
-				break;
-			case ID_ADMIN_KICKBANPLAYER:
-
-				DialogBox( g_hInst, MAKEINTRESOURCE( IDD_BANPLAYER ), hDlg, SERVERCONSOLE_BanPlayerCallback );
+				DialogBox( g_hInst, MAKEINTRESOURCE( IDD_KICKBAN ), hDlg, SERVERCONSOLE_KickBanCallback );
 				break;
 			case ID_ADMIN_CHANGEMAP:
 
@@ -1234,7 +1341,7 @@ BOOL CALLBACK SERVERCONSOLE_RemoveBotCallback( HWND hDlg, UINT Message, WPARAM w
 
 //*****************************************************************************
 //
-BOOL CALLBACK SERVERCONSOLE_KickPlayerCallback( HWND hDlg, UINT Message, WPARAM wParam, LPARAM lParam )
+BOOL CALLBACK SERVERCONSOLE_KickBanCallback( HWND hDlg, UINT Message, WPARAM wParam, LPARAM lParam )
 {
 	switch ( Message )
 	{
@@ -1248,10 +1355,13 @@ BOOL CALLBACK SERVERCONSOLE_KickPlayerCallback( HWND hDlg, UINT Message, WPARAM 
 			ULONG	ulIdx;
 
 			// Set the text limits for the input box.
-			SendDlgItemMessage( hDlg, IDC_REASON, EM_SETLIMITTEXT, 192, 0 );
+			SendDlgItemMessage( hDlg, IDC_REASON, EM_SETLIMITTEXT, 191, 0 );
 
 			// Initialize the box.
 			SendDlgItemMessage( hDlg, IDC_PLAYERNAMES, LB_RESETCONTENT, 0, 0 );
+
+			// Set the radio buttons for kick/ban.
+			SendDlgItemMessage( hDlg, IDC_KICKBAN_KICK, BM_SETCHECK, BST_CHECKED, 0 );
 
 			// Populate the box with the current player list.
 			for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1262,7 +1372,6 @@ BOOL CALLBACK SERVERCONSOLE_KickPlayerCallback( HWND hDlg, UINT Message, WPARAM 
 					continue;
 
 				sprintf( szName, players[ulIdx].userinfo.netname );
-//				V_UnColorizeString( szName );
 				V_RemoveColorCodes( szName );
 				SendDlgItemMessage( hDlg, IDC_PLAYERNAMES, LB_INSERTSTRING, -1, (LPARAM) (LPCTSTR)szName );
 			}
@@ -1274,23 +1383,31 @@ BOOL CALLBACK SERVERCONSOLE_KickPlayerCallback( HWND hDlg, UINT Message, WPARAM 
 		{
 			switch ( LOWORD( wParam ))
 			{
-			case IDC_KICK:
+			case IDOK:
 
 				{
 					LONG	lIdx;
-					char	szBuffer[256];
-					char	szString[256];
+					// [RC] Resusing a single buffer string gives an error if you use all availible characters
+					// for either the name or reason, even though they 'should' only use 64 and 191 characters.
+					char	szName[64];
+					char	szReason[192];
+					char	szCommand[256];
 				
 					lIdx = SendDlgItemMessage( hDlg, IDC_PLAYERNAMES, LB_GETCURSEL, 0, 0 ); 
 					if ( lIdx != LB_ERR )
 					{
-						SendDlgItemMessage( hDlg, IDC_PLAYERNAMES, LB_GETTEXT, lIdx, (LPARAM) (LPCTSTR)szBuffer );
-						sprintf( szString, "kick \"%s\"", szBuffer );
-						
-						GetDlgItemText( hDlg, IDC_REASON, (LPTSTR)szBuffer, 256 );
-						sprintf( szString, "%s %s", szString, szBuffer );
+						// Get the selected player's name and the reason.
+						SendDlgItemMessage( hDlg, IDC_PLAYERNAMES, LB_GETTEXT, lIdx, (LPARAM) (LPCTSTR)szName );
+						GetDlgItemText( hDlg, IDC_REASON, (LPTSTR)szReason, 192 );
+						szReason[191] = 0;
 
-						SERVER_AddCommand( szString );
+						// Build our string and execute.
+						if( SendDlgItemMessage( hDlg, IDC_KICKBAN_KICKANDBAN, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
+							sprintf( szCommand, "ban \"%s\" \"%s\"", szName, szReason );
+						else
+							sprintf( szCommand, "kick \"%s\" \"%s\"", szName, szReason );
+						
+						SERVER_AddCommand( szCommand );
 					}
 				}
 				EndDialog( hDlg, -1 );
@@ -1312,8 +1429,13 @@ BOOL CALLBACK SERVERCONSOLE_KickPlayerCallback( HWND hDlg, UINT Message, WPARAM 
 
 //*****************************************************************************
 //
-BOOL CALLBACK SERVERCONSOLE_BanPlayerCallback( HWND hDlg, UINT Message, WPARAM wParam, LPARAM lParam )
+BOOL CALLBACK SERVERCONSOLE_ReasonCallback( HWND hDlg, UINT Message, WPARAM wParam, LPARAM lParam )
 {
+	// Whether we need to refresh the form to reflect kicking or kickbanning.
+	bool	bUpdateLabels = false;
+	char	szString[256];
+	char	szBuffer[192];
+
 	switch ( Message )
 	{
 	case WM_CLOSE:
@@ -1322,28 +1444,13 @@ BOOL CALLBACK SERVERCONSOLE_BanPlayerCallback( HWND hDlg, UINT Message, WPARAM w
 		break;
 	case WM_INITDIALOG:
 
-		{
-			ULONG	ulIdx;
-
+		{		
 			// Set the text limits for the input box.
-			SendDlgItemMessage( hDlg, IDC_REASON, EM_SETLIMITTEXT, 192, 0 );
+			SendDlgItemMessage( hDlg, IDC_REASON, EM_SETLIMITTEXT, 191, 0 );
 
-			// Initialize the box.
-			SendDlgItemMessage( hDlg, IDC_PLAYERNAMES, LB_RESETCONTENT, 0, 0 );
+			// Set our labels.
+			bUpdateLabels = true;
 
-			// Populate the box with the current player list.
-			for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-			{
-				char	szName[64];
-
-				if ( playeringame[ulIdx] == false )
-					continue;
-
-				sprintf( szName, players[ulIdx].userinfo.netname );
-//				V_UnColorizeString( szName );
-				V_RemoveColorCodes( szName );
-				SendDlgItemMessage( hDlg, IDC_PLAYERNAMES, LB_INSERTSTRING, -1, (LPARAM) (LPCTSTR)szName );
-			}
 		}
 
 		break;
@@ -1352,25 +1459,20 @@ BOOL CALLBACK SERVERCONSOLE_BanPlayerCallback( HWND hDlg, UINT Message, WPARAM w
 		{
 			switch ( LOWORD( wParam ))
 			{
-			case IDC_BAN:
-
-				{
-					LONG	lIdx;
-					char	szBuffer[256];
-					char	szString[256];
+			case IDC_REASON_BAN:
+				g_Scoreboard_IsBan = ( SendDlgItemMessage( hDlg, IDC_REASON_BAN, BM_GETCHECK, 0, 0 ) == BST_CHECKED );
+				bUpdateLabels = true;
+				break;
+			case IDOK:
+				GetDlgItemText( hDlg, IDC_REASON, (LPTSTR)szBuffer, 192 );
+				szBuffer[191] = 0;
 				
-					lIdx = SendDlgItemMessage( hDlg, IDC_PLAYERNAMES, LB_GETCURSEL, 0, 0 ); 
-					if ( lIdx != LB_ERR )
-					{
-						SendDlgItemMessage( hDlg, IDC_PLAYERNAMES, LB_GETTEXT, lIdx, (LPARAM) (LPCTSTR)szBuffer );
-						sprintf( szString, "ban \"%s\"", szBuffer );
-						
-						GetDlgItemText( hDlg, IDC_REASON, (LPTSTR)szBuffer, 256 );
-						sprintf( szString, "%s \"%s\"", szString, szBuffer );
+				if( g_Scoreboard_IsBan )
+					sprintf( szString, "ban \"%s\" \"%s\"", g_szScoreboard_SelectedUser, szBuffer );
+				else
+					sprintf( szString, "kick \"%s\" \"%s\"", g_szScoreboard_SelectedUser, szBuffer );
+				SERVER_AddCommand( szString );
 
-						SERVER_AddCommand( szString );
-					}
-				}
 				EndDialog( hDlg, -1 );
 				break;
 			case IDCANCEL:
@@ -1385,9 +1487,35 @@ BOOL CALLBACK SERVERCONSOLE_BanPlayerCallback( HWND hDlg, UINT Message, WPARAM w
 		return ( FALSE );
 	}
 
+	if(bUpdateLabels)
+	{
+		if ( g_Scoreboard_IsBan )
+		{
+			// Set the 'details' label.
+			SetDlgItemText( hDlg, IDC_REASON_DETAILS, "He will be IP banned and will not be able to reconnect.");
+			// Update the window name.
+			SetWindowText( hDlg, "Ready to ban." );
+
+		}
+		else
+		{
+			SetDlgItemText( hDlg, IDC_REASON_DETAILS, "Not being banned, he will be able to reconnect afterwards.");
+			// Update the window name.
+			SetWindowText( hDlg, "Ready to kick." );
+
+		}
+
+		// Set the 'name' label.
+		sprintf( szString, "Ready to %s %s.", g_Scoreboard_IsBan ? "kick and ban":"kick", g_szScoreboard_SelectedUser);
+		SetDlgItemText( hDlg, IDC_REASON_NAME, szString);	
+
+		// Set the status of the 'ban' checkbox.
+		SendDlgItemMessage( hDlg, IDC_REASON_BAN, BM_SETCHECK, g_Scoreboard_IsBan ? BST_CHECKED : BST_UNCHECKED, 0 );
+
+	}
+
 	return ( TRUE );
 }
-
 //*****************************************************************************
 //
 BOOL CALLBACK SERVERCONSOLE_ChangeMapCallback( HWND hDlg, UINT Message, WPARAM wParam, LPARAM lParam )
