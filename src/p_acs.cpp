@@ -255,7 +255,12 @@ static void DoGiveInv (AActor *actor, const PClass *info, int amount)
 
 	// [BC] If we're the server, give the item to clients.
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( actor->player ) && ( item ))
+	{
 		SERVERCOMMANDS_GiveInventory( actor->player - players, item );
+		// [BB] The armor display amount has to be updated separately.
+		if( item->GetClass()->IsDescendantOf (RUNTIME_CLASS(AArmor)))
+		  SERVERCOMMANDS_UpdatePlayerArmorDisplay( actor->player - players );
+	}
 }
 
 //============================================================================

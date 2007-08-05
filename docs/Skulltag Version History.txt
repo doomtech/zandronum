@@ -77,6 +77,7 @@ v0.97d-beta5
 -	- Fixed: ExtraFloor LightOnly didn't work in GL. [Torr Samaho]
 -	- The CCMD puke didn't do anything when executed on a client. Now clients can always puke net scripts and if sv_cheats is true they may puke all scripts. [Torr Samaho]
 -	- Fixed: Clients using an armor with savepercent 100 don't get informed by the server if they lose armor but no health. [Torr Samaho]
+-	- Fixed: The ACS function GiveInventory doesn't update the armor amount to a client properly, if it's used to give an armor to the player of the client. [Torr Samaho]
 !	- You can no longer exit a map during the countdown in survival invasion. [Carnevil]
 !	- Starting a new game from the main menu now disables multiplayer emulation and resets dmflags. [Carnevil]
 
