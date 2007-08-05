@@ -33,7 +33,9 @@ int main(int argc, char **argv)
 	if ((name = tmpnam(NULL)) != NULL &&
 		(stream = freopen(name, "w+b", stdout)) != NULL &&
 		system(run) == 0 &&
+#ifndef __FreeBSD__
 		errno == 0 &&
+#endif
 		fseek(stream, 0, SEEK_SET) == 0 &&
 		fgets(currev, sizeof currev, stream) == currev &&
 		(isdigit(currev[0]) || (currev[0] == '-' && currev[1] == '1')))
@@ -69,6 +71,7 @@ int main(int argc, char **argv)
 	{
 		if (!gotrev)
 		{ // If we didn't get a revision but the file does exist, leave it alone.
+			fprintf( stderr, "No revision found.\n" );
 			fclose (stream);
 			return 0;
 		}
