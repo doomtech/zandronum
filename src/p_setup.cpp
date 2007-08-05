@@ -1983,9 +1983,6 @@ void P_LoadLineDefs (MapData * map)
 		ld->SavedSpecial = ld->special;
 		ld->SavedFlags = ld->flags;
 
-		if ( ld->flags & ML_BLOCKPLAYERS )
-			Printf( "Line: %d\n", ld - lines );
-
 		if (level.flags & LEVEL_CLIPMIDTEX) ld->flags |= ML_CLIP_MIDTEX;
 		if (level.flags & LEVEL_WRAPMIDTEX) ld->flags |= ML_WRAP_MIDTEX;
 	}

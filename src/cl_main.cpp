@@ -7574,7 +7574,7 @@ static void client_SetLineTexture( BYTESTREAM_s *pByteStream )
 	if ( lTexture < 0 )
 		return;
 
-	if ( pLine->sidenum[ulSide] == NO_INDEX )
+	if ( pLine->sidenum[ulSide] == NO_SIDE )
 		return;
 
 	pSide = &sides[pLine->sidenum[ulSide]];

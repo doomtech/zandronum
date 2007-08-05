@@ -279,7 +279,7 @@ void SURVIVAL_DoFight( void )
 					sides[lines[ulIdx].sidenum[0]].bottomtexture = sides[lines[ulIdx].sidenum[0]].SavedBottomTexture;
 				}
 
-				if ( lines[ulIdx].sidenum[1] != NO_INDEX )
+				if ( lines[ulIdx].sidenum[1] != NO_SIDE )
 				{
 					sides[lines[ulIdx].sidenum[1]].toptexture = sides[lines[ulIdx].sidenum[1]].SavedTopTexture;
 					sides[lines[ulIdx].sidenum[1]].midtexture = sides[lines[ulIdx].sidenum[1]].SavedMidTexture;

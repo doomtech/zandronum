@@ -3788,7 +3788,7 @@ void SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulF
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 2 );
 		}
 
-		if (( lines[ulLine].sidenum[1] == NO_INDEX ) || ( lines[ulLine].sidenum[1] >= (ULONG)numsides ))
+		if (( lines[ulLine].sidenum[1] == NO_SIDE ) || ( lines[ulLine].sidenum[1] >= (ULONG)numsides ))
 			continue;
 
 		if ( lines[ulLine].ulTexChangeFlags & TEXCHANGE_BACKTOP )
