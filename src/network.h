@@ -97,17 +97,6 @@ enum
 #define	DEFAULT_MASTER_PORT		15300
 #define	DEFAULT_BROADCAST_PORT	15101
 
-// Connection messages.
-#define CONNECT_CHALLENGE		200
-#define	CONNECT_READY			201
-#define	CONNECT_GETDATA			202
-#define	CONNECT_QUIT			203
-#define	CONNECT_AUTHENTICATED	204
-#define	CONNECT_AUTHENTICATING	205
-
-// Network messages (universal)
-#define	NETWORK_ERROR			254
-
 // Movement stuff.
 #define CM_X			1
 #define CM_Y			2
@@ -493,6 +482,20 @@ enum
 
 	NUM_CLIENT_COMMANDS
 
+};
+
+//*****************************************************************************
+enum
+{
+	CONNECT_CHALLENGE = NUM_SERVER_COMMANDS,
+	CONNECT_READY,
+	CONNECT_GETDATA,
+	CONNECT_QUIT,
+	CONNECT_AUTHENTICATED,
+	CONNECT_AUTHENTICATING,
+	CONNECT_ERROR,
+
+	NUM_CONNECT_COMMANDS
 };
 
 //*****************************************************************************

@@ -1443,9 +1443,9 @@ void CLIENT_PrintCommand( LONG lCommand )
 
 			pszString = "CONNECT_AUTHENTICATING";
 			break;
-		case NETWORK_ERROR:
+		case CONNECT_ERROR:
 
-			pszString = "NETWORK_ERROR";
+			pszString = "CONNECT_ERROR";
 			break;
 		}
 	}
@@ -1502,7 +1502,7 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 			CLIENT_AttemptConnection( );
 		}
 		break;
-	case NETWORK_ERROR:
+	case CONNECT_ERROR:
 		{
 			char	szErrorString[256];
 			ULONG	ulErrorCode;

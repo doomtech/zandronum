@@ -1894,7 +1894,7 @@ void SERVER_ConnectionError( NETADDRESS_s Address, char *pszMessage )
 	NETWORK_WriteHeader( &TempBuffer.ByteStream, SVC_HEADER );
 	NETWORK_WriteLong( &TempBuffer.ByteStream, 0 );
 
-	NETWORK_WriteByte( &TempBuffer.ByteStream, NETWORK_ERROR );
+	NETWORK_WriteByte( &TempBuffer.ByteStream, CONNECT_ERROR );
 	NETWORK_WriteByte( &TempBuffer.ByteStream, NETWORK_ERRORCODE_SERVERISFULL );
 
 //	NETWORK_LaunchPacket( TempBuffer, Address, true );
@@ -1906,7 +1906,7 @@ void SERVER_ConnectionError( NETADDRESS_s Address, char *pszMessage )
 //
 void SERVER_ClientError( ULONG ulClient, ULONG ulErrorCode )
 {
-	NETWORK_WriteByte( &g_aClients[ulClient].PacketBuffer.ByteStream, NETWORK_ERROR );
+	NETWORK_WriteByte( &g_aClients[ulClient].PacketBuffer.ByteStream, CONNECT_ERROR );
 	NETWORK_WriteByte( &g_aClients[ulClient].PacketBuffer.ByteStream, ulErrorCode );
 
 	// Display error message locally in the console.
