@@ -506,7 +506,7 @@ void FTextureManager::AddTexturesLump (const void *lumpdata, int lumpsize, int p
 				tex->UseType = FTexture::TEX_Null;
 			}
 			TexMan.AddTexture (tex);
-			ST_Progress();
+			StartScreen->Progress();
 		}
 	}
 }

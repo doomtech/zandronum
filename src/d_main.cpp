@@ -2462,7 +2462,7 @@ void D_DoomMain (void)
 	S_Init ();
 
 	Printf ("ST_Init: Init startup screen.\n");
-	ST_Init (R_GuesstimateNumTextures() + 5);
+	StartScreen = FStartupScreen::CreateInstance (R_GuesstimateNumTextures() + 5);
 
 	Printf ("P_Init: Checking cmd-line parameters...\n");
 	flags = dmflags;
@@ -2649,6 +2649,22 @@ void D_DoomMain (void)
 		timelimit = 20.f;
 	}
 
+	//
+	//  Build status bar line!
+	//
+	if (deathmatch)
+		StartScreen->AppendStatusLine("DeathMatch...");
+	if (dmflags & DF_NO_MONSTERS)
+		StartScreen->AppendStatusLine("No Monsters...");
+	if (dmflags & DF_MONSTERS_RESPAWN)
+		StartScreen->AppendStatusLine("Respawning...");
+	if (autostart)
+	{
+		FString temp;
+		temp.Format ("Warp to map %s, Skill %d ", startmap, gameskill + 1);
+		StartScreen->AppendStatusLine(temp);
+	}
+
 	// [RH] Now that all text strings are set up,
 	// insert them into the level and cluster data.
 	G_MakeEpisodes ();
@@ -2703,7 +2719,8 @@ void D_DoomMain (void)
 	}
 
 	FActorInfo::StaticGameSet ();
-	ST_Progress ();
+	StartScreen->LoadingStatus ("Loading graphics", 0x3f);
+	StartScreen->Progress ();
 
 	Printf ("R_Init: Init %s refresh subsystem\n", GameNames[gameinfo.gametype]);
 	R_Init ();
@@ -2760,9 +2777,11 @@ void D_DoomMain (void)
 	M_Init ();
 
 	Printf ("P_Init: Init Playloop state.\n");
+	StartScreen->LoadingStatus ("Init game engine", 0x3f);
 	P_Init ();
 
 	Printf ("D_CheckNetGame: Checking network game status.\n");
+	StartScreen->LoadingStatus ("Checking network game status.", 0x3f);
 	D_CheckNetGame ();
 
 	// [BC] 
@@ -2810,7 +2829,8 @@ void D_DoomMain (void)
 			}
 		}
 
-		ST_Done();
+		delete StartScreen;
+		StartScreen = NULL;
 		V_Init2();
 
 		files = Args.GatherFiles ("-playdemo", ".lmp", false);
@@ -2910,6 +2930,53 @@ void D_DoomMain (void)
 	}
 
 	D_DoomLoop ();		// never returns
+}
+
+//==========================================================================
+//
+// FStartupScreen Constructor
+//
+//==========================================================================
+
+FStartupScreen::FStartupScreen(int max_progress)
+{
+	MaxPos = max_progress;
+	CurPos = 0;
+	NotchPos = 0;
+}
+
+//==========================================================================
+//
+// FStartupScreen Destructor
+//
+//==========================================================================
+
+FStartupScreen::~FStartupScreen()
+{
+}
+
+//==========================================================================
+//
+// FStartupScreen :: LoadingStatus
+//
+// Used by Heretic for the Loading Status "window."
+//
+//==========================================================================
+
+void FStartupScreen::LoadingStatus(const char *message, int colors)
+{
+}
+
+//==========================================================================
+//
+// FStartupScreen :: AppendStatusLine
+//
+// Used by Heretic for the "status line" at the bottom of the screen.
+//
+//==========================================================================
+
+void FStartupScreen::AppendStatusLine(const char *status)
+{
 }
 
 //==========================================================================

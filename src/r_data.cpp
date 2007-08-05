@@ -304,7 +304,7 @@ void FTextureManager::AddGroup(const char * startlump, const char * endlump, int
 		{
 			CreateTexture (firsttx, usetype);
 		}
-		ST_Progress();
+		StartScreen->Progress();
 	}
 }
 
@@ -359,7 +359,7 @@ void FTextureManager::AddHiresTextures ()
 					newtex->TopOffset = FixedMul(oldtex->GetScaledTopOffset(), newtex->yScale);
 					ReplaceTexture(oldtexno, newtex, true);
 				}
-				ST_Progress();
+				StartScreen->Progress();
 			}
 		}
 	}
@@ -483,7 +483,7 @@ void FTextureManager::AddPatches (int lumpnum)
 		{
 			CreateTexture (Wads.CheckNumForName (name, ns_patches), FTexture::TEX_WallPatch);
 		}
-		ST_Progress();
+		StartScreen->Progress();
 	}
 
 	delete file;
@@ -733,10 +733,10 @@ DWORD R_BlendForColormap (DWORD map)
 void R_InitData ()
 {
 	FTexture::InitGrayMap();
-	ST_Progress();
+	StartScreen->Progress();
 	TexMan.AddGroup("S_START", "S_END", ns_sprites, FTexture::TEX_Sprite);
 	R_InitPatches ();	// Initializes "special" textures that have no external references
-	ST_Progress();
+	StartScreen->Progress();
 	R_InitTextures ();
 	TexMan.AddGroup("F_START", "F_END", ns_flats, FTexture::TEX_Flat);
 	R_InitBuildTiles ();
@@ -748,9 +748,9 @@ void R_InitData ()
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		gl_ParseDefs();
 	V_InitFonts();
-	ST_Progress();
+	StartScreen->Progress();
 	R_InitColormaps ();
-	ST_Progress();
+	StartScreen->Progress();
 	// [BC] Server has no need for the console.
 	//if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	//	C_InitConsole (SCREENWIDTH, SCREENHEIGHT, true);

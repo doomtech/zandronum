@@ -99,7 +99,7 @@ HWND			Window;
 
 // The subwindows used for startup and error output
 HWND			ConWindow, GameTitleWindow;
-HWND			ErrorPane, ProgressBar, NetStartPane;
+HWND			ErrorPane, ProgressBar, NetStartPane, StartupScreen;
 
 HFONT			GameTitleFont;
 LONG			GameTitleFontHeight;
@@ -598,7 +598,11 @@ void RestoreConView()
 	ShowWindow (ConWindow, SW_SHOW);
 	ShowWindow (GameTitleWindow, SW_SHOW);
 	// Make sure the progress bar isn't visible.
-	ST_Done();
+	if (StartScreen != NULL)
+	{
+		delete StartScreen;
+		StartScreen = NULL;
+	}
 }
 
 //===========================================================================
@@ -612,8 +616,11 @@ void RestoreConView()
 
 void ShowErrorPane(const char *text)
 {
-	// Ensure that the network pane is hidden.
-	ST_NetDone();
+	if (StartScreen != NULL)	// Ensure that the network pane is hidden.
+	{
+		delete StartScreen;
+		StartScreen = NULL;
+	}
 
 	ErrorPane = CreateDialogParam (g_hInst, MAKEINTRESOURCE(IDD_ERRORPANE), Window, ErrorPaneProc, (LPARAM)text);
 

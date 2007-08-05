@@ -139,6 +139,8 @@
 #define IDC_NETSTARTPROGRESS            1079
 #define IDC_NETSTARTMESSAGE             1080
 #define IDC_NETSTARTCOUNT               1081
+#define IDC_STATIC_TITLE				1082
+#define IDC_STATIC_STARTUP				1083
 #define IDC_ADD                         1076
 #define IDC_BANCOMMENT                  1077
 #define IDC_CLEAR                       1078

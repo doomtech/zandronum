@@ -51,6 +51,7 @@
 #include "p_acs.h"
 #include "p_trace.h"
 #include "a_sharedglobal.h"
+#include "st_start.h"
 // [BC] New #includes.
 #include "cl_demo.h"
 #include "cooperative.h"
@@ -1462,7 +1463,7 @@ void D_ArbitrateNetStart (void)
 
 					D_ReadUserInfoStrings (netbuffer[1], &stream, false);
 
-					Printf ("Found %s (node %d, player %d)\n",
+					StartScreen->NetMessage ("Found %s (node %d, player %d)",
 							players[netbuffer[1]].userinfo.netname,
 							node, netbuffer[1]+1);
 				}
@@ -1564,6 +1565,7 @@ void D_ArbitrateNetStart (void)
 			fprintf (debugfile, "player %d is on node %d\n", i, nodeforplayer[i]);
 		}
 	}
+	StartScreen->NetDone();
 }
 
 static void SendSetup (DWORD playersdetected[MAXNETNODES], BYTE gotsetup[MAXNETNODES], int len)
