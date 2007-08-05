@@ -534,10 +534,10 @@ void A_FireGoldWandPL2 (AActor *actor)
 	momz = FixedMul (GetDefault<AGoldWandFX2>()->Speed,
 		finetangent[FINEANGLES/4-((signed)bulletpitch>>ANGLETOFINESHIFT)]);
 	pMissile = P_SpawnMissileAngle (mo, RUNTIME_CLASS(AGoldWandFX2), mo->angle-(ANG45/8), momz);
-	if ( pMissile )
+	if ( pMissile && NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_SpawnMissileExact( pMissile );
 	pMissile = P_SpawnMissileAngle (mo, RUNTIME_CLASS(AGoldWandFX2), mo->angle+(ANG45/8), momz);
-	if ( pMissile )
+	if ( pMissile && NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_SpawnMissileExact( pMissile );
 	angle = mo->angle-(ANG45/8);
 	for(i = 0; i < 5; i++)
