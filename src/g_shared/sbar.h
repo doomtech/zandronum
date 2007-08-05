@@ -204,6 +204,7 @@ protected:
 
 	void DrINumber (signed int val, int x, int y, int imgBase=imgINumbers) const;
 	void DrBNumber (signed int val, int x, int y, int w=3) const;
+	void DrBDash (int x, int y) const;
 	void DrSmallNumber (int val, int x, int y) const;
 
 	void DrINumberOuter (signed int val, int x, int y, bool center=false, int w=9) const;

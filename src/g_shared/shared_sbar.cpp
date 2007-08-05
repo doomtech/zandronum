@@ -519,6 +519,15 @@ void FBaseStatusBar::DrINumber (signed int val, int x, int y, int imgBase) const
 	DrawImage (Images[imgBase+val], x+18, y);
 }
 
+void FBaseStatusBar::DrBDash(int x, int y) const
+{
+		FTexture *pic;
+		pic = Images[imgBNEGATIVE];
+		if (pic != NULL)
+			DrawImage (pic, x - 14, y);
+}
+
+
 //---------------------------------------------------------------------------
 //
 // PROC DrBNumber
@@ -569,6 +578,7 @@ void FBaseStatusBar::DrBNumber (signed int val, int x, int y, int size) const
 			DrawImage (pic, x, y);
 		}
 	}
+
 	if (neg)
 	{
 		pic = Images[imgBNEGATIVE];
@@ -578,6 +588,8 @@ void FBaseStatusBar::DrBNumber (signed int val, int x, int y, int size) const
 		}
 	}
 }
+
+
 
 //---------------------------------------------------------------------------
 //

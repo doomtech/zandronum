@@ -307,12 +307,7 @@ private:
 		}
 		else
 			DrawArms( );
-/*
-		// If we're spectating through someone else's eyes, and we're not allowed to see his
-		// stats (health, armorpoints, etc.), don't bother drawing any numbers.
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, displayplayer ) == false ))
-			return;
-*/
+
 		if (CPlayer->health != OldHealth)
 		{
 			OldHealth = CPlayer->health;
@@ -321,7 +316,12 @@ private:
 		if (HealthRefresh)
 		{
 			HealthRefresh--;
-			DrawNumber (OldHealth, 90/*48*/, 3);
+			// [RC] If we're spying someone and aren't allowed to see his stats, draw dashes instead of numbers.
+			if(( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players ) ) == false ))
+				DrawUnknownDashs(90, 3);
+			else
+				DrawNumber (OldHealth, 90/*48*/, 3);
+
 		}
 		AInventory *armor = /*[BC]*/ CPlayer->mo ? CPlayer->mo->FindInventory<ABasicArmor>() : NULL;
 		int armorpoints = armor != NULL ? armor->Amount : 0;
@@ -333,7 +333,11 @@ private:
 		if (ArmorRefresh)
 		{
 			ArmorRefresh--;
-			DrawNumber (OldArmor, 221/*179*/, 3);
+			// [RC] If we're spying someone and aren't allowed to see his stats, draw dashes instead of numbers.
+			if(( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players ) ) == false ))
+				DrawUnknownDashs(221, 3);
+			else
+				DrawNumber (OldArmor, 221/*179*/, 3);
 		}
 		if (CPlayer->ReadyWeapon != NULL)
 		{
@@ -352,13 +356,15 @@ private:
 		if (ActiveAmmoRefresh)
 		{
 			ActiveAmmoRefresh--;
-			if (OldActiveAmmo != -9999)
-			{
-				DrawNumber (OldActiveAmmo, 44/*2*/, 3);
-			}
+			// [RC] If we're spying someone and aren't allowed to see his stats, draw dashes instead of numbers.
+			if(( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players ) ) == false ))
+				DrawUnknownDashs(44, 3);
 			else
 			{
-				DrawPartialImage (&StatusBarTex, 2, BigWidth*3);
+				if (OldActiveAmmo != -9999)
+					DrawNumber (OldActiveAmmo, 44/*2*/, 3);
+				else
+					DrawPartialImage (&StatusBarTex, 2, BigWidth*3);
 			}
 		}
 	}
@@ -433,6 +439,10 @@ private:
 
 	void DrawAmmoStats ()
 	{
+		// [RC] If we're spying someone and aren't allowed to see his stats, don't draw this at all.
+		if(( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players ) ) == false ))
+			return;
+
 		static const ENamedName ammoTypes[4] =
 		{
 			NAME_Clip,
@@ -1418,7 +1428,26 @@ void DrawFullHUD_GameInformation()
 	{
 		DrawPartialImage (&StatusBarTex, x-BigWidth*size, size*BigWidth);
 		DrBNumber (val, x, y, size);
+
 	}
+
+	void DrawDash(int x, int y, int size=3)
+	{
+		DrawPartialImage (&StatusBarTex, x-BigWidth*size, size*BigWidth);
+		DrBDash(x, y);
+	}
+
+	// Draws three dashes to signal 'unknown' data.
+	void DrawUnknownDashs(int x, int y)
+	{
+		int origin = x - 8;
+		int sep = 10;
+
+		DrawDash(origin - sep, y);
+		DrawDash(origin		 , y);
+		DrawDash(origin + sep, y);
+	}
+
 
 	void DrawFullScreenStuff ()
 	{
