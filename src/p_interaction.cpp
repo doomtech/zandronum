@@ -453,7 +453,8 @@ void AActor::Die (AActor *source, AActor *inflictor)
 		{ // count for intermission
 			source->player->killcount++;
 			
-			if ( invasion )
+			if (( invasion ) &&
+				(( INVASION_GetState( ) == IS_INPROGRESS ) || ( INVASION_GetState( ) == IS_BOSSFIGHT )))
 			{
 				INVASION_SetNumMonstersLeft( INVASION_GetNumMonstersLeft( ) - 1 );
 
@@ -794,7 +795,8 @@ void AActor::Die (AActor *source, AActor *inflictor)
 		// Meh, just do it in single player.
 		if ( NETWORK_GetState( ) == NETSTATE_SINGLE )
 			players[0].killcount++;
-		if ( invasion )
+		if (( invasion ) &&
+			(( INVASION_GetState( ) == IS_INPROGRESS ) || ( INVASION_GetState( ) == IS_BOSSFIGHT )))
 		{
 			INVASION_SetNumMonstersLeft( INVASION_GetNumMonstersLeft( ) - 1 );
 
