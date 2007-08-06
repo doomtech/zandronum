@@ -218,7 +218,11 @@ void A_VileChase (AActor *self)
 		
 	// [BC] Movement is server-side.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	{
+		// Return to normal attack.
+		A_Chase (self);
 		return;
+	}
 
 	if (self->movedir != DI_NODIR)
 	{
