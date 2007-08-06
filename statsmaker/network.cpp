@@ -83,11 +83,9 @@ typedef int SOCKET;
 #define Sleep(x)        usleep (x * 1000)
 #endif
 */
+#define _CRT_SECURE_NO_DEPRECATE
 #include <winsock2.h>
 
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
 
 #include <ctype.h>
 #include <math.h>

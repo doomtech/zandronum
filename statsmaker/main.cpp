@@ -47,13 +47,18 @@
 // Description: 
 //
 //-----------------------------------------------------------------------------
-
-#include <stdarg.h>
-#include <string.h>
-#include <math.h>
-#include <stdlib.h>
-#include <time.h>
 #include <windows.h>
+#include <commctrl.h>
+#define _CRT_SECURE_NO_DEPRECATE
+#include <math.h>
+#include <time.h>
+
+#define USE_WINDOWS_DWORD
+
+#include <setupapi.h>
+#include <uxtheme.h>
+#include <shellapi.h>
+#include <mmsystem.h>
 
 #include "main.h"
 #include "network.h"
@@ -101,6 +106,10 @@ static	UPDATETIME_t	g_NextQueryTime;
 static	UPDATETIME_t	g_NextExportTime;
 static	UPDATETIME_t	g_NextQueryRetryTime;
 
+static	NOTIFYICONDATA	g_NotifyIconData;
+static	HICON			g_hSmallIcon = NULL;
+static	HINSTANCE		g_hInst;
+static	bool			g_bSmallIconClicked = false;
 //static	LONG			g_lQueryTicks = 0;
 //static	LONG			g_lExportTicks = 0;
 //static	LONG			g_lQueryRetryTicks = 0;
@@ -136,7 +145,9 @@ static	void		main_ParsePartialStatsFile( void );
 int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd )
 {
 	// This never returns.
+	g_hInst = hInstance;
 	DialogBox( hInstance, MAKEINTRESOURCE( IDD_MAINDIALOG ), NULL, MAIN_MainDialogBoxCallback );
+	
 
 	return ( 0 );
 }
@@ -153,7 +164,7 @@ BOOL CALLBACK MAIN_MainDialogBoxCallback( HWND hDlg, UINT Message, WPARAM wParam
 	{
 	case WM_CLOSE:
 
-		if ( MessageBox( hDlg, "Are you sure you want to quit?", MAIN_TITLESTRING, MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 ) == IDYES )
+		//if ( MessageBox( hDlg, "Are you sure you want to quit?", MAIN_TITLESTRING, MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 ) == IDYES )
 		{
 			EndDialog( hDlg, -1 );
 			CloseHandle( g_hThread );
@@ -191,87 +202,134 @@ BOOL CALLBACK MAIN_MainDialogBoxCallback( HWND hDlg, UINT Message, WPARAM wParam
 		break;
 	case WM_DESTROY:
 
+		Shell_NotifyIcon( NIM_DELETE, &g_NotifyIconData );
 		PostQuitMessage( 0 );
 		break;
+	case WM_SYSCOMMAND:
+
+		if ( wParam == SC_MINIMIZE )
+		{
+			RECT			DesktopRect;
+			RECT			ThisWindowRect;
+			ANIMATIONINFO	AnimationInfo;
+			NOTIFYICONDATA	NotifyIconData;
+			char			szString[64];
+
+			AnimationInfo.cbSize = sizeof( AnimationInfo );
+			SystemParametersInfo( SPI_GETANIMATION, sizeof( AnimationInfo ), &AnimationInfo, 0 );
+			NotifyIconData.uFlags = NIF_TIP;
+
+			// Animations are turned ON, go ahead with the animation.
+			if ( AnimationInfo.iMinAnimate )
+			{
+				GetWindowRect( GetDesktopWindow( ),&DesktopRect );
+				GetWindowRect( hDlg,&ThisWindowRect );
+
+				// Set the destination rect to the lower right corner of the screen
+				DesktopRect.left = DesktopRect.right;
+				DesktopRect.top = DesktopRect.bottom;
+
+				// Do the little animation showing the window moving to the systray.
+				#ifndef __WINE__
+				DrawAnimatedRects( hDlg, IDANI_CAPTION, &ThisWindowRect,&DesktopRect );
+				#endif
+			}
+
+			// Hide the window.
+			ShowWindow( hDlg, SW_HIDE );
+
+			// Show the notification icon.
+			ZeroMemory( &NotifyIconData, sizeof( NotifyIconData ));
+			NotifyIconData.cbSize = sizeof( NOTIFYICONDATA );
+			NotifyIconData.hWnd = hDlg;
+			NotifyIconData.uID = 0;
+			NotifyIconData.uFlags = NIF_ICON|NIF_MESSAGE|NIF_TIP;
+
+			NotifyIconData.uCallbackMessage = UWM_TRAY_TRAYID;
+			NotifyIconData.hIcon = g_hSmallIcon;
+			
+			sprintf( szString, "Hewwo!" );
+			lstrcpy( NotifyIconData.szTip, szString );
+
+			Shell_NotifyIcon( NIM_ADD, &NotifyIconData );
+			break;
+		}
+
+		DefWindowProc( hDlg, Message, wParam, lParam );
+		break;
+	case UWM_TRAY_TRAYID:
+
+		switch ( lParam )
+		{
+		case WM_LBUTTONDOWN:
+
+			g_bSmallIconClicked = true;
+			return true;
+		case WM_LBUTTONUP:
+
+			{
+				RECT			DesktopRect;
+				RECT			ThisWindowRect;
+				NOTIFYICONDATA	NotifyIconData;
+				char			szString[64];
+
+				GetWindowRect( GetDesktopWindow( ), &DesktopRect );
+				DesktopRect.left = DesktopRect.right;
+				DesktopRect.top = DesktopRect.bottom;
+				GetWindowRect( hDlg, &ThisWindowRect );
+
+				// Animate the maximization.
+				#ifndef __WINE__
+				DrawAnimatedRects( hDlg, IDANI_CAPTION, &DesktopRect, &ThisWindowRect );
+				#endif
+
+				ShowWindow( hDlg, SW_SHOW );
+				SetActiveWindow( hDlg );
+				SetForegroundWindow( hDlg );
+
+				// Hide the notification icon.
+				ZeroMemory( &NotifyIconData, sizeof( NotifyIconData ));
+				NotifyIconData.cbSize = sizeof( NOTIFYICONDATA );
+				NotifyIconData.hWnd = hDlg;
+				NotifyIconData.uID = 0;
+				NotifyIconData.uFlags = NIF_ICON|NIF_MESSAGE|NIF_TIP;
+				NotifyIconData.uCallbackMessage = UWM_TRAY_TRAYID;
+				NotifyIconData.hIcon = g_hSmallIcon;//LoadIcon( g_hInst, MAKEINTRESOURCE( IDI_ICON1 ));
+
+				sprintf( szString, "Weeee" );
+				lstrcpy( g_NotifyIconData.szTip, szString );
+
+				Shell_NotifyIcon( NIM_DELETE, &NotifyIconData );
+				g_bSmallIconClicked = false;
+			}
+			return ( TRUE );
+		default:
+
+			break;
+		}
+		return ( FALSE );
 	case WM_INITDIALOG:
 		{
 			char		szString[256];
-/*
-			LVCOLUMN	ColumnData;
-			char		szColumnTitle[64];
-			LONG		lIndex;
-			ULONG		ulIdx;
 
-			// Load the icons.
-//			SendMessage( hDlg, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)LoadIcon( g_hInst, 
-//				MAKEINTRESOURCE( IDI_SMALLICON )));
-			SendMessage( hDlg, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)LoadIcon( g_hInst, 
-				MAKEINTRESOURCE( IDI_ICON4 )));
-			SendMessage( hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)LoadIcon( g_hInst, 
-				MAKEINTRESOURCE( IDI_ICON1 )));
-
-			// Initialize the title string.
-			sprintf( szString, "Skulltag v%s server", DOTVERSIONSTR );//Val = sv_hostname.GetGenericRep( CVAR_String );
-			SERVERCONSOLE_UpdateTitleString( szString );
-
-			// Set the text limits for the console and input boxes.
-			SendDlgItemMessage( hDlg, IDC_CONSOLEBOX, EM_SETLIMITTEXT, 4096, 0 );
-			SendDlgItemMessage( hDlg, IDC_INPUTBOX, EM_SETLIMITTEXT, 128, 0 );
-
-			// Insert the name column.
-			sprintf( szColumnTitle, "Name" );
-			ColumnData.mask = LVCF_FMT|LVCF_TEXT|LVCF_WIDTH;
-			ColumnData.fmt = LVCFMT_LEFT;
-			ColumnData.cx = 192;
-			ColumnData.pszText = szColumnTitle;
-			ColumnData.cchTextMax = 64;
-			ColumnData.iSubItem = 0;
-			lIndex = SendDlgItemMessage( hDlg, IDC_PLAYERLIST, LVM_INSERTCOLUMN, COLUMN_NAME, (LPARAM)&ColumnData );
-
-			// Insert the frags column.
-			sprintf( szColumnTitle, "Frags" );
-			ColumnData.mask = LVCF_FMT|LVCF_TEXT|LVCF_WIDTH;
-			ColumnData.fmt = LVCFMT_LEFT;
-			ColumnData.cx = 64;
-			ColumnData.pszText = szColumnTitle;
-			ColumnData.cchTextMax = 64;
-			ColumnData.iSubItem = 0;
-			lIndex = SendDlgItemMessage( hDlg, IDC_PLAYERLIST, LVM_INSERTCOLUMN, COLUMN_FRAGS, (LPARAM)&ColumnData );
-
-			// Insert the ping column.
-			sprintf( szColumnTitle, "Ping" );
-			ColumnData.mask = LVCF_FMT|LVCF_TEXT|LVCF_WIDTH;
-			ColumnData.fmt = LVCFMT_LEFT;
-			ColumnData.cx = 64;
-			ColumnData.pszText = szColumnTitle;
-			ColumnData.cchTextMax = 64;
-			ColumnData.iSubItem = 0;
-			lIndex = SendDlgItemMessage( hDlg, IDC_PLAYERLIST, LVM_INSERTCOLUMN, COLUMN_PING, (LPARAM)&ColumnData );
-
-			// Insert the time column.
-			sprintf( szColumnTitle, "Time" );
-			ColumnData.mask = LVCF_FMT|LVCF_TEXT|LVCF_WIDTH;
-			ColumnData.fmt = LVCFMT_LEFT;
-			ColumnData.cx = 60;
-			ColumnData.pszText = szColumnTitle;
-			ColumnData.cchTextMax = 64;
-			ColumnData.iSubItem = 0;
-			lIndex = SendDlgItemMessage( hDlg, IDC_PLAYERLIST, LVM_INSERTCOLUMN, COLUMN_TIME, (LPARAM)&ColumnData );
-
-			// Initialize the player indicies array.
-			for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-				g_lPlayerIndicies[ulIdx] = -1;
-
-			// Create the thread that runs the game.
-			I_DetectOS( );
-*/
-			// Set the global handle for the dialog box.
 			g_hDlg = hDlg;
 
 			// Initialize the server console text.
 			sprintf( szString, "--== SKULLTAG STAT REPORTER ==--" );
 			SetDlgItemText( hDlg, IDC_CONSOLEBOX, szString );
 			Printf( "\n\n" );
+
+			// Load the icons.
+			g_hSmallIcon = (HICON)LoadImage( g_hInst,
+					MAKEINTRESOURCE( IDI_ICON ),
+					IMAGE_ICON,
+					16,
+					16,
+					LR_SHARED );
+
+			SendMessage( hDlg, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)g_hSmallIcon );
+			SendMessage( hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)LoadIcon( g_hInst, MAKEINTRESOURCE( IDI_ICON )));
+
 
 			g_hThread = CreateThread( NULL, 0, MAIN_RunMainThread, 0, 0, 0 );
 		}

@@ -9,6 +9,9 @@
 #define IDC_NUMQUERIES                  1003
 #define IDC_MAXPLAYERS                  1004
 #define IDC_MAXSERVERS                  1005
+#define IDI_ICON	                    1006
+#define UWM_TRAY_TRAYID                 32769
+#define UWM_TRAY_NOP                    32770
 
 // Next default values for new objects
 // 

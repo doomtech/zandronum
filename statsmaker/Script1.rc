@@ -29,7 +29,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 IDD_MAINDIALOG DIALOG DISCARDABLE  0, 0, 256, 145
 STYLE WS_MINIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 CAPTION "Skulltag Statistics Reporter"
-FONT 8, "MS Sans Serif"
+FONT 8, "Tahoma"
 BEGIN
     GROUPBOX        "Console",IDC_STATIC,8,48,240,88
     EDITTEXT        IDC_CONSOLEBOX,16,64,224,64,ES_MULTILINE | 
@@ -40,6 +40,11 @@ BEGIN
     LTEXT           "Max. players:",IDC_MAXPLAYERS,128,8,96,8
     LTEXT           "Max. servers:",IDC_MAXSERVERS,128,18,96,8
 END
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON               ICON    DISCARDABLE     "tray_icon.ico"
+
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -85,9 +90,6 @@ END
 #endif    // APSTUDIO_INVOKED
 
 #endif    // English (U.S.) resources
-/////////////////////////////////////////////////////////////////////////////
-
-
 
 #ifndef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
