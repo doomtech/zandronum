@@ -473,7 +473,7 @@ LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 
 	case WM_PAINT:
-		if (screen != NULL)
+		if (screen != NULL && 0)
 		{
 			static_cast<BaseWinFB *> (screen)->PaintToWindow ();
 		}

@@ -1690,6 +1690,8 @@ static INT_PTR CALLBACK OverviewDlgProc (HWND hDlg, UINT message, WPARAM wParam,
 
 static INT_PTR CALLBACK CrashDlgProc (HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	static CHAR overview[] = "Overview";
+	static CHAR details[] = "Details";
 	HWND edit;
 	TCITEM tcitem;
 	RECT tabrect, tcrect;
@@ -1709,15 +1711,15 @@ static INT_PTR CALLBACK CrashDlgProc (HWND hDlg, UINT message, WPARAM wParam, LP
 		// There are two tabs: Overview and Details. Each pane is created from a
 		// dialog template, and the resultant window is stored as the lParam for
 		// the corresponding tab.
-		tcitem.pszText = "Overview";
+		tcitem.pszText = overview;
 		tcitem.lParam = (LPARAM)CreateDialogParam (g_hInst, MAKEINTRESOURCE(IDD_CRASHOVERVIEW), hDlg, OverviewDlgProc, (LPARAM)edit);
 		TabCtrl_InsertItem (edit, 0, &tcitem);
 		TabCtrl_GetItemRect (edit, 0, &tabrect);
 		SetWindowPos ((HWND)tcitem.lParam, HWND_TOP, tcrect.left + 3, tcrect.top + tabrect.bottom + 3,
 			tcrect.right - tcrect.left - 8, tcrect.bottom - tcrect.top - tabrect.bottom - 8, 0);
 
-		tcitem.pszText = "Details";
-		tcitem.lParam = (LPARAM)CreateDialogParam (g_hInst, MAKEINTRESOURCE(IDD_CRASHDETAILS), hDlg, DetailsDlgProc, (LPARAM)edit);;
+		tcitem.pszText = details;
+		tcitem.lParam = (LPARAM)CreateDialogParam (g_hInst, MAKEINTRESOURCE(IDD_CRASHDETAILS), hDlg, DetailsDlgProc, (LPARAM)edit);
 		TabCtrl_InsertItem (edit, 1, &tcitem);
 		SetWindowPos ((HWND)tcitem.lParam, HWND_TOP, tcrect.left + 3, tcrect.top + tabrect.bottom + 3,
 			tcrect.right - tcrect.left - 8, tcrect.bottom - tcrect.top - tabrect.bottom - 8, 0);
@@ -2983,7 +2985,6 @@ static void SaveReport (HANDLE file)
 		else
 		{
 			DWORD fileLen = GetFileSize (file, NULL), fileLeft;
-			DWORD bytesCopied = 0;
 			char xferbuf[1024];
 
 			SetFilePointer (file, 0, NULL, FILE_BEGIN);
@@ -3014,10 +3015,9 @@ static void SaveReport (HANDLE file)
 
 void DisplayCrashLog ()
 {
-	HINSTANCE riched;
 	HANDLE file;
 
-	if (NumFiles == 0 || (riched = LoadLibrary ("riched20.dll")) == NULL)
+	if (NumFiles == 0)
 	{
 		char ohPoo[] =
 			GAMENAME" crashed but was unable to produce\n"
@@ -3052,7 +3052,6 @@ void DisplayCrashLog ()
 			SaveReport (file);
 			CloseHandle (file);
 		}
-		FreeLibrary (riched);
 		if (uxtheme != NULL)
 		{
 			FreeLibrary (uxtheme);
