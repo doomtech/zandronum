@@ -183,6 +183,7 @@ static	void	client_SetThingState( BYTESTREAM_s *pByteStream );
 static	void	client_DestroyThing( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingAngle( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingTID( BYTESTREAM_s *pByteStream );
+static	void	client_SetThingTics( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingWaterLevel( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingFlags( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingArguments( BYTESTREAM_s *pByteStream );
@@ -644,7 +645,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_MOVETHINGEXACT",
 	"SVC_SETTHINGSPECIAL2",
 	"SVC_SETSCROLLER",
-
+	"SVC_SETTHINGTICS",
 
 };
 
@@ -1756,6 +1757,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETTHINGTID:
 
 		client_SetThingTID( pByteStream );
+		break;
+	case SVC_SETTHINGTICS:
+
+		client_SetThingTics( pByteStream );
 		break;
 	case SVC_SETTHINGWATERLEVEL:
 
@@ -3453,6 +3458,7 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 	LONG		lHealth;
 	LONG		lMOD;
 	char		*pszString;
+	LONG		lDamageType;
 	AActor		*pSource;
 	AActor		*pInflictor;
 	AWeapon		*pWeapon;
@@ -3478,6 +3484,9 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 	// messages.
 	pszString = NETWORK_ReadString( pByteStream );
 
+	// Read in the thing's damage type.
+	lDamageType = NETWORK_ReadByte( pByteStream );
+
 	// Check to make sure everything is valid. If not, break out.
 	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
 		return;
@@ -3496,6 +3505,9 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 
 	// Set the player's new health.
 	players[ulPlayer].health = players[ulPlayer].mo->health = lHealth;
+
+	// Set the player's damage type.
+	players[ulPlayer].mo->DamageType = lDamageType;
 
 	// Kill the player.
 	players[ulPlayer].mo->Die( NULL, NULL );
@@ -4805,12 +4817,16 @@ static void client_KillThing( BYTESTREAM_s *pByteStream )
 	AActor	*pActor;
 	LONG	lID;
 	LONG	lHealth;
+	LONG	lDamageType;
 
 	// Read in the network ID of the thing that died.
 	lID = NETWORK_ReadShort( pByteStream );
 
 	// Read in the thing's health.
 	lHealth = NETWORK_ReadShort( pByteStream );
+
+	// Read in the thing's damage type.
+	lDamageType = NETWORK_ReadByte( pByteStream );
 
 	// Level not loaded; ingore.
 	if ( gamestate != GS_LEVEL )
@@ -4828,6 +4844,9 @@ static void client_KillThing( BYTESTREAM_s *pByteStream )
 
 	// Set the thing's health. This should enable the proper death state to play.
 	pActor->health = lHealth;
+
+	// Set the thing's damage type.
+	pActor->DamageType = lDamageType;
 
 	// Kill the thing.
 	pActor->Die( NULL, NULL );
@@ -5054,6 +5073,34 @@ static void client_SetThingTID( BYTESTREAM_s *pByteStream )
 	// Finally, set the tid.
 	pActor->tid = lTid;
 	pActor->AddToHash();
+}
+
+//*****************************************************************************
+//
+static void client_SetThingTics( BYTESTREAM_s *pByteStream )
+{
+	AActor		*pActor;
+	LONG		lID;
+	LONG		lTics;
+
+	// Read in the thing's network ID.
+	lID = NETWORK_ReadShort( pByteStream );
+
+	// Read in the thing's new tics.
+	lTics = NETWORK_ReadShort( pByteStream );
+
+	// Now try to find the thing.
+	pActor = NETWORK_FindThingByNetID( lID );
+	if ( pActor == NULL )
+	{
+#ifdef CLIENT_WARNING_MESSAGES
+		Printf( "client_SetThingTics: Couldn't find thing: %d\n", lID );
+#endif
+		return;
+	}
+
+	// Finally, set the tics.
+	pActor->tics = lTics;
 }
 
 //*****************************************************************************

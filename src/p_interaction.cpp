@@ -1204,6 +1204,14 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 		{
 			target->tics = 1;
 			target->momx = target->momy = target->momz = 0;
+
+			// [BC] If we're the server, tell clients to update this thing's tics and
+			// momentum.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			{
+				SERVERCOMMANDS_SetThingTics( target );
+				SERVERCOMMANDS_MoveThingExact( target, CM_MOMX|CM_MOMY|CM_MOMZ );
+			}
 		}
 		return;
 	}

@@ -80,6 +80,7 @@ static	ticcmd_t	g_SavedTiccmd[MAXSAVETICS];
 static	angle_t		g_SavedAngle[MAXSAVETICS];
 static	fixed_t		g_SavedPitch[MAXSAVETICS];
 static	LONG		g_lSavedJumpTicks[MAXSAVETICS];
+static	LONG		g_lSavedTurnTicks[MAXSAVETICS];
 static	LONG		g_lSavedReactionTime[MAXSAVETICS];
 static	LONG		g_lSavedWaterLevel[MAXSAVETICS];
 static	fixed_t		g_SavedViewHeight[MAXSAVETICS];
@@ -137,6 +138,7 @@ void CLIENT_PREDICT_PlayerPredict( void )
 	g_SavedAngle[gametic % MAXSAVETICS] = pPlayer->mo->angle;
 	g_SavedPitch[gametic % MAXSAVETICS] = pPlayer->mo->pitch;
 	g_lSavedJumpTicks[gametic % MAXSAVETICS] = pPlayer->jumpTics;
+	g_lSavedTurnTicks[gametic % MAXSAVETICS] = pPlayer->turnticks;
 	g_lSavedReactionTime[gametic % MAXSAVETICS] = pPlayer->mo->reactiontime;
 	g_lSavedWaterLevel[gametic % MAXSAVETICS] = pPlayer->mo->waterlevel;
 	g_SavedViewHeight[gametic % MAXSAVETICS] = pPlayer->viewheight;
@@ -236,6 +238,7 @@ void CLIENT_PREDICT_PlayerPredict( void )
 			pPlayer->mo->angle = g_SavedAngle[( lTick + CLIENTDEMO_GetGameticOffset( )) % MAXSAVETICS];
 			pPlayer->mo->pitch = g_SavedPitch[( lTick + CLIENTDEMO_GetGameticOffset( )) % MAXSAVETICS];
 			pPlayer->jumpTics = g_lSavedJumpTicks[( lTick + CLIENTDEMO_GetGameticOffset( )) % MAXSAVETICS];
+			pPlayer->turnticks = g_lSavedTurnTicks[( lTick + CLIENTDEMO_GetGameticOffset( )) % MAXSAVETICS];
 			pPlayer->mo->reactiontime = g_lSavedReactionTime[( lTick + CLIENTDEMO_GetGameticOffset( )) % MAXSAVETICS];
 			pPlayer->mo->waterlevel = g_lSavedWaterLevel[( lTick + CLIENTDEMO_GetGameticOffset( )) % MAXSAVETICS];
 			pPlayer->viewheight = g_SavedViewHeight[( lTick + CLIENTDEMO_GetGameticOffset( )) % MAXSAVETICS];
@@ -257,12 +260,13 @@ void CLIENT_PREDICT_PlayerPredict( void )
 	pPlayer->mo->angle = g_SavedAngle[gametic % MAXSAVETICS];
 	pPlayer->mo->pitch = g_SavedPitch[gametic % MAXSAVETICS];
 	pPlayer->jumpTics = g_lSavedJumpTicks[gametic % MAXSAVETICS];
+	pPlayer->turnticks = g_lSavedTurnTicks[gametic % MAXSAVETICS];
 	pPlayer->mo->reactiontime = g_lSavedReactionTime[gametic % MAXSAVETICS];
 	pPlayer->mo->waterlevel = g_lSavedWaterLevel[gametic % MAXSAVETICS];
 	pPlayer->viewheight = g_SavedViewHeight[gametic % MAXSAVETICS];
 	pPlayer->deltaviewheight = g_SavedDeltaViewHeight[gametic % MAXSAVETICS];
 //	pPlayer->mo->floorz = g_SavedFloorZ[gametic % MAXSAVETICS];
-	
+
 #ifdef	_DEBUG
 	if ( cl_showpredictionsuccess )
 	{

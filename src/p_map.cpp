@@ -5380,6 +5380,14 @@ void P_DoCrunch (AActor *thing)
 		{
 			thing->tics = 1;
 			thing->momx = thing->momy = thing->momz = 0;
+
+			// [BC] If we're the server, tell clients to update this thing's tics and
+			// momentum.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			{
+				SERVERCOMMANDS_SetThingTics( thing );
+				SERVERCOMMANDS_MoveThingExact( thing, CM_MOMX|CM_MOMY|CM_MOMZ );
+			}
 		}
 		else if (thing->player)
 		{
