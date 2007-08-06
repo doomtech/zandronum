@@ -40,7 +40,11 @@
 #include <signal.h>
 #include <new>
 #include <sys/param.h>
+// [BB] The FreeBSD version is meant to host servers, I don't want it
+// to use more dependencies than necessary.
+#ifndef __FreeBSD__
 #include <gtk/gtk.h>
+#endif
 
 #include "doomerrors.h"
 #include "m_argv.h"
@@ -195,7 +199,11 @@ int main (int argc, char **argv)
 	seteuid (getuid ());
     std::set_new_handler (NewFailure);
 
+#ifdef __FreeBSD__
+	GtkAvailable = false;
+#else
 	GtkAvailable = gtk_init_check (&argc, &argv);
+#endif
 	
 	Args.SetArgs (argc, argv);
 
