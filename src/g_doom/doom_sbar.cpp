@@ -877,17 +877,6 @@ void DrawFullHUD_Armor()
 }
 void DrawFullHUD_Ammo(AAmmo *pAmmo)
 {
-	if ( bScale )
-	{
-		ulCurXPos = ValWidth.Int - 4 - ConFont->StringWidth( "200/200" ) - TexMan["STIMA0"]->GetWidth( ) - 8;
-		ulCurYPos = ValHeight.Int - 4;
-	}
-	else
-	{
-		ulCurXPos = SCREENWIDTH - 4 - ConFont->StringWidth( "200/200" ) - TexMan["STIMA0"]->GetWidth( ) - 8;
-		ulCurYPos = SCREENHEIGHT - 4;
-	}
-
 	if ( pAmmo )
 	{
 		// First, draw the ammo xxx/xxx string. This is the reverse way from how the
@@ -975,8 +964,6 @@ void DrawFullHUD_Ammo(AAmmo *pAmmo)
 		}
 	}
 
-	
-	ulCurYPos -= 30;
 }
 
 void DrawFullHUD_Rune()
@@ -1800,8 +1787,19 @@ void DrawFullHUD_GameInformation()
 			// Now draw the ammo.
 			if(!(dmflags & DF_INFINITE_AMMO))  // [RC] Because then you wouldn't need this.
 			{
+				if ( bScale )
+				{
+					ulCurXPos = ValWidth.Int - 4 - ConFont->StringWidth( "200/200" ) - TexMan["STIMA0"]->GetWidth( ) - 8;
+					ulCurYPos = ValHeight.Int - 4;
+				}
+				else
+				{
+					ulCurXPos = SCREENWIDTH - 4 - ConFont->StringWidth( "200/200" ) - TexMan["STIMA0"]->GetWidth( ) - 8;
+					ulCurYPos = SCREENHEIGHT - 4;
+				}
 				GetCurrentAmmo( pAmmo1, pAmmo2, iAmmoCount1, iAmmoCount2 );
 				DrawFullHUD_Ammo(pAmmo1);
+				ulCurYPos -= 30;
 				DrawFullHUD_Ammo(pAmmo2);
 			}
 			
