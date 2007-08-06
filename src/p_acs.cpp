@@ -2153,34 +2153,11 @@ showme:
 							fa1 = viewer->BlendA;
 						}
 					}
-/*
+
+					// [BC] If we're the server, tell this client to do the fade.
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					{
-						ULONG	ulIdx;
+						SERVERCOMMANDS_DoFlashFader( fr1, fg1, fb1, fa1, fr2, fg2, fb2, fa2, ftime, ULONG( viewer - players ), SVCF_ONLYTHISCLIENT );
 
-						for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-						{
-							if ( SERVER_IsValidClient( ulIdx ) == false )
-								continue;
-
-							// Only send this to the "console" player.
-							if ( ulIdx != viewer - players )
-								continue;
-
-							NETWORK_CheckBuffer( ulIdx, 37 );
-							NETWORK_WriteHeader( &clients[ulIdx].netbuf, SVC_FLASHFADER );
-							NETWORK_WriteFloat( &clients[ulIdx].netbuf, fr1 );
-							NETWORK_WriteFloat( &clients[ulIdx].netbuf, fg1 );
-							NETWORK_WriteFloat( &clients[ulIdx].netbuf, fb1 );
-							NETWORK_WriteFloat( &clients[ulIdx].netbuf, fa1 );
-							NETWORK_WriteFloat( &clients[ulIdx].netbuf, fr2 );
-							NETWORK_WriteFloat( &clients[ulIdx].netbuf, fg2 );
-							NETWORK_WriteFloat( &clients[ulIdx].netbuf, fb2 );
-							NETWORK_WriteFloat( &clients[ulIdx].netbuf, fa2 );
-							NETWORK_WriteFloat( &clients[ulIdx].netbuf, ftime );
-						}
-					}
-*/
 					new DFlashFader (fr1, fg1, fb1, fa1, fr2, fg2, fb2, fa2, ftime, viewer->mo);
 				}
 			}

@@ -374,6 +374,7 @@ static	void	client_DoScroller( BYTESTREAM_s *pByteStream );
 static	void	client_SetScroller( BYTESTREAM_s *pByteStream );
 static	void	client_GenericCheat( BYTESTREAM_s *pByteStream );
 static	void	client_SetCameraToTexture( BYTESTREAM_s *pByteStream );
+static	void	client_DoFlashFader( BYTESTREAM_s *pByteStream );
 
 //*****************************************************************************
 //	VARIABLES
@@ -646,6 +647,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETTHINGSPECIAL2",
 	"SVC_SETSCROLLER",
 	"SVC_SETTHINGTICS",
+	"SVC_DOFLASHFADER",
 
 };
 
@@ -2329,6 +2331,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETCAMERATOTEXTURE:
 
 		client_SetCameraToTexture( pByteStream );
+		break;
+	case SVC_DOFLASHFADER:
+
+		client_DoFlashFader( pByteStream );
 		break;
 	default:
 
@@ -9831,6 +9837,38 @@ static void client_SetCameraToTexture( BYTESTREAM_s *pByteStream )
 	}
 
 	FCanvasTextureInfo::Add( pCamera, lPicNum, lFOV );
+}
+
+//*****************************************************************************
+//
+static void client_DoFlashFader( BYTESTREAM_s *pByteStream )
+{
+	float	fR1;
+	float	fG1;
+	float	fB1;
+	float	fA1;
+	float	fR2;
+	float	fG2;
+	float	fB2;
+	float	fA2;
+	float	fTime;
+
+	// Read in the colors and time for the flash fader.
+	fR1 = NETWORK_ReadFloat( pByteStream );
+	fG1 = NETWORK_ReadFloat( pByteStream );
+	fB1 = NETWORK_ReadFloat( pByteStream );
+	fA1 = NETWORK_ReadFloat( pByteStream );
+
+	fR2 = NETWORK_ReadFloat( pByteStream );
+	fG2 = NETWORK_ReadFloat( pByteStream );
+	fB2 = NETWORK_ReadFloat( pByteStream );
+	fA2 = NETWORK_ReadFloat( pByteStream );
+
+	fTime = NETWORK_ReadFloat( pByteStream );
+
+	// Create the flash fader.
+	if ( players[consoleplayer].mo )
+		new DFlashFader( fR1, fG1, fB1, fA1, fR2, fG2, fB2, fA2, fTime, players[consoleplayer].mo );
 }
 
 //*****************************************************************************

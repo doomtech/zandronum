@@ -87,6 +87,7 @@ v0.97d-beta5
 -	- Fixed: The ACS function GiveInventory doesn't update the armor amount to a client properly, if it's used to give an armor to the player of the client. [Torr Samaho]
 -	- The arch-vile active sound now plays properly in network games. [Carnevil]
 -	- The "turn180" command now works properly in network games. [Carnevil]
+-	- The FadeTo ACS command now works properly in network games. [Carnevil]
 !	- You can no longer exit a map during the countdown in survival invasion. [Carnevil]
 !	- Starting a new game from the main menu now disables multiplayer emulation and resets dmflags. [Carnevil]
 !	- The possession countdown is now bolder in higher resolutions. [Rivecoder]

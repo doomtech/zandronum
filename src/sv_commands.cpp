@@ -5768,3 +5768,34 @@ void SERVERCOMMANDS_SetCameraToTexture( AActor *pCamera, char *pszTexture, LONG 
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lFOV );
 	}
 }
+
+//*****************************************************************************
+//
+void SERVERCOMMANDS_DoFlashFader( float fR1, float fG1, float fB1, float fA1, float fR2, float fG2, float fB2, float fA2, float fTime, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	ULONG	ulIdx;
+
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_IsValidClient( ulIdx ) == false )
+			continue;
+
+		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
+			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
+		{
+			continue;
+		}
+
+		SERVER_CheckClientBuffer( ulIdx, 37, true );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOFLASHFADER );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fR1 );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fG1 );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fB1 );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fA1 );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fR2 );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fG2 );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fB2 );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fA2 );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fTime );
+	}
+}
