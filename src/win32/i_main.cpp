@@ -946,7 +946,7 @@ void DoomSpecificInfo (char *buffer)
 	const char *arg;
 	int i;
 
-	buffer += wsprintf (buffer, "ZDoom version " DOTVERSIONSTR " (" __DATE__ ")\r\n");
+	buffer += wsprintf (buffer, GAMENAME" version " DOTVERSIONSTR_REV " (" __DATE__ ")\r\n");
 	buffer += wsprintf (buffer, "\r\nCommand line: %s\r\n", GetCommandLine());
 
 	for (i = 0; (arg = Wads.GetWadName (i)) != NULL; ++i)
