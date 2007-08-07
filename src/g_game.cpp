@@ -836,7 +836,7 @@ static void ChangeSpy (bool forward)
 	}
 
 	// If not viewing through a player, return your eyes to your own head.
-	if (players[consoleplayer].camera->player == NULL)
+	if (!players[consoleplayer].camera || players[consoleplayer].camera->player == NULL)
 	{
 		players[consoleplayer].camera = players[consoleplayer].mo;
 		return;
