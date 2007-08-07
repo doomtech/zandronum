@@ -1510,7 +1510,7 @@ END_DEFAULTS
 void APowerTerminatorArtifact::InitEffect( )
 {
 	// Flag the player as carrying the terminator artifact.
-	Owner->player->Powers |= PW_TERMINATORARTIFACT|PW_QUADDAMAGE;
+	Owner->player->Powers |= PW_TERMINATORARTIFACT;
 
 	// Also, give the player a megasphere as part of the bonus.
 	Owner->GiveInventoryType( PClass::FindClass( "Megasphere" ));
@@ -1541,7 +1541,7 @@ void APowerTerminatorArtifact::EndEffect( )
 	}
 
 	// Take away the terminator artifact flag.
-	Owner->player->Powers &= ~(PW_TERMINATORARTIFACT|PW_QUADDAMAGE);
+	Owner->player->Powers &= ~PW_TERMINATORARTIFACT;
 }
 
 // Translucency Powerup (Skulltag's version of invisibility) ----------------

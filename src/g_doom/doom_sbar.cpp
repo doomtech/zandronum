@@ -1998,7 +1998,7 @@ void DrawFullHUD_GameInformation()
 		if ( FacePriority < 4 )
 		{
 			// Quad damage!
-			if ( CPlayer->Powers & PW_QUADDAMAGE )
+			if (( CPlayer->Powers & PW_QUADDAMAGE ) || ( CPlayer->Powers & PW_TERMINATORARTIFACT ))
 			{
 				FacePriority = 3;
 				FaceIndex = CalcPainOffset( ) + ST_QUADOFFSET;
