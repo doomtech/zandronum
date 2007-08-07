@@ -91,6 +91,7 @@ v0.97d-beta5
 -	- The "turn180" command now works properly in network games. [Carnevil]
 -	- The FadeTo ACS command now works properly in network games. [Carnevil]
 -	- The quad damage power no longer wears off if the doomsphere expires while possessing the terminator artifact. [Carnevil]
+-	- Fixed an issue with crushing ceilings in which they would stop after making contact with a thing on the client end. [Carnevil]
 -	- Fixed: A client could crash when using spynext, before being fully spawned into the level. [Torr Samaho]
 !	- You can no longer exit a map during the countdown in survival invasion. [Carnevil]
 !	- Starting a new game from the main menu now disables multiplayer emulation and resets dmflags. [Carnevil]

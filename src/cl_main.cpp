@@ -8750,7 +8750,7 @@ static void client_DoCeiling( BYTESTREAM_s *pByteStream )
 	lSpeed = NETWORK_ReadLong( pByteStream );
 
 	// Does this ceiling damage those who get squashed by it?
-	lCrush = NETWORK_ReadByte( pByteStream );
+	lCrush = NETWORK_ReadShort( pByteStream );
 
 	// Does this ceiling make noise?
 	lSilent = NETWORK_ReadByte( pByteStream );
@@ -8763,10 +8763,6 @@ static void client_DoCeiling( BYTESTREAM_s *pByteStream )
 	lDirection = CLIENT_AdjustCeilingDirection( lDirection );
 	if ( lDirection == INT_MAX )
 		return;
-
-	// Also, adjust the value of "crush".
-	if ( lCrush == 0 )
-		lCrush = -1;
 
 	// Invalid sector.
 	if (( lSectorID >= numsectors ) || ( lSectorID < 0 ))
