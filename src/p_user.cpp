@@ -1599,9 +1599,13 @@ void P_CheckPlayerSprites()
 				{
 					mo->sprite = skins[player->userinfo.skin].sprite;
 				}
-				// [GZDoom]
-				mo->scaleY = defscaleY;
-				//mo->yscale = defyscale;
+				// [RC] We need to also check cl_skins here.
+				long lSkin = player->userinfo.skin;
+
+				if (( cl_skins <= 0 ) || ((( cl_skins >= 2 ) && ( skins[player->userinfo.skin].bCheat ))))
+					lSkin = R_FindSkin( "base", player->CurrentPlayerClass );
+
+				mo->scaleY = skins[lSkin].Scale;
 			}
 		}
 	}
