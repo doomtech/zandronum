@@ -3491,7 +3491,9 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 	pszString = NETWORK_ReadString( pByteStream );
 
 	// Read in the thing's damage type.
+#ifndef STAY_NETWORK_COMPATIBLE
 	lDamageType = NETWORK_ReadByte( pByteStream );
+#endif
 
 	// Check to make sure everything is valid. If not, break out.
 	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
@@ -3513,7 +3515,9 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 	players[ulPlayer].health = players[ulPlayer].mo->health = lHealth;
 
 	// Set the player's damage type.
+#ifndef STAY_NETWORK_COMPATIBLE
 	players[ulPlayer].mo->DamageType = lDamageType;
+#endif
 
 	// Kill the player.
 	players[ulPlayer].mo->Die( NULL, NULL );
@@ -4843,7 +4847,9 @@ static void client_KillThing( BYTESTREAM_s *pByteStream )
 	lHealth = NETWORK_ReadShort( pByteStream );
 
 	// Read in the thing's damage type.
+#ifndef STAY_NETWORK_COMPATIBLE
 	lDamageType = NETWORK_ReadByte( pByteStream );
+#endif
 
 	// Level not loaded; ingore.
 	if ( gamestate != GS_LEVEL )
@@ -4863,7 +4869,9 @@ static void client_KillThing( BYTESTREAM_s *pByteStream )
 	pActor->health = lHealth;
 
 	// Set the thing's damage type.
+#ifndef STAY_NETWORK_COMPATIBLE
 	pActor->DamageType = lDamageType;
+#endif
 
 	// Kill the thing.
 	pActor->Die( NULL, NULL );
@@ -8750,7 +8758,11 @@ static void client_DoCeiling( BYTESTREAM_s *pByteStream )
 	lSpeed = NETWORK_ReadLong( pByteStream );
 
 	// Does this ceiling damage those who get squashed by it?
+#ifdef STAY_NETWORK_COMPATIBLE
+	lCrush = NETWORK_ReadByte( pByteStream );
+#else
 	lCrush = NETWORK_ReadShort( pByteStream );
+#endif
 
 	// Does this ceiling make noise?
 	lSilent = NETWORK_ReadByte( pByteStream );
@@ -8763,6 +8775,12 @@ static void client_DoCeiling( BYTESTREAM_s *pByteStream )
 	lDirection = CLIENT_AdjustCeilingDirection( lDirection );
 	if ( lDirection == INT_MAX )
 		return;
+
+#ifdef STAY_NETWORK_COMPATIBLE
+	// Also, adjust the value of "crush".
+	if ( lCrush == 0 )
+		lCrush = -1;
+#endif
 
 	// Invalid sector.
 	if (( lSectorID >= numsectors ) || ( lSectorID < 0 ))

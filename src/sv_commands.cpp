@@ -343,10 +343,17 @@ void SERVERCOMMANDS_KillPlayer( ULONG ulPlayer, AActor *pSource, AActor *pInflic
 		if ( SERVER_IsValidClient( ulIdx ) == false )
 			continue;
 
+#ifdef STAY_NETWORK_COMPATIBLE
+		if ( pszString )
+			SERVER_CheckClientBuffer( ulIdx, 9 + (ULONG)strlen( pszString ), true );
+		else
+			SERVER_CheckClientBuffer( ulIdx, 9, true );
+#else
 		if ( pszString )
 			SERVER_CheckClientBuffer( ulIdx, 10 + (ULONG)strlen( pszString ), true );
 		else
 			SERVER_CheckClientBuffer( ulIdx, 10, true );
+#endif
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_KILLPLAYER );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSourceID );
@@ -354,7 +361,9 @@ void SERVERCOMMANDS_KillPlayer( ULONG ulPlayer, AActor *pSource, AActor *pInflic
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].mo->health );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulMOD );
 		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszString );
+#ifndef STAY_NETWORK_COMPATIBLE
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].mo->DamageType );
+#endif
 	}
 }
 
@@ -1500,11 +1509,17 @@ void SERVERCOMMANDS_KillThing( AActor *pActor )
 		if ( SERVER_IsValidClient( ulIdx ) == false )
 			continue;
 
+#ifdef STAY_NETWORK_COMPATIBLE
+		SERVER_CheckClientBuffer( ulIdx, 5, true );
+#else
 		SERVER_CheckClientBuffer( ulIdx, 6, true );
+#endif
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_KILLTHING );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->health );
+#ifndef STAY_NETWORK_COMPATIBLE
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->DamageType );
+#endif
 	}
 }
 
@@ -1647,6 +1662,7 @@ void SERVERCOMMANDS_SetThingTID( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFl
 //
 void SERVERCOMMANDS_SetThingTics( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
+#ifndef STAY_NETWORK_COMPATIBLE
 	ULONG	ulIdx;
 
 	if ( pActor == NULL )
@@ -1668,6 +1684,7 @@ void SERVERCOMMANDS_SetThingTics( AActor *pActor, ULONG ulPlayerExtra, ULONG ulF
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->tics );
 	}
+#endif
 }
 
 //*****************************************************************************
@@ -4889,7 +4906,11 @@ void SERVERCOMMANDS_DoCeiling( DCeiling::ECeiling Type, sector_t *pSector, LONG 
 			continue;
 		}
 
+#ifdef STAY_NETWORK_COMPATIBLE
+		SERVER_CheckClientBuffer( ulIdx, 22, true );
+#else
 		SERVER_CheckClientBuffer( ulIdx, 23, true );
+#endif
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOCEILING );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, (ULONG)Type );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSectorID );
@@ -4897,7 +4918,11 @@ void SERVERCOMMANDS_DoCeiling( DCeiling::ECeiling Type, sector_t *pSector, LONG 
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lBottomHeight );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lTopHeight );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSpeed );
+#ifdef STAY_NETWORK_COMPATIBLE
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ( lCrush == 1 ));
+#else
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lCrush );
+#endif
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, bSilent );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
 	}
@@ -5773,6 +5798,7 @@ void SERVERCOMMANDS_SetCameraToTexture( AActor *pCamera, char *pszTexture, LONG 
 //
 void SERVERCOMMANDS_DoFlashFader( float fR1, float fG1, float fB1, float fA1, float fR2, float fG2, float fB2, float fA2, float fTime, ULONG ulPlayerExtra, ULONG ulFlags )
 {
+#ifndef STAY_NETWORK_COMPATIBLE
 	ULONG	ulIdx;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -5798,4 +5824,5 @@ void SERVERCOMMANDS_DoFlashFader( float fR1, float fG1, float fB1, float fA1, fl
 		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fA2 );
 		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fTime );
 	}
+#endif
 }

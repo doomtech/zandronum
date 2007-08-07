@@ -486,6 +486,19 @@ enum
 };
 
 //*****************************************************************************
+#ifdef STAY_NETWORK_COMPATIBLE
+// Connection messages.
+#define CONNECT_CHALLENGE		200
+#define	CONNECT_READY			201
+#define	CONNECT_GETDATA			202
+#define	CONNECT_QUIT			203
+#define	CONNECT_AUTHENTICATED	204
+#define	CONNECT_AUTHENTICATING	205
+#define	NUM_CONNECT_COMMANDS	206
+
+// Network messages (universal)
+#define	CONNECT_ERROR			254
+#else
 enum
 {
 	CONNECT_CHALLENGE = NUM_SERVER_COMMANDS,
@@ -498,6 +511,7 @@ enum
 
 	NUM_CONNECT_COMMANDS
 };
+#endif
 
 //*****************************************************************************
 enum
