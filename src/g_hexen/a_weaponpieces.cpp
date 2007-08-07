@@ -125,7 +125,9 @@ bool AFourthWeaponPiece::TryPickup (AActor *toucher)
 
 			if (PieceValue & mask)
 			{
-				if (toucher->CheckLocalView (consoleplayer))
+				// [BC] The server doesn't have a status bar.
+				if (( NETWORK_GetState( ) != NETSTATE_SERVER ) &&
+					toucher->CheckLocalView (consoleplayer))
 				{
 					StatusBar->SetInteger (0, i);
 				}
