@@ -3589,6 +3589,17 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 	else
 		ClientObituary( players[ulPlayer].mo, pInflictor, NULL, lMOD );
 */
+	// [RC] In survival, if were spying the dying player, revert the status bar.
+	if(( NETWORK_GetState() == NETSTATE_CLIENT ) && survival )
+	{
+		if (( players[consoleplayer].camera ) && ( players[consoleplayer].camera->player == &players[ulPlayer] ))
+		{
+			players[consoleplayer].camera = players[consoleplayer].mo;
+			if (StatusBar != NULL)
+				StatusBar->AttachToPlayer (&players[consoleplayer]);
+		}
+	}
+
 	// Refresh the HUD, since this could affect the number of players left in an LMS game.
 	SCOREBOARD_RefreshHUD( );
 }
