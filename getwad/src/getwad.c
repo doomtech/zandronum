@@ -1446,10 +1446,14 @@ handle_zip_or_wad(getwad_parms *gwp,const char *fname,const char *urlname)
   FILE		*f, *fout;
   const char	*hdr, *stry[2];
   char		*errmsg, *outname, buf[8192];
+  int       lookingForAPK3, urlEndsWithPK3;
 
   hdr = file_header(fname);
 
-  if (!memcmp(hdr,"PK",2))
+  lookingForAPK3 = !strcmp(target_wadname+strlen(target_wadname)-4,".pk3");
+  urlEndsWithPK3 = !strcmp(urlname+strlen(urlname)-4,".pk3");
+
+  if (!memcmp(hdr,"PK",2) && !urlEndsWithPK3)
     {
       log_out(gwp,"Opening ZIP file...");
       outname = make_outname(wad_dir,target_wadname);
@@ -1460,12 +1464,20 @@ handle_zip_or_wad(getwad_parms *gwp,const char *fname,const char *urlname)
           return TRUE;
         }
       hdr = file_header(outname);
-      if (memcmp(hdr,"PWAD",4) && memcmp(hdr,"IWAD",4))
+
+      if (memcmp(hdr,"PWAD",4) && memcmp(hdr,"IWAD",4) && !lookingForAPK3)
         {
           log_out(gwp,"This is not a valid Doom WAD file" EOL EOL);
           remove(outname);
           return TRUE;
         }
+      if (memcmp(hdr,"PK",2) && lookingForAPK3)
+        {
+          log_out(gwp,"This is not a valid PK3 file" EOL EOL);
+          remove(outname);
+          return TRUE;
+        }
+
       log_out(gwp,"SUCCESS!" EOL EOL "WAD FILE INSTALLED." EOL);
       stry[0] = target_txtname;
       stry[1] = "readme.txt";
@@ -1477,7 +1489,7 @@ handle_zip_or_wad(getwad_parms *gwp,const char *fname,const char *urlname)
       return TRUE;
     }
 
-  if (!memcmp(hdr,"PWAD",4) || !memcmp(hdr,"IWAD",4))
+  if (!memcmp(hdr,"PWAD",4) || !memcmp(hdr,"IWAD",4) || (urlEndsWithPK3 && !memcmp(hdr,"PK",2)) )
     {
       if (!url_ends_with(urlname,target_wadname) )
         {
@@ -1658,7 +1670,7 @@ get_next_wadname(char **pargs)
       n -= 4;
       target_wadname[n] = '\0';
     }
-  if (n<5 || strcmp(target_wadname+n-4,".wad"))
+  if (n<5 || (strcmp(target_wadname+n-4,".wad") && strcmp(target_wadname+n-4,".pk3")) )
     {
       strcpy(target_wadname+n,".wad");
       n += 4;
