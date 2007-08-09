@@ -1435,11 +1435,83 @@ void DrawFullHUD_GameInformation()
 		DrawDash(origin + sep, y);
 	}
 
+	// [BB] Draws the inventory in the classical and the new fullscreen HUD.
+	void DrawFullScreenInventory( const int ammotop )
+	{
+		const AInventory *item;
+		int i;
+		if (!(level.flags & LEVEL_NOINVENTORYBAR))
+		{
+			if (CPlayer->inventorytics == 0)
+			{
+				if (CPlayer->mo->InvSel != NULL)
+				{
+					screen->DrawTexture (TexMan(CPlayer->mo->InvSel->Icon), -14, ammotop - 1/*-24*/,
+						DTA_HUDRules, HUD_Normal,
+						DTA_CenterBottomOffset, true,
+						TAG_DONE);
+					DrBNumberOuter (CPlayer->mo->InvSel->Amount, -68, ammotop - 18/*-41*/);
+				}
+			}
+			else
+			{
+				CPlayer->mo->InvFirst = ValidateInvFirst (7);
+				i = 0;
+				if (CPlayer->mo->InvFirst != NULL)
+				{
+					for (item = CPlayer->mo->InvFirst; item != NULL && i < 7; item = item->NextInv(), ++i)
+					{
+						screen->DrawTexture (Images[imgARTIBOX], -106+i*31, -32,
+							DTA_HUDRules, HUD_HorizCenter,
+							DTA_Alpha, HX_SHADOW,
+							TAG_DONE);
+						screen->DrawTexture (TexMan(item->Icon), -105+i*31, -32,
+							DTA_HUDRules, HUD_HorizCenter,
+							TAG_DONE);
+						if (item->Amount != 1)
+						{
+							DrSmallNumberOuter (item->Amount, -90+i*31, -10, true);
+						}
+						if (item == CPlayer->mo->InvSel)
+						{
+							screen->DrawTexture (Images[imgSELECTBOX], -91+i*31, -3,
+								DTA_HUDRules, HUD_HorizCenter,
+								DTA_CenterBottomOffset, true,
+								TAG_DONE);
+						}
+					}
+					for (; i < 7; i++)
+					{
+						screen->DrawTexture (Images[imgARTIBOX], -106+i*31, -32,
+							DTA_HUDRules, HUD_HorizCenter,
+							DTA_Alpha, HX_SHADOW,
+							TAG_DONE);
+					}
+					// Is there something to the left?
+					if (CPlayer->mo->FirstInv() != CPlayer->mo->InvFirst)
+					{
+						screen->DrawTexture (Images[!(gametic & 4) ?
+							imgINVLFGEM1 : imgINVLFGEM2], -118, -33,
+							DTA_HUDRules, HUD_HorizCenter,
+							TAG_DONE);
+					}
+					// Is there something to the right?
+					if (item != NULL)
+					{
+						screen->DrawTexture (Images[!(gametic & 4) ?
+							imgINVRTGEM1 : imgINVRTGEM2], 113, -33,
+							DTA_HUDRules, HUD_HorizCenter,
+							TAG_DONE);
+					}
+				}
+			}
+		}
+	}
 
 	void DrawFullScreenStuff ()
 	{
 		const AInventory *item;
-		int i;
+		//int i;
 		int ammotop;
 		// [BC]
 		AInventory		*pRune;
@@ -1605,72 +1677,7 @@ void DrawFullHUD_GameInformation()
 		}
 
 		// Draw inventory
-		if (!(level.flags & LEVEL_NOINVENTORYBAR))
-		{
-			if (CPlayer->inventorytics == 0)
-			{
-				if (CPlayer->mo->InvSel != NULL)
-				{
-					screen->DrawTexture (TexMan(CPlayer->mo->InvSel->Icon), -14, ammotop - 1/*-24*/,
-						DTA_HUDRules, HUD_Normal,
-						DTA_CenterBottomOffset, true,
-						TAG_DONE);
-					DrBNumberOuter (CPlayer->mo->InvSel->Amount, -68, ammotop - 18/*-41*/);
-				}
-			}
-			else
-			{
-				CPlayer->mo->InvFirst = ValidateInvFirst (7);
-				i = 0;
-				if (CPlayer->mo->InvFirst != NULL)
-				{
-					for (item = CPlayer->mo->InvFirst; item != NULL && i < 7; item = item->NextInv(), ++i)
-					{
-						screen->DrawTexture (Images[imgARTIBOX], -106+i*31, -32,
-							DTA_HUDRules, HUD_HorizCenter,
-							DTA_Alpha, HX_SHADOW,
-							TAG_DONE);
-						screen->DrawTexture (TexMan(item->Icon), -105+i*31, -32,
-							DTA_HUDRules, HUD_HorizCenter,
-							TAG_DONE);
-						if (item->Amount != 1)
-						{
-							DrSmallNumberOuter (item->Amount, -90+i*31, -10, true);
-						}
-						if (item == CPlayer->mo->InvSel)
-						{
-							screen->DrawTexture (Images[imgSELECTBOX], -91+i*31, -3,
-								DTA_HUDRules, HUD_HorizCenter,
-								DTA_CenterBottomOffset, true,
-								TAG_DONE);
-						}
-					}
-					for (; i < 7; i++)
-					{
-						screen->DrawTexture (Images[imgARTIBOX], -106+i*31, -32,
-							DTA_HUDRules, HUD_HorizCenter,
-							DTA_Alpha, HX_SHADOW,
-							TAG_DONE);
-					}
-					// Is there something to the left?
-					if (CPlayer->mo->FirstInv() != CPlayer->mo->InvFirst)
-					{
-						screen->DrawTexture (Images[!(gametic & 4) ?
-							imgINVLFGEM1 : imgINVLFGEM2], -118, -33,
-							DTA_HUDRules, HUD_HorizCenter,
-							TAG_DONE);
-					}
-					// Is there something to the right?
-					if (item != NULL)
-					{
-						screen->DrawTexture (Images[!(gametic & 4) ?
-							imgINVRTGEM1 : imgINVRTGEM2], 113, -33,
-							DTA_HUDRules, HUD_HorizCenter,
-							TAG_DONE);
-					}
-				}
-			}
-		}
+		DrawFullScreenInventory( ammotop );
 	}
 
 	// [BB] Draws the keys in Skulltag's new fullscreen HUD.
@@ -1814,6 +1821,9 @@ void DrawFullHUD_GameInformation()
 
 		// Revert back to the small font.
 		screen->SetFont( SmallFont );
+
+		// [BB] Draw inventory. Doesn't respect scaling yet, but it's better than nothing.
+		DrawFullScreenInventory( SCREENHEIGHT - 4 - ( TexMan["MEDIA0"]->GetHeight( ) + 4 ) *2 - ( TexMan["ARM1A0"]->GetHeight( ) + 4 ) - 14 );
 	}
 
 	int CalcPainOffset ()
