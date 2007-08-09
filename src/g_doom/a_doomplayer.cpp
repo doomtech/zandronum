@@ -333,7 +333,9 @@ void ADoomPlayer::GiveDefaultInventory ()
 		}
 
 		// [BC] If we're a client, tell the server we're switching weapons.
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) == consoleplayer ))
+		// [BB] Using custom player classes which don't have "Fist"
+		// and "Pistol" player->ReadyWeapon can be equal to NULL.
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) == consoleplayer ) && player->ReadyWeapon )
 		{
 			CLIENTCOMMANDS_WeaponSelect( (char *)player->ReadyWeapon->GetClass( )->TypeName.GetChars( ));
 
