@@ -650,6 +650,45 @@ CCMD (menu_help)
 	M_ReadThis (0);
 }
 
+void ClassSelHelper()
+{
+	ClassMenuDef.lastOn = ClassMenuDef.numitems - 1;
+	if (players[consoleplayer].userinfo.PlayerClass >= 0)
+	{
+		int n = 0;
+		for (int i = 0; i < (int)PlayerClasses.Size () && n < 7; i++)
+		{
+			if (!(PlayerClasses[i].Flags & PCF_NOMENU))
+			{
+				if (i == players[consoleplayer].userinfo.PlayerClass)
+				{
+					ClassMenuDef.lastOn = n;
+					break;
+				}
+				n++;
+			}
+		}
+	}
+
+	PickPlayerClass ();
+
+	PlayerState = GetDefaultByType (PlayerClass->Type)->SeeState;
+	PlayerTics = PlayerState->GetTics();
+
+	if (FireScreen == NULL)
+		FireScreen = new DSimpleCanvas (144, 160);
+	M_SetupNextMenu (&ClassMenuDef);
+}
+
+CCMD (menu_class)
+{	// F1
+	if (ClassMenuDef.numitems > 1)
+	{
+		M_StartControlPanel (true);
+		ClassSelHelper();
+	}
+}
+
 CCMD (quicksave)
 {	// F6
 	//M_StartControlPanel (true);
@@ -1656,6 +1695,12 @@ void M_NewGame(int choice)
 		return;
 	}
 */
+	// [BB] The class selection screen for a new game only works
+	// if we are not in client mode. This solution is quite hacky and
+	// should be changed in the future.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT && PlayerClasses.Size() > 1 )
+		AddCommandString( "disconnect" );
+
 	// Set up episode menu positioning
 	if (gameinfo.gametype & (GAME_Doom|GAME_Strife))
 	{
@@ -1685,32 +1730,9 @@ void M_NewGame(int choice)
 	// [GRB] Class select
 	else if (ClassMenuDef.numitems > 1)
 	{
-		ClassMenuDef.lastOn = ClassMenuDef.numitems - 1;
-		if (players[consoleplayer].userinfo.PlayerClass >= 0)
-		{
-			int n = 0;
-			for (int i = 0; i < (int)PlayerClasses.Size () && n < 7; i++)
-			{
-				if (!(PlayerClasses[i].Flags & PCF_NOMENU))
-				{
-					if (i == players[consoleplayer].userinfo.PlayerClass)
-					{
-						ClassMenuDef.lastOn = n;
-						break;
-					}
-					n++;
-				}
-			}
-		}
-
-		PickPlayerClass ();
-
-		PlayerState = GetDefaultByType (PlayerClass->Type)->SeeState;
-		PlayerTics = PlayerState->GetTics();
-
-		if (FireScreen == NULL)
-			FireScreen = new DSimpleCanvas (144, 160);
-		M_SetupNextMenu (&ClassMenuDef);
+		// [BB] To prevent code duplication with CCMD (menu_class)
+		// I moved the code from here into a helper function.
+		ClassSelHelper();
 	}
 	else if (EpiDef.numitems <= 1)
 	{
@@ -2085,13 +2107,15 @@ static void SCClass (int option)
 // [GRB]
 static void M_ChooseClass (int choice)
 {
+	playerclass = (choice < ClassMenuDef.numitems-1) ? ClassMenuItems[choice].name : "Random";
+	// [BB] A client chooses the class and tells it to the server with the above line.
+	// Afterwards the client just joins.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 	{
-		M_StartMessage (GStrings("NEWGAME"), NULL, false);
+		AddCommandString( "join" );
+		M_ClearMenus( );
 		return;
 	}
-
-	playerclass = (choice < ClassMenuDef.numitems-1) ? ClassMenuItems[choice].name : "Random";
 	SetHexenSkillMenu(playerclass);
 
 	if (EpiDef.numitems > 1)

@@ -27,6 +27,7 @@ v0.97d-beta5
 +	- Improved the display of the bottom string; 'x allies/opponent' display now reflects that of the player you're spying; added a few missing linebreaks. [Rivecoder]
 +	- Added a GTK+ version of the IWAD selection box (ported the change from ZDoom revision 451). [Torr Samaho]
 +	- Ported the updated startup screen code from GZDoom 1.0.24 to ST. This includes simulations of Heretic's and Hexen's startup screen. [Torr Samaho]
++	- Class selection screen is now shown when joining a multiplayer non Hexen, not team based game with more than one available player class. [Torr Samaho]
 -	- Fixed a crash that would occur frequently in game modes in which the map experiences a map reset at some point (LMS, duel, survival, etc.). [Carnevil]
 -	- Fixed: Ignoring definitions of already defined decorate actors which use ":" or "replace" didn't work. [Torr Samaho]
 -	- Fixed: After a map change some type of custom weapons are lost on the client side (Fist and NewPistol in KDiZD for example). [Torr Samaho]

@@ -3264,8 +3264,19 @@ static menuitem_t JoinItems[] =
 // [RC] For the join menu
 static void JoinGame( void )
 {
-	AddCommandString( "join" );
-	M_ClearMenus( );
+	// [BB] If there are several classes to choose from, start the class selection menu.
+	// The joining is handeled in M_ChooseClass. This needs to be restructured a little
+	// to use it in gamemodes with different teams. Further this does not work for Hexen yet.
+	if( PlayerClasses.Size() > 1 && gameinfo.gametype != GAME_Hexen )
+	{
+		M_ClearMenus( );
+		AddCommandString( "menu_class" );
+	}
+	else
+	{
+		AddCommandString( "join" );
+		M_ClearMenus( );
+	}
 }
 
 menu_t JoinMenu =
