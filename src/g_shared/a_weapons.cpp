@@ -966,6 +966,14 @@ CCMD (setslot)
 			{
 				Printf ("Could not add %s to slot %d\n", argv[i], slot);
 			}
+			const PClass *replacee;
+			replacee = PClass::FindClass (argv[i]);
+			// [BB] This weapon has been replaced. It's reasonable to add the replacement to the same slot.
+			if( replacee && replacee->ActorInfo->Replacement )
+			{
+				LocalWeapons.Slots[slot].AddWeapon ( replacee->ActorInfo->Replacement->Class->TypeName.GetChars() );
+				Printf( "%s is replaced, adding %s to slot %d too.\n", argv[i], replacee->ActorInfo->Replacement->Class->TypeName.GetChars(), slot );
+			}
 		}
 	}
 }

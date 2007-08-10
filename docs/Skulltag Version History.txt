@@ -29,6 +29,8 @@ v0.97d-beta5
 +	- Ported the updated startup screen code from GZDoom 1.0.24 to ST. This includes simulations of Heretic's and Hexen's startup screen. [Torr Samaho]
 +	- Class selection screen is now shown when joining a multiplayer non Hexen, not team based game with more than one available player class. [Torr Samaho]
 +	- Added basic inventory drawing support to the Skulltag Doom HUD (doesn't respect scaling yet). [Torr Samaho]
++	- Revamped the way double defined actors are handled: If a definition of an already defined actor is encountered, "2" will be appended to the name and the new actor replaces to old one. This should give full compatibility with PWADs that use actors whose name conflict with Skulltag actors. [Torr Samaho]
++	- If a replaced weapon is added to a slot with setslot, the replacement weapon will also be added to the slot. [Torr Samaho]
 -	- Fixed a crash that would occur frequently in game modes in which the map experiences a map reset at some point (LMS, duel, survival, etc.). [Carnevil]
 -	- Fixed: Ignoring definitions of already defined decorate actors which use ":" or "replace" didn't work. [Torr Samaho]
 -	- Fixed: After a map change some type of custom weapons are lost on the client side (Fist and NewPistol in KDiZD for example). [Torr Samaho]

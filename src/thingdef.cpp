@@ -1186,6 +1186,9 @@ static void ResetActor (AActor *actor, Baggage *bag)
 static FActorInfo * CreateNewActor(FActorInfo ** parentc, Baggage *bag)
 {
 	FName typeName;
+	char ReplaceName[256];
+	char OriginalName[256];
+	ReplaceName[0] = 0;
 
 	// Get actor name
 	SC_MustGetString();
@@ -1200,13 +1203,25 @@ static FActorInfo * CreateNewActor(FActorInfo ** parentc, Baggage *bag)
 	{
 		// [BB] I'm tired of the problems caused by PWADs using
 		// Skulltag actor names. If we encounter an already defined
-		// actor, we just ignore the new definition.
-		Printf( "WARNING: Actor %s is already defined.\n", sc_String);
-		return NULL;
+		// actor, we just append "2" to the name and try to use this.
+		Printf( "WARNING: Actor %s is already defined.", sc_String);
+		sprintf( OriginalName, "%s", sc_String );
+		sprintf( ReplaceName, "%s2", OriginalName );
+		Printf( "Changing name to %s\n", ReplaceName);
+		if (PClass::FindClass (ReplaceName) != NULL)
+		{
+			// [BB] The new name already exists, so we just ignore the definition.
+			// Not perfect, but this case is unlikely to happen.
+			Printf( "ERROR: Actor %s is already defined. Ignoring definition of %s\n", ReplaceName, OriginalName);
+			return NULL;
+		}
 		//SC_ScriptError ("Actor %s is already defined.", sc_String);
 	}
 
-	typeName = sc_String;
+	if( ReplaceName[0] )
+		typeName = ReplaceName;
+	else
+		typeName = sc_String;
 
 	PClass * parent = RUNTIME_CLASS(AActor);
 	if (parentc)
@@ -1290,6 +1305,17 @@ static FActorInfo * CreateNewActor(FActorInfo ** parentc, Baggage *bag)
 	else
 	{
 		SC_UnGet();
+		// [BB] To prevent a double definition, we altered the actor name.
+		// Now we replace the orginal actor with the new one. This is not
+		// done if the new actor already replaces something.
+		if( ReplaceName[0] )
+		{
+			const PClass *replacee;
+			replacee = PClass::FindClass (OriginalName);
+			replacee->ActorInfo->Replacement = ti->ActorInfo;
+			ti->ActorInfo->Replacee = replacee->ActorInfo;
+			Printf( "%s replacing %s\n", ti->TypeName.GetChars(), replacee->TypeName.GetChars() );
+		}
 	}
 
 	// Now, after the actor names have been parsed, it is time to switch to C-mode 
