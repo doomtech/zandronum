@@ -680,7 +680,7 @@ void A_LoadShotgun2 (AActor *actor)
 
 	// [BC] If we're the server, tell clients that a weapon is being fired.
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( actor->player ))
-		SERVERCOMMANDS_WeaponSound( ULONG( actor->player - players ), "weapons/sshot1", ULONG( actor->player - players ), SVCF_SKIPTHISCLIENT );
+		SERVERCOMMANDS_WeaponSound( ULONG( actor->player - players ), "weapons/sshotl", ULONG( actor->player - players ), SVCF_SKIPTHISCLIENT );
 }
 
 void A_CloseShotgun2 (AActor *actor)
