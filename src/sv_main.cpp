@@ -4671,15 +4671,17 @@ CCMD( kick_idx )
 
 	if ( argv.argc( ) < 2 )
 	{
-		Printf( "Usage: kick_idx <player Idx> [reason]\n" );
+		Printf( "Usage: kick_idx <player index> [reason]\nYou can get the list of players and indexes with the ccmd playerinfo.\n" );
 		return;
 	}
+
 	ULONG ulIdx =  atoi(argv[1]);
-	// check if the player idx is identifying an ingame player
+
+	// Make sure the player is in the game.
 	if ( playeringame[ulIdx] == false )
 		return;
 
-	// you can't kick admins
+	// Don't kick our admins.
 	if ( SERVER_ADMIN_IsAdministrator( g_aClients[ulIdx].Address ))
 		return;
 
