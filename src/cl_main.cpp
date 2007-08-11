@@ -372,6 +372,7 @@ static	void	client_EarthQuake( BYTESTREAM_s *pByteStream );
 static	void	client_SetQueuePosition( BYTESTREAM_s *pByteStream );
 static	void	client_DoScroller( BYTESTREAM_s *pByteStream );
 static	void	client_SetScroller( BYTESTREAM_s *pByteStream );
+static	void	client_SetWallScroller( BYTESTREAM_s *pByteStream );
 static	void	client_GenericCheat( BYTESTREAM_s *pByteStream );
 static	void	client_SetCameraToTexture( BYTESTREAM_s *pByteStream );
 static	void	client_DoFlashFader( BYTESTREAM_s *pByteStream );
@@ -648,6 +649,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETSCROLLER",
 	"SVC_SETTHINGTICS",
 	"SVC_DOFLASHFADER",
+	"SVC_SETWALLSCROLLER",
 
 };
 
@@ -2323,6 +2325,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETSCROLLER:
 
 		client_SetScroller( pByteStream );
+		break;
+	case SVC_SETWALLSCROLLER:
+
+		client_SetWallScroller( pByteStream );
 		break;
 	case SVC_GENERICCHEAT:
 
@@ -9740,7 +9746,7 @@ static void client_DoScroller( BYTESTREAM_s *pByteStream )
 	DScroller::EScrollType	Type;
 	fixed_t					dX;
 	fixed_t					dY;
-	LONG					lSector;
+	LONG					lAffectee;
 
 	// Read in the type of scroller.
 	Type = (DScroller::EScrollType)NETWORK_ReadByte( pByteStream );
@@ -9751,18 +9757,29 @@ static void client_DoScroller( BYTESTREAM_s *pByteStream )
 	// Read in the Y speed.
 	dY = NETWORK_ReadLong( pByteStream );
 
-	// Read in the sector being scrolled.
-	lSector = NETWORK_ReadShort( pByteStream );
+	// Read in the sector/side being scrolled.
+	lAffectee = NETWORK_ReadShort( pByteStream );
 
 	// Check to make sure what we've read in is valid.
+	// [BB] sc_side is allowed, too, but we need to make a different check for it.
 	if (( Type != DScroller::sc_floor ) && ( Type != DScroller::sc_ceiling ) &&
-		( Type != DScroller::sc_carry ) && ( Type != DScroller::sc_carry_ceiling ))
+		( Type != DScroller::sc_carry ) && ( Type != DScroller::sc_carry_ceiling ) && ( Type != DScroller::sc_side ) )
 	{
 		Printf( "client_DoScroller: Unknown type: %d!\n", (LONG)Type );
 		return;
 	}
 
-	if (( lSector < 0 ) || ( lSector >= numsectors ))
+	if( Type == DScroller::sc_side )
+	{
+		if (( lAffectee < 0 ) || ( lAffectee >= numsides ))
+		{
+#ifdef CLIENT_WARNING_MESSAGES
+			Printf( "client_DoScroller: Invalid side ID: %d!\n", (LONG)lSector );
+#endif
+			return;
+		}
+	}
+	else if (( lAffectee < 0 ) || ( lAffectee >= numsectors ))
 	{
 #ifdef CLIENT_WARNING_MESSAGES
 		Printf( "client_DoScroller: Invalid sector ID: %d!\n", (LONG)lSector );
@@ -9771,11 +9788,12 @@ static void client_DoScroller( BYTESTREAM_s *pByteStream )
 	}
 
 	// Finally, create the scroller.
-	new DScroller( Type, dX, dY, -1, lSector, 0 );
+	new DScroller( Type, dX, dY, -1, lAffectee, 0 );
 }
 
 //*****************************************************************************
 //
+// [BB] SetScroller is defined in p_lnspec.cpp.
 void SetScroller (int tag, DScroller::EScrollType type, fixed_t dx, fixed_t dy);
 
 static void client_SetScroller( BYTESTREAM_s *pByteStream )
@@ -9807,6 +9825,34 @@ static void client_SetScroller( BYTESTREAM_s *pByteStream )
 
 	// Finally, create or update the scroller.
 	SetScroller (lTag, Type, dX, dY );
+}
+
+//*****************************************************************************
+//
+// [BB] SetWallScroller is defined in p_lnspec.cpp.
+void SetWallScroller(int id, int sidechoice, fixed_t dx, fixed_t dy);
+
+static void client_SetWallScroller( BYTESTREAM_s *pByteStream )
+{
+	LONG					lId;
+	LONG					lSidechoice;
+	fixed_t					dX;
+	fixed_t					dY;
+
+	// Read in the id.
+	lId = NETWORK_ReadLong( pByteStream );
+
+	// Read in the side choice.
+	lSidechoice = NETWORK_ReadByte( pByteStream );
+
+	// Read in the X speed.
+	dX = NETWORK_ReadLong( pByteStream );
+
+	// Read in the Y speed.
+	dY = NETWORK_ReadLong( pByteStream );
+
+	// Finally, create or update the scroller.
+	SetWallScroller (lId, lSidechoice, dX, dY );
 }
 
 //*****************************************************************************

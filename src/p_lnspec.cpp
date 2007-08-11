@@ -1958,8 +1958,12 @@ FUNC(LS_Sector_SetFriction)
 	return true;
 }
 
-static void SetWallScroller (int id, int sidechoice, fixed_t dx, fixed_t dy)
+/*static*/ void SetWallScroller (int id, int sidechoice, fixed_t dx, fixed_t dy)
 {
+	// [BB] The server has to tell the clients to call SetWallScroller.
+	if( NETWORK_GetState() == NETSTATE_SERVER )
+		SERVERCOMMANDS_SetWallScroller( id, sidechoice, dx, dy );
+
 	if ((dx | dy) == 0)
 	{
 		// Special case: Remove the scroller, because the deltas are both 0.

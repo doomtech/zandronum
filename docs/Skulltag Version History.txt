@@ -101,6 +101,7 @@ v0.97d-beta5
 -	- Fixed: Playing the intro of KDiZD with the software renderer in low resolution could lead to a freeze (ported from ZDoom revision 492). [Torr Samaho]
 -	- Fixed: A client using a custom playerclass in Doom that doesn't have fist and/or pistol could crash when spawning. [Torr Samaho]
 -	- Fixed: SSG loading sound doesn't play online. [Torr Samaho]
+-	- Fixed: The ACS function Scroll_Texture_Both doesn't work properly online. [Torr Samaho]
 !	- You can no longer exit a map during the countdown in survival invasion. [Carnevil]
 !	- Starting a new game from the main menu now disables multiplayer emulation and resets dmflags. [Carnevil]
 !	- The possession countdown is now bolder in higher resolutions. [Rivecoder]

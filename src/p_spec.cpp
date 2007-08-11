@@ -1315,8 +1315,6 @@ void DScroller::UpdateToClient( ULONG ulClient )
 	switch ( m_Type )
 	{
 	case sc_side:
-
-		break;
 	case sc_floor:
 	case sc_carry:
 	case sc_ceiling:
