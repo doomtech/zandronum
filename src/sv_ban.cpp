@@ -616,6 +616,94 @@ static void serverban_CouldNotOpenFile( char *pszFunctionHeader, char *pszFileNa
 //*****************************************************************************
 //	CONSOLE COMMANDS
 
+CCMD( getIP )
+{
+	ULONG	ulIdx;
+	char	szPlayerName[64];
+
+	// Only the server can look this up.
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		return;
+
+	if ( argv.argc( ) < 2 )
+	{
+		Printf( "Usage: getIP <playername> \n" );
+		return;
+	}
+
+	// Loop through all the players, and try to find one that matches the given name.
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( playeringame[ulIdx] == false )
+			continue;
+
+		// Removes the color codes from the player name so it appears as the server sees it in the window.
+		sprintf( szPlayerName, players[ulIdx].userinfo.netname );
+		V_RemoveColorCodes( szPlayerName );
+
+		if ( stricmp( szPlayerName, argv[1] ) == 0 )
+		{
+			// Bots do not have IPs.
+			if ( players[ulIdx].bIsBot )
+			{
+				Printf( "That user is a bot.\n" );
+				return;
+			}
+
+			Printf("IP is: %d.%d.%d.%d\n", 
+				SERVER_GetClient( ulIdx )->Address.abIP[0],
+				SERVER_GetClient( ulIdx )->Address.abIP[1],
+				SERVER_GetClient( ulIdx )->Address.abIP[2],
+				SERVER_GetClient( ulIdx )->Address.abIP[3]);
+			return;
+		}
+	}
+	
+	// Didn't find a player that matches the name.
+	Printf( "Unknown player: %s\n", argv[1] );
+	return;
+}
+
+//*****************************************************************************
+//
+CCMD( getIP_idx )
+{
+	ULONG	ulIdx;
+	char	szPlayerName[64];
+
+	// Only the server can look this up.
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		return;
+
+	if ( argv.argc( ) < 2 )
+	{
+		Printf( "Usage: getIP_idx <player index>\nYou can get the list of players and indexes with the ccmd playerinfo.\n" );
+		return;
+	}
+
+	ulIdx = atoi(argv[1]);
+
+	if ( playeringame[ulIdx] == false )
+		return;
+
+	// Bots do not have IPs.
+	if ( players[ulIdx].bIsBot )
+	{
+		Printf( "That user is a bot.\n" );
+		return;
+	}
+
+	Printf("IP is: %d.%d.%d.%d\n", 
+		SERVER_GetClient( ulIdx )->Address.abIP[0],
+		SERVER_GetClient( ulIdx )->Address.abIP[1],
+		SERVER_GetClient( ulIdx )->Address.abIP[2],
+		SERVER_GetClient( ulIdx )->Address.abIP[3]);
+	return;
+
+}
+
+//*****************************************************************************
+//
 CCMD( ban )
 {
 	ULONG	ulIdx;
