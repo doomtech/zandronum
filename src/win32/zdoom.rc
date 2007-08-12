@@ -285,7 +285,7 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,97,0,0
+ FILEVERSION 0,97,SVN_REVISION_NUMBER,BUILD_ID
  PRODUCTVERSION 0,97,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
@@ -304,15 +304,15 @@ BEGIN
             VALUE "Comments", "Thanks to id Software for creating DOOM and then releasing the source code. Thanks also to TeamTNT for creating BOOM, which ZDoom (and thus Skulltag) is partially based on.  Giant thanks to Randy Heit for his wonderful ZDoom.\0"
             VALUE "CompanyName", " \0"
             VALUE "FileDescription", "Skulltag\0"
-            VALUE "FileVersion", "v" DOTVERSIONSTR "\0"
+            VALUE "FileVersion", "v" DOTVERSIONSTR_REV "\0"
             VALUE "InternalName", "Skulltag\0"
-            VALUE "LegalCopyright", "Copyright © 1993-1996, id Software & 1998-2006, Randy Heit\0"
+            VALUE "LegalCopyright", "Copyright © 1993-1996, id Software & 1998-2007, Randy Heit\0"
             VALUE "LegalTrademarks", "Doom® is a Registered Trademark of id Software, Inc.\0"
             VALUE "OriginalFilename", "skulltag.exe\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "Skulltag\0"
-            VALUE "ProductVersion", "0.97\0"
-            VALUE "SpecialBuild", BUILDTYPE "-" SVN_REVISION_STRING "\0"
+            VALUE "ProductVersion", DOTVERSIONSTR_REV
+            VALUE "SpecialBuild", BUILD_ID_STR "-" DOTVERSIONSTR_REV "\0"
         END
     END
     BLOCK "VarFileInfo"
@@ -1075,8 +1075,8 @@ CAPTION "Skulltag Server"
 MENU IDR_MAINMENU
 FONT 8, "Tahoma"
 BEGIN
-    EDITTEXT        IDC_INPUTBOX,8,298,214,14,ES_AUTOHSCROLL
-    DEFPUSHBUTTON   "Send",IDC_SEND,229,298,50,14
+    EDITTEXT        IDC_INPUTBOX,16,284,212,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "Send",IDC_SEND,232,284,40,14
 	GROUPBOX        "",IDC_STATIC,31,8,226,23
     CTEXT           "Server Info Text",IDC_TITLEBOX,32,15,224,14,
                     SS_CENTERIMAGE
@@ -1084,10 +1084,9 @@ BEGIN
                     LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | WS_BORDER | 
                     WS_TABSTOP,16,84,256,92
     GROUPBOX        "Scoreboard",IDC_STATIC,8,40,272,144
-    GROUPBOX        "Console",IDC_STATIC,8,192,272,102
+    GROUPBOX        "Console",IDC_STATIC,8,192,272,114
     EDITTEXT        IDC_CONSOLEBOX,16,205,256,76,ES_MULTILINE | 
                     ES_AUTOVSCROLL | ES_READONLY | WS_VSCROLL
-    LTEXT           "",IDC_CURRENTMAP,14,282,240,8
     CTEXT           "",IDC_SCOREBOARD1,16,48,256,8
     CTEXT           "",IDC_SCOREBOARD2,16,57,256,8
     CTEXT           "",IDC_SCOREBOARD3,16,66,256,8
