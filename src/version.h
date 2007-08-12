@@ -41,43 +41,42 @@
 /** Lots of different version numbers **/
 
 #define DOTVERSIONSTR "0.97d-beta4.1"
-
-// [RC] Is this a 'stable' release or an internal build?
-// Used for file metadata, hopefully to help sort builds.
-#define BUILDTYPE "Internal"
-		// BUILDTYPE "Release"
-
-// [BB] Define DOTVERSIONSTR_NOREV to stay compatible with IWADBoxCallback in I_system.cpp
 #define DOTVERSIONSTR_NOREV DOTVERSIONSTR
 
-// [BB] The version string displayed in the console and printed in the server console.
-// [RC] No longer used in the console, but still perfectly valid.
+// [BB] The version string that includes revision / compatibility data.
 #ifdef STAY_NETWORK_COMPATIBLE
-#define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING "NC"
+	#define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING "NC"
 #else
-#define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING
+	#define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING
 #endif
 
 // [BC] What version of ZDoom is this based off of?
 #define	ZDOOMVERSIONSTR		"2.1.7"
 
-// The version as seen in the Windows resource
-#define RC_FILEVERSION 0,0,0,SVN_REVISION_NUMBER
-#define RC_PRODUCTVERSION 0,0,0,97
-#define RC_FILEVERSION2 DOTVERSIONSTR
-#define RC_PRODUCTVERSION2 DOTVERSIONSTR
+/** Release code stuff */
+
+// [RC] Release code ID for this build.
+#define BUILD_ID			BUILD_INTERNAL;
+#define BUILD_ID_STR		"Internal" // Used in the exe's metadata.
+
+// Please maintain the existing structure as much as possible, because it's
+// used in communicating between servers and clients of different versions.
+#define BUILD_OTHER			0;
+#define BUILD_RELEASE		1;
+#define BUILD_INTERNAL		2;
+#define BUILD_PRIVATE		3;
 
 // Version identifier for network games.
 // Bump it every time you do a release unless you're certain you
 // didn't change anything that will affect network protocol.
-// NETGAMEVERSION 003 = 0.97c2
-// NETGAMEVERSION 004 = 0.97c3
-// NETGAMEVERSION 005 = 0.97d-beta4
-// NETGAMEVERSION 006 = 0.97d-beta4.1+
+	// 003 = 0.97c2
+	// 004 = 0.97c3
+	// 005 = 0.97d-beta4.1
+	// 006 = Post 0.97d-beta4.1
 #ifdef STAY_NETWORK_COMPATIBLE
-#define NETGAMEVERSION 005
+	#define NETGAMEVERSION 005
 #else
-#define NETGAMEVERSION 006
+	#define NETGAMEVERSION 006
 #endif
 
 // Version stored in the ini's [LastRun] section.
