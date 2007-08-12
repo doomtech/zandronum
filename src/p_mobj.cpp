@@ -4519,10 +4519,20 @@ void P_SpawnMapThing (mapthing2_t *mthing, int position)
 	}
 
 	// [BC] Count invasion starts.
-	if (( mthing->type >= 5200 ) && ( mthing->type <= 5277 ))
+
+	// [BC] LOL, i?
+	// find which type to spawn
+	i = DoomEdMap.FindType( mthing->type );
+	if ( i )
 	{
-		GenericInvasionStarts.Push( *mthing );
-//		return;
+		i = i->ActorInfo->GetReplacement( )->Class;
+
+		if (( i->IsDescendantOf( PClass::FindClass( "BaseMonsterInvasionSpot" ))) ||
+			( i->IsDescendantOf( PClass::FindClass( "BasePickupInvasionSpot" ))) ||
+			( i->IsDescendantOf( PClass::FindClass( "BaseWeaponInvasionSpot" ))))
+		{
+			GenericInvasionStarts.Push( *mthing );
+		}
 	}
 
 	// Convert Strife starts to Hexen-style starts
