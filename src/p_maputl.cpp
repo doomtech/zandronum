@@ -69,6 +69,10 @@ fixed_t P_AproxDistance (fixed_t dx, fixed_t dy)
 
 int P_BoxOnLineSide (const fixed_t *tmbox, const line_t *ld)
 {
+	// [BB] tmbox == NULL will result in a crash if we don't bail out here.
+	if( tmbox == NULL )
+		return -1;
+
 	int p1;
 	int p2;
 		

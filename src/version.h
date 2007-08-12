@@ -71,7 +71,7 @@
 // didn't change anything that will affect network protocol.
 	// 003 = 0.97c2
 	// 004 = 0.97c3
-	// 005 = 0.97d-beta4.1
+	// 005 = 0.97d-beta4
 	// 006 = Post 0.97d-beta4.1
 #ifdef STAY_NETWORK_COMPATIBLE
 	#define NETGAMEVERSION 005

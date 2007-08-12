@@ -5019,6 +5019,10 @@ static void client_SetThingState( BYTESTREAM_s *pByteStream )
 		return; 
 	}
 
+	// [BB] We don't allow pNewState == NULL here. This function should set a state
+	// not destroy the thing, which happens if you call SetState with NULL as argument.
+	if( pNewState == NULL )
+		return;
 	// Set the angle.
 //	pActor->angle = Angle;
 	pActor->SetState( pNewState );
@@ -5561,6 +5565,9 @@ static void client_HideThing( BYTESTREAM_s *pByteStream )
 	}
 
 	// Put the item in a hidden state.
+	// [BB] You can call HideIndefinitely only on AInventory and descendants.
+	if ( !(pActor->IsKindOf( RUNTIME_CLASS( AInventory ))) )
+		return;
 	static_cast<AInventory *>( pActor )->HideIndefinitely( );
 }
 

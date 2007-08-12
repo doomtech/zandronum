@@ -3419,8 +3419,9 @@ bool P_AimTraverse3DFloors(intercept_t * in)
 	nextsector=NULL;
 	nexttopplane=nextbottomplane=NULL;
 
-    if(li->frontsector->e->ffloors.Size() || li->backsector->e->ffloors.Size())
-    {
+	// [BB] In j-ecinvbug.wad I experienced li->backsector == NULL, which obviously leads to a crash.
+	if( li->frontsector && li->backsector && (li->frontsector->e->ffloors.Size() || li->backsector->e->ffloors.Size()) )
+	{
 		int  frontflag;
 		F3DFloor* rover;
 		int    highpitch, lowpitch;
