@@ -796,7 +796,19 @@ CCMD (playerinfo)
 		{
 			if (playeringame[i])
 			{
-				Printf ("%d. %s\n", i, players[i].userinfo.netname);
+				Printf ("%d. %s", i, players[i].userinfo.netname);
+
+				// [RC] Are we the server? Draw their IPs as well.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				{
+					Printf("\\cj - IP %d.%d.%d.%d", 
+						SERVER_GetClient( i )->Address.abIP[0],
+						SERVER_GetClient( i )->Address.abIP[1],
+						SERVER_GetClient( i )->Address.abIP[2],
+						SERVER_GetClient( i )->Address.abIP[3]);
+				}
+
+				Printf("\n");
 			}
 		}
 	}
