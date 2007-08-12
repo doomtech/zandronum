@@ -7,6 +7,8 @@
 ACTOR Turbosphere : PowerupGiver 5030
 {
 	Game Doom
+	Game Heretic
+	Game Hexen
 	SpawnID 169
 	+COUNTITEM
 	+NOGRAVITY
@@ -34,6 +36,8 @@ ACTOR Turbosphere : PowerupGiver 5030
 ACTOR TimeFreezeSphere : PowerupGiver 5032
 {
 	Game Doom
+	Game Heretic
+	Game Hexen
 	SpawnID 171
 	+COUNTITEM
 	+NOGRAVITY
@@ -61,6 +65,8 @@ ACTOR TimeFreezeSphere : PowerupGiver 5032
 ACTOR InvisibilitySphere : PowerupGiver 5035
 {
 	Game Doom
+	Game Heretic
+	Game Hexen
 	SpawnID 174
 	+COUNTITEM
 	+NOGRAVITY
@@ -89,6 +95,8 @@ ACTOR InvisibilitySphere : PowerupGiver 5035
 ACTOR Doomsphere : PowerupGiver 5036
 {
 	Game Doom
+	Game Heretic
+	Game Hexen
 	SpawnID 175
 	+COUNTITEM
 	+NOGRAVITY
@@ -119,6 +127,8 @@ ACTOR Doomsphere : PowerupGiver 5036
 ACTOR Guardsphere : PowerupGiver 5037
 {
 	Game Doom
+	Game Heretic
+	Game Hexen
 	SpawnID 0
 	+COUNTITEM
 	+NOGRAVITY
@@ -146,6 +156,8 @@ ACTOR Guardsphere : PowerupGiver 5037
 ACTOR Terminator : PowerupGiver -1
 {
 	Game Doom
+	Game Heretic
+	Game Hexen
 	SpawnID 0
 	+COUNTITEM
 	+NOGRAVITY
@@ -172,6 +184,8 @@ ACTOR Terminator : PowerupGiver -1
 ACTOR PossessionStone : PowerupGiver -1
 {
 	Game Doom
+	Game Heretic
+	Game Hexen
 	SpawnID 0
 	+COUNTITEM
 	+NOGRAVITY

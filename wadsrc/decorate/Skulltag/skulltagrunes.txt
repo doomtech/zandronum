@@ -7,6 +7,8 @@
 ACTOR StrengthRune : RuneGiver 5100
 {
 	Game Doom
+	Game Heretic
+	Game Hexen
 	SpawnID 180
 	+COUNTITEM
 	+NOGRAVITY
@@ -33,6 +35,8 @@ ACTOR StrengthRune : RuneGiver 5100
 ACTOR RageRune : RuneGiver 5101
 {
 	Game Doom
+	Game Heretic
+	Game Hexen
 	SpawnID 181
 	+COUNTITEM
 	+NOGRAVITY
@@ -59,6 +63,8 @@ ACTOR RageRune : RuneGiver 5101
 ACTOR DrainRune : RuneGiver 5102
 {
 	Game Doom
+	Game Heretic
+	Game Hexen
 	SpawnID 182
 	+COUNTITEM
 	+NOGRAVITY
@@ -85,6 +91,8 @@ ACTOR DrainRune : RuneGiver 5102
 ACTOR SpreadRune : RuneGiver 5103
 {
 	Game Doom
+	Game Heretic
+	Game Hexen
 	SpawnID 183
 	+COUNTITEM
 	+NOGRAVITY
@@ -112,6 +120,8 @@ ACTOR SpreadRune : RuneGiver 5103
 ACTOR ResistanceRune : RuneGiver 5104
 {
 	Game Doom
+	Game Heretic
+	Game Hexen
 	SpawnID 184
 	+COUNTITEM
 	+NOGRAVITY
@@ -138,6 +148,8 @@ ACTOR ResistanceRune : RuneGiver 5104
 ACTOR RegenerationRune : RuneGiver 5105
 {
 	Game Doom
+	Game Heretic
+	Game Hexen
 	SpawnID 185
 	+COUNTITEM
 	+NOGRAVITY
@@ -165,6 +177,8 @@ ACTOR RegenerationRune : RuneGiver 5105
 ACTOR ProsperityRune : RuneGiver 5106
 {
 	Game Doom
+	Game Heretic
+	Game Hexen
 	SpawnID 186
 	+COUNTITEM
 	+NOGRAVITY
@@ -191,6 +205,8 @@ ACTOR ProsperityRune : RuneGiver 5106
 ACTOR ReflectionRune : RuneGiver 5107
 {
 	Game Doom
+	Game Heretic
+	Game Hexen
 	SpawnID 187
 	+COUNTITEM
 	+NOGRAVITY
@@ -218,6 +234,8 @@ ACTOR ReflectionRune : RuneGiver 5107
 ACTOR HighJumpRune : RuneGiver 5108
 {
 	Game Doom
+	Game Heretic
+	Game Hexen
 	SpawnID 188
 	+COUNTITEM
 	+NOGRAVITY
@@ -244,6 +262,8 @@ ACTOR HighJumpRune : RuneGiver 5108
 ACTOR HasteRune : RuneGiver 5109
 {
 	Game Doom
+	Game Heretic
+	Game Hexen
 	SpawnID 189
 	+COUNTITEM
 	+NOGRAVITY
@@ -261,4 +281,3 @@ ACTOR HasteRune : RuneGiver 5109
 		Loop
 	}
 }
-
