@@ -1082,8 +1082,9 @@ void R_SetupFrame (AActor *actor)
 		iview->oviewangle = iview->nviewangle;
 	}
 
+	// [BB] consoleplayer should be able to toggle the chase cam.
 	if (player != NULL &&
-		((player->cheats & CF_CHASECAM) || (r_deathcamera && camera->health <= 0)) &&
+		((/*player->*/players[consoleplayer].cheats & CF_CHASECAM) || (r_deathcamera && camera->health <= 0)) &&
 		(camera->RenderStyle != STYLE_None) &&
 		!(camera->renderflags & RF_INVISIBLE) &&
 		camera->sprite != 0)	// Sprite 0 is always TNT1

@@ -783,8 +783,9 @@ sector_t * gl_RenderView (AActor * camera, GL_IRECT * bounds, float fov, float r
 	retval = viewsector;
 
 
-	if (camera->player && camera->player-players==consoleplayer &&
-		((camera->player->cheats & CF_CHASECAM) || (r_deathcamera && camera->health <= 0)) && camera==camera->player->mo)
+	// [BB] consoleplayer should be able to toggle the chase cam.
+	if (camera->player && /*camera->player-players==consoleplayer &&*/
+		((/*camera->player->*/players[consoleplayer].cheats & CF_CHASECAM) || (r_deathcamera && camera->health <= 0)) && camera==camera->player->mo)
 	{
 		viewactor=NULL;
 	}

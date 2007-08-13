@@ -116,6 +116,7 @@ v0.97d-beta5
 !	- Merged the 'kick player' and 'ban player' server dialogs.
 !	- In the three column scoreboard display, ping is now shown instead of time. [Rivecoder]
 !	- The local.txt file generated from the crash dialog now says Skulltag instead of ZDoom and also reports the SVN revision number. [Torr Samaho]
+!	- The chase cam selection of the consoleplayer is now applied also when spying another player. [Torr Samaho]
 
 v0.97d-beta4.1
 --------------
