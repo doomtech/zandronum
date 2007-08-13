@@ -2173,6 +2173,9 @@ bool P_TryMove (AActor *thing, fixed_t x, fixed_t y,
 	thing->x = x;
 	thing->y = y;
 
+	// [BC] Flag this thing as having moved.
+	thing->ulSTFlags |= STFL_POSITIONCHANGED;
+
 	thing->LinkToWorld ();
 
 	if (thing->flags2 & MF2_FLOORCLIP)
@@ -5615,6 +5618,9 @@ void PIT_FloorDrop (AActor *thing)
 			thing->z = thing->floorz;
 			P_CheckFakeFloorTriggers (thing, oldz);
 		}
+
+		// [BC] Mark this thing as having moved.
+		thing->ulSTFlags |= STFL_POSITIONCHANGED;
 	}
 }
 
@@ -5644,6 +5650,10 @@ void PIT_FloorRaise (AActor *thing)
 		{
 			thing->z = thing->z - oldfloorz + thing->floorz;
 		}
+
+		// [BC] Mark this thing as having moved.
+		thing->ulSTFlags |= STFL_POSITIONCHANGED;
+
 		switch (P_PushUp (thing))
 		{
 		default:
@@ -5686,6 +5696,10 @@ void PIT_CeilingLower (AActor *thing)
 		{
 			thing->z = thing->floorz;
 		}
+
+		// [BC] Mark this thing as having moved.
+		thing->ulSTFlags |= STFL_POSITIONCHANGED;
+
 		switch (P_PushDown (thing))
 		{
 		case 2:
@@ -5727,6 +5741,9 @@ void PIT_CeilingRaise (AActor *thing)
 			thing->z = thing->ceilingz - thing->height;
 		}
 		P_CheckFakeFloorTriggers (thing, oldz);
+
+		// [BC] Mark this thing as having moved.
+		thing->ulSTFlags |= STFL_POSITIONCHANGED;
 	}
 	else if ((thing->flags & MF2_PASSMOBJ) && !isgood && thing->z + thing->height < thing->ceilingz)
 	{
@@ -5734,6 +5751,9 @@ void PIT_CeilingRaise (AActor *thing)
 		{
 			thing->z = MIN (thing->ceilingz - thing->height,
 							onmobj->z + onmobj->height);
+
+			// [BC] Mark this thing as having moved.
+			thing->ulSTFlags |= STFL_POSITIONCHANGED;
 		}
 	}
 }

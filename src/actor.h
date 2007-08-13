@@ -347,13 +347,16 @@ enum
 
 	// *** END OF IDENTIFIERS ***
 	// Object falls at 1/4 the amount of gravity.
-	STFL_QUARTERGRAVITY	= 0x00020000,
+	STFL_QUARTERGRAVITY		= 0x00020000,
 
 	// Object explodes on death.
-	STFL_EXPLODEONDEATH	= 0x00040000,
+	STFL_EXPLODEONDEATH		= 0x00040000,
 
 	// This object was spawned when the map loaded.
-	STFL_LEVELSPAWNED	= 0x00080000,
+	STFL_LEVELSPAWNED		= 0x00080000,
+
+	// Has the object moved from its original position on the map?
+	STFL_POSITIONCHANGED	= 0x00100000,
 
 // More flags for Skulltag... these having to do with the network.
 
@@ -898,6 +901,8 @@ public:
 	int GetTics(FState * newstate);
 	bool SetState (FState *newstate);
 	bool SetStateNF (FState *newstate);
+	// [BC]
+	bool InSpawnState( );
 	bool InDeathState();
 	bool UpdateWaterLevel (fixed_t oldz, bool splash=true);
 

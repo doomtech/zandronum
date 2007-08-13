@@ -688,6 +688,40 @@ bool AActor::SetStateNF (FState *newstate)
 
 //----------------------------------------------------------------------------
 //
+// [BC] AActor::InSpawnState
+//
+//----------------------------------------------------------------------------
+
+bool AActor::InSpawnState( )
+{
+	FState	*pSpawnState;
+	FState	*pState;
+
+	if ( state != NULL )
+	{
+		pSpawnState = SpawnState;
+		while ( pSpawnState != NULL )
+		{
+			// If our current state matches one of the frames in the spawn state, then
+			// we're in the spawn state.
+			if ( state == pSpawnState )
+				return ( true );
+
+			pState = pSpawnState;
+			pSpawnState = pSpawnState->GetNextState( );
+
+			// If the next state skips off somewhere else, then just break out.
+			if ( pSpawnState != pState + 1 )
+				break;
+		}
+	}
+
+	// Our current state didn't match any of the frames of the spawn state.
+	return ( false );
+}
+
+//----------------------------------------------------------------------------
+//
 // AActor::InDeathState
 //
 //----------------------------------------------------------------------------
@@ -2307,6 +2341,9 @@ void P_ZMovement (AActor *mo)
 
 	if (mo->flags2&MF2_FLOATBOB) mo->z += mo->momz;
 
+	// [BC] Mark this item as having moved.
+	if ( mo->z != oldz )
+		mo->ulSTFlags |= STFL_POSITIONCHANGED;
 //
 // adjust height
 //

@@ -673,6 +673,9 @@ void AActor::SetOrigin (fixed_t ix, fixed_t iy, fixed_t iz)
 	LinkToWorld ();
 	floorz = Sector->floorplane.ZatPoint (ix, iy);
 	ceilingz = Sector->ceilingplane.ZatPoint (ix, iy);
+
+	// [BC] Flag this actor as having moved.
+	ulSTFlags |= STFL_POSITIONCHANGED;
 }
 
 FBlockNode *FBlockNode::FreeBlocks = NULL;

@@ -2929,7 +2929,7 @@ bool GAME_ZPositionMatchesOriginal( AActor *pActor )
 			return ( pActor->z == pActor->Sector->floorplane.ZatPoint( pActor->x, pActor->y ));
 	}
 	else if ( pActor->flags2 & MF2_FLOATBOB )
-		return ( pActor->z == ( pActor->SpawnPoint[2] << FRACBITS ));
+		return ( pActor->z == (( pActor->SpawnPoint[2] << FRACBITS ) + FloatBobOffsets[( pActor->FloatBobPhase + level.time ) & 63] ));
 	else
 		return ( pActor->z == ( pActor->Sector->floorplane.ZatPoint( pActor->x, pActor->y ) + ( pActor->SpawnPoint[2] << FRACBITS )));
 }
@@ -3235,10 +3235,8 @@ void GAME_ResetMap( void )
 		pActorInfo = pActor->GetDefault( );
 
 		// This item appears to be untouched; no need to respawn it.
-		if (( pActor->x == pActor->SpawnPoint[0] << FRACBITS ) &&
-			( pActor->y == pActor->SpawnPoint[1] << FRACBITS ) &&
-			( GAME_ZPositionMatchesOriginal( pActor )) &&
-			( pActor->state == pActor->SpawnState ) &&
+		if ((( pActor->ulSTFlags & STFL_POSITIONCHANGED ) == false ) &&
+			( pActor->InSpawnState( )) &&
 			( GAME_DormantStatusMatchesOriginal( pActor )) &&
 			( pActor->health == pActorInfo->health ))
 		{
