@@ -237,6 +237,8 @@ struct FSpriteModelFrame
 	FTexture * skins[MAX_MODELS_PER_FRAME];
 	int modelframes[MAX_MODELS_PER_FRAME];
 	float xscale, yscale, zscale;
+	// [BB] Added zoffset.
+	float zoffset;
 	const PClass * type;
 	short sprite;
 	short frame;

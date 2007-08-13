@@ -286,6 +286,12 @@ void gl_InitModels()
 						SC_MustGetFloat();
 						smf.zscale=sc_Float;
 					}
+					// [BB] Added zoffset reading.
+					else if (SC_Compare("zoffset"))
+					{
+						SC_MustGetFloat();
+						smf.zoffset=sc_Float;
+					}
 					else if (SC_Compare("skin"))
 					{
 						SC_MustGetNumber();
@@ -448,7 +454,8 @@ void gl_RenderModel(GLSprite * spr, int cm)
 		TO_MAP(spr->actor->scaleY) * smf->zscale,	// y scale for a sprite means height, i.e. z in the world!
 		TO_MAP(spr->actor->scaleX) * smf->yscale);
 
-	//gl.Translatef(smf->xoffset, smf->zoffset, smf->yoffset);
+	// [BB] Apply zoffset here, needs to be scaled by 1 / smf->zscale, so that zoffset doesn't depend on the z-scaling.
+	gl.Translatef(0., smf->zoffset / smf->zscale, 0.);
 
 
 	for(int i=0; i<MAX_MODELS_PER_FRAME; i++)
