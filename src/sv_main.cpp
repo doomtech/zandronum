@@ -2437,7 +2437,8 @@ void SERVER_UpdateThings( void )
 
 		// No need to send information about this actor.
 		if ((( pActor->ulNetworkFlags & NETFL_UPDATEPOSITION ) == false ) &&
-			(( pActor->flags2 & MF2_SEEKERMISSILE ) == false ))
+			(( pActor->flags2 & MF2_SEEKERMISSILE ) == false ) &&
+			(( pActor->flags3 & MF3_ISMONSTER ) == false ) )
 		{
 			continue;
 		}
