@@ -4677,8 +4677,8 @@ CCMD( kick_idx )
 
 	ULONG ulIdx =  atoi(argv[1]);
 
-	// Make sure the player is in the game.
-	if ( playeringame[ulIdx] == false )
+	// Make sure the target is valid and applicable.
+	if (( ulIdx >= MAXPLAYERS ) || ( !playeringame[ulIdx] ))
 		return;
 
 	// Don't kick our admins.
