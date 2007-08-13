@@ -2656,6 +2656,16 @@ bool ADehackedPickup::TryPickup (AActor *toucher)
 		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
 			( toucher->player ))
 		{
+			// [BB] Since SERVERCOMMANDS_GiveInventory overwrites the RealPickup amount
+			// of the client with RealPickup->Amount, we have have to set this to the
+			// correct amount the player has.
+			AInventory *pInventory = NULL;
+			if ( toucher->player->mo )
+				pInventory = toucher->player->mo->FindInventory( type );
+
+			if ( pInventory != NULL )
+				RealPickup->Amount = pInventory->Amount;
+
 			SERVERCOMMANDS_GiveInventory( ULONG( toucher->player - players ), RealPickup );
 
 			if (( ItemFlags & IF_QUIET ) == false )
