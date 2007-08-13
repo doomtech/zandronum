@@ -10,6 +10,8 @@
 #include "actors/doom/doomkeys.txt"
 #include "actors/doom/doomdecorations.txt"
 #include "actors/doom/doomweapons.txt"
+// [BC] Doom invasion spawners.
+#include "actors/doom/doomspawners.txt"
 #include "actors/doom/stealthmonsters.txt"
 
 #include "actors/raven/artiegg.txt"
@@ -21,6 +23,8 @@
 #include "actors/heretic/hereticartifacts.txt"
 #include "actors/heretic/heretickeys.txt"
 #include "actors/heretic/hereticdecorations.txt"
+// [BC] Heretic invasion spawners.
+#include "actors/heretic/hereticspawners.txt"
 
 #include "actors/hexen/flame.txt"
 #include "actors/hexen/hexenarmor.txt"
