@@ -488,7 +488,8 @@ static bool serverban_ParseNextLine( FILE *pFile )
 					g_ServerBans[g_lBanIdx].szBannedIP[1][0] = 0;
 					g_ServerBans[g_lBanIdx].szBannedIP[2][0] = 0;
 					g_ServerBans[g_lBanIdx].szBannedIP[3][0] = 0;
-					g_lBanIdx++;
+					// [BB] Why should we want to have a zero IP address in the ban list?
+					//g_lBanIdx++;
 				}
 			}
 

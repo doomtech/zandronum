@@ -81,6 +81,8 @@ void I_Sleep( int iMS )
 // [BB] Most of these functions just do nothing if we don't have a GUI.
 // Only SERVERCONSOLE_Print is really needed.
 void SERVERCONSOLE_UpdateTitleString( char *pszString ) {}
+void SERVERCONSOLE_UpdateIP( NETADDRESS_s LocalAddress ) {}
+void SERVERCONSOLE_UpdateBroadcasting( void ) {}
 void SERVERCONSOLE_UpdateScoreboard( void ) {}
 void SERVERCONSOLE_UpdateTotalOutboundDataTransfer( LONG lData ) {}
 void SERVERCONSOLE_UpdateAverageOutboundDataTransfer( LONG lData ) {}

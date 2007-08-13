@@ -66,9 +66,10 @@
 #include "m_random.h"
 #include "network.h"
 #include "sbar.h"
-#include "serverconsole.h"
 
 #include "MD5Checksum.h"
+
+void SERVERCONSOLE_UpdateIP( NETADDRESS_s LocalAddress );
 
 //*****************************************************************************
 //	VARIABLES
