@@ -1118,6 +1118,7 @@ void SCOREBOARD_RenderTeamStats( player_s *pPlayer )
 //*****************************************************************************
 //
 EXTERN_CVAR( Bool, cl_stfullscreenhud );
+
 void SCOREBOARD_RenderInvasionStats( void )
 {
 	// [RC] In fullscreen, don't render these as they're done with the other fullscreen elements in doom_sbar.
@@ -1254,69 +1255,144 @@ void SCOREBOARD_RenderInVote( void )
 	char				szKeyNo[16];
 	ULONG				ulCurYPos = 0;
 	ULONG				ulIdx;
-	ULONG				ulNumYes;
-	ULONG				ulNumNo;
+	ULONG				ulNumYes = 0;
+	ULONG				ulNumNo = 0;
 	ULONG				*pulPlayersWhoVotedYes;
 	ULONG				*pulPlayersWhoVotedNo;
+	bool				bWeVotedYes = false;
+	bool				bWeVotedNo = false;
+
+	// Get how many players voted for what.
+	pulPlayersWhoVotedYes = CALLVOTE_GetPlayersWhoVotedYes( );
+	pulPlayersWhoVotedNo = CALLVOTE_GetPlayersWhoVotedNo( );
+	for ( ulIdx = 0; ulIdx < ( MAXPLAYERS / 2 ) + 1; ulIdx++ )
+	{
+		if ( pulPlayersWhoVotedYes[ulIdx] != MAXPLAYERS )
+		{
+			ulNumYes++;
+			if( pulPlayersWhoVotedYes[ulIdx] == consoleplayer )
+				bWeVotedYes = true;
+		}
+
+		if ( pulPlayersWhoVotedNo[ulIdx] != MAXPLAYERS )
+		{
+			ulNumNo++;
+			if( pulPlayersWhoVotedNo[ulIdx] == consoleplayer)
+				bWeVotedNo = true;
+		}
+	}
 
 	// Start at the top of the screen
-	ulCurYPos = 8;
+	ulCurYPos = 8;	
+	UCVarValue	g_ValWidth;
+	UCVarValue	g_ValHeight;
+	float		g_fXScale;
+	float		g_fYScale;
 
-	screen->SetFont( BigFont );
+	g_ValWidth = con_virtualwidth.GetGenericRep( CVAR_Int );
+	g_ValHeight = con_virtualheight.GetGenericRep( CVAR_Int );
+	if (( con_scaletext ) && ( con_virtualwidth > 0 ) && ( con_virtualheight > 0 ))
+	{
+		g_fXScale =  (float)g_ValWidth.Int / 320.0f;
+		g_fYScale =  (float)g_ValHeight.Int / 200.0f;
+		g_bScale = true;
+
+	}
+	else
+		g_bScale = false;
 
 	// Render the title and time left.
+	screen->SetFont( BigFont );
 	sprintf( szString, "VOTE NOW! ( %d )", ( CALLVOTE_GetCountdownTicks( ) + TICRATE ) / TICRATE );
-	screen->DrawText( gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
-		160 - ( BigFont->StringWidth( szString ) / 2 ),
-		ulCurYPos,
-		szString,
-		DTA_Clean, true, TAG_DONE );
 
+	if(g_bScale)
+	{
+		screen->DrawText( gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
+			(LONG)(160 * g_fXScale) - (BigFont->StringWidth( szString ) / 2),
+			ulCurYPos,	szString, 
+			DTA_VirtualWidth, g_ValWidth.Int,
+			DTA_VirtualHeight, g_ValHeight.Int,
+			TAG_DONE );
+	}
+	else
+	{
+		screen->DrawText( gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
+			SCREENWIDTH/2 - ( BigFont->StringWidth( szString ) / 2 ),
+			ulCurYPos,
+			szString,
+			DTA_Clean,	g_bScale,	TAG_DONE );
+	}						
 	screen->SetFont( SmallFont );
 
 	// Render the command being voted on.
 	ulCurYPos += 14;
 	sprintf( szString, "%s", CALLVOTE_GetCommand( ));
-	screen->DrawText( CR_WHITE,
-		160 - ( SmallFont->StringWidth( szString ) / 2 ),
-		ulCurYPos,
-		szString,
-		DTA_Clean, true, TAG_DONE );
-
-	// Get how many players voted for what.
-	pulPlayersWhoVotedYes = CALLVOTE_GetPlayersWhoVotedYes( );
-	pulPlayersWhoVotedNo = CALLVOTE_GetPlayersWhoVotedNo( );
-	ulNumYes = 0;
-	ulNumNo = 0;
-	for ( ulIdx = 0; ulIdx < ( MAXPLAYERS / 2 ) + 1; ulIdx++ )
+	if(g_bScale)
 	{
-		if ( pulPlayersWhoVotedYes[ulIdx] != MAXPLAYERS )
-			ulNumYes++;
-
-		if ( pulPlayersWhoVotedNo[ulIdx] != MAXPLAYERS )
-			ulNumNo++;
+		screen->DrawText( CR_WHITE,
+			(LONG)(160 * g_fXScale) - ( SmallFont->StringWidth( szString ) / 2 ),
+			ulCurYPos,	szString,
+			DTA_VirtualWidth, g_ValWidth.Int,
+			DTA_VirtualHeight, g_ValHeight.Int,
+			TAG_DONE );
+	}
+	else
+	{
+		screen->DrawText( CR_WHITE,
+			SCREENWIDTH/2 - ( SmallFont->StringWidth( szString ) / 2 ),
+			ulCurYPos,
+			szString,
+			DTA_Clean,	g_bScale,	TAG_DONE );
 	}
 
-	// Render the numbers.
+	// Render the number of votes.
 	ulCurYPos += 8;
-	sprintf( szString, "Yes: %d, No: %d",  ulNumYes, ulNumNo );
-	screen->DrawText( CR_DARKBROWN,
-		160 - ( SmallFont->StringWidth( szString ) / 2 ),
-		ulCurYPos,
-		szString,
-		DTA_Clean, true, TAG_DONE );
+	sprintf( szString, "\\c%sYes: %d, \\c%sNo: %d",  bWeVotedYes ? "k" : "s",  ulNumYes, bWeVotedNo ? "k" : "s", ulNumNo );
+	V_ColorizeString( szString );
+	if(g_bScale)
+	{
+		screen->DrawText( CR_DARKBROWN,
+			(LONG)(160 * g_fXScale) - ( SmallFont->StringWidth( szString ) / 2 ),
+			ulCurYPos,	szString,
+			DTA_VirtualWidth, g_ValWidth.Int,
+			DTA_VirtualHeight, g_ValHeight.Int,
+			TAG_DONE );
+	}
+	else
+	{
+		screen->DrawText( CR_DARKBROWN,
+			SCREENWIDTH/2 - ( SmallFont->StringWidth( szString ) / 2 ),
+			ulCurYPos,
+			szString,
+			DTA_Clean,	g_bScale,	TAG_DONE );
+	}
+	if( !bWeVotedYes && !bWeVotedNo )
+	{
+		// Render the explanation of keys.
+		ulCurYPos += 8;
 
-	// Render the explanation of keys.
-	ulCurYPos += 8;
+		C_FindBind( "vote_yes", szKeyYes );
+		C_FindBind( "vote_no", szKeyNo );
+		sprintf( szString, "%s | %s", szKeyYes, szKeyNo);
+		if(g_bScale)
+		{
+			screen->DrawText( CR_BLACK,
+				(LONG)(160 * g_fXScale) - ( SmallFont->StringWidth( szString ) / 2 ),
+				ulCurYPos,	szString,
+				DTA_VirtualWidth, g_ValWidth.Int,
+				DTA_VirtualHeight, g_ValHeight.Int,
+				TAG_DONE );
+		}
+		else
+		{
+			screen->DrawText( CR_BLACK,
+				SCREENWIDTH/2 - ( SmallFont->StringWidth( szString ) / 2 ),
+				ulCurYPos,
+				szString,
+				DTA_Clean,	g_bScale,	TAG_DONE );
+		}
 
-	C_FindBind( "vote_yes", szKeyYes );
-	C_FindBind( "vote_no", szKeyNo );
-	sprintf( szString, "%s | %s", szKeyYes, szKeyNo);
-	screen->DrawText( CR_BLACK,
-		160 - ( SmallFont->StringWidth( szString ) / 2 ),
-		ulCurYPos,
-		szString,
-		DTA_Clean, true, TAG_DONE );
+	}
 }
 
 //*****************************************************************************
@@ -2364,6 +2440,7 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 {
 	ULONG	ulIdx;
 	ULONG	ulColor;
+	ULONG	ulCurXPos;
 	char	szPatchName[9];
 	char	szString[64];
 
@@ -2388,77 +2465,10 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 
 				sprintf( szString, "%s", players[ulPlayer].userinfo.netname );
 
-				// Draw a chat icon if this player is chatting.
-				if ( players[ulPlayer].bChatting )
-				{
-					sprintf( szPatchName, "TLKMINI");
+				// Track where we are to draw multiple icons.
+				ulCurXPos = (LONG)(  g_aulColumnX[ulIdx] * g_fXScale ) - SmallFont->StringWidth("  ");
 
-					if ( g_bScale )
-					{
-						screen->DrawTexture( TexMan[szPatchName],
-							(LONG)(  g_aulColumnX[ulIdx] * g_fXScale ) - SmallFont->StringWidth("  ") - TexMan[szPatchName]->GetWidth( ),
-							g_ulCurYPos - 1,
-							DTA_VirtualWidth, g_ValWidth.Int,
-							DTA_VirtualHeight, g_ValHeight.Int,
-							TAG_DONE );
-					}
-					else
-					{
-						screen->DrawTexture( TexMan[szPatchName],
-							(LONG)( g_aulColumnX[ulIdx] * CleanXfac ) - SmallFont->StringWidth("  ") - TexMan[szPatchName]->GetWidth( ),
-							g_ulCurYPos - 1,
-							DTA_Clean,
-							g_bScale,
-							TAG_DONE );
-					}
-				}
-				// Draw a bot icon if this player is a bot.
-				else if ( players[ulPlayer].bIsBot )
-				{
-					sprintf( szPatchName, "BOTSKIL%d", botskill.GetGenericRep( CVAR_Int ));
-
-					if ( g_bScale )
-					{
-						screen->DrawTexture( TexMan[szPatchName],
-							(LONG)(  g_aulColumnX[ulIdx] * g_fXScale ) - SmallFont->StringWidth("  ") - TexMan[szPatchName]->GetWidth( ),
-							g_ulCurYPos,
-							DTA_VirtualWidth, g_ValWidth.Int,
-							DTA_VirtualHeight, g_ValHeight.Int,
-							TAG_DONE );
-					}
-					else
-					{
-						screen->DrawTexture( TexMan[szPatchName],
-							(LONG)( g_aulColumnX[ulIdx] * CleanXfac ) - SmallFont->StringWidth("  ") - TexMan[szPatchName]->GetWidth( ),
-							g_ulCurYPos,
-							DTA_Clean,
-							g_bScale,
-							TAG_DONE );
-					}
-				}
-				// Draw an icon if this player is a ready to go on.
-				else if ( players[ulPlayer].bReadyToGoOn )
-				{
-					sprintf( szPatchName, "RDYTOGO" );
-					if ( g_bScale )
-					{
-						screen->DrawTexture( TexMan[szPatchName],
-							(LONG)( g_aulColumnX[ulIdx] * g_fXScale ) - SmallFont->StringWidth("  ") - TexMan[szPatchName]->GetWidth( ),
-							g_ulCurYPos - (( TexMan[szPatchName]->GetHeight( ) - SmallFont->GetHeight( )) / 2 ),
-							DTA_VirtualWidth, g_ValWidth.Int,
-							DTA_VirtualHeight, g_ValHeight.Int,
-							TAG_DONE );
-					}
-					else
-					{
-						screen->DrawTexture( TexMan[szPatchName],
-							(LONG)( g_aulColumnX[ulIdx] * CleanXfac ) - SmallFont->StringWidth("  ") - TexMan[szPatchName]->GetWidth( ),
-							g_ulCurYPos - (( TexMan[szPatchName]->GetHeight( ) - SmallFont->GetHeight( )) / 2 ),
-							TAG_DONE );
-					}
-				}
-
-				// Handicap text
+				// Draw the user's handicap, if any.
 				if ( players[ulPlayer].userinfo.lHandicap > 0 )
 				{
 					char	szHandicapString[8];
@@ -2478,10 +2488,11 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 							sprintf( szHandicapString, "(%d)", deh.StartHealth - (LONG)players[ulPlayer].userinfo.lHandicap );
 					}
 					
+					ulCurXPos -= SmallFont->StringWidth ( szHandicapString );
 					if ( g_bScale )
 					{
 						screen->DrawText( ulColor,
-							(LONG)( g_aulColumnX[ulIdx] * g_fXScale ) - SmallFont->StringWidth (" ") - SmallFont->StringWidth( szHandicapString ),
+							ulCurXPos,
 							g_ulCurYPos,
 							szHandicapString,
 							DTA_VirtualWidth, g_ValWidth.Int,
@@ -2491,14 +2502,158 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 					else
 					{
 						screen->DrawText( ulColor,
-							(LONG)( g_aulColumnX[ulIdx] * CleanXfac ) - SmallFont->StringWidth (" ") - SmallFont->StringWidth( szHandicapString ),
+							ulCurXPos,
 							g_ulCurYPos,
 							szHandicapString,
 							DTA_Clean,
 							g_bScale,
 							TAG_DONE );
 					}
+					ulCurXPos -= 4;
 				}
+
+				// Draw an icon if this player is a ready to go on.
+				if ( players[ulPlayer].bReadyToGoOn )
+				{
+					sprintf( szPatchName, "RDYTOGO" );
+					ulCurXPos -= TexMan[szPatchName]->GetWidth();
+					if ( g_bScale )
+					{
+						screen->DrawTexture( TexMan[szPatchName],
+							ulCurXPos,
+							g_ulCurYPos - (( TexMan[szPatchName]->GetHeight( ) - SmallFont->GetHeight( )) / 2 ),
+							DTA_VirtualWidth, g_ValWidth.Int,
+							DTA_VirtualHeight, g_ValHeight.Int,
+							TAG_DONE );
+					}
+					else
+					{
+						screen->DrawTexture( TexMan[szPatchName],
+							ulCurXPos,
+							g_ulCurYPos - (( TexMan[szPatchName]->GetHeight( ) - SmallFont->GetHeight( )) / 2 ),
+							TAG_DONE );
+					}
+					ulCurXPos -= 4;
+				}
+
+				// Draw a bot icon if this player is a bot.
+				if ( players[ulPlayer].bIsBot )
+				{
+					sprintf( szPatchName, "BOTSKIL%d", botskill.GetGenericRep( CVAR_Int ));
+
+					ulCurXPos -= TexMan[szPatchName]->GetWidth();
+					if ( g_bScale )
+					{
+						screen->DrawTexture( TexMan[szPatchName],
+							ulCurXPos,
+							g_ulCurYPos,
+							DTA_VirtualWidth, g_ValWidth.Int,
+							DTA_VirtualHeight, g_ValHeight.Int,
+							TAG_DONE );
+					}
+					else
+					{
+						screen->DrawTexture( TexMan[szPatchName],
+							ulCurXPos,
+							g_ulCurYPos,
+							DTA_Clean,
+							g_bScale,
+							TAG_DONE );
+					}
+					ulCurXPos -= 4;
+				}
+
+				// Draw a chat icon if this player is chatting.
+				if ( players[ulPlayer].bChatting )
+				{
+					sprintf( szPatchName, "TLKMINI");
+
+					ulCurXPos -= TexMan[szPatchName]->GetWidth();
+					if ( g_bScale )
+					{
+						screen->DrawTexture( TexMan[szPatchName],
+							ulCurXPos,
+							g_ulCurYPos - 1,
+							DTA_VirtualWidth, g_ValWidth.Int,
+							DTA_VirtualHeight, g_ValHeight.Int,
+							TAG_DONE );
+					}
+					else
+					{
+						screen->DrawTexture( TexMan[szPatchName],
+							ulCurXPos,
+							g_ulCurYPos - 1,
+							DTA_Clean,
+							g_bScale,
+							TAG_DONE );
+					}
+					ulCurXPos -= 4;
+				}
+
+				// Draw text if there's a vote on and this player voted.
+				if ( CALLVOTE_GetVoteState() == VOTESTATE_INVOTE )
+				{
+					ULONG				*pulPlayersWhoVotedYes;
+					ULONG				*pulPlayersWhoVotedNo;
+					ULONG				ulNumYes = 0;
+					ULONG				ulNumNo = 0;
+					bool				bWeVotedYes = false;
+					bool				bWeVotedNo = false;
+
+					// Get how many players voted for what.
+					pulPlayersWhoVotedYes = CALLVOTE_GetPlayersWhoVotedYes( );
+					pulPlayersWhoVotedNo = CALLVOTE_GetPlayersWhoVotedNo( );
+
+					for ( ULONG ulidx2 = 0; ulidx2 < ( MAXPLAYERS / 2 ) + 1; ulidx2++ )
+					{
+						
+						if ( pulPlayersWhoVotedYes[ulidx2] != MAXPLAYERS )
+						{
+							ulNumYes++;
+							if( pulPlayersWhoVotedYes[ulidx2] == ulPlayer )
+								bWeVotedYes = true;
+						}
+
+						if ( pulPlayersWhoVotedNo[ulidx2] != MAXPLAYERS )
+						{
+							ulNumNo++;
+							if( pulPlayersWhoVotedNo[ulidx2] == ulPlayer)
+								bWeVotedNo = true;
+						}
+						
+					}
+
+					if( bWeVotedYes || bWeVotedNo )
+					{
+						char	szVoteString[8];
+
+						sprintf( szVoteString, "(%s)", bWeVotedYes ? "yes" : "no" );
+						ulCurXPos -= SmallFont->StringWidth ( szVoteString );
+						if ( g_bScale )
+						{
+							screen->DrawText( ( CALLVOTE_GetVoteCaller() == ulPlayer ) ? CR_RED : CR_GOLD,
+								ulCurXPos,
+								g_ulCurYPos,
+								szVoteString,
+								DTA_VirtualWidth, g_ValWidth.Int,
+								DTA_VirtualHeight, g_ValHeight.Int,
+								TAG_DONE );
+						}
+						else
+						{
+							screen->DrawText( ( CALLVOTE_GetVoteCaller() == consoleplayer ) ? CR_RED : CR_GOLD,
+								ulCurXPos,
+								g_ulCurYPos,
+								szVoteString,
+								DTA_Clean,
+								g_bScale,
+								TAG_DONE );
+						}
+						ulCurXPos -= 4;
+					}
+					
+				}
+
 				break;
 			case COLUMN_TIME:	
 
