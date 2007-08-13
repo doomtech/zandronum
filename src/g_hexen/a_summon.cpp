@@ -6,6 +6,8 @@
 #include "p_enemy.h"
 #include "s_sound.h"
 #include "ravenshared.h"
+#include "network.h"
+#include "sv_commands.h"
 
 void A_Summon (AActor *);
 
@@ -109,12 +111,20 @@ END_DEFAULTS
 
 bool AArtiDarkServant::Use (bool pickup)
 {
+	// [BC] Don't do this in client mode.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		return ( true );
+
 	AActor *mo = P_SpawnPlayerMissile (Owner, RUNTIME_CLASS(ASummoningDoll));
 	if (mo)
 	{
 		mo->target = Owner;
 		mo->tracer = Owner;
 		mo->momz = 5*FRACUNIT;
+
+		// [BC] If we're the server, send clients this missile's updated properties.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_MoveThing( mo, CM_MOMZ );
 	}
 	return true;
 }
@@ -129,6 +139,10 @@ void A_Summon (AActor *actor)
 {
 	AMinotaurFriend *mo;
 
+	// [BC] Don't do this in client mode.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		return;
+
 	mo = Spawn<AMinotaurFriend> (actor->x, actor->y, actor->z, ALLOW_REPLACE);
 	if (mo)
 	{
@@ -136,9 +150,20 @@ void A_Summon (AActor *actor)
 		{ // Didn't fit - change back to artifact
 			mo->Destroy ();
 			AActor *arti = Spawn<AArtiDarkServant> (actor->x, actor->y, actor->z, ALLOW_REPLACE);
-			if (arti) arti->flags |= MF_DROPPED;
+			if (arti)
+			{
+				arti->flags |= MF_DROPPED;
+				
+				// [BC] If we're the server, spawn this item to clients.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_SpawnThing( arti );
+			}
 			return;
 		}
+				
+		// [BC] If we're the server, spawn this item to clients.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SpawnThing( mo );
 
 		mo->StartTime = level.maptime;
 		if (actor->tracer->flags & MF_CORPSE)
@@ -157,7 +182,17 @@ void A_Summon (AActor *actor)
 		}
 
 		// Make smoke puff
-		Spawn<AMinotaurSmoke> (actor->x, actor->y, actor->z, ALLOW_REPLACE);
+		// [BC]
+		AActor	*pSmoke;
+		pSmoke = Spawn<AMinotaurSmoke> (actor->x, actor->y, actor->z, ALLOW_REPLACE);
 		S_SoundID (actor, CHAN_VOICE, mo->ActiveSound, 1, ATTN_NORM);
+				
+		// [BC] If we're the server, spawn the smoke, and play the active sound.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			if ( pSmoke )
+				SERVERCOMMANDS_SpawnThing( pSmoke );
+			SERVERCOMMANDS_SoundIDActor( actor, CHAN_VOICE, mo->ActiveSound, 127, ATTN_NORM );
+		}
 	}
 }
