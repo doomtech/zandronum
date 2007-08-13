@@ -71,6 +71,7 @@ void I_Sleep( int iMS )
 
 #include <iostream>
 #include "networkheaders.h"
+#include "networkshared.h"
 #include "v_text.h"
 
 // [BB] I collect dummy implementations of many functions, which are either
