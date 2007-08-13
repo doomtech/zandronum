@@ -1440,7 +1440,7 @@ void DrawFullHUD_GameInformation()
 	{
 		const AInventory *item;
 		int i;
-		if (!(level.flags & LEVEL_NOINVENTORYBAR))
+		if (CPlayer->mo && !(level.flags & LEVEL_NOINVENTORYBAR))
 		{
 			if (CPlayer->inventorytics == 0)
 			{
