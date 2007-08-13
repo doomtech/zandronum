@@ -69,6 +69,7 @@
 #include "team.h"
 #include "v_text.h"
 #include "version.h"
+#include "network.h"
 
 #ifdef	GUI_SERVER_CONSOLE
 
@@ -82,6 +83,7 @@ DWORD WINAPI MainDoomThread( LPVOID );
 
 // Global handle for the server console dialog box.
 static	HWND				g_hDlg = NULL;
+static	HWND				g_hDlgStatusBar = NULL;
 
 // Global handle for the server statistic dialog box.
 static	HWND				g_hStatisticDlg = NULL;
@@ -175,10 +177,22 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 			SendMessage( hDlg, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)g_hSmallIcon );
 			SendMessage( hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)LoadIcon( g_hInst, MAKEINTRESOURCE( IDI_ICON5 )));
 
+			// Set up the server dialog's status bar.
+			g_hDlgStatusBar = CreateStatusWindow(WS_CHILD | WS_VISIBLE, (LPCTSTR)NULL, hDlg, IDC_SERVER_STATUSBAR);
+			const int aDivideWidths[] = {40, 70, 185, 320, 600};
+			SendMessage(g_hDlgStatusBar, SB_SETPARTS, (WPARAM)5, (LPARAM) aDivideWidths);
+			SendMessage(g_hDlgStatusBar, SB_SETTEXT, (WPARAM)4, (LPARAM)DOTVERSIONSTR_REV);
+
+			// Create and set our fonts for the titescreen and console.
+			HFONT hTitleFont = CreateFont(14, 0, 0, 0, 600, 0, 0, 0, 0, 0, 0, 0, 0, "Tahoma"); 
+			SendMessage(GetDlgItem( g_hDlg, IDC_TITLEBOX), WM_SETFONT, (WPARAM) hTitleFont, (LPARAM) 1);
+
+			HFONT hConsoleFont = CreateFont(12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Tahoma"); 
+			SendMessage(GetDlgItem( g_hDlg, IDC_CONSOLEBOX), WM_SETFONT, (WPARAM) hConsoleFont, (LPARAM) 1);
+
 			// Initialize the server console text.
 			SetDlgItemText( hDlg, IDC_CONSOLEBOX, "=== S K U L L T A G | S E R V E R ===" );
-			sprintf( szString, "\nRunning version: %s\n\n", DOTVERSIONSTR_REV );
-			Printf( szString );
+			Printf( "\nRunning version: %s\n\n", DOTVERSIONSTR_REV );
 
 			// Initialize the title string.
 			sprintf( szString, "Server running version: %s", DOTVERSIONSTR_REV );
@@ -2307,6 +2321,22 @@ void SERVERCONSOLE_UpdateTitleString( char *pszString )
 
 //*****************************************************************************
 //
+void SERVERCONSOLE_UpdateIP( NETADDRESS_s LocalAddress )
+{
+	SendMessage(g_hDlgStatusBar, SB_SETTEXT, (WPARAM)2, (LPARAM) NETWORK_AddressToString( LocalAddress ));
+	SERVERCONSOLE_UpdateBroadcasting( );
+}
+
+//*****************************************************************************
+//
+void SERVERCONSOLE_UpdateBroadcasting( void )
+{
+	SendMessage(g_hDlgStatusBar, SB_SETTEXT, (WPARAM)0, (LPARAM) (sv_updatemaster ? "Public" : "Private"));
+	SendMessage(g_hDlgStatusBar, SB_SETTEXT, (WPARAM)1, (LPARAM) (sv_broadcast ? "LAN" : ""));
+}
+
+//*****************************************************************************
+//
 void SERVERCONSOLE_UpdateScoreboard( void )
 {
 	char		szString[256];
@@ -3184,7 +3214,7 @@ void SERVERCONSOLE_UpdateTotalUptime( LONG lData )
 //
 void SERVERCONSOLE_SetCurrentMapname( char *pszString )
 {
-	SetDlgItemText( g_hDlg, IDC_CURRENTMAP, pszString );
+	SendMessage(g_hDlgStatusBar, SB_SETTEXT, (WPARAM)3, (LPARAM)pszString);
 }
 
 //*****************************************************************************
@@ -4767,6 +4797,10 @@ void SERVERCONSOLE_UpdateGeneralSettings( HWND hDlg )
 
 	GetDlgItemText( hDlg, IDC_MAXPLAYERS, szBuffer, 1024 );
 	sv_maxplayers = atoi( szBuffer );
+
+	// Update our 'public/private/LAN' section in the statusbar.
+	SERVERCONSOLE_UpdateBroadcasting( );
+
 }
 
 //*****************************************************************************

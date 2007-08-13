@@ -51,6 +51,8 @@
 #ifndef	__SERVERCONSOLE_H__
 #define	__SERVERCONSOLE_H__
 
+#include "network.h"
+
 //*****************************************************************************
 //	DEFINES
 
@@ -84,6 +86,8 @@ BOOL CALLBACK	SERVERCONSOLE_ServerInformationCallback( HWND hDlg, UINT message, 
 BOOL CALLBACK	SERVERCONSOLE_ServerStatisticsCallback( HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam );
 BOOL CALLBACK	SERVERCONSOLE_GeneralSettingsCallback( HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam );
 void			SERVERCONSOLE_UpdateTitleString( char *pszString );
+void			SERVERCONSOLE_UpdateIP( NETADDRESS_s LocalAddress );
+void			SERVERCONSOLE_UpdateBroadcasting( void );
 void			SERVERCONSOLE_UpdateScoreboard( void );
 void			SERVERCONSOLE_UpdateTotalOutboundDataTransfer( LONG lData );
 void			SERVERCONSOLE_UpdateAverageOutboundDataTransfer( LONG lData );

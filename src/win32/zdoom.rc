@@ -957,12 +957,12 @@ BEGIN
     LTEXT           "Remote control (rcon) password:",IDC_STATIC,284,236,103,
                     8
     EDITTEXT        IDC_RCONPASSWORD,284,245,40,14,ES_AUTOHSCROLL
-    LTEXT           "Max. clients:",IDC_STATIC,284,262,40,8
+    LTEXT           "Max. clients:",IDC_STATIC,284,262,80,8
     EDITTEXT        IDC_MAXCLIENTS,284,271,32,14,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "Spin1",IDC_SPIN1,"msctls_updown32",UDS_SETBUDDYINT | 
                     UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,316,271,11,14
-    LTEXT           "Max. players:",IDC_STATIC,348,262,42,8
+    LTEXT           "Max. players:",IDC_STATIC,348,262,82,8
     EDITTEXT        IDC_MAXPLAYERS,348,271,32,14,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "Spin6",IDC_SPIN6,"msctls_updown32",UDS_SETBUDDYINT | 
                     UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 

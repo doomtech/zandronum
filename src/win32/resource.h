@@ -43,9 +43,8 @@
 #define IDD_EDITBAN                     159
 #define IDD_GENERALSETTINGS             160
 
-// 161 was the old kick dialog, which was merged
-// with the ban dialog. To fix a compile warning,
-// I gave IDC_SPIN3 its slot here. [RC]
+// 161 was the old kick dialog, which
+// was merged with the ban dialog. [RC]
 
 #define IDD_LMSSETTINGS                 162
 #define IDD_MAPROTATION                 163
@@ -313,8 +312,8 @@
 #define IDC_POINTLIMIT                  1196
 #define IDC_DUELLIMIT                   1197
 #define IDC_WINLIMIT                    1198
-#define IDC_SPIN3                       161 // [RC] See note above.
 #define IDC_SPIN2                       1199
+#define IDC_SPIN3                       1199
 #define IDC_SPIN4                       1200
 #define IDC_SPIN5                       1201
 #define IDC_SPIN7                       1202
@@ -377,7 +376,7 @@
 #define	IDC_REASON_BAN					40035
 #define IDC_KICKBAN_KICK				40036
 #define IDC_KICKBAN_KICKANDBAN			40037
-
+#define IDC_SERVER_STATUSBAR			40039
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED

@@ -66,6 +66,7 @@
 #include "m_random.h"
 #include "network.h"
 #include "sbar.h"
+#include "serverconsole.h"
 
 #include "MD5Checksum.h"
 
@@ -223,6 +224,10 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 	// Print out our local IP address.
 	LocalAddress = NETWORK_GetLocalAddress( );
 	Printf( "IP address %s\n", NETWORK_AddressToString( LocalAddress ));
+
+	// If hosting, update the server GUI.
+	if( NETWORK_GetState() == NETSTATE_SERVER )
+		SERVERCONSOLE_UpdateIP( LocalAddress );
 
 	Printf( "UDP Initialized.\n" );
 }
