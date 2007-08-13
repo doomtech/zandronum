@@ -211,6 +211,7 @@ void SERVERBAN_AddBan( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3, c
 	sprintf( g_ServerBans[g_lBanIdx].szBannedIP[2], pszIP2 );
 	sprintf( g_ServerBans[g_lBanIdx].szBannedIP[3], pszIP3 );
 	sprintf( g_ServerBans[g_lBanIdx].szComment, "%s", szOutString );
+	g_lBanIdx++;
 
 	// Finally, append the banfile.
 	if ( pFile = fopen( Val.String, "a" ))
@@ -487,6 +488,7 @@ static bool serverban_ParseNextLine( FILE *pFile )
 					g_ServerBans[g_lBanIdx].szBannedIP[1][0] = 0;
 					g_ServerBans[g_lBanIdx].szBannedIP[2][0] = 0;
 					g_ServerBans[g_lBanIdx].szBannedIP[3][0] = 0;
+					g_lBanIdx++;
 				}
 			}
 
@@ -530,7 +532,25 @@ static void serverban_LoadBans( void )
 
 	g_lBanIdx = 0;
 	g_cCurChar = 0;
-	if (( pFile = fopen( Val.String, "r" )) != NULL )
+
+	// [RC] Escape backslashes so that paths can be used.
+	FString fsFilePath = Val.String;
+	int index;
+	int last_index = -1;
+
+	while( true )
+	{
+		index = fsFilePath.IndexOf("\\");
+
+		// Don't get stuck in the loop.
+		if(( index == last_index ) || ( index  ==  last_index + 1 ))
+			break;
+
+		last_index = index;
+		fsFilePath.Insert(index, '\\');
+	}
+
+	if (( pFile = fopen( fsFilePath.GetChars() , "r" )) != NULL )
 	{
 		// -1 == EOF char.
 		while ( g_cCurChar != -1 )
@@ -669,7 +689,6 @@ CCMD( getIP )
 CCMD( getIP_idx )
 {
 	ULONG	ulIdx;
-	char	szPlayerName[64];
 
 	// Only the server can look this up.
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
@@ -683,7 +702,8 @@ CCMD( getIP_idx )
 
 	ulIdx = atoi(argv[1]);
 
-	if ( playeringame[ulIdx] == false )
+	// Make sure the target is valid and applicable.
+	if (( ulIdx >= MAXPLAYERS ) || ( !playeringame[ulIdx] ))
 		return;
 
 	// Bots do not have IPs.
@@ -700,6 +720,62 @@ CCMD( getIP_idx )
 		SERVER_GetClient( ulIdx )->Address.abIP[3]);
 	return;
 
+}
+
+//*****************************************************************************
+//
+CCMD( ban_idx )
+{
+	ULONG	ulIdx;
+	char	szPlayerName[64];
+	char	szBanAddress[4][4];
+
+	// Only the server can ban players!
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		return;
+
+	if ( argv.argc( ) < 2 )
+	{
+		Printf( "Usage: ban_idx <player index> [reason]\nYou can get the list of players and indexes with the ccmd playerinfo.\n" );
+		return;
+	}
+
+	ulIdx =  atoi(argv[1]);
+
+	// Make sure the target is valid and applicable.
+	if (( ulIdx >= MAXPLAYERS ) || ( !playeringame[ulIdx] ))
+		return;
+
+	// Removes the color codes from the player name so it appears as the server sees it in the window.
+	sprintf( szPlayerName, players[ulIdx].userinfo.netname );
+	V_RemoveColorCodes( szPlayerName );
+
+	// Can't ban a bot!
+	if ( players[ulIdx].bIsBot )
+	{
+		Printf( "You cannot ban a bot!\n" );
+		return;
+	}
+
+	itoa( SERVER_GetClient( ulIdx )->Address.abIP[0], szBanAddress[0], 10 );
+	itoa( SERVER_GetClient( ulIdx )->Address.abIP[1], szBanAddress[1], 10 );
+	itoa( SERVER_GetClient( ulIdx )->Address.abIP[2], szBanAddress[2], 10 );
+	itoa( SERVER_GetClient( ulIdx )->Address.abIP[3], szBanAddress[3], 10 );
+
+	// Add the new ban and kick the player.
+	char	szString[256];
+	if ( argv.argc( ) >= 3 )
+	{
+		SERVERBAN_AddBan( szBanAddress[0], szBanAddress[1], szBanAddress[2], szBanAddress[3], szPlayerName, argv[2] );
+		sprintf( szString, "kick_idx %d \"%s\"", ulIdx, argv[2] );
+	}
+	else
+	{
+		SERVERBAN_AddBan( szBanAddress[0], szBanAddress[1], szBanAddress[2], szBanAddress[3], szPlayerName, NULL );
+		sprintf( szString, "kick_idx %d", ulIdx );
+	}
+
+	SERVER_AddCommand( szString );
 }
 
 //*****************************************************************************
@@ -732,7 +808,7 @@ CCMD( ban )
 
 		if ( stricmp( szPlayerName, argv[1] ) == 0 )
 		{
-			char	szString[128];
+			char	szString[256];
 
 			// Can't ban a bot!
 			if ( players[ulIdx].bIsBot )
@@ -786,6 +862,7 @@ CCMD( addban )
 			SERVERBAN_AddBan( szStringBan[0], szStringBan[1], szStringBan[2], szStringBan[3], NULL, argv[2] );
 		else
 			SERVERBAN_AddBan( szStringBan[0], szStringBan[1], szStringBan[2], szStringBan[3], NULL, NULL );
+			
 	}
 	else if ( NETWORK_StringToAddress( argv[1], &BanAddress ))
 	{
