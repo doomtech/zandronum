@@ -191,10 +191,19 @@ void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlay
 	// [BB]: Inform the player about its health, otherwise it won't be displayed properly.
 	// The armor display is handled in SERVER_ResetInventory.
 	SERVERCOMMANDS_SetPlayerHealth( ulPlayer, ulPlayer, SVCF_ONLYTHISCLIENT );
+#ifdef STAY_NETWORK_COMPATIBLE
 	// [BB]: If the player still has NOCLIP activated from the last level, tell
 	// him about it. Not doing this leads to jerky movement on client side.
 	if( players[ulPlayer].cheats & CF_NOCLIP )
 		SERVERCOMMANDS_GenericCheat( ulPlayer, CF_NOCLIP, ulPlayer, SVCF_ONLYTHISCLIENT );
+#else
+	// [BB]: If the player still has any cheats activated from the last level, tell
+	// him about it. Not doing this leads for example to jerky movement on client side
+	// in case of NOCLIP.
+	// We don't have to tell about CF_NOTARGET, since it's only used on the server.
+	if( players[ulPlayer].cheats && players[ulPlayer].cheats != CF_NOTARGET )
+		SERVERCOMMANDS_SetPlayerCheats( ulPlayer, ulPlayer, SVCF_ONLYTHISCLIENT );
+#endif
 }
 
 //*****************************************************************************
@@ -1175,6 +1184,36 @@ void SERVERCOMMANDS_SetPlayerAmmoCapacity( ULONG ulPlayer, AInventory *pAmmo, UL
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
 		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, (char *)pAmmo->GetClass( )->TypeName.GetChars( ));
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pAmmo->MaxAmount );
+	}
+#endif
+}
+
+//*****************************************************************************
+//*****************************************************************************
+//
+void SERVERCOMMANDS_SetPlayerCheats( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+#ifndef STAY_NETWORK_COMPATIBLE
+	ULONG	ulIdx;
+
+	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+		return;
+
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_IsValidClient( ulIdx ) == false )
+			continue;
+
+		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
+			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
+		{
+			continue;
+		}
+
+		SERVER_CheckClientBuffer( ulIdx, 6, true );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERCHEATS );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].cheats );
 	}
 #endif
 }

@@ -169,6 +169,7 @@ static	void	client_PlayerSay( BYTESTREAM_s *pByteStream );
 static	void	client_PlayerTaunt( BYTESTREAM_s *pByteStream );
 static	void	client_PlayerRespawnInvulnerability( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerAmmoCapacity( BYTESTREAM_s *pByteStream );
+static	void	client_SetPlayerCheats( BYTESTREAM_s *pByteStream );
 
 // Thing functions.
 static	void	client_SpawnThing( BYTESTREAM_s *pByteStream );
@@ -650,6 +651,8 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETTHINGTICS",
 	"SVC_DOFLASHFADER",
 	"SVC_SETWALLSCROLLER",
+	"SVC_SETPLAYERCHEATS",
+	"SVC_DUMMY",
 
 };
 
@@ -1709,6 +1712,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETPLAYERAMMOCAPACITY:
 
 		client_SetPlayerAmmoCapacity( pByteStream );
+		break;
+	case SVC_SETPLAYERCHEATS:
+
+		client_SetPlayerCheats( pByteStream );
 		break;
 	case SVC_SPAWNTHING:
 
@@ -4607,6 +4614,27 @@ static void client_SetPlayerAmmoCapacity( BYTESTREAM_s *pByteStream )
 	// Since an item displayed on the HUD may have been given, refresh the HUD.
 	SCOREBOARD_RefreshHUD( );
 }
+
+//*****************************************************************************
+//
+static void client_SetPlayerCheats( BYTESTREAM_s *pByteStream )
+{
+	ULONG			ulPlayer;
+	ULONG			ulCheats;
+
+	// Read in the player ID.
+	ulPlayer = NETWORK_ReadByte( pByteStream );
+
+	// Read in the cheats value.
+	ulCheats = NETWORK_ReadLong( pByteStream );
+
+	// Check to make sure everything is valid. If not, break out.
+	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+		return;
+
+	players[ulPlayer].cheats = ulCheats;
+}
+
 //*****************************************************************************
 //
 static void client_SpawnThing( BYTESTREAM_s *pByteStream )

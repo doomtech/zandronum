@@ -107,6 +107,7 @@ v0.97d-beta5
 -	- Fixed: The ACS function Scroll_Texture_Both doesn't work properly online. [Torr Samaho]
 -	- Fixed: Clients picking up dehacked items aren't always told the correct item amount online. [Torr Samaho]
 -	- Changed: The positions of all actors with the MF3 flag ISMONSTER are now updated online. This fixes problems for example with NeoDoom (mouse) and Njzd2001.wad (super imp). [Torr Samaho]
+-	- Partially fixed: SetPlayerProperty not working properly online. [Torr Samaho]
 !	- Skulltag's invasion spawners are now defined in skulltag.pk3. [Carnevil]
 !	- You can no longer exit a map during the countdown in survival invasion. [Carnevil]
 !	- Starting a new game from the main menu now disables multiplayer emulation and resets dmflags. [Carnevil]

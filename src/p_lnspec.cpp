@@ -2604,6 +2604,8 @@ FUNC(LS_SetPlayerProperty)
 
 	if (arg0 == 0)
 	{
+		int oldCheats = it->player->cheats;
+
 		if (arg1)
 		{
 			it->player->cheats |= mask;
@@ -2622,6 +2624,10 @@ FUNC(LS_SetPlayerProperty)
 				it->flags &= ~MF_NOGRAVITY;
 			}
 		}
+
+		// [BB] Tell the client that his cheats have changed.
+		if ( NETWORK_GetState() == NETSTATE_SERVER && oldCheats != it->player->cheats )
+			SERVERCOMMANDS_SetPlayerCheats( ULONG( it->player - players ), ULONG( it->player - players ), SVCF_ONLYTHISCLIENT );
 	}
 	else
 	{
@@ -2631,6 +2637,8 @@ FUNC(LS_SetPlayerProperty)
 		{
 			if (!playeringame[i])
 				continue;
+
+			int oldCheats = players[i].cheats;
 
 			if (arg1)
 			{
@@ -2650,6 +2658,10 @@ FUNC(LS_SetPlayerProperty)
 					players[i].mo->flags &= ~MF_NOGRAVITY;
 				}
 			}
+
+			// [BB] Tell the client that his cheats have changed.
+			if ( NETWORK_GetState() == NETSTATE_SERVER && oldCheats != players[i].cheats )
+				SERVERCOMMANDS_SetPlayerCheats( i, i, SVCF_ONLYTHISCLIENT );
 		}
 	}
 
