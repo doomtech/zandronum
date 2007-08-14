@@ -2996,6 +2996,11 @@ CSkullBot::CSkullBot( char *pszName, char *pszTeamName, ULONG ulPlayerNum )
 
 		// Now send out the player's userinfo out to other players.
 		SERVERCOMMANDS_SetPlayerUserInfo( ulPlayerNum, USERINFO_ALL );
+
+		// If this player is on a team, tell all the other clients that a team has
+		// been selected for him.
+		if ( m_pPlayer->bOnTeam )
+			SERVERCOMMANDS_SetPlayerTeam( ulPlayerNum );
 	}
 
 	g_bBotIsInitialized[ulPlayerNum] = true;
