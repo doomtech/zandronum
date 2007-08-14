@@ -377,6 +377,9 @@
 #define IDC_KICKBAN_KICK				40036
 #define IDC_KICKBAN_KICKANDBAN			40037
 #define IDC_SERVER_STATUSBAR			40039
+#define	IDR_PLAYER_GETIP				40040
+#define IDD_GOTIP						40041
+#define IDC_GOTIP_IP					40042
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED

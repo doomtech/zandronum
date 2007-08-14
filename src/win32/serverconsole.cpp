@@ -328,6 +328,7 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 					AppendMenu(hMenu, MF_STRING, IDR_PLAYER_KICK_WHY, "Kick (why)");
 					AppendMenu(hMenu, MF_STRING, IDR_PLAYER_BAN, "Ban and kick");
 					AppendMenu(hMenu, MF_STRING, IDR_PLAYER_BAN_WHY, "Ban and kick (why)");
+					AppendMenu(hMenu, MF_STRING, IDR_PLAYER_GETIP, "Get IP address");
 
 					// Show the menu and get the selected item.
 					POINT pt;
@@ -357,6 +358,10 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 						g_Scoreboard_IsBan = (iSelection == IDR_PLAYER_BAN_WHY);
 						DialogBox( g_hInst, MAKEINTRESOURCE( IDD_REASON ), hDlg, SERVERCONSOLE_ReasonCallback );			
 					}
+
+					// Pop up his IP.
+					else if(iSelection == IDR_PLAYER_GETIP)
+						DialogBox( g_hInst, MAKEINTRESOURCE( IDD_GOTIP ), hDlg, SERVERCONSOLE_GotIPCallback );
 				}
 
 			}
@@ -1530,6 +1535,92 @@ BOOL CALLBACK SERVERCONSOLE_ReasonCallback( HWND hDlg, UINT Message, WPARAM wPar
 
 	return ( TRUE );
 }
+
+//*****************************************************************************
+//
+char		szIPString[127];
+BOOL CALLBACK SERVERCONSOLE_GotIPCallback( HWND hDlg, UINT Message, WPARAM wParam, LPARAM lParam )
+{
+	switch ( Message )
+	{
+	case WM_CLOSE:
+
+		EndDialog( hDlg, -1 );
+		break;
+	case WM_INITDIALOG:
+
+		{		
+			
+			char		szPlayerName[64];
+
+			// Loop through all the players, and try to find one that matches the given name.
+			for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+			{
+				if ( playeringame[ulIdx] == false )
+					continue;
+
+				// Removes the color codes from the player name so it appears as the server sees it in the window.
+				sprintf( szPlayerName, players[ulIdx].userinfo.netname );
+				V_RemoveColorCodes( szPlayerName );
+
+				if ( stricmp( szPlayerName, g_szScoreboard_SelectedUser ) == 0 )
+				{
+					// Bots do not have IPs. This should never happen.
+					if ( players[ulIdx].bIsBot )
+						continue;
+
+					sprintf(szIPString, "IP address for %s: %d.%d.%d.%d.",
+						g_szScoreboard_SelectedUser,
+						SERVER_GetClient( ulIdx )->Address.abIP[0],
+						SERVER_GetClient( ulIdx )->Address.abIP[1],
+						SERVER_GetClient( ulIdx )->Address.abIP[2],
+						SERVER_GetClient( ulIdx )->Address.abIP[3]);
+
+					SetDlgItemText(hDlg, IDC_GOTIP_IP, szIPString);
+				}
+			}
+
+
+		}
+
+		break;
+	case WM_COMMAND:
+
+		{
+			switch ( LOWORD( wParam ))
+			{
+			case IDOK:
+				
+				if(OpenClipboard(hDlg))
+				{
+					HGLOBAL clipbuffer;
+					char * buffer;
+					EmptyClipboard();
+					clipbuffer = GlobalAlloc(GMEM_DDESHARE, strlen((char *)szIPString)+1);
+					buffer = (char*)GlobalLock(clipbuffer);
+					strcpy(buffer, LPCSTR(szIPString));
+					GlobalUnlock(clipbuffer);
+					SetClipboardData(CF_TEXT,clipbuffer);
+					CloseClipboard();
+				}
+
+				EndDialog( hDlg, -1 );
+				break;
+			case IDCANCEL:
+
+				EndDialog( hDlg, -1 );
+				break;
+			}
+		}
+		break;
+	default:
+
+		return ( FALSE );
+	}
+
+	return ( TRUE );
+}
+
 //*****************************************************************************
 //
 BOOL CALLBACK SERVERCONSOLE_ChangeMapCallback( HWND hDlg, UINT Message, WPARAM wParam, LPARAM lParam )

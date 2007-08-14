@@ -704,6 +704,17 @@ BEGIN
 
 END
 
+IDD_GOTIP DIALOG DISCARDABLE  0, 0, 230, 32
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "IP address lookup"
+FONT 8, "Tahoma"
+BEGIN
+	LTEXT           "Could not look up that user.",IDC_GOTIP_IP,6,6,254,8
+    DEFPUSHBUTTON   "Copy",IDOK,126,16,60,14
+    PUSHBUTTON      "Cancel",IDCANCEL,187,16,40,14
+
+END
+
 //
 // Legacy kick/ban dialogs.
 //
