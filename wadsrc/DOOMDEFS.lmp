@@ -1712,13 +1712,13 @@ object RedArmor
 // Grenade
 pointlight GRENADE
 {
-    color 8.0 0.5 0.0
+    color 1.0 0.5 0.0
     size 22
 }
 
 flickerlight GRENADE_X1
 {
-    color 8.0 0.5 0.0
+    color 1.0 0.5 0.0
     size 22
     secondarySize 72
     chance 0.3
@@ -1742,12 +1742,11 @@ flickerlight GRENADE_X3
 
 object Grenade
 {
-    frame GRENA1 { light GRENADE    }
-    frame GRENA5 { light GRENADE    }
+    frame GREN { light GRENADE    }
 
-    frame GRENA6A4 { light GRENADE_X1 }
-    frame GRENA7A3 { light GRENADE_X2 }
-    frame GRENA8A2 { light GRENADE_X3 }
+    frame MISLB { light GRENADE_X1 }
+    frame MISLC { light GRENADE_X2 }
+    frame MISLD { light GRENADE_X3 }
 }
 
 // BFG10K
