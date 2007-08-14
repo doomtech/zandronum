@@ -1981,8 +1981,11 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 			if ( pInventory->IsKindOf( RUNTIME_CLASS( APowerup )))
 			{
 				SERVERCOMMANDS_GivePowerup( ulIdx, static_cast<APowerup *>( pInventory ), ulClient, SVCF_ONLYTHISCLIENT );
-				if ( pInventory == pPlayer->mo->FindInventory( RUNTIME_CLASS( APowerInvulnerable )))
+				if (( pInventory->IsKindOf( RUNTIME_CLASS( APowerInvulnerable ))) &&
+					(( pPlayer->mo->effects & FX_VISIBILITYFLICKER ) || ( pPlayer->mo->effects & FX_RESPAWNINVUL )))
+				{
 					SERVERCOMMANDS_PlayerRespawnInvulnerability( ulIdx );
+				}
 			}
 		}
 

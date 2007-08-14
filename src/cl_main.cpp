@@ -4204,19 +4204,43 @@ static void client_UpdatePlayerPendingWeapon( BYTESTREAM_s *pByteStream )
 //
 static void client_DoInventoryUse( BYTESTREAM_s *pByteStream )
 {
+	ULONG			ulPlayer;
+	const char		*pszName;
+	const PClass	*pType;
+	AInventory		*pInventory;
+
+	// Read in the player using an inventory item.
+	ulPlayer = NETWORK_ReadByte( pByteStream );
+
 	// Read the name of the inventory item we shall use.
-	const char *pszString = NETWORK_ReadString( pByteStream );
+	pszName = NETWORK_ReadString( pByteStream );
 
 	// Check to make sure everything is valid. If not, break out.
-	if ( players[consoleplayer].mo == NULL )
+	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
 		return;
 
-	AInventory *item = players[consoleplayer].mo->FindInventory (PClass::FindClass (pszString));
+	pType = PClass::FindClass( pszName );
+	if ( pType == NULL )
+		return;
 
-	if (item != NULL)
+	// Try to find this object within the player's personal inventory.
+	pInventory = players[ulPlayer].mo->FindInventory( pType );
+
+	// If the player doesn't have this type, give it to him.
+	if ( pInventory == NULL )
+		pInventory = players[ulPlayer].mo->GiveInventoryType( pType );
+
+	// If he still doesn't have the object after trying to give it to him... then YIKES!
+	if ( pInventory == NULL )
 	{
-		players[consoleplayer].mo->UseInventory (item);
+#ifdef CLIENT_WARNING_MESSAGES
+		Printf( "client_DoInventoryUse: Failed to give inventory type, %s!\n", pszName );
+#endif
+		return;
 	}
+
+	// Finally, use the item.
+	players[ulPlayer].mo->UseInventory( pInventory );
 }
 
 //*****************************************************************************

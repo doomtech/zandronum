@@ -804,19 +804,37 @@ void SERVERCOMMANDS_UpdatePlayerPendingWeapon( ULONG ulPlayer )
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_DoInventoryUse( ULONG ulPlayer, AInventory *item )
+void SERVERCOMMANDS_DoInventoryUse( ULONG ulPlayer, AInventory *pItem, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	ULONG		ulIdx;
+	const char	*pszString;
+
+	if (( SERVER_IsValidPlayer( ulPlayer ) == false ) ||
+		( pItem == NULL ))
+	{
 		return;
+	}
 
-	const char *pszString = item->GetClass( )->TypeName.GetChars( );
-
+	pszString = pItem->GetClass( )->TypeName.GetChars( );
 	if ( pszString == NULL )
 		return;
 
-	SERVER_CheckClientBuffer( ulPlayer, 1 + (ULONG)strlen( pszString ), true );
-	NETWORK_WriteHeader( &SERVER_GetClient( ulPlayer )->PacketBuffer.ByteStream, SVC_USEINVENTORY );
-	NETWORK_WriteString( &SERVER_GetClient( ulPlayer )->PacketBuffer.ByteStream, pszString );
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_IsValidClient( ulIdx ) == false )
+			continue;
+
+		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
+			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
+		{
+			continue;
+		}
+
+		SERVER_CheckClientBuffer( ulIdx, 1 + (ULONG)strlen( pszString ), true );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_USEINVENTORY );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszString );
+	}
 }
 
 //*****************************************************************************
