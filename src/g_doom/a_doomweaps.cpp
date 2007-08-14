@@ -1182,7 +1182,7 @@ END_DEFAULTS
 FState AGrenade::States[] =
 {
 #define S_GRENADE 0
-	S_BRIGHT (GREN, 'A',	1, NULL 						, &States[S_GRENADE]),
+	S_BRIGHT (SGRN, 'A',	1, NULL 						, &States[S_GRENADE]),
 
 #define S_GRENADE_EXPLODE (S_GRENADE+1)
 	S_BRIGHT (MISL, 'B',	8, A_Explode					, &States[S_GRENADE_EXPLODE+1]),
