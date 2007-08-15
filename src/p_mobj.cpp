@@ -1164,7 +1164,10 @@ void P_ExplodeMissile (AActor *mo, line_t *line, AActor *target)
 		if (nextstate == NULL) nextstate = mo->XDeathState;
 	}
 	if (nextstate == NULL) nextstate = mo->DeathState;
-	mo->SetState (nextstate);
+	// [BB] If nextstate is still equal to NULL, mo->SetState (nextstate)
+	// returns false and we have to break out here.
+	if (!(mo->SetState (nextstate)))
+		return;
 	
 	if (mo->ObjectFlags & OF_MassDestruction)
 	{
