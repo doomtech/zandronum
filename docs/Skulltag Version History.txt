@@ -113,6 +113,7 @@ v0.97d-beta5
 -	- Clients are now informed of a bot's team when a bot is added in team games. [Carnevil]
 -	- Fixed bug that allowed the total items count on a level to be inaccurate. [Carnevil]
 -	- Fixed: Bots cause hudmessages to appear for player 1 offline. [Torr Samaho]
+-	- Fixed: Clients with activated prediction ignore the CF_FROZEN and CF_TOTALLYFROZEN flags locally. [Torr Samaho]
 !	- Skulltag's invasion spawners are now defined in skulltag.pk3. [Carnevil]
 !	- You can no longer exit a map during the countdown in survival invasion. [Carnevil]
 !	- Starting a new game from the main menu now disables multiplayer emulation and resets dmflags. [Carnevil]

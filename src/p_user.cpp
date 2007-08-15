@@ -2559,7 +2559,8 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 		player->mo->flags &= ~MF_JUSTATTACKED;
 	}
 
-	if ( CLIENT_PREDICT_IsPredicting( ) == false )
+	// [BB] Why should a predicting client ignore CF_TOTALLYFROZEN and CF_FROZEN?
+	//if ( CLIENT_PREDICT_IsPredicting( ) == false )
 	{
 		// [RH] Being totally frozen zeros out most input parameters.
 		if (player->cheats & CF_TOTALLYFROZEN || gamestate == GS_TITLELEVEL)
