@@ -47,6 +47,8 @@
 #include "gl_values.h"
 #include "gl_renderstruct.h"
 
+CVAR(Bool, gl_rotate_weapon_models, true, CVAR_ARCHIVE)
+
 class DeletingModelArray : public TArray<FModel *>
 {
 public:
@@ -446,7 +448,28 @@ void gl_RenderModel(GLSprite * spr, int cm)
 	gl.Translatef(spr->x, spr->z, spr->y );
 
 	// Model rotation.
-	gl.Rotatef(-ANGLE_TO_FLOAT(spr->actor->angle), 0, 1, 0);
+	// [BB] Added Doomsday like rotation of the weapon pickup models.
+	// The rotation angle is based on the elapsed time.
+	float offsetAngle = 0.;
+	if( gl_rotate_weapon_models && spr->actor->IsKindOf( RUNTIME_CLASS( AWeapon ) ) )
+	{
+		const float time = I_GetTimeFloat()/200.;
+		offsetAngle = ( (time - static_cast<int>(time)) *360. );
+	}
+
+	gl.Rotatef(-ANGLE_TO_FLOAT(spr->actor->angle)+offsetAngle, 0, 1, 0);
+
+	// [BB] Workaround for the missing pitch information of rocktes.
+	if( spr->actor->GetClass( ) == PClass::FindClass( "Rocket" ) )
+	{
+		const double x = static_cast<double>(spr->actor->momx);
+		const double y = static_cast<double>(spr->actor->momy);
+		const double z = static_cast<double>(spr->actor->momz);
+		// [BB] Calculate the pitch using spherical coordinates.
+		const double pitch = atan( z/sqrt(x*x+y*y) ) / M_PI * 180;
+
+		gl.Rotatef(pitch, 0, 0, 1);
+	}
 
 	// Scaling and model space offset.
 	gl.Scalef(	
