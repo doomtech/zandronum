@@ -2718,8 +2718,11 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 				}
 				if(PLAYER_IsTrueSpectator( &players[ulPlayer] ))
 					sprintf(szString, "SPECT");
-				if((players[ulPlayer].health <= 0) && (gamestate != GS_INTERMISSION))
+				if(((players[ulPlayer].health <= 0) || ( players[ulPlayer].bDeadSpectator ))
+					&& (gamestate != GS_INTERMISSION))
+				{
 					sprintf(szString, "DEAD");
+				}
 				break;
 
 			case COLUMN_KILLS:
@@ -2727,16 +2730,22 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 					// If the player isn't really playing, change this.
 					if(PLAYER_IsTrueSpectator( &players[ulPlayer] ))
 						sprintf(szString, "SPECT");
-					if((players[ulPlayer].health <= 0) && (gamestate != GS_INTERMISSION))
+					if(((players[ulPlayer].health <= 0) || ( players[ulPlayer].bDeadSpectator ))
+						&& (gamestate != GS_INTERMISSION))
+					{
 						sprintf(szString, "DEAD");
+					}
 				break;
 			case COLUMN_SECRETS:
 				sprintf(szString, "%d", players[ulPlayer].secretcount);
 					// If the player isn't really playing, change this.
 					if(PLAYER_IsTrueSpectator( &players[ulPlayer] ))
 						sprintf(szString, "SPECT");
-					if((players[ulPlayer].health <= 0) && (gamestate != GS_INTERMISSION))
+					if(((players[ulPlayer].health <= 0) || ( players[ulPlayer].bDeadSpectator ))
+						&& (gamestate != GS_INTERMISSION))
+					{
 						sprintf(szString, "DEAD");
+					}
 				break;
 				
 		}
@@ -3767,9 +3776,20 @@ static void scoreboard_DoRankingListPass( ULONG ulPlayer, LONG lSpectators, LONG
 			/*(( lastmanstanding ) && (( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) || ( LASTMANSTANDING_GetState( ) == LMSS_WINSEQUENCE ))) ||
 			(( survival ) && (( SURVIVAL_GetState( ) == SURVS_INPROGRESS ) || ( SURVIVAL_GetState( ) == SURVS_MISSIONFAILED )))*/
 			
-			if((( players[g_iSortedPlayers[ulIdx]].health <= 0) && (lDead == 1)) || 
-				(( players[g_iSortedPlayers[ulIdx]].health > 0) && (lDead == 2)))
+			// If we don't want to draw dead players, and this player is dead, skip this player.
+			if (( lDead == 1 ) &&
+				(( players[g_iSortedPlayers[ulIdx]].health <= 0 ) || ( players[g_iSortedPlayers[ulIdx]].bDeadSpectator )))
+			{
 				continue;
+			}
+
+			// If we don't want to draw living players, and this player is alive, skip this player.
+			if (( lDead == 2 ) &&
+				( players[g_iSortedPlayers[ulIdx]].health > 0 ) &&
+				( players[g_iSortedPlayers[ulIdx]].bDeadSpectator == false ))
+			{
+				continue;
+			}
 		}
 
 		// Skip or require players that aren't on this team.
