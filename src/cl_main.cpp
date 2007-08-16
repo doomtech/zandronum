@@ -7390,9 +7390,22 @@ static void client_DestroyAllSectorMovers( BYTESTREAM_s *pByteStream )
 	for ( ulIdx = 0; ulIdx < (ULONG)numsectors; ulIdx++ )
 	{
 		if ( sectors[ulIdx].ceilingdata )
+		{
+			// Stop the sound sequence (if any) associated with this sector.
+			SN_StopSequence( &sectors[ulIdx] );
+
 			sectors[ulIdx].ceilingdata->Destroy( );
+			sectors[ulIdx].ceilingdata = NULL;
+		}
+
 		if ( sectors[ulIdx].floordata )
+		{
+			// Stop the sound sequence (if any) associated with this sector.
+			SN_StopSequence( &sectors[ulIdx] );
+
 			sectors[ulIdx].floordata->Destroy( );
+			sectors[ulIdx].floordata = NULL;
+		}
 	}
 }
 
