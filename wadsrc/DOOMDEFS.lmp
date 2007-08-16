@@ -1742,7 +1742,7 @@ flickerlight GRENADE_X3
 
 object Grenade
 {
-    frame GREN { light GRENADE    }
+    frame SGRN { light GRENADE    }
 
     frame MISLB { light GRENADE_X1 }
     frame MISLC { light GRENADE_X2 }
