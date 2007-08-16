@@ -2675,6 +2675,13 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 				}
 				if(PLAYER_IsTrueSpectator( &players[ulPlayer] ))
 					sprintf(szString, "SPECT");
+
+				if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DEADSPECTATORS ) &&
+					(( players[ulPlayer].health <= 0 ) || ( players[ulPlayer].bDeadSpectator )) &&
+					( gamestate != GS_INTERMISSION ))
+				{
+					sprintf( szString, "DEAD" );
+				}
 				break;
 			case COLUMN_POINTS:
 
@@ -2688,6 +2695,13 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 				}
 				if(PLAYER_IsTrueSpectator( &players[ulPlayer] ))
 					sprintf(szString, "SPECT");
+
+				if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DEADSPECTATORS ) &&
+					(( players[ulPlayer].health <= 0 ) || ( players[ulPlayer].bDeadSpectator )) &&
+					( gamestate != GS_INTERMISSION ))
+				{
+					sprintf( szString, "DEAD" );
+				}
 				break;
 
 			case COLUMN_POINTSASSISTS:
@@ -2701,6 +2715,13 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 				}
 				if(PLAYER_IsTrueSpectator( &players[ulPlayer] ))
 					sprintf(szString, "SPECT");
+
+				if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DEADSPECTATORS ) &&
+					(( players[ulPlayer].health <= 0 ) || ( players[ulPlayer].bDeadSpectator )) &&
+					( gamestate != GS_INTERMISSION ))
+				{
+					sprintf( szString, "DEAD" );
+				}
 				break;
 
 			case COLUMN_DEATHS:
@@ -2718,34 +2739,46 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 				}
 				if(PLAYER_IsTrueSpectator( &players[ulPlayer] ))
 					sprintf(szString, "SPECT");
-				if(((players[ulPlayer].health <= 0) || ( players[ulPlayer].bDeadSpectator ))
-					&& (gamestate != GS_INTERMISSION))
+
+				if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DEADSPECTATORS ) &&
+					(( players[ulPlayer].health <= 0 ) || ( players[ulPlayer].bDeadSpectator )) &&
+					( gamestate != GS_INTERMISSION ))
 				{
-					sprintf(szString, "DEAD");
+					sprintf( szString, "DEAD" );
 				}
 				break;
 
 			case COLUMN_KILLS:
 				sprintf(szString, "%d", players[ulPlayer].killcount);
-					// If the player isn't really playing, change this.
-					if(PLAYER_IsTrueSpectator( &players[ulPlayer] ))
-						sprintf(szString, "SPECT");
-					if(((players[ulPlayer].health <= 0) || ( players[ulPlayer].bDeadSpectator ))
-						&& (gamestate != GS_INTERMISSION))
-					{
-						sprintf(szString, "DEAD");
-					}
+
+				// If the player isn't really playing, change this.
+				if(PLAYER_IsTrueSpectator( &players[ulPlayer] ))
+					sprintf(szString, "SPECT");
+
+				if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DEADSPECTATORS ) &&
+					(( players[ulPlayer].health <= 0 ) || ( players[ulPlayer].bDeadSpectator )) &&
+					( gamestate != GS_INTERMISSION ))
+				{
+					sprintf( szString, "DEAD" );
+				}
 				break;
 			case COLUMN_SECRETS:
 				sprintf(szString, "%d", players[ulPlayer].secretcount);
-					// If the player isn't really playing, change this.
-					if(PLAYER_IsTrueSpectator( &players[ulPlayer] ))
-						sprintf(szString, "SPECT");
-					if(((players[ulPlayer].health <= 0) || ( players[ulPlayer].bDeadSpectator ))
-						&& (gamestate != GS_INTERMISSION))
-					{
-						sprintf(szString, "DEAD");
-					}
+				// If the player isn't really playing, change this.
+				if(PLAYER_IsTrueSpectator( &players[ulPlayer] ))
+					sprintf(szString, "SPECT");
+				if(((players[ulPlayer].health <= 0) || ( players[ulPlayer].bDeadSpectator ))
+					&& (gamestate != GS_INTERMISSION))
+				{
+					sprintf(szString, "DEAD");
+				}
+
+				if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DEADSPECTATORS ) &&
+					(( players[ulPlayer].health <= 0 ) || ( players[ulPlayer].bDeadSpectator )) &&
+					( gamestate != GS_INTERMISSION ))
+				{
+					sprintf( szString, "DEAD" );
+				}
 				break;
 				
 		}
