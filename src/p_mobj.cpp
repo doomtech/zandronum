@@ -699,16 +699,7 @@ bool AActor::InSpawnState( )
 
 	if ( state != NULL )
 	{
-		pSpawnState = SpawnState;
-
-		// [BC] This is extremely gross, but fixes an infinite loop in survival mode on MAP40
-		// of Hexen. A better solution should be devised.
-		if (( SpawnFlags & MTF_DORMANT ) &&
-			( GetClass( )->IsDescendantOf( PClass::FindClass( "SwitchableDecoration" ))))
-		{
-			pSpawnState = MeleeState;
-		}
-
+		pSpawnState = InitialState;
 		while ( pSpawnState != NULL )
 		{
 			// If our current state matches one of the frames in the spawn state, then
@@ -3822,6 +3813,9 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 	actor->touching_sectorlist = NULL;	// NULL head of sector list // phares 3/13/98
 	actor->Speed = actor->GetClass()->Meta.GetMetaFixed(AMETA_FastSpeed, actor->Speed);
 
+	// [BC]
+	actor->InitialState = actor->state;
+
 	// set subsector and/or block links
 	actor->LinkToWorld (SpawningMapThing);
 	if (SpawningMapThing || !type->IsDescendantOf (RUNTIME_CLASS(APlayerPawn)))
@@ -4014,6 +4008,9 @@ void AActor::HandleSpawnFlags ()
 	{
 		RenderStyle = STYLE_None;
 	}
+
+	// [BC]
+	InitialState = state;
 }
 
 void AActor::BeginPlay ()

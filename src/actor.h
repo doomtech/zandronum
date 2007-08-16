@@ -828,6 +828,10 @@ public:
 	FState *NoState;
 	FState *GreetingsState;
 
+	// [BC] This is the state that the actor is put into after being spawned on a map (this
+	// isn't necessarily the spawn state).
+	FState	*InitialState;
+
 	// [RH] The dialogue to show when this actor is "used."
 	FStrifeDialogueNode *Conversation;
 
