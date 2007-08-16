@@ -5222,11 +5222,19 @@ int DLevelScript::RunScript ()
 			break;
 
 		case PCD_GETSCREENWIDTH:
-			PushToStack (SCREENWIDTH);
+			// [BC] The server doesn't have a screen.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				PushToStack( 0 );
+			else
+				PushToStack (SCREENWIDTH);
 			break;
 
 		case PCD_GETSCREENHEIGHT:
-			PushToStack (SCREENHEIGHT);
+			// [BC] The server doesn't have a screen.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				PushToStack( 0 );
+			else
+				PushToStack (SCREENHEIGHT);
 			break;
 
 		case PCD_THING_PROJECTILE2:
