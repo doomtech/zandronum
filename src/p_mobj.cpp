@@ -700,6 +700,15 @@ bool AActor::InSpawnState( )
 	if ( state != NULL )
 	{
 		pSpawnState = SpawnState;
+
+		// [BC] This is extremely gross, but fixes an infinite loop in survival mode on MAP40
+		// of Hexen. A better solution should be devised.
+		if (( SpawnFlags & MTF_DORMANT ) &&
+			( GetClass( )->IsDescendantOf( PClass::FindClass( "SwitchableDecoration" ))))
+		{
+			pSpawnState = MeleeState;
+		}
+
 		while ( pSpawnState != NULL )
 		{
 			// If our current state matches one of the frames in the spawn state, then
