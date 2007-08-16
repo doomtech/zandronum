@@ -473,7 +473,9 @@ void POSSESSION_DoFight( void )
 					players[ulIdx].mo = NULL;
 				}
 
-				// Set the player's state to PST_REBORNNOINVENTORY so they everything is cleared (weapons, etc.)
+				// Normally, we set the playerstate to PST_ENTER so that enter scripts
+				// are executed. However, we don't actually reset the map in possession, so
+				// that is not necessary.
 				players[ulIdx].playerstate = PST_REBORNNOINVENTORY;
 				G_DeathMatchSpawnPlayer( ulIdx, true );
 

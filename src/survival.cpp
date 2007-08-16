@@ -256,197 +256,7 @@ void SURVIVAL_DoFight( void )
 
 	// Revert the map to how it was in its original state.
 	GAME_ResetMap( );
-/*
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
-	{
-		for ( ulIdx = 0; ulIdx < (ULONG)numlines; ulIdx++ )
-		{
-			// Reset the specials for lines that do not have a repeatable special.
-			if ( lines[ulIdx].special == 0 )
-				lines[ulIdx].special = lines[ulIdx].SavedSpecial;
 
-			// Also, restore any changed textures.
-			if ( lines[ulIdx].ulTexChangeFlags != 0 )
-			{
-				// [BC] If we're the server, tell clients about this texture change.
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_SetLineTexture( ulIdx );
-
-				if ( lines[ulIdx].sidenum[0] != 0xffff )
-				{
-					sides[lines[ulIdx].sidenum[0]].toptexture = sides[lines[ulIdx].sidenum[0]].SavedTopTexture;
-					sides[lines[ulIdx].sidenum[0]].midtexture = sides[lines[ulIdx].sidenum[0]].SavedMidTexture;
-					sides[lines[ulIdx].sidenum[0]].bottomtexture = sides[lines[ulIdx].sidenum[0]].SavedBottomTexture;
-				}
-
-				if ( lines[ulIdx].sidenum[1] != NO_SIDE )
-				{
-					sides[lines[ulIdx].sidenum[1]].toptexture = sides[lines[ulIdx].sidenum[1]].SavedTopTexture;
-					sides[lines[ulIdx].sidenum[1]].midtexture = sides[lines[ulIdx].sidenum[1]].SavedMidTexture;
-					sides[lines[ulIdx].sidenum[1]].bottomtexture = sides[lines[ulIdx].sidenum[1]].SavedBottomTexture;
-				}
-
-				lines[ulIdx].ulTexChangeFlags = 0;
-			}
-		}
-
-		// Restore sector heights, flat changes, and light changes.
-		for ( ulIdx = 0; ulIdx < (ULONG)numsectors; ulIdx++ )
-		{
-			if ( sectors[ulIdx].bCeilingHeightChange )
-			{
-				sectors[ulIdx].ceilingplane = sectors[ulIdx].SavedCeilingPlane;
-				sectors[ulIdx].ceilingtexz = sectors[ulIdx].SavedCeilingTexZ;
-				sectors[ulIdx].bCeilingHeightChange = false;
-
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_SetSectorCeilingPlane( ulIdx );
-			}
-
-			if ( sectors[ulIdx].bFloorHeightChange )
-			{
-				sectors[ulIdx].floorplane = sectors[ulIdx].SavedFloorPlane;
-				sectors[ulIdx].floortexz = sectors[ulIdx].SavedFloorTexZ;
-				sectors[ulIdx].bFloorHeightChange = false;
-
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_SetSectorFloorPlane( ulIdx );
-			}
-
-			if ( sectors[ulIdx].bFlatChange )
-			{
-				sectors[ulIdx].floorpic = sectors[ulIdx].SavedFloorPic;
-				sectors[ulIdx].ceilingpic = sectors[ulIdx].SavedCeilingPic;
-				sectors[ulIdx].bFlatChange = false;
-
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_SetSectorFlat( ulIdx );
-			}
-
-			if ( sectors[ulIdx].bLightChange )
-			{
-				sectors[ulIdx].lightlevel = sectors[ulIdx].SavedLightLevel;
-				sectors[ulIdx].bLightChange = false;
-
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_SetSectorLightLevel( ulIdx );
-			}
-		}
-
-		// Reload the items on this level.
-		TThinkerIterator<AActor> iterator;
-		while (( pActor = iterator.Next( )) != NULL )
-		{
-			// Destroy any object not present when the map loaded.
-			if (( pActor->ulSTFlags & STFL_LEVELSPAWNED ) == false )
-			{
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_DestroyThing( pActor );
-
-				pActor->Destroy( );
-				continue;
-			}
-
-			// Restore any items in a hidden state.
-			if (( pActor->state == &AInventory::States[0] ) ||	// S_HIDEDOOMISH
-				( pActor->state == &AInventory::States[3] ) ||	// S_HIDESPECIAL
-				( pActor->state == &AInventory::States[17] ))	// S_HIDEINDEFINITELY
-			{
-				CLIENT_RestoreSpecialPosition( pActor );
-				CLIENT_RestoreSpecialDoomThing( pActor, false );
-
-				// Tell clients to respawn this item (without fog).
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_RespawnDoomThing( pActor, false );
-			}
-
-			// If this is an enemy, respawn it.
-			if ( pActor->flags & MF_COUNTKILL )
-			{
-				// Get the default information for this actor, so we can determine how to
-				// respawn it.
-				pActorInfo = pActor->GetDefault( );
-
-				// This monster appears to be untouched; no need to respawn it.
-				if (( pActor->x == pActor->SpawnPoint[0] << FRACBITS ) &&
-					( pActor->y == pActor->SpawnPoint[1] << FRACBITS ) &&
-					( pActor->health == pActorInfo->health ))
-				{
-					continue;
-				}
-
-				// Determine the Z position to spawn this monster in.
-				if ( pActorInfo->flags & MF_SPAWNCEILING )
-					Z = ONCEILINGZ;
-				else if ( pActorInfo->flags2 & MF2_SPAWNFLOAT )
-					Z = FLOATRANDZ;
-				else if ( pActorInfo->flags2 & MF2_FLOATBOB )
-					Z = pActor->SpawnPoint[2] << FRACBITS;
-				else
-					Z = ONFLOORZ;
-
-				// Spawn the new monster.
-				X = pActor->SpawnPoint[0] << FRACBITS;
-				Y = pActor->SpawnPoint[1] << FRACBITS;
-				pNewActor = Spawn( RUNTIME_TYPE( pActor ), X, Y, Z, NO_REPLACE );
-
-				if ( Z == ONFLOORZ )
-					pNewActor->z += pNewActor->SpawnPoint[2] << FRACBITS;
-				else if ( Z == ONCEILINGZ )
-					pNewActor->z -= pNewActor->SpawnPoint[2] << FRACBITS;
-
-				// Inherit attributes from the old monster.
-				pNewActor->SpawnPoint[0] = pActor->SpawnPoint[0];
-				pNewActor->SpawnPoint[1] = pActor->SpawnPoint[1];
-				pNewActor->SpawnPoint[2] = pActor->SpawnPoint[2];
-				pNewActor->SpawnAngle = pActor->SpawnAngle;
-				pNewActor->SpawnFlags = pActor->SpawnFlags;
-				pNewActor->angle = ANG45 * ( pActor->SpawnAngle / 45 );
-
-				if ( pActor->SpawnFlags & MTF_AMBUSH )
-					pNewActor->flags |= MF_AMBUSH;
-
-				pNewActor->reactiontime = 18;
-
-				pNewActor->TIDtoHate = pActor->TIDtoHate;
-				pNewActor->LastLook = pActor->LastLook;
-				pNewActor->flags3 |= pActor->flags3 & MF3_HUNTPLAYERS;
-				pNewActor->flags4 |= pActor->flags4 & MF4_NOHATEPLAYERS;
-				pNewActor->ulSTFlags |= STFL_LEVELSPAWNED;
-
-				// Remove the old monster.
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_DestroyThing( pActor );
-				pActor->Destroy( );
-			}
-		}
-	}
-
-	// Also, delete all floors, plats, etc. that are in progress. This can be done on both
-	// the server side, and the client side.
-	for ( ulIdx = 0; ulIdx < (ULONG)numsectors; ulIdx++ )
-	{
-		if ( sectors[ulIdx].ceilingdata )
-			sectors[ulIdx].ceilingdata->Destroy( );
-		if ( sectors[ulIdx].floordata )
-			sectors[ulIdx].floordata->Destroy( );
-	}
-
-	// Reset the scripts.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
-	{
-		FBehavior::StaticUnloadModules( );
-		
-		pMap = P_OpenMapData( level.mapname );
-		if ( pMap == NULL )
-			I_Error( "SURVIVAL_DoFight: Unable to open map '%s'\n", level.mapname );
-
-		P_LoadBehavior( pMap );
-
-//		if ( Wads.CheckLumpName( Wads.GetNumForName( level.mapname ) + ML_BEHAVIOR, "BEHAVIOR" ))
-//			P_LoadBehavior( Wads.GetNumForName( level.mapname ) + ML_BEHAVIOR );
-	}
-*/
 	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
 	{
 		// Respawn the players.
@@ -467,8 +277,7 @@ void SURVIVAL_DoFight( void )
 				players[ulIdx].mo = NULL;
 			}
 
-			// Set the player's state to PST_REBORNNOINVENTORY so they everything is cleared (weapons, etc.)
-			players[ulIdx].playerstate = PST_REBORNNOINVENTORY;
+			players[ulIdx].playerstate = PST_ENTER;
 			G_CooperativeSpawnPlayer( ulIdx, true );
 
 			if ( players[ulIdx].pSkullBot )
@@ -567,6 +376,10 @@ void SURVIVAL_SetState( SURVIVALSTATE_e State )
 				{
 					continue;
 				}
+
+				// [BC] Experimental code.
+				if (( players[ulIdx].mo ) && ( players[ulIdx].mo->health > 0 ))
+					continue;
 
 				players[ulIdx].bSpectating = false;
 				players[ulIdx].bDeadSpectator = false;

@@ -477,8 +477,7 @@ void LASTMANSTANDING_DoFight( void )
 					players[ulIdx].mo = NULL;
 				}
 
-				// Set the player's state to PST_REBORNNOINVENTORY so they everything is cleared (weapons, etc.)
-				players[ulIdx].playerstate = PST_REBORNNOINVENTORY;
+				players[ulIdx].playerstate = PST_ENTER;
 				G_DeathMatchSpawnPlayer( ulIdx, true );
 
 				if ( players[ulIdx].pSkullBot )
