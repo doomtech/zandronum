@@ -1151,7 +1151,7 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE nothing, LPSTR cmdline, int n
 		// But considering how much extra stuff needs to be installed to make Windows 95
 		// useable with pretty much any recent software, the chances are high that
 		// the user already has riched20.dll installed.
-		I_FatalError ("Sorry, you need to install Internet Explorer 3 or higher to play Skulltag on Windows 95.");
+		I_FatalError ("Sorry, you need to install Internet Explorer 3 or higher to play "GAMENAME" on Windows 95.");
 	}
 
 #if !defined(__GNUC__) && defined(_DEBUG)

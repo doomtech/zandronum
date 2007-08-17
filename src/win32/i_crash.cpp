@@ -68,6 +68,7 @@
 #include "cmdlib.h"
 
 CVAR(Int, crashlogs, 1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(String, crashlog_dir, "", CVAR_ARCHIVE|CVAR_GLOBALCONFIG);
 
 // MACROS ------------------------------------------------------------------
 
@@ -3041,14 +3042,31 @@ void DisplayCrashLog ()
 	HANDLE file;
 
 	// [BB] The crash log is written to disk disk without user confirmation.
-	// Automatically finds an unused filename of type "CrashReportXXX.zip". 
+	// Automatically finds an unused filename of type "CrashReportXXX.zip"
+	// in the directory specified by the CVAR crashlog_dir.
 	if ( crashlogs == 2 )
 	{
+		FString autoname;
+
+		int dirlen = (int)strlen (crashlog_dir);
+		if (dirlen == 0)
+		{
+			autoname = "";
+		}
+		else if (dirlen > 0)
+		{
+			autoname = crashlog_dir;
+			if (autoname[dirlen-1] != '/' && autoname[dirlen-1] != '\\')
+			{
+				autoname += '/';
+			}
+		}
+
 		char Filename[1024];
 		int i = 0;
 		do
 		{
-			sprintf( Filename, "CrashReport%03d.zip", i );
+			sprintf( Filename, "%sCrashReport%03d.zip", autoname, i );
 			i++;
 		} while ( FileExists( Filename ) && i < 999 );
 		
