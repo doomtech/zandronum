@@ -204,6 +204,8 @@ void I_Init (void)
 		{
 			*t++ = *f++;
 		}
+		// [BB] We don't copy the terminating zero of f to t, so we still have to terminate t.
+		*t = 0;
 	}
 #endif
 	if (CPU.VendorID[0])
