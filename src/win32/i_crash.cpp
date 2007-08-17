@@ -63,6 +63,12 @@
 #include <time.h>
 #include <zlib.h>
 
+#define USE_WINDOWS_DWORD
+#include "c_cvars.h"
+#include "cmdlib.h"
+
+CVAR(Int, crashlogs, 1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+
 // MACROS ------------------------------------------------------------------
 
 #define BUGS_FORUM_URL	"http://forum.zdoom.org/index.php?c=3"
@@ -2946,6 +2952,33 @@ static BOOL UploadReport (HANDLE file)
 
 //==========================================================================
 //
+// SaveFile
+//
+// [BB] Writes contents of file to ofile and closes ofile.
+//
+//==========================================================================
+
+void SaveFile(HANDLE file, HANDLE ofile)
+{
+	DWORD fileLen = GetFileSize (file, NULL), fileLeft;
+	char xferbuf[1024];
+
+	SetFilePointer (file, 0, NULL, FILE_BEGIN);
+	fileLeft = fileLen;
+	while (fileLeft != 0)
+	{
+		DWORD grab = fileLeft > sizeof(xferbuf) ? sizeof(xferbuf) : fileLeft;
+		DWORD didread;
+
+		ReadFile (file, xferbuf, grab, &didread, NULL);
+		WriteFile (ofile, xferbuf, didread, &grab, NULL);
+		fileLeft -= didread;
+	}
+	CloseHandle (ofile);
+}
+
+//==========================================================================
+//
 // SaveReport
 //
 // Makes a permanent copy of the report tarball.
@@ -2984,21 +3017,7 @@ static void SaveReport (HANDLE file)
 		}
 		else
 		{
-			DWORD fileLen = GetFileSize (file, NULL), fileLeft;
-			char xferbuf[1024];
-
-			SetFilePointer (file, 0, NULL, FILE_BEGIN);
-			fileLeft = fileLen;
-			while (fileLeft != 0)
-			{
-				DWORD grab = fileLeft > sizeof(xferbuf) ? sizeof(xferbuf) : fileLeft;
-				DWORD didread;
-
-				ReadFile (file, xferbuf, grab, &didread, NULL);
-				WriteFile (ofile, xferbuf, didread, &grab, NULL);
-				fileLeft -= didread;
-			}
-			CloseHandle (ofile);
+			SaveFile( file, ofile );
 			return;
 		}
 	}
@@ -3015,7 +3034,45 @@ static void SaveReport (HANDLE file)
 
 void DisplayCrashLog ()
 {
+	// [BB] Crash logs are turned of, just break out.
+	if ( crashlogs == 0 )
+		return;
+
 	HANDLE file;
+
+	// [BB] The crash log is written to disk disk without user confirmation.
+	// Automatically finds an unused filename of type "CrashReportXXX.zip". 
+	if ( crashlogs == 2 )
+	{
+		char Filename[1024];
+		int i = 0;
+		do
+		{
+			sprintf( Filename, "CrashReport%03d.zip", i );
+			i++;
+		} while ( FileExists( Filename ) && i < 999 );
+		
+		// [BB] If we found no free filename after the loop,
+		// there are already thousand crash logs in the directory
+		// and we don't write another one.
+		if ( FileExists( Filename ) )
+			return;
+		file = MakeZip ();
+		HANDLE ofile = CreateFile (Filename, GENERIC_WRITE, 0, NULL,
+			CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN,
+			NULL);
+		if (ofile == INVALID_HANDLE_VALUE)
+		{
+			return;
+		}
+		else
+		{
+			SaveFile( file, ofile );
+			return;
+		}
+		CloseHandle (file);
+		return;
+	}
 
 	if (NumFiles == 0)
 	{
