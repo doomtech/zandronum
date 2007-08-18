@@ -1752,7 +1752,7 @@ BOOL CALLBACK SERVERCONSOLE_BanListCallback( HWND hDlg, UINT Message, WPARAM wPa
 	ULONG		ulIdx;
 	UCVarValue	Val;
 	char		szString[256];
-	BAN_t		Ban;
+	IPADDRESSBAN_s		Ban;
 
 	Val = sv_banfile.GetGenericRep( CVAR_String );
 
@@ -1780,15 +1780,15 @@ BOOL CALLBACK SERVERCONSOLE_BanListCallback( HWND hDlg, UINT Message, WPARAM wPa
 			for ( ulIdx = 0; ulIdx < MAX_SERVER_BANS; ulIdx++ )
 			{
 				Ban = SERVERBAN_GetBan( ulIdx );
-				if (( stricmp( Ban.szBannedIP[0], "0" ) != 0 ) ||
-					( stricmp( Ban.szBannedIP[1], "0" ) != 0 ) ||
-					( stricmp( Ban.szBannedIP[2], "0" ) != 0 ) ||
-					( stricmp( Ban.szBannedIP[3], "0" ) != 0 ))
+				if (( stricmp( Ban.szIP[0], "0" ) != 0 ) ||
+					( stricmp( Ban.szIP[1], "0" ) != 0 ) ||
+					( stricmp( Ban.szIP[2], "0" ) != 0 ) ||
+					( stricmp( Ban.szIP[3], "0" ) != 0 ))
 				{
-					sprintf( szString, "%s.%s.%s.%s", Ban.szBannedIP[0],
-						Ban.szBannedIP[1],
-						Ban.szBannedIP[2],
-						Ban.szBannedIP[3] );
+					sprintf( szString, "%s.%s.%s.%s", Ban.szIP[0],
+						Ban.szIP[1],
+						Ban.szIP[2],
+						Ban.szIP[3] );
 					if ( Ban.szComment[0] )
 						sprintf( szString, "%s:%s", szString, Ban.szComment );
 

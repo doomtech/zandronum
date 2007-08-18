@@ -60,19 +60,6 @@
 #define	BANFILE_REPARSE_TIME	( TICRATE * 60 * 10 )
 
 //*****************************************************************************
-//	STRUCTURES
-
-typedef struct
-{
-	// The IP address that is banned in char form. Can be a number, or a wildcards.
-	char		szBannedIP[4][4];
-
-	// Comment regarding the banned address.
-	char		szComment[128];
-
-} BAN_t;
-
-//*****************************************************************************
 //	PROTOTYPES
 
 void	SERVERBAN_Tick( void );
@@ -82,7 +69,7 @@ void	SERVERBAN_AddBan( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3, c
 bool	SERVERBAN_StringToBan( char *pszAddress, char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 );
 void	SERVERBAN_ClearBans( void );
 //LONG	SERVERBAN_GetNumBans( void );
-BAN_t	SERVERBAN_GetBan( ULONG ulIdx );
+IPADDRESSBAN_s	SERVERBAN_GetBan( ULONG ulIdx );
 
 //*****************************************************************************
 //	EXTERNAL CONSOLE VARIABLES

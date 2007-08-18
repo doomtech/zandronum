@@ -59,9 +59,6 @@
 //*****************************************************************************
 //	PROTOTYPES
 
-static	char	serverban_SkipWhitespace( FILE *pFile );
-static	char	serverban_SkipComment( FILE *pFile );
-static	bool	serverban_ParseNextLine( FILE *pFile );
 static	void	serverban_LoadBans( void );
 static	void	serverban_CouldNotOpenFile( char *pszFunctionHeader, char *pszName, LONG lErrorCode );
 
@@ -69,7 +66,7 @@ static	void	serverban_CouldNotOpenFile( char *pszFunctionHeader, char *pszName, 
 //	VARIABLES
 
 static	char	g_cCurChar;
-static	BAN_t	g_ServerBans[MAX_SERVER_BANS];
+static	IPADDRESSBAN_s	g_ServerBans[MAX_SERVER_BANS];
 static	LONG	g_lBanIdx;
 static	ULONG	g_ulBanReParseTicker;
 
@@ -88,10 +85,10 @@ CUSTOM_CVAR( String, sv_banfile, "banlist.txt", CVAR_ARCHIVE )
 
 	for ( ulIdx = 0; ulIdx < MAX_SERVER_BANS; ulIdx++ )
 	{
-		sprintf( g_ServerBans[ulIdx].szBannedIP[0], "0" );
-		sprintf( g_ServerBans[ulIdx].szBannedIP[1], "0" );
-		sprintf( g_ServerBans[ulIdx].szBannedIP[2], "0" );
-		sprintf( g_ServerBans[ulIdx].szBannedIP[3], "0" );
+		sprintf( g_ServerBans[ulIdx].szIP[0], "0" );
+		sprintf( g_ServerBans[ulIdx].szIP[1], "0" );
+		sprintf( g_ServerBans[ulIdx].szIP[2], "0" );
+		sprintf( g_ServerBans[ulIdx].szIP[3], "0" );
 
 		g_ServerBans[ulIdx].szComment[0] = 0;
 	}
@@ -122,10 +119,10 @@ void SERVERBAN_Tick( void )
 
 			for ( ulIdx = 0; ulIdx < MAX_SERVER_BANS; ulIdx++ )
 			{
-				sprintf( g_ServerBans[ulIdx].szBannedIP[0], "0" );
-				sprintf( g_ServerBans[ulIdx].szBannedIP[1], "0" );
-				sprintf( g_ServerBans[ulIdx].szBannedIP[2], "0" );
-				sprintf( g_ServerBans[ulIdx].szBannedIP[3], "0" );
+				sprintf( g_ServerBans[ulIdx].szIP[0], "0" );
+				sprintf( g_ServerBans[ulIdx].szIP[1], "0" );
+				sprintf( g_ServerBans[ulIdx].szIP[2], "0" );
+				sprintf( g_ServerBans[ulIdx].szIP[3], "0" );
 
 				g_ServerBans[ulIdx].szComment[0] = 0;
 			}
@@ -144,10 +141,10 @@ bool SERVERBAN_IsIPBanned( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP
 
 	for ( ulIdx = 0; ulIdx < MAX_SERVER_BANS; ulIdx++ )
 	{
-		if ((( g_ServerBans[ulIdx].szBannedIP[0][0] == '*' ) || ( stricmp( pszIP0, g_ServerBans[ulIdx].szBannedIP[0] ) == 0 )) &&
-			(( g_ServerBans[ulIdx].szBannedIP[1][0] == '*' ) || ( stricmp( pszIP1, g_ServerBans[ulIdx].szBannedIP[1] ) == 0 )) &&
-			(( g_ServerBans[ulIdx].szBannedIP[2][0] == '*' ) || ( stricmp( pszIP2, g_ServerBans[ulIdx].szBannedIP[2] ) == 0 )) &&
-			(( g_ServerBans[ulIdx].szBannedIP[3][0] == '*' ) || ( stricmp( pszIP3, g_ServerBans[ulIdx].szBannedIP[3] ) == 0 )))
+		if ((( g_ServerBans[ulIdx].szIP[0][0] == '*' ) || ( stricmp( pszIP0, g_ServerBans[ulIdx].szIP[0] ) == 0 )) &&
+			(( g_ServerBans[ulIdx].szIP[1][0] == '*' ) || ( stricmp( pszIP1, g_ServerBans[ulIdx].szIP[1] ) == 0 )) &&
+			(( g_ServerBans[ulIdx].szIP[2][0] == '*' ) || ( stricmp( pszIP2, g_ServerBans[ulIdx].szIP[2] ) == 0 )) &&
+			(( g_ServerBans[ulIdx].szIP[3][0] == '*' ) || ( stricmp( pszIP3, g_ServerBans[ulIdx].szIP[3] ) == 0 )))
 		{
 			return ( true );
 		}
@@ -164,10 +161,10 @@ ULONG SERVERBAN_DoesBanExist( char *pszIP0, char *pszIP1, char *pszIP2, char *ps
 
 	for ( ulIdx = 0; ulIdx < MAX_SERVER_BANS; ulIdx++ )
 	{
-		if (( stricmp( pszIP0, g_ServerBans[ulIdx].szBannedIP[0] ) == 0 ) &&
-			( stricmp( pszIP1, g_ServerBans[ulIdx].szBannedIP[1] ) == 0 ) &&
-			( stricmp( pszIP2, g_ServerBans[ulIdx].szBannedIP[2] ) == 0 ) &&
-			( stricmp( pszIP3, g_ServerBans[ulIdx].szBannedIP[3] ) == 0 ))
+		if (( stricmp( pszIP0, g_ServerBans[ulIdx].szIP[0] ) == 0 ) &&
+			( stricmp( pszIP1, g_ServerBans[ulIdx].szIP[1] ) == 0 ) &&
+			( stricmp( pszIP2, g_ServerBans[ulIdx].szIP[2] ) == 0 ) &&
+			( stricmp( pszIP3, g_ServerBans[ulIdx].szIP[3] ) == 0 ))
 		{
 			return ( ulIdx );
 		}
@@ -194,6 +191,12 @@ void SERVERBAN_AddBan( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3, c
 		Printf( "Ban for %s.%s.%s.%s already exists.\n", pszIP0, pszIP1, pszIP2, pszIP3 );
 		return;
 	}
+	// [BB] We may not add more bans if we already have banned MAX_SERVER_BANS IPs.
+	if( g_lBanIdx == MAX_SERVER_BANS )
+	{
+		Printf( "Maximum number of bans reached.\n" );
+		return;
+	}
 
 	szOutString[0] = 0;
 	if ( pszPlayerName )
@@ -206,10 +209,10 @@ void SERVERBAN_AddBan( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3, c
 		sprintf( szOutString, "%s%s", szOutString, pszComment );
 
 	// Add the ban and comment into memory.
-	sprintf( g_ServerBans[g_lBanIdx].szBannedIP[0], pszIP0 );
-	sprintf( g_ServerBans[g_lBanIdx].szBannedIP[1], pszIP1 );
-	sprintf( g_ServerBans[g_lBanIdx].szBannedIP[2], pszIP2 );
-	sprintf( g_ServerBans[g_lBanIdx].szBannedIP[3], pszIP3 );
+	sprintf( g_ServerBans[g_lBanIdx].szIP[0], pszIP0 );
+	sprintf( g_ServerBans[g_lBanIdx].szIP[1], pszIP1 );
+	sprintf( g_ServerBans[g_lBanIdx].szIP[2], pszIP2 );
+	sprintf( g_ServerBans[g_lBanIdx].szIP[3], pszIP3 );
 	sprintf( g_ServerBans[g_lBanIdx].szComment, "%s", szOutString );
 	g_lBanIdx++;
 
@@ -335,10 +338,10 @@ void SERVERBAN_ClearBans( void )
 	// Clear out the existing bans in memory.
 	for ( ulIdx = 0; ulIdx < MAX_SERVER_BANS; ulIdx++ )
 	{
-		sprintf( g_ServerBans[ulIdx].szBannedIP[0], "0" );
-		sprintf( g_ServerBans[ulIdx].szBannedIP[1], "0" );
-		sprintf( g_ServerBans[ulIdx].szBannedIP[2], "0" );
-		sprintf( g_ServerBans[ulIdx].szBannedIP[3], "0" );
+		sprintf( g_ServerBans[ulIdx].szIP[0], "0" );
+		sprintf( g_ServerBans[ulIdx].szIP[1], "0" );
+		sprintf( g_ServerBans[ulIdx].szIP[2], "0" );
+		sprintf( g_ServerBans[ulIdx].szIP[3], "0" );
 
 		g_ServerBans[ulIdx].szComment[0] = 0;
 	}
@@ -369,10 +372,10 @@ LONG SERVERBAN_GetNumBans( void )
 	lNumBans = 0;
 	for ( ulIdx = 0; ulIdx < MAX_SERVER_BANS; ulIdx++ )
 	{
-		if (( stricmp( g_ServerBans[ulIdx].szBannedIP[0], "0" ) != 0 ) ||
-			( stricmp( g_ServerBans[ulIdx].szBannedIP[1], "0" ) != 0 ) ||
-			( stricmp( g_ServerBans[ulIdx].szBannedIP[2], "0" ) != 0 ) ||
-			( stricmp( g_ServerBans[ulIdx].szBannedIP[3], "0" ) != 0 ))
+		if (( stricmp( g_ServerBans[ulIdx].szIP[0], "0" ) != 0 ) ||
+			( stricmp( g_ServerBans[ulIdx].szIP[1], "0" ) != 0 ) ||
+			( stricmp( g_ServerBans[ulIdx].szIP[2], "0" ) != 0 ) ||
+			( stricmp( g_ServerBans[ulIdx].szIP[3], "0" ) != 0 ))
 		{
 			lNumBans++;
 		}
@@ -383,16 +386,16 @@ LONG SERVERBAN_GetNumBans( void )
 */
 //*****************************************************************************
 //
-BAN_t SERVERBAN_GetBan( ULONG ulIdx )
+IPADDRESSBAN_s SERVERBAN_GetBan( ULONG ulIdx )
 {
 	if ( ulIdx >= MAX_SERVER_BANS )
 	{
-		BAN_t	ZeroBan;
+		IPADDRESSBAN_s	ZeroBan;
 
-		sprintf( ZeroBan.szBannedIP[0], "0" );
-		sprintf( ZeroBan.szBannedIP[1], "0" );
-		sprintf( ZeroBan.szBannedIP[2], "0" );
-		sprintf( ZeroBan.szBannedIP[3], "0" );
+		sprintf( ZeroBan.szIP[0], "0" );
+		sprintf( ZeroBan.szIP[1], "0" );
+		sprintf( ZeroBan.szIP[2], "0" );
+		sprintf( ZeroBan.szIP[3], "0" );
 
 		ZeroBan.szComment[0] = 0;
 
@@ -403,130 +406,10 @@ BAN_t SERVERBAN_GetBan( ULONG ulIdx )
 }
 
 //*****************************************************************************
-//*****************************************************************************
-//
-static char serverban_SkipWhitespace( FILE *pFile )
-{
-	g_cCurChar = fgetc( pFile );
-	while (( g_cCurChar == ' ' ) && ( g_cCurChar != -1 ))
-		g_cCurChar = fgetc( pFile );
-
-	return ( g_cCurChar );
-}
-
-//*****************************************************************************
-//
-static char serverban_SkipComment( FILE *pFile )
-{
-	g_cCurChar = fgetc( pFile );
-	while (( g_cCurChar != '\r' ) && ( g_cCurChar != '\n' ) && ( g_cCurChar != -1 ))
-		g_cCurChar = fgetc( pFile );
-
-	return ( g_cCurChar );
-}
-
-//*****************************************************************************
-//
-static bool serverban_ParseNextLine( FILE *pFile )
-{
-	NETADDRESS_s	BanAddress;
-	char			szIP[256];
-	char			lPosition;
-
-	lPosition = 0;
-	szIP[0] = 0;
-
-	g_cCurChar = fgetc( pFile );
-
-	// Skip whitespace.
-	if ( g_cCurChar == ' ' )
-	{
-		g_cCurChar = serverban_SkipWhitespace( pFile );
-
-		if ( feof( pFile ))
-		{
-			fclose( pFile );
-			return ( false );
-		}
-	}
-
-	while ( 1 )
-	{
-		if ( g_cCurChar == '\r' || g_cCurChar == '\n' || g_cCurChar == ':' || g_cCurChar == '/' || g_cCurChar == -1 )
-		{
-			if ( lPosition > 0 )
-			{
-				if ( SERVERBAN_StringToBan( szIP, g_ServerBans[g_lBanIdx].szBannedIP[0], g_ServerBans[g_lBanIdx].szBannedIP[1], g_ServerBans[g_lBanIdx].szBannedIP[2], g_ServerBans[g_lBanIdx].szBannedIP[3] ))
-				{
-					if ( g_lBanIdx == MAX_SERVER_BANS )
-					{
-						Printf( "serverban_ParseNextLine: WARNING! Maximum number of bans (%d) exceeded!\n", MAX_SERVER_BANS );
-						return ( false );
-					}
-
-					g_lBanIdx++;
-					return ( true );
-				}
-				else if ( NETWORK_StringToAddress( szIP, &BanAddress ))
-				{
-					if ( g_lBanIdx == MAX_SERVER_BANS )
-					{
-						Printf( "serverban_ParseNextLine: WARNING! Maximum number of bans (%d) exceeded!\n", MAX_SERVER_BANS );
-						return ( false );
-					}
-
-					itoa( BanAddress.abIP[0], g_ServerBans[g_lBanIdx].szBannedIP[0], 10 );
-					itoa( BanAddress.abIP[1], g_ServerBans[g_lBanIdx].szBannedIP[1], 10 );
-					itoa( BanAddress.abIP[2], g_ServerBans[g_lBanIdx].szBannedIP[2], 10 );
-					itoa( BanAddress.abIP[3], g_ServerBans[g_lBanIdx].szBannedIP[3], 10 );
-					g_lBanIdx++;
-					return ( true );
-				}
-				else
-				{
-					g_ServerBans[g_lBanIdx].szBannedIP[0][0] = 0;
-					g_ServerBans[g_lBanIdx].szBannedIP[1][0] = 0;
-					g_ServerBans[g_lBanIdx].szBannedIP[2][0] = 0;
-					g_ServerBans[g_lBanIdx].szBannedIP[3][0] = 0;
-					// [BB] Why should we want to have a zero IP address in the ban list?
-					//g_lBanIdx++;
-				}
-			}
-
-			if ( feof( pFile ))
-			{
-				fclose( pFile );
-				return ( false );
-			}
-			// If we've hit a comment, skip until the end of the line (or the end of the file) and get out.
-			else if ( g_cCurChar == ':' || g_cCurChar == '/' )
-			{
-				serverban_SkipComment( pFile );
-				return ( true );
-			}
-			else
-				return ( true );
-		}
-
-		szIP[lPosition++] = g_cCurChar;
-		szIP[lPosition] = 0;
-
-		if ( lPosition == 256 )
-		{
-			fclose( pFile );
-			return ( false );
-		}
-
-		g_cCurChar = fgetc( pFile );
-	}
-}
-
-//*****************************************************************************
 //
 static void serverban_LoadBans( void )
 {
 	UCVarValue	Val;
-	FILE		*pFile;
 
 	// Open the banfile.
 	Val = sv_banfile.GetGenericRep( CVAR_String );
@@ -551,18 +434,13 @@ static void serverban_LoadBans( void )
 		fsFilePath.Insert(index, '\\');
 	}
 
-	if (( pFile = fopen( fsFilePath.GetChars() , "r" )) != NULL )
-	{
-		// -1 == EOF char.
-		while ( g_cCurChar != -1 )
-		{
-			// This function returns true if Address is banned.
-			if ( serverban_ParseNextLine( pFile ) == false )
-				return;
-		}
-	}
-	else
-		serverban_CouldNotOpenFile( "serverban_LoadBans", Val.String, errno );
+	IPFileParser parser( MAX_SERVER_BANS );
+	if ( !(parser.parseIPList( fsFilePath.GetChars(), g_ServerBans )) )
+		Printf( "%s", parser.getErrorMessage() );
+
+	g_lBanIdx = parser.getNumberOfEntries();
+	// [BB] TO-DO: Rename and move the serverban_CouldNotOpenFile code somewhere
+	// where it can be used by the master server and use it in IPFileParser.
 }
 
 //*****************************************************************************
@@ -889,15 +767,15 @@ CCMD( viewbanlist )
 
 	for ( ulIdx = 0; ulIdx < MAX_SERVER_BANS; ulIdx++ )
 	{
-		if (( stricmp( g_ServerBans[ulIdx].szBannedIP[0], "0" ) != 0 ) ||
-			( stricmp( g_ServerBans[ulIdx].szBannedIP[1], "0" ) != 0 ) ||
-			( stricmp( g_ServerBans[ulIdx].szBannedIP[2], "0" ) != 0 ) ||
-			( stricmp( g_ServerBans[ulIdx].szBannedIP[3], "0" ) != 0 ))
+		if (( stricmp( g_ServerBans[ulIdx].szIP[0], "0" ) != 0 ) ||
+			( stricmp( g_ServerBans[ulIdx].szIP[1], "0" ) != 0 ) ||
+			( stricmp( g_ServerBans[ulIdx].szIP[2], "0" ) != 0 ) ||
+			( stricmp( g_ServerBans[ulIdx].szIP[3], "0" ) != 0 ))
 		{
-			Printf( "%s.%s.%s.%s", g_ServerBans[ulIdx].szBannedIP[0],
-				g_ServerBans[ulIdx].szBannedIP[1],
-				g_ServerBans[ulIdx].szBannedIP[2],
-				g_ServerBans[ulIdx].szBannedIP[3] );
+			Printf( "%s.%s.%s.%s", g_ServerBans[ulIdx].szIP[0],
+				g_ServerBans[ulIdx].szIP[1],
+				g_ServerBans[ulIdx].szIP[2],
+				g_ServerBans[ulIdx].szIP[3] );
 			if ( g_ServerBans[ulIdx].szComment[0] )
 				Printf( ":%s", g_ServerBans[ulIdx].szComment );
 			Printf( "\n" );
@@ -920,10 +798,10 @@ CCMD( reloadbans )
 
 	for ( ulIdx = 0; ulIdx < MAX_SERVER_BANS; ulIdx++ )
 	{
-		sprintf( g_ServerBans[ulIdx].szBannedIP[0], "0" );
-		sprintf( g_ServerBans[ulIdx].szBannedIP[1], "0" );
-		sprintf( g_ServerBans[ulIdx].szBannedIP[2], "0" );
-		sprintf( g_ServerBans[ulIdx].szBannedIP[3], "0" );
+		sprintf( g_ServerBans[ulIdx].szIP[0], "0" );
+		sprintf( g_ServerBans[ulIdx].szIP[1], "0" );
+		sprintf( g_ServerBans[ulIdx].szIP[2], "0" );
+		sprintf( g_ServerBans[ulIdx].szIP[3], "0" );
 
 		g_ServerBans[ulIdx].szComment[0] = 0;
 	}
