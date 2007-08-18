@@ -140,8 +140,16 @@ bool	NETWORK_StringToAddress( char *pszString, NETADDRESS_s *pAddress );
 void	NETWORK_SocketAddressToNetAddress( struct sockaddr_in *s, NETADDRESS_s *a );
 bool	NETWORK_StringToIP( char *pszAddress, char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 );
 
+/**
+ * Class to read IP file lists from files, supports wildcards.
+ *
+ * Based on the ban file parsing C-code written by BC.
+ *
+ * \author BB
+ */
 class IPFileParser{
 	const unsigned int _listLength;
+	ULONG _numberOfEntries;
 	char _errorMessage[1024];
 public:
 	IPFileParser ( const int IPListLength )
@@ -154,155 +162,18 @@ public:
 	{
 		return _errorMessage;
 	}
-	bool parseIPList( const char* FileName, IPADDRESSBAN_s* IPArray ){
-		FILE			*pFile;
-		unsigned long	ulIdx;
 
-		for ( ulIdx = 0; ulIdx < _listLength; ulIdx++ )
-		{
-			sprintf( IPArray[ulIdx].szIP[0], "0" );
-			sprintf( IPArray[ulIdx].szIP[1], "0" );
-			sprintf( IPArray[ulIdx].szIP[2], "0" );
-			sprintf( IPArray[ulIdx].szIP[3], "0" );
-
-			IPArray[ulIdx].szComment[0] = 0;
-		}
-
-		char curChar = 0;
-		ULONG curIPIdx = 0;
-		if (( pFile = fopen( FileName, "r" )) != NULL )
-		{
-			while ( true )
-			{
-				bool parsingDone = !parseNextLine( pFile, IPArray[curIPIdx], curIPIdx );
-
-				if ( _errorMessage[0] != '\0' )
-				{
-					fclose( pFile );
-					return false;
-				}
-
-				if ( parsingDone == true )
-					break;
-			}
-		}
-		else
-		{
-			sprintf( _errorMessage, "WARNING! Could not open %s!\n", FileName );
-			return false;
-		}
-
-		fclose( pFile );
-		return true;
+	ULONG getNumberOfEntries ()
+	{
+		return _numberOfEntries;
 	}
+
+	bool parseIPList( const char* FileName, IPADDRESSBAN_s* IPArray );
 private:
-	char skipWhitespace( FILE *pFile )
-	{
-		char curChar = fgetc( pFile );
-		while (( curChar == ' ' ) && ( curChar != -1 ))
-			curChar = fgetc( pFile );
-
-		return ( curChar );
-	}
-	char skipComment( FILE *pFile )
-	{
-		char curChar = fgetc( pFile );
-		while (( curChar != '\r' ) && ( curChar != '\n' ) && ( curChar != -1 ))
-			curChar = fgetc( pFile );
-
-		return ( curChar );
-	}
-	bool parseNextLine( FILE *pFile, IPADDRESSBAN_s &IP, ULONG &BanIdx )
-	{
-		NETADDRESS_s	IPAddress;
-		char			szIP[257];
-		int				lPosition;
-
-		lPosition = 0;
-		szIP[0] = 0;
-
-		char curChar = fgetc( pFile );
-
-		// Skip whitespace.
-		if ( curChar == ' ' )
-		{
-			curChar = skipWhitespace( pFile );
-
-			if ( feof( pFile ))
-			{
-				fclose( pFile );
-				return ( false );
-			}
-		}
-
-		while ( 1 )
-		{
-			if ( curChar == '\r' || curChar == '\n' || curChar == ':' || curChar == '/' || curChar == -1 )
-			{
-				if ( lPosition > 0 )
-				{
-					if ( NETWORK_StringToIP( szIP, IP.szIP[0], IP.szIP[1], IP.szIP[2], IP.szIP[3] ))
-					{
-						if ( BanIdx == _listLength )
-						{
-							sprintf( _errorMessage, "parseNextLine: WARNING! Maximum number of IPs (%d) exceeded!\n", _listLength );
-							return ( false );
-						}
-
-						BanIdx++;
-						return ( true );
-					}
-					else if ( NETWORK_StringToAddress( szIP, &IPAddress ))
-					{
-						if ( BanIdx == _listLength )
-						{
-							sprintf( _errorMessage, "parseNextLine: WARNING! Maximum number of IPs (%d) exceeded!\n", _listLength );
-							return ( false );
-						}
-
-						_itoa( IPAddress.abIP[0], IP.szIP[0], 10 );
-						_itoa( IPAddress.abIP[1], IP.szIP[1], 10 );
-						_itoa( IPAddress.abIP[2], IP.szIP[2], 10 );
-						_itoa( IPAddress.abIP[3], IP.szIP[3], 10 );
-						BanIdx++;
-						return ( true );
-					}
-					else
-					{
-						IP.szIP[0][0] = 0;
-						IP.szIP[1][0] = 0;
-						IP.szIP[2][0] = 0;
-						IP.szIP[3][0] = 0;
-					}
-				}
-
-				if ( feof( pFile ))
-				{
-					fclose( pFile );
-					return ( false );
-				}
-				// If we've hit a comment, skip until the end of the line (or the end of the file) and get out.
-				else if ( curChar == ':' || curChar == '/' )
-				{
-					skipComment( pFile );
-					return ( true );
-				}
-				else
-					return ( true );
-			}
-
-			szIP[lPosition++] = curChar;
-			szIP[lPosition] = 0;
-
-			if ( lPosition == 256 )
-			{
-				fclose( pFile );
-				return ( false );
-			}
-
-			curChar = fgetc( pFile );
-		}
-	}
+	char skipWhitespace( FILE *pFile );
+	char skipComment( FILE *pFile );
+	void readReason( FILE *pFile, char *Reason, const int MaxReasonLength );
+	bool parseNextLine( FILE *pFile, IPADDRESSBAN_s &IP, ULONG &BanIdx );
 };
 
 #endif	// __NETWORKSHARED_H__
