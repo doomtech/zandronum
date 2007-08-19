@@ -1463,7 +1463,7 @@ CCMD (map)
 
 			// Tell the server we're leaving the game.
 			if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
-				CLIENT_QuitNetworkGame( );
+				CLIENT_QuitNetworkGame( NULL );
 
 			// Turn campaign mode back on.
 			CAMPAIGN_EnableCampaign( );
@@ -2019,7 +2019,7 @@ void G_DoCompleted (void)
 	}
 
 	// Clear out the in level notify text.
-	CONSOLE_ClearNotifyText( );
+	C_FlushDisplay( );
 
 	gamestate = GS_INTERMISSION;
 	viewactive = false;

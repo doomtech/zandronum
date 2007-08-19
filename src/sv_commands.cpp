@@ -71,26 +71,10 @@
 
 // :((((((
 polyobj_t	*GetPolyobj( int polyNum );
-extern char *g_szActorKeyLetter[NUMBER_OF_ACTOR_NAME_KEY_LETTERS];
-extern char *g_szActorFullName[NUMBER_OF_ACTOR_NAME_KEY_LETTERS];
 
 //*****************************************************************************
 //	FUNCTIONS
 
-inline void initNetNameString( AActor *pActor, const char *&pszName ){
-	pszName = NULL;
-	for( int i = 0; i < NUMBER_OF_ACTOR_NAME_KEY_LETTERS; i++ ){
-		if ( stricmp( pActor->GetClass( )->TypeName.GetChars( ), g_szActorFullName[i] ) == 0 ){
-			pszName = g_szActorKeyLetter[i];
-			break;
-		}
-	}
-	if( pszName == NULL )
-		pszName = pActor->GetClass( )->TypeName.GetChars( );
-}
-
-//*****************************************************************************
-//
 void SERVERCOMMANDS_Ping( ULONG ulTime )
 {
 	ULONG	ulIdx;
@@ -790,7 +774,7 @@ void SERVERCOMMANDS_UpdatePlayerPendingWeapon( ULONG ulPlayer )
 	// Some optimization. For standard Doom weapons, to reduce the size of the string
 	// that's sent out, just send some key character that identifies the weapon, instead
 	// of the full name.
-	convertWeaponNameToKeyLetter( pszPendingWeaponString );
+	NETWORK_ConvertWeaponNameToKeyLetter( pszPendingWeaponString );
 
 	ULONG	ulIdx;
 
@@ -861,7 +845,7 @@ void SERVERCOMMANDS_ChangePlayerWeapon( ULONG ulPlayer )
 	// Some optimization. For standard Doom weapons, to reduce the size of the string
 	// that's sent out, just send some key character that identifies the weapon, instead
 	// of the full name.
-	convertWeaponNameToKeyLetter( pszWeaponString );
+	NETWORK_ConvertWeaponNameToKeyLetter( pszWeaponString );
 
 	SERVER_CheckClientBuffer( ulPlayer, 1 + (ULONG)strlen( pszWeaponString ), false );
 	NETWORK_WriteHeader( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, SVC_WEAPONCHANGE );
@@ -1236,9 +1220,11 @@ void SERVERCOMMANDS_SpawnThing( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFla
 		return;
 	}
 
+	pszName = pActor->GetClass( )->TypeName.GetChars( );
+
 	// Some optimization. For some actors that are sent in bunches, to reduce the size,
 	// just send some key letter that identifies the actor, instead of the full name.
-	initNetNameString( pActor, pszName );
+	NETWORK_ConvertNameToKeyLetter( pszName );
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -1276,9 +1262,11 @@ void SERVERCOMMANDS_SpawnThingNoNetID( AActor *pActor, ULONG ulPlayerExtra, ULON
 	if ( pActor == NULL )
 		return;
 
+	pszName = pActor->GetClass( )->TypeName.GetChars( );
+
 	// Some optimization. For some actors that are sent in bunches, to reduce the size,
 	// just send some key letter that identifies the actor, instead of the full name.
-	initNetNameString( pActor, pszName );
+	NETWORK_ConvertNameToKeyLetter( pszName );
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -1327,9 +1315,11 @@ void SERVERCOMMANDS_SpawnThingExact( AActor *pActor, ULONG ulPlayerExtra, ULONG 
 		return;
 	}
 
+	pszName = pActor->GetClass( )->TypeName.GetChars( );
+
 	// Some optimization. For some actors that are sent in bunches, to reduce the size,
 	// just send some key letter that identifies the actor, instead of the full name.
-	initNetNameString( pActor, pszName );
+	NETWORK_ConvertNameToKeyLetter( pszName );
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -1364,9 +1354,11 @@ void SERVERCOMMANDS_SpawnThingExactNoNetID( AActor *pActor, ULONG ulPlayerExtra,
 	if ( pActor == NULL )
 		return;
 
+	pszName = pActor->GetClass( )->TypeName.GetChars( );
+
 	// Some optimization. For some actors that are sent in bunches, to reduce the size,
 	// just send some key letter that identifies the actor, instead of the full name.
-	initNetNameString( pActor, pszName );
+	NETWORK_ConvertNameToKeyLetter( pszName );
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -3010,12 +3002,11 @@ void SERVERCOMMANDS_SpawnMissile( AActor *pMissile, ULONG ulPlayerExtra, ULONG u
 	if ( pMissile == NULL )
 		return;
 
+	pszName = pMissile->GetClass( )->TypeName.GetChars( );
+
 	// Some optimization. For some actors that are sent in bunches, to reduce the size,
 	// just send some key letter that identifies the actor, instead of the full name.
-	if ( stricmp( pMissile->GetClass( )->TypeName.GetChars( ), "PlasmaBall" ) == 0 )
-		pszName = "1";
-	else
-		pszName = pMissile->GetClass( )->TypeName.GetChars( );
+	NETWORK_ConvertNameToKeyLetter( pszName );
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -3059,12 +3050,11 @@ void SERVERCOMMANDS_SpawnMissileExact( AActor *pMissile, ULONG ulPlayerExtra, UL
 	if ( pMissile == NULL )
 		return;
 
+	pszName = pMissile->GetClass( )->TypeName.GetChars( );
+
 	// Some optimization. For some actors that are sent in bunches, to reduce the size,
 	// just send some key letter that identifies the actor, instead of the full name.
-	if ( stricmp( pMissile->GetClass( )->TypeName.GetChars( ), "PlasmaBall" ) == 0 )
-		pszName = "1";
-	else
-		pszName = pMissile->GetClass( )->TypeName.GetChars( );
+	NETWORK_ConvertNameToKeyLetter( pszName );
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{

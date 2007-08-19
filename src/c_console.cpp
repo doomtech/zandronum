@@ -660,16 +660,6 @@ void C_AddNotifyString (int printlevel, const char *source)
 
 //*****************************************************************************
 //
-void CONSOLE_ClearNotifyText( void )
-{
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < NUMNOTIFIES; ulIdx++ )
-		NotifyStrings[ulIdx].TimeOut = 0;
-}
-
-//*****************************************************************************
-//
 void CONSOLE_SetAllowColorCodes( bool bAllow )
 {
 	g_bAllowColorCodes = bAllow;

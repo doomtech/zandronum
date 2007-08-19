@@ -81,6 +81,7 @@
 #include "medal.h"
 #include "cl_demo.h"
 #include "cl_main.h"
+#include "cl_statistics.h"
 #include "browser.h"
 #include "lastmanstanding.h"
 #include "campaign.h"
@@ -1155,6 +1156,12 @@ void G_Ticker ()
 			}
 		}
 	}
+	// [BC] Tick the client and client statistics modules.
+	else
+	{
+		CLIENT_Tick( );
+		CLIENTSTATISTICS_Tick( );
+	}
 
 	if (ToggleFullscreen)
 	{
@@ -1274,7 +1281,7 @@ void G_Ticker ()
 				( NETWORK_CompareAddress( NETWORK_GetFromAddress( ), CLIENT_GetServerAddress( ), false )))
 			{
 				// Statistics.
-				CLIENT_AddBytesReceived( lSize );
+				CLIENTSTATISTICS_AddToBytesReceived( lSize );
 
 #ifdef	_DEBUG
 				// Emulate packet loss for debugging.
@@ -1338,7 +1345,7 @@ void G_Ticker ()
 				char			*pszAddressBuf;
 				NETADDRESS_s	AddressFrom;
 				LONG			lCommand;
-				
+
 				pszAddressBuf = NETWORK_AddressToString( NETWORK_GetFromAddress( ));
 
 				// Skulltag is receiving a message from something on the LAN.
@@ -1407,7 +1414,7 @@ void G_Ticker ()
 
 		// Now that we're done parsing the multiple packets the server has sent our way, check
 		// to see if any packets are missing.
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( CLIENT_GetConnectionState( ) >= CTS_CONNECTED ))
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( CLIENT_GetConnectionState( ) >= CTS_REQUESTINGSNAPSHOT ))
 			CLIENT_CheckForMissingPackets( );
 	}
 

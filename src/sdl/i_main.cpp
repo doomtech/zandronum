@@ -187,9 +187,6 @@ int main (int argc, char **argv)
 {
 	printf(GAMENAME" v%s - SVN revision %s - SDL version\nCompiled on %s\n\n",
 		DOTVERSIONSTR_NOREV,SVN_REVISION_STRING,__DATE__);
-#ifdef STAY_NETWORK_COMPATIBLE
-	printf("Compiled with network compatibility.\n");
-#endif
 
 	{
 		int s[4] = { SIGSEGV, SIGILL, SIGFPE, SIGBUS };

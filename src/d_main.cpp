@@ -101,6 +101,7 @@
 #include "team.h"
 #include "medal.h"
 #include "cl_main.h"
+#include "cl_statistics.h"
 #include "maprotation.h"
 #include "browser.h"
 #include "p_spec.h"
@@ -920,9 +921,6 @@ void D_DoomLoop ()
 					lasttic = gametic;
 					I_StartFrame ();
 				}
-
-				// Tick parts of the client module.
-				CLIENT_Tick( );
 
 				// Run at least 1 tick.
 				TryRunTics( );
@@ -2792,7 +2790,10 @@ void D_DoomMain (void)
 	if ( Args.CheckParm( "-host" ))
 		SERVER_Construct( );
 	else
+	{
 		CLIENT_Construct( );
+		CLIENTSTATISTICS_Construct( );
+	}
 
 	// [BC] Initialize the browser module.
 	BROWSER_Construct( );

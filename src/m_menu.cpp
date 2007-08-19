@@ -1879,7 +1879,7 @@ void M_VerifyNightmare (int ch)
 		
 	// Tell the server we're leaving the game.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
-		CLIENT_QuitNetworkGame( );
+		CLIENT_QuitNetworkGame( NULL );
 
 	// Assume normal mode for going through the menu.
 	deathmatch = false;
@@ -1901,7 +1901,7 @@ void M_VerifyBotNightmare (int ch)
 
 	// Tell the server we're leaving the game.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
-		CLIENT_QuitNetworkGame( );
+		CLIENT_QuitNetworkGame( NULL );
 
 	// Assume normal mode for going through the menu.
 	deathmatch = false;
@@ -1931,7 +1931,7 @@ void M_ChooseSkill (int choice)
 
 	// [BC] Tell the server we're leaving the game.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
-		CLIENT_QuitNetworkGame( );
+		CLIENT_QuitNetworkGame( NULL );
 
 	// [BC] Put us back in single player mode, and reset our dmflags.
 	NETWORK_SetState( NETSTATE_SINGLE );
@@ -1967,7 +1967,7 @@ void M_ChooseBotSkill (int choice)
 
 	// Tell the server we're leaving the game.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
-		CLIENT_QuitNetworkGame( );
+		CLIENT_QuitNetworkGame( NULL );
 
 	// Assume normal mode for going through the menu.
 	Val.Bool = false;

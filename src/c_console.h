@@ -70,7 +70,6 @@ void C_AdjustBottom (void);
 void C_FlushDisplay (void);
 
 // [BC] New function prototypes.
-void CONSOLE_ClearNotifyText( void );
 void CONSOLE_SetAllowColorCodes( bool bAllow );
 void CONSOLE_SetRCONPlayer( ULONG ulPlayer );
 

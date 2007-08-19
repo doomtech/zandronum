@@ -182,8 +182,8 @@ enum
 
 // [BB]: Some optimization. For some actors that are sent in bunches, to reduce the size,
 // just send some key letter that identifies the actor, instead of the full name.
-#define NUMBER_OF_ACTOR_NAME_KEY_LETTERS 2
-#define NUMBER_OF_WEAPON_NAME_KEY_LETTERS 10
+#define NUMBER_OF_ACTOR_NAME_KEY_LETTERS	3
+#define NUMBER_OF_WEAPON_NAME_KEY_LETTERS	10
 
 // This is the longest possible string we can pass over the network.
 #define	MAX_NETWORK_STRING			2048
@@ -244,11 +244,28 @@ enum
 };
 
 //*****************************************************************************
+enum
+{
+	// The server has properly received the client's challenge, and is telling
+	// the client to authenticate his map.
+	SVCC_AUTHENTICATE,
+
+	// The server received the client's checksum, and it's valid. Now the server
+	// is telling the client to load the map.
+	SVCC_MAPLOAD,
+
+	// There was an error during the course of the client trying to connect.
+	SVCC_ERROR,
+
+	NUM_SERVERCONNECT_COMMANDS
+};
+
+//*****************************************************************************
 // Note: If the number of enumerated messages goes beyond 255, commands will need 
 // to be changed to a short. Hopefully that won't have to happen.
 typedef enum
 {
-	SVC_HEADER,							// GENERAL PROTOCOL COMMANDS
+	SVC_HEADER = NUM_SERVERCONNECT_COMMANDS,	// GENERAL PROTOCOL COMMANDS
 	SVC_UNRELIABLEPACKET,
 	SVC_RESETSEQUENCE,
 	SVC_PING,
@@ -447,7 +464,6 @@ typedef enum
 	SVC_DOFLASHFADER,
 	SVC_SETWALLSCROLLER,
 	SVC_SETPLAYERCHEATS,
-	SVC_DUMMY,							// [BB] Number 199 is equal to LAUNCHER_SERVER_CHALLENGE. We have to make sure CONNECT_CHALLENGE != LAUNCHER_SERVER_CHALLENGE and keep in mind that CONNECT_CHALLENGE = NUM_SERVER_COMMANDS.
 
 	NUM_SERVER_COMMANDS
 };
@@ -455,7 +471,23 @@ typedef enum
 //*****************************************************************************
 enum
 {
-	CLC_USERINFO,
+	// Client is telling the server he wishes to connect.
+	CLCC_ATTEMPTCONNECTION,
+
+	// Client is attempting to authenticate the map.
+	CLCC_ATTEMPTAUTHENTICATION,
+
+	// Client has loaded the map, and is requesting the snapshot.
+	CLCC_REQUESTSNAPSHOT,
+
+	NUM_CLIENTCONNECT_COMMANDS
+};
+
+//*****************************************************************************
+enum
+{
+	CLC_USERINFO = NUM_CLIENTCONNECT_COMMANDS,
+	CLC_QUIT,
 	CLC_STARTCHAT,
 	CLC_ENDCHAT,
 	CLC_SAY,
@@ -487,34 +519,6 @@ enum
 	NUM_CLIENT_COMMANDS
 
 };
-
-//*****************************************************************************
-#ifdef STAY_NETWORK_COMPATIBLE
-// Connection messages.
-#define CONNECT_CHALLENGE		200
-#define	CONNECT_READY			201
-#define	CONNECT_GETDATA			202
-#define	CONNECT_QUIT			203
-#define	CONNECT_AUTHENTICATED	204
-#define	CONNECT_AUTHENTICATING	205
-#define	NUM_CONNECT_COMMANDS	206
-
-// Network messages (universal)
-#define	CONNECT_ERROR			254
-#else
-enum
-{
-	CONNECT_CHALLENGE = NUM_SERVER_COMMANDS,
-	CONNECT_READY,
-	CONNECT_GETDATA,
-	CONNECT_QUIT,
-	CONNECT_AUTHENTICATED,
-	CONNECT_AUTHENTICATING,
-	CONNECT_ERROR,
-
-	NUM_CONNECT_COMMANDS
-};
-#endif
 
 //*****************************************************************************
 enum
@@ -570,11 +574,16 @@ bool			NETWORK_CompareAddress( NETADDRESS_s Address1, NETADDRESS_s Address2, boo
 //void			NETWORK_SocketAddressToNetAddress( struct sockaddr_in *s, NETADDRESS_s *a );
 void			NETWORK_NetAddressToSocketAddress( NETADDRESS_s &Address, struct sockaddr_in &SocketAddress );
 void			NETWORK_SetAddressPort( NETADDRESS_s &Address, USHORT usPort );
-AActor			*NETWORK_FindThingByNetID( LONG lID );
 NETADDRESS_s	NETWORK_GetLocalAddress( void );
 NETBUFFER_s		*NETWORK_GetNetworkMessageBuffer( void );
 ULONG			NETWORK_ntohs( ULONG ul );
 USHORT			NETWORK_GetLocalPort( void );
+
+void			NETWORK_ConvertNameToKeyLetter( const char *&pszName );
+void			NETWORK_ConvertWeaponNameToKeyLetter( const char *&pszName );
+void			NETWORK_ConvertKeyLetterToFullString( const char *&pszName, bool bPrintKeyLetter );
+void			NETWORK_ConvertWeaponKeyLetterToFullString( const char *&pszName );
+void			NETWORK_GenerateMapLumpMD5Hash( MapData *Map, const LONG LumpNumber, char *pszMD5Hash );
 
 // Access functions.
 LONG			NETWORK_GetState( void );
@@ -582,11 +591,9 @@ void			NETWORK_SetState( LONG lState );
 
 void			I_DoSelect( void );
 
-void convertWeaponNameToKeyLetter( const char *&pszName );
-void convertWeaponKeyLetterToFullString( const char *&pszName );
-void generateMapLumpMD5Hash( MapData *Map, const LONG LumpNumber, char *MD5Hash );
-
 // DEBUG FUNCTION!
+#ifdef	_DEBUG
 void	NETWORK_FillBufferWithShit( NETBUFFER_s *pBuffer, ULONG ulSize );
+#endif
 
 #endif	// __NETWORK_H__

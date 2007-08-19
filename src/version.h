@@ -44,11 +44,7 @@
 #define DOTVERSIONSTR_NOREV DOTVERSIONSTR
 
 // [BB] The version string that includes revision / compatibility data.
-#ifdef STAY_NETWORK_COMPATIBLE
-	#define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING "NC"
-#else
-	#define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING
-#endif
+#define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING
 
 // [BC] What version of ZDoom is this based off of?
 #define	ZDOOMVERSIONSTR		"2.1.7"
@@ -69,15 +65,11 @@
 // Version identifier for network games.
 // Bump it every time you do a release unless you're certain you
 // didn't change anything that will affect network protocol.
-	// 003 = 0.97c2
-	// 004 = 0.97c3
-	// 005 = 0.97d-beta4
-	// 006 = Post 0.97d-beta4.1
-#ifdef STAY_NETWORK_COMPATIBLE
-	#define NETGAMEVERSION 005
-#else
-	#define NETGAMEVERSION 006
-#endif
+// 003 = 0.97c2
+// 004 = 0.97c3
+// 005 = 0.97d-beta4
+// 006 = Post 0.97d-beta4.1
+#define NETGAMEVERSION 006
 
 // Version stored in the ini's [LastRun] section.
 // Bump it if you made some configuration change that you want to

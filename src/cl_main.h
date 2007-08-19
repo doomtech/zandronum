@@ -73,16 +73,18 @@ typedef enum
 	// Full screen console with no connection.
 	CTS_DISCONNECTED,
 
-	// Full screen console, trying to connect to a server.
-	CTS_TRYCONNECT,
+	// We are currently attempting to connect to the server.
+	CTS_ATTEMPTINGCONNECTION,
 
-	// On server, waiting for data.
-	CTS_CONNECTED,
+	// We've gotten a response from the server, and are now attempting to authenticate
+	// the level.
+	CTS_ATTEMPTINGAUTHENTICATION,
 
-	// Got response from server, now authenticating level.
-	CTS_AUTHENTICATINGLEVEL,
-
-	// Client is receiving snapshot of the level.
+	// We've successfully authenticated the level and loaded the level. Now we're waiting
+	// for a snapshot.
+	CTS_REQUESTINGSNAPSHOT,
+	
+	// We're currently receiving a snapshot of the level.
 	CTS_RECEIVINGSNAPSHOT,
 
     // Snapshot is finished! Everything is done, fully in the level.
@@ -106,65 +108,63 @@ typedef struct
 //*****************************************************************************
 //	PROTOTYPES
 
-void	CLIENT_Construct( void );
-void	CLIENT_Tick( void );
+// Standard API.
+void				CLIENT_Construct( void );
+void				CLIENT_Tick( void );
 
+// Access functions.
 CONNECTIONSTATE_e	CLIENT_GetConnectionState( void );
 void				CLIENT_SetConnectionState( CONNECTIONSTATE_e State );
+NETBUFFER_s			*CLIENT_GetLocalBuffer( void );
+void				CLIENT_SetLocalBuffer( NETBUFFER_s *pBuffer );
+ULONG				CLIENT_GetLastServerTick( void );
+void				CLIENT_SetLastServerTick( ULONG ulTick );
+ULONG				CLIENT_GetLastConsolePlayerUpdateTick( void );
+void				CLIENT_SetLastConsolePlayerUpdateTick( ULONG ulTick );
+bool				CLIENT_GetServerLagging( void );
+void				CLIENT_SetServerLagging( bool bLagging );
+bool				CLIENT_GetClientLagging( void );
+void				CLIENT_SetClientLagging( bool bLagging );
+NETADDRESS_s		CLIENT_GetServerAddress( void );
+void				CLIENT_SetServerAddress( NETADDRESS_s Address );
+bool				CLIENT_GetAllowSendingOfUserInfo( void );
+void				CLIENT_SetAllowSendingOfUserInfo( bool bAllow );
 
-NETBUFFER_s	*CLIENT_GetLocalBuffer( void );
-void		CLIENT_SetLocalBuffer( NETBUFFER_s *pBuffer );
+// Functions necessary to carry out client-side operations.
+void				CLIENT_AttemptConnection( void );
+void				CLIENT_AttemptAuthentication( char *pszMapName );
+void				CLIENT_RequestSnapshot( void );
+bool				CLIENT_GetNextPacket( void );
+void				CLIENT_CheckForMissingPackets( void );
+bool				CLIENT_ReadPacketHeader( BYTESTREAM_s *pByteStream );
+void				CLIENT_ParsePacket( BYTESTREAM_s *pByteStream, bool bSequencedPacket );
+void				CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream );
+void				CLIENT_PrintCommand( LONG lCommand );
+void				CLIENT_QuitNetworkGame( char *pszError );
+void				CLIENT_SendCmd( void );
+void				CLIENT_WaitForServer( void );
 
-ULONG	CLIENT_GetLastServerTick( void );
-void	CLIENT_SetLastServerTick( ULONG ulTick );
+// Support functions to make things work more smoothly.
+void				CLIENT_AuthenticateLevel( char *pszMapName );
+AActor				*CLIENT_SpawnThing( char *pszName, fixed_t X, fixed_t Y, fixed_t Z, LONG lNetID );
+void				CLIENT_SpawnMissile( char *pszName, fixed_t X, fixed_t Y, fixed_t Z, fixed_t MomX, fixed_t MomY, fixed_t MomZ, LONG lNetID, LONG lTargetNetID );
+void				CLIENT_MoveThing( AActor *pActor, fixed_t X, fixed_t Y, fixed_t Z );
+AActor				*CLIENT_FindThingByNetID( LONG lID );
+void				CLIENT_RestoreSpecialPosition( AActor *pActor );
+void				CLIENT_RestoreSpecialDoomThing( AActor *pActor, bool bFog );
+AInventory			*CLIENT_FindPlayerInventory( ULONG ulPlayer, const PClass *pType );
+AInventory			*CLIENT_FindPlayerInventory( ULONG ulPlayer, const char *pszName );
+void				CLIENT_RemoveCorpses( void );
+sector_t			*CLIENT_FindSectorByID( ULONG ulID );
+bool				CLIENT_IsValidPlayer( ULONG ulPlayer );
+void				CLIENT_ResetPlayerData( player_s *pPlayer );
+LONG				CLIENT_AdjustDoorDirection( LONG lDirection );
+LONG				CLIENT_AdjustFloorDirection( LONG lDirection );
+LONG				CLIENT_AdjustCeilingDirection( LONG lDirection );
+LONG				CLIENT_AdjustElevatorDirection( LONG lDirection );
 
-ULONG	CLIENT_GetLastConsolePlayerUpdateTick( void );
-void	CLIENT_SetLastConsolePlayerUpdateTick( ULONG ulTick );
-
-bool	CLIENT_GetServerLagging( void );
-void	CLIENT_SetServerLagging( bool bLagging );
-
-bool	CLIENT_GetClientLagging( void );
-void	CLIENT_SetClientLagging( bool bLagging );
-
-NETADDRESS_s	CLIENT_GetServerAddress( void );
-void			CLIENT_SetServerAddress( NETADDRESS_s Address );
-
-ULONG	CLIENT_GetBytesReceived( void );
-void	CLIENT_AddBytesReceived( ULONG ulBytes );
-
-void	CLIENT_SendConnectionSignal( void );
-void	CLIENT_AttemptAuthentication( char *pszMapName );
-void	CLIENT_AttemptConnection( void );
-void	CLIENT_QuitNetworkGame( void );
-void	CLIENT_QuitNetworkGame( char *pszError );
-void	CLIENT_SendUserInfo( ULONG ulFlags );
-void	CLIENT_SendCmd( void );
-void	CLIENT_AuthenticateLevel( char *pszMapName );
-bool	CLIENT_ReadPacketHeader( BYTESTREAM_s *pByteStream );
-void	CLIENT_ParsePacket( BYTESTREAM_s *pByteStream, bool bSequencedPacket );
-void	CLIENT_PrintCommand( LONG lCommand );
-void	CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream );
-AActor*	CLIENT_SpawnThing( char *pszName, fixed_t X, fixed_t Y, fixed_t Z, LONG lNetID );
-void	CLIENT_SpawnMissile( char *pszName, fixed_t X, fixed_t Y, fixed_t Z, fixed_t MomX, fixed_t MomY, fixed_t MomZ, LONG lNetID, LONG lTargetNetID );
-void	CLIENT_MoveThing( AActor *pActor, fixed_t X, fixed_t Y, fixed_t Z );
-void	CLIENT_RestoreSpecialPosition( AActor *pActor );
-void	CLIENT_RestoreSpecialDoomThing( AActor *pActor, bool bFog );
-void	CLIENT_WaitForServer( void );
-void	CLIENT_RemoveCorpses( void );
-sector_t	*CLIENT_FindSectorByID( ULONG ulID );
-bool	CLIENT_IsValidPlayer( ULONG ulPlayer );
-void	CLIENT_AllowSendingOfUserInfo( bool bAllow );
-void	CLIENT_ResetPlayerData( player_s *pPlayer );
-LONG	CLIENT_AdjustDoorDirection( LONG lDirection );
-LONG	CLIENT_AdjustFloorDirection( LONG lDirection );
-LONG	CLIENT_AdjustCeilingDirection( LONG lDirection );
-LONG	CLIENT_AdjustElevatorDirection( LONG lDirection );
-void	CLIENT_CheckForMissingPackets( void );
-bool	CLIENT_GetNextPacket( void );
-
-void	CLIENT_PREDICT_PlayerPredict( void );
-bool	CLIENT_PREDICT_IsPredicting( void );
+void				CLIENT_PREDICT_PlayerPredict( void );
+bool				CLIENT_PREDICT_IsPredicting( void );
 
 //*****************************************************************************
 //	EXTERNAL CONSOLE VARIABLES

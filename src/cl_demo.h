@@ -64,7 +64,7 @@ typedef enum
 	// [BC] Message headers with bytes starting with 0 and going sequentially
 	// isn't very distinguishing from other formats (such as normal ZDoom demos),
 	// but does that matter?
-	CLD_DEMOSTART = NUM_CONNECT_COMMANDS,
+	CLD_DEMOSTART = NUM_SERVER_COMMANDS,
 	CLD_DEMOLENGTH,
 	CLD_DEMOVERSION,
 	CLD_CVARS,

@@ -80,6 +80,7 @@ char	*g_szActorKeyLetter[NUMBER_OF_ACTOR_NAME_KEY_LETTERS] =
 {
 	"1",
 	"2",
+	"3",
 };
 
 //*****************************************************************************
@@ -87,6 +88,7 @@ char	*g_szActorFullName[NUMBER_OF_ACTOR_NAME_KEY_LETTERS] =
 {
 	"BulletPuff",
 	"Blood",
+	"PlasmaBall",
 };
 
 //*****************************************************************************
@@ -747,9 +749,9 @@ void NETWORK_ClearBuffer( NETBUFFER_s *pBuffer )
 LONG NETWORK_CalcBufferSize( NETBUFFER_s *pBuffer )
 {
 	if ( pBuffer->BufferType == BUFFERTYPE_READ )
-		return ( pBuffer->ByteStream.pbStreamEnd - pBuffer->ByteStream.pbStream );
+		return ( LONG( pBuffer->ByteStream.pbStreamEnd - pBuffer->ByteStream.pbStream ));
 	else
-		return ( pBuffer->ByteStream.pbStream - pBuffer->pbData );
+		return ( LONG( pBuffer->ByteStream.pbStream - pBuffer->pbData ));
 }
 
 //*****************************************************************************
@@ -814,19 +816,6 @@ bool NETWORK_CompareAddress( NETADDRESS_s Address1, NETADDRESS_s Address2, bool 
 
 //*****************************************************************************
 //
-AActor *NETWORK_FindThingByNetID( LONG lID )
-{
-	if (( lID < 0 ) || ( lID >= 65536 ))
-		return ( NULL );
-
-	if (( g_NetIDList[lID].bFree == false ) && ( g_NetIDList[lID].pActor ))
-		return ( g_NetIDList[lID].pActor );
-
-    return ( NULL );
-}
-
-//*****************************************************************************
-//
 NETADDRESS_s NETWORK_GetLocalAddress( void )
 {
 	char				szBuffer[512];
@@ -875,6 +864,88 @@ ULONG NETWORK_ntohs( ULONG ul )
 USHORT NETWORK_GetLocalPort( void )
 {
 	return ( g_usLocalPort );
+}
+
+//*****************************************************************************
+//
+void NETWORK_ConvertNameToKeyLetter( const char *&pszName )
+{
+	//Printf( "converted %s ", pszName );
+	for( int i = 0; i < NUMBER_OF_ACTOR_NAME_KEY_LETTERS; i++ )
+	{
+		if ( stricmp( pszName, g_szActorFullName[i] ) == 0 )
+		{
+			pszName = g_szActorKeyLetter[i];
+			break;
+		}
+	}
+	//Printf( "to to %s\n", pszName );
+}
+
+//*****************************************************************************
+//
+void NETWORK_ConvertWeaponNameToKeyLetter( const char *&pszName )
+{
+	//Printf( "converted %s ", pszName );
+	for( int i = 0; i < NUMBER_OF_WEAPON_NAME_KEY_LETTERS; i++ )
+	{
+		if ( stricmp( pszName, g_szWeaponFullName[i] ) == 0 )
+		{
+			pszName = g_szWeaponKeyLetter[i];
+			break;
+		}
+	}
+	//Printf( "to to %s\n", pszName );
+}
+
+//*****************************************************************************
+//
+void NETWORK_ConvertKeyLetterToFullString( const char *&pszName, bool bPrintKeyLetter )
+{
+	//Printf( "recieved %s ", pszName );
+	for( int i = 0; i < NUMBER_OF_ACTOR_NAME_KEY_LETTERS; i++ )
+	{
+		if ( stricmp( pszName, g_szActorKeyLetter[i] ) == 0 )
+		{
+			if ( bPrintKeyLetter )
+				Printf( "Key letter: %s\n", pszName );
+
+			pszName = g_szActorFullName[i];
+			break;
+		}
+	}
+	//Printf( "converted to %s\n", pszName );
+}
+
+//*****************************************************************************
+//
+void NETWORK_ConvertWeaponKeyLetterToFullString( const char *&pszName )
+{
+	//Printf( "recieved %s ", pszName );
+	for( int i = 0; i < NUMBER_OF_WEAPON_NAME_KEY_LETTERS; i++ )
+	{
+		if ( stricmp( pszName, g_szWeaponKeyLetter[i] ) == 0 )
+		{
+			pszName = g_szWeaponFullName[i];
+			break;
+		}
+	}
+	//Printf( "converted to %s\n", pszName );
+}
+
+//*****************************************************************************
+//
+void NETWORK_GenerateMapLumpMD5Hash( MapData *Map, const LONG LumpNumber, char *pszMD5Hash )
+{
+	LONG lLumpSize = Map->Size( LumpNumber );
+	BYTE *pbData = new BYTE[lLumpSize];
+
+	// Dump the data from the lump into our data buffer.
+	Map->Read( LumpNumber, pbData );
+
+	// Perform the checksum on our buffer, and free it.
+	CMD5Checksum::GetMD5( pbData, lLumpSize, pszMD5Hash );
+	delete ( pbData );
 }
 
 //*****************************************************************************
@@ -984,46 +1055,6 @@ void I_DoSelect (void)
     stdin_ready = FD_ISSET(0, &fdset);
 #endif
 } 
-
-//*****************************************************************************
-//
-void convertWeaponNameToKeyLetter( const char *&pszName ){
-	//Printf( "converted %s ", pszName );
-	for( int i = 0; i < NUMBER_OF_WEAPON_NAME_KEY_LETTERS; i++ ){
-		if ( stricmp( pszName, g_szWeaponFullName[i] ) == 0 ){
-			pszName = g_szWeaponKeyLetter[i];
-			break;
-		}
-	}
-	//Printf( "to to %s\n", pszName );
-}
-
-//*****************************************************************************
-//
-void convertWeaponKeyLetterToFullString( const char *&pszName ){
-	//Printf( "recieved %s ", pszName );
-	for( int i = 0; i < NUMBER_OF_WEAPON_NAME_KEY_LETTERS; i++ ){
-		if ( stricmp( pszName, g_szWeaponKeyLetter[i] ) == 0 ){
-			pszName = g_szWeaponFullName[i];
-			break;
-		}
-	}
-	//Printf( "converted to %s\n", pszName );
-}
-
-//*****************************************************************************
-//
-void generateMapLumpMD5Hash( MapData *Map, const LONG LumpNumber, char *MD5Hash ){
-	LONG lLumpSize = Map->Size( LumpNumber );
-	BYTE *pbData = new BYTE[lLumpSize];
-
-	// Dump the data from the lump into our data buffer.
-	Map->Read( LumpNumber, pbData );
-
-	// Perform the checksum on our buffer, and free it.
-	CMD5Checksum::GetMD5( pbData, lLumpSize, MD5Hash );
-	delete ( pbData );
-}
 
 //*****************************************************************************
 //	CONSOLE COMMANDS

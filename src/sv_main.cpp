@@ -1031,7 +1031,7 @@ void SERVER_AuthenticateClientLevel( BYTESTREAM_s *pByteStream )
 
 	// Tell the client his level was authenticated.
 	NETWORK_ClearBuffer( &g_aClients[g_lCurrentClient].PacketBuffer );
-	NETWORK_WriteByte( &g_aClients[g_lCurrentClient].PacketBuffer.ByteStream, CONNECT_AUTHENTICATED );
+	NETWORK_WriteByte( &g_aClients[g_lCurrentClient].PacketBuffer.ByteStream, SVCC_MAPLOAD );
 	
 	// Send the packet off.
 	SERVER_SendClientPacket( g_lCurrentClient, true );
@@ -1041,6 +1041,7 @@ void SERVER_AuthenticateClientLevel( BYTESTREAM_s *pByteStream )
 //
 bool SERVER_PerformAuthenticationChecksum( BYTESTREAM_s *pByteStream )
 {
+	MapData		*pMap;
 	char		szServerVertexString[64];
 	char		szServerLinedefString[64];
 	char		szServerSidedefString[64];
@@ -1051,19 +1052,16 @@ bool SERVER_PerformAuthenticationChecksum( BYTESTREAM_s *pByteStream )
 	char		szClientSectorString[64];
 
 	// [BB] Open the map. Since we are already using the map, we won't get a NULL pointer.
-	MapData* map = P_OpenMapData( level.mapname );
-	// Generate checksums for the map lumps:
-	// VERTICIES
-	generateMapLumpMD5Hash( map, ML_VERTEXES, szServerVertexString );
-	// LINEDEFS
-	generateMapLumpMD5Hash( map, ML_LINEDEFS, szServerLinedefString );
-	// SIDEDEFS
-	generateMapLumpMD5Hash( map, ML_SIDEDEFS, szServerSidedefString );
-	// SECTORS
-	generateMapLumpMD5Hash( map, ML_SECTORS, szServerSectorString );
+	pMap = P_OpenMapData( level.mapname );
+
+	// Generate checksums for the map lumps.
+	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_VERTEXES, szServerVertexString );
+	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_LINEDEFS, szServerLinedefString );
+	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_SIDEDEFS, szServerSidedefString );
+	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_SECTORS, szServerSectorString );
 
 	// Free the map pointer, we don't need it anymore.
-	delete map;
+	delete ( pMap );
 
 	// Read in the client's checksum strings.
 	strncpy( szClientVertexString, NETWORK_ReadString( pByteStream ), 64 );
@@ -1161,10 +1159,10 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 		SERVERCOMMANDS_SetLMSAllowedWeapons( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 		SERVERCOMMANDS_SetLMSSpectatorSettings( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 	}
-
+/*
 	// Send the map name, and have the client load it.
 	SERVERCOMMANDS_MapLoad( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
-
+*/
 	// Send the map music.
 	SERVERCOMMANDS_SetMapMusic( SERVER_GetMapMusic( ), g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
@@ -1453,7 +1451,7 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 			break;
 
 		// If it's not a launcher querying the server, it must be a client.
-		if ( lCommand != CONNECT_CHALLENGE )
+		if ( lCommand != CLCC_ATTEMPTCONNECTION )
 		{
 			switch ( lCommand )
 			{
@@ -1697,7 +1695,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 
 	// Send heartbeat back.
 	NETWORK_ClearBuffer( &g_aClients[lClient].PacketBuffer );
-	NETWORK_WriteByte( &g_aClients[lClient].PacketBuffer.ByteStream, CONNECT_READY );
+	NETWORK_WriteByte( &g_aClients[lClient].PacketBuffer.ByteStream, SVCC_AUTHENTICATE );
 	NETWORK_WriteString( &g_aClients[lClient].PacketBuffer.ByteStream, level.mapname );
 
 	// Send the packet off.
@@ -1894,7 +1892,7 @@ void SERVER_ConnectionError( NETADDRESS_s Address, char *pszMessage )
 	NETWORK_WriteHeader( &TempBuffer.ByteStream, SVC_HEADER );
 	NETWORK_WriteLong( &TempBuffer.ByteStream, 0 );
 
-	NETWORK_WriteByte( &TempBuffer.ByteStream, CONNECT_ERROR );
+	NETWORK_WriteByte( &TempBuffer.ByteStream, SVCC_ERROR );
 	NETWORK_WriteByte( &TempBuffer.ByteStream, NETWORK_ERRORCODE_SERVERISFULL );
 
 //	NETWORK_LaunchPacket( TempBuffer, Address, true );
@@ -1906,7 +1904,7 @@ void SERVER_ConnectionError( NETADDRESS_s Address, char *pszMessage )
 //
 void SERVER_ClientError( ULONG ulClient, ULONG ulErrorCode )
 {
-	NETWORK_WriteByte( &g_aClients[ulClient].PacketBuffer.ByteStream, CONNECT_ERROR );
+	NETWORK_WriteByte( &g_aClients[ulClient].PacketBuffer.ByteStream, SVCC_ERROR );
 	NETWORK_WriteByte( &g_aClients[ulClient].PacketBuffer.ByteStream, ulErrorCode );
 
 	// Display error message locally in the console.
@@ -3202,22 +3200,17 @@ void SERVER_ParsePacket( BYTESTREAM_s *pByteStream )
 		bPlayerKicked = false;
 		switch ( lCommand )
 		{
-		case CONNECT_CHALLENGE:
+		case CLCC_ATTEMPTCONNECTION:
 
 			// Client is trying to connect to the server, but is disconnected on his end.
 			SERVER_SetupNewConnection( pByteStream, false );
 			break;
-		case CONNECT_QUIT:
-
-			// Client has left the game.
-			SERVER_DisconnectClient( g_lCurrentClient, true, true );
-			break;
-		case CONNECT_AUTHENTICATING:
+		case CLCC_ATTEMPTAUTHENTICATION:
 
 			// Client is attempting to authenticate his level.
 			SERVER_AuthenticateClientLevel( pByteStream );
 			break;
-		case CONNECT_GETDATA:
+		case CLCC_REQUESTSNAPSHOT:
 
 			// Client has gotten a connection from the server, and is sending userinfo.
 			SERVER_ConnectNewPlayer( pByteStream );
@@ -3243,6 +3236,11 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		// Client is sending us his userinfo.
 		SERVER_GetUserInfo( pByteStream, true );
+		break;
+	case CLC_QUIT:
+
+		// Client has left the game.
+		SERVER_DisconnectClient( g_lCurrentClient, true, true );
 		break;
 	case CLC_STARTCHAT:
 
@@ -3738,7 +3736,7 @@ static bool server_WeaponSelect( BYTESTREAM_s *pByteStream )
 	// Some optimization. For standard Doom weapons, to reduce the size of the string
 	// that's sent out, just send some key character that identifies the weapon, instead
 	// of the full name.
-	convertWeaponKeyLetterToFullString( pszWeapon );
+	NETWORK_ConvertWeaponKeyLetterToFullString( pszWeapon );
 
 	// Try to find the class that corresponds to the name of the weapon the client
 	// is sending us. If it doesn't exist, or the class isn't a type of weapon, boot

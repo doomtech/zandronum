@@ -55,6 +55,7 @@
 #include "announcer.h"
 #include "cl_commands.h"
 #include "cl_demo.h"
+#include "cl_statistics.h"
 #include "cooperative.h"
 #include "doomtype.h"
 #include "doomstat.h"
@@ -121,9 +122,6 @@ EXTERN_CVAR( Int, cl_bloodtype )
 EXTERN_CVAR( Int, cl_pufftype )
 EXTERN_CVAR( String, playerclass )
 EXTERN_CVAR( Int, am_cheat )
-
-extern char *g_szActorKeyLetter[NUMBER_OF_ACTOR_NAME_KEY_LETTERS];
-extern char *g_szActorFullName[NUMBER_OF_ACTOR_NAME_KEY_LETTERS];
 
 //*****************************************************************************
 //	PROTOTYPES
@@ -408,19 +406,15 @@ static	FRandom				g_RestorePositionSeed( "ClientRestorePos" );
 // Is it okay to send user info, or is that currently disabled?
 static	bool				g_bAllowSendingOfUserInfo = true;
 
-// Number of bytes sent/received this tick; useful for stats.
-static	LONG				g_lBytesSent;
-static	LONG				g_lBytesReceived;
-static	LONG				g_lMaxBytesSent;
-static	LONG				g_lMaxBytesReceived;
-static	LONG				g_lMaxBytesSentLastSecond;
-static	LONG				g_lMaxBytesReceivedLastSecond;
-
 // The name of the map we need to authenticate.
 static	char				g_szMapName[8];
 
 // Last console player update tick.
 static	ULONG				g_ulLastConsolePlayerUpdateTick;
+
+// This is how many ticks left before we try again to connect to the server,
+// request a snapshot, etc.
+static	ULONG				g_ulRetryTicks;
 
 // This contains the last 256 packets we've received.
 static	PACKETBUFFER_s		g_ReceivedPacketBuffer;
@@ -659,43 +653,6 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 //*****************************************************************************
 //	FUNCTIONS
 
-// [BB] Some helper functions here to reduce the amunt of code duplications.
-// TO-DO: Use them where suitably. As of now they are only used in
-// client_SetPlayerAmmoCapacity
-//*****************************************************************************
-//
-AInventory* FindPlayerInventory( ULONG ulPlayer, const PClass *pType )
-{
-	AInventory		*pInventory;
-	// Try to find this object within the player's personal inventory.
-	pInventory = players[ulPlayer].mo->FindInventory( pType );
-
-	// If the player doesn't have this type, give it to him.
-	if ( pInventory == NULL )
-		pInventory = players[ulPlayer].mo->GiveInventoryType( pType );
-
-	// If he still doesn't have the object after trying to give it to him... then YIKES!
-	if ( pInventory == NULL )
-	{
-#ifdef CLIENT_WARNING_MESSAGES
-		Printf( "EnsurePlayerHasInventory: Failed to give inventory type, %s!\n", pType->TypeName.GetChars( ) );
-#endif
-	}
-	return pInventory;
-}
-
-//*****************************************************************************
-//
-AInventory* FindPlayerInventory( ULONG ulPlayer, const char	*pszName )
-{
-	const PClass	*pType;
-	pType = PClass::FindClass( pszName );
-	if ( pType == NULL )
-		return NULL;
-	else
-		return FindPlayerInventory( ulPlayer, pType );
-}
-
 //*****************************************************************************
 //
 void CLIENT_Construct( void )
@@ -709,6 +666,7 @@ void CLIENT_Construct( void )
 
 	// Start off as being disconnected.
 	g_ConnectionState = CTS_DISCONNECTED;
+	g_ulRetryTicks = 0;
 
 	// Check if the user wants to use an alternate port for the server.
 	pszPort = Args.CheckValue( "-port" );
@@ -745,7 +703,7 @@ void CLIENT_Construct( void )
 		g_AddressLastConnected = g_AddressServer;
 
 		// Put us in a "connection attempt" state.
-		g_ConnectionState = CTS_TRYCONNECT;
+		g_ConnectionState = CTS_ATTEMPTINGCONNECTION;
 
 		// Put the game in client mode.
 		NETWORK_SetState( NETSTATE_CLIENT );
@@ -780,26 +738,6 @@ void CLIENT_Construct( void )
 //
 void CLIENT_Tick( void )
 {
-	// Reset the bytes in/out.
-	g_lBytesSent = 0;
-	g_lBytesReceived = 0;
-	// Reset the max. every second.
-	if (( gametic % TICRATE ) == 0 )
-	{
-		static	LONG	s_lLastGameticUpdate = 0;
-
-		if ( gametic != s_lLastGameticUpdate )
-		{
-			g_lMaxBytesSentLastSecond = g_lMaxBytesSent;
-			g_lMaxBytesReceivedLastSecond = g_lMaxBytesReceived;
-
-			s_lLastGameticUpdate = gametic;
-		}
-
-		g_lMaxBytesSent = 0;
-		g_lMaxBytesReceived = 0;
-	}
-
 	// Determine what to do based on our connection state.
 	switch ( g_ConnectionState )
 	{
@@ -808,26 +746,22 @@ void CLIENT_Tick( void )
 
 		break;
 	// At the fullconsole, attempting to connect to a server.
-	case CTS_TRYCONNECT:
-
-		// Reset all this.
-		g_bServerLagging = false;
-		g_bClientLagging = false;
+	case CTS_ATTEMPTINGCONNECTION:
 
 		// If we're not connected to a server, and have an IP specified, try to connect.
 		if ( g_AddressServer.abIP[0] )
-			CLIENT_SendConnectionSignal( );
+			CLIENT_AttemptConnection( );
 		break;
 	// A connection has been established with the server; now authenticate the level.
-	case CTS_AUTHENTICATINGLEVEL:
+	case CTS_ATTEMPTINGAUTHENTICATION:
 
 		CLIENT_AttemptAuthentication( g_szMapName );
 		break;
 	// The level has been authenticated. Request level data and send user info.
-	case CTS_CONNECTED:
+	case CTS_REQUESTINGSNAPSHOT:
 
 		// Send data request and userinfo.
-		CLIENT_AttemptConnection( );
+		CLIENT_RequestSnapshot( );
 		break;
 	default:
 
@@ -835,6 +769,7 @@ void CLIENT_Tick( void )
 	}
 }
 
+//*****************************************************************************
 //*****************************************************************************
 //
 CONNECTIONSTATE_e CLIENT_GetConnectionState( void )
@@ -978,66 +913,67 @@ void CLIENT_SetServerAddress( NETADDRESS_s Address )
 
 //*****************************************************************************
 //
-ULONG CLIENT_GetBytesReceived( void )
+bool CLIENT_GetAllowSendingOfUserInfo( void )
 {
-	return ( g_lBytesReceived );
+	return ( g_bAllowSendingOfUserInfo );
 }
 
 //*****************************************************************************
 //
-void CLIENT_AddBytesReceived( ULONG ulBytes )
+void CLIENT_SetAllowSendingOfUserInfo( bool bAllow )
 {
-	g_lBytesReceived += ulBytes;
-	if ( g_lBytesReceived > g_lMaxBytesReceived )
-		g_lMaxBytesReceived = g_lBytesReceived;
+	g_bAllowSendingOfUserInfo = bAllow;
 }
 
 //*****************************************************************************
+//*****************************************************************************
 //
-void CLIENT_SendConnectionSignal( void )
+void CLIENT_AttemptConnection( void )
 {
 	ULONG	ulIdx;
-	static	USHORT	s_usConnectionResendTimer = ( CONNECTION_RESEND_TIME / 2 );
 
-	if ( s_usConnectionResendTimer == 0 )
+	if ( g_ulRetryTicks )
 	{
-		s_usConnectionResendTimer = CONNECTION_RESEND_TIME;
-
-		Printf( "Connecting to %s\n", NETWORK_AddressToString( g_AddressServer ));
-
-		// Reset a bunch of stuff.
-		NETWORK_ClearBuffer( &g_LocalBuffer );
-		memset( g_ReceivedPacketBuffer.abData, 0, MAX_UDP_PACKET * 32 );
-		for ( ulIdx = 0; ulIdx < 256; ulIdx++ )
-		{
-			g_lPacketBeginning[ulIdx] = 0;
-			g_lPacketSequence[ulIdx] = -1;
-			g_lPacketSize[ulIdx] = 0;
-		}
-
-		g_bPacketNum = 0;
-		g_lCurrentPosition = 0;
-		g_lLastParsedSequence = -1;
-		g_lHighestReceivedSequence = -1;
-
-		g_lMissingPacketTicks = 0;
-
-		 // Send connection signal to the server.
-		NETWORK_WriteByte( &g_LocalBuffer.ByteStream, CONNECT_CHALLENGE );
-		NETWORK_WriteString( &g_LocalBuffer.ByteStream, DOTVERSIONSTR );
-		NETWORK_WriteString( &g_LocalBuffer.ByteStream, cl_password.GetGenericRep( CVAR_String ).String );
-		NETWORK_WriteByte( &g_LocalBuffer.ByteStream, cl_startasspectator );
-		NETWORK_WriteByte( &g_LocalBuffer.ByteStream, cl_dontrestorefrags );
-		NETWORK_WriteByte( &g_LocalBuffer.ByteStream, NETGAMEVERSION );
-
-		g_lBytesSent += g_LocalBuffer.ulCurrentSize;
-		if ( g_lBytesSent > g_lMaxBytesSent )
-			g_lMaxBytesSent = g_lBytesSent;
-		NETWORK_LaunchPacket( &g_LocalBuffer, g_AddressServer );
-		NETWORK_ClearBuffer( &g_LocalBuffer );
+		g_ulRetryTicks--;
+		return;
 	}
 
-	s_usConnectionResendTimer--;
+	g_ulRetryTicks = CONNECTION_RESEND_TIME;
+	Printf( "Connecting to %s\n", NETWORK_AddressToString( g_AddressServer ));
+
+	// Reset a bunch of stuff.
+	NETWORK_ClearBuffer( &g_LocalBuffer );
+	memset( g_ReceivedPacketBuffer.abData, 0, MAX_UDP_PACKET * 32 );
+	for ( ulIdx = 0; ulIdx < 256; ulIdx++ )
+	{
+		g_lPacketBeginning[ulIdx] = 0;
+		g_lPacketSequence[ulIdx] = -1;
+		g_lPacketSize[ulIdx] = 0;
+	}
+
+	g_bServerLagging = false;
+	g_bClientLagging = false;
+
+	g_bPacketNum = 0;
+	g_lCurrentPosition = 0;
+	g_lLastParsedSequence = -1;
+	g_lHighestReceivedSequence = -1;
+
+	g_lMissingPacketTicks = 0;
+
+	 // Send connection signal to the server.
+	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, CLCC_ATTEMPTCONNECTION );
+	NETWORK_WriteString( &g_LocalBuffer.ByteStream, DOTVERSIONSTR );
+	NETWORK_WriteString( &g_LocalBuffer.ByteStream, cl_password.GetGenericRep( CVAR_String ).String );
+	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, cl_startasspectator );
+	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, cl_dontrestorefrags );
+	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, NETGAMEVERSION );
+
+	// Add the size of the packet to the number of bytes sent.
+	CLIENTSTATISTICS_AddToBytesSent( NETWORK_CalcBufferSize( &g_LocalBuffer ));
+
+	NETWORK_LaunchPacket( &g_LocalBuffer, g_AddressServer );
+	NETWORK_ClearBuffer( &g_LocalBuffer );
 }
 
 //*****************************************************************************
@@ -1045,292 +981,144 @@ void CLIENT_SendConnectionSignal( void )
 void CLIENT_AttemptAuthentication( char *pszMapName )
 {
 	ULONG	ulIdx;
-	static	USHORT	s_usAuthenticationResendTimer = 0;
 
-	if ( s_usAuthenticationResendTimer == 0 )
+	if ( g_ulRetryTicks )
 	{
-		s_usAuthenticationResendTimer = GAMESTATE_RESEND_TIME;
-
-		Printf( "Authenticating level...\n" );
-
-		memset( g_lPacketSequence, -1, sizeof(g_lPacketSequence) );
-		g_bPacketNum = 0;
-
-		NETWORK_WriteByte( &g_LocalBuffer.ByteStream, CONNECT_AUTHENTICATING );
-
-		// Send a checksum of our verticies, linedefs, sidedefs, and sectors.
-		CLIENT_AuthenticateLevel( pszMapName );
-
-		g_lBytesSent += g_LocalBuffer.ulCurrentSize;
-		if ( g_lBytesSent > g_lMaxBytesSent )
-			g_lMaxBytesSent = g_lBytesSent;
-		NETWORK_LaunchPacket( &g_LocalBuffer, g_AddressServer );
-		NETWORK_ClearBuffer( &g_LocalBuffer );
-	}
-
-	// Make sure all players are gone from the level.
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		playeringame[ulIdx] = false;
-
-		// Zero out all the player information.
-		CLIENT_ResetPlayerData( &players[ulIdx] );
-	}
-
-	s_usAuthenticationResendTimer--;
-}
-
-//*****************************************************************************
-//
-void CLIENT_AttemptConnection( void )
-{
-	ULONG	ulIdx;
-	static	USHORT	s_usGetDataResendTimer = 0;
-
-	if ( s_usGetDataResendTimer == 0 )
-	{
-		s_usGetDataResendTimer = GAMESTATE_RESEND_TIME;
-
-		Printf( "Requesting gamestate...\n" );
-
-		memset( g_lPacketSequence, -1, sizeof (g_lPacketSequence) );
-		g_bPacketNum = 0;
-
-		// Send them a message to get data from the server, along with our userinfo.
-		NETWORK_WriteByte( &g_LocalBuffer.ByteStream, CONNECT_GETDATA );
-		CLIENT_SendUserInfo( USERINFO_ALL );
-
-		g_lBytesSent += g_LocalBuffer.ulCurrentSize;
-		if ( g_lBytesSent > g_lMaxBytesSent )
-			g_lMaxBytesSent = g_lBytesSent;
-		NETWORK_LaunchPacket( &g_LocalBuffer, g_AddressServer );
-		NETWORK_ClearBuffer( &g_LocalBuffer );
-	}
-
-	// Make sure all players are gone from the level.
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		playeringame[ulIdx] = false;
-
-		// Zero out all the player information.
-		CLIENT_ResetPlayerData( &players[ulIdx] );
-	}
-
-	s_usGetDataResendTimer--;
-}
-
-//*****************************************************************************
-//
-void CLIENT_QuitNetworkGame( void )
-{
-	ULONG	ulIdx;
-
-	// Clear out the existing players.
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		playeringame[ulIdx] = false;
-
-		// Zero out all the player information.
-		CLIENT_ResetPlayerData( &players[ulIdx] );
-	}
-
-	// If we're connected in any way, send a disconnect signal.
-	if ( g_ConnectionState != CTS_DISCONNECTED )
-	{
-		NETWORK_WriteByte( &g_LocalBuffer.ByteStream, CONNECT_QUIT );
-
-		g_lBytesSent += g_LocalBuffer.ulCurrentSize;
-		if ( g_lBytesSent > g_lMaxBytesSent )
-			g_lMaxBytesSent = g_lBytesSent;
-		NETWORK_LaunchPacket( &g_LocalBuffer, g_AddressServer );
-		NETWORK_ClearBuffer( &g_LocalBuffer );
-	}
-
-	// Clear out our copy of the server address.
-	memset( &g_AddressServer, 0, sizeof( g_AddressServer ));
-	CLIENT_SetConnectionState( CTS_DISCONNECTED );
-
-	// Go back to the full console.
-	gameaction = ga_fullconsole;
-
-	// View is no longer active.
-	viewactive = false;
-
-	g_lLastParsedSequence = -1;
-	g_lHighestReceivedSequence = -1;
-
-	g_lMissingPacketTicks = 0;
-
-	// Set the network state back to single player.
-	NETWORK_SetState( NETSTATE_SINGLE );
-
-	// [BB] This prevents the status bar from showing up shortly, if you start a new game, while connected to a server.
-	gamestate = GS_FULLCONSOLE;
-
-	// If we're recording a demo, then finish it!
-	if ( CLIENTDEMO_IsRecording( ))
-		G_CheckDemoStatus( );
-}
-
-//*****************************************************************************
-//
-void CLIENT_QuitNetworkGame( char *pszError )
-{
-	Printf( "%s\n", pszError );
-	CLIENT_QuitNetworkGame( );
-}
-
-//*****************************************************************************
-//
-void CLIENT_SendUserInfo( ULONG ulFlags )
-{
-	// Temporarily disable userinfo for when the player setup menu updates our userinfo. Then
-	// we can just send all our userinfo in one big bulk, instead of each time it updates
-	// a userinfo property.
-	if ( g_bAllowSendingOfUserInfo == false )
-		return;
-
-	CLIENTCOMMANDS_UserInfo( ulFlags );
-}
-
-//*****************************************************************************
-//
-void CLIENT_SendCmd( void )
-{		
-	ticcmd_t	*cmd;
-	ULONG		ulBits;
-
-	if (( gametic < 1 ) || (( gamestate != GS_LEVEL ) && ( gamestate != GS_INTERMISSION )))
-		return;
-
-	if ( players[consoleplayer].mo == NULL )
-		return;
-
-	// If we're at intermission, and toggling our "ready to go" status, tell the server.
-	if ( gamestate == GS_INTERMISSION )
-	{
-		if (( players[consoleplayer].cmd.ucmd.buttons ^ players[consoleplayer].oldbuttons ) &&
-			(( players[consoleplayer].cmd.ucmd.buttons & players[consoleplayer].oldbuttons ) == players[consoleplayer].oldbuttons ))
-		{
-			CLIENTCOMMANDS_ReadyToGoOn( );
-		}
-
-		players[consoleplayer].oldbuttons = players[consoleplayer].cmd.ucmd.buttons;
-	}
-
-	// Don't send movement information if we're spectating!
-	if ( players[consoleplayer].bSpectating )
-	{
-		if (( gametic % ( TICRATE * 2 )) == 0 )
-		{
-			// Send the gametic.
-			CLIENTCOMMANDS_SpectateInfo( );
-		}
-	}
-
-	// Not in a level or spectating; nothing to do!
-	if (( gamestate != GS_LEVEL ) || ( players[consoleplayer].bSpectating ))
-	{
-		if ( NETWORK_CalcBufferSize( &g_LocalBuffer ))
-		{
-			g_lBytesSent += g_LocalBuffer.ulCurrentSize;
-			if ( g_lBytesSent > g_lMaxBytesSent )
-				g_lMaxBytesSent = g_lBytesSent;
-			NETWORK_LaunchPacket( &g_LocalBuffer, g_AddressServer );
-			NETWORK_ClearBuffer( &g_LocalBuffer );
-		}
+		g_ulRetryTicks--;
 		return;
 	}
 
-	// Initialize the bits.
-	ulBits = 0;
+	g_ulRetryTicks = CONNECTION_RESEND_TIME;
+	Printf( "Authenticating level...\n" );
 
-	// Send the move header and the gametic.
-	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, CLC_CLIENTMOVE );
-	NETWORK_WriteLong( &g_LocalBuffer.ByteStream, gametic );
+	memset( g_lPacketSequence, -1, sizeof(g_lPacketSequence) );
+	g_bPacketNum = 0;
 
-	// Decide what additional information needs to be sent.
-	cmd = &players[consoleplayer].cmd;
-	if ( cmd->ucmd.buttons )
-		ulBits |= CLIENT_UPDATE_BUTTONS;
-	if ( cmd->ucmd.forwardmove )
-		ulBits |= CLIENT_UPDATE_FORWARDMOVE;
-	if ( cmd->ucmd.sidemove )
-		ulBits |= CLIENT_UPDATE_SIDEMOVE;
-	if ( cmd->ucmd.upmove )
-		ulBits |= CLIENT_UPDATE_UPMOVE;
+	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, CLCC_ATTEMPTAUTHENTICATION );
 
-	// Tell the server what information we'll be sending.
-	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, ulBits );
+	// Send a checksum of our verticies, linedefs, sidedefs, and sectors.
+	CLIENT_AuthenticateLevel( pszMapName );
 
-	// Send the necessary movement/steering information.
-	if ( ulBits & CLIENT_UPDATE_BUTTONS )
-	{
-		if ( iwanttousecrouchingeventhoughitsretardedandunnecessaryanditsimplementationishorribleimeanverticallyshrinkingskinscomeonthatsinsanebutwhatevergoaheadandhaveyourcrouching == false )
-			NETWORK_WriteByte( &g_LocalBuffer.ByteStream, cmd->ucmd.buttons & ~BT_DUCK );
-		else
-			NETWORK_WriteByte( &g_LocalBuffer.ByteStream, cmd->ucmd.buttons );
-	}
-	if ( ulBits & CLIENT_UPDATE_FORWARDMOVE )
-		NETWORK_WriteShort( &g_LocalBuffer.ByteStream, cmd->ucmd.forwardmove );
-	if ( ulBits & CLIENT_UPDATE_SIDEMOVE )
-		NETWORK_WriteShort( &g_LocalBuffer.ByteStream, cmd->ucmd.sidemove );
-	if ( ulBits & CLIENT_UPDATE_UPMOVE )
-		NETWORK_WriteShort( &g_LocalBuffer.ByteStream, cmd->ucmd.upmove );
+	// Add the size of the packet to the number of bytes sent.
+	CLIENTSTATISTICS_AddToBytesSent( NETWORK_CalcBufferSize( &g_LocalBuffer ));
 
-	NETWORK_WriteLong( &g_LocalBuffer.ByteStream, players[consoleplayer].mo->angle );
-	NETWORK_WriteLong( &g_LocalBuffer.ByteStream, players[consoleplayer].mo->pitch );
-
-	// Attack button.
-	if ( cmd->ucmd.buttons & BT_ATTACK )
-	{
-		if ( players[consoleplayer].ReadyWeapon == NULL )
-			NETWORK_WriteString( &g_LocalBuffer.ByteStream, "NULL" );
-		else
-			NETWORK_WriteString( &g_LocalBuffer.ByteStream, (char *)players[consoleplayer].ReadyWeapon->GetClass( )->TypeName.GetChars( ));
-	}
-
-	g_lBytesSent += g_LocalBuffer.ulCurrentSize;
-	if ( g_lBytesSent > g_lMaxBytesSent )
-		g_lMaxBytesSent = g_lBytesSent;
 	NETWORK_LaunchPacket( &g_LocalBuffer, g_AddressServer );
 	NETWORK_ClearBuffer( &g_LocalBuffer );
-}
 
-//*****************************************************************************
-//
-
-void client_GenerateAndSendMapLumpMD5Hash( MapData *Map, const LONG LumpNumber ){
-	char		szChecksum[64];
-	// Generate the checksum string.
-	generateMapLumpMD5Hash( Map, LumpNumber, szChecksum );
-	// Now, send the vertex checksum string.
-	NETWORK_WriteString( &g_LocalBuffer.ByteStream, szChecksum );
-}
-
-//*****************************************************************************
-//
-void CLIENT_AuthenticateLevel( char *pszMapName )
-{
-	// [BB] Check if the wads contain the map at all. If not, don't send any checksums.
-	MapData* map = P_OpenMapData( pszMapName );
-	if(  map == NULL )
+	// Make sure all players are gone from the level.
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
-		Printf( "map %s not found!\n", pszMapName );
+		playeringame[ulIdx] = false;
+
+		// Zero out all the player information.
+		CLIENT_ResetPlayerData( &players[ulIdx] );
+	}
+}
+
+//*****************************************************************************
+//
+void CLIENT_RequestSnapshot( void )
+{
+	ULONG	ulIdx;
+
+	if ( g_ulRetryTicks )
+	{
+		g_ulRetryTicks--;
 		return;
 	}
-	else{
-		// Generate and send checksums for the map lumps:
-		// VERTICIES
-		client_GenerateAndSendMapLumpMD5Hash( map, ML_VERTEXES );
-		// LINEDEFS
-		client_GenerateAndSendMapLumpMD5Hash( map, ML_LINEDEFS );
-		// SIDEDEFS
-		client_GenerateAndSendMapLumpMD5Hash( map, ML_SIDEDEFS );
-		// SECTORS
-		client_GenerateAndSendMapLumpMD5Hash( map, ML_SECTORS );
-		delete map;
+
+	g_ulRetryTicks = GAMESTATE_RESEND_TIME;
+	Printf( "Requesting snapshot...\n" );
+
+	memset( g_lPacketSequence, -1, sizeof (g_lPacketSequence) );
+	g_bPacketNum = 0;
+
+	// Send them a message to get data from the server, along with our userinfo.
+	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, CLCC_REQUESTSNAPSHOT );
+	CLIENTCOMMANDS_UserInfo( USERINFO_ALL );
+
+	// Add the size of the packet to the number of bytes sent.
+	CLIENTSTATISTICS_AddToBytesSent( NETWORK_CalcBufferSize( &g_LocalBuffer ));
+
+	NETWORK_LaunchPacket( &g_LocalBuffer, g_AddressServer );
+	NETWORK_ClearBuffer( &g_LocalBuffer );
+
+	// Make sure all players are gone from the level.
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		playeringame[ulIdx] = false;
+
+		// Zero out all the player information.
+		CLIENT_ResetPlayerData( &players[ulIdx] );
 	}
+}
+
+//*****************************************************************************
+//
+bool CLIENT_GetNextPacket( void )
+{
+	ULONG	ulIdx;
+
+	// Find the next packet in the sequence.
+	for ( ulIdx = 0; ulIdx < 256; ulIdx++ )
+	{
+		// Found it!
+		if ( g_lPacketSequence[ulIdx] == ( g_lLastParsedSequence + 1 ))
+		{
+			memset( NETWORK_GetNetworkMessageBuffer( )->pbData, -1, MAX_UDP_PACKET );
+			memcpy( NETWORK_GetNetworkMessageBuffer( )->pbData, g_ReceivedPacketBuffer.abData + g_lPacketBeginning[ulIdx], g_lPacketSize[ulIdx] );
+			NETWORK_GetNetworkMessageBuffer( )->ulCurrentSize = g_lPacketSize[ulIdx];
+			NETWORK_GetNetworkMessageBuffer( )->ByteStream.pbStream = NETWORK_GetNetworkMessageBuffer( )->pbData;
+			NETWORK_GetNetworkMessageBuffer( )->ByteStream.pbStreamEnd = NETWORK_GetNetworkMessageBuffer( )->ByteStream.pbStream + g_lPacketSize[ulIdx];
+
+			return ( true );
+		}
+	}
+
+	// We didn't find it!
+	return ( false );
+}
+
+//*****************************************************************************
+//
+void CLIENT_CheckForMissingPackets( void )
+{
+	ULONG	ulIdx;
+	ULONG	ulIdx2;
+
+	// We already told the server we're missing packets a little bit ago. No need
+	// to do it again.
+	if ( g_lMissingPacketTicks > 0 )
+	{
+		g_lMissingPacketTicks--;
+		return;
+	}
+
+	if ( g_lLastParsedSequence != g_lHighestReceivedSequence )
+	{
+		NETWORK_WriteByte( &g_LocalBuffer.ByteStream, CLC_MISSINGPACKET );
+
+		// Now, go through and figure out what packets we're missing. Request these from the server.
+		for ( ulIdx = g_lLastParsedSequence + 1; ulIdx <= g_lHighestReceivedSequence - 1; ulIdx++ )
+		{
+			for ( ulIdx2 = 0; ulIdx2 < 256; ulIdx2++ )
+			{
+				// We've found this packet! No need to tell the server we're missing it.
+				if ( g_lPacketSequence[ulIdx2] == ulIdx )
+					break;
+			}
+
+			// If we didn't find the packet, tell the server we're missing it.
+			if ( ulIdx2 == 256 )
+				NETWORK_WriteLong( &g_LocalBuffer.ByteStream, ulIdx );
+		}
+
+		// When we're done, write -1 to indicate that we're finished.
+		NETWORK_WriteLong( &g_LocalBuffer.ByteStream, -1 );
+	}
+
+	// Don't send out a request for the missing packets for another 1/4 second.
+	g_lMissingPacketTicks = ( TICRATE / 4 );
 }
 
 //*****************************************************************************
@@ -1419,71 +1207,13 @@ void CLIENT_ParsePacket( BYTESTREAM_s *pByteStream, bool bSequencedPacket )
 
 //*****************************************************************************
 //
-void CLIENT_PrintCommand( LONG lCommand )
-{
-	char	*pszString;
-
-	if ( lCommand >= NUM_SERVER_COMMANDS )
-	{
-		switch ( lCommand )
-		{
-		case CONNECT_CHALLENGE:
-
-			pszString = "CONNECT_CHALLENGE";
-			break;
-		case CONNECT_READY:
-
-			pszString = "CONNECT_READY";
-			break;
-		case CONNECT_GETDATA:
-
-			pszString = "CONNECT_GETDATA";
-			break;
-		case CONNECT_QUIT:
-
-			pszString = "CONNECT_QUIT";
-			break;
-		case CONNECT_AUTHENTICATED:
-
-			pszString = "CONNECT_AUTHENTICATED";
-			break;
-		case CONNECT_AUTHENTICATING:
-
-			pszString = "CONNECT_AUTHENTICATING";
-			break;
-		case CONNECT_ERROR:
-
-			pszString = "CONNECT_ERROR";
-			break;
-		}
-	}
-	else
-	{
-		if (( cl_showcommands >= 2 ) && ( lCommand == SVC_MOVELOCALPLAYER ))
-			return;
-		if (( cl_showcommands >= 3 ) && ( lCommand == SVC_MOVEPLAYER ))
-			return;
-		if (( cl_showcommands >= 4 ) && ( lCommand == SVC_UPDATEPLAYEREXTRADATA ))
-			return;
-
-		pszString = g_pszHeaderNames[lCommand];
-	}
-
-	Printf( "%s\n", pszString );
-
-	if ( debugfile )
-		fprintf( debugfile, "%s\n", pszString );
-}
-
-//*****************************************************************************
-//
 void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 {
 	char	szString[128];
 
 	switch ( lCommand )
 	{
-	case CONNECT_READY:
+	case SVCC_AUTHENTICATE:
 
 		// Print a status message.
 		Printf( "Connected!\n" );
@@ -1494,23 +1224,43 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 		// The next step is the authenticate the level.
 		if ( CLIENTDEMO_IsPlaying( ) == false )
 		{
-			CLIENT_SetConnectionState( CTS_AUTHENTICATINGLEVEL );
+			g_ulRetryTicks = 0;
+			CLIENT_SetConnectionState( CTS_ATTEMPTINGAUTHENTICATION );
 			CLIENT_AttemptAuthentication( g_szMapName );
 		}
 		break;
-	case CONNECT_AUTHENTICATED:
-
-		// Print a status message.
-		Printf( "Level authenticated!\n" );
-
-		// We've been authenticated, and are waiting to receive a snapshot.
-		if ( CLIENTDEMO_IsPlaying( ) == false )
+	case SVCC_MAPLOAD:
 		{
-			CLIENT_SetConnectionState( CTS_CONNECTED );
-			CLIENT_AttemptConnection( );
+			bool	bPlaying;
+
+			// Print a status message.
+			Printf( "Level authenticated!\n" );
+
+			// Check to see if we have the map.
+			if ( P_CheckIfMapExists( g_szMapName ))
+			{
+				// Save our demo recording status since G_InitNew resets it.
+				bPlaying = CLIENTDEMO_IsPlaying( );
+
+				// Start new level.
+				G_InitNew( g_szMapName, false );
+
+				// Restore our demo recording status.
+				CLIENTDEMO_SetPlaying( bPlaying );
+			}
+			else
+				Printf( "CLIENT_ProcessCommand: Unknown map: %s\n", g_szMapName );
+
+			// Now that we've loaded the map, request a snapshot from the server.
+			if ( CLIENTDEMO_IsPlaying( ) == false )
+			{
+				g_ulRetryTicks = 0;
+				CLIENT_SetConnectionState( CTS_REQUESTINGSNAPSHOT );
+				CLIENT_RequestSnapshot( );
+			}
 		}
 		break;
-	case CONNECT_ERROR:
+	case SVCC_ERROR:
 		{
 			char	szErrorString[256];
 			ULONG	ulErrorCode;
@@ -2359,33 +2109,281 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-AActor* CLIENT_SpawnThing( char *pszName, fixed_t X, fixed_t Y, fixed_t Z, LONG lNetID )
+void CLIENT_PrintCommand( LONG lCommand )
+{
+	char	*pszString;
+
+	if ( lCommand >= NUM_SERVER_COMMANDS )
+	{
+		switch ( lCommand )
+		{
+		case SVCC_AUTHENTICATE:
+
+			pszString = "SVCC_AUTHENTICATE";
+			break;
+		case SVCC_MAPLOAD:
+
+			pszString = "SVCC_MAPLOAD";
+			break;
+		case SVCC_ERROR:
+
+			pszString = "SVCC_ERROR";
+			break;
+		}
+	}
+	else
+	{
+		if (( cl_showcommands >= 2 ) && ( lCommand == SVC_MOVELOCALPLAYER ))
+			return;
+		if (( cl_showcommands >= 3 ) && ( lCommand == SVC_MOVEPLAYER ))
+			return;
+		if (( cl_showcommands >= 4 ) && ( lCommand == SVC_UPDATEPLAYEREXTRADATA ))
+			return;
+
+		pszString = g_pszHeaderNames[lCommand];
+	}
+
+	Printf( "%s\n", pszString );
+
+	if ( debugfile )
+		fprintf( debugfile, "%s\n", pszString );
+}
+
+//*****************************************************************************
+//
+void CLIENT_QuitNetworkGame( char *pszString )
+{
+	ULONG	ulIdx;
+
+	if ( pszString )
+		Printf( "%s\n", pszString );
+
+	// Clear out the existing players.
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		playeringame[ulIdx] = false;
+
+		// Zero out all the player information.
+		CLIENT_ResetPlayerData( &players[ulIdx] );
+	}
+
+	// If we're connected in any way, send a disconnect signal.
+	if ( g_ConnectionState != CTS_DISCONNECTED )
+	{
+		NETWORK_WriteByte( &g_LocalBuffer.ByteStream, CLC_QUIT );
+
+		// Add the size of the packet to the number of bytes sent.
+		CLIENTSTATISTICS_AddToBytesSent( NETWORK_CalcBufferSize( &g_LocalBuffer ));
+
+		NETWORK_LaunchPacket( &g_LocalBuffer, g_AddressServer );
+		NETWORK_ClearBuffer( &g_LocalBuffer );
+	}
+
+	// Clear out our copy of the server address.
+	memset( &g_AddressServer, 0, sizeof( g_AddressServer ));
+	CLIENT_SetConnectionState( CTS_DISCONNECTED );
+
+	// Go back to the full console.
+	gameaction = ga_fullconsole;
+
+	// View is no longer active.
+	viewactive = false;
+
+	g_lLastParsedSequence = -1;
+	g_lHighestReceivedSequence = -1;
+
+	g_lMissingPacketTicks = 0;
+
+	// Set the network state back to single player.
+	NETWORK_SetState( NETSTATE_SINGLE );
+
+	// [BB] This prevents the status bar from showing up shortly, if you start a new game, while connected to a server.
+	gamestate = GS_FULLCONSOLE;
+
+	// If we're recording a demo, then finish it!
+	if ( CLIENTDEMO_IsRecording( ))
+		G_CheckDemoStatus( );
+}
+
+//*****************************************************************************
+//
+void CLIENT_SendCmd( void )
+{		
+	ticcmd_t	*cmd;
+	ULONG		ulBits;
+
+	if (( gametic < 1 ) || (( gamestate != GS_LEVEL ) && ( gamestate != GS_INTERMISSION )))
+		return;
+
+	if ( players[consoleplayer].mo == NULL )
+		return;
+
+	// If we're at intermission, and toggling our "ready to go" status, tell the server.
+	if ( gamestate == GS_INTERMISSION )
+	{
+		if (( players[consoleplayer].cmd.ucmd.buttons ^ players[consoleplayer].oldbuttons ) &&
+			(( players[consoleplayer].cmd.ucmd.buttons & players[consoleplayer].oldbuttons ) == players[consoleplayer].oldbuttons ))
+		{
+			CLIENTCOMMANDS_ReadyToGoOn( );
+		}
+
+		players[consoleplayer].oldbuttons = players[consoleplayer].cmd.ucmd.buttons;
+	}
+
+	// Don't send movement information if we're spectating!
+	if ( players[consoleplayer].bSpectating )
+	{
+		if (( gametic % ( TICRATE * 2 )) == 0 )
+		{
+			// Send the gametic.
+			CLIENTCOMMANDS_SpectateInfo( );
+		}
+	}
+
+	// Not in a level or spectating; nothing to do!
+	if (( gamestate != GS_LEVEL ) || ( players[consoleplayer].bSpectating ))
+	{
+		if ( NETWORK_CalcBufferSize( &g_LocalBuffer ))
+		{
+			// Add the size of the packet to the number of bytes sent.
+			CLIENTSTATISTICS_AddToBytesSent( NETWORK_CalcBufferSize( &g_LocalBuffer ));
+
+			NETWORK_LaunchPacket( &g_LocalBuffer, g_AddressServer );
+			NETWORK_ClearBuffer( &g_LocalBuffer );
+		}
+		return;
+	}
+
+	// Initialize the bits.
+	ulBits = 0;
+
+	// Send the move header and the gametic.
+	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, CLC_CLIENTMOVE );
+	NETWORK_WriteLong( &g_LocalBuffer.ByteStream, gametic );
+
+	// Decide what additional information needs to be sent.
+	cmd = &players[consoleplayer].cmd;
+	if ( cmd->ucmd.buttons )
+		ulBits |= CLIENT_UPDATE_BUTTONS;
+	if ( cmd->ucmd.forwardmove )
+		ulBits |= CLIENT_UPDATE_FORWARDMOVE;
+	if ( cmd->ucmd.sidemove )
+		ulBits |= CLIENT_UPDATE_SIDEMOVE;
+	if ( cmd->ucmd.upmove )
+		ulBits |= CLIENT_UPDATE_UPMOVE;
+
+	// Tell the server what information we'll be sending.
+	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, ulBits );
+
+	// Send the necessary movement/steering information.
+	if ( ulBits & CLIENT_UPDATE_BUTTONS )
+	{
+		if ( iwanttousecrouchingeventhoughitsretardedandunnecessaryanditsimplementationishorribleimeanverticallyshrinkingskinscomeonthatsinsanebutwhatevergoaheadandhaveyourcrouching == false )
+			NETWORK_WriteByte( &g_LocalBuffer.ByteStream, cmd->ucmd.buttons & ~BT_DUCK );
+		else
+			NETWORK_WriteByte( &g_LocalBuffer.ByteStream, cmd->ucmd.buttons );
+	}
+	if ( ulBits & CLIENT_UPDATE_FORWARDMOVE )
+		NETWORK_WriteShort( &g_LocalBuffer.ByteStream, cmd->ucmd.forwardmove );
+	if ( ulBits & CLIENT_UPDATE_SIDEMOVE )
+		NETWORK_WriteShort( &g_LocalBuffer.ByteStream, cmd->ucmd.sidemove );
+	if ( ulBits & CLIENT_UPDATE_UPMOVE )
+		NETWORK_WriteShort( &g_LocalBuffer.ByteStream, cmd->ucmd.upmove );
+
+	NETWORK_WriteLong( &g_LocalBuffer.ByteStream, players[consoleplayer].mo->angle );
+	NETWORK_WriteLong( &g_LocalBuffer.ByteStream, players[consoleplayer].mo->pitch );
+
+	// Attack button.
+	if ( cmd->ucmd.buttons & BT_ATTACK )
+	{
+		if ( players[consoleplayer].ReadyWeapon == NULL )
+			NETWORK_WriteString( &g_LocalBuffer.ByteStream, "NULL" );
+		else
+			NETWORK_WriteString( &g_LocalBuffer.ByteStream, (char *)players[consoleplayer].ReadyWeapon->GetClass( )->TypeName.GetChars( ));
+	}
+
+	// Add the size of the packet to the number of bytes sent.
+	CLIENTSTATISTICS_AddToBytesSent( NETWORK_CalcBufferSize( &g_LocalBuffer ));
+
+	NETWORK_LaunchPacket( &g_LocalBuffer, g_AddressServer );
+	NETWORK_ClearBuffer( &g_LocalBuffer );
+}
+
+//*****************************************************************************
+//
+void CLIENT_WaitForServer( void )
+{
+	if ( players[consoleplayer].bSpectating )
+	{
+		// If the last time we heard from the server exceeds five seconds, we're lagging!
+		if ((( gametic - CLIENTDEMO_GetGameticOffset( ) - g_ulLastServerTick ) >= ( TICRATE * 5 )) &&
+			(( gametic - CLIENTDEMO_GetGameticOffset( )) > ( TICRATE * 5 )))
+		{
+			g_bServerLagging = true;
+		}
+	}
+	else
+	{
+		// If the last time we heard from the server exceeds one second, we're lagging!
+		if ((( gametic - CLIENTDEMO_GetGameticOffset( ) - g_ulLastServerTick ) >= TICRATE ) &&
+			(( gametic - CLIENTDEMO_GetGameticOffset( )) > TICRATE ))
+		{
+			g_bServerLagging = true;
+		}
+	}
+}
+
+//*****************************************************************************
+//
+void CLIENT_AuthenticateLevel( char *pszMapName )
+{
+	char		szChecksum[64];
+	MapData		*pMap;
+
+	// [BB] Check if the wads contain the map at all. If not, don't send any checksums.
+	pMap = P_OpenMapData( pszMapName );
+
+	if ( pMap == NULL )
+	{
+		Printf( "CLIENT_AuthenticateLevel: Map %s not found!\n", pszMapName );
+		return;
+	}
+
+	// Generate and send checksums for the map lumps.
+	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_VERTEXES, szChecksum );
+	NETWORK_WriteString( &g_LocalBuffer.ByteStream, szChecksum );
+	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_LINEDEFS, szChecksum );
+	NETWORK_WriteString( &g_LocalBuffer.ByteStream, szChecksum );
+	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_SIDEDEFS, szChecksum );
+	NETWORK_WriteString( &g_LocalBuffer.ByteStream, szChecksum );
+	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_SECTORS, szChecksum );
+	NETWORK_WriteString( &g_LocalBuffer.ByteStream, szChecksum );
+
+	// Finally, free the map.
+	delete ( pMap );
+}
+
+//*****************************************************************************
+//
+AActor *CLIENT_SpawnThing( char *pszName, fixed_t X, fixed_t Y, fixed_t Z, LONG lNetID )
 {
 	AActor			*pActor;
 	const PClass	*pType;
 
 	// Only spawn actors if we're actually in a level.
 	if ( gamestate != GS_LEVEL )
-		return NULL;
+		return ( NULL );
 
 	// Some optimization. For some actors that are sent in bunches, to reduce the size,
 	// just send some key letter that identifies the actor, instead of the full name.
-
-	for( int i = 0; i < NUMBER_OF_ACTOR_NAME_KEY_LETTERS; i++ ){
-		if ( stricmp( pszName, g_szActorKeyLetter[i] ) == 0 ){
-			if ( cl_showspawnnames )
-				Printf( "Key Letter: %s ", pszName );
-			pszName = g_szActorFullName[i];
-			break;
-		}
-	}
+	NETWORK_ConvertKeyLetterToFullString( (const char *&)pszName, !!cl_showspawnnames );
 
 	// Potentially print the name, position, and network ID of the thing spawning.
 	if ( cl_showspawnnames )
 		Printf( "Name: %s: (%d, %d, %d), %d\n", pszName, X >> FRACBITS, Y >> FRACBITS, Z >> FRACBITS, lNetID );
 
 	// If there's already an actor with the network ID of the thing we're spawning, kill it!
-	pActor = NETWORK_FindThingByNetID( lNetID );
+	pActor = CLIENT_FindThingByNetID( lNetID );
 	if ( pActor )
 	{
 /*
@@ -2454,10 +2452,12 @@ AActor* CLIENT_SpawnThing( char *pszName, fixed_t X, fixed_t Y, fixed_t Z, LONG 
 		if ( stricmp( pszName, "blood" ) == 0 )
 			pActor->momz = FRACUNIT*2;
 
+		// Allow for client-side body removal in invasion mode.
 		if ( invasion )
 			pActor->ulInvasionWave = INVASION_GetCurrentWave( );
 	}
-	return pActor;
+
+	return ( pActor );
 }
 
 //*****************************************************************************
@@ -2473,15 +2473,14 @@ void CLIENT_SpawnMissile( char *pszName, fixed_t X, fixed_t Y, fixed_t Z, fixed_
 
 	// Some optimization. For some actors that are sent in bunches, to reduce the size,
 	// just send some key letter that identifies the actor, instead of the full name.
-	if ( stricmp( pszName, "1" ) == 0 )
-		pszName = "PlasmaBall";
+	NETWORK_ConvertKeyLetterToFullString( (const char *&)pszName, !!cl_showspawnnames );
 
 	// Potentially print the name, position, and network ID of the thing spawning.
 	if ( cl_showspawnnames )
 		Printf( "Name: %s: (%d, %d, %d), %d\n", pszName, X >> FRACBITS, Y >> FRACBITS, Z >> FRACBITS, lNetID );
 
 	// If there's already an actor with the network ID of the thing we're spawning, kill it!
-	pActor = NETWORK_FindThingByNetID( lNetID );
+	pActor = CLIENT_FindThingByNetID( lNetID );
 	if ( pActor )
 	{
 /*
@@ -2533,13 +2532,7 @@ void CLIENT_SpawnMissile( char *pszName, fixed_t X, fixed_t Y, fixed_t Z, fixed_
 	if ( pActor->SeeSound )
 		S_SoundID( pActor, CHAN_VOICE, pActor->SeeSound, 1, ATTN_NORM );
 
-	pActor->target = NETWORK_FindThingByNetID( lTargetNetID );
-/*
-	// Move a bit forward.
-	pActor->x += pActor->momx >> 1;
-	pActor->y += pActor->momy >> 1;
-	pActor->z += pActor->momz >> 1;
-*/
+	pActor->target = CLIENT_FindThingByNetID( lTargetNetID );
 }
 
 //*****************************************************************************
@@ -2553,6 +2546,19 @@ void CLIENT_MoveThing( AActor *pActor, fixed_t X, fixed_t Y, fixed_t Z )
 
    // This is needed to restore tmfloorz.
    P_AdjustFloorCeil( pActor );
+}
+
+//*****************************************************************************
+//
+AActor *CLIENT_FindThingByNetID( LONG lNetID )
+{
+	if (( lNetID < 0 ) || ( lNetID >= 65536 ))
+		return ( NULL );
+
+	if (( g_NetIDList[lNetID].bFree == false ) && ( g_NetIDList[lNetID].pActor ))
+		return ( g_NetIDList[lNetID].pActor );
+
+    return ( NULL );
 }
 
 //*****************************************************************************
@@ -2639,26 +2645,39 @@ void CLIENT_RestoreSpecialDoomThing( AActor *pActor, bool bFog )
 
 //*****************************************************************************
 //
-void CLIENT_WaitForServer( void )
+AInventory *CLIENT_FindPlayerInventory( ULONG ulPlayer, const PClass *pType )
 {
-	if ( players[consoleplayer].bSpectating )
+	AInventory		*pInventory;
+
+	// Try to find this object within the player's personal inventory.
+	pInventory = players[ulPlayer].mo->FindInventory( pType );
+
+	// If the player doesn't have this type, give it to him.
+	if ( pInventory == NULL )
+		pInventory = players[ulPlayer].mo->GiveInventoryType( pType );
+
+	// If he still doesn't have the object after trying to give it to him... then YIKES!
+	if ( pInventory == NULL )
 	{
-		// If the last time we heard from the server exceeds five seconds, we're lagging!
-		if ((( gametic - CLIENTDEMO_GetGameticOffset( ) - g_ulLastServerTick ) >= ( TICRATE * 5 )) &&
-			(( gametic - CLIENTDEMO_GetGameticOffset( )) > ( TICRATE * 5 )))
-		{
-			g_bServerLagging = true;
-		}
+#ifdef CLIENT_WARNING_MESSAGES
+		Printf( "CLIENT_FindPlayerInventory: Failed to give inventory type, %s!\n", pType->TypeName.GetChars( ));
+#endif
 	}
-	else
-	{
-		// If the last time we heard from the server exceeds one second, we're lagging!
-		if ((( gametic - CLIENTDEMO_GetGameticOffset( ) - g_ulLastServerTick ) >= TICRATE ) &&
-			(( gametic - CLIENTDEMO_GetGameticOffset( )) > TICRATE ))
-		{
-			g_bServerLagging = true;
-		}
-	}
+
+	return ( pInventory );
+}
+
+//*****************************************************************************
+//
+AInventory *CLIENT_FindPlayerInventory( ULONG ulPlayer, const char *pszName )
+{
+	const PClass	*pType;
+
+	pType = PClass::FindClass( pszName );
+	if ( pType == NULL )
+		return ( NULL );
+
+	return ( CLIENT_FindPlayerInventory( ulPlayer, pType ));
 }
 
 //*****************************************************************************
@@ -2722,13 +2741,6 @@ bool CLIENT_IsValidPlayer( ULONG ulPlayer )
 		return ( false );
 
 	return ( true );
-}
-
-//*****************************************************************************
-//
-void CLIENT_AllowSendingOfUserInfo( bool bAllow )
-{
-	g_bAllowSendingOfUserInfo = bAllow;
 }
 
 //*****************************************************************************
@@ -2886,74 +2898,6 @@ LONG CLIENT_AdjustElevatorDirection( LONG lDirection )
 }
 
 //*****************************************************************************
-//
-void CLIENT_CheckForMissingPackets( void )
-{
-	ULONG	ulIdx;
-	ULONG	ulIdx2;
-
-	// We already told the server we're missing packets a little bit ago. No need
-	// to do it again.
-	if ( g_lMissingPacketTicks > 0 )
-	{
-		g_lMissingPacketTicks--;
-		return;
-	}
-
-	if ( g_lLastParsedSequence != g_lHighestReceivedSequence )
-	{
-		NETWORK_WriteByte( &g_LocalBuffer.ByteStream, CLC_MISSINGPACKET );
-
-		// Now, go through and figure out what packets we're missing. Request these from the server.
-		for ( ulIdx = g_lLastParsedSequence + 1; ulIdx <= g_lHighestReceivedSequence - 1; ulIdx++ )
-		{
-			for ( ulIdx2 = 0; ulIdx2 < 256; ulIdx2++ )
-			{
-				// We've found this packet! No need to tell the server we're missing it.
-				if ( g_lPacketSequence[ulIdx2] == ulIdx )
-					break;
-			}
-
-			// If we didn't find the packet, tell the server we're missing it.
-			if ( ulIdx2 == 256 )
-				NETWORK_WriteLong( &g_LocalBuffer.ByteStream, ulIdx );
-		}
-
-		// When we're done, write -1 to indicate that we're finished.
-		NETWORK_WriteLong( &g_LocalBuffer.ByteStream, -1 );
-	}
-
-	// Don't send out a request for the missing packets for another 1/4 second.
-	g_lMissingPacketTicks = ( TICRATE / 4 );
-}
-
-//*****************************************************************************
-//
-bool CLIENT_GetNextPacket( void )
-{
-	ULONG	ulIdx;
-
-	// Find the next packet in the sequence.
-	for ( ulIdx = 0; ulIdx < 256; ulIdx++ )
-	{
-		// Found it!
-		if ( g_lPacketSequence[ulIdx] == ( g_lLastParsedSequence + 1 ))
-		{
-			memset( NETWORK_GetNetworkMessageBuffer( )->pbData, -1, MAX_UDP_PACKET );
-			memcpy( NETWORK_GetNetworkMessageBuffer( )->pbData, g_ReceivedPacketBuffer.abData + g_lPacketBeginning[ulIdx], g_lPacketSize[ulIdx] );
-			NETWORK_GetNetworkMessageBuffer( )->ulCurrentSize = g_lPacketSize[ulIdx];
-			NETWORK_GetNetworkMessageBuffer( )->ByteStream.pbStream = NETWORK_GetNetworkMessageBuffer( )->pbData;
-			NETWORK_GetNetworkMessageBuffer( )->ByteStream.pbStreamEnd = NETWORK_GetNetworkMessageBuffer( )->ByteStream.pbStream + g_lPacketSize[ulIdx];
-
-			return ( true );
-		}
-	}
-
-	// We didn't find it!
-	return ( false );
-}
-
-//*****************************************************************************
 //*****************************************************************************
 //
 static void client_Header( BYTESTREAM_s *pByteStream )
@@ -3007,8 +2951,14 @@ static void client_EndSnapshot( BYTESTREAM_s *pByteStream )
 	// We're all done! Set the new client connection state to active.
 	CLIENT_SetConnectionState( CTS_ACTIVE );
 
+	// Hide the console.
+	C_HideConsole( );
+
 	// Make the view active.
 	viewactive = true;
+
+	// Clear the notify strings.
+	C_FlushDisplay( );
 }
 
 //*****************************************************************************
@@ -3514,13 +3464,13 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 
 	// Find the actor associated with the source. It's okay if this actor does not exist.
 	if ( lSourceID != -1 )
-		pSource = NETWORK_FindThingByNetID( lSourceID );
+		pSource = CLIENT_FindThingByNetID( lSourceID );
 	else
 		pSource = NULL;
 
 	// Find the actor associated with the inflictor. It's okay if this actor does not exist.
 	if ( lInflictorID != -1 )
-		pInflictor = NETWORK_FindThingByNetID( lInflictorID );
+		pInflictor = CLIENT_FindThingByNetID( lInflictorID );
 	else
 		pInflictor = NULL;
 
@@ -3655,7 +3605,7 @@ static void client_UpdatePlayerArmorDisplay( BYTESTREAM_s *pByteStream )
 	// Read in the player whose armor display is updated.
 	ulPlayer = NETWORK_ReadByte( pByteStream );
 
-	// Read in the armor amount and icon;
+	// Read in the armor amount and icon.
 	lArmorAmount = NETWORK_ReadShort( pByteStream );
 	pszArmorIconName = NETWORK_ReadString( pByteStream );
 
@@ -4071,7 +4021,7 @@ static void client_SetPlayerCamera( BYTESTREAM_s *pByteStream )
 	bRevertPleaseStatus = !!NETWORK_ReadByte( pByteStream );
 
 	// Find the camera by the network ID.
-	pCamera = NETWORK_FindThingByNetID( lID );
+	pCamera = CLIENT_FindThingByNetID( lID );
 	if ( pCamera == NULL )
 	{
 		players[consoleplayer].camera = players[consoleplayer].mo;
@@ -4178,7 +4128,7 @@ static void client_UpdatePlayerPendingWeapon( BYTESTREAM_s *pByteStream )
 	// Some optimization. For standard Doom weapons, to reduce the size of the string
 	// that's sent out, just send some key character that identifies the weapon, instead
 	// of the full name.
-	convertWeaponKeyLetterToFullString( pszPendingWeapon );
+	NETWORK_ConvertWeaponKeyLetterToFullString( pszPendingWeapon );
 
 	// If the player doesn't exist, get out!
 	if (( players[ulPlayer].mo == NULL ) || ( playeringame[ulPlayer] == false ))
@@ -4406,10 +4356,7 @@ static void client_ConsolePlayerKicked( BYTESTREAM_s *pByteStream )
 	CLIENT_SetConnectionState( CTS_DISCONNECTED );
 
 	// End the network game.
-	CLIENT_QuitNetworkGame( );
-
-	// Let the player know he's been kicked.
-	Printf( "You have been kicked from the server.\n" );
+	CLIENT_QuitNetworkGame( "You have been kicked from the server.\n" );
 }
 
 //*****************************************************************************
@@ -4600,7 +4547,7 @@ static void client_SetPlayerAmmoCapacity( BYTESTREAM_s *pByteStream )
 	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
 		return;
 
-	pAmmo = FindPlayerInventory( ulPlayer, pszName );
+	pAmmo = CLIENT_FindPlayerInventory( ulPlayer, pszName );
 
 	if ( pAmmo == NULL )
 		return;
@@ -4754,7 +4701,7 @@ static void client_MoveThing( BYTESTREAM_s *pByteStream )
 	lBits = NETWORK_ReadShort( pByteStream );
 
 	// Try to find the corresponding actor.
-	pActor = NETWORK_FindThingByNetID( lID );
+	pActor = CLIENT_FindThingByNetID( lID );
 
 	if (( pActor == NULL ) || gamestate != GS_LEVEL )
 	{
@@ -4816,7 +4763,7 @@ static void client_MoveThingExact( BYTESTREAM_s *pByteStream )
 	lBits = NETWORK_ReadShort( pByteStream );
 
 	// Try to find the corresponding actor.
-	pActor = NETWORK_FindThingByNetID( lID );
+	pActor = CLIENT_FindThingByNetID( lID );
 
 	if (( pActor == NULL ) || gamestate != GS_LEVEL )
 	{
@@ -4874,7 +4821,7 @@ static void client_DamageThing( BYTESTREAM_s *pByteStream )
 	if ( gamestate != GS_LEVEL )
 		return;
 
-	pActor = NETWORK_FindThingByNetID( lID );
+	pActor = CLIENT_FindThingByNetID( lID );
 
 	// Nothing to damage.
 	if ( pActor == NULL )
@@ -4914,7 +4861,7 @@ static void client_KillThing( BYTESTREAM_s *pByteStream )
 		return;
 
 	// Find the actor that matches the given network ID.
-	pActor = NETWORK_FindThingByNetID( lID );
+	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
@@ -4951,7 +4898,7 @@ static void client_SetThingState( BYTESTREAM_s *pByteStream )
 	lState = NETWORK_ReadByte( pByteStream );
 
 	// Find the actor associated with the ID.
-	pActor = NETWORK_FindThingByNetID( lID );
+	pActor = CLIENT_FindThingByNetID( lID );
 
 	// Not in a level; nothing to do (shouldn't happen!)
 	if ( gamestate != GS_LEVEL )
@@ -5092,7 +5039,7 @@ static void client_DestroyThing( BYTESTREAM_s *pByteStream )
 	lID = NETWORK_ReadShort( pByteStream );
 
 	// Find the actor based on the net ID.
-	pActor = NETWORK_FindThingByNetID( lID );
+	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
@@ -5120,7 +5067,7 @@ static void client_SetThingAngle( BYTESTREAM_s *pByteStream )
 	Angle = NETWORK_ReadLong( pByteStream );
 
 	// Now try to find the thing.
-	pActor = NETWORK_FindThingByNetID( lID );
+	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
@@ -5148,7 +5095,7 @@ static void client_SetThingTID( BYTESTREAM_s *pByteStream )
 	lTid = NETWORK_ReadShort( pByteStream );
 
 	// Now try to find the thing.
-	pActor = NETWORK_FindThingByNetID( lID );
+	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
@@ -5177,7 +5124,7 @@ static void client_SetThingTics( BYTESTREAM_s *pByteStream )
 	lTics = NETWORK_ReadShort( pByteStream );
 
 	// Now try to find the thing.
-	pActor = NETWORK_FindThingByNetID( lID );
+	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
@@ -5205,7 +5152,7 @@ static void client_SetThingWaterLevel( BYTESTREAM_s *pByteStream )
 	lWaterLevel = NETWORK_ReadByte( pByteStream );
 
 	// Now try to find the corresponding actor.
-	pActor = NETWORK_FindThingByNetID( lID );
+	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
@@ -5236,7 +5183,7 @@ static void client_SetThingFlags( BYTESTREAM_s *pByteStream )
 	ulFlags = NETWORK_ReadLong( pByteStream );
 
 	// Now try to find the corresponding actor.
-	pActor = NETWORK_FindThingByNetID( lID );
+	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
@@ -5297,7 +5244,7 @@ static void client_SetThingArguments( BYTESTREAM_s *pByteStream )
 	ulArgs4 = NETWORK_ReadByte( pByteStream );
 
 	// Now try to find the corresponding actor.
-	pActor = NETWORK_FindThingByNetID( lID );
+	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
@@ -5334,7 +5281,7 @@ static void client_SetThingTranslation( BYTESTREAM_s *pByteStream )
 	lTranslation = NETWORK_ReadLong( pByteStream );
 
 	// Now try to find the corresponding actor.
-	pActor = NETWORK_FindThingByNetID( lID );
+	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
@@ -5385,7 +5332,7 @@ static void client_SetThingProperty( BYTESTREAM_s *pByteStream )
 	ulPropertyValue = NETWORK_ReadLong( pByteStream );
 
 	// Now try to find the corresponding actor.
-	pActor = NETWORK_FindThingByNetID( lID );
+	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
@@ -5440,7 +5387,7 @@ static void client_SetThingSound( BYTESTREAM_s *pByteStream )
 	pszSound = NETWORK_ReadString( pByteStream );
 
 	// Now try to find the corresponding actor.
-	pActor = NETWORK_FindThingByNetID( lID );
+	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
@@ -5494,7 +5441,7 @@ static void client_SetThingSpecial2( BYTESTREAM_s *pByteStream )
 	lSpecial2 = NETWORK_ReadShort( pByteStream );
 
 	// Now try to find the corresponding actor.
-	pActor = NETWORK_FindThingByNetID( lID );
+	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
@@ -5526,7 +5473,7 @@ static void client_SetWeaponAmmoGive( BYTESTREAM_s *pByteStream )
 	ulAmmoGive2 = NETWORK_ReadShort( pByteStream );
 
 	// Now try to find the corresponding actor.
-	pActor = NETWORK_FindThingByNetID( lID );
+	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
@@ -5560,7 +5507,7 @@ static void client_ThingIsCorpse( BYTESTREAM_s *pByteStream )
 	// Is this thing a monster?
 	bIsMonster = !!NETWORK_ReadByte( pByteStream );
 
-	pActor = NETWORK_FindThingByNetID( lID );
+	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
@@ -5607,7 +5554,7 @@ static void client_HideThing( BYTESTREAM_s *pByteStream )
 	lID = NETWORK_ReadShort( pByteStream );
 
 	// Didn't find it.
-	pActor = NETWORK_FindThingByNetID( lID );
+	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
@@ -5669,7 +5616,7 @@ static void client_TeleportThing( BYTESTREAM_s *pByteStream )
 	// Should be do the teleport zoom?
 	bTeleZoom = !!NETWORK_ReadByte( pByteStream );
 
-	pActor = NETWORK_FindThingByNetID( lID );
+	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 		return;
 
@@ -5730,14 +5677,14 @@ static void client_ThingActivate( BYTESTREAM_s *pByteStream )
 	lID = NETWORK_ReadShort( pByteStream );
 
 	// Now try to find the corresponding actor.
-	pActor = NETWORK_FindThingByNetID( lID );
+	pActor = CLIENT_FindThingByNetID( lID );
 
 	// Get the ID of the activator.
 	lID = NETWORK_ReadShort( pByteStream );
 	if ( lID == -1 )
 		pActivator = NULL;
 	else
-		pActivator = NETWORK_FindThingByNetID( lID );
+		pActivator = CLIENT_FindThingByNetID( lID );
 
 	if ( pActor == NULL )
 	{
@@ -5763,14 +5710,14 @@ static void client_ThingDeactivate( BYTESTREAM_s *pByteStream )
 	lID = NETWORK_ReadShort( pByteStream );
 
 	// Now try to find the corresponding actor.
-	pActor = NETWORK_FindThingByNetID( lID );
+	pActor = CLIENT_FindThingByNetID( lID );
 
 	// Get the ID of the activator.
 	lID = NETWORK_ReadShort( pByteStream );
 	if ( lID == -1 )
 		pActivator = NULL;
 	else
-		pActivator = NETWORK_FindThingByNetID( lID );
+		pActivator = CLIENT_FindThingByNetID( lID );
 
 	if ( pActor == NULL )
 	{
@@ -5802,7 +5749,7 @@ static void client_RespawnDoomThing( BYTESTREAM_s *pByteStream )
 	if ( gamestate != GS_LEVEL )
 		return;
 
-	pActor = NETWORK_FindThingByNetID( lID );
+	pActor = CLIENT_FindThingByNetID( lID );
 
 	// Couldn't find a matching actor. Ignore...
 	if ( pActor == NULL )
@@ -5832,7 +5779,7 @@ static void client_RespawnRavenThing( BYTESTREAM_s *pByteStream )
 	if ( gamestate != GS_LEVEL )
 		return;
 
-	pActor = NETWORK_FindThingByNetID( lID );
+	pActor = CLIENT_FindThingByNetID( lID );
 
 	// Couldn't find a matching actor. Ignore...
 	if ( pActor == NULL )
@@ -6768,7 +6715,7 @@ static void client_MissileExplode( BYTESTREAM_s *pByteStream )
 	Z = NETWORK_ReadShort( pByteStream ) << FRACBITS;
 
 	// Find the actor associated with the given network ID.
-	pActor = NETWORK_FindThingByNetID( lID );
+	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
@@ -6839,7 +6786,7 @@ static void client_WeaponChange( BYTESTREAM_s *pByteStream )
 	// Some optimization. For standard Doom weapons, to reduce the size of the string
 	// that's sent out, just send some key character that identifies the weapon, instead
 	// of the full name.
-	convertWeaponKeyLetterToFullString( pszString );
+	NETWORK_ConvertWeaponKeyLetterToFullString( pszString );
 
 	if ( players[consoleplayer].mo == NULL )
 		return;
@@ -6905,7 +6852,7 @@ static void client_WeaponRailgun( BYTESTREAM_s *pByteStream )
 	bSilent = !!NETWORK_ReadByte( pByteStream );
 
 	// Find the actor associated with the given network ID.
-	pActor = NETWORK_FindThingByNetID( lID );
+	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
@@ -7859,7 +7806,7 @@ static void client_SoundActor( BYTESTREAM_s *pByteStream )
 	lAttenuation = NETWORK_ReadByte( pByteStream );
 
 	// Find the actor from the ID.
-	pActor = NETWORK_FindThingByNetID( lID );
+	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
@@ -7901,7 +7848,7 @@ static void client_SoundIDActor( BYTESTREAM_s *pByteStream )
 	lAttenuation = NETWORK_ReadByte( pByteStream );
 
 	// Find the actor from the ID.
-	pActor = NETWORK_FindThingByNetID( lID );
+	pActor = CLIENT_FindThingByNetID( lID );
 	if ( pActor == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
@@ -8097,7 +8044,7 @@ static void client_MapNew( BYTESTREAM_s *pByteStream )
 	Printf( "Connecting to %s\n%s\n", NETWORK_AddressToString( g_AddressServer ), pszMapName );
 
 	// Update the connection state, and begin trying to reconnect.
-	CLIENT_SetConnectionState( CTS_TRYCONNECT );
+	CLIENT_SetConnectionState( CTS_ATTEMPTINGCONNECTION );
 	CLIENT_AttemptConnection( );
 }
 
@@ -8135,9 +8082,9 @@ static void client_MapAuthenticate( BYTESTREAM_s *pByteStream )
 	// Send a checksum of our verticies, linedefs, sidedefs, and sectors.
 	CLIENT_AuthenticateLevel( pszMapName );
 
-	g_lBytesSent += g_LocalBuffer.ulCurrentSize;
-	if ( g_lBytesSent > g_lMaxBytesSent )
-		g_lMaxBytesSent = g_lBytesSent;
+	// Add the size of the packet to the number of bytes sent.
+	CLIENTSTATISTICS_AddToBytesSent( NETWORK_CalcBufferSize( &g_LocalBuffer ));
+
 	NETWORK_LaunchPacket( &g_LocalBuffer, g_AddressServer );
 	NETWORK_ClearBuffer( &g_LocalBuffer );
 }
@@ -9785,7 +9732,7 @@ static void client_EarthQuake( BYTESTREAM_s *pByteStream )
 
 	// Find the actor that represents the center of the quake based on the network
 	// ID sent. If we can't find the actor, then the quake has no center.
-	pCenter = NETWORK_FindThingByNetID( lID );
+	pCenter = CLIENT_FindThingByNetID( lID );
 	if ( pCenter == NULL )
 		return;
 
@@ -9968,7 +9915,7 @@ static void client_SetCameraToTexture( BYTESTREAM_s *pByteStream )
 
 	// Find the actor that represents the camera. If we can't find the actor, then
 	// break out.
-	pCamera = NETWORK_FindThingByNetID( lID );
+	pCamera = CLIENT_FindThingByNetID( lID );
 	if ( pCamera == NULL )
 		return;
 
@@ -10034,7 +9981,7 @@ CCMD( connect )
 	}
 
 	// Potentially disconnect from the current server.
-	CLIENT_QuitNetworkGame( );
+	CLIENT_QuitNetworkGame( NULL );
 
 	// Put the game in client mode.
 	NETWORK_SetState( NETSTATE_CLIENT );
@@ -10060,10 +10007,10 @@ CCMD( connect )
 	gameaction = ga_fullconsole;
 
 	// Send out a connection signal.
-	CLIENT_SendConnectionSignal( );
+	CLIENT_AttemptConnection( );
 
 	// Update the connection state.
-	CLIENT_SetConnectionState( CTS_TRYCONNECT );
+	CLIENT_SetConnectionState( CTS_ATTEMPTINGCONNECTION );
 
 	// If we've elected to record a demo, begin that process now.
 	pszDemoName = Args.CheckValue( "-record" );
@@ -10080,7 +10027,7 @@ CCMD( disconnect )
 		return;
 
 	// Send disconnect signal, and end game.
-	CLIENT_QuitNetworkGame( );
+	CLIENT_QuitNetworkGame( NULL );
 }
 
 //*****************************************************************************
@@ -10129,7 +10076,7 @@ CCMD( reconnect )
 
 	// If we're in the middle of a game, we first need to disconnect from the server.
 	if ( g_ConnectionState != CTS_DISCONNECTED )
-		CLIENT_QuitNetworkGame( );
+		CLIENT_QuitNetworkGame( NULL );
 	
 	// Store the address of the server we were on.
 	if ( g_AddressLastConnected.abIP[0] == 0 )
@@ -10156,10 +10103,10 @@ CCMD( reconnect )
 	gameaction = ga_fullconsole;
 
 	// Send out a connection signal.
-	CLIENT_SendConnectionSignal( );
+	CLIENT_AttemptConnection( );
 
 	// Update the connection state.
-	CLIENT_SetConnectionState( CTS_TRYCONNECT );
+	CLIENT_SetConnectionState( CTS_ATTEMPTINGCONNECTION );
 }
 
 //*****************************************************************************
@@ -10248,19 +10195,6 @@ CVAR( Bool, cl_hitscandecalhack, true, CVAR_ARCHIVE )
 
 //*****************************************************************************
 //	STATISTICS
-
-ADD_STAT( nettraffic )
-{
-	FString	Out;
-
-	Out.Format( "%3d bytes sent (%3d max last second), %3d (%3d) received", 
-		g_lBytesSent,
-		g_lMaxBytesSentLastSecond,
-		g_lBytesReceived,
-		g_lMaxBytesReceivedLastSecond );
-
-	return ( Out );
-}
 /*
 // [BC] TEMPORARY
 ADD_STAT( momentum )
@@ -10272,16 +10206,4 @@ ADD_STAT( momentum )
 	return ( Out );
 }
 */
-
-CCMD( ingame )
-{
-	ULONG	ulIdx;
-
-	Printf( "Consoleplayer: %d\n", consoleplayer + 1 );
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( playeringame[ulIdx] )
-			Printf( "Player %d\n", ulIdx + 1 );
-	}
-}
 

@@ -54,6 +54,7 @@
 #include "m_random.h"
 // [BC] New #includes.
 #include "network.h"
+#include "cl_commands.h"
 #include "cl_demo.h"
 #include "cl_main.h"
 #include "deathmatch.h"
@@ -358,9 +359,9 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 	}
 
 	// Send updated userinfo to the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( CLIENT_GetConnectionState( ) >= CTS_CONNECTED ) && ( ulUpdateFlags > 0 ))
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( CLIENT_GetConnectionState( ) >= CTS_REQUESTINGSNAPSHOT ) && ( ulUpdateFlags > 0 ))
 	{
-		CLIENT_SendUserInfo( ulUpdateFlags );
+		CLIENTCOMMANDS_UserInfo( ulUpdateFlags );
 
 		if ( CLIENTDEMO_IsRecording( ))
 			CLIENTDEMO_WriteUserInfo( );

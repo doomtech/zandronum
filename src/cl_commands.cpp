@@ -66,6 +66,12 @@ static	ULONG	g_ulLastChangeTeamTime = 0;
 
 void CLIENTCOMMANDS_UserInfo( ULONG ulFlags )
 {
+	// Temporarily disable userinfo for when the player setup menu updates our userinfo. Then
+	// we can just send all our userinfo in one big bulk, instead of each time it updates
+	// a userinfo property.
+	if ( CLIENT_GetAllowSendingOfUserInfo( ) == false )
+		return;
+
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_USERINFO );
 
 	// [BB] This prevents accessing PlayerClasses[-1], when trying to send the class name.
@@ -148,7 +154,7 @@ void CLIENTCOMMANDS_WeaponSelect( const char *pszWeapon )
 	// Some optimization. For standard Doom weapons, to reduce the size of the string
 	// that's sent out, just send some key character that identifies the weapon, instead
 	// of the full name.
-	convertWeaponNameToKeyLetter( pszWeapon );
+	NETWORK_ConvertWeaponNameToKeyLetter( pszWeapon );
 
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_WEAPONSELECT );
 	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, pszWeapon );

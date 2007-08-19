@@ -142,6 +142,7 @@ v0.97d-beta5
 -	- Fixed: Display problems with the CPU name string shown on startup. [Torr Samaho]
 -	- Fixed potential crashes, when trying to add a ban even though the maximum number of bans is already reached. [Torr Samaho]
 !	- Skulltag's invasion spawners are now defined in skulltag.pk3. [Carnevil]
+!	- Changed Skulltag's connection process so that the map is now loaded before a full snapshot of the map is sent. This should result in a smoother connection process. [Carnevil]
 !	- You can no longer exit a map during the countdown in survival invasion. [Carnevil]
 !	- Starting a new game from the main menu now disables multiplayer emulation and resets dmflags. [Carnevil]
 !	- The possession countdown is now bolder in higher resolutions. [Rivecoder]

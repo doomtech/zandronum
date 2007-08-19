@@ -78,6 +78,7 @@
 #include "m_menu.h"
 
 #include "announcer.h"
+#include "cl_commands.h"
 #include "cl_demo.h"
 #include "cl_main.h"
 #include "deathmatch.h"
@@ -2364,7 +2365,7 @@ void M_AcceptPlayerSetupChanges( void )
 		return;
 
 	ulUpdateFlags = 0;
-	CLIENT_AllowSendingOfUserInfo( false );
+	CLIENT_SetAllowSendingOfUserInfo( false );
 
 	if ( stricmp( menu_name, name ) != 0 )
 		ulUpdateFlags |= USERINFO_NAME;
@@ -2407,11 +2408,11 @@ void M_AcceptPlayerSetupChanges( void )
 		ulUpdateFlags |= USERINFO_PLAYERCLASS;
 	playerclass = PlayerClasses[g_ulPlayerSetupClass].Type->Meta.GetMetaString (APMETA_DisplayName);
 
-	CLIENT_AllowSendingOfUserInfo( true );
+	CLIENT_SetAllowSendingOfUserInfo( true );
 
 	// Send updated userinfo to the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( CLIENT_GetConnectionState( ) >= CTS_CONNECTED ) && ( ulUpdateFlags > 0 ))
-		CLIENT_SendUserInfo( ulUpdateFlags );
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( CLIENT_GetConnectionState( ) >= CTS_REQUESTINGSNAPSHOT ) && ( ulUpdateFlags > 0 ))
+		CLIENTCOMMANDS_UserInfo( ulUpdateFlags );
 }
 
 void M_UndoPlayerSetupChanges( void )
