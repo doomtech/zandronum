@@ -845,6 +845,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\cl_statistics.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\cmdlib.cpp"
 				>
 				<FileConfiguration
@@ -4255,6 +4259,10 @@
 			</File>
 			<File
 				RelativePath=".\src\cl_main.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\cl_statistics.h"
 				>
 			</File>
 			<File
