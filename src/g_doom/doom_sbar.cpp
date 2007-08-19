@@ -1587,56 +1587,9 @@ void DrawFullHUD_GameInformation()
 			}
 		}
 
-		// [BC] Draw points in possession.
-		if ( possession || teampossession )
+		// Draw keys in cooperative modes.
+		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode() ) & GMF_COOPERATIVE )
 		{
-			DrBNumberOuter (CPlayer->lPointCount, -44, 1);
-		}
-		else if (deathmatch)
-		{ // Draw frags (in DM)
-			DrBNumberOuter (CPlayer->fragcount, -44, 1);
-		}
-		// [BC] Draw a bunch of stuff in teamgame mode.
-		else if ( teamgame )
-		{
-			// Draw points scored.
-			DrBNumberOuter( CPlayer->lPointCount, -44, 1 );
-
-			if ( ctf )
-			{
-				screen->DrawTexture (Images[imgBFLA], 18, -( BigHeight * 3 ) - 18,
-					DTA_HUDRules, HUD_Normal,
-					DTA_CenterBottomOffset, true,
-					TAG_DONE);
-
-				DrBNumberOuter( MIN( (int)TEAM_GetScore( TEAM_BLUE ), 99 ), 28, -( BigHeight * 3 ) - 18 - 29 );
-
-				screen->DrawTexture (Images[imgRFLA], 18, -( BigHeight * 3 ) - 18 - 51,
-					DTA_HUDRules, HUD_Normal,
-					DTA_CenterBottomOffset, true,
-					TAG_DONE);
-
-				DrBNumberOuter( MIN( (int)TEAM_GetScore( TEAM_RED ), 99 ), 28, -( BigHeight * 3 ) - 18 - 51 - 29 );
-			}
-			else if ( skulltag )
-			{
-				screen->DrawTexture (Images[imgBSKU], 12, -( BigHeight * 3 ) - 18,
-					DTA_HUDRules, HUD_Normal,
-					DTA_CenterBottomOffset, true,
-					TAG_DONE);
-
-				DrBNumberOuter( MIN( (int)TEAM_GetScore( TEAM_BLUE ), 99 ), 16, -( BigHeight * 3 ) - 18 - 16 );
-
-				screen->DrawTexture (Images[imgRSKU], 12, -( BigHeight * 3 ) - 18 - 24,
-					DTA_HUDRules, HUD_Normal,
-					DTA_CenterBottomOffset, true,
-					TAG_DONE);
-
-				DrBNumberOuter( MIN( (int)TEAM_GetScore( TEAM_RED ), 99 ), 16, -( BigHeight * 3 ) - 18 - 24 - 16 );
-			}
-		}
-
-		else { // Draw keys (not DM)
 			int maxw = 0;
 			int count = 0;
 			int x =  -2;

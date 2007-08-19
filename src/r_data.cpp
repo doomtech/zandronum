@@ -1208,6 +1208,10 @@ static void R_InitPatches ()
 		"F1_1FCTF",
 		// Custom F1 patches, defined by mapinfo, are added dynamically.
 		"TLKMINI",
+		"BFLASMAL",
+		"RFLASMAL",
+		"BSKUA0",
+		"RSKUA0",
 	};
 	
 	static const char spinners[][9] =

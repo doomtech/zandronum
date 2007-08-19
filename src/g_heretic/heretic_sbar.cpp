@@ -15,6 +15,7 @@
 #include "a_keys.h"
 #include "deathmatch.h"
 #include "network.h"
+#include "gamemode.h"
 
 static FRandom pr_chainwiggle;
 
@@ -563,12 +564,7 @@ private:
 			DrBNumberOuter (armor->Amount, 5, -43);
 		}
 
-		if (deathmatch)
-		{
-			// Draw frag count
-			DrINumberOuter (CPlayer->fragcount, 45, -16);
-		}
-		else
+		if (!deathmatch)
 		{
 			// Draw keys
 			int playerkeys = 0;

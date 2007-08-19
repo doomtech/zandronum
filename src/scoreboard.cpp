@@ -703,7 +703,7 @@ void SCOREBOARD_RenderDMStats( void )
 	}
 
 	// In fullscreen, don't display anything else. We have another display for that.
-	if (( realviewheight == SCREENHEIGHT ) && viewactive && cl_stfullscreenhud )
+	if (( realviewheight == SCREENHEIGHT ) && viewactive && cl_stfullscreenhud && gameinfo.gametype == GAME_Doom )
 		return;
 
 	ulYPos = ST_Y - ( ulTextHeight * 2 ) + 1;
@@ -1061,7 +1061,7 @@ void SCOREBOARD_RenderTeamStats( player_s *pPlayer )
 
 	// Don't display scores or anything if the status bar is minimized. We
 	// have a different display for that.
-	if (( realviewheight == SCREENHEIGHT ) && viewactive && cl_stfullscreenhud)
+	if (( realviewheight == SCREENHEIGHT ) && viewactive)
 		return;
 
 	// Now, draw the blue and red team scores.
