@@ -190,7 +190,7 @@ void ABaseMonsterInvasionSpot::Tick( void )
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SpawnThing( pFog );
 		}
-		pActor->InvasionSpot.pMonsterSpot = this;
+		pActor->pMonsterSpot = this;
 		pActor->ulInvasionWave = g_ulCurrentWave;
 	}
 }
@@ -200,7 +200,7 @@ void ABaseMonsterInvasionSpot::Tick( void )
 void ABaseMonsterInvasionSpot::Serialize( FArchive &arc )
 {
 	Super::Serialize( arc );
-	arc << (DWORD &)lNextSpawnTick << (DWORD &)lNumLeftThisWave << (DWORD &)lSpawnerID;
+	arc << (DWORD &)lNextSpawnTick << (DWORD &)lNumLeftThisWave;
 }
 
 //*****************************************************************************
@@ -298,8 +298,8 @@ void ABasePickupInvasionSpot::Destroy( )
 	// destroyed spot.
 	while (( pActor = Iterator.Next( )))
 	{
-	if ( pActor->InvasionSpot.pPickupSpot == this)
-		pActor->InvasionSpot.pPickupSpot = NULL;
+	if ( pActor->pPickupSpot == this)
+		pActor->pPickupSpot = NULL;
 	}
 
 	Super::Destroy ();
@@ -364,7 +364,7 @@ void ABasePickupInvasionSpot::Tick( void )
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SpawnThing( pFog );
 		}
-		pActor->InvasionSpot.pPickupSpot = this;
+		pActor->pPickupSpot = this;
 	}
 }
 
@@ -373,7 +373,7 @@ void ABasePickupInvasionSpot::Tick( void )
 void ABasePickupInvasionSpot::Serialize( FArchive &arc )
 {
 	Super::Serialize( arc );
-	arc << (DWORD &)lNextSpawnTick << (DWORD &)lNumLeftThisWave << (DWORD &)lSpawnerID;
+	arc << (DWORD &)lNextSpawnTick << (DWORD &)lNumLeftThisWave;
 }
 
 //*****************************************************************************
@@ -750,7 +750,7 @@ void INVASION_StartCountdown( ULONG ulTicks )
 				continue;
 
 			// Get rid of any bodies that didn't come from a spawner.
-			if (( pActor->InvasionSpot.pMonsterSpot == NULL ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+			if (( pActor->pMonsterSpot == NULL ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
 			{
 				pActor->Destroy( );
 				continue;
@@ -932,7 +932,7 @@ void INVASION_BeginWave( ULONG ulWave )
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SpawnThing( pFog );
 		}
-		pActor->InvasionSpot.pMonsterSpot = pMonsterSpot;
+		pActor->pMonsterSpot = pMonsterSpot;
 		pActor->ulInvasionWave = g_ulCurrentWave;
 	}
 
@@ -980,7 +980,7 @@ void INVASION_BeginWave( ULONG ulWave )
 		while (( pActor = ActorIterator.Next( )))
 		{
 			if (( pActor->flags & MF_SPECIAL ) &&
-				( pActor->InvasionSpot.pPickupSpot == pPickupSpot ))
+				( pActor->pPickupSpot == pPickupSpot ))
 			{
 				bContinue = true;
 				pPickupSpot->lNextSpawnTick = -1;
@@ -1013,7 +1013,7 @@ void INVASION_BeginWave( ULONG ulWave )
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SpawnThing( pFog );
 		}
-		pActor->InvasionSpot.pPickupSpot = pPickupSpot;
+		pActor->pPickupSpot = pPickupSpot;
 	}
 
 	while (( pWeaponSpot = WeaponIterator.Next( )))
@@ -1254,66 +1254,6 @@ void INVASION_ReadSaveInfo( PNGHandle *pPng )
 		arc << (DWORD &)g_ulNumMonstersLeft << (DWORD &)g_ulInvasionCountdownTicks << (DWORD &)g_ulCurrentWave << (DWORD &)ulInvasionState << (DWORD &)g_ulNumBossMonsters;
 		g_InvasionState = (INVASIONSTATE_e)ulInvasionState;
 	}
-}
-
-//*****************************************************************************
-//
-void INVASION_SetupSpawnerIDs( void )
-{
-	ABasePickupInvasionSpot							*pPickupSpot;
-	TThinkerIterator<ABasePickupInvasionSpot>		PickupIterator;
-	AActor											*pActor;
-	TThinkerIterator<AActor>						ActorIterator;
-	LONG											lID;
-
-	lID = 0;
-	while (( pPickupSpot = PickupIterator.Next( )))
-	{
-		if ( pPickupSpot->lSpawnerID == 0 )
-			pPickupSpot->lSpawnerID = ++lID;
-	}
-
-	while (( pActor = ActorIterator.Next( )))
-	{
-		if ( pActor->flags & MF_SPECIAL )
-		{
-			if ( pActor->InvasionSpot.pPickupSpot )
-				pActor->ulInvasionSpawnerID = pActor->InvasionSpot.pPickupSpot->lSpawnerID;
-		}
-	}
-}
-
-//*****************************************************************************
-//
-void INVASION_RestoreSpawnerPointers( void )
-{
-	AActor											*pActor;
-	TThinkerIterator<AActor>						ActorIterator;
-
-	while (( pActor = ActorIterator.Next( )))
-	{
-		if ( pActor->flags & MF_SPECIAL )
-		{
-			if ( pActor->ulInvasionSpawnerID != 0 )
-				pActor->InvasionSpot.pPickupSpot = INVASION_FindPickupSpawnerByID( pActor->ulInvasionSpawnerID );
-		}
-	}
-}
-
-//*****************************************************************************
-//
-ABasePickupInvasionSpot *INVASION_FindPickupSpawnerByID( LONG lID )
-{
-	ABasePickupInvasionSpot							*pPickupSpot;
-	TThinkerIterator<ABasePickupInvasionSpot>		PickupIterator;
-
-	while (( pPickupSpot = PickupIterator.Next( )))
-	{
-		if ( pPickupSpot->lSpawnerID == lID )
-			return ( pPickupSpot );
-	}
-
-	return ( NULL );
 }
 
 //*****************************************************************************

@@ -1069,8 +1069,8 @@ void AInventory::Touch (AActor *toucher)
 
 	// [BC] If this item was spawned from an invasion spot, tell the spot that the item
 	// it spawned has been picked up.
-	if ( InvasionSpot.pPickupSpot )
-		InvasionSpot.pPickupSpot->PickedUp( );
+	if ( pPickupSpot )
+		pPickupSpot->PickedUp( );
 
 	if (flags & MF_COUNTITEM)
 	{

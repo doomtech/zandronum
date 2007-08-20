@@ -864,18 +864,11 @@ public:
 	ULONG		ulOldWaterlevel;
 
 	// Pointer to the pickup spot this item was spawned from.
-	union
-	{
-		ABaseMonsterInvasionSpot		*pMonsterSpot;
-		ABasePickupInvasionSpot			*pPickupSpot;
-
-	} InvasionSpot;
+	ABaseMonsterInvasionSpot		*pMonsterSpot;
+	ABasePickupInvasionSpot			*pPickupSpot;
 
 	// What wave does this monster belong to in invasion mode?
 	ULONG		ulInvasionWave;
-
-	// If this object came from an invasion spawner, what is its ID?
-	ULONG		ulInvasionSpawnerID;
 
 	// [BC] End of ST stuff.
 

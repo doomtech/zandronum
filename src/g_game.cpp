@@ -3811,10 +3811,6 @@ void G_DoLoadGame ()
 
 	delete png;
 	fclose (stdfile);
-
-	// [BC] In invasion mode, reasign the spawner pointers for various items on the map.
-	if ( invasion )
-		INVASION_RestoreSpawnerPointers( );
 }
 
 
@@ -4047,12 +4043,6 @@ void G_DoSaveGame (bool okForQuicksave)
 	{
 		savegamefile = G_BuildSaveName ("demosave.zds", -1);
 	}
-
-	// [BC] In invasion mode, come up with spawner IDs for each of the spawners. Then, convert
-	// the pointers in each actor's pPickupInvasionSpot to this ID, so that when the save
-	// game is restored, the pointer can be correctly restored.
-	if ( invasion )
-		INVASION_SetupSpawnerIDs( );
 
 	insave = true;
 	G_SnapshotLevel ();

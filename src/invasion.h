@@ -89,7 +89,6 @@ public:
 	LONG	lNextSpawnTick;
 	LONG	lNumLeftThisWave;
 	bool	bIsBossMonster;
-	LONG	lSpawnerID;
 };
 
 //*****************************************************************************
@@ -109,7 +108,6 @@ public:
 
 	LONG	lNextSpawnTick;
 	LONG	lNumLeftThisWave;
-	LONG	lSpawnerID;
 };
 
 //*****************************************************************************
@@ -156,10 +154,6 @@ ULONG	INVASION_GetCurrentWave( void );
 void	INVASION_SetCurrentWave( ULONG ulWave );
 
 bool	INVASION_IncreaseNumMonstersOnSpawn( void );
-
-void	INVASION_SetupSpawnerIDs( void );
-void	INVASION_RestoreSpawnerPointers( void );
-ABasePickupInvasionSpot		*INVASION_FindPickupSpawnerByID( LONG lID );
 
 //*****************************************************************************
 //  EXTERNAL CONSOLE VARIABLES

@@ -350,7 +350,8 @@ void AActor::Serialize (FArchive &arc)
 		<< (DWORD &)ulSTFlags
 		<< (DWORD &)ulNetworkFlags
 		<< (DWORD &)ulInvasionWave
-		<< (DWORD &)ulInvasionSpawnerID;
+		<< pMonsterSpot
+		<< pPickupSpot;
 
 	if (arc.IsStoring ())
 	{
