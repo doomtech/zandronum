@@ -64,6 +64,9 @@
 #include "network.h"
 #include "resource.h"
 
+// Look pretty under XP and Vista.
+#pragma comment(linker, "\"/manifestdependency:type='Win32' ""name='Microsoft.Windows.Common-Controls' ""version='6.0.0.0' ""processorArchitecture='*' ""publicKeyToken='6595b64144ccf1df' ""language='*'\"")
+
 //*****************************************************************************
 //	VARIABLES
 
@@ -1528,7 +1531,7 @@ static void main_ParsePartialStatsFile( void )
 		{
 			if ( atoi( szString ) != pTimeInfo->tm_mon )
 			{
-				Printf( "Partial stats file of a diffferent month. Ignoring...\n" );
+				Printf( "Partial stats file of a different month. Ignoring...\n" );
 				return;
 			}
 			break;
@@ -1555,7 +1558,7 @@ static void main_ParsePartialStatsFile( void )
 		{
 			if ( atoi( szString ) != pTimeInfo->tm_mday )
 			{
-				Printf( "Partial stats file of a diffferent day. Ignoring...\n" );
+				Printf( "Partial stats file of a different day. Ignoring...\n" );
 				return;
 			}
 			break;
