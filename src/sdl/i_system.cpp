@@ -289,7 +289,7 @@ void I_Quit (void)
 
 	// [BB] Tell the server we're leaving the game.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
-		CLIENT_QuitNetworkGame( );
+		CLIENT_QuitNetworkGame( NULL );
 
 	// [BC] Support for client-side demos.
 	if (demorecording || ( CLIENTDEMO_IsRecording( )))
