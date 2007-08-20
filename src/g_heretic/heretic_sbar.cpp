@@ -529,6 +529,9 @@ private:
 		FTexture *pic;
 		int i;
 
+		if ( CPlayer->mo == NULL )
+			return;
+
 		// Draw health
 		if (CPlayer->mo->health > 0)
 		{

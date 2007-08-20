@@ -888,6 +888,9 @@ private:
 		const AInventory *item;
 		int i;
 
+		if ( CPlayer->mo == NULL )
+			return;
+
 		// Health
 		DrBNumberOuter (MAX (0, CPlayer->mo->health), 5, -20);
 
