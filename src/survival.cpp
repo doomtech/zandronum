@@ -377,9 +377,14 @@ void SURVIVAL_SetState( SURVIVALSTATE_e State )
 					continue;
 				}
 
-				// [BC] Experimental code.
-				if (( players[ulIdx].mo ) && ( players[ulIdx].mo->health > 0 ))
+				// We don't want to respawn players as soon as the map starts; we only
+				// want to respawn dead spectators.
+				if (( players[ulIdx].mo ) &&
+					( players[ulIdx].mo->health > 0 ) &&
+					( players[ulIdx].bDeadSpectator == false ))
+				{
 					continue;
+				}
 
 				players[ulIdx].bSpectating = false;
 				players[ulIdx].bDeadSpectator = false;
