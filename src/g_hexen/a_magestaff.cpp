@@ -439,6 +439,19 @@ void A_MStaffAttack (AActor *actor)
 	MStaffSpawn (actor, angle);
 	MStaffSpawn (actor, angle-ANGLE_1*5);
 	MStaffSpawn (actor, angle+ANGLE_1*5);
+
+	// [BC] Apply spread.
+	if ( player->Powers & PW_SPREAD )
+	{
+		MStaffSpawn (actor, angle + ( ANGLE_45 / 3 ));
+		MStaffSpawn (actor, angle-ANGLE_1*5 + ( ANGLE_45 / 3 ));
+		MStaffSpawn (actor, angle+ANGLE_1*5 + ( ANGLE_45 / 3 ));
+
+		MStaffSpawn (actor, angle - ( ANGLE_45 / 3 ));
+		MStaffSpawn (actor, angle-ANGLE_1*5 - ( ANGLE_45 / 3 ));
+		MStaffSpawn (actor, angle+ANGLE_1*5 - ( ANGLE_45 / 3 ));
+	}
+
 	S_Sound (actor, CHAN_WEAPON, "MageStaffFire", 1, ATTN_NORM);
 	weapon->MStaffCount = 3;
 }

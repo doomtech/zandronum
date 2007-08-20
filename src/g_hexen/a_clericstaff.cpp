@@ -293,6 +293,41 @@ void A_CStaffAttack (AActor *actor)
 	{
 		mo->special2 = 0;
 	}
+
+	// [BC] Apply spread.
+	if ( player->Powers & PW_SPREAD )
+	{
+		mo = P_SpawnPlayerMissile( actor, RUNTIME_CLASS( ACStaffMissile ), actor->angle-(ANG45/15) + ( ANGLE_45 / 3 ));
+		if (mo)
+		{
+			mo->special2 = 32;
+
+			// [BC] Clients need to have this information.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingSpecial2( mo );
+		}
+		mo = P_SpawnPlayerMissile( actor, RUNTIME_CLASS( ACStaffMissile ), actor->angle+(ANG45/15) + ( ANGLE_45 / 3 ));
+		if (mo)
+		{
+			mo->special2 = 0;
+		}
+
+		mo = P_SpawnPlayerMissile( actor, RUNTIME_CLASS( ACStaffMissile ), actor->angle-(ANG45/15) - ( ANGLE_45 / 3 ));
+		if (mo)
+		{
+			mo->special2 = 32;
+
+			// [BC] Clients need to have this information.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingSpecial2( mo );
+		}
+		mo = P_SpawnPlayerMissile( actor, RUNTIME_CLASS( ACStaffMissile ), actor->angle+(ANG45/15) - ( ANGLE_45 / 3 ));
+		if (mo)
+		{
+			mo->special2 = 0;
+		}
+	}
+
 	S_Sound (actor, CHAN_WEAPON, "ClericCStaffFire", 1, ATTN_NORM);
 
 	// [BC] If we're the server, play the sound for clients.

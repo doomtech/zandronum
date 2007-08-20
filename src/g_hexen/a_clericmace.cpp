@@ -96,6 +96,17 @@ void A_CMaceAttack (AActor *actor)
 		{
 			P_LineAttack (player->mo, angle, 2*MELEERANGE, slope, damage, MOD_HIT, RUNTIME_CLASS(AHammerPuff));
 			AdjustPlayerAngle (player->mo);
+
+			// [BC] Apply spread.
+			if ( player->Powers & PW_SPREAD )
+			{
+				P_LineAttack( player->mo, angle + ( ANGLE_45 / 3 ), 2 * MELEERANGE, slope, damage, MOD_HIT, RUNTIME_CLASS( AHammerPuff ));
+				AdjustPlayerAngle( player->mo );
+
+				P_LineAttack( player->mo, angle - ( ANGLE_45 / 3 ), 2 * MELEERANGE, slope, damage, MOD_HIT, RUNTIME_CLASS( AHammerPuff ));
+				AdjustPlayerAngle( player->mo );
+			}
+
 //			player->mo->angle = R_PointToAngle2(player->mo->x,
 //				player->mo->y, linetarget->x, linetarget->y);
 			goto macedone;
@@ -106,6 +117,17 @@ void A_CMaceAttack (AActor *actor)
 		{
 			P_LineAttack (player->mo, angle, 2*MELEERANGE, slope, damage, MOD_HIT, RUNTIME_CLASS(AHammerPuff));
 			AdjustPlayerAngle (player->mo);
+
+			// [BC] Apply spread.
+			if ( player->Powers & PW_SPREAD )
+			{
+				P_LineAttack( player->mo, angle + ( ANGLE_45 / 3 ), 2 * MELEERANGE, slope, damage, MOD_HIT, RUNTIME_CLASS( AHammerPuff ));
+				AdjustPlayerAngle( player->mo );
+
+				P_LineAttack( player->mo, angle - ( ANGLE_45 / 3 ), 2 * MELEERANGE, slope, damage, MOD_HIT, RUNTIME_CLASS( AHammerPuff ));
+				AdjustPlayerAngle( player->mo );
+			}
+
 //			player->mo->angle = R_PointToAngle2(player->mo->x,
 //				player->mo->y, linetarget->x, linetarget->y);
 			goto macedone;
@@ -117,6 +139,14 @@ void A_CMaceAttack (AActor *actor)
 	angle = player->mo->angle;
 	slope = P_AimLineAttack (player->mo, angle, MELEERANGE);
 	P_LineAttack (player->mo, angle, MELEERANGE, slope, damage, MOD_HIT, RUNTIME_CLASS(AHammerPuff));
+
+	// [BC] Apply spread.
+	if ( player->Powers & PW_SPREAD )
+	{
+		P_LineAttack( player->mo, angle + ( ANGLE_45 / 3 ), MELEERANGE, slope, damage, MOD_HIT, RUNTIME_CLASS( AHammerPuff ));
+		P_LineAttack( player->mo, angle - ( ANGLE_45 / 3 ), MELEERANGE, slope, damage, MOD_HIT, RUNTIME_CLASS( AHammerPuff ));
+	}
+
 macedone:
 	return;		
 }

@@ -509,6 +509,42 @@ void A_MLightningAttack2 (AActor *actor)
 		cmo->lastenemy = fmo;
 		A_LightningZap (cmo);	
 	}
+
+	// [BC] Apply spread.
+	if (( actor->player ) &&
+		( actor->player->Powers & PW_SPREAD ))
+	{
+		fmo = P_SpawnPlayerMissile (actor, RUNTIME_CLASS(ALightningFloor), actor->angle + ( ANGLE_45 / 3 ));
+		cmo = P_SpawnPlayerMissile (actor, RUNTIME_CLASS(ALightningCeiling), actor->angle + ( ANGLE_45 / 3 ));
+		if (fmo)
+		{
+			fmo->special1 = 0;
+			fmo->lastenemy = cmo;
+			A_LightningZap (fmo);	
+		}
+		if (cmo)
+		{
+			cmo->tracer = NULL;
+			cmo->lastenemy = fmo;
+			A_LightningZap (cmo);	
+		}
+
+		fmo = P_SpawnPlayerMissile (actor, RUNTIME_CLASS(ALightningFloor), actor->angle - ( ANGLE_45 / 3 ));
+		cmo = P_SpawnPlayerMissile (actor, RUNTIME_CLASS(ALightningCeiling), actor->angle - ( ANGLE_45 / 3 ));
+		if (fmo)
+		{
+			fmo->special1 = 0;
+			fmo->lastenemy = cmo;
+			A_LightningZap (fmo);	
+		}
+		if (cmo)
+		{
+			cmo->tracer = NULL;
+			cmo->lastenemy = fmo;
+			A_LightningZap (cmo);	
+		}
+	}
+
 	S_Sound (actor, CHAN_BODY, "MageLightningFire", 1, ATTN_NORM);
 
 	// [BC] If we're the server, play sound for clients.

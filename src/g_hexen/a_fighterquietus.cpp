@@ -316,6 +316,23 @@ void A_FSwordAttack (AActor *actor)
 	P_SpawnPlayerMissile (actor, actor->x, actor->y, actor->z, RUNTIME_CLASS(AFSwordMissile), actor->angle);
 	P_SpawnPlayerMissile (actor, actor->x, actor->y, actor->z+5*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle-ANGLE_45/8);
 	P_SpawnPlayerMissile (actor, actor->x, actor->y, actor->z+10*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle-ANGLE_45/4);
+
+	// [BC] Apply spread.
+	if ( player->Powers & PW_SPREAD )
+	{
+		P_SpawnPlayerMissile (actor, actor->x, actor->y, actor->z-10*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle+ANGLE_45/4 + ( ANGLE_45 / 3 ));
+		P_SpawnPlayerMissile (actor, actor->x, actor->y, actor->z-5*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle+ANGLE_45/8 + ( ANGLE_45 / 3 ));
+		P_SpawnPlayerMissile (actor, actor->x, actor->y, actor->z, RUNTIME_CLASS(AFSwordMissile), actor->angle + ( ANGLE_45 / 3 ));
+		P_SpawnPlayerMissile (actor, actor->x, actor->y, actor->z+5*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle-ANGLE_45/8 + ( ANGLE_45 / 3 ));
+		P_SpawnPlayerMissile (actor, actor->x, actor->y, actor->z+10*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle-ANGLE_45/4 + ( ANGLE_45 / 3 ));
+
+		P_SpawnPlayerMissile (actor, actor->x, actor->y, actor->z-10*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle+ANGLE_45/4 - ( ANGLE_45 / 3 ));
+		P_SpawnPlayerMissile (actor, actor->x, actor->y, actor->z-5*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle+ANGLE_45/8 - ( ANGLE_45 / 3 ));
+		P_SpawnPlayerMissile (actor, actor->x, actor->y, actor->z, RUNTIME_CLASS(AFSwordMissile), actor->angle - ( ANGLE_45 / 3 ));
+		P_SpawnPlayerMissile (actor, actor->x, actor->y, actor->z+5*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle-ANGLE_45/8 - ( ANGLE_45 / 3 ));
+		P_SpawnPlayerMissile (actor, actor->x, actor->y, actor->z+10*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle-ANGLE_45/4 - ( ANGLE_45 / 3 ));
+	}
+
 	S_Sound (actor, CHAN_WEAPON, "FighterSwordFire", 1, ATTN_NORM);
 }
 

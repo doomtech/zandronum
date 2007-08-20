@@ -190,6 +190,11 @@ void A_FireConePL1 (AActor *actor)
 		if (linetarget)
 		{
 			P_DamageMobj (linetarget, actor, actor, damage, MOD_ICE);
+
+			// [BC] Apply spread.
+			if ( player->Powers & PW_SPREAD )
+				P_DamageMobj (linetarget, actor, actor, damage * 2, MOD_ICE);
+
 			conedone = true;
 			break;
 		}
@@ -206,6 +211,30 @@ void A_FireConePL1 (AActor *actor)
 			mo->special2 = 3; // Set sperm count (levels of reproductivity)
 			mo->target = actor;
 			mo->args[0] = 3;		// Mark Initial shard as super damage
+		}
+
+		// [BC] Apply spread.
+		if ( player->Powers & PW_SPREAD )
+		{
+			mo = P_SpawnPlayerMissile (actor, RUNTIME_CLASS(AFrostMissile), actor->angle + ( ANGLE_45 / 3 ));
+			if (mo)
+			{
+				mo->special1 = SHARDSPAWN_LEFT|SHARDSPAWN_DOWN|SHARDSPAWN_UP
+					|SHARDSPAWN_RIGHT;
+				mo->special2 = 3; // Set sperm count (levels of reproductivity)
+				mo->target = actor;
+				mo->args[0] = 3;		// Mark Initial shard as super damage
+			}
+
+			mo = P_SpawnPlayerMissile (actor, RUNTIME_CLASS(AFrostMissile), actor->angle - ( ANGLE_45 / 3 ));
+			if (mo)
+			{
+				mo->special1 = SHARDSPAWN_LEFT|SHARDSPAWN_DOWN|SHARDSPAWN_UP
+					|SHARDSPAWN_RIGHT;
+				mo->special2 = 3; // Set sperm count (levels of reproductivity)
+				mo->target = actor;
+				mo->args[0] = 3;		// Mark Initial shard as super damage
+			}
 		}
 	}
 }

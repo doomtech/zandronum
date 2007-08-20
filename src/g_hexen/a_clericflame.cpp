@@ -401,6 +401,14 @@ void A_CFlameAttack (AActor *actor)
 	}
 
 	P_SpawnPlayerMissile (actor, RUNTIME_CLASS(ACFlameMissile));
+	
+	// [BC] Apply spread.
+	if ( player->Powers & PW_SPREAD )
+	{
+		P_SpawnPlayerMissile( actor, RUNTIME_CLASS(ACFlameMissile), actor->angle + ( ANGLE_45 / 3 ));
+		P_SpawnPlayerMissile( actor, RUNTIME_CLASS(ACFlameMissile), actor->angle - ( ANGLE_45 / 3 ));
+	}
+
 	S_Sound (actor, CHAN_WEAPON, "ClericFlameFire", 1, ATTN_NORM);
 
 	// [BC] If we're the server, tell other clients to make the sound.

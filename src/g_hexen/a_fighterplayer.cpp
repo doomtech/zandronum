@@ -304,6 +304,23 @@ void A_FPunchAttack (AActor *actor)
 			{
 				P_ThrustMobj (linetarget, angle, power);
 			}
+
+			// [BC] Apply spread.
+			if ( player->Powers & PW_SPREAD )
+			{
+				P_LineAttack( pmo, angle + ( ANGLE_45 / 3 ), 2 * MELEERANGE, slope, damage, MOD_HIT, pufftype );
+				if (linetarget->flags3&MF3_ISMONSTER || linetarget->player)
+				{
+					P_ThrustMobj (linetarget, angle, power);
+				}
+
+				P_LineAttack( pmo, angle - ( ANGLE_45 / 3 ), 2 * MELEERANGE, slope, damage, MOD_HIT, pufftype );
+				if (linetarget->flags3&MF3_ISMONSTER || linetarget->player)
+				{
+					P_ThrustMobj (linetarget, angle, power);
+				}
+			}
+
 			AdjustPlayerAngle (pmo);
 			goto punchdone;
 		}
@@ -323,6 +340,23 @@ void A_FPunchAttack (AActor *actor)
 			{
 				P_ThrustMobj (linetarget, angle, power);
 			}
+
+			// [BC] Apply spread.
+			if ( player->Powers & PW_SPREAD )
+			{
+				P_LineAttack( pmo, angle + ( ANGLE_45 / 3 ), 2 * MELEERANGE, slope, damage, MOD_HIT, pufftype );
+				if (linetarget->flags3&MF3_ISMONSTER || linetarget->player)
+				{
+					P_ThrustMobj (linetarget, angle, power);
+				}
+
+				P_LineAttack( pmo, angle - ( ANGLE_45 / 3 ), 2 * MELEERANGE, slope, damage, MOD_HIT, pufftype );
+				if (linetarget->flags3&MF3_ISMONSTER || linetarget->player)
+				{
+					P_ThrustMobj (linetarget, angle, power);
+				}
+			}
+
 			AdjustPlayerAngle (pmo);
 			goto punchdone;
 		}
@@ -333,6 +367,13 @@ void A_FPunchAttack (AActor *actor)
 	angle = pmo->angle;
 	slope = P_AimLineAttack (pmo, angle, MELEERANGE);
 	P_LineAttack (pmo, angle, MELEERANGE, slope, damage, MOD_HIT, pufftype);
+	
+	// [BC] Apply spread.
+	if ( player->Powers & PW_SPREAD )
+	{
+		P_LineAttack( pmo, angle + ( ANGLE_45 / 3 ), MELEERANGE, slope, damage, MOD_HIT, pufftype );
+		P_LineAttack( pmo, angle - ( ANGLE_45 / 3 ), MELEERANGE, slope, damage, MOD_HIT, pufftype );
+	}
 
 punchdone:
 	if (pmo->special1 == 3)

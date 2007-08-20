@@ -200,6 +200,25 @@ void A_FHammerAttack (AActor *actor)
 			{
 				P_ThrustMobj (linetarget, angle, power);
 			}
+
+			// [BC] Apply spread.
+			if ( player->Powers & PW_SPREAD )
+			{
+				P_LineAttack( pmo, angle + ( ANGLE_45 / 3 ), HAMMER_RANGE, slope, damage, MOD_HIT, RUNTIME_CLASS( AHammerPuff ));
+				AdjustPlayerAngle( pmo );
+				if ( linetarget->flags3 & MF3_ISMONSTER || linetarget->player )
+				{
+					P_ThrustMobj( linetarget, angle + ( ANGLE_45 / 3 ), power );
+				}
+
+				P_LineAttack( pmo, angle - ( ANGLE_45 / 3 ), HAMMER_RANGE, slope, damage, MOD_HIT, RUNTIME_CLASS( AHammerPuff ));
+				AdjustPlayerAngle( pmo );
+				if ( linetarget->flags3 & MF3_ISMONSTER || linetarget->player )
+				{
+					P_ThrustMobj( linetarget, angle - ( ANGLE_45 / 3 ), power );
+				}
+			}
+
 			pmo->special1 = false; // Don't throw a hammer
 			goto hammerdone;
 		}
@@ -213,6 +232,25 @@ void A_FHammerAttack (AActor *actor)
 			{
 				P_ThrustMobj(linetarget, angle, power);
 			}
+
+			// [BC] Apply spread.
+			if ( player->Powers & PW_SPREAD )
+			{
+				P_LineAttack( pmo, angle + ( ANGLE_45 / 3 ), HAMMER_RANGE, slope, damage, MOD_HIT, RUNTIME_CLASS( AHammerPuff ));
+				AdjustPlayerAngle( pmo );
+				if ( linetarget->flags3 & MF3_ISMONSTER || linetarget->player )
+				{
+					P_ThrustMobj( linetarget, angle + ( ANGLE_45 / 3 ), power );
+				}
+
+				P_LineAttack( pmo, angle - ( ANGLE_45 / 3 ), HAMMER_RANGE, slope, damage, MOD_HIT, RUNTIME_CLASS( AHammerPuff ));
+				AdjustPlayerAngle( pmo );
+				if ( linetarget->flags3 & MF3_ISMONSTER || linetarget->player )
+				{
+					P_ThrustMobj( linetarget, angle - ( ANGLE_45 / 3 ), power );
+				}
+			}
+
 			pmo->special1 = false; // Don't throw a hammer
 			goto hammerdone;
 		}
@@ -230,6 +268,19 @@ void A_FHammerAttack (AActor *actor)
 	{
 		pmo->special1 = true;
 	}
+
+	// [BC] Apply spread.
+	if ( player->Powers & PW_SPREAD )
+	{
+		P_LineAttack( pmo, angle + ( ANGLE_45 / 3 ), HAMMER_RANGE, slope, damage, MOD_HIT, RUNTIME_CLASS( AHammerPuff ));
+		if ( PuffSpawned )
+			pmo->special1 = false;
+
+		P_LineAttack( pmo, angle - ( ANGLE_45 / 3 ), HAMMER_RANGE, slope, damage, MOD_HIT, RUNTIME_CLASS( AHammerPuff ));
+		if ( PuffSpawned )
+			pmo->special1 = false;
+	}
+
 hammerdone:
 	// Don't spawn a hammer if the player doesn't have enough mana
 	if (player->ReadyWeapon == NULL ||
@@ -277,6 +328,22 @@ void A_FHammerThrow (AActor *actor)
 	{
 		mo->special1 = 0;
 	}	
+
+	// [BC] Apply spread.
+	if ( player->Powers & PW_SPREAD )
+	{
+		mo = P_SpawnPlayerMissile( player->mo, RUNTIME_CLASS( AHammerMissile ), actor->angle + ( ANGLE_45 / 3 )); 
+		if ( mo )
+		{
+			mo->special1 = 0;
+		}	
+
+		mo = P_SpawnPlayerMissile( player->mo, RUNTIME_CLASS( AHammerMissile ), actor->angle - ( ANGLE_45 / 3 )); 
+		if ( mo )
+		{
+			mo->special1 = 0;
+		}	
+	}
 }
 
 //============================================================================

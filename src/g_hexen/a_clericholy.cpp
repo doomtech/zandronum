@@ -578,6 +578,18 @@ void A_CHolyAttack (AActor *actor)
 	AActor * missile = P_SpawnPlayerMissile (actor, RUNTIME_CLASS(AHolyMissile));
 	if (missile != NULL) missile->tracer = linetarget;
 
+	// [BC] Apply spread.
+	if ( player->Powers & PW_SPREAD )
+	{
+		missile = P_SpawnPlayerMissile( actor, RUNTIME_CLASS( AHolyMissile ), actor->angle + ( ANGLE_45 / 3 ));
+		if ( missile != NULL )
+			missile->tracer = linetarget;
+
+		missile = P_SpawnPlayerMissile( actor, RUNTIME_CLASS( AHolyMissile ), actor->angle - ( ANGLE_45 / 3 ));
+		if ( missile != NULL )
+			missile->tracer = linetarget;
+	}
+
 	weapon->CHolyCount = 3;
 	S_Sound (actor, CHAN_WEAPON, "HolySymbolFire", 1, ATTN_NORM);
 

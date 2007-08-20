@@ -394,6 +394,25 @@ void A_FAxeAttack (AActor *actor)
 				P_ThrustMobj (linetarget, angle, power);
 			}
 			AdjustPlayerAngle (pmo);
+
+			// [BC] Apply spread.
+			if ( player->Powers & PW_SPREAD )
+			{
+				P_LineAttack (pmo, angle + ( ANGLE_45 / 3 ), AXERANGE, slope, damage, MOD_HIT, pufftype);
+				if (linetarget->flags3&MF3_ISMONSTER || linetarget->player)
+				{
+					P_ThrustMobj (linetarget, angle + ( ANGLE_45 / 3 ), power);
+				}
+				AdjustPlayerAngle (pmo);
+
+				P_LineAttack (pmo, angle - ( ANGLE_45 / 3 ), AXERANGE, slope, damage, MOD_HIT, pufftype);
+				if (linetarget->flags3&MF3_ISMONSTER || linetarget->player)
+				{
+					P_ThrustMobj (linetarget, angle - ( ANGLE_45 / 3 ), power);
+				}
+				AdjustPlayerAngle (pmo);
+			}
+
 			useMana++; 
 			goto axedone;
 		}
@@ -407,6 +426,25 @@ void A_FAxeAttack (AActor *actor)
 				P_ThrustMobj (linetarget, angle, power);
 			}
 			AdjustPlayerAngle (pmo);
+
+			// [BC] Apply spread.
+			if ( player->Powers & PW_SPREAD )
+			{
+				P_LineAttack (pmo, angle + ( ANGLE_45 / 3 ), AXERANGE, slope, damage, MOD_HIT, pufftype);
+				if (linetarget->flags3&MF3_ISMONSTER || linetarget->player)
+				{
+					P_ThrustMobj (linetarget, angle + ( ANGLE_45 / 3 ), power);
+				}
+				AdjustPlayerAngle (pmo);
+
+				P_LineAttack (pmo, angle - ( ANGLE_45 / 3 ), AXERANGE, slope, damage, MOD_HIT, pufftype);
+				if (linetarget->flags3&MF3_ISMONSTER || linetarget->player)
+				{
+					P_ThrustMobj (linetarget, angle - ( ANGLE_45 / 3 ), power);
+				}
+				AdjustPlayerAngle (pmo);
+			}
+
 			useMana++; 
 			goto axedone;
 		}
@@ -417,6 +455,13 @@ void A_FAxeAttack (AActor *actor)
 	angle = pmo->angle;
 	slope = P_AimLineAttack (pmo, angle, MELEERANGE);
 	P_LineAttack (pmo, angle, MELEERANGE, slope, damage, MOD_HIT, pufftype);
+
+	// [BC] Apply spread.
+	if ( player->Powers & PW_SPREAD )
+	{
+		P_LineAttack( pmo, angle + ( ANGLE_45 / 3 ), MELEERANGE, slope, damage, MOD_HIT, pufftype );
+		P_LineAttack( pmo, angle - ( ANGLE_45 / 3 ), MELEERANGE, slope, damage, MOD_HIT, pufftype );
+	}
 
 axedone:
 	if (useMana == 2)
