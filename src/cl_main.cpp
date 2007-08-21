@@ -3538,7 +3538,9 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 		}
 	}
 
-	if (( ulSourcePlayer < MAXPLAYERS ) && ( players[ulSourcePlayer].mo ))
+	if (( pszString == NULL ) || ( *pszString == 0 ))
+		players[ulSourcePlayer].ReadyWeapon = NULL;
+	else if (( ulSourcePlayer < MAXPLAYERS ) && ( players[ulSourcePlayer].mo ))
 	{
 		pWeapon = static_cast<AWeapon *>( players[ulSourcePlayer].mo->FindInventory( PClass::FindClass( pszString )));
 		if ( pWeapon == NULL )
