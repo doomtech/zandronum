@@ -42,12 +42,15 @@
 #include "cmdlib.h"
 #include "sc_man.h"
 #include "m_crc32.h"
+#include "c_console.h"
+#include "g_game.h"
 #include "gl_models.h"
 #include "gl_texture.h"
 #include "gl_values.h"
 #include "gl_renderstruct.h"
 
 CVAR(Bool, gl_rotate_weapon_models, true, CVAR_ARCHIVE)
+CVAR(Bool, gl_interpolate_model_frames, true, CVAR_ARCHIVE)
 
 class DeletingModelArray : public TArray<FModel *>
 {
@@ -480,6 +483,29 @@ void gl_RenderModel(GLSprite * spr, int cm)
 	// [BB] Apply zoffset here, needs to be scaled by 1 / smf->zscale, so that zoffset doesn't depend on the z-scaling.
 	gl.Translatef(0., smf->zoffset / smf->zscale, 0.);
 
+	// [BB] Frame interpolation: Find the FSpriteModelFrame smfNext which follows after smf in the animation
+	// and the scalar value inter ( element of [0,1) ), both necessary to determine the interpolated frame.
+	FSpriteModelFrame * smfNext = NULL;
+	double inter = 0.;
+	if( gl_interpolate_model_frames )
+	{
+		FState *curState = spr->actor->state;
+		FState *nextState = curState->GetNextState( );
+		if( curState != nextState && nextState )
+		{
+			// [BB] To interpolate at more than 35 fps we take tic fractions into account.
+			float ticFraction = 0.;
+			// [BB] In case the tic counter is frozen we have to leave ticFraction at zero.
+			if ( ConsoleState == c_up && menuactive != MENU_On && GAME_GetFreezeMode() == false )
+			{
+				float time = I_GetTimeFloat();
+				ticFraction =	(time - static_cast<int>(time));
+			}
+			inter = static_cast<double>(curState->Tics - spr->actor->tics - ticFraction)/static_cast<double>(curState->Tics);
+			if ( inter != 0.0 )
+				smfNext = gl_FindModelFrame(RUNTIME_TYPE(spr->actor), spr->actor->sprite, nextState->Frame);
+		}
+	}
 
 	for(int i=0; i<MAX_MODELS_PER_FRAME; i++)
 	{
@@ -487,7 +513,10 @@ void gl_RenderModel(GLSprite * spr, int cm)
 
 		if (mdl!=NULL)
 		{
-			mdl->RenderFrame(smf->skins[i], smf->modelframes[i], cm);
+			if ( smfNext && smf->modelframes[i] != smfNext->modelframes[i] )
+				mdl->RenderFrameInterpolated(smf->skins[i], smf->modelframes[i], smfNext->modelframes[i], inter, cm);
+			else
+				mdl->RenderFrame(smf->skins[i], smf->modelframes[i], cm);
 		}
 	}
 

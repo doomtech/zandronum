@@ -26,6 +26,8 @@ public:
 	virtual bool Load(const char * fn, const char * buffer, int length) = 0;
 	virtual int FindFrame(const char * name) = 0;
 	virtual void RenderFrame(FTexture * skin, int frame, int cm) = 0;
+	// [BB] Added RenderFrameInterpolated
+	virtual void RenderFrameInterpolated(FTexture * skin, int frame, int frame2, double inter, int cm) = 0;
 
 	char * filename;
 };
@@ -135,6 +137,7 @@ public:
 	virtual bool Load(const char * fn, const char * buffer, int length);
 	virtual int FindFrame(const char * name);
 	virtual void RenderFrame(FTexture * skin, int frame, int cm);
+	virtual void RenderFrameInterpolated(FTexture * skin, int frame, int frame2, double inter, int cm);
 
 };
 
@@ -225,6 +228,7 @@ public:
 	virtual bool Load(const char * fn, const char * buffer, int length);
 	virtual int FindFrame(const char * name);
 	virtual void RenderFrame(FTexture * skin, int frame, int cm);
+	virtual void RenderFrameInterpolated(FTexture * skin, int frame, int frame2, double inter, int cm);
 };
 
 

@@ -255,6 +255,43 @@ void FMD3Model::RenderFrame(FTexture * skin, int frameno, int cm)
 	}
 }
 
+void FMD3Model::RenderFrameInterpolated(FTexture * skin, int frameno, int frameno2, double inter, int cm)
+{
+	if (frameno>=numFrames || frameno2>=numFrames) return;
+
+	for(int i=0;i<numSurfaces;i++)
+	{
+		MD3Surface * surf = &surfaces[i];
+
+		if (!skin)
+		{
+			if (surf->numSkins==0) return;
+			skin = surf->skins[0];
+			if (!skin) return;
+		}
+
+		FGLTexture * tex = FGLTexture::ValidateTexture(skin);
+
+		tex->Bind(cm);
+
+		MD3Vertex* verticesInterpolated = new MD3Vertex[surfaces[i].numVertices];
+		MD3Vertex* vertices1 = surf->vertices + frameno * surf->numVertices;
+		MD3Vertex* vertices2 = surf->vertices + frameno2 * surf->numVertices;
+
+		// [BB] Calculate the interpolated vertices by linear interpolation.
+		for( int k = 0; k < surf->numVertices; k++ )
+		{
+			verticesInterpolated[k].x = (1-inter)*vertices1[k].x+ (inter)*vertices2[k].x;
+			verticesInterpolated[k].y = (1-inter)*vertices1[k].y+ (inter)*vertices2[k].y;
+			verticesInterpolated[k].z = (1-inter)*vertices1[k].z+ (inter)*vertices2[k].z;
+			// [BB] Apparently RenderTriangles doesn't use nx, ny, nz, so don't interpolate them.
+		}
+
+		RenderTriangles(surf, verticesInterpolated);
+
+		delete[] verticesInterpolated;
+	}
+}
 
 FMD3Model::~FMD3Model()
 {

@@ -332,6 +332,39 @@ void FDMDModel::RenderFrame(FTexture * skin, int frameno, int cm)
 	RenderGLCommands(lods[activeLod].glCommands, numVerts, frame->vertices/*, modelColors, NULL*/);
 }
 
+void FDMDModel::RenderFrameInterpolated(FTexture * skin, int frameno, int frameno2, double inter, int cm)
+{
+	int activeLod = 0;
+
+	if (frameno>=info.numFrames || frameno2>=info.numFrames) return;
+
+	FModelVertex *vertices1 = frames[frameno].vertices;
+	FModelVertex *vertices2 = frames[frameno2].vertices;
+
+	if (!skin)
+	{
+		if (info.numSkins==0) return;
+		skin = skins[0];
+		if (!skin) return;
+	}
+
+	FGLTexture * tex = FGLTexture::ValidateTexture(skin);
+
+	tex->Bind(cm);
+
+	int numVerts = info.numVertices;
+
+	// [BB] Calculate the interpolated vertices by linear interpolation.
+	FModelVertex *verticesInterpolated = new FModelVertex[numVerts];
+	for( int k = 0; k < numVerts; k++ )
+	{
+		for ( int i = 0; i < 3; i++ )
+			verticesInterpolated[k].xyz[i] = (1-inter)*vertices1[k].xyz[i]+ (inter)*vertices2[k].xyz[i];
+	}
+
+	RenderGLCommands(lods[activeLod].glCommands, numVerts, verticesInterpolated/*, modelColors, NULL*/);
+	delete[] verticesInterpolated;
+}
 
 
 //===========================================================================
