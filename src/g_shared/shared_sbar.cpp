@@ -1130,8 +1130,8 @@ void FBaseStatusBar::DrawMessages (int bottom) const
 
 void FBaseStatusBar::Draw (EHudState state)
 {
-	// Draw Skulltag's old style HUD elements in all game modes, assuming we aren't using the new HUD.
-	if( !(cl_stfullscreenhud && gameinfo.gametype == GAME_Doom) )
+	// Draw Skulltag's old style HUD elements in Doom, Heretic, and Hexen (assuming we aren't using the new HUD).
+	if( !(cl_stfullscreenhud && gameinfo.gametype == GAME_Doom) && (gameinfo.gametype != GAME_Strife)  )
 	{
 		// Draw the player's counter (points, frags, wins).
 		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode() ) & GMF_PLAYERSEARNPOINTS )

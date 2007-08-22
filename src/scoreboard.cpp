@@ -1061,7 +1061,8 @@ void SCOREBOARD_RenderTeamStats( player_s *pPlayer )
 
 	// Don't display scores or anything if the status bar is minimized. We
 	// have a different display for that.
-	if (( realviewheight == SCREENHEIGHT ) && viewactive)
+	if (( realviewheight == SCREENHEIGHT ) && viewactive
+		&& gameinfo.gametype != GAME_Strife) // [RC] ...Except in Strife.
 		return;
 
 	// Now, draw the blue and red team scores.
