@@ -1245,6 +1245,9 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 				// Start new level.
 				G_InitNew( g_szMapName, false );
 
+				// For right now, the view is not active.
+				viewactive = false;
+
 				// Restore our demo recording status.
 				CLIENTDEMO_SetPlaying( bPlaying );
 			}
