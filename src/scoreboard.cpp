@@ -132,6 +132,13 @@ static	UCVarValue	g_ValHeight;
 static	float		g_fXScale;
 static	float		g_fYScale;
 
+// How much bigger or smaller is the virtual screen vs. the actual resolution?
+static	float		g_rXScale;
+static	float		g_rYScale;
+
+// How tall is the smallfont, scaling considered?
+static	ULONG		g_ulTextHeight;
+
 // How many columns are we using in our scoreboard display?
 static	ULONG		g_ulNumColumnsUsed = 0;
 
@@ -183,10 +190,13 @@ static	void			scoreboard_DrawRankings( ULONG ulPlayer );
 static	void			scoreboard_DrawWaiting( void );
 static	void			scoreboard_DrawBottomString( void );
 
+//*****************************************************************************
+//	CONSOLE VARIABLES
 
-// [RC] A flag to hide the 'spectating...' string for screenshots or movies.
 CVAR (Bool, r_drawspectatingstring, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG);
 EXTERN_CVAR( Bool, cl_stfullscreenhud);
+EXTERN_CVAR( Int, screenblocks);
+
 //*****************************************************************************
 //	FUNCTIONS
 
@@ -246,17 +256,24 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 	if ( ulDisplayPlayer >= MAXPLAYERS )
 		return;
 
-	g_ValWidth = con_virtualwidth.GetGenericRep( CVAR_Int );
-	g_ValHeight = con_virtualheight.GetGenericRep( CVAR_Int );
+	// Initialization for text scaling.
+	g_ValWidth	= con_virtualwidth.GetGenericRep( CVAR_Int );
+	g_ValHeight	= con_virtualheight.GetGenericRep( CVAR_Int );
 
 	if (( con_scaletext ) && ( con_virtualwidth > 0 ) && ( con_virtualheight > 0 ))
 	{
-		g_fXScale =  (float)g_ValWidth.Int / 320.0f;
-		g_fYScale =  (float)g_ValHeight.Int / 200.0f;
-		g_bScale = true;
+		g_bScale		= true;
+		g_fXScale		= (float)g_ValWidth.Int / 320.0f;
+		g_fYScale		= (float)g_ValHeight.Int / 200.0f;
+		g_rXScale		= (float)g_ValWidth.Int / SCREENWIDTH;
+		g_rYScale		= (float)g_ValHeight.Int / SCREENHEIGHT;
+		g_ulTextHeight	= Scale( SCREENHEIGHT, SmallFont->GetHeight( ) + 1, con_virtualheight );
 	}
 	else
-		g_bScale = false;
+	{
+		g_bScale		= false;
+		g_ulTextHeight	= SmallFont->GetHeight( ) + 1;
+	}
 
 	// Draw the main scoreboard.
 	if (SCOREBOARD_ShouldDrawBoard( ulDisplayPlayer ))
@@ -351,23 +368,13 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 			g_BottomString += "\\cdSPECTATING - SPACE TO JOIN";
 	}
 
-	if ( CALLVOTE_GetVoteState( ) != VOTESTATE_NOVOTE )
-	{
-		switch ( CALLVOTE_GetVoteState( ))
-		{
-		case VOTESTATE_INVOTE:
-			
-			// [RC] Display either the fullscreen or minimized vote screen.
-			if ( cl_showfullscreenvote )
-				SCOREBOARD_RenderInVoteClassic( );
-			else
-				SCOREBOARD_RenderInVote( );
-			break;
-		}
-
-		// Display the message and nothing else here.
-		SCOREBOARD_DrawBottomString();
-		return;
+	if ( CALLVOTE_GetVoteState( ) == VOTESTATE_INVOTE )
+	{		
+		// [RC] Display either the fullscreen or minimized vote screen.
+		if ( cl_showfullscreenvote )
+			SCOREBOARD_RenderInVoteClassic( );
+		else
+			SCOREBOARD_RenderInVote( );
 	}
 
 	if ( duel )
@@ -429,9 +436,7 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 
 			if ( players[ulDisplayPlayer].bSpectating == false )
 			{
-				SCOREBOARD_DrawWaiting();
-				// Nothing more to do if we're just waiting for players.
-				return;
+				g_BottomString += "\\cgWAITING FOR PLAYERS";
 			}
 			break;
 		}
@@ -482,25 +487,30 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 			break;
 		}
 	}
-
-	// Don't draw this other stuff for spectators.
-	if ( players[ulDisplayPlayer].bSpectating )
-	{
-		// Display the message and nothing else here.
-		SCOREBOARD_DrawBottomString();
-		return;
-	}
-
-	// Allow the client to always draw certain deathmatch stats.
-	if ( deathmatch && ( cl_alwaysdrawdmstats || automapactive ))
-		SCOREBOARD_RenderDMStats( );
-	// Allow the client to always draw certain team stats.
-	else if ( teamgame && ( cl_alwaysdrawteamstats || automapactive ))
-		SCOREBOARD_RenderTeamStats( &players[ulDisplayPlayer] );
 	
-	// Display the message and nothing else here.
+	if( SCOREBOARD_IsHudVisible() )
+	{
+		// Draw the item holders (hellstone, flags, skulls, etc).
+		SCOREBOARD_RenderStats_Holders( );
+
+		if( SCOREBOARD_IsUsingNewHud() == false )
+		{
+			// Are we in a team game? Draw scores.
+			if( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSONTEAMS )
+				SCOREBOARD_RenderStats_TeamScores( );
+
+			if ( !players[ulDisplayPlayer].bSpectating )
+			{
+				// Draw the player's rank and spread in FFA modes.
+				if( !(GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSONTEAMS ))
+					if( (GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS ))
+						SCOREBOARD_RenderStats_RankSpread( );
+			}
+		}
+	}
+	
+	// Display the bottom message.
 	SCOREBOARD_DrawBottomString();
-	return;
 }
 
 //*****************************************************************************
@@ -562,129 +572,102 @@ void SCOREBOARD_RenderBoard( ULONG ulDisplayPlayer )
 
 //*****************************************************************************
 //
-void SCOREBOARD_RenderDMStats( void )
+
+bool SCOREBOARD_IsUsingNewHud( void )
+{
+	if( cl_stfullscreenhud && gameinfo.gametype == GAME_Doom )
+		return true;
+	else
+		return false;
+}
+
+bool SCOREBOARD_IsHudVisible( void )
+{
+	if (screenblocks < 12)
+		return true;
+	else
+		return false;
+}
+
+bool SCOREBOARD_IsHudFullscreen( void )
+{
+	if (realviewheight == SCREENHEIGHT)
+		return true;
+	else
+		return false;
+}
+//*****************************************************************************
+//
+void SCOREBOARD_RenderStats_Holders( void )
 {
 	ULONG		ulYPos;
-	ULONG		ulTextHeight;
 	char		szString[160];
-	bool		bScale;
-	UCVarValue	ValWidth;
-	UCVarValue	ValHeight;
-	float		fXScale;
-	float		fYScale;
 	char		szPatchName[9];
 	char		szName[32];
-	LONG		lRedScore;
-	LONG		lBlueScore;
 
-	// No need to do anything if the automap is active or there's no status bar (we do something different then).
-	if (( automapactive ) || 
-		(( lastmanstanding ) && ( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) && ( players[consoleplayer].camera->health <= 0 )))
+	// Draw the carrier information for ONE object (POS, TERM, OFCTF).
+	if ( oneflagctf || terminator || possession || teampossession)
 	{
-		return;
-	}
-
-	ValWidth = con_virtualwidth.GetGenericRep( CVAR_Int );
-	ValHeight = con_virtualheight.GetGenericRep( CVAR_Int );
-	
-	// Initialization.
-	if (( con_scaletext ) && ( con_virtualwidth > 0 ) && ( con_virtualheight > 0 ))
-	{
-		fXScale = (float)con_virtualwidth / SCREENWIDTH;
-		fYScale = (float)con_virtualheight / SCREENHEIGHT;
-		bScale = true;
-
-		ulTextHeight = Scale( SCREENHEIGHT, SmallFont->GetHeight( ) + 1, con_virtualheight );
-	}
-	else
-	{
-		bScale = false;
-
-		ulTextHeight = SmallFont->GetHeight( ) + 1;
-	}
-
-	ulYPos = ST_Y - ulTextHeight + 1;
-
-	if ( terminator )
-	{
-		sprintf( szPatchName, "TERMINAT" );
-
-		if ( bScale )
+		// Decide what text and object needs to be drawn.
+		if ( possession || teampossession )
 		{
-			screen->DrawTexture( TexMan[szPatchName],
-				( ValWidth.Int ) - ( TexMan[szPatchName]->GetWidth( )),
-				(LONG)( ulYPos * fYScale ),
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
-				TAG_DONE );
-
-			sprintf( szString, "\\cC%s \\cG:", g_pTerminatorArtifactCarrier ? g_pTerminatorArtifactCarrier->userinfo.netname : "-" );
-			V_ColorizeString( szString );
-
-			screen->DrawText( CR_GRAY,
-				( ValWidth.Int ) - ( TexMan[szPatchName]->GetWidth( )) - ( SmallFont->StringWidth( szString )),
-				(LONG)( ulYPos * fYScale ),
-				szString,
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
-				TAG_DONE );
-		}
-		else
-		{
-			screen->DrawTexture( TexMan[szPatchName],
-				( SCREENWIDTH ) - ( TexMan[szPatchName]->GetWidth( )),
-				(LONG)ulYPos,
-				TAG_DONE );
-
-			sprintf( szString, "\\cC%s \\cG:", g_pTerminatorArtifactCarrier ? g_pTerminatorArtifactCarrier->userinfo.netname : "-" );
-			V_ColorizeString( szString );
-
-			screen->DrawText( CR_GRAY,
-				( SCREENWIDTH ) - ( TexMan[szPatchName]->GetWidth( )) - ( SmallFont->StringWidth( szString )),
-				(LONG)ulYPos,
-				szString,
-				TAG_DONE );
-		}
-	}
-
-	if ( possession || teampossession )
-	{
-		sprintf( szPatchName, "HELLSTON" );
-
-		if ( g_pPossessionArtifactCarrier )
-		{
-			sprintf( szName, "%s", g_pPossessionArtifactCarrier->userinfo.netname );
-			if ( teampossession )
+			sprintf( szPatchName, "HELLSTON" );
+			if ( g_pPossessionArtifactCarrier )
 			{
+				sprintf( szName, "%s", g_pPossessionArtifactCarrier->userinfo.netname );
+				if ( teampossession )
+				{
+					V_RemoveColorCodes( szName );
+					if ( g_pPossessionArtifactCarrier->ulTeam == TEAM_BLUE )
+						sprintf( szString, "\\cH%s \\cG:", szName );
+					else
+						sprintf( szString, "\\cG%s :", szName );
+				}
+				else
+					sprintf( szString, "%s \\cG:", szName );
+			}
+			else
+				sprintf( szString, "\\cC- \\cG:" );
+		}
+		else if ( terminator )
+		{
+			sprintf( szPatchName, "TERMINAT" );
+			sprintf( szString, "\\cC%s \\cG:", g_pTerminatorArtifactCarrier ? g_pTerminatorArtifactCarrier->userinfo.netname : "-" );
+		}
+		else if ( oneflagctf )
+		{
+			sprintf( szPatchName, "STFLA3" );
+			if ( g_pWhiteCarrier )
+			{
+				sprintf( szName, "%s", g_pWhiteCarrier->userinfo.netname );
 				V_RemoveColorCodes( szName );
-				if ( g_pPossessionArtifactCarrier->ulTeam == TEAM_BLUE )
+				if ( g_pWhiteCarrier->ulTeam == TEAM_BLUE )
 					sprintf( szString, "\\cH%s \\cG:", szName );
 				else
 					sprintf( szString, "\\cG%s :", szName );
 			}
 			else
-				sprintf( szString, "%s \\cG:", szName );
+				sprintf( szString, "\\cC%s \\cG:", TEAM_GetReturnTicks( NUM_TEAMS ) ? "?" : "-" );
 		}
-		else
-			sprintf( szString, "\\cC- \\cG:" );
 
+		// Now, draw it.
+		ulYPos = ST_Y - g_ulTextHeight + 1;
 		V_ColorizeString( szString );
-
-		if ( bScale )
+		if ( g_bScale )
 		{
 			screen->DrawTexture( TexMan[szPatchName],
-				( ValWidth.Int ) - ( TexMan[szPatchName]->GetWidth( )),
-				(LONG)( ulYPos * fYScale ),
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
+				( g_ValWidth.Int ) - ( TexMan[szPatchName]->GetWidth( )),
+				(LONG)( ulYPos * g_rYScale ),
+				DTA_VirtualWidth, g_ValWidth.Int,
+				DTA_VirtualHeight, g_ValHeight.Int,
 				TAG_DONE );
 
 			screen->DrawText( CR_GRAY,
 				( con_virtualwidth ) - ( TexMan[szPatchName]->GetWidth( )) - ( SmallFont->StringWidth( szString )),
-				(LONG)( ulYPos * fYScale ),
+				(LONG)( ulYPos * g_rYScale ),
 				szString,
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
+				DTA_VirtualWidth, g_ValWidth.Int,
+				DTA_VirtualHeight, g_ValHeight.Int,
 				TAG_DONE );
 		}
 		else
@@ -702,41 +685,147 @@ void SCOREBOARD_RenderDMStats( void )
 		}
 	}
 
-	// In fullscreen, don't display anything else. We have another display for that.
-	if (( realviewheight == SCREENHEIGHT ) && viewactive && cl_stfullscreenhud && gameinfo.gametype == GAME_Doom )
-		return;
-
-	ulYPos = ST_Y - ( ulTextHeight * 2 ) + 1;
-
-	if ( teamplay || teamlms || teampossession )
+	// Draw the carrier information for TWO objects (ST, CTF).
+	else if ( ctf || skulltag )
 	{
-		if ( teamlms )
+		ulYPos = ST_Y - g_ulTextHeight * 2 + 1;
+		if ( ctf )
+			sprintf( szPatchName, "STFLA2" );
+		else
+			sprintf( szPatchName, "STKEYS5" );
+		
+		if ( g_bScale )
+		{
+			screen->DrawTexture( TexMan[szPatchName],
+				( g_ValWidth.Int ) - ( TexMan[szPatchName]->GetWidth( )),
+				(LONG)( ulYPos * g_rYScale ),
+				DTA_VirtualWidth, g_ValWidth.Int,
+				DTA_VirtualHeight, g_ValHeight.Int,
+				TAG_DONE );
+
+			sprintf( szString, "\\cC%s \\cG:", g_pRedCarrier ? g_pRedCarrier->userinfo.netname : TEAM_GetReturnTicks( TEAM_RED ) ? "?" : "-" );
+			V_ColorizeString( szString );
+
+			screen->DrawText( CR_GRAY,
+				( g_ValWidth.Int ) - ( TexMan[szPatchName]->GetWidth( )) - ( SmallFont->StringWidth( szString )),
+				(LONG)( ulYPos * g_rYScale ),
+				szString,
+				DTA_VirtualWidth, g_ValWidth.Int,
+				DTA_VirtualHeight, g_ValHeight.Int,
+				TAG_DONE );
+		}
+		else
+		{
+			screen->DrawTexture( TexMan[szPatchName],
+				( SCREENWIDTH ) - ( TexMan[szPatchName]->GetWidth( )),
+				ulYPos,
+				TAG_DONE );
+
+			sprintf( szString, "\\cC%s \\cG:", g_pRedCarrier ? g_pRedCarrier->userinfo.netname : TEAM_GetReturnTicks( TEAM_RED ) ? "?" : "-" );
+			V_ColorizeString( szString );
+
+			screen->DrawText( CR_GRAY,
+				( SCREENWIDTH ) - ( TexMan[szPatchName]->GetWidth( )) - ( SmallFont->StringWidth( szString )),
+				ulYPos,
+				szString,
+				TAG_DONE );
+		}
+
+		ulYPos += g_ulTextHeight;
+
+		if ( ctf )
+			sprintf( szPatchName, "STFLA1" );
+		else
+			sprintf( szPatchName, "STKEYS3" );
+
+		if ( g_bScale )
+		{
+			screen->DrawTexture( TexMan[szPatchName],
+				( g_ValWidth.Int ) - ( TexMan[szPatchName]->GetWidth( )),
+				(LONG)( ulYPos * g_rYScale ),
+				DTA_VirtualWidth, g_ValWidth.Int,
+				DTA_VirtualHeight, g_ValHeight.Int,
+				TAG_DONE );
+
+			sprintf( szString, "\\cC%s \\cG:", g_pBlueCarrier ? g_pBlueCarrier->userinfo.netname : TEAM_GetReturnTicks( TEAM_BLUE ) ? "?" : "-" );
+			V_ColorizeString( szString );
+
+			screen->DrawText( CR_GRAY,
+				( g_ValWidth.Int ) - ( TexMan[szPatchName]->GetWidth( )) - ( SmallFont->StringWidth( szString )),
+				(LONG)( ulYPos * g_rYScale ),
+				szString,
+				DTA_VirtualWidth, g_ValWidth.Int,
+				DTA_VirtualHeight, g_ValHeight.Int,
+				TAG_DONE );
+		}
+		else
+		{
+			screen->DrawTexture( TexMan[szPatchName],
+				( SCREENWIDTH ) - ( TexMan[szPatchName]->GetWidth( )),
+				ulYPos,
+				TAG_DONE );
+
+			sprintf( szString, "\\cC%s \\cG:", g_pBlueCarrier ? g_pBlueCarrier->userinfo.netname : TEAM_GetReturnTicks( TEAM_BLUE ) ? "?" : "-" );
+			V_ColorizeString( szString );
+
+			screen->DrawText( CR_GRAY,
+				( SCREENWIDTH ) - ( TexMan[szPatchName]->GetWidth( )) - ( SmallFont->StringWidth( szString )),
+				ulYPos,
+				szString,
+				TAG_DONE );
+		}
+	}
+}
+
+//*****************************************************************************
+//
+
+void SCOREBOARD_RenderStats_TeamScores( void )
+{	
+	ULONG		ulYPos;
+	char		szString[160];
+	LONG		lRedScore;
+	LONG		lBlueScore;
+	
+	// The classic sbar HUD for Doom, Heretic, and Hexen has its own display for CTF and Skulltag scores.
+	if( (gameinfo.gametype == GAME_Doom) || ( gameinfo.gametype == GAME_Heretic) || ( gameinfo.gametype == GAME_Hexen) )
+		if( SCOREBOARD_IsHudFullscreen() )
+			if( ctf || skulltag || oneflagctf)
+				return;
+
+	ulYPos = ST_Y - ( g_ulTextHeight * 2 ) + 1;
+
+	if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSONTEAMS )
+	{
+		if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )
 		{
 			lRedScore = TEAM_GetWinCount( TEAM_RED );
 			lBlueScore = TEAM_GetWinCount( TEAM_BLUE );
 		}
-		else if ( teampossession )
+		else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNPOINTS )
 		{
 			lRedScore = TEAM_GetScore( TEAM_RED );
 			lBlueScore = TEAM_GetScore( TEAM_BLUE );
 		}
-		else
+		else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS )
 		{
 			lRedScore = TEAM_GetFragCount( TEAM_RED );
 			lBlueScore = TEAM_GetFragCount( TEAM_BLUE );
 		}
+		else
+			return;
 
 		sprintf( szString , "\\cG%s: \\cC%d", TEAM_GetName( TEAM_RED ), lRedScore );
 		V_ColorizeString( szString );
 
-		if ( bScale )
+		if ( g_bScale )
 		{
 			screen->DrawText( CR_GRAY,
 				0,
-				(LONG)( ulYPos * fYScale ),
+				(LONG)( ulYPos * g_rYScale ),
 				szString,
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
+				DTA_VirtualWidth, g_ValWidth.Int,
+				DTA_VirtualHeight, g_ValHeight.Int,
 				TAG_DONE );
 		}
 		else
@@ -748,19 +837,19 @@ void SCOREBOARD_RenderDMStats( void )
 				TAG_DONE );
 		}
 
-		ulYPos += ulTextHeight;
+		ulYPos += g_ulTextHeight;
 
 		sprintf( szString , "\\cG%s: \\cC%d", TEAM_GetName( TEAM_BLUE ), lBlueScore );
 		V_ColorizeString( szString );
 
-		if ( bScale )
+		if ( g_bScale )
 		{
 			screen->DrawText( CR_GRAY,
 				0,
-				(LONG)( ulYPos * fYScale ),
+				(LONG)( ulYPos * g_rYScale ),
 				szString,
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
+				DTA_VirtualWidth, g_ValWidth.Int,
+				DTA_VirtualHeight, g_ValHeight.Int,
 				TAG_DONE );
 		}
 		else
@@ -772,69 +861,76 @@ void SCOREBOARD_RenderDMStats( void )
 				TAG_DONE );
 		}
 	}
-	// Otherwise, render a RANK\SPREAD display.
+
+}
+//*****************************************************************************
+//
+void SCOREBOARD_RenderStats_RankSpread( void )
+{
+	ULONG		ulYPos;
+	char		szString[160];
+
+	ulYPos = ST_Y - ( g_ulTextHeight * 2 ) + 1;
+	sprintf( szString, "\\cGRANK: \\cC%d/%s%d", g_ulRank + 1, g_bIsTied ? "\\cG" : "", g_ulNumPlayers );
+	V_ColorizeString( szString );
+
+	if ( g_bScale )
+	{
+		screen->DrawText( CR_GRAY,
+			0,
+			(LONG)( ulYPos * g_rYScale ),
+			szString,
+			DTA_VirtualWidth, g_ValWidth.Int,
+			DTA_VirtualHeight, g_ValHeight.Int,
+			TAG_DONE );
+	}
 	else
 	{
-		sprintf( szString, "\\cGRANK: \\cC%d/%s%d", g_ulRank + 1, g_bIsTied ? "\\cG" : "", g_ulNumPlayers );
-		V_ColorizeString( szString );
-
-		if ( bScale )
-		{
-			screen->DrawText( CR_GRAY,
-				0,
-				(LONG)( ulYPos * fYScale ),
-				szString,
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
-				TAG_DONE );
-		}
-		else
-		{
-			screen->DrawText( CR_GRAY,
-				0,
-				ulYPos,
-				szString,
-				TAG_DONE );
-		}
-
-		ulYPos += ulTextHeight;
-
-		sprintf( szString, "\\cGSPREAD: \\cC%s%d", g_lSpread > 0 ? "+" : "", g_lSpread );
-		V_ColorizeString( szString );
-
-		if ( bScale )
-		{
-			screen->DrawText( CR_GRAY,
-				0,
-				(LONG)( ulYPos * fYScale ),
-				szString,
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
-				TAG_DONE );
-		}
-		else
-		{
-			screen->DrawText( CR_GRAY,
-				0,
-				ulYPos,
-				szString,
-				TAG_DONE );
-		}
+		screen->DrawText( CR_GRAY,
+			0,
+			ulYPos,
+			szString,
+			TAG_DONE );
 	}
 
+	ulYPos += g_ulTextHeight;
+
+	sprintf( szString, "\\cGSPREAD: \\cC%s%d", g_lSpread > 0 ? "+" : "", g_lSpread );
+	V_ColorizeString( szString );
+
+	if ( g_bScale )
+	{
+		screen->DrawText( CR_GRAY,
+			0,
+			(LONG)( ulYPos * g_rYScale ),
+			szString,
+			DTA_VirtualWidth, g_ValWidth.Int,
+			DTA_VirtualHeight, g_ValHeight.Int,
+			TAG_DONE );
+	}
+	else
+	{
+		screen->DrawText( CR_GRAY,
+			0,
+			ulYPos,
+			szString,
+			TAG_DONE );
+	}
+
+	// 'Wins' isn't an entry on the statusbar, so we have to draw this here.
 	if (( duel ) && ( players[consoleplayer].camera->player->ulWins > 0 ))
 	{
 		sprintf( szString, "\\cGWINS: \\cC%d", players[consoleplayer].camera->player->ulWins );
 		V_ColorizeString( szString );
 
-		if ( bScale )
+		if ( g_bScale )
 		{
 			screen->DrawText( CR_GRAY,
-				ValWidth.Int - SmallFont->StringWidth( szString ),
-				(LONG)( ulYPos * fYScale ),
+				g_ValWidth.Int - SmallFont->StringWidth( szString ),
+				(LONG)( ulYPos * g_rYScale ),
 				szString,
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
+				DTA_VirtualWidth, g_ValWidth.Int,
+				DTA_VirtualHeight, g_ValHeight.Int,
 				TAG_DONE );
 		}
 		else
@@ -854,14 +950,14 @@ void SCOREBOARD_RenderDMStats( void )
 			sprintf( szString, "\\cGWINS: \\cC%d", players[consoleplayer].camera->player->ulWins );
 			V_ColorizeString( szString );
 
-			if ( bScale )
+			if ( g_bScale )
 			{
 				screen->DrawText( CR_GRAY,
-					ValWidth.Int - SmallFont->StringWidth( szString ),
-					(LONG)( ulYPos * fYScale ),
+					g_ValWidth.Int - SmallFont->StringWidth( szString ),
+					(LONG)( ulYPos * g_rYScale ),
 					szString,
-					DTA_VirtualWidth, ValWidth.Int,
-					DTA_VirtualHeight, ValHeight.Int,
+					DTA_VirtualWidth, g_ValWidth.Int,
+					DTA_VirtualHeight, g_ValHeight.Int,
 					TAG_DONE );
 			}
 			else
@@ -878,261 +974,22 @@ void SCOREBOARD_RenderDMStats( void )
 
 //*****************************************************************************
 //
-void SCOREBOARD_RenderTeamStats( player_s *pPlayer )
-{
-	ULONG		ulYPos;
-	ULONG		ulTextHeight;
-	char		szString[160];
-	bool		bScale;
-	UCVarValue	ValWidth;
-	UCVarValue	ValHeight;
-	float		fXScale;
-	float		fYScale;
-	char		szPatchName[9];
-	char		szName[32];
-
-	// No need to do anything if the automap is active or there's no status bar (we do something different then).
-	if ( automapactive )
-		return;
-
-	ValWidth = con_virtualwidth.GetGenericRep( CVAR_Int );
-	ValHeight = con_virtualheight.GetGenericRep( CVAR_Int );
-
-	// Initialization.
-	if (( con_scaletext ) && ( con_virtualwidth > 0 ) && ( con_virtualheight > 0 ))
-	{
-		fXScale = (float)con_virtualwidth / SCREENWIDTH;
-		fYScale = (float)con_virtualheight / SCREENHEIGHT;
-		bScale = true;
-
-		ulTextHeight = Scale( SCREENHEIGHT, SmallFont->GetHeight( ) + 1, con_virtualheight );
-	}
-	else
-	{
-		bScale = false;
-
-		ulTextHeight = SmallFont->GetHeight( ) + 1;
-	}
-
-	ulYPos = ST_Y - ( ulTextHeight * 2 ) + 1;
-
-	if ( oneflagctf )
-	{
-		ulYPos += ulTextHeight;
-
-		sprintf( szPatchName, "STFLA3" );
-
-		if ( g_pWhiteCarrier )
-		{
-			sprintf( szName, "%s", g_pWhiteCarrier->userinfo.netname );
-			V_RemoveColorCodes( szName );
-			if ( g_pWhiteCarrier->ulTeam == TEAM_BLUE )
-				sprintf( szString, "\\cH%s \\cG:", szName );
-			else
-				sprintf( szString, "\\cG%s :", szName );
-		}
-		else
-			sprintf( szString, "\\cC%s \\cG:", TEAM_GetReturnTicks( NUM_TEAMS ) ? "?" : "-" );
-
-		V_ColorizeString( szString );
-
-		if ( bScale )
-		{
-			screen->DrawTexture( TexMan[szPatchName],
-				( ValWidth.Int ) - ( TexMan[szPatchName]->GetWidth( )),
-				(LONG)( ulYPos * fYScale ),
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
-				TAG_DONE );
-
-			screen->DrawText( CR_GRAY,
-				( ValWidth.Int ) - ( TexMan[szPatchName]->GetWidth( )) - ( SmallFont->StringWidth( szString )),
-				(LONG)( ulYPos * fYScale ),
-				szString,
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
-				TAG_DONE );
-		}
-		else
-		{
-			screen->DrawTexture( TexMan[szPatchName],
-				( SCREENWIDTH ) - ( TexMan[szPatchName]->GetWidth( )),
-				ulYPos,
-				TAG_DONE );
-
-			sprintf( szString, "\\cC%s \\cG:", g_pWhiteCarrier ? g_pWhiteCarrier->userinfo.netname : TEAM_GetReturnTicks( NUM_TEAMS ) ? "?" : "-" );
-			V_ColorizeString( szString );
-
-			screen->DrawText( CR_GRAY,
-				( SCREENWIDTH ) - ( TexMan[szPatchName]->GetWidth( )) - ( SmallFont->StringWidth( szString )),
-				ulYPos,
-				szString,
-				TAG_DONE );
-		}
-	}
-	else if ( ctf || skulltag )
-	{
-		if ( ctf )
-			sprintf( szPatchName, "STFLA2" );
-		else
-			sprintf( szPatchName, "STKEYS5" );
-		
-		if ( bScale )
-		{
-			screen->DrawTexture( TexMan[szPatchName],
-				( ValWidth.Int ) - ( TexMan[szPatchName]->GetWidth( )),
-				(LONG)( ulYPos * fYScale ),
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
-				TAG_DONE );
-
-			sprintf( szString, "\\cC%s \\cG:", g_pRedCarrier ? g_pRedCarrier->userinfo.netname : TEAM_GetReturnTicks( TEAM_RED ) ? "?" : "-" );
-			V_ColorizeString( szString );
-
-			screen->DrawText( CR_GRAY,
-				( ValWidth.Int ) - ( TexMan[szPatchName]->GetWidth( )) - ( SmallFont->StringWidth( szString )),
-				(LONG)( ulYPos * fYScale ),
-				szString,
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
-				TAG_DONE );
-		}
-		else
-		{
-			screen->DrawTexture( TexMan[szPatchName],
-				( SCREENWIDTH ) - ( TexMan[szPatchName]->GetWidth( )),
-				ulYPos,
-				TAG_DONE );
-
-			sprintf( szString, "\\cC%s \\cG:", g_pRedCarrier ? g_pRedCarrier->userinfo.netname : TEAM_GetReturnTicks( TEAM_RED ) ? "?" : "-" );
-			V_ColorizeString( szString );
-
-			screen->DrawText( CR_GRAY,
-				( SCREENWIDTH ) - ( TexMan[szPatchName]->GetWidth( )) - ( SmallFont->StringWidth( szString )),
-				ulYPos,
-				szString,
-				TAG_DONE );
-		}
-
-		ulYPos += ulTextHeight;
-
-		if ( ctf )
-			sprintf( szPatchName, "STFLA1" );
-		else
-			sprintf( szPatchName, "STKEYS3" );
-
-		if ( bScale )
-		{
-			screen->DrawTexture( TexMan[szPatchName],
-				( ValWidth.Int ) - ( TexMan[szPatchName]->GetWidth( )),
-				(LONG)( ulYPos * fYScale ),
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
-				TAG_DONE );
-
-			sprintf( szString, "\\cC%s \\cG:", g_pBlueCarrier ? g_pBlueCarrier->userinfo.netname : TEAM_GetReturnTicks( TEAM_BLUE ) ? "?" : "-" );
-			V_ColorizeString( szString );
-
-			screen->DrawText( CR_GRAY,
-				( ValWidth.Int ) - ( TexMan[szPatchName]->GetWidth( )) - ( SmallFont->StringWidth( szString )),
-				(LONG)( ulYPos * fYScale ),
-				szString,
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
-				TAG_DONE );
-		}
-		else
-		{
-			screen->DrawTexture( TexMan[szPatchName],
-				( SCREENWIDTH ) - ( TexMan[szPatchName]->GetWidth( )),
-				ulYPos,
-				TAG_DONE );
-
-			sprintf( szString, "\\cC%s \\cG:", g_pBlueCarrier ? g_pBlueCarrier->userinfo.netname : TEAM_GetReturnTicks( TEAM_BLUE ) ? "?" : "-" );
-			V_ColorizeString( szString );
-
-			screen->DrawText( CR_GRAY,
-				( SCREENWIDTH ) - ( TexMan[szPatchName]->GetWidth( )) - ( SmallFont->StringWidth( szString )),
-				ulYPos,
-				szString,
-				TAG_DONE );
-		}
-	}
-
-	// Don't display scores or anything if the status bar is minimized. We
-	// have a different display for that.
-	if (( realviewheight == SCREENHEIGHT ) && viewactive
-		&& gameinfo.gametype != GAME_Strife) // [RC] ...Except in Strife.
-		return;
-
-	// Now, draw the blue and red team scores.
-	ulYPos = ST_Y - ( ulTextHeight * 2 ) + 1;
-
-	sprintf( szString , "\\cG%s: \\cC%d", TEAM_GetName( TEAM_RED ), TEAM_GetScore( TEAM_RED ));
-	V_ColorizeString( szString );
-
-	if ( bScale )
-	{
-		screen->DrawText( CR_GRAY,
-			0,
-			(LONG)( ulYPos * fYScale ),
-			szString,
-			DTA_VirtualWidth, ValWidth.Int,
-			DTA_VirtualHeight, ValHeight.Int,
-			TAG_DONE );
-	}
-	else
-	{
-		screen->DrawText( CR_GRAY,
-			0,
-			ulYPos,
-			szString,
-			TAG_DONE );
-	}
-
-	ulYPos += ulTextHeight;
-
-	sprintf( szString , "\\cG%s: \\cC%d", TEAM_GetName( TEAM_BLUE ), TEAM_GetScore( TEAM_BLUE ));
-	V_ColorizeString( szString );
-
-	if ( bScale )
-	{
-		screen->DrawText( CR_GRAY,
-			0,
-			(LONG)( ulYPos * fYScale ),
-			szString,
-			DTA_VirtualWidth, ValWidth.Int,
-			DTA_VirtualHeight, ValHeight.Int,
-			TAG_DONE );
-	}
-	else
-	{
-		screen->DrawText( CR_GRAY,
-			0,
-			ulYPos,
-			szString,
-			TAG_DONE );
-	}
-}
-
-
-//*****************************************************************************
-//
-EXTERN_CVAR( Bool, cl_stfullscreenhud );
 
 void SCOREBOARD_RenderInvasionStats( void )
 {
-	// [RC] In fullscreen, don't render these as they're done with the other fullscreen elements in doom_sbar.
-	if (( realviewheight == SCREENHEIGHT ) && viewactive && cl_stfullscreenhud)
+	if( SCOREBOARD_IsUsingNewHud() && SCOREBOARD_IsHudFullscreen())
 		return;
 
-	char			szString[128];
-	DHUDMessage		*pMsg;
+	if ( SCOREBOARD_IsHudVisible() )
+	{
+		char			szString[128];
+		DHUDMessage		*pMsg;
 
-	sprintf( szString, "WAVE: %d  MONSTERS: %d  ARCH-VILES: %d", INVASION_GetCurrentWave( ), INVASION_GetNumMonstersLeft( ), INVASION_GetNumArchVilesLeft( ));
-	pMsg = new DHUDMessage( szString, 0.5f, 0.075f, 0, 0, CR_RED, 0.1f );
+		sprintf( szString, "WAVE: %d  MONSTERS: %d  ARCH-VILES: %d", INVASION_GetCurrentWave( ), INVASION_GetNumMonstersLeft( ), INVASION_GetNumArchVilesLeft( ));
+		pMsg = new DHUDMessage( szString, 0.5f, 0.075f, 0, 0, CR_RED, 0.1f );
 
-	StatusBar->AttachMessage( pMsg, 'INVS' );
+		StatusBar->AttachMessage( pMsg, 'INVS' );
+	}
 }
 
 //*****************************************************************************
@@ -1285,22 +1142,6 @@ void SCOREBOARD_RenderInVote( void )
 
 	// Start at the top of the screen
 	ulCurYPos = 8;	
-	UCVarValue	g_ValWidth;
-	UCVarValue	g_ValHeight;
-	float		g_fXScale;
-	float		g_fYScale;
-
-	g_ValWidth = con_virtualwidth.GetGenericRep( CVAR_Int );
-	g_ValHeight = con_virtualheight.GetGenericRep( CVAR_Int );
-	if (( con_scaletext ) && ( con_virtualwidth > 0 ) && ( con_virtualheight > 0 ))
-	{
-		g_fXScale =  (float)g_ValWidth.Int / 320.0f;
-		g_fYScale =  (float)g_ValHeight.Int / 200.0f;
-		g_bScale = true;
-
-	}
-	else
-		g_bScale = false;
 
 	// Render the title and time left.
 	screen->SetFont( BigFont );
@@ -3313,10 +3154,6 @@ static void scoreboard_DrawTeamScores( ULONG ulPlayer )
 				}
 			}
 
-			// Draw the team info information.
-			// If this variable is true, it's already been drawn. No need to do it again.
-			if ( cl_alwaysdrawteamstats == false )
-				SCOREBOARD_RenderTeamStats( &players[ulPlayer] );
 		}
 		else
 		{
@@ -3933,9 +3770,3 @@ static void scoreboard_DrawRankings( ULONG ulPlayer )
 
 	BorderNeedRefresh = true;
 }
-
-//*****************************************************************************
-//	CONSOLE VARIABLES
-
-CVAR( Bool, cl_alwaysdrawdmstats, true, CVAR_ARCHIVE )
-CVAR( Bool, cl_alwaysdrawteamstats, true, CVAR_ARCHIVE )

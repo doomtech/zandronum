@@ -890,6 +890,12 @@ private:
 
 		if ( CPlayer->mo == NULL )
 			return;
+	
+		// Draw our frags, points, or wins.
+		DrawCornerScore();
+
+		// Draw team scores in CTF or Skulltag.
+		DrawTeamScores();
 
 		// Health
 		DrBNumberOuter (MAX (0, CPlayer->mo->health), 5, -20);

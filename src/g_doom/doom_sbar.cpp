@@ -1536,14 +1536,18 @@ void DrawFullHUD_GameInformation()
 
 			if ( pRune )
 			{
-//				Printf( "%s\n", TexMan[pRune->Icon]->Name );
-//				pRune->~AActor
 				screen->DrawTexture( TexMan( pRune->Icon ), -76, -2,
 					DTA_HUDRules, HUD_Normal,
 					DTA_CenterBottomOffset, true,
 					TAG_DONE );
 			}
 		}
+
+		// Draw our frags, points, or wins.
+		DrawCornerScore();
+
+		// Draw team scores in CTF or Skulltag
+		DrawTeamScores();
 
 		// Draw armor
 		ABasicArmor *armor = CPlayer->mo->FindInventory<ABasicArmor>();

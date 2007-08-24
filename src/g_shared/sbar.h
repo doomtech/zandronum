@@ -196,6 +196,8 @@ public:
 
 protected:
 	void DrawPowerups ();
+	void DrawCornerScore ();
+	void DrawTeamScores ();
 
 	void UpdateRect (int x, int y, int width, int height) const;
 	void DrawImage (FTexture *image, int x, int y, BYTE *translation=NULL) const;

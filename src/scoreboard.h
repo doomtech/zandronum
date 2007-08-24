@@ -98,8 +98,11 @@ enum
 
 void	SCOREBOARD_Render( ULONG ulDisplayPlayer );
 void	SCOREBOARD_RenderBoard( ULONG ulDisplayPlayer );
-void	SCOREBOARD_RenderDMStats( void );
-void	SCOREBOARD_RenderTeamStats( player_s *pPlayer );
+bool	SCOREBOARD_IsUsingNewHud( void );
+bool	SCOREBOARD_IsHudVisible( void );
+void	SCOREBOARD_RenderStats_Holders( void );
+void	SCOREBOARD_RenderStats_TeamScores( void );
+void	SCOREBOARD_RenderStats_RankSpread( void );
 void	SCOREBOARD_RenderInvasionStats( void );
 void	SCOREBOARD_RenderInVote( void );
 void	SCOREBOARD_RenderInVoteClassic( void ); // [RC] Full screen display

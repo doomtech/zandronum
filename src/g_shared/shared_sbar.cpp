@@ -1051,7 +1051,7 @@ void FBaseStatusBar::DrawCrosshair ()
 			color = (red<<16) | (green<<8);
 		}
 
-		// [RC] If we're following somebody and we shouldn't know their health, use a nuetral color.
+		// [RC] If we're following somebody and we shouldn't know their health, use a neutral color.
 		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players )) == false ))
 			color = 0xcccccc;
 	}
@@ -1130,58 +1130,6 @@ void FBaseStatusBar::DrawMessages (int bottom) const
 
 void FBaseStatusBar::Draw (EHudState state)
 {
-	// Draw Skulltag's old style HUD elements in Doom, Heretic, and Hexen (assuming we aren't using the new HUD).
-	if( !(cl_stfullscreenhud && gameinfo.gametype == GAME_Doom) && (gameinfo.gametype != GAME_Strife)  )
-	{
-		// Draw the player's counter (points, frags, wins).
-		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode() ) & GMF_PLAYERSEARNPOINTS )
-			DrBNumberOuter (CPlayer->lPointCount, -44, 1);
-		else if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode() ) & GMF_PLAYERSEARNFRAGS )
-			DrBNumberOuter (CPlayer->fragcount, -44, 1);
-		else if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode() ) & GMF_PLAYERSEARNWINS )
-			DrBNumberOuter (CPlayer->ulWins, -44, 1);
-
-		// [BC] Draw skulls and flags in team game.
-		char	szPatchName[16];
-		int BigHeight =  Images[imgBNumbers]->GetHeight();
-		if ( ctf )
-		{
-			sprintf( szPatchName, "BFLASMAL" );
-			screen->DrawTexture (TexMan[szPatchName], 18, -( BigHeight * 3 ) - 18,
-				DTA_HUDRules, HUD_Normal,
-				DTA_CenterBottomOffset, true,
-				TAG_DONE);
-
-			DrBNumberOuter( MIN( (int)TEAM_GetScore( TEAM_BLUE ), 99 ), 28, -( BigHeight * 3 ) - 18 - 29 );
-
-			sprintf( szPatchName, "RFLASMAL" );
-			screen->DrawTexture (TexMan[szPatchName], 18, -( BigHeight * 3 ) - 18 - 51,
-				DTA_HUDRules, HUD_Normal,
-				DTA_CenterBottomOffset, true,
-				TAG_DONE);
-
-			DrBNumberOuter( MIN( (int)TEAM_GetScore( TEAM_RED ), 99 ), 28, -( BigHeight * 3 ) - 18 - 51 - 29 );
-		}
-		else if ( skulltag )
-		{
-			sprintf( szPatchName, "BSKUA0" );
-			screen->DrawTexture (TexMan[szPatchName], 12, -( BigHeight * 3 ) - 18,
-				DTA_HUDRules, HUD_Normal,
-				DTA_CenterBottomOffset, true,
-				TAG_DONE);
-
-			DrBNumberOuter( MIN( (int)TEAM_GetScore( TEAM_BLUE ), 99 ), 16, -( BigHeight * 3 ) - 18 - 16 );
-
-			sprintf( szPatchName, "RSKUA0" );
-			screen->DrawTexture (TexMan[szPatchName], 12, -( BigHeight * 3 ) - 18 - 24,
-				DTA_HUDRules, HUD_Normal,
-				DTA_CenterBottomOffset, true,
-				TAG_DONE);
-
-			DrBNumberOuter( MIN( (int)TEAM_GetScore( TEAM_RED ), 99 ), 16, -( BigHeight * 3 ) - 18 - 24 - 16 );
-		}
-	}
-
 	float blend[4];
 	char line[64+10];
 
@@ -1337,11 +1285,71 @@ void FBaseStatusBar::Draw (EHudState state)
 	}
 }
 
+void FBaseStatusBar::DrawTeamScores ()
+{
+	// [BC] Draw skulls and flags in team game.
+	char	szPatchName[16];
+	int BigHeight =  Images[imgBNumbers]->GetHeight();
+	if ( ctf || oneflagctf)
+	{
+		sprintf( szPatchName, "BFLASMAL" );
+		screen->DrawTexture (TexMan[szPatchName], 18, -( BigHeight * 3 ) - 18,
+			DTA_HUDRules, HUD_Normal,
+			DTA_CenterBottomOffset, true,
+			TAG_DONE);
+
+		DrBNumberOuter( MIN( (int)TEAM_GetScore( TEAM_BLUE ), 99 ), 28, -( BigHeight * 3 ) - 18 - 29 );
+
+		sprintf( szPatchName, "RFLASMAL" );
+		screen->DrawTexture (TexMan[szPatchName], 18, -( BigHeight * 3 ) - 18 - 51,
+			DTA_HUDRules, HUD_Normal,
+			DTA_CenterBottomOffset, true,
+			TAG_DONE);
+
+		DrBNumberOuter( MIN( (int)TEAM_GetScore( TEAM_RED ), 99 ), 28, -( BigHeight * 3 ) - 18 - 51 - 29 );
+	}
+	else if ( skulltag )
+	{
+		sprintf( szPatchName, "BSKUA0" );
+		screen->DrawTexture (TexMan[szPatchName], 12, -( BigHeight * 3 ) - 18,
+			DTA_HUDRules, HUD_Normal,
+			DTA_CenterBottomOffset, true,
+			TAG_DONE);
+
+		DrBNumberOuter( MIN( (int)TEAM_GetScore( TEAM_BLUE ), 99 ), 16, -( BigHeight * 3 ) - 18 - 16 );
+
+		sprintf( szPatchName, "RSKUA0" );
+		screen->DrawTexture (TexMan[szPatchName], 12, -( BigHeight * 3 ) - 18 - 24,
+			DTA_HUDRules, HUD_Normal,
+			DTA_CenterBottomOffset, true,
+			TAG_DONE);
+
+		DrBNumberOuter( MIN( (int)TEAM_GetScore( TEAM_RED ), 99 ), 16, -( BigHeight * 3 ) - 18 - 24 - 16 );
+	}	
+}
+
+
+void FBaseStatusBar::DrawCornerScore ()
+{
+	// Draw Skulltag's old style HUD elements in Doom, Heretic, and Hexen (assuming we aren't using the new HUD).
+	if( !(cl_stfullscreenhud && gameinfo.gametype == GAME_Doom) && (gameinfo.gametype != GAME_Strife)  )
+	{
+		// Draw the player's counter (points, frags, wins).
+		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode() ) & GMF_PLAYERSEARNPOINTS )
+			DrBNumberOuter (CPlayer->lPointCount, -44, 1);
+		else if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode() ) & GMF_PLAYERSEARNFRAGS )
+			DrBNumberOuter (CPlayer->fragcount, -44, 1);
+		else if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode() ) & GMF_PLAYERSEARNWINS )
+			DrBNumberOuter (CPlayer->ulWins, -44, 1);
+	}
+}
+
 //---------------------------------------------------------------------------
 //
 // DrawTopStuff
 //
 //---------------------------------------------------------------------------
+
 
 void FBaseStatusBar::DrawTopStuff (EHudState state)
 {

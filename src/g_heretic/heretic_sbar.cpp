@@ -217,6 +217,11 @@ public:
 					ArtiRefresh = 0;
 				}
 				DrawMainBar ();
+				
+				// Heretic doesn't have a point or wins counter on the statusbar.
+				if( (GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) &  GMF_PLAYERSEARNPOINTS) ||
+					(GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) &  GMF_PLAYERSEARNWINS))
+					DrawCornerScore();
 			}
 			else
 			{
@@ -531,6 +536,12 @@ private:
 
 		if ( CPlayer->mo == NULL )
 			return;
+
+		// Draw our frags, points, or wins.
+		DrawCornerScore();
+
+		// Draw team scores in CTF or Skulltag.
+		DrawTeamScores();
 
 		// Draw health
 		if (CPlayer->mo->health > 0)

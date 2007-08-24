@@ -783,18 +783,15 @@ static value_t FullscreenHUDStyle[] = {
 
 
 static menuitem_t HUDMenuItems[] = {
-	{ slider,	"Screen size",				{&screenblocks},	   	{3.0}, {12.0},	{1.0}, {NULL} },
-	{ discrete, "Voting display",			{&cl_showfullscreenvote},{2.0}, {0.0},	{0.0}, {VoteScreenTypes} },
-	{ redtext,	" ",						{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
-	{ discrete,	"Crosshair",				{&crosshair},		   	{8.0}, {0.0},	{0.0}, {Crosshairs} },
+	{ slider,	"Screen size",				{&screenblocks},	   		{3.0}, {12.0},	{1.0}, {NULL} },
+	{ discrete, "Voting display",			{&cl_showfullscreenvote},	{2.0}, {0.0},	{0.0}, {VoteScreenTypes} },
+	{ discrete, "Fullscreen HUD",			{&cl_stfullscreenhud},		{2.0}, {0.0},	{0.0}, {FullscreenHUDStyle} },
+	{ discrete, "Stretch status bar",		{&st_scale},				{2.0}, {0.0},	{0.0}, {OnOff} },
+	{ redtext,	" ",						{NULL},						{0.0}, {0.0},	{0.0}, {NULL} },
+	{ discrete,	"Crosshair",				{&crosshair},		   		{8.0}, {0.0},	{0.0}, {Crosshairs} },
 	{ discrete, "Large frag messages",		{&cl_showlargefragmessages},{2.0}, {0.0},	{0.0}, {YesNo} },
-	{ discrete, "Fullscreen HUD",			{&cl_stfullscreenhud},{2.0}, {0.0},	{0.0}, {FullscreenHUDStyle} },
-	//{ discrete, "GZDoom HUD",		{&hud_althud},			{2.0}, {0.0},	{0.0}, {OnOff} },
-	{ discrete, "Stretch status bar",	{&st_scale},			{2.0}, {0.0},	{0.0}, {OnOff} },
-	{ redtext,	" ",						{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
-	{ discrete, "Always show DM stats",		{&cl_alwaysdrawdmstats},	{2.0}, {0.0},	{0.0}, {YesNo} },
-	{ discrete, "Always show team stats",	{&cl_alwaysdrawteamstats},	{2.0}, {0.0},	{0.0}, {YesNo} },
-	{ discrete, "One key display",			{&cl_onekey},			{2.0}, {0.0},	{0.0}, {YesNo} },
+//	{ discrete, "GZDoom HUD",				{&hud_althud},				{2.0}, {0.0},	{0.0}, {OnOff} },
+	{ discrete, "One key display",			{&cl_onekey},				{2.0}, {0.0},	{0.0}, {YesNo} },
 
 
 };
