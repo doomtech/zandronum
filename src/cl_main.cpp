@@ -2726,6 +2726,37 @@ void CLIENT_RemoveCorpses( void )
 
 //*****************************************************************************
 //
+void CLIENT_RemoveMonsterCorpses( void )
+{
+	AActor	*pActor;
+	ULONG	ulMonsterCorpseCount;
+
+	// Allow infinite corpses.
+	if ( cl_maxmonstercorpses == 0 )
+		return;
+
+	// Initialize the number of corpses.
+	ulMonsterCorpseCount = 0;
+
+	TThinkerIterator<AActor> iterator;
+	while (( pActor = iterator.Next( )))
+	{
+		if (( pActor->IsKindOf( RUNTIME_CLASS( APlayerPawn )) == true ) ||
+			!( pActor->flags & MF_CORPSE ))
+		{
+			continue;
+		}
+
+		ulMonsterCorpseCount++;
+		if ( ulMonsterCorpseCount >= cl_maxmonstercorpses )
+		{
+			pActor->Destroy( );
+		}
+	}
+}
+
+//*****************************************************************************
+//
 sector_t *CLIENT_FindSectorByID( ULONG ulID )
 {
 	if ( ulID >= numsectors )
@@ -10188,6 +10219,7 @@ CCMD( send_password )
 
 CVAR( Bool, cl_predict_players, true, CVAR_ARCHIVE )
 CVAR( Int, cl_maxcorpses, 32, CVAR_ARCHIVE )
+CVAR( Int, cl_maxmonstercorpses, 0, CVAR_ARCHIVE )
 CVAR( Float, cl_motdtime, 5.0, CVAR_ARCHIVE )
 CVAR( Bool, cl_taunts, true, CVAR_ARCHIVE )
 CVAR( Int, cl_showcommands, 0, CVAR_ARCHIVE )
