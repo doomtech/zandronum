@@ -612,6 +612,8 @@ ACTOR TurbosphereSpot : CustomPickupInvasionSpot 5247
 ACTOR StrengthRuneSpot : CustomPickupInvasionSpot 5248
 {
 	Game Doom
+	Game Heretic
+	Game Hexen
 	DropItem "StrengthRune"
 }
 
@@ -624,6 +626,8 @@ ACTOR StrengthRuneSpot : CustomPickupInvasionSpot 5248
 ACTOR RageRuneSpot : CustomPickupInvasionSpot 5249
 {
 	Game Doom
+	Game Heretic
+	Game Hexen
 	DropItem "RageRune"
 }
 
@@ -636,6 +640,8 @@ ACTOR RageRuneSpot : CustomPickupInvasionSpot 5249
 ACTOR DrainRuneSpot : CustomPickupInvasionSpot 5250
 {
 	Game Doom
+	Game Heretic
+	Game Hexen
 	DropItem "DrainRune"
 }
 
@@ -648,6 +654,8 @@ ACTOR DrainRuneSpot : CustomPickupInvasionSpot 5250
 ACTOR SpreadRuneSpot : CustomPickupInvasionSpot 5251
 {
 	Game Doom
+	Game Heretic
+	Game Hexen
 	DropItem "SpreadRune"
 }
 
@@ -660,6 +668,8 @@ ACTOR SpreadRuneSpot : CustomPickupInvasionSpot 5251
 ACTOR ResistanceRuneSpot : CustomPickupInvasionSpot 5252
 {
 	Game Doom
+	Game Heretic
+	Game Hexen
 	DropItem "ResistanceRune"
 }
 
@@ -672,6 +682,8 @@ ACTOR ResistanceRuneSpot : CustomPickupInvasionSpot 5252
 ACTOR RegenerationRuneSpot : CustomPickupInvasionSpot 5253
 {
 	Game Doom
+	Game Heretic
+	Game Hexen
 	DropItem "RegenerationRune"
 }
 
@@ -684,6 +696,8 @@ ACTOR RegenerationRuneSpot : CustomPickupInvasionSpot 5253
 ACTOR ProsperityRuneSpot : CustomPickupInvasionSpot 5254
 {
 	Game Doom
+	Game Heretic
+	Game Hexen
 	DropItem "ProsperityRune"
 }
 
@@ -696,6 +710,8 @@ ACTOR ProsperityRuneSpot : CustomPickupInvasionSpot 5254
 ACTOR ReflectionRuneSpot : CustomPickupInvasionSpot 5255
 {
 	Game Doom
+	Game Heretic
+	Game Hexen
 	DropItem "ReflectionRune"
 }
 
@@ -708,6 +724,8 @@ ACTOR ReflectionRuneSpot : CustomPickupInvasionSpot 5255
 ACTOR HasteRuneSpot : CustomPickupInvasionSpot 5256
 {
 	Game Doom
+	Game Heretic
+	Game Hexen
 	DropItem "HasteRune"
 }
 
@@ -720,6 +738,8 @@ ACTOR HasteRuneSpot : CustomPickupInvasionSpot 5256
 ACTOR HighJumpRuneSpot : CustomPickupInvasionSpot 5257
 {
 	Game Doom
+	Game Heretic
+	Game Hexen
 	DropItem "HighJumpRune"
 }
 
