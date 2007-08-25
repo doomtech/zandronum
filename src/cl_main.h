@@ -155,7 +155,7 @@ void				CLIENT_RestoreSpecialDoomThing( AActor *pActor, bool bFog );
 AInventory			*CLIENT_FindPlayerInventory( ULONG ulPlayer, const PClass *pType );
 AInventory			*CLIENT_FindPlayerInventory( ULONG ulPlayer, const char *pszName );
 void				CLIENT_RemoveCorpses( void );
-void				CLIENT_RemoveMonsterCorpses( void );
+//void				CLIENT_RemoveMonsterCorpses( void );
 sector_t			*CLIENT_FindSectorByID( ULONG ulID );
 bool				CLIENT_IsValidPlayer( ULONG ulPlayer );
 void				CLIENT_ResetPlayerData( player_s *pPlayer );
@@ -172,7 +172,7 @@ bool				CLIENT_PREDICT_IsPredicting( void );
 
 EXTERN_CVAR( Bool, cl_predict_players )
 EXTERN_CVAR( Int, cl_maxcorpses )
-EXTERN_CVAR( Int, cl_maxmonstercorpses )
+//EXTERN_CVAR( Int, cl_maxmonstercorpses )
 EXTERN_CVAR( Float, cl_motdtime )
 EXTERN_CVAR( Bool, cl_taunts )
 EXTERN_CVAR( Int, cl_showcommands )

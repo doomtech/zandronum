@@ -2726,6 +2726,7 @@ void CLIENT_RemoveCorpses( void )
 
 //*****************************************************************************
 //
+/* [BB] Causes major problems with Archviles at the moment, therefore deactivated.
 void CLIENT_RemoveMonsterCorpses( void )
 {
 	AActor	*pActor;
@@ -2754,6 +2755,7 @@ void CLIENT_RemoveMonsterCorpses( void )
 		}
 	}
 }
+*/
 
 //*****************************************************************************
 //
@@ -10219,7 +10221,7 @@ CCMD( send_password )
 
 CVAR( Bool, cl_predict_players, true, CVAR_ARCHIVE )
 CVAR( Int, cl_maxcorpses, 32, CVAR_ARCHIVE )
-CVAR( Int, cl_maxmonstercorpses, 0, CVAR_ARCHIVE )
+//CVAR( Int, cl_maxmonstercorpses, 0, CVAR_ARCHIVE )
 CVAR( Float, cl_motdtime, 5.0, CVAR_ARCHIVE )
 CVAR( Bool, cl_taunts, true, CVAR_ARCHIVE )
 CVAR( Int, cl_showcommands, 0, CVAR_ARCHIVE )

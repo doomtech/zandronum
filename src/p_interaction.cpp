@@ -354,7 +354,7 @@ EXTERN_CVAR (Int, fraglimit)
 void AActor::Die (AActor *source, AActor *inflictor)
 {
 	// [BB] Potentially get rid of some corpses. This isn't necessarily client-only.
-	CLIENT_RemoveMonsterCorpses();
+	//CLIENT_RemoveMonsterCorpses();
 
 	// [BC]
 	bool	bPossessedTerminatorArtifact;

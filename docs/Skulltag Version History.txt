@@ -51,7 +51,6 @@ v0.97d-beta5
 		crashlogs == 0 : crash logs are turned off (not recommended)
 		crashlogs == 1 : the standard crash dialog is shown
 		crashlogs == 2 : the crash report is automatically written to disk using an unused filename of type CrashReportXXX.zip in the directory controlled by the new CVAR crashlog_dir (very useful for server admins)
-+	- Added CVAR cl_maxmonstercorpses, which limits the number of monster corpses in the same way as cl_maxcorpses limits the number of player corpses. Default value is 0, i.e. infinite corpses are allowed. [Torr Samaho]
 -	- Fixed a crash that would occur frequently in game modes in which the map experiences a map reset at some point (LMS, duel, survival, etc.). [Carnevil]
 -	- Rank/spread/DM stats and team scores now show up in the ZDoom - and hence Heretic -  HUD. [Rivecoder]
 -	- Fixed: Ignoring definitions of already defined decorate actors which use ":" or "replace" didn't work. [Torr Samaho]
