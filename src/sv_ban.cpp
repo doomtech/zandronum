@@ -50,6 +50,7 @@
 
 #include <stdio.h>
 #include <errno.h>
+#include <vector>
 
 #include "c_dispatch.h"
 #include "network.h"
@@ -66,8 +67,7 @@ static	void	serverban_CouldNotOpenFile( char *pszFunctionHeader, char *pszName, 
 //	VARIABLES
 
 static	char	g_cCurChar;
-static	IPADDRESSBAN_s	g_ServerBans[MAX_SERVER_BANS];
-static	LONG	g_lBanIdx;
+static	std::vector<IPADDRESSBAN_s>	g_ServerBans;
 static	ULONG	g_ulBanReParseTicker;
 
 //*****************************************************************************
@@ -77,21 +77,12 @@ CVAR( Bool, sv_enforcebans, true, CVAR_ARCHIVE )
 CVAR( Int, sv_banfilereparsetime, 0, CVAR_ARCHIVE )
 CUSTOM_CVAR( String, sv_banfile, "banlist.txt", CVAR_ARCHIVE )
 {
-	ULONG		ulIdx;
 	UCVarValue	Val;
 
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		return;
 
-	for ( ulIdx = 0; ulIdx < MAX_SERVER_BANS; ulIdx++ )
-	{
-		sprintf( g_ServerBans[ulIdx].szIP[0], "0" );
-		sprintf( g_ServerBans[ulIdx].szIP[1], "0" );
-		sprintf( g_ServerBans[ulIdx].szIP[2], "0" );
-		sprintf( g_ServerBans[ulIdx].szIP[3], "0" );
-
-		g_ServerBans[ulIdx].szComment[0] = 0;
-	}
+	g_ServerBans.clear();
 
 	// Load the banfile, and initialize the bans.
 	serverban_LoadBans( );
@@ -106,7 +97,6 @@ CUSTOM_CVAR( String, sv_banfile, "banlist.txt", CVAR_ARCHIVE )
 
 void SERVERBAN_Tick( void )
 {
-	ULONG		ulIdx;
 	UCVarValue	Val;
 
 	if ( g_ulBanReParseTicker )
@@ -117,15 +107,7 @@ void SERVERBAN_Tick( void )
 			Val = sv_banfilereparsetime.GetGenericRep( CVAR_Int );
 			g_ulBanReParseTicker = Val.Int * TICRATE;
 
-			for ( ulIdx = 0; ulIdx < MAX_SERVER_BANS; ulIdx++ )
-			{
-				sprintf( g_ServerBans[ulIdx].szIP[0], "0" );
-				sprintf( g_ServerBans[ulIdx].szIP[1], "0" );
-				sprintf( g_ServerBans[ulIdx].szIP[2], "0" );
-				sprintf( g_ServerBans[ulIdx].szIP[3], "0" );
-
-				g_ServerBans[ulIdx].szComment[0] = 0;
-			}
+			g_ServerBans.clear();
 
 			// Load the banfile, and initialize the bans.
 			serverban_LoadBans( );
@@ -139,7 +121,7 @@ bool SERVERBAN_IsIPBanned( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP
 {
 	ULONG	ulIdx;
 
-	for ( ulIdx = 0; ulIdx < MAX_SERVER_BANS; ulIdx++ )
+	for ( ulIdx = 0; ulIdx < g_ServerBans.size(); ulIdx++ )
 	{
 		if ((( g_ServerBans[ulIdx].szIP[0][0] == '*' ) || ( stricmp( pszIP0, g_ServerBans[ulIdx].szIP[0] ) == 0 )) &&
 			(( g_ServerBans[ulIdx].szIP[1][0] == '*' ) || ( stricmp( pszIP1, g_ServerBans[ulIdx].szIP[1] ) == 0 )) &&
@@ -159,7 +141,7 @@ ULONG SERVERBAN_DoesBanExist( char *pszIP0, char *pszIP1, char *pszIP2, char *ps
 {
 	ULONG	ulIdx;
 
-	for ( ulIdx = 0; ulIdx < MAX_SERVER_BANS; ulIdx++ )
+	for ( ulIdx = 0; ulIdx < g_ServerBans.size(); ulIdx++ )
 	{
 		if (( stricmp( pszIP0, g_ServerBans[ulIdx].szIP[0] ) == 0 ) &&
 			( stricmp( pszIP1, g_ServerBans[ulIdx].szIP[1] ) == 0 ) &&
@@ -170,7 +152,7 @@ ULONG SERVERBAN_DoesBanExist( char *pszIP0, char *pszIP1, char *pszIP2, char *ps
 		}
 	}
 
-	return ( MAX_SERVER_BANS );
+	return ( g_ServerBans.size() );
 }
 
 //*****************************************************************************
@@ -186,17 +168,18 @@ void SERVERBAN_AddBan( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3, c
 
 	// Address is already banned.
 	ulBanIdx = SERVERBAN_DoesBanExist( pszIP0, pszIP1, pszIP2, pszIP3 );
-	if ( ulBanIdx != MAX_SERVER_BANS )
+	if ( ulBanIdx != g_ServerBans.size() )
 	{
 		Printf( "Ban for %s.%s.%s.%s already exists.\n", pszIP0, pszIP1, pszIP2, pszIP3 );
 		return;
 	}
+	/*
 	// [BB] We may not add more bans if we already have banned MAX_SERVER_BANS IPs.
 	if( g_lBanIdx == MAX_SERVER_BANS )
 	{
 		Printf( "Maximum number of bans reached.\n" );
 		return;
-	}
+	}*/
 
 	szOutString[0] = 0;
 	if ( pszPlayerName )
@@ -209,12 +192,13 @@ void SERVERBAN_AddBan( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3, c
 		sprintf( szOutString, "%s%s", szOutString, pszComment );
 
 	// Add the ban and comment into memory.
-	sprintf( g_ServerBans[g_lBanIdx].szIP[0], pszIP0 );
-	sprintf( g_ServerBans[g_lBanIdx].szIP[1], pszIP1 );
-	sprintf( g_ServerBans[g_lBanIdx].szIP[2], pszIP2 );
-	sprintf( g_ServerBans[g_lBanIdx].szIP[3], pszIP3 );
-	sprintf( g_ServerBans[g_lBanIdx].szComment, "%s", szOutString );
-	g_lBanIdx++;
+	IPADDRESSBAN_s bannedIP;
+	sprintf( bannedIP.szIP[0], pszIP0 );
+	sprintf( bannedIP.szIP[1], pszIP1 );
+	sprintf( bannedIP.szIP[2], pszIP2 );
+	sprintf( bannedIP.szIP[3], pszIP3 );
+	sprintf( bannedIP.szComment, "%s", szOutString );
+	g_ServerBans.push_back( bannedIP );
 
 	// Finally, append the banfile.
 	if ( pFile = fopen( Val.String, "a" ))
@@ -331,20 +315,11 @@ bool SERVERBAN_StringToBan( char *pszAddress, char *pszIP0, char *pszIP1, char *
 //
 void SERVERBAN_ClearBans( void )
 {
-	ULONG		ulIdx;
 	FILE		*pFile;
 	UCVarValue	Val;
 
 	// Clear out the existing bans in memory.
-	for ( ulIdx = 0; ulIdx < MAX_SERVER_BANS; ulIdx++ )
-	{
-		sprintf( g_ServerBans[ulIdx].szIP[0], "0" );
-		sprintf( g_ServerBans[ulIdx].szIP[1], "0" );
-		sprintf( g_ServerBans[ulIdx].szIP[2], "0" );
-		sprintf( g_ServerBans[ulIdx].szIP[3], "0" );
-
-		g_ServerBans[ulIdx].szComment[0] = 0;
-	}
+	g_ServerBans.clear();
 
 	// Also, export the new (cleared) banlist.
 	Val = sv_banfile.GetGenericRep( CVAR_String );
@@ -363,32 +338,17 @@ void SERVERBAN_ClearBans( void )
 }
 
 //*****************************************************************************
-/*
-LONG SERVERBAN_GetNumBans( void )
+
+ULONG SERVERBAN_GetNumBans( void )
 {
-	ULONG	ulIdx;
-	LONG	lNumBans;
-
-	lNumBans = 0;
-	for ( ulIdx = 0; ulIdx < MAX_SERVER_BANS; ulIdx++ )
-	{
-		if (( stricmp( g_ServerBans[ulIdx].szIP[0], "0" ) != 0 ) ||
-			( stricmp( g_ServerBans[ulIdx].szIP[1], "0" ) != 0 ) ||
-			( stricmp( g_ServerBans[ulIdx].szIP[2], "0" ) != 0 ) ||
-			( stricmp( g_ServerBans[ulIdx].szIP[3], "0" ) != 0 ))
-		{
-			lNumBans++;
-		}
-	}
-
-	return ( lNumBans );
+	return ( g_ServerBans.size() );
 }
-*/
+
 //*****************************************************************************
 //
 IPADDRESSBAN_s SERVERBAN_GetBan( ULONG ulIdx )
 {
-	if ( ulIdx >= MAX_SERVER_BANS )
+	if ( ulIdx >= g_ServerBans.size() )
 	{
 		IPADDRESSBAN_s	ZeroBan;
 
@@ -414,7 +374,6 @@ static void serverban_LoadBans( void )
 	// Open the banfile.
 	Val = sv_banfile.GetGenericRep( CVAR_String );
 
-	g_lBanIdx = 0;
 	g_cCurChar = 0;
 
 	// [RC] Escape backslashes so that paths can be used.
@@ -434,11 +393,10 @@ static void serverban_LoadBans( void )
 		fsFilePath.Insert(index, '\\');
 	}
 
-	IPFileParser parser( MAX_SERVER_BANS );
+	IPFileParser parser( 65536 );
 	if ( !(parser.parseIPList( fsFilePath.GetChars(), g_ServerBans )) )
 		Printf( "%s", parser.getErrorMessage() );
 
-	g_lBanIdx = parser.getNumberOfEntries();
 	// [BB] TO-DO: Rename and move the serverban_CouldNotOpenFile code somewhere
 	// where it can be used by the master server and use it in IPFileParser.
 }
@@ -765,7 +723,7 @@ CCMD( viewbanlist )
 {
 	ULONG		ulIdx;
 
-	for ( ulIdx = 0; ulIdx < MAX_SERVER_BANS; ulIdx++ )
+	for ( ulIdx = 0; ulIdx < g_ServerBans.size(); ulIdx++ )
 	{
 		if (( stricmp( g_ServerBans[ulIdx].szIP[0], "0" ) != 0 ) ||
 			( stricmp( g_ServerBans[ulIdx].szIP[1], "0" ) != 0 ) ||
@@ -794,17 +752,7 @@ CCMD( clearbans )
 //
 CCMD( reloadbans )
 {
-	ULONG		ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAX_SERVER_BANS; ulIdx++ )
-	{
-		sprintf( g_ServerBans[ulIdx].szIP[0], "0" );
-		sprintf( g_ServerBans[ulIdx].szIP[1], "0" );
-		sprintf( g_ServerBans[ulIdx].szIP[2], "0" );
-		sprintf( g_ServerBans[ulIdx].szIP[3], "0" );
-
-		g_ServerBans[ulIdx].szComment[0] = 0;
-	}
+	g_ServerBans.clear();
 
 	// Load the banfile, and initialize the bans.
 	serverban_LoadBans( );

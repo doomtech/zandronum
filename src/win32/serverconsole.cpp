@@ -1777,7 +1777,7 @@ BOOL CALLBACK SERVERCONSOLE_BanListCallback( HWND hDlg, UINT Message, WPARAM wPa
 				SendDlgItemMessage( hDlg, IDC_ENFORCEBANS, BM_SETCHECK, BST_UNCHECKED, 0 );
 
 			// Populate the box with the current ban list.
-			for ( ulIdx = 0; ulIdx < MAX_SERVER_BANS; ulIdx++ )
+			for ( ulIdx = 0; ulIdx < SERVERBAN_GetNumBans(); ulIdx++ )
 			{
 				Ban = SERVERBAN_GetBan( ulIdx );
 				if (( stricmp( Ban.szIP[0], "0" ) != 0 ) ||

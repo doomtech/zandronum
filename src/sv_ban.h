@@ -56,7 +56,6 @@
 //*****************************************************************************
 //	DEFINES
 
-#define	MAX_SERVER_BANS			64
 #define	BANFILE_REPARSE_TIME	( TICRATE * 60 * 10 )
 
 //*****************************************************************************
@@ -68,7 +67,7 @@ ULONG	SERVERBAN_DoesBanExist( char *pszIP0, char *pszIP1, char *pszIP2, char *ps
 void	SERVERBAN_AddBan( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3, char *pszPlayerName, char *pszComment );
 bool	SERVERBAN_StringToBan( char *pszAddress, char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 );
 void	SERVERBAN_ClearBans( void );
-//LONG	SERVERBAN_GetNumBans( void );
+ULONG	SERVERBAN_GetNumBans( void );
 IPADDRESSBAN_s	SERVERBAN_GetBan( ULONG ulIdx );
 
 //*****************************************************************************

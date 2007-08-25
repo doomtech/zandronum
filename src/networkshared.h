@@ -55,6 +55,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <iostream>
+#include <vector>
 
 #include <ctype.h>
 #include <math.h>
@@ -168,7 +169,7 @@ public:
 		return _numberOfEntries;
 	}
 
-	bool parseIPList( const char* FileName, IPADDRESSBAN_s* IPArray );
+	bool parseIPList( const char* FileName, std::vector<IPADDRESSBAN_s> &IPArray );
 private:
 	char skipWhitespace( FILE *pFile );
 	char skipComment( FILE *pFile );

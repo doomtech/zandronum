@@ -202,20 +202,11 @@ bool NETWORK_StringToIP( char *pszAddress, char *pszIP0, char *pszIP1, char *psz
 
 //*****************************************************************************
 //
-bool IPFileParser::parseIPList( const char* FileName, IPADDRESSBAN_s* IPArray )
+bool IPFileParser::parseIPList( const char* FileName, std::vector<IPADDRESSBAN_s> &IPArray )
 {
 	FILE			*pFile;
-	unsigned long	ulIdx;
 
-	for ( ulIdx = 0; ulIdx < _listLength; ulIdx++ )
-	{
-		sprintf( IPArray[ulIdx].szIP[0], "0" );
-		sprintf( IPArray[ulIdx].szIP[1], "0" );
-		sprintf( IPArray[ulIdx].szIP[2], "0" );
-		sprintf( IPArray[ulIdx].szIP[3], "0" );
-
-		IPArray[ulIdx].szComment[0] = 0;
-	}
+	IPArray.clear();
 
 	char curChar = 0;
 	_numberOfEntries = 0;
@@ -223,13 +214,17 @@ bool IPFileParser::parseIPList( const char* FileName, IPADDRESSBAN_s* IPArray )
 	{
 		while ( true )
 		{
-			bool parsingDone = !parseNextLine( pFile, IPArray[_numberOfEntries], _numberOfEntries );
+			IPADDRESSBAN_s IP;
+			ULONG oldNumberOfEntries = _numberOfEntries;
+			bool parsingDone = !parseNextLine( pFile, IP, _numberOfEntries );
 
 			if ( _errorMessage[0] != '\0' )
 			{
 				fclose( pFile );
 				return false;
 			}
+			else if ( oldNumberOfEntries < _numberOfEntries )
+				IPArray.push_back( IP );
 
 			if ( parsingDone == true )
 				break;
@@ -373,7 +368,7 @@ void IPFileParser::readReason( FILE *pFile, char *Reason, const int MaxReasonLen
 {
 	char curChar = fgetc( pFile );
 	int i = 0;
-	while (( curChar != '\r' ) && ( curChar != '\n' ) && /*( curChar != -1 ) && */i < MaxReasonLength-1 )
+	while (( curChar != '\r' ) && ( curChar != '\n' ) && !feof( pFile ) && i < MaxReasonLength-1 )
 	{
 		Reason[i] = curChar;
 		curChar = fgetc( pFile );
