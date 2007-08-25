@@ -130,7 +130,7 @@ public:
 	~FGLTexture();
 
 	unsigned char * CreateTexBuffer(int cm, int translation, const BYTE * translationtable, int & w, int & h, bool allowhires=true);
-	const WorldTextureInfo * Bind(int cm);
+	const WorldTextureInfo * Bind(int cm, int translation=0, const unsigned char * translationtbl=NULL);
 	const PatchTextureInfo * BindPatch(int cm, int translation=0, const BYTE * translationtable=NULL);
 
 	const WorldTextureInfo * GetWorldTextureInfo();

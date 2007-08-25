@@ -37,6 +37,7 @@ v0.97d-beta5
 +	- Revamped the way double defined actors are handled: If a definition of an already defined actor is encountered, "2" will be appended to the name and the new actor replaces to old one. This should give full compatibility with PWADs that use actors whose name conflict with Skulltag actors. [Torr Samaho]
 +	- If a replaced weapon is added to a slot with setslot, the replacement weapon will also be added to the slot. [Torr Samaho]
 +	- Added MD2/DMD/MD3 model frame interpolation, controlled by the the new CVAR gl_interpolate_model_frames. [Torr Samaho]
++	- Added model skin color translation support. The skin texture may only use colors from the game palette, otherwise it won't work properly. [Torr Samaho]
 +	- Added z-offset support to MODELDEF. [Torr Samaho]
 +	- Added Doomsday like rotation of the weapon pickup models, controlled by the the new CVAR gl_rotate_weapon_models. [Torr Samaho]
 +	- Added workaround for the missing pitch information of rockets to render the models of rockets fired with a vertical angle different from zero properly. [Torr Samaho]

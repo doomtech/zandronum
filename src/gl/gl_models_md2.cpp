@@ -288,7 +288,7 @@ void FDMDModel::RenderGLCommands(void *glCommands, unsigned int numVertices,FMod
 }
 
 
-void FDMDModel::RenderFrame(FTexture * skin, int frameno, int cm)
+void FDMDModel::RenderFrame(FTexture * skin, int frameno, int cm, int translation)
 {
 	int activeLod;
 
@@ -306,7 +306,7 @@ void FDMDModel::RenderFrame(FTexture * skin, int frameno, int cm)
 
 	FGLTexture * tex = FGLTexture::ValidateTexture(skin);
 
-	tex->Bind(cm);
+	tex->Bind(cm, translation);
 
 	int numVerts = info.numVertices;
 
@@ -332,7 +332,7 @@ void FDMDModel::RenderFrame(FTexture * skin, int frameno, int cm)
 	RenderGLCommands(lods[activeLod].glCommands, numVerts, frame->vertices/*, modelColors, NULL*/);
 }
 
-void FDMDModel::RenderFrameInterpolated(FTexture * skin, int frameno, int frameno2, double inter, int cm)
+void FDMDModel::RenderFrameInterpolated(FTexture * skin, int frameno, int frameno2, double inter, int cm, int translation)
 {
 	int activeLod = 0;
 
@@ -350,7 +350,7 @@ void FDMDModel::RenderFrameInterpolated(FTexture * skin, int frameno, int framen
 
 	FGLTexture * tex = FGLTexture::ValidateTexture(skin);
 
-	tex->Bind(cm);
+	tex->Bind(cm, translation);
 
 	int numVerts = info.numVertices;
 

@@ -227,7 +227,7 @@ void FMD3Model::RenderTriangles(MD3Surface * surf, MD3Vertex * vert)
 	gl.End();
 }
 
-void FMD3Model::RenderFrame(FTexture * skin, int frameno, int cm)
+void FMD3Model::RenderFrame(FTexture * skin, int frameno, int cm, int translation)
 {
 	if (frameno>=numFrames) return;
 
@@ -250,12 +250,12 @@ void FMD3Model::RenderFrame(FTexture * skin, int frameno, int cm)
 
 		FGLTexture * tex = FGLTexture::ValidateTexture(skin);
 
-		tex->Bind(cm);
+		tex->Bind(cm, translation);
 		RenderTriangles(surf, surf->vertices + frameno * surf->numVertices);
 	}
 }
 
-void FMD3Model::RenderFrameInterpolated(FTexture * skin, int frameno, int frameno2, double inter, int cm)
+void FMD3Model::RenderFrameInterpolated(FTexture * skin, int frameno, int frameno2, double inter, int cm, int translation)
 {
 	if (frameno>=numFrames || frameno2>=numFrames) return;
 
@@ -272,7 +272,7 @@ void FMD3Model::RenderFrameInterpolated(FTexture * skin, int frameno, int framen
 
 		FGLTexture * tex = FGLTexture::ValidateTexture(skin);
 
-		tex->Bind(cm);
+		tex->Bind(cm, translation);
 
 		MD3Vertex* verticesInterpolated = new MD3Vertex[surfaces[i].numVertices];
 		MD3Vertex* vertices1 = surf->vertices + frameno * surf->numVertices;

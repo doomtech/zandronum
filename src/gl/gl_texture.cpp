@@ -1596,7 +1596,7 @@ const PatchTextureInfo * FGLTexture::GetPatchTextureInfo()
 //
 //===========================================================================
 
-const WorldTextureInfo * FGLTexture::Bind(int cm)
+const WorldTextureInfo * FGLTexture::Bind(int cm, int translation, const unsigned char * translationtbl)
 {
 	if (gl_warp_shader)
 	{
@@ -1636,7 +1636,7 @@ const WorldTextureInfo * FGLTexture::Bind(int cm)
 
 		// Bind it to the system. For multitexturing this
 		// should be the only thing that needs adjusting
-		if (!gltexture->Bind(cm))
+		if (!gltexture->Bind(cm, translation, translationtbl))
 		{
 			int w,h;
 
@@ -1645,7 +1645,7 @@ const WorldTextureInfo * FGLTexture::Bind(int cm)
 			//cycle_t c=0;
 			//clock(c);
 
-			unsigned char * buffer = CreateTexBuffer(cm, 0, NULL, w, h);
+			unsigned char * buffer = CreateTexBuffer(cm, translation, translationtbl, w, h);
 
 			/*
 			unclock(c);
@@ -1654,7 +1654,7 @@ const WorldTextureInfo * FGLTexture::Bind(int cm)
 			clock(c);
 			*/
 			ProcessData(buffer, w, h, cm, false);
-			if (!gltexture->CreateTexture(buffer, w, h, true, cm)) 
+			if (!gltexture->CreateTexture(buffer, w, h, true, cm, translation, translationtbl)) 
 			{
 				// could not create texture
 				delete buffer;

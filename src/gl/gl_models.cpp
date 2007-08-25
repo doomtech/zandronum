@@ -514,9 +514,9 @@ void gl_RenderModel(GLSprite * spr, int cm)
 		if (mdl!=NULL)
 		{
 			if ( smfNext && smf->modelframes[i] != smfNext->modelframes[i] )
-				mdl->RenderFrameInterpolated(smf->skins[i], smf->modelframes[i], smfNext->modelframes[i], inter, cm);
+				mdl->RenderFrameInterpolated(smf->skins[i], smf->modelframes[i], smfNext->modelframes[i], inter, cm, spr->actor->Translation);
 			else
-				mdl->RenderFrame(smf->skins[i], smf->modelframes[i], cm);
+				mdl->RenderFrame(smf->skins[i], smf->modelframes[i], cm, spr->actor->Translation);
 		}
 	}
 
