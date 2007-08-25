@@ -26,7 +26,7 @@ FGLTexture *FGLTexture::ValidateTexture(FTexture*)
 	return NULL;
 }
 
-const WorldTextureInfo *FGLTexture::Bind(int)
+const WorldTextureInfo *FGLTexture::Bind(int, int, const unsigned char *)
 {
 	return NULL;
 }
