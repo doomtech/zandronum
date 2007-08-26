@@ -5110,7 +5110,8 @@ bool P_HitWater (AActor * thing, sector_t * sec, fixed_t z)
 	if (thing->flags2 & MF2_FLOATBOB || thing->flags3 & MF3_DONTSPLASH)
 		return false;
 
-	if ( CLIENT_PREDICT_IsPredicting( ))
+	// [BC] Let the server handle splashes.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 		return ( false );
 /*
 	if (thing->player && (thing->player->cheats & CF_PREDICTING))
@@ -5212,12 +5213,23 @@ foundone:
 		S_SoundID (mo, CHAN_ITEM, smallsplash ?
 			splash->SmallSplashSound : splash->NormalSplashSound,
 			1, ATTN_IDLE);
+
+		// [BC] Tell clients to spawn the splash and play the sound.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			SERVERCOMMANDS_SpawnThing( mo );
+			SERVERCOMMANDS_SoundIDActor( mo, CHAN_ITEM, smallsplash ? splash->SmallSplashSound : splash->NormalSplashSound, 127, ATTN_IDLE );
+		}
 	}
 	else
 	{
 		S_SoundID (thing->x, thing->y, z, CHAN_ITEM, smallsplash ?
 			splash->SmallSplashSound : splash->NormalSplashSound,
 			1, ATTN_IDLE);
+
+		// [BC] Tell clients to play the sound.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SoundID( thing->x, thing->y, CHAN_ITEM, smallsplash ? splash->SmallSplashSound : splash->NormalSplashSound, 127, ATTN_IDLE );
 	}
 
 	// Don't let deep water eat missiles

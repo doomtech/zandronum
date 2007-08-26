@@ -1046,10 +1046,10 @@ bool SERVER_PerformAuthenticationChecksum( BYTESTREAM_s *pByteStream )
 	char		szServerLinedefString[64];
 	char		szServerSidedefString[64];
 	char		szServerSectorString[64];
-	char		szClientVertexString[64];
-	char		szClientLinedefString[64];
-	char		szClientSidedefString[64];
-	char		szClientSectorString[64];
+	char		szClientVertexString[MAX_NETWORK_STRING];
+	char		szClientLinedefString[MAX_NETWORK_STRING];
+	char		szClientSidedefString[MAX_NETWORK_STRING];
+	char		szClientSectorString[MAX_NETWORK_STRING];
 
 	// [BB] Open the map. Since we are already using the map, we won't get a NULL pointer.
 	pMap = P_OpenMapData( level.mapname );
@@ -1524,9 +1524,9 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 {
 	LONG			lClient;
-	char			szClientVersion[16];
-	char			szClientPassword[64];
-	char			szServerPassword[64];
+	char			szClientVersion[MAX_NETWORK_STRING];
+	char			szClientPassword[MAX_NETWORK_STRING];
+	char			szServerPassword[MAX_NETWORK_STRING];
 	LONG			lClientNetworkGameVersion;
 	char			szAddress[4][4];
 	UCVarValue		Val;
@@ -1713,8 +1713,8 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 	ULONG		ulFlags;
     player_t	*pPlayer;
 	char		*pszString;
-	char		szSkin[16+1];
-	char		szClass[16+1];
+	char		szSkin[MAX_NETWORK_STRING];
+	char		szClass[MAX_NETWORK_STRING];
 	char		szOldPlayerName[32];
 	ULONG		ulUserInfoInstance;
 
@@ -3829,7 +3829,7 @@ static bool server_Spectate( BYTESTREAM_s *pByteStream )
 static bool server_RequestJoin( BYTESTREAM_s *pByteStream )
 {
 	UCVarValue	Val;
-	char		szClientJoinPassword[64];
+	char		szClientJoinPassword[MAX_NETWORK_STRING];
 
 	// Read in the join password.
 	strncpy( szClientJoinPassword, strupr( NETWORK_ReadString( pByteStream )), 64 );
@@ -3985,7 +3985,7 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 	LONG		lDesiredTeam;
 	bool		bOnTeam;
 	UCVarValue	Val;
-	char		szClientJoinPassword[64];
+	char		szClientJoinPassword[MAX_NETWORK_STRING];
 
 	// Read in the join password.
 	strncpy( szClientJoinPassword, strupr( NETWORK_ReadString( pByteStream )), 64 );
