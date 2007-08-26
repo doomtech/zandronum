@@ -1,0 +1,29 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual C++ Express 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wxSTO2", "wxSTO2\wxSTO2.vcproj", "{180E4249-7848-42F4-AFAF-4B379D0CD45E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6077B7D6-349F-4077-B552-3BC302EF5859} = {6077B7D6-349F-4077-B552-3BC302EF5859}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "updaterevision", "..\tools\updaterevision\updaterevision.vcproj", "{6077B7D6-349F-4077-B552-3BC302EF5859}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{180E4249-7848-42F4-AFAF-4B379D0CD45E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{180E4249-7848-42F4-AFAF-4B379D0CD45E}.Debug|Win32.Build.0 = Debug|Win32
+		{180E4249-7848-42F4-AFAF-4B379D0CD45E}.Release|Win32.ActiveCfg = Release|Win32
+		{180E4249-7848-42F4-AFAF-4B379D0CD45E}.Release|Win32.Build.0 = Release|Win32
+		{6077B7D6-349F-4077-B552-3BC302EF5859}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6077B7D6-349F-4077-B552-3BC302EF5859}.Debug|Win32.Build.0 = Debug|Win32
+		{6077B7D6-349F-4077-B552-3BC302EF5859}.Release|Win32.ActiveCfg = Release|Win32
+		{6077B7D6-349F-4077-B552-3BC302EF5859}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
