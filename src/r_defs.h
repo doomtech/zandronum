@@ -445,6 +445,7 @@ struct side_s
 
 	// [BC] Saved properties for when a map resets, or when we need to give updates
 	// to new clients connecting.
+	BYTE		SavedFlags;
 	short		SavedTopTexture;
 	short		SavedMidTexture;
 	short		SavedBottomTexture;

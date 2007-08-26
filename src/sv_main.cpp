@@ -1251,6 +1251,9 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 	// Tell the client of any lines that have been altered since the level start.
 	SERVER_UpdateLines( g_lCurrentClient );
 
+	// Tell the client of any sides that have been altered since the level start.
+	SERVER_UpdateSides( g_lCurrentClient );
+
 	// Tell the client of any sectors that have been altered since the level start.
 	SERVER_UpdateSectors( g_lCurrentClient );
 
@@ -2694,6 +2697,23 @@ void SERVER_UpdateLines( ULONG ulClient )
 		// Has the line's blocking status changed?
 		if ( lines[ulLine].flags != lines[ulLine].SavedFlags )
 			SERVERCOMMANDS_SetLineBlocking( ulLine, ulClient, SVCF_ONLYTHISCLIENT );
+	}
+}
+
+//*****************************************************************************
+//
+void SERVER_UpdateSides( ULONG ulClient )
+{
+	ULONG		ulSide;
+
+	if ( SERVER_IsValidClient( ulClient ) == false )
+		return;
+
+	for ( ulSide = 0; ulSide < (ULONG)numsides; ulSide++ )
+	{
+		// Have the side's flags changed?
+		if ( sides[ulSide].Flags != sides[ulSide].SavedFlags )
+			SERVERCOMMANDS_SetSideFlags( ulSide, ulClient, SVCF_ONLYTHISCLIENT );
 	}
 }
 
@@ -4440,6 +4460,9 @@ static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 
 	// Tell the client of any lines that have been altered since the level start.
 	SERVER_UpdateLines( g_lCurrentClient );
+
+	// Tell the client of any sides that have been altered since the level start.
+	SERVER_UpdateSides( g_lCurrentClient );
 
 	// Tell the client of any sectors that have been altered since the level start.
 	SERVER_UpdateSectors( g_lCurrentClient );

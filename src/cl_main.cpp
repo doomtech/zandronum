@@ -273,6 +273,9 @@ static	void	client_SetLineAlpha( BYTESTREAM_s *pByteStream );
 static	void	client_SetLineTexture( BYTESTREAM_s *pByteStream );
 static	void	client_SetLineBlocking( BYTESTREAM_s *pByteStream );
 
+// Side commands.
+static	void	client_SetSideFlags( BYTESTREAM_s *pByteStream );
+
 // Sound commands.
 static	void	client_Sound( BYTESTREAM_s *pByteStream );
 static	void	client_SoundID( BYTESTREAM_s *pByteStream );
@@ -564,6 +567,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETLINEALPHA",
 	"SVC_SETLINETEXTURE",
 	"SVC_SETLINEBLOCKING",
+	"SVC_SETSIDEFLAGS",
 	"SVC_SOUND",
 	"SVC_SOUNDID",
 	"SVC_SOUNDACTOR",
@@ -1817,6 +1821,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETLINEBLOCKING:
 
 		client_SetLineBlocking( pByteStream );
+		break;
+	case SVC_SETSIDEFLAGS:
+
+		client_SetSideFlags( pByteStream );
 		break;
 	case SVC_SOUND:
 
@@ -7753,6 +7761,26 @@ static void client_SetLineBlocking( BYTESTREAM_s *pByteStream )
 
 	lines[lLine].flags &= ~(ML_BLOCKING|ML_BLOCKPLAYERS|ML_BLOCKEVERYTHING|ML_RAILING);
 	lines[lLine].flags |= lBlockFlags;
+}
+
+//*****************************************************************************
+//
+static void client_SetSideFlags( BYTESTREAM_s *pByteStream )
+{
+	LONG	lSide;
+	LONG	lFlags;
+
+	// Read in the side ID.
+	lSide = NETWORK_ReadShort( pByteStream );
+
+	// Read in the flags.
+	lFlags = NETWORK_ReadByte( pByteStream );
+
+	// Invalid line ID.
+	if (( lSide >= numsides ) || ( lSide < 0 ))
+		return;
+
+	sides[lSide].Flags = lFlags;
 }
 
 //*****************************************************************************
