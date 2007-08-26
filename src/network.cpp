@@ -554,6 +554,10 @@ int NETWORK_GetPackets( void )
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVER_STATISTIC_AddToInboundDataTransfer( lNumBytes );
 
+	// If the number of bytes we're receiving exceeds our buffer size, ignore the packet.
+	if ( lNumBytes >= g_NetworkMessage.ulMaxSize )
+		return ( 0 );
+
 	// Decode the huffman-encoded message we received.
 	HuffDecode( g_ucHuffmanBuffer, (unsigned char *)g_NetworkMessage.pbData, lNumBytes, &iDecodedNumBytes );
 	g_NetworkMessage.ulCurrentSize = iDecodedNumBytes;
@@ -623,6 +627,10 @@ int NETWORK_GetLANPackets( void )
 	// Record this for our statistics window.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVER_STATISTIC_AddToInboundDataTransfer( lNumBytes );
+
+	// If the number of bytes we're receiving exceeds our buffer size, ignore the packet.
+	if ( lNumBytes >= g_NetworkMessage.ulMaxSize )
+		return ( 0 );
 
 	// Decode the huffman-encoded message we received.
 	HuffDecode( g_ucHuffmanBuffer, (unsigned char *)g_NetworkMessage.pbData, lNumBytes, &iDecodedNumBytes );
