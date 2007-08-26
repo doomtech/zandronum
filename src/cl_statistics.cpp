@@ -138,7 +138,7 @@ ADD_STAT( nettraffic )
 {
 	FString	Out;
 
-	Out.Format( "In: %3d/%3d/%3d        Out: %3d/%3d/%3d", 
+	Out.Format( "In: %5d/%5d/%5d        Out: %5d/%5d/%5d", 
 		g_lBytesReceivedThisTick,
 		g_lBytesReceivedLastSecond,
 		g_lMaxBytesReceivedPerSecond,
