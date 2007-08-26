@@ -58,9 +58,6 @@
 // so big that this number can't hold them all!
 #define	MAX_SERVERS						512
 
-// This is the maximum number of IPs that we can ban.
-#define	MAX_BANNED_IPS					256
-
 // This is the maximum number of IPs that we can store in our query list.
 #define	MAX_STORED_QUERY_IPS			512
 

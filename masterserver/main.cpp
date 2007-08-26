@@ -74,7 +74,7 @@ static	NETBUFFER_s				g_MessageBuffer;
 static	long					g_lCurrentTime;
 
 // Global list of banned IPs.
-static	IPADDRESSBAN_s			g_BannedIPs[MAX_BANNED_IPS];
+static	std::vector<IPADDRESSBAN_s>	g_BannedIPs;
 
 // List of IP address that this server has been queried by recently.
 static	STORED_QUERY_IP_t		g_StoredQueryIPs[MAX_STORED_QUERY_IPS];
@@ -173,14 +173,14 @@ void MASTERSERVER_InitializeBans( void )
 {
 	std::cerr << "Initializing ban list...\n";
 
-	IPFileParser parser( MAX_BANNED_IPS );
+	IPFileParser parser( 65535 );
 	if ( !(parser.parseIPList( "banlist.txt", g_BannedIPs )) )
 		std::cerr << parser.getErrorMessage() ;
 /*
 	// [BB] Print all banned IPs, to make sure the IP list has been parsed successfully.
-	for ( ULONG ulIdx = 0; ulIdx < MAX_BANNED_IPS; ulIdx++ )
+	for ( ULONG ulIdx = 0; ulIdx < g_BannedIPs.size(); ulIdx++ )
 	{
-		std::cerr << g_BannedIPs[ulIdx].szIP[0] << "." << g_BannedIPs[ulIdx].szIP[1] << "." << g_BannedIPs[ulIdx].szIP[2] << "." << g_BannedIPs[ulIdx].szIP[3] << std::endl;
+		std::cerr << g_BannedIPs[ulIdx].szIP[0] << "." << g_BannedIPs[ulIdx].szIP[1] << "." << g_BannedIPs[ulIdx].szIP[2] << "." << g_BannedIPs[ulIdx].szIP[3] << "." << g_BannedIPs[ulIdx].szComment << std::endl;
 	}
 */
 }
@@ -191,7 +191,7 @@ bool MASTERSERVER_IsIPBanned( char *pszIP0, char *pszIP1, char *pszIP2, char *ps
 {
 	unsigned long	ulIdx;
 
-	for ( ulIdx = 0; ulIdx < MAX_BANNED_IPS; ulIdx++ )
+	for ( ulIdx = 0; ulIdx < g_BannedIPs.size(); ulIdx++ )
 	{
 		if ((( g_BannedIPs[ulIdx].szIP[0][0] == '*' ) || ( _stricmp( pszIP0, g_BannedIPs[ulIdx].szIP[0] ) == 0 )) &&
 			(( g_BannedIPs[ulIdx].szIP[1][0] == '*' ) || ( _stricmp( pszIP1, g_BannedIPs[ulIdx].szIP[1] ) == 0 )) &&
