@@ -1330,7 +1330,7 @@ static ULONG invasion_GetNumThingsThisWave( ULONG ulNumOnFirstWave, ULONG ulWave
 //	CONSOLE COMMANDS/VARIABLES
 
 CVAR( Int, sv_invasioncountdowntime, 10, CVAR_ARCHIVE );
-CUSTOM_CVAR( Int, wavelimit, 0, CVAR_CAMPAIGNLOCK )
+CUSTOM_CVAR( Int, wavelimit, 0, CVAR_CAMPAIGNLOCK | CVAR_SERVERINFO )
 {
 	if ( self >= 256 )
 		self = 255;
