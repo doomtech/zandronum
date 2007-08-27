@@ -127,6 +127,7 @@ class ARandomPowerup : public APowerupGiver
 	DECLARE_ACTOR (ARandomPowerup, APowerupGiver)
 public:
 	virtual bool	Use (bool pickup);
+	void			Serialize( FArchive &arc );
 
 	void	PostBeginPlay( )
 	{
@@ -269,6 +270,12 @@ bool ARandomPowerup::Use (bool pickup)
 	}
 
 	return ( bReturnValue );
+}
+
+void ARandomPowerup::Serialize( FArchive &arc )
+{
+	Super::Serialize( arc );
+	arc << (DWORD &)ulCurrentFrame << (DWORD &)ulPowerupFlags;
 }
 
 const char *ARandomPowerup::PickupMessage( )

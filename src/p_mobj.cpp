@@ -190,6 +190,9 @@ IMPLEMENT_POINTY_CLASS (AActor)
  DECLARE_POINTER (Inventory)
  DECLARE_POINTER (LastHeard)
  DECLARE_POINTER (master)
+ // [BC] Declare these so refrences to them get fixed if they're removed.
+ DECLARE_POINTER (pMonsterSpot)
+ DECLARE_POINTER (pPickupSpot)
 END_POINTERS
 
 AActor::~AActor ()
