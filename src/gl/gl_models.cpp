@@ -446,6 +446,14 @@ void gl_RenderModel(GLSprite * spr, int cm)
 	gl.MatrixMode(GL_MODELVIEW);
 	gl.PushMatrix();
 	gl.DepthFunc(GL_LEQUAL);
+	// [BB] In case the model should be rendered translucent, do back face culling.
+	// This solves a few of the problems caused by the lack of depth sorting.
+	// TO-DO: Implement proper depth sorting.
+	if ( spr->actor->RenderStyle!=STYLE_Normal )
+	{
+		gl.Enable(GL_CULL_FACE);
+		glFrontFace(GL_CW);
+	}
 
 	// Model space => World space
 	gl.Translatef(spr->x, spr->z, spr->y );
@@ -523,5 +531,6 @@ void gl_RenderModel(GLSprite * spr, int cm)
 	gl.MatrixMode(GL_MODELVIEW);
 	gl.PopMatrix();
 	gl.DepthFunc(GL_LESS);
-
+	if ( spr->actor->RenderStyle!=STYLE_Normal )
+		gl.Disable(GL_CULL_FACE);
 }

@@ -204,7 +204,8 @@ void GLSprite::Draw(int pass)
 inline void GLSprite::PutSprite(bool translucent)
 {
 	int list;
-	if (!modelframe && (translucent || gl_sprite_blend))
+	// [BB] Allow models to be drawn in the GLDL_TRANSLUCENT pass.
+	if ( translucent || (!modelframe && gl_sprite_blend))
 	{
 		list = GLDL_TRANSLUCENT;
 	}
