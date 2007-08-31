@@ -14,6 +14,9 @@
 v0.97d-beta5
 ------------
 
+*+	- No more paper thin sprites: Added x/y axis billboard mode for sprite rendering, controlled by the new CVAR gl_billboard_mode (default 2). [Torr Samaho]
+		gl_billboard_mode == 1 : y axis billboard (the way GZDoom renders sprites)
+		gl_billboard_mode == 2 : x/y axis billboard (the mode countless of people have requested :D)
 *-	- Crash logs should finally work on all Windows machines. [Torr Samaho]
 +	- Added the dynamic light definitions for Heretic and Hexen from ZDoomGL. [Torr Samaho]
 +	- Added invasion spawners for Heretic! [Carnevil, Aabra, and Tun]

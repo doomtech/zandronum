@@ -51,6 +51,7 @@ CVAR(Bool, gl_usecolorblending, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR(Bool, gl_sprite_blend, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG);
 CVAR(Bool, gl_nocoloredspritelighting, false, 0)
 CVAR(Int, gl_spriteclip, 1, CVAR_ARCHIVE)
+CVAR(Int, gl_billboard_mode, 2, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 
 extern bool r_showviewer;
 EXTERN_CVAR (Float, transsouls)
@@ -156,6 +157,23 @@ void GLSprite::Draw(int pass)
 
 	if (!modelframe)
 	{
+		// [BB] Billboard stuff
+		if ( players[consoleplayer].camera && gl_billboard_mode == 2)
+		{
+			// Save the current view matrix.
+			gl.MatrixMode(GL_MODELVIEW);
+			gl.PushMatrix();
+			// Rotate the sprite about the vector starting at the center of the sprite
+			// triangle strip and with direction orthogonal to where the player is looking
+			// in the x/y plane.
+			float xcenter = (x1+x2)*0.5;
+			float ycenter = (y1+y2)*0.5;
+			float zcenter = (z1+z2)*0.5;
+			float angleRad = ANGLE_TO_FLOAT(players[consoleplayer].camera->angle)/180.*M_PI;
+			gl.Translatef( xcenter, zcenter, ycenter);
+			gl.Rotatef(-ANGLE_TO_FLOAT(players[consoleplayer].camera->pitch), -sin(angleRad), 0, cos(angleRad));
+			gl.Translatef( -xcenter, -zcenter, -ycenter);
+		}
 		gl.Begin(GL_TRIANGLE_STRIP);
 		if (gltexture)
 		{
@@ -172,6 +190,13 @@ void GLSprite::Draw(int pass)
 			gl.Vertex3f(x2, z2, y2);
 		}
 		gl.End();
+		// [BB] Billboard stuff
+		if ( players[consoleplayer].camera && gl_billboard_mode == 2)
+		{
+			// Restore the view matrix.
+			gl.MatrixMode(GL_MODELVIEW);
+			gl.PopMatrix();
+		}
 	}
 	else
 	{
@@ -381,7 +406,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 			Colormap.LightColor.b=(255+v+v)/3;
 		}
 		// [BB] This makes sure that actors, which have lFixedColormap set, are renderes accordingly.
-		// For example a player using a doom sphere is rendered red for the other palyers.
+		// For example a player using a doom sphere is rendered red for the other players.
 		if ( thing->lFixedColormap )
 		{
 			switch ( thing->lFixedColormap )
