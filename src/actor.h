@@ -420,6 +420,7 @@ enum ERenderStyle
 	STYLE_SoulTrans,		// Draw translucent with amount in r_transsouls
 	STYLE_OptFuzzy,			// Draw as fuzzy or translucent, based on user preference
 	STYLE_Stencil,			// Fill image interior with alphacolor
+	STYLE_Transparent,		// [BB] For smooth particles in GL.
 
 	// The following styles can affect visibility in P_CheckSight()
 	STYLE_Translucent=64,	// Draw translucent

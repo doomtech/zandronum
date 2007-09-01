@@ -52,6 +52,7 @@ CVAR(Bool, gl_sprite_blend, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG);
 CVAR(Bool, gl_nocoloredspritelighting, false, 0)
 CVAR(Int, gl_spriteclip, 1, CVAR_ARCHIVE)
 CVAR(Int, gl_billboard_mode, 2, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(Int, gl_particles_style, 2, CVAR_ARCHIVE | CVAR_GLOBALCONFIG) // 0 = square, 1 = round, 2 = smooth
 
 extern bool r_showviewer;
 EXTERN_CVAR (Float, transsouls)
@@ -129,6 +130,10 @@ void GLSprite::Draw(int pass)
 
 		case STYLE_Translucent:
 			gl.AlphaFunc(GL_GEQUAL,0.5f*trans);
+			break;
+		// [BB] Disable the alpha test before drawing a smooth particle.
+		case STYLE_Transparent:
+			gl.Disable(GL_ALPHA_TEST);
 			break;
 		}
 	}
@@ -210,6 +215,10 @@ void GLSprite::Draw(int pass)
 		{
 			gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		}
+		// [BB] Restore the alpha test after drawing a smooth particle.
+		if (RenderStyle == STYLE_Transparent)
+			gl.Enable(GL_ALPHA_TEST);
+
 		if (!gl_sprite_blend && RenderStyle != STYLE_Normal && actor && !(actor->momx|actor->momy))
 		{
 			gl.Disable(GL_POLYGON_OFFSET_FILL);
@@ -653,6 +662,30 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 	modelframe=NULL;
 	gltexture=NULL;
 
+	// [BB] Load the texture for round or smooth particles
+	if (gl_particles_style)
+	{
+		int lump = -1;
+		if (gl_particles_style == 1)
+			lump = TexMan.CheckForTexture("GLPART2", FTexture::TEX_MiscPatch,FTextureManager::TEXMAN_TryAny);
+		else if (gl_particles_style == 2)
+			lump = TexMan.CheckForTexture("GLPART", FTexture::TEX_MiscPatch,FTextureManager::TEXMAN_TryAny);
+
+		if ( lump > 0 )
+		{
+			gltexture=FGLTexture::ValidateTexture(lump, false);
+			translation = 0;
+			const PatchTextureInfo * pti = gltexture->GetPatchTextureInfo();
+
+			vt=0.0f;
+			vb=pti->GetVB();
+			GL_RECT r;
+			gltexture->GetRect(&r);
+			ul=pti->GetUR();
+			ur=0.0f;
+		}
+	}
+
 	x= TO_MAP(particle->x);
 	y= TO_MAP(particle->y);
 	z= TO_MAP(particle->z);
@@ -669,10 +702,16 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 	actor=NULL;
 	this->particle=particle;
 	
-	if (trans>=1.0f-FLT_EPSILON) RenderStyle=STYLE_Normal;
-	else RenderStyle=STYLE_Translucent;
+	// [BB] Smooth particles have to be rendered without the alpha test.
+	if (gl_particles_style == 2)
+		RenderStyle=STYLE_Transparent;
+	else
+	{
+		if (trans>=1.0f-FLT_EPSILON) RenderStyle=STYLE_Normal;
+		else RenderStyle=STYLE_Translucent;
+	}
 
-	PutSprite(RenderStyle==STYLE_Translucent);
+	PutSprite(RenderStyle==STYLE_Translucent || RenderStyle==STYLE_Transparent);
 	rendered_sprites++;
 }
 
