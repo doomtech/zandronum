@@ -3211,6 +3211,12 @@ void GAME_ResetMap( void )
 				pNewActor->SpawnFlags = pActor->SpawnFlags;
 				pNewActor->angle = ANG45 * ( pActor->SpawnAngle / 45 );
 				pNewActor->tid = pActor->tid;
+				pNewActor->special = pActor->SavedSpecial;
+				pNewActor->args[0] = pActor->args[0];
+				pNewActor->args[1] = pActor->args[1];
+				pNewActor->args[2] = pActor->args[2];
+				pNewActor->args[3] = pActor->args[3];
+				pNewActor->args[4] = pActor->args[4];
 				pNewActor->AddToHash( );
 
 				pNewActor->ulSTFlags |= STFL_LEVELSPAWNED;
@@ -3316,6 +3322,12 @@ void GAME_ResetMap( void )
 			pNewActor->SpawnFlags = pActor->SpawnFlags;
 			pNewActor->angle = ANG45 * ( pActor->SpawnAngle / 45 );
 			pNewActor->tid = pActor->tid;
+			pNewActor->special = pActor->SavedSpecial;
+			pNewActor->args[0] = pActor->args[0];
+			pNewActor->args[1] = pActor->args[1];
+			pNewActor->args[2] = pActor->args[2];
+			pNewActor->args[3] = pActor->args[3];
+			pNewActor->args[4] = pActor->args[4];
 			pNewActor->AddToHash( );
 
 			// Just do this stuff for monsters.

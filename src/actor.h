@@ -771,6 +771,7 @@ public:
 	fixed_t			floorclip;		// value to use for floor clipping
 	SWORD			tid;			// thing identifier
 	BYTE			special;		// special
+	BYTE			SavedSpecial;	// [BC] Saved actor special for when a map gets reset.
 	int				args[5];		// special arguments
 
 	AActor			*inext, **iprev;// Links to other mobjs in same bucket

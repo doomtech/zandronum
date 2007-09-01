@@ -69,6 +69,7 @@ v0.97d-beta5
 -	- If you're spying someone and aren't allowed to view their stats, Skulltag now draws dashes on the original HUD. [Rivecoder]
 -	- Monsters that do not leave a corpse now respawn properly in survival co-op. [Carnevil]
 -	- Monsters that are crushed by moving ceilings now respawn properly in survival co-op. [Carnevil]
+-	- Items now properly have their specials reset when a map resets. [Carnevil]
 -	- Enter scripts are now executed whenever the map resets. [Carnevil]
 -	- Fixed the LMS/TLMS column display on the scoreboard. Wins are no longer shown in TLMS, as players do not obtain wins. [Rivecoder]
 -	- Players no longer get stuck in their idle animation if they bump into something in network games. [Carnevil]

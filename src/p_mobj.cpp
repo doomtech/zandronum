@@ -4894,6 +4894,9 @@ void P_SpawnMapThing (mapthing2_t *mthing, int position)
 	mobj->special = mthing->special;
 	for(int j=0;j<5;j++) mobj->args[j]=mthing->args[j];
 
+	// [BC] Save the thing's special for resetting the map.
+	mobj->SavedSpecial = mobj->special;
+
 	// [RH] Add ThingID to mobj and link it in with the others
 	mobj->tid = mthing->thingid;
 	mobj->AddToHash ();
