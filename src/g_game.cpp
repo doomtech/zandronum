@@ -2633,6 +2633,7 @@ void GAME_CheckMode( void )
 	bool						bPlayerStarts = false;
 	AActor						*pActor;
 	AActor						*pNewSkull;
+	cluster_info_t				*pCluster;
 	TThinkerIterator<AActor>	iterator;
 
 	// Clients can't change flags/modes!
@@ -2786,6 +2787,16 @@ void GAME_CheckMode( void )
 	{
 		Val.Bool = false;
 		invasion.ForceSet( Val, CVAR_Bool );
+	}
+
+	// Disallow survival mode in hubs.
+	pCluster = FindClusterInfo( level.cluster );
+	if (( cooperative ) &&
+		( pCluster ) &&
+		( pCluster->flags & CLUSTER_HUB ))
+	{
+		Val.Bool = false;
+		survival.ForceSet( Val, CVAR_Bool );
 	}
 
 	// In a campaign, just use whatever dmflags are assigned.
