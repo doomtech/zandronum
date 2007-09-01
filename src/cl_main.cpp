@@ -134,7 +134,7 @@ static	void	client_BeginSnapshot( BYTESTREAM_s *pByteStream );
 static	void	client_EndSnapshot( BYTESTREAM_s *pByteStream );
 
 // Player functions.
-static	void	client_SpawnPlayer( BYTESTREAM_s *pByteStream );
+static	void	client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph = false );
 static	void	client_MovePlayer( BYTESTREAM_s *pByteStream );
 static	void	client_DamagePlayer( BYTESTREAM_s *pByteStream );
 static	void	client_KillPlayer( BYTESTREAM_s *pByteStream );
@@ -650,6 +650,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_DOFLASHFADER",
 	"SVC_SETWALLSCROLLER",
 	"SVC_SETPLAYERCHEATS",
+	"SVC_MORPHPLAYER",
 
 };
 
@@ -1361,6 +1362,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SPAWNPLAYER:
 
 		client_SpawnPlayer( pByteStream );
+		break;
+	case SVC_MORPHPLAYER:
+
+		client_SpawnPlayer( pByteStream, true );
 		break;
 	case SVC_MOVEPLAYER:
 
@@ -3015,7 +3020,7 @@ static void client_EndSnapshot( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-static void client_SpawnPlayer( BYTESTREAM_s *pByteStream )
+static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 {
 	ULONG			ulPlayer;
 	player_t		*pPlayer;
@@ -3034,6 +3039,8 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream )
 	LONG			lSkin;
 	bool			bWasWatchingPlayer;
 	APlayerPawn		*pOldActor;
+	const char		*pszString = NULL;
+	const PClass	*pType;
 
 	// Which player is being spawned?
 	ulPlayer = NETWORK_ReadByte( pByteStream );
@@ -3066,6 +3073,12 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream )
 	Z = NETWORK_ReadLong( pByteStream );
 
 	lPlayerClass = NETWORK_ReadByte( pByteStream );
+
+	if ( bMorph )
+	{
+		// [BB] Read in the name of the morphed playerpawn
+		pszString = NETWORK_ReadString( pByteStream );
+	}
 
 	// Invalid player ID or not in a level.
 	if (( ulPlayer >= MAXPLAYERS ) || ( gamestate != GS_LEVEL ))
@@ -3150,6 +3163,14 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream )
 	// Set up the player class.
 	pPlayer->CurrentPlayerClass = lPlayerClass;
 	pPlayer->cls = PlayerClasses[pPlayer->CurrentPlayerClass].Type;
+
+	if ( bMorph )
+	{
+		// [BB] Get the morphed player class.
+		pType = PClass::FindClass( pszString );
+		if ( pType )
+			pPlayer->cls = pType;
+	}
 
 	// Spawn the body.
 	pActor = static_cast<APlayerPawn *>( Spawn( pPlayer->cls, X, Y, ONFLOORZ, NO_REPLACE ));
@@ -3239,8 +3260,12 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream )
 	if (( lSkin < 0 ) || ( lSkin >= numskins ))
 		lSkin = R_FindSkin( "base", pPlayer->CurrentPlayerClass );
 
-	pActor->sprite = skins[lSkin].sprite;
-	pActor->scaleX = pActor->scaleY = skins[lSkin].Scale;
+	// [BB] There is no skin for the morphed class.
+	if ( !bMorph )
+	{
+		pActor->sprite = skins[lSkin].sprite;
+		pActor->scaleX = pActor->scaleY = skins[lSkin].Scale;
+	}
 
 	pPlayer->DesiredFOV = pPlayer->FOV = 90.f;
 	pPlayer->camera = pActor;
@@ -3309,6 +3334,12 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream )
 
 	pPlayer->playerstate = PST_LIVE;
 	
+	if ( bMorph )
+	{
+		// [BB] Bring up the weapon of the morphed class.
+		pPlayer->mo->ActivateMorphWeapon();
+	}
+
 	// If this is the consoleplayer, set the realorigin and ServerXYZMom.
 	if ( ulPlayer == consoleplayer )
 	{

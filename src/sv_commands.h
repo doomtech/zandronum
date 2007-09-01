@@ -74,7 +74,7 @@ void	SERVERCOMMANDS_BeginSnapshot( ULONG ulPlayer );
 void	SERVERCOMMANDS_EndSnapshot( ULONG ulPlayer );
 
 // Player commands. These involve manipulating a player in some way.
-void	SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
+void	SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0, bool bMorph = false );
 void	SERVERCOMMANDS_MovePlayer( ULONG ulPlayer, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_DamagePlayer( ULONG ulPlayer );
 void	SERVERCOMMANDS_KillPlayer( ULONG ulPlayer, AActor *pSource, AActor *pInflictor, ULONG ulMOD );

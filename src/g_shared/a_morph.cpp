@@ -99,6 +99,9 @@ bool P_MorphPlayer (player_t *p, const PClass *spawntype)
 		p->camera = morphed;
 	}
 	morphed->ScoreIcon = actor->ScoreIcon;	// [GRB]
+	// [BB] Tell the clients to morph the player.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SpawnPlayer( morphed->player-players, PST_LIVE, MAXPLAYERS, 0, true );
 	return true;
 }
 
@@ -187,6 +190,12 @@ bool P_UndoPlayerMorph (player_t *player, bool force)
 	}
 	pmo->tracer = NULL;
 	pmo->Destroy ();
+	// [BB] Tell the clients to unmorph the player, also give back the original inventory to the player.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		SERVERCOMMANDS_SpawnPlayer( player-players, PST_LIVE );
+		SERVER_ResetInventory( player-players );
+	}
 	return true;
 }
 

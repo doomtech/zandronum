@@ -137,12 +137,16 @@ void SERVERCOMMANDS_EndSnapshot( ULONG ulPlayer )
 //*****************************************************************************
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlayerExtra, ULONG ulFlags, bool bMorph )
 {
 	ULONG	ulIdx;
 
 	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
 		return;
+
+	const char *PlayerPawnName = NULL;
+	if ( players[ulPlayer].mo )
+		PlayerPawnName = players[ulPlayer].mo->GetClass()->TypeName.GetChars();
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -155,8 +159,16 @@ void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlay
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 25, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SPAWNPLAYER );
+		if ( bMorph )
+		{
+			SERVER_CheckClientBuffer( ulIdx, 25 + (ULONG)strlen( PlayerPawnName ), true );
+			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_MORPHPLAYER );
+		}
+		else
+		{
+			SERVER_CheckClientBuffer( ulIdx, 25, true );
+			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SPAWNPLAYER );
+		}
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lPlayerState );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].bIsBot );
@@ -171,6 +183,8 @@ void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlay
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].mo->z );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].CurrentPlayerClass );
 		//NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].userinfo.PlayerClass );
+		if ( bMorph )
+			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, PlayerPawnName );
 	}
 	// [BB]: Inform the player about its health, otherwise it won't be displayed properly.
 	// The armor display is handled in SERVER_ResetInventory.
