@@ -3010,9 +3010,13 @@ void GAME_ResetMap( void )
 
 	for ( ulIdx = 0; ulIdx < (ULONG)numlines; ulIdx++ )
 	{
-		// Reset the specials for lines that do not have a repeatable special.
-		if ( lines[ulIdx].special == 0 )
-			lines[ulIdx].special = lines[ulIdx].SavedSpecial;
+		// Reset the line's special.
+		lines[ulIdx].special = lines[ulIdx].SavedSpecial;
+		lines[ulIdx].args[0] = lines[ulIdx].SavedArgs[0];
+		lines[ulIdx].args[1] = lines[ulIdx].SavedArgs[1];
+		lines[ulIdx].args[2] = lines[ulIdx].SavedArgs[2];
+		lines[ulIdx].args[3] = lines[ulIdx].SavedArgs[3];
+		lines[ulIdx].args[4] = lines[ulIdx].SavedArgs[4];
 
 		// Also, restore any changed textures.
 		if ( lines[ulIdx].ulTexChangeFlags != 0 )
