@@ -131,6 +131,7 @@ bool				CLIENT_GetAllowSendingOfUserInfo( void );
 void				CLIENT_SetAllowSendingOfUserInfo( bool bAllow );
 
 // Functions necessary to carry out client-side operations.
+void				CLIENT_SendServerPacket( void );
 void				CLIENT_AttemptConnection( void );
 void				CLIENT_AttemptAuthentication( char *pszMapName );
 void				CLIENT_RequestSnapshot( void );

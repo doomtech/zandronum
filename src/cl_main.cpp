@@ -770,6 +770,10 @@ void CLIENT_Tick( void )
 
 		break;
 	}
+
+	// If there's any data in our packet, send it to the server.
+	if ( NETWORK_CalcBufferSize( &g_LocalBuffer ) > 0 )
+		CLIENT_SendServerPacket( );
 }
 
 //*****************************************************************************
@@ -929,6 +933,18 @@ void CLIENT_SetAllowSendingOfUserInfo( bool bAllow )
 }
 
 //*****************************************************************************
+//
+void CLIENT_SendServerPacket( void )
+{
+	// Add the size of the packet to the number of bytes sent.
+	CLIENTSTATISTICS_AddToBytesSent( NETWORK_CalcBufferSize( &g_LocalBuffer ));
+
+	// Launch the packet, and clear out the buffer.
+	NETWORK_LaunchPacket( &g_LocalBuffer, g_AddressServer );
+	NETWORK_ClearBuffer( &g_LocalBuffer );
+}
+
+//*****************************************************************************
 //*****************************************************************************
 //
 void CLIENT_AttemptConnection( void )
@@ -971,12 +987,6 @@ void CLIENT_AttemptConnection( void )
 	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, cl_startasspectator );
 	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, cl_dontrestorefrags );
 	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, NETGAMEVERSION );
-
-	// Add the size of the packet to the number of bytes sent.
-	CLIENTSTATISTICS_AddToBytesSent( NETWORK_CalcBufferSize( &g_LocalBuffer ));
-
-	NETWORK_LaunchPacket( &g_LocalBuffer, g_AddressServer );
-	NETWORK_ClearBuffer( &g_LocalBuffer );
 }
 
 //*****************************************************************************
@@ -1001,12 +1011,6 @@ void CLIENT_AttemptAuthentication( char *pszMapName )
 
 	// Send a checksum of our verticies, linedefs, sidedefs, and sectors.
 	CLIENT_AuthenticateLevel( pszMapName );
-
-	// Add the size of the packet to the number of bytes sent.
-	CLIENTSTATISTICS_AddToBytesSent( NETWORK_CalcBufferSize( &g_LocalBuffer ));
-
-	NETWORK_LaunchPacket( &g_LocalBuffer, g_AddressServer );
-	NETWORK_ClearBuffer( &g_LocalBuffer );
 
 	// Make sure all players are gone from the level.
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1039,12 +1043,6 @@ void CLIENT_RequestSnapshot( void )
 	// Send them a message to get data from the server, along with our userinfo.
 	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, CLCC_REQUESTSNAPSHOT );
 	CLIENTCOMMANDS_UserInfo( USERINFO_ALL );
-
-	// Add the size of the packet to the number of bytes sent.
-	CLIENTSTATISTICS_AddToBytesSent( NETWORK_CalcBufferSize( &g_LocalBuffer ));
-
-	NETWORK_LaunchPacket( &g_LocalBuffer, g_AddressServer );
-	NETWORK_ClearBuffer( &g_LocalBuffer );
 
 	// Make sure all players are gone from the level.
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1099,6 +1097,14 @@ void CLIENT_CheckForMissingPackets( void )
 
 	if ( g_lLastParsedSequence != g_lHighestReceivedSequence )
 	{
+		// If we've missed more than 256 packets, there's no hope that we can recover from this
+		// since the server only backs up 256 of our packets. We have to end the game.
+		if (( g_lHighestReceivedSequence - g_lLastParsedSequence ) >= 256 )
+		{
+			CLIENT_QuitNetworkGame( "CLIENT_CheckForMissingPackets: Missing more than 256 packets. Unable to recover." );
+			return;
+		}
+
 		NETWORK_WriteByte( &g_LocalBuffer.ByteStream, CLC_MISSINGPACKET );
 
 		// Now, go through and figure out what packets we're missing. Request these from the server.
@@ -1108,12 +1114,22 @@ void CLIENT_CheckForMissingPackets( void )
 			{
 				// We've found this packet! No need to tell the server we're missing it.
 				if ( g_lPacketSequence[ulIdx2] == ulIdx )
+				{
+					if ( debugfile )
+						fprintf( debugfile, "We have packet %d.\n", ulIdx );
+
 					break;
+				}
 			}
 
 			// If we didn't find the packet, tell the server we're missing it.
 			if ( ulIdx2 == 256 )
+			{
+				if ( debugfile )
+					fprintf( debugfile, "Missing packet %d.\n", ulIdx );
+
 				NETWORK_WriteLong( &g_LocalBuffer.ByteStream, ulIdx );
+			}
 		}
 
 		// When we're done, write -1 to indicate that we're finished.
@@ -1202,7 +1218,12 @@ void CLIENT_ParsePacket( BYTESTREAM_s *pByteStream, bool bSequencedPacket )
 	}
 
 	if ( debugfile )
-		fprintf( debugfile, "End parsing packet.\n" );
+	{
+		if ( bSequencedPacket )
+			fprintf( debugfile, "End parsing packet %d.\n", g_lLastParsedSequence + 1 );
+		else
+			fprintf( debugfile, "End parsing packet.\n" );
+	}
 
 	if ( bSequencedPacket )
 		g_lLastParsedSequence++;
@@ -2123,7 +2144,10 @@ void CLIENT_PrintCommand( LONG lCommand )
 {
 	char	*pszString;
 
-	if ( lCommand >= NUM_SERVER_COMMANDS )
+	if ( lCommand < 0 )
+		return;
+
+	if ( lCommand < NUM_SERVERCONNECT_COMMANDS )
 	{
 		switch ( lCommand )
 		{
@@ -2143,6 +2167,10 @@ void CLIENT_PrintCommand( LONG lCommand )
 	}
 	else
 	{
+		lCommand -= NUM_SERVERCONNECT_COMMANDS;
+		if ( lCommand < 0 )
+			return;
+
 		if (( cl_showcommands >= 2 ) && ( lCommand == SVC_MOVELOCALPLAYER ))
 			return;
 		if (( cl_showcommands >= 3 ) && ( lCommand == SVC_MOVEPLAYER ))
@@ -2182,11 +2210,8 @@ void CLIENT_QuitNetworkGame( char *pszString )
 	{
 		NETWORK_WriteByte( &g_LocalBuffer.ByteStream, CLC_QUIT );
 
-		// Add the size of the packet to the number of bytes sent.
-		CLIENTSTATISTICS_AddToBytesSent( NETWORK_CalcBufferSize( &g_LocalBuffer ));
-
-		NETWORK_LaunchPacket( &g_LocalBuffer, g_AddressServer );
-		NETWORK_ClearBuffer( &g_LocalBuffer );
+		// Send the server our packet.
+		CLIENT_SendServerPacket( );
 	}
 
 	// Clear out our copy of the server address.
@@ -2252,17 +2277,7 @@ void CLIENT_SendCmd( void )
 
 	// Not in a level or spectating; nothing to do!
 	if (( gamestate != GS_LEVEL ) || ( players[consoleplayer].bSpectating ))
-	{
-		if ( NETWORK_CalcBufferSize( &g_LocalBuffer ))
-		{
-			// Add the size of the packet to the number of bytes sent.
-			CLIENTSTATISTICS_AddToBytesSent( NETWORK_CalcBufferSize( &g_LocalBuffer ));
-
-			NETWORK_LaunchPacket( &g_LocalBuffer, g_AddressServer );
-			NETWORK_ClearBuffer( &g_LocalBuffer );
-		}
 		return;
-	}
 
 	// Initialize the bits.
 	ulBits = 0;
@@ -2311,12 +2326,6 @@ void CLIENT_SendCmd( void )
 		else
 			NETWORK_WriteString( &g_LocalBuffer.ByteStream, (char *)players[consoleplayer].ReadyWeapon->GetClass( )->TypeName.GetChars( ));
 	}
-
-	// Add the size of the packet to the number of bytes sent.
-	CLIENTSTATISTICS_AddToBytesSent( NETWORK_CalcBufferSize( &g_LocalBuffer ));
-
-	NETWORK_LaunchPacket( &g_LocalBuffer, g_AddressServer );
-	NETWORK_ClearBuffer( &g_LocalBuffer );
 }
 
 //*****************************************************************************
@@ -8149,12 +8158,6 @@ static void client_MapAuthenticate( BYTESTREAM_s *pByteStream )
 
 	// Send a checksum of our verticies, linedefs, sidedefs, and sectors.
 	CLIENT_AuthenticateLevel( pszMapName );
-
-	// Add the size of the packet to the number of bytes sent.
-	CLIENTSTATISTICS_AddToBytesSent( NETWORK_CalcBufferSize( &g_LocalBuffer ));
-
-	NETWORK_LaunchPacket( &g_LocalBuffer, g_AddressServer );
-	NETWORK_ClearBuffer( &g_LocalBuffer );
 }
 
 //*****************************************************************************
