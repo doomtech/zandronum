@@ -353,6 +353,10 @@ private:
 	{
 		int healthPos;
 
+		// [BC] I'm getting crashes connecting to servers if I don't do this.
+		if ( viewactive == false )
+			return;
+
 		DrawImage (Images[imgH2TOP], 0, -27);
 
 		if (oldhealth != HealthMarker)

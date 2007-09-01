@@ -6944,6 +6944,9 @@ static void client_SetSectorFloorPlane( BYTESTREAM_s *pByteStream )
 	// Change the height.
 	pSector->floorplane.ChangeHeight( -lDelta );
 
+	// Call this to update various actor's within the sector.
+	P_ChangeSector( pSector, false, -lDelta, 0 );
+
 	// Finally, adjust textures.
 	pSector->floortexz += pSector->floorplane.HeightDiff( lLastPos );
 }
