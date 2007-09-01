@@ -167,6 +167,10 @@ void A_SkelMissile (AActor *self)
 {		
 	AActor *missile;
 		
+	// [BC] Don't do this in client mode.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		return;
+
 	if (!self->target)
 		return;
 				
@@ -271,14 +275,26 @@ void A_Tracer (AActor *self)
 
 void A_SkelWhoosh (AActor *self)
 {
+	// [BC] Don't do this in client mode.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		return;
+
 	if (!self->target)
 		return;
 	A_FaceTarget (self);
 	S_Sound (self, CHAN_WEAPON, "skeleton/swing", 1, ATTN_NORM);
+
+	// [BC] If we're the server, tell clients to play the sound.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "skeleton/swing", 127, ATTN_NORM );
 }
 
 void A_SkelFist (AActor *self)
 {
+	// [BC] Don't do this in client mode.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		return;
+
 	if (!self->target)
 		return;
 				
@@ -290,5 +306,9 @@ void A_SkelFist (AActor *self)
 		S_Sound (self, CHAN_WEAPON, "skeleton/melee", 1, ATTN_NORM);
 		P_DamageMobj (self->target, self, self, damage, MOD_HIT);
 		P_TraceBleed (damage, self->target, self);
+
+		// [BC] If we're the server, tell clients to play the sound.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "skeleton/melee", 127, ATTN_NORM );
 	}
 }
