@@ -135,7 +135,7 @@ v0.97d-beta5
 -	- Fixed: Thing_Remove called on an invasion pickup spawner leads to crashes when a player picks up something spawned by the destroyed spawner. [Torr Samaho]
 -	- Fixed: The line special Scroll_Floor doesn't work properly online. [Torr Samaho]
 -	- Fixed: ExtraFloor LightOnly didn't work in GL. [Torr Samaho]
--	- The CCMD puke didn't do anything when executed on a client. Now clients can always puke net scripts and if sv_cheats is true they may puke all scripts. [Torr Samaho]
+-	- The CCMD puke didn't do anything when executed on a client. Now clients can always puke net scripts and if sv_cheats is true they may puke all scripts. Puke should also work on the server now. [Torr Samaho]
 -	- Fixed: Clients using an armor with savepercent 100 don't get informed by the server if they lose armor but no health. [Torr Samaho]
 -	- Fixed: The ACS function GiveInventory doesn't update the armor amount to a client properly, if it's used to give an armor to the player of the client. [Torr Samaho]
 -	- Custom invasion spawners now signal that a map is an invasion map. [Carnevil]

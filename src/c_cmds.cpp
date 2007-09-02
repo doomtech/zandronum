@@ -636,7 +636,7 @@ CCMD (puke)
 
 		// [BB] The check if the client is allowed to execute the script
 		// is done in P_StartScript, no need to check here.
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		if ( NETWORK_GetState( ) == NETSTATE_CLIENT || NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
 			P_StartScript (players[consoleplayer].mo, NULL, script, level.mapname, false,
 				arg[0], arg[1], arg[2], (script < 0), false, true);
