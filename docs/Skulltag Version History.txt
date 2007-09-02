@@ -60,6 +60,7 @@ v0.97d-beta5
 		gl_particles_style == 0 : square (the way GZDoom renders particles)
 		gl_particles_style == 1 : round
 		gl_particles_style == 2 : smooth
++	- Added "give stdweapons" cheat that gives all weapons except for the Skulltag ones. Useful if you want to start a game in the middle of a Doom coop megawad for example. [Torr Samaho]
 -	- Fixed a crash that would occur frequently in game modes in which the map experiences a map reset at some point (LMS, duel, survival, etc.). [Carnevil]
 -	- Rank/spread/DM stats and team scores now show up in the ZDoom - and hence Heretic -  HUD. [Rivecoder]
 -	- Fixed: Ignoring definitions of already defined decorate actors which use ":" or "replace" didn't work. [Torr Samaho]

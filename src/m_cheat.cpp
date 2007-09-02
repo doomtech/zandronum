@@ -672,8 +672,12 @@ void cht_Give (player_t *player, const char *name, int amount)
 			return;
 	}
 
-	if (giveall || stricmp (name, "weapons") == 0)
+	if (giveall || stricmp (name, "weapons") == 0 || stricmp (name, "stdweapons") == 0)
 	{
+		// [BB] Don't give the ST weapons if this it true. Useful if you want
+		// to start a game in the middle of a Doom coop megawad for example.
+		bool stdweapons = (stricmp (name, "stdweapons") == 0);
+
 		AWeapon *savedpending = player->PendingWeapon;
 		for (unsigned int i = 0; i < PClass::m_Types.Size(); ++i)
 		{
@@ -681,6 +685,16 @@ void cht_Give (player_t *player, const char *name, int amount)
 			if (type != RUNTIME_CLASS(AWeapon) &&
 				type->IsDescendantOf (RUNTIME_CLASS(AWeapon)))
 			{
+				if (stdweapons)
+				{
+					const char *WeaponName = type->TypeName.GetChars();
+					if ( !stricmp (WeaponName, "Railgun")
+					     || !stricmp (WeaponName, "Minigun")
+					     || !stricmp (WeaponName, "GrenadeLauncher")
+					     || !stricmp (WeaponName, "Bfg10K") )
+						continue;
+				}
+
 				AWeapon *def = (AWeapon*)GetDefaultByType (type);
 				if (!(def->WeaponFlags & WIF_CHEATNOTWEAPON))
 				{
