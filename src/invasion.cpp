@@ -743,7 +743,7 @@ void INVASION_StartCountdown( ULONG ulTicks )
 	INVASION_SetCountdownTicks( ulTicks );
 
 	// Also, clear out dead bodies from two rounds ago.
-	if ( g_ulCurrentWave > 1 )
+//	if ( g_ulCurrentWave > 1 )
 	{
 		// [BB] The monster corpses from two waves ago will be removed below anyway,
 		// so we can clear this vector.
@@ -763,7 +763,8 @@ void INVASION_StartCountdown( ULONG ulTicks )
 			}
 
 			// Also, get rid of any bodies from previous waves.
-			if ( pActor->ulInvasionWave == ( g_ulCurrentWave - 1 ))
+			if (( g_ulCurrentWave > 1 ) &&
+				( pActor->ulInvasionWave == ( g_ulCurrentWave - 1 )))
 			{
 				pActor->Destroy( );
 				continue;
