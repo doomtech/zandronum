@@ -101,7 +101,10 @@ bool P_MorphPlayer (player_t *p, const PClass *spawntype)
 	morphed->ScoreIcon = actor->ScoreIcon;	// [GRB]
 	// [BB] Tell the clients to morph the player.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
 		SERVERCOMMANDS_SpawnPlayer( morphed->player-players, PST_LIVE, MAXPLAYERS, 0, true );
+		SERVER_ResetInventory( morphed->player-players );
+	}
 	return true;
 }
 

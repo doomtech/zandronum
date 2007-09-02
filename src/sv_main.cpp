@@ -3043,7 +3043,12 @@ void SERVER_ResetInventory( ULONG ulClient )
 
 		if ( pInventory->IsKindOf( RUNTIME_CLASS( APowerup )))
 		{
-			SERVERCOMMANDS_GivePowerup( ulClient, static_cast<APowerup *>( pInventory ), ulClient, SVCF_ONLYTHISCLIENT );
+			// [BB] All clients need to be informed about some special iventory kinds.
+			if ( pInventory->IsKindOf( PClass::FindClass( "PowerTerminatorArtifact" ))
+				 || pInventory->IsA( PClass::FindClass( "PowerPossessionArtifact" )) )
+				SERVERCOMMANDS_GivePowerup( ulClient, static_cast<APowerup *>( pInventory ) );
+			else
+				SERVERCOMMANDS_GivePowerup( ulClient, static_cast<APowerup *>( pInventory ), ulClient, SVCF_ONLYTHISCLIENT );
 			if (( pInventory->IsKindOf( RUNTIME_CLASS( APowerInvulnerable ))) &&
 				(( players[ulClient].mo->effects & FX_VISIBILITYFLICKER ) || ( players[ulClient].mo->effects & FX_RESPAWNINVUL )))
 			{
@@ -3061,7 +3066,11 @@ void SERVER_ResetInventory( ULONG ulClient )
 			if ( pInventory->IsKindOf( RUNTIME_CLASS( AWeapon )) && pInventory->Amount == 0 )
 				pInventory->Amount = 1;
 
-			SERVERCOMMANDS_GiveInventory( ulClient, pInventory, ulClient, SVCF_ONLYTHISCLIENT );
+			// [BB] All clients need to be informed about some special iventory kinds.
+			if ( pInventory->IsKindOf( RUNTIME_CLASS( AFlag )) )
+				SERVERCOMMANDS_GiveInventory( ulClient, pInventory );
+			else
+				SERVERCOMMANDS_GiveInventory( ulClient, pInventory, ulClient, SVCF_ONLYTHISCLIENT );
 			// [BB] The armor display has to be updated seperately, otherwise
 			// the client thinks the armor is green and its amount is equal to 1.
 			if ( (pInventory->IsKindOf( RUNTIME_CLASS( AArmor ))) )
