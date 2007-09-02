@@ -350,6 +350,7 @@ void AActor::Serialize (FArchive &arc)
 		<< bouncecount
 		<< meleerange
 		<< DamageType
+		<< (DWORD &)lNetID // [BC] We need to archive this so that it's restored properly when going between maps in a hub.
 		<< (DWORD &)ulSTFlags
 		<< (DWORD &)ulNetworkFlags
 		<< (DWORD &)ulInvasionWave
