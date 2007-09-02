@@ -178,6 +178,7 @@ v0.97d-beta5
 !	- You can now see item holders and team scores while spectating in the classic HUD. [Rivecoder]
 !	- The chase cam selection of the consoleplayer is now applied also when spying another player. [Torr Samaho]
 !	- A proper error message is given, when Skulltag is started with a shareware IWAD. [Torr Samaho]
+!	- If a monster is killed in invasion, one monster corpse from the previous wave is removed (if there still is such a corpse). This should improve the speed on maps like ALINV11. [Torr Samaho]
 
 v0.97d-beta4.1
 --------------

@@ -137,6 +137,8 @@ void	INVASION_BeginWave( ULONG ulWave );
 void	INVASION_DoWaveComplete( void );
 void	INVASION_WriteSaveInfo( FILE *pFile );
 void	INVASION_ReadSaveInfo( PNGHandle *pPng );
+void	INVASION_RemoveMonsterCorpse( );
+void	INVASION_ClearMonsterCorpsePointer( AActor *pActor );
 
 ULONG	INVASION_GetCountdownTicks( void );
 void	INVASION_SetCountdownTicks( ULONG ulTicks );	

@@ -4074,6 +4074,10 @@ void AActor::Destroy ()
 
 	lNetID = 0;
 
+	// [BB] If this is a monster corpse, we potentially have to NULL out the reference to it.
+	if ( invasion )
+		INVASION_ClearMonsterCorpsePointer( this );
+
 	// [BC] If this is a bot's goal object, tell the bot it's been removed.
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{

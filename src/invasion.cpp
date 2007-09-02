@@ -89,6 +89,7 @@ static	ULONG				g_ulInvasionCountdownTicks = 0;
 static	INVASIONSTATE_e		g_InvasionState;
 static	ULONG				g_ulNumBossMonsters = 0;
 static	bool				g_bIncreaseNumMonstersOnSpawn = true;
+static	std::vector<AActor*> g_MonsterCorpsesFromPreviousWave;
 
 //*****************************************************************************
 //	STRUCTURES
@@ -744,6 +745,11 @@ void INVASION_StartCountdown( ULONG ulTicks )
 	// Also, clear out dead bodies from two rounds ago.
 	if ( g_ulCurrentWave > 1 )
 	{
+		// [BB] The monster corpses from two waves ago will be removed below anyway,
+		// so we can clear this vector.
+		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+			g_MonsterCorpsesFromPreviousWave.clear();
+
 		while (( pActor = ActorIterator.Next( )))
 		{
 			if (( pActor->flags & MF_COUNTKILL ) == false )
@@ -760,6 +766,13 @@ void INVASION_StartCountdown( ULONG ulTicks )
 			if ( pActor->ulInvasionWave == ( g_ulCurrentWave - 1 ))
 			{
 				pActor->Destroy( );
+				continue;
+			}
+
+			// [BB] Build a vector containing all pointers to corpses from the wave one round ago.
+			if ( pActor->ulInvasionWave == g_ulCurrentWave && NETWORK_GetState( ) != NETSTATE_CLIENT )
+			{
+				g_MonsterCorpsesFromPreviousWave.push_back( pActor );
 				continue;
 			}
 		}
@@ -1253,6 +1266,48 @@ void INVASION_ReadSaveInfo( PNGHandle *pPng )
 
 		arc << (DWORD &)g_ulNumMonstersLeft << (DWORD &)g_ulInvasionCountdownTicks << (DWORD &)g_ulCurrentWave << (DWORD &)ulInvasionState << (DWORD &)g_ulNumBossMonsters;
 		g_InvasionState = (INVASIONSTATE_e)ulInvasionState;
+	}
+}
+
+//*****************************************************************************
+//
+// [BB] Remove one monster corpse from the previous wave.
+void INVASION_RemoveMonsterCorpse( )
+{
+	if ( NETWORK_GetState( ) != NETSTATE_CLIENT && g_MonsterCorpsesFromPreviousWave.size() > 0 )
+	{
+		AActor *pCorpse = g_MonsterCorpsesFromPreviousWave.back();
+		g_MonsterCorpsesFromPreviousWave.pop_back();
+		// [BB] Check if the actor is still in its death state.
+		// This won't be the case for example if it has been
+		// raises by an Archvile in the mean time.
+		// We also have to check if the pointer is still
+		// valid.
+		if ( pCorpse && pCorpse->InDeathState( ) )
+		{
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_DestroyThing( pCorpse );
+			pCorpse->Destroy();
+		}
+	}
+}
+
+//*****************************************************************************
+//
+// [BB] If a monster corpse in g_MonsterCorpsesFromPreviousWave is destroyed by
+// anything besides INVASION_RemoveMonsterCorpse, we have to NULL out the
+// corresponding pointer to it.
+void INVASION_ClearMonsterCorpsePointer( AActor *pActor )
+{
+	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	{
+		for( unsigned int i = 0; i < g_MonsterCorpsesFromPreviousWave.size(); i++ )
+		{
+			if ( g_MonsterCorpsesFromPreviousWave[i] == pActor )
+			{
+				g_MonsterCorpsesFromPreviousWave[i] = NULL;
+			}
+		}
 	}
 }
 

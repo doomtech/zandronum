@@ -413,6 +413,9 @@ void AActor::Die (AActor *source, AActor *inflictor)
 		// Objects with a raise state should get the flag as well so they can
 		// be revived by an Arch-Vile. Batman Doom needs this.
 		flags |= MF_CORPSE;
+		// [BB] Potentially get rid of one corpse in invasion from the previous wave.
+		if ( invasion )
+			INVASION_RemoveMonsterCorpse();
 	}
 	// [RH] Allow the death height to be overridden using metadata.
 	fixed_t metaheight = 0;
