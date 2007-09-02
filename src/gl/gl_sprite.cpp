@@ -691,6 +691,9 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 	z= TO_MAP(particle->z);
 	
 	float scalefac=particle->size/4.0f;
+	// [BB] The smooth particles are smaller than the other ones. Compensate for this here.
+	if (gl_particles_style==2)
+		scalefac *= 1.7;
 
 	x1=x+viewvecY*scalefac;
 	x2=x-viewvecY*scalefac;
