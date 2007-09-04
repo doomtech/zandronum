@@ -3064,7 +3064,7 @@ void GAME_ResetMap( void )
 		}
 	}
 
-	// Restore sector heights, flat changes, and light changes.
+	// Restore sector heights, flat changes, light changes, etc.
 	for ( ulIdx = 0; ulIdx < (ULONG)numsectors; ulIdx++ )
 	{
 		if ( sectors[ulIdx].bCeilingHeightChange )
@@ -3104,6 +3104,90 @@ void GAME_ResetMap( void )
 
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SetSectorLightLevel( ulIdx );
+		}
+
+		if ( sectors[ulIdx].ColorMap != sectors[ulIdx].SavedColorMap )
+		{
+			sectors[ulIdx].ColorMap = sectors[ulIdx].SavedColorMap;
+
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			{
+				SERVERCOMMANDS_SetSectorColor( ulIdx );
+				SERVERCOMMANDS_SetSectorFade( ulIdx );
+			}
+		}
+
+		if ( sectors[ulIdx].ColorMap != sectors[ulIdx].SavedColorMap )
+		{
+			sectors[ulIdx].ColorMap = sectors[ulIdx].SavedColorMap;
+
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			{
+				SERVERCOMMANDS_SetSectorColor( ulIdx );
+				SERVERCOMMANDS_SetSectorFade( ulIdx );
+			}
+		}
+
+		if (( sectors[ulIdx].SavedFloorXOffset != sectors[ulIdx].floor_xoffs ) ||
+			( sectors[ulIdx].SavedFloorYOffset != sectors[ulIdx].floor_yoffs ) ||
+			( sectors[ulIdx].SavedCeilingXOffset != sectors[ulIdx].ceiling_xoffs ) ||
+			( sectors[ulIdx].SavedCeilingYOffset != sectors[ulIdx].ceiling_yoffs ))
+		{
+			sectors[ulIdx].floor_xoffs = sectors[ulIdx].SavedFloorXOffset;
+			sectors[ulIdx].floor_yoffs = sectors[ulIdx].SavedFloorYOffset;
+			sectors[ulIdx].ceiling_xoffs = sectors[ulIdx].SavedCeilingXOffset;
+			sectors[ulIdx].ceiling_yoffs = sectors[ulIdx].SavedCeilingYOffset;
+
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetSectorPanning( ulIdx );
+		}
+
+		if (( sectors[ulIdx].SavedFloorXScale != sectors[ulIdx].floor_xscale ) ||
+			( sectors[ulIdx].SavedFloorYScale != sectors[ulIdx].floor_yscale ) ||
+			( sectors[ulIdx].SavedCeilingXScale != sectors[ulIdx].ceiling_xscale ) ||
+			( sectors[ulIdx].SavedCeilingYScale != sectors[ulIdx].ceiling_yscale ))
+		{
+			sectors[ulIdx].floor_xscale = sectors[ulIdx].SavedFloorXScale;
+			sectors[ulIdx].floor_yscale = sectors[ulIdx].SavedFloorYScale;
+			sectors[ulIdx].ceiling_xscale = sectors[ulIdx].SavedCeilingXScale;
+			sectors[ulIdx].ceiling_yscale = sectors[ulIdx].SavedCeilingYScale;
+
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetSectorScale( ulIdx );
+		}
+
+		if (( sectors[ulIdx].SavedFloorAngle != sectors[ulIdx].floor_angle ) ||
+			( sectors[ulIdx].SavedCeilingAngle != sectors[ulIdx].ceiling_angle ))
+		{
+			sectors[ulIdx].floor_angle = sectors[ulIdx].SavedFloorAngle;
+			sectors[ulIdx].ceiling_angle = sectors[ulIdx].SavedCeilingAngle;
+
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetSectorRotation( ulIdx );
+		}
+
+		if (( sectors[ulIdx].SavedBaseFloorAngle != sectors[ulIdx].base_floor_angle ) ||
+			( sectors[ulIdx].SavedBaseFloorYOffset != sectors[ulIdx].base_floor_yoffs ) ||
+			( sectors[ulIdx].SavedBaseCeilingAngle != sectors[ulIdx].base_ceiling_angle ) ||
+			( sectors[ulIdx].SavedBaseCeilingYOffset != sectors[ulIdx].base_ceiling_yoffs ))
+		{
+			sectors[ulIdx].base_floor_angle = sectors[ulIdx].SavedBaseFloorAngle;
+			sectors[ulIdx].base_floor_yoffs = sectors[ulIdx].SavedBaseFloorYOffset;
+			sectors[ulIdx].base_ceiling_angle = sectors[ulIdx].SavedBaseCeilingAngle;
+			sectors[ulIdx].base_ceiling_yoffs = sectors[ulIdx].SavedBaseCeilingYOffset;
+
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetSectorAngleYOffset( ulIdx );
+		}
+
+		if (( sectors[ulIdx].SavedFriction != sectors[ulIdx].friction ) ||
+			( sectors[ulIdx].SavedMoveFactor != sectors[ulIdx].movefactor ))
+		{
+			sectors[ulIdx].friction = sectors[ulIdx].SavedFriction;
+			sectors[ulIdx].movefactor = sectors[ulIdx].SavedMoveFactor;
+
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetSectorFriction( ulIdx );
 		}
 	}
 

@@ -407,6 +407,26 @@ struct sector_t
 	// [BC] Has the light level changed?
 	bool	bLightChange;
 	BYTE	SavedLightLevel;
+
+	// [BC] Backup other numberous elements for resetting the map.
+	FDynamicColormap	*SavedColorMap;
+	float				SavedGravity;
+	fixed_t				SavedFloorXOffset;
+	fixed_t				SavedFloorYOffset;
+	fixed_t				SavedCeilingXOffset;
+	fixed_t				SavedCeilingYOffset;
+	fixed_t				SavedFloorXScale;
+	fixed_t				SavedFloorYScale;
+	fixed_t				SavedCeilingXScale;
+	fixed_t				SavedCeilingYScale;
+	fixed_t				SavedFloorAngle;
+	fixed_t				SavedCeilingAngle;
+	fixed_t				SavedBaseFloorAngle;
+	fixed_t				SavedBaseFloorYOffset;
+	fixed_t				SavedBaseCeilingAngle;
+	fixed_t				SavedBaseCeilingYOffset;
+	fixed_t				SavedFriction;
+	fixed_t				SavedMoveFactor;
 };
 
 struct ReverbContainer;

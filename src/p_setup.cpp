@@ -1209,6 +1209,23 @@ void P_LoadSectors (MapData * map)
 		ss->SavedFloorPlane = ss->floorplane;
 		ss->SavedCeilingTexZ = ss->ceilingtexz;
 		ss->SavedFloorTexZ = ss->floortexz;
+		ss->SavedColorMap = ss->ColorMap;
+		ss->SavedFloorXOffset = ss->floor_xoffs;
+		ss->SavedFloorYOffset = ss->floor_yoffs;
+		ss->SavedCeilingXOffset = ss->ceiling_xoffs;
+		ss->SavedCeilingYOffset = ss->ceiling_yoffs;
+		ss->SavedFloorXScale = ss->floor_xscale;
+		ss->SavedFloorYScale = ss->floor_yscale;
+		ss->SavedCeilingXScale = ss->ceiling_xscale;
+		ss->SavedCeilingYScale = ss->ceiling_yscale;
+		ss->SavedFloorAngle = ss->floor_angle;
+		ss->SavedCeilingAngle = ss->ceiling_angle;
+		ss->SavedBaseFloorAngle = ss->base_floor_angle;
+		ss->SavedBaseFloorYOffset = ss->base_floor_yoffs;
+		ss->SavedBaseCeilingAngle = ss->base_ceiling_angle;
+		ss->SavedBaseCeilingYOffset = ss->base_ceiling_yoffs;
+		ss->SavedFriction = ss->friction;
+		ss->SavedMoveFactor = ss->movefactor;
 	}
 	P_CreateExtSectors();
 	delete[] msp;
