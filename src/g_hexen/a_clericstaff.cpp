@@ -220,6 +220,10 @@ void A_CStaffCheck (AActor *actor)
 				if (newLife > player->health)
 				{
 					pmo->health = player->health = newLife;
+
+					// [BC] Send the health update.
+					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						SERVERCOMMANDS_SetPlayerHealth( ULONG( player - players ));
 				}
 				P_SetPsprite (player, ps_weapon, &ACWeapStaff::States[S_CSTAFFATK2]);
 			}
@@ -241,6 +245,11 @@ void A_CStaffCheck (AActor *actor)
 				newLife = player->health+(damage>>4);
 				newLife = newLife > 100 ? 100 : newLife;
 				pmo->health = player->health = newLife;
+
+				// [BC] Send the health update.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_SetPlayerHealth( ULONG( player - players ));
+
 				P_SetPsprite (player, ps_weapon, &ACWeapStaff::States[S_CSTAFFATK2]);
 			}
 			weapon->DepleteAmmo (weapon->bAltFire, false);
