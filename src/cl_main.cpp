@@ -151,6 +151,7 @@ static	void	client_SetPlayerLaggingStatus( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerReadyToGoOnStatus( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerTeam( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerCamera( BYTESTREAM_s *pByteStream );
+static	void	client_SetPlayerPoisonCount( BYTESTREAM_s *pByteStream );
 static	void	client_UpdatePlayerPing( BYTESTREAM_s *pByteStream );
 static	void	client_UpdatePlayerExtraData( BYTESTREAM_s *pByteStream );
 static	void	client_UpdatePlayerPendingWeapon( BYTESTREAM_s *pByteStream );
@@ -473,6 +474,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETPLAYERREADYTOGOONSTATUS",
 	"SVC_SETPLAYERTEAM",
 	"SVC_SETPLAYERCAMERA",
+	"SVC_SETPLAYERPOISONCOUNT",
 	"SVC_UPDATEPLAYERPING",
 	"SVC_UPDATEPLAYEREXTRADATA",
 	"SVC_UPDATEPLAYERTIME",
@@ -1430,6 +1432,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETPLAYERCAMERA:
 
 		client_SetPlayerCamera( pByteStream );
+		break;
+	case SVC_SETPLAYERPOISONCOUNT:
+
+		client_SetPlayerPoisonCount( pByteStream );
 		break;
 	case SVC_UPDATEPLAYERPING:
 
@@ -4120,6 +4126,26 @@ static void client_SetPlayerCamera( BYTESTREAM_s *pByteStream )
 		players[consoleplayer].cheats &= ~CF_REVERTPLEASE;
 	else
 		players[consoleplayer].cheats |= CF_REVERTPLEASE;
+}
+
+//*****************************************************************************
+//
+static void client_SetPlayerPoisonCount( BYTESTREAM_s *pByteStream )
+{
+	ULONG	ulPlayer;
+	ULONG	ulPoisonCount;
+
+	// Read in the player being poisoned.
+	ulPlayer = NETWORK_ReadByte( pByteStream );
+
+	// Read in the poison count.
+	ulPoisonCount = NETWORK_ReadShort( pByteStream );
+
+	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+		return;
+
+	// Finally, set the player's poison count.
+	players[ulPlayer].poisoncount = ulPoisonCount;
 }
 
 //*****************************************************************************

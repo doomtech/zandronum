@@ -341,7 +341,7 @@ void A_CStaffAttack (AActor *actor)
 
 	// [BC] If we're the server, play the sound for clients.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_WeaponSound( ULONG( player - players ), "ClericCStaffFire", ULONG( player - players ));
+		SERVERCOMMANDS_WeaponSound( ULONG( player - players ), "ClericCStaffFire", ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 }
 
 //============================================================================

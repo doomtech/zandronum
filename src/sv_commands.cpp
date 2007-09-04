@@ -727,6 +727,33 @@ void SERVERCOMMANDS_SetPlayerCamera( ULONG ulPlayer, LONG lCameraNetID, bool bRe
 
 //*****************************************************************************
 //
+void SERVERCOMMANDS_SetPlayerPoisonCount( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	ULONG	ulIdx;
+
+	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+		return;
+
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_IsValidClient( ulIdx ) == false )
+			continue;
+
+		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
+			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
+		{
+			continue;
+		}
+
+		SERVER_CheckClientBuffer( ulIdx, 4, true );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERPOISONCOUNT );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].poisoncount );
+	}
+}
+
+//*****************************************************************************
+//
 void SERVERCOMMANDS_UpdatePlayerPing( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;

@@ -1746,6 +1746,10 @@ void P_PoisonPlayer (player_t *player, AActor *poisoner, AActor *source, int poi
 		{
 			player->poisoncount = 100;
 		}
+
+		// [BC] Update the player's poisoncount.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetPlayerPoisonCount( ULONG( player - players ));
 	}
 }
 
