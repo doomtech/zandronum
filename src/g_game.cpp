@@ -3216,6 +3216,7 @@ void GAME_ResetMap( void )
 				pNewActor->angle = ANG45 * ( pActor->SpawnAngle / 45 );
 				pNewActor->tid = pActor->tid;
 				pNewActor->special = pActor->SavedSpecial;
+				pNewActor->SavedSpecial = pActor->SavedSpecial;
 				pNewActor->args[0] = pActor->args[0];
 				pNewActor->args[1] = pActor->args[1];
 				pNewActor->args[2] = pActor->args[2];
@@ -3327,6 +3328,7 @@ void GAME_ResetMap( void )
 			pNewActor->angle = ANG45 * ( pActor->SpawnAngle / 45 );
 			pNewActor->tid = pActor->tid;
 			pNewActor->special = pActor->SavedSpecial;
+			pNewActor->SavedSpecial = pActor->SavedSpecial;
 			pNewActor->args[0] = pActor->args[0];
 			pNewActor->args[1] = pActor->args[1];
 			pNewActor->args[2] = pActor->args[2];
