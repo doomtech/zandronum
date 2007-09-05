@@ -1,0 +1,843 @@
+//-----------------------------------------------------------------------------
+//
+// Skulltag Online 2
+// Copyright (C) 2007 Rivecoder, Brad Carney, Benjamin Berkels
+// Date created: 8/28/07
+//
+// Skulltag networking code.
+//-----------------------------------------------------------------------------
+
+#include "../../src/networkheaders.h"
+
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+
+#include <ctype.h>
+#include <math.h>
+
+#include "huffman.h"
+#include "log.h"
+#include "network.h"
+
+//*****************************************************************************
+//	VARIABLES
+
+// Buffer that holds the data from the most recently received packet.
+static	NETBUFFER_s		g_NetworkMessage;
+
+// Network address that the most recently received packet came from.
+static	NETADDRESS_s	g_AddressFrom;
+
+// Our network socket.
+static	SOCKET			g_NetworkSocket;
+
+// Socket for listening for LAN games.
+static	SOCKET			g_LANSocket;
+
+// Our local port.
+static	USHORT			g_usLocalPort;
+
+// Buffer for the Huffman encoding.
+static	UCHAR			g_ucHuffmanBuffer[131072];
+
+//*****************************************************************************
+//	PROTOTYPES
+
+static	void			network_Error( char *pszError );
+static	SOCKET			network_AllocateSocket( void );
+static	bool			network_BindSocketToPort( SOCKET Socket, USHORT usPort, bool bReUse );
+
+//*****************************************************************************
+//	FUNCTIONS
+
+void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
+{
+	char			szString[128];
+	ULONG			ulArg;
+	USHORT			usNewPort;
+	NETADDRESS_s	LocalAddress;
+	bool			bSuccess;
+
+	// Initialize the Huffman buffer.
+	HuffInit( );
+
+#ifdef __WIN32__
+	// [BB] Linux doesn't know WSADATA, so this may not be moved outside the ifdef.
+	WSADATA			WSAData;
+	if ( WSAStartup( 0x0101, &WSAData ))
+		network_Error( "Winsock initialization failed!\n" );
+
+	LOG_Add( "Winsock initialization succeeded!\n" );
+#endif
+
+	g_usLocalPort = usPort;
+
+	// Allocate a socket, and attempt to bind it to the given port.
+	g_NetworkSocket = network_AllocateSocket( );
+	if ( network_BindSocketToPort( g_NetworkSocket, g_usLocalPort, false ) == false )
+	{
+		bSuccess = true;
+		usNewPort = g_usLocalPort;
+		while ( network_BindSocketToPort( g_NetworkSocket, ++usNewPort, false ) == false )
+		{
+			// Didn't find an available port. Oh well...
+			if ( usNewPort == g_usLocalPort )
+			{
+				usNewPort = false;
+				break;
+			}
+		}
+
+		if ( bSuccess == false )
+		{
+			sprintf( szString, "NETWORK_Construct: Couldn't bind socket to port: %d\n", g_usLocalPort );
+			network_Error( szString );
+		}
+		else
+		{
+			LOG_Add( "NETWORK_Construct: Couldn't bind to %d. Binding to %d instead...\n", g_usLocalPort, usNewPort );
+			g_usLocalPort = usNewPort;
+		}
+	}
+
+	ulArg = true;
+	if ( ioctlsocket( g_NetworkSocket, FIONBIO, &ulArg ) == -1 )
+		LOG_Add( "network_AllocateSocket: ioctl FIONBIO: %s", strerror( errno ));
+
+	// If we're not starting a server, setup a socket to listen for LAN servers.
+	if ( bAllocateLANSocket )
+	{
+		g_LANSocket = network_AllocateSocket( );
+		if ( network_BindSocketToPort( g_LANSocket, DEFAULT_BROADCAST_PORT, true ) == false )
+		{
+			sprintf( szString, "network_BindSocketToPort: Couldn't bind LAN socket to port: %d. You will not be able to see LAN servers in the browser.", DEFAULT_BROADCAST_PORT );
+			network_Error( szString );
+		}
+
+		if ( ioctlsocket( g_LANSocket, FIONBIO, &ulArg ) == -1 )
+			LOG_Add( "network_AllocateSocket: ioctl FIONBIO: %s", strerror( errno ));
+	}
+
+	// Init our read buffer.
+	NETWORK_InitBuffer( &g_NetworkMessage, MAX_UDP_PACKET, BUFFERTYPE_READ );
+	NETWORK_ClearBuffer( &g_NetworkMessage );
+
+	// Print out our local IP address.
+	LocalAddress = NETWORK_GetLocalAddress( );
+	LOG_Add( "IP address %s\n", NETWORK_AddressToString( LocalAddress ));
+	LOG_Add( "UDP Initialized.\n" );
+}
+
+//*****************************************************************************
+//
+int NETWORK_ReadByte( BYTESTREAM_s *pByteStream )
+{
+	int	Byte;
+
+	if (( pByteStream->pbStream + 1 ) > pByteStream->pbStreamEnd )
+		Byte = -1;
+	else
+		Byte = *pByteStream->pbStream;
+
+	// Advance the pointer.
+	pByteStream->pbStream += 1;
+
+	return ( Byte );
+}
+
+//*****************************************************************************
+//
+void NETWORK_WriteByte( BYTESTREAM_s *pByteStream, int Byte )
+{
+	if (( pByteStream->pbStream + 1 ) > pByteStream->pbStreamEnd )
+	{
+		LOG_Add( "NETWORK_WriteByte: Overflow!\n" );
+		return;
+	}
+
+	*pByteStream->pbStream = Byte;
+
+	// Advance the pointer.
+	pByteStream->pbStream += 1;
+/*
+	BYTE	*pbBuf;
+
+	pbBuf = NETWORK_GetSpace( pBuffer, 1 );
+	pbBuf[0] = Byte;
+*/
+}
+
+//*****************************************************************************
+//
+int NETWORK_ReadShort( BYTESTREAM_s *pByteStream )
+{
+	int	Short;
+
+	if (( pByteStream->pbStream + 2 ) > pByteStream->pbStreamEnd )
+		Short = -1;
+	else
+	{
+		Short = (short)(( pByteStream->pbStream[0] )
+		+ ( pByteStream->pbStream[1] << 8 ));
+	}
+
+	// Advance the pointer.
+	pByteStream->pbStream += 2;
+
+	return ( Short );
+}
+
+//*****************************************************************************
+//
+void NETWORK_WriteShort( BYTESTREAM_s *pByteStream, int Short )
+{
+	if (( pByteStream->pbStream + 2 ) > pByteStream->pbStreamEnd )
+	{
+		LOG_Add( "NETWORK_WriteShort: Overflow!\n" );
+		return;
+	}
+
+	pByteStream->pbStream[0] = Short & 0xff;
+	pByteStream->pbStream[1] = Short >> 8;
+
+	// Advance the pointer.
+	pByteStream->pbStream += 2;
+/*
+	BYTE	*pbBuf;
+
+	pbBuf = NETWORK_GetSpace( pBuffer, 2 );
+	pbBuf[0] = Short & 0xff;
+	pbBuf[1] = Short >> 8;
+*/
+}
+
+//*****************************************************************************
+//
+int NETWORK_ReadLong( BYTESTREAM_s *pByteStream )
+{
+	int	Long;
+
+	if (( pByteStream->pbStream + 4 ) > pByteStream->pbStreamEnd )
+		Long = -1;
+	else
+	{
+		Long = (( pByteStream->pbStream[0] )
+		+ ( pByteStream->pbStream[1] << 8 )
+		+ ( pByteStream->pbStream[2] << 16 )
+		+ ( pByteStream->pbStream[3] << 24 ));
+	}
+
+	// Advance the pointer.
+	pByteStream->pbStream += 4;
+
+	return ( Long );
+}
+
+//*****************************************************************************
+//
+void NETWORK_WriteLong( BYTESTREAM_s *pByteStream, int Long )
+{
+	if (( pByteStream->pbStream + 4 ) > pByteStream->pbStreamEnd )
+	{
+		LOG_Add( "NETWORK_WriteLong: Overflow!\n" );
+		return;
+	}
+
+	pByteStream->pbStream[0] = Long & 0xff;
+	pByteStream->pbStream[1] = ( Long >> 8 ) & 0xff;
+	pByteStream->pbStream[2] = ( Long >> 16 ) & 0xff;
+	pByteStream->pbStream[3] = ( Long >> 24 );
+
+	// Advance the pointer.
+	pByteStream->pbStream += 4;
+/*
+	BYTE	*pbBuf;
+
+	pbBuf = NETWORK_GetSpace( pBuffer, 4 );
+	pbBuf[0] = Long & 0xff;
+	pbBuf[1] = ( Long >> 8 ) & 0xff;
+	pbBuf[2] = ( Long >> 16 ) & 0xff;
+	pbBuf[3] = ( Long >> 24 );
+*/
+}
+
+//*****************************************************************************
+//
+float NETWORK_ReadFloat( BYTESTREAM_s *pByteStream )
+{
+	union
+	{
+		float	f;
+		int		i;
+	} dat;
+
+	dat.i = NETWORK_ReadLong( pByteStream );
+	return ( dat.f );
+}
+
+//*****************************************************************************
+//
+void NETWORK_WriteFloat( BYTESTREAM_s *pByteStream, float Float )
+{
+	union
+	{
+		float	f;
+		int	l;
+	} dat;
+
+	dat.f = Float;
+	//dat.l = LittleLong (dat.l);
+
+	NETWORK_WriteLong( pByteStream, dat.l );
+}
+
+//*****************************************************************************
+//
+char *NETWORK_ReadString( BYTESTREAM_s *pByteStream )
+{
+	char			c;
+	ULONG			ulIdx;
+	static char		s_szString[MAX_NETWORK_STRING];
+
+	// Build our string by reading in one character at a time. If the character is 0 or
+	// -1, we've reached the end of the string.
+	ulIdx = 0;
+	do
+	{
+		c = NETWORK_ReadByte( pByteStream );
+		if (( c == -1 ) ||
+			( c == 0 ))
+		{
+			break;
+		}
+
+		// Place this character into our string.
+		s_szString[ulIdx++] = c;
+
+	} while ( ulIdx < ( MAX_NETWORK_STRING - 1 ));
+
+	s_szString[ulIdx] = '\0';
+	return ( s_szString );
+}
+
+//*****************************************************************************
+//
+void NETWORK_WriteString( BYTESTREAM_s *pByteStream, const char *pszString )
+{
+	if (( pszString ) && ( strlen( pszString ) > MAX_NETWORK_STRING ))
+	{
+		LOG_Add( "NETWORK_WriteString: String exceeds %d characters!\n", MAX_NETWORK_STRING );
+		return;
+	}
+
+#ifdef	WIN32
+	if ( pszString == NULL )
+		NETWORK_WriteBuffer( pByteStream, "", 1 );
+	else
+		NETWORK_WriteBuffer( pByteStream, pszString, (int)( strlen( pszString )) + 1 );
+#else
+	if ( pszString == NULL )
+		NETWORK_WriteByte( pByteStream, 0 );
+	else
+	{
+		NETWORK_WriteBuffer( pByteStream, pszString, strlen( pszString ));
+		NETWORK_WriteByte( pByteStream, 0 );
+	}
+#endif
+}
+
+//*****************************************************************************
+//
+void NETWORK_WriteBuffer( BYTESTREAM_s *pByteStream, const void *pvBuffer, int nLength )
+{
+	if (( pByteStream->pbStream + nLength ) > pByteStream->pbStreamEnd )
+	{
+		LOG_Add( "NETWORK_WriteLBuffer: Overflow!\n" );
+		return;
+	}
+
+	memcpy( pByteStream->pbStream, pvBuffer, nLength );
+
+	// Advance the pointer.
+	pByteStream->pbStream += nLength;
+/*
+	BYTE	*pbDatapos;
+
+	if ( g_lNetworkState == NETSTATE_CLIENT )
+		memcpy( NETWORK_GetSpace( pBuffer, nLength ), pvData, nLength );
+	else
+	{
+		pbDatapos = NETWORK_GetSpace( pBuffer, nLength );
+
+		// Bad getspace.
+		if ( pbDatapos == 0 )
+		{
+			LOG_Add( "NETWORK_Write: Couldn't get %d bytes of space!\n", nLength );
+			return;
+		}
+		
+		memcpy( pbDatapos, pvData, nLength );
+	}
+*/
+}
+
+//*****************************************************************************
+//
+void NETWORK_WriteHeader( BYTESTREAM_s *pByteStream, int Byte )
+{
+//	LOG_Add( "%s\n", g_pszHeaderNames[Byte] );
+	NETWORK_WriteByte( pByteStream, Byte );
+}
+
+//*****************************************************************************
+//
+int NETWORK_GetPackets( void )
+{
+	LONG				lNumBytes;
+	INT					iDecodedNumBytes;
+	struct sockaddr_in	SocketFrom;
+	INT					iSocketFromLength;
+
+    iSocketFromLength = sizeof( SocketFrom );
+
+#ifdef	WIN32
+	lNumBytes = recvfrom( g_NetworkSocket, (char *)g_ucHuffmanBuffer, sizeof( g_ucHuffmanBuffer ), 0, (struct sockaddr *)&SocketFrom, &iSocketFromLength );
+#else
+	lNumBytes = recvfrom( g_NetworkSocket, (char *)g_ucHuffmanBuffer, sizeof( g_ucHuffmanBuffer ), 0, (struct sockaddr *)&SocketFrom, (socklen_t *)&iSocketFromLength );
+#endif
+
+	// If the number of bytes returned is -1, an error has occured.
+    if ( lNumBytes == -1 ) 
+    { 
+#ifdef __WIN32__
+        errno = WSAGetLastError( );
+
+        if ( errno == WSAEWOULDBLOCK )
+            return ( false );
+
+		// Connection reset by peer. Doesn't mean anything to the server.
+		if ( errno == WSAECONNRESET )
+			return ( false );
+
+        if ( errno == WSAEMSGSIZE )
+		{
+             LOG_Add( "NETWORK_GetPackets:  WARNING! Oversize packet from %s\n", NETWORK_AddressToString( g_AddressFrom ));
+             return ( false );
+        }
+
+        LOG_Add( "NETWORK_GetPackets: WARNING!: Error #%d: %s\n", errno, strerror( errno ));
+		return ( false );
+#else
+        if ( errno == EWOULDBLOCK )
+            return ( false );
+
+        if ( errno == ECONNREFUSED )
+            return ( false );
+
+        LOG_Add( "NETWORK_GetPackets: WARNING!: Error #%d: %s\n", errno, strerror( errno ));
+        return ( false );
+#endif
+    }
+
+	// No packets or an error, so don't process anything.
+	if ( lNumBytes <= 0 )
+		return ( 0 );
+
+	// If the number of bytes we're receiving exceeds our buffer size, ignore the packet.
+	if ( lNumBytes >= g_NetworkMessage.ulMaxSize )
+		return ( 0 );
+
+	// Decode the huffman-encoded message we received.
+	HuffDecode( g_ucHuffmanBuffer, (unsigned char *)g_NetworkMessage.pbData, lNumBytes, &iDecodedNumBytes );
+	g_NetworkMessage.ulCurrentSize = iDecodedNumBytes;
+	g_NetworkMessage.ByteStream.pbStream = g_NetworkMessage.pbData;
+	g_NetworkMessage.ByteStream.pbStreamEnd = g_NetworkMessage.ByteStream.pbStream + g_NetworkMessage.ulCurrentSize;
+
+	// Store the IP address of the sender.
+    NETWORK_SocketAddressToNetAddress( &SocketFrom, &g_AddressFrom );
+
+	return ( g_NetworkMessage.ulCurrentSize );
+}
+
+//*****************************************************************************
+//
+int NETWORK_GetLANPackets( void )
+{
+	LONG				lNumBytes;
+	INT					iDecodedNumBytes;
+	struct sockaddr_in	SocketFrom;
+	INT					iSocketFromLength;
+
+    iSocketFromLength = sizeof( SocketFrom );
+
+#ifdef	WIN32
+	lNumBytes = recvfrom( g_LANSocket, (char *)g_ucHuffmanBuffer, sizeof( g_ucHuffmanBuffer ), 0, (struct sockaddr *)&SocketFrom, &iSocketFromLength );
+#else
+	lNumBytes = recvfrom( g_LANSocket, (char *)g_ucHuffmanBuffer, sizeof( g_ucHuffmanBuffer ), 0, (struct sockaddr *)&SocketFrom, (socklen_t *)&iSocketFromLength );
+#endif
+
+	// If the number of bytes returned is -1, an error has occured.
+    if ( lNumBytes == -1 ) 
+    { 
+#ifdef __WIN32__
+        errno = WSAGetLastError( );
+
+        if ( errno == WSAEWOULDBLOCK )
+            return ( false );
+
+		// Connection reset by peer. Doesn't mean anything to the server.
+		if ( errno == WSAECONNRESET )
+			return ( false );
+
+        if ( errno == WSAEMSGSIZE )
+		{
+             LOG_Add( "NETWORK_GetPackets:  WARNING! Oversize packet from %s\n", NETWORK_AddressToString( g_AddressFrom ));
+             return ( false );
+        }
+
+        LOG_Add( "NETWORK_GetPackets: WARNING!: Error #%d: %s\n", errno, strerror( errno ));
+		return ( false );
+#else
+        if ( errno == EWOULDBLOCK )
+            return ( false );
+
+        if ( errno == ECONNREFUSED )
+            return ( false );
+
+        LOG_Add( "NETWORK_GetPackets: WARNING!: Error #%d: %s\n", errno, strerror( errno ));
+        return ( false );
+#endif
+    }
+
+	// No packets or an error, dont process anything.
+	if ( lNumBytes <= 0 )
+		return ( 0 );
+
+	// If the number of bytes we're receiving exceeds our buffer size, ignore the packet.
+	if ( lNumBytes >= g_NetworkMessage.ulMaxSize )
+		return ( 0 );
+
+	// Decode the huffman-encoded message we received.
+	HuffDecode( g_ucHuffmanBuffer, (unsigned char *)g_NetworkMessage.pbData, lNumBytes, &iDecodedNumBytes );
+	g_NetworkMessage.ulCurrentSize = iDecodedNumBytes;
+	g_NetworkMessage.ByteStream.pbStream = g_NetworkMessage.pbData;
+	g_NetworkMessage.ByteStream.pbStreamEnd = g_NetworkMessage.ByteStream.pbStream + g_NetworkMessage.ulCurrentSize;
+
+	// Store the IP address of the sender.
+    NETWORK_SocketAddressToNetAddress( &SocketFrom, &g_AddressFrom );
+
+	return ( g_NetworkMessage.ulCurrentSize );
+}
+
+//*****************************************************************************
+//
+NETADDRESS_s NETWORK_GetFromAddress( void )
+{
+	return ( g_AddressFrom );
+}
+
+//*****************************************************************************
+//
+void NETWORK_LaunchPacket( NETBUFFER_s *pBuffer, NETADDRESS_s Address )
+{
+	LONG				lNumBytes;
+	INT					iNumBytesOut;
+	struct sockaddr_in	SocketAddress;
+
+	pBuffer->ulCurrentSize = NETWORK_CalcBufferSize( pBuffer );
+
+	// Nothing to do.
+	if ( pBuffer->ulCurrentSize == 0 )
+		return;
+
+	// Convert the IP address to a socket address.
+	NETWORK_NetAddressToSocketAddress( Address, SocketAddress );
+
+	HuffEncode( (unsigned char *)pBuffer->pbData, g_ucHuffmanBuffer, pBuffer->ulCurrentSize, &iNumBytesOut );
+
+	lNumBytes = sendto( g_NetworkSocket, (const char*)g_ucHuffmanBuffer, iNumBytesOut, 0, (struct sockaddr *)&SocketAddress, sizeof( SocketAddress ));
+
+	// If sendto returns -1, there was an error.
+	if ( lNumBytes == -1 )
+	{
+#ifdef __WIN32__
+		INT	iError = WSAGetLastError( );
+
+		// Wouldblock is silent.
+		if ( iError == WSAEWOULDBLOCK )
+			return;
+
+		switch ( iError )
+		{
+		case WSAEACCES:
+
+			LOG_Add( "NETWORK_LaunchPacket: Error #%d, WSAEACCES: Permission denied for address: %s\n", iError, NETWORK_AddressToString( Address ));
+			return;
+		case WSAEADDRNOTAVAIL:
+
+			LOG_Add( "NETWORK_LaunchPacket: Error #%d, WSAEADDRENOTAVAIL: Address %s not available\n", iError, NETWORK_AddressToString( Address ));
+			return;
+		case WSAEHOSTUNREACH:
+
+			LOG_Add( "NETWORK_LaunchPacket: Error #%d, WSAEHOSTUNREACH: Address %s unreachable\n", iError, NETWORK_AddressToString( Address ));
+			return;				
+		default:
+
+			LOG_Add( "NETWORK_LaunchPacket: Error #%d\n", iError );
+			return;
+		}
+#else
+	if ( errno == EWOULDBLOCK )
+return;
+
+          if ( errno == ECONNREFUSED )
+              return;
+
+		LOG_Add( "NETWORK_LaunchPacket: %s\n", strerror( errno ));
+		LOG_Add( "NETWORK_LaunchPacket: Address %s\n", NETWORK_AddressToString( Address ));
+
+#endif
+	}
+}
+
+//*****************************************************************************
+//
+void NETWORK_InitBuffer( NETBUFFER_s *pBuffer, ULONG ulLength, BUFFERTYPE_e BufferType )
+{
+	memset( pBuffer, 0, sizeof( *pBuffer ));
+	pBuffer->ulMaxSize = ulLength;
+	pBuffer->pbData = new BYTE[ulLength];
+	pBuffer->BufferType = BufferType;
+}
+
+//*****************************************************************************
+//
+void NETWORK_FreeBuffer( NETBUFFER_s *pBuffer )
+{
+	if ( pBuffer->pbData )
+	{
+		delete ( pBuffer->pbData );
+		pBuffer->pbData = NULL;
+	}
+}
+
+//*****************************************************************************
+//
+void NETWORK_ClearBuffer( NETBUFFER_s *pBuffer )
+{
+	pBuffer->ulCurrentSize = 0;
+	pBuffer->ByteStream.pbStream = pBuffer->pbData;
+	if ( pBuffer->BufferType == BUFFERTYPE_READ )
+		pBuffer->ByteStream.pbStreamEnd = pBuffer->ByteStream.pbStream;
+	else
+		pBuffer->ByteStream.pbStreamEnd = pBuffer->ByteStream.pbStream + pBuffer->ulMaxSize;
+}
+
+//*****************************************************************************
+//
+LONG NETWORK_CalcBufferSize( NETBUFFER_s *pBuffer )
+{
+	if ( pBuffer->BufferType == BUFFERTYPE_READ )
+		return ( LONG( pBuffer->ByteStream.pbStreamEnd - pBuffer->ByteStream.pbStream ));
+	else
+		return ( LONG( pBuffer->ByteStream.pbStream - pBuffer->pbData ));
+}
+
+//*****************************************************************************
+//
+char *NETWORK_AddressToString( NETADDRESS_s Address )
+{
+	static char	s_szAddress[64];
+
+	sprintf( s_szAddress, "%i.%i.%i.%i:%i", Address.abIP[0], Address.abIP[1], Address.abIP[2], Address.abIP[3], ntohs( Address.usPort ));
+
+	return ( s_szAddress );
+}
+
+//*****************************************************************************
+//
+char *NETWORK_AddressToStringIgnorePort( NETADDRESS_s Address )
+{
+	static char	s_szAddress[64];
+
+	sprintf( s_szAddress, "%i.%i.%i.%i", Address.abIP[0], Address.abIP[1], Address.abIP[2], Address.abIP[3] );
+
+	return ( s_szAddress );
+}
+
+//*****************************************************************************
+//
+void NETWORK_NetAddressToSocketAddress( NETADDRESS_s &Address, struct sockaddr_in &SocketAddress )
+{
+	// Initialize the socket address.
+	memset( &SocketAddress, 0, sizeof( SocketAddress ));
+
+	// Set the socket's address and port.
+	*(int *)&SocketAddress.sin_addr = *(int *)&Address.abIP;
+	SocketAddress.sin_port = Address.usPort;
+
+	// Set the socket address's family (what does this do?).
+	SocketAddress.sin_family = AF_INET;
+}
+
+//*****************************************************************************
+//
+void NETWORK_SetAddressPort( NETADDRESS_s &Address, USHORT usPort )
+{
+	Address.usPort = htons( usPort );
+}
+
+//*****************************************************************************
+//
+bool NETWORK_CompareAddress( NETADDRESS_s Address1, NETADDRESS_s Address2, bool bIgnorePort )
+{
+	if (( Address1.abIP[0] == Address2.abIP[0] ) &&
+		( Address1.abIP[1] == Address2.abIP[1] ) &&
+		( Address1.abIP[2] == Address2.abIP[2] ) &&
+		( Address1.abIP[3] == Address2.abIP[3] ) &&
+		( bIgnorePort ? 1 : ( Address1.usPort == Address2.usPort )))
+	{
+		return ( true );
+	}
+
+	return ( false );
+}
+
+//*****************************************************************************
+//
+NETADDRESS_s NETWORK_GetLocalAddress( void )
+{
+	char				szBuffer[512];
+	struct sockaddr_in	SocketAddress;
+	NETADDRESS_s		Address;
+	int					iNameLength;
+
+#ifndef __WINE__
+	gethostname( szBuffer, 512 );
+#endif
+	szBuffer[512-1] = 0;
+
+	// Convert the host name to our local 
+	NETWORK_StringToAddress( szBuffer, &Address );
+
+	iNameLength = sizeof( SocketAddress );
+#ifndef	WIN32
+	if ( getsockname ( g_NetworkSocket, (struct sockaddr *)&SocketAddress, (socklen_t *)&iNameLength) == -1 )
+#else
+	if ( getsockname ( g_NetworkSocket, (struct sockaddr *)&SocketAddress, &iNameLength ) == -1 )
+#endif
+	{
+		LOG_Add( "NETWORK_GetLocalAddress: Error getting socket name: %s", strerror( errno ));
+	}
+
+	Address.usPort = SocketAddress.sin_port;
+	return ( Address );
+}
+
+//*****************************************************************************
+//
+NETBUFFER_s *NETWORK_GetNetworkMessageBuffer( void )
+{
+	return ( &g_NetworkMessage );
+}
+
+//*****************************************************************************
+//
+ULONG NETWORK_ntohs( ULONG ul )
+{
+	return ( ntohs( (u_short)ul ));
+}
+
+//*****************************************************************************
+//
+USHORT NETWORK_GetLocalPort( void )
+{
+	return ( g_usLocalPort );
+}
+
+//*****************************************************************************
+//*****************************************************************************
+//
+void network_Error( char *pszError )
+{
+	LOG_Add( "\\cd%s\n", pszError );
+}
+
+//*****************************************************************************
+//
+static SOCKET network_AllocateSocket( void )
+{
+	SOCKET	Socket;
+
+	// Allocate a socket.
+	Socket = socket( PF_INET, SOCK_DGRAM, IPPROTO_UDP );
+	if ( Socket == INVALID_SOCKET )
+		network_Error( "network_AllocateSocket: Couldn't create socket!" );
+
+	return ( Socket );
+}
+
+//*****************************************************************************
+//
+bool network_BindSocketToPort( SOCKET Socket, USHORT usPort, bool bReUse )
+{
+	int		iErrorCode;
+	struct sockaddr_in address;
+	bool	bBroadCast = true;
+
+	memset (&address, 0, sizeof(address));
+	address.sin_family = AF_INET;
+	address.sin_addr.s_addr = INADDR_ANY;
+	address.sin_port = htons( usPort );
+
+	// Allow the network socket to broadcast.
+	setsockopt( Socket, SOL_SOCKET, SO_BROADCAST, (const char *)&bBroadCast, sizeof( bBroadCast ));
+	if ( bReUse )
+		setsockopt( Socket, SOL_SOCKET, SO_REUSEADDR, (const char *)&bBroadCast, sizeof( bBroadCast ));
+
+	iErrorCode = bind( Socket, (sockaddr *)&address, sizeof( address ));
+	if ( iErrorCode == SOCKET_ERROR )
+		return ( false );
+
+	return ( true );
+}
+
+
+#ifndef	WIN32
+extern int	stdin_ready;
+extern int	do_stdin;
+#endif
+
+// [BB] We only need this for the server console input under Linux.
+void I_DoSelect (void)
+{
+#ifdef		WIN32
+/*
+    struct timeval   timeout;
+    fd_set           fdset;
+
+    FD_ZERO(&fdset);
+    FD_SET(g_NetworkSocket, &fdset);
+    timeout.tv_sec = 1;
+    timeout.tv_usec = 0;
+    if (select (static_cast<int>(g_NetworkSocket)+1, &fdset, NULL, NULL, &timeout) == -1)
+        return;
+*/
+#else
+    struct timeval   timeout;
+    fd_set           fdset;
+
+    FD_ZERO(&fdset);
+    if (do_stdin)
+    	FD_SET(0, &fdset);
+
+    FD_SET(g_NetworkSocket, &fdset);
+    timeout.tv_sec = 1;
+    timeout.tv_usec = 0;
+    if (select (static_cast<int>(g_NetworkSocket)+1, &fdset, NULL, NULL, &timeout) == -1)
+        return;
+
+    stdin_ready = FD_ISSET(0, &fdset);
+#endif
+}

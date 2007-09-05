@@ -56,7 +56,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/NODEFAULTLIB:library"
-				AdditionalDependencies="comctl32.lib uuid.lib rpcrt4.lib advapi32.lib wxbase28d.lib wxmsw28d_core.lib wxpngd.lib wxzlibd.lib"
+				AdditionalDependencies="comctl32.lib rpcrt4.lib advapi32.lib wxbase28d.lib wxmsw28d_core.lib wxpngd.lib wxzlibd.lib oleaut32.lib comdlg32.lib user32.lib gdi32.lib shell32.lib ole32.lib uuid.lib wsock32.lib winmm.lib setupapi.lib ws2_32.lib"
 				GenerateDebugInformation="false"
 			/>
 			<Tool
@@ -158,6 +158,30 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\frmMain.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\huffman.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\log.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\m_alloc.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\network.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\networkshared.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\wxSTO2.cpp"
 				>
 			</File>
@@ -167,6 +191,30 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\frmMain.h"
+				>
+			</File>
+			<File
+				RelativePath=".\huffman.h"
+				>
+			</File>
+			<File
+				RelativePath=".\log.h"
+				>
+			</File>
+			<File
+				RelativePath=".\m_alloc.h"
+				>
+			</File>
+			<File
+				RelativePath=".\network.h"
+				>
+			</File>
+			<File
+				RelativePath=".\networkheaders.h"
+				>
+			</File>
 			<File
 				RelativePath=".\version.h"
 				>
