@@ -306,8 +306,8 @@ void DHUDMessage::Draw (int bottom)
 	if (HUDWidth == 0 && bScale)
 	{
 //		clean = true;
-		xscale = fXScale;
-		yscale = fYScale;
+		xscale = 1;
+		yscale = 1;
 		screen_width=ValWidth.Int;
 		screen_height=ValHeight.Int;
 	}
