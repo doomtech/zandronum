@@ -1683,7 +1683,7 @@ void P_CalcHeight (player_t *player)
 	fixed_t 	bob;
 	bool		still = false;
 
-	// If we're a spectator, don't calculate viewheight for other players.
+	// [BC] If we're a spectator, don't calculate viewheight for other players.
 	// We'll receive that from the server.
 	// Don't calculate height for other players.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( players[consoleplayer].bSpectating ) &&
@@ -1692,7 +1692,7 @@ void P_CalcHeight (player_t *player)
 		return;
 	}
 
-	// If we're predicting, nothing to do here.
+	// [BC] If we're predicting, nothing to do here.
 	if ( CLIENT_PREDICT_IsPredicting( ))
 		return;
 

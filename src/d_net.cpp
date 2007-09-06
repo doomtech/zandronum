@@ -1631,7 +1631,10 @@ void D_CheckNetGame (void)
 	if (Args.CheckParm ("-debugfile"))
 	{
 		char	filename[20];
-		sprintf (filename,"debug%i.txt",consoleplayer);
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			sprintf (filename,"debugserver.txt",consoleplayer);
+		else
+			sprintf (filename,"debug%i.txt",consoleplayer);
 		Printf ("debug output to: %s\n",filename);
 		debugfile = fopen (filename,"w");
 	}

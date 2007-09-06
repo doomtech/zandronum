@@ -299,10 +299,8 @@ void P_Ticker (void)
 		}
 
 		// Client's "think" every time we get a cmd.
-#ifndef	MULTITICK_HACK_FIX
 		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( players[ulIdx].bIsBot == false ))
 			continue;
-#endif
 
 		// Console player thinking is handled by player prediction.
 		if (( ulIdx == consoleplayer ) &&

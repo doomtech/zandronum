@@ -78,6 +78,7 @@ v0.97d-beta5
 -	- Players are now properly spawned when switching to a map with less player starts than players in cooperative mode. [Carnevil]
 -	- You can no longer crash the server by banning somebody with an extremely long reason string. [Rivecoder]
 -	- The list of players displayed by the server console should no longer have any ghost players. [Carnevil]
+-	- Fixed glitchy screen shaking that would occur when riding moving sectors in network games. [Carnevil]
 -	- Fixed a potential crash when using kick_idx on numbers greater than 32.
 -	- Fixed glitch that could result in a duel being reset when a spectator leaves the game. [Carnevil]
 -	- Players can now join a team from spectator mode when the "players cannot switch teams" dmflag is enabled. [Carnevil]

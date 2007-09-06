@@ -277,8 +277,6 @@ ULONG BOTPATH_TryWalk( AActor *pActor, fixed_t StartX, fixed_t StartY, fixed_t S
 		X = StartX + Scale( XDistance, lCurrentStep, lNumSteps );
 		Y = StartY + Scale( YDistance, lCurrentStep, lNumSteps );
 
-//		Printf( "(%d) %d/%d: (%d, %d) (%d, %d) (%d, %d) (%d, %d)\n", level.time, lCurrentStep, lNumSteps, Scale( XDistance, lCurrentStep, lNumSteps ) / FRACUNIT, Scale( YDistance, lCurrentStep, lNumSteps ) / FRACUNIT, StartX / FRACUNIT, StartY / FRACUNIT, DestX / FRACUNIT, DestY / FRACUNIT, X / FRACUNIT, Y / FRACUNIT );
-
 		// Check to see if the position is blocked.
 		if ( BOTPATH_IsPositionBlocked( pActor, X, Y ) == false )
 		{

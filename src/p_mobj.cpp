@@ -2310,10 +2310,14 @@ void P_ZMovement (AActor *mo)
 //	
 // check for smooth step up
 //
-	if (mo->player && mo->player->mo == mo && mo->z < mo->floorz)
+	// [BC] Don't adjust viewheight while predicting.
+	if ( CLIENT_PREDICT_IsPredicting( ) == false )
 	{
-		mo->player->viewheight -= mo->floorz - mo->z;
-		mo->player->deltaviewheight = mo->player->GetDeltaViewHeight();
+		if (mo->player && mo->player->mo == mo && mo->z < mo->floorz)
+		{
+			mo->player->viewheight -= mo->floorz - mo->z;
+			mo->player->deltaviewheight = mo->player->GetDeltaViewHeight();
+		}
 	}
 
 	if (!(mo->flags2&MF2_FLOATBOB)) mo->z += mo->momz;
@@ -3443,7 +3447,7 @@ void AActor::Tick ()
 				{
 					if (player && player->mo == this)
 					{
-						// Don't alter viewheight if we're just predicting.
+						// [BC] Don't alter viewheight if we're just predicting.
 						if ( CLIENT_PREDICT_IsPredicting( ) == false )
 						{
 							player->viewheight -= onmo->z + onmo->height - z;
@@ -3563,9 +3567,12 @@ bool AActor::UpdateWaterLevel (fixed_t oldz, bool dosplash)
 	fixed_t fh=FIXED_MIN;
 	bool reset=false;
 
-	// Server will tell us what our waterlevel is.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player == NULL ) || ( player - players != consoleplayer ) || ( player->bSpectating )))
+	// [BC] Server will tell us what our waterlevel is.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) &&
+		(( player == NULL ) || ( player - players != consoleplayer ) || ( player->bSpectating )))
+	{
 		return ( false );
+	}
 
 	waterlevel = 0;
 
@@ -4162,7 +4169,7 @@ void AActor::AdjustFloorClip ()
 	}
 	if (player && player->mo == this && oldclip != floorclip)
 	{
-		// Don't adjust viewheight if we're just predicting.
+		// [BC] Don't adjust viewheight if we're just predicting.
 		if ( CLIENT_PREDICT_IsPredicting( ) == false )
 		{
 			player->viewheight -= oldclip - floorclip;

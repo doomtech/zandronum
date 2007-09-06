@@ -78,9 +78,6 @@
 // How many commands can be stored at one time?
 #define	MAX_STORED_SERVER_COMMANDS	64
 
-// Define this to use one method of the multitick hack fix.
-//#define	MULTITICK_HACK_FIX
-
 // Amount of time the client has to report his checksum of the level.
 #define	CLIENT_CHECKSUM_WAITTIME	( 15 * TICRATE )
 

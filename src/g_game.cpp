@@ -1764,6 +1764,10 @@ void G_Ticker ()
 	default:
 		break;
 	}
+
+	// [BC] If any data has accumulated in our packet, send it out now.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		CLIENT_EndTick( );
 }
 
 

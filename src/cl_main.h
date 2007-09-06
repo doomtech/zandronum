@@ -111,6 +111,7 @@ typedef struct
 // Standard API.
 void				CLIENT_Construct( void );
 void				CLIENT_Tick( void );
+void				CLIENT_EndTick( void );
 
 // Access functions.
 CONNECTIONSTATE_e	CLIENT_GetConnectionState( void );

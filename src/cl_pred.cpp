@@ -73,7 +73,10 @@ bool	P_AdjustFloorCeil (AActor *thing);
 //	VARIABLES
 
 // Are we predicting?
-static	bool	g_bPredicting = false;
+static	bool		g_bPredicting = false;
+
+// Version of gametic for normal games, as well as demos.
+static	ULONG		g_ulGameTick;
 
 // Store crucial player attributes for prediction.
 static	ticcmd_t	g_SavedTiccmd[MAXSAVETICS];
@@ -83,9 +86,6 @@ static	LONG		g_lSavedJumpTicks[MAXSAVETICS];
 static	LONG		g_lSavedTurnTicks[MAXSAVETICS];
 static	LONG		g_lSavedReactionTime[MAXSAVETICS];
 static	LONG		g_lSavedWaterLevel[MAXSAVETICS];
-static	fixed_t		g_SavedViewHeight[MAXSAVETICS];
-static	fixed_t		g_SavedDeltaViewHeight[MAXSAVETICS];
-//static	fixed_t		g_SavedFloorZ[MAXSAVETICS];
 
 #ifdef	_DEBUG
 CVAR( Bool, cl_showpredictionsuccess, false, 0 );
@@ -93,30 +93,35 @@ CVAR( Bool, cl_showonetickpredictionerrors, false, 0 );
 #endif
 
 //*****************************************************************************
+//	PROTOTYPES
+
+void	client_predict_BeginPrediction( player_s *pPlayer );
+void	client_predict_DoPrediction( player_s *pPlayer, ULONG ulTicks );
+void	client_predict_EndPrediction( player_s *pPlayer );
+
+//*****************************************************************************
 //	FUNCTIONS
 
 void CLIENT_PREDICT_PlayerPredict( void )
 {
 	player_t	*pPlayer;
-	LONG		lTick;
 	ULONG		ulPredictionTicks;
-	bool		bUpdateViewHeight = false;
+	bool		bOnFloor;
+	fixed_t		FloorZ;
 #ifdef	_DEBUG
 	fixed_t		SavedX;
 	fixed_t		SavedY;
 	fixed_t		SavedZ;
-	LONG		lPredictedTicks = gametic - CLIENTDEMO_GetGameticOffset( ) - CLIENT_GetLastConsolePlayerUpdateTick( ) - 1;
 #endif
 
 	// Always predict only the console player.
 	pPlayer = &players[consoleplayer];
-
-	// Precaution.
 	if ( pPlayer->mo == NULL )
 		return;
 
 	// For spectators, we don't care about prediction. Just think and leave.
-	if (( pPlayer->bSpectating ) || ( pPlayer->playerstate == PST_DEAD ))
+	if (( pPlayer->bSpectating ) ||
+		( pPlayer->playerstate == PST_DEAD ))
 	{
 		P_PlayerThink( pPlayer );
 		pPlayer->mo->Tick( );
@@ -134,32 +139,20 @@ void CLIENT_PREDICT_PlayerPredict( void )
 		return;
 	}
 
-	// Save a bunch of crucial attributes of the player that are necessary for prediction.
-	g_SavedAngle[gametic % MAXSAVETICS] = pPlayer->mo->angle;
-	g_SavedPitch[gametic % MAXSAVETICS] = pPlayer->mo->pitch;
-	g_lSavedJumpTicks[gametic % MAXSAVETICS] = pPlayer->jumpTics;
-	g_lSavedTurnTicks[gametic % MAXSAVETICS] = pPlayer->turnticks;
-	g_lSavedReactionTime[gametic % MAXSAVETICS] = pPlayer->mo->reactiontime;
-	g_lSavedWaterLevel[gametic % MAXSAVETICS] = pPlayer->mo->waterlevel;
-	g_SavedViewHeight[gametic % MAXSAVETICS] = pPlayer->viewheight;
-	g_SavedDeltaViewHeight[gametic % MAXSAVETICS] = pPlayer->deltaviewheight;
-//	g_SavedFloorZ[gametic % MAXSAVETICS] = pPlayer->mo->floorz;
-	memcpy( &g_SavedTiccmd[gametic % MAXSAVETICS], &pPlayer->cmd, sizeof( ticcmd_t ));
-
+	// Back up the player's current position to see if we predicted correctly.
 #ifdef	_DEBUG
 	SavedX	= pPlayer->mo->x;
 	SavedY	= pPlayer->mo->y;
 	SavedZ	= pPlayer->mo->z;
 #endif
 
-	// Used for reading stored commands.
-	lTick = CLIENT_GetLastConsolePlayerUpdateTick( ) + 1;
+	// Use a version of gametic that's appropriate for both the current game and demos.
+	g_ulGameTick = gametic - CLIENTDEMO_GetGameticOffset( );
 
-		// How many ticks of prediction do we need?
-	if (( CLIENT_GetLastConsolePlayerUpdateTick( ) - 1 ) > ( gametic - CLIENTDEMO_GetGameticOffset( )))
-		ulPredictionTicks = 0;
-	else
-		ulPredictionTicks = gametic - CLIENTDEMO_GetGameticOffset( ) - CLIENT_GetLastConsolePlayerUpdateTick( ) - 1;
+	// How many ticks of prediction do we need?
+	ulPredictionTicks = g_ulGameTick - CLIENT_GetLastConsolePlayerUpdateTick( );
+	if ( ulPredictionTicks )
+		ulPredictionTicks--;
 
 #ifdef	_DEBUG
 	if (( cl_showonetickpredictionerrors ) && ( ulPredictionTicks == 0 ))
@@ -168,7 +161,7 @@ void CLIENT_PREDICT_PlayerPredict( void )
 			( pPlayer->ServerXYZ[1] != pPlayer->mo->y ) ||
 			( pPlayer->ServerXYZ[2] != pPlayer->mo->z ))
 		{
-			Printf( "(%d) WARNING! ServerXYZ does not match local origin after 1 tick!\n", gametic );
+			Printf( "(%d) WARNING! ServerXYZ does not match local origin after 1 tick!\n", g_ulGameTick );
 			Printf( "     X: %d, %d\n", pPlayer->ServerXYZ[0], pPlayer->mo->x );
 			Printf( "     Y: %d, %d\n", pPlayer->ServerXYZ[1], pPlayer->mo->y );
 			Printf( "     Z: %d, %d\n", pPlayer->ServerXYZ[2], pPlayer->mo->z );
@@ -178,7 +171,7 @@ void CLIENT_PREDICT_PlayerPredict( void )
 			( pPlayer->ServerXYZMom[1] != pPlayer->mo->momy ) ||
 			( pPlayer->ServerXYZMom[2] != pPlayer->mo->momz ))
 		{
-			Printf( "(%d) WARNING! ServerXYZMom does not match local origin after 1 tick!\n", gametic );
+			Printf( "(%d) WARNING! ServerXYZMom does not match local origin after 1 tick!\n", g_ulGameTick );
 			Printf( "     X: %d, %d\n", pPlayer->ServerXYZMom[0], pPlayer->mo->momx );
 			Printf( "     Y: %d, %d\n", pPlayer->ServerXYZMom[1], pPlayer->mo->momy );
 			Printf( "     Z: %d, %d\n", pPlayer->ServerXYZMom[2], pPlayer->mo->momz );
@@ -186,86 +179,44 @@ void CLIENT_PREDICT_PlayerPredict( void )
 	}
 #endif
 
+	// Save the player's "on the floor" status. If the player was on the floor prior to moving
+	// back to the player's saved position, move him back onto the floor after moving him.
+	bOnFloor = pPlayer->mo->z == pPlayer->mo->floorz;
+	FloorZ = pPlayer->mo->floorz;
+
 	// Set the player's position as told to him by the server.
 	CLIENT_MoveThing( pPlayer->mo,
 		pPlayer->ServerXYZ[0],
 		pPlayer->ServerXYZ[1],
 		pPlayer->ServerXYZ[2] );
 
-	// Since plats, and other types of moving sectors may have started later on the client
-	// end, we may need to adjust the player's view height later.
-	if ( pPlayer->ServerXYZ[2] < pPlayer->mo->floorz )
-		bUpdateViewHeight = true;
+	// Restore the player's z position.
+	if ( bOnFloor )
+		pPlayer->mo->z = FloorZ;
 
 	// Set the player's velocity as told to him by the server.
 	pPlayer->mo->momx = pPlayer->ServerXYZMom[0];
 	pPlayer->mo->momy = pPlayer->ServerXYZMom[1];
 	pPlayer->mo->momz = pPlayer->ServerXYZMom[2];
-	
-	if ( pPlayer->playerstate == PST_DEAD )
+
+	// If we don't want to do any prediction, just tick the player and get out.
+	if ( cl_predict_players == false )
 	{
-		if ( cl_predict_players )
-		{
-			// Predict forward until tic >= gametic.
-			while ( ulPredictionTicks )
-			{
-				// Disable bobbing, sounds, etc.
-				g_bPredicting = true;
-				pPlayer->mo->Tick( );				
-				ulPredictionTicks--;
-			}
-		}
-
-		// Done predicting.
-		g_bPredicting = false;
-
-		// Now do our updates for this tick.
-		pPlayer->mo->Tick( );				
-		P_DeathThink( pPlayer );
-
+		P_PlayerThink( pPlayer );
+		pPlayer->mo->Tick( );
 		return;
 	}
 
-	if ( cl_predict_players )
-	{
-		// Predict forward until tic >= gametic.
-		while ( ulPredictionTicks )
-		{
-			// Disable bobbing, sounds, etc.
-			g_bPredicting = true;
+	// Save a bunch of crucial attributes of the player that are necessary for prediction.
+	client_predict_BeginPrediction( pPlayer );
 
-			// Use backed up values for prediction.
-			pPlayer->mo->angle = g_SavedAngle[( lTick + CLIENTDEMO_GetGameticOffset( )) % MAXSAVETICS];
-			pPlayer->mo->pitch = g_SavedPitch[( lTick + CLIENTDEMO_GetGameticOffset( )) % MAXSAVETICS];
-			pPlayer->jumpTics = g_lSavedJumpTicks[( lTick + CLIENTDEMO_GetGameticOffset( )) % MAXSAVETICS];
-			pPlayer->turnticks = g_lSavedTurnTicks[( lTick + CLIENTDEMO_GetGameticOffset( )) % MAXSAVETICS];
-			pPlayer->mo->reactiontime = g_lSavedReactionTime[( lTick + CLIENTDEMO_GetGameticOffset( )) % MAXSAVETICS];
-			pPlayer->mo->waterlevel = g_lSavedWaterLevel[( lTick + CLIENTDEMO_GetGameticOffset( )) % MAXSAVETICS];
-			pPlayer->viewheight = g_SavedViewHeight[( lTick + CLIENTDEMO_GetGameticOffset( )) % MAXSAVETICS];
-			pPlayer->deltaviewheight = g_SavedDeltaViewHeight[( lTick + CLIENTDEMO_GetGameticOffset( )) % MAXSAVETICS];
-//			pPlayer->mo->floorz = g_SavedFloorZ[( lTick + CLIENTDEMO_GetGameticOffset( )) % MAXSAVETICS];
-
-			P_PlayerThink( pPlayer, &g_SavedTiccmd[( lTick + CLIENTDEMO_GetGameticOffset( )) % MAXSAVETICS] );
-
-			pPlayer->mo->Tick( );				
-			ulPredictionTicks--;
-			lTick++;
-		}
-
-		// Done predicting.
-		g_bPredicting = false;
-	}
+	// Predict however many ticks are necessary.
+	g_bPredicting = true;
+	client_predict_DoPrediction( pPlayer, ulPredictionTicks );
+	g_bPredicting = false;
 
 	// Restore crucial attributes for this tick.
-	pPlayer->mo->angle = g_SavedAngle[gametic % MAXSAVETICS];
-	pPlayer->mo->pitch = g_SavedPitch[gametic % MAXSAVETICS];
-	pPlayer->jumpTics = g_lSavedJumpTicks[gametic % MAXSAVETICS];
-	pPlayer->turnticks = g_lSavedTurnTicks[gametic % MAXSAVETICS];
-	pPlayer->mo->reactiontime = g_lSavedReactionTime[gametic % MAXSAVETICS];
-	pPlayer->mo->waterlevel = g_lSavedWaterLevel[gametic % MAXSAVETICS];
-	pPlayer->viewheight = g_SavedViewHeight[gametic % MAXSAVETICS];
-	pPlayer->deltaviewheight = g_SavedDeltaViewHeight[gametic % MAXSAVETICS];
-//	pPlayer->mo->floorz = g_SavedFloorZ[gametic % MAXSAVETICS];
+	client_predict_EndPrediction( pPlayer );
 
 #ifdef	_DEBUG
 	if ( cl_showpredictionsuccess )
@@ -274,11 +225,11 @@ void CLIENT_PREDICT_PlayerPredict( void )
 			( SavedY == pPlayer->mo->y ) &&
 			( SavedZ == pPlayer->mo->z ))
 		{
-			Printf( "SUCCESSFULLY predicted %d ticks!\n", lPredictedTicks );
+			Printf( "SUCCESSFULLY predicted %d ticks!\n", ulPredictionTicks );
 		}
 		else
 		{
-			Printf( "FAILED to predict %d ticks.\n", lPredictedTicks );
+			Printf( "FAILED to predict %d ticks.\n", ulPredictionTicks );
 		}
 	}
 #endif
@@ -286,16 +237,6 @@ void CLIENT_PREDICT_PlayerPredict( void )
 	// Now that all of the prediction has been done, do our movement for this tick.
 	P_PlayerThink( pPlayer );
 	pPlayer->mo->Tick( );
-
-	// Finally, reset the viewheight if necessary.
-	if ( bUpdateViewHeight )
-	{
-		pPlayer->viewheight = pPlayer->mo->ViewHeight;
-		pPlayer->viewz = pPlayer->viewheight + pPlayer->mo->z;
-	}
-	// Finally, reset the viewheight.
-//	pPlayer->viewheight = VIEWHEIGHT;
-//	P_CalcHeight( pPlayer );
 }
 
 //*****************************************************************************
@@ -311,4 +252,59 @@ void CLIENT_PREDICT_SaveCmd( void )
 bool CLIENT_PREDICT_IsPredicting( void )
 {
 	return ( g_bPredicting );
+}
+
+//*****************************************************************************
+//*****************************************************************************
+//
+void client_predict_BeginPrediction( player_s *pPlayer )
+{
+	g_SavedAngle[g_ulGameTick % MAXSAVETICS] = pPlayer->mo->angle;
+	g_SavedPitch[g_ulGameTick % MAXSAVETICS] = pPlayer->mo->pitch;
+	g_lSavedJumpTicks[g_ulGameTick % MAXSAVETICS] = pPlayer->jumpTics;
+	g_lSavedTurnTicks[g_ulGameTick % MAXSAVETICS] = pPlayer->turnticks;
+	g_lSavedReactionTime[g_ulGameTick % MAXSAVETICS] = pPlayer->mo->reactiontime;
+	g_lSavedWaterLevel[g_ulGameTick % MAXSAVETICS] = pPlayer->mo->waterlevel;
+	memcpy( &g_SavedTiccmd[g_ulGameTick % MAXSAVETICS], &pPlayer->cmd, sizeof( ticcmd_t ));
+}
+
+//*****************************************************************************
+//
+void client_predict_DoPrediction( player_s *pPlayer, ULONG ulTicks )
+{
+	LONG		lTick;
+
+	lTick = g_ulGameTick - ulTicks;
+	while ( ulTicks )
+	{
+		// Disable bobbing, sounds, etc.
+		g_bPredicting = true;
+
+		// Use backed up values for prediction.
+		pPlayer->mo->angle = g_SavedAngle[lTick % MAXSAVETICS];
+		pPlayer->mo->pitch = g_SavedPitch[lTick % MAXSAVETICS];
+		pPlayer->jumpTics = g_lSavedJumpTicks[lTick % MAXSAVETICS];
+		pPlayer->turnticks = g_lSavedTurnTicks[lTick % MAXSAVETICS];
+		pPlayer->mo->reactiontime = g_lSavedReactionTime[lTick % MAXSAVETICS];
+		pPlayer->mo->waterlevel = g_lSavedWaterLevel[lTick % MAXSAVETICS];
+
+		// Tick the player.
+		P_PlayerThink( pPlayer, &g_SavedTiccmd[lTick % MAXSAVETICS] );
+		pPlayer->mo->Tick( );
+
+		ulTicks--;
+		lTick++;
+	}
+}
+
+//*****************************************************************************
+//
+void client_predict_EndPrediction( player_s *pPlayer )
+{
+	pPlayer->mo->angle = g_SavedAngle[g_ulGameTick % MAXSAVETICS];
+	pPlayer->mo->pitch = g_SavedPitch[g_ulGameTick % MAXSAVETICS];
+	pPlayer->jumpTics = g_lSavedJumpTicks[g_ulGameTick % MAXSAVETICS];
+	pPlayer->turnticks = g_lSavedTurnTicks[g_ulGameTick % MAXSAVETICS];
+	pPlayer->mo->reactiontime = g_lSavedReactionTime[g_ulGameTick % MAXSAVETICS];
+	pPlayer->mo->waterlevel = g_lSavedWaterLevel[g_ulGameTick % MAXSAVETICS];
 }

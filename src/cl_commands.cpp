@@ -131,6 +131,65 @@ void CLIENTCOMMANDS_Say( ULONG ulMode, char *pszString )
 //
 void CLIENTCOMMANDS_ClientMove( void )
 {
+	ticcmd_t	*pCmd;
+	ULONG		ulBits;
+
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_CLIENTMOVE );
+	NETWORK_WriteLong( &CLIENT_GetLocalBuffer( )->ByteStream, gametic );
+
+	// Decide what additional information needs to be sent.
+	ulBits = 0;
+	pCmd = &players[consoleplayer].cmd;
+	if ( pCmd->ucmd.yaw )
+		ulBits |= CLIENT_UPDATE_YAW;
+	if ( pCmd->ucmd.pitch )
+		ulBits |= CLIENT_UPDATE_PITCH;
+	if ( pCmd->ucmd.roll )
+		ulBits |= CLIENT_UPDATE_ROLL;
+	if ( pCmd->ucmd.buttons )
+		ulBits |= CLIENT_UPDATE_BUTTONS;
+	if ( pCmd->ucmd.forwardmove )
+		ulBits |= CLIENT_UPDATE_FORWARDMOVE;
+	if ( pCmd->ucmd.sidemove )
+		ulBits |= CLIENT_UPDATE_SIDEMOVE;
+	if ( pCmd->ucmd.upmove )
+		ulBits |= CLIENT_UPDATE_UPMOVE;
+
+	// Tell the server what information we'll be sending.
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, ulBits );
+
+	// Send the necessary movement/steering information.
+	if ( ulBits & CLIENT_UPDATE_YAW )
+		NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, pCmd->ucmd.yaw );
+	if ( ulBits & CLIENT_UPDATE_PITCH )
+		NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, pCmd->ucmd.pitch );
+	if ( ulBits & CLIENT_UPDATE_ROLL )
+		NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, pCmd->ucmd.roll );
+	if ( ulBits & CLIENT_UPDATE_BUTTONS )
+	{
+		if ( iwanttousecrouchingeventhoughitsretardedandunnecessaryanditsimplementationishorribleimeanverticallyshrinkingskinscomeonthatsinsanebutwhatevergoaheadandhaveyourcrouching == false )
+			NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, pCmd->ucmd.buttons & ~BT_DUCK );
+		else
+			NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, pCmd->ucmd.buttons );
+	}
+	if ( ulBits & CLIENT_UPDATE_FORWARDMOVE )
+		NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, pCmd->ucmd.forwardmove );
+	if ( ulBits & CLIENT_UPDATE_SIDEMOVE )
+		NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, pCmd->ucmd.sidemove );
+	if ( ulBits & CLIENT_UPDATE_UPMOVE )
+		NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, pCmd->ucmd.upmove );
+
+	NETWORK_WriteLong( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].mo->angle );
+	NETWORK_WriteLong( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].mo->pitch );
+
+	// Attack button.
+	if ( pCmd->ucmd.buttons & BT_ATTACK )
+	{
+		if ( players[consoleplayer].ReadyWeapon == NULL )
+			NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, "NULL" );
+		else
+			NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, (char *)players[consoleplayer].ReadyWeapon->GetClass( )->TypeName.GetChars( ));
+	}
 }
 
 //*****************************************************************************

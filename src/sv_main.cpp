@@ -3286,7 +3286,6 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case CLC_CLIENTMOVE:
 		{
 			bool	bPlayerKicked;
-#ifndef	MULTITICK_HACK_FIX
 
 			// Client is sending movement information.
 			bPlayerKicked = server_ClientMove( pByteStream );
@@ -3296,10 +3295,6 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 			g_aClients[g_lCurrentClient].lLastMoveTick = gametic;
 			return ( bPlayerKicked );
-#else
-			// Client is sending movement information.
-			server_ClientMove( );
-#endif
 		}
 		break;
 	case CLC_MISSINGPACKET:
@@ -3548,6 +3543,21 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 	// Read in the information the client is sending us.
 	ulBits = NETWORK_ReadByte( pByteStream );
 
+	if ( ulBits & CLIENT_UPDATE_YAW )
+		pCmd->ucmd.yaw = NETWORK_ReadShort( pByteStream );
+	else
+		pCmd->ucmd.yaw = 0;
+
+	if ( ulBits & CLIENT_UPDATE_PITCH )
+		pCmd->ucmd.pitch = NETWORK_ReadShort( pByteStream );
+	else
+		pCmd->ucmd.pitch = 0;
+
+	if ( ulBits & CLIENT_UPDATE_ROLL )
+		pCmd->ucmd.roll = NETWORK_ReadShort( pByteStream );
+	else
+		pCmd->ucmd.roll = 0;
+
 	if ( ulBits & CLIENT_UPDATE_BUTTONS )
 		pCmd->ucmd.buttons = NETWORK_ReadByte( pByteStream );
 	else
@@ -3633,11 +3643,9 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 			else if ( pPlayer->mo->pitch > ( ANGLE_1 * 90 ))
 				pPlayer->mo->pitch = ( ANGLE_1 * 90 );
 
-#ifndef	MULTITICK_HACK_FIX
 			P_PlayerThink( pPlayer );
 			if ( pPlayer->mo )
 				pPlayer->mo->Tick( );
-#endif
 		}
 	}
 
@@ -4154,11 +4162,9 @@ static bool server_SpectateInfo( BYTESTREAM_s *pByteStream )
 
 	if ( gamestate == GS_LEVEL )
 	{
-#ifndef	MULTITICK_HACK_FIX
 		P_PlayerThink( pPlayer );
 		if ( pPlayer->mo )
 			pPlayer->mo->Tick( );
-#endif
 	}
 
 	// Don't timeout.

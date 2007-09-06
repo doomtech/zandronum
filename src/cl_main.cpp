@@ -773,7 +773,12 @@ void CLIENT_Tick( void )
 
 		break;
 	}
+}
 
+//*****************************************************************************
+//
+void CLIENT_EndTick( void )
+{
 	// If there's any data in our packet, send it to the server.
 	if ( NETWORK_CalcBufferSize( &g_LocalBuffer ) > 0 )
 		CLIENT_SendServerPacket( );
@@ -2255,14 +2260,12 @@ void CLIENT_QuitNetworkGame( char *pszString )
 //
 void CLIENT_SendCmd( void )
 {		
-	ticcmd_t	*cmd;
-	ULONG		ulBits;
-
-	if (( gametic < 1 ) || (( gamestate != GS_LEVEL ) && ( gamestate != GS_INTERMISSION )))
+	if (( gametic < 1 ) ||
+		( players[consoleplayer].mo == NULL ) ||
+		(( gamestate != GS_LEVEL ) && ( gamestate != GS_INTERMISSION )))
+	{
 		return;
-
-	if ( players[consoleplayer].mo == NULL )
-		return;
+	}
 
 	// If we're at intermission, and toggling our "ready to go" status, tell the server.
 	if ( gamestate == GS_INTERMISSION )
@@ -2274,6 +2277,7 @@ void CLIENT_SendCmd( void )
 		}
 
 		players[consoleplayer].oldbuttons = players[consoleplayer].cmd.ucmd.buttons;
+		return;
 	}
 
 	// Don't send movement information if we're spectating!
@@ -2284,59 +2288,12 @@ void CLIENT_SendCmd( void )
 			// Send the gametic.
 			CLIENTCOMMANDS_SpectateInfo( );
 		}
-	}
 
-	// Not in a level or spectating; nothing to do!
-	if (( gamestate != GS_LEVEL ) || ( players[consoleplayer].bSpectating ))
 		return;
-
-	// Initialize the bits.
-	ulBits = 0;
+	}
 
 	// Send the move header and the gametic.
-	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, CLC_CLIENTMOVE );
-	NETWORK_WriteLong( &g_LocalBuffer.ByteStream, gametic );
-
-	// Decide what additional information needs to be sent.
-	cmd = &players[consoleplayer].cmd;
-	if ( cmd->ucmd.buttons )
-		ulBits |= CLIENT_UPDATE_BUTTONS;
-	if ( cmd->ucmd.forwardmove )
-		ulBits |= CLIENT_UPDATE_FORWARDMOVE;
-	if ( cmd->ucmd.sidemove )
-		ulBits |= CLIENT_UPDATE_SIDEMOVE;
-	if ( cmd->ucmd.upmove )
-		ulBits |= CLIENT_UPDATE_UPMOVE;
-
-	// Tell the server what information we'll be sending.
-	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, ulBits );
-
-	// Send the necessary movement/steering information.
-	if ( ulBits & CLIENT_UPDATE_BUTTONS )
-	{
-		if ( iwanttousecrouchingeventhoughitsretardedandunnecessaryanditsimplementationishorribleimeanverticallyshrinkingskinscomeonthatsinsanebutwhatevergoaheadandhaveyourcrouching == false )
-			NETWORK_WriteByte( &g_LocalBuffer.ByteStream, cmd->ucmd.buttons & ~BT_DUCK );
-		else
-			NETWORK_WriteByte( &g_LocalBuffer.ByteStream, cmd->ucmd.buttons );
-	}
-	if ( ulBits & CLIENT_UPDATE_FORWARDMOVE )
-		NETWORK_WriteShort( &g_LocalBuffer.ByteStream, cmd->ucmd.forwardmove );
-	if ( ulBits & CLIENT_UPDATE_SIDEMOVE )
-		NETWORK_WriteShort( &g_LocalBuffer.ByteStream, cmd->ucmd.sidemove );
-	if ( ulBits & CLIENT_UPDATE_UPMOVE )
-		NETWORK_WriteShort( &g_LocalBuffer.ByteStream, cmd->ucmd.upmove );
-
-	NETWORK_WriteLong( &g_LocalBuffer.ByteStream, players[consoleplayer].mo->angle );
-	NETWORK_WriteLong( &g_LocalBuffer.ByteStream, players[consoleplayer].mo->pitch );
-
-	// Attack button.
-	if ( cmd->ucmd.buttons & BT_ATTACK )
-	{
-		if ( players[consoleplayer].ReadyWeapon == NULL )
-			NETWORK_WriteString( &g_LocalBuffer.ByteStream, "NULL" );
-		else
-			NETWORK_WriteString( &g_LocalBuffer.ByteStream, (char *)players[consoleplayer].ReadyWeapon->GetClass( )->TypeName.GetChars( ));
-	}
+	CLIENTCOMMANDS_ClientMove( );
 }
 
 //*****************************************************************************
@@ -2571,7 +2528,7 @@ void CLIENT_MoveThing( AActor *pActor, fixed_t X, fixed_t Y, fixed_t Z )
 {
    if (( pActor == NULL ) || ( gamestate != GS_LEVEL ))
 	   return;
-   
+
    pActor->SetOrigin( X, Y, Z );
 
    // This is needed to restore tmfloorz.

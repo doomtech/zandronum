@@ -117,10 +117,13 @@ enum
 #define	PLAYER_UPDATE_PITCH		2
 
 // Movement flags being sent by the client.
-#define	CLIENT_UPDATE_BUTTONS			( 1 << 0 )
-#define	CLIENT_UPDATE_FORWARDMOVE		( 1 << 1 )
-#define	CLIENT_UPDATE_SIDEMOVE			( 1 << 2 )
-#define	CLIENT_UPDATE_UPMOVE			( 1 << 3 )
+#define	CLIENT_UPDATE_YAW				0x01
+#define	CLIENT_UPDATE_PITCH				0x02
+#define	CLIENT_UPDATE_ROLL				0x04
+#define	CLIENT_UPDATE_BUTTONS			0x08
+#define	CLIENT_UPDATE_FORWARDMOVE		0x10
+#define	CLIENT_UPDATE_SIDEMOVE			0x20
+#define	CLIENT_UPDATE_UPMOVE			0x40
 
 // Identifying states (the cheap & easy way out)
 #define	STATE_SPAWN				1
