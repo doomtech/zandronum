@@ -2123,32 +2123,36 @@ void PLAYER_SetSpectator( player_s *pPlayer, bool bBroadcast, bool bDeadSpectato
 	// Already a spectator. Check if their spectating state is changing.
 	if ( pPlayer->bSpectating == true )
 	{
-		// If they're becoming a true spectator after being a dead spectator, do all the
-		// special spectator stuff we didn't do before.
-		if (( bDeadSpectator == false ) && ( pPlayer->bDeadSpectator ))
+		// Player is trying to become a true spectator (if not one already).
+		if ( bDeadSpectator == false )
 		{
-			pPlayer->bDeadSpectator = false;
-
-			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+			// If they're becoming a true spectator after being a dead spectator, do all the
+			// special spectator stuff we didn't do before.
+			if ( pPlayer->bDeadSpectator )
 			{
-				// Tell the join queue module that a player is leaving the game.
-				JOINQUEUE_PlayerLeftGame( true );
-			}
+				pPlayer->bDeadSpectator = false;
 
-			pPlayer->health = pPlayer->mo->health = deh.StartHealth;
+				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+				{
+					// Tell the join queue module that a player is leaving the game.
+					JOINQUEUE_PlayerLeftGame( true );
+				}
 
-			if ( bBroadcast )
-			{
-				// Send out a message saying this player joined the spectators.
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVER_Printf( PRINT_HIGH, "%s \\c-joined the spectators.\n", pPlayer->userinfo.netname );
-				else
-					Printf( "%s \\c-joined the spectators.\n", pPlayer->userinfo.netname );
+				pPlayer->health = pPlayer->mo->health = deh.StartHealth;
+
+				if ( bBroadcast )
+				{
+					// Send out a message saying this player joined the spectators.
+					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						SERVER_Printf( PRINT_HIGH, "%s \\c-joined the spectators.\n", pPlayer->userinfo.netname );
+					else
+						Printf( "%s \\c-joined the spectators.\n", pPlayer->userinfo.netname );
+				}
+
+				// This player no longer has a team affiliation.
+				pPlayer->bOnTeam = false;
 			}
 		}
-
-		// This player no longer has a team affiliation.
-		pPlayer->bOnTeam = false;
 
 		if (( pPlayer->fragcount > 0 ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 			PLAYER_SetFragcount( pPlayer, 0, false, false );
