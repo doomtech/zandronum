@@ -1599,19 +1599,13 @@ flickerlight HECTSHOT_X3
 
 object HectShot
 {
-    frame HECFA1 { light HECTSHOT }
-    frame HECFA5 { light HECTSHOT }
-    frame HECFB1 { light HECTSHOT }
-    frame HECFB5 { light HECTSHOT }
+    frame HECFA { light HECTSHOT }
+    frame HECFB { light HECTSHOT }
 
-    frame HECFA6A4 { light HECTSHOT_X1 }
-    frame HECFA7A3 { light HECTSHOT_X2 }
-    frame HECFA8A2 { light HECTSHOT_X3 }
-    frame HECFB6B4 { light HECTSHOT_X1 }
-    frame HECFB7B3 { light HECTSHOT_X2 }
-    frame HECFB7B2 { light HECTSHOT_X3 }
+    frame HECFC { light HECTSHOT_X1 }
+    frame HECFD { light HECTSHOT_X2 }
+    frame HECFE { light HECTSHOT_X3 }
 }
-
 
 // Belphegor Ball
 pointlight BELPHEGORBALL

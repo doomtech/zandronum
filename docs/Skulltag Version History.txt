@@ -165,6 +165,7 @@ v0.97d-beta5
 -	- Fixed: Display problems with the CPU name string shown on startup. [Torr Samaho]
 -	- Fixed potential crashes, when trying to add a ban even though the maximum number of bans is already reached. [Torr Samaho]
 -	- Fixed: P_MorphPlayer and P_UndoPlayerMorph don't work online. [Torr Samaho]
+-	- Fixed: The dynamic lights of the Hectebus and the Grenade caused major slowdowns. The definitions were fixed by Hidon. [Torr Samaho]
 !	- Survival co-op is now disabled in hubs. [Carnevil]
 !	- Skulltag's invasion spawners are now defined in skulltag.pk3. [Carnevil]
 !	- Changed Skulltag's connection process so that the map is now loaded before a full snapshot of the map is sent. This should result in a smoother connection process. [Carnevil]
