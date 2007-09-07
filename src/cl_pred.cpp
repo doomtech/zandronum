@@ -86,6 +86,8 @@ static	LONG		g_lSavedJumpTicks[MAXSAVETICS];
 static	LONG		g_lSavedTurnTicks[MAXSAVETICS];
 static	LONG		g_lSavedReactionTime[MAXSAVETICS];
 static	LONG		g_lSavedWaterLevel[MAXSAVETICS];
+static	bool		g_bSavedOnFloor[MAXSAVETICS];
+static	fixed_t		g_SavedFloorZ[MAXSAVETICS];
 
 #ifdef	_DEBUG
 CVAR( Bool, cl_showpredictionsuccess, false, 0 );
@@ -95,9 +97,9 @@ CVAR( Bool, cl_showonetickpredictionerrors, false, 0 );
 //*****************************************************************************
 //	PROTOTYPES
 
-void	client_predict_BeginPrediction( player_s *pPlayer );
-void	client_predict_DoPrediction( player_s *pPlayer, ULONG ulTicks );
-void	client_predict_EndPrediction( player_s *pPlayer );
+static	void	client_predict_BeginPrediction( player_s *pPlayer );
+static	void	client_predict_DoPrediction( player_s *pPlayer, ULONG ulTicks );
+static	void	client_predict_EndPrediction( player_s *pPlayer );
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -106,8 +108,6 @@ void CLIENT_PREDICT_PlayerPredict( void )
 {
 	player_t	*pPlayer;
 	ULONG		ulPredictionTicks;
-	bool		bOnFloor;
-	fixed_t		FloorZ;
 #ifdef	_DEBUG
 	fixed_t		SavedX;
 	fixed_t		SavedY;
@@ -181,18 +181,14 @@ void CLIENT_PREDICT_PlayerPredict( void )
 
 	// Save the player's "on the floor" status. If the player was on the floor prior to moving
 	// back to the player's saved position, move him back onto the floor after moving him.
-	bOnFloor = pPlayer->mo->z == pPlayer->mo->floorz;
-	FloorZ = pPlayer->mo->floorz;
+	g_bSavedOnFloor[g_ulGameTick % MAXSAVETICS] = pPlayer->mo->z == pPlayer->mo->floorz;
+	g_SavedFloorZ[g_ulGameTick % MAXSAVETICS] = pPlayer->mo->floorz;
 
 	// Set the player's position as told to him by the server.
 	CLIENT_MoveThing( pPlayer->mo,
 		pPlayer->ServerXYZ[0],
 		pPlayer->ServerXYZ[1],
 		pPlayer->ServerXYZ[2] );
-
-	// Restore the player's z position.
-	if ( bOnFloor )
-		pPlayer->mo->z = FloorZ;
 
 	// Set the player's velocity as told to him by the server.
 	pPlayer->mo->momx = pPlayer->ServerXYZMom[0];
@@ -257,7 +253,7 @@ bool CLIENT_PREDICT_IsPredicting( void )
 //*****************************************************************************
 //*****************************************************************************
 //
-void client_predict_BeginPrediction( player_s *pPlayer )
+static void client_predict_BeginPrediction( player_s *pPlayer )
 {
 	g_SavedAngle[g_ulGameTick % MAXSAVETICS] = pPlayer->mo->angle;
 	g_SavedPitch[g_ulGameTick % MAXSAVETICS] = pPlayer->mo->pitch;
@@ -270,7 +266,7 @@ void client_predict_BeginPrediction( player_s *pPlayer )
 
 //*****************************************************************************
 //
-void client_predict_DoPrediction( player_s *pPlayer, ULONG ulTicks )
+static void client_predict_DoPrediction( player_s *pPlayer, ULONG ulTicks )
 {
 	LONG		lTick;
 
@@ -287,6 +283,8 @@ void client_predict_DoPrediction( player_s *pPlayer, ULONG ulTicks )
 		pPlayer->turnticks = g_lSavedTurnTicks[lTick % MAXSAVETICS];
 		pPlayer->mo->reactiontime = g_lSavedReactionTime[lTick % MAXSAVETICS];
 		pPlayer->mo->waterlevel = g_lSavedWaterLevel[lTick % MAXSAVETICS];
+		if ( g_bSavedOnFloor[lTick % MAXSAVETICS] )
+			pPlayer->mo->z = pPlayer->mo->floorz;//g_SavedFloorZ[lTick % MAXSAVETICS];
 
 		// Tick the player.
 		P_PlayerThink( pPlayer, &g_SavedTiccmd[lTick % MAXSAVETICS] );
@@ -299,7 +297,7 @@ void client_predict_DoPrediction( player_s *pPlayer, ULONG ulTicks )
 
 //*****************************************************************************
 //
-void client_predict_EndPrediction( player_s *pPlayer )
+static void client_predict_EndPrediction( player_s *pPlayer )
 {
 	pPlayer->mo->angle = g_SavedAngle[g_ulGameTick % MAXSAVETICS];
 	pPlayer->mo->pitch = g_SavedPitch[g_ulGameTick % MAXSAVETICS];
@@ -307,4 +305,6 @@ void client_predict_EndPrediction( player_s *pPlayer )
 	pPlayer->turnticks = g_lSavedTurnTicks[g_ulGameTick % MAXSAVETICS];
 	pPlayer->mo->reactiontime = g_lSavedReactionTime[g_ulGameTick % MAXSAVETICS];
 	pPlayer->mo->waterlevel = g_lSavedWaterLevel[g_ulGameTick % MAXSAVETICS];
+	if ( g_bSavedOnFloor[g_ulGameTick % MAXSAVETICS] )
+		pPlayer->mo->z = g_SavedFloorZ[g_ulGameTick % MAXSAVETICS];
 }
