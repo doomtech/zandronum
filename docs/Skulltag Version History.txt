@@ -167,6 +167,7 @@ v0.97d-beta5
 -	- Fixed: P_MorphPlayer and P_UndoPlayerMorph don't work online. [Torr Samaho]
 -	- Fixed: The dynamic lights of the Hectebus and the Grenade caused major slowdowns. The definitions were fixed by Hidon. [Torr Samaho]
 -	- Fixed: If a client is forced to leave a server due to an error, the client doesn't tell the server that it's leaving. [Torr Samaho]
+-	- Prevented the "Tried to render from a NULL actor." error from occurring in software. [Torr Samaho]
 !	- Survival co-op is now disabled in hubs. [Carnevil]
 !	- Skulltag's invasion spawners are now defined in skulltag.pk3. [Carnevil]
 !	- Changed Skulltag's connection process so that the map is now loaded before a full snapshot of the map is sent. This should result in a smoother connection process. [Carnevil]

@@ -626,17 +626,21 @@ void D_Display (bool screenshot)
 
 			// [BB] if (viewactive) is necessary here. Otherwise it could try to render a NULL actor.
 			// This happens for example if you start a new game, while being on a server.
-			// [BB] Possibly it's necessary to check for (players[consoleplayer].mo != NULL) too
 			if (viewactive)
 			{
 				R_RefreshViewBorder ();
 				P_CheckPlayerSprites();
 				if (currentrenderer==0)
 				{
-					R_RenderActorView (players[consoleplayer].mo);
-					R_DetailDouble ();		// [RH] Apply detail mode expansion
-					// [RH] Let cameras draw onto textures that were visible this frame.
-					FCanvasTextureInfo::UpdateAll ();
+					// [BB] This check shouldn't be necessary, but should completely prevent
+					// the "tried to render NULL actor" errors.
+					if ( players[consoleplayer].mo != NULL )
+					{
+						R_RenderActorView (players[consoleplayer].mo);
+						R_DetailDouble ();		// [RH] Apply detail mode expansion
+						// [RH] Let cameras draw onto textures that were visible this frame.
+						FCanvasTextureInfo::UpdateAll ();
+					}
 				}
 				else
 				{
