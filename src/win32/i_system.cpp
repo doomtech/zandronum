@@ -582,6 +582,10 @@ void STACK_ARGS I_FatalError (const char *error, ...)
 		if (Logfile)
 			fprintf (Logfile, "\n**** DIED WITH FATAL ERROR:\n%s\n", errortext);
 
+		// [BB] Tell the server we're leaving the game.
+		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+			CLIENT_QuitNetworkGame( NULL );
+
 		throw CFatalError (errortext);
 	}
 
@@ -600,6 +604,10 @@ void STACK_ARGS I_Error (const char *error, ...)
 	va_start (argptr, error);
 	vsprintf (errortext, error, argptr);
 	va_end (argptr);
+
+	// [BB] Tell the server we're leaving the game.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		CLIENT_QuitNetworkGame( NULL );
 
 	throw CRecoverableError (errortext);
 }

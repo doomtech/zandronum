@@ -322,6 +322,11 @@ void STACK_ARGS I_FatalError (const char *error, ...)
 		// Record error to log (if logging)
 		if (Logfile)
 			fprintf (Logfile, "\n**** DIED WITH FATAL ERROR:\n%s\n", errortext);
+
+		// [BB] Tell the server we're leaving the game.
+		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+			CLIENT_QuitNetworkGame( NULL );
+
 //		throw CFatalError (errortext);
 		fprintf (stderr, "%s\n", errortext);
 		exit (-1);
@@ -336,14 +341,18 @@ void STACK_ARGS I_FatalError (const char *error, ...)
 
 void STACK_ARGS I_Error (const char *error, ...)
 {
-    va_list argptr;
-    char errortext[MAX_ERRORTEXT];
+	va_list argptr;
+	char errortext[MAX_ERRORTEXT];
 
-    va_start (argptr, error);
-    vsprintf (errortext, error, argptr);
-    va_end (argptr);
+	va_start (argptr, error);
+	vsprintf (errortext, error, argptr);
+	va_end (argptr);
 
-    throw CRecoverableError (errortext);
+	// [BB] Tell the server we're leaving the game.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		CLIENT_QuitNetworkGame( NULL );
+
+	throw CRecoverableError (errortext);
 }
 
 void I_SetIWADInfo (const IWADInfo *info)
