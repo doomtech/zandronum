@@ -2282,7 +2282,7 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 {
 	ULONG	ulIdx;
 	ULONG	ulColor;
-	ULONG	ulCurXPos;
+	LONG	lXPosOffset;
 	char	szPatchName[9];
 	char	szString[64];
 
@@ -2308,7 +2308,7 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 				sprintf( szString, "%s", players[ulPlayer].userinfo.netname );
 
 				// Track where we are to draw multiple icons.
-				ulCurXPos = (LONG)(  g_aulColumnX[ulIdx] * g_fXScale ) - SmallFont->StringWidth("  ");
+				lXPosOffset = -SmallFont->StringWidth( "  " );
 
 				// Draw the user's handicap, if any.
 				if ( players[ulPlayer].userinfo.lHandicap > 0 )
@@ -2330,11 +2330,11 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 							sprintf( szHandicapString, "(%d)", deh.StartHealth - (LONG)players[ulPlayer].userinfo.lHandicap );
 					}
 					
-					ulCurXPos -= SmallFont->StringWidth ( szHandicapString );
+					lXPosOffset -= SmallFont->StringWidth ( szHandicapString );
 					if ( g_bScale )
 					{
 						screen->DrawText( ulColor,
-							ulCurXPos,
+							(LONG)( g_aulColumnX[ulIdx] * g_fXScale ) + lXPosOffset,
 							g_ulCurYPos,
 							szHandicapString,
 							DTA_VirtualWidth, g_ValWidth.Int,
@@ -2344,25 +2344,25 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 					else
 					{
 						screen->DrawText( ulColor,
-							ulCurXPos,
+							(LONG)( g_aulColumnX[ulIdx] * CleanXfac ) + lXPosOffset,
 							g_ulCurYPos,
 							szHandicapString,
 							DTA_Clean,
 							g_bScale,
 							TAG_DONE );
 					}
-					ulCurXPos -= 4;
+					lXPosOffset -= 4;
 				}
 
 				// Draw an icon if this player is a ready to go on.
 				if ( players[ulPlayer].bReadyToGoOn )
 				{
 					sprintf( szPatchName, "RDYTOGO" );
-					ulCurXPos -= TexMan[szPatchName]->GetWidth();
+					lXPosOffset -= TexMan[szPatchName]->GetWidth();
 					if ( g_bScale )
 					{
 						screen->DrawTexture( TexMan[szPatchName],
-							ulCurXPos,
+							(LONG)( g_aulColumnX[ulIdx] * g_fXScale ) + lXPosOffset,
 							g_ulCurYPos - (( TexMan[szPatchName]->GetHeight( ) - SmallFont->GetHeight( )) / 2 ),
 							DTA_VirtualWidth, g_ValWidth.Int,
 							DTA_VirtualHeight, g_ValHeight.Int,
@@ -2371,11 +2371,11 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 					else
 					{
 						screen->DrawTexture( TexMan[szPatchName],
-							ulCurXPos,
+							(LONG)( g_aulColumnX[ulIdx] * CleanXfac ) + lXPosOffset,
 							g_ulCurYPos - (( TexMan[szPatchName]->GetHeight( ) - SmallFont->GetHeight( )) / 2 ),
 							TAG_DONE );
 					}
-					ulCurXPos -= 4;
+					lXPosOffset -= 4;
 				}
 
 				// Draw a bot icon if this player is a bot.
@@ -2383,11 +2383,11 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 				{
 					sprintf( szPatchName, "BOTSKIL%d", botskill.GetGenericRep( CVAR_Int ));
 
-					ulCurXPos -= TexMan[szPatchName]->GetWidth();
+					lXPosOffset -= TexMan[szPatchName]->GetWidth();
 					if ( g_bScale )
 					{
 						screen->DrawTexture( TexMan[szPatchName],
-							ulCurXPos,
+							(LONG)( g_aulColumnX[ulIdx] * g_fXScale ) + lXPosOffset,
 							g_ulCurYPos,
 							DTA_VirtualWidth, g_ValWidth.Int,
 							DTA_VirtualHeight, g_ValHeight.Int,
@@ -2396,13 +2396,13 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 					else
 					{
 						screen->DrawTexture( TexMan[szPatchName],
-							ulCurXPos,
+							(LONG)( g_aulColumnX[ulIdx] * CleanXfac ) + lXPosOffset,
 							g_ulCurYPos,
 							DTA_Clean,
 							g_bScale,
 							TAG_DONE );
 					}
-					ulCurXPos -= 4;
+					lXPosOffset -= 4;
 				}
 
 				// Draw a chat icon if this player is chatting.
@@ -2410,11 +2410,11 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 				{
 					sprintf( szPatchName, "TLKMINI");
 
-					ulCurXPos -= TexMan[szPatchName]->GetWidth();
+					lXPosOffset -= TexMan[szPatchName]->GetWidth();
 					if ( g_bScale )
 					{
 						screen->DrawTexture( TexMan[szPatchName],
-							ulCurXPos,
+							(LONG)( g_aulColumnX[ulIdx] * g_fXScale ) + lXPosOffset,
 							g_ulCurYPos - 1,
 							DTA_VirtualWidth, g_ValWidth.Int,
 							DTA_VirtualHeight, g_ValHeight.Int,
@@ -2423,13 +2423,13 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 					else
 					{
 						screen->DrawTexture( TexMan[szPatchName],
-							ulCurXPos,
+							(LONG)( g_aulColumnX[ulIdx] * CleanXfac ) + lXPosOffset,
 							g_ulCurYPos - 1,
 							DTA_Clean,
 							g_bScale,
 							TAG_DONE );
 					}
-					ulCurXPos -= 4;
+					lXPosOffset -= 4;
 				}
 
 				// Draw text if there's a vote on and this player voted.
@@ -2470,11 +2470,11 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 						char	szVoteString[8];
 
 						sprintf( szVoteString, "(%s)", bWeVotedYes ? "yes" : "no" );
-						ulCurXPos -= SmallFont->StringWidth ( szVoteString );
+						lXPosOffset -= SmallFont->StringWidth ( szVoteString );
 						if ( g_bScale )
 						{
 							screen->DrawText( ( CALLVOTE_GetVoteCaller() == ulPlayer ) ? CR_RED : CR_GOLD,
-								ulCurXPos,
+								(LONG)( g_aulColumnX[ulIdx] * g_fXScale ) + lXPosOffset,
 								g_ulCurYPos,
 								szVoteString,
 								DTA_VirtualWidth, g_ValWidth.Int,
@@ -2484,16 +2484,15 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 						else
 						{
 							screen->DrawText( ( CALLVOTE_GetVoteCaller() == consoleplayer ) ? CR_RED : CR_GOLD,
-								ulCurXPos,
+								(LONG)( g_aulColumnX[ulIdx] * CleanXfac ) + lXPosOffset,
 								g_ulCurYPos,
 								szVoteString,
 								DTA_Clean,
 								g_bScale,
 								TAG_DONE );
 						}
-						ulCurXPos -= 4;
+						lXPosOffset -= 4;
 					}
-					
 				}
 
 				break;
