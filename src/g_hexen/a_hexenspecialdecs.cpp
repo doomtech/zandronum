@@ -748,8 +748,18 @@ void A_SoAExplode (AActor *actor)
 		if (!(dmflags & DF_NO_MONSTERS) 
 		|| !(GetDefaultByType (SpawnableThings[actor->args[0]])->flags3 & MF3_ISMONSTER))
 		{ // Only spawn monsters if not -nomonsters
-			Spawn (SpawnableThings[actor->args[0]],
-				actor->x, actor->y, actor->z, ALLOW_REPLACE);
+			// [BC]
+			if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+			{
+				AActor	*pActor;
+
+				pActor = Spawn (SpawnableThings[actor->args[0]],
+					actor->x, actor->y, actor->z, ALLOW_REPLACE);
+
+				// [BC] If we're the server, spawn the thing.
+				if (( pActor ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
+					SERVERCOMMANDS_SpawnThing( pActor );
+			}
 		}
 	}
 	S_SoundID (actor, CHAN_BODY, actor->DeathSound, 1, ATTN_NORM);
