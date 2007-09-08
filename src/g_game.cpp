@@ -3246,7 +3246,10 @@ void GAME_ResetMap( void )
 	// Restart the map music.
 	S_ChangeMusic( level.music, level.musicorder );
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
 		SERVER_SetMapMusic( level.music );
+		SERVERCOMMANDS_SetMapMusic( SERVER_GetMapMusic( ));
+	}
 
 	// Reload the actors on this level.
 	while (( pActor = ActorIterator.Next( )) != NULL )
