@@ -40,13 +40,16 @@
 #include "sc_man.h"
 #include "gl/gl_lights.h"
 
+#include "gamemode.h"
+
 enum
 {
 	// crappy hack to make certain WADs look better
 	sec_outside = 87,
 };
 
-
+// [BB] Specifies if the current map uses 3d floors.
+bool mapUses3DFloors;
 
 
 //==========================================================================
@@ -769,6 +772,7 @@ void P_SpawnSpecials2 (void)
 {
 	int i;
 	line_t * line;
+	mapUses3DFloors = false;
 
 	for (i=0,line=lines;i<numlines;i++,line++)
 	{
@@ -785,20 +789,23 @@ void P_SpawnSpecials2 (void)
 			break;
 
 		case Sector_Set3DFloor:
-			// [BB] 3D floors are deactivated for now.
-/*
-			if (line->args[1]&8)
+			// [BB] Only spawn 3d floors in cooperative game modes.
+			if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE )
 			{
-				line->id = line->args[4];
+
+				if (line->args[1]&8)
+				{
+					line->id = line->args[4];
+				}
+				else
+				{
+					line->args[0]+=256*line->args[4];
+					line->args[4]=0;
+				}
+				P_Set3DFloor(line, line->args[1]&~8, line->args[2], line->args[3]);
+				mapUses3DFloors = true;
+				break;
 			}
-			else
-			{
-				line->args[0]+=256*line->args[4];
-				line->args[4]=0;
-			}
-			P_Set3DFloor(line, line->args[1]&~8, line->args[2], line->args[3]);
-			break;
-*/
 		default:
 			continue;
 		}
