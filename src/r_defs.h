@@ -427,6 +427,9 @@ struct sector_t
 	fixed_t				SavedBaseCeilingYOffset;
 	fixed_t				SavedFriction;
 	fixed_t				SavedMoveFactor;
+	short				SavedSpecial;
+	short				SavedDamage;
+	short				SavedMOD;
 };
 
 struct ReverbContainer;

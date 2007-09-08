@@ -3193,6 +3193,17 @@ void GAME_ResetMap( void )
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SetSectorFriction( ulIdx );
 		}
+
+		if (( sectors[ulIdx].SavedSpecial != sectors[ulIdx].special ) ||
+			( sectors[ulIdx].SavedDamage != sectors[ulIdx].damage ) ||
+			( sectors[ulIdx].SavedMOD != sectors[ulIdx].mod ))
+		{
+			sectors[ulIdx].special = sectors[ulIdx].SavedSpecial;
+			sectors[ulIdx].damage = sectors[ulIdx].SavedDamage;
+			sectors[ulIdx].mod = sectors[ulIdx].SavedMOD;
+
+			// No client update necessary here.
+		}
 	}
 
 	// Reset the sky properties of the map.
@@ -3231,6 +3242,11 @@ void GAME_ResetMap( void )
 		SERVERCOMMANDS_SetMapNumFoundItems( );
 		SERVERCOMMANDS_SetMapNumFoundSecrets( );
 	}
+
+	// Restart the map music.
+	S_ChangeMusic( level.music, level.musicorder );
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVER_SetMapMusic( level.music );
 
 	// Reload the actors on this level.
 	while (( pActor = ActorIterator.Next( )) != NULL )
@@ -3357,6 +3373,9 @@ void GAME_ResetMap( void )
 			( GAME_DormantStatusMatchesOriginal( pActor )) &&
 			( pActor->health == pActorInfo->health ))
 		{
+			if ( pActor->special != pActor->SavedSpecial )
+				pActor->special = pActor->SavedSpecial;
+
 			continue;
 		}
 

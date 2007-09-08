@@ -1226,6 +1226,9 @@ void P_LoadSectors (MapData * map)
 		ss->SavedBaseCeilingYOffset = ss->base_ceiling_yoffs;
 		ss->SavedFriction = ss->friction;
 		ss->SavedMoveFactor = ss->movefactor;
+		ss->SavedSpecial = ss->special;
+		ss->SavedDamage = ss->damage;
+		ss->SavedMOD = ss->mod;
 	}
 	P_CreateExtSectors();
 	delete[] msp;
