@@ -79,6 +79,7 @@ static FRandom pr_cwpunch ("CustomWpPunch");
 static FRandom pr_grenade ("ThrowGrenade");
 static FRandom pr_crailgun ("CustomRailgun");
 static FRandom pr_spawndebris ("SpawnDebris");
+static FRandom pr_spawnitemex ("SpawnItemEx");
 static FRandom pr_burst ("Burst");
 
 
@@ -1369,53 +1370,12 @@ void A_TakeFromTarget(AActor * self)
 
 //===========================================================================
 //
-// A_SpawnItem
-//
-// Spawns an item in front of the caller like Heretic's time bomb
+// Common code for A_SpawnItem and A_SpawnItemEx
 //
 //===========================================================================
-void A_SpawnItem(AActor * self)
+
+static void InitSpawnedItem(AActor *self, AActor *mo, INTBOOL transfer_translation, INTBOOL setmaster)
 {
-	FState * CallingState;
-	int index=CheckIndex(5, &CallingState);
-	if (index<0) return;
-
-	const PClass * missile= PClass::FindClass((ENamedName)StateParameters[index]);
-	fixed_t distance = fixed_t(EvalExpressionF (StateParameters[index+1], self) * FRACUNIT);
-	fixed_t zheight = fixed_t(EvalExpressionF (StateParameters[index+2], self) * FRACUNIT);
-	bool useammo = EvalExpressionN (StateParameters[index+3], self);
-	INTBOOL transfer_translation = EvalExpressionI (StateParameters[index+4], self);
-
-	if (!missile) 
-	{
-		if (pStateCall != NULL) pStateCall->Result=false;
-		return;
-	}
-
-	if (distance==0) 
-	{
-		// use the minimum distance that does not result in an overlap
-		distance=(self->radius+GetDefaultByType(missile)->radius)>>FRACBITS;
-	}
-
-	if (self->player && CallingState != self->state && (pStateCall==NULL || CallingState != pStateCall->State))
-	{
-		// Used from a weapon so use some ammo
-		AWeapon * weapon=self->player->ReadyWeapon;
-
-		if (!weapon) return;
-		if (useammo && !weapon->DepleteAmmo(weapon->bAltFire)) return;
-	}
-
-	// [BB] The server handles the spawning of the item.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
-		return;
-
-	AActor * mo = Spawn( missile, 
-					self->x + FixedMul(distance, finecosine[self->angle>>ANGLETOFINESHIFT]), 
-					self->y + FixedMul(distance, finesine[self->angle>>ANGLETOFINESHIFT]), 
-					self->z - self->floorclip + zheight, ALLOW_REPLACE);
-
 	if (mo)
 	{
 		AActor * originator = self;
@@ -1444,7 +1404,7 @@ void A_SpawnItem(AActor * self)
 				{
 					// If this is a monster transfer all friendliness information
 					mo->CopyFriendliness(originator, true);
-					if (useammo) mo->master = originator;	// don't let it attack you (optional)!
+					if (setmaster) mo->master = originator;	// don't let it attack you (optional)!
 				}
 				else if (originator->player)
 				{
@@ -1470,10 +1430,178 @@ void A_SpawnItem(AActor * self)
 			// If this is a missile or something else set the target to the originator
 			mo->target=originator? originator : self;
 		}
+	}
+}
 
-		// [BC] If we're the server, tell clients to spawn the item.
+//===========================================================================
+//
+// A_SpawnItem
+//
+// Spawns an item in front of the caller like Heretic's time bomb
+//
+//===========================================================================
+
+void A_SpawnItem(AActor * self)
+{
+	FState * CallingState;
+	int index=CheckIndex(5, &CallingState);
+	if (index<0) return;
+
+	const PClass * missile= PClass::FindClass((ENamedName)StateParameters[index]);
+	fixed_t distance = fixed_t(EvalExpressionF (StateParameters[index+1], self) * FRACUNIT);
+	fixed_t zheight = fixed_t(EvalExpressionF (StateParameters[index+2], self) * FRACUNIT);
+	bool useammo = EvalExpressionN (StateParameters[index+3], self);
+	INTBOOL transfer_translation = EvalExpressionI (StateParameters[index+4], self);
+
+	if (!missile) 
+	{
+		if (pStateCall != NULL) pStateCall->Result=false;
+		return;
+	}
+
+	// [BB] Insert this when NAME_Massacre is implemented.
+	// Don't spawn monsters if this actor has been massacred
+	//if (self->DamageType == NAME_Massacre && GetDefaultByType(missile)->flags3&MF3_ISMONSTER) return;
+
+	if (distance==0) 
+	{
+		// use the minimum distance that does not result in an overlap
+		distance=(self->radius+GetDefaultByType(missile)->radius)>>FRACBITS;
+	}
+
+	if (self->player && CallingState != self->state && (pStateCall==NULL || CallingState != pStateCall->State))
+	{
+		// Used from a weapon so use some ammo
+		AWeapon * weapon=self->player->ReadyWeapon;
+
+		if (!weapon) return;
+		if (useammo && !weapon->DepleteAmmo(weapon->bAltFire)) return;
+	}
+
+	// [BB] The server handles the spawning of the item.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		return;
+
+	AActor * mo = Spawn( missile, 
+					self->x + FixedMul(distance, finecosine[self->angle>>ANGLETOFINESHIFT]), 
+					self->y + FixedMul(distance, finesine[self->angle>>ANGLETOFINESHIFT]), 
+					self->z - self->floorclip + zheight, ALLOW_REPLACE);
+
+	InitSpawnedItem(self, mo, transfer_translation, useammo);
+
+	// [BC] If we're the server, tell clients to spawn the item.
+	if ( mo && NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SpawnThing( mo );
+}
+
+//===========================================================================
+//
+// A_SpawnItemEx
+//
+// Enhanced spawning function
+//
+//===========================================================================
+enum SIX_Flags
+{
+	SIXF_TRANSFERTRANSLATION=1,
+	SIXF_ABSOLUTEPOSITION=2,
+	SIXF_ABSOLUTEANGLE=4,
+	SIXF_ABSOLUTEMOMENTUM=8,
+	SIXF_SETMASTER=16
+};
+
+void A_SpawnItemEx(AActor * self)
+{
+	FState * CallingState;
+	int index=CheckIndex(9, &CallingState);
+	if (index<0) return;
+
+	const PClass * missile= PClass::FindClass((ENamedName)StateParameters[index]);
+	fixed_t xofs = fixed_t(EvalExpressionF (StateParameters[index+1], self) * FRACUNIT);
+	fixed_t yofs = fixed_t(EvalExpressionF (StateParameters[index+2], self) * FRACUNIT);
+	fixed_t zofs = fixed_t(EvalExpressionF (StateParameters[index+3], self) * FRACUNIT);
+	fixed_t xmom = fixed_t(EvalExpressionF (StateParameters[index+4], self) * FRACUNIT);
+	fixed_t ymom = fixed_t(EvalExpressionF (StateParameters[index+5], self) * FRACUNIT);
+	fixed_t zmom = fixed_t(EvalExpressionF (StateParameters[index+6], self) * FRACUNIT);
+	angle_t Angle= angle_t(EvalExpressionF (StateParameters[index+7], self) * ANGLE_1);
+	int flags = EvalExpressionI (StateParameters[index+8], self);
+	int chance = EvalExpressionI (StateParameters[index+9], self);
+
+	if (!missile) 
+	{
+		if (pStateCall != NULL) pStateCall->Result=false;
+		return;
+	}
+
+	if (chance > 0 && pr_spawnitemex()<chance) return;
+
+	// [BB] Insert this when NAME_Massacre is implemented.
+	// Don't spawn monsters if this actor has been massacred
+	//if (self->DamageType == NAME_Massacre && GetDefaultByType(missile)->flags3&MF3_ISMONSTER) return;
+
+	fixed_t x,y;
+
+	if (!(flags & SIXF_ABSOLUTEANGLE))
+	{
+		Angle += self->angle;
+	}
+
+	angle_t ang = Angle >> ANGLETOFINESHIFT;
+
+	if (flags & SIXF_ABSOLUTEPOSITION)
+	{
+		x = self->x + xofs;
+		y = self->y + yofs;
+	}
+	else
+	{
+		// in relative mode negative y values mean 'left' and positive ones mean 'right'
+		// This is the inverse orientation of the absolute mode!
+		x = self->x + FixedMul(xofs, finecosine[ang]) + FixedMul(yofs, finesine[ang]);
+		y = self->y + FixedMul(xofs, finesine[ang]) - FixedMul(yofs, finecosine[ang]);
+	}
+
+	if (!(flags & SIXF_ABSOLUTEMOMENTUM))
+	{
+		// Same orientation issue here!
+		fixed_t newxmom = FixedMul(xmom, finecosine[ang]) + FixedMul(ymom, finesine[ang]);
+		ymom = FixedMul(xmom, finesine[ang]) - FixedMul(ymom, finecosine[ang]);
+		xmom = newxmom;
+	}
+
+	// [BB] The server handles the spawning of the item.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		return;
+
+	AActor * mo = Spawn( missile, x, y, self->z + self->floorclip + zofs, ALLOW_REPLACE);
+	InitSpawnedItem(self, mo, (flags & SIXF_TRANSFERTRANSLATION), (flags&SIXF_SETMASTER));
+	if (mo)
+	{
+		mo->momx=xmom;
+		mo->momy=ymom;
+		mo->momz=zmom;
+		mo->angle=Angle;
+
+		// [BB] If we're the server, tell clients to spawn the item
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
 			SERVERCOMMANDS_SpawnThing( mo );
+
+			// [BB] Set the angle and momentum if necessary.
+			ULONG ulBits = 0;
+
+			if ( mo->angle != 0 )
+				ulBits |= CM_ANGLE;
+			if ( mo->momx != 0 )
+				ulBits |= CM_MOMX;
+			if ( mo->momy != 0 )
+				ulBits |= CM_MOMY;
+			if ( mo->momz != 0 )
+				ulBits |= CM_MOMZ;
+
+			if ( ulBits )
+				SERVERCOMMANDS_MoveThingExact( mo, ulBits );
+		}
 	}
 }
 
