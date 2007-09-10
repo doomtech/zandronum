@@ -257,8 +257,9 @@ FState ABloodySkull::States[] =
 IMPLEMENT_ACTOR (ABloodySkull, Heretic, -1, 0)
 	PROP_RadiusFixed (4)
 	PROP_HeightFixed (4)
+	PROP_Gravity (FRACUNIT/8)
 	PROP_Flags (MF_NOBLOCKMAP|MF_DROPOFF)
-	PROP_Flags2 (MF2_LOGRAV|MF2_CANNOTPUSH)
+	PROP_Flags2 (MF2_CANNOTPUSH)
 	PROP_Flags3 (MF3_SKYEXPLODE|MF3_NOBLOCKMONST)
 
 	PROP_SpawnState (0)

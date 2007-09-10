@@ -114,8 +114,9 @@ FState APodGoo::States[] =
 IMPLEMENT_ACTOR (APodGoo, Heretic, -1, 0)
 	PROP_RadiusFixed (2)
 	PROP_HeightFixed (4)
+	PROP_Gravity (FRACUNIT/8)
 	PROP_Flags (MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF)
-	PROP_Flags2 (MF2_NOTELEPORT|MF2_LOGRAV|MF2_CANNOTPUSH)
+	PROP_Flags2 (MF2_NOTELEPORT|MF2_CANNOTPUSH)
 
 	PROP_SpawnState (S_PODGOO)
 END_DEFAULTS
@@ -420,8 +421,9 @@ IMPLEMENT_ACTOR (AVolcanoBlast, Heretic, -1, 123)
 	PROP_SpeedFixed (2)
 	PROP_Damage (2)
 	PROP_DamageType (MOD_FIRE)
+	PROP_Gravity (FRACUNIT/8)
 	PROP_Flags (MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF)
-	PROP_Flags2 (MF2_LOGRAV|MF2_NOTELEPORT)
+	PROP_Flags2 (MF2_NOTELEPORT)
 
 	PROP_SpawnState (S_VOLCANOBALL)
 	PROP_DeathState (S_VOLCANOBALLX)
@@ -458,8 +460,9 @@ IMPLEMENT_ACTOR (AVolcanoTBlast, Heretic, -1, 124)
 	PROP_SpeedFixed (2)
 	PROP_Damage (1)
 	PROP_DamageType (MOD_FIRE)
+	PROP_Gravity (FRACUNIT/8)
 	PROP_Flags (MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF)
-	PROP_Flags2 (MF2_LOGRAV|MF2_NOTELEPORT)
+	PROP_Flags2 (MF2_NOTELEPORT)
 
 	PROP_SpawnState (S_VOLCANOTBALL)
 	PROP_DeathState (S_VOLCANOTBALLX)
@@ -521,7 +524,7 @@ void A_VolcBallImpact (AActor *ball)
 	if (ball->z <= ball->floorz)
 	{
 		ball->flags |= MF_NOGRAVITY;
-		ball->flags2 &= ~MF2_LOGRAV;
+		ball->gravity = FRACUNIT;
 		ball->z += 28*FRACUNIT;
 		//ball->momz = 3*FRACUNIT;
 	}

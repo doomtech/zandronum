@@ -350,6 +350,7 @@ void AActor::Serialize (FArchive &arc)
 		<< bouncecount
 		<< meleerange
 		<< DamageType
+		<< gravity
 		<< (DWORD &)lNetID // [BC] We need to archive this so that it's restored properly when going between maps in a hub.
 		<< (DWORD &)ulSTFlags
 		<< (DWORD &)ulNetworkFlags
@@ -2333,7 +2334,7 @@ void P_ZMovement (AActor *mo)
 			!(mo->player->cmd.ucmd.forwardmove | mo->player->cmd.ucmd.sidemove)))
 		{
 			mo->momz -= (fixed_t)(level.gravity * mo->Sector->gravity *
-				(( mo->ulSTFlags & STFL_QUARTERGRAVITY ) ? 20.48 : (mo->flags2 & MF2_LOGRAV ? 10.24 : 81.92)));
+				(( mo->ulSTFlags & STFL_QUARTERGRAVITY ) ? 20.48 : (FIXED2FLOAT(mo->gravity) * 81.92)));
 		}
 		if (mo->waterlevel > 1)
 		{
@@ -3675,7 +3676,8 @@ void A_FreeTargMobj (AActor *mo)
 	mo->z = mo->ceilingz + 4*FRACUNIT;
 	mo->flags &= ~(MF_SHOOTABLE|MF_FLOAT|MF_SKULLFLY|MF_SOLID);
 	mo->flags |= MF_CORPSE|MF_DROPOFF|MF_NOGRAVITY;
-	mo->flags2 &= ~(MF2_PASSMOBJ|MF2_LOGRAV);
+	mo->flags2 &= ~MF2_PASSMOBJ;
+	mo->gravity = FRACUNIT;
 	mo->player = NULL;
 }
 
@@ -3726,6 +3728,7 @@ BEGIN_DEFAULTS (AActor, Any, -1, 0)
 	PROP_BounceFactor(FRACUNIT*7/10)
 	PROP_BounceCount(-1)
 	PROP_FloatSpeed(4)
+	PROP_Gravity(FRACUNIT)
 END_DEFAULTS
 
 //*****************************************************************************

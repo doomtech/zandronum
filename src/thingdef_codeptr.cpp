@@ -2102,3 +2102,18 @@ void A_Stop (AActor *self)
 {
 	self->momx = self->momy = self->momz = 0;
 }
+
+//===========================================================================
+//
+// A_SetGravity
+//
+//===========================================================================
+void A_SetGravity(AActor * self)
+{
+	int index=CheckIndex(1);
+	if (index<0) return;
+	
+	self->gravity = clamp<fixed_t> (EvalExpressionF (StateParameters[index], self), 0, FRACUNIT); 
+}
+
+

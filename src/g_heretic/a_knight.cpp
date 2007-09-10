@@ -192,7 +192,7 @@ void A_DripBlood (AActor *actor)
 	mo = Spawn<ABlood> (x, y, actor->z, ALLOW_REPLACE);
 	mo->momx = pr_dripblood.Random2 () << 10;
 	mo->momy = pr_dripblood.Random2 () << 10;
-	mo->flags2 |= MF2_LOGRAV;
+	mo->gravity = FRACUNIT/8;
 }
 
 //----------------------------------------------------------------------------

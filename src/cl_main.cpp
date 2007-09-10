@@ -199,6 +199,7 @@ static	void	client_ThingActivate( BYTESTREAM_s *pByteStream );
 static	void	client_ThingDeactivate( BYTESTREAM_s *pByteStream );
 static	void	client_RespawnDoomThing( BYTESTREAM_s *pByteStream );
 static	void	client_RespawnRavenThing( BYTESTREAM_s *pByteStream );
+static	void	client_SetThingGravity( BYTESTREAM_s *pByteStream );
 
 // Print commands.
 static	void	client_Print( BYTESTREAM_s *pByteStream );
@@ -653,6 +654,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETWALLSCROLLER",
 	"SVC_SETPLAYERCHEATS",
 	"SVC_MORPHPLAYER",
+	"SVC_SETTHINGGRAVITY",
 
 };
 
@@ -1593,6 +1595,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETTHINGSPECIAL2:
 
 		client_SetThingSpecial2( pByteStream );
+		break;
+	case SVC_SETTHINGGRAVITY:
+
+		client_SetThingGravity( pByteStream );
 		break;
 	case SVC_SETWEAPONAMMOGIVE:
 
@@ -5522,6 +5528,33 @@ static void client_SetThingSpecial2( BYTESTREAM_s *pByteStream )
 	pActor->special2 = lSpecial2;
 }
 
+//*****************************************************************************
+//
+static void client_SetThingGravity( BYTESTREAM_s *pByteStream )
+{
+	LONG	lID;
+	LONG	lGravity;
+	AActor	*pActor;
+
+	// Get the ID of the actor whose gravity is being updated.
+	lID = NETWORK_ReadShort( pByteStream );
+
+	// Get the actor's gravity.
+	lGravity = NETWORK_ReadShort( pByteStream );
+
+	// Now try to find the corresponding actor.
+	pActor = CLIENT_FindThingByNetID( lID );
+	if ( pActor == NULL )
+	{
+#ifdef CLIENT_WARNING_MESSAGES
+		Printf( "client_SetThingGravity: Couldn't find thing: %d\n", lID );
+#endif
+		return;
+	}
+
+	// Set the actor's gravity.
+	pActor->gravity = lGravity;
+}
 //*****************************************************************************
 //
 static void client_SetWeaponAmmoGive( BYTESTREAM_s *pByteStream )
