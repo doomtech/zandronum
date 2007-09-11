@@ -258,6 +258,7 @@ static	void	client_SetSectorScale( BYTESTREAM_s *pByteStream );
 static	void	client_SetSectorFriction( BYTESTREAM_s *pByteStream );
 static	void	client_SetSectorAngleYOffset( BYTESTREAM_s *pByteStream );
 static	void	client_SetSectorGravity( BYTESTREAM_s *pByteStream );
+static	void	client_SetSectorReflection( BYTESTREAM_s *pByteStream );
 static	void	client_StopSectorLightEffect( BYTESTREAM_s *pByteStream );
 static	void	client_DestroyAllSectorMovers( BYTESTREAM_s *pByteStream );
 
@@ -558,6 +559,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETSECTORFRICTION",
 	"SVC_SETSECTORANGLEYOFFSET",
 	"SVC_SETSECTORGRAVITY",
+	"SVC_SETSECTORREFLECTION",
 	"SVC_STOPSECTORLIGHTEFFECT",
 	"SVC_DESTROYALLSECTORMOVERS",
 	"SVC_DOSECTORLIGHTFIREFLICKER",
@@ -1815,6 +1817,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETSECTORGRAVITY:
 
 		client_SetSectorGravity( pByteStream );
+		break;
+	case SVC_SETSECTORREFLECTION:
+
+		client_SetSectorReflection( pByteStream );
 		break;
 	case SVC_STOPSECTORLIGHTEFFECT:
 
@@ -7397,6 +7403,37 @@ static void client_SetSectorGravity( BYTESTREAM_s *pByteStream )
 
 	// Set the sector's gravity.
 	pSector->gravity = fGravity;
+}
+
+//*****************************************************************************
+//
+static void client_SetSectorReflection( BYTESTREAM_s *pByteStream )
+{
+	LONG		lSectorID;
+	float		fCeilingReflect;
+	float		fFloorReflect;
+	sector_t	*pSector;
+
+	// Read in the sector to have its reflection altered.
+	lSectorID = NETWORK_ReadShort( pByteStream );
+
+	// Read in the sector's ceiling and floor reflection.
+	fCeilingReflect = NETWORK_ReadFloat( pByteStream );
+	fFloorReflect = NETWORK_ReadFloat( pByteStream );
+
+	// Now find the sector.
+	pSector = CLIENT_FindSectorByID( lSectorID );
+	if ( pSector == NULL )
+	{ 
+#ifdef CLIENT_WARNING_MESSAGES
+		Printf( "client_SetSectorScale: Cannot find sector: %d\n", lSectorID );
+#endif
+		return; 
+	}
+
+	// Set the sector's reflection.
+	pSector->ceiling_reflect = fCeilingReflect;
+	pSector->floor_reflect = fFloorReflect;
 }
 
 //*****************************************************************************

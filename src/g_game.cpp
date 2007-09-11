@@ -3204,6 +3204,16 @@ void GAME_ResetMap( void )
 
 			// No client update necessary here.
 		}
+
+		if (( sectors[ulIdx].SavedCeilingReflect != sectors[ulIdx].ceiling_reflect ) ||
+			( sectors[ulIdx].SavedFloorReflect != sectors[ulIdx].floor_reflect ))
+		{
+			sectors[ulIdx].ceiling_reflect = sectors[ulIdx].SavedCeilingReflect;
+			sectors[ulIdx].floor_reflect = sectors[ulIdx].SavedFloorReflect;
+
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetSectorReflection( ulIdx );
+		}
 	}
 
 	// Reset the sky properties of the map.

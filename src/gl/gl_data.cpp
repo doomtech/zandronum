@@ -48,9 +48,12 @@
 #include "gl/gl_models.h"
 #include "gl/gl_renderstruct.h"
 #include "gl/gl_functions.h"
+// [BC]
+#include "network.h"
+#include "sv_commands.h"
 
-
-
+// [BC] Moved to p_lnspec.cpp.
+/*
 // Normally this would be better placed in p_lnspec.cpp.
 // But I have accidentally overwritten that file several times
 // so I'd rather place it here.
@@ -65,11 +68,15 @@ static int LS_Sector_SetPlaneReflection (line_t *ln, AActor *it, bool backSide,
 		sector_t * s = &sectors[secnum];
 		if (s->floorplane.a==0 && s->floorplane.b==0) s->floor_reflect = arg1/255.f;
 		if (s->ceilingplane.a==0 && s->ceilingplane.b==0) sectors[secnum].ceiling_reflect = arg2/255.f;
+
+		// [BC] If we're the server, tell clients that this sector's reflection is being altered.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetSectorReflection( secnum );
 	}
 
 	return true;
 }
-
+*/
 
 //==========================================================================
 //
@@ -438,7 +445,7 @@ void gl_PreprocessLevel()
 
 	static bool modelsdone=false;
 
-	LineSpecials[159]=LS_Sector_SetPlaneReflection;
+//	LineSpecials[159]=LS_Sector_SetPlaneReflection;
 
 	if (!modelsdone)
 	{

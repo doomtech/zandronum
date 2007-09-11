@@ -430,6 +430,8 @@ struct sector_t
 	short				SavedSpecial;
 	short				SavedDamage;
 	short				SavedMOD;
+	float				SavedCeilingReflect;
+	float				SavedFloorReflect;
 };
 
 struct ReverbContainer;

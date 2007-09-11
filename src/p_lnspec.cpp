@@ -2968,6 +2968,28 @@ FUNC(LS_StartConversation)
 	return false;
 }
 
+// [BC] From GZDoom. Now in p_lnspec.cpp where it belongs.
+// Normally this would be better placed in p_lnspec.cpp.
+// But I have accidentally overwritten that file several times
+// so I'd rather place it here.
+FUNC(LS_Sector_SetPlaneReflection)
+// Sector_SetPlaneReflection (tag, floor, ceiling)
+{
+	int secnum = -1;
+
+	while ((secnum = P_FindSectorFromTag (arg0, secnum)) >= 0)
+	{
+		sector_t * s = &sectors[secnum];
+		if (s->floorplane.a==0 && s->floorplane.b==0) s->floor_reflect = arg1/255.f;
+		if (s->ceilingplane.a==0 && s->ceilingplane.b==0) sectors[secnum].ceiling_reflect = arg2/255.f;
+
+		// [BC] If we're the server, tell clients that this sector's reflection is being altered.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetSectorReflection( secnum );
+	}
+
+	return true;
+}
 
 lnSpecFunc LineSpecials[256] =
 {
@@ -3130,7 +3152,7 @@ lnSpecFunc LineSpecials[256] =
 	LS_NOP,		// 156 Team_GiveItem		// [BC] End
 	LS_NOP,		// 157
 	LS_NOP,		// 158
-	LS_NOP,		// 159
+	LS_Sector_SetPlaneReflection,
 	LS_NOP,		// 160
 	LS_NOP,		// 161
 	LS_NOP,		// 162

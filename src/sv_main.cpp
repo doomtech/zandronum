@@ -2641,6 +2641,13 @@ void SERVER_UpdateSectors( ULONG ulClient )
 		// Update the sector's light level.
 		if ( pSector->bLightChange )
 			SERVERCOMMANDS_SetSectorLightLevel( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
+
+		// Update the sector's reflection.
+		if (( pSector->ceiling_reflect != 0.0f ) ||
+			( pSector->floor_reflect != 0.0f ))
+		{
+			SERVERCOMMANDS_SetSectorReflection( ulIdx );
+		}
 	}
 
 	for ( ulIdx = 0; ulIdx <= po_NumPolyobjs; ulIdx++ )

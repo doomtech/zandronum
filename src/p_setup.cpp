@@ -1231,6 +1231,8 @@ void P_LoadSectors (MapData * map)
 		ss->SavedSpecial = ss->special;
 		ss->SavedDamage = ss->damage;
 		ss->SavedMOD = ss->mod;
+		ss->SavedCeilingReflect = ss->SavedCeilingReflect;
+		ss->SavedFloorReflect = ss->SavedFloorReflect;
 	}
 	P_CreateExtSectors();
 	delete[] msp;
