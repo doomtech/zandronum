@@ -3324,6 +3324,15 @@ static void ActorCameraheight (AActor *defaults, Baggage &bag)
 //==========================================================================
 //
 //==========================================================================
+static void ActorVSpeed (AActor *defaults, Baggage &bag)
+{
+	SC_MustGetFloat();
+	defaults->momz = fixed_t(sc_Float*FRACUNIT);
+}
+
+//==========================================================================
+//
+//==========================================================================
 static void ActorGravity (AActor *defaults, Baggage &bag)
 {
 	SC_MustGetFloat ();
@@ -4346,6 +4355,7 @@ static const ActorProps props[] =
 	{ "states",						ActorStates,				RUNTIME_CLASS(AActor) },
 	{ "tag",						ActorTag,					RUNTIME_CLASS(AActor) },
 	{ "translation",				ActorTranslation,			RUNTIME_CLASS(AActor) },
+	{ "vspeed",						ActorVSpeed,				RUNTIME_CLASS(AActor) },
 	{ "weapon.ammogive",			(apf)WeaponAmmoGive1,		RUNTIME_CLASS(AWeapon) },
 	{ "weapon.ammogive1",			(apf)WeaponAmmoGive1,		RUNTIME_CLASS(AWeapon) },
 	{ "weapon.ammogive2",			(apf)WeaponAmmoGive2,		RUNTIME_CLASS(AWeapon) },
