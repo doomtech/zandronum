@@ -2434,7 +2434,7 @@ void A_Die (AActor *actor)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 		return;
 
-	P_DamageMobj (actor, NULL, NULL, actor->health, MOD_UNKNOWN);
+	P_DamageMobj (actor, NULL, NULL, actor->health, NAME_None);
 }
 
 //

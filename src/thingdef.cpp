@@ -1104,51 +1104,280 @@ inline bool TestCom()
 //
 //==========================================================================
 
-// These strings must be in the same order as the respective variables in the actor struct!
-static const char * actor_statenames[]={"SPAWN","SEE","PAIN","MELEE","MISSILE","CRASH", "DEATH",
-										"XDEATH", "BURN","ICE","DISINTEGRATE","RAISE","WOUND","HEAL",
-										"CRUSH", "YES", "NO", "GREETINGS", NULL};
-
-static const char * weapon_statenames[]={"SELECT", "DESELECT", "READY", "FIRE", "HOLD",
-										 "ALTFIRE", "ALTHOLD", "FLASH", "ALTFLASH", NULL };
-
-static const char * inventory_statenames[]={"USE", "PICKUP", "DROP", NULL };
-
-
-FState ** FindState(AActor * actor, const PClass * type, const char * name)
+struct FStateDefine
 {
-	int i;
+	FName Label;
+	bool valid;
+	TArray<FStateDefine> Children;
+	FState *State;
+};
 
-	for(i=0;actor_statenames[i];i++)
-	{
-		if (!stricmp(actor_statenames[i],name))
-			return (&actor->SpawnState)+i;
-	}
-	if (type->IsDescendantOf (RUNTIME_CLASS(AWeapon)))
-	{
-		for(i=0;weapon_statenames[i];i++)
-		{
-			if (!stricmp(weapon_statenames[i],name))
-				return (&static_cast<AWeapon*>(actor)->UpState)+i;
-		}
-	}
-	else if (type->IsDescendantOf (RUNTIME_CLASS(ACustomInventory)))
-	{
-		for(i=0;inventory_statenames[i];i++)
-		{
-			if (!stricmp(inventory_statenames[i],name))
-				return (&static_cast<ACustomInventory*>(actor)->UseState)+i;
-		}
-	}
-	else if (type->IsDescendantOf (RUNTIME_CLASS(ASwitchableDecoration)))
-	{
-		// These are the names that the code will use when custom labels are working.
-		if (!stricmp(name, "ACTIVE")) return &actor->SeeState;
-		if (!stricmp(name, "INACTIVE")) return &actor->MeleeState;
-	} 
-   return NULL;
+static TArray<FStateDefine> StateLabels;
+
+void ClearStateLabels()
+{
+	StateLabels.Clear();
 }
 
+//==========================================================================
+//
+// Search one list of state definitions for the given name
+//
+//==========================================================================
+
+static FStateDefine * FindStateLabelInList(TArray<FStateDefine> & list, FName name, bool create)
+{
+	for(unsigned i = 0; i<list.Size(); i++)
+	{
+		if (list[i].Label == name) return &list[i];
+	}
+	if (create)
+	{
+		FStateDefine def;
+		def.Label=name;
+		def.State=NULL;
+		def.valid=false;
+		return &list[list.Push(def)];
+	}
+	return NULL;
+}
+
+//==========================================================================
+//
+// Creates a list of names from a string. Dots are used as separator
+//
+//==========================================================================
+
+void MakeStateNameList(const char * fname, TArray<FName> * out)
+{
+	FName firstpart, secondpart;
+	char * c;
+
+	// Handle the old names for the existing death states
+	char * name = copystring(fname);
+	firstpart = strtok(name, ".");
+	switch (firstpart)
+	{
+	case NAME_Burn:
+		firstpart = NAME_Death;
+		secondpart = NAME_Fire;
+		break;
+	case NAME_Ice:
+		firstpart = NAME_Death;
+		secondpart = NAME_Ice;
+		break;
+	case NAME_Disintegrate:
+		firstpart = NAME_Death;
+		secondpart = NAME_Disintegrate;
+		break;
+	case NAME_XDeath:
+		firstpart = NAME_Death;
+		secondpart = NAME_Extreme;
+		break;
+	}
+
+	out->Clear();
+	out->Push(firstpart);
+	if (secondpart!=NAME_None) out->Push(secondpart);
+
+	while ((c = strtok(NULL, "."))!=NULL)
+	{
+		FName cc = c;
+		out->Push(cc);
+	}
+	delete [] name;
+}
+
+//==========================================================================
+//
+// Finds the address of a state given by name. 
+// Adds the state if it doesn't exist
+//
+//==========================================================================
+
+static FStateDefine * FindStateAddress(const char * name)
+{
+	static TArray<FName> namelist(3);
+	FStateDefine * statedef=NULL;
+
+	MakeStateNameList(name, &namelist);
+
+	TArray<FStateDefine> * statelist = &StateLabels;
+	for(unsigned i=0;i<namelist.Size();i++)
+	{
+		statedef = FindStateLabelInList(*statelist, namelist[i], true);
+		statelist = &statedef->Children;
+	}
+	return statedef;
+}
+
+void AddState (const char * statename, FState * state)
+{
+	FStateDefine * std = FindStateAddress(statename);
+	std->State = state;
+	std->valid = true;
+}
+
+//==========================================================================
+//
+// Finds the state associated with the given name
+//
+//==========================================================================
+
+FState * FindState(AActor * actor, const PClass * type, const char * name)
+{
+	static TArray<FName> namelist(3);
+	FStateDefine * statedef=NULL;
+
+	MakeStateNameList(name, &namelist);
+
+	TArray<FStateDefine> * statelist = &StateLabels;
+	for(unsigned i=0;i<namelist.Size();i++)
+	{
+		statedef = FindStateLabelInList(*statelist, namelist[i], false);
+		if (statedef == NULL)
+		{
+			FActorInfo * parentinfo = type->ParentClass->ActorInfo;
+			if (parentinfo) return parentinfo->FindStateExact(namelist.Size(), (va_list)&namelist[0]);
+			else return NULL;
+		}
+		statelist = &statedef->Children;
+	}
+	return statedef? statedef->State : NULL;
+}
+
+//==========================================================================
+//
+// Finds the state associated with the given name
+//
+//==========================================================================
+
+FState * FindStateInClass(AActor * actor, const PClass * type, const char * name)
+{
+	static TArray<FName> namelist(3);
+
+	MakeStateNameList(name, &namelist);
+	FActorInfo * info = type->ActorInfo;
+	if (info) return info->FindStateExact(namelist.Size(), (va_list)&namelist[0]);
+	return NULL;
+}
+
+//==========================================================================
+//
+// Checks if a state list is empty
+// A list is empty if it doesn't contain any states and no children
+// that contain any states
+//
+//==========================================================================
+
+static bool IsStateListEmpty(TArray<FStateDefine> & statelist)
+{
+	for(unsigned i=0;i<statelist.Size();i++)
+	{
+		if (statelist[i].State!=NULL || !IsStateListEmpty(statelist[i].Children)) return false;
+	}
+	return true;
+}
+
+//==========================================================================
+//
+// Creates the final list of states from the state definitions
+//
+//==========================================================================
+
+static int STACK_ARGS labelcmp(const void * a, const void * b)
+{
+	FStateLabel * A = (FStateLabel *)a;
+	FStateLabel * B = (FStateLabel *)b;
+	return ((int)A->Label - (int)B->Label);
+}
+
+static FStateLabels * CreateStateLabelList(TArray<FStateDefine> & statelist)
+{
+	int count=statelist.Size();
+
+	if (count == 0) return NULL;
+
+	FStateLabels * list = (FStateLabels*)M_Malloc(sizeof(FStateLabels)+(count-1)*sizeof(FStateLabel));
+	list->NumLabels = count;
+
+	int j=0;
+	for (unsigned i=0;i<statelist.Size();i++)
+	{
+		if (statelist[i].Label != NAME_None)
+		{
+			list->Labels[j].Label = statelist[i].Label;
+			list->Labels[j].State = statelist[i].State;
+			list->Labels[j].valid = statelist[i].valid;
+			list->Labels[j].Children = CreateStateLabelList(statelist[i].Children);
+			j++;
+		}
+	}
+	qsort(list->Labels, count, sizeof(FStateLabel), labelcmp);
+	return list;
+}
+
+//===========================================================================
+//
+// InstallStates
+//
+// Creates the actor's state list from the current definition
+//
+//===========================================================================
+
+void InstallStates(FActorInfo *info, AActor *defaults)
+{
+	FState * state = FindState(defaults, info->Class, "Spawn");
+	// If the actor doesn't provide a valid spawn state we have to substutute it
+	// with the default.
+	if (state == &AActor::States[2] || state == NULL)
+	{
+		AddState("Spawn", &AActor::States[0]);
+	}
+
+	info->StateList = CreateStateLabelList(StateLabels);
+
+	// Cache these states as member veriables.
+	defaults->SpawnState = info->FindStateExact(1,NAME_Spawn);
+	defaults->SeeState = info->FindStateExact(1,NAME_See);
+	// Melee and Missile states are manipulated by the scripted marines so they
+	// have to be stored locally
+	defaults->MeleeState = info->FindStateExact(1,NAME_Melee);
+	defaults->MissileState = info->FindStateExact(1,NAME_Missile);
+}
+
+
+//===========================================================================
+//
+// MakeStateDefines
+//
+// Creates a list of state definitions from an existing actor
+// Used by Dehacked to modify an actor's state list
+//
+//===========================================================================
+
+static void MakeStateList(const FStateLabels *list, TArray<FStateDefine> &dest)
+{
+	dest.Clear();
+	for(int i=0;i<list->NumLabels;i++)
+	{
+		FStateDefine def;
+
+		def.Label = list->Labels[i].Label;
+		def.State = list->Labels[i].State;
+		def.valid = list->Labels[i].valid;
+		dest.Push(def);
+		if (list->Labels[i].Children != NULL)
+		{
+			MakeStateList(list->Labels[i].Children, dest[dest.Size()-1].Children);
+		}
+	}
+}
+
+void MakeStateDefines(const FStateLabels *list)
+{
+	MakeStateList(list, StateLabels);
+}
 
 //==========================================================================
 //
@@ -1274,9 +1503,11 @@ static FActorInfo * CreateNewActor(FActorInfo ** parentc, Baggage *bag)
 	FActorInfo * info = ti->ActorInfo;
 
 	Decorations.Push (info);
+	ClearStateLabels();
 	info->NumOwnedStates = 0;
 	info->OwnedStates = NULL;
 	info->SpawnID = 0;
+	info->StateList = NULL;
 
 	ResetBaggage (bag);
 	bag->Info = info;
@@ -1350,7 +1581,6 @@ int PrepareStateParameters(FState * state, int numparams)
 
 	v=0;
 	for(i=0;i<numparams;i++) StateParameters.Push(v);
-
 	state->ParameterIndex = paramindex+1;
 	return paramindex;
 }
@@ -1464,30 +1694,24 @@ bool DoSpecialFunctions(FState & state, bool multistate, int * statecount, Bagga
 //
 //==========================================================================
 
-static void RetargetStatePointers (intptr_t count, const char *target, FState **start, FState **stop)
+static void RetargetStatePointers (intptr_t count, const char *target, TArray<FStateDefine> & statelist)
 {
-	for (FState **probe = start; probe <= stop; ++probe)
+	for(unsigned i = 0;i<statelist.Size(); i++)
 	{
-		if (*probe == (FState *)count)
+		if (statelist[i].State == (FState*)count)
 		{
-			*probe = target == NULL ? NULL : (FState *)copystring (target);
+			statelist[i].State = target == NULL ? NULL : (FState *)copystring (target);
+		}
+		if (statelist[i].Children.Size() > 0)
+		{
+			RetargetStatePointers(count, target, statelist[i].Children);
 		}
 	}
 }
 
-static void RetargetStates (intptr_t count, const char *target, const PClass *cls, AActor *defaults)
+static void RetargetStates (intptr_t count, const char *target)
 {
-	RetargetStatePointers (count, target, &defaults->SpawnState, &defaults->GreetingsState);
-	if (cls->IsDescendantOf (RUNTIME_CLASS(AWeapon)))
-	{
-		AWeapon *weapon = (AWeapon *)defaults;
-		RetargetStatePointers (count, target, &weapon->UpState, &weapon->AltFlashState);
-	}
-	if (cls->IsDescendantOf (RUNTIME_CLASS(ACustomInventory)))
-	{
-		ACustomInventory *item = (ACustomInventory *)defaults;
-		RetargetStatePointers (count, target, &item->UseState, &item->DropState);
-	}
+	RetargetStatePointers(count, target, StateLabels);
 }
 
 //==========================================================================
@@ -1514,7 +1738,6 @@ static void ParseStateString(char * statestring)
 // processes a state block
 //
 //==========================================================================
-
 static int ProcessStates(FActorInfo * actor, AActor * defaults, Baggage &bag)
 {
 	char statestring[256];
@@ -1522,7 +1745,7 @@ static int ProcessStates(FActorInfo * actor, AActor * defaults, Baggage &bag)
 	FState state;
 	FState * laststate = NULL;
 	intptr_t lastlabel = -1;
-	FState ** stp;
+	FStateDefine * stp;
 	int minrequiredstate = -1;
 
 	statestring[255] = 0;
@@ -1550,7 +1773,7 @@ do_goto:
 			}
 			else if (lastlabel >= 0)
 			{ // Following a label: Retarget it.
-				RetargetStates (count+1, statestring, actor->Class, defaults);
+				RetargetStates (count+1, statestring);
 			}
 			else
 			{
@@ -1566,7 +1789,7 @@ do_stop:
 			}
 			else if (lastlabel >=0)
 			{
-				RetargetStates (count+1, NULL, actor->Class, defaults);
+				RetargetStates (count+1, NULL);
 			}
 			else
 			{
@@ -1603,11 +1826,7 @@ do_stop:
 				do
 				{
 					lastlabel = count;
-					stp = FindState(defaults, bag.Info->Class, statestring);
-					if (stp) *stp=(FState *) (count+1);
-					else 
-						SC_ScriptError("Unknown state label %s", statestring);
-						
+					AddState(statestring, (FState *) (count+1));
 					ParseStateString(statestring);
 					if (!stricmp(statestring, "GOTO"))
 					{
@@ -1895,9 +2114,10 @@ endofstate:
 //
 //==========================================================================
 
-static FState *ResolveGotoLabel (AActor *actor, const PClass *type, char *name)
+static FState *ResolveGotoLabel (AActor *actor, const PClass *mytype, char *name)
 {
-	FState **stp, *state;
+	const PClass *type=mytype;
+	FState *state;
 	char *namestart = name;
 	char *label, *offset, *pt;
 	int v;
@@ -1916,8 +2136,9 @@ static FState *ResolveGotoLabel (AActor *actor, const PClass *type, char *name)
 			type = type->ParentClass;
 			actor = GetDefaultByType (type);
 		}
-		else
+		else if (!FindState(actor, type, classname))
 		{
+			// first check whether a state of the desired name exists
 			const PClass *stype = PClass::FindClass (classname);
 			if (stype == NULL)
 			{
@@ -1938,6 +2159,12 @@ static FState *ResolveGotoLabel (AActor *actor, const PClass *type, char *name)
 				actor = GetDefaultByType (type);
 			}
 		}
+		else
+		{
+			// Restore the period in the name
+			*pt='.';
+			name = (char*)classname;
+		}
 	}
 	label = name;
 	// Check for offset
@@ -1949,23 +2176,17 @@ static FState *ResolveGotoLabel (AActor *actor, const PClass *type, char *name)
 	}
 	v = offset ? strtol (offset, NULL, 0) : 0;
 
-	// Calculate the state's address.
-	stp = FindState (actor, type, label);
-	state = NULL;
-	if (stp != NULL)
+	// Get the state's address.
+	if (type==mytype) state = FindState (actor, type, label);
+	else state = FindStateInClass (actor, type, label);
+
+	if (state != NULL)
 	{
-		if (*stp != NULL)
-		{
-			state = *stp + v;
-		}
-		else if (v != 0)
-		{
-			SC_ScriptError ("Attempt to get invalid state from actor %s.", type->TypeName.GetChars());
-		}
+		state += v;
 	}
-	else
+	else if (v != 0)
 	{
-		SC_ScriptError("Unknown state label %s", label);
+		SC_ScriptError ("Attempt to get invalid state %s from actor %s.", label, type->TypeName.GetChars());
 	}
 	delete[] namestart;		// free the allocated string buffer
 	return state;
@@ -1979,18 +2200,16 @@ static FState *ResolveGotoLabel (AActor *actor, const PClass *type, char *name)
 //
 //==========================================================================
 
-static void FixStatePointers (FActorInfo *actor, FState **start, FState **stop)
+static void FixStatePointers (FActorInfo *actor, TArray<FStateDefine> & list)
 {
-	FState **stp;
-	size_t v;
-
-	for (stp = start; stp <= stop; ++stp)
+	for(unsigned i=0;i<list.Size(); i++)
 	{
-		v = (size_t)*stp;
+		size_t v=(size_t)list[i].State;
 		if (v >= 1 && v < 0x10000)
 		{
-			*stp = actor->OwnedStates + v - 1;
+			list[i].State = actor->OwnedStates + v - 1;
 		}
+		if (list[i].Children.Size() > 0) FixStatePointers(actor, list[i].Children);
 	}
 }
 
@@ -2002,18 +2221,18 @@ static void FixStatePointers (FActorInfo *actor, FState **start, FState **stop)
 //
 //==========================================================================
 
-static void FixStatePointersAgain (FActorInfo *actor, AActor *defaults, FState **start, FState **stop)
+static void FixStatePointersAgain (FActorInfo *actor, AActor *defaults, TArray<FStateDefine> & list)
 {
-	FState **stp;
-
-	for (stp = start; stp <= stop; ++stp)
+	for(unsigned i=0;i<list.Size(); i++)
 	{
-		if (*stp != NULL && FState::StaticFindStateOwner (*stp, actor) == NULL)
+		if (list[i].State != NULL && FState::StaticFindStateOwner (list[i].State, actor) == NULL)
 		{ // It's not a valid state, so it must be a label string. Resolve it.
-			*stp = ResolveGotoLabel (defaults, actor->Class, (char *)*stp);
+			list[i].State = ResolveGotoLabel (defaults, actor->Class, (char *)list[i].State);
 		}
+		if (list[i].Children.Size() > 0) FixStatePointersAgain(actor, defaults, list[i].Children);
 	}
 }
+
 
 //==========================================================================
 //
@@ -2021,8 +2240,10 @@ static void FixStatePointersAgain (FActorInfo *actor, AActor *defaults, FState *
 // copies a state block and fixes all state links
 //
 //==========================================================================
+
 static int FinishStates (FActorInfo *actor, AActor *defaults, Baggage &bag)
 {
+	static int c=0;
 	int count = StateArray.Size();
 
 	if (count > 0)
@@ -2037,19 +2258,7 @@ static int FinishStates (FActorInfo *actor, AActor *defaults, Baggage &bag)
 
 		// adjust the state pointers
 		// In the case new states are added these must be adjusted, too!
-		FixStatePointers (actor, &defaults->SpawnState, &defaults->GreetingsState);
-		if (bag.Info->Class->IsDescendantOf(RUNTIME_CLASS(AWeapon)))
-		{
-			AWeapon *weapon = (AWeapon*)defaults;
-
-			FixStatePointers (actor, &weapon->UpState, &weapon->AltFlashState);
-		}
-		if (bag.Info->Class->IsDescendantOf(RUNTIME_CLASS(ACustomInventory)))
-		{
-			ACustomInventory *item = (ACustomInventory*)defaults;
-
-			FixStatePointers (actor, &item->UseState, &item->DropState);
-		}
+		FixStatePointers (actor, StateLabels);
 
 		for(i = currange = 0; i < count; i++)
 		{
@@ -2083,19 +2292,7 @@ static int FinishStates (FActorInfo *actor, AActor *defaults, Baggage &bag)
 	StateArray.Clear ();
 
 	// Fix state pointers that are gotos
-	FixStatePointersAgain (actor, defaults, &defaults->SpawnState, &defaults->GreetingsState);
-	if (bag.Info->Class->IsDescendantOf(RUNTIME_CLASS(AWeapon)))
-	{
-		AWeapon *weapon = (AWeapon*)defaults;
-
-		FixStatePointersAgain (actor, defaults, &weapon->UpState, &weapon->AltFlashState);
-	}
-	if (bag.Info->Class->IsDescendantOf(RUNTIME_CLASS(ACustomInventory)))
-	{
-		ACustomInventory *item = (ACustomInventory*)defaults;
-
-		FixStatePointersAgain (actor, defaults, &item->UseState, &item->DropState);
-	}
+	FixStatePointersAgain (actor, defaults, StateLabels);
 
 	return count;
 }
@@ -2103,26 +2300,27 @@ static int FinishStates (FActorInfo *actor, AActor *defaults, Baggage &bag)
 //==========================================================================
 //
 // For getting a state address from the parent
+// No attempts have been made to add new functionality here
+// This is strictly for keeping compatibility with old WADs!
 //
 //==========================================================================
-static FState *CheckState(int statenum, PClass *type)
+static FState *CheckState(PClass *type)
 {
+	int v=0;
+
 	if (SC_GetString() && !sc_Crossed)
 	{
 		if (SC_Compare("0")) return NULL;
 		else if (SC_Compare("PARENT"))
 		{
+			FState * state = NULL;
 			SC_MustGetString();
 
-			FState * basestate;
-			FState ** stp=FindState((AActor*)type->ParentClass->Defaults, type, sc_String);
-			int v = 0;
+			FActorInfo * info = type->ParentClass->ActorInfo;
 
-			if (stp) basestate =*stp;
-			else 
+			if (info != NULL)
 			{
-				SC_ScriptError("Unknown state label %s",(const char **)&sc_String);
-				return NULL;
+				state = info->FindStateExact(1, (int)FName(sc_String));
 			}
 
 			if (SC_GetString ())
@@ -2138,15 +2336,15 @@ static FState *CheckState(int statenum, PClass *type)
 				}
 			}
 
-			if (!basestate && !v) return NULL;
-			basestate+=v;
+			if (state == NULL && v==0) return NULL;
 
-			if (v && !basestate)
+			if (v!=0 && state==NULL)
 			{
 				SC_ScriptError("Attempt to get invalid state from actor %s\n", type->ParentClass->TypeName.GetChars());
 				return NULL;
 			}
-			return basestate;
+			state+=v;
+			return state;
 		}
 		else SC_ScriptError("Invalid state assignment");
 	}
@@ -2290,6 +2488,7 @@ void ProcessActor(void (*process)(FState *, int))
 
 		ParseActorProperties (bag);
 		FinishStates (info, defaults, bag);
+		InstallStates(info, defaults);
 		process(info->OwnedStates, info->NumOwnedStates);
 		if (bag.DropItemSet)
 		{
@@ -2679,7 +2878,7 @@ static void ActorDropItem (AActor *defaults, Baggage &bag)
 static void ActorSpawnState (AActor *defaults, Baggage &bag)
 {
 	StatePropertyIsDeprecated (bag.Info->Class->TypeName.GetChars(), "Spawn");
-	defaults->SpawnState=CheckState (bag.CurrentState, bag.Info->Class);
+	AddState("Spawn", CheckState ( bag.Info->Class));
 }
 
 //==========================================================================
@@ -2688,7 +2887,7 @@ static void ActorSpawnState (AActor *defaults, Baggage &bag)
 static void ActorSeeState (AActor *defaults, Baggage &bag)
 {
 	StatePropertyIsDeprecated (bag.Info->Class->TypeName.GetChars(), "See");
-	defaults->SeeState=CheckState (bag.CurrentState, bag.Info->Class);
+	AddState("See", CheckState ( bag.Info->Class));
 }
 
 //==========================================================================
@@ -2697,7 +2896,7 @@ static void ActorSeeState (AActor *defaults, Baggage &bag)
 static void ActorMeleeState (AActor *defaults, Baggage &bag)
 {
 	StatePropertyIsDeprecated (bag.Info->Class->TypeName.GetChars(), "Melee");
-	defaults->MeleeState=CheckState (bag.CurrentState, bag.Info->Class);
+	AddState("Melee", CheckState ( bag.Info->Class));
 }
 
 //==========================================================================
@@ -2706,7 +2905,7 @@ static void ActorMeleeState (AActor *defaults, Baggage &bag)
 static void ActorMissileState (AActor *defaults, Baggage &bag)
 {
 	StatePropertyIsDeprecated (bag.Info->Class->TypeName.GetChars(), "Missile");
-	defaults->MissileState=CheckState (bag.CurrentState, bag.Info->Class);
+	AddState("Missile", CheckState ( bag.Info->Class));
 }
 
 //==========================================================================
@@ -2715,7 +2914,7 @@ static void ActorMissileState (AActor *defaults, Baggage &bag)
 static void ActorPainState (AActor *defaults, Baggage &bag)
 {
 	StatePropertyIsDeprecated (bag.Info->Class->TypeName.GetChars(), "Pain");
-	defaults->PainState=CheckState (bag.CurrentState, bag.Info->Class);
+	AddState("Pain", CheckState ( bag.Info->Class));
 }
 
 //==========================================================================
@@ -2724,7 +2923,7 @@ static void ActorPainState (AActor *defaults, Baggage &bag)
 static void ActorDeathState (AActor *defaults, Baggage &bag)
 {
 	StatePropertyIsDeprecated (bag.Info->Class->TypeName.GetChars(), "Death");
-	defaults->DeathState=CheckState (bag.CurrentState, bag.Info->Class);
+	AddState("Death", CheckState ( bag.Info->Class));
 }
 
 //==========================================================================
@@ -2733,7 +2932,7 @@ static void ActorDeathState (AActor *defaults, Baggage &bag)
 static void ActorXDeathState (AActor *defaults, Baggage &bag)
 {
 	StatePropertyIsDeprecated (bag.Info->Class->TypeName.GetChars(), "XDeath");
-	defaults->XDeathState=CheckState (bag.CurrentState, bag.Info->Class);
+	AddState("XDeath", CheckState ( bag.Info->Class));
 }
 
 //==========================================================================
@@ -2742,7 +2941,7 @@ static void ActorXDeathState (AActor *defaults, Baggage &bag)
 static void ActorBurnState (AActor *defaults, Baggage &bag)
 {
 	StatePropertyIsDeprecated (bag.Info->Class->TypeName.GetChars(), "Burn");
-	defaults->BDeathState=CheckState (bag.CurrentState, bag.Info->Class);
+	AddState("Burn", CheckState ( bag.Info->Class));
 }
 
 //==========================================================================
@@ -2751,7 +2950,7 @@ static void ActorBurnState (AActor *defaults, Baggage &bag)
 static void ActorIceState (AActor *defaults, Baggage &bag)
 {
 	StatePropertyIsDeprecated (bag.Info->Class->TypeName.GetChars(), "Ice");
-	defaults->IDeathState=CheckState (bag.CurrentState, bag.Info->Class);
+	AddState("Ice", CheckState ( bag.Info->Class));
 }
 
 //==========================================================================
@@ -2760,7 +2959,7 @@ static void ActorIceState (AActor *defaults, Baggage &bag)
 static void ActorRaiseState (AActor *defaults, Baggage &bag)
 {
 	StatePropertyIsDeprecated (bag.Info->Class->TypeName.GetChars(), "Raise");
-	defaults->RaiseState=CheckState (bag.CurrentState, bag.Info->Class);
+	AddState("Raise", CheckState ( bag.Info->Class));
 }
 
 //==========================================================================
@@ -2769,7 +2968,7 @@ static void ActorRaiseState (AActor *defaults, Baggage &bag)
 static void ActorCrashState (AActor *defaults, Baggage &bag)
 {
 	StatePropertyIsDeprecated (bag.Info->Class->TypeName.GetChars(), "Crash");
-	defaults->CrashState=CheckState (bag.CurrentState, bag.Info->Class);
+	AddState("Crash", CheckState ( bag.Info->Class));
 }
 
 //==========================================================================
@@ -2778,7 +2977,7 @@ static void ActorCrashState (AActor *defaults, Baggage &bag)
 static void ActorCrushState (AActor *defaults, Baggage &bag)
 {
 	StatePropertyIsDeprecated (bag.Info->Class->TypeName.GetChars(), "Crush");
-	defaults->CrushState=CheckState (bag.CurrentState, bag.Info->Class);
+	AddState("Crush", CheckState ( bag.Info->Class));
 }
 
 //==========================================================================
@@ -2787,7 +2986,7 @@ static void ActorCrushState (AActor *defaults, Baggage &bag)
 static void ActorWoundState (AActor *defaults, Baggage &bag)
 {
 	StatePropertyIsDeprecated (bag.Info->Class->TypeName.GetChars(), "Wound");
-	defaults->WoundState=CheckState (bag.CurrentState, bag.Info->Class);
+	AddState("Wound", CheckState ( bag.Info->Class));
 }
 
 //==========================================================================
@@ -2796,7 +2995,7 @@ static void ActorWoundState (AActor *defaults, Baggage &bag)
 static void ActorDisintegrateState (AActor *defaults, Baggage &bag)
 {
 	StatePropertyIsDeprecated (bag.Info->Class->TypeName.GetChars(), "Disintegrate");
-	defaults->EDeathState=CheckState (bag.CurrentState, bag.Info->Class);
+	AddState("Disintegrate", CheckState ( bag.Info->Class));
 }
 
 //==========================================================================
@@ -2805,7 +3004,7 @@ static void ActorDisintegrateState (AActor *defaults, Baggage &bag)
 static void ActorHealState (AActor *defaults, Baggage &bag)
 {
 	StatePropertyIsDeprecated (bag.Info->Class->TypeName.GetChars(), "Heal");
-	defaults->HealState=CheckState (bag.CurrentState, bag.Info->Class);
+	AddState("Heal", CheckState ( bag.Info->Class));
 }
 
 //==========================================================================
@@ -3055,11 +3254,8 @@ static void ActorMinMissileChance (AActor *defaults, Baggage &bag)
 static void ActorDamageType (AActor *defaults, Baggage &bag)
 {
 	SC_MustGetString ();   
-	if (SC_Compare("Normal")) defaults->DamageType=MOD_UNKNOWN;
-	else if (SC_Compare("Fire")) defaults->DamageType=MOD_FIRE;
-	else if (SC_Compare("Ice")) defaults->DamageType=MOD_ICE;
-	else if (SC_Compare("Disintegrate")) defaults->DamageType=MOD_DISINTEGRATE;
-	else SC_ScriptError("Unknown damage type '%s'\n", sc_String);
+	if (SC_Compare("Normal")) defaults->DamageType = NAME_None;
+	else defaults->DamageType=sc_String;
 }
 
 //==========================================================================
@@ -3191,13 +3387,13 @@ static void ActorFlagSetOrReset (AActor *defaults, Baggage &bag)
 	// Fire and ice damage were once flags but now are not.
 	if (SC_Compare ("FIREDAMAGE"))
 	{
-		if (mod == '+') defaults->DamageType = MOD_FIRE;
-		else defaults->DamageType = MOD_UNKNOWN;
+		if (mod == '+') defaults->DamageType = NAME_Fire;
+		else defaults->DamageType = NAME_None;
 	}
 	else if (SC_Compare ("ICEDAMAGE"))
 	{
-		if (mod == '+') defaults->DamageType = MOD_ICE;
-		else defaults->DamageType = MOD_UNKNOWN;
+		if (mod == '+') defaults->DamageType = NAME_Ice;
+		else defaults->DamageType = NAME_None;
 	}
 	else if (SC_Compare ("LOWGRAVITY"))
 	{
@@ -4271,14 +4467,10 @@ void FinishThingdef()
 			if (isRuntimeActor)
 			{
 				// Do some consistency checks. If these states are undefined the weapon cannot work!
-				if (!defaults->ReadyState) I_Error("Weapon %s doesn't define a ready state.\n", ti->TypeName.GetChars());
-				if (!defaults->UpState) I_Error("Weapon %s doesn't define a select state.\n", ti->TypeName.GetChars());
-				if (!defaults->DownState) I_Error("Weapon %s doesn't define a deselect state.\n", ti->TypeName.GetChars());
-				if (!defaults->AtkState) I_Error("Weapon %s doesn't define an attack state.\n", ti->TypeName.GetChars());
-
-				// If the weapon doesn't define a hold state use the attack state instead.
-				if (!defaults->HoldAtkState) defaults->HoldAtkState=defaults->AtkState;
-				if (!defaults->AltHoldAtkState) defaults->AltHoldAtkState=defaults->AltAtkState;
+				if (!ti->ActorInfo->FindState(1, NAME_Ready)) I_Error("Weapon %s doesn't define a ready state.\n", ti->TypeName.GetChars());
+				if (!ti->ActorInfo->FindState(1, NAME_Select)) I_Error("Weapon %s doesn't define a select state.\n", ti->TypeName.GetChars());
+				if (!ti->ActorInfo->FindState(1, NAME_Deselect)) I_Error("Weapon %s doesn't define a deselect state.\n", ti->TypeName.GetChars());
+				if (!ti->ActorInfo->FindState(1, NAME_Fire)) I_Error("Weapon %s doesn't define a fire state.\n", ti->TypeName.GetChars());
 			}
 
 		}

@@ -352,7 +352,7 @@ void A_HeadAttack (AActor *self)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SoundIDActor( self, CHAN_WEAPON, self->AttackSound, 127, ATTN_NORM );
 
-		P_DamageMobj (self->target, self, self, damage, MOD_HIT);
+		P_DamageMobj (self->target, self, self, damage, NAME_Melee);
 		P_TraceBleed (damage, self->target, self);
 		return;
 	}
@@ -382,7 +382,7 @@ void A_CacolanternAttack (AActor *self)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SoundIDActor( self, CHAN_WEAPON, self->AttackSound, 127, ATTN_NORM );
 
-		P_DamageMobj (self->target, self, self, damage, MOD_HIT);
+		P_DamageMobj (self->target, self, self, damage, NAME_Melee);
 		P_TraceBleed (damage, self->target, self);
 		return;
 	}
@@ -412,7 +412,7 @@ void A_AbaddonAttack (AActor *self)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SoundIDActor( self, CHAN_WEAPON, self->AttackSound, 127, ATTN_NORM );
 
-		P_DamageMobj (self->target, self, self, damage, MOD_HIT);
+		P_DamageMobj (self->target, self, self, damage, NAME_Melee);
 		P_TraceBleed (damage, self->target, self);
 		return;
 	}

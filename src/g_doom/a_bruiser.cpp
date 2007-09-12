@@ -311,7 +311,7 @@ void A_BruisAttack (AActor *self)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "baron/melee", 127, ATTN_NORM );
 
-		P_DamageMobj (self->target, self, self, damage, MOD_HIT);
+		P_DamageMobj (self->target, self, self, damage, NAME_Melee);
 		P_TraceBleed (damage, self->target, self);
 		return;
 	}
@@ -340,7 +340,7 @@ void A_BelphegorAttack (AActor *self)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "baron/melee", 127, ATTN_NORM );
 
-		P_DamageMobj (self->target, self, self, damage, MOD_HIT);
+		P_DamageMobj (self->target, self, self, damage, NAME_Melee);
 		P_TraceBleed (damage, self->target, self);
 		return;
 	}

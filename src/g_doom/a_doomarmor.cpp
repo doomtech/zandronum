@@ -99,7 +99,7 @@ bool ARedArmor::Use( bool bPickup )
 /*
 void ARedArmor::AbsorbDamage( int damage, int damageType, int &newdamage )
 {
-	if (damageType != MOD_WATER)
+	if (damageType != NAME_Water)
 	{
 		int saved = FixedMul (damage, SavePercent);
 		if (Amount < saved)
@@ -136,7 +136,7 @@ void ARedArmor::AbsorbDamage( int damage, int damageType, int &newdamage )
 		}
 
 		// With red armor, the amount of damage taken by fire is cut in 8.
-		if ( damageType == MOD_FIRE )
+		if ( damageType == NAME_Fire )
 			newdamage /= 8;
 	}
 	if ( Inventory )

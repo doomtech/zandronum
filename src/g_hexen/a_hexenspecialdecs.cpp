@@ -30,12 +30,12 @@ IMPLEMENT_ABSTRACT_ACTOR (ASwitchableDecoration)
 
 void ASwitchableDecoration::Activate (AActor *activator)
 {
-	SetState (SeeState);
+	SetState (FindState(NAME_Active));
 }
 
 void ASwitchableDecoration::Deactivate (AActor *activator)
 {
-	SetState (MeleeState);
+	SetState (FindState(NAME_Inactive));
 }
 
 // SwitchingDecoration: Only Activate changes state -------------------------
@@ -88,7 +88,7 @@ END_DEFAULTS
 void APottery1::HitFloor ()
 {
 	Super::HitFloor ();
-	P_DamageMobj (this, NULL, NULL, 25, MOD_UNKNOWN);
+	P_DamageMobj (this, NULL, NULL, 25, NAME_None);
 }
 
 // Pottery2 -----------------------------------------------------------------
@@ -230,7 +230,7 @@ void A_PotteryExplode (AActor *actor)
 
 void A_PotteryChooseBit (AActor *actor)
 {
-	actor->SetState (actor->DeathState+1 + 2*(pr_bit()%5));
+	actor->SetState (actor->FindState(NAME_Death) + 1 + 2*(pr_bit()%5));
 	actor->tics = 256+(pr_bit()<<1);
 }
 
@@ -852,7 +852,7 @@ void AZBell::Activate (AActor *activator)
 {
 	if (health > 0)
 	{
-		P_DamageMobj (this, activator, activator, 10, MOD_HIT); // 'ring' the bell
+		P_DamageMobj (this, activator, activator, 10, NAME_Melee); // 'ring' the bell
 	}
 }
 

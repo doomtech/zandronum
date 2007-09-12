@@ -5465,17 +5465,6 @@ int DLevelScript::RunScript ()
 				int flags = STACK(1);
 				sp -= 5;
 
-				// Oh, give me custom damage types! :-)
-				int modtype;
-
-				switch (type)
-				{
-				case NAME_Fire:		modtype = MOD_FIRE;		break;
-				case NAME_Ice:		modtype = MOD_ICE;		break;
-				case NAME_Disintegrate: modtype = MOD_DISINTEGRATE; break;
-				default:			modtype = MOD_UNKNOWN;	break;
-				}
-
 				int secnum = -1;
 				
 				while ((secnum = P_FindSectorFromTag (tag, secnum)) >= 0)
@@ -5520,7 +5509,7 @@ int DLevelScript::RunScript ()
 							}
 						}
 
-						P_DamageMobj (actor, NULL, NULL, amount, modtype);
+						P_DamageMobj (actor, NULL, NULL, amount, type);
 					}
 				}
 			}

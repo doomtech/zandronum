@@ -63,13 +63,13 @@ void A_Punch (AActor *actor)
 
 	angle += pr_punch.Random2() << 18;
 	pitch = P_AimLineAttack (actor, angle, MELEERANGE);
-	P_LineAttack (actor, angle, MELEERANGE, pitch, damage, MOD_UNKNOWN, RUNTIME_CLASS(ABulletPuff));
+	P_LineAttack (actor, angle, MELEERANGE, pitch, damage, NAME_None, RUNTIME_CLASS(ABulletPuff));
 
 	// [BC] Apply spread.
 	if (( actor->player ) && ( actor->player->Powers & PW_SPREAD ))
 	{
-		P_LineAttack( actor, angle + ( ANGLE_45 / 3 ), MELEERANGE, pitch, damage, MOD_UNKNOWN, RUNTIME_CLASS( ABulletPuff ));
-		P_LineAttack( actor, angle - ( ANGLE_45 / 3 ), MELEERANGE, pitch, damage, MOD_UNKNOWN, RUNTIME_CLASS( ABulletPuff ));
+		P_LineAttack( actor, angle + ( ANGLE_45 / 3 ), MELEERANGE, pitch, damage, NAME_None, RUNTIME_CLASS( ABulletPuff ));
+		P_LineAttack( actor, angle - ( ANGLE_45 / 3 ), MELEERANGE, pitch, damage, NAME_None, RUNTIME_CLASS( ABulletPuff ));
 	}
 
 	// [BC] If the player hit a player with his attack, potentially give him a medal.
@@ -190,7 +190,7 @@ void A_FirePistol (AActor *actor)
 			if (!weapon->DepleteAmmo (weapon->bAltFire))
 				return;
 
-			P_SetPsprite (actor->player, ps_flash, weapon->FlashState);
+			P_SetPsprite (actor->player, ps_flash, weapon->FindState(NAME_Flash));
 		}
 		actor->player->mo->PlayAttacking2 ();
 
@@ -303,18 +303,18 @@ void A_Saw (AActor *actor)
 	// use meleerange + 1 so the puff doesn't skip the flash (i.e. plays all states)
 	P_LineAttack (actor, angle, MELEERANGE+1,
 				  P_AimLineAttack (actor, angle, MELEERANGE+1), damage,
-				  MOD_UNKNOWN, pufftype);
+				  NAME_None, pufftype);
 
 	// [BC] Apply spread.
 	if ( player->Powers & PW_SPREAD )
 	{
 		P_LineAttack( actor, angle + ( ANGLE_45 / 3 ), MELEERANGE + 1,
 					  P_AimLineAttack( actor, angle + ( ANGLE_45 / 3 ), MELEERANGE + 1 ), damage,
-					  MOD_UNKNOWN, pufftype );
+					  NAME_None, pufftype );
 
 		P_LineAttack( actor, angle - ( ANGLE_45 / 3 ), MELEERANGE + 1,
 					  P_AimLineAttack( actor, angle - ( ANGLE_45 / 3 ), MELEERANGE + 1 ), damage,
-					  MOD_UNKNOWN, pufftype );
+					  NAME_None, pufftype );
 	}
 
 	// [BC] If the player hit a player with his attack, potentially give him a medal.
@@ -456,7 +456,7 @@ void A_FireShotgun (AActor *actor)
 	{
 		if (!weapon->DepleteAmmo (weapon->bAltFire))
 			return;
-		P_SetPsprite (player, ps_flash, weapon->FlashState);
+		P_SetPsprite (player, ps_flash, weapon->FindState(NAME_Flash));
 	}
 	player->mo->PlayAttacking2 ();
 
@@ -600,7 +600,7 @@ void A_FireShotgun2 (AActor *actor)
 	{
 		if (!weapon->DepleteAmmo (weapon->bAltFire))
 			return;
-		P_SetPsprite (player, ps_flash, weapon->FlashState);
+		P_SetPsprite (player, ps_flash, weapon->FindState(NAME_Flash));
 	}
 	player->mo->PlayAttacking2 ();
 
@@ -631,7 +631,7 @@ void A_FireShotgun2 (AActor *actor)
 					  angle,
 					  PLAYERMISSILERANGE,
 					  bulletpitch + (pr_fireshotgun2.Random2() * 332063), damage,
-					  MOD_UNKNOWN, RUNTIME_CLASS(ABulletPuff));
+					  NAME_None, RUNTIME_CLASS(ABulletPuff));
 
 		// [BC] Apply spread.
 		if ( player->Powers & PW_SPREAD )
@@ -640,13 +640,13 @@ void A_FireShotgun2 (AActor *actor)
 						  angle + ( ANGLE_45 / 3 ),
 						  PLAYERMISSILERANGE,
 						  bulletpitch + (pr_fireshotgun2.Random2() * 332063), damage,
-						  MOD_UNKNOWN, RUNTIME_CLASS(ABulletPuff));
+						  NAME_None, RUNTIME_CLASS(ABulletPuff));
 
 			P_LineAttack (actor,
 						  angle - ( ANGLE_45 / 3 ),
 						  PLAYERMISSILERANGE,
 						  bulletpitch + (pr_fireshotgun2.Random2() * 332063), damage,
-						  MOD_UNKNOWN, RUNTIME_CLASS(ABulletPuff));
+						  NAME_None, RUNTIME_CLASS(ABulletPuff));
 		}
 	}
 
@@ -763,13 +763,24 @@ void A_FireCGun (AActor *actor)
 	}
 	player->mo->PlayAttacking2 ();
 
-	int theflash = clamp (int(player->psprites[ps_weapon].state - player->ReadyWeapon->AtkState), 0, 1);
-	if (player->ReadyWeapon->FlashState[theflash].sprite.index != player->ReadyWeapon->FlashState->sprite.index)
+	AWeapon *weapon = player->ReadyWeapon;
+	if (weapon != NULL)
 	{
-		theflash = 0;
-	}
-	P_SetPsprite (player, ps_flash, player->ReadyWeapon->FlashState + theflash);
 
+		FState *flash = weapon->FindState(NAME_Flash);
+		if (flash != NULL)
+		{
+			FState * atk = weapon->FindState(NAME_Fire);
+
+			int theflash = clamp (int(players->psprites[ps_weapon].state - atk), 0, 1);
+
+			if (flash[theflash].sprite.index != flash->sprite.index)
+			{
+				theflash = 0;
+			}
+			P_SetPsprite (player, ps_flash, flash + theflash);
+		}
+	}
 	// [BB] A_FireCGun is only kept to stay compatible with Dehacked.
 	A_CustomFireBullets( actor, angle_t( 5.6 * ANGLE_1), angle_t( 0 * ANGLE_1), 1, 5 );
 //	A_GunFlash( actor );
@@ -794,14 +805,16 @@ void A_FireCGun (AActor *actor)
 		if (weapon->FlashState != NULL)
 		{
 			// [RH] Fix for Sparky's messed-up Dehacked patch! Blargh!
-			int theflash = clamp (int(players->psprites[ps_weapon].state - weapon->AtkState), 0, 1);
+			FState * atk = weapon->FindState(NAME_Fire);
 
-			if (weapon->FlashState[theflash].sprite.index != weapon->FlashState->sprite.index)
+			int theflash = clamp (int(players->psprites[ps_weapon].state - atk), 0, 1);
+
+			if (flash[theflash].sprite.index != flash->sprite.index)
 			{
 				theflash = 0;
 			}
 
-			P_SetPsprite (player, ps_flash, weapon->FlashState + theflash);
+			P_SetPsprite (player, ps_flash, flash + theflash);
 		}
 
 	}
@@ -933,17 +946,20 @@ void A_FireMiniGun( AActor *actor )
 		if ( pWeapon->DepleteAmmo( pWeapon->bAltFire ) == false )
 			return;
 
-		if ( pWeapon->FlashState != NULL )
+		FState *flash = pWeapon->FindState(NAME_Flash);
+		if (flash != NULL)
 		{
 			// [RH] Fix for Sparky's messed-up Dehacked patch! Blargh!
-			int theflash = clamp (int(pPlayer->psprites[ps_weapon].state - pWeapon->AtkState), 0, 1);
+			FState * atk = pWeapon->FindState(NAME_Fire);
 
-			if ( pWeapon->FlashState[theflash].sprite.index != pWeapon->FlashState->sprite.index)
+			int theflash = clamp (int(players->psprites[ps_weapon].state - atk), 0, 1);
+
+			if (flash[theflash].sprite.index != flash->sprite.index)
 			{
 				theflash = 0;
 			}
 
-			P_SetPsprite( pPlayer, ps_flash, pWeapon->FlashState + theflash );
+			P_SetPsprite (pPlayer, ps_flash, flash + theflash);
 		}
 	}
 
@@ -1076,7 +1092,7 @@ IMPLEMENT_ACTOR (ARocket, Doom, -1, 127)
 	PROP_DeathState (S_EXPLODE)
 
 	// [BC] Set the damage type so we can check for it when player's have red armor.
-	PROP_DamageType( MOD_ROCKET )
+	PROP_DamageType( NAME_Rocket )
 
 	PROP_SeeSound ("weapons/rocklf")
 	PROP_DeathSound ("weapons/rocklx")
@@ -1205,7 +1221,7 @@ IMPLEMENT_ACTOR (AGrenade, Doom, -1, 216)
 	PROP_SpawnState (S_GRENADE)
 	PROP_DeathState (S_GRENADE_EXPLODE)
 
-	PROP_DamageType( MOD_GRENADE )
+	PROP_DamageType( NAME_Grenade )
 	PROP_SeeSound ("weapons/grenlf")
 	PROP_DeathSound ("weapons/grenlx")
 	PROP_Obituary("$OB_GRENADE")
@@ -1438,9 +1454,11 @@ void A_FirePlasma (AActor *actor)
 	{
 		if (!weapon->DepleteAmmo (weapon->bAltFire))
 			return;
-		if (weapon->FlashState != NULL)
+
+		FState *flash = weapon->FindState(NAME_Flash);
+		if (flash != NULL)
 		{
-			P_SetPsprite (player, ps_flash, weapon->FlashState + (pr_fireplasma()&1));
+			P_SetPsprite (player, ps_flash, flash + (pr_fireplasma()&1));
 		}
 	}
 
@@ -1487,9 +1505,11 @@ void A_FireRailgun (AActor *actor)
 	{
 		if (!weapon->DepleteAmmo (weapon->bAltFire))
 			return;
-		if (weapon->FlashState != NULL)
+
+		FState *flash = weapon->FindState(NAME_Flash);
+		if (flash != NULL)
 		{
-			P_SetPsprite (player, ps_flash, weapon->FlashState + (pr_firerail()&1));
+			P_SetPsprite (player, ps_flash, flash + (pr_firerail()&1));
 		}
 	}
 
@@ -1680,7 +1700,7 @@ void A_CheckRailReload( AActor *pActor )
 	// If we have not made our 4th shot...
 	if ((( pActor->player->ulRailgunShots % 4 ) == 0 ) == false )
 		// Go back to the refire frames, instead of continuing on to the reload frames.
-		P_SetPsprite( pActor->player, ps_weapon, pActor->player->ReadyWeapon->AtkState + 8 );
+		P_SetPsprite( pActor->player, ps_weapon, pActor->player->ReadyWeapon->FindState(NAME_Fire) + 8 );
 	else
 		// We need to reload. However, don't reload if we're out of ammo.
 		pActor->player->ReadyWeapon->CheckAmmo( false, false );
@@ -1914,7 +1934,7 @@ void A_BFGSpray (AActor *mo)
 			damage += (pr_bfgspray() & 7) + 1;
 
 		thingToHit = linetarget;
-		P_DamageMobj (thingToHit, mo->target, mo->target, damage, MOD_BFG_SPLASH);
+		P_DamageMobj (thingToHit, mo->target, mo->target, damage, NAME_BFGSplash);
 		P_TraceBleed (damage, thingToHit, mo->target);
 	}
 }
@@ -2054,7 +2074,7 @@ IMPLEMENT_ACTOR (ABFG10kShot, Doom, -1, 217)
 	PROP_Flags3 (MF3_PUFFONACTORS)
 	PROP_RenderStyle (STYLE_Add)
 	PROP_Alpha (TRANSLUC75)
-	PROP_DamageType( MOD_BFG10K )
+	PROP_DamageType( NAME_BFG10k )
 
 	PROP_SpawnState (S_BFG10KSHOT)
 

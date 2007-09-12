@@ -154,7 +154,7 @@ public:
 	virtual void Travelled ();
 	virtual void OwnerDied ();
 
-	virtual void AbsorbDamage (int damage, int damageType, int &newdamage);
+	virtual void AbsorbDamage (int damage, FName damageType, int &newdamage);
 	virtual void AlterWeaponSprite (vissprite_t *vis);
 
 	virtual PalEntry GetBlend ();
@@ -172,12 +172,10 @@ class ACustomInventory : public AInventory
 {
 	DECLARE_STATELESS_ACTOR (ACustomInventory, AInventory)
 public:
-	FState *UseState, *PickupState, *DropState;
 
 	// This is used when an inventory item's use state sequence is executed.
 	static bool CallStateChain (AActor *actor, FState *state);
 
-	void Serialize (FArchive &arc);
 	bool TryPickup (AActor *toucher);
 	bool Use (bool pickup);
 	bool SpecialDropAction (AActor *dropper);
@@ -217,13 +215,6 @@ public:
 	int SelectionOrder;						// Lower-numbered weapons get picked first
 	fixed_t MoveCombatDist;					// Used by bots, but do they *really* need it?
 
-	FState *UpState;
-	FState *DownState;
-	FState *ReadyState;
-	FState *AtkState, *HoldAtkState;
-	FState *AltAtkState, *AltHoldAtkState;
-	FState *FlashState, *AltFlashState;
-
 	// In-inventory instance variables
 	AAmmo *Ammo1, *Ammo2;
 	AWeapon *SisterWeapon;
@@ -243,8 +234,8 @@ public:
 	virtual FState *GetUpState ();
 	virtual FState *GetDownState ();
 	virtual FState *GetReadyState ();
-	virtual FState *GetAtkState ();
-	virtual FState *GetHoldAtkState ();
+	virtual FState *GetAtkState (bool hold);
+	virtual FState *GetAltAtkState (bool hold);
 
 	virtual void PostMorphWeapon ();
 	virtual void EndPowerup ();
@@ -347,7 +338,7 @@ public:
 	virtual void Tick ();
 	virtual AInventory *CreateCopy (AActor *other);
 	virtual bool HandlePickup (AInventory *item);
-	virtual void AbsorbDamage (int damage, int damageType, int &newdamage);
+	virtual void AbsorbDamage (int damage, FName damageType, int &newdamage);
 
 	fixed_t SavePercent;
 };
@@ -404,7 +395,7 @@ public:
 	virtual AInventory *CreateCopy (AActor *other);
 	virtual AInventory *CreateTossable ();
 	virtual bool HandlePickup (AInventory *item);
-	virtual void AbsorbDamage (int damage, int damageType, int &newdamage);
+	virtual void AbsorbDamage (int damage, FName damageType, int &newdamage);
 
 	fixed_t Slots[5];
 	fixed_t SlotsIncrement[4];

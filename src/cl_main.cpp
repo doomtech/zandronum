@@ -111,7 +111,7 @@ void	goOn (int position, bool keepFacing, bool secret, bool resetinv);
 polyobj_t *GetPolyobj (int polyNum);
 int		D_PlayerClassToInt (const char *classname);
 bool	P_AdjustFloorCeil (AActor *thing);
-void	ClientObituary (AActor *self, AActor *inflictor, AActor *attacker, LONG lMeansOfDeath);
+void	ClientObituary (AActor *self, AActor *inflictor, AActor *attacker, FName MeansOfDeath);
 void	P_CrouchMove(player_t * player, int direction);
 bool	DoThingRaise( AActor *thing );
 extern	bool	SpawningMapThing;
@@ -3102,7 +3102,7 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 			A_NoBlocking( pOldActor );
 
 			// Put him in the last frame of his death state.
-			pDeadState = pOldActor->DeathState;
+			pDeadState = pOldActor->FindState(NAME_Death);
 			do
 			{
 				pBaseState = pDeadState;
@@ -3472,7 +3472,7 @@ static void client_DamagePlayer( BYTESTREAM_s *pByteStream )
 	}
 
 	// Also, make sure they get put into the pain state.
-	players[ulPlayer].mo->SetState( players[ulPlayer].mo->PainState );
+	players[ulPlayer].mo->SetState( players[ulPlayer].mo->FindState(NAME_Pain) );
 }
 
 //*****************************************************************************
@@ -3483,9 +3483,9 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 	LONG		lSourceID;
 	LONG		lInflictorID;
 	LONG		lHealth;
-	LONG		lMOD;
+	FName		MOD;
 	char		*pszString;
-	LONG		lDamageType;
+	FName		DamageType;
 	AActor		*pSource;
 	AActor		*pInflictor;
 	AWeapon		*pWeapon;
@@ -3505,7 +3505,7 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 	lHealth = NETWORK_ReadShort( pByteStream );
 
 	// Read in the means of death.
-	lMOD = NETWORK_ReadByte( pByteStream );
+	MOD = ENamedName(NETWORK_ReadByte( pByteStream ));
 
 	// Read in the player who did the killing's ready weapon so we can properly do obituary
 	// messages.
@@ -3513,7 +3513,7 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 
 	// Read in the thing's damage type.
 #ifndef STAY_NETWORK_COMPATIBLE
-	lDamageType = NETWORK_ReadByte( pByteStream );
+	DamageType = ENamedName(NETWORK_ReadByte( pByteStream ));
 #endif
 
 	// Check to make sure everything is valid. If not, break out.
@@ -3537,7 +3537,7 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 
 	// Set the player's damage type.
 #ifndef STAY_NETWORK_COMPATIBLE
-	players[ulPlayer].mo->DamageType = lDamageType;
+	players[ulPlayer].mo->DamageType = DamageType;
 #endif
 
 	// Kill the player.
@@ -3579,7 +3579,7 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 		( cl_showlargefragmessages ) &&
 		( ulSourcePlayer < MAXPLAYERS ) &&
 		( ulPlayer != ulSourcePlayer ) &&
-		( lMOD != MOD_SPAWNTELEFRAG ) &&
+		( MOD != NAME_SpawnTelefrag ) &&
 		((( duel ) && (( DUEL_GetState( ) == DS_WINSEQUENCE ) || ( DUEL_GetState( ) == DS_COUNTDOWN ))) == false ) &&
 		((( lastmanstanding || teamlms ) && (( LASTMANSTANDING_GetState( ) == LMSS_WINSEQUENCE ) || ( LASTMANSTANDING_GetState( ) == LMSS_COUNTDOWN ))) == false ))
 	{
@@ -3609,12 +3609,12 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 	}
 
 	// Finally, print the obituary string.
-	ClientObituary( players[ulPlayer].mo, pInflictor, pSource, lMOD );
+	ClientObituary( players[ulPlayer].mo, pInflictor, pSource, MOD );
 /*
 	if ( ulSourcePlayer < MAXPLAYERS )
-		ClientObituary( players[ulPlayer].mo, pInflictor, players[ulSourcePlayer].mo, lMOD );
+		ClientObituary( players[ulPlayer].mo, pInflictor, players[ulSourcePlayer].mo, MOD );
 	else
-		ClientObituary( players[ulPlayer].mo, pInflictor, NULL, lMOD );
+		ClientObituary( players[ulPlayer].mo, pInflictor, NULL, MOD );
 */
 	// [RC] In survival, if were spying the dying player, revert the status bar.
 	if(( NETWORK_GetState() == NETSTATE_CLIENT ) && survival )
@@ -4913,7 +4913,7 @@ static void client_DamageThing( BYTESTREAM_s *pByteStream )
 	}
 
 	// Damage the thing.
-	P_DamageMobj( pActor, NULL, NULL, 0, MOD_UNKNOWN );
+	P_DamageMobj( pActor, NULL, NULL, 0, NAME_None );
 }
 
 //*****************************************************************************
@@ -4923,7 +4923,7 @@ static void client_KillThing( BYTESTREAM_s *pByteStream )
 	AActor	*pActor;
 	LONG	lID;
 	LONG	lHealth;
-	LONG	lDamageType;
+	FName	DamageType;
 
 	// Read in the network ID of the thing that died.
 	lID = NETWORK_ReadShort( pByteStream );
@@ -4933,7 +4933,7 @@ static void client_KillThing( BYTESTREAM_s *pByteStream )
 
 	// Read in the thing's damage type.
 #ifndef STAY_NETWORK_COMPATIBLE
-	lDamageType = NETWORK_ReadByte( pByteStream );
+	DamageType = ENamedName(NETWORK_ReadByte( pByteStream ));
 #endif
 
 	// Level not loaded; ingore.
@@ -4955,7 +4955,7 @@ static void client_KillThing( BYTESTREAM_s *pByteStream )
 
 	// Set the thing's damage type.
 #ifndef STAY_NETWORK_COMPATIBLE
-	pActor->DamageType = lDamageType;
+	pActor->DamageType = DamageType;
 #endif
 
 	// Kill the thing.
@@ -5043,7 +5043,7 @@ static void client_SetThingState( BYTESTREAM_s *pByteStream )
 		break;
 	case STATE_PAIN:
 
-		pNewState = pActor->PainState;
+		pNewState = pActor->FindState(NAME_Pain);
 		break;
 	case STATE_MELEE:
 
@@ -5055,11 +5055,11 @@ static void client_SetThingState( BYTESTREAM_s *pByteStream )
 		break;
 	case STATE_DEATH:
 
-		pNewState = pActor->DeathState;
+		pNewState = pActor->FindState(NAME_Death);
 		break;
 	case STATE_XDEATH:
 
-		pNewState = pActor->XDeathState;
+		pNewState = pActor->FindState(NAME_XDeath);
 		break;
 	case STATE_RAISE:
 
@@ -5068,9 +5068,9 @@ static void client_SetThingState( BYTESTREAM_s *pByteStream )
 		return;
 	case STATE_HEAL:
 
-		if ( pActor->HealState )
+		if ( pActor->FindState(NAME_Heal) )
 		{
-			pNewState = pActor->HealState;
+			pNewState = pActor->FindState(NAME_Heal);
 			S_Sound( pActor, CHAN_BODY, "vile/raise", 1, ATTN_IDLE );
 
 			// Since the arch-vile is reviving a monster at this point, increment the total number
@@ -5631,7 +5631,7 @@ static void client_ThingIsCorpse( BYTESTREAM_s *pByteStream )
 	pActor->height >>= 2;
 
 	// Set the thing to the last frame of its death state.
-	pDeadState = pActor->DeathState;
+	pDeadState = pActor->FindState(NAME_Death);
 	do
 	{
 		pBaseState = pDeadState;
@@ -6836,7 +6836,7 @@ static void client_MissileExplode( BYTESTREAM_s *pByteStream )
 
 	// See if any of these death frames match our current frame. If they do,
 	// don't explode the missile.
-	pDeadState = pActor->DeathState;
+	pDeadState = pActor->FindState(NAME_Death);
 	while ( pDeadState != NULL )
 	{
 		if ( pActor->state == pDeadState )
@@ -6849,7 +6849,7 @@ static void client_MissileExplode( BYTESTREAM_s *pByteStream )
 		pDeadState = pDeadState->GetNextState( );
 
 		// If the state loops back to the beginning of the death state, or to itself, break out.
-		if (( pDeadState == pActor->DeathState ) || ( pState == pDeadState ))
+		if (( pDeadState == pActor->FindState(NAME_Death) ) || ( pState == pDeadState ))
 			break;
 	}
 

@@ -60,10 +60,6 @@ void AWeapon::Serialize (FArchive &arc)
 		<< ProjectileType << AltProjectileType
 		<< SelectionOrder
 		<< MoveCombatDist
-		<< UpState << DownState << ReadyState
-		<< AtkState << HoldAtkState
-		<< AltAtkState << AltHoldAtkState
-		<< FlashState << AltFlashState
 		<< Ammo1 << Ammo2 << SisterWeapon
 		<< bAltFire;
 }
@@ -78,6 +74,7 @@ void AWeapon::Serialize (FArchive &arc)
 
 bool AWeapon::TryPickup (AActor *toucher)
 {
+	FState * ReadyState = FindState(NAME_Ready);
 	if (ReadyState != NULL &&
 		ReadyState->GetFrame() < sprites[ReadyState->sprite.index].numframes)
 	{
@@ -486,7 +483,7 @@ bool AWeapon::CheckAmmo (int fireMode, bool autoSwitch, bool requireAmmo)
 	{
 		enoughmask = 1 << altFire;
 	}
-	if (altFire && AltAtkState == NULL)
+	if (altFire && FindState(NAME_AltFire) == NULL)
 	{ // If this weapon has no alternate fire, then there is never enough ammo for it
 		enough &= 1;
 	}
@@ -588,7 +585,7 @@ void AWeapon::PostMorphWeapon ()
 	Owner->player->PendingWeapon = WP_NOCHANGE;
 	Owner->player->ReadyWeapon = this;
 	Owner->player->psprites[ps_weapon].sy = WEAPONBOTTOM;
-	P_SetPsprite (Owner->player, ps_weapon, UpState);
+	P_SetPsprite (Owner->player, ps_weapon, GetUpState());
 }
 
 //===========================================================================
@@ -603,7 +600,7 @@ void AWeapon::EndPowerup ()
 {
 	if (SisterWeapon != NULL && WeaponFlags&WIF_POWERED_UP)
 	{
-		if (ReadyState != SisterWeapon->ReadyState)
+		if (GetReadyState() != SisterWeapon->GetReadyState())
 		{
 			Owner->player->PendingWeapon = SisterWeapon;
 
@@ -640,7 +637,7 @@ void AWeapon::EndPowerup ()
 
 FState *AWeapon::GetUpState ()
 {
-	return UpState;
+	return FindState(NAME_Select);
 }
 
 //===========================================================================
@@ -651,7 +648,7 @@ FState *AWeapon::GetUpState ()
 
 FState *AWeapon::GetDownState ()
 {
-	return DownState;
+	return FindState(NAME_Deselect);
 }
 
 //===========================================================================
@@ -662,7 +659,7 @@ FState *AWeapon::GetDownState ()
 
 FState *AWeapon::GetReadyState ()
 {
-	return ReadyState;
+	return FindState(NAME_Ready);
 }
 
 //===========================================================================
@@ -671,20 +668,28 @@ FState *AWeapon::GetReadyState ()
 //
 //===========================================================================
 
-FState *AWeapon::GetAtkState ()
+FState *AWeapon::GetAtkState (bool hold)
 {
-	return AtkState;
+	FState * state=NULL;
+	
+	if (hold) state = FindState(NAME_Hold);
+	if (state == NULL) state = FindState(NAME_Fire);
+	return state;
 }
 
 //===========================================================================
 //
-// AWeapon :: GetHoldAtkState
+// AWeapon :: GetAtkState
 //
 //===========================================================================
 
-FState *AWeapon::GetHoldAtkState ()
+FState *AWeapon::GetAltAtkState (bool hold)
 {
-	return HoldAtkState;
+	FState * state=NULL;
+	
+	if (hold) state = FindState(NAME_AltHold);
+	if (state == NULL) state = FindState(NAME_AltFire);
+	return state;
 }
 
 /* Weapon slots ***********************************************************/

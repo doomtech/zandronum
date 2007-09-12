@@ -119,7 +119,7 @@ IMPLEMENT_ACTOR (AHammerMissile, Hexen, -1, 0)
 	PROP_RadiusFixed (14)
 	PROP_HeightFixed (20)
 	PROP_Damage (10)
-	PROP_DamageType (MOD_FIRE)
+	PROP_DamageType (NAME_Fire)
 	PROP_Flags (MF_NOBLOCKMAP|MF_NOGRAVITY|MF_DROPOFF|MF_MISSILE)
 	PROP_Flags2 (MF2_NOTELEPORT|MF2_IMPACT|MF2_PCROSS)
 
@@ -194,7 +194,7 @@ void A_FHammerAttack (AActor *actor)
 		slope = P_AimLineAttack (pmo, angle, HAMMER_RANGE);
 		if (linetarget)
 		{
-			P_LineAttack (pmo, angle, HAMMER_RANGE, slope, damage, MOD_HIT, RUNTIME_CLASS(AHammerPuff));
+			P_LineAttack (pmo, angle, HAMMER_RANGE, slope, damage, NAME_Melee, RUNTIME_CLASS(AHammerPuff));
 			AdjustPlayerAngle(pmo);
 			if (linetarget->flags3&MF3_ISMONSTER || linetarget->player)
 			{
@@ -204,14 +204,14 @@ void A_FHammerAttack (AActor *actor)
 			// [BC] Apply spread.
 			if ( player->Powers & PW_SPREAD )
 			{
-				P_LineAttack( pmo, angle + ( ANGLE_45 / 3 ), HAMMER_RANGE, slope, damage, MOD_HIT, RUNTIME_CLASS( AHammerPuff ));
+				P_LineAttack( pmo, angle + ( ANGLE_45 / 3 ), HAMMER_RANGE, slope, damage, NAME_Melee, RUNTIME_CLASS( AHammerPuff ));
 				AdjustPlayerAngle( pmo );
 				if ( linetarget->flags3 & MF3_ISMONSTER || linetarget->player )
 				{
 					P_ThrustMobj( linetarget, angle + ( ANGLE_45 / 3 ), power );
 				}
 
-				P_LineAttack( pmo, angle - ( ANGLE_45 / 3 ), HAMMER_RANGE, slope, damage, MOD_HIT, RUNTIME_CLASS( AHammerPuff ));
+				P_LineAttack( pmo, angle - ( ANGLE_45 / 3 ), HAMMER_RANGE, slope, damage, NAME_Melee, RUNTIME_CLASS( AHammerPuff ));
 				AdjustPlayerAngle( pmo );
 				if ( linetarget->flags3 & MF3_ISMONSTER || linetarget->player )
 				{
@@ -226,7 +226,7 @@ void A_FHammerAttack (AActor *actor)
 		slope = P_AimLineAttack(pmo, angle, HAMMER_RANGE);
 		if(linetarget)
 		{
-			P_LineAttack(pmo, angle, HAMMER_RANGE, slope, damage, MOD_HIT, RUNTIME_CLASS(AHammerPuff));
+			P_LineAttack(pmo, angle, HAMMER_RANGE, slope, damage, NAME_Melee, RUNTIME_CLASS(AHammerPuff));
 			AdjustPlayerAngle(pmo);
 			if (linetarget->flags3&MF3_ISMONSTER || linetarget->player)
 			{
@@ -236,14 +236,14 @@ void A_FHammerAttack (AActor *actor)
 			// [BC] Apply spread.
 			if ( player->Powers & PW_SPREAD )
 			{
-				P_LineAttack( pmo, angle + ( ANGLE_45 / 3 ), HAMMER_RANGE, slope, damage, MOD_HIT, RUNTIME_CLASS( AHammerPuff ));
+				P_LineAttack( pmo, angle + ( ANGLE_45 / 3 ), HAMMER_RANGE, slope, damage, NAME_Melee, RUNTIME_CLASS( AHammerPuff ));
 				AdjustPlayerAngle( pmo );
 				if ( linetarget->flags3 & MF3_ISMONSTER || linetarget->player )
 				{
 					P_ThrustMobj( linetarget, angle + ( ANGLE_45 / 3 ), power );
 				}
 
-				P_LineAttack( pmo, angle - ( ANGLE_45 / 3 ), HAMMER_RANGE, slope, damage, MOD_HIT, RUNTIME_CLASS( AHammerPuff ));
+				P_LineAttack( pmo, angle - ( ANGLE_45 / 3 ), HAMMER_RANGE, slope, damage, NAME_Melee, RUNTIME_CLASS( AHammerPuff ));
 				AdjustPlayerAngle( pmo );
 				if ( linetarget->flags3 & MF3_ISMONSTER || linetarget->player )
 				{
@@ -259,7 +259,7 @@ void A_FHammerAttack (AActor *actor)
 	PuffSpawned = NULL;
 	angle = pmo->angle;
 	slope = P_AimLineAttack (pmo, angle, HAMMER_RANGE);
-	P_LineAttack (pmo, angle, HAMMER_RANGE, slope, damage, MOD_HIT, RUNTIME_CLASS(AHammerPuff));
+	P_LineAttack (pmo, angle, HAMMER_RANGE, slope, damage, NAME_Melee, RUNTIME_CLASS(AHammerPuff));
 	if (PuffSpawned)
 	{
 		pmo->special1 = false;
@@ -272,11 +272,11 @@ void A_FHammerAttack (AActor *actor)
 	// [BC] Apply spread.
 	if ( player->Powers & PW_SPREAD )
 	{
-		P_LineAttack( pmo, angle + ( ANGLE_45 / 3 ), HAMMER_RANGE, slope, damage, MOD_HIT, RUNTIME_CLASS( AHammerPuff ));
+		P_LineAttack( pmo, angle + ( ANGLE_45 / 3 ), HAMMER_RANGE, slope, damage, NAME_Melee, RUNTIME_CLASS( AHammerPuff ));
 		if ( PuffSpawned )
 			pmo->special1 = false;
 
-		P_LineAttack( pmo, angle - ( ANGLE_45 / 3 ), HAMMER_RANGE, slope, damage, MOD_HIT, RUNTIME_CLASS( AHammerPuff ));
+		P_LineAttack( pmo, angle - ( ANGLE_45 / 3 ), HAMMER_RANGE, slope, damage, NAME_Melee, RUNTIME_CLASS( AHammerPuff ));
 		if ( PuffSpawned )
 			pmo->special1 = false;
 	}

@@ -72,6 +72,29 @@
 
 static FRandom pr_glass ("GlassBreak");
 
+FName MODtoDamageType (int mod)
+{
+	switch (mod)
+	{
+	default:	return NAME_None;			break;
+	case 9:		return NAME_BFGSplash;		break;
+	case 12:	return NAME_Water;			break;
+	case 13:	return NAME_Slime;			break;
+	case 14:	return NAME_Fire;			break;
+	case 15:	return NAME_Crush;			break;
+	case 16:	return NAME_Telefrag;		break;
+	case 17:	return NAME_Falling;		break;
+	case 18:	return NAME_Suicide;		break;
+	case 20:	return NAME_Exit;			break;
+	case 22:	return NAME_Melee;			break;
+	case 23:	return NAME_Railgun;		break;
+	case 24:	return NAME_Ice;			break;
+	case 25:	return NAME_Disintegrate;	break;
+	case 26:	return NAME_Poison;			break;
+	case 27:	return NAME_Electric;		break;
+	case 1000:	return NAME_Massacre;		break;
+	}
+}
 
 FUNC(LS_NOP)
 {
@@ -760,7 +783,7 @@ FUNC(LS_Teleport_ZombieChanger)
 	if (it != NULL)
 	{
 		EV_Teleport (arg0, arg1, ln, backSide, it, false, false, false);
-		it->SetState (it->PainState);
+		it->SetState (it->FindState(NAME_Pain));
 
 		// [BC] If we're the server, tell clients to put this thing in its pain state.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -949,11 +972,11 @@ FUNC(LS_DamageThing)
 		}
 		else if (arg0 > 0)
 		{
-			P_DamageMobj (it, NULL, NULL, arg0, arg1);
+			P_DamageMobj (it, NULL, NULL, arg0, MODtoDamageType (arg1));
 		}
 		else
 		{ // If zero damage, guarantee a kill
-			P_DamageMobj (it, NULL, NULL, 1000000, arg1);
+			P_DamageMobj (it, NULL, NULL, 1000000, MODtoDamageType (arg1));
 		}
 	}
 
@@ -1128,7 +1151,7 @@ FUNC(LS_Thing_Destroy)
 		{
 			AActor *temp = iterator.Next ();
 			if (actor->flags & MF_SHOOTABLE)
-				P_DamageMobj (actor, NULL, it, arg1 ? 1000000 : actor->health, MOD_UNKNOWN);
+				P_DamageMobj (actor, NULL, it, arg1 ? 1000000 : actor->health, NAME_None);
 			actor = temp;
 		}
 	}
@@ -1150,7 +1173,7 @@ FUNC(LS_Thing_Damage)
 		{
 			if (arg1 > 0)
 			{
-				P_DamageMobj (actor, NULL, it, arg1, arg2);
+					P_DamageMobj (actor, NULL, it, arg1, MODtoDamageType (arg2));
 			}
 			else if (actor->health < actor->GetDefault()->health)
 			{
@@ -1390,7 +1413,8 @@ FUNC(LS_Thing_SpawnFacing)
 	if (thing->tics != -1)
 		return true;	// not lying still yet
 	
-	if (thing->RaiseState == NULL)
+	FState * RaiseState = thing->FindState(NAME_Raise);
+	if (RaiseState == NULL)
 		return true;	// monster doesn't have a raise state
 	
 	AActor *info = thing->GetDefault ();
@@ -1415,7 +1439,7 @@ FUNC(LS_Thing_SpawnFacing)
 
 	S_Sound (thing, CHAN_BODY, "vile/raise", 1, ATTN_IDLE);
 	
-	thing->SetState (info->RaiseState);
+	thing->SetState (RaiseState);
 	thing->flags = info->flags;
 	thing->flags2 = info->flags2;
 	thing->flags3 = info->flags3;
@@ -2138,6 +2162,11 @@ FUNC(LS_PointPush_SetForce)
 FUNC(LS_Sector_SetDamage)
 // Sector_SetDamage (tag, amount, mod)
 {
+	// The sector still stores the mod in its old format because
+	// adding an FName to the sector_t structure might cause
+	// problems by adding an unwanted constructor.
+	// Since it doesn't really matter whether the type is translated
+	// here or in P_PlayerInSpecialSector I think it's the best solution.
 	int secnum = -1;
 	while ((secnum = P_FindSectorFromTag (arg0, secnum)) >= 0) {
 		sectors[secnum].damage = arg1;
@@ -2808,7 +2837,7 @@ FUNC(LS_ForceField)
 {
 	if (it != NULL)
 	{
-		P_DamageMobj (it, NULL, NULL, 16, MOD_UNKNOWN);
+		P_DamageMobj (it, NULL, NULL, 16, NAME_None);
 		P_ThrustMobj (it, it->angle + ANGLE_180, 0x7D000);
 	}
 	return true;

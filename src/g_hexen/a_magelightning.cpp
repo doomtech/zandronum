@@ -133,11 +133,11 @@ int ALightning::SpecialMissileHit (AActor *thing)
 		{
 			if (thing->IsKindOf(RUNTIME_CLASS(ACentaur)))
 			{ // Lightning does more damage to centaurs
-				P_DamageMobj(thing, this, target, 9, MOD_ELECTRIC);
+				P_DamageMobj(thing, this, target, 9, NAME_Electric);
 			}
 			else
 			{
-				P_DamageMobj(thing, this, target, 3, MOD_ELECTRIC);
+				P_DamageMobj(thing, this, target, 3, NAME_Electric);
 			}
 			if (!(S_IsActorPlayingSomething (this, CHAN_WEAPON, -1)))
 			{
@@ -443,7 +443,7 @@ void A_LightningZap (AActor *actor)
 	actor->health -= 8;
 	if (actor->health <= 0)
 	{
-		actor->SetState (actor->DeathState);
+		actor->SetState (actor->FindState(NAME_Death));
 		return;
 	}
 	if (actor->flags3 & MF3_FLOORHUGGER)
@@ -584,7 +584,7 @@ void A_ZapMimic (AActor *actor)
 	mo = actor->lastenemy;
 	if (mo)
 	{
-		if (mo->state >= mo->DeathState)
+		if (mo->state >= mo->FindState(NAME_Death))
 		{
 			P_ExplodeMissile (actor, NULL, NULL);
 		}

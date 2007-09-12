@@ -170,7 +170,7 @@ void A_SargAttack (AActor *self)
 	if (self->CheckMeleeRange ())
 	{
 		int damage = ((pr_sargattack()%10)+1)*4;
-		P_DamageMobj (self->target, self, self, damage, MOD_HIT);
+		P_DamageMobj (self->target, self, self, damage, NAME_Melee);
 		P_TraceBleed (damage, self->target, self);
 	}
 }

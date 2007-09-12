@@ -209,7 +209,7 @@ void A_CStaffCheck (AActor *actor)
 		slope = P_AimLineAttack (pmo, angle, fixed_t(1.5*MELEERANGE));
 		if (linetarget)
 		{
-			P_LineAttack (pmo, angle, fixed_t(1.5*MELEERANGE), slope, damage, MOD_HIT, RUNTIME_CLASS(ACStaffPuff));
+			P_LineAttack (pmo, angle, fixed_t(1.5*MELEERANGE), slope, damage, NAME_Melee, RUNTIME_CLASS(ACStaffPuff));
 			pmo->angle = R_PointToAngle2 (pmo->x, pmo->y, 
 				linetarget->x, linetarget->y);
 			if ((linetarget->player || linetarget->flags3&MF3_ISMONSTER)
@@ -237,7 +237,7 @@ void A_CStaffCheck (AActor *actor)
 		slope = P_AimLineAttack (player->mo, angle, fixed_t(1.5*MELEERANGE));
 		if (linetarget)
 		{
-			P_LineAttack (pmo, angle, fixed_t(1.5*MELEERANGE), slope, damage, MOD_HIT, RUNTIME_CLASS(ACStaffPuff));
+			P_LineAttack (pmo, angle, fixed_t(1.5*MELEERANGE), slope, damage, NAME_Melee, RUNTIME_CLASS(ACStaffPuff));
 			pmo->angle = R_PointToAngle2 (pmo->x, pmo->y, 
 				linetarget->x, linetarget->y);
 			if (linetarget->player || linetarget->flags3&MF3_ISMONSTER)

@@ -49,6 +49,7 @@
 #include "r_state.h"
 #include "i_system.h"
 #include "p_local.h"
+#include "templates.h"
 #include "cl_commands.h"
 #include "cl_main.h"
 #include "network.h"
@@ -398,6 +399,267 @@ FActorInfo *FActorInfo::GetReplacee ()
 	Replacee = savedrep;
 	return rep;
 }
+
+
+//==========================================================================
+//
+//
+//==========================================================================
+
+FStateLabel *FStateLabels::FindLabel (FName label)
+{
+	return const_cast<FStateLabel *>(BinarySearch<FStateLabel, FName> (Labels, NumLabels, &FStateLabel::Label, label));
+}
+
+void FStateLabels::Destroy ()
+{
+	for(int i=0; i<NumLabels;i++)
+	{
+		if (Labels[i].Children != NULL)
+		{
+			Labels[i].Children->Destroy();
+			free (Labels[i].Children);	// These are malloc'd, not new'd!
+			Labels[i].Children=NULL;
+		}
+	}
+}
+
+
+//===========================================================================
+//
+// FindState (one name version)
+//
+// Finds a state with the exact specified name.
+//
+//===========================================================================
+
+FState *AActor::FindState (FName label) const
+{
+	const FActorInfo *info = GetClass()->ActorInfo;
+	FStateLabel *slabel;
+
+	while (info != NULL)
+	{
+		if (info->StateList != NULL)
+		{
+			slabel = info->StateList->FindLabel (label);
+			if (slabel != NULL && slabel->valid)
+			{
+				return slabel->State;
+			}
+		}
+		info = info->Class->ParentClass->ActorInfo;
+	}
+	return NULL;
+}
+
+//===========================================================================
+//
+// HasStates
+//
+// Checks whether the actor has substates for the given name.
+//
+//===========================================================================
+
+bool AActor::HasStates (FName label) const
+{
+	const FActorInfo *info = GetClass()->ActorInfo;
+	FStateLabel *slabel;
+
+	while (info != NULL)
+	{
+		if (info->StateList != NULL)
+		{
+			slabel = info->StateList->FindLabel (label);
+			if (slabel != NULL)
+			{
+				return true;
+			}
+		}
+		info = info->Class->ParentClass->ActorInfo;
+	}
+	return false;
+}
+
+//===========================================================================
+//
+// FindState (multiple names version)
+//
+// Finds a state that matches as many of the supplied names as possible.
+// A state with more names than those provided does not match.
+// A state with fewer names can match if there are no states with the exact
+// same number of names.
+//
+// The search proceeds like this. For the current class, keeping matching
+// names until there are no more. If both the argument list and the state
+// are out of names, it's an exact match, so return it. If the state still
+// has names, ignore it. If the argument list still has names, remember it.
+// Repeat with each successive ancestor class. The state with the longest
+// match not exceeding the supplied number of names is returned.
+//
+//===========================================================================
+
+FState *AActor::FindState (int numnames, int first, ...) const	// The 'first' parameter is only here to 
+																// disambiguate from the single parameter version
+{
+	va_list arglist;
+	va_start (arglist, numnames);
+	return FindState (numnames, arglist);
+}
+
+FState *FActorInfo::FindState (int numnames, ...) const
+{
+	va_list arglist;
+	va_start (arglist, numnames);
+	return FindState (numnames, arglist);
+}
+
+FState *AActor::FindState (int numnames, va_list arglist) const
+{
+	return GetClass()->ActorInfo->FindState (numnames, arglist);
+}
+
+FState *FActorInfo::FindState (int numnames, va_list arglist) const
+{
+	const FActorInfo *info = this;
+	FState *best = NULL;
+	int bestcount = 0;
+
+	// Search this actor's class, plus all its ancestors for a match.
+	while (info != NULL && bestcount < numnames)
+	{
+		FStateLabels *labels = info->StateList;
+
+		if (labels != NULL)
+		{
+			va_list names = arglist;
+			int count = 0;
+			FStateLabel *slabel = NULL;
+			FName label;
+
+			// Find the best-matching label for this class.
+			while (labels != NULL && count < numnames)
+			{
+				label = ENamedName(va_arg (names, int));
+				slabel = labels->FindLabel (label);
+
+				if (slabel != NULL)
+				{
+					count++;
+					labels = slabel->Children;
+
+					// Labels that are more specific than what we want do not match.
+					// Less specific labels do match.
+					if (slabel->valid && count > bestcount)
+					{
+						if (count == numnames)
+						{
+							return slabel->State;
+						}
+						bestcount = count;
+						best = slabel->State;
+					}
+				}
+				else
+				{
+					break;
+				}
+			}
+		}
+		// Walk up the class hierarchy and repeat.
+		info = info->Class->ParentClass->ActorInfo;
+	}
+	return best;
+}
+
+//===========================================================================
+//
+// FindStateExact
+//
+// This is like FindState, except it will only return states whose labels
+// match the requested one exactly.
+//
+//===========================================================================
+
+FState *FActorInfo::FindStateExact (int numnames, ...) const
+{
+	va_list arglist;
+	va_start (arglist, numnames);
+	return FindStateExact (numnames, arglist);
+}
+
+FState *FActorInfo::FindStateExact (int numnames, va_list arglist) const
+{
+	const FActorInfo *info = this;
+
+	// Search this actor's class, plus all its ancestors for a match.
+	while (info != NULL)
+	{
+		FStateLabels *labels = info->StateList;
+
+		if (labels != NULL)
+		{
+			va_list names = arglist;
+			int count = 0;
+			FStateLabel *slabel = NULL;
+			FName label;
+
+			// Look for a matching label for this class.
+			while (labels != NULL && count < numnames)
+			{
+				label = ENamedName(va_arg (names, int));
+				slabel = labels->FindLabel (label);
+
+				if (slabel != NULL)
+				{
+					count++;
+					labels = slabel->Children;
+				}
+				else
+				{
+					break;
+				}
+			}
+			// Only exact matches count.
+			if (slabel != NULL && slabel->valid && count == numnames)
+			{
+				return slabel->State;
+			}
+		}
+		// Walk up the class hierarchy and repeat.
+		info = info->Class->ParentClass->ActorInfo;
+	}
+	return NULL;
+}
+
+//===========================================================================
+//
+// Changes a single state
+//
+// If the given state does not exist it won't be changed
+//
+//===========================================================================
+
+void FActorInfo::ChangeState (FName label, FState * newstate) const
+{
+	FStateLabel *slabel;
+
+	if (StateList != NULL)
+	{
+		slabel = StateList->FindLabel (label);
+		if (slabel != NULL)
+		{
+			slabel->State = newstate;
+		}
+	}
+}
+
+
+
+//==========================================================================
+//
+//
+//==========================================================================
 
 FDoomEdMap DoomEdMap;
 

@@ -304,7 +304,7 @@ void A_SkelFist (AActor *self)
 	{
 		int damage = ((pr_skelfist()%10)+1)*6;
 		S_Sound (self, CHAN_WEAPON, "skeleton/melee", 1, ATTN_NORM);
-		P_DamageMobj (self->target, self, self, damage, MOD_HIT);
+		P_DamageMobj (self->target, self, self, damage, NAME_Melee);
 		P_TraceBleed (damage, self->target, self);
 
 		// [BC] If we're the server, tell clients to play the sound.

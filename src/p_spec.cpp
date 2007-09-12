@@ -147,7 +147,7 @@ bool CheckIfExitIsGood (AActor *self)
 	// [BC] Teamgame, too.
 	if ((deathmatch || teamgame || alwaysapplydmflags) && (dmflags & DF_NO_EXIT))
 	{
-		P_DamageMobj (self, self, self, 1000000, MOD_EXIT);
+		P_DamageMobj (self, self, self, 1000000, NAME_Exit);
 		return false;
 	}
 	// [BC] Instead of displaying this message in deathmatch only, display it any
@@ -465,20 +465,20 @@ void P_PlayerInSpecialSector (player_t *player, sector_t * sector)
 
 		case Damage_InstantDeath:
 			// Strife's instant death sector
-			P_DamageMobj (player->mo, NULL, NULL, 999, MOD_UNKNOWN);
+			P_DamageMobj (player->mo, NULL, NULL, 999, NAME_None);
 			break;
 
 		case dDamage_Hellslime:
 			// HELLSLIME DAMAGE
 			if (ironfeet == NULL && !(level.time&0x1f))
-				P_DamageMobj (player->mo, NULL, NULL, 10, MOD_SLIME);
+				P_DamageMobj (player->mo, NULL, NULL, 10, NAME_Slime);
 			break;
 
 		case dDamage_Nukage:
 			// NUKAGE DAMAGE
 		case sLight_Strobe_Hurt:
 			if (ironfeet == NULL && !(level.time&0x1f))
-				P_DamageMobj (player->mo, NULL, NULL, 5, MOD_SLIME);
+				P_DamageMobj (player->mo, NULL, NULL, 5, NAME_Slime);
 			break;
 
 		case dDamage_SuperHellslime:
@@ -488,7 +488,7 @@ void P_PlayerInSpecialSector (player_t *player, sector_t * sector)
 			if (ironfeet == NULL || pr_playerinspecialsector() < 5)
 			{
 				if (!(level.time&0x1f))
-					P_DamageMobj (player->mo, NULL, NULL, 20, MOD_SLIME);
+					P_DamageMobj (player->mo, NULL, NULL, 20, NAME_Slime);
 			}
 			break;
 
@@ -507,7 +507,7 @@ void P_PlayerInSpecialSector (player_t *player, sector_t * sector)
 			player->cheats &= ~CF_GODMODE;
 
 			if (!(level.time & 0x1f))
-				P_DamageMobj (player->mo, NULL, NULL, 20, MOD_UNKNOWN);
+				P_DamageMobj (player->mo, NULL, NULL, 20, NAME_None);
 
 			// [BC] Don't do this in teamgame, either.
 			if (player->health <= 10 && ((!deathmatch && !teamgame) || !(dmflags & DF_NO_EXIT)))
@@ -518,7 +518,7 @@ void P_PlayerInSpecialSector (player_t *player, sector_t * sector)
 		case dScroll_EastLavaDamage:
 			if (!(level.time & 15))
 			{
-				P_DamageMobj(player->mo, NULL, NULL, 5, MOD_FIRE);
+				P_DamageMobj(player->mo, NULL, NULL, 5, NAME_Fire);
 				P_HitFloor(player->mo);
 			}
 			break;
@@ -526,7 +526,7 @@ void P_PlayerInSpecialSector (player_t *player, sector_t * sector)
 		case dDamage_LavaHefty:
 			if(!(level.time & 15))
 			{
-				P_DamageMobj(player->mo, NULL, NULL, 8, MOD_FIRE);
+				P_DamageMobj(player->mo, NULL, NULL, 8, NAME_Fire);
 				P_HitFloor(player->mo);
 			}
 			break;
@@ -545,18 +545,18 @@ void P_PlayerInSpecialSector (player_t *player, sector_t * sector)
 			break;
 		case 0x100: // 2/5 damage per 31 ticks
 			if (ironfeet == NULL && !(level.time&0x1f))
-				P_DamageMobj (player->mo, NULL, NULL, 5, MOD_FIRE);
+				P_DamageMobj (player->mo, NULL, NULL, 5, NAME_Fire);
 			break;
 		case 0x200: // 5/10 damage per 31 ticks
 			if (ironfeet == NULL && !(level.time&0x1f))
-				P_DamageMobj (player->mo, NULL, NULL, 10, MOD_SLIME);
+				P_DamageMobj (player->mo, NULL, NULL, 10, NAME_Slime);
 			break;
 		case 0x300: // 10/20 damage per 31 ticks
 			if (ironfeet == NULL
 				|| pr_playerinspecialsector() < 5)	// take damage even with suit
 			{
 				if (!(level.time&0x1f))
-					P_DamageMobj (player->mo, NULL, NULL, 20, MOD_SLIME);
+					P_DamageMobj (player->mo, NULL, NULL, 20, NAME_Slime);
 			}
 			break;
 		}
@@ -568,19 +568,19 @@ void P_PlayerInSpecialSector (player_t *player, sector_t * sector)
 		if (sector->damage < 20)
 		{
 			if (ironfeet == NULL && !(level.time&0x1f))
-				P_DamageMobj (player->mo, NULL, NULL, sector->damage, sector->mod);
+				P_DamageMobj (player->mo, NULL, NULL, sector->damage, MODtoDamageType (sector->mod));
 		}
 		else if (sector->damage < 50)
 		{
 			if ((ironfeet == NULL || (pr_playerinspecialsector()<5))
 				 && !(level.time&0x1f))
 			{
-				P_DamageMobj (player->mo, NULL, NULL, sector->damage, sector->mod);
+				P_DamageMobj (player->mo, NULL, NULL, sector->damage, MODtoDamageType (sector->mod));
 			}
 		}
 		else
 		{
-			P_DamageMobj (player->mo, NULL, NULL, sector->damage, sector->mod);
+			P_DamageMobj (player->mo, NULL, NULL, sector->damage, MODtoDamageType (sector->mod));
 		}
 	}
 
@@ -1209,7 +1209,7 @@ void P_SpawnSpecials (void)
 					for (s = -1; (s = P_FindSectorFromTag(lines[i].args[0],s)) >= 0;)
 					{
 						sectors[s].damage = damage;
-						sectors[s].mod = MOD_UNKNOWN;
+						sectors[s].mod = 0;//MOD_UNKNOWN;
 					}
 				}
 				break;

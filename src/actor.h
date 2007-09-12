@@ -570,7 +570,7 @@ public:
 	virtual int DoSpecialDamage (AActor *target, int damage);
 
 	// Like DoSpecialDamage, but called on the actor receiving the damage.
-	virtual int TakeSpecialDamage (AActor *inflictor, AActor *source, int damage, int damagetype);
+	virtual int TakeSpecialDamage (AActor *inflictor, AActor *source, int damage, FName damagetype);
 
 	// Centaurs and ettins squeal when electrocuted, poisoned, or "holy"-ed
 	virtual void Howl ();
@@ -809,26 +809,12 @@ public:
 	fixed_t MaxDropOffHeight, MaxStepHeight;
 	SDWORD Mass;
 	SWORD PainChance;
-	BYTE DamageType;
+	FNameNoInit DamageType;
 
 	FState *SpawnState;
 	FState *SeeState;
-	FState *PainState;
 	FState *MeleeState;
 	FState *MissileState;
-	FState *CrashState;
-	FState *DeathState;
-	FState *XDeathState;
-	FState *BDeathState;
-	FState *IDeathState;
-	FState *EDeathState;
-	FState *RaiseState;
-	FState *WoundState;
-	FState *HealState;
-	FState *CrushState;
-	FState *YesState;
-	FState *NoState;
-	FState *GreetingsState;
 
 	// [BC] This is the state that the actor is put into after being spawned on a map (this
 	// isn't necessarily the spawn state).
@@ -904,6 +890,11 @@ public:
 	bool InSpawnState( );
 	bool InDeathState();
 	bool UpdateWaterLevel (fixed_t oldz, bool splash=true);
+
+	FState *FindState (FName label) const;
+	FState *FindState (int numnames, int first, ...) const;
+	FState *FindState (int numnames, va_list arglist) const;
+	bool HasStates (FName label) const;
 
 	static FState States[];
 
