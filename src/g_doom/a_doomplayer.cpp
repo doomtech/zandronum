@@ -345,11 +345,14 @@ void ADoomPlayer::GiveDefaultInventory ()
 	}
 }
 
+/*
+// [BB] Moved to a_hereticplayer.cpp
 void A_FireScream (AActor *self)
 {
 	S_Sound (self, CHAN_BODY, "*burndeath", 1, ATTN_NORM);
 }
 
+// [BB] Moved to p_user.cpp
 void A_PlayerScream (AActor *self)
 {
 	int sound = 0;
@@ -409,7 +412,7 @@ void A_PlayerScream (AActor *self)
 	}
 	S_SoundID (self, chan, sound, 1, ATTN_NORM);
 }
-
+*/
 
 //==========================================================================
 //

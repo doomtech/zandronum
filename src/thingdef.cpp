@@ -79,6 +79,7 @@ extern TArray<FActorInfo *> Decorations;
 TArray<char*> DecalNames;
 // all state parameters
 TArray<int> StateParameters;
+TArray<int> JumpParameters;
 
 //==========================================================================
 //
@@ -209,6 +210,7 @@ static flagdef ActorFlags[]=
 	DEFINE_FLAG(MF4, FRIGHTENED, AActor, flags4),
 	DEFINE_FLAG(MF4, NOBOUNCESOUND, AActor, flags4),
 	DEFINE_FLAG(MF4, NOSKIN, AActor, flags4),
+	DEFINE_FLAG(MF4, BOSSDEATH, AActor, flags4),
 
 	DEFINE_FLAG(MF5, FASTER, AActor, flags5),
 	DEFINE_FLAG(MF5, FASTMELEE, AActor, flags5),
@@ -525,6 +527,9 @@ ACTOR(CheckFloor)
 ACTOR(CheckSkullDone)
 ACTOR(RadiusThrust)
 ACTOR(Stop)
+ACTOR(Respawn)
+ACTOR(BarrelDestroy)
+ACTOR(PlayerSkinCheck)
 ACTOR(SetGravity)
 
 
@@ -722,6 +727,7 @@ AFuncDesc AFTable[]=
 	FUNC(A_KillMaster, NULL)
 	FUNC(A_KillChildren, NULL)
 	FUNC(A_CheckFloor, "L")
+	FUNC(A_PlayerSkinCheck, "L")
 	{"A_BasicAttack", A_ComboAttack, "ISMF" },
 
 	// Weapon only functions
@@ -740,6 +746,8 @@ AFuncDesc AFTable[]=
 	FUNC(A_RadiusThrust, "xxy")
 	{"A_Explode", A_ExplodeParms, "xxy" },
 	FUNC(A_Stop, NULL)
+	FUNC(A_Respawn, "y")
+	FUNC(A_BarrelDestroy, NULL)
 };
 
 //==========================================================================
@@ -1015,9 +1023,9 @@ public:
 
 static FDropItemPtrArray DropItemList;
 
-FDropItem *GetDropItems(AActor * actor)
+FDropItem *GetDropItems(const PClass *cls)
 {
-	unsigned int index = actor->GetClass ()->Meta.GetMetaInt (ACMETA_DropItems) - 1;
+	unsigned int index = cls->Meta.GetMetaInt (ACMETA_DropItems) - 1;
 
 	if (index >= 0 && index < DropItemList.Size())
 	{
@@ -1720,16 +1728,25 @@ static void RetargetStates (intptr_t count, const char *target)
 // processes a state block
 //
 //==========================================================================
-static void ParseStateString(char * statestring)
+static FString ParseStateString()
 {
+	FString statestring;
+
 	SC_MustGetString();
-	strncpy (statestring, sc_String, 255);
+	statestring = sc_String;
+	if (SC_CheckString("::"))
+	{
+		SC_MustGetString ();
+		statestring += "::";
+		statestring += sc_String;
+	}
 	while (SC_CheckString ("."))
 	{
 		SC_MustGetString ();
-		strcat (statestring, ".");
-		strcat (statestring, sc_String);
+		statestring += ".";
+		statestring += sc_String;
 	}
+	return statestring;
 }
 
 //==========================================================================
@@ -1740,31 +1757,28 @@ static void ParseStateString(char * statestring)
 //==========================================================================
 static int ProcessStates(FActorInfo * actor, AActor * defaults, Baggage &bag)
 {
-	char statestring[256];
+	FString statestring;
 	intptr_t count = 0;
 	FState state;
 	FState * laststate = NULL;
 	intptr_t lastlabel = -1;
-	FStateDefine * stp;
 	int minrequiredstate = -1;
-
-	statestring[255] = 0;
 
 	ChkBraceOpn();
 	SC_SetEscape(false);	// disable escape sequences in the state parser
 	while (!TestBraceCls() && !sc_End)
 	{
 		memset(&state,0,sizeof(state));
-		ParseStateString(statestring);
-		if (!stricmp(statestring, "GOTO"))
+		statestring = ParseStateString();
+		if (!statestring.CompareNoCase("GOTO"))
 		{
 do_goto:	
-			ParseStateString(statestring);
+			statestring = ParseStateString();
 			if (SC_CheckString ("+"))
 			{
 				SC_MustGetNumber ();
-				strcat (statestring, "+");
-				strcat (statestring, sc_String);
+				statestring += '+';
+				statestring += sc_String;
 			}
 			// copy the text - this must be resolved later!
 			if (laststate != NULL)
@@ -1780,7 +1794,7 @@ do_goto:
 				SC_ScriptError("GOTO before first state");
 			}
 		}
-		else if (!stricmp(statestring, "STOP"))
+		else if (!statestring.CompareNoCase("STOP"))
 		{
 do_stop:
 			if (laststate!=NULL)
@@ -1797,7 +1811,7 @@ do_stop:
 				continue;
 			}
 		}
-		else if (!stricmp(statestring, "WAIT") || !stricmp(statestring, "FAIL"))
+		else if (!statestring.CompareNoCase("WAIT") || !statestring.CompareNoCase("FAIL"))
 		{
 			if (!laststate) 
 			{
@@ -1806,7 +1820,7 @@ do_stop:
 			}
 			laststate->NextState=(FState*)-2;
 		}
-		else if (!stricmp(statestring, "LOOP"))
+		else if (!statestring.CompareNoCase("LOOP"))
 		{
 			if (!laststate) 
 			{
@@ -1817,7 +1831,7 @@ do_stop:
 		}
 		else
 		{
-			char * statestrp;
+			const char * statestrp;
 
 			SC_MustGetString();
 			if (SC_Compare (":"))
@@ -1827,12 +1841,12 @@ do_stop:
 				{
 					lastlabel = count;
 					AddState(statestring, (FState *) (count+1));
-					ParseStateString(statestring);
-					if (!stricmp(statestring, "GOTO"))
+					statestring = ParseStateString();
+					if (!statestring.CompareNoCase("GOTO"))
 					{
 						goto do_goto;
 					}
-					else if (!stricmp(statestring, "STOP"))
+					else if (!statestring.CompareNoCase("STOP"))
 					{
 						goto do_stop;
 					}
@@ -1843,7 +1857,7 @@ do_stop:
 
 			SC_UnGet ();
 
-			if (strlen (statestring) != 4)
+			if (statestring.Len() != 4)
 			{
 				SC_ScriptError ("Sprite names must be exactly 4 characters\n");
 			}
@@ -1852,7 +1866,7 @@ do_stop:
 			state.Misc1=state.Misc2=0;
 			state.ParameterIndex=0;
 			SC_MustGetString();
-			strncpy(statestring, sc_String + 1, 255);
+			statestring = (sc_String+1);
 			statestrp = statestring;
 			state.Frame=(*sc_String&223)-'A';
 			if ((*sc_String&223)<'A' || (*sc_String&223)>']')
@@ -1895,7 +1909,7 @@ do_stop:
 				strlwr (sc_String);
 
 				int minreq=count;
-				if (DoSpecialFunctions(state,strlen(statestring)>0, &minreq, bag))
+				if (DoSpecialFunctions(state, !statestring.IsEmpty(), &minreq, bag))
 				{
 					if (minreq>minrequiredstate) minrequiredstate=minreq;
 					goto endofstate;
@@ -1995,16 +2009,78 @@ do_stop:
 									SC_ScriptError("You cannot use A_Jump commands on multistate definitions\n");
 								}
 
-								SC_MustGetNumber();
-								v=sc_Number;
-								if (v<1)
+								if (SC_CheckNumber())
 								{
-									SC_ScriptError("Negative jump offsets are not allowed");
-								}
+									v=sc_Number;
+									if (v<1)
+									{
+										SC_ScriptError("Negative jump offsets are not allowed");
+									}
 
+									{
+										int minreq=count+v;
+										if (minreq>minrequiredstate) minrequiredstate=minreq;
+									}
+								}
+								else
 								{
-									int minreq=count+v;
-									if (minreq>minrequiredstate) minrequiredstate=minreq;
+									if (JumpParameters.Size()==0) JumpParameters.Push(0);
+
+									v = -(int)JumpParameters.Size();
+									FString statestring = ParseStateString();
+									const PClass *stype=NULL;
+									int scope = statestring.IndexOf("::");
+									if (scope >= 0)
+									{
+										FName scopename = FName(statestring, scope, false);
+										if (scopename == NAME_Super)
+										{
+											// Super refers to the direct superclass
+											scopename = actor->Class->ParentClass->TypeName;
+										}
+										JumpParameters.Push(scopename);
+										statestring = statestring.Right(statestring.Len()-scope-2);
+
+										stype = PClass::FindClass (scopename);
+										if (stype == NULL)
+										{
+											SC_ScriptError ("%s is an unknown class.", scopename);
+										}
+										if (!stype->IsDescendantOf (RUNTIME_CLASS(AActor)))
+										{
+											SC_ScriptError ("%s is not an actor class, so it has no states.", stype->TypeName.GetChars());
+										}
+										if (!stype->IsAncestorOf (actor->Class))
+										{
+											SC_ScriptError ("%s is not derived from %s so cannot access its states.",
+												actor->Class->TypeName.GetChars(), stype->TypeName.GetChars());
+										}
+									}
+									else
+									{
+										// No class name is stored. This allows 'virtual' jumps to
+										// labels in subclasses.
+										// It also means that the validity of the given state cannot
+										// be checked here.
+										JumpParameters.Push(0);
+									}
+									TArray<FName> names;
+									MakeStateNameList(statestring, &names);
+
+									if (stype != NULL)
+									{
+										if (!stype->ActorInfo->FindState(names.Size(), (va_list)&names[0]))
+										{
+											SC_ScriptError("Jump to unknown state '%s' in class '%s'",
+												statestring.GetChars(), stype->TypeName.GetChars());
+										}
+									}
+									JumpParameters.Push(names.Size());
+									for(unsigned i=0;i<names.Size();i++)
+									{
+										JumpParameters.Push(names[i]);
+									}
+									// No offsets here. The point of jumping to labels is to avoid such things!
 								}
 
 								break;
@@ -2123,11 +2199,11 @@ static FState *ResolveGotoLabel (AActor *actor, const PClass *mytype, char *name
 	int v;
 
 	// Check for classname
-	if ((pt = strchr (name, '.')) != NULL)
+	if ((pt = strstr (name, "::")) != NULL)
 	{
 		const char *classname = name;
 		*pt = '\0';
-		name = pt + 1;
+		name = pt + 2;
 
 		// The classname may either be "Super" to identify this class's immediate
 		// superclass, or it may be the name of any class that this one derives from.
@@ -2136,7 +2212,7 @@ static FState *ResolveGotoLabel (AActor *actor, const PClass *mytype, char *name
 			type = type->ParentClass;
 			actor = GetDefaultByType (type);
 		}
-		else if (!FindState(actor, type, classname))
+		else
 		{
 			// first check whether a state of the desired name exists
 			const PClass *stype = PClass::FindClass (classname);
@@ -2158,12 +2234,6 @@ static FState *ResolveGotoLabel (AActor *actor, const PClass *mytype, char *name
 				type = stype;
 				actor = GetDefaultByType (type);
 			}
-		}
-		else
-		{
-			// Restore the period in the name
-			*pt='.';
-			name = (char*)classname;
 		}
 	}
 	label = name;
@@ -2533,16 +2603,14 @@ void ProcessActor(void (*process)(FState *, int))
 //
 // StatePropertyIsDeprecated
 //
-// Deprecated means it will be removed in a future version.
-//
 //==========================================================================
 
 static void StatePropertyIsDeprecated (const char *actorname, const char *prop)
 {
+	/*
 	static bool warned = false;
 
-	Printf (TEXTCOLOR_YELLOW "In actor %s, the %s property is deprecated and will be removed in 2.2.0.\n",
-		actorname, prop);
+	Printf (TEXTCOLOR_YELLOW "In actor %s, the %s property is deprecated.\n", actorname, prop);
 	if (!warned)
 	{
 		warned = true;
@@ -2550,6 +2618,7 @@ static void StatePropertyIsDeprecated (const char *actorname, const char *prop)
 				TEXTCOLOR_YELLOW "    %s:\n"
 				TEXTCOLOR_YELLOW "        Goto <state>\n", prop, prop);
 	}
+	*/
 }
 
 //==========================================================================

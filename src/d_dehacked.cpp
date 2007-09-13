@@ -1534,6 +1534,8 @@ static int PatchPointer (int ptrNum)
 					state->Action = NULL;
 				else
 					state->Action = CodePtrs[ActionList[atoi (Line2)]];
+
+				state->ParameterIndex=0;	// No parameters for patched code pointers
 			}
 			else
 			{
@@ -1678,7 +1680,8 @@ static int PatchMisc (int dummy)
 		}
 	}
 
-	// Update default item properties
+	// Update default item properties by patching the affected items
+	// Note: This won't have any effect on DECORATE derivates of these items!
 	ABasicArmorPickup *armor;
 
 	armor = static_cast<ABasicArmorPickup *> (GetDefaultByName ("GreenArmor"));
@@ -1715,11 +1718,28 @@ static int PatchMisc (int dummy)
 		health->MaxAmount = deh.MaxSoulsphere;
 	}
 
+	health = static_cast<AHealth *> (GetDefaultByName ("MegasphereHealth"));
+	if (health!=NULL)
+	{
+		health->Amount = health->MaxAmount = deh.MegasphereHealth;
+	}
+
 	APlayerPawn *player = static_cast<APlayerPawn *> (GetDefaultByName ("DoomPlayer"));
 	if (player != NULL)
 	{
 		player->health = deh.StartHealth;
+
+		FDropItem * di = GetDropItems(PClass::FindClass(NAME_DoomPlayer));
+		while (di != NULL)
+		{
+			if (di->Name == NAME_Clip)
+			{
+				di->amount = deh.StartBullets;
+			}
+			di = di->Next;
+		}
 	}
+
 
 	// 0xDD means "enable infighting"
 	if (infighting == 0xDD)
@@ -1845,6 +1865,7 @@ static int PatchCodePtrs (int dummy)
 						state->Action = CodePtrs[CodePtrNames[mid].num];
 						DPrintf ("Frame %d set to %s\n", frame, GetName (CodePtrNames[mid].name));
 					}
+					state->ParameterIndex=0;	// No parameters for patched code pointers
 				}
 			}
 		}

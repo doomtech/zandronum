@@ -63,13 +63,13 @@ void A_Punch (AActor *actor)
 
 	angle += pr_punch.Random2() << 18;
 	pitch = P_AimLineAttack (actor, angle, MELEERANGE);
-	P_LineAttack (actor, angle, MELEERANGE, pitch, damage, NAME_None, RUNTIME_CLASS(ABulletPuff));
+	P_LineAttack (actor, angle, MELEERANGE, pitch, damage, NAME_None, NAME_BulletPuff);
 
 	// [BC] Apply spread.
 	if (( actor->player ) && ( actor->player->Powers & PW_SPREAD ))
 	{
-		P_LineAttack( actor, angle + ( ANGLE_45 / 3 ), MELEERANGE, pitch, damage, NAME_None, RUNTIME_CLASS( ABulletPuff ));
-		P_LineAttack( actor, angle - ( ANGLE_45 / 3 ), MELEERANGE, pitch, damage, NAME_None, RUNTIME_CLASS( ABulletPuff ));
+		P_LineAttack( actor, angle + ( ANGLE_45 / 3 ), MELEERANGE, pitch, damage, NAME_None, NAME_BulletPuff);
+		P_LineAttack( actor, angle - ( ANGLE_45 / 3 ), MELEERANGE, pitch, damage, NAME_None, NAME_BulletPuff);
 	}
 
 	// [BC] If the player hit a player with his attack, potentially give him a medal.
@@ -216,7 +216,7 @@ void A_FirePistol (AActor *actor)
 		return;
 
 	P_BulletSlope (actor);
-	P_GunShot (actor, accurate, RUNTIME_CLASS(ABulletPuff));
+	P_GunShot (actor, accurate, PClass::FindClass(NAME_BulletPuff));
 
 	// [BC] Apply spread.
 	if (( actor->player ) && ( actor->player->Powers & PW_SPREAD ))
@@ -225,12 +225,12 @@ void A_FirePistol (AActor *actor)
 
 		SavedActorAngle = actor->angle;
 		actor->angle += ( ANGLE_45 / 3 );
-		P_GunShot( actor, accurate, RUNTIME_CLASS( ABulletPuff ));
+		P_GunShot( actor, accurate, PClass::FindClass(NAME_BulletPuff));
 		actor->angle = SavedActorAngle;
 
 		SavedActorAngle = actor->angle;
 		actor->angle -= ( ANGLE_45 / 3 );
-		P_GunShot( actor, accurate, RUNTIME_CLASS( ABulletPuff ));
+		P_GunShot( actor, accurate, PClass::FindClass(NAME_BulletPuff));
 		actor->angle = SavedActorAngle;
 	}
 
@@ -293,7 +293,7 @@ void A_Saw (AActor *actor)
 		fullsound = S_FindSound("weapons/sawfull");
 		hitsound = S_FindSound("weapons/sawhit");
 	}
-	if (pufftype == NULL) pufftype = RUNTIME_CLASS(ABulletPuff);
+	if (pufftype == NULL) pufftype = PClass::FindClass(NAME_BulletPuff);
 	if (damage == 0) damage = 2;
 	
 	damage *= (pr_saw()%10+1);
@@ -471,7 +471,7 @@ void A_FireShotgun (AActor *actor)
 	P_BulletSlope (actor);
 
 	for (i=0 ; i<7 ; i++)
-		P_GunShot (actor, false, RUNTIME_CLASS(ABulletPuff));
+		P_GunShot (actor, false, PClass::FindClass(NAME_BulletPuff));
 
 	// [BC] Apply spread.
 	if ( player->Powers & PW_SPREAD )
@@ -481,13 +481,13 @@ void A_FireShotgun (AActor *actor)
 		SavedActorAngle = actor->angle;
 		actor->angle += ( ANGLE_45 / 3 );
 		for (i=0 ; i<7 ; i++)
-			P_GunShot( actor, false, RUNTIME_CLASS( ABulletPuff ));
+			P_GunShot( actor, false, PClass::FindClass(NAME_BulletPuff));
 		actor->angle = SavedActorAngle;
 
 		SavedActorAngle = actor->angle;
 		actor->angle -= ( ANGLE_45 / 3 );
 		for (i=0 ; i<7 ; i++)
-			P_GunShot( actor, false, RUNTIME_CLASS( ABulletPuff ));
+			P_GunShot( actor, false, PClass::FindClass(NAME_BulletPuff));
 		actor->angle = SavedActorAngle;
 	}
 
@@ -631,7 +631,7 @@ void A_FireShotgun2 (AActor *actor)
 					  angle,
 					  PLAYERMISSILERANGE,
 					  bulletpitch + (pr_fireshotgun2.Random2() * 332063), damage,
-					  NAME_None, RUNTIME_CLASS(ABulletPuff));
+					  NAME_None, NAME_BulletPuff);
 
 		// [BC] Apply spread.
 		if ( player->Powers & PW_SPREAD )
@@ -640,13 +640,13 @@ void A_FireShotgun2 (AActor *actor)
 						  angle + ( ANGLE_45 / 3 ),
 						  PLAYERMISSILERANGE,
 						  bulletpitch + (pr_fireshotgun2.Random2() * 332063), damage,
-						  NAME_None, RUNTIME_CLASS(ABulletPuff));
+						  NAME_None, NAME_BulletPuff);
 
 			P_LineAttack (actor,
 						  angle - ( ANGLE_45 / 3 ),
 						  PLAYERMISSILERANGE,
 						  bulletpitch + (pr_fireshotgun2.Random2() * 332063), damage,
-						  NAME_None, RUNTIME_CLASS(ABulletPuff));
+						  NAME_None, NAME_BulletPuff);
 		}
 	}
 
@@ -829,7 +829,7 @@ void A_FireCGun (AActor *actor)
 		return;
 
 	P_BulletSlope (actor);
-	P_GunShot (actor, !player->refire, RUNTIME_CLASS(ABulletPuff));
+	P_GunShot (actor, !player->refire, PClass::FindClass(NAME_BulletPuff));
 
 	// [BC] Apply apread.
 	if ( player->Powers & PW_SPREAD )
@@ -838,12 +838,12 @@ void A_FireCGun (AActor *actor)
 
 		SavedActorAngle = actor->angle;
 		actor->angle += ( ANGLE_45 / 3 );
-		P_GunShot( actor, !player->refire, RUNTIME_CLASS( ABulletPuff ));
+		P_GunShot( actor, !player->refire, PClass::FindClass(NAME_BulletPuff));
 		actor->angle = SavedActorAngle;
 	
 		SavedActorAngle = actor->angle;
 		actor->angle -= ( ANGLE_45 / 3 );
-		P_GunShot( actor, !player->refire, RUNTIME_CLASS( ABulletPuff ));
+		P_GunShot( actor, !player->refire, PClass::FindClass(NAME_BulletPuff));
 		actor->angle = SavedActorAngle;
 	}
 
@@ -979,7 +979,7 @@ void A_FireMiniGun( AActor *actor )
 	P_BulletSlope( actor );
 
 	// Minigun is always inaccurate.
-	P_GunShot( actor, false, RUNTIME_CLASS( ABulletPuff ));
+	P_GunShot( actor, false, PClass::FindClass(NAME_BulletPuff));
 
 	// Apply spread.
 	if ( pPlayer->Powers & PW_SPREAD )
@@ -989,11 +989,11 @@ void A_FireMiniGun( AActor *actor )
 		SavedActorAngle = actor->angle;
 
 		actor->angle += ( ANGLE_45 / 3 );
-		P_GunShot( actor, false, RUNTIME_CLASS( ABulletPuff ));
+		P_GunShot( actor, false, PClass::FindClass(NAME_BulletPuff));
 		actor->angle = SavedActorAngle;
 
 		actor->angle -= ( ANGLE_45 / 3 );
-		P_GunShot( actor, false, RUNTIME_CLASS( ABulletPuff ));
+		P_GunShot( actor, false, PClass::FindClass(NAME_BulletPuff));
 		actor->angle = SavedActorAngle;
 	}
 

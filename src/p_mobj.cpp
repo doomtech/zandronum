@@ -3810,11 +3810,21 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 	FState *st = actor->SpawnState;
 	actor->state = st;
 	actor->tics = st->GetTics();
+	
+	// [RH] Don't decrement tics if they are already less than 1
+	if ((actor->flags4 & MF4_RANDOMIZE) && actor->tics > 0)
+	{
+		actor->tics -= pr_checkmissilespawn() & 3;
+		if (actor->tics < 1)
+			actor->tics = 1;
+	}
+
 	actor->sprite = st->sprite.index;
 	actor->frame = st->GetFrame();
 	actor->renderflags = (actor->renderflags & ~RF_FULLBRIGHT) | st->GetFullbright();
 	actor->touching_sectorlist = NULL;	// NULL head of sector list // phares 3/13/98
-	actor->Speed = actor->GetClass()->Meta.GetMetaFixed(AMETA_FastSpeed, actor->Speed);
+	if (gameskill == sk_nightmare || (dmflags & DF_FAST_MONSTERS))
+		actor->Speed = actor->GetClass()->Meta.GetMetaFixed(AMETA_FastSpeed, actor->Speed);
 
 	// [BC]
 	actor->InitialState = actor->state;
@@ -5303,14 +5313,6 @@ bool P_HitFloor (AActor *thing)
 
 bool P_CheckMissileSpawn (AActor* th)
 {
-	// [RH] Don't decrement tics if they are already less than 1
-	if ((th->flags4 & MF4_RANDOMIZE) && th->tics > 0)
-	{
-		th->tics -= pr_checkmissilespawn() & 3;
-		if (th->tics < 1)
-			th->tics = 1;
-	}
-
 	// move a little forward so an angle can be computed if it immediately explodes
 	if (th->Speed >= 100*FRACUNIT)
 	{ // Ultra-fast ripper spawning missile
@@ -5785,7 +5787,7 @@ int AActor::TakeSpecialDamage (AActor *inflictor, AActor *source, int damage, FN
 	// it needs to work.
 
 	// Always kill if there is a regular death state or no death states at all.
-	if (FindState (NAME_Death) != NULL || !HasStates(NAME_Death))
+	if (FindState (NAME_Death) != NULL || !HasSpecialDeathStates())
 	{
 		return damage;
 	}

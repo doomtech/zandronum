@@ -393,7 +393,7 @@ void A_BulletAttack (AActor *self)
 		int angle = bangle + (pr_cabullet.Random2() << 20);
 		int damage = ((pr_cabullet()%5)+1)*3;
 		P_LineAttack(self, angle, MISSILERANGE, slope, damage,
-			GetDefaultByType(RUNTIME_CLASS(ABulletPuff))->DamageType, RUNTIME_CLASS(ABulletPuff));
+			NAME_None, NAME_BulletPuff);
     }
 }
 
@@ -404,21 +404,51 @@ void A_BulletAttack (AActor *self)
 //==========================================================================
 static void DoJump(AActor * self, FState * CallingState, int offset)
 {
-	if (pStateCall != NULL && CallingState == pStateCall->State)
+	FState *jumpto;
+
+	if (offset>=0)
 	{
-		pStateCall->State += offset;
-	}
-	else if (self->player != NULL && CallingState == self->player->psprites[ps_weapon].state)
-	{
-		P_SetPsprite(self->player, ps_weapon, CallingState + offset);
-	}
-	else if (self->player != NULL && CallingState == self->player->psprites[ps_flash].state)
-	{
-		P_SetPsprite(self->player, ps_flash, CallingState + offset);
+		jumpto = CallingState + offset;
 	}
 	else
 	{
-		self->SetState (CallingState + offset);
+		offset = -offset;
+
+		int classname = JumpParameters[offset];
+		const PClass *cls;
+		cls = classname==NAME_None?  RUNTIME_TYPE(self) : PClass::FindClass((ENamedName)classname);
+		if (cls==NULL || cls->ActorInfo==NULL) return;	// shouldn't happen
+		
+		jumpto = cls->ActorInfo->FindState(JumpParameters[offset+1], (va_list)&JumpParameters[offset+2]);
+		if (jumpto == NULL)
+		{
+			char * dot="";
+			Printf("Jump target '");
+			if (classname != NAME_None) Printf("%s::", ((FName)(ENamedName)classname).GetChars());
+			for (int i=0;i<JumpParameters[offset+1];i++)
+			{
+				Printf("%s%s", dot, ((FName)(ENamedName)JumpParameters[offset+2+i]));
+			}
+			Printf("not found in %s\n", self->GetClass()->TypeName.GetChars());
+			return;
+		}
+	}
+
+	if (pStateCall != NULL && CallingState == pStateCall->State)
+	{
+		pStateCall->State = jumpto;
+	}
+	else if (self->player != NULL && CallingState == self->player->psprites[ps_weapon].state)
+	{
+		P_SetPsprite(self->player, ps_weapon, jumpto);
+	}
+	else if (self->player != NULL && CallingState == self->player->psprites[ps_flash].state)
+	{
+		P_SetPsprite(self->player, ps_flash, jumpto);
+	}
+	else
+	{
+		self->SetState (jumpto);
 	}
 }
 //==========================================================================
@@ -792,7 +822,7 @@ void A_CustomBulletAttack (AActor *self)
 		bangle = self->angle;
 
 		pufftype = PClass::FindClass(PuffType);
-		if (!pufftype) pufftype=RUNTIME_CLASS(ABulletPuff);
+		if (!pufftype) pufftype = PClass::FindClass(NAME_BulletPuff);
 
 		bslope = P_AimLineAttack (self, bangle, MISSILERANGE);
 
@@ -929,7 +959,7 @@ void A_CustomFireBullets( AActor *self,
 	bslope = bulletpitch;
 
 	PuffType = PClass::FindClass(PuffTypeName);
-	if (!PuffType) PuffType=RUNTIME_CLASS(ABulletPuff);
+	if (!PuffType) PuffType = PClass::FindClass(NAME_BulletPuff);
 
 	// [BC] If we're the server, tell clients that a weapon is being fired.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -1156,7 +1186,7 @@ void A_CustomPunch (AActor *self)
 	}
 
 	PuffType = PClass::FindClass(PuffTypeName);
-	if (!PuffType) PuffType=RUNTIME_CLASS(ABulletPuff);
+	if (!PuffType) PuffType = PClass::FindClass(NAME_BulletPuff);
 
 	P_LineAttack (self, angle, Range, pitch, Damage, GetDefaultByType(PuffType)->DamageType, PuffType);
 
@@ -1696,6 +1726,7 @@ void A_SelectWeapon(AActor * actor)
 	else if (pStateCall != NULL) pStateCall->Result=false;
 }
 
+
 //===========================================================================
 //
 // A_Print
@@ -2094,6 +2125,68 @@ void A_CheckFloor (AActor *self)
 void A_Stop (AActor *self)
 {
 	self->momx = self->momy = self->momz = 0;
+}
+
+
+//===========================================================================
+//
+// A_Respawn
+//
+//===========================================================================
+void A_Respawn (AActor *actor)
+{
+	fixed_t x = actor->SpawnPoint[0] << FRACBITS;
+	fixed_t y = actor->SpawnPoint[1] << FRACBITS;
+	sector_t *sec;
+
+	actor->flags |= MF_SOLID;
+	sec = R_PointInSubsector (x, y)->sector;
+	actor->SetOrigin (x, y, sec->floorplane.ZatPoint (x, y));
+	actor->height = actor->GetDefault()->height;
+	if (P_TestMobjLocation (actor))
+	{
+		AActor *defs = actor->GetDefault();
+		actor->health = defs->health;
+
+		actor->flags  = (defs->flags & ~MF_FRIENDLY) | (actor->flags & MF_FRIENDLY);
+		actor->flags2 = defs->flags2;
+		actor->flags3 = (defs->flags3 & ~(MF3_NOSIGHTCHECK | MF3_HUNTPLAYERS)) | (actor->flags3 & (MF3_NOSIGHTCHECK | MF3_HUNTPLAYERS));
+		actor->flags4 = (defs->flags4 & ~MF4_NOHATEPLAYERS) | (actor->flags4 & MF4_NOHATEPLAYERS);
+		actor->flags5 = defs->flags5;
+		actor->SetState (actor->SpawnState);
+		actor->renderflags &= ~RF_INVISIBLE;
+
+		int index=CheckIndex(1, NULL);
+		if (index<0 || EvalExpressionN (StateParameters[index+2], actor))
+		{
+			Spawn<ATeleportFog> (x, y, actor->z + TELEFOGHEIGHT, ALLOW_REPLACE);
+		}
+	}
+	else
+	{
+		actor->flags &= ~MF_SOLID;
+	}
+}
+
+
+//==========================================================================
+//
+// A_PlayerSkinCheck
+//
+//==========================================================================
+
+void A_PlayerSkinCheck (AActor *actor)
+{
+	if (actor->player != NULL &&
+		skins[actor->player->userinfo.skin].othergame)
+	{
+		int index = CheckIndex(1, &CallingState);
+	
+		if (index >= 0)
+		{
+			DoJump(actor, CallingState, StateParameters[index]);
+		}	
+	}
 }
 
 //===========================================================================

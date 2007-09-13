@@ -12,6 +12,6 @@ actor DeadCyberdemon : Cyberdemon 5070
 	States
 	{
 	Spawn:
-		Goto Super.Death+9
+		Goto Super::Death+9
 	}
 }

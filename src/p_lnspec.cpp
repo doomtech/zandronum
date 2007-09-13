@@ -1003,7 +1003,11 @@ FUNC(LS_HealThing)
 					max = it->GetDefault()->health + it->player->lMaxHealthBonus;
 			}
 			else
-				max = it->GetDefault()->health;
+			{
+				// [BB] Check if P_GiveBody is correct here (ported from ZDoom).
+				P_GiveBody(it, arg0);
+				return true;
+			}
 		}
 		else if (max == 1)
 		{
