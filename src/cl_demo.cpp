@@ -360,7 +360,8 @@ void CLIENTDEMO_ReadPacket( void )
 				if ( players[consoleplayer].mo )
 				{
 					pInventory = players[consoleplayer].mo->FindInventory( pszString );
-					players[consoleplayer].mo->UseInventory( pInventory );
+					if ( pInventory )
+						players[consoleplayer].mo->UseInventory( pInventory );
 				}
 			}
 			break;
