@@ -229,6 +229,9 @@ typedef struct
 	// When the client authenticates his level, should enter scripts be run as well?
 	bool			bRunEnterScripts;
 
+	// What is the name of the client's skin?
+	char			szSkin[MAX_SKIN_NAME+1];
+
 } CLIENT_s;
 
 //*****************************************************************************

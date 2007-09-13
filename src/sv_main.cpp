@@ -1695,6 +1695,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	g_aClients[lClient].lLastMoveTick = 0;
 	g_aClients[lClient].lOverMovementLevel = 0;
 	g_aClients[lClient].bRunEnterScripts = false;
+	g_aClients[lClient].szSkin[0] = 0;
 
 	// Send heartbeat back.
 	NETWORK_ClearBuffer( &g_aClients[lClient].PacketBuffer );
@@ -1867,7 +1868,13 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 	// Now that we've (maybe) read in the player's class information, try to find a skin
 	// for him based on his class.
 	if ( szSkin[0] )
+	{
+		// Store the name of the skin the client gave us, so others can view the skin
+		// even if the server doesn't have the skin loaded.
+		strncpy( g_aClients[g_lCurrentClient].szSkin, szSkin, MAX_SKIN_NAME + 1 );
+
 		pPlayer->userinfo.skin = R_FindSkin( szSkin, pPlayer->userinfo.PlayerClass );
+	}
 
 	// Now send out the player's userinfo out to other players.
 	SERVERCOMMANDS_SetPlayerUserInfo( g_lCurrentClient, ulFlags, g_lCurrentClient, SVCF_SKIPTHISCLIENT );

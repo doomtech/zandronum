@@ -483,7 +483,7 @@ void SERVERCOMMANDS_SetPlayerUserInfo( ULONG ulPlayer, ULONG ulUserInfoFlags, UL
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].userinfo.lRailgunTrailColor );
 
 		if ( ulUserInfoFlags & USERINFO_SKIN )
-			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, (char *)skins[players[ulPlayer].userinfo.skin].name );
+			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, (char *)SERVER_GetClient( ulPlayer )->szSkin );
 
 		if ( ulUserInfoFlags & USERINFO_HANDICAP )
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].userinfo.lHandicap );

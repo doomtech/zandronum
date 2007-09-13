@@ -66,6 +66,7 @@ v0.97d-beta5
 +	- Added A_SpawnItemEx (ported the change from ZDoom revision 392+393 and made a few changes for the client/server architecture). [Torr Samaho]
 +	- Added customizable gravity per actor (ported the change from ZDoom revision 456 and added necessary netcode). [Torr Samaho]
 +	- Added VSpeed DECORATE property so that an actor can be given an initial vertical speed (ported the change from ZDoom revision 373). [Torr Samaho]
++	- Skins that the server does not have can now be seen by all players who have them. [Carnevil]
 -	- Fixed a crash that would occur frequently in game modes in which the map experiences a map reset at some point (LMS, duel, survival, etc.). [Carnevil]
 -	- Rank/spread/DM stats and team scores now show up in the ZDoom - and hence Heretic -  HUD. [Rivecoder]
 -	- Fixed: Ignoring definitions of already defined decorate actors which use ":" or "replace" didn't work. [Torr Samaho]
