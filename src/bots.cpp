@@ -2793,38 +2793,34 @@ CSkullBot::CSkullBot( char *pszName, char *pszTeamName, ULONG ulPlayerNum )
 	strncpy( m_pPlayer->userinfo.netname, g_BotInfo[m_ulBotInfoIdx]->szName, MAXPLAYERNAME );
 	V_ColorizeString( m_pPlayer->userinfo.netname );
 	m_pPlayer->userinfo.color = V_GetColorFromString( NULL, g_BotInfo[m_ulBotInfoIdx]->szColor );
-	if ( gameinfo.gametype != GAME_Hexen )
+	if ( g_BotInfo[m_ulBotInfoIdx]->szSkinName )
 	{
-		if ( g_BotInfo[m_ulBotInfoIdx]->szSkinName )
+		LONG	lSkin;
+
+		lSkin = R_FindSkin( g_BotInfo[m_ulBotInfoIdx]->szSkinName, 0 );
+		m_pPlayer->userinfo.skin = lSkin;
+
+		// If the skin was hidden, reveal it!
+		if ( skins[lSkin].bRevealed == false )
 		{
-			LONG	lSkin;
+			Printf( "Hidden skin \"%s\\c-\" has now been revealed!\n", skins[lSkin].name );
+			skins[lSkin].bRevealed = true;
+		}
+	}
 
-			lSkin = R_FindSkin( g_BotInfo[m_ulBotInfoIdx]->szSkinName, 0 );
-			m_pPlayer->userinfo.skin = lSkin;
-
-			// If the skin was hidden, reveal it!
-			if ( skins[lSkin].bRevealed == false )
+	if ( g_BotInfo[m_ulBotInfoIdx]->szClassName )
+	{
+		// See if the given class name matches one in the global list.
+		for ( ulIdx = 0; ulIdx < PlayerClasses.Size( ); ulIdx++ )
+		{
+			if ( stricmp( g_BotInfo[m_ulBotInfoIdx]->szClassName, PlayerClasses[ulIdx].Type->Meta.GetMetaString (APMETA_DisplayName)) == 0 )
 			{
-				Printf( "Hidden skin \"%s\\c-\" has now been revealed!\n", skins[lSkin].name );
-				skins[lSkin].bRevealed = true;
+				m_pPlayer->userinfo.PlayerClass = ( ulIdx );
+				break;
 			}
 		}
 	}
-	else
-	{
-		if ( g_BotInfo[m_ulBotInfoIdx]->szClassName )
-		{
-			// See if the given class name matches one in the global list.
-			for ( ulIdx = 0; ulIdx < PlayerClasses.Size( ); ulIdx++ )
-			{
-				if ( stricmp( g_BotInfo[m_ulBotInfoIdx]->szClassName, PlayerClasses[ulIdx].Type->Meta.GetMetaString (APMETA_DisplayName)) == 0 )
-				{
-					m_pPlayer->userinfo.PlayerClass = ( ulIdx );
-					break;
-				}
-			}
-		}
-	}
+
 	m_pPlayer->userinfo.lRailgunTrailColor = g_BotInfo[m_ulBotInfoIdx]->ulRailgunColor;
 	m_pPlayer->userinfo.gender = D_GenderToInt( g_BotInfo[m_ulBotInfoIdx]->szGender );
 	if ( pszTeamName )
