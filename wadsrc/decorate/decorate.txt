@@ -35,6 +35,8 @@
 #include "actors/hexen/puzzleitems.txt"
 #include "actors/hexen/scriptprojectiles.txt"
 #include "actors/hexen/speedboots.txt"
+// [BB] Hexen invasion spawners.
+#include "actors/hexen/hexenspawners.txt"
 
 // [BC] New Skulltag actor definitions.
 #include "actors/skulltag/skulltagarmor.txt"

@@ -475,6 +475,7 @@ ACTOR EnchantedShieldSpot : CustomPickupInvasionSpot 5438
 ACTOR CrystalVialSpot : CustomPickupInvasionSpot 5439
 {
 	Game Heretic
+	Game Hexen
 	DropItem "CrystalVial"
 }
 
@@ -499,6 +500,7 @@ ACTOR ArtiEggSpot : CustomPickupInvasionSpot 5440
 ACTOR ArtiFlySpot : CustomPickupInvasionSpot 5441
 {
 	Game Heretic
+	Game Hexen
 	DropItem "ArtiFly"
 }
 
@@ -511,6 +513,7 @@ ACTOR ArtiFlySpot : CustomPickupInvasionSpot 5441
 ACTOR ArtiHealthSpot : CustomPickupInvasionSpot 5442
 {
 	Game Heretic
+	Game Hexen
 	DropItem "ArtiHealth"
 }
 
@@ -535,6 +538,7 @@ ACTOR ArtiInvisibilitySpot : CustomPickupInvasionSpot 5443
 ACTOR ArtiInvulnerabilitySpot : CustomPickupInvasionSpot 5444
 {
 	Game Heretic
+	Game Hexen
 	DropItem "ArtiInvulnerability"
 }
 
@@ -547,6 +551,7 @@ ACTOR ArtiInvulnerabilitySpot : CustomPickupInvasionSpot 5444
 ACTOR ArtiSuperHealthSpot : CustomPickupInvasionSpot 5445
 {
 	Game Heretic
+	Game Hexen
 	DropItem "ArtiSuperHealth"
 }
 
@@ -559,6 +564,7 @@ ACTOR ArtiSuperHealthSpot : CustomPickupInvasionSpot 5445
 ACTOR ArtiTeleportSpot : CustomPickupInvasionSpot 5446
 {
 	Game Heretic
+	Game Hexen
 	DropItem "ArtiTeleport"
 }
 
@@ -583,7 +589,7 @@ ACTOR ArtiTimeBombSpot : CustomPickupInvasionSpot 5447
 ACTOR ArtiTomeOfPowerSpot : CustomPickupInvasionSpot 5448
 {
 	Game Heretic
-	DropItem "ArtiTimeOfPower"
+	DropItem "ArtiTomeOfPower"
 }
 
 //=================================================================================================
@@ -595,6 +601,95 @@ ACTOR ArtiTomeOfPowerSpot : CustomPickupInvasionSpot 5448
 ACTOR ArtiTorchSpot : CustomPickupInvasionSpot 5449
 {
 	Game Heretic
+	Game Hexen
 	DropItem "ArtiTorch"
+}
+
+//=================================================================================================
+//
+// Random Artifact spawner
+//
+//=================================================================================================
+
+ACTOR RandomHereticArtifactSpot : CustomPickupInvasionSpot 5450
+{
+	Game Heretic
+	DropItem "ArtiFly"
+	DropItem "ArtiEgg"
+	DropItem "ArtiHealth"
+	DropItem "ArtiInvisibility"
+	DropItem "ArtiInvulnerability"
+	DropItem "ArtiSuperHealth"
+	DropItem "ArtiTeleport"
+	DropItem "ArtiTimeBomb"
+	DropItem "ArtiTomeOfPower"
+	DropItem "ArtiTorch"
+	DropItem "CrystalVial"
+}
+
+//=================================================================================================
+//
+// Mook / Weak Monster spawner
+//
+//=================================================================================================
+
+ACTOR HereticMookSpot : CustomMonsterInvasionSpot 5451
+{
+	Game Heretic
+	DropItem "HereticImp"
+	DropItem "HereticImpLeader"
+	DropItem "Mummy"
+	DropItem "MummyLeader"
+	DropItem "MummyGhost"
+	DropItem "Knight"
+}
+
+//=================================================================================================
+//
+// Tough / Powerful Monster spawner
+//
+//=================================================================================================
+
+ACTOR HereticToughSpot : CustomMonsterInvasionSpot 5452
+{
+	Game Heretic
+	DropItem "MummyLeaderGhost"
+	DropItem "Beast"
+	DropItem "Clink"
+	DropItem "IronLich"
+	DropItem "KnightGhost"
+	DropItem "Snake"
+	DropItem "Wizard"
+}
+//=================================================================================================
+//
+// Random Monster spawner (but no boss nor chicken)
+//
+//=================================================================================================
+
+ACTOR HereticMonsterSpot : CustomMonsterInvasionSpot 5453
+{
+	Game Heretic
+	DropItem "HereticImp"
+	DropItem "HereticImpLeader"
+	DropItem "Mummy"
+	DropItem "MummyLeader"
+	DropItem "MummyGhost"
+	DropItem "MummyLeaderGhost"
+	DropItem "Beast"
+	DropItem "Clink"
+	DropItem "IronLich"
+	DropItem "Knight"
+	DropItem "KnightGhost"
+	DropItem "Snake"
+	DropItem "Wizard"
+}
+
+ACTOR HexenGhostSpot : CustomMonsterInvasionSpot 5454
+{
+	Game Heretic
+	DropItem "MummyGhost"
+	DropItem "MummyLeaderGhost"
+	DropItem "KnightGhost"
 }
 

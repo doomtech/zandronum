@@ -22,6 +22,7 @@ v0.97d-beta5
 *-	- Crash logs should finally work on all Windows machines. [Torr Samaho]
 +	- Added the dynamic light definitions for Heretic and Hexen from ZDoomGL. [Torr Samaho]
 +	- Added invasion spawners for Heretic! [Carnevil, Aabra, and Tun]
++	- Added invasion spawners for Hexen! [Gez, Torr Samaho]
 +	- Enhanced the IWAD selection box, allowing users to see their version, select their IWAD, and set video settings. It also looks nicer. [Rivecoder]
 +	- Improved the revision display in the console. [Rivecoder]
 +	- Added the r_drawspectatingstring CVAR, which can be used to hide that message for screenshots or movies. [Rivecoder]
