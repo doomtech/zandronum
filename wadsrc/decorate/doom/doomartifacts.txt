@@ -49,6 +49,15 @@ ACTOR Soulsphere : Health 2013
 	}
 }
 
+// Mega sphere --------------------------------------------------------------
+
+ACTOR MegasphereHealth : Health	// for manipulation by Dehacked
+{
+	Inventory.Amount 200
+	Inventory.MaxAmount 200
+	+INVENTORY.ALWAYSPICKUP
+}
+
 // Invisibility -------------------------------------------------------------
 
 ACTOR BlurSphere : PowerupGiver 2024
