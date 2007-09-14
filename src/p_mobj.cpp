@@ -4654,7 +4654,9 @@ void P_SpawnMapThing (mapthing2_t *mthing, int position)
 		const int base = (gameinfo.gametype == GAME_Strife) ? 5 :
 						 (gameinfo.gametype == GAME_Hexen) ? 9100 : 4001;
 
-		if (mthing->type >= base && mthing->type < base + MAXPLAYERS - 4)
+		// [BC] We can't use the value of 32 for MAXPLAYERS here, otherwise it
+		// messes with Strife items.
+		if (mthing->type >= base && mthing->type < base + /*MAXPLAYERS*/8 - 4)
 		{
 			pnum = mthing->type - base + 4;
 		}
