@@ -556,15 +556,17 @@ private:
 		const char *label;
 		int i;
 		AInventory *item;
-		int xscale, yscale, left, top;
+		// [BC] Changed x/yscale to a float for Skulltag's way of rendering things.
+		float xscale, yscale;
+		int left, top;
 		int bars = (CurrentPop == POP_Status) ? imgINVPOP : imgINVPOP2;
 		int back = (CurrentPop == POP_Status) ? imgINVPBAK : imgINVPBAK2;
 		// Extrapolate the height of the popscreen for smoother movement
 		int height = clamp<int> (PopHeight + FixedMul (r_TicFrac, PopHeightChange), -POP_HEIGHT, 0);
 
-		xscale = (int)CleanXfac;
-		yscale = (int)CleanYfac;
-		left = screen->GetWidth()/2 - 160*(int)CleanXfac;
+		xscale = CleanXfac;
+		yscale = CleanYfac;
+		left = screen->GetWidth()/2 - 160*CleanXfac;
 		top = bottom + height * yscale;
 
 		screen->DrawTexture (Images[back], left, top, DTA_CleanNoMove, true, DTA_Alpha, FRACUNIT*3/4, TAG_DONE);

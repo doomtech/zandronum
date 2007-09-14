@@ -167,6 +167,7 @@ v0.97d-beta5
 -	- When Floor_LowerInstant is used on a sector, actors within that sector now properly have their sector z height updated properly in network games. [Carnevil]
 -	- The revent's melee sounds now play properly in network games. [Carnevil]
 -	- Demos no longer end when the server changes maps using the "map" command. [Carnevil]
+-	- The Strife popup screens now display properly under all resolutions. [Carnevil]
 -	- Fixed: Bots cause hudmessages to appear for player 1 offline. [Torr Samaho]
 -	- Fixed: Clients with activated prediction ignore the CF_FROZEN and CF_TOTALLYFROZEN flags locally. [Torr Samaho]
 -	- Fixed: Display problems with the CPU name string shown on startup. [Torr Samaho]

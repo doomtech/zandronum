@@ -3762,9 +3762,6 @@ void P_FreeLevelData ()
 		ASTAR_ClearNodes( );
 }
 
-// [BC] EWEWEWEWEWEWEWEWEW
-extern	bool	g_bFirstFragAwarded;
-
 extern msecnode_t *headsecnode;
 
 void P_FreeExtraLevelData()
@@ -4211,7 +4208,7 @@ void P_SetupLevel (char *lumpname, int position)
 	ANNOUNCER_AllowNumFragsAndPointsLeftSounds( );
 
 	// Reset the first frag awarded flag.
-	g_bFirstFragAwarded = false;
+	MEDAL_ResetFirstFragAwarded( );
 
 	P_ResetSightCounters (true);
 	//Printf ("free memory: 0x%x\n", Z_FreeMemory());

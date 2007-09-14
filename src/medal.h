@@ -172,6 +172,8 @@ void	MEDAL_RenderAllMedals( LONG lYOffset );
 void	MEDAL_RenderAllMedalsFullscreen( player_s *pPlayer );
 ULONG	MEDAL_GetDisplayedMedal( ULONG ulPlayer );
 void	MEDAL_ClearMedalQueue( ULONG ulPlayer );
+void	MEDAL_PlayerDied( ULONG ulPlayer, ULONG ulSourcePlayer );
+void	MEDAL_ResetFirstFragAwarded( void );
 
 //*****************************************************************************
 //	EXTERNAL CONSOLE VARIABLES

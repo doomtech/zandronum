@@ -72,8 +72,6 @@ void	SERVERCONSOLE_UpdateScoreboard( );
 
 EXTERN_CVAR( Int,  cl_respawninvuleffect )
 
-extern	bool	g_bFirstFragAwarded;
-
 //*****************************************************************************
 //	VARIABLES
 
@@ -192,7 +190,7 @@ void DUEL_StartCountdown( ULONG ulTicks )
 	ANNOUNCER_AllowNumFragsAndPointsLeftSounds( );
 
 	// Reset the first frag awarded flag.
-	g_bFirstFragAwarded = false;
+	MEDAL_ResetFirstFragAwarded( );
 
 	// Tell clients to start the countdown.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )

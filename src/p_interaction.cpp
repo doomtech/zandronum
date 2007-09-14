@@ -84,7 +84,6 @@ static FRandom pr_lightning ("LightningDamage");
 static FRandom pr_poison ("PoisonDamage");
 static FRandom pr_switcher ("SwitchTarget");
 
-/*static*/	bool		g_bFirstFragAwarded;
 EXTERN_CVAR (Bool, show_obituaries)
 
 
@@ -202,7 +201,6 @@ void ClientObituary (AActor *self, AActor *inflictor, AActor *attacker, FName Me
 	char gendermessage[1024];
 	bool friendly;
 	int  gender;
-	bool	bGibbed;
 	// We enough characters for the player's name, the terminating zero, and 4 characters
 	// to strip the color codes (I actually believe it's 3, but let's play it safe).
 	char	szAttacker[MAXPLAYERNAME+1+4];
@@ -212,7 +210,6 @@ void ClientObituary (AActor *self, AActor *inflictor, AActor *attacker, FName Me
 	if (self->player == NULL || self->player->mo != self || !show_obituaries)
 		return;
 
-	bGibbed = self->health <= -100;
 	gender = self->player->userinfo.gender;
 
 	// Treat voodoo dolls as unknown deaths
@@ -285,7 +282,8 @@ void ClientObituary (AActor *self, AActor *inflictor, AActor *attacker, FName Me
 	{
 		if (friendly)
 		{
-			attacker->player->fragcount -= 2;
+			// [BC] We'll do this elsewhere.
+//			attacker->player->fragcount -= 2;
 			self = attacker;
 			gender = self->player->userinfo.gender;
 			sprintf (gendermessage, "OB_FRIENDLY%c", '1' + (pr_obituary() & 3));
@@ -388,6 +386,18 @@ void AActor::Die (AActor *source, AActor *inflictor)
 	// that we died, check for it before doing so.
 	bPossessedTerminatorArtifact = !!(( player ) && ( player->Powers & PW_TERMINATORARTIFACT ));
 
+	// [BC] Check to see if any medals need to be awarded.
+	if ( player )
+	{
+		if (( source ) &&
+			( source->player ))
+		{
+			MEDAL_PlayerDied( ULONG( player - players ), ULONG( source->player - players ));
+		}
+		else
+			MEDAL_PlayerDied( ULONG( player - players ), MAXPLAYERS );
+	}
+
 	// [RH] Notify this actor's items.
 	for (AInventory *item = Inventory; item != NULL; )
 	{
@@ -453,7 +463,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 
 	if (CountsAsKill())
 		level.killed_monsters++;
-
+		
 	if (source && source->player)
 	{
 		// [BC] Don't do this in client mode.
@@ -508,25 +518,14 @@ void AActor::Die (AActor *source, AActor *inflictor)
 			}
 			else
 			{
-				// [BC] Don't award frags here in client mode.
+				// [BC] Frags are server side.
+				// [BC] Player receives 10 frags for killing the terminator!
 				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 				{
-					if ( bPossessedTerminatorArtifact )
-					{
-						// [BC] Player receives 10 frags for killing the terminator!
-						PLAYER_SetFragcount( source->player, source->player->fragcount + 10, true, true );
-
-						// [BC] Award the fragger with a "Termination!" medal.
-						MEDAL_GiveMedal( source->player - players, MEDAL_TERMINATION );
-
-						// [BC] Tell clients about the medal that been given.
-						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-							SERVERCOMMANDS_GivePlayerMedal( source->player - players, MEDAL_TERMINATION );
-					}
+					if ( source->IsTeammate( this ))
+						PLAYER_SetFragcount( source->player, source->player->fragcount - (( bPossessedTerminatorArtifact ) ? 10 : 1 ), true, true );
 					else
-					{
-						PLAYER_SetFragcount( source->player, source->player->fragcount + 1, true, true );
-					}
+						PLAYER_SetFragcount( source->player, source->player->fragcount + (( bPossessedTerminatorArtifact ) ? 10 : 1 ), true, true );
 				}
 
 				// [BC] Add this frag to the server's statistic module.
@@ -536,144 +535,6 @@ void AActor::Die (AActor *source, AActor *inflictor)
 				if (source->player->morphTics)
 				{ // Make a super chicken
 					source->GiveInventoryType (RUNTIME_CLASS(APowerWeaponLevel2));
-				}
-
-				// [BC] Don't award Total/Domination or increment frags w/o death if this is a teammate.
-				if ( player->mo->IsTeammate( source ) == false )
-				{
-					// If this is a deathmatch game, and the "First frag!" medal hasn't been
-					// awarded yet, award it here.
-					if (( deathmatch ) &&
-						( lastmanstanding == false ) &&
-						( teamlms == false ) &&
-						( possession == false ) &&
-						( teampossession == false ) &&
-						(( duel == false ) || ( DUEL_GetState( ) == DS_INDUEL )) &&
-						( g_bFirstFragAwarded == false ))
-					{
-						if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
-							MEDAL_GiveMedal( source->player - players, MEDAL_FIRSTFRAG );
-
-						// Tell clients about the medal that been given.
-						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-							SERVERCOMMANDS_GivePlayerMedal( source->player - players, MEDAL_FIRSTFRAG );						
-
-						g_bFirstFragAwarded = true;
-					}
-
-					// [BC] Don't do this block in client mode.
-					if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
-					{
-						// [BC] Increment frags without death.
-						source->player->ulFragsWithoutDeath++;
-
-						// [BC] If the player has gotten 5 straight frags without dying, award a medal.
-						if (( source->player->ulFragsWithoutDeath % 5 ) == 0 )
-						{
-							if ( source->player->ulFragsWithoutDeath >= 10 )
-							{
-								// [BC] If the player gets 10+ straight frags without dying, award a "Total Domination" medal.
-								MEDAL_GiveMedal( source->player - players, MEDAL_TOTALDOMINATION );
-
-								// [BC] Tell clients about the medal that been given.
-								if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-									SERVERCOMMANDS_GivePlayerMedal( source->player - players, MEDAL_TOTALDOMINATION );
-							}
-							else 
-							{
-								// [BC] Otherwise, award a "Domination" medal.
-								MEDAL_GiveMedal( source->player - players, MEDAL_DOMINATION );
-
-								// [BC] Tell clients about the medal that been given.
-								if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-									SERVERCOMMANDS_GivePlayerMedal( source->player - players, MEDAL_DOMINATION );
-							}
-						}
-					}
-				}
-
-				// [BC] Don't do this block in client mode.
-				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
-				{
-					// [BC] Reset deaths without frag.
-					source->player->ulDeathsWithoutFrag = 0;
-
-					// Don't award Excellent/Incredible if this is a teammate.
-					if ( player->mo->IsTeammate( source ) == false )
-					{
-						// If the player killed him with this fist, award him a "Fisting!" medal.
-						if (( source->player->ReadyWeapon ) && ( source->player->ReadyWeapon->GetClass( ) == PClass::FindClass( "Fist" )))
-						{
-							// Award the medal.
-							MEDAL_GiveMedal( source->player - players, MEDAL_FISTING );
-
-							// Tell clients about the medal that been given.
-							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-								SERVERCOMMANDS_GivePlayerMedal( source->player - players, MEDAL_FISTING );
-						}
-
-						// If this is the second frag this player has gotten THIS TICK with the
-						// BFG9000, award him a "SPAM!" medal.
-						if (( source->player->ReadyWeapon ) && ( source->player->ReadyWeapon->GetClass( ) == PClass::FindClass( "BFG9000" )))
-						{
-							if ( source->player->ulLastBFGFragTick == level.time )
-							{
-								// Award the medal.
-								MEDAL_GiveMedal( source->player - players, MEDAL_SPAM );
-
-								// Tell clients about the medal that been given.
-								if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-									SERVERCOMMANDS_GivePlayerMedal( source->player - players, MEDAL_SPAM );
-
-								// Also, cancel out the possibility of getting an Excellent/Incredible medal.
-								source->player->ulLastExcellentTick = 0;
-								source->player->ulLastFragTick = 0;
-							}
-							else
-								source->player->ulLastBFGFragTick = level.time;
-						}
-
-						// If the player has gotten two Excelents within two seconds, award an "Incredible" medal.
-						if (( source->player->ulLastExcellentTick + ( 2 * TICRATE )) > level.time )
-						{
-							// Award the incredible.
-							MEDAL_GiveMedal( source->player - players, MEDAL_INCREDIBLE );
-
-							// Tell clients about the medal that been given.
-							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-								SERVERCOMMANDS_GivePlayerMedal( source->player - players, MEDAL_INCREDIBLE );
-
-							source->player->ulLastExcellentTick = level.time;
-							source->player->ulLastFragTick = level.time;
-						}
-						// If this player has gotten two frags within two seconds, award an "Excellent" medal.
-						else if (( source->player->ulLastFragTick + ( 2 * TICRATE )) > level.time )
-						{
-							// Award the excellent.
-							MEDAL_GiveMedal( source->player - players, MEDAL_EXCELLENT );
-
-							// Tell clients about the medal that been given.
-							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-								SERVERCOMMANDS_GivePlayerMedal( source->player - players, MEDAL_EXCELLENT );
-
-							source->player->ulLastExcellentTick = level.time;
-							source->player->ulLastFragTick = level.time;
-						}
-					}
-
-					// Bookmark the last time they got a frag.
-					source->player->ulLastFragTick = level.time;
-
-					// If the target player had been in the middle of typing, award a "llama" medal.
-					// Also do this if the killed player is lagging.
-					if ( player->bChatting || player->bLagging )
-					{
-						MEDAL_GiveMedal( source->player - players, MEDAL_LLAMA );
-
-						// Tell clients about the medal that been given.
-						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-							SERVERCOMMANDS_GivePlayerMedal( source->player - players, MEDAL_LLAMA );
-					}
 				}
 			}
 
@@ -826,7 +687,9 @@ void AActor::Die (AActor *source, AActor *inflictor)
 	}
 	
 	// [BC] Don't do this block in client mode.
-	if (player && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+	if (player &&
+		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		// [BC] If this is a bot, tell it it died.
 		if ( player->pSkullBot )
@@ -880,40 +743,6 @@ void AActor::Die (AActor *source, AActor *inflictor)
 			player->bSpawnOkay = false;
 		}
 						
-		// [BC] Increment deathcount.
-		if (
-			((( duel ) && ( DUEL_GetState( ) == DS_COUNTDOWN )) == false ) && 
-			((( lastmanstanding || teamlms ) && ( LASTMANSTANDING_GetState( ) == LMSS_COUNTDOWN )) == false )
-			)
-		{
-			player->ulDeathCount++;
-
-			// Increment deaths without frag.
-			player->ulDeathsWithoutFrag++;
-
-			// If the player dies TEN times without getting a frag, award a "Your skill is not enough" medal.
-			if (( player->ulDeathsWithoutFrag % 10 ) == 0 )
-			{
-				MEDAL_GiveMedal( player - players, MEDAL_YOURSKILLISNOTENOUGH );
-
-				// Tell clients about the medal that been given.
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_GivePlayerMedal( player - players, MEDAL_YOURSKILLISNOTENOUGH );
-			}
-			// If the player dies five times without getting a frag, award a "You fail it" medal.
-			else if (( player->ulDeathsWithoutFrag % 5 ) == 0 )
-			{
-				MEDAL_GiveMedal( player - players, MEDAL_YOUFAILIT );
-
-				// Tell clients about the medal that been given.
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_GivePlayerMedal( player - players, MEDAL_YOUFAILIT );
-			}
-
-			// Reset frags without death.
-			player->ulFragsWithoutDeath = 0;
-		}
-
 		// [BC] Increment team deathcount.
 		if (( teamplay || teampossession ) && ( player->bOnTeam ))
 			TEAM_SetDeathCount( player->ulTeam, TEAM_GetDeathCount( player->ulTeam ) + 1 );
