@@ -4481,8 +4481,9 @@ int DLevelScript::RunScript ()
 						// [BB] If we're the server, tell the clients to set the thing specials.
 						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 						{
-							if( actor->special != 0 )
-								Printf( "Actor special is %d, updating this to the clients is not implemented yet.", actor->special );
+							// [BC] The client doesn't need to know the thing's special (does it?).
+//							if( actor->special != 0 )
+//								Printf( "Actor special is %d, updating this to the clients is not implemented yet.\n", actor->special );
 							SERVERCOMMANDS_SetThingArguments( actor );
 						}
 					}
@@ -4499,8 +4500,9 @@ int DLevelScript::RunScript ()
 					// [BB] If we're the server, tell the clients to set the thing specials.
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 					{
-						if ( activator->special != 0 )
-							Printf( "Activator special is %d, updating this to the clients is not implemented yet.", activator->special );
+						// [BC] The client doesn't need to know the thing's special (does it?).
+//						if ( activator->special != 0 )
+//							Printf( "Activator special is %d, updating this to the clients is not implemented yet.\n", activator->special );
 						SERVERCOMMANDS_SetThingArguments( activator );
 					}
 				}
