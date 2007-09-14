@@ -234,6 +234,7 @@ static	void	client_SetTeamScore( BYTESTREAM_s *pByteStream );
 static	void	client_SetTeamWins( BYTESTREAM_s *pByteStream );
 static	void	client_SetTeamReturnTicks( BYTESTREAM_s *pByteStream );
 static	void	client_TeamFlagReturned( BYTESTREAM_s *pByteStream );
+static	void	client_TeamFlagDropped( BYTESTREAM_s *pByteStream );
 
 // Missile commands.
 static	void	client_SpawnMissile( BYTESTREAM_s *pByteStream );
@@ -541,6 +542,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETTEAMWINS",
 	"SVC_SETTEAMRETURNTICKS",
 	"SVC_TEAMFLAGRETURNED",
+	"SVC_TEAMFLAGDROPPED",
 	"SVC_SPAWNMISSILE",
 	"SVC_SPAWNMISSILEEXACT",
 	"SVC_MISSILEEXPLODE",
@@ -1745,6 +1747,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_TEAMFLAGRETURNED:
 
 		client_TeamFlagReturned( pByteStream );
+		break;
+	case SVC_TEAMFLAGDROPPED:
+
+		client_TeamFlagDropped( pByteStream );
 		break;
 	case SVC_SPAWNMISSILE:
 
@@ -6719,6 +6725,19 @@ static void client_TeamFlagReturned( BYTESTREAM_s *pByteStream )
 
 	// Finally, just call this function that does all the dirty work.
 	TEAM_ExecuteReturnRoutine( ulTeam, NULL );
+}
+
+//*****************************************************************************
+//
+static void client_TeamFlagDropped( BYTESTREAM_s *pByteStream )
+{
+	ULONG	ulPlayer;
+
+	// Read in the player that dropped a flag.
+	ulPlayer = NETWORK_ReadByte( pByteStream );
+
+	// Finally, just call this function that does all the dirty work.
+	TEAM_FlagDropped( &players[ulPlayer] );
 }
 
 //*****************************************************************************
