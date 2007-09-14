@@ -44,8 +44,7 @@
 #include "gl/gl_struct.h"
 #include "gl/gl_texture.h"
 #include "gl/gl_functions.h"
-#include "win32iface.h"
-#include "gl/win32gliface.h"
+#include "gl/gl_framebuffer.h"
 
 //==========================================================================
 //
@@ -164,7 +163,7 @@ void gl_DrawTexture(FTexInfo *texInfo)
 	btm = SCREENHEIGHT - btm;
 
 	gl.Enable(GL_SCISSOR_TEST);
-	int space = (static_cast<Win32GLFrameBuffer*>(screen)->GetTrueHeight()-screen->GetHeight())/2;	// ugh...
+	int space = (static_cast<OpenGLFrameBuffer*>(screen)->GetTrueHeight()-screen->GetHeight())/2;	// ugh...
 	gl.Scissor(texInfo->clipLeft, btm - texInfo->clipBottom+space, texInfo->clipRight - texInfo->clipLeft, texInfo->clipBottom - texInfo->clipTop);
 	
 	if (!texInfo->masked) gl.SetTextureMode(TM_OPAQUE);
@@ -330,14 +329,14 @@ void gl_DrawLine(int x1, int y1, int x2, int y2, int color)
 //
 //
 //==========================================================================
-void Win32GLFrameBuffer::Dim(PalEntry) const
+void OpenGLFrameBuffer::Dim(PalEntry) const
 {
 	// Unlike in the software renderer the color is being ignored here because
 	// view blending only affects the actual view with the GL renderer.
 	Dim((DWORD)dimcolor , dimamount, 0, 0, GetWidth(), GetHeight());
 }
 
-void Win32GLFrameBuffer::Dim(PalEntry color, float damount, int x1, int y1, int w, int h) const
+void OpenGLFrameBuffer::Dim(PalEntry color, float damount, int x1, int y1, int w, int h) const
 {
 	float r, g, b;
 	
@@ -365,7 +364,7 @@ void Win32GLFrameBuffer::Dim(PalEntry color, float damount, int x1, int y1, int 
 //
 //
 //==========================================================================
-void Win32GLFrameBuffer::FlatFill (int left, int top, int right, int bottom, FTexture *src)
+void OpenGLFrameBuffer::FlatFill (int left, int top, int right, int bottom, FTexture *src)
 {
 	float fU1,fU2,fV1,fV2;
 
@@ -393,7 +392,7 @@ void Win32GLFrameBuffer::FlatFill (int left, int top, int right, int bottom, FTe
 //
 //
 //==========================================================================
-void Win32GLFrameBuffer::Clear(int left, int top, int right, int bottom, int color) const
+void OpenGLFrameBuffer::Clear(int left, int top, int right, int bottom, int color) const
 {
 	int rt;
 	int offY = 0;
@@ -404,7 +403,7 @@ void Win32GLFrameBuffer::Clear(int left, int top, int right, int bottom, int col
 	
 	rt = screen->GetHeight() - top;
 	
-	int space = (static_cast<Win32GLFrameBuffer*>(screen)->GetTrueHeight()-screen->GetHeight())/2;	// ugh...
+	int space = (static_cast<OpenGLFrameBuffer*>(screen)->GetTrueHeight()-screen->GetHeight())/2;	// ugh...
 	rt += space;
 	/*
 	if (!m_windowed && (m_trueHeight != m_height))

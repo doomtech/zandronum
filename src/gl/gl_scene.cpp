@@ -39,8 +39,7 @@
 
 #include "gi.h"
 #include "st_stuff.h"
-#include "win32iface.h"
-#include "gl/win32gliface.h"
+#include "gl/gl_framebuffer.h"
 #include "gl/gl_struct.h"
 #include "gl/gl_renderstruct.h"
 #include "gl/gl_portal.h"
@@ -168,7 +167,7 @@ static void gl_AddBlend (float r, float g, float b, float a, float v_blend[4])
 
 void gl_ResetViewport()
 {
-	int trueheight = static_cast<Win32GLFrameBuffer*>(screen)->GetTrueHeight();	// ugh...
+	int trueheight = static_cast<OpenGLFrameBuffer*>(screen)->GetTrueHeight();	// ugh...
 	gl.Viewport(0, (trueheight-screen->GetHeight())/2, screen->GetWidth(), screen->GetHeight()); 
 }
 
@@ -197,7 +196,7 @@ static void gl_StartDrawScene(GL_IRECT * bounds, float fov, float ratio, float f
 			width = (screenblocks*SCREENWIDTH/10);
 		}
 
-		int trueheight = static_cast<Win32GLFrameBuffer*>(screen)->GetTrueHeight();	// ugh...
+		int trueheight = static_cast<OpenGLFrameBuffer*>(screen)->GetTrueHeight();	// ugh...
 		int bars = (trueheight-screen->GetHeight())/2; 
 
 		int vw = realviewwidth;
@@ -728,7 +727,7 @@ void gl_EndDrawScene(sector_t * viewsector)
 	gl.Disable(GL_POLYGON_SMOOTH);
 
 	gl_EnableFog(false);
-	static_cast<Win32GLFrameBuffer*>(screen)->Set2DMode();
+	static_cast<OpenGLFrameBuffer*>(screen)->Set2DMode();
 
 	gl_ResetViewport();
 	gl_DrawPlayerSprites (viewsector);

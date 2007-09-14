@@ -10475,7 +10475,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\gl\win32gliface.cpp"
+					RelativePath=".\src\win32\win32gliface.cpp"
 					>
 				</File>
 			</Filter>
