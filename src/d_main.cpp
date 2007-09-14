@@ -885,9 +885,13 @@ void D_ErrorCleanup ()
 	BOTS_RemoveAllBots( false );
 
 	D_QuitNetGame ();
-	// [BC] Support for client-side demos.
-	if (demorecording || demoplayback || ( CLIENTDEMO_IsRecording( )) || ( CLIENTDEMO_IsPlaying( )))
+	if (demorecording || demoplayback)
 		G_CheckDemoStatus ();
+	// [BC] Support for client-side demos.
+	if ( CLIENTDEMO_IsRecording( ))
+		CLIENTDEMO_FinishRecording( );
+	if ( CLIENTDEMO_IsPlaying( ))
+		CLIENTDEMO_FinishPlaying( );
 	Net_ClearBuffers ();
 	G_NewInit ();
 	singletics = false;

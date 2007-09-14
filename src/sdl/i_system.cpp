@@ -291,9 +291,11 @@ void I_Quit (void)
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 		CLIENT_QuitNetworkGame( NULL );
 
-	// [BC] Support for client-side demos.
-	if (demorecording || ( CLIENTDEMO_IsRecording( )))
+	if (demorecording)
 		G_CheckDemoStatus();
+	// [BC] Support for client-side demos.
+	if ( CLIENTDEMO_IsRecording( ))
+		CLIENTDEMO_FinishRecording( );
 	G_ClearSnapshots ();
 }
 

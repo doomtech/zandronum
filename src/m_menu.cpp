@@ -2272,8 +2272,11 @@ extern	ULONG		g_ulPlayerSetupClass;
 //
 void M_PlayerSetup (void)
 {
-	if (( demoplayback ) || ( CLIENTDEMO_IsPlaying( )))
+	if ( demoplayback )
 		G_CheckDemoStatus( );
+	// [BC] Support for client-side demos.
+	if ( CLIENTDEMO_IsPlaying( ))
+		CLIENTDEMO_FinishPlaying( );
 
 	// Copy all userinfo variables into menu_xxx.
 	M_SetupPlayerSetupMenu( );

@@ -2265,7 +2265,7 @@ void CLIENT_QuitNetworkGame( char *pszString )
 
 	// If we're recording a demo, then finish it!
 	if ( CLIENTDEMO_IsRecording( ))
-		G_CheckDemoStatus( );
+		CLIENTDEMO_FinishRecording( );
 }
 
 //*****************************************************************************

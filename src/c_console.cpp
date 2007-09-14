@@ -1468,8 +1468,7 @@ void C_FullConsole ()
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		return;
 
-	// [BC] Support for client-side demos.
-	if (demoplayback || ( CLIENTDEMO_IsPlaying( )))
+	if (demoplayback)
 		G_CheckDemoStatus ();
 	D_QuitNetGame ();
 	advancedemo = false;

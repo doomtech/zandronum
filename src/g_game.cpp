@@ -4854,14 +4854,6 @@ bool G_CheckDemoStatus (void)
 		Printf ("Demo %s recorded\n", demoname); 
 	}
 
-	// [BC] Support for client-side demos.
-	if ( CLIENTDEMO_IsPlaying( ))
-		CLIENTDEMO_FinishPlaying( );
-
-	// [BC] Support for client-side demos.
-	if ( CLIENTDEMO_IsRecording( ))
-		CLIENTDEMO_FinishRecording( );
-
 	return false; 
 }
 
