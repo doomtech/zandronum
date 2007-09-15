@@ -6,8 +6,8 @@
 #include "win32gliface.h"
 typedef Win32GLFrameBuffer OpenGLFrameBuffer;
 #else
-#include "sdlvideo.h"
-typedef SDLFB OpenGLFrameBuffer;
+#include "sdlglvideo.h"
+typedef SDLGLFB OpenGLFrameBuffer;
 #endif
 
 #endif //__GL_FRAMEBUFFER

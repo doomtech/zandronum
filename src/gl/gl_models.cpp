@@ -49,6 +49,14 @@
 #include "gl_values.h"
 #include "gl_renderstruct.h"
 
+// [BB] Implement this under Linux.
+#ifndef _WIN32
+float I_GetTimeFloat()
+{
+	return 0.;
+}
+#endif
+
 CVAR(Bool, gl_rotate_weapon_models, true, CVAR_ARCHIVE)
 CVAR(Bool, gl_interpolate_model_frames, true, CVAR_ARCHIVE)
 

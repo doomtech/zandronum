@@ -1,6 +1,7 @@
 #ifndef __GL_SYSTEM
 #define __GL_SYSTEM
 
+#ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #define _WIN32_WINDOWS 0x410
 #define _WIN32_WINNT 0x0501			// Support the mouse wheel and session notification.
@@ -14,6 +15,7 @@
 
 #if defined(_MSC_VER)
 #pragma warning(disable:4018)
+#endif
 #endif
 
 #endif

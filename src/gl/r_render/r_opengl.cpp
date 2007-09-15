@@ -37,11 +37,18 @@
 #include "../../tarray.h"
 #include "gl/gl_intern.h"
 
+#ifdef _WIN32
 static void CollectExtensions(HDC);
+#else
+#include <SDL.h>
+#define wglGetProcAddress(x) (*SDL_GL_GetProcAddress)(x)
+#endif
 static void APIENTRY glBlendEquationDummy (GLenum mode);
 
 
+#ifdef _WIN32
 PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB; // = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
+#endif
 
 static class DeletingStringArray : public TArray<char*>
 {
@@ -54,9 +61,11 @@ public:
 		}
 	}
 } m_Extensions;
+#ifdef _WIN32
 HWND m_Window;
 HDC m_hDC;
 HGLRC m_hRC;
+#endif
 
 #define gl pgl
 
@@ -71,6 +80,7 @@ int occlusion_type=0;
 //
 //==========================================================================
 
+#ifdef _WIN32
 static HWND InitDummy()
 {
 	HMODULE g_hInst = GetModuleHandle(NULL);
@@ -130,6 +140,7 @@ static HWND InitDummy()
 
 	return dummy;
 }
+#endif
 
 //==========================================================================
 //
@@ -137,11 +148,13 @@ static HWND InitDummy()
 //
 //==========================================================================
 
+#ifdef _WIN32
 static void ShutdownDummy(HWND dummy)
 {
 	DestroyWindow(dummy);
 	UnregisterClass("OpenGL", GetModuleHandle(NULL));
 }
+#endif
 
 
 //==========================================================================
@@ -150,6 +163,7 @@ static void ShutdownDummy(HWND dummy)
 //
 //==========================================================================
 
+#ifdef _WIN32
 static bool ReadInitExtensions()
 {
 	HDC hDC;
@@ -214,6 +228,7 @@ static bool ReadInitExtensions()
 
 	return true;
 }
+#endif
 
 //==========================================================================
 //
@@ -221,10 +236,15 @@ static bool ReadInitExtensions()
 //
 //==========================================================================
 
+#ifdef _WIN32
 static void CollectExtensions(HDC m_hDC)
+#else
+static void CollectExtensions()
+#endif
 {
 	const char *supported = NULL;
 	char *extensions, *extension;
+#ifdef _WIN32
 	PROC wglGetExtString = wglGetProcAddress("wglGetExtensionsStringARB");
 
 	if (wglGetExtString)
@@ -247,6 +267,7 @@ static void CollectExtensions(HDC m_hDC)
 
 		delete [] extensions;
 	}
+#endif
 
 	supported = (char *)glGetString(GL_EXTENSIONS);
 
@@ -317,6 +338,10 @@ static void APIENTRY EndOcclusionQuery(GLenum type)
 
 static void APIENTRY LoadExtensions()
 {
+#ifdef unix
+	CollectExtensions();
+#endif
+
 	// This loads any function pointers and flags that require a vaild render context to
 	// initialize properly
 
@@ -331,8 +356,10 @@ static void APIENTRY LoadExtensions()
 
 	if (CheckExtension("GL_ARB_texture_non_power_of_two")) gl->flags|=RFL_NPOT_TEXTURE;
 
+#ifdef _WIN32
 	PFNWGLSWAPINTERVALEXTPROC vs = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
 	if (vs) gl->SetVSync = vs;
+#endif
 
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE,&gl->max_texturesize);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -453,6 +480,7 @@ static void APIENTRY PrintStartupLog(PrintTextFunc pf)
 //
 //==========================================================================
 
+#ifdef _WIN32
 static bool SetupPixelFormat(bool allowsoftware, bool nostencil, int multisample, PrintTextFunc Printf)
 {
 	int colorDepth;
@@ -639,7 +667,7 @@ static bool SetupPixelFormat(bool allowsoftware, bool nostencil, int multisample
 
 	return true;
 }
-
+#endif
 
 //==========================================================================
 //
@@ -647,6 +675,7 @@ static bool SetupPixelFormat(bool allowsoftware, bool nostencil, int multisample
 //
 //==========================================================================
 
+#ifdef _WIN32
 static bool APIENTRY InitHardware (HWND Window, bool allowsoftware, bool nostencil, int multisample, PrintTextFunc pf)
 {
 	m_Window=Window;
@@ -669,6 +698,7 @@ static bool APIENTRY InitHardware (HWND Window, bool allowsoftware, bool nostenc
 	wglMakeCurrent(m_hDC, m_hRC);
 	return true;
 }
+#endif
 
 
 //==========================================================================
@@ -677,6 +707,7 @@ static bool APIENTRY InitHardware (HWND Window, bool allowsoftware, bool nostenc
 //
 //==========================================================================
 
+#ifdef _WIN32
 static void APIENTRY Shutdown()
 {
 	if (m_hRC)
@@ -686,8 +717,10 @@ static void APIENTRY Shutdown()
 	}
 	if (m_hDC) ReleaseDC(m_Window, m_hDC);
 }
+#endif
 
 
+#ifdef _WIN32
 static BOOL APIENTRY SetFullscreen(int w, int h, int bits, int hz)
 {
 	DEVMODE dm;
@@ -712,6 +745,7 @@ static BOOL APIENTRY SetFullscreen(int w, int h, int bits, int hz)
 	}
 	return true;
 }
+#endif
 //==========================================================================
 //
 // 
@@ -720,17 +754,37 @@ static BOOL APIENTRY SetFullscreen(int w, int h, int bits, int hz)
 
 static void APIENTRY iSwapBuffers()
 {
+#ifdef _WIN32
 	SwapBuffers(m_hDC);
+#else
+	SDL_GL_SwapBuffers ();
+#endif
 }
 
+#ifdef _WIN32
 static void APIENTRY SetGammaRamp (void * ramp)
+#else
+static void APIENTRY SetGammaRamp (Uint16 *redtable, Uint16 *greentable, Uint16 *bluetable)
+#endif
 {
+#ifdef _WIN32
 	SetDeviceGammaRamp(m_hDC, ramp);
+#else
+	SDL_SetGammaRamp(redtable, greentable, bluetable);
+#endif
 }
 
+#ifdef _WIN32
 static BOOL APIENTRY GetGammaRamp (void * ramp)
+#else
+static BOOL APIENTRY GetGammaRamp (Uint16 *redtable, Uint16 *greentable, Uint16 *bluetable)
+#endif
 {
+#ifdef _WIN32
 	return GetDeviceGammaRamp(m_hDC, ramp);
+#else
+	return SDL_GetGammaRamp(redtable, greentable, bluetable);
+#endif
 }
 
 static BOOL APIENTRY SetVSync(int)
@@ -859,12 +913,16 @@ void APIENTRY GetContext(RenderContext & gl)
 	gl.SetTextureMode = SetTextureMode;
 	gl.ArrayPointer = ArrayPointer;
 	gl.PrintStartupLog = PrintStartupLog;
+#ifdef _WIN32
 	gl.InitHardware = InitHardware;
 	gl.Shutdown = Shutdown;
+#endif
 	gl.SwapBuffers = iSwapBuffers;
 	gl.GetGammaRamp = GetGammaRamp;
 	gl.SetGammaRamp = SetGammaRamp;
+#ifdef _WIN32
 	gl.SetFullscreen = SetFullscreen;
+#endif
 
 	gl.Begin = glBegin;
 	gl.End = glEnd;
@@ -945,7 +1003,10 @@ void APIENTRY GetContext(RenderContext & gl)
 	gl.BlendEquation = glBlendEquationDummy;
 	gl.SetVSync = SetVSync;
 
+#ifdef _WIN32
 	ReadInitExtensions();
+	//GL is not yet inited in UNIX version, read them later in LoadExtensions
+#endif
 
 }
 

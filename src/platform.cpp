@@ -116,8 +116,10 @@ void SERVERCONSOLE_Print( char *pszString )
 #include "gl/gl_texture.h"
 #include "gl/gl_lights.h"
 
+#ifdef NO_GL
 // [BB] We need the gl nodes even if we don't display anything on the screen, i.e. on the server.
 #include "gl/gl_nodes.cpp"
+#endif
 /*
 // [BB] This are the necessary things from gl_nodes.cpp
 void gl_CheckNodes(MapData * map) {}

@@ -17,9 +17,10 @@ endif
 CFLAGS += -MMD -DHAVE_FILELENGTH -D__forceinline=inline -Izlib -IFLAC `sdl-config --cflags` `pkg-config gtk+-2.0 --cflags` -I../fmodapi375linux/api/inc/
 CFLAGS += -Dstrnicmp=strncasecmp -DNEED_STRUPR -DNO_SERVER_GUI
 LDFLAGS += -lFLAC++ -lFLAC -lz -ljpeg -lfmod `sdl-config --libs` `pkg-config gtk+-2.0 --libs`
+LDFLAGS += -lGL -lGLU
 NASMFLAGS += -f elf -DM_TARGET_LINUX
 
-SRCDIRS = src/ $(addprefix src/,g_doom/ g_heretic/ g_hexen/ g_raven/ g_shared/ g_strife/ MD5/ oplsynth/ sound/ sdl/ textures/ )
+SRCDIRS = src/ $(addprefix src/,g_doom/ g_heretic/ g_hexen/ g_raven/ g_shared/ g_strife/ MD5/ oplsynth/ sound/ sdl/ textures/ gl/ gl/r_render/)
 VPATH = $(SRCDIRS)
 INCLUDES = $(addprefix -I,$(SRCDIRS) src/gl)
 CFLAGS += $(INCLUDES)

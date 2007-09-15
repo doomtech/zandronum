@@ -34,6 +34,7 @@ void I_Sleep( int iMS );
 char *I_ConsoleInput (void);
 
 typedef unsigned char UCHAR;
+typedef bool BOOL;
 
 #endif
 

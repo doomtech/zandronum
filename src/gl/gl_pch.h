@@ -72,6 +72,10 @@ typedef float		FLOAT;
 #define __cdecl
 #define _access(a,b)	access(a,b)
 #endif
+#ifndef _WIN32
+#include "platform.h"
+#include <SDL.h>
+#endif
 #include "r_render/r_render.h"
 
 extern RenderContext gl;

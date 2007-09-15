@@ -19,6 +19,7 @@ v0.97d-beta5
 		gl_billboard_mode == 2 : x/y axis billboard (the mode countless of people have requested :D)
 *+	- Added support for 3d floors in coop game modes, i.e. Coop, Survival and Invasion. [Torr Samaho]
 *+	- Added custom states and custom damage types (ported the change from ZDoom revision 368-378). [Torr Samaho]
+*+	- Added Linux OpenGL support (using the Linux GZDoom patch from Costja). [Torr Samaho]
 *-	- Crash logs should finally work on all Windows machines. [Torr Samaho]
 +	- Added the dynamic light definitions for Heretic and Hexen from ZDoomGL. [Torr Samaho]
 +	- Added invasion spawners for Heretic! [Carnevil, Aabra, and Tun]

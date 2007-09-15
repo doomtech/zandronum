@@ -2,6 +2,9 @@
 #include "r_data.h"
 #include "gl_texture.h"
 
+CVAR(Bool, gl_vid_compatibility, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
+
+#ifdef NO_GL
 class ADynamicLight : public AActor
 {
 	DECLARE_STATELESS_ACTOR (ADynamicLight, AActor)
@@ -11,7 +14,6 @@ IMPLEMENT_STATELESS_ACTOR (ADynamicLight, Any, -1, 0)
 END_DEFAULTS
 
 CVAR(Bool, gl_precache, false, CVAR_ARCHIVE)
-CVAR(Bool, gl_vid_compatibility, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
 
 void gl_DrawLine(int, int, int, int, int)
 {
@@ -151,3 +153,4 @@ void FPCXTexture::CopyTrueColorPixels(BYTE *, int , int , int , int , intptr_t, 
 void FCanvasTexture::RenderGLView (AActor *viewpoint, int fov)
 {
 }
+#endif
