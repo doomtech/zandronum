@@ -342,12 +342,12 @@ ULONG TEAM_ChooseBestTeamForPlayer( void )
 	LONG	lBlueScore;
 	LONG	lRedScore;
 
-	if ( teamplay )
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS )
 	{
 		lBlueScore = TEAM_GetFragCount( TEAM_BLUE );
 		lRedScore = TEAM_GetFragCount( TEAM_RED );
 	}
-	else if ( teamlms )
+	else if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )
 	{
 		lBlueScore = TEAM_GetWinCount( TEAM_BLUE );
 		lRedScore = TEAM_GetWinCount( TEAM_RED );
@@ -384,8 +384,36 @@ void TEAM_ScoreSkulltagPoint( player_s *pPlayer, ULONG ulNumPoints, AActor *pPil
 	DHUDMessageFadeOut	*pMsg;
 	AActor				*pActor;
 	AInventory			*pInventory;
+	bool				bAssisted;
+	bool				bSelfAssisted;
 
-	// Create the "scored" message.
+	// Determine who assisted.
+	bAssisted = ( TEAM_GetAssistPlayer( pPlayer->ulTeam ) != MAXPLAYERS );
+
+	if ( bAssisted )
+	{
+		// Self assist?
+		bSelfAssisted = false;
+		for( ULONG i = 0; i < MAXPLAYERS; i++ )
+		{
+			if( (&players[i] == pPlayer) && (TEAM_GetAssistPlayer( pPlayer->ulTeam ) == i) )
+			{
+				bSelfAssisted = true;
+				break;
+			}
+		}
+	}
+
+	// Create the console message.
+	if( bAssisted )
+		sprintf(szString, "%s \\c-and %s\\c- scored for the %s team!", pPlayer->userinfo.netname, players[TEAM_GetAssistPlayer( pPlayer->ulTeam )].userinfo.netname, pPlayer->ulTeam == TEAM_BLUE ? "Blue" : "Red");
+	else
+		sprintf(szString, "%s \\c-scored for the %s team!", pPlayer->userinfo.netname, pPlayer->ulTeam == TEAM_BLUE ? "Blue" : "Red");
+
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_Print( szString, PRINT_HIGH );
+
+	// Create the fullscreen message.
 	switch ( ulNumPoints )
 	{
 	case 0:
@@ -440,17 +468,13 @@ void TEAM_ScoreSkulltagPoint( player_s *pPlayer, ULONG ulNumPoints, AActor *pPil
 		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.425f, 0, 0, CR_BLUE, 3.0f, 0.5f, "BigFont", 'CNTR' );
 	}
 
-	// [RC] Create the "scored by" and "assisted by" message.
+	// Create the "scored by / assisted by" message.
 	sprintf( szString, "\\c%sScored by: %s", pPlayer->ulTeam == TEAM_BLUE ? "H" : "G", pPlayer->userinfo.netname);
-	if ( TEAM_GetAssistPlayer( pPlayer->ulTeam ) != MAXPLAYERS ) {
-		bool selfAssist = false;
-		for(ULONG i = 0; i < MAXPLAYERS; i++)
-			if(&players[i] == pPlayer)
-				if( TEAM_GetAssistPlayer( pPlayer->ulTeam ) == i)
-					selfAssist = true;
 
-		if ( selfAssist )
-			sprintf( szString, "%s\\n\\c%[ Self-Assisted ]", szString, pPlayer->ulTeam == TEAM_BLUE ? "H" : "G");
+	if ( bAssisted )
+	{
+		if ( bSelfAssisted )
+			sprintf( szString, "%s\\n\\c%( Self-Assisted )", szString, pPlayer->ulTeam == TEAM_BLUE ? "H" : "G");
 		else
 			sprintf( szString, "%s\\n\\c%sAssisted by: %s", szString, pPlayer->ulTeam == TEAM_BLUE ? "H" : "G", players[TEAM_GetAssistPlayer( pPlayer->ulTeam )].userinfo.netname);
 	}
@@ -611,6 +635,10 @@ void TEAM_FlagDropped( player_s *pPlayer )
 		SERVERCOMMANDS_TeamFlagDropped( ULONG( pPlayer - players ));
 		return;
 	}
+
+	// Add the console message.
+	Printf( "%s %s dropped!", ( pPlayer->ulTeam != TEAM_BLUE ) ? "Blue" : "Red", ( skulltag ) ? "skull" : "flag" );
+
 
 	// Next, build the dropped message.
 	sprintf( szString, "\\c%s%s %s dropped!", ( pPlayer->ulTeam != TEAM_BLUE ) ? "H" : "G", ( pPlayer->ulTeam != TEAM_BLUE ) ? "Blue" : "Red", ( skulltag ) ? "skull" : "flag" );
