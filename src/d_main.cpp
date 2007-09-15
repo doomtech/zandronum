@@ -2319,6 +2319,17 @@ void D_DoomMain (void)
 	{
 		I_FatalError ("Cannot find " BASEWAD);
 	}
+	D_AddFile( wad, true );
+
+	if (!(gameinfo.flags & GI_SHAREWARE))
+	{
+		// [BC] Also load skulltag.wad.
+		wad = BaseFileSearch( "skulltag.wad", NULL, true );
+		if ( wad == NULL )
+			I_FatalError( "Cannot find skulltag.wad" );
+		else
+			D_AddFile( wad, true );
+	}
 
 	I_SetIWADInfo (&IWADInfos[IdentifyVersion(wad)]);
 	GameConfig->DoGameSetup (GameNames[gameinfo.gametype]);
@@ -2334,13 +2345,6 @@ void D_DoomMain (void)
 		//wad = BaseFileSearch ("zvox.wad", NULL);
 		//if (wad)
 		//	D_AddFile (wad, false);	// [BC]
-
-		// [BC] Also load skulltag.wad.
-		wad = BaseFileSearch( "skulltag.wad", NULL, true );
-		if ( wad == NULL )
-			I_FatalError( "Cannot find skulltag.wad" );
-		else
-			D_AddFile( wad, true );
 
 		// [RH] Add any .wad files in the skins directory
 		// [BB] Also add pk3 files and add the files from

@@ -181,6 +181,7 @@ v0.97d-beta5
 -	- Prevented the "Tried to render from a NULL actor." error from occurring in software. [Torr Samaho]
 !	- Survival co-op is now disabled in hubs. [Carnevil]
 !	- Skulltag's invasion spawners are now defined in skulltag.pk3. [Carnevil]
+!	- Skulltag.wad is now loaded before doom2.wad. This should fix certain texture errors. [Carnevil]
 !	- Changed Skulltag's connection process so that the map is now loaded before a full snapshot of the map is sent. This should result in a smoother connection process. [Carnevil]
 !	- You can no longer exit a map during the countdown in survival invasion. [Carnevil]
 !	- Starting a new game from the main menu now disables multiplayer emulation and resets dmflags. [Carnevil]
