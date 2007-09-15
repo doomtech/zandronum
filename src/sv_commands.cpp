@@ -162,7 +162,7 @@ void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlay
 		if ( bMorph )
 		{
 			SERVER_CheckClientBuffer( ulIdx, 25 + (ULONG)strlen( PlayerPawnName ), true );
-			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_MORPHPLAYER );
+			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SPAWNMORPHPLAYER );
 		}
 		else
 		{
@@ -189,19 +189,13 @@ void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlay
 	// [BB]: Inform the player about its health, otherwise it won't be displayed properly.
 	// The armor display is handled in SERVER_ResetInventory.
 	SERVERCOMMANDS_SetPlayerHealth( ulPlayer, ulPlayer, SVCF_ONLYTHISCLIENT );
-#ifdef STAY_NETWORK_COMPATIBLE
-	// [BB]: If the player still has NOCLIP activated from the last level, tell
-	// him about it. Not doing this leads to jerky movement on client side.
-	if( players[ulPlayer].cheats & CF_NOCLIP )
-		SERVERCOMMANDS_GenericCheat( ulPlayer, CF_NOCLIP, ulPlayer, SVCF_ONLYTHISCLIENT );
-#else
+
 	// [BB]: If the player still has any cheats activated from the last level, tell
 	// him about it. Not doing this leads for example to jerky movement on client side
 	// in case of NOCLIP.
 	// We don't have to tell about CF_NOTARGET, since it's only used on the server.
 	if( players[ulPlayer].cheats && players[ulPlayer].cheats != CF_NOTARGET )
 		SERVERCOMMANDS_SetPlayerCheats( ulPlayer, ulPlayer, SVCF_ONLYTHISCLIENT );
-#endif
 }
 
 //*****************************************************************************
@@ -350,17 +344,11 @@ void SERVERCOMMANDS_KillPlayer( ULONG ulPlayer, AActor *pSource, AActor *pInflic
 		if ( SERVER_IsValidClient( ulIdx ) == false )
 			continue;
 
-#ifdef STAY_NETWORK_COMPATIBLE
-		if ( pszString )
-			SERVER_CheckClientBuffer( ulIdx, 9 + (ULONG)strlen( pszString ), true );
-		else
-			SERVER_CheckClientBuffer( ulIdx, 9, true );
-#else
 		if ( pszString )
 			SERVER_CheckClientBuffer( ulIdx, 10 + (ULONG)strlen( pszString ), true );
 		else
 			SERVER_CheckClientBuffer( ulIdx, 10, true );
-#endif
+
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_KILLPLAYER );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSourceID );
@@ -368,9 +356,7 @@ void SERVERCOMMANDS_KillPlayer( ULONG ulPlayer, AActor *pSource, AActor *pInflic
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].mo->health );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulMOD );
 		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszString );
-#ifndef STAY_NETWORK_COMPATIBLE
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].mo->DamageType );
-#endif
 	}
 }
 
@@ -406,13 +392,13 @@ void SERVERCOMMANDS_SetPlayerHealth( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG 
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_UpdatePlayerArmorDisplay( ULONG ulPlayer )
+void SERVERCOMMANDS_SetPlayerArmor( ULONG ulPlayer )
 {
 	AInventory *pArmor = players[ulPlayer].mo->FindInventory< ABasicArmor >( );
 	ULONG ulArmorPoints = ( pArmor != NULL ) ? pArmor->Amount : 0;
 	if ( ulArmorPoints > 0 ){
 		SERVER_CheckClientBuffer( ulPlayer, 3 + (ULONG)strlen( TexMan( pArmor->Icon )->Name ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulPlayer )->PacketBuffer.ByteStream, SVC_UPDATEPLAYERARMORDISPLAY );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulPlayer )->PacketBuffer.ByteStream, SVC_SETPLAYERARMOR );
 		NETWORK_WriteByte( &SERVER_GetClient( ulPlayer )->PacketBuffer.ByteStream, ulPlayer );
 		NETWORK_WriteShort( &SERVER_GetClient( ulPlayer )->PacketBuffer.ByteStream, ulArmorPoints );
 		NETWORK_WriteString( &SERVER_GetClient( ulPlayer )->PacketBuffer.ByteStream, TexMan( pArmor->Icon )->Name );
@@ -754,6 +740,67 @@ void SERVERCOMMANDS_SetPlayerPoisonCount( ULONG ulPlayer, ULONG ulPlayerExtra, U
 
 //*****************************************************************************
 //
+void SERVERCOMMANDS_SetPlayerAmmoCapacity( ULONG ulPlayer, AInventory *pAmmo, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	ULONG	ulIdx;
+
+	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+		return;
+
+	if ( pAmmo == NULL )
+		return;
+
+	if ( !(pAmmo->GetClass()->IsDescendantOf (RUNTIME_CLASS(AAmmo))) )
+		return;
+
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_IsValidClient( ulIdx ) == false )
+			continue;
+
+		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
+			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
+		{
+			continue;
+		}
+
+		SERVER_CheckClientBuffer( ulIdx, 4 + (ULONG)strlen( pAmmo->GetClass( )->TypeName.GetChars( )), true );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERAMMOCAPACITY );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, (char *)pAmmo->GetClass( )->TypeName.GetChars( ));
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pAmmo->MaxAmount );
+	}
+}
+
+//*****************************************************************************
+//
+void SERVERCOMMANDS_SetPlayerCheats( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	ULONG	ulIdx;
+
+	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+		return;
+
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_IsValidClient( ulIdx ) == false )
+			continue;
+
+		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
+			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
+		{
+			continue;
+		}
+
+		SERVER_CheckClientBuffer( ulIdx, 6, true );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERCHEATS );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].cheats );
+	}
+}
+
+//*****************************************************************************
+//
 void SERVERCOMMANDS_UpdatePlayerPing( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
@@ -802,6 +849,33 @@ void SERVERCOMMANDS_UpdatePlayerExtraData( ULONG ulPlayer, ULONG ulDisplayPlayer
 
 //*****************************************************************************
 //
+void SERVERCOMMANDS_UpdatePlayerTime( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	ULONG	ulIdx;
+
+	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+		return;
+
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_IsValidClient( ulIdx ) == false )
+			continue;
+
+		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
+			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
+		{
+			continue;
+		}
+
+		SERVER_CheckClientBuffer( ulPlayer, 4, false );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, SVC_UPDATEPLAYERTIME );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, ulPlayer );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, ( players[ulPlayer].ulTime / ( TICRATE * 60 )));
+	}
+}
+
+//*****************************************************************************
+//
 void SERVERCOMMANDS_UpdatePlayerPendingWeapon( ULONG ulPlayer )
 {
 	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
@@ -830,93 +904,9 @@ void SERVERCOMMANDS_UpdatePlayerPendingWeapon( ULONG ulPlayer )
 		}
 
 		SERVER_CheckClientBuffer( ulIdx, 2 + (ULONG)strlen( pszPendingWeaponString ), false );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, SVC_UPDATEPLAYEREPENDINGWEAPON );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, SVC_UPDATEPLAYERPENDINGWEAPON );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, ulPlayer );
 		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, pszPendingWeaponString );
-	}
-}
-
-//*****************************************************************************
-//
-void SERVERCOMMANDS_DoInventoryUse( ULONG ulPlayer, AInventory *pItem, ULONG ulPlayerExtra, ULONG ulFlags )
-{
-	ULONG		ulIdx;
-	const char	*pszString;
-
-	if (( SERVER_IsValidPlayer( ulPlayer ) == false ) ||
-		( pItem == NULL ))
-	{
-		return;
-	}
-
-	pszString = pItem->GetClass( )->TypeName.GetChars( );
-	if ( pszString == NULL )
-		return;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 1 + (ULONG)strlen( pszString ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_USEINVENTORY );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszString );
-	}
-}
-
-//*****************************************************************************
-//
-void SERVERCOMMANDS_ChangePlayerWeapon( ULONG ulPlayer )
-{
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
-		return;
-
-	const char* pszWeaponString = "NULL";
-	if ( players[ulPlayer].ReadyWeapon != NULL )
-		pszWeaponString = players[ulPlayer].ReadyWeapon->GetClass( )->TypeName.GetChars( );
-	else
-		return;
-	// Some optimization. For standard Doom weapons, to reduce the size of the string
-	// that's sent out, just send some key character that identifies the weapon, instead
-	// of the full name.
-	NETWORK_ConvertWeaponNameToKeyLetter( pszWeaponString );
-
-	SERVER_CheckClientBuffer( ulPlayer, 1 + (ULONG)strlen( pszWeaponString ), false );
-	NETWORK_WriteHeader( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, SVC_WEAPONCHANGE );
-	NETWORK_WriteString( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, pszWeaponString );
-}
-
-//*****************************************************************************
-//
-void SERVERCOMMANDS_UpdatePlayerTime( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
-{
-	ULONG	ulIdx;
-
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
-		return;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulPlayer, 4, false );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, SVC_UPDATEPLAYERTIME );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, ( players[ulPlayer].ulTime / ( TICRATE * 60 )));
 	}
 }
 
@@ -1177,20 +1167,20 @@ void SERVERCOMMANDS_PlayerRespawnInvulnerability( ULONG ulPlayer, ULONG ulPlayer
 }
 
 //*****************************************************************************
-//*****************************************************************************
 //
-void SERVERCOMMANDS_SetPlayerAmmoCapacity( ULONG ulPlayer, AInventory *pAmmo, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_PlayerUseInventory( ULONG ulPlayer, AInventory *pItem, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-#ifndef STAY_NETWORK_COMPATIBLE
-	ULONG	ulIdx;
+	ULONG		ulIdx;
+	const char	*pszString;
 
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+	if (( SERVER_IsValidPlayer( ulPlayer ) == false ) ||
+		( pItem == NULL ))
+	{
 		return;
+	}
 
-	if ( pAmmo == NULL )
-		return;
-
-	if ( !(pAmmo->GetClass()->IsDescendantOf (RUNTIME_CLASS(AAmmo))) )
+	pszString = pItem->GetClass( )->TypeName.GetChars( );
+	if ( pszString == NULL )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1204,43 +1194,11 @@ void SERVERCOMMANDS_SetPlayerAmmoCapacity( ULONG ulPlayer, AInventory *pAmmo, UL
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 4 + (ULONG)strlen( pAmmo->GetClass( )->TypeName.GetChars( )), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERAMMOCAPACITY );
+		SERVER_CheckClientBuffer( ulIdx, 1 + (ULONG)strlen( pszString ), true );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_PLAYERUSEINVENTORY );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, (char *)pAmmo->GetClass( )->TypeName.GetChars( ));
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pAmmo->MaxAmount );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszString );
 	}
-#endif
-}
-
-//*****************************************************************************
-//*****************************************************************************
-//
-void SERVERCOMMANDS_SetPlayerCheats( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
-{
-#ifndef STAY_NETWORK_COMPATIBLE
-	ULONG	ulIdx;
-
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
-		return;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 6, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERCHEATS );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].cheats );
-	}
-#endif
 }
 
 //*****************************************************************************
@@ -1294,9 +1252,6 @@ void SERVERCOMMANDS_SpawnThing( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFla
 //
 void SERVERCOMMANDS_SpawnThingNoNetID( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags, bool bSendTranslation )
 {
-#ifdef STAY_NETWORK_COMPATIBLE
-	bSendTranslation = false;
-#endif
 	ULONG		ulIdx;
 	const char	*pszName;
 
@@ -1497,7 +1452,6 @@ void SERVERCOMMANDS_MoveThing( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra
 //
 void SERVERCOMMANDS_MoveThingExact( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-#ifndef STAY_NETWORK_COMPATIBLE
 	ULONG	ulIdx;
 	ULONG	ulSize;
 
@@ -1562,7 +1516,6 @@ void SERVERCOMMANDS_MoveThingExact( AActor *pActor, ULONG ulBits, ULONG ulPlayer
 		if ( ulBits & CM_MOMZ )
 			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->momz );
 	}
-#endif
 }
 
 //*****************************************************************************
@@ -1599,17 +1552,11 @@ void SERVERCOMMANDS_KillThing( AActor *pActor )
 		if ( SERVER_IsValidClient( ulIdx ) == false )
 			continue;
 
-#ifdef STAY_NETWORK_COMPATIBLE
-		SERVER_CheckClientBuffer( ulIdx, 5, true );
-#else
 		SERVER_CheckClientBuffer( ulIdx, 6, true );
-#endif
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_KILLTHING );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->health );
-#ifndef STAY_NETWORK_COMPATIBLE
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->DamageType );
-#endif
 	}
 }
 
@@ -1719,62 +1666,6 @@ void SERVERCOMMANDS_SetThingAngle( AActor *pActor, ULONG ulPlayerExtra, ULONG ul
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->angle );
 	}
-}
-
-//*****************************************************************************
-//
-void SERVERCOMMANDS_SetThingTID( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
-{
-	ULONG	ulIdx;
-
-	if ( pActor == NULL )
-		return;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 5, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGTID );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->tid );
-	}
-}
-
-//*****************************************************************************
-//
-void SERVERCOMMANDS_SetThingTics( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
-{
-#ifndef STAY_NETWORK_COMPATIBLE
-	ULONG	ulIdx;
-
-	if ( pActor == NULL )
-		return;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 5, true );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGTICS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->tics );
-	}
-#endif
 }
 
 //*****************************************************************************
@@ -2031,7 +1922,6 @@ void SERVERCOMMANDS_SetThingSound( AActor *pActor, ULONG ulSound, char *pszSound
 //
 void SERVERCOMMANDS_SetThingSpecial2( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-#ifndef STAY_NETWORK_COMPATIBLE
 	ULONG	ulIdx;
 
 	if ( pActor == NULL )
@@ -2053,7 +1943,60 @@ void SERVERCOMMANDS_SetThingSpecial2( AActor *pActor, ULONG ulPlayerExtra, ULONG
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->special2 );
 	}
-#endif
+}
+
+//*****************************************************************************
+//
+void SERVERCOMMANDS_SetThingTics( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	ULONG	ulIdx;
+
+	if ( pActor == NULL )
+		return;
+
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_IsValidClient( ulIdx ) == false )
+			continue;
+
+		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
+			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
+		{
+			continue;
+		}
+
+		SERVER_CheckClientBuffer( ulIdx, 5, true );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGTICS );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->tics );
+	}
+}
+
+//*****************************************************************************
+//
+void SERVERCOMMANDS_SetThingTID( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	ULONG	ulIdx;
+
+	if ( pActor == NULL )
+		return;
+
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_IsValidClient( ulIdx ) == false )
+			continue;
+
+		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
+			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
+		{
+			continue;
+		}
+
+		SERVER_CheckClientBuffer( ulIdx, 5, true );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGTID );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->tid );
+	}
 }
 
 //*****************************************************************************
@@ -2296,7 +2239,6 @@ void SERVERCOMMANDS_RespawnDoomThing( AActor *pActor, bool bFog, ULONG ulPlayerE
 //
 void SERVERCOMMANDS_RespawnRavenThing( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-#ifndef STAY_NETWORK_COMPATIBLE
 	ULONG	ulIdx;
 
 	if ( pActor == NULL )
@@ -2317,7 +2259,6 @@ void SERVERCOMMANDS_RespawnRavenThing( AActor *pActor, ULONG ulPlayerExtra, ULON
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_RESPAWNRAVENTHING );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
 	}
-#endif
 }
 
 //*****************************************************************************
@@ -2617,17 +2558,9 @@ void SERVERCOMMANDS_SetGameModeLimits( ULONG ulPlayerExtra, ULONG ulFlags )
 			continue;
 		}
 
-#ifdef STAY_NETWORK_COMPATIBLE
-		SERVER_CheckClientBuffer( ulIdx, 12, true );
-#else
 		SERVER_CheckClientBuffer( ulIdx, 13, true );
-#endif
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETGAMEMODELIMITS );
-#ifdef STAY_NETWORK_COMPATIBLE
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fraglimit );
-#else
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fraglimit );
-#endif
 		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, timelimit );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pointlimit );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, duellimit );
@@ -3252,6 +3185,16 @@ void SERVERCOMMANDS_WeaponChange( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulF
 	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
+	const char* pszWeaponString = "NULL";
+	if ( players[ulPlayer].ReadyWeapon != NULL )
+		pszWeaponString = players[ulPlayer].ReadyWeapon->GetClass( )->TypeName.GetChars( );
+	else
+		return;
+	// Some optimization. For standard Doom weapons, to reduce the size of the string
+	// that's sent out, just send some key character that identifies the weapon, instead
+	// of the full name.
+	NETWORK_ConvertWeaponNameToKeyLetter( pszWeaponString );
+
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		if ( SERVER_IsValidClient( ulIdx ) == false )
@@ -3262,6 +3205,11 @@ void SERVERCOMMANDS_WeaponChange( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulF
 		{
 			continue;
 		}
+
+		SERVER_CheckClientBuffer( ulIdx, 2 + (ULONG)strlen( pszWeaponString ), false );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_WEAPONCHANGE );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszWeaponString );
 	}
 }
 
@@ -5103,11 +5051,7 @@ void SERVERCOMMANDS_DoCeiling( DCeiling::ECeiling Type, sector_t *pSector, LONG 
 			continue;
 		}
 
-#ifdef STAY_NETWORK_COMPATIBLE
-		SERVER_CheckClientBuffer( ulIdx, 22, true );
-#else
 		SERVER_CheckClientBuffer( ulIdx, 23, true );
-#endif
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOCEILING );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, (ULONG)Type );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSectorID );
@@ -5115,11 +5059,7 @@ void SERVERCOMMANDS_DoCeiling( DCeiling::ECeiling Type, sector_t *pSector, LONG 
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lBottomHeight );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lTopHeight );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSpeed );
-#ifdef STAY_NETWORK_COMPATIBLE
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ( lCrush == 1 ));
-#else
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lCrush );
-#endif
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, bSilent );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
 	}
@@ -5897,7 +5837,8 @@ void SERVERCOMMANDS_DoScroller( LONG lType, LONG lXSpeed, LONG lYSpeed, LONG lAf
 		}
 
 		// [BB] Shouldn't the 8 be a 10? (1+1+4+4+2)
-		SERVER_CheckClientBuffer( ulIdx, 8, true );
+		// [BC] Should be 12 :)
+		SERVER_CheckClientBuffer( ulIdx, 12, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOSCROLLER );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lType );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lXSpeed );
@@ -5910,7 +5851,6 @@ void SERVERCOMMANDS_DoScroller( LONG lType, LONG lXSpeed, LONG lYSpeed, LONG lAf
 //
 void SERVERCOMMANDS_SetScroller( LONG lType, LONG lXSpeed, LONG lYSpeed, LONG lTag, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-#ifndef STAY_NETWORK_COMPATIBLE
 	ULONG	ulIdx;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -5932,14 +5872,12 @@ void SERVERCOMMANDS_SetScroller( LONG lType, LONG lXSpeed, LONG lYSpeed, LONG lT
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lYSpeed );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lTag );
 	}
-#endif
 }
 
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetWallScroller( LONG lId, LONG lSidechoice, LONG lXSpeed, LONG lYSpeed, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-#ifndef STAY_NETWORK_COMPATIBLE
 	ULONG	ulIdx;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -5960,7 +5898,37 @@ void SERVERCOMMANDS_SetWallScroller( LONG lId, LONG lSidechoice, LONG lXSpeed, L
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lXSpeed );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lYSpeed );
 	}
-#endif
+}
+
+//*****************************************************************************
+//
+void SERVERCOMMANDS_DoFlashFader( float fR1, float fG1, float fB1, float fA1, float fR2, float fG2, float fB2, float fA2, float fTime, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	ULONG	ulIdx;
+
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_IsValidClient( ulIdx ) == false )
+			continue;
+
+		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
+			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
+		{
+			continue;
+		}
+
+		SERVER_CheckClientBuffer( ulIdx, 37, true );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOFLASHFADER );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fR1 );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fG1 );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fB1 );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fA1 );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fR2 );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fG2 );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fB2 );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fA2 );
+		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fTime );
+	}
 }
 
 //*****************************************************************************
@@ -6021,35 +5989,3 @@ void SERVERCOMMANDS_SetCameraToTexture( AActor *pCamera, char *pszTexture, LONG 
 	}
 }
 
-//*****************************************************************************
-//
-void SERVERCOMMANDS_DoFlashFader( float fR1, float fG1, float fB1, float fA1, float fR2, float fG2, float fB2, float fA2, float fTime, ULONG ulPlayerExtra, ULONG ulFlags )
-{
-#ifndef STAY_NETWORK_COMPATIBLE
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
-			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 37, true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOFLASHFADER );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fR1 );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fG1 );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fB1 );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fA1 );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fR2 );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fG2 );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fB2 );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fA2 );
-		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fTime );
-	}
-#endif
-}

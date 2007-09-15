@@ -139,7 +139,7 @@ static	void	client_MovePlayer( BYTESTREAM_s *pByteStream );
 static	void	client_DamagePlayer( BYTESTREAM_s *pByteStream );
 static	void	client_KillPlayer( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerHealth( BYTESTREAM_s *pByteStream );
-static	void	client_UpdatePlayerArmorDisplay( BYTESTREAM_s *pByteStream );
+static	void	client_SetPlayerArmor( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerState( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerUserInfo( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerFrags( BYTESTREAM_s *pByteStream );
@@ -152,11 +152,12 @@ static	void	client_SetPlayerReadyToGoOnStatus( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerTeam( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerCamera( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerPoisonCount( BYTESTREAM_s *pByteStream );
+static	void	client_SetPlayerAmmoCapacity( BYTESTREAM_s *pByteStream );
+static	void	client_SetPlayerCheats( BYTESTREAM_s *pByteStream );
 static	void	client_UpdatePlayerPing( BYTESTREAM_s *pByteStream );
 static	void	client_UpdatePlayerExtraData( BYTESTREAM_s *pByteStream );
-static	void	client_UpdatePlayerPendingWeapon( BYTESTREAM_s *pByteStream );
-static	void	client_DoInventoryUse( BYTESTREAM_s *pByteStream );
 static	void	client_UpdatePlayerTime( BYTESTREAM_s *pByteStream );
+static	void	client_UpdatePlayerPendingWeapon( BYTESTREAM_s *pByteStream );
 static	void	client_MoveLocalPlayer( BYTESTREAM_s *pByteStream );
 static	void	client_DisconnectPlayer( BYTESTREAM_s *pByteStream );
 static	void	client_SetConsolePlayer( BYTESTREAM_s *pByteStream );
@@ -167,8 +168,7 @@ static	void	client_PlayerIsSpectator( BYTESTREAM_s *pByteStream );
 static	void	client_PlayerSay( BYTESTREAM_s *pByteStream );
 static	void	client_PlayerTaunt( BYTESTREAM_s *pByteStream );
 static	void	client_PlayerRespawnInvulnerability( BYTESTREAM_s *pByteStream );
-static	void	client_SetPlayerAmmoCapacity( BYTESTREAM_s *pByteStream );
-static	void	client_SetPlayerCheats( BYTESTREAM_s *pByteStream );
+static	void	client_PlayerUseInventory( BYTESTREAM_s *pByteStream );
 
 // Thing functions.
 static	void	client_SpawnThing( BYTESTREAM_s *pByteStream );
@@ -182,8 +182,6 @@ static	void	client_KillThing( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingState( BYTESTREAM_s *pByteStream );
 static	void	client_DestroyThing( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingAngle( BYTESTREAM_s *pByteStream );
-static	void	client_SetThingTID( BYTESTREAM_s *pByteStream );
-static	void	client_SetThingTics( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingWaterLevel( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingFlags( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingArguments( BYTESTREAM_s *pByteStream );
@@ -191,6 +189,9 @@ static	void	client_SetThingTranslation( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingProperty( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingSound( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingSpecial2( BYTESTREAM_s *pByteStream );
+static	void	client_SetThingTics( BYTESTREAM_s *pByteStream );
+static	void	client_SetThingTID( BYTESTREAM_s *pByteStream );
+static	void	client_SetThingGravity( BYTESTREAM_s *pByteStream );
 static	void	client_SetWeaponAmmoGive( BYTESTREAM_s *pByteStream );
 static	void	client_ThingIsCorpse( BYTESTREAM_s *pByteStream );
 static	void	client_HideThing( BYTESTREAM_s *pByteStream );
@@ -199,7 +200,6 @@ static	void	client_ThingActivate( BYTESTREAM_s *pByteStream );
 static	void	client_ThingDeactivate( BYTESTREAM_s *pByteStream );
 static	void	client_RespawnDoomThing( BYTESTREAM_s *pByteStream );
 static	void	client_RespawnRavenThing( BYTESTREAM_s *pByteStream );
-static	void	client_SetThingGravity( BYTESTREAM_s *pByteStream );
 
 // Print commands.
 static	void	client_Print( BYTESTREAM_s *pByteStream );
@@ -379,9 +379,9 @@ static	void	client_SetQueuePosition( BYTESTREAM_s *pByteStream );
 static	void	client_DoScroller( BYTESTREAM_s *pByteStream );
 static	void	client_SetScroller( BYTESTREAM_s *pByteStream );
 static	void	client_SetWallScroller( BYTESTREAM_s *pByteStream );
+static	void	client_DoFlashFader( BYTESTREAM_s *pByteStream );
 static	void	client_GenericCheat( BYTESTREAM_s *pByteStream );
 static	void	client_SetCameraToTexture( BYTESTREAM_s *pByteStream );
-static	void	client_DoFlashFader( BYTESTREAM_s *pByteStream );
 
 //*****************************************************************************
 //	VARIABLES
@@ -452,6 +452,7 @@ static	LONG				g_lMissingPacketTicks;
 
 // Debugging variables.
 static	LONG				g_lLastCmd;
+#ifdef _DEBUG
 static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 {
 	"SVC_HEADER",
@@ -462,10 +463,12 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_BEGINSNAPSHOT",
 	"SVC_ENDSNAPSHOT",
 	"SVC_SPAWNPLAYER",
+	"SVC_SPAWNMORPHPLAYER",
 	"SVC_MOVEPLAYER",
 	"SVC_DAMAGEPLAYER",
 	"SVC_KILLPLAYER",
 	"SVC_SETPLAYERHEALTH",
+	"SVC_SETPLAYERARMOR",
 	"SVC_SETPLAYERSTATE",
 	"SVC_SETPLAYERUSERINFO",
 	"SVC_SETPLAYERFRAGS",
@@ -478,9 +481,12 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETPLAYERTEAM",
 	"SVC_SETPLAYERCAMERA",
 	"SVC_SETPLAYERPOISONCOUNT",
+	"SVC_SETPLAYERAMMOCAPACITY",
+	"SVC_SETPLAYERCHEATS",
 	"SVC_UPDATEPLAYERPING",
 	"SVC_UPDATEPLAYEREXTRADATA",
 	"SVC_UPDATEPLAYERTIME",
+	"SVC_UPDATEPLAYERPENDINGWEAPON",
 	"SVC_MOVELOCALPLAYER",
 	"SVC_DISCONNECTPLAYER",
 	"SVC_SETCONSOLEPLAYER",
@@ -491,11 +497,14 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_PLAYERSAY",
 	"SVC_PLAYERTAUNT",
 	"SVC_PLAYERRESPAWNINVULNERABILITY",
+	"SVC_PLAYERUSEINVENTORY",
 	"SVC_SPAWNTHING",
 	"SVC_SPAWNTHINGNONETID",
+	"SVC_SPAWNTHINGWITHTRANSNONETID",
 	"SVC_SPAWNTHINGEXACT",
 	"SVC_SPAWNTHINGEXACTNONETID",
 	"SVC_MOVETHING",
+	"SVC_MOVETHINGEXACT",
 	"SVC_DAMAGETHING",
 	"SVC_KILLTHING",
 	"SVC_SETTHINGSTATE",
@@ -507,6 +516,10 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETTHINGTRANSLATION",
 	"SVC_SETTHINGPROPERTY",
 	"SVC_SETTHINGSOUND",
+	"SVC_SETTHINGSPECIAL2",
+	"SVC_SETTHINGTICS",
+	"SVC_SETTHINGTID",
+	"SVC_SETTHINGGRAVITY",
 	"SVC_SETWEAPONAMMOGIVE",
 	"SVC_THINGISCORPSE",
 	"SVC_HIDETHING",
@@ -514,6 +527,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_THINGACTIVATE",
 	"SVC_THINGDEACTIVATE",
 	"SVC_RESPAWNDOOMTHING",
+	"SVC_RESPAWNRAVENTHING",
 	"SVC_PRINT",
 	"SVC_PRINTMID",
 	"SVC_PRINTMOTD",
@@ -641,26 +655,14 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_EARTHQUAKE",
 	"SVC_SETQUEUEPOSITION",
 	"SVC_DOSCROLLER",
+	"SVC_SETSCROLLER",
+	"SVC_SETWALLSCROLLER",
+	"SVC_DOFLASHFADER",
 	"SVC_GENERICCHEAT",
 	"SVC_SETCAMERATOTEXTURE",
-	"SVC_UPDATEPLAYERARMORDISPLAY",
-	"SVC_UPDATEPLAYEREPENDINGWEAPON",
-	"SVC_USEINVENTORY",
-	"SVC_SETTHINGTID",
-	"SVC_SETPLAYERAMMOCAPACITY",
-	"SVC_SPAWNTHINGWITHTRANSNONETID",
-	"SVC_RESPAWNRAVENTHING",
-	"SVC_MOVETHINGEXACT",
-	"SVC_SETTHINGSPECIAL2",
-	"SVC_SETSCROLLER",
-	"SVC_SETTHINGTICS",
-	"SVC_DOFLASHFADER",
-	"SVC_SETWALLSCROLLER",
-	"SVC_SETPLAYERCHEATS",
-	"SVC_MORPHPLAYER",
-	"SVC_SETTHINGGRAVITY",
 
 };
+#endif
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -1376,7 +1378,7 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		client_SpawnPlayer( pByteStream );
 		break;
-	case SVC_MORPHPLAYER:
+	case SVC_SPAWNMORPHPLAYER:
 
 		client_SpawnPlayer( pByteStream, true );
 		break;
@@ -1396,9 +1398,9 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		client_SetPlayerHealth( pByteStream );
 		break;
-	case SVC_UPDATEPLAYERARMORDISPLAY:
+	case SVC_SETPLAYERARMOR:
 
-		client_UpdatePlayerArmorDisplay( pByteStream );
+		client_SetPlayerArmor( pByteStream );
 		break;
 	case SVC_SETPLAYERSTATE:
 
@@ -1448,6 +1450,14 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		client_SetPlayerPoisonCount( pByteStream );
 		break;
+	case SVC_SETPLAYERAMMOCAPACITY:
+
+		client_SetPlayerAmmoCapacity( pByteStream );
+		break;
+	case SVC_SETPLAYERCHEATS:
+
+		client_SetPlayerCheats( pByteStream );
+		break;
 	case SVC_UPDATEPLAYERPING:
 
 		client_UpdatePlayerPing( pByteStream );
@@ -1456,17 +1466,13 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		client_UpdatePlayerExtraData( pByteStream );
 		break;
-	case SVC_UPDATEPLAYEREPENDINGWEAPON:
-
-		client_UpdatePlayerPendingWeapon( pByteStream );
-		break;
-	case SVC_USEINVENTORY:
-
-		client_DoInventoryUse( pByteStream );
-		break;
 	case SVC_UPDATEPLAYERTIME:
 
 		client_UpdatePlayerTime( pByteStream );
+		break;
+	case SVC_UPDATEPLAYERPENDINGWEAPON:
+
+		client_UpdatePlayerPendingWeapon( pByteStream );
 		break;
 	case SVC_MOVELOCALPLAYER:
 
@@ -1508,13 +1514,9 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		client_PlayerRespawnInvulnerability( pByteStream );
 		break;
-	case SVC_SETPLAYERAMMOCAPACITY:
+	case SVC_PLAYERUSEINVENTORY:
 
-		client_SetPlayerAmmoCapacity( pByteStream );
-		break;
-	case SVC_SETPLAYERCHEATS:
-
-		client_SetPlayerCheats( pByteStream );
+		client_PlayerUseInventory( pByteStream );
 		break;
 	case SVC_SPAWNTHING:
 
@@ -1564,14 +1566,6 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		client_SetThingAngle( pByteStream );
 		break;
-	case SVC_SETTHINGTID:
-
-		client_SetThingTID( pByteStream );
-		break;
-	case SVC_SETTHINGTICS:
-
-		client_SetThingTics( pByteStream );
-		break;
 	case SVC_SETTHINGWATERLEVEL:
 
 		client_SetThingWaterLevel( pByteStream );
@@ -1599,6 +1593,14 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETTHINGSPECIAL2:
 
 		client_SetThingSpecial2( pByteStream );
+		break;
+	case SVC_SETTHINGTICS:
+
+		client_SetThingTics( pByteStream );
+		break;
+	case SVC_SETTHINGTID:
+
+		client_SetThingTID( pByteStream );
 		break;
 	case SVC_SETTHINGGRAVITY:
 
@@ -2152,6 +2154,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		client_SetWallScroller( pByteStream );
 		break;
+	case SVC_DOFLASHFADER:
+
+		client_DoFlashFader( pByteStream );
+		break;
 	case SVC_GENERICCHEAT:
 
 		client_GenericCheat( pByteStream );
@@ -2160,13 +2166,13 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		client_SetCameraToTexture( pByteStream );
 		break;
-	case SVC_DOFLASHFADER:
-
-		client_DoFlashFader( pByteStream );
-		break;
 	default:
 
+#ifdef _DEBUG
 		sprintf( szString, "CLIENT_ParsePacket: Illegible server message: %d\nLast command: (%s)\n", lCommand, g_pszHeaderNames[g_lLastCmd] );
+#else
+		sprintf( szString, "CLIENT_ParsePacket: Illegible server message: %d\nLast command: %d\n", lCommand, g_lLastCmd );
+#endif
 		CLIENT_QuitNetworkGame( szString );
 		return;
 	}
@@ -2174,6 +2180,7 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
+#ifdef _DEBUG
 void CLIENT_PrintCommand( LONG lCommand )
 {
 	char	*pszString;
@@ -2220,6 +2227,7 @@ void CLIENT_PrintCommand( LONG lCommand )
 	if ( debugfile )
 		fprintf( debugfile, "%s\n", pszString );
 }
+#endif
 
 //*****************************************************************************
 //
@@ -3518,9 +3526,7 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 	pszString = NETWORK_ReadString( pByteStream );
 
 	// Read in the thing's damage type.
-#ifndef STAY_NETWORK_COMPATIBLE
 	DamageType = ENamedName(NETWORK_ReadByte( pByteStream ));
-#endif
 
 	// Check to make sure everything is valid. If not, break out.
 	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
@@ -3542,9 +3548,7 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 	players[ulPlayer].health = players[ulPlayer].mo->health = lHealth;
 
 	// Set the player's damage type.
-#ifndef STAY_NETWORK_COMPATIBLE
 	players[ulPlayer].mo->DamageType = DamageType;
-#endif
 
 	// Kill the player.
 	players[ulPlayer].mo->Die( NULL, NULL );
@@ -3661,7 +3665,7 @@ static void client_SetPlayerHealth( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-static void client_UpdatePlayerArmorDisplay( BYTESTREAM_s *pByteStream )
+static void client_SetPlayerArmor( BYTESTREAM_s *pByteStream )
 {
 	ULONG		ulPlayer;
 	LONG		lArmorAmount;
@@ -4125,6 +4129,63 @@ static void client_SetPlayerPoisonCount( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
+static void client_SetPlayerAmmoCapacity( BYTESTREAM_s *pByteStream )
+{
+	ULONG			ulPlayer;
+	char			*pszName;
+	LONG			lMaxAmount;
+	AInventory		*pAmmo;
+
+	// Read in the player ID.
+	ulPlayer = NETWORK_ReadByte( pByteStream );
+
+	// Read in the name of the type of item to give.
+	pszName = NETWORK_ReadString( pByteStream );
+
+	// Read in the amount of this inventory type the player has.
+	lMaxAmount = NETWORK_ReadShort( pByteStream );
+
+	// Check to make sure everything is valid. If not, break out.
+	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
+		return;
+
+	pAmmo = CLIENT_FindPlayerInventory( ulPlayer, pszName );
+
+	if ( pAmmo == NULL )
+		return;
+
+	if ( !(pAmmo->GetClass()->IsDescendantOf (RUNTIME_CLASS(AAmmo))) )
+		return;
+
+	// Set the new maximum amount of the inventory object.
+	pAmmo->MaxAmount = lMaxAmount;
+
+	// Since an item displayed on the HUD may have been given, refresh the HUD.
+	SCOREBOARD_RefreshHUD( );
+}
+
+//*****************************************************************************
+//
+static void client_SetPlayerCheats( BYTESTREAM_s *pByteStream )
+{
+	ULONG			ulPlayer;
+	ULONG			ulCheats;
+
+	// Read in the player ID.
+	ulPlayer = NETWORK_ReadByte( pByteStream );
+
+	// Read in the cheats value.
+	ulCheats = NETWORK_ReadLong( pByteStream );
+
+	// Check to make sure everything is valid. If not, break out.
+	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+		return;
+
+	players[ulPlayer].cheats = ulCheats;
+}
+
+//*****************************************************************************
+//
 static void client_UpdatePlayerPing( BYTESTREAM_s *pByteStream )
 {
 	ULONG	ulPlayer;
@@ -4197,6 +4258,26 @@ static void client_UpdatePlayerExtraData( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
+static void client_UpdatePlayerTime( BYTESTREAM_s *pByteStream )
+{
+	ULONG	ulPlayer;
+	ULONG	ulTime;
+
+	// Read in the player.
+	ulPlayer = NETWORK_ReadByte( pByteStream );
+
+	// Read in the time.
+	ulTime = NETWORK_ReadShort( pByteStream );
+
+	// If this is an invalid player, break out.
+	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+		return;
+
+	players[ulPlayer].ulTime = ulTime * ( TICRATE * 60 );
+}
+
+//*****************************************************************************
+//
 static void client_UpdatePlayerPendingWeapon( BYTESTREAM_s *pByteStream )
 {
 	ULONG			ulPlayer;
@@ -4204,8 +4285,7 @@ static void client_UpdatePlayerPendingWeapon( BYTESTREAM_s *pByteStream )
 	const PClass	*pType = NULL;
 	AWeapon			*pWeapon = NULL;
 
-
-	// Read in the player who's info is about to be updated.
+	// Read in the player whose info is about to be updated.
 	ulPlayer = NETWORK_ReadByte( pByteStream );
 
 	// Read in the name of the weapon.
@@ -4234,76 +4314,13 @@ static void client_UpdatePlayerPendingWeapon( BYTESTREAM_s *pByteStream )
 			if ( pWeapon == NULL )
 			{
 #ifdef CLIENT_WARNING_MESSAGES
-				Printf( "client_WeaponChange: Failed to give inventory type, %s!\n", pszName );
+				Printf( "client_UpdatePlayerPendingWeapon: Failed to give inventory type, %s!\n", pszName );
 #endif
 				return;
 			}
 			players[ulPlayer].PendingWeapon = pWeapon;
 		}
 	}
-}
-
-//*****************************************************************************
-//
-static void client_DoInventoryUse( BYTESTREAM_s *pByteStream )
-{
-	ULONG			ulPlayer;
-	const char		*pszName;
-	const PClass	*pType;
-	AInventory		*pInventory;
-
-	// Read in the player using an inventory item.
-	ulPlayer = NETWORK_ReadByte( pByteStream );
-
-	// Read the name of the inventory item we shall use.
-	pszName = NETWORK_ReadString( pByteStream );
-
-	// Check to make sure everything is valid. If not, break out.
-	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
-		return;
-
-	pType = PClass::FindClass( pszName );
-	if ( pType == NULL )
-		return;
-
-	// Try to find this object within the player's personal inventory.
-	pInventory = players[ulPlayer].mo->FindInventory( pType );
-
-	// If the player doesn't have this type, give it to him.
-	if ( pInventory == NULL )
-		pInventory = players[ulPlayer].mo->GiveInventoryType( pType );
-
-	// If he still doesn't have the object after trying to give it to him... then YIKES!
-	if ( pInventory == NULL )
-	{
-#ifdef CLIENT_WARNING_MESSAGES
-		Printf( "client_DoInventoryUse: Failed to give inventory type, %s!\n", pszName );
-#endif
-		return;
-	}
-
-	// Finally, use the item.
-	players[ulPlayer].mo->UseInventory( pInventory );
-}
-
-//*****************************************************************************
-//
-static void client_UpdatePlayerTime( BYTESTREAM_s *pByteStream )
-{
-	ULONG	ulPlayer;
-	ULONG	ulTime;
-
-	// Read in the player.
-	ulPlayer = NETWORK_ReadByte( pByteStream );
-
-	// Read in the time.
-	ulTime = NETWORK_ReadShort( pByteStream );
-
-	// If this is an invalid player, break out.
-	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
-		return;
-
-	players[ulPlayer].ulTime = ulTime * ( TICRATE * 60 );
 }
 
 //*****************************************************************************
@@ -4613,59 +4630,45 @@ static void client_PlayerRespawnInvulnerability( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-static void client_SetPlayerAmmoCapacity( BYTESTREAM_s *pByteStream )
+static void client_PlayerUseInventory( BYTESTREAM_s *pByteStream )
 {
 	ULONG			ulPlayer;
-	char			*pszName;
-	LONG			lMaxAmount;
-	AInventory		*pAmmo;
+	const char		*pszName;
+	const PClass	*pType;
+	AInventory		*pInventory;
 
-	// Read in the player ID.
+	// Read in the player using an inventory item.
 	ulPlayer = NETWORK_ReadByte( pByteStream );
 
-	// Read in the name of the type of item to give.
+	// Read the name of the inventory item we shall use.
 	pszName = NETWORK_ReadString( pByteStream );
-
-	// Read in the amount of this inventory type the player has.
-	lMaxAmount = NETWORK_ReadShort( pByteStream );
 
 	// Check to make sure everything is valid. If not, break out.
 	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
 		return;
 
-	pAmmo = CLIENT_FindPlayerInventory( ulPlayer, pszName );
-
-	if ( pAmmo == NULL )
+	pType = PClass::FindClass( pszName );
+	if ( pType == NULL )
 		return;
 
-	if ( !(pAmmo->GetClass()->IsDescendantOf (RUNTIME_CLASS(AAmmo))) )
+	// Try to find this object within the player's personal inventory.
+	pInventory = players[ulPlayer].mo->FindInventory( pType );
+
+	// If the player doesn't have this type, give it to him.
+	if ( pInventory == NULL )
+		pInventory = players[ulPlayer].mo->GiveInventoryType( pType );
+
+	// If he still doesn't have the object after trying to give it to him... then YIKES!
+	if ( pInventory == NULL )
+	{
+#ifdef CLIENT_WARNING_MESSAGES
+		Printf( "client_PlayerUseInventory: Failed to give inventory type, %s!\n", pszName );
+#endif
 		return;
+	}
 
-	// Set the new maximum amount of the inventory object.
-	pAmmo->MaxAmount = lMaxAmount;
-
-	// Since an item displayed on the HUD may have been given, refresh the HUD.
-	SCOREBOARD_RefreshHUD( );
-}
-
-//*****************************************************************************
-//
-static void client_SetPlayerCheats( BYTESTREAM_s *pByteStream )
-{
-	ULONG			ulPlayer;
-	ULONG			ulCheats;
-
-	// Read in the player ID.
-	ulPlayer = NETWORK_ReadByte( pByteStream );
-
-	// Read in the cheats value.
-	ulCheats = NETWORK_ReadLong( pByteStream );
-
-	// Check to make sure everything is valid. If not, break out.
-	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
-		return;
-
-	players[ulPlayer].cheats = ulCheats;
+	// Finally, use the item.
+	players[ulPlayer].mo->UseInventory( pInventory );
 }
 
 //*****************************************************************************
@@ -4938,9 +4941,7 @@ static void client_KillThing( BYTESTREAM_s *pByteStream )
 	lHealth = NETWORK_ReadShort( pByteStream );
 
 	// Read in the thing's damage type.
-#ifndef STAY_NETWORK_COMPATIBLE
-	DamageType = ENamedName(NETWORK_ReadByte( pByteStream ));
-#endif
+	DamageType = ENamedName( NETWORK_ReadByte( pByteStream ));
 
 	// Level not loaded; ingore.
 	if ( gamestate != GS_LEVEL )
@@ -4960,9 +4961,7 @@ static void client_KillThing( BYTESTREAM_s *pByteStream )
 	pActor->health = lHealth;
 
 	// Set the thing's damage type.
-#ifndef STAY_NETWORK_COMPATIBLE
 	pActor->DamageType = DamageType;
-#endif
 
 	// Kill the thing.
 	pActor->Die( NULL, NULL );
@@ -5164,63 +5163,6 @@ static void client_SetThingAngle( BYTESTREAM_s *pByteStream )
 
 	// Finally, set the angle.
 	pActor->angle = Angle;
-}
-
-//*****************************************************************************
-//
-static void client_SetThingTID( BYTESTREAM_s *pByteStream )
-{
-	AActor		*pActor;
-	LONG		lID;
-	LONG		lTid;
-
-	// Read in the thing's network ID.
-	lID = NETWORK_ReadShort( pByteStream );
-
-	// Read in the thing's new angle.
-	lTid = NETWORK_ReadShort( pByteStream );
-
-	// Now try to find the thing.
-	pActor = CLIENT_FindThingByNetID( lID );
-	if ( pActor == NULL )
-	{
-#ifdef CLIENT_WARNING_MESSAGES
-		Printf( "client_SetThingTID: Couldn't find thing: %d\n", lID );
-#endif
-		return;
-	}
-
-	// Finally, set the tid.
-	pActor->tid = lTid;
-	pActor->AddToHash();
-}
-
-//*****************************************************************************
-//
-static void client_SetThingTics( BYTESTREAM_s *pByteStream )
-{
-	AActor		*pActor;
-	LONG		lID;
-	LONG		lTics;
-
-	// Read in the thing's network ID.
-	lID = NETWORK_ReadShort( pByteStream );
-
-	// Read in the thing's new tics.
-	lTics = NETWORK_ReadShort( pByteStream );
-
-	// Now try to find the thing.
-	pActor = CLIENT_FindThingByNetID( lID );
-	if ( pActor == NULL )
-	{
-#ifdef CLIENT_WARNING_MESSAGES
-		Printf( "client_SetThingTics: Couldn't find thing: %d\n", lID );
-#endif
-		return;
-	}
-
-	// Finally, set the tics.
-	pActor->tics = lTics;
 }
 
 //*****************************************************************************
@@ -5542,6 +5484,63 @@ static void client_SetThingSpecial2( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
+static void client_SetThingTics( BYTESTREAM_s *pByteStream )
+{
+	AActor		*pActor;
+	LONG		lID;
+	LONG		lTics;
+
+	// Read in the thing's network ID.
+	lID = NETWORK_ReadShort( pByteStream );
+
+	// Read in the thing's new tics.
+	lTics = NETWORK_ReadShort( pByteStream );
+
+	// Now try to find the thing.
+	pActor = CLIENT_FindThingByNetID( lID );
+	if ( pActor == NULL )
+	{
+#ifdef CLIENT_WARNING_MESSAGES
+		Printf( "client_SetThingTics: Couldn't find thing: %d\n", lID );
+#endif
+		return;
+	}
+
+	// Finally, set the tics.
+	pActor->tics = lTics;
+}
+
+//*****************************************************************************
+//
+static void client_SetThingTID( BYTESTREAM_s *pByteStream )
+{
+	AActor		*pActor;
+	LONG		lID;
+	LONG		lTid;
+
+	// Read in the thing's network ID.
+	lID = NETWORK_ReadShort( pByteStream );
+
+	// Read in the thing's new angle.
+	lTid = NETWORK_ReadShort( pByteStream );
+
+	// Now try to find the thing.
+	pActor = CLIENT_FindThingByNetID( lID );
+	if ( pActor == NULL )
+	{
+#ifdef CLIENT_WARNING_MESSAGES
+		Printf( "client_SetThingTID: Couldn't find thing: %d\n", lID );
+#endif
+		return;
+	}
+
+	// Finally, set the tid.
+	pActor->tid = lTid;
+	pActor->AddToHash();
+}
+
+//*****************************************************************************
+//
 static void client_SetThingGravity( BYTESTREAM_s *pByteStream )
 {
 	LONG	lID;
@@ -5567,6 +5566,7 @@ static void client_SetThingGravity( BYTESTREAM_s *pByteStream )
 	// Set the actor's gravity.
 	pActor->gravity = lGravity;
 }
+
 //*****************************************************************************
 //
 static void client_SetWeaponAmmoGive( BYTESTREAM_s *pByteStream )
@@ -6391,11 +6391,7 @@ static void client_SetGameModeLimits( BYTESTREAM_s *pByteStream )
 	UCVarValue	Value;
 
 	// Read in, and set the value for fraglimit.
-#ifdef STAY_NETWORK_COMPATIBLE
-	Value.Int = NETWORK_ReadByte( pByteStream );
-#else
 	Value.Int = NETWORK_ReadShort( pByteStream );
-#endif
 	fraglimit.ForceSet( Value, CVAR_Int );
 
 	// Read in, and set the value for timelimit.
@@ -6902,9 +6898,13 @@ static void client_WeaponSound( BYTESTREAM_s *pByteStream )
 //
 static void client_WeaponChange( BYTESTREAM_s *pByteStream )
 {
-	const PClass	*pType;
+	ULONG			ulPlayer;
 	const char		*pszString;
+	const PClass	*pType;
 	AWeapon			*pWeapon;
+
+	// Read in the player whose info is about to be updated.
+	ulPlayer = NETWORK_ReadByte( pByteStream );
 
 	// Read in the name of the weapon we're supposed to switch to.
 	pszString = NETWORK_ReadString( pByteStream );
@@ -6914,7 +6914,8 @@ static void client_WeaponChange( BYTESTREAM_s *pByteStream )
 	// of the full name.
 	NETWORK_ConvertWeaponKeyLetterToFullString( pszString );
 
-	if ( players[consoleplayer].mo == NULL )
+	// If the player doesn't exist, get out!
+	if (( players[ulPlayer].mo == NULL ) || ( playeringame[ulPlayer] == false ))
 		return;
 
 	// If it's an invalid class, or not a weapon, don't switch.
@@ -6923,9 +6924,9 @@ static void client_WeaponChange( BYTESTREAM_s *pByteStream )
 		return;
 
 	// If we dont have this weapon already, we do now!
-	pWeapon = static_cast<AWeapon *>( players[consoleplayer].mo->FindInventory( pType ));
+	pWeapon = static_cast<AWeapon *>( players[ulPlayer].mo->FindInventory( pType ));
 	if ( pWeapon == NULL )
-		pWeapon = static_cast<AWeapon *>( players[consoleplayer].mo->GiveInventoryType( pType ));
+		pWeapon = static_cast<AWeapon *>( players[ulPlayer].mo->GiveInventoryType( pType ));
 
 	// If he still doesn't have the object after trying to give it to him... then YIKES!
 	if ( pWeapon == NULL )
@@ -6937,8 +6938,8 @@ static void client_WeaponChange( BYTESTREAM_s *pByteStream )
 	}
 
 	// Bring the weapon up if necessary.
-	if ( players[consoleplayer].ReadyWeapon != pWeapon )
-		players[consoleplayer].PendingWeapon = pWeapon;
+	if ( players[ulPlayer].ReadyWeapon != pWeapon )
+		players[ulPlayer].PendingWeapon = pWeapon;
 }
 
 //*****************************************************************************
@@ -8957,11 +8958,7 @@ static void client_DoCeiling( BYTESTREAM_s *pByteStream )
 	lSpeed = NETWORK_ReadLong( pByteStream );
 
 	// Does this ceiling damage those who get squashed by it?
-#ifdef STAY_NETWORK_COMPATIBLE
-	lCrush = NETWORK_ReadByte( pByteStream );
-#else
 	lCrush = NETWORK_ReadShort( pByteStream );
-#endif
 
 	// Does this ceiling make noise?
 	lSilent = NETWORK_ReadByte( pByteStream );
@@ -8974,12 +8971,6 @@ static void client_DoCeiling( BYTESTREAM_s *pByteStream )
 	lDirection = CLIENT_AdjustCeilingDirection( lDirection );
 	if ( lDirection == INT_MAX )
 		return;
-
-#ifdef STAY_NETWORK_COMPATIBLE
-	// Also, adjust the value of "crush".
-	if ( lCrush == 0 )
-		lCrush = -1;
-#endif
 
 	// Invalid sector.
 	if (( lSectorID >= numsectors ) || ( lSectorID < 0 ))
@@ -10050,6 +10041,38 @@ static void client_SetWallScroller( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
+static void client_DoFlashFader( BYTESTREAM_s *pByteStream )
+{
+	float	fR1;
+	float	fG1;
+	float	fB1;
+	float	fA1;
+	float	fR2;
+	float	fG2;
+	float	fB2;
+	float	fA2;
+	float	fTime;
+
+	// Read in the colors and time for the flash fader.
+	fR1 = NETWORK_ReadFloat( pByteStream );
+	fG1 = NETWORK_ReadFloat( pByteStream );
+	fB1 = NETWORK_ReadFloat( pByteStream );
+	fA1 = NETWORK_ReadFloat( pByteStream );
+
+	fR2 = NETWORK_ReadFloat( pByteStream );
+	fG2 = NETWORK_ReadFloat( pByteStream );
+	fB2 = NETWORK_ReadFloat( pByteStream );
+	fA2 = NETWORK_ReadFloat( pByteStream );
+
+	fTime = NETWORK_ReadFloat( pByteStream );
+
+	// Create the flash fader.
+	if ( players[consoleplayer].mo )
+		new DFlashFader( fR1, fG1, fB1, fA1, fR2, fG2, fB2, fA2, fTime, players[consoleplayer].mo );
+}
+
+//*****************************************************************************
+//
 static void client_GenericCheat( BYTESTREAM_s *pByteStream )
 {
 	ULONG	ulPlayer;
@@ -10101,38 +10124,6 @@ static void client_SetCameraToTexture( BYTESTREAM_s *pByteStream )
 	}
 
 	FCanvasTextureInfo::Add( pCamera, lPicNum, lFOV );
-}
-
-//*****************************************************************************
-//
-static void client_DoFlashFader( BYTESTREAM_s *pByteStream )
-{
-	float	fR1;
-	float	fG1;
-	float	fB1;
-	float	fA1;
-	float	fR2;
-	float	fG2;
-	float	fB2;
-	float	fA2;
-	float	fTime;
-
-	// Read in the colors and time for the flash fader.
-	fR1 = NETWORK_ReadFloat( pByteStream );
-	fG1 = NETWORK_ReadFloat( pByteStream );
-	fB1 = NETWORK_ReadFloat( pByteStream );
-	fA1 = NETWORK_ReadFloat( pByteStream );
-
-	fR2 = NETWORK_ReadFloat( pByteStream );
-	fG2 = NETWORK_ReadFloat( pByteStream );
-	fB2 = NETWORK_ReadFloat( pByteStream );
-	fA2 = NETWORK_ReadFloat( pByteStream );
-
-	fTime = NETWORK_ReadFloat( pByteStream );
-
-	// Create the flash fader.
-	if ( players[consoleplayer].mo )
-		new DFlashFader( fR1, fG1, fB1, fA1, fR2, fG2, fB2, fA2, fTime, players[consoleplayer].mo );
 }
 
 //*****************************************************************************

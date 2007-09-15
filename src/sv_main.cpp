@@ -3088,7 +3088,7 @@ void SERVER_ResetInventory( ULONG ulClient )
 			// [BB] The armor display has to be updated seperately, otherwise
 			// the client thinks the armor is green and its amount is equal to 1.
 			if ( (pInventory->IsKindOf( RUNTIME_CLASS( AArmor ))) )
-				SERVERCOMMANDS_UpdatePlayerArmorDisplay( ulClient );
+				SERVERCOMMANDS_SetPlayerArmor( ulClient );
 		}
 	}
 
@@ -3101,7 +3101,7 @@ void SERVER_ResetInventory( ULONG ulClient )
 	}
 	// [BB]: After giving back the inventory, inform the player about which weapon he is using.
 	// This at least partly fixes the "Using unknown weapon type" bug.
-	SERVERCOMMANDS_ChangePlayerWeapon( ulClient );
+	SERVERCOMMANDS_WeaponChange( ulClient, ulClient, SVCF_ONLYTHISCLIENT );
 }
 
 //*****************************************************************************
@@ -3629,7 +3629,7 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 						// but the server thinks he as one. Although this should not happen,
 						// we make a workaround for this here. Just tell the client to bring
 						// up the weapon, the server thinks he is using.
-						SERVERCOMMANDS_ChangePlayerWeapon( g_lCurrentClient );
+						SERVERCOMMANDS_WeaponChange( g_lCurrentClient, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 					}
 					else{
 						SERVER_KickPlayer( g_lCurrentClient, "Using unknown weapon type." );

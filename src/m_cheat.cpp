@@ -618,7 +618,7 @@ void cht_Give (player_t *player, const char *name, int amount)
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER ){
 					ULONG playerIdx = SERVER_GetPlayerIndexFromName( player->userinfo.netname );
 					if ( playerIdx < MAXPLAYERS )
-						SERVERCOMMANDS_UpdatePlayerArmorDisplay( playerIdx );
+						SERVERCOMMANDS_SetPlayerArmor( playerIdx );
 				}
 			}
 		}

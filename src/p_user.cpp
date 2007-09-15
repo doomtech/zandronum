@@ -606,7 +606,7 @@ bool APlayerPawn::UseInventory (AInventory *item)
 	// the item. The sound and the status bar flashing are handled by the client.
 	if( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
-		SERVERCOMMANDS_DoInventoryUse( ULONG( this->player - players ), item );
+		SERVERCOMMANDS_PlayerUseInventory( ULONG( this->player - players ), item );
 	}
 	else if (player == &players[consoleplayer])
 	{
