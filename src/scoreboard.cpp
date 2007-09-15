@@ -292,7 +292,7 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 	if ( !players[ulDisplayPlayer].bSpectating )
 	{
 		// Survival
-		if ( ( SURVIVAL_GetState( ) == SURVS_INPROGRESS ) && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE ) )
+		if ( survival && ( SURVIVAL_GetState( ) == SURVS_INPROGRESS ) && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE ) )
 		{
 			if (( players[consoleplayer].camera ) && ( players[consoleplayer].camera != players[consoleplayer].mo ) && ( players[consoleplayer].camera->player ))
 				g_BottomString.AppendFormat(" - ");
@@ -306,7 +306,7 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 		}
 
 		// Last Man Standing
-		if ( ( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DEATHMATCH ) )
+		if ( ( lastmanstanding || teamlms ) && ( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DEATHMATCH ) )
 		{
 			if (( players[consoleplayer].camera ) && ( players[consoleplayer].camera != players[consoleplayer].mo ) && ( players[consoleplayer].camera->player ))
 				g_BottomString.AppendFormat(" - ");
