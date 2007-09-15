@@ -3558,7 +3558,9 @@ bool AActor::UpdateWaterLevel (fixed_t oldz, bool dosplash)
 
 	// [BC] Server will tell us what our waterlevel is.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) &&
-		(( player == NULL ) || ( player - players != consoleplayer ) || ( player->bSpectating )))
+		( player ) &&
+		(( player - players ) == consoleplayer ) &&
+		( player->bSpectating == false ))
 	{
 		return ( false );
 	}

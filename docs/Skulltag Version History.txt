@@ -171,6 +171,7 @@ v0.97d-beta5
 -	- Demos no longer end when the server changes maps using the "map" command. [Carnevil]
 -	- The Strife popup screens now display properly under all resolutions. [Carnevil]
 -	- The flag/skull dropped announcer sounds now play properly in network games. [Carnevil]
+-	- Objects in water zones now exhibit the proper physics on the client end. [Carnevil]
 -	- Fixed: Bots cause hudmessages to appear for player 1 offline. [Torr Samaho]
 -	- Fixed: Clients with activated prediction ignore the CF_FROZEN and CF_TOTALLYFROZEN flags locally. [Torr Samaho]
 -	- Fixed: Display problems with the CPU name string shown on startup. [Torr Samaho]
