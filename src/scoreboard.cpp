@@ -493,7 +493,7 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 		// Draw the item holders (hellstone, flags, skulls, etc).
 		SCOREBOARD_RenderStats_Holders( );
 
-		if( SCOREBOARD_IsUsingNewHud() == false )
+		if( ( SCOREBOARD_IsUsingNewHud() && SCOREBOARD_IsHudFullscreen() ) == false )
 		{
 			// Are we in a team game? Draw scores.
 			if( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSONTEAMS )

@@ -100,6 +100,7 @@ void	SCOREBOARD_Render( ULONG ulDisplayPlayer );
 void	SCOREBOARD_RenderBoard( ULONG ulDisplayPlayer );
 bool	SCOREBOARD_IsUsingNewHud( void );
 bool	SCOREBOARD_IsHudVisible( void );
+bool	SCOREBOARD_IsHudFullscreen( void );
 void	SCOREBOARD_RenderStats_Holders( void );
 void	SCOREBOARD_RenderStats_TeamScores( void );
 void	SCOREBOARD_RenderStats_RankSpread( void );
