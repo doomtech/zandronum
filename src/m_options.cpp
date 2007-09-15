@@ -669,6 +669,7 @@ EXTERN_CVAR (Int,  screenblocks)
 EXTERN_CVAR (Int,  cl_grenadetrails)
 EXTERN_CVAR (Float,  blood_fade_scalar)
 EXTERN_CVAR (Bool, r_drawtrans)
+EXTERN_CVAR (Bool, r_deathcamera)
 EXTERN_CVAR (Bool, cl_capfps)
 
 
@@ -735,6 +736,7 @@ static menuitem_t VideoItems[] = {
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ discrete, "Cap framerate",		{&cl_capfps},			{4.0}, {0.0},	{0.0}, {YesNo} },
 	{ discrete, "Screen wipe style",	{&wipetype},			{4.0}, {0.0},	{0.0}, {Wipes} },
+	{ discrete, "Death camera",			{&r_deathcamera},		{4.0}, {0.0},	{0.0}, {YesNo} },
 	{ discrete, "Use fuzz effect",		{&r_drawfuzz},			{2.0}, {0.0},	{0.0}, {YesNo} },
 	{ discrete, "Respawn invul effect",	{&cl_respawninvuleffect},	{3.0}, {0.0},	{0.0}, {RespawnInvulEffectTypes} },
 	{ discrete, "Rocket Trails",		{&cl_rockettrails},		{2.0}, {0.0},	{0.0}, {OnOff} },
@@ -3291,12 +3293,6 @@ menu_t JoinMenu =
 	false,
 	NULL,
 	MNF_CENTERED,
-};
-
-static value_t BillboardModes[] =
-{
-	{ 1.0, "Y Axis" },
-	{ 2.0, "X/Y Axis" },
 };
 
 static value_t FilterModes[] =

@@ -28,9 +28,12 @@ EXTERN_CVAR(Bool, gl_precache)
 EXTERN_CVAR(Bool, gl_render_precise)
 EXTERN_CVAR(Bool, gl_sprite_blend)
 EXTERN_CVAR(Bool, gl_fakecontrast)
-EXTERN_CVAR (Bool, gl_lights_additive)
+EXTERN_CVAR(Bool, gl_lights_additive)
 EXTERN_CVAR(Bool, gl_warp_shader)
-EXTERN_CVAR (Float, gl_light_ambient)
+EXTERN_CVAR(Float, gl_light_ambient)
+EXTERN_CVAR(Int, gl_billboard_mode)
+EXTERN_CVAR(Int, gl_particles_style)
+
 
 static value_t SpriteclipModes[]=
 {
@@ -97,12 +100,31 @@ static value_t Hz[] =
 	{ 100.0, "100" }
 };
 
+static value_t BillboardModes[] =
+{
+	{ 1.0, "Y Axis" },
+	{ 2.0, "X/Y Axis" },
+};
+
+
+static value_t Particles[] =
+{
+	{ 0.0, "Square" },
+	{ 1.0, "Round" },
+	{ 2.0, "Smooth" },
+};
+
+
+
 menuitem_t OpenGLItems[] = {
 	{ more,     "Dynamic Light Options", {NULL}, {0.0}, {0.0},	{0.0}, {(value_t *)StartGLLightMenu} },
 	{ redtext,	" ",						{NULL},							{0.0}, {0.0}, {0.0}, {NULL} },
-	{ discrete, "Vertical Sync",			{&vid_vsync},					{2.0}, {0.0}, {0.0}, {OnOff} },
+	{ discrete, "Sprite billboard",			{&gl_billboard_mode},			{2.0}, {0.0}, {0.0}, {BillboardModes} },
+	{ discrete, "Particle style",			{&gl_particles_style},			{3.0}, {0.0}, {0.0}, {Particles} },
 //	{ discrete, "Refresh rate",				{&gl_vid_refreshHz},			{7.0}, {0.0}, {0.0}, {Hz} },
 //	{ more,		"Apply Refresh rate setting",{NULL+},						{7.0}, {0.0}, {0.0}, {(value_t *)ApplyRefresh} },
+	{ redtext,	" ",						{NULL},							{0.0}, {0.0}, {0.0}, {NULL} },
+	{ discrete, "Vertical Sync",			{&vid_vsync},					{2.0}, {0.0}, {0.0}, {OnOff} },
 	{ discrete, "Rendering quality",		{&gl_render_precise},			{2.0}, {0.0}, {0.0}, {Precision} },
 	{ discrete, "Environment map on mirrors",{&gl_mirror_envmap},			{2.0}, {0.0}, {0.0}, {OnOff} },
 	{ discrete, "Enhanced night vision mode",{&gl_enhanced_lightamp},		{2.0}, {0.0}, {0.0}, {OnOff} },
