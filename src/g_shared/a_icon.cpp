@@ -150,15 +150,6 @@ void AFloatyIcon::Tick( )
 	}
 }
 
-void AFloatyIcon::Destroy( )
-{
-	// Fix the tracers pointers to this icon.
-	if ( tracer && tracer->player && tracer->player->pIcon == this )
-		tracer->player->pIcon = NULL;
-
-	Super::Destroy( );
-}
-
 void AFloatyIcon::SetTracer( AActor *pTracer )
 {
 	tracer = pTracer;

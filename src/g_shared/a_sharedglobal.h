@@ -191,7 +191,6 @@ class AFloatyIcon : public AActor
 public:
 	void		BeginPlay( );
 	void		Tick( );
-	void		Destroy( );
 
 	void		SetTracer( AActor *pTracer );
 

@@ -898,13 +898,13 @@ ULONG medal_AddToQueue( ULONG ulPlayer, ULONG ulMedal )
 //
 void medal_PopQueue( ULONG ulPlayer )
 {
-	USHORT	usQueueIdx;
+	ULONG	ulQueueIdx;
 
 	// Shift all items in the queue up one notch.
-	for ( usQueueIdx = 0; usQueueIdx < ( MEDALQUEUE_DEPTH - 1 ); usQueueIdx++ )
+	for ( ulQueueIdx = 0; ulQueueIdx < ( MEDALQUEUE_DEPTH - 1 ); ulQueueIdx++ )
 	{
-		g_MedalQueue[ulPlayer][usQueueIdx].ulMedal	= g_MedalQueue[ulPlayer][usQueueIdx + 1].ulMedal;
-		g_MedalQueue[ulPlayer][usQueueIdx].ulTick	= g_MedalQueue[ulPlayer][usQueueIdx + 1].ulTick;
+		g_MedalQueue[ulPlayer][ulQueueIdx].ulMedal	= g_MedalQueue[ulPlayer][ulQueueIdx + 1].ulMedal;
+		g_MedalQueue[ulPlayer][ulQueueIdx].ulTick	= g_MedalQueue[ulPlayer][ulQueueIdx + 1].ulTick;
 	}
 
 	// Also, erase the info in the last slot.
@@ -986,10 +986,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 	if (( cl_icons == false ) || ( NETWORK_GetState( ) == NETSTATE_SERVER ) || pPlayer->bSpectating )
 	{
 		if ( pPlayer->pIcon )
-		{
 			pPlayer->pIcon->Destroy( );
-			pPlayer->pIcon = NULL;
-		}
 
 		return;
 	}
@@ -1004,10 +1001,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 		case S_CHAT:
 
 			if ( pPlayer->bChatting == false )
-			{
 				pPlayer->pIcon->Destroy( );
-				pPlayer->pIcon = NULL;
-			}
 			else
 				ulActualSprite = 0;
 			break;
@@ -1015,10 +1009,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 		case S_ALLY:
 
 			if ( pPlayer->mo->IsTeammate( players[consoleplayer].mo ) == false )
-			{
 				pPlayer->pIcon->Destroy( );
-				pPlayer->pIcon = NULL;
-			}
 			else
 				ulActualSprite = 1;
 			break;
@@ -1069,10 +1060,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 
 				// We wish to delete the icon, so do that now.
 				if ( bDelete )
-				{
 					pPlayer->pIcon->Destroy( );
-					pPlayer->pIcon = NULL;
-				}
 				else
 					ulActualSprite = 2;
 			}
@@ -1085,10 +1073,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 		case ( S_TERMINATORARTIFACT + 3 ):
 
 			if (( terminator == false ) || (( pPlayer->Powers & PW_TERMINATORARTIFACT ) == false ))
-			{
 				pPlayer->pIcon->Destroy( );
-				pPlayer->pIcon = NULL;
-			}
 			else
 				ulActualSprite = 3;
 			break;
@@ -1096,10 +1081,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 		case S_LAG:
 
 			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) || ( pPlayer->bLagging == false ))
-			{
 				pPlayer->pIcon->Destroy( );
-				pPlayer->pIcon = NULL;
-			}
 			else
 				ulActualSprite = 4;
 			break;
@@ -1110,10 +1092,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 		case ( S_POSSESSIONARTIFACT + 3 ):
 
 			if ((( possession == false ) && ( teampossession == false )) || (( pPlayer->Powers & PW_POSSESSIONARTIFACT ) == false ))
-			{
 				pPlayer->pIcon->Destroy( );
-				pPlayer->pIcon = NULL;
-			}
 			else
 				ulActualSprite = 5;
 			break;

@@ -338,6 +338,12 @@ void player_s::FixPointers (const DObject *old, DObject *rep)
 	if (camera == old)			camera = replacement;
 	if (ReadyWeapon == old)		ReadyWeapon = static_cast<AWeapon *>(rep);
 	if (PendingWeapon == old)	PendingWeapon = static_cast<AWeapon *>(rep);
+
+	// [BC]
+	if ( pIcon == old )
+		pIcon = static_cast<AFloatyIcon *>( rep );
+	if ( OldPendingWeapon == old )
+		OldPendingWeapon = static_cast<AWeapon *>( rep );
 }
 
 void player_s::SetLogNumber (int num)

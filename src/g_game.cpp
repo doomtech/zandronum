@@ -1858,10 +1858,7 @@ void G_PlayerFinishLevel (int player, EFinishLevelType mode, bool resetinventory
 	p->ulLastFragTick = 0;
 	p->ulLastBFGFragTick = 0;
 	if ( p->pIcon )
-	{
 		p->pIcon->Destroy( );
-		p->pIcon = NULL;
-	}
 
 	// Clears the entire inventory and gives back the defaults for starting a game
 	if (resetinventory)

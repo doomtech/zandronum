@@ -3096,10 +3096,7 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 
 	// Kill the player's old icon if necessary.
 	if ( pPlayer->pIcon )
-	{
 		pPlayer->pIcon->Destroy( );
-		pPlayer->pIcon = NULL;
-	}
 
 	// First, disassociate the player's corpse.
 	bWasWatchingPlayer = false;
