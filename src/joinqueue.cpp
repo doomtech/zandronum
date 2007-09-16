@@ -277,6 +277,10 @@ void JOINQUEUE_SpectatorLeftGame( ULONG ulPlayer )
 
 	for ( ulIdx2 = ulIdx; ulIdx2 < ( MAXPLAYERS - 1 ); ulIdx2++ )
 		g_lJoinQueue[ulIdx2].ulPlayer = g_lJoinQueue[ulIdx2+1].ulPlayer;
+
+	// If we're the server, tell everyone their new position in line.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SetQueuePosition( );
 }
 
 //*****************************************************************************
