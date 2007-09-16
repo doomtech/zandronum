@@ -387,7 +387,9 @@ void AActor::Die (AActor *source, AActor *inflictor)
 	bPossessedTerminatorArtifact = !!(( player ) && ( player->Powers & PW_TERMINATORARTIFACT ));
 
 	// [BC] Check to see if any medals need to be awarded.
-	if ( player )
+	if (( player ) &&
+		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		if (( source ) &&
 			( source->player ))
