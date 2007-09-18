@@ -161,7 +161,7 @@ public:
 	~FWadCollection ();
 
 	// The wadnum for the IWAD
-	enum { IWAD_FILENUM = 1 };
+	enum { IWAD_FILENUM = 2 };
 
 	void InitMultipleFiles (wadlist_t **filenames);
 	void AddFile (const char *filename, const char * data=NULL,int length=-1, bool bLoadedAutomatically = false);	// [BC]

@@ -2319,7 +2319,7 @@ void D_DoomMain (void)
 	{
 		I_FatalError ("Cannot find " BASEWAD);
 	}
-	D_AddFile( wad, true );
+	D_AddFile( wad, false );
 
 	if (!(gameinfo.flags & GI_SHAREWARE))
 	{
@@ -2327,8 +2327,6 @@ void D_DoomMain (void)
 		wad = BaseFileSearch( "skulltag.wad", NULL, true );
 		if ( wad == NULL )
 			I_FatalError( "Cannot find skulltag.wad" );
-		else
-			D_AddFile( wad, true );
 	}
 
 	I_SetIWADInfo (&IWADInfos[IdentifyVersion(wad)]);
