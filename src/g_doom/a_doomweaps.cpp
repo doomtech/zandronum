@@ -1699,8 +1699,11 @@ void A_CheckRailReload( AActor *pActor )
 	pActor->player->ulRailgunShots++;
 	// If we have not made our 4th shot...
 	if ((( pActor->player->ulRailgunShots % 4 ) == 0 ) == false )
+	{
 		// Go back to the refire frames, instead of continuing on to the reload frames.
-		P_SetPsprite( pActor->player, ps_weapon, pActor->player->ReadyWeapon->FindState(NAME_Fire) + 8 );
+		if ( pActor->player->ReadyWeapon->GetClass( ) == RUNTIME_CLASS( ARailgun ))
+			P_SetPsprite( pActor->player, ps_weapon, pActor->player->ReadyWeapon->FindState(NAME_Fire) + 8 );
+	}
 	else
 		// We need to reload. However, don't reload if we're out of ammo.
 		pActor->player->ReadyWeapon->CheckAmmo( false, false );
