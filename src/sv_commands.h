@@ -162,6 +162,7 @@ void	SERVERCOMMANDS_SetLMSSpectatorSettings( ULONG ulPlayerExtra = MAXPLAYERS, U
 void	SERVERCOMMANDS_SetLMSAllowedWeapons( ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_SetInvasionNumMonstersLeft( ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_SetInvasionWave( ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
+void	SERVERCOMMANDS_SetSimpleCTFSTMode( ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_DoPossessionArtifactPickedUp( ULONG ulPlayer, ULONG ulTicks, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_DoPossessionArtifactDropped( ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_DoGameModeFight( ULONG ulCurrentWave, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );

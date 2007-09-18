@@ -1159,6 +1159,10 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 		SERVERCOMMANDS_SetLMSAllowedWeapons( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 		SERVERCOMMANDS_SetLMSSpectatorSettings( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 	}
+
+	// If this is CTF or ST, tell the client whether or not we're in simple mode.
+	if ( ctf || skulltag )
+		SERVERCOMMANDS_SetSimpleCTFSTMode( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 /*
 	// Send the map name, and have the client load it.
 	SERVERCOMMANDS_MapLoad( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
@@ -4459,6 +4463,10 @@ static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 		SERVERCOMMANDS_SetLMSAllowedWeapons( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 		SERVERCOMMANDS_SetLMSSpectatorSettings( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 	}
+
+	// If this is CTF or ST, tell the client whether or not we're in simple mode.
+	if ( ctf || skulltag )
+		SERVERCOMMANDS_SetSimpleCTFSTMode( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 	// Send the map name, and have the client load it.
 	SERVERCOMMANDS_MapLoad( g_lCurrentClient, SVCF_ONLYTHISCLIENT );

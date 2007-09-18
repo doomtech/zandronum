@@ -150,11 +150,15 @@ bool AFlag::TryPickup( AActor *pToucher )
 		// In non-simple CTF mode, scripts take care of the returning and displaying messages.
 		if ( TEAM_GetSimpleCTFMode( ) || TEAM_GetSimpleSTMode( ))
 		{
-			// The player is touching his own dropped flag; return it now.
-			ReturnFlag( pToucher );
+			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+				( CLIENTDEMO_IsPlaying( ) == false ))
+			{
+				// The player is touching his own dropped flag; return it now.
+				ReturnFlag( pToucher );
 
-			// Mark the flag as no longer being taken.
-			MarkFlagTaken( false );
+				// Mark the flag as no longer being taken.
+				MarkFlagTaken( false );
+			}
 
 			// Display text saying that the flag has been returned.
 			DisplayFlagReturn( );
@@ -792,11 +796,6 @@ void AWhiteFlag::DisplayFlagReturn( void )
 			0.25f );
 		StatusBar->AttachMessage( pMsg, 'CNTR' );
 		screen->SetFont( SmallFont );
-	}
-	// If necessary, send it to clients.
-	else
-	{
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.425f, 0, 0, CR_WHITE, 3.0f, 0.25f, "BigFont", 'CNTR' );
 	}
 }
 
@@ -1529,11 +1528,6 @@ void ABlueFlag::DisplayFlagReturn( void )
 			0.25f );
 		StatusBar->AttachMessage( pMsg, 'CNTR' );
 		screen->SetFont( SmallFont );
-	}
-	// If necessary, send it to clients.
-	else
-	{
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.425f, 0, 0, CR_BLUE, 3.0f, 0.25f, "BigFont", 'CNTR' );
 	}
 }
 
@@ -2269,11 +2263,6 @@ void ARedFlag::DisplayFlagReturn( void )
 		StatusBar->AttachMessage( pMsg, 'CNTR' );
 		screen->SetFont( SmallFont );
 	}
-	// If necessary, send it to clients.
-	else
-	{
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.425f, 0, 0, CR_RED, 3.0f, 0.25f, "BigFont", 'CNTR' );
-	}
 }
 
 // Blue skulltag skull ------------------------------------------------------
@@ -2692,11 +2681,6 @@ void ABlueSkullST::DisplayFlagReturn( void )
 		StatusBar->AttachMessage( pMsg, 'CNTR' );
 		screen->SetFont( SmallFont );
 	}
-	// If necessary, send it to clients.
-	else
-	{
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.425f, 0, 0, CR_BLUE, 3.0f, 0.25f, "BigFont", 'CNTR' );
-	}
 }
 
 // Red skulltag skull -------------------------------------------------------
@@ -3114,10 +3098,5 @@ void ARedSkullST::DisplayFlagReturn( void )
 			0.25f );
 		StatusBar->AttachMessage( pMsg, 'CNTR' );
 		screen->SetFont( SmallFont );
-	}
-	// If necessary, send it to clients.
-	else
-	{
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.425f, 0, 0, CR_RED, 3.0f, 0.25f, "BigFont", 'CNTR' );
 	}
 }

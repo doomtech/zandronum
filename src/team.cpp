@@ -639,7 +639,6 @@ void TEAM_FlagDropped( player_s *pPlayer )
 	// Add the console message.
 	Printf( "%s %s dropped!", ( pPlayer->ulTeam != TEAM_BLUE ) ? "Blue" : "Red", ( skulltag ) ? "skull" : "flag" );
 
-
 	// Next, build the dropped message.
 	sprintf( szString, "\\c%s%s %s dropped!", ( pPlayer->ulTeam != TEAM_BLUE ) ? "H" : "G", ( pPlayer->ulTeam != TEAM_BLUE ) ? "Blue" : "Red", ( skulltag ) ? "skull" : "flag" );
 

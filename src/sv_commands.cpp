@@ -2737,6 +2737,30 @@ void SERVERCOMMANDS_SetInvasionWave( ULONG ulPlayerExtra, ULONG ulFlags )
 
 //*****************************************************************************
 //
+void SERVERCOMMANDS_SetSimpleCTFSTMode( ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	ULONG	ulIdx;
+
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_IsValidClient( ulIdx ) == false )
+			continue;
+
+		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
+			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
+		{
+			continue;
+		}
+
+		SERVER_CheckClientBuffer( ulIdx, 3, true );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSIMPLECTFSTMODE );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, !!TEAM_GetSimpleCTFMode( ));
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, !!TEAM_GetSimpleSTMode( ));
+    }
+}
+
+//*****************************************************************************
+//
 void SERVERCOMMANDS_DoPossessionArtifactPickedUp( ULONG ulPlayer, ULONG ulTicks, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;

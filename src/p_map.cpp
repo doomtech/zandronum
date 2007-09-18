@@ -1194,9 +1194,13 @@ bool PIT_CheckThing (AActor *thing)
 		{
 			if (damage > 0)
 			{
-				if ( tmthing->target && tmthing->target->player && thing->player && ( thing->IsTeammate( tmthing ) == false ))
+				if (( tmthing->target ) &&
+					( tmthing->target->player ) &&
+					( thing->player ) &&
+					( thing->IsTeammate( tmthing->target ) == false ))
+				{
 					tmthing->target->player->bStruckPlayer = true;
-//					PLAYER_StruckPlayer( tmthing->target->player );
+				}
 
 				P_DamageMobj (thing, tmthing, tmthing->target, damage, tmthing->DamageType);
 				if ((tmthing->flags5 & MF5_BLOODSPLATTER) &&
@@ -5007,8 +5011,14 @@ bool PIT_RadiusAttack (AActor *thing)
 			// [BC] If this explosion damaged a player, and the explosion originated from a
 			// player, mark the source player as striking a player, to potentially reward an
 			// accuracy medal.
-			if ( bombsource && bombsource->player && thing != bombsource && thing->player )
+			if (( bombsource ) &&
+				( bombsource->player ) &&
+				( thing != bombsource ) &&
+				( thing->player ) &&
+				( thing->IsTeammate( bombsource ) == false ))
+			{
 				bombsource->player->bStruckPlayer = true;
+			}
 
 			if (!(thing->flags & MF_ICECORPSE))
 			{

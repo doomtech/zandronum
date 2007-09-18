@@ -222,6 +222,7 @@ static	void	client_SetLMSSpectatorSettings( BYTESTREAM_s *pByteStream );
 static	void	client_SetLMSAllowedWeapons( BYTESTREAM_s *pByteStream );
 static	void	client_SetInvasionNumMonstersLeft( BYTESTREAM_s *pByteStream );
 static	void	client_SetInvasionWave( BYTESTREAM_s *pByteStream );
+static	void	client_SetSimpleCTFSTMode( BYTESTREAM_s *pByteStream );
 static	void	client_DoPossessionArtifactPickedUp( BYTESTREAM_s *pByteStream );
 static	void	client_DoPossessionArtifactDropped( BYTESTREAM_s *pByteStream );
 static	void	client_DoGameModeFight( BYTESTREAM_s *pByteStream );
@@ -546,6 +547,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETLMSALLOWEDWEAPONS",
 	"SVC_SETINVASIONNUMMONSTERSLEFT",
 	"SVC_SETINVASIONWAVE",
+	"SVC_SETSIMPLECTFSTMODE",
 	"SVC_DOPOSSESSIONARTIFACTPICKEDUP",
 	"SVC_DOPOSSESSIONARTIFACTDROPPED",
 	"SVC_DOGAMEMODEFIGHT",
@@ -1709,6 +1711,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETINVASIONWAVE:
 
 		client_SetInvasionWave( pByteStream );
+		break;
+	case SVC_SETSIMPLECTFSTMODE:
+
+		client_SetSimpleCTFSTMode( pByteStream );
 		break;
 	case SVC_DOPOSSESSIONARTIFACTPICKEDUP:
 
@@ -6508,6 +6514,22 @@ static void client_SetInvasionWave( BYTESTREAM_s *pByteStream )
 
 	// Set the current wave in the invasion module.
 	INVASION_SetCurrentWave( ulWave );
+}
+
+//*****************************************************************************
+//
+static void client_SetSimpleCTFSTMode( BYTESTREAM_s *pByteStream )
+{
+	bool	bSimpleCTF;
+	bool	bSimpleST;
+
+	// Read in whether or not we're in the simple version of these game modes.
+	bSimpleCTF = !!NETWORK_ReadByte( pByteStream );
+	bSimpleST = !!NETWORK_ReadByte( pByteStream );
+
+	// Set the simple CTF/ST mode.
+	TEAM_SetSimpleCTFMode( bSimpleCTF );
+	TEAM_SetSimpleSTMode( bSimpleST );
 }
 
 //*****************************************************************************

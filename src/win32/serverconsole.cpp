@@ -416,6 +416,7 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 				}
 				break;
 			case IDC_CONSOLEBOX:
+/*
 				{
 					int	i;
 
