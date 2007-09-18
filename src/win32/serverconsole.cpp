@@ -73,8 +73,6 @@
 
 #ifdef	GUI_SERVER_CONSOLE
 
-//#define	ST_TRAY_ICON_MESSAGE	0xbfff
-
 // YUCK
 DWORD WINAPI MainDoomThread( LPVOID );
 
@@ -129,8 +127,7 @@ extern	HINSTANCE	g_hInst;
 extern	FILE		*Logfile;
 extern	char		g_szLogFilename[256];
 
-// Used in sending data between the right click-to-kick
-// menu and the dialogs they produce (the 'why' options).
+// For the right click|ban dialogs.
 bool	g_Scoreboard_IsBan;
 char	g_szScoreboard_SelectedUser[64];
 
@@ -192,7 +189,18 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 
 			// Initialize the server console text.
 			SetDlgItemText( hDlg, IDC_CONSOLEBOX, "=== S K U L L T A G | S E R V E R ===" );
-			Printf( "\nRunning version: %s\n\n", DOTVERSIONSTR_REV );
+			Printf( "\nRunning version: %s\n", DOTVERSIONSTR_REV );
+
+			// Append the time.
+			struct	tm		*pTimeInfo;
+			time_t			clock;
+			time (&clock);
+			pTimeInfo = localtime (&clock);
+			Printf("Started on %d/%d/%d at %d:%d:%d.\n", pTimeInfo->tm_mon, pTimeInfo->tm_mday,
+				(1900+pTimeInfo->tm_year), pTimeInfo->tm_hour, pTimeInfo->tm_min, pTimeInfo->tm_sec);
+				// [RC] TODO: AM/PM, localization, central time class
+
+			Printf("\n");
 
 			// Initialize the title string.
 			sprintf( szString, "Server running version: %s", DOTVERSIONSTR_REV );
@@ -370,6 +378,7 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 	case WM_COMMAND:
 
 		{
+
 			switch ( LOWORD( wParam ))
 			{
 /*
@@ -407,7 +416,6 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 				}
 				break;
 			case IDC_CONSOLEBOX:
-/*
 				{
 					int	i;
 
@@ -4924,6 +4932,7 @@ void SERVERCONSOLE_Print( char *pszString )
 	char	*psz;
 	char	c;
 	bool	bScroll = false;
+	bool	bRecycled = false;
 
 	V_StripColors( pszString );
 
@@ -4998,13 +5007,13 @@ void SERVERCONSOLE_Print( char *pszString )
 		psz = szInputString;
 	}
 
-	// If 
-	{
-		LONG	lLineDiff;
+	// Check where the scrollbars are.
+	LONG	lVisibleLine;
+	LONG	lLineDiff;
 
-		lLineDiff = g_ulNumLines - SendDlgItemMessage( g_hDlg, IDC_CONSOLEBOX, EM_GETFIRSTVISIBLELINE, 0, 0 );
-		bScroll = true;//(( lLineDiff <= 6 ) || g_bScrollConsoleOnNewline );
-	}
+	lVisibleLine = SendDlgItemMessage( g_hDlg, IDC_CONSOLEBOX, EM_GETFIRSTVISIBLELINE, 0, 0 );
+	lLineDiff = g_ulNumLines - lVisibleLine;
+	bScroll = ( lLineDiff <= 8);
 
 	while ( 1 )
 	{
@@ -5032,6 +5041,7 @@ void SERVERCONSOLE_Print( char *pszString )
 		psz = szBuffer;
 		if (( lDifference = ( (LONG)strlen( szBuffer ) + (LONG)strlen( szInputString ) - SERVERCONSOLE_TEXTLENGTH )) >= 0 )
 		{
+			bRecycled = true;
 			while ( 1 )
 			{
 				psz++;
@@ -5062,8 +5072,17 @@ void SERVERCONSOLE_Print( char *pszString )
 		sprintf( szConsoleBuffer, "%s%s", psz, szInputString );
 		SetDlgItemText( g_hDlg, IDC_CONSOLEBOX, szConsoleBuffer );
 
+		// If the user has scrolled all the way down, autoscroll.
 		if ( bScroll )
 			SendDlgItemMessage( g_hDlg, IDC_CONSOLEBOX, EM_LINESCROLL, 0, g_ulNumLines );
+
+		// If they've scrolled up but we've trimmed the text, don't autoscroll and compensate. 
+		else if( bRecycled && ( lVisibleLine > 0 ) )
+			SendDlgItemMessage( g_hDlg, IDC_CONSOLEBOX, EM_LINESCROLL, 0, lVisibleLine - 1 );
+
+		// If they've scrolled up, don't autoscroll.
+		else
+			SendDlgItemMessage( g_hDlg, IDC_CONSOLEBOX, EM_LINESCROLL, 0, lVisibleLine );
 	}
 }
 
