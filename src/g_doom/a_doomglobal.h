@@ -48,11 +48,6 @@ class AArchvile : public AActor
 	DECLARE_ACTOR (AArchvile, AActor)
 };
 
-class ALostSoul : public AActor
-{
-	DECLARE_ACTOR (ALostSoul, AActor)
-};
-
 class APlasmaBall : public AActor
 {
 	DECLARE_ACTOR (APlasmaBall, AActor)
