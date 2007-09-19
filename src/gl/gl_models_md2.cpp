@@ -306,7 +306,7 @@ void FDMDModel::RenderFrame(FTexture * skin, int frameno, int cm, int translatio
 
 	FGLTexture * tex = FGLTexture::ValidateTexture(skin);
 
-	tex->Bind(cm, translation);
+	tex->Bind(cm, 0, translation);
 
 	int numVerts = info.numVertices;
 
@@ -350,7 +350,7 @@ void FDMDModel::RenderFrameInterpolated(FTexture * skin, int frameno, int framen
 
 	FGLTexture * tex = FGLTexture::ValidateTexture(skin);
 
-	tex->Bind(cm, translation);
+	tex->Bind(cm, 0, translation);
 
 	int numVerts = info.numVertices;
 

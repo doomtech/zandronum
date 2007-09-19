@@ -3972,7 +3972,8 @@ static void PowerupType (APowerupGiver *defaults, Baggage &bag)
 
 	SC_MustGetString();
 	typestr.Format ("Power%s", sc_String);
-	const PClass * powertype=PClass::FindClass(typestr);
+	// [BB] Possibly remove ".GetChars()" once the ZDoom base is fully updated.
+	const PClass * powertype=PClass::FindClass(typestr.GetChars());
 	if (!powertype)
 	{
 		SC_ScriptError("Unknown powerup type '%s' in '%s'\n", sc_String, bag.Info->Class->TypeName.GetChars());
@@ -4052,7 +4053,8 @@ static void RuneType (ARuneGiver *defaults, Baggage &bag)
 
 	SC_MustGetString();
 	typestr.Format ("Rune%s", sc_String);
-	const PClass * runetype=PClass::FindClass(typestr);
+	// [BB] Possibly remove ".GetChars()" once the ZDoom base is fully updated.
+	const PClass * runetype=PClass::FindClass(typestr.GetChars());
 	if (!runetype)
 	{
 		SC_ScriptError("Unknown rune type '%s' in '%s'\n", sc_String, bag.Info->Class->TypeName.GetChars());

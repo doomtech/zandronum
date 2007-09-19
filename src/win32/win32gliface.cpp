@@ -7,6 +7,7 @@
 #include "gl/gl_struct.h"
 #include "gl/gl_texture.h"
 #include "gl/gl_functions.h"
+#include "gl/gl_shader.h"
 #include "templates.h"
 #include "version.h"
 #include "c_console.h"
@@ -288,7 +289,7 @@ Win32GLFrameBuffer::Win32GLFrameBuffer(int width, int height, int bits, int refr
 Win32GLFrameBuffer::~Win32GLFrameBuffer()
 {
 	I_SaveWindowedPos();
-	gl_ClearShaders();
+	GLShader::Clear();
 	if (m_supportsGamma) 
 	{
 		gl.SetGammaRamp((void *)m_origGamma);
@@ -353,7 +354,7 @@ void Win32GLFrameBuffer::InitializeState()
 
 	gl.Viewport(0, (GetTrueHeight()-GetHeight())/2, GetWidth(), GetHeight()); 
 
-	gl_InitShaders();
+	GLShader::Initialize();
 	gl_InitFog();
 	Set2DMode();
 
@@ -582,7 +583,6 @@ int Win32GLFrameBuffer::QueryNewPalette()
 //==========================================================================
 void Win32GLFrameBuffer::Set2DMode()
 {
-	gl_SetColorMode(CM_DEFAULT);	// no colormap translations in 3D mode!
 	gl.MatrixMode(GL_MODELVIEW);
 	gl.LoadIdentity();
 	gl.MatrixMode(GL_PROJECTION);
@@ -598,6 +598,7 @@ void Win32GLFrameBuffer::Set2DMode()
 	gl.Disable(GL_DEPTH_TEST);
 	gl.Disable(GL_MULTISAMPLE);
 	gl_EnableFog(false);
+	GLShader::Unbind();
 }
 
 //==========================================================================

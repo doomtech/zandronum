@@ -2,47 +2,34 @@
 #ifndef __GL_SHADERS_H__
 #define __GL_SHADERS_H__
 
+EXTERN_CVAR(Bool, gl_glsl_renderer)
 
-class FShader
+extern bool gl_fogenabled;
+extern bool gl_textureenabled;
+extern int gl_texturemode;
+
+
+struct FShaderContainer;
+
+class GLShader
 {
-	GLhandleARB hShader;
-	GLhandleARB hVertProg;
-	GLhandleARB hFragProg;
+	FName Name;
+	FShaderContainer *container;
+	// additional parameters
 
-	TArray<int> params;
-	TArray<int> param_names;
+	static GLShader * lastshader;
+	static int lastcm;
 
 public:
-	FShader()
-	{
-		hShader = hVertProg = hFragProg = NULL;
-	}
 
-	~FShader();
-
-	bool Load(const char * name, const char * vp_path, const char * fp_path);
-	void AddParameter(const char * pname);
-	int GetParameterIndex(FName pname);
-	bool Bind();
+	static void Initialize();
+	static void Clear();
+	static GLShader *Find(const char * shn);
+	void Bind(int cm);
+	static void Unbind();
+	static void Rebind();
 
 };
-
-
-/*
-
-class FShaderManager
-{
-public:
-
-	FShaderManager();
-	~FShaderManager();
-
-	TArray<FShader *> m_Shaders;
-	void AddShader(FShader * shader);
-	bool BindShader(name shadername);
-
-}
-*/
 
 
 #endif

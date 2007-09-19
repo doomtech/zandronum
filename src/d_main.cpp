@@ -2730,10 +2730,10 @@ void D_DoomMain (void)
 	}
 
 	FActorInfo::StaticGameSet ();
-	StartScreen->LoadingStatus ("Loading graphics", 0x3f);
 	StartScreen->Progress ();
 
-	Printf ("R_Init: Init %s refresh subsystem\n", GameNames[gameinfo.gametype]);
+	Printf ("R_Init: Init %s refresh subsystem.\n", GameNames[gameinfo.gametype]);
+	StartScreen->LoadingStatus ("Loading graphics", 0x3f);
 	R_Init ();
 
 	Printf ("DecalLibrary: Load decals.\n");

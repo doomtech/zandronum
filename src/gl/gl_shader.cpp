@@ -44,25 +44,73 @@
 #include "w_wad.h"
 #include "gl_shader.h"
 #include "i_system.h"
+#include "doomerrors.h"
+
+extern long gl_frameMS;
+
+bool gl_fogenabled;
+bool gl_textureenabled;
+int gl_texturemode;
+
+class FShader
+{
+	friend class GLShader;
+
+	GLhandleARB hShader;
+	GLhandleARB hVertProg;
+	GLhandleARB hFragProg;
+
+	TArray<int> attribs;
+	TArray<int> attrib_names;
+	TArray<int> uniforms;
+	TArray<int> uniform_names;
+
+	int timer_index;
+	int desaturation_index;
+	int fogenabled_index;
+	int texturemode_index;
+
+	int currentfogenabled;
+	int currenttexturemode;
+
+public:
+	FShader()
+	{
+		hShader = hVertProg = hFragProg = NULL;
+		currentfogenabled = currenttexturemode = 0;
+	}
+
+	~FShader();
+
+	bool Load(const char * name, const char * vertprog, const char * fragprog);
+	void AddAttrib(const char * pname);
+	int GetAttribIndex(FName pname);
+	void AddUniform(const char * pname);
+	int GetUniformIndex(FName pname);
+
+	void SetFogEnabled(int on)
+	{
+		if (on != currentfogenabled)
+		{
+			currentfogenabled = on;
+			gl.Uniform1iARB(fogenabled_index, on); 
+		}
+	}
+
+	void SetTextureMode(int mode)
+	{
+		if (mode != currenttexturemode)
+		{
+			currenttexturemode = mode;
+			gl.Uniform1iARB(texturemode_index, mode); 
+		}
+	}
+	bool Bind();
+
+};
 
 
-FShader * activeShader;
-
-FShader * shader_Null;
-FShader * shader_InverseMap;
-FShader * shader_GoldMap;
-FShader * shader_RedMap;
-FShader * shader_GreenMap;
-FShader * shader_Warp1;
-FShader * shader_Warp1_NoFog;
-FShader * shader_Warp2;
-FShader * shader_Warp2_NoFog;
-
-static FName warpinfo_name;
-
-static bool gl_fogenabled;
-static bool gl_textureenabled;
-
+static FShader *gl_activeShader;
 
 //==========================================================================
 //
@@ -70,7 +118,7 @@ static bool gl_textureenabled;
 //
 //==========================================================================
 
-bool FShader::Load(const char * name, const char * vp_path, const char * fp_path)
+bool FShader::Load(const char * name, const char * vert_prog, const char * frag_prog)
 {
 	static char buffer[10000];
 
@@ -79,26 +127,11 @@ bool FShader::Load(const char * name, const char * vp_path, const char * fp_path
 		hVertProg = gl.CreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
 		hFragProg = gl.CreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);	
 
-		int vp_lump = Wads.CheckNumForFullName(vp_path);
-		int fp_lump = Wads.CheckNumForFullName(fp_path);
+		int vp_size = (int)strlen(vert_prog);
+		int fp_size = (int)strlen(frag_prog);
 
-		if (vp_lump<0 || fp_lump<0)
-		{
-			Printf(PRINT_HIGH, "Source for shader %s not found\n", name);
-			return false;
-		}
-
-		FMemLump vp_mem = Wads.ReadLump(vp_lump);
-		FMemLump fp_mem = Wads.ReadLump(fp_lump);
-
-		int vp_size = Wads.LumpLength(vp_lump);
-		int fp_size = Wads.LumpLength(fp_lump);
-
-		const GLcharARB * vp_memp = (const GLcharARB*)vp_mem.GetMem();
-		const GLcharARB * fp_memp = (const GLcharARB*)fp_mem.GetMem();
-
-		gl.ShaderSourceARB(hVertProg, 1, &vp_memp, &vp_size);
-		gl.ShaderSourceARB(hFragProg, 1, &fp_memp, &fp_size);
+		gl.ShaderSourceARB(hVertProg, 1, &vert_prog, &vp_size);
+		gl.ShaderSourceARB(hFragProg, 1, &frag_prog, &fp_size);
 
 		gl.CompileShaderARB(hVertProg);
 		gl.CompileShaderARB(hFragProg);
@@ -113,47 +146,18 @@ bool FShader::Load(const char * name, const char * vp_path, const char * fp_path
 		gl.GetInfoLogARB(hShader, 10000, NULL, buffer);
 		if (*buffer) 
 		{
-			Printf("Init Shader '%s': %s\n", name, buffer);
+			Printf("Init Shader '%s':\n%s\n", name, buffer);
 		}
 		int linked;
 		gl.GetObjectParameterivARB(hShader, GL_OBJECT_LINK_STATUS_ARB, &linked);
+		timer_index = gl.GetUniformLocationARB(hShader, "timer");
+		desaturation_index = gl.GetUniformLocationARB(hShader, "desaturation_factor");
+		fogenabled_index = gl.GetUniformLocationARB(hShader, "fogenabled");
+		texturemode_index = gl.GetUniformLocationARB(hShader, "texturemode");
+
 		return !!linked;
 	}
 	return false;
-}
-
-
-//==========================================================================
-//
-//
-//
-//==========================================================================
-
-void FShader::AddParameter(const char * pname)
-{
-	FName nm = FName(pname);
-
-	for(int i=0;i<params.Size();i++)
-	{
-		if (param_names[i]==nm) return;
-	}
-	param_names.Push(nm);
-	params.Push(gl.GetAttribLocationARB(hShader, pname));
-}
-
-//==========================================================================
-//
-//
-//
-//==========================================================================
-
-int FShader::GetParameterIndex(FName pname)
-{
-	for(int i=0;i<params.Size();i++)
-	{
-		if (param_names[i]==pname) return params[i];
-	}
-	return -1;
 }
 
 //==========================================================================
@@ -169,6 +173,74 @@ FShader::~FShader()
 	gl.DeleteObjectARB(hFragProg);
 }
 
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
+void FShader::AddAttrib(const char * pname)
+{
+	FName nm = FName(pname);
+
+	for(int i=0;i<attribs.Size();i++)
+	{
+		if (attrib_names[i]==nm) return;
+	}
+	attrib_names.Push(nm);
+	attribs.Push(gl.GetAttribLocationARB(hShader, pname));
+}
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
+int FShader::GetAttribIndex(FName pname)
+{
+	for(int i=0;i<attribs.Size();i++)
+	{
+		if (attrib_names[i]==pname) return attribs[i];
+	}
+	return -1;
+}
+
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
+void FShader::AddUniform(const char * pname)
+{
+	FName nm = FName(pname);
+
+	for(int i=0;i<uniforms.Size();i++)
+	{
+		if (uniform_names[i]==nm) return;
+	}
+	uniform_names.Push(nm);
+	uniforms.Push(gl.GetUniformLocationARB(hShader, pname));
+}
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
+int FShader::GetUniformIndex(FName pname)
+{
+	for(int i=0;i<uniforms.Size();i++)
+	{
+		if (uniform_names[i]==pname) return uniforms[i];
+	}
+	return -1;
+}
+
 //==========================================================================
 //
 //
@@ -177,200 +249,339 @@ FShader::~FShader()
 
 bool FShader::Bind()
 {
-	if (activeShader!=this)
+	if (gl_activeShader!=this)
 	{
 		gl.UseProgramObjectARB(hShader);
-		activeShader=this;
+		SetTextureMode(gl_texturemode);
+		SetFogEnabled(gl_fogenabled);
+		gl_activeShader=this;
 	}
+	if (timer_index >=0) gl.Uniform1fARB(timer_index, gl_frameMS/1000.f);
 	return true;
+}
+
+
+
+//==========================================================================
+//
+// This class contains the shaders for the different lighting modes
+// that are required (e.g. special colormaps etc.)
+//
+//==========================================================================
+struct FShaderContainer
+{
+	friend class GLShader;
+
+	FName Name;
+	FName TexFileName;
+
+	FShader *shader_cm[6];
+
+	// These are needed twice: Once for normal lighting, once for desaturation.
+	FShader *shader_light[3][2];
+
+	FString CombineFragmentShader(const char * gettexel, const char * lighting, const char * main);
+
+public:
+	FShaderContainer(const char *ShaderName, const char *ShaderPath);
+	~FShaderContainer();
+	
+};
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
+FString FShaderContainer::CombineFragmentShader(const char * gettexel, const char * lighting, const char * main)
+{
+	int lump1 = Wads.GetNumForFullName(gettexel);
+	int lump2 = Wads.GetNumForFullName(lighting);
+	int lump3 = Wads.GetNumForFullName(main);
+
+	FMemLump data1 = Wads.ReadLump(lump1);
+	FMemLump data2 = Wads.ReadLump(lump2);
+	FMemLump data3 = Wads.ReadLump(lump3);
+
+	FString res;
+
+	res << (char*)data1.GetMem() << '\n' << (char*)data2.GetMem() << '\n' << (char*)data3.GetMem();
+	return res;
 }
 
 //==========================================================================
 //
-// Initializes the GLSL shaders used by the engine
+//
 //
 //==========================================================================
 
-void gl_ClearShaders()
+FShaderContainer::FShaderContainer(const char *ShaderName, const char *ShaderPath)
+{
+	struct Lighting
+	{
+		const char * LightingName;
+		const char * lightpixelfunc;
+	};
+
+	static Lighting default_cm[]={
+		{ "Standard",	"shaders/light/light_norm.fp"			},
+		{ "Inverse",	"shaders/light/light_inverse.fp"		},
+		{ "Gold",		"shaders/light/light_gold.fp"			},
+		{ "Red",		"shaders/light/light_red.fp"			},
+		{ "Green",		"shaders/light/light_green.fp"			},
+	};
+
+	static Lighting default_light[]={
+		{ "Standard",	"shaders/light/light_eyefog.fp"		},
+		{ "Doom",		"shaders/light/light_doom.fp"			},
+	};
+
+	static const char * main_fp2[]={ "shaders/main.fp", "shaders/main_desat.fp" };
+
+	Name = ShaderName;
+	TexFileName = ShaderPath;
+
+	for(int i=0;i<5;i++)
+	{
+		FString name;
+
+		name << ShaderName << "::" << default_cm[i].LightingName;
+
+		try
+		{
+			FString frag = CombineFragmentShader(ShaderPath, default_cm[i].lightpixelfunc, "shaders/main.fp");
+
+			int vlump = Wads.GetNumForFullName("shaders/main_nofog.vp");
+			FMemLump vdata = Wads.ReadLump(vlump);
+
+			shader_cm[i] = new FShader;
+			if (!shader_cm[i]->Load(name, (const char*)vdata.GetMem(), frag))
+			{
+				delete shader_cm[i];
+				shader_cm[i]=NULL;
+			}
+		}
+		catch(CRecoverableError &err)
+		{
+			shader_cm[i]=NULL;
+			Printf("Unable to load shader %s:\n%s\n", name.GetChars(), err.GetMessage());
+		}
+
+	}
+
+	for(int i=0;i<2;i++) for(int j=0;j<2;j++)
+	{
+		FString name;
+
+		name << ShaderName << "::" << default_light[i].LightingName;
+		if (j) name << "::desat";
+
+		try
+		{
+			FString frag = CombineFragmentShader(ShaderPath, default_light[i].lightpixelfunc, main_fp2[j]);
+
+			int vlump = Wads.GetNumForFullName("shaders/main.vp");
+			FMemLump vdata = Wads.ReadLump(vlump);
+
+			shader_light[i][j] = new FShader;
+			if (!shader_light[i][j]->Load(name, (const char*)vdata.GetMem(), frag))
+			{
+				delete shader_light[i][j];
+				shader_light[i][j]=NULL;
+			}
+		}
+		catch(CRecoverableError &err)
+		{
+			shader_light[i][j]=NULL;
+			Printf("Unable to load shader %s:\n%s\n", name.GetChars(), err.GetMessage());
+		}
+	}
+}
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+FShaderContainer::~FShaderContainer()
+{
+	for(int i=0;i<5;i++)
+	{
+		if (shader_cm[i]!=NULL)
+		{
+			delete shader_cm[i];
+			shader_cm[i] = NULL;
+		}
+	}
+
+	for(int i=0;i<2;i++) for(int j=0;j<2;j++)
+	{
+		if (shader_light[i][j]!=NULL)
+		{
+			delete shader_light[i][j];
+			shader_light[i][j] = NULL;
+		}
+	}
+}
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+struct FDefaultShader 
+{
+	const char * ShaderName;
+	const char * gettexelfunc;
+};
+
+static FDefaultShader defaultshaders[]=
+	{	
+		{"Default",	"shaders/tex/tex_norm.fp"},
+		{"Warp 1",	"shaders/tex/tex_warp1.fp"},
+		{"Warp 2",	"shaders/tex/tex_warp2.fp"},
+		{NULL,NULL}
+		
+	};
+
+static TArray<FShaderContainer *> AllContainers;
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
+static FShaderContainer * AddShader(const char * name, const char * texfile)
+{
+	FShaderContainer *sh = new FShaderContainer(name, texfile);
+	AllContainers.Push(sh);
+	return sh;
+}
+
+
+
+static FShaderContainer * GetShader(const char * n,const char * fn)
+{
+	FName sfn = fn;
+
+	for(int i=0;i<AllContainers.Size();i++)
+	{
+		if (AllContainers[i]->TexFileName == sfn)
+		{
+			return AllContainers[i];
+		}
+	}
+	return AddShader(n, fn);
+}
+
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
+GLShader * GLShader::lastshader;
+int GLShader::lastcm;
+
+static TArray<GLShader *> AllShaders;
+
+void GLShader::Initialize()
+{
+	if (gl.flags & RFL_GLSL)
+	{
+		for(int i=0;i<3;i++)
+		{
+			FShaderContainer * shc = AddShader(defaultshaders[i].ShaderName, defaultshaders[i].gettexelfunc);
+			GLShader * shd = new GLShader;
+			shd->container = shc;
+			shd->Name = defaultshaders[i].ShaderName;
+			AllShaders.Push(shd);
+		}
+	}
+}
+
+void GLShader::Clear()
+{
+	if (gl.flags & RFL_GLSL)
+	{
+		for(int i=0;i<AllContainers.Size();i++)
+		{
+			delete AllContainers[i];
+		}
+		for(int i=0;i<AllShaders.Size();i++)
+		{
+			delete AllShaders[i];
+		}
+		AllContainers.Clear();
+		AllShaders.Clear();
+	}
+}
+
+GLShader *GLShader::Find(const char * shn)
+{
+	FName sfn = shn;
+
+	for(int i=0;i<AllShaders.Size();i++)
+	{
+		if (AllContainers[i]->Name == sfn)
+		{
+			return AllShaders[i];
+		}
+	}
+	return NULL;
+}
+
+
+void GLShader::Bind(int cm)
+{
+	FShader *sh=NULL;
+	switch(cm)
+	{
+	case CM_INVERT:
+	case CM_GOLDMAP:
+	case CM_REDMAP:
+	case CM_GREENMAP:
+		// these are never used with any kind of lighting or fog
+		sh = container->shader_cm[cm-CM_INVERT+1];
+		// [BB] If there was a problem when loading the shader, sh is NULL here.
+		if( sh )
+			sh->Bind();
+		break;
+
+	default:
+
+		bool desat = cm>=CM_DESAT1 && cm<=CM_DESAT31;
+		sh = container->shader_light[0][desat];
+		// [BB] If there was a problem when loading the shader, sh is NULL here.
+		if( sh )
+		{
+			sh->Bind();
+			if (desat)
+			{
+				gl.Uniform1fARB(sh->desaturation_index, 1.f-float(cm-CM_DESAT0)/(CM_DESAT31-CM_DESAT0));
+			}
+		}
+		break;
+	}
+	lastshader = this;
+	lastcm = cm;
+}
+
+void GLShader::Rebind()
+{
+	if (lastshader) lastshader->Bind(lastcm);
+}
+
+void GLShader::Unbind()
 {
 	if (gl.flags & RFL_GLSL)
 	{
 		gl.UseProgramObjectARB(0);
-		if (shader_Null) delete shader_Null;
-		if (shader_InverseMap) delete shader_InverseMap;
-		if (shader_GoldMap) delete shader_GoldMap;
-		if (shader_Warp1) delete shader_Warp1;
-		if (shader_Warp1_NoFog) delete shader_Warp1_NoFog;
-		if (shader_Warp2) delete shader_Warp2;
-		if (shader_Warp2_NoFog) delete shader_Warp2_NoFog;
+		gl_activeShader=NULL;
 	}
-}
-
-void gl_InitShaders() 
-{
-	if (gl.flags & RFL_GLSL)
-	{
-		shader_Null = new FShader;
-
-		shader_InverseMap = new FShader;
-		if (!shader_InverseMap->Load("Inverse", "shaders/inverse.vp", "shaders/inverse.fp"))
-		{
-			delete shader_InverseMap;
-			shader_InverseMap=NULL;
-		}
-
-		shader_GoldMap = new FShader;
-		if (!shader_GoldMap->Load("Gold", "shaders/gold.vp", "shaders/gold.fp"))
-		{
-			delete shader_GoldMap;
-			shader_GoldMap=NULL;
-		}
-
-		shader_RedMap = new FShader;
-		if (!shader_RedMap->Load("Red", "shaders/red.vp", "shaders/red.fp"))
-		{
-			delete shader_RedMap;
-			shader_RedMap=NULL;
-		}
-
-		shader_GreenMap = new FShader;
-		if (!shader_GreenMap->Load("Green", "shaders/green.vp", "shaders/green.fp"))
-		{
-			delete shader_GreenMap;
-			shader_GreenMap=NULL;
-		}
-
-		shader_Warp1 = new FShader;
-		if (!shader_Warp1->Load("Warp1", "shaders/warp1.vp", "shaders/warp1.fp"))
-		{
-			delete shader_Warp1;
-			shader_Warp1=NULL;
-		}
-		else shader_Warp1->AddParameter("warpInfo");
-
-		shader_Warp1_NoFog = new FShader;
-		if (!shader_Warp1_NoFog->Load("Warp1NoFog", "shaders/warp1ovr.vp", "shaders/warp1ovr.fp"))
-		{
-			delete shader_Warp1_NoFog;
-			shader_Warp1_NoFog=NULL;
-		}
-		else shader_Warp1_NoFog->AddParameter("warpInfo");
-
-		shader_Warp2 = new FShader;
-		if (!shader_Warp2->Load("Warp2", "shaders/warp2.vp", "shaders/warp2.fp"))
-		{
-			delete shader_Warp2;
-			shader_Warp2=NULL;
-		}
-		else shader_Warp2->AddParameter("warpInfo");
-
-		shader_Warp2_NoFog = new FShader;
-		if (!shader_Warp2_NoFog->Load("Warp2NoFog", "shaders/warp2ovr.vp", "shaders/warp2ovr.fp"))
-		{
-			delete shader_Warp2_NoFog;
-			shader_Warp2_NoFog=NULL;
-		}
-		else shader_Warp2_NoFog->AddParameter("warpInfo");
-
-		warpinfo_name = FName("warpInfo");
-	}
-}
-
-
-//==========================================================================
-//
-// Sets a shader for invulnerability colormaps
-// Currently it is only used for camera textures.
-//
-//==========================================================================
-
-bool gl_SetColorMode(int cm, bool force)
-{
-	if (gl.flags&RFL_GLSL)
-	{
-		// Only used for camera textures!
-		static int lastcmap=-1;
-
-		if (lastcmap==cm) return true;
-
-		switch(force? cm : CM_INVALID)
-		{
-		default:
-			cm=CM_DEFAULT;
-		case CM_DEFAULT:
-			shader_Null->Bind();
-			break;
-
-		case CM_INVERT:
-			if (!shader_InverseMap) return false;
-			shader_InverseMap->Bind();
-			break;
-		case CM_GOLDMAP:
-			if (!shader_GoldMap) return false;
-			shader_GoldMap->Bind();
-			break;
-		case CM_REDMAP:
-			if (!shader_RedMap) return false;
-			shader_RedMap->Bind();
-			break;
-		case CM_GREENMAP:
-			if (!shader_GreenMap) return false;
-			shader_GreenMap->Bind();
-			break;
-		}
-		lastcmap=cm;
-		return force;
-	}
-	return false;
-}
-
-//==========================================================================
-//
-// Sets a shader for warped textures
-//
-//==========================================================================
-
-bool gl_SetShaderForWarp(int type, float time)
-{
-	FShader * shader;
-	int parm;
-
-	switch (type)
-	{
-	default:	// 0 means 'no warping shader'
-		shader_Null->Bind();
-		return true;
-
-	case 1:
-
-		if (gl_fogenabled) shader = shader_Warp1;
-		else shader = shader_Warp1_NoFog;
-		if (!shader) 
-		{
-			shader_Null->Bind();
-			return false;
-		}
-		parm = shader->GetParameterIndex(warpinfo_name);
-		gl.VertexAttrib4fARB(parm, time/2.f, 2.f, 0, 0);
-		break;
-
-	case 2:
-
-		if (gl_fogenabled) shader = shader_Warp2;
-		else shader = shader_Warp2_NoFog;
-		if (!shader) 
-		{
-			shader_Null->Bind();
-			return false;
-		}
-		parm = shader->GetParameterIndex(warpinfo_name);
-		gl.VertexAttrib4fARB(parm, time, 1.f, time, 1.f);
-		break;
-	}
-
-	shader->Bind();
-
-	return true;
 }
 
 //==========================================================================
@@ -381,17 +592,30 @@ bool gl_SetShaderForWarp(int type, float time)
 
 void gl_EnableTexture(bool on)
 {
+	static FShader * shader_when_disabled = NULL;
 	if (on)
 	{
-		if (!gl_textureenabled) gl.Enable(GL_TEXTURE_2D);
-		gl_textureenabled=true;
+		if (!gl_textureenabled) 
+		{
+			gl.Enable(GL_TEXTURE_2D);
+			if (shader_when_disabled != NULL)
+			{
+				shader_when_disabled->Bind();
+			}
+		}
 	}
-	else if (gl_textureenabled)
+	else 
 	{
-		gl.Disable(GL_TEXTURE_2D);
-		gl_SetColorMode(CM_DEFAULT, false);
-		//gl_SetShaderForWarp(0,0);
-		gl_textureenabled=false;
+		if (gl_textureenabled) 
+		{
+			gl.Disable(GL_TEXTURE_2D);
+			shader_when_disabled = gl_activeShader;
+			GLShader::Unbind();
+		}
+	}
+	if (gl_textureenabled != on)
+	{
+		gl_textureenabled=on;
 	}
 }
 
@@ -405,20 +629,28 @@ void gl_EnableFog(bool on)
 {
 	if (on) 
 	{
-		if (!gl_fogenabled)
-		{
-			gl_fogenabled=true;
-			gl.Enable(GL_FOG);
-		}
+		if (!gl_fogenabled) gl.Enable(GL_FOG);
 	}
 	else 
 	{
-		if (gl_fogenabled)
-		{
-			gl_fogenabled=false;
-			gl.Disable(GL_FOG);
-		}
+		if (gl_fogenabled) gl.Disable(GL_FOG);
 	}
+	gl_fogenabled=on;
+	if (gl_activeShader) gl_activeShader->SetFogEnabled(on);
+}
+
+
+//==========================================================================
+//
+// set texture mode
+//
+//==========================================================================
+
+void gl_SetTextureMode(int which)
+{
+	if (which != gl_texturemode) gl.SetTextureMode(which);
+	if (gl_activeShader) gl_activeShader->SetTextureMode(which);
+	gl_texturemode = which;
 }
 
 
@@ -437,23 +669,6 @@ void gl_SetCamera(float x, float y, float z)
 	if (i_useshaders)
 	{
 		gl.Uniform4fARB(u_camera, x, z, y, 0);
-	}
-	*/
-}
-
-inline float gl_ShadeForLight(int lightLevel)
-{
-   return 2.f - (lightLevel + 12) / 128.f;
-}
-
-
-void gl_SetFogLight(int lightlevel)
-{
-	/*
-	if (i_useshaders)
-	{
-		gl.VertexAttrib1fARB(a_shade, gl_ShadeForLight(lightlevel));
-		gl.VertexAttrib1fARB(a_visibility, TO_MAP(r_WallVisibility) / 32.f); 
 	}
 	*/
 }

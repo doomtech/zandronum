@@ -68,7 +68,6 @@ std2:
 		'goto'						{ RET(TK_Goto); }
 		'if'						{ RET(TK_If); }
 		'return'					{ RET(TK_Return); }
-		'states'					{ RET(TK_States); }
 		'switch'					{ RET(TK_Switch); }
 		'until'						{ RET(TK_Until); }
 		'volatile'					{ RET(TK_Volatile); }
@@ -143,6 +142,12 @@ std2:
 		'evalnot'					{ RET(TK_EvalNot); }
 		'action'					{ RET(TK_Action); }
 
+		/* other DECORATE top level keywords */
+		'#include'					{ RET(TK_Include); }
+		'pickup'					{ RET(TK_Pickup); }
+		'breakable'					{ RET(TK_Breakable); }
+		'projectile'				{ RET(TK_Projectile); }
+
 		L (L|D)*					{ RET(TK_Identifier); }
 
 		("0" [xX] H+ IS?) | ("0" D+ IS?) | (D+ IS?)
@@ -158,6 +163,7 @@ std2:
 									{ RET(TK_NameConst); }
 
 		"..."						{ RET(TK_Ellipsis); }
+		">>>="						{ RET(TK_URShiftEq); }
 		">>="						{ RET(TK_RShiftEq); }
 		"<<="						{ RET(TK_LShiftEq); }
 		"+="						{ RET(TK_AddEq); }
@@ -168,6 +174,7 @@ std2:
 		"&="						{ RET(TK_AndEq); }
 		"^="						{ RET(TK_XorEq); }
 		"|="						{ RET(TK_OrEq); }
+		">>>"						{ RET(TK_URShift); }
 		">>"						{ RET(TK_RShift); }
 		"<<"						{ RET(TK_LShift); }
 		"++"						{ RET(TK_Incr); }

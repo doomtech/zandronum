@@ -145,7 +145,7 @@ void gl_SetFogParams(int _fogdensity, PalEntry _outsidefogcolor, int _outsidefog
 void gl_ModifyColor(BYTE & red, BYTE & green, BYTE & blue, int cm)
 {
 	int gray = (red*77 + green*143 + blue*36)>>8;
-	if (cm == CM_INVERT || cm == CM_LITE)
+	if (cm == CM_INVERT /* || cm == CM_LITE*/)
 	{
 		gl_InverseMap(gray, red, green, blue);
 	}
@@ -342,7 +342,7 @@ void gl_InitFog()
 //
 //==========================================================================
 
-void gl_SetFog(int lightlevel, PalEntry fogcolor, int blendmode)
+void gl_SetFog(int lightlevel, PalEntry fogcolor, int blendmode, int cm)
 {
 
 	float fogdensity;
@@ -377,6 +377,7 @@ void gl_SetFog(int lightlevel, PalEntry fogcolor, int blendmode)
 		{
 			fogcolor=0;
 		}
+		gl_ModifyColor(fogcolor.r, fogcolor.g, fogcolor.b, cm);
 
 		gl_EnableFog(fogcolor!=-1);
 		if (fogcolor!=cfogcolor)

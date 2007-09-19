@@ -11,9 +11,16 @@
 class FCanvasTexture;
 class AActor;
 
+enum
+{
+	GLT_CLAMPX=1,
+	GLT_CLAMPY=2
+};
+
 class GLTexture
 {
 	friend void gl_RenderTextureView(FCanvasTexture *Texture, AActor * Viewpoint, int FOV);
+
 
 	static struct TexFilter_s
 	{
@@ -50,6 +57,7 @@ private:
 	float scalexfac, scaleyfac;
 	bool mipmap;
 	BYTE cm_arraysize;
+	BYTE clampmode;
 
 	unsigned int * glTexID;
 	TArray<TranslatedTexture> glTexID_Translated;
@@ -78,6 +86,8 @@ public:
 	float FloatToTexU(float v) { return v/(float)texwidth; }
 	float FixToTexU(int v) { return (float)v/(float)FRACUNIT/(float)texwidth; }
 	float FixToTexV(int v) { return (float)v/(float)FRACUNIT/(float)texheight; }
+
+	void SetTextureClamp(int clampmode);
 };
 
 

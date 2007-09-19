@@ -66,6 +66,7 @@ void gl_SetPlaneTextureRotation(const GLSectorPlane * secplane, FGLTexture * glt
 	float angle=-ANGLE_TO_FLOAT(secplane->angle);
 
 	gl.MatrixMode(GL_TEXTURE);
+
 	gl.PushMatrix();
 	gl.Translatef(uoffs,voffs,0.0f);
 	gl.Scalef(xscale,yscale,1.0f);
@@ -156,6 +157,8 @@ void GLFlat::DrawSubsectorLights(subsector_t * sub, int pass)
 //
 //
 //==========================================================================
+CVAR(Bool, gl_usearrays, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+
 
 void GLFlat::DrawSubsector(subsector_t * sub)
 {
@@ -174,12 +177,24 @@ void GLFlat::DrawSubsector(subsector_t * sub)
 		// Quicker way for non-sloped sectors
 		gl_vertices[v].z = z;
 	}
-	gl.DrawArrays(GL_TRIANGLE_FAN, sub->firstvertex, sub->numvertices);
+	if (gl_usearrays)
+	{
+		gl.DrawArrays(GL_TRIANGLE_FAN, sub->firstvertex, sub->numvertices);
+	}
+	else
+	{
+		gl.Begin(GL_TRIANGLE_FAN);
+		for(k = 0, v = sub->firstvertex; k < sub->numvertices; k++, v++)
+		{
+			gl.TexCoord2f(gl_vertices[v].u, gl_vertices[v].v);
+			gl.Vertex3f(gl_vertices[v].x, gl_vertices[v].z, gl_vertices[v].y);
+		}
+		gl.End();
+	}
 
 	flatvertices += sub->numvertices;
 	flatprimitives++;
 }
-
 
 //==========================================================================
 //
@@ -237,14 +252,14 @@ void GLFlat::Draw(int pass)
 	{
 	case GLPASS_BASE:
 		gl_SetColor(lightlevel, extralight*gl_weaponlight, &Colormap,1.0f);
-		if (!foggy) gl_SetFog(lightlevel, Colormap.FadeColor, STYLE_Normal);
+		if (!foggy) gl_SetFog(lightlevel, Colormap.FadeColor, STYLE_Normal, Colormap.LightColor.a);
 		DrawSubsectors(false);
 		break;
 
 	case GLPASS_BASE_MASKED:
 	case GLPASS_PLAIN:			// Single-pass rendering
 		gl_SetColor(lightlevel, extralight*gl_weaponlight, &Colormap,1.0f);
-		if (!foggy || pass == GLPASS_PLAIN) gl_SetFog(lightlevel, Colormap.FadeColor, STYLE_Normal);
+		if (!foggy || pass == GLPASS_PLAIN) gl_SetFog(lightlevel, Colormap.FadeColor, STYLE_Normal, Colormap.LightColor.a);
 		// fall through
 	case GLPASS_TEXTURE:
 		gltexture->Bind(Colormap.LightColor.a);
@@ -254,15 +269,15 @@ void GLFlat::Draw(int pass)
 		break;
 
 	case GLPASS_FOG:
-		gl_SetFog(lightlevel, Colormap.FadeColor, STYLE_Normal);
+		gl_SetFog(lightlevel, Colormap.FadeColor, STYLE_Normal, Colormap.LightColor.a);
 		DrawSubsectors(false);
 		break;
 
 	case GLPASS_LIGHT:
 	case GLPASS_LIGHT_ADDITIVE:
 
-		if (!foggy)	gl_SetFog((255+lightlevel)>>1, Colormap.FadeColor, STYLE_Normal);
-		else gl_SetFog(lightlevel, Colormap.FadeColor, STYLE_Add);	
+		if (!foggy)	gl_SetFog((255+lightlevel)>>1, Colormap.FadeColor, STYLE_Normal, Colormap.LightColor.a);
+		else gl_SetFog(lightlevel, Colormap.FadeColor, STYLE_Add, Colormap.LightColor.a);	
 
 		if (sub)
 		{
@@ -300,7 +315,7 @@ void GLFlat::Draw(int pass)
 	case GLPASS_TRANSLUCENT:
 		if (renderstyle==STYLE_Add) gl.BlendFunc(GL_SRC_ALPHA, GL_ONE);
 		gl_SetColor(lightlevel, extralight*gl_weaponlight, &Colormap, alpha);
-		gl_SetFog(lightlevel, Colormap.FadeColor, STYLE_Normal);
+		gl_SetFog(lightlevel, Colormap.FadeColor, STYLE_Normal, Colormap.LightColor.a);
 		gl.AlphaFunc(GL_GEQUAL,0.5f*(alpha));
 		if (!gltexture)	gl_EnableTexture(false);
 

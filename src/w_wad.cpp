@@ -367,7 +367,7 @@ int STACK_ARGS FWadCollection::lumpcmp(const void * a, const void * b)
 	FWadCollection::LumpRecord * rec1 = (FWadCollection::LumpRecord *)a;
 	FWadCollection::LumpRecord * rec2 = (FWadCollection::LumpRecord *)b;
 
-	return !stricmp(rec1->fullname, rec2->fullname);
+	return stricmp(rec1->fullname, rec2->fullname);
 }
 
 
@@ -998,11 +998,16 @@ int FWadCollection::LumpLength (int lump) const
 //
 //==========================================================================
 
-int FWadCollection::GetLumpOffset (int lump) const
+int FWadCollection::GetLumpOffset (int lump)
 {
 	if ((size_t)lump >= NumLumps)
 	{
 		I_Error ("GetLumpOffset: %i >= NumLumps",lump);
+	}
+
+	if (LumpInfo[lump].flags & LUMPF_NEEDFILESTART)
+	{
+		SetLumpAddress(&LumpInfo[lump]);
 	}
 
 	return LumpInfo[lump].position;
@@ -1645,17 +1650,7 @@ void FWadCollection::ReadLump (int lump, void *dest)
 
 FMemLump FWadCollection::ReadLump (int lump)
 {
-	FWadLump lumpr = OpenLumpNum (lump);
-	long size = lumpr.GetLength ();
-	BYTE *dest = new BYTE[size];
-	long numread = lumpr.Read (dest, size);
-
-	if (numread != size)
-	{
-		I_Error ("W_ReadLump: only read %ld of %ld on lump %i\n",
-			numread, size, lump);	
-	}
-	return FMemLump (dest);
+	return FMemLump(FString(ELumpNum(lump)));
 }
 
 //==========================================================================
@@ -1725,7 +1720,7 @@ FWadLump FWadCollection::OpenLumpNum (int lump)
 	{
 		static char zero = '\0';
 		FILE *f;
-
+		
 		if (wad != NULL)	// The WadRecord in this case is just a means to store a path
 		{
 			FString name;
@@ -2257,45 +2252,41 @@ long FWadLump::Read (void *buffer, long len)
 // FMemLump -----------------------------------------------------------------
 
 FMemLump::FMemLump ()
-: Block (NULL)
 {
 }
 
-#ifdef __GNUC__
 FMemLump::FMemLump (const FMemLump &copy)
-#else
-FMemLump::FMemLump (FMemLump &copy)
-#endif
 {
 	Block = copy.Block;
-	const_cast<FMemLump *>(&copy)->Block = NULL;
 }
 
-#ifdef __GNUC__
 FMemLump &FMemLump::operator = (const FMemLump &copy)
-#else
-FMemLump &FMemLump::operator = (FMemLump &copy)
-#endif
 {
-	if (Block != NULL)
-	{
-		delete[] Block;
-	}
 	Block = copy.Block;
-	const_cast<FMemLump *>(&copy)->Block = NULL;
 	return *this;
 }
 
-FMemLump::FMemLump (BYTE *data)
-: Block (data)
+FMemLump::FMemLump (const FString &source)
+: Block (source)
 {
 }
 
 FMemLump::~FMemLump ()
 {
-	if (Block != NULL)
+}
+
+FString::FString (ELumpNum lumpnum)
+{
+	FWadLump lumpr = Wads.OpenLumpNum ((int)lumpnum);
+	long size = lumpr.GetLength ();
+	AllocBuffer (1 + size);
+	long numread = lumpr.Read (&Chars[0], size);
+	Chars[size] = '\0';
+
+	if (numread != size)
 	{
-		delete[] Block;
+		I_Error ("ConstructStringFromLump: Only read %ld of %ld bytes on lump %i (%s)\n",
+			numread, size, lumpnum, Wads.GetLumpFullName((int)lumpnum));
 	}
 }
 

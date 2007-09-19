@@ -634,7 +634,7 @@ bool GLWall::SetWallCoordinates(seg_t * seg, int texturetop,
 	uprgt.u = lorgt.u = l_ul + texlength * glseg.fracright;
 
 
-	if (gltexture && gltexture->tex->bHasCanvas && flags&GLWF_CLAMPY)
+	if (gltexture && gltexture->tex->bHasCanvas && flags&GLT_CLAMPY)
 	{
 		// Camera textures are upside down so we have to shift the y-coordinate
 		// from [-1..0] to [0..1] when using texture clamping!
@@ -837,15 +837,15 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 		if ((textureoffset==0 && righttex<=gltexture->TextureWidth()) || 
 			(textureoffset>=0 && righttex==gltexture->TextureWidth()))
 		{
-			flags|=GLWF_CLAMPX;
+			flags|=GLT_CLAMPX;
 		}
 		else
 		{
-			flags&=~GLWF_CLAMPX;
+			flags&=~GLT_CLAMPX;
 		}
 		if (!(seg->linedef->flags&ML_WRAP_MIDTEX))
 		{
-			flags|=GLWF_CLAMPY;
+			flags|=GLT_CLAMPY;
 		}
 	}
 	SetWallCoordinates(seg, texturetop, topleft, topright, bottomleft, bottomright, t_ofs);
@@ -974,7 +974,7 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 	}
 	// restore some values that have been altered in this function!
 	glseg=glsave;
-	flags&=~(GLWF_CLAMPX|GLWF_CLAMPY);
+	flags&=~(GLT_CLAMPX|GLT_CLAMPY);
 }
 
 

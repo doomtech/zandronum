@@ -390,7 +390,7 @@ bool SC_GetToken ()
 {
 	if (SC_ScanString (true))
 	{
-		if (sc_TokenType == TK_Identifier || sc_TokenType == TK_NameConst)
+		if (sc_TokenType == TK_NameConst)
 		{
 			sc_Name = FName(sc_String);
 		}
@@ -430,6 +430,22 @@ void SC_MustGetAnyToken (void)
 
 //==========================================================================
 //
+// SC_TokenMustBe
+//
+//==========================================================================
+
+void SC_TokenMustBe (int token)
+{
+	if (sc_TokenType != token)
+	{
+		FString tok1 = SC_TokenName(token);
+		FString tok2 = SC_TokenName(sc_TokenType, sc_String);
+		SC_ScriptError ("Expected %s but got %s instead.", tok1.GetChars(), tok2.GetChars());
+	}
+}
+
+//==========================================================================
+//
 // SC_MustGetToken
 //
 //==========================================================================
@@ -437,12 +453,7 @@ void SC_MustGetAnyToken (void)
 void SC_MustGetToken (int token)
 {
 	SC_MustGetAnyToken ();
-	if (sc_TokenType != token)
-	{
-		FString tok1 = SC_TokenName(token);
-		FString tok2 = SC_TokenName(sc_TokenType, sc_String);
-		SC_ScriptError ("Expected %s but got %s instead.", tok1.GetChars(), tok2.GetChars());
-	}
+	SC_TokenMustBe(token);
 }
 
 //==========================================================================
@@ -843,6 +854,10 @@ FString SC_TokenName (int token, const char *string)
 		"'stop'",
 		"'eval'",
 		"'evalnot'",
+		"'pickup'",
+		"'breakable'",
+		"'projectile'",
+		"'#include'",
 	};
 
 	FString work;

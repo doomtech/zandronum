@@ -21,6 +21,7 @@ v0.97d-beta5
 *+	- Added custom states and custom damage types (ported the change from ZDoom revision 368-378). [Torr Samaho]
 *+	- Added Linux OpenGL support (using the Linux GZDoom patch from Costja). [Torr Samaho]
 *-	- Crash logs should finally work on all Windows machines. [Torr Samaho]
++	- Upgraded the GZDoom renderer to 1.0.25! [Torr Samaho]
 +	- Added the dynamic light definitions for Heretic and Hexen from ZDoomGL. [Torr Samaho]
 +	- Added invasion spawners for Heretic! [Carnevil, Aabra, and Tun]
 +	- Added invasion spawners for Hexen! [Gez, Torr Samaho]

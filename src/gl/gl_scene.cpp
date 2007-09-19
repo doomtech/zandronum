@@ -408,9 +408,9 @@ void gl_DrawScene()
 
 	// Part 2: masked geometry. This is set up so that only pixels with alpha>0.5 will show
 	// This creates a blank surface that only fills the nontransparent parts of the texture
-	gl.SetTextureMode(TM_MASK);
+	gl_SetTextureMode(TM_MASK);
 	gl_drawinfo->drawlists[GLDL_LIGHTMASKED].Draw(GLPASS_BASE_MASKED);
-	gl.SetTextureMode(TM_MODULATE);
+	gl_SetTextureMode(TM_MODULATE);
 
 
 	// second pass: draw lights (on fogged surfaces they are added to the textures!)
@@ -762,7 +762,7 @@ sector_t * gl_RenderView (AActor * camera, GL_IRECT * bounds, float fov, float r
 
 	// Handle Boom colormaps
 	gl_boomcolormap=CM_DEFAULT;
-	/*
+	/* doesn't work as intended
 	if (mainview && !gl_blendcolormaps)
 	{
 		if (!viewsector->e->ffloors.Size() && gl_fixedcolormap==CM_DEFAULT && 
@@ -823,6 +823,7 @@ void gl_RenderTextureView(FCanvasTexture *Texture, AActor * Viewpoint, int FOV)
 	int width = gltex->TextureWidth();
 	int height = gltex->TextureHeight();
 
+	gl_fixedcolormap=CM_DEFAULT;
 	bounds.left=bounds.top=0;
 	bounds.width=GLTexture::GetTexDimension(gltex->GetWidth());
 	bounds.height=GLTexture::GetTexDimension(gltex->GetHeight());
@@ -857,6 +858,7 @@ void gl_RenderViewToCanvas(DCanvas * pic, int x, int y, int width, int height)
 	GL_IRECT bounds;
 	PalEntry p;
 
+	gl_fixedcolormap=CM_DEFAULT;
 	bounds.left=0;
 	bounds.top=0;
 	bounds.width=width;

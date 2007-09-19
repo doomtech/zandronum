@@ -1,3 +1,37 @@
+/*
+** zstring.cpp
+** A dynamically-allocated string class.
+**
+**---------------------------------------------------------------------------
+** Copyright 2005-2007 Randy Heit
+** All rights reserved.
+**
+** Redistribution and use in source and binary forms, with or without
+** modification, are permitted provided that the following conditions
+** are met:
+**
+** 1. Redistributions of source code must retain the above copyright
+**    notice, this list of conditions and the following disclaimer.
+** 2. Redistributions in binary form must reproduce the above copyright
+**    notice, this list of conditions and the following disclaimer in the
+**    documentation and/or other materials provided with the distribution.
+** 3. The name of the author may not be used to endorse or promote products
+**    derived from this software without specific prior written permission.
+**
+** THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+** IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+** OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+** IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+** INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+** NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+** DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+** THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+** THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+**---------------------------------------------------------------------------
+**
+*/
+
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
@@ -172,17 +206,34 @@ FString &FString::operator = (const FString &other)
 }
 FString &FString::operator = (const char *copyStr)
 {
-	Data()->Release();
-	if (copyStr == NULL || *copyStr == '\0')
+	if (copyStr != Chars)
 	{
-		NullString.RefCount++;
-		Chars = &NullString.Nothing[0];
-	}
-	else
-	{
-		size_t len = strlen (copyStr);
-		AllocBuffer (len);
-		StrCopy (Chars, copyStr, len);
+		if (copyStr == NULL || *copyStr == '\0')
+		{
+			NullString.RefCount++;
+			Chars = &NullString.Nothing[0];
+		}
+		else
+		{
+			// In case copyStr is inside us, we can't release it until
+			// we've finished the copy.
+			FStringData *old = Data();
+
+			if (copyStr < Chars || copyStr >= Chars + old->Len)
+			{
+				// We know the string isn't in our buffer, so release it now
+				// to reduce the potential for needless memory fragmentation.
+				old->Release();
+				old = NULL;
+			}
+			size_t len = strlen (copyStr);
+			AllocBuffer (len);
+			StrCopy (Chars, copyStr, len);
+			if (old != NULL)
+			{
+				old->Release();
+			}
+		}
 	}
 	return *this;
 }

@@ -158,7 +158,7 @@ void GLSprite::Draw(int pass)
 	}
 
 	if (gl_isBlack(Colormap.FadeColor)) foglevel=lightlevel;
-	gl_SetFog(foglevel,  Colormap.FadeColor, RenderStyle);
+	gl_SetFog(foglevel,  Colormap.FadeColor, RenderStyle, Colormap.LightColor.a);
 
 	if (!modelframe)
 	{
@@ -389,7 +389,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 			if (gl_enhanced_lightamp &&
 				(thing->IsKindOf(RUNTIME_CLASS(AInventory)) || thing->flags3&MF3_ISMONSTER || thing->flags&MF_MISSILE || thing->flags&MF_CORPSE))
 			{
-				Colormap.LightColor.a=CM_LITE;
+				Colormap.LightColor.a=CM_INVERT;
 			}
 		}
 	}

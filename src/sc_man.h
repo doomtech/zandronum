@@ -17,6 +17,7 @@ void SC_MustGetStringName (const char *name);
 bool SC_CheckString (const char *name);
 bool SC_GetToken (void);
 void SC_MustGetAnyToken (void);
+void SC_TokenMustBe (int token);
 void SC_MustGetToken (int token);
 bool SC_CheckToken (int token);
 bool SC_CheckTokenId (ENamedName id);
@@ -44,6 +45,7 @@ enum
 	TK_FloatConst,
 	TK_Ellipsis,		// ...
 	TK_RShiftEq,		// >>=
+	TK_URShiftEq,		// >>>=
 	TK_LShiftEq,		// <<=
 	TK_AddEq,			// +=
 	TK_SubEq,			// -=
@@ -54,6 +56,7 @@ enum
 	TK_XorEq,			// ^=
 	TK_OrEq,			// |=
 	TK_RShift,			// >>
+	TK_URShift,			// >>>
 	TK_LShift,			// <<
 	TK_Incr,			// ++
 	TK_Decr,			// --
@@ -74,7 +77,6 @@ enum
 	TK_For,
 	TK_If,
 	TK_Return,
-	TK_States,
 	TK_Switch,
 	TK_Until,
 	TK_While,
@@ -142,6 +144,10 @@ enum
 	TK_Stop,
 	TK_Eval,
 	TK_EvalNot,
+	TK_Pickup,
+	TK_Breakable,
+	TK_Projectile,
+	TK_Include,
 
 	TK_LastToken
 };

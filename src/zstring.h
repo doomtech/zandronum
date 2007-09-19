@@ -1,3 +1,36 @@
+/*
+** zstring.h
+**
+**---------------------------------------------------------------------------
+** Copyright 2005-2007 Randy Heit
+** All rights reserved.
+**
+** Redistribution and use in source and binary forms, with or without
+** modification, are permitted provided that the following conditions
+** are met:
+**
+** 1. Redistributions of source code must retain the above copyright
+**    notice, this list of conditions and the following disclaimer.
+** 2. Redistributions in binary form must reproduce the above copyright
+**    notice, this list of conditions and the following disclaimer in the
+**    documentation and/or other materials provided with the distribution.
+** 3. The name of the author may not be used to endorse or promote products
+**    derived from this software without specific prior written permission.
+**
+** THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+** IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+** OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+** IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+** INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+** NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+** DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+** THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+** THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+**---------------------------------------------------------------------------
+**
+*/
+
 #ifndef ZSTRING_H
 #define ZSTRING_H
 
@@ -6,6 +39,7 @@
 #include <string.h>
 #include <stddef.h>
 #include "tarray.h"
+#include "name.h"
 
 // [BB] Collect all platform dependent things in platform.h/cpp.
 #include "platform.h"
@@ -71,6 +105,10 @@ struct FNullStringData
 	char Nothing[2];
 };
 
+enum ELumpNum
+{
+};
+
 class FString
 {
 public:
@@ -89,6 +127,9 @@ public:
 	FString (const char *head, const FString &tail);
 	FString (const char *head, const char *tail);
 	FString (char head, const FString &tail);
+
+	// Other constructors
+	FString (ELumpNum);	// Create from a lump
 
 	~FString ();
 
@@ -113,7 +154,13 @@ public:
 	FString &operator += (const FString &tail);
 	FString &operator += (const char *tail);
 	FString &operator += (char tail);
+	FString &operator += (const FName &name) { return *this += name.GetChars(); }
 	FString &AppendCStrPart (const char *tail, size_t tailLen);
+
+	FString &operator << (const FString &tail) { return *this += tail; }
+	FString &operator << (const char *tail) { return *this += tail; }
+	FString &operator << (char tail) { return *this += tail; }
+	FString &operator << (const FName &name) { return *this += name.GetChars(); }
 
 	FString Left (size_t numChars) const;
 	FString Right (size_t numChars) const;
@@ -245,5 +292,13 @@ namespace StringFormat
 };
 
 #undef PRINTFISH
+
+// FName inline implementations that take FString parameters
+
+inline FName::FName(const FString &text) { Index = NameData.FindName (text, text.Len(), false); }
+inline FName::FName(const FString &text, bool noCreate) { Index = NameData.FindName (text, text.Len(), noCreate); }
+inline FName &FName::operator = (const FString &text) { Index = NameData.FindName (text, text.Len(), false); return *this; }
+inline FName &FNameNoInit::operator = (const FString &text) { Index = NameData.FindName (text, text.Len(), false); return *this; }
+
 
 #endif

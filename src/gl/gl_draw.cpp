@@ -44,6 +44,7 @@
 #include "gl/gl_struct.h"
 #include "gl/gl_texture.h"
 #include "gl/gl_functions.h"
+#include "gl/gl_shader.h"
 #include "gl/gl_framebuffer.h"
 
 //==========================================================================
@@ -166,7 +167,7 @@ void gl_DrawTexture(FTexInfo *texInfo)
 	int space = (static_cast<OpenGLFrameBuffer*>(screen)->GetTrueHeight()-screen->GetHeight())/2;	// ugh...
 	gl.Scissor(texInfo->clipLeft, btm - texInfo->clipBottom+space, texInfo->clipRight - texInfo->clipLeft, texInfo->clipBottom - texInfo->clipTop);
 	
-	if (!texInfo->masked) gl.SetTextureMode(TM_OPAQUE);
+	if (!texInfo->masked) gl_SetTextureMode(TM_OPAQUE);
 	gl.Color4f(r, g, b, texInfo->alpha);
 	
 	gl.Disable(GL_ALPHA_TEST);
@@ -184,7 +185,7 @@ void gl_DrawTexture(FTexInfo *texInfo)
 	
 	gl.Scissor(0, 0, screen->GetWidth(), screen->GetHeight());
 	gl.Disable(GL_SCISSOR_TEST);
-	if (!texInfo->masked) gl.SetTextureMode(TM_MODULATE);
+	if (!texInfo->masked) gl_SetTextureMode(TM_MODULATE);
 }
 
 
@@ -215,7 +216,8 @@ void gl_DrawBuffer(byte * sbuffer, int width, int height, int x, int y, int dx, 
 	GLTexture * gltex = new GLTexture(width, height, false, false);
 	gltex->CreateTexture(buffer, width, height, false, CM_DEFAULT);
 	delete[] buffer;
-
+	
+	GLShader::Unbind();
 	gl.Begin(GL_TRIANGLE_STRIP);
 	gl.TexCoord2f(0, 0);
 	gl.Vertex2i(x, y);
@@ -315,6 +317,7 @@ void gl_DrawLine(int x1, int y1, int x2, int y2, int color)
 {
 	PalEntry p = color&0xff000000? (PalEntry)color : GPalette.BaseColors[color];
 	gl_EnableTexture(false);
+	GLShader::Unbind();
 	gl.Color3ub(p.r, p.g, p.b);
 	gl.Begin(GL_LINES);
 	gl.Vertex2i(x1, y1);
@@ -341,6 +344,7 @@ void OpenGLFrameBuffer::Dim(PalEntry color, float damount, int x1, int y1, int w
 	float r, g, b;
 	
 	gl_EnableTexture(false);
+	GLShader::Unbind();
 	gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	gl.AlphaFunc(GL_GREATER,0);
 	
@@ -413,7 +417,8 @@ void OpenGLFrameBuffer::Clear(int left, int top, int right, int bottom, int colo
 	}
 	*/
 	
-	gl_SetColorMode(CM_DEFAULT);
+	GLShader::Unbind();
+
 	gl.Enable(GL_SCISSOR_TEST);
 	gl.Scissor(left, rt - height, width, height);
 	

@@ -57,10 +57,30 @@
 #include "gl/gl_struct.h"
 #include "gl/gl_texture.h"
 #include "gl/gl_functions.h"
+#include "gl/gl_shader.h"
 
-CUSTOM_CVAR(Bool, gl_warp_shader, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+CUSTOM_CVAR(Bool, gl_warp_shader, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
 {
-	if (!self) gl_SetShaderForWarp(0,0);
+	if (self && !(gl.flags & RFL_GLSL)) self=0;
+}
+
+CUSTOM_CVAR(Bool, gl_colormap_shader, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
+{
+	if (self && !(gl.flags & RFL_GLSL)) self=0;
+}
+
+// Only for testing for now. This isn't working fully yet.
+CUSTOM_CVAR(Bool, gl_glsl_renderer, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
+{
+	if (!(gl.flags & RFL_GLSL)) 
+	{
+		if (self) self=0;
+	}
+	else
+	{
+		GLShader::Unbind();
+		FGLTexture::FlushAll();
+	}
 }
 
 CUSTOM_CVAR(Bool, gl_texture_usehires, true, CVAR_ARCHIVE|CVAR_NOINITCALL)
@@ -72,13 +92,14 @@ EXTERN_CVAR(Bool, gl_render_precise)
 
 CVAR(Bool, gl_precache, false, CVAR_ARCHIVE)
 
+
+
 // internal parameters for ModifyPalette
 enum SpecialModifications
 {
 	CM_ICE=-2,					// The bluish ice translation for frozen corpses
 	CM_GRAY=-3,					// a simple grayscale map for colorizing blood splats
 };
-
 
 static const BYTE IcePalette[16][3] =
 {
@@ -1053,7 +1074,7 @@ void FPCXTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_heig
 void FWarpTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int xx, int yy, 
 									 intptr_t cm, int translation)
 {
-	if (gl_warp_shader)
+	if (gl_warp_shader || gl_glsl_renderer)
 	{
 		this->SourcePic->CopyTrueColorPixels(buffer, buf_width, buf_height, xx, yy, cm, translation);
 		return;
@@ -1146,7 +1167,7 @@ void FWarpTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_hei
 void FWarp2Texture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int xx, int yy, 
 									 intptr_t cm, int translation)
 {
-	if (gl_warp_shader)
+	if (gl_warp_shader || gl_glsl_renderer)
 	{
 		this->SourcePic->CopyTrueColorPixels(buffer, buf_width, buf_height, xx, yy, cm, translation);
 		return;
@@ -1596,42 +1617,40 @@ const PatchTextureInfo * FGLTexture::GetPatchTextureInfo()
 //
 //===========================================================================
 
-const WorldTextureInfo * FGLTexture::Bind(int cm, int translation, const unsigned char * translationtbl)
+const WorldTextureInfo * FGLTexture::Bind(int cm, int clampmode, int translation, const unsigned char * translationtbl)
 {
-	if (gl_warp_shader)
-	{
-		if (tex->bWarped!=0)
-		{
-			FGLTexture * parent = ValidateTexture(static_cast<FWarpTexture*>(tex)->SourcePic);
-			const WorldTextureInfo * wti = parent->Bind(cm);
-
-			if (gl_SetShaderForWarp(tex->bWarped, I_MSTime()/1000.f))
-			{
-				return wti;
-			}
-			// The shader failed - revert to software warping.
-			gl_warp_shader=false;
-		}
-		else gl_SetShaderForWarp(0,0);
-	}
-
 	if (GetWorldTextureInfo())
 	{
-		if (cm >= CM_FIRSTCOLORMAP)
+		if (!gl_glsl_renderer)
 		{
-			gl_SetColorMode(CM_DEFAULT);
+			if (gl.flags & RFL_GLSL)
+			{
+				if ((gl_warp_shader && tex->bWarped!=0) || 
+					((tex->bHasCanvas || gl_colormap_shader) && cm!=CM_DEFAULT && cm!=CM_SHADE && gl_texturemode != TM_MASK))
+				{
+					Shader->Bind(cm);
+					if (cm != CM_SHADE) cm = CM_DEFAULT;
+				}
+				else
+				{
+					GLShader::Unbind();
+				}
+			}
+
+			if (!gl_warp_shader)
+			{
+				// If this is a warped texture that needs updating
+				// delete all system textures created for this
+				if (tex->CheckModified() && !tex->bHasCanvas && HiresLump<0 && HiresLump!=-2)
+				{
+					gltexture->Clean(true);
+				}
+			}
 		}
 		else
 		{
-			if (gl_SetColorMode(cm, tex->bHasCanvas)) cm=CM_DEFAULT;
-		}
-
-		// If this is a warped texture that needs updating
-		// delete all system textures created for this but only
-		// if it is not a hires replacement.
-		if (tex->CheckModified() && !tex->bHasCanvas && HiresLump<0 && HiresLump!=-2)
-		{
-			gltexture->Clean(true);
+			Shader->Bind(cm);
+			if (cm != CM_SHADE) cm = CM_DEFAULT;
 		}
 
 		// Bind it to the system. For multitexturing this
@@ -1642,17 +1661,8 @@ const WorldTextureInfo * FGLTexture::Bind(int cm, int translation, const unsigne
 
 			// Create this texture
 
-			//cycle_t c=0;
-			//clock(c);
-
 			unsigned char * buffer = CreateTexBuffer(cm, translation, translationtbl, w, h);
 
-			/*
-			unclock(c);
-			Printf("%s: Create buffer: %f ms\n", tex->Name, SecondsPerCycle * (double)c * 1000);
-			c=0;
-			clock(c);
-			*/
 			ProcessData(buffer, w, h, cm, false);
 			if (!gltexture->CreateTexture(buffer, w, h, true, cm, translation, translationtbl)) 
 			{
@@ -1660,17 +1670,11 @@ const WorldTextureInfo * FGLTexture::Bind(int cm, int translation, const unsigne
 				delete buffer;
 				return NULL;
 			}
-			/*
-			unclock(c)
-			Printf("%s: Create texture: %f ms\n", tex->Name, SecondsPerCycle * (double)c * 1000);
-			*/
 			delete buffer;
 		}
-		if (gl_render_precise)
-		{
-			gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		}
+		// clamping in x-direction may cause problems when rendering segs
+		gltexture->SetTextureClamp(gl_render_precise? clampmode&GLT_CLAMPY : clampmode);
+
 		if (tex->bHasCanvas) static_cast<FCanvasTexture*>(tex)->NeedUpdate();
 		return (WorldTextureInfo*)this; 
 	}
@@ -1684,45 +1688,38 @@ const WorldTextureInfo * FGLTexture::Bind(int cm, int translation, const unsigne
 //===========================================================================
 const PatchTextureInfo * FGLTexture::BindPatch(int cm, int translation, const byte * translationtable)
 {
-	if (tex->bHasCanvas) return NULL;	// no canvas textures outside of a level!
-
-	if (gl_warp_shader)
-	{
-		if (tex->bWarped!=0)
-		{
-			FGLTexture * parent = ValidateTexture(static_cast<FWarpTexture*>(tex)->SourcePic);
-			const PatchTextureInfo * wti = parent->BindPatch(cm, translation, translationtable);
-
-			if (gl_SetShaderForWarp(tex->bWarped, I_MSTime()/1000.f))
-			{
-				return wti;
-			}
-			// The shader failed - revert to software warping.
-			gl_warp_shader=false;
-		}
-		else gl_SetShaderForWarp(0,0);
-	}
-
-
 	if (GetPatchTextureInfo())
 	{
-		// CM_LITE is a special case and must use remapped textures in any case!
-		// It is covered by this 'if'!
-		if (cm >= CM_SHADE)
+		if (!gl_glsl_renderer)
 		{
-			gl_SetColorMode(CM_DEFAULT);
-			if (cm==CM_LITE) cm=CM_INVERT;
+			if (gl.flags & RFL_GLSL)
+			{
+				if ((gl_warp_shader && tex->bWarped!=0) || 
+					((tex->bHasCanvas || gl_colormap_shader) && cm!=CM_DEFAULT && cm!=CM_SHADE && gl_texturemode != TM_MASK))
+				{
+					Shader->Bind(cm);
+					if (cm != CM_SHADE) cm = CM_DEFAULT;
+				}
+				else
+				{
+					GLShader::Unbind();
+				}
+			}
+
+			if (!gl_warp_shader)
+			{
+				// If this is a warped texture that needs updating
+				// delete all system textures created for this
+				if (tex->CheckModified() && !tex->bHasCanvas && HiresLump<0 && HiresLump!=-2)
+				{
+					glpatch->Clean(true);
+				}
+			}
 		}
 		else
 		{
-			if (gl_SetColorMode(cm, tex->bHasCanvas)) cm=CM_DEFAULT;
-		}
-
-		// If this is a warped texture that needs updating
-		// delete all system textures created for this
-		if (tex->CheckModified() && !tex->bHasCanvas && HiresLump<0 && HiresLump!=-2)
-		{
-			glpatch->Clean(true);
+			Shader->Bind(cm);
+			if (cm != CM_SHADE) cm = CM_DEFAULT;
 		}
 
 		// Bind it to the system. For multitexturing this
@@ -1804,6 +1801,18 @@ FGLTexture * FGLTexture::ValidateTexture(FTexture * tex)
 	if (tex	&& tex->UseType!=FTexture::TEX_Null)
 	{
 		if (!tex->gltex) tex->gltex = new FGLTexture(tex);
+		switch(tex->bWarped)
+		{
+		case 0:
+			tex->gltex->Shader = GLShader::Find("Default");
+			break;
+		case 1:
+			tex->gltex->Shader = GLShader::Find("Warp 1");
+			break;
+		case 2:
+			tex->gltex->Shader = GLShader::Find("Warp 2");
+			break;
+		}
 		return tex->gltex;
 	}
 	return NULL;
@@ -1813,5 +1822,4 @@ FGLTexture * FGLTexture::ValidateTexture(int no, bool translate)
 {
 	return FGLTexture::ValidateTexture(translate? TexMan(no) : TexMan[no]);
 }
-
 

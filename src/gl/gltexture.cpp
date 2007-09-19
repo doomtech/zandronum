@@ -252,9 +252,9 @@ void GLTexture::LoadImage(unsigned char * buffer,int w, int h, unsigned int & gl
 		gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, TexFilter[gl_texture_filter].magfilter);
 	}
 
-	if (wrapparam==GL_CLAMP) wrapparam=GL_CLAMP_TO_EDGE;
-	gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapparam);
-	gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapparam);
+	gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapparam==GL_CLAMP? GL_CLAMP_TO_EDGE : GL_REPEAT);
+	gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapparam==GL_CLAMP? GL_CLAMP_TO_EDGE : GL_REPEAT);
+	clampmode = wrapparam==GL_CLAMP? GLT_CLAMPX|GLT_CLAMPY : 0;
 	gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, TexFilter[gl_texture_filter].magfilter);
 }
 
@@ -283,6 +283,7 @@ GLTexture::GLTexture(int _width, int _height, bool _mipmap, bool wrap)
 	cm_arraysize=(byte)(CM_FIRSTCOLORMAP + numfakecmaps);
 	glTexID = new unsigned[cm_arraysize];
 	memset(glTexID,0,sizeof(unsigned int)*cm_arraysize);
+	clampmode=0;
 }
 
 
@@ -419,3 +420,24 @@ unsigned int GLTexture::CreateTexture(unsigned char * buffer, int w, int h, bool
 }
 
 
+//===========================================================================
+// 
+//	SetTextureClamp
+//  sets and caches the texture clamping mode
+//  while this operation was not problematic on XP
+//  it appears to cause severe slowdowns on Vista so cache the
+//  clamping mode and only set when it really changes
+//
+//===========================================================================
+void GLTexture::SetTextureClamp(int newclampmode)
+{
+	if ((clampmode&GLT_CLAMPX) != (newclampmode&GLT_CLAMPX))
+	{
+		gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, newclampmode&GLT_CLAMPX? GL_CLAMP_TO_EDGE : GL_REPEAT);
+	}
+	if ((clampmode&GLT_CLAMPY) != (newclampmode&GLT_CLAMPY))
+	{
+		gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, newclampmode&GLT_CLAMPY? GL_CLAMP_TO_EDGE : GL_REPEAT);
+	}
+	clampmode = newclampmode;
+}

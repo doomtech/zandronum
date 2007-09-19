@@ -189,6 +189,7 @@ void GLWall::RenderFogBoundary()
 		float fogd1=(0.95f-exp(-fogdensity*dist1/62500.f)) * 1.05f;
 		float fogd2=(0.95f-exp(-fogdensity*dist2/62500.f)) * 1.05f;
 
+		gl_ModifyColor(Colormap.FadeColor.r, Colormap.FadeColor.g, Colormap.FadeColor.b, Colormap.LightColor.a);
 		float fc[4]={Colormap.FadeColor.r/255.0f,Colormap.FadeColor.g/255.0f,Colormap.FadeColor.b/255.0f,fogd2};
 
 		gl_EnableTexture(false);
@@ -230,7 +231,7 @@ void GLWall::RenderMirrorSurface()
 	gl.BlendFunc(GL_SRC_ALPHA,GL_ONE);
 	gl.AlphaFunc(GL_GREATER,0);
 	gl.DepthFunc(GL_LEQUAL);
-	gl_SetFog(lightlevel, Colormap.FadeColor, STYLE_Add);
+	gl_SetFog(lightlevel, Colormap.FadeColor, STYLE_Add, Colormap.LightColor.a);
 
 	RenderWall(0,NULL);
 
@@ -271,10 +272,8 @@ void GLWall::RenderTranslucentWall()
 
 	if (gltexture) 
 	{
-		gltexture->Bind(Colormap.LightColor.a);
+		gltexture->Bind(Colormap.LightColor.a, flags);
 		// prevent some ugly artifacts at the borders of fences etc.
-		if (flags&GLWF_CLAMPY) gl.TexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
-		if (flags&GLWF_CLAMPX) gl.TexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
 		gl_SetColor(lightlevel, (extralight * gl_weaponlight), &Colormap, fabsf(alpha));
 	}
 	else 
@@ -283,19 +282,14 @@ void GLWall::RenderTranslucentWall()
 		gl_SetColor(lightlevel, 0, &Colormap, fabsf(alpha));
 	}
 
-	if (type!=RENDERWALL_M2SNF) gl_SetFog(lightlevel, Colormap.FadeColor, RenderStyle);
-	else gl_SetFog(255, 0, STYLE_Normal);
+	if (type!=RENDERWALL_M2SNF) gl_SetFog(lightlevel, Colormap.FadeColor, RenderStyle, Colormap.LightColor.a);
+	else gl_SetFog(255, 0, STYLE_Normal, CM_DEFAULT);
 
 	RenderWall(1,NULL);
 
 	// restore default settings
 	if (RenderStyle==STYLE_Add) gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	if (gltexture)	
-	{
-		if (flags&GLWF_CLAMPY) gl.TexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
-		if (flags&GLWF_CLAMPX) gl.TexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
-	}
-	else 
+	if (!gltexture)	
 	{
 		gl_EnableTexture(true);
 	}
@@ -333,35 +327,29 @@ void GLWall::Draw(int pass)
 	case GLPASS_BASE:			// Base pass for non-masked polygons (all opaque geometry)
 	case GLPASS_BASE_MASKED:	// Base pass for masked polygons (2sided mid-textures and transparent 3D floors)
 	case GLPASS_PLAIN:			// Single-pass rendering
+
 		gl_SetColor(lightlevel, rellight + (extralight * gl_weaponlight), &Colormap,1.0f);
 		if (!(flags&GLWF_FOGGY) || pass == GLPASS_PLAIN) 
 		{
-			if (type!=RENDERWALL_M2SNF) gl_SetFog(lightlevel, Colormap.FadeColor, STYLE_Normal);
-			else gl_SetFog(255, 0, STYLE_Normal);
+			if (type!=RENDERWALL_M2SNF) gl_SetFog(lightlevel, Colormap.FadeColor, STYLE_Normal, Colormap.LightColor.a);
+			else gl_SetFog(255, 0, STYLE_Normal, CM_DEFAULT);
 		}
+
 		// fall through
 	case GLPASS_TEXTURE:		// modulated texture
 		if (pass != GLPASS_BASE)
 		{
-			gltexture->Bind(Colormap.LightColor.a);
-			if (flags&GLWF_CLAMPY) gl.TexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
-			if (flags&GLWF_CLAMPX) gl.TexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
+			gltexture->Bind(Colormap.LightColor.a, flags);
 		}
 		
 		RenderWall((pass!=GLPASS_BASE) + 2*(pass!=GLPASS_TEXTURE), NULL);
-		
-		if (pass != GLPASS_BASE)
-		{
-			if (flags&GLWF_CLAMPY) gl.TexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
-			if (flags&GLWF_CLAMPX) gl.TexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
-		}
 		break;
 
 	case GLPASS_LIGHT:
 	case GLPASS_LIGHT_ADDITIVE:
 		// black fog is diminishing light and should affect lights less than the rest!
-		if (!(flags&GLWF_FOGGY)) gl_SetFog((255+lightlevel)>>1, 0, STYLE_Normal);
-		else gl_SetFog(lightlevel, Colormap.FadeColor, STYLE_Add);	
+		if (!(flags&GLWF_FOGGY)) gl_SetFog((255+lightlevel)>>1, 0, STYLE_Normal, CM_DEFAULT);
+		else gl_SetFog(lightlevel, Colormap.FadeColor, STYLE_Add, Colormap.LightColor.a);	
 
 		if (!seg->bPolySeg)
 		{
@@ -393,7 +381,7 @@ void GLWall::Draw(int pass)
 	case GLPASS_DECALS_NOFOG:
 		if (seg->sidedef && seg->sidedef->AttachedDecals)
 		{
-			if (pass==GLPASS_DECALS) gl_SetFog(lightlevel, Colormap.FadeColor, STYLE_Normal);
+			if (pass==GLPASS_DECALS) gl_SetFog(lightlevel, Colormap.FadeColor, STYLE_Normal, Colormap.LightColor.a);
 			DoDrawDecals(seg->sidedef->AttachedDecals, seg);
 		}
 		break;

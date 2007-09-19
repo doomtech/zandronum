@@ -104,7 +104,7 @@ public:
    void ReplaceActorName(const char *newName);
    void ReplaceLightName(const char *newName);
 protected:
-   char *m_ActorName, *m_FrameName, *m_AssocLight;
+   FString m_ActorName, m_FrameName, m_AssocLight;
 };
 
 TArray<FLightAssociation *> LightAssociations;
@@ -112,47 +112,37 @@ TArray<FLightAssociation *> LightAssociations;
 
 FLightAssociation::FLightAssociation()
 {
-   m_ActorName = NULL;
-   m_FrameName = NULL;
-   m_AssocLight = NULL;
 }
 
 
 FLightAssociation::FLightAssociation(const char *actorName, const char *frameName, const char *lightName)
 {
-   m_ActorName = new char[strlen(actorName) + 1];
-   m_FrameName = new char[strlen(frameName) + 1];
-   m_AssocLight = new char[strlen(lightName) + 1];
+	// [BB] This leads to crashes at starup and should be not be needed anyway since
+	// the calls to format allocate memory.
+	//m_ActorName = new char[strlen(actorName) + 1];
+	//m_FrameName = new char[strlen(frameName) + 1];
+	//m_AssocLight = new char[strlen(lightName) + 1];
 
-   sprintf(m_ActorName, "%s", actorName);
-   sprintf(m_FrameName, "%s", frameName);
-   sprintf(m_AssocLight, "%s", lightName);
+	m_ActorName.Format("%s", actorName);
+	m_FrameName.Format("%s", frameName);
+	m_AssocLight.Format("%s", lightName);
 }
 
 
 FLightAssociation::~FLightAssociation()
 {
-   if (m_ActorName) delete [] m_ActorName;
-   if (m_FrameName) delete [] m_FrameName;
-   if (m_AssocLight) delete [] m_AssocLight;
 }
 
 
 void FLightAssociation::ReplaceActorName(const char *newName)
 {
-   if (m_ActorName) delete [] m_ActorName;
-
-   m_ActorName = new char[strlen(newName) + 1];
-   sprintf(m_ActorName, "%s", newName);
+	m_ActorName.Format("%s", newName);
 }
 
 
 void FLightAssociation::ReplaceLightName(const char *newName)
 {
-   if (m_AssocLight) delete [] m_AssocLight;
-
-   m_AssocLight = new char[strlen(newName) + 1];
-   sprintf(m_AssocLight, "%s", newName);
+	m_AssocLight.Format("%s", newName);
 }
 
 

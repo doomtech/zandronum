@@ -19,6 +19,7 @@
 #include "gl/gl_struct.h"
 #include "gl/gl_intern.h"
 #include "gl/gl_basic.h"
+#include "gl/gl_shader.h"
 
 // MACROS ------------------------------------------------------------------
 
@@ -257,6 +258,19 @@ SDLGLFB::SDLGLFB (int width, int height, bool fullscreen)
 		return;
 	}*/
 
+	if ( !gl_vid_compatibility )
+	{
+		//SDL_GL_SetAttribute( SDL_GL_RED_SIZE, 8 );
+		//SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, 8 );
+		//SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE, 8 );
+		//SDL_GL_SetAttribute( SDL_GL_ALPHA_SIZE, 8 );
+		//SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, 24 );
+		//SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
+		SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE,  8 );
+	}
+	else
+		gl.flags|=RFL_NOSTENCIL;
+
 	Screen = SDL_SetVideoMode (width, height, vid_displaybits,
 		SDL_HWSURFACE|SDL_HWPALETTE|SDL_OPENGL | SDL_GL_DOUBLEBUFFER|SDL_ANYFORMAT|
 		(fullscreen ? SDL_FULLSCREEN : 0));
@@ -328,7 +342,7 @@ SDLGLFB::SDLGLFB (int width, int height, bool fullscreen)
 
 	gl.Viewport(0, 0/*(GetTrueHeight()-GetHeight())/2*/, GetWidth(), GetHeight()); 
 
-	gl_InitShaders();
+	GLShader::Initialize();
 	gl_InitFog();
 	Set2DMode();
 
@@ -341,7 +355,7 @@ SDLGLFB::SDLGLFB (int width, int height, bool fullscreen)
 SDLGLFB::~SDLGLFB ()
 {
 //	I_SaveWindowedPos();
-	gl_ClearShaders();
+	GLShader::Clear();
 	if (m_supportsGamma) 
 	{
 		gl.SetGammaRamp(m_origGamma[0], m_origGamma[1], m_origGamma[2]);
@@ -533,7 +547,6 @@ bool SDLGLFB::IsFullscreen ()
 
 void SDLGLFB::Set2DMode()
 {
-	gl_SetColorMode(CM_DEFAULT);	// no colormap translations in 3D mode!
 	gl.MatrixMode(GL_MODELVIEW);
 	gl.LoadIdentity();
 	gl.MatrixMode(GL_PROJECTION);
@@ -549,6 +562,7 @@ void SDLGLFB::Set2DMode()
 	gl.Disable(GL_DEPTH_TEST);
 	gl.Disable(GL_MULTISAMPLE);
 	gl_EnableFog(false);
+	GLShader::Unbind();
 }
 
 void gl_ClearScreen()

@@ -67,21 +67,19 @@ void gl_SetSpriteLight(particle_t * thing, int lightlevel, int rellight, FColorm
 void gl_InitFog();
 void gl_SetFogParams(int _fogdensity, PalEntry _outsidefogcolor, int _outsidefogdensity, int _skyfog);
 float gl_GetFogDensity(int lightlevel, PalEntry fogcolor);
-void gl_SetFog(int lightlevel, PalEntry pe, int renderstyle);
+void gl_SetFog(int lightlevel, PalEntry pe, int renderstyle, int cm);
 
 // textures + sprites
 
 void gl_SetPlaneTextureRotation(const GLSectorPlane * secplane, FGLTexture * gltexture);
 
 void gl_ClearShaders();
-void gl_InitShaders();
 void gl_EnableShader(bool on);
 
+void gl_SetTextureMode(int which);
 void gl_EnableFog(bool on);
 void gl_SetCamera(float x, float y, float z);
 void gl_SetFogLight(int lightlevel);
-bool gl_SetColorMode(int cm, bool force=false);
-bool gl_SetShaderForWarp(int type, float time);
 void gl_EnableTexture(bool on);
 
 

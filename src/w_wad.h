@@ -127,29 +127,22 @@ private:
 };
 
 
-// A lump in memory. The destructor automatically deletes the memory
-// the lump was copied to. Note the copy contstructor is really more of
-// a transfer constructor. Once an FMemLump gets copied, the original
-// is no longer usable.
+// A lump in memory.
 class FMemLump
 {
 public:
 	FMemLump ();
-#ifdef __GNUC__
-	// Not really const! GCC forces me to declare it this way!
+
 	FMemLump (const FMemLump &copy);
 	FMemLump &operator= (const FMemLump &copy);
-#else
-	FMemLump (FMemLump &copy);
-	FMemLump &operator= (FMemLump &copy);
-#endif
 	~FMemLump ();
-	void *GetMem () { return (void *)Block; }
+	void *GetMem () { return Block.Len() == 0 ? NULL : (void *)Block.GetChars(); }
+	size_t GetSize () { return Block.Len(); }
 
 private:
-	FMemLump (BYTE *data);
+	FMemLump (const FString &source);
 
-	BYTE *Block;
+	FString Block;
 
 	friend class FWadCollection;
 };
@@ -202,7 +195,7 @@ public:
 	static DWORD LumpNameHash (const char *name);		// [RH] Create hash key from an 8-char name
 
 	int LumpLength (int lump) const;
-	int GetLumpOffset (int lump) const;				// [RH] Returns offset of lump in the wadfile
+	int GetLumpOffset (int lump);					// [RH] Returns offset of lump in the wadfile
 	void GetLumpName (char *to, int lump) const;	// [RH] Copies the lump name to to using uppercopy
 	const char *GetLumpFullName (int lump) const;	// [RH] Returns the lump's full name
 	int GetLumpFile (int lump) const;				// [RH] Returns wadnum for a specified lump

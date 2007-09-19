@@ -83,6 +83,8 @@ public:
 // this is the texture maintenance class for OpenGL. 
 //
 //===========================================================================
+class GLShader;
+
 class FGLTexture : protected WorldTextureInfo, protected PatchTextureInfo
 {
 
@@ -99,6 +101,7 @@ private:
 	signed char areacount;
 	bool bHasColorkey;		// only for hires
 	GL_RECT * areas;
+	GLShader * Shader;
 
 	short LeftOffset;
 	short TopOffset;
@@ -130,7 +133,7 @@ public:
 	~FGLTexture();
 
 	unsigned char * CreateTexBuffer(int cm, int translation, const BYTE * translationtable, int & w, int & h, bool allowhires=true);
-	const WorldTextureInfo * Bind(int cm, int translation=0, const unsigned char * translationtbl=NULL);
+	const WorldTextureInfo * Bind(int cm, int clamp=0, int translation=0, const unsigned char * translationtbl=NULL);
 	const PatchTextureInfo * BindPatch(int cm, int translation=0, const BYTE * translationtable=NULL);
 
 	const WorldTextureInfo * GetWorldTextureInfo();
