@@ -1399,13 +1399,14 @@ void A_TakeFromTarget(AActor * self)
 //
 //===========================================================================
 
-static void InitSpawnedItem(AActor *self, AActor *mo, INTBOOL transfer_translation, INTBOOL setmaster)
+static void InitSpawnedItem(AActor *self, AActor *mo, INTBOOL transfer_translation, INTBOOL setmaster, INTBOOL nocheckpos)
 {
 	if (mo)
 	{
 		AActor * originator = self;
 
-		if (transfer_translation)
+		// [BB] Add the MF2_DONTTRANSLATE check once this is ported from ZDoom.
+		if (transfer_translation /*&& !(mo->flags2 & MF2_DONTTRANSLATE)*/)
 		{
 			mo->Translation = self->Translation;
 		}
@@ -1415,12 +1416,12 @@ static void InitSpawnedItem(AActor *self, AActor *mo, INTBOOL transfer_translati
 
 		if (mo->flags3&MF3_ISMONSTER)
 		{
-			if (!P_TestMobjLocation(mo))
+			if (!nocheckpos && !P_TestMobjLocation(mo))
 			{
 				// The monster is blocked so don't spawn it at all!
 				if (mo->CountsAsKill()) level.total_monsters--;
 				mo->Destroy();
-				if (pStateCall != NULL) pStateCall->Result=false;	// for an inventory iten's use state
+				if (pStateCall != NULL) pStateCall->Result=false;	// for an inventory item's use state
 				return;
 			}
 			else if (originator)
@@ -1511,7 +1512,7 @@ void A_SpawnItem(AActor * self)
 					self->y + FixedMul(distance, finesine[self->angle>>ANGLETOFINESHIFT]), 
 					self->z - self->floorclip + zheight, ALLOW_REPLACE);
 
-	InitSpawnedItem(self, mo, transfer_translation, useammo);
+	InitSpawnedItem(self, mo, transfer_translation, useammo, false);
 
 	// [BC] If we're the server, tell clients to spawn the item.
 	if ( mo && NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -1531,7 +1532,11 @@ enum SIX_Flags
 	SIXF_ABSOLUTEPOSITION=2,
 	SIXF_ABSOLUTEANGLE=4,
 	SIXF_ABSOLUTEMOMENTUM=8,
-	SIXF_SETMASTER=16
+	SIXF_SETMASTER=16,
+	SIXF_NOCHECKPOSITION=32,
+	SIXF_TELEFRAG=64,
+	// [BB] Added flag which allows client side spawning.
+	SIXF_CLIENTSIDESPAWN=128
 };
 
 void A_SpawnItemEx(AActor * self)
@@ -1593,17 +1598,22 @@ void A_SpawnItemEx(AActor * self)
 	}
 
 	// [BB] The server handles the spawning of the item.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if ( (NETWORK_GetState( ) == NETSTATE_CLIENT) && !(flags & SIXF_CLIENTSIDESPAWN))
+		return;
+
+	// [BB] The server doesn't spawn the client side items.
+	if ( (NETWORK_GetState( ) == NETSTATE_SERVER) && (flags & SIXF_CLIENTSIDESPAWN))
 		return;
 
 	AActor * mo = Spawn( missile, x, y, self->z + self->floorclip + zofs, ALLOW_REPLACE);
-	InitSpawnedItem(self, mo, (flags & SIXF_TRANSFERTRANSLATION), (flags&SIXF_SETMASTER));
+	InitSpawnedItem(self, mo, (flags & SIXF_TRANSFERTRANSLATION), (flags&SIXF_SETMASTER), (flags&SIXF_NOCHECKPOSITION));
 	if (mo)
 	{
 		mo->momx=xmom;
 		mo->momy=ymom;
 		mo->momz=zmom;
 		mo->angle=Angle;
+		if (flags & SIXF_TELEFRAG) P_TeleportMove(mo, mo->x, mo->y, mo->z, true);
 
 		// [BB] If we're the server, tell clients to spawn the item
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
