@@ -1369,7 +1369,7 @@ void InstallStates(FActorInfo *info, AActor *defaults)
 static void MakeStateList(const FStateLabels *list, TArray<FStateDefine> &dest)
 {
 	dest.Clear();
-	for(int i=0;i<list->NumLabels;i++)
+	if (list != NULL) for(int i=0;i<list->NumLabels;i++)
 	{
 		FStateDefine def;
 
