@@ -1020,6 +1020,88 @@ void APlayerPawn::GiveDefaultInventory ()
 		armor->SlotsIncrement[3] = hx[4];
 	}
 
+	// [BB] LMS Stuff for the Heretic player. Moved here since the Heretic player
+	// was converted to DECORATE. TO-DO: Find a better place for this and perhaps
+	// make this work for arbitraty player classes.
+	if ( !stricmp(this->GetClass()->TypeName.GetChars( ),"HereticPlayer" ) )
+	{
+		ULONG			ulIdx;
+		const PClass	*pType;
+		AWeapon			*pWeapon;
+		AWeapon			*pPendingWeapon;
+		AInventory		*pInventory;
+
+		// [BC] Give a bunch of weapons in LMS mode, depending on the LMS allowed weapon flags.
+		if ( lastmanstanding || teamlms )
+		{
+			// Give the player all the weapons, and the maximum amount of every type of
+			// ammunition.
+			pPendingWeapon = NULL;
+			for ( ulIdx = 0; ulIdx < PClass::m_Types.Size( ); ulIdx++ )
+			{
+				pType = PClass::m_Types[ulIdx];
+
+				if ( pType->ParentClass->IsDescendantOf( RUNTIME_CLASS( AWeapon )))
+				{
+					pInventory = player->mo->GiveInventoryType( pType );
+
+					// Make this weapon the player's pending weapon if it ranks higher.
+					pWeapon = static_cast<AWeapon *>( pInventory );
+					if ( pWeapon != NULL )
+					{
+						if ( pWeapon->WeaponFlags & WIF_NOLMS )
+						{
+							player->mo->RemoveInventory( pWeapon );
+							continue;
+						}
+
+						if (( pPendingWeapon == NULL ) || 
+							( pWeapon->SelectionOrder < pPendingWeapon->SelectionOrder ))
+						{
+							pPendingWeapon = static_cast<AWeapon *>( pInventory );
+						}
+
+						if ( pWeapon->Ammo1 )
+						{
+							pInventory = player->mo->FindInventory( pWeapon->Ammo1->GetClass( ));
+
+							// Give the player the maximum amount of this type of ammunition.
+							if ( pInventory != NULL )
+								pInventory->Amount = pInventory->MaxAmount;
+						}
+						if ( pWeapon->Ammo2 )
+						{
+							pInventory = player->mo->FindInventory( pWeapon->Ammo2->GetClass( ));
+
+							// Give the player the maximum amount of this type of ammunition.
+							if ( pInventory != NULL )
+								pInventory->Amount = pInventory->MaxAmount;
+						}
+					}
+				}
+			}
+
+			player->health = deh.MegasphereHealth;
+			player->mo->GiveInventoryType( PClass::FindClass( "SilverShield" ));
+			player->health -= player->userinfo.lHandicap;
+
+			// Don't allow player to be DOA.
+			if ( player->health <= 0 )
+				player->health = 1;
+
+			// Finally, set the ready and pending weapon.
+			player->ReadyWeapon = player->PendingWeapon = pPendingWeapon;
+
+			// [BC] If we're a client, tell the server we're switching weapons.
+			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) == consoleplayer ))
+			{
+				CLIENTCOMMANDS_WeaponSelect( (char *)pPendingWeapon->GetClass( )->TypeName.GetChars( ));
+
+				if ( CLIENTDEMO_IsRecording( ))
+					CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)pPendingWeapon->GetClass( )->TypeName.GetChars( ));
+			}
+		}
+	}
 }
 
 void APlayerPawn::MorphPlayerThink ()
