@@ -4417,6 +4417,10 @@ int DLevelScript::RunScript ()
 						lines[line].flags &= ~(ML_BLOCKEVERYTHING|ML_BLOCKPLAYERS);
 						lines[line].flags |= ML_RAILING|ML_BLOCKING;
 						break;
+					case BLOCK_PLAYERS:
+						lines[line].flags &= ~(ML_BLOCKEVERYTHING|ML_BLOCKING|ML_RAILING);
+						lines[line].flags |= ML_BLOCKPLAYERS;
+						break;
 					}
 
 					// If we're the server, tell clients to update this line.

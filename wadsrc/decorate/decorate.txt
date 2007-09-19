@@ -43,6 +43,9 @@
 // [BC] Heretic invasion spawners.
 #include "actors/heretic/hereticspawners.txt"
 
+#include "actors/hexen/fighterplayer.txt"
+#include "actors/hexen/clericplayer.txt"
+#include "actors/hexen/mageplayer.txt"
 #include "actors/hexen/flame.txt"
 #include "actors/hexen/hexenarmor.txt"
 #include "actors/hexen/hexendecorations.txt"

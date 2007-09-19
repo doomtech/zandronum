@@ -583,16 +583,3 @@ void FaceMovementDirection (AActor *actor)
 	}
 }
 
-//----------------------------------------------------------------------------
-//
-// PROC A_CheckBurnGone
-//
-//----------------------------------------------------------------------------
-
-void A_CheckBurnGone (AActor *actor)
-{
-	if (actor->player == NULL)
-	{
-		actor->Destroy ();
-	}
-}

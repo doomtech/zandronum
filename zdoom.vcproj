@@ -4763,7 +4763,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Assembling $(InputPath)..."
-						CommandLine="nasmw -o &quot;$(IntDir)\$(InputName).obj&quot;  -f win32 &quot;$(InputPath)&quot;&#x0D;&#x0A;$(OutDir)\fixrtext &quot;$(IntDir)\$(InputName).obj&quot;"
+						CommandLine="nasmw -o &quot;$(IntDir)\$(InputName).obj&quot;  -f win32 &quot;$(InputPath)&quot;&#x0D;&#x0A;$(OutDir)\fixrtext &quot;$(IntDir)\$(InputName).obj&quot;&#x0D;&#x0A;"
 						Outputs="$(IntDir)/$(InputName).obj"
 					/>
 				</FileConfiguration>
@@ -4773,7 +4773,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Assembling $(InputPath)..."
-						CommandLine="nasmw -g -o &quot;$(IntDir)\$(InputName).obj&quot; -f win32 &quot;$(InputPath)&quot;&#x0D;&#x0A;$(OutDir)\fixrtext &quot;$(IntDir)\$(InputName).obj&quot;"
+						CommandLine="nasmw -g -o &quot;$(IntDir)\$(InputName).obj&quot; -f win32 &quot;$(InputPath)&quot;&#x0D;&#x0A;$(OutDir)\fixrtext &quot;$(IntDir)\$(InputName).obj&quot;&#x0D;&#x0A;"
 						Outputs="$(IntDir)/$(InputName).obj"
 					/>
 				</FileConfiguration>
@@ -4807,7 +4807,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Assembling $(InputPath)..."
-						CommandLine="nasmw -o &quot;$(IntDir)\$(InputName).obj&quot;  -f win32 &quot;$(InputPath)&quot;&#x0D;&#x0A;$(OutDir)\fixrtext &quot;$(IntDir)\$(InputName).obj&quot;"
+						CommandLine="nasmw -o &quot;$(IntDir)\$(InputName).obj&quot;  -f win32 &quot;$(InputPath)&quot;&#x0D;&#x0A;$(OutDir)\fixrtext &quot;$(IntDir)\$(InputName).obj&quot;&#x0D;&#x0A;"
 						Outputs="$(IntDir)/$(InputName).obj"
 					/>
 				</FileConfiguration>
@@ -4817,7 +4817,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Assembling $(InputPath)..."
-						CommandLine="nasmw -g -o &quot;$(IntDir)\$(InputName).obj&quot; -f win32 &quot;$(InputPath)&quot;&#x0D;&#x0A;$(OutDir)\fixrtext &quot;$(IntDir)\$(InputName).obj&quot;"
+						CommandLine="nasmw -g -o &quot;$(IntDir)\$(InputName).obj&quot; -f win32 &quot;$(InputPath)&quot;&#x0D;&#x0A;$(OutDir)\fixrtext &quot;$(IntDir)\$(InputName).obj&quot;&#x0D;&#x0A;"
 						Outputs="$(IntDir)/$(InputName).obj"
 					/>
 				</FileConfiguration>
@@ -4851,7 +4851,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Assembling $(InputPath)..."
-						CommandLine="nasmw -o &quot;$(IntDir)\$(InputName).obj&quot;  -f win32 &quot;$(InputPath)&quot;&#x0D;&#x0A;$(OutDir)\fixrtext &quot;$(IntDir)\$(InputName).obj&quot;"
+						CommandLine="nasmw -o &quot;$(IntDir)\$(InputName).obj&quot;  -f win32 &quot;$(InputPath)&quot;&#x0D;&#x0A;$(OutDir)\fixrtext &quot;$(IntDir)\$(InputName).obj&quot;&#x0D;&#x0A;"
 						Outputs="$(IntDir)\$(InputName).obj"
 					/>
 				</FileConfiguration>
@@ -4861,7 +4861,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Assembling $(InputPath)..."
-						CommandLine="nasmw -g -o &quot;$(IntDir)\$(InputName).obj&quot; -f win32 &quot;$(InputPath)&quot;&#x0D;&#x0A;$(OutDir)\fixrtext &quot;$(IntDir)\$(InputName).obj&quot;"
+						CommandLine="nasmw -g -o &quot;$(IntDir)\$(InputName).obj&quot; -f win32 &quot;$(InputPath)&quot;&#x0D;&#x0A;$(OutDir)\fixrtext &quot;$(IntDir)\$(InputName).obj&quot;&#x0D;&#x0A;"
 						Outputs="$(IntDir)\$(InputName).obj"
 					/>
 				</FileConfiguration>
@@ -4895,7 +4895,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Assembling $(InputPath)..."
-						CommandLine="nasmw -o &quot;$(IntDir)\$(InputName).obj&quot;  -f win32 &quot;$(InputPath)&quot;&#x0D;&#x0A;$(OutDir)\fixrtext &quot;$(IntDir)\$(InputName).obj&quot;"
+						CommandLine="nasmw -o &quot;$(IntDir)\$(InputName).obj&quot;  -f win32 &quot;$(InputPath)&quot;&#x0D;&#x0A;$(OutDir)\fixrtext &quot;$(IntDir)\$(InputName).obj&quot;&#x0D;&#x0A;"
 						Outputs="$(IntDir)\$(InputName).obj"
 					/>
 				</FileConfiguration>
@@ -4905,7 +4905,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Assembling $(InputPath)..."
-						CommandLine="nasmw -g -o &quot;$(IntDir)\$(InputName).obj&quot; -f win32 &quot;$(InputPath)&quot;&#x0D;&#x0A;$(OutDir)\fixrtext &quot;$(IntDir)\$(InputName).obj&quot;"
+						CommandLine="nasmw -g -o &quot;$(IntDir)\$(InputName).obj&quot; -f win32 &quot;$(InputPath)&quot;&#x0D;&#x0A;$(OutDir)\fixrtext &quot;$(IntDir)\$(InputName).obj&quot;&#x0D;&#x0A;"
 						Outputs="$(IntDir)\$(InputName).obj"
 					/>
 				</FileConfiguration>
@@ -4939,7 +4939,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Assembling $(InputPath)..."
-						CommandLine="nasmw -o &quot;$(IntDir)\$(InputName).obj&quot;  -f win32 &quot;$(InputPath)&quot;&#x0D;&#x0A;$(OutDir)\fixrtext &quot;$(IntDir)\$(InputName).obj&quot;"
+						CommandLine="nasmw -o &quot;$(IntDir)\$(InputName).obj&quot;  -f win32 &quot;$(InputPath)&quot;&#x0D;&#x0A;$(OutDir)\fixrtext &quot;$(IntDir)\$(InputName).obj&quot;&#x0D;&#x0A;"
 						Outputs="$(IntDir)\$(InputName).obj"
 					/>
 				</FileConfiguration>
@@ -4949,7 +4949,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Assembling $(InputPath)..."
-						CommandLine="nasmw -g -o &quot;$(IntDir)\$(InputName).obj&quot; -f win32 &quot;$(InputPath)&quot;&#x0D;&#x0A;$(OutDir)\fixrtext &quot;$(IntDir)\$(InputName).obj&quot;"
+						CommandLine="nasmw -g -o &quot;$(IntDir)\$(InputName).obj&quot; -f win32 &quot;$(InputPath)&quot;&#x0D;&#x0A;$(OutDir)\fixrtext &quot;$(IntDir)\$(InputName).obj&quot;&#x0D;&#x0A;"
 						Outputs="$(IntDir)\$(InputName).obj"
 					/>
 				</FileConfiguration>
@@ -8009,10 +8009,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="src\g_hexen\a_clericplayer.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\g_hexen\a_clericstaff.cpp"
 				>
 				<FileConfiguration
@@ -8639,10 +8635,6 @@
 						AdditionalOptions="&quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot; "
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="src\g_hexen\a_mageplayer.cpp"
-				>
 			</File>
 			<File
 				RelativePath=".\src\g_hexen\a_magestaff.cpp"

@@ -21,6 +21,7 @@ void A_FireScream (AActor *);
 void A_HereticSkinCheck1 (AActor *);
 void A_HereticSkinCheck2 (AActor *);
 void A_XScream (AActor *);
+void A_CheckPlayerDone (AActor *actor);
 
 // The player ---------------------------------------------------------------
 
@@ -92,7 +93,7 @@ FState AHereticPlayer::States[] =
 	S_BRIGHT (FDTH, 'P',	4, NULL 						, &States[S_PLAY_FDTH+16]),
 	S_BRIGHT (FDTH, 'Q',	5, NULL 						, &States[S_PLAY_FDTH+17]),
 	S_BRIGHT (FDTH, 'R',	4, NULL 						, &States[S_PLAY_FDTH+18]),
-	S_NORMAL (ACLO, 'E',   35, A_CheckBurnGone				, &States[S_PLAY_FDTH+18]),
+	S_NORMAL (ACLO, 'E',   35, A_CheckPlayerDone			, &States[S_PLAY_FDTH+18]),
 
 #define S_DOOM_DIE (S_PLAY_FDTH+19)
 	S_NORMAL (PLAY, 'H',   10, NULL 						, &States[S_DOOM_DIE+1]),
@@ -281,7 +282,7 @@ void A_FireScream (AActor *self)
 // PROC A_SkullPop
 //
 //----------------------------------------------------------------------------
-
+/* [BB] Moved to p_user
 void A_SkullPop (AActor *actor)
 {
 	APlayerPawn *mo;
@@ -322,7 +323,7 @@ void A_SkullPop (AActor *actor)
 			player->pIcon->SetTracer( mo );
 	}
 }
-
+*/
 //----------------------------------------------------------------------------
 //
 // PROC A_CheckSkullFloor
