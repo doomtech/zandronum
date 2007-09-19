@@ -3011,6 +3011,40 @@ static void client_EndSnapshot( BYTESTREAM_s *pByteStream )
 
 	// Clear the notify strings.
 	C_FlushDisplay( );
+
+	// Now that we've received the snapshot, create the status bar.
+	if ( StatusBar != NULL )
+		delete ( StatusBar );
+
+	switch ( gameinfo.gametype )
+	{
+	case GAME_Doom:
+
+		StatusBar = CreateDoomStatusBar( );
+		break;
+	case GAME_Heretic:
+
+		StatusBar = CreateHereticStatusBar( );
+		break;
+	case GAME_Hexen:
+
+		StatusBar = CreateHexenStatusBar( );
+		break;
+	case GAME_Strife:
+
+		StatusBar = CreateStrifeStatusBar( );
+		break;
+	default:
+
+		StatusBar = new FBaseStatusBar( 0 );
+		break;
+	}
+
+	if ( StatusBar )
+	{
+		StatusBar->AttachToPlayer( &players[consoleplayer] );
+		StatusBar->NewGame( );
+	}
 }
 
 //*****************************************************************************
