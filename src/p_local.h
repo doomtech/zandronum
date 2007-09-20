@@ -319,6 +319,7 @@ void	P_RailAttackWithPossibleSpread(AActor *source, int damage, int offset, int 
 bool	P_HitFloor (AActor *thing);
 bool	P_HitWater (AActor *thing, sector_t *sec, fixed_t splashz=FIXED_MIN);
 bool	P_CheckMissileSpawn (AActor *missile);
+void	P_PlaySpawnSound(AActor *missile, AActor *spawner);
 
 // [RH] Position the chasecam
 void	P_AimCamera (AActor *t1);

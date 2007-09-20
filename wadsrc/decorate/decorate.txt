@@ -41,6 +41,10 @@
 #include "actors/heretic/hereticartifacts.txt"
 #include "actors/heretic/heretickeys.txt"
 #include "actors/heretic/hereticdecorations.txt"
+#include "actors/heretic/mummy.txt"
+#include "actors/heretic/clink.txt"
+#include "actors/heretic/beast.txt"
+#include "actors/heretic/snake.txt"
 // [BC] Heretic invasion spawners.
 #include "actors/heretic/hereticspawners.txt"
 
@@ -56,6 +60,9 @@
 #include "actors/hexen/puzzleitems.txt"
 #include "actors/hexen/scriptprojectiles.txt"
 #include "actors/hexen/speedboots.txt"
+#include "actors/hexen/ettin.txt"
+#include "actors/hexen/centaur.txt"
+#include "actors/hexen/demons.txt"
 // [BB] Hexen invasion spawners.
 #include "actors/hexen/hexenspawners.txt"
 

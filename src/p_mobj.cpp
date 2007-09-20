@@ -2900,6 +2900,11 @@ int AActor::GetMissileDamage (int mask, int add)
 
 void AActor::Howl ()
 {
+	int howl = GetClass()->Meta.GetMetaInt(AMETA_HowlSound);
+	if (!S_GetSoundPlayingInfo (this, howl))
+	{
+		S_SoundID (this, CHAN_BODY, howl, 1, ATTN_NORM);
+	}
 }
 
 void AActor::NoBlockingSet ()
@@ -3017,17 +3022,6 @@ bool AActor::IsOkayToAttack (AActor *link)
 		}
 	}
 	return false;
-}
-
-void AActor::ChangeSpecial (int special, int data1, int data2,
-	int data3, int data4, int data5)
-{
-	this->special = special;
-	args[0] = data1;
-	args[1] = data2;
-	args[2] = data3;
-	args[3] = data4;
-	args[4] = data5;
 }
 
 void AActor::SetShade (DWORD rgb)
@@ -5371,6 +5365,37 @@ bool P_CheckMissileSpawn (AActor* th)
 
 //---------------------------------------------------------------------------
 //
+// FUNC P_PlaySpawnSound
+//
+// Plays a missiles spawn sound. Location depends on the
+// MF_SPAWNSOUNDSOURCE flag.
+//
+//---------------------------------------------------------------------------
+
+void P_PlaySpawnSound(AActor *missile, AActor *spawner)
+{
+	if (missile->SeeSound != 0)
+	{
+		if (!(missile->flags & MF_SPAWNSOUNDSOURCE))
+		{
+			S_SoundID (missile, CHAN_VOICE, missile->SeeSound, 1, ATTN_NORM);
+		}
+		else if (spawner != NULL)
+		{
+			S_SoundID (spawner, CHAN_WEAPON, missile->SeeSound, 1, ATTN_NORM);
+		}
+		else
+		{
+			// If there is no spawner use the spawn position.
+			// But not in a silenced sector.
+			if (!(missile->Sector->MoreFlags & SECF_SILENT))
+				S_SoundID (&missile->x, CHAN_WEAPON, missile->SeeSound, 1, ATTN_NORM);
+		}
+	}
+}
+
+//---------------------------------------------------------------------------
+//
 // FUNC P_SpawnMissile
 //
 // Returns NULL if the missile exploded immediately, otherwise returns
@@ -5392,6 +5417,12 @@ AActor *P_SpawnMissileZ (AActor *source, fixed_t z, AActor *dest, const PClass *
 AActor *P_SpawnMissileXYZ (fixed_t x, fixed_t y, fixed_t z,
 	AActor *source, AActor *dest, const PClass *type)
 {
+	if (dest == NULL)
+	{
+		Printf ("P_SpawnMissilyXYZ: Tried to shoot %s from %s with no dest\n",
+			type->TypeName.GetChars(), source->GetClass()->TypeName.GetChars());
+		return NULL;
+	}
 	int defflags3 = GetDefaultByType (type)->flags3;
 
 	if (defflags3 & MF3_FLOORHUGGER)
@@ -5409,9 +5440,7 @@ AActor *P_SpawnMissileXYZ (fixed_t x, fixed_t y, fixed_t z,
 
 	AActor *th = Spawn (type, x, y, z, ALLOW_REPLACE);
 	
-	if (th->SeeSound)
-		S_SoundID (th, CHAN_VOICE, th->SeeSound, 1, ATTN_NORM);
-
+	P_PlaySpawnSound(th, source);
 	th->target = source;		// record missile's originator
 
 	float speed = (float)(th->Speed);
@@ -5542,10 +5571,7 @@ AActor *P_SpawnMissileAngleZSpeed (AActor *source, fixed_t z,
 		z -= source->floorclip;
 	}
 	mo = Spawn (type, source->x, source->y, z, ALLOW_REPLACE);
-	if (mo->SeeSound)
-	{
-		S_SoundID (mo, CHAN_VOICE, mo->SeeSound, 1, ATTN_NORM);
-	}
+	P_PlaySpawnSound(mo, source);
 	mo->target = owner != NULL ? owner : source; // Originator
 	mo->angle = angle;
 	angle >>= ANGLETOFINESHIFT;
@@ -5618,9 +5644,9 @@ AActor *P_SpawnPlayerMissile (AActor *source, fixed_t x, fixed_t y, fixed_t z,
 	}
 	MissileActor = Spawn (type, x, y, z, ALLOW_REPLACE);
 
-	if (MissileActor->SeeSound && bSpawnSound )
+	if ( bSpawnSound )
 	{
-		S_SoundID (MissileActor, CHAN_VOICE, MissileActor->SeeSound, 1, ATTN_NORM);
+		P_PlaySpawnSound(MissileActor, source);
 	}
 	MissileActor->target = source;
 	MissileActor->angle = an;

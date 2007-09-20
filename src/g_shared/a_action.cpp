@@ -323,7 +323,6 @@ void A_FreezeDeathChunks (AActor *actor)
 //----------------------------------------------------------------------------
 
 // Corpse queue for monsters - this should be saved out
-#define CORPSEQUEUESIZE	64
 
 class DCorpsePointer : public DThinker
 {
@@ -342,7 +341,23 @@ private:
 IMPLEMENT_POINTY_CLASS(DCorpsePointer)
  DECLARE_POINTER(Corpse)
 END_POINTERS
- 
+
+CUSTOM_CVAR(Int, sv_corpsequeuesize, 64, CVAR_ARCHIVE|CVAR_SERVERINFO)
+{
+	if (self > 0)
+	{
+		TThinkerIterator<DCorpsePointer> iterator (STAT_CORPSEPOINTER);
+		DCorpsePointer *first = iterator.Next ();
+		while (first != NULL && first->Count > (DWORD)self)
+		{
+			DCorpsePointer *next = iterator.Next ();
+			next->Count = first->Count;
+			first->Destroy ();
+			first = next;
+		}
+	}
+}
+
 
 DCorpsePointer::DCorpsePointer (AActor *ptr)
 : DThinker (STAT_CORPSEPOINTER), Corpse (ptr)
@@ -356,7 +371,7 @@ DCorpsePointer::DCorpsePointer (AActor *ptr)
 
 	if (first != this)
 	{
-		if (first->Count >= CORPSEQUEUESIZE)
+		if (first->Count >= (DWORD)sv_corpsequeuesize)
 		{
 			DCorpsePointer *next = iterator.Next ();
 			next->Count = first->Count;
@@ -401,7 +416,8 @@ void DCorpsePointer::Serialize (FArchive &arc)
 // throw another corpse on the queue
 void A_QueueCorpse (AActor *actor)
 {
-	new DCorpsePointer (actor);
+	if (sv_corpsequeuesize > 0)
+		new DCorpsePointer (actor);
 }
 
 // Remove an actor from the queue (for resurrection)

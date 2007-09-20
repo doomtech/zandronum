@@ -124,12 +124,14 @@ static flagdef ActorFlags[]=
 	DEFINE_FLAG(MF, COUNTITEM, AActor, flags),
 	DEFINE_FLAG(MF, SKULLFLY, AActor, flags),
 	DEFINE_FLAG(MF, NOTDMATCH, AActor, flags),
+	DEFINE_FLAG(MF, SPAWNSOUNDSOURCE, AActor, flags),
 	DEFINE_FLAG(MF, FRIENDLY, AActor, flags),
 	DEFINE_FLAG(MF, NOLIFTDROP, AActor, flags),
 	DEFINE_FLAG(MF, STEALTH, AActor, flags),
 	DEFINE_FLAG(MF, ICECORPSE, AActor, flags),
 	DEFINE_FLAG(MF2, WINDTHRUST, AActor, flags2),
 	DEFINE_FLAG(MF2, HERETICBOUNCE , AActor, flags2),
+	DEFINE_FLAG(MF2, BLASTED, AActor, flags2),
 	DEFINE_FLAG(MF2, FLOORCLIP, AActor, flags2),
 	DEFINE_FLAG(MF2, SPAWNFLOAT, AActor, flags2),
 	DEFINE_FLAG(MF2, NOTELEPORT, AActor, flags2),
@@ -520,6 +522,7 @@ ACTOR(TakeFromTarget)
 ACTOR(JumpIfInTargetInventory)
 ACTOR(CountdownArg)
 ACTOR(CustomMeleeAttack)
+ACTOR(CustomComboAttack)
 ACTOR(Light)
 ACTOR(Burst)
 ACTOR(SkullPop)
@@ -531,6 +534,7 @@ ACTOR(SPosAttackUseAtkSound)
 ACTOR(Respawn)
 ACTOR(BarrelDestroy)
 ACTOR(PlayerSkinCheck)
+ACTOR(QueueCorpse)
 ACTOR(SetGravity)
 
 
@@ -743,13 +747,15 @@ AFuncDesc AFTable[]=
 	FUNC(A_GiveToTarget, "Mx" )
 	FUNC(A_TakeFromTarget, "Mx" )
 	FUNC(A_CountdownArg, "X")
-	FUNC(A_CustomMeleeAttack, "Xsty" )
+	FUNC(A_CustomMeleeAttack, "Xssty" )
+	FUNC(A_CustomComboAttack, "MXXsty" )
 	FUNC(A_Burst, "M")
 	FUNC(A_RadiusThrust, "xxy")
 	{"A_Explode", A_ExplodeParms, "xxy" },
 	FUNC(A_Stop, NULL)
 	FUNC(A_Respawn, "y")
 	FUNC(A_BarrelDestroy, NULL)
+	FUNC(A_QueueCorpse, NULL)
 };
 
 //==========================================================================
@@ -1081,32 +1087,6 @@ struct ActorProps { const char *name; ActorPropFunction Handler; const PClass * 
 typedef ActorProps (*ActorPropHandler) (register const char *str, register unsigned int len);
 
 static const ActorProps *is_actorprop (const char *str);
-
-//==========================================================================
-//
-// Some functions which check for simple tokens
-//
-//==========================================================================
-
-inline void ChkCom()
-{
-	SC_MustGetStringName (",");
-}
-	
-inline void ChkBraceOpn()
-{
-	SC_MustGetStringName ("{");
-}
-	
-inline bool TestBraceCls()
-{
-	return SC_CheckString ("}");
-}
-
-inline bool TestCom()
-{
-	return SC_CheckString (",");
-}
 
 //==========================================================================
 //
@@ -1657,7 +1637,7 @@ bool DoSpecialFunctions(FState & state, bool multistate, int * statecount, Bagga
 			{
 				StateParameters[paramindex+i+1]=ParseExpression (false);
 				i++;
-				if (!TestCom()) break;
+				if (!SC_CheckString (",")) break;
 			}
 			SC_MustGetStringName (")");
 		}
@@ -1766,9 +1746,9 @@ static int ProcessStates(FActorInfo * actor, AActor * defaults, Baggage &bag)
 	intptr_t lastlabel = -1;
 	int minrequiredstate = -1;
 
-	ChkBraceOpn();
+	SC_MustGetStringName ("{");
 	SC_SetEscape(false);	// disable escape sequences in the state parser
-	while (!TestBraceCls() && !sc_End)
+	while (!SC_CheckString ("}") && !sc_End)
 	{
 		memset(&state,0,sizeof(state));
 		statestring = ParseStateString();
@@ -1900,7 +1880,7 @@ do_stop:
 					SC_MustGetStringName("(");
 					SC_MustGetNumber();
 					state.Misc1=sc_Number;
-					ChkCom();
+					SC_MustGetStringName (",");
 					SC_MustGetNumber();
 					state.Misc2=sc_Number;
 					SC_MustGetStringName(")");
@@ -2139,7 +2119,7 @@ do_stop:
 								{
 									goto endofstate;
 								}
-								ChkCom();
+								SC_MustGetStringName (",");
 							}
 						}
 						SC_MustGetStringName(")");
@@ -2465,8 +2445,8 @@ void ParseActorProperties (Baggage &bag)
 	const PClass *info;
 	const ActorProps *prop;
 
-	ChkBraceOpn ();
-	while (!TestBraceCls())
+	SC_MustGetStringName ("{");
+	while (!SC_CheckString ("}"))
 	{
 		if (sc_End)
 		{
@@ -2541,7 +2521,7 @@ void ProcessActor(void (*process)(FState *, int))
 		// NULL. It did not parse any "replace" or ":" after the actor name yet.
 		if( info == NULL )
 		{
-				while (!TestBraceCls())
+				while (!SC_CheckString ("}"))
 				{
 					if (sc_End)
 						SC_ScriptError("Unexpected end of file encountered");
@@ -2910,6 +2890,15 @@ static void ActorActiveSound (AActor *defaults, Baggage &bag)
 {
 	SC_MustGetString();
 	defaults->ActiveSound=S_FindSound(sc_String);
+}
+
+//==========================================================================
+//
+//==========================================================================
+static void ActorHowlSound (AActor *defaults, Baggage &bag)
+{
+	SC_MustGetString();
+	bag.Info->Class->Meta.SetMetaInt (AMETA_HowlSound, S_FindSound(sc_String));
 }
 
 //==========================================================================
@@ -4399,6 +4388,7 @@ static const ActorProps props[] =
 	{ "health.lowmessage",			(apf)HealthLowMessage,		RUNTIME_CLASS(AHealth) },
 	{ "height",						ActorHeight,				RUNTIME_CLASS(AActor) },
 	{ "hitobituary",				ActorHitObituary,			RUNTIME_CLASS(AActor) },
+	{ "howlsound",					ActorHowlSound,				RUNTIME_CLASS(AActor) },
 	{ "ice",						ActorIceState,				RUNTIME_CLASS(AActor) },
 	{ "inventory.amount",			(apf)InventoryAmount,		RUNTIME_CLASS(AInventory) },
 	{ "inventory.defmaxamount",		(apf)InventoryDefMaxAmount,	RUNTIME_CLASS(AInventory) },

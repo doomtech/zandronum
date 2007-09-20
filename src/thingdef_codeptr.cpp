@@ -677,6 +677,13 @@ inline static bool isMissile(AActor * self, bool precise=true)
 // The ultimate code pointer: Fully customizable missiles!
 //
 //==========================================================================
+enum CM_Flags
+{
+	CMF_AIMMODE = 3,
+	CMF_TRACKOWNER = 4,
+	CMF_CHECKTARGETDEAD = 8,
+};
+
 void A_CustomMissile(AActor * self)
 {
 	// [BB] The server handles the spawning of the missle.
@@ -690,8 +697,9 @@ void A_CustomMissile(AActor * self)
 	fixed_t SpawnHeight=fixed_t(EvalExpressionF (StateParameters[index+1], self) * FRACUNIT);
 	int Spawnofs_XY=EvalExpressionI (StateParameters[index+2], self);
 	angle_t Angle=angle_t(EvalExpressionF (StateParameters[index+3], self) * ANGLE_1);
-	int aimmode=EvalExpressionI (StateParameters[index+4], self);
+	int flags=EvalExpressionI (StateParameters[index+4], self);
 	angle_t pitch=angle_t(EvalExpressionF (StateParameters[index+5], self) * ANGLE_1);
+	int aimmode = flags & CMF_AIMMODE;
 
 	AActor * targ;
 	AActor * missile;
@@ -706,7 +714,7 @@ void A_CustomMissile(AActor * self)
 			fixed_t y = Spawnofs_XY * finesine[ang];
 			fixed_t z = SpawnHeight - 32*FRACUNIT + (self->player? self->player->crouchoffset : 0);
 
-			switch (aimmode&3)
+			switch (aimmode)
 			{
 			case 0:
 			default:
@@ -760,10 +768,10 @@ void A_CustomMissile(AActor * self)
 	
 				// handle projectile shooting projectiles - track the
 				// links back to a real owner
-                if (isMissile(self, !!(aimmode&4)))
+                if (isMissile(self, !!(flags & CMF_TRACKOWNER)))
                 {
                 	AActor * owner=self ;//->target;
-                	while (isMissile(owner, !!(aimmode&4)) && owner->target) owner=owner->target;
+                	while (isMissile(owner, !!(flags & CMF_TRACKOWNER)) && owner->target) owner=owner->target;
                 	targ=owner;
                 	missile->target=owner;
 					// automatic handling of seeker missiles
@@ -788,6 +796,11 @@ void A_CustomMissile(AActor * self)
 					SERVERCOMMANDS_SpawnMissile( missile );
 			}
 		}
+	}
+	else if (flags & CMF_CHECKTARGETDEAD)
+	{
+		// Target is dead and the attack shall be aborted.
+		if (self->SeeState != NULL) self->SetState(self->SeeState);
 	}
 }
 
@@ -844,13 +857,14 @@ void A_CustomBulletAttack (AActor *self)
 //==========================================================================
 void A_CustomMeleeAttack (AActor *self)
 {
-	int index=CheckIndex(4);
+	int index=CheckIndex(5);
 	if (index<0) return;
 
 	int damage = EvalExpressionI (StateParameters[index], self);
-	int MeleeSound=StateParameters[index+1];
-	ENamedName DamageType = (ENamedName)StateParameters[index+2];
-	bool bleed = EvalExpressionN (StateParameters[index+3], self);
+	int MeleeSound = StateParameters[index+1];
+	int MissSound = StateParameters[index+2];
+	ENamedName DamageType = (ENamedName)StateParameters[index+3];
+	bool bleed = EvalExpressionN (StateParameters[index+4], self);
 
 	if (DamageType==NAME_None) DamageType = NAME_Melee;	// Melee is the default type
 
@@ -863,6 +877,67 @@ void A_CustomMeleeAttack (AActor *self)
 		if (MeleeSound) S_SoundID (self, CHAN_WEAPON, MeleeSound, 1, ATTN_NORM);
 		P_DamageMobj (self->target, self, self, damage, DamageType);
 		if (bleed) P_TraceBleed (damage, self->target, self);
+	}
+	else
+	{
+		if (MissSound) S_SoundID (self, CHAN_WEAPON, MissSound, 1, ATTN_NORM);
+	}
+}
+
+//==========================================================================
+//
+// A fully customizable combo attack
+//
+//==========================================================================
+void A_CustomComboAttack (AActor *self)
+{
+	int index=CheckIndex(6);
+	if (index<0) return;
+
+	ENamedName MissileName=(ENamedName)StateParameters[index];
+	fixed_t SpawnHeight=fixed_t(EvalExpressionF (StateParameters[index+1], self) * FRACUNIT);
+	int damage = EvalExpressionI (StateParameters[index+2], self);
+	int MeleeSound = StateParameters[index+3];
+	ENamedName DamageType = (ENamedName)StateParameters[index+4];
+	bool bleed = EvalExpressionN (StateParameters[index+5], self);
+
+
+	if (!self->target)
+		return;
+				
+	A_FaceTarget (self);
+	if (self->CheckMeleeRange ())
+	{
+		if (DamageType==NAME_None) DamageType = NAME_Melee;	// Melee is the default type
+		if (MeleeSound) S_SoundID (self, CHAN_WEAPON, MeleeSound, 1, ATTN_NORM);
+		P_DamageMobj (self->target, self, self, damage, DamageType);
+		if (bleed) P_TraceBleed (damage, self->target, self);
+	}
+	else
+	{
+		const PClass * ti=PClass::FindClass(MissileName);
+		if (ti) 
+		{
+			// Although there is a P_SpawnMissileZ function its
+			// aiming is much too bad to be of any use
+			self->z+=SpawnHeight-32*FRACUNIT;
+			AActor * missile = P_SpawnMissile (self, self->target, ti);
+			self->z-=SpawnHeight-32*FRACUNIT;
+
+			if (missile)
+			{
+				// automatic handling of seeker missiles
+				if (missile->flags2&MF2_SEEKERMISSILE)
+				{
+					missile->tracer=self->target;
+				}
+				// set the health value so that the missile works properly
+				if (missile->flags4&MF4_SPECTRAL)
+				{
+					missile->health=-2;
+				}
+			}
+		}
 	}
 }
 
@@ -1676,6 +1751,7 @@ void A_ThrowGrenade(AActor * self)
 	{
 		int pitch = self->pitch;
 
+		P_PlaySpawnSound(bo, self);
 		if (xymom) bo->Speed=xymom;
 		bo->angle = self->angle+(((pr_grenade()&7)-4)<<24);
 		bo->momz = zmom + 2*finesine[pitch>>ANGLETOFINESHIFT];
