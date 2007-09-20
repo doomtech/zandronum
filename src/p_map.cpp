@@ -4163,7 +4163,7 @@ static bool ProcessRailHit (FTraceResults &res)
 	return true;
 }
 
-void P_RailAttack (AActor *source, int damage, int offset, int color1, int color2, float maxdiff, bool silent)
+void P_RailAttack (AActor *source, int damage, int offset, int color1, int color2, float maxdiff, bool silent, FName puff)
 {
 	fixed_t vx, vy, vz;
 	angle_t angle, pitch;
@@ -4236,11 +4236,11 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 	}
 	if (trace.CrossedWater)
 	{
-		AActor *puff = Spawn ("BulletPuff", 0, 0, 0, ALLOW_REPLACE);
-		if (puff != NULL)
+		AActor *thepuff = Spawn ("BulletPuff", 0, 0, 0, ALLOW_REPLACE);
+		if (thepuff != NULL)
 		{
-			SpawnDeepSplash (source, trace, puff, vx, vy, vz);
-			puff->Destroy ();
+			SpawnDeepSplash (source, trace, thepuff, vx, vy, vz);
+			thepuff->Destroy ();
 		}
 	}
 
@@ -4261,7 +4261,8 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 		if ((RailHits[i].HitActor->flags & MF_NOBLOOD) ||
 			(RailHits[i].HitActor->flags2 & (MF2_DORMANT|MF2_INVULNERABLE)))
 		{
-			P_SpawnPuff (PClass::FindClass(NAME_BulletPuff), x, y, z, source->angle - ANG180, 1, true);
+			const PClass *puffclass = PClass::FindClass(puff);
+			if (puffclass != NULL) P_SpawnPuff (puffclass, x, y, z, source->angle - ANG180, 1, true);
 		}
 		else
 		{
@@ -4324,9 +4325,9 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 		SERVERCOMMANDS_WeaponRailgun( source, start, end, color1, color2, maxdiff, silent );
 }
 
-void P_RailAttackWithPossibleSpread (AActor *source, int damage, int offset, int color1, int color2, float maxdiff, bool silent)
+void P_RailAttackWithPossibleSpread (AActor *source, int damage, int offset, int color1, int color2, float maxdiff, bool silent, FName puff)
 {
-	P_RailAttack (source, damage, offset, color1, color2, maxdiff, silent );
+	P_RailAttack (source, damage, offset, color1, color2, maxdiff, silent, puff );
 
 	// [BB] Apply spread.
 	if (NULL != source->player )
@@ -4338,11 +4339,11 @@ void P_RailAttackWithPossibleSpread (AActor *source, int damage, int offset, int
 			SavedActorAngle = source->angle;
 
 			source->angle += ( ANGLE_45 / 3 );
-			P_RailAttack (source, damage, offset, color1, color2, maxdiff, silent );
+			P_RailAttack (source, damage, offset, color1, color2, maxdiff, silent, puff );
 			source->angle = SavedActorAngle;
 
 			source->angle -= ( ANGLE_45 / 3 );
-			P_RailAttack (source, damage, offset, color1, color2, maxdiff, silent );
+			P_RailAttack (source, damage, offset, color1, color2, maxdiff, silent, puff );
 			source->angle = SavedActorAngle;
 		}
 	}
@@ -5395,7 +5396,7 @@ void P_DoCrunch (AActor *thing)
 		}
 		if (!(thing->flags & MF_NOBLOOD))
 		{
-			AActor *gib = Spawn<ARealGibs> (thing->x, thing->y, thing->z, ALLOW_REPLACE);
+			AActor *gib = Spawn ("RealGibs", thing->x, thing->y, thing->z, ALLOW_REPLACE);
 			gib->RenderStyle = thing->RenderStyle;
 			gib->alpha = thing->alpha;
 			gib->height = 0;
@@ -5495,18 +5496,22 @@ void P_DoCrunch (AActor *thing)
 			(!(thing->flags2&(MF2_INVULNERABLE|MF2_DORMANT))))
 		{
 			PalEntry bloodcolor = (PalEntry)thing->GetClass()->Meta.GetMetaInt(AMETA_BloodColor);
+			const PClass *bloodcls = PClass::FindClass((ENamedName)thing->GetClass()->Meta.GetMetaInt(AMETA_BloodType, NAME_Blood));
 
 			P_TraceBleed (crushchange, thing);
-			if (( cl_bloodtype <= 1 ) || ( NETWORK_GetState( ) == NETSTATE_SERVER ))
+			if ( (bloodcls != NULL) && (( cl_bloodtype <= 1) || ( NETWORK_GetState( ) == NETSTATE_SERVER )) )
 			{
 				AActor *mo;
 
-				mo = Spawn<ABlood> (thing->x, thing->y,
+				mo = Spawn (bloodcls, thing->x, thing->y,
 					thing->z + thing->height/2, ALLOW_REPLACE);
 
 				mo->momx = pr_crunch.Random2 () << 12;
 				mo->momy = pr_crunch.Random2 () << 12;
-				if (bloodcolor!=0) mo->Translation = TRANSLATION(TRANSLATION_Blood, bloodcolor.a);
+				if (bloodcolor != 0 && !(mo->flags2 & MF2_DONTTRANSLATE))
+				{
+					mo->Translation = TRANSLATION(TRANSLATION_Blood, bloodcolor.a);
+				}
 			}
 			if (cl_bloodtype >= 1)
 			{

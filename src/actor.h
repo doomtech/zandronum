@@ -173,6 +173,7 @@ enum
 	MF2_THRUGHOST		= 0x00004000,	// missile will pass through ghosts [RH] was 8
 	MF2_BOSS			= 0x00008000,	// mobj is a major boss
 
+	MF2_DONTTRANSLATE	= 0x00010000,	// Don't apply palette translations
 	MF2_NODMGTHRUST		= 0x00020000,	// does not thrust target when damaging
 	MF2_TELESTOMP		= 0x00040000,	// mobj can stomp another
 	MF2_FLOATBOB		= 0x00080000,	// use float bobbing z movement
@@ -186,7 +187,8 @@ enum
 										// but still considered solid
 	MF2_INVULNERABLE	= 0x08000000,	// mobj is invulnerable
 	MF2_DORMANT			= 0x10000000,	// thing is dormant
-
+	MF2_ARGSDEFINED		= 0x20000000,	// Internal flag used by DECORATE to signal that the 
+										// args should not be taken from the mapthing definition
 	MF2_SEEKERMISSILE	= 0x40000000,	// is a seeker (for reflection)
 	MF2_REFLECTIVE		= 0x80000000,	// reflects missiles
 
@@ -517,6 +519,9 @@ enum
 	AMETA_RDFactor,			// Radius damage factor
 	AMETA_CameraHeight,		// Height of camera when used as such
 	AMETA_HowlSound,		// Sound being played when electrocuted or poisoned
+	AMETA_BloodType,		// Blood replacement type
+	AMETA_BloodType2,		// Bloodsplatter replacement type
+	AMETA_BloodType3,		// AxeBlood replacement type
 };
 
 // Map Object definition.
@@ -688,6 +693,9 @@ public:
 	// What species am I?
 	virtual const PClass *GetSpecies();
 	
+	// Enter the crash state
+	void Crash();
+
 	// Check for monsters that count as kill but excludes all friendlies.
 	bool CountsAsKill() const
 	{
@@ -704,9 +712,7 @@ public:
 	angle_t			angle;
 	WORD			sprite;				// used to find patch_t and flip value
 	BYTE			frame;				// sprite frame to draw
-	// [GZDoom]
 	fixed_t			scaleX, scaleY;		// Scaling values; FRACUNIT is normal size
-	//BYTE			xscale, yscale;		// Scaling values; 63 is normal size
 	BYTE			RenderStyle;		// Style to draw this actor with
 	DWORD			renderflags;		// Different rendering flags
 	WORD			picnum;				// Draw this instead of sprite if != 0xffff

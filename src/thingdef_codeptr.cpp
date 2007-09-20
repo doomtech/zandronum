@@ -1295,6 +1295,7 @@ void A_RailAttack (AActor * self)
 	int Color2=StateParameters[index+4];
 	bool Silent=!!EvalExpressionI (StateParameters[index+5], self);
 	float MaxDiff=EvalExpressionF (StateParameters[index+6], self);
+	ENamedName PuffTypeName=(ENamedName)StateParameters[index+7];
 
 	AWeapon * weapon=self->player->ReadyWeapon;
 
@@ -1308,7 +1309,7 @@ void A_RailAttack (AActor * self)
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 		return;
 
-	P_RailAttackWithPossibleSpread (self, Damage, Spawnofs_XY, Color1, Color2, MaxDiff, Silent);
+	P_RailAttackWithPossibleSpread (self, Damage, Spawnofs_XY, Color1, Color2, MaxDiff, Silent, PuffTypeName);
 }
 
 //==========================================================================
@@ -1332,6 +1333,7 @@ void A_CustomRailgun (AActor *actor)
 	bool Silent=!!EvalExpressionI (StateParameters[index+4], actor);
 	bool aim=!!EvalExpressionI (StateParameters[index+5], actor);
 	float MaxDiff=EvalExpressionF (StateParameters[index+6], actor);
+	ENamedName PuffTypeName=(ENamedName)StateParameters[index+7];
 
 	// [RH] Andy Baker's stealth monsters
 	if (actor->flags & MF_STEALTH)
@@ -1365,7 +1367,7 @@ void A_CustomRailgun (AActor *actor)
 		}
 	}
 
-	P_RailAttackWithPossibleSpread (actor, Damage, Spawnofs_XY, Color1, Color2, MaxDiff, Silent);
+	P_RailAttackWithPossibleSpread (actor, Damage, Spawnofs_XY, Color1, Color2, MaxDiff, Silent, PuffTypeName);
 }
 
 //===========================================================================
@@ -1480,8 +1482,7 @@ static void InitSpawnedItem(AActor *self, AActor *mo, INTBOOL transfer_translati
 	{
 		AActor * originator = self;
 
-		// [BB] Add the MF2_DONTTRANSLATE check once this is ported from ZDoom.
-		if (transfer_translation /*&& !(mo->flags2 & MF2_DONTTRANSLATE)*/)
+		if (transfer_translation && !(mo->flags2 & MF2_DONTTRANSLATE))
 		{
 			mo->Translation = self->Translation;
 		}
@@ -2212,7 +2213,6 @@ void A_Stop (AActor *self)
 {
 	self->momx = self->momy = self->momz = 0;
 }
-
 
 //===========================================================================
 //

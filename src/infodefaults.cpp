@@ -63,6 +63,8 @@ void FActorInfo::BuildDefaults ()
 			parent = Class->ParentClass;
 			parent->ActorInfo->BuildDefaults ();
 			Class->Meta = parent->Meta;
+			Class->Symbols.SetParentTable (&parent->Symbols);
+			
 			assert (Class->Size >= parent->Size);
 			memcpy (Class->Defaults, parent->Defaults, parent->Size);
 			if (Class->Size > parent->Size)
@@ -200,11 +202,8 @@ static void ApplyActorDefault (int defnum, const char *datastr, int dataint)
 		}
 		break;
 
-	// [GZDoom]
 	case ADEF_XScale:			actor->scaleX = dataint;			break;
 	case ADEF_YScale:			actor->scaleY = dataint;			break;
-	//case ADEF_XScale:			actor->xscale = dataint;			break;
-	//case ADEF_YScale:			actor->yscale = dataint;			break;
 	case ADEF_SpawnHealth:		actor->health = dataint;			break;
 	case ADEF_ReactionTime:		actor->reactiontime = dataint;		break;
 	case ADEF_PainChance:		actor->PainChance = dataint;		break;

@@ -3,6 +3,43 @@
 #include "gi.h"
 #include "a_sharedglobal.h"
 
+class AUnknown : public AActor
+{
+	DECLARE_ACTOR (AUnknown, AActor)
+};
+
+class APatrolPoint : public AActor
+{
+	DECLARE_STATELESS_ACTOR (APatrolPoint, AActor)
+};
+
+class APatrolSpecial : public AActor
+{
+	DECLARE_STATELESS_ACTOR (APatrolSpecial, AActor)
+};
+
+class ABlood : public AActor
+{
+	DECLARE_ACTOR (ABlood, AActor)
+public:
+	void SetDamage (int damage);
+};
+
+class AMapSpot : public AActor
+{
+	DECLARE_STATELESS_ACTOR (AMapSpot, AActor)
+};
+
+class AMapSpotGravity : public AMapSpot
+{
+	DECLARE_STATELESS_ACTOR (AMapSpotGravity, AMapSpot)
+};
+
+class ARealGibs : public AActor
+{
+	DECLARE_ACTOR (ARealGibs, AActor)
+};
+
 // Default actor for unregistered doomednums -------------------------------
 
 FState AUnknown::States[] =

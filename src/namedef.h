@@ -3,8 +3,20 @@ xx(None)
 
 xx(Super)
 xx(Object)
+xx(Actor)
 
 xx(Untranslated)
+
+xx(Doom)
+xx(Heretic)
+xx(Hexen)
+xx(Strife)
+
+// blood spawning
+xx(Blood)
+xx(BloodSplatter)
+xx(AxeBlood)
+xx(Spray)
 
 // Invulnerability types
 xx(Ghost)
@@ -177,6 +189,31 @@ xx(Massacre)	// For death by a cheater!
 // Special death name for getting killed excessively. Could be used as
 // a damage type if you wanted to force an extreme death.
 xx(Extreme)
+
+// Special names for thingdef_exp.cpp
+xx(Random)
+xx(Random2)
+xx(Cos)
+xx(Sin)
+xx(Alpha)
+xx(Angle)
+xx(Args)
+xx(CeilingZ)
+xx(FloorZ)
+xx(Health)
+xx(Pitch)
+xx(Special)
+xx(TID)
+xx(TIDtoHate)
+xx(WaterLevel)
+xx(X)
+xx(Y)
+xx(Z)
+
+// Various actor names which are used internally
+xx(MapSpot)
+xx(PatrolPoint)
+xx(PatrolSpecial)
 
 // [BB] Skulltag Damage types
 xx(Rocket)

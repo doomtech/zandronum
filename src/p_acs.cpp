@@ -1548,8 +1548,6 @@ void FBehavior::StaticStopMyScripts (AActor *actor)
 
 //---- The ACS Interpreter ----//
 
-void strbin (char *str);
-
 IMPLEMENT_CLASS (DACSThinker)
 
 DACSThinker *DACSThinker::ActiveThinker = NULL;

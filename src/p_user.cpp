@@ -1002,7 +1002,7 @@ void APlayerPawn::GiveDefaultInventory ()
 	}
 
 	fixed_t hx[5];
-	bool ishx;
+	bool ishx=false;
 
 	for(int i=0;i<5;i++)
 	{
