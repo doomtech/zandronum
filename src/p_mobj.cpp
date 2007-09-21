@@ -1156,7 +1156,7 @@ void P_ExplodeMissile (AActor *mo, line_t *line, AActor *target)
 	if (target != NULL && target->flags & (MF_SHOOTABLE|MF_CORPSE))
 	{
 		if (target->flags & MF_NOBLOOD) nextstate = mo->FindState(NAME_Crash);
-		if (nextstate == NULL) nextstate = mo->FindState(2, NAME_Death, NAME_Extreme);
+		if (nextstate == NULL) nextstate = mo->FindState(NAME_Death, NAME_Extreme);
 	}
 	if (nextstate == NULL) nextstate = mo->FindState(NAME_Death);
 	// [BB] If nextstate is still equal to NULL, mo->SetState (nextstate)
@@ -5857,7 +5857,7 @@ int AActor::TakeSpecialDamage (AActor *inflictor, AActor *source, int damage, FN
 		target = source;
 		if (pr_takedamage() < PainChance)
 		{
-			FState * painstate = FindState(2,NAME_Pain, (int)damagetype);
+			FState * painstate = FindState(NAME_Pain, damagetype);
 			if (painstate != NULL) SetState (painstate);
 		}
 		return -1;
@@ -5875,7 +5875,7 @@ int AActor::TakeSpecialDamage (AActor *inflictor, AActor *source, int damage, FN
 	}
 	if (damagetype == NAME_Ice)
 	{
-		death = GetClass()->ActorInfo->FindStateExact (2, NAME_Death, NAME_Ice);
+		death = FindState (NAME_Death, NAME_Ice, true);
 		if (death == NULL && !deh.NoAutofreeze && !(flags4 & MF4_NOICEDEATH) &&
 			(player || (flags3 & MF3_ISMONSTER)))
 		{
@@ -5884,7 +5884,7 @@ int AActor::TakeSpecialDamage (AActor *inflictor, AActor *source, int damage, FN
 	}
 	else
 	{
-		death = FindState (2, NAME_Death, int(damagetype));
+		death = FindState (NAME_Death, damagetype);
 	}
 	return (death == NULL) ? -1 : damage;
 }
@@ -5899,7 +5899,7 @@ void AActor::Crash()
 		
 		if (DamageType != NAME_None)
 		{
-			crashstate = GetClass()->ActorInfo->FindStateExact(2, NAME_Crash, DamageType);
+			crashstate = FindState(NAME_Crash, DamageType, true);
 		}
 		if (crashstate == NULL)
 		{
@@ -5908,7 +5908,7 @@ void AActor::Crash()
 
 			if (health<gibhealth)
 			{ // Extreme death
-				crashstate = FindState (2, NAME_Crash, NAME_Extreme);
+				crashstate = FindState (NAME_Crash, NAME_Extreme);
 			}
 			else
 			{ // Normal death

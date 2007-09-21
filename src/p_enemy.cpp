@@ -357,7 +357,7 @@ bool P_HitFriend(AActor * self)
 	{
 		angle_t angle = R_PointToAngle2 (self->x, self->y, self->target->x, self->target->y);
 		fixed_t dist = P_AproxDistance (self->x-self->target->x, self->y-self->target->y);
-		P_AimLineAttack (self, angle, dist, 0);
+		P_AimLineAttack (self, angle, dist, 0, true);
 		if (linetarget != NULL && linetarget != self->target)
 		{
 			return self->IsFriend (linetarget);
@@ -1146,6 +1146,7 @@ AActor *LookForTIDinBlock (AActor *lookee, int index)
 bool P_LookForTID (AActor *actor, INTBOOL allaround)
 {
 	AActor *other;
+	bool reachedend = false;
 
 	other = P_BlockmapSearch (actor, 0, LookForTIDinBlock);
 
@@ -1173,7 +1174,17 @@ bool P_LookForTID (AActor *actor, INTBOOL allaround)
 	while ((other = iterator.Next()) != actor->LastLook.Actor)
 	{
 		if (other == NULL)
+		{
+			if (reachedend)
+			{
+				// we have cycled through the entire list at least once
+				// so let's abort because even if we continue nothing can
+				// be found.
+				break;
+			}
+			reachedend = true;
 			continue;
+		}
 
 		if (!(other->flags & MF_SHOOTABLE))
 			continue;			// not shootable (observer or dead)

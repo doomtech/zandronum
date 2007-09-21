@@ -142,6 +142,7 @@ EXTERN_CVAR (Int, snd_buffersize)
 EXTERN_CVAR (Int, snd_samplerate)
 EXTERN_CVAR (Bool, snd_3d)
 EXTERN_CVAR (Bool, snd_waterreverb)
+EXTERN_CVAR (Int, sv_smartaim)
 EXTERN_CVAR (String,	playerclass)
 
 /*static*/	ULONG		g_ulPlayerSetupSkin;
@@ -1221,10 +1222,18 @@ CUSTOM_CVAR (Bool, vid_tft, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
  *
  *=======================================*/
 
+value_t SmartAim[4] = {
+	{ 0.0, "Off" },
+	{ 1.0, "On" },
+	{ 2.0, "Never friends" },
+	{ 3.0, "Only monsters" }
+};
+
 static menuitem_t DMFlagsItems[] = {
 	{ discrete, "Teamplay",				{&teamplay},	{2.0}, {0.0}, {0.0}, {OnOff} },
 	{ slider,	"Team damage scalar",	{&teamdamage},	{0.0}, {1.0}, {0.05},{NULL} },
 	{ redtext,	" ",					{NULL},			{0.0}, {0.0}, {0.0}, {NULL} },
+	{ discrete, "Smart Autoaim",		{&sv_smartaim},	{3.0}, {0.0}, {0.0}, {SmartAim} },
 	{ bitflag,	"Falling damage (old)",	{&dmflags},		{0}, {0}, {0}, {(value_t *)DF_FORCE_FALLINGZD} },
 	{ bitflag,	"Falling damage (Hexen)",{&dmflags},	{0}, {0}, {0}, {(value_t *)DF_FORCE_FALLINGHX} },
 	{ bitflag,	"Weapons stay (DM)",	{&dmflags},		{0}, {0}, {0}, {(value_t *)DF_WEAPONS_STAY} },

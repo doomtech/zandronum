@@ -414,20 +414,21 @@ static void DoJump(AActor * self, FState * CallingState, int offset)
 	{
 		offset = -offset;
 
-		int classname = JumpParameters[offset];
+		FName classname = JumpParameters[offset];
 		const PClass *cls;
-		cls = classname==NAME_None?  RUNTIME_TYPE(self) : PClass::FindClass((ENamedName)classname);
+		cls = classname==NAME_None?  RUNTIME_TYPE(self) : PClass::FindClass(classname);
 		if (cls==NULL || cls->ActorInfo==NULL) return;	// shouldn't happen
 		
-		jumpto = cls->ActorInfo->FindState(JumpParameters[offset+1], (va_list)&JumpParameters[offset+2]);
+		int numnames = (int)JumpParameters[offset+1];
+		jumpto = cls->ActorInfo->FindState(numnames, &JumpParameters[offset+2]);
 		if (jumpto == NULL)
 		{
 			char * dot="";
 			Printf("Jump target '");
-			if (classname != NAME_None) Printf("%s::", ((FName)(ENamedName)classname).GetChars());
-			for (int i=0;i<JumpParameters[offset+1];i++)
+			if (classname != NAME_None) Printf("%s::", classname.GetChars());
+			for (int i=0;i<numnames;i++)
 			{
-				Printf("%s%s", dot, ((FName)(ENamedName)JumpParameters[offset+2+i]));
+				Printf("%s%s", dot, JumpParameters[offset+2+i].GetChars());
 			}
 			Printf("not found in %s\n", self->GetClass()->TypeName.GetChars());
 			return;
@@ -536,7 +537,7 @@ void DoJumpIfInventory(AActor * self, AActor * owner)
 {
 	FState * CallingState;
 	int index=CheckIndex(3, &CallingState);
-	if (index<0 || owner == NULL) return;
+	if (index<0) return;
 
 	ENamedName ItemType=(ENamedName)StateParameters[index];
 	int ItemAmount = EvalExpressionI (StateParameters[index+1], self);
@@ -545,7 +546,7 @@ void DoJumpIfInventory(AActor * self, AActor * owner)
 
 	if (pStateCall != NULL) pStateCall->Result=false;	// Jumps should never set the result for inventory state chains!
 
-	if (!Type) return;
+	if (!Type || owner == NULL) return;
 
 	AInventory * Item=owner->FindInventory(Type);
 
@@ -950,12 +951,13 @@ void A_JumpIfNoAmmo(AActor * self)
 {
 	FState * CallingState;
 	int index=CheckIndex(1, &CallingState);
-	if (index<0 || !self->player || !self->player->ReadyWeapon) return;	// only for weapons!
+
+	if (pStateCall != NULL) pStateCall->Result=false;	// Jumps should never set the result for inventory state chains!
+	if (index<0 || !self->player || !self->player->ReadyWeapon || pStateCall != NULL) return;	// only for weapons!
 
 	if (!self->player->ReadyWeapon->CheckAmmo(self->player->ReadyWeapon->bAltFire, false, true))
 		DoJump(self, CallingState, StateParameters[index]);
 
-	if (pStateCall != NULL) pStateCall->Result=false;	// Jumps should never set the result for inventory state chains!
 }
 
 
@@ -1942,14 +1944,20 @@ void A_SpawnDebris(AActor * self)
 	AActor * mo;
 	const PClass * debris;
 
-	int index=CheckIndex(2, NULL);
+	int index=CheckIndex(4, NULL);
 	if (index<0) return;
-
-	INTBOOL transfer_translation = EvalExpressionI (StateParameters[index+1], self);
 
 	debris = PClass::FindClass((ENamedName)StateParameters[index]);
 	if (debris == NULL) return;
 
+	INTBOOL transfer_translation = EvalExpressionI (StateParameters[index+1], self);
+	fixed_t mult_h = fixed_t(EvalExpressionF (StateParameters[index], self) * FRACUNIT);
+	fixed_t mult_v = fixed_t(EvalExpressionF (StateParameters[index], self) * FRACUNIT);
+
+	// only positive values make sense here
+	if (mult_v<=0) mult_v=FRACUNIT;
+	if (mult_h<=0) mult_h=FRACUNIT;
+	
 	for (i = 0; i < GetDefaultByType(debris)->health; i++)
 	{
 		mo = Spawn(debris, self->x+((pr_spawndebris()-128)<<12),
@@ -1962,9 +1970,9 @@ void A_SpawnDebris(AActor * self)
 		if (mo && i < mo->GetClass()->ActorInfo->NumOwnedStates)
 		{
 			mo->SetState (mo->GetClass()->ActorInfo->OwnedStates + i);
-			mo->momz = ((pr_spawndebris()&7)+5)*FRACUNIT;
-			mo->momx = pr_spawndebris.Random2()<<(FRACBITS-6);
-			mo->momy = pr_spawndebris.Random2()<<(FRACBITS-6);
+			mo->momz = FixedMul(mult_v, ((pr_spawndebris()&7)+5)*FRACUNIT);
+			mo->momx = FixedMul(mult_h, pr_spawndebris.Random2()<<(FRACBITS-6));
+			mo->momy = FixedMul(mult_h, pr_spawndebris.Random2()<<(FRACBITS-6));
 		}
 	}
 }
@@ -1978,6 +1986,8 @@ void A_SpawnDebris(AActor * self)
 //===========================================================================
 void A_CheckSight(AActor * self)
 {
+	if (pStateCall != NULL) pStateCall->Result=false;	// Jumps should never set the result for inventory state chains!
+
 	for (int i=0;i<MAXPLAYERS;i++) 
 	{
 		if (playeringame[i] && P_CheckSight(players[i].camera,self,true)) return;
@@ -1988,7 +1998,6 @@ void A_CheckSight(AActor * self)
 
 	if (index>=0) DoJump(self, CallingState, StateParameters[index]);
 
-	if (pStateCall != NULL) pStateCall->Result=false;	// Jumps should never set the result for inventory state chains!
 }
 
 
@@ -2069,11 +2078,11 @@ void A_JumpIf(AActor * self)
 	FState * CallingState;
 	int index=CheckIndex(2, &CallingState);
 	if (index<0) return;
-	int expression = EvalExpressionI (StateParameters[index], self);
-
-	if (index>=0 && expression) DoJump(self, CallingState, StateParameters[index+1]);
+	INTBOOL expression = EvalExpressionI (StateParameters[index], self);
 
 	if (pStateCall != NULL) pStateCall->Result=false;	// Jumps should never set the result for inventory state chains!
+	if (expression) DoJump(self, CallingState, StateParameters[index+1]);
+
 }
 
 //===========================================================================
@@ -2201,12 +2210,12 @@ void A_CheckFloor (AActor *self)
 	FState *CallingState;
 	int index = CheckIndex (1, &CallingState);
 
+	if (pStateCall != NULL) pStateCall->Result=false;	// Jumps should never set the result for inventory state chains!
 	if (self->z <= self->floorz && index >= 0)
 	{
 		DoJump (self, CallingState, StateParameters[index]);
 	}
 
-	if (pStateCall != NULL) pStateCall->Result=false;	// Jumps should never set the result for inventory state chains!
 }
 
 //===========================================================================
@@ -2269,6 +2278,7 @@ void A_Respawn (AActor *actor)
 
 void A_PlayerSkinCheck (AActor *actor)
 {
+	if (pStateCall != NULL) pStateCall->Result=false;	// Jumps should never set the result for inventory state chains!
 	if (actor->player != NULL &&
 		skins[actor->player->userinfo.skin].othergame)
 	{

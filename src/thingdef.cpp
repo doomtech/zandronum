@@ -79,7 +79,7 @@ extern TArray<FActorInfo *> Decorations;
 TArray<char*> DecalNames;
 // all state parameters
 TArray<int> StateParameters;
-TArray<int> JumpParameters;
+TArray<FName> JumpParameters;
 
 //==========================================================================
 //
@@ -282,7 +282,6 @@ static flagdef WeaponFlags[] =
 	DEFINE_FLAG(WIF_BOT, BFG, AWeapon, WeaponFlags),
 	DEFINE_FLAG(WIF, CHEATNOTWEAPON, AWeapon, WeaponFlags),
 	//WIF_BOT_REACTION_SKILL_THING = 1<<31, // I don't understand this
-	//DEFINE_FLAG(WIF , HITS_GHOSTS, WeaponFlags),	// I think it would be smarter to remap the THRUGHOST flag to this
 	DEFINE_FLAG(WIF, ALLOW_WITH_RESPAWN_INVUL, AWeapon, WeaponFlags), // [BB] Marks weapons, which can be used while respawn invulnerability is active.
 };
 
@@ -789,7 +788,6 @@ static const ActorProps *is_actorprop (const char *str);
 struct FStateDefine
 {
 	FName Label;
-	bool valid;
 	TArray<FStateDefine> Children;
 	FState *State;
 };
@@ -818,7 +816,6 @@ static FStateDefine * FindStateLabelInList(TArray<FStateDefine> & list, FName na
 		FStateDefine def;
 		def.Label=name;
 		def.State=NULL;
-		def.valid=false;
 		return &list[list.Push(def)];
 	}
 	return NULL;
@@ -897,7 +894,6 @@ void AddState (const char * statename, FState * state)
 {
 	FStateDefine * std = FindStateAddress(statename);
 	std->State = state;
-	std->valid = true;
 }
 
 //==========================================================================
@@ -917,12 +913,7 @@ FState * FindState(AActor * actor, const PClass * type, const char * name)
 	for(unsigned i=0;i<namelist.Size();i++)
 	{
 		statedef = FindStateLabelInList(*statelist, namelist[i], false);
-		if (statedef == NULL)
-		{
-			FActorInfo * parentinfo = type->ParentClass->ActorInfo;
-			if (parentinfo) return parentinfo->FindStateExact(namelist.Size(), (va_list)&namelist[0]);
-			else return NULL;
-		}
+		if (statedef == NULL) return NULL;
 		statelist = &statedef->Children;
 	}
 	return statedef? statedef->State : NULL;
@@ -940,7 +931,7 @@ FState * FindStateInClass(AActor * actor, const PClass * type, const char * name
 
 	MakeStateNameList(name, &namelist);
 	FActorInfo * info = type->ActorInfo;
-	if (info) return info->FindStateExact(namelist.Size(), (va_list)&namelist[0]);
+	if (info) return info->FindState(namelist.Size(), &namelist[0], true);
 	return NULL;
 }
 
@@ -976,6 +967,15 @@ static int STACK_ARGS labelcmp(const void * a, const void * b)
 
 static FStateLabels * CreateStateLabelList(TArray<FStateDefine> & statelist)
 {
+	// First delete all empty labels from the list
+	for (int i=statelist.Size()-1;i>=0;i--)
+	{
+		if (statelist[i].Label == NAME_None || (statelist[i].State == NULL && statelist[i].Children.Size() == 0))
+		{
+			statelist.Delete(i);
+		}
+	}
+
 	int count=statelist.Size();
 
 	if (count == 0) return NULL;
@@ -983,17 +983,11 @@ static FStateLabels * CreateStateLabelList(TArray<FStateDefine> & statelist)
 	FStateLabels * list = (FStateLabels*)M_Malloc(sizeof(FStateLabels)+(count-1)*sizeof(FStateLabel));
 	list->NumLabels = count;
 
-	int j=0;
-	for (unsigned i=0;i<statelist.Size();i++)
+	for (int i=0;i<count;i++)
 	{
-		if (statelist[i].Label != NAME_None)
-		{
-			list->Labels[j].Label = statelist[i].Label;
-			list->Labels[j].State = statelist[i].State;
-			list->Labels[j].valid = statelist[i].valid;
-			list->Labels[j].Children = CreateStateLabelList(statelist[i].Children);
-			j++;
-		}
+		list->Labels[i].Label = statelist[i].Label;
+		list->Labels[i].State = statelist[i].State;
+		list->Labels[i].Children = CreateStateLabelList(statelist[i].Children);
 	}
 	qsort(list->Labels, count, sizeof(FStateLabel), labelcmp);
 	return list;
@@ -1009,23 +1003,37 @@ static FStateLabels * CreateStateLabelList(TArray<FStateDefine> & statelist)
 
 void InstallStates(FActorInfo *info, AActor *defaults)
 {
+	// First ensure we have a valid spawn state.
 	FState * state = FindState(defaults, info->Class, "Spawn");
-	// If the actor doesn't provide a valid spawn state we have to substutute it
-	// with the default.
-	if (state == &AActor::States[2] || state == NULL)
+
+	// Stateless actors that are direct subclasses of AActor
+	// have their spawnstate default to something that won't
+	// immediately destroy them.
+	if (state == &AActor::States[2] && info->Class->ParentClass == RUNTIME_CLASS(AActor))
 	{
 		AddState("Spawn", &AActor::States[0]);
 	}
+	else if (state == NULL)
+	{
+		// A NULL spawn state will crash the engine so set it to something that will make
+		// the actor disappear as quickly as possible.
+		AddState("Spawn", &AActor::States[2]);
+	}
 
+	if (info->StateList != NULL) 
+	{
+		info->StateList->Destroy();
+		free(info->StateList);
+	}
 	info->StateList = CreateStateLabelList(StateLabels);
 
 	// Cache these states as member veriables.
-	defaults->SpawnState = info->FindStateExact(1,NAME_Spawn);
-	defaults->SeeState = info->FindStateExact(1,NAME_See);
+	defaults->SpawnState = info->FindState(NAME_Spawn);
+	defaults->SeeState = info->FindState(NAME_See);
 	// Melee and Missile states are manipulated by the scripted marines so they
 	// have to be stored locally
-	defaults->MeleeState = info->FindStateExact(1,NAME_Melee);
-	defaults->MissileState = info->FindStateExact(1,NAME_Missile);
+	defaults->MeleeState = info->FindState(NAME_Melee);
+	defaults->MissileState = info->FindState(NAME_Missile);
 }
 
 
@@ -1047,7 +1055,6 @@ static void MakeStateList(const FStateLabels *list, TArray<FStateDefine> &dest)
 
 		def.Label = list->Labels[i].Label;
 		def.State = list->Labels[i].State;
-		def.valid = list->Labels[i].valid;
 		dest.Push(def);
 		if (list->Labels[i].Children != NULL)
 		{
@@ -1185,7 +1192,7 @@ static FActorInfo * CreateNewActor(FActorInfo ** parentc, Baggage *bag)
 	FActorInfo * info = ti->ActorInfo;
 
 	Decorations.Push (info);
-	ClearStateLabels();
+	MakeStateDefines(parent->ActorInfo->StateList);
 	info->NumOwnedStates = 0;
 	info->OwnedStates = NULL;
 	info->SpawnID = 0;
@@ -1675,7 +1682,7 @@ do_stop:
 								}
 								else
 								{
-									if (JumpParameters.Size()==0) JumpParameters.Push(0);
+									if (JumpParameters.Size()==0) JumpParameters.Push(NAME_None);
 
 									v = -(int)JumpParameters.Size();
 									FString statestring = ParseStateString();
@@ -1695,7 +1702,7 @@ do_stop:
 										stype = PClass::FindClass (scopename);
 										if (stype == NULL)
 										{
-											SC_ScriptError ("%s is an unknown class.", scopename);
+											SC_ScriptError ("%s is an unknown class.", scopename.GetChars());
 										}
 										if (!stype->IsDescendantOf (RUNTIME_CLASS(AActor)))
 										{
@@ -1713,20 +1720,20 @@ do_stop:
 										// labels in subclasses.
 										// It also means that the validity of the given state cannot
 										// be checked here.
-										JumpParameters.Push(0);
+										JumpParameters.Push(NAME_None);
 									}
 									TArray<FName> names;
 									MakeStateNameList(statestring, &names);
 
 									if (stype != NULL)
 									{
-										if (!stype->ActorInfo->FindState(names.Size(), (va_list)&names[0]))
+										if (!stype->ActorInfo->FindState(names.Size(), &names[0]))
 										{
 											SC_ScriptError("Jump to unknown state '%s' in class '%s'",
 												statestring.GetChars(), stype->TypeName.GetChars());
 										}
 									}
-									JumpParameters.Push(names.Size());
+									JumpParameters.Push((ENamedName)names.Size());
 									for(unsigned i=0;i<names.Size();i++)
 									{
 										JumpParameters.Push(names[i]);
@@ -2041,7 +2048,7 @@ static FState *CheckState(PClass *type)
 
 			if (info != NULL)
 			{
-				state = info->FindStateExact(1, (int)FName(sc_String));
+				state = info->FindState(FName(sc_String));
 			}
 
 			if (SC_GetString ())
@@ -4481,10 +4488,10 @@ void FinishThingdef()
 			if (isRuntimeActor)
 			{
 				// Do some consistency checks. If these states are undefined the weapon cannot work!
-				if (!ti->ActorInfo->FindState(1, NAME_Ready)) I_Error("Weapon %s doesn't define a ready state.\n", ti->TypeName.GetChars());
-				if (!ti->ActorInfo->FindState(1, NAME_Select)) I_Error("Weapon %s doesn't define a select state.\n", ti->TypeName.GetChars());
-				if (!ti->ActorInfo->FindState(1, NAME_Deselect)) I_Error("Weapon %s doesn't define a deselect state.\n", ti->TypeName.GetChars());
-				if (!ti->ActorInfo->FindState(1, NAME_Fire)) I_Error("Weapon %s doesn't define a fire state.\n", ti->TypeName.GetChars());
+				if (!ti->ActorInfo->FindState(NAME_Ready)) I_Error("Weapon %s doesn't define a ready state.\n", ti->TypeName.GetChars());
+				if (!ti->ActorInfo->FindState(NAME_Select)) I_Error("Weapon %s doesn't define a select state.\n", ti->TypeName.GetChars());
+				if (!ti->ActorInfo->FindState(NAME_Deselect)) I_Error("Weapon %s doesn't define a deselect state.\n", ti->TypeName.GetChars());
+				if (!ti->ActorInfo->FindState(NAME_Fire)) I_Error("Weapon %s doesn't define a fire state.\n", ti->TypeName.GetChars());
 			}
 
 		}
@@ -4567,7 +4574,8 @@ void ParseClass()
 		}
 		else
 		{
-			SC_ScriptError ("Expected 'action' or 'const' but got %s", SC_TokenName(sc_TokenType, sc_String));
+			FString tokname = SC_TokenName(sc_TokenType, sc_String);
+			SC_ScriptError ("Expected 'action' or 'const' but got %s", tokname.GetChars());
 		}
 		SC_MustGetAnyToken();
 	}

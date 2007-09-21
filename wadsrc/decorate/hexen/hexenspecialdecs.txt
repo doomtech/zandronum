@@ -71,7 +71,7 @@ ACTOR TreeDestructible 8062
 		TRDT OP 5
 		TRDT Q -1
 		Stop
-	}
+	} 
 }
 
 
@@ -115,6 +115,7 @@ ACTOR ZWallTorch : SwitchableDecoration 54
 	+NOBLOCKMAP
 	+NOGRAVITY
 	+FIXMAPTHINGPOS
+	Radius 6.5
 	States
 	{
 	Active:
@@ -305,3 +306,4 @@ ACTOR HWaterDrip
 		Stop
 	}
 }
+

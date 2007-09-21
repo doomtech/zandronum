@@ -8717,10 +8717,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\g_strife\a_strifebishop.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\g_strife\a_strifeglobal.h"
 				>
 			</File>

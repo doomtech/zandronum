@@ -802,10 +802,7 @@ static int PatchThing (int thingy)
 			}
 			else if (stricmp (Line1, "Scale") == 0)
 			{
-				// [GZDoom]
 				info->scaleY = info->scaleX = clamp<fixed_t> (FLOAT2FIXED(atof (Line2)), 1, 256*FRACUNIT);
-				//info->xscale = clamp ((int)(atof (Line2) * 64), 1, 256) - 1;
-				//info->yscale = clamp ((int)(atof (Line2) * 64), 1, 256) - 1;
 			}
 			else if (stricmp (Line1, "Decal") == 0)
 			{
@@ -2521,7 +2518,7 @@ static bool LoadDehSupp ()
 							StateMap[i].State = def->SpawnState;
 							break;
 						case DeathState:
-							StateMap[i].State = type->ActorInfo->FindStateExact(1, NAME_Death);
+							StateMap[i].State = type->ActorInfo->FindState(NAME_Death);
 							break;
 						}
 						StateMap[i].StateSpan = supp[6+i*4+3];
@@ -2603,6 +2600,9 @@ void FinishDehPatch ()
 		subclass->ActorInfo->GameFilter = type->ActorInfo->GameFilter;
 		subclass->ActorInfo->SpawnID = type->ActorInfo->SpawnID;
 		subclass->ActorInfo->DoomEdNum = type->ActorInfo->DoomEdNum;
+		// Make a copy the state labels 
+		MakeStateDefines(type->ActorInfo->StateList);
+		InstallStates(subclass->ActorInfo, defaults2);
 
 		// Alter the original class so that it just spawns the new one
 		//memcpy (defaults1, GetDefault<AActor>(), sizeof(AActor));

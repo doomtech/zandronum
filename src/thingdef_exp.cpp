@@ -223,6 +223,30 @@ ExpVal GetZ (AActor *actor, int id)
 	return val;
 }
 
+ExpVal GetMomX (AActor *actor, int id)
+{
+	ExpVal val;
+	val.Type = VAL_Float;
+	val.Float = FIXED2FLOAT (actor->momx);
+	return val;
+}
+
+ExpVal GetMomY (AActor *actor, int id)
+{
+	ExpVal val;
+	val.Type = VAL_Float;
+	val.Float = FIXED2FLOAT (actor->momy);
+	return val;
+}
+
+ExpVal GetMomZ (AActor *actor, int id)
+{
+	ExpVal val;
+	val.Type = VAL_Float;
+	val.Float = FIXED2FLOAT (actor->momz);
+	return val;
+}
+
 static struct FExpVar
 {
 	ENamedName name;	// identifier
@@ -243,6 +267,9 @@ static struct FExpVar
 	{ NAME_X,			0, GetX },
 	{ NAME_Y,			0, GetY },
 	{ NAME_Z,			0, GetZ },
+	{ NAME_MomX,		0, GetMomX },
+	{ NAME_MomY,		0, GetMomY },
+	{ NAME_MomZ,		0, GetMomZ },
 };
 
 struct ExpData;
@@ -858,7 +885,8 @@ static ExpData *ParseExpressionA (const PClass *cls)
 	}
 	else
 	{
-		SC_ScriptError ("Unexpected token %s", SC_TokenName(sc_TokenType, sc_String));
+		FString tokname = SC_TokenName(sc_TokenType, sc_String);
+		SC_ScriptError ("Unexpected token %s", tokname.GetChars());
 		return NULL;
 	}
 }
@@ -918,6 +946,8 @@ float EvalExpressionF (int id, AActor *self, const PClass *cls)
 static ExpVal EvalExpression (ExpData *data, AActor *self, const PClass *cls)
 {
 	ExpVal val;
+
+	val.Type = VAL_Int;		// Placate GCC
 
 	switch (data->Type)
 	{

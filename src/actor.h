@@ -898,8 +898,7 @@ public:
 	bool UpdateWaterLevel (fixed_t oldz, bool splash=true);
 
 	FState *FindState (FName label) const;
-	FState *FindState (int numnames, int first, ...) const;
-	FState *FindState (int numnames, va_list arglist) const;
+	FState *FindState (FName label, FName sublabel, bool exact = false) const;
 	bool HasSpecialDeathStates () const;
 
 	static FState States[];

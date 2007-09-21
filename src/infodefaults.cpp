@@ -64,18 +64,11 @@ void FActorInfo::BuildDefaults ()
 			parent->ActorInfo->BuildDefaults ();
 			Class->Meta = parent->Meta;
 			Class->Symbols.SetParentTable (&parent->Symbols);
-
 			assert (Class->Size >= parent->Size);
 			memcpy (Class->Defaults, parent->Defaults, parent->Size);
 			if (Class->Size > parent->Size)
 			{
 				memset (Class->Defaults + parent->Size, 0, Class->Size - parent->Size);
-			}
-			if (parent == RUNTIME_CLASS(AActor) && OwnedStates == NULL)
-			{ // Stateless actors that are direct subclasses of AActor
-			  // have their spawnstate default to something that won't
-			  // immediately destroy them.
-				((AActor *)(Class->Defaults))->SpawnState = &AActor::States[0];
 			}
 		}
 		ApplyDefaults (Class->Defaults);
@@ -381,7 +374,14 @@ void FActorInfo::ApplyDefaults (BYTE *defaults)
 	sgClass = Class;
 	sgDefaults = defaults;
 
-	ClearStateLabels();
+	if (Class != RUNTIME_CLASS(AActor))
+	{
+		MakeStateDefines(Class->ParentClass->ActorInfo->StateList);
+	}
+	else
+	{
+		ClearStateLabels();
+	}
 #if _MSC_VER
 	const BYTE *parser = DefaultList;
 

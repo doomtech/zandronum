@@ -110,6 +110,7 @@ IMPLEMENT_ACTOR (AClericBoss, Hexen, 10101, 0)
 
 	PROP_PainSound ("PlayerClericPain")
 	PROP_DeathSound ("PlayerClericCrazyDeath")
+	PROP_Obituary ("$OB_CBOSS")
 END_DEFAULTS
 
 //============================================================================
