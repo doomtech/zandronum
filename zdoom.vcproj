@@ -4156,6 +4156,10 @@
 				Name="Decorate++"
 				>
 				<File
+					RelativePath=".\src\codepointers.h"
+					>
+				</File>
+				<File
 					RelativePath=".\src\decorations.cpp"
 					>
 				</File>
