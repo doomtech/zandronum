@@ -1409,7 +1409,13 @@ static void DoGiveInventory(AActor * self, AActor * receiver)
 			item->Destroy ();
 			res = false;
 		}
-		else res = true;
+		else
+		{
+			res = true;
+			// [BB] If we're the server, give the item to the clients.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_GiveInventoryNotOverwritingAmount( receiver, item );
+		}
 	}
 	else res = false;
 	if (pStateCall != NULL) pStateCall->Result = res;

@@ -253,6 +253,7 @@ void	SERVERCOMMANDS_SetMapSky( ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags =
 
 // Inventory commands. These give the player inventory items, takes them away, etc.
 void	SERVERCOMMANDS_GiveInventory( ULONG ulPlayer, AInventory *pInventory, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
+void	SERVERCOMMANDS_GiveInventoryNotOverwritingAmount( AActor *pReceiver, AInventory *pItem );
 void	SERVERCOMMANDS_TakeInventory( ULONG ulPlayer, char *pszClassName, ULONG ulAmount, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_GivePowerup( ULONG ulPlayer, APowerup *pPowerup, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_DoInventoryPickup( ULONG ulPlayer, char *pszClassName, char *pszPickupMessage, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
