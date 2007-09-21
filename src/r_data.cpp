@@ -28,7 +28,6 @@
 #include <stdio.h>
 #include <string>
 
-
 #include "i_system.h"
 #include "m_alloc.h"
 
@@ -72,6 +71,8 @@ static int R_CountLumpTextures (int lumpnum);
 extern void R_InitBuildTiles();
 extern void R_DeinitBuildTiles();
 extern int R_CountBuildTiles();
+
+
 
 //
 // Graphics.
@@ -1025,7 +1026,6 @@ const BYTE *R_GetColumn (FTexture *tex, int col)
 
 static void R_InitPatches ()
 {
-
 	static const char patches[][9] = 
 	{
 		"CONBACK",
@@ -1213,7 +1213,6 @@ static void R_InitPatches ()
 		"BSKUA0",
 		"RSKUA0",
 	};
-	
 	static const char spinners[][9] =
 	{
 		"SPINBK%d",
