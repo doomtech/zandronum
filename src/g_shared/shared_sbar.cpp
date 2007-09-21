@@ -214,9 +214,6 @@ void FBaseStatusBar::SetScaled (bool scale)
 	}
 	else
 	{
-		// [GZDoom]
-		//bool wide = !(CheckRatio (SCREENWIDTH, SCREENHEIGHT) & 3);
-		//int basewidth = wide ? 1280 : 960;
 		ST_X = 0;
 		ST_Y = 200 - RelTop;
 		::ST_Y = Scale (ST_Y, SCREENHEIGHT, 200);
@@ -578,7 +575,6 @@ void FBaseStatusBar::DrBNumber (signed int val, int x, int y, int size) const
 			DrawImage (pic, x, y);
 		}
 	}
-
 	if (neg)
 	{
 		pic = Images[imgBNEGATIVE];
@@ -588,8 +584,6 @@ void FBaseStatusBar::DrBNumber (signed int val, int x, int y, int size) const
 		}
 	}
 }
-
-
 
 //---------------------------------------------------------------------------
 //
@@ -1060,38 +1054,20 @@ void FBaseStatusBar::DrawCrosshair ()
 		color = crosshaircolor;
 	}
 
-	
-
 	if (color != prevcolor)
 	{
 		prevcolor = color;
 		palettecolor = ColorMatcher.Pick (RPART(color), GPART(color), BPART(color));
 	}
-/*  [GZDoom]
-	// [BC]
-	if ( OPENGL_GetCurrentRenderer( ) == RENDERER_OPENGL )
-	{
-		screen->DrawTexture (CrosshairImage,
-			realviewwidth / 2 + viewwindowx,
-			realviewheight / 2 + viewwindowy,
-			DTA_DestWidth, w,
-			DTA_DestHeight, h,
-			DTA_AlphaChannel, true,
-			DTA_FillColor, palettecolor,
-			TAG_DONE);
-	}
-	else
-	{
-*/
-		screen->DrawTexture (CrosshairImage,
-			realviewwidth / 2 + viewwindowx,
-			realviewheight / 2 + viewwindowy,
-			DTA_DestWidth, w,
-			DTA_DestHeight, h,
-			DTA_AlphaChannel, true,
-			DTA_FillColor, (palettecolor << 24) | (color & 0xFFFFFF),
-			TAG_DONE);
-//	}
+
+	screen->DrawTexture (CrosshairImage,
+		realviewwidth / 2 + viewwindowx,
+		realviewheight / 2 + viewwindowy,
+		DTA_DestWidth, w,
+		DTA_DestHeight, h,
+		DTA_AlphaChannel, true,
+		DTA_FillColor, (palettecolor << 24) | (color & 0xFFFFFF),
+		TAG_DONE);
 }
 
 //---------------------------------------------------------------------------
@@ -1349,7 +1325,6 @@ void FBaseStatusBar::DrawCornerScore ()
 // DrawTopStuff
 //
 //---------------------------------------------------------------------------
-
 
 void FBaseStatusBar::DrawTopStuff (EHudState state)
 {
@@ -1801,9 +1776,6 @@ void FBaseStatusBar::GetCurrentAmmo (AAmmo *&ammo1, AAmmo *&ammo2, int &ammocoun
 
 CCMD (showpop)
 {
-// [GZDoom]
-//void HUD_ShowPop(int pop);
-
 	if (argv.argc() != 2)
 	{
 		Printf ("Usage: showpop <popnumber>\n");
@@ -1816,7 +1788,5 @@ CCMD (showpop)
 			popnum = 0;
 		}
 		StatusBar->ShowPop (popnum);
-		// [GZDoom]
-//		HUD_ShowPop(popnum);	// for the alt hud
 	}
 }

@@ -72,7 +72,6 @@ IMPLEMENT_ACTOR (AFWeapHammer, Hexen, 123, 28)
 	PROP_Weapon_DownState (S_FHAMMERDOWN)
 	PROP_Weapon_ReadyState (S_FHAMMERREADY)
 	PROP_Weapon_AtkState (S_FHAMMERATK)
-	PROP_Weapon_HoldAtkState (S_FHAMMERATK)
 	PROP_Weapon_Kickback (150)
 	PROP_Weapon_YAdjust (0-10)
 	PROP_Weapon_AmmoType1 ("Mana2")
@@ -132,6 +131,7 @@ END_DEFAULTS
 void AHammerMissile::GetExplodeParms (int &damage, int &dist, bool &hurtSource)
 {
 	damage = 128;
+	dist;
 	hurtSource = false;
 }
 

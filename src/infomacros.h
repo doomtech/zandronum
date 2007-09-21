@@ -294,6 +294,7 @@ public:
 #define PROP_EDeathState(x)				ADD_BYTE_PROP(ADEF_EDeathState,x)
 #define PROP_RaiseState(x)				ADD_BYTE_PROP(ADEF_RaiseState,x)
 #define PROP_WoundState(x)				ADD_BYTE_PROP(ADEF_WoundState,x)
+#define PROP_CLEAR_STATE				255
 
 #define PROP_StrifeType(x)				ADD_WORD_PROP(ADEF_StrifeType,x)
 #define PROP_StrifeTeaserType(x)		ADD_WORD_PROP(ADEF_StrifeTeaserType,x)

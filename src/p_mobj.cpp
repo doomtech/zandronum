@@ -1663,7 +1663,7 @@ void P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 		{
 			// blocked move
 
-			if (mo->flags2 & MF2_SLIDE || bForceSlide)
+			if ((mo->flags2 & (MF2_SLIDE|MF2_BLASTED) || bForceSlide) && !(mo->flags&MF_MISSILE))
 			{
 				// try to slide along it
 				if (BlockingMobj == NULL)
@@ -2895,7 +2895,7 @@ int AActor::GetMissileDamage (int mask, int add)
 void AActor::Howl ()
 {
 	int howl = GetClass()->Meta.GetMetaInt(AMETA_HowlSound);
-	if (!S_GetSoundPlayingInfo (this, howl))
+	if (!S_IsActorPlayingSomething(this, CHAN_BODY, howl))
 	{
 		S_SoundID (this, CHAN_BODY, howl, 1, ATTN_NORM);
 	}
@@ -3388,10 +3388,6 @@ void AActor::Tick ()
 	if ((momx | momy) == 0 && (flags2 & MF2_BLASTED))
 	{ // Reset to not blasted when momentums are gone
 		flags2 &= ~MF2_BLASTED;
-		if (!(flags & MF_ICECORPSE))
-		{
-			flags2 &= ~MF2_SLIDE;
-		}
 	}
 
 	if (flags2 & MF2_FLOATBOB)

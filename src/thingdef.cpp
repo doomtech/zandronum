@@ -225,6 +225,7 @@ static flagdef ActorFlags[]=
 	DEFINE_FLAG(MF5, OLDRADIUSDMG, AActor, flags5),
 	DEFINE_FLAG(MF5, DEHEXPLOSION, AActor, flags5),
 	DEFINE_FLAG(MF5, PIERCEARMOR, AActor, flags5),
+	DEFINE_FLAG(MF5, NOBLOODDECALS, AActor, flags5),
 
 	// [BC] New DECORATE flag defines here.
 	DEFINE_FLAG(STFL, BLUETEAM, AActor, ulSTFlags),
@@ -3525,8 +3526,13 @@ static void InventoryIcon (AInventory *defaults, Baggage &bag)
 		defaults->Icon = TexMan.AddPatch (sc_String, ns_sprites);
 		if (defaults->Icon<=0)
 		{
-			if (bag.Info->GameFilter == GAME_Any || bag.Info->GameFilter & gameinfo.gametype)
+			// Don't print warnings if the item is for another game or if this is a shareware IWAD. 
+			// Strife's teaser doesn't contain all the icon graphics of the full game.
+			if ((bag.Info->GameFilter == GAME_Any || bag.Info->GameFilter & gameinfo.gametype) &&
+				!(gameinfo.flags&GI_SHAREWARE))
+			{
 				Printf("Icon '%s' for '%s' not found\n", sc_String, bag.Info->Class->TypeName.GetChars());
+			}
 		}
 	}
 }

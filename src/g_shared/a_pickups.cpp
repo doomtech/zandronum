@@ -2053,7 +2053,6 @@ void AHexenArmor::AbsorbDamage (int damage, FName damageType, int &newdamage)
 	if (damageType != NAME_Water)
 	{
 		fixed_t savedPercent = Slots[0] + Slots[1] + Slots[2] + Slots[3] + Slots[4];
-		APlayerPawn *ppawn = Owner->player != NULL ? Owner->player->mo : NULL;
 
 		if (savedPercent)
 		{ // armor absorbed some damage

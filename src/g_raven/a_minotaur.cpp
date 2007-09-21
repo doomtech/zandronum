@@ -970,7 +970,6 @@ void A_MinotaurLook (AActor *actor)
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 		return;
 
-	AMinotaurFriend *self = static_cast<AMinotaurFriend *> (actor);
 	AActor *mo = NULL;
 	player_t *player;
 	fixed_t dist;

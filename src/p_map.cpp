@@ -4015,6 +4015,7 @@ void P_TraceBleed (int damage, fixed_t x, fixed_t y, fixed_t z, AActor *actor, a
 	int noise;
 
 	if ((actor->flags & MF_NOBLOOD) ||
+		(actor->flags5 & MF5_NOBLOODDECALS) ||
 		(actor->flags2 & (MF2_INVULNERABLE|MF2_DORMANT)) ||
 		(actor->player && actor->player->cheats & CF_GODMODE))
 	{
@@ -5006,7 +5007,7 @@ bool PIT_RadiusAttack (AActor *thing)
 			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 			{
 				if (bombdodamage) P_DamageMobj (thing, bombspot, bombsource, damage, bombmod);
-				else thing->flags2 |= MF2_BLASTED;
+				else if (thing->player == NULL) thing->flags2 |= MF2_BLASTED;
 			}
 
 			// [BC] If this explosion damaged a player, and the explosion originated from a
