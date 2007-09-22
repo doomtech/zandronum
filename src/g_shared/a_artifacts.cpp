@@ -101,7 +101,6 @@ void APowerupGiver::Serialize (FArchive &arc)
 
 void APowerup::Tick ()
 {
-//	Printf( "%s: %d\n", GetClass( )->TypeName.GetChars( ), EffectTics );
 	if (Owner == NULL)
 	{
 		Destroy ();
@@ -110,7 +109,6 @@ void APowerup::Tick ()
 	{
 		DoEffect ();
 
-//		Printf( "BlendColor: %d\n", BlendColor );
 		if (EffectTics > BLINKTHRESHOLD || (EffectTics & 8))
 		{
 			// [BC] Apply the colormap to the player's body, also.
@@ -124,7 +122,6 @@ void APowerup::Tick ()
 				Owner->player->fixedcolormap = GOLDCOLORMAP;
 				Owner->lFixedColormap = GOLDCOLORMAP;
 			}
-			// [BC] HAX!
 			else if (BlendColor == REDCOLOR)
 			{
 				Owner->player->fixedcolormap = REDCOLORMAP;
@@ -138,7 +135,6 @@ void APowerup::Tick ()
 		}
 		else if ((BlendColor == INVERSECOLOR && Owner->player->fixedcolormap == INVERSECOLORMAP) || 
 				 (BlendColor == GOLDCOLOR && Owner->player->fixedcolormap == GOLDCOLORMAP) ||
-				 // [BC] HAX!
 				 (BlendColor == REDCOLOR && Owner->player->fixedcolormap == REDCOLORMAP) ||
 				 (BlendColor == GREENCOLOR && Owner->player->fixedcolormap == GREENCOLORMAP))
 		{
@@ -1100,11 +1096,8 @@ void APowerSpeed::DoEffect ()
 		speedMo->floorclip = Owner->floorclip;
 
 		// [BC] Also get the scale from the owner.
-		// [GZDoom]
 		speedMo->scaleX = Owner->scaleX;
 		speedMo->scaleY = Owner->scaleY;
-		//speedMo->xscale = Owner->xscale;
-		//speedMo->yscale = Owner->yscale;
 
 		if (Owner == players[consoleplayer].camera &&
 			!(Owner->player->cheats & CF_CHASECAM))

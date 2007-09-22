@@ -108,6 +108,7 @@ void StartGLMenu (void);
 
 EXTERN_CVAR(Int, vid_renderer)
 EXTERN_CVAR(Bool, nomonsterinterpolation)
+EXTERN_CVAR(Int, showendoom)
 
 static value_t Renderers[] = {
 	{ 0.0, "Software" },
@@ -723,6 +724,12 @@ static value_t RespawnInvulEffectTypes[] = {
 	{ 2.0, "ZDoom" },
 };
 
+static value_t Endoom[] = {
+	{ 0.0, "Off" },
+	{ 1.0, "On" },
+	{ 2.0, "Only modified" }
+};
+
 static menuitem_t VideoItems[] = {
 	{ more,		"Message Options",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)StartMessagesMenu} },
 	{ more,     "OpenGL Options",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)StartGLMenu} },
@@ -750,6 +757,7 @@ static menuitem_t VideoItems[] = {
 	{ discrete, "Detail mode",			{&r_detail},		   	{4.0}, {0.0},	{0.0}, {DetailModes} },
 	{ discrete, "Disable alpha",		{&r_drawtrans},			{2.0}, {0.0},	{0.0}, {NoYes} },
 #ifdef _WIN32
+	{ discrete,	"Show ENDOOM screen",	{&showendoom},			{3.0}, {0.0},	{0.0}, {Endoom} },
 	{ discrete, "DirectDraw palette hack", {&vid_palettehack},	{2.0}, {0.0},	{0.0}, {OnOff} },
 	{ discrete, "Use attached surfaces", {&vid_attachedsurfaces},{2.0}, {0.0},	{0.0}, {OnOff} },
 #endif

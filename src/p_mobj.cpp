@@ -3451,10 +3451,7 @@ void AActor::Tick ()
 		Crash();
 	}
 
-	if (UpdateWaterLevel (oldz))
-	{
-		P_HitWater (this, Sector);
-	}
+	UpdateWaterLevel (oldz);
 
 /*
 	// [RH] Don't advance if predicting a player
@@ -3859,7 +3856,7 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 	{
 		actor->floorclip = 0;
 	}
-	actor->UpdateWaterLevel (actor->z);
+	actor->UpdateWaterLevel (actor->z, false);
 	if (!SpawningMapThing)
 	{
 		actor->BeginPlay ();
@@ -5174,7 +5171,7 @@ bool P_HitWater (AActor * thing, sector_t * sec, fixed_t z)
 	int terrainnum;
 	
 	if (z==FIXED_MIN) z=thing->z;
-	// don't splash above the object!
+	// don't splash above the object
 	else if (z>thing->z+(thing->height>>1)) return false;
 
 	for(int i=0;i<sec->e->ffloors.Size();i++)
@@ -5207,7 +5204,6 @@ foundone:
 	bool smallsplash = false;
 	const secplane_t *plane;
 
-
 	if (splashnum == -1)
 		return Terrains[terrainnum].IsLiquid;
 
@@ -5218,7 +5214,6 @@ foundone:
 		//sec->heightsec->waterzone &&
 		!(sec->heightsec->MoreFlags & SECF_IGNOREHEIGHTSEC))
 	  ? &sec->heightsec->floorplane : &sec->floorplane;
-	//z = plane->ZatPoint (thing->x, thing->y);
 
 	// Don't splash for living things with small vertical velocities.
 	// There are levels where the constant splashing from the monsters gets extremely annoying

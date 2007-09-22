@@ -154,6 +154,6 @@ void V_InitFonts();
 EColorRange V_FindFontColor (FName name);
 PalEntry V_LogColorFromColorRange (EColorRange range);
 EColorRange V_ParseFontColor (const BYTE *&color_value, int normalcolor, int boldcolor);
-FFont * V_GetFont(const char *);
+FFont *V_GetFont(const char *);
 
 #endif //__V_FONT_H__

@@ -6,11 +6,11 @@
 #include "a_doomglobal.h"
 #include "gstrings.h"
 #include "a_action.h"
-#include "cooperative.h"
-#include "invasion.h"
 
-void A_VileChase (AActor *);
-void A_VileStart (AActor *);
+//
+// PIT_VileCheck
+// Detect a corpse that could be raised.
+//
 void A_StartFire (AActor *);
 void A_FireCrackle (AActor *);
 void A_Fire (AActor *);
@@ -131,7 +131,7 @@ void A_VileTarget (AActor *actor)
 
 	A_FaceTarget (actor);
 
-	fog = Spawn<AArchvileFire> (actor->target->x, actor->target->x,
+	fog = Spawn ("ArchvileFire", actor->target->x, actor->target->x,
 		actor->target->z, ALLOW_REPLACE);
 	
 	// [BC] If we're the server, tell clients to spawn the thing.

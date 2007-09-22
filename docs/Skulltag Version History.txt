@@ -22,6 +22,7 @@ v0.97d-beta5
 *+	- Added Linux OpenGL support (using the Linux GZDoom patch from Costja). [Torr Samaho]
 *-	- Crash logs should finally work on all Windows machines. [Torr Samaho]
 +	- Upgraded the GZDoom renderer to 1.0.25! [Torr Samaho]
++	- Ported all changes from ZDoom up to revision 447. [Torr Samaho]
 +	- Added the dynamic light definitions for Heretic and Hexen from ZDoomGL. [Torr Samaho]
 +	- Added invasion spawners for Heretic! [Carnevil, Aabra, and Tun]
 +	- Added invasion spawners for Hexen! [Gez, Torr Samaho]
@@ -36,7 +37,7 @@ v0.97d-beta5
 +	- Server console: added a statusbar - you can now see your IP, Public/Private/LAN status, current map, and version.
 +	- Improved the display of the bottom string; 'x allies/opponent' display now reflects that of the player you're spying; added a few missing linebreaks. [Rivecoder]
 +	- Added a GTK+ version of the IWAD selection box (ported the change from ZDoom revision 451). [Torr Samaho]
-+	- Ported the updated startup screen code from GZDoom 1.0.24 to ST. This includes simulations of Heretic's and Hexen's startup screen. [Torr Samaho]
++	- Ported the updated startup screen code from GZDoom 1.0.24 to ST. This includes simulations of Heretic's, Hexen's and Strife's startup screen. [Torr Samaho]
 +	- Class selection screen is now shown when joining a multiplayer non Hexen, not team based game with more than one available player class. [Torr Samaho]
 +	- sv_banfile can now be a path, so that banfiles can be placed anywhere. [Rivecoder]
 +	- Ban reasons are read from the banfile now. [Torr Samaho]

@@ -783,6 +783,7 @@ public:
 	AActor			*inext, **iprev;// Links to other mobjs in same bucket
 	AActor			*goal;			// Monster's goal if not chasing anything
 	BYTE			waterlevel;		// 0=none, 1=feet, 2=waist, 3=eyes
+	BYTE			boomwaterlevel;	// splash information for non-swimmable water sectors
 	BYTE			MinMissileChance;// [RH] If a random # is > than this, then missile attack.
 	WORD			SpawnFlags;
 	fixed_t			meleerange;
@@ -907,7 +908,6 @@ public:
 	enum { S_NULL = 2, S_GENERICFREEZEDEATH = 3 };
 
 	// [GZDoom]
-	BYTE				boomwaterlevel;	// splash information for non-swimmable water sectors
 	TArray<AActor*>		dynamiclights;
 	void *				lightassociations;
 	bool				hasmodel;
