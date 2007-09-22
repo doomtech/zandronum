@@ -234,6 +234,8 @@ bool P_Thing_Projectile (int tid, AActor *source, int type, const char * type_na
 	FActorIterator iterator (tid);
 	float fspeed = float(speed);
 	int defflags3;
+	// [BC]
+	bool	bMissileExplode;
 
 	if (type_name == NULL)
 	{
@@ -392,12 +394,15 @@ nolead:
 					{
 						mobj->flags |= MF_DROPPED;
 					}
+					bMissileExplode = false;
 					if (mobj->flags & MF_MISSILE)
 					{
 						if (P_CheckMissileSpawn (mobj))
 						{
 							rtn = true;
 						}
+						else
+							bMissileExplode = true;
 					}
 					else if (!P_TestMobjLocation (mobj))
 					{
@@ -440,7 +445,11 @@ nolead:
 						if ( mobj->ulSTFlags != mobj->GetDefault( )->ulSTFlags )
 							SERVERCOMMANDS_SetThingFlags( mobj, FLAGSET_FLAGSST );
 
-							
+						// For missiles that exploded when P_CheckMissileSpawn() was
+						// called, we need to tell clients to explode the missile since
+						// it wasn't actually spawned at that point.
+						if ( bMissileExplode )
+							SERVERCOMMANDS_MissileExplode( mobj, NULL );
 					}
 				}
 			} while (dest != 0 && (targ = tit.Next()));
