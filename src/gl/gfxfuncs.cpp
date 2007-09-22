@@ -122,6 +122,7 @@ void gl_ScreenShot (const char* fname)
 		}
 	}
 
+	fclose(file);
 	free(scr);
 }
 

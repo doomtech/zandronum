@@ -564,7 +564,7 @@ void WritePCXfile (FILE *file, const DCanvas *canvas, const PalEntry *palette)
 void WritePNGfile (FILE *file, const DCanvas *canvas, const PalEntry *palette)
 {
 	if (!M_CreatePNG (file, canvas, palette) ||
-		!M_AppendPNGText (file, "Software", "ZDoom " DOTVERSIONSTR) ||
+		!M_AppendPNGText (file, "Software", GAMENAME DOTVERSIONSTR_REV) ||
 		!M_FinishPNG (file))
 	{
 		Printf ("Could not create screenshot.\n");
