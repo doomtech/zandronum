@@ -1488,6 +1488,14 @@ void FBehavior::StartTypedScripts (WORD type, AActor *activator, bool always, in
 		ptr = &Scripts[i];
 		if (ptr->Type == type)
 		{
+			// [BC] If this is a net script, just let clients execute it themselves.
+			if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+				( ptr->Flags & SCRIPTF_Net ))
+			{
+				SERVERCOMMANDS_ACSScriptExecute( ptr->Number, activator, NULL, level.mapname, 0, arg1, 0, 0, always );
+				return;
+			}
+
 			DLevelScript *runningScript = P_GetScriptGoing (activator, NULL, ptr->Number,
 				ptr, this, 0, arg1, 0, 0, always, true);
 			if (runNow)
@@ -5843,4 +5851,18 @@ void DACSThinker::DumpScriptStatus ()
 bool ACS_IsCalledFromConsoleCommand( void )
 {
 	return ( g_bCalledFromConsoleCommand );
+}
+
+//*****************************************************************************
+//
+bool ACS_IsNetScript( ULONG ulScript )
+{
+	FBehavior		*pModule = NULL;
+	const ScriptPtr	*pScriptData;
+
+	pScriptData = FBehavior::StaticFindScript( ulScript, pModule );
+	if ( pScriptData == NULL )
+		return ( false );
+
+	return ( pScriptData->Flags & SCRIPTF_Net );
 }

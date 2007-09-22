@@ -4053,6 +4053,44 @@ void SERVERCOMMANDS_SetLineBlocking( ULONG ulLine, ULONG ulPlayerExtra, ULONG ul
 //*****************************************************************************
 //*****************************************************************************
 //
+void SERVERCOMMANDS_ACSScriptExecute( ULONG ulScript, AActor *pActivator, LONG lLineIdx, char *pszMap, bool bBackSide, ULONG ulArg0, ULONG ulArg1, ULONG ulArg2, bool bAlways, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	ULONG	ulIdx;
+	LONG	lActivatorID;
+
+	if ( pActivator == NULL )
+		lActivatorID = -1;
+	else
+		lActivatorID = pActivator->lNetID;
+
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_IsValidClient( ulIdx ) == false )
+			continue;
+
+		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
+			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
+		{
+			continue;
+		}
+
+		SERVER_CheckClientBuffer( ulIdx, 12 + strlen( pszMap ), true );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_ACSSCRIPTEXECUTE );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulScript );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lActivatorID );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lLineIdx );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszMap );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, bBackSide );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulArg0 );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulArg1 );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulArg2 );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, bAlways );
+	}
+}
+
+//*****************************************************************************
+//*****************************************************************************
+//
 void SERVERCOMMANDS_SetSideFlags( ULONG ulSide, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;

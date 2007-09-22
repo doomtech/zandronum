@@ -739,5 +739,6 @@ FArchive &operator<< (FArchive &arc, acsdefered_s *&defer);
 //	PROTOTYPES
 
 bool	ACS_IsCalledFromConsoleCommand( void );
+bool	ACS_IsNetScript( ULONG ulScript );
 
 #endif //__P_ACS_H__

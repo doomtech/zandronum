@@ -281,6 +281,9 @@ static	void	client_SetLineBlocking( BYTESTREAM_s *pByteStream );
 // Side commands.
 static	void	client_SetSideFlags( BYTESTREAM_s *pByteStream );
 
+// ACS commands.
+static	void	client_ACSScriptExecute( BYTESTREAM_s *pByteStream );
+
 // Sound commands.
 static	void	client_Sound( BYTESTREAM_s *pByteStream );
 static	void	client_SoundID( BYTESTREAM_s *pByteStream );
@@ -591,6 +594,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETLINETEXTURE",
 	"SVC_SETLINEBLOCKING",
 	"SVC_SETSIDEFLAGS",
+	"SVC_ACSSCRIPTEXECUTE",
 	"SVC_SOUND",
 	"SVC_SOUNDID",
 	"SVC_SOUNDACTOR",
@@ -1887,6 +1891,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETSIDEFLAGS:
 
 		client_SetSideFlags( pByteStream );
+		break;
+	case SVC_ACSSCRIPTEXECUTE:
+
+		client_ACSScriptExecute( pByteStream );
 		break;
 	case SVC_SOUND:
 
@@ -7953,6 +7961,61 @@ static void client_SetSideFlags( BYTESTREAM_s *pByteStream )
 		return;
 
 	sides[lSide].Flags = lFlags;
+}
+
+//*****************************************************************************
+//
+static void client_ACSScriptExecute( BYTESTREAM_s *pByteStream )
+{
+	ULONG	ulScript;
+	LONG	lID;
+	LONG	lLineIdx;
+	char	*pszMap;
+	bool	bBackSide;
+	ULONG	ulArg0;
+	ULONG	ulArg1;
+	ULONG	ulArg2;
+	bool	bAlways;
+	AActor	*pActor;
+	line_s	*pLine;
+
+	// Read in the script to be executed.
+	ulScript = NETWORK_ReadShort( pByteStream );
+
+	// Read in the ID of the activator.
+	lID = NETWORK_ReadShort( pByteStream );
+
+	// Read in the line index.
+	lLineIdx = NETWORK_ReadShort( pByteStream );
+
+	// Read in the name of the map the script is being executed on (hopefully this one).
+	pszMap = NETWORK_ReadString( pByteStream );
+
+	bBackSide = !!NETWORK_ReadByte( pByteStream );
+
+	// Read in the script's arguments.
+	ulArg0 = NETWORK_ReadByte( pByteStream );
+	ulArg1 = NETWORK_ReadByte( pByteStream );
+	ulArg2 = NETWORK_ReadByte( pByteStream );
+
+	bAlways = !!NETWORK_ReadByte( pByteStream );
+
+	// Find the actor that matches the given network ID.
+	pActor = CLIENT_FindThingByNetID( lID );
+	if ( pActor == NULL )
+	{
+#ifdef CLIENT_WARNING_MESSAGES
+		Printf( "client_ACSScriptExecute: Couldn't find thing: %d\n", lID );
+#endif
+		return;
+	}
+
+	if (( lLineIdx <= 0 ) || ( lLineIdx >= numlines ))
+		pLine = NULL;
+	else
+		pLine = &lines[lLineIdx];
+
+	P_StartScript( pActor, pLine, ulScript, pszMap, bBackSide, ulArg0, ulArg1, ulArg2, bAlways, false, true );
 }
 
 //*****************************************************************************

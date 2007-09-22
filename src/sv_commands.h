@@ -221,6 +221,9 @@ void	SERVERCOMMANDS_SetLineBlocking( ULONG ulLine, ULONG ulPlayerExtra = MAXPLAY
 // Side commands. These have something to do with lines.
 void	SERVERCOMMANDS_SetSideFlags( ULONG ulSide, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 
+// ACS commands. These have something to do with ACS scripts.
+void	SERVERCOMMANDS_ACSScriptExecute( ULONG ulScript, AActor *pActivator, LONG lLineIdx, char *pszMap, bool bBackSide, ULONG ulArg0, ULONG ulArg1, ULONG ulArg2, bool bAlways, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
+
 // Sound commands. These play a sound.
 void	SERVERCOMMANDS_Sound( LONG lChannel, char *pszSound, LONG lVolume, LONG lAttenuation, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_SoundID( LONG lX, LONG lY, LONG lChannel, LONG lSoundID, LONG lVolume, LONG lAttenuation, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );

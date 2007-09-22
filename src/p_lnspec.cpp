@@ -61,6 +61,7 @@
 #include "network.h"
 #include "invasion.h"
 #include "cl_demo.h"
+#include "p_acs.h"
 
 #define FUNC(a) static int a (line_t *ln, AActor *it, bool backSide, \
 	int arg0, int arg1, int arg2, int arg3, int arg4)
@@ -1573,9 +1574,29 @@ FUNC(LS_ACS_Execute)
 	level_info_t *info;
 
 	if ( (arg1 == 0) || !(info = FindLevelByNum (arg1)) )
+	{
+		// [BC] If this is a net script, just let clients execute it themselves.
+		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+			( ACS_IsNetScript( arg0 )))
+		{
+			SERVERCOMMANDS_ACSScriptExecute( arg0, it, ln - lines, level.mapname, backSide, arg2, arg3, arg4, false );
+			return ( false );
+		}
+
 		return P_StartScript (it, ln, arg0, level.mapname, backSide, arg2, arg3, arg4, false, false);
+	}
 	else
+	{
+		// [BC] If this is a net script, just let clients execute it themselves.
+		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+			( ACS_IsNetScript( arg0 )))
+		{
+			SERVERCOMMANDS_ACSScriptExecute( arg0, it, ln - lines, info->mapname, backSide, arg2, arg3, arg4, false );
+			return ( false );
+		}
+
 		return P_StartScript (it, ln, arg0, info->mapname, backSide, arg2, arg3, arg4, false, false);
+	}
 }
 
 FUNC(LS_ACS_ExecuteAlways)
@@ -1584,9 +1605,29 @@ FUNC(LS_ACS_ExecuteAlways)
 	level_info_t *info;
 
 	if ( (arg1 == 0) || !(info = FindLevelByNum (arg1)) )
+	{
+		// [BC] If this is a net script, just let clients execute it themselves.
+		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+			( ACS_IsNetScript( arg0 )))
+		{
+			SERVERCOMMANDS_ACSScriptExecute( arg0, it, ln - lines, level.mapname, backSide, arg2, arg3, arg4, true );
+			return ( false );
+		}
+
 		return P_StartScript (it, ln, arg0, level.mapname, backSide, arg2, arg3, arg4, true, false);
+	}
 	else
+	{
+		// [BC] If this is a net script, just let clients execute it themselves.
+		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+			( ACS_IsNetScript( arg0 )))
+		{
+			SERVERCOMMANDS_ACSScriptExecute( arg0, it, ln - lines, info->mapname, backSide, arg2, arg3, arg4, true );
+			return ( false );
+		}
+
 		return P_StartScript (it, ln, arg0, info->mapname, backSide, arg2, arg3, arg4, true, false);
+	}
 }
 
 FUNC(LS_ACS_LockedExecute)
@@ -1613,6 +1654,14 @@ FUNC(LS_ACS_ExecuteWithResult)
 	// This is like ACS_ExecuteAlways, except the script is always run on
 	// the current map, and the return value is whatever the script sets
 	// with SetResultValue.
+	// [BC] If this is a net script, just let clients execute it themselves.
+	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+		( ACS_IsNetScript( arg0 )))
+	{
+		SERVERCOMMANDS_ACSScriptExecute( arg0, it, ln - lines, level.mapname, backSide, arg2, arg3, arg4, true );
+		return ( false );
+	}
+
 	return P_StartScript (it, ln, arg0, level.mapname, backSide, arg1, arg2, arg3, true, true);
 }
 
