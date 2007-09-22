@@ -368,6 +368,10 @@ private:
 		AInventory *item;
 		int i;
 
+		// [BB] The following code relies on CPlayer->mo != NULL.
+		if( CPlayer->mo == NULL )
+			return;
+
 		// Pop screen (log, keys, and status)
 		if (CurrentPop != POP_None && PopHeight < 0)
 		{
