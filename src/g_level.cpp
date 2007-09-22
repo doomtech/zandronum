@@ -1468,9 +1468,6 @@ CCMD (map)
 			// Turn campaign mode back on.
 			CAMPAIGN_EnableCampaign( );
 
-			// Clear out the botspawn table.
-			BOTSPAWN_ClearTable( );
-
 			// Reset the duel and LMS modules.
 			if ( duel )
 				DUEL_SetState( DS_WAITINGFORPLAYERS );
@@ -1606,8 +1603,11 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 		S_ResumeSound ();
 	}
 
-	// Reset the end level delay.
+	// [BC] Reset the end level delay.
 	GAME_SetEndLevelDelay( 0 );
+
+	// [BC] Clear out the botspawn table.
+	BOTSPAWN_ClearTable( );
 
 	if (StatusBar != NULL)
 	{
@@ -2126,9 +2126,6 @@ void G_DoLoadLevel (int position, bool autosave)
 		pInfo = CAMPAIGN_GetCampaignInfo( level.mapname );
 		if ( pInfo )
 		{
-			// First, clear out the botspawn table.
-			BOTSPAWN_ClearTable( );
-
 			Val.Int = pInfo->lFragLimit;
 			fraglimit.ForceSet( Val, CVAR_Int );
 			Val.Float = pInfo->fTimeLimit;

@@ -2119,9 +2119,6 @@ void Net_DoCommand (int type, BYTE **stream, int player)
 		// That was a long time ago. Maybe it works now?
 		level.flags |= LEVEL_CHANGEMAPCHEAT;
 
-		// [BC] Clear out the botspawn table.
-		BOTSPAWN_ClearTable( );
-
 		G_ExitLevel (pos, false);
 		break;
 

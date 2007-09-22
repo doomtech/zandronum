@@ -2809,9 +2809,6 @@ void M_StartSkirmishGame( void )
 	// Disable campaign mode.
 	CAMPAIGN_DisableCampaign( );
 
-	// Clear out the botspawn table.
-	BOTSPAWN_ClearTable( );
-
 	// Initialize bot spawn times.
 	if (( menu_gamemode == GAMEMODE_TEAMPLAY ) ||
 		( menu_gamemode == GAMEMODE_TEAMPOSSESSION ) ||

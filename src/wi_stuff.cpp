@@ -2705,6 +2705,9 @@ void WI_Start (wbstartstruct_t *wbstartstruct)
 	S_StopAllChannels ();
 	SN_StopAllSequences ();
 
+	// [BC] Clear out the botspawn table.
+	BOTSPAWN_ClearTable( );
+
 	// [BC] Tell the bots that we're now at intermission.
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{

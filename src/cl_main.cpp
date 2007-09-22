@@ -8453,6 +8453,11 @@ static void client_GiveInventory( BYTESTREAM_s *pByteStream )
 
 	// Set the new amount of the inventory object.
 	pInventory->Amount = lAmount;
+
+	// [BC] For some weird reason, the KDIZD new pistol has the amount of 0 when
+	// picked up, so we can't actually destroy items when the amount is 0 or less.
+	// Doesn't seem to make any sense, but whatever.
+/*
 	if ( pInventory->Amount <= 0 )
 	{
 		// We can't actually destroy ammo, since it's vital for weapons.
@@ -8462,7 +8467,7 @@ static void client_GiveInventory( BYTESTREAM_s *pByteStream )
 		else
 			pInventory->Destroy( );
 	}
-
+*/
 	// Since an item displayed on the HUD may have been given, refresh the HUD.
 	SCOREBOARD_RefreshHUD( );
 }
