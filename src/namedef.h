@@ -217,6 +217,7 @@ xx(MomZ)
 xx(MapSpot)
 xx(PatrolPoint)
 xx(PatrolSpecial)
+xx(Communicator)
 
 // [BB] Skulltag Damage types
 xx(Rocket)

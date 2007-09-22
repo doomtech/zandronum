@@ -5419,6 +5419,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\g_shared\a_armor.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\g_shared\a_artifacts.cpp"
 				>
 				<FileConfiguration

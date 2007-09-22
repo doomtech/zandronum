@@ -846,6 +846,7 @@ void F_DemonScroll ()
 =
 ==================
 */
+extern int NoWipe;
 
 void F_DrawUnderwater(void)
 {
@@ -871,7 +872,6 @@ void F_DrawUnderwater(void)
 		screen->UpdatePalette ();
 		FinaleStage = 2;
 		}
-
 		// intentional fall-through
 	case 2:
 		pic = TexMan("E2END");
@@ -882,6 +882,7 @@ void F_DrawUnderwater(void)
 		screen->FillBorder (NULL);
 		paused = false;
 		menuactive = MENU_Off;
+		NoWipe = -1;
 		break;
 
 	case 4:
@@ -902,6 +903,7 @@ void F_DrawUnderwater(void)
 			DTA_VirtualHeight, pic->GetHeight(),
 			TAG_DONE);
 		screen->FillBorder (NULL);
+		NoWipe = 0;
 		break;
 		}
 	}

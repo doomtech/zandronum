@@ -21,7 +21,7 @@
 #include "actors/doom/arachnotron.txt"
 //#include "actors/doom/fatso.txt"
 #include "actors/doom/painelemental.txt"
-//#include "actors/doom/archvile.txt"
+#include "actors/doom/archvile.txt"
 #include "actors/doom/cyberdemon.txt"
 #include "actors/doom/spidermaster.txt"
 #include "actors/doom/keen.txt"

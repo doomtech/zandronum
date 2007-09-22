@@ -5119,9 +5119,13 @@ static void client_SetThingState( BYTESTREAM_s *pByteStream )
 			// of monsters remaining on the level.
 			level.total_monsters++;
 		}
-		else if ( pActor->IsKindOf( RUNTIME_CLASS( AArchvile )))
+		else if ( pActor->IsKindOf( PClass::FindClass("Archvile")))
 		{
-			pNewState = &AArchvile::States[25];	// S_VILE_HEAL
+			const PClass *archvile = PClass::FindClass("Archvile");
+			if (archvile != NULL)
+			{
+				pNewState = archvile->ActorInfo->FindState(NAME_Heal);
+			}
 			S_Sound( pActor, CHAN_BODY, "vile/raise", 1, ATTN_IDLE );
 
 			// Since the arch-vile is reviving a monster at this point, increment the total number

@@ -823,7 +823,7 @@ void D_Display (bool screenshot)
 
 	NetUpdate ();			// send out any new accumulation
 
-	if (!wipe || screenshot || currentrenderer==1)
+	if (!wipe || screenshot || NoWipe < 0 || currentrenderer==1)
 	{
 		// normal update
 		C_DrawConsole ();	// draw console

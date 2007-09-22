@@ -297,6 +297,7 @@ static const char *MapInfoMapLevel[] =
 	"compat_trace",		
 	"compat_dropoff",
 	"compat_boomscroll",
+	"bordertexture",
 	"nobotnodes",	// [BC] Allow the prevention of spawning bot nodes (helpful for very large maps).
 	// new [GZDoom]
 	"fogdensity",
@@ -434,6 +435,7 @@ MapHandlers[] =
 	{ MITYPE_COMPATFLAG, COMPATF_TRACE},
 	{ MITYPE_COMPATFLAG, COMPATF_DROPOFF},
 	{ MITYPE_COMPATFLAG, COMPATF_BOOMSCROLL},
+	{ MITYPE_LUMPNAME,	lioffset(bordertexture), 0 },
 	{ MITYPE_SETFLAG,	LEVEL_NOBOTNODES, 0 },	// [BC]
 	// new [GZDoom]
 	{ MITYPE_INT,		lioffset(fogdensity), 0 },
@@ -507,6 +509,7 @@ static void SetLevelDefaults (level_info_t *levelinfo)
 	strncpy (levelinfo->fadetable, "COLORMAP", 8);
 	strcpy (levelinfo->skypic1, "-NOFLAT-");
 	strcpy (levelinfo->skypic2, "-NOFLAT-");
+	strcpy (levelinfo->bordertexture, gameinfo.borderFlat);
 	if (gameinfo.gametype != GAME_Hexen)
 	{
 		// For maps without a BEHAVIOR, this will be cleared.

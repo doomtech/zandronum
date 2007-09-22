@@ -397,18 +397,18 @@ void A_BulletAttack (AActor *self)
     }
 }
 
-//==========================================================================
-//
-// Do the state jump
-//
-//==========================================================================
-static void DoJump(AActor * self, FState * CallingState, int offset)
-{
-	FState *jumpto;
 
+//==========================================================================
+//
+// Resolves a label parameter
+//
+//==========================================================================
+
+FState *P_GetState(AActor *self, FState *CallingState, int offset)
+{
 	if (offset>=0)
 	{
-		jumpto = CallingState + offset;
+		return CallingState + offset;
 	}
 	else
 	{
@@ -417,23 +417,36 @@ static void DoJump(AActor * self, FState * CallingState, int offset)
 		FName classname = JumpParameters[offset];
 		const PClass *cls;
 		cls = classname==NAME_None?  RUNTIME_TYPE(self) : PClass::FindClass(classname);
-		if (cls==NULL || cls->ActorInfo==NULL) return;	// shouldn't happen
+		if (cls==NULL || cls->ActorInfo==NULL) return NULL;	// shouldn't happen
 		
 		int numnames = (int)JumpParameters[offset+1];
-		jumpto = cls->ActorInfo->FindState(numnames, &JumpParameters[offset+2]);
+		FState *jumpto = cls->ActorInfo->FindState(numnames, &JumpParameters[offset+2]);
 		if (jumpto == NULL)
 		{
-			char * dot="";
+			const char *dot="";
 			Printf("Jump target '");
 			if (classname != NAME_None) Printf("%s::", classname.GetChars());
 			for (int i=0;i<numnames;i++)
 			{
 				Printf("%s%s", dot, JumpParameters[offset+2+i].GetChars());
+				dot = ".";
 			}
 			Printf("not found in %s\n", self->GetClass()->TypeName.GetChars());
-			return;
 		}
+		return jumpto;
 	}
+}
+
+//==========================================================================
+//
+// Do the state jump
+//
+//==========================================================================
+static void DoJump(AActor * self, FState * CallingState, int offset)
+{
+	FState *jumpto = P_GetState(self, CallingState, offset);
+
+	if (jumpto == NULL) return;
 
 	if (pStateCall != NULL && CallingState == pStateCall->State)
 	{
@@ -1448,23 +1461,19 @@ void DoTakeInventory(AActor * self, AActor * receiver)
 	ENamedName item =(ENamedName)StateParameters[index];
 	int amount=EvalExpressionI (StateParameters[index+1], self);
 
-	const PClass * mi=PClass::FindClass(item);
-
 	if (pStateCall != NULL) pStateCall->Result=false;
-	if (mi) 
-	{
-		AInventory * inv = receiver->FindInventory(mi);
 
-		if (inv && !inv->IsKindOf(RUNTIME_CLASS(AHexenArmor)))
+	AInventory * inv = receiver->FindInventory(item);
+
+	if (inv && !inv->IsKindOf(RUNTIME_CLASS(AHexenArmor)))
+	{
+		if (inv->Amount > 0 && pStateCall != NULL) pStateCall->Result=true;
+		if (!amount || amount>=inv->Amount) 
 		{
-			if (inv->Amount > 0 && pStateCall != NULL) pStateCall->Result=true;
-			if (!amount || amount>=inv->Amount) 
-			{
-				if (inv->IsKindOf(RUNTIME_CLASS(AAmmo))) inv->Amount=0;
-				else inv->Destroy();
-			}
-			else inv->Amount-=amount;
+			if (inv->IsKindOf(RUNTIME_CLASS(AAmmo))) inv->Amount=0;
+			else inv->Destroy();
 		}
+		else inv->Amount-=amount;
 	}
 }	
 
@@ -1808,8 +1817,7 @@ void A_SelectWeapon(AActor * actor)
 	int index=CheckIndex(1, NULL);
 	if (index<0 || actor->player == NULL) return;
 
-	const PClass * weapon= PClass::FindClass((ENamedName)StateParameters[index]);
-	AWeapon * weaponitem = static_cast<AWeapon*>(actor->FindInventory(weapon));
+	AWeapon * weaponitem = static_cast<AWeapon*>(actor->FindInventory((ENamedName)StateParameters[index]));
 
 	if (weaponitem != NULL && weaponitem->IsKindOf(RUNTIME_CLASS(AWeapon)))
 	{
@@ -2003,27 +2011,6 @@ void A_CheckSight(AActor * self)
 
 //===========================================================================
 //
-// A_ExtChase
-// A_Chase with optional parameters
-//
-//===========================================================================
-void A_DoChase(AActor * actor, bool fastchase, FState * meleestate, FState * missilestate, bool playactive, bool nightmarefast);
-
-void A_ExtChase(AActor * self)
-{
-	int index=CheckIndex(4, &CallingState);
-	if (index<0) return;
-
-	A_DoChase(self, false,
-		EvalExpressionI (StateParameters[index], self) ? self->MeleeState:NULL,
-		EvalExpressionI (StateParameters[index+1], self) ? self->MissileState:NULL,
-		EvalExpressionN (StateParameters[index+2], self),
-		!!EvalExpressionI (StateParameters[index+3], self));
-}
-
-
-//===========================================================================
-//
 // Inventory drop
 //
 //===========================================================================
@@ -2031,14 +2018,11 @@ void A_DropInventory(AActor * self)
 {
 	int index=CheckIndex(1, &CallingState);
 	if (index<0) return;
-	const PClass * ti = PClass::FindClass((ENamedName)StateParameters[index]);
-	if (ti)
+
+	AInventory * inv = self->FindInventory((ENamedName)StateParameters[index]);
+	if (inv)
 	{
-		AInventory * inv = self->FindInventory(ti);
-		if (inv)
-		{
-			self->DropInventory(inv);
-		}
+		self->DropInventory(inv);
 	}
 }
 

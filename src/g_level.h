@@ -166,6 +166,7 @@ struct level_info_s
 
 	char		soundinfo[9];
 	char		sndseq[9];
+	char		bordertexture[9];
 
 	// new properties
 	int			fogdensity;

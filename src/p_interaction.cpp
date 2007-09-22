@@ -477,7 +477,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 			{
 				INVASION_SetNumMonstersLeft( INVASION_GetNumMonstersLeft( ) - 1 );
 
-				if ( GetClass( ) == RUNTIME_CLASS( AArchvile ))
+				if ( GetClass( ) == PClass::FindClass("Archvile") )
 					INVASION_SetNumArchVilesLeft( INVASION_GetNumArchVilesLeft( ) - 1 );
 
 				// If we're the server, tell the client how many monsters are left.
@@ -670,7 +670,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 		{
 			INVASION_SetNumMonstersLeft( INVASION_GetNumMonstersLeft( ) - 1 );
 
-			if ( GetClass( ) == RUNTIME_CLASS( AArchvile ))
+			if ( GetClass( ) == PClass::FindClass("Archvile") )
 				INVASION_SetNumArchVilesLeft( INVASION_GetNumArchVilesLeft( ) - 1 );
 
 			// If we're the server, tell the client how many monsters are left.

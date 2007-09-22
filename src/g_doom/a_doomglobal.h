@@ -43,11 +43,6 @@ public:
 	void	PreExplode( );
 };
 
-class AArchvile : public AActor
-{
-	DECLARE_ACTOR (AArchvile, AActor)
-};
-
 class APlasmaBall : public AActor
 {
 	DECLARE_ACTOR (APlasmaBall, AActor)

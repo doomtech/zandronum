@@ -341,6 +341,8 @@ public:
 	virtual void AbsorbDamage (int damage, FName damageType, int &newdamage);
 
 	fixed_t SavePercent;
+	// [BB] Skulltag handles this differently.
+	//int BonusCount;
 };
 
 // BasicArmorPickup replaces the armor you have.
@@ -368,6 +370,9 @@ public:
 	fixed_t SavePercent;	// The default, for when you don't already have armor
 	int MaxSaveAmount;
 	int SaveAmount;
+	// [BB] Skulltag handles this differently.
+	//int BonusCount;
+	//int BonusMax;
 };
 
 // [BC] BasicMaxArmorBonus is like BasicMaxArmorBonus, except it also increases the player's
@@ -438,13 +443,6 @@ public:
 	void DetachFromOwner ();
 
 	bool bDepleted;
-};
-
-// When the communicator is in a player's inventory, the
-// SendToCommunicator special can work.
-class ACommunicator : public AInventory
-{
-	DECLARE_ACTOR (ACommunicator, AInventory)
 };
 
 #endif //__A_PICKUPS_H__
