@@ -11,6 +11,7 @@
 #include "v_video.h"
 #include "v_pfx.h"
 #include "stats.h"
+#include "version.h"
 #include "c_console.h"
 
 #include "sdlglvideo.h"
@@ -34,8 +35,6 @@ struct MiniModeInfo
 
 // PUBLIC FUNCTION PROTOTYPES ----------------------------------------------
 
-void DoBlending (const PalEntry *from, PalEntry *to, int count, int r, int g, int b, int a);
-
 // PRIVATE FUNCTION PROTOTYPES ---------------------------------------------
 
 // EXTERNAL DATA DECLARATIONS ----------------------------------------------
@@ -44,14 +43,19 @@ extern IVideo *Video;
 
 EXTERN_CVAR (Float, Gamma)
 EXTERN_CVAR (Int, vid_displaybits)
-EXTERN_CVAR (Float, rgamma)
-EXTERN_CVAR (Float, ggamma)
-EXTERN_CVAR (Float, bgamma)
+EXTERN_CVAR(Int, vid_renderer);
 
 
 // PUBLIC DATA DEFINITIONS -------------------------------------------------
 
+CUSTOM_CVAR(Int, gl_vid_multisample, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL )
+{
+	Printf("This won't take effect until "GAMENAME" is restarted.\n");
+}
+
 RenderContext gl;
+
+CVAR(Bool, gl_vid_allowsoftware, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
 
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 
@@ -162,7 +166,7 @@ DFrameBuffer *SDLGLVideo::CreateFrameBuffer (int width, int height, bool fullscr
 	static int owidth, oheight;
 	
 	PalEntry flashColor;
-	int flashAmount;
+//	int flashAmount;
 
 	if (old != NULL)
 	{ // Reuse the old framebuffer if its attributes are the same
@@ -178,13 +182,13 @@ DFrameBuffer *SDLGLVideo::CreateFrameBuffer (int width, int height, bool fullscr
 			}
 			return old;
 		}
-		old->GetFlash (flashColor, flashAmount);
+//		old->GetFlash (flashColor, flashAmount);
 		delete old;
 	}
 	else
 	{
 		flashColor = 0;
-		flashAmount = 0;
+//		flashAmount = 0;
 	}
 	
 	SDLGLFB *fb = new SDLGLFB (width, height, fullscreen);
@@ -230,7 +234,7 @@ DFrameBuffer *SDLGLVideo::CreateFrameBuffer (int width, int height, bool fullscr
 		fb = static_cast<SDLGLFB *>(CreateFrameBuffer (width, height, fullscreen, NULL));
 	}
 
-	fb->SetFlash (flashColor, flashAmount);
+//	fb->SetFlash (flashColor, flashAmount);
 	m_trueHeight = fb->Height;
 	return fb;
 }
@@ -244,32 +248,21 @@ void SDLGLVideo::SetWindowedScale (float scale)
 SDLGLFB::SDLGLFB (int width, int height, bool fullscreen)
 	: DFrameBuffer (width, height)
 {
+	static int localmultisample=-1;
+
+	if (localmultisample<0) localmultisample=gl_vid_multisample;
+
 	int i;
 	
 	m_Lock=0;
 
 	UpdatePending = false;
-	NotPaletted = false;
-	FlashAmount = 0;
 	
-/*	if (!gl.InitHardware(Window, gl_vid_allowsoftware, gl_vid_compatibility, localmultisample, DoPrintText))
+	if (!gl.InitHardware(gl_vid_allowsoftware, gl_vid_compatibility, localmultisample, DoPrintText))
 	{
 		vid_renderer = 0;
 		return;
-	}*/
-
-	if ( !gl_vid_compatibility )
-	{
-		//SDL_GL_SetAttribute( SDL_GL_RED_SIZE, 8 );
-		//SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, 8 );
-		//SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE, 8 );
-		//SDL_GL_SetAttribute( SDL_GL_ALPHA_SIZE, 8 );
-		//SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, 24 );
-		//SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
-		SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE,  8 );
 	}
-	else
-		gl.flags|=RFL_NOSTENCIL;
 
 	Screen = SDL_SetVideoMode (width, height, vid_displaybits,
 		SDL_HWSURFACE|SDL_HWPALETTE|SDL_OPENGL | SDL_GL_DOUBLEBUFFER|SDL_ANYFORMAT|
@@ -295,10 +288,19 @@ SDLGLFB::SDLGLFB (int width, int height, bool fullscreen)
 	UpdatePalette ();
 
 	m_supportsGamma = gl.GetGammaRamp(m_origGamma[0], m_origGamma[1], m_origGamma[2]);
+	printf("m_supportsGamma: %i", m_supportsGamma);
 	DoSetGamma();
 
 	gl.LoadExtensions();
 	gl.PrintStartupLog(DoPrintText);
+
+	int value = 0;
+	SDL_GL_GetAttribute( SDL_GL_STENCIL_SIZE, &value );
+	if (!value) {
+		Printf("Failed to use stencil buffer!\n");	//[C] is it needed to retry without stencil?
+		gl.flags|=RFL_NOSTENCIL;
+	}
+
 	if (gl.flags&RFL_NPOT_TEXTURE)
 	{
 		Printf("Support for non power 2 textures enabled.\n");

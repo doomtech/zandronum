@@ -37,7 +37,7 @@
 #include "../../tarray.h"
 #include "gl/gl_intern.h"
 
-#ifdef _WIN32
+#ifndef unix
 static void CollectExtensions(HDC);
 #else
 #include <SDL.h>
@@ -46,7 +46,7 @@ static void CollectExtensions(HDC);
 static void APIENTRY glBlendEquationDummy (GLenum mode);
 
 
-#ifdef _WIN32
+#ifndef unix
 PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB; // = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
 #endif
 
@@ -61,7 +61,7 @@ public:
 		}
 	}
 } m_Extensions;
-#ifdef _WIN32
+#ifndef unix
 HWND m_Window;
 HDC m_hDC;
 HGLRC m_hRC;
@@ -80,7 +80,7 @@ int occlusion_type=0;
 //
 //==========================================================================
 
-#ifdef _WIN32
+#ifndef unix
 static HWND InitDummy()
 {
 	HMODULE g_hInst = GetModuleHandle(NULL);
@@ -148,7 +148,7 @@ static HWND InitDummy()
 //
 //==========================================================================
 
-#ifdef _WIN32
+#ifndef unix
 static void ShutdownDummy(HWND dummy)
 {
 	DestroyWindow(dummy);
@@ -163,7 +163,7 @@ static void ShutdownDummy(HWND dummy)
 //
 //==========================================================================
 
-#ifdef _WIN32
+#ifndef unix
 static bool ReadInitExtensions()
 {
 	HDC hDC;
@@ -236,7 +236,7 @@ static bool ReadInitExtensions()
 //
 //==========================================================================
 
-#ifdef _WIN32
+#ifndef unix
 static void CollectExtensions(HDC m_hDC)
 #else
 static void CollectExtensions()
@@ -244,7 +244,7 @@ static void CollectExtensions()
 {
 	const char *supported = NULL;
 	char *extensions, *extension;
-#ifdef _WIN32
+#ifndef unix
 	PROC wglGetExtString = wglGetProcAddress("wglGetExtensionsStringARB");
 
 	if (wglGetExtString)
@@ -356,7 +356,7 @@ static void APIENTRY LoadExtensions()
 
 	if (CheckExtension("GL_ARB_texture_non_power_of_two")) gl->flags|=RFL_NPOT_TEXTURE;
 
-#ifdef _WIN32
+#ifndef unix
 	PFNWGLSWAPINTERVALEXTPROC vs = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
 	if (vs) gl->SetVSync = vs;
 #endif
@@ -480,17 +480,19 @@ static void APIENTRY PrintStartupLog(PrintTextFunc pf)
 //
 //==========================================================================
 
-#ifdef _WIN32
 static bool SetupPixelFormat(bool allowsoftware, bool nostencil, int multisample, PrintTextFunc Printf)
 {
+#ifndef unix
 	int colorDepth;
 	HDC deskDC;
 	int attributes[26];
 	int pixelFormat;
 	unsigned int numFormats;
 	float attribsFloat[] = {0.0f, 0.0f};
+#endif
 	int stencil;
 	
+#ifndef unix
 	deskDC = GetDC(GetDesktopWindow());
 	colorDepth = GetDeviceCaps(deskDC, BITSPIXEL);
 	ReleaseDC(GetDesktopWindow(), deskDC);
@@ -502,9 +504,11 @@ static bool SetupPixelFormat(bool allowsoftware, bool nostencil, int multisample
 		return false;
 	}
 	*/
+#endif
 
 	if (!nostencil)
 	{
+#ifndef unix
 		for (stencil=1;stencil>=0;stencil--)
 		{
 			if (wglChoosePixelFormatARB && stencil)
@@ -616,12 +620,27 @@ static bool SetupPixelFormat(bool allowsoftware, bool nostencil, int multisample
 				break;
 			}
 		}
+#else
+		stencil=1;
+		SDL_GL_SetAttribute( SDL_GL_RED_SIZE,  8 );
+		SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE,  8 );
+		SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE,  8 );
+		SDL_GL_SetAttribute( SDL_GL_ALPHA_SIZE,  8 );
+		SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE,  24 );
+		SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE,  8 );
+//		SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER,  1 );
+		if (multisample > 0) {
+			SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, 1 );
+			SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, multisample );
+		}
+#endif
 	}
 	else
 	{
 		// Use the cheapest mode available and let's hope the driver can handle this...
 		stencil=0;
 
+#ifndef unix
 		// If wglChoosePixelFormatARB is not found we have to do it the old fashioned way.
 		static PIXELFORMATDESCRIPTOR pfd = {
 			sizeof(PIXELFORMATDESCRIPTOR),
@@ -653,21 +672,31 @@ static bool SetupPixelFormat(bool allowsoftware, bool nostencil, int multisample
 				return false;
 			}
 		}
+#else
+	SDL_GL_SetAttribute( SDL_GL_RED_SIZE,  4 );
+	SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE,  4 );
+	SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE,  4 );
+	SDL_GL_SetAttribute( SDL_GL_ALPHA_SIZE,  4 );
+	SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE,  16 );
+	//SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER,  1 )*/
+#endif
 	}
 	if (stencil==0)
 	{
 		gl->flags|=RFL_NOSTENCIL;
 	}
 
+#ifndef unix
 	if (!SetPixelFormat(m_hDC, pixelFormat, NULL))
 	{
 		Printf("R_OPENGL: Couldn't set pixel format.\n");
 		return false;
 	}
+#endif
 
 	return true;
 }
-#endif
+
 
 //==========================================================================
 //
@@ -675,11 +704,16 @@ static bool SetupPixelFormat(bool allowsoftware, bool nostencil, int multisample
 //
 //==========================================================================
 
-#ifdef _WIN32
+#ifndef unix
 static bool APIENTRY InitHardware (HWND Window, bool allowsoftware, bool nostencil, int multisample, PrintTextFunc pf)
+#else
+bool APIENTRY InitHardware (bool allowsoftware, bool nostencil, int multisample, PrintTextFunc pf)
+#endif
 {
+#ifndef unix
 	m_Window=Window;
 	m_hDC = GetDC(Window);
+#endif
 
 	if (!SetupPixelFormat(allowsoftware, nostencil, multisample, pf))
 	{
@@ -687,6 +721,7 @@ static bool APIENTRY InitHardware (HWND Window, bool allowsoftware, bool nostenc
 		return false;
 	}
 
+#ifndef unix
 	m_hRC = wglCreateContext(m_hDC);
 
 	if (m_hRC == NULL)
@@ -696,9 +731,9 @@ static bool APIENTRY InitHardware (HWND Window, bool allowsoftware, bool nostenc
 	}
 
 	wglMakeCurrent(m_hDC, m_hRC);
+#endif
 	return true;
 }
-#endif
 
 
 //==========================================================================
@@ -707,7 +742,7 @@ static bool APIENTRY InitHardware (HWND Window, bool allowsoftware, bool nostenc
 //
 //==========================================================================
 
-#ifdef _WIN32
+#ifndef unix
 static void APIENTRY Shutdown()
 {
 	if (m_hRC)
@@ -720,7 +755,7 @@ static void APIENTRY Shutdown()
 #endif
 
 
-#ifdef _WIN32
+#ifndef unix
 static BOOL APIENTRY SetFullscreen(int w, int h, int bits, int hz)
 {
 	DEVMODE dm;
@@ -754,36 +789,36 @@ static BOOL APIENTRY SetFullscreen(int w, int h, int bits, int hz)
 
 static void APIENTRY iSwapBuffers()
 {
-#ifdef _WIN32
+#ifndef unix
 	SwapBuffers(m_hDC);
 #else
 	SDL_GL_SwapBuffers ();
 #endif
 }
 
-#ifdef _WIN32
+#ifndef unix
 static void APIENTRY SetGammaRamp (void * ramp)
 #else
 static void APIENTRY SetGammaRamp (Uint16 *redtable, Uint16 *greentable, Uint16 *bluetable)
 #endif
 {
-#ifdef _WIN32
+#ifndef unix
 	SetDeviceGammaRamp(m_hDC, ramp);
 #else
 	SDL_SetGammaRamp(redtable, greentable, bluetable);
 #endif
 }
 
-#ifdef _WIN32
+#ifndef unix
 static BOOL APIENTRY GetGammaRamp (void * ramp)
 #else
 static BOOL APIENTRY GetGammaRamp (Uint16 *redtable, Uint16 *greentable, Uint16 *bluetable)
 #endif
 {
-#ifdef _WIN32
+#ifndef unix
 	return GetDeviceGammaRamp(m_hDC, ramp);
 #else
-	return SDL_GetGammaRamp(redtable, greentable, bluetable);
+	return (SDL_GetGammaRamp(redtable, greentable, bluetable) >= 0);
 #endif
 }
 
@@ -913,14 +948,14 @@ void APIENTRY GetContext(RenderContext & gl)
 	gl.SetTextureMode = SetTextureMode;
 	gl.ArrayPointer = ArrayPointer;
 	gl.PrintStartupLog = PrintStartupLog;
-#ifdef _WIN32
 	gl.InitHardware = InitHardware;
+#ifndef unix
 	gl.Shutdown = Shutdown;
 #endif
 	gl.SwapBuffers = iSwapBuffers;
 	gl.GetGammaRamp = GetGammaRamp;
 	gl.SetGammaRamp = SetGammaRamp;
-#ifdef _WIN32
+#ifndef unix
 	gl.SetFullscreen = SetFullscreen;
 #endif
 
@@ -1003,7 +1038,7 @@ void APIENTRY GetContext(RenderContext & gl)
 	gl.BlendEquation = glBlendEquationDummy;
 	gl.SetVSync = SetVSync;
 
-#ifdef _WIN32
+#ifndef unix
 	ReadInitExtensions();
 	//GL is not yet inited in UNIX version, read them later in LoadExtensions
 #endif

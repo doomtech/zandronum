@@ -52,9 +52,6 @@ EXTERN_CVAR (Bool, fullscreen)
 EXTERN_CVAR (Float, vid_winscale)
 
 #ifndef NO_GL
-CVAR(Int, win_x, -1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
-CVAR(Int, win_y, -1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
-
 #include "gl/gl_texture.h"
 
 bool ForceWindowed;
@@ -67,6 +64,7 @@ extern int NewWidth, NewHeight, NewBits, DisplayBits;
 bool V_DoModeSetup (int width, int height, int bits);
 void I_RestartRenderer();
 void RebuildAllLights();
+
 int currentrenderer=1;
 #else
 int currentrenderer=0;
@@ -76,11 +74,7 @@ bool gl_disabled;
 EXTERN_CVAR(Bool, gl_nogl)
 
 // [ZDoomGL]
-#ifndef NO_GL
-CUSTOM_CVAR (Int, vid_renderer, 1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
-#else
 CUSTOM_CVAR (Int, vid_renderer, 1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)// | CVAR_NOINITCALL)
-#endif
 {
 	// 0: Software renderer
 	// 1: OpenGL renderer
@@ -223,13 +217,12 @@ DFrameBuffer *I_SetMode (int &width, int &height, DFrameBuffer *old)
 	}
 	DFrameBuffer *res = Video->CreateFrameBuffer (width, height, fs, old);
 
-	// Right now, CreateFrameBuffer cannot return NULL
-#ifndef NO_GL
+	/* Right now, CreateFrameBuffer cannot return NULL
 	if (res == NULL)
 	{
 		I_FatalError ("Mode %dx%d is unavailable\n", width, height);
 	}
-#endif
+	*/
 	return res;
 }
 
@@ -282,114 +275,6 @@ void I_ClosestResolution (int *width, int *height, int bits)
 		}
 	}
 }	
-
-/*static void GetCenteredPos (int &winx, int &winy, int &winw, int &winh, int &scrwidth, int &scrheight)
-{
-	DEVMODE displaysettings;
-	RECT rect;
-	int cx, cy;
-
-	memset (&displaysettings, 0, sizeof(displaysettings));
-	displaysettings.dmSize = sizeof(displaysettings);
-	EnumDisplaySettings (NULL, ENUM_CURRENT_SETTINGS, &displaysettings);
-	scrwidth = (int)displaysettings.dmPelsWidth;
-	scrheight = (int)displaysettings.dmPelsHeight;
-	GetWindowRect (Window, &rect);
-	cx = scrwidth / 2;
-	cy = scrheight / 2;
-	winx = cx - (winw = rect.right - rect.left) / 2;
-	winy = cy - (winh = rect.bottom - rect.top) / 2;
-}*/
-
-#ifndef NO_GL
-static void KeepWindowOnScreen (int &winx, int &winy, int winw, int winh, int scrwidth, int scrheight)
-{
-	// If the window is too large to fit entirely on the screen, at least
-	// keep its upperleft corner visible.
-	if (winx + winw > scrwidth)
-	{
-		winx = scrwidth - winw;
-	}
-	if (winx < 0)
-	{
-		winx = 0;
-	}
-	if (winy + winh > scrheight)
-	{
-		winy = scrheight - winh;
-	}
-	if (winy < 0)
-	{
-		winy = 0;
-	}
-}
-#endif
-
-/*void I_SaveWindowedPos ()
-{
-	// Don't save if we were run with the -0 option.
-	if (Args.CheckParm ("-0"))
-	{
-		return;
-	}
-	// Make sure we only save the window position if it's not fullscreen.
-	if ((GetWindowLong (Window, GWL_STYLE) & WS_OVERLAPPEDWINDOW) == WS_OVERLAPPEDWINDOW)
-	{
-		RECT wrect;
-
-		if (GetWindowRect (Window, &wrect))
-		{
-			// If (win_x,win_y) specify to center the window, don't change them
-			// if the window is still centered.
-			if (win_x < 0 || win_y < 0)
-			{
-				int winx, winy, winw, winh, scrwidth, scrheight;
-
-				GetCenteredPos (winx, winy, winw, winh, scrwidth, scrheight);
-				KeepWindowOnScreen (winx, winy, winw, winh, scrwidth, scrheight);
-				if (win_x < 0 && winx == wrect.left)
-				{
-					wrect.left = win_x;
-				}
-				if (win_y < 0 && winy == wrect.top)
-				{
-					wrect.top = win_y;
-				}
-			}
-			win_x = wrect.left;
-			win_y = wrect.top;
-		}
-	}
-}*/
-
-/*void I_RestoreWindowedPos ()
-{
-	int winx, winy, winw, winh, scrwidth, scrheight;
-
-	GetCenteredPos (winx, winy, winw, winh, scrwidth, scrheight);
-
-	// Just move to (0,0) if we were run with the -0 option.
-	if (Args.CheckParm ("-0"))
-	{
-		winx = winy = 0;
-	}
-	else
-	{
-		if (win_x >= 0)
-		{
-			winx = win_x;
-		}
-		if (win_y >= 0)
-		{
-			winy = win_y;
-		}
-		KeepWindowOnScreen (winx, winy, winw, winh, scrwidth, scrheight);
-	}
-	MoveWindow (Window, winx, winy, winw, winh, TRUE);
-}*/
-
-
-extern int NewWidth, NewHeight, NewBits, DisplayBits;
 
 #ifndef NO_GL
 CUSTOM_CVAR (Bool, fullscreen, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)

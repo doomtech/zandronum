@@ -34,19 +34,22 @@ struct RenderContext
 	void (APIENTRY * ArrayPointer) (void * data, int stride);
 	void (APIENTRY * PrintStartupLog) (PrintTextFunc pf);
 	BOOL (APIENTRY * SetVSync) (int on);
-#ifdef _WIN32
+#ifndef unix
 	bool (APIENTRY * InitHardware) (HWND, bool allowsoftware, bool nostencil, int multisample, PrintTextFunc pf);
 	void (APIENTRY * Shutdown) ();
+#else
+	bool (APIENTRY * InitHardware) (bool allowsoftware, bool nostencil, int multisample, PrintTextFunc pf);
 #endif
 	void (APIENTRY * SwapBuffers) ();
-#ifdef _WIN32
+#ifndef unix
 	void (APIENTRY * SetGammaRamp) (void * ramp);
 	BOOL (APIENTRY * GetGammaRamp) (void * ramp);
-	BOOL (APIENTRY * SetFullscreen) (int w, int h, int bits, int hz);
 #else
 	void (APIENTRY * SetGammaRamp) (Uint16 *redtable, Uint16 *greentable, Uint16 *bluetable);
 	BOOL (APIENTRY * GetGammaRamp) (Uint16 *redtable, Uint16 *greentable, Uint16 *bluetable);
 #endif
+	BOOL (APIENTRY * SetFullscreen) (int w, int h, int bits, int hz);
+
 
 	void (APIENTRY * Begin) (GLenum mode);
 	void (APIENTRY * End) (void);

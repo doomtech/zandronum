@@ -66,16 +66,9 @@ public:
 private:
 	PalEntry SourcePalette[256];
 	BYTE GammaTable[3][256];
-	PalEntry Flash;
-	int FlashAmount;
-	float Gamma;
 	bool UpdatePending;
 	
 	SDL_Surface *Screen;
-	
-	bool NeedPalUpdate;
-	bool NeedGammaUpdate;
-	bool NotPaletted;
 	
 	void UpdateColors ();
 
