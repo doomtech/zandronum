@@ -3447,21 +3447,21 @@ static void ArmorMaxSaveAmount (ABasicArmorBonus *defaults, Baggage &bag)
 }
 
 //==========================================================================
-//	[BC]
+//
 //==========================================================================
-static void ArmorMaxBonus (ABasicMaxArmorBonus *defaults, Baggage &bag)
+static void ArmorMaxBonus (ABasicArmorBonus *defaults, Baggage &bag)
 {
 	SC_MustGetNumber();
-	defaults->lMaxBonus=sc_Number;
+	defaults->BonusCount = sc_Number;
 }
 
 //==========================================================================
-//	[BC]
+//
 //==========================================================================
-static void ArmorMaxBonusMax (ABasicMaxArmorBonus *defaults, Baggage &bag)
+static void ArmorMaxBonusMax (ABasicArmorBonus *defaults, Baggage &bag)
 {
 	SC_MustGetNumber();
-	defaults->lMaxBonusMax=sc_Number;
+	defaults->BonusMax = sc_Number;
 }
 
 //==========================================================================
@@ -4257,9 +4257,8 @@ static const ActorProps props[] =
 	{ "ammo.backpackmaxamount",		(apf)AmmoBackpackMaxAmount,	RUNTIME_CLASS(AAmmo) },
 	{ "ammo.dropamount",			(apf)AmmoDropAmount,		RUNTIME_CLASS(AAmmo) },
 	{ "args",						ActorArgs,					RUNTIME_CLASS(AActor) },
-	{ "armor.maxbonus",				(apf)ArmorMaxBonus,			RUNTIME_CLASS(ABasicMaxArmorBonus) },
-	{ "armor.maxbonusmax",			(apf)ArmorMaxBonusMax,		RUNTIME_CLASS(ABasicMaxArmorBonus) },
-	{ "armor.maxsaveamount",		(apf)ArmorMaxSaveAmount,	RUNTIME_CLASS(ABasicArmorBonus) },
+	{ "armor.maxbonus",				(apf)ArmorMaxBonus,			RUNTIME_CLASS(ABasicArmorBonus) },
+	{ "armor.maxbonusmax",			(apf)ArmorMaxBonusMax,		RUNTIME_CLASS(ABasicArmorBonus) },
 	{ "armor.maxsaveamount",		(apf)ArmorMaxSaveAmount,	RUNTIME_CLASS(ABasicArmorBonus) },
 	{ "armor.saveamount",			(apf)ArmorSaveAmount,		RUNTIME_CLASS(AActor) },
 	{ "armor.savepercent",			(apf)ArmorSavePercent,		RUNTIME_CLASS(AActor) },

@@ -296,7 +296,6 @@ player_s::player_s()
   ulRailgunShots( 0 ),
   pIcon( 0 ),
   lMaxHealthBonus( 0 ),
-  lMaxArmorBonus( 0 ),
   ulWins( 0 ),
   pSkullBot( 0 ),
   bIsBot( 0 ),
@@ -947,9 +946,8 @@ void APlayerPawn::GiveDefaultInventory ()
 	// [GRB] Give inventory specified in DECORATE
 	player->health = GetDefault ()->health;
 
-	// [BC] Initialize the max. health/armor bonuses.
+	// [BC] Initialize the max. health bonus.
 	player->lMaxHealthBonus = 0;
-	player->lMaxArmorBonus = 0;
 
 	// [BC] If the user has chosen to handicap himself, do that now.
 	if (( deathmatch || teamgame || alwaysapplydmflags ) && player->userinfo.lHandicap )
@@ -3277,7 +3275,6 @@ void player_s::Serialize (FArchive &arc)
 		<< accuracy << stamina
 		<< (DWORD &)ulRailgunShots
 		<< (DWORD &)lMaxHealthBonus
-		<< (DWORD &)lMaxArmorBonus
 		<< LogText
 		<< Powers; // [RC] Save rune effects
 	for (i = 0; i < NUMPSPRITES; i++)

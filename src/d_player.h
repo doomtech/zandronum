@@ -380,9 +380,6 @@ public:
 	// Bonus to the maximum amount of health the player can have.
 	LONG		lMaxHealthBonus;
 
-	// Bonus to the maximum amount of health the player can have.
-	LONG		lMaxArmorBonus;
-
 	// Consecutive wins in duel mode.
 	ULONG		ulWins;
 

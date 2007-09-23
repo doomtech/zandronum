@@ -450,13 +450,7 @@ void GiveSpawner (player_t *player, const PClass *type, int amount)
 	{
 		if (amount > 0)
 		{
-			// [BC] 
-			if (type->IsDescendantOf (RUNTIME_CLASS(ABasicMaxArmorBonus)))
-			{
-				static_cast<ABasicMaxArmorBonus*>(item)->SaveAmount *= amount;
-				static_cast<ABasicMaxArmorBonus*>(item)->lMaxBonus *= amount;
-			}
-			else if (type->IsDescendantOf (RUNTIME_CLASS(ABasicArmorPickup)))
+			if (type->IsDescendantOf (RUNTIME_CLASS(ABasicArmorPickup)))
 			{
 				if (static_cast<ABasicArmorPickup*>(item)->SaveAmount != 0)
 				{
@@ -470,6 +464,9 @@ void GiveSpawner (player_t *player, const PClass *type, int amount)
 			else if (type->IsDescendantOf (RUNTIME_CLASS(ABasicArmorBonus)))
 			{
 				static_cast<ABasicArmorBonus*>(item)->SaveAmount *= amount;
+				// [BB]
+				static_cast<ABasicArmorBonus*>(item)->BonusCount *= amount;
+
 			}
 			else
 			{

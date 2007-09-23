@@ -25,13 +25,6 @@ IMPLEMENT_STATELESS_ACTOR (ABasicArmorBonus, Any, -1, 0)
 	PROP_BasicArmorBonus_SavePercent (FRACUNIT/3)
 END_DEFAULTS
 
-// [BC] Implement the basic max. armor bonus.
-IMPLEMENT_STATELESS_ACTOR( ABasicMaxArmorBonus, Any, -1, 0 )
-	PROP_Inventory_MaxAmount( 0 )
-	PROP_Inventory_FlagsSet( IF_AUTOACTIVATE|IF_ALWAYSPICKUP )
-	PROP_BasicArmorBonus_SavePercent( FRACUNIT/3 )
-END_DEFAULTS
-
 IMPLEMENT_STATELESS_ACTOR (AHexenArmor, Any, -1, 0)
 	PROP_Inventory_FlagsSet (IF_UNDROPPABLE)
 END_DEFAULTS
@@ -46,7 +39,7 @@ END_DEFAULTS
 void ABasicArmor::Serialize (FArchive &arc)
 {
 	Super::Serialize (arc);
-	arc << SavePercent;
+	arc << SavePercent << BonusCount;
 }
 
 //===========================================================================
@@ -98,6 +91,7 @@ AInventory *ABasicArmor::CreateCopy (AActor *other)
 	copy->Amount = Amount;
 	copy->MaxAmount = MaxAmount;
 	copy->Icon = Icon;
+	copy->BonusCount = BonusCount;
 	GoAwayAndDie ();
 	return copy;
 }
@@ -237,7 +231,7 @@ bool ABasicArmorPickup::Use (bool pickup)
 		if ( Owner->player->Powers & PW_PROSPERITY )
 			lMaxAmount = ( deh.BlueAC * 100 ) + 50;
 		else
-			lMaxAmount += Owner->player->lMaxArmorBonus;
+			lMaxAmount += armor->BonusCount;
 	}
 
 	// [BC] Changed ">=" to ">" so we can do a check below to potentially pick up armor
@@ -284,7 +278,7 @@ bool ABasicArmorPickup::Use (bool pickup)
 void ABasicArmorBonus::Serialize (FArchive &arc)
 {
 	Super::Serialize (arc);
-	arc << SavePercent << SaveAmount << MaxSaveAmount;
+	arc << SavePercent << SaveAmount << MaxSaveAmount << BonusCount << BonusMax;
 }
 
 //===========================================================================
@@ -299,6 +293,8 @@ AInventory *ABasicArmorBonus::CreateCopy (AActor *other)
 	copy->SavePercent = SavePercent;
 	copy->SaveAmount = SaveAmount;
 	copy->MaxSaveAmount = MaxSaveAmount;
+	copy->BonusCount = BonusCount;
+	copy->BonusMax = BonusMax;
 	return copy;
 }
 
@@ -313,136 +309,54 @@ AInventory *ABasicArmorBonus::CreateCopy (AActor *other)
 bool ABasicArmorBonus::Use (bool pickup)
 {
 	ABasicArmor *armor = Owner->FindInventory<ABasicArmor> ();
-	// [BC] The true max. save amount is the armor's max. save amount, plus the player's
-	// max. armor bonus.
-	LONG	lMaxSaveAmount;
-	int saveAmount;
+	bool result = false;
 
-	lMaxSaveAmount = MaxSaveAmount;
-	if ( Owner->player )
-	{
-		// [BC] Apply the prosperity power.
-		if ( Owner->player->Powers & PW_PROSPERITY )
-			lMaxSaveAmount = ( deh.BlueAC * 100 ) + 50;
-		else
-			lMaxSaveAmount += Owner->player->lMaxArmorBonus;
-	}
- 
-	saveAmount = MIN (SaveAmount, (int)lMaxSaveAmount);
-	if (saveAmount <= 0)
-	{ // If it can't give you anything, it's as good as used.
-		return true;
-	}
 	if (armor == NULL)
 	{
 		armor = Spawn<ABasicArmor> (0,0,0, NO_REPLACE);
 		armor->BecomeItem ();
-		armor->SavePercent = SavePercent;
-		armor->Amount = saveAmount;
-		armor->MaxAmount = lMaxSaveAmount;
-		armor->Icon = Icon;
+		armor->Amount = 0;
+		armor->MaxAmount = MaxSaveAmount;
 		Owner->AddInventory (armor);
-		return true;
 	}
+
+	if (BonusCount > 0 && armor->BonusCount < BonusMax)
+	{
+		armor->BonusCount = MIN (armor->BonusCount + BonusCount, BonusMax);
+		result = true;
+	}
+
+	int saveAmount = MIN (SaveAmount, MaxSaveAmount);
+
+	if (saveAmount <= 0)
+	{ // If it can't give you anything, it's as good as used.
+		return BonusCount > 0 ? result : true;
+	}
+
+	// [BB] Handle the prosperity rune.
+	int maxAmountPlusBonus;
+	if ( Owner->player && Owner->player->Powers & PW_PROSPERITY )
+		maxAmountPlusBonus = ( deh.BlueAC * 100 ) + 50;
+	else
+		maxAmountPlusBonus = MaxSaveAmount + armor->BonusCount;
+
 	// If you already have more armor than this item can give you, you can't
 	// use it.
-	if (armor->Amount >= lMaxSaveAmount)
+	if (armor->Amount >= maxAmountPlusBonus)
 	{
-		return false;
+		return result;
 	}
+
 	if (armor->Amount <= 0)
 	{ // Should never be less than 0, but might as well check anyway
 		armor->Amount = 0;
 		armor->Icon = Icon;
 		armor->SavePercent = SavePercent;
 	}
-	armor->Amount += saveAmount;
-	armor->MaxAmount = MAX (armor->MaxAmount, (int)lMaxSaveAmount);
-	if ( armor->Amount > armor->MaxAmount )
-		armor->Amount = armor->MaxAmount;
+
+	armor->Amount = MIN(armor->Amount + saveAmount, maxAmountPlusBonus);
+	armor->MaxAmount = MAX (armor->MaxAmount, MaxSaveAmount);
 	return true;
-}
-
-//===========================================================================
-//
-// [BC] ABasicMaxArmorBonus :: Use
-//
-// Tries to add to the amount of BasicArmor a player has, and increased the
-// player's max. armor bonus.
-//
-//===========================================================================
-
-bool ABasicMaxArmorBonus::Use( bool bPickup )
-{
-	ABasicArmor		*pArmor;
-	LONG			lSaveAmount;
-	LONG			lMaxSaveAmount;
-	bool			bGaveMaxBonus;
-
-	pArmor = Owner->FindInventory<ABasicArmor>( );
-
-	// Always give the bonus if the player's max. armor bonus isn't maxed out.
-	bGaveMaxBonus = Owner->player->lMaxArmorBonus < this->lMaxBonusMax;
-
-	lMaxSaveAmount = MaxSaveAmount;
-	if ( Owner->player )
-	{
-		// Give him the max. armor bonus.
-		Owner->player->lMaxArmorBonus += this->lMaxBonus;
-		if ( Owner->player->lMaxArmorBonus > this->lMaxBonusMax )
-			Owner->player->lMaxArmorBonus = this->lMaxBonusMax;
-
-		// Apply the prosperity power.
-		if ( Owner->player->Powers & PW_PROSPERITY )
-			lMaxSaveAmount = ( deh.BlueAC * 100 ) + 50;
-		else
-			lMaxSaveAmount += Owner->player->lMaxArmorBonus;
-	}
-
-	lSaveAmount = MIN( SaveAmount, (int)lMaxSaveAmount );
-
-	// If this armor bonus doesn't give us any armor, and it doesn't offer any
-	// max. armor bonus, pick it up.
-	if (( lSaveAmount <= 0 ) && ( this->lMaxBonus <= 0 ))
-		return ( false );
-
-	// If the owner doesn't possess any armor, then give him armor, and give it this
-	// bonus's properties (oh yeah, and give him the max. armor bonus).
-	if ( pArmor == NULL )
-	{
-		pArmor = Spawn<ABasicArmor>( 0, 0, 0, NO_REPLACE );
-		pArmor->BecomeItem( );
-		pArmor->SavePercent = SavePercent;
-		pArmor->Amount = lSaveAmount;
-		pArmor->MaxAmount = MaxSaveAmount;
-		pArmor->Icon = Icon;
-		Owner->AddInventory( pArmor );
-
-		// Return true since the object was used successfully.
-		return ( true );
-	}
-
-	// If you already have more armor than this item can give you, and it
-	// doesn't offer any bonus to the player's max. armor bonus, you can't
-	// use it.
-	if ( pArmor->Amount >= lMaxSaveAmount )
-		return ( bGaveMaxBonus );
-
-	// Should never be less than 0, but might as well check anyway
-	if ( pArmor->Amount <= 0 )
-	{
-		pArmor->Amount = 0;
-		pArmor->Icon = Icon;
-		pArmor->SavePercent = SavePercent;
-	}
-
-	pArmor->Amount += lSaveAmount;
-	pArmor->MaxAmount = MAX( pArmor->MaxAmount, (int)lMaxSaveAmount );
-	if ( pArmor->Amount > pArmor->MaxAmount )
-		pArmor->Amount = pArmor->MaxAmount;
-
-	// Return true since the object was used successfully.
-	return ( true );
 }
 
 //===========================================================================

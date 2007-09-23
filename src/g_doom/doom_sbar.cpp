@@ -854,7 +854,7 @@ void DrawFullHUD_Armor()
 				TAG_DONE );
 		}
 
-		sprintf( szString, "%d", ( CPlayer->Powers & PW_PROSPERITY ) ? (( 100 * deh.BlueAC ) + 50 ) : ( 100 * deh.GreenAC ) + CPlayer->lMaxArmorBonus );
+		sprintf( szString, "%d", ( CPlayer->Powers & PW_PROSPERITY ) ? (( 100 * deh.BlueAC ) + 50 ) : ( 100 * deh.GreenAC ) + (pArmor ? pArmor->BonusCount : 0) );
 		if ( bScale )
 		{
 			screen->DrawText( CR_RED,

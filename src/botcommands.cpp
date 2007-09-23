@@ -2507,7 +2507,10 @@ static void botcmd_GetBaseHealth( CSkullBot *pBot )
 //
 static void botcmd_GetBaseArmor( CSkullBot *pBot )
 {
-	g_iReturnInt = ( deh.GreenAC * 100 ) + pBot->GetPlayer( )->lMaxArmorBonus;
+	ABasicArmor *pArmor = NULL;
+	if ( pBot->GetPlayer()->mo )
+		pArmor = pBot->GetPlayer()->mo->FindInventory<ABasicArmor>( );
+	g_iReturnInt = ( deh.GreenAC * 100 + (pArmor ? pArmor->BonusCount : 0));
 }
 
 //*****************************************************************************

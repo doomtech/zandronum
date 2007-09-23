@@ -341,8 +341,7 @@ public:
 	virtual void AbsorbDamage (int damage, FName damageType, int &newdamage);
 
 	fixed_t SavePercent;
-	// [BB] Skulltag handles this differently.
-	//int BonusCount;
+	int BonusCount;
 };
 
 // BasicArmorPickup replaces the armor you have.
@@ -370,24 +369,8 @@ public:
 	fixed_t SavePercent;	// The default, for when you don't already have armor
 	int MaxSaveAmount;
 	int SaveAmount;
-	// [BB] Skulltag handles this differently.
-	//int BonusCount;
-	//int BonusMax;
-};
-
-// [BC] BasicMaxArmorBonus is like BasicMaxArmorBonus, except it also increases the player's
-// max. armor bonus.
-class ABasicMaxArmorBonus : public ABasicArmorBonus
-{
-	DECLARE_STATELESS_ACTOR( ABasicMaxArmorBonus, ABasicArmorBonus )
-public:
-	virtual bool Use( bool bPickup );
-
-	// This is the amount that gets added to the player's max. armor bonus.
-	LONG	lMaxBonus;
-
-	// This is the most that can be added to the player's max. armor bonus.
-	LONG	lMaxBonusMax;
+	int BonusCount;
+	int BonusMax;
 };
 
 // Hexen armor consists of four separate armor types plus a conceptual armor

@@ -4,7 +4,7 @@
 //
 //=================================================================================================
 
-ACTOR MaxArmorBonus : BasicMaxArmorBonus 5091
+ACTOR MaxArmorBonus : BasicArmorBonus 5091
 {
 	Game Doom
 	Game Heretic

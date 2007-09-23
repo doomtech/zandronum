@@ -2880,7 +2880,6 @@ void CLIENT_ResetPlayerData( player_s *pPlayer )
 	pPlayer->ulRailgunShots = 0;
 	pPlayer->pIcon = 0;
 	pPlayer->lMaxHealthBonus = 0;
-	pPlayer->lMaxArmorBonus = 0;
 	pPlayer->ulWins = 0;
 	pPlayer->pSkullBot = 0;
 	pPlayer->bIsBot = 0;
