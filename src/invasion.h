@@ -155,7 +155,8 @@ void	INVASION_SetNumArchVilesLeft( ULONG ulLeft );
 ULONG	INVASION_GetCurrentWave( void );
 void	INVASION_SetCurrentWave( ULONG ulWave );
 
-bool	INVASION_IncreaseNumMonstersOnSpawn( void );
+bool	INVASION_GetIncreaseNumMonstersOnSpawn( void );
+void	INVASION_SetIncreaseNumMonstersOnSpawn( bool bIncrease );
 
 //*****************************************************************************
 //  EXTERNAL CONSOLE VARIABLES

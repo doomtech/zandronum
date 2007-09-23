@@ -4074,7 +4074,7 @@ void SERVERCOMMANDS_ACSScriptExecute( ULONG ulScript, AActor *pActivator, LONG l
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 12 + strlen( pszMap ), true );
+		SERVER_CheckClientBuffer( ulIdx, 12 + (ULONG)strlen( pszMap ), true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_ACSSCRIPTEXECUTE );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulScript );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lActivatorID );

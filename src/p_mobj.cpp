@@ -3873,7 +3873,7 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 
 		// [BC] Do some invasion mode stuff.
 		if (( invasion ) &&
-			( INVASION_IncreaseNumMonstersOnSpawn( )) &&
+			( INVASION_GetIncreaseNumMonstersOnSpawn( )) &&
 			( NETWORK_GetState( ) != NETSTATE_CLIENT ))
 		{
 			INVASION_SetNumMonstersLeft( INVASION_GetNumMonstersLeft( ) + 1 );

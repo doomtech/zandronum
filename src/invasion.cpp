@@ -1237,9 +1237,16 @@ void INVASION_SetCurrentWave( ULONG ulWave )
 
 //*****************************************************************************
 //
-bool INVASION_IncreaseNumMonstersOnSpawn( void )
+bool INVASION_GetIncreaseNumMonstersOnSpawn( void )
 {
 	return ( g_bIncreaseNumMonstersOnSpawn );
+}
+
+//*****************************************************************************
+//
+void INVASION_SetIncreaseNumMonstersOnSpawn( bool bIncrease )
+{
+	g_bIncreaseNumMonstersOnSpawn = bIncrease;
 }
 
 //*****************************************************************************

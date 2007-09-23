@@ -4329,7 +4329,7 @@ static bool server_SummonCheat( BYTESTREAM_s *pByteStream, bool bFriend )
 
 				// [BC] Do some invasion mode stuff.
 				if (( invasion ) &&
-					( INVASION_IncreaseNumMonstersOnSpawn( )) &&
+					( INVASION_GetIncreaseNumMonstersOnSpawn( )) &&
 					( NETWORK_GetState( ) != NETSTATE_CLIENT ))
 				{
 					INVASION_SetNumMonstersLeft( INVASION_GetNumMonstersLeft( ) - 1 );

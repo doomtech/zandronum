@@ -2204,10 +2204,27 @@ void Net_DoCommand (int type, BYTE **stream, int player)
 					else
 					{
 						const AActor *def = GetDefaultByType (typeinfo);
+
+						// [BC] In invasion mode, don't increase the number of monsters
+						// for friendly monsters.
+						if (( invasion ) &&
+							( type == DEM_SUMMONFRIEND ))
+						{
+							INVASION_SetIncreaseNumMonstersOnSpawn( false );
+						}
+
 						AActor *spawned = Spawn (typeinfo,
 							source->x + FixedMul (def->radius * 2 + source->radius, finecosine[source->angle>>ANGLETOFINESHIFT]),
 							source->y + FixedMul (def->radius * 2 + source->radius, finesine[source->angle>>ANGLETOFINESHIFT]),
 							source->z + 8 * FRACUNIT, ALLOW_REPLACE);
+
+						// [BC] Go back to counting spawned monsters.
+						if (( invasion ) &&
+							( type == DEM_SUMMONFRIEND ))
+						{
+							INVASION_SetIncreaseNumMonstersOnSpawn( true );
+						}
+
 						if (spawned != NULL && type == DEM_SUMMONFRIEND)
 						{
 							if (spawned->CountsAsKill()) 
@@ -2217,21 +2234,6 @@ void Net_DoCommand (int type, BYTE **stream, int player)
 							spawned->FriendPlayer = player + 1;
 							spawned->flags |= MF_FRIENDLY;
 							spawned->LastHeard = players[player].mo;
-
-							// [BC] Do some invasion mode stuff.
-							if (( invasion ) &&
-								( INVASION_IncreaseNumMonstersOnSpawn( )) &&
-								( NETWORK_GetState( ) != NETSTATE_CLIENT ))
-							{
-								INVASION_SetNumMonstersLeft( INVASION_GetNumMonstersLeft( ) - 1 );
-
-								if ( spawned->GetClass( ) == PClass::FindClass( "Archvile" ))
-									INVASION_SetNumArchVilesLeft( INVASION_GetNumArchVilesLeft( ) - 1 );
-
-								// [BC] If we're the server, tell the client how many monsters are left.
-								if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-									SERVERCOMMANDS_SetInvasionNumMonstersLeft( );
-							}
 						}
 					}
 				}
