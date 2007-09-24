@@ -20,6 +20,7 @@ v0.97d-beta5
 *+	- Added support for 3d floors in coop game modes, i.e. Coop, Survival and Invasion. [Torr Samaho]
 *+	- Added custom states and custom damage types (ported the change from ZDoom revision 368-378). [Torr Samaho]
 *+	- Added Linux OpenGL support (using the Linux GZDoom patch from Costja). [Torr Samaho]
+*+	- Completely revamped monster movement online! Monsters now move much more smoothly, and require far less bandwidth before. [Carnevil]
 *-	- Crash logs should finally work on all Windows machines. [Torr Samaho]
 +	- Upgraded the GZDoom renderer to 1.0.25! [Torr Samaho]
 +	- Ported all changes from ZDoom up to revision 447. [Torr Samaho]

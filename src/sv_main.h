@@ -276,7 +276,6 @@ bool		SERVER_IsValidClient( ULONG ulClient );
 bool		SERVER_IsValidPlayer( ULONG ulPlayer );
 void		SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo );
 void		SERVER_SendHeartBeat( void );
-void		SERVER_UpdateThings( void );
 void		STACK_ARGS SERVER_Printf( ULONG ulPrintLevel, const char *pszString, ... );
 void		STACK_ARGS SERVER_PrintfPlayer( ULONG ulPrintLevel, ULONG ulPlayer, const char *pszString, ... );
 void		SERVER_UpdateSectors( ULONG ulClient );

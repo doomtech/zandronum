@@ -99,7 +99,8 @@ void P_ThrustMobj (AActor *mo, angle_t angle, fixed_t move);
 int P_FaceMobj (AActor *source, AActor *target, angle_t *delta);
 bool P_SeekerMissile (AActor *actor, angle_t thresh, angle_t turnMax);
 
-AActor *P_SpawnPuff (const PClass *pufftype, fixed_t x, fixed_t y, fixed_t z, angle_t dir, int updown, bool hit=false);
+// [BC] Added bTellClientToSpawn.
+AActor *P_SpawnPuff (const PClass *pufftype, fixed_t x, fixed_t y, fixed_t z, angle_t dir, int updown, bool hit=false, bool bTellClientToSpawn = true);
 void	P_SpawnBlood (fixed_t x, fixed_t y, fixed_t z, angle_t dir, int damage, AActor *originator);
 void	P_BloodSplatter (fixed_t x, fixed_t y, fixed_t z, AActor *originator);
 void	P_BloodSplatter2 (fixed_t x, fixed_t y, fixed_t z, AActor *originator);

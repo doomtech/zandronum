@@ -723,7 +723,7 @@ static bool DoGroupForOne (AActor *victim, AActor *source, AActor *dest, bool fl
 	// For proper demo recording, we inform all clients about the angle of
 	// all players.
 	if( victim->player && NETWORK_GetState() == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetThingAngle( victim );
+		SERVERCOMMANDS_SetThingAngleExact( victim );
 	return res;
 }
 

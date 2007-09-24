@@ -2199,11 +2199,6 @@ void SERVER_WriteCommands( void )
 	AActor		*pActor;
 	ULONG		ulIdx;
 	
-	// Update enemies & revenant missiles.
-	// If "no monsters" is set, there aren't any monsters to update!
-	if (( dmflags & DF_NO_MONSTERS ) == false )
-		SERVER_UpdateThings( );
-
 	// Ping clients and stuff.
 	SERVER_SendHeartBeat( );
 
@@ -2429,83 +2424,6 @@ void SERVER_SendHeartBeat( void )
 	// subtracting the client's pong from this.
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 		g_aClients[ulIdx].ulLastGameTic = I_MSTime( );
-}
-
-//*****************************************************************************
-//
-void SERVER_UpdateThings( void )
-{
-	AActor	*pActor;
-	ULONG	ulBits;
-
-	TThinkerIterator<AActor> iterator;
-
-	// Only update every 4th tick.
-	if ( gametic % 3 )
-		return;
-
-	while (( pActor = iterator.Next( )))
-	{
-		// Players get updated seperately.
-		if ( pActor->player )
-			continue;
-
-		// No need to send information about this actor.
-		if ((( pActor->ulNetworkFlags & NETFL_UPDATEPOSITION ) == false ) &&
-			(( pActor->flags2 & MF2_SEEKERMISSILE ) == false ) &&
-			(( pActor->flags3 & MF3_ISMONSTER ) == false ) )
-		{
-			continue;
-		}
-
-		ulBits = 0;
-
-		if ( pActor->x != pActor->OldX )
-		{
-			ulBits |= CM_X;
-
-			pActor->OldX = pActor->x;
-		}
-		if ( pActor->y != pActor->OldY )
-		{
-			ulBits |= CM_Y;
-
-			pActor->OldY = pActor->y;
-		}
-		if ( pActor->z != pActor->OldZ )
-		{
-			ulBits |= CM_Z;
-
-			pActor->OldZ = pActor->z;
-		}
-		if ( pActor->angle != pActor->OldAngle )
-		{
-			ulBits |= CM_ANGLE;
-
-			pActor->OldAngle = pActor->angle;
-		}
-		if ( pActor->momx != pActor->OldMomX )
-		{
-			ulBits |= CM_MOMX;
-
-			pActor->OldMomX = pActor->momx;
-		}
-		if ( pActor->momy != pActor->OldMomY )
-		{
-			ulBits |= CM_MOMY;
-
-			pActor->OldMomY = pActor->momy;
-		}
-		if ( pActor->momz != pActor->OldMomZ )
-		{
-			ulBits |= CM_MOMZ;
-
-			pActor->OldMomZ = pActor->momz;
-		}
-
-		if ( ulBits )
-			SERVERCOMMANDS_MoveThing( pActor, ulBits );
-	}
 }
 
 //*****************************************************************************

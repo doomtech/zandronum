@@ -1038,7 +1038,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
 				SERVERCOMMANDS_SetThingTics( target );
-				SERVERCOMMANDS_MoveThingExact( target, CM_MOMX|CM_MOMY|CM_MOMZ );
+				SERVERCOMMANDS_MoveThing( target, CM_MOMX|CM_MOMY|CM_MOMZ );
 			}
 		}
 		return;
@@ -1192,6 +1192,13 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 			{
 				target->momx += FixedMul (thrust, finecosine[ang]);
 				target->momy += FixedMul (thrust, finesine[ang]);
+			}
+
+			// [BC] Set the thing's momentum.
+			if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+				( target->player == NULL ))
+			{
+				SERVERCOMMANDS_MoveThingExact( target, CM_MOMX|CM_MOMY|CM_MOMZ );
 			}
 		}
 	}

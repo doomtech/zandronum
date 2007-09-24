@@ -8,6 +8,7 @@
 #include "gstrings.h"
 #include "a_action.h"
 #include "a_doomglobal.h"
+#include "cl_demo.h"
 
 static FRandom pr_tracer ("Tracer");
 static FRandom pr_skelfist ("SkelFist");
@@ -19,9 +20,12 @@ void A_SkelMissile (AActor *self)
 {		
 	AActor *missile;
 		
-	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	// [BC] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (!self->target)
 		return;
@@ -65,7 +69,8 @@ void A_Tracer (AActor *self)
 		return;
 	
 	// spawn a puff of smoke behind the rocket
-	P_SpawnPuff (PClass::FindClass(NAME_BulletPuff), self->x, self->y, self->z, 0, 3);
+	// [BC] Don't tell clients to spawn this puff.
+	P_SpawnPuff (PClass::FindClass(NAME_BulletPuff), self->x, self->y, self->z, 0, 3, false, false);
 		
 	smoke = Spawn ("RevenantTracerSmoke", self->x - self->momx,
 		self->y - self->momy, self->z, ALLOW_REPLACE);
@@ -76,8 +81,12 @@ void A_Tracer (AActor *self)
 		smoke->tics = 1;
 	
 	// [BC] Server takes care of movement.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
+
 
 	// adjust direction
 	dest = self->tracer;
@@ -122,14 +131,21 @@ void A_Tracer (AActor *self)
 		self->momz -= FRACUNIT/8;
 	else
 		self->momz += FRACUNIT/8;
+
+	// [BC] Update the thing's position, angle and momentum.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_MoveThingExact( self, CM_X|CM_Y|CM_Z|CM_ANGLE|CM_MOMX|CM_MOMY|CM_MOMZ );
 }
 
 
 void A_SkelWhoosh (AActor *self)
 {
-	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	// [BC] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (!self->target)
 		return;
@@ -143,9 +159,12 @@ void A_SkelWhoosh (AActor *self)
 
 void A_SkelFist (AActor *self)
 {
-	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	// [BC] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (!self->target)
 		return;

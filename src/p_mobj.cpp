@@ -1439,6 +1439,13 @@ bool P_SeekerMissile (AActor *actor, angle_t thresh, angle_t turnMax)
 	angle_t angle;
 	AActor *target;
 
+	// [BC] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return ( false );
+	}
+
 	target = actor->tracer;
 	if (target == NULL || actor->Speed == 0)
 	{
@@ -1480,6 +1487,11 @@ bool P_SeekerMissile (AActor *actor, angle_t thresh, angle_t turnMax)
 		}
 		actor->momz = ((target->z+target->height/2) - (actor->z+actor->height/2)) / dist;
 	}
+
+	// [BC] Update the thing's angle and momentum.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_MoveThingExact( actor, CM_X|CM_Y|CM_Z|CM_ANGLE|CM_MOMX|CM_MOMY|CM_MOMZ );
+
 	return true;
 }
 
@@ -4900,7 +4912,8 @@ void P_SpawnMapThing (mapthing2_t *mthing, int position)
 // P_SpawnPuff
 //
 
-AActor *P_SpawnPuff (const PClass *pufftype, fixed_t x, fixed_t y, fixed_t z, angle_t dir, int updown, bool hitthing)
+// [BC] Added bTellClientToSpawn.
+AActor *P_SpawnPuff (const PClass *pufftype, fixed_t x, fixed_t y, fixed_t z, angle_t dir, int updown, bool hitthing, bool bTellClientToSpawn)
 {
 	AActor *puff;
 
@@ -4909,8 +4922,11 @@ AActor *P_SpawnPuff (const PClass *pufftype, fixed_t x, fixed_t y, fixed_t z, an
 	puff = Spawn (pufftype, x, y, z, ALLOW_REPLACE);
 
 	// [BC] If we're the server, tell clients to spawn the thing.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+		( bTellClientToSpawn ))
+	{
 		SERVERCOMMANDS_SpawnThing( puff );
+	}
 
 	// If a puff has a crash state and an actor was not hit,
 	// it will enter the crash state. This is used by the StrifeSpark

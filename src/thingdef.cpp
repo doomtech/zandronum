@@ -3327,9 +3327,6 @@ static void ActorMonster (AActor *defaults, Baggage &bag)
 	defaults->flags|=MF_SHOOTABLE|MF_COUNTKILL|MF_SOLID; 
 	defaults->flags2|=MF2_PUSHWALL|MF2_MCROSS|MF2_PASSMOBJ;
 	defaults->flags3|=MF3_ISMONSTER;
-
-	// [BC] Also send updates about its position in network games.
-	defaults->ulNetworkFlags |= NETFL_UPDATEPOSITION;
 }
 
 //==========================================================================

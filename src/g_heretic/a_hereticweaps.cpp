@@ -243,7 +243,7 @@ void A_StaffAttackPL1 (AActor *actor)
 
 		// [BC] If we're the server, tell clients to adjust the player's angle.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingAngle( player->mo );
+			SERVERCOMMANDS_SetThingAngleExact( player->mo );
 	}
 }
 
@@ -299,7 +299,7 @@ void A_StaffAttackPL2 (AActor *actor)
 
 		// [BC] If we're the server, tell clients to adjust the player's angle.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingAngle( player->mo );
+			SERVERCOMMANDS_SetThingAngleExact( player->mo );
 	}
 }
 
@@ -2177,7 +2177,7 @@ void A_GauntletAttack (AActor *actor)
 
 	// [BC] If we're the server, tell clients to adjust the player's angle.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetThingAngle( actor );
+		SERVERCOMMANDS_SetThingAngleExact( actor );
 }
 
 // --- Blaster (aka Claw) ---------------------------------------------------

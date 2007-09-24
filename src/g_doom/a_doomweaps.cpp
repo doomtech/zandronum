@@ -361,7 +361,7 @@ void A_Saw (AActor *actor)
 
 	// [BC] If we're the server, tell clients to adjust the player's angle.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetThingAngle( actor );
+		SERVERCOMMANDS_SetThingAngleExact( actor );
 
 	// [BC] Tell all the bots that a weapon was fired.
 	BOTS_PostWeaponFiredEvent( ULONG( actor->player - players ), BOTEVENT_USEDCHAINSAW, BOTEVENT_ENEMY_USEDCHAINSAW, BOTEVENT_PLAYER_USEDCHAINSAW );

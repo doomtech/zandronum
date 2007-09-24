@@ -363,18 +363,15 @@ enum
 
 // More flags for Skulltag... these having to do with the network.
 
-	// Update this object's position every few ticks.
-	NETFL_UPDATEPOSITION	= 0x00000001,
-
 	// This object does not have a network ID.
-	NETFL_NONETID			= 0x00000002,
+	NETFL_NONETID			= 0x00000001,
 
 	// If this object is placed on a map, allow clients to spawn it on their own without
 	// the server having to tell them to spawn it.
-	NETFL_ALLOWCLIENTSPAWN	= 0x00000004,
+	NETFL_ALLOWCLIENTSPAWN	= 0x00000002,
 
 	// Tell clients what this thing's arguments are, because they are important.
-	NETFL_UPDATEARGUMENTS	= 0x00000008,
+	NETFL_UPDATEARGUMENTS	= 0x00000004,
 
 	// Handle the pickup of this item in a "special" way.
 	NETFL_SPECIALPICKUP		= 0x00000008,
@@ -840,24 +837,6 @@ public:
 
 	// ID used to identify this actor over network games.
 	LONG		lNetID;
-
-	// If an actor's old position differs from its current position, then it has moved and
-	// clients should be informed.
-	fixed_t		OldX;
-	fixed_t		OldY;
-	fixed_t		OldZ;
-
-	// Same goes for momentum.
-	fixed_t		OldMomX;
-	fixed_t		OldMomY;
-	fixed_t		OldMomZ;
-
-	// ... and angle/pitch.
-	angle_t		OldAngle;
-	fixed_t		OldPitch;
-
-	// ... and waterlevel.
-	ULONG		ulOldWaterlevel;
 
 	// Pointer to the pickup spot this item was spawned from.
 	ABaseMonsterInvasionSpot		*pMonsterSpot;

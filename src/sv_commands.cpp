@@ -103,17 +103,6 @@ void SERVERCOMMANDS_Nothing( ULONG ulPlayer )
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_ResetSequence( ULONG ulPlayer )
-{
-	if ( SERVER_IsValidClient( ulPlayer ) == false )
-		return;
-
-	SERVER_CheckClientBuffer( ulPlayer, 1, true );
-	NETWORK_WriteHeader( &SERVER_GetClient( ulPlayer )->PacketBuffer.ByteStream, SVC_RESETSEQUENCE );
-}
-
-//*****************************************************************************
-//
 void SERVERCOMMANDS_BeginSnapshot( ULONG ulPlayer )
 {
 	if ( SERVER_IsValidClient( ulPlayer ) == false )
@@ -1661,10 +1650,64 @@ void SERVERCOMMANDS_SetThingAngle( AActor *pActor, ULONG ulPlayerExtra, ULONG ul
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 7, true );
+		SERVER_CheckClientBuffer( ulIdx, 5, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGANGLE );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->angle >> FRACBITS );
+	}
+}
+
+//*****************************************************************************
+//
+void SERVERCOMMANDS_SetThingAngleExact( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	ULONG	ulIdx;
+
+	if ( pActor == NULL )
+		return;
+
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_IsValidClient( ulIdx ) == false )
+			continue;
+
+		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
+			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
+		{
+			continue;
+		}
+
+		SERVER_CheckClientBuffer( ulIdx, 7, true );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGANGLEEXACT );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->angle );
+	}
+}
+
+//*****************************************************************************
+//
+void SERVERCOMMANDS_SetThingMoveDir( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	ULONG	ulIdx;
+
+	if ( pActor == NULL )
+		return;
+
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_IsValidClient( ulIdx ) == false )
+			continue;
+
+		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
+			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
+		{
+			continue;
+		}
+
+		SERVER_CheckClientBuffer( ulIdx, 4, true );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGMOVEDIR );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->movedir );
 	}
 }
 
@@ -3136,7 +3179,7 @@ void SERVERCOMMANDS_SpawnMissileExact( AActor *pMissile, ULONG ulPlayerExtra, UL
 	// [BB] It's possible that the angle can't be derived from the momentum
 	// of the missle. In this case the correct angle has to be told to the clients.
  	if( pMissile->angle != R_PointToAngle2( 0, 0, pMissile->momx, pMissile->momy ) )
-		SERVERCOMMANDS_SetThingAngle( pMissile, ulPlayerExtra, ulFlags );
+		SERVERCOMMANDS_SetThingAngleExact( pMissile, ulPlayerExtra, ulFlags );
 }
 
 //*****************************************************************************

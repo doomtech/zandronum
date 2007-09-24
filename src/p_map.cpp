@@ -4632,10 +4632,6 @@ void P_UseLines (player_t *player)
 	angle_t angle;
 	fixed_t x1, y1, x2, y2;
 
-	// "Using" is server side.
-//	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
-//		return;
-
 	usething = player->mo;
 	if ( usething == NULL )
 		return;
@@ -4661,8 +4657,10 @@ void P_UseLines (player_t *player)
 		if (foundline)
 			spac |= SECSPAC_UseWall;
 
-		// Don't try to trigger sector actions in client mode.
-		if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )) || !sec->SecActTarget ||
+		// [BC] Don't try to trigger sector actions in client mode.
+		if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+			( CLIENTDEMO_IsPlaying( )) ||
+			!sec->SecActTarget ||
 			 !sec->SecActTarget->TriggerAction (usething, spac)) &&
 			!P_PathTraverse (x1, y1, x2, y2, PT_ADDLINES, PTR_NoWayTraverse))
 		{
@@ -4670,7 +4668,7 @@ void P_UseLines (player_t *player)
 
 			// [BC] Tell clients of the "oof" sound.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SoundActor( usething, CHAN_VOICE, "*usefail", 127, ATTN_IDLE );
+				SERVERCOMMANDS_SoundActor( usething, CHAN_VOICE, "*usefail", 127, ATTN_IDLE, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 		}
 	}
 }
@@ -4684,53 +4682,49 @@ void P_UseLines (player_t *player)
 ================
 */
 
-void P_UseItems (player_s *player) 
+void P_UseItems( player_s *pPlayer )
 {
-	int			angle;
 	fixed_t 	x1;
 	fixed_t 	y1;
 	fixed_t 	x2;
 	fixed_t 	y2;		
 	fixed_t		vrange;
 
-	// "Using" is server side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
-		return;
-
-	usething = player->mo;
+	usething = pPlayer->mo;
 	if ( usething == NULL )
 		return;
 
-	angle = player->mo->angle >> ANGLETOFINESHIFT;
-	x1 = player->mo->x;
-	y1 = player->mo->y;
-	x2 = x1 + ((USERANGE+8)>>FRACBITS)*finecosine[angle];
-	y2 = y1 + ((USERANGE+8)>>FRACBITS)*finesine[angle];
-
-	vrange = clamp (player->userinfo.aimdist, ANGLE_1/2, ANGLE_1*35);
-
-	aim.toppitch = player->mo->pitch - vrange;
-	aim.bottompitch = player->mo->pitch + vrange;
+	x1 = usething->x;
+	y1 = usething->y;
+	x2 = x1 + ((USERANGE+8)>>FRACBITS)*finecosine[usething->angle >> ANGLETOFINESHIFT];
+	y2 = y1 + ((USERANGE+8)>>FRACBITS)*finesine[usething->angle >> ANGLETOFINESHIFT];
+	vrange = clamp( pPlayer->userinfo.aimdist, ANGLE_1/2, ANGLE_1*35 );
+	aim.toppitch = usething->pitch - vrange;
+	aim.bottompitch = usething->pitch + vrange;
 
 	linetarget = NULL;
 
-	P_PathTraverse (x1, y1, x2, y2, PT_ADDLINES|PT_ADDTHINGS, PTR_UsethingTraverse);
+	P_PathTraverse( x1, y1, x2, y2, PT_ADDTHINGS, PTR_UsethingTraverse );
 
+	if ( linetarget )
 	{
-		if (linetarget)
+		// Don't try to trigger sector actions in client mode.
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+			( CLIENTDEMO_IsPlaying( ) == false ) &&
+			( linetarget->special ) &&
+			( linetarget->ulSTFlags & STFL_USESPECIAL ))
 		{
-			if (linetarget->special && linetarget->ulSTFlags & STFL_USESPECIAL)
-				LineSpecials[linetarget->special] (NULL, usething, false, linetarget->args[0],
-										   linetarget->args[1], linetarget->args[2],
-										   linetarget->args[3], linetarget->args[4] );
-			else
-			{
-				S_Sound (usething, CHAN_VOICE, "*usefail", 1, ATTN_IDLE);
+			LineSpecials[linetarget->special]( NULL, usething, false, linetarget->args[0],
+									   linetarget->args[1], linetarget->args[2],
+									   linetarget->args[3], linetarget->args[4] );
+		}
+		else
+		{
+			S_Sound( usething, CHAN_VOICE, "*usefail", 1, ATTN_IDLE );
 
-				// [BC] Tell clients of the "oof" sound.
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_SoundActor( usething, CHAN_VOICE, "*usefail", 127, ATTN_IDLE );
-			}
+			// Tell clients of the "oof" sound.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SoundActor( usething, CHAN_VOICE, "*usefail", 127, ATTN_IDLE, ULONG( pPlayer - players ), SVCF_SKIPTHISCLIENT );
 		}
 	}
 }
@@ -5046,6 +5040,10 @@ bool PIT_RadiusAttack (AActor *thing)
 					thing->momx += fixed_t (finecosine[ang] * thrust);
 					thing->momy += fixed_t (finesine[ang] * thrust);
 					if (bombdodamage) thing->momz += (fixed_t)momz;	// this really doesn't work well
+
+					// [BC] If we're the server, update the thing's momentum.
+					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						SERVERCOMMANDS_MoveThingExact( thing, CM_MOMX|CM_MOMY|CM_MOMZ );
 				}
 			}
 		}

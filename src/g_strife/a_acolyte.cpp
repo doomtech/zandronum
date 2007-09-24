@@ -95,7 +95,6 @@ IMPLEMENT_ACTOR (AAcolyte, Strife, -1, 0)
 	PROP_MissileState (S_ACOLYTE_ATK)
 	PROP_DeathState (S_ACOLYTE_DIE)
 	PROP_XDeathState (S_ACOLYTE_XDIE)
-	PROP_FlagsNetwork( NETFL_UPDATEPOSITION )
 
 	PROP_SpawnHealth (70)
 	PROP_PainChance (150)

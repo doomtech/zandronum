@@ -128,7 +128,6 @@ EXTERN_CVAR( Int, am_cheat )
 
 // Protocol functions.
 static	void	client_Header( BYTESTREAM_s *pByteStream );
-static	void	client_ResetSequence( BYTESTREAM_s *pByteStream );
 static	void	client_Ping( BYTESTREAM_s *pByteStream );
 static	void	client_BeginSnapshot( BYTESTREAM_s *pByteStream );
 static	void	client_EndSnapshot( BYTESTREAM_s *pByteStream );
@@ -182,6 +181,8 @@ static	void	client_KillThing( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingState( BYTESTREAM_s *pByteStream );
 static	void	client_DestroyThing( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingAngle( BYTESTREAM_s *pByteStream );
+static	void	client_SetThingAngleExact( BYTESTREAM_s *pByteStream );
+static	void	client_SetThingMoveDir( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingWaterLevel( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingFlags( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingArguments( BYTESTREAM_s *pByteStream );
@@ -461,7 +462,6 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 {
 	"SVC_HEADER",
 	"SVC_UNRELIABLEPACKET",
-	"SVC_RESETSEQUENCE",
 	"SVC_PING",
 	"SVC_NOTHING",
 	"SVC_BEGINSNAPSHOT",
@@ -514,6 +514,8 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETTHINGSTATE",
 	"SVC_DESTROYTHING",
 	"SVC_SETTHINGANGLE",
+	"SVC_SETTHINGANGLEEXACT",
+	"SVC_SETTHINGMOVEDIR",
 	"SVC_SETTHINGWATERLEVEL",
 	"SVC_SETTHINGFLAGS",
 	"SVC_SETTHINGARGUMENTS",
@@ -1361,10 +1363,6 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		client_Header( pByteStream );
 		break;
-	case SVC_RESETSEQUENCE:
-
-		client_ResetSequence( pByteStream );
-		break;
 	case SVC_PING:
 
 		client_Ping( pByteStream );
@@ -1571,6 +1569,14 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETTHINGANGLE:
 
 		client_SetThingAngle( pByteStream );
+		break;
+	case SVC_SETTHINGANGLEEXACT:
+
+		client_SetThingAngleExact( pByteStream );
+		break;
+	case SVC_SETTHINGMOVEDIR:
+
+		client_SetThingMoveDir( pByteStream );
 		break;
 	case SVC_SETTHINGWATERLEVEL:
 
@@ -2968,7 +2974,7 @@ static void client_Header( BYTESTREAM_s *pByteStream )
 	lSequence = NETWORK_ReadLong( pByteStream );
 //	Printf( "client_Header: Received packet %d\n", lSequence );
 }
-
+/*
 //*****************************************************************************
 //
 static void client_ResetSequence( BYTESTREAM_s *pByteStream )
@@ -2976,7 +2982,7 @@ static void client_ResetSequence( BYTESTREAM_s *pByteStream )
 //	Printf( "SEQUENCE RESET! g_lLastParsedSequence = %d\n", g_lLastParsedSequence );
 	g_lLastParsedSequence = g_lHighestReceivedSequence - 2;
 }
-
+*/
 //*****************************************************************************
 //
 static void client_Ping( BYTESTREAM_s *pByteStream )
@@ -5197,7 +5203,7 @@ static void client_SetThingAngle( BYTESTREAM_s *pByteStream )
 	lID = NETWORK_ReadShort( pByteStream );
 
 	// Read in the thing's new angle.
-	Angle = NETWORK_ReadLong( pByteStream );
+	Angle = NETWORK_ReadShort( pByteStream ) << FRACBITS;
 
 	// Now try to find the thing.
 	pActor = CLIENT_FindThingByNetID( lID );
@@ -5211,6 +5217,62 @@ static void client_SetThingAngle( BYTESTREAM_s *pByteStream )
 
 	// Finally, set the angle.
 	pActor->angle = Angle;
+}
+
+//*****************************************************************************
+//
+static void client_SetThingAngleExact( BYTESTREAM_s *pByteStream )
+{
+	AActor		*pActor;
+	LONG		lID;
+	fixed_t		Angle;
+
+	// Read in the thing's network ID.
+	lID = NETWORK_ReadShort( pByteStream );
+
+	// Read in the thing's new angle.
+	Angle = NETWORK_ReadLong( pByteStream );
+
+	// Now try to find the thing.
+	pActor = CLIENT_FindThingByNetID( lID );
+	if ( pActor == NULL )
+	{
+#ifdef CLIENT_WARNING_MESSAGES
+		Printf( "client_SetThingAngleExact: Couldn't find thing: %d\n", lID );
+#endif
+		return;
+	}
+
+	// Finally, set the angle.
+	pActor->angle = Angle;
+}
+
+//*****************************************************************************
+//
+static void client_SetThingMoveDir( BYTESTREAM_s *pByteStream )
+{
+	LONG		lID;
+	LONG		lMoveDir;
+	AActor		*pActor;
+
+	// Read in the thing's network ID.
+	lID = NETWORK_ReadShort( pByteStream );
+
+	// Read in the thing's movement direction.
+	lMoveDir = NETWORK_ReadByte( pByteStream );
+
+	// Now try to find the thing.
+	pActor = CLIENT_FindThingByNetID( lID );
+	if ( pActor == NULL )
+	{
+#ifdef CLIENT_WARNING_MESSAGES
+		Printf( "client_SetThingMoveDir: Couldn't find thing: %d\n", lID );
+#endif
+		return;
+	}
+
+	// Finally, set the movement direction.
+	pActor->movedir = lMoveDir;
 }
 
 //*****************************************************************************

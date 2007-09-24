@@ -57,7 +57,6 @@ FState AArchvileFire::States[] =
 IMPLEMENT_ACTOR (AArchvileFire, Doom, -1, 98)
 	PROP_Flags (MF_NOBLOCKMAP|MF_NOGRAVITY)
 	PROP_Flags2 (MF2_MCROSS|MF2_PASSMOBJ|MF2_PUSHWALL)
-	PROP_FlagsNetwork( NETFL_UPDATEPOSITION )
 	PROP_RenderStyle (STYLE_Add)
 
 	PROP_SpawnState (0)
@@ -110,6 +109,10 @@ void A_Fire (AActor *self)
 	self->SetOrigin (dest->x + FixedMul (24*FRACUNIT, finecosine[an]),
 					 dest->y + FixedMul (24*FRACUNIT, finesine[an]),
 					 dest->z);
+
+	// [BC] Tell clients of the fire update.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_MoveThingExact( self, CM_X|CM_Y|CM_Z );
 }
 
 
