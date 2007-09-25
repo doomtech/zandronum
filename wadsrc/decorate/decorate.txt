@@ -10,7 +10,7 @@
 #include "actors/shared/fountain.txt"
 #include "actors/shared/soundsequence.txt"
 
-//#include "actors/doom/doomplayer.txt"
+#include "actors/doom/doomplayer.txt"
 #include "actors/doom/possessed.txt"
 //#include "actors/doom/doomimp.txt"
 //#include "actors/doom/demon.txt"
@@ -84,6 +84,7 @@
 #include "actors/skulltag/skulltagscorepillars.txt"
 #include "actors/skulltag/skulltagstatues.txt"
 
+#include "actors/strife/strifeplayer.txt"
 #include "actors/strife/beggars.txt"
 #include "actors/strife/merchants.txt"
 #include "actors/strife/peasants.txt"

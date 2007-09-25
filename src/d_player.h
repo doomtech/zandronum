@@ -88,7 +88,6 @@ public:
 	// the game will become disrupted.
 	virtual void DropImportantItems( bool bLeavingGame );
 
-	virtual void GiveDefaultInventory ();
 	virtual void TweakSpeeds (int &forwardmove, int &sidemove);
 	virtual void MorphPlayerThink ();
 	virtual void ActivateMorphWeapon ();
@@ -101,6 +100,7 @@ public:
 	// [BC]
 	virtual void Destroy( );
 
+	void GiveDefaultInventory ();
 	void PlayAttacking ();
 	void PlayAttacking2 ();
 	const char *GetSoundClass ();

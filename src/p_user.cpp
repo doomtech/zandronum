@@ -959,6 +959,277 @@ void APlayerPawn::GiveDefaultInventory ()
 			player->health = 1;
 	}
 
+	// HexenArmor must always be the first item in the inventory because
+	// it provides player class based protection that should not affect
+	// any other protection item.
+	fixed_t hx[5];
+	for(int i=0;i<5;i++)
+	{
+		hx[i] = GetClass()->Meta.GetMetaFixed(APMETA_Hexenarmor0+i);
+	}
+	GiveInventoryType (RUNTIME_CLASS(AHexenArmor));
+	AHexenArmor *harmor = FindInventory<AHexenArmor>();
+	harmor->Slots[4] = hx[0];
+	harmor->SlotsIncrement[0] = hx[1];
+	harmor->SlotsIncrement[1] = hx[2];
+	harmor->SlotsIncrement[2] = hx[3];
+	harmor->SlotsIncrement[3] = hx[4];
+
+	// BasicArmor must come right after that. It should not affect any
+	// other protection item as well but needs to process the damage
+	// before the HexenArmor does.
+	ABasicArmor *barmor = Spawn<ABasicArmor> (0,0,0, NO_REPLACE);
+	barmor->BecomeItem ();
+	barmor->SavePercent = 0;
+	barmor->Amount = 0;
+	AddInventory (barmor);
+
+	// [BB] Ugly hack: Stuff for the Doom player. Moved here since the Doom player
+	// was converted to DECORATE. TO-DO: Find a better place for this and perhaps
+	// make this work for arbitraty player classes.
+	if ( !stricmp(this->GetClass()->TypeName.GetChars( ),"DoomPlayer" ) )
+	{
+		// [BB] The icon of ABasicArmor is the one of the blue armor. Change this here
+		// to fix the fullscreen hud display.
+		barmor->Icon = TexMan.GetTexture( "ARM1A0", 0 );
+		AInventory *fist, *pistol, *bullets;
+		ULONG						ulIdx;
+		const PClass				*pType;
+		AWeapon						*pWeapon;
+		APowerStrength				*pBerserk;
+		AWeapon						*pPendingWeapon;
+		AInventory					*pInventory;
+		// [BC] In instagib mode, give the player the railgun, and the maximum amount of cells
+		// possible.
+		if (( instagib ) && ( deathmatch || teamgame ))
+		{
+			// Give the player the weapon.
+			pInventory = player->mo->GiveInventoryType( PClass::FindClass( "Railgun" ));
+
+			if ( pInventory )
+			{
+				// Make the weapon the player's ready weapon.
+				player->ReadyWeapon = player->PendingWeapon = static_cast<AWeapon *>( pInventory );
+
+				// [BC] If we're a client, tell the server we're switching weapons.
+				if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) == consoleplayer ))
+				{
+					CLIENTCOMMANDS_WeaponSelect( (char *)pInventory->GetClass( )->TypeName.GetChars( ));
+
+					if ( CLIENTDEMO_IsRecording( ))
+						CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)pInventory->GetClass( )->TypeName.GetChars( ));
+				}
+			}
+
+			// Find the player's ammo for the weapon in his inventory, and max. out the amount.
+			pInventory = player->mo->FindInventory( PClass::FindClass( "Cell" ));
+			if ( pInventory != NULL )
+				pInventory->Amount = pInventory->MaxAmount;
+
+			return;
+		}
+		// [BC] In buckshot mode, give the player the SSG, and the maximum amount of shells
+		// possible.
+		else if (( buckshot ) && ( deathmatch || teamgame ))
+		{
+			// Give the player the weapon.
+			pInventory = player->mo->GiveInventoryType( PClass::FindClass( "SuperShotgun" ));
+
+			if ( pInventory )
+			{
+				// Make the weapon the player's ready weapon.
+				player->ReadyWeapon = player->PendingWeapon = static_cast<AWeapon *>( pInventory );
+
+				// [BC] If we're a client, tell the server we're switching weapons.
+				if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) == consoleplayer ))
+				{
+					CLIENTCOMMANDS_WeaponSelect( (char *)pInventory->GetClass( )->TypeName.GetChars( ));
+
+					if ( CLIENTDEMO_IsRecording( ))
+						CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)pInventory->GetClass( )->TypeName.GetChars( ));
+				}
+			}
+
+			// Find the player's ammo for the weapon in his inventory, and max. out the amount.
+			pInventory = player->mo->FindInventory( PClass::FindClass( "Shell" ));
+			if ( pInventory != NULL )
+				pInventory->Amount = pInventory->MaxAmount;
+			return;
+		}
+		// [BC] Give a bunch of weapons in LMS mode, depending on the LMS allowed weapon flags.
+		else if ( lastmanstanding || teamlms )
+		{
+			// Give the player all the weapons, and the maximum amount of every type of
+			// ammunition.
+			pPendingWeapon = NULL;
+			for ( ulIdx = 0; ulIdx < PClass::m_Types.Size( ); ulIdx++ )
+			{
+				pType = PClass::m_Types[ulIdx];
+
+				// Potentially disallow certain weapons.
+				if ((( lmsallowedweapons & LMS_AWF_CHAINSAW ) == false ) &&
+					( pType == PClass::FindClass( "Chainsaw" )))
+				{
+					continue;
+				}
+				if ((( lmsallowedweapons & LMS_AWF_PISTOL ) == false ) &&
+					( pType == PClass::FindClass( "Pistol" )))
+				{
+					continue;
+				}
+				if ((( lmsallowedweapons & LMS_AWF_SHOTGUN ) == false ) &&
+					( pType == PClass::FindClass( "Shotgun" )))
+				{
+					continue;
+				}
+				if (( pType == PClass::FindClass( "SuperShotgun" )) &&
+					((( lmsallowedweapons & LMS_AWF_SSG ) == false ) ||
+					(( gameinfo.flags & GI_MAPxx ) == false )))
+				{
+					continue;
+				}
+				if ((( lmsallowedweapons & LMS_AWF_CHAINGUN ) == false ) &&
+					( pType == PClass::FindClass( "Chaingun" )))
+				{
+					continue;
+				}
+				if ((( lmsallowedweapons & LMS_AWF_MINIGUN ) == false ) &&
+					( pType == PClass::FindClass( "Minigun" )))
+				{
+					continue;
+				}
+				if ((( lmsallowedweapons & LMS_AWF_ROCKETLAUNCHER ) == false ) &&
+					( pType == PClass::FindClass( "RocketLauncher" )))
+				{
+					continue;
+				}
+				if ((( lmsallowedweapons & LMS_AWF_GRENADELAUNCHER ) == false ) &&
+					( pType == PClass::FindClass( "GrenadeLauncher" )))
+				{
+					continue;
+				}
+				if ((( lmsallowedweapons & LMS_AWF_PLASMA ) == false ) &&
+					( pType == PClass::FindClass( "PlasmaRifle" )))
+				{
+					continue;
+				}
+				if ((( lmsallowedweapons & LMS_AWF_RAILGUN ) == false ) &&
+					( pType == PClass::FindClass( "Railgun" )))
+				{
+					continue;
+				}
+
+				if ( pType->ParentClass->IsDescendantOf( RUNTIME_CLASS( AWeapon )))
+				{
+					pInventory = player->mo->GiveInventoryType( pType );
+
+					// Make this weapon the player's pending weapon if it ranks higher.
+					pWeapon = static_cast<AWeapon *>( pInventory );
+					if ( pWeapon != NULL )
+					{
+						if ( pWeapon->WeaponFlags & WIF_NOLMS )
+						{
+							player->mo->RemoveInventory( pWeapon );
+							continue;
+						}
+
+						if (( pPendingWeapon == NULL ) || 
+							( pWeapon->SelectionOrder < pPendingWeapon->SelectionOrder ))
+						{
+							pPendingWeapon = static_cast<AWeapon *>( pInventory );
+						}
+
+						if ( pWeapon->Ammo1 )
+						{
+							pInventory = player->mo->FindInventory( pWeapon->Ammo1->GetClass( ));
+
+							// Give the player the maximum amount of this type of ammunition.
+							if ( pInventory != NULL )
+								pInventory->Amount = pInventory->MaxAmount;
+						}
+						if ( pWeapon->Ammo2 )
+						{
+							pInventory = player->mo->FindInventory( pWeapon->Ammo2->GetClass( ));
+
+							// Give the player the maximum amount of this type of ammunition.
+							if ( pInventory != NULL )
+								pInventory->Amount = pInventory->MaxAmount;
+						}
+					}
+				}
+			}
+
+			// Also give the player berserk.
+			player->mo->GiveInventoryType( PClass::FindClass( "Berserk" ));
+			pBerserk = static_cast<APowerStrength *>( player->mo->FindInventory( PClass::FindClass( "PowerStrength" )));
+			if ( pBerserk )
+				pBerserk->EffectTics = 768;
+
+			player->health = deh.MegasphereHealth;
+			player->mo->GiveInventoryType( PClass::FindClass( "GreenArmor" ));
+			player->health -= player->userinfo.lHandicap;
+
+			// Don't allow player to be DOA.
+			if ( player->health <= 0 )
+				player->health = 1;
+
+			// Finally, set the ready and pending weapon.
+			player->ReadyWeapon = player->PendingWeapon = pPendingWeapon;
+
+			// [BC] If we're a client, tell the server we're switching weapons.
+			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) == consoleplayer ))
+			{
+				CLIENTCOMMANDS_WeaponSelect( (char *)pPendingWeapon->GetClass( )->TypeName.GetChars( ));
+
+				if ( CLIENTDEMO_IsRecording( ))
+					CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)pPendingWeapon->GetClass( )->TypeName.GetChars( ));
+			}
+		}
+		else if (!Inventory)
+		{
+			fist = player->mo->GiveInventoryType (PClass::FindClass ("Fist"));
+			pistol = player->mo->GiveInventoryType (PClass::FindClass ("Pistol"));
+			// Adding the pistol automatically adds bullets
+			bullets = player->mo->FindInventory (PClass::FindClass ("Clip"));
+			if (bullets != NULL)
+			{
+				bullets->Amount = deh.StartBullets;		// [RH] Used to be 50
+			}
+			player->ReadyWeapon = player->PendingWeapon =
+				static_cast<AWeapon *> (deh.StartBullets > 0 ? pistol : fist);
+
+			// [BC] If the user has the shotgun start flag set, do that!
+			if (( dmflags2 & DF2_COOP_SHOTGUNSTART ) &&
+				( deathmatch == false ) &&
+				( teamgame == false ))
+			{
+				pInventory = player->mo->GiveInventoryType( PClass::FindClass( "Shotgun" ));
+				if ( pInventory )
+				{
+					player->ReadyWeapon = player->PendingWeapon = static_cast<AWeapon *>( pInventory );
+
+					// Start them off with two clips.
+					pInventory = player->mo->FindInventory( PClass::FindClass( "Shell" ));
+					if ( pInventory != NULL )
+						pInventory->Amount = static_cast<AWeapon *>( player->ReadyWeapon )->AmmoGive1 * 2;
+				}
+			}
+
+			// [BC] If we're a client, tell the server we're switching weapons.
+			// [BB] Using custom player classes which don't have "Fist"
+			// and "Pistol" player->ReadyWeapon can be equal to NULL.
+			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) == consoleplayer ) && player->ReadyWeapon )
+			{
+				CLIENTCOMMANDS_WeaponSelect( (char *)player->ReadyWeapon->GetClass( )->TypeName.GetChars( ));
+
+				if ( CLIENTDEMO_IsRecording( ))
+					CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)player->ReadyWeapon->GetClass( )->TypeName.GetChars( ));
+			}
+			return;
+		}
+	}
+
+	// Now add the items from the DECORATE definition
 	FDropItem *di = GetDropItems(RUNTIME_TYPE(this));
 
 	while (di)
@@ -997,25 +1268,6 @@ void APlayerPawn::GiveDefaultInventory ()
 			}
 		}
 		di = di->Next;
-	}
-
-	fixed_t hx[5];
-	bool ishx=false;
-
-	for(int i=0;i<5;i++)
-	{
-		hx[i] = GetClass()->Meta.GetMetaFixed(APMETA_Hexenarmor0+i);
-		ishx |= !!hx[i];
-	}
-	if (ishx)
-	{
-		GiveInventoryType (RUNTIME_CLASS(AHexenArmor));
-		AHexenArmor *armor = FindInventory<AHexenArmor>();
-		armor->Slots[4] = hx[0];
-		armor->SlotsIncrement[0] = hx[1];
-		armor->SlotsIncrement[1] = hx[2];
-		armor->SlotsIncrement[2] = hx[3];
-		armor->SlotsIncrement[3] = hx[4];
 	}
 
 	// [BB] LMS Stuff for the Heretic player. Moved here since the Heretic player

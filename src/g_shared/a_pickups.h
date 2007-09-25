@@ -118,6 +118,7 @@ public:
 	virtual void DoPickupSpecial (AActor *toucher);
 	virtual bool SpecialDropAction (AActor *dropper);
 	virtual bool DrawPowerup (int x, int y);
+	virtual void DoEffect ();
 
 	virtual const char *PickupMessage ();
 	virtual const char *PickupAnnouncerEntry ();	// [BC]

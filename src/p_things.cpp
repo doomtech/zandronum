@@ -191,6 +191,9 @@ bool P_MoveThing(AActor *source, fixed_t x, fixed_t y, fixed_t z, bool fog)
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SpawnThing( pFog );
 		}
+		source->PrevX=x;
+		source->PrevY=y;
+		source->PrevZ=z;
 
 		// [BC] If we're the server, tell clients to move the object.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )

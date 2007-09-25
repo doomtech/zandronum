@@ -101,57 +101,22 @@ void APowerupGiver::Serialize (FArchive &arc)
 
 void APowerup::Tick ()
 {
+	// Powerups cannot exist outside an inventory
 	if (Owner == NULL)
 	{
 		Destroy ();
 	}
-	else if (EffectTics > 0)
+	if (EffectTics > 0 && --EffectTics == 0)
 	{
-		DoEffect ();
-
-		if (EffectTics > BLINKTHRESHOLD || (EffectTics & 8))
-		{
-			// [BC] Apply the colormap to the player's body, also.
-			if (BlendColor == INVERSECOLOR)
-			{
-				Owner->player->fixedcolormap = INVERSECOLORMAP;
-				Owner->lFixedColormap = INVERSECOLORMAP;
-			}
-			else if (BlendColor == GOLDCOLOR)
-			{
-				Owner->player->fixedcolormap = GOLDCOLORMAP;
-				Owner->lFixedColormap = GOLDCOLORMAP;
-			}
-			else if (BlendColor == REDCOLOR)
-			{
-				Owner->player->fixedcolormap = REDCOLORMAP;
-				Owner->lFixedColormap = REDCOLORMAP;
-			}
-			else if (BlendColor == GREENCOLOR)
-			{
-				Owner->player->fixedcolormap = GREENCOLORMAP;
-				Owner->lFixedColormap = GREENCOLORMAP;
-			}
-		}
-		else if ((BlendColor == INVERSECOLOR && Owner->player->fixedcolormap == INVERSECOLORMAP) || 
-				 (BlendColor == GOLDCOLOR && Owner->player->fixedcolormap == GOLDCOLORMAP) ||
-				 (BlendColor == REDCOLOR && Owner->player->fixedcolormap == REDCOLORMAP) ||
-				 (BlendColor == GREENCOLOR && Owner->player->fixedcolormap == GREENCOLORMAP))
-		{
-			Owner->player->fixedcolormap = 0;
-			Owner->lFixedColormap = 0;
-		}
-
-		if (--EffectTics == 0)
-		{
-			Destroy ();
-		}
+		Destroy ();
 	}
+/*
 	// [BC] Run the effects of powerups that have an EffectTics of 0.
 	else
 	{
 		DoEffect( );
 	}
+	*/
 }
 
 //===========================================================================
@@ -205,6 +170,47 @@ void APowerup::InitEffect ()
 
 void APowerup::DoEffect ()
 {
+	if (Owner == NULL)
+	{
+		return;
+	}
+
+	if (EffectTics > 0)
+	{
+		int oldcolormap = Owner->player->fixedcolormap;
+		if (EffectTics > BLINKTHRESHOLD || (EffectTics & 8))
+		{
+			// [BC] Apply the colormap to the player's body, also.
+			if (BlendColor == INVERSECOLOR)
+			{
+				Owner->player->fixedcolormap = INVERSECOLORMAP;
+				Owner->lFixedColormap = INVERSECOLORMAP;
+			}
+			else if (BlendColor == GOLDCOLOR)
+			{
+				Owner->player->fixedcolormap = GOLDCOLORMAP;
+				Owner->lFixedColormap = GOLDCOLORMAP;
+			}
+			else if (BlendColor == REDCOLOR)
+			{
+				Owner->player->fixedcolormap = REDCOLORMAP;
+				Owner->lFixedColormap = REDCOLORMAP;
+			}
+			else if (BlendColor == GREENCOLOR)
+			{
+				Owner->player->fixedcolormap = GREENCOLORMAP;
+				Owner->lFixedColormap = GREENCOLORMAP;
+			}
+		}
+		else if ((BlendColor == INVERSECOLOR && Owner->player->fixedcolormap == INVERSECOLORMAP) || 
+				 (BlendColor == GOLDCOLOR && Owner->player->fixedcolormap == GOLDCOLORMAP) ||
+				 (BlendColor == REDCOLOR && Owner->player->fixedcolormap == REDCOLORMAP) ||
+				 (BlendColor == GREENCOLOR && Owner->player->fixedcolormap == GREENCOLORMAP))
+		{
+			Owner->player->fixedcolormap = 0;
+			Owner->lFixedColormap = 0;
+		}
+	}
 }
 
 //===========================================================================
@@ -384,6 +390,8 @@ void APowerInvulnerable::InitEffect ()
 
 void APowerInvulnerable::DoEffect ()
 {
+	Super::DoEffect ();
+
 	if (Owner == NULL)
 	{
 		return;
@@ -391,30 +399,39 @@ void APowerInvulnerable::DoEffect ()
 
 	if (mode == NAME_Ghost)
 	{
-		Owner->RenderStyle = STYLE_Translucent;
-		if (!(level.time & 7) && Owner->alpha > 0 && Owner->alpha < OPAQUE)
+		if (!(Owner->flags & MF_SHADOW))
 		{
-			if (Owner->alpha == HX_SHADOW)
+			// Don't mess with the translucency settings if an
+			// invisibility powerup is active.
+			Owner->RenderStyle = STYLE_Translucent;
+			if (!(level.time & 7) && Owner->alpha > 0 && Owner->alpha < OPAQUE)
 			{
-				Owner->alpha = HX_ALTSHADOW;
+				if (Owner->alpha == HX_SHADOW)
+				{
+					Owner->alpha = HX_ALTSHADOW;
+				}
+				else
+				{
+					Owner->alpha = 0;
+					Owner->flags2 |= MF2_NONSHOOTABLE;
+				}
 			}
-			else
+			if (!(level.time & 31))
 			{
-				Owner->alpha = 0;
-				Owner->flags2 |= MF2_NONSHOOTABLE;
+				if (Owner->alpha == 0)
+				{
+					Owner->flags2 &= ~MF2_NONSHOOTABLE;
+					Owner->alpha = HX_ALTSHADOW;
+				}
+				else
+				{
+					Owner->alpha = HX_SHADOW;
+				}
 			}
 		}
-		if (!(level.time & 31))
+		else
 		{
-			if (Owner->alpha == 0)
-			{
-				Owner->flags2 &= ~MF2_NONSHOOTABLE;
-				Owner->alpha = HX_ALTSHADOW;
-			}
-			else
-			{
-				Owner->alpha = HX_SHADOW;
-			}
+			Owner->flags2 &= ~MF2_NONSHOOTABLE;
 		}
 	}
 }
@@ -446,8 +463,13 @@ void APowerInvulnerable::EndEffect ()
 	if (mode == NAME_Ghost)
 	{
 		Owner->flags2 &= ~MF2_NONSHOOTABLE;
-		Owner->RenderStyle = STYLE_Normal;
-		Owner->alpha = OPAQUE;
+		if (!(Owner->flags & MF_SHADOW))
+		{
+			// Don't mess with the translucency settings if an
+			// invisibility powerup is active.
+			Owner->RenderStyle = STYLE_Normal;
+			Owner->alpha = OPAQUE;
+		}
 	}
 	else if (mode == NAME_Reflective)
 	{
@@ -462,7 +484,7 @@ void APowerInvulnerable::EndEffect ()
 
 //===========================================================================
 //
-// APowerInvuInvulnerable :: AlterWeaponSprite
+// APowerInvulnerable :: AlterWeaponSprite
 //
 //===========================================================================
 
@@ -470,7 +492,7 @@ void APowerInvulnerable::AlterWeaponSprite (vissprite_t *vis)
 {
 	if (Owner != NULL)
 	{
-		if (mode == NAME_Ghost)
+		if (mode == NAME_Ghost && !(Owner->flags & MF_SHADOW))
 		{
 			fixed_t wp_alpha = MIN<fixed_t>(FRACUNIT/4 + Owner->alpha*3/4, FRACUNIT);
 			if (wp_alpha != FIXED_MAX) vis->alpha = wp_alpha;
@@ -518,10 +540,11 @@ void APowerStrength::InitEffect ()
 //
 //===========================================================================
 
-void APowerStrength::DoEffect ()
+void APowerStrength::Tick ()
 {
 	// Strength counts up to diminish the fade.
 	EffectTics += 2;
+	Super::Tick();
 }
 
 //===========================================================================
@@ -563,6 +586,14 @@ void APowerInvisibility::InitEffect ()
 	Owner->RenderStyle = STYLE_OptFuzzy;
 }
 
+void APowerInvisibility::DoEffect ()
+{
+	Super::DoEffect();
+	// Due to potential interference with other PowerInvisibility items
+	// the effect has to be refreshed each tic.
+	InitEffect();
+}
+
 //===========================================================================
 //
 // APowerInvisibility :: EndEffect
@@ -592,14 +623,15 @@ void APowerInvisibility::EndEffect ()
 
 void APowerInvisibility::AlterWeaponSprite (vissprite_t *vis)
 {
+	if (Inventory != NULL)
+	{
+		Inventory->AlterWeaponSprite (vis);
+	}
+
 	// Blink if the powerup is wearing off
 	if (EffectTics < 4*32 && !(EffectTics & 8))
 	{
 		vis->RenderStyle = STYLE_Normal;
-	}
-	if (Inventory != NULL)
-	{
-		Inventory->AlterWeaponSprite (vis);
 	}
 }
 
@@ -728,14 +760,13 @@ END_DEFAULTS
 
 void APowerLightAmp::DoEffect ()
 {
-	if (Owner->player != NULL)
+	Super::DoEffect ();
+
+	if (Owner->player != NULL && Owner->player->fixedcolormap < NUMCOLORMAPS)
 	{
 		if (EffectTics > BLINKTHRESHOLD || (EffectTics & 8))
-		{	// almost full bright
-			if (Owner->player->fixedcolormap != NUMCOLORMAPS)
-			{
-				Owner->player->fixedcolormap = 1;
-			}
+		{	
+			Owner->player->fixedcolormap = 1;
 		}
 		else
 		{
@@ -752,7 +783,7 @@ void APowerLightAmp::DoEffect ()
 
 void APowerLightAmp::EndEffect ()
 {
-	if (Owner != NULL && Owner->player != NULL)
+	if (Owner != NULL && Owner->player != NULL && Owner->player->fixedcolormap < NUMCOLORMAPS)
 	{
 		Owner->player->fixedcolormap = 0;
 	}
@@ -784,30 +815,40 @@ void APowerTorch::Serialize (FArchive &arc)
 
 void APowerTorch::DoEffect ()
 {
-	if (EffectTics <= BLINKTHRESHOLD || Owner->player->fixedcolormap == NUMCOLORMAPS)
+	if (Owner == NULL || Owner->player == NULL)
+	{
+		return;
+	}
+
+	if (EffectTics <= BLINKTHRESHOLD || Owner->player->fixedcolormap >= NUMCOLORMAPS)
 	{
 		Super::DoEffect ();
 	}
-	else if (!(level.time & 16) && Owner->player != NULL)
+	else 
 	{
-		if (NewTorch != 0)
+		APowerup::DoEffect ();
+
+		if (!(level.time & 16) && Owner->player != NULL)
 		{
-			if (Owner->player->fixedcolormap + NewTorchDelta > 7
-				|| Owner->player->fixedcolormap + NewTorchDelta < 1
-				|| NewTorch == Owner->player->fixedcolormap)
+			if (NewTorch != 0)
 			{
-				NewTorch = 0;
+				if (Owner->player->fixedcolormap + NewTorchDelta > 7
+					|| Owner->player->fixedcolormap + NewTorchDelta < 1
+					|| NewTorch == Owner->player->fixedcolormap)
+				{
+					NewTorch = 0;
+				}
+				else
+				{
+					Owner->player->fixedcolormap += NewTorchDelta;
+				}
 			}
 			else
 			{
-				Owner->player->fixedcolormap += NewTorchDelta;
+				NewTorch = (pr_torch() & 7) + 1;
+				NewTorchDelta = (NewTorch == Owner->player->fixedcolormap) ?
+					0 : ((NewTorch > Owner->player->fixedcolormap) ? 1 : -1);
 			}
-		}
-		else
-		{
-			NewTorch = (pr_torch() & 7) + 1;
-			NewTorchDelta = (NewTorch == Owner->player->fixedcolormap) ?
-				0 : ((NewTorch > Owner->player->fixedcolormap) ? 1 : -1);
 		}
 	}
 }
@@ -857,13 +898,16 @@ void APowerFlight::InitEffect ()
 //
 //===========================================================================
 
-void APowerFlight::DoEffect ()
+void APowerFlight::Tick ()
 {
 	// The Wings of Wrath only expire in multiplayer and non-hub games
 	if (( NETWORK_GetState( ) == NETSTATE_SINGLE ) && (level.clusterflags & CLUSTER_HUB))
 	{
 		EffectTics++;
 	}
+
+	Super::Tick ();
+
 //	Owner->flags |= MF_NOGRAVITY;
 //	Owner->flags2 |= MF2_FLY;
 }
@@ -1062,6 +1106,8 @@ void APowerSpeed::InitEffect ()
 
 void APowerSpeed::DoEffect ()
 {
+	Super::DoEffect ();
+
 //	if (Owner->player->cheats & CF_PREDICTING)
 //		return;
 
@@ -1167,11 +1213,9 @@ void APowerTargeter::InitEffect ()
 
 void APowerTargeter::DoEffect ()
 {
-	if (Owner == NULL)
-	{
-		Destroy ();
-	}
-	else if (Owner->player != NULL)
+	Super::DoEffect ();
+
+	if (Owner != NULL && Owner->player != NULL)
 	{
 		player_t *player = Owner->player;
 
@@ -1313,6 +1357,7 @@ void APowerTimeFreezer::InitEffect( )
 
 void APowerTimeFreezer::DoEffect( )
 {
+	Super::DoEffect ();
 	if ( EffectTics > 4*32 
 		|| (( EffectTics > 3*32 && EffectTics <= 4*32 ) && EffectTics % 16 != 0 )
 		|| (( EffectTics > 2*32 && EffectTics <= 3*32 ) && EffectTics % 8 != 0 ) 
@@ -1508,6 +1553,7 @@ void APowerPossessionArtifact::InitEffect( )
 
 void APowerPossessionArtifact::DoEffect( )
 {
+	Super::DoEffect ();
 	// Nothing to do if there's no owner.
 	if (( Owner == NULL ) || ( Owner->player == NULL ))
 	{
@@ -1566,6 +1612,7 @@ void APowerTerminatorArtifact::InitEffect( )
 
 void APowerTerminatorArtifact::DoEffect( )
 {
+	Super::DoEffect ();
 }
 
 //===========================================================================
@@ -1671,33 +1718,6 @@ void ARune::Tick ()
 	{
 		Destroy ();
 	}
-	else
-	{
-		DoEffect ();
-
-		// [BC] Apply the colormap to the player's body, also.
-		if (BlendColor == INVERSECOLOR)
-		{
-			Owner->player->fixedcolormap = INVERSECOLORMAP;
-			Owner->lFixedColormap = INVERSECOLORMAP;
-		}
-		else if (BlendColor == GOLDCOLOR)
-		{
-			Owner->player->fixedcolormap = GOLDCOLORMAP;
-			Owner->lFixedColormap = GOLDCOLORMAP;
-		}
-		// [BC] HAX!
-		else if (BlendColor == REDCOLOR)
-		{
-			Owner->player->fixedcolormap = REDCOLORMAP;
-			Owner->lFixedColormap = REDCOLORMAP;
-		}
-		else if (BlendColor == GREENCOLOR)
-		{
-			Owner->player->fixedcolormap = GREENCOLORMAP;
-			Owner->lFixedColormap = GREENCOLORMAP;
-		}
-	}
 }
 
 //===========================================================================
@@ -1748,6 +1768,33 @@ void ARune::InitEffect ()
 
 void ARune::DoEffect ()
 {
+	if (Owner == NULL)
+	{
+		return;
+	}
+
+	// [BC] Apply the colormap to the player's body, also.
+	if (BlendColor == INVERSECOLOR)
+	{
+		Owner->player->fixedcolormap = INVERSECOLORMAP;
+		Owner->lFixedColormap = INVERSECOLORMAP;
+	}
+	else if (BlendColor == GOLDCOLOR)
+	{
+		Owner->player->fixedcolormap = GOLDCOLORMAP;
+		Owner->lFixedColormap = GOLDCOLORMAP;
+	}
+	// [BC] HAX!
+	else if (BlendColor == REDCOLOR)
+	{
+		Owner->player->fixedcolormap = REDCOLORMAP;
+		Owner->lFixedColormap = REDCOLORMAP;
+	}
+	else if (BlendColor == GREENCOLOR)
+	{
+		Owner->player->fixedcolormap = GREENCOLORMAP;
+		Owner->lFixedColormap = GREENCOLORMAP;
+	}
 }
 
 //===========================================================================
@@ -2218,6 +2265,8 @@ void ARuneSpeed25::DoEffect ()
 {
 //	if (Owner->player->cheats & CF_PREDICTING)
 //		return;
+
+	Super::DoEffect ();
 
 	if (level.time & 1)
 		return;
