@@ -3578,7 +3578,7 @@ static void client_SetPlayerUserInfo( BYTESTREAM_s *pByteStream )
     player_t	*pPlayer;
 	ULONG		ulPlayer;
 	ULONG		ulFlags;
-	char		szName[MAXPLAYERNAME+1];
+	char		szName[MAX_NETWORK_STRING];
 	LONG		lGender;
 	LONG		lColor;
 	char		*pszSkin;
@@ -5496,7 +5496,7 @@ static void client_PrintMOTD( BYTESTREAM_s *pByteStream )
 //
 static void client_PrintHUDMessage( BYTESTREAM_s *pByteStream )
 {
-	char		szString[256];
+	char		szString[MAX_NETWORK_STRING];
 	float		fX;
 	float		fY;
 	LONG		lHUDWidth;
@@ -5559,7 +5559,7 @@ static void client_PrintHUDMessage( BYTESTREAM_s *pByteStream )
 //
 static void client_PrintHUDMessageFadeOut( BYTESTREAM_s *pByteStream )
 {
-	char				szString[256];
+	char				szString[MAX_NETWORK_STRING];
 	float				fX;
 	float				fY;
 	LONG				lHUDWidth;
@@ -5627,7 +5627,7 @@ static void client_PrintHUDMessageFadeOut( BYTESTREAM_s *pByteStream )
 //
 static void client_PrintHUDMessageFadeInOut( BYTESTREAM_s *pByteStream )
 {
-	char					szString[256];
+	char					szString[MAX_NETWORK_STRING];
 	float					fX;
 	float					fY;
 	LONG					lHUDWidth;
@@ -5700,7 +5700,7 @@ static void client_PrintHUDMessageFadeInOut( BYTESTREAM_s *pByteStream )
 //
 static void client_PrintHUDMessageTypeOnFadeOut( BYTESTREAM_s *pByteStream )
 {
-	char						szString[256];
+	char						szString[MAX_NETWORK_STRING];
 	float						fX;
 	float						fY;
 	LONG						lHUDWidth;
@@ -6652,7 +6652,7 @@ static void client_SetSectorFlat( BYTESTREAM_s *pByteStream )
 {
 	sector_t		*pSector;
 	LONG			lSectorID;
-	char			szCeilingFlatName[16];
+	char			szCeilingFlatName[MAX_NETWORK_STRING];
 	char			*pszFloorFlatName;
 	LONG			lFlatLump;
 

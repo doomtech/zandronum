@@ -2965,6 +2965,7 @@ bool GAME_DormantStatusMatchesOriginal( AActor *pActor )
 //
 // Ugh.
 void P_LoadBehavior( MapData *pMap );
+void DECAL_ClearDecals( void );
 void GAME_ResetMap( void )
 {
 	ULONG							ulIdx;
@@ -2980,16 +2981,9 @@ void GAME_ResetMap( void )
 	fixed_t							Y;
 	fixed_t							Z;
 	TThinkerIterator<AActor>		ActorIterator;
-	DThinker						*pThinker;
 
 	// Unload decals.
-	do
-	{
-		pThinker = DThinker::FirstThinker( STAT_AUTODECAL );
-		if ( pThinker != NULL )
-			pThinker->Destroy( );
-
-	} while ( pThinker );
+	DECAL_ClearDecals( );
 
 	// This is all we do in client mode.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
