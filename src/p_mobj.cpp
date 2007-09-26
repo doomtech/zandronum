@@ -1587,9 +1587,13 @@ void P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 
 			mo->SetState (mo->SeeState != NULL ? mo->SeeState : mo->SpawnState);
 
-			// If we are the server, tell clients about the state change.
+			// [BC] If we are the server, tell clients about the state change and the
+			// momentum change.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			{
 				SERVERCOMMANDS_SetThingState( mo, mo->SeeState != NULL ? STATE_SEE : STATE_SPAWN );
+				SERVERCOMMANDS_MoveThing( mo, CM_MOMX|CM_MOMY|CM_MOMZ );
+			}
 		}
 		return;
 	}
@@ -2361,16 +2365,31 @@ void P_ZMovement (AActor *mo)
 //
 // adjust height
 //
-	if ((mo->flags & MF_FLOAT) && !(mo->flags2 & MF2_DORMANT) && mo->target)
+	// [BC] Don't float in client mode.
+	if ((mo->flags & MF_FLOAT) && !(mo->flags2 & MF2_DORMANT) && mo->target &&
+		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
 	{	// float down towards target if too close
 		if (!(mo->flags & MF_SKULLFLY) && !(mo->flags & MF_INFLOAT))
 		{
 			dist = P_AproxDistance (mo->x - mo->target->x, mo->y - mo->target->y);
 			delta = (mo->target->z + (mo->height>>1)) - mo->z;
 			if (delta < 0 && dist < -(delta*3))
+			{
 				mo->z -= mo->FloatSpeed, mo->momz = 0;
+
+				// [BC] If we're the server, tell clients to update the thing's Z position.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_MoveThingExact( mo, CM_Z );
+			}
 			else if (delta > 0 && dist < (delta*3))
+			{
 				mo->z += mo->FloatSpeed, mo->momz = 0;
+
+				// [BC] If we're the server, tell clients to update the thing's Z position.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_MoveThingExact( mo, CM_Z );
+			}
 		}
 	}
 	if (mo->player && (mo->flags & MF_NOGRAVITY) && (mo->z > mo->floorz))
@@ -2940,9 +2959,12 @@ bool AActor::Slam (AActor *thing)
 	momx = momy = momz = 0;
 	SetState (SeeState != NULL ? SeeState : SpawnState);
 
-	// If we are the server, tell clients about the state change.
+	// [BC] If we are the server, tell clients about the state change and momentum change.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
 		SERVERCOMMANDS_SetThingState( this, SeeState != NULL ? STATE_SEE : STATE_SPAWN );
+		SERVERCOMMANDS_MoveThing( this, CM_MOMX|CM_MOMY|CM_MOMZ );
+	}
 
 	return false;			// stop moving
 }

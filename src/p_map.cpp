@@ -5415,7 +5415,7 @@ void P_DoCrunch (AActor *thing)
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
 				SERVERCOMMANDS_SetThingTics( thing );
-				SERVERCOMMANDS_MoveThingExact( thing, CM_MOMX|CM_MOMY|CM_MOMZ );
+				SERVERCOMMANDS_MoveThing( thing, CM_MOMX|CM_MOMY|CM_MOMZ );
 			}
 		}
 		else if (thing->player)

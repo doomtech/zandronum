@@ -1076,6 +1076,10 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 	if (target->flags & MF_SKULLFLY)
 	{
 		target->momx = target->momy = target->momz = 0;
+
+		// [BC] If we're the server, tell clients to update this thing's momentum
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_MoveThing( target, CM_MOMX|CM_MOMY|CM_MOMZ );
 	}
 	if (target->flags2 & MF2_DORMANT)
 	{
