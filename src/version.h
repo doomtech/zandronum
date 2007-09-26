@@ -40,7 +40,7 @@
 
 /** Lots of different version numbers **/
 
-#define DOTVERSIONSTR "0.97d-beta4.1"
+#define DOTVERSIONSTR "0.97d"
 #define DOTVERSIONSTR_NOREV DOTVERSIONSTR
 
 // [BB] The version string that includes revision / compatibility data.
@@ -68,8 +68,8 @@
 // 003 = 0.97c2
 // 004 = 0.97c3
 // 005 = 0.97d-beta4
-// 006 = Post 0.97d-beta4.1
-#define NETGAMEVERSION 006
+// 006 = 0.97d-beta4.2
+#define NETGAMEVERSION 007
 
 // Version stored in the ini's [LastRun] section.
 // Bump it if you made some configuration change that you want to

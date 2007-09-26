@@ -74,7 +74,6 @@ v0.97d-beta5
 +	- Added customizable gravity per actor (ported the change from ZDoom revision 456 and added necessary netcode). [Torr Samaho]
 +	- Added VSpeed DECORATE property so that an actor can be given an initial vertical speed (ported the change from ZDoom revision 373). [Torr Samaho]
 +	- Skins that the server does not have can now be seen by all players who have them. [Carnevil]
--	- Fixed a crash that would occur frequently in game modes in which the map experiences a map reset at some point (LMS, duel, survival, etc.). [Carnevil]
 -	- Rank/spread/DM stats and team scores now show up in the ZDoom - and hence Heretic -  HUD. [Rivecoder]
 -	- Fixed: Ignoring definitions of already defined decorate actors which use ":" or "replace" didn't work. [Torr Samaho]
 -	- Fixed: After a map change some type of custom weapons are lost on the client side (Fist and NewPistol in KDiZD for example). [Torr Samaho]
@@ -206,6 +205,14 @@ v0.97d-beta5
 !	- The chase cam selection of the consoleplayer is now applied also when spying another player. [Torr Samaho]
 !	- A proper error message is given, when Skulltag is started with a shareware IWAD. [Torr Samaho]
 !	- If a monster is killed in invasion, one monster corpse from the previous wave is removed (if there still is such a corpse). This should improve the speed on maps like ALINV11. [Torr Samaho]
+
+v0.97d-beta4.2
+--------------
+
+*- 	- Fixed vulnerability that allowed servers to be crashed be a remote party. [Carnevil]
+*-	- Fixed vulnerability that allowed clients to be crashed by another playing saying a very long chat string. [Carnevil]
+*- 	- Fixed a crash that would occur frequently in game modes in which the map experiences a map reset at some point (LMS, duel, survival, etc.). [Carnevil]
+-	- Players no longer lose their team affiliation when they die in team LMS. [Carnevil]
 
 v0.97d-beta4.1
 --------------

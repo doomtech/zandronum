@@ -9,6 +9,7 @@
 #include "gi.h"
 #include "gstrings.h"
 #include "a_action.h"
+#include "cl_demo.h"
 
  FRandom pr_lost ("LostMissileRange");
 
@@ -23,6 +24,13 @@ void A_SkullAttack (AActor *self)
 	AActor *dest;
 	angle_t an;
 	int dist;
+
+	// [BC] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
 
 	if (!self->target)
 		return;
@@ -46,6 +54,10 @@ void A_SkullAttack (AActor *self)
 	if (dist < 1)
 		dist = 1;
 	self->momz = (dest->z+(dest->height>>1) - self->z) / dist;
+
+	// [BC] Update the lost soul's momentum.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_MoveThingExact( self, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
 }
 
 //==========================================================================

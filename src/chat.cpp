@@ -406,8 +406,7 @@ ULONG CHAT_GetChatMode( void )
 void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, char *pszString )
 {
 	ULONG	ulChatLevel;
-	char	szChatHeader[64];
-	char	szChatString[256];
+	char	szChatHeader[MAXPLAYERNAME+3];
 
 	// If ulPlayer == MAXPLAYERS, it is the server talking.
 	if ( ulPlayer == MAXPLAYERS )
@@ -468,7 +467,6 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, char *pszString )
 	if ( show_messages )
 		S_Sound( CHAN_VOICE, gameinfo.chatSound, 1, ATTN_NONE );
 
-	sprintf( szChatString, "%s%s", szChatHeader, pszString );
 	BOTCMD_SetLastChatString( pszString );
 	BOTCMD_SetLastChatPlayer( players[ulPlayer].userinfo.netname );
 
