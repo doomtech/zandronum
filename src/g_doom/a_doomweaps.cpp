@@ -947,7 +947,7 @@ void A_FireMiniGun( AActor *actor )
 			// [RH] Fix for Sparky's messed-up Dehacked patch! Blargh!
 			FState * atk = pWeapon->FindState(NAME_Fire);
 
-			int theflash = clamp (int(player->psprites[ps_weapon].state - atk), 0, 1);
+			int theflash = clamp (int(pPlayer->psprites[ps_weapon].state - atk), 0, 1);
 
 			if (flash[theflash].sprite.index != flash->sprite.index)
 			{
