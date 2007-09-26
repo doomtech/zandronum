@@ -760,3 +760,28 @@ CCMD (summonfriend)
 		Net_WriteString (type->TypeName.GetChars());
 	}
 }
+
+CCMD (summonfoe)
+{
+	if (CheckCheatmode ())
+		return;
+
+	if (argv.argc() > 1)
+	{
+		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		{
+			// [BB] TO-DO: Implement this.
+			Printf ("Client side code for summonfoe not implemented\n");
+			return;
+		}
+
+		const PClass *type = PClass::FindClass (argv[1]);
+		if (type == NULL)
+		{
+			Printf ("Unknown class '%s'\n", argv[1]);
+			return;
+		}
+		Net_WriteByte (DEM_SUMMONFOE);
+		Net_WriteString (type->TypeName.GetChars());
+	}
+}

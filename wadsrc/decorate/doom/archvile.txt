@@ -65,7 +65,6 @@ ACTOR Archvile 64
 //
 //===========================================================================
 
-/* [BB] Can't convert ArchvileFire to DECORATE as long as it needs NETFL_UPDATEPOSITION.
 ACTOR ArchvileFire
 {
 	Game Doom
@@ -85,4 +84,4 @@ ACTOR ArchvileFire
 		Stop
 	}
 }
-*/
+

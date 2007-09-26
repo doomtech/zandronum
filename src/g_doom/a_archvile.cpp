@@ -11,56 +11,9 @@
 // PIT_VileCheck
 // Detect a corpse that could be raised.
 //
-void A_StartFire (AActor *);
-void A_FireCrackle (AActor *);
-void A_Fire (AActor *);
+void A_Fire (AActor *self);
 
-class AArchvileFire : public AActor
-{
-	DECLARE_ACTOR (AArchvileFire, AActor)
-};
 
-FState AArchvileFire::States[] =
-{
-	S_BRIGHT (FIRE, 'A',	2, A_StartFire					, &States[1]),
-	S_BRIGHT (FIRE, 'B',	2, A_Fire						, &States[2]),
-	S_BRIGHT (FIRE, 'A',	2, A_Fire						, &States[3]),
-	S_BRIGHT (FIRE, 'B',	2, A_Fire						, &States[4]),
-	S_BRIGHT (FIRE, 'C',	2, A_FireCrackle				, &States[5]),
-	S_BRIGHT (FIRE, 'B',	2, A_Fire						, &States[6]),
-	S_BRIGHT (FIRE, 'C',	2, A_Fire						, &States[7]),
-	S_BRIGHT (FIRE, 'B',	2, A_Fire						, &States[8]),
-	S_BRIGHT (FIRE, 'C',	2, A_Fire						, &States[9]),
-	S_BRIGHT (FIRE, 'D',	2, A_Fire						, &States[10]),
-	S_BRIGHT (FIRE, 'C',	2, A_Fire						, &States[11]),
-	S_BRIGHT (FIRE, 'D',	2, A_Fire						, &States[12]),
-	S_BRIGHT (FIRE, 'C',	2, A_Fire						, &States[13]),
-	S_BRIGHT (FIRE, 'D',	2, A_Fire						, &States[14]),
-	S_BRIGHT (FIRE, 'E',	2, A_Fire						, &States[15]),
-	S_BRIGHT (FIRE, 'D',	2, A_Fire						, &States[16]),
-	S_BRIGHT (FIRE, 'E',	2, A_Fire						, &States[17]),
-	S_BRIGHT (FIRE, 'D',	2, A_Fire						, &States[18]),
-	S_BRIGHT (FIRE, 'E',	2, A_FireCrackle				, &States[19]),
-	S_BRIGHT (FIRE, 'F',	2, A_Fire						, &States[20]),
-	S_BRIGHT (FIRE, 'E',	2, A_Fire						, &States[21]),
-	S_BRIGHT (FIRE, 'F',	2, A_Fire						, &States[22]),
-	S_BRIGHT (FIRE, 'E',	2, A_Fire						, &States[23]),
-	S_BRIGHT (FIRE, 'F',	2, A_Fire						, &States[24]),
-	S_BRIGHT (FIRE, 'G',	2, A_Fire						, &States[25]),
-	S_BRIGHT (FIRE, 'H',	2, A_Fire						, &States[26]),
-	S_BRIGHT (FIRE, 'G',	2, A_Fire						, &States[27]),
-	S_BRIGHT (FIRE, 'H',	2, A_Fire						, &States[28]),
-	S_BRIGHT (FIRE, 'G',	2, A_Fire						, &States[29]),
-	S_BRIGHT (FIRE, 'H',	2, A_Fire						, NULL)
-};
-
-IMPLEMENT_ACTOR (AArchvileFire, Doom, -1, 98)
-	PROP_Flags (MF_NOBLOCKMAP|MF_NOGRAVITY)
-	PROP_Flags2 (MF2_MCROSS|MF2_PASSMOBJ|MF2_PUSHWALL)
-	PROP_RenderStyle (STYLE_Add)
-
-	PROP_SpawnState (0)
-END_DEFAULTS
 
 //
 // A_VileStart

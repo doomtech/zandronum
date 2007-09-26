@@ -315,9 +315,9 @@ bool FMODSoundRenderer::Init ()
 #endif
 	}
 #else
-	if (stricmp (snd_output, "oss") == 0)
+	if (stricmp (snd_output, "alsa") == 0)
 	{
-		outindex = 0;
+		outindex = 1;
 	}
 	else if (stricmp (snd_output, "esd") == 0 ||
 			 stricmp (snd_output, "esound") == 0)
@@ -326,7 +326,7 @@ bool FMODSoundRenderer::Init ()
 	}
 	else
 	{
-		outindex = 1;
+		outindex = 0;
 	}
 #endif
 	

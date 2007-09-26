@@ -110,13 +110,6 @@ void APowerup::Tick ()
 	{
 		Destroy ();
 	}
-/*
-	// [BC] Run the effects of powerups that have an EffectTics of 0.
-	else
-	{
-		DoEffect( );
-	}
-	*/
 }
 
 //===========================================================================
@@ -488,8 +481,9 @@ void APowerInvulnerable::EndEffect ()
 //
 //===========================================================================
 
-void APowerInvulnerable::AlterWeaponSprite (vissprite_t *vis)
+int APowerInvulnerable::AlterWeaponSprite (vissprite_t *vis)
 {
+	int changed = Inventory == NULL? false : Inventory->AlterWeaponSprite(vis);
 	if (Owner != NULL)
 	{
 		if (mode == NAME_Ghost && !(Owner->flags & MF_SHADOW))
@@ -498,6 +492,7 @@ void APowerInvulnerable::AlterWeaponSprite (vissprite_t *vis)
 			if (wp_alpha != FIXED_MAX) vis->alpha = wp_alpha;
 		}
 	}
+	return changed;
 }
 
 // Strength (aka Berserk) Powerup --------------------------------------------
@@ -612,6 +607,19 @@ void APowerInvisibility::EndEffect ()
 		else
 			Owner->RenderStyle = STYLE_None;
 		Owner->alpha = OPAQUE;
+
+		// Check whether there are other invisibility items and refresh their effect.
+		// If this isn't done there will be one incorrectly drawn frame when this
+		// item expires.
+		AInventory *item = Owner->Inventory;
+		while (item != NULL)
+		{
+			if (item->IsKindOf(RUNTIME_CLASS(APowerInvisibility)) && item != this)
+			{
+				static_cast<APowerInvisibility*>(item)->InitEffect();
+			}
+			item = item->Inventory;
+		}
 	}
 }
 
@@ -621,18 +629,23 @@ void APowerInvisibility::EndEffect ()
 //
 //===========================================================================
 
-void APowerInvisibility::AlterWeaponSprite (vissprite_t *vis)
+int APowerInvisibility::AlterWeaponSprite (vissprite_t *vis)
 {
-	if (Inventory != NULL)
-	{
-		Inventory->AlterWeaponSprite (vis);
-	}
+	int changed = Inventory == NULL? false : Inventory->AlterWeaponSprite(vis);
 
 	// Blink if the powerup is wearing off
-	if (EffectTics < 4*32 && !(EffectTics & 8))
+	if (changed == 0 && EffectTics < 4*32 && !(EffectTics & 8))
 	{
 		vis->RenderStyle = STYLE_Normal;
+		return 1;
 	}
+	else if (changed == 1)
+	{
+		// something else set the weapon sprite back to opaque but this item is still active.
+		vis->alpha = FRACUNIT/5;
+		vis->RenderStyle = STYLE_OptFuzzy;
+	}
+	return -1;	// This item is valid so another one shouldn't reset the translucency
 }
 
 // Ghost Powerup (Heretic's version of invisibility) -------------------------
@@ -655,6 +668,31 @@ void APowerGhost::InitEffect ()
 	Owner->RenderStyle = STYLE_Translucent;
 }
 
+//===========================================================================
+//
+// APowerGhost :: AlterWeaponSprite
+//
+//===========================================================================
+
+int APowerGhost::AlterWeaponSprite (vissprite_t *vis)
+{
+	int changed = Inventory == NULL? false : Inventory->AlterWeaponSprite(vis);
+
+	// Blink if the powerup is wearing off
+	if (changed == 0 && EffectTics < 4*32 && !(EffectTics & 8))
+	{
+		vis->RenderStyle = STYLE_Normal;
+		return 1;
+	}
+	else if (changed == 1)
+	{
+		// something else set the weapon sprite back to opaque but this item is still active.
+		vis->alpha = HR_SHADOW;
+		vis->RenderStyle = STYLE_Translucent;
+	}
+	return -1;	// This item is valid so another one shouldn't reset the translucency
+}
+
 // Shadow Powerup (Strife's version of invisibility) -------------------------
 
 IMPLEMENT_STATELESS_ACTOR (APowerShadow, Any, -1, 0)
@@ -673,6 +711,31 @@ void APowerShadow::InitEffect ()
 	Owner->flags |= MF_SHADOW;
 	Owner->alpha = TRANSLUC25;
 	Owner->RenderStyle = STYLE_Translucent;
+}
+
+//===========================================================================
+//
+// APowerShadow :: AlterWeaponSprite
+//
+//===========================================================================
+
+int APowerShadow::AlterWeaponSprite (vissprite_t *vis)
+{
+	int changed = Inventory == NULL? false : Inventory->AlterWeaponSprite(vis);
+
+	// Blink if the powerup is wearing off
+	if (changed == 0 && EffectTics < 4*32 && !(EffectTics & 8))
+	{
+		vis->RenderStyle = STYLE_Normal;
+		return 1;
+	}
+	else if (changed == 1)
+	{
+		// something else set the weapon sprite back to opaque but this item is still active.
+		vis->alpha = TRANSLUC25;
+		vis->RenderStyle = STYLE_Translucent;
+	}
+	return -1;	// This item is valid so another one shouldn't reset the translucency
 }
 
 // Ironfeet Powerup ----------------------------------------------------------
