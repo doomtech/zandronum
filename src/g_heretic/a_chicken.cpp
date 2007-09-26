@@ -185,6 +185,7 @@ void AChickenPlayer::MorphPlayerThink ()
 	if ((z <= floorz) && (pr_chickenplayerthink() < 32))
 	{ // Jump and noise
 		momz += JumpZ;
+
 		FState * painstate = FindState(NAME_Pain);
 		if (painstate != NULL) SetState (painstate);
 	}

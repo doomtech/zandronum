@@ -1027,7 +1027,7 @@ static int PatchThing (int thingy)
 						info->renderflags &= ~RF_INVISIBLE;
 				}
 				DPrintf ("Bits: %d,%d (0x%08x,0x%08x)\n", info->flags, info->flags2,
-															    info->flags, info->flags2);
+													      info->flags, info->flags2);
 			}
 			else if (stricmp (Line1, "ID #") == 0)
 			{

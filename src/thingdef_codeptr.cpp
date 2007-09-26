@@ -90,6 +90,7 @@ FState * CallingState;
 struct StateCallData
 {
 	FState * State;
+	AActor * Item;
 	bool Result;
 };
 
@@ -112,6 +113,7 @@ bool ACustomInventory::CallStateChain (AActor *actor, FState * State)
 	int counter = 0;
 
 	pStateCall = &StateCall;
+	StateCall.Item = this;
 	while (State != NULL)
 	{
 		// Assume success. The code pointer will set this to false if necessary
@@ -410,7 +412,7 @@ FState *P_GetState(AActor *self, FState *CallingState, int offset)
 	{
 		return CallingState + offset;
 	}
-	else
+	else if (self != NULL)
 	{
 		offset = -offset;
 
@@ -435,6 +437,7 @@ FState *P_GetState(AActor *self, FState *CallingState, int offset)
 		}
 		return jumpto;
 	}
+	else return NULL;
 }
 
 //==========================================================================
@@ -444,24 +447,29 @@ FState *P_GetState(AActor *self, FState *CallingState, int offset)
 //==========================================================================
 static void DoJump(AActor * self, FState * CallingState, int offset)
 {
-	FState *jumpto = P_GetState(self, CallingState, offset);
-
-	if (jumpto == NULL) return;
 
 	if (pStateCall != NULL && CallingState == pStateCall->State)
 	{
+		FState *jumpto = P_GetState(pStateCall->Item, CallingState, offset);
+		if (jumpto == NULL) return;
 		pStateCall->State = jumpto;
 	}
 	else if (self->player != NULL && CallingState == self->player->psprites[ps_weapon].state)
 	{
+		FState *jumpto = P_GetState(self->player->ReadyWeapon, CallingState, offset);
+		if (jumpto == NULL) return;
 		P_SetPsprite(self->player, ps_weapon, jumpto);
 	}
 	else if (self->player != NULL && CallingState == self->player->psprites[ps_flash].state)
 	{
+		FState *jumpto = P_GetState(self->player->ReadyWeapon, CallingState, offset);
+		if (jumpto == NULL) return;
 		P_SetPsprite(self->player, ps_flash, jumpto);
 	}
 	else
 	{
+		FState *jumpto = P_GetState(self, CallingState, offset);
+		if (jumpto == NULL) return;
 		self->SetState (jumpto);
 	}
 }
