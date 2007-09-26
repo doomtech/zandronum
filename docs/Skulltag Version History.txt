@@ -14,7 +14,8 @@
 v0.97d-beta4.2
 --------------
 
-*- 	- Fixed vulnerablity that allowed servers and clients to be crashed be a remote party. [Carnevil]
+*- 	- Fixed vulnerability that allowed servers to be crashed be a remote party. [Carnevil]
+*-	- Fixed vulnerability that allowed clients to be crashed by another playing saying a very long chat string. [Carnevil]
 *- 	- Fixed a crash that would occur frequently in game modes in which the map experiences a map reset at some point (LMS, duel, survival, etc.). [Carnevil]
 -	- Players no longer lose their team affiliation when they die in team LMS. [Carnevil]
 

@@ -63,7 +63,8 @@
 // NETGAMEVERSION 003 = 0.97c2
 // NETGAMEVERSION 004 = 0.97c3
 // NETGAMEVERSION 005 = 0.97d-beta4
-#define NETGAMEVERSION 005
+// NETGAMEVERSION 006 = 0.97d-beta4.2
+#define NETGAMEVERSION 006
 
 // Version stored in the ini's [LastRun] section.
 // Bump it if you made some configuration change that you want to
