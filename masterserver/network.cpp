@@ -468,6 +468,10 @@ int NETWORK_GetPackets( void )
 	if ( lNumBytes <= 0 )
 		return ( 0 );
 
+	// If the number of bytes we're receiving exceeds our buffer size, ignore the packet.
+	if ( lNumBytes >= g_NetworkMessage.ulMaxSize )
+		return ( 0 );
+
 	// Decode the huffman-encoded message we received.
 	HuffDecode( g_ucHuffmanBuffer, (unsigned char *)g_NetworkMessage.pbData, lNumBytes, &iDecodedNumBytes );
 	g_NetworkMessage.ulCurrentSize = iDecodedNumBytes;
