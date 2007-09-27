@@ -767,7 +767,9 @@ extern int	do_stdin;
 void I_DoSelect (void)
 {
 #ifdef		WIN32
-/*
+	// [BC] We need this code here to be executed. The point of this function is to
+	// make the thread sleep until a packet is received. That way, the thread doesn't
+	// use 100% of the CPU.
     struct timeval   timeout;
     fd_set           fdset;
 
@@ -777,7 +779,6 @@ void I_DoSelect (void)
     timeout.tv_usec = 0;
     if (select (static_cast<int>(g_NetworkSocket)+1, &fdset, NULL, NULL, &timeout) == -1)
         return;
-*/
 #else
     struct timeval   timeout;
     fd_set           fdset;
