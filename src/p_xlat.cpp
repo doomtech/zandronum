@@ -124,6 +124,7 @@ void P_TranslateLineDef (line_t *ld, maplinedef_t *mld)
 		return;
 	}
 
+	// The translation lump is cached across calls to P_TranslateLineDef.
 	if (tlatebase.GetMem() == NULL)
 	{
 		if (gameinfo.gametype == GAME_Doom)

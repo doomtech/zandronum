@@ -256,35 +256,17 @@ void AWeapon::AttachToOwner (AActor *other)
 	SisterWeapon = AddWeapon (SisterWeaponType);
 	if (Owner->player != NULL)
 	{
-		// [BC] Decide which weapon to compare selection orders against.
-		if ( Owner->player->PendingWeapon != WP_NOCHANGE )
-			pCompareWeapon = Owner->player->PendingWeapon;
-		else
-			pCompareWeapon = Owner->player->ReadyWeapon;
-
-		// [BC] Handle the "switchonpickup" userinfo cvar. If it's >= 2, then
-		// we always want to switch our weapon when we pickup a new one.
-		if (Owner->player->userinfo.switchonpickup >= 2)
+		if ( !(WeaponFlags & WIF_NO_AUTO_SWITCH) )
 		{
-			Owner->player->PendingWeapon = this;
+			// [BC] Decide which weapon to compare selection orders against.
+			if ( Owner->player->PendingWeapon != WP_NOCHANGE )
+				pCompareWeapon = Owner->player->PendingWeapon;
+			else
+				pCompareWeapon = Owner->player->ReadyWeapon;
 
-			// [BC] If we're a client, tell the server we're switching weapons.
-			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( Owner->player - players ) == consoleplayer ))
-			{
-				CLIENTCOMMANDS_WeaponSelect( (char *)this->GetClass( )->TypeName.GetChars( ));
-
-				if ( CLIENTDEMO_IsRecording( ))
-					CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)this->GetClass( )->TypeName.GetChars( ));
-			}
-		}
-		// If it's 1, then only switch if it ranks higher than our current weapon.
-		else if (( pCompareWeapon == NULL ) ||
-			(( Owner->player->userinfo.switchonpickup == 1 ) && ( SelectionOrder < pCompareWeapon->SelectionOrder )))
-		{
-			// [BB] Because of ST's special switchonpickup == 1 handling, we have to make sure here
-			// that we don't pick a powered up version, if we don't have a PowerWeaponLevel2 active.
-			if( (WeaponFlags & WIF_POWERED_UP && Owner->FindInventory (RUNTIME_CLASS(APowerWeaponLevel2)))
-				  || !(WeaponFlags & WIF_POWERED_UP) )
+			// [BC] Handle the "switchonpickup" userinfo cvar. If it's >= 2, then
+			// we always want to switch our weapon when we pickup a new one.
+			if (Owner->player->userinfo.switchonpickup >= 2)
 			{
 				Owner->player->PendingWeapon = this;
 
@@ -293,8 +275,29 @@ void AWeapon::AttachToOwner (AActor *other)
 				{
 					CLIENTCOMMANDS_WeaponSelect( (char *)this->GetClass( )->TypeName.GetChars( ));
 
+					if ( CLIENTDEMO_IsRecording( ))
+						CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)this->GetClass( )->TypeName.GetChars( ));
+				}
+			}
+			// If it's 1, then only switch if it ranks higher than our current weapon.
+			else if (( pCompareWeapon == NULL ) ||
+				(( Owner->player->userinfo.switchonpickup == 1 ) && ( SelectionOrder < pCompareWeapon->SelectionOrder )))
+			{
+				// [BB] Because of ST's special switchonpickup == 1 handling, we have to make sure here
+				// that we don't pick a powered up version, if we don't have a PowerWeaponLevel2 active.
+				if( (WeaponFlags & WIF_POWERED_UP && Owner->FindInventory (RUNTIME_CLASS(APowerWeaponLevel2)))
+					|| !(WeaponFlags & WIF_POWERED_UP) )
+				{
+					Owner->player->PendingWeapon = this;
+
+					// [BC] If we're a client, tell the server we're switching weapons.
+					if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( Owner->player - players ) == consoleplayer ))
+					{
+						CLIENTCOMMANDS_WeaponSelect( (char *)this->GetClass( )->TypeName.GetChars( ));
+
 //					if ( CLIENTDEMO_IsRecording( ))
 //						CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)this->GetClass( )->TypeName.GetChars( ));
+					}
 				}
 			}
 		}

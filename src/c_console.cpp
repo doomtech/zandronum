@@ -443,7 +443,6 @@ void C_InitConsole (int width, int height, bool ingame)
 		if (fmtLines)
 			free (fmtLines);
 	}
-
 }
 
 //==========================================================================
@@ -698,6 +697,11 @@ static void AddLine (const char *text, bool more, int len)
 	{
 		TopLine = FlushLines (BufferRover, ConsoleBuffer + CONSOLESIZE);
 		BufferRover = ConsoleBuffer;
+	}
+	if (len >= CONSOLESIZE - 1)
+	{
+		text = text + len - CONSOLESIZE + 1;
+		len = CONSOLESIZE - 1;
 	}
 	TopLine = FlushLines (BufferRover, BufferRover + len + 1);
 	memcpy (BufferRover, text, len);
@@ -1383,8 +1387,13 @@ void C_DrawConsole ()
 			{
 				player = player->camera->player;
 			}
-            screen->Dim (PalEntry ((unsigned char)(player->BlendR*255), (unsigned char)(player->BlendG*255), (unsigned char)(player->BlendB*255)),
-				player->BlendA, 0, ConBottom, screen->GetWidth(), screen->GetHeight() - ConBottom);
+			if (player->BlendA != 0 && (gamestate == GS_LEVEL || gamestate == GS_TITLELEVEL))
+			{
+				screen->Dim (PalEntry ((unsigned char)(player->BlendR*255), (unsigned char)(player->BlendG*255), (unsigned char)(player->BlendB*255)),
+					player->BlendA, 0, ConBottom, screen->GetWidth(), screen->GetHeight() - ConBottom);
+				SB_state = screen->GetPageCount ();
+				BorderNeedRefresh = screen->GetPageCount ();
+			}
 		}
 	}
 

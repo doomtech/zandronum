@@ -1741,7 +1741,10 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		BorderNeedRefresh = screen->GetPageCount ();
 
-	strcpy (level.mapname, mapname);
+	if (mapname != level.mapname)
+	{
+		strcpy (level.mapname, mapname);
+	}
 	if (bTitleLevel)
 	{
 		gamestate = GS_TITLELEVEL;
