@@ -4146,11 +4146,9 @@ void P_SetupLevel (char *lumpname, int position)
 //				players[i].bSpectating = true;
 			if (( duel == false ) || ( DUEL_IsDueler( i ) == false ))
 			{
-				// In single player, spectate if this is true, otherwise start as normal.
-				if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-					players[i].bSpectating = PLAYER_ShouldSpawnAsSpectator( &players[i] );
-				// In multiplayer games, let their spectator status persist.
-				else if ( PLAYER_ShouldSpawnAsSpectator( &players[i] ))
+				// If the player should spawn as a spectator, mark them as being a spectator.
+				// Otherwise, let their spectator status persist.
+				if ( PLAYER_ShouldSpawnAsSpectator( &players[i] ))
 					players[i].bSpectating = true;
 			}
 		}

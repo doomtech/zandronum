@@ -181,6 +181,7 @@ v0.97d
 -	- Spectators waiting in line now have their position in line updated when someone in line leaves. [Carnevil]
 -	- Special case puffs, such as the blaster claw puff in Heretic, now spawn in the proper state on the client end. [Carnevil]
 -	- Chaingunners and spider masterminds now go to the proper state after killing a player when playing as a client. [Carnevil]
+-	- Going to a new map in single player as a spectator no longer results in weirdness. [Carnevil]
 -	- Improved the scrolling of the server console. When you scroll up, it no longer snaps back down a new message. [Rivecoder]
 -	- Fixed: Bots cause hudmessages to appear for player 1 offline. [Torr Samaho]
 -	- Fixed: Clients with activated prediction ignore the CF_FROZEN and CF_TOTALLYFROZEN flags locally. [Torr Samaho]
