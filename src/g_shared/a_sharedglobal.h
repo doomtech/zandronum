@@ -99,6 +99,8 @@ public:
 	void Tick ();
 	void Activate (AActor *activator);
 	void Deactivate (AActor *activator);
+	// [BC]
+	bool IsActive( void );
 
 protected:
 	bool bActive;

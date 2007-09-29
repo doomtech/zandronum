@@ -552,6 +552,8 @@ public:
 
 	virtual void Activate (AActor *activator);
 	virtual void Deactivate (AActor *activator);
+	// [BC]
+	virtual bool IsActive( void );
 
 	virtual void Tick ();
 

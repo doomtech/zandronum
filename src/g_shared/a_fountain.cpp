@@ -44,6 +44,8 @@ public:
 	void PostBeginPlay ();
 	void Activate (AActor *activator);
 	void Deactivate (AActor *activator);
+	// [BC]
+	bool IsActive( void );
 };
 
 IMPLEMENT_STATELESS_ACTOR (AParticleFountain, Any, -1, 0)
@@ -77,3 +79,13 @@ void AParticleFountain::Deactivate (AActor *activator)
 		SpawnFlags |= MTF_DORMANT;
 }
 
+//=============================================================================
+//
+//	[BC] AParticleFountain::IsActive
+//
+//=============================================================================
+
+bool AParticleFountain::IsActive( void )
+{
+	return ( effects & ( health << FX_FOUNTAINSHIFT ));
+}

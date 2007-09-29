@@ -119,6 +119,7 @@ v0.97d
 -	- The dmflag "Don't spawn multiplayer weapons in co-op games" now works properly. [Carnevil]
 -	- Skulltag score pillars now go into the correct frame when the blue team scores a point. [Carnevil]
 -	- The number of found and total items on the map now updates properly. [Carnevil]
+-	- Ambient sounds now work properly in network games. [Carnevil]
 -	- Classic HUD elements now show up in all games. [Rivecoder]
 -	- Heretic: CTF and Skulltag scores now use icons. [Rivecoder]
 -	- Classic HUD: In LMS, the top-right counter now reflects your wincount, not fragcount. [Rivecoder]

@@ -50,6 +50,9 @@
 #include "m_random.h"
 #include "d_netinf.h"
 #include "i_system.h"
+// [BC] New #includes.
+#include "network.h"
+#include "cl_demo.h"
 
 // MACROS ------------------------------------------------------------------
 
@@ -1712,8 +1715,7 @@ CCMD (playersounds)
 
 IMPLEMENT_STATELESS_ACTOR (AAmbientSound, Any, 14065, 0)
 	PROP_Flags (MF_NOBLOCKMAP|MF_NOSECTOR)
-	// [BC]
-	PROP_FlagsNetwork( NETFL_ALLOWCLIENTSPAWN )
+	PROP_FlagsNetwork( NETFL_UPDATEARGUMENTS )
 END_DEFAULTS
 
 void AAmbientSound::Serialize (FArchive &arc)
@@ -1737,6 +1739,10 @@ void AAmbientSound::Tick ()
 		return;
 
 	AmbientSound *ambient = Ambients[args[0]];
+
+	// [BC] Break out if the ambient sound is invalid.
+	if ( ambient == NULL )
+		return;
 
 	if ((ambient->type & CONTINUOUS) == CONTINUOUS)
 	{
@@ -1801,6 +1807,15 @@ void AAmbientSound::Activate (AActor *activator)
 
 	if (amb == NULL)
 	{
+		// [BC] In client mode, it's possible that the arguments haven't seen sent yet.
+		// Therefore, just break out without destroying the sound.
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+			( CLIENTDEMO_IsPlaying( )))
+		{
+			bActive = true;
+			return;
+		}
+
 		Destroy ();
 		return;
 	}
@@ -1833,13 +1848,33 @@ void AAmbientSound::Activate (AActor *activator)
 
 void AAmbientSound::Deactivate (AActor *activator)
 {
+	// [BC]
+	AmbientSound	*pAmbient;
+
 	Super::Deactivate (activator);
 	if (bActive)
 	{
 		bActive = false;
-		if ((Ambients[args[0]]->type & CONTINUOUS) == CONTINUOUS)
+
+		// [BC] Break out if the ambient sound is invalid.
+		pAmbient = Ambients[args[0]];
+		if ( pAmbient == NULL )
+			return;
+
+		if ((pAmbient->type & CONTINUOUS) == CONTINUOUS)
 		{
 			S_StopSound (this, CHAN_BODY);
 		}
 	}
+}
+
+//=============================================================================
+//
+//	[BC] AAmbientSound::IsActive
+//
+//=============================================================================
+
+bool AAmbientSound::IsActive( void )
+{
+	return ( bActive );
 }

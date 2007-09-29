@@ -2141,11 +2141,8 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 			}
 
 			// Let the clients know if an object is dormant or not.
-			if (( pActor->flags2 & MF2_DORMANT ) ||
-				(( pActor->GetClass( )->IsDescendantOf( PClass::FindClass( "ParticleFountain" ))) && (( pActor->effects & ( pActor->health << FX_FOUNTAINSHIFT )) == false )))
-			{
+			if ( pActor->IsActive( ) == false )
 				SERVERCOMMANDS_ThingDeactivate( pActor, NULL, ulClient, SVCF_ONLYTHISCLIENT );
-			}
 
 			// Update the water level of the actor, but not if it's a player!
 			if (( pActor->waterlevel > 0 ) && ( pActor->player == NULL ))

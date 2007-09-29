@@ -4067,6 +4067,20 @@ void AActor::Deactivate (AActor *activator)
 		SERVERCOMMANDS_ThingDeactivate( this, activator );
 }
 
+//=============================================================================
+//
+//	[BC] AActor::IsActive
+//
+//	Returns true if the actor is active, and false if the actor has been
+//	deactivated.
+//
+//=============================================================================
+
+bool AActor::IsActive( void )
+{
+	return (( flags2 & MF2_DORMANT ) == false );
+}
+
 //
 // P_RemoveMobj
 //
