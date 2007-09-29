@@ -8,6 +8,7 @@
 #include "a_action.h"
 #include "a_doomglobal.h"
 #include "deathmatch.h"
+#include "cl_demo.h"
 
 static FRandom pr_posattack ("PosAttack");
 static FRandom pr_sposattack ("SPosAttack");
@@ -144,8 +145,15 @@ void A_CPosAttack (AActor *self)
 	int slope;
 		
 	// [BC] Server takes care of the rest of this.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
+		// [RH] Andy Baker's stealth monsters
+		if (self->flags & MF_STEALTH)
+		{
+			self->visdir = 1;
+		}
+
 		S_SoundID ( self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM );
 		return;
 	}

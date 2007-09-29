@@ -98,6 +98,7 @@ v0.97d
 -	- When respawn telefragged in LMS and survival games, you no longer instantly respawn when the "Allow instant respawn" compatflag is enabled. [Carnevil]
 -	- Players can no longer be put into a team game without being assigned a team. [Carnevil]
 -	- The cast pics in the finale are now scaled properly. [Carnevil]
+-	- Stealth monsters now work properly on the client end. [Carnevil]
 -	- Rune icons now show up correctly on the HUDs. [Rivecoder]
 -	- Seconday ammo is now displayed on the fullscreen HUD. [Rivecoder]
 -	- Improved the display of the bottom string; 'x allies/opponent' display now reflects that of the player you're spying; added a few missing linebreaks. [Rivecoder]

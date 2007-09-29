@@ -1734,6 +1734,12 @@ void A_Look (AActor *actor)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
+		// [RH] Andy Baker's stealth monsters
+		if (actor->flags & MF_STEALTH)
+		{
+			actor->visdir = -1;
+		}
+
 		return;
 	}
 
@@ -2637,6 +2643,12 @@ void A_FaceTarget (AActor *actor)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
+		// [RH] Andy Baker's stealth monsters
+		if (actor->flags & MF_STEALTH)
+		{
+			actor->visdir = 1;
+		}
+
 		return;
 	}
 
@@ -2677,6 +2689,12 @@ void A_MonsterRail (AActor *actor)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
+		// [RH] Andy Baker's stealth monsters
+		if (actor->flags & MF_STEALTH)
+		{
+			actor->visdir = 1;
+		}
+
 		return;
 	}
 
