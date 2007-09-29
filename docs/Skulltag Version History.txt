@@ -11,8 +11,8 @@
 =
 ===============================================================================================================
 
-v0.97d-beta5
-------------
+v0.97d
+------
 
 *+	- No more paper thin sprites: Added x/y axis billboard mode for sprite rendering, controlled by the new CVAR gl_billboard_mode (default 2). [Torr Samaho]
 		gl_billboard_mode == 1 : y axis billboard (the way GZDoom renders sprites)
@@ -177,6 +177,7 @@ v0.97d-beta5
 -	- The flag/skull dropped announcer sounds now play properly in network games. [Carnevil]
 -	- Objects in water zones now exhibit the proper physics on the client end. [Carnevil]
 -	- Spectators waiting in line now have their position in line updated when someone in line leaves. [Carnevil]
+-	- Special case puffs, such as the blaster claw puff in Heretic, now spawn in the proper state on the client end. [Carnevil]
 -	- Improved the scrolling of the server console. When you scroll up, it no longer snaps back down a new message. [Rivecoder]
 -	- Fixed: Bots cause hudmessages to appear for player 1 offline. [Torr Samaho]
 -	- Fixed: Clients with activated prediction ignore the CF_FROZEN and CF_TOTALLYFROZEN flags locally. [Torr Samaho]

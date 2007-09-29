@@ -171,7 +171,7 @@ static	void	client_PlayerUseInventory( BYTESTREAM_s *pByteStream );
 
 // Thing functions.
 static	void	client_SpawnThing( BYTESTREAM_s *pByteStream );
-static	void	client_SpawnThingNoNetID( BYTESTREAM_s *pByteStream, bool bReceiveTranslation = false );
+static	void	client_SpawnThingNoNetID( BYTESTREAM_s *pByteStream );
 static	void	client_SpawnThingExact( BYTESTREAM_s *pByteStream );
 static	void	client_SpawnThingExactNoNetID( BYTESTREAM_s *pByteStream );
 static	void	client_MoveThing( BYTESTREAM_s *pByteStream );
@@ -201,6 +201,7 @@ static	void	client_ThingActivate( BYTESTREAM_s *pByteStream );
 static	void	client_ThingDeactivate( BYTESTREAM_s *pByteStream );
 static	void	client_RespawnDoomThing( BYTESTREAM_s *pByteStream );
 static	void	client_RespawnRavenThing( BYTESTREAM_s *pByteStream );
+static	void	client_SpawnPuff( BYTESTREAM_s *pByteStream );
 
 // Print commands.
 static	void	client_Print( BYTESTREAM_s *pByteStream );
@@ -504,7 +505,6 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_PLAYERUSEINVENTORY",
 	"SVC_SPAWNTHING",
 	"SVC_SPAWNTHINGNONETID",
-	"SVC_SPAWNTHINGWITHTRANSNONETID",
 	"SVC_SPAWNTHINGEXACT",
 	"SVC_SPAWNTHINGEXACTNONETID",
 	"SVC_MOVETHING",
@@ -534,6 +534,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_THINGDEACTIVATE",
 	"SVC_RESPAWNDOOMTHING",
 	"SVC_RESPAWNRAVENTHING",
+	"SVC_SPAWNPUFF",
 	"SVC_PRINT",
 	"SVC_PRINTMID",
 	"SVC_PRINTMOTD",
@@ -1531,10 +1532,6 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		client_SpawnThingNoNetID( pByteStream );
 		break;
-	case SVC_SPAWNTHINGWITHTRANSNONETID:
-
-		client_SpawnThingNoNetID( pByteStream, true );
-		break;
 	case SVC_SPAWNTHINGEXACT:
 
 		client_SpawnThingExact( pByteStream );
@@ -1650,6 +1647,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_RESPAWNRAVENTHING:
 
 		client_RespawnRavenThing( pByteStream );
+		break;
+	case SVC_SPAWNPUFF:
+
+		client_SpawnPuff( pByteStream );
 		break;
 	case SVC_PRINT:
 
@@ -4752,7 +4753,7 @@ static void client_SpawnThing( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-static void client_SpawnThingNoNetID( BYTESTREAM_s *pByteStream, bool bReceiveTranslation )
+static void client_SpawnThingNoNetID( BYTESTREAM_s *pByteStream )
 {
 	fixed_t			X;
 	fixed_t			Y;
@@ -4769,15 +4770,6 @@ static void client_SpawnThingNoNetID( BYTESTREAM_s *pByteStream, bool bReceiveTr
 
 	// Finally, spawn the thing.
 	AActor *pActor = CLIENT_SpawnThing( pszName, X, Y, Z, -1 );
-
-	// [BB] If we are supposed to set the translation, read in the translation
-	// and set it, if we sucessfully spawned the actor.
-	if( bReceiveTranslation )
-	{
-		LONG lTranslation = NETWORK_ReadLong( pByteStream );
-		if( pActor )
-			pActor->Translation = lTranslation;
-	}
 }
 
 //*****************************************************************************
@@ -6021,6 +6013,62 @@ static void client_RespawnRavenThing( BYTESTREAM_s *pByteStream )
 	S_Sound( pActor, CHAN_VOICE, "misc/spawn", 1, ATTN_IDLE );
 
 	pActor->SetState( &AInventory::States[6] );
+}
+
+//*****************************************************************************
+//
+static void client_SpawnPuff( BYTESTREAM_s *pByteStream )
+{
+	fixed_t			X;
+	fixed_t			Y;
+	fixed_t			Z;
+	char			*pszName;
+	ULONG			ulState;
+	bool			bReceiveTranslation;
+	FState			*pState;
+
+	// Read in the XYZ location of the item.
+	X = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+	Y = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+	Z = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+
+	// Read in the name of the item.
+	pszName = NETWORK_ReadString( pByteStream );
+
+	// Read in the state of the puff.
+	ulState = NETWORK_ReadByte( pByteStream );
+
+	// Read in whether or not the translation will be sent.
+	bReceiveTranslation = !!NETWORK_ReadByte( pByteStream );
+
+	// Finally, spawn the thing.
+	AActor *pActor = CLIENT_SpawnThing( pszName, X, Y, Z, -1 );
+
+	// [BB] If we are supposed to set the translation, read in the translation
+	// and set it, if we sucessfully spawned the actor.
+	if( bReceiveTranslation )
+	{
+		LONG lTranslation = NETWORK_ReadLong( pByteStream );
+		if( pActor )
+			pActor->Translation = lTranslation;
+	}
+
+	// Put the puff in the proper state.
+	switch ( ulState )
+	{
+	case STATE_CRASH:
+
+		pState = pActor->FindState( NAME_Crash );
+		if ( pState )
+			pActor->SetState( pState );
+		break;
+	case STATE_MELEE:
+
+		pState = pActor->MeleeState;
+		if ( pState )
+			pActor->SetState( pState );
+		break;
+	}
 }
 
 //*****************************************************************************

@@ -4948,17 +4948,12 @@ void P_SpawnMapThing (mapthing2_t *mthing, int position)
 AActor *P_SpawnPuff (const PClass *pufftype, fixed_t x, fixed_t y, fixed_t z, angle_t dir, int updown, bool hitthing, bool bTellClientToSpawn)
 {
 	AActor *puff;
+	// [BC]
+	ULONG	ulState;
 
 	z += pr_spawnpuff.Random2 () << 10;
 
 	puff = Spawn (pufftype, x, y, z, ALLOW_REPLACE);
-
-	// [BC] If we're the server, tell clients to spawn the thing.
-	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
-		( bTellClientToSpawn ))
-	{
-		SERVERCOMMANDS_SpawnThing( puff );
-	}
 
 	// If a puff has a crash state and an actor was not hit,
 	// it will enter the crash state. This is used by the StrifeSpark
@@ -4973,6 +4968,24 @@ AActor *P_SpawnPuff (const PClass *pufftype, fixed_t x, fixed_t y, fixed_t z, an
 		// handle the hard coded state jump of Doom's bullet puff
 		// in a more flexible manner.
 		puff->SetState (puff->MeleeState);
+	}
+
+	// [BC] If we're the server, tell clients to spawn the thing.
+	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+		( bTellClientToSpawn ))
+	{
+		ulState = STATE_SPAWN;
+		if ( puff->state == puff->FindState( NAME_Crash ))
+			ulState = STATE_CRASH;
+		else if ( puff->state == puff->MeleeState )
+			ulState = STATE_MELEE;
+
+		// It's not translated, nor is it spawning in a state other than its
+		// spawn state. Therefore, there's no need to treat it as a special case.
+		if ( ulState == STATE_SPAWN )
+			SERVERCOMMANDS_SpawnThingNoNetID( puff );
+		else
+			SERVERCOMMANDS_SpawnPuff( puff, ulState, false );
 	}
 
 	if (cl_pufftype && updown != 3 && (puff->flags4 & MF4_ALLOWPARTICLES))
@@ -5064,9 +5077,13 @@ void P_SpawnBlood (fixed_t x, fixed_t y, fixed_t z, angle_t dir, int damage, AAc
 			// [BB] If the bloodcolor is not the standard one, we have to inform the client 
 			// about the correct color.
 			if ( bloodcolor == 0 )
+			{
+				// [BC] It's not translated, nor is it spawning in a state other than its
+				// spawn state. Therefore, there's no need to treat it as a special case.
 				SERVERCOMMANDS_SpawnThingNoNetID( th );
+			}
 			else
-				SERVERCOMMANDS_SpawnThingNoNetID( th, MAXPLAYERS, 0, true );
+				SERVERCOMMANDS_SpawnPuff( th, STATE_SPAWN, true );
 		}
 	}
 
