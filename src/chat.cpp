@@ -405,30 +405,21 @@ ULONG CHAT_GetChatMode( void )
 //
 void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, char *pszString )
 {
-	ULONG	ulChatLevel;
-	// [BB] The chat header can be much longer than the name, look at
-	// the case ulMode == CHATMODE_TEAM for example. I'm too lazy to
-	// calculate the exact number of chars needed, so I just put 50,
-	// this is more than enough. Saving a few bytes here is not worth any
-	// effort :).
-	char	szChatHeader[MAXPLAYERNAME+50];
-	szChatHeader[0] = '0';
+	ULONG		ulChatLevel;
+	FString		OutString;
 
 	// If ulPlayer == MAXPLAYERS, it is the server talking.
 	if ( ulPlayer == MAXPLAYERS )
 	{
 		// Special support for "/me" commands.
+		ulChatLevel = PRINT_HIGH;
 		if ( strnicmp( "/me", pszString, 3 ) == 0 )
 		{
-			ulChatLevel = PRINT_HIGH;
 			pszString += 3;
-			sprintf( szChatHeader, "* <server>" );
+			OutString = "* <server>";
 		}
 		else
-		{
-			ulChatLevel = PRINT_HIGH;
-			sprintf( szChatHeader, "<server>: " );
-		}
+			OutString = "<server>: ";
 	}
 	else if ( ulMode == CHATMODE_GLOBAL )
 	{
@@ -437,12 +428,12 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, char *pszString )
 		{
 			ulChatLevel = PRINT_HIGH;
 			pszString += 3;
-			sprintf( szChatHeader, "* %s\\cc", players[ulPlayer].userinfo.netname );
+			OutString.AppendFormat( "* %s\\cc", players[ulPlayer].userinfo.netname );
 		}
 		else
 		{
 			ulChatLevel = PRINT_CHAT;
-			sprintf( szChatHeader, "%s\\cd: ", players[ulPlayer].userinfo.netname );
+			OutString.AppendFormat( "%s\\cd: ", players[ulPlayer].userinfo.netname );
 		}
 	}
 	else if ( ulMode == CHATMODE_TEAM )
@@ -450,25 +441,26 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, char *pszString )
 		ulChatLevel = PRINT_CHAT;
 
 		if ( players[consoleplayer].ulTeam == TEAM_BLUE )
-			sprintf( szChatHeader, "\\cH<TEAM> " );
+			OutString = "\\cH<TEAM> ";
 		else
-			sprintf( szChatHeader, "\\cG<TEAM> " );
+			OutString = "\\cG<TEAM> ";
 
 		// Special support for "/me" commands.
 		if ( strnicmp( "/me", pszString, 3 ) == 0 )
 		{
 			ulChatLevel = PRINT_HIGH;
 			pszString += 3;
-			sprintf( szChatHeader, "%s\\cc* %s\\cc", szChatHeader, players[ulPlayer].userinfo.netname );
+			OutString.AppendFormat( "\\cc* %s\\cc", players[ulPlayer].userinfo.netname );
 		}
 		else
 		{
 			ulChatLevel = PRINT_CHAT;
-			sprintf( szChatHeader, "%s \\cd%s\\cd: ", szChatHeader, players[ulPlayer].userinfo.netname );
+			OutString.AppendFormat( "\\cd%s\\cd: ", players[ulPlayer].userinfo.netname );
 		}
 	}
 
-	Printf( ulChatLevel, "%s%s\n", szChatHeader, pszString );
+	OutString += pszString;
+	Printf( ulChatLevel, "%s\n", OutString );
 
 	if ( show_messages )
 		S_Sound( CHAN_VOICE, gameinfo.chatSound, 1, ATTN_NONE );
@@ -585,8 +577,8 @@ void chat_DeleteChar( void )
 
 CCMD( say )
 {
-	ULONG	ulIdx;
-	char	szChatString[256];
+	ULONG		ulIdx;
+	FString		ChatString;
 
 	if ( argv.argc( ) < 2 )
 	{
@@ -604,21 +596,15 @@ CCMD( say )
 	}
 	else
 	{
-		szChatString[0] = '\0';
 		for ( ulIdx = 1; ulIdx < argv.argc( ); ulIdx++ )
-		{
-			if ( szChatString[0] == '\0' )
-				sprintf( szChatString, "%s ", argv[ulIdx] );
-			else
-				sprintf( szChatString, "%s%s ", szChatString, argv[ulIdx] );
-		}
+			ChatString.AppendFormat( "%s ", argv[ulIdx] );
 
 		// Send the server's chat string out to clients, and print it in the console.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVER_SendChatMessage( MAXPLAYERS, CHATMODE_GLOBAL, szChatString );
+			SERVER_SendChatMessage( MAXPLAYERS, CHATMODE_GLOBAL, (char *)ChatString.GetChars( ));
 		else
 			// We typed out our message in the console or with a macro. Go ahead and send the message now.
-			chat_SendMessage( CHATMODE_GLOBAL, szChatString );
+			chat_SendMessage( CHATMODE_GLOBAL, (char *)ChatString.GetChars( ));
 	}
 }
 
@@ -626,8 +612,8 @@ CCMD( say )
 //
 CCMD( say_team )
 {
-	ULONG	ulIdx;
-	char	szChatString[256];
+	ULONG		ulIdx;
+	FString		ChatString;
 
 	// Make sure we have teammates to talk to before we use team chat.
 	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
@@ -661,16 +647,10 @@ CCMD( say_team )
 	}
 	else
 	{
-		szChatString[0] = '\0';
 		for ( ulIdx = 1; ulIdx < argv.argc( ); ulIdx++ )
-		{
-			if ( szChatString[0] == '\0' )
-				sprintf( szChatString, "%s ", argv[ulIdx] );
-			else
-				sprintf( szChatString, "%s%s ", szChatString, argv[ulIdx] );
-		}
+			ChatString.AppendFormat( "%s ", argv[ulIdx] );
 
 		// We typed out our message in the console or with a macro. Go ahead and send the message now.
-		chat_SendMessage( CHATMODE_TEAM, szChatString );
+		chat_SendMessage( CHATMODE_TEAM, (char *)ChatString.GetChars( ));
 	}
 }
