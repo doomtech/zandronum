@@ -6,6 +6,10 @@
 #include "p_local.h"
 #include "p_enemy.h"
 #include "gstrings.h"
+// [BC] New #includes.
+#include "network.h"
+#include "cl_demo.h"
+#include "sv_commands.h"
 
 static FRandom pr_imp ("ImpExplode");
 static FRandom pr_impmeatk ("ImpMeAttack");
@@ -256,6 +260,14 @@ void A_ImpExplode (AActor *self)
 
 void A_ImpMeAttack (AActor *self)
 {
+	// [BC] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		S_SoundID( self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM );
+		return;
+	}
+
 	if (!self->target)
 	{
 		return;
@@ -281,8 +293,19 @@ void A_ImpMsAttack (AActor *self)
 	angle_t an;
 	int dist;
 
+	// [BC] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if (!self->target || pr_impmsatk() > 64)
 	{
+		// [BC] Tell clients about the state change.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingState( self, STATE_SEE );
+
 		self->SetState (self->SeeState);
 		return;
 	}
@@ -300,6 +323,13 @@ void A_ImpMsAttack (AActor *self)
 		dist = 1;
 	}
 	self->momz = (dest->z + (dest->height>>1) - self->z)/dist;
+
+	// [BC] Update the thing's position, momentum, and play the attack sound.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		SERVERCOMMANDS_MoveThingExact( self, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
+		SERVERCOMMANDS_SoundIDActor( self, CHAN_WEAPON, self->AttackSound, 127, ATTN_NORM );
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -312,6 +342,17 @@ void A_ImpMsAttack (AActor *self)
 
 void A_ImpMsAttack2 (AActor *self)
 {
+	// [BC]
+	AActor	*pMissile;
+
+	// [BC] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		S_SoundID( self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM );
+		return;
+	}
+
 	if (!self->target)
 	{
 		return;
@@ -324,7 +365,14 @@ void A_ImpMsAttack2 (AActor *self)
 		P_TraceBleed (damage, self->target, self);
 		return;
 	}
-	P_SpawnMissile (self, self->target, RUNTIME_CLASS(AHereticImpBall));
+	pMissile = P_SpawnMissile (self, self->target, RUNTIME_CLASS(AHereticImpBall));
+
+	// [BC] Spawn the missile to clients.
+	if (( pMissile ) &&
+		( NETWORK_GetState( ) == NETSTATE_SERVER ))
+	{
+		SERVERCOMMANDS_SpawnMissile( pMissile );
+	}
 }
 
 //----------------------------------------------------------------------------
