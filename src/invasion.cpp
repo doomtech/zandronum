@@ -752,8 +752,11 @@ void INVASION_StartCountdown( ULONG ulTicks )
 
 		while (( pActor = ActorIterator.Next( )))
 		{
-			if (( pActor->flags & MF_COUNTKILL ) == false )
+			if ((( pActor->flags & MF_COUNTKILL ) == false ) ||
+				( pActor->flags & MF_FRIENDLY ))
+			{
 				continue;
+			}
 
 			// Get rid of any bodies that didn't come from a spawner.
 			if (( pActor->pMonsterSpot == NULL ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
