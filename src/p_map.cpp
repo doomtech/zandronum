@@ -1224,11 +1224,19 @@ bool PIT_CheckThing (AActor *thing)
 		}
 		return false;		// don't traverse any more
 	}
+	// [BC] Don't push things in client mode.
 	if (thing->flags2 & MF2_PUSHABLE && !(tmthing->flags2 & MF2_CANNOTPUSH) &&
-		(tmthing->player == NULL))//|| !(tmthing->player->cheats & CF_PREDICTING)))
+		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))// &&
+		//(tmthing->player == NULL || !(tmthing->player->cheats & CF_PREDICTING)))
 	{ // Push thing
 		thing->momx += tmthing->momx >> 2;
 		thing->momy += tmthing->momy >> 2;
+
+		// [BC] If we're the server, tell clients to update the thing's position and
+		// momentum.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_MoveThingExact( thing, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
 	}
 	solid = (thing->flags & MF_SOLID) &&
 			!(thing->flags & MF_NOCLIP) &&

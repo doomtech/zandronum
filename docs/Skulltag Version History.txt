@@ -183,6 +183,7 @@ v0.97d
 -	- Chaingunners and spider masterminds now go to the proper state after killing a player when playing as a client. [Carnevil]
 -	- Going to a new map in single player as a spectator no longer results in weirdness. [Carnevil]
 -	- Bots no longer become dormant when switch maps in team-based modes. [Carnevil]
+-	- The "pushable" flag now works properly. [Carnevil]
 -	- Improved the scrolling of the server console. When you scroll up, it no longer snaps back down a new message. [Rivecoder]
 -	- Fixed: Bots cause hudmessages to appear for player 1 offline. [Torr Samaho]
 -	- Fixed: Clients with activated prediction ignore the CF_FROZEN and CF_TOTALLYFROZEN flags locally. [Torr Samaho]
