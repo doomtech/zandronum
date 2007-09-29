@@ -195,6 +195,7 @@ v0.97d
 -	- Fixed: If a client is forced to leave a server due to an error, the client doesn't tell the server that it's leaving. [Torr Samaho]
 -	- Prevented the "Tried to render from a NULL actor." error from occurring in software. [Torr Samaho]
 -	- Fixed: A_GiveToTarget does not work properly online. [Torr Samaho]
+-	- Fixed: Chat messages of players with names consisting of 31 chars may cause crashes. [Torr Samaho]
 !	- Survival co-op is now disabled in hubs. [Carnevil]
 !	- Skulltag's invasion spawners are now defined in skulltag.pk3. [Carnevil]
 !	- Skulltag.wad is now loaded before doom2.wad. This should fix certain texture errors. [Carnevil]

@@ -406,7 +406,13 @@ ULONG CHAT_GetChatMode( void )
 void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, char *pszString )
 {
 	ULONG	ulChatLevel;
-	char	szChatHeader[MAXPLAYERNAME+3];
+	// [BB] The chat header can be much longer than the name, look at
+	// the case ulMode == CHATMODE_TEAM for example. I'm too lazy to
+	// calculate the exact number of chars needed, so I just put 50,
+	// this is more than enough. Saving a few bytes here is not worth any
+	// effort :).
+	char	szChatHeader[MAXPLAYERNAME+50];
+	szChatHeader[0] = '0';
 
 	// If ulPlayer == MAXPLAYERS, it is the server talking.
 	if ( ulPlayer == MAXPLAYERS )
