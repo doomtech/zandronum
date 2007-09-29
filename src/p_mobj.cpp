@@ -4045,10 +4045,6 @@ void AActor::Activate (AActor *activator)
 			tics = 1;
 		}
 	}
-
-	// If we're the server, tell clients to activate this actor.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_ThingActivate( this, activator );
 }
 
 void AActor::Deactivate (AActor *activator)
@@ -4061,10 +4057,6 @@ void AActor::Deactivate (AActor *activator)
 			tics = -1;
 		}
 	}
-
-	// [BC] If we're the server, tell clients to deactivate this actor.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_ThingDeactivate( this, activator );
 }
 
 //=============================================================================

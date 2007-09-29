@@ -627,7 +627,7 @@ CCMD( say )
 CCMD( say_team )
 {
 	ULONG	ulIdx;
-	char	szChatString[128];
+	char	szChatString[256];
 
 	// Make sure we have teammates to talk to before we use team chat.
 	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
