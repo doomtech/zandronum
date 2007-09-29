@@ -4476,17 +4476,21 @@ void P_SpawnPlayer (mapthing2_t *mthing, bool bClientUpdate, player_t *p, bool t
 	// [BC] Do script stuff
 	if (!tempplayer)
 	{
-		if (state == PST_ENTER || (state == PST_LIVE && !savegamerestore))
+		if (state == PST_ENTER || state == PST_ENTERNOINVENTORY || (state == PST_LIVE && !savegamerestore))
 		{
-			// [BC] If we're the server, just mark this client as needing to have his enter
-			// scripts run when he actually authenticates the level.
-			if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
-				( SERVER_GetClient( p - players )->State != CLS_SPAWNED ))
+			// [BC] Don't run enter scripts if we're spectating.
+			if ( p->bSpectating == false )
 			{
-				SERVER_GetClient( p - players )->bRunEnterScripts = true;
+				// [BC] If we're the server, just mark this client as needing to have his enter
+				// scripts run when he actually authenticates the level.
+				if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+					( SERVER_GetClient( p - players )->State != CLS_SPAWNED ))
+				{
+					SERVER_GetClient( p - players )->bRunEnterScripts = true;
+				}
+				else
+					FBehavior::StaticStartTypedScripts (SCRIPT_Enter, p->mo, true);
 			}
-			else
-				FBehavior::StaticStartTypedScripts (SCRIPT_Enter, p->mo, true);
 		}
 		// [BC] Added PST_REBORNNOINVENTORY.
 		else if (state == PST_REBORN || state == PST_REBORNNOINVENTORY)

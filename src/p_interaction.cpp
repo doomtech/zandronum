@@ -1963,6 +1963,13 @@ void PLAYER_SetSpectator( player_s *pPlayer, bool bBroadcast, bool bDeadSpectato
 			{
 				pPlayer->bDeadSpectator = false;
 
+				// Run the disconnect scripts now that the player is leaving.
+				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+					( CLIENTDEMO_IsPlaying( ) == false ))
+				{
+					FBehavior::StaticStartTypedScripts( SCRIPT_Disconnect, NULL, true, pPlayer - players );
+				}
+
 				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 				{
 					// Tell the join queue module that a player is leaving the game.
@@ -1994,6 +2001,14 @@ void PLAYER_SetSpectator( player_s *pPlayer, bool bBroadcast, bool bDeadSpectato
 	// Flag this player as being a spectator.
 	pPlayer->bSpectating = true;
 	pPlayer->bDeadSpectator = bDeadSpectator;
+
+	// Run the disconnect scripts if the player is leaving the game.
+	if (( bDeadSpectator == false ) &&
+		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
+	{
+		FBehavior::StaticStartTypedScripts( SCRIPT_Disconnect, NULL, true, pPlayer - players );
+	}
 
 	// If this player was eligible to get an assist, cancel that.
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))

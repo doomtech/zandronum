@@ -2742,7 +2742,7 @@ void PLAYER_JoinGameFromSpectators( int iChar )
 		return;
 	}
 
-	players[consoleplayer].playerstate = PST_REBORNNOINVENTORY;
+	players[consoleplayer].playerstate = PST_ENTERNOINVENTORY;
 	players[consoleplayer].bSpectating = false;
 	players[consoleplayer].bDeadSpectator = false;
 	players[consoleplayer].camera = players[consoleplayer].mo;

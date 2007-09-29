@@ -202,7 +202,7 @@ void JOINQUEUE_PlayerLeftGame( bool bWantPop )
 		// Found a player waiting in line. They will now join the game!
 		if ( playeringame[g_lJoinQueue[ulIdx].ulPlayer] )
 		{
-			players[g_lJoinQueue[ulIdx].ulPlayer].playerstate = PST_REBORNNOINVENTORY;
+			players[g_lJoinQueue[ulIdx].ulPlayer].playerstate = PST_ENTERNOINVENTORY;
 			players[g_lJoinQueue[ulIdx].ulPlayer].bSpectating = false;
 			players[g_lJoinQueue[ulIdx].ulPlayer].bDeadSpectator = false;
 
@@ -332,7 +332,7 @@ void JOINQUEUE_PopQueue( LONG lNumSlots )
 		// Found a player waiting in line. They will now join the game!
 		if ( playeringame[g_lJoinQueue[ulIdx].ulPlayer] )
 		{
-			players[g_lJoinQueue[ulIdx].ulPlayer].playerstate = PST_REBORNNOINVENTORY;
+			players[g_lJoinQueue[ulIdx].ulPlayer].playerstate = PST_ENTERNOINVENTORY;
 			players[g_lJoinQueue[ulIdx].ulPlayer].bSpectating = false;
 			players[g_lJoinQueue[ulIdx].ulPlayer].bDeadSpectator = false;
 

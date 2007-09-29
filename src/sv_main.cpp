@@ -2361,6 +2361,13 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 	g_aClients[ulClient].ulLastGameTic = 0;
 	playeringame[ulClient] = false;
 
+	// Run the disconnect scripts now that the player is leaving.
+	if (( players[ulClient].bSpectating == false ) ||
+		( players[ulClient].bDeadSpectator ))
+	{
+		FBehavior::StaticStartTypedScripts( SCRIPT_Disconnect, NULL, true, ulClient );
+	}
+
 	// Redo the scoreboard.
 	SERVERCONSOLE_ReListPlayers( );
 
@@ -3830,7 +3837,7 @@ static bool server_RequestJoin( BYTESTREAM_s *pByteStream )
 	}
 
 	// Everything's okay! Go ahead and join!
-	players[g_lCurrentClient].playerstate = PST_REBORNNOINVENTORY;
+	players[g_lCurrentClient].playerstate = PST_ENTERNOINVENTORY;
 	players[g_lCurrentClient].bSpectating = false;
 	players[g_lCurrentClient].bDeadSpectator = false;
 	// [BB] It's possible that you are watching through the eyes of someone else
