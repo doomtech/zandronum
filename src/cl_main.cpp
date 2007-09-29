@@ -3492,6 +3492,7 @@ static void client_DamagePlayer( BYTESTREAM_s *pByteStream )
 	LONG		lArmor;
 	LONG		lDamage;
 	ABasicArmor	*pArmor;
+	FState		*pPainState;
 
 	// Read in the player being damaged.
 	ulPlayer = NETWORK_ReadByte( pByteStream );
@@ -3538,7 +3539,9 @@ static void client_DamagePlayer( BYTESTREAM_s *pByteStream )
 	}
 
 	// Also, make sure they get put into the pain state.
-	players[ulPlayer].mo->SetState( players[ulPlayer].mo->FindState(NAME_Pain) );
+	pPainState = players[ulPlayer].mo->FindState( NAME_Pain );
+	if ( pPainState )
+		players[ulPlayer].mo->SetState( pPainState );
 }
 
 //*****************************************************************************
