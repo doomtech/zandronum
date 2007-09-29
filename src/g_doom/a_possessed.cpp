@@ -183,8 +183,11 @@ void A_CPosRefire (AActor *self)
 	A_FaceTarget (self);
 
 	// [BC] Client chaingunners continue to fire until told by the server to stop.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (pr_cposrefire() < 40)
 		return;
@@ -194,11 +197,11 @@ void A_CPosRefire (AActor *self)
 		|| self->target->health <= 0
 		|| !P_CheckSight (self, self->target, 0) )
 	{
-		self->SetState (self->SeeState);
-
 		// [BC] If we're the server, tell clients to update this thing's state.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SetThingState( self, STATE_SEE );
+
+		self->SetState (self->SeeState);
 	}
 }
 

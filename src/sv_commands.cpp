@@ -1547,47 +1547,7 @@ void SERVERCOMMANDS_SetThingState( AActor *pActor, ULONG ulState )
 
 	if ( pActor == NULL )
 		return;
-/*
-	switch ( ulState )
-	{
-	case STATE_SPAWN:
 
-		Printf( "STATE_SPAWN\n" );
-		break;
-	case STATE_SEE:
-
-		Printf( "STATE_SEE\n" );
-		break;
-	case STATE_PAIN:
-
-		Printf( "STATE_PAIN\n" );
-		break;
-	case STATE_MELEE:
-
-		Printf( "STATE_MELEE\n" );
-		break;
-	case STATE_MISSILE:
-
-		Printf( "STATE_MISSILE\n" );
-		break;
-	case STATE_DEATH:
-
-		Printf( "STATE_DEATH\n" );
-		break;
-	case STATE_XDEATH:
-
-		Printf( "STATE_XDEATH\n" );
-		break;
-	case STATE_RAISE:
-
-		Printf( "STATE_RAISE\n" );
-		break;
-	case STATE_HEAL:
-
-		Printf( "STATE_HEAL\n" );
-		break;
-	}
-*/
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		if ( SERVER_IsValidClient( ulIdx ) == false )

@@ -6,6 +6,7 @@
 #include "p_enemy.h"
 #include "a_action.h"
 // [BC] New #includes.
+#include "cl_demo.h"
 #include "network.h"
 #include "sv_commands.h"
 
@@ -17,8 +18,11 @@ void A_SpidRefire (AActor *self)
 	A_FaceTarget (self);
 
 	// [BC] Client spider masterminds continue to fire until told by the server to stop.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (pr_spidrefire() < 10)
 		return;
@@ -28,11 +32,11 @@ void A_SpidRefire (AActor *self)
 		|| self->target->health <= 0
 		|| !P_CheckSight (self, self->target, 0) )
 	{
-		self->SetState (self->SeeState);
-
 		// [BC] If we're the server, tell clients to update this thing's state.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SetThingState( self, STATE_SEE );
+
+		self->SetState (self->SeeState);
 	}
 }
 

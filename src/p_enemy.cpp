@@ -505,6 +505,14 @@ bool P_Move (AActor *actor)
 		// open any specials
 		actor->movedir = DI_NODIR;
 
+		// [BC] Set the thing's movement direction. Also, update the thing's
+		// position.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			SERVERCOMMANDS_SetThingMoveDir( actor );
+			SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z );
+		}
+
 		// if the special is not a door that can be opened, return false
 		//
 		// killough 8/9/98: this is what caused monsters to get stuck in
