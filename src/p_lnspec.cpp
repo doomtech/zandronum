@@ -1052,6 +1052,11 @@ FUNC(LS_Thing_Activate)
 			// Actor might remove itself as part of activation, so get next
 			// one before activating it.
 			AActor *temp = iterator.Next ();
+
+			// [BC] Tell clients to activate the thing.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_ThingActivate( actor, it );
+
 			actor->Activate (it);
 			actor = temp;
 			count++;
@@ -1061,6 +1066,10 @@ FUNC(LS_Thing_Activate)
 	}
 	else if (it != NULL)
 	{
+		// [BC] Tell clients to activate the thing.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_ThingActivate( it, it );
+
 		it->Activate(it);
 		return true;
 	}
@@ -1082,6 +1091,11 @@ FUNC(LS_Thing_Deactivate)
 			// Actor might removes itself as part of deactivation, so get next
 			// one before we activate it.
 			AActor *temp = iterator.Next ();
+
+			// [BC] Tell clients to deactivate the thing.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_ThingDeactivate( actor, it );
+
 			actor->Deactivate (it);
 			actor = temp;
 			count++;
@@ -1091,6 +1105,10 @@ FUNC(LS_Thing_Deactivate)
 	}
 	else if (it != NULL)
 	{
+		// [BC] Tell clients to deactivate the thing.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_ThingDeactivate( it, it );
+
 		it->Deactivate(it);
 		return true;
 	}

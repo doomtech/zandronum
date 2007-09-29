@@ -99,6 +99,7 @@ v0.97d
 -	- Players can no longer be put into a team game without being assigned a team. [Carnevil]
 -	- The cast pics in the finale are now scaled properly. [Carnevil]
 -	- Stealth monsters now work properly on the client end. [Carnevil]
+-	- Thing_Activate and Thing_Deactivate not work properly in network games. [Carnevil]
 -	- Rune icons now show up correctly on the HUDs. [Rivecoder]
 -	- Seconday ammo is now displayed on the fullscreen HUD. [Rivecoder]
 -	- Improved the display of the bottom string; 'x allies/opponent' display now reflects that of the player you're spying; added a few missing linebreaks. [Rivecoder]
