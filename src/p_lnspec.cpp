@@ -3,7 +3,7 @@
 ** Handles line specials
 **
 **---------------------------------------------------------------------------
-** Copyright 1998-2006 Randy Heit
+** Copyright 1998-2007 Randy Heit
 ** All rights reserved.
 **
 ** Redistribution and use in source and binary forms, with or without
@@ -79,7 +79,7 @@ FName MODtoDamageType (int mod)
 	{
 	default:	return NAME_None;			break;
 	case 9:		return NAME_BFGSplash;		break;
-	case 12:	return NAME_Water;			break;
+	case 12:	return NAME_Drowning;		break;
 	case 13:	return NAME_Slime;			break;
 	case 14:	return NAME_Fire;			break;
 	case 15:	return NAME_Crush;			break;

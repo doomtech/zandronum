@@ -309,6 +309,8 @@ public:
 
 	WORD		accuracy, stamina;		// [RH] Strife stats
 
+	FName		LastDamageType;			// [RH] For damage-specific pain and death sounds
+
 	float		BlendR;		// [RH] Final blending values
 	float		BlendG;
 	float		BlendB;
