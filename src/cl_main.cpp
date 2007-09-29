@@ -419,7 +419,7 @@ static	FRandom				g_RestorePositionSeed( "ClientRestorePos" );
 static	bool				g_bAllowSendingOfUserInfo = true;
 
 // The name of the map we need to authenticate.
-static	char				g_szMapName[8];
+static	char				g_szMapName[9];
 
 // Last console player update tick.
 static	ULONG				g_ulLastConsolePlayerUpdateTick;
@@ -1267,7 +1267,8 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 		Printf( "Connected!\n" );
 
 		// Read in the map name we now need to authenticate.
-		sprintf( g_szMapName, "%s", NETWORK_ReadString( pByteStream ));
+		strncpy( g_szMapName, NETWORK_ReadString( pByteStream ), 8 );
+		g_szMapName[8] = 0;
 
 		// The next step is the authenticate the level.
 		if ( CLIENTDEMO_IsPlaying( ) == false )
@@ -3804,7 +3805,7 @@ static void client_SetPlayerUserInfo( BYTESTREAM_s *pByteStream )
     player_t	*pPlayer;
 	ULONG		ulPlayer;
 	ULONG		ulFlags;
-	char		szName[MAX_NETWORK_STRING];
+	char		szName[MAXPLAYERNAME + 1];
 	LONG		lGender;
 	LONG		lColor;
 	char		*pszSkin;
@@ -3821,7 +3822,10 @@ static void client_SetPlayerUserInfo( BYTESTREAM_s *pByteStream )
 
 	// Read in the player's name.
 	if ( ulFlags & USERINFO_NAME )
-		sprintf( szName, NETWORK_ReadString( pByteStream ));
+	{
+		strncpy( szName, NETWORK_ReadString( pByteStream ), MAXPLAYERNAME );
+		szName[MAXPLAYERNAME] = 0;
+	}
 
 	// Read in the player's gender.
 	if ( ulFlags & USERINFO_GENDER )
@@ -6122,7 +6126,8 @@ static void client_PrintHUDMessage( BYTESTREAM_s *pByteStream )
 	FFont		*pOldFont;
 
 	// Read in the string.
-	sprintf( szString, NETWORK_ReadString( pByteStream ));
+	strncpy( szString, NETWORK_ReadString( pByteStream ), MAX_NETWORK_STRING );
+	szString[MAX_NETWORK_STRING - 1] = 0;
 
 	// Read in the XY.
 	fX = NETWORK_ReadFloat( pByteStream );
@@ -6186,7 +6191,8 @@ static void client_PrintHUDMessageFadeOut( BYTESTREAM_s *pByteStream )
 	FFont				*pOldFont;
 
 	// Read in the string.
-	sprintf( szString, NETWORK_ReadString( pByteStream ));
+	strncpy( szString, NETWORK_ReadString( pByteStream ), MAX_NETWORK_STRING );
+	szString[MAX_NETWORK_STRING - 1] = 0;
 
 	// Read in the XY.
 	fX = NETWORK_ReadFloat( pByteStream );
@@ -6255,7 +6261,8 @@ static void client_PrintHUDMessageFadeInOut( BYTESTREAM_s *pByteStream )
 	FFont					*pOldFont;
 
 	// Read in the string.
-	sprintf( szString, NETWORK_ReadString( pByteStream ));
+	strncpy( szString, NETWORK_ReadString( pByteStream ), MAX_NETWORK_STRING );
+	szString[MAX_NETWORK_STRING - 1] = 0;
 
 	// Read in the XY.
 	fX = NETWORK_ReadFloat( pByteStream );
@@ -6328,7 +6335,8 @@ static void client_PrintHUDMessageTypeOnFadeOut( BYTESTREAM_s *pByteStream )
 	FFont						*pOldFont;
 
 	// Read in the string.
-	sprintf( szString, NETWORK_ReadString( pByteStream ));
+	strncpy( szString, NETWORK_ReadString( pByteStream ), MAX_NETWORK_STRING );
+	szString[MAX_NETWORK_STRING - 1] = 0;
 
 	// Read in the XY.
 	fX = NETWORK_ReadFloat( pByteStream );
