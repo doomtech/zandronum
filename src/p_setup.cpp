@@ -4149,7 +4149,13 @@ void P_SetupLevel (char *lumpname, int position)
 				// If the player should spawn as a spectator, mark them as being a spectator.
 				// Otherwise, let their spectator status persist.
 				if ( PLAYER_ShouldSpawnAsSpectator( &players[i] ))
+				{
 					players[i].bSpectating = true;
+
+					// If this bot spawned as a spectator, let him know.
+					if ( players[i].pSkullBot )
+						players[i].pSkullBot->PostEvent( BOTEVENT_SPECTATING );
+				}
 			}
 		}
 

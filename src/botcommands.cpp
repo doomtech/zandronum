@@ -2459,6 +2459,9 @@ static void botcmd_TryToJoinGame( CSkullBot *pBot )
 		pBot->GetPlayer( )->ulTeam = TEAM_ChooseBestTeamForPlayer( );
 	}
 
+	// Tell the bot that he successfully joined.
+	pBot->PostEvent( BOTEVENT_JOINEDGAME );
+
 	Printf( "%s \\c-joined the game.\n", pBot->GetPlayer( )->userinfo.netname );
 }
 
