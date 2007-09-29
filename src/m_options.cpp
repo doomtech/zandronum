@@ -2817,57 +2817,6 @@ void M_StartSkirmishGame( void )
 	// Disable campaign mode.
 	CAMPAIGN_DisableCampaign( );
 
-	// Initialize bot spawn times.
-	if (( menu_gamemode == GAMEMODE_TEAMPLAY ) ||
-		( menu_gamemode == GAMEMODE_TEAMPOSSESSION ) ||
-		( menu_gamemode == GAMEMODE_TEAMLMS ) ||
-		( menu_gamemode == GAMEMODE_TEAMGAME ) ||
-		( menu_gamemode == GAMEMODE_CTF ) ||
-		( menu_gamemode == GAMEMODE_ONEFLAGCTF ) ||
-		( menu_gamemode == GAMEMODE_SKULLTAG ))
-	{
-		for ( ulIdx = 0; ulIdx < 16; ulIdx++ )
-		{
-			sprintf( szCVarName, "menu_teambotspawn%d", ulIdx );
-			pVar = FindCVar( szCVarName, NULL );
-
-			Val = pVar->GetGenericRep( CVAR_Int );
-			if (( BOTINFO_GetRevealed( Val.Int )) && (  BOTINFO_GetName( Val.Int ) != NULL ))
-			{
-				sprintf( szBuffer, BOTINFO_GetName( Val.Int ));
-				V_ColorizeString( szBuffer );
-				V_RemoveColorCodes( szBuffer );
-				if ( ulIdx < 5 )
-					BOTSPAWN_AddToTable( szBuffer, "red" );
-				else
-					BOTSPAWN_AddToTable( szBuffer, "blue" );
-			}
-		}
-
-		if (( menu_team == TEAM_BLUE ) || ( menu_team == TEAM_RED ))
-		{
-			players[consoleplayer].bOnTeam = true;
-			players[consoleplayer].ulTeam = menu_team;
-		}
-	}
-	else
-	{
-		for ( ulIdx = 0; ulIdx < 16; ulIdx++ )
-		{
-			sprintf( szCVarName, "menu_botspawn%d", ulIdx );
-			pVar = FindCVar( szCVarName, NULL );
-
-			Val = pVar->GetGenericRep( CVAR_Int );
-			if (( BOTINFO_GetRevealed( Val.Int )) && (  BOTINFO_GetName( Val.Int ) != NULL ))
-			{
-				sprintf( szBuffer, BOTINFO_GetName( Val.Int ));
-				V_ColorizeString( szBuffer );
-				V_RemoveColorCodes( szBuffer );
-				BOTSPAWN_AddToTable( szBuffer, NULL );
-			}
-		}
-	}
-
 	Val = menu_skill.GetGenericRep( CVAR_Int );
 	gameskill.ForceSet( Val, CVAR_Int );
 
@@ -2972,8 +2921,59 @@ void M_StartSkirmishGame( void )
 
 	// Clear out the menus and load the level.
 	M_ClearMenus( );
-//	G_InitNew( szLevelName );
-	G_DeferedInitNew( szLevelName );
+	G_InitNew( szLevelName, false );
+//	G_DeferedInitNew( szLevelName );
+
+	// Initialize bot spawn times.
+	if (( menu_gamemode == GAMEMODE_TEAMPLAY ) ||
+		( menu_gamemode == GAMEMODE_TEAMPOSSESSION ) ||
+		( menu_gamemode == GAMEMODE_TEAMLMS ) ||
+		( menu_gamemode == GAMEMODE_TEAMGAME ) ||
+		( menu_gamemode == GAMEMODE_CTF ) ||
+		( menu_gamemode == GAMEMODE_ONEFLAGCTF ) ||
+		( menu_gamemode == GAMEMODE_SKULLTAG ))
+	{
+		for ( ulIdx = 0; ulIdx < 16; ulIdx++ )
+		{
+			sprintf( szCVarName, "menu_teambotspawn%d", ulIdx );
+			pVar = FindCVar( szCVarName, NULL );
+
+			Val = pVar->GetGenericRep( CVAR_Int );
+			if (( BOTINFO_GetRevealed( Val.Int )) && (  BOTINFO_GetName( Val.Int ) != NULL ))
+			{
+				sprintf( szBuffer, BOTINFO_GetName( Val.Int ));
+				V_ColorizeString( szBuffer );
+				V_RemoveColorCodes( szBuffer );
+				if ( ulIdx < 5 )
+					BOTSPAWN_AddToTable( szBuffer, "red" );
+				else
+					BOTSPAWN_AddToTable( szBuffer, "blue" );
+			}
+		}
+
+		if (( menu_team == TEAM_BLUE ) || ( menu_team == TEAM_RED ))
+		{
+			players[consoleplayer].bOnTeam = true;
+			players[consoleplayer].ulTeam = menu_team;
+		}
+	}
+	else
+	{
+		for ( ulIdx = 0; ulIdx < 16; ulIdx++ )
+		{
+			sprintf( szCVarName, "menu_botspawn%d", ulIdx );
+			pVar = FindCVar( szCVarName, NULL );
+
+			Val = pVar->GetGenericRep( CVAR_Int );
+			if (( BOTINFO_GetRevealed( Val.Int )) && (  BOTINFO_GetName( Val.Int ) != NULL ))
+			{
+				sprintf( szBuffer, BOTINFO_GetName( Val.Int ));
+				V_ColorizeString( szBuffer );
+				V_RemoveColorCodes( szBuffer );
+				BOTSPAWN_AddToTable( szBuffer, NULL );
+			}
+		}
+	}
 }
 
 /*=======================================
