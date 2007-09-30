@@ -35,6 +35,8 @@ $playerreserve			*evillaugh
 $playerreserve			*weaponlaugh
 $playerreserve			*puzzfail
 $playerreserve			*poison
+// [BC] New player sound for Skulltag: taunt.
+$playerreserve			*taunt
 
 // Use *pain in a script to play any of the pain sounds
 $random *pain			{ *pain100  *pain75  *pain50  *pain25 }
@@ -104,6 +106,8 @@ $playersounddup	player	male	*land		*grunt
 $playersound	player	male	*jump		dsjump
 $playersound	player	male	*fist		dspunch
 $playersound	player	male	*usefail	dsnoway
+// [BC] New player sound for Skulltag: taunt.
+$playersound	player	male	*taunt		dstaunt
 
 $playersound	player	female	*death		dsfldeth
 $playersound	player	female	*xdeath		dsfdiehi
@@ -117,6 +121,8 @@ $playersounddup	player	female	*land		*grunt
 $playersound	player	female	*jump		dsfjump
 $playersound	player	female	*fist		dspunch
 $playersound	player	female	*usefail	dsfnoway
+// [BC] New player sound for Skulltag: taunt.
+$playersound	player	female	*taunt		dstaunt
 
 $playersound	player	other	*death		dscldeth
 $playersound	player	other	*xdeath		dscdiehi
@@ -130,6 +136,8 @@ $playersounddup	player	other	*land		*grunt
 $playersound	player	other	*jump		dscjump
 $playersound	player	other	*fist		dspunch
 $playersound	player	other	*usefail	dscnoway
+// [BC] New player sound for Skulltag: taunt.
+$playersound	player	other	*taunt		dstaunt
 
 // Alternate names for some player sounds needed for ZDoom <= 1.22 compatibility
 //
@@ -155,6 +163,8 @@ $playercompat	player	male	*land		player/male/land1
 $playercompat	player	male	*jump		player/male/jump1
 $playercompat	player	male	*gibbed		player/male/gibbed
 $playercompat	player	male	*fist		player/male/fist
+// [BC] New player sound for Skulltag: taunt.
+$playercompat	player	male	*taunt		player/male/taunt
 
 $playercompat	player	female	*death		player/female/death1
 $playercompat	player	female	*death		player/female/death2
@@ -220,11 +230,22 @@ weapons/plasmax			dsfirxpl
 weapons/bfgf			dsbfg
 weapons/bfgx			dsrxplod
 weapons/railgf			railgf1
+// [BC] Some new sounds for Skulltag.
+weapons/grbnce                  dsbounce
+weapons/bfg10kf			dsbfg10k
+weapons/bfg10kx                 dsbarexp
+weapons/bfg10kcool		ds10kcdn
+weapons/bfg10kidle		ds10kidl
+weapons/minigun			dsminign
+weapons/grenlx			dsgrnexp
+weapons/grenlf			dsglaunc
 
 $limit weapons/plasmaf 0
 $limit weapons/chngun 0
 $limit weapons/rocklf 0		// because normal running is almost as fast as a rocket
 $limit weapons/rocklx 0		// and the cyberdemon shoots 3 at once
+// [BC] Don't limit the number of BFG10K explosions we can hear.
+$limit weapons/bfg10kx 0
 
 //===========================================================================
 //
@@ -432,6 +453,9 @@ brain/cube			dsboscub
 brain/cubeboom			dsfirxpl
 $alias brain/spawn		misc/teleport
 
+// [BC] Super Shotgun Guy
+
+ssgguy/attack                   dssggatk
 
 //============================================================================
 //
@@ -478,6 +502,8 @@ misc/k_pkup			dsitemup	// Pickup key
 misc/spawn			dsitmbk		// Item respawn
 misc/chat			dsradio		// Doom 2 chat sound
 misc/chat2			dstink		// Chat sound for everything else
+misc/llama			dsllama		// [BC] Llama sound
+misc/spam			dsspam		// [BC] Spam sound
 
 $limit misc/i_pkup		1
 $limit misc/k_pkup		1
@@ -502,8 +528,132 @@ menu/dismiss			dsswtchx	// Dismiss a prompt message
 menu/choose			dspistol	// Choose a menu item
 menu/clear			dsswtchx	// Close top menu
 
-$endif	// ifdoom
+//============================================================================
+//
+// [BC] ANNOUNCER SOUNDS
+//
+//===========================================================================
 
+// Added for Skulltag
+
+announcer/97b/accuracy					a3accu
+announcer/97b/assist					a3assist
+announcer/97b/blueflagdropped				a3bfldrp
+announcer/97b/blueflagreturned				a3bflrtn
+
+announcer/default/blueflagtaken				asbfltkn
+
+announcer/97b/blueleads					a3blueld
+announcer/97b/bluescores				a3bscore
+announcer/97b/blueskulldropped				a3bskdrp
+announcer/97b/blueskullreturned				a3bskrtn
+
+announcer/default/blueskulltaken			asbsktkn
+
+announcer/97b/capture					a3captur
+announcer/97b/defense					a3defens
+announcer/97b/domination				a3domn
+announcer/97b/doomsphere				a3dmsphr
+announcer/97b/drain					a3drain
+announcer/97b/excellent					a3excl
+announcer/97b/fight					a3fight
+announcer/97b/firstfrag					a3ffrag
+announcer/97b/fisting					a3fistng
+
+announcer/default/fiveminutewarning			asfmnwrn
+
+announcer/97b/guardsphere				a3guard
+announcer/97b/haste					a3haste
+announcer/97b/highjump					a3hijump
+announcer/97b/impressive				a3impr
+announcer/97b/incredible				a3incr
+announcer/97b/invisibility				a3invs
+announcer/97b/invulnerability				a3invul
+announcer/97b/llama					a3llam
+announcer/97b/megasphere				a3mega
+announcer/97b/mostimpressive				a3mimp
+announcer/97b/nextroundin				a3nxtrnd
+announcer/97b/one					a3one
+announcer/97b/onefragleft				a3onefrg
+
+announcer/default/oneminutewarning			asonmwrn
+
+announcer/97b/partialinvisibility			a3pinvs
+announcer/97b/perfect					a3perfct
+announcer/97b/possessionartifactdropped			a3posdrp
+announcer/97b/possessionartifactpickedup		a3pospck
+announcer/97b/precision					a3prec
+announcer/97b/preparetofight				a3prepar
+announcer/97b/prosperity				a3prosp
+announcer/97b/rage					a3rage
+announcer/97b/redflagdropped				a3rfldrp
+announcer/97b/redflagreturned				a3rflrtn
+
+announcer/default/redflagtaken				asrfltkn
+
+announcer/97b/redleads					a3redld
+announcer/97b/redredskull				a3rrskul
+announcer/97b/redscores					a3rscore
+announcer/97b/redskulldropped				a3rskdrp
+announcer/97b/redskullreturned				a3rskrtn
+
+announcer/default/redskulltaken				asrsktkn
+
+announcer/97b/reflection				a3refl
+announcer/97b/regeneration				a3regen
+announcer/97b/resistance				a3resis
+announcer/97b/soulsphere				a3soul
+
+announcer/default/spam					asspam
+
+announcer/97b/spread					a3spread
+announcer/97b/strength					a3str
+announcer/97b/tag					a3tag
+announcer/97b/teamsaretied				a3teamtd
+announcer/97b/termination				a3term2
+announcer/97b/terminator				a3term
+announcer/97b/theenemyhastheflag			a3enhsfl
+announcer/97b/three					a3three
+announcer/97b/threefragsleft				a3thrfrg
+announcer/97b/timefreeze				a3timfr
+announcer/97b/totaldomination				a3tdom
+announcer/97b/turbosphere				a3turbo
+announcer/97b/two					a3two
+announcer/97b/twofragsleft				a3twofrg
+announcer/97b/victory					a3victor
+announcer/97b/votefailed				a3vfail
+announcer/97b/votenow					a3vnow
+announcer/97b/votepassed				a3vpass
+announcer/97b/welcometoctf				a3welctf
+announcer/97b/welcometooneflagctf			a3wloctf
+announcer/97b/welcometost				a3welst
+announcer/97b/whiteflagreturned				a3wflrtn
+announcer/97b/youaretiedforthelead			a3tiedld
+announcer/97b/youfailit					a3youfai
+announcer/97b/youhavetheflag				a3uhavfl
+announcer/97b/yourskillisnotenough			a3noteno
+announcer/97b/yourteamhastheflag			a3tmhsfl
+announcer/97b/youvelostthelead				a3lostld
+announcer/97b/youvetakenthelead				a3taknld
+announcer/97b/youwin					a3win
+
+/***************************************************************************/
+/*									   */
+/* ADDITIONAL SOUNDS FROM TCTF.WAD FOR SKULLTAG				   */
+/*									   */
+/***************************************************************************/
+
+WindSound            wind
+Thunder		     thndr1
+WaterFallSound       waters1
+door1_start	     d1_start
+door1_mid            d1_mid
+door1_end            d1_end
+
+$ambient 1 WindSound POINT CONTINUOUS 1.0
+$ambient 2 WaterFallSound POINT CONTINUOUS 1.0
+
+$endif	// ifdoom
 
 /***************************************************************************/
 /*									   */
@@ -529,6 +679,7 @@ $playersound	player	male	*grunt		plroof
 $playersounddup	player	male	*usefail	*grunt
 $playersounddup	player	male	*land		*grunt
 $playersound	player	male	*jump		plrjmp
+$playersound	player	male	*burndeath	hedat1
 
 chicken/sight			chicpai
 chicken/pain			chicpai
