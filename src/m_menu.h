@@ -126,6 +126,7 @@ typedef enum {
 	string,
 	pwstring,
 	skintype,
+	classtype,
 	number,
 	botslot,
 	announcer,

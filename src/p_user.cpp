@@ -2804,8 +2804,6 @@ CCMD( join ) {
 	PLAYER_JoinGameFromSpectators('y');
 }
 
-void M_StartMessage (const char *string, void(*routine)(int), bool input);
-
 //*****************************************************************************
 //
 bool PLAYER_Responder( event_t *pEvent )

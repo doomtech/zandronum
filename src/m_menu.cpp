@@ -107,10 +107,8 @@ void M_ClearMenus ();
 // PRIVATE FUNCTION PROTOTYPES ---------------------------------------------
 
 static void M_NewGame (int choice);
-static void M_Multiplayer (int choice);
 static void M_Episode (int choice);
 static void M_ChooseSkill (int choice);
-static void M_ChooseBotSkill (int choice);
 static void M_LoadGame (int choice);
 static void M_SaveGame (int choice);
 static void M_Options (int choice);
@@ -141,7 +139,6 @@ static void M_DeleteSaveResponse (int choice);
 static void M_DrawMainMenu ();
 static void M_DrawReadThis ();
 static void M_DrawNewGame ();
-static void M_DrawBotSkill ();
 static void M_DrawEpisode ();
 static void M_DrawLoad ();
 static void M_DrawSave ();
@@ -152,18 +149,25 @@ static void M_DrawClassMenu ();
 static void M_DrawHereticMainMenu ();
 static void M_DrawFiles ();
 
+// [BC] New prototypes.
+static void M_Multiplayer( int choice );
+static void M_ChooseBotSkill( int choice );
+static void M_DrawBotSkill( );
+
 void M_DrawFrame (int x, int y, int width, int height);
 static void M_DrawSaveLoadBorder (int x,int y, int len);
 static void M_DrawSaveLoadCommon ();
 static void M_SetupNextMenu (oldmenu_t *menudef);
+// [BC] No longer static so this can be used elsewhere.
 /*static*/ void M_StartMessage (const char *string, void(*routine)(int), bool input);
 
 // [RH] For player setup menu.
-void M_PlayerSetup ();
+	   void M_PlayerSetup ();
 static void M_PlayerSetupTicker ();
 static void M_PlayerSetupDrawer ();
 static void M_RenderPlayerBackdrop ();
 static void M_DrawPlayerBackdrop (int x, int y);
+// [BC] These functions are no longer needed.
 /*
 static void M_EditPlayerName (int choice);
 static void M_ChangePlayerTeam (int choice);
@@ -184,26 +188,6 @@ static void PickPlayerClass ();
 EXTERN_CVAR (String, playerclass)
 EXTERN_CVAR (String, name)
 EXTERN_CVAR (Int, team)
-EXTERN_CVAR ( String, menu_name )
-EXTERN_CVAR( Color, menu_color )
-EXTERN_CVAR( String, menu_skin );
-EXTERN_CVAR( Int, menu_gender );
-EXTERN_CVAR( Int, menu_railcolor );
-EXTERN_CVAR( Int, menu_handicap);
-EXTERN_CVAR( Float, menu_autoaim );
-/*
-CVAR( Int, menu_connectiontype, 0, 0 );
-CVAR( Int, menu_votecommand, 0, 0 );
-CVAR( String, menu_voteparameters, "", 0 );
-*/
-EXTERN_CVAR (Bool, cl_run)
-EXTERN_CVAR( Int, cl_announcer )
-extern value_t GenderVals[3];
-extern value_t AutoaimVals[7];
-extern value_t TrailColorVals[11];
-void M_WeaponSetup( void );
-void M_AcceptPlayerSetupChanges( void );
-void M_UndoPlayerSetupChanges( void );
 
 extern bool		sendpause;
 extern int		flagsvar;
@@ -246,7 +230,7 @@ static FString	EndString;
 
 static short	itemOn; 			// menu item skull is on
 static short	whichSkull; 		// which skull to draw
-int		MenuTime;
+static int		MenuTime;
 static int		InfoType;
 static int		InfoTic;
 
@@ -263,11 +247,13 @@ static DCanvas	*FireScreen;
 static BYTE		FireRemap[256];
 
 static const char		*genders[3] = { "male", "female", "other" };
+// [BC] This is used in m_options.cpp now.
 /*static*/ FPlayerClass	*PlayerClass;
-/*static*/ int			PlayerSkin;
+static int			PlayerSkin;
 static FState		*PlayerState;
-static int		PlayerTics;
-/*static*/ int		PlayerRotation;
+static int			PlayerTics;
+// [BC] This is used in m_options.cpp now.
+/*static*/ int			PlayerRotation;
 
 static DCanvas			*SavePic;
 static FBrokenLines		*SaveComment;
@@ -384,6 +370,7 @@ oldmenuitem_t EpisodeMenu[MAX_EPISODES] =
 };
 
 char EpisodeMaps[MAX_EPISODES][8];
+// [BC] Customizeable titles for skill menu.
 char EpisodeSkillHeaders[MAX_EPISODES][64];
 bool EpisodeNoSkill[MAX_EPISODES];
 
@@ -435,6 +422,7 @@ static oldmenu_t NewDef =
 	2					// lastOn
 };
 
+// [BC] New menu for bot games.
 oldmenuitem_t NewBotGameMenu[]=
 {
 	{1,0,'m',"M_MOMMY",false,false,M_ChooseBotSkill},
@@ -462,7 +450,7 @@ static oldmenuitem_t HereticSkillItems[] =
 	{1,1,'y',"MNU_YELLOWBELLIES",false,false,M_ChooseSkill},
 	{1,1,'b',"MNU_BRINGEST",false,false,M_ChooseSkill},
 	{1,1,'t',"MNU_SMITE",false,false,M_ChooseSkill},
-	{1,1,'b',"BLACK PLAGUE POSSESSES THEE",false,false,M_ChooseSkill}
+	{1,1,'b',"MNU_BLACKPLAGUE",false,false,M_ChooseSkill}
 };
 
 static oldmenu_t HereticSkillMenu =
@@ -494,6 +482,7 @@ static oldmenu_t HexenSkillMenu =
 	2
 };
 
+// [BC] Skulltag uses a different player setup menu.
 /*
 //
 // [RH] Player Setup Menu
@@ -521,22 +510,59 @@ static oldmenu_t PSetupDef =
 };
 */
 
+// [BC] This replaces the ZDoom player setup menu.
+/*=======================================
+ *
+ * Player setup Menu
+ *
+ *=======================================*/
+
+// Cvars used in the menu.
+EXTERN_CVAR( String, menu_name )
+EXTERN_CVAR( String, menu_skin )
+EXTERN_CVAR( String, menu_playerclass )
+EXTERN_CVAR( Int, menu_gender )
+EXTERN_CVAR( Color, menu_color )
+EXTERN_CVAR( Bool, cl_run )
+EXTERN_CVAR( Int, menu_handicap )
+EXTERN_CVAR( Int, menu_railcolor )
+EXTERN_CVAR( Float, menu_autoaim )
+EXTERN_CVAR( Int, cl_announcer )
+
+// Menu option values used in this menu defined in m_options.cpp.
+extern	value_t		GenderVals[3];
+extern	value_t		AutoaimVals[7];
+extern	value_t		TrailColorVals[11];
+
+// Functions called by this menu.
+void	M_WeaponSetup( void );
+void	M_UndoPlayerSetupChanges( void );
+void	M_AcceptPlayerSetupChanges( void );
+
+// Other needed functions/variables.
+void	M_SetupPlayerSetupMenu( void );
+
+extern	ULONG		g_ulPlayerSetupSkin;
+extern	ULONG		g_ulPlayerSetupColor;
+extern	ULONG		g_ulPlayerSetupClass;
+
 menuitem_t PlayerSetupItems[] = {
 	{ string,	"Name",						&menu_name,				2.0, 0.0, 0.0, NULL  },
 	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ skintype,	"Skin    ",					&menu_skin,				2.0, 0.0, 0.0, NULL	 },
+	{ skintype,	"Skin",						&menu_skin,				2.0, 0.0, 0.0, NULL	 },
+	{ classtype,"Class",					&menu_playerclass,		2.0, 0.0, 0.0, NULL	 },
+	{ discrete, "Gender",					&menu_gender,			3.0, 0.0, 0.0, GenderVals },
 	{ slider,	"Red",						&menu_color,			0.0, 255.0, 1.0, NULL  },
 	{ slider,	"Green",					&menu_color,			0.0, 255.0, 1.0, NULL  },
 	{ slider,	"Blue",						&menu_color,			0.0, 255.0, 1.0, NULL  },
-	{ discrete, "Railgun color",			&menu_railcolor,		11.0, 0.0, 0.0, TrailColorVals },
-	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
 	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
 	{ discrete,	"Always Run",				&cl_run,				2.0, 0.0, 0.0, OnOff },
 	{ number,	"Handicap",					&menu_handicap,			0.0, 200.0, 5.0, NULL },
+	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
+	{ discrete, "Railgun color",			&menu_railcolor,		11.0, 0.0, 0.0, TrailColorVals },
 	{ discrete,	"Autoaim",					&menu_autoaim,			7.0, 0.0, 0.0, AutoaimVals },
 	{ more,		"Weapon setup",				NULL,					0.0, 0.0, 0.0, {(value_t *)M_WeaponSetup} },
 	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ discrete, "Gender",					&menu_gender,			3.0, 0.0, 0.0, GenderVals },
 	{ announcer,"Announcer",				&cl_announcer,			0.0, 0.0, 0.0, NULL },
 // [RC] Moved switch team to the Multiplayer menu
 	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
@@ -1575,23 +1601,14 @@ void M_DrawReadThis ()
 	else
 	{
 		tex = TexMan[gameinfo.info.infoPage[InfoType-1]];
-
-		/*====================
-		Game-Sensitive F1 Help
-		====================*/
-		if(( gamestate == GS_LEVEL ) || (gamestate == GS_INTERMISSION ))
-		{
-			if ( TexMan.CheckForTexture( GAMEMODE_GetF1Texture( GAMEMODE_GetCurrentMode( )), 0, 0 ) -1 )
-				tex = TexMan[GAMEMODE_GetF1Texture( GAMEMODE_GetCurrentMode( ))];
-
-			// Custom F1 screens via MAPINFO
-			if((level.f1 != NULL) && (strcmp(level.f1, "") != 0))
-			{
-				if(TexMan.CheckForTexture(level.f1,0,0) == -1)
-					TexMan.AddPatch(level.f1); // Needs to be marked as a patch.
-				tex = TexMan[level.f1];
-			}
+		// Did the mapper choose a custom help page via MAPINFO?
+		if((level.f1 != NULL) && (strcmp(level.f1, "") != 0)) {
+			if(TexMan.CheckForTexture(level.f1,0,0) == -1)
+				TexMan.AddPatch(level.f1); // Needs to be marked as a patch.
+			tex = TexMan[level.f1];
 		}
+		else if ( TexMan.CheckForTexture( GAMEMODE_GetF1Texture( GAMEMODE_GetCurrentMode( )), 0, 0 ) != -1 )
+			tex = TexMan[GAMEMODE_GetF1Texture( GAMEMODE_GetCurrentMode( ))];
 		if (InfoType > 1)
 		{
 			prevpic = TexMan[gameinfo.info.infoPage[InfoType-2]];
@@ -1667,7 +1684,8 @@ void M_DrawNewGame(void)
 	}
 }
 
-void M_DrawBotSkill(void)
+// [BC] Draw the header for the bot skill menu.
+void M_DrawBotSkill( void )
 {
 	if ( EpisodeMenu[epi].bBotSkillFullText )
 	{
@@ -1677,12 +1695,6 @@ void M_DrawBotSkill(void)
 	}
 	else
 		screen->DrawTexture( TexMan[EpisodeSkillHeaders[epi]], 160 - ( TexMan[EpisodeSkillHeaders[epi]]->GetWidth( ) / 2 ), 14, DTA_Clean, true, TAG_DONE );
-/*
-	if ( epi == 1 )
-		screen->DrawTexture( TexMan["M_DMATCH"], 78, 14, DTA_Clean, true, TAG_DONE );
-	else
-		screen->DrawTexture( TexMan["M_SKTAG"], 78, 14, DTA_Clean, true, TAG_DONE );
-*/
 
 	screen->DrawTexture( TexMan["M_BSKILL"], 54, 38, DTA_Clean, true, TAG_DONE );
 }
@@ -2266,33 +2278,41 @@ void M_QuitDOOM (int choice)
 	M_StartMessage (EndString, M_QuitResponse, true);
 }
 
-void M_SetupPlayerSetupMenu( void );
-extern	ULONG		g_ulPlayerSetupSkin;
-extern	ULONG		g_ulPlayerSetupColor;
-extern	ULONG		g_ulPlayerSetupClass;
-
 //
 // [RH] Player Setup Menu code
 //
 void M_PlayerSetup (void)
 {
-	if ( demoplayback )
-		G_CheckDemoStatus( );
+	// [BC] Skulltag does this differently.
+/*
+	OptionsActive = false;
+	drawSkull = true;
+	strcpy (savegamestring, name);
+	M_DemoNoPlay = true;
+*/
+	if (demoplayback)
+		G_CheckDemoStatus ();
 	// [BC] Support for client-side demos.
 	if ( CLIENTDEMO_IsPlaying( ))
 		CLIENTDEMO_FinishPlaying( );
 
-	// Copy all userinfo variables into menu_xxx.
+	// [BC] Initialize all placeholder values for the player setup menu.
 	M_SetupPlayerSetupMenu( );
 
+	// [BC] Switch to the player setup menu.
 	M_SwitchMenu( &PlayerSetupMenu );
-	PlayerClass = &PlayerClasses[g_ulPlayerSetupClass];
+
+	// [BC] Instead of using the actual player color, skin, etc., use placeholder values.
+	if (players[consoleplayer].mo != NULL)
+	{
+		PlayerClass = &PlayerClasses[g_ulPlayerSetupClass];
+	}
 	PlayerSkin = g_ulPlayerSetupSkin;
 	R_GetPlayerTranslation (g_ulPlayerSetupColor, &skins[g_ulPlayerSetupSkin], translationtables[TRANSLATION_Players] + 256 * MAXPLAYERS);
-	PlayerState = GetDefaultByType( PlayerClass->Type )->SeeState;
-	PlayerTics = PlayerState->GetTics( );
-	if ( FireScreen == NULL )
-		FireScreen = new DSimpleCanvas( 144, 160 );
+	PlayerState = GetDefaultByType (PlayerClass->Type)->SeeState;
+	PlayerTics = PlayerState->GetTics();
+	if (FireScreen == NULL)
+		FireScreen = new DSimpleCanvas (144, 160);
 }
 
 static void M_PlayerSetupTicker (void)
@@ -2336,23 +2356,27 @@ static void M_PlayerSetupTicker (void)
 	}
 }
 
-static void M_PlayerSetupDrawer( void )
+static void M_PlayerSetupDrawer ()
 {
-	int		xo, yo;
+	int xo, yo;
 	EColorRange label, value;
-	USHORT	usLineHeight;
-	USHORT	usOldPlayerSetupXOffset;
-	USHORT	usOldPlayerSetupYOffset;
+	// [BC] Store the line height.
+	ULONG	ulLineHeight;
+	// [BC] Since the new player setup menu is based off of a menu type that has offsets,
+	// we have to define them here.
+	ULONG	ulOldPlayerSetupXOffset;
+	ULONG	ulOldPlayerSetupYOffset;
 	
-	usOldPlayerSetupXOffset = 72;
-	usOldPlayerSetupYOffset = 36; // [RC] Move the player display up a bit so the text doesn't overlap
-
+	// [BC] Define those offsets here.
+	ulOldPlayerSetupXOffset = 72;
+	ulOldPlayerSetupYOffset = 36; // [RC] Move the player display up a bit so the text doesn't overlap
 	if ( gameinfo.gametype != GAME_Doom )
-		usOldPlayerSetupYOffset -= 7;
+		ulOldPlayerSetupYOffset -= 7;
 
-	usLineHeight = SmallFont->GetHeight( );
+	// [BC] Set the line height.
+	ulLineHeight = SmallFont->GetHeight( );
 
-	if ( (gameinfo.gametype & (GAME_Doom|GAME_Strife)) == false )
+	if (!(gameinfo.gametype & (GAME_Doom|GAME_Strife)))
 	{
 		xo = 5;
 		yo = 5;
@@ -2366,14 +2390,47 @@ static void M_PlayerSetupDrawer( void )
 		value = CR_GREY;
 	}
 
-	// Make sure the font is set when we display "Press space", etc.
-	screen->SetFont( SmallFont );
+	// [BC] Skulltag doesn't need to draw this.
+/*
+	// Draw title
+	const char * text = GStrings("MNU_PLAYERSETUP");
+	screen->DrawText (gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
+		160 - BigFont->StringWidth (text)/2,
+		15,
+		text, DTA_Clean, true, TAG_DONE);
+*/
 
+	// [BC] NOTE: Make sure the font is set when we display "Press space", etc.
+	screen->SetFont (SmallFont);
+
+	// [BC] Skulltag doesn't need to draw this.
+/*
+	// Draw player name box
+	screen->DrawText (label, PSetupDef.x, PSetupDef.y+yo, "Name", DTA_Clean, true, TAG_DONE);
+	M_DrawSaveLoadBorder (PSetupDef.x + 56, PSetupDef.y, MAXPLAYERNAME+1);
+	screen->DrawText (CR_UNTRANSLATED, PSetupDef.x + 56 + xo, PSetupDef.y+yo, savegamestring,
+		DTA_Clean, true, TAG_DONE);
+
+	// Draw cursor for player name box
+	if (genStringEnter)
+		screen->DrawText (CR_UNTRANSLATED,
+			PSetupDef.x + SmallFont->StringWidth(savegamestring) + 56+xo,
+			PSetupDef.y + yo, underscore, DTA_Clean, true, TAG_DONE);
+
+	// Draw player team setting
+	x = SmallFont->StringWidth ("Team") + 8 + PSetupDef.x;
+	screen->DrawText (label, PSetupDef.x, PSetupDef.y + LINEHEIGHT+yo, "Team",
+		DTA_Clean, true, TAG_DONE);
+	screen->DrawText (value, x, PSetupDef.y + LINEHEIGHT+yo,
+		players[consoleplayer].userinfo.team == TEAM_None ? "None" :
+			TeamNames[players[consoleplayer].userinfo.team],
+		DTA_Clean, true, TAG_DONE);
+*/
 	// Draw player character
 
-	// This part draws the backdrop.
+	// [BC] NOTE: This part draws the backdrop.
 	{
-		int x = 320 - 88 - 32 + xo, y = usOldPlayerSetupYOffset + usLineHeight*3 - 18 + yo;
+		int x = 320 - 88 - 32 + xo, y = ulOldPlayerSetupYOffset + ulLineHeight*3 - 18 + yo;
 
 		x = (x-160)*CleanXfac+(SCREENWIDTH>>1);
 		y = (y-100)*CleanYfac+(SCREENHEIGHT>>1);
@@ -2389,30 +2446,25 @@ static void M_PlayerSetupDrawer( void )
 			FireScreen->Unlock ();
 		}
 
-		M_DrawFrame( x, y, 72 * CleanXfac, 80 * CleanYfac - 1 );
+		M_DrawFrame (x, y, 72*CleanXfac, 80*CleanYfac-1);
 	}
 
-	// This part renders the actual character.
+	// [BC] NOTE: This part renders the actual character.
 	{
 		spriteframe_t *sprframe;
-		// [GZDoom]
 		fixed_t Scale;
-		//int scale;
-		
-		if (gameinfo.gametype != GAME_Hexen)
+
+		if (GetDefaultByType (PlayerClass->Type)->flags4 & MF4_NOSKIN ||
+			g_ulPlayerSetupClass == -1 ||
+			PlayerState->sprite.index != GetDefaultByType (PlayerClass->Type)->SpawnState->sprite.index)
 		{
-			sprframe =
-				&SpriteFrames[sprites[skins[g_ulPlayerSetupSkin].sprite].spriteframes + PlayerState->GetFrame()];
-			// [GZDoom]
-			Scale = skins[g_ulPlayerSetupSkin].Scale;
-			//scale = skins[g_ulPlayerSetupSkin].scale + 1;
+			sprframe = &SpriteFrames[sprites[PlayerState->sprite.index].spriteframes + PlayerState->GetFrame()];
+			Scale = GetDefaultByType (PlayerClass->Type)->scaleX;
 		}
 		else
 		{
-			sprframe = &SpriteFrames[sprites[PlayerState->sprite.index].spriteframes + PlayerState->GetFrame()];
-			// [GZDoom]
-			Scale = GetDefault<APlayerPawn>()->scaleX;
-			//scale = GetDefault<APlayerPawn>()->xscale + 1;
+			sprframe = &SpriteFrames[sprites[skins[g_ulPlayerSetupSkin].sprite].spriteframes + PlayerState->GetFrame()];
+			Scale = skins[PlayerSkin].Scale;
 		}
 
 		if (sprframe != NULL)
@@ -2443,14 +2495,10 @@ static void M_PlayerSetupDrawer( void )
 
 				screen->DrawTexture (tex,
 					(320 - 52 - 32 + xo - 160)*CleanXfac + (SCREENWIDTH)/2,
-					(usOldPlayerSetupYOffset + usLineHeight*3 + 57 - 104)*CleanYfac + (SCREENHEIGHT/2),
-					// [GZDoom]
+					(ulOldPlayerSetupYOffset + ulLineHeight*3 + 57 - 104)*CleanYfac + (SCREENHEIGHT/2),
 					DTA_DestWidth, MulScale16 (tex->GetWidth() * CleanXfac, Scale),
 					DTA_DestHeight, MulScale16 (tex->GetHeight() * CleanYfac, Scale),
-					//DTA_DestWidth, MulScale6 (tex->GetWidth() * CleanXfac, scale),
-					//DTA_DestHeight, MulScale6 (tex->GetHeight() * CleanYfac, scale),
 					DTA_Translation, translationtables[TRANSLATION_Players] + 256 * MAXPLAYERS,
-					//DTA_Translation, translationtables[TRANSLATION_PlayerSetupMenu],
 					TAG_DONE);
 
 				// [BC] Temporary solution. Once we've drawn the translated player, restore
@@ -2464,16 +2512,73 @@ static void M_PlayerSetupDrawer( void )
 		}
 
 		const char *str = "PRESS SPACE"; // [RC] Color tweak so it sticks out less
-		screen->DrawText( CR_DARKGRAY, 320 - 52 - 32 -
-			SmallFont->StringWidth( str ) / 2,
-			(USHORT)( usOldPlayerSetupYOffset + usLineHeight * 3 + 69 ), str,
-			DTA_Clean, true, TAG_DONE );
+		screen->DrawText (CR_DARKGRAY, 320 - 52 - 32 -
+			SmallFont->StringWidth (str)/2,
+			(ULONG)( ulOldPlayerSetupYOffset + ulLineHeight * 3 + 69 ), str,
+			DTA_Clean, true, TAG_DONE);
 		str = PlayerRotation ? "TO SEE FRONT" : "TO SEE BACK";
-		screen->DrawText( CR_DARKGRAY, 320 - 52 - 32 -
-			SmallFont->StringWidth( str ) / 2,
-			(USHORT)( usOldPlayerSetupYOffset + usLineHeight * 4 + 69 ), str,
-			DTA_Clean, true, TAG_DONE );
+		screen->DrawText (CR_DARKGRAY, 320 - 52 - 32 -
+			SmallFont->StringWidth (str)/2,
+			(ULONG)( ulOldPlayerSetupYOffset + ulLineHeight * 4 + 69 ), str,
+			DTA_Clean, true, TAG_DONE);
 	}
+
+	// [BC] Skulltag doesn't need to draw this.
+/*
+	// Draw player color sliders
+	//V_DrawTextCleanMove (CR_GREY, PSetupDef.x, PSetupDef.y + LINEHEIGHT, "Color");
+
+	screen->DrawText (label, PSetupDef.x, PSetupDef.y + LINEHEIGHT*2+yo, "Red", DTA_Clean, true, TAG_DONE);
+	screen->DrawText (label, PSetupDef.x, PSetupDef.y + LINEHEIGHT*3+yo, "Green", DTA_Clean, true, TAG_DONE);
+	screen->DrawText (label, PSetupDef.x, PSetupDef.y + LINEHEIGHT*4+yo, "Blue", DTA_Clean, true, TAG_DONE);
+
+	x = SmallFont->StringWidth ("Green") + 8 + PSetupDef.x;
+	color = players[consoleplayer].userinfo.color;
+
+	M_DrawSlider (x, PSetupDef.y + LINEHEIGHT*2+yo, 0.0f, 255.0f, RPART(color));
+	M_DrawSlider (x, PSetupDef.y + LINEHEIGHT*3+yo, 0.0f, 255.0f, GPART(color));
+	M_DrawSlider (x, PSetupDef.y + LINEHEIGHT*4+yo, 0.0f, 255.0f, BPART(color));
+
+	// [GRB] Draw class setting
+	int pclass = players[consoleplayer].userinfo.PlayerClass;
+	x = SmallFont->StringWidth ("Class") + 8 + PSetupDef.x;
+	screen->DrawText (label, PSetupDef.x, PSetupDef.y + LINEHEIGHT*5+yo, "Class", DTA_Clean, true, TAG_DONE);
+	screen->DrawText (value, x, PSetupDef.y + LINEHEIGHT*5+yo,
+		pclass == -1 ? "Random" : PlayerClasses[pclass].Type->Meta.GetMetaString (APMETA_DisplayName),
+		DTA_Clean, true, TAG_DONE);
+
+	// Draw skin setting
+	x = SmallFont->StringWidth ("Skin") + 8 + PSetupDef.x;
+	screen->DrawText (label, PSetupDef.x, PSetupDef.y + LINEHEIGHT*6+yo, "Skin", DTA_Clean, true, TAG_DONE);
+	if (GetDefaultByType (PlayerClass->Type)->flags4 & MF4_NOSKIN ||
+		players[consoleplayer].userinfo.PlayerClass == -1)
+	{
+		screen->DrawText (value, x, PSetupDef.y + LINEHEIGHT*6+yo, "Base", DTA_Clean, true, TAG_DONE);
+	}
+	else
+	{
+		screen->DrawText (value, x, PSetupDef.y + LINEHEIGHT*6+yo,
+			skins[PlayerSkin].name, DTA_Clean, true, TAG_DONE);
+	}
+
+	// Draw gender setting
+	x = SmallFont->StringWidth ("Gender") + 8 + PSetupDef.x;
+	screen->DrawText (label, PSetupDef.x, PSetupDef.y + LINEHEIGHT*7+yo, "Gender", DTA_Clean, true, TAG_DONE);
+	screen->DrawText (value, x, PSetupDef.y + LINEHEIGHT*7+yo,
+		genders[players[consoleplayer].userinfo.gender], DTA_Clean, true, TAG_DONE);
+
+	// Draw autoaim setting
+	x = SmallFont->StringWidth ("Autoaim") + 8 + PSetupDef.x;
+	screen->DrawText (label, PSetupDef.x, PSetupDef.y + LINEHEIGHT*8+yo, "Autoaim", DTA_Clean, true, TAG_DONE);
+	screen->DrawText (value, x, PSetupDef.y + LINEHEIGHT*8+yo,
+		autoaim == 0 ? "Never" :
+		autoaim <= 0.25 ? "Very Low" :
+		autoaim <= 0.5 ? "Low" :
+		autoaim <= 1 ? "Medium" :
+		autoaim <= 2 ? "High" :
+		autoaim <= 3 ? "Very High" : "Always",
+		DTA_Clean, true, TAG_DONE);
+*/
 }
 
 // Something cut out from a scan and resized to fit in 32x32. Guess what it is.
@@ -2707,6 +2812,154 @@ static void M_DrawPlayerBackdrop (int x, int y)
 	}
 }
 
+// [BC] Skulltag doesn't use any of this.
+/*
+static void M_ChangeClass (int choice)
+{
+	if (PlayerClasses.Size () == 1)
+	{
+		return;
+	}
+
+	int type = players[consoleplayer].userinfo.PlayerClass;
+
+	if (!choice)
+		type = (type < 0) ? (int)PlayerClasses.Size () - 1 : type - 1;
+	else
+		type = (type < (int)PlayerClasses.Size () - 1) ? type + 1 : -1;
+
+	cvar_set ("playerclass", type < 0 ? "Random" :
+		PlayerClasses[type].Type->Meta.GetMetaString (APMETA_DisplayName));
+}
+
+static void M_ChangeSkin (int choice)
+{
+	if (GetDefaultByType (PlayerClass->Type)->flags4 & MF4_NOSKIN ||
+		players[consoleplayer].userinfo.PlayerClass == -1)
+	{
+		return;
+	}
+
+	do
+	{
+		if (!choice)
+			PlayerSkin = (PlayerSkin == 0) ? (int)numskins - 1 : PlayerSkin - 1;
+		else
+			PlayerSkin = (PlayerSkin < (int)numskins - 1) ? PlayerSkin + 1 : 0;
+	} while (!PlayerClass->CheckSkin (PlayerSkin));
+
+	R_GetPlayerTranslation (players[consoleplayer].userinfo.color, &skins[PlayerSkin], translationtables[TRANSLATION_Players] + 256 * MAXPLAYERS);
+
+	cvar_set ("skin", skins[PlayerSkin].name);
+}
+
+static void M_ChangeGender (int choice)
+{
+	int gender = players[consoleplayer].userinfo.gender;
+
+	if (!choice)
+		gender = (gender == 0) ? 2 : gender - 1;
+	else
+		gender = (gender == 2) ? 0 : gender + 1;
+
+	cvar_set ("gender", genders[gender]);
+}
+
+static void M_ChangeAutoAim (int choice)
+{
+	static const float ranges[] = { 0, 0.25, 0.5, 1, 2, 3, 5000 };
+	float aim = autoaim;
+	int i;
+
+	if (!choice) {
+		// Select a lower autoaim
+
+		for (i = 6; i >= 1; i--)
+		{
+			if (aim >= ranges[i])
+			{
+				aim = ranges[i - 1];
+				break;
+			}
+		}
+	}
+	else
+	{
+		// Select a higher autoaim
+
+		for (i = 5; i >= 0; i--)
+		{
+			if (aim >= ranges[i])
+			{
+				aim = ranges[i + 1];
+				break;
+			}
+		}
+	}
+
+	autoaim = aim;
+}
+
+static void M_EditPlayerName (int choice)
+{
+	// we are going to be intercepting all chars
+	genStringEnter = 2;
+	genStringEnd = M_PlayerNameChanged;
+	genStringCancel = M_PlayerNameNotChanged;
+	genStringLen = MAXPLAYERNAME;
+	
+	saveSlot = 0;
+	saveCharIndex = strlen (savegamestring);
+}
+
+static void M_PlayerNameNotChanged ()
+{
+	strcpy (savegamestring, name);
+}
+
+static void M_PlayerNameChanged (FSaveGameNode *dummy)
+{
+	char command[SAVESTRINGSIZE+8];
+
+	sprintf (command, "name \"%s\"", savegamestring);
+	C_DoCommand (command);
+}
+
+static void M_ChangePlayerTeam (int choice)
+{
+	if (!choice)
+	{
+		if (team == 0)
+		{
+			team = TEAM_None;
+		}
+		else if (team == TEAM_None)
+		{
+			team = NUM_TEAMS-1;
+		}
+		else
+		{
+			team = team - 1;
+		}
+	}
+	else
+	{
+		if (team == NUM_TEAMS-1)
+		{
+			team = TEAM_None;
+		}
+		else if (team == TEAM_None)
+		{
+			team = 0;
+		}
+		else
+		{
+			team = team + 1;
+		}	
+	}
+}
+*/
+
 void SendNewColor (int red, int green, int blue)
 {
 	char command[24];
@@ -2714,9 +2967,66 @@ void SendNewColor (int red, int green, int blue)
 	sprintf (command, "menu_color \"%02x %02x %02x\"", red, green, blue);
 	C_DoCommand (command);
 
-	g_ulPlayerSetupColor = MAKERGB( red, green, blue );
+	g_ulPlayerSetupColor = MAKERGB (red, green, blue);
 	R_GetPlayerTranslation (g_ulPlayerSetupColor, &skins[g_ulPlayerSetupSkin], translationtables[TRANSLATION_Players] + 256 * MAXPLAYERS);
 }
+
+// [BC] Skulltag doesn't use any of this.
+/*
+static void M_SlidePlayerRed (int choice)
+{
+	int color = players[consoleplayer].userinfo.color;
+	int red = RPART(color);
+
+	if (choice == 0) {
+		red -= 16;
+		if (red < 0)
+			red = 0;
+	} else {
+		red += 16;
+		if (red > 255)
+			red = 255;
+	}
+
+	SendNewColor (red, GPART(color), BPART(color));
+}
+
+static void M_SlidePlayerGreen (int choice)
+{
+	int color = players[consoleplayer].userinfo.color;
+	int green = GPART(color);
+
+	if (choice == 0) {
+		green -= 16;
+		if (green < 0)
+			green = 0;
+	} else {
+		green += 16;
+		if (green > 255)
+			green = 255;
+	}
+
+	SendNewColor (RPART(color), green, BPART(color));
+}
+
+static void M_SlidePlayerBlue (int choice)
+{
+	int color = players[consoleplayer].userinfo.color;
+	int blue = BPART(color);
+
+	if (choice == 0) {
+		blue -= 16;
+		if (blue < 0)
+			blue = 0;
+	} else {
+		blue += 16;
+		if (blue > 255)
+			blue = 255;
+	}
+
+	SendNewColor (RPART(color), GPART(color), blue);
+}
+*/
 
 //
 //		Menu Functions
@@ -2766,9 +3076,6 @@ int M_StringHeight (const char *string)
 //
 // CONTROL PANEL
 //
-
-// [BC] God this is gross.
-extern	menu_t	PlayerSetupMenu;
 
 //
 // M_Responder
@@ -2956,6 +3263,7 @@ bool M_Responder (event_t *ev)
 		return true;
 
 	case ' ':
+		// [BC] This is now done elsewhere.
 		//if (currentMenu == &PSetupDef)
 		if ( 0 )
 		{
@@ -3558,11 +3866,6 @@ void M_Init (void)
 			FireRemap[i] = ColorMatcher.Pick (i/4, i*13/40+7, i/4);
 		}
 	}
-
-	// Change the "skin" label to "class" in the player menu in Hexen.
-	// [BB] 2 is the "skin" label, 6 is the "railgun color" label
-	if ( gameinfo.gametype == GAME_Hexen )
-		PlayerSetupItems[2].label = "class";
 }
 
 static void PickPlayerClass ()
@@ -3572,7 +3875,7 @@ static void PickPlayerClass ()
 	// [GRB] Pick a class from player class list
 	if (PlayerClasses.Size () > 1)
 	{
-		pclass = players[consoleplayer].userinfo.PlayerClass;
+		pclass = g_ulPlayerSetupClass;
 
 		if (pclass < 0)
 		{

@@ -153,6 +153,7 @@ EXTERN_CVAR (String,	playerclass)
 CVAR( String, menu_name, "", 0 )
 CVAR( Color, menu_color, 0x000000, 0 )
 CVAR( String, menu_skin, "", 0 );
+CVAR( String, menu_playerclass, "", 0 );
 CVAR( Int, menu_gender, 0, 0 );
 CVAR( Int, menu_railcolor, 0, 0 );
 CVAR( Int, menu_handicap, 0, 0 );
@@ -2332,8 +2333,6 @@ void M_AcceptPlayerSetupChangesFromPrompt( int iChar );
 extern menu_t PlayerSetupMenu;
 
 extern FPlayerClass		*PlayerClass;
-extern int				PlayerSkin;
-//static int				PlayerTics;
 extern int				PlayerRotation;
 
 // [RC] Moved switch team to the Multiplayer menu
@@ -2348,27 +2347,28 @@ void M_ChangeTeam( void )
 void M_SetupPlayerSetupMenu( void )
 {
 	UCVarValue	Val;
-	menu_color = color;
-	menu_handicap = handicap;
-	menu_autoaim = autoaim;
-	menu_railcolor = railcolor;
 
+	// Initialize all the menu variables.
 	Val = name.GetGenericRep( CVAR_String );
 	menu_name.SetGenericRep( Val, CVAR_String );
 
 	Val = skin.GetGenericRep( CVAR_String );
 	menu_skin.SetGenericRep( Val, CVAR_String );
 
+	Val = playerclass.GetGenericRep( CVAR_String );
+	menu_playerclass.SetGenericRep( Val, CVAR_String );
+
 	menu_gender = D_GenderToInt( gender );
 
-	// [BB] I don't want to worry about random class selection in the player setup menu,
-	// so I pick a random class here. The rest of the code relies on (g_ulPlayerSetupClass != 1).
-	if( players[consoleplayer].userinfo.PlayerClass < 0 )
-		players[consoleplayer].userinfo.PlayerClass = ( M_Random(PlayerClasses.Size()) );
+	menu_color = color;
+	menu_handicap = handicap;
+	menu_railcolor = railcolor;
+	menu_autoaim = autoaim;
 
-	g_ulPlayerSetupSkin = R_FindSkin( skin, players[consoleplayer].userinfo.PlayerClass );
+	// Initialize the skin, color, and class placeholder variables.
+	g_ulPlayerSetupSkin = R_FindSkin( skin, players[consoleplayer].CurrentPlayerClass );
 	g_ulPlayerSetupColor = players[consoleplayer].userinfo.color;
-	g_ulPlayerSetupClass = players[consoleplayer].userinfo.PlayerClass;
+	g_ulPlayerSetupClass = players[consoleplayer].CurrentPlayerClass;
 }
 
 void M_AcceptPlayerSetupChanges( void )
@@ -2404,6 +2404,11 @@ void M_AcceptPlayerSetupChanges( void )
 	Val = menu_skin.GetGenericRep( CVAR_String );
 	skin.SetGenericRep( Val, CVAR_String );
 
+	if ( stricmp( menu_playerclass, playerclass ) != 0 )
+		ulUpdateFlags |= USERINFO_PLAYERCLASS;
+	Val = menu_playerclass.GetGenericRep( CVAR_String );
+	playerclass.SetGenericRep( Val, CVAR_String );
+
 	if ( stricmp( GenderVals[menu_gender].name, gender ) != 0 )
 		ulUpdateFlags |= USERINFO_GENDER;
 	gender = GenderVals[menu_gender].name;
@@ -2419,10 +2424,6 @@ void M_AcceptPlayerSetupChanges( void )
 	if ( menu_railcolor != railcolor )
 		ulUpdateFlags |= USERINFO_RAILCOLOR;
 	railcolor = menu_railcolor;
-
-	if ( g_ulPlayerSetupClass != D_PlayerClassToInt (playerclass) )
-		ulUpdateFlags |= USERINFO_PLAYERCLASS;
-	playerclass = PlayerClasses[g_ulPlayerSetupClass].Type->Meta.GetMetaString (APMETA_DisplayName);
 
 	CLIENT_SetAllowSendingOfUserInfo( true );
 
@@ -2447,6 +2448,9 @@ bool M_PlayerSetupItemsChanged( void )
 	if ( stricmp( menu_skin, skin ) != 0 )
 		return ( true );
 
+	if ( stricmp( menu_playerclass, playerclass ) != 0 )
+		return ( true );
+
 	if ( stricmp( GenderVals[menu_gender].name, gender ) != 0 )
 		return ( true );
 
@@ -2457,9 +2461,6 @@ bool M_PlayerSetupItemsChanged( void )
 		return ( true );
 
 	if ( menu_railcolor != railcolor )
-		return ( true );
-
-	if ( g_ulPlayerSetupClass != D_PlayerClassToInt (playerclass) )
 		return ( true );
 
 	return ( false );
@@ -4216,11 +4217,11 @@ void M_OptDrawer ()
 				break;
 			case skintype:
 
-				if ( gameinfo.gametype != GAME_Hexen )
-					screen->DrawText( CR_GREY, x, y, skins[g_ulPlayerSetupSkin].name, DTA_Clean, true, TAG_DONE );
-				else
-					screen->DrawText( CR_GREY, x, y, PlayerClasses[g_ulPlayerSetupClass].Type->Meta.GetMetaString (APMETA_DisplayName), DTA_Clean, true, TAG_DONE );
-					//screen->DrawText( CR_GREY, x, y, PlayerClasses[g_ulPlayerSetupClass].Type->TypeName.GetChars( ), DTA_Clean, true, TAG_DONE );
+				screen->DrawText( CR_GREY, x, y, skins[g_ulPlayerSetupSkin].name, DTA_Clean, true, TAG_DONE );
+				break;
+			case classtype:
+
+				screen->DrawText( CR_GREY, x, y, ( g_ulPlayerSetupClass == -1 ) ? "random" : PlayerClasses[g_ulPlayerSetupClass].Type->Meta.GetMetaString (APMETA_DisplayName), DTA_Clean, true, TAG_DONE );
 				break;
 			case botslot:
 
@@ -4991,61 +4992,65 @@ void M_OptResponder (event_t *ev)
 				}
 				break;
 			case skintype:
+
+				if ((( GetDefaultByType( PlayerClass->Type )->flags4 & MF4_NOSKIN ) == false ) &&
+					( g_ulPlayerSetupClass != -1 ))
 				{
-					if ( gameinfo.gametype != GAME_Hexen )
+					LONG	lSkin = g_ulPlayerSetupSkin;
+
+					// Don't allow hidden skins to be selectable.
+					do
 					{
-						LONG	lSkin = g_ulPlayerSetupSkin;
+						lSkin--;
+						if ( lSkin < 0 )
+							lSkin = (int)numskins - 1;
 
-						// Don't allow hidden skins to be selectable.
-						do
-						{
-							lSkin--;
-							if ( lSkin < 0 )
-								lSkin = (int)numskins - 1;
+					} while (( skins[lSkin].bRevealed == false ) || ( PlayerClass->CheckSkin( lSkin ) == false ));
 
-						} while ( skins[lSkin].bRevealed == false );
+					g_ulPlayerSetupSkin = lSkin;
+					cvar_set( "menu_skin", skins[lSkin].name );
 
-						g_ulPlayerSetupSkin = lSkin;
-						cvar_set( "menu_skin", skins[lSkin].name );
-
-						if ( skins[lSkin].szColor[0] != 0 )
-						{
-							if ( g_bSwitchColorBack == false )
-							{
-								UCVarValue	Val;
-
-								Val = menu_color.GetGenericRep( CVAR_Int );
-								g_lSavedColor = Val.Int;
-	
-								g_bSwitchColorBack = true;
-							}
-							
-							cvar_set( "menu_color", skins[lSkin].szColor );
-							g_ulPlayerSetupColor = V_GetColorFromString( NULL, skins[lSkin].szColor );
-						}
-						else if ( g_bSwitchColorBack )
+					if ( skins[lSkin].szColor[0] != 0 )
+					{
+						if ( g_bSwitchColorBack == false )
 						{
 							UCVarValue	Val;
 
-							Val.Int = g_lSavedColor;
-							menu_color.SetGenericRep( Val, CVAR_Int );
-							g_ulPlayerSetupColor = g_lSavedColor;
+							Val = menu_color.GetGenericRep( CVAR_Int );
+							g_lSavedColor = Val.Int;
 
-							g_bSwitchColorBack = false;
+							g_bSwitchColorBack = true;
 						}
+						
+						cvar_set( "menu_color", skins[lSkin].szColor );
+						g_ulPlayerSetupColor = V_GetColorFromString( NULL, skins[lSkin].szColor );
 					}
-					else
+					else if ( g_bSwitchColorBack )
 					{
-						LONG	lClass = g_ulPlayerSetupClass;
+						UCVarValue	Val;
 
-						lClass--;
-						if ( lClass < 0 )
-							lClass = PlayerClasses.Size() - 1;
+						Val.Int = g_lSavedColor;
+						menu_color.SetGenericRep( Val, CVAR_Int );
+						g_ulPlayerSetupColor = g_lSavedColor;
 
-						cvar_set( "menu_playerclass", PlayerClasses[lClass].Type->TypeName.GetChars( ));
-
-						g_ulPlayerSetupClass = lClass;
+						g_bSwitchColorBack = false;
 					}
+				}
+				S_Sound( CHAN_VOICE, "menu/change", 1, ATTN_NONE );
+				break;
+			case classtype:
+
+				if ( PlayerClasses.Size( ) > 0 )
+				{
+					LONG	lClass = g_ulPlayerSetupClass;
+
+					lClass--;
+					if ( lClass < -1 )
+						lClass = PlayerClasses.Size() - 1;
+
+					cvar_set( "menu_playerclass", ( lClass == -1 ) ? "random" : PlayerClasses[lClass].Type->TypeName.GetChars( ));
+
+					g_ulPlayerSetupClass = lClass;
 				}
 				S_Sound( CHAN_VOICE, "menu/change", 1, ATTN_NONE );
 				break;
@@ -5375,61 +5380,65 @@ void M_OptResponder (event_t *ev)
 				}
 				break;
 			case skintype:
+
+				if ((( GetDefaultByType( PlayerClass->Type )->flags4 & MF4_NOSKIN ) == false ) &&
+					( g_ulPlayerSetupClass != -1 ))
 				{
 					LONG	lSkin = g_ulPlayerSetupSkin;
 
-					if ( gameinfo.gametype != GAME_Hexen )
+					// Don't allow hidden skins to be selectable.
+					do
 					{
-						// Don't allow hidden skins to be selectable.
-						do
-						{
-							lSkin++;
-							if ( lSkin >= (int)numskins )
-								lSkin = 0;
+						lSkin++;
+						if ( lSkin >= (int)numskins )
+							lSkin = 0;
 
-						} while ( skins[lSkin].bRevealed == false );
+					} while (( skins[lSkin].bRevealed == false ) || ( PlayerClass->CheckSkin( lSkin ) == false ));
 
-						g_ulPlayerSetupSkin = lSkin;
-						cvar_set( "menu_skin", skins[lSkin].name );
+					g_ulPlayerSetupSkin = lSkin;
+					cvar_set( "menu_skin", skins[lSkin].name );
 
-						if ( skins[lSkin].szColor[0] != 0 )
-						{
-							if ( g_bSwitchColorBack == false )
-							{
-								UCVarValue	Val;
-
-								Val = menu_color.GetGenericRep( CVAR_Int );
-								g_lSavedColor = Val.Int;
-	
-								g_bSwitchColorBack = true;
-							}
-							
-							cvar_set( "menu_color", skins[lSkin].szColor );
-							g_ulPlayerSetupColor = V_GetColorFromString( NULL, skins[lSkin].szColor );
-						}
-						else if ( g_bSwitchColorBack )
+					if ( skins[lSkin].szColor[0] != 0 )
+					{
+						if ( g_bSwitchColorBack == false )
 						{
 							UCVarValue	Val;
 
-							Val.Int = g_lSavedColor;
-							menu_color.SetGenericRep( Val, CVAR_Int );
-							g_ulPlayerSetupColor = g_lSavedColor;
+							Val = menu_color.GetGenericRep( CVAR_Int );
+							g_lSavedColor = Val.Int;
 
-							g_bSwitchColorBack = false;
+							g_bSwitchColorBack = true;
 						}
+						
+						cvar_set( "menu_color", skins[lSkin].szColor );
+						g_ulPlayerSetupColor = V_GetColorFromString( NULL, skins[lSkin].szColor );
 					}
-					else
+					else if ( g_bSwitchColorBack )
 					{
-						LONG	lClass = g_ulPlayerSetupClass;
+						UCVarValue	Val;
 
-						lClass++;
-						if ( lClass >= PlayerClasses.Size() )
-							lClass = 0;
+						Val.Int = g_lSavedColor;
+						menu_color.SetGenericRep( Val, CVAR_Int );
+						g_ulPlayerSetupColor = g_lSavedColor;
 
-						cvar_set( "menu_playerclass", PlayerClasses[lClass].Type->TypeName.GetChars( ));
-
-						g_ulPlayerSetupClass = lClass;
+						g_bSwitchColorBack = false;
 					}
+				}
+				S_Sound( CHAN_VOICE, "menu/change", 1, ATTN_NONE );
+				break;
+			case classtype:
+
+				if ( PlayerClasses.Size( ) > 0 )
+				{
+					LONG	lClass = g_ulPlayerSetupClass;
+
+					lClass++;
+					if ( lClass >= PlayerClasses.Size() )
+						lClass = -1;
+
+					cvar_set( "menu_playerclass", ( lClass == -1 ) ? "random" : PlayerClasses[lClass].Type->TypeName.GetChars( ));
+
+					g_ulPlayerSetupClass = lClass;
 				}
 				S_Sound( CHAN_VOICE, "menu/change", 1, ATTN_NONE );
 				break;
