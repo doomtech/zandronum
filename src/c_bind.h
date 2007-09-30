@@ -58,4 +58,6 @@ void C_FindBind(char *Command, char *Key);
 // Returns string bound to given key (NULL if none)
 const char *C_GetBinding (int key);
 
+extern const char *KeyNames[];
+
 #endif //__C_BINDINGS_H__

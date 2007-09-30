@@ -1810,7 +1810,7 @@ static bool		resetinventory;	// Reset the inventory to the player's default for 
 	if (thiscluster && (thiscluster->flags & CLUSTER_HUB))
 	{
 		if ((level.flags & LEVEL_NOINTERMISSION) || (nextcluster == thiscluster))
-			NoWipe = 4;
+			NoWipe = 35;
 		D_DrawIcon = "TELEICON";
 	}
 

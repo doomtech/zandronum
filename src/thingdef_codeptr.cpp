@@ -1145,7 +1145,7 @@ void A_FireCustomMissileHelper ( AActor * self,
 								 const angle_t Angle,
 								 const INTBOOL AimAtAngle )
 {
-	AActor * misl=P_SpawnPlayerMissile (self, self->x+x, self->y+y, self->z+z, ti, shootangle);
+	AActor * misl=P_SpawnPlayerMissile (self, x, y, z, ti, shootangle);
 	// automatic handling of seeker missiles
 	if (misl)
 	{
@@ -1216,7 +1216,7 @@ void A_FireCustomMissile (AActor * self)
 		}
 
 /*
-		AActor * misl=P_SpawnPlayerMissile (self, self->x+x, self->y+y, self->z+z, ti, shootangle);
+		AActor * misl=P_SpawnPlayerMissile (self, x, y, z, ti, shootangle);
 		// automatic handling of seeker missiles
 		if (misl)
 		{

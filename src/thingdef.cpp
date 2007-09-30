@@ -4,8 +4,8 @@
 ** Actor definitions
 **
 **---------------------------------------------------------------------------
-** Copyright 2002-2006 Christoph Oelckers
-** Copyright 2004-2006 Randy Heit
+** Copyright 2002-2007 Christoph Oelckers
+** Copyright 2004-2007 Randy Heit
 ** All rights reserved.
 **
 ** Redistribution and use in source and binary forms, with or without
@@ -129,6 +129,7 @@ static flagdef ActorFlags[]=
 	DEFINE_FLAG(MF, NOLIFTDROP, AActor, flags),
 	DEFINE_FLAG(MF, STEALTH, AActor, flags),
 	DEFINE_FLAG(MF, ICECORPSE, AActor, flags),
+	DEFINE_FLAG(MF2, DONTREFLECT, AActor, flags2),
 	DEFINE_FLAG(MF2, WINDTHRUST, AActor, flags2),
 	DEFINE_FLAG(MF2, HERETICBOUNCE , AActor, flags2),
 	DEFINE_FLAG(MF2, BLASTED, AActor, flags2),
@@ -261,6 +262,7 @@ static flagdef InventoryFlags[] =
 	DEFINE_FLAG(IF, ALWAYSPICKUP, AInventory, ItemFlags),
 	DEFINE_FLAG(IF, FANCYPICKUPSOUND, AInventory, ItemFlags),
 	DEFINE_FLAG(IF, BIGPOWERUP, AInventory, ItemFlags),
+	DEFINE_FLAG(IF, KEEPDEPLETED, AInventory, ItemFlags),
 };
 
 static flagdef WeaponFlags[] =
@@ -4022,6 +4024,15 @@ static void PlayerColorRange (APlayerPawn *defaults, Baggage &bag)
 //==========================================================================
 //
 //==========================================================================
+static void PlayerAttackZOffset (APlayerPawn *defaults, Baggage &bag)
+{
+	SC_MustGetFloat ();
+	defaults->AttackZOffset = FLOAT2FIXED (sc_Float);
+}
+
+//==========================================================================
+//
+//==========================================================================
 static void PlayerJumpZ (APlayerPawn *defaults, Baggage &bag)
 {
 	SC_MustGetFloat ();
@@ -4152,11 +4163,11 @@ static void PlayerStartItem (APlayerPawn *defaults, Baggage &bag)
 
 	SC_MustGetString();
 	di->Name = sc_String;
-	di->probability=255;
-	di->amount=0;
+	di->probability = 255;
+	di->amount = 1;
 	if (CheckNumParm())
 	{
-		di->amount=sc_Number;
+		di->amount = sc_Number;
 	}
 	di->Next = bag.DropItemList;
 	bag.DropItemList = di;
@@ -4324,6 +4335,7 @@ static const ActorProps props[] =
 	{ "pain",						ActorPainState,				RUNTIME_CLASS(AActor) },
 	{ "painchance",					ActorPainChance,			RUNTIME_CLASS(AActor) },
 	{ "painsound",					ActorPainSound,				RUNTIME_CLASS(AActor) },
+	{ "player.attackzoffset",		(apf)PlayerAttackZOffset,	RUNTIME_CLASS(APlayerPawn) },
 	{ "player.colorrange",			(apf)PlayerColorRange,		RUNTIME_CLASS(APlayerPawn) },
 	{ "player.crouchsprite",		(apf)PlayerCrouchSprite,	RUNTIME_CLASS(APlayerPawn) },
 	{ "player.displayname",			(apf)PlayerDisplayName,		RUNTIME_CLASS(APlayerPawn) },

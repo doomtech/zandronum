@@ -1928,7 +1928,6 @@ void M_ChooseSkill (int choice)
 	}
 
 	gameskill = choice;
-	gamestate = gamestate == GS_FULLCONSOLE ? GS_HIDECONSOLE : gamestate;
 
 	// [BC] Tell the server we're leaving the game.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
@@ -1952,7 +1951,11 @@ void M_ChooseSkill (int choice)
 	CAMPAIGN_EnableCampaign( );
 
 	G_DeferedInitNew (EpisodeMaps[epi]);
-	gamestate = gamestate == GS_FULLCONSOLE ? GS_HIDECONSOLE : gamestate;
+	if (gamestate == GS_FULLCONSOLE)
+	{
+		gamestate = GS_HIDECONSOLE;
+		gameaction = ga_newgame;
+	}
 	M_ClearMenus ();
 }
 

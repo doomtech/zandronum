@@ -16,6 +16,9 @@
 #include "gi.h"
 #include "deathmatch.h"
 
+// The translation to use for depleted items
+#define DIM_MAP &NormalLight.Maps[NUMCOLORMAPS*2/3*256]
+
 // Number of tics to move the popscreen up and down.
 #define POP_TIME (TICRATE/8)
 
@@ -443,7 +446,7 @@ private:
 			}
 			if (item->Icon != 0)
 			{
-				DrawImage (TexMan(item->Icon), 48 + 35*i, 14);
+				DrawImage (TexMan(item->Icon), 48 + 35*i, 14, item->Amount > 0 ? NULL : DIM_MAP);
 			}
 			DrINumber (item->Amount, 74 + 35*i, 23, imgFONY0);
 		}
@@ -517,6 +520,7 @@ private:
 				screen->DrawTexture (TexMan(CPlayer->mo->InvSel->Icon), -42, -17,
 					DTA_HUDRules, HUD_Normal,
 					DTA_CenterBottomOffset, true,
+					DTA_Translation, CPlayer->mo->InvSel->Amount > 0 ? NULL : DIM_MAP,
 					TAG_DONE);
 			}
 		}
@@ -540,6 +544,7 @@ private:
 					{
 						screen->DrawTexture (TexMan(item->Icon), -94 + i*35, -19,
 							DTA_HUDRules, HUD_HorizCenter,
+							DTA_Translation, CPlayer->mo->InvSel->Amount > 0 ? NULL : DIM_MAP,
 							TAG_DONE);
 					}
 					DrINumberOuter (item->Amount, -89 + i*35, -10, true, 7);

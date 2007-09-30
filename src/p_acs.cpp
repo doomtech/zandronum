@@ -3,7 +3,7 @@
 ** General BEHAVIOR management and ACS execution environment
 **
 **---------------------------------------------------------------------------
-** Copyright 1998-2006 Randy Heit
+** Copyright 1998-2007 Randy Heit
 ** All rights reserved.
 **
 ** Redistribution and use in source and binary forms, with or without
@@ -64,6 +64,7 @@
 #include "gstrings.h"
 #include "gi.h"
 #include "sc_man.h"
+#include "c_bind.h"
 #include "deathmatch.h"
 #include "team.h"
 #include "cooperative.h"
@@ -105,8 +106,6 @@ struct CallReturn
 	int ReturnAddress;
 	int bDiscardResult;
 };
-
-static SDWORD Stack[STACK_SIZE];
 
 static DLevelScript *P_GetScriptGoing (AActor *who, line_t *where, int num, const ScriptPtr *code, FBehavior *module,
 	bool lineSide, int arg0, int arg1, int arg2, int always, bool delay);
@@ -331,16 +330,13 @@ static void DoTakeInv (AActor *actor, const PClass *info, int amount)
 			// amounts a backpack might have given.
 			// Armor shouldn't be removed because they only work properly when
 			// they are the last items in the inventory.
-			if (item->GetClass()->ParentClass != RUNTIME_CLASS(AAmmo) &&
-				item->GetClass() != RUNTIME_CLASS(ABasicArmor) &&
-				item->GetClass() != RUNTIME_CLASS(AHexenArmor)
-				)
+			if (item->ItemFlags & IF_KEEPDEPLETED)
 			{
-				item->Destroy ();
+				item->Amount = 0;
 			}
 			else
 			{
-				item->Amount = 0;
+				item->Destroy ();
 			}
 		}
 	}
@@ -2214,6 +2210,7 @@ void DLevelScript::DoSetFont (int fontnum)
 #define APROP_ChaseGoal		13
 #define APROP_Frightened	14
 #define APROP_Gravity		15
+#define APROP_Friendly		16
 #define APROP_SeeSound		5	// Sounds can only be set, not gotten
 #define APROP_AttackSound	6
 #define APROP_PainSound		7
@@ -2324,6 +2321,13 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 			actor->flags4 &= ~MF4_FRIGHTENED;
 		break;
 		
+	case APROP_Friendly:
+		if (value)
+			actor->flags |= MF_FRIENDLY;
+		else
+			actor->flags &= ~MF_FRIENDLY;
+		break;
+		
 	case APROP_Gravity:
 		actor->gravity = value;
 		break;
@@ -2402,6 +2406,7 @@ int DLevelScript::GetActorProperty (int tid, int property)
 	case APROP_Ambush:		return !!(actor->flags & MF_AMBUSH);
 	case APROP_ChaseGoal:	return !!(actor->flags5 & MF5_CHASEGOAL);
 	case APROP_Frightened:	return !!(actor->flags4 & MF4_FRIGHTENED);
+	case APROP_Friendly:	return !!(actor->flags & MF_FRIENDLY);
 	case APROP_JumpZ:		if (actor->IsKindOf (RUNTIME_CLASS (APlayerPawn)))
 							{
 								return static_cast<APlayerPawn *>(actor)->JumpZ;	// [GRB]
@@ -2485,12 +2490,12 @@ int DLevelScript::RunScript ()
 		break;
 	}
 
-	int *pc = this->pc;
+	SDWORD Stack[STACK_SIZE];
 	int sp = 0;
+	int *pc = this->pc;
 	ACSFormat fmt = activeBehavior->GetFormat();
 	int runaway = 0;	// used to prevent infinite loops
 	int pcd;
-	//char workreal[4096], *const work = workreal+2, *workwhere = work;
 	FString work;
 	const char *lookup;
 	int optstart = -1;
@@ -3941,6 +3946,25 @@ int DLevelScript::RunScript ()
 			}
 			break;
 
+		// [GRB] Print key name(s) for a command
+		case PCD_PRINTBIND:
+			lookup = FBehavior::StaticLookupString (STACK(1));
+			if (lookup != NULL)
+			{
+				int key1 = 0, key2 = 0;
+
+				C_GetKeysForCommand ((char *)lookup, &key1, &key2);
+
+				if (key2)
+					work << KeyNames[key1] << " or " << KeyNames[key2];
+				else if (key1)
+					work << KeyNames[key1];
+				else
+					work << "??? (" << (char *)lookup << ')';
+			}
+			--sp;
+			break;
+
 		case PCD_ENDPRINT:
 		case PCD_ENDPRINTBOLD:
 		case PCD_MOREHUDMESSAGE:
@@ -4006,7 +4030,6 @@ int DLevelScript::RunScript ()
 				{
 					screen = screen->target;
 				}
-
 				if (pcd == PCD_ENDHUDMESSAGEBOLD || screen == NULL ||
 					players[consoleplayer].mo == screen || NETWORK_GetState( ) == NETSTATE_SERVER )
 				{
@@ -5449,15 +5472,15 @@ int DLevelScript::RunScript ()
 				userinfo_t *userinfo = &players[STACK(2)].userinfo;
 				switch (STACK(1))
 				{
-				case PLAYERINFO_TEAM:			STACK(2) = userinfo->team;
-				case PLAYERINFO_AIMDIST:		STACK(2) = userinfo->aimdist;
-				case PLAYERINFO_COLOR:			STACK(2) = userinfo->color;
-				case PLAYERINFO_GENDER:			STACK(2) = userinfo->gender;
-				case PLAYERINFO_NEVERSWITCH:	STACK(2) = userinfo->switchonpickup;
-				case PLAYERINFO_MOVEBOB:		STACK(2) = userinfo->MoveBob;
-				case PLAYERINFO_STILLBOB:		STACK(2) = userinfo->StillBob;
-				case PLAYERINFO_PLAYERCLASS:	STACK(2) = userinfo->PlayerClass;
-				default:						STACK(2) = 0;
+				case PLAYERINFO_TEAM:			STACK(2) = userinfo->team; break;
+				case PLAYERINFO_AIMDIST:		STACK(2) = userinfo->aimdist; break;
+				case PLAYERINFO_COLOR:			STACK(2) = userinfo->color; break;
+				case PLAYERINFO_GENDER:			STACK(2) = userinfo->gender; break;
+				case PLAYERINFO_NEVERSWITCH:	STACK(2) = userinfo->switchonpickup; break;
+				case PLAYERINFO_MOVEBOB:		STACK(2) = userinfo->MoveBob; break;
+				case PLAYERINFO_STILLBOB:		STACK(2) = userinfo->StillBob; break;
+				case PLAYERINFO_PLAYERCLASS:	STACK(2) = userinfo->PlayerClass; break;
+				default:						STACK(2) = 0; break;
 				}
 			}
 			sp -= 1;

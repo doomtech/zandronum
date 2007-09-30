@@ -310,26 +310,26 @@ void A_FSwordAttack (AActor *actor)
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 		return;
 
-	P_SpawnPlayerMissile (actor, actor->x, actor->y, actor->z-10*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle+ANGLE_45/4);
-	P_SpawnPlayerMissile (actor, actor->x, actor->y, actor->z-5*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle+ANGLE_45/8);
-	P_SpawnPlayerMissile (actor, actor->x, actor->y, actor->z, RUNTIME_CLASS(AFSwordMissile), actor->angle);
-	P_SpawnPlayerMissile (actor, actor->x, actor->y, actor->z+5*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle-ANGLE_45/8);
-	P_SpawnPlayerMissile (actor, actor->x, actor->y, actor->z+10*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle-ANGLE_45/4);
+	P_SpawnPlayerMissile (actor, 0, 0, -10*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle+ANGLE_45/4);
+	P_SpawnPlayerMissile (actor, 0, 0,  -5*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle+ANGLE_45/8);
+	P_SpawnPlayerMissile (actor, 0, 0,   0,		   RUNTIME_CLASS(AFSwordMissile), actor->angle);
+	P_SpawnPlayerMissile (actor, 0, 0,   5*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle-ANGLE_45/8);
+	P_SpawnPlayerMissile (actor, 0, 0,  10*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle-ANGLE_45/4);
 
 	// [BC] Apply spread.
 	if ( player->Powers & PW_SPREAD )
 	{
-		P_SpawnPlayerMissile (actor, actor->x, actor->y, actor->z-10*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle+ANGLE_45/4 + ( ANGLE_45 / 3 ));
-		P_SpawnPlayerMissile (actor, actor->x, actor->y, actor->z-5*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle+ANGLE_45/8 + ( ANGLE_45 / 3 ));
-		P_SpawnPlayerMissile (actor, actor->x, actor->y, actor->z, RUNTIME_CLASS(AFSwordMissile), actor->angle + ( ANGLE_45 / 3 ));
-		P_SpawnPlayerMissile (actor, actor->x, actor->y, actor->z+5*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle-ANGLE_45/8 + ( ANGLE_45 / 3 ));
-		P_SpawnPlayerMissile (actor, actor->x, actor->y, actor->z+10*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle-ANGLE_45/4 + ( ANGLE_45 / 3 ));
+		P_SpawnPlayerMissile (actor, 0, 0, -10*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle+ANGLE_45/4 + ( ANGLE_45 / 3 ));
+		P_SpawnPlayerMissile (actor, 0, 0,  -5*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle+ANGLE_45/8 + ( ANGLE_45 / 3 ));
+		P_SpawnPlayerMissile (actor, 0, 0,   0,		   RUNTIME_CLASS(AFSwordMissile), actor->angle + ( ANGLE_45 / 3 ));
+		P_SpawnPlayerMissile (actor, 0, 0,   5*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle-ANGLE_45/8 + ( ANGLE_45 / 3 ));
+		P_SpawnPlayerMissile (actor, 0, 0,  10*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle-ANGLE_45/4 + ( ANGLE_45 / 3 ));
 
-		P_SpawnPlayerMissile (actor, actor->x, actor->y, actor->z-10*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle+ANGLE_45/4 - ( ANGLE_45 / 3 ));
-		P_SpawnPlayerMissile (actor, actor->x, actor->y, actor->z-5*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle+ANGLE_45/8 - ( ANGLE_45 / 3 ));
-		P_SpawnPlayerMissile (actor, actor->x, actor->y, actor->z, RUNTIME_CLASS(AFSwordMissile), actor->angle - ( ANGLE_45 / 3 ));
-		P_SpawnPlayerMissile (actor, actor->x, actor->y, actor->z+5*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle-ANGLE_45/8 - ( ANGLE_45 / 3 ));
-		P_SpawnPlayerMissile (actor, actor->x, actor->y, actor->z+10*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle-ANGLE_45/4 - ( ANGLE_45 / 3 ));
+		P_SpawnPlayerMissile (actor, 0, 0, -10*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle+ANGLE_45/4 - ( ANGLE_45 / 3 ));
+		P_SpawnPlayerMissile (actor, 0, 0,  -5*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle+ANGLE_45/8 - ( ANGLE_45 / 3 ));
+		P_SpawnPlayerMissile (actor, 0, 0,   0,		   RUNTIME_CLASS(AFSwordMissile), actor->angle - ( ANGLE_45 / 3 ));
+		P_SpawnPlayerMissile (actor, 0, 0,   5*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle-ANGLE_45/8 - ( ANGLE_45 / 3 ));
+		P_SpawnPlayerMissile (actor, 0, 0,  10*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle-ANGLE_45/4 - ( ANGLE_45 / 3 ));
 	}
 
 	S_Sound (actor, CHAN_WEAPON, "FighterSwordFire", 1, ATTN_NORM);

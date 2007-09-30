@@ -22,6 +22,9 @@
 #include "invasion.h"
 #include "gamemode.h"
 
+// The translation to use for depleted items
+#define DIM_MAP &NormalLight.Maps[NUMCOLORMAPS*2/3*256]
+
 #define ST_EVILGRINCOUNT		(2*TICRATE)
 #define ST_STRAIGHTFACECOUNT	(TICRATE/2)
 #define ST_TURNCOUNT			(1*TICRATE)
@@ -539,7 +542,7 @@ private:
 			}
 			else
 			{
-				DrawImage (TexMan(CPlayer->mo->InvSel->Icon), 144, 0);
+				DrawImage (TexMan(CPlayer->mo->InvSel->Icon), 144, 0, CPlayer->mo->InvSel->Amount > 0 ? NULL : DIM_MAP);
 				if (CPlayer->mo->InvSel->Amount != 1)
 				{
 					DrSmallNumber (CPlayer->mo->InvSel->Amount, 165, 24);
@@ -1382,7 +1385,7 @@ void DrawFullHUD_GameInformation()
 			for (item = CPlayer->mo->InvFirst, i = 0; item != NULL && i < 7; item = item->NextInv(), ++i)
 			{
 				DrawImage (Images[imgARTIBOX], 50+i*31, 2);
-				DrawImage (TexMan(item->Icon), 50+i*31, 2);
+				DrawImage (TexMan(item->Icon), 50+i*31, 2, item->Amount > 0 ? NULL : DIM_MAP);
 				if (item->Amount != 1)
 				{
 					DrSmallNumber (item->Amount, 66+i*31, 24);
@@ -1449,6 +1452,7 @@ void DrawFullHUD_GameInformation()
 					screen->DrawTexture (TexMan(CPlayer->mo->InvSel->Icon), -14, ammotop - 1/*-24*/,
 						DTA_HUDRules, HUD_Normal,
 						DTA_CenterBottomOffset, true,
+						DTA_Translation, CPlayer->mo->InvSel->Amount > 0 ? NULL : DIM_MAP,
 						TAG_DONE);
 					DrBNumberOuter (CPlayer->mo->InvSel->Amount, -68, ammotop - 18/*-41*/);
 				}
@@ -1467,6 +1471,7 @@ void DrawFullHUD_GameInformation()
 							TAG_DONE);
 						screen->DrawTexture (TexMan(item->Icon), -105+i*31, -32,
 							DTA_HUDRules, HUD_HorizCenter,
+							DTA_Translation, item->Amount > 0 ? NULL : DIM_MAP,
 							TAG_DONE);
 						if (item->Amount != 1)
 						{
@@ -1932,9 +1937,9 @@ void DrawFullHUD_GameInformation()
 		if (FacePriority < 6)
 		{
 			// rapid firing
-			if (CPlayer->cmd.ucmd.buttons & BT_ATTACK)
+			if ((CPlayer->cmd.ucmd.buttons & BT_ATTACK) && !(CPlayer->cheats & (CF_FROZEN | CF_TOTALLYFROZEN)))
 			{
-				if (FaceLastAttackDown==-1)
+				if (FaceLastAttackDown == -1)
 					FaceLastAttackDown = ST_RAMPAGEDELAY;
 				else if (!--FaceLastAttackDown)
 				{

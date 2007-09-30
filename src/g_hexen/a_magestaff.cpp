@@ -392,7 +392,7 @@ void MStaffSpawn (AActor *pmo, angle_t angle)
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 		return;
 
-	mo = P_SpawnPlayerMissile (pmo, pmo->x, pmo->y, pmo->z+8*FRACUNIT,
+	mo = P_SpawnPlayerMissile (pmo, 0, 0, 8*FRACUNIT,
 		RUNTIME_CLASS(AMageStaffFX2), angle);
 	if (mo)
 	{

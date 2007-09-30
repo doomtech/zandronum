@@ -234,7 +234,7 @@ bool P_Thing_Projectile (int tid, AActor *source, int type, const char * type_na
 	const PClass *kind;
 	AActor *spot, *mobj, *targ = forcedest;
 	FActorIterator iterator (tid);
-	float fspeed = float(speed);
+	double fspeed = speed;
 	int defflags3;
 	// [BC]
 	bool	bMissileExplode;
@@ -337,7 +337,7 @@ bool P_Thing_Projectile (int tid, AActor *source, int type, const char * type_na
 									goto nolead;
 								}
 							}
-							double dist = aim | aim;
+							double dist = aim.Length();
 							double targspeed = tvel.Length();
 							double ydotx = -aim | tvel;
 							double a = acos (clamp (ydotx / targspeed / dist, -1.0, 1.0));
@@ -363,8 +363,7 @@ bool P_Thing_Projectile (int tid, AActor *source, int type, const char * type_na
 						}
 						else
 						{
-nolead:
-							mobj->angle = R_PointToAngle2 (mobj->x, mobj->y, targ->x, targ->y);
+nolead:						mobj->angle = R_PointToAngle2 (mobj->x, mobj->y, targ->x, targ->y);
 							aim.Resize (fspeed);
 							mobj->momx = fixed_t(aim[0]);
 							mobj->momy = fixed_t(aim[1]);
@@ -385,7 +384,7 @@ nolead:
 					// Set the missile's speed to reflect the speed it was spawned at.
 					if (mobj->flags & MF_MISSILE)
 					{
-						mobj->Speed = fixed_t (sqrtf (float(speed*speed + vspeed*vspeed)));
+						mobj->Speed = fixed_t (sqrt (double(mobj->momx)*mobj->momx + double(mobj->momy)*mobj->momy + double(mobj->momz)*mobj->momz));
 					}
 					// Hugger missiles don't have any vertical velocity
 					if (mobj->flags3 & (MF3_FLOORHUGGER|MF3_CEILINGHUGGER))

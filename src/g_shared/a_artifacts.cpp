@@ -483,7 +483,7 @@ void APowerInvulnerable::EndEffect ()
 
 int APowerInvulnerable::AlterWeaponSprite (vissprite_t *vis)
 {
-	int changed = Inventory == NULL? false : Inventory->AlterWeaponSprite(vis);
+	int changed = Inventory == NULL ? false : Inventory->AlterWeaponSprite(vis);
 	if (Owner != NULL)
 	{
 		if (mode == NAME_Ghost && !(Owner->flags & MF_SHADOW))
@@ -631,7 +631,7 @@ void APowerInvisibility::EndEffect ()
 
 int APowerInvisibility::AlterWeaponSprite (vissprite_t *vis)
 {
-	int changed = Inventory == NULL? false : Inventory->AlterWeaponSprite(vis);
+	int changed = Inventory == NULL ? false : Inventory->AlterWeaponSprite(vis);
 
 	// Blink if the powerup is wearing off
 	if (changed == 0 && EffectTics < 4*32 && !(EffectTics & 8))
@@ -676,7 +676,7 @@ void APowerGhost::InitEffect ()
 
 int APowerGhost::AlterWeaponSprite (vissprite_t *vis)
 {
-	int changed = Inventory == NULL? false : Inventory->AlterWeaponSprite(vis);
+	int changed = Inventory == NULL ? false : Inventory->AlterWeaponSprite(vis);
 
 	// Blink if the powerup is wearing off
 	if (changed == 0 && EffectTics < 4*32 && !(EffectTics & 8))
@@ -702,6 +702,40 @@ END_DEFAULTS
 
 //===========================================================================
 //
+// APowerShadow :: HandlePickup
+//
+// If the player already has the first stage of the powerup, getting it
+// again makes them completely invisible. Special1 tracks which stage we
+// are in, initially 0.
+//
+//===========================================================================
+
+bool APowerShadow::HandlePickup (AInventory *item)
+{
+	if (special1 == 0 && item->GetClass() == GetClass())
+	{
+		APowerup *power = static_cast<APowerup *>(item);
+		if (power->EffectTics == 0)
+		{
+			power->ItemFlags |= IF_PICKUPGOOD;
+			return true;
+		}
+		// Only increase the EffectTics, not decrease it.
+		// Color also gets transferred only when the new item has an effect.
+		if (power->EffectTics > EffectTics)
+		{
+			EffectTics = power->EffectTics;
+			BlendColor = power->BlendColor;
+		}
+		special1 = 1;	// Go to stage 2.
+		power->ItemFlags |= IF_PICKUPGOOD;
+		return true;
+	}
+	return Super::HandlePickup (item);
+}
+
+//===========================================================================
+//
 // APowerShadow :: InitEffect
 //
 //===========================================================================
@@ -709,7 +743,7 @@ END_DEFAULTS
 void APowerShadow::InitEffect ()
 {
 	Owner->flags |= MF_SHADOW;
-	Owner->alpha = TRANSLUC25;
+	Owner->alpha = special1 == 0 ? TRANSLUC25 : 0;
 	Owner->RenderStyle = STYLE_Translucent;
 }
 
@@ -721,7 +755,7 @@ void APowerShadow::InitEffect ()
 
 int APowerShadow::AlterWeaponSprite (vissprite_t *vis)
 {
-	int changed = Inventory == NULL? false : Inventory->AlterWeaponSprite(vis);
+	int changed = Inventory == NULL ? false : Inventory->AlterWeaponSprite(vis);
 
 	// Blink if the powerup is wearing off
 	if (changed == 0 && EffectTics < 4*32 && !(EffectTics & 8))
@@ -734,6 +768,11 @@ int APowerShadow::AlterWeaponSprite (vissprite_t *vis)
 		// something else set the weapon sprite back to opaque but this item is still active.
 		vis->alpha = TRANSLUC25;
 		vis->RenderStyle = STYLE_Translucent;
+	}
+	if (special1 == 1)
+	{
+		vis->alpha = TRANSLUC25;
+		vis->colormap = InverseColormap;
 	}
 	return -1;	// This item is valid so another one shouldn't reset the translucency
 }

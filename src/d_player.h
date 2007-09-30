@@ -130,6 +130,7 @@ public:
 	int			ScoreIcon;
 	int			SpawnMask;
 	FNameNoInit	MorphWeapon;
+	fixed_t		AttackZOffset;			// attack height, relative to player center
 
 	bool UpdateWaterLevel (fixed_t oldz, bool splash);
 	bool ResetAirSupply ();
