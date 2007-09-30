@@ -166,7 +166,7 @@ bool CHAT_Input( event_t *pEvent )
 			// Ctrl+C. 
 			else if ( pEvent->data1 == 'C' && ( pEvent->data3 & GKM_CTRL ))
 			{
-				I_PutInClipboard((char *)g_szChatBuffer );
+				I_PutInClipboard(g_szChatBuffer );
 				return ( true );
 			}
 			// Ctrl+V.
@@ -403,7 +403,7 @@ ULONG CHAT_GetChatMode( void )
 
 //*****************************************************************************
 //
-void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, char *pszString )
+void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 {
 	ULONG		ulChatLevel;
 	FString		OutString;
@@ -525,7 +525,7 @@ void chat_SendMessage( ULONG ulMode, const char *pszString )
 	// If we're the client, let the server handle formatting/sending the msg to other players.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 	{
-		CLIENTCOMMANDS_Say( ulMode, (char *)pszString );
+		CLIENTCOMMANDS_Say( ulMode, pszString );
 		return;
 	}
 
@@ -533,10 +533,10 @@ void chat_SendMessage( ULONG ulMode, const char *pszString )
 	{
 		Net_WriteByte( DEM_SAY );
 		Net_WriteByte( ulMode );
-		Net_WriteString( (char *)pszString );
+		Net_WriteString( pszString );
 	}
 	else
-		CHAT_PrintChatString( consoleplayer, ulMode, (char *)pszString );
+		CHAT_PrintChatString( consoleplayer, ulMode, pszString );
 }
 
 //*****************************************************************************
@@ -601,10 +601,10 @@ CCMD( say )
 
 		// Send the server's chat string out to clients, and print it in the console.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVER_SendChatMessage( MAXPLAYERS, CHATMODE_GLOBAL, (char *)ChatString.GetChars( ));
+			SERVER_SendChatMessage( MAXPLAYERS, CHATMODE_GLOBAL, ChatString.GetChars( ));
 		else
 			// We typed out our message in the console or with a macro. Go ahead and send the message now.
-			chat_SendMessage( CHATMODE_GLOBAL, (char *)ChatString.GetChars( ));
+			chat_SendMessage( CHATMODE_GLOBAL, ChatString.GetChars( ));
 	}
 }
 
@@ -651,6 +651,6 @@ CCMD( say_team )
 			ChatString.AppendFormat( "%s ", argv[ulIdx] );
 
 		// We typed out our message in the console or with a macro. Go ahead and send the message now.
-		chat_SendMessage( CHATMODE_TEAM, (char *)ChatString.GetChars( ));
+		chat_SendMessage( CHATMODE_TEAM, ChatString.GetChars( ));
 	}
 }

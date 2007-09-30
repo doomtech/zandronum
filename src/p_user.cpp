@@ -1514,7 +1514,7 @@ void APlayerPawn::Die (AActor *source, AActor *inflictor)
 
 			// Tell the clients that this player no longer possesses a flag.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_TakeInventory( player - players, (char *)TEAM_GetFlagItem( !player->ulTeam )->TypeName.GetChars( ), 0 );
+				SERVERCOMMANDS_TakeInventory( player - players, TEAM_GetFlagItem( !player->ulTeam )->TypeName.GetChars( ), 0 );
 			else
 				SCOREBOARD_RefreshHUD( );
 
@@ -1655,7 +1655,7 @@ void APlayerPawn::DropImportantItems( bool bLeavingGame )
 		{
 			this->RemoveInventory( pInventory );
 			if (( bLeavingGame == false ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
-				SERVERCOMMANDS_TakeInventory( player - players, (char *)TEAM_GetFlagItem( !player->ulTeam )->TypeName.GetChars( ), 0 );
+				SERVERCOMMANDS_TakeInventory( player - players, TEAM_GetFlagItem( !player->ulTeam )->TypeName.GetChars( ), 0 );
 
 			// Spawn a new flag.
 			pFlag = Spawn( TEAM_GetFlagItem( !player->ulTeam ), player->mo->x, player->mo->y, ONFLOORZ, NO_REPLACE );

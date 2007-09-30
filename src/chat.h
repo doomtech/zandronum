@@ -78,7 +78,7 @@ bool	CHAT_Input( event_t *pEvent );
 void	CHAT_Render( void );
 
 ULONG	CHAT_GetChatMode( void );
-void	CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, char *pszString );
+void	CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString );
 
 //*****************************************************************************
 //  EXTERNAL CONSOLE VARIABLES

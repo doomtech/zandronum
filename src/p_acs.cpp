@@ -322,7 +322,7 @@ static void DoTakeInv (AActor *actor, const PClass *info, int amount)
 		item->Amount -= amount;
 		// [BC] If we're the server, tell clients to take the item away.
 		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( actor->player ))
-			SERVERCOMMANDS_TakeInventory( actor->player - players, (char *)item->GetClass( )->TypeName.GetChars( ), item->Amount );
+			SERVERCOMMANDS_TakeInventory( actor->player - players, item->GetClass( )->TypeName.GetChars( ), item->Amount );
 		if (item->Amount <= 0)
 		{
 			// If it's not ammo or an internal armor, destroy it. 

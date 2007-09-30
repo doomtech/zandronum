@@ -120,11 +120,11 @@ void CLIENTCOMMANDS_EndChat( void )
 
 //*****************************************************************************
 //
-void CLIENTCOMMANDS_Say( ULONG ulMode, char *pszString )
+void CLIENTCOMMANDS_Say( ULONG ulMode, const char *pszString )
 {
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_SAY );
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, ulMode );
-	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, (char *)pszString );
+	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, pszString );
 }
 
 //*****************************************************************************
@@ -188,7 +188,7 @@ void CLIENTCOMMANDS_ClientMove( void )
 		if ( players[consoleplayer].ReadyWeapon == NULL )
 			NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, "NULL" );
 		else
-			NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, (char *)players[consoleplayer].ReadyWeapon->GetClass( )->TypeName.GetChars( ));
+			NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].ReadyWeapon->GetClass( )->TypeName.GetChars( ));
 	}
 }
 

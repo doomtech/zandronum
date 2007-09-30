@@ -1021,7 +1021,7 @@ void AInventory::Touch (AActor *toucher)
 			if (( toucher->player ) &&
 				( this->GetClass( )->IsDescendantOf( PClass::FindClass( "DehackedPickup" )) == false ))
 			{
-				SERVERCOMMANDS_DoInventoryPickup( ULONG( toucher->player - players ), (char *)this->GetClass( )->TypeName.GetChars( ), (char *)this->PickupMessage( ));
+				SERVERCOMMANDS_DoInventoryPickup( ULONG( toucher->player - players ), this->GetClass( )->TypeName.GetChars( ), this->PickupMessage( ));
 			}
 		}
 		else

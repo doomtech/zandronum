@@ -234,7 +234,7 @@ bool AFlag::TryPickup( AActor *pToucher )
 		{
 			// If we're the server, tell clients to destroy this inventory item.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_TakeInventory( ULONG( pToucher->player - players ), (char *)pInventory->GetClass( )->TypeName.GetChars( ), 0 );
+				SERVERCOMMANDS_TakeInventory( ULONG( pToucher->player - players ), pInventory->GetClass( )->TypeName.GetChars( ), 0 );
 
 			pInventory->Destroy( );
 		}
@@ -592,7 +592,7 @@ bool AWhiteFlag::HandlePickup( AInventory *pItem )
 			// Take the flag away.
 			pInventory = Owner->FindInventory( this->GetClass( ));
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_TakeInventory( ULONG( Owner->player - players ), (char *)this->GetClass( )->TypeName.GetChars( ), 0 );
+				SERVERCOMMANDS_TakeInventory( ULONG( Owner->player - players ), this->GetClass( )->TypeName.GetChars( ), 0 );
 			if ( pInventory )
 				Owner->RemoveInventory( pInventory );
 
@@ -907,7 +907,7 @@ protected:
 								pToucher->RemoveInventory( pInventory );
 
 							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-								SERVERCOMMANDS_TakeInventory( ULONG( pToucher->player - players ), (char *)TEAM_GetFlagItem( !pToucher->player->ulTeam )->TypeName.GetChars( ), 0 );
+								SERVERCOMMANDS_TakeInventory( ULONG( pToucher->player - players ), TEAM_GetFlagItem( !pToucher->player->ulTeam )->TypeName.GetChars( ), 0 );
 
 							// Respawn the red flag.
 							RedFlagOrigin = TEAM_GetRedFlagOrigin( );
@@ -1227,7 +1227,7 @@ bool ABlueFlag::HandlePickup( AInventory *pItem )
 			// Take the flag away.
 			pInventory = Owner->FindInventory( this->GetClass( ));
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_TakeInventory( ULONG( Owner->player - players ), (char *)TEAM_GetFlagItem( !Owner->player->ulTeam )->TypeName.GetChars( ), 0 );
+				SERVERCOMMANDS_TakeInventory( ULONG( Owner->player - players ), TEAM_GetFlagItem( !Owner->player->ulTeam )->TypeName.GetChars( ), 0 );
 			if ( pInventory )
 				Owner->RemoveInventory( pInventory );
 
@@ -1640,7 +1640,7 @@ protected:
 								pToucher->RemoveInventory( pInventory );
 
 							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-								SERVERCOMMANDS_TakeInventory( ULONG( pToucher->player - players ), (char *)TEAM_GetFlagItem( !pToucher->player->ulTeam )->TypeName.GetChars( ), 0 );
+								SERVERCOMMANDS_TakeInventory( ULONG( pToucher->player - players ), TEAM_GetFlagItem( !pToucher->player->ulTeam )->TypeName.GetChars( ), 0 );
 
 							// Respawn the blue flag.
 							BlueFlagOrigin = TEAM_GetBlueFlagOrigin( );
@@ -1961,7 +1961,7 @@ bool ARedFlag::HandlePickup( AInventory *pItem )
 			// Take the flag away.
 			pInventory = Owner->FindInventory( this->GetClass( ));
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_TakeInventory( ULONG( Owner->player - players ), (char *)TEAM_GetFlagItem( !Owner->player->ulTeam )->TypeName.GetChars( ), 0 );
+				SERVERCOMMANDS_TakeInventory( ULONG( Owner->player - players ), TEAM_GetFlagItem( !Owner->player->ulTeam )->TypeName.GetChars( ), 0 );
 			if ( pInventory )
 				Owner->RemoveInventory( pInventory );
 

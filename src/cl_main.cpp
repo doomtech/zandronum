@@ -8751,7 +8751,7 @@ static void client_DoInventoryPickup( BYTESTREAM_s *pByteStream )
 {
 	ULONG			ulPlayer;
 	char			szClassName[64];
-	char			*pszPickupMessage;
+	const char		*pszPickupMessage;
 	AInventory		*pInventory;
 
 	static LONG			s_lLastMessageTic = 0;
@@ -8793,7 +8793,7 @@ static void client_DoInventoryPickup( BYTESTREAM_s *pByteStream )
 		if ( pszPickupMessage != NULL )
 		{
 			if ( pszPickupMessage[0] == '$' )
-				pszPickupMessage = (char *)GStrings( pszPickupMessage + 1 );
+				pszPickupMessage = GStrings( pszPickupMessage + 1 );
 
 			Printf( PRINT_LOW, "%s\n", pszPickupMessage );
 		}

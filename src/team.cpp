@@ -513,7 +513,7 @@ void TEAM_ScoreSkulltagPoint( player_s *pPlayer, ULONG ulNumPoints, AActor *pPil
 		pPlayer->mo->RemoveInventory( pInventory );
 
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_TakeInventory( ULONG( pPlayer - players ), (char *)TEAM_GetFlagItem( !pPlayer->ulTeam )->TypeName.GetChars( ), 0 );
+		SERVERCOMMANDS_TakeInventory( ULONG( pPlayer - players ), TEAM_GetFlagItem( !pPlayer->ulTeam )->TypeName.GetChars( ), 0 );
 	else
 		SCOREBOARD_RefreshHUD( );
 

@@ -60,7 +60,7 @@
 void	CLIENTCOMMANDS_UserInfo( ULONG ulFlags );
 void	CLIENTCOMMANDS_StartChat( void );
 void	CLIENTCOMMANDS_EndChat( void );
-void	CLIENTCOMMANDS_Say( ULONG ulMode, char *pszString );
+void	CLIENTCOMMANDS_Say( ULONG ulMode, const char *pszString );
 void	CLIENTCOMMANDS_ClientMove( void );
 void	CLIENTCOMMANDS_MissingPacket( void );
 void	CLIENTCOMMANDS_Pong( ULONG ulTime );

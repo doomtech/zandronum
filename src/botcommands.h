@@ -260,10 +260,10 @@ public:
 // Standard API
 void		BOTCMD_Construct( void );
 void		BOTCMD_RunCommand( BOTCMD_e Command, CSkullBot *pBot );
-void		BOTCMD_SetLastChatString( char *pszString );
-void		BOTCMD_SetLastChatPlayer( char *pszString );
-void		BOTCMD_SetLastJoinedPlayer( char *pszString );
-void		BOTCMD_DoChatStringSubstitutions( CSkullBot *pBot, char *pszInString, char *pszOutString );
+void		BOTCMD_SetLastChatString( const char *pszString );
+void		BOTCMD_SetLastChatPlayer( const char *pszString );
+void		BOTCMD_SetLastJoinedPlayer( const char *pszString );
+void		BOTCMD_DoChatStringSubstitutions( CSkullBot *pBot, const char *pszInString, char *pszOutString );
 bool		BOTCMD_IgnoreItem( CSkullBot *pBot, LONG lIdx, bool bVisibilityCheck );
 
 #endif	// __BOTCOMMANDS_H__

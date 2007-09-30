@@ -597,28 +597,28 @@ void BOTCMD_RunCommand( BOTCMD_e Command, CSkullBot *pBot )
 
 //*****************************************************************************
 //
-void BOTCMD_SetLastChatString( char *pszString )
+void BOTCMD_SetLastChatString( const char *pszString )
 {
 	sprintf( g_szLastChatString, pszString );
 }
 
 //*****************************************************************************
 //
-void BOTCMD_SetLastChatPlayer( char *pszString )
+void BOTCMD_SetLastChatPlayer( const char *pszString )
 {
 	sprintf( g_szLastChatPlayer, pszString );
 }
 
 //*****************************************************************************
 //
-void BOTCMD_SetLastJoinedPlayer( char *pszString )
+void BOTCMD_SetLastJoinedPlayer( const char *pszString )
 {
 	sprintf( g_szLastJoinedPlayer, pszString );
 }
 
 //*****************************************************************************
 //
-void BOTCMD_DoChatStringSubstitutions( CSkullBot *pBot, char *pszInString, char *pszOutString )
+void BOTCMD_DoChatStringSubstitutions( CSkullBot *pBot, const char *pszInString, char *pszOutString )
 {
 	do
 	{

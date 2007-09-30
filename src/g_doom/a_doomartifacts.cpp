@@ -261,7 +261,7 @@ bool ARandomPowerup::Use (bool pickup)
 				SERVERCOMMANDS_GiveInventory( ULONG( Owner->player - players ), pItem );
 
 				if (( ItemFlags & IF_QUIET ) == false )
-					SERVERCOMMANDS_DoInventoryPickup( ULONG( Owner->player - players ), (char *)pItem->GetClass( )->TypeName.GetChars( ), (char *)pItem->PickupMessage( ));
+					SERVERCOMMANDS_DoInventoryPickup( ULONG( Owner->player - players ), pItem->GetClass( )->TypeName.GetChars( ), pItem->PickupMessage( ));
 			}
 		}
 

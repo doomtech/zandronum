@@ -2727,7 +2727,7 @@ bool ADehackedPickup::TryPickup (AActor *toucher)
 			SERVERCOMMANDS_GiveInventory( ULONG( toucher->player - players ), RealPickup );
 
 			if (( ItemFlags & IF_QUIET ) == false )
-				SERVERCOMMANDS_DoInventoryPickup( ULONG( toucher->player - players ), (char *)RealPickup->GetClass( )->TypeName.GetChars( ), (char *)RealPickup->PickupMessage( ));
+				SERVERCOMMANDS_DoInventoryPickup( ULONG( toucher->player - players ), RealPickup->GetClass( )->TypeName.GetChars( ), RealPickup->PickupMessage( ));
 		}
 
 		GoAwayAndDie ();

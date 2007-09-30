@@ -292,7 +292,7 @@ void SERVERCOMMANDS_DamagePlayer( ULONG ulPlayer )
 void SERVERCOMMANDS_KillPlayer( ULONG ulPlayer, AActor *pSource, AActor *pInflictor, ULONG ulMOD )
 {
 	ULONG	ulIdx;
-	char	*pszString;
+	const char	*pszString;
 	LONG	lSourceID;
 	LONG	lInflictorID;
 
@@ -311,7 +311,7 @@ void SERVERCOMMANDS_KillPlayer( ULONG ulPlayer, AActor *pSource, AActor *pInflic
 		if ( players[ulIdx].mo == pSource )
 		{
 			if ( players[ulIdx].ReadyWeapon != NULL )
-				pszString = (char *)players[ulIdx].ReadyWeapon->GetClass( )->TypeName.GetChars( );
+				pszString = players[ulIdx].ReadyWeapon->GetClass( )->TypeName.GetChars( );
 			else
 				pszString = NULL;
 			break;
@@ -458,7 +458,7 @@ void SERVERCOMMANDS_SetPlayerUserInfo( ULONG ulPlayer, ULONG ulUserInfoFlags, UL
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].userinfo.lRailgunTrailColor );
 
 		if ( ulUserInfoFlags & USERINFO_SKIN )
-			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, (char *)SERVER_GetClient( ulPlayer )->szSkin );
+			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SERVER_GetClient( ulPlayer )->szSkin );
 
 		if ( ulUserInfoFlags & USERINFO_HANDICAP )
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].userinfo.lHandicap );
@@ -756,7 +756,7 @@ void SERVERCOMMANDS_SetPlayerAmmoCapacity( ULONG ulPlayer, AInventory *pAmmo, UL
 		SERVER_CheckClientBuffer( ulIdx, 4 + (ULONG)strlen( pAmmo->GetClass( )->TypeName.GetChars( )), true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERAMMOCAPACITY );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, (char *)pAmmo->GetClass( )->TypeName.GetChars( ));
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pAmmo->GetClass( )->TypeName.GetChars( ));
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pAmmo->MaxAmount );
 	}
 }
@@ -1052,7 +1052,7 @@ void SERVERCOMMANDS_PlayerIsSpectator( ULONG ulPlayer, ULONG ulPlayerExtra, ULON
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_PlayerSay( ULONG ulPlayer, char *pszString, ULONG ulMode, bool bForbidChatToPlayers, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_PlayerSay( ULONG ulPlayer, const char *pszString, ULONG ulMode, bool bForbidChatToPlayers, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 
@@ -3114,7 +3114,7 @@ void SERVERCOMMANDS_SpawnMissile( AActor *pMissile, ULONG ulPlayerExtra, ULONG u
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->momx );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->momy );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->momz );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, (char *)pszName );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszName );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->lNetID );
 		if ( pMissile->target )
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->target->lNetID );
@@ -3162,7 +3162,7 @@ void SERVERCOMMANDS_SpawnMissileExact( AActor *pMissile, ULONG ulPlayerExtra, UL
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->momx );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->momy );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->momz );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, (char *)pszName );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszName );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->lNetID );
 		if ( pMissile->target )
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->target->lNetID );
@@ -4461,7 +4461,7 @@ void SERVERCOMMANDS_MapLoad( ULONG ulPlayerExtra, ULONG ulFlags )
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_MapNew( char *pszMapName, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_MapNew( const char *pszMapName, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 
@@ -4507,7 +4507,7 @@ void SERVERCOMMANDS_MapExit( LONG lPosition, ULONG ulPlayerExtra, ULONG ulFlags 
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_MapAuthenticate( char *pszMapName, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_MapAuthenticate( const char *pszMapName, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 
@@ -4740,7 +4740,7 @@ void SERVERCOMMANDS_GiveInventory( ULONG ulPlayer, AInventory *pInventory, ULONG
 		SERVER_CheckClientBuffer( ulIdx, 4 + (ULONG)strlen( pInventory->GetClass( )->TypeName.GetChars( )), true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_GIVEINVENTORY );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, (char *)pInventory->GetClass( )->TypeName.GetChars( ));
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pInventory->GetClass( )->TypeName.GetChars( ));
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pInventory->Amount );
 	}
 }
@@ -4768,7 +4768,7 @@ void SERVERCOMMANDS_GiveInventoryNotOverwritingAmount( AActor *pReceiver, AInven
 }
 //*****************************************************************************
 //
-void SERVERCOMMANDS_TakeInventory( ULONG ulPlayer, char *pszClassName, ULONG ulAmount, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_TakeInventory( ULONG ulPlayer, const char *pszClassName, ULONG ulAmount, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 
@@ -4820,7 +4820,7 @@ void SERVERCOMMANDS_GivePowerup( ULONG ulPlayer, APowerup *pPowerup, ULONG ulPla
 		SERVER_CheckClientBuffer( ulIdx, 4 + (ULONG)strlen( pPowerup->GetClass( )->TypeName.GetChars( )), true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_GIVEPOWERUP );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, (char *)pPowerup->GetClass( )->TypeName.GetChars( ));
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pPowerup->GetClass( )->TypeName.GetChars( ));
 		// Can we have multiple amounts of a powerup? Probably not, but I'll be safe for now.
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pPowerup->Amount );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pPowerup->EffectTics );
@@ -4829,7 +4829,7 @@ void SERVERCOMMANDS_GivePowerup( ULONG ulPlayer, APowerup *pPowerup, ULONG ulPla
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_DoInventoryPickup( ULONG ulPlayer, char *pszClassName, char *pszPickupMessage, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_DoInventoryPickup( ULONG ulPlayer, const char *pszClassName, const char *pszPickupMessage, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 	LONG	lLength;

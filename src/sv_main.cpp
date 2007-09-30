@@ -970,7 +970,7 @@ void SERVER_GetPackets( void )
 //*****************************************************************************
 //
 EXTERN_CVAR( Bool, sv_logfiletimestamp )
-void SERVER_SendChatMessage( ULONG ulPlayer, ULONG ulMode, char *pszString )
+void SERVER_SendChatMessage( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 {
 	bool	bFordidChatToPlayers;
 
@@ -2659,7 +2659,7 @@ void SERVER_UpdateSides( ULONG ulClient )
 
 //*****************************************************************************
 //
-void SERVER_ReconnectNewLevel( char *pszMapName )
+void SERVER_ReconnectNewLevel( const char *pszMapName )
 {
 	ULONG	ulIdx;
 
@@ -2688,7 +2688,7 @@ void SERVER_ReconnectNewLevel( char *pszMapName )
 
 //*****************************************************************************
 //
-void SERVER_LoadNewLevel( char *pszMapName )
+void SERVER_LoadNewLevel( const char *pszMapName )
 {
 	ULONG		ulIdx;
 
