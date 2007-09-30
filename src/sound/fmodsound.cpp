@@ -762,6 +762,15 @@ void FMODSoundRenderer::StopSound (long handle)
 	}
 }
 
+void FMODSoundRenderer::StopAllChannels ()
+{
+	for (long i = 1; i <= NumChannels; ++i)
+	{
+		StopSound (i);
+	}
+}
+
+
 void FMODSoundRenderer::SetSfxPaused (bool paused)
 {
 	for (int i = 0; i < NumChannels; ++i)

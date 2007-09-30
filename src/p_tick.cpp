@@ -95,7 +95,7 @@ void P_Ticker (void)
 		r_NoInterpolate = true;
 
 		// run the tic
-		if (paused || P_CheckTickerPaused())
+		if (paused || (playerswiping && !demoplayback) || P_CheckTickerPaused())
 			return;
 
 		// [BC] Do a quick check to see if anyone has the freeze time power. If they do,

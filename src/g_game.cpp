@@ -146,6 +146,7 @@ bool	 		viewactive;
 
 player_t		players[MAXPLAYERS];
 bool			playeringame[MAXPLAYERS];
+DWORD			playerswiping;
 
 int 			consoleplayer;			// player taking events
 int 			gametic;
@@ -4347,7 +4348,10 @@ void G_ReadDemoTiccmd (ticcmd_t *cmd, int player)
 			{
 				BYTE i = ReadByte (&demo_p);
 				if (i < MAXPLAYERS)
+				{
 					playeringame[i] = false;
+					playerswiping &= ~(1 << i);
+				}
 			}
 			break;
 

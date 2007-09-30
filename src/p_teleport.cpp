@@ -502,6 +502,10 @@ bool EV_Teleport (int tid, int tag, line_t *line, int side, AActor *thing, bool 
 			thing->momx = FixedMul(momx, c) - FixedMul(momy, s);
 			thing->momy = FixedMul(momy, c) + FixedMul(momx, s);
 		}
+		if ((momx | momy) == 0 && thing->player != NULL && thing->player->mo == thing)
+		{
+			thing->player->mo->PlayIdle ();
+		}
 
 		// [BC] Adjust the thing's momentum if we didn't halt it.
 		if ( bHaltMomentum == false )

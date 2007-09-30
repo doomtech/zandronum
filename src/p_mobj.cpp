@@ -1584,15 +1584,30 @@ void P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 			// the skull slammed into something
 			mo->flags &= ~MF_SKULLFLY;
 			mo->momx = mo->momy = mo->momz = 0;
-
-			mo->SetState (mo->SeeState != NULL ? mo->SeeState : mo->SpawnState);
-
-			// [BC] If we are the server, tell clients about the state change and the
-			// momentum change.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			if (!(mo->flags2 & MF2_DORMANT))
 			{
-				SERVERCOMMANDS_SetThingState( mo, mo->SeeState != NULL ? STATE_SEE : STATE_SPAWN );
-				SERVERCOMMANDS_MoveThing( mo, CM_MOMX|CM_MOMY|CM_MOMZ );
+				mo->SetState (mo->SeeState != NULL ? mo->SeeState : mo->SpawnState);
+
+				// [BC] If we are the server, tell clients about the state change and the
+				// momentum change.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				{
+					SERVERCOMMANDS_SetThingState( mo, mo->SeeState != NULL ? STATE_SEE : STATE_SPAWN );
+					SERVERCOMMANDS_MoveThing( mo, CM_MOMX|CM_MOMY|CM_MOMZ );
+				}
+			}
+			else
+			{
+				mo->SetState (mo->SpawnState);
+				mo->tics = -1;
+
+				// [BB] If we are the server, tell clients about the state change and the
+				// momentum change.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				{
+					SERVERCOMMANDS_SetThingState( mo, STATE_SPAWN );
+					SERVERCOMMANDS_MoveThing( mo, CM_MOMX|CM_MOMY|CM_MOMZ );
+				}
 			}
 		}
 		return;
@@ -2952,20 +2967,34 @@ void AActor::HitFloor ()
 
 bool AActor::Slam (AActor *thing)
 {
-	int dam = GetMissileDamage (7, 1);
-	P_DamageMobj (thing, this, this, dam, NAME_Melee);
-	P_TraceBleed (dam, thing, this);
 	flags &= ~MF_SKULLFLY;
 	momx = momy = momz = 0;
-	SetState (SeeState != NULL ? SeeState : SpawnState);
-
-	// [BC] If we are the server, tell clients about the state change and momentum change.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	if (!(flags2 & MF2_DORMANT))
 	{
-		SERVERCOMMANDS_SetThingState( this, SeeState != NULL ? STATE_SEE : STATE_SPAWN );
-		SERVERCOMMANDS_MoveThing( this, CM_MOMX|CM_MOMY|CM_MOMZ );
-	}
+		int dam = GetMissileDamage (7, 1);
+		P_DamageMobj (thing, this, this, dam, NAME_Melee);
+		P_TraceBleed (dam, thing, this);
+		SetState (SeeState != NULL ? SeeState : SpawnState);
 
+		// [BC] If we are the server, tell clients about the state change and momentum change.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			SERVERCOMMANDS_SetThingState( this, SeeState != NULL ? STATE_SEE : STATE_SPAWN );
+			SERVERCOMMANDS_MoveThing( this, CM_MOMX|CM_MOMY|CM_MOMZ );
+		}
+	}
+	else
+	{
+		SetState (SpawnState);
+		tics = -1;
+
+		// [BB] If we are the server, tell clients about the state change and momentum change.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			SERVERCOMMANDS_SetThingState( this, STATE_SPAWN );
+			SERVERCOMMANDS_MoveThing( this, CM_MOMX|CM_MOMY|CM_MOMZ );
+		}
+	}
 	return false;			// stop moving
 }
 
@@ -5920,13 +5949,7 @@ int AActor::TakeSpecialDamage (AActor *inflictor, AActor *source, int damage, FN
 
 	if (flags5 & MF5_NODAMAGE)
 	{
-		target = source;
-		if (pr_takedamage() < PainChance)
-		{
-			FState * painstate = FindState(NAME_Pain, damagetype);
-			if (painstate != NULL) SetState (painstate);
-		}
-		return -1;
+		return 0;
 	}
 
 	// If the actor does not have a corresponding death state, then it does not take damage.

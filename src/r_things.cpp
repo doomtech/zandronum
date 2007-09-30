@@ -302,6 +302,11 @@ static void R_InstallSprite (int num)
 			{
 				sprtemp[frame].Texture[rot] = sprtemp[frame].Texture[0];
 			}
+			// If the frame is flipped, they all should be
+			if (sprtemp[frame].Flip & 1)
+			{
+				sprtemp[frame].Flip = 0xFFFF;
+			}
 			break;
 					
 		case 1:

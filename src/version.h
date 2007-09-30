@@ -47,7 +47,7 @@
 #define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING
 
 // [BC] What version of ZDoom is this based off of?
-#define	ZDOOMVERSIONSTR		"2.1.7"
+#define	ZDOOMVERSIONSTR		"2.1.7-490"
 
 /** Release code stuff */
 
@@ -79,11 +79,11 @@
 // Protocol version used in demos.
 // Bump it if you change existing DEM_ commands or add new ones.
 // Otherwise, it should be safe to leave it alone.
-#define DEMOGAMEVERSION 0x206
+#define DEMOGAMEVERSION 0x209
 
 // Minimum demo version we can play.
 // Bump it whenever you change or remove existing DEM_ commands.
-#define MINDEMOVERSION 0x205
+#define MINDEMOVERSION 0x207
 
 // [BC] This is what's displayed as the title for server windows.
 #define	SERVERCONSOLE_TITLESTRING	"Skulltag v" DOTVERSIONSTR " Server"
@@ -91,8 +91,8 @@
 // SAVEVER is the version of the information stored in level snapshots.
 // Note that SAVEVER is not directly comparable to VERSION.
 // SAVESIG should match SAVEVER.
-#define SAVEVER 235
-#define SAVESIG "ZDOOMSAVE235"
+#define SAVEVER 236
+#define SAVESIG "ZDOOMSAVE236"
 
 // This is so that derivates can use the same savegame versions without worrying about engine compatibility
 #define GAMESIG "SKULLTAG"
@@ -108,7 +108,7 @@
 #endif
 
 // MINSAVEVER is the minimum level snapshot version that can be loaded.
-#define MINSAVEVER 235	// Used by 2.1.5
+#define MINSAVEVER 236	// Used by 2.1.7
 
 // The maximum length of one save game description for the menus.
 #define SAVESTRINGSIZE		24

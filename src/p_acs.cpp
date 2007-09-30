@@ -2027,6 +2027,7 @@ int DLevelScript::DoSpawn (int type, fixed_t x, fixed_t y, fixed_t z, int tid, i
 {
 	const PClass *info = PClass::FindClass (FBehavior::StaticLookupString (type));
 	AActor *actor = NULL;
+	int spawncount = 0;
 
 	if (info != NULL)
 	{
@@ -2043,6 +2044,7 @@ int DLevelScript::DoSpawn (int type, fixed_t x, fixed_t y, fixed_t z, int tid, i
 				if (actor->flags & MF_SPECIAL)
 					actor->flags |= MF_DROPPED;  // Don't respawn
 				actor->flags2 = oldFlags2;
+				spawncount++;
 
 				// [BC] If we're the server, tell clients to spawn the thing.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -2066,7 +2068,7 @@ int DLevelScript::DoSpawn (int type, fixed_t x, fixed_t y, fixed_t z, int tid, i
 			}
 		}
 	}
-	return (int)(actor - (AActor *)0);
+	return spawncount;
 }
 
 int DLevelScript::DoSpawnSpot (int type, int spot, int tid, int angle)
@@ -2077,7 +2079,7 @@ int DLevelScript::DoSpawnSpot (int type, int spot, int tid, int angle)
 
 	while ( (aspot = iterator.Next ()) )
 	{
-		spawned = DoSpawn (type, aspot->x, aspot->y, aspot->z, tid, angle);
+		spawned += DoSpawn (type, aspot->x, aspot->y, aspot->z, tid, angle);
 	}
 	return spawned;
 }
@@ -2090,7 +2092,7 @@ int DLevelScript::DoSpawnSpotFacing (int type, int spot, int tid)
 
 	while ( (aspot = iterator.Next ()) )
 	{
-		spawned = DoSpawn (type, aspot->x, aspot->y, aspot->z, tid, aspot->angle);
+		spawned += DoSpawn (type, aspot->x, aspot->y, aspot->z, tid, aspot->angle >> 24);
 	}
 	return spawned;
 }
