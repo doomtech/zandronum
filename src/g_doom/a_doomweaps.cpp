@@ -787,18 +787,20 @@ void A_FireCGun (AActor *actor)
 	{
 		return;
 	}
-	S_Sound (actor, CHAN_WEAPON, "weapons/chngun", 1, ATTN_NORM);
-
-	// [BC] If we're the server, tell clients that a weapon is being fired.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_WeaponSound( ULONG( player - players ), "weapons/chngun", ULONG( player - players ), SVCF_SKIPTHISCLIENT );
-
 	AWeapon *weapon = player->ReadyWeapon;
 	if (weapon != NULL)
 	{
 		if (!weapon->DepleteAmmo (weapon->bAltFire))
 			return;
-		if (weapon->FlashState != NULL)
+
+		S_Sound (actor, CHAN_WEAPON, "weapons/chngun", 1, ATTN_NORM);
+
+		// [BC] If we're the server, tell clients that a weapon is being fired.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_WeaponSound( ULONG( player - players ), "weapons/chngun", ULONG( player - players ), SVCF_SKIPTHISCLIENT );
+
+		FState *flash = weapon->FindState(NAME_Flash);
+		if (flash != NULL)
 		{
 			// [RH] Fix for Sparky's messed-up Dehacked patch! Blargh!
 			FState * atk = weapon->FindState(NAME_Fire);
@@ -925,13 +927,6 @@ void A_FireMiniGun( AActor *actor )
 
 	pPlayer = actor->player;
 
-	// Play the weapon sound effect.
-	S_Sound( actor, CHAN_WEAPON, "weapons/minigun", 1, ATTN_NORM );
-
-	// [BC] If we're the server, tell clients that a weapon is being fired.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_WeaponSound( ULONG( pPlayer - players ), "weapons/minigun", ULONG( pPlayer - players ), SVCF_SKIPTHISCLIENT );
-
 	pWeapon = pPlayer->ReadyWeapon;
 	if ( pWeapon != NULL )
 	{
@@ -940,6 +935,13 @@ void A_FireMiniGun( AActor *actor )
 		// the weapon has enough ammo to fire.
 		if ( pWeapon->DepleteAmmo( pWeapon->bAltFire ) == false )
 			return;
+
+		// Play the weapon sound effect.
+		S_Sound( actor, CHAN_WEAPON, "weapons/minigun", 1, ATTN_NORM );
+
+		// [BC] If we're the server, tell clients that a weapon is being fired.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_WeaponSound( ULONG( pPlayer - players ), "weapons/minigun", ULONG( pPlayer - players ), SVCF_SKIPTHISCLIENT );
 
 		FState *flash = pWeapon->FindState(NAME_Flash);
 		if (flash != NULL)

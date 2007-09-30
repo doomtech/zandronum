@@ -4369,7 +4369,7 @@ void P_SpawnPlayer (mapthing2_t *mthing, bool bClientUpdate, player_t *p, bool t
 	p->viewheight = mobj->ViewHeight;
 	p->attacker = NULL;
 	p->BlendR = p->BlendG = p->BlendB = p->BlendA = 0.f;
-	p->air_finished = level.time + level.airsupply;
+	p->mo->ResetAirSupply();
 	p->Uncrouch();
 
 	p->momx = p->momy = 0;		// killough 10/98: initialize bobbing to 0.
@@ -5992,11 +5992,11 @@ FArchive &operator<< (FArchive &arc, FSoundIndex &snd)
 {
 	if (arc.IsStoring ())
 	{
-		arc.WriteName (snd.Index ? S_sfx[snd.Index].name : NULL);
+		arc.WriteName (snd.Index ? S_sfx[snd.Index].name.GetChars() : NULL);
 	}
 	else
 	{
-		const char *name = arc.ReadName ();;
+		const char *name = arc.ReadName ();
 		snd.Index = name != NULL ? S_FindSound (name) : 0;
 	}
 	return arc;

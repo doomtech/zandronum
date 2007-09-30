@@ -24,8 +24,6 @@
 #include "m_fixed.h"
 #include "tarray.h"
 
-#define MAX_SNDNAME	63
-
 class AActor;
 
 //
@@ -33,7 +31,7 @@ class AActor;
 //
 struct sfxinfo_t
 {
-	char		name[MAX_SNDNAME+1];	// [RH] Sound name defined in SNDINFO
+	FString		name;					// [RH] Sound name defined in SNDINFO
 	short 		lumpnum;				// lump number of sfx
 
 	BYTE		PitchMask;
@@ -57,6 +55,7 @@ struct sfxinfo_t
 	WORD		b16bit:1;
 	WORD		bUsed:1;
 	WORD		bSingular:1;
+	WORD		bTentative:1;
 
 	WORD		link;
 
@@ -194,6 +193,7 @@ bool S_AreSoundsEquivalent (AActor *actor, const char *name1, const char *name2)
 int S_LookupPlayerSound (const char *playerclass, int gender, const char *logicalname);
 int S_LookupPlayerSound (const char *playerclass, int gender, int refid);
 int S_FindSkinnedSound (AActor *actor, const char *logicalname);
+int S_FindSkinnedSoundEx (AActor *actor, const char *logicalname, const char *extendedname);
 int S_FindSkinnedSound (AActor *actor, int refid);
 int S_FindSoundByLump (int lump);
 int S_AddSound (const char *logicalname, const char *lumpname);	// Add sound by lumpname

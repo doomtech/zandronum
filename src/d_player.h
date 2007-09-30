@@ -131,6 +131,9 @@ public:
 	int			SpawnMask;
 	FNameNoInit	MorphWeapon;
 
+	bool UpdateWaterLevel (fixed_t oldz, bool splash);
+	bool ResetAirSupply ();
+
 	int GetMaxHealth() const;
 };
 

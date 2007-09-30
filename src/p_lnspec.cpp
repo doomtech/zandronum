@@ -2512,6 +2512,7 @@ FUNC(LS_ChangeCamera)
 			if (!playeringame[i])
 				continue;
 
+			AActor *oldcamera = players[i].camera;
 			if (camera)
 			{
 				players[i].camera = camera;
@@ -2531,10 +2532,15 @@ FUNC(LS_ChangeCamera)
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 					SERVERCOMMANDS_SetPlayerCamera( i, players[i].mo->lNetID, false );
 			}
+			if (oldcamera != players[i].camera)
+			{
+				R_ClearPastViewer (players[i].camera);
+			}
 		}
 	}
 	else
 	{
+		AActor *oldcamera = it->player->camera;
 		if (camera)
 		{
 			it->player->camera = camera;
@@ -2553,6 +2559,10 @@ FUNC(LS_ChangeCamera)
 			// [BC] If we're the server, tell this player to change his camera.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SetPlayerCamera( ULONG( it->player - players ), it->lNetID, false );
+		}
+		if (oldcamera != it->player->camera)
+		{
+			R_ClearPastViewer (it->player->camera);
 		}
 	}
 
