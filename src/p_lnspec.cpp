@@ -1183,35 +1183,7 @@ FUNC(LS_Thing_Destroy)
 FUNC(LS_Thing_Damage)
 // Thing_Damage (tid, amount, MOD)
 {
-	FActorIterator iterator (arg0);
-	AActor *actor;
-
-	// [BB] Needed to make Thing_Damage work with tid == 0.
-	actor = (arg0 == 0 ? it : iterator.Next());
-	while (actor)
-	{
-		AActor *next = iterator.Next ();
-		if (actor->flags & MF_SHOOTABLE)
-		{
-			if (arg1 > 0)
-			{
-					P_DamageMobj (actor, NULL, it, arg1, MODtoDamageType (arg2));
-			}
-			else if (actor->health < actor->GetDefault()->health)
-			{
-				actor->health -= arg1;
-				if (actor->health > actor->GetDefault()->health)
-				{
-					actor->health = actor->GetDefault()->health;
-				}
-				if (actor->player != NULL)
-				{
-					actor->player->health = actor->health;
-				}
-			}
-		}
-		actor = next;
-	}
+	P_Thing_Damage (arg0, it, arg1, MODtoDamageType (arg2));
 	return true;
 }
 

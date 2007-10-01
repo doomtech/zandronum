@@ -3778,6 +3778,33 @@ bool G_CheckSaveGameWads (PNGHandle *png, bool printwarn)
 	return true;
 }
 
+static void WriteVars (FILE *file, SDWORD *vars, size_t count, DWORD id)
+{
+	size_t i, j;
+
+	for (i = 0; i < count; ++i)
+	{
+		if (vars[i] != 0)
+			break;
+	}
+	if (i < count)
+	{
+		// Find last non-zero var. Anything beyond the last stored variable
+		// will be zeroed at load time.
+		for (j = count-1; j > i; --j)
+		{
+			if (vars[j] != 0)
+				break;
+		}
+		FPNGChunkArchive arc (file, id);
+		for (i = 0; i <= j; ++i)
+		{
+			DWORD var = vars[i];
+			arc << var;
+		}
+	}
+}
+
 static void ReadVars (PNGHandle *png, SDWORD *vars, size_t count, DWORD id)
 {
 	size_t len = M_FindPNGChunk (png, id);
@@ -3803,7 +3830,45 @@ static void ReadVars (PNGHandle *png, SDWORD *vars, size_t count, DWORD id)
 	}
 }
 
-static void ReadArrayVars (PNGHandle *png, TArray<SDWORD> *vars, size_t count, DWORD id)
+static void WriteArrayVars (FILE *file, FWorldGlobalArray *vars, unsigned int count, DWORD id)
+{
+	unsigned int i, j;
+
+	// Find the first non-empty array.
+	for (i = 0; i < count; ++i)
+	{
+		if (vars[i].CountUsed() != 0)
+			break;
+	}
+	if (i < count)
+	{
+		// Find last non-empty array. Anything beyond the last stored array
+		// will be emptied at load time.
+		for (j = count-1; j > i; --j)
+		{
+			if (vars[j].CountUsed() != 0)
+				break;
+		}
+		FPNGChunkArchive arc (file, id);
+		arc.WriteCount (i);
+		arc.WriteCount (j);
+		for (; i <= j; ++i)
+		{
+			const SDWORD *key;
+			SDWORD *val;
+
+			arc.WriteCount (vars[i].CountUsed());
+			FWorldGlobalArrayIterator it(vars[i]);
+			while (it.NextPair (key, val))
+			{
+				arc.WriteCount (*key);
+				arc.WriteCount (*val);
+			}
+		}
+	}
+}
+
+static void ReadArrayVars (PNGHandle *png, FWorldGlobalArray *vars, size_t count, DWORD id)
 {
 	size_t len = M_FindPNGChunk (png, id);
 	unsigned int i, k;
@@ -3816,7 +3881,6 @@ static void ReadArrayVars (PNGHandle *png, TArray<SDWORD> *vars, size_t count, D
 	if (len != 0)
 	{
 		DWORD max, size;
-		DWORD var;
 		FPNGChunkArchive arc (png->File->GetFile(), id, len);
 
 		i = arc.ReadCount ();
@@ -3825,14 +3889,12 @@ static void ReadArrayVars (PNGHandle *png, TArray<SDWORD> *vars, size_t count, D
 		for (; i <= max; ++i)
 		{
 			size = arc.ReadCount ();
-			if (size > 0)
-			{
-				vars[i].Resize (size);
-			}
 			for (k = 0; k < size; ++k)
 			{
-				arc << var;
-				vars[i][k] = var;
+				SDWORD key, val;
+				key = arc.ReadCount();
+				val = arc.ReadCount();
+				vars[i].Insert (key, val);
 			}
 		}
 		png->File->ResetFilePtr();
@@ -4134,73 +4196,12 @@ static void PutSavePic (FILE *file, int width, int height)
 
 		// Take a snapshot of the player's view
 		pic->Lock ();
-		P_CheckPlayerSprites ();
+		P_CheckPlayerSprites();
 		R_RenderViewToCanvas (players[consoleplayer].mo, pic, 0, 0, width, height);
 		screen->GetFlashedPalette (palette);
 		M_CreatePNG (file, pic, palette);
 		pic->Unlock ();
 		delete pic;
-	}
-}
-
-static void WriteVars (FILE *file, SDWORD *vars, size_t count, DWORD id)
-{
-	size_t i, j;
-
-	for (i = 0; i < count; ++i)
-	{
-		if (vars[i] != 0)
-			break;
-	}
-	if (i < count)
-	{
-		// Find last non-zero var. Anything beyond the last stored variable
-		// will be zeroed at load time.
-		for (j = count-1; j > i; --j)
-		{
-			if (vars[j] != 0)
-				break;
-		}
-		FPNGChunkArchive arc (file, id);
-		for (i = 0; i <= j; ++i)
-		{
-			DWORD var = vars[i];
-			arc << var;
-		}
-	}
-}
-
-static void WriteArrayVars (FILE *file, TArray<SDWORD> *vars, unsigned int count, DWORD id)
-{
-	unsigned int i, j, k;
-	SDWORD val;
-
-	for (i = 0; i < count; ++i)
-	{
-		if (vars[i].Size() != 0)
-			break;
-	}
-	if (i < count)
-	{
-		// Find last non-empty array. Anything beyond the last stored array
-		// will be emptied at load time.
-		for (j = count-1; j > i; --j)
-		{
-			if (vars[j].Size() != 0)
-				break;
-		}
-		FPNGChunkArchive arc (file, id);
-		arc.WriteCount (i);
-		arc.WriteCount (j);
-		for (; i <= j; ++i)
-		{
-			arc.WriteCount (vars[i].Size());
-			for (k = 0; k < vars[i].Size(); ++k)
-			{
-				val = vars[i][k];
-				arc << val;
-			}
-		}
 	}
 }
 

@@ -17,8 +17,6 @@
 #include "deathmatch.h"
 #include "network.h"
 
-// The translation to use for depleted items
-#define DIM_MAP &NormalLight.Maps[NUMCOLORMAPS*2/3*256]
 
 class FManaBar : public FTexture
 {

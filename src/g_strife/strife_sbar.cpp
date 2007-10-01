@@ -16,9 +16,6 @@
 #include "gi.h"
 #include "deathmatch.h"
 
-// The translation to use for depleted items
-#define DIM_MAP &NormalLight.Maps[NUMCOLORMAPS*2/3*256]
-
 // Number of tics to move the popscreen up and down.
 #define POP_TIME (TICRATE/8)
 

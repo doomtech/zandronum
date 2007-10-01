@@ -2,7 +2,7 @@
 ** version.h
 **
 **---------------------------------------------------------------------------
-** Copyright 1998-2006 Randy Heit
+** Copyright 1998-2007 Randy Heit
 ** All rights reserved.
 **
 ** Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,7 @@
 #define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING
 
 // [BC] What version of ZDoom is this based off of?
-#define	ZDOOMVERSIONSTR		"2.1.7-504"
+#define	ZDOOMVERSIONSTR		"2.1.8-515"
 
 /** Release code stuff */
 
@@ -91,8 +91,8 @@
 // SAVEVER is the version of the information stored in level snapshots.
 // Note that SAVEVER is not directly comparable to VERSION.
 // SAVESIG should match SAVEVER.
-#define SAVEVER 236
-#define SAVESIG "ZDOOMSAVE236"
+#define SAVEVER 237
+#define SAVESIG "ZDOOMSAVE237"
 
 // This is so that derivates can use the same savegame versions without worrying about engine compatibility
 #define GAMESIG "SKULLTAG"
@@ -108,7 +108,7 @@
 #endif
 
 // MINSAVEVER is the minimum level snapshot version that can be loaded.
-#define MINSAVEVER 236	// Used by 2.1.7
+#define MINSAVEVER 237	// Used by 2.1.8
 
 // The maximum length of one save game description for the menus.
 #define SAVESTRINGSIZE		24

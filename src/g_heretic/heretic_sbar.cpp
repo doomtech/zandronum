@@ -17,8 +17,6 @@
 #include "network.h"
 #include "gamemode.h"
 
-// The translation to use for depleted items
-#define DIM_MAP &NormalLight.Maps[NUMCOLORMAPS*2/3*256]
 
 static FRandom pr_chainwiggle;
 

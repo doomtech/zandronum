@@ -48,6 +48,7 @@ void ChildSigHandler (int signum)
 
 #ifdef _WIN32
 const char TimiditySong::EventName[] = "TiMidity Killer";
+static char TimidityTitle[] = "TiMidity (ZDoom Launched)";
 
 CVAR (String, timidity_exe, "timidity.exe", CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 #else
@@ -442,7 +443,7 @@ bool TimiditySong::LaunchTimidity ()
 						  WriteWavePipe : GetStdHandle (STD_OUTPUT_HANDLE);
 	startup.hStdError = GetStdHandle (STD_ERROR_HANDLE);
 
-	startup.lpTitle = "TiMidity (ZDoom Launched)";
+	startup.lpTitle = TimidityTitle;
 	startup.wShowWindow = SW_SHOWMINNOACTIVE;
 
 	if (CreateProcess (NULL, cmdline, NULL, NULL, TRUE,

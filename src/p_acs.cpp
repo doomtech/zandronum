@@ -65,6 +65,7 @@
 #include "gi.h"
 #include "sc_man.h"
 #include "c_bind.h"
+#include "info.h"
 #include "deathmatch.h"
 #include "team.h"
 #include "cooperative.h"
@@ -74,6 +75,7 @@
 extern FILE *Logfile;
 
 FRandom pr_acs ("ACS");
+
 
 // I imagine this much stack space is probably overkill, but it could
 // potentially get used with recursive functions.
@@ -2901,12 +2903,12 @@ int DLevelScript::RunScript ()
 			break;
 
 		case PCD_ASSIGNWORLDARRAY:
-			ACS_WorldArrays[NEXTBYTE].SetVal (STACK(2), STACK(1));
+			ACS_WorldArrays[NEXTBYTE][STACK(2)] = STACK(1);
 			sp -= 2;
 			break;
 
 		case PCD_ASSIGNGLOBALARRAY:
-			ACS_GlobalArrays[NEXTBYTE].SetVal (STACK(2), STACK(1));
+			ACS_GlobalArrays[NEXTBYTE][STACK(2)] = STACK(1);
 			sp -= 2;
 			break;
 
@@ -2931,11 +2933,11 @@ int DLevelScript::RunScript ()
 			break;
 
 		case PCD_PUSHWORLDARRAY:
-			STACK(1) = ACS_WorldArrays[NEXTBYTE].GetVal (STACK(1));
+			STACK(1) = ACS_WorldArrays[NEXTBYTE][STACK(1)];
 			break;
 
 		case PCD_PUSHGLOBALARRAY:
-			STACK(1) = ACS_GlobalArrays[NEXTBYTE].GetVal (STACK(1));
+			STACK(1) = ACS_GlobalArrays[NEXTBYTE][STACK(1)];
 			break;
 
 		case PCD_ADDSCRIPTVAR:
@@ -2970,8 +2972,7 @@ int DLevelScript::RunScript ()
 		case PCD_ADDWORLDARRAY:
 			{
 				int a = NEXTBYTE;
-				int i = STACK(2);
-				ACS_WorldArrays[a].SetVal (i, ACS_WorldArrays[a].GetVal (i) + STACK(1));
+				ACS_WorldArrays[a][STACK(2)] += STACK(1);
 				sp -= 2;
 			}
 			break;
@@ -2979,8 +2980,7 @@ int DLevelScript::RunScript ()
 		case PCD_ADDGLOBALARRAY:
 			{
 				int a = NEXTBYTE;
-				int i = STACK(2);
-				ACS_GlobalArrays[a].SetVal (i, ACS_GlobalArrays[a].GetVal (i) + STACK(1));
+				ACS_GlobalArrays[a][STACK(2)] += STACK(1);
 				sp -= 2;
 			}
 			break;
@@ -3017,8 +3017,7 @@ int DLevelScript::RunScript ()
 		case PCD_SUBWORLDARRAY:
 			{
 				int a = NEXTBYTE;
-				int i = STACK(2);
-				ACS_WorldArrays[a].SetVal (i, ACS_WorldArrays[a].GetVal (i) - STACK(1));
+				ACS_WorldArrays[a][STACK(2)] -= STACK(1);
 				sp -= 2;
 			}
 			break;
@@ -3026,8 +3025,7 @@ int DLevelScript::RunScript ()
 		case PCD_SUBGLOBALARRAY:
 			{
 				int a = NEXTBYTE;
-				int i = STACK(2);
-				ACS_GlobalArrays[a].SetVal (i, ACS_GlobalArrays[a].GetVal (i) - STACK(1));
+				ACS_GlobalArrays[a][STACK(2)] -= STACK(1);
 				sp -= 2;
 			}
 			break;
@@ -3064,8 +3062,7 @@ int DLevelScript::RunScript ()
 		case PCD_MULWORLDARRAY:
 			{
 				int a = NEXTBYTE;
-				int i = STACK(2);
-				ACS_WorldArrays[a].SetVal (i, ACS_WorldArrays[a].GetVal (i) * STACK(1));
+				ACS_WorldArrays[a][STACK(2)] *= STACK(1);
 				sp -= 2;
 			}
 			break;
@@ -3073,8 +3070,7 @@ int DLevelScript::RunScript ()
 		case PCD_MULGLOBALARRAY:
 			{
 				int a = NEXTBYTE;
-				int i = STACK(2);
-				ACS_GlobalArrays[a].SetVal (i, ACS_GlobalArrays[a].GetVal (i) * STACK(1));
+				ACS_GlobalArrays[a][STACK(2)] *= STACK(1);
 				sp -= 2;
 			}
 			break;
@@ -3149,8 +3145,7 @@ int DLevelScript::RunScript ()
 			else
 			{
 				int a = NEXTBYTE;
-				int i = STACK(2);
-				ACS_WorldArrays[a].SetVal (i, ACS_WorldArrays[a].GetVal (i) / STACK(1));
+				ACS_WorldArrays[a][STACK(2)] /= STACK(1);
 				sp -= 2;
 			}
 			break;
@@ -3163,8 +3158,7 @@ int DLevelScript::RunScript ()
 			else
 			{
 				int a = NEXTBYTE;
-				int i = STACK(2);
-				ACS_GlobalArrays[a].SetVal (i, ACS_GlobalArrays[a].GetVal (i) / STACK(1));
+				ACS_GlobalArrays[a][STACK(2)] /= STACK(1);
 				sp -= 2;
 			}
 			break;
@@ -3239,8 +3233,7 @@ int DLevelScript::RunScript ()
 			else
 			{
 				int a = NEXTBYTE;
-				int i = STACK(2);
-				ACS_WorldArrays[a].SetVal (i, ACS_WorldArrays[a].GetVal (i) % STACK(1));
+				ACS_WorldArrays[a][STACK(2)] %= STACK(1);
 				sp -= 2;
 			}
 			break;
@@ -3253,8 +3246,7 @@ int DLevelScript::RunScript ()
 			else
 			{
 				int a = NEXTBYTE;
-				int i = STACK(2);
-				ACS_GlobalArrays[a].SetVal (i, ACS_GlobalArrays[a].GetVal (i) % STACK(1));
+				ACS_GlobalArrays[a][STACK(2)] %= STACK(1);
 				sp -= 2;
 			}
 			break;
@@ -3292,8 +3284,7 @@ int DLevelScript::RunScript ()
 		case PCD_ANDWORLDARRAY:
 			{
 				int a = NEXTBYTE;
-				int i = STACK(2);
-				ACS_WorldArrays[a].SetVal (i, ACS_WorldArrays[a].GetVal (i) & STACK(1));
+				ACS_WorldArrays[a][STACK(2)] &= STACK(1);
 				sp -= 2;
 			}
 			break;
@@ -3301,8 +3292,7 @@ int DLevelScript::RunScript ()
 		case PCD_ANDGLOBALARRAY:
 			{
 				int a = NEXTBYTE;
-				int i = STACK(2);
-				ACS_GlobalArrays[a].SetVal (i, ACS_GlobalArrays[a].GetVal (i) & STACK(1));
+				ACS_GlobalArrays[a][STACK(2)] &= STACK(1);
 				sp -= 2;
 			}
 			break;
@@ -3339,8 +3329,7 @@ int DLevelScript::RunScript ()
 		case PCD_EORWORLDARRAY:
 			{
 				int a = NEXTBYTE;
-				int i = STACK(2);
-				ACS_WorldArrays[a].SetVal (i, ACS_WorldArrays[a].GetVal (i) ^ STACK(1));
+				ACS_WorldArrays[a][STACK(2)] ^= STACK(1);
 				sp -= 2;
 			}
 			break;
@@ -3348,8 +3337,7 @@ int DLevelScript::RunScript ()
 		case PCD_EORGLOBALARRAY:
 			{
 				int a = NEXTBYTE;
-				int i = STACK(2);
-				ACS_GlobalArrays[a].SetVal (i, ACS_GlobalArrays[a].GetVal (i) ^ STACK(1));
+				ACS_GlobalArrays[a][STACK(2)] ^= STACK(1);
 				sp -= 2;
 			}
 			break;
@@ -3386,8 +3374,7 @@ int DLevelScript::RunScript ()
 		case PCD_ORWORLDARRAY:
 			{
 				int a = NEXTBYTE;
-				int i = STACK(2);
-				ACS_WorldArrays[a].SetVal (i, ACS_WorldArrays[a].GetVal (i) | STACK(1));
+				ACS_WorldArrays[a][STACK(2)] |= STACK(1);
 				sp -= 2;
 			}
 			break;
@@ -3396,7 +3383,7 @@ int DLevelScript::RunScript ()
 			{
 				int a = NEXTBYTE;
 				int i = STACK(2);
-				ACS_GlobalArrays[a].SetVal (i, ACS_GlobalArrays[a].GetVal (i) | STACK(1));
+				ACS_GlobalArrays[a][STACK(2)] |= STACK(1);
 				sp -= 2;
 			}
 			break;
@@ -3433,8 +3420,7 @@ int DLevelScript::RunScript ()
 		case PCD_LSWORLDARRAY:
 			{
 				int a = NEXTBYTE;
-				int i = STACK(2);
-				ACS_WorldArrays[a].SetVal (i, ACS_WorldArrays[a].GetVal (i) << STACK(1));
+				ACS_WorldArrays[a][STACK(2)] <<= STACK(1);
 				sp -= 2;
 			}
 			break;
@@ -3442,8 +3428,7 @@ int DLevelScript::RunScript ()
 		case PCD_LSGLOBALARRAY:
 			{
 				int a = NEXTBYTE;
-				int i = STACK(2);
-				ACS_GlobalArrays[a].SetVal (i, ACS_GlobalArrays[a].GetVal (i) << STACK(1));
+				ACS_GlobalArrays[a][STACK(2)] <<= STACK(1);
 				sp -= 2;
 			}
 			break;
@@ -3480,8 +3465,7 @@ int DLevelScript::RunScript ()
 		case PCD_RSWORLDARRAY:
 			{
 				int a = NEXTBYTE;
-				int i = STACK(2);
-				ACS_WorldArrays[a].SetVal (i, ACS_WorldArrays[a].GetVal (i) >> STACK(1));
+				ACS_WorldArrays[a][STACK(2)] >>= STACK(1);
 				sp -= 2;
 			}
 			break;
@@ -3489,8 +3473,7 @@ int DLevelScript::RunScript ()
 		case PCD_RSGLOBALARRAY:
 			{
 				int a = NEXTBYTE;
-				int i = STACK(2);
-				ACS_GlobalArrays[a].SetVal (i, ACS_GlobalArrays[a].GetVal (i) >> STACK(1));
+				ACS_GlobalArrays[a][STACK(2)] >>= STACK(1);
 				sp -= 2;
 			}
 			break;
@@ -3524,8 +3507,7 @@ int DLevelScript::RunScript ()
 		case PCD_INCWORLDARRAY:
 			{
 				int a = NEXTBYTE;
-				int i = STACK(1);
-				ACS_WorldArrays[a].SetVal (i, ACS_WorldArrays[a].GetVal (i) + 1);
+				ACS_WorldArrays[a][STACK(1)] += 1;
 				sp--;
 			}
 			break;
@@ -3533,8 +3515,7 @@ int DLevelScript::RunScript ()
 		case PCD_INCGLOBALARRAY:
 			{
 				int a = NEXTBYTE;
-				int i = STACK(1);
-				ACS_GlobalArrays[a].SetVal (i, ACS_GlobalArrays[a].GetVal (i) + 1);
+				ACS_GlobalArrays[a][STACK(1)] += 1;
 				sp--;
 			}
 			break;
@@ -3567,8 +3548,7 @@ int DLevelScript::RunScript ()
 		case PCD_DECWORLDARRAY:
 			{
 				int a = NEXTBYTE;
-				int i = STACK(1);
-				ACS_WorldArrays[a].SetVal (i, ACS_WorldArrays[a].GetVal (i) - 1);
+				ACS_WorldArrays[a][STACK(1)] -= 1;
 				sp--;
 			}
 			break;
@@ -3577,7 +3557,7 @@ int DLevelScript::RunScript ()
 			{
 				int a = NEXTBYTE;
 				int i = STACK(1);
-				ACS_GlobalArrays[a].SetVal (i, ACS_GlobalArrays[a].GetVal (i) - 1);
+				ACS_GlobalArrays[a][STACK(1)] -= 1;
 				sp--;
 			}
 			break;
@@ -3924,7 +3904,7 @@ int DLevelScript::RunScript ()
 				int a = STACK(1);
 				int offset = STACK(2);
 				int c;
-				while((c = ACS_WorldArrays[a].GetVal (offset)) != '\0') {
+				while((c = ACS_WorldArrays[a][offset]) != '\0') {
 					work += (char)c;
 					offset++;
 				}
@@ -3938,7 +3918,7 @@ int DLevelScript::RunScript ()
 				int a = STACK(1);
 				int offset = STACK(2);
 				int c;
-				while((c = ACS_GlobalArrays[a].GetVal (offset)) != '\0') {
+				while((c = ACS_GlobalArrays[a][offset]) != '\0') {
 					work += (char)c;
 					offset++;
 				}
@@ -5451,6 +5431,48 @@ int DLevelScript::RunScript ()
 			sp -= 2;
 			break;
 
+		case PCD_SETACTORSTATE:
+			{
+				const char *statename = FBehavior::StaticLookupString (STACK(2));
+				TArray<FName> statelist;
+				FState *state;
+
+				MakeStateNameList(statename, &statelist);
+				
+				if (STACK(3) == 0)
+				{
+					state = RUNTIME_TYPE(activator)->ActorInfo->FindState (statelist.Size(), &statelist[0], !!STACK(1));
+					if (state != NULL)
+					{
+						activator->SetState (state);
+						STACK(3) = 1;
+					}
+					else
+					{
+						STACK(3) = 0;
+					}
+				}
+				else
+				{
+					FActorIterator iterator (STACK(3));
+					AActor *actor;
+					int count = 0;
+
+					while ( (actor = iterator.Next ()) )
+					{
+						state = RUNTIME_TYPE(activator)->ActorInfo->FindState (statelist.Size(), &statelist[0], !!STACK(1));
+						if (state != NULL)
+						{
+							actor->SetState (state);
+							count++;
+						}
+					}
+					STACK(3) = count;
+				}
+				sp -= 2;
+			}
+			break;
+
 		case PCD_PLAYERCLASS:		// [GRB]
 			if (STACK(1) < 0 || STACK(1) >= MAXPLAYERS || !playeringame[STACK(1)])
 			{
@@ -5556,6 +5578,11 @@ int DLevelScript::RunScript ()
 					}
 				}
 			}
+
+		case PCD_THINGDAMAGE2:
+			STACK(3) = P_Thing_Damage (STACK(3), activator, STACK(2), FName(FBehavior::StaticLookupString(STACK(1))));
+			sp -= 2;
+			break;
 		}
 	}
 
