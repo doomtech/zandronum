@@ -193,6 +193,7 @@ static	void	client_SetThingSpecial2( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingTics( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingTID( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingGravity( BYTESTREAM_s *pByteStream );
+static	void	client_SetThingFrame( BYTESTREAM_s *pByteStream );
 static	void	client_SetWeaponAmmoGive( BYTESTREAM_s *pByteStream );
 static	void	client_ThingIsCorpse( BYTESTREAM_s *pByteStream );
 static	void	client_HideThing( BYTESTREAM_s *pByteStream );
@@ -526,6 +527,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETTHINGTICS",
 	"SVC_SETTHINGTID",
 	"SVC_SETTHINGGRAVITY",
+	"SVC_SETTHINGFRAME",
 	"SVC_SETWEAPONAMMOGIVE",
 	"SVC_THINGISCORPSE",
 	"SVC_HIDETHING",
@@ -1615,6 +1617,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETTHINGGRAVITY:
 
 		client_SetThingGravity( pByteStream );
+		break;
+	case SVC_SETTHINGFRAME:
+
+		client_SetThingFrame( pByteStream );
 		break;
 	case SVC_SETWEAPONAMMOGIVE:
 
@@ -5635,6 +5641,38 @@ static void client_SetThingGravity( BYTESTREAM_s *pByteStream )
 
 	// Set the actor's gravity.
 	pActor->gravity = lGravity;
+}
+
+//*****************************************************************************
+//
+static void client_SetThingFrame( BYTESTREAM_s *pByteStream )
+{
+	LONG		lID;
+	LONG		lFrame;
+	AActor		*pActor;
+	FState		*pFrame;
+
+	// Read in the network ID for the object to have its state changed.
+	lID = NETWORK_ReadShort( pByteStream );
+
+	// Read in the frame.
+	lFrame = NETWORK_ReadShort( pByteStream );
+
+	// Not in a level; nothing to do (shouldn't happen!)
+	if ( gamestate != GS_LEVEL )
+		return;
+
+	// Find the actor associated with the ID.
+	pActor = CLIENT_FindThingByNetID( lID );
+	if ( pActor == NULL )
+	{
+		// There should probably be the potential for a warning message here.
+		return;
+	}
+
+	pFrame = pActor->SeeState + lFrame;
+	if ( pFrame )
+		pActor->SetState( pFrame );
 }
 
 //*****************************************************************************

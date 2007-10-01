@@ -445,7 +445,8 @@ FState *P_GetState(AActor *self, FState *CallingState, int offset)
 // Do the state jump
 //
 //==========================================================================
-static void DoJump(AActor * self, FState * CallingState, int offset)
+// [BC] Added bNeedClientUpdate.
+static void DoJump(AActor * self, FState * CallingState, int offset, bool bNeedClientUpdate)
 {
 
 	if (pStateCall != NULL && CallingState == pStateCall->State)
@@ -471,6 +472,14 @@ static void DoJump(AActor * self, FState * CallingState, int offset)
 		FState *jumpto = P_GetState(self, CallingState, offset);
 		if (jumpto == NULL) return;
 		self->SetState (jumpto);
+
+		// [BC] If we're the server, tell clients to change the thing's state.
+		if (( bNeedClientUpdate ) &&
+			( NETWORK_GetState( ) == NETSTATE_SERVER ))
+		{
+			SERVERCOMMANDS_SetThingFrame( self, LONG( jumpto - self->SeeState ));
+			SERVERCOMMANDS_MoveThing( self, CM_X|CM_Y|CM_Z );
+		}
 	}
 }
 //==========================================================================
@@ -491,11 +500,11 @@ void A_Jump(AActor * self)
 	{
 		if (StateParameters[index] == 2)
 		{
-			DoJump(self, CallingState, StateParameters[index + 2]);
+			DoJump(self, CallingState, StateParameters[index + 2], true);	// [BC] Random state changes shouldn't be client-side.
 		}
 		else
 		{
-			DoJump(self, CallingState, StateParameters[index + (pr_cajump() % (StateParameters[index] - 1)) + 2]);
+			DoJump(self, CallingState, StateParameters[index + (pr_cajump() % (StateParameters[index] - 1)) + 2], true);	// [BC] Random state changes shouldn't be client-side.
 		}
 	}
 	if (pStateCall != NULL) pStateCall->Result=false;	// Jumps should never set the result for inventory state chains!
@@ -512,7 +521,7 @@ void A_JumpIfHealthLower(AActor * self)
 	int index=CheckIndex(2, &CallingState);
 
 	if (index>=0 && self->health < EvalExpressionI (StateParameters[index], self))
-		DoJump(self, CallingState, StateParameters[index+1]);
+		DoJump(self, CallingState, StateParameters[index+1], false);	// [BC] Clients know what the actor's health is.
 
 	if (pStateCall != NULL) pStateCall->Result=false;	// Jumps should never set the result for inventory state chains!
 }
@@ -546,7 +555,7 @@ void A_JumpIfCloser(AActor * self)
 
 	fixed_t dist = fixed_t(EvalExpressionF (StateParameters[index], self) * FRACUNIT);
 	if (index > 0 && P_AproxDistance(self->x-target->x, self->y-target->y) < dist)
-		DoJump(self, CallingState, StateParameters[index+1]);
+		DoJump(self, CallingState, StateParameters[index+1], true);	// [BC] Since monsters don't have targets on the client end, we need to send an update.
 }
 
 //==========================================================================
@@ -573,8 +582,8 @@ void DoJumpIfInventory(AActor * self, AActor * owner)
 
 	if (Item)
 	{
-		if (ItemAmount>0 && Item->Amount>=ItemAmount) DoJump(self, CallingState, JumpOffset);
-		else if (Item->Amount>=Item->MaxAmount) DoJump(self, CallingState, JumpOffset);
+		if (ItemAmount>0 && Item->Amount>=ItemAmount) DoJump(self, CallingState, JumpOffset, false);	// [BC] Clients have inventory information.
+		else if (Item->Amount>=Item->MaxAmount) DoJump(self, CallingState, JumpOffset, false);	// [BC] Clients have inventory information.
 	}
 }
 
@@ -977,7 +986,7 @@ void A_JumpIfNoAmmo(AActor * self)
 	if (index<0 || !self->player || !self->player->ReadyWeapon || pStateCall != NULL) return;	// only for weapons!
 
 	if (!self->player->ReadyWeapon->CheckAmmo(self->player->ReadyWeapon->bAltFire, false, true))
-		DoJump(self, CallingState, StateParameters[index]);
+		DoJump(self, CallingState, StateParameters[index], false);	// [BC] Clients have ammo information.
 
 }
 
@@ -2012,7 +2021,7 @@ void A_CheckSight(AActor * self)
 	FState * CallingState;
 	int index=CheckIndex(1, &CallingState);
 
-	if (index>=0) DoJump(self, CallingState, StateParameters[index]);
+	if (index>=0) DoJump(self, CallingState, StateParameters[index], false);	// [BC] This is hopefully okay.
 
 }
 
@@ -2073,7 +2082,7 @@ void A_JumpIf(AActor * self)
 	INTBOOL expression = EvalExpressionI (StateParameters[index], self);
 
 	if (pStateCall != NULL) pStateCall->Result=false;	// Jumps should never set the result for inventory state chains!
-	if (expression) DoJump(self, CallingState, StateParameters[index+1]);
+	if (expression) DoJump(self, CallingState, StateParameters[index+1], true);	// [BC] It's probably not good to do this client-side.
 
 }
 
@@ -2205,7 +2214,7 @@ void A_CheckFloor (AActor *self)
 	if (pStateCall != NULL) pStateCall->Result=false;	// Jumps should never set the result for inventory state chains!
 	if (self->z <= self->floorz && index >= 0)
 	{
-		DoJump (self, CallingState, StateParameters[index]);
+		DoJump (self, CallingState, StateParameters[index], true);	// [BC] Clients have floor information.
 	}
 
 }
@@ -2278,7 +2287,7 @@ void A_PlayerSkinCheck (AActor *actor)
 	
 		if (index >= 0)
 		{
-			DoJump(actor, CallingState, StateParameters[index]);
+			DoJump(actor, CallingState, StateParameters[index], false);	// [BC] Clients have skin information.
 		}	
 	}
 }

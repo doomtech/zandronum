@@ -133,6 +133,7 @@ void	SERVERCOMMANDS_SetThingSpecial2( AActor *pActor, ULONG ulPlayerExtra = MAXP
 void	SERVERCOMMANDS_SetThingTics( AActor *pActor, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_SetThingTID( AActor *pActor, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_SetThingGravity( AActor *pActor, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
+void	SERVERCOMMANDS_SetThingFrame( AActor *pActor, LONG lFrame, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_SetWeaponAmmoGive( AActor *pActor, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_ThingIsCorpse( AActor *pActor, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_HideThing( AActor *pActor, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
