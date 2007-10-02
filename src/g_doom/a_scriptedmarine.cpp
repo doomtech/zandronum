@@ -235,15 +235,12 @@ void AScriptedMarine::BeginPlay ()
 	Super::BeginPlay ();
 
 	// Copy the standard player's scaling
-	// [GZDoom]
 	AActor * playerdef = GetDefaultByName("DoomPlayer");
 	if (playerdef != NULL)
 	{
 		scaleX = playerdef->scaleX;
 		scaleY = playerdef->scaleY;
 	}
-	//xscale = GetDefaultByType(RUNTIME_CLASS(ADoomPlayer))->xscale;
-	//yscale = GetDefaultByType(RUNTIME_CLASS(ADoomPlayer))->yscale;
 }
 
 void AScriptedMarine::Tick ()
@@ -437,7 +434,7 @@ void A_M_Saw (AActor *self)
 		
 		P_LineAttack (self, angle, MELEERANGE+1,
 					P_AimLineAttack (self, angle, MELEERANGE+1), damage,
-					NAME_Melee, RUNTIME_CLASS(ABulletPuff));
+					NAME_Melee, NAME_BulletPuff);
 
 		if (!linetarget)
 		{
@@ -506,7 +503,7 @@ void A_M_Punch (AActor *self)
 	A_FaceTarget (self);
 	angle = self->angle + (pr_m_punch.Random2() << 18);
 	pitch = P_AimLineAttack (self, angle, MELEERANGE);
-	P_LineAttack (self, angle, MELEERANGE, pitch, damage, NAME_Melee, RUNTIME_CLASS(ABulletPuff));
+	P_LineAttack (self, angle, MELEERANGE, pitch, damage, NAME_Melee, NAME_BulletPuff);
 
 	// turn to face target
 	if (linetarget)
@@ -545,7 +542,7 @@ void A_M_BerserkPunch (AActor *self)
 	A_FaceTarget (self);
 	angle = self->angle + (pr_m_punch.Random2() << 18);
 	pitch = P_AimLineAttack (self, angle, MELEERANGE);
-	P_LineAttack (self, angle, MELEERANGE, pitch, damage, NAME_Melee, RUNTIME_CLASS(ABulletPuff));
+	P_LineAttack (self, angle, MELEERANGE, pitch, damage, NAME_Melee, NAME_BulletPuff);
 
 	// turn to face target
 	if (linetarget)
@@ -609,7 +606,7 @@ void A_M_FirePistol (AActor *self)
 
 	A_FaceTarget (self);
 	P_GunShot2 (self, true, P_AimLineAttack (self, self->angle, MISSILERANGE),
-		RUNTIME_CLASS(ABulletPuff));
+		PClass::FindClass(NAME_BulletPuff));
 }
 
 //============================================================================
@@ -635,7 +632,7 @@ void A_M_FirePistolInaccurate (AActor *self)
 
 	A_FaceTarget (self);
 	P_GunShot2 (self, false, P_AimLineAttack (self, self->angle, MISSILERANGE),
-		RUNTIME_CLASS(ABulletPuff));
+		PClass::FindClass(NAME_BulletPuff));
 }
 
 //============================================================================
@@ -665,7 +662,7 @@ void A_M_FireShotgun (AActor *self)
 	pitch = P_AimLineAttack (self, self->angle, MISSILERANGE);
 	for (int i = 0; i < 7; ++i)
 	{
-		P_GunShot2 (self, false, pitch, RUNTIME_CLASS(ABulletPuff));
+		P_GunShot2 (self, false, pitch, PClass::FindClass(NAME_BulletPuff));
 	}
 	self->special1 = level.maptime + 27;
 }
@@ -724,7 +721,7 @@ void A_M_FireShotgun2 (AActor *self)
 
 		P_LineAttack (self, angle, MISSILERANGE,
 					  pitch + (pr_m_fireshotgun2.Random2() * 332063), damage,
-					  NAME_None, RUNTIME_CLASS(ABulletPuff));
+					  NAME_None, PClass::FindClass(NAME_BulletPuff));
 	}
 	self->special1 = level.maptime;
 }
@@ -752,7 +749,7 @@ void A_M_FireCGunAccurate (AActor *self)
 
 	A_FaceTarget (self);
 	P_GunShot2 (self, true, P_AimLineAttack (self, self->angle, MISSILERANGE),
-		RUNTIME_CLASS(ABulletPuff));
+		PClass::FindClass(NAME_BulletPuff));
 }
 
 //============================================================================
@@ -778,7 +775,7 @@ void A_M_FireCGun (AActor *self)
 
 	A_FaceTarget (self);
 	P_GunShot2 (self, false, P_AimLineAttack (self, self->angle, MISSILERANGE),
-		RUNTIME_CLASS(ABulletPuff));
+		PClass::FindClass(NAME_BulletPuff));
 }
 
 //============================================================================
@@ -810,7 +807,7 @@ void A_M_FireMissile (AActor *self)
 	else
 	{
 		A_FaceTarget (self);
-		pMissile = P_SpawnMissile (self, self->target, RUNTIME_CLASS(ARocket));
+		pMissile = P_SpawnMissile (self, self->target, PClass::FindClass("Rocket"));
 
 		// [BC] If we're the server, tell clients to spawn this missile.
 		if (( pMissile ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
@@ -856,7 +853,7 @@ void A_M_FirePlasma (AActor *self)
 		return;
 
 	A_FaceTarget (self);
-	pMissile = P_SpawnMissile (self, self->target, RUNTIME_CLASS(APlasmaBall));
+	pMissile = P_SpawnMissile (self, self->target, PClass::FindClass("PlasmaBall"));
 	self->special1 = level.maptime + 20;
 
 	// [BC] If we're the server, tell clients to spawn this missile.
@@ -915,7 +912,7 @@ void A_M_FireBFG (AActor *self)
 		return;
 
 	A_FaceTarget (self);
-	pMissile = P_SpawnMissile (self, self->target, RUNTIME_CLASS(ABFGBall));
+	pMissile = P_SpawnMissile (self, self->target, PClass::FindClass("BFGBall"));
 	self->special1 = level.maptime + 30;
 	self->PainChance = MARINE_PAIN_CHANCE;
 
@@ -1146,21 +1143,15 @@ void AScriptedMarine::SetSprite (const PClass *source)
 	{ // A valid actor class wasn't passed, so use the standard sprite
 		SpriteOverride = sprite = States[0].sprite.index;
 		// Copy the standard player's scaling
-		// [GZDoom]
 		AActor * playerdef = GetDefaultByName("DoomPlayer");
 		if (playerdef == NULL) playerdef = GetDefaultByType(RUNTIME_CLASS(AScriptedMarine));
 		scaleX = playerdef->scaleX;
 		scaleY = playerdef->scaleY;
-		//xscale = GetDefaultByType(RUNTIME_CLASS(ADoomPlayer))->xscale;
-		//yscale = GetDefaultByType(RUNTIME_CLASS(ADoomPlayer))->yscale;
 	}
 	else
 	{ // Use the same sprite the passed class spawns with
 		SpriteOverride = sprite = GetDefaultByType (source)->SpawnState->sprite.index;
-		// [GZDoom]
 		scaleX = GetDefaultByType(source)->scaleX;
 		scaleY = GetDefaultByType(source)->scaleY;
-		//xscale = GetDefaultByType(source)->xscale;
-		//yscale = GetDefaultByType(source)->yscale;
 	}
 }

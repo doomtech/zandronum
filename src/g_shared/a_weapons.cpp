@@ -605,15 +605,18 @@ void AWeapon::EndPowerup ()
 	{
 		if (GetReadyState() != SisterWeapon->GetReadyState())
 		{
-			Owner->player->PendingWeapon = SisterWeapon;
-
-			// [BC] If we're a client, tell the server we're switching weapons.
-			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( Owner->player - players ) == consoleplayer ))
+			if (Owner->player->PendingWeapon != NULL)
 			{
-				CLIENTCOMMANDS_WeaponSelect( ( char *)this->GetClass( )->TypeName.GetChars( ));
+				Owner->player->PendingWeapon = SisterWeapon;
 
-				if ( CLIENTDEMO_IsRecording( ))
-					CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)this->GetClass( )->TypeName.GetChars( ));
+				// [BC] If we're a client, tell the server we're switching weapons.
+				if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( Owner->player - players ) == consoleplayer ))
+				{
+					CLIENTCOMMANDS_WeaponSelect( ( char *)this->GetClass( )->TypeName.GetChars( ));
+
+					if ( CLIENTDEMO_IsRecording( ))
+						CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)this->GetClass( )->TypeName.GetChars( ));
+				}
 			}
 		}
 		else

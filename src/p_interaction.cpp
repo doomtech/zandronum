@@ -1111,9 +1111,25 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 					return;
 			}
 		}
+
+		// to be removed and replaced by an actual damage factor 
+		// once the actors using it are converted to DECORATE.
 		if (mod == NAME_Fire && target->flags4 & MF4_FIRERESIST)
 		{
 			damage /= 2;
+		}
+		else
+		{
+			DmgFactors * df = target->GetClass()->ActorInfo->DamageFactors;
+			if (df != NULL)
+			{
+				fixed_t * pdf = df->CheckKey(mod);
+				if (pdf != NULL)
+				{
+					damage = FixedMul(damage, *pdf);
+					if (damage <= 0) return;
+				}
+			}
 		}
 		damage = inflictor->DoSpecialDamage (target, damage);
 		if (damage == -1)

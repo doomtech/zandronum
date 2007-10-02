@@ -1491,6 +1491,36 @@ FUNC(LS_Thing_Raise)
 	return ok;
 }
 
+FUNC(LS_Thing_Stop)
+// Thing_Stop(tid)
+{
+	AActor * target;
+	bool ok = false;
+
+	if (arg0==0)
+	{
+		if (it != NULL)
+		{
+			it->momx = it->momy = it->momz = 0;
+			if (it->player != NULL) it->player->momx = it->player->momy = 0;
+			ok = true;
+		}
+	}
+	else
+	{
+		TActorIterator<AActor> iterator (arg0);
+
+		while ( (target = iterator.Next ()) )
+		{
+			target->momx = target->momy = target->momz = 0;
+			if (target->player != NULL) target->player->momx = target->player->momy = 0;
+			ok = true;
+		}
+	}
+	return ok;
+}
+
+
 FUNC(LS_Thing_SetGoal)
 // Thing_SetGoal (tid, goal, delay, chasegoal)
 {
@@ -1548,7 +1578,7 @@ FUNC(LS_Thing_SetTranslation)
 	while ( (target = iterator.Next ()) )
 	{
 		ok = true;
-		target->Translation = range;
+		target->Translation = range==0? target->GetDefault()->Translation : range;
 
 		// [BC] If we're the server, tell clients to set this thing's translation.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -3093,7 +3123,7 @@ lnSpecFunc LineSpecials[256] =
 	LS_NOP,		// Transfer_WallLight
 	LS_Thing_Raise,
 	LS_StartConversation,
-	LS_NOP,		// 19
+	LS_Thing_Stop,
 	LS_Floor_LowerByValue,
 	LS_Floor_LowerToLowest,
 	LS_Floor_LowerToNearest,

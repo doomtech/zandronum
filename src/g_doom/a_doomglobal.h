@@ -25,12 +25,6 @@ public:
 	void BeginPlay ();
 };
 
-class ARocket : public AActor
-{
-	DECLARE_ACTOR (ARocket, AActor)
-public:
-};
-
 // [BC]
 class AGrenade : public AActor
 {
@@ -41,16 +35,6 @@ public:
 	bool	FloorBounceMissile( secplane_t &plane );
 
 	void	PreExplode( );
-};
-
-class APlasmaBall : public AActor
-{
-	DECLARE_ACTOR (APlasmaBall, AActor)
-};
-
-class ABFGBall : public AActor
-{
-	DECLARE_ACTOR (ABFGBall, AActor)
 };
 
 class AScriptedMarine : public AActor
@@ -83,13 +67,6 @@ public:
 
 protected:
 	int SpriteOverride;
-};
-
-class ADoomPlayer : public APlayerPawn
-{
-	DECLARE_ACTOR (ADoomPlayer, APlayerPawn)
-public:
-	void GiveDefaultInventory ();
 };
 
 // [BC]

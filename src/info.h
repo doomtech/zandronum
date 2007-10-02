@@ -390,6 +390,8 @@ enum
 #pragma warning(disable:4200)
 #endif
 
+typedef TMap<FName, fixed_t> DmgFactors;
+
 struct FActorInfo
 {
 	static void StaticInit ();
@@ -419,6 +421,7 @@ struct FActorInfo
 	BYTE SpawnID;
 	SWORD DoomEdNum;
 	FStateLabels * StateList;
+	DmgFactors *DamageFactors;
 
 #if _MSC_VER
 	// A 0-terminated list of default properties

@@ -28,6 +28,22 @@ static FRandom pr_fireplasma ("FirePlasma");
 static FRandom pr_firerail ("FireRail");
 static FRandom pr_bfgspray ("BFGSpray");
 
+class ARocket : public AActor
+{
+	DECLARE_ACTOR (ARocket, AActor)
+public:
+};
+
+class APlasmaBall : public AActor
+{
+	DECLARE_ACTOR (APlasmaBall, AActor)
+};
+
+class ABFGBall : public AActor
+{
+	DECLARE_ACTOR (ABFGBall, AActor)
+};
+
 //
 // A_Punch
 //

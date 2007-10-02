@@ -152,7 +152,7 @@ void ACooperativeBackpack::FillBackpack( player_s *pPlayer )
 	while ( pInventory )
 	{
 		if (( pInventory->GetClass( )->IsDescendantOf( RUNTIME_CLASS( AWeapon ))) ||
-			( pInventory->GetClass( )->IsDescendantOf( RUNTIME_CLASS( ABackpack ))) ||
+			( pInventory->GetClass( )->IsDescendantOf( PClass::FindClass("Backpack" ))) ||
 			( pInventory->GetClass( )->IsDescendantOf( RUNTIME_CLASS( ARune ))))
 		{
 			pGivenInventory = this->GiveInventoryType( pInventory->GetClass( ));

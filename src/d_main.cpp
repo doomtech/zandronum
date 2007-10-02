@@ -2768,8 +2768,6 @@ void D_DoomMain (void)
 		DoDehPatch (NULL, true);	// See if there's a patch in a PWAD
 		FinishDehPatch ();			// Create replacements for dehacked pickups
 	}
-	HandleNoSector ();	// clear NOSECTOR flag off all actors modified by Dehacked and the BossEye.
-
 	FActorInfo::StaticSetActorNums ();
 
 

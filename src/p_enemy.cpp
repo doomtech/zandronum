@@ -330,10 +330,10 @@ bool AActor::SuggestMissileAttack (fixed_t dist)
 	// Making these values customizable is not necessary and in most case more confusing than
 	// helpful because no value here translates into anything really meaningful. 
 	
-	if (flags4 & MF4_SHORTMISSILERANGE && dist>14*64*FRACUNIT)
-		return false;	// The Arch Vile's special behavior turned into a flag
+	if (maxtargetrange > 0 && dist > maxtargetrange)
+		return false;	// The Arch Vile's special behavior turned into a property
 		
-	if (flags4 & MF4_LONGMELEERANGE && dist < 196*FRACUNIT)
+	if (dist < meleethreshold)
 		return false;	// From the Revenant: close enough for fist attack
 
 	if (flags4 & MF4_MISSILEMORE) dist >>= 1;
@@ -535,8 +535,8 @@ bool P_Move (AActor *actor)
 		while (spechit.Pop (ld))
 		{
 			// [RH] let monsters push lines, as well as use them
-			if (P_ActivateLine (ld, actor, 0, SPAC_USE) ||
-				((actor->flags & MF2_PUSHWALL) && P_ActivateLine (ld, actor, 0, SPAC_PUSH)))
+			if (((actor->flags4 & MF4_CANUSEWALLS) && P_ActivateLine (ld, actor, 0, SPAC_USE)) ||
+				((actor->flags2 & MF2_PUSHWALL) && P_ActivateLine (ld, actor, 0, SPAC_PUSH)))
 			{
 				good |= ld == BlockingLine ? 1 : 2;
 			}
@@ -1770,7 +1770,8 @@ void A_Look (AActor *actor)
 	}
 	else
 	{
-		targ = (i_compatflags & COMPATF_SOUNDTARGET)? actor->Sector->SoundTarget : actor->LastHeard;
+		targ = (i_compatflags & COMPATF_SOUNDTARGET || actor->flags & MF_NOSECTOR)? 
+			actor->Sector->SoundTarget : actor->LastHeard;
 
 		// [RH] If the soundtarget is dead, don't chase it
 		if (targ != NULL && targ->health <= 0)
