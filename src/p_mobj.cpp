@@ -3168,11 +3168,12 @@ void AActor::Tick ()
 	}
 
 	// Apply freeze mode.
-	if (( GAME_GetFreezeMode( ) == true ) &&
+	if (( level.flags & LEVEL_FROZEN ) &&
 		(( player && (( player->cheats & CF_FREEZE ) || ( player->Powers & PW_TIMEFREEZE ))) == false ))
 	{
 		return;
 	}
+
 
 	fixed_t oldz = z;
 

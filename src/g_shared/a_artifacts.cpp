@@ -16,6 +16,7 @@
 #include "m_random.h"
 #include "v_video.h"
 #include "templates.h"
+// New #includes for ST.
 #include "network.h"
 #include "g_game.h"
 #include "deathmatch.h"
@@ -31,9 +32,9 @@ static FRandom pr_torch ("Torch");
 #define FLIGHTTICS (60*TICRATE)
 #define SPEEDTICS (45*TICRATE)
 #define MAULATORTICS (25*TICRATE)
+#define	TIMEFREEZE_TICS	( 12 * TICRATE )
 
 // [BC] New Skulltag power duration defines.
-#define	TIMEFREEZE_TICS			( 12 * TICRATE )
 #define	QUADDAMAGE_TICS			( 25 * TICRATE )
 #define	QUARTERDAMAGE_TICS		( 25 * TICRATE )
 #define	TRANSLUCENCY_TICS		( 45 * TICRATE )
@@ -1456,7 +1457,7 @@ void APowerTimeFreezer::InitEffect( )
 	}
 
 	// Finally, freeze the game.
-	GAME_SetFreezeMode( true );
+	level.flags|= LEVEL_FROZEN;
 }
 
 //===========================================================================
@@ -1473,9 +1474,9 @@ void APowerTimeFreezer::DoEffect( )
 		|| (( EffectTics > 2*32 && EffectTics <= 3*32 ) && EffectTics % 8 != 0 ) 
 		|| (( EffectTics > 32 && EffectTics <= 2*32 ) && EffectTics % 4 != 0 )
 		|| (( EffectTics > 0 && EffectTics <= 1*32 ) && EffectTics % 2 != 0 ))
-		GAME_SetFreezeMode( true );
+		level.flags |= LEVEL_FROZEN;
 	else
-		GAME_SetFreezeMode( false );
+		level.flags &= ~LEVEL_FROZEN;
 }
 
 //===========================================================================
@@ -1489,7 +1490,7 @@ void APowerTimeFreezer::EndEffect( )
 	ULONG	ulIdx;
 
 	// Allow other actors to move about freely once again.
-	GAME_SetFreezeMode( false );
+	level.flags &= ~LEVEL_FROZEN;
 
 	// Nothing more to do if there's no owner.
 	if (( Owner == NULL ) || ( Owner->player == NULL ))

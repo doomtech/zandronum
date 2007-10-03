@@ -605,7 +605,7 @@ void AWeapon::EndPowerup ()
 	{
 		if (GetReadyState() != SisterWeapon->GetReadyState())
 		{
-			if (Owner->player->PendingWeapon != NULL)
+			if (Owner->player->PendingWeapon == NULL)
 			{
 				Owner->player->PendingWeapon = SisterWeapon;
 

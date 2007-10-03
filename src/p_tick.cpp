@@ -76,6 +76,7 @@ bool P_CheckTickerPaused ()
 void SERVERCONSOLE_UpdatePlayerInfo( LONG lPlayer, ULONG ulUpdateFlags );
 void P_Ticker (void)
 {
+	int i;
 	ULONG	ulIdx;
 
 	// [BC] Don't run this if the server is lagging.
@@ -101,16 +102,13 @@ void P_Ticker (void)
 		// [BC] Do a quick check to see if anyone has the freeze time power. If they do,
 		// then don't resume the sound, since one of the effects of that power is to shut
 		// off the music.
-		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+		for (i = 0; i < MAXPLAYERS; i++ )
 		{
-			if ( playeringame[ulIdx] == false )
-				continue;
-
-			if ( players[ulIdx].Powers & PW_TIMEFREEZE )
+			if (playeringame[i] && players[i].Powers & PW_TIMEFREEZE)
 				break;
 		}
 
-		if ( ulIdx == MAXPLAYERS )
+		if ( i == MAXPLAYERS )
 			S_ResumeSound ();
 		P_ResetSightCounters (false);
 
@@ -123,7 +121,7 @@ void P_Ticker (void)
 		r_NoInterpolate = false;
 
 		// Don't run particles while in freeze mode.
-		if ( GAME_GetFreezeMode( ) == false )
+		if ( !(level.flags & LEVEL_FROZEN) )
 		{
 			P_ThinkParticles ();	// [RH] make the particles think
 		}
@@ -323,7 +321,7 @@ void P_Ticker (void)
 		DThinker::RunThinkers ();
 
 	// Don't do this stuff while in freeze mode.
-	if ( GAME_GetFreezeMode( ) == false )
+	if ( !(level.flags & LEVEL_FROZEN) )
 	{
 		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 		{

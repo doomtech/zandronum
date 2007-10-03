@@ -56,9 +56,6 @@ ULONG	GAME_GetEndLevelDelay( void );
 void	GAME_SetLevelIntroTicks( USHORT usTicks );
 USHORT	GAME_GetLevelIntroTicks( void );
 
-void	GAME_SetFreezeMode( bool bFreeze );
-bool	GAME_GetFreezeMode( void );
-
 // [BC] Rivecoder's function.
 LONG	GAME_CountLivingPlayers( void );
 

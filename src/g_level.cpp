@@ -2387,7 +2387,7 @@ void G_DoLoadLevel (int position, bool autosave)
 //		JOINQUEUE_ClearList( );
 
 	// Make sure the game isn't frozen.
-	GAME_SetFreezeMode( false );
+	level.flags &= ~LEVEL_FROZEN;
 
 	// Initialize/clear the free network ID list.
 	ACTOR_ClearNetIDList( );
@@ -3069,11 +3069,11 @@ void G_MakeEpisodes ()
 
 		static const char *hepinames[5] =
 		{
-			"CITY OF THE DAMNED",
-			"HELL'S MAW",
-			"THE DOME OF D'SPARIL",
-			"THE OSSUARY",
-			"THE STAGNANT DEMESNE",
+			"MNU_COTD",
+			"MNU_HELLSMAW",
+			"MNU_DOME",
+			"MNU_OSSUARY",
+			"MNU_DEMESNE",
 		};
 		static const char hepikeys[5] = { 'c', 'h', 'd', 'o', 's' };
 

@@ -951,7 +951,7 @@ void AGrenade::Tick( )
 		return;
 	}
 
-	if ( this->special1 && GAME_GetFreezeMode( ) == false )
+	if ( this->special1 && !(level.flags & LEVEL_FROZEN) )
 	{
 		this->special1--;
 		if ( this->special1 == 0 )

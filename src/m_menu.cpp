@@ -2278,6 +2278,7 @@ void M_QuitDOOM (int choice)
 	M_StartMessage (EndString, M_QuitResponse, true);
 }
 
+
 //
 // [RH] Player Setup Menu code
 //

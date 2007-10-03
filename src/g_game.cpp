@@ -228,9 +228,6 @@ static	ULONG	g_ulEndLevelDelay = 0;
 // [BC] How many ticks until we announce various messages?
 static	ULONG	g_ulLevelIntroTicks = 0;
 
-// [BC] Is the game frozen?
-static	bool	g_bFreezeMode = false;
-
 EXTERN_CVAR (Int, team)
 
 // [RH] Allow turbo setting anytime during game
@@ -3673,20 +3670,6 @@ USHORT GAME_GetLevelIntroTicks( void )
 
 //*****************************************************************************
 //
-void GAME_SetFreezeMode( bool bFreeze )
-{
-	g_bFreezeMode = bFreeze;
-}
-
-//*****************************************************************************
-//
-bool GAME_GetFreezeMode( void )
-{
-	return ( g_bFreezeMode );
-}
-
-//*****************************************************************************
-//
 LONG GAME_CountLivingPlayers( void )
 {
 	ULONG	ulIdx;
@@ -4889,10 +4872,14 @@ CCMD( freeze )
 	if (( NETWORK_GetState( ) == NETSTATE_SINGLE ) || ( NETWORK_GetState( ) == NETSTATE_SINGLE_MULTIPLAYER ))
 	{
 		// Toggle the freeze mode.
-		g_bFreezeMode = !g_bFreezeMode;
-		Printf( "Freeze mode %s\n", ( g_bFreezeMode ) ? "ON" : "OFF" );
+		if ( level.flags & LEVEL_FROZEN )
+			level.flags &= ~LEVEL_FROZEN;
+		else
+			level.flags|= LEVEL_FROZEN;
 
-		if ( g_bFreezeMode )
+		Printf( "Freeze mode %s\n", ( level.flags & LEVEL_FROZEN ) ? "ON" : "OFF" );
+
+		if ( level.flags & LEVEL_FROZEN )
 			players[consoleplayer].cheats |= CF_FREEZE;
 		else
 			players[consoleplayer].cheats &= ~CF_FREEZE;

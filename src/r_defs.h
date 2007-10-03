@@ -997,10 +997,8 @@ public:
 	BYTE		gender;		// This skin's gender (not really used)
 	BYTE		range0start;
 	BYTE		range0end;
-	// [GZDoom]
-	fixed_t		Scale;
-	//BYTE		scale;
 	bool		othergame;	// [GRB]
+	fixed_t		Scale;
 	int			sprite;
 	int			crouchsprite;
 	int			namespc;	// namespace for this skin

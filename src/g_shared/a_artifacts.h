@@ -204,7 +204,6 @@ protected:
 	void EndEffect ();
 };
 
-// [BC] Start of new Skulltag powerup types.
 class APowerTimeFreezer : public APowerup
 {
 	DECLARE_STATELESS_ACTOR( APowerTimeFreezer, APowerup )
@@ -214,6 +213,7 @@ protected:
 	void EndEffect( );
 };
 
+// [BC] Start of new Skulltag powerup types.
 class APowerQuadDamage : public APowerup
 {
 	DECLARE_STATELESS_ACTOR( APowerQuadDamage, APowerup )

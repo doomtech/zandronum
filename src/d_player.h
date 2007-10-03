@@ -200,25 +200,16 @@ typedef enum
 
 enum
 {
-	// [BC] Changed values to hexidecimal format.
-	PW_INVULNERABILITY	= 0x00000001,
-	PW_INVISIBILITY		= 0x00000002,
-	PW_INFRARED			= 0x00000004,
+// [BC] Changed values to hexidecimal format.
+	PW_SPEED				= 0x00000001,
+	PW_TIMEFREEZE			= 0x00000002,
 
-// Powerups added in Heretic
-	PW_WEAPONLEVEL2		= 0x00000010,
-	PW_FLIGHT			= 0x00000020,
-
-// Powerups added in Hexen
-	PW_SPEED			= 0x00000040,
-	PW_MINOTAUR			= 0x00000080,
 
 // [BC] Powerups added by Skulltag.
 	PW_QUADDAMAGE			= 0x00000100,
 	PW_QUARTERDAMAGE		= 0x00000200,
 	PW_POSSESSIONARTIFACT	= 0x00000400,
 	PW_TERMINATORARTIFACT	= 0x00000800,
-	PW_TIMEFREEZE			= 0x00001000,
 
 // [BC] Rune effects.
 	PW_DOUBLEDAMAGE			= 0x00002000,

@@ -3060,7 +3060,7 @@ void CSkullBot::Tick( void )
 		return;
 
 	// Don't run their script if the game is frozen.
-	if ( GAME_GetFreezeMode( ))
+	if ( level.flags & LEVEL_FROZEN )
 		return;
 
 	// Check to see if there's any events that need to be executed.
