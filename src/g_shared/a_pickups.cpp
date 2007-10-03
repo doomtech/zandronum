@@ -216,7 +216,7 @@ bool P_GiveBody (AActor *actor, int num)
 	if (player != NULL)
 	{
 		// [BC] Apply the prosperity power.
-		if ( player->Powers & PW_PROSPERITY )
+		if ( player->cheats & CF_PROSPERITY )
 			max = deh.MaxSoulsphere + 50;
 		// [BC] Add the player's max. health bonus to his max.
 		else
@@ -1568,7 +1568,7 @@ bool AHealth::TryPickup (AActor *other)
 	{
 		PrevHealth = other->player->health;
 		// [BC] Apply the prosperity power.
-		if ( player->Powers & PW_PROSPERITY )
+		if ( player->cheats & CF_PROSPERITY )
 			max = deh.MaxSoulsphere + 50;
 		else if (max == 0)
 		{
@@ -1722,7 +1722,7 @@ bool AMaxHealth::TryPickup( AActor *pOther )
 		PrevHealth = pPlayer->health;
 
 		// Apply the prosperity power.
-		if ( pPlayer->Powers & PW_PROSPERITY )
+		if ( pPlayer->cheats & CF_PROSPERITY )
 			lMax = deh.MaxSoulsphere + 50;
 		// If a maximum allowable health isn't specified, then use the player's base health,
 		// plus any bonuses to his max. health.

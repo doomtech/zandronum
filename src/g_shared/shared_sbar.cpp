@@ -1572,7 +1572,7 @@ void FBaseStatusBar::DrawTargetName ()
 		else
 		{
 			// If this player is carrying the terminator artifact, display his name in red.
-			if ( (terminator) && (pTargetPlayer->Powers & PW_TERMINATORARTIFACT) )
+			if ( (terminator) && (pTargetPlayer->cheats & CF_TERMINATORARTIFACT) )
 					ulTextColor = CR_RED;
 		}
 

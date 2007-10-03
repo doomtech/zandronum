@@ -384,7 +384,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 */
 	// [BC] Since the player loses his terminator status after we tell his inventory
 	// that we died, check for it before doing so.
-	bPossessedTerminatorArtifact = !!(( player ) && ( player->Powers & PW_TERMINATORARTIFACT ));
+	bPossessedTerminatorArtifact = !!(( player ) && ( player->cheats & CF_TERMINATORARTIFACT ));
 
 	// [BC] Check to see if any medals need to be awarded.
 	if (( player ) &&
@@ -1164,7 +1164,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 	// [BC] If the target player has the reflection rune, damage the source with 50% of the
 	// this player is being damaged with.
 	if (( target->player ) &&
-		( target->player->Powers & PW_REFLECTION ) &&
+		( target->player->cheats & CF_REFLECTION ) &&
 		( source ) &&
 		( mod != NAME_Reflection ) &&
 		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
@@ -1293,7 +1293,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 
 		// [BC] For the red armor's special fire resistance, potentially reduce the amount
 		// of damage taken AFTER the player's armor has been depleted.
-		if (( player->Powers & PW_FIRERESISTANT ) &&
+		if (( player->cheats & CF_FIRERESISTANT ) &&
 			(( mod == NAME_Fire ) ||
 			( mod == NAME_Grenade ) ||
 			( mod == NAME_Rocket )))
@@ -1356,9 +1356,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 
 	// If the damaging player has the power of drain, give the player 50% of the damage
 	// done in health.
-	if ( source &&
-		source->player &&
-		( source->player->Powers & PW_DRAIN ) &&
+	if ( source && source->player && source->player->cheats & CF_DRAIN &&
 		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
 		( CLIENTDEMO_IsPlaying( ) == false ))
 	{

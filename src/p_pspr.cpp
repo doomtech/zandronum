@@ -821,7 +821,7 @@ void P_MovePsprites (player_t *player)
 					psp->tics--;
 
 					// [BC] Apply double firing speed.
-					if ( psp->tics && ( player->Powers & PW_DOUBLEFIRINGSPEED ))
+					if ( psp->tics && ( player->cheats & CF_DOUBLEFIRINGSPEED ))
 						psp->tics--;
 
 					if(!psp->tics)

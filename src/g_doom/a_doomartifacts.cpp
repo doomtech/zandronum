@@ -32,7 +32,7 @@ public:
 
 		// [BC] Factor in the player's max. health bonus.
 		player->health += deh.MegasphereHealth;
-		if ( player->Powers & PW_PROSPERITY )
+		if ( player->cheats & CF_PROSPERITY )
 		{
 			if ( player->health > deh.MaxSoulsphere + 50 )
 				player->health = deh.MaxSoulsphere + 50;

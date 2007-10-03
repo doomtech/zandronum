@@ -440,7 +440,7 @@ void A_MStaffAttack (AActor *actor)
 	MStaffSpawn (actor, angle+ANGLE_1*5);
 
 	// [BC] Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		MStaffSpawn (actor, angle + ( ANGLE_45 / 3 ));
 		MStaffSpawn (actor, angle-ANGLE_1*5 + ( ANGLE_45 / 3 ));

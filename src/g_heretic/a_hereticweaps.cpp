@@ -228,7 +228,7 @@ void A_StaffAttackPL1 (AActor *actor)
 	P_LineAttack (player->mo, angle, MELEERANGE, slope, damage, NAME_Melee, RUNTIME_CLASS(AStaffPuff));
 
 	// [BC] Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		P_LineAttack( player->mo, angle + ( ANGLE_45 / 3 ), MELEERANGE, slope, damage, NAME_Melee, RUNTIME_CLASS( AStaffPuff ));
 		P_LineAttack( player->mo, angle - ( ANGLE_45 / 3 ), MELEERANGE, slope, damage, NAME_Melee, RUNTIME_CLASS( AStaffPuff ));
@@ -284,7 +284,7 @@ void A_StaffAttackPL2 (AActor *actor)
 	P_LineAttack (player->mo, angle, MELEERANGE, slope, damage, NAME_Melee, RUNTIME_CLASS(AStaffPuff2));
 
 	// [BC] Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		P_LineAttack( player->mo, angle + ( ANGLE_45 / 3 ), MELEERANGE, slope, damage, NAME_Melee, RUNTIME_CLASS( AStaffPuff2 ));
 		P_LineAttack( player->mo, angle - ( ANGLE_45 / 3 ), MELEERANGE, slope, damage, NAME_Melee, RUNTIME_CLASS( AStaffPuff2 ));
@@ -501,7 +501,7 @@ void A_FireGoldWandPL1 (AActor *actor)
 	P_LineAttack (mo, angle, PLAYERMISSILERANGE, bulletpitch, damage, NAME_None, RUNTIME_CLASS(AGoldWandPuff1));
 
 	// [BC] Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		angle = mo->angle;
 		if (player->refire)
@@ -579,7 +579,7 @@ void A_FireGoldWandPL2 (AActor *actor)
 	}
 
 	// [BC] Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		pMissile = P_SpawnMissileAngle( mo, RUNTIME_CLASS( AGoldWandFX2 ), mo->angle - ( ANG45 / 8 ) + ( ANGLE_45 / 3 ), momz );
 		if ( pMissile && NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -857,7 +857,7 @@ void A_FireCrossbowPL1 (AActor *actor)
 	P_SpawnPlayerMissile (pmo, RUNTIME_CLASS(ACrossbowFX3), pmo->angle+(ANG45/10));
 
 	// [BC] Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		P_SpawnPlayerMissile (pmo, RUNTIME_CLASS(ACrossbowFX1), pmo->angle + ( ANGLE_45 / 3 ));
 		P_SpawnPlayerMissile (pmo, RUNTIME_CLASS(ACrossbowFX3), pmo->angle-(ANG45/10) + ( ANGLE_45 / 3 ));
@@ -904,7 +904,7 @@ void A_FireCrossbowPL2(AActor *actor)
 	P_SpawnPlayerMissile (pmo, RUNTIME_CLASS(ACrossbowFX3), pmo->angle+(ANG45/5));
 
 	// [BC] Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		P_SpawnPlayerMissile (pmo, RUNTIME_CLASS(ACrossbowFX2), pmo->angle + ( ANGLE_45 / 3 ));
 		P_SpawnPlayerMissile (pmo, RUNTIME_CLASS(ACrossbowFX2), pmo->angle-(ANG45/10) + ( ANGLE_45 / 3 ));
@@ -1351,7 +1351,7 @@ void A_FireMacePL1B (AActor *actor)
 	}
 
 	// [BC] Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		ball = Spawn<AMaceFX2> (pmo->x, pmo->y, pmo->z + 28*FRACUNIT 
 			- pmo->floorclip, ALLOW_REPLACE);
@@ -1439,7 +1439,7 @@ void A_FireMacePL1 (AActor *actor)
 	}
 
 	// [BC] Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		ball = P_SpawnPlayerMissile (player->mo, RUNTIME_CLASS(AMaceFX1),
 			player->mo->angle+(((pr_maceatk()&7)-4)<<24) + ( ANGLE_45 / 3 ));
@@ -1727,7 +1727,7 @@ void A_FireMacePL2 (AActor *actor)
 		SERVERCOMMANDS_WeaponSound( ULONG( player - players ), "weapons/maceshoot", ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 	}
 
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		mo = P_SpawnPlayerMissile (player->mo, RUNTIME_CLASS(AMaceFX4), player->mo->angle + ( ANGLE_45 / 3 ));
 		if (mo)
@@ -2102,7 +2102,7 @@ void A_GauntletAttack (AActor *actor)
 	P_LineAttack (player->mo, angle, dist, slope, damage, NAME_Melee, pufftype);
 
 	// [BC] Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		P_LineAttack( player->mo, angle + ( ANGLE_45 / 3 ), dist, slope, damage, NAME_Melee, pufftype );
 		P_LineAttack( player->mo, angle - ( ANGLE_45 / 3 ), dist, slope, damage, NAME_Melee, pufftype );
@@ -2464,7 +2464,7 @@ void A_FireBlasterPL1 (AActor *actor)
 	P_LineAttack (actor, angle, PLAYERMISSILERANGE, bulletpitch, damage, NAME_None, RUNTIME_CLASS(ABlasterPuff));
 
 	// [BC] Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		P_LineAttack( actor, angle + ( ANGLE_45 / 3 ), PLAYERMISSILERANGE, bulletpitch, damage, NAME_None, RUNTIME_CLASS( ABlasterPuff ));
 		P_LineAttack( actor, angle - ( ANGLE_45 / 3 ), PLAYERMISSILERANGE, bulletpitch, damage, NAME_None, RUNTIME_CLASS( ABlasterPuff ));
@@ -2510,7 +2510,7 @@ void A_FireBlasterPL2 (AActor *actor)
 	mo = P_SpawnPlayerMissile (actor, RUNTIME_CLASS(ABlasterFX1));
 
 	// [BC] Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		P_SpawnPlayerMissile( actor, RUNTIME_CLASS( ABlasterFX1 ), actor->angle + ( ANGLE_45 / 3 ));
 		P_SpawnPlayerMissile( actor, RUNTIME_CLASS( ABlasterFX1 ), actor->angle - ( ANGLE_45 / 3 ));
@@ -2898,7 +2898,7 @@ void A_FireSkullRodPL1 (AActor *actor)
 
 
 	// [BC] Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		mo = P_SpawnPlayerMissile( player->mo, RUNTIME_CLASS( AHornRodFX1 ), actor->angle + ( ANGLE_45 / 3 ));
 		// Randomize the first frame
@@ -2964,7 +2964,7 @@ void A_FireSkullRodPL2 (AActor *actor)
 	}
 
 	// [BC] Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		P_SpawnPlayerMissile( player->mo, RUNTIME_CLASS( AHornRodFX2 ), actor->angle + ( ANGLE_45 / 3 ));
 		// Use MissileActor instead of the return value from
@@ -3406,7 +3406,7 @@ void A_FirePhoenixPL1 (AActor *actor)
 
 	P_SpawnPlayerMissile (player->mo, RUNTIME_CLASS(APhoenixFX1));
 	// [BC] Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		P_SpawnPlayerMissile( player->mo, RUNTIME_CLASS( APhoenixFX1 ), actor->angle + ( ANGLE_45 / 3 ));
 		P_SpawnPlayerMissile( player->mo, RUNTIME_CLASS( APhoenixFX1 ), actor->angle - ( ANGLE_45 / 3 ));
@@ -3418,7 +3418,7 @@ void A_FirePhoenixPL1 (AActor *actor)
 	actor->momy += FixedMul (4*FRACUNIT, finesine[angle]);
 
 	// [BC] Push the player back even more if they are using spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		actor->momx += FixedMul( 4*FRACUNIT, finecosine[angle] ) * 2;
 		actor->momy += FixedMul( 4*FRACUNIT, finesine[angle] ) * 2;
@@ -3534,7 +3534,7 @@ void A_FirePhoenixPL2 (AActor *actor)
 	}
 
 	// [BC] Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		angle = pmo->angle + ( ANGLE_45 / 3 );
 		mo = Spawn<APhoenixFX2> (x, y, z, ALLOW_REPLACE);

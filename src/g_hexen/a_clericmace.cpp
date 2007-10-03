@@ -97,7 +97,7 @@ void A_CMaceAttack (AActor *actor)
 			AdjustPlayerAngle (player->mo);
 
 			// [BC] Apply spread.
-			if ( player->Powers & PW_SPREAD )
+			if ( player->cheats & CF_SPREAD )
 			{
 				P_LineAttack( player->mo, angle + ( ANGLE_45 / 3 ), 2 * MELEERANGE, slope, damage, NAME_Melee, RUNTIME_CLASS( AHammerPuff ));
 				AdjustPlayerAngle( player->mo );
@@ -118,7 +118,7 @@ void A_CMaceAttack (AActor *actor)
 			AdjustPlayerAngle (player->mo);
 
 			// [BC] Apply spread.
-			if ( player->Powers & PW_SPREAD )
+			if ( player->cheats & CF_SPREAD )
 			{
 				P_LineAttack( player->mo, angle + ( ANGLE_45 / 3 ), 2 * MELEERANGE, slope, damage, NAME_Melee, RUNTIME_CLASS( AHammerPuff ));
 				AdjustPlayerAngle( player->mo );
@@ -140,7 +140,7 @@ void A_CMaceAttack (AActor *actor)
 	P_LineAttack (player->mo, angle, MELEERANGE, slope, damage, NAME_Melee, RUNTIME_CLASS(AHammerPuff));
 
 	// [BC] Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		P_LineAttack( player->mo, angle + ( ANGLE_45 / 3 ), MELEERANGE, slope, damage, NAME_Melee, RUNTIME_CLASS( AHammerPuff ));
 		P_LineAttack( player->mo, angle - ( ANGLE_45 / 3 ), MELEERANGE, slope, damage, NAME_Melee, RUNTIME_CLASS( AHammerPuff ));

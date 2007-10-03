@@ -402,7 +402,7 @@ void A_CFlameAttack (AActor *actor)
 	P_SpawnPlayerMissile (actor, RUNTIME_CLASS(ACFlameMissile));
 	
 	// [BC] Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		P_SpawnPlayerMissile( actor, RUNTIME_CLASS(ACFlameMissile), actor->angle + ( ANGLE_45 / 3 ));
 		P_SpawnPlayerMissile( actor, RUNTIME_CLASS(ACFlameMissile), actor->angle - ( ANGLE_45 / 3 ));

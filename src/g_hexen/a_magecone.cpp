@@ -192,7 +192,7 @@ void A_FireConePL1 (AActor *actor)
 			P_DamageMobj (linetarget, actor, actor, damage, NAME_Ice);
 
 			// [BC] Apply spread.
-			if ( player->Powers & PW_SPREAD )
+			if ( player->cheats & CF_SPREAD )
 				P_DamageMobj (linetarget, actor, actor, damage * 2, NAME_Ice);
 
 			conedone = true;
@@ -214,7 +214,7 @@ void A_FireConePL1 (AActor *actor)
 		}
 
 		// [BC] Apply spread.
-		if ( player->Powers & PW_SPREAD )
+		if ( player->cheats & CF_SPREAD )
 		{
 			mo = P_SpawnPlayerMissile (actor, RUNTIME_CLASS(AFrostMissile), actor->angle + ( ANGLE_45 / 3 ));
 			if (mo)

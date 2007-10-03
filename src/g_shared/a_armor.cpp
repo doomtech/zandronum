@@ -141,7 +141,7 @@ void ABasicArmor::AbsorbDamage (int damage, FName damageType, int &newdamage)
 
 			// [BC] Take away the power of fire resistance.
 			if ( Owner->player )
-				Owner->player->Powers &= ~PW_FIRERESISTANT;
+				Owner->player->cheats &= ~CF_FIRERESISTANT;
 
 			// Now see if the player has some more armor in their inventory
 			// and use it if so. As in Strife, the best armor is used up first.
@@ -230,7 +230,7 @@ bool ABasicArmorPickup::Use (bool pickup)
 	lMaxAmount = SaveAmount;
 	if ( Owner->player )
 	{
-		if ( Owner->player->Powers & PW_PROSPERITY )
+		if ( Owner->player->cheats & CF_PROSPERITY )
 			lMaxAmount = ( deh.BlueAC * 100 ) + 50;
 		else
 			lMaxAmount += armor->BonusCount;
@@ -266,7 +266,7 @@ bool ABasicArmorPickup::Use (bool pickup)
 	// [BC] Take away the power of fire resistance since we're changing
 	// the armor type.
 	if ( Owner->player )
-		Owner->player->Powers &= ~PW_FIRERESISTANT;
+		Owner->player->cheats &= ~CF_FIRERESISTANT;
 
 	return true;
 }
@@ -337,7 +337,7 @@ bool ABasicArmorBonus::Use (bool pickup)
 
 	// [BB] Handle the prosperity rune.
 	int maxAmountPlusBonus;
-	if ( Owner->player && Owner->player->Powers & PW_PROSPERITY )
+	if ( Owner->player && Owner->player->cheats & CF_PROSPERITY )
 		maxAmountPlusBonus = ( deh.BlueAC * 100 ) + 50;
 	else
 		maxAmountPlusBonus = MaxSaveAmount + armor->BonusCount;

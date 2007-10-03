@@ -188,41 +188,35 @@ typedef enum
 //	CF_PREDICTING		= 8192,	// [RH] Player movement is being predicted
 	CF_WEAPONREADY		= 16384,// [RH] Weapon is in the ready state, so bob it when walking
 
-	// [BC] Player can move freely while the game is in freeze mode.
-	CF_FREEZE			= 32768,
+	CF_TIMEFREEZE		= 32768,	// Player has an active time freezer
+	CF_DRAIN			= 65536,	// Player owns a drain powerup
+	CF_SPEED			= 0x20000,	// Player owns a speed artifact
+	CF_REGENERATION		= 0x40000,	// Player owns a regeneration artifact
+	CF_HIGHJUMP			= 0x80000,	// more Skulltag flags. Implemetation not guaranteed though. ;)
+	CF_REFLECTION		= 0x100000,
+	CF_PROSPERITY		= 0x200000,
+	CF_DOUBLEFIRINGSPEED= 0x400000,
 
+	// [BC] Player can move freely while the game is in freeze mode.
+	CF_FREEZE			= 0x800000,
+
+	// [BC] Powerups added by Skulltag.
+	CF_POSSESSIONARTIFACT	= 0x01000000,
+	CF_TERMINATORARTIFACT	= 0x02000000,
+
+	// [BC] Rune effects.
+	CF_DOUBLEDAMAGE			= 0x04000000,
+	CF_SPREAD				= 0x08000000,
+	CF_HALFDAMAGE			= 0x10000000,
+	CF_SPEED25				= 0x20000000,
+	
+	CF_FIRERESISTANT		= 0x40000000,
 
 } cheat_t;
 
 #define WPIECE1		1
 #define WPIECE2		2
 #define WPIECE3		4
-
-enum
-{
-// [BC] Changed values to hexidecimal format.
-	PW_SPEED				= 0x00000001,
-	PW_TIMEFREEZE			= 0x00000002,
-
-
-// [BC] Powerups added by Skulltag.
-	PW_POSSESSIONARTIFACT	= 0x00000400,
-	PW_TERMINATORARTIFACT	= 0x00000800,
-
-// [BC] Rune effects.
-	PW_DOUBLEDAMAGE			= 0x00002000,
-	PW_DOUBLEFIRINGSPEED	= 0x00004000,
-	PW_DRAIN				= 0x00008000,
-	PW_SPREAD				= 0x00010000,
-	PW_HALFDAMAGE			= 0x00020000,
-	PW_REGENERATION			= 0x00040000,
-	PW_PROSPERITY			= 0x00080000,
-	PW_REFLECTION			= 0x00100000,
-	PW_HIGHJUMP				= 0x00200000,
-	PW_SPEED25				= 0x00400000,
-	
-	PW_FIRERESISTANT		= 0x00800000,
-};
 
 #define WP_NOCHANGE ((AWeapon*)~0)
 
@@ -279,7 +273,6 @@ public:
 	AWeapon	   *PendingWeapon;			// WP_NOCHANGE if not changing
 
 	int			cheats;					// bit flags
-	BITFIELD	Powers;					// powers
 	short		refire;					// refired shots are less accurate
 	int			killcount, itemcount, secretcount;		// for intermission
 	int			damagecount, bonuscount;// for screen flashing

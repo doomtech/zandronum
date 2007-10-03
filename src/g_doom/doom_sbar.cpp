@@ -760,7 +760,7 @@ void DrawFullHUD_Health()
 				TAG_DONE );
 		}
 
-		sprintf( szString, "%d", ( CPlayer->Powers & PW_PROSPERITY ) ? ( deh.MaxSoulsphere + 50 ) : deh.StartHealth + CPlayer->lMaxHealthBonus );
+		sprintf( szString, "%d", ( CPlayer->cheats & CF_PROSPERITY ) ? ( deh.MaxSoulsphere + 50 ) : deh.StartHealth + CPlayer->lMaxHealthBonus );
 		if ( bScale )
 		{
 			screen->DrawText( CR_RED,
@@ -855,7 +855,7 @@ void DrawFullHUD_Armor()
 				TAG_DONE );
 		}
 
-		sprintf( szString, "%d", ( CPlayer->Powers & PW_PROSPERITY ) ? (( 100 * deh.BlueAC ) + 50 ) : ( 100 * deh.GreenAC ) + (pArmor ? pArmor->BonusCount : 0) );
+		sprintf( szString, "%d", ( CPlayer->cheats & CF_PROSPERITY ) ? (( 100 * deh.BlueAC ) + 50 ) : ( 100 * deh.GreenAC ) + (pArmor ? pArmor->BonusCount : 0) );
 		if ( bScale )
 		{
 			screen->DrawText( CR_RED,
@@ -1968,7 +1968,7 @@ void DrawFullHUD_GameInformation()
 		if ( FacePriority < 4 )
 		{
 			// Quad damage!
-			if ( CPlayer->Powers & PW_TERMINATORARTIFACT )
+			if ( CPlayer->cheats & CF_TERMINATORARTIFACT )
 			{
 				FacePriority = 3;
 				FaceIndex = CalcPainOffset( ) + ST_QUADOFFSET;

@@ -4365,7 +4365,7 @@ void P_RailAttackWithPossibleSpread (AActor *source, int damage, int offset, int
 	// [BB] Apply spread.
 	if (NULL != source->player )
 	{
-		if ( source->player->Powers & PW_SPREAD )
+		if ( source->player->cheats & CF_SPREAD )
 		{
 			fixed_t		SavedActorAngle;
 

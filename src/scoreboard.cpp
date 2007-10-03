@@ -2033,9 +2033,9 @@ void SCOREBOARD_RefreshHUD( void )
 			{
 				g_ulNumPlayers++;
 
-				if ( players[ulIdx].Powers & PW_TERMINATORARTIFACT )
+				if ( players[ulIdx].cheats & CF_TERMINATORARTIFACT )
 					g_pTerminatorArtifactCarrier = &players[ulIdx];
-				else if ( players[ulIdx].Powers & PW_POSSESSIONARTIFACT )
+				else if ( players[ulIdx].cheats & CF_POSSESSIONARTIFACT )
 					g_pPossessionArtifactCarrier = &players[ulIdx];
 				else if ( players[ulIdx].mo )
 				{
@@ -2292,7 +2292,7 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 		szString[0] = 0;
 
 		ulColor = CR_GRAY;
-		if (( terminator ) && ( players[ulIdx].Powers & PW_TERMINATORARTIFACT ))
+		if (( terminator ) && ( players[ulIdx].cheats & CF_TERMINATORARTIFACT ))
 			ulColor = CR_RED;
 
 		if ( players[ulPlayer].bOnTeam == true )

@@ -515,7 +515,7 @@ void A_MLightningAttack2 (AActor *actor)
 
 	// [BC] Apply spread.
 	if (( actor->player ) &&
-		( actor->player->Powers & PW_SPREAD ))
+		( actor->player->cheats & CF_SPREAD ))
 	{
 		fmo = P_SpawnPlayerMissile (actor, RUNTIME_CLASS(ALightningFloor), actor->angle + ( ANGLE_45 / 3 ));
 		cmo = P_SpawnPlayerMissile (actor, RUNTIME_CLASS(ALightningCeiling), actor->angle + ( ANGLE_45 / 3 ));

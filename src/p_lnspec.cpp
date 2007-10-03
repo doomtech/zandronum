@@ -997,7 +997,7 @@ FUNC(LS_HealThing)
 			if ( it->player )
 			{
 				// [BC] Apply the prosperity power.
-				if ( it->player->Powers & PW_PROSPERITY )
+				if ( it->player->cheats & CF_PROSPERITY )
 					max = deh.MaxSoulsphere + 50;
 				else
 					max = it->GetDefault()->health + it->player->lMaxHealthBonus;

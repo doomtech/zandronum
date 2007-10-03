@@ -246,7 +246,6 @@ player_s::player_s()
   ReadyWeapon(0),
   PendingWeapon(0),
   cheats(0),
-  Powers(0),
   refire(0),
   killcount(0),
   itemcount(0),
@@ -1455,8 +1454,8 @@ void APlayerPawn::Die (AActor *source, AActor *inflictor)
 	// the player is carrying certain powerups before we call the super function.
 	if ( player )
 	{
-		bCarryingTerminatorArtifact = !!( player->Powers & PW_TERMINATORARTIFACT );
-		bCarryingPossessionArtifact = !!( player->Powers & PW_POSSESSIONARTIFACT );
+		bCarryingTerminatorArtifact = !!( player->cheats & CF_TERMINATORARTIFACT );
+		bCarryingPossessionArtifact = !!( player->cheats & CF_POSSESSIONARTIFACT );
 	}
 	else
 	{
@@ -1780,7 +1779,7 @@ void APlayerPawn::DropImportantItems( bool bLeavingGame )
 	// artifact with him.
 	if ( terminator )
 	{
-		if ( player->Powers & PW_TERMINATORARTIFACT )
+		if ( player->cheats & CF_TERMINATORARTIFACT )
 		{
 			P_DropItem( this, PClass::FindClass( "Terminator" ), -1, 256 );
 
@@ -1796,7 +1795,7 @@ void APlayerPawn::DropImportantItems( bool bLeavingGame )
 	// artifact with him.
 	if ( possession || teampossession )
 	{
-		if ( player->Powers & PW_POSSESSIONARTIFACT )
+		if ( player->cheats & CF_POSSESSIONARTIFACT )
 		{
 			P_DropItem( this, PClass::FindClass( "PossessionStone" ), -1, 256 );
 
@@ -1847,14 +1846,14 @@ void APlayerPawn::TweakSpeeds (int &forward, int &side)
 	}
 
 	// [BC] This comes out to 50%, so we can use this for the turbosphere.
-	if ((player->Powers & PW_SPEED) && !player->morphTics)
+	if ((player->cheats & CF_SPEED) && !player->morphTics)
 	{ // Adjust for a player with a speed artifact
 		forward = (3*forward)>>1;
 		side = (3*side)>>1;
 	}
 
 	// [BC] Apply the 25% speed increase power.
-	if ( player->Powers & PW_SPEED25 )
+	if ( player->cheats & CF_SPEED25 )
 	{
 		forward = (LONG)( forward * 1.25 );
 		side = (LONG)( side * 1.25 );
@@ -1867,11 +1866,11 @@ int APlayerPawn::DoSpecialDamage( AActor *target, int damage )
 		return ( damage );
 
 	// Apply quad damage.
-	if ( player->Powers & PW_TERMINATORARTIFACT )
+	if ( player->cheats & CF_TERMINATORARTIFACT )
 		damage *= 4;
 
 	// Apply double damage.
-	if ( player->Powers & PW_DOUBLEDAMAGE )
+	if ( player->cheats & CF_DOUBLEDAMAGE )
 		damage *= 2;
 
 	return ( damage );
@@ -1883,7 +1882,7 @@ int APlayerPawn::TakeSpecialDamage (AActor *inflictor, AActor *source, int damag
 		return ( damage );
 
 	// [BC] Apply 1/2 damage.
-	if ( player->Powers & PW_HALFDAMAGE )
+	if ( player->cheats & CF_HALFDAMAGE )
 		damage /= 2;
 
 	return ( damage );
@@ -2465,7 +2464,7 @@ void P_MovePlayer (player_t *player, ticcmd_t *cmd)
 			JumpMomz = player->mo->JumpZ * 35 / TICRATE;
 
 			// [BC] If the player has the high jump power, double his jump velocity.
-			if ( player->Powers & PW_HIGHJUMP )
+			if ( player->cheats & CF_HIGHJUMP )
 				JumpMomz *= 2;
 
 			// [BC] If the player is standing on a spring pad, halve his jump velocity.
@@ -2479,7 +2478,7 @@ void P_MovePlayer (player_t *player, ticcmd_t *cmd)
 			player->mo->flags2 &= ~MF2_ONMOBJ;
 
 			// [BC] Increase jump delay if the player has the high jump power.
-			if ( player->Powers & PW_HIGHJUMP )
+			if ( player->cheats & CF_HIGHJUMP )
 				ulJumpTicks *= 2;
 
 			// [BC] Remove jump delay if the player is on a spring pad.
@@ -3365,7 +3364,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 			}
 
 			// [BC] Apply regeneration.
-			if (( level.time & 31 ) == 0 && ( player->Powers & PW_REGENERATION ) && ( player->health ))
+			if (( level.time & 31 ) == 0 && ( player->cheats & CF_REGENERATION ) && ( player->health ))
 			{
 				if ( P_GiveBody( player->mo, 5 ))
 				{
@@ -3573,8 +3572,7 @@ void player_s::Serialize (FArchive &arc)
 		<< accuracy << stamina
 		<< (DWORD &)ulRailgunShots
 		<< (DWORD &)lMaxHealthBonus
-		<< LogText
-		<< Powers; // [RC] Save rune effects
+		<< LogText;
 	for (i = 0; i < NUMPSPRITES; i++)
 		arc << psprites[i];
 

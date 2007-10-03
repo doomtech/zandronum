@@ -1204,7 +1204,7 @@ END_DEFAULTS
 
 void APowerSpeed::InitEffect ()
 {
-	Owner->player->Powers |= PW_SPEED;
+	Owner->player->cheats |= CF_SPEED;
 }
 
 //===========================================================================
@@ -1272,7 +1272,7 @@ void APowerSpeed::EndEffect ()
 {
 	if (Owner != NULL && Owner->player != NULL)
 	{
-		Owner->player->Powers &= ~PW_SPEED;
+		Owner->player->cheats &= ~CF_SPEED;
 	}
 }
 
@@ -1440,7 +1440,7 @@ void APowerTimeFreezer::InitEffect( )
 	S_PauseSound( false );
 
 	// Give the player and his teammates the power to move when time is frozen.
-	Owner->player->Powers |= PW_TIMEFREEZE;
+	Owner->player->cheats |= CF_TIMEFREEZE;
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		if (( playeringame[ulIdx] == false ) ||
@@ -1451,7 +1451,7 @@ void APowerTimeFreezer::InitEffect( )
 			continue;
 		}
 
-		players[ulIdx].Powers |= PW_TIMEFREEZE;
+		players[ulIdx].cheats |= CF_TIMEFREEZE;
 	}
 
 	// Finally, freeze the game.
@@ -1497,7 +1497,7 @@ void APowerTimeFreezer::EndEffect( )
 	}
 
 	// Take away the time freeze power, and his teammates.
-	Owner->player->Powers &= ~PW_TIMEFREEZE;
+	Owner->player->cheats &= ~CF_TIMEFREEZE;
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		if (( playeringame[ulIdx] == false ) ||
@@ -1508,14 +1508,14 @@ void APowerTimeFreezer::EndEffect( )
 			continue;
 		}
 
-		players[ulIdx].Powers &= ~PW_TIMEFREEZE;
+		players[ulIdx].cheats &= ~CF_TIMEFREEZE;
 	}
 
 	// If nobody has a time freeze sphere anymore, turn the music back on.
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		if (( playeringame[ulIdx] == false ) ||
-			(( players[ulIdx].Powers & PW_TIMEFREEZE ) == false ))
+			(( players[ulIdx].cheats & CF_TIMEFREEZE ) == false ))
 		{
 			continue;
 		}
@@ -1656,7 +1656,7 @@ END_DEFAULTS
 void APowerPossessionArtifact::InitEffect( )
 {
 	// Flag the player as carrying the possession artifact.
-	Owner->player->Powers |= PW_POSSESSIONARTIFACT;
+	Owner->player->cheats |= CF_POSSESSIONARTIFACT;
 
 	// Tell the possession module that the artifact has been picked up.
 	if (( possession || teampossession ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
@@ -1698,7 +1698,7 @@ void APowerPossessionArtifact::EndEffect( )
 	}
 
 	// Take away the possession artifact flag.
-	Owner->player->Powers &= ~PW_POSSESSIONARTIFACT;
+	Owner->player->cheats &= ~CF_POSSESSIONARTIFACT;
 }
 
 // Terminator artifact powerup -------------------------------------------------
@@ -1716,7 +1716,7 @@ END_DEFAULTS
 void APowerTerminatorArtifact::InitEffect( )
 {
 	// Flag the player as carrying the terminator artifact.
-	Owner->player->Powers |= PW_TERMINATORARTIFACT;
+	Owner->player->cheats |= CF_TERMINATORARTIFACT;
 
 	// Also, give the player a megasphere as part of the bonus.
 	Owner->GiveInventoryType( PClass::FindClass( "Megasphere" ));
@@ -1748,7 +1748,7 @@ void APowerTerminatorArtifact::EndEffect( )
 	}
 
 	// Take away the terminator artifact flag.
-	Owner->player->Powers &= ~PW_TERMINATORARTIFACT;
+	Owner->player->cheats &= ~CF_TERMINATORARTIFACT;
 }
 
 // Translucency Powerup (Skulltag's version of invisibility) ----------------
@@ -2055,7 +2055,7 @@ END_DEFAULTS
 void ARuneDoubleDamage::InitEffect( )
 {
 	// Give the player the power to deal double the amount of damage he normally would.
-	Owner->player->Powers |= PW_DOUBLEDAMAGE;
+	Owner->player->cheats |= CF_DOUBLEDAMAGE;
 }
 
 //===========================================================================
@@ -2073,7 +2073,7 @@ void ARuneDoubleDamage::EndEffect( )
 	}
 
 	// Take away the double damage power.
-	Owner->player->Powers &= ~PW_DOUBLEDAMAGE;
+	Owner->player->cheats &= ~CF_DOUBLEDAMAGE;
 }
 
 // Double firing speed rune -------------------------------------------------
@@ -2090,7 +2090,7 @@ END_DEFAULTS
 void ARuneDoubleFiringSpeed::InitEffect( )
 {
 	// Give the player the power to fire twice as fast.
-	Owner->player->Powers |= PW_DOUBLEFIRINGSPEED;
+	Owner->player->cheats |= CF_DOUBLEFIRINGSPEED;
 }
 
 //===========================================================================
@@ -2108,7 +2108,7 @@ void ARuneDoubleFiringSpeed::EndEffect( )
 	}
 
 	// Take away the double firing speed power.
-	Owner->player->Powers &= ~PW_DOUBLEFIRINGSPEED;
+	Owner->player->cheats &= ~CF_DOUBLEFIRINGSPEED;
 }
 
 // Drain rune -------------------------------------------------------
@@ -2125,7 +2125,7 @@ END_DEFAULTS
 void ARuneDrain::InitEffect( )
 {
 	// Give the player the power to drain life from opponents when he damages them.
-	Owner->player->Powers |= PW_DRAIN;
+	Owner->player->cheats |= CF_DRAIN;
 }
 
 //===========================================================================
@@ -2143,7 +2143,7 @@ void ARuneDrain::EndEffect( )
 	}
 
 	// Take away the drain power.
-	Owner->player->Powers &= ~PW_DRAIN;
+	Owner->player->cheats &= ~CF_DRAIN;
 }
 
 // Spread rune -------------------------------------------------------
@@ -2160,7 +2160,7 @@ END_DEFAULTS
 void ARuneSpread::InitEffect( )
 {
 	// Give the player the power to shoot 3x the number of missiles he normally would.
-	Owner->player->Powers |= PW_SPREAD;
+	Owner->player->cheats |= CF_SPREAD;
 }
 
 //===========================================================================
@@ -2178,7 +2178,7 @@ void ARuneSpread::EndEffect( )
 	}
 
 	// Take away the spread power.
-	Owner->player->Powers &= ~PW_SPREAD;
+	Owner->player->cheats &= ~CF_SPREAD;
 }
 
 // Half damage rune -------------------------------------------------------
@@ -2195,7 +2195,7 @@ END_DEFAULTS
 void ARuneHalfDamage::InitEffect( )
 {
 	// Give the player the power to take half the amount of damage he normally would.
-	Owner->player->Powers |= PW_HALFDAMAGE;
+	Owner->player->cheats |= CF_HALFDAMAGE;
 }
 
 //===========================================================================
@@ -2213,7 +2213,7 @@ void ARuneHalfDamage::EndEffect( )
 	}
 
 	// Take away the half damage power.
-	Owner->player->Powers &= ~PW_HALFDAMAGE;
+	Owner->player->cheats &= ~CF_HALFDAMAGE;
 }
 
 // Regeneration rune -------------------------------------------------------
@@ -2230,7 +2230,7 @@ END_DEFAULTS
 void ARuneRegeneration::InitEffect( )
 {
 	// Give the player the power to regnerate lost life.
-	Owner->player->Powers |= PW_REGENERATION;
+	Owner->player->cheats |= CF_REGENERATION;
 }
 
 //===========================================================================
@@ -2248,7 +2248,7 @@ void ARuneRegeneration::EndEffect( )
 	}
 
 	// Take away the regeneration power.
-	Owner->player->Powers &= ~PW_REGENERATION;
+	Owner->player->cheats &= ~CF_REGENERATION;
 }
 
 // Prosperity rune -------------------------------------------------------
@@ -2265,7 +2265,7 @@ END_DEFAULTS
 void ARuneProsperity::InitEffect( )
 {
 	// Give the player the power to pickup base health artifacts past 100%.
-	Owner->player->Powers |= PW_PROSPERITY;
+	Owner->player->cheats |= CF_PROSPERITY;
 }
 
 //===========================================================================
@@ -2283,7 +2283,7 @@ void ARuneProsperity::EndEffect( )
 	}
 
 	// Take away the prosperity power.
-	Owner->player->Powers &= ~PW_PROSPERITY;
+	Owner->player->cheats &= ~CF_PROSPERITY;
 }
 
 // Reflection rune -------------------------------------------------------
@@ -2300,7 +2300,7 @@ END_DEFAULTS
 void ARuneReflection::InitEffect( )
 {
 	// Give the player the power to reflect damage back at their attacker.
-	Owner->player->Powers |= PW_REFLECTION;
+	Owner->player->cheats |= CF_REFLECTION;
 }
 
 //===========================================================================
@@ -2318,7 +2318,7 @@ void ARuneReflection::EndEffect( )
 	}
 
 	// Take away the reflection power.
-	Owner->player->Powers &= ~PW_REFLECTION;
+	Owner->player->cheats &= ~CF_REFLECTION;
 }
 
 // High jump rune -------------------------------------------------------
@@ -2335,7 +2335,7 @@ END_DEFAULTS
 void ARuneHighJump::InitEffect( )
 {
 	// Give the player the power to jump much higher.
-	Owner->player->Powers |= PW_HIGHJUMP;
+	Owner->player->cheats |= CF_HIGHJUMP;
 }
 
 //===========================================================================
@@ -2353,7 +2353,7 @@ void ARuneHighJump::EndEffect( )
 	}
 
 	// Take away the high jump power.
-	Owner->player->Powers &= ~PW_HIGHJUMP;
+	Owner->player->cheats &= ~CF_HIGHJUMP;
 }
 
 // Speed +25% rune -------------------------------------------------------
@@ -2370,7 +2370,7 @@ END_DEFAULTS
 void ARuneSpeed25::InitEffect( )
 {
 	// Give the player the power to run 25% faster.
-	Owner->player->Powers |= PW_SPEED25;
+	Owner->player->cheats |= CF_SPEED25;
 }
 
 //===========================================================================
@@ -2435,5 +2435,5 @@ void ARuneSpeed25::EndEffect( )
 	}
 
 	// Take away the speed power.
-	Owner->player->Powers &= ~PW_SPEED25;
+	Owner->player->cheats &= ~CF_SPEED25;
 }

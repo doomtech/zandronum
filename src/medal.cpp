@@ -1072,7 +1072,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 		case ( S_TERMINATORARTIFACT + 2 ):
 		case ( S_TERMINATORARTIFACT + 3 ):
 
-			if (( terminator == false ) || (( pPlayer->Powers & PW_TERMINATORARTIFACT ) == false ))
+			if (( terminator == false ) || (( pPlayer->cheats & CF_TERMINATORARTIFACT ) == false ))
 				pPlayer->pIcon->Destroy( );
 			else
 				ulActualSprite = 3;
@@ -1091,7 +1091,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 		case ( S_POSSESSIONARTIFACT + 2 ):
 		case ( S_POSSESSIONARTIFACT + 3 ):
 
-			if ((( possession == false ) && ( teampossession == false )) || (( pPlayer->Powers & PW_POSSESSIONARTIFACT ) == false ))
+			if ((( possession == false ) && ( teampossession == false )) || (( pPlayer->cheats & CF_POSSESSIONARTIFACT ) == false ))
 				pPlayer->pIcon->Destroy( );
 			else
 				ulActualSprite = 5;
@@ -1146,14 +1146,14 @@ void medal_SelectIcon( ULONG ulPlayer )
 		}
 
 		// Draw the terminator artifact over the terminator.
-		if ( terminator && ( pPlayer->Powers & PW_TERMINATORARTIFACT ))
+		if ( terminator && ( pPlayer->cheats & CF_TERMINATORARTIFACT ))
 		{
 			ulFrame = S_TERMINATORARTIFACT;
 			ulDesiredSprite = 3;
 		}
 
 		// Draw the possession artifact over the player.
-		if (( possession || teampossession ) && ( pPlayer->Powers & PW_POSSESSIONARTIFACT ))
+		if (( possession || teampossession ) && ( pPlayer->cheats & CF_POSSESSIONARTIFACT ))
 		{
 			ulFrame = S_POSSESSIONARTIFACT;
 			ulDesiredSprite = 5;
@@ -1298,7 +1298,7 @@ void medal_CheckForExcellent( ULONG ulPlayer )
 void medal_CheckForTermination( ULONG ulDeadPlayer, ULONG ulPlayer )
 {
 	// If the target player is the terminatior, award a "termination" medal.
-	if ( players[ulDeadPlayer].Powers & PW_TERMINATORARTIFACT )
+	if ( players[ulDeadPlayer].cheats & CF_TERMINATORARTIFACT )
 		medal_GiveMedal( ulPlayer, MEDAL_TERMINATION );
 }
 

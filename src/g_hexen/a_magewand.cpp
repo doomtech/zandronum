@@ -212,7 +212,7 @@ void A_MWandAttack (AActor *actor)
 
 	// [BC] Apply spread.
 	if (( actor->player ) &&
-		( actor->player->Powers & PW_SPREAD ))
+		( actor->player->cheats & CF_SPREAD ))
 	{
 		mo = P_SpawnPlayerMissile( actor, RUNTIME_CLASS( AMageWandMissile ), actor->angle + ( ANGLE_45 / 3 ));
 		mo = P_SpawnPlayerMissile( actor, RUNTIME_CLASS( AMageWandMissile ), actor->angle - ( ANGLE_45 / 3 ));

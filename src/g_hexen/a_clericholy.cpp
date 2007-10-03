@@ -578,7 +578,7 @@ void A_CHolyAttack (AActor *actor)
 	if (missile != NULL) missile->tracer = linetarget;
 
 	// [BC] Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		missile = P_SpawnPlayerMissile( actor, RUNTIME_CLASS( AHolyMissile ), actor->angle + ( ANGLE_45 / 3 ));
 		if ( missile != NULL )

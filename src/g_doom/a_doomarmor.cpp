@@ -89,7 +89,7 @@ bool ARedArmor::Use( bool bPickup )
 	{
 		// Red armor gives the player the power of fire resistance.
 		if ( Owner->player )
-			Owner->player->Powers |= PW_FIRERESISTANT;
+			Owner->player->cheats |= CF_FIRERESISTANT;
 
 		return ( true );
 	}

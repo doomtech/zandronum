@@ -303,7 +303,7 @@ void A_CStaffAttack (AActor *actor)
 	}
 
 	// [BC] Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		mo = P_SpawnPlayerMissile( actor, RUNTIME_CLASS( ACStaffMissile ), actor->angle-(ANG45/15) + ( ANGLE_45 / 3 ));
 		if (mo)

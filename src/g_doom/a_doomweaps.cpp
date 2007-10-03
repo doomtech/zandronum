@@ -66,7 +66,7 @@ void A_Punch (AActor *actor)
 	P_LineAttack (actor, angle, MELEERANGE, pitch, damage, NAME_None, NAME_BulletPuff);
 
 	// [BC] Apply spread.
-	if (( actor->player ) && ( actor->player->Powers & PW_SPREAD ))
+	if (( actor->player ) && ( actor->player->cheats & CF_SPREAD ))
 	{
 		P_LineAttack( actor, angle + ( ANGLE_45 / 3 ), MELEERANGE, pitch, damage, NAME_None, NAME_BulletPuff);
 		P_LineAttack( actor, angle - ( ANGLE_45 / 3 ), MELEERANGE, pitch, damage, NAME_None, NAME_BulletPuff);
@@ -156,7 +156,7 @@ void A_FirePistol (AActor *actor)
 	P_GunShot (actor, accurate, PClass::FindClass(NAME_BulletPuff));
 
 	// [BC] Apply spread.
-	if (( actor->player ) && ( actor->player->Powers & PW_SPREAD ))
+	if (( actor->player ) && ( actor->player->cheats & CF_SPREAD ))
 	{
 		fixed_t		SavedActorAngle;
 
@@ -243,7 +243,7 @@ void A_Saw (AActor *actor)
 				  NAME_None, pufftype);
 
 	// [BC] Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		P_LineAttack( actor, angle + ( ANGLE_45 / 3 ), MELEERANGE + 1,
 					  P_AimLineAttack( actor, angle + ( ANGLE_45 / 3 ), MELEERANGE + 1 ), damage,
@@ -350,7 +350,7 @@ void A_FireShotgun (AActor *actor)
 		P_GunShot (actor, false, PClass::FindClass(NAME_BulletPuff));
 
 	// [BC] Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		fixed_t		SavedActorAngle;
 
@@ -441,7 +441,7 @@ void A_FireShotgun2 (AActor *actor)
 					  NAME_None, NAME_BulletPuff);
 
 		// [BC] Apply spread.
-		if ( player->Powers & PW_SPREAD )
+		if ( player->cheats & CF_SPREAD )
 		{
 			P_LineAttack (actor,
 						  angle + ( ANGLE_45 / 3 ),
@@ -631,7 +631,7 @@ void A_FireCGun (AActor *actor)
 	P_GunShot (actor, !player->refire, PClass::FindClass(NAME_BulletPuff));
 
 	// [BC] Apply apread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		fixed_t		SavedActorAngle;
 
@@ -780,7 +780,7 @@ void A_FireMiniGun( AActor *actor )
 	P_GunShot( actor, false, PClass::FindClass(NAME_BulletPuff));
 
 	// Apply spread.
-	if ( pPlayer->Powers & PW_SPREAD )
+	if ( pPlayer->cheats & CF_SPREAD )
 	{
 		fixed_t		SavedActorAngle;
 
@@ -833,7 +833,7 @@ void A_FireMissile (AActor *actor)
 	P_SpawnPlayerMissile (actor, PClass::FindClass("Rocket"));
 
 	// [BC] Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		P_SpawnPlayerMissile( actor, PClass::FindClass("Rocket"), actor->angle + ( ANGLE_45 / 3 ), false );
 		P_SpawnPlayerMissile( actor, PClass::FindClass("Rocket"), actor->angle - ( ANGLE_45 / 3 ), false );
@@ -1026,7 +1026,7 @@ void A_FireSTGrenade (AActor *actor)
 	P_SpawnPlayerMissile( actor, RUNTIME_CLASS( AGrenade ));
 
 	// Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		P_SpawnPlayerMissile( actor, RUNTIME_CLASS( AGrenade ), actor->angle + ( ANGLE_45 / 3 ), false );
 		P_SpawnPlayerMissile( actor, RUNTIME_CLASS( AGrenade ), actor->angle - ( ANGLE_45 / 3 ), false );
@@ -1041,7 +1041,7 @@ void A_FireSTGrenade (AActor *actor)
 		pGrenade->momz += ( 3 * FRACUNIT );
 
 	// Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		pGrenade = P_SpawnPlayerMissile( actor, RUNTIME_CLASS( AGrenade ), actor->angle + ( ANGLE_45 / 3 ), false );
 		if ( pGrenade )
@@ -1091,7 +1091,7 @@ void A_FirePlasma (AActor *actor)
 	P_SpawnPlayerMissile (actor, PClass::FindClass("PlasmaBall"));
 
 	// [BC] Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		P_SpawnPlayerMissile( actor, PClass::FindClass("PlasmaBall"), actor->angle + ( ANGLE_45 / 3 ), false );
 		P_SpawnPlayerMissile( actor, PClass::FindClass("PlasmaBall"), actor->angle - ( ANGLE_45 / 3 ), false );
@@ -1212,7 +1212,7 @@ void A_FireRailgun (AActor *actor)
 	P_RailAttack (actor, damage, RailOffset, lOuterColor, lInnerColor);
 
 	// [BC] Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		fixed_t		SavedActorAngle;
 
@@ -1365,7 +1365,7 @@ void A_FireBFG (AActor *actor)
 	P_SpawnPlayerMissile (actor, PClass::FindClass("BFGBall"));
 
 	// [BC] Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		P_SpawnPlayerMissile( actor, PClass::FindClass("BFGBall"), actor->angle + ( ANGLE_45 / 3 ), false );
 		P_SpawnPlayerMissile( actor, PClass::FindClass("BFGBall"), actor->angle - ( ANGLE_45 / 3 ), false );
@@ -1638,7 +1638,7 @@ void A_FireBFG10k( AActor *pActor )
 	P_GunShot( pActor, true, RUNTIME_CLASS( ABFG10kShot ));
 
 	// Apply spread.
-	if ( pPlayer->Powers & PW_SPREAD )
+	if ( pPlayer->cheats & CF_SPREAD )
 	{
 		fixed_t		SavedActorAngle;
 

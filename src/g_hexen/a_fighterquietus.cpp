@@ -317,7 +317,7 @@ void A_FSwordAttack (AActor *actor)
 	P_SpawnPlayerMissile (actor, 0, 0,  10*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle-ANGLE_45/4);
 
 	// [BC] Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		P_SpawnPlayerMissile (actor, 0, 0, -10*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle+ANGLE_45/4 + ( ANGLE_45 / 3 ));
 		P_SpawnPlayerMissile (actor, 0, 0,  -5*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle+ANGLE_45/8 + ( ANGLE_45 / 3 ));

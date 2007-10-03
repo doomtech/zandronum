@@ -2845,7 +2845,6 @@ void CLIENT_ResetPlayerData( player_s *pPlayer )
 	pPlayer->ReadyWeapon = 0;
 	pPlayer->PendingWeapon = 0;
 	pPlayer->cheats = 0;
-	pPlayer->Powers = 0;
 	pPlayer->refire = 0;
 	pPlayer->killcount = 0;
 	pPlayer->itemcount = 0;

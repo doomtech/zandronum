@@ -202,7 +202,7 @@ void A_FHammerAttack (AActor *actor)
 			}
 
 			// [BC] Apply spread.
-			if ( player->Powers & PW_SPREAD )
+			if ( player->cheats & CF_SPREAD )
 			{
 				P_LineAttack( pmo, angle + ( ANGLE_45 / 3 ), HAMMER_RANGE, slope, damage, NAME_Melee, RUNTIME_CLASS( AHammerPuff ));
 				AdjustPlayerAngle( pmo );
@@ -234,7 +234,7 @@ void A_FHammerAttack (AActor *actor)
 			}
 
 			// [BC] Apply spread.
-			if ( player->Powers & PW_SPREAD )
+			if ( player->cheats & CF_SPREAD )
 			{
 				P_LineAttack( pmo, angle + ( ANGLE_45 / 3 ), HAMMER_RANGE, slope, damage, NAME_Melee, RUNTIME_CLASS( AHammerPuff ));
 				AdjustPlayerAngle( pmo );
@@ -270,7 +270,7 @@ void A_FHammerAttack (AActor *actor)
 	}
 
 	// [BC] Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		P_LineAttack( pmo, angle + ( ANGLE_45 / 3 ), HAMMER_RANGE, slope, damage, NAME_Melee, RUNTIME_CLASS( AHammerPuff ));
 		if ( PuffSpawned )
@@ -330,7 +330,7 @@ void A_FHammerThrow (AActor *actor)
 	}	
 
 	// [BC] Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		mo = P_SpawnPlayerMissile( player->mo, RUNTIME_CLASS( AHammerMissile ), actor->angle + ( ANGLE_45 / 3 )); 
 		if ( mo )

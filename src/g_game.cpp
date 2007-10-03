@@ -1510,9 +1510,9 @@ void G_Ticker ()
 				ticcmd_t	*cmd = &players[i].cmd;
 
 				lMaxThreshold = TURBOTHRESHOLD;
-				if ( players[i].Powers & PW_SPEED25 )
+				if ( players[i].cheats & CF_SPEED25 )
 					lMaxThreshold *= 2;
-				if ( players[i].Powers & PW_SPEED )
+				if ( players[i].cheats & CF_SPEED )
 					lMaxThreshold *= 4;
 
 				// Check for turbo cheats.

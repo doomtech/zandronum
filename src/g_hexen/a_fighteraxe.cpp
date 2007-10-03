@@ -360,7 +360,7 @@ void A_FAxeAttack (AActor *actor)
 			AdjustPlayerAngle (pmo);
 
 			// [BC] Apply spread.
-			if ( player->Powers & PW_SPREAD )
+			if ( player->cheats & CF_SPREAD )
 			{
 				P_LineAttack (pmo, angle + ( ANGLE_45 / 3 ), AXERANGE, slope, damage, NAME_Melee, pufftype);
 				if (linetarget->flags3&MF3_ISMONSTER || linetarget->player)
@@ -392,7 +392,7 @@ void A_FAxeAttack (AActor *actor)
 			AdjustPlayerAngle (pmo);
 
 			// [BC] Apply spread.
-			if ( player->Powers & PW_SPREAD )
+			if ( player->cheats & CF_SPREAD )
 			{
 				P_LineAttack (pmo, angle + ( ANGLE_45 / 3 ), AXERANGE, slope, damage, NAME_Melee, pufftype);
 				if (linetarget->flags3&MF3_ISMONSTER || linetarget->player)
@@ -421,7 +421,7 @@ void A_FAxeAttack (AActor *actor)
 	P_LineAttack (pmo, angle, MELEERANGE, slope, damage, NAME_Melee, pufftype);
 
 	// [BC] Apply spread.
-	if ( player->Powers & PW_SPREAD )
+	if ( player->cheats & CF_SPREAD )
 	{
 		P_LineAttack( pmo, angle + ( ANGLE_45 / 3 ), MELEERANGE, slope, damage, NAME_Melee, pufftype );
 		P_LineAttack( pmo, angle - ( ANGLE_45 / 3 ), MELEERANGE, slope, damage, NAME_Melee, pufftype );
