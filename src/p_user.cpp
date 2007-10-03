@@ -1867,7 +1867,7 @@ int APlayerPawn::DoSpecialDamage( AActor *target, int damage )
 		return ( damage );
 
 	// Apply quad damage.
-	if (( player->Powers & PW_QUADDAMAGE ) || ( player->Powers & PW_TERMINATORARTIFACT ))
+	if ( player->Powers & PW_TERMINATORARTIFACT )
 		damage *= 4;
 
 	// Apply double damage.
@@ -1881,10 +1881,6 @@ int APlayerPawn::TakeSpecialDamage (AActor *inflictor, AActor *source, int damag
 {
 	if ( player == NULL )
 		return ( damage );
-
-	// [BC] Apply 1/4 damage.
-	if ( player->Powers & PW_QUARTERDAMAGE )
-		damage /= 4;
 
 	// [BC] Apply 1/2 damage.
 	if ( player->Powers & PW_HALFDAMAGE )

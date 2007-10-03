@@ -173,8 +173,8 @@ static level_info_t TheDefaultLevelInfo =
  	unnamed, 	// level_name
  	"COLORMAP",	// fadetable
  	+8, 		// WallVertLight
- 	-8, 		// WallHorizLight
-	"",		// [RC] F1
+ 	-8,			// WallHorizLight
+	"",			// [RC] F1
 };
 
 static cluster_info_t TheDefaultClusterInfo = { 0 };
@@ -300,12 +300,12 @@ static const char *MapInfoMapLevel[] =
 	"compat_dropoff",
 	"compat_boomscroll",
 	"bordertexture",
+	"f1", // [RC] F1 help
 	"nobotnodes",	// [BC] Allow the prevention of spawning bot nodes (helpful for very large maps).
 	// new [GZDoom]
 	"fogdensity",
 	"outsidefogdensity",
 	"skyfog",
-	"f1", // [RC] F1 help
 	NULL
 };
 
@@ -332,7 +332,6 @@ enum EMIType
 	MITYPE_SPECIALACTION,
 	MITYPE_COMPATFLAG,
 	MITYPE_F1, // [RC] F1 help
-
 };
 
 struct MapInfoHandler
@@ -440,12 +439,12 @@ MapHandlers[] =
 	{ MITYPE_COMPATFLAG, COMPATF_DROPOFF},
 	{ MITYPE_COMPATFLAG, COMPATF_BOOMSCROLL},
 	{ MITYPE_LUMPNAME,	lioffset(bordertexture), 0 },
+	{ MITYPE_F1,        lioffset(f1), 0, }, 
 	{ MITYPE_SETFLAG,	LEVEL_NOBOTNODES, 0 },	// [BC]
 	// new [GZDoom]
 	{ MITYPE_INT,		lioffset(fogdensity), 0 },
 	{ MITYPE_INT,		lioffset(outsidefogdensity), 0 },
 	{ MITYPE_INT,		lioffset(skyfog), 0 },
-	{ MITYPE_F1,        lioffset(f1), 0, }, 
 };
 
 static const char *MapInfoClusterLevel[] =

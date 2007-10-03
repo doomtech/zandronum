@@ -92,6 +92,11 @@ ACTOR InvisibilitySphere : PowerupGiver 5035
 //
 //=================================================================================================
 
+ACTOR PowerQuadDamage : PowerDamage
+{
+	Damagefactor "normal", 4
+}
+
 ACTOR Doomsphere : PowerupGiver 5036
 {
 	Game Doom
@@ -123,6 +128,11 @@ ACTOR Doomsphere : PowerupGiver 5036
 // Guardsphere
 //
 //=================================================================================================
+
+ACTOR PowerQuarterDamage: PowerProtection
+{
+	Damagefactor "normal", 0.25
+}
 
 ACTOR Guardsphere : PowerupGiver 5037
 {

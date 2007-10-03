@@ -213,23 +213,25 @@ protected:
 	void EndEffect( );
 };
 
+class APowerDamage : public APowerup
+{
+	DECLARE_STATELESS_ACTOR( APowerDamage, APowerup )
+protected:
+	void InitEffect ();
+	void EndEffect ();
+	virtual void ModifyDamage (int damage, FName damageType, int &newdamage, bool passive);
+};
+
+class APowerProtection : public APowerup
+{
+	DECLARE_STATELESS_ACTOR( APowerProtection, APowerup )
+protected:
+	void InitEffect ();
+	void EndEffect ();
+	virtual void ModifyDamage (int damage, FName damageType, int &newdamage, bool passive);
+};
+
 // [BC] Start of new Skulltag powerup types.
-class APowerQuadDamage : public APowerup
-{
-	DECLARE_STATELESS_ACTOR( APowerQuadDamage, APowerup )
-protected:
-	void InitEffect( );
-	void EndEffect( );
-};
-
-class APowerQuarterDamage : public APowerup
-{
-	DECLARE_STATELESS_ACTOR( APowerQuarterDamage, APowerup )
-protected:
-	void InitEffect( );
-	void EndEffect( );
-};
-
 class APowerPossessionArtifact : public APowerup
 {
 	DECLARE_STATELESS_ACTOR( APowerPossessionArtifact, APowerup )

@@ -35,8 +35,6 @@ static FRandom pr_torch ("Torch");
 #define	TIMEFREEZE_TICS	( 12 * TICRATE )
 
 // [BC] New Skulltag power duration defines.
-#define	QUADDAMAGE_TICS			( 25 * TICRATE )
-#define	QUARTERDAMAGE_TICS		( 25 * TICRATE )
 #define	TRANSLUCENCY_TICS		( 45 * TICRATE )
 
 EXTERN_CVAR (Bool, r_drawfuzz);
@@ -1148,7 +1146,7 @@ void APowerWeaponLevel2::EndEffect ()
 		{
 			player->ReadyWeapon->EndPowerup ();
 		}
-		if (player->PendingWeapon != NULL &&
+		if (player->PendingWeapon != NULL && player->PendingWeapon != WP_NOCHANGE &&
 			player->PendingWeapon->WeaponFlags & WIF_POWERED_UP &&
 			player->PendingWeapon->SisterWeapon != NULL)
 		{
@@ -1532,106 +1530,115 @@ void APowerTimeFreezer::EndEffect( )
 	Owner->lFixedColormap = 0;
 }
 
-// Quad damage powerup ------------------------------------------------------
+// Damage powerup ------------------------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR( APowerQuadDamage, Any, -1, 0 )
-	PROP_Powerup_EffectTics( QUADDAMAGE_TICS )
+IMPLEMENT_STATELESS_ACTOR( APowerDamage, Any, -1, 0 )
+	PROP_Powerup_EffectTics( 25*TICRATE )
 END_DEFAULTS
 
-// Need to set the default for each game here
-AT_GAME_SET( PowerQuadDamage )
-{
-	APowerQuadDamage	*pQuadDamage;
-	
-	pQuadDamage = GetDefault<APowerQuadDamage>( );
-	switch ( gameinfo.gametype )
-	{
-	case GAME_Doom:
+//===========================================================================
+//
+// APowerDamage :: InitEffect
+//
+//===========================================================================
 
-		pQuadDamage->BlendColor = REDCOLORMAP;
-		break;
-	}
+void APowerDamage::InitEffect( )
+{
+	// Use sound channel 5 to avoid interference with other actions.
+	if (Owner != NULL) S_SoundID(Owner, 5, SeeSound, 1.0f, ATTN_SURROUND);
 }
 
 //===========================================================================
 //
-// APowerQuadDamage :: InitEffect
+// APowerDamage :: EndEffect
 //
 //===========================================================================
 
-void APowerQuadDamage::InitEffect( )
+void APowerDamage::EndEffect( )
 {
-	// Give the player the power to deal four times the amount of damage he normally would.
-	Owner->player->Powers |= PW_QUADDAMAGE;
+	// Use sound channel 5 to avoid interference with other actions.
+	if (Owner != NULL) S_SoundID(Owner, 5, DeathSound, 1.0f, ATTN_SURROUND);
 }
 
 //===========================================================================
 //
-// APowerQuadDamage :: EndEffect
+// APowerDamage :: AbsorbDamage
 //
 //===========================================================================
 
-void APowerQuadDamage::EndEffect( )
+void APowerDamage::ModifyDamage(int damage, FName damageType, int &newdamage, bool passive)
 {
-	// Nothing to do if there's no owner.
-	if (( Owner == NULL ) || ( Owner->player == NULL ))
+	static const fixed_t def = 4*FRACUNIT;
+	if (!passive && damage > 0)
 	{
-		return;
-	}
+		DmgFactors * df = GetClass()->ActorInfo->DamageFactors;
+		if (df != NULL)
+		{
+			const fixed_t * pdf = df->CheckKey(damageType);
+			if (pdf== NULL && damageType != NAME_None) pdf = df->CheckKey(NAME_None);
+			if (pdf == NULL) pdf = &def;
 
-	// Take away the quad damage power.
-	Owner->player->Powers &= ~PW_QUADDAMAGE;
+			damage = newdamage = FixedMul(damage, *pdf);
+			if (*pdf > 0 && damage == 0) damage = newdamage = 1;	// don't allow zero damage as result of an underflow
+			if (Owner != NULL && *pdf > FRACUNIT) S_SoundID(Owner, 5, ActiveSound, 1.0f, ATTN_SURROUND);
+		}
+	}
+	if (Inventory != NULL) Inventory->ModifyDamage(damage, damageType, newdamage, passive);
 }
 
 // Quarter damage powerup ------------------------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR( APowerQuarterDamage, Any, -1, 0 )
-	PROP_Powerup_EffectTics( QUARTERDAMAGE_TICS )
+IMPLEMENT_STATELESS_ACTOR( APowerProtection, Any, -1, 0 )
+	PROP_Powerup_EffectTics( 25*TICRATE )
 END_DEFAULTS
 
-// Need to set the default for each game here
-AT_GAME_SET( PowerQuarterDamage )
-{
-	APowerQuarterDamage	*pQuarterDamage;
-	
-	pQuarterDamage = GetDefault<APowerQuarterDamage>( );
-	switch ( gameinfo.gametype )
-	{
-	case GAME_Doom:
+//===========================================================================
+//
+// APowerProtection :: InitEffect
+//
+//===========================================================================
 
-		pQuarterDamage->BlendColor = GREENCOLORMAP;
-		break;
-	}
+void APowerProtection::InitEffect( )
+{
+	// Use sound channel 5 to avoid interference with other actions.
+	if (Owner != NULL) S_SoundID(Owner, 5, SeeSound, 1.0f, ATTN_SURROUND);
 }
 
 //===========================================================================
 //
-// APowerQuarterDamage :: InitEffect
+// APowerProtection :: EndEffect
 //
 //===========================================================================
 
-void APowerQuarterDamage::InitEffect( )
+void APowerProtection::EndEffect( )
 {
-	// Give the player the power to take four times less damage than he normally would.
-	Owner->player->Powers |= PW_QUARTERDAMAGE;
+	// Use sound channel 5 to avoid interference with other actions.
+	if (Owner != NULL) S_SoundID(Owner, 5, DeathSound, 1.0f, ATTN_SURROUND);
 }
 
 //===========================================================================
 //
-// APowerQuarterDamage :: EndEffect
+// APowerProtection :: AbsorbDamage
 //
 //===========================================================================
 
-void APowerQuarterDamage::EndEffect( )
+void APowerProtection::ModifyDamage(int damage, FName damageType, int &newdamage, bool passive)
 {
-	// Nothing to do if there's no owner.
-	if (( Owner == NULL ) || ( Owner->player == NULL ))
+	static const fixed_t def = FRACUNIT/4;
+	if (passive && damage > 0)
 	{
-		return;
-	}
+		DmgFactors * df = GetClass()->ActorInfo->DamageFactors;
+		if (df != NULL)
+		{
+			const fixed_t * pdf = df->CheckKey(damageType);
+			if (pdf== NULL && damageType != NAME_None) pdf = df->CheckKey(NAME_None);
+			if (pdf == NULL) pdf = &def;
 
-	// Take away the quarter damage power.
-	Owner->player->Powers &= ~PW_QUARTERDAMAGE;
+			damage = newdamage = FixedMul(damage, *pdf);
+			if (Owner != NULL && *pdf < FRACUNIT) S_SoundID(Owner, 5, ActiveSound, 1.0f, ATTN_SURROUND);
+		}
+	}
+	if (Inventory != NULL) Inventory->ModifyDamage(damage, damageType, newdamage, passive);
 }
 
 // Possession artifact powerup -------------------------------------------------
