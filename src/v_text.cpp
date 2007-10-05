@@ -345,8 +345,7 @@ void V_ColorizeString( char *pszString )
 					*pszString++ = c;
 					break;
 				default:
-					*pszString++ = c;
-					p--;
+					*pszString++ = *p;
 					break;
 			}
 			p++;

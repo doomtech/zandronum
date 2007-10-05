@@ -126,7 +126,7 @@ void A_VileAttack (AActor *actor)
 		
 	// [BC] Tell clients to play the arch-vile sound on their end.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "vile/stop", 127, ATTN_NORM );
+		SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "vile/stop", 1, ATTN_NORM );
 
 	an = actor->angle >> ANGLETOFINESHIFT;
 

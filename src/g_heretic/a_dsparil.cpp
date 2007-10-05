@@ -610,8 +610,8 @@ void P_DSparilTeleport (AActor *actor)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
 			SERVERCOMMANDS_SpawnThing( mo );
-			SERVERCOMMANDS_SoundActor( mo, CHAN_BODY, "misc/teleport", 127, ATTN_NORM );
-			SERVERCOMMANDS_SoundActor( actor, CHAN_BODY, "misc/teleport", 127, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( mo, CHAN_BODY, "misc/teleport", 1, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( actor, CHAN_BODY, "misc/teleport", 1, ATTN_NORM );
 		}
 
 		actor->SetState (&ASorcerer2::States[S_SOR2_TELE]);

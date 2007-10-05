@@ -154,7 +154,7 @@ void A_SkelWhoosh (AActor *self)
 
 	// [BC] If we're the server, tell clients to play the sound.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "skeleton/swing", 127, ATTN_NORM );
+		SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "skeleton/swing", 1, ATTN_NORM );
 }
 
 void A_SkelFist (AActor *self)
@@ -180,6 +180,6 @@ void A_SkelFist (AActor *self)
 
 		// [BC] If we're the server, tell clients to play the sound.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "skeleton/melee", 127, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "skeleton/melee", 1, ATTN_NORM );
 	}
 }

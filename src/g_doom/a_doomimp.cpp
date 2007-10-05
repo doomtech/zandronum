@@ -247,7 +247,7 @@ void A_TroopAttack (AActor *self)
 
 		// [BC] If we're the server, tell clients play this sound.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "imp/melee", 127, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "imp/melee", 1, ATTN_NORM );
 
 		P_DamageMobj (self->target, self, self, damage, NAME_Melee);
 		P_TraceBleed (damage, self->target, self);
@@ -280,7 +280,7 @@ void A_DarkImpAttack (AActor *self)
 
 		// [BC] If we're the server, tell clients play this sound.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "imp/melee", 127, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "imp/melee", 1, ATTN_NORM );
 
 		P_DamageMobj (self->target, self, self, damage, NAME_Melee);
 		P_TraceBleed (damage, self->target, self);

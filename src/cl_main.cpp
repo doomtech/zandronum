@@ -289,10 +289,10 @@ static	void	client_ACSScriptExecute( BYTESTREAM_s *pByteStream );
 
 // Sound commands.
 static	void	client_Sound( BYTESTREAM_s *pByteStream );
-static	void	client_SoundID( BYTESTREAM_s *pByteStream );
 static	void	client_SoundActor( BYTESTREAM_s *pByteStream );
-static	void	client_SoundIDActor( BYTESTREAM_s *pByteStream );
 static	void	client_SoundPoint( BYTESTREAM_s *pByteStream );
+
+// Sector sequence commands.
 static	void	client_StartSectorSequence( BYTESTREAM_s *pByteStream );
 static	void	client_StopSectorSequence( BYTESTREAM_s *pByteStream );
 
@@ -601,9 +601,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETSIDEFLAGS",
 	"SVC_ACSSCRIPTEXECUTE",
 	"SVC_SOUND",
-	"SVC_SOUNDID",
 	"SVC_SOUNDACTOR",
-	"SVC_SOUNDIDACTOR",
 	"SVC_SOUNDPOINT",
 	"SVC_STARTSECTORSEQUENCE",
 	"SVC_STOPSECTORSEQUENCE",
@@ -1914,17 +1912,9 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		client_Sound( pByteStream );
 		break;
-	case SVC_SOUNDID:
-
-		client_SoundID( pByteStream );
-		break;
 	case SVC_SOUNDACTOR:
 
 		client_SoundActor( pByteStream );
-		break;
-	case SVC_SOUNDIDACTOR:
-
-		client_SoundIDActor( pByteStream );
 		break;
 	case SVC_SOUNDPOINT:
 
@@ -5669,7 +5659,7 @@ static void client_SetThingFrame( BYTESTREAM_s *pByteStream )
 		return;
 	}
 
-	pFrame = pActor->SeeState + lFrame;
+	pFrame = pActor->SpawnState + lFrame;
 	if ( pFrame )
 		pActor->SetState( pFrame );
 }
@@ -8165,39 +8155,6 @@ static void client_Sound( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-static void client_SoundID( BYTESTREAM_s *pByteStream )
-{
-	fixed_t	SoundPoint[3];
-	LONG	lSoundID;
-	LONG	lChannel;
-	LONG	lVolume;
-	LONG	lAttenuation;
-
-	// Read in the coordinates of the sound.
-	SoundPoint[0] = NETWORK_ReadShort( pByteStream ) << FRACBITS;
-	SoundPoint[1] = NETWORK_ReadShort( pByteStream ) << FRACBITS;
-
-	// Read in the sound ID.
-//	lSoundID = NETWORK_ReadShort( pByteStream );
-	lSoundID = NETWORK_ReadShort( pByteStream );
-
-	// Read in the channel.
-	lChannel = NETWORK_ReadByte( pByteStream );
-
-	// Read in the volume.
-	lVolume = NETWORK_ReadByte( pByteStream );
-	if ( lVolume > 127 )
-		lVolume = 127;
-
-	// Read in the attenuation.
-	lAttenuation = NETWORK_ReadByte( pByteStream );
-
-	// Finally, play the sound.
-	S_SoundID( SoundPoint, lChannel, lSoundID, (float)lVolume / 127.f, lAttenuation );
-}
-
-//*****************************************************************************
-//
 static void client_SoundActor( BYTESTREAM_s *pByteStream )
 {
 	LONG	lID;
@@ -8236,48 +8193,6 @@ static void client_SoundActor( BYTESTREAM_s *pByteStream )
 
 	// Finally, play the sound.
 	S_Sound( pActor, lChannel, pszSoundString, (float)lVolume / 127.f, lAttenuation );
-}
-
-//*****************************************************************************
-//
-static void client_SoundIDActor( BYTESTREAM_s *pByteStream )
-{
-	LONG	lID;
-	LONG	lSoundID;
-	LONG	lChannel;
-	LONG	lVolume;
-	LONG	lAttenuation;
-	AActor	*pActor;
-
-	// Read in the spot ID.
-	lID = NETWORK_ReadShort( pByteStream );
-
-	// Read in the channel.
-	lChannel = NETWORK_ReadByte( pByteStream );
-
-	// Read in the sound ID.
-	lSoundID = NETWORK_ReadShort( pByteStream );
-
-	// Read in the volume.
-	lVolume = NETWORK_ReadByte( pByteStream );
-	if ( lVolume > 127 )
-		lVolume = 127;
-
-	// Read in the attenuation.
-	lAttenuation = NETWORK_ReadByte( pByteStream );
-
-	// Find the actor from the ID.
-	pActor = CLIENT_FindThingByNetID( lID );
-	if ( pActor == NULL )
-	{
-#ifdef CLIENT_WARNING_MESSAGES
-		Printf( "client_SoundIDActor: Couldn't find thing: %d\n", lID );
-#endif
-		return;
-	}
-
-	// Finally, play the sound.
-	S_SoundID( pActor, lChannel, lSoundID, (float)lVolume / 127.f, lAttenuation );
 }
 
 //*****************************************************************************

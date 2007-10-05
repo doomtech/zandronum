@@ -1402,6 +1402,22 @@ void S_ShrinkPlayerSoundLists ()
 	DefPlayerClass = S_FindPlayerClass (DefPlayerClassName);
 }
 
+//==========================================================================
+//
+//	[BC] S_GetName
+//
+//	Returns the string name of a given sound.
+//
+//==========================================================================
+
+const char *S_GetName( LONG lSoundID )
+{
+	if ( lSoundID >= S_sfx.Size( ))
+		return ( NULL );
+	
+	return ( S_sfx[lSoundID].name.GetChars( ));
+}
+
 static int STACK_ARGS SortPlayerClasses (const void *a, const void *b)
 {
 	return stricmp (((const FPlayerClassLookup *)a)->Name,

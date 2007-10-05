@@ -440,7 +440,7 @@ void A_FiredAttack (AActor *actor)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
 			SERVERCOMMANDS_SpawnMissile( mo );
-			SERVERCOMMANDS_SoundActor( actor, CHAN_BODY, "FireDemonAttack", 127, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( actor, CHAN_BODY, "FireDemonAttack", 1, ATTN_NORM );
 		}
 	}
 }
@@ -532,12 +532,12 @@ void A_FiredChase (AActor *actor)
 	{
 		if (P_CheckMissileRange (actor) && (pr_firedemonchase() < 20))
 		{
-			actor->SetState (actor->MissileState);
-			actor->flags |= MF_JUSTATTACKED;
-
 			// [BC] If we're the server, tell clients to change this monster's state.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SetThingState( actor, STATE_MISSILE );
+
+			actor->SetState (actor->MissileState);
+			actor->flags |= MF_JUSTATTACKED;
 			return;
 		}
 	}

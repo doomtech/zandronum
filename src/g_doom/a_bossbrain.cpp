@@ -278,7 +278,7 @@ void A_BrainSpit (AActor *self)
 
 		// [BC] If we're the server, tell clients create the sound.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SoundPoint( self->x, self->y, CHAN_WEAPON, "brain/spit", 127, ATTN_SURROUND );
+			SERVERCOMMANDS_SoundPoint( self->x, self->y, CHAN_WEAPON, "brain/spit", 1, ATTN_SURROUND );
 	}
 }
 
@@ -307,7 +307,7 @@ void A_SpawnFly (AActor *self)
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( fog ))
 	{
 		SERVERCOMMANDS_SpawnThing( fog );
-		SERVERCOMMANDS_SoundPoint( fog->x, fog->y, CHAN_BODY, "brain/spawn", 127, ATTN_NORM );
+		SERVERCOMMANDS_SoundPoint( fog->x, fog->y, CHAN_BODY, "brain/spawn", 1, ATTN_NORM );
 	}
 
 	// Randomly select monster to spawn.

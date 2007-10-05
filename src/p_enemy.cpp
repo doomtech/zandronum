@@ -1803,11 +1803,11 @@ void A_Look (AActor *actor)
 			{
 				if (!(actor->flags & MF_INCHASE))
 				{
-					actor->SetState (actor->SeeState);
-
 					// [BC] Tell clients to set the thing's state.
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 						SERVERCOMMANDS_SetThingState( actor, STATE_SEE );
+
+					actor->SetState (actor->SeeState);
 				}
 			}
 			else
@@ -1849,7 +1849,7 @@ void A_Look (AActor *actor)
 
 			// [BC] Play the sound for clients.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SoundIDActor( actor, CHAN_VOICE, actor->SeeSound, 127, ATTN_SURROUND );
+				SERVERCOMMANDS_SoundActor( actor, CHAN_VOICE, (char *)S_GetName( actor->SeeSound ), 1, ATTN_SURROUND );
 		}
 		else
 		{
@@ -1857,17 +1857,17 @@ void A_Look (AActor *actor)
 
 			// [BC] Play the sound for clients.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SoundIDActor( actor, CHAN_VOICE, actor->SeeSound, 127, ATTN_NORM );
+				SERVERCOMMANDS_SoundActor( actor, CHAN_VOICE, (char *)S_GetName( actor->SeeSound ), 1, ATTN_NORM );
 		}
 	}
 
 	if (actor->target && !(actor->flags & MF_INCHASE))
 	{
-		actor->SetState (actor->SeeState);
-
 		// [BC] If we are the server, tell clients about the state change.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SetThingState( actor, STATE_SEE );
+
+		actor->SetState (actor->SeeState);
 	}
 }
 
@@ -2128,13 +2128,12 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 			else if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
 					 ( CLIENTDEMO_IsPlaying( ) == false ))
 			{
-				actor->SetState (actor->SpawnState);
-				actor->flags &= ~MF_INCHASE;
-
 				// [BC] If we are the server, tell clients about the state change.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 					SERVERCOMMANDS_SetThingState( actor, STATE_SPAWN );
 
+				actor->SetState (actor->SpawnState);
+				actor->flags &= ~MF_INCHASE;
 				return;
 			}
 		}
@@ -2251,18 +2250,17 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 			if (actor->AttackSound)
 				S_SoundID (actor, CHAN_WEAPON, actor->AttackSound, 1, ATTN_NORM);
 
-			actor->SetState (meleestate);
-			actor->flags &= ~MF_INCHASE;
-
 			// [BC] If we are the server, tell clients about the state change, and play
 			// the attack sound.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
-				SERVERCOMMANDS_SoundIDActor( actor, CHAN_WEAPON, actor->AttackSound, 127, ATTN_NORM );
+				SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, (char *)S_GetName( actor->AttackSound ), 1, ATTN_NORM );
 				SERVERCOMMANDS_SetThingState( actor, STATE_MELEE );
 				SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z );
 			}
 
+			actor->SetState (meleestate);
+			actor->flags &= ~MF_INCHASE;
 			return;
 		}
 		
@@ -2278,11 +2276,6 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 			if (!P_CheckMissileRange (actor))
 				goto nomissile;
 			
-			actor->SetState (missilestate);
-			actor->flags |= MF_JUSTATTACKED;
-			actor->flags4 |= MF4_INCOMBAT;
-			actor->flags &= ~MF_INCHASE;
-			
 			// [BC] If we are the server, tell clients about the state change.
 			// Also, update the thing's position.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -2290,6 +2283,11 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 				SERVERCOMMANDS_SetThingState( actor, STATE_MISSILE );
 				SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z );
 			}
+
+			actor->SetState (missilestate);
+			actor->flags |= MF_JUSTATTACKED;
+			actor->flags4 |= MF4_INCOMBAT;
+			actor->flags &= ~MF_INCHASE;
 			return;
 		}
 	}
@@ -2507,6 +2505,10 @@ static bool P_CheckForResurrection(AActor *self, bool usevilestates)
 					}
 					self->target = temp;
 										
+					// [BC] If we are the server, tell clients about the state change.
+					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						SERVERCOMMANDS_SetThingState( self, STATE_HEAL );
+
 					// Make the state the monster enters customizable.
 					FState * state = self->FindState(NAME_Heal);
 					if (state != NULL)
@@ -2526,9 +2528,9 @@ static bool P_CheckForResurrection(AActor *self, bool usevilestates)
 					S_Sound (corpsehit, CHAN_BODY, "vile/raise", 1, ATTN_IDLE);
 					info = corpsehit->GetDefault ();
 					
-					// [BC] If we are the server, tell clients about the state change.
+					// [BC] If we're the server, tell clients to put the thing into its raise state.
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_SetThingState( self, STATE_HEAL );
+						SERVERCOMMANDS_SetThingState( corpsehit, STATE_RAISE );
 
 					corpsehit->SetState (raisestate);
 					corpsehit->height = info->height;	// [RH] Use real mobj height
@@ -2568,11 +2570,6 @@ static bool P_CheckForResurrection(AActor *self, bool usevilestates)
 
 					// You are the Archvile's minion now, so hate what it hates
 					corpsehit->CopyFriendliness (self, false);
-
-					// [BC] If we're the server, tell clients to put the thing into its raise state.
-					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_SetThingState( corpsehit, STATE_RAISE );
-
 					return true;
 				}
 			}

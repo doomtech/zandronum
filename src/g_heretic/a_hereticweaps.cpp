@@ -1347,7 +1347,7 @@ void A_FireMacePL1B (AActor *actor)
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
 		SERVERCOMMANDS_SpawnMissileExact( ball );
-		SERVERCOMMANDS_SoundActor( ball, CHAN_BODY, "weapons/maceshoot", 127, ATTN_NORM );
+		SERVERCOMMANDS_SoundActor( ball, CHAN_BODY, "weapons/maceshoot", 1, ATTN_NORM );
 	}
 
 	// [BC] Apply spread.
@@ -1370,7 +1370,7 @@ void A_FireMacePL1B (AActor *actor)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
 			SERVERCOMMANDS_SpawnMissileExact( ball );
-			SERVERCOMMANDS_SoundActor( ball, CHAN_BODY, "weapons/maceshoot", 127, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( ball, CHAN_BODY, "weapons/maceshoot", 1, ATTN_NORM );
 		}
 
 		ball = Spawn<AMaceFX2> (pmo->x, pmo->y, pmo->z + 28*FRACUNIT 
@@ -1390,7 +1390,7 @@ void A_FireMacePL1B (AActor *actor)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
 			SERVERCOMMANDS_SpawnMissileExact( ball );
-			SERVERCOMMANDS_SoundActor( ball, CHAN_BODY, "weapons/maceshoot", 127, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( ball, CHAN_BODY, "weapons/maceshoot", 1, ATTN_NORM );
 		}
 	}
 
@@ -1528,8 +1528,6 @@ void A_MaceBallImpact (AActor *ball)
 		ball->health = MAGIC_JUNK;
 		ball->momz = (ball->momz * 192) >> 8;
 		ball->flags2 &= ~MF2_BOUNCETYPE;
-		ball->SetState (ball->SpawnState);
-		S_Sound (ball, CHAN_BODY, "weapons/macebounce", 1, ATTN_NORM);
 
 		// [BC] If we're the server, tell clients to move the object.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -1537,8 +1535,11 @@ void A_MaceBallImpact (AActor *ball)
 			SERVERCOMMANDS_SetThingFlags( ball, FLAGSET_FLAGS2 );
 			SERVERCOMMANDS_SetThingState( ball, STATE_SPAWN );
 			SERVERCOMMANDS_MoveThingExact( ball, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
-			SERVERCOMMANDS_SoundActor( ball, CHAN_BODY, "weapons/macebounce", 127, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( ball, CHAN_BODY, "weapons/macebounce", 1, ATTN_NORM );
 		}
+
+		ball->SetState (ball->SpawnState);
+		S_Sound (ball, CHAN_BODY, "weapons/macebounce", 1, ATTN_NORM);
 	}
 	else
 	{ // Explode
@@ -1554,7 +1555,7 @@ void A_MaceBallImpact (AActor *ball)
 			SERVERCOMMANDS_SetThingFlags( ball, FLAGSET_FLAGS2 );
 			SERVERCOMMANDS_MoveThingExact( ball, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
 			SERVERCOMMANDS_SetThingGravity( ball );
-			SERVERCOMMANDS_SoundActor( ball, CHAN_BODY, "weapons/macebounce", 127, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( ball, CHAN_BODY, "weapons/macebounce", 1, ATTN_NORM );
 		}
 	}
 }
@@ -1874,7 +1875,7 @@ void A_DeathBallImpact (AActor *ball)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
 			SERVERCOMMANDS_MoveThingExact( ball, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
-			SERVERCOMMANDS_SoundActor( ball, CHAN_BODY, "weapons/macestop", 127, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( ball, CHAN_BODY, "weapons/macestop", 1, ATTN_NORM );
 		}
 	}
 	else
@@ -1893,7 +1894,7 @@ boom:
 			SERVERCOMMANDS_SetThingFlags( ball, FLAGSET_FLAGS );
 			SERVERCOMMANDS_SetThingFlags( ball, FLAGSET_FLAGS2 );
 			SERVERCOMMANDS_SetThingGravity( ball );
-			SERVERCOMMANDS_SoundActor( ball, CHAN_BODY, "weapons/maceexplode", 127, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( ball, CHAN_BODY, "weapons/maceexplode", 1, ATTN_NORM );
 		}
 	}
 }
@@ -2960,7 +2961,7 @@ void A_FireSkullRodPL2 (AActor *actor)
 
 		// [BC] If we're the server, play this sound.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SoundActor( MissileActor, CHAN_WEAPON, "weapons/hornrodpowshoot", 127, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( MissileActor, CHAN_WEAPON, "weapons/hornrodpowshoot", 1, ATTN_NORM );
 	}
 
 	// [BC] Apply spread.
@@ -2981,7 +2982,7 @@ void A_FireSkullRodPL2 (AActor *actor)
 
 			// [BC] If we're the server, play this sound.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SoundActor( MissileActor, CHAN_WEAPON, "weapons/hornrodpowshoot", 127, ATTN_NORM );
+				SERVERCOMMANDS_SoundActor( MissileActor, CHAN_WEAPON, "weapons/hornrodpowshoot", 1, ATTN_NORM );
 		}
 
 		P_SpawnPlayerMissile( player->mo, RUNTIME_CLASS( AHornRodFX2 ), actor->angle - ( ANGLE_45 / 3 ));
@@ -2999,7 +3000,7 @@ void A_FireSkullRodPL2 (AActor *actor)
 
 			// [BC] If we're the server, play this sound.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SoundActor( MissileActor, CHAN_WEAPON, "weapons/hornrodpowshoot", 127, ATTN_NORM );
+				SERVERCOMMANDS_SoundActor( MissileActor, CHAN_WEAPON, "weapons/hornrodpowshoot", 1, ATTN_NORM );
 		}
 	}
 }

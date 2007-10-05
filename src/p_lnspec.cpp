@@ -783,12 +783,12 @@ FUNC(LS_Teleport_ZombieChanger)
 	if (it != NULL)
 	{
 		EV_Teleport (arg0, arg1, ln, backSide, it, false, false, false);
-		it->SetState (it->FindState(NAME_Pain));
 
 		// [BC] If we're the server, tell clients to put this thing in its pain state.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SetThingState( it, STATE_PAIN );
 
+		it->SetState (it->FindState(NAME_Pain));
 		return true;
 	}
 	return false;
@@ -1433,6 +1433,10 @@ FUNC(LS_Thing_SpawnFacing)
 
 	S_Sound (thing, CHAN_BODY, "vile/raise", 1, ATTN_IDLE);
 	
+	// [BC] If we're the server, tell clients to put the thing into its raise state.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SetThingState( thing, STATE_RAISE );
+
 	thing->SetState (RaiseState);
 	thing->flags = info->flags;
 	thing->flags2 = info->flags2;
@@ -1461,10 +1465,6 @@ FUNC(LS_Thing_SpawnFacing)
 				SERVERCOMMANDS_SetInvasionNumMonstersLeft( );
 		}
 	}
-
-	// [BC] If we're the server, tell clients to put the thing into its raise state.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetThingState( thing, STATE_RAISE );
 
 	return true;
 }

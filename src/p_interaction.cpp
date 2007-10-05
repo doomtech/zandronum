@@ -1368,7 +1368,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				{
 					SERVERCOMMANDS_SetPlayerHealth( source->player - players );
-					SERVERCOMMANDS_SoundActor( source, CHAN_ITEM, "misc/i_pkup", 127, ATTN_NORM );
+					SERVERCOMMANDS_SoundActor( source, CHAN_ITEM, "misc/i_pkup", 1, ATTN_NORM );
 				}
 
 				S_Sound( source, CHAN_ITEM, "misc/i_pkup", 1, ATTN_NORM );
@@ -1459,11 +1459,11 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 				FState * painstate = target->FindState(NAME_Pain, mod);
 				if (painstate != NULL)
 				{
-					target->SetState (painstate);
-
 					// If we are the server, tell clients about the state change.
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 						SERVERCOMMANDS_SetThingState( target, STATE_PAIN );
+
+					target->SetState (painstate);
 				}
 			}
 			else
@@ -1477,13 +1477,13 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 		}
 		else
 		{
-			target->flags |= MF_JUSTHIT; // fight back!
-			FState * painstate = target->FindState(NAME_Pain, mod);
-			if (painstate != NULL) target->SetState (painstate);
-
 			// If we are the server, tell clients about the state change.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SetThingState( target, STATE_PAIN );
+
+			target->flags |= MF_JUSTHIT; // fight back!
+			FState * painstate = target->FindState(NAME_Pain, mod);
+			if (painstate != NULL) target->SetState (painstate);
 
 			if (inflictor && inflictor->IsKindOf (RUNTIME_CLASS(APoisonCloud)))
 			{
@@ -1528,11 +1528,11 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 			target->threshold = BASETHRESHOLD;
 			if (target->state == target->SpawnState && target->SeeState != NULL)
 			{
-				target->SetState (target->SeeState);
-
 				// If we are the server, tell clients about the state change.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 					SERVERCOMMANDS_SetThingState( target, STATE_SEE );
+
+				target->SetState (target->SeeState);
 			}
 		}
 	}
@@ -1698,12 +1698,12 @@ void P_PoisonDamage (player_t *player, AActor *source, int damage,
 	}
 	if (!(level.time&63) && playPainSound)
 	{
-		FState * painstate = target->FindState(NAME_Pain, target->DamageType);
-		if (painstate != NULL) target->SetState (painstate);
-
 		// If we are the server, tell clients about the state change.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SetThingState( target, STATE_PAIN );
+
+		FState * painstate = target->FindState(NAME_Pain, target->DamageType);
+		if (painstate != NULL) target->SetState (painstate);
 	}
 /*
 	if((P_Random() < target->info->painchance)

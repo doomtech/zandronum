@@ -417,7 +417,7 @@ void A_WeaponReady(AActor *actor)
 
 			// [BC] If we're the server, tell other clients to play the sound.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SoundIDActor( actor, CHAN_WEAPON, weapon->ReadySound, 127, ATTN_NORM, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
+				SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, (char *)S_GetName( weapon->ReadySound ), 1, ATTN_NORM, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 		}
 	}
 

@@ -1595,8 +1595,6 @@ void P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 			mo->momx = mo->momy = mo->momz = 0;
 			if (!(mo->flags2 & MF2_DORMANT))
 			{
-				mo->SetState (mo->SeeState != NULL ? mo->SeeState : mo->SpawnState);
-
 				// [BC] If we are the server, tell clients about the state change and the
 				// momentum change.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -1604,12 +1602,11 @@ void P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 					SERVERCOMMANDS_SetThingState( mo, mo->SeeState != NULL ? STATE_SEE : STATE_SPAWN );
 					SERVERCOMMANDS_MoveThing( mo, CM_MOMX|CM_MOMY|CM_MOMZ );
 				}
+
+				mo->SetState (mo->SeeState != NULL ? mo->SeeState : mo->SpawnState);
 			}
 			else
 			{
-				mo->SetState (mo->SpawnState);
-				mo->tics = -1;
-
 				// [BB] If we are the server, tell clients about the state change and the
 				// momentum change.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -1617,6 +1614,9 @@ void P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 					SERVERCOMMANDS_SetThingState( mo, STATE_SPAWN );
 					SERVERCOMMANDS_MoveThing( mo, CM_MOMX|CM_MOMY|CM_MOMZ );
 				}
+
+				mo->SetState (mo->SpawnState);
+				mo->tics = -1;
 			}
 		}
 		return;
@@ -2733,7 +2733,7 @@ static void PlayerLandedOnThing (AActor *mo, AActor *onmobj)
 
 			// [BC] Tell players that this player struck the ground (hard!)
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SoundActor( mo, CHAN_VOICE, "*grunt", 127, ATTN_NORM, ULONG( mo->player - players ), SVCF_SKIPTHISCLIENT );
+				SERVERCOMMANDS_SoundActor( mo, CHAN_VOICE, "*grunt", 1, ATTN_NORM, ULONG( mo->player - players ), SVCF_SKIPTHISCLIENT );
 		}
 		if (onmobj != NULL || !Terrains[P_GetThingFloorType (mo)].IsLiquid)
 		{
@@ -2983,7 +2983,6 @@ bool AActor::Slam (AActor *thing)
 		int dam = GetMissileDamage (7, 1);
 		P_DamageMobj (thing, this, this, dam, NAME_Melee);
 		P_TraceBleed (dam, thing, this);
-		SetState (SeeState != NULL ? SeeState : SpawnState);
 
 		// [BC] If we are the server, tell clients about the state change and momentum change.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -2991,18 +2990,20 @@ bool AActor::Slam (AActor *thing)
 			SERVERCOMMANDS_SetThingState( this, SeeState != NULL ? STATE_SEE : STATE_SPAWN );
 			SERVERCOMMANDS_MoveThing( this, CM_MOMX|CM_MOMY|CM_MOMZ );
 		}
+
+		SetState (SeeState != NULL ? SeeState : SpawnState);
 	}
 	else
 	{
-		SetState (SpawnState);
-		tics = -1;
-
 		// [BB] If we are the server, tell clients about the state change and momentum change.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
 			SERVERCOMMANDS_SetThingState( this, STATE_SPAWN );
 			SERVERCOMMANDS_MoveThing( this, CM_MOMX|CM_MOMY|CM_MOMZ );
 		}
+
+		SetState (SpawnState);
+		tics = -1;
 	}
 	return false;			// stop moving
 }
@@ -5051,7 +5052,7 @@ AActor *P_SpawnPuff (const PClass *pufftype, fixed_t x, fixed_t y, fixed_t z, an
 
 		// [BC] If we're the server, play this sound.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SoundIDActor( puff, CHAN_BODY, puff->SeeSound, 127, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( puff, CHAN_BODY, (char *)S_GetName( puff->SeeSound ), 1, ATTN_NORM );
 	}
 	else if (puff->AttackSound)
 	{
@@ -5059,7 +5060,7 @@ AActor *P_SpawnPuff (const PClass *pufftype, fixed_t x, fixed_t y, fixed_t z, an
 
 		// [BC] If we're the server, play this sound.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SoundIDActor( puff, CHAN_BODY, puff->AttackSound, 127, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( puff, CHAN_BODY, (char *)S_GetName( puff->AttackSound ), 1, ATTN_NORM );
 	}
 
 	PuffSpawned = puff;
@@ -5381,7 +5382,7 @@ foundone:
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
 			SERVERCOMMANDS_SpawnThing( mo );
-			SERVERCOMMANDS_SoundIDActor( mo, CHAN_ITEM, smallsplash ? splash->SmallSplashSound : splash->NormalSplashSound, 127, ATTN_IDLE );
+			SERVERCOMMANDS_SoundActor( mo, CHAN_ITEM, smallsplash ? (char *)S_GetName( splash->SmallSplashSound ) : (char *)S_GetName( splash->NormalSplashSound ), 1, ATTN_IDLE );
 		}
 	}
 	else
@@ -5392,7 +5393,7 @@ foundone:
 
 		// [BC] Tell clients to play the sound.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SoundID( thing->x, thing->y, CHAN_ITEM, smallsplash ? splash->SmallSplashSound : splash->NormalSplashSound, 127, ATTN_IDLE );
+			SERVERCOMMANDS_SoundPoint( thing->x, thing->y, CHAN_ITEM, smallsplash ? (char *)S_GetName( splash->SmallSplashSound ) : (char *)S_GetName( splash->NormalSplashSound ), 1, ATTN_IDLE );
 	}
 
 	// Don't let deep water eat missiles

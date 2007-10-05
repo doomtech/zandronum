@@ -75,7 +75,7 @@ bool AArtiTeleport::Use (bool pickup)
 
 		// [BC] Play the laugh for clients.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SoundActor( Owner, CHAN_VOICE, "*evillaugh", 127, ATTN_NONE );
+			SERVERCOMMANDS_SoundActor( Owner, CHAN_VOICE, "*evillaugh", 1, ATTN_NONE );
 	}
 	return true;
 }

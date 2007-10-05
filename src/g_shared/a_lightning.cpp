@@ -162,7 +162,7 @@ void DLightningThinker::LightningFlash ()
 
 	// [BC] If we're the server, play the thunder sound.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_Sound( CHAN_AUTO, "world/thunder", 127, ATTN_NONE );
+		SERVERCOMMANDS_Sound( CHAN_AUTO, "world/thunder", 1.0, ATTN_NONE );
 
 	// Calculate the next lighting flash
 	if (!NextLightningFlash)

@@ -42,7 +42,7 @@ void A_SkullAttack (AActor *self)
 
 	// [BC] If we're the server, tell clients play this sound.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SoundIDActor( self, CHAN_VOICE, self->AttackSound, 127, ATTN_NORM );
+		SERVERCOMMANDS_SoundActor( self, CHAN_VOICE, (char *)S_GetName( self->AttackSound ), 1, ATTN_NORM );
 
 	A_FaceTarget (self);
 	an = self->angle >> ANGLETOFINESHIFT;

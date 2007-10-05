@@ -419,7 +419,7 @@ bool P_CheckKeys (AActor *owner, int keynum, bool remote)
 				failtext = GStrings( failtext + 1 );
 
 			SERVERCOMMANDS_PrintMid( (char *)failtext, owner->player - players, SVCF_ONLYTHISCLIENT );
-			SERVERCOMMANDS_SoundIDActor( owner, CHAN_VOICE, failsound, 127, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( owner, CHAN_VOICE, (char *)S_GetName( failsound ), 1, ATTN_NORM );
 		}
 	}
 

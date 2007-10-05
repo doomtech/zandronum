@@ -4332,7 +4332,7 @@ int DLevelScript::RunScript ()
 
 					// [BC] If we're the server, tell clients to play this sound.
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_Sound( CHAN_AUTO, (char *)lookup, STACK( 1 ), ATTN_NORM );
+						SERVERCOMMANDS_Sound( CHAN_AUTO, (char *)lookup, (float)( STACK( 1 ) / 127.f ), ATTN_NORM );
 				}
 			}
 			sp -= 2;
@@ -4348,7 +4348,7 @@ int DLevelScript::RunScript ()
 
 				// [BC] If we're the server, tell clients to play this sound.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_Sound( CHAN_AUTO, (char *)lookup, STACK( 1 ), ATTN_NONE );
+					SERVERCOMMANDS_Sound( CHAN_AUTO, (char *)lookup, (float)( STACK( 1 ) / 127.f ), ATTN_NONE );
 			}
 			sp -= 2;
 			break;
@@ -4364,7 +4364,7 @@ int DLevelScript::RunScript ()
 
 			// [BC] If we're the server, tell clients to play this sound.
 			if (( lookup != NULL ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( activator->player ))
-				SERVERCOMMANDS_Sound( CHAN_AUTO, (char *)lookup, STACK( 1 ), ATTN_NONE, activator->player - players, SVCF_ONLYTHISCLIENT );
+				SERVERCOMMANDS_Sound( CHAN_AUTO, (char *)lookup, (float)( STACK( 1 ) / 127.f ), ATTN_NONE, activator->player - players, SVCF_ONLYTHISCLIENT );
 
 			sp -= 2;
 			break;
@@ -4379,7 +4379,7 @@ int DLevelScript::RunScript ()
 
 				// [BC] If we're the server, tell clients to play this sound.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_SoundActor( activator, CHAN_AUTO, (char *)lookup, STACK( 1 ), ATTN_NORM );
+					SERVERCOMMANDS_SoundActor( activator, CHAN_AUTO, (char *)lookup, (float)STACK( 1 ) / 127.f, ATTN_NORM );
 			}
 			sp -= 2;
 			break;
@@ -4546,7 +4546,7 @@ int DLevelScript::RunScript ()
 
 					// If we're the server, tell clients to play this sound.
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_SoundActor( spot, CHAN_AUTO, (char *)lookup, STACK( 1 ), ATTN_NORM );
+						SERVERCOMMANDS_SoundActor( spot, CHAN_AUTO, (char *)lookup, (float)STACK( 1 ) / 127.f, ATTN_NORM );
 				}
 			}
 			sp -= 3;

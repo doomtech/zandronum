@@ -2565,7 +2565,7 @@ void P_HitSlideLine (line_t* ld)
 
 				// [BC] Tell clients of the "oof" sound.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_SoundActor( slidemo, CHAN_VOICE, "*grunt", 127, ATTN_IDLE );
+					SERVERCOMMANDS_SoundActor( slidemo, CHAN_VOICE, "*grunt", 1, ATTN_IDLE );
 			}
 		}
 		else
@@ -2583,7 +2583,7 @@ void P_HitSlideLine (line_t* ld)
 			{
 				// [BC] Tell clients of the "oof" sound.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_SoundActor( slidemo, CHAN_VOICE, "*grunt", 127, ATTN_IDLE );
+					SERVERCOMMANDS_SoundActor( slidemo, CHAN_VOICE, "*grunt", 1, ATTN_IDLE );
 
 				S_Sound (slidemo, CHAN_VOICE, "*grunt", 1, ATTN_IDLE); // oooff!//   ^
 			}
@@ -4530,7 +4530,7 @@ blocked:
 			{
 				// [BC] Tell clients of the "oof" sound.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_SoundActor( slidemo, CHAN_VOICE, "*grunt", 127, ATTN_IDLE, ULONG( usething->player - players ), SVCF_SKIPTHISCLIENT );
+					SERVERCOMMANDS_SoundActor( slidemo, CHAN_VOICE, "*grunt", 1, ATTN_IDLE, ULONG( usething->player - players ), SVCF_SKIPTHISCLIENT );
 
 				S_Sound (usething, CHAN_VOICE, "*usefail", 1, ATTN_IDLE);
 			}
@@ -4713,7 +4713,7 @@ void P_UseLines (player_t *player)
 
 			// [BC] Tell clients of the "oof" sound.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SoundActor( usething, CHAN_VOICE, "*usefail", 127, ATTN_IDLE, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
+				SERVERCOMMANDS_SoundActor( usething, CHAN_VOICE, "*usefail", 1, ATTN_IDLE, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 		}
 	}
 }
@@ -4769,7 +4769,7 @@ void P_UseItems( player_s *pPlayer )
 
 			// Tell clients of the "oof" sound.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SoundActor( usething, CHAN_VOICE, "*usefail", 127, ATTN_IDLE, ULONG( pPlayer - players ), SVCF_SKIPTHISCLIENT );
+				SERVERCOMMANDS_SoundActor( usething, CHAN_VOICE, "*usefail", 1, ATTN_IDLE, ULONG( pPlayer - players ), SVCF_SKIPTHISCLIENT );
 		}
 	}
 }

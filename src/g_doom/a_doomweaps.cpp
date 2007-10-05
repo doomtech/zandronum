@@ -95,7 +95,7 @@ void A_Punch (AActor *actor)
 
 		// [BC] Play the hit sound to clients.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "*fist", 127, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "*fist", 1, ATTN_NORM );
 	}
 }
 
@@ -270,13 +270,13 @@ void A_Saw (AActor *actor)
 
 		// [BC] If we're the server, tell clients to play the saw sound.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SoundIDActor( actor, CHAN_WEAPON, fullsound, 127, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, (char *)S_GetName( fullsound ), 1, ATTN_NORM );
 		return;
 	}
 	S_SoundID (actor, CHAN_WEAPON, hitsound, 1, ATTN_NORM);
 	// [BC] If we're the server, tell clients to play the saw sound.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SoundIDActor( actor, CHAN_WEAPON, hitsound, 127, ATTN_NORM );
+		SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, (char *)S_GetName( hitsound ), 1, ATTN_NORM );
 		
 	// turn to face target
 	angle = R_PointToAngle2 (actor->x, actor->y,
@@ -1459,9 +1459,9 @@ void A_BFGsound (AActor *actor)
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
 		if ( actor->player )
-			SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "weapons/bfgf", 127, ATTN_NORM, ULONG( actor->player - players ), SVCF_SKIPTHISCLIENT );
+			SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "weapons/bfgf", 1, ATTN_NORM, ULONG( actor->player - players ), SVCF_SKIPTHISCLIENT );
 		else
-			SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "weapons/bfgf", 127, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "weapons/bfgf", 1, ATTN_NORM );
 	}
 
 	if ( actor->player )
@@ -1668,9 +1668,9 @@ void A_BFG10kSound( AActor *actor )
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
 		if ( actor->player )
-			SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "weapons/bfg10kf", 127, ATTN_NORM, ULONG( actor->player - players ), SVCF_SKIPTHISCLIENT );
+			SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "weapons/bfg10kf", 1, ATTN_NORM, ULONG( actor->player - players ), SVCF_SKIPTHISCLIENT );
 		else
-			SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "weapons/bfg10kf", 127, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "weapons/bfg10kf", 1, ATTN_NORM );
 	}
 }
 
@@ -1685,8 +1685,8 @@ void A_BFG10kCoolDown( AActor *actor )
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
 		if ( actor->player )
-			SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "weapons/bfg10kcool", 127, ATTN_NORM, ULONG( actor->player - players ), SVCF_SKIPTHISCLIENT );
+			SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "weapons/bfg10kcool", 1, ATTN_NORM, ULONG( actor->player - players ), SVCF_SKIPTHISCLIENT );
 		else
-			SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "weapons/bfg10kcool", 127, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "weapons/bfg10kcool", 1, ATTN_NORM );
 	}
 }

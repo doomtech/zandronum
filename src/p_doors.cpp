@@ -530,9 +530,9 @@ bool EV_DoDoor (DDoor::EVlDoor type, line_t *line, AActor *thing,
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
 				if ( thing && thing->player )
-					SERVERCOMMANDS_SoundActor( thing, CHAN_VOICE, "*usefail", 127, ATTN_NORM, ULONG( thing->player - players ), SVCF_SKIPTHISCLIENT );
+					SERVERCOMMANDS_SoundActor( thing, CHAN_VOICE, "*usefail", 1, ATTN_NORM, ULONG( thing->player - players ), SVCF_SKIPTHISCLIENT );
 				else
-					SERVERCOMMANDS_SoundActor( thing, CHAN_VOICE, "*usefail", 127, ATTN_NORM );
+					SERVERCOMMANDS_SoundActor( thing, CHAN_VOICE, "*usefail", 1, ATTN_NORM );
 			}
 
 			return false;

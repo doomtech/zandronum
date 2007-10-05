@@ -67,6 +67,7 @@
 #include "v_video.h"
 #include "deathmatch.h"
 #include "cl_main.h"
+#include "cl_demo.h"
 
 
 static FRandom pr_camissile ("CustomActorfire");
@@ -205,6 +206,13 @@ static void DoAttack (AActor *self, bool domelee, bool domissile)
 {
 	int index=CheckIndex(4);
 
+	// [BC] Let the server play these sounds.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if (index<0) return;
 	if (self->target == NULL) return;
 
@@ -223,7 +231,7 @@ static void DoAttack (AActor *self, bool domelee, bool domissile)
 
 			// [BC] If we're the server, make the sound on the client end.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SoundIDActor( self, CHAN_WEAPON, MeleeSound, 127, ATTN_NORM );
+				SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, (char *)S_GetName( MeleeSound ), 1, ATTN_NORM );
 		}
 
 		P_DamageMobj (self->target, self, self, damage, NAME_Melee);
@@ -288,12 +296,19 @@ static void DoPlaySound(AActor * self, int channel)
 	int index=CheckIndex(1);
 	if (index<0) return;
 
+	// [BC] Let the server play these sounds.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	int soundid = StateParameters[index];
 	S_SoundID (self, channel, soundid, 1, ATTN_NORM);
 
 	// [BC] If we're the server, tell clients to play the sound.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SoundIDActor( self, channel, soundid, 127, ATTN_NORM );
+		SERVERCOMMANDS_SoundActor( self, channel, (char *)S_GetName( soundid ), 1, ATTN_NORM );
 }
 
 void A_PlaySound(AActor * self)
@@ -388,7 +403,7 @@ void A_BulletAttack (AActor *self)
 
 	// [BC] If we're the server, tell clients to play the sound.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SoundIDActor( self, CHAN_WEAPON, self->AttackSound, 127, ATTN_NORM );
+		SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, (char *)S_GetName( self->AttackSound ), 1, ATTN_NORM );
 
 	for (i = self->GetMissileDamage (0, 1); i > 0; --i)
     {
@@ -471,15 +486,16 @@ static void DoJump(AActor * self, FState * CallingState, int offset, bool bNeedC
 	{
 		FState *jumpto = P_GetState(self, CallingState, offset);
 		if (jumpto == NULL) return;
-		self->SetState (jumpto);
 
 		// [BC] If we're the server, tell clients to change the thing's state.
 		if (( bNeedClientUpdate ) &&
 			( NETWORK_GetState( ) == NETSTATE_SERVER ))
 		{
-			SERVERCOMMANDS_SetThingFrame( self, LONG( jumpto - self->SeeState ));
+			SERVERCOMMANDS_SetThingFrame( self, LONG( jumpto - self->SpawnState ));
 			SERVERCOMMANDS_MoveThing( self, CM_X|CM_Y|CM_Z );
 		}
+
+		self->SetState (jumpto);
 	}
 }
 //==========================================================================
@@ -492,6 +508,13 @@ void A_Jump(AActor * self)
 	FState * CallingState;
 	int index = CheckIndex(3, &CallingState);
 	int maxchance;
+
+	// [BC] Don't jump here in client mode.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
 
 	if (index >= 0 &&
 		StateParameters[index] >= 2 &&
@@ -536,6 +559,13 @@ void A_JumpIfCloser(AActor * self)
 	FState * CallingState;
 	int index = CheckIndex(2, &CallingState);
 	AActor * target;
+
+	// [BC] Don't jump here in client mode.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
 
 	if (!self->player)
 	{
@@ -1070,7 +1100,7 @@ void A_CustomFireBullets( AActor *self,
 
 	// [BC] If we're the server, tell clients that a weapon is being fired.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SoundIDActor( self, CHAN_WEAPON, weapon->AttackSound, 127, ATTN_NORM, player ? ULONG( player - players ) : MAXPLAYERS, SVCF_SKIPTHISCLIENT );
+		SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, (char *)S_GetName( weapon->AttackSound ), 1, ATTN_NORM, player ? ULONG( player - players ) : MAXPLAYERS, SVCF_SKIPTHISCLIENT );
 
 	S_SoundID (self, CHAN_WEAPON, weapon->AttackSound, 1, ATTN_NORM);
 
@@ -2081,6 +2111,13 @@ void A_JumpIf(AActor * self)
 	if (index<0) return;
 	INTBOOL expression = EvalExpressionI (StateParameters[index], self);
 
+	// [BC] Don't jump here in client mode.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if (pStateCall != NULL) pStateCall->Result=false;	// Jumps should never set the result for inventory state chains!
 	if (expression) DoJump(self, CallingState, StateParameters[index+1], true);	// [BC] It's probably not good to do this client-side.
 
@@ -2214,7 +2251,7 @@ void A_CheckFloor (AActor *self)
 	if (pStateCall != NULL) pStateCall->Result=false;	// Jumps should never set the result for inventory state chains!
 	if (self->z <= self->floorz && index >= 0)
 	{
-		DoJump (self, CallingState, StateParameters[index], true);	// [BC] Clients have floor information.
+		DoJump (self, CallingState, StateParameters[index], false);	// [BC] Clients have floor information.
 	}
 
 }

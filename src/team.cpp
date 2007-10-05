@@ -557,20 +557,20 @@ void TEAM_ScoreSkulltagPoint( player_s *pPlayer, ULONG ulNumPoints, AActor *pPil
 	{
 		if ( pPillar->MeleeState )
 		{
-			pPillar->SetState( pPillar->MeleeState );
-
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SetThingState( pPillar, STATE_MELEE );
+
+			pPillar->SetState( pPillar->MeleeState );
 		}
 	}
 	else
 	{
 		if ( pPillar->MissileState )
 		{
-			pPillar->SetState( pPillar->MissileState );
-
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SetThingState( pPillar, STATE_MISSILE );
+
+			pPillar->SetState( pPillar->MissileState );
 		}
 	}
 }

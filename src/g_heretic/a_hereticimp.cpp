@@ -328,7 +328,7 @@ void A_ImpMsAttack (AActor *self)
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
 		SERVERCOMMANDS_MoveThingExact( self, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
-		SERVERCOMMANDS_SoundIDActor( self, CHAN_WEAPON, self->AttackSound, 127, ATTN_NORM );
+		SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, (char *)S_GetName( self->AttackSound ), 1, ATTN_NORM );
 	}
 }
 

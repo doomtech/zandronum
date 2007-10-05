@@ -3376,7 +3376,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 					{
 						SERVERCOMMANDS_SetPlayerHealth( player - players );
-						SERVERCOMMANDS_SoundActor( player->mo, CHAN_ITEM, "misc/i_pkup", 127, ATTN_NORM );
+						SERVERCOMMANDS_SoundActor( player->mo, CHAN_ITEM, "misc/i_pkup", 1, ATTN_NORM );
 					}
 				}
 			}

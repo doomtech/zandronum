@@ -192,7 +192,7 @@ void A_Summon (AActor *actor)
 		{
 			if ( pSmoke )
 				SERVERCOMMANDS_SpawnThing( pSmoke );
-			SERVERCOMMANDS_SoundIDActor( actor, CHAN_VOICE, mo->ActiveSound, 127, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( actor, CHAN_VOICE, (char *)S_GetName( mo->ActiveSound ), 1, ATTN_NORM );
 		}
 	}
 }

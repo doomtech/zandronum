@@ -583,7 +583,7 @@ bool P_ChangeSwitchTexture (side_t *side, int useAgain, BYTE special, bool *ques
 
 		// [BC] If we're the server, tell clients to play the sound.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SoundID( pt[0], pt[1], CHAN_VOICE|CHAN_LISTENERZ|CHAN_IMMOBILE, sound, 127, ATTN_STATIC );
+			SERVERCOMMANDS_SoundPoint( pt[0], pt[1], CHAN_VOICE|CHAN_LISTENERZ|CHAN_IMMOBILE, (char *)S_GetName( sound ), 1, ATTN_STATIC );
 	}
 	if (quest != NULL)
 	{
@@ -657,7 +657,7 @@ void DActiveButton::Tick ()
 
 				// [BC] If we're the server, tell clients to play the sound.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_SoundID( pt[0], pt[1], CHAN_VOICE|CHAN_LISTENERZ|CHAN_IMMOBILE, ( def->Sound != 0 ) ? def->Sound : S_FindSound( "switches/normbutn" ), 127, ATTN_STATIC );
+					SERVERCOMMANDS_SoundPoint( pt[0], pt[1], CHAN_VOICE|CHAN_LISTENERZ|CHAN_IMMOBILE, ( def->Sound != 0 ) ? (char *)S_GetName( def->Sound ) : "switches/normbutn", 1, ATTN_STATIC );
 
 				bFlippable = false;
 			}
