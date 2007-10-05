@@ -327,13 +327,11 @@ bool AActor::SuggestMissileAttack (fixed_t dist)
 	// new version encapsulates the different behavior in flags instead of virtual functions
 	// The advantage is that this allows inheriting the missile attack attributes from the
 	// various Doom monsters by custom monsters
-	// Making these values customizable is not necessary and in most case more confusing than
-	// helpful because no value here translates into anything really meaningful. 
 	
 	if (maxtargetrange > 0 && dist > maxtargetrange)
 		return false;	// The Arch Vile's special behavior turned into a property
 		
-	if (dist < meleethreshold)
+	if (MeleeState != NULL && dist < meleethreshold)
 		return false;	// From the Revenant: close enough for fist attack
 
 	if (flags4 & MF4_MISSILEMORE) dist >>= 1;
@@ -1668,8 +1666,8 @@ bool P_LookForPlayers (AActor *actor, INTBOOL allaround)
 					continue;	// behind back
 			}
 		}
-		if (player->mo->RenderStyle == STYLE_Translucent ||
-			player->mo->RenderStyle == STYLE_OptFuzzy)
+		if ((player->mo->flags & MF_SHADOW && !(i_compatflags & COMPATF_INVISIBILITY)) ||
+			player->mo->flags3 & MF3_GHOST)
 		{
 			if ((P_AproxDistance (player->mo->x - actor->x,
 					player->mo->y - actor->y) > 2*MELEERANGE)

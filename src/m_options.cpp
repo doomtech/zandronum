@@ -1318,6 +1318,7 @@ static menuitem_t CompatibilityItems[] = {
 	{ bitflag,	"DEH health settings like Doom2.exe",		{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_DEHHEALTH} },
 	{ bitflag,	"Self ref. sectors don't block shots",		{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_TRACE} },
 	{ bitflag,	"Monsters get stuck over dropoffs",			{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_DROPOFF} },
+	{ bitflag,	"Monsters see invisible players",			{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_INVISIBILITY} },
 	{ bitflag,	"Boom scrollers are additive",				{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_BOOMSCROLL} },
 	{ bitflag,	"Limited movement in the air",				{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_LIMITED_AIRMOVEMENT} },
 	{ bitflag,	"Plasma bump bug",							{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_PLASMA_BUMP_BUG} },
@@ -3510,7 +3511,6 @@ void M_InitVideoModesMenu ()
 {
 	int dummy1, dummy2;
 	size_t currval = 0;
-	char name[24];
 
 	// Nothing here is needed for servers.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -3518,16 +3518,17 @@ void M_InitVideoModesMenu ()
 
 	M_RefreshModesList();
 
-	for (unsigned int i = 1; i < 32 && currval < countof(Depths); i++)
+	for (unsigned int i = 1; i <= 32 && currval < countof(Depths); i++)
 	{
 		Video->StartModeIterator (i, screen->IsFullscreen());
 		if (Video->NextMode (&dummy1, &dummy2, NULL))
 		{
+			/*
 			Depths[currval].value = currval;
 			sprintf (name, "%d bit", i);
 			Depths[currval].name = copystring (name);
-			BitTranslate[currval] = i;
-			currval++;
+			*/
+			BitTranslate[currval++] = i;
 		}
 	}
 
@@ -3569,46 +3570,6 @@ void M_InitVideoModesMenu ()
 	g_bSwitchColorBack = false;
 	g_lSavedColor = 0;
 }
-
-/*
-void M_InitVideoModesMenu ()
-{
-	int dummy1, dummy2;
-	size_t currval = 0;
-	char name[24];
-
-	M_RefreshModesList();
-
-	for (unsigned int i = 1; i < 32 && currval < countof(Depths); i++)
-	{
-		Video->StartModeIterator (i, screen->IsFullscreen());
-		if (Video->NextMode (&dummy1, &dummy2, NULL))
-		{
-			Depths[currval].value = currval;
-			sprintf (name, "%d bit", i);
-			Depths[currval].name = copystring (name);
-			BitTranslate[currval] = i;
-			currval++;
-		}
-	}
-
-	//ModesItems[VM_DEPTHITEM].b.min = (float)currval;
-
-	switch (Video->GetDisplayType ())
-	{
-	case DISPLAY_FullscreenOnly:
-		ModesItems[2].type = nochoice;
-		ModesItems[2].b.min = 1.f;
-		break;
-	case DISPLAY_WindowOnly:
-		ModesItems[2].type = nochoice;
-		ModesItems[2].b.min = 0.f;
-		break;
-	default:
-		break;
-	}
-}
-*/
 
 //
 //		Toggle messages on/off

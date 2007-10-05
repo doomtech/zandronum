@@ -657,7 +657,7 @@ bool PIT_CrossLine (line_t* ld)
 {
 	if (!(ld->flags & ML_TWOSIDED) ||
 		// [BC] New blocking flag that blocks players.
-		(ld->flags & (ML_BLOCKING|ML_BLOCKMONSTERS|ML_BLOCKEVERYTHING|ML_BLOCKPLAYERS)))
+		(ld->flags & (ML_BLOCKING|ML_BLOCKMONSTERS|ML_BLOCKEVERYTHING|ML_BLOCK_PLAYERS)))
 		if (!(tmbbox[BOXLEFT]   > ld->bbox[BOXRIGHT]  ||
 			  tmbbox[BOXRIGHT]  < ld->bbox[BOXLEFT]   ||
 			  tmbbox[BOXTOP]    < ld->bbox[BOXBOTTOM] ||
@@ -732,7 +732,7 @@ bool PIT_CheckLine (line_t *ld)
 		else if ((ld->flags & (ML_BLOCKING|ML_BLOCKEVERYTHING)) || 	// explicitly blocking everything
 			(!(tmthing->flags3 & MF3_NOBLOCKMONST) && (ld->flags & ML_BLOCKMONSTERS)) || // block monsters only
 			// [BC] New blocking flag that blocks players.
-			(( tmthing->player ) && ( ld->flags & ML_BLOCKPLAYERS )) ||
+			(( tmthing->player ) && ( ld->flags & ML_BLOCK_PLAYERS )) ||
 			((ld->flags & ML_BLOCK_FLOATERS) && (tmthing->flags & MF_FLOAT)))	// block floaters
 		{
 			if (tmthing->flags2 & MF2_BLASTED)
@@ -1082,6 +1082,7 @@ bool PIT_CheckThing (AActor *thing)
 
 		// [Graf Zahl] Why do I have the feeling that this didn't really work anymore now
 		// that ZDoom supports friendly monsters?
+		
 
 		if (tmthing->target != NULL)
 		{
@@ -1094,8 +1095,13 @@ bool PIT_CheckThing (AActor *thing)
 			// to harm / be harmed by anything.
 			if (!thing->player && !tmthing->target->player)
 			{
+				int infight;
+				if (level.flags & LEVEL_TOTALINFIGHTING) infight=1;
+				else if (level.flags & LEVEL_NOINFIGHTING) infight=-1;
+				else infight = infighting;
+				
 				// [BC] No infighting during invasion mode.
-				if (infighting < 0 || invasion)
+				if (infight < 0 || invasion)
 				{
 					// -1: Monsters cannot hurt each other, but make exceptions for
 					//     friendliness and hate status.
@@ -1118,7 +1124,7 @@ bool PIT_CheckThing (AActor *thing)
 						}
 					}
 				}
-				else if (infighting == 0)
+				else if (infight == 0)
 				{
 					//  0: Monsters cannot hurt same species except 
 					//     cases where they are clearly supposed to do that
@@ -1146,7 +1152,7 @@ bool PIT_CheckThing (AActor *thing)
 						}
 					}
 				}
-				// else if (infighting==1) any shot hurts anything - no further tests
+				// else if (infight==1) any shot hurts anything - no further tests
 			}
 		}
 		if (!(thing->flags & MF_SHOOTABLE))
@@ -3848,6 +3854,8 @@ void P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 	angle_t srcangle = angle;
 	int srcpitch = pitch;
 	bool hitGhosts;
+	bool killPuff = false;
+	AActor *puff = NULL;
 
 	angle >>= ANGLETOFINESHIFT;
 	pitch = (angle_t)(pitch) >> ANGLETOFINESHIFT;
@@ -3896,7 +3904,6 @@ void P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 	else
 	{
 		fixed_t hitx = 0, hity = 0, hitz = 0;
-		AActor *puff = NULL;
 
 		if (trace.HitType != TRACE_HitActor)
 		{
@@ -4002,12 +4009,18 @@ void P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 					flags |= DMG_NO_ARMOR;
 				}
 			
+				if (puff == NULL)
+				{ 
+					// Since the puff is the damage inflictor we need it here 
+					// regardless of whether it is displayed or not.
+					puff = P_SpawnPuff (pufftype, hitx, hity, hitz, angle - ANG180, 2, true);
+					killPuff = true;
+				}
 				P_DamageMobj (trace.Actor, puff ? puff : t1, t1, damage, damageType, flags);
 			}
 		}
 		if (trace.CrossedWater)
 		{
-			bool killPuff = false;
 
 			if (puff == NULL)
 			{ // Spawn puff just to get a mass for the splash
@@ -4015,11 +4028,11 @@ void P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 				killPuff = true;
 			}
 			SpawnDeepSplash (t1, trace, puff, vx, vy, vz);
-			if (killPuff)
-			{
-				puff->Destroy();
-			}
 		}
+	}
+	if (killPuff && puff != NULL)
+	{
+		puff->Destroy();
 	}
 }
 
@@ -4437,10 +4450,10 @@ bool PTR_UseTraverse (intercept_t *in)
 		if (usething==in->d.thing) return true;
 		// Check thing
 
-		// Check for puzzle item use
-		if (in->d.thing->special == USE_PUZZLE_ITEM_SPECIAL)
+		// Check for puzzle item use or USESPECIAL flag
+		if (in->d.thing->flags5 & MF5_USESPECIAL || in->d.thing->special == USE_PUZZLE_ITEM_SPECIAL)
 		{
-			if (LineSpecials[USE_PUZZLE_ITEM_SPECIAL] (NULL, usething, false,
+			if (LineSpecials[in->d.thing->special] (NULL, usething, false,
 				in->d.thing->args[0], in->d.thing->args[1], in->d.thing->args[2],
 				in->d.thing->args[3], in->d.thing->args[4]))
 				return false;
@@ -4949,7 +4962,7 @@ bool PIT_RadiusAttack (AActor *thing)
 	{
 		// Boss spider and cyborg and Heretic's ep >= 2 bosses
 		// take no damage from concussion.
-		if (thing->flags3 & MF3_NORADIUSDMG)
+		if (thing->flags3 & MF3_NORADIUSDMG && !(bombspot->flags4 & MF4_FORCERADIUSDMG))
 			return true;
 	}
 

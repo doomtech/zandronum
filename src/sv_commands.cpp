@@ -4092,8 +4092,8 @@ void SERVERCOMMANDS_SetLineBlocking( ULONG ulLine, ULONG ulPlayerExtra, ULONG ul
 		lBlockFlags |= ML_BLOCKEVERYTHING;
 	if ( lines[ulLine].flags & ML_RAILING )
 		lBlockFlags |= ML_RAILING;
-	if ( lines[ulLine].flags & ML_BLOCKPLAYERS )
-		lBlockFlags |= ML_BLOCKPLAYERS;
+	if ( lines[ulLine].flags & ML_BLOCK_PLAYERS )
+		lBlockFlags |= ML_BLOCK_PLAYERS;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{

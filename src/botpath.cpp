@@ -641,7 +641,7 @@ static bool botpath_CheckLine( line_t *pLine )
 	// A line has been hit.
 
 	// This is a one-sided line. It must be a blocking line.
-	if (( pLine->backsector == NULL ) || ( pLine->flags & (ML_BLOCKING|ML_BLOCKEVERYTHING|ML_BLOCKPLAYERS) ))
+	if (( pLine->backsector == NULL ) || ( pLine->flags & (ML_BLOCKING|ML_BLOCKEVERYTHING|ML_BLOCK_PLAYERS) ))
 	{
 		g_pBlockingLine = pLine;
 		return ( false );

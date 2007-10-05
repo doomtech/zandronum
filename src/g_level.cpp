@@ -299,8 +299,12 @@ static const char *MapInfoMapLevel[] =
 	"compat_trace",		
 	"compat_dropoff",
 	"compat_boomscroll",
+	"compat_invisibility",
 	"bordertexture",
 	"f1", // [RC] F1 help
+	"noinfighting",
+	"normalinfighting",
+	"totalinfighting",
 	"nobotnodes",	// [BC] Allow the prevention of spawning bot nodes (helpful for very large maps).
 	// new [GZDoom]
 	"fogdensity",
@@ -438,8 +442,12 @@ MapHandlers[] =
 	{ MITYPE_COMPATFLAG, COMPATF_TRACE},
 	{ MITYPE_COMPATFLAG, COMPATF_DROPOFF},
 	{ MITYPE_COMPATFLAG, COMPATF_BOOMSCROLL},
+	{ MITYPE_COMPATFLAG, COMPATF_INVISIBILITY},
 	{ MITYPE_LUMPNAME,	lioffset(bordertexture), 0 },
 	{ MITYPE_F1,        lioffset(f1), 0, }, 
+	{ MITYPE_SCFLAGS,	LEVEL_NOINFIGHTING, ~LEVEL_TOTALINFIGHTING },
+	{ MITYPE_SCFLAGS,	0, ~(LEVEL_NOINFIGHTING|LEVEL_TOTALINFIGHTING)},
+	{ MITYPE_SCFLAGS,	LEVEL_TOTALINFIGHTING, ~LEVEL_NOINFIGHTING },
 	{ MITYPE_SETFLAG,	LEVEL_NOBOTNODES, 0 },	// [BC]
 	// new [GZDoom]
 	{ MITYPE_INT,		lioffset(fogdensity), 0 },
@@ -2772,7 +2780,7 @@ void G_InitLevelLocals ()
 
 	BaseBlendA = 0.0f;		// Remove underwater blend effect, if any
 	NormalLight.Maps = realcolormaps;
-	//NormalLight.Color = PalEntry (255, 255, 255);
+
 	// [BB] Instead of just setting the color, we also have reset Desaturate and build the lights.
 	NormalLight.ChangeColor (PalEntry (255, 255, 255), 0);
 

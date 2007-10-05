@@ -151,6 +151,7 @@ static inline int GET_SPAC (int flags)
 
 // [RH] Monsters (as well as players) can active the line
 #define ML_MONSTERSCANACTIVATE		0x2000
+#define ML_BLOCK_PLAYERS			0x4000
 
 // [RH] BOOM's ML_PASSUSE flag (conflicts with ML_REPEATSPECIAL)
 #define ML_PASSUSE_BOOM				0x0200
@@ -169,15 +170,12 @@ static inline int GET_SPAC (int flags)
 #define ML_BLOCK_FLOATERS_STRIFE	0x0400
 
 
-#define ML_BLOCKPLAYERS				0x00004000	// [BC] Line blocks just players.
 #define ML_BLOCKEVERYTHING			0x00008000	// [RH] Line blocks everything
 #define ML_ZONEBOUNDARY				0x00010000
 #define ML_RAILING					0x00020000
 #define ML_BLOCK_FLOATERS			0x00040000
 #define ML_CLIP_MIDTEX				0x00080000	// Automatic for every Strife line
 #define ML_WRAP_MIDTEX				0x00100000
-// [BB] This overlaps with Skulltags ML_BLOCKPLAYERS
-//#define ML_BLOCK_PLAYERS			0x00200000
 
 // Sector definition, from editing
 typedef struct

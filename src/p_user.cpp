@@ -1846,10 +1846,11 @@ void APlayerPawn::TweakSpeeds (int &forward, int &side)
 	}
 
 	// [BC] This comes out to 50%, so we can use this for the turbosphere.
-	if ((player->cheats & CF_SPEED) && !player->morphTics)
-	{ // Adjust for a player with a speed artifact
-		forward = (3*forward)>>1;
-		side = (3*side)>>1;
+	if (!player->morphTics && Inventory != NULL)
+	{
+		fixed_t factor = Inventory->GetSpeedFactor ();
+		forward = FixedMul(forward, factor);
+		side = FixedMul(side, factor);
 	}
 
 	// [BC] Apply the 25% speed increase power.

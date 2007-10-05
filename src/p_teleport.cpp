@@ -319,7 +319,7 @@ bool P_Teleport (AActor *thing, fixed_t x, fixed_t y, fixed_t z, angle_t angle,
 	if (thing->player && (useFog || !keepOrientation) && bHaltMomentum)
 	{
 		// Freeze player for about .5 sec
-		if (!(thing->player->cheats & CF_SPEED))
+		if (thing->Inventory == NULL || thing->Inventory->GetSpeedFactor() <= FRACUNIT)
 			thing->reactiontime = 18;
 	}
 	if (thing->flags & MF_MISSILE)

@@ -808,8 +808,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 	}
 	if (diestate == NULL)
 	{
-		int flags4 = !inflictor ? 0 : inflictor->player && inflictor->player->ReadyWeapon ? 
-			inflictor->player->ReadyWeapon->flags4 : inflictor->flags4;
+		int flags4 = inflictor == NULL ? 0 : inflictor->flags4;
 
 		int gibhealth = -abs(GetClass()->Meta.GetMetaInt (AMETA_GibHealth,
 			gameinfo.gametype == GAME_Doom ? -GetDefault()->health : -GetDefault()->health/2));
@@ -1129,7 +1128,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 	// Handle passive damage modifiers (e.g. PowerProtection)
 	if (target->Inventory != NULL)
 	{
-		int olddam = damage;
+ 		int olddam = damage;
 		target->Inventory->ModifyDamage(olddam, mod, damage, true);
 		if (olddam != damage && damage <= 0) return;
 	}
@@ -1419,12 +1418,6 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 				source = source->tracer;
 			}
 		}
-		if (source && (source->player) && source->player->ReadyWeapon != NULL &&
-			(source->player->ReadyWeapon->WeaponFlags & WIF_EXTREME_DEATH))
-		{
-			// Always extreme death from fourth weapon
-			target->health = -target->GetDefault()->health * 3;
-		}
 
 		// Deaths are server side.
 		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
@@ -1443,7 +1436,19 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 			return;
 		}
 	}
-	if ((pr_damagemobj() < target->PainChance) && !(target->flags & MF_SKULLFLY) && 
+	
+	PainChanceList * pc = target->GetClass()->ActorInfo->PainChances;
+	int painchance = target->PainChance;
+	if (pc != NULL)
+	{
+		BYTE * ppc = pc->CheckKey(mod);
+		if (ppc != NULL)
+		{
+			painchance = *ppc;
+		}
+	}
+	
+	if (!(target->flags5 & MF5_NOPAIN) && (pr_damagemobj() < painchance) && !(target->flags & MF_SKULLFLY) &&
 		 ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		if (inflictor && inflictor->IsKindOf (RUNTIME_CLASS(ALightning)))
@@ -1565,11 +1570,16 @@ bool AActor::OkayToSwitchTarget (AActor *other)
 	{ // [RH] Friendlies don't target other friendlies
 		return false;
 	}
+	
+	int infight;
+	if (level.flags & LEVEL_TOTALINFIGHTING) infight=1;
+	else if (level.flags & LEVEL_NOINFIGHTING) infight=-1;
+	else infight = infighting;
+	
 	// [BC] No infighting during invasion mode.
-	if ((gameinfo.gametype == GAME_Strife || infighting < 0 || invasion ) &&
-		other->player == NULL && !IsHostile (other))
+	if ((infight < 0 || invasion )&&	other->player == NULL && !IsHostile (other))
 	{
-		return false;	// Strife & infighting off: Non-friendlies don't target other non-friendlies
+		return false;	// infighting off: Non-friendlies don't target other non-friendlies
 	}
 	if (TIDtoHate != 0 && TIDtoHate == other->TIDtoHate)
 		return false;		// [RH] Don't target "teammates"

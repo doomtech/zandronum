@@ -1192,19 +1192,21 @@ void APlayerSpeedTrail::Tick ()
 // Speed Powerup -------------------------------------------------------------
 
 IMPLEMENT_STATELESS_ACTOR (APowerSpeed, Any, -1, 0)
+	PROP_SpeedLong(3*FRACUNIT/2)
 	PROP_Powerup_EffectTics (SPEEDTICS)
 	PROP_Inventory_Icon ("SPBOOT0")
 END_DEFAULTS
 
 //===========================================================================
 //
-// APowerSpeed :: InitEffect
+// APowerSpeed :: GetSpeedFactor
 //
 //===========================================================================
 
-void APowerSpeed::InitEffect ()
+fixed_t APowerSpeed ::GetSpeedFactor ()
 {
-	Owner->player->cheats |= CF_SPEED;
+	if (Inventory != NULL) return FixedMul(Speed, Inventory->GetSpeedFactor());
+	else return Speed;
 }
 
 //===========================================================================
@@ -1234,6 +1236,10 @@ void APowerSpeed::DoEffect ()
 	if (level.time & 1)
 		return;
 
+	// check if another speed item is present to avoid multiple drawing of the speed trail.
+	if (Inventory != NULL && Inventory->GetSpeedFactor() > FRACUNIT)
+		return;
+
 	if ( gameinfo.gametype != GAME_Doom )
 	{
 		if (P_AproxDistance (Owner->momx, Owner->momy) <= 12*FRACUNIT)
@@ -1259,20 +1265,6 @@ void APowerSpeed::DoEffect ()
 		{
 			speedMo->renderflags |= RF_INVISIBLE;
 		}
-	}
-}
-
-//===========================================================================
-//
-// APowerSpeed :: EndEffect
-//
-//===========================================================================
-
-void APowerSpeed::EndEffect ()
-{
-	if (Owner != NULL && Owner->player != NULL)
-	{
-		Owner->player->cheats &= ~CF_SPEED;
 	}
 }
 

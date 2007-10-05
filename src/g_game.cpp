@@ -1512,8 +1512,14 @@ void G_Ticker ()
 				lMaxThreshold = TURBOTHRESHOLD;
 				if ( players[i].cheats & CF_SPEED25 )
 					lMaxThreshold *= 2;
-				if ( players[i].cheats & CF_SPEED )
-					lMaxThreshold *= 4;
+
+				// [BB] In case the speed of the player is increased by 50 percent, lMaxThreshold is multiplied by 4,
+				// exactly like it was done with CF_SPEED before.
+				if ( (players[i].mo) && (players[i].mo->Inventory) && (players[i].mo->Inventory->GetSpeedFactor() > FRACUNIT) )
+				{
+					float floatSpeedFactor = static_cast<float>(players[i].mo->Inventory->GetSpeedFactor())/static_cast<float>(FRACUNIT);
+					lMaxThreshold *= (6.*floatSpeedFactor-5.);
+				}
 
 				// Check for turbo cheats.
 				if (( cmd->ucmd.forwardmove > lMaxThreshold ) ||

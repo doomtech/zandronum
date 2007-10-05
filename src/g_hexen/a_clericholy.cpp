@@ -201,7 +201,7 @@ IMPLEMENT_ACTOR (ACWeapWraithverge, Hexen, -1, 0)
 	PROP_SpawnState (0)
 
 	PROP_Weapon_SelectionOrder (3000)
-	PROP_Weapon_Flags (WIF_PRIMARY_USES_BOTH | WIF_EXTREME_DEATH)
+	PROP_Weapon_Flags (WIF_PRIMARY_USES_BOTH)
 	PROP_Weapon_AmmoUse1 (18)
 	PROP_Weapon_AmmoUse2 (18)
 	PROP_Weapon_AmmoGive1 (0)
@@ -240,6 +240,7 @@ IMPLEMENT_ACTOR (AHolyMissile, Hexen, -1, 0)
 	PROP_Damage (4)
 	PROP_Flags (MF_NOBLOCKMAP|MF_NOGRAVITY|MF_DROPOFF|MF_MISSILE)
 	PROP_Flags2 (MF2_NOTELEPORT)	
+	PROP_Flags4 (MF4_EXTREMEDEATH)
 
 	PROP_SpawnState (0)
 	PROP_DeathState (4)
@@ -324,6 +325,7 @@ IMPLEMENT_ACTOR (AHolySpirit, Hexen, -1, 0)
 	PROP_Flags (MF_NOBLOCKMAP|MF_NOGRAVITY|MF_DROPOFF|MF_MISSILE)
 	PROP_Flags2 (MF2_NOTELEPORT|MF2_RIP|MF2_IMPACT|MF2_PCROSS|MF2_SEEKERMISSILE)
 	PROP_Flags3 (MF3_FOILINVUL|MF3_SKYEXPLODE|MF3_NOEXPLODEFLOOR|MF3_CANBLAST)
+	PROP_Flags4 (MF4_EXTREMEDEATH)
 	PROP_RenderStyle (STYLE_Translucent)
 	PROP_Alpha (HX_ALTSHADOW)
 
@@ -396,11 +398,15 @@ bool AHolySpirit::IsOkayToAttack (AActor *link)
 		(link->player && link != target))
 		&& !(link->flags2&MF2_DORMANT))
 	{
+		if (target != NULL && link->IsFriend(target))
+		{
+			return false;
+		}
 		if (!(link->flags&MF_SHOOTABLE))
 		{
 			return false;
 		}
-		if (( NETWORK_GetState( ) != NETSTATE_SINGLE ) && !deathmatch && link->player && target->player)
+		if (( NETWORK_GetState( ) != NETSTATE_SINGLE ) && !deathmatch && link->player && target != NULL && target->player)
 		{
 			return false;
 		}

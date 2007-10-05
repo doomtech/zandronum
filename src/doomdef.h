@@ -291,32 +291,33 @@ enum
 	COMPATF_TRACE			= 1 << 13,	// Trace ignores lines with the same sector on both sides
 	COMPATF_DROPOFF			= 1 << 14,	// Monsters cannot move when hanging over a dropoff
 	COMPATF_BOOMSCROLL		= 1 << 15,	// Scrolling sectors are additive like in Boom
+	COMPATF_INVISIBILITY	= 1 << 16,	// Monsters can see semi-invisible players
 
 	// [BC] Start of new compatflags.
 
 	// Limited movement in the air.
-	COMPATF_LIMITED_AIRMOVEMENT	= 1 << 16,
+	COMPATF_LIMITED_AIRMOVEMENT	= 1 << 17,
 
 	// Allow the map01 "plasma bump" bug.
-	COMPATF_PLASMA_BUMP_BUG	= 1 << 17,
+	COMPATF_PLASMA_BUMP_BUG	= 1 << 18,
 
 	// Allow instant respawn after death.
-	COMPATF_INSTANTRESPAWN	= 1 << 18,
+	COMPATF_INSTANTRESPAWN	= 1 << 19,
 
 	// Taunting is disabled.
-	COMPATF_DISABLETAUNTS	= 1 << 19,
+	COMPATF_DISABLETAUNTS	= 1 << 20,
 
 	// Use doom2.exe's original sound curve.
-	COMPATF_ORIGINALSOUNDCURVE	= 1 << 20,
+	COMPATF_ORIGINALSOUNDCURVE	= 1 << 21,
 
 	// Use doom2.exe's original intermission screens/music.
-	COMPATF_OLDINTERMISSION		= 1 << 21,
+	COMPATF_OLDINTERMISSION		= 1 << 22,
 
 	// Disable stealth monsters, since doom2.exe didn't have them.
-	COMPATF_DISABLESTEALTHMONSTERS		= 1 << 22,
+	COMPATF_DISABLESTEALTHMONSTERS		= 1 << 23,
 
 	// Disable cooperative backpacks.
-//	COMPATF_DISABLECOOPERATIVEBACKPACKS	= 1 << 23,
+//	COMPATF_DISABLECOOPERATIVEBACKPACKS	= 1 << 24,
 };
 
 // phares 3/20/98:

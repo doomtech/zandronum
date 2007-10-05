@@ -8057,7 +8057,7 @@ static void client_SetLineBlocking( BYTESTREAM_s *pByteStream )
 	if (( lLine >= numlines ) || ( lLine < 0 ))
 		return;
 
-	lines[lLine].flags &= ~(ML_BLOCKING|ML_BLOCKPLAYERS|ML_BLOCKEVERYTHING|ML_RAILING);
+	lines[lLine].flags &= ~(ML_BLOCKING|ML_BLOCK_PLAYERS|ML_BLOCKEVERYTHING|ML_RAILING);
 	lines[lLine].flags |= lBlockFlags;
 }
 
