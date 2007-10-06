@@ -132,9 +132,9 @@ bool ParsingKeyConf;
 
 FActionMap ActionMaps[] =
 {
+	{ 0x03fe31c3, &Button_ShowMedals,	"showmedals" },	// [BC] New "show medals" button.
 	{ 0x1eefa611, &Button_Jump,			"jump" },
 	{ 0x201f1c55, &Button_Right,		"right" },
-	{ 0x21e60834, &Button_ShowMedals,	"showmedals" },	// [BC] New "show medals" button.
 	{ 0x23a99cd7, &Button_Back,			"back" },
 	{ 0x4463f43a, &Button_LookDown,		"lookdown" },
 	{ 0x5622bf42, &Button_Attack,		"attack" },

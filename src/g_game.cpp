@@ -1066,6 +1066,8 @@ bool G_Responder (event_t *ev)
 				stricmp (cmd, "spyprev") &&
 				stricmp (cmd, "chase") &&
 				stricmp (cmd, "+showscores") &&
+				// [BC]
+				stricmp (cmd, "+showmedals") &&
 				stricmp (cmd, "bumpgamma") &&
 				stricmp (cmd, "screenshot")))
 			{
