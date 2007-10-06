@@ -50,7 +50,7 @@
 #include "doomdef.h"
 #include "c_dispatch.h"
 #include "tarray.h"
-#include "thingdef.h"
+#include "thingdef/thingdef.h"
 #include "a_doomglobal.h"
 #include "deathmatch.h"
 #include "duel.h"

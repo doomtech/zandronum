@@ -55,7 +55,7 @@
 #include "a_action.h"
 #include "a_keys.h"
 #include "p_conversation.h"
-#include "thingdef.h"
+#include "thingdef/thingdef.h"
 #include "deathmatch.h"
 #include "duel.h"
 #include "g_game.h"

@@ -11,7 +11,7 @@
 #include "p_effect.h"
 #include "gi.h"
 #include "templates.h"
-#include "thingdef.h"
+#include "thingdef/thingdef.h"
 #include "deathmatch.h"
 #include "g_game.h"
 #include "sv_commands.h"

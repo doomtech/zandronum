@@ -6,7 +6,7 @@
 #include "p_enemy.h"
 #include "gstrings.h"
 #include "a_action.h"
-#include "thingdef.h"
+#include "thingdef/thingdef.h"
 // [BC] New #includes.
 #include "network.h"
 #include "sv_commands.h"

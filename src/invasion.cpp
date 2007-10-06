@@ -69,7 +69,7 @@
 #include "p_local.h"
 #include "sbar.h"
 #include "sv_commands.h"
-#include "thingdef.h"
+#include "thingdef/thingdef.h"
 #include "v_video.h"
 
 void	SERVERCONSOLE_UpdateScoreboard( );
