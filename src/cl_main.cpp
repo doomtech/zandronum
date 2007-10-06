@@ -3077,6 +3077,7 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	LONG			lPlayerClass;
 	LONG			lSkin;
 	bool			bWasWatchingPlayer;
+	AActor			*pCameraActor;
 	APlayerPawn		*pOldActor;
 	const char		*pszString = NULL;
 	const PClass	*pType;
@@ -3147,6 +3148,18 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	// Kill the player's old icon if necessary.
 	if ( pPlayer->pIcon )
 		pPlayer->pIcon->Destroy( );
+
+	// If the console player is being respawned, and watching another player in demo
+	// mode, allow the player to continue watching that player.
+	if ((( pPlayer - players ) == consoleplayer ) &&
+		( pPlayer->camera ) &&
+		( pPlayer->camera != pPlayer->mo ) &&
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		pCameraActor = pPlayer->camera;
+	}
+	else
+		pCameraActor = NULL;
 
 	// First, disassociate the player's corpse.
 	bWasWatchingPlayer = false;
@@ -3304,7 +3317,12 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	}
 
 	pPlayer->DesiredFOV = pPlayer->FOV = 90.f;
-	pPlayer->camera = pActor;
+	// If the console player was watching another player in demo mode, continue to follow
+	// that other player.
+	if ( pCameraActor )
+		pPlayer->camera = pCameraActor;
+	else
+		pPlayer->camera = pActor;
 	pPlayer->playerstate = PST_LIVE;
 	pPlayer->refire = 0;
 	pPlayer->damagecount = 0;
@@ -3322,11 +3340,11 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	// killough 10/98: initialize bobbing to 0.
 	pPlayer->momx = 0;
 	pPlayer->momy = 0;
-
+/*
 	// If the console player is being respawned, place the camera back in his own body.
 	if ( ulPlayer == consoleplayer )
 		players[consoleplayer].camera = players[consoleplayer].mo;
-
+*/
 	// setup gun psprite
 	P_SetupPsprites (pPlayer);
 

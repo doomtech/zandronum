@@ -1504,8 +1504,7 @@ void C_ToggleConsole ()
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		return;
 
-	// [BC] Support for client-side demos.
-	if (gamestate == GS_DEMOSCREEN || demoplayback || ( CLIENTDEMO_IsPlaying( )))
+	if (gamestate == GS_DEMOSCREEN || demoplayback)
 	{
 		gameaction = ga_fullconsole;
 	}
