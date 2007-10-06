@@ -4354,7 +4354,7 @@ void P_SpawnPlayer (mapthing2_t *mthing, bool bClientUpdate, player_t *p, bool t
 	// [GRB] Reset skin
 	p->userinfo.skin = R_FindSkin (skins[p->userinfo.skin].name, p->CurrentPlayerClass);
 	// [BC] The server does not have a status bar.
-	if ( StatusBar )
+	if (( StatusBar ) && ( StatusBar->GetPlayer( ) == ( p - players )))
 		StatusBar->SetFace (&skins[p->userinfo.skin]);
 
 	// [RH] Be sure the player has the right translation
