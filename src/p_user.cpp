@@ -1296,6 +1296,7 @@ void APlayerPawn::GiveDefaultInventory ()
 			else
 			{
 				item = static_cast<AInventory *>(Spawn (ti, 0,0,0, NO_REPLACE));
+				item->ItemFlags|=IF_IGNORESKILL;	// no skill multiplicators here
 				item->Amount = di->amount;
 				if (item->IsKindOf (RUNTIME_CLASS (AWeapon)))
 				{
@@ -1464,6 +1465,8 @@ void APlayerPawn::Die (AActor *source, AActor *inflictor)
 	}
 
 	Super::Die (source, inflictor);
+
+	if (player != NULL && player->mo == this) player->bonuscount = 0;
 
 	// [BC] Nothing for the client to do here.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))

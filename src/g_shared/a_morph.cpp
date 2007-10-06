@@ -401,9 +401,7 @@ void AMorphedMonster::Destroy ()
 void AMorphedMonster::Die (AActor *source, AActor *inflictor)
 {
 	// Dead things don't unmorph
-	// [BB] On clients this is called with NULL pointers as arguments.
-	if( source != NULL )
-		source->flags3 |= MF3_STAYMORPHED;
+	flags3 |= MF3_STAYMORPHED;
 	Super::Die (source, inflictor);
 	if (UnmorphedMe != NULL && (UnmorphedMe->flags & MF_UNMORPHED))
 	{

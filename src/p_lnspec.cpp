@@ -788,7 +788,7 @@ FUNC(LS_Teleport_ZombieChanger)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SetThingState( it, STATE_PAIN );
 
-		it->SetState (it->FindState(NAME_Pain));
+		if (it->health >= 0) it->SetState (it->FindState(NAME_Pain));
 		return true;
 	}
 	return false;
@@ -1342,7 +1342,7 @@ FUNC(LS_Thing_Hate)
 				hater->target = hatee;
 				if (!(hater->flags2 & MF2_DORMANT))
 				{
-					hater->SetState (hater->SeeState);
+					if (hater->health > 0) hater->SetState (hater->SeeState);
 				}
 			}
 		}

@@ -261,6 +261,7 @@ static flagdef InventoryFlags[] =
 	DEFINE_FLAG(IF, FANCYPICKUPSOUND, AInventory, ItemFlags),
 	DEFINE_FLAG(IF, BIGPOWERUP, AInventory, ItemFlags),
 	DEFINE_FLAG(IF, KEEPDEPLETED, AInventory, ItemFlags),
+	DEFINE_FLAG(IF, IGNORESKILL, AInventory, ItemFlags),
 };
 
 static flagdef WeaponFlags[] =
@@ -625,6 +626,12 @@ static void AddToTranslation(unsigned char * translation, char * range)
 			gs = g2 - g1;
 			bs = b2 - b1;
 		}
+		r <<= FRACBITS;
+		g <<= FRACBITS;
+		b <<= FRACBITS;
+		rs <<= FRACBITS;
+		gs <<= FRACBITS;
+		bs <<= FRACBITS;
 		if (start == end)
 		{
 			translation[start] = ColorMatcher.Pick

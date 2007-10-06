@@ -599,6 +599,7 @@ bool AActor::SetState (FState *newstate)
 				sprite = newsprite;
 			}
 		}
+
 		if (newstate->GetAction())
 		{
 			// The parameterized action functions need access to the current state and
@@ -608,7 +609,6 @@ bool AActor::SetState (FState *newstate)
 			// that does not involve changing stuff throughout the code. 
 			// Of course this should be rewritten ASAP.
 			CallingState = newstate;
-
 			newstate->GetAction() (this);
 
 			// Check whether the called action function resulted in destroying the actor
@@ -2978,32 +2978,35 @@ bool AActor::Slam (AActor *thing)
 {
 	flags &= ~MF_SKULLFLY;
 	momx = momy = momz = 0;
-	if (!(flags2 & MF2_DORMANT))
+	if (health > 0)
 	{
-		int dam = GetMissileDamage (7, 1);
-		P_DamageMobj (thing, this, this, dam, NAME_Melee);
-		P_TraceBleed (dam, thing, this);
-
-		// [BC] If we are the server, tell clients about the state change and momentum change.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		if (!(flags2 & MF2_DORMANT))
 		{
-			SERVERCOMMANDS_SetThingState( this, SeeState != NULL ? STATE_SEE : STATE_SPAWN );
-			SERVERCOMMANDS_MoveThing( this, CM_MOMX|CM_MOMY|CM_MOMZ );
-		}
+			int dam = GetMissileDamage (7, 1);
+			P_DamageMobj (thing, this, this, dam, NAME_Melee);
+			P_TraceBleed (dam, thing, this);
 
-		SetState (SeeState != NULL ? SeeState : SpawnState);
-	}
-	else
-	{
-		// [BB] If we are the server, tell clients about the state change and momentum change.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			// [BC] If we are the server, tell clients about the state change and momentum change.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			{
+				SERVERCOMMANDS_SetThingState( this, SeeState != NULL ? STATE_SEE : STATE_SPAWN );
+				SERVERCOMMANDS_MoveThing( this, CM_MOMX|CM_MOMY|CM_MOMZ );
+			}
+
+			SetState (SeeState != NULL ? SeeState : SpawnState);
+		}
+		else
 		{
-			SERVERCOMMANDS_SetThingState( this, STATE_SPAWN );
-			SERVERCOMMANDS_MoveThing( this, CM_MOMX|CM_MOMY|CM_MOMZ );
-		}
+			// [BB] If we are the server, tell clients about the state change and momentum change.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			{
+				SERVERCOMMANDS_SetThingState( this, STATE_SPAWN );
+				SERVERCOMMANDS_MoveThing( this, CM_MOMX|CM_MOMY|CM_MOMZ );
+			}
 
-		SetState (SpawnState);
-		tics = -1;
+			SetState (SpawnState);
+			tics = -1;
+		}
 	}
 	return false;			// stop moving
 }
@@ -3951,6 +3954,10 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 			unclock( g_SpawnCycles );
 			return NULL;
 		}
+	}
+	if (level.flags & LEVEL_NOALLIES && !actor->player)
+	{
+		actor->flags &= ~MF_FRIENDLY;
 	}
 	// [RH] Count monsters whenever they are spawned.
 	if (actor->CountsAsKill())
