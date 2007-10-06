@@ -5052,7 +5052,7 @@ AActor *P_SpawnPuff (const PClass *pufftype, fixed_t x, fixed_t y, fixed_t z, an
 
 		// [BC] If we're the server, play this sound.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SoundActor( puff, CHAN_BODY, (char *)S_GetName( puff->SeeSound ), 1, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( puff, CHAN_BODY, S_GetName( puff->SeeSound ), 1, ATTN_NORM );
 	}
 	else if (puff->AttackSound)
 	{
@@ -5060,7 +5060,7 @@ AActor *P_SpawnPuff (const PClass *pufftype, fixed_t x, fixed_t y, fixed_t z, an
 
 		// [BC] If we're the server, play this sound.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SoundActor( puff, CHAN_BODY, (char *)S_GetName( puff->AttackSound ), 1, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( puff, CHAN_BODY, S_GetName( puff->AttackSound ), 1, ATTN_NORM );
 	}
 
 	PuffSpawned = puff;
@@ -5382,7 +5382,7 @@ foundone:
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
 			SERVERCOMMANDS_SpawnThing( mo );
-			SERVERCOMMANDS_SoundActor( mo, CHAN_ITEM, smallsplash ? (char *)S_GetName( splash->SmallSplashSound ) : (char *)S_GetName( splash->NormalSplashSound ), 1, ATTN_IDLE );
+			SERVERCOMMANDS_SoundActor( mo, CHAN_ITEM, smallsplash ? S_GetName( splash->SmallSplashSound ) : S_GetName( splash->NormalSplashSound ), 1, ATTN_IDLE );
 		}
 	}
 	else
@@ -5393,7 +5393,7 @@ foundone:
 
 		// [BC] Tell clients to play the sound.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SoundPoint( thing->x, thing->y, CHAN_ITEM, smallsplash ? (char *)S_GetName( splash->SmallSplashSound ) : (char *)S_GetName( splash->NormalSplashSound ), 1, ATTN_IDLE );
+			SERVERCOMMANDS_SoundPoint( thing->x, thing->y, CHAN_ITEM, smallsplash ? S_GetName( splash->SmallSplashSound ) : S_GetName( splash->NormalSplashSound ), 1, ATTN_IDLE );
 	}
 
 	// Don't let deep water eat missiles

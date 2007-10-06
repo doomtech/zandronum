@@ -270,13 +270,13 @@ void A_Saw (AActor *actor)
 
 		// [BC] If we're the server, tell clients to play the saw sound.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, (char *)S_GetName( fullsound ), 1, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, S_GetName( fullsound ), 1, ATTN_NORM );
 		return;
 	}
 	S_SoundID (actor, CHAN_WEAPON, hitsound, 1, ATTN_NORM);
 	// [BC] If we're the server, tell clients to play the saw sound.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, (char *)S_GetName( hitsound ), 1, ATTN_NORM );
+		SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, S_GetName( hitsound ), 1, ATTN_NORM );
 		
 	// turn to face target
 	angle = R_PointToAngle2 (actor->x, actor->y,

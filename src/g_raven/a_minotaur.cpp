@@ -1079,7 +1079,7 @@ void A_MinotaurChase (AActor *actor)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
 			if ( actor->AttackSound )
-				SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, (char *)S_GetName( actor->AttackSound ), 1, ATTN_NORM );
+				SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, S_GetName( actor->AttackSound ), 1, ATTN_NORM );
 			SERVERCOMMANDS_SetThingState( actor, STATE_MELEE );
 		}
 

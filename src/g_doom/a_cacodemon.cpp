@@ -349,7 +349,7 @@ void A_HeadAttack (AActor *self)
 
 		// [BC] If we're the server, tell clients play this sound.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, (char *)S_GetName( self->AttackSound ), 1, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName( self->AttackSound ), 1, ATTN_NORM );
 
 		P_DamageMobj (self->target, self, self, damage, NAME_Melee);
 		P_TraceBleed (damage, self->target, self);
@@ -379,7 +379,7 @@ void A_CacolanternAttack (AActor *self)
 
 		// [BC] If we're the server, tell clients play this sound.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, (char *)S_GetName( self->AttackSound ), 1, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName( self->AttackSound ), 1, ATTN_NORM );
 
 		P_DamageMobj (self->target, self, self, damage, NAME_Melee);
 		P_TraceBleed (damage, self->target, self);
@@ -409,7 +409,7 @@ void A_AbaddonAttack (AActor *self)
 
 		// [BC] If we're the server, tell clients play this sound.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, (char *)S_GetName( self->AttackSound ), 1, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName( self->AttackSound ), 1, ATTN_NORM );
 
 		P_DamageMobj (self->target, self, self, damage, NAME_Melee);
 		P_TraceBleed (damage, self->target, self);

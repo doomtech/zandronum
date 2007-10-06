@@ -4182,7 +4182,7 @@ void SERVERCOMMANDS_SetSideFlags( ULONG ulSide, ULONG ulPlayerExtra, ULONG ulFla
 //*****************************************************************************
 //*****************************************************************************
 //
-void SERVERCOMMANDS_Sound( LONG lChannel, char *pszSound, float fVolume, LONG lAttenuation, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_Sound( LONG lChannel, const char *pszSound, float fVolume, LONG lAttenuation, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 
@@ -4208,7 +4208,7 @@ void SERVERCOMMANDS_Sound( LONG lChannel, char *pszSound, float fVolume, LONG lA
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SoundActor( AActor *pActor, LONG lChannel, char *pszSound, float fVolume, LONG lAttenuation, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SoundActor( AActor *pActor, LONG lChannel, const char *pszSound, float fVolume, LONG lAttenuation, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 
@@ -4238,7 +4238,7 @@ void SERVERCOMMANDS_SoundActor( AActor *pActor, LONG lChannel, char *pszSound, f
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SoundPoint( LONG lX, LONG lY, LONG lChannel, char *pszSound, float fVolume, LONG lAttenuation, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SoundPoint( LONG lX, LONG lY, LONG lChannel, const char *pszSound, float fVolume, LONG lAttenuation, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 

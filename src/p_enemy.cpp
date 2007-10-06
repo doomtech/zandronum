@@ -1849,7 +1849,7 @@ void A_Look (AActor *actor)
 
 			// [BC] Play the sound for clients.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SoundActor( actor, CHAN_VOICE, (char *)S_GetName( actor->SeeSound ), 1, ATTN_SURROUND );
+				SERVERCOMMANDS_SoundActor( actor, CHAN_VOICE, S_GetName( actor->SeeSound ), 1, ATTN_SURROUND );
 		}
 		else
 		{
@@ -1857,7 +1857,7 @@ void A_Look (AActor *actor)
 
 			// [BC] Play the sound for clients.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SoundActor( actor, CHAN_VOICE, (char *)S_GetName( actor->SeeSound ), 1, ATTN_NORM );
+				SERVERCOMMANDS_SoundActor( actor, CHAN_VOICE, S_GetName( actor->SeeSound ), 1, ATTN_NORM );
 		}
 	}
 
@@ -2254,7 +2254,7 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 			// the attack sound.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
-				SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, (char *)S_GetName( actor->AttackSound ), 1, ATTN_NORM );
+				SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, S_GetName( actor->AttackSound ), 1, ATTN_NORM );
 				SERVERCOMMANDS_SetThingState( actor, STATE_MELEE );
 				SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z );
 			}

@@ -231,7 +231,7 @@ static void DoAttack (AActor *self, bool domelee, bool domissile)
 
 			// [BC] If we're the server, make the sound on the client end.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, (char *)S_GetName( MeleeSound ), 1, ATTN_NORM );
+				SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName( MeleeSound ), 1, ATTN_NORM );
 		}
 
 		P_DamageMobj (self->target, self, self, damage, NAME_Melee);
@@ -308,7 +308,7 @@ static void DoPlaySound(AActor * self, int channel)
 
 	// [BC] If we're the server, tell clients to play the sound.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SoundActor( self, channel, (char *)S_GetName( soundid ), 1, ATTN_NORM );
+		SERVERCOMMANDS_SoundActor( self, channel, S_GetName( soundid ), 1, ATTN_NORM );
 }
 
 void A_PlaySound(AActor * self)
@@ -403,7 +403,7 @@ void A_BulletAttack (AActor *self)
 
 	// [BC] If we're the server, tell clients to play the sound.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, (char *)S_GetName( self->AttackSound ), 1, ATTN_NORM );
+		SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName( self->AttackSound ), 1, ATTN_NORM );
 
 	for (i = self->GetMissileDamage (0, 1); i > 0; --i)
     {
@@ -1100,7 +1100,7 @@ void A_CustomFireBullets( AActor *self,
 
 	// [BC] If we're the server, tell clients that a weapon is being fired.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, (char *)S_GetName( weapon->AttackSound ), 1, ATTN_NORM, player ? ULONG( player - players ) : MAXPLAYERS, SVCF_SKIPTHISCLIENT );
+		SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName( weapon->AttackSound ), 1, ATTN_NORM, player ? ULONG( player - players ) : MAXPLAYERS, SVCF_SKIPTHISCLIENT );
 
 	S_SoundID (self, CHAN_WEAPON, weapon->AttackSound, 1, ATTN_NORM);
 
