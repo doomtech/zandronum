@@ -100,11 +100,11 @@ typedef struct
 	ULONG	ulFlags;
 
 	// This is what's displayed in the internal browser for a server's game mode.
-	char	szShortName[8];
+	char	szShortName[9];
 
 	// This is the name of the texture that displays when we press the F1 key in
 	// this game mode.
-	char	szF1Texture[8];
+	char	szF1Texture[9];
 
 } GAMEMODE_s;
 
