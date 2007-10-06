@@ -20,7 +20,7 @@ LDFLAGS += -lFLAC++ -lFLAC -lz -ljpeg -lfmod `sdl-config --libs` `pkg-config gtk
 LDFLAGS += -lGL -lGLU
 NASMFLAGS += -f elf -DM_TARGET_LINUX
 
-SRCDIRS = src/ $(addprefix src/,g_doom/ g_heretic/ g_hexen/ g_raven/ g_shared/ g_strife/ MD5/ oplsynth/ sound/ sdl/ textures/ gl/ gl/r_render/)
+SRCDIRS = src/ $(addprefix src/,g_doom/ g_heretic/ g_hexen/ g_raven/ g_shared/ g_strife/ MD5/ oplsynth/ sound/ sdl/ textures/ thingdef/ gl/ gl/r_render/)
 VPATH = $(SRCDIRS)
 INCLUDES = $(addprefix -I,$(SRCDIRS) src/gl)
 CFLAGS += $(INCLUDES)
