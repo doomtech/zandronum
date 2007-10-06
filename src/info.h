@@ -467,6 +467,7 @@ extern FDoomEdMap DoomEdMap;
 
 int GetSpriteIndex(const char * spritename);
 void MakeStateNameList(const char * fname, TArray<FName> * out);
+void ProcessStates (FState *states, int numstates);
 
 #include "infomacros.h"
 

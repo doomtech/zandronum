@@ -47,3 +47,133 @@
 
 // EXTERNAL FUNCTION PROTOTYPES --------------------------------------------
 
+void ProcessActor();
+void ParseClass();
+void ParseGlobalConst();
+void ParseGlobalEnum();
+void FinishThingdef();
+void InitDecorateTranslations();
+void ParseOldDecoration(EDefinitionType def);
+
+// STATIC FUNCTION PROTOTYPES --------------------------------------------
+
+//==========================================================================
+//
+// ParseDecorate
+//
+// Parses a single DECORATE lump
+//
+//==========================================================================
+
+static void ParseDecorate ()
+{
+	int recursion=0;
+	int lump;
+
+	// Get actor class name.
+	while (true)
+	{
+		SC_SavePos();
+		if (!SC_GetToken ())
+		{
+			if (recursion==0) return;
+			SC_Close();
+			SC_RestoreScriptState();
+			recursion--;
+			continue;
+		}
+		switch (sc_TokenType)
+		{
+		case TK_Include:
+			SC_MustGetString();
+			// This is not using SC_Open because it can print a more useful error message when done here
+			lump = Wads.CheckNumForFullName(sc_String);
+			if (lump==-1) lump = Wads.CheckNumForName(sc_String);
+			if (lump==-1) SC_ScriptError("Lump '%s' not found", sc_String);
+			SC_SaveScriptState();
+			SC_OpenLumpNum(lump, sc_String);
+			recursion++;
+			break;
+
+		case TK_Class:
+			ParseClass();
+			break;
+
+		case TK_Const:
+			ParseGlobalConst();
+			break;
+
+		case TK_Enum:
+			ParseGlobalEnum();
+			break;
+
+		case TK_Pickup:
+			ParseOldDecoration(DEF_Pickup);
+			break;
+
+		case TK_Breakable:
+			ParseOldDecoration(DEF_BreakableDecoration);
+			break;
+
+		case TK_Projectile:
+			ParseOldDecoration(DEF_Projectile);
+			break;
+
+		case ';':
+			// ';' is the start of a comment in the non-cmode parser which
+			// is used to parse parts of the DECORATE lump. If we don't add 
+			// a check here the user will only get weird non-informative
+			// error messages if a semicolon is found.
+			SC_ScriptError("Unexpected ';'");
+			break;
+
+		case TK_Identifier:
+			// 'ACTOR' cannot be a keyword because it is also needed as a class identifier
+			// so let's do a special case for this.
+			if (SC_Compare("ACTOR"))
+			{
+				ProcessActor ();
+				break;
+			}
+
+		default:
+			// Yuck! Too bad that there's no better way to check this properly
+			SC_RestorePos();
+			ParseOldDecoration(DEF_Decoration);
+			break;
+		}
+	}
+}
+
+//==========================================================================
+//
+// LoadDecorations
+//
+// Called from FActor::StaticInit()
+//
+//==========================================================================
+
+void LoadDecorations ()
+{
+	// [BC] Calling FinishThingdef() doesn't work if no decorations are found. So,
+	// don't call it if we don't find any.
+	bool	bFoundDecorations;
+	int lastlump, lump;
+
+	InitDecorateTranslations();
+	lastlump = 0;
+	bFoundDecorations = false;
+	while ((lump = Wads.FindLump ("DECORATE", &lastlump)) != -1)
+	{
+		SC_OpenLumpNum (lump, Wads.GetLumpFullName(lump));
+		ParseDecorate ();
+		SC_Close ();
+
+		bFoundDecorations = true;
+	}
+
+	if ( bFoundDecorations )
+		FinishThingdef();
+	// [BC] End of changes.
+}
+

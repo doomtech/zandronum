@@ -55,7 +55,7 @@
 #include "cl_main.h"
 #include "network.h"
 
-extern void LoadDecorations (void (*process)(FState *, int));
+extern void LoadDecorations ();
 
 // Each state is owned by an actor. Actors can own any number of
 // states, but a single state cannot be owned by more than one
@@ -218,7 +218,7 @@ int GetSpriteIndex(const char * spritename)
 //
 //==========================================================================
 
-static void ProcessStates (FState *states, int numstates)
+void ProcessStates (FState *states, int numstates)
 {
 	int sprite = -1;
 
@@ -281,7 +281,7 @@ void FActorInfo::StaticInit ()
 	}
 
 	Printf ("LoadDecorations: Load external actors.\n");
-	LoadDecorations (ProcessStates);
+	LoadDecorations ();
 }
 
 //==========================================================================
