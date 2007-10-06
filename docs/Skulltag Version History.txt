@@ -192,6 +192,7 @@ v0.97d
 -	- Colorized strings that print quotations now work properly. [Carnevil]
 -	- Custom status bar faces no longer reset when another player respawns. [Carnevil]
 -	- The F1 help screens for team possession and OFCTF now work properly. [Carnevil]
+-	- Votes are now cleared out if there is a map change during the vote. [Carnevil]
 -	- Improved the scrolling of the server console. When you scroll up, it no longer snaps back down a new message. [Rivecoder]
 -	- Fixed: Bots cause hudmessages to appear for player 1 offline. [Torr Samaho]
 -	- Fixed: Clients with activated prediction ignore the CF_FROZEN and CF_TOTALLYFROZEN flags locally. [Torr Samaho]

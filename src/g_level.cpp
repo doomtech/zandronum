@@ -87,6 +87,7 @@
 #include "invasion.h"
 #include "possession.h"
 #include "cl_demo.h"
+#include "callvote.h"
 
 #include "gi.h"
 
@@ -1624,6 +1625,9 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 
 	// [BC] Clear out the botspawn table.
 	BOTSPAWN_ClearTable( );
+
+	// [BC] Clear out the called vote if one is taking place.
+	CALLVOTE_ClearVote( );
 
 	if (StatusBar != NULL)
 	{
