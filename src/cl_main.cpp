@@ -107,7 +107,6 @@
 
 void	G_PlayerReborn( int player );
 //void	ChangeSpy (bool forward);
-void	goOn (int position, bool keepFacing, bool secret, bool resetinv);
 polyobj_t *GetPolyobj (int polyNum);
 int		D_PlayerClassToInt (const char *classname);
 bool	P_AdjustFloorCeil (AActor *thing);
@@ -8414,7 +8413,7 @@ static void client_MapExit( BYTESTREAM_s *pByteStream )
 
 	// Ingore if we get this twice (could happen).
 	if ( gamestate != GS_INTERMISSION )
-		goOn( lPos, true, false, false );
+		G_ChangeLevel(level.nextmap, lPos, true);
 }
 
 //*****************************************************************************

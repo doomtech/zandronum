@@ -23,7 +23,7 @@ v0.97d
 *+	- Completely revamped monster movement online! Monsters now move much more smoothly, and require far less bandwidth before. [Carnevil]
 *-	- Crash logs should finally work on all Windows machines. [Torr Samaho]
 +	- Upgraded the GZDoom renderer to 1.0.25! [Torr Samaho]
-+	- Ported all changes from ZDoom up to revision 542. [Torr Samaho]
++	- Ported all changes from ZDoom up to revision 544. [Torr Samaho]
 +	- Added client-side scripts! Scripts with the NET tag are now purely executed on the client end. This reduces bandwidth usage, and allows things like custom HUD displays to work properly. [Carnevil]
 +	- Added the dynamic light definitions for Heretic and Hexen from ZDoomGL. [Torr Samaho]
 +	- Added invasion spawners for Heretic! [Carnevil, Aabra, and Tun]
