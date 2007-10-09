@@ -162,7 +162,7 @@ void APowerup::InitEffect ()
 
 void APowerup::DoEffect ()
 {
-	if (Owner == NULL)
+	if (Owner == NULL || Owner->player == NULL)
 	{
 		return;
 	}
@@ -1218,6 +1218,9 @@ fixed_t APowerSpeed ::GetSpeedFactor ()
 void APowerSpeed::DoEffect ()
 {
 	Super::DoEffect ();
+	
+	if (Owner == NULL || Owner->player == NULL)
+		return;
 
 //	if (Owner->player->cheats & CF_PREDICTING)
 //		return;
@@ -1351,8 +1354,11 @@ void APowerTargeter::PositionAccuracy ()
 {
 	player_t *player = Owner->player;
 
-	player->psprites[ps_targetleft].sx = (160-3)*FRACUNIT - ((100 - player->accuracy) << FRACBITS);
-	player->psprites[ps_targetright].sx = (160-3)*FRACUNIT + ((100 - player->accuracy) << FRACBITS);
+	if (player != NULL)
+	{
+		player->psprites[ps_targetleft].sx = (160-3)*FRACUNIT - ((100 - player->accuracy) << FRACBITS);
+		player->psprites[ps_targetright].sx = (160-3)*FRACUNIT + ((100 - player->accuracy) << FRACBITS);
+	}
 }
 
 // Frightener Powerup --------------------------------
@@ -1427,6 +1433,9 @@ AT_GAME_SET( PowerTimeFreezer )
 void APowerTimeFreezer::InitEffect( )
 {
 	ULONG	ulIdx;
+
+	if (Owner== NULL || Owner->player == NULL)
+		return;
 
 	// When this powerup is in effect, pause the music.
 	S_PauseSound( false );
@@ -2116,6 +2125,9 @@ END_DEFAULTS
 
 void ARuneDrain::InitEffect( )
 {
+	if (Owner== NULL || Owner->player == NULL)
+		return;
+
 	// Give the player the power to drain life from opponents when he damages them.
 	Owner->player->cheats |= CF_DRAIN;
 }
@@ -2129,13 +2141,11 @@ void ARuneDrain::InitEffect( )
 void ARuneDrain::EndEffect( )
 {
 	// Nothing to do if there's no owner.
-	if (( Owner == NULL ) || ( Owner->player == NULL ))
+	if (Owner != NULL && Owner->player != NULL)
 	{
-		return;
+		// Take away the drain power.
+		Owner->player->cheats &= ~CF_DRAIN;
 	}
-
-	// Take away the drain power.
-	Owner->player->cheats &= ~CF_DRAIN;
 }
 
 // Spread rune -------------------------------------------------------
@@ -2221,6 +2231,9 @@ END_DEFAULTS
 
 void ARuneRegeneration::InitEffect( )
 {
+	if (Owner== NULL || Owner->player == NULL)
+		return;
+
 	// Give the player the power to regnerate lost life.
 	Owner->player->cheats |= CF_REGENERATION;
 }
@@ -2234,13 +2247,11 @@ void ARuneRegeneration::InitEffect( )
 void ARuneRegeneration::EndEffect( )
 {
 	// Nothing to do if there's no owner.
-	if (( Owner == NULL ) || ( Owner->player == NULL ))
+	if (Owner != NULL && Owner->player != NULL)
 	{
-		return;
+		// Take away the regeneration power.
+		Owner->player->cheats &= ~CF_REGENERATION;
 	}
-
-	// Take away the regeneration power.
-	Owner->player->cheats &= ~CF_REGENERATION;
 }
 
 // Prosperity rune -------------------------------------------------------
@@ -2326,6 +2337,9 @@ END_DEFAULTS
 
 void ARuneHighJump::InitEffect( )
 {
+	if (Owner== NULL || Owner->player == NULL)
+		return;
+
 	// Give the player the power to jump much higher.
 	Owner->player->cheats |= CF_HIGHJUMP;
 }
@@ -2339,13 +2353,11 @@ void ARuneHighJump::InitEffect( )
 void ARuneHighJump::EndEffect( )
 {
 	// Nothing to do if there's no owner.
-	if (( Owner == NULL ) || ( Owner->player == NULL ))
+	if (Owner != NULL && Owner->player != NULL)
 	{
-		return;
+		// Take away the high jump power.
+		Owner->player->cheats &= ~CF_HIGHJUMP;
 	}
-
-	// Take away the high jump power.
-	Owner->player->cheats &= ~CF_HIGHJUMP;
 }
 
 // Speed +25% rune -------------------------------------------------------

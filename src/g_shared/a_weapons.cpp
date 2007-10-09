@@ -328,10 +328,11 @@ AAmmo *AWeapon::AddAmmo (AActor *other, const PClass *ammotype, int amount)
 	{
 		return NULL;
 	}
+
 	// [BC] This behavior is from the original Doom. Give 5/2 times as much ammo when
 	// we pick up a weapon in deathmatch.
 	if (( deathmatch || teamgame ) && ( gameinfo.gametype == GAME_Doom ))
-		amount *= 2.5;
+		amount = amount * 5 / 2;
 
 	// extra ammo in baby mode and nightmare mode
 	// [BC] Apply double ammo logic to weapon pickups as well.

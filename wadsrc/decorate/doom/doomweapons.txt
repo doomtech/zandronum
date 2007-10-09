@@ -17,7 +17,7 @@ ACTOR DoomWeapon : Weapon
 
 // --------------------------------------------------------------------------
 //
-// Fist 
+// Fist
 //
 // --------------------------------------------------------------------------
 
@@ -147,7 +147,7 @@ ACTOR Chainsaw : Weapon 2005
 ACTOR Shotgun : DoomWeapon 2001
 {
 	Game Doom
-	SpawnID 21
+	SpawnID 27
 	Weapon.SelectionOrder 1300
 	Weapon.AmmoUse 1
 	Weapon.AmmoGive 8

@@ -72,6 +72,7 @@ static bool FinaleHasPic;
 static FString FinaleText;
 static size_t FinaleTextLen;
 static const char *FinaleFlat;
+static bool FinaleEnding;
 
 void	F_StartCast (void);
 void	F_CastTicker (void);
@@ -83,9 +84,8 @@ void	F_AdvanceSlideshow ();
 // F_StartFinale
 //
 void F_StartFinale (char *music, int musicorder, int cdtrack, unsigned int cdid, char *flat, char *text,
-					INTBOOL textInLump, INTBOOL finalePic, INTBOOL lookupText)
+					INTBOOL textInLump, INTBOOL finalePic, INTBOOL lookupText, bool ending)
 {
-	bool ending = strncmp (level.nextmap, "enDSeQ", 6) == 0;
 	bool loopmusic = ending ? !(gameinfo.flags & GI_NOLOOPFINALEMUSIC) : true;
 	gameaction = ga_nothing;
 	gamestate = GS_FINALE;
@@ -141,6 +141,7 @@ void F_StartFinale (char *music, int musicorder, int cdtrack, unsigned int cdid,
 	FinaleCount = 0;
 	FinaleEndCount = 70;
 	FadeDir = -1;
+	FinaleEnding = ending;
 	S_StopAllChannels ();
 
 	if (ending)
@@ -234,7 +235,7 @@ void F_Ticker ()
 			}
 			else
 			{
-				if (strncmp (level.nextmap, "enDSeQ", 6) == 0)
+				if (FinaleEnding)
 				{
 					// [RH] Don't automatically advance end-of-game messages
 					if (interrupt)

@@ -2149,7 +2149,7 @@ void AM_drawMarks ()
 	{
 		if (markpoints[i].x != -1)
 		{
-			DrawMarker (TexMan(marknums[i]), markpoints[i].x, markpoints[i].y, -3, 0, 64, 64, 0, FRACUNIT, 0, STYLE_Normal);
+			DrawMarker (TexMan(marknums[i]), markpoints[i].x, markpoints[i].y, -3, 0, FRACUNIT, FRACUNIT, 0, FRACUNIT, 0, STYLE_Normal);
 		}
 	}
 }

@@ -143,7 +143,14 @@ static void DoClearInv (AActor *actor)
 		AInventory *next = inv->Inventory;
 		if (!(inv->ItemFlags & IF_UNDROPPABLE))
 		{
-			inv->Destroy ();
+			// Fix for undroppable weapons. Is this ok?
+			if (inv->IsKindOf(RUNTIME_CLASS(AAmmo)))
+			{
+				AAmmo *ammo = static_cast<AAmmo*>(inv);
+				ammo->Amount = 0;
+			}
+			else 
+				inv->Destroy ();
 		}
 		else if (inv->GetClass() == RUNTIME_CLASS(AHexenArmor))
 		{
@@ -4415,22 +4422,18 @@ int DLevelScript::RunScript ()
 					switch (STACK(1))
 					{
 					case BLOCK_NOTHING:
-						// [BC] Added ML_BLOCK_PLAYERS.
 						lines[line].flags &= ~(ML_BLOCKING|ML_BLOCKEVERYTHING|ML_RAILING|ML_BLOCK_PLAYERS);
 						break;
 					case BLOCK_CREATURES:
 					default:
-						// [BC] Added ML_BLOCK_PLAYERS.
 						lines[line].flags &= ~(ML_BLOCKEVERYTHING|ML_RAILING|ML_BLOCK_PLAYERS);
 						lines[line].flags |= ML_BLOCKING;
 						break;
 					case BLOCK_EVERYTHING:
-						lines[line].flags &= ~ML_RAILING;
-						// [BC] Added ML_BLOCK_PLAYERS.
-						lines[line].flags |= ML_BLOCKING|ML_BLOCKEVERYTHING|ML_BLOCK_PLAYERS;
+						lines[line].flags &= ~(ML_RAILING|ML_BLOCK_PLAYERS);
+						lines[line].flags |= ML_BLOCKING|ML_BLOCKEVERYTHING;
 						break;
 					case BLOCK_RAILING:
-						// [BC] Added ML_BLOCK_PLAYERS.
 						lines[line].flags &= ~(ML_BLOCKEVERYTHING|ML_BLOCK_PLAYERS);
 						lines[line].flags |= ML_RAILING|ML_BLOCKING;
 						break;
