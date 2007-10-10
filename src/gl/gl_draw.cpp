@@ -148,7 +148,7 @@ void gl_DrawTexture(FTexInfo *texInfo)
 	// just ignore for now...
 	if (texInfo->windowLeft || texInfo->windowRight != texInfo->tex->GetScaledWidth()) return;
 	
-	if (texInfo->fillColor != -1)
+	if (texInfo->fillColor > 0)
 	{
 		r = RPART(texInfo->fillColor)/255.0f;
 		g = GPART(texInfo->fillColor)/255.0f;
@@ -214,7 +214,7 @@ void gl_DrawBuffer(byte * sbuffer, int width, int height, int x, int y, int dx, 
 	}
 
 	GLTexture * gltex = new GLTexture(width, height, false, false);
-	gltex->CreateTexture(buffer, width, height, false, CM_DEFAULT);
+	gltex->CreateTexture(buffer, width, height, false, 0, CM_DEFAULT);
 	delete[] buffer;
 	
 	GLShader::Unbind();

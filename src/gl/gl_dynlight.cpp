@@ -117,12 +117,6 @@ FLightAssociation::FLightAssociation()
 
 FLightAssociation::FLightAssociation(const char *actorName, const char *frameName, const char *lightName)
 {
-	// [BB] This leads to crashes at starup and should be not be needed anyway since
-	// the calls to format allocate memory.
-	//m_ActorName = new char[strlen(actorName) + 1];
-	//m_FrameName = new char[strlen(frameName) + 1];
-	//m_AssocLight = new char[strlen(lightName) + 1];
-
 	m_ActorName.Format("%s", actorName);
 	m_FrameName.Format("%s", frameName);
 	m_AssocLight.Format("%s", lightName);

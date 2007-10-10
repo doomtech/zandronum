@@ -199,3 +199,4 @@ typedef void (APIENTRY * GetContextProc)(RenderContext & gl);
 void APIENTRY GetContext(RenderContext & gl);
 
 #endif
+

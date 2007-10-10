@@ -46,6 +46,7 @@
 #include "gl/gl_texture.h"
 #include "gl/gl_intern.h"
 #include "gl/gl_basic.h"
+#include "gl/gl_shader.h"
 
 
 EXTERN_CVAR (Bool, gl_lights_checkside);
@@ -321,12 +322,14 @@ void GLFlat::Draw(int pass)
 
 		else 
 		{
+			if (foggy) gl_EnableBrightmap(false);
 			gltexture->Bind(Colormap.LightColor.a);
 			gl_SetPlaneTextureRotation(&plane, gltexture);
 		}
 
 		DrawSubsectors(true);
 
+		gl_EnableBrightmap(true);
 		if (!gltexture)	gl_EnableTexture(true);
 		else gl.PopMatrix();
 		if (renderstyle==STYLE_Add) gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

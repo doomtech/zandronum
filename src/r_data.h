@@ -88,8 +88,9 @@ public:
 	void Unload ();
 	virtual void SetFrontSkyLayer ();
 
-	// [GZDoom]
+	// [OpenGL]
 	void CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
+	bool UseBasePalette();
 
 protected:
 	BYTE *Pixels;
@@ -240,8 +241,9 @@ public:
 	const BYTE *GetPixels ();
 	void Unload ();
 
-	// [GZDoom]
+	// [OpenGL]
 	void CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
+	bool UseBasePalette() { return false; }
 
 protected:
 
@@ -316,8 +318,9 @@ public:
 	const BYTE *GetPixels ();
 	void Unload ();
 
-	// [GZDoom]
+	// [OpenGL]
 	void CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
+	bool UseBasePalette() { return false; }
 
 protected:
 
@@ -366,8 +369,10 @@ public:
 	const BYTE *GetPixels ();
 	void Unload ();
 
-	// [GZDoom]
+
+	// [OpenGL]
 	void CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
+	bool UseBasePalette() { return false; }
 
 protected:
 	int SourceLump;
@@ -421,8 +426,9 @@ public:
 	const BYTE *GetPixels ();
 	void Unload ();
 
-	// [GZDoom]
+	// [OpenGL]
 	void CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
+	bool UseBasePalette() { return false; }
 
 protected:
 	int SourceLump;
@@ -457,8 +463,9 @@ public:
 	void Unload ();
 	bool CheckModified ();
 
-	// [GZDoom]
+	// [OpenGL]
 	void CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
+	bool UseBasePalette() { return false; }
 
 protected:
 	FTexture *SourcePic;
@@ -475,8 +482,9 @@ class FWarp2Texture : public FWarpTexture
 public:
 	FWarp2Texture (FTexture *source);
 
-	// [GZDoom]
+	// [OpenGL]
 	void CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
+	bool UseBasePalette() { return false; }
 
 protected:
 	void MakeTexture (DWORD time);

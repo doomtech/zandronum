@@ -69,6 +69,11 @@ CUSTOM_CVAR(Bool, gl_colormap_shader, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR
 	if (self && !(gl.flags & RFL_GLSL)) self=0;
 }
 
+CUSTOM_CVAR(Bool, gl_brightmap_shader, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
+{
+	if (self && !(gl.flags & RFL_GLSL)) self=0;
+}
+
 // Only for testing for now. This isn't working fully yet.
 CUSTOM_CVAR(Bool, gl_glsl_renderer, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
 {
@@ -92,6 +97,37 @@ EXTERN_CVAR(Bool, gl_render_precise)
 
 CVAR(Bool, gl_precache, false, CVAR_ARCHIVE)
 
+static char GlobalBrightmap[256];
+static bool HasGlobalBrightmap;
+
+
+void gl_GenerateGlobalBrightmapFromColormap()
+{
+	FMemLump cmap = Wads.ReadLump("COLORMAP");
+	FMemLump palette = Wads.ReadLump("PLAYPAL");
+	const unsigned char *cmapdata = (const unsigned char *)cmap.GetMem();
+	const unsigned char *paldata = (const unsigned char *)palette.GetMem();
+
+	memset(GlobalBrightmap, 255, 256);
+	for(int j=0;j<32;j++)
+	{
+		for(int i=0;i<256;i++)
+		{
+			// the palette comparison should be for ==0 but that gives false positives with Heretic
+			// and Hexen.
+			if (cmapdata[i+j*256]!=i || (paldata[3*i]<10 && paldata[3*i+1]<10 && paldata[3*i+2]<10))
+			{
+				GlobalBrightmap[i]=0;
+			}
+		}
+	}
+	for(int i=0;i<256;i++)
+	{
+		HasGlobalBrightmap|=!!GlobalBrightmap[i];
+		//if (GlobalBrightmap[i]) Printf("Marked color %d as fullbright\n",i);
+	}
+}
+
 
 
 // internal parameters for ModifyPalette
@@ -99,6 +135,7 @@ enum SpecialModifications
 {
 	CM_ICE=-2,					// The bluish ice translation for frozen corpses
 	CM_GRAY=-3,					// a simple grayscale map for colorizing blood splats
+	CM_BRIGHTMAP=-4,			// Brightness map for colormap based bright colors
 };
 
 static const BYTE IcePalette[16][3] =
@@ -506,7 +543,7 @@ void ModifyPalette(PalEntry * pout, PalEntry * pin, int cm, int count)
 static void CopyPixelData(BYTE * buffer, int texwidth, int texheight, int originx, int originy,
 						  const BYTE * patch, int pix_width, int pix_height, 
 						  int step_x, int step_y,
-						  intptr_t cm, int translation, PalEntry * palette)
+						  intptr_t cm, int translation, PalEntry * palette, int applybrightmap)
 {
 	PalEntry penew[256];
 	int srcwidth=pix_width;
@@ -547,7 +584,7 @@ static void CopyPixelData(BYTE * buffer, int texwidth, int texheight, int origin
 	if (translation!=DIRECT_PALETTE)
 	{
 		// CM_SHADE is an alpha map with 0==transparent and 1==opaque
-		if (cm==CM_SHADE) 
+		if (cm == CM_SHADE) 
 		{
 			for(int i=0;i<256;i++) 
 			{
@@ -555,6 +592,46 @@ static void CopyPixelData(BYTE * buffer, int texwidth, int texheight, int origin
 					penew[i]=PalEntry(255-i,255,255,255);
 				else
 					penew[i]=0xffffffff;	// If the palette contains transparent colors keep them.
+			}
+		}
+		else if (cm == CM_BRIGHTMAP) 
+		{
+			const unsigned char * ttbl = NULL;
+
+			switch(translation)
+			{
+			case 0:
+				break;
+
+			case (TRANSLATION_Standard<<8) | 8:
+			case (TRANSLATION_Standard<<8) | 7:
+				applybrightmap = false;
+				break;
+
+			default:
+				ttbl = &translationtables[translation>>8][256*(translation&0xff)];
+				break;
+			}
+
+			if (applybrightmap) 
+			{
+				for(int i=0;i<256;i++) 
+				{
+					int j = ttbl? ttbl[i]:i;
+					if (GlobalBrightmap[j] && palette[j].a==0)
+					{
+						penew[i] = PalEntry(0,255,255,255);
+					}
+					else
+					{
+						penew[i] = PalEntry(255,0,0,0);
+					}
+				}
+			}
+			else
+			{
+ 				for(int i=0;i<256;i++) 
+					penew[i] = PalEntry(palette[i].a,0,0,0);
 			}
 		}
 		else
@@ -657,7 +734,7 @@ void FTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height,
 	palette[0].a=255;
 	CopyPixelData(buffer, buf_width, buf_height, x, y,
 				  GetPixels(), Width, Height, Height, 1, 
-				  cm, translation, palette);
+				  cm, translation, palette, true);
 
 	palette[0].a=0;
 }
@@ -681,6 +758,16 @@ void FMultiPatchTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int b
 											  x+Parts[i].OriginX, y+Parts[i].OriginY, cm, translation);
 	}
 }
+
+bool FMultiPatchTexture::UseBasePalette() 
+{ 
+	for(int i=0;i<NumParts;i++)
+	{
+		if (Parts[i].Texture->UseBasePalette()) return true;
+	}
+	return false;
+}
+
 
 //===========================================================================
 //
@@ -741,7 +828,7 @@ void FPNGTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_heig
 	{
 	case 0:
 	case 3:
-		CopyPixelData(buffer, buf_width, buf_height, x, y, Pixels, Width, Height, 1, Width, cm, translation, pe);
+		CopyPixelData(buffer, buf_width, buf_height, x, y, Pixels, Width, Height, 1, Width, cm, translation, pe, false);
 		break;
 
 	case 2:
@@ -822,7 +909,7 @@ void FJPEGTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_hei
 		case JCS_GRAYSCALE:
 			for(int i=0;i<256;i++) pe[i]=PalEntry(0,i,i,i);	// default to a gray map
 			CopyPixelData(buffer, buf_width, buf_height, x, y, buff, cinfo.output_width, cinfo.output_height, 
-				1, cinfo.output_width, cm, translation, pe);
+				1, cinfo.output_width, cm, translation, pe, false);
 			break;
 
 		case JCS_CMYK:
@@ -933,7 +1020,7 @@ void FTGATexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_heig
     switch (hdr.img_type & 7)
     {
 	case 1:	// paletted
-		CopyPixelData(buffer, buf_width, buf_height, x, y, ptr, Width, Height, step_x, Pitch, cm, translation, pe);
+		CopyPixelData(buffer, buf_width, buf_height, x, y, ptr, Width, Height, step_x, Pitch, cm, translation, pe, false);
 		break;
 
 	case 2:	// RGB
@@ -969,7 +1056,7 @@ void FTGATexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_heig
 		{
 		case 8:
 			for(int i=0;i<256;i++) pe[i]=PalEntry(0,i,i,i);	// default to a gray map
-			CopyPixelData(buffer, buf_width, buf_height, x, y, ptr, Width, Height, step_x, Pitch, cm, translation, pe);
+			CopyPixelData(buffer, buf_width, buf_height, x, y, ptr, Width, Height, step_x, Pitch, cm, translation, pe, false);
 			break;
 		
 		case 16:
@@ -1050,7 +1137,7 @@ void FPCXTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_heig
 			lump.Seek(sizeof(header), SEEK_SET);
 			ReadPCX8bits (Pixels, lump, &header);
 		}
-		CopyPixelData(buffer, buf_width, buf_height, x, y, Pixels, Width, Height, 1, Width, cm, translation, pe);
+		CopyPixelData(buffer, buf_width, buf_height, x, y, Pixels, Width, Height, 1, Width, cm, translation, pe, false);
 	}
 	else
 	{
@@ -1255,6 +1342,48 @@ void FCanvasTexture::RenderGLView (AActor *viewpoint, int fov)
 	bFirstUpdate = false;
 }
 
+
+//===========================================================================
+//
+// Brightness maps
+//
+//===========================================================================
+
+FBrightmapTexture::FBrightmapTexture (FTexture *source)
+{
+	SourcePic = source;
+	CopySize(source);
+	bNoDecals = source->bNoDecals;
+	Rotations = source->Rotations;
+	UseType = source->UseType;
+}
+
+FBrightmapTexture::~FBrightmapTexture ()
+{
+	Unload();
+}
+
+const BYTE *FBrightmapTexture::GetColumn (unsigned int column, const Span **spans_out)
+{
+	// not needed
+	return NULL;
+}
+
+const BYTE *FBrightmapTexture::GetPixels ()
+{
+	// not needed
+	return NULL;
+}
+
+void FBrightmapTexture::Unload ()
+{
+}
+
+void FBrightmapTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation)
+{
+	SourcePic->CopyTrueColorPixels(buffer, buf_width, buf_height, x, y, CM_BRIGHTMAP, translation);
+}
+
 //===========================================================================
 //
 // The GL texture maintenance class
@@ -1281,6 +1410,7 @@ FGLTexture::FGLTexture(FTexture * tx)
 	areas = NULL;
 
 	bSkybox=false;
+	bHasColorkey = false;
 
 	Width = tex->GetWidth();
 	Height = tex->GetHeight();
@@ -1306,11 +1436,26 @@ FGLTexture::FGLTexture(FTexture * tx)
 		LeftOffset+=1;
 		TopOffset+=1;
 	}
+
+	if ((gl.flags & RFL_GLSL) && tx->UseBasePalette() && HasGlobalBrightmap &&
+		tx->UseType != FTexture::TEX_Autopage && tx->UseType != FTexture::TEX_Decal &&
+		tx->UseType != FTexture::TEX_MiscPatch && tx->UseType != FTexture::TEX_FontChar
+		) 
+	{
+		brightmap = new FBrightmapTexture(tx);
+		FGLTexture * gltex = ValidateTexture(brightmap);
+		gltex->bIsBrightmap=-1;
+	}
+	else brightmap = NULL;
+
+	bIsBrightmap = false;
+
+	if (tex->bHasCanvas) scaley=-scaley;
+
 	if (!gltextures) 
 		gltextures = new TArray<FGLTexture *>;
 	index = gltextures->Push(this);
 
-	if (tex->bHasCanvas) scaley=-scaley;
 }
 
 //===========================================================================
@@ -1324,6 +1469,7 @@ FGLTexture::~FGLTexture()
 	Clean(true);
 	if (areas) delete [] areas;
 	if (hirestexture) delete hirestexture;
+	if (brightmap) delete brightmap;
 
 	for(int i=0;i<gltextures->Size();i++)
 	{
@@ -1498,13 +1644,31 @@ bool FGLTexture::SmoothEdges(unsigned char * buffer,int w, int h, bool clampside
 // Post-process the texture data after the buffer has been created
 //
 //===========================================================================
-void FGLTexture::ProcessData(unsigned char * buffer, int w, int h, int cm, bool ispatch)
+bool FGLTexture::ProcessData(unsigned char * buffer, int w, int h, int cm, bool ispatch)
 {
-	if (tex->bMasked) 
+	if (bIsBrightmap==-1)
+	{
+		DWORD * dwbuf = (DWORD*)buffer;
+		for(int i=0;i<w*h;i++)
+		{
+			if (dwbuf[i]&0xffffff)
+			{
+				bIsBrightmap = 1;
+				break;
+			}
+		}
+		if (bIsBrightmap==-1) 
+		{
+			bIsBrightmap = 0;
+			return false;
+		}
+	}
+	else if (tex->bMasked && !bIsBrightmap) 
 	{
 		tex->bMasked=SmoothEdges(buffer, w, h, ispatch);
 		if (tex->bMasked && !ispatch) FindHoles(buffer, w, h);
 	}
+	return true;
 }
 
 
@@ -1617,54 +1781,69 @@ const PatchTextureInfo * FGLTexture::GetPatchTextureInfo()
 //
 //===========================================================================
 
-const WorldTextureInfo * FGLTexture::Bind(int cm, int clampmode, int translation, const unsigned char * translationtbl)
+const WorldTextureInfo * FGLTexture::Bind(int texunit, int cm, int clampmode, int translation)
 {
+	bool usebright = false;
 	if (GetWorldTextureInfo())
 	{
-		if (!gl_glsl_renderer)
+		if (texunit == 0)
 		{
-			if (gl.flags & RFL_GLSL)
+			if (brightmap && (gl_glsl_renderer || gl_brightmap_shader) &&
+				cm >= CM_DEFAULT && cm <= CM_DESAT31 && gl_brightmapenabled)
 			{
-				if ((gl_warp_shader && tex->bWarped!=0) || 
-					((tex->bHasCanvas || gl_colormap_shader) && cm!=CM_DEFAULT && cm!=CM_SHADE && gl_texturemode != TM_MASK))
+				brightmap->gltex->Bind(1, CM_DEFAULT, clampmode, translation);
+				if (brightmap->gltex->bIsBrightmap==0)
 				{
-					Shader->Bind(cm);
-					if (cm != CM_SHADE) cm = CM_DEFAULT;
+					delete brightmap;
+					brightmap = NULL;
 				}
-				else
-				{
-					GLShader::Unbind();
-				}
+				else usebright = true;
 			}
 
-			if (!gl_warp_shader)
+			if (!gl_glsl_renderer)
 			{
-				// If this is a warped texture that needs updating
-				// delete all system textures created for this
-				if (tex->CheckModified() && !tex->bHasCanvas && HiresLump<0 && HiresLump!=-2)
+				if (gl.flags & RFL_GLSL)
 				{
-					gltexture->Clean(true);
+					if ((gl_warp_shader && tex->bWarped!=0) || 
+						(usebright) ||
+						((tex->bHasCanvas || gl_colormap_shader) && cm!=CM_DEFAULT && cm!=CM_SHADE && gl_texturemode != TM_MASK))
+					{
+						Shader->Bind(cm, usebright);
+						if (cm != CM_SHADE) cm = CM_DEFAULT;
+					}
+					else
+					{
+						GLShader::Unbind();
+					}
+				}
+
+				if (!gl_warp_shader)
+				{
+					// If this is a warped texture that needs updating
+					// delete all system textures created for this
+					if (tex->CheckModified() && !tex->bHasCanvas && HiresLump<0 && HiresLump!=-2)
+					{
+						gltexture->Clean(true);
+					}
 				}
 			}
-		}
-		else
-		{
-			Shader->Bind(cm);
-			if (cm != CM_SHADE) cm = CM_DEFAULT;
+			else
+			{
+				Shader->Bind(cm, usebright);
+				if (cm != CM_SHADE) cm = CM_DEFAULT;
+			}
 		}
 
-		// Bind it to the system. For multitexturing this
-		// should be the only thing that needs adjusting
-		if (!gltexture->Bind(cm, translation, translationtbl))
+		// Bind it to the system.
+		if (!gltexture->Bind(texunit, cm, translation))
 		{
 			int w,h;
 
 			// Create this texture
-
-			unsigned char * buffer = CreateTexBuffer(cm, translation, translationtbl, w, h);
+			unsigned char * buffer = CreateTexBuffer(cm, translation, NULL, w, h);
 
 			ProcessData(buffer, w, h, cm, false);
-			if (!gltexture->CreateTexture(buffer, w, h, true, cm, translation, translationtbl)) 
+			if (!gltexture->CreateTexture(buffer, w, h, true, texunit, cm, translation)) 
 			{
 				// could not create texture
 				delete buffer;
@@ -1681,56 +1860,82 @@ const WorldTextureInfo * FGLTexture::Bind(int cm, int clampmode, int translation
 	return NULL;
 }
 
+const WorldTextureInfo * FGLTexture::Bind(int cm, int clampmode, int translation)
+{
+	return Bind(0, cm, clampmode, translation);
+}
 //===========================================================================
 // 
 //	Binds a sprite to the renderer
 //
 //===========================================================================
-const PatchTextureInfo * FGLTexture::BindPatch(int cm, int translation, const byte * translationtable)
+const PatchTextureInfo * FGLTexture::BindPatch(int texunit, int cm, int translation, const byte * translationtable)
 {
+	bool usebright = false;
+
 	if (GetPatchTextureInfo())
 	{
-		if (!gl_glsl_renderer)
+		if (texunit == 0)
 		{
-			if (gl.flags & RFL_GLSL)
+			if (brightmap && (gl_glsl_renderer || gl_brightmap_shader) &&
+				cm >= CM_DEFAULT && cm <= CM_DESAT31 && translationtable == NULL && gl_brightmapenabled)
 			{
-				if ((gl_warp_shader && tex->bWarped!=0) || 
-					((tex->bHasCanvas || gl_colormap_shader) && cm!=CM_DEFAULT && cm!=CM_SHADE && gl_texturemode != TM_MASK))
+				brightmap->gltex->BindPatch(1, CM_DEFAULT, translation, translationtable);
+				if (brightmap->gltex->bIsBrightmap==0)
 				{
-					Shader->Bind(cm);
-					if (cm != CM_SHADE) cm = CM_DEFAULT;
+					delete brightmap;
+					brightmap = NULL;
 				}
-				else
+				else 
 				{
-					GLShader::Unbind();
+					usebright = true;
 				}
 			}
 
-			if (!gl_warp_shader)
+			if (!gl_glsl_renderer)
 			{
-				// If this is a warped texture that needs updating
-				// delete all system textures created for this
-				if (tex->CheckModified() && !tex->bHasCanvas && HiresLump<0 && HiresLump!=-2)
+				if (gl.flags & RFL_GLSL)
 				{
-					glpatch->Clean(true);
+					if ((gl_warp_shader && tex->bWarped!=0) || 
+						(usebright) ||
+						((tex->bHasCanvas || gl_colormap_shader) && cm!=CM_DEFAULT && cm!=CM_SHADE && gl_texturemode != TM_MASK))
+					{
+						Shader->Bind(cm, usebright);
+						if (cm != CM_SHADE) cm = CM_DEFAULT;
+					}
+					else
+					{
+						GLShader::Unbind();
+					}
+				}
+
+				if (!gl_warp_shader)
+				{
+					// If this is a warped texture that needs updating
+					// delete all system textures created for this
+					if (tex->CheckModified() && !tex->bHasCanvas && HiresLump<0 && HiresLump!=-2)
+					{
+						glpatch->Clean(true);
+					}
 				}
 			}
-		}
-		else
-		{
-			Shader->Bind(cm);
-			if (cm != CM_SHADE) cm = CM_DEFAULT;
+			else
+			{
+				Shader->Bind(cm, usebright);
+				if (cm != CM_SHADE) cm = CM_DEFAULT;
+			}
 		}
 
 		// Bind it to the system. For multitexturing this
 		// should be the only thing that needs adjusting
-		if (!glpatch->Bind(cm, translation))
+		if (!glpatch->Bind(texunit, cm, translation))
 		{
 			int w, h;
+
 			// Create this texture
 			unsigned char * buffer = CreateTexBuffer(cm, translation, translationtable, w, h, false);
 			ProcessData(buffer, w, h, cm, true);
-			if (!glpatch->CreateTexture(buffer, w, h, false, cm, translation, translationtable)) 
+			if (!glpatch->CreateTexture(buffer, w, h, false, texunit, cm, translation, translationtable)) 
 			{
 				// could not create texture
 				delete buffer;
@@ -1748,7 +1953,10 @@ const PatchTextureInfo * FGLTexture::BindPatch(int cm, int translation, const by
 	return NULL;
 }
 
-
+const PatchTextureInfo * FGLTexture::BindPatch(int cm, int translation, const byte * translationtable)
+{
+	return BindPatch(0, cm, translation, translationtable);
+}
 
 //==========================================================================
 //

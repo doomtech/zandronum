@@ -16,6 +16,7 @@ enum DrawListType
 	// These are organized so that the various multipass rendering modes
 	// have to be set as few times as possible
 	GLDL_LIGHT,	
+	GLDL_LIGHTBRIGHT,
 	GLDL_LIGHTMASKED,
 	GLDL_LIGHTFOG,
 	GLDL_LIGHTFOGMASKED,

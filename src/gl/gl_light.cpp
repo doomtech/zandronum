@@ -315,8 +315,8 @@ float gl_GetFogDensity(int lightlevel, PalEntry fogcolor)
 }
 
 
-static PalEntry cfogcolor=-1;
-static float cfogdensity=-1;
+PalEntry gl_CurrentFogColor=-1;
+float gl_CurrentFogDensity=-1;
 
 //==========================================================================
 //
@@ -326,8 +326,8 @@ static float cfogdensity=-1;
 
 void gl_InitFog()
 {
-	cfogcolor=-1;
-	cfogdensity=-1;
+	gl_CurrentFogColor=-1;
+	gl_CurrentFogDensity=-1;
 	gl_EnableFog(true);
 	gl_EnableFog(false);
 	gl.Hint(GL_FOG_HINT, GL_FASTEST);
@@ -365,8 +365,8 @@ void gl_SetFog(int lightlevel, PalEntry fogcolor, int blendmode, int cm)
 	// no fog in enhanced vision modes!
 	if (fogdensity==0 || !gl_depthfog)
 	{
-		cfogcolor=-1;
-		cfogdensity=-1;
+		gl_CurrentFogColor=-1;
+		gl_CurrentFogDensity=-1;
 		gl_EnableFog(false);
 	}
 	else
@@ -380,19 +380,19 @@ void gl_SetFog(int lightlevel, PalEntry fogcolor, int blendmode, int cm)
 		gl_ModifyColor(fogcolor.r, fogcolor.g, fogcolor.b, cm);
 
 		gl_EnableFog(fogcolor!=-1);
-		if (fogcolor!=cfogcolor)
+		if (fogcolor!=gl_CurrentFogColor)
 		{
 			if (fogcolor!=-1)
 			{
 				GLfloat FogColor[4]={fogcolor.r/255.0f,fogcolor.g/255.0f,fogcolor.b/255.0f,0.0f};
 				gl.Fogfv(GL_FOG_COLOR, FogColor);
 			}
-			cfogcolor=fogcolor;
+			gl_CurrentFogColor=fogcolor;
 		}
-		if (fogdensity!=cfogdensity)
+		if (fogdensity!=gl_CurrentFogDensity)
 		{
 			gl.Fogf(GL_FOG_DENSITY, fogdensity/64000.f);
-			cfogdensity=fogdensity;
+			gl_CurrentFogDensity=fogdensity;
 		}
 	}
 }

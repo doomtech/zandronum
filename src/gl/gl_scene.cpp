@@ -49,6 +49,7 @@
 #include "gl/gl_texture.h"
 #include "gl/gl_basic.h"
 #include "gl/gl_functions.h"
+#include "gl/gl_shader.h"
 
 #define DEG2RAD( a ) ( a * M_PI ) / 180.0F
 #define RAD2DEG( a ) ( a / M_PI ) * 180.0F
@@ -378,8 +379,11 @@ void gl_DrawScene()
 	gl.Disable(GL_ALPHA_TEST);
 
 	gl.Disable(GL_POLYGON_OFFSET_FILL);	// just in case
+
+	gl_EnableBrightmap(true);
 	gl_drawinfo->drawlists[GLDL_PLAIN].Sort();
 	gl_drawinfo->drawlists[GLDL_PLAIN].Draw(GLPASS_PLAIN);
+	gl_EnableBrightmap(false);
 	gl_drawinfo->drawlists[GLDL_FOG].Sort();
 	gl_drawinfo->drawlists[GLDL_FOG].Draw(GLPASS_PLAIN);
 	gl_drawinfo->drawlists[GLDL_LIGHTFOG].Sort();
@@ -390,8 +394,10 @@ void gl_DrawScene()
 
 	// Part 2: masked geometry. This is set up so that only pixels with alpha>0.5 will show
 	gl.AlphaFunc(GL_GEQUAL,gl_mask_threshold);
+	gl_EnableBrightmap(true);
 	gl_drawinfo->drawlists[GLDL_MASKED].Sort();
 	gl_drawinfo->drawlists[GLDL_MASKED].Draw(GLPASS_PLAIN);
+	gl_EnableBrightmap(false);
 	gl_drawinfo->drawlists[GLDL_FOGMASKED].Sort();
 	gl_drawinfo->drawlists[GLDL_FOGMASKED].Draw(GLPASS_PLAIN);
 	gl_drawinfo->drawlists[GLDL_LIGHTFOGMASKED].Sort();
@@ -409,7 +415,9 @@ void gl_DrawScene()
 	// Part 2: masked geometry. This is set up so that only pixels with alpha>0.5 will show
 	// This creates a blank surface that only fills the nontransparent parts of the texture
 	gl_SetTextureMode(TM_MASK);
+	gl_EnableBrightmap(true);
 	gl_drawinfo->drawlists[GLDL_LIGHTMASKED].Draw(GLPASS_BASE_MASKED);
+	gl_EnableBrightmap(false);
 	gl_SetTextureMode(TM_MODULATE);
 
 
@@ -506,8 +514,10 @@ void gl_DrawScene()
 	gl.AlphaFunc(GL_GEQUAL,0.5f);
 	gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	gl_EnableBrightmap(true);
 	gl_drawinfo->drawlists[GLDL_TRANSLUCENTBORDER].Draw(GLPASS_TRANSLUCENT);
 	gl_drawinfo->drawlists[GLDL_TRANSLUCENT].DrawSorted();
+	gl_EnableBrightmap(false);
 
 	gl.DepthMask(true);
 

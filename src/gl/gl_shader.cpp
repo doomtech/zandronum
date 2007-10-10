@@ -51,6 +51,7 @@ extern long gl_frameMS;
 bool gl_fogenabled;
 bool gl_textureenabled;
 int gl_texturemode;
+int gl_brightmapenabled;
 
 class FShader
 {
@@ -154,6 +155,12 @@ bool FShader::Load(const char * name, const char * vert_prog, const char * frag_
 		desaturation_index = gl.GetUniformLocationARB(hShader, "desaturation_factor");
 		fogenabled_index = gl.GetUniformLocationARB(hShader, "fogenabled");
 		texturemode_index = gl.GetUniformLocationARB(hShader, "texturemode");
+
+		int brightmap_index = gl.GetUniformLocationARB(hShader, "brightmap");
+
+		gl.UseProgramObjectARB(hShader);
+		gl.Uniform1iARB(brightmap_index, 1);
+		gl.UseProgramObjectARB(0);
 
 		return !!linked;
 	}
@@ -334,7 +341,8 @@ FShaderContainer::FShaderContainer(const char *ShaderName, const char *ShaderPat
 
 	static Lighting default_light[]={
 		{ "Standard",	"shaders/light/light_eyefog.fp"		},
-		{ "Doom",		"shaders/light/light_doom.fp"			},
+		{ "Brightmap",	"shaders/light/light_brightmap.fp"	},
+		//{ "Doom",		"shaders/light/light_doom.fp"		},
 	};
 
 	static const char * main_fp2[]={ "shaders/main.fp", "shaders/main_desat.fp" };
@@ -535,7 +543,7 @@ GLShader *GLShader::Find(const char * shn)
 }
 
 
-void GLShader::Bind(int cm)
+void GLShader::Bind(int cm, bool brightmap)
 {
 	FShader *sh=NULL;
 	switch(cm)
@@ -554,7 +562,7 @@ void GLShader::Bind(int cm)
 	default:
 
 		bool desat = cm>=CM_DESAT1 && cm<=CM_DESAT31;
-		sh = container->shader_light[0][desat];
+		sh = container->shader_light[brightmap][desat];
 		// [BB] If there was a problem when loading the shader, sh is NULL here.
 		if( sh )
 		{
@@ -572,7 +580,7 @@ void GLShader::Bind(int cm)
 
 void GLShader::Rebind()
 {
-	if (lastshader) lastshader->Bind(lastcm);
+	//if (lastshader) lastshader->Bind(lastcm);
 }
 
 void GLShader::Unbind()
@@ -652,7 +660,6 @@ void gl_SetTextureMode(int which)
 	if (gl_activeShader) gl_activeShader->SetTextureMode(which);
 	gl_texturemode = which;
 }
-
 
 
 //==========================================================================

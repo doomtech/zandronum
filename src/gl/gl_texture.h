@@ -7,6 +7,7 @@
 #include "i_system.h"
 
 EXTERN_CVAR(Bool, gl_precache)
+EXTERN_CVAR(Bool, gl_brightmap_shader)
 
 struct GL_RECT;
 
@@ -92,7 +93,9 @@ class FGLTexture : protected WorldTextureInfo, protected PatchTextureInfo
 public:
 	FTexture * tex;
 	FTexture * hirestexture;
+	FTexture * brightmap;
 	bool bSkybox;
+	char bIsBrightmap;
 	int HiresLump;
 
 private:
@@ -112,7 +115,7 @@ private:
 	float AlphaThreshold;
 
 	bool FindHoles(const unsigned char * buffer, int w, int h);
-	void ProcessData(unsigned char * buffer, int w, int h, int cm, bool ispatch);
+	bool ProcessData(unsigned char * buffer, int w, int h, int cm, bool ispatch);
 	static bool SmoothEdges(unsigned char * buffer,int w, int h, bool clampsides);
 	int CheckExternalFile(bool & hascolorkey);
 	unsigned char * LoadHiresTexture(int *width, int *height,intptr_t cm);
@@ -128,12 +131,15 @@ private:
 
 	void CheckForAlpha(const unsigned char * buffer);
 
+	const WorldTextureInfo * Bind(int texunit, int cm, int clamp, int translation);
+	const PatchTextureInfo * BindPatch(int texunit, int cm, int translation, const BYTE * translationtable);
+
 public:
 	FGLTexture(FTexture * tx);
 	~FGLTexture();
 
 	unsigned char * CreateTexBuffer(int cm, int translation, const BYTE * translationtable, int & w, int & h, bool allowhires=true);
-	const WorldTextureInfo * Bind(int cm, int clamp=0, int translation=0, const unsigned char * translationtbl=NULL);
+	const WorldTextureInfo * Bind(int cm, int clamp=0, int translation = 0);
 	const PatchTextureInfo * BindPatch(int cm, int translation=0, const BYTE * translationtable=NULL);
 
 	const WorldTextureInfo * GetWorldTextureInfo();
@@ -212,25 +218,28 @@ public:
 };
 
 
-class FHiresTexture : public FTexture
+class FBrightmapTexture : public FTexture
 {
-	int SourceLump;
-	BYTE *Pixels;
-	Span DummySpans[2];
+	friend class FGLTexture;
 
 public:
-	FHiresTexture (const char * name, int w, int h);
-	virtual ~FHiresTexture ();
+	FBrightmapTexture (FTexture *source);
+	~FBrightmapTexture ();
 
-	// Returns a single column of the texture
-	virtual const BYTE *GetColumn (unsigned int column, const Span **spans_out);
-	virtual const BYTE *GetPixels ();
-	virtual void Unload ();
+	const BYTE *GetColumn (unsigned int column, const Span **spans_out);
+	const BYTE *GetPixels ();
+	void Unload ();
 
-	static FHiresTexture * TryLoad(int lumpnum);
+	void CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
+	bool UseBasePalette() { return false; }
+
+protected:
+	FTexture *SourcePic;
+	//BYTE *Pixels;
+	//Span **Spans;
 };
 
 void gl_EnableTexture(bool on);
-
+void gl_GenerateGlobalBrightmapFromColormap();
 
 #endif

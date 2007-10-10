@@ -284,6 +284,7 @@ Win32GLFrameBuffer::Win32GLFrameBuffer(int width, int height, int bits, int refr
 	DoSetGamma();
 
 	InitializeState();
+	gl_GenerateGlobalBrightmapFromColormap();
 }
 
 Win32GLFrameBuffer::~Win32GLFrameBuffer()

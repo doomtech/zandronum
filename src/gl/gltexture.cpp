@@ -116,7 +116,8 @@ static int FindTranslationIndex(int cm, const unsigned char * translation)
 //	Static texture data
 //
 //===========================================================================
-unsigned int GLTexture::lastbound=0;
+unsigned int GLTexture::lastbound[GLTexture::MAX_TEXTURES];
+int GLTexture::lastactivetexture=0;
 
 
 GLTexture::TexFilter_s GLTexture::TexFilter[]={
@@ -168,7 +169,7 @@ void GLTexture::LoadImage(unsigned char * buffer,int w, int h, unsigned int & gl
 	if (alphatexture) texformat=GL_ALPHA8;
 	if (glTexID==0) gl.GenTextures(1,&glTexID);
 	gl.BindTexture(GL_TEXTURE_2D, glTexID);
-	lastbound=glTexID;
+	lastbound[lastactivetexture]=glTexID;
 
 	if (!buffer)
 	{
@@ -255,6 +256,7 @@ void GLTexture::LoadImage(unsigned char * buffer,int w, int h, unsigned int & gl
 	gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapparam==GL_CLAMP? GL_CLAMP_TO_EDGE : GL_REPEAT);
 	gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapparam==GL_CLAMP? GL_CLAMP_TO_EDGE : GL_REPEAT);
 	clampmode = wrapparam==GL_CLAMP? GLT_CLAMPX|GLT_CLAMPY : 0;
+
 	gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, TexFilter[gl_texture_filter].magfilter);
 }
 
@@ -380,6 +382,15 @@ unsigned * GLTexture::GetTexID(int cm, int translation, const unsigned char * tr
 	glTexID_Translated[add].glTexID=0;
 	return &glTexID_Translated[add].glTexID;
 }
+
+void GLTexture::ChangeActiveTexture(int texunit)
+{
+	if (texunit != lastactivetexture)
+	{
+		lastactivetexture = texunit;
+		gl.ActiveTexture(GL_TEXTURE0_ARB+texunit);
+	}
+}
 //===========================================================================
 // 
 //	Binds this patch
@@ -388,14 +399,15 @@ unsigned * GLTexture::GetTexID(int cm, int translation, const unsigned char * tr
 // the lastbound variable will have to be changed
 //
 //===========================================================================
-unsigned int GLTexture::Bind(int cm,int translation, const unsigned char * translationtbl)
+unsigned int GLTexture::Bind(int texunit, int cm,int translation, const unsigned char * translationtbl)
 {
 	unsigned int * pTexID=GetTexID(cm, translation, translationtbl);
 
 	if (*pTexID!=0)
 	{
-		if (lastbound==*pTexID) return *pTexID;
-		lastbound=*pTexID;
+		if (lastbound[texunit]==*pTexID) return *pTexID;
+		lastbound[texunit]=*pTexID;
+		ChangeActiveTexture(texunit);
 		gl.BindTexture(GL_TEXTURE_2D, *pTexID);
 		return *pTexID;
 	}
@@ -408,15 +420,16 @@ unsigned int GLTexture::Bind(int cm,int translation, const unsigned char * trans
 //	(re-)creates the texture
 //
 //===========================================================================
-unsigned int GLTexture::CreateTexture(unsigned char * buffer, int w, int h, bool wrap, 
+unsigned int GLTexture::CreateTexture(unsigned char * buffer, int w, int h, bool wrap, int texunit,
 									  int cm, int translation, const unsigned char * translationtbl)
 {
 	if (cm>=cm_arraysize || cm<0) cm=CM_DEFAULT;
 
 	unsigned int * pTexID=GetTexID(cm, translation, translationtbl);
 
+	ChangeActiveTexture(texunit);
 	LoadImage(buffer, w, h, *pTexID, wrap? GL_REPEAT:GL_CLAMP, cm==CM_SHADE);
-	return Bind(cm, translation);
+	return *pTexID;
 }
 
 

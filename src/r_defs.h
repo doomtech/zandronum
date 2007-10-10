@@ -758,10 +758,12 @@ public:
 
 	// Returns the whole texture, stored in column-major order
 	virtual const BYTE *GetPixels () = 0;
-
+	
 	// [OpenGL]
 	virtual void CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
+	virtual bool UseBasePalette() { return true; }
 	FGLTexture * gltex;
+						
 
 	virtual void Unload () = 0;
 

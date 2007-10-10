@@ -49,6 +49,7 @@
 #include "gl/gl_texture.h"
 #include "gl/gl_basic.h"
 #include "gl/gl_functions.h"
+#include "gl/gl_shader.h"
 
 EXTERN_CVAR(Bool, gl_seamless)
 
@@ -218,9 +219,6 @@ void GLWall::RenderMirrorSurface()
 	int lump=TexMan.CheckForTexture("MIRROR", FTexture::TEX_MiscPatch,FTextureManager::TEXMAN_TryAny);
 	if (lump<0) return;
 
-	FGLTexture * pat=FGLTexture::ValidateTexture(lump);
-	pat->BindPatch(Colormap.LightColor.a, 0);
-
 	// Use sphere mapping for this
 	gl.Enable(GL_TEXTURE_GEN_T);
 	gl.Enable(GL_TEXTURE_GEN_S);
@@ -232,6 +230,9 @@ void GLWall::RenderMirrorSurface()
 	gl.AlphaFunc(GL_GREATER,0);
 	gl.DepthFunc(GL_LEQUAL);
 	gl_SetFog(lightlevel, Colormap.FadeColor, STYLE_Add, Colormap.LightColor.a);
+
+	FGLTexture * pat=FGLTexture::ValidateTexture(lump);
+	pat->BindPatch(Colormap.LightColor.a, 0);
 
 	RenderWall(0,NULL);
 
@@ -270,8 +271,12 @@ void GLWall::RenderTranslucentWall()
 	gl.AlphaFunc(GL_GEQUAL,0.5f*fabs(alpha));
 	if (RenderStyle==STYLE_Add) gl.BlendFunc(GL_SRC_ALPHA,GL_ONE);
 
+	if (type!=RENDERWALL_M2SNF) gl_SetFog(lightlevel, Colormap.FadeColor, RenderStyle, Colormap.LightColor.a);
+	else gl_SetFog(255, 0, STYLE_Normal, CM_DEFAULT);
+
 	if (gltexture) 
 	{
+		if (flags&GLWF_FOGGY) gl_EnableBrightmap(false);
 		gltexture->Bind(Colormap.LightColor.a, flags);
 		// prevent some ugly artifacts at the borders of fences etc.
 		gl_SetColor(lightlevel, (extralight * gl_weaponlight), &Colormap, fabsf(alpha));
@@ -282,9 +287,6 @@ void GLWall::RenderTranslucentWall()
 		gl_SetColor(lightlevel, 0, &Colormap, fabsf(alpha));
 	}
 
-	if (type!=RENDERWALL_M2SNF) gl_SetFog(lightlevel, Colormap.FadeColor, RenderStyle, Colormap.LightColor.a);
-	else gl_SetFog(255, 0, STYLE_Normal, CM_DEFAULT);
-
 	RenderWall(1,NULL);
 
 	// restore default settings
@@ -293,6 +295,7 @@ void GLWall::RenderTranslucentWall()
 	{
 		gl_EnableTexture(true);
 	}
+	gl_EnableBrightmap(true);
 }
 
 //==========================================================================

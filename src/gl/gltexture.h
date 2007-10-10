@@ -21,6 +21,10 @@ class GLTexture
 {
 	friend void gl_RenderTextureView(FCanvasTexture *Texture, AActor * Viewpoint, int FOV);
 
+	enum
+	{
+		MAX_TEXTURES = 16
+	};
 
 	static struct TexFilter_s
 	{
@@ -45,7 +49,8 @@ class GLTexture
 
 public:
 
-	static unsigned int lastbound;
+	static unsigned int lastbound[MAX_TEXTURES];
+	static int lastactivetexture;
 	static bool supportsNonPower2;
 	static int max_texturesize;
 
@@ -69,8 +74,8 @@ public:
 	GLTexture(int w, int h, bool mip, bool wrap);
 	~GLTexture();
 
-	unsigned int Bind(int cm, int translation=0, const unsigned char * translationtbl=NULL);
-	unsigned int CreateTexture(unsigned char * buffer, int w, int h,bool wrap, int cm, int translation=0, const unsigned char * translationtbl=NULL);
+	unsigned int Bind(int texunit, int cm, int translation=0, const unsigned char * translationtbl=NULL);
+	unsigned int CreateTexture(unsigned char * buffer, int w, int h,bool wrap, int texunit, int cm, int translation=0, const unsigned char * translationtbl=NULL);
 	void Resize(int _width, int _height) ;
 
 	void Clean(bool all);
@@ -88,6 +93,7 @@ public:
 	float FixToTexV(int v) { return (float)v/(float)FRACUNIT/(float)texheight; }
 
 	void SetTextureClamp(int clampmode);
+	static void ChangeActiveTexture(int texunit);
 };
 
 

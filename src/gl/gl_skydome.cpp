@@ -80,6 +80,7 @@ public:
 	{
 		if (faces[0]) faces[0]->CopyTrueColorPixels(buffer, buf_width, buf_height, x, y, cm, translation);
 	}
+	bool UseBasePalette() { return false; }	// not really but here it's not important.
 
 	void SetSize()
 	{

@@ -31,6 +31,7 @@ EXTERN_CVAR(Bool, gl_fakecontrast)
 EXTERN_CVAR(Bool, gl_lights_additive)
 EXTERN_CVAR(Bool, gl_warp_shader)
 EXTERN_CVAR(Bool, gl_colormap_shader)
+EXTERN_CVAR(Bool, gl_brightmap_shader)
 EXTERN_CVAR(Float, gl_light_ambient)
 EXTERN_CVAR(Int, gl_billboard_mode)
 EXTERN_CVAR(Int, gl_particles_style)
@@ -121,22 +122,23 @@ menuitem_t OpenGLItems[] = {
 	{ more,     "Dynamic Light Options", {NULL}, {0.0}, {0.0},	{0.0}, {(value_t *)StartGLLightMenu} },
 	{ redtext,	" ",						{NULL},							{0.0}, {0.0}, {0.0}, {NULL} },
 	{ discrete, "Sprite billboard",			{&gl_billboard_mode},			{2.0}, {0.0}, {0.0}, {BillboardModes} },
-	{ discrete, "Particle style",			{&gl_particles_style},			{3.0}, {0.0}, {0.0}, {Particles} },
-//	{ discrete, "Refresh rate",				{&gl_vid_refreshHz},			{7.0}, {0.0}, {0.0}, {Hz} },
-//	{ more,		"Apply Refresh rate setting",{NULL+},						{7.0}, {0.0}, {0.0}, {(value_t *)ApplyRefresh} },
 	{ redtext,	" ",						{NULL},							{0.0}, {0.0}, {0.0}, {NULL} },
 	{ discrete, "Vertical Sync",			{&vid_vsync},					{2.0}, {0.0}, {0.0}, {OnOff} },
+//	{ discrete, "Refresh rate",				{&gl_vid_refreshHz},			{7.0}, {0.0}, {0.0}, {Hz} },
+//	{ more,		"Apply Refresh rate setting",{NULL+},						{7.0}, {0.0}, {0.0}, {(value_t *)ApplyRefresh} },
 	{ discrete, "Rendering quality",		{&gl_render_precise},			{2.0}, {0.0}, {0.0}, {Precision} },
 	{ discrete, "Environment map on mirrors",{&gl_mirror_envmap},			{2.0}, {0.0}, {0.0}, {OnOff} },
 	{ discrete, "Enhanced night vision mode",{&gl_enhanced_lightamp},		{2.0}, {0.0}, {0.0}, {OnOff} },
 	{ discrete, "Sector light mode",		{&gl_lightmode},				{4.0}, {0.0}, {0.0}, {LightingModes} },
 	{ discrete, "Adjust sprite clipping",	{&gl_spriteclip},				{3.0}, {0.0}, {0.0}, {SpriteclipModes} },
 	{ discrete, "Smooth sprite edges",		{&gl_sprite_blend},				{2.0}, {0.0}, {0.0}, {OnOff} },
+	{ discrete, "Particle style",			{&gl_particles_style},			{3.0}, {0.0}, {0.0}, {Particles} },
+	{ discrete, "Enable brightness maps",	{&gl_brightmap_shader},			{2.0}, {0.0}, {0.0}, {OnOff} },
 	{ discrete, "Shaders for texture warp",	{&gl_warp_shader},				{2.0}, {0.0}, {0.0}, {OnOff} },
 	{ discrete, "Shaders for colormaps",	{&gl_colormap_shader},			{2.0}, {0.0}, {0.0}, {OnOff} },
 	{ discrete, "Depth Fog",				{&gl_depthfog},					{2.0}, {0.0}, {0.0}, {OnOff} },
 	{ discrete, "Fake contrast",			{&gl_fakecontrast},				{2.0}, {0.0}, {0.0}, {OnOff} },
-	{ discrete, "Boom colormap handling",	{&gl_blendcolormaps},			{2.0}, {0.0}, {0.0}, {Colormaps} },
+	//{ discrete, "Boom colormap handling",	{&gl_blendcolormaps},			{2.0}, {0.0}, {0.0}, {Colormaps} },
 	{ slider,	"Ambient light level",		{&gl_light_ambient},			{0.0}, {255.0}, {5.0}, {NULL} },
 	{ redtext,	" ",						{NULL},							{0.0}, {0.0}, {0.0}, {NULL} },
 	{ discrete, "Textures enabled",			{&gl_texture},					{2.0}, {0.0}, {0.0}, {YesNo} },

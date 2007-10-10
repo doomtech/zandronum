@@ -43,6 +43,7 @@
 #include "gl/gl_texture.h"
 #include "gl/gl_functions.h"
 #include "gl/gl_intern.h"
+#include "gl/gl_shader.h"
 
 EXTERN_CVAR (Bool, r_drawplayersprites)
 EXTERN_CVAR(Bool, gl_nocoloredspritelighting)
@@ -236,8 +237,10 @@ void gl_DrawPlayerSprites(sector_t * viewsector)
 	P_BobWeapon (player, &player->psprites[ps_weapon], &ofsx, &ofsy);
 
 	// now draw the different layers of the weapon
+	gl_EnableBrightmap(true);
 	for (i=0, psp=player->psprites; i<=ps_flash; i++,psp++)
 		if (psp->state) DrawPSprite (player,psp,psp->sx+ofsx, psp->sy+ofsy, cm.LightColor.a);
+	gl_EnableBrightmap(false);
 
 	// Restore default settings
 	switch(vis.RenderStyle)

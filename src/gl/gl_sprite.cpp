@@ -46,6 +46,7 @@
 #include "gl/gl_functions.h"
 #include "gl/gl_portal.h"
 #include "gl/gl_models.h"
+#include "gl/gl_shader.h"
 
 CVAR(Bool, gl_usecolorblending, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR(Bool, gl_sprite_blend, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG);
@@ -59,6 +60,9 @@ EXTERN_CVAR (Float, transsouls)
 
 const BYTE SF_FRAMEMASK  = 0x1f;
 
+int glpart2=-2;
+int glpart=-2;
+
 //==========================================================================
 //
 // 
@@ -67,9 +71,6 @@ const BYTE SF_FRAMEMASK  = 0x1f;
 void GLSprite::Draw(int pass)
 {
 	if (pass!=GLPASS_PLAIN && pass!=GLPASS_TRANSLUCENT) return;
-
-	if (gltexture) gltexture->BindPatch(Colormap.LightColor.a,translation);
-	else if (!modelframe) gl_EnableTexture(false);
 
 	if (pass==GLPASS_TRANSLUCENT)
 	{
@@ -85,6 +86,8 @@ void GLSprite::Draw(int pass)
 			gl.PolygonOffset(-1.0f, -64.0f);
 		}
 
+		if (!gl_isBlack(Colormap.FadeColor)) gl_EnableBrightmap(false);
+
 		switch(RenderStyle)
 		{
 		case STYLE_Fuzzy:
@@ -92,6 +95,7 @@ void GLSprite::Draw(int pass)
 			float fuzzalpha=0.44f;
 			float minalpha=0.1f;
 			gl.BlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
+			gl_EnableBrightmap(false);
 
 			// fog + fuzz don't work well without some fiddling with the alpha value!
 			if (!gl_isBlack(Colormap.FadeColor))
@@ -108,7 +112,6 @@ void GLSprite::Draw(int pass)
 				fuzzalpha*=factor;
 				minalpha*=factor;
 			}
-
 
 			gl.AlphaFunc(GL_GEQUAL,minalpha);
 			gl.Color4f(0.2f,0.2f,0.2f,fuzzalpha);
@@ -158,7 +161,11 @@ void GLSprite::Draw(int pass)
 	}
 
 	if (gl_isBlack(Colormap.FadeColor)) foglevel=lightlevel;
+
 	gl_SetFog(foglevel,  Colormap.FadeColor, RenderStyle, Colormap.LightColor.a);
+
+	if (gltexture) gltexture->BindPatch(Colormap.LightColor.a,translation);
+	else if (!modelframe) gl_EnableTexture(false);
 
 	if (!modelframe)
 	{
@@ -210,6 +217,8 @@ void GLSprite::Draw(int pass)
 
 	if (pass==GLPASS_TRANSLUCENT)
 	{
+		gl_EnableBrightmap(true);
+
 		// For translucent objects restore the default blending mode here!
 		if (RenderStyle == STYLE_Add || RenderStyle == STYLE_Fuzzy)
 		{
@@ -667,9 +676,19 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 	{
 		int lump = -1;
 		if (gl_particles_style == 1)
-			lump = TexMan.CheckForTexture("GLPART2", FTexture::TEX_MiscPatch,FTextureManager::TEXMAN_TryAny);
+		{
+			if (glpart2 == -2)
+				glpart2=TexMan.CheckForTexture("GLPART2", FTexture::TEX_MiscPatch,FTextureManager::TEXMAN_TryAny);
+
+			lump = glpart2;
+		}
 		else if (gl_particles_style == 2)
-			lump = TexMan.CheckForTexture("GLPART", FTexture::TEX_MiscPatch,FTextureManager::TEXMAN_TryAny);
+		{
+			if (glpart == -2)
+				glpart=TexMan.CheckForTexture("GLPART", FTexture::TEX_MiscPatch,FTextureManager::TEXMAN_TryAny);
+
+			lump = glpart;
+		}
 
 		if ( lump > 0 )
 		{
