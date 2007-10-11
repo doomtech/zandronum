@@ -599,14 +599,16 @@ void BOTCMD_RunCommand( BOTCMD_e Command, CSkullBot *pBot )
 //
 void BOTCMD_SetLastChatString( const char *pszString )
 {
-	sprintf( g_szLastChatString, pszString );
+	strncpy( g_szLastChatString, pszString, 255 );
+	g_szLastChatString[255] = 0;
 }
 
 //*****************************************************************************
 //
 void BOTCMD_SetLastChatPlayer( const char *pszString )
 {
-	sprintf( g_szLastChatPlayer, pszString );
+	strncpy( g_szLastChatPlayer, pszString, 255 );
+	g_szLastChatPlayer[255] = 0;
 }
 
 //*****************************************************************************
