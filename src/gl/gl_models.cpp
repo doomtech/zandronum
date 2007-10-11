@@ -305,6 +305,11 @@ void gl_InitModels()
 						SC_MustGetFloat();
 						smf.zoffset=sc_Float;
 					}
+					// [BB] Added model flags reading.
+					else if (SC_Compare("ignoretranslation"))
+					{
+						smf.flags |= MDL_IGNORETRANSLATION;
+					}
 					else if (SC_Compare("skin"))
 					{
 						SC_MustGetNumber();
@@ -523,6 +528,10 @@ void gl_RenderModel(GLSprite * spr, int cm)
 		}
 	}
 
+	int translation = 0;
+	if ( !(smf->flags & MDL_IGNORETRANSLATION) )
+		translation = spr->actor->Translation;
+
 	for(int i=0; i<MAX_MODELS_PER_FRAME; i++)
 	{
 		FModel * mdl = smf->models[i];
@@ -530,9 +539,9 @@ void gl_RenderModel(GLSprite * spr, int cm)
 		if (mdl!=NULL)
 		{
 			if ( smfNext && smf->modelframes[i] != smfNext->modelframes[i] )
-				mdl->RenderFrameInterpolated(smf->skins[i], smf->modelframes[i], smfNext->modelframes[i], inter, cm, spr->actor->Translation);
+				mdl->RenderFrameInterpolated(smf->skins[i], smf->modelframes[i], smfNext->modelframes[i], inter, cm, translation);
 			else
-				mdl->RenderFrame(smf->skins[i], smf->modelframes[i], cm, spr->actor->Translation);
+				mdl->RenderFrame(smf->skins[i], smf->modelframes[i], cm, translation);
 		}
 	}
 

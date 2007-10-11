@@ -235,14 +235,25 @@ public:
 
 #define MAX_MODELS_PER_FRAME 4
 
+//
+// [BB] Model rendering flags.
+//
+typedef enum
+{
+	// [BB] Color translations for the model skin are ignored. This is
+	// useful if the skin texture is not using the game palette.
+	MDL_IGNORETRANSLATION	= 1,
+};
+
 struct FSpriteModelFrame
 {
 	FModel * models[MAX_MODELS_PER_FRAME];
 	FTexture * skins[MAX_MODELS_PER_FRAME];
 	int modelframes[MAX_MODELS_PER_FRAME];
 	float xscale, yscale, zscale;
-	// [BB] Added zoffset.
+	// [BB] Added zoffset and flags.
 	float zoffset;
+	unsigned int flags;
 	const PClass * type;
 	short sprite;
 	short frame;

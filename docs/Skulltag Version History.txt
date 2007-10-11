@@ -53,6 +53,7 @@ v0.97d
 +	- Models respect the actor render style now, e.g. a model of a player with an invisibility sphere is rendered translucent. To reduce the problems caused by missing depth sorting, back face culling is used. This doesn't work if the model is not a closed surface. [Torr Samaho]
 +	- Added z-offset support to MODELDEF. [Torr Samaho]
 +	- Added Doomsday like rotation of the weapon pickup models, controlled by the the new CVAR gl_rotate_weapon_models. [Torr Samaho]
++	- Added flag IGNORETRANSLATION to MODELDEF. [Torr Samaho]
 +	- Added workaround for the missing pitch information of rockets to render the models of rockets fired with a vertical angle different from zero properly. [Torr Samaho]
 +	- Added CCMD getIP for server admins, which can be used to the IP address of a player. [Rivecoder]
 +	- Added CCMD getIP_idx for server admins, uses indexes from playerinfo. [Rivecoder]
