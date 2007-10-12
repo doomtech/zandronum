@@ -96,7 +96,7 @@ v0.97d
 -	- You can no longer crash the server by banning somebody with an extremely long reason string. [Rivecoder]
 -	- The list of players displayed by the server console should no longer have any ghost players. [Carnevil]
 -	- Fixed glitchy screen shaking that would occur when riding moving sectors in network games. [Carnevil]
--	- Fixed a potential crash when using kick_idx on numbers greater than 32.
+-	- Fixed a potential crash when using kick_idx on numbers greater than 32. [Rivecoder]
 -	- Fixed glitch that could result in a duel being reset when a spectator leaves the game. [Carnevil]
 -	- Players can now join a team from spectator mode when the "players cannot switch teams" dmflag is enabled. [Carnevil]
 -	- Removed CVAR sv_stay97c3compatible, since beta4 broke network compatibility with 97c3 even with sv_stay97c3compatible set to true. [Torr Samaho]
@@ -196,6 +196,7 @@ v0.97d
 -	- The F1 help screens for team possession and OFCTF now work properly. [Carnevil]
 -	- Votes are now cleared out if there is a map change during the vote. [Carnevil]
 -	- When watching through another players eyes while playing a demo, the camera now stays in that person's eyes if you respawn. [Carnevil]
+-	- Fixed a crash that would occur when saying something with "%n" in the server console. [Carnevil]
 -	- Improved the scrolling of the server console. When you scroll up, it no longer snaps back down a new message. [Rivecoder]
 -	- Fixed: Bots cause hudmessages to appear for player 1 offline. [Torr Samaho]
 -	- Fixed: Clients with activated prediction ignore the CF_FROZEN and CF_TOTALLYFROZEN flags locally. [Torr Samaho]
@@ -229,6 +230,11 @@ v0.97d
 !	- The chase cam selection of the consoleplayer is now applied also when spying another player. [Torr Samaho]
 !	- A proper error message is given, when Skulltag is started with a shareware IWAD. [Torr Samaho]
 !	- If a monster is killed in invasion, one monster corpse from the previous wave is removed (if there still is such a corpse). This should improve the speed on maps like ALINV11. [Torr Samaho]
+
+v0.97d-beta4.3
+--------------
+
+*- 	- Fixed vulnerability that allowed clients to crash all other clients by saying a chat string with "%n". [Carnevil]
 
 v0.97d-beta4.2
 --------------

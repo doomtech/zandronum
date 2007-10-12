@@ -2795,7 +2795,8 @@ void SERVER_KickPlayerFromGame( ULONG ulPlayer, char *pszReason )
 //
 void SERVER_AddCommand( char *pszCommand )
 {
-	sprintf( g_szServerCommandQueue[g_lServerCommandQueueTail++], pszCommand );
+	strncpy( g_szServerCommandQueue[g_lServerCommandQueueTail], pszCommand, 255 );
+	g_szServerCommandQueue[g_lServerCommandQueueTail++][255] = 0;
 	g_lServerCommandQueueTail = g_lServerCommandQueueTail % MAX_STORED_SERVER_COMMANDS;
 
 	if ( g_lServerCommandQueueTail == g_lServerCommandQueueHead )
