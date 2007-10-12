@@ -11,6 +11,11 @@
 = 
 ===============================================================================================================
 
+v0.97d-beta4.3
+--------------
+
+*- 	- Fixed vulnerability that allowed clients to crash all other clients by saying a chat string with "%n". [Carnevil]
+
 v0.97d-beta4.2
 --------------
 

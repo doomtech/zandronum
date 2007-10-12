@@ -40,7 +40,7 @@
 
 /** Lots of different version numbers **/
 
-#define DOTVERSIONSTR "0.97d-beta4.2"
+#define DOTVERSIONSTR "0.97d-beta4.3"
 
 // [BB] Define DOTVERSIONSTR_NOREV to stay compatible with IWADBoxCallback in I_system.cpp
 #define DOTVERSIONSTR_NOREV DOTVERSIONSTR
@@ -64,7 +64,8 @@
 // NETGAMEVERSION 004 = 0.97c3
 // NETGAMEVERSION 005 = 0.97d-beta4
 // NETGAMEVERSION 006 = 0.97d-beta4.2
-#define NETGAMEVERSION 006
+// NETGAMEVERSION 007 = 0.97d-beta4.3
+#define NETGAMEVERSION 007
 
 // Version stored in the ini's [LastRun] section.
 // Bump it if you made some configuration change that you want to
