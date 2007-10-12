@@ -1,3 +1,4 @@
+#ifndef NO_GL
 
 // HEADER FILES ------------------------------------------------------------
 
@@ -581,3 +582,4 @@ void gl_ClearScreen()
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
 }
+#endif

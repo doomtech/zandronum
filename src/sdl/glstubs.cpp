@@ -14,7 +14,6 @@ IMPLEMENT_STATELESS_ACTOR (ADynamicLight, Any, -1, 0)
 END_DEFAULTS
 
 CVAR(Bool, gl_precache, false, CVAR_ARCHIVE)
-CVAR(Bool, gl_vid_compatibility, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
 
 void gl_DrawLine(int, int, int, int, int)
 {
@@ -29,7 +28,12 @@ FGLTexture *FGLTexture::ValidateTexture(FTexture*)
 	return NULL;
 }
 
-const WorldTextureInfo *FGLTexture::Bind(int, int, int, const unsigned char *)
+const WorldTextureInfo *FGLTexture::Bind(int, int, int, int)
+{
+	return NULL;
+}
+
+const WorldTextureInfo *FGLTexture::Bind(int, int, int)
 {
 	return NULL;
 }
@@ -45,6 +49,11 @@ const PatchTextureInfo *FGLTexture::BindPatch(int, int, unsigned char const*)
 
 FGLTexture::~FGLTexture()
 {
+}
+
+bool FMultiPatchTexture::UseBasePalette()
+{ 
+	return false;
 }
 
 void gl_RenderPlayerView(player_s*)

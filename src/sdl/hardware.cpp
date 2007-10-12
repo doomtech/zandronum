@@ -59,8 +59,8 @@ bool ForceWindowed;
 
 IVideo *Video;
 
-#ifndef NO_GL
 extern int NewWidth, NewHeight, NewBits, DisplayBits;
+#ifndef NO_GL
 bool V_DoModeSetup (int width, int height, int bits);
 void I_RestartRenderer();
 void RebuildAllLights();
