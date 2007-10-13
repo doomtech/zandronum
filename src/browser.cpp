@@ -165,7 +165,7 @@ char *BROWSER_GetHostName( ULONG ulServer )
 	if (( ulServer >= MAX_BROWSER_SERVERS ) || ( g_BrowserServerList[ulServer].ulActiveState != AS_ACTIVE ))
 		return ( " " );
 
-	return ( g_BrowserServerList[ulServer].szHostName );
+	return ( (char *)g_BrowserServerList[ulServer].HostName.GetChars( ));
 }
 
 //*****************************************************************************
@@ -175,7 +175,7 @@ char *BROWSER_GetWadURL( ULONG ulServer )
 	if (( ulServer >= MAX_BROWSER_SERVERS ) || ( g_BrowserServerList[ulServer].ulActiveState != AS_ACTIVE ))
 		return ( " " );
 
-	return ( g_BrowserServerList[ulServer].szWadURL );
+	return ( (char *)g_BrowserServerList[ulServer].WadURL.GetChars( ));
 }
 
 //*****************************************************************************
@@ -185,7 +185,7 @@ char *BROWSER_GetEmailAddress( ULONG ulServer )
 	if (( ulServer >= MAX_BROWSER_SERVERS ) || ( g_BrowserServerList[ulServer].ulActiveState != AS_ACTIVE ))
 		return ( " " );
 
-	return ( g_BrowserServerList[ulServer].szEmailAddress );
+	return ( (char *)g_BrowserServerList[ulServer].EmailAddress.GetChars( ));
 }
 
 //*****************************************************************************
@@ -195,7 +195,7 @@ char *BROWSER_GetMapname( ULONG ulServer )
 	if (( ulServer >= MAX_BROWSER_SERVERS ) || ( g_BrowserServerList[ulServer].ulActiveState != AS_ACTIVE ))
 		return ( " " );
 
-	return ( g_BrowserServerList[ulServer].szMapname );
+	return ( (char *)g_BrowserServerList[ulServer].Mapname.GetChars( ));
 }
 
 //*****************************************************************************
@@ -225,7 +225,7 @@ char *BROWSER_GetPWADName( ULONG ulServer, ULONG ulWadIdx )
 	if (( ulServer >= MAX_BROWSER_SERVERS ) || ( g_BrowserServerList[ulServer].ulActiveState != AS_ACTIVE ))
 		return ( " " );
 
-	return ( g_BrowserServerList[ulServer].szPWADNames[ulWadIdx] );
+	return ( (char *)g_BrowserServerList[ulServer].PWADNames[ulWadIdx].GetChars( ));
 }
 
 //*****************************************************************************
@@ -235,7 +235,7 @@ char *BROWSER_GetIWADName( ULONG ulServer )
 	if (( ulServer >= MAX_BROWSER_SERVERS ) || ( g_BrowserServerList[ulServer].ulActiveState != AS_ACTIVE ))
 		return ( " " );
 
-	return ( g_BrowserServerList[ulServer].szIWADName );
+	return ( (char *)g_BrowserServerList[ulServer].IWADName.GetChars( ));
 }
 
 //*****************************************************************************
@@ -268,7 +268,7 @@ char *BROWSER_GetPlayerName( ULONG ulServer, ULONG ulPlayer )
 	if ( ulPlayer >= (ULONG)g_BrowserServerList[ulServer].lNumPlayers )
 		return ( " " );
 
-	return ( g_BrowserServerList[ulServer].Players[ulPlayer].szName );
+	return ( (char *)g_BrowserServerList[ulServer].Players[ulPlayer].Name.GetChars( ));
 }
 
 //*****************************************************************************
@@ -327,7 +327,7 @@ char *BROWSER_GetVersion( ULONG ulServer )
 	if (( ulServer >= MAX_BROWSER_SERVERS ) || ( g_BrowserServerList[ulServer].ulActiveState != AS_ACTIVE ))
 		return ( " " );
 
-	return ( g_BrowserServerList[ulServer].szVersion );
+	return ( (char *)g_BrowserServerList[ulServer].Version.GetChars( ));
 }
 
 //*****************************************************************************
@@ -608,10 +608,10 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 	NETWORK_ReadLong( pByteStream );
 
 	// Read in the version.
-	sprintf( g_BrowserServerList[lServer].szVersion, NETWORK_ReadString( pByteStream ));
+	g_BrowserServerList[lServer].Version = NETWORK_ReadString( pByteStream );
 
 	// If the version doesn't match ours, remove it from the list.
-	if ( stricmp( g_BrowserServerList[lServer].szVersion, DOTVERSIONSTR ) != 0 )
+	if ( g_BrowserServerList[lServer].Version.CompareNoCase( DOTVERSIONSTR ) != 0 )
 	{
 		g_BrowserServerList[lServer].ulActiveState = AS_INACTIVE;
 		while ( 1 )
@@ -626,18 +626,18 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 
 	// Read the server name.
 	if ( ulFlags & SQF_NAME )
-		sprintf( g_BrowserServerList[lServer].szHostName, NETWORK_ReadString( pByteStream ));
+		g_BrowserServerList[lServer].HostName = NETWORK_ReadString( pByteStream );
 
 	// Read the website URL.
 	if ( ulFlags & SQF_URL )
-		sprintf( g_BrowserServerList[lServer].szWadURL, NETWORK_ReadString( pByteStream ));
+		g_BrowserServerList[lServer].WadURL = NETWORK_ReadString( pByteStream );
 
 	// Read the host's e-mail address.
 	if ( ulFlags & SQF_EMAIL )
-		sprintf( g_BrowserServerList[lServer].szEmailAddress, NETWORK_ReadString( pByteStream ));
+		g_BrowserServerList[lServer].EmailAddress = NETWORK_ReadString( pByteStream );
 
 	if ( ulFlags & SQF_MAPNAME )
-		sprintf( g_BrowserServerList[lServer].szMapname, NETWORK_ReadString( pByteStream ));
+		g_BrowserServerList[lServer].Mapname = NETWORK_ReadString( pByteStream );
 	if ( ulFlags & SQF_MAXCLIENTS )
 		g_BrowserServerList[lServer].lMaxClients = NETWORK_ReadByte( pByteStream );
 
@@ -652,7 +652,7 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 		if ( g_BrowserServerList[lServer].lNumPWADs > 0 )
 		{
 			for ( ulIdx = 0; ulIdx < (ULONG)g_BrowserServerList[lServer].lNumPWADs; ulIdx++ )
-				sprintf( g_BrowserServerList[lServer].szPWADNames[ulIdx], NETWORK_ReadString( pByteStream ));
+				g_BrowserServerList[lServer].PWADNames[ulIdx] = NETWORK_ReadString( pByteStream );
 		}
 	}
 
@@ -669,7 +669,7 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 
 	// Read in the IWAD name.
 	if ( ulFlags & SQF_IWAD )
-		sprintf( g_BrowserServerList[lServer].szIWADName, NETWORK_ReadString( pByteStream ));
+		g_BrowserServerList[lServer].IWADName = NETWORK_ReadString( pByteStream );
 
 	// Force password.
 	if ( ulFlags & SQF_FORCEPASSWORD )
@@ -745,7 +745,7 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 			for ( ulIdx = 0; ulIdx < (ULONG)g_BrowserServerList[lServer].lNumPlayers; ulIdx++ )
 			{
 				// Read in this player's name.
-				sprintf( g_BrowserServerList[lServer].Players[ulIdx].szName, NETWORK_ReadString( pByteStream ));
+				g_BrowserServerList[lServer].Players[ulIdx].Name = NETWORK_ReadString( pByteStream );
 
 				// Read in "fragcount" (could be frags, points, etc.)
 				g_BrowserServerList[lServer].Players[ulIdx].lFragcount = NETWORK_ReadShort( pByteStream );
@@ -911,7 +911,7 @@ CCMD( dumpserverlist )
 			continue;
 
 		Printf( "\nServer #%d\n----------------\n", ulIdx );
-		Printf( "Name: %s\n", g_BrowserServerList[ulIdx].szHostName );
+		Printf( "Name: %s\n", g_BrowserServerList[ulIdx].HostName );
 		Printf( "Address: %s\n", NETWORK_AddressToString( g_BrowserServerList[ulIdx].Address ));
 		Printf( "Gametype: %d\n", g_BrowserServerList[ulIdx].GameMode );
 		Printf( "Num PWADs: %d\n", g_BrowserServerList[ulIdx].lNumPWADs );

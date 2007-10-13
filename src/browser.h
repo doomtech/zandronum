@@ -77,19 +77,19 @@ enum
 typedef struct
 {
 	// Player's name.
-	char	szName[MAX_NETWORK_STRING];
+	FString		Name;
 
 	// Fragcount.
-	LONG	lFragcount;
+	LONG		lFragcount;
 
 	// Ping.
-	LONG	lPing;
+	LONG		lPing;
 
 	// Spectating?
-	bool	bSpectating;
+	bool		bSpectating;
 
 	// Is a bot?
-	bool	bIsBot;
+	bool		bIsBot;
 
 } SERVERPLAYER_t;
 
@@ -103,16 +103,16 @@ typedef struct
 	NETADDRESS_s	Address;
 
 	// Name of the server.
-	char			szHostName[MAX_NETWORK_STRING];
+	FString			HostName;
 
 	// Website URL of the wad the server is using.
-	char			szWadURL[MAX_NETWORK_STRING];
+	FString			WadURL;
 
 	// Host's email address.
-	char			szEmailAddress[MAX_NETWORK_STRING];
+	FString			EmailAddress;
 
 	// Mapname of the level the server is currently on.
-	char			szMapname[MAX_NETWORK_STRING];
+	FString			Mapname;
 
 	// Maximum number of players that can join the server.
 	LONG			lMaxClients;
@@ -121,10 +121,10 @@ typedef struct
 	LONG			lNumPWADs;
 
 	// Names of each PWAD the server is using.
-	char			szPWADNames[MAX_NETWORK_STRING][32];
+	FString			PWADNames[32];
 
 	// Name of the IWAD being used.
-	char			szIWADName[MAX_NETWORK_STRING];
+	FString			IWADName;
 
 	// Game mode of the server.
 	GAMEMODE_e		GameMode;
@@ -136,7 +136,7 @@ typedef struct
 	SERVERPLAYER_t	Players[MAXPLAYERS];
 
 	// Version of the server.
-	char			szVersion[MAX_NETWORK_STRING];
+	FString			Version;
 
 	// Was this server broadcasted to us on a LAN?
 	bool			bLAN;
