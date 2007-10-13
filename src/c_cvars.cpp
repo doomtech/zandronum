@@ -1419,9 +1419,10 @@ void C_ArchiveCVars (FConfigFile *f, int type)
 			{
 				char	szString[64];
 
-				sprintf( szString, val.String );
+				strncpy( szString, val.String, 63 );
+				szString[63] = 0;
 				V_UnColorizeString( szString, 64 );
-				f->SetValueForKey( cvar->GetName( ), szString );
+				f->SetValueForKey (cvar->GetName (), szString);
 			}
 			else
 				f->SetValueForKey (cvar->GetName (), val.String);

@@ -64,7 +64,7 @@
 //	VARIABLES
 
 static	VOTESTATE_e				g_VoteState;
-static	char					g_szVoteCommand[128];
+static	FString					g_VoteCommand;
 static	ULONG					g_ulVoteCaller;
 static	ULONG					g_ulVoteCountdownTicks = 0;
 static	ULONG					g_ulVoteCompletedTicks = 0;
@@ -128,11 +128,16 @@ void CALLVOTE_Tick( void )
 			if ( --g_ulVoteCompletedTicks == 0 )
 			{
 				// If the vote passed, execute the command string.
-				if ( g_bVotePassed && ( NETWORK_GetState( ) != NETSTATE_CLIENT )){
-					// If the vote is a kick vote, we have to alter g_szVoteCommand to kick the cached player idx
-					if( strncmp ( g_szVoteCommand, "kick ", 5 ) == 0 )
-						sprintf( g_szVoteCommand, "kick_idx %d", g_ulKickVoteTargetPlayerIdx );
-					AddCommandString( g_szVoteCommand );
+				if (( g_bVotePassed ) &&
+					( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+				{
+					// If the vote is a kick vote, we have to alter g_VoteCommand to kick the cached player idx.
+					if ( strncmp( g_VoteCommand, "kick ", 5 ) == 0 )
+					{
+						g_VoteCommand = "kick_idx";
+						g_VoteCommand.AppendFormat( "%d", g_ulKickVoteTargetPlayerIdx );
+						AddCommandString( (char *)g_VoteCommand.GetChars( ));
+					}
 				}
 				// Reset the module.
 				CALLVOTE_ClearVote( );
@@ -157,7 +162,9 @@ void CALLVOTE_BeginVote( char *pszCommand, char *pszParameters, ULONG ulPlayer )
 	// Play the announcer sound for this.
 	ANNOUNCER_PlayEntry( cl_announcer, "VoteNow" );
 
-	sprintf( g_szVoteCommand, "%s %s", pszCommand, pszParameters );
+	g_VoteCommand = pszCommand;
+	g_VoteCommand += " ";
+	g_VoteCommand += pszParameters;
 	g_ulVoteCaller = ulPlayer;
 
 	g_VoteState = VOTESTATE_INVOTE;
@@ -175,7 +182,7 @@ void CALLVOTE_ClearVote( void )
 	ULONG	ulIdx;
 
 	g_VoteState = VOTESTATE_NOVOTE;
-	g_szVoteCommand[0] = 0;
+	g_VoteCommand = "";
 	g_ulVoteCaller = MAXPLAYERS;
 	g_ulVoteCountdownTicks = 0;
 
@@ -377,8 +384,7 @@ void CALLVOTE_EndVote( bool bPassed )
 //
 char *CALLVOTE_GetCommand( void )
 {
-	return ( g_szVoteCommand );
-//	return ( "map d2dm1" );
+	return ( (char *)g_VoteCommand.GetChars( ));
 }
 
 //*****************************************************************************
@@ -386,7 +392,6 @@ char *CALLVOTE_GetCommand( void )
 ULONG CALLVOTE_GetVoteCaller( void )
 {
 	return ( g_ulVoteCaller );
-//	return ( consoleplayer );
 }
 
 //*****************************************************************************
@@ -394,7 +399,6 @@ ULONG CALLVOTE_GetVoteCaller( void )
 VOTESTATE_e CALLVOTE_GetVoteState( void )
 {
 	return ( g_VoteState );
-//	return ( VOTESTATE_INVOTE );
 }
 
 //*****************************************************************************
@@ -402,7 +406,6 @@ VOTESTATE_e CALLVOTE_GetVoteState( void )
 ULONG CALLVOTE_GetCountdownTicks( void )
 {
 	return ( g_ulVoteCountdownTicks );
-//	return ( 7 * TICRATE );
 }
 
 //*****************************************************************************

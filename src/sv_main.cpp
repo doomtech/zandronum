@@ -4504,6 +4504,9 @@ static bool server_CallVote( BYTESTREAM_s *pByteStream )
 	// Read in the parameters for the vote.
 	pszParameters = NETWORK_ReadString( pByteStream );
 
+	// Display the callvote in the console for logging purposes.
+	Printf( "Vote ATTEMPT (%d \"%s\") called by %s (%s)\n", ulVoteCmd, pszParameters, players[g_lCurrentClient].userinfo.netname, NETWORK_AddressToString( g_aClients[g_lCurrentClient].Address ));
+
 	// Don't allow one person to call a vote, and vote by himself.
 	// Also, don't allow votes if the server has them disabled.
 	if (( CALLVOTE_CountNumEligibleVoters( ) < 2 ) || ( sv_nocallvote ))
