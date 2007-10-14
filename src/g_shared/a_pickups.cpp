@@ -1070,6 +1070,7 @@ void AInventory::Touch (AActor *toucher)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
 			if (( toucher->player ) &&
+				(( this->ulNetworkFlags & NETFL_SPECIALPICKUP ) == false ) &&
 				( this->GetClass( )->IsDescendantOf( PClass::FindClass( "DehackedPickup" )) == false ))
 			{
 				SERVERCOMMANDS_DoInventoryPickup( ULONG( toucher->player - players ), this->GetClass( )->TypeName.GetChars( ), this->PickupMessage( ));
