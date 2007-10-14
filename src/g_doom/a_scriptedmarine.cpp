@@ -6,6 +6,7 @@
 #include "p_local.h"
 #include "a_doomglobal.h"
 #include "s_sound.h"
+#include "cl_demo.h"
 
 #define MARINE_PAIN_CHANCE 160
 
@@ -360,8 +361,11 @@ void A_M_SawRefire (AActor *self)
 void A_MarineChase (AActor *self)
 {
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (self->MeleeState == &AScriptedMarine::States[S_MPLAY_ATK_CHAINSAW])
 	{
@@ -395,8 +399,11 @@ void A_MarineLook (AActor *self)
 void A_MarineNoise (AActor *self)
 {
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (self->MeleeState == &AScriptedMarine::States[S_MPLAY_ATK_CHAINSAW])
 	{
@@ -417,8 +424,11 @@ void A_MarineNoise (AActor *self)
 void A_M_Saw (AActor *self)
 {
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (self->target == NULL)
 		return;
@@ -492,8 +502,11 @@ void A_M_Punch (AActor *self)
 	int 		pitch;
 
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (self->target == NULL)
 		return;
@@ -531,8 +544,11 @@ void A_M_BerserkPunch (AActor *self)
 	int 		pitch;
 
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (self->target == NULL)
 		return;
@@ -569,8 +585,11 @@ void P_GunShot2 (AActor *mo, bool accurate, int pitch, const PClass *pufftype)
 	int 		damage;
 		
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	damage = 5*(pr_m_gunshot()%3+1);
 	angle = mo->angle;
@@ -592,8 +611,11 @@ void P_GunShot2 (AActor *mo, bool accurate, int pitch, const PClass *pufftype)
 void A_M_FirePistol (AActor *self)
 {
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (self->target == NULL)
 		return;
@@ -618,8 +640,11 @@ void A_M_FirePistol (AActor *self)
 void A_M_FirePistolInaccurate (AActor *self)
 {
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (self->target == NULL)
 		return;
@@ -646,8 +671,11 @@ void A_M_FireShotgun (AActor *self)
 	int pitch;
 
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (self->target == NULL)
 		return;
@@ -676,8 +704,11 @@ void A_M_FireShotgun (AActor *self)
 void A_M_CheckAttack (AActor *self)
 {
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (self->special1 != 0 || self->target == NULL)
 	{
@@ -700,8 +731,11 @@ void A_M_FireShotgun2 (AActor *self)
 	int pitch;
 
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (self->target == NULL)
 		return;
@@ -735,8 +769,11 @@ void A_M_FireShotgun2 (AActor *self)
 void A_M_FireCGunAccurate (AActor *self)
 {
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (self->target == NULL)
 		return;
@@ -761,8 +798,11 @@ void A_M_FireCGunAccurate (AActor *self)
 void A_M_FireCGun (AActor *self)
 {
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (self->target == NULL)
 		return;
@@ -794,8 +834,11 @@ void A_M_FireMissile (AActor *self)
 	AActor	*pMissile;
 
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (self->target == NULL)
 		return;
@@ -824,8 +867,11 @@ void A_M_FireMissile (AActor *self)
 void A_M_FireRailgun (AActor *self)
 {
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (self->target == NULL)
 		return;
@@ -846,8 +892,11 @@ void A_M_FirePlasma (AActor *self)
 	AActor	*pMissile;
 
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (self->target == NULL)
 		return;
@@ -870,8 +919,11 @@ void A_M_FirePlasma (AActor *self)
 void A_M_BFGsound (AActor *self)
 {
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (self->target == NULL)
 		return;
@@ -905,8 +957,11 @@ void A_M_FireBFG (AActor *self)
 	AActor	*pMissile;
 
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (self->target == NULL)
 		return;

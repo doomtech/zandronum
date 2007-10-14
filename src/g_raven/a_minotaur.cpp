@@ -8,6 +8,7 @@
 #include "a_action.h"
 #include "gi.h"
 #include "w_wad.h"
+#include "cl_demo.h"
 #include "deathmatch.h"
 #include "network.h"
 #include "sv_commands.h"
@@ -147,8 +148,11 @@ void AMinotaur::Tick ()
 	Super::Tick ();
 
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	// The unfriendly Minotaur (Heretic's) is invulnerable while charging
 	if (!IsKindOf(RUNTIME_CLASS(AMinotaurFriend)))
@@ -169,8 +173,11 @@ void AMinotaur::Tick ()
 void AMinotaur::NoBlockingSet ()
 {
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	P_DropItem (this, "ArtiSuperHealth", 0, 51);
 	P_DropItem (this, "PhoenixRodAmmo", 10, 84);
@@ -179,8 +186,11 @@ void AMinotaur::NoBlockingSet ()
 bool AMinotaur::Slam (AActor *thing)
 {
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return ( false );
+	}
 
 	// Slamming minotaurs shouldn't move non-creatures
 	if (!(thing->flags3&MF3_ISMONSTER) && !thing->player)
@@ -258,8 +268,11 @@ void AMinotaurFriend::Serialize (FArchive &arc)
 bool AMinotaurFriend::IsOkayToAttack (AActor *link)
 {
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return ( false );
+	}
 
 	if ((link->flags3&MF3_ISMONSTER) && (link != tracer))
 	{
@@ -308,8 +321,11 @@ void AMinotaurFriend::Die (AActor *source, AActor *inflictor)
 	Super::Die (source, inflictor);
 
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (tracer && tracer->health > 0 && tracer->player)
 	{
@@ -341,8 +357,11 @@ void AMinotaurFriend::Die (AActor *source, AActor *inflictor)
 bool AMinotaurFriend::OkayToSwitchTarget (AActor *other)
 {
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return ( false );
+	}
 
 	if (other == tracer) return false;		// Do not target the master
 	return Super::OkayToSwitchTarget (other);
@@ -527,8 +546,11 @@ void A_MinotaurAtk1 (AActor *actor)
 	player_t *player;
 
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (!actor->target)
 	{
@@ -571,8 +593,11 @@ void A_MinotaurDecide (AActor *actor)
 	int dist;
 
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	target = actor->target;
 	if (!target)
@@ -633,8 +658,11 @@ void A_MinotaurCharge (AActor *actor)
 	AActor *puff;
 
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (!actor->target) return;
 
@@ -695,8 +723,11 @@ void A_MinotaurAtk2 (AActor *actor)
 	bool friendly = actor->IsKindOf(RUNTIME_CLASS(AMinotaurFriend));
 
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (!actor->target)
 	{
@@ -769,8 +800,11 @@ void A_MinotaurAtk3 (AActor *actor)
 	bool friendly = actor->IsKindOf(RUNTIME_CLASS(AMinotaurFriend));
 
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (!actor->target)
 	{
@@ -829,8 +863,11 @@ void A_MntrFloorFire (AActor *actor)
 	fixed_t x, y;
 
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	actor->z = actor->floorz;
 	x = actor->x + (pr_fire.Random2 () << 10);
@@ -859,8 +896,11 @@ void P_MinotaurSlam (AActor *source, AActor *target)
 	int damage;
 
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	angle = R_PointToAngle2 (source->x, source->y, target->x, target->y);
 	angle >>= ANGLETOFINESHIFT;
@@ -919,8 +959,11 @@ void A_MinotaurRoam (AActor *actor)
 	actor->RenderStyle = STYLE_Normal;
 
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (self->StartTime >= 0 && (level.maptime - self->StartTime) >= MAULATORTICS)
 	{
@@ -967,8 +1010,11 @@ void A_MinotaurLook (AActor *actor)
 	}
 
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	AActor *mo = NULL;
 	player_t *player;
@@ -1045,8 +1091,11 @@ void A_MinotaurChase (AActor *actor)
 	actor->RenderStyle = STYLE_Normal;
 
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (self->StartTime >= 0 && (level.maptime - self->StartTime) >= MAULATORTICS)
 	{

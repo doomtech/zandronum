@@ -17,6 +17,7 @@
 #include "v_video.h"
 #include "templates.h"
 // New #includes for ST.
+#include "cl_demo.h"
 #include "network.h"
 #include "g_game.h"
 #include "deathmatch.h"
@@ -1660,8 +1661,12 @@ void APowerPossessionArtifact::InitEffect( )
 	Owner->player->cheats |= CF_POSSESSIONARTIFACT;
 
 	// Tell the possession module that the artifact has been picked up.
-	if (( possession || teampossession ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+	if (( possession || teampossession ) &&
+		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
+	{
 		POSSESSION_ArtifactPickedUp( Owner->player, sv_possessionholdtime * TICRATE );
+	}
 }
 
 //===========================================================================

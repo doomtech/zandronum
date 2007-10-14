@@ -51,6 +51,7 @@
 #include "gi.h"
 #include "templates.h"
 #include "zstring.h"
+#include "cl_demo.h"
 #include "deathmatch.h"
 #include "network.h"
 #include "sv_commands.h"
@@ -471,7 +472,9 @@ void S_Start ()
 	SoundPaused = false;
 
 	// [BC] In client mode, let the server tell us what music to play.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) || ( level.music == NULL ))
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) || 
+		( CLIENTDEMO_IsPlaying( )) ||
+		( level.music == NULL ))
 	{
 		// [RH] This is a lot simpler now.
 		if (!savegamerestore)

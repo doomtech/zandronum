@@ -154,7 +154,8 @@ void DFloor::Tick ()
 {
 	EResult res;
 
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		// [RH] Handle resetting stairs
 		if (m_Type == buildStair || m_Type == waitStair)
@@ -204,8 +205,11 @@ void DFloor::Tick ()
 
 	// [BC] If we're in client mode, just move the floor and get out. The server will
 	// tell us when it stops.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (res == pastdest)
 	{
@@ -375,8 +379,11 @@ void DElevator::Tick ()
 	}
 
 	// [BC] This is all we need to do in client mode.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (res == pastdest)	// if destination height acheived
 	{

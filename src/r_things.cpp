@@ -43,6 +43,7 @@
 #include "sbar.h"
 #include "gi.h"
 #include "w_wad.h"
+#include "cl_demo.h"
 #include "deathmatch.h"
 #include "lastmanstanding.h"
 #include "network.h"
@@ -2677,7 +2678,7 @@ void R_DrawMasked (void)
 		(( lmsspectatorsettings & LMS_SPF_VIEW ) == false ) &&
 		( players[consoleplayer].bSpectating ) &&
 		( players[consoleplayer].mo->CheckLocalView( consoleplayer )) &&
-		( NETWORK_GetState( ) == NETSTATE_CLIENT ) &&
+		(( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) &&
 		( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS )) == false )
 	{
 		for (i = vsprcount; i > 0; i--)

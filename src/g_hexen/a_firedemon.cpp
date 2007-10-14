@@ -6,6 +6,7 @@
 #include "a_action.h"
 #include "m_random.h"
 #include "network.h"
+#include "cl_demo.h"
 #include "sv_commands.h"
 
 #define FIREDEMON_ATTACK_RANGE	64*8*FRACUNIT
@@ -354,8 +355,11 @@ void A_FiredSpawnRock (AActor *actor)
 	const PClass *rtype;
 
 	// [BC] Let the server handle this.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	switch (pr_firedemonrock() % 5)
 	{
@@ -426,8 +430,11 @@ void A_SmBounce (AActor *actor)
 void A_FiredAttack (AActor *actor)
 {
 	// [BC] Let the server do this.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (actor->target == NULL)
 		return;
@@ -459,7 +466,8 @@ void A_FiredChase (AActor *actor)
 	fixed_t dist;
 
 	// [BC] Let the server do this.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		// make active sound
 		if (pr_firedemonchase() < 3)

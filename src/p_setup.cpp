@@ -2942,8 +2942,13 @@ void P_LoadBlockMap (MapData * map)
 	blockmap = blockmaplump+4;
 
 	// [BC] Also, build the node list for the bot pathing module.
-	if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( level.flags & LEVEL_NOBOTNODES ) || (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( sv_disallowbots ))) == false )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ) &&
+		(( level.flags & LEVEL_NOBOTNODES ) == false ) &&
+		(( NETWORK_GetState( ) != NETSTATE_SERVER ) || ( sv_disallowbots == false )))
+	{
 		ASTAR_BuildNodes( );
+	}
 }
 
 
@@ -4248,7 +4253,8 @@ void P_SetupLevel (char *lumpname, int position)
 	}
 
 	// Set these modules' state to "waiting for players", which may or may not begin the next match.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		DUEL_SetState( DS_WAITINGFORPLAYERS );
 		LASTMANSTANDING_SetState( LMSS_WAITINGFORPLAYERS );
@@ -4266,7 +4272,8 @@ void P_SetupLevel (char *lumpname, int position)
 			SURVIVAL_SetState( SURVS_WAITINGFORPLAYERS );
 	}
 
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		if ( duel && ( DUEL_GetStartNextDuelOnLevelLoad( ) == true ) && ( CAMPAIGN_InCampaign( ) == false ))
 		{
@@ -4284,8 +4291,11 @@ void P_SetupLevel (char *lumpname, int position)
 	if ( lastmanstanding || teamlms )
 	{
 		// Reset the flag.
-		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+			( CLIENTDEMO_IsPlaying( ) == false ))
+		{
 			LASTMANSTANDING_SetStartNextMatchOnLevelLoad( false );
+		}
 	}
 
 	// [BB] Notify software users if 3d floors are present.

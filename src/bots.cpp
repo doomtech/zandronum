@@ -4885,7 +4885,8 @@ CCMD( addbot )
 	}
 
 	// Don't allow bots in network mode, unless we're the host.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		Printf( "Only the host can add bots!\n" );
 		return;

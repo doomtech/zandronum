@@ -49,6 +49,7 @@
 //-----------------------------------------------------------------------------
 
 #include "announcer.h"
+#include "cl_demo.h"
 #include "cl_main.h"
 #include "cooperative.h"
 #include "g_game.h"
@@ -90,8 +91,11 @@ void SURVIVAL_Tick( void )
 	{
 	case SURVS_WAITINGFORPLAYERS:
 
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+			( CLIENTDEMO_IsPlaying( )))
+		{
 			break;
+		}
 
 		// Someone is here! Begin the countdown.
 		if ( SURVIVAL_CountActivePlayers( false ) > 0 )
@@ -109,8 +113,12 @@ void SURVIVAL_Tick( void )
 			g_ulSurvivalCountdownTicks--;
 
 			// FIGHT!
-			if (( g_ulSurvivalCountdownTicks == 0 ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+			if (( g_ulSurvivalCountdownTicks == 0 ) &&
+				( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+				( CLIENTDEMO_IsPlaying( ) == false ))
+			{
 				SURVIVAL_DoFight( );
+			}
 			// Play "3... 2... 1..." sounds.
 			else if ( g_ulSurvivalCountdownTicks == ( 3 * TICRATE ))
 				ANNOUNCER_PlayEntry( cl_announcer, "Three" );
@@ -122,8 +130,11 @@ void SURVIVAL_Tick( void )
 		break;
 	case SURVS_INPROGRESS:
 
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+			( CLIENTDEMO_IsPlaying( )))
+		{
 			break;
+		}
 
 		// If everyone is dead, the mission has failed!
 		if ( SURVIVAL_CountActivePlayers( true ) == 0 )
@@ -180,8 +191,11 @@ void SURVIVAL_StartCountdown( ULONG ulTicks )
 	}
 */
 	// Put the game in a countdown state.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
+	{
 		SURVIVAL_SetState( SURVS_COUNTDOWN );
+	}
 
 	// Set the survival countdown ticks.
 	SURVIVAL_SetCountdownTicks( ulTicks );
@@ -210,8 +224,11 @@ void SURVIVAL_DoFight( void )
 	fixed_t				Z;
 */
 	// The battle is now in progress.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
+	{
 		SURVIVAL_SetState( SURVS_INPROGRESS );
+	}
 
 	// Make sure this is 0. Can be non-zero in network games if they're slightly out of sync.
 	g_ulSurvivalCountdownTicks = 0;
@@ -257,7 +274,8 @@ void SURVIVAL_DoFight( void )
 	// Revert the map to how it was in its original state.
 	GAME_ResetMap( );
 
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		// Respawn the players.
 		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -296,8 +314,11 @@ void SURVIVAL_DoMissionFailed( void )
 	ULONG	ulIdx;
 
 	// Put the game state in the mission failed state.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
+	{
 		SURVIVAL_SetState( SURVS_MISSIONFAILED );
+	}
 
 	// Tell clients to do the mission failed sequence.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -366,7 +387,9 @@ void SURVIVAL_SetState( SURVIVALSTATE_e State )
 		// Zero out the countdown ticker.
 		SURVIVAL_SetCountdownTicks( 0 );
 
-		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( survival ))
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+			( CLIENTDEMO_IsPlaying( ) == false ) &&
+			( survival ))
 		{
 			// Respawn any players who were downed during the previous round.
 			for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -408,7 +431,9 @@ void SURVIVAL_SetState( SURVIVALSTATE_e State )
 		break;
 	case SURVS_NEWMAP:
 
-		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( survival ))
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+			( CLIENTDEMO_IsPlaying( ) == false ) &&
+			( survival ))
 		{
 			// Respawn any players who were downed during the previous round.
 			for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )

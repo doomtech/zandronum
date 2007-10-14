@@ -50,6 +50,7 @@
 #include "a_sharedglobal.h"
 #include "announcer.h"
 #include "chat.h"
+#include "cl_demo.h"
 #include "deathmatch.h"
 #include "duel.h"
 #include "gi.h"
@@ -1080,8 +1081,12 @@ void medal_SelectIcon( ULONG ulPlayer )
 		// Lag icon. Delete it if the player is no longer lagging.
 		case S_LAG:
 
-			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) || ( pPlayer->bLagging == false ))
+			if ((( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+				( CLIENTDEMO_IsPlaying( ) == false )) ||
+				( pPlayer->bLagging == false ))
+			{
 				pPlayer->pIcon->Destroy( );
+			}
 			else
 				ulActualSprite = 4;
 			break;

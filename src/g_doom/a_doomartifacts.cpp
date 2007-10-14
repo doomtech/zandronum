@@ -11,6 +11,7 @@
 #include "p_lnspec.h"
 #include "p_enemy.h"
 #include "p_effect.h"
+#include "cl_demo.h"
 #include "a_doomglobal.h"
 #include "announcer.h"
 
@@ -196,8 +197,11 @@ bool ARandomPowerup::Use (bool pickup)
 	const PClass	*pType;
 	bool			bReturnValue;
 
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return ( false );
+	}
 
 	switch ( ulCurrentFrame )
 	{
@@ -280,8 +284,11 @@ void ARandomPowerup::Serialize( FArchive &arc )
 
 const char *ARandomPowerup::PickupMessage( )
 {
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return ( NULL );
+	}
 
 	switch ( ulCurrentFrame )
 	{

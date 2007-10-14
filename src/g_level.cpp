@@ -1607,16 +1607,22 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 			wadlevelinfos[i].flags = wadlevelinfos[i].flags & ~LEVEL_VISITED;
 	}
 
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
+	{
 		UnlatchCVars ();
+	}
 
 	if (gameskill > sk_nightmare)
 		gameskill = sk_nightmare;
 	else if (gameskill < sk_baby)
 		gameskill = sk_baby;
 
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
+	{
 		UnlatchCVars ();
+	}
 
 	if (paused)
 	{
@@ -1754,8 +1760,11 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 	CLIENTDEMO_SetPlaying( false );
 
 	// [BC] If we're a client receiving a snapshot, don't make the view active just yet.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) || ( CLIENT_GetConnectionState( ) != CTS_RECEIVINGSNAPSHOT ))
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) ||
+		( CLIENT_GetConnectionState( ) != CTS_RECEIVINGSNAPSHOT ))
+	{
 		viewactive = true;
+	}
 	else
 		viewactive = false;
 
@@ -2525,8 +2534,11 @@ void G_WorldDone (void)
 	cluster_info_t *thiscluster;
 
 	// [BC] Clients don't need to do this, otherwise they'll try to load the map on their end.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
+	{
 		gameaction = ga_worlddone; 
+	}
 
 	if (level.flags & LEVEL_CHANGEMAPCHEAT)
 		return;

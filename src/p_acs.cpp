@@ -68,6 +68,7 @@
 #include "info.h"
 #include "deathmatch.h"
 #include "team.h"
+#include "cl_demo.h"
 #include "cooperative.h"
 #include "invasion.h"
 #include "sv_commands.h"
@@ -4190,7 +4191,9 @@ int DLevelScript::RunScript ()
 			break;
 		case PCD_ISMULTIPLAYER:
 			
-			PushToStack(( NETWORK_GetState( ) == NETSTATE_SERVER ) || ( NETWORK_GetState( ) == NETSTATE_CLIENT ));
+			PushToStack(( NETWORK_GetState( ) == NETSTATE_SERVER ) ||
+				( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+				( CLIENTDEMO_IsPlaying( )));
 			break;
 		case PCD_PLAYERTEAM:
 
@@ -5776,7 +5779,7 @@ int P_StartScript (AActor *who, line_t *where, int script, char *map, bool backS
 
 		if ((scriptdata = FBehavior::StaticFindScript (script, module)) != NULL)
 		{
-			if (net && ( NETWORK_GetState( ) == NETSTATE_CLIENT ) && !sv_cheats)
+			if (net && (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) && !sv_cheats)
 			{
 				// If playing multiplayer and cheats are disallowed, check to
 				// make sure only net scripts are run.

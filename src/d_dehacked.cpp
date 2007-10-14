@@ -66,6 +66,7 @@
 #include "thingdef/thingdef.h"
 #include "vectors.h"
 // [BC] New #includes.
+#include "cl_demo.h"
 #include "network.h"
 #include "sv_commands.h"
 
@@ -2649,8 +2650,11 @@ void FinishDehPatch ()
 void A_SpawnDehackedPickup (AActor *actor)
 {
 	// [BC] This is not done client-side.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if ((size_t)actor->health < DehackedPickups.Size())
 	{

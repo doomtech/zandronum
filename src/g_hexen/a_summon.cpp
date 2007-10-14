@@ -6,6 +6,7 @@
 #include "p_enemy.h"
 #include "s_sound.h"
 #include "ravenshared.h"
+#include "cl_demo.h"
 #include "network.h"
 #include "sv_commands.h"
 
@@ -112,8 +113,11 @@ END_DEFAULTS
 bool AArtiDarkServant::Use (bool pickup)
 {
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return ( true );
+	}
 
 	AActor *mo = P_SpawnPlayerMissile (Owner, RUNTIME_CLASS(ASummoningDoll));
 	if (mo)
@@ -140,8 +144,11 @@ void A_Summon (AActor *actor)
 	AMinotaurFriend *mo;
 
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	mo = Spawn<AMinotaurFriend> (actor->x, actor->y, actor->z, ALLOW_REPLACE);
 	if (mo)

@@ -10,6 +10,7 @@
 #include "p_pspr.h"
 #include "gstrings.h"
 #include "a_hexenglobal.h"
+#include "cl_demo.h"
 #include "network.h"
 
 const fixed_t HAMMER_RANGE = MELEERANGE+MELEERANGE/2;
@@ -320,8 +321,11 @@ void A_FHammerThrow (AActor *actor)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	mo = P_SpawnPlayerMissile (player->mo, RUNTIME_CLASS(AHammerMissile)); 
 	if (mo)

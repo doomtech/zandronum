@@ -50,6 +50,7 @@
 
 #include "announcer.h"
 #include "chat.h"
+#include "cl_demo.h"
 #include "cl_main.h"
 #include "deathmatch.h"
 #include "g_game.h"
@@ -95,8 +96,11 @@ void POSSESSION_Tick( void )
 	case PSNS_WAITINGFORPLAYERS:
 
 		// No need to do anything here for clients.
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+			( CLIENTDEMO_IsPlaying( )))
+		{
 			break;
+		}
 
 		if ( possession )
 		{
@@ -129,8 +133,12 @@ void POSSESSION_Tick( void )
 			g_ulPSNCountdownTicks--;
 
 			// FIGHT!
-			if (( g_ulPSNCountdownTicks == 0 ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+			if (( g_ulPSNCountdownTicks == 0 ) &&
+				( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+				( CLIENTDEMO_IsPlaying( ) == false ))
+			{
 				POSSESSION_DoFight( );
+			}
 			// Play "3... 2... 1..." sounds.
 			else if ( g_ulPSNCountdownTicks == ( 3 * TICRATE ))
 				ANNOUNCER_PlayEntry( cl_announcer, "Three" );
@@ -154,8 +162,12 @@ void POSSESSION_Tick( void )
 			g_ulPSNArtifactHoldTicks--;
 
 			// The holder has held the artifact for the required time! Give the holder a point!
-			if (( g_ulPSNArtifactHoldTicks == 0 ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+			if (( g_ulPSNArtifactHoldTicks == 0 ) &&
+				( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+				( CLIENTDEMO_IsPlaying( ) == false ))
+			{
 				POSSESSION_ScorePossessionPoint( g_pPossessionArtifactCarrier );
+			}
 			// Play "3... 2... 1..." sounds.
 			else if ( g_ulPSNArtifactHoldTicks == ( 3 * TICRATE ))
 				ANNOUNCER_PlayEntry( cl_announcer, "Three" );
@@ -171,8 +183,11 @@ void POSSESSION_Tick( void )
 	case PSNS_PRENEXTROUNDCOUNTDOWN:
 
 		// No need to do anything here for clients.
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+			( CLIENTDEMO_IsPlaying( )))
+		{
 			break;
+		}
 
 		if ( possession )
 		{
@@ -209,8 +224,12 @@ void POSSESSION_Tick( void )
 			g_ulPSNCountdownTicks--;
 
 			// FIGHT!
-			if (( g_ulPSNCountdownTicks == 0 ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+			if (( g_ulPSNCountdownTicks == 0 ) &&
+				( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+				( CLIENTDEMO_IsPlaying( ) == false ))
+			{
 				POSSESSION_DoFight( );
+			}
 			// Play "3... 2... 1..." sounds.
 			else if ( g_ulPSNCountdownTicks == ( 3 * TICRATE ))
 				ANNOUNCER_PlayEntry( cl_announcer, "Three" );
@@ -312,8 +331,11 @@ void POSSESSION_StartCountdown( ULONG ulTicks )
 	}
 */
 	// Put the game in a countdown state.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
+	{
 		POSSESSION_SetState( PSNS_COUNTDOWN );
+	}
 
 	// Set the possession countdown ticks.
 	POSSESSION_SetCountdownTicks( ulTicks );
@@ -340,8 +362,11 @@ void POSSESSION_StartNextRoundCountdown( ULONG ulTicks )
 	}
 */
 	// Put the game in a countdown state.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
+	{
 		POSSESSION_SetState( PSNS_NEXTROUNDCOUNTDOWN );
+	}
 
 	// Set the possession countdown ticks.
 	POSSESSION_SetCountdownTicks( ulTicks );
@@ -363,8 +388,11 @@ void POSSESSION_DoFight( void )
 	AActor				*pActor;
 
 	// The match is now in progress.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
+	{
 		POSSESSION_SetState( PSNS_INPROGRESS );
+	}
 
 	// Make sure this is 0. Can be non-zero in network games if they're slightly out of sync.
 	g_ulPSNCountdownTicks = 0;
@@ -416,7 +444,8 @@ void POSSESSION_DoFight( void )
 	else
 		Printf( "FIGHT!\n" );
 
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		// Reload the items on this level.
 		TThinkerIterator<AActor> iterator;
@@ -457,7 +486,8 @@ void POSSESSION_DoFight( void )
 		}
 	}
 
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		// Respawn the players.
 		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -486,8 +516,11 @@ void POSSESSION_DoFight( void )
 	}
 
 	// Also, spawn the possession artifact so that we can actually play!
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
+	{
 		GAME_SpawnPossessionArtifact( );
+	}
 
 	SCOREBOARD_RefreshHUD( );
 }
@@ -567,8 +600,11 @@ void POSSESSION_ArtifactPickedUp( player_s *pPlayer, ULONG ulTicks )
 	g_ulPSNArtifactHoldTicks = ulTicks;
 
 	// Change the game state to the artifact being held, and begin the countdown.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
+	{
 		POSSESSION_SetState( PSNS_ARTIFACTHELD );
+	}
 
 	// Print out a HUD message indicating that the possession artifact has been picked
 	// up.

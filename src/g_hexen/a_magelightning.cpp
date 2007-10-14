@@ -10,6 +10,7 @@
 #include "p_pspr.h"
 #include "gstrings.h"
 #include "a_hexenglobal.h"
+#include "cl_demo.h"
 #include "network.h"
 #include "sv_commands.h"
 
@@ -492,7 +493,8 @@ void A_MLightningAttack2 (AActor *actor)
 	AActor *fmo, *cmo;
 
 	// [BC] Weapons are handled by the server.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		S_Sound (actor, CHAN_BODY, "MageLightningFire", 1, ATTN_NORM);
 		return;

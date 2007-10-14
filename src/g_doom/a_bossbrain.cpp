@@ -6,6 +6,7 @@
 #include "s_sound.h"
 #include "a_doomglobal.h"
 #include "statnums.h"
+#include "cl_demo.h"
 #include "deathmatch.h"
 #include "team.h"
 
@@ -235,8 +236,11 @@ void A_BrainSpit (AActor *self)
 	AActor *spit;
 
 	// [BC] Brain spitting is server-side.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	// shoot a cube at current target
 	if (NULL == (state = iterator.Next ()))
@@ -291,8 +295,11 @@ void A_SpawnFly (AActor *self)
 	const char *type;
 		
 	// [BC] Brain spitting is server-side.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (--self->reactiontime)
 		return; // still flying

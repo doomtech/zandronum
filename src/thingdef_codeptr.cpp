@@ -716,7 +716,8 @@ void A_CallSpecial(AActor * self)
 	if (index<0) return;
 
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		if (pStateCall != NULL)
 			pStateCall->Result = false;
@@ -761,8 +762,11 @@ enum CM_Flags
 void A_CustomMissile(AActor * self)
 {
 	// [BB] The server handles the spawning of the missle.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	int index=CheckIndex(6);
 	if (index<0) return;
@@ -1119,10 +1123,12 @@ void A_CustomFireBullets( AActor *self,
 
 	// [BC] Weapons are handled by the server.
 	// [BB] To make hitscan decals kinda work online, we may not stop here yet.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT && !cl_hitscandecalhack )
+	if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) &&
+		( cl_hitscandecalhack == false ))
+	{
 		return;
+	}
 
-	
 	A_FireBulletsHelper ( self, NumberOfBullets, DamagePerBullet, player, bangle, bslope, Range, PuffType, Spread_XY, Spread_Z );
 
 	if ( self->player->cheats & CF_SPREAD )
@@ -1132,8 +1138,11 @@ void A_CustomFireBullets( AActor *self,
 	}
 
 	// [BB] Even with the online hitscan decal hack, a client has to stop here.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	// [BB] If the player hit a player with his attack, potentially give him a medal.
 	if ( player->bStruckPlayer )
@@ -1242,8 +1251,11 @@ void A_FireCustomMissile (AActor * self)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	const PClass * ti=PClass::FindClass(MissileName);
 	if (ti) 
@@ -1381,8 +1393,11 @@ void A_RailAttack (AActor * self)
 	}
 
 	// [BC] Don't actually do the attack in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	P_RailAttackWithPossibleSpread (self, Damage, Spawnofs_XY, Color1, Color2, MaxDiff, Silent, PuffTypeName);
 }
@@ -1657,8 +1672,11 @@ void A_SpawnItem(AActor * self)
 	}
 
 	// [BB] The server handles the spawning of the item.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	AActor * mo = Spawn( missile, 
 					self->x + FixedMul(distance, finecosine[self->angle>>ANGLETOFINESHIFT]), 
@@ -1751,7 +1769,7 @@ void A_SpawnItemEx(AActor * self)
 	}
 
 	// [BB] The server handles the spawning of the item.
-	if ( (NETWORK_GetState( ) == NETSTATE_CLIENT) && !(flags & SIXF_CLIENTSIDESPAWN))
+	if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) && !(flags & SIXF_CLIENTSIDESPAWN))
 		return;
 
 	// [BB] The server doesn't spawn the client side items.

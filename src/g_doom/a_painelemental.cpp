@@ -5,6 +5,7 @@
 #include "a_doomglobal.h"
 #include "a_action.h"
 #include "thingdef/thingdef.h"
+#include "cl_demo.h"
 
 void A_PainAttack (AActor *);
 void A_PainDie (AActor *);
@@ -24,8 +25,11 @@ void A_PainShootSkull (AActor *self, angle_t angle)
 	int prestep;
 
 	// [BC] Spawning of additional lost souls is server-side.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	const PClass *spawntype = NULL;
 

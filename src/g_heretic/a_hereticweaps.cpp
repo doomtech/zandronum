@@ -13,6 +13,7 @@
 #include "gstrings.h"
 #include "p_enemy.h"
 #include "gi.h"
+#include "cl_demo.h"
 #include "deathmatch.h"
 #include "network.h"
 #include "sv_commands.h"
@@ -218,8 +219,11 @@ void A_StaffAttackPL1 (AActor *actor)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	damage = 5+(pr_sap()&15);
 	angle = player->mo->angle;
@@ -273,8 +277,11 @@ void A_StaffAttackPL2 (AActor *actor)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	// P_inter.c:P_DamageMobj() handles target momentums
 	damage = 18+(pr_sap2()&63);
@@ -485,7 +492,8 @@ void A_FireGoldWandPL1 (AActor *actor)
 	}
 
 	// [BC] If we're the client, just play the sound and get out.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		S_Sound( player->mo, CHAN_WEAPON, "weapons/wandhit", 1, ATTN_NORM );
 		return;
@@ -555,7 +563,8 @@ void A_FireGoldWandPL2 (AActor *actor)
 	}
 
 	// [BC] If we're the client, just play the sound and get out.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		S_Sound( player->mo, CHAN_WEAPON, "weapons/wandhit", 1, ATTN_NORM );
 		return;
@@ -849,8 +858,11 @@ void A_FireCrossbowPL1 (AActor *actor)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	P_SpawnPlayerMissile (pmo, RUNTIME_CLASS(ACrossbowFX1));
 	P_SpawnPlayerMissile (pmo, RUNTIME_CLASS(ACrossbowFX3), pmo->angle-(ANG45/10));
@@ -894,8 +906,11 @@ void A_FireCrossbowPL2(AActor *actor)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	P_SpawnPlayerMissile (pmo, RUNTIME_CLASS(ACrossbowFX2));
 	P_SpawnPlayerMissile (pmo, RUNTIME_CLASS(ACrossbowFX2), pmo->angle-(ANG45/10));
@@ -1225,8 +1240,11 @@ void A_SpawnMace (AActor *self)
 		return;
 
 	// [BC] Let the server respawn this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	TThinkerIterator<AMaceSpawner> iterator;
 	AActor *spot;
@@ -1276,8 +1294,11 @@ void A_SpawnMace (AActor *self)
 bool AMace::DoRespawn ()
 {
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return ( true );
+	}
 
 	if (NumMaceSpots > 0)
 	{
@@ -1326,8 +1347,11 @@ void A_FireMacePL1B (AActor *actor)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	pmo = player->mo;
 	ball = Spawn<AMaceFX2> (pmo->x, pmo->y, pmo->z + 28*FRACUNIT 
@@ -1428,8 +1452,11 @@ void A_FireMacePL1 (AActor *actor)
 	player->psprites[ps_weapon].sy = WEAPONTOP+(pr_maceatk()&3)*FRACUNIT;
 
 	// [BC] Weapons are handled by the server.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	ball = P_SpawnPlayerMissile (player->mo, RUNTIME_CLASS(AMaceFX1),
 		player->mo->angle+(((pr_maceatk()&7)-4)<<24));
@@ -1466,8 +1493,11 @@ void A_FireMacePL1 (AActor *actor)
 void A_MacePL1Check (AActor *ball)
 {
 	// [BC] Let the server handle this.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (ball->special1 == 0)
 	{
@@ -1514,7 +1544,8 @@ void A_MacePL1Check (AActor *ball)
 void A_MaceBallImpact (AActor *ball)
 {
 	// [BC] Let the server handle this.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		// We need to make sure the ball doesn't temporary go into it's death frame.
 		if ( ball->flags & MF_INBOUNCE )
@@ -1572,7 +1603,8 @@ void A_MaceBallImpact2 (AActor *ball)
 	angle_t angle;
 
 	// [BC] Let the server handle this.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		// We need to make sure the ball doesn't temporary go into it's death frame.
 		if ( ball->flags & MF_INBOUNCE )
@@ -1701,7 +1733,8 @@ void A_FireMacePL2 (AActor *actor)
 	}
 
 	// [BC] If we're the client, play the sound and get out.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		S_Sound( player->mo, CHAN_WEAPON, "weapons/maceshoot", 1, ATTN_NORM );
 		return;
@@ -1780,7 +1813,8 @@ void A_DeathBallImpact (AActor *ball)
 	bool newAngle;
 
 	// [BC] Let the server handle this.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		// We need to make sure the ball doesn't temporary go into it's death frame.
 		if ( ball->flags & MF_INBOUNCE )
@@ -2080,8 +2114,11 @@ void A_GauntletAttack (AActor *actor)
 	player->psprites[ps_weapon].sy = WEAPONTOP + (pr_gatk()&3) * FRACUNIT;
 
 	// [BC] Weapons are handled by the server.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	angle = player->mo->angle;
 	power = player->mo->FindInventory (RUNTIME_CLASS(APowerWeaponLevel2));
@@ -2449,7 +2486,8 @@ void A_FireBlasterPL1 (AActor *actor)
 	}
 
 	// [BC] If we're the client, just play the sound and get out.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		S_Sound( player->mo, CHAN_WEAPON, "weapons/blastershoot", 1, ATTN_NORM );
 		return;
@@ -2502,7 +2540,8 @@ void A_FireBlasterPL2 (AActor *actor)
 	}
 
 	// [BC] If we're the client, just play the sound and get out.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		S_Sound( player->mo, CHAN_WEAPON, "weapons/blastershoot", 1, ATTN_NORM );
 		return;
@@ -2887,8 +2926,11 @@ void A_FireSkullRodPL1 (AActor *actor)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	mo = P_SpawnPlayerMissile (player->mo, RUNTIME_CLASS(AHornRodFX1));
 	// Randomize the first frame
@@ -2943,8 +2985,11 @@ void A_FireSkullRodPL2 (AActor *actor)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	P_SpawnPlayerMissile (player->mo, RUNTIME_CLASS(AHornRodFX2));
 	// Use MissileActor instead of the return value from
@@ -3027,8 +3072,11 @@ void A_AddPlayerRain (AActor *actor)
 	ARainTracker *tracker;
 
 	// [BC] Let the server spawn rain.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (actor->target == NULL || actor->target->health <= 0)
 	{ // Shooter is dead or nonexistant
@@ -3402,8 +3450,11 @@ void A_FirePhoenixPL1 (AActor *actor)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	P_SpawnPlayerMissile (player->mo, RUNTIME_CLASS(APhoenixFX1));
 	// [BC] Apply spread.
@@ -3507,7 +3558,8 @@ void A_FirePhoenixPL2 (AActor *actor)
 	}
 
 	// [BC] If we're the client, just play the sound and get out.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		if (!player->refire || !S_IsActorPlayingSomething (player->mo, CHAN_WEAPON, -1))
 		{

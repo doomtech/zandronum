@@ -2456,7 +2456,8 @@ static bool P_CheckForResurrection(AActor *self, bool usevilestates)
 	AActor *temp;
 		
 	// [BC] Movement is server-side.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		// Return to normal attack.
 		//A_Chase (self);
@@ -2786,8 +2787,11 @@ CVAR(Int, sv_dropstyle, 0, CVAR_SERVERINFO | CVAR_ARCHIVE);
 AInventory *P_DropItem (AActor *source, const PClass *type, int special, int chance)
 {
 	// [BC] This is handled server side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return ( NULL );
+	}
 
 	if (type != NULL && pr_dropitem() <= chance)
 	{
@@ -3178,8 +3182,11 @@ int P_Massacre ()
 	TThinkerIterator<AActor> iterator;
 
 	// [BC] This is handled server side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return ( 0 );
+	}
 
 	while ( (actor = iterator.Next ()) )
 	{

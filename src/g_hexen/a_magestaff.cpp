@@ -6,6 +6,7 @@
 #include "p_enemy.h"
 #include "a_hexenglobal.h"
 #include "gstrings.h"
+#include "cl_demo.h"
 #include "deathmatch.h"
 #include "network.h"
 
@@ -390,8 +391,11 @@ void MStaffSpawn (AActor *pmo, angle_t angle)
 	AActor *mo;
 
 	// [BC] Weapons are handled by the server.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	mo = P_SpawnPlayerMissile (pmo, 0, 0, 8*FRACUNIT,
 		RUNTIME_CLASS(AMageStaffFX2), angle);

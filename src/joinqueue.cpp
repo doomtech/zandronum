@@ -50,6 +50,7 @@
 
 #include "announcer.h"
 #include "c_cvars.h"
+#include "cl_demo.h"
 #include "cooperative.h"
 #include "deathmatch.h"
 #include "duel.h"
@@ -434,8 +435,11 @@ LONG JOINQUEUE_GetPositionInLine( ULONG ulPlayer )
 {
 	ULONG	ulIdx;
 
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return ( g_lClientQueuePosition );
+	}
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{

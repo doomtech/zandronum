@@ -3351,7 +3351,14 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	// bar to this player.
 	if (( StatusBar ) && ( players[ulPlayer].mo->CheckLocalView( consoleplayer )))
 		StatusBar->AttachToPlayer( pPlayer );
-
+/*
+	if (( StatusBar ) &&
+		( players[consoleplayer].camera ) &&
+		( players[consoleplayer].camera->player ))
+	{
+		StatusBar->AttachToPlayer( players[consoleplayer].camera->player );
+	}
+*/
 	// If the player is a spectator, set some properties.
 	if ( pPlayer->bSpectating )
 	{
@@ -3694,7 +3701,9 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 		ClientObituary( players[ulPlayer].mo, pInflictor, NULL, MOD );
 */
 	// [RC] In survival, if were spying the dying player, revert the status bar.
-	if(( NETWORK_GetState() == NETSTATE_CLIENT ) && survival )
+	if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( ))) &&
+		( survival ))
 	{
 		if (( players[consoleplayer].camera ) && ( players[consoleplayer].camera->player == &players[ulPlayer] ))
 		{

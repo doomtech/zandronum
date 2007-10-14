@@ -58,6 +58,7 @@
 
 #include "actor.h"
 #include "announcer.h"
+#include "cl_demo.h"
 #include "cooperative.h"
 #include "g_game.h"
 #include "gi.h"
@@ -125,8 +126,11 @@ void ABaseMonsterInvasionSpot::Tick( void )
 		return;
 
 	// This isn't handled client-side.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if ( bIsBossMonster )
 	{
@@ -135,8 +139,12 @@ void ABaseMonsterInvasionSpot::Tick( void )
 			return;
 	
 		// Since this a boss monster, potentially set the invasion state to fighting a boss.
-		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( g_InvasionState != IS_BOSSFIGHT ))
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+			( CLIENTDEMO_IsPlaying( ) == false ) &&
+			( g_InvasionState != IS_BOSSFIGHT ))
+		{
 			INVASION_SetState( IS_BOSSFIGHT );
+		}
 	}
 
 	// Are we ticking down to the next spawn?
@@ -324,8 +332,11 @@ void ABasePickupInvasionSpot::Tick( void )
 	}
 
 	// This isn't handled client-side.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	// Are we ticking down to the next spawn?
 	if ( lNextSpawnTick > 0 )
@@ -502,8 +513,11 @@ void ABaseWeaponInvasionSpot::Tick( void )
 	}
 
 	// This isn't handled client-side.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	// Are we ticking down to the next spawn?
 	if ( lNextSpawnTick > 0 )
@@ -634,8 +648,11 @@ void INVASION_Tick( void )
 	{
 	case IS_WAITINGFORPLAYERS:
 
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+			( CLIENTDEMO_IsPlaying( )))
+		{
 			break;
+		}
 
 		// A player is here! Begin the countdown!
 		if ( SERVER_CalcNumNonSpectatingPlayers( MAXPLAYERS ) >= 1 )
@@ -653,8 +670,12 @@ void INVASION_Tick( void )
 			g_ulInvasionCountdownTicks--;
 
 			// FIGHT!
-			if (( g_ulInvasionCountdownTicks == 0 ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+			if (( g_ulInvasionCountdownTicks == 0 ) &&
+				( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+				( CLIENTDEMO_IsPlaying( ) == false ))
+			{
 				INVASION_BeginWave( 1 );
+			}
 			// Play "3... 2... 1..." sounds.
 			else if ( g_ulInvasionCountdownTicks == ( 3 * TICRATE ))
 				ANNOUNCER_PlayEntry( cl_announcer, "Three" );
@@ -670,7 +691,9 @@ void INVASION_Tick( void )
 		{
 			g_ulInvasionCountdownTicks--;
 
-			if (( g_ulInvasionCountdownTicks == 0 ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+			if (( g_ulInvasionCountdownTicks == 0 ) &&
+				( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+				( CLIENTDEMO_IsPlaying( ) == false ))
 			{
 				if ( (LONG)g_ulCurrentWave == wavelimit )
 					G_ExitLevel( 0, false );
@@ -692,8 +715,12 @@ void INVASION_Tick( void )
 			g_ulInvasionCountdownTicks--;
 
 			// FIGHT!
-			if (( g_ulInvasionCountdownTicks == 0 ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+			if (( g_ulInvasionCountdownTicks == 0 ) &&
+				( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+				( CLIENTDEMO_IsPlaying( ) == false ))
+			{
 				INVASION_BeginWave( g_ulCurrentWave + 1 );
+			}
 			// Play "3... 2... 1..." sounds.
 			else if ( g_ulInvasionCountdownTicks == ( 3 * TICRATE ))
 				ANNOUNCER_PlayEntry( cl_announcer, "Three" );
@@ -711,8 +738,11 @@ void INVASION_Tick( void )
 void INVASION_StartFirstCountdown( ULONG ulTicks )
 {
 	// Put the invasion state into the first countdown.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
+	{
 		INVASION_SetState( IS_FIRSTCOUNTDOWN );
+	}
 
 	// Set the invasion countdown ticks.
 	INVASION_SetCountdownTicks( ulTicks );
@@ -736,8 +766,11 @@ void INVASION_StartCountdown( ULONG ulTicks )
 	TThinkerIterator<AActor>	ActorIterator;
 
 	// Put the invasion state into the first countdown.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
+	{
 		INVASION_SetState( IS_COUNTDOWN );
+	}
 
 	// Set the invasion countdown ticks.
 	INVASION_SetCountdownTicks( ulTicks );
@@ -747,8 +780,11 @@ void INVASION_StartCountdown( ULONG ulTicks )
 	{
 		// [BB] The monster corpses from two waves ago will be removed below anyway,
 		// so we can clear this vector.
-		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+			( CLIENTDEMO_IsPlaying( ) == false ))
+		{
 			g_MonsterCorpsesFromPreviousWave.clear();
+		}
 
 		while (( pActor = ActorIterator.Next( )))
 		{
@@ -759,7 +795,9 @@ void INVASION_StartCountdown( ULONG ulTicks )
 			}
 
 			// Get rid of any bodies that didn't come from a spawner.
-			if (( pActor->pMonsterSpot == NULL ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+			if (( pActor->pMonsterSpot == NULL ) &&
+				( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+				( CLIENTDEMO_IsPlaying( ) == false ))
 			{
 				pActor->Destroy( );
 				continue;
@@ -774,7 +812,9 @@ void INVASION_StartCountdown( ULONG ulTicks )
 			}
 
 			// [BB] Build a vector containing all pointers to corpses from the wave one round ago.
-			if ( pActor->ulInvasionWave == g_ulCurrentWave && NETWORK_GetState( ) != NETSTATE_CLIENT )
+			if (( pActor->ulInvasionWave == g_ulCurrentWave ) &&
+				( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+				( CLIENTDEMO_IsPlaying( ) == false ))
 			{
 				g_MonsterCorpsesFromPreviousWave.push_back( pActor );
 				continue;
@@ -809,8 +849,11 @@ void INVASION_BeginWave( ULONG ulWave )
 	TThinkerIterator<AActor>					ActorIterator;
 
 	// We're now in the middle of the invasion!
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
+	{
 		INVASION_SetState( IS_INPROGRESS );
+	}
 
 	// Make sure this is 0. Can be non-zero in network games if they're slightly out of sync.
 	g_ulInvasionCountdownTicks = 0;
@@ -849,8 +892,11 @@ void INVASION_BeginWave( ULONG ulWave )
 	g_ulNumBossMonsters = 0;
 
 	// Clients don't need to do any more.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	while (( pMonsterSpot = MonsterIterator.Next( )))
 	{
@@ -1094,8 +1140,11 @@ void INVASION_BeginWave( ULONG ulWave )
 void INVASION_DoWaveComplete( void )
 {
 	// Put the invasion state in the win sequence state.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
+	{
 		INVASION_SetState( IS_WAVECOMPLETE );
+	}
 
 	// Tell clients to do the win sequence.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -1128,8 +1177,11 @@ void INVASION_DoWaveComplete( void )
 		screen->SetFont( SmallFont );
 	}
 
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
+	{
 		INVASION_SetCountdownTicks( 5 * TICRATE );
+	}
 }
 
 //*****************************************************************************
@@ -1206,8 +1258,12 @@ ULONG INVASION_GetNumMonstersLeft( void )
 void INVASION_SetNumMonstersLeft( ULONG ulLeft )
 {
 	g_ulNumMonstersLeft = ulLeft;
-	if (( g_ulNumMonstersLeft == 0 ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+	if (( g_ulNumMonstersLeft == 0 ) &&
+		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
+	{
 		INVASION_DoWaveComplete( );
+	}
 }
 
 //*****************************************************************************
@@ -1285,7 +1341,9 @@ void INVASION_ReadSaveInfo( PNGHandle *pPng )
 // [BB] Remove one monster corpse from the previous wave.
 void INVASION_RemoveMonsterCorpse( )
 {
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT && g_MonsterCorpsesFromPreviousWave.size() > 0 )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ) &&
+		( g_MonsterCorpsesFromPreviousWave.size() > 0 ))
 	{
 		AActor *pCorpse = g_MonsterCorpsesFromPreviousWave.back();
 		g_MonsterCorpsesFromPreviousWave.pop_back();

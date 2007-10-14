@@ -101,8 +101,11 @@ void DUEL_Tick( void )
 	{
 	case DS_WAITINGFORPLAYERS:
 
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+			( CLIENTDEMO_IsPlaying( )))
+		{
 			break;
+		}
 
 		// Two players are here now, begin the countdown!
 		if ( DUEL_CountActiveDuelers( ) == 2 )
@@ -120,8 +123,12 @@ void DUEL_Tick( void )
 			g_ulDuelCountdownTicks--;
 
 			// FIGHT!
-			if (( g_ulDuelCountdownTicks == 0 ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+			if (( g_ulDuelCountdownTicks == 0 ) &&
+				( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+				( CLIENTDEMO_IsPlaying( ) == false ))
+			{
 				DUEL_DoFight( );
+			}
 			// Play "3... 2... 1..." sounds.
 			else if ( g_ulDuelCountdownTicks == ( 3 * TICRATE ))
 				ANNOUNCER_PlayEntry( cl_announcer, "Three" );
@@ -157,7 +164,8 @@ void DUEL_StartCountdown( ULONG ulTicks )
 {
 	ULONG	ulIdx;
 
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		// First, reset everyone's fragcount.
 		PLAYER_ResetAllPlayersFragcount( );
@@ -205,8 +213,11 @@ void DUEL_DoFight( void )
 	DHUDMessageFadeOut	*pMsg;
 
 	// No longer waiting to duel.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
+	{
 		DUEL_SetState( DS_INDUEL );
+	}
 
 	// Make sure this is 0. Can be non-zero in network games if they're slightly out of sync.
 	g_ulDuelCountdownTicks = 0;
@@ -260,7 +271,8 @@ void DUEL_DoFight( void )
 	// Reset the map.
 	GAME_ResetMap( );
 
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		// Respawn the players.
 		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -295,8 +307,11 @@ void DUEL_DoWinSequence( ULONG ulPlayer )
 	ULONG	ulIdx;
 
 	// Put the duel state in the win sequence state.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
+	{
 		DUEL_SetState( DS_WINSEQUENCE );
+	}
 
 	// Tell clients to do the win sequence.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -327,7 +342,8 @@ void DUEL_DoWinSequence( ULONG ulPlayer )
 	}
 
 	// Award a victory or perfect medal to the winner.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		LONG	lMedal;
 
@@ -531,8 +547,11 @@ void DUEL_SetState( DUELSTATE_e State )
 	case DS_WINSEQUENCE:
 
 		// If we've gotten to a win sequence, we've completed a duel.
-		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+			( CLIENTDEMO_IsPlaying( ) == false ))
+		{
 			DUEL_SetNumDuels( g_ulNumDuels + 1 );
+		}
 		break;
 	case DS_WAITINGFORPLAYERS:
 

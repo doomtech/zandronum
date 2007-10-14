@@ -10,6 +10,7 @@
 #include "p_pspr.h"
 #include "gstrings.h"
 #include "a_hexenglobal.h"
+#include "cl_demo.h"
 #include "network.h"
 #include "sv_commands.h"
 
@@ -202,7 +203,8 @@ void A_MWandAttack (AActor *actor)
 	AActor *mo;
 
 	// [BC] If we're the client, just play the sound and get out.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		S_Sound (actor, CHAN_WEAPON, "MageWandFire", 1, ATTN_NORM);
 		return;

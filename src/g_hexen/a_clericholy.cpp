@@ -6,6 +6,7 @@
 #include "p_enemy.h"
 #include "a_hexenglobal.h"
 #include "gstrings.h"
+#include "cl_demo.h"
 #include "deathmatch.h"
 #include "network.h"
 #include "sv_commands.h"
@@ -573,7 +574,8 @@ void A_CHolyAttack (AActor *actor)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		weapon->CHolyCount = 3;
 		S_Sound (actor, CHAN_WEAPON, "HolySymbolFire", 1, ATTN_NORM);

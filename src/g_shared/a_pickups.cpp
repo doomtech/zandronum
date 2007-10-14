@@ -293,7 +293,8 @@ bool P_GiveBody (AActor *actor, int num)
 void A_RestoreSpecialThing1 (AActor *thing)
 {
 	// [BC] Clients have their own version of this function.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		// Just go back into hiding until the server tells this item to respawn.
 		static_cast<AInventory *>( thing )->Hide( );
@@ -337,7 +338,8 @@ void A_RestoreSpecialThing2 (AActor *thing)
 void A_RestoreSpecialDoomThing (AActor *self)
 {
 	// [BC] Clients have their own version of this function.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		// Just go back into hiding until the server tells this item to respawn.
 		static_cast<AInventory *>( self )->Hide( );

@@ -468,7 +468,9 @@ void AActor::Die (AActor *source, AActor *inflictor)
 	if (source && source->player)
 	{
 		// [BC] Don't do this in client mode.
-		if ((CountsAsKill()) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+		if ((CountsAsKill()) &&
+			( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+			( CLIENTDEMO_IsPlaying( ) == false ))
 		{ // count for intermission
 			source->player->killcount++;
 			
@@ -1420,8 +1422,11 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 		}
 
 		// Deaths are server side.
-		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+			( CLIENTDEMO_IsPlaying( ) == false ))
+		{
 			target->Die (source, inflictor);
+		}
 		return;
 	}
 
@@ -2012,7 +2017,8 @@ void PLAYER_SetSpectator( player_s *pPlayer, bool bBroadcast, bool bDeadSpectato
 					FBehavior::StaticStartTypedScripts( SCRIPT_Disconnect, NULL, true, pPlayer - players );
 				}
 
-				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+					( CLIENTDEMO_IsPlaying( ) == false ))
 				{
 					// Tell the join queue module that a player is leaving the game.
 					JOINQUEUE_PlayerLeftGame( true );

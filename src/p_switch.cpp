@@ -47,6 +47,7 @@
 #include "cmdlib.h"
 #include "sc_man.h"
 // [BC] New #includes.
+#include "cl_demo.h"
 #include "deathmatch.h"
 #include "network.h"
 #include "sv_commands.h"
@@ -529,7 +530,8 @@ bool P_ChangeSwitchTexture (side_t *side, int useAgain, BYTE special, bool *ques
 	}
 
 	// [BC] Set the texture change flags.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		ulShift = 0;
 		ulShift += where;

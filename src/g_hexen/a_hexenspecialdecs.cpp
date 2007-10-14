@@ -12,6 +12,7 @@
 #include "p_lnspec.h"
 #include "a_hexenglobal.h"
 #include "network.h"
+#include "cl_demo.h"
 #include "sv_commands.h"
 
 static FRandom pr_pottery ("PotteryExplode");
@@ -201,8 +202,11 @@ void A_PotteryExplode (AActor *actor)
 	S_Sound (mo, CHAN_BODY, "PotteryExplode", 1, ATTN_NORM);
 
 	// [BC] Don't spawn the item in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (actor->args[0]>=0 && actor->args[0]<=255 && SpawnableThings[actor->args[0]])
 	{ // Spawn an item
@@ -750,7 +754,8 @@ void A_SoAExplode (AActor *actor)
 		|| !(GetDefaultByType (SpawnableThings[actor->args[0]])->flags3 & MF3_ISMONSTER))
 		{ // Only spawn monsters if not -nomonsters
 			// [BC]
-			if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+				( CLIENTDEMO_IsPlaying( ) == false ))
 			{
 				AActor	*pActor;
 

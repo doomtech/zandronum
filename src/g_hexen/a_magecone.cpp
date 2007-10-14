@@ -10,6 +10,7 @@
 #include "p_pspr.h"
 #include "gstrings.h"
 #include "a_hexenglobal.h"
+#include "cl_demo.h"
 #include "network.h"
 #include "sv_commands.h"
 
@@ -175,8 +176,11 @@ void A_FireConePL1 (AActor *actor)
 	S_Sound (actor, CHAN_WEAPON, "MageShardsFire", 1, ATTN_NORM);
 
 	// [BC] Weapons are handled by the server.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	// [BC] If we're the server, play the sound.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -252,8 +256,11 @@ void A_ShedShard (AActor *actor)
 	int spermcount = actor->special2;
 
 	// [BC] Let the server do this.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (spermcount <= 0) return;				// No sperm left
 	actor->special2 = 0;

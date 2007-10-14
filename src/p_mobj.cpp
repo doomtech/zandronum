@@ -538,7 +538,8 @@ bool AActor::SetState (FState *newstate)
 			// state.
 			if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_MAPRESETS ) &&
 				( ulSTFlags & STFL_LEVELSPAWNED ) &&
-				( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+				( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+				( CLIENTDEMO_IsPlaying( ) == false ))
 			{
 				renderflags |= RF_INVISIBLE;
 				flags &= ~MF_SOLID;
@@ -2013,7 +2014,7 @@ explode:
 			// [BC] In client mode, we don't know if other players have any forwardmove or
 			// sidemove values, so the server will tell us when to put other players in
 			// idle mode.
-			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) ||
+			if ((( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false )) ||
 				(( player - players ) == consoleplayer ))
 			{
 				player->mo->PlayIdle ();
@@ -2233,7 +2234,7 @@ void P_OldXYMovement( AActor *mo, bool bForceSlide )
 			// [BC] In client mode, we don't know if other players have any forwardmove or
 			// sidemove values, so the server will tell us when to put other players in
 			// idle mode.
-			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) ||
+			if ((( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false )) ||
 				(( player - players ) == consoleplayer ))
 			{
 				player->mo->PlayIdle ();
@@ -3576,8 +3577,11 @@ void AActor::Tick ()
 	else
 	{
 		// The rest is server-side.
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+			( CLIENTDEMO_IsPlaying( )))
+		{
 			return;
+		}
 
 		// check for nightmare respawn
 		if (!respawnmonsters || !(flags3 & MF3_ISMONSTER) || (flags2 & MF2_DORMANT))
@@ -3613,7 +3617,7 @@ bool AActor::UpdateWaterLevel (fixed_t oldz, bool dosplash)
 	bool reset=false;
 
 	// [BC] Server will tell us what our waterlevel is.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) &&
+	if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) &&
 		( player ) &&
 		(( player - players ) == consoleplayer ) &&
 		( player->bSpectating == false ))
@@ -3967,7 +3971,8 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 		// [BC] Do some invasion mode stuff.
 		if (( invasion ) &&
 			( INVASION_GetIncreaseNumMonstersOnSpawn( )) &&
-			( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+			( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+			( CLIENTDEMO_IsPlaying( ) == false ))
 		{
 			INVASION_SetNumMonstersLeft( INVASION_GetNumMonstersLeft( ) + 1 );
 
@@ -4258,10 +4263,6 @@ void P_SpawnPlayer (mapthing2_t *mthing, bool bClientUpdate, player_t *p, bool t
 	// [BC]
 	LONG		lSkin;
 	AInventory	*pInventory;
-
-	// [BC] This is not client-side.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
-		return;
 
 	if ( p == NULL )
 	{
@@ -5284,8 +5285,11 @@ bool P_HitWater (AActor * thing, sector_t * sec, fixed_t z)
 		return false;
 
 	// [BC] Let the server handle splashes.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return ( false );
+	}
 /*
 	if (thing->player && (thing->player->cheats & CF_PREDICTING))
 		return false;

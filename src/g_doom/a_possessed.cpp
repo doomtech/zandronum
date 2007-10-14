@@ -26,7 +26,8 @@ void A_PosAttack (AActor *self)
 	int slope;
 		
 	// [BC] Server takes care of the rest of this.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		S_Sound( self, CHAN_WEAPON, "grunt/attack", 1, ATTN_NORM );
 		return;
@@ -66,7 +67,8 @@ static void A_SPosAttack2 (AActor *self)
 void A_SPosAttackUseAtkSound (AActor *self)
 {
 	// [BC] Server takes care of the rest of this.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		S_SoundID ( self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM );
 		return;
@@ -84,7 +86,8 @@ void A_SPosAttackUseAtkSound (AActor *self)
 void A_SPosAttack (AActor *self)
 {
 	// [BC] Server takes care of the rest of this.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		S_Sound ( self, CHAN_WEAPON, "shotguy/attack", 1, ATTN_NORM );
 		return;
@@ -104,7 +107,8 @@ void A_GPosAttack (AActor *self)
 	int 		damage;
 				
 	// [BC] Server takes care of the rest of this.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		S_Sound( self, CHAN_WEAPON, "ssgguy/attack", 1, ATTN_NORM );
 		return;

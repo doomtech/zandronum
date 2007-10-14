@@ -37,6 +37,7 @@
 #include "p_local.h"
 #include "p_lnspec.h"
 #include "vectors.h"
+#include "cl_demo.h"
 #include "network.h"
 #include "sv_commands.h"
 
@@ -295,7 +296,8 @@ void APathFollower::PostBeginPlay ()
 	// In the client/server mode it's possible, that the functions are called in this order
 	// on the client, so apply a workaround for this here. If Activate has been called before
 	// PostBeginPlay we have to call Actiate again here.
-	if( bActivateCalledBeforePostBeginPlay && ( NETWORK_GetState( ) == NETSTATE_CLIENT ) )
+	if (( bActivateCalledBeforePostBeginPlay ) &&
+		(( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))))
 	{
 		APathFollower::Activate (NULL);
 		bActivateCalledBeforePostBeginPlay = false;

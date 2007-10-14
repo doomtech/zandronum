@@ -747,7 +747,8 @@ void D_Display (bool screenshot)
 		}
 	}
 
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		// Draw a "Waiting for server..." message if the server is lagging.
 		if ( CLIENT_GetServerLagging( ) == true )

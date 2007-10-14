@@ -6,6 +6,7 @@
 #include "a_doomglobal.h"
 #include "gstrings.h"
 #include "a_action.h"
+#include "cl_demo.h"
 
 //
 // PIT_VileCheck
@@ -46,8 +47,11 @@ void A_Fire (AActor *self)
 	angle_t an;
 				
 	// [BC] Fire movement is server-side.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	dest = self->tracer;
 	if (!dest)
@@ -79,8 +83,11 @@ void A_VileTarget (AActor *actor)
 	AActor *fog;
 		
 	// [BC] Fire movement is server-side.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (!actor->target)
 		return;

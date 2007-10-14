@@ -8,6 +8,7 @@
 #include "m_random.h"
 #include "a_sharedglobal.h"
 #include "gstrings.h"
+#include "cl_demo.h"
 #include "network.h"
 #include "sv_commands.h"
 
@@ -462,7 +463,8 @@ void A_Srcr1Attack (AActor *actor)
 	angle_t angle;
 
 	// [BC] In client mode, just play the attack sound and get out.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		S_SoundID (actor, CHAN_BODY, actor->AttackSound, 1, ATTN_NORM);
 		return;
@@ -540,8 +542,11 @@ void A_SorcererRise (AActor *actor)
 	actor->flags &= ~MF_SOLID;
 
 	// [BC] Let the server spawn this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	mo = Spawn<ASorcerer2> (actor->x, actor->y, actor->z, ALLOW_REPLACE);
 	mo->SetState (&ASorcerer2::States[S_SOR2_RISE]);
@@ -571,8 +576,11 @@ void P_DSparilTeleport (AActor *actor)
 	ABossSpot *initial;
 
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (!self->NumBossSpots)
 	{ // No spots
@@ -637,8 +645,11 @@ void A_Srcr2Decide (AActor *actor)
 	};
 
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	unsigned int chanceindex = actor->health / (actor->GetDefault()->health/8);
 	if (chanceindex >= countof(chance))
@@ -665,7 +676,8 @@ void A_Srcr2Attack (AActor *actor)
 	int chance;
 
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		S_SoundID (actor, CHAN_BODY, actor->AttackSound, 1, ATTN_NONE);
 		return;
@@ -723,8 +735,11 @@ void A_BlueSpark (AActor *actor)
 	AActor *mo;
 
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	for (i = 0; i < 2; i++)
 	{
@@ -750,8 +765,11 @@ void A_GenWizard (AActor *actor)
 	AActor *mo;
 
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	mo = Spawn<AWizard> (actor->x, actor->y, actor->z - GetDefault<AWizard>()->height/2, ALLOW_REPLACE);
 	if (mo != NULL)

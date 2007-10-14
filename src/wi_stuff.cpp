@@ -46,6 +46,7 @@
 #include "v_text.h"
 #include "gi.h"
 #include "campaign.h"
+#include "cl_demo.h"
 #include "cooperative.h"
 #include "deathmatch.h"
 #include "scoreboard.h"
@@ -2439,8 +2440,11 @@ void WI_checkForAccelerate(void)
 	player_t *player;
 
 	// [BC] Clients can't check for accelerate.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	// [BC] If we're the server, count down the amount of time left in intermission. If
 	// it's been 15 or more seconds, end intermission.

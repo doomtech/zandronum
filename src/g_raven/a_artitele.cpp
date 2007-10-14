@@ -6,6 +6,7 @@
 #include "gi.h"
 #include "s_sound.h"
 #include "m_random.h"
+#include "cl_demo.h"
 #include "deathmatch.h"
 #include "network.h"
 #include "sv_commands.h"
@@ -47,8 +48,11 @@ bool AArtiTeleport::Use (bool pickup)
 	angle_t destAngle;
 
 	// [BC] Let the server decide where we go.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return ( true );
+	}
 
 	if (deathmatch)
 	{

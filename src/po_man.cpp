@@ -24,6 +24,7 @@
 #include "a_sharedglobal.h"
 #include "r_main.h"
 // [BC] New #includes.
+#include "cl_demo.h"
 #include "network.h"
 #include "sv_commands.h"
 
@@ -290,7 +291,8 @@ void DPolyDoor::SetClose (bool bClose)
 void DRotatePoly::Tick ()
 {
 	// [BC] For clients, just tick them and get out.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		PO_RotatePolyobj( m_PolyObj, m_Speed );
 		return;
@@ -435,7 +437,8 @@ void DMovePoly::Tick ()
 	polyobj_t *poly;
 
 	// [BC] For clients, just tick them and get out.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		PO_MovePolyobj( m_PolyObj, m_xSpeed, m_ySpeed );
 		return;
@@ -568,7 +571,8 @@ void DPolyDoor::Tick ()
 	bool	bBlocked;
 
 	// [BC] For clients, just tick them and get out.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		switch ( m_Type )
 		{
@@ -973,7 +977,9 @@ void ThrustMobj (AActor *actor, seg_t *seg, polyobj_t *po)
 	thrustY = FixedMul (force, finesine[thrustAngle]);
 	actor->momx += thrustX;
 	actor->momy += thrustY;
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && po->crush)
+	if (po->crush &&
+		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		if (po->bHurtOnTouch || !P_CheckPosition (actor, actor->x + thrustX, actor->y + thrustY))
 		{
@@ -1058,7 +1064,8 @@ bool PO_MovePolyobj (int num, int x, int y, bool force)
 
 		// Don't check if the polyobject was blocked by something in client mode. The server will
 		// tell us if something is blocking its path.
-		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+			( CLIENTDEMO_IsPlaying( ) == false ))
 		{
 			for (int count = po->numsegs; count; count--, segList++)
 			{
@@ -1369,8 +1376,11 @@ static bool CheckMobjBlocking (seg_t *seg, polyobj_t *po)
 	line_t *ld;
 	bool blocked;
 
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return ( false );
+	}
 
 	ld = seg->linedef;
 

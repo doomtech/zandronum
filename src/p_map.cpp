@@ -3847,8 +3847,11 @@ void P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 				   int pitch, int damage, FName damageType, const PClass *pufftype)
 {
 	// [BB] The only reason the client should try to execute P_LineAttack, is the online hitscan decal fix. 
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT && !cl_hitscandecalhack )
+	if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) &&
+		( cl_hitscandecalhack == false ))
+	{
 		return;
+	}
 	fixed_t vx, vy, vz, shootz;
 	FTraceResults trace;
 	angle_t srcangle = angle;
@@ -3885,8 +3888,11 @@ void P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 		TRACE_NoSky|TRACE_Impact, hitGhosts ? CheckForGhost : CheckForSpectral))
 	{ // hit nothing
 		// [BB] No decal will be spawned, so the client stops here. 
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+			( CLIENTDEMO_IsPlaying( )))
+		{
 			return;
+		}
 		AActor *puffDefaults = GetDefaultByType (pufftype);
 		if (puffDefaults->ActiveSound)
 		{ // Play miss sound
@@ -3908,7 +3914,9 @@ void P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 		if (trace.HitType != TRACE_HitActor)
 		{
 			// [BB] The client only spawns decals, no puffs.
-			if ( NETWORK_GetState( ) != NETSTATE_CLIENT ){
+			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+				( CLIENTDEMO_IsPlaying( ) == false ))
+			{
 				// position a bit closer for puffs
 				if (trace.HitType != TRACE_HitWall || trace.Line->special != Line_Horizon)
 				{
@@ -3932,14 +3940,20 @@ void P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 				P_HitWater (puff, trace.Sector);
 			}
 			// [BB] Decal has been spawned, so the client stops here. 
-			if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+				( CLIENTDEMO_IsPlaying( )))
+			{
 				return;
+			}
 		}
 		else
 		{
 			// [BB] No decal will be spawned, so the client stops here. 
-			if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+				( CLIENTDEMO_IsPlaying( )))
+			{
 				return;
+			}
 
 			bool bloodsplatter = (t1->flags5 & MF5_BLOODSPLATTER) ||
 									(t1->player != NULL &&	t1->player->ReadyWeapon != NULL &&
@@ -3999,7 +4013,9 @@ void P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 				}
 			}
 			// [BC] Don't do any damage in client mode.
-			if (damage && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+			if (damage &&
+				( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+				( CLIENTDEMO_IsPlaying( ) == false ))
 			{
 				int flags = 0;
 				// Allow MF5_PIERCEARMOR on a weapon as well.
@@ -5476,7 +5492,8 @@ void P_DoCrunch (AActor *thing)
 			// state.
 			if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_MAPRESETS ) &&
 				( thing->ulSTFlags & STFL_LEVELSPAWNED ) &&
-				( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+				( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+				( CLIENTDEMO_IsPlaying( ) == false ))
 			{
 				thing->renderflags |= RF_INVISIBLE;
 				thing->flags &= ~MF_SOLID;
@@ -5504,7 +5521,8 @@ void P_DoCrunch (AActor *thing)
 			// state.
 			if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_MAPRESETS ) &&
 				( thing->ulSTFlags & STFL_LEVELSPAWNED ) &&
-				( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+				( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+				( CLIENTDEMO_IsPlaying( ) == false ))
 			{
 				thing->renderflags |= RF_INVISIBLE;
 				thing->flags &= ~MF_SOLID;

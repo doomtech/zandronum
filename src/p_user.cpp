@@ -1469,8 +1469,11 @@ void APlayerPawn::Die (AActor *source, AActor *inflictor)
 	if (player != NULL && player->mo == this) player->bonuscount = 0;
 
 	// [BC] Nothing for the client to do here.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (player != NULL && player->mo != this)
 	{ // Make the real player die, too
@@ -2682,8 +2685,11 @@ void P_DeathThink (player_t *player)
 	}		
 
 	// [BC] Respawning is server-side.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	// [BC] If this is LMS or survival, put him in spectator mode.
 	if ((( lastmanstanding || teamlms ) && ( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS )) ||
@@ -2908,7 +2914,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 			}
 			else
 			{
-				if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) &&
+				if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) &&
 					(( player - players ) != consoleplayer ))
 				{
 					//PLAYER_SetSpectator(player, true, false);
@@ -3069,7 +3075,8 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 	if ( GAME_GetEndLevelDelay( ))
 		memset( cmd, 0, sizeof( ticcmd_t ));
 
-	if (player->mo->flags & MF_JUSTATTACKED && NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (player->mo->flags & MF_JUSTATTACKED &&
+		(( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))))
 	{ // Chainsaw/Gauntlets attack auto forward motion
 		cmd->ucmd.yaw = 0;
 		cmd->ucmd.forwardmove = 0xc800/2;
@@ -3116,7 +3123,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 	// [BC] Added a variable to allow people to use crouching if they REALLY want it, no
 	// matter how gay and retarded it is.
 	// [BC] Also, don't do this for clients other than ourself in client mode.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) || (( player - players ) == consoleplayer ))
+	if ((( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false )) || (( player - players ) == consoleplayer ))
 	{
 		if (player->morphTics == 0 && player->health > 0 && !(dmflags & DF_NO_CROUCH)
 			&& ( iwanttousecrouchingeventhoughitsretardedandunnecessaryanditsimplementationishorribleimeanverticallyshrinkingskinscomeonthatsinsanebutwhatevergoaheadandhaveyourcrouching ))
@@ -3351,7 +3358,8 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 		}
 
 		// [BC] Don't do the following block in client mode.
-		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+			( CLIENTDEMO_IsPlaying( ) == false ))
 		{
 			// [BC] Apply degeneration flag.
 			if ( dmflags2 & DF2_YES_DEGENERATION )
@@ -3397,8 +3405,11 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 			else if (player->air_finished <= level.time && !(level.time & 31))
 			{
 				// [BB] The server handles damaging the players.
-				if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+					( CLIENTDEMO_IsPlaying( ) == false ))
+				{
 					P_DamageMobj (player->mo, NULL, NULL, 2 + ((level.time-player->air_finished)/TICRATE), NAME_Drowning);
+				}
 			}
 		}
 	}

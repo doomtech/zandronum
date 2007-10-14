@@ -49,6 +49,7 @@
 #include "p_effect.h"
 #include "../version.h"
 // [BC] New #includes.
+#include "cl_demo.h"
 #include "cl_main.h"
 #include "deathmatch.h"
 #include "team.h"
@@ -1041,7 +1042,7 @@ void FBaseStatusBar::DrawCrosshair ()
 		}
 
 		// [RC] If we're following somebody and we shouldn't know their health, use a neutral color.
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players )) == false ))
+		if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) && ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players )) == false ))
 			color = 0xcccccc;
 	}
 	else

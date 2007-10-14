@@ -51,6 +51,7 @@
 #include "announcer.h"
 #include "c_dispatch.h"
 #include "cl_commands.h"
+#include "cl_demo.h"
 #include "cl_main.h"
 #include "callvote.h"
 #include "network.h"
@@ -107,7 +108,9 @@ void CALLVOTE_Tick( void )
 		if ( g_ulVoteCountdownTicks )
 		{
 			g_ulVoteCountdownTicks--;
-			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( g_ulVoteCountdownTicks == 0 ))
+			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+				( CLIENTDEMO_IsPlaying( ) == false ) &&
+				( g_ulVoteCountdownTicks == 0 ))
 			{
 				ulNumYes = callvote_CountPlayersWhoVotedYes( );
 				ulNumNo = callvote_CountPlayersWhoVotedNo( );
@@ -129,7 +132,8 @@ void CALLVOTE_Tick( void )
 			{
 				// If the vote passed, execute the command string.
 				if (( g_bVotePassed ) &&
-					( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+					( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+					( CLIENTDEMO_IsPlaying( ) == false ))
 				{
 					// If the vote is a kick vote, we have to alter g_VoteCommand to kick the cached player idx.
 					if ( strncmp( g_VoteCommand, "kick ", 5 ) == 0 )
@@ -242,8 +246,11 @@ bool CALLVOTE_VoteYes( ULONG ulPlayer )
 	}
 
 	// Nothing more to do here for clients.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return ( true );
+	}
 
 	ulNumYes = callvote_CountPlayersWhoVotedYes( );
 	ulNumNo = callvote_CountPlayersWhoVotedNo( );
@@ -308,8 +315,11 @@ bool CALLVOTE_VoteNo( ULONG ulPlayer )
 	}
 
 	// Nothing more to do here for clients.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return ( true );
+	}
 
 	ulNumYes = callvote_CountPlayersWhoVotedYes( );
 	ulNumNo = callvote_CountPlayersWhoVotedNo( );
@@ -373,8 +383,11 @@ ULONG CALLVOTE_CountNumEligibleVoters( void )
 void CALLVOTE_EndVote( bool bPassed )
 {
 	// This is a client-only function.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
+	{
 		return;
+	}
 
 	g_bVotePassed = bPassed;
 	callvote_EndVote( );

@@ -1160,7 +1160,8 @@ void G_Ticker ()
 	static	ULONG	s_ulEmulatingPacketLoss;
 #endif
 	// Client's don't spawn players until instructed by the server.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		// do player reborns if needed
 		for (i = 0; i < MAXPLAYERS; i++)
@@ -1177,7 +1178,7 @@ void G_Ticker ()
 		}
 	}
 	// [BC] Tick the client and client statistics modules.
-	else
+	else if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 	{
 		CLIENT_Tick( );
 		CLIENTSTATISTICS_Tick( );
@@ -1592,7 +1593,9 @@ void G_Ticker ()
 		}
 
 		// Apply end level delay.
-		if ( g_ulEndLevelDelay && NETWORK_GetState( ) != NETSTATE_CLIENT )
+		if (( g_ulEndLevelDelay ) &&
+			( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+			( CLIENTDEMO_IsPlaying( ) == false ))
 		{
 			if ( --g_ulEndLevelDelay == 0 )
 			{
@@ -2022,6 +2025,7 @@ void G_PlayerReborn (int player)
 
 	// [BC] Apply temporary invulnerability when respawned.
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ) &&
 		(( dmflags2 & DF2_NO_RESPAWN_INVUL ) == false ) &&
 		( deathmatch || teamgame || alwaysapplydmflags ) &&
 		( p->bSpectating == false ))
@@ -2367,10 +2371,6 @@ void G_DeathMatchSpawnPlayer( int playernum, bool bClientUpdate )
 	unsigned int selections;
 	mapthing2_t *spot;
 
-	// [BC] Spawning players is server-side.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
-		return;
-
 	selections = deathmatchstarts.Size ();
 	// [RH] We can get by with just 1 deathmatch start
 	if (selections < 1)
@@ -2401,10 +2401,6 @@ void G_TemporaryTeamSpawnPlayer( ULONG ulPlayer, bool bClientUpdate )
 {
 	ULONG		ulNumSelections;
 	mapthing2_t	*pSpot;
-
-	// Spawning players is server-side.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
-		return;
 
 	ulNumSelections = TemporaryTeamStarts.Size( );
 
@@ -2453,10 +2449,6 @@ void G_TeamgameSpawnPlayer( ULONG ulPlayer, ULONG ulTeam, bool bClientUpdate )
 	ULONG		ulNumSelections;
 	mapthing2_t	*pSpot;
 
-	// Spawning players is server-side.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
-		return;
-
 	if ( ulTeam == TEAM_BLUE )
 	{
 		ulNumSelections = BlueTeamStarts.Size( );
@@ -2488,10 +2480,6 @@ void G_CooperativeSpawnPlayer( ULONG ulPlayer, bool bClientUpdate, bool bTempPla
 	ULONG		ulNumSpots;
 	ULONG		ulIdx;
 	mapthing2_t	*pSpot;
-
-	// Spawning players is server-side.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
-		return;
 
 	// If there's a valid start for this player, spawn him there.
 	if (( playerstarts[ulPlayer].type != 0 ) && ( G_CheckSpot( ulPlayer, &playerstarts[ulPlayer] )))
@@ -2554,8 +2542,11 @@ void G_DoReborn (int playernum, bool freshbot)
 	AActor	*pOldBody;
 
 	// All of this is done remotely.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 	else if ( NETWORK_GetState( ) == NETSTATE_SINGLE )
 	{
 		if (BackupSaveName.Len() > 0 && FileExists (BackupSaveName.GetChars()))
@@ -2664,8 +2655,11 @@ void GAME_CheckMode( void )
 	TThinkerIterator<AActor>	iterator;
 
 	// Clients can't change flags/modes!
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	// By default, we're in regular CTF/ST mode.
 	TEAM_SetSimpleCTFMode( false );
@@ -3032,8 +3026,11 @@ void GAME_ResetMap( void )
 	DECAL_ClearDecals( );
 
 	// This is all we do in client mode.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	for ( ulIdx = 0; ulIdx < (ULONG)numlines; ulIdx++ )
 	{
@@ -4687,6 +4684,9 @@ void G_DoPlayDemo (void)
 		DefaultExtension (defdemoname, ".cld");
 		if ( M_DoesFileExist( defdemoname ))
 		{
+			// Put the game in the full console.
+			gameaction = ga_fullconsole;
+
 			CLIENTDEMO_DoPlayDemo( defdemoname );
 			return;
 		}

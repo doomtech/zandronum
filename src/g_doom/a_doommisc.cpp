@@ -9,6 +9,7 @@
 #include "doomstat.h"
 #include "gstrings.h"
 // [BC] New #includes.
+#include "cl_demo.h"
 #include "cooperative.h"
 #include "gamemode.h"
 #include "deathmatch.h"
@@ -56,7 +57,8 @@ END_DEFAULTS
 void A_BarrelDestroy (AActor *actor)
 {
 	// [BC] Just always destroy it in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		actor->Destroy( );
 		return;

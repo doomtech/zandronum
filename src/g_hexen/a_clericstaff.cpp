@@ -10,6 +10,7 @@
 #include "p_pspr.h"
 #include "gstrings.h"
 #include "a_hexenglobal.h"
+#include "cl_demo.h"
 #include "network.h"
 #include "sv_commands.h"
 
@@ -191,8 +192,11 @@ void A_CStaffCheck (AActor *actor)
 	player_t *player;
 
 	// [BC] Don't do this in client mode.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (NULL == (player = actor->player))
 	{
@@ -281,7 +285,8 @@ void A_CStaffAttack (AActor *actor)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		S_Sound (actor, CHAN_WEAPON, "ClericCStaffFire", 1, ATTN_NORM);
 		return;

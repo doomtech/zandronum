@@ -101,8 +101,11 @@ void LASTMANSTANDING_Tick( void )
 	{
 	case LMSS_WAITINGFORPLAYERS:
 
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+			( CLIENTDEMO_IsPlaying( )))
+		{
 			break;
+		}
 
 		if ( lastmanstanding )
 		{
@@ -135,8 +138,12 @@ void LASTMANSTANDING_Tick( void )
 			g_ulLMSCountdownTicks--;
 
 			// FIGHT!
-			if (( g_ulLMSCountdownTicks == 0 ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ))
+			if (( g_ulLMSCountdownTicks == 0 ) &&
+				( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+				( CLIENTDEMO_IsPlaying( ) == false ))
+			{
 				LASTMANSTANDING_DoFight( );
+			}
 			// Play "3... 2... 1..." sounds.
 			else if ( g_ulLMSCountdownTicks == ( 3 * TICRATE ))
 				ANNOUNCER_PlayEntry( cl_announcer, "Three" );
@@ -148,8 +155,11 @@ void LASTMANSTANDING_Tick( void )
 		break;
 	case LMSS_INPROGRESS:
 
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+			( CLIENTDEMO_IsPlaying( )))
+		{
 			break;
+		}
 
 		// Check to see how many men are left standing.
 		if ( lastmanstanding )
@@ -384,8 +394,11 @@ void LASTMANSTANDING_StartCountdown( ULONG ulTicks )
 	TEAM_SetFragCount( TEAM_RED, 0, false );
 */
 	// Put the game in a countdown state.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
+	{
 		LASTMANSTANDING_SetState( LMSS_COUNTDOWN );
+	}
 
 	// Set the LMS countdown ticks.
 	LASTMANSTANDING_SetCountdownTicks( ulTicks );
@@ -406,8 +419,11 @@ void LASTMANSTANDING_DoFight( void )
 	DHUDMessageFadeOut	*pMsg;
 
 	// The match is now in progress.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
+	{
 		LASTMANSTANDING_SetState( LMSS_INPROGRESS );
+	}
 
 	// Make sure this is 0. Can be non-zero in network games if they're slightly out of sync.
 	g_ulLMSCountdownTicks = 0;
@@ -461,7 +477,8 @@ void LASTMANSTANDING_DoFight( void )
 	// Reset the map.
 	GAME_ResetMap( );
 
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		// Respawn the players.
 		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -496,8 +513,11 @@ void LASTMANSTANDING_DoWinSequence( ULONG ulWinner )
 	ULONG	ulIdx;
 
 	// Put the game state in the win sequence state.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
+	{
 		LASTMANSTANDING_SetState( LMSS_WINSEQUENCE );
+	}
 
 	// Tell clients to do the win sequence.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -563,7 +583,9 @@ void LASTMANSTANDING_DoWinSequence( ULONG ulWinner )
 	}
 
 	// Award a victory or perfect medal to the winner.
-	if (( lastmanstanding ) && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
+	if (( lastmanstanding ) &&
+		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		LONG	lMedal;
 
@@ -754,7 +776,10 @@ void LASTMANSTANDING_SetState( LMSSTATE_e State )
 		// Zero out the countdown ticker.
 		LASTMANSTANDING_SetCountdownTicks( 0 );
 
-		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( lastmanstanding || teamlms ) && ( gamestate != GS_FULLCONSOLE ))
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+			( CLIENTDEMO_IsPlaying( ) == false ) &&
+			( lastmanstanding || teamlms ) &&
+			( gamestate != GS_FULLCONSOLE ))
 		{
 			// Respawn any players who were downed during the previous round.
 			for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )

@@ -93,7 +93,11 @@ CCMD (toggleconsole)
 
 bool CheckCheatmode ()
 {
-	if ((( gameskill == sk_nightmare ) || ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( NETWORK_GetState( ) == NETSTATE_SERVER )) && ( sv_cheats == false ))
+	if ((( gameskill == sk_nightmare ) ||
+		( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )) ||
+		( NETWORK_GetState( ) == NETSTATE_SERVER )) &&
+		( sv_cheats == false ))
 	{
 		Printf ("sv_cheats must be true to enable this command.\n");
 		return true;
@@ -636,7 +640,9 @@ CCMD (puke)
 
 		// [BB] The check if the client is allowed to execute the script
 		// is done in P_StartScript, no need to check here.
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT || NETWORK_GetState( ) == NETSTATE_SERVER )
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+			( NETWORK_GetState( ) == NETSTATE_SERVER ) ||
+			( CLIENTDEMO_IsPlaying( )))
 		{
 			P_StartScript (players[consoleplayer].mo, NULL, script, level.mapname, false,
 				arg[0], arg[1], arg[2], (script < 0), false, true);

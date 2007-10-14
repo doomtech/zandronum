@@ -9,6 +9,7 @@
 #include "p_pspr.h"
 #include "gstrings.h"
 #include "a_hexenglobal.h"
+#include "cl_demo.h"
 #include "network.h"
 
 static FRandom pr_quietusdrop ("QuietusDrop");
@@ -308,8 +309,11 @@ void A_FSwordAttack (AActor *actor)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	P_SpawnPlayerMissile (actor, 0, 0, -10*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle+ANGLE_45/4);
 	P_SpawnPlayerMissile (actor, 0, 0,  -5*FRACUNIT, RUNTIME_CLASS(AFSwordMissile), actor->angle+ANGLE_45/8);

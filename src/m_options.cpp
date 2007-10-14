@@ -2429,8 +2429,12 @@ void M_AcceptPlayerSetupChanges( void )
 	CLIENT_SetAllowSendingOfUserInfo( true );
 
 	// Send updated userinfo to the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( CLIENT_GetConnectionState( ) >= CTS_REQUESTINGSNAPSHOT ) && ( ulUpdateFlags > 0 ))
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) &&
+		( CLIENT_GetConnectionState( ) >= CTS_REQUESTINGSNAPSHOT ) &&
+		( ulUpdateFlags > 0 ))
+	{
 		CLIENTCOMMANDS_UserInfo( ulUpdateFlags );
+	}
 }
 
 void M_UndoPlayerSetupChanges( void )

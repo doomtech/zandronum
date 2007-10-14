@@ -80,7 +80,8 @@ void P_Ticker (void)
 	ULONG	ulIdx;
 
 	// [BC] Don't run this if the server is lagging.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		if (( CLIENT_GetServerLagging( ) == true ) ||
 			( players[consoleplayer].mo == NULL ))
@@ -275,7 +276,8 @@ void P_Ticker (void)
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		// Increment individual player time.
-		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+			( CLIENTDEMO_IsPlaying( ) == false ))
 		{
 			if ( playeringame[ulIdx] )
 			{
@@ -351,7 +353,10 @@ void P_Ticker (void)
 	// Tick the team module. The handles returning dropped flags/skulls.
 	if ( teamgame )
 	{
-		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+			( CLIENTDEMO_IsPlaying( ) == false ))
+		{
 			TEAM_Tick( );
+		}
 	}
 }

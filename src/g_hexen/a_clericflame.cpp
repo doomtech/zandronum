@@ -10,6 +10,7 @@
 #include "p_pspr.h"
 #include "gstrings.h"
 #include "a_hexenglobal.h"
+#include "cl_demo.h"
 #include "network.h"
 #include "sv_commands.h"
 
@@ -393,7 +394,8 @@ void A_CFlameAttack (AActor *actor)
 	}
 
 	// [BC] Weapons are handled by the server.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
 	{
 		S_Sound (actor, CHAN_WEAPON, "ClericFlameFire", 1, ATTN_NORM);
 		return;
@@ -447,8 +449,11 @@ void A_CFlameMissile (AActor *actor)
 	S_Sound (actor, CHAN_BODY, "ClericFlameExplode", 1, ATTN_NORM);
 
 	// [BC] Let the server handle this.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
 		return;
+	}
 
 	if (BlockingMobj && BlockingMobj->flags&MF_SHOOTABLE)
 	{ // Hit something, so spawn the flame circle around the thing
