@@ -666,7 +666,12 @@ void A_GunFlash (AActor *actor)
 	{
 		return;
 	}
-	player->mo->PlayAttacking2 ();
+
+	// [BC] Since the player can be dead at this point as a result of shooting a player with
+	// the reflection rune, we need to make sure the player is alive before playing the
+	// attacking animation.
+	if ( player->mo->health > 0 )
+		player->mo->PlayAttacking2 ();
 
 	FState * flash=NULL;
 	if (player->ReadyWeapon->bAltFire) flash = player->ReadyWeapon->FindState(NAME_AltFlash);
