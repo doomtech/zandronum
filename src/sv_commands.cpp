@@ -2658,7 +2658,7 @@ void SERVERCOMMANDS_SetGameEndLevelDelay( ULONG ulEndLevelDelay, ULONG ulPlayerE
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetGameModeState( ULONG ulState, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetGameModeState( ULONG ulState, ULONG ulCountdownTicks, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 
@@ -2673,9 +2673,10 @@ void SERVERCOMMANDS_SetGameModeState( ULONG ulState, ULONG ulPlayerExtra, ULONG 
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 2, true );
+		SERVER_CheckClientBuffer( ulIdx, 4, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETGAMEMODESTATE );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulState );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulCountdownTicks );
     }
 }
 

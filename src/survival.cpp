@@ -214,15 +214,7 @@ void SURVIVAL_DoFight( void )
 {
 	ULONG				ulIdx;
 	DHUDMessageFadeOut	*pMsg;
-/*
-	MapData				*pMap;
-	AActor				*pActor;
-	AActor				*pNewActor;
-	AActor				*pActorInfo;
-	fixed_t				X;
-	fixed_t				Y;
-	fixed_t				Z;
-*/
+
 	// The battle is now in progress.
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
 		( CLIENTDEMO_IsPlaying( ) == false ))
@@ -307,45 +299,6 @@ void SURVIVAL_DoFight( void )
 }
 
 //*****************************************************************************
-//
-/*
-void SURVIVAL_DoMissionFailed( void )
-{
-	ULONG	ulIdx;
-
-	// Put the game state in the mission failed state.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ))
-	{
-		SURVIVAL_SetState( SURVS_MISSIONFAILED );
-	}
-
-	// Tell clients to do the mission failed sequence.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetGameModeState( SURVS_MISSIONFAILED );
-
-	// Display "%s WINS!" HUD message.
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-	{
-		DHUDMessageFadeOut	*pMsg;
-
-		screen->SetFont( BigFont );
-
-		pMsg = new DHUDMessageFadeOut( "MISSION FAILED!",
-			160.4f,
-			75.0f,
-			320,
-			200,
-			CR_RED,
-			3.0f,
-			2.0f );
-
-		StatusBar->AttachMessage( pMsg, 'CNTR' );
-		screen->SetFont( SmallFont );
-	}
-}
-*/
-//*****************************************************************************
 //*****************************************************************************
 //
 ULONG SURVIVAL_GetCountdownTicks( void )
@@ -375,10 +328,6 @@ void SURVIVAL_SetState( SURVIVALSTATE_e State )
 	ULONG	ulIdx;
 
 	g_SurvivalState = State;
-
-	// Tell clients about the state change.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetGameModeState( State );
 
 	switch ( State )
 	{
@@ -501,6 +450,10 @@ void SURVIVAL_SetState( SURVIVALSTATE_e State )
 				SERVERCONSOLE_UpdatePlayerInfo( ulIdx, UDF_FRAGS );
 		}
 	}
+
+	// Tell clients about the state change.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SetGameModeState( State, g_ulSurvivalCountdownTicks );
 }
 
 //*****************************************************************************

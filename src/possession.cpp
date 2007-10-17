@@ -795,7 +795,26 @@ void POSSESSION_SetState( PSNSTATE_e State )
 
 	// Tell clients about the state change.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetGameModeState( State );
+	{
+		if ( State == PSNS_ARTIFACTHELD )
+			SERVERCOMMANDS_SetGameModeState( State, g_ulPSNArtifactHoldTicks );
+		else
+			SERVERCOMMANDS_SetGameModeState( State, g_ulPSNCountdownTicks );
+	}
+}
+
+//*****************************************************************************
+//
+ULONG POSSESSION_GetArtifactHoldTicks( void )
+{
+	return ( g_ulPSNArtifactHoldTicks );
+}
+
+//*****************************************************************************
+//
+void POSSESSION_SetArtifactHoldTicks( ULONG ulTicks )
+{
+	g_ulPSNArtifactHoldTicks = ulTicks;
 }
 
 //*****************************************************************************

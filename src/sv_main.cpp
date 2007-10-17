@@ -1091,6 +1091,7 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 	ULONG								ulIdx;
 	PLAYERSAVEDINFO_t					*pSavedInfo;
 	ULONG								ulState;
+	ULONG								ulCountdownTicks;
 	AInventory							*pInventory;
 	DDoor								*pDoor;
 	DPlat								*pPlat;
@@ -1183,17 +1184,35 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 	if ( duel || lastmanstanding || teamlms || possession || teampossession || survival || invasion )
 	{
 		if ( duel )
+		{
 			ulState = DUEL_GetState( );
+			ulCountdownTicks = DUEL_GetCountdownTicks( );
+		}
 		else if ( survival )
+		{
 			ulState = SURVIVAL_GetState( );
+			ulCountdownTicks = SURVIVAL_GetCountdownTicks( );
+		}
 		else if ( invasion )
+		{
 			ulState = INVASION_GetState( );
+			ulCountdownTicks = INVASION_GetCountdownTicks( );
+		}
 		else if ( possession || teampossession )
+		{
 			ulState = POSSESSION_GetState( );
+			if ( ulState == (PSNSTATE_e)PSNS_ARTIFACTHELD )
+				ulCountdownTicks = POSSESSION_GetArtifactHoldTicks( );
+			else
+				ulCountdownTicks = POSSESSION_GetCountdownTicks( );
+		}
 		else
+		{
 			ulState = LASTMANSTANDING_GetState( );
+			ulCountdownTicks = LASTMANSTANDING_GetCountdownTicks( );
+		}
 
-		SERVERCOMMANDS_SetGameModeState( ulState, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_SetGameModeState( ulState, ulCountdownTicks, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 		// Also, if we're in invasion mode, tell the client what wave we're on.
 		if ( invasion )
@@ -4345,6 +4364,7 @@ static bool server_ChangeDisplayPlayer( BYTESTREAM_s *pByteStream )
 static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 {
 	ULONG								ulState;
+	ULONG								ulCountdownTicks;
 	DDoor								*pDoor;
 	DPlat								*pPlat;
 	DFloor								*pFloor;
@@ -4400,17 +4420,35 @@ static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 	if ( duel || lastmanstanding || teamlms || possession || teampossession || survival || invasion )
 	{
 		if ( duel )
+		{
 			ulState = DUEL_GetState( );
+			ulCountdownTicks = DUEL_GetCountdownTicks( );
+		}
 		else if ( survival )
+		{
 			ulState = SURVIVAL_GetState( );
+			ulCountdownTicks = SURVIVAL_GetCountdownTicks( );
+		}
 		else if ( invasion )
+		{
 			ulState = INVASION_GetState( );
+			ulCountdownTicks = INVASION_GetCountdownTicks( );
+		}
 		else if ( possession || teampossession )
+		{
 			ulState = POSSESSION_GetState( );
+			if ( ulState == (PSNSTATE_e)PSNS_ARTIFACTHELD )
+				ulCountdownTicks = POSSESSION_GetArtifactHoldTicks( );
+			else
+				ulCountdownTicks = POSSESSION_GetCountdownTicks( );
+		}
 		else
+		{
 			ulState = LASTMANSTANDING_GetState( );
+			ulCountdownTicks = LASTMANSTANDING_GetCountdownTicks( );
+		}
 
-		SERVERCOMMANDS_SetGameModeState( ulState, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_SetGameModeState( ulState, ulCountdownTicks, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 		// Also, if we're in invasion mode, tell the client what wave we're on.
 		if ( invasion )

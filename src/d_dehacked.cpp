@@ -2661,6 +2661,10 @@ void A_SpawnDehackedPickup (AActor *actor)
 		AActor *real = Spawn (DehackedPickups[actor->health], actor->x, actor->y, actor->z, NO_REPLACE);
 		if (real != NULL)
 		{
+			// [BC] If we're the server, tell clients to spawn the thing.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SpawnThing( real );
+
 			// Copy properties from the original item to the dehacked pickup it spawns
 			if (actor->flags & MF_DROPPED)
 			{

@@ -540,7 +540,7 @@ void DUEL_SetState( DUELSTATE_e State )
 
 	// Tell clients about the state change.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetGameModeState( State );
+		SERVERCOMMANDS_SetGameModeState( State, g_ulDuelCountdownTicks );
 
 	switch ( State )
 	{

@@ -1214,10 +1214,6 @@ void INVASION_SetState( INVASIONSTATE_e State )
 
 	g_InvasionState = State;
 
-	// Tell clients about the state change.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetGameModeState( State );
-
 	switch ( State )
 	{
 	case IS_WAITINGFORPLAYERS:
@@ -1244,6 +1240,10 @@ void INVASION_SetState( INVASIONSTATE_e State )
 
 		break;
 	}
+
+	// Tell clients about the state change.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SetGameModeState( State, g_ulInvasionCountdownTicks );
 }
 
 //*****************************************************************************

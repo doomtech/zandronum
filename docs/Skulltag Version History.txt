@@ -199,6 +199,8 @@ v0.97d
 -	- Fixed a crash that would occur when saying something with "%n" in the server console. [Carnevil]
 -	- The random powerup no longer displays its pickup string twice in network games. [Carnevil]
 -	- Fixed a glitch in which frags as a result of the reflection rune would create ghost players when hitscan weapons were used. [Carnevil]
+-	- Dehacked actors that are dropped items now appear properly on the client end. [Carnevil]
+-	- When connecting to a server in which the game mode is undergoing a countdown, the countdown ticks now display properly. [Carnevil]
 -	- Improved the scrolling of the server console. When you scroll up, it no longer snaps back down a new message. [Rivecoder]
 -	- Fixed: Bots cause hudmessages to appear for player 1 offline. [Torr Samaho]
 -	- Fixed: Clients with activated prediction ignore the CF_FROZEN and CF_TOTALLYFROZEN flags locally. [Torr Samaho]

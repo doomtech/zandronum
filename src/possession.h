@@ -92,6 +92,9 @@ void		POSSESSION_SetCountdownTicks( ULONG ulTicks );
 PSNSTATE_e	POSSESSION_GetState( void );
 void		POSSESSION_SetState( PSNSTATE_e State );
 
+ULONG		POSSESSION_GetArtifactHoldTicks( void );
+void		POSSESSION_SetArtifactHoldTicks( ULONG ulTicks );
+
 //*****************************************************************************
 //	EXTERNAL CONSOLE VARIABLES
 

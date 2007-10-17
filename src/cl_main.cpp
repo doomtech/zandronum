@@ -6618,19 +6618,39 @@ static void client_SetGameEndLevelDelay( BYTESTREAM_s *pByteStream )
 static void client_SetGameModeState( BYTESTREAM_s *pByteStream )
 {
 	ULONG	ulModeState;
+	ULONG	ulCountdownTicks;
 
 	ulModeState = NETWORK_ReadByte( pByteStream );
+	ulCountdownTicks = NETWORK_ReadShort( pByteStream );
 
 	if ( duel )
+	{
 		DUEL_SetState( (DUELSTATE_e)ulModeState );
+		DUEL_SetCountdownTicks( ulCountdownTicks );
+	}
 	else if ( lastmanstanding || teamlms )
+	{
 		LASTMANSTANDING_SetState( (LMSSTATE_e)ulModeState );
+		LASTMANSTANDING_SetCountdownTicks( ulCountdownTicks );
+	}
 	else if ( possession || teampossession )
+	{
 		POSSESSION_SetState( (PSNSTATE_e)ulModeState );
+		if ( (PSNSTATE_e)ulModeState == PSNS_ARTIFACTHELD )
+			POSSESSION_SetArtifactHoldTicks( ulCountdownTicks );
+		else
+			POSSESSION_SetCountdownTicks( ulCountdownTicks );
+	}
 	else if ( survival )
+	{
 		SURVIVAL_SetState( (SURVIVALSTATE_e)ulModeState );
+		SURVIVAL_SetCountdownTicks( ulCountdownTicks );
+	}
 	else if ( invasion )
+	{
 		INVASION_SetState( (INVASIONSTATE_e)ulModeState );
+		INVASION_SetCountdownTicks( ulCountdownTicks );
+	}
 }
 
 //*****************************************************************************

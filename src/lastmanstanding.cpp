@@ -764,7 +764,7 @@ void LASTMANSTANDING_SetState( LMSSTATE_e State )
 
 	// Tell clients about the state change.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetGameModeState( State );
+		SERVERCOMMANDS_SetGameModeState( State, g_ulLMSCountdownTicks );
 
 	switch ( State )
 	{
