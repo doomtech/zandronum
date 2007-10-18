@@ -5293,6 +5293,13 @@ bool P_HitWater (AActor * thing, sector_t * sec, fixed_t z)
 	if (thing->flags2 & MF2_FLOATBOB || thing->flags3 & MF3_DONTSPLASH)
 		return false;
 
+	// [BC] Spectators can't cause splashes.
+	if (( thing->player ) &&
+		( thing->player->bSpectating ))
+	{
+		return ( false );
+	}
+
 	// [BC] Let the server handle splashes.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
