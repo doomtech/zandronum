@@ -5040,12 +5040,21 @@ AActor *P_SpawnPuff (const PClass *pufftype, fixed_t x, fixed_t y, fixed_t z, an
 		else if ( puff->state == puff->MeleeState )
 			ulState = STATE_MELEE;
 
-		// It's not translated, nor is it spawning in a state other than its
-		// spawn state. Therefore, there's no need to treat it as a special case.
-		if ( ulState == STATE_SPAWN )
-			SERVERCOMMANDS_SpawnThingNoNetID( puff );
-		else
+		// If it's translated, or spawning in a state other than its spawn state,
+		// treat it as a special case.
+		if ( ulState != STATE_SPAWN )
+		{
 			SERVERCOMMANDS_SpawnPuff( puff, ulState, false );
+		}
+		// In certain other conditions, we need to spawn the puff with a network
+		// ID so that things like sounds work.
+		else if (( hitthing && puff->SeeSound ) ||
+				 ( puff->AttackSound ))
+		{
+			SERVERCOMMANDS_SpawnThing( puff );
+		}
+		else
+			SERVERCOMMANDS_SpawnThingNoNetID( puff );
 	}
 
 	if (cl_pufftype && updown != 3 && (puff->flags4 & MF4_ALLOWPARTICLES))

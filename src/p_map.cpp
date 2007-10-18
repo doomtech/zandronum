@@ -3897,6 +3897,10 @@ void P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 		if (puffDefaults->ActiveSound)
 		{ // Play miss sound
 			S_SoundID (t1, CHAN_WEAPON, puffDefaults->ActiveSound, 1, ATTN_NORM);
+
+			// [BC] Play the hit sound to clients.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SoundActor( t1, CHAN_WEAPON, S_GetName( puffDefaults->ActiveSound ), 1, ATTN_NORM );
 		}
 		if (puffDefaults->flags3 & MF3_ALWAYSPUFF)
 		{ // Spawn the puff anyway

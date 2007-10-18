@@ -202,6 +202,7 @@ v0.97d
 -	- Dehacked actors that are dropped items now appear properly on the client end. [Carnevil]
 -	- When connecting to a server in which the game mode is undergoing a countdown, the countdown ticks now display properly. [Carnevil]
 -	- A_CustomPunch and A_ThrowGrenade now work properly in client mode. [Carnevil]
+-	- Sounds originating from puffs now play properly in network games. [Carnevil]
 -	- Improved the scrolling of the server console. When you scroll up, it no longer snaps back down a new message. [Rivecoder]
 -	- Fixed: Bots cause hudmessages to appear for player 1 offline. [Torr Samaho]
 -	- Fixed: Clients with activated prediction ignore the CF_FROZEN and CF_TOTALLYFROZEN flags locally. [Torr Samaho]
