@@ -1335,6 +1335,13 @@ void A_CustomPunch (AActor *self)
 	angle_t 	angle;
 	int 		pitch;
 
+	// [BC] Weapons are handled by the server.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if (!norandom) Damage *= (pr_cwpunch()%8+1);
 
 	angle = self->angle + (pr_cwpunch.Random2() << 18);
@@ -1837,6 +1844,12 @@ void A_ThrowGrenade(AActor * self)
 		if (useammo && !weapon->DepleteAmmo(weapon->bAltFire)) return;
 	}
 
+	// [BC] Weapons are handled by the server.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
 
 	AActor * bo;
 
@@ -1861,6 +1874,11 @@ void A_ThrowGrenade(AActor * self)
 			bo->tics -= pr_grenade()&3;
 			if (bo->tics<1) bo->tics=1;
 		}
+
+		// [BC] Tell clients to spawn this missile.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SpawnMissileExact( bo );
+
 		P_CheckMissileSpawn (bo);
 	} 
 	else if (pStateCall != NULL) pStateCall->Result=false;
