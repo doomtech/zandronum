@@ -607,8 +607,8 @@ void BOTCMD_SetLastChatString( const char *pszString )
 //
 void BOTCMD_SetLastChatPlayer( const char *pszString )
 {
-	strncpy( g_szLastChatPlayer, pszString, 255 );
-	g_szLastChatPlayer[255] = 0;
+	strncpy( g_szLastChatPlayer, pszString, 31 );
+	g_szLastChatPlayer[31] = 0;
 }
 
 //*****************************************************************************
