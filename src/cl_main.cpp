@@ -252,6 +252,8 @@ static	void	client_WeaponRailgun( BYTESTREAM_s *pByteStream );
 // Sector commands.
 static	void	client_SetSectorFloorPlane( BYTESTREAM_s *pByteStream );
 static	void	client_SetSectorCeilingPlane( BYTESTREAM_s *pByteStream );
+static	void	client_SetSectorFloorPlaneSlope( BYTESTREAM_s *pByteStream );
+static	void	client_SetSectorCeilingPlaneSlope( BYTESTREAM_s *pByteStream );
 static	void	client_SetSectorLightLevel( BYTESTREAM_s *pByteStream );
 static	void	client_SetSectorColor( BYTESTREAM_s *pByteStream );
 static	void	client_SetSectorFade( BYTESTREAM_s *pByteStream );
@@ -574,6 +576,8 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_WEAPONRAILGUN",
 	"SVC_SETSECTORFLOORPLANE",
 	"SVC_SETSECTORCEILINGPLANE",
+	"SVC_SETSECTORFLOORPLANESLOPE",
+	"SVC_SETSECTORCEILINGPLANESLOPE",
 	"SVC_SETSECTORLIGHTLEVEL",
 	"SVC_SETSECTORCOLOR",
 	"SVC_SETSECTORFADE",
@@ -1806,6 +1810,14 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETSECTORCEILINGPLANE:
 
 		client_SetSectorCeilingPlane( pByteStream );
+		break;
+	case SVC_SETSECTORFLOORPLANESLOPE:
+
+		client_SetSectorFloorPlaneSlope( pByteStream );
+		break;
+	case SVC_SETSECTORCEILINGPLANESLOPE:
+
+		client_SetSectorCeilingPlaneSlope( pByteStream );
 		break;
 	case SVC_SETSECTORLIGHTLEVEL:
 
@@ -6123,7 +6135,7 @@ static void client_PrintMid( BYTESTREAM_s *pByteStream )
 	pszString = NETWORK_ReadString( pByteStream );
 
 	// Read in whether or not it's a bold message.
-	bBold = NETWORK_ReadByte( pByteStream );
+	bBold = !!NETWORK_ReadByte( pByteStream );
 
 	// Print the message.
 	if ( bBold )
@@ -7296,6 +7308,74 @@ static void client_SetSectorCeilingPlane( BYTESTREAM_s *pByteStream )
 
 	// Finally, adjust textures.
 	pSector->ceilingtexz += pSector->ceilingplane.HeightDiff( lLastPos );
+}
+
+//*****************************************************************************
+//
+static void client_SetSectorFloorPlaneSlope( BYTESTREAM_s *pByteStream )
+{
+	LONG		lSectorID;
+	LONG		lA;
+	LONG		lB;
+	LONG		lC;
+	sector_t	*pSector;
+
+	// Read in the sector network ID.
+	lSectorID = NETWORK_ReadShort( pByteStream );
+
+	// Read in the various variables needed to calculate the slope.
+	lA = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+	lB = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+	lC = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+
+	// Find the sector associated with this network ID.
+	pSector = CLIENT_FindSectorByID( lSectorID );
+	if ( pSector == NULL )
+	{
+#ifdef CLIENT_WARNING_MESSAGES
+		Printf( "client_SetSectorFloorPlaneSlope: Couldn't find sector: %d\n", ulSectorIdx );
+#endif
+		return;
+	}
+
+	pSector->floorplane.a = lA;
+	pSector->floorplane.b = lB;
+	pSector->floorplane.c = lC;
+	pSector->floorplane.ic = DivScale32( 1, pSector->floorplane.c );
+}
+
+//*****************************************************************************
+//
+static void client_SetSectorCeilingPlaneSlope( BYTESTREAM_s *pByteStream )
+{
+	LONG		lSectorID;
+	LONG		lA;
+	LONG		lB;
+	LONG		lC;
+	sector_t	*pSector;
+
+	// Read in the sector network ID.
+	lSectorID = NETWORK_ReadShort( pByteStream );
+
+	// Read in the various variables needed to calculate the slope.
+	lA = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+	lB = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+	lC = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+
+	// Find the sector associated with this network ID.
+	pSector = CLIENT_FindSectorByID( lSectorID );
+	if ( pSector == NULL )
+	{
+#ifdef CLIENT_WARNING_MESSAGES
+		Printf( "client_SetSectorCeilingPlaneSlope: Couldn't find sector: %d\n", ulSectorIdx );
+#endif
+		return;
+	}
+
+	pSector->ceilingplane.a = lA;
+	pSector->ceilingplane.b = lB;
+	pSector->ceilingplane.c = lC;
+	pSector->ceilingplane.ic = DivScale32( 1, pSector->ceilingplane.c );
 }
 
 //*****************************************************************************

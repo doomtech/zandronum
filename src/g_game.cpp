@@ -3091,6 +3091,16 @@ void GAME_ResetMap( void )
 	// Restore sector heights, flat changes, light changes, etc.
 	for ( ulIdx = 0; ulIdx < (ULONG)numsectors; ulIdx++ )
 	{
+/*
+		if (( sectors[ulIdx].ceilingplane.a != sectors[ulIdx].SavedCeilingPlane.a ) ||
+			( sectors[ulIdx].ceilingplane.b != sectors[ulIdx].SavedCeilingPlane.b ) ||
+			( sectors[ulIdx].ceilingplane.c != sectors[ulIdx].SavedCeilingPlane.c ) ||
+			( sectors[ulIdx].ceilingplane.ic != sectors[ulIdx].SavedCeilingPlane.ic ))
+		{
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetSectorCeilingPlaneSlope( ulIdx );
+		}
+*/
 		if ( sectors[ulIdx].bCeilingHeightChange )
 		{
 			sectors[ulIdx].ceilingplane = sectors[ulIdx].SavedCeilingPlane;
@@ -3100,7 +3110,16 @@ void GAME_ResetMap( void )
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SetSectorCeilingPlane( ulIdx );
 		}
-
+/*
+		if (( sectors[ulIdx].floorplane.a != sectors[ulIdx].floorplane.a ) ||
+			( sectors[ulIdx].floorplane.b != sectors[ulIdx].floorplane.b ) ||
+			( sectors[ulIdx].floorplane.c != sectors[ulIdx].floorplane.c ) ||
+			( sectors[ulIdx].floorplane.ic != sectors[ulIdx].floorplane.ic ))
+		{
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetSectorFloorPlaneSlope( ulIdx );
+		}
+*/
 		if ( sectors[ulIdx].bFloorHeightChange )
 		{
 			sectors[ulIdx].floorplane = sectors[ulIdx].SavedFloorPlane;

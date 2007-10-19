@@ -2596,9 +2596,25 @@ void P_SetSlopes ()
 						bits = (lines[i].args[0] >> 2) & 3;
 
 					if (bits == 1)			// align front side to back
+					{
 						P_AlignPlane (lines[i].frontsector, lines + i, s);
+
+						// [BC] Backup the sector's plane.
+						if ( s == 0 )
+							lines[i].frontsector->SavedFloorPlane = lines[i].frontsector->floorplane;
+						else
+							lines[i].frontsector->SavedCeilingPlane = lines[i].frontsector->ceilingplane;
+					}
 					else if (bits == 2)		// align back side to front
+					{
 						P_AlignPlane (lines[i].backsector, lines + i, s);
+
+						// [BC] Backup the sector's plane.
+						if ( s == 0 )
+							lines[i].backsector->SavedFloorPlane = lines[i].backsector->floorplane;
+						else
+							lines[i].backsector->SavedCeilingPlane = lines[i].backsector->ceilingplane;
+					}
 				}
 			}
 		}
