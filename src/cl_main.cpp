@@ -8592,7 +8592,7 @@ static void client_GiveInventory( BYTESTREAM_s *pByteStream )
 	if ( pInventory == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
-		Printf( "client_TakeInventory: Failed to give inventory type, %s!\n", pszName );
+		Printf( "client_GiveInventory: Failed to give inventory type, %s!\n", pszName );
 #endif
 		return;
 	}
@@ -8614,7 +8614,7 @@ static void client_GiveInventory( BYTESTREAM_s *pByteStream )
 	if ( pInventory->Amount <= 0 )
 	{
 		// We can't actually destroy ammo, since it's vital for weapons.
-		if ( pInventory->GetClass( )->ParentClass == RUNTIME_CLASS( AAmmo ))
+		if ( pInventory->ItemFlags & IF_KEEPDEPLETED )
 			pInventory->Amount = 0;
 		// But, we can destroy everything else.
 		else
@@ -8672,10 +8672,8 @@ static void client_TakeInventory( BYTESTREAM_s *pByteStream )
 	pInventory->Amount = lAmount;
 	if ( pInventory->Amount <= 0 )
 	{
-		// We can't actually destroy ammo, since it's vital for weapons.
-		if ( pInventory->GetClass( )->ParentClass == RUNTIME_CLASS( AAmmo ))
+		if ( pInventory->ItemFlags & IF_KEEPDEPLETED )
 			pInventory->Amount = 0;
-		// But, we can destroy everything else.
 		else
 			pInventory->Destroy( );
 	}

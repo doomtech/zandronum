@@ -1479,6 +1479,13 @@ static void DoGiveInventory(AActor * self, AActor * receiver)
 	bool res=true;
 	if (index<0 || receiver == NULL) return;
 
+	// [BC] Giving inventory is server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	ENamedName item =(ENamedName)StateParameters[index];
 	int amount=EvalExpressionI (StateParameters[index+1], self);
 
@@ -1540,6 +1547,13 @@ void DoTakeInventory(AActor * self, AActor * receiver)
 	int index=CheckIndex(2);
 	if (index<0 || receiver == NULL) return;
 
+	// [BC] Taking inventory is server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	ENamedName item =(ENamedName)StateParameters[index];
 	int amount=EvalExpressionI (StateParameters[index+1], self);
 
@@ -1552,10 +1566,28 @@ void DoTakeInventory(AActor * self, AActor * receiver)
 		if (inv->Amount > 0 && pStateCall != NULL) pStateCall->Result=true;
 		if (!amount || amount>=inv->Amount) 
 		{
+			// [BC] Take the player's inventory.
+			if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+				( inv->Owner ) &&
+				( inv->Owner->player ))
+			{
+				SERVERCOMMANDS_TakeInventory( inv->Owner->player - players, inv->GetClass( )->TypeName.GetChars( ), 0 );
+			}
 			if (inv->ItemFlags&IF_KEEPDEPLETED) inv->Amount=0;
 			else inv->Destroy();
 		}
-		else inv->Amount-=amount;
+		else
+		{
+			inv->Amount-=amount;
+
+			// [BC] Take the player's inventory.
+			if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+				( inv->Owner ) &&
+				( inv->Owner->player ))
+			{
+				SERVERCOMMANDS_TakeInventory( inv->Owner->player - players, inv->GetClass( )->TypeName.GetChars( ), inv->Amount );
+			}
+		}
 	}
 }	
 
