@@ -146,7 +146,7 @@ void	SERVERCOMMANDS_SpawnPuff( AActor *pActor, ULONG ulState, bool bSendTranslat
 
 // Print commands. These print some sort of message to the screen.
 void	SERVERCOMMANDS_Print( char *pszString, ULONG ulPrintLevel, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
-void	SERVERCOMMANDS_PrintMid( char *pszString, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
+void	SERVERCOMMANDS_PrintMid( char *pszString, bool bBold, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_PrintMOTD( char *pszString, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_PrintHUDMessage( char *pszString, float fX, float fY, LONG lHUDWidth, LONG lHUDHeight, LONG lColor, float fHoldTime, char *pszFont, LONG lID, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_PrintHUDMessageFadeOut( char *pszString, float fX, float fY, LONG lHUDWidth, LONG lHUDHeight, LONG lColor, float fHoldTime, float fFadeOutTime, char *pszFont, LONG lID, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );

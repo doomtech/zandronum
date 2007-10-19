@@ -418,7 +418,7 @@ bool P_CheckKeys (AActor *owner, int keynum, bool remote)
 			if ( failtext[0] == '$' )
 				failtext = GStrings( failtext + 1 );
 
-			SERVERCOMMANDS_PrintMid( (char *)failtext, owner->player - players, SVCF_ONLYTHISCLIENT );
+			SERVERCOMMANDS_PrintMid( (char *)failtext, false, owner->player - players, SVCF_ONLYTHISCLIENT );
 			SERVERCOMMANDS_SoundActor( owner, CHAN_VOICE, S_GetName( failsound ), 1, ATTN_NORM );
 		}
 	}

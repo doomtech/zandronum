@@ -3987,10 +3987,10 @@ int DLevelScript::RunScript ()
 				{
 					// Printbold displays to everyone.
 					if (( pcd == PCD_ENDPRINTBOLD ) || ( screen == NULL ))
-						SERVERCOMMANDS_PrintMid( (char *)work.GetChars( ));
+						SERVERCOMMANDS_PrintMid( (char *)work.GetChars( ), false );
 					// Otherwise, if a player is the activator, send him the message.
 					else if ( screen->player )
-						SERVERCOMMANDS_PrintMid( (char *)work.GetChars( ), screen->player - players, SVCF_ONLYTHISCLIENT );
+						SERVERCOMMANDS_PrintMid( (char *)work.GetChars( ), false, screen->player - players, SVCF_ONLYTHISCLIENT );
 				}
 			}
 			else

@@ -6117,12 +6117,19 @@ static void client_Print( BYTESTREAM_s *pByteStream )
 static void client_PrintMid( BYTESTREAM_s *pByteStream )
 {
 	char	*pszString;
+	bool	bBold;
 
 	// Read in the string that's supposed to be printed.
 	pszString = NETWORK_ReadString( pByteStream );
 
+	// Read in whether or not it's a bold message.
+	bBold = NETWORK_ReadByte( pByteStream );
+
 	// Print the message.
-	C_MidPrint( pszString );
+	if ( bBold )
+		C_MidPrintBold( pszString );
+	else
+		C_MidPrint( pszString );
 }
 
 //*****************************************************************************

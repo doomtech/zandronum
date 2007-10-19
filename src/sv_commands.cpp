@@ -2351,7 +2351,7 @@ void SERVERCOMMANDS_Print( char *pszString, ULONG ulPrintLevel, ULONG ulPlayerEx
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_PrintMid( char *pszString, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_PrintMid( char *pszString, bool bBold, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 
@@ -2366,9 +2366,10 @@ void SERVERCOMMANDS_PrintMid( char *pszString, ULONG ulPlayerExtra, ULONG ulFlag
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 1 + (ULONG)strlen( pszString ), true );
+		SERVER_CheckClientBuffer( ulIdx, 2 + (ULONG)strlen( pszString ), true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_PRINTMID );
 		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszString );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, !!bBold );
     }
 }
 

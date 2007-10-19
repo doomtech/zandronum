@@ -6,8 +6,10 @@
 #include "p_enemy.h"
 #include "s_sound.h"
 #include "c_console.h"
+#include "cl_demo.h"
 #include "deathmatch.h"
 #include "network.h"
+#include "sv_commands.h"
 
 IMPLEMENT_STATELESS_ACTOR (APuzzleItem, Any, -1, 0)
 	PROP_Flags (MF_SPECIAL|MF_NOGRAVITY)
@@ -35,6 +37,13 @@ bool APuzzleItem::HandlePickup (AInventory *item)
 
 bool APuzzleItem::Use (bool pickup)
 {
+	// [BC] Puzzle item usage is done server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return ( false );
+	}
+
 	if (P_UsePuzzleItem (Owner, PuzzleItemNumber))
 	{
 		return true;
@@ -45,6 +54,14 @@ bool APuzzleItem::Use (bool pickup)
 	if (message != NULL && *message=='$') message = GStrings[message + 1];
 	if (message == NULL) message = GStrings("TXT_USEPUZZLEFAILED");
 	C_MidPrintBold (message);
+
+	// [BC] If we're the server, play the sound and print the message.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		SERVERCOMMANDS_SoundActor( Owner, CHAN_VOICE, "*puzzfail", 1, ATTN_IDLE );
+		SERVERCOMMANDS_PrintMid( (char *)message, true );
+	}
+
 	return false;
 }
 

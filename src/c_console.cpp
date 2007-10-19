@@ -2037,24 +2037,18 @@ void C_MidPrint (const char *msg)
 			fflush (Logfile);
 		}
 
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			return;
-
 		StatusBar->AttachMessage (new DHUDMessage (msg, 1.5f, 0.375f, 0, 0,
 			(EColorRange)PrintColors[PRINTLEVELS], con_midtime), MAKE_ID('C','N','T','R'));
 	}
 	else
 	{
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			return;
-
 		StatusBar->DetachMessage (MAKE_ID('C','N','T','R'));
 	}
 }
 
 void C_MidPrintBold (const char *msg)
 {
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	if (StatusBar == NULL)
 		return;
 
 	if (msg)
@@ -2070,17 +2064,11 @@ void C_MidPrintBold (const char *msg)
 			fflush (Logfile);
 		}
 
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			return;
-
 		StatusBar->AttachMessage (new DHUDMessage (msg, 1.5f, 0.375f, 0, 0,
 			(EColorRange)PrintColors[PRINTLEVELS+1], con_midtime), MAKE_ID('C','N','T','R'));
 	}
 	else
 	{
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			return;
-
 		StatusBar->DetachMessage (MAKE_ID('C','N','T','R'));
 	}
 }
