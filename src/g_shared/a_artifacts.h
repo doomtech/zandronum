@@ -298,8 +298,7 @@ class ARuneDoubleDamage : public ARune
 {
 	DECLARE_STATELESS_ACTOR( ARuneDoubleDamage, ARune )
 protected:
-	void InitEffect( );
-	void EndEffect( );
+	virtual void ModifyDamage( int damage, FName damageType, int &newdamage, bool passive );
 };
 
 class ARuneDoubleFiringSpeed : public ARune
@@ -330,8 +329,7 @@ class ARuneHalfDamage : public ARune
 {
 	DECLARE_STATELESS_ACTOR( ARuneHalfDamage, ARune )
 protected:
-	void InitEffect( );
-	void EndEffect( );
+	virtual void ModifyDamage( int damage, FName damageType, int &newdamage, bool passive );
 };
 
 class ARuneRegeneration : public ARune

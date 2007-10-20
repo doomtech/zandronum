@@ -132,19 +132,15 @@ void ABaseMonsterInvasionSpot::Tick( void )
 		return;
 	}
 
-	if ( bIsBossMonster )
+	if (( bIsBossMonster ) &&
+		( g_InvasionState != IS_BOSSFIGHT ))
 	{
 		// Not time to spawn this yet.
 		if ( g_ulNumMonstersLeft > g_ulNumBossMonsters )
 			return;
-	
+
 		// Since this a boss monster, potentially set the invasion state to fighting a boss.
-		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-			( CLIENTDEMO_IsPlaying( ) == false ) &&
-			( g_InvasionState != IS_BOSSFIGHT ))
-		{
-			INVASION_SetState( IS_BOSSFIGHT );
-		}
+		INVASION_SetState( IS_BOSSFIGHT );
 	}
 
 	// Are we ticking down to the next spawn?

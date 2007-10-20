@@ -2054,32 +2054,21 @@ END_DEFAULTS
 
 //===========================================================================
 //
-// ARuneDoubleDamage :: InitEffect
+// ARuneDoubleDamage :: ModifyDamage
 //
 //===========================================================================
 
-void ARuneDoubleDamage::InitEffect( )
+void ARuneDoubleDamage::ModifyDamage( int damage, FName damageType, int &newdamage, bool passive )
 {
-	// Give the player the power to deal double the amount of damage he normally would.
-	Owner->player->cheats |= CF_DOUBLEDAMAGE;
-}
-
-//===========================================================================
-//
-// ARuneDoubleDamage :: EndEffect
-//
-//===========================================================================
-
-void ARuneDoubleDamage::EndEffect( )
-{
-	// Nothing to do if there's no owner.
-	if (( Owner == NULL ) || ( Owner->player == NULL ))
+	if (( passive == false ) &&
+		( damage > 0 ))
 	{
-		return;
+		damage = newdamage = damage * 2;
 	}
 
-	// Take away the double damage power.
-	Owner->player->cheats &= ~CF_DOUBLEDAMAGE;
+	// Go onto the next item.
+	if ( Inventory != NULL )
+		Inventory->ModifyDamage( damage, damageType, newdamage, passive );
 }
 
 // Double firing speed rune -------------------------------------------------
@@ -2195,32 +2184,21 @@ END_DEFAULTS
 
 //===========================================================================
 //
-// ARuneHalfDamage :: InitEffect
+// ARuneHalfDamage :: ModifyDamage
 //
 //===========================================================================
 
-void ARuneHalfDamage::InitEffect( )
+void ARuneHalfDamage::ModifyDamage( int damage, FName damageType, int &newdamage, bool passive )
 {
-	// Give the player the power to take half the amount of damage he normally would.
-	Owner->player->cheats |= CF_HALFDAMAGE;
-}
-
-//===========================================================================
-//
-// ARuneHalfDamage :: EndEffect
-//
-//===========================================================================
-
-void ARuneHalfDamage::EndEffect( )
-{
-	// Nothing to do if there's no owner.
-	if (( Owner == NULL ) || ( Owner->player == NULL ))
+	if (( passive ) &&
+		( damage > 0 ))
 	{
-		return;
+		damage = newdamage = damage / 2;
 	}
 
-	// Take away the half damage power.
-	Owner->player->cheats &= ~CF_HALFDAMAGE;
+	// Go onto the next item.
+	if ( Inventory != NULL )
+		Inventory->ModifyDamage( damage, damageType, newdamage, passive );
 }
 
 // Regeneration rune -------------------------------------------------------

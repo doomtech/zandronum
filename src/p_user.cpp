@@ -1867,34 +1867,6 @@ void APlayerPawn::TweakSpeeds (int &forward, int &side)
 	}
 }
 
-int APlayerPawn::DoSpecialDamage( AActor *target, int damage )
-{
-	if ( player == NULL )
-		return ( damage );
-
-	// Apply quad damage.
-	if ( player->cheats & CF_TERMINATORARTIFACT )
-		damage *= 4;
-
-	// Apply double damage.
-	if ( player->cheats & CF_DOUBLEDAMAGE )
-		damage *= 2;
-
-	return ( damage );
-}
-
-int APlayerPawn::TakeSpecialDamage (AActor *inflictor, AActor *source, int damage, int damagetype)
-{
-	if ( player == NULL )
-		return ( damage );
-
-	// [BC] Apply 1/2 damage.
-	if ( player->cheats & CF_HALFDAMAGE )
-		damage /= 2;
-
-	return ( damage );
-}
-
 //===========================================================================
 //
 // [BC] APlayerPawn :: Destroy

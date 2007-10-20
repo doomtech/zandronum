@@ -91,8 +91,6 @@ public:
 	virtual void TweakSpeeds (int &forwardmove, int &sidemove);
 	virtual void MorphPlayerThink ();
 	virtual void ActivateMorphWeapon ();
-	virtual int DoSpecialDamage (AActor *target, int damage);
-	virtual int TakeSpecialDamage (AActor *inflictor, AActor *source, int damage, int damagetype);
 	virtual AWeapon *PickNewWeapon (const PClass *ammotype);
 	virtual AWeapon *BestWeapon (const PClass *ammotype);
 	virtual void GiveDeathmatchInventory ();
@@ -203,9 +201,7 @@ typedef enum
 	CF_TERMINATORARTIFACT	= 0x02000000,
 
 	// [BC] Rune effects.
-	CF_DOUBLEDAMAGE			= 0x04000000,
 	CF_SPREAD				= 0x08000000,
-	CF_HALFDAMAGE			= 0x10000000,
 	CF_SPEED25				= 0x20000000,
 	
 	CF_FIRERESISTANT		= 0x40000000,
