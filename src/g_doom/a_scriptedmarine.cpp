@@ -360,13 +360,6 @@ void A_M_SawRefire (AActor *self)
 
 void A_MarineChase (AActor *self)
 {
-	// [BC] Don't do this in client mode.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
-	{
-		return;
-	}
-
 	if (self->MeleeState == &AScriptedMarine::States[S_MPLAY_ATK_CHAINSAW])
 	{
 		S_Sound (self, CHAN_WEAPON, "weapons/sawidle", 1, ATTN_NORM);
