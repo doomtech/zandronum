@@ -431,6 +431,10 @@ static	ULONG				g_ulLastConsolePlayerUpdateTick;
 // request a snapshot, etc.
 static	ULONG				g_ulRetryTicks;
 
+// The "message of the day" string. Display it when we're done receiving
+// our snapshot.
+static	FString				g_MOTD;
+
 // This contains the last 256 packets we've received.
 static	PACKETBUFFER_s		g_ReceivedPacketBuffer;
 
@@ -758,6 +762,8 @@ void CLIENT_Construct( void )
 	// User didn't specify an IP to connect to, so don't try to connect to anything.
 	else
 		g_ConnectionState = CTS_DISCONNECTED;
+
+	g_MOTD = "";
 }
 
 //*****************************************************************************
@@ -2592,6 +2598,46 @@ void CLIENT_MoveThing( AActor *pActor, fixed_t X, fixed_t Y, fixed_t Z )
 
 //*****************************************************************************
 //
+// :(. This is needed so that the MOTD can be printed in the color the user wishes to print
+// mid-screen messages in.
+extern	int PrintColors[7];
+void CLIENT_DisplayMOTD( void )
+{
+	FString	ConsoleString;
+
+	if ( g_MOTD.Len( ) <= 0 )
+		return;
+
+	// Add pretty colors/formatting!
+	V_ColorizeString( (char *)g_MOTD.GetChars( ));
+
+	ConsoleString.AppendFormat( TEXTCOLOR_RED
+		"\n\35\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36"
+		"\36\36\36\36\36\36\36\36\36\36\36\36\37" TEXTCOLOR_TAN
+		"\n\n%s\n" TEXTCOLOR_RED
+		"\n\35\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36"
+		"\36\36\36\36\36\36\36\36\36\36\36\36\37" TEXTCOLOR_NORMAL "\n\n" ,
+		g_MOTD );
+
+	// Add this message to the console window.
+	AddToConsole( -1, ConsoleString );
+
+	// We cannot create the message if there's no status bar to attach it to.
+	if ( StatusBar == NULL )
+		return;
+
+	StatusBar->AttachMessage( new DHUDMessageFadeOut( g_MOTD,
+		1.5f,
+		0.375f,
+		0,
+		0,
+		(EColorRange)PrintColors[5],
+		cl_motdtime,
+		0.35f ), 'MOTD' );
+}
+
+//*****************************************************************************
+//
 AActor *CLIENT_FindThingByNetID( LONG lNetID )
 {
 	if (( lNetID < 0 ) || ( lNetID >= 65536 ))
@@ -3066,6 +3112,9 @@ static void client_EndSnapshot( BYTESTREAM_s *pByteStream )
 		StatusBar->AttachToPlayer( &players[consoleplayer] );
 		StatusBar->NewGame( );
 	}
+
+	// Display the message of the day.
+	CLIENT_DisplayMOTD( );
 }
 
 //*****************************************************************************
@@ -6146,51 +6195,10 @@ static void client_PrintMid( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-
-// :(. This is needed so that the MOTD can be printed in the color the user wishes to print
-// mid-screen messages in.
-extern	int PrintColors[7];
 static void client_PrintMOTD( BYTESTREAM_s *pByteStream )
 {
-	char				*pszMOTD;
-	DHUDMessageFadeOut	*pMsg;
-
-	// Read in the Message of the Day string.
-	pszMOTD = NETWORK_ReadString( pByteStream );
-
-	if ( pszMOTD )
-	{
-		char szBuffer[1024];
-
-		// Add pretty colors/formatting!
-		V_ColorizeString( pszMOTD );
-
-		sprintf( szBuffer, TEXTCOLOR_RED
-			"\n\35\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36"
-			"\36\36\36\36\36\36\36\36\36\36\36\36\37" TEXTCOLOR_TAN
-			"\n\n%s\n" TEXTCOLOR_RED
-			"\n\35\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36"
-			"\36\36\36\36\36\36\36\36\36\36\36\36\37" TEXTCOLOR_NORMAL "\n\n" ,
-			pszMOTD );
-
-		// Add this message to the console window.
-		AddToConsole( -1, szBuffer );
-
-		// We cannot create the message if there's no status bar to attach it to.
-		if ( StatusBar == NULL )
-			return;
-
-		pMsg = new DHUDMessageFadeOut( pszMOTD,
-			1.5f,
-			0.375f,
-			0,
-			0,
-			(EColorRange)PrintColors[5],
-			cl_motdtime,
-			0.35f );
-
-		StatusBar->AttachMessage( pMsg, 'MOTD' );
-	}
+	// Read in the MOTD, and display it later.
+	g_MOTD = NETWORK_ReadString( pByteStream );
 }
 
 //*****************************************************************************

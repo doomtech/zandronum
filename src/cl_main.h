@@ -154,6 +154,7 @@ AActor				*CLIENT_SpawnThing( char *pszName, fixed_t X, fixed_t Y, fixed_t Z, LO
 void				CLIENT_SpawnMissile( char *pszName, fixed_t X, fixed_t Y, fixed_t Z, fixed_t MomX, fixed_t MomY, fixed_t MomZ, LONG lNetID, LONG lTargetNetID );
 void				CLIENT_MoveThing( AActor *pActor, fixed_t X, fixed_t Y, fixed_t Z );
 AActor				*CLIENT_FindThingByNetID( LONG lID );
+void				CLIENT_DisplayMOTD( void );
 void				CLIENT_RestoreSpecialPosition( AActor *pActor );
 void				CLIENT_RestoreSpecialDoomThing( AActor *pActor, bool bFog );
 AInventory			*CLIENT_FindPlayerInventory( ULONG ulPlayer, const PClass *pType );
