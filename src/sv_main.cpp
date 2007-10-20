@@ -1714,6 +1714,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 		g_aClients[lClient].lUserInfoInstances[ulIdx] = 0;
 	g_aClients[lClient].ulLastUserInfoInstance = 0;
 	g_aClients[lClient].ulLastChangeTeamTime = 0;
+	g_aClients[lClient].ulLastSuicideTime = 0;
 	g_aClients[lClient].lLastPacketLossTick = 0;
 	g_aClients[lClient].lLastMoveTick = 0;
 	g_aClients[lClient].lOverMovementLevel = 0;
@@ -3949,6 +3950,12 @@ static bool server_Suicide( BYTESTREAM_s *pByteStream )
 	// Don't allow suiciding during a duel.
 	if ( duel && ( DUEL_GetState( ) == DS_INDUEL ))
 		return ( false );
+
+	// If this player has tried to suicide recently, ignore the request.
+	if ( gametic < ( g_aClients[g_lCurrentClient].ulLastSuicideTime + ( TICRATE * 10 )))
+		return ( false );
+
+	g_aClients[g_lCurrentClient].ulLastSuicideTime = gametic;
 
 	cht_Suicide( &players[g_lCurrentClient] );
 

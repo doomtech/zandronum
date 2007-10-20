@@ -216,6 +216,10 @@ typedef struct
 	// doing it again.
 	ULONG			ulLastChangeTeamTime;
 
+	// Record the last time this player suicided, so we can potentially forbid him from
+	// doing it again.
+	ULONG			ulLastSuicideTime;
+
 	// Last tick the client requested missing packets.
 	LONG			lLastPacketLossTick;
 

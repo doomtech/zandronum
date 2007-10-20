@@ -60,6 +60,7 @@
 //	VARIABLES
 
 static	ULONG	g_ulLastChangeTeamTime = 0;
+static	ULONG	g_ulLastSuicideTime = 0;
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -261,6 +262,13 @@ void CLIENTCOMMANDS_RCONCommand( char *pszCommand )
 //
 void CLIENTCOMMANDS_Suicide( void )
 {
+	if (( g_ulLastSuicideTime > 0 ) && ( (ULONG)gametic < ( g_ulLastSuicideTime + ( TICRATE * 10 ))))
+	{
+		Printf( "You must wait at least 10 seconds before suiciding again.\n" );
+		return;
+	}
+
+	g_ulLastSuicideTime = gametic;
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_SUICIDE );
 }
 
