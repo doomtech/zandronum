@@ -140,8 +140,9 @@ void CALLVOTE_Tick( void )
 					{
 						g_VoteCommand = "kick_idx";
 						g_VoteCommand.AppendFormat( "%d", g_ulKickVoteTargetPlayerIdx );
-						AddCommandString( (char *)g_VoteCommand.GetChars( ));
 					}
+
+					AddCommandString( (char *)g_VoteCommand.GetChars( ));
 				}
 				// Reset the module.
 				CALLVOTE_ClearVote( );
@@ -363,8 +364,8 @@ ULONG CALLVOTE_CountNumEligibleVoters( void )
 					}
 
 					// If the two IP addresses match, break out.
-					if ( NETWORK_CompareAddress( SERVER_GetClient( ulIdx )->Address, SERVER_GetClient( ulIdx2 )->Address, true ))
-						break;
+//					if ( NETWORK_CompareAddress( SERVER_GetClient( ulIdx )->Address, SERVER_GetClient( ulIdx2 )->Address, true ))
+//						break;
 				}
 
 				if ( ulIdx2 == MAXPLAYERS )
@@ -603,16 +604,17 @@ static bool callvote_CheckValidity( char *pszCommand, char *pszParameters )
 	case VOTECMD_CHANGEMAP:
 
 		// Don't allow the command if the map doesn't exist.
-		if ( !P_CheckIfMapExists( pszParameters ) )
+		if ( P_CheckIfMapExists( pszParameters ) == false )
 			return ( false );
-		// Don't allow to leave the maprotation (Only the server knows the maprotation)
+
+		// Don't allow to leave the maprotation (only the server knows the maprotation).
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
 			if ( sv_maprotation )
 			{
 				Printf ( "%s\n", pszParameters );
-				if( !MAPROTATION_IsMapInRotaion( pszParameters ) )
-				return ( false );
+				if( MAPROTATION_IsMapInRotaion( pszParameters ) == false )
+					return ( false );
 			}
 		}
 		break;
