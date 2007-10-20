@@ -479,7 +479,10 @@ bool P_Move (AActor *actor)
 
 	if (!try_ok)
 	{
-		if ((actor->flags & MF_FLOAT) && floatok)
+		// [BC] Don't float in client mode.
+		if ((actor->flags & MF_FLOAT) && floatok &&
+			( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+			( CLIENTDEMO_IsPlaying( ) == false ))
 		{ // must adjust height
 			fixed_t savedz = actor->z;
 
