@@ -1866,7 +1866,9 @@ void G_ChangeLevel(const char * levelname, int position, bool keepFacing, int ne
 
 void G_ExitLevel (int position, bool keepFacing)
 {
-	G_ChangeLevel(level.nextmap, position, keepFacing);
+	// [BC] Now we use G_GetNextLevelName() to take into account
+	// things like map rotation.
+	G_ChangeLevel(G_GetNextLevelName( ), position, keepFacing);
 }
 
 void G_SecretExitLevel (int position) 
@@ -1883,6 +1885,46 @@ void G_SecretExitLevel (int position)
 		nextmap = level.nextmap;
 
 	G_ChangeLevel(nextmap, position, false);
+}
+
+//=============================================================================
+//
+//	[BC] G_GetNextLevelName
+//
+//	Returns what the name of the next level should be. Takes into account
+//	dmflags and map rotation.
+//
+//=============================================================================
+char *G_GetNextLevelName( void )
+{
+	if ( level.flags & LEVEL_CHANGEMAPCHEAT )
+		return ( level.nextmap );
+
+	// If we failed a campaign, just stay on the current map.
+	if (( CAMPAIGN_InCampaign( )) &&
+		( invasion == false ) &&
+		( CAMPAIGN_DidPlayerBeatMap( ) == false ))
+	{
+		return ( level.mapname );
+	}
+	// If using the same level dmflag, just stay on the current map.
+	else if (( dmflags & DF_SAME_LEVEL ) &&
+		( deathmatch || teamgame ))
+	{
+		return ( level.mapname );
+	}
+	// Check to see if we're using map rotation.
+	else if (( sv_maprotation ) &&
+			 ( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+			 ( MAPROTATION_GetNumEntries( ) != 0 ))
+	{
+		// Move on to the next map.
+		MAPROTATION_AdvanceMap( );
+
+		return ( MAPROTATION_GetCurrentMapName( ));
+	}
+
+	return ( level.nextmap );
 }
 
 void G_DoCompleted (void)

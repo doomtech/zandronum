@@ -327,6 +327,9 @@ void G_DeferedInitNew (const char *mapname, int skill = -1);
 void G_ExitLevel (int position, bool keepFacing);
 void G_SecretExitLevel (int position);
 
+// [BC]
+char *G_GetNextLevelName( void );
+
 void G_ChangeLevel(const char * levelname, int position, bool keepFacing, int nextSkill=-1, 
 				   bool nointermission=false, bool resetinventory=false, bool nomonsters=false);
 

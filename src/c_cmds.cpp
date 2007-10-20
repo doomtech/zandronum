@@ -489,10 +489,8 @@ CCMD( nextmap )
 	// Fuck that DEM shit!
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
-//		level.flags |= LEVEL_CHANGEMAPCHEAT;
-
 		if ( sv_maprotation )
-			MAPROTATION_SetPositionToMap( level.mapname );
+			MAPROTATION_SetPositionToMap( G_GetNextLevelName( ));
 
 		G_ExitLevel( 0, false );
 	}
