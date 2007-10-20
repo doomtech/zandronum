@@ -4016,10 +4016,7 @@ void P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 						trace.Actor, srcangle, srcpitch);
 				}
 			}
-			// [BC] Don't do any damage in client mode.
-			if (damage &&
-				( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-				( CLIENTDEMO_IsPlaying( ) == false ))
+			if (damage) 
 			{
 				int flags = 0;
 				// Allow MF5_PIERCEARMOR on a weapon as well.
@@ -4033,7 +4030,7 @@ void P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 				{ 
 					// Since the puff is the damage inflictor we need it here 
 					// regardless of whether it is displayed or not.
-					puff = P_SpawnPuff (pufftype, hitx, hity, hitz, angle - ANG180, 2, true);
+					puff = P_SpawnPuff (pufftype, hitx, hity, hitz, angle - ANG180, 2, true, false);
 					killPuff = true;
 				}
 				P_DamageMobj (trace.Actor, puff ? puff : t1, t1, damage, damageType, flags);
@@ -4044,7 +4041,7 @@ void P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 
 			if (puff == NULL)
 			{ // Spawn puff just to get a mass for the splash
-				puff = P_SpawnPuff (pufftype, hitx, hity, hitz, angle - ANG180, 2, true);
+				puff = P_SpawnPuff (pufftype, hitx, hity, hitz, angle - ANG180, 2, true, false);
 				killPuff = true;
 			}
 			SpawnDeepSplash (t1, trace, puff, vx, vy, vz);

@@ -5075,16 +5075,22 @@ AActor *P_SpawnPuff (const PClass *pufftype, fixed_t x, fixed_t y, fixed_t z, an
 		S_SoundID (puff, CHAN_BODY, puff->SeeSound, 1, ATTN_NORM);
 
 		// [BC] If we're the server, play this sound.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+			( bTellClientToSpawn ))
+		{
 			SERVERCOMMANDS_SoundActor( puff, CHAN_BODY, S_GetName( puff->SeeSound ), 1, ATTN_NORM );
+		}
 	}
 	else if (puff->AttackSound)
 	{
 		S_SoundID (puff, CHAN_BODY, puff->AttackSound, 1, ATTN_NORM);
 
 		// [BC] If we're the server, play this sound.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+			( bTellClientToSpawn ))
+		{
 			SERVERCOMMANDS_SoundActor( puff, CHAN_BODY, S_GetName( puff->AttackSound ), 1, ATTN_NORM );
+		}
 	}
 
 	PuffSpawned = puff;
