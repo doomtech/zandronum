@@ -5051,6 +5051,13 @@ AActor *P_SpawnPuff (const PClass *pufftype, fixed_t x, fixed_t y, fixed_t z, an
 		else if (( hitthing && puff->SeeSound ) ||
 				 ( puff->AttackSound ))
 		{
+			if ( puff->lNetID == -1 )
+			{
+				puff->lNetID = ACTOR_GetNewNetID( );
+				g_NetIDList[puff->lNetID].pActor = puff;
+				g_NetIDList[puff->lNetID].bFree = false;
+			}
+
 			SERVERCOMMANDS_SpawnThing( puff );
 		}
 		else
