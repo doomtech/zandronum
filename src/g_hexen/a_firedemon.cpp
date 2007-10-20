@@ -354,13 +354,6 @@ void A_FiredSpawnRock (AActor *actor)
 	int x,y,z;
 	const PClass *rtype;
 
-	// [BC] Let the server handle this.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
-	{
-		return;
-	}
-
 	switch (pr_firedemonrock() % 5)
 	{
 		case 0:
@@ -392,13 +385,6 @@ void A_FiredSpawnRock (AActor *actor)
 		mo->momy = (pr_firedemonrock() - 128) <<10;
 		mo->momz = (pr_firedemonrock() << 10);
 		mo->special1 = 2;		// Number bounces
-
-		// [BC] If we're the server, tell clients to spawn this.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		{
-			SERVERCOMMANDS_SpawnThing( mo );
-			SERVERCOMMANDS_MoveThingExact( mo, CM_MOMX|CM_MOMY|CM_MOMZ );
-		}
 	}
 
 	// Initialize fire demon
@@ -475,6 +461,10 @@ void A_FiredChase (AActor *actor)
 			actor->PlayActiveSound ();
 		}
 
+		// Normal movement
+		if ( actor->special2 == 0 )
+			P_Move( actor );
+
 		return;
 	}
 
@@ -490,6 +480,10 @@ void A_FiredChase (AActor *actor)
 	{
 		actor->z += 2*FRACUNIT;
 	}
+
+	// [BC] If we're the server, update the thing's z position.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_MoveThing( actor, CM_Z );
 
 	if(!actor->target || !(actor->target->flags&MF_SHOOTABLE))
 	{	// Invalid target
@@ -521,6 +515,13 @@ void A_FiredChase (AActor *actor)
 				actor->momy = finesine[ang] << 3; //FixedMul (8*FRACUNIT, finesine[ang]);
 				actor->special2 = 3;		// strafe time
 			}
+		}
+
+		// [BC] If we're the server, update the thing's z position.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			SERVERCOMMANDS_MoveThingExact( actor, CM_MOMX|CM_MOMY );
+			SERVERCOMMANDS_SetThingSpecial2( actor );
 		}
 	}
 
