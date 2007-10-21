@@ -423,6 +423,8 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 	}
 	else if ( ulMode == CHATMODE_GLOBAL )
 	{
+		ulChatLevel = PRINT_CHAT;
+
 		// Special support for "/me" commands.
 		if ( strnicmp( "/me", pszString, 3 ) == 0 )
 		{
@@ -432,13 +434,12 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 		}
 		else
 		{
-			ulChatLevel = PRINT_CHAT;
-			OutString.AppendFormat( "%s\\cd: ", players[ulPlayer].userinfo.netname );
+			OutString.AppendFormat( "%s\\c-: ", players[ulPlayer].userinfo.netname );
 		}
 	}
 	else if ( ulMode == CHATMODE_TEAM )
 	{
-		ulChatLevel = PRINT_CHAT;
+		ulChatLevel = PRINT_TEAMCHAT;
 
 		if ( players[consoleplayer].ulTeam == TEAM_BLUE )
 			OutString = "\\cH<TEAM> ";
@@ -454,8 +455,7 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 		}
 		else
 		{
-			ulChatLevel = PRINT_CHAT;
-			OutString.AppendFormat( "\\cd%s\\cd: ", players[ulPlayer].userinfo.netname );
+			OutString.AppendFormat( "\\cd%s\\c-: ", players[ulPlayer].userinfo.netname );
 		}
 	}
 
