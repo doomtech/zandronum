@@ -470,7 +470,7 @@ void CLIENTDEMO_FinishPlaying( void )
 //	C_RestoreCVars ();		// [RH] Restore cvars demo might have changed
 
 	// Free our demo buffer.
-	free( g_pbDemoBuffer );
+	delete[] ( g_pbDemoBuffer );
 	g_pbDemoBuffer = NULL;
 
 	// We're no longer playing a demo.

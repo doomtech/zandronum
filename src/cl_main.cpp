@@ -1317,6 +1317,8 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 				// For right now, the view is not active.
 				viewactive = false;
 
+				g_ulLastConsolePlayerUpdateTick = 0;
+
 				// Restore our demo recording status.
 				CLIENTDEMO_SetPlaying( bPlaying );
 			}

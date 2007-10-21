@@ -1525,8 +1525,11 @@ player_s	*P_PlayerScan( AActor *mo );
 void FBaseStatusBar::DrawTargetName ()
 {
 	// [BC] The player may not have a body between intermission-less maps.
-	if ( CPlayer->camera == NULL )
+	if (( CPlayer->camera == NULL ) ||
+		( viewactive == false ))
+	{
 		return;
+	}
 
 	// Break out if we don't want to identify the target, or
 	// a medal has just been awarded and is being displayed.

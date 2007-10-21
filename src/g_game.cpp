@@ -4532,9 +4532,19 @@ CCMD (playdemo)
 {
 	if (argv.argc() > 1)
 	{
+		if ( CLIENTDEMO_IsPlaying( ))
+			CLIENTDEMO_FinishPlaying( );
+
 		G_DeferedPlayDemo (argv[1]);
 		singledemo = true;
 	}
+}
+
+// [BC]
+CCMD( stopdemo )
+{
+	if ( CLIENTDEMO_IsPlaying( ))
+		CLIENTDEMO_FinishPlaying( );
 }
 
 CCMD (timedemo)
