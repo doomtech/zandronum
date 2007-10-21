@@ -388,6 +388,8 @@ enum
 	RF_ONESIDED			= 0x0004,	// Wall/floor sprite is visible from front only
 	RF_RANDOMPOWERUPHACK	= 0x0008,	// [BC] This actor uses the random powerup hack: offsets are centered.
 	RF_FULLBRIGHT		= 0x0010,	// Sprite is drawn at full brightness
+	RF_NEVERFULLBRIGHT	= 0x0020,	// Used by the GL brightmap code to disable fullbright in case 
+									// brightmaps are to be used to do the effect.
 
 	RF_RELMASK			= 0x0300,	// ---Relative z-coord for bound actors (these obey texture pegging)
 	RF_RELABSOLUTE		= 0x0000,	// Actor z is absolute

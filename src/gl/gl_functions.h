@@ -125,6 +125,7 @@ struct FTexInfo
    bool loadAlpha, flipX, masked;
    float alpha;
    int fillColor;
+   int RenderStyle;
 };
 
 void gl_DrawTexture(FTexInfo *texInfo);

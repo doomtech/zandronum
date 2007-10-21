@@ -268,7 +268,10 @@ void GLWall::RenderMirrorSurface()
 
 void GLWall::RenderTranslucentWall()
 {
-	gl.AlphaFunc(GL_GEQUAL,0.5f*fabs(alpha));
+	bool transparent = gltexture? gltexture->GetTransparent() : false;
+
+	if (!transparent) gl.AlphaFunc(GL_GEQUAL,0.5f*fabs(alpha));
+	else gl.Disable(GL_ALPHA_TEST);
 	if (RenderStyle==STYLE_Add) gl.BlendFunc(GL_SRC_ALPHA,GL_ONE);
 
 	if (type!=RENDERWALL_M2SNF) gl_SetFog(lightlevel, Colormap.FadeColor, RenderStyle, Colormap.LightColor.a);
@@ -291,6 +294,8 @@ void GLWall::RenderTranslucentWall()
 
 	// restore default settings
 	if (RenderStyle==STYLE_Add) gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	if (!transparent) gl.Enable(GL_ALPHA_TEST);
+
 	if (!gltexture)	
 	{
 		gl_EnableTexture(true);

@@ -53,6 +53,7 @@
 #include "cmdlib.h"
 #include "stats.h"
 #include "templates.h"
+#include "sc_man.h"
 
 #include "gl/gl_struct.h"
 #include "gl/gl_texture.h"
@@ -100,6 +101,12 @@ CVAR(Bool, gl_precache, false, CVAR_ARCHIVE)
 static char GlobalBrightmap[256];
 static bool HasGlobalBrightmap;
 
+//===========================================================================
+// 
+// Examines the colormap to see if some of the colors have to be
+// considered fullbright all the time.
+//
+//===========================================================================
 
 void gl_GenerateGlobalBrightmapFromColormap()
 {
@@ -158,6 +165,11 @@ static const BYTE IcePalette[16][3] =
 	{ 148,148,172 }
 };
 
+//===========================================================================
+// 
+// Conversion classes for the different pixel formats
+//
+//===========================================================================
 typedef void (*CopyFunc)(unsigned char * pout, const unsigned char * pin, int cm, int count, int step);
 
 struct cRGB
@@ -727,7 +739,7 @@ static void CopyPixelData(BYTE * buffer, int texwidth, int texheight, int origin
 //
 //===========================================================================
 
-void FTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, 
+int FTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, 
 									 intptr_t cm, int translation)
 {
 	PalEntry * palette = screen->GetPalette();
@@ -737,6 +749,7 @@ void FTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height,
 				  cm, translation, palette, true);
 
 	palette[0].a=0;
+	return 0;	// any transparency will be ignored.
 }
 
 //===========================================================================
@@ -748,15 +761,20 @@ void FTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height,
 //
 //===========================================================================
 
-void FMultiPatchTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, 
+int FMultiPatchTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, 
 									 intptr_t cm, int translation)
 {
+	int retv = -1;
+
 	for(int i=0;i<NumParts;i++)
 	{
 		Parts[i].Texture->GetWidth();
-		Parts[i].Texture->CopyTrueColorPixels(buffer, buf_width, buf_height, 
+		int ret = Parts[i].Texture->CopyTrueColorPixels(buffer, buf_width, buf_height, 
 											  x+Parts[i].OriginX, y+Parts[i].OriginY, cm, translation);
+
+		if (ret > retv) retv = ret;
 	}
+	return retv;
 }
 
 bool FMultiPatchTexture::UseBasePalette() 
@@ -777,7 +795,7 @@ bool FMultiPatchTexture::UseBasePalette()
 //
 //===========================================================================
 
-void FPNGTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, 
+int FPNGTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, 
 									 intptr_t cm, int translation)
 {
 	// Parse pre-IDAT chunks. I skip the CRCs. Is that bad?
@@ -786,6 +804,7 @@ void FPNGTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_heig
 	FWadLump lump = Wads.OpenLumpNum (SourceLump);
 	static char bpp[]={1, 0, 3, 1, 2, 0, 4};
 	int pixwidth = Width * bpp[ColorType];
+	int transpal=false;
 
 	lump.Seek (33, SEEK_SET);
 	for(int i=0;i<256;i++) pe[i]=PalEntry(0,i,i,i);	// default to a gray map
@@ -810,6 +829,7 @@ void FPNGTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_heig
 			{
 				lump >> pe[i].a;
 				pe[i].a=255-pe[i].a;	// use inverse alpha so the default palette can be used unchanged
+				if (pe[i].a!=0 && pe[i].a!=255) transpal = true;
 			}
 			break;
 		}
@@ -837,10 +857,12 @@ void FPNGTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_heig
 
 	case 4:
 		CopyPixelDataRGB(buffer, buf_width, buf_height, x, y, Pixels, Width, Height, 2, pixwidth, cm, CopyColors<cIA>);
+		transpal = -1;
 		break;
 
 	case 6:
 		CopyPixelDataRGB(buffer, buf_width, buf_height, x, y, Pixels, Width, Height, 4, pixwidth, cm, CopyColors<cRGBA>);
+		transpal = -1;
 		break;
 
 	default:
@@ -848,6 +870,7 @@ void FPNGTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_heig
 
 	}
 	delete[] Pixels;
+	return transpal;
 }
 
 //===========================================================================
@@ -858,7 +881,7 @@ void FPNGTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_heig
 //
 //===========================================================================
 
-void FJPEGTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, 
+int FJPEGTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, 
 									 intptr_t cm, int translation)
 {
 	PalEntry pe[256];
@@ -925,6 +948,7 @@ void FJPEGTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_hei
 	}
 	jpeg_destroy_decompress(&cinfo);
 	if (buff != NULL) delete [] buff;
+	return 0;
 }
 
 
@@ -936,7 +960,7 @@ void FJPEGTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_hei
 //
 //===========================================================================
 
-void FTGATexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, 
+int FTGATexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, 
 									 intptr_t cm, int translation)
 {
 	PalEntry pe[256];
@@ -945,6 +969,7 @@ void FTGATexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_heig
 	WORD w;
 	BYTE r,g,b,a;
 	BYTE * sbuffer;
+	int transval = 0;
 
 	lump.Read(&hdr, sizeof(hdr));
 	lump.Seek(hdr.id_len, SEEK_CUR);
@@ -980,6 +1005,7 @@ void FTGATexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_heig
 			case 32:
 				lump >> b >> g >> r >> a;
 				if ((hdr.img_desc&15)!=8) a=255;
+				else if (a!=0 && a!=255) transval = true;
 				break;
 				
 			default:	// should never happen
@@ -1043,6 +1069,7 @@ void FTGATexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_heig
 			else
 			{
 				CopyPixelDataRGB(buffer, buf_width, buf_height, x, y, ptr, Width, Height, step_x, Pitch, cm, CopyColors<cBGRA>);
+				transval = -1;
 			}
 			break;
 		
@@ -1072,6 +1099,7 @@ void FTGATexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_heig
 		break;
     }
 	delete [] sbuffer;
+	return transval;
 }	
 
 //===========================================================================
@@ -1082,7 +1110,7 @@ void FTGATexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_heig
 //
 //===========================================================================
 
-void FPCXTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, 
+int FPCXTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, 
 									 intptr_t cm, int translation)
 {
 	PalEntry pe[256];
@@ -1147,6 +1175,7 @@ void FPCXTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_heig
 		CopyPixelDataRGB(buffer, buf_width, buf_height, x, y, Pixels, Width, Height, 3, Width*3, cm, CopyColors<cRGB>);
 	}
 	delete [] Pixels;
+	return 0;
 }
 
 //===========================================================================
@@ -1158,13 +1187,12 @@ void FPCXTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_heig
 //
 //===========================================================================
 
-void FWarpTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int xx, int yy, 
+int FWarpTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int xx, int yy, 
 									 intptr_t cm, int translation)
 {
 	if (gl_warp_shader || gl_glsl_renderer)
 	{
-		this->SourcePic->CopyTrueColorPixels(buffer, buf_width, buf_height, xx, yy, cm, translation);
-		return;
+		return SourcePic->CopyTrueColorPixels(buffer, buf_width, buf_height, xx, yy, cm, translation);
 	}
 
 	unsigned long * in=new unsigned long[Width*Height];
@@ -1184,7 +1212,7 @@ void FWarpTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_hei
 
 	GenTime = r_FrameTime;
 	if (SourcePic->bMasked) memset(in, 0, Width*Height*sizeof(long));
-	SourcePic->CopyTrueColorPixels((BYTE*)in, Width, Height, 0, 0, cm, translation);
+	int ret = SourcePic->CopyTrueColorPixels((BYTE*)in, Width, Height, 0, 0, cm, translation);
 
 	static unsigned long linebuffer[4096];	// that's the maximum texture size for most graphics cards!
 	int timebase = r_FrameTime*23/28;
@@ -1240,6 +1268,7 @@ void FWarpTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_hei
 	}
 	delete [] in;
 	GenTime=r_FrameTime;
+	return ret;
 }
 
 //===========================================================================
@@ -1251,13 +1280,12 @@ void FWarpTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_hei
 //
 //===========================================================================
 
-void FWarp2Texture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int xx, int yy, 
+int FWarp2Texture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int xx, int yy, 
 									 intptr_t cm, int translation)
 {
 	if (gl_warp_shader || gl_glsl_renderer)
 	{
-		this->SourcePic->CopyTrueColorPixels(buffer, buf_width, buf_height, xx, yy, cm, translation);
-		return;
+		return SourcePic->CopyTrueColorPixels(buffer, buf_width, buf_height, xx, yy, cm, translation);
 	}
 
 	unsigned long * in=new unsigned long[Width*Height];
@@ -1277,7 +1305,7 @@ void FWarp2Texture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_he
 
 	GenTime = r_FrameTime;
 	if (SourcePic->bMasked) memset(in, 0, Width*Height*sizeof(long));
-	SourcePic->CopyTrueColorPixels((BYTE*)in, Width, Height, 0, 0, cm, translation);
+	int ret = SourcePic->CopyTrueColorPixels((BYTE*)in, Width, Height, 0, 0, cm, translation);
 
 	int xsize = Width;
 	int ysize = Height;
@@ -1325,6 +1353,7 @@ void FWarp2Texture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_he
 	}
 	delete [] in;
 	GenTime=r_FrameTime;
+	return ret;
 }
 
 
@@ -1343,9 +1372,35 @@ void FCanvasTexture::RenderGLView (AActor *viewpoint, int fov)
 }
 
 
+//==========================================================================
+//
+// Precaches a GL texture
+//
+//==========================================================================
+
+void FTexture::PrecacheGL()
+{
+	FGLTexture * gltex = FGLTexture::ValidateTexture(this);
+	if (gltex) 
+	{
+		if (UseType==FTexture::TEX_Sprite) 
+		{
+			gltex->BindPatch(CM_DEFAULT);
+		}
+		else 
+		{
+			gltex->Bind (CM_DEFAULT);
+		}
+	}
+}
+
 //===========================================================================
 //
-// Brightness maps
+// fake brightness maps
+// These are generated for textures affected by a colormap with
+// fullbright entries.
+// These textures are only used internally by the GL renderer so
+// all code for software rendering support is missing
 //
 //===========================================================================
 
@@ -1379,9 +1434,10 @@ void FBrightmapTexture::Unload ()
 {
 }
 
-void FBrightmapTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation)
+int FBrightmapTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation)
 {
 	SourcePic->CopyTrueColorPixels(buffer, buf_width, buf_height, x, y, CM_BRIGHTMAP, translation);
+	return 0;
 }
 
 //===========================================================================
@@ -1449,6 +1505,8 @@ FGLTexture::FGLTexture(FTexture * tx)
 	else brightmap = NULL;
 
 	bIsBrightmap = false;
+	bBrightmapDisablesFullbright = false;
+	bIsTransparent = -1;
 
 	if (tex->bHasCanvas) scaley=-scaley;
 
@@ -1651,7 +1709,7 @@ bool FGLTexture::ProcessData(unsigned char * buffer, int w, int h, int cm, bool 
 		DWORD * dwbuf = (DWORD*)buffer;
 		for(int i=0;i<w*h;i++)
 		{
-			if (dwbuf[i]&0xffffff)
+			if ((dwbuf[i]&0xffffff) != 0)
 			{
 				bIsBrightmap = 1;
 				break;
@@ -1672,6 +1730,34 @@ bool FGLTexture::ProcessData(unsigned char * buffer, int w, int h, int cm, bool 
 }
 
 
+//===========================================================================
+// 
+//  Checks for transparent pixels if there is no simpler means to get
+//  this information
+//
+//===========================================================================
+void FGLTexture::CheckTrans(unsigned char * buffer, int size, int trans)
+{
+	if (bIsTransparent == -1) 
+	{
+		bIsTransparent = trans;
+		if (trans == -1)
+		{
+			DWORD * dwbuf = (DWORD*)buffer;
+			if (bIsTransparent == -1) for(int i=0;i<size;i++)
+			{
+				DWORD alpha = dwbuf[i]>>24;
+
+				if (alpha != 0xff && alpha != 0)
+				{
+					bIsTransparent = 1;
+					break;
+				}
+			}
+		}
+		bIsTransparent = 0;
+	}
+}
 
 //===========================================================================
 // 
@@ -1724,11 +1810,16 @@ unsigned char * FGLTexture::CreateTexBuffer(int _cm, int translation, const byte
 		translation=DIRECT_PALETTE;
 	}
 
-	if (cm<CM_FIRSTCOLORMAP || translation==DIRECT_PALETTE)
+	//if (cm<CM_FIRSTCOLORMAP || translation==DIRECT_PALETTE)
 	{
-		tex->CopyTrueColorPixels(buffer, GetWidth(), GetHeight(), GetLeftOffset() - tex->LeftOffset, 
+		int trans = 
+			tex->CopyTrueColorPixels(buffer, GetWidth(), GetHeight(), GetLeftOffset() - tex->LeftOffset, 
 				GetTopOffset() - tex->TopOffset, cm, translation);
+
+		CheckTrans(buffer, w*h, trans);
+
 	}
+	/*
 	else
 	{
 		// For Boom colormaps it is easiest to pass a buffer that has been mapped to the base palette
@@ -1737,6 +1828,7 @@ unsigned char * FGLTexture::CreateTexBuffer(int _cm, int translation, const byte
 		tex->FTexture::CopyTrueColorPixels(buffer, GetWidth(), GetHeight(), GetLeftOffset() - tex->LeftOffset, 
 				GetTopOffset() - tex->TopOffset, cm, translation);
 	}
+	*/
 
 	return buffer;
 }
@@ -2031,3 +2123,110 @@ FGLTexture * FGLTexture::ValidateTexture(int no, bool translate)
 	return FGLTexture::ValidateTexture(translate? TexMan(no) : TexMan[no]);
 }
 
+
+//==========================================================================
+//
+// Parses a brightmap definition
+//
+//==========================================================================
+
+void gl_ParseBrightmap(int deflump)
+{
+	int type = FTexture::TEX_Any;
+	bool disable_fullbright=false;
+	bool thiswad = false;
+	bool iwad = false;
+	int maplump = -1;
+	FString maplumpname;
+
+	SC_MustGetString();
+	if (SC_Compare("texture")) type = FTexture::TEX_Wall;
+	else if (SC_Compare("flat")) type = FTexture::TEX_Flat;
+	else if (SC_Compare("sprite")) type = FTexture::TEX_Sprite;
+	else SC_UnGet();
+
+	SC_MustGetString();
+	int no = TexMan.CheckForTexture(sc_String, type);
+	FGLTexture *gltex = FGLTexture::ValidateTexture(no);
+
+	SC_MustGetToken('{');
+	while (!SC_CheckToken('}'))
+	{
+		SC_MustGetString();
+		if (SC_Compare("disablefullbright"))
+		{
+			// This can also be used without a brightness map to disable
+			// fullbright in rotations that only use brightness maps on
+			// other angles.
+			disable_fullbright = true;
+		}
+		else if (SC_Compare("thiswad"))
+		{
+			// only affects textures defined in the WAD containing the definition file.
+			thiswad = true;
+		}
+		else if (SC_Compare ("iwad"))
+		{
+			// only affects textures defined in the IWAD.
+			iwad = true;
+		}
+		else if (SC_Compare ("map"))
+		{
+			SC_MustGetString();
+
+			if (maplump >= 0)
+			{
+				Printf("Multiple brightmap definitions in texture %s\n", gltex? gltex->tex->Name : "(null)");
+			}
+
+			maplump = Wads.CheckNumForFullName(sc_String);
+
+			// Try a normal WAD name lookup only if it's a proper name without path separator and
+			// not longer than 8 characters.
+			if (maplump==-1 && strlen(sc_String) <= 8 && !strchr(sc_String, '/')) 
+				maplump = Wads.CheckNumForName(sc_String);
+
+			if (maplump==-1) 
+				Printf("Brightmap '%s' not found in texture '%s'\n", sc_String, gltex? gltex->tex->Name : "(null)");
+
+			maplumpname = sc_String;
+		}
+	}
+	if (gltex)
+	{
+		if (thiswad || iwad)
+		{
+			bool useme = false;
+			int lumpnum = gltex->tex->GetSourceLump();
+
+			if (lumpnum != -1)
+			{
+				if (iwad && Wads.GetLumpFile(lumpnum) <= FWadCollection::IWAD_FILENUM) useme = true;
+				if (thiswad && Wads.GetLumpFile(lumpnum) == deflump) useme = true;
+			}
+			if (!useme) return;
+		}
+
+		if (maplump != -1)
+		{
+			FTexture * brightmap = FTexture::CreateTexture(maplump, gltex->tex->UseType);
+			if (!brightmap)
+			{
+				Printf("Unable to create texture from '%s' in brightmap definition for '%s'\n", 
+					maplumpname.GetChars(), gltex->tex->Name);
+				return;
+			}
+			gltex->brightmap = brightmap;
+
+			// We must prevent automatic generation of default brightness maps for the brightmap
+			// and this is the simplest way to do that. ;)
+			bool gbm = HasGlobalBrightmap;
+			HasGlobalBrightmap=false;
+
+			FGLTexture *gl_bm = FGLTexture::ValidateTexture(brightmap);
+			gl_bm->bIsBrightmap = true;
+			HasGlobalBrightmap=gbm;
+		}	
+		gltex->bBrightmapDisablesFullbright = disable_fullbright;
+	}
+}

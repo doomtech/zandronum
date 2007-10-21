@@ -53,6 +53,8 @@ public:
 	const BYTE *GetPixels ();
 	void Unload ();
 
+	int GetSourceLump() { return SourceLump; }
+
 protected:
 	int SourceLump;
 	BYTE *Pixels;
@@ -89,7 +91,7 @@ public:
 	virtual void SetFrontSkyLayer ();
 
 	// [OpenGL]
-	void CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
+	int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
 	bool UseBasePalette();
 
 protected:
@@ -121,6 +123,8 @@ public:
 	const BYTE *GetColumn (unsigned int column, const Span **spans_out);
 	const BYTE *GetPixels ();
 	void Unload ();
+
+	int GetSourceLump() { return SourceLump; }
 
 protected:
 	int SourceLump;
@@ -163,6 +167,8 @@ public:
 	const BYTE *GetPixels ();
 	void Unload ();
 
+	int GetSourceLump() { return SourceLump; }
+
 protected:
 	static bool Check(FileReader & file);
 	static FTexture *Create(FileReader & file, int lumpnum);
@@ -187,6 +193,8 @@ public:
 	const BYTE *GetPixels ();
 	void Unload ();
 	void MakeTexture ();
+
+	int GetSourceLump() { return LumpNum; }
 
 private:
 
@@ -213,6 +221,8 @@ public:
 	const BYTE *GetColumn (unsigned int column, const Span **spans_out);
 	const BYTE *GetPixels ();
 	void Unload ();
+
+	int GetSourceLump() { return SourceLump; }
 
 protected:
 
@@ -242,8 +252,9 @@ public:
 	void Unload ();
 
 	// [OpenGL]
-	void CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
+	int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
 	bool UseBasePalette() { return false; }
+	int GetSourceLump() { return SourceLump; }
 
 protected:
 
@@ -278,6 +289,8 @@ public:
 	const BYTE *GetColumn (unsigned int column, const Span **spans_out);
 	const BYTE *GetPixels ();
 	void Unload ();
+
+	int GetSourceLump() { return SourceLump; }
 
 protected:
 	static bool Check (FileReader &file);
@@ -319,8 +332,9 @@ public:
 	void Unload ();
 
 	// [OpenGL]
-	void CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
+	int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
 	bool UseBasePalette() { return false; }
+	int GetSourceLump() { return SourceLump; }
 
 protected:
 
@@ -371,8 +385,9 @@ public:
 
 
 	// [OpenGL]
-	void CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
+	int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
 	bool UseBasePalette() { return false; }
+	int GetSourceLump() { return SourceLump; }
 
 protected:
 	int SourceLump;
@@ -427,8 +442,9 @@ public:
 	void Unload ();
 
 	// [OpenGL]
-	void CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
+	int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
 	bool UseBasePalette() { return false; }
+	int GetSourceLump() { return SourceLump; }
 
 protected:
 	int SourceLump;
@@ -464,8 +480,9 @@ public:
 	bool CheckModified ();
 
 	// [OpenGL]
-	void CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
+	int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
 	bool UseBasePalette() { return false; }
+	int GetSourceLump() { return SourcePic->GetSourceLump(); }
 
 protected:
 	FTexture *SourcePic;
@@ -483,7 +500,7 @@ public:
 	FWarp2Texture (FTexture *source);
 
 	// [OpenGL]
-	void CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
+	int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
 	bool UseBasePalette() { return false; }
 
 protected:

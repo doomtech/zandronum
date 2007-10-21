@@ -387,7 +387,9 @@ inline void GLFlat::PutFlat()
 		}
 		else foggy = false;
 
-		gl_drawinfo->drawlists[list_indices[light][masked][foggy]].AddFlat (this);
+		int list = list_indices[light][masked][foggy];
+		if (list == GLDL_LIGHT && gltexture->brightmap && gl_brightmap_shader) list = GLDL_LIGHTBRIGHT;
+		gl_drawinfo->drawlists[list].AddFlat (this);
 	}
 }
 

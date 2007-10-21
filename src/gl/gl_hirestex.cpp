@@ -241,7 +241,9 @@ unsigned char *FGLTexture::LoadHiresTexture(int *width, int *height,intptr_t cm)
 		unsigned char * buffer=new unsigned char[w*(h+1)*4];
 		memset(buffer, 0, w * (h+1) * 4);
 
-		hirestexture->CopyTrueColorPixels(buffer, w, h, 0, 0, cm, 0);
+		int trans = hirestexture->CopyTrueColorPixels(buffer, w, h, 0, 0, cm, 0);
+		CheckTrans(buffer, w*h, trans);
+
 		if (bHasColorkey)
 		{
 			// This is a crappy Doomsday color keyed image

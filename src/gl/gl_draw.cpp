@@ -148,7 +148,8 @@ void gl_DrawTexture(FTexInfo *texInfo)
 	// just ignore for now...
 	if (texInfo->windowLeft || texInfo->windowRight != texInfo->tex->GetScaledWidth()) return;
 	
-	if (texInfo->fillColor > 0)
+	if (texInfo->fillColor > 0  || texInfo->RenderStyle == STYLE_Shaded ||
+		texInfo->RenderStyle == STYLE_TranslucentStencil || texInfo->RenderStyle == STYLE_Stencil)
 	{
 		r = RPART(texInfo->fillColor)/255.0f;
 		g = GPART(texInfo->fillColor)/255.0f;
@@ -167,7 +168,14 @@ void gl_DrawTexture(FTexInfo *texInfo)
 	int space = (static_cast<OpenGLFrameBuffer*>(screen)->GetTrueHeight()-screen->GetHeight())/2;	// ugh...
 	gl.Scissor(texInfo->clipLeft, btm - texInfo->clipBottom+space, texInfo->clipRight - texInfo->clipLeft, texInfo->clipBottom - texInfo->clipTop);
 	
-	if (!texInfo->masked) gl_SetTextureMode(TM_OPAQUE);
+	if (texInfo->RenderStyle == STYLE_TranslucentStencil || texInfo->RenderStyle == STYLE_Stencil)
+	{
+		gl_SetTextureMode(TM_MASK);
+	}
+	else if (!texInfo->masked) 
+	{
+		gl_SetTextureMode(TM_OPAQUE);
+	}
 	gl.Color4f(r, g, b, texInfo->alpha);
 	
 	gl.Disable(GL_ALPHA_TEST);
@@ -185,7 +193,11 @@ void gl_DrawTexture(FTexInfo *texInfo)
 	
 	gl.Scissor(0, 0, screen->GetWidth(), screen->GetHeight());
 	gl.Disable(GL_SCISSOR_TEST);
-	if (!texInfo->masked) gl_SetTextureMode(TM_MODULATE);
+	if (!texInfo->masked || texInfo->RenderStyle == STYLE_TranslucentStencil || 
+		texInfo->RenderStyle == STYLE_Stencil) 
+	{
+		gl_SetTextureMode(TM_MODULATE);
+	}
 }
 
 

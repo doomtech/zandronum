@@ -760,8 +760,10 @@ public:
 	virtual const BYTE *GetPixels () = 0;
 	
 	// [OpenGL]
-	virtual void CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
+	virtual int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
 	virtual bool UseBasePalette() { return true; }
+	virtual int GetSourceLump() { return -1; }
+	virtual void PrecacheGL();
 	FGLTexture * gltex;
 						
 

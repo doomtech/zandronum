@@ -60,6 +60,7 @@ EXTERN_CVAR (Float, gl_lights_size);
 int ScriptDepth;
 void gl_ParseSkybox();
 void gl_InitGlow();
+void gl_ParseBrightmap(int);
 
 //==========================================================================
 //
@@ -846,6 +847,8 @@ static const char *CoreKeywords[]=
    "clearshaders",
    "skybox",
    "glow",
+   "brightmap",
+   "disable_fullbright",
    NULL
 };
 
@@ -863,6 +866,8 @@ enum
    TAG_CLEARSHADERS,
    TAG_SKYBOX,
    TAG_GLOW,
+   TAG_BRIGHTMAP,
+   TAG_DISABLE_FB,
 };
 
 
@@ -1152,6 +1157,17 @@ void gl_DoParseDefs(char * defsLump)
 				case TAG_GLOW:
 					gl_InitGlow();
 					break;
+				case TAG_BRIGHTMAP:
+					gl_ParseBrightmap(workingLump);
+					break;
+				case TAG_DISABLE_FB:
+					{
+						SC_MustGetString();
+						const PClass *cls = PClass::FindClass(sc_String);
+						if (cls) GetDefaultByType(cls)->renderflags |= RF_NEVERFULLBRIGHT;
+					}
+					break;
+
 				}
 			}
 		}

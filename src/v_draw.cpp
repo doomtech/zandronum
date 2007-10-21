@@ -451,6 +451,7 @@ void STACK_ARGS DCanvas::DrawTexture (FTexture *img, int x0, int y0, int tags_fi
 		texInfo.windowLeft = windowleft; texInfo.windowRight = windowright;
 		texInfo.flipX = flipX == 1;
 		texInfo.masked = spanptr != NULL;
+		texInfo.RenderStyle = style;
 		gl_DrawTexture(&texInfo);
 		return;
 	}

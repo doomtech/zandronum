@@ -28,14 +28,13 @@ EXTERN_CVAR(Bool, gl_precache)
 EXTERN_CVAR(Bool, gl_render_precise)
 EXTERN_CVAR(Bool, gl_sprite_blend)
 EXTERN_CVAR(Bool, gl_fakecontrast)
-EXTERN_CVAR(Bool, gl_lights_additive)
+EXTERN_CVAR (Bool, gl_lights_additive)
 EXTERN_CVAR(Bool, gl_warp_shader)
 EXTERN_CVAR(Bool, gl_colormap_shader)
 EXTERN_CVAR(Bool, gl_brightmap_shader)
-EXTERN_CVAR(Float, gl_light_ambient)
+EXTERN_CVAR (Float, gl_light_ambient)
 EXTERN_CVAR(Int, gl_billboard_mode)
 EXTERN_CVAR(Int, gl_particles_style)
-
 
 static value_t SpriteclipModes[]=
 {

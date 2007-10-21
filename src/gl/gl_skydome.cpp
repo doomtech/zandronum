@@ -76,9 +76,10 @@ public:
 		if (faces[0]) return faces[0]->GetPixels();
 		return NULL;
 	}
-	virtual void CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation)
+	virtual int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation)
 	{
-		if (faces[0]) faces[0]->CopyTrueColorPixels(buffer, buf_width, buf_height, x, y, cm, translation);
+		if (faces[0]) return faces[0]->CopyTrueColorPixels(buffer, buf_width, buf_height, x, y, cm, translation);
+		return 0;
 	}
 	bool UseBasePalette() { return false; }	// not really but here it's not important.
 
@@ -96,6 +97,12 @@ public:
 	{
 		for(int i=0;i<6;i++) if (faces[i]) faces[i]->Unload();
 	}
+
+	void PrecacheGL()
+	{
+		for(int i=0;i<6;i++) if (faces[i]) faces[i]->PrecacheGL();
+	}
+
 };
 
 //-----------------------------------------------------------------------------

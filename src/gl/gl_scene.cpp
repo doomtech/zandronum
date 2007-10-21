@@ -416,6 +416,7 @@ void gl_DrawScene()
 	// This creates a blank surface that only fills the nontransparent parts of the texture
 	gl_SetTextureMode(TM_MASK);
 	gl_EnableBrightmap(true);
+	gl_drawinfo->drawlists[GLDL_LIGHTBRIGHT].Draw(GLPASS_BASE_MASKED);
 	gl_drawinfo->drawlists[GLDL_LIGHTMASKED].Draw(GLPASS_BASE_MASKED);
 	gl_EnableBrightmap(false);
 	gl_SetTextureMode(TM_MODULATE);

@@ -145,7 +145,10 @@ void GLWall::PutWall(bool translucent)
 		}
 
 		masked = passflag[type]==1? false : (light && type!=RENDERWALL_FFBLOCK) || gltexture->tex->bMasked;
-		gl_drawinfo->drawlists[list_indices[light][masked][!!(flags&GLWF_FOGGY)]].AddWall(this);
+
+		int list = list_indices[light][masked][!!(flags&GLWF_FOGGY)];
+		if (list == GLDL_LIGHT && gltexture->brightmap && gl_brightmap_shader) list = GLDL_LIGHTBRIGHT;
+		gl_drawinfo->drawlists[list].AddWall(this);
 
 	}
 	else switch (type)
@@ -895,6 +898,11 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 			alpha=(float)seg->linedef->alpha/255.0f;
 			translucent=true;
 			break;
+		}
+		if (gltexture && gltexture->GetTransparent())
+		{
+			if (RenderStyle == STYLE_Normal) RenderStyle = STYLE_Translucent;
+			translucent = true;
 		}
 
 		//

@@ -1307,7 +1307,8 @@ void C_DrawConsole ()
 			screen->DrawTexture (conpic, 0, visheight - screen->GetHeight(),
 				DTA_DestWidth, screen->GetWidth(),
 				DTA_DestHeight, screen->GetHeight(),
-				DTA_Alpha, (fixed_t)(FRACUNIT*(fullconsole? 1.0f : 0.75f)),
+				DTA_Alpha, fullconsole? FRACUNIT : FRACUNIT*3/4,
+				DTA_RenderStyle, fullconsole? STYLE_Normal : STYLE_Translucent,
 				DTA_FillColor, fullconsole? 0x4c4c4c : 0x1a1a1a,	// This is hardware only so no palette indices are needed.
 				DTA_Masked, false,
 				TAG_DONE);

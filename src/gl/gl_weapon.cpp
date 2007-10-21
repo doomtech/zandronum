@@ -64,7 +64,9 @@ static void DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed_t sy,
 	fixed_t			texturemid;
 	
 	// decide which patch to use
-	int lump=abs(gl_GetSpriteFrame(psp->state->sprite.index, psp->state->GetFrame(), 0));
+	int lump = gl_GetSpriteFrame(psp->state->sprite.index, psp->state->GetFrame(), 0);
+	bool mirror = lump < 0;
+	lump = abs(lump);
 	if (lump==INVALID_SPRITE) return;
 
 	FGLTexture * tex=FGLTexture::ValidateTexture(lump, false);
@@ -103,10 +105,20 @@ static void DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed_t sy,
 	fV2=pti->GetVB();
 
 	gl.Begin(GL_TRIANGLE_STRIP);
-	gl.TexCoord2f(0  , 0  ); gl.Vertex2f(x1,y1);
-	gl.TexCoord2f(0  , fV2); gl.Vertex2f(x1,y2);
-	gl.TexCoord2f(fU2, 0  ); gl.Vertex2f(x2,y1);
-	gl.TexCoord2f(fU2, fV2); gl.Vertex2f(x2,y2);
+	if (!mirror)
+	{
+		gl.TexCoord2f(0  , 0  ); gl.Vertex2f(x1,y1);
+		gl.TexCoord2f(0  , fV2); gl.Vertex2f(x1,y2);
+		gl.TexCoord2f(fU2, 0  ); gl.Vertex2f(x2,y1);
+		gl.TexCoord2f(fU2, fV2); gl.Vertex2f(x2,y2);
+	}
+	else
+	{
+		gl.TexCoord2f(fU2, 0  ); gl.Vertex2f(x1,y1);
+		gl.TexCoord2f(fU2, fV2); gl.Vertex2f(x1,y2);
+		gl.TexCoord2f(0  , 0  ); gl.Vertex2f(x2,y1);
+		gl.TexCoord2f(0  , fV2); gl.Vertex2f(x2,y2);
+	}
 	gl.End();
 }
 

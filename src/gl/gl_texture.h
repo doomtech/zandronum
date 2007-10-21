@@ -88,6 +88,7 @@ class GLShader;
 
 class FGLTexture : protected WorldTextureInfo, protected PatchTextureInfo
 {
+	friend void Debug_Patch();	// debug code should have full access
 
 	static TArray<FGLTexture *> * gltextures;
 public:
@@ -96,6 +97,8 @@ public:
 	FTexture * brightmap;
 	bool bSkybox;
 	char bIsBrightmap;
+	bool bBrightmapDisablesFullbright;
+	char bIsTransparent;
 	int HiresLump;
 
 private:
@@ -116,6 +119,7 @@ private:
 
 	bool FindHoles(const unsigned char * buffer, int w, int h);
 	bool ProcessData(unsigned char * buffer, int w, int h, int cm, bool ispatch);
+	void CheckTrans(unsigned char * buffer, int size, int trans);
 	static bool SmoothEdges(unsigned char * buffer,int w, int h, bool clampsides);
 	int CheckExternalFile(bool & hascolorkey);
 	unsigned char * LoadHiresTexture(int *width, int *height,intptr_t cm);
@@ -215,6 +219,13 @@ public:
 	{
 		return index;
 	}
+
+	bool GetTransparent()
+	{
+		if (bIsTransparent == -1) tex->PrecacheGL();
+		return !!bIsTransparent;
+	}
+
 };
 
 
@@ -230,7 +241,7 @@ public:
 	const BYTE *GetPixels ();
 	void Unload ();
 
-	void CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
+	int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
 	bool UseBasePalette() { return false; }
 
 protected:
