@@ -80,7 +80,6 @@ CVAR (String,	playerclass,			"Fighter",	CVAR_USERINFO | CVAR_ARCHIVE);
 // [BC] New userinfo entries for Skulltag.
 CVAR (Int,		railcolor,				0,			CVAR_USERINFO | CVAR_ARCHIVE);
 CVAR (Int,		handicap,				0,			CVAR_USERINFO | CVAR_ARCHIVE);
-CVAR (Int,		connectiontype,			2,			CVAR_USERINFO | CVAR_ARCHIVE);
 
 enum
 {
@@ -93,7 +92,6 @@ enum
 	INFO_Railcolor,
 	INFO_Handicap,
 	INFO_MoveBob,
-	INFO_ConnectionType,
 	INFO_StillBob,
 	INFO_PlayerClass,
 };
@@ -111,7 +109,6 @@ static const char *UserInfoStrings[] =
 	"railcolor",
 	"handicap",
 	"movebob",
-	"connectiontype",
 	"stillbob",
 	"playerclass",
 	NULL
@@ -269,7 +266,6 @@ void D_SetupUserInfo ()
 		coninfo->lHandicap = 0;
 	else if ( coninfo->lHandicap > deh.MaxSoulsphere )
 		coninfo->lHandicap = deh.MaxSoulsphere;
-	coninfo->lConnectionType = connectiontype;
 
 	R_BuildPlayerTranslation (consoleplayer);
 }
@@ -331,8 +327,6 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 
 		ulUpdateFlags |= USERINFO_HANDICAP;
 	}
-	else if ( cvar == &connectiontype )
-		ulUpdateFlags |= USERINFO_CONNECTIONTYPE;
 	else if (( cvar == &playerclass ) && ( (gameinfo.gametype == GAME_Hexen) || (PlayerClasses.Size() > 1) ))
 		ulUpdateFlags |= USERINFO_PLAYERCLASS;
 
@@ -340,6 +334,11 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 	if (4 + strlen (cvar->GetName ()) + strlen (val.String) > 256)
 		I_Error ("User info descriptor too big");
 
+	sprintf (foo, "\\%s\\%s", cvar->GetName (), val.String);
+
+	Net_WriteByte (DEM_UINFCHANGED);
+	Net_WriteString (foo);
+/*
 	// [BB] D_SetupUserInfo has to be executed in any case, if we are
 	// not the server. If we for example are not connected to a server,
 	// change our name in the console and connect to a server then,
@@ -347,8 +346,6 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 	// Is the demo stuff necessary at all for ST?
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
-		sprintf (foo, "\\%s\\%s", cvar->GetName (), val.String);
-
 		Net_WriteByte (DEM_UINFCHANGED);
 		Net_WriteString (foo);
 	}
@@ -357,7 +354,7 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 		if ( gamestate != GS_STARTUP )
 			D_SetupUserInfo( );
 	}
-
+*/
 	// Send updated userinfo to the server.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( CLIENT_GetConnectionState( ) >= CTS_REQUESTINGSNAPSHOT ) && ( ulUpdateFlags > 0 ))
 	{
@@ -516,7 +513,6 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 					 "\\handicap\\%d"
 					 "\\movebob\\%g"
 					 "\\stillbob\\%g"
-					 "\\connectiontype\\%d"
 					 "\\playerclass\\%s"
 					 ,
 					 info->netname,
@@ -530,7 +526,6 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 					 info->lHandicap,
 					 (float)(info->MoveBob) / 65536.f,
 					 (float)(info->StillBob) / 65536.f,
-					 info->lConnectionType,
 					 info->PlayerClass == -1 ? "Random" :
 						type->Meta.GetMetaString (APMETA_DisplayName)
 				);
@@ -549,7 +544,6 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 				"\\%d"			// handicap
 				"\\%g"			// movebob
 				"\\%g"			// stillbob
-				"\\%d"			// connectiontype
 				"\\%s"			// playerclass
 				,
 				info->netname,
@@ -563,7 +557,6 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 				info->lHandicap,
 				(float)(info->MoveBob) / 65536.f,
 				(float)(info->StillBob) / 65536.f,
-				info->lConnectionType,
 				info->PlayerClass == -1 ? "Random" :
 					type->Meta.GetMetaString (APMETA_DisplayName)
 			);
@@ -681,9 +674,7 @@ void D_ReadUserInfoStrings (int i, BYTE **stream, bool update)
 						GetDefaultByType (players[i].cls)->SpawnState->sprite.index)
 					{ // Only change the sprite if the player is using a standard one
 						players[i].mo->sprite = skins[info->skin].sprite;
-						// [GZDoom]
 						players[i].mo->scaleX = players[i].mo->scaleY = skins[info->skin].Scale;
-						//players[i].mo->xscale = players[i].mo->yscale = skins[info->skin].scale;
 					}
 				}
 				// Rebuild translation in case the new skin uses a different range
@@ -741,10 +732,6 @@ void D_ReadUserInfoStrings (int i, BYTE **stream, bool update)
 				info->StillBob = (fixed_t)(atof (value) * 65536.f);
 				break;
 
-			case INFO_ConnectionType:
-
-				info->lConnectionType = atoi( value );
-				break;
 			case INFO_PlayerClass:
 
 				info->PlayerClass = D_PlayerClassToInt (value);

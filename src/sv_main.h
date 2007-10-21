@@ -349,7 +349,6 @@ EXTERN_CVAR( String, sv_password );
 EXTERN_CVAR( String, sv_joinpassword );
 EXTERN_CVAR( String, sv_rconpassword );
 EXTERN_CVAR( Int, sv_maxpacketsize );
-EXTERN_CVAR( Int, sv_connectiontype );
 EXTERN_CVAR( Bool, sv_timestamp );
 EXTERN_CVAR( Int, sv_timestampformat );
 EXTERN_CVAR( Int, sv_colorstripmethod );

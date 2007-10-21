@@ -2465,7 +2465,7 @@ static void M_PlayerSetupDrawer ()
 		else
 		{
 			sprframe = &SpriteFrames[sprites[skins[g_ulPlayerSetupSkin].sprite].spriteframes + PlayerState->GetFrame()];
-			Scale = skins[PlayerSkin].Scale;
+			Scale = skins[g_ulPlayerSetupSkin].Scale;
 		}
 
 		if (sprframe != NULL)

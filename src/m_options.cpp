@@ -133,7 +133,6 @@ EXTERN_CVAR (Color, color)
 EXTERN_CVAR (String, skin)
 EXTERN_CVAR (String, gender)
 EXTERN_CVAR (Int, railcolor)
-EXTERN_CVAR (Int, connectiontype)
 EXTERN_CVAR (Int, handicap)
 EXTERN_CVAR (Bool, cl_run)
 EXTERN_CVAR (Bool, cl_identifytarget)
@@ -158,7 +157,6 @@ CVAR( Int, menu_gender, 0, 0 );
 CVAR( Int, menu_railcolor, 0, 0 );
 CVAR( Int, menu_handicap, 0, 0 );
 CVAR( Float, menu_autoaim, 0.0f, 0 );
-CVAR( Int, menu_connectiontype, 0, 0 );
 CVAR( Int, menu_votecommand, 0, 0 );
 CVAR( String, menu_voteparameters, "", 0 );
 
@@ -229,13 +227,6 @@ value_t AllowSkinVals[3] = {
 	{ 0.0, "No skins" },
 	{ 1.0, "All skins" },
 	{ 2.0, "No cheat skins" },
-};
-
-value_t ConnectionTypeVals[4] = {
-	{ 0.0, "56k/ISDN" },
-	{ 1.0, "DSL" },
-	{ 2.0, "Cable" },
-	{ 3.0, "LAN" },
 };
 
 value_t GameskillVals[5] = {
@@ -1584,8 +1575,6 @@ void SendNewColor (int red, int green, int blue);
 void M_PlayerSetup (void);
 void M_AccountSetup( void );
 void M_SetupPlayerSetupMenu( void );
-bool M_MultiplayerItemsChanged( void );
-void M_AcceptMultiplayerChanges( void );
 void M_Browse( void );
 void M_Spectate( void );
 void M_CallVote( void );
@@ -1612,7 +1601,6 @@ static menuitem_t MultiplayerItems[] =
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ string,	"Server password",		&cl_password,				{0.0}, {0.0},	{0.0}, {NULL} },
 	{ string,	"Join password",		&cl_joinpassword,		{0.0}, {0.0},	{0.0}, {NULL} },
-	{ discrete, "Connection type",		&menu_connectiontype,	4.0, 0.0, 0.0, ConnectionTypeVals },
 	{ discrete, "Reset frags at join",	&cl_dontrestorefrags,	2.0, 0.0, 0.0, YesNo },
 };
 
@@ -1627,7 +1615,6 @@ menu_t MultiplayerMenu = {
 	0,
 	M_SkulltagVersionDrawer,
 	false,
-	M_AcceptMultiplayerChanges,
 };
 
 void M_StartMessage (const char *string, void (*routine)(int), bool input);
@@ -1654,27 +1641,6 @@ void M_CallVote( void )
 	}
 
 	M_SwitchMenu( &CallVoteMenu );
-}
-
-//*****************************************************************************
-//
-bool M_MultiplayerItemsChanged( void )
-{
-	if ( menu_connectiontype != connectiontype )
-		return ( true );
-
-	return ( false );
-}
-
-//*****************************************************************************
-//
-void M_AcceptMultiplayerChanges( void )
-{
-	// No need to do this if nothing's changed!
-	if ( M_MultiplayerItemsChanged( ) == false )
-		return;
-
-	connectiontype = menu_connectiontype;
 }
 
 //*****************************************************************************
@@ -3664,13 +3630,9 @@ void M_SwitchMenu (menu_t *menu)
 	flagsvar = 0;
 }
 
+// [BC]
 bool M_StartMultiplayerMenu (void)
 {
-	UCVarValue	Val;
-
-	Val = connectiontype.GetGenericRep( CVAR_Int );
-	menu_connectiontype.SetGenericRep( Val, CVAR_Int );
-
 	M_SwitchMenu (&MultiplayerMenu);
 	return true;
 }

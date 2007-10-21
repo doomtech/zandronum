@@ -2012,13 +2012,6 @@ BOOL CALLBACK SERVERCONSOLE_ServerInformationCallback( HWND hDlg, UINT Message, 
 			sprintf( szString, "Vendor: %s", g_szVendor );
 			SetDlgItemText( hDlg, IDC_VENDOR, szString );
 
-			sprintf( szString, "Connection type: %s", sv_connectiontype == 0 ? "56k/ISDN" :
-				sv_connectiontype == 1 ? "DSL" :
-				sv_connectiontype == 2 ? "Cable" :
-				sv_connectiontype == 3 ? "LAN" :
-				"UNKNOWN" );
-			SetDlgItemText( hDlg, IDC_CONNECTIONTYPE, szString );
-
 			Val = sv_maxclients.GetGenericRep( CVAR_Int );
 			sprintf( szString, "Max. clients: %d", Val.Int );
 			SetDlgItemText( hDlg, IDC_MAXCLIENTS, szString );
@@ -4259,35 +4252,6 @@ void SERVERCONSOLE_InitializeGeneralSettingsDisplay( HWND hDlg )
 	Val = sv_hostemail.GetGenericRep( CVAR_String );
 	SetDlgItemText( hDlg, IDC_EMAIL, Val.String );
 
-	SendDlgItemMessage( hDlg, IDC_CONNECTIONTYPE, CB_INSERTSTRING, -1, (WPARAM)(LPSTR)"56k/ISDN" );
-	SendDlgItemMessage( hDlg, IDC_CONNECTIONTYPE, CB_INSERTSTRING, -1, (WPARAM)(LPSTR)"DSL" );
-	SendDlgItemMessage( hDlg, IDC_CONNECTIONTYPE, CB_INSERTSTRING, -1, (WPARAM)(LPSTR)"Cable" );
-	SendDlgItemMessage( hDlg, IDC_CONNECTIONTYPE, CB_INSERTSTRING, -1, (WPARAM)(LPSTR)"LAN" );
-
-	switch ( sv_connectiontype )
-	{
-	case 0:
-
-		SendDlgItemMessage( hDlg, IDC_CONNECTIONTYPE, CB_SETCURSEL, 0, 0 );
-		break;
-	case 1:
-
-		SendDlgItemMessage( hDlg, IDC_CONNECTIONTYPE, CB_SETCURSEL, 1, 0 );
-		break;
-	case 2:
-
-		SendDlgItemMessage( hDlg, IDC_CONNECTIONTYPE, CB_SETCURSEL, 2, 0 );
-		break;
-	case 3:
-
-		SendDlgItemMessage( hDlg, IDC_CONNECTIONTYPE, CB_SETCURSEL, 3, 0 );
-		break;
-	default:
-
-		SendDlgItemMessage( hDlg, IDC_CONNECTIONTYPE, CB_SETCURSEL, 0, 0 );
-		break;
-	}
-
 	if ( sv_updatemaster )
 		SendDlgItemMessage( hDlg, IDC_UPDATEMASTER, BM_SETCHECK, BST_CHECKED, 0 );
 	if ( sv_broadcast )
@@ -4594,9 +4558,6 @@ void SERVERCONSOLE_UpdateGeneralSettings( HWND hDlg )
 
 	GetDlgItemText( hDlg, IDC_EMAIL, szBuffer, 1024 );
 	sv_hostemail = szBuffer;
-
-	if ( SendDlgItemMessage( hDlg, IDC_CONNECTIONTYPE, CB_GETCURSEL, 0, 0 ) != sv_connectiontype )
-		sv_connectiontype = SendDlgItemMessage( hDlg, IDC_CONNECTIONTYPE, CB_GETCURSEL, 0, 0 );
 
 	sv_updatemaster = !!SendDlgItemMessage( hDlg, IDC_UPDATEMASTER, BM_GETCHECK, 0, 0 );
 	sv_broadcast = !!SendDlgItemMessage( hDlg, IDC_BROADCAST, BM_GETCHECK, 0, 0 );

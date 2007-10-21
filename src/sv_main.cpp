@@ -287,43 +287,6 @@ CUSTOM_CVAR( Int, sv_maxpacketsize, 1024, CVAR_ARCHIVE )
 }
 
 //*****************************************************************************
-//
-CUSTOM_CVAR( Int, sv_connectiontype, 2, CVAR_ARCHIVE )
-{
-	if (( self < 0 ) || ( self > 3 ))
-	{
-		Printf( "sv_connectiontype must be betwen 0 and 3.\n\n0: 56K/ISDN\n1: DSL\n2: Cable\n3: LAN\n" );
-		self = 1;
-		return;
-	}
-
-	// Don't print anything if we're just starting up.
-	if ( gamestate == GS_STARTUP )
-		return;
-
-	Printf( "sv_connectiontype is: %d ", (LONG)self );
-	switch ( self )
-	{
-	case 0:
-
-		Printf( "(56K/ISDN)\n" );
-		break;
-	case 1:
-
-		Printf( "(DSL)\n" );
-		break;
-	case 2:
-
-		Printf( "(Cable)\n" );
-		break;
-	case 3:
-
-		Printf( "(LAN)\n" );
-		break;
-	}
-}
-
-//*****************************************************************************
 //	FUNCTIONS
 
 void SERVER_Construct( void )
@@ -1867,9 +1830,6 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 		else if ( pPlayer->userinfo.lHandicap > deh.MaxSoulsphere )
 			pPlayer->userinfo.lHandicap = deh.MaxSoulsphere;
 	}
-
-	if ( ulFlags & USERINFO_CONNECTIONTYPE )
-		pPlayer->userinfo.lConnectionType = NETWORK_ReadByte( pByteStream );
 
 	// If this is a Hexen game, read in the player's class.
 	if ( ulFlags & USERINFO_PLAYERCLASS )

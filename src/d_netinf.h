@@ -67,7 +67,6 @@ struct userinfo_s
 
 	// [BC] New Skulltag userinfo settings.
 	LONG		lRailgunTrailColor;
-	LONG		lConnectionType;
 	LONG		lHandicap;
 };
 typedef struct userinfo_s userinfo_t;

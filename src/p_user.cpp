@@ -2033,6 +2033,8 @@ void A_CheckPlayerDone (AActor *actor)
 
 void P_CheckPlayerSprites()
 {
+	LONG	lSkin;
+
 	for(int i=0; i<MAXPLAYERS; i++)
 	{
 		player_t * player = &players[i];
@@ -2042,13 +2044,17 @@ void P_CheckPlayerSprites()
 		{
 			int crouchspriteno;
 			fixed_t defscaleY = mo->GetDefault()->scaleY;
-			//int defyscale = mo->GetDefault()->yscale;
 			
-			if (player->userinfo.skin != 0)
+			// [BC] Because of cl_skins, we might not necessarily use the player's
+			// desired skin.
+			lSkin = player->userinfo.skin;
+
+			if (( cl_skins <= 0 ) || ((( cl_skins >= 2 ) && ( skins[player->userinfo.skin].bCheat ))))
+				lSkin = R_FindSkin( "base", player->CurrentPlayerClass );
+
+			if (lSkin != 0)
 			{
-				// [GZDoom]
-				defscaleY = skins[player->userinfo.skin].Scale;
-				//defyscale = skins[player->userinfo.skin].scale;
+				defscaleY = skins[lSkin].Scale;
 			}
 			
 			// Set the crouch sprite
@@ -2059,10 +2065,10 @@ void P_CheckPlayerSprites()
 				{
 					crouchspriteno = mo->crouchsprite;
 				}
-				else if (mo->sprite == skins[player->userinfo.skin].sprite ||
-						 mo->sprite == skins[player->userinfo.skin].crouchsprite)
+				else if (mo->sprite == skins[lSkin].sprite ||
+						 mo->sprite == skins[lSkin].crouchsprite)
 				{
-					crouchspriteno = skins[player->userinfo.skin].crouchsprite;
+					crouchspriteno = skins[lSkin].crouchsprite;
 				}
 				else
 				{
@@ -2073,15 +2079,11 @@ void P_CheckPlayerSprites()
 				if (crouchspriteno > 0) 
 				{
 					mo->sprite = crouchspriteno;
-					// [GZDoom]
 					mo->scaleY = defscaleY;
-					//mo->yscale = defyscale;
 				}
 				else if (player->playerstate != PST_DEAD)
 				{
-					// [GZDoom]
 					mo->scaleY = player->crouchfactor < FRACUNIT*3/4 ? defscaleY/2 : defscaleY;
-					//mo->yscale = player->crouchfactor < FRACUNIT*3/4 ? defyscale/2 : defyscale;
 				}
 			}
 			else	// Set the normal sprite
@@ -2090,17 +2092,11 @@ void P_CheckPlayerSprites()
 				{
 					mo->sprite = mo->SpawnState->sprite.index;
 				}
-				else if (mo->sprite == skins[player->userinfo.skin].crouchsprite)
+				else if (mo->sprite == skins[lSkin].crouchsprite)
 				{
-					mo->sprite = skins[player->userinfo.skin].sprite;
+					mo->sprite = skins[lSkin].sprite;
 				}
-				// [RC] We need to also check cl_skins here.
-				long lSkin = player->userinfo.skin;
-
-				if (( cl_skins <= 0 ) || ((( cl_skins >= 2 ) && ( skins[player->userinfo.skin].bCheat ))))
-					lSkin = R_FindSkin( "base", player->CurrentPlayerClass );
-
-				mo->scaleY = skins[lSkin].Scale;
+				mo->scaleY = defscaleY;
 			}
 		}
 	}
