@@ -435,6 +435,9 @@ static	ULONG				g_ulRetryTicks;
 // our snapshot.
 static	FString				g_MOTD;
 
+// Is the client module parsing a packet?
+static	bool				g_bIsParsingPacket;
+
 // This contains the last 256 packets we've received.
 static	PACKETBUFFER_s		g_ReceivedPacketBuffer;
 
@@ -764,6 +767,7 @@ void CLIENT_Construct( void )
 		g_ConnectionState = CTS_DISCONNECTED;
 
 	g_MOTD = "";
+	g_bIsParsingPacket = false;
 }
 
 //*****************************************************************************
@@ -1231,6 +1235,9 @@ void CLIENT_ParsePacket( BYTESTREAM_s *pByteStream, bool bSequencedPacket )
 {
 	LONG	lCommand;
 
+	// We're currently parsing a packet.
+	g_bIsParsingPacket = true;
+
 	while ( 1 )
 	{  
 		lCommand = NETWORK_ReadByte( pByteStream );
@@ -1250,6 +1257,9 @@ void CLIENT_ParsePacket( BYTESTREAM_s *pByteStream, bool bSequencedPacket )
 
 		g_lLastCmd = lCommand;
 	}
+
+	// All done!
+	g_bIsParsingPacket = false;
 
 	if ( debugfile )
 	{
@@ -2862,6 +2872,13 @@ bool CLIENT_IsValidPlayer( ULONG ulPlayer )
 		return ( false );
 
 	return ( true );
+}
+
+//*****************************************************************************
+//
+bool CLIENT_IsParsingPacket( void )
+{
+	return ( g_bIsParsingPacket );
 }
 
 //*****************************************************************************

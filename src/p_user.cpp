@@ -708,8 +708,11 @@ AWeapon *APlayerPawn::PickNewWeapon (const PClass *ammotype)
 		{
 			CLIENTCOMMANDS_WeaponSelect( (char *)best->GetClass( )->TypeName.GetChars( ));
 
-			if ( CLIENTDEMO_IsRecording( ))
+			if (( CLIENTDEMO_IsRecording( )) &&
+				( CLIENT_IsParsingPacket( ) == false ))
+			{
 				CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)best->GetClass( )->TypeName.GetChars( ));
+			}
 		}
 	}
 	return best;

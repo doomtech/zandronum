@@ -163,6 +163,7 @@ void				CLIENT_RemoveCorpses( void );
 //void				CLIENT_RemoveMonsterCorpses( void );
 sector_t			*CLIENT_FindSectorByID( ULONG ulID );
 bool				CLIENT_IsValidPlayer( ULONG ulPlayer );
+bool				CLIENT_IsParsingPacket( void );
 void				CLIENT_ResetPlayerData( player_s *pPlayer );
 LONG				CLIENT_AdjustDoorDirection( LONG lDirection );
 LONG				CLIENT_AdjustFloorDirection( LONG lDirection );
