@@ -2194,7 +2194,10 @@ void DLevelScript::DoSetFont (int fontnum)
 	// other way.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
-		SERVER_SetScriptActiveFont( fontname );
+		if ( activefont == NULL )
+			SERVER_SetScriptActiveFont( "SmallFont" );
+		else
+			SERVER_SetScriptActiveFont( fontname );
 		SERVER_SetCurrentFont( (char *)fontname );
 		return;
 	}
@@ -5684,6 +5687,12 @@ DLevelScript::DLevelScript (AActor *who, line_t *where, int num, const ScriptPtr
 	activationline = where;
 	backSide = backside;
 	activefont = SmallFont;
+
+	// [BC] Since the server doesn't have a screen, we have to save the active font some
+	// other way.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVER_SetScriptActiveFont( "SmallFont" );
+
 	hudwidth = hudheight = 0;
 	if (delay)
 	{

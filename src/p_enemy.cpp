@@ -2237,6 +2237,13 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 					actor->special2 = 3;		// strafe time
 				}
 			}
+
+			// [BC] If we're the server, update the thing's momentum.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			{
+				SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z );
+				SERVERCOMMANDS_MoveThingExact( actor, CM_MOMX|CM_MOMY );
+			}
 		}
 
 	}
