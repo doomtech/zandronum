@@ -3853,6 +3853,11 @@ void P_SetupLevel (char *lumpname, int position)
 		memcpy (&translationtables[TRANSLATION_LevelScripted][i*256],
 				translationtables[TRANSLATION_LevelScripted], 256);
 	}
+
+	// [BC] Also clear out the edited translation list that servers keep.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVER_ClearEditedTranslations( );
+
 	// Initial height of PointOfView will be set by player think.
 	players[consoleplayer].viewz = 1; 
 

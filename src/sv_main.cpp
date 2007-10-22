@@ -195,6 +195,9 @@ static	char		g_szMapMusic[16];
 // Maximum packet size.
 static	ULONG		g_ulMaxPacketSize = 0;
 
+// List of all translations edited by level scripts.
+static	std::vector<EDITEDTRANSLATION_s>	g_EditedTranslationList;
+
 //*****************************************************************************
 //	CONSOLE VARIABLES
 
@@ -2167,6 +2170,10 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 
 	// Also let the client know about any cameras set to textures.
 	FCanvasTextureInfo::UpdateToClient( ulClient );
+
+	// Send out any translations that have been edited since the start of the level.
+	for ( ulIdx = 0; ulIdx < g_EditedTranslationList.size( ); ulIdx++ )
+		SERVERCOMMANDS_CreateTranslation( g_EditedTranslationList[ulIdx].ulIdx, g_EditedTranslationList[ulIdx].ulStart, g_EditedTranslationList[ulIdx].ulEnd );
 }
 
 //*****************************************************************************
@@ -3009,6 +3016,26 @@ void SERVER_ResetInventory( ULONG ulClient )
 	// [BB]: After giving back the inventory, inform the player about which weapon he is using.
 	// This at least partly fixes the "Using unknown weapon type" bug.
 	SERVERCOMMANDS_WeaponChange( ulClient, ulClient, SVCF_ONLYTHISCLIENT );
+}
+
+//*****************************************************************************
+//
+void SERVER_AddEditedTranslation( ULONG ulTranslation, ULONG ulStart, ULONG ulEnd )
+{
+	EDITEDTRANSLATION_s	Translation;
+
+	Translation.ulIdx = ulTranslation;
+	Translation.ulStart = ulStart;
+	Translation.ulEnd = ulEnd;
+
+	g_EditedTranslationList.push_back( Translation );
+}
+
+//*****************************************************************************
+//
+void SERVER_ClearEditedTranslations( void )
+{
+	g_EditedTranslationList.clear( );
 }
 
 //*****************************************************************************

@@ -390,6 +390,7 @@ static	void	client_SetWallScroller( BYTESTREAM_s *pByteStream );
 static	void	client_DoFlashFader( BYTESTREAM_s *pByteStream );
 static	void	client_GenericCheat( BYTESTREAM_s *pByteStream );
 static	void	client_SetCameraToTexture( BYTESTREAM_s *pByteStream );
+static	void	client_CreateTranslation( BYTESTREAM_s *pByteStream );
 
 //*****************************************************************************
 //	VARIABLES
@@ -679,6 +680,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_DOFLASHFADER",
 	"SVC_GENERICCHEAT",
 	"SVC_SETCAMERATOTEXTURE",
+	"SVC_CREATETRANSLATION",
 
 };
 #endif
@@ -2212,6 +2214,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETCAMERATOTEXTURE:
 
 		client_SetCameraToTexture( pByteStream );
+		break;
+	case SVC_CREATETRANSLATION:
+
+		client_CreateTranslation( pByteStream );
 		break;
 	default:
 
@@ -10440,6 +10446,27 @@ static void client_SetCameraToTexture( BYTESTREAM_s *pByteStream )
 	}
 
 	FCanvasTextureInfo::Add( pCamera, lPicNum, lFOV );
+}
+
+//*****************************************************************************
+//
+static void client_CreateTranslation( BYTESTREAM_s *pByteStream )
+{
+	ULONG	ulTranslation;
+	ULONG	ulStart;
+	ULONG	ulEnd;
+	BYTE	*pTranslation;
+
+	// Read in which translation is being created.
+	ulTranslation = NETWORK_ReadShort( pByteStream );
+
+	// Read in the range that's being translated.
+	ulStart = NETWORK_ReadByte( pByteStream );
+	ulEnd = NETWORK_ReadByte( pByteStream );
+
+	pTranslation = &translationtables[TRANSLATION_LevelScripted][( ulTranslation * 256 ) - 256];
+	for ( ; ulStart <= ulEnd; ulStart++ )
+		pTranslation[ulStart] = NETWORK_ReadByte( pByteStream );
 }
 
 //*****************************************************************************

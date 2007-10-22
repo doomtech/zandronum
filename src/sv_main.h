@@ -250,6 +250,18 @@ typedef struct
 } STORED_QUERY_IP_s;
 
 //*****************************************************************************
+typedef struct
+{
+	// Which index in the list of translations is this?
+	ULONG			ulIdx;
+
+	// The start/end range of the translation.
+	ULONG			ulStart;
+	ULONG			ulEnd;
+
+} EDITEDTRANSLATION_s;
+
+//*****************************************************************************
 //	PROTOTYPES
 
 void		SERVER_Construct( void );
@@ -306,6 +318,8 @@ ULONG		SERVER_GetMaxPacketSize( void );
 char		*SERVER_GetMapMusic( void );
 void		SERVER_SetMapMusic( const char *pszMusic );
 void		SERVER_ResetInventory( ULONG ulClient );
+void		SERVER_AddEditedTranslation( ULONG ulTranslation, ULONG ulStart, ULONG ulEnd );
+void		SERVER_ClearEditedTranslations( void );
 void		SERVER_ErrorCleanup( void );
 void		SERVER_ParsePacket( BYTESTREAM_s *pByteStream );
 bool		SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream );

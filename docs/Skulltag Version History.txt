@@ -207,6 +207,7 @@ v0.97d
 -	- Spectators can no longer trigger terrain effects. [Carnevil]
 -	- Removed the "connection type" cvars (they weren't being used anyway). [Carnevil]
 -	- The chat text color options in the messages menu now work properly. [Carnevil]
+-	- Thing translations now work properly online. [Carnevil]
 -	- Improved the scrolling of the server console. When you scroll up, it no longer snaps back down a new message. [Rivecoder]
 -	- Fixed: Bots cause hudmessages to appear for player 1 offline. [Torr Samaho]
 -	- Fixed: Clients with activated prediction ignore the CF_FROZEN and CF_TOTALLYFROZEN flags locally. [Torr Samaho]

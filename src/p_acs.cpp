@@ -5016,6 +5016,15 @@ int DLevelScript::RunScript ()
 				{
 					translation[i] = palcol >> FRACBITS;
 				}
+
+				// [BC] If we're the server, send the new translation off to clients, and
+				// store it in our list so we can tell new clients who connect about the
+				// translation.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				{
+					SERVER_AddEditedTranslation(( &translationtables[TRANSLATION_LevelScripted][0] - translation ) + 1, start, end );
+					SERVERCOMMANDS_CreateTranslation(( &translationtables[TRANSLATION_LevelScripted][0] - translation ) + 1, start, end );
+				}
 			}
 			break;
 
@@ -5073,6 +5082,15 @@ int DLevelScript::RunScript ()
 					r += rs;
 					g += gs;
 					b += bs;
+				}
+
+				// [BC] If we're the server, send the new translation off to clients, and
+				// store it in our list so we can tell new clients who connect about the
+				// translation.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				{
+					SERVER_AddEditedTranslation( &translationtables[TRANSLATION_LevelScripted][0] - translation, start, end );
+					SERVERCOMMANDS_CreateTranslation( &translationtables[TRANSLATION_LevelScripted][0] - translation, start, end );
 				}
 			}
 			break;
