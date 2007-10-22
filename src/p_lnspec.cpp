@@ -860,6 +860,10 @@ static void ThrustThingHelper (AActor *it, angle_t angle, int force, INTBOOL nol
 		it->momx = clamp<fixed_t> (it->momx, -MAXMOVE, MAXMOVE);
 		it->momy = clamp<fixed_t> (it->momy, -MAXMOVE, MAXMOVE);
 	}
+
+	// [BC] If we're the server, update the thing's momentum.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_MoveThingExact( it, CM_MOMX|CM_MOMY );
 }
 
 FUNC(LS_ThrustThingZ)	// [BC]
@@ -882,6 +886,10 @@ FUNC(LS_ThrustThingZ)	// [BC]
 				victim->momz = thrust;
 			else
 				victim->momz += thrust;
+
+			// [BC] If we're the server, update the thing's momentum.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_MoveThingExact( it, CM_MOMZ );
 		}
 		return true;
 	}
@@ -891,6 +899,11 @@ FUNC(LS_ThrustThingZ)	// [BC]
 			it->momz = thrust;
 		else
 			it->momz += thrust;
+
+		// [BC] If we're the server, update the thing's momentum.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_MoveThingExact( it, CM_MOMZ );
+
 		return true;
 	}
 	return false;
