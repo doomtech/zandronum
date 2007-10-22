@@ -6284,7 +6284,7 @@ static void client_PrintHUDMessage( BYTESTREAM_s *pByteStream )
 		fHoldTime );
 
 	// Now attach the message.
-	StatusBar->AttachMessage( pMsg, lID ? 0xff000000|lID : 0 );
+	StatusBar->AttachMessage( pMsg, lID );
 
 	// Finally, revert to the old font we were using.
 	screen->SetFont( pOldFont );
@@ -6353,7 +6353,7 @@ static void client_PrintHUDMessageFadeOut( BYTESTREAM_s *pByteStream )
 		fFadeOutTime );
 
 	// Now attach the message.
-	StatusBar->AttachMessage( pMsg, lID ? 0xff000000|lID : 0 );
+	StatusBar->AttachMessage( pMsg, lID );
 
 	// Finally, revert to the old font we were using.
 	screen->SetFont( pOldFont );
@@ -6427,7 +6427,7 @@ static void client_PrintHUDMessageFadeInOut( BYTESTREAM_s *pByteStream )
 		fFadeOutTime );
 
 	// Now attach the message.
-	StatusBar->AttachMessage( pMsg, lID ? 0xff000000|lID : 0 );
+	StatusBar->AttachMessage( pMsg, lID );
 
 	// Finally, revert to the old font we were using.
 	screen->SetFont( pOldFont );
@@ -6501,7 +6501,7 @@ static void client_PrintHUDMessageTypeOnFadeOut( BYTESTREAM_s *pByteStream )
 		fFadeOutTime );
 
 	// Now attach the message.
-	StatusBar->AttachMessage( pMsg, lID ? 0xff000000|lID : 0 );
+	StatusBar->AttachMessage( pMsg, lID );
 
 	// Finally, revert to the old font we were using.
 	screen->SetFont( pOldFont );
