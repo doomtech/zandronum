@@ -493,7 +493,7 @@ static void ParseMapInfoLower (MapInfoHandler *handlers,
 							   cluster_info_t *clusterinfo,
 							   QWORD levelflags);
 
-static int FindWadLevelInfo (char *name)
+static int FindWadLevelInfo (const char *name)
 {
 	for (unsigned int i = 0; i < wadlevelinfos.Size(); i++)
 		if (!strnicmp (name, wadlevelinfos[i].mapname, 8))
@@ -1895,7 +1895,7 @@ void G_SecretExitLevel (int position)
 //	dmflags and map rotation.
 //
 //=============================================================================
-char *G_GetNextLevelName( void )
+const char *G_GetNextLevelName( void )
 {
 	if ( level.flags & LEVEL_CHANGEMAPCHEAT )
 		return ( level.nextmap );
@@ -2991,7 +2991,7 @@ char *CalcMapName (int episode, int level)
 	return lumpname;
 }
 
-level_info_t *FindLevelInfo (char *mapname)
+level_info_t *FindLevelInfo (const char *mapname)
 {
 	int i;
 

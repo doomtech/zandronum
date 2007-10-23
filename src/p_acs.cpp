@@ -3990,10 +3990,10 @@ int DLevelScript::RunScript ()
 				{
 					// Printbold displays to everyone.
 					if (( pcd == PCD_ENDPRINTBOLD ) || ( screen == NULL ))
-						SERVERCOMMANDS_PrintMid( (char *)work.GetChars( ), false );
+						SERVERCOMMANDS_PrintMid( work.GetChars( ), false );
 					// Otherwise, if a player is the activator, send him the message.
 					else if ( screen->player )
-						SERVERCOMMANDS_PrintMid( (char *)work.GetChars( ), false, screen->player - players, SVCF_ONLYTHISCLIENT );
+						SERVERCOMMANDS_PrintMid( work.GetChars( ), false, screen->player - players, SVCF_ONLYTHISCLIENT );
 				}
 			}
 			else
@@ -4049,9 +4049,9 @@ int DLevelScript::RunScript ()
 						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 						{
 							if (( pcd == PCD_ENDHUDMESSAGEBOLD ) || ( screen == NULL ))
-								SERVERCOMMANDS_PrintHUDMessage( (char *)work.GetChars( ), x, y, hudwidth, hudheight, color, holdTime, SERVER_GetCurrentFont( ), id );
+								SERVERCOMMANDS_PrintHUDMessage( work.GetChars( ), x, y, hudwidth, hudheight, color, holdTime, SERVER_GetCurrentFont( ), id );
 							else if ( screen->player )
-								SERVERCOMMANDS_PrintHUDMessage( (char *)work.GetChars( ), x, y, hudwidth, hudheight, color, holdTime, SERVER_GetCurrentFont( ), id, screen->player - players, SVCF_ONLYTHISCLIENT );
+								SERVERCOMMANDS_PrintHUDMessage( work.GetChars( ), x, y, hudwidth, hudheight, color, holdTime, SERVER_GetCurrentFont( ), id, screen->player - players, SVCF_ONLYTHISCLIENT );
 						}
 						else
 							msg = new DHUDMessage (work, x, y, hudwidth, hudheight, color, holdTime);
@@ -4064,9 +4064,9 @@ int DLevelScript::RunScript ()
 							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 							{
 								if (( pcd == PCD_ENDHUDMESSAGEBOLD ) || ( screen == NULL ))
-									SERVERCOMMANDS_PrintHUDMessageFadeOut( (char *)work.GetChars( ), x, y, hudwidth, hudheight, color, holdTime, fadeTime, SERVER_GetCurrentFont( ), id );
+									SERVERCOMMANDS_PrintHUDMessageFadeOut( work.GetChars( ), x, y, hudwidth, hudheight, color, holdTime, fadeTime, SERVER_GetCurrentFont( ), id );
 								else if ( screen->player )
-									SERVERCOMMANDS_PrintHUDMessageFadeOut( (char *)work.GetChars( ), x, y, hudwidth, hudheight, color, holdTime, fadeTime, SERVER_GetCurrentFont( ), id, screen->player - players, SVCF_ONLYTHISCLIENT );
+									SERVERCOMMANDS_PrintHUDMessageFadeOut( work.GetChars( ), x, y, hudwidth, hudheight, color, holdTime, fadeTime, SERVER_GetCurrentFont( ), id, screen->player - players, SVCF_ONLYTHISCLIENT );
 							}
 							else
 								msg = new DHUDMessageFadeOut (work, x, y, hudwidth, hudheight, color, holdTime, fadeTime);
@@ -4081,9 +4081,9 @@ int DLevelScript::RunScript ()
 							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 							{
 								if (( pcd == PCD_ENDHUDMESSAGEBOLD ) || ( screen == NULL ))
-									SERVERCOMMANDS_PrintHUDMessageTypeOnFadeOut( (char *)work.GetChars( ), x, y, hudwidth, hudheight, color, typeTime, holdTime, fadeTime, SERVER_GetCurrentFont( ), id );
+									SERVERCOMMANDS_PrintHUDMessageTypeOnFadeOut( work.GetChars( ), x, y, hudwidth, hudheight, color, typeTime, holdTime, fadeTime, SERVER_GetCurrentFont( ), id );
 								else if ( screen->player )
-									SERVERCOMMANDS_PrintHUDMessageTypeOnFadeOut( (char *)work.GetChars( ), x, y, hudwidth, hudheight, color, typeTime, holdTime, fadeTime, SERVER_GetCurrentFont( ), id, screen->player - players, SVCF_ONLYTHISCLIENT );
+									SERVERCOMMANDS_PrintHUDMessageTypeOnFadeOut( work.GetChars( ), x, y, hudwidth, hudheight, color, typeTime, holdTime, fadeTime, SERVER_GetCurrentFont( ), id, screen->player - players, SVCF_ONLYTHISCLIENT );
 							}
 							else
 								msg = new DHUDMessageTypeOnFadeOut (work, x, y, hudwidth, hudheight, color, typeTime, holdTime, fadeTime);
@@ -4098,9 +4098,9 @@ int DLevelScript::RunScript ()
 							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 							{
 								if (( pcd == PCD_ENDHUDMESSAGEBOLD ) || ( screen == NULL ))
-									SERVERCOMMANDS_PrintHUDMessageFadeInOut( (char *)work.GetChars( ), x, y, hudwidth, hudheight, color, holdTime, inTime, outTime, SERVER_GetCurrentFont( ), id );
+									SERVERCOMMANDS_PrintHUDMessageFadeInOut( work.GetChars( ), x, y, hudwidth, hudheight, color, holdTime, inTime, outTime, SERVER_GetCurrentFont( ), id );
 								else if ( screen->player )
-									SERVERCOMMANDS_PrintHUDMessageFadeInOut( (char *)work.GetChars( ), x, y, hudwidth, hudheight, color, holdTime, inTime, outTime, SERVER_GetCurrentFont( ), id, screen->player - players, SVCF_ONLYTHISCLIENT );
+									SERVERCOMMANDS_PrintHUDMessageFadeInOut( work.GetChars( ), x, y, hudwidth, hudheight, color, holdTime, inTime, outTime, SERVER_GetCurrentFont( ), id, screen->player - players, SVCF_ONLYTHISCLIENT );
 							}
 							else
 								msg = new DHUDMessageFadeInOut (work, x, y, hudwidth, hudheight, color, holdTime, inTime, outTime);

@@ -396,9 +396,9 @@ void CALLVOTE_EndVote( bool bPassed )
 
 //*****************************************************************************
 //
-char *CALLVOTE_GetCommand( void )
+const char *CALLVOTE_GetCommand( void )
 {
-	return ( (char *)g_VoteCommand.GetChars( ));
+	return ( g_VoteCommand.GetChars( ));
 }
 
 //*****************************************************************************
@@ -596,7 +596,7 @@ static bool callvote_CheckValidity( char *pszCommand, char *pszParameters )
 			if ( sv_maprotation )
 			{
 				Printf ( "%s\n", pszParameters );
-				if( !MAPROTATION_IsMapInRotaion( pszParameters ) )
+				if( !MAPROTATION_IsMapInRotation( pszParameters ) )
 				return ( false );
 			}
 		}
@@ -613,7 +613,7 @@ static bool callvote_CheckValidity( char *pszCommand, char *pszParameters )
 			if ( sv_maprotation )
 			{
 				Printf ( "%s\n", pszParameters );
-				if( MAPROTATION_IsMapInRotaion( pszParameters ) == false )
+				if( MAPROTATION_IsMapInRotation( pszParameters ) == false )
 					return ( false );
 			}
 		}

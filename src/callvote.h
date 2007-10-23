@@ -95,7 +95,7 @@ ULONG			CALLVOTE_CountNumEligibleVoters( void );
 void			CALLVOTE_EndVote( bool bPassed );
 
 //void			CALLVOTE_SetCommand( char *pszCommand );
-char			*CALLVOTE_GetCommand( void );
+const char		*CALLVOTE_GetCommand( void );
 
 //void			CALLVOTE_SetVoteCaller( ULONG ulPlayer );
 ULONG			CALLVOTE_GetVoteCaller( void );

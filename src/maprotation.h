@@ -71,14 +71,14 @@ typedef struct
 //*****************************************************************************
 //	PROTOTYPES
 
-void	MAPROTATION_Construct( void );
+void		MAPROTATION_Construct( void );
 
-ULONG	MAPROTATION_GetNumEntries( void );
-void	MAPROTATION_AdvanceMap( void );
-char	*MAPROTATION_GetCurrentMapName( void );
-char	*MAPROTATION_GetMapName( ULONG ulIdx );
-void	MAPROTATION_SetPositionToMap( char *pszMapName );
-bool	MAPROTATION_IsMapInRotaion( char *pszMapName );
+ULONG		MAPROTATION_GetNumEntries( void );
+void		MAPROTATION_AdvanceMap( void );
+const char	*MAPROTATION_GetCurrentMapName( void );
+const char	*MAPROTATION_GetMapName( ULONG ulIdx );
+void		MAPROTATION_SetPositionToMap( const char *pszMapName );
+bool		MAPROTATION_IsMapInRotation( const char *pszMapName );
 
 //*****************************************************************************
 //  EXTERNAL CONSOLE VARIABLES

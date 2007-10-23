@@ -160,42 +160,42 @@ NETADDRESS_s BROWSER_GetAddress( ULONG ulServer )
 
 //*****************************************************************************
 //
-char *BROWSER_GetHostName( ULONG ulServer )
+const char *BROWSER_GetHostName( ULONG ulServer )
 {
 	if (( ulServer >= MAX_BROWSER_SERVERS ) || ( g_BrowserServerList[ulServer].ulActiveState != AS_ACTIVE ))
 		return ( " " );
 
-	return ( (char *)g_BrowserServerList[ulServer].HostName.GetChars( ));
+	return ( g_BrowserServerList[ulServer].HostName.GetChars( ));
 }
 
 //*****************************************************************************
 //
-char *BROWSER_GetWadURL( ULONG ulServer )
+const char *BROWSER_GetWadURL( ULONG ulServer )
 {
 	if (( ulServer >= MAX_BROWSER_SERVERS ) || ( g_BrowserServerList[ulServer].ulActiveState != AS_ACTIVE ))
 		return ( " " );
 
-	return ( (char *)g_BrowserServerList[ulServer].WadURL.GetChars( ));
+	return ( g_BrowserServerList[ulServer].WadURL.GetChars( ));
 }
 
 //*****************************************************************************
 //
-char *BROWSER_GetEmailAddress( ULONG ulServer )
+const char *BROWSER_GetEmailAddress( ULONG ulServer )
 {
 	if (( ulServer >= MAX_BROWSER_SERVERS ) || ( g_BrowserServerList[ulServer].ulActiveState != AS_ACTIVE ))
 		return ( " " );
 
-	return ( (char *)g_BrowserServerList[ulServer].EmailAddress.GetChars( ));
+	return ( g_BrowserServerList[ulServer].EmailAddress.GetChars( ));
 }
 
 //*****************************************************************************
 //
-char *BROWSER_GetMapname( ULONG ulServer )
+const char *BROWSER_GetMapname( ULONG ulServer )
 {
 	if (( ulServer >= MAX_BROWSER_SERVERS ) || ( g_BrowserServerList[ulServer].ulActiveState != AS_ACTIVE ))
 		return ( " " );
 
-	return ( (char *)g_BrowserServerList[ulServer].Mapname.GetChars( ));
+	return ( g_BrowserServerList[ulServer].Mapname.GetChars( ));
 }
 
 //*****************************************************************************
@@ -220,22 +220,22 @@ LONG BROWSER_GetNumPWADs( ULONG ulServer )
 
 //*****************************************************************************
 //
-char *BROWSER_GetPWADName( ULONG ulServer, ULONG ulWadIdx )
+const char *BROWSER_GetPWADName( ULONG ulServer, ULONG ulWadIdx )
 {
 	if (( ulServer >= MAX_BROWSER_SERVERS ) || ( g_BrowserServerList[ulServer].ulActiveState != AS_ACTIVE ))
 		return ( " " );
 
-	return ( (char *)g_BrowserServerList[ulServer].PWADNames[ulWadIdx].GetChars( ));
+	return ( g_BrowserServerList[ulServer].PWADNames[ulWadIdx].GetChars( ));
 }
 
 //*****************************************************************************
 //
-char *BROWSER_GetIWADName( ULONG ulServer )
+const char *BROWSER_GetIWADName( ULONG ulServer )
 {
 	if (( ulServer >= MAX_BROWSER_SERVERS ) || ( g_BrowserServerList[ulServer].ulActiveState != AS_ACTIVE ))
 		return ( " " );
 
-	return ( (char *)g_BrowserServerList[ulServer].IWADName.GetChars( ));
+	return ( g_BrowserServerList[ulServer].IWADName.GetChars( ));
 }
 
 //*****************************************************************************
@@ -260,7 +260,7 @@ LONG BROWSER_GetNumPlayers( ULONG ulServer )
 
 //*****************************************************************************
 //
-char *BROWSER_GetPlayerName( ULONG ulServer, ULONG ulPlayer )
+const char *BROWSER_GetPlayerName( ULONG ulServer, ULONG ulPlayer )
 {
 	if (( ulServer >= MAX_BROWSER_SERVERS ) || ( g_BrowserServerList[ulServer].ulActiveState != AS_ACTIVE ))
 		return ( " " );
@@ -268,7 +268,7 @@ char *BROWSER_GetPlayerName( ULONG ulServer, ULONG ulPlayer )
 	if ( ulPlayer >= (ULONG)g_BrowserServerList[ulServer].lNumPlayers )
 		return ( " " );
 
-	return ( (char *)g_BrowserServerList[ulServer].Players[ulPlayer].Name.GetChars( ));
+	return ( g_BrowserServerList[ulServer].Players[ulPlayer].Name.GetChars( ));
 }
 
 //*****************************************************************************
@@ -322,12 +322,12 @@ LONG BROWSER_GetPing( ULONG ulServer )
 
 //*****************************************************************************
 //
-char *BROWSER_GetVersion( ULONG ulServer )
+const char *BROWSER_GetVersion( ULONG ulServer )
 {
 	if (( ulServer >= MAX_BROWSER_SERVERS ) || ( g_BrowserServerList[ulServer].ulActiveState != AS_ACTIVE ))
 		return ( " " );
 
-	return ( (char *)g_BrowserServerList[ulServer].Version.GetChars( ));
+	return ( g_BrowserServerList[ulServer].Version.GetChars( ));
 }
 
 //*****************************************************************************

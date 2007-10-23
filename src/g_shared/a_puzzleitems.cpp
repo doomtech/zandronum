@@ -59,7 +59,7 @@ bool APuzzleItem::Use (bool pickup)
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
 		SERVERCOMMANDS_SoundActor( Owner, CHAN_VOICE, "*puzzfail", 1, ATTN_IDLE );
-		SERVERCOMMANDS_PrintMid( (char *)message, true );
+		SERVERCOMMANDS_PrintMid( message, true );
 	}
 
 	return false;
