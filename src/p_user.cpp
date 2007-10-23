@@ -906,6 +906,11 @@ bool APlayerPawn::UpdateWaterLevel (fixed_t oldz, bool splash)
 {
 	int oldlevel = waterlevel;
 	bool retval = Super::UpdateWaterLevel (oldz, splash);
+
+	// [BC] This could be a corpse.
+	if ( player == NULL )
+		return ( retval );
+
 	if (oldlevel < 3 && waterlevel == 3)
 	{ // Our head just went under.
 		S_Sound (this, CHAN_VOICE, "*dive", 1, ATTN_NORM);
