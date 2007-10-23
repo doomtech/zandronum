@@ -1169,6 +1169,18 @@ void P_ExplodeMissile (AActor *mo, line_t *line, AActor *target)
 		if (nextstate == NULL) nextstate = mo->FindState(NAME_Death, NAME_Extreme);
 	}
 	if (nextstate == NULL) nextstate = mo->FindState(NAME_Death);
+
+	// [BC] Tell clients that this missile blew up.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		// No need to do this if the line struck a horizon line.
+		if (( line == NULL ) ||
+			( line->special != Line_Horizon ))
+		{
+			SERVERCOMMANDS_MissileExplode( mo, line );
+		}
+	}
+
 	// [BB] If nextstate is still equal to NULL, mo->SetState (nextstate)
 	// returns false and we have to break out here.
 	if (!(mo->SetState (nextstate)))
@@ -1253,11 +1265,6 @@ void P_ExplodeMissile (AActor *mo, line_t *line, AActor *target)
 			}
 		}
 	}
-
-	// [BC] Tell clients that this missile blew up.
-//	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( mo->IsKindOf( RUNTIME_CLASS( ARevenantTracer )) || ( line == false )))
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_MissileExplode( mo, line );
 
 	if (nextstate != NULL)
 	{
