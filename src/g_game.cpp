@@ -3387,7 +3387,13 @@ void GAME_ResetMap( void )
 
 				// Spawn the new actor.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				{
 					SERVERCOMMANDS_SpawnThing( pNewActor );
+
+					// Check and see if it's important that the client know the angle of the object.
+					if ( pNewActor->angle != 0 )
+						SERVERCOMMANDS_SetThingAngle( pNewActor );
+				}
 			}
 
 			continue;
@@ -3533,7 +3539,13 @@ void GAME_ResetMap( void )
 
 			// Tell clients to spawn the new actor.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			{
 				SERVERCOMMANDS_SpawnThing( pNewActor );
+
+				// Check and see if it's important that the client know the angle of the object.
+				if ( pNewActor->angle != 0 )
+					SERVERCOMMANDS_SetThingAngle( pNewActor );
+			}
 		}
 	}
 
