@@ -336,8 +336,26 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 
 	sprintf (foo, "\\%s\\%s", cvar->GetName (), val.String);
 
-	Net_WriteByte (DEM_UINFCHANGED);
-	Net_WriteString (foo);
+	// [BC] In client mode, we don't execute DEM_* commands, so we need to execute it
+	// here.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsRecording( )))
+	{
+		BYTE	*pStream;
+
+		// This is a lot of work just to convert foo from (char *) to a (BYTE **) :(
+		pStream = (BYTE *)M_Malloc( strlen( foo ) + 1 );
+		WriteString( foo, &pStream );
+		pStream -= ( strlen( foo ) + 1 );
+		D_ReadUserInfoStrings( consoleplayer, &pStream, false );
+		pStream -= ( strlen( foo ) + 1 );
+		free( pStream );
+	}
+	else
+	{
+		Net_WriteByte (DEM_UINFCHANGED);
+		Net_WriteString (foo);
+	}
 /*
 	// [BB] D_SetupUserInfo has to be executed in any case, if we are
 	// not the server. If we for example are not connected to a server,
