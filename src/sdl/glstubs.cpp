@@ -19,7 +19,7 @@ void gl_DrawLine(int, int, int, int, int)
 {
 }
 
-void FTexture::CopyTrueColorPixels(unsigned char*, int, int, int, int, intptr_t, int)
+int FTexture::CopyTrueColorPixels(unsigned char*, int, int, int, int, intptr_t, int)
 {
 }
 
@@ -121,19 +121,19 @@ void StartGLMenu (void)
 {
 }
 
-void FWarpTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int xx, int yy, intptr_t cm, int translation)
+int FWarpTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int xx, int yy, intptr_t cm, int translation)
 {
 }
 
-void FMultiPatchTexture::CopyTrueColorPixels(unsigned char*, int, int, int, int, intptr_t, int)
+int FMultiPatchTexture::CopyTrueColorPixels(unsigned char*, int, int, int, int, intptr_t, int)
 {
 }
 
-void FPNGTexture::CopyTrueColorPixels(unsigned char*, int, int, int, int, intptr_t, int)
+int FPNGTexture::CopyTrueColorPixels(unsigned char*, int, int, int, int, intptr_t, int)
 {
 }
 
-void FWarp2Texture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation)
+int FWarp2Texture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation)
 {
 }
 
@@ -143,19 +143,24 @@ void FWarp2Texture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_he
 	delete SourcePic;
 }*/
 
-void FJPEGTexture::CopyTrueColorPixels(BYTE *, int , int , int , int , intptr_t, int)
+int FJPEGTexture::CopyTrueColorPixels(BYTE *, int , int , int , int , intptr_t, int)
 {
 }
 
-void FTGATexture::CopyTrueColorPixels(BYTE *, int , int , int , int , intptr_t, int)
+int FTGATexture::CopyTrueColorPixels(BYTE *, int , int , int , int , intptr_t, int)
 {
 }
 
-void FPCXTexture::CopyTrueColorPixels(BYTE *, int , int , int , int , intptr_t, int)
+int FPCXTexture::CopyTrueColorPixels(BYTE *, int , int , int , int , intptr_t, int)
 {
 }
 
 void FCanvasTexture::RenderGLView (AActor *viewpoint, int fov)
 {
 }
+
+void FTexture::PrecacheGL()
+{
+}
+
 #endif
