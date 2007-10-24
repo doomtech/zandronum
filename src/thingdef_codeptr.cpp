@@ -556,8 +556,15 @@ void A_JumpIfHealthLower(AActor * self)
 	FState * CallingState;
 	int index=CheckIndex(2, &CallingState);
 
+	// [BC] Don't jump here in client mode.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if (index>=0 && self->health < EvalExpressionI (StateParameters[index], self))
-		DoJump(self, CallingState, StateParameters[index+1], false);	// [BC] Clients know what the actor's health is.
+		DoJump(self, CallingState, StateParameters[index+1], true);	// [BC] Clients don't know what the actor's health is.
 
 	if (pStateCall != NULL) pStateCall->Result=false;	// Jumps should never set the result for inventory state chains!
 }
@@ -612,6 +619,13 @@ void DoJumpIfInventory(AActor * self, AActor * owner)
 	int index=CheckIndex(3, &CallingState);
 	if (index<0) return;
 
+	// [BC] Don't jump here in client mode.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	ENamedName ItemType=(ENamedName)StateParameters[index];
 	int ItemAmount = EvalExpressionI (StateParameters[index+1], self);
 	int JumpOffset = StateParameters[index+2];
@@ -625,8 +639,8 @@ void DoJumpIfInventory(AActor * self, AActor * owner)
 
 	if (Item)
 	{
-		if (ItemAmount>0 && Item->Amount>=ItemAmount) DoJump(self, CallingState, JumpOffset, false);	// [BC] Clients have inventory information.
-		else if (Item->Amount>=Item->MaxAmount) DoJump(self, CallingState, JumpOffset, false);	// [BC] Clients have inventory information.
+		if (ItemAmount>0 && Item->Amount>=ItemAmount) DoJump(self, CallingState, JumpOffset, true);	// [BC] Clients don't necessarily have inventory information.
+		else if (Item->Amount>=Item->MaxAmount) DoJump(self, CallingState, JumpOffset, true);	// [BC] Clients don't necessarily have inventory information.
 	}
 }
 
