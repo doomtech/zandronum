@@ -79,6 +79,7 @@ v0.97d
 +	- Added disconnect scripts! They execute when a player leaves a game after being a non-spectating player. [Carnevil]
 +	- The "showmedals" key can now we used while playing back demos. [Carnevil]
 +	- Added the "stopdemo" command, which stops a client-side demo if one is playing. [Carnevil]
++	- Any weapons given by default to a player when he spawns (such as the railgun in instagib) can now be replaced via DECORATE. [Carnevil]
 +	- Weapon flag NOLMS is now available in DECORATE. Weapons with this flag are not given to the player in LMS. [Torr Samaho]
 -	- Rank/spread/DM stats and team scores now show up in the ZDoom - and hence Heretic -  HUD. [Rivecoder]
 -	- Fixed: Ignoring definitions of already defined decorate actors which use ":" or "replace" didn't work. [Torr Samaho]

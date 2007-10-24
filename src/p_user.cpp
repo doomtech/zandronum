@@ -1061,7 +1061,7 @@ void APlayerPawn::GiveDefaultInventory ()
 		if (( instagib ) && ( deathmatch || teamgame ))
 		{
 			// Give the player the weapon.
-			pInventory = player->mo->GiveInventoryType( PClass::FindClass( "Railgun" ));
+			pInventory = player->mo->GiveInventoryType( PClass::FindClass( "Railgun" )->ActorInfo->GetReplacement( )->Class );
 
 			if ( pInventory )
 			{
@@ -1090,7 +1090,7 @@ void APlayerPawn::GiveDefaultInventory ()
 		else if (( buckshot ) && ( deathmatch || teamgame ))
 		{
 			// Give the player the weapon.
-			pInventory = player->mo->GiveInventoryType( PClass::FindClass( "SuperShotgun" ));
+			pInventory = player->mo->GiveInventoryType( PClass::FindClass( "SuperShotgun" )->ActorInfo->GetReplacement( )->Class );
 
 			if ( pInventory )
 			{
@@ -1178,7 +1178,7 @@ void APlayerPawn::GiveDefaultInventory ()
 
 				if ( pType->ParentClass->IsDescendantOf( RUNTIME_CLASS( AWeapon )))
 				{
-					pInventory = player->mo->GiveInventoryType( pType );
+					pInventory = player->mo->GiveInventoryType( pType->ActorInfo->GetReplacement( )->Class  );
 
 					// Make this weapon the player's pending weapon if it ranks higher.
 					pWeapon = static_cast<AWeapon *>( pInventory );
@@ -1217,13 +1217,13 @@ void APlayerPawn::GiveDefaultInventory ()
 			}
 
 			// Also give the player berserk.
-			player->mo->GiveInventoryType( PClass::FindClass( "Berserk" ));
+			player->mo->GiveInventoryType( PClass::FindClass( "Berserk" )->ActorInfo->GetReplacement( )->Class );
 			pBerserk = static_cast<APowerStrength *>( player->mo->FindInventory( PClass::FindClass( "PowerStrength" )));
 			if ( pBerserk )
 				pBerserk->EffectTics = 768;
 
 			player->health = deh.MegasphereHealth;
-			player->mo->GiveInventoryType( PClass::FindClass( "GreenArmor" ));
+			player->mo->GiveInventoryType( PClass::FindClass( "GreenArmor" )->ActorInfo->GetReplacement( )->Class );
 			player->health -= player->userinfo.lHandicap;
 
 			// Don't allow player to be DOA.
@@ -1260,13 +1260,13 @@ void APlayerPawn::GiveDefaultInventory ()
 				( deathmatch == false ) &&
 				( teamgame == false ))
 			{
-				pInventory = player->mo->GiveInventoryType( PClass::FindClass( "Shotgun" ));
+				pInventory = player->mo->GiveInventoryType( PClass::FindClass( "Shotgun" )->ActorInfo->GetReplacement( )->Class );
 				if ( pInventory )
 				{
 					player->ReadyWeapon = player->PendingWeapon = static_cast<AWeapon *>( pInventory );
 
 					// Start them off with two clips.
-					pInventory = player->mo->FindInventory( PClass::FindClass( "Shell" ));
+					pInventory = player->mo->FindInventory( PClass::FindClass( "Shell" )->ActorInfo->GetReplacement( )->Class );
 					if ( pInventory != NULL )
 						pInventory->Amount = static_cast<AWeapon *>( player->ReadyWeapon )->AmmoGive1 * 2;
 				}
@@ -1351,7 +1351,7 @@ void APlayerPawn::GiveDefaultInventory ()
 
 				if ( pType->ParentClass->IsDescendantOf( RUNTIME_CLASS( AWeapon )))
 				{
-					pInventory = player->mo->GiveInventoryType( pType );
+					pInventory = player->mo->GiveInventoryType( pType->ActorInfo->GetReplacement( )->Class );
 
 					// Make this weapon the player's pending weapon if it ranks higher.
 					pWeapon = static_cast<AWeapon *>( pInventory );
@@ -1390,7 +1390,7 @@ void APlayerPawn::GiveDefaultInventory ()
 			}
 
 			player->health = deh.MegasphereHealth;
-			player->mo->GiveInventoryType( PClass::FindClass( "SilverShield" ));
+			player->mo->GiveInventoryType( PClass::FindClass( "SilverShield" )->ActorInfo->GetReplacement( )->Class );
 			player->health -= player->userinfo.lHandicap;
 
 			// Don't allow player to be DOA.
