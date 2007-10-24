@@ -1382,6 +1382,13 @@ void A_CustomPunch (AActor *self)
 										self->y,
 										linetarget->x,
 										linetarget->y);
+
+		// [BC] Play the hit sound to clients.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName( weapon->AttackSound ), 1, ATTN_NORM );
+			SERVERCOMMANDS_SetThingAngleExact( self );
+		}
 	}
 }
 

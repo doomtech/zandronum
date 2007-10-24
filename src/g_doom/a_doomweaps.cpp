@@ -95,7 +95,10 @@ void A_Punch (AActor *actor)
 
 		// [BC] Play the hit sound to clients.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
 			SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "*fist", 1, ATTN_NORM );
+			SERVERCOMMANDS_SetThingAngleExact( actor );
+		}
 	}
 }
 
