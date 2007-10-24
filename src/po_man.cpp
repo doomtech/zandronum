@@ -42,6 +42,8 @@ void PO_Init (void);
 // PRIVATE FUNCTION PROTOTYPES ---------------------------------------------
 
 /*static*/ polyobj_t *GetPolyobj (int polyNum);
+// [BC]
+polyobj_t *GetPolyobjByIndex( ULONG ulPolyIdx );
 static int GetPolyobjMirror (int poly);
 static void UpdateSegBBox (seg_t *seg);
 static void RotatePt (int an, fixed_t *x, fixed_t *y, fixed_t startSpotX,
@@ -903,6 +905,20 @@ bool EV_OpenPolyDoor (line_t *line, int polyNum, int speed, angle_t angle,
 		}
 	}
 	return NULL;
+}
+
+//==========================================================================
+//
+// [BC] GetPolyobjByIndex
+//
+//==========================================================================
+
+polyobj_t *GetPolyobjByIndex( ULONG ulPolyIdx )
+{
+	if ( ulPolyIdx >= (ULONG)po_NumPolyobjs )
+		return ( NULL );
+
+	return ( &polyobjs[ulPolyIdx] );
 }
 
 //==========================================================================

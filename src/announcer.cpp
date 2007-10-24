@@ -196,8 +196,18 @@ void ANNOUNCER_ParseAnnouncerInfo( void )
 			// Now that we're done adding entries, sort them alphabetically.
 			announcer_FinishAddingEntries( &AnnouncerProfile );
 
-			// Finally, add our completed announcer profile.
+			// Add our completed announcer profile.
 			announcer_AddAnnouncerProfile( &AnnouncerProfile );
+
+			// Finally, free all the memory allocated for this temporary profile.
+			for ( ulIdx = 0; ulIdx < MAX_ANNOUNCERPROFILE_ENTRIES; ulIdx++ )
+			{
+				free( AnnouncerProfile.paAnnouncerEntries[ulIdx] );
+				AnnouncerProfile.paAnnouncerEntries[ulIdx] = NULL;
+			}
+
+			free( AnnouncerProfile.paAnnouncerEntries );
+			AnnouncerProfile.paAnnouncerEntries = NULL;
 		}
 	}
 }

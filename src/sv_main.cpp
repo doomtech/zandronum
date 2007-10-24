@@ -110,6 +110,7 @@
 
 void	G_PlayerReborn( int player );
 polyobj_t	*GetPolyobj( int polyNum );
+polyobj_t	*GetPolyobjByIndex( ULONG ulPoly );
 
 void SERVERCONSOLE_UpdatePlayerInfo( LONG lPlayer, ULONG ulUpdateFlags );
 void SERVERCONSOLE_ReListPlayers( void );
@@ -2572,17 +2573,17 @@ void SERVER_UpdateSectors( ULONG ulClient )
 
 	for ( ulIdx = 0; ulIdx <= po_NumPolyobjs; ulIdx++ )
 	{
-		pPoly = GetPolyobj( ulIdx );
+		pPoly = GetPolyobjByIndex( ulIdx );
 		if ( pPoly == NULL )
 			continue;
 
 		// Tell client if the position has been changed.
 		if ( pPoly->bMoved )
-			SERVERCOMMANDS_SetPolyobjPosition( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
+			SERVERCOMMANDS_SetPolyobjPosition( pPoly->tag, ulClient, SVCF_ONLYTHISCLIENT );
 
 		// Tell client if the rotation has been changed.
 		if ( pPoly->bRotated )
-			SERVERCOMMANDS_SetPolyobjRotation( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
+			SERVERCOMMANDS_SetPolyobjRotation( pPoly->tag, ulClient, SVCF_ONLYTHISCLIENT );
 	}
 
 	// Check for various sector light effects. If we find any, tell the client about them.
