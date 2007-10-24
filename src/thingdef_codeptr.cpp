@@ -618,12 +618,20 @@ void DoJumpIfInventory(AActor * self, AActor * owner)
 	FState * CallingState;
 	int index=CheckIndex(3, &CallingState);
 	if (index<0) return;
+	bool	bNeedClientUpdate;
 
 	// [BC] Don't jump here in client mode.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	if ( CallingState == self->player->psprites[ps_weapon].state )
+		bNeedClientUpdate = false;
+	else
 	{
-		return;
+		bNeedClientUpdate = true;
+		
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+			( CLIENTDEMO_IsPlaying( )))
+		{
+			return;
+		}
 	}
 
 	ENamedName ItemType=(ENamedName)StateParameters[index];
@@ -639,8 +647,8 @@ void DoJumpIfInventory(AActor * self, AActor * owner)
 
 	if (Item)
 	{
-		if (ItemAmount>0 && Item->Amount>=ItemAmount) DoJump(self, CallingState, JumpOffset, true);	// [BC] Clients don't necessarily have inventory information.
-		else if (Item->Amount>=Item->MaxAmount) DoJump(self, CallingState, JumpOffset, true);	// [BC] Clients don't necessarily have inventory information.
+		if (ItemAmount>0 && Item->Amount>=ItemAmount) DoJump(self, CallingState, JumpOffset, bNeedClientUpdate);	// [BC] Clients don't necessarily have inventory information.
+		else if (Item->Amount>=Item->MaxAmount) DoJump(self, CallingState, JumpOffset, bNeedClientUpdate);	// [BC] Clients don't necessarily have inventory information.
 	}
 }
 

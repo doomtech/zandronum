@@ -8694,12 +8694,34 @@ static void client_GiveInventory( BYTESTREAM_s *pByteStream )
 	if ( pType == NULL )
 		return;
 
-	// Try to find this object within the player's personal inventory.
-	pInventory = players[ulPlayer].mo->FindInventory( pType );
+	// Try to give the player the item.
+	pInventory = static_cast<AInventory *>( Spawn( pType, 0, 0, 0, NO_REPLACE ));
+	if ( pInventory != NULL )
+	{
+		if ( lAmount > 0 )
+		{
+			if ( pType->IsDescendantOf( RUNTIME_CLASS( ABasicArmorPickup )))
+			{
+				if ( static_cast<ABasicArmorPickup*>( pInventory )->SaveAmount != 0 )
+					static_cast<ABasicArmorPickup*>( pInventory )->SaveAmount *= lAmount;
+				else
+					static_cast<ABasicArmorPickup*>( pInventory )->SaveAmount *= lAmount;
+			}
+			else if ( pType->IsDescendantOf( RUNTIME_CLASS( ABasicArmorBonus )))
+			{
+				static_cast<ABasicArmorBonus*>( pInventory )->SaveAmount *= lAmount;
+				static_cast<ABasicArmorBonus*>( pInventory )->BonusCount *= lAmount;
 
-	// If the player doesn't have this type, give it to him.
-	if ( pInventory == NULL )
-		pInventory = players[ulPlayer].mo->GiveInventoryType( pType );
+			}
+			else
+				pInventory->Amount = MIN( lAmount, (LONG)pInventory->MaxAmount );
+		}
+		if ( pInventory->TryPickup( players[ulPlayer].mo ) == false )
+		{
+			pInventory->Destroy( );
+			pInventory = NULL;
+		}
+	}
 
 	// If he still doesn't have the object after trying to give it to him... then YIKES!
 	if ( pInventory == NULL )
@@ -8718,7 +8740,9 @@ static void client_GiveInventory( BYTESTREAM_s *pByteStream )
 	}
 
 	// Set the new amount of the inventory object.
-	pInventory->Amount = lAmount;
+	pInventory = players[ulPlayer].mo->FindInventory( pType );
+	if ( pInventory )
+		pInventory->Amount = lAmount;
 
 	// [BC] For some weird reason, the KDIZD new pistol has the amount of 0 when
 	// picked up, so we can't actually destroy items when the amount is 0 or less.
