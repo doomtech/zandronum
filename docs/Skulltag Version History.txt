@@ -221,6 +221,7 @@ v0.97d
 -	- Prevented the "Tried to render from a NULL actor." error from occurring in software. [Torr Samaho]
 -	- Fixed: A_GiveToTarget does not work properly online. [Torr Samaho]
 -	- Fixed: Firing the minigun with only one bullet still made it play its sound twice. [Torr Samaho]
+-	- Converted DarkImp to DECORATE. [Kinsie, Torr Samaho]
 !	- Survival co-op is now disabled in hubs. [Carnevil]
 !	- Skulltag's invasion spawners are now defined in skulltag.pk3. [Carnevil]
 !	- Skulltag.wad is now loaded before doom2.wad. This should fix certain texture errors. [Carnevil]

@@ -1,0 +1,68 @@
+//=================================================================================================
+//
+// DarkImp
+//
+//=================================================================================================
+
+actor DarkImp : DoomImp 5003 // [RT] Inherits from the DoomImp for convenience
+{
+  game Doom
+  spawnid 155 // [RT] I think this is the right Spawnid, change if it isn't
+  obituary "$OB_DARKIMP"
+  hitobituary "$OB_DARKIMP_MELEE"
+  health 120
+  missiletype DarkImpBall
+  states
+  {
+  Spawn:
+    DIMP AB 10 A_Look
+    loop
+  See:
+    DIMP AABBCCDD 3 A_Chase
+    loop
+  Melee:
+  Missile:
+    DIMP EF 8 A_FaceTarget
+    DIMP G 6 A_ComboAttack  // See DarkImpBall
+    goto See
+  Pain:
+    DIMP H 2
+    DIMP H 2 A_Pain
+    goto See
+  Death:
+    DIMP I 8
+    DIMP J 8 A_Scream
+    DIMP K 6
+    DIMP L 6 A_NoBlocking
+    DIMP M -1
+    stop
+  XDeath:
+    DIMP N 5
+    DIMP O 5 A_XScream
+    DIMP P 5
+    DIMP Q 5 A_NoBlocking
+    DIMP RST 5
+    DIMP U -1
+    stop
+  Raise:
+    DIMP ML 8
+    DIMP KJI 6
+    goto See
+  }
+}
+
+actor DarkImpBall : DoomImpBall // [RT] Inherits from DoomImpBall for convenience.
+{
+  game Doom
+  spawnid 218
+  damage 3 // [RT] I think this is right, change if neccesary.
+  states
+  {
+  Spawn:
+    BAL4 AB 4 bright
+    loop
+  Death:
+    BAL4 CDE 6 bright
+    stop
+  }
+}

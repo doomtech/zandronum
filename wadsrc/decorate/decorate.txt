@@ -12,7 +12,7 @@
 
 #include "actors/doom/doomplayer.txt"
 #include "actors/doom/possessed.txt"
-//#include "actors/doom/doomimp.txt"
+#include "actors/doom/doomimp.txt"
 //#include "actors/doom/demon.txt"
 #include "actors/doom/lostsoul.txt"
 //#include "actors/doom/cacodemon.txt"
@@ -80,6 +80,7 @@
 #include "actors/skulltag/skulltagdeadthings.txt"
 #include "actors/skulltag/skulltagdecorations.txt"
 #include "actors/skulltag/skulltaghealth.txt"
+#include "actors/skulltag/skulltagmonsters.txt"
 #include "actors/skulltag/skulltagrunes.txt"
 #include "actors/skulltag/skulltagscorepillars.txt"
 #include "actors/skulltag/skulltagstatues.txt"
