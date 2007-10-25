@@ -199,8 +199,8 @@ CVAR (Int, wipetype, 1, CVAR_ARCHIVE);
 bool DrawFSHUD;				// [RH] Draw fullscreen HUD?
 wadlist_t *wadfiles;		// [RH] remove limit on # of loaded wads
 bool devparm;				// started game with -devparm
-const char *D_DrawIcon;		// [RH] Patch name of icon to draw on next refresh
-int NoWipe;					// [RH] Allow wipe? (Needs to be set each time)
+const char *D_DrawIcon;	// [RH] Patch name of icon to draw on next refresh
+int NoWipe;				// [RH] Allow wipe? (Needs to be set each time)
 bool singletics = false;	// debug flag to cancel adaptiveness
 char startmap[8];
 bool autostart;
