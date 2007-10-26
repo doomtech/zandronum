@@ -2875,6 +2875,12 @@ void D_DoomMain (void)
 			G_LoadGame (file);
 		}
 	}
+	// [BC] The server still needs to delete the start screen.
+	else
+	{
+		delete ( StartScreen );
+		StartScreen = NULL;
+	}
 
 	if (gameaction != ga_loadgame)
 	{

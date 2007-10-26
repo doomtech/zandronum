@@ -367,6 +367,9 @@ void SERVER_Destruct( void )
 {
 	ULONG	ulIdx;
 
+	// Free the packet loss buffer.
+	NETWORK_FreeBuffer( &g_PacketLossBuffer );
+
 	// Free the clients' buffers.
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
