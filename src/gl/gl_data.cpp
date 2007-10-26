@@ -479,9 +479,11 @@ void gl_PreprocessLevel()
 	
 	if (gl_disabled) return;
 
+	// [BC] This doesn't appear to be doing anything. Plus, it's causing a memory leak.
+/*
 	gl_ss_renderflags = new byte[numsubsectors];
 	memset(gl_ss_renderflags, 0, numsubsectors * sizeof(byte));
-
+*/
 	gl_linebuffer = new line_t *[numsides];
 	PrepareSectorData();
 	for(i=0;i<numsectors;i++) PrepareTransparentDoors(&sectors[i]);

@@ -120,8 +120,8 @@ bool P_MorphPlayer (player_t *p, const PClass *spawntype)
 	// [BB] Tell the clients to morph the player.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
-		SERVERCOMMANDS_SpawnPlayer( morphed->player-players, PST_LIVE, MAXPLAYERS, 0, true );
-		SERVER_ResetInventory( morphed->player-players );
+		SERVERCOMMANDS_SpawnPlayer( ULONG( morphed->player-players ), PST_LIVE, MAXPLAYERS, 0, true );
+		SERVER_ResetInventory( ULONG( morphed->player-players ));
 	}
 	return true;
 }
@@ -220,8 +220,8 @@ bool P_UndoPlayerMorph (player_t *player, bool force)
 	// [BB] Tell the clients to unmorph the player, also give back the original inventory to the player.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
-		SERVERCOMMANDS_SpawnPlayer( player-players, PST_LIVE );
-		SERVER_ResetInventory( player-players );
+		SERVERCOMMANDS_SpawnPlayer( ULONG( player-players ), PST_LIVE );
+		SERVER_ResetInventory( ULONG( player-players ));
 	}
 	return true;
 }

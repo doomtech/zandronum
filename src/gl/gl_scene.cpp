@@ -817,6 +817,11 @@ sector_t * gl_RenderView (AActor * camera, GL_IRECT * bounds, float fov, float r
 	GLDrawInfo::EndDrawInfo();
 
 	restoreinterpolations ();
+
+	// [BC] Be need to clear the clipper once again to prevent a memory leak. It's not a
+	// great solution, but it'll do for now.
+	clipper.Clear( );
+
 	return retval;
 }
 
