@@ -1044,7 +1044,7 @@ void APlayerPawn::GiveDefaultInventory ()
 	// [BB] Ugly hack: Stuff for the Doom player. Moved here since the Doom player
 	// was converted to DECORATE. TO-DO: Find a better place for this and perhaps
 	// make this work for arbitraty player classes.
-	if ( !stricmp(this->GetClass()->TypeName.GetChars( ),"DoomPlayer" ) )
+	if ( this->GetClass()->IsDescendantOf( PClass::FindClass( "DoomPlayer" ) ) )
 	{
 		// [BB] The icon of ABasicArmor is the one of the blue armor. Change this here
 		// to fix the fullscreen hud display.
@@ -1331,7 +1331,7 @@ void APlayerPawn::GiveDefaultInventory ()
 	// [BB] LMS Stuff for the Heretic player. Moved here since the Heretic player
 	// was converted to DECORATE. TO-DO: Find a better place for this and perhaps
 	// make this work for arbitraty player classes.
-	if ( !stricmp(this->GetClass()->TypeName.GetChars( ),"HereticPlayer" ) )
+	if ( this->GetClass()->IsDescendantOf( PClass::FindClass( "HereticPlayer" ) ) )
 	{
 		ULONG			ulIdx;
 		const PClass	*pType;
