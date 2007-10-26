@@ -354,8 +354,26 @@ void SERVER_Construct( void )
 	sprintf( g_szCurrentFont, "SmallFont" );
 	sprintf( g_szScriptActiveFont, "SmallFont" );
 
+	// Call SERVER_Destruct() when Skulltag closes.
+	atterm( SERVER_Destruct );
+
 	// Finally, setup the master server communication module.
 	SERVER_MASTER_Construct( );
+}
+
+//*****************************************************************************
+//
+void SERVER_Destruct( void )
+{
+	ULONG	ulIdx;
+
+	// Free the clients' buffers.
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		NETWORK_FreeBuffer( &g_aClients[ulIdx].PacketBuffer );
+		NETWORK_FreeBuffer( &g_aClients[ulIdx].SavedPacketBuffer );
+		NETWORK_FreeBuffer( &g_aClients[ulIdx].UnreliablePacketBuffer );
+	}
 }
 
 //DWORD	g_LastMS, g_LastSec, g_FrameCount, g_LastCount, g_LastTic;

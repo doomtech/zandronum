@@ -232,7 +232,18 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 	if( NETWORK_GetState() == NETSTATE_SERVER )
 		SERVERCONSOLE_UpdateIP( LocalAddress );
 
+	// Call NETWORK_Destruct() when Skulltag closes.
+	atterm( NETWORK_Destruct );
+
 	Printf( "UDP Initialized.\n" );
+}
+
+//*****************************************************************************
+//
+void NETWORK_Destruct( void )
+{
+	// Free the network message buffer.
+	NETWORK_FreeBuffer( &g_NetworkMessage );
 }
 
 //*****************************************************************************
@@ -738,6 +749,9 @@ void NETWORK_FreeBuffer( NETBUFFER_s *pBuffer )
 		delete ( pBuffer->pbData );
 		pBuffer->pbData = NULL;
 	}
+
+	pBuffer->ulMaxSize = 0;
+	pBuffer->BufferType = (BUFFERTYPE_e)0;
 }
 
 //*****************************************************************************

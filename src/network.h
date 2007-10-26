@@ -552,6 +552,7 @@ enum
 //	PROTOTYPES
 
 void			NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket );
+void			NETWORK_Destruct( void );
 
 int				NETWORK_ReadByte( BYTESTREAM_s *pByteStream );
 void			NETWORK_WriteByte( BYTESTREAM_s *pByteStream, int Byte );

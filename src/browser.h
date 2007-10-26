@@ -153,6 +153,7 @@ typedef struct
 //	PROTOTYPES
 
 void			BROWSER_Construct( void );
+void			BROWSER_Destruct( void );
 
 bool			BROWSER_IsActive( ULONG ulServer );
 bool			BROWSER_IsLAN( ULONG ulServer );

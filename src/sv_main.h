@@ -265,6 +265,7 @@ typedef struct
 //	PROTOTYPES
 
 void		SERVER_Construct( void );
+void		SERVER_Destruct( void );
 void		SERVER_Tick( void );
 
 void		SERVER_SendOutPackets( void );
@@ -329,6 +330,7 @@ void		SERVER_GiveInventoryToPlayer( const player_t *player, AInventory *pInvento
 
 // From sv_master.cpp
 void		SERVER_MASTER_Construct( void );
+void		SERVER_MASTER_Destruct( void );
 void		SERVER_MASTER_Tick( void );
 void		SERVER_MASTER_Broadcast( void );
 void		SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ulTime, bool bBroadcasting );

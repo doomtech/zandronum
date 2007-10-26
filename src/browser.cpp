@@ -115,6 +115,18 @@ void BROWSER_Construct( void )
 
 	// Initialize the browser list.
 	BROWSER_ClearServerList( );
+
+	// Call BROWSER_Destruct() when Skulltag closes.
+	atterm( BROWSER_Destruct );
+}
+
+//*****************************************************************************
+//
+void BROWSER_Destruct( void )
+{
+	// Free our local buffers.
+	NETWORK_FreeBuffer( &g_MasterServerBuffer );
+	NETWORK_FreeBuffer( &g_ServerBuffer );
 }
 
 //*****************************************************************************

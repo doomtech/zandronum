@@ -58,6 +58,7 @@
 #include "g_game.h"
 #include "gamemode.h"
 #include "gi.h"
+#include "i_system.h"
 #include "lastmanstanding.h"
 #include "team.h"
 #include "network.h"
@@ -106,6 +107,17 @@ void SERVER_MASTER_Construct( void )
 
 	g_lStoredQueryIPHead = 0;
 	g_lStoredQueryIPTail = 0;
+
+	// Call SERVER_MASTER_Destruct() when Skulltag closes.
+	atterm( SERVER_MASTER_Destruct );
+}
+
+//*****************************************************************************
+//
+void SERVER_MASTER_Destruct( void )
+{
+	// Free our local buffer.
+	NETWORK_FreeBuffer( &g_MasterServerBuffer );
 }
 
 //*****************************************************************************

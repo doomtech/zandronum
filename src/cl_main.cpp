@@ -770,6 +770,17 @@ void CLIENT_Construct( void )
 
 	g_MOTD = "";
 	g_bIsParsingPacket = false;
+
+	// Call CLIENT_Destruct() when Skulltag closes.
+	atterm( CLIENT_Destruct );
+}
+
+//*****************************************************************************
+//
+void CLIENT_Destruct( void )
+{
+	// Free our local buffer.
+	NETWORK_FreeBuffer( &g_LocalBuffer );
 }
 
 //*****************************************************************************
