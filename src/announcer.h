@@ -73,7 +73,7 @@ typedef struct
 	// The sound name for this entry.
 	char	szSound[64];
 
-} ANNOUNCERENTRY_t;
+} ANNOUNCERENTRY_s;
 
 //*****************************************************************************
 typedef struct
@@ -82,9 +82,9 @@ typedef struct
 	char				szName[64];
 
 	// The list of announcer entries present in this profile.
-	ANNOUNCERENTRY_t	**paAnnouncerEntries;
+	ANNOUNCERENTRY_s	**paAnnouncerEntries;
 
-} ANNOUNCERPROFILE_t;
+} ANNOUNCERPROFILE_s;
 
 //*****************************************************************************
 //  PROTOTYPES

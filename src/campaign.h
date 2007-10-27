@@ -102,7 +102,7 @@ typedef struct CAMPAIGNINFO_s
 	LONG			lCompatFlags;
 
 	// The map for which this campaign data applies.
-	char			szMapName[8];
+	char			szMapName[9];
 
 	// If this is a teamgame, which team should the player be on?
 	char			szPlayerTeam[8];
@@ -118,7 +118,7 @@ typedef struct CAMPAIGNINFO_s
 
 	struct CAMPAIGNINFO_s	*pNextInfo;
 
-} CAMPAIGNINFO_t;
+} CAMPAIGNINFO_s;
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -126,7 +126,7 @@ typedef struct CAMPAIGNINFO_s
 void				CAMPAIGN_Construct( void );
 void				CAMPAIGN_Destruct( void );
 void				CAMPAIGN_ParseCampaignInfo( void );
-CAMPAIGNINFO_t		*CAMPAIGN_GetCampaignInfo( char *pszMapName );
+CAMPAIGNINFO_s		*CAMPAIGN_GetCampaignInfo( char *pszMapName );
 void				CAMPAIGN_EnableCampaign( void );
 void				CAMPAIGN_DisableCampaign( void );
 bool				CAMPAIGN_AllowCampaign( void );

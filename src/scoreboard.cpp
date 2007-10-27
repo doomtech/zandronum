@@ -206,7 +206,7 @@ static void SCOREBOARD_DrawBottomString( void )
 	if ( g_BottomString.Len( ) > 0 )
 	{
 		DHUDMessageFadeOut	*pMsg;
-		V_ColorizeString( (char *)g_BottomString.GetChars( ));
+		V_ColorizeString( g_BottomString );
 
 		pMsg = new DHUDMessageFadeOut( g_BottomString,
 			1.5f,

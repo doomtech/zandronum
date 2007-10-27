@@ -63,7 +63,7 @@
 //*****************************************************************************
 //	VARIABLES
 
-static	ANNOUNCERPROFILE_t	*g_AnnouncerProfile[MAX_ANNOUNCERPROFILES];
+static	ANNOUNCERPROFILE_s	*g_AnnouncerProfile[MAX_ANNOUNCERPROFILES];
 
 // Have the "Three frags left!", etc. sounds been played yet?
 static	bool			g_bThreeFragsLeftSoundPlayed;
@@ -78,10 +78,11 @@ static	bool			g_bOnePointLeftSoundPlayed;
 //*****************************************************************************
 //	PROTOTYPES
 
-bool				announcer_AddAnnouncerProfile( ANNOUNCERPROFILE_t *pInfo );
-void				announcer_AddProfileEntry( ANNOUNCERPROFILE_t *pInfo, const char *pszEntry, const char *pszSound );
-ANNOUNCERENTRY_t	*announcer_FindEntry( ANNOUNCERPROFILE_t *pInfo, const char *pszEntry );
-void				announcer_FinishAddingEntries( ANNOUNCERPROFILE_t *pInfo );
+static	void					announcer_ParseAnnouncerInfoLump( void );
+static	bool					announcer_AddAnnouncerProfile( ANNOUNCERPROFILE_s *pInfo );
+static	void					announcer_AddProfileEntry( ANNOUNCERPROFILE_s *pInfo, const char *pszEntry, const char *pszSound );
+static	ANNOUNCERENTRY_s		*announcer_FindEntry( ANNOUNCERPROFILE_s *pInfo, const char *pszEntry );
+static	void					announcer_FinishAddingEntries( ANNOUNCERPROFILE_s *pInfo );
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -137,9 +138,6 @@ void ANNOUNCER_ParseAnnouncerInfo( void )
 {
 	LONG		lCurLump;
 	LONG		lLastLump = 0;
-	char		szKey[128];
-	char		szValue[128];
-	ULONG		ulIdx;
 
 	// Search through all loaded wads for a lump called "ANCRINFO".
 	while (( lCurLump = Wads.FindLump( "ANCRINFO", (int *)&lLastLump )) != -1 )
@@ -147,69 +145,10 @@ void ANNOUNCER_ParseAnnouncerInfo( void )
 		// Make pszBotInfo point to the raw data (which should be a text file) in the ANCRINFO lump.
 		SC_OpenLumpNum( lCurLump, "ANCRINFO" );
 
-		// Begin parsing that text. COM_Parse will create a token (com_token), and
-		// pszBotInfo will skip past the token.
-		while ( SC_GetString( ))
-		{
-			ANNOUNCERPROFILE_t	AnnouncerProfile;
+		// Parse the lump.
+		announcer_ParseAnnouncerInfoLump( );
 
-			// Initialize our announcer info variable.
-			sprintf( AnnouncerProfile.szName,					"UNNAMED ANNOUNCER" );
-			AnnouncerProfile.paAnnouncerEntries = (ANNOUNCERENTRY_t **)malloc( sizeof( ANNOUNCERENTRY_t ** ) * MAX_ANNOUNCERPROFILE_ENTRIES );
-			for ( ulIdx = 0; ulIdx < MAX_ANNOUNCERPROFILE_ENTRIES; ulIdx++ )
-			{
-				AnnouncerProfile.paAnnouncerEntries[ulIdx] = (ANNOUNCERENTRY_t *)malloc( sizeof( ANNOUNCERENTRY_t ));
-
-				AnnouncerProfile.paAnnouncerEntries[ulIdx]->szName[0] = '\0';
-				AnnouncerProfile.paAnnouncerEntries[ulIdx]->szSound[0] = '\0';
-			}
-
-			while ( sc_String[0] != '{' )
-				SC_GetString( );
-
-			// We've encountered a starting bracket. Now continue to parse until we hit an end bracket.
-			while ( sc_String[0] != '}' )
-			{
-				// The current token should be our key. (key = value) If it's an end bracket, break.
-				SC_GetString( );
-				sprintf( szKey, sc_String );
-				if ( sc_String[0] == '}' )
-					break;
-
-				// The following key must be an = sign. If not, the user made an error!
-				SC_GetString( );
-				if ( stricmp( sc_String, "=" ) != 0 )
-						I_Error( "ANNOUNCER_ParseAnnouncerInfo: Missing \"=\" in ANCRINFO lump for field \"%s\".\n", szKey );
-
-				// The last token should be our value.
-				SC_GetString( );
-				sprintf( szValue, sc_String );
-
-				// If we're specifying the name of the profile, set it here.
-				if ( stricmp( szKey, "name" ) == 0 )
-					sprintf( AnnouncerProfile.szName, szValue );
-				// Add the new key, along with its value to the profile.
-				else
-					announcer_AddProfileEntry( &AnnouncerProfile, (const char *)szKey, (const char *)szValue );
-			}
-
-			// Now that we're done adding entries, sort them alphabetically.
-			announcer_FinishAddingEntries( &AnnouncerProfile );
-
-			// Add our completed announcer profile.
-			announcer_AddAnnouncerProfile( &AnnouncerProfile );
-
-			// Finally, free all the memory allocated for this temporary profile.
-			for ( ulIdx = 0; ulIdx < MAX_ANNOUNCERPROFILE_ENTRIES; ulIdx++ )
-			{
-				free( AnnouncerProfile.paAnnouncerEntries[ulIdx] );
-				AnnouncerProfile.paAnnouncerEntries[ulIdx] = NULL;
-			}
-
-			free( AnnouncerProfile.paAnnouncerEntries );
-			AnnouncerProfile.paAnnouncerEntries = NULL;
-		}
-
+		// Finish parsing the lump.
 		SC_Close( );
 	}
 }
@@ -252,7 +191,7 @@ bool ANNOUNCER_DoesEntryExist( ULONG ulProfileIdx, const char *pszEntry )
 //
 void ANNOUNCER_PlayEntry( ULONG ulProfileIdx, const char *pszEntry )
 {
-	ANNOUNCERENTRY_t	*pEntry;
+	ANNOUNCERENTRY_s	*pEntry;
 
 	// Return false if the profile index is invalid, or a profile doesn't exist on this index.
 	if (( ulProfileIdx >= MAX_ANNOUNCERPROFILES ) || ( g_AnnouncerProfile[ulProfileIdx] == NULL ))
@@ -604,7 +543,85 @@ char *ANNOUNCER_GetName( ULONG ulIdx )
 //*****************************************************************************
 //*****************************************************************************
 //
-bool announcer_AddAnnouncerProfile( ANNOUNCERPROFILE_t *pInfo )
+static void announcer_ParseAnnouncerInfoLump( void )
+{
+	char				szKey[64];
+	char				szValue[64];
+	ULONG				ulIdx;
+	ANNOUNCERPROFILE_s	AnnouncerProfile;
+
+	// Begin parsing that text. COM_Parse will create a token (com_token), and
+	// pszBotInfo will skip past the token.
+	while ( SC_GetString( ))
+	{
+		// Initialize our announcer info variable.
+		strncpy( AnnouncerProfile.szName, "UNNAMED ANNOUNCER", 63 );
+		AnnouncerProfile.szName[63] = 0;
+
+		AnnouncerProfile.paAnnouncerEntries = (ANNOUNCERENTRY_s **)malloc( sizeof( ANNOUNCERENTRY_s ** ) * MAX_ANNOUNCERPROFILE_ENTRIES );
+		for ( ulIdx = 0; ulIdx < MAX_ANNOUNCERPROFILE_ENTRIES; ulIdx++ )
+		{
+			AnnouncerProfile.paAnnouncerEntries[ulIdx] = (ANNOUNCERENTRY_s *)malloc( sizeof( ANNOUNCERENTRY_s ));
+
+			AnnouncerProfile.paAnnouncerEntries[ulIdx]->szName[0] = '\0';
+			AnnouncerProfile.paAnnouncerEntries[ulIdx]->szSound[0] = '\0';
+		}
+
+		while ( sc_String[0] != '{' )
+			SC_GetString( );
+
+		// We've encountered a starting bracket. Now continue to parse until we hit an end bracket.
+		while ( sc_String[0] != '}' )
+		{
+			// The current token should be our key. (key = value) If it's an end bracket, break.
+			SC_GetString( );
+			strncpy( szKey, sc_String, 63 );
+			szKey[63] = 0;
+			if ( sc_String[0] == '}' )
+				break;
+
+			// The following key must be an = sign. If not, the user made an error!
+			SC_GetString( );
+			if ( stricmp( sc_String, "=" ) != 0 )
+					I_Error( "ANNOUNCER_ParseAnnouncerInfo: Missing \"=\" in ANCRINFO lump for field \"%s\".\n", szKey );
+
+			// The last token should be our value.
+			SC_GetString( );
+			strncpy( szValue, sc_String, 63 );
+			szValue[63] = 0;
+
+			// If we're specifying the name of the profile, set it here.
+			if ( stricmp( szKey, "name" ) == 0 )
+			{
+				strncpy( AnnouncerProfile.szName, szValue, 63 );
+				AnnouncerProfile.szName[63] = 0;
+			}
+			// Add the new key, along with its value to the profile.
+			else
+				announcer_AddProfileEntry( &AnnouncerProfile, (const char *)szKey, (const char *)szValue );
+		}
+
+		// Now that we're done adding entries, sort them alphabetically.
+		announcer_FinishAddingEntries( &AnnouncerProfile );
+
+		// Add our completed announcer profile.
+		announcer_AddAnnouncerProfile( &AnnouncerProfile );
+
+		// Finally, free all the memory allocated for this temporary profile.
+		for ( ulIdx = 0; ulIdx < MAX_ANNOUNCERPROFILE_ENTRIES; ulIdx++ )
+		{
+			free( AnnouncerProfile.paAnnouncerEntries[ulIdx] );
+			AnnouncerProfile.paAnnouncerEntries[ulIdx] = NULL;
+		}
+
+		free( AnnouncerProfile.paAnnouncerEntries );
+		AnnouncerProfile.paAnnouncerEntries = NULL;
+	}
+}
+
+//*****************************************************************************
+//
+static bool announcer_AddAnnouncerProfile( ANNOUNCERPROFILE_s *pInfo )
 {
 	ULONG	ulIdx;
 	ULONG	ulIdx2;
@@ -616,17 +633,21 @@ bool announcer_AddAnnouncerProfile( ANNOUNCERPROFILE_t *pInfo )
 			continue;
 
 		// Allocate some memory for this new block.
-		g_AnnouncerProfile[ulIdx] = (ANNOUNCERPROFILE_t *)malloc( sizeof( ANNOUNCERPROFILE_t ));
+		g_AnnouncerProfile[ulIdx] = (ANNOUNCERPROFILE_s *)malloc( sizeof( ANNOUNCERPROFILE_s ));
 
 		// Now copy all the data we passed in into this block.
-		sprintf( g_AnnouncerProfile[ulIdx]->szName, "%s", pInfo->szName );
-		g_AnnouncerProfile[ulIdx]->paAnnouncerEntries = (ANNOUNCERENTRY_t **)malloc( sizeof( ANNOUNCERENTRY_t ) * MAX_ANNOUNCERPROFILE_ENTRIES );
+		strncpy( g_AnnouncerProfile[ulIdx]->szName, pInfo->szName, 63 );
+		g_AnnouncerProfile[ulIdx]->szName[63] = 0;
+
+		g_AnnouncerProfile[ulIdx]->paAnnouncerEntries = (ANNOUNCERENTRY_s **)malloc( sizeof( ANNOUNCERENTRY_s ) * MAX_ANNOUNCERPROFILE_ENTRIES );
 		for ( ulIdx2 = 0; ulIdx2 < MAX_ANNOUNCERPROFILE_ENTRIES; ulIdx2++ )
 		{
-			g_AnnouncerProfile[ulIdx]->paAnnouncerEntries[ulIdx2] = (ANNOUNCERENTRY_t *)malloc( sizeof( ANNOUNCERENTRY_t ));
+			g_AnnouncerProfile[ulIdx]->paAnnouncerEntries[ulIdx2] = (ANNOUNCERENTRY_s *)malloc( sizeof( ANNOUNCERENTRY_s ));
 
-			sprintf( g_AnnouncerProfile[ulIdx]->paAnnouncerEntries[ulIdx2]->szName, "%s", pInfo->paAnnouncerEntries[ulIdx2]->szName );
-			sprintf( g_AnnouncerProfile[ulIdx]->paAnnouncerEntries[ulIdx2]->szSound, "%s", pInfo->paAnnouncerEntries[ulIdx2]->szSound );
+			strncpy( g_AnnouncerProfile[ulIdx]->paAnnouncerEntries[ulIdx2]->szName, pInfo->paAnnouncerEntries[ulIdx2]->szName, 31 );
+			strncpy( g_AnnouncerProfile[ulIdx]->paAnnouncerEntries[ulIdx2]->szSound, pInfo->paAnnouncerEntries[ulIdx2]->szSound, 63 );
+			g_AnnouncerProfile[ulIdx]->paAnnouncerEntries[ulIdx2]->szName[31] = 0;
+			g_AnnouncerProfile[ulIdx]->paAnnouncerEntries[ulIdx2]->szSound[63] = 0;
 		}
 
 		return ( true );
@@ -637,7 +658,7 @@ bool announcer_AddAnnouncerProfile( ANNOUNCERPROFILE_t *pInfo )
 
 //*****************************************************************************
 //
-void announcer_AddProfileEntry( ANNOUNCERPROFILE_t *pInfo, const char *pszEntry, const char *pszSound )
+static void announcer_AddProfileEntry( ANNOUNCERPROFILE_s *pInfo, const char *pszEntry, const char *pszSound )
 {
 	ULONG	ulIdx;
 
@@ -658,8 +679,10 @@ void announcer_AddProfileEntry( ANNOUNCERPROFILE_t *pInfo, const char *pszEntry,
 
 		if ( pInfo->paAnnouncerEntries[ulIdx]->szName[0] == '\0' )
 		{
-			sprintf( pInfo->paAnnouncerEntries[ulIdx]->szName, "%s", pszEntry );
-			sprintf( pInfo->paAnnouncerEntries[ulIdx]->szSound, "%s", pszSound );
+			strncpy( pInfo->paAnnouncerEntries[ulIdx]->szName, pszEntry, 31 );
+			strncpy( pInfo->paAnnouncerEntries[ulIdx]->szSound, pszSound, 63 );
+			pInfo->paAnnouncerEntries[ulIdx]->szName[31] = 0;
+			pInfo->paAnnouncerEntries[ulIdx]->szSound[63] = 0;
 
 			// All done.
 			return;
@@ -669,7 +692,7 @@ void announcer_AddProfileEntry( ANNOUNCERPROFILE_t *pInfo, const char *pszEntry,
 
 //*****************************************************************************
 //
-ANNOUNCERENTRY_t *announcer_FindEntry( ANNOUNCERPROFILE_t *pInfo, const char *pszEntry )
+static ANNOUNCERENTRY_s *announcer_FindEntry( ANNOUNCERPROFILE_s *pInfo, const char *pszEntry )
 {
 	ULONG	ulIdx;
 
@@ -694,7 +717,7 @@ ANNOUNCERENTRY_t *announcer_FindEntry( ANNOUNCERPROFILE_t *pInfo, const char *ps
 
 //*****************************************************************************
 //
-void announcer_FinishAddingEntries( ANNOUNCERPROFILE_t *pInfo )
+static void announcer_FinishAddingEntries( ANNOUNCERPROFILE_s *pInfo )
 {
 	// FIXME: Sort this list alphabetically.
 }

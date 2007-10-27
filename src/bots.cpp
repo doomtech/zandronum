@@ -92,8 +92,8 @@ static	FRandom		BotSpawn( "BotSpawn" );
 static	FRandom		BotRemove( "BotRemove" );
 static	FRandom		g_RandomBotAimSeed( "RandomBotAimSeed" );
 static	BOTSPAWN_t	g_BotSpawn[MAXPLAYERS];
-static	BOTINFO_t	*g_BotInfo[MAX_BOTINFO];
-static	BOTINFO_t	g_HardcodedBotInfo[NUM_HARDCODED_BOTS];
+static	BOTINFO_s	*g_BotInfo[MAX_BOTINFO];
+static	BOTINFO_s	g_HardcodedBotInfo[NUM_HARDCODED_BOTS];
 static	cycle_t		g_BotCycles;
 static	bool		g_bBotIsInitialized[MAXPLAYERS];
 static	LONG		g_lLastHeader;
@@ -359,6 +359,8 @@ CUSTOM_CVAR( Int, botdebug_shownodes, 0, CVAR_ARCHIVE )
 
 //*****************************************************************************
 //	PROTOTYPES
+
+static	void					bots_ParseBotInfoLump( void );
 
 void	SERVERCONSOLE_ReListPlayers( void );
 
@@ -1678,7 +1680,7 @@ void BOTS_Destruct( void )
 
 //*****************************************************************************
 //
-bool BOTS_AddBotInfo( BOTINFO_t *pBotInfo )
+bool BOTS_AddBotInfo( BOTINFO_s *pBotInfo )
 {
 	ULONG	ulIdx;
 
@@ -1689,7 +1691,7 @@ bool BOTS_AddBotInfo( BOTINFO_t *pBotInfo )
 			continue;
 
 		// Allocate some memory for this new block.
-		g_BotInfo[ulIdx] = (BOTINFO_t *)malloc( sizeof( BOTINFO_t ));
+		g_BotInfo[ulIdx] = (BOTINFO_s *)malloc( sizeof( BOTINFO_s ));
 
 		// Now copy all the data we passed in into this block.
 		g_BotInfo[ulIdx]->bRevealed						= pBotInfo->bRevealed;
@@ -1724,8 +1726,6 @@ void BOTS_ParseBotInfo( void )
 {
 	LONG		lCurLump;
 	LONG		lLastLump = 0;
-	char		szKey[64];
-	char		szValue[128];
 
 	// Search through all loaded wads for a lump called "BOTINFO".
 	while (( lCurLump = Wads.FindLump( "BOTINFO", (int *)&lLastLump )) != -1 )
@@ -1733,256 +1733,8 @@ void BOTS_ParseBotInfo( void )
 		// Make pszBotInfo point to the raw data (which should be a text file) in the BOTINFO lump.
 		SC_OpenLumpNum( lCurLump, "BOTINFO" );
 
-		// Begin parsing that text. COM_Parse will create a token (com_token), and
-		// pszBotInfo will skip past the token.
-		while ( SC_GetString( ))
-		{
-			BOTINFO_t	BotInfo;
-
-			// Initialize our botinfo variable.
-			BotInfo.bRevealed					= true;
-			BotInfo.bRevealedByDefault			= true;
-			BotInfo.Accuracy					= BOTSKILL_MEDIUM;
-			BotInfo.Anticipation				= BOTSKILL_MEDIUM;
-			BotInfo.Evade						= BOTSKILL_MEDIUM;
-			BotInfo.Intellect					= BOTSKILL_MEDIUM;
-			BotInfo.ulRailgunColor				= 0;
-			BotInfo.ulChatFrequency				= 50;
-			BotInfo.ReactionTime				= BOTSKILL_MEDIUM;
-			BotInfo.Perception					= BOTSKILL_MEDIUM;
-			sprintf( BotInfo.szFavoriteWeapon, 	"pistol" );
-			sprintf( BotInfo.szClassName,		"random" );
-			sprintf( BotInfo.szColor,			"00 00 00" );
-			sprintf( BotInfo.szGender,			"male" );
-			sprintf( BotInfo.szName,			"UNNAMED BOT" );
-			sprintf( BotInfo.szScriptName,		"" );
-			sprintf( BotInfo.szSkinName,		"base" );
-			sprintf( BotInfo.szChatFile,		"" );
-			sprintf( BotInfo.szChatLump,		"" );
-
-			while ( sc_String[0] != '{' )
-				SC_GetString( );
-
-			// We've encountered a starting bracket. Now continue to parse until we hit an end bracket.
-			while ( sc_String[0] != '}' )
-			{
-				// The current token should be our key. (key = value) If it's an end bracket, break.
-				SC_GetString( );
-				sprintf( szKey, sc_String );
-				if ( sc_String[0] == '}' )
-					break;
-
-				// The following key must be an = sign. If not, the user made an error!
-				SC_GetString( );
-				if ( stricmp( sc_String, "=" ) != 0 )
-					I_Error( "BOTS_ParseBotInfo: Missing \"=\" in BOTINFO lump for field \"%s\"!", szKey );
-
-				// The last token should be our value.
-				SC_GetString( );
-				sprintf( szValue, sc_String );
-
-				// Now try to match our key with a valid bot info field.
-				if ( stricmp( szKey, "name" ) == 0 )
-				{
-					strncpy( BotInfo.szName, szValue, 32 );
-				}
-				else if ( stricmp( szKey, "accuracy" ) == 0 )
-				{
-					switch ( atoi( szValue ))
-					{
-					case 0:
-					case 1:
-					case 2:
-					case 3:
-					case 4:
-
-						BotInfo.Accuracy = (BOTSKILL_e)( atoi( szValue ) + (LONG)BOTSKILL_LOW );
-						break;
-					default:
-
-						I_Error( "BOTS_ParseBotInfo: Expected value from 0-4 for field \"accuracy\"!" );
-						break;
-					}
-				}
-				else if (( stricmp( szKey, "intelect" ) == 0 ) || ( stricmp( szKey, "intellect" ) == 0 ))
-				{
-					switch ( atoi( szValue ))
-					{
-					case 0:
-					case 1:
-					case 2:
-					case 3:
-					case 4:
-
-						BotInfo.Intellect = (BOTSKILL_e)( atoi( szValue ) + (LONG)BOTSKILL_LOW );
-						break;
-					default:
-
-						I_Error( "BOTS_ParseBotInfo: Expected value from 0-4 for field \"intellect\"!" );
-						break;
-					}
-				}
-				else if ( stricmp( szKey, "evade" ) == 0 )
-				{
-					switch ( atoi( szValue ))
-					{
-					case 0:
-					case 1:
-					case 2:
-					case 3:
-					case 4:
-
-						BotInfo.Evade = (BOTSKILL_e)( atoi( szValue ) + (LONG)BOTSKILL_LOW );
-						break;
-					default:
-
-						I_Error( "BOTS_ParseBotInfo: Expected value from 0-4 for field \"evade\"!" );
-						break;
-					}
-				}
-				else if ( stricmp( szKey, "anticipation" ) == 0 )
-				{
-					switch ( atoi( szValue ))
-					{
-					case 0:
-					case 1:
-					case 2:
-					case 3:
-					case 4:
-
-						BotInfo.Anticipation = (BOTSKILL_e)( atoi( szValue ) + (LONG)BOTSKILL_LOW );
-						break;
-					default:
-
-						I_Error( "BOTS_ParseBotInfo: Expected value from 0-4 for field \"anticipation\"!" );
-						break;
-					}
-				}
-				else if ( stricmp( szKey, "reactiontime" ) == 0 )
-				{
-					switch ( atoi( szValue ))
-					{
-					case 0:
-					case 1:
-					case 2:
-					case 3:
-					case 4:
-
-						BotInfo.ReactionTime = (BOTSKILL_e)( atoi( szValue ) + (LONG)BOTSKILL_LOW );
-						break;
-					default:
-
-						I_Error( "BOTS_ParseBotInfo: Expected value from 0-4 for field \"reactiontime\"!" );
-						break;
-					}
-				}
-				else if ( stricmp( szKey, "perception" ) == 0 )
-				{
-					switch ( atoi( szValue ))
-					{
-					case 0:
-					case 1:
-					case 2:
-					case 3:
-					case 4:
-
-						BotInfo.Perception = (BOTSKILL_e)( atoi( szValue ) + (LONG)BOTSKILL_LOW );
-						break;
-					default:
-
-						I_Error( "BOTS_ParseBotInfo: Expected value from 0-4 for field \"perception\"!" );
-						break;
-					}
-				}
-				else if ( stricmp( szKey, "favoriteweapon" ) == 0 )
-				{
-					sprintf( BotInfo.szFavoriteWeapon, szValue );
-				}
-				else if ( stricmp( szKey, "class" ) == 0 )
-				{
-					sprintf( BotInfo.szClassName, szValue );
-				}
-				else if ( stricmp( szKey, "color" ) == 0 )
-				{
-					sprintf( BotInfo.szColor, szValue );
-				}
-				else if ( stricmp( szKey, "gender" ) == 0 )
-				{
-					sprintf( BotInfo.szGender, szValue );
-				}
-				else if ( stricmp( szKey, "skin" ) == 0 )
-				{
-					sprintf( BotInfo.szSkinName, szValue );
-				}
-				else if ( stricmp( szKey, "railcolor" ) == 0 )
-				{
-					if ( stricmp( szValue, "blue" ) == 0 )
-						BotInfo.ulRailgunColor = RAILCOLOR_BLUE;
-					else if ( stricmp( szValue, "red" ) == 0 )
-						BotInfo.ulRailgunColor = RAILCOLOR_RED;
-					else if ( stricmp( szValue, "yellow" ) == 0 )
-						BotInfo.ulRailgunColor = RAILCOLOR_YELLOW;
-					else if ( stricmp( szValue, "black" ) == 0 )
-						BotInfo.ulRailgunColor = RAILCOLOR_BLACK;
-					else if ( stricmp( szValue, "silver" ) == 0 )
-						BotInfo.ulRailgunColor = RAILCOLOR_SILVER;
-					else if ( stricmp( szValue, "gold" ) == 0 )
-						BotInfo.ulRailgunColor = RAILCOLOR_GOLD;
-					else if ( stricmp( szValue, "green" ) == 0 )
-						BotInfo.ulRailgunColor = RAILCOLOR_GREEN;
-					else if ( stricmp( szValue, "white" ) == 0 )
-						BotInfo.ulRailgunColor = RAILCOLOR_WHITE;
-					else if ( stricmp( szValue, "purple" ) == 0 )
-						BotInfo.ulRailgunColor = RAILCOLOR_PURPLE;
-					else if ( stricmp( szValue, "orange" ) == 0 )
-						BotInfo.ulRailgunColor = RAILCOLOR_ORANGE;
-					else if ( stricmp( szValue, "rainbow" ) == 0 )
-						BotInfo.ulRailgunColor = RAILCOLOR_RAINBOW;
-					else
-						BotInfo.ulRailgunColor = atoi( szValue );
-				}
-				else if ( stricmp( szKey, "chatfrequency" ) == 0 )
-				{
-					BotInfo.ulChatFrequency = atoi( szValue );
-					if (( BotInfo.ulChatFrequency < 0 ) || ( BotInfo.ulChatFrequency > 100 ))
-						I_Error( "BOTS_ParseBotInfo: Expected value from 0-100 for field \"chatfrequency\"!" );
-				}
-				else if ( stricmp( szKey, "revealed" ) == 0 )
-				{
-					if ( stricmp( szValue, "true" ) == 0 )
-						BotInfo.bRevealed = true;
-					else if ( stricmp( szValue, "false" ) == 0 )
-						BotInfo.bRevealed = false;
-					else
-						BotInfo.bRevealed = !!atoi( szValue );
-
-					BotInfo.bRevealedByDefault = BotInfo.bRevealed;
-				}
-				else if ( stricmp( szKey, "script" ) == 0 )
-				{
-					if ( strlen( szValue ) > 8 )
-						I_Error( "BOTS_ParseBotInfo: Value for BOTINFO property \"script\" (\"%s\") cannot exceed 8 characters!", szValue );
-
-					sprintf( BotInfo.szScriptName, szValue );
-				}
-				else if ( stricmp( szKey, "chatfile" ) == 0 )
-				{
-					sprintf( BotInfo.szChatFile, szValue );
-				}
-				else if ( stricmp( szKey, "chatlump" ) == 0 )
-				{
-					if ( strlen( szValue ) > 8 )
-						I_Error( "BOTS_ParseBotInfo: Value for BOTINFO property \"chatlump\" (\"%s\") cannot exceed 8 characters!", szValue );
-
-					sprintf( BotInfo.szChatLump, szValue );
-				}
-				else
-					I_Error( "BOTS_ParseBotInfo: Unknown BOTINFO property, \"%s\"!", szKey );
-			}
-
-			// Finally, add our completed botinfo.
-			BOTS_AddBotInfo( &BotInfo );
-		}
+		// Parse the lump.
+		bots_ParseBotInfoLump( );
 
 		SC_Close( );
 	}
@@ -2391,6 +2143,268 @@ void BOTS_PostWeaponFiredEvent( ULONG ulPlayer, BOTEVENT_e EventIfSelf, BOTEVENT
 //*****************************************************************************
 //*****************************************************************************
 //
+void bots_ParseBotInfoLump( void )
+{
+	char		szKey[64];
+	char		szValue[128];
+	BOTINFO_s	BotInfo;
+
+	// Begin parsing that text. COM_Parse will create a token (com_token), and
+	// pszBotInfo will skip past the token.
+	while ( SC_GetString( ))
+	{
+		// Initialize our botinfo variable.
+		BotInfo.bRevealed					= true;
+		BotInfo.bRevealedByDefault			= true;
+		BotInfo.Accuracy					= BOTSKILL_MEDIUM;
+		BotInfo.Anticipation				= BOTSKILL_MEDIUM;
+		BotInfo.Evade						= BOTSKILL_MEDIUM;
+		BotInfo.Intellect					= BOTSKILL_MEDIUM;
+		BotInfo.ulRailgunColor				= 0;
+		BotInfo.ulChatFrequency				= 50;
+		BotInfo.ReactionTime				= BOTSKILL_MEDIUM;
+		BotInfo.Perception					= BOTSKILL_MEDIUM;
+		sprintf( BotInfo.szFavoriteWeapon, 	"pistol" );
+		sprintf( BotInfo.szClassName,		"random" );
+		sprintf( BotInfo.szColor,			"00 00 00" );
+		sprintf( BotInfo.szGender,			"male" );
+		sprintf( BotInfo.szName,			"UNNAMED BOT" );
+		sprintf( BotInfo.szScriptName,		"" );
+		sprintf( BotInfo.szSkinName,		"base" );
+		sprintf( BotInfo.szChatFile,		"" );
+		sprintf( BotInfo.szChatLump,		"" );
+
+		while ( sc_String[0] != '{' )
+			SC_GetString( );
+
+		// We've encountered a starting bracket. Now continue to parse until we hit an end bracket.
+		while ( sc_String[0] != '}' )
+		{
+			// The current token should be our key. (key = value) If it's an end bracket, break.
+			SC_GetString( );
+			strncpy( szKey, sc_String, 63 );
+			szKey[63] = 0;
+			if ( sc_String[0] == '}' )
+				break;
+
+			// The following key must be an = sign. If not, the user made an error!
+			SC_GetString( );
+			if ( stricmp( sc_String, "=" ) != 0 )
+				I_Error( "BOTS_ParseBotInfo: Missing \"=\" in BOTINFO lump for field \"%s\"!", szKey );
+
+			// The last token should be our value.
+			SC_GetString( );
+			strncpy( szValue, sc_String, 127 );
+			szValue[127] = 0;
+
+			// Now try to match our key with a valid bot info field.
+			if ( stricmp( szKey, "name" ) == 0 )
+			{
+				strncpy( BotInfo.szName, szValue, 31 );
+				BotInfo.szName[31] = 0;
+			}
+			else if ( stricmp( szKey, "accuracy" ) == 0 )
+			{
+				switch ( atoi( szValue ))
+				{
+				case 0:
+				case 1:
+				case 2:
+				case 3:
+				case 4:
+
+					BotInfo.Accuracy = (BOTSKILL_e)( atoi( szValue ) + (LONG)BOTSKILL_LOW );
+					break;
+				default:
+
+					I_Error( "BOTS_ParseBotInfo: Expected value from 0-4 for field \"accuracy\"!" );
+					break;
+				}
+			}
+			else if (( stricmp( szKey, "intelect" ) == 0 ) || ( stricmp( szKey, "intellect" ) == 0 ))
+			{
+				switch ( atoi( szValue ))
+				{
+				case 0:
+				case 1:
+				case 2:
+				case 3:
+				case 4:
+
+					BotInfo.Intellect = (BOTSKILL_e)( atoi( szValue ) + (LONG)BOTSKILL_LOW );
+					break;
+				default:
+
+					I_Error( "BOTS_ParseBotInfo: Expected value from 0-4 for field \"intellect\"!" );
+					break;
+				}
+			}
+			else if ( stricmp( szKey, "evade" ) == 0 )
+			{
+				switch ( atoi( szValue ))
+				{
+				case 0:
+				case 1:
+				case 2:
+				case 3:
+				case 4:
+
+					BotInfo.Evade = (BOTSKILL_e)( atoi( szValue ) + (LONG)BOTSKILL_LOW );
+					break;
+				default:
+
+					I_Error( "BOTS_ParseBotInfo: Expected value from 0-4 for field \"evade\"!" );
+					break;
+				}
+			}
+			else if ( stricmp( szKey, "anticipation" ) == 0 )
+			{
+				switch ( atoi( szValue ))
+				{
+				case 0:
+				case 1:
+				case 2:
+				case 3:
+				case 4:
+
+					BotInfo.Anticipation = (BOTSKILL_e)( atoi( szValue ) + (LONG)BOTSKILL_LOW );
+					break;
+				default:
+
+					I_Error( "BOTS_ParseBotInfo: Expected value from 0-4 for field \"anticipation\"!" );
+					break;
+				}
+			}
+			else if ( stricmp( szKey, "reactiontime" ) == 0 )
+			{
+				switch ( atoi( szValue ))
+				{
+				case 0:
+				case 1:
+				case 2:
+				case 3:
+				case 4:
+
+					BotInfo.ReactionTime = (BOTSKILL_e)( atoi( szValue ) + (LONG)BOTSKILL_LOW );
+					break;
+				default:
+
+					I_Error( "BOTS_ParseBotInfo: Expected value from 0-4 for field \"reactiontime\"!" );
+					break;
+				}
+			}
+			else if ( stricmp( szKey, "perception" ) == 0 )
+			{
+				switch ( atoi( szValue ))
+				{
+				case 0:
+				case 1:
+				case 2:
+				case 3:
+				case 4:
+
+					BotInfo.Perception = (BOTSKILL_e)( atoi( szValue ) + (LONG)BOTSKILL_LOW );
+					break;
+				default:
+
+					I_Error( "BOTS_ParseBotInfo: Expected value from 0-4 for field \"perception\"!" );
+					break;
+				}
+			}
+			else if ( stricmp( szKey, "favoriteweapon" ) == 0 )
+			{
+				sprintf( BotInfo.szFavoriteWeapon, szValue );
+			}
+			else if ( stricmp( szKey, "class" ) == 0 )
+			{
+				sprintf( BotInfo.szClassName, szValue );
+			}
+			else if ( stricmp( szKey, "color" ) == 0 )
+			{
+				sprintf( BotInfo.szColor, szValue );
+			}
+			else if ( stricmp( szKey, "gender" ) == 0 )
+			{
+				sprintf( BotInfo.szGender, szValue );
+			}
+			else if ( stricmp( szKey, "skin" ) == 0 )
+			{
+				sprintf( BotInfo.szSkinName, szValue );
+			}
+			else if ( stricmp( szKey, "railcolor" ) == 0 )
+			{
+				if ( stricmp( szValue, "blue" ) == 0 )
+					BotInfo.ulRailgunColor = RAILCOLOR_BLUE;
+				else if ( stricmp( szValue, "red" ) == 0 )
+					BotInfo.ulRailgunColor = RAILCOLOR_RED;
+				else if ( stricmp( szValue, "yellow" ) == 0 )
+					BotInfo.ulRailgunColor = RAILCOLOR_YELLOW;
+				else if ( stricmp( szValue, "black" ) == 0 )
+					BotInfo.ulRailgunColor = RAILCOLOR_BLACK;
+				else if ( stricmp( szValue, "silver" ) == 0 )
+					BotInfo.ulRailgunColor = RAILCOLOR_SILVER;
+				else if ( stricmp( szValue, "gold" ) == 0 )
+					BotInfo.ulRailgunColor = RAILCOLOR_GOLD;
+				else if ( stricmp( szValue, "green" ) == 0 )
+					BotInfo.ulRailgunColor = RAILCOLOR_GREEN;
+				else if ( stricmp( szValue, "white" ) == 0 )
+					BotInfo.ulRailgunColor = RAILCOLOR_WHITE;
+				else if ( stricmp( szValue, "purple" ) == 0 )
+					BotInfo.ulRailgunColor = RAILCOLOR_PURPLE;
+				else if ( stricmp( szValue, "orange" ) == 0 )
+					BotInfo.ulRailgunColor = RAILCOLOR_ORANGE;
+				else if ( stricmp( szValue, "rainbow" ) == 0 )
+					BotInfo.ulRailgunColor = RAILCOLOR_RAINBOW;
+				else
+					BotInfo.ulRailgunColor = atoi( szValue );
+			}
+			else if ( stricmp( szKey, "chatfrequency" ) == 0 )
+			{
+				BotInfo.ulChatFrequency = atoi( szValue );
+				if (( BotInfo.ulChatFrequency < 0 ) || ( BotInfo.ulChatFrequency > 100 ))
+					I_Error( "BOTS_ParseBotInfo: Expected value from 0-100 for field \"chatfrequency\"!" );
+			}
+			else if ( stricmp( szKey, "revealed" ) == 0 )
+			{
+				if ( stricmp( szValue, "true" ) == 0 )
+					BotInfo.bRevealed = true;
+				else if ( stricmp( szValue, "false" ) == 0 )
+					BotInfo.bRevealed = false;
+				else
+					BotInfo.bRevealed = !!atoi( szValue );
+
+				BotInfo.bRevealedByDefault = BotInfo.bRevealed;
+			}
+			else if ( stricmp( szKey, "script" ) == 0 )
+			{
+				if ( strlen( szValue ) > 8 )
+					I_Error( "BOTS_ParseBotInfo: Value for BOTINFO property \"script\" (\"%s\") cannot exceed 8 characters!", szValue );
+
+				sprintf( BotInfo.szScriptName, szValue );
+			}
+			else if ( stricmp( szKey, "chatfile" ) == 0 )
+			{
+				sprintf( BotInfo.szChatFile, szValue );
+			}
+			else if ( stricmp( szKey, "chatlump" ) == 0 )
+			{
+				if ( strlen( szValue ) > 8 )
+					I_Error( "BOTS_ParseBotInfo: Value for BOTINFO property \"chatlump\" (\"%s\") cannot exceed 8 characters!", szValue );
+
+				sprintf( BotInfo.szChatLump, szValue );
+			}
+			else
+				I_Error( "BOTS_ParseBotInfo: Unknown BOTINFO property, \"%s\"!", szKey );
+		}
+
+		// Finally, add our completed botinfo.
+		BOTS_AddBotInfo( &BotInfo );
+	}
+}
+
+//*****************************************************************************
+//*****************************************************************************
+//
 ULONG BOTINFO_GetNumBotInfos( void )
 {
 	ULONG	ulIdx;
@@ -2793,6 +2807,8 @@ CSkullBot::CSkullBot( char *pszName, char *pszTeamName, ULONG ulPlayerNum )
 
 	// Setup the player's userinfo based on the bot's botinfo.
 	strncpy( m_pPlayer->userinfo.netname, g_BotInfo[m_ulBotInfoIdx]->szName, MAXPLAYERNAME );
+	m_pPlayer->userinfo.netname[MAXPLAYERNAME] = 0;
+
 	V_ColorizeString( m_pPlayer->userinfo.netname );
 	m_pPlayer->userinfo.color = V_GetColorFromString( NULL, g_BotInfo[m_ulBotInfoIdx]->szColor );
 	if ( g_BotInfo[m_ulBotInfoIdx]->szSkinName )

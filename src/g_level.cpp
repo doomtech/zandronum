@@ -2130,7 +2130,7 @@ void G_DoLoadLevel (int position, bool autosave)
 	int i;
 	// [BC]
 	char				szString[256];
-	CAMPAIGNINFO_t		*pInfo;
+	CAMPAIGNINFO_s		*pInfo;
 	UCVarValue			Val;
 
 	// Loop through the teams, and reset the scores.

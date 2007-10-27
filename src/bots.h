@@ -529,7 +529,7 @@ typedef struct
 	// The default chatlump used by this bot.
 	char			szChatLump[32];
 
-} BOTINFO_t;
+} BOTINFO_s;
 
 //*****************************************************************************
 typedef struct
@@ -540,7 +540,7 @@ typedef struct
 	// Game tick this event should be activated on.
 	LONG		lTick;
 
-} BOTEVENT_t;
+} BOTEVENT_s;
 
 //*****************************************************************************
 //	This is the definition of a bot. This is attached to the player structure.
@@ -681,7 +681,7 @@ private:
 	ULONG			m_ulLastEnemyPositionTick;
 
 	// List of events that the bot is waiting to react to.
-	BOTEVENT_t		m_StoredEventQueue[MAX_STORED_EVENTS];
+	BOTEVENT_s		m_StoredEventQueue[MAX_STORED_EVENTS];
 
 	LONG			m_lQueueHead;
 	LONG			m_lQueueTail;
@@ -698,7 +698,7 @@ void		BOTS_Construct( void );
 void		BOTS_Tick( void );
 void		BOTS_Destruct( void );
 
-bool		BOTS_AddBotInfo( BOTINFO_t *pBotInfo );
+bool		BOTS_AddBotInfo( BOTINFO_s *pBotInfo );
 void		BOTS_ParseBotInfo( void );
 bool		BOTS_IsValidName( char *pszName );
 ULONG		BOTS_FindFreePlayerSlot( void );
