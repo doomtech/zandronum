@@ -194,8 +194,8 @@ END_DEFAULTS
 bool ARandomPowerup::Use (bool pickup)
 {
 	AInventory		*pItem;
-	const PClass	*pType;
-	bool			bReturnValue;
+	const PClass	*pType = NULL;
+	bool			bReturnValue = false;
 
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))

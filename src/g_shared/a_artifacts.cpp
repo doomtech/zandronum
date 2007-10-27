@@ -1422,6 +1422,8 @@ AT_GAME_SET( PowerTimeFreezer )
 
 		pTimeFreezer->BlendColor = GOLDCOLORMAP;
 		break;
+	default:
+		break;
 	}
 }
 
@@ -1446,7 +1448,7 @@ void APowerTimeFreezer::InitEffect( )
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		if (( playeringame[ulIdx] == false ) ||
-			( ulIdx == ( Owner->player - players )) ||
+			( ulIdx == static_cast<ULONG>( Owner->player - players )) ||
 			( players[ulIdx].mo == NULL ) ||
 			( players[ulIdx].mo->IsTeammate( Owner ) == false ))
 		{
@@ -1503,7 +1505,7 @@ void APowerTimeFreezer::EndEffect( )
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		if (( playeringame[ulIdx] == false ) ||
-			( ulIdx == ( Owner->player - players )) ||
+			( ulIdx == static_cast<ULONG>( Owner->player - players )) ||
 			( players[ulIdx].mo == NULL ) ||
 			( players[ulIdx].mo->IsTeammate( Owner ) == false ))
 		{

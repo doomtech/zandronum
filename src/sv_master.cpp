@@ -236,7 +236,7 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 	ULONG		ulIdx;
 	ULONG		ulBits;
 	ULONG		ulNumPWADs;
-	ULONG		ulRealIWADIdx;
+	ULONG		ulRealIWADIdx = 0;
 
 	// Let's just use the master server buffer! It gets cleared again when we need it anyway!
 	NETWORK_ClearBuffer( &g_MasterServerBuffer );
@@ -603,7 +603,7 @@ CVAR( String, sv_masteroverrideip, "", CVAR_ARCHIVE )
 CCMD( wads )
 {
 	ULONG		ulIdx;
-	ULONG		ulRealIWADIdx;
+	ULONG		ulRealIWADIdx = 0;
 	ULONG		ulNumPWADs;
 
 	// This is a little tricky. Since WADs can now be loaded within pk3 files, we have

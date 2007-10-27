@@ -283,7 +283,7 @@ private:
 
 		if ( possession || teampossession || teamgame )
 		{
-			if ( (ULONG)OldPoints != CPlayer->lPointCount )
+			if ( OldPoints != CPlayer->lPointCount )
 			{
 				OldPoints = CPlayer->lPointCount;
 				PointsRefresh = screen->GetPageCount ();

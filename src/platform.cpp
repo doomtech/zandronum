@@ -34,7 +34,7 @@ char* itoa(int value, char* str, int base) {
 	do {
 		res = div(value,base);
 		*wstr++ = num[res.rem];
-	}while(value=res.quot);
+	}while((value=res.quot));
 	if(sign<0) *wstr++='-';
 	*wstr='\0';
 

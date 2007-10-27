@@ -201,7 +201,7 @@ void SERVERBAN_AddBan( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3, c
 	g_ServerBans.push_back( bannedIP );
 
 	// Finally, append the banfile.
-	if ( pFile = fopen( Val.String, "a" ))
+	if ( (pFile = fopen( Val.String, "a" )) )
 	{
 		sprintf( szOutString, "\n%s.%s.%s.%s", pszIP0, pszIP1, pszIP2, pszIP3 );
 		if ( pszPlayerName )

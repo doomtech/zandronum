@@ -1834,7 +1834,7 @@ void SERVERCOMMANDS_SetThingTranslation( AActor *pActor, ULONG ulPlayerExtra, UL
 void SERVERCOMMANDS_SetThingProperty( AActor *pActor, ULONG ulProperty, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
-	ULONG	ulPropertyValue;
+	ULONG	ulPropertyValue = 0;
 
 	if ( pActor == NULL )
 		return;

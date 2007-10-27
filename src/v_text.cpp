@@ -379,7 +379,7 @@ void V_UnColorizeString( char *pszString, ULONG ulMaxStringLength )
 	ulCurStringLength = static_cast<ULONG>(strlen( pszString ));
 
 	p = pszString;
-	while ( c = *p++ )
+	while ( (c = *p++) )
 	{
 		if ( c == TEXTCOLOR_ESCAPE )
 		{
@@ -415,7 +415,7 @@ void V_RemoveColorCodes( char *pszString )
 	p = pszString;
 
 	// Look at the current character.
-	while ( c = *p )
+	while ( (c = *p) )
 	{
 		// If this is a color character, remove it along with the color code from the string.
 		if ( c == TEXTCOLOR_ESCAPE )
@@ -498,7 +498,7 @@ void V_CleanPlayerName( char *pszString )
 		if(ulStringLength < 3)
 			sprintf(pszString,"Player");
 		else {
-			while ( c = *p++ )
+			while ( (c = *p++) )
 			{
 				if ( !v_AcceptableNameChar(c) )
 				{

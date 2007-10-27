@@ -886,6 +886,8 @@ void CLIENT_SetConnectionState( CONNECTIONSTATE_e State )
 		winlimit.ForceSet( Val, CVAR_Int );
 		wavelimit.ForceSet( Val, CVAR_Int );
 		break;
+	default:
+		break;
 	}
 }
 
@@ -1139,8 +1141,8 @@ bool CLIENT_GetNextPacket( void )
 //
 void CLIENT_CheckForMissingPackets( void )
 {
-	ULONG	ulIdx;
-	ULONG	ulIdx2;
+	LONG	lIdx;
+	LONG	lIdx2;
 
 	// We already told the server we're missing packets a little bit ago. No need
 	// to do it again.
@@ -1163,27 +1165,27 @@ void CLIENT_CheckForMissingPackets( void )
 		NETWORK_WriteByte( &g_LocalBuffer.ByteStream, CLC_MISSINGPACKET );
 
 		// Now, go through and figure out what packets we're missing. Request these from the server.
-		for ( ulIdx = g_lLastParsedSequence + 1; ulIdx <= g_lHighestReceivedSequence - 1; ulIdx++ )
+		for ( lIdx = g_lLastParsedSequence + 1; lIdx <= g_lHighestReceivedSequence - 1; lIdx++ )
 		{
-			for ( ulIdx2 = 0; ulIdx2 < 256; ulIdx2++ )
+			for ( lIdx2 = 0; lIdx2 < 256; lIdx2++ )
 			{
 				// We've found this packet! No need to tell the server we're missing it.
-				if ( g_lPacketSequence[ulIdx2] == ulIdx )
+				if ( g_lPacketSequence[lIdx2] == lIdx )
 				{
 					if ( debugfile )
-						fprintf( debugfile, "We have packet %d.\n", ulIdx );
+						fprintf( debugfile, "We have packet %d.\n", lIdx );
 
 					break;
 				}
 			}
 
 			// If we didn't find the packet, tell the server we're missing it.
-			if ( ulIdx2 == 256 )
+			if ( lIdx2 == 256 )
 			{
 				if ( debugfile )
-					fprintf( debugfile, "Missing packet %d.\n", ulIdx );
+					fprintf( debugfile, "Missing packet %d.\n", lIdx );
 
-				NETWORK_WriteLong( &g_LocalBuffer.ByteStream, ulIdx );
+				NETWORK_WriteLong( &g_LocalBuffer.ByteStream, lIdx );
 			}
 		}
 
@@ -2666,7 +2668,7 @@ void CLIENT_DisplayMOTD( void )
 		0,
 		(EColorRange)PrintColors[5],
 		cl_motdtime,
-		0.35f ), 'MOTD' );
+		0.35f ), MAKE_ID('M','O','T','D') );
 }
 
 //*****************************************************************************
@@ -2826,7 +2828,7 @@ void CLIENT_RemoveCorpses( void )
 		}
 
 		ulCorpseCount++;
-		if ( ulCorpseCount >= cl_maxcorpses )
+		if ( ulCorpseCount >= static_cast<ULONG>(cl_maxcorpses) )
 		{
 /*
 			if ( pActor == players[consoleplayer].mo )
@@ -2879,7 +2881,7 @@ void CLIENT_RemoveMonsterCorpses( void )
 //
 sector_t *CLIENT_FindSectorByID( ULONG ulID )
 {
-	if ( ulID >= numsectors )
+	if ( ulID >= static_cast<ULONG>(numsectors) )
 		return ( NULL );
 
 	return ( &sectors[ulID] );
@@ -3068,9 +3070,9 @@ static void client_Header( BYTESTREAM_s *pByteStream )
 	lSequence = NETWORK_ReadLong( pByteStream );
 //	Printf( "client_Header: Received packet %d\n", lSequence );
 }
-/*
 //*****************************************************************************
 //
+/*
 static void client_ResetSequence( BYTESTREAM_s *pByteStream )
 {
 //	Printf( "SEQUENCE RESET! g_lLastParsedSequence = %d\n", g_lLastParsedSequence );
@@ -3406,7 +3408,7 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	else
 		lSkin = pPlayer->userinfo.skin;
 
-	if (( lSkin < 0 ) || ( lSkin >= numskins ))
+	if (( lSkin < 0 ) || ( lSkin >= static_cast<LONG>(numskins) ))
 		lSkin = R_FindSkin( "base", pPlayer->CurrentPlayerClass );
 
 	// [BB] There is no skin for the morphed class.
@@ -3481,7 +3483,7 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 		pPlayer->inventorytics = 0;
 
 		// Don't lag anymore if we're a spectator.
-		if ( ulPlayer == consoleplayer )
+		if ( ulPlayer == static_cast<ULONG>(consoleplayer) )
 			g_bClientLagging = false;
 	}
 	else
@@ -3502,7 +3504,7 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	}
 
 	// If this is the consoleplayer, set the realorigin and ServerXYZMom.
-	if ( ulPlayer == consoleplayer )
+	if ( ulPlayer == static_cast<ULONG>(consoleplayer) )
 	{
 		pPlayer->ServerXYZ[0] = pPlayer->mo->x;
 		pPlayer->ServerXYZ[1] = pPlayer->mo->y;
@@ -3523,14 +3525,14 @@ static void client_MovePlayer( BYTESTREAM_s *pByteStream )
 {
 	ULONG		ulPlayer;
 	bool		bVisible;
-	fixed_t		X;
-	fixed_t		Y;
-	fixed_t		Z;
-	angle_t		Angle;
-	fixed_t		MomX;
-	fixed_t		MomY;
-	fixed_t		MomZ;
-	bool		bCrouching;
+	fixed_t		X = 0;
+	fixed_t		Y = 0;
+	fixed_t		Z = 0;
+	angle_t		Angle = 0;
+	fixed_t		MomX = 0;
+	fixed_t		MomY = 0;
+	fixed_t		MomZ = 0;
+	bool		bCrouching = false;
 
 	// Read in the player number.
 	ulPlayer = NETWORK_ReadByte( pByteStream );
@@ -3769,14 +3771,14 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 		((( lastmanstanding || teamlms ) && (( LASTMANSTANDING_GetState( ) == LMSS_WINSEQUENCE ) || ( LASTMANSTANDING_GetState( ) == LMSS_COUNTDOWN ))) == false ))
 	{
 		if ((( deathmatch == false ) || (( fraglimit == 0 ) || ( players[ulSourcePlayer].fragcount < fraglimit ))) &&
-			(( lastmanstanding == false ) || (( winlimit == 0 ) || ( players[ulSourcePlayer].ulWins < winlimit ))) &&
+			(( lastmanstanding == false ) || (( winlimit == 0 ) || ( players[ulSourcePlayer].ulWins < static_cast<ULONG>(winlimit) ))) &&
 			(( teamlms == false ) || (( winlimit == 0 ) || ( TEAM_GetWinCount( players[ulSourcePlayer].ulTeam ) < winlimit ))))
 		{
 			// Display a large "You were fragged by <name>." message in the middle of the screen.
-			if ( ulPlayer == consoleplayer )
+			if ( ulPlayer == static_cast<ULONG>(consoleplayer) )
 				SCOREBOARD_DisplayFraggedMessage( &players[ulSourcePlayer] );
 			// Display a large "You fragged <name>!" message in the middle of the screen.
-			else if ( ulSourcePlayer == consoleplayer )
+			else if ( ulSourcePlayer == static_cast<ULONG>(consoleplayer) )
 				SCOREBOARD_DisplayFragMessage( &players[ulPlayer] );
 		}
 	}
@@ -3932,12 +3934,12 @@ static void client_SetPlayerUserInfo( BYTESTREAM_s *pByteStream )
 	ULONG		ulPlayer;
 	ULONG		ulFlags;
 	char		szName[MAXPLAYERNAME + 1];
-	LONG		lGender;
-	LONG		lColor;
-	char		*pszSkin;
-	LONG		lRailgunTrailColor;
-	LONG		lHandicap;
-	LONG		lClass;
+	LONG		lGender = 0;
+	LONG		lColor = 0;
+	char		*pszSkin = NULL;
+	LONG		lRailgunTrailColor = 0;
+	LONG		lHandicap = 0;
+	LONG		lClass = 0;
 	LONG		lSkin;
 
 	// Read in the player whose userinfo is being sent to us.
@@ -4037,7 +4039,7 @@ static void client_SetPlayerUserInfo( BYTESTREAM_s *pByteStream )
 		else
 			lSkin = pPlayer->userinfo.skin;
 
-		if (( lSkin < 0 ) || ( lSkin >= numskins ))
+		if (( lSkin < 0 ) || ( lSkin >= static_cast<LONG>(numskins) ))
 			lSkin = R_FindSkin( "base", pPlayer->CurrentPlayerClass );
 
 		if ( pPlayer->mo )
@@ -4699,7 +4701,7 @@ static void client_PlayerIsSpectator( BYTESTREAM_s *pByteStream )
 	}
 
 	// Don't lag anymore if we're a spectator.
-	if ( ulPlayer == consoleplayer )
+	if ( ulPlayer == static_cast<ULONG>(consoleplayer) )
 		g_bClientLagging = false;
 }
 
@@ -5145,7 +5147,7 @@ static void client_SetThingState( BYTESTREAM_s *pByteStream )
 	AActor		*pActor;
 	LONG		lID;
 	LONG		lState;
-	FState		*pNewState;
+	FState		*pNewState = NULL;
 
 	// Read in the network ID for the object to have its state changed.
 	lID = NETWORK_ReadShort( pByteStream );
@@ -6892,7 +6894,7 @@ static void client_DoGameModeWinSequence( BYTESTREAM_s *pByteStream )
 		DUEL_DoWinSequence( ulWinner );
 	else if ( lastmanstanding || teamlms )
 	{
-		if ( lastmanstanding && ( ulWinner == consoleplayer ))
+		if ( lastmanstanding && ( ulWinner == static_cast<ULONG>(consoleplayer) ))
 			ANNOUNCER_PlayEntry( cl_announcer, "YouWin" );
 		else if ( teamlms && players[consoleplayer].bOnTeam && ( ulWinner == players[consoleplayer].ulTeam ))
 			ANNOUNCER_PlayEntry( cl_announcer, "YouWin" );
@@ -7229,7 +7231,7 @@ static void client_WeaponChange( BYTESTREAM_s *pByteStream )
 
 	// Confirm to the server that this is the weapon we're using.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) &&
-		( ulPlayer == consoleplayer ))
+		( ulPlayer == static_cast<ULONG>(consoleplayer) ))
 	{
 		CLIENTCOMMANDS_WeaponSelect( pWeapon->GetClass( )->TypeName.GetChars( ));
 	}
@@ -8143,7 +8145,7 @@ static void client_SetLineAlpha( BYTESTREAM_s *pByteStream )
 	ulAlpha = NETWORK_ReadByte( pByteStream );
 
 	pLine = &lines[ulLineIdx];
-	if (( pLine == NULL ) || ( ulLineIdx >= numlines ))
+	if (( pLine == NULL ) || ( ulLineIdx >= static_cast<ULONG>(numlines) ))
 	{
 #ifdef CLIENT_WARNING_MESSAGES
 		Printf( "client_SetLineAlpha: Couldn't find line: %d\n", ulLineIdx );
@@ -8180,7 +8182,7 @@ static void client_SetLineTexture( BYTESTREAM_s *pByteStream )
 	ulPosition = NETWORK_ReadByte( pByteStream );
 
 	pLine = &lines[ulLineIdx];
-	if (( pLine == NULL ) || ( ulLineIdx >= numlines ))
+	if (( pLine == NULL ) || ( ulLineIdx >= static_cast<ULONG>(numlines) ))
 	{
 #ifdef CLIENT_WARNING_MESSAGES
 		Printf( "client_SetLineTexture: Couldn't find line: %d\n", ulLineIdx );
@@ -9041,7 +9043,7 @@ static void client_DoDoor( BYTESTREAM_s *pByteStream )
 	}
 
 	// Create the new door.
-	if ( pDoor = new DDoor( pSector, DDoor::doorRaise, lSpeed, 0, lLightTag, g_ConnectionState != CTS_ACTIVE ))
+	if ( (pDoor = new DDoor( pSector, DDoor::doorRaise, lSpeed, 0, lLightTag, g_ConnectionState != CTS_ACTIVE )) )
 	{
 		pDoor->SetID( lDoorID );
 		pDoor->SetDirection( lDirection );
@@ -9613,7 +9615,7 @@ static void client_PlayPlatSound( BYTESTREAM_s *pByteStream )
 static void client_DoElevator( BYTESTREAM_s *pByteStream )
 {
 	LONG			lType;
-	ULONG			lSectorID;
+	LONG			lSectorID;
 	LONG			lSpeed;
 	LONG			lDirection;
 	LONG			lFloorDestDist;
@@ -9721,7 +9723,7 @@ static void client_StartElevatorSound( BYTESTREAM_s *pByteStream )
 static void client_DoPillar( BYTESTREAM_s *pByteStream )
 {
 	LONG			lType;
-	ULONG			lSectorID;
+	LONG			lSectorID;
 	LONG			lFloorSpeed;
 	LONG			lCeilingSpeed;
 	LONG			lFloorTarget;
@@ -9797,7 +9799,7 @@ static void client_DestroyPillar( BYTESTREAM_s *pByteStream )
 static void client_DoWaggle( BYTESTREAM_s *pByteStream )
 {
 	bool			bCeiling;
-	ULONG			lSectorID;
+	LONG			lSectorID;
 	LONG			lOriginalDistance;
 	LONG			lAccumulator;
 	LONG			lAccelerationDelta;
@@ -9953,7 +9955,7 @@ static void client_DestroyRotatePoly( BYTESTREAM_s *pByteStream )
 
 	// Try to find the object from the ID. If it exists, destroy it.
 	pPoly = NULL;
-	while ( pTempPoly = Iterator.Next( ))
+	while ( (pTempPoly = Iterator.Next( )) )
 	{
 		if ( pTempPoly->GetPolyObj( ) == lID )
 		{
@@ -10019,7 +10021,7 @@ static void client_DestroyMovePoly( BYTESTREAM_s *pByteStream )
 
 	// Try to find the object from the ID. If it exists, destroy it.
 	pPoly = NULL;
-	while ( pTempPoly = Iterator.Next( ))
+	while ( (pTempPoly = Iterator.Next( )) )
 	{
 		if ( pTempPoly->GetPolyObj( ) == lID )
 		{
@@ -10089,7 +10091,7 @@ static void client_DestroyPolyDoor( BYTESTREAM_s *pByteStream )
 
 	// Try to find the object from the ID. If it exists, destroy it.
 	pPoly = NULL;
-	while ( pTempPoly = Iterator.Next( ))
+	while ( (pTempPoly = Iterator.Next( )) )
 	{
 		if ( pTempPoly->GetPolyObj( ) == lID )
 		{
@@ -10169,6 +10171,8 @@ static void client_PlayPolyobjSound( BYTESTREAM_s *pByteStream )
 	case POLYSOUND_SEQ_DOOR:
 
 		SN_StartSequence( pPoly, pPoly->seqType, SEQ_DOOR, 0 );
+		break;
+	default:
 		break;
 	}
 }
@@ -10676,7 +10680,7 @@ CCMD( rcon )
 	if ( argv.argc( ) > 1 )
 	{
 		LONG	lLast;
-		ULONG	ulIdx;
+		LONG	lIdx;
 		ULONG	ulIdx2;
 		bool	bHasSpace;
 
@@ -10686,14 +10690,14 @@ CCMD( rcon )
 		lLast = argv.argc( );
 
 		// Since we don't want "rcon" to be part of our string, start at 1.
-		for ( ulIdx = 1; ulIdx < lLast; ulIdx++ )
+		for ( lIdx = 1; lIdx < lLast; lIdx++ )
 		{
 			memset( szAppend, 0, 256 );
 
 			bHasSpace = false;
-			for ( ulIdx2 = 0; ulIdx2 < strlen( argv[ulIdx] ); ulIdx2++ )
+			for ( ulIdx2 = 0; ulIdx2 < strlen( argv[lIdx] ); ulIdx2++ )
 			{
-				if ( argv[ulIdx][ulIdx2] == ' ' )
+				if ( argv[lIdx][ulIdx2] == ' ' )
 				{
 					bHasSpace = true;
 					break;
@@ -10702,11 +10706,11 @@ CCMD( rcon )
 
 			if ( bHasSpace )
 				strcat( szAppend, "\"" );
-			strcat( szAppend, argv[ulIdx] );
+			strcat( szAppend, argv[lIdx] );
 			strcat( szString, szAppend );
 			if ( bHasSpace )
 				strcat( szString, "\"" );
-			if (( ulIdx + 1 ) < lLast )
+			if (( lIdx + 1 ) < lLast )
 				strcat( szString, " " );
 		}
 	
