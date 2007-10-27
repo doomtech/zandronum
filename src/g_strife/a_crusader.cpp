@@ -5,6 +5,8 @@
 #include "p_enemy.h"
 #include "s_sound.h"
 #include "a_strifeglobal.h"
+#include "cl_demo.h"
+#include "sv_commands.h"
 
 void A_TossGib (AActor *);
 
@@ -163,6 +165,13 @@ bool Sys_1ed64 (AActor *self)
 
 void A_CrusaderChoose (AActor *self)
 {
+	// [BC] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if (self->target == NULL)
 		return;
 
@@ -185,12 +194,24 @@ void A_CrusaderChoose (AActor *self)
 			self->angle -= ANGLE_45/16;
 			self->reactiontime += 15;
 		}
+
+		// [BC] Set the thing's state.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingState( self, STATE_SEE );
+
 		self->SetState (self->SeeState);
 	}
 }
 
 void A_CrusaderSweepLeft (AActor *self)
 {
+	// [BC] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	self->angle += ANGLE_90/16;
 	AActor *misl = P_SpawnMissileZAimed (self, self->z + 48*FRACUNIT, self->target, RUNTIME_CLASS(AFastFlameMissile));
 	if (misl != NULL)
@@ -201,6 +222,13 @@ void A_CrusaderSweepLeft (AActor *self)
 
 void A_CrusaderSweepRight (AActor *self)
 {
+	// [BC] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	self->angle -= ANGLE_90/16;
 	AActor *misl = P_SpawnMissileZAimed (self, self->z + 48*FRACUNIT, self->target, RUNTIME_CLASS(AFastFlameMissile));
 	if (misl != NULL)
@@ -215,12 +243,23 @@ void A_CrusaderRefire (AActor *self)
 		self->target->health <= 0 ||
 		!P_CheckSight (self, self->target))
 	{
+		// [BC] Set the thing's state.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingState( self, STATE_SEE );
+
 		self->SetState (self->SeeState);
 	}
 }
 
 void A_CrusaderDeath (AActor *self)
 {
+	// [BC] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if (CheckBossDeath (self))
 	{
 		EV_DoFloor (DFloor::floorLowerToLowest, NULL, 667, FRACUNIT, 0, 0, 0);

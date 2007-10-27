@@ -8,6 +8,8 @@
 #include "a_sharedglobal.h"
 #include "a_strifeglobal.h"
 #include "deathmatch.h"
+#include "cl_demo.h"
+#include "sv_commands.h"
 
 static FRandom pr_shootgun ("ShootGun");
 
@@ -280,6 +282,15 @@ void A_Beacon (AActor *self)
 	AActor *owner = self->target;
 	ARebel *rebel;
 	angle_t an;
+	// [BC]
+	AActor	*pFog;
+
+	// [BC] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
 
 	rebel = Spawn<ARebel1> (self->x, self->y, ONFLOORZ, ALLOW_REPLACE);
 	if (!P_TryMove (rebel, rebel->x, rebel->y, true))
@@ -312,12 +323,30 @@ void A_Beacon (AActor *self)
 		}
 	}
 
+	// [BC] Spawn the rebel, and put him in the see state.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		SERVERCOMMANDS_SpawnThing( rebel );
+		SERVERCOMMANDS_SetThingState( rebel, STATE_SEE );
+	}
+
 	rebel->SetState (rebel->SeeState);
 	rebel->angle = self->angle;
 	an = self->angle >> ANGLETOFINESHIFT;
-	Spawn<ATeleportFog> (rebel->x + 20*finecosine[an], rebel->y + 20*finesine[an], rebel->z + TELEFOGHEIGHT, ALLOW_REPLACE);
+	pFog = Spawn<ATeleportFog> (rebel->x + 20*finecosine[an], rebel->y + 20*finesine[an], rebel->z + TELEFOGHEIGHT, ALLOW_REPLACE);
+	// [BC] Spawn the teleport fog.
+	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+		( pFog ))
+	{
+		SERVERCOMMANDS_SpawnThing( pFog );
+	}
+
 	if (--self->health < 0)
 	{
+		// [BC] If we're the server, destroy the beacon.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_DestroyThing( self );
+
 		self->Destroy ();
 	}
 }

@@ -6,6 +6,8 @@
 #include "s_sound.h"
 #include "a_strifeglobal.h"
 #include "doomdata.h"
+#include "cl_demo.h"
+#include "sv_commands.h"
 
 void A_BeShadowyFoe (AActor *);
 void A_AcolyteBits (AActor *);
@@ -337,6 +339,13 @@ END_DEFAULTS
 
 void A_HideDecepticon (AActor *self)
 {
+	// [BC] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	EV_DoDoor (DDoor::doorClose, NULL, self, 999, 8*FRACUNIT, 0, 0, 0);
 	if (self->target != NULL && self->target->player != NULL)
 	{
@@ -356,6 +365,13 @@ void A_AcolyteDie (AActor *self)
 
 	// [RH] Disable translucency here.
 	self->RenderStyle = STYLE_Normal;
+
+	// [BC] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
 
 	// Only the Blue Acolyte does extra stuff on death.
 	if (!self->IsKindOf (RUNTIME_CLASS(AAcolyteBlue)))
@@ -385,6 +401,11 @@ void A_AcolyteDie (AActor *self)
 	players[0].mo->GiveInventoryType (QuestItemClasses[6]);
 	players[0].SetLogNumber (14);
 	S_StopSound ((fixed_t *)NULL, CHAN_VOICE);
+
+	// [BC] Play the sound to clients.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_Sound( CHAN_VOICE, "svox/voc14", 1, ATTN_NORM );
+
 	S_Sound (CHAN_VOICE, "svox/voc14", 1, ATTN_NORM);
 }
 

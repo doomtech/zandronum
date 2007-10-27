@@ -4,6 +4,8 @@
 #include "p_local.h"
 #include "p_enemy.h"
 #include "s_sound.h"
+#include "cl_demo.h"
+#include "sv_commands.h"
 
 static FRandom pr_stalker ("Stalker");
 
@@ -108,22 +110,48 @@ END_DEFAULTS
 
 void A_StalkerChaseDecide (AActor *self)
 {
+	// [BC] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if (!(self->flags & MF_NOGRAVITY))
 	{
+		// [BC] Set the thing's state.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingFrame( self, LONG( &AStalker::States[S_STALK_GROUND_CHASE] - &AStalker::States[0] ));
+
 		self->SetState (&AStalker::States[S_STALK_GROUND_CHASE]);
 	}
 	else if (self->ceilingz - self->height > self->z)
 	{
+		// [BC] Set the thing's state.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingFrame( self, LONG( &AStalker::States[S_STALK_FLIP] - &AStalker::States[0] ));
+
 		self->SetState (&AStalker::States[S_STALK_FLIP]);
 	}
 }
 
 void A_StalkerLookInit (AActor *self)
 {
+	// [BC] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if (self->flags & MF_NOGRAVITY)
 	{
 		if (self->state->NextState != &AStalker::States[S_STALK_STND_CEIL])
 		{
+			// [BC] Set the thing's state.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingFrame( self, LONG( &AStalker::States[S_STALK_STND_CEIL] - &AStalker::States[0] ));
+
 			self->SetState (&AStalker::States[S_STALK_STND_CEIL]);
 		}
 	}
@@ -131,6 +159,10 @@ void A_StalkerLookInit (AActor *self)
 	{
 		if (self->state->NextState != &AStalker::States[S_STALK_STND_FLOOR])
 		{
+			// [BC] Set the thing's state.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingFrame( self, LONG( &AStalker::States[S_STALK_STND_FLOOR] - &AStalker::States[0] ));
+
 			self->SetState (&AStalker::States[S_STALK_STND_FLOOR]);
 		}
 	}
@@ -143,8 +175,19 @@ void A_StalkerDrop (AActor *self)
 
 void A_StalkerAttack (AActor *self)
 {
+	// [BC] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if (self->flags & MF_NOGRAVITY)
 	{
+		// [BC] Set the thing's state.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingFrame( self, LONG( &AStalker::States[S_STALK_FLIP] - &AStalker::States[0] ));
+
 		self->SetState (&AStalker::States[S_STALK_FLIP]);
 	}
 	else if (self->target != NULL)
@@ -168,6 +211,13 @@ void A_StalkerWalk (AActor *self)
 
 bool AStalker::CheckMeleeRange ()
 {
+	// [BC] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return ( false );
+	}
+
 	if (!(flags & MF_NOGRAVITY))
 	{
 		return Super::CheckMeleeRange ();

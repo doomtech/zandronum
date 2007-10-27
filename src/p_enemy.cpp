@@ -1965,6 +1965,11 @@ void A_Look2 (AActor *self)
 			}
 			self->target = targ;
 			self->threshold = 10;
+
+			// [BC] Tell clients to set the thing's state.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingState( self, STATE_SEE );
+
 			self->SetState (self->SeeState);
 			return;
 		}
@@ -1972,6 +1977,11 @@ void A_Look2 (AActor *self)
 		{
 			if (!P_LookForPlayers (self, self->flags4 & MF4_LOOKALLAROUND))
 				goto nosee;
+
+			// [BC] Tell clients to set the thing's state.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingState( self, STATE_SEE );
+
 			self->SetState (self->SeeState);
 			self->flags4 |= MF4_INCOMBAT;
 			return;
@@ -1980,10 +1990,18 @@ void A_Look2 (AActor *self)
 nosee:
 	if (pr_look2() < 30)
 	{
+		// [BC] Tell clients to set the thing's state.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingFrame( self, ( pr_look2( ) & 1 ) + 1 );
+
 		self->SetState (self->SpawnState + (pr_look2() & 1) + 1);
 	}
 	if (!(self->flags4 & MF4_STANDSTILL) && pr_look2() < 40)
 	{
+		// [BC] Tell clients to set the thing's state.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingFrame( self, 3 );
+
 		self->SetState (self->SpawnState + 3);
 	}
 }

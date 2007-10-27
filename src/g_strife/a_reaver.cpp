@@ -5,6 +5,8 @@
 #include "m_random.h"
 #include "p_local.h"
 #include "a_strifeglobal.h"
+#include "cl_demo.h"
+#include "sv_commands.h"
 
 void A_TossGib (AActor *);
 void A_XXScream (AActor *);
@@ -110,6 +112,13 @@ END_DEFAULTS
 
 void A_ReaverMelee (AActor *self)
 {
+	// [BC] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if (self->target != NULL)
 	{
 		A_FaceTarget (self);
@@ -117,6 +126,10 @@ void A_ReaverMelee (AActor *self)
 		if (self->CheckMeleeRange ())
 		{
 			int damage;
+
+			// [BC] If we're the server, play the sound to clients.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "reaver/blade", 1, ATTN_NORM );
 
 			S_Sound (self, CHAN_WEAPON, "reaver/blade", 1, ATTN_NORM);
 			damage = ((pr_reaverattack() & 7) + 1) * 3;
@@ -128,12 +141,24 @@ void A_ReaverMelee (AActor *self)
 
 void A_ReaverRanged (AActor *self)
 {
+	// [BC] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if (self->target != NULL)
 	{
 		angle_t bangle;
 		int pitch;
 
 		A_FaceTarget (self);
+
+		// [BC] If we're the server, play the sound to clients.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "reaver/blade", 1, ATTN_NORM );
+
 		S_Sound (self, CHAN_WEAPON, "reaver/attack", 1, ATTN_NORM);
 		bangle = self->angle;
 		pitch = P_AimLineAttack (self, bangle, MISSILERANGE);

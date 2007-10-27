@@ -5,6 +5,8 @@
 #include "s_sound.h"
 #include "p_enemy.h"
 #include "templates.h"
+#include "cl_demo.h"
+#include "sv_commands.h"
 
 // Note: Strife missiles do 1-4 times their damage amount.
 // Doom missiles do 1-8 times their damage amount, so to
@@ -157,6 +159,10 @@ void P_DaggerAlert (AActor *target, AActor *emitter)
 	FState * painstate = emitter->FindState(NAME_Pain);
 	if (painstate != NULL)
 	{
+		// [BC] If we're the server, tell clinets to set this thing's state.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingState( emitter, STATE_PAIN );
+
 		emitter->SetState (painstate);
 	}
 
@@ -181,6 +187,14 @@ void P_DaggerAlert (AActor *target, AActor *emitter)
 			{
 				S_SoundID (looker, CHAN_VOICE, looker->SeeSound, 1, ATTN_NORM);
 			}
+
+			// [BC] If we're the server, tell clinets to set this thing's state.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			{
+				SERVERCOMMANDS_SetThingState( emitter, STATE_SEE );
+				SERVERCOMMANDS_SoundActor( looker, CHAN_VOICE, S_GetName( looker->SeeSound ), 1, ATTN_NORM );
+			}
+
 			looker->SetState (looker->SeeState);
 			looker->flags4 |= MF4_INCOMBAT;
 		}
@@ -199,6 +213,13 @@ void A_JabDagger (AActor *actor)
 	int 		damage;
 	int 		pitch;
 	int			power;
+
+	// [BC] Weapons are handled by the server.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
 
 	power = MIN(10, actor->player->stamina / 10);
 	damage = (pr_jabdagger() % (power + 8)) * (power + 2);
@@ -224,10 +245,21 @@ void A_JabDagger (AActor *actor)
 										linetarget->y);
 		actor->flags |= MF_JUSTATTACKED;
 		P_DaggerAlert (actor, linetarget);
+
+		// [BC] Play the hit sound to clients.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, ( linetarget->flags & MF_NOBLOOD ) ? "misc/metalhit" : "misc/meathit", 1, ATTN_NORM );
+			SERVERCOMMANDS_SetThingAngleExact( actor );
+		}
 	}
 	else
 	{
 		S_Sound (actor, CHAN_WEAPON, "misc/swish", 1, ATTN_NORM);
+
+		// [BC] Play the hit sound to clients.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "misc/swish", 1, ATTN_NORM );
 	}
 }
 
@@ -273,6 +305,13 @@ END_DEFAULTS
 
 void A_AlertMonsters (AActor *self)
 {
+	// [BC] Weapons are handled by the server.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if (self->player != NULL)
 	{
 		P_NoiseAlert(self, self);
@@ -519,12 +558,24 @@ void A_FireElectric (AActor *self)
 			return;
 	}
 
+	// [BC] Weapons are handled by the server.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		S_Sound( self, CHAN_WEAPON, "weapons/xbowshoot", 1, ATTN_NORM );
+		return;
+	}
+
 	savedangle = self->angle;
 	self->angle += pr_electric.Random2 () << (18 - self->player->accuracy * 5 / 100);
 	self->player->mo->PlayAttacking2 ();
 	P_SpawnPlayerMissile (self, RUNTIME_CLASS(AElectricBolt));
 	self->angle = savedangle;
 	S_Sound (self, CHAN_WEAPON, "weapons/xbowshoot", 1, ATTN_NORM);
+
+	// [BC] If we're the server, play the firing sound to other clients.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "weapons/xbowshoot", 1, ATTN_NORM, ULONG( self->player - players ), SVCF_SKIPTHISCLIENT );
 }
 
 //============================================================================
@@ -547,12 +598,24 @@ void A_FirePoison (AActor *self)
 			return;
 	}
 
+	// [BC] Weapons are handled by the server.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		S_Sound( self, CHAN_WEAPON, "weapons/xbowshoot", 1, ATTN_NORM );
+		return;
+	}
+
 	savedangle = self->angle;
 	self->angle += pr_electric.Random2 () << (18 - self->player->accuracy * 5 / 100);
 	self->player->mo->PlayAttacking2 ();
 	P_SpawnPlayerMissile (self, RUNTIME_CLASS(APoisonBolt));
 	self->angle = savedangle;
 	S_Sound (self, CHAN_WEAPON, "weapons/xbowshoot", 1, ATTN_NORM);
+
+	// [BC] If we're the server, play the firing sound to other clients.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "weapons/xbowshoot", 1, ATTN_NORM, ULONG( self->player - players ), SVCF_SKIPTHISCLIENT );
 }
 
 //============================================================================
@@ -678,6 +741,13 @@ void P_StrifeGunShot (AActor *mo, bool accurate)
 	angle_t angle;
 	int damage;
 
+	// [BC] Weapons are handled by the server.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	damage = 4*(pr_sgunshot()%3+1);
 	angle = mo->angle;
 
@@ -715,6 +785,20 @@ void A_FireAssaultGun (AActor *self)
 	else
 	{
 		accurate = true;
+	}
+
+	// [BC] Weapons are handled by the server.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
+	// [BC] If we're the server, tell clients to update this player's state.
+	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+		( self->player ))
+	{
+		SERVERCOMMANDS_SetPlayerState( ULONG( self->player - players ), STATE_PLAYER_ATTACK2, ULONG( self->player - players ), SVCF_SKIPTHISCLIENT );
 	}
 
 	P_BulletSlope (self);
@@ -913,6 +997,17 @@ void A_FireMiniMissile (AActor *self)
 			return;
 	}
 
+	// [BC] Weapons are handled by the server.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
+	// [BC] If we're the server, tell clients to update this player's state.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SetPlayerState( ULONG( player - players ), STATE_PLAYER_ATTACK2, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
+
 	savedangle = self->angle;
 	self->angle += pr_minimissile.Random2() << (19 - player->accuracy * 5 / 100);
 	player->mo->PlayAttacking2 ();
@@ -1059,7 +1154,19 @@ void A_FireFlamer (AActor *self)
 			if (!weapon->DepleteAmmo (weapon->bAltFire))
 				return;
 		}
+
+		// [BC] If we're the server, tell clients to update this player's state.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetPlayerState( ULONG( player - players ), STATE_PLAYER_ATTACK2, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
+
 		player->mo->PlayAttacking2 ();
+	}
+
+	// [BC] Weapons are handled by the server.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
 	}
 
 	self->angle += pr_flamethrower.Random2() << 18;
@@ -1067,6 +1174,10 @@ void A_FireFlamer (AActor *self)
 	if (self != NULL)
 	{
 		self->momz += 5*FRACUNIT;
+
+		// [BC] If we're the server, update the thing's momentum.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_MoveThingExact( self, CM_MOMZ );
 	}
 }
 
@@ -1290,12 +1401,30 @@ void A_FireMauler1 (AActor *self)
 			if (!weapon->DepleteAmmo (weapon->bAltFire))
 				return;
 		}
+
+		// [BC] If we're the server, tell clients to update this player's state.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetPlayerState( ULONG( self->player - players ), STATE_PLAYER_ATTACK2, ULONG( self->player - players ), SVCF_SKIPTHISCLIENT );
+
 		// Strife apparently didn't show the player shooting. Let's fix that.
 		self->player->mo->PlayAttacking2 ();
 	}
 
 	S_Sound (self, CHAN_WEAPON, "weapons/mauler1", 1, ATTN_NORM);
 
+	// [BC] Weapons are handled by the server.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
+	// [BC] If we're the server, play this sound for all other clients.
+	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+		( self->player ))
+	{
+		SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "weapons/mauler2charge", 1, ATTN_NORM, ULONG( self->player - players ), SVCF_SKIPTHISCLIENT );
+	}
 
 	P_BulletSlope (self);
 
@@ -1327,6 +1456,10 @@ void A_FireMauler2Pre (AActor *self)
 
 	if (self->player != NULL)
 	{
+		// [BC] If we're the server, play this sound for all other clients.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "weapons/mauler2charge", 1, ATTN_NORM, ULONG( self->player - players ), SVCF_SKIPTHISCLIENT );
+
 		self->player->psprites[ps_weapon].sx += pr_mauler2.Random2() << 10;
 		self->player->psprites[ps_weapon].sy += pr_mauler2.Random2() << 10;
 	}
@@ -1350,8 +1483,21 @@ void A_FireMauler2 (AActor *self)
 			if (!weapon->DepleteAmmo (weapon->bAltFire))
 				return;
 		}
+
+		// [BC] If we're the server, tell clients to update this player's state.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetPlayerState( ULONG( self->player - players ), STATE_PLAYER_ATTACK2, ULONG( self->player - players ), SVCF_SKIPTHISCLIENT );
+
 		self->player->mo->PlayAttacking2 ();
 	}
+
+	// [BC] Weapons are handled by the server.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	P_SpawnPlayerMissile (self, RUNTIME_CLASS(AMaulerTorpedo));
 	P_DamageMobj (self, self, NULL, 20, self->DamageType);
 	P_ThrustMobj (self, self->angle + ANGLE_180, 0x7D000);
@@ -1371,6 +1517,13 @@ void A_MaulerTorpedoWave (AActor *self)
 {
 	fixed_t savedz;
 	self->angle += ANGLE_180;
+
+	// [BC] Weapons are handled by the server.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
 
 	// If the torpedo hit the ceiling, it should still spawn the wave
 	savedz = self->z;
@@ -1406,8 +1559,21 @@ AActor *P_SpawnSubMissile (AActor *source, PClass *type, AActor *target)
 	{
 		angle_t pitch = P_AimLineAttack (source, source->angle, 1024*FRACUNIT);
 		other->momz = FixedMul (-finesine[pitch>>ANGLETOFINESHIFT], other->Speed);
+
+		// [BC] If we're the server, spawn this to clients.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SpawnMissile( other );
+
 		return other;
 	}
+
+	// [BC] If it spawned blocked, spawn it and blow it up.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		SERVERCOMMANDS_SpawnMissile( other );
+		SERVERCOMMANDS_MissileExplode( other, BlockingLine );
+	}
+
 	return NULL;
 }
 
@@ -1574,6 +1740,13 @@ void A_SpawnBurn (AActor *self)
 
 void A_BurnArea (AActor *self)
 {
+	// [BC] Weapons are handled by the server.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	P_RadiusAttack (self, self->target, 128, 128, self->DamageType, true);
 }
 
@@ -1768,6 +1941,13 @@ void A_FireGrenade (AActor *self)
 	if (!weapon->DepleteAmmo (weapon->bAltFire))
 		return;
 
+	// [BC] Weapons are handled by the server.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	// Make it flash
 	P_SetPsprite (player, ps_flash, weapon->FindState(NAME_Flash) +
 		(player->psprites[ps_weapon].state - weapon->GetAtkState(false)));
@@ -1801,6 +1981,9 @@ void A_FireGrenade (AActor *self)
 	an >>= ANGLETOFINESHIFT;
 	grenade->x += FixedMul (finecosine[an], 15*FRACUNIT);
 	grenade->y += FixedMul (finesine[an], 15*FRACUNIT);
+
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_MoveThingExact( grenade, CM_X|CM_Y|CM_MOMZ );
 }
 
 // The Almighty Sigil! ------------------------------------------------------
@@ -2182,8 +2365,20 @@ void A_FireSigil1 (AActor *actor)
 	if (player == NULL || player->ReadyWeapon == NULL)
 		return;
 
+	// [BC] Weapons are handled by the server.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		S_Sound( actor, CHAN_WEAPON, "weapons/sigilcharge", 1, ATTN_NORM );
+		return;
+	}
+
 	P_DamageMobj (actor, actor, NULL, 1*4, 0, DMG_NO_ARMOR);
 	S_Sound (actor, CHAN_WEAPON, "weapons/sigilcharge", 1, ATTN_NORM);
+
+	// [BC] If we're the server, play this sound to other clients.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "weapons/sigilcharge", 1, ATTN_NORM, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 
 	P_BulletSlope (actor);
 	if (linetarget != NULL)
@@ -2221,11 +2416,23 @@ void A_FireSigil2 (AActor *actor)
 	AActor *spot;
 	player_t *player = actor->player;
 
+	// [BC] Weapons are handled by the server.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		S_Sound( actor, CHAN_WEAPON, "weapons/sigilcharge", 1, ATTN_NORM );
+		return;
+	}
+
 	if (player == NULL || player->ReadyWeapon == NULL)
 		return;
 
 	P_DamageMobj (actor, actor, NULL, 2*4, 0, DMG_NO_ARMOR);
 	S_Sound (actor, CHAN_WEAPON, "weapons/sigilcharge", 1, ATTN_NORM);
+
+	// [BC] If we're the server, play this sound to other clients.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "weapons/sigilcharge", 1, ATTN_NORM, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 
 	spot = P_SpawnPlayerMissile (actor, RUNTIME_CLASS(ASpectralLightningH1));
 	if (spot != NULL)
@@ -2249,8 +2456,20 @@ void A_FireSigil3 (AActor *actor)
 	if (player == NULL || player->ReadyWeapon == NULL)
 		return;
 
+	// [BC] Weapons are handled by the server.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		S_Sound( actor, CHAN_WEAPON, "weapons/sigilcharge", 1, ATTN_NORM );
+		return;
+	}
+
 	P_DamageMobj (actor, actor, NULL, 3*4, 0, DMG_NO_ARMOR);
 	S_Sound (actor, CHAN_WEAPON, "weapons/sigilcharge", 1, ATTN_NORM);
+
+	// [BC] If we're the server, play this sound to other clients.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "weapons/sigilcharge", 1, ATTN_NORM, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 
 	actor->angle -= ANGLE_90;
 	for (i = 0; i < 20; ++i)
@@ -2280,8 +2499,20 @@ void A_FireSigil4 (AActor *actor)
 	if (player == NULL || player->ReadyWeapon == NULL)
 		return;
 
+	// [BC] Weapons are handled by the server.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		S_Sound( actor, CHAN_WEAPON, "weapons/sigilcharge", 1, ATTN_NORM );
+		return;
+	}
+
 	P_DamageMobj (actor, actor, NULL, 4*4, 0, DMG_NO_ARMOR);
 	S_Sound (actor, CHAN_WEAPON, "weapons/sigilcharge", 1, ATTN_NORM);
+
+	// [BC] If we're the server, play this sound to other clients.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "weapons/sigilcharge", 1, ATTN_NORM, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 
 	P_BulletSlope (actor);
 	if (linetarget != NULL)
@@ -2319,8 +2550,20 @@ void A_FireSigil5 (AActor *actor)
 	if (player == NULL || player->ReadyWeapon == NULL)
 		return;
 
+	// [BC] Weapons are handled by the server.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		S_Sound( actor, CHAN_WEAPON, "weapons/sigilcharge", 1, ATTN_NORM );
+		return;
+	}
+
 	P_DamageMobj (actor, actor, NULL, 5*4, 0, DMG_NO_ARMOR);
 	S_Sound (actor, CHAN_WEAPON, "weapons/sigilcharge", 1, ATTN_NORM);
+
+	// [BC] If we're the server, play this sound to other clients.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "weapons/sigilcharge", 1, ATTN_NORM, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 
 	spot = P_SpawnPlayerMissile (actor, RUNTIME_CLASS(ASpectralLightningBigBall1));
 	if (spot != NULL)

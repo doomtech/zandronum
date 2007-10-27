@@ -4,6 +4,9 @@
 #include "p_local.h"
 #include "p_enemy.h"
 #include "s_sound.h"
+#include "cl_demo.h"
+#include "network.h"
+#include "sv_commands.h"
 
 static FRandom pr_inq ("Inquisitor");
 
@@ -195,18 +198,33 @@ bool InquisitorCheckDistance (AActor *self)
 
 void A_InquisitorDecide (AActor *self)
 {
+	// [BC] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if (self->target == NULL)
 		return;
 
 	A_FaceTarget (self);
 	if (!InquisitorCheckDistance (self))
 	{
+		// [BC] Set the thing's state.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingFrame( self, LONG( &AInquisitor::States[S_INQ_ATK2] - &AInquisitor::States[0] ));
+
 		self->SetState (&AInquisitor::States[S_INQ_ATK2]);
 	}
 	if (self->target->z != self->z)
 	{
 		if (self->z + self->height + 54*FRACUNIT < self->ceilingz)
 		{
+			// [BC] Set the thing's state.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingFrame( self, LONG( &AInquisitor::States[S_INQ_BAR] - &AInquisitor::States[0] ));
+
 			self->SetState (&AInquisitor::States[S_INQ_BAR]);
 		}
 	}
@@ -215,6 +233,13 @@ void A_InquisitorDecide (AActor *self)
 void A_InquisitorAttack (AActor *self)
 {
 	AActor *proj;
+
+	// [BC] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
 
 	if (self->target == NULL)
 		return;
@@ -243,6 +268,13 @@ void A_InquisitorJump (AActor *self)
 	fixed_t speed;
 	angle_t an;
 
+	// [BC] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if (self->target == NULL)
 		return;
 
@@ -266,12 +298,23 @@ void A_InquisitorJump (AActor *self)
 
 void A_InquisitorCheckLand (AActor *self)
 {
+	// [BC] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	self->reactiontime--;
 	if (self->reactiontime < 0 ||
 		self->momx == 0 ||
 		self->momy == 0 ||
 		self->z <= self->floorz)
 	{
+		// [BC] Set the thing's state.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingState( self, STATE_SEE );
+
 		self->SetState (self->SeeState);
 		self->reactiontime = 0;
 		self->flags &= ~MF_NOGRAVITY;

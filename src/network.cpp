@@ -66,6 +66,7 @@
 #include "m_random.h"
 #include "network.h"
 #include "sbar.h"
+#include "v_video.h"
 
 #include "MD5Checksum.h"
 
@@ -988,8 +989,12 @@ void NETWORK_SetState( LONG lState )
 	g_lNetworkState = lState;
 
 	// Alert the status bar that multiplayer status has changed.
-	if (( g_lNetworkState != NETSTATE_SERVER ) && StatusBar )
+	if (( g_lNetworkState != NETSTATE_SERVER ) &&
+		( StatusBar ) &&
+		( screen ))
+	{
 		StatusBar->MultiplayerChanged( );
+	}
 }
 
 //*****************************************************************************

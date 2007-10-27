@@ -621,8 +621,11 @@ void DoJumpIfInventory(AActor * self, AActor * owner)
 	bool	bNeedClientUpdate;
 
 	// [BC] Don't jump here in client mode.
-	if ( CallingState == self->player->psprites[ps_weapon].state )
+	if (( self->player ) &&
+		( CallingState == self->player->psprites[ps_weapon].state ))
+	{
 		bNeedClientUpdate = false;
+	}
 	else
 	{
 		bNeedClientUpdate = true;

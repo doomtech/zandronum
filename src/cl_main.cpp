@@ -779,6 +779,10 @@ void CLIENT_Construct( void )
 //
 void CLIENT_Destruct( void )
 {
+	// [BC] Tell the server we're leaving the game.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		CLIENT_QuitNetworkGame( NULL );
+
 	// Free our local buffer.
 	NETWORK_FreeBuffer( &g_LocalBuffer );
 }

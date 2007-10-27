@@ -546,10 +546,6 @@ void I_Quit (void)
 
 	timeEndPeriod (TimerPeriod);
 
-	// [BC] Tell the server we're leaving the game.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
-		CLIENT_QuitNetworkGame( NULL );
-
 	if (demorecording)
 		G_CheckDemoStatus();
 	// [BC] Support for client-side demos.
