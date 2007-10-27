@@ -163,6 +163,7 @@ NETADDRESS_s BROWSER_GetAddress( ULONG ulServer )
 		Dummy.abIP[2] = 0;
 		Dummy.abIP[3] = 0;
 		Dummy.usPort = 0;
+		Dummy.usPad = 0;
 
 		return ( Dummy );
 	}
@@ -387,7 +388,7 @@ void BROWSER_GetServerList( BYTESTREAM_s *pByteStream )
 	{
 		// Receiving information about a new server.
 		ulServer = browser_GetNewListID( );
-		if ( ulServer == -1 )
+		if ( ulServer >= MAX_BROWSER_SERVERS )
 			I_Error( "BROWSER_GetServerList: Server limit exceeded (>=%d servers)", MAX_BROWSER_SERVERS );
 
 		// This server is now active.
@@ -429,7 +430,7 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 
 	if ( lServer == -1 )
 	{
-		ULONG	ulDummyNumPlayers;
+		ULONG	ulDummyNumPlayers = 0;
 		ULONG	ulDummyNumPWADs;
 
 		// If the version doesn't match ours, remove it from the list.
@@ -923,7 +924,7 @@ CCMD( dumpserverlist )
 			continue;
 
 		Printf( "\nServer #%d\n----------------\n", ulIdx );
-		Printf( "Name: %s\n", g_BrowserServerList[ulIdx].HostName );
+		Printf( "Name: %s\n", g_BrowserServerList[ulIdx].HostName.GetChars() );
 		Printf( "Address: %s\n", NETWORK_AddressToString( g_BrowserServerList[ulIdx].Address ));
 		Printf( "Gametype: %d\n", g_BrowserServerList[ulIdx].GameMode );
 		Printf( "Num PWADs: %d\n", g_BrowserServerList[ulIdx].lNumPWADs );

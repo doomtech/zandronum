@@ -107,7 +107,7 @@ void FStat::PrintStat ()
 			FString stattext(stat->GetStats());
 			// [BC] In server mode, just display the stats in the console.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				Printf( "%s\n", stattext );
+				Printf( "%s\n", stattext.GetChars() );
 			else
 			{
 				screen->DrawText (CR_GREEN, 5, y, stattext, TAG_DONE);

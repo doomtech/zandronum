@@ -245,7 +245,7 @@ void CHAT_Render( void )
 	// Use the small font.
 	screen->SetFont( SmallFont );
 
-	lX = SmallFont->GetCharWidth( '_' ) * fXScale * 2 + SmallFont->StringWidth( g_pszChatPrompt );
+	lX = static_cast<LONG>(SmallFont->GetCharWidth( '_' ) * fXScale * 2 + SmallFont->StringWidth( g_pszChatPrompt ));
 
 	// figure out if the text is wider than the screen->
 	// if so, only draw the right-most portion of it.
@@ -405,7 +405,7 @@ ULONG CHAT_GetChatMode( void )
 //
 void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 {
-	ULONG		ulChatLevel;
+	ULONG		ulChatLevel = 0;
 	FString		OutString;
 
 	// If ulPlayer == MAXPLAYERS, it is the server talking.
@@ -460,7 +460,7 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 	}
 
 	OutString += pszString;
-	Printf( ulChatLevel, "%s\n", OutString );
+	Printf( ulChatLevel, "%s\n", OutString.GetChars() );
 
 	if ( show_messages )
 		S_Sound( CHAN_VOICE, gameinfo.chatSound, 1, ATTN_NONE );
@@ -596,7 +596,7 @@ CCMD( say )
 	}
 	else
 	{
-		for ( ulIdx = 1; ulIdx < argv.argc( ); ulIdx++ )
+		for ( ulIdx = 1; ulIdx < static_cast<unsigned int>(argv.argc( )); ulIdx++ )
 			ChatString.AppendFormat( "%s ", argv[ulIdx] );
 
 		// Send the server's chat string out to clients, and print it in the console.
@@ -647,7 +647,7 @@ CCMD( say_team )
 	}
 	else
 	{
-		for ( ulIdx = 1; ulIdx < argv.argc( ); ulIdx++ )
+		for ( ulIdx = 1; ulIdx < static_cast<unsigned int>(argv.argc( )); ulIdx++ )
 			ChatString.AppendFormat( "%s ", argv[ulIdx] );
 
 		// We typed out our message in the console or with a macro. Go ahead and send the message now.
