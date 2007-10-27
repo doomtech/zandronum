@@ -193,7 +193,7 @@ static	char		g_szMapMusic[16];
 static	ULONG		g_ulMaxPacketSize = 0;
 
 // List of all translations edited by level scripts.
-static	std::vector<EDITEDTRANSLATION_s>	g_EditedTranslationList;
+static	TArray<EDITEDTRANSLATION_s>		g_EditedTranslationList;
 
 //*****************************************************************************
 //	CONSOLE VARIABLES
@@ -2186,7 +2186,7 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 	FCanvasTextureInfo::UpdateToClient( ulClient );
 
 	// Send out any translations that have been edited since the start of the level.
-	for ( ulIdx = 0; ulIdx < g_EditedTranslationList.size( ); ulIdx++ )
+	for ( ulIdx = 0; ulIdx < g_EditedTranslationList.Size( ); ulIdx++ )
 		SERVERCOMMANDS_CreateTranslation( g_EditedTranslationList[ulIdx].ulIdx, g_EditedTranslationList[ulIdx].ulStart, g_EditedTranslationList[ulIdx].ulEnd );
 }
 
@@ -3037,14 +3037,14 @@ void SERVER_AddEditedTranslation( ULONG ulTranslation, ULONG ulStart, ULONG ulEn
 	Translation.ulStart = ulStart;
 	Translation.ulEnd = ulEnd;
 
-	g_EditedTranslationList.push_back( Translation );
+	g_EditedTranslationList.Push( Translation );
 }
 
 //*****************************************************************************
 //
 void SERVER_ClearEditedTranslations( void )
 {
-	g_EditedTranslationList.clear( );
+	g_EditedTranslationList.Clear( );
 }
 
 //*****************************************************************************
