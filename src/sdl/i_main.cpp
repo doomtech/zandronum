@@ -205,6 +205,9 @@ int main (int argc, char **argv)
 	
 	Args.SetArgs (argc, argv);
 
+#ifdef SERVER_ONLY
+	Args.AppendArg( "-host" );
+#endif
 	if ( Args.CheckParm( "-host" ))
 	{
 		if (SDL_Init (SDL_INIT_TIMER|SDL_INIT_NOPARACHUTE) == -1)
