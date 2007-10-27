@@ -30,7 +30,7 @@
 #include <stdarg.h>
 #include <sys/types.h>
 #include <sys/time.h>
-#ifndef __FreeBSD__
+#ifndef NO_GTK
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 #endif
@@ -363,7 +363,7 @@ void I_PrintStr (const char *cp)
 	fflush (stdout);
 }
 
-#ifndef __FreeBSD__
+#ifndef NO_GTK
 // GtkTreeViews eats return keys. I want this to be like a Windows listbox
 // where pressing Return can still activate the default button.
 gint AllowDefault(GtkWidget *widget, GdkEventKey *event, gpointer func_data)
@@ -547,7 +547,7 @@ int I_PickIWad (WadStuff *wads, int numwads, bool showwin, int defaultiwad)
 		return defaultiwad;
 	}
 	
-#ifndef __FreeBSD__
+#ifndef NO_GTK
 	if (GtkAvailable)
 	{
 		return I_PickIWad_Gtk (wads, numwads, showwin, defaultiwad);

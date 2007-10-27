@@ -42,7 +42,7 @@
 #include <sys/param.h>
 // [BB] The FreeBSD version is meant to host servers, I don't want it
 // to use more dependencies than necessary.
-#ifndef __FreeBSD__
+#ifndef NO_GTK
 #include <gtk/gtk.h>
 #endif
 
@@ -197,7 +197,7 @@ int main (int argc, char **argv)
 	seteuid (getuid ());
     std::set_new_handler (NewFailure);
 
-#ifdef __FreeBSD__
+#ifdef NO_GTK
 	GtkAvailable = false;
 #else
 	GtkAvailable = gtk_init_check (&argc, &argv);
