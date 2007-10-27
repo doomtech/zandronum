@@ -1827,8 +1827,12 @@ void G_ChangeLevel(const char * levelname, int position, bool keepFacing, int ne
 
 	if (nextSkill != -1) NextSkill = nextSkill;
 
-	if (!nomonsters) dmflags = dmflags & ~DF_NO_MONSTERS;
-	else dmflags = dmflags | DF_NO_MONSTERS;
+	// [BB] There is no need to toggle the DF_NO_MONSTERS flag if it already complies with nomonsters.
+	if( nomonsters != ( (dmflags & DF_NO_MONSTERS) == DF_NO_MONSTERS ) )
+	{
+		if (!nomonsters) dmflags = dmflags & ~DF_NO_MONSTERS;
+		else dmflags = dmflags | DF_NO_MONSTERS;
+	}
 
 	if (nointermission) level.flags |= LEVEL_NOINTERMISSION;
 
@@ -1868,7 +1872,11 @@ void G_ExitLevel (int position, bool keepFacing)
 {
 	// [BC] Now we use G_GetNextLevelName() to take into account
 	// things like map rotation.
-	G_ChangeLevel(G_GetNextLevelName( ), position, keepFacing);
+	// [BB] We need to pass ( (dmflags & DF_NO_MONSTERS) == DF_NO_MONSTERS ) as last
+	// argument, otherwise this flag will be cleared by G_ChangeLevel, no matter if
+	// it is set or not.
+	G_ChangeLevel(G_GetNextLevelName( ), position, keepFacing, 
+	              /*int nextSkill=*/-1, /*bool nointermission=*/false, /*bool resetinventory=*/false, ( (dmflags & DF_NO_MONSTERS) == DF_NO_MONSTERS ) );
 }
 
 void G_SecretExitLevel (int position) 
