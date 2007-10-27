@@ -1109,6 +1109,9 @@ void gl_DoParseDefs(char * defsLump)
 {
 	int workingLump, lastLump, type;
 
+	// [BC] Free all the light definitions when the program closes.
+	atterm( gl_ReleaseLights );
+
 	lastLump = 0;
 	while ((workingLump = Wads.FindLump(defsLump, &lastLump)) != -1)
 	{
