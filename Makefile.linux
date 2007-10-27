@@ -14,19 +14,34 @@ ifdef GC
   CFLAGS += -ffunction-sections
   LDFLAGS += -Wl,--gc-sections
 endif
-CFLAGS += -MMD -DHAVE_FILELENGTH -D__forceinline=inline -Izlib -IFLAC `sdl-config --cflags` `pkg-config gtk+-2.0 --cflags` -I../fmodapi375linux/api/inc/
+CFLAGS += -MMD -DHAVE_FILELENGTH -D__forceinline=inline -Izlib -IFLAC `sdl-config --cflags`
 CFLAGS += -Dstrnicmp=strncasecmp -DNEED_STRUPR -DNO_SERVER_GUI
-LDFLAGS += -lFLAC++ -lFLAC -lz -ljpeg -lfmod `sdl-config --libs` `pkg-config gtk+-2.0 --libs`
-LDFLAGS += -lGL -lGLU
+ifdef SERVERONLY
+  CFLAGS += -DNO_SOUND -DNO_GL -DNO_GTK -DSERVER_ONLY
+else
+  CFLAGS += `pkg-config gtk+-2.0 --cflags` -I../fmodapi375linux/api/inc/
+endif
+LDFLAGS += -lFLAC++ -lFLAC -lz -ljpeg `sdl-config --libs`
+ifndef SERVERONLY
+  LDFLAGS += -lfmod -lGL -lGLU `pkg-config gtk+-2.0 --libs`
+endif
 NASMFLAGS += -f elf -DM_TARGET_LINUX
 
-SRCDIRS = src/ $(addprefix src/,g_doom/ g_heretic/ g_hexen/ g_raven/ g_shared/ g_strife/ MD5/ oplsynth/ sound/ sdl/ textures/ thingdef/ gl/ gl/r_render/)
+SRCDIRS = src/ $(addprefix src/,g_doom/ g_heretic/ g_hexen/ g_raven/ g_shared/ g_strife/ MD5/ oplsynth/ sound/ sdl/ textures/ thingdef/)
+ifndef SERVERONLY
+  SRCDIRS += $(addprefix src/,gl/ gl/r_render/)
+endif
 VPATH = $(SRCDIRS)
 INCLUDES = $(addprefix -I,$(SRCDIRS) src/gl)
 CFLAGS += $(INCLUDES)
 
-RELEASEOBJ ?= releaseobj
-DEBUGOBJ ?= debugobj
+ifndef SERVERONLY
+  RELEASEOBJ ?= releaseobj
+  DEBUGOBJ ?= debugobj
+else
+  RELEASEOBJ ?= server-releaseobj
+  DEBUGOBJ ?= server-debugobj
+endif
 
 CPPSRCS = $(wildcard $(addsuffix *.cpp,$(SRCDIRS)))
 CSRCS = $(wildcard $(addsuffix *.c,$(SRCDIRS)))
@@ -41,8 +56,13 @@ CPPOBJFILES = $(notdir $(patsubst %.cpp,%.o,$(CPPSRCS)))
 COBJFILES = $(notdir $(patsubst %.c,%.o,$(CSRCS)))
 AOBJFILES = $(notdir $(patsubst %.nas,%.o,$(ASRCS)))
 
-ZDOOM = ../skulltag
-ZDOOMDEBUG = ../skulltag-debug
+ifndef SERVERONLY
+  ZDOOM = ../skulltag
+  ZDOOMDEBUG = ../skulltag-debug
+else
+  ZDOOM = ../skulltag-server
+  ZDOOMDEBUG = ../skulltag-serverdebug
+endif
 
 ifdef DEBUG
   OBJDIR = $(DEBUGOBJ)
