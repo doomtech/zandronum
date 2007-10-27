@@ -901,6 +901,12 @@ void gl_RenderViewToCanvas(DCanvas * pic, int x, int y, int width, int height)
 		}
 	}
 	free(scr);
+
+	// [BC] In GZDoom, this is called every frame, regardless of whether or not
+	// the view is active. In Skulltag, we don't so we have to call this here
+	// to reset everything, such as the viewport, after rendering our view to
+	// a canvas.
+	gl_EndDrawScene( viewsector );
 }
 
 //-----------------------------------------------------------------------------
