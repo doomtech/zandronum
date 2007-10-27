@@ -1983,6 +1983,8 @@ void BOTS_ParseBotInfo( void )
 			// Finally, add our completed botinfo.
 			BOTS_AddBotInfo( &BotInfo );
 		}
+
+		SC_Close( );
 	}
 }
 

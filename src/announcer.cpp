@@ -209,6 +209,8 @@ void ANNOUNCER_ParseAnnouncerInfo( void )
 			free( AnnouncerProfile.paAnnouncerEntries );
 			AnnouncerProfile.paAnnouncerEntries = NULL;
 		}
+
+		SC_Close( );
 	}
 }
 

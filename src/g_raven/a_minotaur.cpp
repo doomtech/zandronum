@@ -172,13 +172,6 @@ void AMinotaur::Tick ()
 
 void AMinotaur::NoBlockingSet ()
 {
-	// [BC] Don't do this in client mode.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
-	{
-		return;
-	}
-
 	P_DropItem (this, "ArtiSuperHealth", 0, 51);
 	P_DropItem (this, "PhoenixRodAmmo", 10, 84);
 }
@@ -619,6 +612,11 @@ void A_MinotaurDecide (AActor *actor)
 		&& dist > 1*64*FRACUNIT
 		&& pr_minotaurdecide() < 150)
 	{ // Charge attack
+
+		// [BC] If we're the server, set the thing's state.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingFrame( actor, LONG( &AMinotaur::States[S_MNTR_ATK4] - &AMinotaur::States[0] ));
+
 		// Don't call the state function right away
 		actor->SetStateNF (&AMinotaur::States[S_MNTR_ATK4]);
 		actor->flags |= MF_SKULLFLY;
@@ -636,6 +634,10 @@ void A_MinotaurDecide (AActor *actor)
 		&& dist < 9*64*FRACUNIT
 		&& pr_minotaurdecide() < (friendly ? 100 : 220))
 	{ // Floor fire attack
+		// [BC] If we're the server, set the thing's state.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingFrame( actor, LONG( &AMinotaur::States[S_MNTR_ATK3] - &AMinotaur::States[0] ));
+
 		actor->SetState (&AMinotaur::States[S_MNTR_ATK3]);
 		actor->special2 = 0;
 	}
@@ -846,6 +848,10 @@ void A_MinotaurAtk3 (AActor *actor)
 	}
 	if (pr_minotauratk3() < 192 && actor->special2 == 0)
 	{
+		// [BC] If we're the server, set the thing's state.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingFrame( actor, LONG( &AMinotaur::States[S_MNTR_ATK3+3] - &AMinotaur::States[0] ));
+
 		actor->SetState (&AMinotaur::States[S_MNTR_ATK3+3]);
 		actor->special2 = 1;
 	}
@@ -1069,10 +1075,18 @@ void A_MinotaurLook (AActor *actor)
 
 	if (actor->target)
 	{
+		// [BC] If we're the server, set the thing's state.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingFrame( actor, LONG( &AMinotaur::States[S_MNTR_WALK] - &AMinotaur::States[0] ));
+
 		actor->SetStateNF (&AMinotaur::States[S_MNTR_WALK]);
 	}
 	else
 	{
+		// [BC] If we're the server, set the thing's state.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingFrame( actor, LONG( &AMinotaur::States[S_MNTR_ROAM] - &AMinotaur::States[0] ));
+
 		actor->SetStateNF (&AMinotaur::States[S_MNTR_ROAM]);
 	}
 }
@@ -1094,6 +1108,14 @@ void A_MinotaurChase (AActor *actor)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
+		A_Chase( actor );
+
+		// Active sound
+		if (pr_minotaurchase() < 6)
+		{
+			actor->PlayActiveSound ();
+		}
+
 		return;
 	}
 
@@ -1109,6 +1131,10 @@ void A_MinotaurChase (AActor *actor)
 	if (!actor->target || (actor->target->health <= 0) ||
 		!(actor->target->flags&MF_SHOOTABLE))
 	{ // look for a new target
+		// [BC] If we're the server, set the thing's state.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingFrame( actor, LONG( &AMinotaur::States[S_MNTR_LOOK] - &AMinotaur::States[0] ));
+
 		actor->SetState (&AMinotaur::States[S_MNTR_LOOK]);
 		return;
 	}

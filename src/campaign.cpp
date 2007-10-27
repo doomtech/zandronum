@@ -359,6 +359,8 @@ void CAMPAIGN_ParseCampaignInfo( void )
 					I_Error( "CAMPAIGN_ParseCampaignInfo: Unknown CMPGNINF property, \"%s\"!", szKey );
 			}
 		}
+
+		SC_Close( );
 	}
 }
 

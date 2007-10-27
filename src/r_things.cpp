@@ -1233,6 +1233,8 @@ void R_InitSkins (void)
 					}
 				}
 			}
+
+			SC_Close( );
 		}
 	}
 
@@ -1360,6 +1362,8 @@ ULONG R_CountSkinInfoSkins( void )
 			while ( sc_String[0] != '}' )
 				SC_GetString( );
 		}
+
+		SC_Close( );
 	}
 
 	return ( ulNumSkins );
