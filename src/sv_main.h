@@ -75,9 +75,6 @@
 // Maximum size of the packets sent out by the server.
 //#define	MAX_UDP_PACKET				8192
 
-// How many commands can be stored at one time?
-#define	MAX_STORED_SERVER_COMMANDS	64
-
 // Amount of time the client has to report his checksum of the level.
 #define	CLIENT_CHECKSUM_WAITTIME	( 15 * TICRATE )
 

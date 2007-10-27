@@ -160,11 +160,7 @@ static	LONG			g_lCurrentClient;
 static	LONG			g_lGameTime = 0;
 
 // Storage for commands issued through various menu options to be executed all at once.
-static	char			g_szServerCommandQueue[MAX_STORED_SERVER_COMMANDS][256];
-
-// Head/tail of that queue.
-static	LONG			g_lServerCommandQueueHead;
-static	LONG			g_lServerCommandQueueTail;
+static	TArray<FString>	g_ServerCommandQueue;
 
 // Timer for restarting the map.
 static	LONG			g_lMapRestartTimer;
@@ -343,11 +339,7 @@ void SERVER_Construct( void )
 	if ( pszMaxClients )
 		sv_maxclients = atoi( pszMaxClients );
 
-	for ( ulIdx = 0; ulIdx < MAX_STORED_SERVER_COMMANDS; ulIdx++ )
-		g_szServerCommandQueue[ulIdx][0] = 0;
-
-	g_lServerCommandQueueHead = 0;
-	g_lServerCommandQueueTail = 0;
+	g_ServerCommandQueue.Clear( );
 
 	g_lMapRestartTimer = 0;
 
@@ -430,7 +422,7 @@ void SERVER_Tick( void )
 		AddCommandString (cmd);
 #else
 	// Execute any commands that have been issued through server menus.
-	while ( g_lServerCommandQueueHead != g_lServerCommandQueueTail )
+	while ( g_ServerCommandQueue.Size( ))
 		SERVER_DeleteCommand( );
 #endif
 /*
@@ -2804,20 +2796,15 @@ void SERVER_KickPlayerFromGame( ULONG ulPlayer, char *pszReason )
 //
 void SERVER_AddCommand( char *pszCommand )
 {
-	strncpy( g_szServerCommandQueue[g_lServerCommandQueueTail], pszCommand, 255 );
-	g_szServerCommandQueue[g_lServerCommandQueueTail++][255] = 0;
-	g_lServerCommandQueueTail = g_lServerCommandQueueTail % MAX_STORED_SERVER_COMMANDS;
-
-	if ( g_lServerCommandQueueTail == g_lServerCommandQueueHead )
-		I_Error( "SERVER_AddCommand: Server command queue size exceeded!" );
+	g_ServerCommandQueue.Push( pszCommand );
 }
 
 //*****************************************************************************
 //
 void SERVER_DeleteCommand( void )
 {
-	AddCommandString( g_szServerCommandQueue[g_lServerCommandQueueHead++] );
-	g_lServerCommandQueueHead = g_lServerCommandQueueHead % MAX_STORED_SERVER_COMMANDS;
+	AddCommandString( (char *)g_ServerCommandQueue[0].GetChars( ));
+	g_ServerCommandQueue.Delete( 0 );
 }
 
 //*****************************************************************************
