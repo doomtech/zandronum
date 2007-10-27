@@ -7226,6 +7226,13 @@ static void client_WeaponChange( BYTESTREAM_s *pByteStream )
 	// Bring the weapon up if necessary.
 	if ( players[ulPlayer].ReadyWeapon != pWeapon )
 		players[ulPlayer].PendingWeapon = pWeapon;
+
+	// Confirm to the server that this is the weapon we're using.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) &&
+		( ulPlayer == consoleplayer ))
+	{
+		CLIENTCOMMANDS_WeaponSelect( pWeapon->GetClass( )->TypeName.GetChars( ));
+	}
 }
 
 //*****************************************************************************
