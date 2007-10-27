@@ -2642,7 +2642,7 @@ void CLIENT_DisplayMOTD( void )
 		return;
 
 	// Add pretty colors/formatting!
-	V_ColorizeString( (char *)g_MOTD.GetChars( ));
+	V_ColorizeString( g_MOTD );
 
 	ConsoleString.AppendFormat( TEXTCOLOR_RED
 		"\n\35\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36"
@@ -2650,7 +2650,7 @@ void CLIENT_DisplayMOTD( void )
 		"\n\n%s\n" TEXTCOLOR_RED
 		"\n\35\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36"
 		"\36\36\36\36\36\36\36\36\36\36\36\36\37" TEXTCOLOR_NORMAL "\n\n" ,
-		g_MOTD );
+		g_MOTD.GetChars() );
 
 	// Add this message to the console window.
 	AddToConsole( -1, ConsoleString );

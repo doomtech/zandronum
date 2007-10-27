@@ -354,6 +354,20 @@ void V_ColorizeString( char *pszString )
 	*pszString = 0;
 }
 
+// [BB] Version of V_ColorizeString that accepts a FString as argument.
+// Hacks like "V_ColorizeString( (char *)g_MOTD.GetChars( ));"
+// are not needed anymore using this.
+void V_ColorizeString( FString &String )
+{
+	const int length = String.Len();
+	char *tempCharArray = new char[length+1];
+	strncpy( tempCharArray, String.GetChars(), length );
+	tempCharArray[length] = 0;
+	V_ColorizeString( tempCharArray );
+	String = tempCharArray;
+	delete[] tempCharArray;
+}
+
 // [BC] This essentially does the reverse of V_ColorizeString(). It takes a string with
 // color codes and puts it back in \c<color code> format.
 void V_UnColorizeString( char *pszString, ULONG ulMaxStringLength )
