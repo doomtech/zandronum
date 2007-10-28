@@ -2517,8 +2517,7 @@ static void G_QueueBody (AActor *body)
 	int modslot = bodyqueslot%BODYQUESIZE;
 
 	// [BC] Skulltag has its own system.
-	return;
-
+/*
 	if (bodyqueslot >= BODYQUESIZE && bodyque[modslot] != NULL)
 	{
 		bodyque[modslot]->Destroy ();
@@ -2531,6 +2530,7 @@ static void G_QueueBody (AActor *body)
 	body->Translation = TRANSLATION(TRANSLATION_PlayerCorpses,modslot);
 
 	bodyqueslot++;
+*/
 }
 
 //

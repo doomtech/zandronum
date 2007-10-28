@@ -1346,7 +1346,6 @@ BOOL CALLBACK SERVERCONSOLE_RemoveBotCallback( HWND hDlg, UINT Message, WPARAM w
 					}
 				}
 				break;
-				EndDialog( hDlg, -1 );
 			case IDC_REMOVEALLBOTS:
 
 				if ( MessageBox( hDlg, "Are you sure you want to remove all the bots?", SERVERCONSOLE_TITLESTRING, MB_YESNO|MB_ICONQUESTION ) == IDYES )
