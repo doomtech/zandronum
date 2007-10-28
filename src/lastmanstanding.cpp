@@ -615,7 +615,6 @@ void LASTMANSTANDING_TimeExpired( void )
 	ULONG				ulIdx;
 	LONG				lHighestHealth;
 	bool				bTie = false;
-	bool				bAllDead = false;
 	bool				bFoundPlayer = false;
 	LONG				lWinner = -1;
 	LONG				lDifference;

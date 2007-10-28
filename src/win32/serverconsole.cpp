@@ -141,10 +141,13 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 
 		if ( MessageBox( hDlg, "Are you sure you want to quit?", SERVERCONSOLE_TITLESTRING, MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 ) == IDYES )
 		{
+			SERVER_AddCommand( "quit" );
+/*
 			Shell_NotifyIcon( NIM_DELETE, &g_NotifyIconData );
 			EndDialog( hDlg, -1 );
 			CloseHandle( g_hThread );
 			exit( 0 );
+*/
 		}
 		break;
 	case WM_DESTROY:

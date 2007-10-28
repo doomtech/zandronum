@@ -1676,6 +1676,16 @@ void BOTS_Destruct( void )
 			g_BotInfo[ulIdx] = NULL;
 		}
 	}
+
+	// Clear out any player's bot data.
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( players[ulIdx].pSkullBot )
+		{
+			delete ( players[ulIdx].pSkullBot );
+			players[ulIdx].pSkullBot = NULL;
+		}
+	}
 }
 
 //*****************************************************************************
@@ -3058,7 +3068,6 @@ CSkullBot::~CSkullBot( )
 void CSkullBot::Tick( void )
 {
 	ticcmd_t	*cmd = &m_pPlayer->cmd;
-	AActor		*mo = m_pPlayer->mo;
 
 	clock( g_BotCycles );
 

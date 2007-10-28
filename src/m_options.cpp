@@ -2770,7 +2770,6 @@ void M_StartSkirmishGame( void )
 {
 	char		szLevelName[8];
 	ULONG		ulIdx;
-	ULONG		ulTicks = TICRATE;
 	UCVarValue	Val;
 	FBaseCVar	*pVar;
 	char		szCVarName[32];

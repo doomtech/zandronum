@@ -121,4 +121,7 @@ void HSVtoRGB (float *r, float *g, float *b, float h, float s, float v);
 
 FDynamicColormap *GetSpecialLights (PalEntry lightcolor, PalEntry fadecolor, int desaturate);
 
+// [BC] Moved this here since we need it in D_DoomMain().
+void FreeSpecialLights( );
+
 #endif //__V_PALETTE_H__

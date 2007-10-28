@@ -66,7 +66,8 @@ BYTE RedColormap[NUMCOLORMAPS*256];
 BYTE GreenColormap[NUMCOLORMAPS*256];
 int Near255;
 
-static void FreeSpecialLights();;
+// [BC]
+//static void FreeSpecialLights();;
 
 FColorMatcher ColorMatcher;
 
@@ -712,7 +713,8 @@ FDynamicColormap *GetSpecialLights (PalEntry color, PalEntry fade, int desaturat
 }
 
 // Free all lights created with GetSpecialLights
-static void FreeSpecialLights()
+// [BC] No longer static.
+/*static */void FreeSpecialLights()
 {
 	FDynamicColormap *colormap, *next;
 

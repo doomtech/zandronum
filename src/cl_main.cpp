@@ -4488,7 +4488,7 @@ static void client_UpdatePlayerPendingWeapon( BYTESTREAM_s *pByteStream )
 		if ( ( pType != NULL ) && ( pType->IsDescendantOf( RUNTIME_CLASS( AWeapon ))) )
 		{
 			// If we dont have this weapon already, we do now!
-			AWeapon *pWeapon = static_cast<AWeapon *>( players[ulPlayer].mo->FindInventory( pType ));
+			pWeapon = static_cast<AWeapon *>( players[ulPlayer].mo->FindInventory( pType ));
 			if ( pWeapon == NULL )
 				pWeapon = static_cast<AWeapon *>( players[ulPlayer].mo->GiveInventoryType( pType ));
 
@@ -4896,7 +4896,7 @@ static void client_SpawnThingNoNetID( BYTESTREAM_s *pByteStream )
 	pszName = NETWORK_ReadString( pByteStream );
 
 	// Finally, spawn the thing.
-	AActor *pActor = CLIENT_SpawnThing( pszName, X, Y, Z, -1 );
+	CLIENT_SpawnThing( pszName, X, Y, Z, -1 );
 }
 
 //*****************************************************************************
