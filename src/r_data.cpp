@@ -565,6 +565,10 @@ int lastusedcolormap;
 
 void R_SetDefaultColormap (const char *name)
 {
+	// [BC] The server doesn't have colormaps.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		return;
+
 	if (strnicmp (fakecmaps[0].name, name, 8) != 0)
 	{
 		int lump, i, j;
@@ -733,6 +737,22 @@ DWORD R_BlendForColormap (DWORD map)
 //
 void R_InitData ()
 {
+	// [BC] In server mode, the only data we need to load are sprites and textures.
+	// This is because the server needs to know if objects have valid frames so it can
+	// decide whether or not it's okay to spawn them, and so servers have valid texture
+	// references to send out to clients if textures change during the course of the map.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		TexMan.AddGroup( "S_START", "S_END", ns_sprites, FTexture::TEX_Sprite );
+		R_InitPatches ();	// Initializes "special" textures that have no external references
+		R_InitTextures ();
+		TexMan.AddGroup("F_START", "F_END", ns_flats, FTexture::TEX_Flat);
+		R_InitBuildTiles ();
+		TexMan.AddGroup("TX_START", "TX_END", ns_newtextures, FTexture::TEX_Override);
+		TexMan.DefaultTexture = TexMan.CheckForTexture ("-NOFLAT-", FTexture::TEX_Override, 0);
+		return;
+	}
+
 	FTexture::InitGrayMap();
 	StartScreen->Progress();
 	TexMan.AddGroup("S_START", "S_END", ns_sprites, FTexture::TEX_Sprite);
@@ -745,13 +765,8 @@ void R_InitData ()
 	TexMan.AddHiresTextures ();
 	TexMan.LoadHiresTex ();
 	TexMan.DefaultTexture = TexMan.CheckForTexture ("-NOFLAT-", FTexture::TEX_Override, 0);
-	// [BB]: The server doesn't need the lights
-	// [BC] Or fonts.
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-	{
-		gl_ParseDefs();
-		V_InitFonts();
-	}
+	gl_ParseDefs();
+	V_InitFonts();
 	StartScreen->Progress();
 	R_InitColormaps ();
 	StartScreen->Progress();
@@ -904,6 +919,10 @@ void R_PrecacheLevel (void)
 	BYTE *hitlist;
 	BYTE *spritelist;
 	int i;
+
+	// [BC] The server doesn't need to precache the level.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		return;
 
 	// [BC] Support for client-side demos.
 	if (demoplayback || CLIENTDEMO_IsPlaying( ))

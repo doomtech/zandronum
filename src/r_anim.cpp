@@ -42,6 +42,8 @@
 #include "sc_man.h"
 #include "templates.h"
 #include "w_wad.h"
+// [BC] New #includes.
+#include "network.h"
 
 // MACROS ------------------------------------------------------------------
 
@@ -138,6 +140,10 @@ static FRandom pr_animatepictures ("AnimatePics");
 void R_InitPicAnims (void)
 {
 	const BITFIELD texflags = FTextureManager::TEXMAN_Overridable | FTextureManager::TEXMAN_TryAny;
+
+	// [BC] The server doesn't need to load any of this.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		return;
 
 	if (Wads.CheckNumForName ("ANIMATED") != -1)
 	{

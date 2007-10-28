@@ -744,6 +744,8 @@ FBehavior::FBehavior (int lumpnum, FileReader * fr, int len)
 	// has 24 bytes if it is completely empty. An empty SPTR chunk adds 8 bytes.)
 	if (len < 32)
 	{
+		Data = NULL;
+		StaticModules.Push (this);
 		return;
 	}
 
