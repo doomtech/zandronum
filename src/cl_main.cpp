@@ -8737,8 +8737,9 @@ static void client_GiveInventory( BYTESTREAM_s *pByteStream )
 				static_cast<ABasicArmorBonus*>( pInventory )->BonusCount *= lAmount;
 
 			}
-			else
-				pInventory->Amount = MIN( lAmount, (LONG)pInventory->MaxAmount );
+			// [BB] TryPickup handles the MaxAmount.
+			//else
+			//	pInventory->Amount = MIN( lAmount, (LONG)pInventory->MaxAmount );
 		}
 		if ( pInventory->TryPickup( players[ulPlayer].mo ) == false )
 		{
