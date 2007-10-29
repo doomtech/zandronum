@@ -121,6 +121,10 @@ void A_ShootGun (AActor *self)
 	if (self->target == NULL)
 		return;
 
+	// [BC] Play this sound to clients.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "monsters/rifle", 1, ATTN_NORM );
+
 	S_Sound (self, CHAN_WEAPON, "monsters/rifle", 1, ATTN_NORM);
 	A_FaceTarget (self);
 	pitch = P_AimLineAttack (self, self->angle, MISSILERANGE);

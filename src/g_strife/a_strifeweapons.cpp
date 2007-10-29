@@ -575,7 +575,7 @@ void A_FireElectric (AActor *self)
 
 	// [BC] If we're the server, play the firing sound to other clients.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "weapons/xbowshoot", 1, ATTN_NORM, ULONG( self->player - players ), SVCF_SKIPTHISCLIENT );
+		SERVERCOMMANDS_WeaponSound( ULONG( self->player - players ), "weapons/xbowshoot", ULONG( self->player - players ), SVCF_SKIPTHISCLIENT );
 }
 
 //============================================================================
@@ -615,7 +615,7 @@ void A_FirePoison (AActor *self)
 
 	// [BC] If we're the server, play the firing sound to other clients.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "weapons/xbowshoot", 1, ATTN_NORM, ULONG( self->player - players ), SVCF_SKIPTHISCLIENT );
+		SERVERCOMMANDS_WeaponSound( ULONG( self->player - players ), "weapons/xbowshoot", ULONG( self->player - players ), SVCF_SKIPTHISCLIENT );
 }
 
 //============================================================================
@@ -768,6 +768,13 @@ void P_StrifeGunShot (AActor *mo, bool accurate)
 void A_FireAssaultGun (AActor *self)
 {
 	bool accurate;
+
+	// [BC] Play this sound for other clients.
+	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+		( self->player ))
+	{
+		SERVERCOMMANDS_WeaponSound( ULONG( self->player - players ), "weapons/assaultgun", ULONG( self->player - players ), SVCF_SKIPTHISCLIENT );
+	}
 
 	S_Sound (self, CHAN_WEAPON, "weapons/assaultgun", 1, ATTN_NORM);
 
@@ -1423,7 +1430,7 @@ void A_FireMauler1 (AActor *self)
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
 		( self->player ))
 	{
-		SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "weapons/mauler2charge", 1, ATTN_NORM, ULONG( self->player - players ), SVCF_SKIPTHISCLIENT );
+		SERVERCOMMANDS_WeaponSound( ULONG( self->player - players ), "weapons/mauler2charge", ULONG( self->player - players ), SVCF_SKIPTHISCLIENT );
 	}
 
 	P_BulletSlope (self);
@@ -1458,7 +1465,7 @@ void A_FireMauler2Pre (AActor *self)
 	{
 		// [BC] If we're the server, play this sound for all other clients.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "weapons/mauler2charge", 1, ATTN_NORM, ULONG( self->player - players ), SVCF_SKIPTHISCLIENT );
+			SERVERCOMMANDS_WeaponSound( ULONG( self->player - players ), "weapons/mauler2charge", ULONG( self->player - players ), SVCF_SKIPTHISCLIENT );
 
 		self->player->psprites[ps_weapon].sx += pr_mauler2.Random2() << 10;
 		self->player->psprites[ps_weapon].sy += pr_mauler2.Random2() << 10;
@@ -2378,7 +2385,7 @@ void A_FireSigil1 (AActor *actor)
 
 	// [BC] If we're the server, play this sound to other clients.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "weapons/sigilcharge", 1, ATTN_NORM, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
+		SERVERCOMMANDS_WeaponSound( ULONG( player - players ), "weapons/sigilcharge", ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 
 	P_BulletSlope (actor);
 	if (linetarget != NULL)
@@ -2432,7 +2439,7 @@ void A_FireSigil2 (AActor *actor)
 
 	// [BC] If we're the server, play this sound to other clients.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "weapons/sigilcharge", 1, ATTN_NORM, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
+		SERVERCOMMANDS_WeaponSound( ULONG( player - players ), "weapons/sigilcharge", ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 
 	spot = P_SpawnPlayerMissile (actor, RUNTIME_CLASS(ASpectralLightningH1));
 	if (spot != NULL)
@@ -2469,7 +2476,7 @@ void A_FireSigil3 (AActor *actor)
 
 	// [BC] If we're the server, play this sound to other clients.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "weapons/sigilcharge", 1, ATTN_NORM, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
+		SERVERCOMMANDS_WeaponSound( ULONG( player - players ), "weapons/sigilcharge", ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 
 	actor->angle -= ANGLE_90;
 	for (i = 0; i < 20; ++i)
@@ -2512,7 +2519,7 @@ void A_FireSigil4 (AActor *actor)
 
 	// [BC] If we're the server, play this sound to other clients.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "weapons/sigilcharge", 1, ATTN_NORM, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
+		SERVERCOMMANDS_WeaponSound( ULONG( player - players ), "weapons/sigilcharge", ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 
 	P_BulletSlope (actor);
 	if (linetarget != NULL)
@@ -2563,7 +2570,7 @@ void A_FireSigil5 (AActor *actor)
 
 	// [BC] If we're the server, play this sound to other clients.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "weapons/sigilcharge", 1, ATTN_NORM, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
+		SERVERCOMMANDS_WeaponSound( ULONG( player - players ), "weapons/sigilcharge", ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 
 	spot = P_SpawnPlayerMissile (actor, RUNTIME_CLASS(ASpectralLightningBigBall1));
 	if (spot != NULL)
