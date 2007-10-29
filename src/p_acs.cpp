@@ -2056,7 +2056,12 @@ int DLevelScript::DoSpawn (int type, fixed_t x, fixed_t y, fixed_t z, int tid, i
 
 				// [BC] If we're the server, tell clients to spawn the thing.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				{
 					SERVERCOMMANDS_SpawnThing( actor );
+
+					if ( actor->angle != 0 )
+						SERVERCOMMANDS_SetThingAngle( actor );
+				}
 			}
 			else
 			{

@@ -165,6 +165,9 @@ bool Sys_1ed64 (AActor *self)
 
 void A_CrusaderChoose (AActor *self)
 {
+	// [BC]
+	AActor	*pMissile;
+
 	// [BC] This is handled server-side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
@@ -179,18 +182,37 @@ void A_CrusaderChoose (AActor *self)
 	{
 		A_FaceTarget (self);
 		self->angle -= ANGLE_180/16;
-		P_SpawnMissileZAimed (self, self->z + 40*FRACUNIT, self->target, RUNTIME_CLASS(AFastFlameMissile));
+		pMissile = P_SpawnMissileZAimed (self, self->z + 40*FRACUNIT, self->target, RUNTIME_CLASS(AFastFlameMissile));
+
+		// [BC] Tell clients to spawn the missile.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SpawnMissile( pMissile );
 	}
 	else
 	{
 		if (P_CheckMissileRange (self))
 		{
 			A_FaceTarget (self);
-			P_SpawnMissileZAimed (self, self->z + 56*FRACUNIT, self->target, RUNTIME_CLASS(ACrusaderMissile));
+			pMissile = P_SpawnMissileZAimed (self, self->z + 56*FRACUNIT, self->target, RUNTIME_CLASS(ACrusaderMissile));
+
+			// [BC] Tell clients to spawn the missile.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SpawnMissile( pMissile );
+
 			self->angle -= ANGLE_45/32;
-			P_SpawnMissileZAimed (self, self->z + 40*FRACUNIT, self->target, RUNTIME_CLASS(ACrusaderMissile));
+			pMissile = P_SpawnMissileZAimed (self, self->z + 40*FRACUNIT, self->target, RUNTIME_CLASS(ACrusaderMissile));
+
+			// [BC] Tell clients to spawn the missile.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SpawnMissile( pMissile );
+
 			self->angle += ANGLE_45/16;
-			P_SpawnMissileZAimed (self, self->z + 40*FRACUNIT, self->target, RUNTIME_CLASS(ACrusaderMissile));
+			pMissile = P_SpawnMissileZAimed (self, self->z + 40*FRACUNIT, self->target, RUNTIME_CLASS(ACrusaderMissile));
+
+			// [BC] Tell clients to spawn the missile.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SpawnMissile( pMissile );
+
 			self->angle -= ANGLE_45/16;
 			self->reactiontime += 15;
 		}
@@ -217,6 +239,10 @@ void A_CrusaderSweepLeft (AActor *self)
 	if (misl != NULL)
 	{
 		misl->momz += FRACUNIT;
+
+		// [BC] Tell clients to spawn the missile.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SpawnMissile( misl );
 	}
 }
 
@@ -234,6 +260,10 @@ void A_CrusaderSweepRight (AActor *self)
 	if (misl != NULL)
 	{
 		misl->momz += FRACUNIT;
+
+		// [BC] Tell clients to spawn the missile.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SpawnMissile( misl );
 	}
 }
 

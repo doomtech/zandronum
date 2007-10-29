@@ -252,12 +252,20 @@ void A_InquisitorAttack (AActor *self)
 	if (proj != NULL)
 	{
 		proj->momz += 9*FRACUNIT;
+
+		// [BC] Tell clients to spawn the missile.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SpawnMissile( proj );
 	}
 	self->angle += ANGLE_45/16;
 	proj = P_SpawnMissileZAimed (self, self->z, self->target, RUNTIME_CLASS(AInquisitorShot));
 	if (proj != NULL)
 	{
 		proj->momz += 16*FRACUNIT;
+
+		// [BC] Tell clients to spawn the missile.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SpawnMissile( proj );
 	}
 	self->z -= 32*FRACBITS;
 }
