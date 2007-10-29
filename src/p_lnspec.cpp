@@ -889,7 +889,7 @@ FUNC(LS_ThrustThingZ)	// [BC]
 
 			// [BC] If we're the server, update the thing's momentum.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_MoveThingExact( it, CM_MOMZ );
+				SERVERCOMMANDS_MoveThingExact( victim, CM_MOMZ );
 		}
 		return true;
 	}

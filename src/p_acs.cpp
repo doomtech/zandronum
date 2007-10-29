@@ -5473,6 +5473,10 @@ int DLevelScript::RunScript ()
 					state = RUNTIME_TYPE(activator)->ActorInfo->FindState (statelist.Size(), &statelist[0], !!STACK(1));
 					if (state != NULL)
 					{
+						// [BC] Tell clients to change this thing's state.
+						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+							SERVERCOMMANDS_SetThingFrame( activator, LONG( state - activator->SpawnState ));
+
 						activator->SetState (state);
 						STACK(3) = 1;
 					}
@@ -5492,6 +5496,10 @@ int DLevelScript::RunScript ()
 						state = RUNTIME_TYPE(actor)->ActorInfo->FindState (statelist.Size(), &statelist[0], !!STACK(1));
 						if (state != NULL)
 						{
+							// [BC] Tell clients to change this thing's state.
+							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+								SERVERCOMMANDS_SetThingFrame( actor, LONG( state - actor->SpawnState ));
+
 							actor->SetState (state);
 							count++;
 						}
