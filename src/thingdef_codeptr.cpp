@@ -1758,7 +1758,12 @@ void A_SpawnItem(AActor * self)
 
 	// [BC] If we're the server, tell clients to spawn the item.
 	if ( mo && NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
 		SERVERCOMMANDS_SpawnThing( mo );
+
+		if ( mo->angle != 0 )
+			SERVERCOMMANDS_SetThingAngle( mo );
+	}
 }
 
 //===========================================================================
