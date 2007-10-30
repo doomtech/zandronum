@@ -129,7 +129,6 @@ CVAR (Bool, storesavepic, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
 gameaction_t	gameaction;
 gamestate_t 	gamestate = GS_STARTUP;
-int 			respawnmonsters;
 
 int 			paused;
 bool 			sendpause;				// send a pause event next tic 
@@ -494,15 +493,18 @@ CCMD (invuse)
 	// [BB] If we are a client, we have to bypass the way ZDoom handles the item usage.
 	if( NETWORK_GetState( ) == NETSTATE_CLIENT )
 	{
-		AInventory *item = players[consoleplayer].mo->InvSel;
-		CLIENTCOMMANDS_RequestInventoryUse( item );
+		if ( players[consoleplayer].inventorytics )
+		{
+			AInventory *item = players[consoleplayer].mo->InvSel;
+			CLIENTCOMMANDS_RequestInventoryUse( item );
+		}
 		players[consoleplayer].inventorytics = 0;
 	}
 	else
 	{
 		if (players[consoleplayer].inventorytics == 0 || gameinfo.gametype == GAME_Strife)
 		{
-			SendItemUse = players[consoleplayer].mo->InvSel;
+			if (players[consoleplayer].mo) SendItemUse = players[consoleplayer].mo->InvSel;
 		}
 		players[consoleplayer].inventorytics = 0;
 	}
@@ -530,7 +532,7 @@ CCMD (use)
 
 CCMD (invdrop)
 {
-	SendItemDrop = players[consoleplayer].mo->InvSel;
+	if (players[consoleplayer].mo) SendItemDrop = players[consoleplayer].mo->InvSel;
 }
 
 CCMD (drop)

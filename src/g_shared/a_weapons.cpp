@@ -335,17 +335,9 @@ AAmmo *AWeapon::AddAmmo (AActor *other, const PClass *ammotype, int amount)
 		amount = amount * 5 / 2;
 
 	// extra ammo in baby mode and nightmare mode
-	// [BC] Apply double ammo logic to weapon pickups as well.
 	if (!(this->ItemFlags&IF_IGNORESKILL))
 	{
-		if ((gameskill == sk_baby || (gameskill == sk_nightmare && gameinfo.gametype != GAME_Strife)) ||
-			( dmflags2 & DF2_YES_DOUBLEAMMO ))
-		{
-			if (gameinfo.gametype & (GAME_Doom|GAME_Strife))
-				amount += amount;
-			else
-				amount += amount >> 1;
-		}
+		amount = FixedMul(amount, G_SkillProperty(SKILLP_AmmoFactor));
 	}
 	ammo = static_cast<AAmmo *>(other->FindInventory (ammotype));
 	if (ammo == NULL)
@@ -378,17 +370,9 @@ bool AWeapon::AddExistingAmmo (AAmmo *ammo, int amount)
 	if (ammo != NULL && ammo->Amount < ammo->MaxAmount)
 	{
 		// extra ammo in baby mode and nightmare mode
-		// [BC] Apply double ammo logic to weapon pickups as well.
 		if (!(ItemFlags&IF_IGNORESKILL))
 		{
-			if ((gameskill == sk_baby || (gameskill == sk_nightmare && gameinfo.gametype != GAME_Strife)) ||
-				( dmflags2 & DF2_YES_DOUBLEAMMO ))
-			{
-				if (gameinfo.gametype & (GAME_Doom|GAME_Strife))
-					amount += amount;
-				else
-					amount += amount >> 1;
-			}
+			amount = FixedMul(amount, G_SkillProperty(SKILLP_AmmoFactor));
 		}
 		ammo->Amount += amount;
 		if (ammo->Amount > ammo->MaxAmount)

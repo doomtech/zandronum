@@ -93,7 +93,7 @@ CCMD (toggleconsole)
 
 bool CheckCheatmode ()
 {
-	if ((( gameskill == sk_nightmare ) ||
+	if ((( G_SkillProperty( SKILLP_DisableCheats )) ||
 		( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )) ||
 		( NETWORK_GetState( ) == NETSTATE_SERVER )) &&
@@ -345,7 +345,7 @@ CCMD (chase)
 	else
 	{
 		// [BC] Disallow chasecam by default in teamgame as well.
-		if ((deathmatch || teamgame) && CheckCheatmode ())
+		if (gamestate == GS_LEVEL && ( deathmatch || teamgame ) && CheckCheatmode ())
 			return;
 
 		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )

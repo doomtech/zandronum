@@ -2342,6 +2342,7 @@ void A_Burst (AActor *actor)
          mo->momy = pr_burst.Random2 () << (FRACBITS-7);
          mo->RenderStyle = actor->RenderStyle;
          mo->alpha = actor->alpha;
+		 mo->CopyFriendliness(actor, true);
       }
    }
 

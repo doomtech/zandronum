@@ -292,6 +292,8 @@ enum
 	MF5_NOBLOODDECALS	= 0x00001000,	// Actor bleeds but doesn't spawn blood decals
 	MF5_USESPECIAL		= 0x00002000,	// Actor executes its special when being 'used'.
 	MF5_NOPAIN			= 0x00004000,	// If set the pain state won't be entered
+	MF5_ALWAYSFAST		= 0x00008000,	// always uses 'fast' attacking logic
+	MF5_NEVERFAST		= 0x00010000,	// never uses 'fast' attacking logic
 
 	// [BC] More object flags for Skulltag.
 
@@ -888,6 +890,7 @@ public:
 	bool InSpawnState( );
 	bool InDeathState();
 	virtual bool UpdateWaterLevel (fixed_t oldz, bool splash=true);
+	bool isFast();
 
 	FState *FindState (FName label) const;
 	FState *FindState (FName label, FName sublabel, bool exact = false) const;

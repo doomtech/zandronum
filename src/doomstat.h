@@ -76,9 +76,6 @@ extern	bool 			autostart;
 EXTERN_CVAR (Int, gameskill);
 extern	int				NextSkill;			// [RH] Skill to use at next level load
 
-// Nightmare mode flag, single player.
-extern	int 			respawnmonsters;
-
 // [BC] Removed netgame/multiplayer since it's been replaced by NETWORK_GetState().
 
 // [RH] Pretend as deathmatch for purposes of dmflags

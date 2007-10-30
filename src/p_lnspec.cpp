@@ -2285,11 +2285,10 @@ FUNC(LS_Sector_SetColor)
 // Sector_SetColor (tag, r, g, b, desaturate)
 {
 	int secnum = -1;
-	PalEntry color = PalEntry (arg1, arg2, arg3);
 	
 	while ((secnum = P_FindSectorFromTag (arg0, secnum)) >= 0)
 	{
-		sectors[secnum].ColorMap = GetSpecialLights (color, sectors[secnum].ColorMap->Fade, arg4);
+		sectors[secnum].SetColor(arg1, arg2, arg3, arg4);
 
 		// Tell clients about the sector color update.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -2303,11 +2302,10 @@ FUNC(LS_Sector_SetFade)
 // Sector_SetFade (tag, r, g, b)
 {
 	int secnum = -1;
-	PalEntry fade = PalEntry (arg1, arg2, arg3);
 
 	while ((secnum = P_FindSectorFromTag (arg0, secnum)) >= 0)
 	{
-		sectors[secnum].ColorMap = GetSpecialLights (sectors[secnum].ColorMap->Color, fade, sectors[secnum].ColorMap->Desaturate);
+		sectors[secnum].SetFade(arg1, arg2, arg3);
 
 		// [BC] Tell clients about the sector fade update.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )

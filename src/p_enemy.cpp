@@ -337,7 +337,8 @@ bool AActor::SuggestMissileAttack (fixed_t dist)
 	if (flags4 & MF4_MISSILEMORE) dist >>= 1;
 	if (flags4 & MF4_MISSILEEVENMORE) dist >>= 3;
 	
-	return pr_checkmissilerange() >= MIN<int> (dist >> FRACBITS, MinMissileChance);
+	int mmc = FixedMul(MinMissileChance, G_SkillProperty(SKILLP_Aggressiveness));
+	return pr_checkmissilerange() >= MIN<int> (dist >> FRACBITS, mmc);
 }
 
 //=============================================================================
@@ -2019,7 +2020,7 @@ nosee:
 //=============================================================================
 #define CLASS_BOSS_STRAFE_RANGE	64*10*FRACUNIT
 
-void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missilestate, bool playactive, bool nightmarefast)
+void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missilestate, bool playactive, bool nightmarefast, bool dontmove)
 {
 	int delta;
 
@@ -2064,8 +2065,7 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 		}
 	}
 
-	if (nightmarefast &&
-		(gameskill == sk_nightmare || (dmflags & DF_FAST_MONSTERS)))
+	if (nightmarefast && G_SkillProperty(SKILLP_FastMonsters))
 	{ // Monsters move faster in nightmare mode
 		actor->tics -= actor->tics / 2;
 		if (actor->tics < 3)
@@ -2140,7 +2140,7 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 				A_Look (actor);
 				if (actor->target == NULL)
 				{
-					A_Wander (actor);
+					if (!dontmove) A_Wander (actor);
 					actor->flags &= ~MF_INCHASE;
 					return;
 				}
@@ -2164,7 +2164,7 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 	if (actor->flags & MF_JUSTATTACKED)
 	{
 		actor->flags &= ~MF_JUSTATTACKED;
-		if ((gameskill != sk_nightmare) && !(dmflags & DF_FAST_MONSTERS) &&
+		if ((!actor->isFast()) &&
 			// [BC] Don't decide a new chase dir in client mode.
 			( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
 			( CLIENTDEMO_IsPlaying( ) == false ))
@@ -2231,7 +2231,7 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 	// it can be just as easily handled by a simple flag so the monsters
 	// can take advantage of all the other enhancements of A_Chase.
 
-	if (fastchase)
+	if (fastchase && !dontmove)
 	{
 		if (actor->special2 > 0)
 		{
@@ -2295,8 +2295,7 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 		// check for missile attack
 		if (missilestate)
 		{
-			if (gameskill < sk_nightmare
-				&& actor->movecount && !(dmflags & DF_FAST_MONSTERS))
+			if (!actor->isFast() && actor->movecount)
 			{
 				goto nomissile;
 			}
@@ -2353,7 +2352,7 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 	//
 
 	// class bosses don't do this when strafing
-	if (!fastchase || !actor->special2)
+	if ((!fastchase || !actor->special2) && !dontmove)
 	{
 		// CANTLEAVEFLOORPIC handling was completely missing in the non-serpent functions.
 		fixed_t oldX = actor->x;
@@ -2618,7 +2617,8 @@ enum ChaseFlags
 	CHF_FASTCHASE = 1,
 	CHF_NOPLAYACTIVE = 2,
 	CHF_NIGHTMAREFAST = 4,
-	CHF_RESURRECT = 8
+	CHF_RESURRECT = 8,
+	CHF_DONTMOVE = 16,
 };
 
 void A_Chase (AActor *actor)
@@ -2633,23 +2633,23 @@ void A_Chase (AActor *actor)
 		FState *missile = StateParameters[index+1]==0? NULL : P_GetState(actor, CallingState, StateParameters[index+1]);
 		
 		A_DoChase(actor, !!(flags&CHF_FASTCHASE), melee, missile, !(flags&CHF_NOPLAYACTIVE), 
-					!!(flags&CHF_NIGHTMAREFAST));
+					!!(flags&CHF_NIGHTMAREFAST), !!(flags&CHF_DONTMOVE));
 	}
 	else // this is the old default A_Chase
 	{
-		A_DoChase (actor, false, actor->MeleeState, actor->MissileState, true, !!(gameinfo.gametype & GAME_Raven));
+		A_DoChase (actor, false, actor->MeleeState, actor->MissileState, true, !!(gameinfo.gametype & GAME_Raven), false);
 	}
 }
 
 void A_FastChase (AActor *actor)
 {
-	A_DoChase (actor, true, actor->MeleeState, actor->MissileState, true, true);
+	A_DoChase (actor, true, actor->MeleeState, actor->MissileState, true, true, false);
 }
 
 void A_VileChase (AActor *actor)
 {
 	if (!P_CheckForResurrection(actor, true))
-		A_DoChase (actor, false, actor->MeleeState, actor->MissileState, true, !!(gameinfo.gametype & GAME_Raven));
+		A_DoChase (actor, false, actor->MeleeState, actor->MissileState, true, !!(gameinfo.gametype & GAME_Raven), false);
 }
 
 void A_ExtChase(AActor * self)
@@ -2662,7 +2662,7 @@ void A_ExtChase(AActor * self)
 		EvalExpressionI (StateParameters[index], self) ? self->MeleeState:NULL,
 		EvalExpressionI (StateParameters[index+1], self) ? self->MissileState:NULL,
 		EvalExpressionN (StateParameters[index+2], self),
-		!!EvalExpressionI (StateParameters[index+3], self));
+		!!EvalExpressionI (StateParameters[index+3], self), false);
 }
 
 //=============================================================================
