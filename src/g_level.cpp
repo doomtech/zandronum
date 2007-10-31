@@ -3761,7 +3761,7 @@ int G_SkillProperty(ESkillProperty prop)
 			( dmflags2 & DF2_YES_DOUBLEAMMO ))
 		{
 			if (gameinfo.gametype & (GAME_Doom|GAME_Strife))
-				return FRACUNIT;
+				return FRACUNIT*2;
 			else
 				return FRACUNIT*3/2;
 		}
