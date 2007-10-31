@@ -2499,7 +2499,7 @@ static void M_PlayerSetupDrawer ()
 					(ulOldPlayerSetupYOffset + ulLineHeight*3 + 57 - 104)*CleanYfac + (SCREENHEIGHT/2),
 					DTA_DestWidth, MulScale16 (tex->GetWidth() * CleanXfac, Scale),
 					DTA_DestHeight, MulScale16 (tex->GetHeight() * CleanYfac, Scale),
-					DTA_Translation, translationtables[TRANSLATION_Players] + 256 * MAXPLAYERS,
+					DTA_Translation, translationtables[TRANSLATION_Players] + 256 * consoleplayer,
 					TAG_DONE);
 
 				// [BC] Temporary solution. Once we've drawn the translated player, restore
