@@ -2861,7 +2861,15 @@ void P_CrouchMove(player_t * player, int direction)
 //----------------------------------------------------------------------------
 
 CVAR( Bool, cl_disallowfullpitch, false, CVAR_ARCHIVE );
-CVAR( Bool, iwanttousecrouchingeventhoughitsretardedandunnecessaryanditsimplementationishorribleimeanverticallyshrinkingskinscomeonthatsinsanebutwhatevergoaheadandhaveyourcrouching, false, 0 );
+CUSTOM_CVAR( Bool, iwanttousecrouchingeventhoughitsretardedandunnecessaryanditsimplementationishorribleimeanverticallyshrinkingskinscomeonthatsinsanebutwhatevergoaheadandhaveyourcrouching, false, 0 )
+{
+	// [BC] Since this affects the dmflags that are sent out to the clients, resend
+	// dmflags if this changes.
+	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( gamestate != GS_STARTUP ))
+	{
+		SERVERCOMMANDS_SetGameDMFlags( );
+	}
+}
 
 void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 {
