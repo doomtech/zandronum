@@ -302,6 +302,10 @@ void A_InquisitorJump (AActor *self)
 	self->momz = (self->target->z - self->z) / dist;
 	self->reactiontime = 60;
 	self->flags |= MF_NOGRAVITY;
+
+	// [BC] If we're the server, update the thing's position.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_MoveThing( self, CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
 }
 
 void A_InquisitorCheckLand (AActor *self)
