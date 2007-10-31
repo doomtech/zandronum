@@ -1562,6 +1562,31 @@ void SERVERCOMMANDS_SetThingState( AActor *pActor, ULONG ulState )
 
 //*****************************************************************************
 //
+void SERVERCOMMANDS_SetThingState2( AActor *pActor, const char *pszState, bool bExact )
+{
+	ULONG	ulIdx;
+
+	if (( pActor == NULL ) ||
+		( pszState == NULL ))
+	{
+		return;
+	}
+
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_IsValidClient( ulIdx ) == false )
+			continue;
+
+		SERVER_CheckClientBuffer( ulIdx, 4 + (ULONG)strlen( pszState ), true );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGSTATE2 );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszState );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, !!bExact );
+	}
+}
+
+//*****************************************************************************
+//
 void SERVERCOMMANDS_DestroyThing( AActor *pActor )
 {
 	ULONG	ulIdx;

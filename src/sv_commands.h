@@ -119,6 +119,7 @@ void	SERVERCOMMANDS_MoveThingExact( AActor *pActor, ULONG ulBits, ULONG ulPlayer
 void	SERVERCOMMANDS_DamageThing( AActor *pActor );
 void	SERVERCOMMANDS_KillThing( AActor *pActor );
 void	SERVERCOMMANDS_SetThingState( AActor *pActor, ULONG ulState );
+void	SERVERCOMMANDS_SetThingState2( AActor *pActor, const char *pszState, bool bExact );
 void	SERVERCOMMANDS_DestroyThing( AActor *pActor );
 void	SERVERCOMMANDS_SetThingAngle( AActor *pActor, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_SetThingAngleExact( AActor *pActor, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );

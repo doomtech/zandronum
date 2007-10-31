@@ -178,6 +178,7 @@ static	void	client_MoveThingExact( BYTESTREAM_s *pByteStream );
 static	void	client_DamageThing( BYTESTREAM_s *pByteStream );
 static	void	client_KillThing( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingState( BYTESTREAM_s *pByteStream );
+static	void	client_SetThingState2( BYTESTREAM_s *pByteStream );
 static	void	client_DestroyThing( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingAngle( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingAngleExact( BYTESTREAM_s *pByteStream );
@@ -522,6 +523,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_DAMAGETHING",
 	"SVC_KILLTHING",
 	"SVC_SETTHINGSTATE",
+	"SVC_SETTHINGSTATE2",
 	"SVC_DESTROYTHING",
 	"SVC_SETTHINGANGLE",
 	"SVC_SETTHINGANGLEEXACT",
@@ -1599,6 +1601,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETTHINGSTATE:
 
 		client_SetThingState( pByteStream );
+		break;
+	case SVC_SETTHINGSTATE2:
+
+		client_SetThingState2( pByteStream );
 		break;
 	case SVC_DESTROYTHING:
 
@@ -5246,6 +5252,46 @@ static void client_SetThingState( BYTESTREAM_s *pByteStream )
 //	pActor->angle = Angle;
 	pActor->SetState( pNewState );
 //	pActor->SetStateNF( pNewState );
+}
+
+//*****************************************************************************
+//
+static void client_SetThingState2( BYTESTREAM_s *pByteStream )
+{
+	LONG			lID;
+	const char		*pszState;
+	bool			bExact;
+	AActor			*pActor;
+	FState			*pNewState = NULL;
+	TArray<FName>	StateList;
+
+	// Read in the network ID for the object to have its state changed.
+	lID = NETWORK_ReadShort( pByteStream );
+
+	// Read in the state.
+	pszState = NETWORK_ReadString( pByteStream );
+
+	// Exact?
+	bExact = !!NETWORK_ReadByte( pByteStream );
+
+	// Not in a level; nothing to do (shouldn't happen!)
+	if ( gamestate != GS_LEVEL )
+		return;
+
+	// Find the actor associated with the ID.
+	pActor = CLIENT_FindThingByNetID( lID );
+	if ( pActor == NULL )
+	{
+		// There should probably be the potential for a warning message here.
+		return;
+	}
+
+	// Build the state name list.
+	MakeStateNameList( pszState, &StateList );
+
+	pNewState = RUNTIME_TYPE( pActor )->ActorInfo->FindState( StateList.Size( ), &StateList[0], bExact );
+	if ( pNewState )
+		pActor->SetState( pNewState );
 }
 
 //*****************************************************************************

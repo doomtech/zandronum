@@ -1611,7 +1611,7 @@ FUNC(LS_ACS_Execute)
 		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
 			( ACS_IsNetScript( arg0 )))
 		{
-			SERVERCOMMANDS_ACSScriptExecute( arg0, it, ln - lines, level.mapname, backSide, arg2, arg3, arg4, false );
+			SERVERCOMMANDS_ACSScriptExecute( arg0, it, LONG( ln - lines ), level.mapname, backSide, arg2, arg3, arg4, false );
 			return ( false );
 		}
 
@@ -1623,7 +1623,7 @@ FUNC(LS_ACS_Execute)
 		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
 			( ACS_IsNetScript( arg0 )))
 		{
-			SERVERCOMMANDS_ACSScriptExecute( arg0, it, ln - lines, info->mapname, backSide, arg2, arg3, arg4, false );
+			SERVERCOMMANDS_ACSScriptExecute( arg0, it, LONG( ln - lines ), info->mapname, backSide, arg2, arg3, arg4, false );
 			return ( false );
 		}
 
@@ -1642,7 +1642,7 @@ FUNC(LS_ACS_ExecuteAlways)
 		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
 			( ACS_IsNetScript( arg0 )))
 		{
-			SERVERCOMMANDS_ACSScriptExecute( arg0, it, ln - lines, level.mapname, backSide, arg2, arg3, arg4, true );
+			SERVERCOMMANDS_ACSScriptExecute( arg0, it, LONG( ln - lines ), level.mapname, backSide, arg2, arg3, arg4, true );
 			return ( false );
 		}
 
@@ -1654,7 +1654,7 @@ FUNC(LS_ACS_ExecuteAlways)
 		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
 			( ACS_IsNetScript( arg0 )))
 		{
-			SERVERCOMMANDS_ACSScriptExecute( arg0, it, ln - lines, info->mapname, backSide, arg2, arg3, arg4, true );
+			SERVERCOMMANDS_ACSScriptExecute( arg0, it, LONG( ln - lines ), info->mapname, backSide, arg2, arg3, arg4, true );
 			return ( false );
 		}
 
@@ -1690,7 +1690,7 @@ FUNC(LS_ACS_ExecuteWithResult)
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
 		( ACS_IsNetScript( arg0 )))
 	{
-		SERVERCOMMANDS_ACSScriptExecute( arg0, it, ln - lines, level.mapname, backSide, arg2, arg3, arg4, true );
+		SERVERCOMMANDS_ACSScriptExecute( arg0, it, LONG( ln - lines ), level.mapname, backSide, arg2, arg3, arg4, true );
 		return ( false );
 	}
 
