@@ -141,6 +141,8 @@ bool	NETWORK_StringToAddress( char *pszString, NETADDRESS_s *pAddress );
 void	NETWORK_SocketAddressToNetAddress( struct sockaddr_in *s, NETADDRESS_s *a );
 bool	NETWORK_StringToIP( char *pszAddress, char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 );
 
+std::string GenerateCouldNotOpenFileErrorString( const char *pszFunctionHeader, const char *pszFileName, LONG lErrorCode );
+
 /**
  * Class to read IP file lists from files, supports wildcards.
  *
@@ -175,6 +177,28 @@ private:
 	char skipComment( FILE *pFile );
 	void readReason( FILE *pFile, char *Reason, const int MaxReasonLength );
 	bool parseNextLine( FILE *pFile, IPADDRESSBAN_s &IP, ULONG &BanIdx );
+};
+
+/**
+ * Class to store a list of IPs, supports wildcards.
+ *
+ * \author BB
+ */
+class IPList{
+	std::vector<IPADDRESSBAN_s> _ipVector;
+public:
+	bool isIPInList( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3 ) const;
+	ULONG IPList::doesEntryExist( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3 ) const;
+	IPADDRESSBAN_s getEntry( const ULONG ulIdx ) const;
+    std::string getEntryAsString( const ULONG ulIdx ) const;
+
+	unsigned int size() const { return _ipVector.size(); }
+
+	void clear() { _ipVector.clear(); }
+
+	void push_back ( IPADDRESSBAN_s &IP ) { _ipVector.push_back(IP); }
+
+	std::vector<IPADDRESSBAN_s>& getVector() { return _ipVector; }
 };
 
 #endif	// __NETWORKSHARED_H__

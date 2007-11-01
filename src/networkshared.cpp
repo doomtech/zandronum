@@ -50,6 +50,8 @@
 
 #include "networkheaders.h"
 #include "networkshared.h"
+#include <sstream>
+#include <errno.h>
 
 //*****************************************************************************
 //
@@ -202,6 +204,77 @@ bool NETWORK_StringToIP( char *pszAddress, char *pszIP0, char *pszIP1, char *psz
 
 //*****************************************************************************
 //
+std::string GenerateCouldNotOpenFileErrorString( const char *pszFunctionHeader, const char *pszFileName, LONG lErrorCode )
+{
+	std::stringstream errorMessage;
+	errorMessage << pszFunctionHeader << ": Couldn't open file: " << pszFileName << "!\nREASON: ";
+	switch ( lErrorCode )
+	{
+	case EACCES:
+
+		errorMessage << "EACCES: Search permission is denied on a component of the path prefix, or the file exists and the permissions specified by mode are denied, or the file does not exist and write permission is denied for the parent directory of the file to be created.\n";
+		break;
+	case EINTR:
+
+		errorMessage << "EINTR: A signal was caught during fopen().\n";
+		break;
+	case EISDIR:
+
+		errorMessage << "EISDIR: The named file is a directory and mode requires write access.\n";
+		break;
+	case EMFILE:
+
+		errorMessage << "EMFILE: {OPEN_MAX} file descriptors are currently open in the calling process.\n";
+		break;
+	case ENAMETOOLONG:
+
+		errorMessage << "ENAMETOOLONG: Pathname resolution of a symbolic link produced an intermediate result whose length exceeds {PATH_MAX}.\n";
+		break;
+	case ENFILE:
+
+		errorMessage << "ENFILE: The maximum allowable number of files is currently open in the system.\n";
+		break;
+	case ENOENT:
+
+		errorMessage << "ENOENT: A component of filename does not name an existing file or filename is an empty string.\n";
+		break;
+	case ENOSPC:
+
+		errorMessage << "ENOSPC: The directory or file system that would contain the new file cannot be expanded, the file does not exist, and it was to be created.\n";
+		break;
+	case ENOTDIR:
+
+		errorMessage << "ENOTDIR: A component of the path prefix is not a directory.\n";
+		break;
+	case ENXIO:
+
+		errorMessage << "ENXIO: The named file is a character special or block special file, and the device associated with this special file does not exist.\n";
+		break;
+	case EROFS:
+
+		errorMessage << "EROFS: The named file resides on a read-only file system and mode requires write access.\n";
+		break;
+	case EINVAL:
+
+		errorMessage << "EINVAL: The value of the mode argument is not valid.\n";
+		break;
+	case ENOMEM:
+
+		errorMessage << "ENOMEM: Insufficient storage space is available.\n";
+		break;
+//	case EOVERFLOW:
+//	case ETXTBSY:
+//	case ELOOP:
+	default:
+
+		errorMessage << "UNKNOWN\n";
+		break;
+	}
+	return errorMessage.str();
+}
+
+//*****************************************************************************
+//
 bool IPFileParser::parseIPList( const char* FileName, std::vector<IPADDRESSBAN_s> &IPArray )
 {
 	FILE			*pFile;
@@ -232,7 +305,7 @@ bool IPFileParser::parseIPList( const char* FileName, std::vector<IPADDRESSBAN_s
 	}
 	else
 	{
-		sprintf( _errorMessage, "WARNING! Could not open %s!\n", FileName );
+		sprintf( _errorMessage, "%s", GenerateCouldNotOpenFileErrorString( "IPFileParser::parseIPList", FileName, errno ).c_str() );
 		return false;
 	}
 
@@ -378,4 +451,78 @@ void IPFileParser::readReason( FILE *pFile, char *Reason, const int MaxReasonLen
 	// [BB] Check if we reached the end of the comment, if not skip the rest.
 	if( ( curChar != '\r' ) && ( curChar != '\n' ) && ( curChar != -1 ) )
 		skipComment( pFile );
+}
+
+//*****************************************************************************
+//
+bool IPList::isIPInList( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3 ) const
+{
+	for ( ULONG ulIdx = 0; ulIdx < _ipVector.size(); ulIdx++ )
+	{
+		if ((( _ipVector[ulIdx].szIP[0][0] == '*' ) || ( stricmp( pszIP0, _ipVector[ulIdx].szIP[0] ) == 0 )) &&
+			(( _ipVector[ulIdx].szIP[1][0] == '*' ) || ( stricmp( pszIP1, _ipVector[ulIdx].szIP[1] ) == 0 )) &&
+			(( _ipVector[ulIdx].szIP[2][0] == '*' ) || ( stricmp( pszIP2, _ipVector[ulIdx].szIP[2] ) == 0 )) &&
+			(( _ipVector[ulIdx].szIP[3][0] == '*' ) || ( stricmp( pszIP3, _ipVector[ulIdx].szIP[3] ) == 0 )))
+		{
+			return ( true );
+		}
+	}
+
+	return ( false );
+}
+
+//*****************************************************************************
+//
+ULONG IPList::doesEntryExist( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3 ) const
+{
+	for ( ULONG ulIdx = 0; ulIdx < _ipVector.size(); ulIdx++ )
+	{
+		if (( stricmp( pszIP0, _ipVector[ulIdx].szIP[0] ) == 0 ) &&
+			( stricmp( pszIP1, _ipVector[ulIdx].szIP[1] ) == 0 ) &&
+			( stricmp( pszIP2, _ipVector[ulIdx].szIP[2] ) == 0 ) &&
+			( stricmp( pszIP3, _ipVector[ulIdx].szIP[3] ) == 0 ))
+		{
+			return ( ulIdx );
+		}
+	}
+
+	return ( _ipVector.size() );
+}
+
+//*****************************************************************************
+//
+IPADDRESSBAN_s IPList::getEntry( const ULONG ulIdx ) const
+{
+	if ( ulIdx >= _ipVector.size() )
+	{
+		IPADDRESSBAN_s	ZeroBan;
+
+		sprintf( ZeroBan.szIP[0], "0" );
+		sprintf( ZeroBan.szIP[1], "0" );
+		sprintf( ZeroBan.szIP[2], "0" );
+		sprintf( ZeroBan.szIP[3], "0" );
+
+		ZeroBan.szComment[0] = 0;
+
+		return ( ZeroBan );
+	}
+
+	return ( _ipVector[ulIdx] );
+}
+
+std::string IPList::getEntryAsString( const ULONG ulIdx ) const
+{
+	std::stringstream entryStream;
+
+	if( ulIdx < _ipVector.size() )
+	{
+		entryStream << _ipVector[ulIdx].szIP[0] << "."
+					<< _ipVector[ulIdx].szIP[1] << "."
+					<< _ipVector[ulIdx].szIP[2] << "."
+					<< _ipVector[ulIdx].szIP[3];
+		if ( _ipVector[ulIdx].szComment[0] )
+			entryStream << ":" << _ipVector[ulIdx].szComment;
+		entryStream << std::endl;
+	}
+	return entryStream.str();
 }

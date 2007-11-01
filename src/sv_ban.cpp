@@ -61,13 +61,12 @@
 //	PROTOTYPES
 
 static	void	serverban_LoadBans( void );
-static	void	serverban_CouldNotOpenFile( char *pszFunctionHeader, char *pszName, LONG lErrorCode );
 
 //*****************************************************************************
 //	VARIABLES
 
 static	char	g_cCurChar;
-static	std::vector<IPADDRESSBAN_s>	g_ServerBans;
+static	IPList	g_ServerBans;
 static	ULONG	g_ulBanReParseTicker;
 
 //*****************************************************************************
@@ -119,40 +118,14 @@ void SERVERBAN_Tick( void )
 //
 bool SERVERBAN_IsIPBanned( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < g_ServerBans.size(); ulIdx++ )
-	{
-		if ((( g_ServerBans[ulIdx].szIP[0][0] == '*' ) || ( stricmp( pszIP0, g_ServerBans[ulIdx].szIP[0] ) == 0 )) &&
-			(( g_ServerBans[ulIdx].szIP[1][0] == '*' ) || ( stricmp( pszIP1, g_ServerBans[ulIdx].szIP[1] ) == 0 )) &&
-			(( g_ServerBans[ulIdx].szIP[2][0] == '*' ) || ( stricmp( pszIP2, g_ServerBans[ulIdx].szIP[2] ) == 0 )) &&
-			(( g_ServerBans[ulIdx].szIP[3][0] == '*' ) || ( stricmp( pszIP3, g_ServerBans[ulIdx].szIP[3] ) == 0 )))
-		{
-			return ( true );
-		}
-	}
-
-	return ( false );
+	return g_ServerBans.isIPInList( pszIP0, pszIP1, pszIP2, pszIP3 );
 }
 
 //*****************************************************************************
 //
 ULONG SERVERBAN_DoesBanExist( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < g_ServerBans.size(); ulIdx++ )
-	{
-		if (( stricmp( pszIP0, g_ServerBans[ulIdx].szIP[0] ) == 0 ) &&
-			( stricmp( pszIP1, g_ServerBans[ulIdx].szIP[1] ) == 0 ) &&
-			( stricmp( pszIP2, g_ServerBans[ulIdx].szIP[2] ) == 0 ) &&
-			( stricmp( pszIP3, g_ServerBans[ulIdx].szIP[3] ) == 0 ))
-		{
-			return ( ulIdx );
-		}
-	}
-
-	return ( g_ServerBans.size() );
+	return g_ServerBans.doesEntryExist( pszIP0, pszIP1, pszIP2, pszIP3 );
 }
 
 //*****************************************************************************
@@ -334,7 +307,7 @@ void SERVERBAN_ClearBans( void )
 		Printf( "Banlist cleared.\n" );
 	}
 	else
-		serverban_CouldNotOpenFile( "SERVERBAN_ClearBans", Val.String, errno );
+		Printf( "%s", GenerateCouldNotOpenFileErrorString( "SERVERBAN_ClearBans", Val.String, errno ).c_str() );
 }
 
 //*****************************************************************************
@@ -348,21 +321,7 @@ ULONG SERVERBAN_GetNumBans( void )
 //
 IPADDRESSBAN_s SERVERBAN_GetBan( ULONG ulIdx )
 {
-	if ( ulIdx >= g_ServerBans.size() )
-	{
-		IPADDRESSBAN_s	ZeroBan;
-
-		sprintf( ZeroBan.szIP[0], "0" );
-		sprintf( ZeroBan.szIP[1], "0" );
-		sprintf( ZeroBan.szIP[2], "0" );
-		sprintf( ZeroBan.szIP[3], "0" );
-
-		ZeroBan.szComment[0] = 0;
-
-		return ( ZeroBan );
-	}
-
-	return ( g_ServerBans[ulIdx] );
+	return g_ServerBans.getEntry( ulIdx );
 }
 
 //*****************************************************************************
@@ -394,80 +353,8 @@ static void serverban_LoadBans( void )
 	}
 
 	IPFileParser parser( 65536 );
-	if ( !(parser.parseIPList( fsFilePath.GetChars(), g_ServerBans )) )
+	if ( !(parser.parseIPList( fsFilePath.GetChars(), g_ServerBans.getVector() )) )
 		Printf( "%s", parser.getErrorMessage() );
-
-	// [BB] TO-DO: Rename and move the serverban_CouldNotOpenFile code somewhere
-	// where it can be used by the master server and use it in IPFileParser.
-}
-
-//*****************************************************************************
-//
-static void serverban_CouldNotOpenFile( char *pszFunctionHeader, char *pszFileName, LONG lErrorCode )
-{
-	Printf( "%s: Couldn't open file: %s!\nREASON: ", pszFunctionHeader, pszFileName );
-	switch ( lErrorCode )
-	{
-	case EACCES:
-
-		Printf( "EACCES: Search permission is denied on a component of the path prefix, or the file exists and the permissions specified by mode are denied, or the file does not exist and write permission is denied for the parent directory of the file to be created.\n" );
-		break;
-	case EINTR:
-
-		Printf( "EINTR: A signal was caught during fopen().\n" );
-		break;
-	case EISDIR:
-
-		Printf( "EISDIR: The named file is a directory and mode requires write access.\n" );
-		break;
-	case EMFILE:
-
-		Printf( "EMFILE: {OPEN_MAX} file descriptors are currently open in the calling process.\n" );
-		break;
-	case ENAMETOOLONG:
-
-		Printf( "ENAMETOOLONG: Pathname resolution of a symbolic link produced an intermediate result whose length exceeds {PATH_MAX}.\n" );
-		break;
-	case ENFILE:
-
-		Printf( "ENFILE: The maximum allowable number of files is currently open in the system.\n" );
-		break;
-	case ENOENT:
-
-		Printf( "ENOENT: A component of filename does not name an existing file or filename is an empty string.\n" );
-		break;
-	case ENOSPC:
-
-		Printf( "ENOSPC: The directory or file system that would contain the new file cannot be expanded, the file does not exist, and it was to be created.\n" );
-		break;
-	case ENOTDIR:
-
-		Printf( "ENOTDIR: A component of the path prefix is not a directory.\n" );
-		break;
-	case ENXIO:
-
-		Printf( "ENXIO: The named file is a character special or block special file, and the device associated with this special file does not exist.\n" );
-		break;
-	case EROFS:
-
-		Printf( "EROFS: The named file resides on a read-only file system and mode requires write access.\n" );
-		break;
-	case EINVAL:
-
-		Printf( "EINVAL: The value of the mode argument is not valid.\n" );
-		break;
-	case ENOMEM:
-
-		Printf( "ENOMEM: Insufficient storage space is available.\n" );
-		break;
-//	case EOVERFLOW:
-//	case ETXTBSY:
-//	case ELOOP:
-	default:
-
-		Printf( "UNKNOWN\n" );
-		break;
-	}
 }
 
 //*****************************************************************************
@@ -725,19 +612,7 @@ CCMD( viewbanlist )
 
 	for ( ulIdx = 0; ulIdx < g_ServerBans.size(); ulIdx++ )
 	{
-		if (( stricmp( g_ServerBans[ulIdx].szIP[0], "0" ) != 0 ) ||
-			( stricmp( g_ServerBans[ulIdx].szIP[1], "0" ) != 0 ) ||
-			( stricmp( g_ServerBans[ulIdx].szIP[2], "0" ) != 0 ) ||
-			( stricmp( g_ServerBans[ulIdx].szIP[3], "0" ) != 0 ))
-		{
-			Printf( "%s.%s.%s.%s", g_ServerBans[ulIdx].szIP[0],
-				g_ServerBans[ulIdx].szIP[1],
-				g_ServerBans[ulIdx].szIP[2],
-				g_ServerBans[ulIdx].szIP[3] );
-			if ( g_ServerBans[ulIdx].szComment[0] )
-				Printf( ":%s", g_ServerBans[ulIdx].szComment );
-			Printf( "\n" );
-		}
+		Printf( "%s", g_ServerBans.getEntryAsString(ulIdx).c_str() );
 	}
 }
 
