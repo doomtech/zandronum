@@ -75,6 +75,8 @@ static	bool			g_bThreePointsLeftSoundPlayed;
 static	bool			g_bTwoPointsLeftSoundPlayed;
 static	bool			g_bOnePointLeftSoundPlayed;
 
+static	LONG			g_lLastSoundID = 0;
+
 //*****************************************************************************
 //	PROTOTYPES
 
@@ -203,8 +205,17 @@ void ANNOUNCER_PlayEntry( ULONG ulProfileIdx, const char *pszEntry )
 
 	// If the entry exists and has a sound, play it.
 	pEntry = announcer_FindEntry( g_AnnouncerProfile[ulProfileIdx], pszEntry );
-	if (( pEntry ) && ( pEntry->szSound ))
+	if (( pEntry ) &&
+		( pEntry->szSound ) &&
+		( strlen( pEntry->szSound ) > 0 ))
+	{
+		// Stop any existing announcer sounds.
+		S_StopSoundID( g_lLastSoundID, INT_MAX, 1, false, 0, 0 );
+
+		// Play the sound.
+		g_lLastSoundID = S_FindSound( pEntry->szSound );
 		S_Sound( CHAN_VOICE, pEntry->szSound, 1, ATTN_NONE );
+	}
 }
 
 //*****************************************************************************
