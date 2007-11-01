@@ -75,6 +75,7 @@ v0.97d
 +	- Added a "client side spawn" option to A_SpawnItemEx. [Torr Samaho]
 +	- Added customizable gravity per actor (ported the change from ZDoom revision 456 and added necessary netcode). [Torr Samaho]
 +	- Added VSpeed DECORATE property so that an actor can be given an initial vertical speed (ported the change from ZDoom revision 373). [Torr Samaho]
++	- Added the possibility to build a server only binary that needs less depdendencies than the client. [Torr Samaho]
 +	- Skins that the server does not have can now be seen by all players who have them. [Carnevil]
 +	- Added disconnect scripts! They execute when a player leaves a game after being a non-spectating player. [Carnevil]
 +	- The "showmedals" key can now we used while playing back demos. [Carnevil]

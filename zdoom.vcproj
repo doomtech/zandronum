@@ -5975,6 +5975,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\src\g_shared\a_setcolor.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\g_shared\a_sharedglobal.h"
 				>
 			</File>
