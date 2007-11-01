@@ -524,7 +524,7 @@ void gl_RenderModel(GLSprite * spr, int cm)
 			}
 			inter = static_cast<double>(curState->Tics - spr->actor->tics - ticFraction)/static_cast<double>(curState->Tics);
 			if ( inter != 0.0 )
-				smfNext = gl_FindModelFrame(RUNTIME_TYPE(spr->actor), spr->actor->sprite, nextState->Frame);
+				smfNext = gl_FindModelFrame(RUNTIME_TYPE(spr->actor), nextState->sprite.index, nextState->Frame);
 		}
 	}
 
