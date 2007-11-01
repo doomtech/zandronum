@@ -65,8 +65,8 @@ static	void	serverban_LoadBans( void );
 //*****************************************************************************
 //	VARIABLES
 
-static	char	g_cCurChar;
 static	IPList	g_ServerBans;
+static	IPList	g_ServerBanExemptions;
 static	ULONG	g_ulBanReParseTicker;
 
 //*****************************************************************************
@@ -89,6 +89,14 @@ CUSTOM_CVAR( String, sv_banfile, "banlist.txt", CVAR_ARCHIVE )
 	// Re-parse the ban file in a certain amount of time.
 	Val = sv_banfilereparsetime.GetGenericRep( CVAR_Int );
 	g_ulBanReParseTicker = Val.Int * TICRATE;
+}
+CUSTOM_CVAR( String, sv_banexemptionfile, "whitelist.txt", CVAR_ARCHIVE )
+{
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		return;
+
+	if ( !(g_ServerBanExemptions.clearAndLoadFromFile( sv_banexemptionfile.GetGenericRep( CVAR_String ).String )) )
+		Printf( "%s", g_ServerBanExemptions.getErrorMessage() );
 }
 
 //*****************************************************************************
@@ -118,7 +126,10 @@ void SERVERBAN_Tick( void )
 //
 bool SERVERBAN_IsIPBanned( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 )
 {
-	return g_ServerBans.isIPInList( pszIP0, pszIP1, pszIP2, pszIP3 );
+	if( g_ServerBanExemptions.isIPInList( pszIP0, pszIP1, pszIP2, pszIP3 ) )
+		return false;
+	else
+		return g_ServerBans.isIPInList( pszIP0, pszIP1, pszIP2, pszIP3 );
 }
 
 //*****************************************************************************
@@ -186,9 +197,8 @@ static void serverban_LoadBans( void )
 	// Open the banfile.
 	Val = sv_banfile.GetGenericRep( CVAR_String );
 
-	g_cCurChar = 0;
-
 	// [RC] Escape backslashes so that paths can be used.
+	// [BB] Why is this necessary? Paths can be used with slashes anyway.
 	FString fsFilePath = Val.String;
 	int index;
 	int last_index = -1;
