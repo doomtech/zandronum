@@ -455,6 +455,23 @@ void IPFileParser::readReason( FILE *pFile, char *Reason, const int MaxReasonLen
 
 //*****************************************************************************
 //
+bool IPList::clearAndLoadFromFile( const char *Filename )
+{
+	bool success = false;
+	_filename = Filename;
+	_error = "";
+
+	IPFileParser parser( 65536 );
+
+	success = parser.parseIPList( Filename, _ipVector );
+	if ( !success )
+		_error = parser.getErrorMessage();
+
+	return success;
+}
+
+//*****************************************************************************
+//
 bool IPList::isIPInList( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3 ) const
 {
 	for ( ULONG ulIdx = 0; ulIdx < _ipVector.size(); ulIdx++ )
@@ -510,6 +527,8 @@ IPADDRESSBAN_s IPList::getEntry( const ULONG ulIdx ) const
 	return ( _ipVector[ulIdx] );
 }
 
+//*****************************************************************************
+//
 std::string IPList::getEntryAsString( const ULONG ulIdx ) const
 {
 	std::stringstream entryStream;
@@ -526,3 +545,61 @@ std::string IPList::getEntryAsString( const ULONG ulIdx ) const
 	}
 	return entryStream.str();
 }
+
+//*****************************************************************************
+//
+void IPList::addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3, const char *pszPlayerName, const char *pszComment, std::string &Message )
+{
+	FILE		*pFile;
+	char		szOutString[512];
+	ULONG		ulIdx;
+	std::stringstream messageStream;
+
+	// Address is already in the list.
+	ulIdx = doesEntryExist( pszIP0, pszIP1, pszIP2, pszIP3 );
+	if ( ulIdx != _ipVector.size() )
+	{
+		messageStream << pszIP0 << "." << pszIP1 << "."	<< pszIP2 << "." << pszIP3 << " already exists in list.\n";
+		Message = messageStream.str();
+		return;
+	}
+
+	szOutString[0] = 0;
+	if ( pszPlayerName )
+	{
+		sprintf( szOutString, "%s", szOutString, pszPlayerName );
+		if ( pszComment )
+			sprintf( szOutString, "%s:", szOutString );
+	}
+	if ( pszComment )
+		sprintf( szOutString, "%s%s", szOutString, pszComment );
+
+	// Add the entry and comment into memory.
+	IPADDRESSBAN_s newIPEntry;
+	sprintf( newIPEntry.szIP[0], pszIP0 );
+	sprintf( newIPEntry.szIP[1], pszIP1 );
+	sprintf( newIPEntry.szIP[2], pszIP2 );
+	sprintf( newIPEntry.szIP[3], pszIP3 );
+	sprintf( newIPEntry.szComment, "%s", szOutString );
+	_ipVector.push_back( newIPEntry );
+
+	// Finally, append the IP to the file.
+	if ( (pFile = fopen( _filename.c_str(), "a" )) )
+	{
+		sprintf( szOutString, "\n%s.%s.%s.%s", pszIP0, pszIP1, pszIP2, pszIP3 );
+		if ( pszPlayerName )
+			sprintf( szOutString, "%s:%s", szOutString, pszPlayerName );
+		if ( pszComment )
+			sprintf( szOutString, "%s:%s", szOutString, pszComment );
+		fputs( szOutString, pFile );
+		fclose( pFile );
+
+		messageStream << pszIP0 << "." << pszIP1 << "."	<< pszIP2 << "." << pszIP3 << " added to list.\n";
+		Message = messageStream.str();
+	}
+	else
+	{
+		Message = GenerateCouldNotOpenFileErrorString( "IPList::addEntry", _filename.c_str(), errno );
+	}
+}
+

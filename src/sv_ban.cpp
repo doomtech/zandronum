@@ -132,156 +132,9 @@ ULONG SERVERBAN_DoesBanExist( char *pszIP0, char *pszIP1, char *pszIP2, char *ps
 //
 void SERVERBAN_AddBan( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3, char *pszPlayerName, char *pszComment )
 {
-	FILE		*pFile;
-	UCVarValue	Val;
-	char		szOutString[512];
-	ULONG		ulBanIdx;
-
-	Val = sv_banfile.GetGenericRep( CVAR_String );
-
-	// Address is already banned.
-	ulBanIdx = SERVERBAN_DoesBanExist( pszIP0, pszIP1, pszIP2, pszIP3 );
-	if ( ulBanIdx != g_ServerBans.size() )
-	{
-		Printf( "Ban for %s.%s.%s.%s already exists.\n", pszIP0, pszIP1, pszIP2, pszIP3 );
-		return;
-	}
-	/*
-	// [BB] We may not add more bans if we already have banned MAX_SERVER_BANS IPs.
-	if( g_lBanIdx == MAX_SERVER_BANS )
-	{
-		Printf( "Maximum number of bans reached.\n" );
-		return;
-	}*/
-
-	szOutString[0] = 0;
-	if ( pszPlayerName )
-	{
-		sprintf( szOutString, "%s", szOutString, pszPlayerName );
-		if ( pszComment )
-			sprintf( szOutString, "%s:", szOutString );
-	}
-	if ( pszComment )
-		sprintf( szOutString, "%s%s", szOutString, pszComment );
-
-	// Add the ban and comment into memory.
-	IPADDRESSBAN_s bannedIP;
-	sprintf( bannedIP.szIP[0], pszIP0 );
-	sprintf( bannedIP.szIP[1], pszIP1 );
-	sprintf( bannedIP.szIP[2], pszIP2 );
-	sprintf( bannedIP.szIP[3], pszIP3 );
-	sprintf( bannedIP.szComment, "%s", szOutString );
-	g_ServerBans.push_back( bannedIP );
-
-	// Finally, append the banfile.
-	if ( (pFile = fopen( Val.String, "a" )) )
-	{
-		sprintf( szOutString, "\n%s.%s.%s.%s", pszIP0, pszIP1, pszIP2, pszIP3 );
-		if ( pszPlayerName )
-			sprintf( szOutString, "%s:%s", szOutString, pszPlayerName );
-		if ( pszComment )
-			sprintf( szOutString, "%s:%s", szOutString, pszComment );
-		fputs( szOutString, pFile );
-		fclose( pFile );
-
-		Printf( "Ban for %s.%s.%s.%s added.\n", pszIP0, pszIP1, pszIP2, pszIP3 );
-	}
-}
-
-//*****************************************************************************
-//
-bool SERVERBAN_StringToBan( char *pszAddress, char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 )
-{
-	char	szCopy[16];
-	char	*pszCopy;
-	char	szTemp[4];
-	char	*pszTemp;
-	ULONG	ulIdx;
-	ULONG	ulNumPeriods;
-
-	// Too long.
-	if ( strlen( pszAddress ) > 15 )
-		return ( false );
-
-	// First, get rid of anything after the colon (if it exists).
-	strcpy( szCopy, pszAddress );
-	for ( pszCopy = szCopy; *pszCopy; pszCopy++ )
-	{
-		if ( *pszCopy == ':' )
-		{
-			*pszCopy = 0;
-			break;
-		}
-	}
-
-	// Next, make sure there's at least 3 periods.
-	ulNumPeriods = 0;
-	for ( pszCopy = szCopy; *pszCopy; pszCopy++ )
-	{
-		if ( *pszCopy == '.' )
-			ulNumPeriods++;
-	}
-
-	// If there weren't 3 periods, then it's not a valid ban string.
-	if ( ulNumPeriods != 3 )
-		return ( false );
-
-	ulIdx = 0;
-	pszTemp = szTemp;
-	*pszTemp = 0;
-	for ( pszCopy = szCopy; *pszCopy; pszCopy++ )
-	{
-		if ( *pszCopy == '.' )
-		{
-			// Shouldn't happen.
-			if ( ulIdx > 3 )
-				return ( false );
-
-			switch ( ulIdx )
-			{
-			case 0:
-
-				strcpy( pszIP0, szTemp );
-				break;
-			case 1:
-
-				strcpy( pszIP1, szTemp );
-				break;
-			case 2:
-
-				strcpy( pszIP2, szTemp );
-				break;
-			case 3:
-
-				strcpy( pszIP3, szTemp );
-				break;
-			}
-			ulIdx++;
-//			strcpy( szBan[ulIdx++], szTemp );
-			pszTemp = szTemp;
-		}
-		else
-		{
-			*pszTemp++ = *pszCopy;
-			*pszTemp = 0;
-			if ( strlen( szTemp ) > 3 )
-				return ( false );
-		}
-	}
-
-	strcpy( pszIP3, szTemp );
-
-	// Finally, make sure each entry of our string is valid.
-	if ((( atoi( pszIP0 ) < 0 ) || ( atoi( pszIP0 ) > 255 )) && ( stricmp( "*", pszIP0 ) != 0 ))
-		return ( false );
-	if ((( atoi( pszIP1 ) < 0 ) || ( atoi( pszIP1 ) > 255 )) && ( stricmp( "*", pszIP1 ) != 0 ))
-		return ( false );
-	if ((( atoi( pszIP2 ) < 0 ) || ( atoi( pszIP2 ) > 255 )) && ( stricmp( "*", pszIP2 ) != 0 ))
-		return ( false );
-	if ((( atoi( pszIP3 ) < 0 ) || ( atoi( pszIP3 ) > 255 )) && ( stricmp( "*", pszIP3 ) != 0 ))
-		return ( false );
-
-    return ( true );
+	std::string message;
+	g_ServerBans.addEntry( pszIP0, pszIP1, pszIP2, pszIP3, pszPlayerName, pszComment, message );
+	Printf( "addban: %s", message.c_str() );
 }
 
 //*****************************************************************************
@@ -352,9 +205,8 @@ static void serverban_LoadBans( void )
 		fsFilePath.Insert(index, '\\');
 	}
 
-	IPFileParser parser( 65536 );
-	if ( !(parser.parseIPList( fsFilePath.GetChars(), g_ServerBans.getVector() )) )
-		Printf( "%s", parser.getErrorMessage() );
+	if ( !(g_ServerBans.clearAndLoadFromFile( fsFilePath.GetChars() )) )
+		Printf( "%s", g_ServerBans.getErrorMessage() );
 }
 
 //*****************************************************************************
@@ -580,7 +432,7 @@ CCMD( addban )
 		return;
 	}
 
-	if ( SERVERBAN_StringToBan( argv[1], szStringBan[0], szStringBan[1], szStringBan[2], szStringBan[3] ))
+	if ( NETWORK_StringToIP( argv[1], szStringBan[0], szStringBan[1], szStringBan[2], szStringBan[3] ))
 	{
 		if ( argv.argc( ) >= 3 )
 			SERVERBAN_AddBan( szStringBan[0], szStringBan[1], szStringBan[2], szStringBan[3], NULL, argv[2] );

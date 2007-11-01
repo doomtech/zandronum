@@ -186,11 +186,15 @@ private:
  */
 class IPList{
 	std::vector<IPADDRESSBAN_s> _ipVector;
+	std::string _filename;
+	std::string _error;
 public:
+	bool clearAndLoadFromFile( const char *Filename );
 	bool isIPInList( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3 ) const;
-	ULONG IPList::doesEntryExist( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3 ) const;
+	ULONG doesEntryExist( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3 ) const;
 	IPADDRESSBAN_s getEntry( const ULONG ulIdx ) const;
     std::string getEntryAsString( const ULONG ulIdx ) const;
+	void addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3, const char *pszPlayerName, const char *pszComment, std::string &Message );
 
 	unsigned int size() const { return _ipVector.size(); }
 
@@ -199,6 +203,8 @@ public:
 	void push_back ( IPADDRESSBAN_s &IP ) { _ipVector.push_back(IP); }
 
 	std::vector<IPADDRESSBAN_s>& getVector() { return _ipVector; }
+
+	const char* getErrorMessage() const { return _error.c_str(); }
 };
 
 #endif	// __NETWORKSHARED_H__
