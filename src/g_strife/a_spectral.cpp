@@ -6,6 +6,9 @@
 #include "s_sound.h"
 #include "m_random.h"
 #include "a_strifeglobal.h"
+#include "cl_demo.h"
+#include "network.h"
+#include "sv_commands.h"
 
 void A_201fc (AActor *);
 
@@ -313,6 +316,13 @@ void A_Tracer2 (AActor *self)
 	fixed_t dist;
 	fixed_t slope;
 
+	// [BC] Server takes care of movement.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	dest = self->tracer;
 
 	if (dest == NULL || dest->health <= 0 || self->Speed == 0)
@@ -358,4 +368,8 @@ void A_Tracer2 (AActor *self)
 	{
 		self->momz += FRACUNIT/8;
 	}
+
+	// [BC] Update the thing's position, angle and momentum.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_MoveThingExact( self, CM_X|CM_Y|CM_Z|CM_ANGLE|CM_MOMX|CM_MOMY|CM_MOMZ );
 }
