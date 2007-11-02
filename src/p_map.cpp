@@ -4334,9 +4334,16 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 		{
 			P_SpawnBlood (x, y, z, source->angle - ANG180, damage, RailHits[i].HitActor);
 		}
-		// Damage is server side.
-		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
-			P_DamageMobj (RailHits[i].HitActor, source, source, damage, NAME_Railgun, DMG_NO_ARMOR);
+		// [BC] Damage is server side.
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+			( CLIENTDEMO_IsPlaying( ) == false ))
+		{
+			// Support for instagib.
+			if ( instagib )
+				P_DamageMobj (RailHits[i].HitActor, source, source, 1000, NAME_Railgun, DMG_NO_ARMOR);
+			else
+				P_DamageMobj (RailHits[i].HitActor, source, source, damage, NAME_Railgun, DMG_NO_ARMOR);
+		}
 		P_TraceBleed (damage, x, y, z, RailHits[i].HitActor, angle, pitch);
 
 		if (( RailHits[i].HitActor->player ) && ( source->IsTeammate( RailHits[i].HitActor ) == false ))
@@ -4393,7 +4400,32 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 
 void P_RailAttackWithPossibleSpread (AActor *source, int damage, int offset, int color1, int color2, float maxdiff, bool silent, FName puff)
 {
-	P_RailAttack (source, damage, offset, color1, color2, maxdiff, silent, puff );
+	// [BC]
+	LONG	lOuterColor;
+	LONG	lInnerColor;
+
+	// [BC] If this is a player, use the player's custom colors.
+	if ( source->player )
+	{
+		if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) &&
+			( source->player->bOnTeam ))
+		{
+			lOuterColor = TEAM_GetRailgunColor( source->player->ulTeam );
+			lInnerColor = PLAYER_GetRailgunColor( source->player );
+		}
+		else
+		{
+			lOuterColor = PLAYER_GetRailgunColor( source->player );
+			lInnerColor = V_GetColorFromString( NULL, "ff ff ff" );
+		}
+	}
+	else
+	{
+		lOuterColor = color1;
+		lInnerColor = color2;
+	}
+
+	P_RailAttack (source, damage, offset, lOuterColor, lInnerColor, maxdiff, silent, puff );
 
 	// [BB] Apply spread.
 	if (NULL != source->player )
@@ -4405,11 +4437,11 @@ void P_RailAttackWithPossibleSpread (AActor *source, int damage, int offset, int
 			SavedActorAngle = source->angle;
 
 			source->angle += ( ANGLE_45 / 3 );
-			P_RailAttack (source, damage, offset, color1, color2, maxdiff, silent, puff );
+			P_RailAttack (source, damage, offset, lOuterColor, lInnerColor, maxdiff, silent, puff );
 			source->angle = SavedActorAngle;
 
 			source->angle -= ( ANGLE_45 / 3 );
-			P_RailAttack (source, damage, offset, color1, color2, maxdiff, silent, puff );
+			P_RailAttack (source, damage, offset, lOuterColor, lInnerColor, maxdiff, silent, puff );
 			source->angle = SavedActorAngle;
 		}
 	}

@@ -452,6 +452,7 @@ bool	PLAYER_IsTrueSpectator( player_s *pPlayer );
 void	PLAYER_StruckPlayer( player_s *pPlayer );
 bool	PLAYER_ShouldSpawnAsSpectator( player_s *pPlayer );
 bool	PLAYER_Taunt( player_s *pPlayer );
+LONG	PLAYER_GetRailgunColor( player_s *pPlayer );
 
 EXTERN_CVAR( Bool, iwanttousecrouchingeventhoughitsretardedandunnecessaryanditsimplementationishorribleimeanverticallyshrinkingskinscomeonthatsinsanebutwhatevergoaheadandhaveyourcrouching );
 

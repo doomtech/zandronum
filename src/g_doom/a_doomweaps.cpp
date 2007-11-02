@@ -1115,7 +1115,6 @@ void A_FireRailgun (AActor *actor)
 	player_t *player;
 	LONG		lInnerColor;
 	LONG		lOuterColor;
-	LONG		lColor;
 
 	if (NULL == (player = actor->player))
 	{
@@ -1151,64 +1150,15 @@ void A_FireRailgun (AActor *actor)
 			damage = 75;
 	}
 
-	// Determine the railgun trail's color.
-	switch ( player->userinfo.lRailgunTrailColor )
-	{
-	case RAILCOLOR_BLUE:
-	default:
-
-		lColor = V_GetColorFromString( NULL, "00 00 ff" );
-		break;
-	case RAILCOLOR_RED:
-
-		lColor = V_GetColorFromString( NULL, "ff 00 00" );
-		break;
-	case RAILCOLOR_YELLOW:
-
-		lColor = V_GetColorFromString( NULL, "ff ff 00" );
-		break;
-	case RAILCOLOR_BLACK:
-
-		lColor = V_GetColorFromString( NULL, "0f 0f 0f" );
-		break;
-	case RAILCOLOR_SILVER:
-
-		lColor = V_GetColorFromString( NULL, "9f 9f 9f" );
-		break;
-	case RAILCOLOR_GOLD:
-
-		lColor = V_GetColorFromString( NULL, "bf 8f 2f" );
-		break;
-	case RAILCOLOR_GREEN:
-
-		lColor = V_GetColorFromString( NULL, "00 ff 00" );
-		break;
-	case RAILCOLOR_WHITE:
-
-		lColor = V_GetColorFromString( NULL, "ff ff ff" );
-		break;
-	case RAILCOLOR_PURPLE:
-
-		lColor = V_GetColorFromString( NULL, "ff 00 ff" );
-		break;
-	case RAILCOLOR_ORANGE:
-
-		lColor = V_GetColorFromString( NULL, "ff 8f 00" );
-		break;
-	case RAILCOLOR_RAINBOW:
-
-		lColor = -2;
-		break;
-	}
-
-	if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) && ( player->bOnTeam ))
+	if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) &&
+		( player->bOnTeam ))
 	{
 		lOuterColor = TEAM_GetRailgunColor( player->ulTeam );
-		lInnerColor = lColor;
+		lInnerColor = PLAYER_GetRailgunColor( player );
 	}
 	else
 	{
-		lOuterColor = lColor;
+		lOuterColor = PLAYER_GetRailgunColor( player );
 		lInnerColor = V_GetColorFromString( NULL, "ff ff ff" );
 	}
 

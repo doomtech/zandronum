@@ -2316,6 +2316,50 @@ bool PLAYER_Taunt( player_s *pPlayer )
 	return ( true );
 }
 
+//*****************************************************************************
+//
+LONG PLAYER_GetRailgunColor( player_s *pPlayer )
+{
+	// Determine the railgun trail's color.
+	switch ( pPlayer->userinfo.lRailgunTrailColor )
+	{
+	case RAILCOLOR_BLUE:
+	default:
+
+		return ( V_GetColorFromString( NULL, "00 00 ff" ));
+	case RAILCOLOR_RED:
+
+		return ( V_GetColorFromString( NULL, "ff 00 00" ));
+	case RAILCOLOR_YELLOW:
+
+		return ( V_GetColorFromString( NULL, "ff ff 00" ));
+	case RAILCOLOR_BLACK:
+
+		return ( V_GetColorFromString( NULL, "0f 0f 0f" ));
+	case RAILCOLOR_SILVER:
+
+		return ( V_GetColorFromString( NULL, "9f 9f 9f" ));
+	case RAILCOLOR_GOLD:
+
+		return ( V_GetColorFromString( NULL, "bf 8f 2f" ));
+	case RAILCOLOR_GREEN:
+
+		return ( V_GetColorFromString( NULL, "00 ff 00" ));
+	case RAILCOLOR_WHITE:
+
+		return ( V_GetColorFromString( NULL, "ff ff ff" ));
+	case RAILCOLOR_PURPLE:
+
+		return ( V_GetColorFromString( NULL, "ff 00 ff" ));
+	case RAILCOLOR_ORANGE:
+
+		return ( V_GetColorFromString( NULL, "ff 8f 00" ));
+	case RAILCOLOR_RAINBOW:
+
+		return ( -2 );
+	}
+}
+
 CCMD (kill)
 {
 	// Only allow it in a level.

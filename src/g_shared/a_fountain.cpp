@@ -91,5 +91,5 @@ void AParticleFountain::Deactivate (AActor *activator)
 
 bool AParticleFountain::IsActive( void )
 {
-	return ( effects & ( health << FX_FOUNTAINSHIFT ));
+	return !!( effects & ( health << FX_FOUNTAINSHIFT ));
 }
