@@ -914,6 +914,14 @@ AInventory *AActor::DropInventory (AInventory *item)
 	drop->momy = momy + 5 * finesine[an];
 	drop->momz = momz + FRACUNIT;
 	drop->flags &= ~MF_NOGRAVITY;	// Don't float
+
+	// [BC] Create the drop for clients.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		SERVERCOMMANDS_SpawnMissile( drop );
+		SERVERCOMMANDS_SetThingFlags( drop, FLAGSET_FLAGS );
+	}
+
 	return drop;
 }
 

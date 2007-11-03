@@ -11,6 +11,8 @@
 #include "d_event.h"
 #include "a_keys.h"
 #include "c_console.h"
+// [BC] New #includes.
+#include "cl_demo.h"
 
 // Degnin Ore ---------------------------------------------------------------
 
@@ -79,6 +81,13 @@ void A_RemoveForceField (AActor *self)
 
 bool ADegninOre::Use (bool pickup)
 {
+	// [BC] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return ( pickup == false );
+	}
+
 	if (pickup)
 	{
 		return false;

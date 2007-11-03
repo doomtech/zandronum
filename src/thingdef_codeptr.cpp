@@ -2184,6 +2184,13 @@ void A_DropInventory(AActor * self)
 	int index=CheckIndex(1, &CallingState);
 	if (index<0) return;
 
+	// [BC] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	AInventory * inv = self->FindInventory((ENamedName)StateParameters[index]);
 	if (inv)
 	{

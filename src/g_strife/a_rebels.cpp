@@ -262,6 +262,13 @@ bool ATeleporterBeacon::Use (bool pickup)
 {
 	AInventory *drop;
 
+	// [BC] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return ( true );
+	}
+
 	// Increase the amount by one so that when DropInventory decrements it,
 	// the actor will have the same number of beacons that he started with.
 	// When we return to UseInventory, it will take care of decrementing
