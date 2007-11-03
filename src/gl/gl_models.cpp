@@ -310,6 +310,10 @@ void gl_InitModels()
 					{
 						smf.flags |= MDL_IGNORETRANSLATION;
 					}
+					else if (SC_Compare("interpolatedoubledframes"))
+					{
+						smf.flags |= MDL_INTERPOLATEDOUBLEDFRAMES;
+					}
 					else if (SC_Compare("skin"))
 					{
 						SC_MustGetNumber();
@@ -520,9 +524,26 @@ void gl_RenderModel(GLSprite * spr, int cm)
 			if ( ConsoleState == c_up && menuactive != MENU_On && !(level.flags & LEVEL_FROZEN) )
 			{
 				float time = I_GetTimeFloat();
-				ticFraction =	(time - static_cast<int>(time));
+				ticFraction = (time - static_cast<int>(time));
 			}
 			inter = static_cast<double>(curState->Tics - spr->actor->tics - ticFraction)/static_cast<double>(curState->Tics);
+
+			// [BB] Workaround for actors that use the same frame twice in a row.
+			// Most of the standard Doom monsters do this in their see state.
+			if ( (smf->flags & MDL_INTERPOLATEDOUBLEDFRAMES) )
+			{
+				FState *prevState = curState - 1;
+				if ( (curState->sprite.index == prevState->sprite.index) && ( curState->Frame == prevState->Frame) )
+				{
+					inter /= 2.;
+					inter += 0.5;
+				}
+				if ( (curState->sprite.index == nextState->sprite.index) && ( curState->Frame == nextState->Frame) )
+				{
+					inter /= 2.;
+					nextState = nextState->GetNextState( );
+				}
+			}
 			if ( inter != 0.0 )
 				smfNext = gl_FindModelFrame(RUNTIME_TYPE(spr->actor), nextState->sprite.index, nextState->Frame);
 		}

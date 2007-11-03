@@ -54,6 +54,7 @@ v0.97d
 +	- Added z-offset support to MODELDEF. [Torr Samaho]
 +	- Added Doomsday like rotation of the weapon pickup models, controlled by the the new CVAR gl_rotate_weapon_models. [Torr Samaho]
 +	- Added flag IGNORETRANSLATION to MODELDEF. [Torr Samaho]
++	- Added workaround to smooth the model interpolation of actors that use the same frame twice in a row. Most of the standard Doom monsters do this in their see state. Can be activated by the new model flag INTERPOLATEDOUBLEDFRAMES. [Torr Samaho]
 +	- Added workaround for the missing pitch information of rockets to render the models of rockets fired with a vertical angle different from zero properly. [Torr Samaho]
 +	- Added CCMD getIP for server admins, which can be used to the IP address of a player. [Rivecoder]
 +	- Added CCMD getIP_idx for server admins, uses indexes from playerinfo. [Rivecoder]
