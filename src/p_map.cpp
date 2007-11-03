@@ -2353,6 +2353,99 @@ pushline:
 }
 
 //*****************************************************************************
+// [BB] Original Doom source version of XY movement (With slight modifications to make it compile).
+bool P_OldDoomTryMove ( AActor*	thing, fixed_t	x, fixed_t	y )
+{
+	fixed_t	oldx;
+	fixed_t	oldy;
+	int		side;
+	int		oldside;
+	line_t*	ld;
+
+	floatok = false;
+	if (!P_CheckPosition (thing, x, y))
+		return false;		// solid wall or thing
+
+	if ( !(thing->flags & MF_NOCLIP) )
+	{
+		if (tmceilingz - tmfloorz < thing->height)
+			return false;	// doesn't fit
+
+		floatok = true;
+
+		if ( !(thing->flags&MF_TELEPORT) 
+			&&tmceilingz - thing->z < thing->height)
+			return false;	// mobj must lower itself to fit
+
+		if ( !(thing->flags&MF_TELEPORT)
+			&& tmfloorz - thing->z > 24*FRACUNIT )
+			return false;	// too big a step up
+
+		if ( !(thing->flags&(MF_DROPOFF|MF_FLOAT))
+			&& tmfloorz - tmdropoffz > 24*FRACUNIT )
+			return false;	// don't stand over a dropoff
+	}
+
+	// the move is ok,
+	// so link the thing into its new position
+	thing->UnlinkFromWorld( );
+
+	oldx = thing->x;
+	oldy = thing->y;
+	thing->floorz = tmfloorz;
+	thing->ceilingz = tmceilingz;	
+	thing->x = x;
+	thing->y = y;
+
+	thing->LinkToWorld( );
+
+	// if any special lines were hit, do the effect
+	if (! (thing->flags&(MF_TELEPORT|MF_NOCLIP)) )
+	{
+		while (spechit.Pop (ld))
+		{
+			// see if the line was crossed
+			side = P_PointOnLineSide (thing->x, thing->y, ld);
+			oldside = P_PointOnLineSide (oldx, oldy, ld);
+			if (side != oldside && ld->special)
+			{
+				// Don't activate specials if the thing is a spectating player.
+				if ( thing->player && thing->player->bSpectating )
+				{
+					// Although teleport specials are okay.
+					if (ld->special == Teleport ||
+						ld->special == Teleport_NoFog ||
+						ld->special == Teleport_Line)
+					{ 
+						P_ActivateLine (ld, thing, oldside, SPAC_CROSS); 
+					}
+				}
+				else if (thing->player)
+				{
+					P_ActivateLine (ld, thing, oldside, SPAC_CROSS);
+				}
+				else if (thing->flags2 & MF2_MCROSS)
+				{
+					P_ActivateLine (ld, thing, oldside, SPAC_MCROSS);
+				}
+				else if (thing->flags2 & MF2_PCROSS)
+				{
+					P_ActivateLine (ld, thing, oldside, SPAC_PCROSS);
+				}
+				else if ((ld->special == Teleport ||
+					ld->special == Teleport_NoFog ||
+					ld->special == Teleport_Line))
+				{	// [RH] Just a little hack for BOOM compatibility
+					P_ActivateLine (ld, thing, oldside, SPAC_MCROSS);
+				}
+			}
+		}
+	}
+
+	return true;
+} 
+
+//*****************************************************************************
 //
 // [BC] ugh old code for people who just have to have doom2.exe style movement.
 bool P_OldTryMove (AActor *thing, fixed_t x, fixed_t y,
@@ -3006,6 +3099,103 @@ void P_SlideMove (AActor *mo, fixed_t tryx, fixed_t tryy, int numsteps)
 		goto retry;
 	}
 }
+
+//*****************************************************************************
+// [BB] Original Doom source version of P_SlideMove (With slight modifications to make it compile).
+void P_OldDoomSlideMove (AActor* mo)
+{
+	fixed_t		leadx;
+	fixed_t		leady;
+	fixed_t		trailx;
+	fixed_t		traily;
+	fixed_t		newx;
+	fixed_t		newy;
+	int			hitcount;
+
+	slidemo = mo;
+	hitcount = 0;
+
+retry:
+	if (++hitcount == 3)
+		goto stairstep;		// don't loop forever
+
+
+	// trace along the three leading corners
+	if (mo->momx > 0)
+	{
+		leadx = mo->x + mo->radius;
+		trailx = mo->x - mo->radius;
+	}
+	else
+	{
+		leadx = mo->x - mo->radius;
+		trailx = mo->x + mo->radius;
+	}
+
+	if (mo->momy > 0)
+	{
+		leady = mo->y + mo->radius;
+		traily = mo->y - mo->radius;
+	}
+	else
+	{
+		leady = mo->y - mo->radius;
+		traily = mo->y + mo->radius;
+	}
+
+	bestslidefrac = FRACUNIT+1;
+
+	P_PathTraverse ( leadx, leady, leadx+mo->momx, leady+mo->momy,
+		PT_ADDLINES, PTR_SlideTraverse );
+	P_PathTraverse ( trailx, leady, trailx+mo->momx, leady+mo->momy,
+		PT_ADDLINES, PTR_SlideTraverse );
+	P_PathTraverse ( leadx, traily, leadx+mo->momx, traily+mo->momy,
+		PT_ADDLINES, PTR_SlideTraverse );
+
+	// move up to the wall
+	if (bestslidefrac == FRACUNIT+1)
+	{
+		// the move most have hit the middle, so stairstep
+stairstep:
+		if (!P_OldDoomTryMove (mo, mo->x, mo->y + mo->momy))
+			P_OldDoomTryMove (mo, mo->x + mo->momx, mo->y);
+		return;
+	}
+
+	// fudge a bit to make sure it doesn't hit
+	bestslidefrac -= 0x800;	
+	if (bestslidefrac > 0)
+	{
+		newx = FixedMul (mo->momx, bestslidefrac);
+		newy = FixedMul (mo->momy, bestslidefrac);
+
+		if (!P_OldDoomTryMove (mo, mo->x+newx, mo->y+newy))
+			goto stairstep;
+	}
+
+	// Now continue along the wall.
+	// First calculate remainder.
+	bestslidefrac = FRACUNIT-(bestslidefrac+0x800);
+
+	if (bestslidefrac > FRACUNIT)
+		bestslidefrac = FRACUNIT;
+
+	if (bestslidefrac <= 0)
+		return;
+
+	tmxmove = FixedMul (mo->momx, bestslidefrac);
+	tmymove = FixedMul (mo->momy, bestslidefrac);
+
+	P_HitSlideLine (bestslideline);	// clip the moves
+
+	mo->momx = tmxmove;
+	mo->momy = tmymove;
+
+	if (!P_OldDoomTryMove (mo, mo->x+tmxmove, mo->y+tmymove))
+	{
+		goto retry;
+	}
+} 
 
 //*****************************************************************************
 //

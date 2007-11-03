@@ -196,7 +196,7 @@ public:
     std::string getEntryAsString( const ULONG ulIdx ) const;
 	void addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3, const char *pszPlayerName, const char *pszComment, std::string &Message );
 
-	unsigned int size() const { return (unsigned int)_ipVector.size(); }
+	unsigned int size() const { return static_cast<unsigned int>(_ipVector.size()); }
 
 	void clear() { _ipVector.clear(); }
 
