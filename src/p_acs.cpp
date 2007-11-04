@@ -772,6 +772,8 @@ FBehavior::FBehavior (int lumpnum, FileReader * fr, int len)
 
 	if (object[0] != 'A' || object[1] != 'C' || object[2] != 'S')
 	{
+		// [BC] Fixes a memory leak.
+		delete [] ( object );
 		return;
 	}
 
