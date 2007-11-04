@@ -244,7 +244,8 @@ typedef enum
 	// useful if the skin texture is not using the game palette.
 	MDL_IGNORETRANSLATION			= 1,
 	MDL_PITCHFROMMOMENTUM			= 2,
-	MDL_INTERPOLATEDOUBLEDFRAMES	= 4,
+	MDL_ROTATING					= 4,
+	MDL_INTERPOLATEDOUBLEDFRAMES	= 8,
 };
 
 struct FSpriteModelFrame

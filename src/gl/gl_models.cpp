@@ -57,7 +57,6 @@ float I_GetTimeFloat()
 }
 #endif
 
-CVAR(Bool, gl_rotate_weapon_models, true, CVAR_ARCHIVE)
 CVAR(Bool, gl_interpolate_model_frames, true, CVAR_ARCHIVE)
 
 class DeletingModelArray : public TArray<FModel *>
@@ -314,6 +313,10 @@ void gl_InitModels()
 					{
 						smf.flags |= MDL_PITCHFROMMOMENTUM;
 					}
+					else if (SC_Compare("rotating"))
+					{
+						smf.flags |= MDL_ROTATING;
+					}
 					else if (SC_Compare("interpolatedoubledframes"))
 					{
 						smf.flags |= MDL_INTERPOLATEDOUBLEDFRAMES;
@@ -483,7 +486,7 @@ void gl_RenderModel(GLSprite * spr, int cm)
 	// [BB] Added Doomsday like rotation of the weapon pickup models.
 	// The rotation angle is based on the elapsed time.
 	float offsetAngle = 0.;
-	if( gl_rotate_weapon_models && spr->actor->IsKindOf( RUNTIME_CLASS( AWeapon ) ) )
+	if( smf->flags & MDL_ROTATING )
 	{
 		const float time = I_GetTimeFloat()/200.;
 		offsetAngle = ( (time - static_cast<int>(time)) *360. );
