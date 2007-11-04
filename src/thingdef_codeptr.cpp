@@ -1127,6 +1127,10 @@ void A_CustomFireBullets( AActor *self,
 	
 	if (Range == 0) Range = PLAYERMISSILERANGE;
 
+	// [BC] If we're the server, tell clients to update this player's state.
+	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( player ))
+		SERVERCOMMANDS_SetPlayerState( ULONG( player - players ), STATE_PLAYER_ATTACK2, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
+
 	static_cast<APlayerPawn *>(self)->PlayAttacking2 ();
 
 	// [BC] If we're the server, tell clients to update this player's state.
