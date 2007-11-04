@@ -152,10 +152,10 @@ static	void	client_SetPlayerCamera( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerPoisonCount( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerAmmoCapacity( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerCheats( BYTESTREAM_s *pByteStream );
+static	void	client_SetPlayerPendingWeapon( BYTESTREAM_s *pByteStream );
 static	void	client_UpdatePlayerPing( BYTESTREAM_s *pByteStream );
 static	void	client_UpdatePlayerExtraData( BYTESTREAM_s *pByteStream );
 static	void	client_UpdatePlayerTime( BYTESTREAM_s *pByteStream );
-static	void	client_UpdatePlayerPendingWeapon( BYTESTREAM_s *pByteStream );
 static	void	client_MoveLocalPlayer( BYTESTREAM_s *pByteStream );
 static	void	client_DisconnectPlayer( BYTESTREAM_s *pByteStream );
 static	void	client_SetConsolePlayer( BYTESTREAM_s *pByteStream );
@@ -499,10 +499,10 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETPLAYERPOISONCOUNT",
 	"SVC_SETPLAYERAMMOCAPACITY",
 	"SVC_SETPLAYERCHEATS",
+	"SVC_SETPLAYERPENDINGWEAPON",
 	"SVC_UPDATEPLAYERPING",
 	"SVC_UPDATEPLAYEREXTRADATA",
 	"SVC_UPDATEPLAYERTIME",
-	"SVC_UPDATEPLAYERPENDINGWEAPON",
 	"SVC_MOVELOCALPLAYER",
 	"SVC_DISCONNECTPLAYER",
 	"SVC_SETCONSOLEPLAYER",
@@ -1506,6 +1506,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		client_SetPlayerCheats( pByteStream );
 		break;
+	case SVC_SETPLAYERPENDINGWEAPON:
+
+		client_SetPlayerPendingWeapon( pByteStream );
+		break;
 	case SVC_UPDATEPLAYERPING:
 
 		client_UpdatePlayerPing( pByteStream );
@@ -1517,10 +1521,6 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_UPDATEPLAYERTIME:
 
 		client_UpdatePlayerTime( pByteStream );
-		break;
-	case SVC_UPDATEPLAYERPENDINGWEAPON:
-
-		client_UpdatePlayerPendingWeapon( pByteStream );
 		break;
 	case SVC_MOVELOCALPLAYER:
 
@@ -4374,6 +4374,57 @@ static void client_SetPlayerCheats( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
+static void client_SetPlayerPendingWeapon( BYTESTREAM_s *pByteStream )
+{
+	ULONG			ulPlayer;
+	const char		*pszPendingWeapon;
+	const PClass	*pType = NULL;
+	AWeapon			*pWeapon = NULL;
+
+	// Read in the player whose info is about to be updated.
+	ulPlayer = NETWORK_ReadByte( pByteStream );
+
+	// Read in the name of the weapon.
+	pszPendingWeapon = NETWORK_ReadString( pByteStream );
+
+	// Some optimization. For standard Doom weapons, to reduce the size of the string
+	// that's sent out, just send some key character that identifies the weapon, instead
+	// of the full name.
+	NETWORK_ConvertWeaponKeyLetterToFullString( pszPendingWeapon );
+
+	// If the player doesn't exist, get out!
+	if (( players[ulPlayer].mo == NULL ) || ( playeringame[ulPlayer] == false ))
+		return;
+
+	if (( pszPendingWeapon ) &&
+		( stricmp( pszPendingWeapon, "NULL" ) != 0 ) &&
+		( pszPendingWeapon[0] != '\0' ))
+	{
+		pType = PClass::FindClass( pszPendingWeapon );
+		if (( pType != NULL ) &&
+			( pType->IsDescendantOf( RUNTIME_CLASS( AWeapon ))))
+		{
+			// If we dont have this weapon already, we do now!
+			pWeapon = static_cast<AWeapon *>( players[ulPlayer].mo->FindInventory( pType ));
+			if ( pWeapon == NULL )
+				pWeapon = static_cast<AWeapon *>( players[ulPlayer].mo->GiveInventoryType( pType ));
+
+			// If he still doesn't have the object after trying to give it to him... then YIKES!
+			if ( pWeapon == NULL )
+			{
+#ifdef CLIENT_WARNING_MESSAGES
+				Printf( "client_SetPlayerPendingWeapon: Failed to give inventory type, %s!\n", pszName );
+#endif
+				return;
+			}
+
+			players[ulPlayer].PendingWeapon = pWeapon;
+		}
+	}
+}
+
+//*****************************************************************************
+//
 static void client_UpdatePlayerPing( BYTESTREAM_s *pByteStream )
 {
 	ULONG	ulPlayer;
@@ -4462,53 +4513,6 @@ static void client_UpdatePlayerTime( BYTESTREAM_s *pByteStream )
 		return;
 
 	players[ulPlayer].ulTime = ulTime * ( TICRATE * 60 );
-}
-
-//*****************************************************************************
-//
-static void client_UpdatePlayerPendingWeapon( BYTESTREAM_s *pByteStream )
-{
-	ULONG			ulPlayer;
-	const char		*pszPendingWeapon;
-	const PClass	*pType = NULL;
-	AWeapon			*pWeapon = NULL;
-
-	// Read in the player whose info is about to be updated.
-	ulPlayer = NETWORK_ReadByte( pByteStream );
-
-	// Read in the name of the weapon.
-	pszPendingWeapon = NETWORK_ReadString( pByteStream );
-
-	// Some optimization. For standard Doom weapons, to reduce the size of the string
-	// that's sent out, just send some key character that identifies the weapon, instead
-	// of the full name.
-	NETWORK_ConvertWeaponKeyLetterToFullString( pszPendingWeapon );
-
-	// If the player doesn't exist, get out!
-	if (( players[ulPlayer].mo == NULL ) || ( playeringame[ulPlayer] == false ))
-		return;
-
-	if ( strcmp (pszPendingWeapon, "NULL") && pszPendingWeapon[0] != '\0' )
-	{
-		pType = PClass::FindClass( pszPendingWeapon );
-		if ( ( pType != NULL ) && ( pType->IsDescendantOf( RUNTIME_CLASS( AWeapon ))) )
-		{
-			// If we dont have this weapon already, we do now!
-			pWeapon = static_cast<AWeapon *>( players[ulPlayer].mo->FindInventory( pType ));
-			if ( pWeapon == NULL )
-				pWeapon = static_cast<AWeapon *>( players[ulPlayer].mo->GiveInventoryType( pType ));
-
-			// If he still doesn't have the object after trying to give it to him... then YIKES!
-			if ( pWeapon == NULL )
-			{
-#ifdef CLIENT_WARNING_MESSAGES
-				Printf( "client_UpdatePlayerPendingWeapon: Failed to give inventory type, %s!\n", pszName );
-#endif
-				return;
-			}
-			players[ulPlayer].PendingWeapon = pWeapon;
-		}
-	}
 }
 
 //*****************************************************************************
@@ -7220,9 +7224,14 @@ static void client_WeaponSound( BYTESTREAM_s *pByteStream )
 	// Read in the sound that's being played.
 	pszSound = NETWORK_ReadString( pByteStream );
 
-	// Check to make sure everything is valid. If not, break out.
-	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
+	// Check to make sure everything is valid. If not, break out. Also, don't
+	// play the sound if the console player is spying through this player's eyes.
+	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) ||
+		( players[ulPlayer].mo == NULL ) ||
+		( players[ulPlayer].mo->CheckLocalView( consoleplayer )))
+	{
 		return;
+	}
 
 	// Finally, play the sound.
 	S_Sound( players[ulPlayer].mo, CHAN_WEAPON, pszSound, 1, ATTN_NORM );

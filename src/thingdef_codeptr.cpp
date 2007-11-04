@@ -1129,10 +1129,6 @@ void A_CustomFireBullets( AActor *self,
 
 	static_cast<APlayerPawn *>(self)->PlayAttacking2 ();
 
-	// [BC] If we're the server, tell clients to update this player's state.
-	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( player ))
-		SERVERCOMMANDS_SetPlayerState( ULONG( player - players ), STATE_PLAYER_ATTACK2, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
-
 	P_BulletSlope(self);
 	bangle = self->angle;
 	bslope = bulletpitch;
@@ -1142,7 +1138,12 @@ void A_CustomFireBullets( AActor *self,
 
 	// [BC] If we're the server, tell clients that a weapon is being fired.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName( weapon->AttackSound ), 1, ATTN_NORM, player ? ULONG( player - players ) : MAXPLAYERS, SVCF_SKIPTHISCLIENT );
+	{
+		if ( player )
+			SERVERCOMMANDS_WeaponSound( ULONG( player - players ), S_GetName( weapon->AttackSound ), ULONG( player - players ), SVCF_SKIPTHISCLIENT );
+		else
+			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName( weapon->AttackSound ), 1, ATTN_NORM, player ? ULONG( player - players ) : MAXPLAYERS, SVCF_SKIPTHISCLIENT );
+	}
 
 	S_SoundID (self, CHAN_WEAPON, weapon->AttackSound, 1, ATTN_NORM);
 

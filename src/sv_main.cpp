@@ -2001,6 +2001,11 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 		// Also if this player is currently dead, let the incoming player know that.
 		if ( pPlayer->mo->health <= 0 )
 			SERVERCOMMANDS_ThingIsCorpse( pPlayer->mo, ulClient, SVCF_ONLYTHISCLIENT );
+
+		// If the client receiving the update is a spectator, send the player's
+		// ready weapon.
+		if ( PLAYER_IsTrueSpectator( &players[ulClient] ))
+			SERVERCOMMANDS_WeaponChange( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
 	}
 
 	// Server may have already picked a team for the incoming player. If so, tell him!
@@ -3556,7 +3561,12 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 					{
 						pInventory = pPlayer->mo->FindInventory( pType );
 						if ( pInventory )
+						{
 							pPlayer->PendingWeapon = static_cast<AWeapon *>( pInventory );
+
+							// Update other spectators with this info.
+							SERVERCOMMANDS_SetPlayerPendingWeapon( g_lCurrentClient, g_lCurrentClient, SVCF_SKIPTHISCLIENT );
+						}
 //						else if ( g_ulWeaponCheckGracePeriodTicks == 0 )
 //						{
 //							SERVER_KickPlayer( g_lCurrentClient, "Using unowned weapon." );
@@ -3755,7 +3765,8 @@ static bool server_WeaponSelect( BYTESTREAM_s *pByteStream )
 	players[g_lCurrentClient].PendingWeapon = static_cast<AWeapon *>( pInventory );
 
 	// [BB] Tell the other clients about the change. This should fix the spectator bug and the railgun pistol sound bug.
-	SERVERCOMMANDS_UpdatePlayerPendingWeapon( g_lCurrentClient );
+	SERVERCOMMANDS_SetPlayerPendingWeapon( g_lCurrentClient, g_lCurrentClient, SVCF_SKIPTHISCLIENT );
+
 	return ( false );
 }
 
@@ -3785,6 +3796,8 @@ static bool server_Taunt( BYTESTREAM_s *pByteStream )
 //
 static bool server_Spectate( BYTESTREAM_s *pByteStream )
 {
+	ULONG	ulIdx;
+
 	// Already a spectator!
 	if ( PLAYER_IsTrueSpectator( &players[g_lCurrentClient] ))
 		return ( false );
@@ -3794,6 +3807,18 @@ static bool server_Spectate( BYTESTREAM_s *pByteStream )
 
 	// Tell the other players to mark this player as a spectator.
 	SERVERCOMMANDS_PlayerIsSpectator( g_lCurrentClient );
+
+	// Tell this player everyone's weapon.
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if (( playeringame[ulIdx] == false ) ||
+			( players[ulIdx].ReadyWeapon == NULL ))
+		{
+			continue;
+		}
+
+		SERVERCOMMANDS_WeaponChange( ulIdx, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+	}
 
 	return ( false );
 }

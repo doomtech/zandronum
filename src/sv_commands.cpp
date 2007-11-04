@@ -790,6 +790,51 @@ void SERVERCOMMANDS_SetPlayerCheats( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG 
 
 //*****************************************************************************
 //
+void SERVERCOMMANDS_SetPlayerPendingWeapon( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	ULONG		ulIdx;
+	const char	*pszPendingWeaponString = "NULL";
+
+	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+		return;
+
+	if (( players[ulPlayer].PendingWeapon != WP_NOCHANGE ) &&
+		( players[ulPlayer].PendingWeapon != NULL ))
+	{
+		pszPendingWeaponString = players[ulPlayer].PendingWeapon->GetClass( )->TypeName.GetChars( );
+	}
+	else
+		return;
+
+	// Some optimization. For standard Doom weapons, to reduce the size of the string
+	// that's sent out, just send some key character that identifies the weapon, instead
+	// of the full name.
+	NETWORK_ConvertWeaponNameToKeyLetter( pszPendingWeaponString );
+
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_IsValidClient( ulIdx ) == false )
+			continue;
+
+		// Only send this info to spectators.
+		if ( PLAYER_IsTrueSpectator( &players[ulIdx] ) == false )
+			continue;
+
+		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
+			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
+		{
+			continue;
+		}
+
+		SERVER_CheckClientBuffer( ulIdx, 2 + (ULONG)strlen( pszPendingWeaponString ), true );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERPENDINGWEAPON );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszPendingWeaponString );
+	}
+}
+
+//*****************************************************************************
+//
 void SERVERCOMMANDS_UpdatePlayerPing( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
@@ -860,42 +905,6 @@ void SERVERCOMMANDS_UpdatePlayerTime( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, SVC_UPDATEPLAYERTIME );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, ulPlayer );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, ( players[ulPlayer].ulTime / ( TICRATE * 60 )));
-	}
-}
-
-//*****************************************************************************
-//
-void SERVERCOMMANDS_UpdatePlayerPendingWeapon( ULONG ulPlayer )
-{
-	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
-		return;
-
-	const char* pszPendingWeaponString = "NULL";
-	if ( players[ulPlayer].PendingWeapon != WP_NOCHANGE && players[ulPlayer].PendingWeapon != NULL )
-		pszPendingWeaponString = players[ulPlayer].PendingWeapon->GetClass( )->TypeName.GetChars( );
-	else
-		return;
-	// Some optimization. For standard Doom weapons, to reduce the size of the string
-	// that's sent out, just send some key character that identifies the weapon, instead
-	// of the full name.
-	NETWORK_ConvertWeaponNameToKeyLetter( pszPendingWeaponString );
-
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		if ( ulPlayer == ulIdx )
-		{
-			continue;
-		}
-
-		SERVER_CheckClientBuffer( ulIdx, 2 + (ULONG)strlen( pszPendingWeaponString ), false );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, SVC_UPDATEPLAYERPENDINGWEAPON );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, pszPendingWeaponString );
 	}
 }
 
@@ -3265,7 +3274,7 @@ void SERVERCOMMANDS_MissileExplode( AActor *pMissile, line_t *pLine, ULONG ulPla
 //*****************************************************************************
 //*****************************************************************************
 //
-void SERVERCOMMANDS_WeaponSound( ULONG ulPlayer, char *pszSound, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_WeaponSound( ULONG ulPlayer, const char *pszSound, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 
@@ -3320,7 +3329,7 @@ void SERVERCOMMANDS_WeaponChange( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulF
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 2 + (ULONG)strlen( pszWeaponString ), false );
+		SERVER_CheckClientBuffer( ulIdx, 2 + (ULONG)strlen( pszWeaponString ), true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_WEAPONCHANGE );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
 		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszWeaponString );
