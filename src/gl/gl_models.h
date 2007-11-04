@@ -243,7 +243,8 @@ typedef enum
 	// [BB] Color translations for the model skin are ignored. This is
 	// useful if the skin texture is not using the game palette.
 	MDL_IGNORETRANSLATION			= 1,
-	MDL_INTERPOLATEDOUBLEDFRAMES	= 2,
+	MDL_PITCHFROMMOMENTUM			= 2,
+	MDL_INTERPOLATEDOUBLEDFRAMES	= 4,
 };
 
 struct FSpriteModelFrame

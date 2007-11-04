@@ -310,6 +310,10 @@ void gl_InitModels()
 					{
 						smf.flags |= MDL_IGNORETRANSLATION;
 					}
+					else if (SC_Compare("pitchfrommomentum"))
+					{
+						smf.flags |= MDL_PITCHFROMMOMENTUM;
+					}
 					else if (SC_Compare("interpolatedoubledframes"))
 					{
 						smf.flags |= MDL_INTERPOLATEDOUBLEDFRAMES;
@@ -487,8 +491,8 @@ void gl_RenderModel(GLSprite * spr, int cm)
 
 	gl.Rotatef(-ANGLE_TO_FLOAT(spr->actor->angle)+offsetAngle, 0, 1, 0);
 
-	// [BB] Workaround for the missing pitch information of rocktes.
-	if( spr->actor->GetClass( ) == PClass::FindClass( "Rocket" ) )
+	// [BB] Workaround for the missing pitch information.
+	if ( (smf->flags & MDL_PITCHFROMMOMENTUM) )
 	{
 		const double x = static_cast<double>(spr->actor->momx);
 		const double y = static_cast<double>(spr->actor->momy);
