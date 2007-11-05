@@ -212,6 +212,10 @@ FFont * V_GetFont(const char *name)
 
 FArchive &SerializeFFontPtr (FArchive &arc, FFont* &font)
 {
+	// [BC] The server doesn't have fonts.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		return ( arc );
+
 	if (arc.IsStoring ())
 	{
 		arc << font->Name;

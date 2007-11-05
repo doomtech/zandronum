@@ -1708,8 +1708,11 @@ void DLevelScript::Serialize (FArchive &arc)
 		pc = activeBehavior->Ofs2PC (i);
 	}
 
-	arc << activefont
-		<< hudwidth << hudheight;
+	// [BC] The server doesn't have an active font.
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		arc << activefont;
+
+	arc << hudwidth << hudheight;
 }
 
 DLevelScript::DLevelScript ()
