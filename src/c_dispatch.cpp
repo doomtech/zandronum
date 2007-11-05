@@ -1488,7 +1488,7 @@ CCMD (pullin)
 						FixPathSeperator (path);
 					}
 				}
-				D_AddFile (path, false);	// [BC]
+				D_AddFile (path, true);	// [BC]
 				if (path != argv[i])
 				{
 					delete[] path;
