@@ -6195,6 +6195,7 @@ static void client_SpawnPuff( BYTESTREAM_s *pByteStream )
 	char			*pszName;
 	ULONG			ulState;
 	bool			bReceiveTranslation;
+	AActor			*pActor;
 	FState			*pState;
 
 	// Read in the XYZ location of the item.
@@ -6212,7 +6213,9 @@ static void client_SpawnPuff( BYTESTREAM_s *pByteStream )
 	bReceiveTranslation = !!NETWORK_ReadByte( pByteStream );
 
 	// Finally, spawn the thing.
-	AActor *pActor = CLIENT_SpawnThing( pszName, X, Y, Z, -1 );
+	pActor = CLIENT_SpawnThing( pszName, X, Y, Z, -1 );
+	if ( pActor == NULL )
+		return;
 
 	// [BB] If we are supposed to set the translation, read in the translation
 	// and set it, if we sucessfully spawned the actor.

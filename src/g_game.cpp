@@ -493,7 +493,7 @@ CCMD (invuse)
 	// [BB] If we are a client, we have to bypass the way ZDoom handles the item usage.
 	if( NETWORK_GetState( ) == NETSTATE_CLIENT )
 	{
-		if ( players[consoleplayer].inventorytics )
+		if ( players[consoleplayer].inventorytics || gameinfo.gametype == GAME_Strife )
 		{
 			AInventory *item = players[consoleplayer].mo->InvSel;
 			CLIENTCOMMANDS_RequestInventoryUse( item );
@@ -517,7 +517,7 @@ CCMD (use)
 	{
 		if (argv.argc() > 1)
 		{
-			AInventory *item = players[consoleplayer].mo->FindInventory (PClass::FindClass (argv[1]));
+			AInventory *item = who->FindInventory (PClass::FindClass (argv[1]));
 			CLIENTCOMMANDS_RequestInventoryUse( item );
 		}
 	}
