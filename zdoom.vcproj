@@ -55,7 +55,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="src\win32,src\sound,src,zlib,src\g_shared,src\g_doom,src\g_raven,src\g_heretic,src\g_hexen,src\g_strife;flac;jpeg-6b;src\MD5;src\OpenGL"
+				AdditionalIncludeDirectories="src\win32,src\sound,src,zlib,src\g_shared,src\g_doom,src\g_raven,src\g_heretic,src\g_hexen,src\g_strife;flac;jpeg-6b;src\MD5;src\OpenGL;src\win32\g15\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_WIN32,_WINDOWS,USEASM,HAVE_STRUPR,HAVE_FILELENGTH,SILENT_INSTANT_FLOORS"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -169,7 +169,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="&quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot; "
 				Optimization="0"
-				AdditionalIncludeDirectories="src\win32;src\sound;src;zlib;src\g_shared;src\g_doom;src\g_raven;src\g_heretic;src\g_hexen;src\g_strife;flac;jpeg-6b;src\MD5;src\OpenGL"
+				AdditionalIncludeDirectories="src\win32;src\sound;src;zlib;src\g_shared;src\g_doom;src\g_raven;src\g_heretic;src\g_hexen;src\g_strife;flac;jpeg-6b;src\MD5;src\OpenGL;src\win32\g15\include"
 				PreprocessorDefinitions="WIN32,_DEBUG,_WIN32,_WINDOWS,USEASM,_CRTDBG_MAP_ALLOC,HAVE_STRUPR,HAVE_FILELENGTH"
 				MinimalRebuild="true"
 				RuntimeLibrary="1"
@@ -10242,6 +10242,134 @@
 				</File>
 				<File
 					RelativePath=".\src\gl\tab_anorms.h"
+					>
+				</File>
+			</Filter>
+		</Filter>
+		<Filter
+			Name="G15 Keyboard"
+			>
+			<File
+				RelativePath=".\src\win32\g15\g15.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\win32\g15\g15.h"
+				>
+			</File>
+			<Filter
+				Name="Includes"
+				>
+				<File
+					RelativePath=".\src\win32\g15\include\EZ_LCD.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\g15\include\EZ_LCD.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\g15\include\LCDAnimatedBitmap.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\g15\include\LCDAnimatedBitmap.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\g15\include\LCDBase.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\g15\include\LCDBase.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\g15\include\LCDBitmap.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\g15\include\LCDBitmap.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\g15\include\LCDCollection.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\g15\include\LCDCollection.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\g15\include\LCDGfx.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\g15\include\LCDGfx.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\g15\include\LCDIcon.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\g15\include\LCDIcon.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\g15\include\LCDManager.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\g15\include\LCDManager.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\g15\include\LCDOutput.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\g15\include\LCDOutput.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\g15\include\LCDProgressBar.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\g15\include\LCDProgressBar.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\g15\include\LCDScrollingText.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\g15\include\LCDScrollingText.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\g15\include\LCDStreamingText.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\g15\include\LCDStreamingText.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\g15\include\LCDText.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\g15\include\LCDText.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\g15\include\lcdwin32.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\g15\include\lglcd.h"
 					>
 				</File>
 			</Filter>

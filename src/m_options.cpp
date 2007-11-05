@@ -98,7 +98,7 @@
 #include "hardware.h"
 #include "sbar.h"
 #include "p_effect.h"
-
+#include "win32/g15/g15.h"
 #include "gl/gl_functions.h"
 
 // EXTERNAL FUNCTION PROTOTYPES --------------------------------------------
@@ -647,7 +647,9 @@ menu_t ControlsMenu =
 static void StartMessagesMenu (void);
 static void StartAutomapMenu (void);
 static void StartHUDMenu (void);
-
+#ifdef G15_ENABLED
+	static void StartG15Menu (void);
+#endif
 EXTERN_CVAR (Bool, st_scale)
 EXTERN_CVAR (Int,  r_detail)
 EXTERN_CVAR (Bool, r_stretchsky)
@@ -786,6 +788,9 @@ static value_t FullscreenHUDStyle[] = {
 
 
 static menuitem_t HUDMenuItems[] = {
+	#ifdef G15_ENABLED
+		{ more,		"Logitech G15",				{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)StartG15Menu} },
+	#endif
 	{ slider,	"Screen size",				{&screenblocks},	   		{3.0}, {12.0},	{1.0}, {NULL} },
 	{ discrete, "Voting display",			{&cl_showfullscreenvote},	{2.0}, {0.0},	{0.0}, {VoteScreenTypes} },
 	{ discrete, "Fullscreen HUD",			{&cl_stfullscreenhud},		{2.0}, {0.0},	{0.0}, {FullscreenHUDStyle} },
@@ -809,6 +814,57 @@ menu_t HUDMenu =
 };
 
 
+/*=======================================
+ *
+ * G15 Menu [RC]
+ *
+ *=======================================*/
+#ifdef G15_ENABLED
+	EXTERN_CVAR (Bool, g15_enable)
+	EXTERN_CVAR (Bool, g15_showlargefragmessages)
+
+	static menuitem_t G15MenuItems[] = {
+		{ discrete, "Enable LCD display",			{&g15_enable},	{2.0}, {0.0},	{0.0}, {YesNo} },
+		{ discrete, "Large frag messages",			{&g15_showlargefragmessages},	{2.0}, {0.0},	{0.0}, {OnOff} },
+
+	};
+
+	menu_t G15Menu =
+	{
+		"G15 DISPLAY",
+		0,
+		countof(G15MenuItems),
+		0,
+		G15MenuItems,
+	};
+
+	void UpdateG15Menu ()
+	{
+		if ( !G15_IsDeviceConnected() )
+			G15_TryConnect( );
+
+		// Enable/disable the menu if the LCD is present.
+		if ( !G15_IsDeviceConnected() )
+		{
+			G15MenuItems[0].type = redtext;
+			G15MenuItems[0].label = "Logitech G15 not connected";
+			G15Menu.numitems = 1;
+		}
+		else
+		{
+			G15MenuItems[0].type = discrete;
+			G15MenuItems[0].label = "Enable LCD display";
+			G15Menu.numitems = 2;
+		}	
+	}
+
+	static void StartG15Menu (void)
+	{
+		UpdateG15Menu( );
+		M_SwitchMenu (&G15Menu);
+	}
+
+#endif
 
 /*=======================================
  *

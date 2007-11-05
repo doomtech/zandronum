@@ -312,8 +312,6 @@
 #define IDC_POINTLIMIT                  1196
 #define IDC_DUELLIMIT                   1197
 #define IDC_WINLIMIT                    1198
-#define IDC_SPIN2                       1199
-#define IDC_SPIN3                       1199
 #define IDC_SPIN4                       1200
 #define IDC_SPIN5                       1201
 #define IDC_SPIN7                       1202
@@ -380,6 +378,12 @@
 #define	IDR_PLAYER_GETIP				40040
 #define IDD_GOTIP						40041
 #define IDC_GOTIP_IP					40042
+#define IDC_SPIN2                       40043
+#define IDC_SPIN3                       40044
+#define G15_ICON_ORION					40045
+#define G15_ICON_ARMOR					40046
+#define G15_ICON_STIMPACK				40047
+#define G15_ICON_SHELLS					40048
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED

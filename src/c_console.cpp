@@ -68,7 +68,7 @@
 #include "cl_demo.h"
 #include "deathmatch.h"
 #include "network.h"
-
+#include "win32/g15/g15.h"
 #include "gi.h"
 
 #define CONSOLESIZE	16384	// Number of characters to store in console
@@ -960,6 +960,10 @@ int PrintString (int printlevel, const char *outline)
 		delete [] outlinecopy;
 		return length;
 	}
+	
+	// [RC] Send this to the G15 LCD, if enabled.
+	if (  G15_IsReady() )
+		G15_Printf( outlinecopy );
 
 	if ( g_bAllowColorCodes )
 		V_ColorizeString( outlinecopy );

@@ -95,7 +95,7 @@
 #include "cl_commands.h"
 #include "possession.h"
 #include "statnums.h"
-
+#include "win32/g15/g15.h"
 #include "gl/gl_lights.h"
 
 #include <zlib.h>
@@ -1280,6 +1280,9 @@ void G_Ticker ()
 
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
+		// [RC] Refresh the Skulltag's G15 applet.
+		G15_Tick( );
+
 		while (( lSize = NETWORK_GetPackets( )) > 0 )
 		{
 			UCVarValue		Val;

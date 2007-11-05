@@ -88,7 +88,7 @@
 #include "possession.h"
 #include "cl_demo.h"
 #include "callvote.h"
-
+#include "win32/g15/g15.h"
 #include "gi.h"
 
 #include "g_hub.h"
@@ -2430,6 +2430,9 @@ void G_DoLoadLevel (int position, bool autosave)
 
 	// Refresh the HUD.
 	SCOREBOARD_RefreshHUD( );
+
+	// [RC] Update the G15 display.
+	G15_NextLevel( level.mapname, level.level_name );
 
 	// Set number of duels to 0.
 	DUEL_SetNumDuels( 0 );

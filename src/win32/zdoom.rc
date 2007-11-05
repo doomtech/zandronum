@@ -65,6 +65,11 @@ IDI_BOING6              ICON    DISCARDABLE     "boing6.ico"
 IDI_BOING7              ICON    DISCARDABLE     "boing7.ico"
 IDI_BOING8              ICON    DISCARDABLE     "boing8.ico"
 IDI_ICON5               ICON    DISCARDABLE     "skulltag.ico"
+G15_ICON_ORION			ICON					"g15/res/orion.ico"
+G15_ICON_ARMOR			ICON					"g15/res/armor.ico"
+G15_ICON_STIMPACK		ICON					"g15/res/stimpack.ico"
+G15_ICON_SHELLS			ICON					"g15/res/shells.ico"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -879,7 +884,7 @@ BEGIN
                     UDS_NOTHOUSANDS,316,37,11,14
     LTEXT           "Timelimit:",IDC_STATIC,284,54,32,8
     EDITTEXT        IDC_TIMELIMIT,284,63,32,14,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "Spin3",IDC_SPIN3,"msctls_updown32",UDS_SETBUDDYINT | 
+    CONTROL         "Spin3",IDC_SPIN2,"msctls_updown32",UDS_SETBUDDYINT | 
                     UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,216,63,11,14
     LTEXT           "Pointlimit:",IDC_STATIC,322,28,32,8

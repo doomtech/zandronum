@@ -120,6 +120,7 @@
 #include "st_start.h"
 
 #include "gl/gl_functions.h"
+#include "win32/g15/g15.h"
 
 // comment this out if you only want ZDoom's original.
 //#define ALTERNATIVE_HUD
@@ -2476,6 +2477,9 @@ void D_DoomMain (void)
 
 	// Base systems have been inited; enable cvar callbacks
 	FBaseCVar::EnableCallbacks ();
+
+	// [RC] Start the G15 LCD module here.
+	G15_Construct ();
 
 	Printf ("S_Init: Setting up sound.\n");
 	S_Init ();

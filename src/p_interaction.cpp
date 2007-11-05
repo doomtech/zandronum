@@ -71,6 +71,7 @@
 #include "team.h"
 #include "cl_commands.h"
 #include "cl_demo.h"
+#include "win32/g15/g15.h"
 
 // [BC] Ugh.
 void SERVERCONSOLE_UpdatePlayerInfo( LONG lPlayer, ULONG ulUpdateFlags );
@@ -849,7 +850,6 @@ void AActor::Die (AActor *source, AActor *inflictor)
 		( NETWORK_GetState( ) != NETSTATE_SERVER ) &&
 		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
 		( CLIENTDEMO_IsPlaying( ) == false ) &&
-		( cl_showlargefragmessages ) &&
 		((( duel ) && (( DUEL_GetState( ) == DS_WINSEQUENCE ) || ( DUEL_GetState( ) == DS_COUNTDOWN ))) == false ) &&
 		((( lastmanstanding || teamlms ) && (( LASTMANSTANDING_GetState( ) == LMSS_WINSEQUENCE ) || ( LASTMANSTANDING_GetState( ) == LMSS_COUNTDOWN ))) == false ))
 	{
@@ -861,11 +861,23 @@ void AActor::Die (AActor *source, AActor *inflictor)
 			{
 				// Display a large "You were fragged by <name>." message in the middle of the screen.
 				if (( player - players ) == consoleplayer )
-					SCOREBOARD_DisplayFraggedMessage( source->player );
+				{
+					if ( cl_showlargefragmessages )
+						SCOREBOARD_DisplayFraggedMessage( source->player );
+					
+					if ( G15_IsReady() ) // [RC] Also show the message on the Logitech G15 (if enabled).
+						G15_ShowLargeFragMessage( source->player->userinfo.netname, false );
+				}
 
 				// Display a large "You fragged <name>!" message in the middle of the screen.
 				else if (( source->player - players ) == consoleplayer )
-					SCOREBOARD_DisplayFragMessage( player );
+				{
+					if ( cl_showlargefragmessages )
+						SCOREBOARD_DisplayFragMessage( player );
+					
+					if ( G15_IsReady() ) // [RC] Also show the message on the Logitech G15 (if enabled).
+						G15_ShowLargeFragMessage( player->userinfo.netname, true );
+				}
 			}
 		}
 	}
