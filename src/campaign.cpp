@@ -289,6 +289,8 @@ static void campaign_ParseCampaignInfoLump( void )
 		pInfo->bMustWinAllDuels		= true;
 		pInfo->pNextInfo			= NULL;
 		pInfo->lPossessionHoldTime	= 0;
+		pInfo->bInstagib			= false;
+		pInfo->bBuckshot			= false;
 		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 		{
 			pInfo->BotSpawn[ulIdx].szBotName[0] = 0;
@@ -413,6 +415,24 @@ static void campaign_ParseCampaignInfoLump( void )
 			else if ( stricmp( szKey, "possessionholdtime" ) == 0 )
 			{
 				pInfo->lPossessionHoldTime = atoi( szValue );
+			}
+			else if ( stricmp( szKey, "instagib" ) == 0 )
+			{
+				if ( stricmp( szValue, "true" ) == 0 )
+					pInfo->bInstagib = true;
+				else if ( stricmp( szValue, "false" ) == 0 )
+					pInfo->bInstagib = false;
+				else
+					pInfo->bInstagib = !!atoi( szValue );
+			}
+			else if ( stricmp( szKey, "buckshot" ) == 0 )
+			{
+				if ( stricmp( szValue, "true" ) == 0 )
+					pInfo->bBuckshot = true;
+				else if ( stricmp( szValue, "false" ) == 0 )
+					pInfo->bBuckshot = false;
+				else
+					pInfo->bBuckshot = !!atoi( szValue );
 			}
 			else if ( strnicmp( szKey, "botteam", strlen( "botteam" )) == 0 )
 			{

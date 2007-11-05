@@ -113,6 +113,10 @@ typedef struct CAMPAIGNINFO_s
 	// How lost must the possession artifact be held?
 	LONG			lPossessionHoldTime;
 
+	// Does the game mode use instagib/buckshot?
+	bool			bInstagib;
+	bool			bBuckshot;
+
 	// Table of bots and their teams that spawn in this round.
 	BOTSPAWNINFO_t	BotSpawn[MAXPLAYERS];
 

@@ -2288,6 +2288,12 @@ void G_DoLoadLevel (int position, bool autosave)
 				break;
 			}
 
+			// Set buckshot/instagib.
+			Val.Bool = pInfo->bInstagib;
+			instagib.ForceSet( Val, CVAR_Bool );
+			Val.Bool = pInfo->bBuckshot;
+			buckshot.ForceSet( Val, CVAR_Bool );
+
 			for ( i = 0; i < MAXPLAYERS; i++ )
 			{
 				if ( pInfo->BotSpawn[i].szBotName[0] )
