@@ -1946,31 +1946,12 @@ void G_DoCompleted (void)
 	strncpy (wminfo.lname0, level.info->pname, 8);
 	strncpy (wminfo.current, level.mapname, 8);
 
-	// [BC] SORRY! YOU LOSE!
-	if ((( CAMPAIGN_InCampaign( )) && ( invasion == false )) && ( CAMPAIGN_DidPlayerBeatMap( ) == false ) && (( level.flags & LEVEL_CHANGEMAPCHEAT ) == false ))
-	{
-		strncpy (wminfo.next, level.mapname, 8);
-		strncpy (wminfo.lname1, level.info->pname, 8);
-	}
-	// [BC] || teamgame.
-	else if (( deathmatch || teamgame ) &&
+	if (deathmatch &&
 		(dmflags & DF_SAME_LEVEL) &&
 		!(level.flags & LEVEL_CHANGEMAPCHEAT))
 	{
 		strncpy (wminfo.next, level.mapname, 8);
 		strncpy (wminfo.lname1, level.info->pname, 8);
-	}
-	// [BC] Check to see if we want to rotate to a new map.
-	else if (( sv_maprotation ) &&
-			 ( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
-			 ( MAPROTATION_GetNumEntries( ) != 0 ) &&
-			 (( level.flags & LEVEL_CHANGEMAPCHEAT ) == false ))
-	{
-		// Move on to the next map.
-		MAPROTATION_AdvanceMap( );
-
-		strncpy( wminfo.next, MAPROTATION_GetCurrentMapName( ), 8 );
-		strncpy( wminfo.lname1, FindLevelInfo( MAPROTATION_GetCurrentMapName( ))->pname, 8 );
 	}
 	else
 	{
