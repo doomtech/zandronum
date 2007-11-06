@@ -172,6 +172,7 @@ v0.97d
 -	- The arch-vile active sound now plays properly in network games. [Carnevil]
 -	- The "turn180" command now works properly in network games. [Carnevil]
 -	- The FadeTo ACS command now works properly in network games. [Carnevil]
+-	- Fixed ally icons: they now show properly when spectating or spying. [Rivecoder]
 -	- The quad damage power no longer wears off if the doomsphere expires while possessing the terminator artifact. [Carnevil]
 -	- Fixed an issue with crushing ceilings in which they would stop after making contact with a thing on the client end. [Carnevil]
 -	- Fixed: A client could crash when using spynext, before being fully spawned into the level. [Torr Samaho]

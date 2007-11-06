@@ -222,6 +222,7 @@ static void SCOREBOARD_DrawBottomString( void )
 }
 
 //*****************************************************************************
+//
 static void SCOREBOARD_DrawWaiting( void )
 {
 	// [RC] Formatting linebreak.
@@ -234,6 +235,7 @@ static void SCOREBOARD_DrawWaiting( void )
 
 //*****************************************************************************
 // Checks if the user wants to see the scoreboard and is allowed to.
+//
 bool SCOREBOARD_ShouldDrawBoard( ULONG ulDisplayPlayer )
 {
 	if(
@@ -245,9 +247,21 @@ bool SCOREBOARD_ShouldDrawBoard( ULONG ulDisplayPlayer )
 		return false;
 }
 
+//*****************************************************************************
+// Returns either consoleplayer, or (if using F12), the player we're spying.
+//
+ULONG SCOREBOARD_GetViewPlayer( void )
+{
+	if (( players[consoleplayer].camera ) && ( players[consoleplayer].camera != players[consoleplayer].mo ) && ( players[consoleplayer].camera->player ))
+	{
+		return (ULONG) (players[consoleplayer].camera->player - players);
+	}
+	return consoleplayer;
+}
 
 //*****************************************************************************
 // Renders some HUD strings, and the main board if the player is pushing the keys.
+//
 void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 {
 	LONG				lPosition;

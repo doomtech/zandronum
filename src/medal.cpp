@@ -68,6 +68,7 @@
 #include "v_text.h"
 #include "v_video.h"
 #include "w_wad.h"
+#include "scoreboard.h"
 
 //*****************************************************************************
 //	VARIABLES
@@ -1006,10 +1007,10 @@ void medal_SelectIcon( ULONG ulPlayer )
 			else
 				ulActualSprite = 0;
 			break;
-		// Ally icon. Delete it if the player is now our enemy.
+		// Ally icon. Delete it if the player is now our enemy or if we're spectating.
 		case S_ALLY:
 
-			if ( pPlayer->mo->IsTeammate( players[consoleplayer].mo ) == false )
+			if ( ( players[ SCOREBOARD_GetViewPlayer() ].bSpectating ) || ( !pPlayer->mo->IsTeammate( players[ SCOREBOARD_GetViewPlayer() ].mo ) ) )
 				pPlayer->pIcon->Destroy( );
 			else
 				ulActualSprite = 1;
@@ -1113,7 +1114,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 		// Would this be useful for co-op, too?
 		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 		{
-			if ( pPlayer->mo->IsTeammate( players[consoleplayer].mo ))
+			if ( pPlayer->mo->IsTeammate( players[SCOREBOARD_GetViewPlayer()].mo ) && !players[SCOREBOARD_GetViewPlayer()].bSpectating)
 			{
 				ulFrame = S_ALLY;
 				ulDesiredSprite = 1;

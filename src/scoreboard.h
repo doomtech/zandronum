@@ -106,7 +106,7 @@ void	SCOREBOARD_RenderStats_TeamScores( void );
 void	SCOREBOARD_RenderStats_RankSpread( void );
 void	SCOREBOARD_RenderInvasionStats( void );
 void	SCOREBOARD_RenderInVote( void );
-void	SCOREBOARD_RenderInVoteClassic( void ); // [RC] Full screen display
+void	SCOREBOARD_RenderInVoteClassic( void );
 void	SCOREBOARD_RenderDuelCountdown( ULONG ulTimeLeft );
 void	SCOREBOARD_RenderLMSCountdown( ULONG ulTimeLeft );
 void	SCOREBOARD_RenderPossessionCountdown( const char *pszTitleString, ULONG ulTimeLeft );
@@ -114,6 +114,7 @@ void	SCOREBOARD_RenderSurvivalCountdown( ULONG ulTimeLeft );
 void	SCOREBOARD_RenderInvasionFirstCountdown( ULONG ulTimeLeft );
 void	SCOREBOARD_RenderInvasionCountdown( ULONG ulTimeLeft );
 bool	SCOREBOARD_ShouldDrawBoard( ULONG ulDisplayPlayer );
+ULONG	SCOREBOARD_GetViewPlayer( void );
 LONG	SCOREBOARD_CalcSpread( ULONG ulPlayerNum );
 ULONG	SCOREBOARD_CalcRank( ULONG ulPlayerNum );
 bool	SCOREBOARD_IsTied( ULONG ulPlayerNum );
