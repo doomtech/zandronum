@@ -525,6 +525,12 @@ void V_CleanPlayerName( char *pszString )
 		}
 }
 
+// [RC] Converts COL_ numbers to their \c counterparts.
+char V_GetColorChar( ULONG ulColor )
+{
+	return (char) ( 97 + (int) ulColor );
+}
+
 //
 // Break long lines of text into multiple lines no longer than maxwidth pixels
 //

@@ -296,10 +296,15 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 	g_BottomString = "";
 
 	// If the console player is looking through someone else's eyes, draw the following message.
-	if (( players[consoleplayer].camera ) && ( players[consoleplayer].camera != players[consoleplayer].mo ) && ( players[consoleplayer].camera->player ))
+	if ( SCOREBOARD_GetViewPlayer() != consoleplayer )
 	{
-		g_BottomString += "\\cgFOLLOWING - ";
-		g_BottomString += players[consoleplayer].camera->player->userinfo.netname;
+		char cColor = V_GetColorChar( CR_RED );
+
+		// [RC] Or draw this in their team's color.
+		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode() ) & GMF_PLAYERSONTEAMS )
+			 cColor = V_GetColorChar( TEAM_GetTextColor( players[ SCOREBOARD_GetViewPlayer() ].ulTeam ) );
+
+		g_BottomString.AppendFormat( "\\c%cFOLLOWING - %s\\c%c", cColor, players[ SCOREBOARD_GetViewPlayer() ].userinfo.netname, cColor );
 	}
 
 	// Print the totals for living and dead allies/enemies.

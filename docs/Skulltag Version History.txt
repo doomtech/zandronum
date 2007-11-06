@@ -75,6 +75,7 @@ v0.97d
 +	- Added "give stdweapons" cheat that gives all weapons except for the Skulltag ones. Useful if you want to start a game in the middle of a Doom coop megawad for example. [Torr Samaho]
 +	- Added A_SpawnItemEx (ported the change from ZDoom revision 392+393+545 and made a few changes for the client/server architecture). [Torr Samaho]
 +	- Added a "client side spawn" option to A_SpawnItemEx. [Torr Samaho]
++	- The "following" string is now drawn in that person's team color (if playing a teamgame). [Rivecoder]
 +	- Added customizable gravity per actor (ported the change from ZDoom revision 456 and added necessary netcode). [Torr Samaho]
 +	- Added VSpeed DECORATE property so that an actor can be given an initial vertical speed (ported the change from ZDoom revision 373). [Torr Samaho]
 +	- Added the possibility to build a server only binary that needs less depdendencies than the client. [Torr Samaho]
