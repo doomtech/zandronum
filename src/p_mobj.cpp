@@ -2304,149 +2304,6 @@ void P_OldXYMovement( AActor *mo, bool bForceSlide )
     }
 }
 
-//*****************************************************************************
-// [BB] Original Doom source version of XY movement (With slight modifications to make it compile).
-void P_OldDoomXYMovement( AActor *mo )
-{ 	
-	fixed_t 	ptryx;
-	fixed_t	ptryy;
-	player_t*	player;
-	fixed_t	xmove;
-	fixed_t	ymove;
-
-	if (!mo->momx && !mo->momy)
-	{
-		if (mo->flags & MF_SKULLFLY)
-		{
-			// the skull slammed into something
-			mo->flags &= ~MF_SKULLFLY;
-			mo->momx = mo->momy = mo->momz = 0;
-
-			mo->SetState (mo->SpawnState);
-		}
-		return;
-	}
-
-	player = mo->player;
-
-	if (mo->momx > MAXMOVE)
-		mo->momx = MAXMOVE;
-	else if (mo->momx < -MAXMOVE)
-		mo->momx = -MAXMOVE;
-
-	if (mo->momy > MAXMOVE)
-		mo->momy = MAXMOVE;
-	else if (mo->momy < -MAXMOVE)
-		mo->momy = -MAXMOVE;
-
-	xmove = mo->momx;
-	ymove = mo->momy;
-
-	do
-	{
-		if (xmove > MAXMOVE/2 || ymove > MAXMOVE/2)
-		{
-			ptryx = mo->x + xmove/2;
-			ptryy = mo->y + ymove/2;
-			xmove >>= 1;
-			ymove >>= 1;
-		}
-		else
-		{
-			ptryx = mo->x + xmove;
-			ptryy = mo->y + ymove;
-			xmove = ymove = 0;
-		}
-
-		if (!P_OldDoomTryMove (mo, ptryx, ptryy))
-		{
-			// blocked move
-			if (mo->player)
-			{	// try to slide along it
-				P_OldDoomSlideMove (mo);
-			}
-			// [BC] This function is only potentially being used for player movement.
-			/*
-			else if (mo->flags & MF_MISSILE)
-			{
-				// explode a missile
-				if (ceilingline &&
-					ceilingline->backsector &&
-					ceilingline->backsector->ceilingpic == skyflatnum)
-				{
-					// Hack to prevent missiles exploding
-					// against the sky.
-					// Does not handle sky floors.
-					P_RemoveMobj (mo);
-					return;
-				}
-				P_ExplodeMissile (mo);
-			}
-			else
-				mo->momx = mo->momy = 0;
-			*/
-		}
-	} while (xmove || ymove);
-
-	// slow down
-	if (player && player->cheats & CF_NOMOMENTUM)
-	{
-		// debug option for no sliding at all
-		mo->momx = mo->momy = 0;
-		return;
-	}
-
-	if (mo->flags & (MF_MISSILE | MF_SKULLFLY) )
-		return; 	// no friction for missiles ever
-
-	if (mo->z > mo->floorz)
-		return;		// no friction when airborne
-
-	if (mo->flags & MF_CORPSE)
-	{
-		// do not stop sliding
-		//  if halfway off a step with some momentum
-		if (mo->momx > FRACUNIT/4
-			|| mo->momx < -FRACUNIT/4
-			|| mo->momy > FRACUNIT/4
-			|| mo->momy < -FRACUNIT/4)
-		{
-			if (mo->floorz != mo->Sector->floorplane.ZatPoint (mo->x, mo->y))
-				return;
-		}
-	}
-
-	if (mo->momx > -STOPSPEED
-		&& mo->momx < STOPSPEED
-		&& mo->momy > -STOPSPEED
-		&& mo->momy < STOPSPEED
-		&& (!player
-		|| (player->cmd.ucmd.forwardmove== 0
-		&& player->cmd.ucmd.sidemove == 0 ) ) )
-	{
-		// if in a walking frame, stop moving
-		if ((player && player->mo == mo) && ( CLIENT_PREDICT_IsPredicting( ) == false ))// && !(player->cheats & CF_PREDICTING))
-		{
-			// [BC] In client mode, we don't know if other players have any forwardmove or
-			// sidemove values, so the server will tell us when to put other players in
-			// idle mode.
-			if ((( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false )) ||
-				(( player - players ) == consoleplayer ))
-			{
-				player->mo->PlayIdle ();
-			}
-		}
-
-		mo->momx = 0;
-		mo->momy = 0;
-	}
-	else
-	{
-		mo->momx = FixedMul (mo->momx, FRICTION);
-		mo->momy = FixedMul (mo->momy, FRICTION);
-	}
-} 
-
 // Move this to p_inter ***
 void P_MonsterFallingDamage (AActor *mo)
 {
@@ -3629,10 +3486,9 @@ void AActor::Tick ()
 
 	// Handle X and Y momemtums
 	BlockingMobj = NULL;
-	if ( player && ( player->bSpectating == false ) && ( i_compatflags & COMPATF_PLASMA_BUMP_BUG ))
-		//P_OldXYMovement( this, bForceSlide );
-		P_OldDoomXYMovement( this );
-	else
+//	if ( player && ( player->bSpectating == false ) && ( i_compatflags & COMPATF_PLASMA_BUMP_BUG ))
+//		P_OldXYMovement( this, bForceSlide );
+//	else
 		P_XYMovement (this, cummx, cummy);
 	if (ObjectFlags & OF_MassDestruction)
 	{ // actor was destroyed
