@@ -79,8 +79,9 @@ void	V_RemoveColorCodes( char *pszString );
 void	V_StripColors( char *pszString );
 char	V_GetColorChar( ULONG ulColor );
 
-// [RC] Conforms & cleans user names 
-bool	v_AcceptableNameChar( char c );
+// [RC] Functions related to user name cleaning.
+bool	v_IsCharAcceptableInNames ( char c );
+bool	v_IsCharacterWhitespace ( char c );
 void	V_CleanPlayerName( char *pszString );
 
 FBrokenLines *V_BreakLines (FFont *font, int maxwidth, const BYTE *str);

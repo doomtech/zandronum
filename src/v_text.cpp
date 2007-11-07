@@ -472,57 +472,120 @@ void V_StripColors( char *pszString )
 	}
 }
 
-// [RC] Returns if this character is allowed in names
-bool v_AcceptableNameChar ( char c ) {
-	if( (((int)c > 31) ||	// no undisplayable system ascii
-		((int)c == 28)) &&  // allow the escape code for colors
-		((int)c != 37) &&	// no % (acts strangely when used in name)
-		((int)c != 38) &&	// no & (not easy to type on US keyboards)
-		((int)c != 92) &&	// no \ (other escape codes that can crash ST)
-		((int)c != 96) &&	// no ` (invisible)
-		((int)c < 123))   	// no ascii above 123 - invisible or hard to type
+// [RC] Returns whether this character is allowed in names.
+bool v_IsCharAcceptableInNames ( char c )
+{
+	// Allow color codes.
+	if ( c == 28 )
 		return true;
-	else
+
+	// No undisplayable system ascii.
+	if ( c <= 31 )
 		return false;
+
+	// Percent is forbiddon in net names (why?).
+	if ( c == '%' )
+		return false;
+
+	// Pound is hard to type on USA boards.
+	if ( c == 38 )
+		return false;
+
+	// No escape codes (\c is handled differently).
+	if ( c == 92 )
+		return false;
+
+	// Tilde is invisible.
+	if ( c == 96 )
+		return false;
+
+	// Ascii above 123 is invisible or hard to type.
+	if ( c >= 123 )
+		return false;
+
+	return true;
+}
+
+// [RC] Returns whether this character is invisible.
+bool v_IsCharacterWhitespace ( char c )
+{
+	// System ascii < 32 is invisible.
+	if ( c <= 31 )
+		return true;
+
+	// Space.
+	if ( c == 32 )
+		return true;
+
+	// Delete.
+	if ( c == 127 )
+		return true;
+
+	// Ascii 255.
+	if ( c == 255 )
+		return true;
+
+	return false;
 }
 
 
-// [RC] Conforms names to meet standards
+// [RC] Conforms names to meet standards.
 void V_CleanPlayerName( char *pszString )
 {
-	// Checked by both the client and server, similar to sv_cheats
-	char *p; char c; p = pszString;
-	ULONG	ulStringLength = static_cast<ULONG>(strlen( pszString ));
-	ULONG   ulTotalLength = 0;
-	// Mininum length: 3 characters
-		if(ulStringLength < 3)
-			sprintf(pszString,"Player");
-		else {
-			while ( (c = *p++) )
-			{
-				if ( !v_AcceptableNameChar(c) )
-				{
-					ULONG	ulPos;
-					ulStringLength = static_cast<ULONG>(strlen( pszString ));
+	char	*p;
+	char	c;
+	ULONG	ulStringLength;
+	ULONG   ulTotalLength;
+	ULONG   ulNonWhitespace;
 
-					for ( ulPos = 0; ulPos < ulStringLength; ulPos++ )
-						pszString[ulPos] = pszString[ulPos + 1];
+	ulStringLength = static_cast<ULONG>(strlen( pszString ));
+	ulTotalLength = 0;
+	ulNonWhitespace = 0;
 
-					p--;
-				}
-				else {
-					pszString++;
-					ulTotalLength++;
-				}
-			}
-			*pszString = 0;
-		
-		// Check again as characters were removed
-			if(ulTotalLength < 3) {
-				pszString-=ulTotalLength;
-				sprintf(pszString,"Player");
-			}
+	// Start at the beginning of the string.
+	p = pszString;
+
+	// The name must be longer than three characters.
+	if ( ulStringLength < 3 )
+	{
+		strcpy( pszString, "Player" );
+		return;
+	}
+
+	// Go through and remove the illegal characters.
+	while ( (c = *p++) )
+	{
+		if ( !v_IsCharAcceptableInNames(c) )
+		{
+			ULONG	ulPos;
+			ulStringLength = static_cast<ULONG>(strlen( pszString ));
+
+			// Shift the rest of the string back one.
+			for ( ulPos = 0; ulPos < ulStringLength; ulPos++ )
+				pszString[ulPos] = pszString[ulPos + 1];
+
+			// Don't skip a character.
+			p--;
 		}
+		else
+		{
+			pszString++;
+
+			if ( !v_IsCharacterWhitespace(c) )
+				ulNonWhitespace++;
+			ulTotalLength++;
+		}
+	}
+
+	// Cut the string at its new end.
+	*pszString = 0;
+		
+	// Check the length again, as characters were removed.
+	if(ulNonWhitespace < 3)
+	{
+		pszString -= ulTotalLength;
+		strcpy( pszString, "Player" );
+	}
 }
 
 // [RC] Converts COL_ numbers to their \c counterparts.
