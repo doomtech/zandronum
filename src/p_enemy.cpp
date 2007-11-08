@@ -2050,6 +2050,7 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 		( CLIENTDEMO_IsPlaying( )))
 	{
 		actor->target = NULL;
+		actor->goal = NULL;
 	}
 
 	// modify target threshold
@@ -2211,12 +2212,21 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 				delay = 0;
 				actor->reactiontime = actor->GetDefault()->reactiontime;
 				actor->angle = lastgoalang;		// Look in direction of last goal
+
+				// [BC] Send the state change to clients.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_SetThingAngle( actor );
 			}
 			if (actor->target == actor->goal) actor->target = NULL;
 			actor->flags |= MF_JUSTATTACKED;
 			if (newgoal != NULL && delay != 0)
 			{
 				actor->flags4 |= MF4_INCOMBAT;
+
+				// [BC] Send the state change to clients.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_SetThingState( actor, STATE_SPAWN );
+
 				actor->SetState (actor->SpawnState);
 			}
 			actor->flags &= ~MF_INCHASE;
