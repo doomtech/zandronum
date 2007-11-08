@@ -74,7 +74,8 @@ static	NETBUFFER_s				g_MessageBuffer;
 static	long					g_lCurrentTime;
 
 // Global list of banned IPs.
-static	std::vector<IPADDRESSBAN_s>	g_BannedIPs;
+static	IPList	g_BannedIPs;
+static	IPList	g_BannedIPExemptions;
 
 // List of IP address that this server has been queried by recently.
 static	STORED_QUERY_IP_t		g_StoredQueryIPs[MAX_STORED_QUERY_IPS];
@@ -173,15 +174,22 @@ void MASTERSERVER_InitializeBans( void )
 {
 	std::cerr << "Initializing ban list...\n";
 
-	IPFileParser parser( 65535 );
-	if ( !(parser.parseIPList( "banlist.txt", g_BannedIPs )) )
-		std::cerr << parser.getErrorMessage() ;
+	if ( !(g_BannedIPs.clearAndLoadFromFile( "banlist.txt" )) )
+		std::cerr << g_BannedIPs.getErrorMessage();
+
+	if ( !(g_BannedIPExemptions.clearAndLoadFromFile( "whitelist.txt" )) )
+		std::cerr << g_BannedIPExemptions.getErrorMessage();
+
 /*
-	// [BB] Print all banned IPs, to make sure the IP list has been parsed successfully.
+  // [BB] Print all banned IPs, to make sure the IP list has been parsed successfully.
+	std::cerr << "Entries in blacklist:\n";
 	for ( ULONG ulIdx = 0; ulIdx < g_BannedIPs.size(); ulIdx++ )
-	{
-		std::cerr << g_BannedIPs[ulIdx].szIP[0] << "." << g_BannedIPs[ulIdx].szIP[1] << "." << g_BannedIPs[ulIdx].szIP[2] << "." << g_BannedIPs[ulIdx].szIP[3] << "." << g_BannedIPs[ulIdx].szComment << std::endl;
-	}
+		std::cerr << g_BannedIPs.getEntryAsString(ulIdx).c_str();
+
+	// [BB] Print all exemption-IPs, to make sure the IP list has been parsed successfully.
+	std::cerr << "Entries in whitelist:\n";
+	for ( ULONG ulIdx = 0; ulIdx < g_BannedIPExemptions.size(); ulIdx++ )
+		std::cerr << g_BannedIPExemptions.getEntryAsString(ulIdx).c_str();
 */
 }
 
@@ -189,20 +197,10 @@ void MASTERSERVER_InitializeBans( void )
 //
 bool MASTERSERVER_IsIPBanned( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 )
 {
-	unsigned long	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < g_BannedIPs.size(); ulIdx++ )
-	{
-		if ((( g_BannedIPs[ulIdx].szIP[0][0] == '*' ) || ( _stricmp( pszIP0, g_BannedIPs[ulIdx].szIP[0] ) == 0 )) &&
-			(( g_BannedIPs[ulIdx].szIP[1][0] == '*' ) || ( _stricmp( pszIP1, g_BannedIPs[ulIdx].szIP[1] ) == 0 )) &&
-			(( g_BannedIPs[ulIdx].szIP[2][0] == '*' ) || ( _stricmp( pszIP2, g_BannedIPs[ulIdx].szIP[2] ) == 0 )) &&
-			(( g_BannedIPs[ulIdx].szIP[3][0] == '*' ) || ( _stricmp( pszIP3, g_BannedIPs[ulIdx].szIP[3] ) == 0 )))
-		{
-			return ( true );
-		}
-	}
-
-	return ( false );
+	if( g_BannedIPExemptions.isIPInList( pszIP0, pszIP1, pszIP2, pszIP3 ) )
+		return false;
+	else
+		return g_BannedIPs.isIPInList( pszIP0, pszIP1, pszIP2, pszIP3 );
 }
 
 //*****************************************************************************
