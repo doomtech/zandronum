@@ -1240,6 +1240,22 @@ void APlayerPawn::GiveDefaultInventory ()
 					CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)pPendingWeapon->GetClass( )->TypeName.GetChars( ));
 			}
 		}
+		// [BC] If the user has the shotgun start flag set, do that!
+		else if (( dmflags2 & DF2_COOP_SHOTGUNSTART ) &&
+			( deathmatch == false ) &&
+			( teamgame == false ))
+		{
+			pInventory = player->mo->GiveInventoryType( PClass::FindClass( "Shotgun" )->ActorInfo->GetReplacement( )->Class );
+			if ( pInventory )
+			{
+				player->ReadyWeapon = player->PendingWeapon = static_cast<AWeapon *>( pInventory );
+
+				// Start them off with two clips.
+				pInventory = player->mo->FindInventory( PClass::FindClass( "Shell" )->ActorInfo->GetReplacement( )->Class );
+				if ( pInventory != NULL )
+					pInventory->Amount = static_cast<AWeapon *>( player->ReadyWeapon )->AmmoGive1 * 2;
+			}
+		}
 		else if (!Inventory)
 		{
 			fist = player->mo->GiveInventoryType (PClass::FindClass ("Fist"));
@@ -1252,23 +1268,6 @@ void APlayerPawn::GiveDefaultInventory ()
 			}
 			player->ReadyWeapon = player->PendingWeapon =
 				static_cast<AWeapon *> (deh.StartBullets > 0 ? pistol : fist);
-
-			// [BC] If the user has the shotgun start flag set, do that!
-			if (( dmflags2 & DF2_COOP_SHOTGUNSTART ) &&
-				( deathmatch == false ) &&
-				( teamgame == false ))
-			{
-				pInventory = player->mo->GiveInventoryType( PClass::FindClass( "Shotgun" )->ActorInfo->GetReplacement( )->Class );
-				if ( pInventory )
-				{
-					player->ReadyWeapon = player->PendingWeapon = static_cast<AWeapon *>( pInventory );
-
-					// Start them off with two clips.
-					pInventory = player->mo->FindInventory( PClass::FindClass( "Shell" )->ActorInfo->GetReplacement( )->Class );
-					if ( pInventory != NULL )
-						pInventory->Amount = static_cast<AWeapon *>( player->ReadyWeapon )->AmmoGive1 * 2;
-				}
-			}
 
 			// [BC] If we're a client, tell the server we're switching weapons.
 			// [BB] Using custom player classes which don't have "Fist"
@@ -3004,7 +3003,10 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 		}
 
 		// Update player's velocity by input.
-		P_MovePlayer( player, &player->cmd );
+		if ( player->mo->reactiontime )
+			player->mo->reactiontime--;
+		else
+			P_MovePlayer( player, &player->cmd );
 
 		// [RH] check for jump
 		if ( cmd->ucmd.buttons & BT_JUMP )

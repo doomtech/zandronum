@@ -915,7 +915,7 @@ void SERVERCOMMANDS_MoveLocalPlayer( ULONG ulPlayer )
 	if ( SERVER_IsValidClient( ulPlayer ) == false )
 		return;
 
-	SERVER_CheckClientBuffer( ulPlayer, 30, false );
+	SERVER_CheckClientBuffer( ulPlayer, 29, false );
 	NETWORK_WriteHeader( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, SVC_MOVELOCALPLAYER );
 
 	NETWORK_WriteLong( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, SERVER_GetClient( ulPlayer )->ulClientGameTic );
@@ -929,9 +929,6 @@ void SERVERCOMMANDS_MoveLocalPlayer( ULONG ulPlayer )
 	NETWORK_WriteLong( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, players[ulPlayer].mo->momx );
 	NETWORK_WriteLong( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, players[ulPlayer].mo->momy );
 	NETWORK_WriteLong( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, players[ulPlayer].mo->momz );
-
-	// Write waterlevel.
-	NETWORK_WriteByte( &SERVER_GetClient( ulPlayer )->UnreliablePacketBuffer.ByteStream, players[ulPlayer].mo->waterlevel );
 }
 
 //*****************************************************************************

@@ -2103,6 +2103,8 @@ void PLAYER_SetSpectator( player_s *pPlayer, bool bBroadcast, bool bDeadSpectato
 				( pOldBody ))
 			{
 				pPlayer->mo->SetOrigin( pOldBody->x, pOldBody->y, pOldBody->z );
+
+				SERVERCOMMANDS_MoveLocalPlayer( ULONG( pPlayer - players ));
 			}
 		}
 

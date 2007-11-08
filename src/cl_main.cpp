@@ -4527,7 +4527,6 @@ static void client_MoveLocalPlayer( BYTESTREAM_s *pByteStream )
 	fixed_t		MomX;
 	fixed_t		MomY;
 	fixed_t		MomZ;
-	ULONG		ulWaterLevel;
 
 	pPlayer = &players[consoleplayer];
 	
@@ -4543,9 +4542,6 @@ static void client_MoveLocalPlayer( BYTESTREAM_s *pByteStream )
 	MomX = NETWORK_ReadLong( pByteStream );
 	MomY = NETWORK_ReadLong( pByteStream );
 	MomZ = NETWORK_ReadLong( pByteStream );
-
-	// Get waterlevel.
-	ulWaterLevel = NETWORK_ReadByte( pByteStream );
 
 	// No player object to update.
 	if ( pPlayer->mo == NULL )
@@ -4566,16 +4562,26 @@ static void client_MoveLocalPlayer( BYTESTREAM_s *pByteStream )
 		return;
 
 	// Now that everything's check out, update stuff.
-	pPlayer->ServerXYZ[0] = X;
-	pPlayer->ServerXYZ[1] = Y;
-	pPlayer->ServerXYZ[2] = Z;
-
-	pPlayer->ServerXYZMom[0] = MomX;
-	pPlayer->ServerXYZMom[1] = MomY;
-	pPlayer->ServerXYZMom[2] = MomZ;
-
 	if ( pPlayer->bSpectating == false )
-		pPlayer->mo->waterlevel = ulWaterLevel;
+	{
+		pPlayer->ServerXYZ[0] = X;
+		pPlayer->ServerXYZ[1] = Y;
+		pPlayer->ServerXYZ[2] = Z;
+
+		pPlayer->ServerXYZMom[0] = MomX;
+		pPlayer->ServerXYZMom[1] = MomY;
+		pPlayer->ServerXYZMom[2] = MomZ;
+	}
+	else
+	{
+		pPlayer->mo->x = X;
+		pPlayer->mo->y = Y;
+		pPlayer->mo->z = Z;
+
+		pPlayer->mo->momx = MomX;
+		pPlayer->mo->momy = MomY;
+		pPlayer->mo->momz = MomZ;
+	}
 }
 
 //*****************************************************************************
@@ -5866,7 +5872,7 @@ static void client_SetWeaponAmmoGive( BYTESTREAM_s *pByteStream )
 	if ( pActor == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
-		Printf( "client_SetThingWaterLevel: Couldn't find thing: %d\n", lID );
+		Printf( "client_SetWeaponAmmoGive: Couldn't find thing: %d\n", lID );
 #endif
 		return;
 	}
