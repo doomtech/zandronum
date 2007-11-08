@@ -378,6 +378,8 @@ bool IPFileParser::parseNextLine( FILE *pFile, IPADDRESSBAN_s &IP, ULONG &BanIdx
 					// [BB] If there is a reason given why the IP is on the list, read it now.
 					if ( curChar == ':' )
 						readReason( pFile, IP.szComment, 128 );
+					else
+						IP.szComment[0] = 0;
 					return ( true );
 				}
 				else if ( NETWORK_StringToAddress( szIP, &IPAddress ))
