@@ -1786,17 +1786,29 @@ ULONG BOTS_FindFreePlayerSlot( void )
 	ULONG	ulIdx;
 
 	// Don't allow us to add bots past the max. clients limit.
-	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( SERVER_CalcNumPlayers( ) >= sv_maxclients ))
+	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+		( SERVER_CalcNumPlayers( ) >= sv_maxclients ))
+	{
 		return ( MAXPLAYERS );
+	}
 
 	// Loop through all the player slots. If it's an inactive slot, break.
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
-		if ( playeringame[ulIdx] == false )
-			break;
+		if ( playeringame[ulIdx] )
+			continue;
+
+		// Maybe a player is busy trying to connect on this slot?
+		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+			( SERVER_GetClient( ulIdx )->State != CLS_FREE ))
+		{
+			continue;
+		}
+
+		return ( ulIdx );
 	}
 
-	return ( ulIdx );
+	return ( MAXPLAYERS );
 }
 
 //*****************************************************************************
@@ -2824,6 +2836,11 @@ CSkullBot::CSkullBot( char *pszName, char *pszTeamName, ULONG ulPlayerNum )
 	if ( g_BotInfo[m_ulBotInfoIdx]->szSkinName )
 	{
 		LONG	lSkin;
+
+		// Store the name of the skin the client gave us, so others can view the skin
+		// even if the server doesn't have the skin loaded.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			strncpy( SERVER_GetClient( ulPlayerNum )->szSkin, g_BotInfo[m_ulBotInfoIdx]->szSkinName, MAX_SKIN_NAME + 1 );
 
 		lSkin = R_FindSkin( g_BotInfo[m_ulBotInfoIdx]->szSkinName, 0 );
 		m_pPlayer->userinfo.skin = lSkin;
