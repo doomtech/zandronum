@@ -1249,6 +1249,13 @@ void APowerSpeed::DoEffect ()
 		if (P_AproxDistance (Owner->momx, Owner->momy) <= 12*FRACUNIT)
 			return;
 	}
+	// [BC] Skulltag powerups, such as the turbosphere, require to move at least SOME to
+	// create a speed trail.
+	else if (( Owner->momx == 0 ) &&
+			 ( Owner->momy == 0 ))
+	{
+		return;
+	}
 
 	AActor *speedMo = Spawn<APlayerSpeedTrail> (Owner->x, Owner->y, Owner->z, NO_REPLACE);
 	if (speedMo)
