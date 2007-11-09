@@ -4331,6 +4331,10 @@ static bool server_SummonCheat( BYTESTREAM_s *pByteStream, bool bFriend )
 //
 static bool server_ReadyToGoOn( BYTESTREAM_s *pByteStream )
 {
+	// Don't allow this to be toggled unless we're in intermission.
+	if ( gamestate != GS_INTERMISSION )
+		return ( false );
+
 	// Toggle this player (specator)'s "ready to go on" status.
 	players[g_lCurrentClient].bReadyToGoOn = !players[g_lCurrentClient].bReadyToGoOn;
 
@@ -4338,39 +4342,6 @@ static bool server_ReadyToGoOn( BYTESTREAM_s *pByteStream )
 		SERVERCOMMANDS_SetPlayerReadyToGoOnStatus( g_lCurrentClient );
 
 	return ( false );
-
-//	players[g_lCurrentClient].cmd.ucmd.buttons |= BT_USE;
-/*
-	ULONG		ulIdx;
-	bool		bChangeLevel = true;
-	player_s	*pPlayer;
-
-	if ( playeringame[g_lCurrentClient] == false )
-		return;
-
-	pPlayer = &players[g_lCurrentClient];
-
-	pPlayer->bReadyToGoOn = !pPlayer->bReadyToGoOn;
-
-	// If all players are ready, we can go to the next level!
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if (( playeringame[ulIdx] == false ) || ( players[ulIdx].bIsBot ))
-			continue;
-
-		if ( players[ulIdx].bReadyToGoOn == false )
-		{
-			bChangeLevel = false;
-			break;
-		}
-	}
-
-	// Everyone is ready!
-	if ( bChangeLevel == true )
-		acceleratestage = 1;
-	else
-		SERVERCOMMANDS_SetPlayerReadyToGoOnStatus( g_lCurrentClient );
-*/
 }
 
 //*****************************************************************************
