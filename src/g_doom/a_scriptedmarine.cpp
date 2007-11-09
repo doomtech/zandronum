@@ -313,6 +313,13 @@ void AScriptedMarine::Tick ()
 
 void A_M_Refire (AActor *self)
 {
+	// [BC] Let the server do this.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if (self->target == NULL || self->target->health <= 0)
 	{
 		if (self->MissileState && pr_m_refire() < 160)
@@ -322,6 +329,11 @@ void A_M_Refire (AActor *self)
 				return;
 			}
 		}
+
+		// [BC] Update the thing's state.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingFrame( self, ( self->state + 1 - self->SpawnState ));
+
 		self->SetState (self->state + 1);
 		return;
 	}
@@ -329,6 +341,10 @@ void A_M_Refire (AActor *self)
 		!P_CheckSight (self, self->target) ||
 		pr_m_refire() < 4)	// Small chance of stopping even when target not dead
 	{
+		// [BC] Update the thing's state.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingFrame( self, ( self->state + 1 - self->SpawnState ));
+
 		self->SetState (self->state + 1);
 	}
 }
@@ -341,13 +357,28 @@ void A_M_Refire (AActor *self)
 
 void A_M_SawRefire (AActor *self)
 {
+	// [BC] Let the server do this.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if (self->target == NULL || self->target->health <= 0)
 	{
+		// [BC] Update the thing's state.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingFrame( self, ( self->state + 1 - self->SpawnState ));
+
 		self->SetState (self->state + 1);
 		return;
 	}
 	if (!self->CheckMeleeRange ())
 	{
+		// [BC] Update the thing's state.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingFrame( self, ( self->state + 1 - self->SpawnState ));
+
 		self->SetState (self->state + 1);
 	}
 }
