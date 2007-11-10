@@ -817,7 +817,8 @@ void SERVERCOMMANDS_SetPlayerPendingWeapon( ULONG ulPlayer, ULONG ulPlayerExtra,
 			continue;
 
 		// Only send this info to spectators.
-		if ( PLAYER_IsTrueSpectator( &players[ulIdx] ) == false )
+		// [BB] Or if this is a COOP game.
+		if ( (PLAYER_IsTrueSpectator( &players[ulIdx] ) == false) && !(GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE ) )
 			continue;
 
 		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
