@@ -1163,7 +1163,10 @@ void A_CustomFireBullets( AActor *self,
 			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName( weapon->AttackSound ), 1, ATTN_NORM, player ? ULONG( player - players ) : MAXPLAYERS, SVCF_SKIPTHISCLIENT );
 	}
 
-	S_SoundID (self, CHAN_WEAPON, weapon->AttackSound, 1, ATTN_NORM);
+	// [BB] Client's should only play weapon sounds, if they are looking through the eyes of the player
+	// firing the sound. Otherwise the sound is played because of the SERVERCOMMANDS_WeaponSound command.
+	if ( NETWORK_GetState( ) != NETSTATE_CLIENT || ( player && player->mo->CheckLocalView( consoleplayer ) ) )
+		S_SoundID (self, CHAN_WEAPON, weapon->AttackSound, 1, ATTN_NORM);
 
 	// [BC] Weapons are handled by the server.
 	// [BB] To make hitscan decals kinda work online, we may not stop here yet.

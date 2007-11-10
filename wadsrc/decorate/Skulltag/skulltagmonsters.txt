@@ -55,6 +55,7 @@ actor DarkImpBall : DoomImpBall // [RT] Inherits from DoomImpBall for convenienc
 {
   game Doom
   spawnid 218
+  Speed 20
   damage 3 // [RT] I think this is right, change if neccesary.
   states
   {
