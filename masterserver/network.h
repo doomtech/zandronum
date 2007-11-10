@@ -114,13 +114,6 @@ enum
 	MSC_REQUESTIGNORED,
 };
 
-// [BC] We're defining this here? Eh, not great, but it'll do for now.
-typedef	unsigned short		USHORT;
-typedef	short				SHORT;
-
-typedef	unsigned long		ULONG;
-typedef	long				LONG;
-
 //*****************************************************************************
 //	PROTOTYPES
 

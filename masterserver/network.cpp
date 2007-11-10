@@ -57,7 +57,7 @@
 #include <ctype.h>
 #include <math.h>
 
-#include "huffman.h"
+#include "../src/huffman.h"
 #include "network.h"
 
 //*****************************************************************************
@@ -97,7 +97,7 @@ void NETWORK_Construct( USHORT usPort )
 	bool			bSuccess;
 
 	// Initialize the Huffman buffer.
-	HuffInit( );
+	HUFFMAN_Construct( );
 
 #ifdef __WIN32__
 	// [BB] Linux doesn't know WSADATA, so this may not be moved outside the ifdef.
@@ -473,7 +473,7 @@ int NETWORK_GetPackets( void )
 		return ( 0 );
 
 	// Decode the huffman-encoded message we received.
-	HuffDecode( g_ucHuffmanBuffer, (unsigned char *)g_NetworkMessage.pbData, lNumBytes, &iDecodedNumBytes );
+	HUFFMAN_Decode( g_ucHuffmanBuffer, (unsigned char *)g_NetworkMessage.pbData, lNumBytes, &iDecodedNumBytes );
 	g_NetworkMessage.ulCurrentSize = iDecodedNumBytes;
 	g_NetworkMessage.ByteStream.pbStream = g_NetworkMessage.pbData;
 	g_NetworkMessage.ByteStream.pbStreamEnd = g_NetworkMessage.ByteStream.pbStream + g_NetworkMessage.ulCurrentSize;
@@ -508,7 +508,7 @@ void NETWORK_LaunchPacket( NETBUFFER_s *pBuffer, NETADDRESS_s Address )
 	// Convert the IP address to a socket address.
 	NETWORK_NetAddressToSocketAddress( Address, SocketAddress );
 
-	HuffEncode( (unsigned char *)pBuffer->pbData, g_ucHuffmanBuffer, pBuffer->ulCurrentSize, &iNumBytesOut );
+	HUFFMAN_Encode( (unsigned char *)pBuffer->pbData, g_ucHuffmanBuffer, pBuffer->ulCurrentSize, &iNumBytesOut );
 
 	lNumBytes = sendto( g_NetworkSocket, (const char*)g_ucHuffmanBuffer, iNumBytesOut, 0, (struct sockaddr *)&SocketAddress, sizeof( SocketAddress ));
 

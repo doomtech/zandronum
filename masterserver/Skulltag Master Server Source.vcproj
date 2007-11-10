@@ -135,7 +135,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories=""
+				AdditionalIncludeDirectories=".\"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -204,7 +204,7 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
-				RelativePath="huffman.cpp"
+				RelativePath="..\src\huffman.cpp"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -222,6 +222,10 @@
 						PreprocessorDefinitions=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\src\m_alloc.cpp"
+				>
 			</File>
 			<File
 				RelativePath="main.cpp"
@@ -273,7 +277,7 @@
 			Filter="h;hpp;hxx;hm;inl"
 			>
 			<File
-				RelativePath="huffman.h"
+				RelativePath="..\src\huffman.h"
 				>
 			</File>
 			<File
