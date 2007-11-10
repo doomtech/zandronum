@@ -292,7 +292,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\networkshared.cpp"
+				RelativePath="..\src\networkshared.cpp"
 				>
 			</File>
 		</Filter>
