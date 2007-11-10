@@ -460,6 +460,11 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 	}
 
 	OutString += pszString;
+
+	// [RC] Remove linebreaks from chat.
+	while( OutString.IndexOf("\\n") != -1)	// They could be nested. (\\nn)
+		OutString.Substitute("\\n", "");
+
 	Printf( ulChatLevel, "%s\n", OutString.GetChars() );
 
 	if ( show_messages )
