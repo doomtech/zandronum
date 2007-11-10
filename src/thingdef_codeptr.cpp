@@ -214,7 +214,8 @@ static void DoAttack (AActor *self, bool domelee, bool domissile)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		return;
+		if (( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false )
+			return;
 	}
 
 	if (self->target == NULL) return;
@@ -313,7 +314,8 @@ static void DoPlaySound(AActor * self, int channel)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		return;
+		if (( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false )
+			return;
 	}
 
 	int soundid = StateParameters[index];
@@ -526,7 +528,8 @@ void A_Jump(AActor * self)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		return;
+		if (( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false )
+			return;
 	}
 
 	if (index >= 0 &&
@@ -560,7 +563,8 @@ void A_JumpIfHealthLower(AActor * self)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		return;
+		if (( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false )
+			return;
 	}
 
 	if (index>=0 && self->health < EvalExpressionI (StateParameters[index], self))
@@ -584,7 +588,8 @@ void A_JumpIfCloser(AActor * self)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		return;
+		if (( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false )
+			return;
 	}
 
 	if (!self->player)
@@ -633,7 +638,8 @@ void DoJumpIfInventory(AActor * self, AActor * owner)
 		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 			( CLIENTDEMO_IsPlaying( )))
 		{
-			return;
+			if (( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false )
+				return;
 		}
 	}
 
@@ -744,9 +750,12 @@ void A_CallSpecial(AActor * self)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		if (pStateCall != NULL)
-			pStateCall->Result = false;
-		return;
+		if (( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false )
+		{
+			if (pStateCall != NULL)
+				pStateCall->Result = false;
+			return;
+		}
 	}
 
 	bool res = !!LineSpecials[StateParameters[index]](NULL, self, false,
@@ -790,7 +799,8 @@ void A_CustomMissile(AActor * self)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		return;
+		if (( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false )
+			return;
 	}
 
 	int index=CheckIndex(6);
@@ -1288,7 +1298,8 @@ void A_FireCustomMissile (AActor * self)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		return;
+		if (( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false )
+			return;
 	}
 
 	const PClass * ti=PClass::FindClass(MissileName);
@@ -1373,7 +1384,8 @@ void A_CustomPunch (AActor *self)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		return;
+		if (( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false )
+			return;
 	}
 
 	if (!norandom) Damage *= (pr_cwpunch()%8+1);
@@ -1444,7 +1456,8 @@ void A_RailAttack (AActor * self)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		return;
+		if (( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false )
+			return;
 	}
 
 	P_RailAttackWithPossibleSpread (self, Damage, Spawnofs_XY, Color1, Color2, MaxDiff, Silent, PuffTypeName);
@@ -1755,7 +1768,8 @@ void A_SpawnItem(AActor * self)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		return;
+		if (( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false )
+			return;
 	}
 
 	AActor * mo = Spawn( missile, 
@@ -1854,12 +1868,18 @@ void A_SpawnItemEx(AActor * self)
 	}
 
 	// [BB] The server handles the spawning of the item.
-	if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) && !(flags & SIXF_CLIENTSIDESPAWN))
+	if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) &&
+		(( flags & SIXF_CLIENTSIDESPAWN ) == false ))
+	{
 		return;
+	}
 
 	// [BB] The server doesn't spawn the client side items.
-	if ( (NETWORK_GetState( ) == NETSTATE_SERVER) && (flags & SIXF_CLIENTSIDESPAWN))
+	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+		( flags & SIXF_CLIENTSIDESPAWN ))
+	{
 		return;
+	}
 
 	AActor * mo = Spawn( missile, x, y, self->z + self->floorclip + zofs, ALLOW_REPLACE);
 	InitSpawnedItem(self, mo, (flags & SIXF_TRANSFERTRANSLATION), (flags&SIXF_SETMASTER), (flags&SIXF_NOCHECKPOSITION));
@@ -1890,6 +1910,13 @@ void A_SpawnItemEx(AActor * self)
 
 			if ( ulBits )
 				SERVERCOMMANDS_MoveThingExact( mo, ulBits );
+		}
+
+		// [BC] Flag this actor as being client-spawned.
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+			( CLIENTDEMO_IsPlaying( )))
+		{
+			mo->ulNetworkFlags |= NETFL_CLIENTSPAWNED;
 		}
 	}
 }
@@ -1926,7 +1953,8 @@ void A_ThrowGrenade(AActor * self)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		return;
+		if (( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false )
+			return;
 	}
 
 	AActor * bo;
@@ -2197,7 +2225,8 @@ void A_DropInventory(AActor * self)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		return;
+		if (( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false )
+			return;
 	}
 
 	AInventory * inv = self->FindInventory((ENamedName)StateParameters[index]);
@@ -2249,7 +2278,8 @@ void A_JumpIf(AActor * self)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		return;
+		if (( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false )
+			return;
 	}
 
 	if (pStateCall != NULL) pStateCall->Result=false;	// Jumps should never set the result for inventory state chains!

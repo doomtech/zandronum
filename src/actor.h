@@ -381,6 +381,9 @@ enum
 	// Handle the pickup of this item in a "special" way.
 	NETFL_SPECIALPICKUP		= 0x00000008,
 
+	// Actor was spawned client-side.
+	NETFL_CLIENTSPAWNED		= 0x00000010,
+
 	// [BC] End of new ST flags.
 
 // --- mobj.renderflags ---
