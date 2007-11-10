@@ -47,6 +47,12 @@
 // Description: 
 //
 //-----------------------------------------------------------------------------
+
+#include "..\src\networkheaders.h"
+#include "..\src\networkshared.h"
+#include "main.h"
+#include "network.h"
+
 #include <windows.h>
 #include <commctrl.h>
 #define _CRT_SECURE_NO_DEPRECATE
@@ -60,8 +66,6 @@
 #include <shellapi.h>
 #include <mmsystem.h>
 
-#include "main.h"
-#include "network.h"
 #include "resource.h"
 
 // Look pretty under XP and Vista.
@@ -71,19 +75,19 @@
 //	VARIABLES
 
 // Thread handle for the main thread that gathers stats.
-HANDLE					g_hThread;
+static	HANDLE			g_hThread;
 
 // Message buffer we write our commands to.
-static	sizebuf_t		g_ServerBuffer;
+static	NETBUFFER_s		g_ServerBuffer;
 
 // Message buffer we write our commands to.
-static	sizebuf_t		g_MasterServerBuffer;
+static	NETBUFFER_s		g_MasterServerBuffer;
 
 // Address of the master server.
-static	netadr_t		g_AddressMasterServer;
+static	NETADDRESS_s	g_AddressMasterServer;
 
 // List of all the current servers.
-static	SERVERINFO_t	g_ServerList[MAX_NUM_SERVERS];
+static	SERVERINFO_s	g_ServerList[MAX_NUM_SERVERS];
 
 // Number of lines present in the text box.
 static	ULONG			g_ulNumLines = 0;
@@ -105,9 +109,9 @@ static	LONG			g_lMaxNumServers = 0;
 
 static	LONG			g_lNumQueries = 0;
 
-static	UPDATETIME_t	g_NextQueryTime;
-static	UPDATETIME_t	g_NextExportTime;
-static	UPDATETIME_t	g_NextQueryRetryTime;
+static	UPDATETIME_s	g_NextQueryTime;
+static	UPDATETIME_s	g_NextExportTime;
+static	UPDATETIME_s	g_NextQueryRetryTime;
 
 static	NOTIFYICONDATA	g_NotifyIconData;
 static	HICON			g_hSmallIcon = NULL;
@@ -118,7 +122,7 @@ static	bool			g_bSmallIconClicked = false;
 //static	LONG			g_lQueryRetryTicks = 0;
 
 // Info for the master server.
-static	SERVERINFO_t	g_MasterServerInfo;
+static	SERVERINFO_s	g_MasterServerInfo;
 
 static	FILE			*g_pPartialStatsFile;
 
@@ -128,17 +132,17 @@ static	FILE			*g_pPartialStatsFile;
 static	void		main_MainLoop( void );
 static	void		main_QueryMasterServer( void );
 static	void		main_ExportStats( void );
-static	void		main_GetServerList( void );
+static	void		main_GetServerList( BYTESTREAM_s *pByteStream );
 static	void		main_QueryAllServers( void );
 static	void		main_DeactivateAllServers( void );
-static	void		main_ParseServerQuery( void );
+static	void		main_ParseServerQuery( BYTESTREAM_s *pByteStream );
 static	LONG		main_GetNewServerID( void );
 static	void		main_QueryServer( ULONG ulServer );
-static	LONG		main_GetListIDByAddress( netadr_t Address );
+static	LONG		main_GetListIDByAddress( NETADDRESS_s Address );
 static	void		main_ClearServerList( void );
-static	void		main_CalculateNextQueryTime( UPDATETIME_t *pInfo );
-static	void		main_CalculateNextExportTime( UPDATETIME_t *pInfo );
-static	void		main_CalculateNextRetryTime( UPDATETIME_t *pInfo );
+static	void		main_CalculateNextQueryTime( UPDATETIME_s *pInfo );
+static	void		main_CalculateNextExportTime( UPDATETIME_s *pInfo );
+static	void		main_CalculateNextRetryTime( UPDATETIME_s *pInfo );
 static	bool		main_NeedRetry( void );
 static	void		main_ParsePartialStatsFile( void );
 
@@ -150,7 +154,6 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 	// This never returns.
 	g_hInst = hInstance;
 	DialogBox( hInstance, MAKEINTRESOURCE( IDD_MAINDIALOG ), NULL, MAIN_MainDialogBoxCallback );
-	
 
 	return ( 0 );
 }
@@ -167,7 +170,7 @@ BOOL CALLBACK MAIN_MainDialogBoxCallback( HWND hDlg, UINT Message, WPARAM wParam
 	{
 	case WM_CLOSE:
 
-		//if ( MessageBox( hDlg, "Are you sure you want to quit?", MAIN_TITLESTRING, MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 ) == IDYES )
+		if ( MessageBox( hDlg, "Are you sure you want to quit?", MAIN_TITLESTRING, MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 ) == IDYES )
 		{
 			EndDialog( hDlg, -1 );
 			CloseHandle( g_hThread );
@@ -333,7 +336,6 @@ BOOL CALLBACK MAIN_MainDialogBoxCallback( HWND hDlg, UINT Message, WPARAM wParam
 			SendMessage( hDlg, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)g_hSmallIcon );
 			SendMessage( hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)LoadIcon( g_hInst, MAKEINTRESOURCE( IDI_ICON )));
 
-
 			g_hThread = CreateThread( NULL, 0, MAIN_RunMainThread, 0, 0, 0 );
 		}
 		break;
@@ -350,21 +352,18 @@ BOOL CALLBACK MAIN_MainDialogBoxCallback( HWND hDlg, UINT Message, WPARAM wParam
 DWORD WINAPI MAIN_RunMainThread( LPVOID )
 {
 	// Set the local port.
-	NETWORK_SetLocalPort( DEFAULT_STATS_PORT );
-
-	// Initialize the network system.
-	NETWORK_Initialize( );
+	NETWORK_Construct( DEFAULT_STATS_PORT, false );
 
 	// Setup our master server message buffer.
-	NETWORK_InitBuffer( &g_MasterServerBuffer, MAX_UDP_PACKET );
+	NETWORK_InitBuffer( &g_MasterServerBuffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
 	NETWORK_ClearBuffer( &g_MasterServerBuffer );
 
 	// Initialize the message buffer we send messages to individual servers in.
-	NETWORK_InitBuffer( &g_ServerBuffer, MAX_UDP_PACKET );
+	NETWORK_InitBuffer( &g_ServerBuffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
 	NETWORK_ClearBuffer( &g_ServerBuffer );
 
 	NETWORK_StringToAddress( "skulltag.kicks-ass.net", &g_AddressMasterServer );
-	g_AddressMasterServer.port = htons( 15300 );
+	g_AddressMasterServer.usPort = htons( 15300 );
 
 	// Run the main loop of the program. This never returns.
 	main_MainLoop( );
@@ -507,6 +506,7 @@ static void main_MainLoop( void )
 	struct	tm		*pTimeInfo;
 	LONG			lCommand;
 	ULONG			ulIdx;
+	BYTESTREAM_s	*pByteStream;
 
 	time( &CurrentTime );
 	pTimeInfo = localtime( &CurrentTime );
@@ -623,11 +623,16 @@ static void main_MainLoop( void )
 		// If we've received packets from somewhere, parse them.
 		while ( NETWORK_GetPackets( ))
 		{
-			if ( NETWORK_CompareAddress( g_AddressFrom, g_AddressMasterServer ))
+			// Set up our byte stream.
+			pByteStream = &NETWORK_GetNetworkMessageBuffer( )->ByteStream;
+			pByteStream->pbStream = NETWORK_GetNetworkMessageBuffer( )->pbData;
+			pByteStream->pbStreamEnd = pByteStream->pbStream + NETWORK_GetNetworkMessageBuffer( )->ulCurrentSize;
+
+			if ( NETWORK_CompareAddress( NETWORK_GetFromAddress( ), g_AddressMasterServer, false ))
 			{
 				LONG	lCommand;
 
-				lCommand = NETWORK_ReadLong( );
+				lCommand = NETWORK_ReadLong( pByteStream );
 				switch ( lCommand )
 				{
 				case MSC_BEGINSERVERLIST:
@@ -642,7 +647,7 @@ static void main_MainLoop( void )
 
 					// Get the list of servers.
 					Printf( "Receiving server list...\n" );
-					main_GetServerList( );
+					main_GetServerList( pByteStream );
 
 					// Now, query all the servers on the list.
 					main_QueryAllServers( );
@@ -659,12 +664,12 @@ static void main_MainLoop( void )
 			{
 				LONG	lServer;
 
-				lCommand = NETWORK_ReadLong( );
+				lCommand = NETWORK_ReadLong( pByteStream );
 				switch ( lCommand )
 				{
 				case SERVER_LAUNCHER_CHALLENGE:
 
-					main_ParseServerQuery( );
+					main_ParseServerQuery( pByteStream );
 					break;
 				case SERVER_LAUNCHER_IGNORING:
 
@@ -675,7 +680,7 @@ static void main_MainLoop( void )
 					break;
 				case SERVER_LAUNCHER_BANNED:
 
-					lServer = main_GetListIDByAddress( g_AddressFrom );
+					lServer = main_GetListIDByAddress( NETWORK_GetFromAddress( ));
 					if ( lServer != -1 )
 						g_ServerList[lServer].ulActiveState = AS_BANNED;
 
@@ -692,10 +697,10 @@ static void main_QueryMasterServer( void )
 {
 	// Clear out the buffer, and write out launcher challenge.
 	NETWORK_ClearBuffer( &g_MasterServerBuffer );
-	NETWORK_WriteLong( &g_MasterServerBuffer, LAUNCHER_CHALLENGE );
+	NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, LAUNCHER_SERVER_CHALLENGE );
 
 	// Send the master server our packet.
-	NETWORK_LaunchPacket( g_MasterServerBuffer, g_AddressMasterServer, true );
+	NETWORK_LaunchPacket( &g_MasterServerBuffer, g_AddressMasterServer );
 
 	g_MasterServerInfo.ulActiveState = AS_WAITINGFORREPLY;
 }
@@ -864,13 +869,13 @@ static void main_ExportStats( void )
 
 //*****************************************************************************
 //
-static void main_GetServerList( void )
+static void main_GetServerList( BYTESTREAM_s *pByteStream )
 {
 	ULONG	ulServer;
 
 	g_MasterServerInfo.ulActiveState = AS_ACTIVE;
 
-	while ( NETWORK_ReadByte( ) != MSC_ENDSERVERLIST )
+	while ( NETWORK_ReadByte( pByteStream ) != MSC_ENDSERVERLIST )
 	{
 		// Receiving information about a new server.
 		ulServer = main_GetNewServerID( );
@@ -884,11 +889,11 @@ static void main_GetServerList( void )
 		g_ServerList[ulServer].ulActiveState = AS_WAITINGFORREPLY;
 
 		// Read in address information.
-		g_ServerList[ulServer].Address.ip[0] = NETWORK_ReadByte( );
-		g_ServerList[ulServer].Address.ip[1] = NETWORK_ReadByte( );
-		g_ServerList[ulServer].Address.ip[2] = NETWORK_ReadByte( );
-		g_ServerList[ulServer].Address.ip[3] = NETWORK_ReadByte( );
-		g_ServerList[ulServer].Address.port = htons( NETWORK_ReadShort( ));
+		g_ServerList[ulServer].Address.abIP[0] = NETWORK_ReadByte( pByteStream );
+		g_ServerList[ulServer].Address.abIP[1] = NETWORK_ReadByte( pByteStream );
+		g_ServerList[ulServer].Address.abIP[2] = NETWORK_ReadByte( pByteStream );
+		g_ServerList[ulServer].Address.abIP[3] = NETWORK_ReadByte( pByteStream );
+		g_ServerList[ulServer].Address.usPort = htons( NETWORK_ReadShort( pByteStream ));
 	}
 }
 
@@ -921,7 +926,7 @@ static void main_DeactivateAllServers( void )
 
 //*****************************************************************************
 //
-static void main_ParseServerQuery( void )
+static void main_ParseServerQuery( BYTESTREAM_s *pByteStream )
 {
 	LONG		lGameType = GAMETYPE_COOPERATIVE;
 	LONG		lNumPWADs;
@@ -931,10 +936,10 @@ static void main_ParseServerQuery( void )
 	LONG		lServer;
 	char		szString[256];
 
-	lServer = main_GetListIDByAddress( g_AddressFrom );
+	lServer = main_GetListIDByAddress( NETWORK_GetFromAddress( ));
 	if (( lServer == -1 ) || ( g_ServerList[lServer].ulActiveState != AS_WAITINGFORREPLY ))
 	{
-		while ( NETWORK_ReadByte( ) != -1 )
+		while ( NETWORK_ReadByte( pByteStream ) != -1 )
 			;
 
 		return;
@@ -944,125 +949,125 @@ static void main_ParseServerQuery( void )
 	g_ServerList[lServer].ulActiveState = AS_ACTIVE;
 
 	// Read in the time we sent to the server.
-	NETWORK_ReadLong( );
+	NETWORK_ReadLong( pByteStream );
 
 	// Read in the version.
-	sprintf( g_ServerList[lServer].szVersion, NETWORK_ReadString( ));
+	sprintf( g_ServerList[lServer].szVersion, NETWORK_ReadString( pByteStream ));
 	if ( strnicmp( g_ServerList[lServer].szVersion, "0.97", 4 ) != 0 )
 	{
-		while ( NETWORK_ReadByte( ) != -1 )
+		while ( NETWORK_ReadByte( pByteStream ) != -1 )
 			;
 
 		return;
 	}
 
 	// Read in the bits.
-	ulBits = NETWORK_ReadLong( );
+	ulBits = NETWORK_ReadLong( pByteStream );
 
 	// Read the server name.
 	if ( ulBits & SQF_NAME )
-		sprintf( g_ServerList[lServer].szHostName, NETWORK_ReadString( ));
+		sprintf( g_ServerList[lServer].szHostName, NETWORK_ReadString( pByteStream ));
 
 	// Read the website URL.
 	if ( ulBits & SQF_URL )
-		NETWORK_ReadString( );
+		NETWORK_ReadString( pByteStream );
 
 	// Read the host's e-mail address.
 	if ( ulBits & SQF_EMAIL )
-		NETWORK_ReadString( );
+		NETWORK_ReadString( pByteStream );
 
 	// Read the map name.
 	if ( ulBits & SQF_MAPNAME )
-		NETWORK_ReadString( );
+		NETWORK_ReadString( pByteStream );
 
 	// Read the maximum number of clients.
 	if ( ulBits & SQF_MAXCLIENTS )
-		NETWORK_ReadByte( );
+		NETWORK_ReadByte( pByteStream );
 
 	// Maximum slots.
 	if ( ulBits & SQF_MAXPLAYERS )
-		NETWORK_ReadByte( );
+		NETWORK_ReadByte( pByteStream );
 
 	// Read in the PWAD information.
 	if ( ulBits & SQF_PWADS )
 	{
-		lNumPWADs = NETWORK_ReadByte( );
+		lNumPWADs = NETWORK_ReadByte( pByteStream );
 		for ( ulIdx = 0; ulIdx < (ULONG)lNumPWADs; ulIdx++ )
-			NETWORK_ReadString( );
+			NETWORK_ReadString( pByteStream );
 	}
 
 	// Read the game type.
 	if ( ulBits & SQF_GAMETYPE )
 	{
-		g_ServerList[lServer].lGameType = NETWORK_ReadByte( );
-		NETWORK_ReadByte( );
-		NETWORK_ReadByte( );
+		g_ServerList[lServer].lGameType = NETWORK_ReadByte( pByteStream );
+		NETWORK_ReadByte( pByteStream );
+		NETWORK_ReadByte( pByteStream );
 	}
 
 	// Game name.
 	if ( ulBits & SQF_GAMENAME )
-		NETWORK_ReadString( );
+		NETWORK_ReadString( pByteStream );
 
 	// Read in the IWAD name.
 	if ( ulBits & SQF_IWAD )
-		NETWORK_ReadString( );
+		NETWORK_ReadString( pByteStream );
 
 	// Force password.
 	if ( ulBits & SQF_FORCEPASSWORD )
-		NETWORK_ReadByte( );
+		NETWORK_ReadByte( pByteStream );
 
 	// Force join password.
 	if ( ulBits & SQF_FORCEJOINPASSWORD )
-		NETWORK_ReadByte( );
+		NETWORK_ReadByte( pByteStream );
 
 	// Game skill.
 	if ( ulBits & SQF_GAMESKILL )
-		NETWORK_ReadByte( );
+		NETWORK_ReadByte( pByteStream );
 
 	// Bot skill.
 	if ( ulBits & SQF_BOTSKILL )
-		NETWORK_ReadByte( );
+		NETWORK_ReadByte( pByteStream );
 
 	// DMFlags, DMFlags2, compatflags.
 	if ( ulBits & SQF_DMFLAGS )
 	{
-		NETWORK_ReadLong( );
-		NETWORK_ReadLong( );
-		NETWORK_ReadLong( );
+		NETWORK_ReadLong( pByteStream );
+		NETWORK_ReadLong( pByteStream );
+		NETWORK_ReadLong( pByteStream );
 	}
 
 	// Fraglimit, timelimit, duellimit, pointlimit, winlimit.
 	if ( ulBits & SQF_LIMITS )
 	{
-		NETWORK_ReadShort( );
-		if ( NETWORK_ReadShort( ))
+		NETWORK_ReadShort( pByteStream );
+		if ( NETWORK_ReadShort( pByteStream ))
 		{
 			// Time left.
-			NETWORK_ReadShort( );
+			NETWORK_ReadShort( pByteStream );
 		}
 
-		NETWORK_ReadShort( );
-		NETWORK_ReadShort( );
-		NETWORK_ReadShort( );
+		NETWORK_ReadShort( pByteStream );
+		NETWORK_ReadShort( pByteStream );
+		NETWORK_ReadShort( pByteStream );
 	}
 
 		// Team damage scale.
 	if ( ulBits & SQF_TEAMDAMAGE )
-		NETWORK_ReadFloat( );
+		NETWORK_ReadFloat( pByteStream );
 
 	if ( ulBits & SQF_TEAMSCORES )
 	{
 		// Blue score.
-		NETWORK_ReadShort( );
+		NETWORK_ReadShort( pByteStream );
 
 		// Red score.
-		NETWORK_ReadShort( );
+		NETWORK_ReadShort( pByteStream );
 	}
 
 	// Read in the number of players.
 	if ( ulBits & SQF_NUMPLAYERS )
 	{
-		g_ServerList[lServer].lNumPlayers = NETWORK_ReadByte( );
+		g_ServerList[lServer].lNumPlayers = NETWORK_ReadByte( pByteStream );
 		lNumPlayers = g_ServerList[lServer].lNumPlayers;
 
 		if ( ulBits & SQF_PLAYERDATA )
@@ -1070,19 +1075,19 @@ static void main_ParseServerQuery( void )
 			for ( ulIdx = 0; ulIdx < (ULONG)g_ServerList[lServer].lNumPlayers; ulIdx++ )
 			{
 				// Read in this player's name.
-				NETWORK_ReadString( );
+				NETWORK_ReadString( pByteStream );
 
 				// Read in "fragcount" (could be frags, points, etc.)
-				NETWORK_ReadShort( );
+				NETWORK_ReadShort( pByteStream );
 
 				// Read in the player's ping.
-				NETWORK_ReadShort( );
+				NETWORK_ReadShort( pByteStream );
 
 				// Read in whether or not the player is spectating.
-				NETWORK_ReadByte( );
+				NETWORK_ReadByte( pByteStream );
 
 				// Read in whether or not the player is a bot.
-				if ( NETWORK_ReadByte( ))
+				if ( NETWORK_ReadByte( pByteStream ))
 					lNumPlayers--;
 
 				if (( g_ServerList[lServer].lGameType == GAMETYPE_TEAMPLAY ) ||
@@ -1093,11 +1098,11 @@ static void main_ParseServerQuery( void )
 					( g_ServerList[lServer].lGameType == GAMETYPE_ONEFLAGCTF ))
 				{
 					// Team.
-					NETWORK_ReadByte( );
+					NETWORK_ReadByte( pByteStream );
 				}
 
 				// Time.
-				NETWORK_ReadByte( );
+				NETWORK_ReadByte( pByteStream );
 			}
 		}
 	}
@@ -1153,23 +1158,23 @@ static void main_QueryServer( ULONG ulServer )
 {
 	// Clear out the buffer, and write out launcher challenge.
 	NETWORK_ClearBuffer( &g_ServerBuffer );
-	NETWORK_WriteLong( &g_ServerBuffer, LAUNCHER_CHALLENGE );
-	NETWORK_WriteLong( &g_ServerBuffer, SQF_NUMPLAYERS|SQF_PLAYERDATA );
-	NETWORK_WriteLong( &g_ServerBuffer, 0 );
+	NETWORK_WriteLong( &g_ServerBuffer.ByteStream, LAUNCHER_SERVER_CHALLENGE );
+	NETWORK_WriteLong( &g_ServerBuffer.ByteStream, SQF_NUMPLAYERS|SQF_PLAYERDATA );
+	NETWORK_WriteLong( &g_ServerBuffer.ByteStream, 0 );
 
 	// Send the server our packet.
-	NETWORK_LaunchPacket( g_ServerBuffer, g_ServerList[ulServer].Address, true );
+	NETWORK_LaunchPacket( &g_ServerBuffer, g_ServerList[ulServer].Address );
 }
 
 //*****************************************************************************
 //
-static LONG main_GetListIDByAddress( netadr_t Address )
+static LONG main_GetListIDByAddress( NETADDRESS_s Address )
 {
 	ULONG	ulIdx;
 
 	for ( ulIdx = 0; ulIdx < MAX_NUM_SERVERS; ulIdx++ )
 	{
-		if ( NETWORK_CompareAddress( g_ServerList[ulIdx].Address, Address ))
+		if ( NETWORK_CompareAddress( g_ServerList[ulIdx].Address, Address, false ))
 			return ( ulIdx );
 	}
 
@@ -1187,17 +1192,17 @@ static void main_ClearServerList( void )
 	{
 		g_ServerList[ulIdx].ulActiveState = AS_INACTIVE;
 
-		g_ServerList[ulIdx].Address.ip[0] = 0;
-		g_ServerList[ulIdx].Address.ip[1] = 0;
-		g_ServerList[ulIdx].Address.ip[2] = 0;
-		g_ServerList[ulIdx].Address.ip[3] = 0;
-		g_ServerList[ulIdx].Address.port = 0;
+		g_ServerList[ulIdx].Address.abIP[0] = 0;
+		g_ServerList[ulIdx].Address.abIP[1] = 0;
+		g_ServerList[ulIdx].Address.abIP[2] = 0;
+		g_ServerList[ulIdx].Address.abIP[3] = 0;
+		g_ServerList[ulIdx].Address.usPort = 0;
 	}
 }
 
 //*****************************************************************************
 //
-static void main_CalculateNextQueryTime( UPDATETIME_t *pInfo )
+static void main_CalculateNextQueryTime( UPDATETIME_s *pInfo )
 {
 	pInfo->lMinute++;
 	while (( pInfo->lMinute % 5 ) != 0 )
@@ -1332,7 +1337,7 @@ static void main_CalculateNextQueryTime( UPDATETIME_t *pInfo )
 
 //*****************************************************************************
 //
-static void main_CalculateNextExportTime( UPDATETIME_t *pInfo )
+static void main_CalculateNextExportTime( UPDATETIME_s *pInfo )
 {
 	pInfo->lMinute = 0;
 	pInfo->lHour = 0;
@@ -1456,7 +1461,7 @@ static void main_CalculateNextExportTime( UPDATETIME_t *pInfo )
 
 //*****************************************************************************
 //
-static void main_CalculateNextRetryTime( UPDATETIME_t *pInfo )
+static void main_CalculateNextRetryTime( UPDATETIME_s *pInfo )
 {
 	pInfo->lSecond++;
 	while (( pInfo->lSecond % 10 ) != 0 )

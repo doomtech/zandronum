@@ -97,6 +97,6 @@ typedef int SOCKET;
 #include <ctype.h>
 #include <math.h>
 
-#include "../src/doomtype.h"
+//#include "../src/doomtype.h"
 
 #endif	// __NETWORKHEADERS_H__

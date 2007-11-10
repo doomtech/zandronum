@@ -1,30 +1,54 @@
+//-----------------------------------------------------------------------------
+//
+// Skulltag Source
+// Copyright (C) 2007 Brad Carney
+// Copyright (C) 2007-2012 Skulltag Development Team
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// 1. Redistributions of source code must retain the above copyright notice,
+//    this list of conditions and the following disclaimer.
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+//    this list of conditions and the following disclaimer in the documentation
+//    and/or other materials provided with the distribution.
+// 3. Neither the name of the Skulltag Development Team nor the names of its
+//    contributors may be used to endorse or promote products derived from this
+//    software without specific prior written permission.
+// 4. Redistributions in any form must be accompanied by information on how to
+//    obtain complete source code for the software and any accompanying
+//    software that uses the software. The source code must either be included
+//    in the distribution or be available for no more than the cost of
+//    distribution plus a nominal fee, and must be freely redistributable
+//    under reasonable conditions. For an executable file, complete source
+//    code means the source code for all modules it contains. It does not
+//    include source code for modules or files that typically accompany the
+//    major components of the operating system on which the executable file
+//    runs.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+//
+// Date created: 
+//
+//
+// Filename: huffman.cpp
+//
+// Description: 
+//
+//-----------------------------------------------------------------------------
 
-#if defined(__WINDOWS__) || defined(__NT__) || defined(_MSC_VER) || defined(_WIN32)
-#       define __WIN32__
-#endif
-
-
-#include <stdio.h>
-#ifdef	WIN32
-#include <conio.h>
-#endif
-
-
-#ifdef  __WIN32__
-#       define WIN32_LEAN_AND_MEAN
-#       include <windows.h>
-#       include <winsock.h>
-#else
-#       include <sys/types.h>
-#       include <sys/socket.h>
-#       include <netinet/in.h>
-#       include <arpa/inet.h>
-#       include <errno.h>
-#       include <unistd.h>
-#       include <netdb.h>
-#       include <sys/ioctl.h>
-#       include <sys/time.h>
-#endif
+#include "..\src\networkheaders.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -33,23 +57,24 @@
 #include <ctype.h>
 #include <math.h>
 
+#define USE_WINDOWS_DWORD
+#include "huffman.h"
 #include "m_alloc.h"
+
+//*****************************************************************************
+//	PROTOTYPES
+
+static void						huffman_BuildTree( float *freq );
+static void						huffman_PutBit( unsigned char *puf, int pos, int bit );
+static int						huffman_GetBit( unsigned char *puf, int pos );
+static void						huffman_ZeroFreq( void );
+static void						huffman_RecursiveFreeNode( huffnode_t *pNode );
+
+//*****************************************************************************
+//	VARIABLES
 
 int LastCompMessageSize = 0;
 
-typedef struct huffnode_s
-{
-	struct huffnode_s *zero;
-	struct huffnode_s *one;
-	unsigned char val;
-	float freq;
-} huffnode_t;
-
-typedef struct
-{
-	unsigned int bits;
-	int len;
-} hufftab_t;
 static huffnode_t *HuffTree=0;
 static hufftab_t HuffLookup[256];
 
@@ -58,6 +83,18 @@ static int HuffIn=0;
 static int HuffOut=0;
 #endif
 
+
+static unsigned char Masks[8]=
+{
+	0x1,
+	0x2,
+	0x4,
+	0x8,
+	0x10,
+	0x20,
+	0x40,
+	0x80
+};
 
 static float HuffFreq[256]=
 {
@@ -319,158 +356,49 @@ static float HuffFreq[256]=
 	0.00160896,
 };
 
+//=============================================================================
+//
+//	HUFFMAN_Construct
+//
+//	Builds the Huffman tree.
+//
+//=============================================================================
 
+void HUFFMAN_Construct( void )
+{
 #ifdef _DEBUG
-static int freqs[256];
-void ZeroFreq(void)
-{
-	memset(freqs, 0, 256*sizeof(int));
-}
-
-
-void CalcFreq(unsigned char *packet, int packetlen)
-{
-	int ix;
-
-	for (ix=0; ix<packetlen; ix++)
-	{
-		freqs[packet[ix]]++;
-	}
-}
+	huffman_ZeroFreq();
 #endif
 
+	huffman_BuildTree(HuffFreq);
 
-void FindTab(huffnode_t *tmp,int len,unsigned int bits)
-{
-	if (tmp->zero)
-	{
-		FindTab(tmp->zero,len+1,bits<<1);
-		FindTab(tmp->one,len+1,(bits<<1)|1);
-		return;
-	}
-	HuffLookup[tmp->val].len=len;
-	HuffLookup[tmp->val].bits=bits;
-	return;
-}
-static unsigned char Masks[8]=
-{
-	0x1,
-	0x2,
-	0x4,
-	0x8,
-	0x10,
-	0x20,
-	0x40,
-	0x80
-};
-
-void PutBit(unsigned char *buf,int pos,int bit)
-{
-	if (bit)
-		buf[pos/8]|=Masks[pos%8];
-	else
-		buf[pos/8]&=~Masks[pos%8];
+	// Free the table when the program closes.
+	atexit( HUFFMAN_Destruct );
 }
 
-int GetBit(unsigned char *buf,int pos)
+//=============================================================================
+//
+//	HUFFMAN_Destruct
+//
+//	Frees memory allocated by the Huffman tree.
+//
+//=============================================================================
+
+void HUFFMAN_Destruct( void )
 {
-	if (buf[pos/8]&Masks[pos%8])
-		return 1;
-	else
-		return 0;
+	huffman_RecursiveFreeNode( HuffTree );
+
+	free( HuffTree );
+	HuffTree = NULL;
 }
 
+//=============================================================================
+//
+//	HUFFMAN_Encode
+//
+//=============================================================================
 
-void BuildTree(float *freq)
-{
-	float min1,min2;
-	int i,j,minat1,minat2;
-	huffnode_t *work[256];	
-	huffnode_t *tmp;	
-	for (i=0;i<256;i++)
-	{
-		work[i]=(huffnode_s *)Malloc(sizeof(huffnode_t));
-		
-		
-		work[i]->val=(unsigned char)i;
-		work[i]->freq=freq[i];
-		work[i]->zero=0;
-		work[i]->one=0;
-		HuffLookup[i].len=0;
-	}
-	for (i=0;i<255;i++)
-	{
-		minat1=-1;
-		minat2=-1;
-		min1=1E30;
-		min2=1E30;
-		for (j=0;j<256;j++)
-		{
-			if (!work[j])
-				continue;
-			if (work[j]->freq<min1)
-			{
-				minat2=minat1;
-				min2=min1;
-				minat1=j;
-				min1=work[j]->freq;
-			}
-			else if (work[j]->freq<min2)
-			{
-				minat2=j;
-				min2=work[j]->freq;
-			}
-		}
-		tmp=(huffnode_s *)Malloc(sizeof(huffnode_t));
-		
-		
-		tmp->zero=work[minat2];
-		tmp->one=work[minat1];
-		tmp->freq=work[minat2]->freq+work[minat1]->freq;
-		tmp->val=0xff;
-		work[minat1]=tmp;
-		work[minat2]=0;
-	}		
-	HuffTree=tmp;
-	FindTab(HuffTree,0,0);
-#if _DEBUG
-	for (i=0;i<256;i++)
-	{
-		//Printf(PRINT_HIGH, "%d %d %2X\n", HuffLookup[i].len, HuffLookup[i].bits, i);
-	}
-#endif
-}
-
-void HuffDecode(unsigned char *in,unsigned char *out,int inlen,int *outlen)
-{
-	int bits,tbits;
-	huffnode_t *tmp;	
-	if (*in==0xff)
-	{
-		memcpy(out,in+1,inlen-1);
-		*outlen=inlen-1;
-		return;
-	}
-	tbits=(inlen-1)*8-*in;
-	bits=0;
-	*outlen=0;
-	while (bits<tbits)
-	{
-		tmp=HuffTree;
-		do
-		{
-			if (GetBit(in+1,bits))
-				tmp=tmp->one;
-			else
-				tmp=tmp->zero;
-			bits++;
-		} while (tmp->zero);
-		*out++=tmp->val;
-		(*outlen)++;
-	}
-}
-
-void HuffEncode(unsigned char *in,unsigned char *out,int inlen,int *outlen)
+void HUFFMAN_Encode( unsigned char *in, unsigned char *out, int inlen, int *outlen )
 {
 	int i,j,bitat;
 	unsigned int t;
@@ -480,7 +408,7 @@ void HuffEncode(unsigned char *in,unsigned char *out,int inlen,int *outlen)
 		t=HuffLookup[in[i]].bits;
 		for (j=0;j<HuffLookup[in[i]].len;j++)
 		{
-			PutBit(out+1,bitat+HuffLookup[in[i]].len-j-1,t&1);
+			huffman_PutBit(out+1,bitat+HuffLookup[in[i]].len-j-1,t&1);
 			t>>=1;
 		}
 		bitat+=HuffLookup[in[i]].len;
@@ -517,11 +445,226 @@ void HuffEncode(unsigned char *in,unsigned char *out,int inlen,int *outlen)
 #endif*/
 }
 
-void HuffInit(void)
+//=============================================================================
+//
+//	HUFFMAN_Decode
+//
+//=============================================================================
+
+void HUFFMAN_Decode( unsigned char *in, unsigned char *out, int inlen, int *outlen )
 {
+	int bits,tbits;
+	huffnode_t *tmp;	
+	if (*in==0xff)
+	{
+		memcpy(out,in+1,inlen-1);
+		*outlen=inlen-1;
+		return;
+	}
+	tbits=(inlen-1)*8-*in;
+	bits=0;
+	*outlen=0;
+	while (bits<tbits)
+	{
+		tmp=HuffTree;
+		do
+		{
+			if (huffman_GetBit(in+1,bits))
+				tmp=tmp->one;
+			else
+				tmp=tmp->zero;
+			bits++;
+		} while (tmp->zero);
+		*out++=tmp->val;
+		(*outlen)++;
+	}
+}
+
 #ifdef _DEBUG
-	ZeroFreq();
+static int freqs[256];
+void huffman_ZeroFreq(void)
+{
+	memset(freqs, 0, 256*sizeof(int));
+}
+
+
+void CalcFreq(unsigned char *packet, int packetlen)
+{
+	int ix;
+
+	for (ix=0; ix<packetlen; ix++)
+	{
+		freqs[packet[ix]]++;
+	}
+}
+
+void PrintFreqs(void)
+{
+	int ix;
+	float total=0;
+	char string[100];
+
+	for (ix=0; ix<256; ix++)
+	{
+		total += freqs[ix];
+	}
+	if (total>.01)
+	{
+		for (ix=0; ix<256; ix++)
+		{
+			sprintf(string, "\t%.8f,\n",((float)freqs[ix])/total);
+			//OutputDebugString(string);
+//			Printf(PRINT_HIGH, string);
+		}
+	}
+	huffman_ZeroFreq();
+}
 #endif
 
-	BuildTree(HuffFreq);
+
+void FindTab(huffnode_t *tmp,int len,unsigned int bits)
+{
+//	if(!tmp)
+//		I_FatalError("no huff node");
+	if (tmp->zero)
+	{
+//		if(!tmp->one)
+//			I_FatalError("no one in node");
+//		if(len>=32)
+//			I_FatalError("compression screwd");
+		FindTab(tmp->zero,len+1,bits<<1);
+		FindTab(tmp->one,len+1,(bits<<1)|1);
+		return;
+	}
+	HuffLookup[tmp->val].len=len;
+	HuffLookup[tmp->val].bits=bits;
+	return;
+}
+
+//=============================================================================
+//
+//	huffman_PutBit
+//
+//=============================================================================
+
+void huffman_PutBit(unsigned char *buf,int pos,int bit)
+{
+	if (bit)
+		buf[pos/8]|=Masks[pos%8];
+	else
+		buf[pos/8]&=~Masks[pos%8];
+}
+
+//=============================================================================
+//
+//	huffman_GetBit
+//
+//=============================================================================
+
+int huffman_GetBit(unsigned char *buf,int pos)
+{
+	if (buf[pos/8]&Masks[pos%8])
+		return 1;
+	else
+		return 0;
+}
+
+//=============================================================================
+//
+//	huffman_BuildTree
+//
+//=============================================================================
+
+void huffman_BuildTree( float *freq )
+{
+	float min1,min2;
+	int i,j,minat1,minat2;
+	huffnode_t *work[256];	
+	huffnode_t *tmp;	
+	for (i=0;i<256;i++)
+	{
+		work[i]=(huffnode_s *)M_Malloc(sizeof(huffnode_t));
+		
+		
+		work[i]->val=(unsigned char)i;
+		work[i]->freq=freq[i];
+		work[i]->zero=0;
+		work[i]->one=0;
+		HuffLookup[i].len=0;
+	}
+	for (i=0;i<255;i++)
+	{
+		minat1=-1;
+		minat2=-1;
+		min1=1E30;
+		min2=1E30;
+		for (j=0;j<256;j++)
+		{
+			if (!work[j])
+				continue;
+			if (work[j]->freq<min1)
+			{
+				minat2=minat1;
+				min2=min1;
+				minat1=j;
+				min1=work[j]->freq;
+			}
+			else if (work[j]->freq<min2)
+			{
+				minat2=j;
+				min2=work[j]->freq;
+			}
+		}
+/*
+		if (minat1<0)
+			I_FatalError("minatl: %f",minat1);
+		if (minat2<0)
+			I_FatalError("minat2: %f",minat2);
+*/		
+		tmp= (huffnode_s *)M_Malloc(sizeof(huffnode_t));
+		
+		
+		tmp->zero=work[minat2];
+		tmp->one=work[minat1];
+		tmp->freq=work[minat2]->freq+work[minat1]->freq;
+		tmp->val=0xff;
+		work[minat1]=tmp;
+		work[minat2]=0;
+	}		
+	HuffTree=tmp;
+	FindTab(HuffTree,0,0);
+
+#if _DEBUG
+	for (i=0;i<256;i++)
+	{
+//		if(!HuffLookup[i].len&&HuffLookup[i].len<=32)
+//			I_FatalError("bad frequency table");
+		//Printf(PRINT_HIGH, "%d %d %2X\n", HuffLookup[i].len, HuffLookup[i].bits, i);
+	}
+#endif
+}
+
+//=============================================================================
+//
+//	huffman_RecursiveFreeNode
+//
+//=============================================================================
+
+static void huffman_RecursiveFreeNode( huffnode_t *pNode )
+{
+	if ( pNode->one )
+	{
+		huffman_RecursiveFreeNode( pNode->one );
+
+		free( pNode->one );
+		pNode->one = NULL;
+	}
+
+	if ( pNode->zero )
+	{
+		huffman_RecursiveFreeNode( pNode->zero );
+
+		free( pNode->zero );
+		pNode->zero = NULL;
+	}
 }

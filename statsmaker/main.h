@@ -141,7 +141,7 @@ typedef struct
 	ULONG		ulActiveState;
 
 	// IP address of this server.
-	netadr_t	Address;
+	NETADDRESS_s	Address;
 
 	// Name of the server.
 	char		szHostName[256];
@@ -155,7 +155,7 @@ typedef struct
 	// Version of the server.
 	char		szVersion[32];
 
-} SERVERINFO_t;
+} SERVERINFO_s;
 
 //*****************************************************************************
 typedef struct
@@ -170,7 +170,7 @@ typedef struct
 
 	LONG		lSecond;
 
-} UPDATETIME_t;
+} UPDATETIME_s;
 
 //*****************************************************************************
 //	PROTOTYPES

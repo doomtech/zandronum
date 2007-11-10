@@ -1,0 +1,18 @@
+===============================================================================
+
+	Skulltag Stats Maker - "To Do" List
+	
+===============================================================================
+
+- Appearance
+	- Updated GUI showing ZDaemon/Odamex stats
+	- Tabs in main window
+		- Overview
+			- Shows important stats at a glance
+		- Skulltag/ZDaemon/Odamex
+			- Shows more indepth stats
+- Functionality
+	- Gather stats for other ports
+	- Create seperate list
+	- Monthly reports
+	

@@ -3,7 +3,7 @@
 ** Wrappers for the malloc family of functions
 **
 **---------------------------------------------------------------------------
-** Copyright 1998-2001 Randy Heit
+** Copyright 1998-2006 Randy Heit
 ** All rights reserved.
 **
 ** Redistribution and use in source and binary forms, with or without
@@ -32,40 +32,37 @@
 **
 */
 
-#ifndef _DEBUG
-
-#include <windows.h>
+#if !defined(_DEBUG) || !defined(_MSC_VER)
 
 //#include "i_system.h"
 #include "m_alloc.h"
-#include "main.h"
 
-void *Malloc (size_t size)
+void *M_Malloc (size_t size)
 {
 	void *zone = malloc (size);
 
-	if (!zone)
-		Printf ("Could not malloc %u bytes", size);
+//	if (!zone)
+//		I_FatalError ("Could not malloc %u bytes", size);
 
 	return zone;
 }
 
-void *Calloc (size_t num, size_t size)
+void *M_Calloc (size_t num, size_t size)
 {
 	void *zone = calloc (num, size);
 
-	if (!zone)
-		Printf ("Could not calloc %u bytes", num * size);
+//	if (!zone)
+//		I_FatalError ("Could not calloc %u bytes", num * size);
 
 	return zone;
 }
 
-void *Realloc (void *memblock, size_t size)
+void *M_Realloc (void *memblock, size_t size)
 {
 	void *zone = realloc (memblock, size);
 
-	if (!zone)
-		Printf ("Could not realloc %u bytes", size);
+//	if (!zone)
+//		I_FatalError ("Could not realloc %u bytes", size);
 
 	return zone;
 }
