@@ -86,9 +86,10 @@ static	LONG					g_lStoredQueryIPTail;
 //*****************************************************************************
 //	FUNCTIONS
 
-#ifdef _MSC_VER
+// Returns time in seconds
 int I_GetTime (void)
 {
+#ifdef _MSC_VER
 	static DWORD  basetime;
 	DWORD         tm;
 
@@ -97,29 +98,23 @@ int I_GetTime (void)
 		basetime = tm;
 
 	return (tm-basetime)/1000;
-}
-
 #else
-
-// Returns time in seconds
-int I_GetTime(void)
-{
-        struct timeval tv;
-        struct timezone tz;
-        long long int thistimereply;
+	struct timeval tv;
+	struct timezone tz;
+	long long int thistimereply;
 	static long long int basetime;	
 
-        gettimeofday(&tv, &tz);
+	gettimeofday(&tv, &tz);
 
-        thistimereply = tv.tv_sec * 1000 + tv.tv_usec / 1000;
+	thistimereply = tv.tv_sec * 1000 + tv.tv_usec / 1000;
 
 	if (!basetime)
-            basetime = thistimereply;
-        
+		basetime = thistimereply;
+
 	return (thistimereply - basetime)/1000;
+#endif
 }
 
-#endif
 
 //*****************************************************************************
 //

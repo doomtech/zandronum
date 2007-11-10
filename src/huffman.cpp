@@ -50,35 +50,8 @@
 
 #include "networkheaders.h"
 
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-
-#include <ctype.h>
-#include <math.h>
-
-#define USE_WINDOWS_DWORD
-#include "doomdef.h"
-#include "doomstat.h"
-#include "gstrings.h"
-#include "d_player.h"
-#include "c_cvars.h"
-#include "c_dispatch.h"
-#include "c_bind.h"
-#include "c_console.h"
 #include "huffman.h"
-#include "p_local.h"
 #include "i_system.h"
-#include "g_game.h"
-#include "gstrings.h"
-#include "s_sound.h"
-#include "m_argv.h"
-#include "cmdlib.h"
-#include "version.h"
-#include "m_misc.h"
-
-#include "a_action.h"
-#include "sv_main.h"
 
 //*****************************************************************************
 //	PROTOTYPES
