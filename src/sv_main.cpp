@@ -1782,25 +1782,16 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 		if ( strlen( pszString ) > MAXPLAYERNAME )
 			pszString[MAXPLAYERNAME] = '\0';
 
+		// [RC] Remove bad characters from their username.
 		strcpy( pPlayer->userinfo.netname, pszString );
 		V_CleanPlayerName(pszString);
 
-		// The user really shouldn't have an invalid name, unless they are using a hacked executable.
-		if(strcmp(pPlayer->userinfo.netname, pszString) != 0) {
-				// [RC][BETA ONLY] Explain for the poor 97c3 souls why their juicy names do not work.
-					SERVER_KickPlayer( g_lCurrentClient, "Invalid name. If you are connecting with 0.97c3, this is a 0.97d server." );
-				// SERVER_KickPlayer( g_lCurrentClient, "Name contains illegal characters!");
-				return ( false );
-		}
-
-
-		/* [RC] V_CleanName already does this.
-		// Remove % signs from names.
-		for ( ulIdx = 0; ulIdx < strlen( pPlayer->userinfo.netname ); ulIdx++ )
+		// The user really shouldn't have an invalid name unless they are using a hacked executable.
+		if ( strcmp( pPlayer->userinfo.netname, pszString ) != 0 )
 		{
-			if ( pPlayer->userinfo.netname[ulIdx] == '%' )
-				pPlayer->userinfo.netname[ulIdx] = ' ';
-		} */
+			SERVER_KickPlayer( g_lCurrentClient, "User name contains illegal characters." );
+			return ( false );
+		}
 
 		if ( g_aClients[g_lCurrentClient].State == CLS_SPAWNED )
 		{
