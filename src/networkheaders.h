@@ -97,6 +97,9 @@ typedef int SOCKET;
 #include <ctype.h>
 #include <math.h>
 
-//#include "../src/doomtype.h"
+// [BB] This is necessary under Linux, otherwise things like DWORD aren't defined.
+#ifndef __WIN32__
+#include "../src/doomtype.h"
+#endif
 
 #endif	// __NETWORKHEADERS_H__
