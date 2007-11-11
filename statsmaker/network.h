@@ -54,44 +54,6 @@
 //*****************************************************************************
 //	DEFINES
 
-enum
-{
-	// Server is letting master server of its existance.
-	SERVER_MASTER_CHALLENGE = 5660020,
-
-	// Server is letting master server of its existance, along with sending an IP the master server
-	// should use for this server.
-	SERVER_MASTER_CHALLENGE_OVERRIDE,
-
-	// Server is sending some statistics to the master server.
-	SERVER_MASTER_STATISTICS,
-
-	// Server is sending its info to the launcher.
-	SERVER_LAUNCHER_CHALLENGE,
-
-	// Server is telling a launcher that it's ignoring it.
-	SERVER_LAUNCHER_IGNORING,
-
-	// Server is telling a launcher that his IP is banned from the server.
-	SERVER_LAUNCHER_BANNED,
-
-	// Client is trying to create a new account with the master server.
-	CLIENT_MASTER_NEWACCOUNT,
-
-	// Client is trying to log in with the master server.
-	CLIENT_MASTER_LOGIN,
-
-};
-
-// Launcher is querying the server, or master server.
-#define	LAUNCHER_SERVER_CHALLENGE	199
-
-#define	DEFAULT_SERVER_PORT			10666
-#define	DEFAULT_CLIENT_PORT			10667
-#define	DEFAULT_MASTER_PORT			15300
-#define	DEFAULT_BROADCAST_PORT		15101
-#define	DEFAULT_STATS_PORT			15201
-
 // Should we use huffman compression?
 #define	USE_HUFFMAN_COMPRESSION
 
@@ -142,10 +104,6 @@ int				NETWORK_GetPackets( void );
 int				NETWORK_GetLANPackets( void );
 NETADDRESS_s	NETWORK_GetFromAddress( void );
 void			NETWORK_LaunchPacket( NETBUFFER_s *pBuffer, NETADDRESS_s Address );
-void			NETWORK_InitBuffer( NETBUFFER_s *pBuffer, ULONG ulLength, BUFFERTYPE_e BufferType );
-void			NETWORK_FreeBuffer( NETBUFFER_s *pBuffer );
-void			NETWORK_ClearBuffer( NETBUFFER_s *pBuffer );
-LONG			NETWORK_CalcBufferSize( NETBUFFER_s *pBuffer );
 char			*NETWORK_AddressToString( NETADDRESS_s Address );
 char			*NETWORK_AddressToStringIgnorePort( NETADDRESS_s Address );
 bool			NETWORK_CompareAddress( NETADDRESS_s Address1, NETADDRESS_s Address2, bool bIgnorePort );

@@ -733,52 +733,6 @@ return;
 
 //*****************************************************************************
 //
-void NETWORK_InitBuffer( NETBUFFER_s *pBuffer, ULONG ulLength, BUFFERTYPE_e BufferType )
-{
-	memset( pBuffer, 0, sizeof( *pBuffer ));
-	pBuffer->ulMaxSize = ulLength;
-	pBuffer->pbData = new BYTE[ulLength];
-	pBuffer->BufferType = BufferType;
-}
-
-//*****************************************************************************
-//
-void NETWORK_FreeBuffer( NETBUFFER_s *pBuffer )
-{
-	if ( pBuffer->pbData )
-	{
-		delete ( pBuffer->pbData );
-		pBuffer->pbData = NULL;
-	}
-
-	pBuffer->ulMaxSize = 0;
-	pBuffer->BufferType = (BUFFERTYPE_e)0;
-}
-
-//*****************************************************************************
-//
-void NETWORK_ClearBuffer( NETBUFFER_s *pBuffer )
-{
-	pBuffer->ulCurrentSize = 0;
-	pBuffer->ByteStream.pbStream = pBuffer->pbData;
-	if ( pBuffer->BufferType == BUFFERTYPE_READ )
-		pBuffer->ByteStream.pbStreamEnd = pBuffer->ByteStream.pbStream;
-	else
-		pBuffer->ByteStream.pbStreamEnd = pBuffer->ByteStream.pbStream + pBuffer->ulMaxSize;
-}
-
-//*****************************************************************************
-//
-LONG NETWORK_CalcBufferSize( NETBUFFER_s *pBuffer )
-{
-	if ( pBuffer->BufferType == BUFFERTYPE_READ )
-		return ( LONG( pBuffer->ByteStream.pbStreamEnd - pBuffer->ByteStream.pbStream ));
-	else
-		return ( LONG( pBuffer->ByteStream.pbStream - pBuffer->pbData ));
-}
-
-//*****************************************************************************
-//
 char *NETWORK_AddressToString( NETADDRESS_s Address )
 {
 	static char	s_szAddress[64];
