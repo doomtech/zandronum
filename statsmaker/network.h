@@ -57,9 +57,6 @@
 // Should we use huffman compression?
 #define	USE_HUFFMAN_COMPRESSION
 
-// This is the longest possible string we can pass over the network.
-#define	MAX_NETWORK_STRING			2048
-
 //*****************************************************************************
 enum
 {
@@ -79,26 +76,6 @@ enum
 
 void			NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket );
 void			NETWORK_Destruct( void );
-
-int				NETWORK_ReadByte( BYTESTREAM_s *pByteStream );
-void			NETWORK_WriteByte( BYTESTREAM_s *pByteStream, int Byte );
-
-int				NETWORK_ReadShort( BYTESTREAM_s *pByteStream );
-void			NETWORK_WriteShort( BYTESTREAM_s *pByteStream, int Short );
-
-int				NETWORK_ReadLong( BYTESTREAM_s *pByteStream );
-void			NETWORK_WriteLong( BYTESTREAM_s *pByteStream, int Long );
-
-float			NETWORK_ReadFloat( BYTESTREAM_s *pByteStream );
-void			NETWORK_WriteFloat( BYTESTREAM_s *pByteStream, float Float );
-
-char			*NETWORK_ReadString( BYTESTREAM_s *pByteStream );
-void			NETWORK_WriteString( BYTESTREAM_s *pByteStream, const char *pszString );
-
-void			NETWORK_WriteBuffer( BYTESTREAM_s *pByteStream, const void *pvBuffer, int nLength );
-
-// Debugging function.
-void			NETWORK_WriteHeader( BYTESTREAM_s *pByteStream, int Byte );
 
 int				NETWORK_GetPackets( void );
 int				NETWORK_GetLANPackets( void );
