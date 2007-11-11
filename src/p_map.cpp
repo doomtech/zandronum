@@ -4405,7 +4405,8 @@ void P_RailAttackWithPossibleSpread (AActor *source, int damage, int offset, int
 	LONG	lInnerColor;
 
 	// [BC] If this is a player, use the player's custom colors.
-	if ( source->player )
+	// [BB] Only apply the color change if color1 and color2 are at the default value.
+	if ( source->player && (color1 == 0) && (color2 == 0) )
 	{
 		if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) &&
 			( source->player->bOnTeam ))

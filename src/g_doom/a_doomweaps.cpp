@@ -1113,8 +1113,6 @@ void A_FireRailgun (AActor *actor)
 {
 	int damage;
 	player_t *player;
-	LONG		lInnerColor;
-	LONG		lOuterColor;
 
 	if (NULL == (player = actor->player))
 	{
@@ -1150,35 +1148,8 @@ void A_FireRailgun (AActor *actor)
 			damage = 75;
 	}
 
-	if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) &&
-		( player->bOnTeam ))
-	{
-		lOuterColor = TEAM_GetRailgunColor( player->ulTeam );
-		lInnerColor = PLAYER_GetRailgunColor( player );
-	}
-	else
-	{
-		lOuterColor = PLAYER_GetRailgunColor( player );
-		lInnerColor = V_GetColorFromString( NULL, "ff ff ff" );
-	}
-
-	P_RailAttack (actor, damage, RailOffset, lOuterColor, lInnerColor);
-
-	// [BC] Apply spread.
-	if ( player->cheats & CF_SPREAD )
-	{
-		fixed_t		SavedActorAngle;
-
-		SavedActorAngle = actor->angle;
-
-		actor->angle += ( ANGLE_45 / 3 );
-		P_RailAttack( actor, damage, RailOffset, lOuterColor, lInnerColor );
-		actor->angle = SavedActorAngle;
-
-		actor->angle -= ( ANGLE_45 / 3 );
-		P_RailAttack( actor, damage, RailOffset, lOuterColor, lInnerColor );
-		actor->angle = SavedActorAngle;
-	}
+	// [BB] This also handles color and spread.
+	P_RailAttackWithPossibleSpread (actor, damage, RailOffset);
 
 	RailOffset = 0;
 
