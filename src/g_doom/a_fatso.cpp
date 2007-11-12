@@ -238,7 +238,7 @@ FState AHectShot::States[] =
 	S_BRIGHT (HECF, 'E',	4, NULL 						, NULL)
 };
 
-IMPLEMENT_ACTOR (AHectShot, Doom, -1, 153)
+IMPLEMENT_ACTOR (AHectShot, Doom, -1, 0)
 	PROP_SpeedFixed (22)
 	PROP_Damage (12)
 

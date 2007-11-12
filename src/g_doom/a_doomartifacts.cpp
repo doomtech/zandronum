@@ -361,7 +361,7 @@ FState AHissy::States[] =
 	S_NORMAL( HISY, 'A',	-1,	NULL,				NULL ),
 };
 
-IMPLEMENT_ACTOR( AHissy, Doom, 5057, -1 )
+IMPLEMENT_ACTOR( AHissy, Doom, 5057, 0 )
 	PROP_RadiusFixed( 20 )
 	PROP_HeightFixed( 26 )
 	PROP_Flags( MF_SOLID )

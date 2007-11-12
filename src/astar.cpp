@@ -103,7 +103,7 @@ FState APathNode::States[] =
 
 };
 
-IMPLEMENT_ACTOR( APathNode, Any, -1, -1 )
+IMPLEMENT_ACTOR( APathNode, Any, -1, 0 )
 	PROP_RadiusFixed( 8 )
 	PROP_HeightFixed( 8 )
 	PROP_Flags( MF_NOBLOCKMAP )

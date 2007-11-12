@@ -1661,7 +1661,7 @@ FState ABlueSkullST::States[] =
 	S_BRIGHT( BSKU, 'B',   10, NULL 				, &States[0] ),
 };
 
-IMPLEMENT_ACTOR( ABlueSkullST, Any, -1, -1 )
+IMPLEMENT_ACTOR( ABlueSkullST, Any, -1, 0 )
 	PROP_RadiusFixed( 20 )
 	PROP_HeightFixed( 16 )
 	PROP_Flags( MF_SPECIAL|MF_NOTDMATCH )
@@ -1979,7 +1979,7 @@ FState ARedSkullST::States[] =
 	S_BRIGHT( RSKU, 'B',   10, NULL 				, &States[0] ),
 };
 
-IMPLEMENT_ACTOR( ARedSkullST, Any, -1, -1 )
+IMPLEMENT_ACTOR( ARedSkullST, Any, -1, 0 )
 	PROP_RadiusFixed( 20 )
 	PROP_HeightFixed( 16 )
 	PROP_Flags( MF_SPECIAL|MF_NOTDMATCH )
