@@ -9,6 +9,7 @@
 #include "p_local.h"
 #include "s_sound.h"
 #include "gstrings.h"
+#include "cl_demo.h"
 
 static FRandom pr_podpain ("PodPain");
 static FRandom pr_makepod ("MakePod");
@@ -178,6 +179,13 @@ void A_RemovePod (AActor *actor)
 {
 	AActor *mo;
 
+	// [BC] Don't do this in client mode.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if ( (mo = static_cast<APod *>(actor)->Generator) )
 	{
 		if (mo->special1 > 0)
@@ -202,6 +210,13 @@ void A_MakePod (AActor *actor)
 	fixed_t y;
 	fixed_t z;
 
+	// [BC] Don't do this in client mode.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if (actor->special1 == MAX_GEN_PODS)
 	{ // Too many generated pods
 		return;
@@ -218,6 +233,15 @@ void A_MakePod (AActor *actor)
 	mo->SetState (&APod::States[S_POD_GROW]);
 	P_ThrustMobj (mo, pr_makepod()<<24, (fixed_t)(4.5*FRACUNIT));
 	S_Sound (mo, CHAN_BODY, "world/podgrow", 1, ATTN_IDLE);
+
+	// [BC] If we're the server, spawn the pod and play the sound.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		SERVERCOMMANDS_SpawnMissile( mo );
+		SERVERCOMMANDS_SetThingFrame( mo, mo->state - mo->SpawnState );
+		SERVERCOMMANDS_SoundActor( mo, CHAN_BODY, "world/podgrow", 1, ATTN_IDLE );
+	}
+
 	actor->special1++; // Increment generated pod count
 	mo->Generator = actor; // Link the generator to the pod
 	return;
