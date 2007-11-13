@@ -310,34 +310,25 @@ bool G15_IsDeviceConnected( void )
 //*****************************************************************************
 //	PUBLIC DISPLAY FUNCTIONS
 
-void G15_Printf( char *pszString )
+void G15_Printf( const char *pszString )
 {
 	// Print a message to the HUD's 'console'.
 	if ( G15_IsReady() && g_CurrentLCDMode == LCDMODE_HUD)
 	{
-		char szMessage1[128];
-		char szMessage2[128];
-		szMessage1[0] = 0;
-		szMessage2[0] = 0;
+		char szIncoming[128];
+		strncpy( szIncoming, pszString, 127 );
 
-		V_ColorizeString( pszString );
-		V_RemoveColorCodes( pszString );
+		V_ColorizeString( szIncoming );
+		V_RemoveColorCodes( szIncoming );
 
 		// If there's no last message, use the upper string.
-		if(strlen(g_szLastConsoleMessage) == 0)
-			strncpy(szMessage1, pszString, 127);
+		if( strlen( g_szLastConsoleMessage ) == 0 )
+			g_LCD->SetText(g_hHUD_message1, szIncoming);
 		else
 		{
-			strncpy(szMessage1, g_szLastConsoleMessage, 127);
-			strncpy(szMessage2, pszString, 127);
+			g_LCD->SetText(g_hHUD_message1, g_szLastConsoleMessage);
+			g_LCD->SetText(g_hHUD_message2, szIncoming);
 		}
-
-		// Update the display.
-		if ( szMessage1[0] != 0)
-			g_LCD->SetText(g_hHUD_message1, szMessage1);
-
-		if ( szMessage2[0] != 0)
-			g_LCD->SetText(g_hHUD_message2, szMessage2);
 
 		strncpy(g_szLastConsoleMessage, pszString, 127);
 	}
