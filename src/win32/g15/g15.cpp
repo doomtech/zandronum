@@ -67,7 +67,7 @@
 	bool		G15_IsReady( void ) { return false; }
 	bool		G15_IsDeviceConnected( void );
 	void		G15_Deconstruct( void ) { }
-	void		G15_Printf( char *pszString ) { }
+	void		G15_Printf( const char *pszString ) { }
 	void		G15_ShowLargeFragMessage( char *name, bool bWeFragged ) { }
 #else
 
