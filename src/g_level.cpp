@@ -91,6 +91,7 @@
 #include "callvote.h"
 #include "win32/g15/g15.h"
 #include "gi.h"
+#include "survival.h"
 
 #include "g_hub.h"
 #include "gl/gl_functions.h"
@@ -1873,6 +1874,13 @@ void G_ChangeLevel(const char * levelname, int position, bool keepFacing, int ne
 
 void G_ExitLevel (int position, bool keepFacing)
 {
+	// [BC] We cannot end the map during survival's countdown.
+	if (( survival ) &&
+		( SURVIVAL_GetState( ) == SURVS_COUNTDOWN ))
+	{
+		return;
+	}
+
 	// [BC] Now we use G_GetNextLevelName() to take into account
 	// things like map rotation.
 	// [BB] We need to pass ( (dmflags & DF_NO_MONSTERS) == DF_NO_MONSTERS ) as last
