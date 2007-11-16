@@ -1013,6 +1013,8 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 	player_t *player;
 	fixed_t thrust;
 	int temp;
+	// [BC]
+	LONG	lOldTargetHealth;
 
 	// [BC] Game is currently in a suspended state; don't hurt anyone.
 	if ( GAME_GetEndLevelDelay( ))
@@ -1256,6 +1258,8 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 	//
 	// player specific
 	//
+	// [BC]
+	lOldTargetHealth = target->health;
 	if (player)
 	{
 		if ((target->flags2 & MF2_INVULNERABLE) && damage < 1000000)
@@ -1374,7 +1378,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 	{
 		if (( target->player == false ) || ( target->player != source->player ))
 		{
-			if ( P_GiveBody( source, damage / 2 ))
+			if ( P_GiveBody( source, MIN( (int)lOldTargetHealth, damage ) / 2 ))
 			{
 				// [BC] If we're the server, send out the health change, and play the
 				// health sound.
