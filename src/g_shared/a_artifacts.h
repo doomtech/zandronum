@@ -247,6 +247,7 @@ protected:
 	void InitEffect( );
 	void DoEffect( );
 	void EndEffect( );
+	virtual void ModifyDamage( int damage, FName damageType, int &newdamage, bool passive );
 };
 
 class APowerTranslucency : public APowerInvisibility

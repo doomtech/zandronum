@@ -3906,8 +3906,11 @@ int G_SkillProperty(ESkillProperty prop)
 		{
 		case SKILLP_AmmoFactor:
 			// [BB] Apply double ammo logic.
-			if ( dmflags2 & DF2_YES_DOUBLEAMMO )
+			if (( dmflags2 & DF2_YES_DOUBLEAMMO ) &&
+				( AllSkills[gameskill].AmmoFactor == 1 ))
+			{
 				return 2*AllSkills[gameskill].AmmoFactor;
+			}
 			else
 				return AllSkills[gameskill].AmmoFactor;
 

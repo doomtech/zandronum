@@ -1767,6 +1767,25 @@ void APowerTerminatorArtifact::EndEffect( )
 	Owner->player->cheats &= ~CF_TERMINATORARTIFACT;
 }
 
+//===========================================================================
+//
+// APowerTerminatorArtifact :: ModifyDamage
+//
+//===========================================================================
+
+void APowerTerminatorArtifact::ModifyDamage( int damage, FName damageType, int &newdamage, bool passive )
+{
+	if (( passive == false ) &&
+		( damage > 0 ))
+	{
+		damage = newdamage = damage * 4;
+	}
+
+	// Go onto the next item.
+	if ( Inventory != NULL )
+		Inventory->ModifyDamage( damage, damageType, newdamage, passive );
+}
+
 // Translucency Powerup (Skulltag's version of invisibility) ----------------
 
 IMPLEMENT_STATELESS_ACTOR( APowerTranslucency, Any, -1, 0 )
