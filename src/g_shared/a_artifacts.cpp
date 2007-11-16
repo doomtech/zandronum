@@ -18,6 +18,7 @@
 #include "templates.h"
 // New #includes for ST.
 #include "cl_demo.h"
+#include "cl_main.h"
 #include "network.h"
 #include "g_game.h"
 #include "deathmatch.h"
@@ -1223,8 +1224,8 @@ void APowerSpeed::DoEffect ()
 	if (Owner == NULL || Owner->player == NULL)
 		return;
 
-//	if (Owner->player->cheats & CF_PREDICTING)
-//		return;
+	if ( CLIENT_PREDICT_IsPredicting( ))
+		return;
 
 	// [BC] In Skulltag, display a little message saying that the powerup is about to wear off,
 	// since there isn't any screen blend that we can blink.
