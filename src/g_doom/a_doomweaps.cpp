@@ -243,7 +243,7 @@ void A_Saw (AActor *actor)
 	// use meleerange + 1 so the puff doesn't skip the flash (i.e. plays all states)
 	P_LineAttack (actor, angle, MELEERANGE+1,
 				  P_AimLineAttack (actor, angle, MELEERANGE+1), damage,
-				  NAME_None, pufftype);
+				  GetDefaultByType(pufftype)->DamageType, pufftype);
 
 	// [BC] Apply spread.
 	if ( player->cheats & CF_SPREAD )

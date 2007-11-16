@@ -210,7 +210,7 @@ void A_PotteryExplode (AActor *actor)
 
 	if (actor->args[0]>=0 && actor->args[0]<=255 && SpawnableThings[actor->args[0]])
 	{ // Spawn an item
-		if (!(dmflags & DF_NO_MONSTERS) 
+		if (!((level.flags & LEVEL_NOMONSTERS) || (dmflags & DF_NO_MONSTERS))
 		|| !(GetDefaultByType (SpawnableThings[actor->args[0]])->flags3 & MF3_ISMONSTER))
 		{ // Only spawn monsters if not -nomonsters
 			// [BC]
@@ -750,7 +750,7 @@ void A_SoAExplode (AActor *actor)
 	}
 	if (actor->args[0]>=0 && actor->args[0]<=255 && SpawnableThings[actor->args[0]])
 	{ // Spawn an item
-		if (!(dmflags & DF_NO_MONSTERS) 
+		if (!((level.flags & LEVEL_NOMONSTERS) || (dmflags & DF_NO_MONSTERS))
 		|| !(GetDefaultByType (SpawnableThings[actor->args[0]])->flags3 & MF3_ISMONSTER))
 		{ // Only spawn monsters if not -nomonsters
 			// [BC]

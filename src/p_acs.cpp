@@ -772,8 +772,7 @@ FBehavior::FBehavior (int lumpnum, FileReader * fr, int len)
 
 	if (object[0] != 'A' || object[1] != 'C' || object[2] != 'S')
 	{
-		// [BC] Fixes a memory leak.
-		delete [] ( object );
+		delete[] object;
 		return;
 	}
 
@@ -789,6 +788,7 @@ FBehavior::FBehavior (int lumpnum, FileReader * fr, int len)
 		Format = ACS_LittleEnhanced;
 		break;
 	default:
+		delete[] object;
 		return;
 	}
 
@@ -5141,7 +5141,7 @@ int DLevelScript::RunScript ()
 			}
 			else
 			{
-				STACK(1) = 0 == strcmp (FBehavior::StaticLookupString (STACK(1)),
+				STACK(1) = 0 == stricmp (FBehavior::StaticLookupString (STACK(1)),
 					activator->player->ReadyWeapon->GetClass()->TypeName.GetChars());
 			}
 			break;

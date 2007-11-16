@@ -403,6 +403,21 @@ void cht_DoCheat (player_t *player, int cheat)
 		player->cheats &= ~(CF_FROZEN|CF_TOTALLYFROZEN);
 		msg = "Frozen player properties turned off";
 		break;
+
+/* [BB] Skulltag doesn't use this.
+	case CHT_FREEZE:
+		if (bglobal.freeze)
+		{
+			bglobal.freeze = false;
+			msg = "Freeze mode off";
+		}
+		else
+		{
+			bglobal.freeze = true;
+			msg = "Freeze mode on";
+		}
+		break;
+*/
 	}
 
 	if (!*msg)              // [SO] Don't print blank lines!
