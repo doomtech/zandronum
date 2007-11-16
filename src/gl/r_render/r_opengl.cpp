@@ -564,19 +564,20 @@ static bool SetupPixelFormat(bool allowsoftware, bool nostencil, int multisample
 				if (!wglChoosePixelFormatARB(m_hDC, attributes, attribsFloat, 1, &pixelFormat, &numFormats))
 				{
 					Printf("R_OPENGL: Couldn't choose pixel format. Retrying in compatibility mode\n");
-					continue;//return false;
+					goto oldmethod;
 				}
 			
 				if (numFormats == 0)
 				{
 					Printf("R_OPENGL: No valid pixel formats found. Retrying in compatibility mode\n");
-					continue;//return false;
+					goto oldmethod;
 				}
 
 				break;
 			}
 			else
 			{
+			oldmethod:
 				// If wglChoosePixelFormatARB is not found we have to do it the old fashioned way.
 				static PIXELFORMATDESCRIPTOR pfd = {
 					sizeof(PIXELFORMATDESCRIPTOR),
