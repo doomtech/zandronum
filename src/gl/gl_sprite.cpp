@@ -225,7 +225,7 @@ void GLSprite::Draw(int pass)
 			gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		}
 		// [BB] Restore the alpha test after drawing a smooth particle.
-		if (gltexture->GetTransparent() || RenderStyle == STYLE_Transparent)
+		if ( (gltexture && gltexture->GetTransparent()) || RenderStyle == STYLE_Transparent)
 		{
 			gl.Enable(GL_ALPHA_TEST);
 		}
