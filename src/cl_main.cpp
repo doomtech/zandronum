@@ -2628,13 +2628,14 @@ void CLIENT_SpawnMissile( char *pszName, fixed_t X, fixed_t Y, fixed_t Z, fixed_
 //
 void CLIENT_MoveThing( AActor *pActor, fixed_t X, fixed_t Y, fixed_t Z )
 {
-   if (( pActor == NULL ) || ( gamestate != GS_LEVEL ))
-	   return;
+	if (( pActor == NULL ) || ( gamestate != GS_LEVEL ))
+		return;
 
-   pActor->SetOrigin( X, Y, Z );
+	pActor->SetOrigin( X, Y, Z );
 
-   // This is needed to restore tmfloorz.
-   P_AdjustFloorCeil( pActor );
+	// This is needed to restore tmfloorz.
+	if (( pActor->flags & MF_NOBLOCKMAP ) == false )
+		P_AdjustFloorCeil( pActor );
 }
 
 //*****************************************************************************
