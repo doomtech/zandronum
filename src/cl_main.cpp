@@ -9397,7 +9397,7 @@ static void client_DoCeiling( BYTESTREAM_s *pByteStream )
 	lCrush = NETWORK_ReadShort( pByteStream );
 
 	// Does this ceiling make noise?
-	lSilent = NETWORK_ReadByte( pByteStream );
+	lSilent = NETWORK_ReadShort( pByteStream );
 
 	// Read in the network ID of the ceiling.
 	lCeilingID = NETWORK_ReadShort( pByteStream );
