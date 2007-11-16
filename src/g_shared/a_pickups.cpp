@@ -1823,8 +1823,7 @@ AInventory *ABackpackItem::CreateCopy (AActor *other)
 	{
 		const PClass *type = PClass::m_Types[i];
 
-		if (type->ParentClass == RUNTIME_CLASS(AAmmo) &&
-			((AAmmo *)GetDefaultByType (type))->BackpackAmount > 0)
+		if (type->ParentClass == RUNTIME_CLASS(AAmmo))
 		{
 			AAmmo *ammo = static_cast<AAmmo *>(other->FindInventory (type));
 			int amount = static_cast<AAmmo *>(GetDefaultByType(type))->BackpackAmount;
@@ -1833,6 +1832,7 @@ AInventory *ABackpackItem::CreateCopy (AActor *other)
 			{
 				amount = FixedMul(amount, G_SkillProperty(SKILLP_AmmoFactor));
 			}
+			if (amount < 0) amount = 0;
 			if (ammo == NULL)
 			{ // The player did not have the ammo. Add it.
 				ammo = static_cast<AAmmo *>(Spawn (type, 0, 0, 0, NO_REPLACE));

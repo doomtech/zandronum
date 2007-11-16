@@ -442,7 +442,7 @@ bool P_CheckIfMapExists(const char * mapname){
 //
 //===========================================================================
 
-static void SetTexture (short *texture, DWORD *blend, char *name8)
+static void SetTexture (int *texture, DWORD *blend, char *name8)
 {
 	char name[9];
 	strncpy (name, name8, 8);
@@ -471,7 +471,7 @@ static void SetTexture (short *texture, DWORD *blend, char *name8)
 	}
 }
 
-static void SetTextureNoErr (short *texture, DWORD *color, char *name8, bool *validcolor, bool isfog)
+static void SetTextureNoErr (int *texture, DWORD *color, char *name8, bool *validcolor, bool isfog)
 {
 	char name[9];
 	strncpy (name, name8, 8);

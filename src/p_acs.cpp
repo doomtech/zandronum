@@ -4180,7 +4180,7 @@ int DLevelScript::RunScript ()
 			break;
 
 		case PCD_GAMESKILL:
-			PushToStack (gameskill);
+			PushToStack (G_SkillProperty(SKILLP_ACSReturn));
 			break;
 
 // There aren't used anymore.

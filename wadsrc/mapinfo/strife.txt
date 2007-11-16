@@ -1,5 +1,38 @@
 // MAPINFO for Strife (full version and teaser)
 
+skill baby
+	AmmoFactor 2
+	DamageFactor 0.5
+	EasyBossBrain
+	SpawnFilter "Easy"
+	PicName "M_JKILL"
+	Key t
+
+skill easy
+	SpawnFilter "Easy"
+	PicName "M_ROUGH"
+	Key r
+
+skill normal
+	SpawnFilter "Normal"
+	PicName "M_HURT"
+	Key v
+
+skill hard
+	SpawnFilter "Normal"
+	PicName "M_ULTRA"
+	Key e
+
+skill nightmare
+	AmmoFactor 2
+	FastMonsters
+	DisableCheats
+	RespawnTime 16
+	SpawnFilter "Hard"
+	PicName "M_NMARE"
+	MustConfirm
+	Key b
+
 defaultmap
 forcenoskystretch
 strifefallingdamage

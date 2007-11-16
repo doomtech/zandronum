@@ -500,7 +500,7 @@ static int TryFindSwitch (SWORD texture)
 bool P_ChangeSwitchTexture (side_t *side, int useAgain, BYTE special, bool *quest)
 {
 	DActiveButton::EWhere where;
-	short *texture;
+	int *texture;
 	int i, sound;
 	// [BC]
 	ULONG	ulShift;

@@ -105,6 +105,7 @@ typedef enum
 
 typedef float skill_t;
 
+/*
 enum ESkillLevels
 {
 	sk_baby,
@@ -113,6 +114,7 @@ enum ESkillLevels
 	sk_hard,
 	sk_nightmare
 };
+*/
 
 
 

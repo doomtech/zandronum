@@ -271,13 +271,13 @@ static int 	epi;				// Selected episode
 //
 static oldmenuitem_t MainMenu[]=
 {
-	{1,0,'n',"M_NGAME",false,false,M_NewGame},
-	{1,0,'m',"M_MULTI",false,false,M_Multiplayer},
-	{1,0,'o',"M_OPTION",false,false,M_Options},
-	{1,0,'l',"M_LOADG",false,false,M_LoadGame},
-	{1,0,'s',"M_SAVEG",false,false,M_SaveGame},
-	{1,0,'r',"M_RDTHIS",false,false,M_ReadThis},	// Another hickup with Special edition.
-	{1,0,'q',"M_QUITG",false,false,M_QuitDOOM}
+	{1,0,'n',"M_NGAME",false,false,M_NewGame, CR_UNTRANSLATED},
+	{1,0,'m',"M_MULTI",false,false,M_Multiplayer, CR_UNTRANSLATED},
+	{1,0,'o',"M_OPTION",false,false,M_Options, CR_UNTRANSLATED},
+	{1,0,'l',"M_LOADG",false,false,M_LoadGame, CR_UNTRANSLATED},
+	{1,0,'s',"M_SAVEG",false,false,M_SaveGame, CR_UNTRANSLATED},
+	{1,0,'r',"M_RDTHIS",false,false,M_ReadThis, CR_UNTRANSLATED},	// Another hickup with Special edition.
+	{1,0,'q',"M_QUITG",false,false,M_QuitDOOM, CR_UNTRANSLATED}
 };
 
 static oldmenu_t MainDef =
@@ -294,12 +294,12 @@ static oldmenu_t MainDef =
 //
 static oldmenuitem_t HereticMainMenu[] =
 {
-	{1,1,'n',"MNU_NEWGAME",false,false,M_NewGame},
-	{1,1,'m',"MNU_MULTIPLAYER",false,false,M_Multiplayer},
-	{1,1,'o',"MNU_OPTIONS",false,false,M_Options},
-	{1,1,'f',"MNU_GAMEFILES",false,false,M_GameFiles},
-	{1,1,'i',"MNU_INFO",false,false,M_ReadThis},
-	{1,1,'q',"MNU_QUITGAME",false,false,M_QuitDOOM}
+	{1,1,'n',"MNU_NEWGAME",false,false,M_NewGame, CR_UNTRANSLATED},
+	{1,1,'m',"MNU_MULTIPLAYER",false,false,M_Multiplayer, CR_UNTRANSLATED},
+	{1,1,'o',"MNU_OPTIONS",false,false,M_Options, CR_UNTRANSLATED},
+	{1,1,'f',"MNU_GAMEFILES",false,false,M_GameFiles, CR_UNTRANSLATED},
+	{1,1,'i',"MNU_INFO",false,false,M_ReadThis, CR_UNTRANSLATED},
+	{1,1,'q',"MNU_QUITGAME",false,false,M_QuitDOOM, CR_UNTRANSLATED}
 };
 
 static oldmenu_t HereticMainDef =
@@ -316,10 +316,10 @@ static oldmenu_t HereticMainDef =
 //
 static oldmenuitem_t ClassItems[] =
 {
-	{ 1,1, 'f', "MNU_FIGHTER", false, false, SCClass },
-	{ 1,1, 'c', "MNU_CLERIC", false, false, SCClass },
-	{ 1,1, 'm', "MNU_MAGE", false, false, SCClass },
-	{ 1,1, 'r', "MNU_RANDOM", false, false, SCClass }	// [RH]
+	{ 1,1, 'f', "MNU_FIGHTER", false, false, SCClass, CR_UNTRANSLATED },
+	{ 1,1, 'c', "MNU_CLERIC", false, false, SCClass, CR_UNTRANSLATED },
+	{ 1,1, 'm', "MNU_MAGE", false, false, SCClass, CR_UNTRANSLATED },
+	{ 1,1, 'r', "MNU_RANDOM", false, false, SCClass, CR_UNTRANSLATED}	// [RH]
 };
 
 static oldmenu_t ClassMenu =
@@ -335,14 +335,14 @@ static oldmenu_t ClassMenu =
 //
 oldmenuitem_t ClassMenuItems[8] =
 {
-	{1,1,0, NULL, false, false, M_ChooseClass },
-	{1,1,0, NULL, false, false, M_ChooseClass },
-	{1,1,0, NULL, false, false, M_ChooseClass },
-	{1,1,0, NULL, false, false, M_ChooseClass },
-	{1,1,0, NULL, false, false, M_ChooseClass },
-	{1,1,0, NULL, false, false, M_ChooseClass },
-	{1,1,0, NULL, false, false, M_ChooseClass },
-	{1,1,0, NULL, false, false, M_ChooseClass },
+	{1,1,0, NULL, false, false, M_ChooseClass, CR_UNTRANSLATED },
+	{1,1,0, NULL, false, false, M_ChooseClass, CR_UNTRANSLATED },
+	{1,1,0, NULL, false, false, M_ChooseClass, CR_UNTRANSLATED },
+	{1,1,0, NULL, false, false, M_ChooseClass, CR_UNTRANSLATED },
+	{1,1,0, NULL, false, false, M_ChooseClass, CR_UNTRANSLATED },
+	{1,1,0, NULL, false, false, M_ChooseClass, CR_UNTRANSLATED },
+	{1,1,0, NULL, false, false, M_ChooseClass, CR_UNTRANSLATED },
+	{1,1,0, NULL, false, false, M_ChooseClass, CR_UNTRANSLATED },
 };
 
 oldmenu_t ClassMenuDef =
@@ -359,14 +359,14 @@ oldmenu_t ClassMenuDef =
 //
 oldmenuitem_t EpisodeMenu[MAX_EPISODES] =
 {
-	{1,0,0, NULL, false, false, M_Episode},
-	{1,0,0, NULL, false, false, M_Episode},
-	{1,0,0, NULL, false, false, M_Episode},
-	{1,0,0, NULL, false, false, M_Episode},
-	{1,0,0, NULL, false, false, M_Episode},
-	{1,0,0, NULL, false, false, M_Episode},
-	{1,0,0, NULL, false, false, M_Episode},
-	{1,0,0, NULL, false, false, M_Episode},
+	{1,0,0, NULL, false, false, M_Episode, CR_UNTRANSLATED},
+	{1,0,0, NULL, false, false, M_Episode, CR_UNTRANSLATED},
+	{1,0,0, NULL, false, false, M_Episode, CR_UNTRANSLATED},
+	{1,0,0, NULL, false, false, M_Episode, CR_UNTRANSLATED},
+	{1,0,0, NULL, false, false, M_Episode, CR_UNTRANSLATED},
+	{1,0,0, NULL, false, false, M_Episode, CR_UNTRANSLATED},
+	{1,0,0, NULL, false, false, M_Episode, CR_UNTRANSLATED},
+	{1,0,0, NULL, false, false, M_Episode, CR_UNTRANSLATED},
 };
 
 char EpisodeMaps[MAX_EPISODES][8];
@@ -388,8 +388,8 @@ oldmenu_t EpiDef =
 //
 static oldmenuitem_t FilesItems[] =
 {
-	{1,1,'l',"MNU_LOADGAME",false,false,M_LoadGame},
-	{1,1,'s',"MNU_SAVEGAME",false,false,M_SaveGame}
+	{1,1,'l',"MNU_LOADGAME",false,false,M_LoadGame, CR_UNTRANSLATED},
+	{1,1,'s',"MNU_SAVEGAME",false,false,M_SaveGame, CR_UNTRANSLATED}
 };
 
 static oldmenu_t FilesMenu =
@@ -404,19 +404,21 @@ static oldmenu_t FilesMenu =
 //
 // DOOM SKILL SELECT
 //
-static oldmenuitem_t NewGameMenu[]=
-{
-	{1,0,'i',"M_JKILL",false,false,M_ChooseSkill},
-	{1,0,'h',"M_ROUGH",false,false,M_ChooseSkill},
-	{1,0,'h',"M_HURT",false,false,M_ChooseSkill},
-	{1,0,'u',"M_ULTRA",false,false,M_ChooseSkill},
-	{1,0,'n',"M_NMARE",false,false,M_ChooseSkill}
+static oldmenuitem_t SkillSelectMenu[]={
+	{ 1, 0, 0, "", false, false, M_ChooseSkill, CR_UNTRANSLATED},
+	{ 1, 0, 0, "", false, false, M_ChooseSkill, CR_UNTRANSLATED},
+	{ 1, 0, 0, "", false, false, M_ChooseSkill, CR_UNTRANSLATED},
+	{ 1, 0, 0, "", false, false, M_ChooseSkill, CR_UNTRANSLATED},
+	{ 1, 0, 0, "", false, false, M_ChooseSkill, CR_UNTRANSLATED},
+	{ 1, 0, 0, "", false, false, M_ChooseSkill, CR_UNTRANSLATED},
+	{ 1, 0, 0, "", false, false, M_ChooseSkill, CR_UNTRANSLATED},
+	{ 1, 0, 0, "", false, false, M_ChooseSkill, CR_UNTRANSLATED},
 };
 
-static oldmenu_t NewDef =
+static oldmenu_t SkillDef =
 {
-	countof(NewGameMenu),
-	NewGameMenu,		// oldmenuitem_t ->
+	0,
+	SkillSelectMenu,		// oldmenuitem_t ->
 	M_DrawNewGame,		// drawing routine ->
 	48,63,				// x,y
 	2					// lastOn
@@ -441,46 +443,68 @@ oldmenu_t BotDef =
 	2
 };
 
-//
-// HERETIC SKILL SELECT
-//
-static oldmenuitem_t HereticSkillItems[] =
-{
-	{1,1,'t',"MNU_WETNURSE",false,false,M_ChooseSkill},
-	{1,1,'y',"MNU_YELLOWBELLIES",false,false,M_ChooseSkill},
-	{1,1,'b',"MNU_BRINGEST",false,false,M_ChooseSkill},
-	{1,1,'t',"MNU_SMITE",false,false,M_ChooseSkill},
-	{1,1,'b',"MNU_BLACKPLAGUE",false,false,M_ChooseSkill}
-};
-
-static oldmenu_t HereticSkillMenu =
-{
-	countof(HereticSkillItems),
-	HereticSkillItems,
-	M_DrawNewGame,
-	38, 30,
-	2
-};
-
-//
-// HEXEN SKILL SELECT
-//
-static oldmenuitem_t HexenSkillItems[] =
-{
-	{ 1,1, '1', NULL, false, false, M_ChooseSkill },
-	{ 1,1, '2', NULL, false, false, M_ChooseSkill },
-	{ 1,1, '3', NULL, false, false, M_ChooseSkill },
-	{ 1,1, '4', NULL, false, false, M_ChooseSkill },
-	{ 1,1, '5', NULL, false, false, M_ChooseSkill }
-};
-
 static oldmenu_t HexenSkillMenu =
 {
-	5, HexenSkillItems,
+	0, 
+	SkillSelectMenu,		// oldmenuitem_t ->
 	DrawHexenSkillMenu,
 	120, 44,
 	2
 };
+
+
+void M_StartupSkillMenu(const char *playerclass)
+{
+	if (gameinfo.gametype & GAME_Raven)
+	{
+		SkillDef.x = 38;
+		SkillDef.y = 30;
+
+		if (gameinfo.gametype == GAME_Hexen)
+		{
+			HexenSkillMenu.x = 38;
+			if (playerclass != NULL)
+			{
+				if (!stricmp(playerclass, "fighter")) HexenSkillMenu.x = 120;
+				else if (!stricmp(playerclass, "cleric")) HexenSkillMenu.x = 116;
+				else if (!stricmp(playerclass, "mage")) HexenSkillMenu.x = 112;
+			}
+		}
+	}
+	SkillDef.numitems = HexenSkillMenu.numitems = 0;
+	for(int i=0;i<AllSkills.Size() && i<8;i++)
+	{
+		FSkillInfo &skill = AllSkills[i];
+
+		SkillSelectMenu[i].name = skill.MenuName;
+		SkillSelectMenu[i].fulltext = !skill.MenuNameIsLump;
+		SkillSelectMenu[i].alphaKey = skill.MenuNameIsLump? skill.shortcut : tolower(SkillSelectMenu[i].name[0]);
+		SkillSelectMenu[i].textcolor = skill.textcolor;
+		SkillSelectMenu[i].alphaKey = skill.shortcut;
+
+		if (playerclass != NULL)
+		{
+			FString * pmnm = skill.MenuNamesForPlayerClass.CheckKey(playerclass);
+			if (pmnm != NULL)
+			{
+				SkillSelectMenu[i].name = GStrings(*pmnm);
+				SkillSelectMenu[i].fulltext = true;
+				if (skill.shortcut==0)
+					SkillSelectMenu[i].alphaKey = tolower(SkillSelectMenu[i].name[0]);
+			}
+		}
+		SkillDef.numitems++;
+		HexenSkillMenu.numitems++;
+	}
+	// Hexen needs some manual coordinate adjustments based on player class
+	if (gameinfo.gametype == GAME_Hexen)
+	{
+		M_SetupNextMenu(&HexenSkillMenu);
+	}
+	else
+		M_SetupNextMenu(&SkillDef);
+
+}
 
 // [BC] Skulltag uses a different player setup menu.
 /*
@@ -489,15 +513,15 @@ static oldmenu_t HexenSkillMenu =
 //
 static oldmenuitem_t PlayerSetupMenu[] =
 {
-	{ 1,0,'n',NULL,M_EditPlayerName},
-	{ 2,0,'t',NULL,M_ChangePlayerTeam},
-	{ 2,0,'r',NULL,M_SlidePlayerRed},
-	{ 2,0,'g',NULL,M_SlidePlayerGreen},
-	{ 2,0,'b',NULL,M_SlidePlayerBlue},
-	{ 2,0,'c',NULL,M_ChangeClass},
-	{ 2,0,'s',NULL,M_ChangeSkin},
-	{ 2,0,'e',NULL,M_ChangeGender},
-	{ 2,0,'a',NULL,M_ChangeAutoAim}
+	{ 1,0,'n',NULL,M_EditPlayerName, CR_UNTRANSLATED},
+	{ 2,0,'t',NULL,M_ChangePlayerTeam, CR_UNTRANSLATED},
+	{ 2,0,'r',NULL,M_SlidePlayerRed, CR_UNTRANSLATED},
+	{ 2,0,'g',NULL,M_SlidePlayerGreen, CR_UNTRANSLATED},
+	{ 2,0,'b',NULL,M_SlidePlayerBlue, CR_UNTRANSLATED},
+	{ 2,0,'c',NULL,M_ChangeClass, CR_UNTRANSLATED},
+	{ 2,0,'s',NULL,M_ChangeSkin, CR_UNTRANSLATED},
+	{ 2,0,'e',NULL,M_ChangeGender, CR_UNTRANSLATED},
+	{ 2,0,'a',NULL,M_ChangeAutoAim, CR_UNTRANSLATED}
 };
 
 static oldmenu_t PSetupDef =
@@ -606,14 +630,14 @@ static oldmenu_t ReadDef =
 //
 static oldmenuitem_t LoadMenu[]=
 {
-	{1,0,'1',NULL, false,NULL},
-	{1,0,'2',NULL, false,NULL},
-	{1,0,'3',NULL, false,NULL},
-	{1,0,'4',NULL, false,NULL},
-	{1,0,'5',NULL, false,NULL},
-	{1,0,'6',NULL, false,NULL},
-	{1,0,'7',NULL, false,NULL},
-	{1,0,'8',NULL, false,NULL},
+	{1,0,'1',NULL, false, false, NULL, CR_UNTRANSLATED},
+	{1,0,'2',NULL, false, false, NULL, CR_UNTRANSLATED},
+	{1,0,'3',NULL, false, false, NULL, CR_UNTRANSLATED},
+	{1,0,'4',NULL, false, false, NULL, CR_UNTRANSLATED},
+	{1,0,'5',NULL, false, false, NULL, CR_UNTRANSLATED},
+	{1,0,'6',NULL, false, false, NULL, CR_UNTRANSLATED},
+	{1,0,'7',NULL, false, false, NULL, CR_UNTRANSLATED},
+	{1,0,'8',NULL, false, false, NULL, CR_UNTRANSLATED},
 };
 
 static oldmenu_t LoadDef =
@@ -630,14 +654,14 @@ static oldmenu_t LoadDef =
 //
 static oldmenuitem_t SaveMenu[] =
 {
-	{1,0,'1',NULL, false,NULL},
-	{1,0,'2',NULL, false,NULL},
-	{1,0,'3',NULL, false,NULL},
-	{1,0,'4',NULL, false,NULL},
-	{1,0,'5',NULL, false,NULL},
-	{1,0,'6',NULL, false,NULL},
-	{1,0,'7',NULL, false,NULL},
-	{1,0,'8',NULL, false,NULL},
+	{1,0,'1',NULL, false, false, NULL, CR_UNTRANSLATED},
+	{1,0,'2',NULL, false, false, NULL, CR_UNTRANSLATED},
+	{1,0,'3',NULL, false, false, NULL, CR_UNTRANSLATED},
+	{1,0,'4',NULL, false, false, NULL, CR_UNTRANSLATED},
+	{1,0,'5',NULL, false, false, NULL, CR_UNTRANSLATED},
+	{1,0,'6',NULL, false, false, NULL, CR_UNTRANSLATED},
+	{1,0,'7',NULL, false, false, NULL, CR_UNTRANSLATED},
+	{1,0,'8',NULL, false, false, NULL, CR_UNTRANSLATED},
 };
 
 static oldmenu_t SaveDef =
@@ -1753,16 +1777,12 @@ void M_NewGame(int choice)
 		{
 			M_ChooseSkill(2);
 		}
-		else if (gameinfo.gametype & (GAME_Doom|GAME_Strife))
+		else
 		{
 			if (( EpiDef.numitems == 1 ) && ( EpisodeMenu[0].bBotSkill ))
 				M_SetupNextMenu (&BotDef);
 			else
-				M_SetupNextMenu (&NewDef);
-		}
-		else
-		{
-			M_SetupNextMenu (&HereticSkillMenu);
+				M_StartupSkillMenu(NULL);
 		}
 	}
 	else
@@ -1936,7 +1956,7 @@ void M_ChooseSkill (int choice)
 {
 	UCVarValue	Val;
 
-	if (gameinfo.gametype == GAME_Doom && choice == NewDef.numitems - 1)
+	if (gameinfo.gametype == GAME_Doom && AllSkills[choice].MustConfirm)
 	{
 		M_StartMessage (GStrings("NIGHTMARE"), M_VerifyNightmare, true);
 		return;
@@ -2026,64 +2046,10 @@ void M_Episode (int choice)
 		return;
 	}
 
-	if (gameinfo.gametype & (GAME_Doom|GAME_Strife))
-	{
-		if ( EpisodeMenu[epi].bBotSkill )
-			M_SetupNextMenu (&BotDef);
-		else
-			M_SetupNextMenu (&NewDef);
-	}
-	else if (gameinfo.gametype == GAME_Hexen)
-		M_SetupNextMenu (&HexenSkillMenu);
+	if ( EpisodeMenu[epi].bBotSkill )
+		M_SetupNextMenu (&BotDef);
 	else
-		M_SetupNextMenu (&HereticSkillMenu);
-}
-
-//==========================================================================
-//
-// Sets Hexen's skill menu according to player class
-//
-//==========================================================================
-
-static void SetHexenSkillMenu (const char * pclass)
-{
-	if (!stricmp(pclass, "fighter"))
-	{
-		HexenSkillMenu.x = 120;
-		HexenSkillItems[0].name = "MNU_SQUIRE";
-		HexenSkillItems[1].name = "MNU_KNIGHT";
-		HexenSkillItems[2].name = "MNU_WARRIOR";
-		HexenSkillItems[3].name = "MNU_BERSERKER";
-		HexenSkillItems[4].name = "MNU_TITAN";
-	}
-	else if (!stricmp(pclass, "cleric"))
-	{
-		HexenSkillMenu.x = 116;
-		HexenSkillItems[0].name = "MNU_ALTARBOY";
-		HexenSkillItems[1].name = "MNU_ACOLYTE";
-		HexenSkillItems[2].name = "MNU_PRIEST";
-		HexenSkillItems[3].name = "MNU_CARDINAL";
-		HexenSkillItems[4].name = "MNU_POPE";
-	}
-	else if (!stricmp(pclass, "mage"))
-	{
-		HexenSkillMenu.x = 112;
-		HexenSkillItems[0].name = "MNU_APPRENTICE";
-		HexenSkillItems[1].name = "MNU_ENCHANTER";
-		HexenSkillItems[2].name = "MNU_SORCERER";
-		HexenSkillItems[3].name = "MNU_WARLOCK";
-		HexenSkillItems[4].name = "MNU_ARCHMAGE";
-	}
-	else
-	{
-		// Use Heretic's menu titles as default
-		HexenSkillMenu.x = HereticSkillMenu.x;
-		HexenSkillItems[0].name = HereticSkillItems[0].name;
-		HexenSkillItems[1].name = HereticSkillItems[1].name;
-		HexenSkillItems[2].name = HereticSkillItems[2].name;
-		HexenSkillItems[3].name = HereticSkillItems[3].name;
-		HexenSkillItems[4].name = HereticSkillItems[4].name;
-	}
+		M_StartupSkillMenu(NULL);
 }
 
 //==========================================================================
@@ -2105,15 +2071,13 @@ static void SCClass (int option)
 	else
 		playerclass = PlayerClasses[option].Type->Meta.GetMetaString (APMETA_DisplayName);
 
-	SetHexenSkillMenu(playerclass);
-
 	if (EpiDef.numitems > 1)
 	{
 		M_SetupNextMenu (&EpiDef);
 	}
 	else if (!EpisodeNoSkill[0])
 	{
-		M_SetupNextMenu (&HexenSkillMenu);
+		M_StartupSkillMenu(playerclass);
 	}
 	else
 	{
@@ -2133,7 +2097,6 @@ static void M_ChooseClass (int choice)
 		M_ClearMenus( );
 		return;
 	}
-	SetHexenSkillMenu(playerclass);
 
 	if (EpiDef.numitems > 1)
 	{
@@ -2143,17 +2106,9 @@ static void M_ChooseClass (int choice)
 	{
 		M_ChooseSkill(2);
 	}
-	else if (gameinfo.gametype & (GAME_Doom|GAME_Strife))
+	else 
 	{
-		M_SetupNextMenu (&NewDef);
-	}
-	else if (gameinfo.gametype == GAME_Hexen)
-	{
-		M_SetupNextMenu (&HexenSkillMenu);
-	}
-	else
-	{
-		M_SetupNextMenu (&HereticSkillMenu);
+		M_StartupSkillMenu(playerclass);
 	}
 }
 
@@ -3549,11 +3504,14 @@ void M_Drawer ()
 				{
 					if (currentMenu->menuitems[i].fulltext)
 					{
-						int color = CR_UNTRANSLATED;
-						if ((currentMenu == &EpiDef || currentMenu == &ClassMenuDef) &&
-							gameinfo.gametype == GAME_Doom)
+						int color = currentMenu->menuitems[i].textcolor;
+						if (color == CR_UNTRANSLATED)
 						{
-							color = CR_RED;
+							// The default DBIGFONT is white but Doom's default should be red.
+							if (gameinfo.gametype == GAME_Doom)
+							{
+								color = CR_RED;
+							}
 						}
 						screen->DrawText (color, x, y,
 							GStrings(currentMenu->menuitems[i].name),
@@ -3745,7 +3703,7 @@ void M_Init (void)
 		if (gameinfo.gametype == GAME_Strife)
 		{
 			MainDef.y = 45;
-			NewDef.lastOn = 1;
+			//NewDef.lastOn = 1;
 		}
 	}
 	else

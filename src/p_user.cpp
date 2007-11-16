@@ -2412,7 +2412,7 @@ void P_MovePlayer (player_t *player, ticcmd_t *cmd)
 			fprintf (debugfile, "]\n");
 		}
 */
-		if ( CLIENT_PREDICT_IsPredicting( ) == false )//(!(player->cheats & CF_PREDICTING))
+		if ( (CLIENT_PREDICT_IsPredicting( ) == false) && (forwardmove|sidemove) )//(!(player->cheats & CF_PREDICTING))
 		{
 			player->mo->PlayRunning ();
 		}
