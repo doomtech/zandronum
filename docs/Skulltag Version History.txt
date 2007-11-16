@@ -243,6 +243,7 @@ v0.97d
 !	- There is now a 10 second time limit on suicides. [Carnevil]
 !	- Changed the default team chat text color to brick. [Carnevil]
 !	- Announcer sounds can no longer overlap each other. The second sound now stops the first. [Carnevil]
+!	- "x frags left" announcer sounds are no longer played if a sound for a lower anount of frags left has already been played. [Carnevil]
 !	- The possession countdown is now bolder in higher resolutions. [Rivecoder]
 !	- The win32 server console now uses Tahoma as its font, and should be easier on the eyes. [Rivecoder]
 !	- Skulltag.exe's metadata now includes the SVN revision number it was built with, and whether it's a released or internal build. [Rivecoder]

@@ -311,7 +311,10 @@ void ANNOUNCER_PlayFragSounds( ULONG ulPlayer, LONG lOldFragCount, LONG lNewFrag
 		{
 		case 3:
 
-			if ( g_bThreeFragsLeftSoundPlayed == false )
+			if (( g_bThreeFragsLeftSoundPlayed == false ) &&
+				( g_bTwoFragsLeftSoundPlayed == false ) &&
+				( g_bOneFragLeftSoundPlayed == false ))
+
 			{
 				ANNOUNCER_PlayEntry( cl_announcer, "ThreeFragsLeft" );
 				g_bThreeFragsLeftSoundPlayed = true;
@@ -319,7 +322,8 @@ void ANNOUNCER_PlayFragSounds( ULONG ulPlayer, LONG lOldFragCount, LONG lNewFrag
 			break;
 		case 2:
 			
-			if ( g_bTwoFragsLeftSoundPlayed == false )
+			if (( g_bTwoFragsLeftSoundPlayed == false ) &&
+				( g_bOneFragLeftSoundPlayed == false ))
 			{
 				ANNOUNCER_PlayEntry( cl_announcer, "TwoFragsLeft" );
 				g_bTwoFragsLeftSoundPlayed = true;
