@@ -49,13 +49,10 @@
 #include "gl_values.h"
 #include "gl_renderstruct.h"
 
-// [BB] Implement this under Linux.
-#ifndef _WIN32
-float I_GetTimeFloat()
+static inline float GetTimeFloat()
 {
-	return 0.;
+	return (float)I_MSTime() * (float)TICRATE / 1000.0f;
 }
-#endif
 
 CVAR(Bool, gl_interpolate_model_frames, true, CVAR_ARCHIVE)
 
@@ -488,7 +485,7 @@ void gl_RenderModel(GLSprite * spr, int cm)
 	float offsetAngle = 0.;
 	if( smf->flags & MDL_ROTATING )
 	{
-		const float time = I_GetTimeFloat()/200.;
+		const float time = GetTimeFloat()/200.;
 		offsetAngle = ( (time - static_cast<int>(time)) *360. );
 	}
 
@@ -530,7 +527,7 @@ void gl_RenderModel(GLSprite * spr, int cm)
 			// [BB] In case the tic counter is frozen we have to leave ticFraction at zero.
 			if ( ConsoleState == c_up && menuactive != MENU_On && !(level.flags & LEVEL_FROZEN) )
 			{
-				float time = I_GetTimeFloat();
+				float time = GetTimeFloat();
 				ticFraction = (time - static_cast<int>(time));
 			}
 			inter = static_cast<double>(curState->Tics - spr->actor->tics - ticFraction)/static_cast<double>(curState->Tics);

@@ -21,6 +21,7 @@
 #include "gl/gl_struct.h"
 #include "gl/gl_intern.h"
 #include "gl/gl_basic.h"
+#include "gl/gl_texture.h"
 #include "gl/gl_shader.h"
 
 // MACROS ------------------------------------------------------------------
@@ -121,7 +122,7 @@ SDLGLVideo::SDLGLVideo (int parm)
 
 SDLGLVideo::~SDLGLVideo ()
 {
-//	FGLTexture::FlushAll();
+	FGLTexture::FlushAll();
 	SDL_Quit( );
 }
 
@@ -229,6 +230,9 @@ DFrameBuffer *SDLGLVideo::CreateFrameBuffer (int width, int height, bool fullscr
 		default:
 			// I give up!
 			I_FatalError ("Could not create new screen (%d x %d)", owidth, oheight);
+
+			fprintf( stderr, "!!! [SDLGLVideo::CreateFrameBuffer] Got beyond I_FatalError !!!" );
+			return NULL;	//[C] actually this shouldn't be reached; probably should be replaced with an ASSERT
 		}
 
 		++retry;
@@ -236,7 +240,6 @@ DFrameBuffer *SDLGLVideo::CreateFrameBuffer (int width, int height, bool fullscr
 	}
 
 //	fb->SetFlash (flashColor, flashAmount);
-	m_trueHeight = fb->Height;
 	return fb;
 }
 
@@ -289,26 +292,35 @@ SDLGLFB::SDLGLFB (int width, int height, bool fullscreen)
 	UpdatePalette ();
 
 	m_supportsGamma = gl.GetGammaRamp(m_origGamma[0], m_origGamma[1], m_origGamma[2]);
-	printf("m_supportsGamma: %i", m_supportsGamma);
 	DoSetGamma();
 
-	gl.LoadExtensions();
-	gl.PrintStartupLog(DoPrintText);
+	InitializeState();
+	gl_GenerateGlobalBrightmapFromColormap();
+}
 
+void SDLGLFB::InitializeState() {
+	static bool first=true;
+
+	gl.LoadExtensions();
+	if (first)
+	{
+		first=false;
+		gl.PrintStartupLog(DoPrintText);
+
+		if (gl.flags&RFL_NPOT_TEXTURE)
+		{
+			Printf("Support for non power 2 textures enabled.\n");
+		}
+		if (gl.flags&RFL_OCCLUSION_QUERY)
+		{
+			Printf("Occlusion query enabled.\n");
+		}
+	}
 	int value = 0;
 	SDL_GL_GetAttribute( SDL_GL_STENCIL_SIZE, &value );
 	if (!value) {
-		Printf("Failed to use stencil buffer!\n");	//[C] is it needed to retry without stencil?
+		Printf("Failed to use stencil buffer!\n");	//[C] is it needed to recreate buffer in "cheapest mode"?
 		gl.flags|=RFL_NOSTENCIL;
-	}
-
-	if (gl.flags&RFL_NPOT_TEXTURE)
-	{
-		Printf("Support for non power 2 textures enabled.\n");
-	}
-	if (gl.flags&RFL_OCCLUSION_QUERY)
-	{
-		Printf("Occlusion query enabled.\n");
 	}
 
 	gl.ClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -343,7 +355,7 @@ SDLGLFB::SDLGLFB (int width, int height, bool fullscreen)
 //	GL::SetPerspective(90.f, GetWidth() * 1.f / GetHeight(), 0.f, 1000.f);
 */	
 
-	gl.Viewport(0, 0/*(GetTrueHeight()-GetHeight())/2*/, GetWidth(), GetHeight()); 
+	gl.Viewport(0, (GetTrueHeight()-GetHeight())/2, GetWidth(), GetHeight()); 
 
 	GLShader::Initialize();
 	gl_InitFog();
@@ -421,7 +433,7 @@ void SDLGLFB::Update ()
 
 	DrawRateStuff ();
 
-/*	if (GetTrueHeight() != GetHeight())
+	if (GetTrueHeight() != GetHeight())
 	{
 		// Letterbox time! Draw black top and bottom borders.
 		int borderHeight = (GetTrueHeight() - GetHeight()) / 2;
@@ -455,7 +467,7 @@ void SDLGLFB::Update ()
 		Set2DMode();
 		gl.Viewport(0, (GetTrueHeight() - GetHeight()) / 2, GetWidth(), GetHeight()); 
 
-	}*/
+	}
 
 	Finish.Reset();
 	Finish.Start();

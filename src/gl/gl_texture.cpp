@@ -1199,6 +1199,7 @@ int FWarpTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_heig
 	unsigned long * out;
 	bool direct;
 	
+	gltex->createWarped = true;
 	if (Width == buf_width && Height == buf_height && xx==0 && yy==0)
 	{
 		out = (unsigned long*)buffer;
@@ -1292,6 +1293,7 @@ int FWarp2Texture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_hei
 	unsigned long * out;
 	bool direct;
 	
+	gltex->createWarped = true;
 	if (Width == buf_width && Height == buf_height && xx==0 && yy==0)
 	{
 		out = (unsigned long*)buffer;
@@ -1464,6 +1466,7 @@ FGLTexture::FGLTexture(FTexture * tx)
 
 	areacount = 0;
 	areas = NULL;
+	createWarped = false;
 
 	bSkybox=false;
 	bHasColorkey = false;
@@ -1751,7 +1754,7 @@ void FGLTexture::CheckTrans(unsigned char * buffer, int size, int trans)
 				if (alpha != 0xff && alpha != 0)
 				{
 					bIsTransparent = 1;
-					break;
+					return;
 				}
 			}
 		}
@@ -1769,6 +1772,7 @@ void FGLTexture::Clean(bool all)
 {
 	WorldTextureInfo::Clean(all);
 	PatchTextureInfo::Clean(all);
+	createWarped = false;
 }
 
 //===========================================================================
@@ -1896,6 +1900,9 @@ const WorldTextureInfo * FGLTexture::Bind(int texunit, int cm, int clampmode, in
 			{
 				if (gl.flags & RFL_GLSL)
 				{
+					if (createWarped && gl_warp_shader && tex->bWarped!=0)
+						Clean(true);
+						
 					if ((gl_warp_shader && tex->bWarped!=0) || 
 						(usebright) ||
 						((tex->bHasCanvas || gl_colormap_shader) && cm!=CM_DEFAULT && cm!=CM_SHADE && gl_texturemode != TM_MASK))
@@ -1988,6 +1995,9 @@ const PatchTextureInfo * FGLTexture::BindPatch(int texunit, int cm, int translat
 			{
 				if (gl.flags & RFL_GLSL)
 				{
+					if (createWarped && gl_warp_shader && tex->bWarped!=0)
+						Clean(true);
+						
 					if ((gl_warp_shader && tex->bWarped!=0) || 
 						(usebright) ||
 						((tex->bHasCanvas || gl_colormap_shader) && cm!=CM_DEFAULT && cm!=CM_SHADE && gl_texturemode != TM_MASK))

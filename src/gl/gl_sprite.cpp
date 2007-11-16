@@ -134,11 +134,11 @@ void GLSprite::Draw(int pass)
 		case STYLE_Translucent:
 			gl.AlphaFunc(GL_GEQUAL,0.5f*trans);
 			break;
-		// [BB] Disable the alpha test before drawing a smooth particle.
-		case STYLE_Transparent:
-			gl.Disable(GL_ALPHA_TEST);
-			break;
 		}
+	}
+	if ((gltexture && gltexture->GetTransparent()) || RenderStyle == STYLE_Transparent)
+	{
+		gl.Disable(GL_ALPHA_TEST);
 	}
 
 	if (RenderStyle!=STYLE_Fuzzy)
@@ -225,8 +225,10 @@ void GLSprite::Draw(int pass)
 			gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		}
 		// [BB] Restore the alpha test after drawing a smooth particle.
-		if (RenderStyle == STYLE_Transparent)
+		if (gltexture->GetTransparent() || RenderStyle == STYLE_Transparent)
+		{
 			gl.Enable(GL_ALPHA_TEST);
+		}
 
 		if (!gl_sprite_blend && RenderStyle != STYLE_Normal && actor && !(actor->momx|actor->momy))
 		{
@@ -369,8 +371,6 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 
 	player_t *player=&players[consoleplayer];
 	GL_RECT r;
-	bool enhancedvision=false;
-	bool fullbright=!!(thing->renderflags & RF_FULLBRIGHT);
 
 	if (sector->sectornum!=thing->Sector->sectornum)
 	{
@@ -381,6 +381,111 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 		rendersector=sector;
 	}
 	
+
+	x = TO_MAP(thingx);
+	z = TO_MAP(thingz-thing->floorclip);
+	y = TO_MAP(thingy);
+	
+	modelframe = gl_FindModelFrame(RUNTIME_TYPE(thing), thing->sprite, thing->frame /*, thing->state*/);
+	if (!modelframe)
+	{
+		angle_t ang = R_PointToAngle(thingx, thingy);
+
+		int patch = gl_GetSpriteFrame(thing->sprite, thing->frame, -1, ang - thing->angle);
+		if (patch==INVALID_SPRITE) return;
+		gltexture=FGLTexture::ValidateTexture(abs(patch), false);
+		if (!gltexture) return;
+
+		const PatchTextureInfo * pti = gltexture->GetPatchTextureInfo();
+	
+		vt=0.0f;
+		vb=pti->GetVB();
+		gltexture->GetRect(&r);
+		if (patch<0)
+		{
+			r.left=-r.width-r.left;	// mirror the sprite's x-offset
+			ul=0.0f;
+			ur=pti->GetUR();
+		}
+		else
+		{
+			ul=pti->GetUR();
+			ur=0.0f;
+		}
+		r.Scale(TO_MAP(thing->scaleX),TO_MAP(thing->scaleY));
+
+		float rightfac=-r.left;
+		float leftfac=rightfac-r.width;
+
+		z1=z-r.top;
+		z2=z1-r.height;
+
+		// Tests show that this doesn't look good for many decorations and corpses
+		if (gl_spriteclip>0)
+		{
+			if (((thing->player || thing->flags3&MF3_ISMONSTER || thing->IsKindOf(RUNTIME_CLASS(AInventory))) && 
+				(thing->flags&MF_ICECORPSE || !(thing->flags&MF_CORPSE))) || gl_spriteclip==2)
+			{
+				float btm=1000000.0f;
+
+				if (thing->Sector->e->ffloors.Size())
+				{
+					for(int i=0;i<thing->Sector->e->ffloors.Size();i++)
+					{
+						F3DFloor * ff=thing->Sector->e->ffloors[i];
+						fixed_t floorh=ff->top.plane->ZatPoint(thingx, thingy);
+						if (floorh==thing->floorz) 
+						{
+							btm=TO_MAP(floorh);
+							break;
+						}
+					}
+				}
+				else if (thing->Sector->heightsec && !(thing->Sector->heightsec->MoreFlags & SECF_IGNOREHEIGHTSEC))
+				{
+					if (thing->flags2&MF2_ONMOBJ && thing->floorz==
+						thing->Sector->heightsec->floorplane.ZatPoint(thingx, thingy))
+					{
+						btm=TO_MAP(thing->floorz);
+					}
+				}
+				if (btm==1000000.0f) 
+					btm= TO_MAP(thing->Sector->floorplane.ZatPoint(thingx, thingy)-thing->floorclip);
+
+				float diff = z2 - btm;
+				if (diff >= 0 /*|| !gl_sprite_clip_to_floor*/) diff = 0;
+				if (diff <=-10)	// such a large displacement can't be correct! 
+				{
+					// for living monsters standing on the floor allow a little more.
+					if (!(thing->flags3&MF3_ISMONSTER) || (thing->flags&MF_NOGRAVITY) || (thing->flags&MF_CORPSE) || diff<-18)
+					{
+						diff=0;
+					}
+				}
+				z2-=diff;
+				z1-=diff;
+			}
+		}
+
+		x1=x-viewvecY*leftfac;
+		x2=x-viewvecY*rightfac;
+		y1=y+viewvecX*leftfac;
+		y2=y+viewvecX*rightfac;
+
+		scale = fabs(viewvecX * (thing->x-viewx) + viewvecY * (thing->y-viewy));
+	}
+	else gltexture=NULL;
+
+	// light calculation
+
+	bool enhancedvision=false;
+
+	// allow disabling of the fullbright flag by a brightmap definition
+	// (e.g. to do the gun flashes of Doom's zombies correctly.
+	bool fullbright =
+		(!gl_brightmap_shader || !gltexture || !gltexture->bBrightmapDisablesFullbright) &&
+		 (thing->renderflags & RF_FULLBRIGHT);
+
 	lightlevel=fullbright? 255 : rendersector->ceilingpic == skyflatnum ? 
 			GetCeilingLight(rendersector) : GetFloorLight(rendersector); //rendersector->lightlevel;
 	foglevel = rendersector->lightlevel;
@@ -503,104 +608,15 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 
 	if (trans==0.0f) return;
 
-	x = TO_MAP(thingx);
-	z = TO_MAP(thingz-thing->floorclip);
-	y = TO_MAP(thingy);
-	
-	modelframe = gl_FindModelFrame(RUNTIME_TYPE(thing), thing->sprite, thing->frame /*, thing->state*/);
-	if (!modelframe)
-	{
-		angle_t ang = R_PointToAngle(thingx, thingy);
-
-		int patch = gl_GetSpriteFrame(thing->sprite, thing->frame, -1, ang - thing->angle);
-		if (patch==INVALID_SPRITE) return;
-		gltexture=FGLTexture::ValidateTexture(abs(patch), false);
-		if (!gltexture) return;
-
-		const PatchTextureInfo * pti = gltexture->GetPatchTextureInfo();
-	
-		vt=0.0f;
-		vb=pti->GetVB();
-		gltexture->GetRect(&r);
-		if (patch<0)
-		{
-			r.left=-r.width-r.left;	// mirror the sprite's x-offset
-			ul=0.0f;
-			ur=pti->GetUR();
-		}
-		else
-		{
-			ul=pti->GetUR();
-			ur=0.0f;
-		}
-		r.Scale(TO_MAP(thing->scaleX),TO_MAP(thing->scaleY));
-
-		float rightfac=-r.left;
-		float leftfac=rightfac-r.width;
-
-		z1=z-r.top;
-		z2=z1-r.height;
-
-		// Tests show that this doesn't look good for many decorations and corpses
-		if (gl_spriteclip>0)
-		{
-			if (((thing->player || thing->flags3&MF3_ISMONSTER || thing->IsKindOf(RUNTIME_CLASS(AInventory))) && 
-				(thing->flags&MF_ICECORPSE || !(thing->flags&MF_CORPSE))) || gl_spriteclip==2)
-			{
-				float btm=1000000.0f;
-
-				if (thing->Sector->e->ffloors.Size())
-				{
-					for(int i=0;i<thing->Sector->e->ffloors.Size();i++)
-					{
-						F3DFloor * ff=thing->Sector->e->ffloors[i];
-						fixed_t floorh=ff->top.plane->ZatPoint(thingx, thingy);
-						if (floorh==thing->floorz) 
-						{
-							btm=TO_MAP(floorh);
-							break;
-						}
-					}
-				}
-				else if (thing->Sector->heightsec && !(thing->Sector->heightsec->MoreFlags & SECF_IGNOREHEIGHTSEC))
-				{
-					if (thing->flags2&MF2_ONMOBJ && thing->floorz==
-						thing->Sector->heightsec->floorplane.ZatPoint(thingx, thingy))
-					{
-						btm=TO_MAP(thing->floorz);
-					}
-				}
-				if (btm==1000000.0f) 
-					btm= TO_MAP(thing->Sector->floorplane.ZatPoint(thingx, thingy)-thing->floorclip);
-
-				float diff = z2 - btm;
-				if (diff >= 0 /*|| !gl_sprite_clip_to_floor*/) diff = 0;
-				if (diff <=-10)	// such a large displacement can't be correct! 
-				{
-					// for living monsters standing on the floor allow a little more.
-					if (!(thing->flags3&MF3_ISMONSTER) || (thing->flags&MF_NOGRAVITY) || (thing->flags&MF_CORPSE) || diff<-18)
-					{
-						diff=0;
-					}
-				}
-				z2-=diff;
-				z1-=diff;
-			}
-		}
-
-		x1=x-viewvecY*leftfac;
-		x2=x-viewvecY*rightfac;
-		y1=y+viewvecX*leftfac;
-		y2=y+viewvecX*rightfac;
-
-		scale = fabs(viewvecX * (thing->x-viewx) + viewvecY * (thing->y-viewy));
-	}
-	else gltexture=NULL;
+	// end of light calculation
 
 	actor=thing;
 	index = gl_spriteindex++;
 	particle=NULL;
-	if (RenderStyle==STYLE_Translucent && trans>=1.0f-FLT_EPSILON) RenderStyle=STYLE_Normal;
+	if (RenderStyle==STYLE_Translucent && trans>=1.0f-FLT_EPSILON) 
+	{
+		RenderStyle=STYLE_Normal;
+	}
 
 	if (thing->Sector->e->lightlist.Size()==0 || gl_fixedcolormap || fullbright) 
 	{

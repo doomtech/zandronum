@@ -19,12 +19,10 @@ class SDLGLVideo : public IVideo
 
 	void StartModeIterator (int bits, bool fs);
 	bool NextMode (int *width, int *height, bool *letterbox);
-	int GetTrueHeight() { return m_trueHeight; }
 private:
 	int IteratorMode;
 	int IteratorBits;
 	bool IteratorFS;
-	int m_trueHeight;
 };
 class SDLGLFB : public DFrameBuffer
 {
@@ -32,8 +30,6 @@ class SDLGLFB : public DFrameBuffer
 public:
 	SDLGLFB (int width, int height, bool fullscreen);
 	~SDLGLFB ();
-
-	int GetTrueHeight() { return static_cast<SDLGLVideo*>(Video)->GetTrueHeight(); }	//[C]
 
 	void ForceBuffering (bool force);
 	bool Lock(bool buffered);
@@ -55,6 +51,7 @@ public:
 	friend class SDLGLVideo;
 
 //[C]
+	int GetTrueHeight() { return GetHeight();}
 	void Set2DMode();
 	void Dim(PalEntry) const;
 	void Dim(PalEntry, float, int, int, int, int) const;
@@ -63,6 +60,7 @@ public:
 	bool SetBrightness(float bright);
 	bool SetContrast(float contrast);
 	void DoSetGamma();
+	void InitializeState();
 private:
 	PalEntry SourcePalette[256];
 	BYTE GammaTable[3][256];

@@ -99,6 +99,7 @@ public:
 	char bIsBrightmap;
 	bool bBrightmapDisablesFullbright;
 	char bIsTransparent;
+	bool createWarped;
 	int HiresLump;
 
 private:
@@ -121,6 +122,7 @@ private:
 	bool ProcessData(unsigned char * buffer, int w, int h, int cm, bool ispatch);
 	void CheckTrans(unsigned char * buffer, int size, int trans);
 	static bool SmoothEdges(unsigned char * buffer,int w, int h, bool clampsides);
+	int CheckDDPK3();
 	int CheckExternalFile(bool & hascolorkey);
 	unsigned char * LoadHiresTexture(int *width, int *height,intptr_t cm);
 

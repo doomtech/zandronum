@@ -86,7 +86,6 @@ static int LS_Sector_SetPlaneReflection (line_t *ln, AActor *it, bool backSide,
 
 TArray<GLVertex> gl_vertices(1024);
 
-byte * gl_ss_renderflags;
 static line_t ** gl_linebuffer;
 extern bool gl_disabled;
 
@@ -479,11 +478,6 @@ void gl_PreprocessLevel()
 	
 	if (gl_disabled) return;
 
-	// [BC] This doesn't appear to be doing anything. Plus, it's causing a memory leak.
-/*
-	gl_ss_renderflags = new byte[numsubsectors];
-	memset(gl_ss_renderflags, 0, numsubsectors * sizeof(byte));
-*/
 	gl_linebuffer = new line_t *[numsides];
 	PrepareSectorData();
 	for(i=0;i<numsectors;i++) PrepareTransparentDoors(&sectors[i]);

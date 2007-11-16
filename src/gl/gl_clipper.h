@@ -61,6 +61,8 @@ public:
 		clipnodes=cliphead=NULL;
 	}
 
+	~Clipper();
+
 	void Clear();
 
 	bool IsRangeVisible(angle_t startangle, angle_t endangle);

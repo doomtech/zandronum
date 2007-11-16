@@ -49,6 +49,112 @@
 
 //==========================================================================
 //
+// Checks for the presence of a hires texture replacement in a Doomsday style PK3
+//
+//==========================================================================
+int FGLTexture::CheckDDPK3()
+{
+	static const char * doom1texpath[]= {
+		"data/jdoom/textures/doom1/%s.%s", "data/jdoom/textures/%s.%s", NULL };
+
+	static const char * doom2texpath[]= {
+		"data/jdoom/textures/doom2/%s.%s", "data/jdoom/textures/%s.%s", NULL };
+
+	static const char * pluttexpath[]= {
+		"data/jdoom/textures/plutonia/%s.%s", "data/jdoom/textures/%s.%s", NULL };
+
+	static const char * tnttexpath[]= {
+		"data/jdoom/textures/tnt/%s.%s", "data/jdoom/textures/%s.%s", NULL };
+
+	static const char * heretictexpath[]= {
+		"data/jheretic/textures/%s.%s", NULL };
+
+	static const char * hexentexpath[]= {
+		"data/jhexen/textures/%s.%s", NULL };
+
+	static const char * strifetexpath[]= {
+		"data/jstrife/textures/%s.%s", NULL };
+
+	static const char * doomflatpath[]= {
+		"data/jdoom/flats/%s.%s", NULL };
+
+	static const char * hereticflatpath[]= {
+		"data/jheretic/flats/%s.%s", NULL };
+
+	static const char * hexenflatpath[]= {
+		"data/jhexen/flats/%s.%s", NULL };
+
+	static const char * strifeflatpath[]= {
+		"data/jstrife/flats/%s.%s", NULL };
+
+
+	FString checkName;
+	const char ** checklist;
+	BYTE useType=tex->UseType;
+
+	if (useType==FTexture::TEX_SkinSprite || useType==FTexture::TEX_Decal || useType==FTexture::TEX_FontChar)
+	{
+		return -3;
+	}
+
+	bool ispatch = (useType==FTexture::TEX_MiscPatch || useType==FTexture::TEX_Sprite) ;
+
+	// for patches this doesn't work yet
+	if (ispatch) return -3;
+
+	switch (gameinfo.gametype)
+	{
+	case GAME_Doom:
+		switch (gamemission)
+		{
+		case doom:
+			checklist = useType==FTexture::TEX_Flat? doomflatpath : doom1texpath;
+			break;
+		case doom2:
+			checklist = useType==FTexture::TEX_Flat? doomflatpath : doom2texpath;
+			break;
+		case pack_tnt:
+			checklist = useType==FTexture::TEX_Flat? doomflatpath : tnttexpath;
+			break;
+		case pack_plut:
+			checklist = useType==FTexture::TEX_Flat? doomflatpath : pluttexpath;
+			break;
+		default:
+			return -3;
+		}
+		break;
+
+	case GAME_Heretic:
+		checklist = useType==FTexture::TEX_Flat? hereticflatpath : heretictexpath;
+		break;
+	case GAME_Hexen:
+		checklist = useType==FTexture::TEX_Flat? hexenflatpath : hexentexpath;
+		break;
+	case GAME_Strife:
+		checklist = useType==FTexture::TEX_Flat? strifeflatpath : strifetexpath;
+		break;
+	default:
+		return -3;
+	}
+
+	while (*checklist)
+	{
+		static const char * extensions[] = { "PNG", "JPG", "TGA", "PCX", NULL };
+
+		for (const char ** extp=extensions; *extp; extp++)
+		{
+			checkName.Format(*checklist, tex->Name, *extp);
+			int lumpnum = Wads.CheckNumForFullName(checkName);
+			if (lumpnum >= 0) return lumpnum;
+		}
+		checklist++;
+	}
+	return -3;
+}
+
+
+//==========================================================================
+//
 // Checks for the presence of a hires texture replacement
 //
 //==========================================================================
@@ -227,7 +333,10 @@ unsigned char *FGLTexture::LoadHiresTexture(int *width, int *height,intptr_t cm)
 {
 	if (HiresLump==-1) 
 	{
-		HiresLump = CheckExternalFile(bHasColorkey);
+		bHasColorkey = false;
+		HiresLump = CheckDDPK3();
+		if (HiresLump < 0) HiresLump = CheckExternalFile(bHasColorkey);
+
 		if (HiresLump >=0) 
 		{
 			hirestexture = FTexture::CreateTexture(HiresLump, FTexture::TEX_Any);

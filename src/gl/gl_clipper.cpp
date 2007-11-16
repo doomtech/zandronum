@@ -45,20 +45,21 @@
 ClipNode * ClipNode::freelist;
 
 
-static class ClipNodesFreer
+//-----------------------------------------------------------------------------
+//
+// Destructor
+//
+//-----------------------------------------------------------------------------
+Clipper::~Clipper()
 {
-public:
-	~ClipNodesFreer()
+	Clear();
+	while (ClipNode::freelist != NULL)
 	{
-		while (ClipNode::freelist != NULL)
-		{
-			ClipNode * node = ClipNode::freelist;
-			ClipNode::freelist = node->next;
-			delete node;
-		}
+		ClipNode * node = ClipNode::freelist;
+		ClipNode::freelist = node->next;
+		delete node;
 	}
 }
-FreeTheClipNodes;
 
 //-----------------------------------------------------------------------------
 //

@@ -849,6 +849,7 @@ static const char *CoreKeywords[]=
    "glow",
    "brightmap",
    "disable_fullbright",
+   "#include",
    NULL
 };
 
@@ -868,6 +869,7 @@ enum
    TAG_GLOW,
    TAG_BRIGHTMAP,
    TAG_DISABLE_FB,
+   TAG_INCLUDE,
 };
 
 
@@ -1102,32 +1104,51 @@ void gl_RecreateAllAttachedLights()
 
 
 //==========================================================================
-//
-//
+// The actual light def parsing code is there.
+// DoParseDefs is no longer called directly by ParseDefs, now it's called
+// by LoadDynLightDefs, which wasn't simply integrated into ParseDefs
+// because of the way the code needs to load two out of five lumps.
 //==========================================================================
-void gl_DoParseDefs(char * defsLump)
+void gl_DoParseDefs(int workingLump)
 {
-	int workingLump, lastLump, type;
+   int recursion=0;
+   int lump, type;
 
-	// [BC] Free all the light definitions when the program closes.
-	atterm( gl_ReleaseLights );
-
-	lastLump = 0;
-	while ((workingLump = Wads.FindLump(defsLump, &lastLump)) != -1)
-	{
-		SC_OpenLumpNum(workingLump, defsLump);
-		while (SC_GetString())
-		{
-			if ((type = SC_MatchString(CoreKeywords)) == -1)
-			{
-				SC_ScriptError("Error parsing defs.  Unknown tag: %s.\n", sc_String);
-				break;
-			}
-			else
-			{
-				ScriptDepth = 0;
-				switch (type)
-				{
+   // Get actor class name.
+   while (true)
+   {
+      SC_SavePos();
+      if (!SC_GetToken ())
+      {
+         if (recursion==0) return;
+         SC_Close();
+         SC_RestoreScriptState();
+         recursion--;
+         continue;
+      }
+      if ((type = SC_MatchString(CoreKeywords)) == -1)
+      {
+         SC_ScriptError("Error parsing defs.  Unknown tag: %s.\n", sc_String);
+         break;
+      }
+      switch (type)
+      {
+         case TAG_INCLUDE:
+         {
+            SC_MustGetString();
+            // This is not using SC_Open because it can print a more useful error message when done here
+            lump = Wads.CheckNumForFullName(sc_String);
+            // Try a normal WAD name lookup only if it's a proper name without path
+            // separator and not longer than 8 characters.
+            if (lump==-1 && strlen(sc_String) <= 8 && !strchr(sc_String, '/'))
+               lump = Wads.CheckNumForName(sc_String);
+            if (lump==-1)
+               SC_ScriptError("Lump '%s' not found", sc_String);
+            SC_SaveScriptState();
+            SC_OpenLumpNum(lump, sc_String);
+            recursion++;
+            break;
+         }
 				case LIGHT_POINT:
 					gl_ParsePointLight();
 					break;
@@ -1174,8 +1195,18 @@ void gl_DoParseDefs(char * defsLump)
 				}
 			}
 		}
-		SC_Close();
-	}
+
+void gl_LoadDynLightDefs(char * defsLump)
+{
+   int workingLump, lastLump;
+
+   lastLump = 0;
+   while ((workingLump = Wads.FindLump(defsLump, &lastLump)) != -1)
+   {
+      SC_OpenLumpNum(workingLump, defsLump);
+      gl_DoParseDefs(workingLump);
+      SC_Close();
+   }
 }
 
 
@@ -1183,6 +1214,7 @@ void gl_ParseDefs()
 {
 	char *defsLump;
 
+	atterm( gl_ReleaseLights ); 
 	switch (gameinfo.gametype)
 	{
 	case GAME_Heretic:
@@ -1198,8 +1230,8 @@ void gl_ParseDefs()
 		defsLump = "DOOMDEFS";
 		break;
 	}
-	gl_DoParseDefs(defsLump);
-	gl_DoParseDefs("GLDEFS");
+   gl_LoadDynLightDefs(defsLump);
+   gl_LoadDynLightDefs("GLDEFS");
 	gl_InitializeActorLights();
 }
 
