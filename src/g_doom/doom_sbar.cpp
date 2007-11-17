@@ -1429,21 +1429,15 @@ void DrawFullHUD_GameInformation()
 
 	}
 
-	void DrawDash(int x, int y, int size=3)
-	{
-		DrawPartialImage (&StatusBarTex, x-BigWidth*size, size*BigWidth);
-		DrBDash(x, y);
-	}
-
 	// Draws three dashes to signal 'unknown' data.
 	void DrawUnknownDashs(int x, int y)
 	{
 		int origin = x - 8;
 		int sep = 10;
 
-		DrawDash(origin - sep, y);
-		DrawDash(origin		 , y);
-		DrawDash(origin + sep, y);
+		DrBDash(origin - sep, y);
+		DrBDash(origin		 , y);
+		DrBDash(origin + sep, y);	
 	}
 
 	// [BB] Draws the inventory in the classical and the new fullscreen HUD.
