@@ -346,19 +346,25 @@ CVAR( Bool, cl_showweapnameoncycle, true, CVAR_ARCHIVE )
 
 CCMD (weapnext)
 {
-	SendItemUse = PickNextWeapon (&players[consoleplayer]);
+	AInventory	*pSelectedWeapon;
+
+	pSelectedWeapon = PickNextWeapon (&players[consoleplayer]);
 
 	// [BC] This can be NULL if we're a spectator.
-	if ( SendItemUse == NULL )
+	if ( pSelectedWeapon == NULL )
 		return;
 
 	// [BC] If we're the client, switch to this weapon right now, since the whole
 	// DEM_, etc. network code isn't ever executed.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) &&
-		( CLIENT_GetConnectionState( ) == CTS_ACTIVE ))
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( demorecording == false ))
 	{
-		players[consoleplayer].mo->UseInventory( (AInventory *)SendItemUse );
+		players[consoleplayer].mo->UseInventory( pSelectedWeapon );
+		if ( players[consoleplayer].PendingWeapon != pSelectedWeapon )
+			return;
 	}
+	else
+		SendItemUse = pSelectedWeapon;
 
 	// [BC] Option to display the name of the weapon being cycled to.
 	if ( cl_showweapnameoncycle )
@@ -367,7 +373,7 @@ CCMD (weapnext)
 		DHUDMessageFadeOut	*pMsg;
 		
 		// Build the string and text color;
-		sprintf( szString, "%s", SendItemUse->GetClass( )->TypeName.GetChars( ));
+		sprintf( szString, "%s", pSelectedWeapon->GetClass( )->TypeName.GetChars( ));
 		// [RC] Set the font
 		screen->SetFont( SmallFont );
 		pMsg = new DHUDMessageFadeOut( szString,
@@ -385,19 +391,25 @@ CCMD (weapnext)
 
 CCMD (weapprev)
 {
-	SendItemUse = PickPrevWeapon (&players[consoleplayer]);
+	AInventory	*pSelectedWeapon;
+
+	pSelectedWeapon = PickPrevWeapon (&players[consoleplayer]);
 
 	// [BC] This can be NULL if we're a spectator.
-	if ( SendItemUse == NULL )
+	if ( pSelectedWeapon == NULL )
 		return;
 
 	// [BC] If we're the client, switch to this weapon right now, since the whole
 	// DEM_, etc. network code isn't ever executed.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) &&
-		( CLIENT_GetConnectionState( ) == CTS_ACTIVE ))
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( demorecording == false ))
 	{
-		players[consoleplayer].mo->UseInventory( (AInventory *)SendItemUse );
+		players[consoleplayer].mo->UseInventory( pSelectedWeapon );
+		if ( players[consoleplayer].PendingWeapon != pSelectedWeapon )
+			return;
 	}
+	else
+		SendItemUse = pSelectedWeapon;
 
 	// [BC] Option to display the name of the weapon being cycled to.
 	if ( cl_showweapnameoncycle )
@@ -406,7 +418,7 @@ CCMD (weapprev)
 		DHUDMessageFadeOut	*pMsg;
 		
 		// Build the string and text color;
-		sprintf( szString, "%s", SendItemUse->GetClass( )->TypeName.GetChars( ));
+		sprintf( szString, "%s", pSelectedWeapon->GetClass( )->TypeName.GetChars( ));
 		// [RC] Set the font
 		screen->SetFont( SmallFont );
 
