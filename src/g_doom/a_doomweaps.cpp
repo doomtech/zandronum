@@ -660,8 +660,9 @@ void A_FireCGun (AActor *actor)
 */
 }
 
+// [BB] Once the DECORATE version of the Minigun is sufficiently tested, the code here should be removed.
 // Minigun -----------------------------------------------------------------
-
+/*
 void A_FireMiniGun (AActor *);
 
 class AMinigun : public AWeapon
@@ -807,7 +808,7 @@ void A_FireMiniGun( AActor *actor )
 	// Tell all the bots that a weapon was fired.
 	BOTS_PostWeaponFiredEvent( ULONG( pPlayer - players ), BOTEVENT_FIREDMINIGUN, BOTEVENT_ENEMY_FIREDMINIGUN, BOTEVENT_PLAYER_FIREDMINIGUN );
 }
-
+*/
 //
 // A_FireMissile
 //

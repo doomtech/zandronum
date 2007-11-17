@@ -1,0 +1,52 @@
+// --------------------------------------------------------------------------
+//
+// Mingun
+//
+// based on STMinigun from tutnt.pk3.
+//
+// --------------------------------------------------------------------------
+
+ACTOR Minigun : Weapon 5014
+{
+  Weapon.AmmoType "Clip" 
+  Weapon.AmmoGive 20
+  Weapon.AmmoUse 1
+  Weapon.Selectionorder 700
+  Weapon.Kickback 100
+  Inventory.PickupMessage "$PICKUP_MINIGUN"
+  Obituary "$OB_MINIGUN"
+  AttackSound "weapons/minigun"
+  SpawnID 214
+  Radius 20
+  Height 16
+  States
+  {
+  Spawn: 
+    MNGN A -1 
+    Loop 
+  Ready: 
+    MNGG A 1 A_WeaponReady 
+    Loop 
+  Deselect: 
+    MNGG A 1 A_Lower 
+    Loop 
+  Select: 
+    MNGG A 1 A_Raise 
+    Loop 
+  Fire: 
+    MNGG A 0 A_GunFlash
+    MNGG A 2 A_FireBullets(5.6, 0, 1, 5, "BulletPuff")
+    MNGG B 2 A_FireBullets(5.6, 0, 1, 5, "BulletPuff")
+    MNGG B 0 A_ReFire
+    MNGG B 2
+    MNGG A 4
+    MNGG B 4
+    MNGG A 8
+    MNGG B 8
+    goto Ready 
+  Flash: 
+    MNGF A 3 BRIGHT A_Light1 
+    MNGF B 3 BRIGHT A_Light0
+    Stop 
+  }
+}

@@ -84,6 +84,7 @@
 #include "actors/skulltag/skulltagrunes.txt"
 #include "actors/skulltag/skulltagscorepillars.txt"
 #include "actors/skulltag/skulltagstatues.txt"
+#include "actors/skulltag/skulltagweapons.txt"
 
 #include "actors/strife/strifeplayer.txt"
 #include "actors/strife/beggars.txt"
