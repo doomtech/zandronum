@@ -879,7 +879,7 @@ int WI_DrawName(int y,const char * levelname, bool nomove=false)
 			}
 			else
 			{
-				screen->DrawText(CR_UNTRANSLATED, (SCREENWIDTH - lines[i].Width * CleanXfac) / 2, (y+h) * CleanYfac, 
+				screen->DrawText(CR_UNTRANSLATED, (SCREENWIDTH - lines[i].Width * (int)CleanXfac) / 2, (y+h) * CleanYfac, 
 					lines[i].Text, DTA_CleanNoMove, true, TAG_DONE);
 			}
 			h+=lumph;
@@ -972,7 +972,7 @@ void WI_drawEL ()
 	}
 	else
 	{
-		WI_DrawName(y, lnametexts[1], true);
+		WI_DrawName(y, lnametexts[1]);
 	}
 }
 
