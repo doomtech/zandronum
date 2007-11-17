@@ -1718,9 +1718,9 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 	ULONG		ulFlags;
     player_t	*pPlayer;
 	char		*pszString;
-	char		szSkin[MAX_NETWORK_STRING];
-	char		szClass[MAX_NETWORK_STRING];
-	char		szOldPlayerName[32];
+	char		szSkin[64];
+	char		szClass[64];
+	char		szOldPlayerName[64];
 	ULONG		ulUserInfoInstance;
 
     pPlayer = &players[g_lCurrentClient];
@@ -1821,7 +1821,7 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 
 	// Read in the player's skin, and make sure it's valid.
 	if ( ulFlags & USERINFO_SKIN )
-		sprintf( szSkin, NETWORK_ReadString( pByteStream ));
+		strncpy( szSkin, NETWORK_ReadString( pByteStream ), 63 );
 	else
 		szSkin[0] = '\0';
 
@@ -1841,21 +1841,21 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 
 	// If this is a Hexen game, read in the player's class.
 	if ( ulFlags & USERINFO_PLAYERCLASS )
-		sprintf( szClass, NETWORK_ReadString( pByteStream ));
+		strncpy( szClass, NETWORK_ReadString( pByteStream ), 63 );
 	else
 		szClass[0] = 0;
 
 	if ( szClass[0] )
 	{
-		pPlayer->userinfo.PlayerClass = D_PlayerClassToInt( szClass );
+		if ( stricmp( szClass, "random" ) == 0 )
+			pPlayer->userinfo.PlayerClass = -1;
+		else
+			pPlayer->userinfo.PlayerClass = D_PlayerClassToInt( szClass );
+
 		// If the player class is changed, we also have to reset cls.
 		// Otherwise cls will not be reinitialized in P_SpawnPlayer. 
 		pPlayer->cls = NULL;
 	}
-
-	// If the player's class is invalid, pick a new class for him.
-	if ( pPlayer->userinfo.PlayerClass < 0 )
-		pPlayer->userinfo.PlayerClass = 0;
 
 	// Now that we've (maybe) read in the player's class information, try to find a skin
 	// for him based on his class.

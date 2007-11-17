@@ -227,7 +227,7 @@ void CLIENTDEMO_WriteUserInfo( void )
 	clientdemo_CheckDemoBuffer( 16 +
 		(ULONG)strlen( players[consoleplayer].userinfo.netname ) +
 		(ULONG)strlen( skins[players[consoleplayer].userinfo.skin].name ) +
-		(ULONG)strlen( PlayerClasses[players[consoleplayer].userinfo.PlayerClass].Type->Meta.GetMetaString( APMETA_DisplayName )));
+		(ULONG)strlen( PlayerClasses[players[consoleplayer].CurrentPlayerClass].Type->Meta.GetMetaString( APMETA_DisplayName )));
 
 	// Write the header.
 	NETWORK_WriteByte( &g_ByteStream, CLD_USERINFO );
@@ -240,7 +240,7 @@ void CLIENTDEMO_WriteUserInfo( void )
 	NETWORK_WriteString( &g_ByteStream, skins[players[consoleplayer].userinfo.skin].name );
 	NETWORK_WriteLong( &g_ByteStream, players[consoleplayer].userinfo.lRailgunTrailColor );
 	NETWORK_WriteByte( &g_ByteStream, players[consoleplayer].userinfo.lHandicap );
-	NETWORK_WriteString( &g_ByteStream, PlayerClasses[players[consoleplayer].userinfo.PlayerClass].Type->Meta.GetMetaString (APMETA_DisplayName));
+	NETWORK_WriteString( &g_ByteStream, PlayerClasses[players[consoleplayer].CurrentPlayerClass].Type->Meta.GetMetaString( APMETA_DisplayName ));
 }
 
 //*****************************************************************************

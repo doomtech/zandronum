@@ -75,10 +75,6 @@ void CLIENTCOMMANDS_UserInfo( ULONG ulFlags )
 
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_USERINFO );
 
-	// [BB] This prevents accessing PlayerClasses[-1], when trying to send the class name.
-	if ( (ulFlags & USERINFO_PLAYERCLASS) && (players[consoleplayer].userinfo.PlayerClass == -1) )
-		ulFlags ^= USERINFO_PLAYERCLASS;
-
 	// Tell the server which items are being updated.
 	NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, ulFlags );
 
@@ -99,8 +95,13 @@ void CLIENTCOMMANDS_UserInfo( ULONG ulFlags )
 		NETWORK_WriteLong( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].userinfo.lRailgunTrailColor );
 	if ( ulFlags & USERINFO_HANDICAP )
 		NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].userinfo.lHandicap );
-	if (( (gameinfo.gametype == GAME_Hexen) || (PlayerClasses.Size() > 1) ) && ( ulFlags & USERINFO_PLAYERCLASS ))
-		NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, PlayerClasses[players[consoleplayer].userinfo.PlayerClass].Type->Meta.GetMetaString (APMETA_DisplayName));
+	if (( PlayerClasses.Size( ) > 1 ) && ( ulFlags & USERINFO_PLAYERCLASS ))
+	{
+		if ( players[consoleplayer].userinfo.PlayerClass == -1 )
+			NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, "random" );
+		else
+			NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, PlayerClasses[players[consoleplayer].userinfo.PlayerClass].Type->Meta.GetMetaString( APMETA_DisplayName ));
+	}
 }
 
 //*****************************************************************************

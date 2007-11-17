@@ -3221,7 +3221,7 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	Y = NETWORK_ReadLong( pByteStream );
 	Z = NETWORK_ReadLong( pByteStream );
 
-	lPlayerClass = NETWORK_ReadByte( pByteStream );
+	lPlayerClass = NETWORK_ReadShort( pByteStream );
 
 	if ( bMorph )
 	{
@@ -3946,7 +3946,6 @@ static void client_SetPlayerUserInfo( BYTESTREAM_s *pByteStream )
 	char		*pszSkin = NULL;
 	LONG		lRailgunTrailColor = 0;
 	LONG		lHandicap = 0;
-	LONG		lClass = 0;
 	LONG		lSkin;
 
 	// Read in the player whose userinfo is being sent to us.
@@ -3981,10 +3980,6 @@ static void client_SetPlayerUserInfo( BYTESTREAM_s *pByteStream )
 	// Read in the player's handicap.
 	if ( ulFlags & USERINFO_HANDICAP )
 		lHandicap = NETWORK_ReadByte( pByteStream );
-
-	// Read in the player's class.
-	if ( ulFlags & USERINFO_PLAYERCLASS )
-		lClass = NETWORK_ReadByte( pByteStream );
 
 	// If this isn't a valid player, break out.
 	// We actually send the player's userinfo before he gets spawned, thus putting him in
@@ -4065,10 +4060,6 @@ static void client_SetPlayerUserInfo( BYTESTREAM_s *pByteStream )
 		else if ( pPlayer->userinfo.lHandicap > deh.MaxSoulsphere )
 			pPlayer->userinfo.lHandicap = deh.MaxSoulsphere;
 	}
-
-	// Read in the player's class.
-	if (( (gameinfo.gametype == GAME_Hexen) || (PlayerClasses.Size() > 1) ) && ( ulFlags & USERINFO_PLAYERCLASS ))
-		pPlayer->userinfo.PlayerClass = lClass;
 
 	// Build translation tables, always gotta do this!
 	R_BuildPlayerTranslation( ulPlayer );
@@ -10831,4 +10822,3 @@ ADD_STAT( momentum )
 	return ( Out );
 }
 */
-

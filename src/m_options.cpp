@@ -147,7 +147,7 @@ EXTERN_CVAR (String,	playerclass)
 
 /*static*/	ULONG		g_ulPlayerSetupSkin;
 /*static*/	ULONG		g_ulPlayerSetupColor;
-/*static*/	ULONG		g_ulPlayerSetupClass;
+/*static*/	LONG		g_lPlayerSetupClass;
 
 CVAR( String, menu_name, "", 0 )
 CVAR( Color, menu_color, 0x000000, 0 )
@@ -2391,7 +2391,7 @@ void M_SetupPlayerSetupMenu( void )
 	// Initialize the skin, color, and class placeholder variables.
 	g_ulPlayerSetupSkin = R_FindSkin( skin, players[consoleplayer].CurrentPlayerClass );
 	g_ulPlayerSetupColor = players[consoleplayer].userinfo.color;
-	g_ulPlayerSetupClass = players[consoleplayer].CurrentPlayerClass;
+	g_lPlayerSetupClass = players[consoleplayer].userinfo.PlayerClass;
 }
 
 void M_AcceptPlayerSetupChanges( void )
@@ -4203,7 +4203,7 @@ void M_OptDrawer ()
 				break;
 			case classtype:
 
-				screen->DrawText( CR_GREY, x, y, ( g_ulPlayerSetupClass == -1 ) ? "random" : PlayerClasses[g_ulPlayerSetupClass].Type->Meta.GetMetaString (APMETA_DisplayName), DTA_Clean, true, TAG_DONE );
+				screen->DrawText( CR_GREY, x, y, ( g_lPlayerSetupClass == -1 ) ? "random" : PlayerClasses[g_lPlayerSetupClass].Type->Meta.GetMetaString (APMETA_DisplayName), DTA_Clean, true, TAG_DONE );
 				break;
 			case botslot:
 
@@ -4976,7 +4976,7 @@ void M_OptResponder (event_t *ev)
 			case skintype:
 
 				if ((( GetDefaultByType( PlayerClass->Type )->flags4 & MF4_NOSKIN ) == false ) &&
-					( g_ulPlayerSetupClass != -1 ))
+					( g_lPlayerSetupClass != -1 ))
 				{
 					LONG	lSkin = g_ulPlayerSetupSkin;
 
@@ -5024,7 +5024,7 @@ void M_OptResponder (event_t *ev)
 
 				if ( PlayerClasses.Size( ) > 0 )
 				{
-					LONG	lClass = g_ulPlayerSetupClass;
+					LONG	lClass = g_lPlayerSetupClass;
 
 					lClass--;
 					if ( lClass < -1 )
@@ -5032,7 +5032,7 @@ void M_OptResponder (event_t *ev)
 
 					cvar_set( "menu_playerclass", ( lClass == -1 ) ? "random" : PlayerClasses[lClass].Type->TypeName.GetChars( ));
 
-					g_ulPlayerSetupClass = lClass;
+					g_lPlayerSetupClass = lClass;
 				}
 				S_Sound( CHAN_VOICE, "menu/change", 1, ATTN_NONE );
 				break;
@@ -5364,7 +5364,7 @@ void M_OptResponder (event_t *ev)
 			case skintype:
 
 				if ((( GetDefaultByType( PlayerClass->Type )->flags4 & MF4_NOSKIN ) == false ) &&
-					( g_ulPlayerSetupClass != -1 ))
+					( g_lPlayerSetupClass != -1 ))
 				{
 					LONG	lSkin = g_ulPlayerSetupSkin;
 
@@ -5412,7 +5412,7 @@ void M_OptResponder (event_t *ev)
 
 				if ( PlayerClasses.Size( ) > 0 )
 				{
-					LONG	lClass = g_ulPlayerSetupClass;
+					LONG	lClass = g_lPlayerSetupClass;
 
 					lClass++;
 					if ( lClass >= PlayerClasses.Size() )
@@ -5420,7 +5420,7 @@ void M_OptResponder (event_t *ev)
 
 					cvar_set( "menu_playerclass", ( lClass == -1 ) ? "random" : PlayerClasses[lClass].Type->TypeName.GetChars( ));
 
-					g_ulPlayerSetupClass = lClass;
+					g_lPlayerSetupClass = lClass;
 				}
 				S_Sound( CHAN_VOICE, "menu/change", 1, ATTN_NONE );
 				break;
@@ -6590,4 +6590,3 @@ void M_Deinit ()
 	// Free resolutions from the modes menu.
 	M_FreeModesList();
 }
-

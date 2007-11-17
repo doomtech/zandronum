@@ -150,12 +150,12 @@ void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlay
 
 		if ( bMorph )
 		{
-			SERVER_CheckClientBuffer( ulIdx, 25 + (ULONG)strlen( PlayerPawnName ), true );
+			SERVER_CheckClientBuffer( ulIdx, 26 + (ULONG)strlen( PlayerPawnName ), true );
 			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SPAWNMORPHPLAYER );
 		}
 		else
 		{
-			SERVER_CheckClientBuffer( ulIdx, 25, true );
+			SERVER_CheckClientBuffer( ulIdx, 26, true );
 			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SPAWNPLAYER );
 		}
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
@@ -170,7 +170,7 @@ void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlay
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].mo->x );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].mo->y );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].mo->z );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].CurrentPlayerClass );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].CurrentPlayerClass );
 		//NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].userinfo.PlayerClass );
 		if ( bMorph )
 			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, PlayerPawnName );
@@ -462,9 +462,6 @@ void SERVERCOMMANDS_SetPlayerUserInfo( ULONG ulPlayer, ULONG ulUserInfoFlags, UL
 
 		if ( ulUserInfoFlags & USERINFO_HANDICAP )
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].userinfo.lHandicap );
-
-		if ( ulUserInfoFlags & USERINFO_PLAYERCLASS )
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].userinfo.PlayerClass );
 	}
 }
 

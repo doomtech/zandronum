@@ -568,7 +568,7 @@ void	M_SetupPlayerSetupMenu( void );
 
 extern	ULONG		g_ulPlayerSetupSkin;
 extern	ULONG		g_ulPlayerSetupColor;
-extern	ULONG		g_ulPlayerSetupClass;
+extern	LONG		g_lPlayerSetupClass;
 
 menuitem_t PlayerSetupItems[] = {
 	{ string,	"Name",						&menu_name,				2.0, 0.0, 0.0, NULL  },
@@ -2261,7 +2261,13 @@ void M_PlayerSetup (void)
 	// [BC] Instead of using the actual player color, skin, etc., use placeholder values.
 	if (players[consoleplayer].mo != NULL)
 	{
-		PlayerClass = &PlayerClasses[g_ulPlayerSetupClass];
+		PickPlayerClass( );
+/*
+		if ( g_lPlayerSetupClass == -1 )
+			PlayerClass = &PlayerClasses[0];
+		else
+			PlayerClass = &PlayerClasses[g_lPlayerSetupClass];
+*/
 	}
 	PlayerSkin = g_ulPlayerSetupSkin;
 	R_GetPlayerTranslation (g_ulPlayerSetupColor, &skins[g_ulPlayerSetupSkin], translationtables[TRANSLATION_Players] + 256 * MAXPLAYERS);
@@ -2411,7 +2417,7 @@ static void M_PlayerSetupDrawer ()
 		fixed_t Scale;
 
 		if (GetDefaultByType (PlayerClass->Type)->flags4 & MF4_NOSKIN ||
-			g_ulPlayerSetupClass == -1 ||
+			g_lPlayerSetupClass == -1 ||
 			PlayerState->sprite.index != GetDefaultByType (PlayerClass->Type)->SpawnState->sprite.index)
 		{
 			sprframe = &SpriteFrames[sprites[PlayerState->sprite.index].spriteframes + PlayerState->GetFrame()];
@@ -3834,7 +3840,7 @@ static void PickPlayerClass ()
 	// [GRB] Pick a class from player class list
 	if (PlayerClasses.Size () > 1)
 	{
-		pclass = g_ulPlayerSetupClass;
+		pclass = g_lPlayerSetupClass;
 
 		if (pclass < 0)
 		{
