@@ -4737,9 +4737,8 @@ void G_DoPlayDemo (void)
 	}
 	else
 	{
-		// [BC] First, see if a .cld demo with this name exists.
 		FixPathSeperator (defdemoname);
-		DefaultExtension (defdemoname, ".cld");
+		ForceExtension (defdemoname, ".cld");
 		if ( M_DoesFileExist( defdemoname ))
 		{
 			// Put the game in the full console.
@@ -4751,7 +4750,6 @@ void G_DoPlayDemo (void)
 		else
 			defdemoname[strlen( defdemoname ) - 4] = 0;
 
-		FixPathSeperator (defdemoname);
 		DefaultExtension (defdemoname, ".lmp");
 		M_ReadFile (defdemoname, &demobuffer);
 	}

@@ -155,6 +155,29 @@ void DefaultExtension (FString &path, const char *extension)
 	path += extension;
 }
 
+//=============================================================================
+//
+//	[BC] ForceExtension
+//
+//	If the string doesn't have an extension, this adds the extension. If it does,
+//	the existing extension is replaced with the given extension.
+//
+//=============================================================================
+void ForceExtension( char *pszPath, const char *pszExtension )
+{
+	char	*psz;
+
+	// Add the extension if it's the string doesn't already have one.
+	DefaultExtension( pszPath, pszExtension );
+
+	// We need at least 4 characters for the extension, and one for the null character.
+	if ( strlen( pszPath ) < 5 )
+		return;
+
+	psz = pszPath + strlen( pszPath ) - 4;
+	strncpy( psz, pszExtension, 4 );
+}
+
 
 /*
 ====================

@@ -34,6 +34,8 @@ void	FixPathSeperator (char *path);
 
 void 	DefaultExtension (char *path, const char *extension);
 void 	DefaultExtension (FString &path, const char *extension);
+// [BC]
+void 	ForceExtension( char *pszPath, const char *pszExtension );
 
 FString	ExtractFilePath (const char *path);
 FString	ExtractFileBase (const char *path, bool keep_extension=false);
