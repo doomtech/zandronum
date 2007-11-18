@@ -12,7 +12,12 @@
 		- Skulltag/ZDaemon/Odamex
 			- Shows more indepth stats
 - Functionality
-	- Gather stats for other ports
-	- Create seperate list
+	- Gather stats for ZDaemon/Odamex
 	- Monthly reports
-	
+	- Export stats
+	- Read partial stats file
+	- Memory leak detection
+	- MAIN_Destruct
+		- Release memory
+		- Export stats
+		- Happens ANY time the program is closed!

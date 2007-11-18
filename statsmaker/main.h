@@ -53,23 +53,20 @@
 #define __MAIN_H__
 #define _WIN32_IE 0x0501
 #include "network.h"
+#include "..\src\tarray.h"
 
 //*****************************************************************************
 //	DEFINES
 
+// This is what displays in the main window.
 #define	MAIN_TITLESTRING	"Skulltag Statistics Reporter"
-
-#define	MAX_NUM_SERVERS		256
 
 #define	SERVERCONSOLE_TEXTLENGTH	4096
 
+// How long can the name of a port be?
+#define	MAX_PORT_NAME_LENGTH		16
+
 #define	DESIRED_FRAMERATE	50
-/*
-#define	SECOND				1000
-#define	MINUTE				( SECOND * 60 )
-#define	HOUR				( MINUTE * 60 )
-#define	DAY					( HOUR * 24 )
-*/
 
 #define	SECOND				50
 #define	MINUTE				( SECOND * 60 )
@@ -99,7 +96,7 @@
 #define	SQF_PLAYERDATA				0x00100000
 
 //*****************************************************************************
-enum
+typedef enum
 {
 	AS_INACTIVE,
 	AS_WAITINGFORREPLY,
@@ -108,7 +105,8 @@ enum
 	AS_BANNED,
 
 	NUM_ACTIVESTATES
-};
+
+} ACTIVESTATE_e;
 
 //*****************************************************************************
 enum
@@ -133,29 +131,76 @@ enum
 };
 
 //*****************************************************************************
+enum
+{
+	PORT_SKULLTAG,
+	PORT_ZDAEMON,
+
+	NUM_PORTS
+};
+
+//*****************************************************************************
 //	STRUCTURES
 
+//*****************************************************************************
 typedef struct
 {
 	// What's the state of this server's activity?
-	ULONG		ulActiveState;
+	ULONG					ulActiveState;
 
 	// IP address of this server.
-	NETADDRESS_s	Address;
-
-	// Name of the server.
-	char		szHostName[256];
-
-	// Gametype of the server.
-	LONG		lGameType;
-
-	// Number of players on the server.
-	LONG		lNumPlayers;
-
-	// Version of the server.
-	char		szVersion[32];
+	NETADDRESS_s			Address;
 
 } SERVERINFO_s;
+
+//*****************************************************************************
+typedef struct
+{
+	// How many players are playing this query?
+	LONG					lNumPlayers;
+
+	// How many servers are present this query?
+	LONG					lNumServers;
+
+} QUERYINFO_s;
+
+//*****************************************************************************
+typedef struct
+{
+	// What is the name of this port?
+	char					szName[MAX_PORT_NAME_LENGTH];
+
+	// List of servers for this port.
+	TArray<SERVERINFO_s>	aServerInfo;
+
+	// Data for each query.
+	TArray<QUERYINFO_s>		aQueryInfo;
+
+	// Info for the master server (address, etc.).
+	SERVERINFO_s			MasterServerInfo;
+
+	// What is the maximum number of players seeing playing at once?
+	LONG					lMaxNumPlayers;
+
+	// What is the maximum number of players seeing playing at once?
+	LONG					lMaxNumServers;
+
+	// Does this port use Huffman compression?
+	bool					bHuffman;
+
+	// Routine run for querying the master servers.
+	void					(*pvQueryMasterServer)( void );
+
+	// Routine run for parsing master server responses.
+	bool					(*pvParseMasterServerResponse)( BYTESTREAM_s *pByteStream, TArray<SERVERINFO_s>&aServerInfo, TArray<QUERYINFO_s>&aQueryInfo );
+
+	// Routine run for querying servers.
+	void					(*pvQueryServer)( SERVERINFO_s *pServer );
+
+	// Routine run for parsing server responses.
+	bool					(*pvParseServerResponse)( BYTESTREAM_s *pByteStream, SERVERINFO_s *pServer, TArray<QUERYINFO_s>&aQueryInfo );
+
+} PORTINFO_s;
 
 //*****************************************************************************
 typedef struct

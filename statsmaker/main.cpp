@@ -48,6 +48,7 @@
 //
 //-----------------------------------------------------------------------------
 
+#define _CRT_SECURE_NO_DEPRECATE
 #include "..\src\networkheaders.h"
 #include "..\src\networkshared.h"
 #include "main.h"
@@ -55,7 +56,6 @@
 
 #include <windows.h>
 #include <commctrl.h>
-#define _CRT_SECURE_NO_DEPRECATE
 #include <math.h>
 #include <time.h>
 
@@ -68,6 +68,10 @@
 
 #include "resource.h"
 
+// Include the protocol for various ports.
+#include "protocol_skulltag.h"
+#include "protocol_zdaemon.h"
+
 // Look pretty under XP and Vista.
 #pragma comment(linker, "\"/manifestdependency:type='Win32' ""name='Microsoft.Windows.Common-Controls' ""version='6.0.0.0' ""processorArchitecture='*' ""publicKeyToken='6595b64144ccf1df' ""language='*'\"")
 
@@ -75,76 +79,41 @@
 //	VARIABLES
 
 // Thread handle for the main thread that gathers stats.
-static	HANDLE			g_hThread;
-
-// Message buffer we write our commands to.
-static	NETBUFFER_s		g_ServerBuffer;
-
-// Message buffer we write our commands to.
-static	NETBUFFER_s		g_MasterServerBuffer;
-
-// Address of the master server.
-static	NETADDRESS_s	g_AddressMasterServer;
-
-// List of all the current servers.
-static	SERVERINFO_s	g_ServerList[MAX_NUM_SERVERS];
+static	HANDLE					g_hThread;
 
 // Number of lines present in the text box.
-static	ULONG			g_ulNumLines = 0;
+static	ULONG					g_ulNumLines = 0;
 
 // Global handle for the main dialog box.
-static	HWND			g_hDlg = NULL;
+static	HWND					g_hDlg = NULL;
 
-static	float			g_fAverageNumPlayers = 0.0f;
-static	float			g_fAverageNumServers = 0.0f;
+// Data for each of the port we're gathering stats for.
+static	PORTINFO_s				g_PortInfo[NUM_PORTS];
 
-static	LONG			g_lNumPlayersThisQuery = 0;
-static	LONG			g_lNumServersThisQuery = 0;
+static	UPDATETIME_s			g_NextQueryTime;
+static	UPDATETIME_s			g_NextExportTime;
+static	UPDATETIME_s			g_NextQueryRetryTime;
 
-static	LONG			g_lTotalNumPlayers = 0;
-static	LONG			g_lTotalNumServers = 0;
+static	NOTIFYICONDATA			g_NotifyIconData;
+static	HICON					g_hSmallIcon = NULL;
+static	HINSTANCE				g_hInst;
+static	bool					g_bSmallIconClicked = false;
 
-static	LONG			g_lMaxNumPlayers = 0;
-static	LONG			g_lMaxNumServers = 0;
-
-static	LONG			g_lNumQueries = 0;
-
-static	UPDATETIME_s	g_NextQueryTime;
-static	UPDATETIME_s	g_NextExportTime;
-static	UPDATETIME_s	g_NextQueryRetryTime;
-
-static	NOTIFYICONDATA	g_NotifyIconData;
-static	HICON			g_hSmallIcon = NULL;
-static	HINSTANCE		g_hInst;
-static	bool			g_bSmallIconClicked = false;
-//static	LONG			g_lQueryTicks = 0;
-//static	LONG			g_lExportTicks = 0;
-//static	LONG			g_lQueryRetryTicks = 0;
-
-// Info for the master server.
-static	SERVERINFO_s	g_MasterServerInfo;
-
-static	FILE			*g_pPartialStatsFile;
+static	FILE					*g_pPartialStatsFile;
 
 //*****************************************************************************
 //	PROTOTYPES
 
-static	void		main_MainLoop( void );
-static	void		main_QueryMasterServer( void );
-static	void		main_ExportStats( void );
-static	void		main_GetServerList( BYTESTREAM_s *pByteStream );
-static	void		main_QueryAllServers( void );
-static	void		main_DeactivateAllServers( void );
-static	void		main_ParseServerQuery( BYTESTREAM_s *pByteStream );
-static	LONG		main_GetNewServerID( void );
-static	void		main_QueryServer( ULONG ulServer );
-static	LONG		main_GetListIDByAddress( NETADDRESS_s Address );
-static	void		main_ClearServerList( void );
-static	void		main_CalculateNextQueryTime( UPDATETIME_s *pInfo );
-static	void		main_CalculateNextExportTime( UPDATETIME_s *pInfo );
-static	void		main_CalculateNextRetryTime( UPDATETIME_s *pInfo );
-static	bool		main_NeedRetry( void );
-static	void		main_ParsePartialStatsFile( void );
+static	void					main_MainLoop( void );
+static	void					main_ExportStats( void );
+static	void					main_ClearServerList( void );
+static	void					main_CalculateNextQueryTime( UPDATETIME_s *pInfo );
+static	void					main_CalculateNextExportTime( UPDATETIME_s *pInfo );
+static	void					main_CalculateNextRetryTime( UPDATETIME_s *pInfo );
+static	bool					main_NeedRetry( void );
+static	SERVERINFO_s			*main_FindServerByAddress( NETADDRESS_s Address );
+static	void					main_ParsePartialStatsFile( void );
+static	bool					main_NeedToDecode( void );
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -162,9 +131,9 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 //
 BOOL CALLBACK MAIN_MainDialogBoxCallback( HWND hDlg, UINT Message, WPARAM wParam, LPARAM lParam )
 {
-	char			szString[16];
-	time_t			CurrentTime;
-	struct	tm		*pTimeInfo;
+//	char			szString[16];
+//	time_t			CurrentTime;
+//	struct	tm		*pTimeInfo;
 
 	switch ( Message )
 	{
@@ -174,7 +143,7 @@ BOOL CALLBACK MAIN_MainDialogBoxCallback( HWND hDlg, UINT Message, WPARAM wParam
 		{
 			EndDialog( hDlg, -1 );
 			CloseHandle( g_hThread );
-
+/*
 			if (( g_pPartialStatsFile = fopen( "partialstats.txt", "w" )) != NULL )
 			{
 				time( &CurrentTime );
@@ -203,6 +172,7 @@ BOOL CALLBACK MAIN_MainDialogBoxCallback( HWND hDlg, UINT Message, WPARAM wParam
 
 				fclose( g_pPartialStatsFile );
 			}
+*/
 			exit( 0 );
 		}
 		break;
@@ -253,7 +223,7 @@ BOOL CALLBACK MAIN_MainDialogBoxCallback( HWND hDlg, UINT Message, WPARAM wParam
 
 			NotifyIconData.uCallbackMessage = UWM_TRAY_TRAYID;
 			NotifyIconData.hIcon = g_hSmallIcon;
-			
+
 			sprintf( szString, "Hewwo!" );
 			lstrcpy( NotifyIconData.szTip, szString );
 
@@ -354,16 +324,33 @@ DWORD WINAPI MAIN_RunMainThread( LPVOID )
 	// Set the local port.
 	NETWORK_Construct( DEFAULT_STATS_PORT, false );
 
-	// Setup our master server message buffer.
-	NETWORK_InitBuffer( &g_MasterServerBuffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
-	NETWORK_ClearBuffer( &g_MasterServerBuffer );
+	// Setup the protocol modules.
+	SKULLTAG_Construct( );
+	ZDAEMON_Construct( );
 
-	// Initialize the message buffer we send messages to individual servers in.
-	NETWORK_InitBuffer( &g_ServerBuffer, MAX_UDP_PACKET, BUFFERTYPE_WRITE );
-	NETWORK_ClearBuffer( &g_ServerBuffer );
+	// Set up the master server info for Skulltag.
+	NETWORK_StringToAddress( "skulltag.kicks-ass.net", &g_PortInfo[PORT_SKULLTAG].MasterServerInfo.Address );
+	g_PortInfo[PORT_SKULLTAG].MasterServerInfo.Address.usPort = htons( 15300 );
 
-	NETWORK_StringToAddress( "skulltag.kicks-ass.net", &g_AddressMasterServer );
-	g_AddressMasterServer.usPort = htons( 15300 );
+	g_PortInfo[PORT_SKULLTAG].pvQueryMasterServer = SKULLTAG_QueryMasterServer;
+	g_PortInfo[PORT_SKULLTAG].pvParseMasterServerResponse = SKULLTAG_ParseMasterServerResponse;
+	g_PortInfo[PORT_SKULLTAG].pvQueryServer = SKULLTAG_QueryServer;
+	g_PortInfo[PORT_SKULLTAG].pvParseServerResponse = SKULLTAG_ParseServerResponse;
+
+	g_PortInfo[PORT_SKULLTAG].bHuffman = true;
+	sprintf( g_PortInfo[PORT_SKULLTAG].szName, "Skulltag" );
+
+	// Set up the master server info for ZDaemon.
+	NETWORK_StringToAddress( "zdaemon.ath.cx", &g_PortInfo[PORT_ZDAEMON].MasterServerInfo.Address );
+	g_PortInfo[PORT_ZDAEMON].MasterServerInfo.Address.usPort = htons( 15300 );
+
+	g_PortInfo[PORT_ZDAEMON].pvQueryMasterServer = ZDAEMON_QueryMasterServer;
+	g_PortInfo[PORT_ZDAEMON].pvParseMasterServerResponse = ZDAEMON_ParseMasterServerResponse;
+	g_PortInfo[PORT_ZDAEMON].pvQueryServer = ZDAEMON_QueryServer;
+	g_PortInfo[PORT_ZDAEMON].pvParseServerResponse = ZDAEMON_ParseServerResponse;
+
+	g_PortInfo[PORT_ZDAEMON].bHuffman = false;
+	sprintf( g_PortInfo[PORT_ZDAEMON].szName, "ZDaemon" );
 
 	// Run the main loop of the program. This never returns.
 	main_MainLoop( );
@@ -504,9 +491,16 @@ static void main_MainLoop( void )
 	LONG			lFirstTime;
 	time_t			CurrentTime;
 	struct	tm		*pTimeInfo;
-	LONG			lCommand;
+//	LONG			lCommand;
 	ULONG			ulIdx;
+	ULONG			ulIdx2;
 	BYTESTREAM_s	*pByteStream;
+	LONG			lTotalNumPlayers;
+	LONG			lTotalNumServers;
+	float			fAverageNumPlayers;
+	float			fAverageNumServers;
+	char			szString[64];
+	SERVERINFO_s	*pServer;
 
 	time( &CurrentTime );
 	pTimeInfo = localtime( &CurrentTime );
@@ -556,13 +550,14 @@ static void main_MainLoop( void )
 			Printf( "Exporting daily stats...\n" );
 			main_ExportStats( );
 
-			g_lTotalNumPlayers = 0;
-			g_lTotalNumServers = 0;
+			for ( ulIdx = 0; ulIdx < NUM_PORTS; ulIdx++ )
+			{
+				g_PortInfo[ulIdx].aQueryInfo.Clear( );
+				g_PortInfo[ulIdx].aServerInfo.Clear( );
 
-			g_lNumQueries = 0;
-
-			g_lMaxNumPlayers = 0;
-			g_lMaxNumServers = 0;
+				g_PortInfo[ulIdx].lMaxNumPlayers = 0;
+				g_PortInfo[ulIdx].lMaxNumServers = 0;
+			}
 
 			// Calculate the next time to export stats.
 			main_CalculateNextExportTime( &g_NextExportTime );
@@ -576,8 +571,12 @@ static void main_MainLoop( void )
 			// Clear out the existing server list.
 			main_ClearServerList( );
 
-			Printf( "Querying master server...\n" );
-			main_QueryMasterServer( );
+			Printf( "Querying master servers...\n" );
+			for ( ulIdx = 0; ulIdx < NUM_PORTS; ulIdx++ )
+			{
+				g_PortInfo[ulIdx].pvQueryMasterServer( );
+				g_PortInfo[ulIdx].MasterServerInfo.ulActiveState = AS_WAITINGFORREPLY;
+			}
 
 			// Calculate the next time to query all servers.
 			main_CalculateNextQueryTime( &g_NextQueryTime );
@@ -595,20 +594,22 @@ static void main_MainLoop( void )
 			( g_NextQueryRetryTime.lMinute == pTimeInfo->tm_min ) &&
 			( g_NextQueryRetryTime.lSecond == pTimeInfo->tm_sec ))
 		{
-			if ( g_MasterServerInfo.ulActiveState == AS_WAITINGFORREPLY )
+			for ( ulIdx = 0; ulIdx < NUM_PORTS; ulIdx++ )
 			{
-				Printf( "Retrying master server...\n" );
-				main_QueryMasterServer( );
-			}
-			else
-			{
-				Printf( "Retrying servers...\n" );
-				for ( ulIdx = 0; ulIdx < MAX_NUM_SERVERS; ulIdx++ )
+				if ( g_PortInfo[ulIdx].MasterServerInfo.ulActiveState == AS_WAITINGFORREPLY )
 				{
-					if ( g_ServerList[ulIdx].ulActiveState == AS_WAITINGFORREPLY ) //||
-//						( g_ServerList[ulIdx].ulActiveState == AS_IGNORED ))
+					Printf( "Retrying %s master server...\n", g_PortInfo[ulIdx].szName );
+					g_PortInfo[ulIdx].pvQueryMasterServer( );
+				}
+				else
+				{
+					Printf( "Retrying %s server(s)...\n", g_PortInfo[ulIdx].szName );
+					for ( ulIdx2 = 0; ulIdx2 < g_PortInfo[ulIdx].aServerInfo.Size( ); ulIdx2++ )
 					{
-						main_QueryServer( ulIdx );
+						if ( g_PortInfo[ulIdx].aServerInfo[ulIdx2].ulActiveState == AS_WAITINGFORREPLY )
+						{
+							g_PortInfo[ulIdx].pvQueryServer( &g_PortInfo[ulIdx].aServerInfo[ulIdx2] );
+						}
 					}
 				}
 			}
@@ -623,86 +624,76 @@ static void main_MainLoop( void )
 		// If we've received packets from somewhere, parse them.
 		while ( NETWORK_GetPackets( ))
 		{
+			// If this is a Skulltag server, decode the packet using Huffman compression.
+			if ( main_NeedToDecode( ))
+				NETWORK_DecodePacket( );
+
 			// Set up our byte stream.
 			pByteStream = &NETWORK_GetNetworkMessageBuffer( )->ByteStream;
 			pByteStream->pbStream = NETWORK_GetNetworkMessageBuffer( )->pbData;
 			pByteStream->pbStreamEnd = pByteStream->pbStream + NETWORK_GetNetworkMessageBuffer( )->ulCurrentSize;
 
-			if ( NETWORK_CompareAddress( NETWORK_GetFromAddress( ), g_AddressMasterServer, false ))
+			for ( ulIdx = 0; ulIdx < NUM_PORTS; ulIdx++ )
 			{
-				LONG	lCommand;
-
-				lCommand = NETWORK_ReadLong( pByteStream );
-				switch ( lCommand )
+				if ( NETWORK_CompareAddress( NETWORK_GetFromAddress( ), g_PortInfo[ulIdx].MasterServerInfo.Address, false ))
 				{
-				case MSC_BEGINSERVERLIST:
+					if ( g_PortInfo[ulIdx].pvParseMasterServerResponse( pByteStream, g_PortInfo[ulIdx].aServerInfo, g_PortInfo[ulIdx].aQueryInfo ))
+					{
+						// We got a response.
+						g_PortInfo[ulIdx].MasterServerInfo.ulActiveState = AS_ACTIVE;
 
-					g_lNumQueries++;
+						g_NextQueryRetryTime.lSecond = pTimeInfo->tm_sec;
+						g_NextQueryRetryTime.lMinute = pTimeInfo->tm_min;
+						g_NextQueryRetryTime.lHour = pTimeInfo->tm_hour;
 
-					g_lNumPlayersThisQuery = 0;
-					g_lNumServersThisQuery = 0;
-
-					// Clear out the server list.
-					main_DeactivateAllServers( );
-
-					// Get the list of servers.
-					Printf( "Receiving server list...\n" );
-					main_GetServerList( pByteStream );
-
-					// Now, query all the servers on the list.
-					main_QueryAllServers( );
-
-					g_NextQueryRetryTime.lSecond = pTimeInfo->tm_sec;
-					g_NextQueryRetryTime.lMinute = pTimeInfo->tm_min;
-					g_NextQueryRetryTime.lHour = pTimeInfo->tm_hour;
-
-					main_CalculateNextRetryTime( &g_NextQueryRetryTime );
-					break;
+						main_CalculateNextRetryTime( &g_NextQueryRetryTime );
+						break;
+					}
 				}
-			}
-			else
-			{
-				LONG	lServer;
-
-				lCommand = NETWORK_ReadLong( pByteStream );
-				switch ( lCommand )
+				else
 				{
-				case SERVER_LAUNCHER_CHALLENGE:
+					pServer = main_FindServerByAddress( NETWORK_GetFromAddress( ));
 
-					main_ParseServerQuery( pByteStream );
-					break;
-				case SERVER_LAUNCHER_IGNORING:
+					if (( pServer ) &&
+						( g_PortInfo[ulIdx].pvParseServerResponse( pByteStream, pServer, g_PortInfo[ulIdx].aQueryInfo )))
+					{
+						if ( g_PortInfo[ulIdx].aQueryInfo[g_PortInfo[ulIdx].aQueryInfo.Size( ) - 1].lNumPlayers > g_PortInfo[ulIdx].lMaxNumPlayers )
+							g_PortInfo[ulIdx].lMaxNumPlayers = g_PortInfo[ulIdx].aQueryInfo[g_PortInfo[ulIdx].aQueryInfo.Size( ) - 1].lNumPlayers;
+						if ( g_PortInfo[ulIdx].aQueryInfo[g_PortInfo[ulIdx].aQueryInfo.Size( ) - 1].lNumServers > g_PortInfo[ulIdx].lMaxNumServers )
+							g_PortInfo[ulIdx].lMaxNumServers = g_PortInfo[ulIdx].aQueryInfo[g_PortInfo[ulIdx].aQueryInfo.Size( ) - 1].lNumServers;
 
-//					lServer = main_GetListIDByAddress( g_AddressFrom );
-//					if ( lServer != -1 )
-//						g_ServerList[lServer].ulActiveState = AS_IGNORED;
+						lTotalNumPlayers = 0;
+						lTotalNumServers = 0;
+						for ( ulIdx2 = 0; ulIdx2 < g_PortInfo[ulIdx].aQueryInfo.Size( ); ulIdx2++ )
+						{
+							lTotalNumPlayers += g_PortInfo[ulIdx].aQueryInfo[ulIdx2].lNumPlayers;
+							lTotalNumServers += g_PortInfo[ulIdx].aQueryInfo[ulIdx2].lNumServers;
+						}
+						
+						fAverageNumPlayers = (float)lTotalNumPlayers / (float)g_PortInfo[ulIdx].aQueryInfo.Size( );
+						fAverageNumServers = (float)lTotalNumServers / (float)g_PortInfo[ulIdx].aQueryInfo.Size( );
 
-					break;
-				case SERVER_LAUNCHER_BANNED:
+						sprintf( szString, "Average players: %3.2f", fAverageNumPlayers );
+						SetDlgItemText( g_hDlg, IDC_AVERAGEPLAYERS, szString );
 
-					lServer = main_GetListIDByAddress( NETWORK_GetFromAddress( ));
-					if ( lServer != -1 )
-						g_ServerList[lServer].ulActiveState = AS_BANNED;
+						sprintf( szString, "Average servers: %3.2f", fAverageNumServers );
+						SetDlgItemText( g_hDlg, IDC_AVERAGESERVERS, szString );
+
+						sprintf( szString, "Num queries: %d", g_PortInfo[ulIdx].aQueryInfo.Size( ));
+						SetDlgItemText( g_hDlg, IDC_NUMQUERIES, szString );
+
+						sprintf( szString, "Max. players: %d", g_PortInfo[ulIdx].lMaxNumPlayers );
+						SetDlgItemText( g_hDlg, IDC_MAXPLAYERS, szString );
+
+						sprintf( szString, "Max. servers: %d", g_PortInfo[ulIdx].lMaxNumServers );
+						SetDlgItemText( g_hDlg, IDC_MAXSERVERS, szString );
+					}
 
 					break;
 				}
 			}
 		}
 	}
-}
-
-//*****************************************************************************
-//
-static void main_QueryMasterServer( void )
-{
-	// Clear out the buffer, and write out launcher challenge.
-	NETWORK_ClearBuffer( &g_MasterServerBuffer );
-	NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, LAUNCHER_SERVER_CHALLENGE );
-
-	// Send the master server our packet.
-	NETWORK_LaunchPacket( &g_MasterServerBuffer, g_AddressMasterServer );
-
-	g_MasterServerInfo.ulActiveState = AS_WAITINGFORREPLY;
 }
 
 //*****************************************************************************
@@ -714,6 +705,12 @@ static void main_ExportStats( void )
 	time_t			CurrentTime;
 	struct	tm		*pTimeInfo;
 	tm				TimeInfo;
+	ULONG			ulIdx;
+	ULONG			ulIdx2;
+	float			fAverageNumPlayers;
+	float			fAverageNumServers;
+	LONG			lTotalNumPlayers;
+	LONG			lTotalNumServers;
 
 	time( &CurrentTime );
 	pTimeInfo = localtime( &CurrentTime );
@@ -800,385 +797,32 @@ static void main_ExportStats( void )
 	if ( pFile = fopen( "stats.txt", "a" ))
 	{
 		char	szOutString[512];
-/*
-		switch ( TimeInfo.tm_wday )
+
+		// Write the date.
+		sprintf( szOutString, "%02d/%02d/%02d\t", TimeInfo.tm_mon + 1, TimeInfo.tm_mday, ( TimeInfo.tm_year + 1900 ) % 100 );
+
+		// Write the stats for each port.
+		for ( ulIdx = 0; ulIdx < NUM_PORTS; ulIdx++ )
 		{
-		case 0:
+			lTotalNumPlayers = 0;
+			lTotalNumServers = 0;
+			for ( ulIdx2 = 0; ulIdx2 < g_PortInfo[ulIdx].aQueryInfo.Size( ); ulIdx2++ )
+			{
+				lTotalNumPlayers += g_PortInfo[ulIdx].aQueryInfo[ulIdx2].lNumPlayers;
+				lTotalNumServers += g_PortInfo[ulIdx].aQueryInfo[ulIdx2].lNumServers;
+			}
 
-			sprintf( szOutString, "STATISTICS FOR SUNDAY %02d/%02d/%04d\n", TimeInfo.tm_mon + 1, TimeInfo.tm_mday, TimeInfo.tm_year + 1900 );
-			break;
-		case 1:
+			fAverageNumPlayers = (float)lTotalNumPlayers / (float)g_PortInfo[ulIdx].aQueryInfo.Size( );
+			fAverageNumServers = (float)lTotalNumServers / (float)g_PortInfo[ulIdx].aQueryInfo.Size( );
 
-			sprintf( szOutString, "STATISTICS FOR MONDAY %02d/%02d/%04d\n", TimeInfo.tm_mon + 1, TimeInfo.tm_mday, TimeInfo.tm_year + 1900 );
-			break;
-		case 2:
-
-			sprintf( szOutString, "STATISTICS FOR TUESDAY %02d/%02d/%04d\n", TimeInfo.tm_mon + 1, TimeInfo.tm_mday, TimeInfo.tm_year + 1900 );
-			break;
-		case 3:
-
-			sprintf( szOutString, "STATISTICS FOR WEDNESDAY %02d/%02d/%04d\n", TimeInfo.tm_mon + 1, TimeInfo.tm_mday, TimeInfo.tm_year + 1900 );
-			break;
-		case 4:
-
-			sprintf( szOutString, "STATISTICS FOR THURSDAY %02d/%02d/%04d\n", TimeInfo.tm_mon + 1, TimeInfo.tm_mday, TimeInfo.tm_year + 1900 );
-			break;
-		case 5:
-
-			sprintf( szOutString, "STATISTICS FOR FRIDAY %02d/%02d/%04d\n", TimeInfo.tm_mon + 1, TimeInfo.tm_mday, TimeInfo.tm_year + 1900 );
-			break;
-		case 6:
-
-			sprintf( szOutString, "STATISTICS FOR SATURDAY %02d/%02d/%04d\n", TimeInfo.tm_mon + 1, TimeInfo.tm_mday, TimeInfo.tm_year + 1900 );
-			break;
-		default:
-
-			sprintf( szOutString, "STATISTICS FOR <UNKNOWN DAY OF WEEK> %02d/%02d/%04d\n", TimeInfo.tm_mon + 1, TimeInfo.tm_mday, TimeInfo.tm_year + 1900 );
-			break;
+			sprintf( szOutString, "%s%5.2f\t%5.2f\t%d\t%d\t%d\t", szOutString, fAverageNumPlayers, fAverageNumServers, g_PortInfo[ulIdx].lMaxNumPlayers, g_PortInfo[ulIdx].lMaxNumServers, g_PortInfo[ulIdx].aQueryInfo.Size( ) - 1 );
 		}
 
-		fputs( szOutString, pFile );
+		strcat( szOutString, "\n" );
 
-		for ( lIdx = 0; lIdx < ( (LONG)strlen( szOutString ) - 1 ); lIdx++ )
-			fputs( "-", pFile );
-
-		sprintf( szOutString, "\n\n" );
 		fputs( szOutString, pFile );
-
-		sprintf( szOutString, "Number of queries performed:\t%d\n", g_lNumQueries );
-		fputs( szOutString, pFile );
-
-		sprintf( szOutString, "Average number of players:\t%5.2f\n", g_fAverageNumPlayers );
-		fputs( szOutString, pFile );
-
-		sprintf( szOutString, "Average number of servers:\t%5.2f\n\n", g_fAverageNumServers );
-		fputs( szOutString, pFile );
-
-		sprintf( szOutString, "Maximum number of players:\t%d\n", g_lMaxNumPlayers );
-		fputs( szOutString, pFile );
-
-		sprintf( szOutString, "Maximum number of servers:\t%d\n\n", g_lMaxNumServers );
-		fputs( szOutString, pFile );
-*/
-		sprintf( szOutString, "%02d/%02d/%02d\t%5.2f\t%5.2f\t%d\t%d\t%d\n", TimeInfo.tm_mon + 1, TimeInfo.tm_mday, ( TimeInfo.tm_year + 1900 ) % 100, g_fAverageNumPlayers, g_fAverageNumServers, g_lMaxNumPlayers, g_lMaxNumServers, g_lNumQueries );
-		fputs( szOutString, pFile );
-
 		fclose( pFile );
 	}
-}
-
-//*****************************************************************************
-//
-static void main_GetServerList( BYTESTREAM_s *pByteStream )
-{
-	ULONG	ulServer;
-
-	g_MasterServerInfo.ulActiveState = AS_ACTIVE;
-
-	while ( NETWORK_ReadByte( pByteStream ) != MSC_ENDSERVERLIST )
-	{
-		// Receiving information about a new server.
-		ulServer = main_GetNewServerID( );
-		if ( ulServer == -1 )
-		{
-			Printf( "main_GetServerList: Server limit exceeded (>=%d servers)", MAX_NUM_SERVERS );
-			return;
-		}
-
-		// This server is now active.
-		g_ServerList[ulServer].ulActiveState = AS_WAITINGFORREPLY;
-
-		// Read in address information.
-		g_ServerList[ulServer].Address.abIP[0] = NETWORK_ReadByte( pByteStream );
-		g_ServerList[ulServer].Address.abIP[1] = NETWORK_ReadByte( pByteStream );
-		g_ServerList[ulServer].Address.abIP[2] = NETWORK_ReadByte( pByteStream );
-		g_ServerList[ulServer].Address.abIP[3] = NETWORK_ReadByte( pByteStream );
-		g_ServerList[ulServer].Address.usPort = htons( NETWORK_ReadShort( pByteStream ));
-	}
-}
-
-//*****************************************************************************
-//
-static void main_QueryAllServers( void )
-{
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAX_NUM_SERVERS; ulIdx++ )
-	{
-		if ( g_ServerList[ulIdx].ulActiveState == AS_WAITINGFORREPLY )
-			main_QueryServer( ulIdx );
-	}
-}
-
-//*****************************************************************************
-//
-static void main_DeactivateAllServers( void )
-{
-	ULONG	ulIdx;
-
-	g_MasterServerInfo.ulActiveState = AS_WAITINGFORREPLY;
-	for ( ulIdx = 0; ulIdx < MAX_NUM_SERVERS; ulIdx++ )
-	{
-//		if ( g_ServerList[ulIdx].ulActiveState != AS_WAITINGFORREPLY )
-			g_ServerList[ulIdx].ulActiveState = AS_INACTIVE;
-	}
-}
-
-//*****************************************************************************
-//
-static void main_ParseServerQuery( BYTESTREAM_s *pByteStream )
-{
-	LONG		lGameType = GAMETYPE_COOPERATIVE;
-	LONG		lNumPWADs;
-	LONG		lNumPlayers;
-	ULONG		ulIdx;
-	ULONG		ulBits;
-	LONG		lServer;
-	char		szString[256];
-
-	lServer = main_GetListIDByAddress( NETWORK_GetFromAddress( ));
-	if (( lServer == -1 ) || ( g_ServerList[lServer].ulActiveState != AS_WAITINGFORREPLY ))
-	{
-		while ( NETWORK_ReadByte( pByteStream ) != -1 )
-			;
-
-		return;
-	}
-
-	// This server is now active.
-	g_ServerList[lServer].ulActiveState = AS_ACTIVE;
-
-	// Read in the time we sent to the server.
-	NETWORK_ReadLong( pByteStream );
-
-	// Read in the version.
-	sprintf( g_ServerList[lServer].szVersion, NETWORK_ReadString( pByteStream ));
-	if ( strnicmp( g_ServerList[lServer].szVersion, "0.97", 4 ) != 0 )
-	{
-		while ( NETWORK_ReadByte( pByteStream ) != -1 )
-			;
-
-		return;
-	}
-
-	// Read in the bits.
-	ulBits = NETWORK_ReadLong( pByteStream );
-
-	// Read the server name.
-	if ( ulBits & SQF_NAME )
-		sprintf( g_ServerList[lServer].szHostName, NETWORK_ReadString( pByteStream ));
-
-	// Read the website URL.
-	if ( ulBits & SQF_URL )
-		NETWORK_ReadString( pByteStream );
-
-	// Read the host's e-mail address.
-	if ( ulBits & SQF_EMAIL )
-		NETWORK_ReadString( pByteStream );
-
-	// Read the map name.
-	if ( ulBits & SQF_MAPNAME )
-		NETWORK_ReadString( pByteStream );
-
-	// Read the maximum number of clients.
-	if ( ulBits & SQF_MAXCLIENTS )
-		NETWORK_ReadByte( pByteStream );
-
-	// Maximum slots.
-	if ( ulBits & SQF_MAXPLAYERS )
-		NETWORK_ReadByte( pByteStream );
-
-	// Read in the PWAD information.
-	if ( ulBits & SQF_PWADS )
-	{
-		lNumPWADs = NETWORK_ReadByte( pByteStream );
-		for ( ulIdx = 0; ulIdx < (ULONG)lNumPWADs; ulIdx++ )
-			NETWORK_ReadString( pByteStream );
-	}
-
-	// Read the game type.
-	if ( ulBits & SQF_GAMETYPE )
-	{
-		g_ServerList[lServer].lGameType = NETWORK_ReadByte( pByteStream );
-		NETWORK_ReadByte( pByteStream );
-		NETWORK_ReadByte( pByteStream );
-	}
-
-	// Game name.
-	if ( ulBits & SQF_GAMENAME )
-		NETWORK_ReadString( pByteStream );
-
-	// Read in the IWAD name.
-	if ( ulBits & SQF_IWAD )
-		NETWORK_ReadString( pByteStream );
-
-	// Force password.
-	if ( ulBits & SQF_FORCEPASSWORD )
-		NETWORK_ReadByte( pByteStream );
-
-	// Force join password.
-	if ( ulBits & SQF_FORCEJOINPASSWORD )
-		NETWORK_ReadByte( pByteStream );
-
-	// Game skill.
-	if ( ulBits & SQF_GAMESKILL )
-		NETWORK_ReadByte( pByteStream );
-
-	// Bot skill.
-	if ( ulBits & SQF_BOTSKILL )
-		NETWORK_ReadByte( pByteStream );
-
-	// DMFlags, DMFlags2, compatflags.
-	if ( ulBits & SQF_DMFLAGS )
-	{
-		NETWORK_ReadLong( pByteStream );
-		NETWORK_ReadLong( pByteStream );
-		NETWORK_ReadLong( pByteStream );
-	}
-
-	// Fraglimit, timelimit, duellimit, pointlimit, winlimit.
-	if ( ulBits & SQF_LIMITS )
-	{
-		NETWORK_ReadShort( pByteStream );
-		if ( NETWORK_ReadShort( pByteStream ))
-		{
-			// Time left.
-			NETWORK_ReadShort( pByteStream );
-		}
-
-		NETWORK_ReadShort( pByteStream );
-		NETWORK_ReadShort( pByteStream );
-		NETWORK_ReadShort( pByteStream );
-	}
-
-		// Team damage scale.
-	if ( ulBits & SQF_TEAMDAMAGE )
-		NETWORK_ReadFloat( pByteStream );
-
-	if ( ulBits & SQF_TEAMSCORES )
-	{
-		// Blue score.
-		NETWORK_ReadShort( pByteStream );
-
-		// Red score.
-		NETWORK_ReadShort( pByteStream );
-	}
-
-	// Read in the number of players.
-	if ( ulBits & SQF_NUMPLAYERS )
-	{
-		g_ServerList[lServer].lNumPlayers = NETWORK_ReadByte( pByteStream );
-		lNumPlayers = g_ServerList[lServer].lNumPlayers;
-
-		if ( ulBits & SQF_PLAYERDATA )
-		{
-			for ( ulIdx = 0; ulIdx < (ULONG)g_ServerList[lServer].lNumPlayers; ulIdx++ )
-			{
-				// Read in this player's name.
-				NETWORK_ReadString( pByteStream );
-
-				// Read in "fragcount" (could be frags, points, etc.)
-				NETWORK_ReadShort( pByteStream );
-
-				// Read in the player's ping.
-				NETWORK_ReadShort( pByteStream );
-
-				// Read in whether or not the player is spectating.
-				NETWORK_ReadByte( pByteStream );
-
-				// Read in whether or not the player is a bot.
-				if ( NETWORK_ReadByte( pByteStream ))
-					lNumPlayers--;
-
-				if (( g_ServerList[lServer].lGameType == GAMETYPE_TEAMPLAY ) ||
-					( g_ServerList[lServer].lGameType == GAMETYPE_TEAMLMS ) ||
-					( g_ServerList[lServer].lGameType == GAMETYPE_TEAMPOSSESSION ) ||
-					( g_ServerList[lServer].lGameType == GAMETYPE_SKULLTAG ) ||
-					( g_ServerList[lServer].lGameType == GAMETYPE_CTF ) ||
-					( g_ServerList[lServer].lGameType == GAMETYPE_ONEFLAGCTF ))
-				{
-					// Team.
-					NETWORK_ReadByte( pByteStream );
-				}
-
-				// Time.
-				NETWORK_ReadByte( pByteStream );
-			}
-		}
-	}
-
-	g_lNumPlayersThisQuery += lNumPlayers;
-	g_lTotalNumPlayers += lNumPlayers;
-
-	g_lNumServersThisQuery++;
-	g_lTotalNumServers++;
-
-	if ( g_lNumPlayersThisQuery > g_lMaxNumPlayers )
-		g_lMaxNumPlayers = g_lNumPlayersThisQuery;
-	if ( g_lNumServersThisQuery > g_lMaxNumServers )
-		g_lMaxNumServers = g_lNumServersThisQuery;
-
-	g_fAverageNumPlayers = (float)g_lTotalNumPlayers / (float)g_lNumQueries;
-	g_fAverageNumServers = (float)g_lTotalNumServers / (float)g_lNumQueries;
-
-	sprintf( szString, "Average players: %3.2f", g_fAverageNumPlayers );
-	SetDlgItemText( g_hDlg, IDC_AVERAGEPLAYERS, szString );
-
-	sprintf( szString, "Average servers: %3.2f", g_fAverageNumServers );
-	SetDlgItemText( g_hDlg, IDC_AVERAGESERVERS, szString );
-
-	sprintf( szString, "Num queries: %d", g_lNumQueries );
-	SetDlgItemText( g_hDlg, IDC_NUMQUERIES, szString );
-
-	sprintf( szString, "Max. players: %d", g_lMaxNumPlayers );
-	SetDlgItemText( g_hDlg, IDC_MAXPLAYERS, szString );
-
-	sprintf( szString, "Max. servers: %d", g_lMaxNumServers );
-	SetDlgItemText( g_hDlg, IDC_MAXSERVERS, szString );
-}
-
-//*****************************************************************************
-//
-static LONG main_GetNewServerID( void )
-{
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAX_NUM_SERVERS; ulIdx++ )
-	{
-		if ( g_ServerList[ulIdx].ulActiveState == AS_INACTIVE )
-			return ( ulIdx );
-	}
-
-	return ( -1 );
-}
-
-//*****************************************************************************
-//
-static void main_QueryServer( ULONG ulServer )
-{
-	// Clear out the buffer, and write out launcher challenge.
-	NETWORK_ClearBuffer( &g_ServerBuffer );
-	NETWORK_WriteLong( &g_ServerBuffer.ByteStream, LAUNCHER_SERVER_CHALLENGE );
-	NETWORK_WriteLong( &g_ServerBuffer.ByteStream, SQF_NUMPLAYERS|SQF_PLAYERDATA );
-	NETWORK_WriteLong( &g_ServerBuffer.ByteStream, 0 );
-
-	// Send the server our packet.
-	NETWORK_LaunchPacket( &g_ServerBuffer, g_ServerList[ulServer].Address );
-}
-
-//*****************************************************************************
-//
-static LONG main_GetListIDByAddress( NETADDRESS_s Address )
-{
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAX_NUM_SERVERS; ulIdx++ )
-	{
-		if ( NETWORK_CompareAddress( g_ServerList[ulIdx].Address, Address, false ))
-			return ( ulIdx );
-	}
-
-	return ( -1 );
 }
 
 //*****************************************************************************
@@ -1186,17 +830,21 @@ static LONG main_GetListIDByAddress( NETADDRESS_s Address )
 static void main_ClearServerList( void )
 {
 	ULONG	ulIdx;
+	ULONG	ulIdx2;
 
-	g_MasterServerInfo.ulActiveState = AS_INACTIVE;
-	for ( ulIdx = 0; ulIdx < MAX_NUM_SERVERS; ulIdx++ )
+	for ( ulIdx = 0; ulIdx < NUM_PORTS; ulIdx++ )
 	{
-		g_ServerList[ulIdx].ulActiveState = AS_INACTIVE;
+		g_PortInfo[ulIdx].MasterServerInfo.ulActiveState = AS_INACTIVE;
+		for ( ulIdx2 = 0; ulIdx2 < g_PortInfo[ulIdx].aServerInfo.Size( ); ulIdx2++ )
+		{
+			g_PortInfo[ulIdx].aServerInfo[ulIdx2].ulActiveState = AS_INACTIVE;
 
-		g_ServerList[ulIdx].Address.abIP[0] = 0;
-		g_ServerList[ulIdx].Address.abIP[1] = 0;
-		g_ServerList[ulIdx].Address.abIP[2] = 0;
-		g_ServerList[ulIdx].Address.abIP[3] = 0;
-		g_ServerList[ulIdx].Address.usPort = 0;
+			g_PortInfo[ulIdx].aServerInfo[ulIdx2].Address.abIP[0] = 0;
+			g_PortInfo[ulIdx].aServerInfo[ulIdx2].Address.abIP[1] = 0;
+			g_PortInfo[ulIdx].aServerInfo[ulIdx2].Address.abIP[2] = 0;
+			g_PortInfo[ulIdx].aServerInfo[ulIdx2].Address.abIP[3] = 0;
+			g_PortInfo[ulIdx].aServerInfo[ulIdx2].Address.usPort = 0;
+		}
 	}
 }
 
@@ -1488,16 +1136,20 @@ static void main_CalculateNextRetryTime( UPDATETIME_s *pInfo )
 static bool main_NeedRetry( void )
 {
 	ULONG	ulIdx;
+	ULONG	ulIdx2;
 
-	if ( g_MasterServerInfo.ulActiveState == AS_WAITINGFORREPLY )
-		return ( true );
-
-	for ( ulIdx = 0; ulIdx < MAX_NUM_SERVERS; ulIdx++ )
+	for ( ulIdx = 0; ulIdx < NUM_PORTS; ulIdx++ )
 	{
-		if ( g_ServerList[ulIdx].ulActiveState == AS_WAITINGFORREPLY )// ||
-//			( g_ServerList[ulIdx].ulActiveState == AS_IGNORED ))
-		{
+		// Check to see if any of the master servers haven't responded.
+		if ( g_PortInfo[ulIdx].MasterServerInfo.ulActiveState == AS_WAITINGFORREPLY )
 			return ( true );
+
+		// If the master server has responded, check to see if we're still waiting for a
+		// respone from any of the servers.
+		for ( ulIdx2 = 0; ulIdx2 < g_PortInfo[ulIdx].aServerInfo.Size( ); ulIdx2++ )
+		{
+			if ( g_PortInfo[ulIdx].aServerInfo[ulIdx2].ulActiveState == AS_WAITINGFORREPLY )
+				return ( true );
 		}
 	}
 
@@ -1506,14 +1158,35 @@ static bool main_NeedRetry( void )
 
 //*****************************************************************************
 //
+static SERVERINFO_s *main_FindServerByAddress( NETADDRESS_s Address )
+{
+	ULONG	ulIdx;
+	ULONG	ulIdx2;
+
+	for ( ulIdx = 0; ulIdx < NUM_PORTS; ulIdx++ )
+	{
+		for ( ulIdx2 = 0; ulIdx2 < g_PortInfo[ulIdx].aServerInfo.Size( ); ulIdx2++ )
+		{
+			if ( NETWORK_CompareAddress( Address, g_PortInfo[ulIdx].aServerInfo[ulIdx2].Address, false ))
+				return ( &g_PortInfo[ulIdx].aServerInfo[ulIdx2] );
+		}
+	}
+	
+	return ( NULL );
+}
+
+//*****************************************************************************
+//
 static void main_ParsePartialStatsFile( void )
 {
+/*
 	char			szString[256];
 	LONG			lPosition;
 	char			cChar;
 	time_t			CurrentTime;
 	struct	tm		*pTimeInfo;
-
+*/
+/*
 	time( &CurrentTime );
 	pTimeInfo = localtime( &CurrentTime );
 	
@@ -1713,4 +1386,27 @@ static void main_ParsePartialStatsFile( void )
 
 	sprintf( szString, "Max. servers: %d", g_lMaxNumServers );
 	SetDlgItemText( g_hDlg, IDC_MAXSERVERS, szString );
+*/
+}
+
+//*****************************************************************************
+//
+static bool main_NeedToDecode( void )
+{
+	ULONG	ulIdx;
+	ULONG	ulIdx2;
+
+	for ( ulIdx = 0; ulIdx < NUM_PORTS; ulIdx++ )
+	{
+		if ( NETWORK_CompareAddress( NETWORK_GetFromAddress( ), g_PortInfo[ulIdx].MasterServerInfo.Address, false ))
+			return ( g_PortInfo[ulIdx].bHuffman );
+
+		for ( ulIdx2 = 0; ulIdx2 < g_PortInfo[ulIdx].aServerInfo.Size( ); ulIdx2++ )
+		{
+			if ( NETWORK_CompareAddress( NETWORK_GetFromAddress( ), g_PortInfo[ulIdx].aServerInfo[ulIdx2].Address, false ))
+				return ( g_PortInfo[ulIdx].bHuffman );
+		}
+	}
+
+	return ( false );
 }

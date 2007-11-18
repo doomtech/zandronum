@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="Skulltag Stats Maker"
 	ProjectGUID="{45BB0A1D-9FC1-49C7-AABB-9066DC64D2A9}"
 	RootNamespace="Skulltag Stats Maker"
@@ -297,6 +297,14 @@
 				RelativePath="..\src\networkshared.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\protocol_skulltag.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\protocol_zdaemon.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -324,6 +332,14 @@
 			</File>
 			<File
 				RelativePath="..\src\networkshared.h"
+				>
+			</File>
+			<File
+				RelativePath=".\protocol_skulltag.h"
+				>
+			</File>
+			<File
+				RelativePath=".\protocol_zdaemon.h"
 				>
 			</File>
 			<File

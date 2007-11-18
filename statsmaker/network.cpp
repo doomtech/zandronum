@@ -242,8 +242,9 @@ int NETWORK_GetPackets( void )
 		return ( 0 );
 
 	// Decode the huffman-encoded message we received.
-	HUFFMAN_Decode( g_ucHuffmanBuffer, (unsigned char *)g_NetworkMessage.pbData, lNumBytes, &iDecodedNumBytes );
-	g_NetworkMessage.ulCurrentSize = iDecodedNumBytes;
+//	HUFFMAN_Decode( g_ucHuffmanBuffer, (unsigned char *)g_NetworkMessage.pbData, lNumBytes, &iDecodedNumBytes );
+	memcpy( g_NetworkMessage.pbData, g_ucHuffmanBuffer, lNumBytes );
+	g_NetworkMessage.ulCurrentSize = lNumBytes;
 	g_NetworkMessage.ByteStream.pbStream = g_NetworkMessage.pbData;
 	g_NetworkMessage.ByteStream.pbStreamEnd = g_NetworkMessage.ByteStream.pbStream + g_NetworkMessage.ulCurrentSize;
 
@@ -251,6 +252,21 @@ int NETWORK_GetPackets( void )
     NETWORK_SocketAddressToNetAddress( &SocketFrom, &g_AddressFrom );
 
 	return ( g_NetworkMessage.ulCurrentSize );
+}
+
+//*****************************************************************************
+//
+void NETWORK_DecodePacket( void )
+{
+	INT		iDecodedNumBytes;
+
+	memcpy( g_ucHuffmanBuffer, g_NetworkMessage.pbData, g_NetworkMessage.ulCurrentSize );
+
+	HUFFMAN_Decode( g_ucHuffmanBuffer, (unsigned char *)g_NetworkMessage.pbData, g_NetworkMessage.ulCurrentSize, &iDecodedNumBytes );
+
+	g_NetworkMessage.ulCurrentSize = iDecodedNumBytes;
+	g_NetworkMessage.ByteStream.pbStream = g_NetworkMessage.pbData;
+	g_NetworkMessage.ByteStream.pbStreamEnd = g_NetworkMessage.ByteStream.pbStream + g_NetworkMessage.ulCurrentSize;
 }
 
 //*****************************************************************************
@@ -332,7 +348,7 @@ NETADDRESS_s NETWORK_GetFromAddress( void )
 
 //*****************************************************************************
 //
-void NETWORK_LaunchPacket( NETBUFFER_s *pBuffer, NETADDRESS_s Address )
+void NETWORK_LaunchPacket( NETBUFFER_s *pBuffer, NETADDRESS_s Address, bool bEncode )
 {
 	LONG				lNumBytes;
 	INT					iNumBytesOut;
@@ -347,7 +363,13 @@ void NETWORK_LaunchPacket( NETBUFFER_s *pBuffer, NETADDRESS_s Address )
 	// Convert the IP address to a socket address.
 	NETWORK_NetAddressToSocketAddress( Address, SocketAddress );
 
-	HUFFMAN_Encode( (unsigned char *)pBuffer->pbData, g_ucHuffmanBuffer, pBuffer->ulCurrentSize, &iNumBytesOut );
+	if ( bEncode )
+		HUFFMAN_Encode( (unsigned char *)pBuffer->pbData, g_ucHuffmanBuffer, pBuffer->ulCurrentSize, &iNumBytesOut );
+	else
+	{
+		memcpy( g_ucHuffmanBuffer, pBuffer->pbData, pBuffer->ulCurrentSize );
+		iNumBytesOut = pBuffer->ulCurrentSize;
+	}
 
 	lNumBytes = sendto( g_NetworkSocket, (const char*)g_ucHuffmanBuffer, iNumBytesOut, 0, (struct sockaddr *)&SocketAddress, sizeof( SocketAddress ));
 

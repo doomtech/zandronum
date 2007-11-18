@@ -78,9 +78,9 @@ void			NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket );
 void			NETWORK_Destruct( void );
 
 int				NETWORK_GetPackets( void );
-int				NETWORK_GetLANPackets( void );
+void			NETWORK_DecodePacket( void );
 NETADDRESS_s	NETWORK_GetFromAddress( void );
-void			NETWORK_LaunchPacket( NETBUFFER_s *pBuffer, NETADDRESS_s Address );
+void			NETWORK_LaunchPacket( NETBUFFER_s *pBuffer, NETADDRESS_s Address, bool bEncode );
 char			*NETWORK_AddressToString( NETADDRESS_s Address );
 char			*NETWORK_AddressToStringIgnorePort( NETADDRESS_s Address );
 bool			NETWORK_CompareAddress( NETADDRESS_s Address1, NETADDRESS_s Address2, bool bIgnorePort );
