@@ -684,6 +684,9 @@ bool EV_CeilingCrushStop (int tag)
 					SERVERCOMMANDS_SetSectorFloorPlane( ULONG( scan->m_Sector - sectors ));
 				else
 					SERVERCOMMANDS_SetSectorCeilingPlane( ULONG( scan->m_Sector - sectors ));
+
+				// Tell clients to stop the floor's sound sequence.
+				SERVERCOMMANDS_StopSectorSequence( scan->m_Sector );
 			}
 
 			SN_StopSequence (scan->m_Sector);

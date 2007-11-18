@@ -175,6 +175,9 @@ void DDoor::Tick ()
 					SERVERCOMMANDS_SetSectorFloorPlane( m_Sector - sectors );
 				else
 					SERVERCOMMANDS_SetSectorCeilingPlane( m_Sector - sectors );
+
+				// Tell clients to stop the floor's sound sequence.
+				SERVERCOMMANDS_StopSectorSequence( m_Sector );
 			}
 
 			SN_StopSequence (m_Sector);
@@ -252,6 +255,9 @@ void DDoor::Tick ()
 					SERVERCOMMANDS_SetSectorFloorPlane( m_Sector - sectors );
 				else
 					SERVERCOMMANDS_SetSectorCeilingPlane( m_Sector - sectors );
+
+				// Tell clients to stop the floor's sound sequence.
+				SERVERCOMMANDS_StopSectorSequence( m_Sector );
 			}
 
 			SN_StopSequence (m_Sector);
