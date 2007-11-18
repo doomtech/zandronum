@@ -2634,8 +2634,11 @@ void CLIENT_MoveThing( AActor *pActor, fixed_t X, fixed_t Y, fixed_t Z )
 	pActor->SetOrigin( X, Y, Z );
 
 	// This is needed to restore tmfloorz.
-	if (( pActor->flags & MF_NOBLOCKMAP ) == false )
+	if ((( pActor->flags & MF_NOBLOCKMAP ) == false ) &&
+		(( pActor->flags & MF_COUNTKILL ) == false ))
+	{
 		P_AdjustFloorCeil( pActor );
+	}
 }
 
 //*****************************************************************************
@@ -8792,6 +8795,10 @@ static void client_GiveInventory( BYTESTREAM_s *pByteStream )
 				static_cast<ABasicArmorBonus*>( pInventory )->SaveAmount *= lAmount;
 				static_cast<ABasicArmorBonus*>( pInventory )->BonusCount *= lAmount;
 
+			}
+			else if ( pType->IsDescendantOf( RUNTIME_CLASS( AHealth )))
+			{
+				pInventory->Amount = MIN( lAmount, (LONG)pInventory->MaxAmount );
 			}
 			// [BB] TryPickup handles the MaxAmount.
 			//else
