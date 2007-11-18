@@ -213,7 +213,7 @@ void A_InquisitorDecide (AActor *self)
 	{
 		// [BC] Set the thing's state.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingFrame( self, LONG( &AInquisitor::States[S_INQ_ATK2] - &AInquisitor::States[0] ));
+			SERVERCOMMANDS_SetThingFrame( self, &AInquisitor::States[S_INQ_ATK2] );
 
 		self->SetState (&AInquisitor::States[S_INQ_ATK2]);
 	}
@@ -223,7 +223,7 @@ void A_InquisitorDecide (AActor *self)
 		{
 			// [BC] Set the thing's state.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SetThingFrame( self, LONG( &AInquisitor::States[S_INQ_BAR] - &AInquisitor::States[0] ));
+				SERVERCOMMANDS_SetThingFrame( self, &AInquisitor::States[S_INQ_BAR] );
 
 			self->SetState (&AInquisitor::States[S_INQ_BAR]);
 		}

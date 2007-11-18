@@ -1993,7 +1993,7 @@ nosee:
 	{
 		// [BC] Tell clients to set the thing's state.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingFrame( self, ( pr_look2( ) & 1 ) + 1 );
+			SERVERCOMMANDS_SetThingFrame( self, self->SpawnState + ( pr_look2( ) & 1 ) + 1 );
 
 		self->SetState (self->SpawnState + (pr_look2() & 1) + 1);
 	}
@@ -2001,7 +2001,7 @@ nosee:
 	{
 		// [BC] Tell clients to set the thing's state.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingFrame( self, 3 );
+			SERVERCOMMANDS_SetThingFrame( self, self->SpawnState + 3 );
 
 		self->SetState (self->SpawnState + 3);
 	}

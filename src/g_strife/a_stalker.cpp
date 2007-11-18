@@ -121,7 +121,7 @@ void A_StalkerChaseDecide (AActor *self)
 	{
 		// [BC] Set the thing's state.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingFrame( self, LONG( &AStalker::States[S_STALK_GROUND_CHASE] - &AStalker::States[0] ));
+			SERVERCOMMANDS_SetThingFrame( self, &AStalker::States[S_STALK_GROUND_CHASE] );
 
 		self->SetState (&AStalker::States[S_STALK_GROUND_CHASE]);
 	}
@@ -129,7 +129,7 @@ void A_StalkerChaseDecide (AActor *self)
 	{
 		// [BC] Set the thing's state.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingFrame( self, LONG( &AStalker::States[S_STALK_FLIP] - &AStalker::States[0] ));
+			SERVERCOMMANDS_SetThingFrame( self, &AStalker::States[S_STALK_FLIP] );
 
 		self->SetState (&AStalker::States[S_STALK_FLIP]);
 	}
@@ -150,7 +150,7 @@ void A_StalkerLookInit (AActor *self)
 		{
 			// [BC] Set the thing's state.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SetThingFrame( self, LONG( &AStalker::States[S_STALK_STND_CEIL] - &AStalker::States[0] ));
+				SERVERCOMMANDS_SetThingFrame( self, &AStalker::States[S_STALK_STND_CEIL] );
 
 			self->SetState (&AStalker::States[S_STALK_STND_CEIL]);
 		}
@@ -161,7 +161,7 @@ void A_StalkerLookInit (AActor *self)
 		{
 			// [BC] Set the thing's state.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SetThingFrame( self, LONG( &AStalker::States[S_STALK_STND_FLOOR] - &AStalker::States[0] ));
+				SERVERCOMMANDS_SetThingFrame( self, &AStalker::States[S_STALK_STND_FLOOR] );
 
 			self->SetState (&AStalker::States[S_STALK_STND_FLOOR]);
 		}
@@ -186,7 +186,7 @@ void A_StalkerAttack (AActor *self)
 	{
 		// [BC] Set the thing's state.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingFrame( self, LONG( &AStalker::States[S_STALK_FLIP] - &AStalker::States[0] ));
+			SERVERCOMMANDS_SetThingFrame( self, &AStalker::States[S_STALK_FLIP] );
 
 		self->SetState (&AStalker::States[S_STALK_FLIP]);
 	}

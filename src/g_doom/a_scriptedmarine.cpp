@@ -332,7 +332,7 @@ void A_M_Refire (AActor *self)
 
 		// [BC] Update the thing's state.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingFrame( self, ( self->state + 1 - self->SpawnState ));
+			SERVERCOMMANDS_SetThingFrame( self, self->state + 1 );
 
 		self->SetState (self->state + 1);
 		return;
@@ -343,7 +343,7 @@ void A_M_Refire (AActor *self)
 	{
 		// [BC] Update the thing's state.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingFrame( self, ( self->state + 1 - self->SpawnState ));
+			SERVERCOMMANDS_SetThingFrame( self, self->state + 1 );
 
 		self->SetState (self->state + 1);
 	}
@@ -368,7 +368,7 @@ void A_M_SawRefire (AActor *self)
 	{
 		// [BC] Update the thing's state.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingFrame( self, ( self->state + 1 - self->SpawnState ));
+			SERVERCOMMANDS_SetThingFrame( self, self->state + 1 );
 
 		self->SetState (self->state + 1);
 		return;
@@ -377,7 +377,7 @@ void A_M_SawRefire (AActor *self)
 	{
 		// [BC] Update the thing's state.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingFrame( self, ( self->state + 1 - self->SpawnState ));
+			SERVERCOMMANDS_SetThingFrame( self, self->state + 1 );
 
 		self->SetState (self->state + 1);
 	}

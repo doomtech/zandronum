@@ -1593,31 +1593,6 @@ void SERVERCOMMANDS_SetThingState( AActor *pActor, ULONG ulState )
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetThingState2( AActor *pActor, const char *pszState, bool bExact )
-{
-	ULONG	ulIdx;
-
-	if (( pActor == NULL ) ||
-		( pszState == NULL ))
-	{
-		return;
-	}
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
-			continue;
-
-		SERVER_CheckClientBuffer( ulIdx, 4 + (ULONG)strlen( pszState ), true );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGSTATE2 );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszState );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, !!bExact );
-	}
-}
-
-//*****************************************************************************
-//
 void SERVERCOMMANDS_DestroyThing( AActor *pActor )
 {
 	ULONG	ulIdx;
@@ -2077,12 +2052,51 @@ void SERVERCOMMANDS_SetThingGravity( AActor *pActor, ULONG ulPlayerExtra, ULONG 
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetThingFrame( AActor *pActor, LONG lFrame, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetThingFrame( AActor *pActor, FState *pState, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-	ULONG	ulIdx;
+	const char	*pszStateLabel;
+	LONG		lOffset;
+	ULONG		ulIdx;
+	FState		*pCompareState;
 
 	if ( pActor == NULL )
 		return;
+
+	// Begin searching through the actor's state labels to find the state that corresponds
+	// to the given state.
+	pszStateLabel = NULL;
+	for ( ulIdx = 0; ulIdx < (ULONG)pActor->GetClass( )->ActorInfo->StateList->NumLabels; ulIdx++ )
+	{
+		// See if any of the states in this label match the given state.
+		lOffset = 0;
+		pCompareState = pActor->GetClass( )->ActorInfo->StateList->Labels[ulIdx].State;
+		while ( 1 )
+		{
+			if ( pState == pCompareState )
+			{
+				pszStateLabel = pActor->GetClass( )->ActorInfo->StateList->Labels[ulIdx].Label.GetChars( );
+				break;
+			}
+
+			if ( pCompareState->GetNextState( ) != pCompareState + 1 )
+				break;
+
+			lOffset++;
+			pCompareState = pCompareState->GetNextState( );
+		}
+	}
+
+	// Couldn't find the state, so just try to go based off the spawn state.
+	if ( pszStateLabel == NULL )
+	{
+		pszStateLabel = "Spawn";
+		lOffset = LONG( pState - pActor->SpawnState );
+		if (( lOffset < 0 ) ||
+			( lOffset > 255 ))
+		{
+			return;
+		}
+	}
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -2095,10 +2109,11 @@ void SERVERCOMMANDS_SetThingFrame( AActor *pActor, LONG lFrame, ULONG ulPlayerEx
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 5, true );
+		SERVER_CheckClientBuffer( ulIdx, 4 + (ULONG)strlen( pszStateLabel ), true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGFRAME );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lFrame );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszStateLabel );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lOffset );
 	}
 }
 

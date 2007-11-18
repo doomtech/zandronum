@@ -506,7 +506,7 @@ static void DoJump(AActor * self, FState * CallingState, int offset, bool bNeedC
 		if (( bNeedClientUpdate ) &&
 			( NETWORK_GetState( ) == NETSTATE_SERVER ))
 		{
-			SERVERCOMMANDS_SetThingFrame( self, LONG( jumpto - self->SpawnState ));
+			SERVERCOMMANDS_SetThingFrame( self, jumpto );
 			SERVERCOMMANDS_MoveThing( self, CM_X|CM_Y|CM_Z );
 		}
 

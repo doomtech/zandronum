@@ -615,7 +615,7 @@ void A_MinotaurDecide (AActor *actor)
 
 		// [BC] If we're the server, set the thing's state.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingFrame( actor, LONG( &AMinotaur::States[S_MNTR_ATK4] - &AMinotaur::States[0] ));
+			SERVERCOMMANDS_SetThingFrame( actor, &AMinotaur::States[S_MNTR_ATK4] );
 
 		// Don't call the state function right away
 		actor->SetStateNF (&AMinotaur::States[S_MNTR_ATK4]);
@@ -636,7 +636,7 @@ void A_MinotaurDecide (AActor *actor)
 	{ // Floor fire attack
 		// [BC] If we're the server, set the thing's state.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingFrame( actor, LONG( &AMinotaur::States[S_MNTR_ATK3] - &AMinotaur::States[0] ));
+			SERVERCOMMANDS_SetThingFrame( actor, &AMinotaur::States[S_MNTR_ATK3] );
 
 		actor->SetState (&AMinotaur::States[S_MNTR_ATK3]);
 		actor->special2 = 0;
@@ -850,7 +850,7 @@ void A_MinotaurAtk3 (AActor *actor)
 	{
 		// [BC] If we're the server, set the thing's state.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingFrame( actor, LONG( &AMinotaur::States[S_MNTR_ATK3+3] - &AMinotaur::States[0] ));
+			SERVERCOMMANDS_SetThingFrame( actor, &AMinotaur::States[S_MNTR_ATK3+3] );
 
 		actor->SetState (&AMinotaur::States[S_MNTR_ATK3+3]);
 		actor->special2 = 1;
@@ -1077,7 +1077,7 @@ void A_MinotaurLook (AActor *actor)
 	{
 		// [BC] If we're the server, set the thing's state.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingFrame( actor, LONG( &AMinotaur::States[S_MNTR_WALK] - &AMinotaur::States[0] ));
+			SERVERCOMMANDS_SetThingFrame( actor, &AMinotaur::States[S_MNTR_WALK] );
 
 		actor->SetStateNF (&AMinotaur::States[S_MNTR_WALK]);
 	}
@@ -1085,7 +1085,7 @@ void A_MinotaurLook (AActor *actor)
 	{
 		// [BC] If we're the server, set the thing's state.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingFrame( actor, LONG( &AMinotaur::States[S_MNTR_ROAM] - &AMinotaur::States[0] ));
+			SERVERCOMMANDS_SetThingFrame( actor, &AMinotaur::States[S_MNTR_ROAM] );
 
 		actor->SetStateNF (&AMinotaur::States[S_MNTR_ROAM]);
 	}
@@ -1133,7 +1133,7 @@ void A_MinotaurChase (AActor *actor)
 	{ // look for a new target
 		// [BC] If we're the server, set the thing's state.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingFrame( actor, LONG( &AMinotaur::States[S_MNTR_LOOK] - &AMinotaur::States[0] ));
+			SERVERCOMMANDS_SetThingFrame( actor, &AMinotaur::States[S_MNTR_LOOK] );
 
 		actor->SetState (&AMinotaur::States[S_MNTR_LOOK]);
 		return;

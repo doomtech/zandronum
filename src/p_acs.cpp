@@ -5489,7 +5489,7 @@ int DLevelScript::RunScript ()
 					{
 						// [BC] Tell clients to change this thing's state.
 						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-							SERVERCOMMANDS_SetThingState2( activator, statename, !!STACK( 1 ));
+							SERVERCOMMANDS_SetThingFrame( activator, state );
 
 						activator->SetState (state);
 						STACK(3) = 1;
@@ -5512,7 +5512,7 @@ int DLevelScript::RunScript ()
 						{
 							// [BC] Tell clients to change this thing's state.
 							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-								SERVERCOMMANDS_SetThingState2( actor, statename, !!STACK( 1 ));
+								SERVERCOMMANDS_SetThingFrame( actor, state );
 
 							actor->SetState (state);
 							count++;

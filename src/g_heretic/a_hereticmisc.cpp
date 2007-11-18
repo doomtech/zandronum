@@ -238,7 +238,7 @@ void A_MakePod (AActor *actor)
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
 		SERVERCOMMANDS_SpawnMissile( mo );
-		SERVERCOMMANDS_SetThingFrame( mo, mo->state - mo->SpawnState );
+		SERVERCOMMANDS_SetThingFrame( mo, mo->state );
 		SERVERCOMMANDS_SoundActor( mo, CHAN_BODY, "world/podgrow", 1, ATTN_IDLE );
 	}
 

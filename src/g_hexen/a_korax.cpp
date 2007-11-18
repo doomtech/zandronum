@@ -416,7 +416,7 @@ void A_KoraxDecide (AActor *actor)
 	{
 		// [BC] Set the thing's frame.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingFrame( actor, LONG( &AKorax::States[S_KORAX_MISSILE1] - &AKorax::States[0] ));
+			SERVERCOMMANDS_SetThingFrame( actor, &AKorax::States[S_KORAX_MISSILE1] );
 
 		actor->SetState (&AKorax::States[S_KORAX_MISSILE1]);
 	}
@@ -424,7 +424,7 @@ void A_KoraxDecide (AActor *actor)
 	{
 		// [BC] Set the thing's frame.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingFrame( actor, LONG( &AKorax::States[S_KORAX_COMMAND1] - &AKorax::States[0] ));
+			SERVERCOMMANDS_SetThingFrame( actor, &AKorax::States[S_KORAX_COMMAND1] );
 
 		actor->SetState (&AKorax::States[S_KORAX_COMMAND1]);
 	}
@@ -721,7 +721,7 @@ void A_KSpiritRoam (AActor *actor)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
 			SERVERCOMMANDS_SoundActor( actor, CHAN_VOICE, "SpiritDie", 1, ATTN_NORM );
-			SERVERCOMMANDS_SetThingFrame( actor, LONG( &AKoraxSpirit::States[S_KSPIRIT_DEATH] - &AKoraxSpirit::States[0] ));
+			SERVERCOMMANDS_SetThingFrame( actor, &AKoraxSpirit::States[S_KSPIRIT_DEATH] );
 		}
 
 		S_Sound (actor, CHAN_VOICE, "SpiritDie", 1, ATTN_NORM);
