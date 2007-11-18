@@ -4491,6 +4491,10 @@ static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 	{
 		SERVERCOMMANDS_SpawnPlayer( g_lCurrentClient, PST_REBORNNOINVENTORY, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
+		// If the client has weapon pieces, tell them.
+		if ( players[g_lCurrentClient].pieces )
+			SERVERCOMMANDS_SetPlayerPieces( g_lCurrentClient, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+
 		// If the client is dead, tell them that.
 		if ( players[g_lCurrentClient].mo->health <= 0 )
 			SERVERCOMMANDS_ThingIsCorpse( players[g_lCurrentClient].mo, g_lCurrentClient, SVCF_ONLYTHISCLIENT );

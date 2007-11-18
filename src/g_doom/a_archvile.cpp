@@ -118,6 +118,13 @@ void A_VileAttack (AActor *actor)
 	AActor *fire;
 	int an;
 		
+	// [BC] Fire movement is server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if (!actor->target)
 		return;
 	
@@ -147,5 +154,9 @@ void A_VileAttack (AActor *actor)
 					 actor->target->y + FixedMul (24*FRACUNIT, finesine[an]),
 					 actor->target->z);
 	
+	// [BC] Tell clients of the fire update.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_MoveThingExact( fire, CM_X|CM_Y|CM_Z );
+
 	P_RadiusAttack (fire, actor, 70, 70, NAME_Fire, false);
 }

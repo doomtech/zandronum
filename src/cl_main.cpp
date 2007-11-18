@@ -153,6 +153,7 @@ static	void	client_SetPlayerPoisonCount( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerAmmoCapacity( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerCheats( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerPendingWeapon( BYTESTREAM_s *pByteStream );
+static	void	client_SetPlayerPieces( BYTESTREAM_s *pByteStream );
 static	void	client_UpdatePlayerPing( BYTESTREAM_s *pByteStream );
 static	void	client_UpdatePlayerExtraData( BYTESTREAM_s *pByteStream );
 static	void	client_UpdatePlayerTime( BYTESTREAM_s *pByteStream );
@@ -500,6 +501,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETPLAYERAMMOCAPACITY",
 	"SVC_SETPLAYERCHEATS",
 	"SVC_SETPLAYERPENDINGWEAPON",
+	"SVC_SETPLAYERPIECES",
 	"SVC_UPDATEPLAYERPING",
 	"SVC_UPDATEPLAYEREXTRADATA",
 	"SVC_UPDATEPLAYERTIME",
@@ -1509,6 +1511,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETPLAYERPENDINGWEAPON:
 
 		client_SetPlayerPendingWeapon( pByteStream );
+		break;
+	case SVC_SETPLAYERPIECES:
+
+		client_SetPlayerPieces( pByteStream );
 		break;
 	case SVC_UPDATEPLAYERPING:
 
@@ -4416,6 +4422,26 @@ static void client_SetPlayerPendingWeapon( BYTESTREAM_s *pByteStream )
 			players[ulPlayer].PendingWeapon = pWeapon;
 		}
 	}
+}
+
+//*****************************************************************************
+//
+static void client_SetPlayerPieces( BYTESTREAM_s *pByteStream )
+{
+	ULONG			ulPlayer;
+	ULONG			ulPieces;
+
+	// Read in the player.
+	ulPlayer = NETWORK_ReadByte( pByteStream );
+
+	// Read in the player's pieces.
+	ulPieces = NETWORK_ReadByte( pByteStream );
+
+	// If the player doesn't exist, get out!
+	if ( playeringame[ulPlayer] == false )
+		return;
+
+	players[ulPlayer].pieces = ulPieces;
 }
 
 //*****************************************************************************

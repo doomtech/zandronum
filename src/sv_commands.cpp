@@ -833,6 +833,33 @@ void SERVERCOMMANDS_SetPlayerPendingWeapon( ULONG ulPlayer, ULONG ulPlayerExtra,
 
 //*****************************************************************************
 //
+void SERVERCOMMANDS_SetPlayerPieces( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	ULONG		ulIdx;
+
+	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+		return;
+
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_IsValidClient( ulIdx ) == false )
+			continue;
+
+		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
+			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
+		{
+			continue;
+		}
+
+		SERVER_CheckClientBuffer( ulIdx, 3, true );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERPIECES );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].pieces );
+	}
+}
+
+//*****************************************************************************
+//
 void SERVERCOMMANDS_UpdatePlayerPing( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;

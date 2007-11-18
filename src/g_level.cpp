@@ -3402,9 +3402,6 @@ void G_SnapshotLevel ()
 // The level should have already been loaded and setup.
 void G_UnSnapshotLevel (bool hubLoad)
 {
-	// [BC]
-	ULONG	ulIdx;
-
 	if (level.info->snapshot == NULL)
 		return;
 
@@ -3434,55 +3431,6 @@ void G_UnSnapshotLevel (bool hubLoad)
 	// No reason to keep the snapshot around once the level's been entered.
 	delete level.info->snapshot;
 	level.info->snapshot = NULL;
-
-	// [BC] Some server stuff here. We need to go through and see if any restored properties
-	// will need to be updated to clients later.
-	for ( ulIdx = 0; ulIdx < numsectors; ulIdx++ )
-	{
-		if (( sectors[ulIdx].ceilingplane != sectors[ulIdx].SavedCeilingPlane ) ||
-			( sectors[ulIdx].ceilingpic != sectors[ulIdx].SavedCeilingPic ))
-		{
-			sectors[ulIdx].bCeilingHeightChange = true;
-		}
-
-		if (( sectors[ulIdx].floorplane != sectors[ulIdx].SavedFloorPlane ) ||
-			( sectors[ulIdx].floorpic != sectors[ulIdx].SavedFloorPic ))
-		{
-			sectors[ulIdx].bFloorHeightChange = true;
-		}
-
-		if (( sectors[ulIdx].ceilingpic != sectors[ulIdx].SavedCeilingPic ) ||
-			( sectors[ulIdx].floorpic != sectors[ulIdx].SavedFloorPic ))
-		{
-			sectors[ulIdx].bFlatChange = true;
-		}
-
-		if ( sectors[ulIdx].lightlevel != sectors[ulIdx].SavedLightLevel )
-			sectors[ulIdx].bLightChange = true;
-	}
-
-	for ( ulIdx = 0; ulIdx < numlines; ulIdx++ )
-	{
-		if ( lines[ulIdx].sidenum[0] != 0xffff )
-		{
-			if ( sides[lines[ulIdx].sidenum[0]].toptexture != sides[lines[ulIdx].sidenum[0]].SavedTopTexture )
-				lines[ulIdx].ulTexChangeFlags |= TEXCHANGE_FRONTTOP;
-			if ( sides[lines[ulIdx].sidenum[0]].midtexture != sides[lines[ulIdx].sidenum[0]].SavedMidTexture )
-				lines[ulIdx].ulTexChangeFlags |= TEXCHANGE_FRONTMEDIUM;
-			if ( sides[lines[ulIdx].sidenum[0]].bottomtexture != sides[lines[ulIdx].sidenum[0]].SavedBottomTexture )
-				lines[ulIdx].ulTexChangeFlags |= TEXCHANGE_FRONTBOTTOM;
-		}
-
-		if ( lines[ulIdx].sidenum[1] != NO_SIDE )
-		{
-			if ( sides[lines[ulIdx].sidenum[1]].toptexture != sides[lines[ulIdx].sidenum[1]].SavedTopTexture )
-				lines[ulIdx].ulTexChangeFlags |= TEXCHANGE_BACKTOP;
-			if ( sides[lines[ulIdx].sidenum[1]].midtexture != sides[lines[ulIdx].sidenum[1]].SavedMidTexture )
-				lines[ulIdx].ulTexChangeFlags |= TEXCHANGE_BACKMEDIUM;
-			if ( sides[lines[ulIdx].sidenum[1]].bottomtexture != sides[lines[ulIdx].sidenum[1]].SavedBottomTexture )
-				lines[ulIdx].ulTexChangeFlags |= TEXCHANGE_BACKBOTTOM;
-		}
-	}
 }
 
 void G_ClearSnapshots (void)

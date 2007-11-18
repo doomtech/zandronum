@@ -333,6 +333,57 @@ void P_SerializeWorld (FArchive &arc)
 			sec->ColorMap = GetSpecialLights (color, fade, desaturate);
 		}
 		arc << sec->ceiling_reflect << sec->floor_reflect;
+
+		// [BC]
+		arc << sec->floorOrCeiling
+			<< sec->bCeilingHeightChange
+			<< sec->bFloorHeightChange
+			<< sec->SavedCeilingPlane
+			<< sec->SavedFloorPlane
+			<< sec->SavedCeilingTexZ
+			<< sec->SavedFloorTexZ
+			<< sec->bFlatChange
+			<< sec->SavedFloorPic
+			<< sec->SavedCeilingPic
+			<< sec->bLightChange
+			<< sec->SavedLightLevel;
+		if (arc.IsStoring ())
+		{
+			arc << sec->SavedColorMap->Color
+				<< sec->SavedColorMap->Fade;
+			BYTE sat = sec->SavedColorMap->Desaturate;
+			arc << sat;
+		}
+		else
+		{
+			PalEntry color, fade;
+			BYTE desaturate;
+			arc << color << fade
+				<< desaturate;
+			sec->SavedColorMap = GetSpecialLights (color, fade, desaturate);
+		}
+		arc << sec->SavedGravity
+			<< sec->SavedFloorXOffset
+			<< sec->SavedFloorYOffset
+			<< sec->SavedCeilingXOffset
+			<< sec->SavedCeilingYOffset
+			<< sec->SavedFloorXScale
+			<< sec->SavedFloorYScale
+			<< sec->SavedCeilingXScale
+			<< sec->SavedCeilingYScale
+			<< sec->SavedFloorAngle
+			<< sec->SavedCeilingAngle
+			<< sec->SavedBaseFloorAngle
+			<< sec->SavedBaseFloorYOffset
+			<< sec->SavedBaseCeilingAngle
+			<< sec->SavedBaseCeilingYOffset
+			<< sec->SavedFriction
+			<< sec->SavedMoveFactor
+			<< sec->SavedSpecial
+			<< sec->SavedDamage
+			<< sec->SavedMOD
+			<< sec->SavedCeilingReflect
+			<< sec->SavedFloorReflect;
 	}
 
 	// do lines
@@ -343,6 +394,12 @@ void P_SerializeWorld (FArchive &arc)
 			<< li->alpha
 			<< li->id
 			<< li->args[0] << li->args[1] << li->args[2] << li->args[3] << li->args[4];
+		// [BC]
+		arc << (DWORD &)li->ulTexChangeFlags
+			<< li->SavedSpecial
+			<< li->SavedArgs[0] << li->SavedArgs[1] << li->SavedArgs[2] << li->SavedArgs[3] << li->SavedArgs[4]
+			<< li->SavedFlags
+			<< li->SavedAlpha;
 
 		for (j = 0; j < 2; j++)
 		{
@@ -370,6 +427,11 @@ void P_SerializeWorld (FArchive &arc)
 				<< si->LeftSide
 				<< si->RightSide;
 			DBaseDecal::SerializeChain (arc, &si->AttachedDecals);
+			// [BC]
+			arc << si->SavedFlags
+				<< si->SavedTopTexture
+				<< si->SavedMidTexture
+				<< si->SavedBottomTexture;
 		}
 	}
 

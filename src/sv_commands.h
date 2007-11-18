@@ -94,6 +94,7 @@ void	SERVERCOMMANDS_SetPlayerPoisonCount( ULONG ulPlayer, ULONG ulPlayerExtra = 
 void	SERVERCOMMANDS_SetPlayerAmmoCapacity( ULONG ulPlayer, AInventory *pAmmo, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_SetPlayerCheats( ULONG ulPlayer, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_SetPlayerPendingWeapon( ULONG ulPlayer, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
+void	SERVERCOMMANDS_SetPlayerPieces( ULONG ulPlayer, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_UpdatePlayerPing( ULONG ulPlayer, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_UpdatePlayerExtraData( ULONG ulPlayer, ULONG ulDisplayPlayer );
 void	SERVERCOMMANDS_UpdatePlayerTime( ULONG ulPlayer, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
