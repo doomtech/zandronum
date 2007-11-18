@@ -2241,7 +2241,10 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 	// it can be just as easily handled by a simple flag so the monsters
 	// can take advantage of all the other enhancements of A_Chase.
 
-	if (fastchase && !dontmove)
+	if (fastchase && !dontmove &&
+		// [BC] Don't fast chase in client mode.
+		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		if (actor->special2 > 0)
 		{
