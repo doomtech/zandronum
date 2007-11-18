@@ -34,6 +34,7 @@ FState ABatSpawner::States[] =
 
 IMPLEMENT_ACTOR (ABatSpawner, Hexen, 10225, 0)
 	PROP_Flags (MF_NOSECTOR|MF_NOBLOCKMAP|MF_NOGRAVITY)
+	PROP_FlagsNetwork( NETFL_UPDATEARGUMENTS )
 	PROP_RenderStyle (STYLE_None)
 
 	PROP_SpawnState (S_SPAWNBATS1)
