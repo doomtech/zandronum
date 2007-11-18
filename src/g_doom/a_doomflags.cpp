@@ -481,6 +481,32 @@ bool AWhiteFlag::HandlePickup( AInventory *pItem )
 				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.425f, 0, 0, CR_WHITE, 3.0f, 0.25f, "BigFont", 'CNTR' );
 			}
 
+			// [BC] Rivecoder's "scored by" message.
+			if ( Owner->player->ulTeam == TEAM_BLUE )
+				sprintf( szString, "\\cHScored by: %s", Owner->player->userinfo.netname );
+			else
+				sprintf( szString, "\\cGScored by: %s", Owner->player->userinfo.netname );
+
+			V_ColorizeString( szString );
+
+			// Now, print it.
+			if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+			{
+				screen->SetFont( SmallFont );
+				pMsg = new DHUDMessageFadeOut( szString,
+					1.5f,
+					0.475f,
+					0,
+					0,
+					CR_BLUE,
+					3.0f,
+					0.5f );
+				StatusBar->AttachMessage( pMsg, 'SUBS' );
+			}
+			// If necessary, send it to clients.
+			else
+				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.475f, 0, 0, CR_BLUE, 3.0f, 0.5f, "SmallFont", 'SUBS' );
+
 			// Take the flag away.
 			pInventory = Owner->FindInventory( this->GetClass( ));
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -551,7 +577,9 @@ void AWhiteFlag::AnnounceFlagPickup( AActor *pToucher )
 
 void AWhiteFlag::DisplayFlagTaken( AActor *pToucher )
 {
+	ULONG				ulPlayer;
 	char				szString[256];
+	char				szName[48];
 	DHUDMessageFadeOut	*pMsg;
 
 	// Create the "pickup" message.
@@ -587,6 +615,39 @@ void AWhiteFlag::DisplayFlagTaken( AActor *pToucher )
 		V_ColorizeString( szString );
 		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.425f, 0, 0, CR_WHITE, 3.0f, 0.25f, "BigFont", 'CNTR', ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT );
 	}
+
+	// [BC] Rivecoder's "held by" messages.
+	ulPlayer = ULONG( pToucher->player - players );
+	sprintf( szName, "%s", players[ulPlayer].userinfo.netname );
+	V_RemoveColorCodes( szName );
+
+	if ( players[ulPlayer].ulTeam == TEAM_BLUE )
+		sprintf( szString, "\\ccHeld by: \\ch%s", szName );
+	else
+		sprintf( szString, "\\ccHeld by: \\cg%s", szName );
+
+	V_ColorizeString( szString );
+
+	// Now, print it.
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+	{
+		if (( pToucher->player - players ) != consoleplayer )
+		{
+			screen->SetFont( SmallFont );
+			pMsg = new DHUDMessageFadeOut( szString,
+				1.5f,
+				0.475f,
+				0,
+				0,
+				CR_BLUE,
+				3.0f,
+				0.25f );
+			StatusBar->AttachMessage( pMsg, 'SUBS' );
+		}
+	}
+	// If necessary, send it to clients.
+	else
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.475f, 0, 0, CR_BLUE, 3.0f, 0.25f, "SmallFont", 'SUBS', ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT  );
 }
 
 //===========================================================================

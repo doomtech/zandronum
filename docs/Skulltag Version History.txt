@@ -85,6 +85,7 @@ v0.97d
 +	- Added the "stopdemo" command, which stops a client-side demo if one is playing. [Carnevil]
 +	- Any weapons given by default to a player when he spawns (such as the railgun in instagib) can now be replaced via DECORATE. [Carnevil]
 +	- Buckshot and instagib can now be set for campaigns. [Carnevil]
++	- The "Held by:" and "Scored by:" messages now display in one flag CTF. [Carnevil]
 +	- Weapon flag NOLMS is now available in DECORATE. Weapons with this flag are not given to the player in LMS. [Torr Samaho]
 +	- Added whitelist support. IPs on this list are always considered not to be banned. This can be used to define exemptions from a range ban. The new CVAR sv_banexemptionfile specifies the filename of the list. [Torr Samaho]
 -	- Rank/spread/DM stats and team scores now show up in the ZDoom - and hence Heretic -  HUD. [Rivecoder]
