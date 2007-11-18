@@ -1039,6 +1039,48 @@ void APlayerPawn::GiveDefaultInventory ()
 	barmor->Amount = 0;
 	AddInventory (barmor);
 
+	// Now add the items from the DECORATE definition
+	FDropItem *di = GetDropItems(RUNTIME_TYPE(this));
+
+	while (di)
+	{
+		const PClass *ti = PClass::FindClass (di->Name);
+		if (ti)
+		{
+			AInventory *item = FindInventory (ti);
+			if (item != NULL)
+			{
+				item->Amount = clamp<int>(
+					item->Amount + (di->amount ? di->amount : ((AInventory *)item->GetDefault ())->Amount),
+					0, item->MaxAmount);
+			}
+			else
+			{
+				item = static_cast<AInventory *>(Spawn (ti, 0,0,0, NO_REPLACE));
+				item->ItemFlags|=IF_IGNORESKILL;	// no skill multiplicators here
+				item->Amount = di->amount;
+				if (item->IsKindOf (RUNTIME_CLASS (AWeapon)))
+				{
+					// To allow better control any weapon is emptied of
+					// ammo before being given to the player.
+					static_cast<AWeapon*>(item)->AmmoGive1 =
+					static_cast<AWeapon*>(item)->AmmoGive2 = 0;
+				}
+				if (!item->TryPickup(this))
+				{
+					item->Destroy ();
+					item = NULL;
+				}
+			}
+			if (item != NULL && item->IsKindOf (RUNTIME_CLASS (AWeapon)) && 
+				static_cast<AWeapon*>(item)->CheckAmmo(AWeapon::EitherFire, false))
+			{
+				player->ReadyWeapon = player->PendingWeapon = static_cast<AWeapon *> (item);
+			}
+		}
+		di = di->Next;
+	}
+
 	// [BB] Ugly hack: Stuff for the Doom player. Moved here since the Doom player
 	// was converted to DECORATE. TO-DO: Find a better place for this and perhaps
 	// make this work for arbitraty player classes.
@@ -1281,48 +1323,6 @@ void APlayerPawn::GiveDefaultInventory ()
 			}
 			return;
 		}
-	}
-
-	// Now add the items from the DECORATE definition
-	FDropItem *di = GetDropItems(RUNTIME_TYPE(this));
-
-	while (di)
-	{
-		const PClass *ti = PClass::FindClass (di->Name);
-		if (ti)
-		{
-			AInventory *item = FindInventory (ti);
-			if (item != NULL)
-			{
-				item->Amount = clamp<int>(
-					item->Amount + (di->amount ? di->amount : ((AInventory *)item->GetDefault ())->Amount),
-					0, item->MaxAmount);
-			}
-			else
-			{
-				item = static_cast<AInventory *>(Spawn (ti, 0,0,0, NO_REPLACE));
-				item->ItemFlags|=IF_IGNORESKILL;	// no skill multiplicators here
-				item->Amount = di->amount;
-				if (item->IsKindOf (RUNTIME_CLASS (AWeapon)))
-				{
-					// To allow better control any weapon is emptied of
-					// ammo before being given to the player.
-					static_cast<AWeapon*>(item)->AmmoGive1 =
-					static_cast<AWeapon*>(item)->AmmoGive2 = 0;
-				}
-				if (!item->TryPickup(this))
-				{
-					item->Destroy ();
-					item = NULL;
-				}
-			}
-			if (item != NULL && item->IsKindOf (RUNTIME_CLASS (AWeapon)) && 
-				static_cast<AWeapon*>(item)->CheckAmmo(AWeapon::EitherFire, false))
-			{
-				player->ReadyWeapon = player->PendingWeapon = static_cast<AWeapon *> (item);
-			}
-		}
-		di = di->Next;
 	}
 
 	// [BB] LMS Stuff for the Heretic player. Moved here since the Heretic player
