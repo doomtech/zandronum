@@ -66,6 +66,7 @@
 // [BC] New #includes.
 #include "chat.h"
 #include "cl_demo.h"
+#include "cl_main.h"
 #include "deathmatch.h"
 #include "network.h"
 #include "win32/g15/g15.h"
@@ -1898,7 +1899,9 @@ static bool C_HandleKey (event_t *ev, BYTE *buffer, int len)
 			{
 				return false;
 			}
-			else if (gamestate == GS_FULLCONSOLE)
+			else if ((gamestate == GS_FULLCONSOLE) ||
+				((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) &&
+				( CLIENT_GetConnectionState( ) != CTS_ACTIVE )))
 			{
 				C_DoCommand ("menu_main");
 			}
