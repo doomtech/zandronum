@@ -451,6 +451,10 @@ private:
 
 	void DrawFullScreenStuff ()
 	{
+		// [BC] Got a crash here.
+		if( CPlayer->mo == NULL )
+			return;
+
 		// Draw health
 		DrINumberOuter (CPlayer->health, 4, -10, false, 7);
 		screen->DrawTexture (Images[imgMEDI], 14, -17,
