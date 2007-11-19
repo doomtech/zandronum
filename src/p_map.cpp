@@ -4349,7 +4349,7 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 		{
 			// Support for instagib.
 			if ( instagib )
-				P_DamageMobj (RailHits[i].HitActor, source, source, 1000, NAME_Railgun, DMG_NO_ARMOR);
+				P_DamageMobj (RailHits[i].HitActor, source, source, 999, NAME_Railgun, DMG_NO_ARMOR);
 			else
 				P_DamageMobj (RailHits[i].HitActor, source, source, damage, NAME_Railgun, DMG_NO_ARMOR);
 		}

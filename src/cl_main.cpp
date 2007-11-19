@@ -8810,9 +8810,8 @@ static void client_GiveInventory( BYTESTREAM_s *pByteStream )
 			{
 				static_cast<ABasicArmorBonus*>( pInventory )->SaveAmount *= lAmount;
 				static_cast<ABasicArmorBonus*>( pInventory )->BonusCount *= lAmount;
-
 			}
-			else if ( pType->IsDescendantOf( RUNTIME_CLASS( AHealth )))
+			else if ( pType->IsDescendantOf( PClass::FindClass( "HealthBonus" )))
 			{
 				pInventory->Amount = MIN( lAmount, (LONG)pInventory->MaxAmount );
 			}
