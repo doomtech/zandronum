@@ -8652,16 +8652,21 @@ static void client_MapNew( BYTESTREAM_s *pByteStream )
 static void client_MapExit( BYTESTREAM_s *pByteStream )
 {
 	LONG	lPos;
+	char	*pszNextMap;
 
+	// Read in the position we're supposed to spawn at (is this needed?).
 	lPos = NETWORK_ReadByte( pByteStream );
 
-	// Never loaded a level.
-	if ( gamestate == GS_FULLCONSOLE )
-		return;
+	// Read in the next map.
+	pszNextMap = NETWORK_ReadString( pByteStream );
 
-	// Ingore if we get this twice (could happen).
-	if ( gamestate != GS_INTERMISSION )
-		G_ChangeLevel(level.nextmap, lPos, true);
+	if (( gamestate == GS_FULLCONSOLE ) ||
+		( gamestate == GS_INTERMISSION ))
+	{
+		return;
+	}
+
+	G_ChangeLevel( pszNextMap, lPos, true );
 }
 
 //*****************************************************************************

@@ -46,6 +46,8 @@
 #include "v_palette.h"
 #include "a_sharedglobal.h"
 #include "deathmatch.h"
+#include "cl_demo.h"
+#include "network.h"
 
 static void CopyPlayer (player_t *dst, player_t *src, const char *name);
 static void ReadOnePlayer (FArchive &arc);
@@ -262,6 +264,19 @@ void P_SerializeWorld (FArchive &arc)
 	sector_t *sec;
 	line_t *li;
 	zone_t *zn;
+
+	// [BC] In client mode, just archive whether or not the line's been seen.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		// do lines
+		for (i = 0, li = lines; i < numlines; i++, li++)
+		{
+			arc << li->flags;
+		}
+
+		return;
+	}
 
 	// do sectors
 	for (i = 0, sec = sectors; i < numsectors; i++, sec++)

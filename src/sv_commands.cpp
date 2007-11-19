@@ -4586,9 +4586,12 @@ void SERVERCOMMANDS_MapNew( const char *pszMapName, ULONG ulPlayerExtra, ULONG u
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_MapExit( LONG lPosition, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_MapExit( LONG lPosition, char *pszNextMap, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
+
+	if ( pszNextMap == NULL )
+		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -4601,9 +4604,10 @@ void SERVERCOMMANDS_MapExit( LONG lPosition, ULONG ulPlayerExtra, ULONG ulFlags 
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 2, true );
+		SERVER_CheckClientBuffer( ulIdx, 2 + (ULONG)strlen( pszNextMap ), true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_MAPEXIT );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lPosition );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszNextMap );
 	}
 }
 

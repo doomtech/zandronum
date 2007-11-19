@@ -1625,7 +1625,11 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 	bool wantFast;
 	int i;
 
-	if (!savegamerestore)
+	// [BC] Clients need to keep their snapshots around for hub purposes, and since
+	// they always use G_InitNew (which they probably shouldn't).
+	if ((!savegamerestore) &&
+		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		G_ClearSnapshots ();
 		P_RemoveDefereds ();
@@ -1856,7 +1860,7 @@ void G_ChangeLevel(const char * levelname, int position, bool keepFacing, int ne
 
 	// [BC] If we're the server, tell clients that the map has finished.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_MapExit( position );
+		SERVERCOMMANDS_MapExit( position, nextlevel );
 
 	if (thiscluster && (thiscluster->flags & CLUSTER_HUB))
 	{
@@ -3258,7 +3262,15 @@ void G_AirControlChanged ()
 void G_SerializeLevel (FArchive &arc, bool hubLoad)
 {
 	int i = level.totaltime;
-	
+
+	// [BC] In client mode, we just want to save the lines we've seen.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		P_SerializeWorld( arc );
+		return;
+	}
+
 	gl_DeleteAllAttachedLights();
 
 	arc << level.flags
