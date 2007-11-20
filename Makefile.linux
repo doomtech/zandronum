@@ -21,7 +21,7 @@ ifdef SERVERONLY
 else
   CFLAGS += `pkg-config gtk+-2.0 --cflags` -I../fmodapi375linux/api/inc/
 endif
-LDFLAGS += -lFLAC++ -lFLAC -lz -ljpeg `sdl-config --libs`
+LDFLAGS += FLAC/*.o -lz -ljpeg `sdl-config --libs`
 ifndef SERVERONLY
   LDFLAGS += -lfmod -lGL -lGLU `pkg-config gtk+-2.0 --libs`
 endif

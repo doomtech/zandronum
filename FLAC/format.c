@@ -58,7 +58,7 @@ FLAC_API const char *FLAC__VERSION_STRING = "1.1.2";
 /* yet one more hack because of MSVC6: */
 FLAC_API const char *FLAC__VENDOR_STRING = "reference libFLAC 1.1.2 20050205";
 #else
-FLAC_API const char *FLAC__VENDOR_STRING = "reference libFLAC " VERSION " 20050205";
+FLAC_API const char *FLAC__VENDOR_STRING = "reference libFLAC 1.1.2 20050205";
 #endif
 
 FLAC_API const FLAC__byte FLAC__STREAM_SYNC_STRING[4] = { 'f','L','a','C' };
