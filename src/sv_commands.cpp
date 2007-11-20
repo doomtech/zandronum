@@ -1550,23 +1550,37 @@ void SERVERCOMMANDS_DamageThing( AActor *pActor )
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_KillThing( AActor *pActor )
+void SERVERCOMMANDS_KillThing( AActor *pActor, AActor *pSource, AActor *pInflictor )
 {
 	ULONG	ulIdx;
+	LONG	lSourceID;
+	LONG	lInflictorID;
 
 	if ( pActor == NULL )
 		return;
+
+	if ( pSource )
+		lSourceID = pSource->lNetID;
+	else
+		lSourceID = -1;
+
+	if ( pInflictor )
+		lInflictorID = pInflictor->lNetID;
+	else
+		lInflictorID = -1;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		if ( SERVER_IsValidClient( ulIdx ) == false )
 			continue;
 
-		SERVER_CheckClientBuffer( ulIdx, 6, true );
+		SERVER_CheckClientBuffer( ulIdx, 10, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_KILLTHING );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->health );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->DamageType );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSourceID );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lInflictorID );
 	}
 }
 

@@ -787,7 +787,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 	{
 		// If there isn't a player attached to this object, treat it like a normal thing.
 		if ( player == NULL )
-			SERVERCOMMANDS_KillThing( this );
+			SERVERCOMMANDS_KillThing( this, source, inflictor );
 		else
 			SERVERCOMMANDS_KillPlayer( ULONG( player - players ), source, inflictor, MeansOfDeath );
 	}

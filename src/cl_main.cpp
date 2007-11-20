@@ -5133,10 +5133,14 @@ static void client_DamageThing( BYTESTREAM_s *pByteStream )
 //
 static void client_KillThing( BYTESTREAM_s *pByteStream )
 {
-	AActor	*pActor;
-	LONG	lID;
-	LONG	lHealth;
-	FName	DamageType;
+	LONG		lID;
+	LONG		lHealth;
+	FName		DamageType;
+	LONG		lSourceID;
+	LONG		lInflictorID;
+	AActor		*pActor;
+	AActor		*pSource;
+	AActor		*pInflictor;
 
 	// Read in the network ID of the thing that died.
 	lID = NETWORK_ReadShort( pByteStream );
@@ -5146,6 +5150,12 @@ static void client_KillThing( BYTESTREAM_s *pByteStream )
 
 	// Read in the thing's damage type.
 	DamageType = ENamedName( NETWORK_ReadByte( pByteStream ));
+
+	// Read in the actor that killed the player.
+	lSourceID = NETWORK_ReadShort( pByteStream );
+
+	// Read in the network ID of the inflictor.
+	lInflictorID = NETWORK_ReadShort( pByteStream );
 
 	// Level not loaded; ingore.
 	if ( gamestate != GS_LEVEL )
@@ -5161,6 +5171,18 @@ static void client_KillThing( BYTESTREAM_s *pByteStream )
 		return;
 	}
 
+	// Find the actor associated with the source. It's okay if this actor does not exist.
+	if ( lSourceID != -1 )
+		pSource = CLIENT_FindThingByNetID( lSourceID );
+	else
+		pSource = NULL;
+
+	// Find the actor associated with the inflictor. It's okay if this actor does not exist.
+	if ( lInflictorID != -1 )
+		pInflictor = CLIENT_FindThingByNetID( lInflictorID );
+	else
+		pInflictor = NULL;
+
 	// Set the thing's health. This should enable the proper death state to play.
 	pActor->health = lHealth;
 
@@ -5168,7 +5190,7 @@ static void client_KillThing( BYTESTREAM_s *pByteStream )
 	pActor->DamageType = DamageType;
 
 	// Kill the thing.
-	pActor->Die( NULL, NULL );
+	pActor->Die( pSource, pInflictor );
 }
 
 //*****************************************************************************
