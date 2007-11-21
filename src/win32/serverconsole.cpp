@@ -73,9 +73,6 @@
 
 #ifdef	GUI_SERVER_CONSOLE
 
-// YUCK
-DWORD WINAPI MainDoomThread( LPVOID );
-
 //*****************************************************************************
 //	VARIABLES
 
@@ -91,7 +88,6 @@ HANDLE						g_hThread;
 
 // Number of lines present in the console box.
 static	ULONG				g_ulNumLines = 0;
-static	bool				g_bScrollConsoleOnNewline = false;
 
 // Stored values of cvars (only send updates them if they change!)
 static	ULONG				g_ulStoredDMFlags;
@@ -110,26 +106,33 @@ static	LONG				g_lPlayerIndicies[MAXPLAYERS];
 
 static	char				g_szBanEditString[256];
 
+// Hardware statistics.
 static	char				g_szOperatingSystem[256];
 static	char				g_szCPUSpeed[256];
 static	char				g_szVendor[256];
 
+// Tray icon.
 static	NOTIFYICONDATA		g_NotifyIconData;
-
 static	HICON				g_hSmallIcon = NULL;
-
 static	bool				g_bSmallIconClicked = false;
+
+// For the right click|ban dialogs.
+static bool					g_Scoreboard_IsBan;
+static char					g_szScoreboard_SelectedUser[64];
 
 //*****************************************************************************
 //	GLOBAL VARIABLES
 
-extern	HINSTANCE	g_hInst;
-extern	FILE		*Logfile;
-extern	char		g_szLogFilename[256];
+extern	HINSTANCE			g_hInst;
+extern	FILE				*Logfile;
+extern	char				g_szLogFilename[256];
 
-// For the right click|ban dialogs.
-bool	g_Scoreboard_IsBan;
-char	g_szScoreboard_SelectedUser[64];
+//*****************************************************************************
+//	PROTOTYPES
+
+void						serverconsole_MinimizeToTray( void );
+void						serverconsole_RestoreFromTray( void );
+DWORD WINAPI				MainDoomThread( LPVOID );
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -139,16 +142,18 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 	{
 	case WM_CLOSE:
 
-		if ( MessageBox( hDlg, "Are you sure you want to quit?", SERVERCONSOLE_TITLESTRING, MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 ) == IDYES )
+		// [RC] If there are players playing, show a confirmation.
+		if ( SERVER_CalcNumPlayers( ) > 0 )
 		{
-			SERVER_AddCommand( "quit" );
-/*
-			Shell_NotifyIcon( NIM_DELETE, &g_NotifyIconData );
-			EndDialog( hDlg, -1 );
-			CloseHandle( g_hThread );
-			exit( 0 );
-*/
+			char	szString[256];
+			sprintf( szString, "Are you sure you want to close this server?\nThe %d player%s here will be disconnected.", SERVER_CalcNumPlayers( ), SERVER_CalcNumPlayers( ) == 1 ? "" : "s" );
+			
+			if ( MessageBox( hDlg, szString, SERVERCONSOLE_TITLESTRING, MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 ) == IDYES )
+				SERVER_AddCommand( "quit" );
 		}
+		else
+			SERVER_AddCommand( "quit" );
+
 		break;
 	case WM_DESTROY:
 
@@ -156,6 +161,7 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 		PostQuitMessage( 0 );
 		break;
 	case WM_INITDIALOG:
+
 		{
 			LVCOLUMN	ColumnData;
 			char		szString[256];
@@ -263,6 +269,7 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 		}
 		break;
 	case WM_NOTIFY:
+
 		{
 			// Show a pop-up menu to kick or ban users.
 			LPNMHDR	nmhdr = (LPNMHDR)lParam;
@@ -332,7 +339,6 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 				}
 				else
 				{
-
 					// Set up our menu.
 					HMENU hMenu = CreatePopupMenu();
 					AppendMenu(hMenu, MF_STRING, IDR_PLAYER_KICK, "Kick");
@@ -374,30 +380,24 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 					else if(iSelection == IDR_PLAYER_GETIP)
 						DialogBox( g_hInst, MAKEINTRESOURCE( IDD_GOTIP ), hDlg, SERVERCONSOLE_GotIPCallback );
 				}
-
 			}
 			break;
 		}
 	case WM_COMMAND:
 
 		{
-
 			switch ( LOWORD( wParam ))
 			{
-/*
-			// This even occurs when esc is pressed.
+
+			// This even occurs when escape is pressed.
 			case IDCANCEL:
 
-				if ( MessageBox( hDlg, "Are you sure you want to quit?", SERVERCONSOLE_TITLESTRING, MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 ) == IDYES )
-				{
-					EndDialog( hDlg, -1 );
-					CloseHandle( g_hThread );
-					exit( 0 );
-				}
+				serverconsole_MinimizeToTray( );
 				break;
-*/
+
 			// Server admin has inputted a command.
 			case IDC_SEND:
+
 				{
 					char	szBuffer[1024];
 
@@ -417,16 +417,6 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 
 					SetDlgItemText( hDlg, IDC_INPUTBOX, "" );
 				}
-				break;
-			case IDC_CONSOLEBOX:
-				// [RC] This is called when the textbox's scroll *buttons* are pressed.
-				// As far as the scroll bar itself being dragged, you're out of luck.
-				/*
-					if ( HIWORD( wParam ) == EN_VSCROLL )
-					{
-
-					}
-				*/
 				break;
 			case ID_FILE_EXIT:
 
@@ -505,56 +495,12 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 
 		if (( wParam == SC_MINIMIZE ) && ( sv_minimizetosystray ))
 		{
-			RECT			DesktopRect;
-			RECT			ThisWindowRect;
-			ANIMATIONINFO	AnimationInfo;
-			NOTIFYICONDATA	NotifyIconData;
-			UCVarValue		Val;
-			char			szString[64];
-
-			AnimationInfo.cbSize = sizeof( AnimationInfo );
-			SystemParametersInfo( SPI_GETANIMATION, sizeof( AnimationInfo ), &AnimationInfo, 0 );
-
-			// Animations are turned ON, go ahead with the animation.
-			if ( AnimationInfo.iMinAnimate )
-			{
-				GetWindowRect( GetDesktopWindow( ),&DesktopRect );
-				GetWindowRect( hDlg,&ThisWindowRect );
-
-				// Set the destination rect to the lower right corner of the screen
-				DesktopRect.left = DesktopRect.right;
-				DesktopRect.top = DesktopRect.bottom;
-
-				// Do the little animation showing the window moving to the systray.
-#ifndef __WINE__
-				DrawAnimatedRects( hDlg, IDANI_CAPTION, &ThisWindowRect,&DesktopRect );
-#endif
-			}
-
-			// Hide the window.
-			ShowWindow( hDlg, SW_HIDE );
-
-			// Show the notification icon.
-			ZeroMemory( &NotifyIconData, sizeof( NotifyIconData ));
-			NotifyIconData.cbSize = sizeof( NOTIFYICONDATA );
-			NotifyIconData.hWnd = hDlg;
-			NotifyIconData.uID = 0;
-			NotifyIconData.uFlags = NIF_ICON|NIF_MESSAGE|NIF_TIP;
-
-			NotifyIconData.uCallbackMessage = UWM_TRAY_TRAYID;
-			NotifyIconData.hIcon = g_hSmallIcon;
-			
-			Val = sv_hostname.GetGenericRep( CVAR_String );
-			sprintf( szString, "%s", Val.String );
-			lstrcpy( NotifyIconData.szTip, szString );
-
-			Shell_NotifyIcon( NIM_ADD, &NotifyIconData );
+			serverconsole_MinimizeToTray( );
 			break;
 		}
 
 		DefWindowProc( hDlg, Message, wParam, lParam );
 		break;
-//		return ( FALSE );
 	case UWM_TRAY_TRAYID:
 
 		switch ( lParam )
@@ -565,50 +511,11 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 			return true;
 		case WM_LBUTTONUP:
 
-			{
-				RECT			DesktopRect;
-				RECT			ThisWindowRect;
-				NOTIFYICONDATA	NotifyIconData;
-				UCVarValue		Val;
-				char			szString[64];
-
-				GetWindowRect( GetDesktopWindow( ), &DesktopRect );
-				DesktopRect.left = DesktopRect.right;
-				DesktopRect.top = DesktopRect.bottom;
-				GetWindowRect( hDlg, &ThisWindowRect );
-
-				// Animate the maximization.
-#ifndef __WINE__
-				DrawAnimatedRects( hDlg, IDANI_CAPTION, &DesktopRect, &ThisWindowRect );
-#endif
-
-				ShowWindow( hDlg, SW_SHOW );
-				SetActiveWindow( hDlg );
-				SetForegroundWindow( hDlg );
-
-				// Hide the notification icon.
-				ZeroMemory( &NotifyIconData, sizeof( NotifyIconData ));
-				NotifyIconData.cbSize = sizeof( NOTIFYICONDATA );
-				NotifyIconData.hWnd = hDlg;
-				NotifyIconData.uID = 0;
-				NotifyIconData.uFlags = NIF_ICON|NIF_MESSAGE|NIF_TIP;
-				NotifyIconData.uCallbackMessage = UWM_TRAY_TRAYID;
-				NotifyIconData.hIcon = g_hSmallIcon;//LoadIcon( g_hInst, MAKEINTRESOURCE( IDI_ICON1 ));
-
-				Val = sv_hostname.GetGenericRep( CVAR_String );
-				sprintf( szString, "%s", Val.String );
-				lstrcpy( g_NotifyIconData.szTip, szString );
-
-				Shell_NotifyIcon( NIM_DELETE, &NotifyIconData );
-				g_bSmallIconClicked = false;
-			}
-			return ( TRUE );
-		default:
-
-			break;
+			serverconsole_RestoreFromTray( );
+			return true;
 		}
 
-		return ( FALSE );
+		return false;
 	default:
 
 		return ( FALSE );
@@ -2279,20 +2186,97 @@ BOOL CALLBACK SERVERCONSOLE_GeneralSettingsCallback( HWND hDlg, UINT Message, WP
 }
 
 //*****************************************************************************
-/*
-DWORD WINAPI MainDoomThread( LPVOID )
+//
+void serverconsole_RestoreFromTray( void )
 {
-	// Setup our main thread ID so that if we have a crash, it crashes properly.
-	MainThread = INVALID_HANDLE_VALUE;
-	DuplicateHandle (GetCurrentProcess(), GetCurrentThread(), GetCurrentProcess(), &MainThread,
-		0, FALSE, DUPLICATE_SAME_ACCESS);
-	MainThreadID = GetCurrentThreadId();
+	RECT			DesktopRect;
+	RECT			ThisWindowRect;
+	NOTIFYICONDATA	NotifyIconData;
+	UCVarValue		Val;
+	char			szString[64];
 
-	D_DoomMain( );
+	GetWindowRect( GetDesktopWindow( ), &DesktopRect );
+	DesktopRect.left = DesktopRect.right;
+	DesktopRect.top = DesktopRect.bottom;
+	GetWindowRect( g_hDlg, &ThisWindowRect );
 
-	return ( 0 );
+	// Animate the maximization.
+	#ifndef __WINE__
+	DrawAnimatedRects( g_hDlg, IDANI_CAPTION, &DesktopRect, &ThisWindowRect );
+	#endif
+
+	// Restore the main window.
+	ShowWindow( g_hDlg, SW_SHOW );
+	SetActiveWindow( g_hDlg );
+	SetForegroundWindow( g_hDlg );
+
+	// Hide the notification icon.
+	ZeroMemory( &NotifyIconData, sizeof( NotifyIconData ));
+	NotifyIconData.cbSize = sizeof( NOTIFYICONDATA );
+	NotifyIconData.hWnd = g_hDlg;
+	NotifyIconData.uID = 0;
+	NotifyIconData.uFlags = NIF_ICON|NIF_MESSAGE|NIF_TIP;
+	NotifyIconData.uCallbackMessage = UWM_TRAY_TRAYID;
+	NotifyIconData.hIcon = g_hSmallIcon;//LoadIcon( g_hInst, MAKEINTRESOURCE( IDI_ICON1 ));
+
+	Val = sv_hostname.GetGenericRep( CVAR_String );
+	sprintf( szString, "%s", Val.String );
+	lstrcpy( g_NotifyIconData.szTip, szString );
+
+	Shell_NotifyIcon( NIM_DELETE, &NotifyIconData );
+	g_bSmallIconClicked = false;
 }
-*/
+
+//*****************************************************************************
+//
+void serverconsole_MinimizeToTray( void )
+{
+	RECT			DesktopRect;
+	RECT			ThisWindowRect;
+	ANIMATIONINFO	AnimationInfo;
+	NOTIFYICONDATA	NotifyIconData;
+	UCVarValue		Val;
+	char			szString[64];
+
+	AnimationInfo.cbSize = sizeof( AnimationInfo );
+	SystemParametersInfo( SPI_GETANIMATION, sizeof( AnimationInfo ), &AnimationInfo, 0 );
+
+	// Animations are turned ON, go ahead with the animation.
+	if ( AnimationInfo.iMinAnimate )
+	{
+		GetWindowRect( GetDesktopWindow( ), &DesktopRect );
+		GetWindowRect( g_hDlg, &ThisWindowRect );
+
+		// Set the destination rect to the lower right corner of the screen
+		DesktopRect.left = DesktopRect.right;
+		DesktopRect.top = DesktopRect.bottom;
+
+		// Do the little animation showing the window moving to the systray.
+		#ifndef __WINE__
+		DrawAnimatedRects( g_hDlg, IDANI_CAPTION, &ThisWindowRect,&DesktopRect );
+		#endif
+	}
+
+	// Hide the main window.
+	ShowWindow( g_hDlg, SW_HIDE );
+
+	// Show the notification icon.
+	ZeroMemory( &NotifyIconData, sizeof( NotifyIconData ));
+	NotifyIconData.cbSize = sizeof( NOTIFYICONDATA );
+	NotifyIconData.hWnd = g_hDlg;
+	NotifyIconData.uID = 0;
+	NotifyIconData.uFlags = NIF_ICON|NIF_MESSAGE|NIF_TIP;
+
+	NotifyIconData.uCallbackMessage = UWM_TRAY_TRAYID;
+	NotifyIconData.hIcon = g_hSmallIcon;
+
+	Val = sv_hostname.GetGenericRep( CVAR_String );
+	sprintf( szString, "%s", Val.String );
+	lstrcpy( NotifyIconData.szTip, szString );
+
+	Shell_NotifyIcon( NIM_ADD, &NotifyIconData );
+}
+
 //*****************************************************************************
 //
 void SERVERCONSOLE_UpdateTitleString( char *pszString )
