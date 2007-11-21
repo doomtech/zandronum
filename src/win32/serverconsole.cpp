@@ -419,124 +419,14 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 				}
 				break;
 			case IDC_CONSOLEBOX:
-/*
-				{
-					int	i;
-
-//					eM_SCROLL
-					i = EM_LINESCROLL;
-					i = EM_CANUNDO;
-					i = EM_CHARFROMPOS;
-					i = EM_EMPTYUNDOBUFFER;
-					i = EM_FMTLINES;
-					i = EM_GETFIRSTVISIBLELINE;
-					i = EM_GETHANDLE;
-					i = EM_GETIMESTATUS;
-					i = EM_GETLIMITTEXT;
-					i = EM_GETLINE;
-					i = EM_GETLINECOUNT;
-					i = EM_GETMARGINS; 		// 10
-					i = EM_GETMODIFY;
-					i = EM_GETPASSWORDCHAR;
-					i = EM_GETRECT;
-					i = EM_GETSEL;
-					i = EM_GETTHUMB;
-					i = EM_GETWORDBREAKPROC;
-					i = EM_LIMITTEXT;
-					i = EM_LINEFROMCHAR;
-					i = EM_LINEINDEX;
-					i = EM_LINELENGTH;		// 20
-					i = EM_LINESCROLL;
-					i = EM_POSFROMCHAR;
-					i = EM_REPLACESEL;
-					i = EM_SCROLL;
-					i = EM_SCROLLCARET;
-					i = EM_SETHANDLE;
-					i = EM_SETIMESTATUS;
-					i = EM_SETLIMITTEXT;
-					i = EM_SETMARGINS;
-					i = EM_SETMODIFY;		// 30
-					i = EM_SETPASSWORDCHAR;
-					i = EM_SETREADONLY;
-					i = EM_SETRECT;
-					i = EM_SETRECTNP;
-					i = EM_SETSEL;
-					i = EM_SETTABSTOPS;
-					i = EM_SETWORDBREAKPROC;
-					i = EM_UNDO;
-					i = EN_CHANGE;  
-					i = EN_ERRSPACE;  		// 40
-					i = EN_HSCROLL;
-					i = EN_KILLFOCUS;
-					i = EN_MAXTEXT;
-					i = EN_SETFOCUS;
-					i = EN_UPDATE;
-					i = EN_VSCROLL; 
-					i = WM_COMMAND;
-					i = WM_COPY;
-					i = WM_CTLCOLOREDIT;
-					i = WM_CUT;  		// 50
-					i = WM_PASTE;  
-					i = WM_UNDO;
-
-					i = IDC_CONSOLEBOX;
-					i = WM_COMMAND;
-					i = LOWORD( lParam );
-					i = HIWORD( lParam );
-					i = LOWORD( wParam );
-					i = HIWORD( wParam );
-					i = LOWORD( Message );
-					i = HIWORD( Message );
-					i = lParam;
-					i = wParam;
-					i = Message;
-				}
-				switch ( LOWORD( lParam ))
-				{
-				case EM_LINESCROLL:
-
+				// [RC] This is called when the textbox's scroll *buttons* are pressed.
+				// As far as the scroll bar itself being dragged, you're out of luck.
+				/*
+					if ( HIWORD( wParam ) == EN_VSCROLL )
 					{
-						int	i;
 
-						i = 0;
 					}
-					break;
-				}
-
-				switch ( HIWORD( lParam ))
-				{
-				case EM_LINESCROLL:
-
-					{
-						int	i;
-
-						i = 0;
-					}
-					break;
-				}
-				switch ( LOWORD( wParam ))
-				{
-				case EM_LINESCROLL:
-
-					{
-						int	i;
-
-						i = 0;
-					}
-					break;
-				}
-				switch ( HIWORD( wParam ))
-				{
-				case EM_LINESCROLL:
-
-					{
-						int	i;
-
-						i = 0;
-					}
-					break;
-				}
-*/
+				*/
 				break;
 			case ID_FILE_EXIT:
 
@@ -4973,11 +4863,13 @@ void SERVERCONSOLE_Print( char *pszString )
 
 	// Check where the scrollbars are.
 	LONG	lVisibleLine;
+	LONG	lTotalLines;
 	LONG	lLineDiff;
 
 	lVisibleLine = SendDlgItemMessage( g_hDlg, IDC_CONSOLEBOX, EM_GETFIRSTVISIBLELINE, 0, 0 );
-	lLineDiff = g_ulNumLines - lVisibleLine;
-	bScroll = ( lLineDiff <= 8);
+	lTotalLines = SendDlgItemMessage( g_hDlg, IDC_CONSOLEBOX, EM_GETLINECOUNT, 0, 0 );
+	lLineDiff = lTotalLines - lVisibleLine;
+	bScroll = ( lLineDiff <= 9);
 
 	while ( 1 )
 	{
