@@ -1894,9 +1894,13 @@ bool ABackpackItem::HandlePickup (AInventory *item)
 						probe->Amount = probe->MaxAmount;
 					}
 
+					// [BB] The server tells the client to pickup the backpack in AInventory::Touch, this will
+					// handle the ammo change. If we also give the ammo here, the client will first get the correct
+					// ammo amount, but will get even more when the server tells him to pickup the backpack later
+					// leading to ammo amounts that are out of sync.
 					// [BC] If we're the server, give the client the ammo given here.
-					if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( Owner->player ))
-						SERVERCOMMANDS_GiveInventory( ULONG( Owner->player - players ), probe, ULONG( Owner->player - players ), SVCF_ONLYTHISCLIENT );
+					//if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( Owner->player ))
+					//	SERVERCOMMANDS_GiveInventory( ULONG( Owner->player - players ), probe, ULONG( Owner->player - players ), SVCF_ONLYTHISCLIENT );
 
 				}
 			}
