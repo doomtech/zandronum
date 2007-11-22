@@ -398,6 +398,8 @@ ACTOR PlasmaRifle : DoomWeapon 2004
 
 ACTOR PlasmaBall
 {
+	Game Doom
+	SpawnID 51
 	Radius 13
 	Height 8
 	Speed 25
