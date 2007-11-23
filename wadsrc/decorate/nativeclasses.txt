@@ -211,5 +211,8 @@ class Inventory extends Actor
 	action native A_CheckReload();
 	action native A_GunFlash();
 	action native A_Saw(optional coerce sound fullsound, optional coerce sound hitsound, optional eval int damage, optional class<Actor> pufftype);
+
+	// [BB] Skulltag specific code pointers
+	action native A_CheckRailReload();
 }
 

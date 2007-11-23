@@ -1,52 +1,101 @@
-// --------------------------------------------------------------------------
+//=================================================================================================
 //
-// Mingun
+// Minigun
 //
-// based on STMinigun from tutnt.pk3.
-//
-// --------------------------------------------------------------------------
+//=================================================================================================
 
 ACTOR Minigun : Weapon 5014
 {
-  Weapon.AmmoType "Clip" 
-  Weapon.AmmoGive 20
-  Weapon.AmmoUse 1
-  Weapon.Selectionorder 700
-  Weapon.Kickback 100
-  Inventory.PickupMessage "$PICKUP_MINIGUN"
-  Obituary "$OB_MINIGUN"
-  AttackSound "weapons/minigun"
-  SpawnID 214
-  Radius 20
-  Height 16
-  States
-  {
-  Spawn: 
-    MNGN A -1 
-    Loop 
-  Ready: 
-    MNGG A 1 A_WeaponReady 
-    Loop 
-  Deselect: 
-    MNGG A 1 A_Lower 
-    Loop 
-  Select: 
-    MNGG A 1 A_Raise 
-    Loop 
-  Fire: 
-    MNGG A 0 A_GunFlash
-    MNGG A 2 A_FireBullets(5.6, 0, 1, 5, "BulletPuff")
-    MNGG B 2 A_FireBullets(5.6, 0, 1, 5, "BulletPuff")
-    MNGG B 0 A_ReFire
-    MNGG B 2
-    MNGG A 4
-    MNGG B 4
-    MNGG A 8
-    MNGG B 8
-    goto Ready 
-  Flash: 
-    MNGF A 3 BRIGHT A_Light1 
-    MNGF B 3 BRIGHT A_Light0
-    Stop 
-  }
+	Weapon.AmmoType "Clip" 
+	Weapon.AmmoGive 20
+	Weapon.AmmoUse 1
+	Weapon.Selectionorder 700
+	Weapon.Kickback 100
+	Inventory.PickupMessage "$PICKUP_MINIGUN"
+	Obituary "$OB_MINIGUN"
+	AttackSound "weapons/minigun"
+	SpawnID 214
+	Radius 20
+	Height 16
+	States
+	{
+	Spawn:
+		MNGN A -1
+		Loop
+	Ready:
+		MNGG A 1 A_WeaponReady
+		Loop
+	Deselect:
+		MNGG A 1 A_Lower
+		Loop
+	Select: 
+		MNGG A 1 A_Raise 
+		Loop 
+	Fire: 
+		MNGG A 0 A_GunFlash
+		MNGG A 2 A_FireBullets(5.6, 0, 1, 5, "BulletPuff")
+		MNGG B 2 A_FireBullets(5.6, 0, 1, 5, "BulletPuff")
+		MNGG A 2 A_ReFire
+		MNGG B 2
+		MNGG A 4
+		MNGG B 4
+		MNGG A 8
+		MNGG B 8
+		goto Ready 
+	Flash: 
+		MNGF A 3 BRIGHT A_Light1 
+		MNGF B 3 BRIGHT A_Light0
+		Stop 
+	}
+}
+
+//=================================================================================================
+//
+// RailGun
+//
+//=================================================================================================
+
+ACTOR RailGun : DoomWeapon 5012
+{
+	SpawnID 164
+	Radius 20
+	Height 16
+	Weapon.Selectionorder 100
+	Weapon.AmmoUse 10
+	Weapon.AmmoGive 40
+	Weapon.AmmoType "Cell"
+	Inventory.Pickupmessage "$PICKUP_RAILGUN"
+	Obituary "OB_RAILGUN"
+	States
+	{
+	Ready:
+		RLGG A 1 A_WeaponReady
+		loop
+	Deselect:
+		RLGG A 1 A_Lower
+		loop
+	Select:
+		RLGG A 1 A_Raise
+		loop
+	Fire:
+		RLGG E 12 A_FireRailgun
+		RLGG F 6 A_CheckRailReload
+		RLGG G 6
+		RLGG H 6
+		RLGG I 6
+		RLGG J 6
+		RLGG K 6
+		RLGG L 6
+		RLGG A 6
+		RLGG M 0 A_ReFire
+		goto Ready
+	Flash:
+		TNT1 A 5 bright A_Light1
+		TNT1 A 5 bright A_Light2
+		Goto LightDone
+		stop
+	Spawn:
+		RAIL A -1
+		stop
+	}
 }

@@ -88,6 +88,8 @@ v0.97d
 +	- The "Held by:" and "Scored by:" messages now display in one flag CTF. [Carnevil]
 +	- Weapon flag NOLMS is now available in DECORATE. Weapons with this flag are not given to the player in LMS. [Torr Samaho]
 +	- Added whitelist support. IPs on this list are always considered not to be banned. This can be used to define exemptions from a range ban. The new CVAR sv_banexemptionfile specifies the filename of the list. [Torr Samaho]
++	- Code pointer A_CheckRailReload is now available via DECORATE. [Torr Samaho]
++	- Converted Minigun and Railgun to DECORATE. The DECORATE code of the Minigun was inspired by the STMinigun from tutnt.pk3. [Torr Samaho]
 -	- Rank/spread/DM stats and team scores now show up in the ZDoom - and hence Heretic -  HUD. [Rivecoder]
 -	- Fixed: Ignoring definitions of already defined decorate actors which use ":" or "replace" didn't work. [Torr Samaho]
 -	- Fixed: After a map change some type of custom weapons are lost on the client side (Fist and NewPistol in KDiZD for example). [Torr Samaho]

@@ -1176,7 +1176,7 @@ void A_RailWait (AActor *actor)
 }
 
 // Railgun ------------------------------------------------------------
-
+/*
 void A_CheckRailReload( AActor *pActor );
 
 class ARailgun : public AWeapon
@@ -1233,7 +1233,7 @@ IMPLEMENT_ACTOR (ARailgun, Doom, 5012, 164)
 	PROP_Weapon_AmmoType1 ("Cell")
 	PROP_Inventory_PickupMessage("$PICKUP_RAILGUN")
 END_DEFAULTS
-
+*/
 void A_CheckRailReload( AActor *pActor )
 {
 	if ( pActor->player == NULL )
@@ -1244,7 +1244,7 @@ void A_CheckRailReload( AActor *pActor )
 	if ((( pActor->player->ulRailgunShots % 4 ) == 0 ) == false )
 	{
 		// Go back to the refire frames, instead of continuing on to the reload frames.
-		if ( pActor->player->ReadyWeapon->GetClass( ) == RUNTIME_CLASS( ARailgun ))
+		if ( pActor->player->ReadyWeapon->GetClass( ) == PClass::FindClass("Railgun" ))
 			P_SetPsprite( pActor->player, ps_weapon, pActor->player->ReadyWeapon->FindState(NAME_Fire) + 8 );
 	}
 	else
