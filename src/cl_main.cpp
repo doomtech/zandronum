@@ -5036,6 +5036,15 @@ static void client_MoveThing( BYTESTREAM_s *pByteStream )
 		pActor->momy = NETWORK_ReadShort( pByteStream ) << FRACBITS;
 	if ( lBits & CM_MOMZ )
 		pActor->momz = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+
+	// If the server is moving us, don't let our prediction get messed up.
+	if ( pActor == players[consoleplayer].mo )
+	{
+		players[consoleplayer].ServerXYZ[0] = X;
+		players[consoleplayer].ServerXYZ[1] = Y;
+		players[consoleplayer].ServerXYZ[2] = Z;
+		CLIENT_PREDICT_PlayerTeleported( );
+	}
 }
 
 //*****************************************************************************
@@ -5151,7 +5160,7 @@ static void client_KillThing( BYTESTREAM_s *pByteStream )
 	// Read in the thing's damage type.
 	DamageType = ENamedName( NETWORK_ReadByte( pByteStream ));
 
-	// Read in the actor that killed the player.
+	// Read in the actor that killed the player.Thi
 	lSourceID = NETWORK_ReadShort( pByteStream );
 
 	// Read in the network ID of the inflictor.

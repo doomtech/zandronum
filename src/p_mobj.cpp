@@ -3595,7 +3595,7 @@ void AActor::Tick ()
 	}
 	else
 	{
-		// The rest is server-side.
+		// [BC] The rest is server-side.
 		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 			( CLIENTDEMO_IsPlaying( )))
 		{

@@ -243,6 +243,19 @@ void CLIENT_PREDICT_SaveCmd( void )
 }
 
 //*****************************************************************************
+//
+void CLIENT_PREDICT_PlayerTeleported( void )
+{
+	ULONG	ulIdx;
+
+	for ( ulIdx = 0; ulIdx < MAXSAVETICS; ulIdx++ )
+	{
+		g_SavedFloorZ[ulIdx] = players[consoleplayer].mo->z;
+		g_bSavedOnFloor[ulIdx] = false;
+	}
+}
+
+//*****************************************************************************
 //*****************************************************************************
 //
 bool CLIENT_PREDICT_IsPredicting( void )
