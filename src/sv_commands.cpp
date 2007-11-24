@@ -2483,7 +2483,7 @@ void SERVERCOMMANDS_PrintMOTD( const char *pszString, ULONG ulPlayerExtra, ULONG
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_PrintHUDMessage( const char *pszString, float fX, float fY, LONG lHUDWidth, LONG lHUDHeight, LONG lColor, float fHoldTime, char *pszFont, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_PrintHUDMessage( const char *pszString, float fX, float fY, LONG lHUDWidth, LONG lHUDHeight, LONG lColor, float fHoldTime, char *pszFont, bool bLog, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 
@@ -2498,7 +2498,7 @@ void SERVERCOMMANDS_PrintHUDMessage( const char *pszString, float fX, float fY, 
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 22 + (ULONG)strlen( pszString ) + (ULONG)strlen( pszFont ), true );
+		SERVER_CheckClientBuffer( ulIdx, 23 + (ULONG)strlen( pszString ) + (ULONG)strlen( pszFont ), true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_PRINTHUDMESSAGE );
 		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszString );
 		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fX );
@@ -2508,13 +2508,14 @@ void SERVERCOMMANDS_PrintHUDMessage( const char *pszString, float fX, float fY, 
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lColor );
 		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fHoldTime );
 		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszFont );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, !!bLog );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
     }
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_PrintHUDMessageFadeOut( const char *pszString, float fX, float fY, LONG lHUDWidth, LONG lHUDHeight, LONG lColor, float fHoldTime, float fFadeOutTime, char *pszFont, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_PrintHUDMessageFadeOut( const char *pszString, float fX, float fY, LONG lHUDWidth, LONG lHUDHeight, LONG lColor, float fHoldTime, float fFadeOutTime, char *pszFont, bool bLog, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 
@@ -2529,7 +2530,7 @@ void SERVERCOMMANDS_PrintHUDMessageFadeOut( const char *pszString, float fX, flo
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 26 + (ULONG)strlen( pszString ) + (ULONG)strlen( pszFont ), true );
+		SERVER_CheckClientBuffer( ulIdx, 27 + (ULONG)strlen( pszString ) + (ULONG)strlen( pszFont ), true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_PRINTHUDMESSAGEFADEOUT );
 		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszString );
 		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fX );
@@ -2540,13 +2541,14 @@ void SERVERCOMMANDS_PrintHUDMessageFadeOut( const char *pszString, float fX, flo
 		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fHoldTime );
 		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fFadeOutTime );
 		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszFont );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, !!bLog );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
     }
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_PrintHUDMessageFadeInOut( const char *pszString, float fX, float fY, LONG lHUDWidth, LONG lHUDHeight, LONG lColor, float fHoldTime, float fFadeInTime, float fFadeOutTime, char *pszFont, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_PrintHUDMessageFadeInOut( const char *pszString, float fX, float fY, LONG lHUDWidth, LONG lHUDHeight, LONG lColor, float fHoldTime, float fFadeInTime, float fFadeOutTime, char *pszFont, bool bLog, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 
@@ -2561,7 +2563,7 @@ void SERVERCOMMANDS_PrintHUDMessageFadeInOut( const char *pszString, float fX, f
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 30 + (ULONG)strlen( pszString ) + (ULONG)strlen( pszFont ), true );
+		SERVER_CheckClientBuffer( ulIdx, 31 + (ULONG)strlen( pszString ) + (ULONG)strlen( pszFont ), true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_PRINTHUDMESSAGEFADEINOUT );
 		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszString );
 		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fX );
@@ -2573,13 +2575,14 @@ void SERVERCOMMANDS_PrintHUDMessageFadeInOut( const char *pszString, float fX, f
 		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fFadeInTime );
 		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fFadeOutTime );
 		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszFont );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, !!bLog );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
     }
 }
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_PrintHUDMessageTypeOnFadeOut( const char *pszString, float fX, float fY, LONG lHUDWidth, LONG lHUDHeight, LONG lColor, float fTypeTime, float fHoldTime, float fFadeOutTime, char *pszFont, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_PrintHUDMessageTypeOnFadeOut( const char *pszString, float fX, float fY, LONG lHUDWidth, LONG lHUDHeight, LONG lColor, float fTypeTime, float fHoldTime, float fFadeOutTime, char *pszFont, bool bLog, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 
@@ -2594,7 +2597,7 @@ void SERVERCOMMANDS_PrintHUDMessageTypeOnFadeOut( const char *pszString, float f
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 30 + (ULONG)strlen( pszString ) + (ULONG)strlen( pszFont ), true );
+		SERVER_CheckClientBuffer( ulIdx, 31 + (ULONG)strlen( pszString ) + (ULONG)strlen( pszFont ), true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_PRINTHUDMESSAGETYPEONFADEOUT );
 		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszString );
 		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fX );
@@ -2606,6 +2609,7 @@ void SERVERCOMMANDS_PrintHUDMessageTypeOnFadeOut( const char *pszString, float f
 		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fHoldTime );
 		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fFadeOutTime );
 		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszFont );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, !!bLog );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lID );
     }
 }

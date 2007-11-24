@@ -465,7 +465,7 @@ void TEAM_ScoreSkulltagPoint( player_s *pPlayer, ULONG ulNumPoints, AActor *pPil
 	// If necessary, send it to clients.
 	else
 	{
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.425f, 0, 0, CR_BLUE, 3.0f, 0.5f, "BigFont", 'CNTR' );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.425f, 0, 0, CR_BLUE, 3.0f, 0.5f, false, "BigFont", 'CNTR' );
 	}
 
 	// Create the "scored by / assisted by" message.
@@ -497,7 +497,7 @@ void TEAM_ScoreSkulltagPoint( player_s *pPlayer, ULONG ulNumPoints, AActor *pPil
 	}
 	// If necessary, send it to clients.
 	else
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.475f, 0, 0, CR_BLUE, 3.0f, 0.5f, "SmallFont", 'SUBS' );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.475f, 0, 0, CR_BLUE, 3.0f, 0.5f, false, "SmallFont", 'SUBS' );
 
 	// Give his team a point.
 	TEAM_SetScore( pPlayer->ulTeam, TEAM_GetScore( pPlayer->ulTeam ) + ulNumPoints, true );
@@ -705,7 +705,7 @@ void TEAM_DoWinSequence( ULONG ulTeamIdx )
 	}
 	else
 	{
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 0.25f, "BigFont", 'CNTR' );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 0.25f, false, "BigFont", 'CNTR' );
 	}
 }
 
@@ -758,7 +758,7 @@ void TEAM_TimeExpired( void )
 				}
 				else
 				{
-					SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", 'CNTR' );
+					SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, false, "BigFont", 'CNTR' );
 				}
 			}
 

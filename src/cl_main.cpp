@@ -114,6 +114,7 @@ void	ClientObituary (AActor *self, AActor *inflictor, AActor *attacker, FName Me
 void	P_CrouchMove(player_t * player, int direction);
 bool	DoThingRaise( AActor *thing );
 extern	bool	SpawningMapThing;
+extern FILE *Logfile;
 
 EXTERN_CVAR( Bool, telezoom )
 EXTERN_CVAR( Bool, sv_cheats )
@@ -3066,6 +3067,34 @@ LONG CLIENT_AdjustElevatorDirection( LONG lDirection )
 		return ( INT_MAX );
 
 	return ( lDirection );
+}
+
+//*****************************************************************************
+//
+void CLIENT_LogHUDMessage( char *pszString, LONG lColor )
+{
+	static const char	szBar[] = TEXTCOLOR_ORANGE "\n\35\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36"
+"\36\36\36\36\36\36\36\36\36\36\36\36\37" TEXTCOLOR_NORMAL "\n";
+	static const char	szLogBar[] = "\n<------------------------------->\n";
+	char				acLogColor[3];
+
+	acLogColor[0] = '\x1c';
+	acLogColor[1] = (( lColor >= CR_BRICK ) && ( lColor <= CR_YELLOW )) ? ( lColor + 'A' ) : ( '-' );
+	acLogColor[2] = '\0';
+
+	AddToConsole( -1, szBar );
+	AddToConsole( -1, acLogColor );
+	AddToConsole( -1, pszString );
+	AddToConsole( -1, szBar );
+
+	// If we have a log file open, log it too.
+	if ( Logfile )
+	{
+		fputs( szLogBar, Logfile );
+		fputs( pszString, Logfile );
+		fputs( szLogBar, Logfile );
+		fflush( Logfile );
+	}
 }
 
 //*****************************************************************************
@@ -6356,6 +6385,7 @@ static void client_PrintHUDMessage( BYTESTREAM_s *pByteStream )
 	LONG		lColor;
 	float		fHoldTime;
 	char		*pszFont;
+	bool		bLog;
 	LONG		lID;
 	DHUDMessage	*pMsg;
 	FFont		*pOldFont;
@@ -6381,6 +6411,9 @@ static void client_PrintHUDMessage( BYTESTREAM_s *pByteStream )
 	// Read in the font being used.
 	pszFont = NETWORK_ReadString( pByteStream );
 
+	// Read in whether or not the message should be logged.
+	bLog = !!NETWORK_ReadByte( pByteStream );
+
 	// Read in the ID.
 	lID = NETWORK_ReadLong( pByteStream );
 
@@ -6404,6 +6437,10 @@ static void client_PrintHUDMessage( BYTESTREAM_s *pByteStream )
 	// Now attach the message.
 	StatusBar->AttachMessage( pMsg, lID );
 
+	// Log the message if desired.
+	if ( bLog )
+		CLIENT_LogHUDMessage( szString, lColor );
+
 	// Finally, revert to the old font we were using.
 	screen->SetFont( pOldFont );
 }
@@ -6421,6 +6458,7 @@ static void client_PrintHUDMessageFadeOut( BYTESTREAM_s *pByteStream )
 	float				fHoldTime;
 	float				fFadeOutTime;
 	char				*pszFont;
+	bool				bLog;
 	LONG				lID;
 	DHUDMessageFadeOut	*pMsg;
 	FFont				*pOldFont;
@@ -6449,6 +6487,9 @@ static void client_PrintHUDMessageFadeOut( BYTESTREAM_s *pByteStream )
 	// Read in the font being used.
 	pszFont = NETWORK_ReadString( pByteStream );
 
+	// Read in whether or not the message should be logged.
+	bLog = !!NETWORK_ReadByte( pByteStream );
+
 	// Read in the ID.
 	lID = NETWORK_ReadLong( pByteStream );
 
@@ -6473,6 +6514,10 @@ static void client_PrintHUDMessageFadeOut( BYTESTREAM_s *pByteStream )
 	// Now attach the message.
 	StatusBar->AttachMessage( pMsg, lID );
 
+	// Log the message if desired.
+	if ( bLog )
+		CLIENT_LogHUDMessage( szString, lColor );
+
 	// Finally, revert to the old font we were using.
 	screen->SetFont( pOldFont );
 }
@@ -6491,6 +6536,7 @@ static void client_PrintHUDMessageFadeInOut( BYTESTREAM_s *pByteStream )
 	float					fFadeInTime;
 	float					fFadeOutTime;
 	char					*pszFont;
+	bool					bLog;
 	LONG					lID;
 	DHUDMessageFadeInOut	*pMsg;
 	FFont					*pOldFont;
@@ -6522,6 +6568,9 @@ static void client_PrintHUDMessageFadeInOut( BYTESTREAM_s *pByteStream )
 	// Read in the font being used.
 	pszFont = NETWORK_ReadString( pByteStream );
 
+	// Read in whether or not the message should be logged.
+	bLog = !!NETWORK_ReadByte( pByteStream );
+
 	// Read in the ID.
 	lID = NETWORK_ReadLong( pByteStream );
 
@@ -6547,6 +6596,10 @@ static void client_PrintHUDMessageFadeInOut( BYTESTREAM_s *pByteStream )
 	// Now attach the message.
 	StatusBar->AttachMessage( pMsg, lID );
 
+	// Log the message if desired.
+	if ( bLog )
+		CLIENT_LogHUDMessage( szString, lColor );
+
 	// Finally, revert to the old font we were using.
 	screen->SetFont( pOldFont );
 }
@@ -6565,6 +6618,7 @@ static void client_PrintHUDMessageTypeOnFadeOut( BYTESTREAM_s *pByteStream )
 	float						fHoldTime;
 	float						fFadeOutTime;
 	char						*pszFont;
+	bool						bLog;
 	LONG						lID;
 	DHUDMessageTypeOnFadeOut	*pMsg;
 	FFont						*pOldFont;
@@ -6596,6 +6650,9 @@ static void client_PrintHUDMessageTypeOnFadeOut( BYTESTREAM_s *pByteStream )
 	// Read in the font being used.
 	pszFont = NETWORK_ReadString( pByteStream );
 
+	// Read in whether or not the message should be logged.
+	bLog = !!NETWORK_ReadByte( pByteStream );
+
 	// Read in the ID.
 	lID = NETWORK_ReadLong( pByteStream );
 
@@ -6620,6 +6677,10 @@ static void client_PrintHUDMessageTypeOnFadeOut( BYTESTREAM_s *pByteStream )
 
 	// Now attach the message.
 	StatusBar->AttachMessage( pMsg, lID );
+
+	// Log the message if desired.
+	if ( bLog )
+		CLIENT_LogHUDMessage( szString, lColor );
 
 	// Finally, revert to the old font we were using.
 	screen->SetFont( pOldFont );

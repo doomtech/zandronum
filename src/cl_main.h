@@ -170,6 +170,7 @@ LONG				CLIENT_AdjustDoorDirection( LONG lDirection );
 LONG				CLIENT_AdjustFloorDirection( LONG lDirection );
 LONG				CLIENT_AdjustCeilingDirection( LONG lDirection );
 LONG				CLIENT_AdjustElevatorDirection( LONG lDirection );
+void				CLIENT_LogHUDMessage( char *pszString, LONG lColor );
 
 void				CLIENT_PREDICT_PlayerPredict( void );
 void				CLIENT_PREDICT_SaveCmd( void );
