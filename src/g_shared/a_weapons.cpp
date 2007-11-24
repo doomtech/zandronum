@@ -158,6 +158,10 @@ bool AWeapon::HandlePickup (AInventory *item)
 
 bool AWeapon::PickupForAmmo (AWeapon *ownedWeapon)
 {
+	// [BB] The server tells the client how much ammo he gets from the weapon,
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		return false;
+
 	bool gotstuff = false;
 
 	// Don't take ammo if the weapon sticks around.
@@ -167,23 +171,18 @@ bool AWeapon::PickupForAmmo (AWeapon *ownedWeapon)
 		{
 			gotstuff = AddExistingAmmo (ownedWeapon->Ammo1, AmmoGive1);
 
-			// [BB] The server tells the client to pickup the weapon in AInventory::Touch, this will
-			// handle the ammo change. If we also give the ammo here, the client will first get the correct
-			// ammo amount, but will get even more when the server tells him to pickup the weapon later
-			// leading to ammo amounts that are out of sync.
 			// [BC] If we're the server, tell clients that they just received ammo.
-			//if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( ownedWeapon->Owner ) && ( ownedWeapon->Owner->player ) && ( ownedWeapon->Ammo1 ))
-			//	SERVERCOMMANDS_GiveInventory( ownedWeapon->Owner->player - players, static_cast<AInventory *>( ownedWeapon->Ammo1 ));
+			if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( ownedWeapon->Owner ) && ( ownedWeapon->Owner->player ) && ( ownedWeapon->Ammo1 ))
+				SERVERCOMMANDS_GiveInventory( ownedWeapon->Owner->player - players, static_cast<AInventory *>( ownedWeapon->Ammo1 ));
 		}
 
 		if (AmmoGive2 > 0)
 		{
 			gotstuff |= AddExistingAmmo (ownedWeapon->Ammo2, AmmoGive2);
 
-			// [BB] See above.
 			// [BC] If we're the server, tell clients that they just received ammo.
-			//if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( ownedWeapon->Owner ) && ( ownedWeapon->Owner->player ) && ( ownedWeapon->Ammo2 ))
-			//	SERVERCOMMANDS_GiveInventory( ownedWeapon->Owner->player - players, static_cast<AInventory *>( ownedWeapon->Ammo2 ));
+			if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( ownedWeapon->Owner ) && ( ownedWeapon->Owner->player ) && ( ownedWeapon->Ammo2 ))
+				SERVERCOMMANDS_GiveInventory( ownedWeapon->Owner->player - players, static_cast<AInventory *>( ownedWeapon->Ammo2 ));
 		}
 	}
 	return gotstuff;
@@ -256,8 +255,26 @@ void AWeapon::AttachToOwner (AActor *other)
 
 	Super::AttachToOwner (other);
 
-	Ammo1 = AddAmmo (Owner, AmmoType1, AmmoGive1);
-	Ammo2 = AddAmmo (Owner, AmmoType2, AmmoGive2);
+	// [BB] The server tells the client how much ammo he gets from the weapon,
+	// the client just initializes Ammo1 and Ammo2.
+	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	{
+		Ammo1 = AddAmmo (Owner, AmmoType1, AmmoGive1);
+		Ammo2 = AddAmmo (Owner, AmmoType2, AmmoGive2);
+
+		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( Owner ) && ( Owner->player ))
+		{
+			if ( Ammo1 )
+				SERVERCOMMANDS_GiveInventory( Owner->player - players, static_cast<AInventory *>( Ammo1 ));
+			if ( Ammo2 )
+				SERVERCOMMANDS_GiveInventory( Owner->player - players, static_cast<AInventory *>( Ammo2 ));
+		}
+	}
+	else
+	{
+		Ammo1 = AddAmmo (Owner, AmmoType1, 0);
+		Ammo2 = AddAmmo (Owner, AmmoType2, 0);
+	}
 	SisterWeapon = AddWeapon (SisterWeaponType);
 	if (Owner->player != NULL)
 	{
