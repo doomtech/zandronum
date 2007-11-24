@@ -1794,6 +1794,9 @@ void A_SpawnItem(AActor * self)
 
 		if ( mo->angle != 0 )
 			SERVERCOMMANDS_SetThingAngle( mo );
+
+		if ( mo->Translation )
+			SERVERCOMMANDS_SetThingTranslation( mo );
 	}
 }
 
@@ -1918,6 +1921,9 @@ void A_SpawnItemEx(AActor * self)
 
 			if ( ulBits )
 				SERVERCOMMANDS_MoveThingExact( mo, ulBits );
+
+			if ( mo->Translation )
+				SERVERCOMMANDS_SetThingTranslation( mo );
 		}
 
 		// [BC] Flag this actor as being client-spawned.
