@@ -48,7 +48,6 @@
 //
 //-----------------------------------------------------------------------------
 
-#define _CRT_SECURE_NO_DEPRECATE
 #include "..\src\networkheaders.h"
 #include "..\src\networkshared.h"
 #include "main.h"
@@ -65,6 +64,7 @@
 #include <uxtheme.h>
 #include <shellapi.h>
 #include <mmsystem.h>
+
 
 #include "resource.h"
 
@@ -84,8 +84,11 @@ static	HANDLE					g_hThread;
 // Number of lines present in the text box.
 static	ULONG					g_ulNumLines = 0;
 
-// Global handle for the main dialog box.
+// Global handles for the dialog, and each tab page.
 static	HWND					g_hDlg = NULL;
+static	HWND					g_hDlg_Overview = NULL;
+static	HWND					g_hDlg_Skulltag = NULL;
+static	HWND					g_hDlg_ZDaemon = NULL;
 
 // Data for each of the port we're gathering stats for.
 static	PORTINFO_s				g_PortInfo[NUM_PORTS];
@@ -101,6 +104,8 @@ static	bool					g_bSmallIconClicked = false;
 
 static	FILE					*g_pPartialStatsFile;
 
+static	HRESULT	(__stdcall *pEnableThemeDialogTexture) (HWND hwnd, DWORD dwFlags);
+
 //*****************************************************************************
 //	PROTOTYPES
 
@@ -114,14 +119,24 @@ static	bool					main_NeedRetry( void );
 static	SERVERINFO_s			*main_FindServerByAddress( NETADDRESS_s Address );
 static	void					main_ParsePartialStatsFile( void );
 static	bool					main_NeedToDecode( void );
+static	void					main_UpdateStatisticsDisplay( void );
+BOOL CALLBACK					tab_OverviewCallback( HWND hDlg, UINT Message, WPARAM wParam, LPARAM lParam );
+BOOL CALLBACK					tab_SkulltagCallback( HWND hDlg, UINT Message, WPARAM wParam, LPARAM lParam );
+BOOL CALLBACK					tab_ZDaemonCallback( HWND hDlg, UINT Message, WPARAM wParam, LPARAM lParam );
 
 //*****************************************************************************
 //	FUNCTIONS
 
 int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd )
 {
-	// This never returns.
 	g_hInst = hInstance;
+
+	// Load up uxtheme on XP so we can theme tabs correctly.
+	HMODULE uxtheme = LoadLibrary( "uxtheme.dll" );
+	if ( uxtheme != NULL )
+		pEnableThemeDialogTexture = ( HRESULT (__stdcall *)(HWND,DWORD))GetProcAddress ( uxtheme, "EnableThemeDialogTexture" );
+
+	// This never returns.
 	DialogBox( hInstance, MAKEINTRESOURCE( IDD_MAINDIALOG ), NULL, MAIN_MainDialogBoxCallback );
 
 	return ( 0 );
@@ -131,48 +146,14 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 //
 BOOL CALLBACK MAIN_MainDialogBoxCallback( HWND hDlg, UINT Message, WPARAM wParam, LPARAM lParam )
 {
-//	char			szString[16];
-//	time_t			CurrentTime;
-//	struct	tm		*pTimeInfo;
-
 	switch ( Message )
 	{
 	case WM_CLOSE:
 
-		if ( MessageBox( hDlg, "Are you sure you want to quit?", MAIN_TITLESTRING, MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 ) == IDYES )
+		//if ( MessageBox( hDlg, "Are you sure you want to quit?", MAIN_TITLESTRING, MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 ) == IDYES )
 		{
 			EndDialog( hDlg, -1 );
 			CloseHandle( g_hThread );
-/*
-			if (( g_pPartialStatsFile = fopen( "partialstats.txt", "w" )) != NULL )
-			{
-				time( &CurrentTime );
-				pTimeInfo = localtime( &CurrentTime );
-
-				sprintf( szString, "%02d\n", pTimeInfo->tm_mon );
-				fputs( szString, g_pPartialStatsFile );
-
-				sprintf( szString, "%02d\n", pTimeInfo->tm_mday );
-				fputs( szString, g_pPartialStatsFile );
-
-				sprintf( szString, "%d\n", g_lTotalNumPlayers );
-				fputs( szString, g_pPartialStatsFile );
-
-				sprintf( szString, "%d\n", g_lTotalNumServers );
-				fputs( szString, g_pPartialStatsFile );
-
-				sprintf( szString, "%d\n", g_lMaxNumPlayers );
-				fputs( szString, g_pPartialStatsFile );
-
-				sprintf( szString, "%d\n", g_lMaxNumServers );
-				fputs( szString, g_pPartialStatsFile );
-
-				sprintf( szString, "%d\n", g_lNumQueries );
-				fputs( szString, g_pPartialStatsFile );
-
-				fclose( g_pPartialStatsFile );
-			}
-*/
 			exit( 0 );
 		}
 		break;
@@ -285,28 +266,71 @@ BOOL CALLBACK MAIN_MainDialogBoxCallback( HWND hDlg, UINT Message, WPARAM wParam
 		}
 		return ( FALSE );
 	case WM_INITDIALOG:
+		g_hDlg = hDlg;
+
+		// Set up our tab control.
+		HWND edit;
+		TCITEM tcitem;
+		RECT tabrect, tcrect;
+		LPNMHDR nmhdr;
+		tcitem.mask = TCIF_TEXT | TCIF_PARAM;
+		edit = GetDlgItem ( hDlg, IDC_TAB1 );
+
+		GetWindowRect ( edit, &tcrect );
+		ScreenToClient ( hDlg, (LPPOINT)&tcrect.left );
+		ScreenToClient ( hDlg, (LPPOINT)&tcrect.right );
+
+		// Create the tabs.
+		TabCtrl_GetItemRect (edit, 0, &tabrect);
+		tcitem.pszText = "Overview";
+		tcitem.lParam = (LPARAM)CreateDialogParam (g_hInst, MAKEINTRESOURCE(IDD_OVERVIEW), hDlg, tab_OverviewCallback, (LPARAM)edit);
+		TabCtrl_InsertItem (edit, 0, &tcitem);
+		SetWindowPos ((HWND)tcitem.lParam, HWND_TOP, tcrect.left + 3, tcrect.top + tabrect.bottom + 3,
+			tcrect.right - tcrect.left - 8, tcrect.bottom - tcrect.top - tabrect.bottom - 8, 0);
+
+		tcitem.pszText = "Skulltag";
+		tcitem.lParam = (LPARAM)CreateDialogParam (g_hInst, MAKEINTRESOURCE(IDD_SKULLTAG), hDlg, tab_SkulltagCallback, (LPARAM)edit);
+		TabCtrl_InsertItem (edit, 1, &tcitem);
+		SetWindowPos ((HWND)tcitem.lParam, HWND_TOP, tcrect.left + 3, tcrect.top + tabrect.bottom + 3,
+			tcrect.right - tcrect.left - 8, tcrect.bottom - tcrect.top - tabrect.bottom - 8, 0);
+
+		tcitem.pszText = "ZDaemon";
+		tcitem.lParam = (LPARAM)CreateDialogParam (g_hInst, MAKEINTRESOURCE(IDD_ZDAEMON), hDlg, tab_ZDaemonCallback, (LPARAM)edit);
+		TabCtrl_InsertItem (edit, 2, &tcitem);
+		SetWindowPos ((HWND)tcitem.lParam, HWND_TOP, tcrect.left + 3, tcrect.top + tabrect.bottom + 3,
+			tcrect.right - tcrect.left - 8, tcrect.bottom - tcrect.top - tabrect.bottom - 8, 0);
+
+		break;
+	case WM_NOTIFY:
+
+		nmhdr = (LPNMHDR)lParam;
+
+		// Tab switching.
+		if (nmhdr->idFrom == IDC_TAB1)
 		{
-			char		szString[256];
+			int i = TabCtrl_GetCurSel (nmhdr->hwndFrom);
+			tcitem.mask = TCIF_PARAM;
+			TabCtrl_GetItem (nmhdr->hwndFrom, i, &tcitem);
+			edit = (HWND)tcitem.lParam;
 
-			g_hDlg = hDlg;
-
-			// Initialize the server console text.
-			sprintf( szString, "--== SKULLTAG STAT REPORTER ==--" );
-			SetDlgItemText( hDlg, IDC_CONSOLEBOX, szString );
-			Printf( "\n\n" );
-
-			// Load the icons.
-			g_hSmallIcon = (HICON)LoadImage( g_hInst,
-					MAKEINTRESOURCE( IDI_ICON ),
-					IMAGE_ICON,
-					16,
-					16,
-					LR_SHARED );
-
-			SendMessage( hDlg, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)g_hSmallIcon );
-			SendMessage( hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)LoadIcon( g_hInst, MAKEINTRESOURCE( IDI_ICON )));
-
-			g_hThread = CreateThread( NULL, 0, MAIN_RunMainThread, 0, 0, 0 );
+			// Before.
+			if (nmhdr->code == TCN_SELCHANGING)
+			{
+				// Hide the current tab pane.
+				ShowWindow (edit, SW_HIDE);
+				SetWindowLongPtr (hDlg, DWLP_MSGRESULT, FALSE);
+				return TRUE;
+			}
+			
+			// After.
+			else if (nmhdr->code == TCN_SELCHANGE)
+			{
+				// Show the new tab pane.
+				ShowWindow (edit, SW_SHOW);
+				return TRUE;
+			}
+			else
+				return FALSE;
 		}
 		break;
 	default:
@@ -315,6 +339,86 @@ BOOL CALLBACK MAIN_MainDialogBoxCallback( HWND hDlg, UINT Message, WPARAM wParam
 	}
 
 	return ( TRUE );
+}
+
+//*****************************************************************************
+//
+BOOL CALLBACK tab_OverviewCallback( HWND hDlg, UINT Message, WPARAM wParam, LPARAM lParam )
+{
+	switch ( Message )
+	{
+	case WM_INITDIALOG:
+
+		char		szString[256];
+		g_hDlg_Overview = hDlg;
+
+		// Enable tab gradients on XP and later.
+		if ( pEnableThemeDialogTexture != NULL )
+			pEnableThemeDialogTexture ( hDlg, ETDT_ENABLETAB );
+
+		// Initialize the server console text.
+		sprintf( szString, "--== SKULLTAG STAT REPORTER ==--" );
+		SetDlgItemText( hDlg, IDC_CONSOLEBOX, szString );
+		Printf( "\n\n" );
+
+		// Load the icons.
+		g_hSmallIcon = (HICON)LoadImage( g_hInst,
+				MAKEINTRESOURCE( IDI_ICON ),
+				IMAGE_ICON,
+				16,
+				16,
+				LR_SHARED );
+
+		SendMessage( hDlg, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)g_hSmallIcon );
+		SendMessage( hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)LoadIcon( g_hInst, MAKEINTRESOURCE( IDI_ICON )));
+
+		g_hThread = CreateThread( NULL, 0, MAIN_RunMainThread, 0, 0, 0 );
+		break;
+	}
+
+	return FALSE;
+}
+
+//*****************************************************************************
+//
+BOOL CALLBACK tab_SkulltagCallback( HWND hDlg, UINT Message, WPARAM wParam, LPARAM lParam )
+{
+	switch ( Message )
+	{
+	case WM_INITDIALOG:
+
+		g_hDlg_Skulltag = hDlg;
+
+		// Enable tab gradients on XP and later.
+		if ( pEnableThemeDialogTexture != NULL )
+			pEnableThemeDialogTexture ( hDlg, ETDT_ENABLETAB );
+
+		
+		break;
+	}
+
+	return FALSE;
+}
+
+//*****************************************************************************
+//
+BOOL CALLBACK tab_ZDaemonCallback( HWND hDlg, UINT Message, WPARAM wParam, LPARAM lParam )
+{
+	switch ( Message )
+	{
+	case WM_INITDIALOG:
+
+		g_hDlg_ZDaemon = hDlg;
+
+		// Enable tab gradients on XP and later.
+		if ( pEnableThemeDialogTexture != NULL )
+			pEnableThemeDialogTexture ( hDlg, ETDT_ENABLETAB );
+
+		
+		break;
+	}
+
+	return FALSE;
 }
 
 //*****************************************************************************
@@ -338,6 +442,7 @@ DWORD WINAPI MAIN_RunMainThread( LPVOID )
 	g_PortInfo[PORT_SKULLTAG].pvParseServerResponse = SKULLTAG_ParseServerResponse;
 
 	g_PortInfo[PORT_SKULLTAG].bHuffman = true;
+	g_PortInfo[PORT_SKULLTAG].hDlg = g_hDlg_Skulltag;
 	sprintf( g_PortInfo[PORT_SKULLTAG].szName, "Skulltag" );
 
 	// Set up the master server info for ZDaemon.
@@ -350,7 +455,20 @@ DWORD WINAPI MAIN_RunMainThread( LPVOID )
 	g_PortInfo[PORT_ZDAEMON].pvParseServerResponse = ZDAEMON_ParseServerResponse;
 
 	g_PortInfo[PORT_ZDAEMON].bHuffman = false;
+	g_PortInfo[PORT_ZDAEMON].hDlg = g_hDlg_ZDaemon;
 	sprintf( g_PortInfo[PORT_ZDAEMON].szName, "ZDaemon" );
+
+	// Initialize the statistics data.
+	for ( int i = 0; i < NUM_PORTS; i++ )
+	{
+		g_PortInfo[i].fAverageNumPlayers = 0.0;
+		g_PortInfo[i].fAverageNumServers = 0.0;
+		g_PortInfo[i].lMaxNumPlayers = 0;
+		g_PortInfo[i].lMaxNumServers = 0;
+	}
+
+	// Initialize our form labels.
+	main_UpdateStatisticsDisplay( );
 
 	// Run the main loop of the program. This never returns.
 	main_MainLoop( );
@@ -360,10 +478,9 @@ DWORD WINAPI MAIN_RunMainThread( LPVOID )
 
 //*****************************************************************************
 //
-void /*STACK_ARGS*/ Printf( const char *pszString, ... )
+void Printf( const char *pszString, ... )
 {
 	va_list		ArgPtr;
-
 	va_start( ArgPtr, pszString );
 	VPrintf( pszString, ArgPtr );
 	va_end( ArgPtr );
@@ -374,7 +491,6 @@ void /*STACK_ARGS*/ Printf( const char *pszString, ... )
 void VPrintf( const char *pszString, va_list Parms )
 {
 	char	szOutLine[8192];
-
 	vsprintf( szOutLine, pszString, Parms );
 	MAIN_Print( szOutLine );
 }
@@ -412,13 +528,10 @@ void MAIN_Print( char *pszString )
 		psz = szInputString;
 	}
 
-	// If 
-	{
-		LONG	lLineDiff;
-
-		lLineDiff = g_ulNumLines - SendDlgItemMessage( g_hDlg, IDC_CONSOLEBOX, EM_GETFIRSTVISIBLELINE, 0, 0 );
-		bScroll = true;//(( lLineDiff <= 6 ) || g_bScrollConsoleOnNewline );
-	}
+	LONG	lLineDiff;
+	
+	lLineDiff = g_ulNumLines - SendDlgItemMessage( g_hDlg_Overview, IDC_CONSOLEBOX, EM_GETFIRSTVISIBLELINE, 0, 0 );
+	bScroll = true;
 
 	while ( 1 )
 	{
@@ -436,7 +549,7 @@ void MAIN_Print( char *pszString )
 		*psz++ = c;
 	}
 
-	if ( GetDlgItemText( g_hDlg, IDC_CONSOLEBOX, szBuffer, sizeof( szBuffer )))
+	if ( GetDlgItemText( g_hDlg_Overview, IDC_CONSOLEBOX, szBuffer, sizeof( szBuffer )))
 	{
 		LONG	lDifference;
 		char	szConsoleBuffer[SERVERCONSOLE_TEXTLENGTH];
@@ -474,10 +587,10 @@ void MAIN_Print( char *pszString )
 		}
 
 		sprintf( szConsoleBuffer, "%s%s", psz, szInputString );
-		SetDlgItemText( g_hDlg, IDC_CONSOLEBOX, szConsoleBuffer );
+		SetDlgItemText( g_hDlg_Overview, IDC_CONSOLEBOX, szConsoleBuffer );
 
 		if ( bScroll )
-			SendDlgItemMessage( g_hDlg, IDC_CONSOLEBOX, EM_LINESCROLL, 0, g_ulNumLines );
+			SendDlgItemMessage( g_hDlg_Overview, IDC_CONSOLEBOX, EM_LINESCROLL, 0, g_ulNumLines );
 	}
 }
 
@@ -491,15 +604,11 @@ static void main_MainLoop( void )
 	LONG			lFirstTime;
 	time_t			CurrentTime;
 	struct	tm		*pTimeInfo;
-//	LONG			lCommand;
 	ULONG			ulIdx;
 	ULONG			ulIdx2;
 	BYTESTREAM_s	*pByteStream;
 	LONG			lTotalNumPlayers;
 	LONG			lTotalNumServers;
-	float			fAverageNumPlayers;
-	float			fAverageNumServers;
-	char			szString[64];
 	SERVERINFO_s	*pServer;
 
 	time( &CurrentTime );
@@ -520,11 +629,11 @@ static void main_MainLoop( void )
 	lFirstTime = timeGetTime( );
 	lOldTime = lFirstTime;
 
-	// See if there's a partial data file. If there is, parse it. If it matches today's date,
-	// then pick up from there.
-	Printf( "Checking for partial stats file...\n" );
+	/*
+	// See if there's a partial data file. If there is, parse it. If it matches today's date, then pick up from there.
 	if (( g_pPartialStatsFile = fopen( "partialstats.txt", "r" )) != NULL )
 		main_ParsePartialStatsFile( );
+	*/
 
 	while ( 1 )
 	{
@@ -557,6 +666,8 @@ static void main_MainLoop( void )
 
 				g_PortInfo[ulIdx].lMaxNumPlayers = 0;
 				g_PortInfo[ulIdx].lMaxNumServers = 0;
+				g_PortInfo[ulIdx].fAverageNumPlayers = 0;
+				g_PortInfo[ulIdx].fAverageNumServers = 0;
 			}
 
 			// Calculate the next time to export stats.
@@ -656,42 +767,84 @@ static void main_MainLoop( void )
 
 					if (( pServer ) &&
 						( g_PortInfo[ulIdx].pvParseServerResponse( pByteStream, pServer, g_PortInfo[ulIdx].aQueryInfo )))
-					{
+					{					
+						// Do we have a new record?
 						if ( g_PortInfo[ulIdx].aQueryInfo[g_PortInfo[ulIdx].aQueryInfo.Size( ) - 1].lNumPlayers > g_PortInfo[ulIdx].lMaxNumPlayers )
 							g_PortInfo[ulIdx].lMaxNumPlayers = g_PortInfo[ulIdx].aQueryInfo[g_PortInfo[ulIdx].aQueryInfo.Size( ) - 1].lNumPlayers;
+
 						if ( g_PortInfo[ulIdx].aQueryInfo[g_PortInfo[ulIdx].aQueryInfo.Size( ) - 1].lNumServers > g_PortInfo[ulIdx].lMaxNumServers )
 							g_PortInfo[ulIdx].lMaxNumServers = g_PortInfo[ulIdx].aQueryInfo[g_PortInfo[ulIdx].aQueryInfo.Size( ) - 1].lNumServers;
 
-						lTotalNumPlayers = 0;
-						lTotalNumServers = 0;
-						for ( ulIdx2 = 0; ulIdx2 < g_PortInfo[ulIdx].aQueryInfo.Size( ); ulIdx2++ )
+						// Calculate averages.
+						if ( g_PortInfo[ulIdx].aQueryInfo.Size( ) > 0 )
 						{
-							lTotalNumPlayers += g_PortInfo[ulIdx].aQueryInfo[ulIdx2].lNumPlayers;
-							lTotalNumServers += g_PortInfo[ulIdx].aQueryInfo[ulIdx2].lNumServers;
+							lTotalNumPlayers = 0;
+							lTotalNumServers = 0;
+
+							for ( ulIdx2 = 0; ulIdx2 < g_PortInfo[ulIdx].aQueryInfo.Size( ); ulIdx2++ )
+							{
+								lTotalNumPlayers += g_PortInfo[ulIdx].aQueryInfo[ulIdx2].lNumPlayers;
+								lTotalNumServers += g_PortInfo[ulIdx].aQueryInfo[ulIdx2].lNumServers;
+							}
+							
+							g_PortInfo[ulIdx].fAverageNumPlayers = (float)lTotalNumPlayers / (float)g_PortInfo[ulIdx].aQueryInfo.Size( );
+							g_PortInfo[ulIdx].fAverageNumServers = (float)lTotalNumServers / (float)g_PortInfo[ulIdx].aQueryInfo.Size( );
 						}
-						
-						fAverageNumPlayers = (float)lTotalNumPlayers / (float)g_PortInfo[ulIdx].aQueryInfo.Size( );
-						fAverageNumServers = (float)lTotalNumServers / (float)g_PortInfo[ulIdx].aQueryInfo.Size( );
 
-						sprintf( szString, "Average players: %3.2f", fAverageNumPlayers );
-						SetDlgItemText( g_hDlg, IDC_AVERAGEPLAYERS, szString );
-
-						sprintf( szString, "Average servers: %3.2f", fAverageNumServers );
-						SetDlgItemText( g_hDlg, IDC_AVERAGESERVERS, szString );
-
-						sprintf( szString, "Num queries: %d", g_PortInfo[ulIdx].aQueryInfo.Size( ));
-						SetDlgItemText( g_hDlg, IDC_NUMQUERIES, szString );
-
-						sprintf( szString, "Max. players: %d", g_PortInfo[ulIdx].lMaxNumPlayers );
-						SetDlgItemText( g_hDlg, IDC_MAXPLAYERS, szString );
-
-						sprintf( szString, "Max. servers: %d", g_PortInfo[ulIdx].lMaxNumServers );
-						SetDlgItemText( g_hDlg, IDC_MAXSERVERS, szString );
+						// Update the display of this port's statistics.
+						main_UpdateStatisticsDisplay( );
 					}
-
 					break;
 				}
 			}
+		}
+	}
+}
+
+//*****************************************************************************
+//
+static void main_UpdateStatisticsDisplay( void )
+{
+	char szString[64];
+
+	// Update the 'Overview' tab's data.
+	sprintf( szString, "Average Skulltag players: %3.2f", g_PortInfo[PORT_SKULLTAG].fAverageNumPlayers);
+	SetDlgItemText( g_hDlg_Overview, IDC_OVERVIEW_STPLAYERS, szString );
+	
+	sprintf( szString, "Average ZDaemon players: %3.2f", g_PortInfo[PORT_ZDAEMON].fAverageNumPlayers);
+	SetDlgItemText( g_hDlg_Overview, IDC_OVERVIEW_ZDPLAYERS, szString );
+
+//	sprintf( szString, "Average Odamex players: %3.2f", g_PortInfo[PORT_ODAMEX].fAverageNumPlayers);
+//	SetDlgItemText( g_hDlg_Overview, IDC_OVERVIEW_ODPLAYERS, szString );
+
+	// Update the statistics for each port.
+	for ( int i = 0; i < NUM_PORTS; i++ )
+	{	
+		if ( g_PortInfo[i].hDlg != NULL )
+		{
+			if ( g_PortInfo[i].aQueryInfo.Size( ) > 0 )
+			{				
+				sprintf( szString, "Number of queries: %d", g_PortInfo[i].aQueryInfo.Size( ) );
+				SetDlgItemText( g_PortInfo[i].hDlg, IDC_NUMQUERIES, szString );
+
+				sprintf( szString, "Current players: %d", g_PortInfo[i].aQueryInfo[g_PortInfo[i].aQueryInfo.Size( ) - 1].lNumPlayers );
+				SetDlgItemText( g_PortInfo[i].hDlg, IDC_CURRENTPLAYERS, szString );
+
+				sprintf( szString, "Current servers: %d", g_PortInfo[i].aQueryInfo[g_PortInfo[i].aQueryInfo.Size( ) - 1].lNumServers );
+				SetDlgItemText( g_PortInfo[i].hDlg, IDC_CURRENTSERVERS, szString );
+			}
+
+			sprintf( szString, "Average players: %3.2f", g_PortInfo[i].fAverageNumPlayers );
+			SetDlgItemText( g_PortInfo[i].hDlg, IDC_AVERAGEPLAYERS, szString );
+
+			sprintf( szString, "Average servers: %3.2f", g_PortInfo[i].fAverageNumServers );
+			SetDlgItemText( g_PortInfo[i].hDlg, IDC_AVERAGESERVERS, szString );
+
+			sprintf( szString, "Max players: %3.2f", g_PortInfo[i].lMaxNumPlayers );
+			SetDlgItemText( g_PortInfo[i].hDlg, IDC_MAXPLAYERS, szString );
+
+			sprintf( szString, "Max servers: %3.2f", g_PortInfo[i].lMaxNumServers );
+			SetDlgItemText( g_PortInfo[i].hDlg, IDC_MAXSERVERS, szString );
 		}
 	}
 }
@@ -1308,7 +1461,7 @@ static void main_ParsePartialStatsFile( void )
 
 		if (( cChar == '\n' ) || ( cChar == 'r' ))
 		{
-			g_lMaxNumPlayers = atoi( szString );
+			g_lMaxPlayerCount = atoi( szString );
 			break;
 		}
 
@@ -1327,13 +1480,13 @@ static void main_ParsePartialStatsFile( void )
 			Printf( "Premature end of file!\n" );
 			g_lTotalNumPlayers = 0;
 			g_lTotalNumServers = 0;
-			g_lMaxNumPlayers = 0;
+			g_lMaxPlayerCount = 0;
 			return;
 		}
 
 		if (( cChar == '\n' ) || ( cChar == 'r' ))
 		{
-			g_lMaxNumServers = atoi( szString );
+			g_lMaxServerCount = atoi( szString );
 			break;
 		}
 
@@ -1352,8 +1505,8 @@ static void main_ParsePartialStatsFile( void )
 			Printf( "Premature end of file!\n" );
 			g_lTotalNumPlayers = 0;
 			g_lTotalNumServers = 0;
-			g_lMaxNumPlayers = 0;
-			g_lMaxNumServers = 0;
+			g_lMaxPlayerCount = 0;
+			g_lMaxServerCount = 0;
 			return;
 		}
 
@@ -1370,22 +1523,22 @@ static void main_ParsePartialStatsFile( void )
 	Printf( "Success!\n" );
 
 	g_fAverageNumPlayers = (float)g_lTotalNumPlayers / (float)g_lNumQueries;
-	g_fAverageNumServers = (float)g_lTotalNumServers / (float)g_lNumQueries;
+	g_fAverageServerCount = (float)g_lTotalNumServers / (float)g_lNumQueries;
 
 	sprintf( szString, "Average players: %3.2f", g_fAverageNumPlayers );
-	SetDlgItemText( g_hDlg, IDC_AVERAGEPLAYERS, szString );
+	SetDlgItemText( g_hDlg_Skulltag, IDC_AVERAGEPLAYERS, szString );
 
-	sprintf( szString, "Average servers: %3.2f", g_fAverageNumServers );
-	SetDlgItemText( g_hDlg, IDC_AVERAGESERVERS, szString );
+	sprintf( szString, "Average servers: %3.2f", g_fAverageServerCount );
+	SetDlgItemText( g_hDlg_Skulltag, IDC_AVERAGESERVERS, szString );
 
 	sprintf( szString, "Num queries: %d", g_lNumQueries );
-	SetDlgItemText( g_hDlg, IDC_NUMQUERIES, szString );
+	SetDlgItemText( g_hDlg_Skulltag, IDC_NUMQUERIES, szString );
 
-	sprintf( szString, "Max. players: %d", g_lMaxNumPlayers );
-	SetDlgItemText( g_hDlg, IDC_MAXPLAYERS, szString );
+	sprintf( szString, "Max. players: %d", g_lMaxPlayerCount );
+	SetDlgItemText( g_hDlg_Skulltag, IDC_MAXPLAYERS, szString );
 
-	sprintf( szString, "Max. servers: %d", g_lMaxNumServers );
-	SetDlgItemText( g_hDlg, IDC_MAXSERVERS, szString );
+	sprintf( szString, "Max. servers: %d", g_lMaxServerCount );
+	SetDlgItemText( g_hDlg_Skulltag, IDC_MAXSERVERS, szString );
 */
 }
 

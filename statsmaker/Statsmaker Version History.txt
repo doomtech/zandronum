@@ -10,6 +10,17 @@
 =
 ===============================================================================================================
 
+[1024] ~ 11/23/2007, by Rivecoder
+---------------------------------------------------
++ - Added tabs to statsmaker!
+- - Each port now has a reference to its hDlg tab.
+- - Added a modular function to update each tab of statistics.
+- - Removed the old VC 6 workspace/project; Statsmaker must be built with Skulltag.
+
+[1001] ~ 11/17/2007, by Carnevil
+---------------------------------------------------
++ - Updated the stats maker to include the framework ZDaemon stats.
+
 [629] ~ 8/19/2007, by Rivecoder
 ---------------------------------------------------
 +	- Statsmaker now has a manifest so it looks pretty under Windows XP/Vista.

@@ -52,6 +52,7 @@
 #ifndef __MAIN_H__
 #define __MAIN_H__
 #define _WIN32_IE 0x0501
+#include <windows.h>
 #include "network.h"
 #include "..\src\tarray.h"
 
@@ -179,11 +180,17 @@ typedef struct
 	// Info for the master server (address, etc.).
 	SERVERINFO_s			MasterServerInfo;
 
-	// What is the maximum number of players seeing playing at once?
+	// Maximum number of players seen at once.
 	LONG					lMaxNumPlayers;
 
-	// What is the maximum number of players seeing playing at once?
+	// Maximum numbers of servers seen at once.
 	LONG					lMaxNumServers;
+
+	// Average number of players. This is calculated continuously.
+	FLOAT					fAverageNumPlayers;
+
+	// Average number of servers. This is calculated continuously.
+	FLOAT					fAverageNumServers;
 
 	// Does this port use Huffman compression?
 	bool					bHuffman;
@@ -199,6 +206,9 @@ typedef struct
 
 	// Routine run for parsing server responses.
 	bool					(*pvParseServerResponse)( BYTESTREAM_s *pByteStream, SERVERINFO_s *pServer, TArray<QUERYINFO_s>&aQueryInfo );
+
+	// Dialog that displays this port's statistics.
+	HWND					hDlg;
 
 } PORTINFO_s;
 

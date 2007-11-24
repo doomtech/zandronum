@@ -1,4 +1,4 @@
-//Microsoft Developer Studio generated resource script.
+// Microsoft Visual C++ generated resource script.
 //
 #include "resource.h"
 
@@ -8,9 +8,9 @@
 // Generated from the TEXTINCLUDE 2 resource.
 //
 #include "afxres.h"
+
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
-
 
 /////////////////////////////////////////////////////////////////////////////
 // English (U.S.) resources
@@ -26,26 +26,61 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // Dialog
 //
 
-IDD_MAINDIALOG DIALOG DISCARDABLE  0, 0, 256, 145
-STYLE WS_MINIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
-CAPTION "Skulltag Statistics Reporter"
-FONT 8, "Tahoma"
+IDD_MAINDIALOG DIALOGEX 0, 0, 284, 169
+STYLE DS_SETFONT | DS_MODALFRAME | WS_MINIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_STATICEDGE
+CAPTION "Skullstats"
+FONT 8, "Tahoma", 0, 0, 0x0
 BEGIN
-    GROUPBOX        "Console",IDC_STATIC,8,48,240,88
-    EDITTEXT        IDC_CONSOLEBOX,16,64,224,64,ES_MULTILINE | 
-                    ES_AUTOVSCROLL | ES_READONLY | WS_VSCROLL
-    LTEXT           "Average players:",IDC_AVERAGEPLAYERS,8,8,96,8
-    LTEXT           "Average servers:",IDC_AVERAGESERVERS,8,18,96,8
-    LTEXT           "Number of queries:",IDC_NUMQUERIES,8,28,96,8
-    LTEXT           "Max. players:",IDC_MAXPLAYERS,128,8,96,8
-    LTEXT           "Max. servers:",IDC_MAXSERVERS,128,18,96,8
+    CONTROL         "",IDC_TAB1,"SysTabControl32",0x0,7,7,268,156
 END
+
+IDD_OVERVIEW DIALOGEX 0, 0, 249, 126
+STYLE DS_SETFONT | DS_CONTROL | WS_CHILD | WS_VISIBLE | WS_BORDER
+FONT 8, "Tahoma", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_CONSOLEBOX,7,75,235,44,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | WS_VSCROLL
+    GROUPBOX        "Statistics",IDC_STATIC,7,7,235,50
+    LTEXT           "",IDC_OVERVIEW_STPLAYERS,23,19,120,8
+    LTEXT           "",IDC_OVERVIEW_ZDPLAYERS,23,28,120,8
+    LTEXT           "",IDC_OVERVIEW_ODPLAYERS,23,37,120,8
+END
+
+IDD_SKULLTAG DIALOGEX 0, 0, 249, 126
+STYLE DS_SETFONT | DS_CONTROL | WS_CHILD | WS_BORDER
+FONT 8, "Tahoma", 400, 0, 0x1
+BEGIN
+    LTEXT           "Average players:",IDC_AVERAGEPLAYERS,6,34,96,8
+    LTEXT           "Average servers:",IDC_AVERAGESERVERS,6,42,96,8
+    LTEXT           "Max. players:",IDC_MAXPLAYERS,146,34,96,8
+    LTEXT           "Max. servers:",IDC_MAXSERVERS,146,42,96,8
+    LTEXT           "Current players:",IDC_CURRENTPLAYERS,83,9,96,8
+    LTEXT           "Current servers:",IDC_CURRENTSERVERS,83,18,96,8
+    LTEXT           "Number of queries:",IDC_NUMQUERIES,84,54,96,8
+END
+
+IDD_ZDAEMON DIALOGEX 0, 0, 249, 126
+STYLE DS_SETFONT | DS_CONTROL | WS_CHILD | WS_BORDER
+FONT 8, "Tahoma", 400, 0, 0x1
+BEGIN
+    LTEXT           "Average players:",IDC_AVERAGEPLAYERS,6,34,96,8
+    LTEXT           "Average servers:",IDC_AVERAGESERVERS,6,42,96,8
+    LTEXT           "Max. players:",IDC_MAXPLAYERS,146,34,96,8
+    LTEXT           "Max. servers:",IDC_MAXSERVERS,146,42,96,8
+    LTEXT           "Current players:",IDC_CURRENTPLAYERS,83,9,96,8
+    LTEXT           "Current servers:",IDC_CURRENTSERVERS,83,18,96,8
+    LTEXT           "Number of queries:",IDC_NUMQUERIES,84,54,96,8
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ICON               ICON    DISCARDABLE     "tray_icon.ico"
-
-
+IDI_ICON                ICON                    "tray_icon.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -53,12 +88,22 @@ IDI_ICON               ICON    DISCARDABLE     "tray_icon.ico"
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO DISCARDABLE 
+GUIDELINES DESIGNINFO 
 BEGIN
     IDD_MAINDIALOG, DIALOG
     BEGIN
         LEFTMARGIN, 7
+        RIGHTMARGIN, 275
         TOPMARGIN, 7
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_OVERVIEW, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 242
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 119
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -70,18 +115,18 @@ END
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE DISCARDABLE 
+1 TEXTINCLUDE 
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE DISCARDABLE 
+2 TEXTINCLUDE 
 BEGIN
     "#include ""afxres.h""\r\n"
     "\0"
 END
 
-3 TEXTINCLUDE DISCARDABLE 
+3 TEXTINCLUDE 
 BEGIN
     "\r\n"
     "\0"
@@ -90,6 +135,9 @@ END
 #endif    // APSTUDIO_INVOKED
 
 #endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
 
 #ifndef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////

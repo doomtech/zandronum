@@ -371,9 +371,17 @@
 					/>
 				</FileConfiguration>
 			</File>
+			<File
+				RelativePath=".\tray_icon.ico"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\Statsmaker To-Do List.txt"
+			>
+		</File>
+		<File
+			RelativePath=".\Statsmaker Version History.txt"
 			>
 		</File>
 	</Files>

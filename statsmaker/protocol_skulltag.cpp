@@ -48,7 +48,6 @@
 //
 //-----------------------------------------------------------------------------
 
-#define _CRT_SECURE_NO_DEPRECATE
 #include "..\src\networkheaders.h"
 #include "..\src\networkshared.h"
 #include "main.h"
