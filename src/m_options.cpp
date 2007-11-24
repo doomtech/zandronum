@@ -245,6 +245,12 @@ value_t BotskillVals[5] = {
 	{ 4.0, "Nightmare!" }
 };
 
+value_t ModifierVals[3] = {
+	{ 0.0, "None" },
+	{ 1.0, "Instagib" },
+	{ 2.0, "Buckshot" },
+};
+
 value_t TeamVals[2] = {
 	{ 0.0, "Blue" },
 	{ 1.0, "Red" },
@@ -2742,9 +2748,12 @@ CVAR( Int, menu_teambotspawn14, -1, CVAR_ARCHIVE );
 CVAR( Int, menu_teambotspawn15, -1, CVAR_ARCHIVE );
 CVAR( Int, menu_dmflags, 20612, CVAR_ARCHIVE );
 CVAR( Int, menu_dmflags2, 512, CVAR_ARCHIVE );
+CVAR( Int, menu_modifier, 0, CVAR_ARCHIVE );
+
 static menuitem_t SkirmishItems[] = {
 	{ levelslot,"Level",					&menu_level,			0.0, 0.0, 0.0, NULL  },
 	{ discrete,	"Game mode",				&menu_gamemode,			15.0, 0.0, 1.0, GameModeVals },
+	{ discrete, "Modifier",					&menu_modifier,			3.0, 0.0, 0.0, ModifierVals },
 	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
 	{ number,	"Timelimit",				&menu_timelimit,		0.0, 100.0, 1.0, NULL  },
 	{ number,	"Fraglimit",				&menu_fraglimit,		0.0, 100.0, 5.0, NULL  },
@@ -2877,6 +2886,8 @@ void M_StartSkirmishGame( void )
 	Val.Bool = false;
 	deathmatch.ForceSet( Val, CVAR_Bool );
 	teamgame.ForceSet( Val, CVAR_Bool );
+	instagib.ForceSet( Val, CVAR_Bool );
+	buckshot.ForceSet( Val, CVAR_Bool );
 
 	Val.Bool = true;
 	switch ( menu_gamemode )
@@ -2941,6 +2952,18 @@ void M_StartSkirmishGame( void )
 
 		skulltag.ForceSet( Val, CVAR_Bool );
 		break;
+	}
+
+	// [RC] Set modifier (instagib / buckshot).
+	Val.Bool = true;
+	switch ( menu_modifier.GetGenericRep( CVAR_Int ).Int )
+	{
+	case 1:
+		instagib.ForceSet( Val, CVAR_Bool );
+		break;
+	case 2:
+		buckshot.ForceSet( Val, CVAR_Bool );
+		break;		
 	}
 
 	// Remove all the existing bots.
