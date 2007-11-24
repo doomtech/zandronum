@@ -318,6 +318,10 @@ void gl_InitModels()
 					{
 						smf.flags |= MDL_INTERPOLATEDOUBLEDFRAMES;
 					}
+					else if (SC_Compare("nointerpolation"))
+					{
+						smf.flags |= MDL_NOINTERPOLATION;
+					}
 					else if (SC_Compare("skin"))
 					{
 						SC_MustGetNumber();
@@ -516,7 +520,7 @@ void gl_RenderModel(GLSprite * spr, int cm)
 	// and the scalar value inter ( element of [0,1) ), both necessary to determine the interpolated frame.
 	FSpriteModelFrame * smfNext = NULL;
 	double inter = 0.;
-	if( gl_interpolate_model_frames )
+	if( gl_interpolate_model_frames && !(smf->flags & MDL_NOINTERPOLATION) )
 	{
 		FState *curState = spr->actor->state;
 		FState *nextState = curState->GetNextState( );

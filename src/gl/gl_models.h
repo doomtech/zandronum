@@ -246,6 +246,7 @@ typedef enum
 	MDL_PITCHFROMMOMENTUM			= 2,
 	MDL_ROTATING					= 4,
 	MDL_INTERPOLATEDOUBLEDFRAMES	= 8,
+	MDL_NOINTERPOLATION				= 16,
 };
 
 struct FSpriteModelFrame
