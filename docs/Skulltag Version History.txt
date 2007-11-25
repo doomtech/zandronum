@@ -105,6 +105,7 @@ v0.97d
 -	- HUD messages that are broken into two or more lines that are centered horizontally now display properly in all scaled resolutions. [Carnevil]
 -	- Fixed the LMS/TLMS column display on the scoreboard. Wins are no longer shown in TLMS, as players do not obtain wins. [Rivecoder]
 -	- Players no longer get stuck in their idle animation if they bump into something in network games. [Carnevil]
+-	- All escape codes (such as linebreaks) are now removed from chat, except for color codes. [Rivecoder]
 -	- Players are now properly spawned when switching to a map with less player starts than players in cooperative mode. [Carnevil]
 -	- You can no longer crash the server by banning somebody with an extremely long reason string. [Rivecoder]
 -	- The list of players displayed by the server console should no longer have any ghost players. [Carnevil]
@@ -233,7 +234,6 @@ v0.97d
 -	- Fixed: P_MorphPlayer and P_UndoPlayerMorph don't work online. [Torr Samaho]
 -	- Fixed: The dynamic lights of the Hectebus and the Grenade caused major slowdowns. The definitions were fixed by Hidon. [Torr Samaho]
 -	- Fixed: If a client is forced to leave a server due to an error, the client doesn't tell the server that it's leaving. [Torr Samaho]
--	- Linebreaks are now removed from chat. [Rivecoder].
 -	- Prevented the "Tried to render from a NULL actor." error from occurring in software. [Torr Samaho]
 -	- Fixed: A_GiveToTarget does not work properly online. [Torr Samaho]
 -	- Fixed: Firing the minigun with only one bullet still made it play its sound twice. [Torr Samaho]
@@ -263,6 +263,7 @@ v0.97d
 !	- All of the classic HUD elements (scores, holders) are hidden when you hide the entire HUD. [Rivecoder]
 !	- You can now see item holders and team scores while spectating in the classic HUD. [Rivecoder]
 !	- The chase cam selection of the consoleplayer is now applied also when spying another player. [Torr Samaho]
+!	- Replaced con_messagecolor with con_colorinmessages, and made it a three way var. 0 disables all color, 1 enables it, and 2 just removes color from the chat part. [Rivecoder]
 !	- A proper error message is given when Skulltag is started with a shareware IWAD. [Torr Samaho]
 !	- If a monster is killed in invasion, one monster corpse from the previous wave is removed (if there still is such a corpse). This should improve the speed on maps like ALINV11. [Torr Samaho]
 

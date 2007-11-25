@@ -359,7 +359,7 @@ void V_ColorizeString( char *pszString )
 // are not needed anymore using this.
 void V_ColorizeString( FString &String )
 {
-	const int length = String.Len();
+	const int length = (int) String.Len();
 	char *tempCharArray = new char[length+1];
 	strncpy( tempCharArray, String.GetChars(), length );
 	tempCharArray[length] = 0;
@@ -446,6 +446,25 @@ void V_RemoveColorCodes( char *pszString )
 		else
 			p++;
 	}
+}
+
+// [RC] Strips color codes from an FString.
+void V_RemoveColorCodes( FString &String )
+{
+	const ULONG		length = (ULONG) String.Len();
+	char			*szString = new char[length+1];
+	
+	// Copy the FString to a temporary char array.
+	strncpy( szString, String.GetChars(), length );
+	szString[length] = 0;
+
+	// Remove the colors.
+	V_ColorizeString( szString );
+	V_RemoveColorCodes( szString );
+
+	// Convert back and clean up.
+	String = szString;
+	delete[] szString;
 }
 
 // [BB] Strips color codes from a string respecting sv_colorstripmethod.

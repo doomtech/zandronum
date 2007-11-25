@@ -94,6 +94,7 @@ CVAR( String, chatmacro7, "Come here!", CVAR_ARCHIVE )
 CVAR( String, chatmacro8, "I'll take care of it.", CVAR_ARCHIVE )
 CVAR( String, chatmacro9, "Yes", CVAR_ARCHIVE )
 CVAR( String, chatmacro0, "No", CVAR_ARCHIVE )
+EXTERN_CVAR( Int, con_colorinmessages );
 
 //*****************************************************************************
 FStringCVar	*g_ChatMacros[10] =
@@ -407,6 +408,7 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 {
 	ULONG		ulChatLevel = 0;
 	FString		OutString;
+	FString		ChatString;
 
 	// If ulPlayer == MAXPLAYERS, it is the server talking.
 	if ( ulPlayer == MAXPLAYERS )
@@ -459,11 +461,19 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 		}
 	}
 
-	OutString += pszString;
+	ChatString = pszString;
 
-	// [RC] Remove linebreaks from chat.
-	while( OutString.IndexOf("\\n") != -1)	// They could be nested. (\\nn)
-		OutString.Substitute("\\n", "");
+	// [RC] Remove linebreaks and other escape codes from chat.
+	ChatString.Substitute("\\", "\\\\");
+
+	// [RC] ...but allow chat colors.
+	ChatString.Substitute("\\\\c", "\\c");
+
+	// [RC] ...if the user wants them.
+	if ( con_colorinmessages == 2)
+		V_RemoveColorCodes( ChatString );
+
+	OutString += ChatString;
 
 	Printf( ulChatLevel, "%s\n", OutString.GetChars() );
 

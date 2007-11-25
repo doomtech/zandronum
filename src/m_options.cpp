@@ -1080,7 +1080,7 @@ EXTERN_CVAR (Int,  msg3color)
 EXTERN_CVAR (Int,  msg4color)
 EXTERN_CVAR (Int,  msgmidcolor)
 EXTERN_CVAR (Int,  msglevel)
-EXTERN_CVAR (Bool, con_textcolor)
+EXTERN_CVAR (Int, con_colorinmessages)
 
 static value_t ScaleValues[] =
 {
@@ -1120,13 +1120,19 @@ static value_t MessageLevels[] = {
 	{ 2.0, "Critical Messages" }
 };
 
+static value_t MessageColorLevels[] = {
+	{ 0.0, "Off" },
+	{ 1.0, "On" },
+	{ 2.0, "Not in chat" }
+};
+
 static menuitem_t MessagesItems[] = {
 	{ more,		"Text scaling",			{NULL},					{0.0}, {0.0}, 	{0.0}, {(value_t *)SetupTextScalingMenu} },
 	{ discrete, "Show messages",		{&show_messages},		{2.0}, {0.0},   {0.0}, {OnOff} },
 	{ discrete, "Show obituaries",		{&show_obituaries},		{2.0}, {0.0},   {0.0}, {OnOff} },
-	{ discrete, "Minimum message level", {&msglevel},		   	{3.0}, {0.0},   {0.0}, {MessageLevels} },
+	{ discrete, "Minimum message level",{&msglevel},		   	{3.0}, {0.0},   {0.0}, {MessageLevels} },
 	{ discrete, "Center messages",		{&con_centernotify},	{2.0}, {0.0},	{0.0}, {OnOff} },
-	{ discrete, "Allow text color",		{&con_textcolor},		{2.0}, {0.0},	{0.0}, {OnOff} },
+	{ discrete, "Color in messages",	{&con_colorinmessages},	{3.0}, {0.0},	{0.0}, {MessageColorLevels} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ whitetext, "Message Colors",		{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },

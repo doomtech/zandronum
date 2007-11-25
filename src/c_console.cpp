@@ -165,7 +165,8 @@ CVAR( Int, con_virtualwidth, 0, CVAR_ARCHIVE )
 CVAR( Int, con_virtualheight, 0, CVAR_ARCHIVE )
 
 // [BC] Allow text colors?
-CVAR( Bool, con_textcolor, true, CVAR_ARCHIVE )
+// [RC] Now a three-level setting. No/Yes/Not in chat.
+CVAR( Int, con_colorinmessages, 1, CVAR_ARCHIVE )
 
 // Command to run when Ctrl-D is pressed at start of line
 CVAR (String, con_ctrl_d, "", CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
@@ -969,8 +970,8 @@ int PrintString (int printlevel, const char *outline)
 	if ( g_bAllowColorCodes )
 		V_ColorizeString( outlinecopy );
 
-	// Allow option to strip color codes out of text string.
-	if ( con_textcolor == false )
+	// User wishes to remove color from all messages.
+	if ( con_colorinmessages == 0 )
 		V_RemoveColorCodes( outlinecopy );
 
 	I_PrintStr (outlinecopy);
