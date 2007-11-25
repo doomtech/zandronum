@@ -65,7 +65,7 @@ ACTOR RailGun : DoomWeapon 5012
 	Weapon.AmmoGive 40
 	Weapon.AmmoType "Cell"
 	Inventory.Pickupmessage "$PICKUP_RAILGUN"
-	Obituary "OB_RAILGUN"
+	Obituary "$OB_RAILGUN"
 	States
 	{
 	Ready:
