@@ -1053,6 +1053,11 @@ void AActor::ObtainInventory (AActor *other)
 	AInventory *item = Inventory;
 	while (item != NULL)
 	{
+		// [BB] Due to the server side ammo handling, the server has
+		// to inform the client here about the ammo amounts.
+		if ( (NETWORK_GetState( ) == NETSTATE_SERVER) && player && item->IsKindOf(RUNTIME_CLASS(AAmmo)))
+			SERVERCOMMANDS_GiveInventory( player - players, item );
+
 		item->Owner = this;
 		item = item->Inventory;
 	}
