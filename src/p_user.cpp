@@ -998,6 +998,14 @@ void APlayerPawn::ThrowPoisonBag ()
 
 void APlayerPawn::GiveDefaultInventory ()
 {
+	AInventory *fist, *pistol, *bullets;
+	ULONG						ulIdx;
+	const PClass				*pType;
+	AWeapon						*pWeapon;
+	APowerStrength				*pBerserk;
+	AWeapon						*pPendingWeapon;
+	AInventory					*pInventory;
+
 	// [GRB] Give inventory specified in DECORATE
 	player->health = GetDefault ()->health;
 
@@ -1042,60 +1050,13 @@ void APlayerPawn::GiveDefaultInventory ()
 	// Now add the items from the DECORATE definition
 	FDropItem *di = GetDropItems(RUNTIME_TYPE(this));
 
-	while (di)
-	{
-		const PClass *ti = PClass::FindClass (di->Name);
-		if (ti)
-		{
-			AInventory *item = FindInventory (ti);
-			if (item != NULL)
-			{
-				item->Amount = clamp<int>(
-					item->Amount + (di->amount ? di->amount : ((AInventory *)item->GetDefault ())->Amount),
-					0, item->MaxAmount);
-			}
-			else
-			{
-				item = static_cast<AInventory *>(Spawn (ti, 0,0,0, NO_REPLACE));
-				item->ItemFlags|=IF_IGNORESKILL;	// no skill multiplicators here
-				item->Amount = di->amount;
-				if (item->IsKindOf (RUNTIME_CLASS (AWeapon)))
-				{
-					// To allow better control any weapon is emptied of
-					// ammo before being given to the player.
-					static_cast<AWeapon*>(item)->AmmoGive1 =
-					static_cast<AWeapon*>(item)->AmmoGive2 = 0;
-				}
-				if (!item->TryPickup(this))
-				{
-					item->Destroy ();
-					item = NULL;
-				}
-			}
-			if (item != NULL && item->IsKindOf (RUNTIME_CLASS (AWeapon)) && 
-				static_cast<AWeapon*>(item)->CheckAmmo(AWeapon::EitherFire, false))
-			{
-				player->ReadyWeapon = player->PendingWeapon = static_cast<AWeapon *> (item);
-			}
-		}
-		di = di->Next;
-	}
-
-	// [BB] Ugly hack: Stuff for the Doom player. Moved here since the Doom player
-	// was converted to DECORATE. TO-DO: Find a better place for this and perhaps
-	// make this work for arbitraty player classes.
+	// [BB] Ugly hack: Stuff for the Doom player. The instagib and buckshot stuff
+	// has to be done before giving the default items.
 	if ( this->GetClass()->IsDescendantOf( PClass::FindClass( "DoomPlayer" ) ) )
 	{
 		// [BB] The icon of ABasicArmor is the one of the blue armor. Change this here
 		// to fix the fullscreen hud display.
 		barmor->Icon = TexMan.GetTexture( "ARM1A0", 0 );
-		AInventory *fist, *pistol, *bullets;
-		ULONG						ulIdx;
-		const PClass				*pType;
-		AWeapon						*pWeapon;
-		APowerStrength				*pBerserk;
-		AWeapon						*pPendingWeapon;
-		AInventory					*pInventory;
 		// [BC] In instagib mode, give the player the railgun, and the maximum amount of cells
 		// possible.
 		if (( instagib ) && ( deathmatch || teamgame ))
@@ -1153,8 +1114,54 @@ void APlayerPawn::GiveDefaultInventory ()
 				pInventory->Amount = pInventory->MaxAmount;
 			return;
 		}
+	}
+
+	while (di)
+	{
+		const PClass *ti = PClass::FindClass (di->Name);
+		if (ti)
+		{
+			AInventory *item = FindInventory (ti);
+			if (item != NULL)
+			{
+				item->Amount = clamp<int>(
+					item->Amount + (di->amount ? di->amount : ((AInventory *)item->GetDefault ())->Amount),
+					0, item->MaxAmount);
+			}
+			else
+			{
+				item = static_cast<AInventory *>(Spawn (ti, 0,0,0, NO_REPLACE));
+				item->ItemFlags|=IF_IGNORESKILL;	// no skill multiplicators here
+				item->Amount = di->amount;
+				if (item->IsKindOf (RUNTIME_CLASS (AWeapon)))
+				{
+					// To allow better control any weapon is emptied of
+					// ammo before being given to the player.
+					static_cast<AWeapon*>(item)->AmmoGive1 =
+					static_cast<AWeapon*>(item)->AmmoGive2 = 0;
+				}
+				if (!item->TryPickup(this))
+				{
+					item->Destroy ();
+					item = NULL;
+				}
+			}
+			if (item != NULL && item->IsKindOf (RUNTIME_CLASS (AWeapon)) && 
+				static_cast<AWeapon*>(item)->CheckAmmo(AWeapon::EitherFire, false))
+			{
+				player->ReadyWeapon = player->PendingWeapon = static_cast<AWeapon *> (item);
+			}
+		}
+		di = di->Next;
+	}
+
+	// [BB] Ugly hack: Stuff for the Doom player. Moved here since the Doom player
+	// was converted to DECORATE. TO-DO: Find a better place for this and perhaps
+	// make this work for arbitraty player classes.
+	if ( this->GetClass()->IsDescendantOf( PClass::FindClass( "DoomPlayer" ) ) )
+	{
 		// [BC] Give a bunch of weapons in LMS mode, depending on the LMS allowed weapon flags.
-		else if ( lastmanstanding || teamlms )
+		if ( lastmanstanding || teamlms )
 		{
 			// Give the player all the weapons, and the maximum amount of every type of
 			// ammunition.
