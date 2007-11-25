@@ -735,7 +735,7 @@ void POSSESSION_TimeExpired( void )
 			}
 			else
 			{
-				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, false, "BigFont", 'CNTR' );
+				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", false, 'CNTR' );
 			}
 		}
 
@@ -893,9 +893,9 @@ void possession_DisplayScoreInfo( ULONG ulPlayer )
 	}
 	else
 	{
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, false, "BigFont", 'CNTR' );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", false, 'CNTR' );
 		if ( teampossession && ( players[ulPlayer].bOnTeam ))
-			SERVERCOMMANDS_PrintHUDMessageFadeOut( szScorer, 160.4f, 90.0f, 320, 200, CR_RED, 3.0f, 2.0f, false, "SmallFont", 'SUBS' );
+			SERVERCOMMANDS_PrintHUDMessageFadeOut( szScorer, 160.4f, 90.0f, 320, 200, CR_RED, 3.0f, 2.0f, "SmallFont", false, 'SUBS' );
 	}
 }
 

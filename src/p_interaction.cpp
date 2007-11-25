@@ -643,10 +643,10 @@ void AActor::Die (AActor *source, AActor *inflictor)
 						}
 						else
 						{
-							SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_WHITE, 3.0f, 2.0f, false, "BigFont", 'CNTR' );
+							SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_WHITE, 3.0f, 2.0f, "BigFont", false, 'CNTR' );
 							szString[0] = 0;
-							SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 0.0f, 0.0f, 0, 0, CR_WHITE, 3.0f, 2.0f, false, "BigFont", 'FRAG' );
-							SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 0.0f, 0.0f, 0, 0, CR_WHITE, 3.0f, 2.0f, false, "BigFont", 'PLAC' );
+							SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 0.0f, 0.0f, 0, 0, CR_WHITE, 3.0f, 2.0f, "BigFont", false, 'FRAG' );
+							SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 0.0f, 0.0f, 0, 0, CR_WHITE, 3.0f, 2.0f, "BigFont", false, 'PLAC' );
 						}
 
 						GAME_SetEndLevelDelay( 5 * TICRATE );
@@ -1893,7 +1893,7 @@ void PLAYER_GivePossessionPoint( player_s *pPlayer )
 			}
 			else
 			{
-				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, false, "BigFont", 'CNTR' );
+				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", false, 'CNTR' );
 			}
 
 			// End the level after five seconds.
@@ -1940,7 +1940,7 @@ void PLAYER_GivePossessionPoint( player_s *pPlayer )
 			}
 			else
 			{
-				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.375f, 320, 200, CR_RED, 3.0f, 2.0f, false, "BigFont", 'CNTR' );
+				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.375f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", false, 'CNTR' );
 			}
 
 			// End the level after five seconds.
