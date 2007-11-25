@@ -1510,9 +1510,11 @@ void APlayerPawn::Die (AActor *source, AActor *inflictor)
 						static_cast<AWeapon *>(item)->AmmoGive2 = weap->Ammo2->Amount;
 					}
 
+					// [BB] Now that the ammo amount from weapon pickups is handled on the server
+					// this shouldn't be necessary anymore. Remove after thorough testing.
 					// [BC] If we're the server, tell clients that the thing is dropped.
-					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_SetWeaponAmmoGive( item );
+					//if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					//	SERVERCOMMANDS_SetWeaponAmmoGive( item );
 				}
 			}
 			else

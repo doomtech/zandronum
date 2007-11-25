@@ -2881,9 +2881,11 @@ AInventory *P_DropItem (AActor *source, const PClass *type, int special, int cha
 				static_cast<AWeapon *>(mo)->AmmoGive1 /= 2;
 				static_cast<AWeapon *>(mo)->AmmoGive2 /= 2;
 
+				// [BB] Now that the ammo amount from weapon pickups is handled on the server
+				// this shouldn't be necessary anymore. Remove after thorough testing.
 				// [BC] If we're the server, tell clients that the thing is dropped.
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_SetWeaponAmmoGive( mo );
+				//if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				//	SERVERCOMMANDS_SetWeaponAmmoGive( mo );
 			}
 			if (inv->SpecialDropAction (source))
 			{

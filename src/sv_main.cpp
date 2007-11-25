@@ -2157,9 +2157,11 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 			if ( pActor->ulSTFlags != pActor->GetDefault( )->ulSTFlags )
 				SERVERCOMMANDS_SetThingFlags( pActor, FLAGSET_FLAGSST, ulClient, SVCF_ONLYTHISCLIENT );
 */
+			// [BB] Now that the ammo amount from weapon pickups is handled on the server
+			// this shouldn't be necessary anymore. Remove after thorough testing.
 			// If this is a weapon, tell the client how much ammo it gives.
-			if ( pActor->IsKindOf( RUNTIME_CLASS( AWeapon )))
-				SERVERCOMMANDS_SetWeaponAmmoGive( pActor, ulClient, SVCF_ONLYTHISCLIENT );
+			//if ( pActor->IsKindOf( RUNTIME_CLASS( AWeapon )))
+			//	SERVERCOMMANDS_SetWeaponAmmoGive( pActor, ulClient, SVCF_ONLYTHISCLIENT );
 		}
 
 		// Check and see if it's important that the client know the angle of the object.
