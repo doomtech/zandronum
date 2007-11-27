@@ -155,6 +155,7 @@ static	void	client_SetPlayerAmmoCapacity( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerCheats( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerPendingWeapon( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerPieces( BYTESTREAM_s *pByteStream );
+static	void	client_SetPlayerPSprite( BYTESTREAM_s *pByteStream );
 static	void	client_UpdatePlayerPing( BYTESTREAM_s *pByteStream );
 static	void	client_UpdatePlayerExtraData( BYTESTREAM_s *pByteStream );
 static	void	client_UpdatePlayerTime( BYTESTREAM_s *pByteStream );
@@ -502,6 +503,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETPLAYERCHEATS",
 	"SVC_SETPLAYERPENDINGWEAPON",
 	"SVC_SETPLAYERPIECES",
+	"SVC_SETPLAYERPSPRITE",
 	"SVC_UPDATEPLAYERPING",
 	"SVC_UPDATEPLAYEREXTRADATA",
 	"SVC_UPDATEPLAYERTIME",
@@ -1514,6 +1516,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETPLAYERPIECES:
 
 		client_SetPlayerPieces( pByteStream );
+		break;
+	case SVC_SETPLAYERPSPRITE:
+
+		client_SetPlayerPSprite( pByteStream );
 		break;
 	case SVC_UPDATEPLAYERPING:
 
@@ -4465,6 +4471,44 @@ static void client_SetPlayerPieces( BYTESTREAM_s *pByteStream )
 		return;
 
 	players[ulPlayer].pieces = ulPieces;
+}
+
+//*****************************************************************************
+//
+static void client_SetPlayerPSprite( BYTESTREAM_s *pByteStream )
+{
+	ULONG			ulPlayer;
+	const char		*pszState;
+	LONG			lOffset;
+	LONG			lPosition;
+	FState			*pNewState;
+	TArray<FName>	StateList;
+
+	// Read in the player.
+	ulPlayer = NETWORK_ReadByte( pByteStream );
+
+	// Read in the state.
+	pszState = NETWORK_ReadString( pByteStream );
+
+	// Offset into the state label.
+	lOffset = NETWORK_ReadByte( pByteStream );
+
+	// Read in the position (ps_weapon, etc.).
+	lPosition = NETWORK_ReadByte( pByteStream );
+
+	// Not in a level; nothing to do (shouldn't happen!)
+	if ( gamestate != GS_LEVEL )
+		return;
+
+	if ( players[ulPlayer].ReadyWeapon == NULL )
+		return;
+
+	// Build the state name list.
+	MakeStateNameList( pszState, &StateList );
+
+	pNewState = players[ulPlayer].ReadyWeapon->GetClass( )->ActorInfo->FindState( StateList.Size( ), &StateList[0] );
+	if ( pNewState )
+		P_SetPsprite( &players[ulPlayer], ps_weapon, pNewState + lOffset );
 }
 
 //*****************************************************************************

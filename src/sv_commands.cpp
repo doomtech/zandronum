@@ -860,6 +860,80 @@ void SERVERCOMMANDS_SetPlayerPieces( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG 
 
 //*****************************************************************************
 //
+void SERVERCOMMANDS_SetPlayerPSprite( ULONG ulPlayer, FState *pState, LONG lPosition, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	const char		*pszStateLabel;
+	LONG			lOffset;
+	ULONG			ulIdx;
+	FState			*pCompareState;
+	const PClass	*pClass;
+
+	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
+		return;
+
+	if ( players[ulPlayer].ReadyWeapon == NULL )
+		return;
+
+	pClass = players[ulPlayer].ReadyWeapon->GetClass( );
+
+	// Begin searching through the actor's state labels to find the state that corresponds
+	// to the given state.
+	pszStateLabel = NULL;
+	for ( ulIdx = 0; ulIdx < (ULONG)pClass->ActorInfo->StateList->NumLabels; ulIdx++ )
+	{
+		// See if any of the states in this label match the given state.
+		lOffset = 0;
+		pCompareState = pClass->ActorInfo->StateList->Labels[ulIdx].State;
+		while ( 1 )
+		{
+			if ( pState == pCompareState )
+			{
+				pszStateLabel = pClass->ActorInfo->StateList->Labels[ulIdx].Label.GetChars( );
+				break;
+			}
+
+			if ( pCompareState->GetNextState( ) != pCompareState + 1 )
+				break;
+
+			lOffset++;
+			pCompareState = pCompareState->GetNextState( );
+		}
+	}
+
+	// Couldn't find the state, so just try to go based off the spawn state.
+	if ( pszStateLabel == NULL )
+	{
+		pszStateLabel = "Ready";
+		lOffset = LONG( pState - players[ulPlayer].ReadyWeapon->GetReadyState( ));
+		if (( lOffset < 0 ) ||
+			( lOffset > 255 ))
+		{
+			return;
+		}
+	}
+
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_IsValidClient( ulIdx ) == false )
+			continue;
+
+		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
+			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
+		{
+			continue;
+		}
+
+		SERVER_CheckClientBuffer( ulIdx, 4 + (ULONG)strlen( pszStateLabel ), true );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERPSPRITE );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszStateLabel );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lOffset );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lPosition );
+	}
+}
+
+//*****************************************************************************
+//
 void SERVERCOMMANDS_UpdatePlayerPing( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
@@ -6260,4 +6334,3 @@ void SERVERCOMMANDS_CreateTranslation( ULONG ulTranslation, ULONG ulStart, ULONG
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pTranslation[ulStart] );
 	}
 }
-

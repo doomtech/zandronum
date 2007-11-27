@@ -364,3 +364,20 @@ CCMD( seismos )
 {
 	Printf( "SEISMOS IS GAY!\n" );
 }
+/*
+CCMD( showweaponstates )
+{
+	ULONG			ulIdx;
+	const PClass	*pClass;
+
+	if ( players[consoleplayer].ReadyWeapon == NULL )
+		return;
+
+	pClass = players[consoleplayer].ReadyWeapon->GetClass( );
+
+	// Begin searching through the actor's state labels to find the state that corresponds
+	// to the given state.
+	for ( ulIdx = 0; ulIdx < (ULONG)pClass->ActorInfo->StateList->NumLabels; ulIdx++ )
+		Printf( pClass->ActorInfo->StateList->Labels[ulIdx].Label.GetChars( ));
+}
+*/

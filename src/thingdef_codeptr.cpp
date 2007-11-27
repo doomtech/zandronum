@@ -489,12 +489,30 @@ static void DoJump(AActor * self, FState * CallingState, int offset, bool bNeedC
 	{
 		FState *jumpto = P_GetState(self->player->ReadyWeapon, CallingState, offset);
 		if (jumpto == NULL) return;
+
+		// [BC] If we're the server, tell clients to change the thing's state.
+		if (( bNeedClientUpdate ) &&
+			( NETWORK_GetState( ) == NETSTATE_SERVER ))
+		{
+			// This isn't ready (and hopefully will never be needed!).
+//			SERVERCOMMANDS_SetPlayerPSprite( ULONG( self->player - players ), jumpto, ps_weapon );
+		}
+
 		P_SetPsprite(self->player, ps_weapon, jumpto);
 	}
 	else if (self->player != NULL && CallingState == self->player->psprites[ps_flash].state)
 	{
 		FState *jumpto = P_GetState(self->player->ReadyWeapon, CallingState, offset);
 		if (jumpto == NULL) return;
+
+		// [BC] If we're the server, tell clients to change the thing's state.
+		if (( bNeedClientUpdate ) &&
+			( NETWORK_GetState( ) == NETSTATE_SERVER ))
+		{
+			// This isn't ready (and hopefully will never be needed!).
+//			SERVERCOMMANDS_SetPlayerPSprite( ULONG( self->player - players ), jumpto, ps_flash );
+		}
+
 		P_SetPsprite(self->player, ps_flash, jumpto);
 	}
 	else
@@ -627,7 +645,7 @@ void DoJumpIfInventory(AActor * self, AActor * owner)
 
 	// [BC] Don't jump here in client mode.
 	if (( self->player ) &&
-		( CallingState == self->player->psprites[ps_weapon].state ))
+		(( CallingState == self->player->psprites[ps_weapon].state ) || ( CallingState == self->player->psprites[ps_flash].state )))
 	{
 		bNeedClientUpdate = false;
 	}
@@ -1537,15 +1555,26 @@ void A_CustomRailgun (AActor *actor)
 
 static void DoGiveInventory(AActor * self, AActor * receiver)
 {
+	bool	bNeedClientUpdate;
 	int index=CheckIndex(2);
 	bool res=true;
 	if (index<0 || receiver == NULL) return;
 
-	// [BC] Giving inventory is server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	// [BC] Don't jump here in client mode.
+	if (( self->player ) &&
+		(( CallingState == self->player->psprites[ps_weapon].state ) || ( CallingState == self->player->psprites[ps_flash].state )))
 	{
-		return;
+		bNeedClientUpdate = false;
+	}
+	else
+	{
+		bNeedClientUpdate = true;
+		
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+			( CLIENTDEMO_IsPlaying( )))
+		{
+			return;
+		}
 	}
 
 	ENamedName item =(ENamedName)StateParameters[index];
@@ -1579,8 +1608,11 @@ static void DoGiveInventory(AActor * self, AActor * receiver)
 		{
 			res = true;
 			// [BB] If we're the server, give the item to the clients.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+				( bNeedClientUpdate ))
+			{
 				SERVERCOMMANDS_GiveInventoryNotOverwritingAmount( receiver, item );
+			}
 		}
 	}
 	else res = false;
@@ -1606,14 +1638,26 @@ void A_GiveToTarget(AActor * self)
 
 void DoTakeInventory(AActor * self, AActor * receiver)
 {
+	bool	bNeedClientUpdate;
+
 	int index=CheckIndex(2);
 	if (index<0 || receiver == NULL) return;
 
-	// [BC] Taking inventory is server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
+	// [BC] Don't jump here in client mode.
+	if (( self->player ) &&
+		(( CallingState == self->player->psprites[ps_weapon].state ) || ( CallingState == self->player->psprites[ps_flash].state )))
 	{
-		return;
+		bNeedClientUpdate = false;
+	}
+	else
+	{
+		bNeedClientUpdate = true;
+		
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+			( CLIENTDEMO_IsPlaying( )))
+		{
+			return;
+		}
 	}
 
 	ENamedName item =(ENamedName)StateParameters[index];
@@ -1630,6 +1674,7 @@ void DoTakeInventory(AActor * self, AActor * receiver)
 		{
 			// [BC] Take the player's inventory.
 			if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+				( bNeedClientUpdate ) &&
 				( inv->Owner ) &&
 				( inv->Owner->player ))
 			{
@@ -1644,6 +1689,7 @@ void DoTakeInventory(AActor * self, AActor * receiver)
 
 			// [BC] Take the player's inventory.
 			if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+				( bNeedClientUpdate ) &&
 				( inv->Owner ) &&
 				( inv->Owner->player ))
 			{
