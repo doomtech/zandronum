@@ -2972,6 +2972,9 @@ void M_StartSkirmishGame( void )
 		break;		
 	}
 
+	// Potentially end playing/recording demos.
+	G_CheckDemoStatus( );
+
 	// Remove all the existing bots.
 	BOTS_RemoveAllBots( false );
 
