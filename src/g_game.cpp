@@ -3616,6 +3616,17 @@ void GAME_ResetMap( void )
 	// Restart running any open scripts on this map, since we just destroyed them all!
 	FBehavior::StaticStartTypedScripts( SCRIPT_Open, NULL, false );
 
+	// Restart players' enter scripts.
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if (( playeringame[ulIdx] ) &&
+			( players[ulIdx].bSpectating == false ) &&
+			( players[ulIdx].mo ))
+		{
+			FBehavior::StaticStartTypedScripts( SCRIPT_Enter, players[ulIdx].mo, true );
+		}
+	}
+
 	delete ( pMap );
 }
 
