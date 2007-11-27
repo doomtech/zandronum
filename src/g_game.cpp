@@ -3177,17 +3177,6 @@ void GAME_ResetMap( void )
 			}
 		}
 
-		if ( sectors[ulIdx].ColorMap != sectors[ulIdx].SavedColorMap )
-		{
-			sectors[ulIdx].ColorMap = sectors[ulIdx].SavedColorMap;
-
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			{
-				SERVERCOMMANDS_SetSectorColor( ulIdx );
-				SERVERCOMMANDS_SetSectorFade( ulIdx );
-			}
-		}
-
 		if (( sectors[ulIdx].SavedFloorXOffset != sectors[ulIdx].floor_xoffs ) ||
 			( sectors[ulIdx].SavedFloorYOffset != sectors[ulIdx].floor_yoffs ) ||
 			( sectors[ulIdx].SavedCeilingXOffset != sectors[ulIdx].ceiling_xoffs ) ||
@@ -3357,29 +3346,7 @@ void GAME_ResetMap( void )
 					pNewActor->z += pActor->SpawnPoint[2] << FRACBITS;
 				else if ( Z == ONCEILINGZ )
 					pNewActor->z -= pActor->SpawnPoint[2] << FRACBITS;
-/*
-				pSector = R_PointInSubsector( X, Y )->sector;
-				pNewActor->z = pSector->floorplane.ZatPoint( X, Y );
 
-				// Determine the Z position to spawn this actor in.
-				if ( pActorInfo->flags & MF_SPAWNCEILING )
-					pNewActor->z = pNewActor->ceilingz - pNewActor->height - ( pActor->SpawnPoint[2] << FRACBITS );
-				else if ( pActorInfo->flags2 & MF2_SPAWNFLOAT )
-				{
-					Space = pNewActor->ceilingz - pNewActor->height - pNewActor->floorz;
-					if ( Space > 48*FRACUNIT )
-					{
-						Space -= 40*FRACUNIT;
-						pNewActor->z = (( Space * M_Random( )) >>8 ) + pNewActor->floorz + ( 40 * FRACUNIT );
-					}
-					else
-					{
-						pNewActor->z = pNewActor->floorz;
-					}
-				}
-				else if ( pActorInfo->flags2 & MF2_FLOATBOB )
-					pNewActor->z = pActor->SpawnPoint[2] << FRACBITS;
-*/
 				// Inherit attributes from the old actor.
 				pNewActor->SpawnPoint[0] = pActor->SpawnPoint[0];
 				pNewActor->SpawnPoint[1] = pActor->SpawnPoint[1];
@@ -3478,29 +3445,7 @@ void GAME_ResetMap( void )
 				pNewActor->z += pActor->SpawnPoint[2] << FRACBITS;
 			else if ( Z == ONCEILINGZ )
 				pNewActor->z -= pActor->SpawnPoint[2] << FRACBITS;
-/*
-			pSector = R_PointInSubsector( X, Y )->sector;
-			pNewActor->z = pSector->floorplane.ZatPoint( X, Y );
 
-			// Determine the Z position to spawn this actor in.
-			if ( pActorInfo->flags & MF_SPAWNCEILING )
-				pNewActor->z = pNewActor->ceilingz - pNewActor->height - ( pActor->SpawnPoint[2] << FRACBITS );
-			else if ( pActorInfo->flags2 & MF2_SPAWNFLOAT )
-			{
-				Space = pNewActor->ceilingz - pNewActor->height - pNewActor->floorz;
-				if ( Space > 48*FRACUNIT )
-				{
-					Space -= 40*FRACUNIT;
-					pNewActor->z = (( Space * M_Random( )) >>8 ) + pNewActor->floorz + ( 40 * FRACUNIT );
-				}
-				else
-				{
-					pNewActor->z = pNewActor->floorz;
-				}
-			}
-			else if ( pActorInfo->flags2 & MF2_FLOATBOB )
-				pNewActor->z = pActor->SpawnPoint[2] << FRACBITS;
-*/
 			// Inherit attributes from the old actor.
 			pNewActor->SpawnPoint[0] = pActor->SpawnPoint[0];
 			pNewActor->SpawnPoint[1] = pActor->SpawnPoint[1];

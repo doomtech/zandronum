@@ -1201,38 +1201,6 @@ void P_LoadSectors (MapData * map)
 		// killough 8/28/98: initialize all sectors to normal friction
 		ss->friction = ORIG_FRICTION;
 		ss->movefactor = ORIG_FRICTION_FACTOR;
-
-		// [BC] Save these values. If they change, and a client connects, send
-		// him the new values.
-		ss->SavedLightLevel = ss->lightlevel;
-		ss->SavedCeilingPic = ss->ceilingpic;
-		ss->SavedFloorPic = ss->floorpic;
-		ss->SavedCeilingPlane = ss->ceilingplane;
-		ss->SavedFloorPlane = ss->floorplane;
-		ss->SavedCeilingTexZ = ss->ceilingtexz;
-		ss->SavedFloorTexZ = ss->floortexz;
-		ss->SavedColorMap = ss->ColorMap;
-		ss->SavedFloorXOffset = ss->floor_xoffs;
-		ss->SavedFloorYOffset = ss->floor_yoffs;
-		ss->SavedCeilingXOffset = ss->ceiling_xoffs;
-		ss->SavedCeilingYOffset = ss->ceiling_yoffs;
-		ss->SavedFloorXScale = ss->floor_xscale;
-		ss->SavedFloorYScale = ss->floor_yscale;
-		ss->SavedCeilingXScale = ss->ceiling_xscale;
-		ss->SavedCeilingYScale = ss->ceiling_yscale;
-		ss->SavedFloorAngle = ss->floor_angle;
-		ss->SavedCeilingAngle = ss->ceiling_angle;
-		ss->SavedBaseFloorAngle = ss->base_floor_angle;
-		ss->SavedBaseFloorYOffset = ss->base_floor_yoffs;
-		ss->SavedBaseCeilingAngle = ss->base_ceiling_angle;
-		ss->SavedBaseCeilingYOffset = ss->base_ceiling_yoffs;
-		ss->SavedFriction = ss->friction;
-		ss->SavedMoveFactor = ss->movefactor;
-		ss->SavedSpecial = ss->special;
-		ss->SavedDamage = ss->damage;
-		ss->SavedMOD = ss->mod;
-		ss->SavedCeilingReflect = ss->SavedCeilingReflect;
-		ss->SavedFloorReflect = ss->SavedFloorReflect;
 	}
 	P_CreateExtSectors();
 	delete[] msp;

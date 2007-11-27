@@ -1268,6 +1268,42 @@ void P_SpawnSpecials (void)
 			break;
 		}
 
+
+	// [BC] Save these values. If they change, and a client connects, send
+	// him the new values.
+	for ( i = 0; i < numsectors; i++ )
+	{
+		sectors[i].SavedLightLevel = sectors[i].lightlevel;
+		sectors[i].SavedCeilingPic = sectors[i].ceilingpic;
+		sectors[i].SavedFloorPic = sectors[i].floorpic;
+		sectors[i].SavedCeilingPlane = sectors[i].ceilingplane;
+		sectors[i].SavedFloorPlane = sectors[i].floorplane;
+		sectors[i].SavedCeilingTexZ = sectors[i].ceilingtexz;
+		sectors[i].SavedFloorTexZ = sectors[i].floortexz;
+		sectors[i].SavedColorMap = sectors[i].ColorMap;
+		sectors[i].SavedFloorXOffset = sectors[i].floor_xoffs;
+		sectors[i].SavedFloorYOffset = sectors[i].floor_yoffs;
+		sectors[i].SavedCeilingXOffset = sectors[i].ceiling_xoffs;
+		sectors[i].SavedCeilingYOffset = sectors[i].ceiling_yoffs;
+		sectors[i].SavedFloorXScale = sectors[i].floor_xscale;
+		sectors[i].SavedFloorYScale = sectors[i].floor_yscale;
+		sectors[i].SavedCeilingXScale = sectors[i].ceiling_xscale;
+		sectors[i].SavedCeilingYScale = sectors[i].ceiling_yscale;
+		sectors[i].SavedFloorAngle = sectors[i].floor_angle;
+		sectors[i].SavedCeilingAngle = sectors[i].ceiling_angle;
+		sectors[i].SavedBaseFloorAngle = sectors[i].base_floor_angle;
+		sectors[i].SavedBaseFloorYOffset = sectors[i].base_floor_yoffs;
+		sectors[i].SavedBaseCeilingAngle = sectors[i].base_ceiling_angle;
+		sectors[i].SavedBaseCeilingYOffset = sectors[i].base_ceiling_yoffs;
+		sectors[i].SavedFriction = sectors[i].friction;
+		sectors[i].SavedMoveFactor = sectors[i].movefactor;
+		sectors[i].SavedSpecial = sectors[i].special;
+		sectors[i].SavedDamage = sectors[i].damage;
+		sectors[i].SavedMOD = sectors[i].mod;
+		sectors[i].SavedCeilingReflect = sectors[i].ceiling_reflect;
+		sectors[i].SavedFloorReflect = sectors[i].floor_reflect;
+	}
+
 	// [RH] Start running any open scripts on this map
 	// [BC] Clients don't run scripts.
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
