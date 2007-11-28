@@ -220,9 +220,9 @@
 #define IDCE_ECHOTIME                   1119
 #define IDC_NO_RESPAWN_INVUL            1119
 #define IDCS_ECHOTIME                   1120
-#define IDC_KEEP_KEYS                   1120
+#define IDC_LOSE_KEYS                   1120
 #define IDCE_ECHODEPTH                  1121
-#define IDC_KEEP_WEAPONS                1121
+#define IDC_LOSE_WEAPONS                1121
 #define IDCS_ECHODEPTH                  1122
 #define IDC_SHOTGUN_START               1122
 #define IDCE_MODULATIONTIME             1123

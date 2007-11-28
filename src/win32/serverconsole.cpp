@@ -684,8 +684,8 @@ BOOL CALLBACK SERVERCONSOLE_DMFlagsCallback( HWND hDlg, UINT Message, WPARAM wPa
 			case IDC_YES_FREEAIMBFG:
 			case IDC_BARRELS_RESPAWN:
 			case IDC_NO_RESPAWN_INVUL:
-			case IDC_KEEP_KEYS:
-			case IDC_KEEP_WEAPONS:
+			case IDC_LOSE_KEYS:
+			case IDC_LOSE_WEAPONS:
 			case IDC_SHOTGUN_START:
 			case IDC_SAME_SPAWN_SPOT:
 			case IDC_SHORTTEX:
@@ -3473,14 +3473,14 @@ void SERVERCONSOLE_InitializeDMFlagsDisplay( HWND hDlg )
 		SendDlgItemMessage( hDlg, IDC_COOP_LOSE_INVENTORY, BM_SETCHECK, BST_UNCHECKED, 0 );
 
 	if ( dmflags & DF_COOP_LOSE_KEYS )
-		SendDlgItemMessage( hDlg, IDC_KEEP_KEYS, BM_SETCHECK, BST_CHECKED, 0 );
+		SendDlgItemMessage( hDlg, IDC_LOSE_KEYS, BM_SETCHECK, BST_CHECKED, 0 );
 	else
-		SendDlgItemMessage( hDlg, IDC_KEEP_KEYS, BM_SETCHECK, BST_UNCHECKED, 0 );
+		SendDlgItemMessage( hDlg, IDC_LOSE_KEYS, BM_SETCHECK, BST_UNCHECKED, 0 );
 
 	if ( dmflags & DF_COOP_LOSE_WEAPONS )
-		SendDlgItemMessage( hDlg, IDC_KEEP_WEAPONS, BM_SETCHECK, BST_CHECKED, 0 );
+		SendDlgItemMessage( hDlg, IDC_LOSE_WEAPONS, BM_SETCHECK, BST_CHECKED, 0 );
 	else
-		SendDlgItemMessage( hDlg, IDC_KEEP_WEAPONS, BM_SETCHECK, BST_UNCHECKED, 0 );
+		SendDlgItemMessage( hDlg, IDC_LOSE_WEAPONS, BM_SETCHECK, BST_UNCHECKED, 0 );
 
 	if ( dmflags & DF_COOP_LOSE_ARMOR )
 		SendDlgItemMessage( hDlg, IDC_COOP_LOSE_ARMOR, BM_SETCHECK, BST_CHECKED, 0 );
@@ -3719,9 +3719,9 @@ void SERVERCONSOLE_UpdateDMFlagsDisplay( HWND hDlg )
 		ulDMFlags |= DF_NO_CROUCH ;
 	if ( SendDlgItemMessage( hDlg, IDC_COOP_LOSE_INVENTORY, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
 		ulDMFlags |= DF_COOP_LOSE_INVENTORY;
-	if ( SendDlgItemMessage( hDlg, IDC_KEEP_KEYS, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
+	if ( SendDlgItemMessage( hDlg, IDC_LOSE_KEYS, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
 		ulDMFlags |= DF_COOP_LOSE_KEYS;
-	if ( SendDlgItemMessage( hDlg, IDC_KEEP_WEAPONS, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
+	if ( SendDlgItemMessage( hDlg, IDC_LOSE_WEAPONS, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
 		ulDMFlags |= DF_COOP_LOSE_WEAPONS;
 	if ( SendDlgItemMessage( hDlg, IDC_COOP_LOSE_ARMOR, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
 		ulDMFlags |= DF_COOP_LOSE_ARMOR;
@@ -3860,9 +3860,9 @@ void SERVERCONSOLE_UpdateDMFlags( HWND hDlg )
 		ulDMFlags |= DF_NO_CROUCH;
 	if ( SendDlgItemMessage( hDlg, IDC_COOP_LOSE_INVENTORY, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
 		ulDMFlags |= DF_COOP_LOSE_INVENTORY;
-	if ( SendDlgItemMessage( hDlg, IDC_KEEP_KEYS, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
+	if ( SendDlgItemMessage( hDlg, IDC_LOSE_KEYS, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
 		ulDMFlags |= DF_COOP_LOSE_KEYS;
-	if ( SendDlgItemMessage( hDlg, IDC_KEEP_WEAPONS, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
+	if ( SendDlgItemMessage( hDlg, IDC_LOSE_WEAPONS, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
 		ulDMFlags |= DF_COOP_LOSE_WEAPONS;
 	if ( SendDlgItemMessage( hDlg, IDC_COOP_LOSE_ARMOR, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
 		ulDMFlags |= DF_COOP_LOSE_ARMOR;
