@@ -97,6 +97,11 @@ struct StateCallData
 
 StateCallData * pStateCall;
 
+// [BC] Blah.
+#define	CLIENTUPDATE_FRAME			1
+#define	CLIENTUPDATE_POSITION		2
+#define	CLIENTUPDATE_SKIPPLAYER		4
+
 //==========================================================================
 //
 // ACustomInventory :: CallStateChain
@@ -475,8 +480,8 @@ FState *P_GetState(AActor *self, FState *CallingState, int offset)
 // Do the state jump
 //
 //==========================================================================
-// [BC] Added bNeedClientUpdate.
-static void DoJump(AActor * self, FState * CallingState, int offset, bool bNeedClientUpdate)
+// [BC] Added ulClientUpdateFlags.
+static void DoJump(AActor * self, FState * CallingState, int offset, ULONG ulClientUpdateFlags)
 {
 
 	if (pStateCall != NULL && CallingState == pStateCall->State)
@@ -489,7 +494,7 @@ static void DoJump(AActor * self, FState * CallingState, int offset, bool bNeedC
 	{
 		FState *jumpto = P_GetState(self->player->ReadyWeapon, CallingState, offset);
 		if (jumpto == NULL) return;
-
+/*
 		// [BC] If we're the server, tell clients to change the thing's state.
 		if (( bNeedClientUpdate ) &&
 			( NETWORK_GetState( ) == NETSTATE_SERVER ))
@@ -497,14 +502,14 @@ static void DoJump(AActor * self, FState * CallingState, int offset, bool bNeedC
 			// This isn't ready (and hopefully will never be needed!).
 //			SERVERCOMMANDS_SetPlayerPSprite( ULONG( self->player - players ), jumpto, ps_weapon );
 		}
-
+*/
 		P_SetPsprite(self->player, ps_weapon, jumpto);
 	}
 	else if (self->player != NULL && CallingState == self->player->psprites[ps_flash].state)
 	{
 		FState *jumpto = P_GetState(self->player->ReadyWeapon, CallingState, offset);
 		if (jumpto == NULL) return;
-
+/*
 		// [BC] If we're the server, tell clients to change the thing's state.
 		if (( bNeedClientUpdate ) &&
 			( NETWORK_GetState( ) == NETSTATE_SERVER ))
@@ -512,7 +517,7 @@ static void DoJump(AActor * self, FState * CallingState, int offset, bool bNeedC
 			// This isn't ready (and hopefully will never be needed!).
 //			SERVERCOMMANDS_SetPlayerPSprite( ULONG( self->player - players ), jumpto, ps_flash );
 		}
-
+*/
 		P_SetPsprite(self->player, ps_flash, jumpto);
 	}
 	else
@@ -521,11 +526,19 @@ static void DoJump(AActor * self, FState * CallingState, int offset, bool bNeedC
 		if (jumpto == NULL) return;
 
 		// [BC] If we're the server, tell clients to change the thing's state.
-		if (( bNeedClientUpdate ) &&
+		if (( ulClientUpdateFlags & CLIENTUPDATE_FRAME ) &&
 			( NETWORK_GetState( ) == NETSTATE_SERVER ))
 		{
-			SERVERCOMMANDS_SetThingFrame( self, jumpto );
-			SERVERCOMMANDS_MoveThing( self, CM_X|CM_Y|CM_Z );
+			if (( ulClientUpdateFlags & CLIENTUPDATE_SKIPPLAYER ) &&
+				( self->player ))
+			{
+				SERVERCOMMANDS_SetThingFrame( self, jumpto, ULONG( self->player - players ), SVCF_SKIPTHISCLIENT );
+			}
+			else
+				SERVERCOMMANDS_SetThingFrame( self, jumpto );
+
+			if ( ulClientUpdateFlags & CLIENTUPDATE_POSITION )
+				SERVERCOMMANDS_MoveThing( self, CM_X|CM_Y|CM_Z );
 		}
 
 		self->SetState (jumpto);
@@ -641,24 +654,33 @@ void DoJumpIfInventory(AActor * self, AActor * owner)
 	FState * CallingState;
 	int index=CheckIndex(3, &CallingState);
 	if (index<0) return;
-	bool	bNeedClientUpdate;
+	ULONG	ulClientUpdateFlags;
 
 	// [BC] Don't jump here in client mode.
+	ulClientUpdateFlags = 0;
 	if (( self->player ) &&
 		(( CallingState == self->player->psprites[ps_weapon].state ) || ( CallingState == self->player->psprites[ps_flash].state )))
 	{
-		bNeedClientUpdate = false;
 	}
 	else
 	{
-		bNeedClientUpdate = true;
-		
 		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 			( CLIENTDEMO_IsPlaying( )))
 		{
-			if (( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false )
+			if ((( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false ) &&
+				(( self->player == NULL ) || (( self->player - players ) != consoleplayer )))
+			{
 				return;
+			}
 		}
+
+		ulClientUpdateFlags |= CLIENTUPDATE_FRAME;
+
+		// The player should know his own inventory.
+		if ( self->player )
+			ulClientUpdateFlags |= CLIENTUPDATE_SKIPPLAYER;
+		else
+			ulClientUpdateFlags |= CLIENTUPDATE_POSITION;
 	}
 
 	ENamedName ItemType=(ENamedName)StateParameters[index];
@@ -674,8 +696,8 @@ void DoJumpIfInventory(AActor * self, AActor * owner)
 
 	if (Item)
 	{
-		if (ItemAmount>0 && Item->Amount>=ItemAmount) DoJump(self, CallingState, JumpOffset, bNeedClientUpdate);	// [BC] Clients don't necessarily have inventory information.
-		else if (Item->Amount>=Item->MaxAmount) DoJump(self, CallingState, JumpOffset, bNeedClientUpdate);	// [BC] Clients don't necessarily have inventory information.
+		if (ItemAmount>0 && Item->Amount>=ItemAmount) DoJump(self, CallingState, JumpOffset, ulClientUpdateFlags);	// [BC] Clients don't necessarily have inventory information.
+		else if (Item->Amount>=Item->MaxAmount) DoJump(self, CallingState, JumpOffset, ulClientUpdateFlags);	// [BC] Clients don't necessarily have inventory information.
 	}
 }
 
