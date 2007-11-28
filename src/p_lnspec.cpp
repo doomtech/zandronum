@@ -2748,7 +2748,11 @@ FUNC(LS_SetPlayerProperty)
 
 		// [BB] Tell the client that his cheats have changed.
 		if ( NETWORK_GetState() == NETSTATE_SERVER && oldCheats != it->player->cheats )
+		{
 			SERVERCOMMANDS_SetPlayerCheats( ULONG( it->player - players ), ULONG( it->player - players ), SVCF_ONLYTHISCLIENT );
+			SERVERCOMMANDS_SetThingFlags( it, FLAGSET_FLAGS );
+			SERVERCOMMANDS_SetThingFlags( it, FLAGSET_FLAGS2 );
+		}
 	}
 	else
 	{
@@ -2782,7 +2786,11 @@ FUNC(LS_SetPlayerProperty)
 
 			// [BB] Tell the client that his cheats have changed.
 			if ( NETWORK_GetState() == NETSTATE_SERVER && oldCheats != players[i].cheats )
+			{
 				SERVERCOMMANDS_SetPlayerCheats( i, i, SVCF_ONLYTHISCLIENT );
+				SERVERCOMMANDS_SetThingFlags( players[i].mo, FLAGSET_FLAGS );
+				SERVERCOMMANDS_SetThingFlags( players[i].mo, FLAGSET_FLAGS2 );
+			}
 		}
 	}
 
