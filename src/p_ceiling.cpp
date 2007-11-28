@@ -59,7 +59,9 @@ void DCeiling::Serialize (FArchive &arc)
 		<< m_Texture
 		<< m_NewSpecial
 		<< m_Tag
-		<< m_OldDirection;
+		<< m_OldDirection
+		// [BC]
+		<< (DWORD &)m_lCeilingID;
 }
 
 void DCeiling::PlayCeilingSound ()

@@ -54,7 +54,9 @@ void DDoor::Serialize (FArchive &arc)
 		<< m_Direction
 		<< m_TopWait
 		<< m_TopCountdown
-		<< m_LightTag;
+		<< m_LightTag
+		// [BC]
+		<< (DWORD &)m_lDoorID;
 }
 
 

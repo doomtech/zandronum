@@ -55,7 +55,9 @@ void DPlat::Serialize (FArchive &arc)
 		<< m_OldStatus
 		<< m_Crush
 		<< m_Tag
-		<< m_Type;
+		<< m_Type
+		// [BC]
+		<< (DWORD &)m_lPlatID;
 }
 
 void DPlat::PlayPlatSound (const char *sound)

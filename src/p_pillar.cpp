@@ -66,7 +66,9 @@ void DPillar::Serialize (FArchive &arc)
 		<< m_CeilingSpeed
 		<< m_FloorTarget
 		<< m_CeilingTarget
-		<< m_Crush;
+		<< m_Crush
+		// [BC]
+		<< (DWORD &)m_lPillarID;
 }
 
 // [BC]

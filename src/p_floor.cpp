@@ -58,7 +58,9 @@ void DFloor::Serialize (FArchive &arc)
 		<< m_Delay
 		<< m_PauseTime
 		<< m_StepTime
-		<< m_PerStepTime;
+		<< m_PerStepTime
+		// [BC]
+		<< (DWORD &)m_lFloorID;
 }
 
 IMPLEMENT_CLASS (DElevator)
@@ -74,7 +76,9 @@ void DElevator::Serialize (FArchive &arc)
 		<< m_Direction
 		<< m_FloorDestDist
 		<< m_CeilingDestDist
-		<< m_Speed;
+		<< m_Speed
+		// [BC]
+		<< (DWORD &)m_lElevatorID;
 }
 
 // [BC]
@@ -143,7 +147,9 @@ void DWaggleBase::Serialize (FArchive &arc)
 		<< m_Scale
 		<< m_ScaleDelta
 		<< m_Ticker
-		<< m_State;
+		<< m_State
+		// [BC]
+		<< (DWORD &)m_lWaggleID;
 }
 
 
