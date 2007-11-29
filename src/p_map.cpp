@@ -5542,6 +5542,7 @@ void P_DoCrunch (AActor *thing)
 				( CLIENTDEMO_IsPlaying( ) == false ))
 			{
 				thing->renderflags |= RF_INVISIBLE;
+				thing->flags |= MF_NOBLOCKMAP;
 				thing->flags &= ~MF_SOLID;
 				thing->SetState( &AInventory::States[17] );
 				return;
@@ -5571,6 +5572,7 @@ void P_DoCrunch (AActor *thing)
 				( CLIENTDEMO_IsPlaying( ) == false ))
 			{
 				thing->renderflags |= RF_INVISIBLE;
+				thing->flags |= MF_NOBLOCKMAP;
 				thing->flags &= ~MF_SOLID;
 				thing->SetState( &AInventory::States[17] );
 				return;

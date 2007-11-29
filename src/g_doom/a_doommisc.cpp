@@ -80,6 +80,7 @@ void A_BarrelDestroy (AActor *actor)
 
 			actor->height = actor->GetDefault()->height;
 			actor->renderflags |= RF_INVISIBLE;
+			actor->flags |= MF_NOBLOCKMAP;
 			actor->flags &= ~MF_SOLID;
 		}
 		else

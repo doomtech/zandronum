@@ -542,6 +542,7 @@ bool AActor::SetState (FState *newstate)
 				( CLIENTDEMO_IsPlaying( ) == false ))
 			{
 				renderflags |= RF_INVISIBLE;
+				flags |= MF_NOBLOCKMAP;
 				flags &= ~MF_SOLID;
 				SetState( &AInventory::States[17] );
 				return ( false );
