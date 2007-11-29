@@ -170,7 +170,10 @@ void GLSprite::Draw(int pass)
 	if (!modelframe)
 	{
 		// [BB] Billboard stuff
-		if ( players[consoleplayer].camera && gl_billboard_mode == 2)
+		const bool drawWithXYBillboard = ( !(actor->renderflags & RF_FORCEYBILLBOARD)
+		                                   && players[consoleplayer].camera
+		                                   && (gl_billboard_mode == 2 || actor->renderflags & RF_FORCEXYBILLBOARD ) );
+		if ( drawWithXYBillboard )
 		{
 			// Save the current view matrix.
 			gl.MatrixMode(GL_MODELVIEW);
@@ -203,7 +206,7 @@ void GLSprite::Draw(int pass)
 		}
 		gl.End();
 		// [BB] Billboard stuff
-		if ( players[consoleplayer].camera && gl_billboard_mode == 2)
+		if ( drawWithXYBillboard )
 		{
 			// Restore the view matrix.
 			gl.MatrixMode(GL_MODELVIEW);
