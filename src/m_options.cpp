@@ -2973,15 +2973,17 @@ void M_StartSkirmishGame( void )
 	}
 
 	// Potentially end playing/recording demos.
-	G_CheckDemoStatus( );
+//	G_CheckDemoStatus( );
 
 	// Remove all the existing bots.
 	BOTS_RemoveAllBots( false );
 
+//	G_InitNew( szLevelName, false );
+	G_DeferedInitNew( szLevelName );
+	gamestate = gamestate == GS_FULLCONSOLE ? GS_HIDECONSOLE : gamestate;
+
 	// Clear out the menus and load the level.
 	M_ClearMenus( );
-	G_InitNew( szLevelName, false );
-//	G_DeferedInitNew( szLevelName );
 
 	// Initialize bot spawn times.
 	if (( menu_gamemode == GAMEMODE_TEAMPLAY ) ||
