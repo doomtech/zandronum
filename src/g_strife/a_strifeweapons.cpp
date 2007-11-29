@@ -786,6 +786,11 @@ void A_FireAssaultGun (AActor *self)
 			if (!weapon->DepleteAmmo (weapon->bAltFire))
 				return;
 		}
+
+		// [BC] If we're the server, tell clients to update this player's state.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetPlayerState( ULONG( self->player - players ), STATE_PLAYER_ATTACK2, ULONG( self->player - players ), SVCF_SKIPTHISCLIENT );
+
 		self->player->mo->PlayAttacking2 ();
 		accurate = !self->player->refire;
 	}
@@ -799,13 +804,6 @@ void A_FireAssaultGun (AActor *self)
 		( CLIENTDEMO_IsPlaying( )))
 	{
 		return;
-	}
-
-	// [BC] If we're the server, tell clients to update this player's state.
-	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
-		( self->player ))
-	{
-		SERVERCOMMANDS_SetPlayerState( ULONG( self->player - players ), STATE_PLAYER_ATTACK2, ULONG( self->player - players ), SVCF_SKIPTHISCLIENT );
 	}
 
 	P_BulletSlope (self);

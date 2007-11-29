@@ -242,11 +242,11 @@ void P_FireWeapon (player_t *player)
 		return;
 	}
 
-	player->mo->PlayAttacking ();
-
 	// [BC] If we're the server, tell clients to update this player's state.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_SetPlayerState( ULONG( player - players ), STATE_PLAYER_ATTACK, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
+
+	player->mo->PlayAttacking ();
 
 	weapon->bAltFire = false;
 	P_SetPsprite (player, ps_weapon, weapon->GetAtkState(!!player->refire));

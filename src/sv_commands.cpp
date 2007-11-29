@@ -2155,6 +2155,9 @@ void SERVERCOMMANDS_SetThingFrame( AActor *pActor, FState *pState, ULONG ulPlaye
 	pszStateLabel = NULL;
 	for ( ulIdx = 0; ulIdx < (ULONG)pActor->GetClass( )->ActorInfo->StateList->NumLabels; ulIdx++ )
 	{
+		if ( pszStateLabel != NULL )
+			break;
+
 		// See if any of the states in this label match the given state.
 		lOffset = 0;
 		pCompareState = pActor->GetClass( )->ActorInfo->StateList->Labels[ulIdx].State;

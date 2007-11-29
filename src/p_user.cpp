@@ -956,11 +956,11 @@ void APlayerPawn::PlayIdle ()
 {
 	if (InStateSequence(state, SeeState))
 	{
-		SetState (SpawnState);
-
 		// [BC] If we're the server, tell clients to update this player's state.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SetPlayerState( ULONG( player - players ), STATE_PLAYER_IDLE, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
+
+		SetState (SpawnState);
 	}
 }
 
@@ -968,11 +968,11 @@ void APlayerPawn::PlayRunning ()
 {
 	if (InStateSequence(state, SpawnState) && SeeState != NULL)
 	{
-		SetState (SeeState);
-
 		// [BC] If we're the server, tell clients to update this player's state.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SetPlayerState( ULONG( player - players ), STATE_PLAYER_SEE, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
+
+		SetState (SeeState);
 	}
 }
 
