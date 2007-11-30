@@ -5231,7 +5231,7 @@ static void client_KillThing( BYTESTREAM_s *pByteStream )
 	lHealth = NETWORK_ReadShort( pByteStream );
 
 	// Read in the thing's damage type.
-	DamageType = ENamedName( NETWORK_ReadByte( pByteStream ));
+	DamageType = ENamedName( NETWORK_ReadShort( pByteStream ));
 
 	// Read in the actor that killed the player.Thi
 	lSourceID = NETWORK_ReadShort( pByteStream );
