@@ -2141,6 +2141,10 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 			if (( pActor->waterlevel > 0 ) && ( pActor->player == NULL ))
 				SERVERCOMMANDS_SetThingWaterLevel( pActor, ulClient, SVCF_ONLYTHISCLIENT );
 
+			// Update the actor's speed if it's changed.
+			if ( pActor->Speed != pActor->GetDefault( )->Speed )
+				SERVERCOMMANDS_SetThingProperty( pActor, 1, ulClient, SVCF_ONLYTHISCLIENT  ); // Yuck
+
 			// If any of this actor's flags have changed during the course of the level, notify
 			// the client.
 /*
