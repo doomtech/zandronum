@@ -3773,7 +3773,7 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 	players[ulPlayer].mo->DamageType = DamageType;
 
 	// Kill the player.
-	players[ulPlayer].mo->Die( NULL, NULL );
+	players[ulPlayer].mo->Die( pSource, pInflictor );
 
 	// Free the player's body's network ID.
 	if ( players[ulPlayer].mo->lNetID != -1 )
