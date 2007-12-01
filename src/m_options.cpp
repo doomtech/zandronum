@@ -2837,6 +2837,7 @@ void M_ClearBotSlotList( void )
 	}
 }
 
+void G_NewInit( void );
 void M_StartSkirmishGame( void )
 {
 	char		szLevelName[8];
@@ -2972,14 +2973,24 @@ void M_StartSkirmishGame( void )
 		break;		
 	}
 
-	// Potentially end playing/recording demos.
-//	G_CheckDemoStatus( );
-
 	// Remove all the existing bots.
 	BOTS_RemoveAllBots( false );
 
-//	G_InitNew( szLevelName, false );
-	G_DeferedInitNew( szLevelName );
+	// Potentially end playing demos.
+	if ( demoplayback )
+	{
+		C_RestoreCVars( );
+		demoplayback = false;
+		D_SetupUserInfo( );
+	}
+	if ( CLIENTDEMO_IsPlaying( ))
+	{
+		CLIENTDEMO_SetPlaying( false );
+		D_SetupUserInfo( );
+	}
+
+	G_InitNew( szLevelName, false );
+//	G_DeferedInitNew( szLevelName );
 	gamestate = gamestate == GS_FULLCONSOLE ? GS_HIDECONSOLE : gamestate;
 
 	// Clear out the menus and load the level.

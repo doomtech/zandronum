@@ -1975,7 +1975,8 @@ void DrawFullHUD_GameInformation()
 		if ( FacePriority < 4 )
 		{
 			// Quad damage!
-			if ( CPlayer->cheats & CF_TERMINATORARTIFACT )
+			if (( CPlayer->cheats & CF_TERMINATORARTIFACT ) ||
+				(( CPlayer->mo != NULL ) && ( CPlayer->mo->FindInventory( PClass::FindClass( "PowerQuadDamage" )))))
 			{
 				FacePriority = 3;
 				FaceIndex = CalcPainOffset( ) + ST_QUADOFFSET;
