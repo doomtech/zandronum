@@ -544,14 +544,29 @@ CCMD (use)
 
 CCMD (invdrop)
 {
-	if (players[consoleplayer].mo) SendItemDrop = players[consoleplayer].mo->InvSel;
+	// [BB/BC] If we are a client, we have to bypass the way ZDoom handles the item usage.
+	if( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		CLIENTCOMMANDS_RequestInventoryDrop( players[consoleplayer].mo->InvSel );
+	else
+		if (players[consoleplayer].mo) SendItemDrop = players[consoleplayer].mo->InvSel;
 }
 
 CCMD (drop)
 {
-	if (argv.argc() > 1 && who != NULL)
+	// [BB/BC] If we are a client, we have to bypass the way ZDoom handles the item usage.
+	if( NETWORK_GetState( ) == NETSTATE_CLIENT )
 	{
-		SendItemDrop = who->FindInventory (PClass::FindClass (argv[1]));
+		if (argv.argc() > 1 && who != NULL)
+		{
+			CLIENTCOMMANDS_RequestInventoryDrop( who->FindInventory (PClass::FindClass (argv[1])) );
+		}
+	}
+	else
+	{
+		if (argv.argc() > 1 && who != NULL)
+		{
+			SendItemDrop = who->FindInventory (PClass::FindClass (argv[1]));
+		}
 	}
 }
 

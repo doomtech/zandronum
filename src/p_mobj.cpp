@@ -899,6 +899,13 @@ AInventory *AActor::DropInventory (AInventory *item)
 	angle_t an;
 	AInventory *drop = item->CreateTossable ();
 
+	// [BC] Don't do this in client mode.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return ( NULL );
+	}
+
 	if (drop == NULL)
 	{
 		return NULL;
@@ -921,6 +928,8 @@ AInventory *AActor::DropInventory (AInventory *item)
 	{
 		SERVERCOMMANDS_SpawnMissile( drop );
 		SERVERCOMMANDS_SetThingFlags( drop, FLAGSET_FLAGS );
+		if ( player )
+			SERVERCOMMANDS_PlayerDropInventory( ULONG( player - players ), item );
 	}
 
 	return drop;

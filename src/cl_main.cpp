@@ -170,6 +170,7 @@ static	void	client_PlayerSay( BYTESTREAM_s *pByteStream );
 static	void	client_PlayerTaunt( BYTESTREAM_s *pByteStream );
 static	void	client_PlayerRespawnInvulnerability( BYTESTREAM_s *pByteStream );
 static	void	client_PlayerUseInventory( BYTESTREAM_s *pByteStream );
+static	void	client_PlayerDropInventory( BYTESTREAM_s *pByteStream );
 
 // Thing functions.
 static	void	client_SpawnThing( BYTESTREAM_s *pByteStream );
@@ -518,6 +519,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_PLAYERTAUNT",
 	"SVC_PLAYERRESPAWNINVULNERABILITY",
 	"SVC_PLAYERUSEINVENTORY",
+	"SVC_PLAYERDROPINVENTORY",
 	"SVC_SPAWNTHING",
 	"SVC_SPAWNTHINGNONETID",
 	"SVC_SPAWNTHINGEXACT",
@@ -1576,6 +1578,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_PLAYERUSEINVENTORY:
 
 		client_PlayerUseInventory( pByteStream );
+		break;
+	case SVC_PLAYERDROPINVENTORY:
+
+		client_PlayerDropInventory( pByteStream );
 		break;
 	case SVC_SPAWNTHING:
 
@@ -4955,6 +4961,49 @@ static void client_PlayerUseInventory( BYTESTREAM_s *pByteStream )
 
 	// Finally, use the item.
 	players[ulPlayer].mo->UseInventory( pInventory );
+}
+
+//*****************************************************************************
+//
+static void client_PlayerDropInventory( BYTESTREAM_s *pByteStream )
+{
+	ULONG			ulPlayer;
+	const char		*pszName;
+	const PClass	*pType;
+	AInventory		*pInventory;
+
+	// Read in the player dropping an inventory item.
+	ulPlayer = NETWORK_ReadByte( pByteStream );
+
+	// Read the name of the inventory item we shall drop.
+	pszName = NETWORK_ReadString( pByteStream );
+
+	// Check to make sure everything is valid. If not, break out.
+	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
+		return;
+
+	pType = PClass::FindClass( pszName );
+	if ( pType == NULL )
+		return;
+
+	// Try to find this object within the player's personal inventory.
+	pInventory = players[ulPlayer].mo->FindInventory( pType );
+
+	// If the player doesn't have this type, give it to him.
+	if ( pInventory == NULL )
+		pInventory = players[ulPlayer].mo->GiveInventoryType( pType );
+
+	// If he still doesn't have the object after trying to give it to him... then YIKES!
+	if ( pInventory == NULL )
+	{
+#ifdef CLIENT_WARNING_MESSAGES
+		Printf( "client_PlayerDropInventory: Failed to give inventory type, %s!\n", pszName );
+#endif
+		return;
+	}
+
+	// Finally, drop the item.
+	players[ulPlayer].mo->DropInventory( pInventory );
 }
 
 //*****************************************************************************

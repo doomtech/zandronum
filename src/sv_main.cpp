@@ -146,6 +146,7 @@ static	bool	server_VoteYes( BYTESTREAM_s *pByteStream );
 static	bool	server_VoteNo( BYTESTREAM_s *pByteStream );
 static	bool	server_InventoryUseAll( BYTESTREAM_s *pByteStream );
 static	bool	server_InventoryUse( BYTESTREAM_s *pByteStream );
+static	bool	server_InventoryDrop( BYTESTREAM_s *pByteStream );
 
 //*****************************************************************************
 //	VARIABLES
@@ -3346,8 +3347,12 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 		return ( server_InventoryUseAll( pByteStream ));
 	case CLC_INVENTORYUSE:
 
-		// Client wishes to use a specfic inventory items he has.
+		// Client wishes to use a specfic inventory item he has.
 		return ( server_InventoryUse( pByteStream ));
+	case CLC_INVENTORYDROP:
+
+		// Client wishes to drop a specfic inventory item he has.
+		return ( server_InventoryDrop( pByteStream ));
 	default:
 
 		Printf( PRINT_HIGH, "SERVER_ParseCommands: Unknown client message: %d\n", lCommand );
@@ -4681,7 +4686,29 @@ static bool server_InventoryUse( BYTESTREAM_s *pByteStream )
 			players[g_lCurrentClient].mo->UseInventory (item);
 		}
 	}
-	
+
+	return ( false );
+}
+
+//*****************************************************************************
+//
+static bool server_InventoryDrop( BYTESTREAM_s *pByteStream )
+{
+	const char	*pszString;
+	AInventory	*pItem;
+
+	pszString = NETWORK_ReadString( pByteStream );
+
+	if (( gamestate != GS_LEVEL ) ||
+		( paused ))
+	{
+		return ( false );
+	}
+
+	pItem = players[g_lCurrentClient].mo->FindInventory( PClass::FindClass( pszString ));
+	if ( pItem )
+		players[g_lCurrentClient].mo->DropInventory( pItem );
+
 	return ( false );
 }
 

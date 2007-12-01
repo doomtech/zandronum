@@ -389,3 +389,20 @@ void CLIENTCOMMANDS_RequestInventoryUse( AInventory *item )
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_INVENTORYUSE );
 	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, pszString );
 }
+
+//*****************************************************************************
+//
+void CLIENTCOMMANDS_RequestInventoryDrop( AInventory *pItem )
+{
+	const char	*pszString;
+
+	if ( pItem == NULL )
+		return;
+
+	pszString = pItem->GetClass( )->TypeName.GetChars( );
+	if ( pszString == NULL )
+		return;
+
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_INVENTORYDROP );
+	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, pszString );
+}
