@@ -406,9 +406,9 @@ void TEAM_ScoreSkulltagPoint( player_s *pPlayer, ULONG ulNumPoints, AActor *pPil
 
 	// Create the console message.
 	if( bAssisted )
-		sprintf(szString, "%s \\c-and %s\\c- scored for the %s team!", pPlayer->userinfo.netname, players[TEAM_GetAssistPlayer( pPlayer->ulTeam )].userinfo.netname, pPlayer->ulTeam == TEAM_BLUE ? "Blue" : "Red");
+		sprintf(szString, "%s \\c-and %s\\c- scored for the %s team!\n", pPlayer->userinfo.netname, players[TEAM_GetAssistPlayer( pPlayer->ulTeam )].userinfo.netname, pPlayer->ulTeam == TEAM_BLUE ? "Blue" : "Red");
 	else
-		sprintf(szString, "%s \\c-scored for the %s team!", pPlayer->userinfo.netname, pPlayer->ulTeam == TEAM_BLUE ? "Blue" : "Red");
+		sprintf(szString, "%s \\c-scored for the %s team!\n", pPlayer->userinfo.netname, pPlayer->ulTeam == TEAM_BLUE ? "Blue" : "Red");
 
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_Print( szString, PRINT_HIGH );
