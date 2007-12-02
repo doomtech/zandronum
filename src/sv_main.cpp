@@ -3395,11 +3395,10 @@ LONG SERVER_GetCurrentClient( void )
 //
 void SERVER_GiveInventoryToPlayer( const player_t *player, AInventory *pInventory )
 {
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER ){
-		ULONG playerIdx = SERVER_GetPlayerIndexFromName( player->userinfo.netname );
-		if ( playerIdx < MAXPLAYERS )
-			SERVERCOMMANDS_GiveInventory( playerIdx, pInventory, playerIdx, SVCF_ONLYTHISCLIENT );
-	}
+	if ( (player == NULL) || (player->mo == NULL) || (NETWORK_GetState( ) != NETSTATE_SERVER) )
+		return;
+
+	SERVERCOMMANDS_GiveInventoryNotOverwritingAmount( player->mo, pInventory );
 }
 
 //*****************************************************************************

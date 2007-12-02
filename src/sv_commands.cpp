@@ -4979,7 +4979,7 @@ void SERVERCOMMANDS_GiveInventory( ULONG ulPlayer, AInventory *pInventory, ULONG
 //
 void SERVERCOMMANDS_GiveInventoryNotOverwritingAmount( AActor *pReceiver, AInventory *pItem )
 {
-	if( (pItem == NULL) || (pReceiver->player == NULL) )
+	if( (pItem == NULL) || (pReceiver == NULL) || (pReceiver->player == NULL) )
 		return;
 	
 	// [BB] Since SERVERCOMMANDS_GiveInventory overwrites the item amount
