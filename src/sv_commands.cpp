@@ -1288,7 +1288,7 @@ void SERVERCOMMANDS_PlayerUseInventory( ULONG ulPlayer, AInventory *pItem, ULONG
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 1 + (ULONG)strlen( pszString ), true );
+		SERVER_CheckClientBuffer( ulIdx, 2 + (ULONG)strlen( pszString ), true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_PLAYERUSEINVENTORY );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
 		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszString );
@@ -1323,7 +1323,7 @@ void SERVERCOMMANDS_PlayerDropInventory( ULONG ulPlayer, AInventory *pItem, ULON
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 1 + (ULONG)strlen( pszString ), true );
+		SERVER_CheckClientBuffer( ulIdx, 2 + (ULONG)strlen( pszString ), true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_PLAYERDROPINVENTORY );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
 		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszString );
@@ -1365,8 +1365,6 @@ void SERVERCOMMANDS_SpawnThing( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFla
 			continue;
 		}
 
-		// [BB] I'm sure it has to be strlen(pszName) here.
-		//SERVER_CheckClientBuffer( ulIdx, 9 + (ULONG)strlen( pActor->GetClass( )->TypeName.GetChars( )), true );
 		SERVER_CheckClientBuffer( ulIdx, 9 + (ULONG)strlen( pszName ), true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SPAWNTHING );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->x >> FRACBITS );
@@ -1447,8 +1445,6 @@ void SERVERCOMMANDS_SpawnThingExact( AActor *pActor, ULONG ulPlayerExtra, ULONG 
 			continue;
 		}
 
-		// [BB] I'm sure it has to be strlen(pszName) here.
-		//SERVER_CheckClientBuffer( ulIdx, 15 + (ULONG)strlen( pActor->GetClass( )->TypeName.GetChars( )), true );
 		SERVER_CheckClientBuffer( ulIdx, 15 + (ULONG)strlen( pszName ), true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SPAWNTHINGEXACT );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->x );
@@ -1486,8 +1482,6 @@ void SERVERCOMMANDS_SpawnThingExactNoNetID( AActor *pActor, ULONG ulPlayerExtra,
 			continue;
 		}
 
-		// [BB] I'm sure it has to be strlen(pszName) here.
-		//SERVER_CheckClientBuffer( ulIdx, 13 + (ULONG)strlen( pActor->GetClass( )->TypeName.GetChars( )), true );
 		SERVER_CheckClientBuffer( ulIdx, 13 + (ULONG)strlen( pszName ), true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SPAWNTHINGEXACTNONETID );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->x );
