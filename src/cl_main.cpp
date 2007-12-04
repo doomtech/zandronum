@@ -6083,16 +6083,16 @@ static void client_ThingIsCorpse( BYTESTREAM_s *pByteStream )
 	pActor->height >>= 2;
 
 	// Set the thing to the last frame of its death state.
-	pDeadState = pActor->FindState(NAME_Death);
+	pDeadState = pActor->FindState( NAME_Death );
 	do
 	{
 		pBaseState = pDeadState;
-		if ( pDeadState != NULL )
+		if ( pBaseState != NULL )
 		{
-			pActor->SetStateNF( pDeadState );
-			pDeadState = pDeadState->GetNextState( );
+			pActor->SetStateNF( pBaseState );
+			pDeadState = pBaseState->GetNextState( );
 		}
-	} while (( pDeadState != NULL ) && ( pBaseState == pDeadState + 1 ));
+	} while (( pDeadState != NULL ) && ( pDeadState == pBaseState + 1 ));
 
 	if ( bIsMonster )
 		level.killed_monsters++;
