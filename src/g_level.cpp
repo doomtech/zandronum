@@ -1581,7 +1581,7 @@ void G_NewInit ()
 	// [BC] Support for client-side demos.
 	if ( CLIENTDEMO_IsPlaying( ))
 	{
-		CLIENTDEMO_SetPlaying( false );
+		CLIENTDEMO_FinishPlaying( );
 		D_SetupUserInfo( );
 	}
 	for (i = 0; i < MAXPLAYERS; ++i)

@@ -492,11 +492,14 @@ void CLIENTDEMO_FinishPlaying( void )
 	if ( StatusBar )
 		StatusBar->AttachToPlayer( &players[0] );
 
-	D_AdvanceDemo( );
+	if ( gameaction == ga_nothing )
+	{
+		D_AdvanceDemo( );
 
-	// Go back to the full console.
-	gameaction = ga_fullconsole;
-	gamestate = GS_FULLCONSOLE;
+		// Go back to the full console.
+		gameaction = ga_fullconsole;
+		gamestate = GS_FULLCONSOLE;
+	}
 
 	// View is no longer active.
 	viewactive = false;
