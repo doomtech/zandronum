@@ -2263,6 +2263,7 @@ void D_MultiExec (DArgs *list, bool usePullin)
 #ifndef	WIN32
 extern int do_stdin;
 #endif
+extern bool gl_disabled;
 
 void D_DoomMain (void)
 {
@@ -2888,6 +2889,10 @@ void D_DoomMain (void)
 	{
 		delete ( StartScreen );
 		StartScreen = NULL;
+
+		// [BB] Since the server doesn't execute I_InitGraphics, we have to set gl_disabled here.
+		// The gl nodes code relies on the proper setting of this.
+		gl_disabled = true;
 	}
 
 	if (gameaction != ga_loadgame)
