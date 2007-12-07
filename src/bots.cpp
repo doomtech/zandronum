@@ -1787,7 +1787,7 @@ ULONG BOTS_FindFreePlayerSlot( void )
 
 	// Don't allow us to add bots past the max. clients limit.
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
-		( SERVER_CalcNumPlayers( ) >= sv_maxclients ))
+		( static_cast<LONG>(SERVER_CalcNumPlayers( )) >= sv_maxclients ))
 	{
 		return ( MAXPLAYERS );
 	}
@@ -1864,8 +1864,11 @@ void BOTS_RemoveBot( ULONG ulPlayerIdx, bool bExitMsg )
 		}
 	}
 */
-	delete ( players[ulPlayerIdx].pSkullBot );
-	players[ulPlayerIdx].pSkullBot = NULL;
+	if ( players[ulPlayerIdx].pSkullBot )
+	{
+		delete ( players[ulPlayerIdx].pSkullBot );
+		players[ulPlayerIdx].pSkullBot = NULL;
+	}
 	players[ulPlayerIdx].bIsBot = false;
 
 	// Tell the join queue module that a player has left the game.
@@ -2702,7 +2705,7 @@ void BOTSPAWN_SetTeam( ULONG ulIdx, char *pszTeam )
 ULONG BOTSPAWN_GetTicks( ULONG ulIdx )
 {
 	if ( ulIdx >= MAXPLAYERS )
-		return ( NULL );
+		return ( 0 );
 
 	return ( g_BotSpawn[ulIdx].ulTick );
 }
@@ -3162,7 +3165,7 @@ void CSkullBot::EndTick( void )
 void CSkullBot::PostEvent( BOTEVENT_e Event )
 {
 //	LONG		lBuffer;
-	ULONG		ulIdx;
+	LONG		lIdx;
 	BOTSKILL_e	Skill;
 
 	// No script to post the event to.
@@ -3211,13 +3214,17 @@ void CSkullBot::PostEvent( BOTEVENT_e Event )
 	case BOTSKILL_PERFECT:
 
 		break;
+	default:
+
+		Printf( "CSkullBot::PostEvent: Unhandled bot skill\n." );
+		break;
 	}
 
 	// First, scan global events.
-	for ( ulIdx = 0; ulIdx < m_ScriptData.lNumGlobalEvents; ulIdx++ )
+	for ( lIdx = 0; lIdx < m_ScriptData.lNumGlobalEvents; lIdx++ )
 	{
 		// Found a matching event.
-		if ( m_ScriptData.GlobalEventPositions[ulIdx].Event == Event )
+		if ( m_ScriptData.GlobalEventPositions[lIdx].Event == Event )
 		{
 			if ( m_ScriptData.bInEvent == false )
 			{
@@ -3228,7 +3235,7 @@ void CSkullBot::PostEvent( BOTEVENT_e Event )
 				m_ScriptData.bInEvent = true;
 			}
 
-			m_ScriptData.lScriptPos = m_ScriptData.GlobalEventPositions[ulIdx].lPos;
+			m_ScriptData.lScriptPos = m_ScriptData.GlobalEventPositions[lIdx].lPos;
 			m_ScriptData.RawData.Seek( m_ScriptData.lScriptPos, SEEK_SET );
 
 			// Parse after the event.
@@ -3239,10 +3246,10 @@ void CSkullBot::PostEvent( BOTEVENT_e Event )
 	}
 
 	// If the event wasn't found in the global events, scan state events.
-	for ( ulIdx = 0; ulIdx < MAX_NUM_EVENTS; ulIdx++ )
+	for ( lIdx = 0; lIdx < MAX_NUM_EVENTS; lIdx++ )
 	{
 		// Found a matching event.
-		if ( m_ScriptData.EventPositions[m_ScriptData.lCurrentStateIdx][ulIdx].Event == Event )
+		if ( m_ScriptData.EventPositions[m_ScriptData.lCurrentStateIdx][lIdx].Event == Event )
 		{
 			if ( m_ScriptData.bInEvent == false )
 			{
@@ -3253,7 +3260,7 @@ void CSkullBot::PostEvent( BOTEVENT_e Event )
 				m_ScriptData.bInEvent = true;
 			}
 
-			m_ScriptData.lScriptPos = m_ScriptData.EventPositions[m_ScriptData.lCurrentStateIdx][ulIdx].lPos;
+			m_ScriptData.lScriptPos = m_ScriptData.EventPositions[m_ScriptData.lCurrentStateIdx][lIdx].lPos;
 			m_ScriptData.RawData.Seek( m_ScriptData.lScriptPos, SEEK_SET );
 
 			// Parse after the event.
@@ -3920,7 +3927,7 @@ void CSkullBot::GetStatePositions( void )
 
 		// Hit the end of the file.
 		m_ScriptData.RawData.Seek( m_ScriptData.lScriptPos, SEEK_SET );
-		if ( m_ScriptData.RawData.Read( &lCommandHeader, sizeof( LONG )) < sizeof( LONG ))
+		if ( m_ScriptData.RawData.Read( &lCommandHeader, sizeof( LONG )) < static_cast<LONG>(sizeof( LONG )))
 			return;
 		m_ScriptData.lScriptPos += sizeof( LONG );
 
@@ -4427,7 +4434,8 @@ void CSkullBot::PreDelete( void )
 		m_pPlayer->mo->Destroy( );
 
 	// Finally, fix some pointers.
-	m_pPlayer->pSkullBot = NULL;
+	// [BB] We have to delete the CSkullBot pointer before setting it to NULL.
+	//m_pPlayer->pSkullBot = NULL;
 	m_pPlayer->mo = NULL;
 	m_pPlayer = NULL;
 }
@@ -4800,7 +4808,7 @@ void CSkullBot::AddEventToQueue( BOTEVENT_e Event, LONG lTick )
 //
 void CSkullBot::DeleteEventFromQueue( void )
 {
-	ULONG		ulIdx;
+	LONG		lIdx;
 	BOTEVENT_e	Event;
 
 	Event = m_StoredEventQueue[m_lQueueHead++].Event;
@@ -4810,10 +4818,10 @@ void CSkullBot::DeleteEventFromQueue( void )
 		Printf( "%s: %s\n", GetPlayer( )->userinfo.netname, g_pszEventNames[Event] );
 
 	// First, scan global events.
-	for ( ulIdx = 0; ulIdx < m_ScriptData.lNumGlobalEvents; ulIdx++ )
+	for ( lIdx = 0; lIdx < m_ScriptData.lNumGlobalEvents; lIdx++ )
 	{
 		// Found a matching event.
-		if ( m_ScriptData.GlobalEventPositions[ulIdx].Event == Event )
+		if ( m_ScriptData.GlobalEventPositions[lIdx].Event == Event )
 		{
 			if ( m_ScriptData.bInEvent == false )
 			{
@@ -4824,7 +4832,7 @@ void CSkullBot::DeleteEventFromQueue( void )
 				m_ScriptData.bInEvent = true;
 			}
 
-			m_ScriptData.lScriptPos = m_ScriptData.GlobalEventPositions[ulIdx].lPos;
+			m_ScriptData.lScriptPos = m_ScriptData.GlobalEventPositions[lIdx].lPos;
 			m_ScriptData.RawData.Seek( m_ScriptData.lScriptPos, SEEK_SET );
 
 			// Parse after the event.
@@ -4835,10 +4843,10 @@ void CSkullBot::DeleteEventFromQueue( void )
 	}
 
 	// If the event wasn't found in the global events, scan state events.
-	for ( ulIdx = 0; ulIdx < MAX_NUM_EVENTS; ulIdx++ )
+	for ( lIdx = 0; lIdx < MAX_NUM_EVENTS; lIdx++ )
 	{
 		// Found a matching event.
-		if ( m_ScriptData.EventPositions[m_ScriptData.lCurrentStateIdx][ulIdx].Event == Event )
+		if ( m_ScriptData.EventPositions[m_ScriptData.lCurrentStateIdx][lIdx].Event == Event )
 		{
 			if ( m_ScriptData.bInEvent == false )
 			{
@@ -4849,7 +4857,7 @@ void CSkullBot::DeleteEventFromQueue( void )
 				m_ScriptData.bInEvent = true;
 			}
 
-			m_ScriptData.lScriptPos = m_ScriptData.EventPositions[m_ScriptData.lCurrentStateIdx][ulIdx].lPos;
+			m_ScriptData.lScriptPos = m_ScriptData.EventPositions[m_ScriptData.lCurrentStateIdx][lIdx].lPos;
 			m_ScriptData.RawData.Seek( m_ScriptData.lScriptPos, SEEK_SET );
 
 			// Parse after the event.

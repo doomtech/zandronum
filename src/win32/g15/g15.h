@@ -85,3 +85,4 @@ void		G15_Deconstruct( void );
 void		G15_Printf( const char *pszString );
 void		G15_ShowLargeFragMessage( char *name, bool bWeFragged );
 #endif
+
