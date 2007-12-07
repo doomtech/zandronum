@@ -70,7 +70,7 @@ void NETWORK_FreeBuffer( NETBUFFER_s *pBuffer )
 {
 	if ( pBuffer->pbData )
 	{
-		delete ( pBuffer->pbData );
+		delete[] ( pBuffer->pbData );
 		pBuffer->pbData = NULL;
 	}
 

@@ -233,7 +233,7 @@ void ASTAR_ClearNodes( void )
 {
 	ULONG	ulIdx;
 
-	free( g_aMasterNodeList );
+	delete[] g_aMasterNodeList;
 	g_aMasterNodeList = NULL;
 
 	for ( ulIdx = 0; ulIdx < MAX_PATHS; ulIdx++ )

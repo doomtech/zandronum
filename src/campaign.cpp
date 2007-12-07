@@ -108,7 +108,7 @@ void CAMPAIGN_Destruct( void )
 		{
 			if ( pInfo->pNextInfo == NULL )
 			{
-				free( pInfo );
+				delete pInfo;
 				pInfo = NULL;
 				if ( pParent )
 					pParent->pNextInfo = NULL;

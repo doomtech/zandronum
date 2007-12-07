@@ -2806,7 +2806,7 @@ static void botcmd_SayFromChatLump( CSkullBot *pBot )
 		CONSOLE_SetAllowColorCodes( true );
 
 		// Free the file before leaving.
-		free( pFile );
+		delete pFile;
 		return;
 	}
 
@@ -2822,7 +2822,7 @@ static void botcmd_SayFromChatLump( CSkullBot *pBot )
 		CONSOLE_SetAllowColorCodes( true );
 
 		// Free the file before leaving.
-		free( pFile );
+		delete pFile;
 		return;
 	}
 
@@ -2838,7 +2838,7 @@ static void botcmd_SayFromChatLump( CSkullBot *pBot )
 	}
 
 	// Free the file before leaving.
-	free( pFile );
+	delete pFile;
 }
 
 //*****************************************************************************
@@ -2899,7 +2899,7 @@ static void botcmd_ChatSectionExistsInChatLump( CSkullBot *pBot )
 		g_bReturnBool = false;
 
 		// Free the file before leaving.
-		free( pFile );
+		delete pFile;
 		return;
 	}
 
@@ -2909,5 +2909,5 @@ static void botcmd_ChatSectionExistsInChatLump( CSkullBot *pBot )
 		g_bReturnBool = false;
 
 	// Free the file before leaving.
-	free( pFile );
+	delete pFile;
 }
