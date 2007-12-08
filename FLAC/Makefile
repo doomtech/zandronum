@@ -29,7 +29,7 @@ CCDV =
 #@../ccdv
 CC = gcc
 CXX = g++
-CFLAGS = $(LOC) $(DEFINES) -O2 -Wall -fomit-frame-pointer
+CFLAGS = $(LOC) $(DEFINES) -O2 -Wall -Wno-unused-function -fomit-frame-pointer
 CXXFLAGS = $(LOC) $(DEFINES) -O2 -Wall
 
 NASM = nasm
@@ -39,7 +39,7 @@ AR = ar
 ARFLAGS = rcs
 
 OBJS = cpu_asm.o fixed_asm.o lpc_asm.o \
-       bitbuffer.o bitmath.o cpu.o crc.o fixed.o format.o lpc.o memory.o stream_decoder.o stream_decoder_pp.o
+       bitmath.o bitreader.o cpu.o crc.o fixed.o format.o lpc.o md5.c memory.o stream_decoder.o stream_decoder_pp.o
 
 all: $(STATICLIB)
 
