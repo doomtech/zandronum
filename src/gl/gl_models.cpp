@@ -536,24 +536,31 @@ void gl_RenderModel(GLSprite * spr, int cm)
 			}
 			inter = static_cast<double>(curState->Tics - spr->actor->tics - ticFraction)/static_cast<double>(curState->Tics);
 
-			// [BB] Workaround for actors that use the same frame twice in a row.
-			// Most of the standard Doom monsters do this in their see state.
-			if ( (smf->flags & MDL_INTERPOLATEDOUBLEDFRAMES) )
+			// [BB] For some actors (e.g. ZPoisonShroom) spr->actor->tics can be bigger than curState->Tics.
+			// In this case inter is negative and we need to set it to zero.
+			if ( inter < 0. )
+				inter = 0.;
+			else
 			{
-				FState *prevState = curState - 1;
-				if ( (curState->sprite.index == prevState->sprite.index) && ( curState->Frame == prevState->Frame) )
+				// [BB] Workaround for actors that use the same frame twice in a row.
+				// Most of the standard Doom monsters do this in their see state.
+				if ( (smf->flags & MDL_INTERPOLATEDOUBLEDFRAMES) )
 				{
-					inter /= 2.;
-					inter += 0.5;
+					FState *prevState = curState - 1;
+					if ( (curState->sprite.index == prevState->sprite.index) && ( curState->Frame == prevState->Frame) )
+					{
+						inter /= 2.;
+						inter += 0.5;
+					}
+					if ( (curState->sprite.index == nextState->sprite.index) && ( curState->Frame == nextState->Frame) )
+					{
+						inter /= 2.;
+						nextState = nextState->GetNextState( );
+					}
 				}
-				if ( (curState->sprite.index == nextState->sprite.index) && ( curState->Frame == nextState->Frame) )
-				{
-					inter /= 2.;
-					nextState = nextState->GetNextState( );
-				}
+				if ( inter != 0.0 )
+					smfNext = gl_FindModelFrame(RUNTIME_TYPE(spr->actor), nextState->sprite.index, nextState->Frame);
 			}
-			if ( inter != 0.0 )
-				smfNext = gl_FindModelFrame(RUNTIME_TYPE(spr->actor), nextState->sprite.index, nextState->Frame);
 		}
 	}
 
