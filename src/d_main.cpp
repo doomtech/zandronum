@@ -217,23 +217,26 @@ FTexture *Advisory;
 
 cycle_t FrameCycles;
 
+// If autoname is NULL, that's either because that game doesn't allow
+// loading of external wads or because it's already caught by the
+// general game-specific wads section.
 const IWADInfo IWADInfos[NUM_IWAD_TYPES] =
 {
-	// banner text,								fg color,				bg color
-	{ "DOOM 2: TNT - Evilution",				MAKERGB(168,0,0),		MAKERGB(168,168,168) },
-	{ "DOOM 2: Plutonia Experiment",			MAKERGB(168,0,0),		MAKERGB(168,168,168) },
-	{ "Hexen: Beyond Heretic",					MAKERGB(240,240,240),	MAKERGB(107,44,24) },
-	{ "Hexen: Deathkings of the Dark Citadel",	MAKERGB(240,240,240),	MAKERGB(139,68,9) },
-	{ "DOOM 2: Hell on Earth",					MAKERGB(168,0,0),		MAKERGB(168,168,168) },
-	{ "Heretic Shareware",						MAKERGB(252,252,0),		MAKERGB(168,0,0) },
-	{ "Heretic: Shadow of the Serpent Riders",	MAKERGB(252,252,0),		MAKERGB(168,0,0) },
-	{ "Heretic",								MAKERGB(252,252,0),		MAKERGB(168,0,0) },
-	{ "DOOM Shareware",							MAKERGB(168,0,0),		MAKERGB(168,168,168) },
-	{ "The Ultimate DOOM",						MAKERGB(84,84,84),		MAKERGB(168,168,168) },
-	{ "DOOM Registered",						MAKERGB(84,84,84),		MAKERGB(168,168,168) },
-	{ "Strife: Quest for the Sigil",			MAKERGB(224,173,153),	MAKERGB(0,107,101) },
-	{ "Strife: Teaser (Old Version)",			MAKERGB(224,173,153),	MAKERGB(0,107,101) },
-	{ "Strife: Teaser (New Version)",			MAKERGB(224,173,153),	MAKERGB(0,107,101) }
+	// banner text,								autoname,	fg color,				bg color
+	{ "Final Doom: TNT - Evilution",			"TNT",		MAKERGB(168,0,0),		MAKERGB(168,168,168) },
+	{ "Final Doom: Plutonia Experiment",		"Plutonia",	MAKERGB(168,0,0),		MAKERGB(168,168,168) },
+	{ "Hexen: Beyond Heretic",					NULL,		MAKERGB(240,240,240),	MAKERGB(107,44,24) },
+	{ "Hexen: Deathkings of the Dark Citadel",	"HexenDK",	MAKERGB(240,240,240),	MAKERGB(139,68,9) },
+	{ "DOOM 2: Hell on Earth",					"Doom2",	MAKERGB(168,0,0),		MAKERGB(168,168,168) },
+	{ "Heretic Shareware",						NULL,		MAKERGB(252,252,0),		MAKERGB(168,0,0) },
+	{ "Heretic: Shadow of the Serpent Riders",	NULL,		MAKERGB(252,252,0),		MAKERGB(168,0,0) },
+	{ "Heretic",								NULL,		MAKERGB(252,252,0),		MAKERGB(168,0,0) },
+	{ "DOOM Shareware",							NULL,		MAKERGB(168,0,0),		MAKERGB(168,168,168) },
+	{ "The Ultimate DOOM",						"Doom1",	MAKERGB(84,84,84),		MAKERGB(168,168,168) },
+	{ "DOOM Registered",						"Doom1",	MAKERGB(84,84,84),		MAKERGB(168,168,168) },
+	{ "Strife: Quest for the Sigil",			NULL,		MAKERGB(224,173,153),	MAKERGB(0,107,101) },
+	{ "Strife: Teaser (Old Version)",			NULL,		MAKERGB(224,173,153),	MAKERGB(0,107,101) },
+	{ "Strife: Teaser (New Version)",			NULL,		MAKERGB(224,173,153),	MAKERGB(0,107,101) }
 };
 
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
@@ -1508,19 +1511,26 @@ static void D_AddDirectory (const char *dir)
 
 void D_AddSubdirectory (const char *Subdirectory)
 {
-	char dirName[1024];
+	FString dirName;
 #ifdef unix
-	sprintf (dirName, "%s%s", SHARE_DIR, Subdirectory);
+	dirName = SHARE_DIR;
+	dirName += Subdirectory;
 	D_AddDirectory (dirName);
 #endif
-	sprintf (dirName, "%s%s", progdir, Subdirectory);
+	dirName = progdir;
+	dirName += Subdirectory;
 	D_AddDirectory (dirName);
 
 	const char *home = getenv ("HOME");
 	if (home)
 	{
-		sprintf (dirName, "%s%s.%s/%s", home,
-			home[strlen(home)-1] == '/' ? "" : "/", GAMENAMELOWERCASE, Subdirectory);
+		dirName = home;
+		if (home[strlen(home) - 1] != '/')
+		{
+			dirName += '/';
+		}
+		dirName += "." GAMENAMELOWERCASE "/";
+		dirName += Subdirectory;
 		D_AddDirectory (dirName);
 	}
 
@@ -1949,6 +1959,26 @@ static EIWADType IdentifyVersion (const char *zdoom_wad)
 				}
 			}
 		}
+#ifdef _WIN32
+		FString steam_path = I_GetSteamPath();
+		if (steam_path.IsNotEmpty())
+		{
+			static const char *const steam_dirs[] =
+			{
+				"doom 2/base",
+				"final doom/base",
+				"heretic shadow of the serpent riders/base",
+				"hexen/base",
+				"hexen deathkings of the dark citadel/base",
+				"ultimate doom/base"
+			};
+			steam_path += "/SteamApps/common/";
+			for (i = 0; i < countof(steam_dirs); ++i)
+			{
+				CheckIWAD (steam_path + steam_dirs[i], wads);
+			}
+		}
+#endif
 	}
 
 	if (iwadparm != NULL && !wads[0].Path.IsEmpty())
@@ -1956,7 +1986,7 @@ static EIWADType IdentifyVersion (const char *zdoom_wad)
 		iwadparmfound = true;
 	}
 
-	for (i = numwads = 0; i < sizeof(IWADNames)/sizeof(char *); i++)
+	for (i = numwads = 0; i < countof(IWADNames); i++)
 	{
 		if (!wads[i].Path.IsEmpty())
 		{
@@ -2268,13 +2298,12 @@ extern bool gl_disabled;
 void D_DoomMain (void)
 {
 	int p, flags;
-	char file[PATH_MAX];
+	FString file;
 	char *v;
 	const char *wad;
 	DArgs *execFiles;
+	const IWADInfo *iwad_info;
 	LONG		lIdx;
-
-	file[PATH_MAX-1] = 0;
 
 	srand(I_MSTime());
 	
@@ -2335,7 +2364,8 @@ void D_DoomMain (void)
 			I_FatalError( "Cannot find skulltag.wad" );
 	}
 
-	I_SetIWADInfo (&IWADInfos[IdentifyVersion(wad)]);
+	iwad_info = &IWADInfos[IdentifyVersion(wad)];
+	I_SetIWADInfo(iwad_info);
 	GameConfig->DoGameSetup (GameNames[gameinfo.gametype]);
 
 	if (!(gameinfo.flags & GI_SHAREWARE))
@@ -2363,8 +2393,17 @@ void D_DoomMain (void)
 		D_AddConfigWads ("Global.Autoload");
 
 		// Add game-specific wads
-		sprintf (file, "%s.Autoload", GameNames[gameinfo.gametype]);
+		file = GameNames[gameinfo.gametype];
+		file += ".Autoload";
 		D_AddConfigWads (file);
+
+		// Add IWAD-specific wads
+		if (iwad_info->Autoname != NULL)
+		{
+			file = iwad_info->Autoname;
+			file += ".Autoload";
+			D_AddConfigWads(file);
+		}
 	}
 	else
 		I_FatalError ("Due to restrictions of the shareware license "GAMENAME" may not be run with a shareware IWAD.\n");
@@ -2878,7 +2917,7 @@ void D_DoomMain (void)
 		v = Args.CheckValue ("-loadgame");
 		if (v)
 		{
-			strncpy (file, v, sizeof(file)-1);
+			file = v;
 			FixPathSeperator (file);
 			DefaultExtension (file, ".zds");
 			G_LoadGame (file);

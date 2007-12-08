@@ -14,7 +14,7 @@ ifdef GC
   CFLAGS += -ffunction-sections
   LDFLAGS += -Wl,--gc-sections
 endif
-CFLAGS += -MMD -DHAVE_FILELENGTH -D__forceinline=inline -Izlib -IFLAC `sdl-config --cflags`
+CFLAGS += -MMD -DHAVE_FILELENGTH -D__forceinline=inline -IFLAC `sdl-config --cflags`
 CFLAGS += -Dstrnicmp=strncasecmp -DNEED_STRUPR -DNO_SERVER_GUI
 ifdef SERVERONLY
   CFLAGS += -DNO_SOUND -DNO_GL -DNO_GTK -DSERVER_ONLY
