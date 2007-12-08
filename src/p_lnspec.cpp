@@ -312,6 +312,13 @@ FUNC(LS_Floor_MoveToValueTimes8)
 					   arg2*FRACUNIT*8*(arg3?-1:1), 0, 0);
 }
 
+FUNC(LS_Floor_MoveToValue)
+// Floor_MoveToValue (tag, speed, height, negative)
+{
+	return EV_DoFloor (DFloor::floorMoveToValue, ln, arg0, SPEED(arg1),
+					   arg2*FRACUNIT*(arg3?-1:1), 0, 0);
+}
+
 FUNC(LS_Floor_RaiseToLowestCeiling)
 // Floor_RaiseToLowestCeiling (tag, speed)
 {
@@ -523,6 +530,13 @@ FUNC(LS_Ceiling_MoveToValueTimes8)
 {
 	return EV_DoCeiling (DCeiling::ceilMoveToValue, ln, arg0, SPEED(arg1), 0,
 						 arg2*FRACUNIT*8*((arg3) ? -1 : 1), -1, 0, 0);
+}
+
+FUNC(LS_Ceiling_MoveToValue)
+// Ceiling_MoveToValue (tag, speed, height, negative)
+{
+	return EV_DoCeiling (DCeiling::ceilMoveToValue, ln, arg0, SPEED(arg1), 0,
+						 arg2*FRACUNIT*((arg3) ? -1 : 1), -1, 0, 0);
 }
 
 FUNC(LS_Ceiling_LowerToHighestFloor)
@@ -3159,7 +3173,7 @@ lnSpecFunc LineSpecials[256] =
 	LS_ClearForceField,
 	LS_Floor_RaiseByValueTimes8,
 	LS_Floor_LowerByValueTimes8,
-	LS_NOP,		// 37
+	LS_Floor_MoveToValue,
 	LS_Ceiling_Waggle,
 	LS_Teleport_ZombieChanger,
 	LS_Ceiling_LowerByValue,
@@ -3169,7 +3183,7 @@ lnSpecFunc LineSpecials[256] =
 	LS_Ceiling_CrushStop,
 	LS_Ceiling_CrushRaiseAndStay,
 	LS_Floor_CrushStop,
-	LS_NOP,		// 47
+	LS_Ceiling_MoveToValue,
 	LS_NOP,		// 48
 	LS_GlassBreak,
 	LS_NOP,		// 50: ExtraFloor_LightOnly
