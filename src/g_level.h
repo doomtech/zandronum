@@ -112,7 +112,10 @@
 
 #define LEVEL_NOMONSTERS			UCONST64(0x1000000000000)
 #define LEVEL_INFINITE_FLIGHT		UCONST64(0x2000000000000)
-#define	LEVEL_NOBOTNODES			UCONST64(0x4000000000000)	// [BC] Level does not use bot nodes.
+
+#define LEVEL_ALLOWRESPAWN			UCONST64(0x4000000000000)
+#define	LEVEL_NOBOTNODES			UCONST64(0x8000000000000)	// [BC] Level does not use bot nodes.
+
 
 
 struct acsdefered_s;
@@ -405,6 +408,7 @@ struct FSkillInfo
 	SkillMenuNames MenuNamesForPlayerClass;
 	bool MenuNameIsLump;
 	bool MustConfirm;
+	FString MustConfirmText;
 	char shortcut;
 	int textcolor;
 
@@ -430,6 +434,7 @@ struct FSkillInfo
 		MenuNamesForPlayerClass = other.MenuNamesForPlayerClass;
 		MenuNameIsLump = other.MenuNameIsLump;
 		MustConfirm = other.MustConfirm;
+		MustConfirmText = other.MustConfirmText;
 		shortcut = other.shortcut;
 		textcolor = other.textcolor;
 		return *this;

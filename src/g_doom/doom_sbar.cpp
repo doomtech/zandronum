@@ -1942,7 +1942,7 @@ void DrawFullHUD_GameInformation()
 		if (FacePriority < 6)
 		{
 			// rapid firing
-			if ((CPlayer->cmd.ucmd.buttons & BT_ATTACK) && !(CPlayer->cheats & (CF_FROZEN | CF_TOTALLYFROZEN)))
+			if ((CPlayer->cmd.ucmd.buttons & (BT_ATTACK|BT_ALTATTACK)) && !(CPlayer->cheats & (CF_FROZEN | CF_TOTALLYFROZEN)))
 			{
 				if (FaceLastAttackDown == -1)
 					FaceLastAttackDown = ST_RAMPAGEDELAY;

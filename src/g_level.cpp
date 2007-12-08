@@ -317,6 +317,7 @@ static const char *MapInfoMapLevel[] =
 	"totalinfighting",
 	"infiniteflightpowerup",
 	"noinfiniteflightpowerup",
+	"allowrespawn",
 	"nobotnodes",	// [BC] Allow the prevention of spawning bot nodes (helpful for very large maps).
 	// new [GZDoom]
 	"fogdensity",
@@ -462,6 +463,7 @@ MapHandlers[] =
 	{ MITYPE_SCFLAGS,	LEVEL_TOTALINFIGHTING, ~LEVEL_NOINFIGHTING },
 	{ MITYPE_SETFLAG,	LEVEL_INFINITE_FLIGHT, 0 },
 	{ MITYPE_CLRFLAG,	LEVEL_INFINITE_FLIGHT, 0 },
+	{ MITYPE_SETFLAG,	LEVEL_ALLOWRESPAWN, 0 },
 	{ MITYPE_SETFLAG,	LEVEL_NOBOTNODES, 0 },	// [BC]
 	// new [GZDoom]
 	{ MITYPE_INT,		lioffset(fogdensity), 0 },
@@ -3833,6 +3835,12 @@ static void ParseSkill ()
 		else if (SC_Compare("MustConfirm"))
 		{
 			skill.MustConfirm = true;
+			/*
+			if (SC_CheckToken(TK_String))
+			{
+				skill.MustConfirmText = sc_String;
+			}
+			*/
 		}
 		else if (SC_Compare("Key"))
 		{

@@ -2579,7 +2579,7 @@ void G_DoReborn (int playernum, bool freshbot)
 	{
 		return;
 	}
-	else if ( NETWORK_GetState( ) == NETSTATE_SINGLE )
+	else if ((NETWORK_GetState( ) == NETSTATE_SINGLE) && !(level.flags & LEVEL_ALLOWRESPAWN))
 	{
 		if (BackupSaveName.Len() > 0 && FileExists (BackupSaveName.GetChars()))
 		{ // Load game from the last point it was saved
