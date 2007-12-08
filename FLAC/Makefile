@@ -39,7 +39,7 @@ AR = ar
 ARFLAGS = rcs
 
 OBJS = cpu_asm.o fixed_asm.o lpc_asm.o \
-       bitmath.o bitreader.o cpu.o crc.o fixed.o format.o lpc.o md5.c memory.o stream_decoder.o stream_decoder_pp.o
+       bitmath.o bitreader.o cpu.o crc.o fixed.o format.o lpc.o md5.o memory.o stream_decoder.o stream_decoder_pp.o
 
 all: $(STATICLIB)
 
@@ -78,5 +78,6 @@ fixed.o: fixed.c
 format.o: format.c
 lpc.o: lpc.c
 memory.o: memory.c
+md5.o: md5.c
 stream_decoder.o: stream_decoder.c
 stream_decoder_pp.o: stream_decoder_pp.cpp
