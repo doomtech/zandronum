@@ -1848,8 +1848,10 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 
 	if ( szClass[0] )
 	{
+		// [BB] We can't use -1 here for random, in this case the skin check below crashes.
+		// Therefore the server just randomly selects a class. Seems to work well.
 		if ( stricmp( szClass, "random" ) == 0 )
-			pPlayer->userinfo.PlayerClass = -1;
+			pPlayer->userinfo.PlayerClass = (M_Random() % PlayerClasses.Size () );
 		else
 			pPlayer->userinfo.PlayerClass = D_PlayerClassToInt( szClass );
 
