@@ -406,15 +406,14 @@ void cht_DoCheat (player_t *player, int cheat)
 
 /* [BB] Skulltag doesn't use this.
 	case CHT_FREEZE:
-		if (bglobal.freeze)
+		bglobal.changefreeze ^= 1;
+		if (bglobal.freeze ^ bglobal.changefreeze)
 		{
-			bglobal.freeze = false;
-			msg = "Freeze mode off";
+			msg = "Freeze mode on";
 		}
 		else
 		{
-			bglobal.freeze = true;
-			msg = "Freeze mode on";
+			msg = "Freeze mode off";
 		}
 		break;
 */
