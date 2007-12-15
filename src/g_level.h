@@ -393,7 +393,7 @@ typedef TMap<FName, FString> SkillMenuNames;
 
 struct FSkillInfo
 {
-	FName name;
+	FName Name;
 	fixed_t AmmoFactor;
 	fixed_t DamageFactor;
 	bool FastMonsters;
@@ -409,36 +409,16 @@ struct FSkillInfo
 	bool MenuNameIsLump;
 	bool MustConfirm;
 	FString MustConfirmText;
-	char shortcut;
-	int textcolor;
+	char Shortcut;
+	FString TextColor;
 
 	FSkillInfo() {}
 	FSkillInfo(const FSkillInfo &other)
 	{
 		operator=(other);
 	}
-	FSkillInfo &operator=(const FSkillInfo &other)
-	{
-		name = other.name;
-		AmmoFactor = other.AmmoFactor;
-		DamageFactor = other.DamageFactor;
-		FastMonsters = other.FastMonsters;
-		DisableCheats = other.DisableCheats;
-		AutoUseHealth = other.AutoUseHealth;
-		EasyBossBrain = other.EasyBossBrain;
-		RespawnCounter= other.RespawnCounter;
-		Aggressiveness= other.Aggressiveness;
-		SpawnFilter = other.SpawnFilter;
-		ACSReturn = other.ACSReturn;
-		MenuName = other.MenuName;
-		MenuNamesForPlayerClass = other.MenuNamesForPlayerClass;
-		MenuNameIsLump = other.MenuNameIsLump;
-		MustConfirm = other.MustConfirm;
-		MustConfirmText = other.MustConfirmText;
-		shortcut = other.shortcut;
-		textcolor = other.textcolor;
-		return *this;
-	}
+	FSkillInfo &operator=(const FSkillInfo &other);
+	int GetTextColor() const;
 };
 
 extern TArray<FSkillInfo> AllSkills;

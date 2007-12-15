@@ -767,13 +767,13 @@ do_stop:
 
 								if (SC_CheckNumber())
 								{
-									if (strlen(statestring)>0)
+									if (sc_Number > 0 && strlen(statestring)>0)
 									{
-										SC_ScriptError("You cannot use A_Jump commands with a jump index on multistate definitions\n");
+										SC_ScriptError("You cannot use state jumps commands with a jump offset on multistate definitions\n");
 									}
 
 									v=sc_Number;
-									if (v<1)
+									if (v<0)
 									{
 										SC_ScriptError("Negative jump offsets are not allowed");
 									}
@@ -789,6 +789,11 @@ do_stop:
 
 									v = -(int)JumpParameters.Size();
 									FString statestring = ParseStateString();
+									if (sc_String[0] == 0 || SC_Compare("None"))
+									{
+										v = 0;	// an empty string means 'no state'.
+										break;
+									}
 									const PClass *stype=NULL;
 									int scope = statestring.IndexOf("::");
 									if (scope >= 0)

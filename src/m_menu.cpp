@@ -478,9 +478,9 @@ void M_StartupSkillMenu(const char *playerclass)
 
 		SkillSelectMenu[i].name = skill.MenuName;
 		SkillSelectMenu[i].fulltext = !skill.MenuNameIsLump;
-		SkillSelectMenu[i].alphaKey = skill.MenuNameIsLump? skill.shortcut : tolower(SkillSelectMenu[i].name[0]);
-		SkillSelectMenu[i].textcolor = skill.textcolor;
-		SkillSelectMenu[i].alphaKey = skill.shortcut;
+		SkillSelectMenu[i].alphaKey = skill.MenuNameIsLump? skill.Shortcut : tolower(SkillSelectMenu[i].name[0]);
+		SkillSelectMenu[i].textcolor = skill.GetTextColor();
+		SkillSelectMenu[i].alphaKey = skill.Shortcut;
 
 		if (playerclass != NULL)
 		{
@@ -489,7 +489,7 @@ void M_StartupSkillMenu(const char *playerclass)
 			{
 				SkillSelectMenu[i].name = GStrings(*pmnm);
 				SkillSelectMenu[i].fulltext = true;
-				if (skill.shortcut==0)
+				if (skill.Shortcut == 0)
 					SkillSelectMenu[i].alphaKey = tolower(SkillSelectMenu[i].name[0]);
 			}
 		}
@@ -1905,6 +1905,8 @@ void M_DrawEpisode ()
 	}
 }
 
+static int confirmskill;
+
 void M_VerifyNightmare (int ch)
 {
 	if (ch != 'y')
@@ -1921,12 +1923,12 @@ void M_VerifyNightmare (int ch)
 	// Turn campaign mode back on.
 	CAMPAIGN_EnableCampaign( );
 
-	G_DeferedInitNew (EpisodeMaps[epi], 4);
+	G_DeferedInitNew (EpisodeMaps[epi], confirmskill);
 	if (gamestate == GS_FULLCONSOLE)
 	{
 		gamestate = GS_HIDECONSOLE;
 		gameaction = ga_newgame;
-	} 
+	}
 	M_ClearMenus ();
 }
 
@@ -1956,11 +1958,12 @@ void M_ChooseSkill (int choice)
 {
 	UCVarValue	Val;
 
-	if (gameinfo.gametype == GAME_Doom && AllSkills[choice].MustConfirm)
+	if (AllSkills[choice].MustConfirm)
 	{
 		const char *msg = AllSkills[choice].MustConfirmText;
 		if (*msg==0) msg = GStrings("NIGHTMARE");
 		if (*msg=='$') msg = GStrings(msg+1);
+		confirmskill = choice;
 		M_StartMessage (msg, M_VerifyNightmare, true);
 		return;
 	}
@@ -3086,6 +3089,10 @@ bool M_Responder (event_t *ev)
 			}
 			return true;
 		}
+		else if (ev->subtype == EV_GUI_Char && messageToPrint && messageNeedsInput)
+		{
+			ch = ev->data1;
+		}
 	}
 	
 	if (OptionsActive && CHAT_GetChatMode( ) == 0 )
@@ -3133,10 +3140,23 @@ bool M_Responder (event_t *ev)
 	if (messageToPrint)
 	{
 		ch = tolower (ch);
-		if (messageNeedsInput &&
-			ch != ' ' && ch != 'n' && ch != 'y' && ch != GK_ESCAPE)
+		if (messageNeedsInput)
 		{
-			return false;
+			// For each printable keystroke, both EV_GUI_KeyDown and
+			// EV_GUI_Char will be generated, in that order. If we close
+			// the menu after the first event arrives and the fullscreen
+			// console is up, the console will get the EV_GUI_Char event
+			// next. Therefore, the message input should only respond to
+			// EV_GUI_Char events (sans Escape, which only generates
+			// EV_GUI_KeyDown.)
+			if (ev->subtype != EV_GUI_Char && ch != GK_ESCAPE)
+			{
+				return false;
+			}
+			if (ch != ' ' && ch != 'n' && ch != 'y' && ch != GK_ESCAPE)
+			{
+				return false;
+			}
 		}
 
 		menuactive = messageLastMenuActive;
