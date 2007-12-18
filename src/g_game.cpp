@@ -1313,19 +1313,7 @@ void G_Ticker ()
 		while (( lSize = NETWORK_GetPackets( )) > 0 )
 		{
 			UCVarValue		Val;
-			NETADDRESS_s	MasterAddress;
-			char			*pszMasterPort;
 			BYTESTREAM_s	*pByteStream;
-
-			Val = cl_masterip.GetGenericRep( CVAR_String );
-			NETWORK_StringToAddress( Val.String, &MasterAddress );
-
-			// Allow the user to specify which port the master server is on.
-			pszMasterPort = Args.CheckValue( "-masterport" );
-			if ( pszMasterPort )
-				MasterAddress.usPort = NETWORK_ntohs( atoi( pszMasterPort ));
-			else 
-				MasterAddress.usPort = NETWORK_ntohs( DEFAULT_MASTER_PORT );
 
 			pByteStream = &NETWORK_GetNetworkMessageBuffer( )->ByteStream;
 
@@ -1391,13 +1379,27 @@ void G_Ticker ()
 			}
 			else
 			{
-				char			*pszPrefix1 = "127.0.0.1";
-				char			*pszPrefix2 = "10.";
-				char			*pszPrefix3 = "172.16.";
-				char			*pszPrefix4 = "192.168.";
-				char			*pszAddressBuf;
+				const char		*pszPrefix1 = "127.0.0.1";
+				const char		*pszPrefix2 = "10.";
+				const char		*pszPrefix3 = "172.16.";
+				const char		*pszPrefix4 = "192.168.";
+				const char		*pszAddressBuf;
 				NETADDRESS_s	AddressFrom;
 				LONG			lCommand;
+				NETADDRESS_s	MasterAddress;
+				const char		*pszMasterPort;
+				Val = cl_masterip.GetGenericRep( CVAR_String );
+				// [BB] This conversion potentially does a DNS lookup.
+				// There is absolutely no reason to call this at beginning of the while loop above (like done before). 
+				NETWORK_StringToAddress( Val.String, &MasterAddress );
+
+				// Allow the user to specify which port the master server is on.
+				pszMasterPort = Args.CheckValue( "-masterport" );
+				if ( pszMasterPort )
+					MasterAddress.usPort = NETWORK_ntohs( atoi( pszMasterPort ));
+				else 
+					MasterAddress.usPort = NETWORK_ntohs( DEFAULT_MASTER_PORT );
+
 
 				pszAddressBuf = NETWORK_AddressToString( NETWORK_GetFromAddress( ));
 

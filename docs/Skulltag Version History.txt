@@ -242,6 +242,7 @@ v0.97d
 -	- Converted DarkImp to DECORATE. [Kinsie, Torr Samaho]
 -	- Fixed memory leaks during map changes on the server. [Torr Samaho]
 -	- Fixed: When a bot is removed, its memory is not freed. [Torr Samaho]
+-	- Fixed: During every tick in which a client receives a network packet, it potentially does a DNS lookup of the master server, even if only receiving packets from the server. This fixes the freezing issues on the client occurring online every five minutes. [Rivecoder, Torr Samaho]
 !	- Survival co-op is now disabled in hubs. [Carnevil]
 !	- Skulltag's invasion spawners are now defined in skulltag.pk3. [Carnevil]
 !	- Skulltag.wad is now loaded before doom2.wad. This should fix certain texture errors. [Carnevil]
