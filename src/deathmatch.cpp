@@ -320,6 +320,22 @@ CCMD( spectate )
 //
 CUSTOM_CVAR( Int, fraglimit, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK )
 {
+/* [BB] Do we need this in ST?
+	// Check for the fraglimit being hit because the fraglimit is being
+	// lowered below somebody's current frag count.
+	if (deathmatch && self > 0)
+	{
+		for (int i = 0; i < MAXPLAYERS; ++i)
+		{
+			if (playeringame[i] && self <= D_GetFragCount(&players[i]))
+			{
+				Printf ("%s\n", GStrings("TXT_FRAGLIMIT"));
+				G_ExitLevel (0, false);
+				break;
+			}
+		}
+	}
+*/
 	if ( self >= 65536 )
 		self = 65535;
 	if ( self < 0 )

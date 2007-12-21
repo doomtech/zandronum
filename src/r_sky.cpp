@@ -90,13 +90,18 @@ void R_InitSkyMap ()
 	{
 		skytexturemid = r_Yaspect/2*FRACUNIT;
 		skystretch = (r_stretchsky
-					  && !(dmflags & DF_NO_FREELOOK)
+					  && level.IsFreelookAllowed()
 					  && !(level.flags & LEVEL_FORCENOSKYSTRETCH)) ? 1 : 0;
 	}
 	else
 	{
 		skytexturemid = 199 * skytex1->yScale;
 		skystretch = 0;
+		// At heights above 600 pixels, the sky is drawn slightly too low.
+		if (SCREENHEIGHT > 600)
+		{
+			skytexturemid += FRACUNIT;
+		}
 	}
 	skyheight = fskyheight << skystretch;
 

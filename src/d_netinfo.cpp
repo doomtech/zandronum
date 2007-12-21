@@ -114,6 +114,55 @@ static const char *UserInfoStrings[] =
 	NULL
 };
 
+// Replace \ with %/ and % with %%
+FString D_EscapeUserInfo (const char *str)
+{
+	FString ret;
+
+	for (; *str != '\0'; ++str)
+	{
+		if (*str == '\\')
+		{
+			ret << '%' << '/';
+		}
+		else if (*str == '%')
+		{
+			ret << '%' << '%';
+		}
+		else
+		{
+			ret << *str;
+		}
+	}
+	return ret;
+}
+
+// Replace %/ with \ and %% with %
+FString D_UnescapeUserInfo (const char *str, size_t len)
+{
+	const char *end = str + len;
+	FString ret;
+
+	while (*str != '\0' && str < end)
+	{
+		if (*str == '%')
+		{
+			if (*(str + 1) == '/')
+			{
+				ret << '\\';
+				str += 2;
+				continue;
+			}
+			else if (*(str + 1) == '%')
+			{
+				str++;
+			}
+		}
+		ret << *str++;
+	}
+	return ret;
+}
+
 int D_GenderToInt (const char *gender)
 {
 	if ( !stricmp( gender, "0" ))
@@ -273,6 +322,7 @@ void D_SetupUserInfo ()
 void D_UserInfoChanged (FBaseCVar *cvar)
 {
 	UCVarValue val;
+	FString escaped_val;
 	char foo[256];
 	ULONG	ulUpdateFlags;
 
@@ -331,10 +381,11 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 		ulUpdateFlags |= USERINFO_PLAYERCLASS;
 
 	val = cvar->GetGenericRep (CVAR_String);
-	if (4 + strlen (cvar->GetName ()) + strlen (val.String) > 256)
+	escaped_val = D_EscapeUserInfo(val.String);
+	if (4 + strlen(cvar->GetName()) + escaped_val.Len() > 256)
 		I_Error ("User info descriptor too big");
 
-	sprintf (foo, "\\%s\\%s", cvar->GetName (), val.String);
+	sprintf (foo, "\\%s\\%s", cvar->GetName(), escaped_val.GetChars());
 
 	// [BC] In client mode, we don't execute DEM_* commands, so we need to execute it
 	// here.
@@ -533,10 +584,11 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 					 "\\stillbob\\%g"
 					 "\\playerclass\\%s"
 					 ,
-					 info->netname,
+					 D_EscapeUserInfo(info->netname).GetChars(),
 					 (double)info->aimdist / (float)ANGLE_1,
 					 RPART(info->color), GPART(info->color), BPART(info->color),
-					 skins[info->skin].name,
+					 D_EscapeUserInfo(skins[info->skin].name).GetChars(),
+					 //info->team,
 					 info->gender == GENDER_FEMALE ? "female" :
 						info->gender == GENDER_NEUTER ? "other" : "male",
 					 info->switchonpickup,
@@ -545,7 +597,7 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 					 (float)(info->MoveBob) / 65536.f,
 					 (float)(info->StillBob) / 65536.f,
 					 info->PlayerClass == -1 ? "Random" :
-						type->Meta.GetMetaString (APMETA_DisplayName)
+						D_EscapeUserInfo(type->Meta.GetMetaString (APMETA_DisplayName)).GetChars()
 				);
 		}
 		else
@@ -564,10 +616,10 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 				"\\%g"			// stillbob
 				"\\%s"			// playerclass
 				,
-				info->netname,
+				D_EscapeUserInfo(info->netname).GetChars(),
 				(double)info->aimdist / (float)ANGLE_1,
 				RPART(info->color), GPART(info->color), BPART(info->color),
-				skins[info->skin].name,
+				D_EscapeUserInfo(skins[info->skin].name).GetChars(),
 				info->gender == GENDER_FEMALE ? "female" :
 					info->gender == GENDER_NEUTER ? "other" : "male",
 				info->switchonpickup,
@@ -576,7 +628,7 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 				(float)(info->MoveBob) / 65536.f,
 				(float)(info->StillBob) / 65536.f,
 				info->PlayerClass == -1 ? "Random" :
-					type->Meta.GetMetaString (APMETA_DisplayName)
+					D_EscapeUserInfo(type->Meta.GetMetaString (APMETA_DisplayName)).GetChars()
 			);
 		}
 	}
@@ -587,9 +639,9 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 void D_ReadUserInfoStrings (int i, BYTE **stream, bool update)
 {
 	userinfo_t *info = &players[i].userinfo;
-	char *ptr = *((char **)stream);
-	char *breakpt;
-	char *value;
+	const char *ptr = *((const char **)stream);
+	const char *breakpt;
+	FString value;
 	bool compact;
 	int infotype = -1;
 
@@ -602,25 +654,37 @@ void D_ReadUserInfoStrings (int i, BYTE **stream, bool update)
 	{
 		for (;;)
 		{
-			breakpt = strchr (ptr, '\\');
+			int j;
 
-			if (breakpt != NULL)
-				*breakpt = 0;
+			breakpt = strchr (ptr, '\\');
 
 			if (compact)
 			{
-				value = ptr;
+				value = D_UnescapeUserInfo(ptr, breakpt - ptr);
 				infotype++;
 			}
-			else if (breakpt != NULL)
+			else
 			{
-				value = breakpt + 1;
-				if ( (breakpt = strchr (value, '\\')) )
-					*breakpt = 0;
+				assert(breakpt != NULL);
+				// A malicious remote machine could invalidate the above assert.
+				if (breakpt == NULL)
+				{
+					break;
+				}
+				const char *valstart = breakpt + 1;
+				if ( (breakpt = strchr (valstart, '\\')) != NULL )
+				{
+					value = D_UnescapeUserInfo(valstart, breakpt - valstart);
+				}
+				else
+				{
+					value = D_UnescapeUserInfo(valstart, strlen(valstart));
+				}
 
-				int j = 0;
-				while (UserInfoStrings[j] && stricmp (UserInfoStrings[j], ptr) != 0)
-					j++;
+				for (j = 0;
+					 UserInfoStrings[j] && strnicmp (UserInfoStrings[j], ptr, valstart - ptr - 1) != 0;
+					 ++j)
+				{ }
 				if (UserInfoStrings[j] == NULL)
 				{
 					infotype = -1;
@@ -629,10 +693,6 @@ void D_ReadUserInfoStrings (int i, BYTE **stream, bool update)
 				{
 					infotype = j;
 				}
-			}
-			else
-			{ // Shush, GCC.
-				value = NULL;
 			}
 
 			switch (infotype)
@@ -763,13 +823,8 @@ void D_ReadUserInfoStrings (int i, BYTE **stream, bool update)
 				break;
 			}
 
-			if (!compact)
-			{
-				*(value - 1) = '\\';
-			}
 			if (breakpt)
 			{
-				*breakpt = '\\';
 				ptr = breakpt + 1;
 			}
 			else

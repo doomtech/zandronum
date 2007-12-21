@@ -127,6 +127,7 @@ class ASkyViewpoint : public AActor
 public:
 	void Serialize (FArchive &arc);
 	void PostBeginPlay ();
+	void Destroy ();
 	bool bInSkybox;
 	bool bAlways;
 	ASkyViewpoint *Mate;

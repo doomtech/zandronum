@@ -1281,6 +1281,8 @@ void A_SpawnMace (AActor *self)
 		mace->FirstSpot = firstSpot;
 		mace->NumMaceSpots = numspots;
 		mace->DoRespawn ();
+		// We want this mace to respawn.
+		mace->flags &= ~MF_DROPPED;
 
 		// [BC] If we're the server, spawn the mace for clients.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )

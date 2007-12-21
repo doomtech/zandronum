@@ -1301,7 +1301,7 @@ static menuitem_t DMFlagsItems[] = {
 	{ discrete, "Teamplay",				{&teamplay},	{2.0}, {0.0}, {0.0}, {OnOff} },
 	{ slider,	"Team damage scalar",	{&teamdamage},	{0.0}, {1.0}, {0.05},{NULL} },
 	{ redtext,	" ",					{NULL},			{0.0}, {0.0}, {0.0}, {NULL} },
-	{ discrete, "Smart Autoaim",		{&sv_smartaim},	{3.0}, {0.0}, {0.0}, {SmartAim} },
+	{ discrete, "Smart Autoaim",		{&sv_smartaim},	{4.0}, {0.0}, {0.0}, {SmartAim} },
 	{ bitflag,	"Falling damage (old)",	{&dmflags},		{0}, {0}, {0}, {(value_t *)DF_FORCE_FALLINGZD} },
 	{ bitflag,	"Falling damage (Hexen)",{&dmflags},	{0}, {0}, {0}, {(value_t *)DF_FORCE_FALLINGHX} },
 	{ bitflag,	"Weapons stay (DM)",	{&dmflags},		{0}, {0}, {0}, {(value_t *)DF_WEAPONS_STAY} },
@@ -4120,7 +4120,7 @@ void M_OptDrawer ()
 			{
 				int box_x, box_y;
 				box_x = (CurrentMenu->indent - 35 - 160) * CleanXfac + screen->GetWidth()/2;
-				box_y = (y - 98) * CleanYfac + screen->GetHeight()/2;
+				box_y = (y - ((gameinfo.gametype & GAME_Raven) ? 99 : 100)) * CleanYfac + screen->GetHeight()/2;
 				screen->Clear (box_x, box_y, box_x + 32*CleanXfac, box_y + (fontheight-1)*CleanYfac,
 					item->a.colorcvar->GetIndex());
 			}
@@ -5627,9 +5627,9 @@ void M_OptResponder (event_t *ev)
 		}
 
 	case '\r':
-		if (CurrentMenu == &ModesMenu)
+		if (CurrentMenu == &ModesMenu && item->type == screenres)
 		{
-			if (!(item->type == screenres && GetSelectedSize (CurrentItem, &NewWidth, &NewHeight)))
+			if (!GetSelectedSize (CurrentItem, &NewWidth, &NewHeight))
 			{
 				NewWidth = SCREENWIDTH;
 				NewHeight = SCREENHEIGHT;

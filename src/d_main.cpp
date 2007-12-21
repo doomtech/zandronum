@@ -118,6 +118,7 @@
 #include "gamemode.h"
 
 #include "st_start.h"
+#include "templates.h"
 
 #include "gl/gl_functions.h"
 #include "win32/g15/g15.h"
@@ -618,6 +619,7 @@ void D_Display (bool screenshot)
 		switch (gamestate)
 		{
 		case GS_FULLCONSOLE:
+			screen->SetBlendingRect(0,0,0,0);
 			C_DrawConsole ();
 			M_Drawer ();
 			if (!screenshot)
@@ -633,6 +635,18 @@ void D_Display (bool screenshot)
 			// This happens for example if you start a new game, while being on a server.
 			if (viewactive)
 			{
+				if (!menuactive)
+				{
+					screen->SetBlendingRect(viewwindowx, MAX(ConBottom,viewwindowy),
+						viewwindowx + realviewwidth, MAX(ConBottom,viewwindowy + realviewheight));
+				}
+				else
+				{
+					// Don't chop the blending effect off at the status bar when the menu is
+					// active. Mostly, this is just to make Strife's dialogs with portrait
+					// images look okay when a blend is active.
+					screen->SetBlendingRect(0,0,0,0);
+				}
 				R_RefreshViewBorder ();
 				P_CheckPlayerSprites();
 				if (currentrenderer==0)
@@ -713,6 +727,7 @@ void D_Display (bool screenshot)
 			break;
 
 		case GS_INTERMISSION:
+			screen->SetBlendingRect(0,0,0,0);
 			WI_Drawer ();
 
 			// Render all medals the player currently has.
@@ -739,10 +754,12 @@ void D_Display (bool screenshot)
 			break;
 
 		case GS_FINALE:
+			screen->SetBlendingRect(0,0,0,0);
 			F_Drawer ();
 			break;
 
 		case GS_DEMOSCREEN:
+			screen->SetBlendingRect(0,0,0,0);
 			D_PageDrawer ();
 			break;
 

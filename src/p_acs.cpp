@@ -4639,7 +4639,19 @@ int DLevelScript::RunScript ()
 			break;
 
 		case PCD_CLEARACTORINVENTORY:
-			ClearInventory (SingleActorFromTID(STACK(3), NULL));
+			if (STACK(3) == 0)
+			{
+				ClearInventory(NULL);
+			}
+			else
+			{
+				FActorIterator it(STACK(3));
+				AActor *actor;
+				for (actor = it.Next(); actor != NULL; actor = it.Next())
+				{
+					ClearInventory(actor);
+				}
+			}
 			sp--;
 			break;
 
@@ -4649,9 +4661,23 @@ int DLevelScript::RunScript ()
 			break;
 
 		case PCD_GIVEACTORINVENTORY:
-			GiveInventory (SingleActorFromTID(STACK(3), NULL), 
-							FBehavior::StaticLookupString (STACK(2)), STACK(1));
-			sp -= 3;
+			{
+				const char *type = FBehavior::StaticLookupString(STACK(2));
+				if (STACK(3) == 0)
+				{
+					GiveInventory(NULL, FBehavior::StaticLookupString(STACK(2)), STACK(1));
+				}
+				else
+				{
+					FActorIterator it(STACK(3));
+					AActor *actor;
+					for (actor = it.Next(); actor != NULL; actor = it.Next())
+					{
+						GiveInventory(actor, type, STACK(1));
+					}
+				}
+				sp -= 3;
+			}
 			break;
 
 		case PCD_GIVEINVENTORYDIRECT:
@@ -4665,9 +4691,23 @@ int DLevelScript::RunScript ()
 			break;
 
 		case PCD_TAKEACTORINVENTORY:
-			TakeInventory (SingleActorFromTID(STACK(3), NULL),  
-							FBehavior::StaticLookupString (STACK(2)), STACK(1));
-			sp -= 3;
+			{
+				const char *type = FBehavior::StaticLookupString(STACK(2));
+				if (STACK(3) == 0)
+				{
+					TakeInventory(NULL, type, STACK(1));
+				}
+				else
+				{
+					FActorIterator it(STACK(3));
+					AActor *actor;
+					for (actor = it.Next(); actor != NULL; actor = it.Next())
+					{
+						TakeInventory(actor, type, STACK(1));
+					}
+				}
+				sp -= 3;
+			}
 			break;
 
 		case PCD_TAKEINVENTORYDIRECT:

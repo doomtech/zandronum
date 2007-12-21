@@ -2852,9 +2852,6 @@ bool G_AllowTravel( void )
 
 void G_InitLevelLocals ()
 {
-	ULONG		ulDMFlags;
-	UCVarValue	Val;
-
 	level_info_t *info;
 
 	BaseBlendA = 0.0f;		// Remove underwater blend effect, if any
@@ -2946,30 +2943,6 @@ void G_InitLevelLocals ()
 		level.levelnum = 1;
 	}
 
-	int clear = 0, set = 0;
-
-	if (level.flags & LEVEL_JUMP_YES)
-		clear = DF_NO_JUMP;
-	if (level.flags & LEVEL_JUMP_NO)
-		set = DF_NO_JUMP;
-	if (level.flags & LEVEL_CROUCH_YES)
-		clear |= DF_NO_CROUCH;
-	if (level.flags & LEVEL_CROUCH_NO)
-		set |= DF_NO_CROUCH;
-	if (level.flags & LEVEL_FREELOOK_YES)
-		clear |= DF_NO_FREELOOK;
-	if (level.flags & LEVEL_FREELOOK_NO)
-		set |= DF_NO_FREELOOK;
-
-//	dmflags = (dmflags & ~clear) | set;
-	// We need to force setting the dmflags because of campaign mode.
-	ulDMFlags = dmflags;
-	ulDMFlags = ( ulDMFlags & ~clear ) | set;
-
-	Val.Int = ulDMFlags;
-	if ( dmflags != Val.Int )
-		dmflags.ForceSet( Val, CVAR_Int );
-
 	// [BC] Why do we need to do this? For now, just don't do it in server mode.
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		compatflags.Callback();
@@ -2978,6 +2951,33 @@ void G_InitLevelLocals ()
 
 	// new [GZDoom]
 	gl_SetFogParams(info->fogdensity, info->outsidefog, info->outsidefogdensity, info->skyfog);
+}
+
+bool level_locals_s::IsJumpingAllowed() const
+{
+	if (level.flags & LEVEL_JUMP_NO)
+		return false;
+	if (level.flags & LEVEL_JUMP_YES)
+		return true;
+	return !(dmflags & DF_NO_JUMP);
+}
+
+bool level_locals_s::IsCrouchingAllowed() const
+{
+	if (level.flags & LEVEL_CROUCH_NO)
+		return false;
+	if (level.flags & LEVEL_CROUCH_YES)
+		return true;
+	return !(dmflags & DF_NO_CROUCH);
+}
+
+bool level_locals_s::IsFreelookAllowed() const
+{
+	if (level.flags & LEVEL_FREELOOK_NO)
+		return false;
+	if (level.flags & LEVEL_FREELOOK_YES)
+		return true;
+	return !(dmflags & DF_NO_FREELOOK);
 }
 
 char *CalcMapName (int episode, int level)

@@ -3203,7 +3203,7 @@ const secplane_t * P_CheckSlopeWalk (AActor *actor, fixed_t &xmove, fixed_t &ymo
 			{ // Can't climb up slopes of ~45 degrees or more
 				if (actor->flags & MF_NOCLIP)
 				{
-					return plane;
+					return (actor->floorsector == actor->Sector) ? plane : NULL;
 				}
 				else
 				{
@@ -3239,7 +3239,7 @@ const secplane_t * P_CheckSlopeWalk (AActor *actor, fixed_t &xmove, fixed_t &ymo
 			desty -= FixedMul (plane->b, t);
 			xmove = destx - actor->x;
 			ymove = desty - actor->y;
-			return plane;
+			return (actor->floorsector == actor->Sector) ? plane : NULL;
 		}
 		else if (t > 0)
 		{ // Desired location is in front of (above) the plane
@@ -3250,7 +3250,7 @@ const secplane_t * P_CheckSlopeWalk (AActor *actor, fixed_t &xmove, fixed_t &ymo
 				desty += FixedMul (plane->b, t);
 				xmove = destx - actor->x;
 				ymove = desty - actor->y;
-				return plane;//(plane->c >= STEEPSLOPE);
+				return (actor->floorsector == actor->Sector) ? plane : NULL;//(plane->c >= STEEPSLOPE);
 			}
 		}
 	}
@@ -3751,7 +3751,7 @@ fixed_t P_AimLineAttack (AActor *t1, angle_t angle, fixed_t distance, fixed_t vr
 	// can't shoot outside view angles
 	if (vrange == 0)
 	{
-		if (t1->player == NULL || dmflags & DF_NO_FREELOOK)
+		if (t1->player == NULL || !level.IsFreelookAllowed())
 		{
 			vrange = ANGLE_1*35;
 		}

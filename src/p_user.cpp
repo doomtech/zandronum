@@ -2444,7 +2444,7 @@ void P_MovePlayer (player_t *player, ticcmd_t *cmd)
 		{
 			player->mo->momz = 3*FRACUNIT;
 		}
-		else if (!(dmflags & DF_NO_JUMP) && onground && !player->jumpTics )
+		else if (level.IsJumpingAllowed() && onground && !player->jumpTics )
 		{
 			fixed_t	JumpMomz;
 			ULONG	ulJumpTicks;
@@ -3122,7 +3122,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 	// [BC] Also, don't do this for clients other than ourself in client mode.
 	if ((( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false )) || (( player - players ) == consoleplayer ))
 	{
-		if (player->morphTics == 0 && player->health > 0 && !(dmflags & DF_NO_CROUCH)
+		if (player->morphTics == 0 && player->health > 0 && level.IsCrouchingAllowed()
 			&& ( iwanttousecrouchingeventhoughitsretardedandunnecessaryanditsimplementationishorribleimeanverticallyshrinkingskinscomeonthatsinsanebutwhatevergoaheadandhaveyourcrouching ))
 		{
 			if (!(player->cheats & CF_TOTALLYFROZEN))
@@ -3177,7 +3177,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 	}
 
 	// [RH] Look up/down stuff
-	if ( dmflags & DF_NO_FREELOOK )
+	if (!level.IsFreelookAllowed())
 	{
 		player->mo->pitch = 0;
 	}
