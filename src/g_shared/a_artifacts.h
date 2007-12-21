@@ -230,6 +230,30 @@ protected:
 	virtual void ModifyDamage (int damage, FName damageType, int &newdamage, bool passive);
 };
 
+class APowerDrain : public APowerup
+{
+	DECLARE_STATELESS_ACTOR( APowerDrain, APowerup )
+protected:
+	void InitEffect( );
+	void EndEffect( );
+};
+
+class APowerRegeneration : public APowerup
+{
+	DECLARE_STATELESS_ACTOR( APowerRegeneration, APowerup )
+protected:
+	void InitEffect( );
+	void EndEffect( );
+};
+
+class APowerHighJump : public APowerup
+{
+	DECLARE_STATELESS_ACTOR( APowerHighJump, APowerup )
+protected:
+	void InitEffect( );
+	void EndEffect( );
+};
+
 // [BC] Start of new Skulltag powerup types.
 class APowerPossessionArtifact : public APowerup
 {

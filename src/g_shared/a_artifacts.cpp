@@ -1676,6 +1676,117 @@ void APowerProtection::ModifyDamage(int damage, FName damageType, int &newdamage
 	if (Inventory != NULL) Inventory->ModifyDamage(damage, damageType, newdamage, passive);
 }
 
+// Drain rune -------------------------------------------------------
+
+IMPLEMENT_STATELESS_ACTOR( APowerDrain, Any, -1, 0 )
+	PROP_Powerup_EffectTics( 60*TICRATE )
+END_DEFAULTS
+
+//===========================================================================
+//
+// ARuneDrain :: InitEffect
+//
+//===========================================================================
+
+void APowerDrain::InitEffect( )
+{
+	if (Owner== NULL || Owner->player == NULL)
+		return;
+
+	// Give the player the power to drain life from opponents when he damages them.
+	Owner->player->cheats |= CF_DRAIN;
+}
+
+//===========================================================================
+//
+// ARuneDrain :: EndEffect
+//
+//===========================================================================
+
+void APowerDrain::EndEffect( )
+{
+	// Nothing to do if there's no owner.
+	if (Owner != NULL && Owner->player != NULL)
+	{
+		// Take away the drain power.
+		Owner->player->cheats &= ~CF_DRAIN;
+	}
+}
+
+
+// Regeneration rune -------------------------------------------------------
+
+IMPLEMENT_STATELESS_ACTOR( APowerRegeneration, Any, -1, 0 )
+	PROP_Powerup_EffectTics( 120*TICRATE )
+END_DEFAULTS
+
+//===========================================================================
+//
+// ARuneRegeneration :: InitEffect
+//
+//===========================================================================
+
+void APowerRegeneration::InitEffect( )
+{
+	if (Owner== NULL || Owner->player == NULL)
+		return;
+
+	// Give the player the power to regnerate lost life.
+	Owner->player->cheats |= CF_REGENERATION;
+}
+
+//===========================================================================
+//
+// ARuneRegeneration :: EndEffect
+//
+//===========================================================================
+
+void APowerRegeneration::EndEffect( )
+{
+	// Nothing to do if there's no owner.
+	if (Owner != NULL && Owner->player != NULL)
+	{
+		// Take away the regeneration power.
+		Owner->player->cheats &= ~CF_REGENERATION;
+	}
+}
+
+// High jump rune -------------------------------------------------------
+
+IMPLEMENT_STATELESS_ACTOR( APowerHighJump, Any, -1, 0 )
+END_DEFAULTS
+
+//===========================================================================
+//
+// ARuneHighJump :: InitEffect
+//
+//===========================================================================
+
+void APowerHighJump::InitEffect( )
+{
+	if (Owner== NULL || Owner->player == NULL)
+		return;
+
+	// Give the player the power to jump much higher.
+	Owner->player->cheats |= CF_HIGHJUMP;
+}
+
+//===========================================================================
+//
+// ARuneHighJump :: EndEffect
+//
+//===========================================================================
+
+void APowerHighJump::EndEffect( )
+{
+	// Nothing to do if there's no owner.
+	if (Owner != NULL && Owner->player != NULL)
+	{
+		// Take away the high jump power.
+		Owner->player->cheats &= ~CF_HIGHJUMP;
+	}
+}
+
 // Possession artifact powerup -------------------------------------------------
 
 IMPLEMENT_STATELESS_ACTOR( APowerPossessionArtifact, Any, -1, 0 )
@@ -2159,6 +2270,8 @@ void ARuneDoubleFiringSpeed::EndEffect( )
 }
 
 // Drain rune -------------------------------------------------------
+// [BB] The code for ARuneDrain is nearly identical to the code from APowerDrain.
+// TO DO: Find a way to get rid of this code duplication.
 
 IMPLEMENT_STATELESS_ACTOR( ARuneDrain, Any, -1, 0 )
 END_DEFAULTS
@@ -2254,6 +2367,8 @@ void ARuneHalfDamage::ModifyDamage( int damage, FName damageType, int &newdamage
 }
 
 // Regeneration rune -------------------------------------------------------
+// [BB] The code for ARuneRegeneration is nearly identical to the code from APowerRegeneration.
+// TO DO: Find a way to get rid of this code duplication.
 
 IMPLEMENT_STATELESS_ACTOR( ARuneRegeneration, Any, -1, 0 )
 END_DEFAULTS
@@ -2360,6 +2475,8 @@ void ARuneReflection::EndEffect( )
 }
 
 // High jump rune -------------------------------------------------------
+// [BB] The code for ARuneHighJump is nearly identical to the code from APowerHighJump.
+// TO DO: Find a way to get rid of this code duplication.
 
 IMPLEMENT_STATELESS_ACTOR( ARuneHighJump, Any, -1, 0 )
 END_DEFAULTS
