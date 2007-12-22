@@ -477,6 +477,12 @@ CCMD (changemap)
 
 CCMD( nextmap )
 {
+	if ( level.info == NULL )
+	{
+		Printf( "You can't use nextmap, when not in a level.\n" );
+		return;
+	}
+
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 	{
 		Printf( "Only the server can change the map.\n" );
