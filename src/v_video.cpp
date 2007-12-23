@@ -957,7 +957,7 @@ bool V_DoModeSetup (int width, int height, int bits)
 		int ratio;
 		int cwidth;
 		int cheight;
-		int cx1, cy1, cx2, cy2;
+		float cx1, cy1, cx2, cy2;
 
 		ratio = CheckRatio (width, height);
 		if (ratio & 4)
@@ -970,15 +970,13 @@ bool V_DoModeSetup (int width, int height, int bits)
 			cwidth = width * BaseRatioSizes[ratio][3] / 48;
 			cheight = height;
 		}
-		// [BB] Beginning from ZDoom revision 609 this causes problems, so let's try to do it like ZDoom.
-		//CleanXfac = MAX ((float)cwidth / 320, 1.0f);
-		//CleanYfac = MAX ((float)cheight / 200, 1.0f);
+		// [BB] ST uses float accuracy for CleanXfac and CleanYfac. This is necessary at least for the proper display of medals under 1024x768.
 		// Use whichever pair of cwidth/cheight or width/height that produces less difference
 		// between CleanXfac and CleanYfac.
-		cx1 = MAX(cwidth / 320, 1);
-		cy1 = MAX(cheight / 200, 1);
-		cx2 = MAX(width / 320, 1);
-		cy2 = MAX(height / 200, 1);
+		cx1 = MAX(cwidth / 320.f, 1.f);
+		cy1 = MAX(cheight / 200.f, 1.f);
+		cx2 = MAX(width / 320.f, 1.f);
+		cy2 = MAX(height / 200.f, 1.f);
 		if (abs(cx1 - cy1) <= abs(cx2 - cy2))
 		{ // e.g. 640x360 looks better with this.
 			CleanXfac = cx1;

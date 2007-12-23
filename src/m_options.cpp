@@ -3688,11 +3688,11 @@ static void M_DrawConText (int color, int x, int y, const char *str)
 	int len = (int)strlen(str);
 
 	screen->SetFont (ConFont);
-	x = (x - 160) * int(CleanXfac) + screen->GetWidth() / 2;
-	y = (y - 100) * int(CleanYfac) + screen->GetHeight() / 2;
+	x = int((x - 160) * (CleanXfac) + screen->GetWidth() / 2);
+	y = int((y - 100) * (CleanYfac) + screen->GetHeight() / 2);
 	screen->DrawText (color, x, y, str,
-		DTA_CellX, 8 * int(CleanXfac),
-		DTA_CellY, 8 * int(CleanYfac),
+		DTA_CellX, int(8 * CleanXfac),
+		DTA_CellY, int(8 * CleanYfac),
 		TAG_DONE);
 	screen->SetFont (SmallFont);
 }
