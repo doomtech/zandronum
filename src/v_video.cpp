@@ -515,13 +515,13 @@ static void BuildTransTable (const PalEntry *palette)
 	Col2RGB8_LessPrecision[64] = Col2RGB8[64];
 }
 
-void DCanvas::Blit (int srcx, int srcy, int srcwidth, int srcheight,
-			 DCanvas *dest, int destx, int desty, int destwidth, int destheight)
+void DCanvas::Blit (int destx, int desty, int destwidth, int destheight, DCanvas *src,
+					int srcx, int srcy, int srcwidth, int srcheight)
 {
 	fixed_t fracxstep, fracystep;
 	fixed_t fracx, fracy;
 	int x, y;
-	bool lockthis, lockdest;
+	bool lockthis, locksrc;
 
 	if ( (lockthis = (LockCount == 0)) )
 	{
@@ -532,9 +532,9 @@ void DCanvas::Blit (int srcx, int srcy, int srcwidth, int srcheight,
 		}
 	}
 
-	if ( (lockdest = (dest->LockCount == 0)) )
+	if ( (locksrc = (src->LockCount == 0)) )
 	{
-		dest->Lock ();
+		src->Lock ();
 	}
 
 	fracy = srcy << FRACBITS;
@@ -542,15 +542,15 @@ void DCanvas::Blit (int srcx, int srcy, int srcwidth, int srcheight,
 	fracxstep = (srcwidth << FRACBITS) / destwidth;
 
 	BYTE *destline, *srcline;
-	BYTE *destbuffer = dest->Buffer;
-	BYTE *srcbuffer = Buffer;
+	BYTE *destbuffer = Buffer;
+	BYTE *srcbuffer = src->Buffer;
 
 	if (fracxstep == FRACUNIT)
 	{
 		for (y = desty; y < desty + destheight; y++, fracy += fracystep)
 		{
-			memcpy (destbuffer + y * dest->Pitch + destx,
-					srcbuffer + (fracy >> FRACBITS) * Pitch + srcx,
+			memcpy (destbuffer + y * Pitch + destx,
+					srcbuffer + (fracy >> FRACBITS) * src->Pitch + srcx,
 					destwidth);
 		}
 	}
@@ -558,8 +558,8 @@ void DCanvas::Blit (int srcx, int srcy, int srcwidth, int srcheight,
 	{
 		for (y = desty; y < desty + destheight; y++, fracy += fracystep)
 		{
-			srcline = srcbuffer + (fracy >> FRACBITS) * Pitch + srcx;
-			destline = destbuffer + y * dest->Pitch + destx;
+			srcline = srcbuffer + (fracy >> FRACBITS) * src->Pitch + srcx;
+			destline = destbuffer + y * Pitch + destx;
 			for (x = fracx = 0; x < destwidth; x++, fracx += fracxstep)
 			{
 				destline[x] = srcline[fracx >> FRACBITS];
@@ -571,9 +571,9 @@ void DCanvas::Blit (int srcx, int srcy, int srcwidth, int srcheight,
 	{
 		Unlock ();
 	}
-	if (lockdest)
+	if (locksrc)
 	{
-		Unlock ();
+		src->Unlock ();
 	}
 }
 
@@ -671,11 +671,13 @@ DFrameBuffer::DFrameBuffer (int width, int height)
 	: DSimpleCanvas (width, height)
 {
 	LastMS = LastSec = FrameCount = LastCount = LastTic = 0;
+	IsComposited = false;
 }
 
 void DFrameBuffer::DrawRateStuff ()
 {
 	// Draws frame time and cumulative fps
+	RateX = 0;
 	if (vid_fps)
 	{
 		DWORD ms = I_MSTime ();
@@ -686,9 +688,10 @@ void DFrameBuffer::DrawRateStuff ()
 			int chars;
 
 			chars = sprintf (fpsbuff, "%2u ms (%3u fps)", howlong, LastCount);
-			Clear (Width - chars * 8, 0, Width, 8, 0);
+			RateX = Width - chars * 8;
+			Clear (RateX, 0, Width, 8, 0);
 			SetFont (ConFont);
-			DrawText (CR_WHITE, Width - chars * 8, 0, (char *)&fpsbuff[0], TAG_DONE);
+			DrawText (CR_WHITE, RateX, 0, (char *)&fpsbuff[0], TAG_DONE);
 			SetFont (SmallFont);
 
 			DWORD thisSec = ms/1000;
@@ -772,6 +775,163 @@ void DFrameBuffer::SetVSync (bool vsync)
 {
 }
 
+void DFrameBuffer::SetBlendingRect (int x1, int y1, int x2, int y2)
+{
+}
+
+void DFrameBuffer::Begin2D ()
+{
+}
+
+void DFrameBuffer::End2D ()
+{
+}
+
+FNativeTexture *DFrameBuffer::CreateTexture(FTexture *gametex)
+{
+	return NULL;
+}
+
+FNativeTexture *DFrameBuffer::CreatePalette(const PalEntry *pal)
+{
+	return NULL;
+}
+
+//===========================================================================
+// 
+// multi-format pixel copy with colormap application
+// requires one of the previously defined conversion classes to work
+//
+//===========================================================================
+template<class T>
+void iCopyColors(unsigned char * pout, const unsigned char * pin, int count, int step)
+{
+	for(int i=0;i<count;i++)
+	{
+		pout[0]=T::R(pin);
+		pout[1]=T::G(pin);
+		pout[2]=T::B(pin);
+		pout[3]=T::A(pin);
+		pout+=4;
+		pin+=step;
+	}
+}
+
+typedef void (*CopyFunc)(unsigned char * pout, const unsigned char * pin, int count, int step);
+
+static CopyFunc copyfuncs[]={
+	iCopyColors<cRGB>,
+	iCopyColors<cRGBA>,
+	iCopyColors<cIA>,
+	iCopyColors<cCMYK>,
+	iCopyColors<cBGR>,
+	iCopyColors<cBGRA>,
+	iCopyColors<cI16>,
+	iCopyColors<cRGB555>,
+	iCopyColors<cPalEntry>
+};
+
+
+//===========================================================================
+//
+// Clips the copy area for CopyPixelData functions
+//
+//===========================================================================
+bool DFrameBuffer::ClipCopyPixelRect(int texwidth, int texheight, int &originx, int &originy,
+									const BYTE *&patch, int &srcwidth, int &srcheight, int step_x, int step_y)
+{
+	// clip source rectangle to destination
+	if (originx<0)
+	{
+		srcwidth+=originx;
+		patch-=originx*step_x;
+		originx=0;
+		if (srcwidth<=0) return false;
+	}
+	if (originx+srcwidth>texwidth)
+	{
+		srcwidth=texwidth-originx;
+		if (srcwidth<=0) return false;
+	}
+		
+	if (originy<0)
+	{
+		srcheight+=originy;
+		patch-=originy*step_y;
+		originy=0;
+		if (srcheight<=0) return false;
+	}
+	if (originy+srcheight>texheight)
+	{
+		srcheight=texheight-originy;
+		if (srcheight<=0) return false;
+	}
+	return true;
+}
+
+//===========================================================================
+//
+// True Color texture copy function
+//
+//===========================================================================
+void DFrameBuffer::CopyPixelDataRGB(BYTE * buffer, int texwidth, int texheight, int originx, int originy,
+										const BYTE * patch, int srcwidth, int srcheight, int step_x, int step_y,
+										int ct)
+{
+	if (ClipCopyPixelRect(texwidth, texheight, originx, originy, patch, srcwidth, srcheight, step_x, step_y))
+	{
+		buffer+=4*originx + 4*texwidth*originy;
+		for (int y=0;y<srcheight;y++)
+		{
+			copyfuncs[ct](&buffer[4*y*texwidth], &patch[y*step_y], srcwidth, step_x);
+		}
+	}
+}
+
+//===========================================================================
+//
+// Paletted to True Color texture copy function
+//
+//===========================================================================
+void DFrameBuffer::CopyPixelData(BYTE * buffer, int texwidth, int texheight, int originx, int originy,
+										const BYTE * patch, int srcwidth, int srcheight, 
+										int step_x, int step_y, PalEntry * palette)
+{
+	int x,y,pos;
+	
+	if (ClipCopyPixelRect(texwidth, texheight, originx, originy, patch, srcwidth, srcheight, step_x, step_y))
+	{
+		buffer+=4*originx + 4*texwidth*originy;
+
+		for (y=0;y<srcheight;y++)
+		{
+			pos=4*(y*texwidth);
+			for (x=0;x<srcwidth;x++,pos+=4)
+			{
+				int v=(unsigned char)patch[y*step_y+x*step_x];
+				if (palette[v].a==0)
+				{
+					buffer[pos]=palette[v].r;
+					buffer[pos+1]=palette[v].g;
+					buffer[pos+2]=palette[v].b;
+					buffer[pos+3]=255-palette[v].a;
+				}
+				else if (palette[v].a!=255)
+				{
+					buffer[pos  ] = (buffer[pos  ] * palette[v].a + palette[v].r * (1-palette[v].a)) / 255;
+					buffer[pos+1] = (buffer[pos+1] * palette[v].a + palette[v].g * (1-palette[v].a)) / 255;
+					buffer[pos+2] = (buffer[pos+2] * palette[v].a + palette[v].b * (1-palette[v].a)) / 255;
+					buffer[pos+3] = clamp<int>(buffer[pos+3] + (( 255-buffer[pos+3]) * (255-palette[v].a))/255, 0, 255);
+				}
+			}
+		}
+	}
+}
+
+FNativeTexture::~FNativeTexture()
+{
+}
+
 CCMD(clean)
 {
 	Printf ("CleanXfac: %d\nCleanYfac: %d\n", CleanXfac, CleanYfac);
@@ -797,7 +957,7 @@ bool V_DoModeSetup (int width, int height, int bits)
 		int ratio;
 		int cwidth;
 		int cheight;
-		//int cx1, cy1, cx2, cy2;
+		int cx1, cy1, cx2, cy2;
 
 		ratio = CheckRatio (width, height);
 		if (ratio & 4)
@@ -810,10 +970,9 @@ bool V_DoModeSetup (int width, int height, int bits)
 			cwidth = width * BaseRatioSizes[ratio][3] / 48;
 			cheight = height;
 		}
-		// [BB] Some change here since CleanX/Yfac are floats in Skulltag.
-		CleanXfac = MAX ((float)cwidth / 320, 1.0f);
-		CleanYfac = MAX ((float)cheight / 200, 1.0f);
-		/* [BB] Is this needed in our case, where CleanXfac and CleanYfac are floats?
+		// [BB] Beginning from ZDoom revision 609 this causes problems, so let's try to do it like ZDoom.
+		//CleanXfac = MAX ((float)cwidth / 320, 1.0f);
+		//CleanYfac = MAX ((float)cheight / 200, 1.0f);
 		// Use whichever pair of cwidth/cheight or width/height that produces less difference
 		// between CleanXfac and CleanYfac.
 		cx1 = MAX(cwidth / 320, 1);
@@ -830,9 +989,8 @@ bool V_DoModeSetup (int width, int height, int bits)
 			CleanXfac = cx2;
 			CleanYfac = cy2;
 		}
-		*/
 	}
-/*
+/* [BB] This causes the ugly vertical menu scaling.
 	if (CleanXfac > 1 && CleanYfac > 1 && CleanXfac != CleanYfac)
 	{
 		if (CleanXfac < CleanYfac)

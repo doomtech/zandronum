@@ -58,371 +58,44 @@ int CleanWidth, CleanHeight;
 
 CVAR (Bool, hud_scale, false, CVAR_ARCHIVE);
 
-void STACK_ARGS DCanvas::DrawTexture (FTexture *img, int x0, int y0, int tags_first, ...)
+void STACK_ARGS DCanvas::DrawTexture (FTexture *img, int x, int y, int tags_first, ...)
+{
+	va_list tags;
+	va_start(tags, tags_first);
+	DrawTextureV(img, x, y, tags_first, tags);
+}
+
+void STACK_ARGS DCanvas::DrawTextureV(FTexture *img, int x, int y, uint32 tag, va_list tags)
 {
 	FTexture::Span unmaskedSpan[2];
 	const FTexture::Span **spanptr, *spans;
 	static BYTE identitymap[256];
 	static short bottomclipper[MAXWIDTH], topclipper[MAXWIDTH];
-	va_list tags;
-	DWORD tag;
-	INTBOOL boolval;
-	int intval;
-	// [BC] Potentially flag the texture as being text so we can handle it differently.
-	bool	bIsText = false;
 
-	if (img == NULL || img->UseType == FTexture::TEX_Null)
+	DrawParms parms;
+
+	if (!ParseDrawTextureTags(img, x, y, tag, tags, &parms))
 	{
 		return;
 	}
 
-	int texwidth = img->GetScaledWidth();
-	int texheight = img->GetScaledHeight();
-
-	int windowleft = 0;
-	int windowright = texwidth;
-	int dclip = this->GetHeight();
-	int uclip = 0;
-	int lclip = 0;
-	int rclip = this->GetWidth();
-	int destwidth = windowright << FRACBITS;
-	int destheight = texheight << FRACBITS;
-	int top = img->GetScaledTopOffset();
-	int left = img->GetScaledLeftOffset();
-	fixed_t alpha = FRACUNIT;
-	int fillcolor = -1;
-	const BYTE *translation = NULL;
-	INTBOOL alphaChannel = false;
-	INTBOOL flipX = false;
-	fixed_t shadowAlpha = 0;
-	int shadowColor = 0;
-	int virtWidth = this->GetWidth();
-	int virtHeight = this->GetHeight();
-	INTBOOL keepratio = false;
-	ERenderStyle style = STYLE_Count;
-
-	x0 <<= FRACBITS;
-	y0 <<= FRACBITS;
-
-	spanptr = &spans;
-
-	// Parse the tag list for attributes
-	va_start (tags, tags_first);
-	tag = tags_first;
-
-	while (tag != TAG_DONE)
+	if (parms.masked)
 	{
-		va_list *more_p;
-		DWORD data;
-
-		switch (tag)
-		{
-		case TAG_IGNORE:
-		default:
-			data = va_arg (tags, DWORD);
-			break;
-
-		case TAG_MORE:
-			more_p = va_arg (tags, va_list *);
-			va_end (tags);
-#ifdef __GNUC__
-			__va_copy (tags, *more_p);
-#else
-			tags = *more_p;
-#endif
-			break;
-
-		case DTA_DestWidth:
-			destwidth = va_arg (tags, int) << FRACBITS;
-			break;
-
-		case DTA_DestHeight:
-			destheight = va_arg (tags, int) << FRACBITS;
-			break;
-
-		case DTA_Clean:
-			boolval = va_arg (tags, INTBOOL);
-			if (boolval)
-			{
-				x0 = (LONG)((x0 - 160*FRACUNIT) * CleanXfac + (Width * (FRACUNIT/2)));
-				y0 = (LONG)((y0 - 100*FRACUNIT) * CleanYfac + (Height * (FRACUNIT/2)));
-				destwidth = (LONG)( texwidth * CleanXfac * FRACUNIT );
-
-				// [BC] Text looks horrible when it's y-stretched.
-				if ( bIsText )
-					destheight = texheight * (int)CleanYfac * FRACUNIT;
-				else
-					destheight = (LONG)( texheight * CleanYfac * FRACUNIT );
-			}
-			break;
-
-		case DTA_CleanNoMove:
-			boolval = va_arg (tags, INTBOOL);
-			if (boolval)
-			{
-				if ( bIsText )
-					destwidth = texwidth * (int)CleanXfac * FRACUNIT;
-				else
-					destwidth = (LONG)( texwidth * CleanXfac * FRACUNIT );
-
-				// [BC] Text looks horrible when it's y-stretched.
-				if ( bIsText )
-					destheight = texheight * (int)CleanYfac * FRACUNIT;
-				else
-					destheight = (LONG)( texheight * CleanYfac * FRACUNIT );
-			}
-			break;
-
-		case DTA_320x200:
-			boolval = va_arg (tags, INTBOOL);
-			if (boolval)
-			{
-				virtWidth = 320;
-				virtHeight = 200;
-			}
-			break;
-
-		case DTA_HUDRules:
-			{
-				bool xright = x0 < 0;
-				bool ybot = y0 < 0;
-				intval = va_arg (tags, int);
-
-				if (hud_scale)
-				{
-					x0 *= CleanXfac;
-					if (intval == HUD_HorizCenter)
-						x0 += Width * FRACUNIT / 2;
-					else if (xright)
-						x0 = Width * FRACUNIT + x0;
-					y0 *= CleanYfac;
-					if (ybot)
-						y0 = Height * FRACUNIT + y0;
-					destwidth = texwidth * CleanXfac * FRACUNIT;
-					destheight = texheight * CleanYfac * FRACUNIT;
-				}
-				else
-				{
-					if (intval == HUD_HorizCenter)
-						x0 += Width * FRACUNIT / 2;
-					else if (xright)
-						x0 = Width * FRACUNIT + x0;
-					if (ybot)
-						y0 = Height * FRACUNIT + y0;
-				}
-			}
-			break;
-
-		case DTA_VirtualWidth:
-			virtWidth = va_arg (tags, int);
-			break;
-			
-		case DTA_VirtualHeight:
-			virtHeight = va_arg (tags, int);
-			break;
-
-		case DTA_Alpha:
-			alpha = MIN<fixed_t> (FRACUNIT, va_arg (tags, fixed_t));
-			break;
-
-		case DTA_AlphaChannel:
-			alphaChannel = va_arg (tags, INTBOOL);
-			break;
-
-		case DTA_FillColor:
-			fillcolor = va_arg (tags, int);
-			break;
-
-		case DTA_Translation:
-			translation = va_arg (tags, const BYTE *);
-			break;
-
-		case DTA_FlipX:
-			flipX = va_arg (tags, INTBOOL);
-			break;
-
-		case DTA_TopOffset:
-			top = va_arg (tags, int);
-			break;
-
-		case DTA_LeftOffset:
-			left = va_arg (tags, int);
-			break;
-
-		case DTA_CenterOffset:
-			if (va_arg (tags, int))
-			{
-				left = texwidth / 2;
-				top = texheight / 2;
-			}
-			break;
-
-		case DTA_CenterBottomOffset:
-			if (va_arg (tags, int))
-			{
-				left = texwidth / 2;
-				top = texheight;
-			}
-			break;
-
-		case DTA_WindowLeft:
-			windowleft = va_arg (tags, int);
-			break;
-
-		case DTA_WindowRight:
-			windowright = va_arg (tags, int);
-			break;
-
-		case DTA_ClipTop:
-			uclip = va_arg (tags, int);
-			if (uclip < 0)
-			{
-				uclip = 0;
-			}
-			break;
-
-		case DTA_ClipBottom:
-			dclip = va_arg (tags, int);
-			if (dclip > this->GetHeight())
-			{
-				dclip = this->GetHeight();
-			}
-			break;
-
-		case DTA_ClipLeft:
-			lclip = va_arg (tags, int);
-			if (lclip < 0)
-			{
-				lclip = 0;
-			}
-			break;
-
-		case DTA_ClipRight:
-			rclip = va_arg (tags, int);
-			if (rclip > this->GetWidth())
-			{
-				rclip = this->GetWidth();
-			}
-			break;
-
-		case DTA_ShadowAlpha:
-			shadowAlpha = MIN<fixed_t> (FRACUNIT, va_arg (tags, fixed_t));
-			break;
-
-		case DTA_ShadowColor:
-			shadowColor = va_arg (tags, int);
-			break;
-
-		case DTA_Shadow:
-			boolval = va_arg (tags, INTBOOL);
-			if (boolval)
-			{
-				shadowAlpha = FRACUNIT/2;
-				shadowColor = 0;
-			}
-			else
-			{
-				shadowAlpha = 0;
-			}
-			break;
-
-		case DTA_Masked:
-			boolval = va_arg (tags, INTBOOL);
-			if (boolval)
-			{
-				spanptr = &spans;
-			}
-			else
-			{
-				spanptr = NULL;
-			}
-			break;
-
-		case DTA_KeepRatio:
-			keepratio = va_arg (tags, INTBOOL);
-			break;
-
-		case DTA_RenderStyle:
-			style = ERenderStyle(va_arg (tags, int));
-			break;
-
-		// [BC] Is what we're drawing text? If so, handle it differently.
-		case DTA_IsText:
-
-			bIsText = !!va_arg( tags, INTBOOL );
-
-			// Don't apply these text rules to the big font.
-			if ( screen->Font == BigFont )
-				bIsText = false;
-			break;
-		}
-		tag = va_arg (tags, DWORD);
+		spanptr = &spans;
 	}
-	va_end (tags);
-
-	if (virtWidth != Width || virtHeight != Height)
+	else
 	{
-		int myratio = CheckRatio (Width, Height);
-		int right = x0 + destwidth;
-		int bottom = y0 + destheight;
-
-		if (myratio != 0 && myratio != 4 && !keepratio)
-		{ // The target surface is not 4:3, so expand the specified
-		  // virtual size to avoid undesired stretching of the image.
-		  // Does not handle non-4:3 virtual sizes. I'll worry about
-		  // those if somebody expresses a desire to use them.
-			x0 = Scale (x0-virtWidth*FRACUNIT/2, Width*960, virtWidth*BaseRatioSizes[myratio][0]) + Width*FRACUNIT/2;
-			destwidth = Scale (right-virtWidth*FRACUNIT/2, Width*960, virtWidth*BaseRatioSizes[myratio][0]) + Width*FRACUNIT/2 - x0;
-		}
-		else
-		{
-			x0 = Scale (x0, Width, virtWidth);
-			destwidth = Scale (right, Width, virtWidth) - x0;
-		}
-		y0 = Scale (y0, Height, virtHeight);
-		destheight = Scale (bottom, Height, virtHeight) - y0;
-	}
-
-	if (destwidth <= 0 || destheight <= 0)
-	{
-		return;
-	}
-
-	if (style == STYLE_Count)
-	{
-		if (fillcolor != -1)
-		{
-			if (alphaChannel)
-			{
-				style = STYLE_Shaded;
-			}
-			else if (alpha < FRACUNIT)
-			{
-				style = STYLE_TranslucentStencil;
-			}
-			else
-			{
-				style = STYLE_Stencil;
-			}
-		}
-		else if (alpha < FRACUNIT)
-		{
-			style = STYLE_Translucent;
-		}
-		else
-		{
-			style = STYLE_Normal;
-		}
+		spanptr = NULL;
 	}
 
 	fixedcolormap = identitymap;
-	ESPSResult mode = R_SetPatchStyle (style, alpha, 0, fillcolor);
+	ESPSResult mode = R_SetPatchStyle (parms.style, parms.alpha, 0, parms.fillcolor);
 
-	if (style != STYLE_Shaded)
+	if (parms.style != STYLE_Shaded)
 	{
-		if (translation != NULL)
+		if (parms.translation != NULL)
 		{
-			dc_colormap = (lighttable_t *)translation;
+			dc_colormap = (lighttable_t *)parms.translation;
 		}
 		else
 		{
@@ -433,8 +106,8 @@ void STACK_ARGS DCanvas::DrawTexture (FTexture *img, int x0, int y0, int tags_fi
 	BYTE *destorgsave = dc_destorg;
 	dc_destorg = screen->GetBuffer();
 
-	x0 -= Scale (left, destwidth, texwidth);
-	y0 -= Scale (top, destheight, texheight);
+	fixed_t x0 = parms.x - Scale (parms.left, parms.destwidth, parms.texwidth);
+	fixed_t y0 = parms.y - Scale (parms.top, parms.destheight, parms.texheight);
 
 	if (currentrenderer == 1)
 	{
@@ -442,16 +115,16 @@ void STACK_ARGS DCanvas::DrawTexture (FTexture *img, int x0, int y0, int tags_fi
 		texInfo.tex = img;
 		texInfo.font = Font;
 		texInfo.x = x0 / (float)FRACUNIT; texInfo.y = y0 / (float)FRACUNIT;
-		texInfo.width = destwidth / (float)FRACUNIT; texInfo.height = destheight / (float)FRACUNIT;
-		texInfo.translation = translation;
-		texInfo.loadAlpha = alphaChannel == 1;
-		texInfo.clipLeft = lclip; texInfo.clipRight = rclip;
-		texInfo.clipTop = uclip; texInfo.clipBottom = dclip;
-		texInfo.fillColor = fillcolor; texInfo.alpha = alpha / (float)FRACUNIT;
-		texInfo.windowLeft = windowleft; texInfo.windowRight = windowright;
-		texInfo.flipX = flipX == 1;
+		texInfo.width = parms.destwidth / (float)FRACUNIT; texInfo.height = parms.destheight / (float)FRACUNIT;
+		texInfo.translation = parms.translation;
+		texInfo.loadAlpha = parms.alphaChannel == 1;
+		texInfo.clipLeft = parms.lclip; texInfo.clipRight = parms.rclip;
+		texInfo.clipTop = parms.uclip; texInfo.clipBottom = parms.dclip;
+		texInfo.fillColor = parms.fillcolor; texInfo.alpha = parms.alpha / (float)FRACUNIT;
+		texInfo.windowLeft = parms.windowleft; texInfo.windowRight = parms.windowright;
+		texInfo.flipX = parms.flipX == 1;
 		texInfo.masked = spanptr != NULL;
-		texInfo.RenderStyle = style;
+		texInfo.RenderStyle = parms.style;
 		gl_DrawTexture(&texInfo);
 		return;
 	}
@@ -474,10 +147,10 @@ void STACK_ARGS DCanvas::DrawTexture (FTexture *img, int x0, int y0, int tags_fi
 		centeryfrac = 0;
 
 		sprtopscreen = y0;
-		spryscale = destheight / img->GetHeight();
+		spryscale = parms.destheight / img->GetHeight();
 
 		// Fix precision errors that are noticeable at some resolutions
-		if (((y0 + destheight) >> FRACBITS) > ((y0 + spryscale * img->GetHeight()) >> FRACBITS))
+		if (((y0 + parms.destheight) >> FRACBITS) > ((y0 + spryscale * img->GetHeight()) >> FRACBITS))
 		{
 			spryscale++;
 		}
@@ -486,12 +159,12 @@ void STACK_ARGS DCanvas::DrawTexture (FTexture *img, int x0, int y0, int tags_fi
 		dc_iscale = 0xffffffffu / (unsigned)spryscale;
 		dc_texturemid = FixedMul (-y0, dc_iscale);
 		fixed_t frac = 0;
-		fixed_t xiscale = DivScale32 (img->GetWidth(), destwidth);
-		int x2 = (x0 + destwidth) >> FRACBITS;
+		fixed_t xiscale = DivScale32 (img->GetWidth(), parms.destwidth);
+		int x2 = (x0 + parms.destwidth) >> FRACBITS;
 
-		if (bottomclipper[0] != dclip)
+		if (bottomclipper[0] != parms.dclip)
 		{
-			clearbufshort (bottomclipper, screen->GetWidth(), (short)dclip);
+			clearbufshort (bottomclipper, screen->GetWidth(), (short)parms.dclip);
 			if (identitymap[1] != 1)
 			{
 				for (int i = 0; i < 256; ++i)
@@ -500,11 +173,11 @@ void STACK_ARGS DCanvas::DrawTexture (FTexture *img, int x0, int y0, int tags_fi
 				}
 			}
 		}
-		if (uclip != 0)
+		if (parms.uclip != 0)
 		{
-			if (topclipper[0] != uclip)
+			if (topclipper[0] != parms.uclip)
 			{
-				clearbufshort (topclipper, screen->GetWidth(), (short)uclip);
+				clearbufshort (topclipper, screen->GetWidth(), (short)parms.uclip);
 			}
 			mceilingclip = topclipper;
 		}
@@ -514,31 +187,31 @@ void STACK_ARGS DCanvas::DrawTexture (FTexture *img, int x0, int y0, int tags_fi
 		}
 		mfloorclip = bottomclipper;
 
-		if (flipX)
+		if (parms.flipX)
 		{
 			frac = (img->GetWidth() << FRACBITS) - 1;
 			xiscale = -xiscale;
 		}
 
 		dc_x = x0 >> FRACBITS;
-		if (windowleft > 0 || windowright < texwidth)
+		if (parms.windowleft > 0 || parms.windowright < parms.texwidth)
 		{
-			fixed_t xscale = destwidth / texwidth;
-			dc_x += (windowleft * xscale) >> FRACBITS;
-			frac += windowleft << FRACBITS;
-			x2 -= ((texwidth - windowright) * xscale) >> FRACBITS;
+			fixed_t xscale = parms.destwidth / parms.texwidth;
+			dc_x += (parms.windowleft * xscale) >> FRACBITS;
+			frac += parms.windowleft << FRACBITS;
+			x2 -= ((parms.texwidth - parms.windowright) * xscale) >> FRACBITS;
 		}
-		if (dc_x < lclip)
+		if (dc_x < parms.lclip)
 		{
-			frac += (lclip - dc_x) * xiscale;
-			dc_x = lclip;
+			frac += (parms.lclip - dc_x) * xiscale;
+			dc_x = parms.lclip;
 		}
-		if (x2 > rclip)
+		if (x2 > parms.rclip)
 		{
-			x2 = rclip;
+			x2 = parms.rclip;
 		}
 
-		if (destheight < 32*FRACUNIT)
+		if (parms.destheight < 32*FRACUNIT)
 		{
 			mode = DoDraw0;
 		}
@@ -595,6 +268,353 @@ void STACK_ARGS DCanvas::DrawTexture (FTexture *img, int x0, int y0, int tags_fi
 	{
 		NetUpdate ();
 	}
+}
+
+bool DCanvas::ParseDrawTextureTags (FTexture *img, int x, int y, DWORD tag, va_list tags, DrawParms *parms) const
+{
+	INTBOOL boolval;
+	int intval;
+	// [BC] Potentially flag the texture as being text so we can handle it differently.
+	bool	bIsText = false;
+
+	if (img == NULL || img->UseType == FTexture::TEX_Null)
+	{
+		return false;
+	}
+
+	parms->texwidth = img->GetScaledWidth();
+	parms->texheight = img->GetScaledHeight();
+
+	parms->windowleft = 0;
+	parms->windowright = parms->texwidth;
+	parms->dclip = this->GetHeight();
+	parms->uclip = 0;
+	parms->lclip = 0;
+	parms->rclip = this->GetWidth();
+	parms->destwidth = parms->windowright << FRACBITS;
+	parms->destheight = parms->texheight << FRACBITS;
+	parms->top = img->GetScaledTopOffset();
+	parms->left = img->GetScaledLeftOffset();
+	parms->alpha = FRACUNIT;
+	parms->fillcolor = -1;
+	parms->translation = NULL;
+	parms->alphaChannel = false;
+	parms->flipX = false;
+	parms->shadowAlpha = 0;
+	parms->shadowColor = 0;
+	parms->virtWidth = this->GetWidth();
+	parms->virtHeight = this->GetHeight();
+	parms->keepratio = false;
+	parms->style = STYLE_Count;
+	parms->masked = true;
+
+	parms->x = x << FRACBITS;
+	parms->y = y << FRACBITS;
+
+	// Parse the tag list for attributes
+	while (tag != TAG_DONE)
+	{
+		va_list *more_p;
+		DWORD data;
+
+		switch (tag)
+		{
+		case TAG_IGNORE:
+		default:
+			data = va_arg (tags, DWORD);
+			break;
+
+		case TAG_MORE:
+			more_p = va_arg (tags, va_list *);
+			va_end (tags);
+#ifdef __GNUC__
+			__va_copy (tags, *more_p);
+#else
+			tags = *more_p;
+#endif
+			break;
+
+		case DTA_DestWidth:
+			parms->destwidth = va_arg (tags, int) << FRACBITS;
+			break;
+
+		case DTA_DestHeight:
+			parms->destheight = va_arg (tags, int) << FRACBITS;
+			break;
+
+		case DTA_Clean:
+			boolval = va_arg (tags, INTBOOL);
+			if (boolval)
+			{
+				parms->x = (LONG)((parms->x - 160*FRACUNIT) * CleanXfac + (Width * (FRACUNIT/2)));
+				parms->y = (LONG)((parms->y - 100*FRACUNIT) * CleanYfac + (Height * (FRACUNIT/2)));
+				parms->destwidth = (LONG)( parms->texwidth * CleanXfac * FRACUNIT );
+
+				// [BC] Text looks horrible when it's y-stretched.
+				if ( bIsText )
+					parms->destheight = parms->texheight * (int)CleanYfac * FRACUNIT;
+				else
+					parms->destheight = (LONG)( parms->texheight * CleanYfac * FRACUNIT );
+			}
+			break;
+
+		case DTA_CleanNoMove:
+			boolval = va_arg (tags, INTBOOL);
+			if (boolval)
+			{
+				if ( bIsText )
+					parms->destwidth = parms->texwidth * (int)CleanXfac * FRACUNIT;
+				else
+					parms->destwidth = (LONG)( parms->texwidth * CleanXfac * FRACUNIT );
+
+				// [BC] Text looks horrible when it's y-stretched.
+				if ( bIsText )
+					parms->destheight = parms->texheight * (int)CleanYfac * FRACUNIT;
+				else
+					parms->destheight = (LONG)( parms->texheight * CleanYfac * FRACUNIT );
+			}
+			break;
+
+		case DTA_320x200:
+			boolval = va_arg (tags, INTBOOL);
+			if (boolval)
+			{
+				parms->virtWidth = 320;
+				parms->virtHeight = 200;
+			}
+			break;
+
+		case DTA_HUDRules:
+			{
+				bool xright = parms->x < 0;
+				bool ybot = parms->y < 0;
+				intval = va_arg (tags, int);
+
+				if (hud_scale)
+				{
+					parms->x *= CleanXfac;
+					if (intval == HUD_HorizCenter)
+						parms->x += Width * FRACUNIT / 2;
+					else if (xright)
+						parms->x = Width * FRACUNIT + parms->x;
+					parms->y *= CleanYfac;
+					if (ybot)
+						parms->y = Height * FRACUNIT + parms->y;
+					parms->destwidth = static_cast<fixed_t>(parms->texwidth * CleanXfac * FRACUNIT);
+					parms->destheight = static_cast<fixed_t>(parms->texheight * CleanYfac * FRACUNIT);
+				}
+				else
+				{
+					if (intval == HUD_HorizCenter)
+						parms->x += Width * FRACUNIT / 2;
+					else if (xright)
+						parms->x = Width * FRACUNIT + parms->x;
+					if (ybot)
+						parms->y = Height * FRACUNIT + parms->y;
+				}
+			}
+			break;
+
+		case DTA_VirtualWidth:
+			parms->virtWidth = va_arg (tags, int);
+			break;
+			
+		case DTA_VirtualHeight:
+			parms->virtHeight = va_arg (tags, int);
+			break;
+
+		case DTA_Alpha:
+			parms->alpha = MIN<fixed_t> (FRACUNIT, va_arg (tags, fixed_t));
+			break;
+
+		case DTA_AlphaChannel:
+			parms->alphaChannel = va_arg (tags, INTBOOL);
+			break;
+
+		case DTA_FillColor:
+			parms->fillcolor = va_arg (tags, int);
+			break;
+
+		case DTA_Translation:
+			parms->translation = va_arg (tags, const BYTE *);
+			break;
+
+		case DTA_FlipX:
+			parms->flipX = va_arg (tags, INTBOOL);
+			break;
+
+		case DTA_TopOffset:
+			parms->top = va_arg (tags, int);
+			break;
+
+		case DTA_LeftOffset:
+			parms->left = va_arg (tags, int);
+			break;
+
+		case DTA_CenterOffset:
+			if (va_arg (tags, int))
+			{
+				parms->left = parms->texwidth / 2;
+				parms->top = parms->texheight / 2;
+			}
+			break;
+
+		case DTA_CenterBottomOffset:
+			if (va_arg (tags, int))
+			{
+				parms->left = parms->texwidth / 2;
+				parms->top = parms->texheight;
+			}
+			break;
+
+		case DTA_WindowLeft:
+			parms->windowleft = va_arg (tags, int);
+			break;
+
+		case DTA_WindowRight:
+			parms->windowright = va_arg (tags, int);
+			break;
+
+		case DTA_ClipTop:
+			parms->uclip = va_arg (tags, int);
+			if (parms->uclip < 0)
+			{
+				parms->uclip = 0;
+			}
+			break;
+
+		case DTA_ClipBottom:
+			parms->dclip = va_arg (tags, int);
+			if (parms->dclip > this->GetHeight())
+			{
+				parms->dclip = this->GetHeight();
+			}
+			break;
+
+		case DTA_ClipLeft:
+			parms->lclip = va_arg (tags, int);
+			if (parms->lclip < 0)
+			{
+				parms->lclip = 0;
+			}
+			break;
+
+		case DTA_ClipRight:
+			parms->rclip = va_arg (tags, int);
+			if (parms->rclip > this->GetWidth())
+			{
+				parms->rclip = this->GetWidth();
+			}
+			break;
+
+		case DTA_ShadowAlpha:
+			parms->shadowAlpha = MIN<fixed_t> (FRACUNIT, va_arg (tags, fixed_t));
+			break;
+
+		case DTA_ShadowColor:
+			parms->shadowColor = va_arg (tags, int);
+			break;
+
+		case DTA_Shadow:
+			boolval = va_arg (tags, INTBOOL);
+			if (boolval)
+			{
+				parms->shadowAlpha = FRACUNIT/2;
+				parms->shadowColor = 0;
+			}
+			else
+			{
+				parms->shadowAlpha = 0;
+			}
+			break;
+
+		case DTA_Masked:
+			parms->masked = va_arg (tags, INTBOOL);
+			break;
+
+		case DTA_KeepRatio:
+			parms->keepratio = va_arg (tags, INTBOOL);
+			break;
+
+		case DTA_RenderStyle:
+			parms->style = ERenderStyle(va_arg (tags, int));
+			break;
+
+		// [BC] Is what we're drawing text? If so, handle it differently.
+		case DTA_IsText:
+
+			bIsText = !!va_arg( tags, INTBOOL );
+
+			// Don't apply these text rules to the big font.
+			if ( screen->Font == BigFont )
+				bIsText = false;
+			break;
+		}
+		tag = va_arg (tags, DWORD);
+	}
+	va_end (tags);
+
+	if (parms->virtWidth != Width || parms->virtHeight != Height)
+	{
+		int myratio = CheckRatio (Width, Height);
+		int right = parms->x + parms->destwidth;
+		int bottom = parms->y + parms->destheight;
+
+		if (myratio != 0 && myratio != 4 && !parms->keepratio)
+		{ // The target surface is not 4:3, so expand the specified
+		  // virtual size to avoid undesired stretching of the image.
+		  // Does not handle non-4:3 virtual sizes. I'll worry about
+		  // those if somebody expresses a desire to use them.
+			parms->x = Scale(parms->x - parms->virtWidth*FRACUNIT/2,
+							 Width*960,
+							 parms->virtWidth*BaseRatioSizes[myratio][0])
+						+ Width*FRACUNIT/2;
+			parms->destwidth = Scale(right - parms->virtWidth*FRACUNIT/2,
+							 Width*960,
+							 parms->virtWidth*BaseRatioSizes[myratio][0])
+						+ Width*FRACUNIT/2 - parms->x;
+		}
+		else
+		{
+			parms->x = Scale (parms->x, Width, parms->virtWidth);
+			parms->destwidth = Scale (right, Width, parms->virtWidth) - parms->x;
+		}
+		parms->y = Scale (parms->y, Height, parms->virtHeight);
+		parms->destheight = Scale (bottom, Height, parms->virtHeight) - parms->y;
+	}
+
+	if (parms->destwidth <= 0 || parms->destheight <= 0)
+	{
+		return false;
+	}
+
+	if (parms->style == STYLE_Count)
+	{
+		if (parms->fillcolor != -1)
+		{
+			if (parms->alphaChannel)
+			{
+				parms->style = STYLE_Shaded;
+			}
+			else if (parms->alpha < FRACUNIT)
+			{
+				parms->style = STYLE_TranslucentStencil;
+			}
+			else
+			{
+				parms->style = STYLE_Stencil;
+			}
+		}
+		else if (parms->alpha < FRACUNIT)
+		{
+			parms->style = STYLE_Translucent;
+		}
+		else
+		{
+			parms->style = STYLE_Normal;
+		}
+	}
+	return true;
 }
 
 void DCanvas::FillBorder (FTexture *img)

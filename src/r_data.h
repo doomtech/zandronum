@@ -87,10 +87,12 @@ public:
 
 	const BYTE *GetColumn (unsigned int column, const Span **spans_out);
 	const BYTE *GetPixels ();
+	FTextureFormat GetFormat();
 	void Unload ();
 	virtual void SetFrontSkyLayer ();
 
 	// [OpenGL]
+	int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y);
 	int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
 	bool UseBasePalette();
 
@@ -250,10 +252,10 @@ public:
 	const BYTE *GetColumn (unsigned int column, const Span **spans_out);
 	const BYTE *GetPixels ();
 	void Unload ();
-
-	// [OpenGL]
+	FTextureFormat GetFormat ();
+	int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y);
 	int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
-	bool UseBasePalette() { return false; }
+	bool UseBasePalette();
 	int GetSourceLump() { return SourceLump; }
 
 protected:
@@ -289,6 +291,7 @@ public:
 	const BYTE *GetColumn (unsigned int column, const Span **spans_out);
 	const BYTE *GetPixels ();
 	void Unload ();
+	FTextureFormat GetFormat ();
 
 	int GetSourceLump() { return SourceLump; }
 
@@ -313,10 +316,13 @@ protected:
 	static void CalcBitShift (DWORD mask, BYTE *lshift, BYTE *rshift);
 
 	void MakeTexture ();
-	void ReadRGB (FWadLump &lump);
-	void DecompressDXT1 (FWadLump &lump);
-	void DecompressDXT3 (FWadLump &lump, bool premultiplied);
-	void DecompressDXT5 (FWadLump &lump, bool premultiplied);
+	void ReadRGB (FWadLump &lump, BYTE *tcbuf = NULL);
+	void DecompressDXT1 (FWadLump &lump, BYTE *tcbuf = NULL);
+	void DecompressDXT3 (FWadLump &lump, bool premultiplied, BYTE *tcbuf = NULL);
+	void DecompressDXT5 (FWadLump &lump, bool premultiplied, BYTE *tcbuf = NULL);
+
+	int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y);
+	bool UseBasePalette();
 
 	friend class FTexture;
 };
@@ -330,10 +336,10 @@ public:
 	const BYTE *GetColumn (unsigned int column, const Span **spans_out);
 	const BYTE *GetPixels ();
 	void Unload ();
-
-	// [OpenGL]
+	FTextureFormat GetFormat ();
+	int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y);
 	int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
-	bool UseBasePalette() { return false; }
+	bool UseBasePalette();
 	int GetSourceLump() { return SourceLump; }
 
 protected:
@@ -382,11 +388,11 @@ public:
 	const BYTE *GetColumn (unsigned int column, const Span **spans_out);
 	const BYTE *GetPixels ();
 	void Unload ();
+	FTextureFormat GetFormat ();
 
-
-	// [OpenGL]
+	int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y);
 	int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
-	bool UseBasePalette() { return false; }
+	bool UseBasePalette();
 	int GetSourceLump() { return SourceLump; }
 
 protected:
@@ -440,10 +446,11 @@ public:
 	const BYTE *GetColumn (unsigned int column, const Span **spans_out);
 	const BYTE *GetPixels ();
 	void Unload ();
+	FTextureFormat GetFormat ();
 
-	// [OpenGL]
+	int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y);
 	int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
-	bool UseBasePalette() { return false; }
+	bool UseBasePalette();
 	int GetSourceLump() { return SourceLump; }
 
 protected:

@@ -3,7 +3,7 @@
 ** The base texture class
 **
 **---------------------------------------------------------------------------
-** Copyright 2004-2006 Randy Heit
+** Copyright 2004-2007 Randy Heit
 ** All rights reserved.
 **
 ** Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@
 #include "w_wad.h"
 #include "r_data.h"
 #include "templates.h"
+#include "i_system.h"
 
 #include "gl/gl_texture.h"
 
@@ -119,20 +120,26 @@ FTexture::FTexture ()
   WidthBits(0), HeightBits(0), xScale(FRACUNIT), yScale(FRACUNIT),
   UseType(TEX_Any), bNoDecals(false), bNoRemap0(false), bWorldPanning(false),
   bMasked(true), bAlphaTexture(false), bHasCanvas(false), bWarped(0), bIsPatch(false),
-  Rotations(0xFFFF), Width(0), Height(0), WidthMask(0)
+  Rotations(0xFFFF), Width(0), Height(0), WidthMask(0), Native(NULL)
 {
 	gltex=NULL;
-	*Name=0;
+	*Name = 0;
 }
 
 FTexture::~FTexture ()
 {
+	KillNative();
 	if (gltex) delete gltex;
 }
 
 bool FTexture::CheckModified ()
 {
 	return false;
+}
+
+FTextureFormat FTexture::GetFormat()
+{
+	return TEX_Pal;
 }
 
 void FTexture::SetFrontSkyLayer ()
@@ -400,6 +407,98 @@ void FTexture::FlipNonSquareBlockRemap (BYTE *dst, const BYTE *src, int x, int y
 		}
 	}
 }
+
+FNativeTexture *FTexture::GetNative()
+{
+	if (Native != NULL)
+	{
+		return Native;
+	}
+	Native = screen->CreateTexture(this);
+	return Native;
+}
+
+void FTexture::KillNative()
+{
+	if (Native != NULL)
+	{
+		delete Native;
+		Native = NULL;
+	}
+}
+
+// For this generic implementation, we just call GetPixels and copy that data
+// to the buffer. Texture formats that can do better than paletted images
+// should provide their own implementation that may preserve the original
+// color data. Note that the buffer expects row-major data, since that's
+// generally more convenient for any non-Doom image formats, and it doesn't
+// need to be used by any of Doom's column drawing routines.
+void FTexture::FillBuffer(BYTE *buff, int pitch, int height, FTextureFormat fmt)
+{
+	const BYTE *pix;
+	int x, y, w, h, stride;
+
+	w = GetWidth();
+	h = GetHeight();
+
+	switch (fmt)
+	{
+	case TEX_Pal:
+	case TEX_Gray:
+		pix = GetPixels();
+		stride = pitch - w;
+		for (y = 0; y < h; ++y)
+		{
+			const BYTE *pix2 = pix;
+			for (x = 0; x < w; ++x)
+			{
+				*buff++ = *pix2;
+				pix2 += h;
+			}
+			pix++;
+			buff += stride;
+		}
+		break;
+
+	case TEX_RGB:
+		CopyTrueColorPixels(buff, pitch, height, 0, 0); 
+		break;
+
+	default:
+		I_Error("FTexture::FillBuffer: Unsupported format %d", fmt);
+	}
+}
+
+//===========================================================================
+//
+// FTexture::CopyTrueColorPixels 
+//
+// this is the generic case that can handle
+// any properly implemented texture for software rendering.
+// Its drawback is that it is limited to the base palette which is
+// why all classes that handle different palettes should subclass this
+// method
+//
+//===========================================================================
+
+int FTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y)
+{
+	PalEntry * palette = screen->GetPalette();
+	palette[0].a=255;	// temporarily modify the first color's alpha
+	screen->CopyPixelData(buffer, buf_width, buf_height, x, y,
+				  GetPixels(), Width, Height, Height, 1, 
+				  palette);
+
+	palette[0].a=0;
+	return 0;
+}
+
+bool FTexture::UseBasePalette() 
+{ 
+	return true; 
+}
+
+
 
 FDummyTexture::FDummyTexture ()
 {

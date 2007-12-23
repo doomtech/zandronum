@@ -3,7 +3,7 @@
 ** Texture class for PNG images
 **
 **---------------------------------------------------------------------------
-** Copyright 2004-2006 Randy Heit
+** Copyright 2004-2007 Randy Heit
 ** All rights reserved.
 **
 ** Redistribution and use in source and binary forms, with or without
@@ -89,8 +89,7 @@ FTexture *FPNGTexture::Create(FileReader & data, int lumpnum)
 		return NULL;
 	}
 
-	// Just for completeness, make sure the PNG has something more than an
-	// IHDR.
+	// Just for completeness, make sure the PNG has something more than an IHDR.
 	data.Seek (4, SEEK_CUR);
 	data.Read (first4bytes.b, 4);
 	if (first4bytes.dw == 0)
@@ -269,6 +268,16 @@ void FPNGTexture::Unload ()
 	}
 }
 
+FTextureFormat FPNGTexture::GetFormat()
+{
+	switch (ColorType)
+	{
+	case 3:		return TEX_Pal;
+	case 0:		return TEX_Gray;
+	default:	return TEX_RGB;
+	}
+}
+
 const BYTE *FPNGTexture::GetColumn (unsigned int column, const Span **spans_out)
 {
 	if (Pixels == NULL)
@@ -429,3 +438,99 @@ void FPNGTexture::MakeTexture ()
 	}
 }
 
+//===========================================================================
+//
+// FPNGTexture::CopyTrueColorPixels
+//
+//===========================================================================
+
+int FPNGTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y)
+{
+	// Parse pre-IDAT chunks. I skip the CRCs. Is that bad?
+	PalEntry pe[256];
+	DWORD len, id;
+	FWadLump lump = Wads.OpenLumpNum (SourceLump);
+	static char bpp[]={1, 0, 3, 1, 2, 0, 4};
+	int pixwidth = Width * bpp[ColorType];
+	int transpal=false;
+
+	lump.Seek (33, SEEK_SET);
+	for(int i=0;i<256;i++) pe[i]=PalEntry(0,i,i,i);	// default to a gray map
+
+	lump >> len >> id;
+	while (id != MAKE_ID('I','D','A','T') && id != MAKE_ID('I','E','N','D'))
+	{
+		len = BigLong((unsigned int)len);
+		switch (id)
+		{
+		default:
+			lump.Seek (len, SEEK_CUR);
+			break;
+
+		case MAKE_ID('P','L','T','E'):
+			for(int i=0;i<PaletteSize;i++)
+				lump >> pe[i].r >> pe[i].g >> pe[i].b;
+			break;
+
+		case MAKE_ID('t','R','N','S'):
+			for(DWORD i=0;i<len;i++)
+			{
+				lump >> pe[i].a;
+				pe[i].a=255-pe[i].a;	// use inverse alpha so the default palette can be used unchanged
+				if (pe[i].a!=0 && pe[i].a!=255) transpal = true;
+			}
+			break;
+		}
+		lump >> len >> len;	// Skip CRC
+		id = MAKE_ID('I','E','N','D');
+		lump >> id;
+	}
+
+	BYTE * Pixels = new BYTE[pixwidth * Height];
+
+	lump.Seek (StartOfIDAT, SEEK_SET);
+	lump >> len >> id;
+	M_ReadIDAT (&lump, Pixels, Width, Height, pixwidth, BitDepth, ColorType, Interlace, BigLong((unsigned int)len));
+
+	switch (ColorType)
+	{
+	case 0:
+	case 3:
+		screen->CopyPixelData(buffer, buf_width, buf_height, x, y, Pixels, Width, Height, 1, Width, pe);
+		break;
+
+	case 2:
+		screen->CopyPixelDataRGB(buffer, buf_width, buf_height, x, y, Pixels, Width, Height, 3, pixwidth, CF_RGB);
+		break;
+
+	case 4:
+		screen->CopyPixelDataRGB(buffer, buf_width, buf_height, x, y, Pixels, Width, Height, 2, pixwidth, CF_IA);
+		transpal = -1;
+		break;
+
+	case 6:
+		screen->CopyPixelDataRGB(buffer, buf_width, buf_height, x, y, Pixels, Width, Height, 4, pixwidth, CF_RGBA);
+		transpal = -1;
+		break;
+
+	default:
+		break;
+
+	}
+	delete[] Pixels;
+	return transpal;
+}
+
+
+//===========================================================================
+//
+// This doesn't check if the palette is identical with the base palette
+// I don't think it's worth the hassle because it's only of importance
+// when compositing multipatch textures.
+//
+//===========================================================================
+
+bool FPNGTexture::UseBasePalette() 
+{ 
+	return false; 
+}
