@@ -997,6 +997,11 @@ void A_CustomBulletAttack (AActor *self)
 		bslope = P_AimLineAttack (self, bangle, MISSILERANGE);
 
 		S_SoundID (self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM);
+
+		// [BB] If we're the server, make the sound on the client end.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName( self->AttackSound ), 1, ATTN_NORM );
+
 		for (i=0 ; i<NumBullets ; i++)
 		{
 			int angle = bangle + pr_cabullet.Random2() * (Spread_XY / 255);
