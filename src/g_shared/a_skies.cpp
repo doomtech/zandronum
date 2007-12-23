@@ -89,6 +89,7 @@ void ASkyViewpoint::Destroy ()
 			sectors[i].CeilingSkyBox = NULL;
 		}
 	}
+	Super::Destroy();
 }
 
 //---------------------------------------------------------------------------
