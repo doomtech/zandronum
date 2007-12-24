@@ -49,6 +49,11 @@ extern HINSTANCE g_hInst;
 #include <stdlib.h>
 #include <stdarg.h>
 
+// [BB] This fixes a weird include problem under Linux and FreeBSD.
+#ifndef _WIN32
+#include "networkheaders.h"
+#endif
+
 #include "doomtype.h"
 #include "m_alloc.h"
 #include <math.h>
