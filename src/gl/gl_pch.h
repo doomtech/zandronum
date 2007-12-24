@@ -1,3 +1,5 @@
+#ifndef __GL_PCH_H
+#define __GL_PCH_H
 #ifdef _WIN32
 //#define __RPCNDR_H__		// this header causes problems!
 //#define __wtypes_h__
@@ -70,7 +72,8 @@
 #else
 typedef unsigned char 	byte;
 typedef float		FLOAT;
-#define max(a,b)	(((a)>(b)) ? (a) : (b))
+template <typename T>
+inline T max( T a, T b) { return (((a)>(b)) ? (a) : (b)); }
 #define __cdecl
 #define _access(a,b)	access(a,b)
 #endif
@@ -108,3 +111,4 @@ extern RenderContext gl;
 #ifdef WIN32
 #undef WIN32
 #endif
+#endif //__GL_PCH_H

@@ -1,4 +1,3 @@
-#include "gl_pch.h"
 /*
 ** gfxfuncs.cpp
 ** True color graphics manipulation
@@ -40,6 +39,7 @@
 #include "m_swap.h"
 #include "m_png.h"
 #include "m_crc32.h"
+#include "gl_pch.h"
 
 EXTERN_CVAR(Float, png_gamma)
 EXTERN_CVAR (Float, Gamma)
