@@ -2427,6 +2427,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\src\p_enemy_a_lookex.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\p_floor.cpp"
 				>
 				<FileConfiguration
@@ -6232,6 +6236,14 @@
 			</File>
 			<File
 				RelativePath=".\src\g_shared\sbar.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\g_shared\sbarinfo.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\g_shared\sbarinfo.h"
 				>
 			</File>
 			<File

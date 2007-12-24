@@ -71,6 +71,7 @@
 #include "m_menu.h"
 #include "statnums.h"
 #include "vectors.h"
+#include "sbarinfo.h"
 #include "cl_main.h"
 #include "deathmatch.h"
 #include "network.h"
@@ -318,6 +319,7 @@ static const char *MapInfoMapLevel[] =
 	"infiniteflightpowerup",
 	"noinfiniteflightpowerup",
 	"allowrespawn",
+	"teamdamage",
 	"nobotnodes",	// [BC] Allow the prevention of spawning bot nodes (helpful for very large maps).
 	// new [GZDoom]
 	"fogdensity",
@@ -464,6 +466,7 @@ MapHandlers[] =
 	{ MITYPE_SETFLAG,	LEVEL_INFINITE_FLIGHT, 0 },
 	{ MITYPE_CLRFLAG,	LEVEL_INFINITE_FLIGHT, 0 },
 	{ MITYPE_SETFLAG,	LEVEL_ALLOWRESPAWN, 0 },
+	{ MITYPE_FLOAT,		lioffset(teamdamage), 0 },
 	{ MITYPE_SETFLAG,	LEVEL_NOBOTNODES, 0 },	// [BC]
 	// new [GZDoom]
 	{ MITYPE_INT,		lioffset(fogdensity), 0 },
@@ -1660,6 +1663,14 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 		S_ResumeSound ();
 	}
 
+	//SBarInfo support.
+	int stbar = gameinfo.gametype;
+	if(Wads.CheckNumForName("SBARINFO") != -1)
+	{
+		stbar = SBarInfoScript.ParseSBarInfo(Wads.GetNumForName("SBARINFO")); //load last SBARINFO lump to avoid clashes
+	}
+	//end most of the SBarInfo stuff
+
 	// [BC] Reset the end level delay.
 	GAME_SetEndLevelDelay( 0 );
 
@@ -1680,21 +1691,25 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 		{
 			StatusBar = new FBaseStatusBar (0);
 		}
-		else if (gameinfo.gametype == GAME_Doom)
+		else if (stbar == GAME_Doom)
 		{
 			StatusBar = CreateDoomStatusBar ();
 		}
-		else if (gameinfo.gametype == GAME_Heretic)
+		else if (stbar == GAME_Heretic)
 		{
 			StatusBar = CreateHereticStatusBar ();
 		}
-		else if (gameinfo.gametype == GAME_Hexen)
+		else if (stbar == GAME_Hexen)
 		{
 			StatusBar = CreateHexenStatusBar ();
 		}
-		else if (gameinfo.gametype == GAME_Strife)
+		else if (stbar == GAME_Strife)
 		{
 			StatusBar = CreateStrifeStatusBar ();
+		}
+		else if (stbar == GAME_Any)
+		{
+			StatusBar = CreateCustomStatusBar (); //SBARINFO is empty unless scripted.
 		}
 		else
 		{
@@ -2862,6 +2877,7 @@ void G_InitLevelLocals ()
 
 	level.gravity = sv_gravity * 35/TICRATE;
 	level.aircontrol = (fixed_t)(sv_aircontrol * 65536.f);
+	level.teamdamage = teamdamage;
 	level.flags = 0;
 
 	info = FindLevelInfo (level.mapname);
@@ -2899,6 +2915,10 @@ void G_InitLevelLocals ()
 	if (info->aircontrol != 0.f)
 	{
 		level.aircontrol = (fixed_t)(info->aircontrol * 65536.f);
+	}
+	if (info->teamdamage != 0.f)
+	{
+		level.teamdamage = info->teamdamage;
 	}
 
 	G_AirControlChanged ();
@@ -3283,6 +3303,7 @@ void G_SerializeLevel (FArchive &arc, bool hubLoad)
 		<< level.killed_monsters
 		<< level.gravity
 		<< level.aircontrol
+		<< level.teamdamage
 		<< level.maptime
 		<< i;
 

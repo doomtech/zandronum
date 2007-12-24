@@ -1259,7 +1259,7 @@ static void M_DrawSaveLoadCommon ()
 	else
 	{
 		screen->Clear (savepicLeft, savepicTop,
-			savepicLeft+savepicWidth, savepicTop+savepicHeight, 0);
+			savepicLeft+savepicWidth, savepicTop+savepicHeight, 0, 0);
 
 		if (!SaveGames.IsEmpty ())
 		{
@@ -1276,7 +1276,7 @@ static void M_DrawSaveLoadCommon ()
 
 	// Draw comment area
 	M_DrawFrame (commentLeft, commentTop, commentWidth, commentHeight);
-	screen->Clear (commentLeft, commentTop, commentRight, commentBottom, 0);
+	screen->Clear (commentLeft, commentTop, commentRight, commentBottom, 0, 0);
 	if (SaveComment != NULL)
 	{
 		// I'm not sure why SaveComment would go NULL in this loop, but I got
@@ -1294,7 +1294,7 @@ static void M_DrawSaveLoadCommon ()
 	do
 	{
 		M_DrawFrame (listboxLeft, listboxTop, listboxWidth, listboxHeight);
-		screen->Clear (listboxLeft, listboxTop, listboxRight, listboxBottom, 0);
+		screen->Clear (listboxLeft, listboxTop, listboxRight, listboxBottom, 0, 0);
 
 		if (SaveGames.IsEmpty ())
 		{
@@ -1331,8 +1331,8 @@ static void M_DrawSaveLoadCommon ()
 			if (node == SelSaveGame)
 			{
 				screen->Clear (listboxLeft, listboxTop+rowHeight*i,
-					listboxRight, listboxTop+rowHeight*(i+1),
-					ColorMatcher.Pick (genStringEnter ? 255 : 0, 0, genStringEnter ? 0 : 255));
+					listboxRight, listboxTop+rowHeight*(i+1), -1,
+					genStringEnter ? MAKEARGB(255,255,0,0) : MAKEARGB(255,0,0,255));
 				didSeeSelected = true;
 				if (!genStringEnter)
 				{
@@ -1853,7 +1853,7 @@ static void M_DrawClassMenu ()
 
 	if (!FireScreen)
 	{
-		screen->Clear (x, y, x + 72 * CleanXfac, y + 80 * CleanYfac-1, 0);
+		screen->Clear (x, y, x + 72 * CleanXfac, y + 80 * CleanYfac-1, 0, 0);
 	}
 	else
 	{
@@ -2405,7 +2405,7 @@ static void M_PlayerSetupDrawer ()
 		y = (y-100)*CleanYfac+(SCREENHEIGHT>>1);
 		if (!FireScreen)
 		{
-			screen->Clear (x, y, x + 72 * CleanXfac, y + 80 * CleanYfac-1, 0);
+			screen->Clear (x, y, x + 72 * CleanXfac, y + 80 * CleanYfac-1, 0, 0);
 		}
 		else
 		{

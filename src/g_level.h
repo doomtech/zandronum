@@ -177,12 +177,14 @@ struct level_info_s
 	char		soundinfo[9];
 	char		sndseq[9];
 	char		bordertexture[9];
+	FSpecialAction * specialactions;
+
+	float		teamdamage;
 
 	// new properties
 	int			fogdensity;
 	int			outsidefogdensity;
 	int			skyfog;
-	FSpecialAction * specialactions;
 };
 typedef struct level_info_s level_info_t;
 
@@ -249,6 +251,8 @@ struct level_locals_s
 	SBYTE		WallHorizLight;
 
 	const char	*f1;
+
+	float		teamdamage;
 
 	bool		IsJumpingAllowed() const;
 	bool		IsCrouchingAllowed() const;

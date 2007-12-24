@@ -768,7 +768,7 @@ void D_Display (bool screenshot)
 			break;
 		}
 	}
-
+	//screen->Begin2D();
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
@@ -868,7 +868,6 @@ void D_Display (bool screenshot)
 				DTA_FillColor, MAKEARGB(ColorMatcher.Pick(254,254,0),254,254,0),
 				DTA_AlphaChannel, true,
 				TAG_DONE);
-			screen->End2D();
 #endif
 			screen->Update ();	// page flip or blit buffer
 		}
@@ -1081,7 +1080,7 @@ void D_PageDrawer (void)
 	}
 	else
 	{
-		screen->Clear (0, 0, SCREENWIDTH, SCREENHEIGHT, 0);
+		screen->Clear (0, 0, SCREENWIDTH, SCREENHEIGHT, 0, 0);
 		if (!PageBlank)
 		{
 			screen->DrawText (CR_WHITE, 0, 0, "Page graphic goes here", TAG_DONE);

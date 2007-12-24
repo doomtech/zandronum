@@ -231,10 +231,11 @@ public:
 	void SetVSync (bool vsync);
 	void SetBlendingRect (int x1, int y1, int x2, int y2);
 	void Begin2D ();
-	void End2D ();
 	FNativeTexture *CreateTexture (FTexture *gametex);
 	FNativeTexture *CreatePalette (FTexture *pal);
-	void STACK_ARGS DrawTexture (FTexture *img, int x, int y, int tags, ...);
+	void STACK_ARGS DrawTextureV (FTexture *img, int x, int y, uint32 tag, va_list tags);
+	void Clear (int left, int top, int right, int bottom, int palcolor, uint32 color) const;
+	void Dim (PalEntry color, float amount, int x1, int y1, int w, int h) const;
 	HRESULT GetHR ();
 
 private:
@@ -280,6 +281,7 @@ private:
 	IDirect3DTexture9 *ShadedPaletteTexture;
 	IDirect3DPixelShader9 *PalTexShader;
 	IDirect3DPixelShader9 *PlainShader;
+	IDirect3DPixelShader9 *DimShader;
 
 	D3DFB() {}
 };

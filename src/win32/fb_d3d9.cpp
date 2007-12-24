@@ -274,11 +274,9 @@ bool D3DFB::CreateResources ()
 		I_RestoreWindowedPos ();
 		VidResizing = false;
 	}
-	if (FAILED(D3DDevice->CreatePixelShader (PalTexShaderDef, &PalTexShader)))
-	{
-		return false;
-	}
-	if (FAILED(D3DDevice->CreatePixelShader (PlainShaderDef, &PlainShader)))
+	if (FAILED(D3DDevice->CreatePixelShader (PalTexShaderDef, &PalTexShader)) ||
+		FAILED(D3DDevice->CreatePixelShader (PlainShaderDef, &PlainShader)) ||
+		FAILED(D3DDevice->CreatePixelShader (DimShaderDef, &DimShader)))
 	{
 		return false;
 	}
@@ -334,6 +332,11 @@ void D3DFB::ReleaseResources ()
 	{
 		PlainShader->Release();
 		PlainShader = NULL;
+	}
+	if (DimShader != NULL)
+	{
+		DimShader->Release();
+		DimShader = NULL;
 	}
 }
 
@@ -803,17 +806,14 @@ void D3DFB::Unlock ()
 
 // When In2D == 0: Copy buffer to screen and present
 // When In2D == 1: Copy buffer to screen but do not present
-// When In2D == 2: Do nothing
-// When In2D == 3: Present and set In2D to 0
+// When In2D == 2: Present and set In2D to 0
 void D3DFB::Update ()
 {
-	assert(In2D != 2);
-
-	if (In2D == 3)
+	if (In2D == 2)
 	{
 		D3DDevice->EndScene();
 		D3DDevice->Present(NULL, NULL, NULL, NULL);
-		In2D = false;
+		In2D = 0;
 		return;
 	}
 
@@ -1290,14 +1290,6 @@ void D3DFB::Begin2D()
 	//D3DDevice->SetTexture(1, PaletteTexture);
 }
 
-void D3DFB::End2D()
-{
-	if (In2D == 2)
-	{
-		In2D = 3;
-	}
-}
-
 FNativeTexture *D3DFB::CreateTexture(FTexture *gametex)
 {
 	return new D3DTex(gametex, D3DDevice);
@@ -1305,21 +1297,82 @@ FNativeTexture *D3DFB::CreateTexture(FTexture *gametex)
 
 //==========================================================================
 //
-// D3DFB :: DrawTexture
+// D3DFB :: Clear
+//
+// Fills the specified region with a color.
+//
+//==========================================================================
+
+void D3DFB::Clear (int left, int top, int right, int bottom, int palcolor, uint32 color) const
+{
+	if (In2D < 2)
+	{
+		Super::Clear(left, top, right, bottom, palcolor, color);
+		return;
+	}
+	if (palcolor >= 0)
+	{
+		color = GPalette.BaseColors[palcolor];
+	}
+	D3DRECT rect = { left, top, right, bottom };
+	D3DDevice->Clear(1, &rect, D3DCLEAR_TARGET, color | 0xFF000000, 1.f, 0);
+}
+
+//==========================================================================
+//
+// D3DFB :: Dim
+//
+//==========================================================================
+
+void D3DFB::Dim (PalEntry color, float amount, int x1, int y1, int w, int h) const
+{
+	if (amount <= 0)
+		return;
+
+	if (In2D < 2)
+	{
+		Super::Dim(color, amount, x1, y1, w, h);
+		return;
+	}
+	if (amount >= 1)
+	{
+		D3DRECT rect = { x1, y1, x1 + w, y1 + h };
+		D3DDevice->Clear(1, &rect, D3DCLEAR_TARGET, color | 0xFF000000, 1.f, 0);
+	}
+	else
+	{
+		FBVERTEX verts[4] =
+		{
+			{ x1-0.5f,   y1-0.5f,   0.5f, 1, 0, 0 },
+			{ x1+w-0.5f, y1-0.5f,   0.5f, 1, 0, 0 },
+			{ x1+w-0.5f, y1+h-0.5f, 0.5f, 1, 0, 0 },
+			{ x1-0.5f,   y1+h-0.5f, 0.5f, 1, 0, 0 }
+		};
+		float constant[4] =
+		{
+			RPART(color)/255.f, GPART(color)/255.f, BPART(color)/255.f, APART(color)/255.f,
+		};
+		D3DDevice->SetPixelShader(DimShader);
+		D3DDevice->SetPixelShaderConstantF(1, constant, 1);
+		D3DDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, &verts, sizeof(FBVERTEX));
+		D3DDevice->SetPixelShader(PalTexShader);
+	}
+}
+
+//==========================================================================
+//
+// D3DFB :: DrawTextureV
 //
 // If not in 2D mode, just call the normal software version.
 // If in 2D mode, then use Direct3D calls to perform the drawing.
 //
 //==========================================================================
 
-void STACK_ARGS D3DFB::DrawTexture (FTexture *img, int x, int y, int tags_first, ...)
+void STACK_ARGS D3DFB::DrawTextureV (FTexture *img, int x, int y, uint32 tags_first, va_list tags)
 {
-	va_list tags;
-	va_start(tags, tags_first);
-
 	if (In2D < 2)
 	{
-		DrawTextureV(img, x, y, tags_first, tags);
+		Super::DrawTextureV(img, x, y, tags_first, tags);
 		return;
 	}
 

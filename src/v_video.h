@@ -170,7 +170,7 @@ public:
 	virtual void FlatFill (int left, int top, int right, int bottom, FTexture *src);
 
 	// Set an area to a specified color
-	virtual void Clear (int left, int top, int right, int bottom, int color) const;
+	virtual void Clear (int left, int top, int right, int bottom, int palcolor, uint32 color) const;
 
 	// Calculate gamma table
 	void CalcGamma (float gamma, BYTE gammalookup[256]);
@@ -180,7 +180,7 @@ public:
 	virtual void SetFont (FFont *font);
 
 	// 2D Texture drawing
-	virtual void STACK_ARGS DrawTexture (FTexture *img, int x, int y, int tags, ...);
+	void STACK_ARGS DrawTexture (FTexture *img, int x, int y, int tags, ...);
 	void FillBorder (FTexture *img);	// Fills the border around a 4:3 part of the screen on non-4:3 displays
 
 	// 2D Text drawing
@@ -314,10 +314,7 @@ public:
 	// the scene, and it doesn't present the image yet.
 	virtual void Begin2D();
 
-	// DrawTexture calls between Begin2D/End2D now use native textures.
-
-	// Finish 2D drawing operations.
-	virtual void End2D();
+	// DrawTexture calls after Begin2D use native textures.
 
 	// Create a native texture from a game texture.
 	virtual FNativeTexture *CreateTexture(FTexture *gametex);
