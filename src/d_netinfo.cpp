@@ -71,6 +71,7 @@ CVAR (String,	name,					"Player",	CVAR_USERINFO | CVAR_ARCHIVE);
 CVAR (Color,	color,					0x40cf00,	CVAR_USERINFO | CVAR_ARCHIVE);
 CVAR (String,	skin,					"base",		CVAR_USERINFO | CVAR_ARCHIVE);
 // [BC] "team" is no longer a cvar.
+//CVAR (Int,		team,					TEAM_None,	CVAR_USERINFO | CVAR_ARCHIVE);
 CVAR (String,	gender,					"male",		CVAR_USERINFO | CVAR_ARCHIVE);
 // [BC] Changed "neverswitchonpickup" to allow it to be set 3 different ways, instead of "on/off".
 CVAR (Int,		switchonpickup,			1,			CVAR_USERINFO | CVAR_ARCHIVE);
@@ -87,6 +88,7 @@ enum
 	INFO_Autoaim,
 	INFO_Color,
 	INFO_Skin,
+	//INFO_Team,
 	INFO_Gender,
 	INFO_SwitchOnPickup,
 	INFO_Railcolor,
@@ -104,6 +106,7 @@ static const char *UserInfoStrings[] =
 	"autoaim",
 	"color",
 	"skin",
+	//"team",
 	"gender",
 	"switchonpickup",
 	"railcolor",
@@ -203,6 +206,10 @@ int D_PlayerClassToInt (const char *classname)
 
 void D_GetPlayerColor (int player, float *h, float *s, float *v)
 {
+/* [BB] New team code by Karate Chris. Currently not used in ST.
+	userinfo_t *info = &players[player].userinfo;
+	int color = teamplay ? teams[info->team].playercolor : info->color;
+*/
 	int color = players[player].userinfo.color;
 
 	RGBtoHSV (RPART(color)/255.f, GPART(color)/255.f, BPART(color)/255.f,
@@ -249,8 +256,144 @@ void D_GetPlayerColor (int player, float *h, float *s, float *v)
 	}
 }
 
+/* [BB] New team code by Karate Chris. Currently not used in ST.
+// Find out which teams are present. If there is only one,
+// then another team should be chosen at random.
+//
+// Otherwise, join whichever team has fewest players. If
+// teams are tied for fewest players, pick one of those
+// at random.
+
+void D_PickRandomTeam (int player)
+{
+	static char teamline[8] = "\\team\\X";
+
+	BYTE *foo = (BYTE *)teamline;
+	teamline[6] = (char)D_PickRandomTeam() + '0';
+	D_ReadUserInfoStrings (player, &foo, teamplay);
+}
+
+int D_PickRandomTeam ()
+{
+	for (int i = 0; i < (signed)teams.Size (); i++)
+	{
+		teams[i].present = 0;
+		teams[i].ties = 0;
+	}
+
+	int numTeams = 0;
+	int team;
+
+	for (int i = 0; i < MAXPLAYERS; ++i)
+	{
+		if (playeringame[i])
+		{
+			if (TEAMINFO_IsValidTeam (players[i].userinfo.team))
+			{
+				if (teams[players[i].userinfo.team].present++ == 0)
+				{
+					numTeams++;
+				}
+			}
+		}
+	}
+
+	if (numTeams < 2)
+	{
+		do
+		{
+			team = pr_pickteam() % teams.Size ();
+		} while (teams[team].present != 0);
+	}
+	else
+	{
+		int lowest = INT_MAX, lowestTie = 0, i;
+
+		for (i = 0; i < (signed)teams.Size (); ++i)
+		{
+			if (teams[i].present > 0)
+			{
+				if (teams[i].present < lowest)
+				{
+					lowest = teams[i].present;
+					lowestTie = 0;
+					teams[0].ties = i;
+				}
+				else if (teams[i].present == lowest)
+				{
+					teams[++lowestTie].ties = i;
+				}
+			}
+		}
+		if (lowestTie == 0)
+		{
+			team = teams[0].ties;
+		}
+		else
+		{
+			team = teams[pr_pickteam() % (lowestTie+1)].ties;
+		}
+	}
+
+	return team;
+}
+
+static void UpdateTeam (int pnum, int team, bool update)
+{
+	userinfo_t *info = &players[pnum].userinfo;
+	int oldteam;
+
+	if (team < TEAM_None)
+	{
+		team = TEAM_None;
+	}
+	oldteam = info->team;
+	info->team = team;
+
+	if (teamplay && !TEAMINFO_IsValidTeam (info->team))
+	{ // Force players onto teams in teamplay mode
+		info->team = D_PickRandomTeam ();
+	}
+	if (update && oldteam != info->team)
+	{
+		if (TEAMINFO_IsValidTeam (info->team))
+			Printf ("%s joined the %s team\n", info->netname, teams[info->team].name);
+		else
+			Printf ("%s is now a loner\n", info->netname);
+	}
+	// Let the player take on the team's color
+	R_BuildPlayerTranslation (pnum);
+	if (StatusBar != NULL && StatusBar->GetPlayer() == pnum)
+	{
+		StatusBar->AttachToPlayer (&players[pnum]);
+	}
+	if (!TEAMINFO_IsValidTeam (info->team))
+		info->team = TEAM_None;
+}
+*/
 int D_GetFragCount (player_t *player)
 {
+/* [BB] New team code by Karate Chris. Currently not used in ST.
+	if (!teamplay || !TEAMINFO_IsValidTeam (player->userinfo.team))
+	{
+		return player->fragcount;
+	}
+	else
+	{
+		// Count total frags for this player's team
+		const int team = player->userinfo.team;
+		int count = 0;
+
+		for (int i = 0; i < MAXPLAYERS; ++i)
+		{
+			if (playeringame[i] && players[i].userinfo.team == team)
+			{
+				count += players[i].fragcount;
+			}
+		}
+		return count;
+	}
+*/
 	if (( teamplay == false ) || player->bOnTeam == false )
 	{
 		return player->fragcount;
@@ -283,7 +426,16 @@ void D_SetupUserInfo ()
 	}
 
 	strncpy (coninfo->netname, name, MAXPLAYERNAME);
-
+/* [BB] New team code by Karate Chris. Currently not used in ST.
+	if (teamplay && !TEAMINFO_IsValidTeam (team))
+	{
+		coninfo->team = D_PickRandomTeam ();
+	}
+	else
+	{
+		coninfo->team = team;
+	}
+*/
 	// [BC] Remove % signs from names.
 	for ( ulIdx = 0; ulIdx < strlen( coninfo->netname ); ulIdx++ )
 	{
@@ -303,7 +455,7 @@ void D_SetupUserInfo ()
 	coninfo->skin = R_FindSkin (skin, 0);
 	coninfo->gender = D_GenderToInt (gender);
 	coninfo->switchonpickup = switchonpickup;
-		
+
 	coninfo->MoveBob = (fixed_t)(65536.f * movebob);
 	coninfo->StillBob = (fixed_t)(65536.f * stillbob);
 	coninfo->PlayerClass = D_PlayerClassToInt (playerclass);
@@ -484,7 +636,19 @@ static const char *SetServerVar (char *name, ECVarType type, BYTE **stream, bool
 	{
 		delete[] value.String;
 	}
-
+/* [BB] New team code by Karate Chris. Currently not used in ST.
+	if (var == &teamplay)
+	{
+		// Put players on teams if teamplay turned on
+		for (int i = 0; i < MAXPLAYERS; ++i)
+		{
+			if (playeringame[i])
+			{
+				UpdateTeam (i, players[i].userinfo.team, true);
+			}
+		}
+	}
+*/
 	if (var)
 	{
 		value = var->GetGenericRep (CVAR_String);
@@ -576,6 +740,7 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 					 "\\autoaim\\%g"
 					 "\\color\\%x %x %x"
 					 "\\skin\\%s"
+					 //"\\team\\%d"
 					 "\\gender\\%s"
 					 "\\switchonpickup\\%d"
 					 "\\railcolor\\%d"
@@ -608,6 +773,7 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 				"\\%g"			// autoaim
 				"\\%x %x %x"	// color
 				"\\%s"			// skin
+				//"\\%d"			// team
 				"\\%s"			// gender
 				"\\%d"			// switchonpickup
 				"\\%d"			// railcolor
@@ -620,6 +786,7 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 				(double)info->aimdist / (float)ANGLE_1,
 				RPART(info->color), GPART(info->color), BPART(info->color),
 				D_EscapeUserInfo(skins[info->skin].name).GetChars(),
+				//info->team,
 				info->gender == GENDER_FEMALE ? "female" :
 					info->gender == GENDER_NEUTER ? "other" : "male",
 				info->switchonpickup,
@@ -738,6 +905,12 @@ void D_ReadUserInfoStrings (int i, BYTE **stream, bool update)
 				}
 				break;
 
+/* [BB] New team code by Karate Chris. Currently not used in ST.
+			case INFO_Team:
+				UpdateTeam (i, atoi(value), update);
+				break;
+*/
+
 			case INFO_Color:
 				info->color = V_GetColorFromString (NULL, value);
 				R_BuildPlayerTranslation (i);
@@ -815,7 +988,6 @@ void D_ReadUserInfoStrings (int i, BYTE **stream, bool update)
 				break;
 
 			case INFO_PlayerClass:
-
 				info->PlayerClass = D_PlayerClassToInt (value);
 				break;
 
@@ -847,7 +1019,7 @@ FArchive &operator<< (FArchive &arc, userinfo_t &info)
 	{
 		arc.Read (&info.netname, sizeof(info.netname));
 	}
-	arc << info.aimdist << info.color << info.skin << info.gender << info.switchonpickup;
+	arc << /*info.team <<*/ info.aimdist << info.color << info.skin << info.gender << info.switchonpickup;
 	return arc;
 }
 

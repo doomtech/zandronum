@@ -52,6 +52,7 @@
 #include "p_trace.h"
 #include "a_sharedglobal.h"
 #include "st_start.h"
+#include "teaminfo.h"
 // [BC] New #includes.
 #include "cl_demo.h"
 #include "cooperative.h"

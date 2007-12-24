@@ -3785,6 +3785,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\teaminfo.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\tempfiles.cpp"
 				>
 				<FileConfiguration
@@ -4710,6 +4714,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\teaminfo.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\tempfiles.h"
 				>
 			</File>
@@ -5044,6 +5052,10 @@
 			</File>
 			<File
 				RelativePath=".\src\win32\fb_d3d9.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\win32\fb_d3d9_shaders.h"
 				>
 			</File>
 			<File

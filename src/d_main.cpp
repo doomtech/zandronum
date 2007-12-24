@@ -119,6 +119,7 @@
 
 #include "st_start.h"
 #include "templates.h"
+#include "teaminfo.h"
 
 #include "gl/gl_functions.h"
 #include "win32/g15/g15.h"
@@ -2774,6 +2775,10 @@ void D_DoomMain (void)
 	// [RH] Parse any SNDINFO lumps
 	Printf ("S_InitData: Load sound definitions.\n");
 	S_InitData ();
+
+	// [CW] Parse any TEAMINFO lumps
+	Printf ("TEAMINFO_Init: Load team definitions.\n");
+	TEAMINFO_Init ();
 
 	FActorInfo::StaticInit ();
 

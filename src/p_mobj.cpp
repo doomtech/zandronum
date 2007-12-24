@@ -59,6 +59,7 @@
 #include "deathmatch.h"
 #include "duel.h"
 #include "g_game.h"
+#include "teaminfo.h"
 #include "gamemode.h"
 #include "cl_main.h"
 #include "cooperative.h"
