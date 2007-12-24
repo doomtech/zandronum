@@ -46,6 +46,8 @@
 // Needed because we are refering to patches.
 #include "r_data.h"
 
+#include "network.h"
+
 // [BC] Make CleanX/Yfac floats in Skulltag.
 // [BB] This is at least needed to display the medals at the correct position.
 extern float CleanXfac, CleanYfac;
@@ -366,9 +368,10 @@ extern FColorMatcher ColorMatcher;
 // This is the screen updated by I_FinishUpdate.
 extern DFrameBuffer *screen;
 
-#define SCREENWIDTH (screen->GetWidth ())
-#define SCREENHEIGHT (screen->GetHeight ())
-#define SCREENPITCH (screen->GetPitch ())
+// [BB] The server doesn't have a screen.
+#define SCREENWIDTH (( NETWORK_GetState( ) != NETSTATE_SERVER ) ? screen->GetWidth () : 0)
+#define SCREENHEIGHT (( NETWORK_GetState( ) != NETSTATE_SERVER ) ? screen->GetHeight () : 0)
+#define SCREENPITCH (( NETWORK_GetState( ) != NETSTATE_SERVER ) ? screen->GetPitch () : 0)
 
 EXTERN_CVAR (Float, Gamma)
 EXTERN_CVAR (Float, vid_brightness)
