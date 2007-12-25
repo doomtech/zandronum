@@ -1451,6 +1451,15 @@ void A_CustomPunch (AActor *self)
 	if (UseAmmo && linetarget && weapon)
 	{
 		if (!weapon->DepleteAmmo(weapon->bAltFire, true)) return;	// out of ammo
+
+		if ( (NETWORK_GetState( ) == NETSTATE_SERVER) && ( weapon->Owner ) && ( weapon->Owner->player ) )
+		{
+			// [BB] If we're the server, tell the client that he lost ammo.
+			if ( weapon->Ammo1 )
+				SERVERCOMMANDS_GiveInventory( weapon->Owner->player - players, weapon->Ammo1 );
+			if ( weapon->Ammo2 )
+				SERVERCOMMANDS_GiveInventory( weapon->Owner->player - players, weapon->Ammo2 );
+		}
 	}
 
 	PuffType = PClass::FindClass(PuffTypeName);
