@@ -408,11 +408,11 @@ void OpenGLFrameBuffer::FlatFill (int left, int top, int right, int bottom, FTex
 //
 //
 //==========================================================================
-void OpenGLFrameBuffer::Clear(int left, int top, int right, int bottom, int color) const
+void OpenGLFrameBuffer::Clear (int left, int top, int right, int bottom, int palcolor, uint32 color) const
 {
 	int rt;
 	int offY = 0;
-	PalEntry p = GPalette.BaseColors[color];
+	PalEntry p = GPalette.BaseColors[palcolor];
 	int width = right-left;
 	int height= bottom-top;
 	

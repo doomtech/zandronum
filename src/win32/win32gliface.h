@@ -118,7 +118,7 @@ public:
 	void PaletteChanged();
 	int QueryNewPalette();
 
-	void Clear(int left, int top, int right, int bottom, int color) const;
+	void Clear (int left, int top, int right, int bottom, int palcolor, uint32 color) const;
 	void Dim(PalEntry color=0) const;
 	void Dim (PalEntry color, float damount, int x1, int y1, int w, int h) const;
 	void FlatFill (int left, int top, int right, int bottom, FTexture *src);

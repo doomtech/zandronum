@@ -56,7 +56,7 @@ public:
 	void Dim(PalEntry) const;
 	void Dim(PalEntry, float, int, int, int, int) const;
 	void FlatFill(int, int, int, int, FTexture*);
-	void Clear(int, int, int, int, int) const;
+	void Clear(int, int, int, int, int, uint32) const;
 	bool SetBrightness(float bright);
 	bool SetContrast(float contrast);
 	void DoSetGamma();
