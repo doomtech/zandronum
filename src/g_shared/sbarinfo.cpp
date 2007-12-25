@@ -969,6 +969,10 @@ public:
 
 	void Draw (EHudState state)
 	{
+		// [BB] When joining a server in ST CPlayer->mo is NULL.
+		if ( CPlayer->mo == NULL )
+			return;
+
 		FBaseStatusBar::Draw(state);
 		int hud = 2;
 		if(state == HUD_StatusBar)
@@ -1763,4 +1767,42 @@ private:
 FBaseStatusBar *CreateCustomStatusBar ()
 {
 	return new FSBarInfo;
+}
+
+FBaseStatusBar *CreateStatusBar ()
+{
+	FBaseStatusBar *sbar = NULL;
+
+	int stbar = gameinfo.gametype;
+	if(Wads.CheckNumForName("SBARINFO") != -1)
+	{
+		stbar = SBarInfoScript.ParseSBarInfo(Wads.GetNumForName("SBARINFO")); //load last SBARINFO lump to avoid clashes
+	}
+
+	if (stbar == GAME_Doom)
+	{
+		sbar = CreateDoomStatusBar ();
+	}
+	else if (stbar == GAME_Heretic)
+	{
+		sbar = CreateHereticStatusBar ();
+	}
+	else if (stbar == GAME_Hexen)
+	{
+		sbar = CreateHexenStatusBar ();
+	}
+	else if (stbar == GAME_Strife)
+	{
+		sbar = CreateStrifeStatusBar ();
+	}
+	else if (stbar == GAME_Any)
+	{
+		sbar = CreateCustomStatusBar (); //SBARINFO is empty unless scripted.
+	}
+	else
+	{
+		sbar = new FBaseStatusBar (0);
+	}
+
+	return sbar;
 }

@@ -3176,6 +3176,8 @@ static void client_EndSnapshot( BYTESTREAM_s *pByteStream )
 	if ( StatusBar != NULL )
 		delete ( StatusBar );
 
+	StatusBar = CreateStatusBar ();
+	/*  [BB] Moved to CreateStatusBar()
 	switch ( gameinfo.gametype )
 	{
 	case GAME_Doom:
@@ -3199,6 +3201,7 @@ static void client_EndSnapshot( BYTESTREAM_s *pByteStream )
 		StatusBar = new FBaseStatusBar( 0 );
 		break;
 	}
+	*/
 
 	if ( StatusBar )
 	{

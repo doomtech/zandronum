@@ -261,3 +261,4 @@ FBaseStatusBar *CreateHereticStatusBar ();
 FBaseStatusBar *CreateHexenStatusBar ();
 FBaseStatusBar *CreateStrifeStatusBar ();
 FBaseStatusBar *CreateCustomStatusBar ();
+FBaseStatusBar *CreateStatusBar ();

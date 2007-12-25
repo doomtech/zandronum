@@ -2966,6 +2966,9 @@ void GAME_CheckMode( void )
 
 		if ( gamestate == GS_TITLELEVEL )
 			StatusBar = new FBaseStatusBar( 0 );
+		else
+			StatusBar = CreateStatusBar ();
+		/* [BB] Moved to CreateStatusBar()
 		else if ( gameinfo.gametype == GAME_Doom )
 			StatusBar = CreateDoomStatusBar( );
 		else if ( gameinfo.gametype == GAME_Heretic )
@@ -2976,6 +2979,7 @@ void GAME_CheckMode( void )
 			StatusBar = CreateStrifeStatusBar( );
 		else
 			StatusBar = new FBaseStatusBar( 0 );
+		*/
 
 		StatusBar->AttachToPlayer( &players[consoleplayer] );
 		StatusBar->NewGame( );

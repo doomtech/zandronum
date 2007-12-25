@@ -1662,7 +1662,7 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 		paused = 0;
 		S_ResumeSound ();
 	}
-
+	/* [BB] Moved to CreateStatusBar()
 	//SBarInfo support.
 	int stbar = gameinfo.gametype;
 	if(Wads.CheckNumForName("SBARINFO") != -1)
@@ -1670,6 +1670,7 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 		stbar = SBarInfoScript.ParseSBarInfo(Wads.GetNumForName("SBARINFO")); //load last SBARINFO lump to avoid clashes
 	}
 	//end most of the SBarInfo stuff
+	*/
 
 	// [BC] Reset the end level delay.
 	GAME_SetEndLevelDelay( 0 );
@@ -1691,6 +1692,9 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 		{
 			StatusBar = new FBaseStatusBar (0);
 		}
+		else
+			StatusBar = CreateStatusBar ();
+		/*  [BB] Moved to CreateStatusBar()
 		else if (stbar == GAME_Doom)
 		{
 			StatusBar = CreateDoomStatusBar ();
@@ -1715,6 +1719,7 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 		{
 			StatusBar = new FBaseStatusBar (0);
 		}
+		*/
 		StatusBar->AttachToPlayer (&players[consoleplayer]);
 		StatusBar->NewGame ();
 	}
