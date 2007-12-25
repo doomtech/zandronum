@@ -317,7 +317,10 @@ void AActor::UnlinkFromWorld ()
 		// pointers, allows head node pointers to be treated like everything else
 		AActor **prev = sprev;
 		AActor  *next = snext;
-		if ((*prev = next))  // unlink from sector list
+		// [BB] The additional check for (prev != NULL) fixes the client crash when
+		// switching from map02 to map03 in terdelux_final.wad online in survival.
+		// But should this check be necessary at all?
+		if (prev && (*prev = next))  // unlink from sector list
 			next->sprev = prev;
 		snext = NULL;
 		sprev = (AActor **)(size_t)0xBeefCafe;	// Woo! Bug-catching value!
