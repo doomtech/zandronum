@@ -3757,7 +3757,7 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 	pszString = NETWORK_ReadString( pByteStream );
 
 	// Read in the thing's damage type.
-	DamageType = ENamedName(NETWORK_ReadByte( pByteStream ));
+	DamageType = ENamedName(NETWORK_ReadShort( pByteStream ));
 
 	// Check to make sure everything is valid. If not, break out.
 	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
