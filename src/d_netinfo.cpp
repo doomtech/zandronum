@@ -219,8 +219,8 @@ void D_GetPlayerColor (int player, float *h, float *s, float *v)
 	{
 		if ( players[player].bOnTeam )
 		{
-			int		nColor;
-			char	*pszColor;
+			int			nColor;
+			const char	*pszColor;
 
 			// Get the color string from the team object.
 			pszColor = TEAM_GetColor( players[player].ulTeam );

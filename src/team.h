@@ -128,11 +128,11 @@ void		TEAM_TimeExpired( void );
 bool		TEAM_SpawningTemporaryFlag( void );
 
 // Access functions.
-char		*TEAM_GetName( ULONG ulTeamIdx );
-void		TEAM_SetName( ULONG ulTeamIdx, char *pszName );
+const char	*TEAM_GetName( ULONG ulTeamIdx );
+void		TEAM_SetName( ULONG ulTeamIdx, const char *pszName );
 
-char		*TEAM_GetColor( ULONG ulTeamIdx );
-void		TEAM_SetColor( ULONG ulTeamIdx, char *pszColor );
+const char	*TEAM_GetColor( ULONG ulTeamIdx );
+void		TEAM_SetColor( ULONG ulTeamIdx, const char *pszColor );
 
 ULONG		TEAM_GetTextColor( ULONG ulTeamIdx );
 void		TEAM_SetTextColor( ULONG ulTeamIdx, USHORT usColor );

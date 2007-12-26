@@ -787,7 +787,7 @@ bool TEAM_SpawningTemporaryFlag( void )
 //*****************************************************************************
 //*****************************************************************************
 //
-char *TEAM_GetName( ULONG ulTeamIdx )
+const char *TEAM_GetName( ULONG ulTeamIdx )
 {
 	if ( ulTeamIdx < NUM_TEAMS )
 		return ( g_Team[ulTeamIdx].szName );
@@ -797,7 +797,7 @@ char *TEAM_GetName( ULONG ulTeamIdx )
 
 //*****************************************************************************
 //
-void TEAM_SetName( ULONG ulTeamIdx, char *pszName )
+void TEAM_SetName( ULONG ulTeamIdx, const char *pszName )
 {
 	if ( ulTeamIdx < NUM_TEAMS )
 		sprintf( g_Team[ulTeamIdx].szName, pszName );
@@ -805,7 +805,7 @@ void TEAM_SetName( ULONG ulTeamIdx, char *pszName )
 
 //*****************************************************************************
 //
-char *TEAM_GetColor( ULONG ulTeamIdx )
+const char *TEAM_GetColor( ULONG ulTeamIdx )
 {
 	if ( ulTeamIdx < NUM_TEAMS )
 		return ( g_Team[ulTeamIdx].szColor );
@@ -815,7 +815,7 @@ char *TEAM_GetColor( ULONG ulTeamIdx )
 
 //*****************************************************************************
 //
-void TEAM_SetColor( ULONG ulTeamIdx, char *pszColor )
+void TEAM_SetColor( ULONG ulTeamIdx, const char *pszColor )
 {
 	if ( ulTeamIdx < NUM_TEAMS )
 		sprintf( g_Team[ulTeamIdx].szColor, pszColor );
