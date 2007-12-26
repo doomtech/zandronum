@@ -1531,8 +1531,12 @@ CCMD( changeteam )
 	}
 
 	// If the desired team matches our current team, break out.
-	if (( players[consoleplayer].bOnTeam ) && ( lDesiredTeam == players[consoleplayer].ulTeam ))
+	// [BB] Don't break out if we are a spectator. In this case we don't change our team, but we want to join.
+	if (( players[consoleplayer].bOnTeam ) && ( lDesiredTeam == players[consoleplayer].ulTeam )
+		&& !(players[consoleplayer].bSpectating) )
+	{
 		return;
+	}
 
 	{
 		bool	bOnTeam;
