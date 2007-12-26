@@ -10786,6 +10786,13 @@ static void client_CreateTranslation( BYTESTREAM_s *pByteStream )
 	ulStart = NETWORK_ReadByte( pByteStream );
 	ulEnd = NETWORK_ReadByte( pByteStream );
 
+	// [BB] We need to do this check here, otherwise the client could be crashed
+	// by sending a SVC_CREATETRANSLATION packet with an illegal tranlation number.
+	if ( ulTranslation < 1 || ulTranslation > MAX_ACS_TRANSLATIONS )
+	{
+		return;
+	}
+
 	pTranslation = &translationtables[TRANSLATION_LevelScripted][( ulTranslation * 256 ) - 256];
 	for ( ; ulStart <= ulEnd; ulStart++ )
 		pTranslation[ulStart] = NETWORK_ReadByte( pByteStream );

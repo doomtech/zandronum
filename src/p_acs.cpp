@@ -5081,8 +5081,12 @@ int DLevelScript::RunScript ()
 				// translation.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				{
-					SERVER_AddEditedTranslation(( &translationtables[TRANSLATION_LevelScripted][0] - translation ) + 1, start, end );
-					SERVERCOMMANDS_CreateTranslation(( &translationtables[TRANSLATION_LevelScripted][0] - translation ) + 1, start, end );
+					// [BB] We know that translation = &translationtables[TRANSLATION_LevelScripted][i*256-256] for some i.
+					// To obtain i, the calculation below is necessary.
+					ULONG translationindex = translation - &translationtables[TRANSLATION_LevelScripted][0];
+					translationindex = translationindex/256 + 1;
+					SERVER_AddEditedTranslation(translationindex, start, end );
+					SERVERCOMMANDS_CreateTranslation(translationindex, start, end );
 				}
 			}
 			break;
@@ -5148,8 +5152,12 @@ int DLevelScript::RunScript ()
 				// translation.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				{
-					SERVER_AddEditedTranslation( &translationtables[TRANSLATION_LevelScripted][0] - translation, start, end );
-					SERVERCOMMANDS_CreateTranslation( &translationtables[TRANSLATION_LevelScripted][0] - translation, start, end );
+					// [BB] We know that translation = &translationtables[TRANSLATION_LevelScripted][i*256-256] for some i.
+					// To obtain i, the calculation below is necessary.
+					ULONG translationindex = translation - &translationtables[TRANSLATION_LevelScripted][0];
+					translationindex = translationindex/256 + 1;
+					SERVER_AddEditedTranslation( translationindex, start, end );
+					SERVERCOMMANDS_CreateTranslation( translationindex, start, end );
 				}
 			}
 			break;

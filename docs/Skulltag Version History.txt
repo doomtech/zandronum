@@ -222,7 +222,7 @@ v0.97d
 -	- Spectators can no longer trigger terrain effects. [Carnevil]
 -	- Removed the "connection type" cvars (they weren't being used anyway). [Carnevil]
 -	- The chat text color options in the messages menu now work properly. [Carnevil]
--	- Thing translations now work properly online. [Carnevil]
+-	- Thing translations now work properly online. [Carnevil, Torr Samaho]
 -	- Fixed a crash that would occur occasionally when dead bodies become submerged. [Carnevil]
 -	- The mancubus fireball and hectebus fireball no longer have the same spawn ID. [Carnevil]
 -	- Fixed glitch in which cycling through weapons using the "weapnext" and "weapprev" would occasionally display the weapon name. [Carnevil]
