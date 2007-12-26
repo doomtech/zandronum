@@ -5,6 +5,9 @@
 #include "a_action.h"
 #include "m_random.h"
 #include "s_sound.h"
+// [BB] New #includes.
+#include "cl_demo.h"
+#include "sv_commands.h"
 
 static FRandom pr_dragonseek ("DragonSeek");
 static FRandom pr_dragonflight ("DragonFlight");
@@ -199,6 +202,13 @@ static void DragonSeek (AActor *actor, angle_t thresh, angle_t turnMax)
 	angle_t angleToSpot, angleToTarget;
 	AActor *mo;
 
+	// [BB] Let the server do this.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	target = actor->tracer;
 	if(target == NULL)
 	{
@@ -240,6 +250,10 @@ static void DragonSeek (AActor *actor, angle_t thresh, angle_t turnMax)
 		dist = P_AproxDistance (target->x-actor->x, target->y-actor->y);
 		dist = dist/actor->Speed;
 	}
+	// [BB] If we're the server, update the thing's momentum and angle.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_MoveThingExact( actor, CM_ANGLE|CM_MOMX|CM_MOMY|CM_MOMZ );
+
 	if (target->flags&MF_SHOOTABLE && pr_dragonseek() < 64)
 	{ // attack the destination mobj if it's attackable
 		AActor *oldTarget;
