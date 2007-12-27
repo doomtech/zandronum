@@ -52,7 +52,19 @@ angle_t bulletpitch;
 
 // [SO] 1=Weapons states are all 1 tick
 //		2=states with a function 1 tick, others 0 ticks.
-CVAR(Int, sv_fastweapons, false, CVAR_SERVERINFO);
+CUSTOM_CVAR( Int, sv_fastweapons, 0, CVAR_SERVERINFO )
+{
+	if ( self >= 3 )
+		self = 2;
+	if ( self < 0 )
+		self = 0;
+
+	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( gamestate != GS_STARTUP ))
+	{
+		SERVER_Printf( PRINT_HIGH, "%s changed to: %d\n", self.GetName( ), (LONG)self );
+		SERVERCOMMANDS_SetGameModeLimits( );
+	}
+}
 
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 

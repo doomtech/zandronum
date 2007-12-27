@@ -247,6 +247,7 @@ v0.97d
 -	- Fixed: Clients don't play the attack sound of A_CustomBulletAttack. [Torr Samaho]
 -	- Fixed: A_CustomPunch doesn't update the remaining ammo amount on the clients online. [Torr Samaho]
 -	- Fixed: Starting a conversation online crashes the server. NOTE: Only the crash is prevented, the conversation still won't work properly online. According to the code, ZDoom doesn't support conversations in multiplayer yet. [Torr Samaho]
+-	- Fixed: sv_fastweapons is not synchonized between clients and server. [Torr Samaho]
 !	- Survival co-op is now disabled in hubs. [Carnevil]
 !	- Skulltag's invasion spawners are now defined in skulltag.pk3. [Carnevil]
 !	- Skulltag.wad is now loaded before doom2.wad. This should fix certain texture errors. [Carnevil]
@@ -275,6 +276,7 @@ v0.97d
 !	- Replaced con_messagecolor with con_colorinmessages, and made it a three way var. 0 disables all color, 1 enables it, and 2 just removes color from the chat part. [Rivecoder]
 !	- A proper error message is given when Skulltag is started with a shareware IWAD. [Torr Samaho]
 !	- If a monster is killed in invasion, one monster corpse from the previous wave is removed (if there still is such a corpse). This should improve the speed on maps like ALINV11. [Torr Samaho]
+!	- Changed: sv_fastweapons is now clamped to values between 0 and 2. [Torr Samaho]
 
 v0.97d-beta4.3
 --------------
