@@ -1990,10 +1990,7 @@ void PLAYER_SetTeam( player_s *pPlayer, ULONG ulTeam, bool bNoBroadcast )
 		// Player has changed his team! Tell clients.
 		if ( bBroadcastChange )
 		{
-			if ( ulTeam == TEAM_BLUE )
-				SERVER_Printf( PRINT_HIGH, "%s \\c-joined the \\ch%s \\c-team.\n", pPlayer->userinfo.netname, TEAM_GetName( ulTeam )); 
-			else
-				SERVER_Printf( PRINT_HIGH, "%s \\c-joined the \\cg%s \\c-team.\n", pPlayer->userinfo.netname, TEAM_GetName( ulTeam )); 
+			SERVER_Printf( PRINT_HIGH, "%s \\c-joined the \\c%c%s \\c-team.\n", pPlayer->userinfo.netname, V_GetColorChar( TEAM_GetTextColor( ulTeam ) ), TEAM_GetName( ulTeam )); 
 		}		
 	}
 

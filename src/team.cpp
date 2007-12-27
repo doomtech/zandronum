@@ -406,14 +406,17 @@ void TEAM_ScoreSkulltagPoint( player_s *pPlayer, ULONG ulNumPoints, AActor *pPil
 
 	// Create the console message.
 	if( ( bAssisted ) && ( ! bSelfAssisted ) )
-		sprintf(szString, "%s \\c-and %s\\c- scored for the %s team!\n", pPlayer->userinfo.netname, players[TEAM_GetAssistPlayer( pPlayer->ulTeam )].userinfo.netname, pPlayer->ulTeam == TEAM_BLUE ? "Blue" : "Red");
+		sprintf(szString, "%s \\c-and %s\\c- scored for the %s team!\n", pPlayer->userinfo.netname, players[TEAM_GetAssistPlayer( pPlayer->ulTeam )].userinfo.netname, TEAM_GetName( pPlayer->ulTeam ));
 	else
-		sprintf(szString, "%s \\c-scored for the %s team!\n", pPlayer->userinfo.netname, pPlayer->ulTeam == TEAM_BLUE ? "Blue" : "Red");
+		sprintf(szString, "%s \\c-scored for the %s team!\n", pPlayer->userinfo.netname, TEAM_GetName( pPlayer->ulTeam ) );
 
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_Print( szString, PRINT_HIGH );
 
 	// Create the fullscreen message.
+	FString coloredTeamName = V_GetColorChar( TEAM_GetTextColor( pPlayer->ulTeam ) );
+	coloredTeamName += " ";
+	coloredTeamName += TEAM_GetName( pPlayer->ulTeam );
 	switch ( ulNumPoints )
 	{
 	case 0:
@@ -421,27 +424,27 @@ void TEAM_ScoreSkulltagPoint( player_s *pPlayer, ULONG ulNumPoints, AActor *pPil
 		return;
 	case 1:
 
-		sprintf( szString, "\\c%s team scores!", pPlayer->ulTeam == TEAM_BLUE ? "H Blue" : "G Red" );
+		sprintf( szString, "\\c%s team scores!", coloredTeamName.GetChars() );
 		break;
 	case 2:
 
-		sprintf( szString, "\\c%s scores two points!", pPlayer->ulTeam == TEAM_BLUE ? "H Blue" : "G Red" );
+		sprintf( szString, "\\c%s scores two points!", coloredTeamName.GetChars() );
 		break;
 	case 3:
 
-		sprintf( szString, "\\c%s scores three points!", pPlayer->ulTeam == TEAM_BLUE ? "H Blue" : "G Red" );
+		sprintf( szString, "\\c%s scores three points!", coloredTeamName.GetChars() );
 		break;
 	case 4:
 
-		sprintf( szString, "\\c%s scores four points!", pPlayer->ulTeam == TEAM_BLUE ? "H Blue" : "G Red" );
+		sprintf( szString, "\\c%s scores four points!", coloredTeamName.GetChars() );
 		break;
 	case 5:
 
-		sprintf( szString, "\\c%s scores five points!", pPlayer->ulTeam == TEAM_BLUE ? "H Blue" : "G Red" );
+		sprintf( szString, "\\c%s scores five points!", coloredTeamName.GetChars() );
 		break;
 	default:
 
-		sprintf( szString, "\\c%s scores %d points!", pPlayer->ulTeam == TEAM_BLUE ? "H Blue" : "G Red", ulNumPoints );
+		sprintf( szString, "\\c%s scores %d points!", coloredTeamName.GetChars(), ulNumPoints );
 		break;
 	}
 
@@ -469,14 +472,14 @@ void TEAM_ScoreSkulltagPoint( player_s *pPlayer, ULONG ulNumPoints, AActor *pPil
 	}
 
 	// Create the "scored by / assisted by" message.
-	sprintf( szString, "\\c%sScored by: %s", pPlayer->ulTeam == TEAM_BLUE ? "H" : "G", pPlayer->userinfo.netname);
+	sprintf( szString, "\\c%cScored by: %s", V_GetColorChar( TEAM_GetTextColor( pPlayer->ulTeam ) ), pPlayer->userinfo.netname);
 
 	if ( bAssisted )
 	{
 		if ( bSelfAssisted )
-			sprintf( szString, "%s\\n\\c%( Self-Assisted )", szString, pPlayer->ulTeam == TEAM_BLUE ? "H" : "G");
+			sprintf( szString, "%s\\n\\c%c( Self-Assisted )", szString, V_GetColorChar( TEAM_GetTextColor( pPlayer->ulTeam ) ) );
 		else
-			sprintf( szString, "%s\\n\\c%sAssisted by: %s", szString, pPlayer->ulTeam == TEAM_BLUE ? "H" : "G", players[TEAM_GetAssistPlayer( pPlayer->ulTeam )].userinfo.netname);
+			sprintf( szString, "%s\\n\\c%cAssisted by: %s", szString, V_GetColorChar( TEAM_GetTextColor( pPlayer->ulTeam ) ), players[TEAM_GetAssistPlayer( pPlayer->ulTeam )].userinfo.netname);
 	}
 	
 	V_ColorizeString( szString );
@@ -681,10 +684,7 @@ void TEAM_DoWinSequence( ULONG ulTeamIdx )
 	DHUDMessageFadeOut	*pMsg;
 
 	// Display "%s WINS!" HUD message.
-	if ( ulTeamIdx == TEAM_BLUE )
-		sprintf( szString, "\\chBLUE WINS!" );
-	else
-		sprintf( szString, "\\cgRED WINS!" );
+	sprintf( szString, "\\c%c%s WINS!", V_GetColorChar( TEAM_GetTextColor( ulTeamIdx ) ), TEAM_GetName( ulTeamIdx ) );
 
 	V_ColorizeString( szString );
 
@@ -1401,10 +1401,7 @@ CCMD( team )
 	{
 		if ( players[consoleplayer].bOnTeam )
 		{
-			if ( players[consoleplayer].ulTeam == TEAM_RED )
-				Printf( "You are on the \\cgRED \\c-team.\n" );
-			else
-				Printf( "You are on the \\chBLUE \\c-team.\n" );
+			Printf( "You are on the \\c%c%s \\c-team.\n", V_GetColorChar( TEAM_GetTextColor( players[consoleplayer].ulTeam ) ), TEAM_GetName( players[consoleplayer].ulTeam ) );
 		}
 		else
 			Printf( "You are not currently on a team.\n" );
@@ -1461,10 +1458,7 @@ CCMD( changeteam )
 		{
 			if ( stricmp( argv[1], "random" ) == 0 )
 			{
-				if ( g_JoinTeamSeed.Random2( ) % NUM_TEAMS == TEAM_BLUE )
-					lDesiredTeam = TEAM_BLUE;
-				else
-					lDesiredTeam = TEAM_RED;
+				lDesiredTeam = g_JoinTeamSeed.Random( ) % NUM_TEAMS;
 			}
 			else if ( stricmp( argv[1], "autoselect" ) == 0 )
 				lDesiredTeam = NUM_TEAMS;
@@ -1500,10 +1494,7 @@ CCMD( changeteam )
 	{
 		if ( stricmp( argv[1], "random" ) == 0 )
 		{
-			if ( g_JoinTeamSeed.Random2( ) % NUM_TEAMS == TEAM_BLUE )
-				lDesiredTeam = TEAM_BLUE;
-			else
-				lDesiredTeam = TEAM_RED;
+			lDesiredTeam = g_JoinTeamSeed.Random( ) % NUM_TEAMS;
 		}
 		else if ( stricmp( argv[1], "autoselect" ) == 0 )
 			lDesiredTeam = TEAM_ChooseBestTeamForPlayer( );
@@ -1554,18 +1545,12 @@ CCMD( changeteam )
 		// Player was on a team, so tell everyone that he's changing teams.
 		if ( bOnTeam )
 		{
-			if ( players[consoleplayer].ulTeam == TEAM_BLUE )
-				Printf( "%s \\c-defected to the \\ch%s \\c-team.\n", players[consoleplayer].userinfo.netname, TEAM_GetName( players[consoleplayer].ulTeam ));
-			else
-				Printf( "%s \\c-defected to the \\cg%s \\c-team.\n", players[consoleplayer].userinfo.netname, TEAM_GetName( players[consoleplayer].ulTeam ));
+			Printf( "%s \\c-defected to the \\c%c%s \\c-team.\n", players[consoleplayer].userinfo.netname, V_GetColorChar( TEAM_GetTextColor( players[consoleplayer].ulTeam ) ), TEAM_GetName( players[consoleplayer].ulTeam ));
 		}
 		// Otherwise, tell everyone he's joining a team.
 		else
 		{
-			if ( players[consoleplayer].ulTeam == TEAM_BLUE )
-				Printf( "%s \\c-joined the \\ch%s \\c-team.\n", players[consoleplayer].userinfo.netname, TEAM_GetName( players[consoleplayer].ulTeam ));
-			else
-				Printf( "%s \\c-joined the \\cg%s \\c-team.\n", players[consoleplayer].userinfo.netname, TEAM_GetName( players[consoleplayer].ulTeam ));
+			Printf( "%s \\c-joined the \\c%c%s \\c-team.\n", players[consoleplayer].userinfo.netname, V_GetColorChar( TEAM_GetTextColor( players[consoleplayer].ulTeam ) ), TEAM_GetName( players[consoleplayer].ulTeam ));
 		}
 
 		if ( players[consoleplayer].mo )

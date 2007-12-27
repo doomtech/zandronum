@@ -100,6 +100,7 @@
 #include "p_effect.h"
 #include "win32/g15/g15.h"
 #include "gl/gl_functions.h"
+#include "team.h"
 
 // EXTERNAL FUNCTION PROTOTYPES --------------------------------------------
 
@@ -3290,13 +3291,17 @@ static void ShowHelp( void )
 
 static void JoinRed( void )
 {
-	AddCommandString( "team red" );
+	char command[1024];
+	sprintf ( command, "team %s", TEAM_GetName( TEAM_RED ) );
+	AddCommandString( command );
 	M_ClearMenus( );
 }
 
 static void JoinBlue( void )
 {
-	AddCommandString( "team blue" );
+	char command[1024];
+	sprintf ( command, "team %s", TEAM_GetName( TEAM_BLUE ) );
+	AddCommandString( command );
 	M_ClearMenus( );
 }
 
