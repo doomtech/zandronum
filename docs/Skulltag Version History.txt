@@ -282,6 +282,7 @@ v0.97d
 !	- A proper error message is given when Skulltag is started with a shareware IWAD. [Torr Samaho]
 !	- If a monster is killed in invasion, one monster corpse from the previous wave is removed (if there still is such a corpse). This should improve the speed on maps like ALINV11. [Torr Samaho]
 !	- Changed: sv_fastweapons is now clamped to values between 0 and 2. [Torr Samaho]
+!	- Changed: The server doesn't call P_Ticker anymore if there are no players. This significantly reduces CPU usage on maps with many monsters (of course only as long as there are no players). [Torr Samaho]
 
 v0.97d-beta4.3
 --------------
