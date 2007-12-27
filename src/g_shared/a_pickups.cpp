@@ -747,6 +747,16 @@ AInventory *AInventory::CreateTossable ()
 		flags &= ~(MF_SPECIAL|MF_SOLID);
 		return this;
 	}
+
+	// [BB] Don't spawn the item in client mode, the server tells us to spawn the item.
+	// Just reduce the remaining amount of this item type here.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		Amount--;
+		return ( NULL );
+	}
+
 	copy = static_cast<AInventory *>(Spawn (GetClass(), Owner->x,
 		Owner->y, Owner->z, NO_REPLACE));
 	if (copy != NULL)
