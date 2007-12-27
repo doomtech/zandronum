@@ -246,6 +246,7 @@ v0.97d
 -	- Fixed: Using nextmap or changemap when not in a level leads to a crash. [Torr Samaho]
 -	- Fixed: Clients don't play the attack sound of A_CustomBulletAttack. [Torr Samaho]
 -	- Fixed: A_CustomPunch doesn't update the remaining ammo amount on the clients online. [Torr Samaho]
+-	- Fixed: Starting a conversation online crashes the server. NOTE: Only the crash is prevented, the conversation still won't work properly online. According to the code, ZDoom doesn't support conversations in multiplayer yet. [Torr Samaho]
 !	- Survival co-op is now disabled in hubs. [Carnevil]
 !	- Skulltag's invasion spawners are now defined in skulltag.pk3. [Carnevil]
 !	- Skulltag.wad is now loaded before doom2.wad. This should fix certain texture errors. [Carnevil]

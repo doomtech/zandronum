@@ -605,6 +605,11 @@ CUSTOM_CVAR(Float, dlg_musicvolume, 1.0f, CVAR_ARCHIVE)
 
 void P_StartConversation (AActor *npc, AActor *pc, bool facetalker, bool saveangle)
 {
+	// [BB] The server doesn't have a screen, so we have to return here as workaround for a crash.
+	// TODO: Make this work in the client/server architecture.
+	if ( NETWORK_GetState() == NETSTATE_SERVER )
+		return;
+
 	AActor *oldtarget;
 	FStrifeDialogueReply *reply;
 	menuitem_t item;
