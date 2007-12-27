@@ -255,8 +255,11 @@ struct FSpriteModelFrame
 	FTexture * skins[MAX_MODELS_PER_FRAME];
 	int modelframes[MAX_MODELS_PER_FRAME];
 	float xscale, yscale, zscale;
-	// [BB] Added zoffset and flags.
+	// [BB] Added zoffset, rotation parameters and flags.
 	float zoffset;
+	float xrotate, yrotate, zrotate;
+	float rotationCenterX, rotationCenterY, rotationCenterZ;
+	float rotationSpeed;
 	unsigned int flags;
 	const PClass * type;
 	short sprite;

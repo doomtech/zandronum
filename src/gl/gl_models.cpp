@@ -313,6 +313,36 @@ void gl_InitModels()
 					else if (SC_Compare("rotating"))
 					{
 						smf.flags |= MDL_ROTATING;
+						smf.xrotate = 0.;
+						smf.yrotate = 1.;
+						smf.zrotate = 0.;
+						smf.rotationCenterX = 0.;
+						smf.rotationCenterY = 0.;
+						smf.rotationCenterZ = 0.;
+						smf.rotationSpeed = 1.;
+					}
+					else if (SC_Compare("rotation-speed"))
+					{
+						SC_MustGetFloat();
+						smf.rotationSpeed = sc_Float;
+					}
+					else if (SC_Compare("rotation-vector"))
+					{
+						SC_MustGetFloat();
+						smf.xrotate = sc_Float;
+						SC_MustGetFloat();
+						smf.yrotate = sc_Float;
+						SC_MustGetFloat();
+						smf.zrotate = sc_Float;
+					}
+					else if (SC_Compare("rotation-center"))
+					{
+						SC_MustGetFloat();
+						smf.rotationCenterX = sc_Float;
+						SC_MustGetFloat();
+						smf.rotationCenterY = sc_Float;
+						SC_MustGetFloat();
+						smf.rotationCenterZ = sc_Float;
 					}
 					else if (SC_Compare("interpolatedoubledframes"))
 					{
@@ -483,17 +513,20 @@ void gl_RenderModel(GLSprite * spr, int cm)
 	// Model space => World space
 	gl.Translatef(spr->x, spr->z, spr->y );
 
+	gl.Rotatef(-ANGLE_TO_FLOAT(spr->actor->angle), 0, 1, 0);
+
 	// Model rotation.
 	// [BB] Added Doomsday like rotation of the weapon pickup models.
 	// The rotation angle is based on the elapsed time.
-	float offsetAngle = 0.;
 	if( smf->flags & MDL_ROTATING )
 	{
+		float offsetAngle = 0.;
 		const float time = GetTimeFloat()/200.;
 		offsetAngle = ( (time - static_cast<int>(time)) *360. );
+		gl.Translatef(smf->rotationCenterX, smf->rotationCenterY, smf->rotationCenterZ);
+		gl.Rotatef(offsetAngle*smf->rotationSpeed, smf->xrotate, smf->yrotate, smf->zrotate);
+		gl.Translatef(-smf->rotationCenterX, -smf->rotationCenterY, -smf->rotationCenterZ);
 	}
-
-	gl.Rotatef(-ANGLE_TO_FLOAT(spr->actor->angle)+offsetAngle, 0, 1, 0);
 
 	// [BB] Workaround for the missing pitch information.
 	if ( (smf->flags & MDL_PITCHFROMMOMENTUM) )
