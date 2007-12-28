@@ -6,6 +6,9 @@
 #include "p_enemy.h"
 #include "a_action.h"
 #include "gstrings.h"
+// [BB] New #includes.
+#include "sv_commands.h"
+#include "cl_demo.h"
 
 static FRandom pr_foo ("WhirlwindDamage");
 static FRandom pr_atk ("LichAttack");
@@ -286,6 +289,13 @@ void A_LichAttack (AActor *actor)
 	static const int atkResolve2[] = { 150, 200 };
 	int dist;
 
+	// [BB] This is server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	// Ice ball		(close 20% : far 60%)
 	// Fire column	(close 40% : far 20%)
 	// Whirlwind	(close 40% : far 20%)
@@ -309,14 +319,28 @@ void A_LichAttack (AActor *actor)
 	randAttack = pr_atk ();
 	if (randAttack < atkResolve1[dist])
 	{ // Ice ball
-		P_SpawnMissile (actor, target, RUNTIME_CLASS(AHeadFX1));
+		AActor *missile = P_SpawnMissile (actor, target, RUNTIME_CLASS(AHeadFX1));
 		S_Sound (actor, CHAN_BODY, "ironlich/attack2", 1, ATTN_NORM);
+
+		// [BB] If we're the server, tell the clients to spawn this missile and play the sound.
+		if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && missile )
+		{
+			SERVERCOMMANDS_SpawnMissile( missile );
+			SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "ironlich/attack2", 1, ATTN_NORM );
+		}
 	}
 	else if (randAttack < atkResolve2[dist])
 	{ // Fire column
 		baseFire = P_SpawnMissile (actor, target, RUNTIME_CLASS(AHeadFX3));
 		if (baseFire != NULL)
 		{
+			// [BB] If we're the server, tell the clients to spawn this missile and to update this thing's state.
+			if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
+			{
+				SERVERCOMMANDS_SpawnMissile( baseFire );
+				SERVERCOMMANDS_SetThingFrame( baseFire, &AHeadFX3::States[S_HEADFX3+3] );
+			}
+
 			baseFire->SetState (&AHeadFX3::States[S_HEADFX3+3]); // Don't grow
 			for (i = 0; i < 5; i++)
 			{
@@ -325,6 +349,10 @@ void A_LichAttack (AActor *actor)
 				if (i == 0)
 				{
 					S_Sound (actor, CHAN_BODY, "ironlich/attack1", 1, ATTN_NORM);
+
+					// [BB] If we're the server, tell the clients to play the sound.
+					if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
+						SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "ironlich/attack1", 1, ATTN_NORM );
 				}
 				fire->target = baseFire->target;
 				fire->angle = baseFire->angle;
@@ -333,6 +361,12 @@ void A_LichAttack (AActor *actor)
 				fire->momz = baseFire->momz;
 				fire->Damage = 0;
 				fire->health = (i+1) * 2;
+
+				// [BB] If we're the server, tell the clients to spawn the fire as missle using SERVERCOMMANDS_SpawnMissile
+				// (just using SERVERCOMMANDS_SpawnThing + SERVERCOMMANDS_MoveThingExact doesn't work properly).
+				if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
+					SERVERCOMMANDS_SpawnMissile( fire );
+
 				P_CheckMissileSpawn (fire);
 			}
 		}
@@ -348,6 +382,13 @@ void A_LichAttack (AActor *actor)
 			mo->special2 = 50; // Timer for active sound
 			mo->health = 20*TICRATE; // Duration
 			S_Sound (actor, CHAN_BODY, "ironlich/attack3", 1, ATTN_NORM);
+
+			// [BB] If we're the server, the tell clients to spawn this missile and play the sound.
+			if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
+			{
+				SERVERCOMMANDS_SpawnMissile( mo );
+				SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "ironlich/attack3", 1, ATTN_NORM );
+ 			}
 		}
 	}
 }
@@ -414,11 +455,28 @@ void A_LichIceImpact (AActor *ice)
 
 void A_LichFireGrow (AActor *fire)
 {
+	// [BB] This is server-side. The client can't do it, cause it doesn't know the health of the fire.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	fire->health--;
 	fire->z += 9*FRACUNIT;
+
+	// [BB] Tell clients of the changed z coord.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_MoveThingExact( fire, CM_Z );
+
 	if (fire->health == 0)
 	{
 		fire->Damage = fire->GetDefault()->Damage;
+
+		// [BB] Update the thing's state on the clients.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingFrame( fire, &AHeadFX3::States[S_HEADFX3+3] );
+
 		fire->SetState (&AHeadFX3::States[S_HEADFX3+3]);
 	}
 }
