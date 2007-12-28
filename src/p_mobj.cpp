@@ -5197,7 +5197,7 @@ void P_SpawnBlood (fixed_t x, fixed_t y, fixed_t z, angle_t dir, int damage, AAc
 				SERVERCOMMANDS_SpawnThingNoNetID( th );
 			}
 			else
-				SERVERCOMMANDS_SpawnPuff( th, STATE_SPAWN, true );
+				SERVERCOMMANDS_SpawnBlood( x, y, z, dir, damage, originator );
 		}
 	}
 

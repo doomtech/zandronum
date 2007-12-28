@@ -205,6 +205,7 @@ static	void	client_ThingActivate( BYTESTREAM_s *pByteStream );
 static	void	client_ThingDeactivate( BYTESTREAM_s *pByteStream );
 static	void	client_RespawnDoomThing( BYTESTREAM_s *pByteStream );
 static	void	client_RespawnRavenThing( BYTESTREAM_s *pByteStream );
+static	void	client_SpawnBlood( BYTESTREAM_s *pByteStream );
 static	void	client_SpawnPuff( BYTESTREAM_s *pByteStream );
 
 // Print commands.
@@ -552,6 +553,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_THINGDEACTIVATE",
 	"SVC_RESPAWNDOOMTHING",
 	"SVC_RESPAWNRAVENTHING",
+	"SVC_SPAWNBLOOD",
 	"SVC_SPAWNPUFF",
 	"SVC_PRINT",
 	"SVC_PRINTMID",
@@ -1710,6 +1712,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_RESPAWNRAVENTHING:
 
 		client_RespawnRavenThing( pByteStream );
+		break;
+	case SVC_SPAWNBLOOD:
+
+		client_SpawnBlood( pByteStream );
 		break;
 	case SVC_SPAWNPUFF:
 
@@ -6356,6 +6362,38 @@ static void client_RespawnRavenThing( BYTESTREAM_s *pByteStream )
 	S_Sound( pActor, CHAN_VOICE, "misc/spawn", 1, ATTN_IDLE );
 
 	pActor->SetState( &AInventory::States[6] );
+}
+
+//*****************************************************************************
+//
+static void client_SpawnBlood( BYTESTREAM_s *pByteStream )
+{
+	fixed_t			X;
+	fixed_t			Y;
+	fixed_t			Z;
+	angle_t			Dir;
+	int				Damage;
+	LONG			lID;
+	AActor			*pOriginator;
+
+	// Read in the XYZ location of the blood.
+	X = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+	Y = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+	Z = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+
+	// Read in the direction.
+	Dir = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+
+	// Read in the damage.
+	Damage = NETWORK_ReadByte( pByteStream );
+
+	// Read in the NetID of the originator.
+	lID = NETWORK_ReadShort( pByteStream );
+
+	// Find the originator by its NetID.
+	pOriginator = CLIENT_FindThingByNetID( lID );
+
+	P_SpawnBlood (X, Y, Z, Dir, Damage, pOriginator);
 }
 
 //*****************************************************************************
