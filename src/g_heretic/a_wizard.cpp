@@ -7,6 +7,9 @@
 #include "a_hereticglobal.h"
 #include "a_action.h"
 #include "gstrings.h"
+// [BB] New #includes.
+#include "sv_commands.h"
+#include "cl_demo.h"
 
 static FRandom pr_wizatk3 ("WizAtk3");
 
@@ -178,12 +181,24 @@ void A_WizAtk3 (AActor *actor)
 {
 	AActor *mo;
 
+	// [BB] This is server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	A_GhostOff (actor);
 	if (!actor->target)
 	{
 		return;
 	}
 	S_SoundID (actor, CHAN_WEAPON, actor->AttackSound, 1, ATTN_NORM);
+
+	// [BB] If we're the server, tell the clients to play the sound.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, S_GetName( actor->AttackSound ), 1, ATTN_NORM );
+
 	if (actor->CheckMeleeRange())
 	{
 		int damage = pr_wizatk3.HitDice (4);
@@ -194,7 +209,18 @@ void A_WizAtk3 (AActor *actor)
 	mo = P_SpawnMissile (actor, actor->target, RUNTIME_CLASS(AWizardFX1));
 	if (mo != NULL)
 	{
-		P_SpawnMissileAngle(actor, RUNTIME_CLASS(AWizardFX1), mo->angle-(ANG45/8), mo->momz);
-		P_SpawnMissileAngle(actor, RUNTIME_CLASS(AWizardFX1), mo->angle+(ANG45/8), mo->momz);
+		AActor *missile1 = P_SpawnMissileAngle(actor, RUNTIME_CLASS(AWizardFX1), mo->angle-(ANG45/8), mo->momz);
+		AActor *missile2 = P_SpawnMissileAngle(actor, RUNTIME_CLASS(AWizardFX1), mo->angle+(ANG45/8), mo->momz);
+
+		// [BB] If we're the server, tell the clients to spawn the missiles.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			SERVERCOMMANDS_SpawnMissile( mo );
+			if ( missile1 )
+				SERVERCOMMANDS_SpawnMissile( missile1 );
+			if ( missile2 )
+				SERVERCOMMANDS_SpawnMissile( missile2 );
+		}
+
 	}
 }

@@ -5710,10 +5710,12 @@ AActor *P_SpawnMissileXYZ (fixed_t x, fixed_t y, fixed_t z,
 	AActor *spawnedMissle = (P_CheckMissileSpawn (th) ? th : NULL);
 
 	// [BB] If we're the server, tell clients to spawn the missile.
-	// This should fix the problem that projectiles shot by Hexen/Heretic monsters
-	// are not spawned on the client in an online game. If this turns out to work nicely,
-	// the Doom monsters should use this, too.
-	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( spawnedMissle ) && ( (gameinfo.gametype == GAME_Hexen) || (gameinfo.gametype == GAME_Heretic) ) )
+	// This should fix the problem that projectiles shot by Hexen monsters
+	// are not spawned on the client in an online game. Unfortunately
+	// this requires major changes to the network code to make this
+	// really feasible. Perhaps it's better to just fix the Hexen monsters
+	// one by one.
+	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( spawnedMissle ) && (gameinfo.gametype == GAME_Hexen) )
 		SERVERCOMMANDS_SpawnMissile( spawnedMissle );
 
 	return spawnedMissle;

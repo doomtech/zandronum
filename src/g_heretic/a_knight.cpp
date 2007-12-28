@@ -7,6 +7,9 @@
 #include "a_action.h"
 #include "a_sharedglobal.h"
 #include "gstrings.h"
+// [BB] New #includes.
+#include "sv_commands.h"
+#include "cl_demo.h"
 
 static FRandom pr_dripblood ("DripBlood");
 static FRandom pr_knightatk ("KnightAttack");
@@ -202,6 +205,13 @@ void A_DripBlood (AActor *actor)
 
 void A_KnightAttack (AActor *actor)
 {
+	// [BB] This is server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if (!actor->target)
 	{
 		return;
@@ -212,17 +222,31 @@ void A_KnightAttack (AActor *actor)
 		P_DamageMobj (actor->target, actor, actor, damage, NAME_Melee);
 		P_TraceBleed (damage, actor->target, actor);
 		S_Sound (actor, CHAN_BODY, "hknight/melee", 1, ATTN_NORM);
+
+		// [BB] If we're the server, tell the clients to play the sound.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SoundActor( actor, CHAN_BODY, "hknight/melee", 1, ATTN_NORM );
+
 		return;
 	}
 	// Throw axe
 	S_SoundID (actor, CHAN_BODY, actor->AttackSound, 1, ATTN_NORM);
 	if (actor->flags & MF_SHADOW || pr_knightatk () < 40)
 	{ // Red axe
-		P_SpawnMissileZ (actor, actor->z + 36*FRACUNIT, actor->target, RUNTIME_CLASS(ARedAxe));
+		AActor *missile = P_SpawnMissileZ (actor, actor->z + 36*FRACUNIT, actor->target, RUNTIME_CLASS(ARedAxe));
+
+		// [BB] If we're the server, tell the clients to spawn this missile.
+		if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && missile )
+			SERVERCOMMANDS_SpawnMissile( missile );
+
 		return;
 	}
 	// Green axe
-	P_SpawnMissileZ (actor, actor->z + 36*FRACUNIT, actor->target, RUNTIME_CLASS(AKnightAxe));
+	AActor *missile = P_SpawnMissileZ (actor, actor->z + 36*FRACUNIT, actor->target, RUNTIME_CLASS(AKnightAxe));
+
+	// [BB] If we're the server, tell the clients to spawn this missile.
+	if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && missile )
+		SERVERCOMMANDS_SpawnMissile( missile );
 }
 
 //---------------------------------------------------------------------------

@@ -326,7 +326,7 @@ void A_LichAttack (AActor *actor)
 		if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && missile )
 		{
 			SERVERCOMMANDS_SpawnMissile( missile );
-			SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "ironlich/attack2", 1, ATTN_NORM );
+			SERVERCOMMANDS_SoundActor( actor, CHAN_BODY, "ironlich/attack2", 1, ATTN_NORM );
 		}
 	}
 	else if (randAttack < atkResolve2[dist])
@@ -352,7 +352,7 @@ void A_LichAttack (AActor *actor)
 
 					// [BB] If we're the server, tell the clients to play the sound.
 					if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
-						SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "ironlich/attack1", 1, ATTN_NORM );
+						SERVERCOMMANDS_SoundActor( actor, CHAN_BODY, "ironlich/attack1", 1, ATTN_NORM );
 				}
 				fire->target = baseFire->target;
 				fire->angle = baseFire->angle;
@@ -387,7 +387,7 @@ void A_LichAttack (AActor *actor)
 			if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
 			{
 				SERVERCOMMANDS_SpawnMissile( mo );
-				SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "ironlich/attack3", 1, ATTN_NORM );
+				SERVERCOMMANDS_SoundActor( actor, CHAN_BODY, "ironlich/attack3", 1, ATTN_NORM );
  			}
 		}
 	}
