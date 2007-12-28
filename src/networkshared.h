@@ -203,9 +203,9 @@ void			NETWORK_WriteBuffer( BYTESTREAM_s *pByteStream, const void *pvBuffer, int
 // Debugging function.
 void			NETWORK_WriteHeader( BYTESTREAM_s *pByteStream, int Byte );
 
-bool			NETWORK_StringToAddress( char *pszString, NETADDRESS_s *pAddress );
+bool			NETWORK_StringToAddress( const char *pszString, NETADDRESS_s *pAddress );
 void			NETWORK_SocketAddressToNetAddress( struct sockaddr_in *s, NETADDRESS_s *a );
-bool			NETWORK_StringToIP( char *pszAddress, char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 );
+bool			NETWORK_StringToIP( const char *pszAddress, char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 );
 
 std::string GenerateCouldNotOpenFileErrorString( const char *pszFunctionHeader, const char *pszFileName, LONG lErrorCode );
 

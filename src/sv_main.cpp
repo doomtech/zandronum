@@ -2728,6 +2728,14 @@ void SERVER_KickPlayer( ULONG ulPlayer, char *pszReason )
 	char	szKickString[512];
 	char	szName[64];
 
+	// Make sure the target is valid and applicable.
+	if (( ulPlayer >= MAXPLAYERS ) || ( !playeringame[ulPlayer] ))
+		return;
+
+	// Don't kick our admins.
+	if ( SERVER_ADMIN_IsAdministrator( g_aClients[ulPlayer].Address ))
+		return;
+
 	sprintf( szName, players[ulPlayer].userinfo.netname );
 	V_RemoveColorCodes( szName );
 
@@ -4730,19 +4738,38 @@ CCMD( kick_idx )
 
 	ULONG ulIdx =  atoi(argv[1]);
 
-	// Make sure the target is valid and applicable.
-	if (( ulIdx >= MAXPLAYERS ) || ( !playeringame[ulIdx] ))
-		return;
-
-	// Don't kick our admins.
-	if ( SERVER_ADMIN_IsAdministrator( g_aClients[ulIdx].Address ))
-		return;
-
+	// [BB] Validity checks are done in SERVER_KickPlayer.
 	// If we provided a reason, give it.
 	if ( argv.argc( ) >= 3 )
 		SERVER_KickPlayer( ulIdx, argv[2] );
 	else
 		SERVER_KickPlayer( ulIdx, "None given." );
+	return;
+}
+
+CCMD( kick_ip )
+{
+	// Only the server can boot players!
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		return;
+
+	if ( argv.argc( ) < 2 )
+	{
+		Printf( "Usage: kick_ip <ip:port> [reason]\nYou can get the list of players and indexes with the ccmd playerinfo.\n" );
+		return;
+	}
+
+	NETADDRESS_s address;
+	NETWORK_StringToAddress( argv[1], &address );
+	ULONG ulIdx = SERVER_FindClientByAddress( address );
+
+	// [BB] Validity checks are done in SERVER_KickPlayer.
+	// If we provided a reason, give it.
+	if ( argv.argc( ) >= 3 )
+		SERVER_KickPlayer( ulIdx, argv[2] );
+	else
+		SERVER_KickPlayer( ulIdx, "None given." );
+
 	return;
 }
 
@@ -4773,9 +4800,6 @@ CCMD( kick )
 
 		if ( stricmp( szPlayerName, argv[1] ) == 0 )
 		{
-			if ( SERVER_ADMIN_IsAdministrator( g_aClients[ulIdx].Address ))
-				continue;
-
 			// If we provided a reason, give it.
 			if ( argv.argc( ) >= 3 )
 				SERVER_KickPlayer( ulIdx, argv[2] );

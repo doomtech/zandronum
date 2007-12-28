@@ -363,26 +363,28 @@ void NETWORK_WriteHeader( BYTESTREAM_s *pByteStream, int Byte )
 
 //*****************************************************************************
 //
-bool NETWORK_StringToAddress( char *s, NETADDRESS_s *a )
+bool NETWORK_StringToAddress( const char *s, NETADDRESS_s *a )
 {
-     struct hostent  *h;
-     struct sockaddr_in sadr;
-     char    *colon;
-     char    copy[128];
+	struct hostent  *h;
+	struct sockaddr_in sadr;
+	char    *colon;
+	char    copy[128];
 
-     memset (&sadr, 0, sizeof(sadr));
-     sadr.sin_family = AF_INET;
+	memset (&sadr, 0, sizeof(sadr));
+	sadr.sin_family = AF_INET;
 
-     sadr.sin_port = 0;
+	sadr.sin_port = 0;
 
-     strcpy (copy, s);
-     // strip off a trailing :port if present
-     for (colon = copy ; *colon ; colon++)
-          if (*colon == ':')
-          {
-             *colon = 0;
-             sadr.sin_port = htons(atoi(colon+1));
-          }
+	strcpy (copy, s);
+	// strip off a trailing :port if present
+	for (colon = copy ; *colon ; colon++)
+	{
+		if (*colon == ':')
+		{
+			*colon = 0;
+			sadr.sin_port = htons(atoi(colon+1));
+		}
+	}
 
 	{
 		LONG	lRet;
@@ -393,9 +395,9 @@ bool NETWORK_StringToAddress( char *s, NETADDRESS_s *a )
 		if ( lRet == INADDR_NONE )
 		{
 			// If the string cannot be resolved to a valid IP address, return false.
-          if (( h = gethostbyname( copy )) == NULL )
-                return ( false );
-          *(int *)&sadr.sin_addr = *(int *)h->h_addr_list[0];
+			if (( h = gethostbyname( copy )) == NULL )
+				return ( false );
+			*(int *)&sadr.sin_addr = *(int *)h->h_addr_list[0];
 		}
 		else
 			*(int *)&sadr.sin_addr = lRet;
@@ -403,7 +405,7 @@ bool NETWORK_StringToAddress( char *s, NETADDRESS_s *a )
 
 	NETWORK_SocketAddressToNetAddress (&sadr, a);
 
-     return true;
+	return true;
 }
 
 //*****************************************************************************
@@ -416,7 +418,7 @@ void NETWORK_SocketAddressToNetAddress( struct sockaddr_in *s, NETADDRESS_s *a )
 
 //*****************************************************************************
 //
-bool NETWORK_StringToIP( char *pszAddress, char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 )
+bool NETWORK_StringToIP( const char *pszAddress, char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 )
 {
 	char	szCopy[16];
 	char	*pszCopy;

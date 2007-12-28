@@ -472,7 +472,7 @@ return;
 
 //*****************************************************************************
 //
-char *NETWORK_AddressToString( NETADDRESS_s Address )
+const char *NETWORK_AddressToString( NETADDRESS_s Address )
 {
 	static char	s_szAddress[64];
 
@@ -483,7 +483,7 @@ char *NETWORK_AddressToString( NETADDRESS_s Address )
 
 //*****************************************************************************
 //
-char *NETWORK_AddressToStringIgnorePort( NETADDRESS_s Address )
+const char *NETWORK_AddressToStringIgnorePort( NETADDRESS_s Address )
 {
 	static char	s_szAddress[64];
 
