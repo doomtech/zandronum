@@ -1098,6 +1098,10 @@ void A_CustomComboAttack (AActor *self)
 				{
 					missile->health=-2;
 				}
+
+				// [BB] If we're the server, tell clients to spawn this missile.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_SpawnMissile( missile );
 			}
 		}
 	}
