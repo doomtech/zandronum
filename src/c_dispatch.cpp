@@ -656,7 +656,7 @@ void C_DoCommand (const char *cmd, int keynum)
 			int minlen = MIN (len, 63);
 
 			memcpy (cmdname, beg, minlen);
-			cmdname[len] = 0;
+			cmdname[minlen] = 0;
 			Printf ("Unknown command \"%s\"\n", cmdname);
 		}
 	}

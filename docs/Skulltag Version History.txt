@@ -256,6 +256,7 @@ v0.97d
 -	- Fixed: Starting a conversation online crashes the server. NOTE: Only the crash is prevented, the conversation still won't work properly online. According to the code, ZDoom doesn't support conversations in multiplayer yet. [Torr Samaho]
 -	- Fixed: sv_fastweapons is not synchonized between clients and server. [Torr Samaho]
 -	- Fixed: A_CustomComboAttack doesn't spawn the missile on the clients online. [Torr Samaho]
+-	- Fixed: Entering a command in the console with 64 or more chars may cause a crash. [Torr Samaho]
 !	- Survival co-op is now disabled in hubs. [Carnevil]
 !	- Skulltag's invasion spawners are now defined in skulltag.pk3. [Carnevil]
 !	- Skulltag.wad is now loaded before doom2.wad. This should fix certain texture errors. [Carnevil]
