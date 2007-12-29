@@ -2991,6 +2991,12 @@ void SERVER_ResetInventory( ULONG ulClient )
 		if ( pInventory->IsKindOf( RUNTIME_CLASS( AAmmo )))
 			continue;
 
+		// [BB] The collection of weapon pieces is handled on the server, so there is
+		// no need to tell the client of its WeaponHolders. In fact a weapon holder
+		// without PieceMask and PieceWeapon properly set is completely useless.
+		if ( pInventory->IsKindOf( PClass::FindClass( "WeaponHolder" )) )
+			continue;
+
 		if ( pInventory->IsKindOf( RUNTIME_CLASS( APowerup )))
 		{
 			// [BB] All clients need to be informed about some special iventory kinds.

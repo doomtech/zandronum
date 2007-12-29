@@ -257,6 +257,7 @@ v0.97d
 -	- Fixed: sv_fastweapons is not synchonized between clients and server. [Torr Samaho]
 -	- Fixed: A_CustomComboAttack doesn't spawn the missile on the clients online. [Torr Samaho]
 -	- Fixed: Entering a command in the console with 64 or more chars may cause a crash. [Torr Samaho]
+-	- Fixed: If a client collects all pieces of one weapon online, but not all on the same level, it won't get the completed weapon before the next map change. [Torr Samaho]
 !	- Survival co-op is now disabled in hubs. [Carnevil]
 !	- Skulltag's invasion spawners are now defined in skulltag.pk3. [Carnevil]
 !	- Skulltag.wad is now loaded before doom2.wad. This should fix certain texture errors. [Carnevil]

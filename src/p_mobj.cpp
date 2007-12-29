@@ -994,6 +994,10 @@ AInventory *AActor::GiveInventoryType (const PClass *type)
 
 bool AActor::GiveAmmo (const PClass *type, int amount)
 {
+	// [BB] The server tells the client how much ammo it gets.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		return false;
+
 	if (type != NULL)
 	{
 		AInventory *item = static_cast<AInventory *>(Spawn (type, 0, 0, 0, NO_REPLACE));
@@ -1004,6 +1008,11 @@ bool AActor::GiveAmmo (const PClass *type, int amount)
 			item->Destroy ();
 			return false;
 		}
+
+		// [BB] The server tells the client how much ammo it gets.
+		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( player ))
+			SERVERCOMMANDS_GiveInventory( ULONG(player - players), item );
+
 		return true;
 	}
 	return false;
