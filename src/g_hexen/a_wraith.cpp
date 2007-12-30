@@ -6,6 +6,9 @@
 #include "a_action.h"
 #include "m_random.h"
 #include "a_sharedglobal.h"
+// [BB] New #includes.
+#include "sv_commands.h"
+#include "cl_demo.h"
 
 void A_WraithInit (AActor *);
 void A_WraithLook (AActor *);
@@ -381,6 +384,13 @@ void A_WraithMelee (AActor *actor)
 {
 	int amount;
 
+	// [BB] This is server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	// Steal health from target and give to self
 	if (actor->CheckMeleeRange() && (pr_stealhealth()<220))
 	{
@@ -398,9 +408,20 @@ void A_WraithMelee (AActor *actor)
 
 void A_WraithMissile (AActor *actor)
 {
+	// [BB] This is server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if (actor->target != NULL)
 	{
-		P_SpawnMissile (actor, actor->target, RUNTIME_CLASS(AWraithFX1));
+		AActor *missile = P_SpawnMissile (actor, actor->target, RUNTIME_CLASS(AWraithFX1));
+
+		// [BB] If we're the server, tell the clients to spawn the missile.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER && missile)
+			SERVERCOMMANDS_SpawnMissile( missile );
 	}
 }
 
