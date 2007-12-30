@@ -6,6 +6,9 @@
 #include "a_action.h"
 #include "m_random.h"
 #include "a_hexenglobal.h"
+// [BB] New #includes.
+#include "sv_commands.h"
+#include "cl_demo.h"
 
 static FRandom pr_boom ("BishopBoom");
 static FRandom pr_atk ("BishopAttack");
@@ -232,11 +235,23 @@ int ABishopFX::DoSpecialDamage (AActor *target, int damage)
 
 void A_BishopAttack (AActor *actor)
 {
+	// [BB] This is server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if (!actor->target)
 	{
 		return;
 	}
 	S_SoundID (actor, CHAN_BODY, actor->AttackSound, 1, ATTN_NORM);
+
+	// [BB] If we're the server, tell the clients to play the sound.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SoundActor( actor, CHAN_BODY, S_GetName(actor->AttackSound), 1, ATTN_NORM );
+
 	if (actor->CheckMeleeRange())
 	{
 		int damage = pr_atk.HitDice (4);
@@ -258,10 +273,22 @@ void A_BishopAttack2 (AActor *actor)
 {
 	AActor *mo;
 
+	// [BB] This is server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if (!actor->target || !actor->special1)
 	{
 		actor->special1 = 0;
 		actor->SetState (actor->SeeState);
+
+		// [BB] If we're the server, tell the clients of the state change.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingState( actor, STATE_SEE );
+
 		return;
 	}
 	mo = P_SpawnMissile (actor, actor->target, RUNTIME_CLASS(ABishopFX));
@@ -269,6 +296,13 @@ void A_BishopAttack2 (AActor *actor)
 	{
 		mo->tracer = actor->target;
 		mo->special2 = 16; // High word == x/y, Low word == z
+
+		// [BB] If we're the server, tell the clients to spawn this missile.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			SERVERCOMMANDS_SpawnMissile( mo );
+			SERVERCOMMANDS_SetThingSpecial2( mo );
+		}
 	}
 	actor->special1--;
 }
@@ -319,12 +353,23 @@ void A_BishopMissileSeek (AActor *actor)
 
 void A_BishopDecide (AActor *actor)
 {
+	// [BB] This is server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if (pr_decide() < 220)
 	{
 		return;
 	}
 	else
 	{
+		// [BB] If we're the server, tell the clients to update this thing's state.
+		if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
+			SERVERCOMMANDS_SetThingFrame( actor, &ABishop::States[S_BISHOP_BLUR] );
+
 		actor->SetState (&ABishop::States[S_BISHOP_BLUR]);
 	}		
 }
@@ -337,6 +382,13 @@ void A_BishopDecide (AActor *actor)
 
 void A_BishopDoBlur (AActor *actor)
 {
+	// [BB] This is server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	actor->special1 = (pr_doblur() & 3) + 3; // Random number of blurs
 	if (pr_doblur() < 120)
 	{
@@ -351,6 +403,13 @@ void A_BishopDoBlur (AActor *actor)
 		P_ThrustMobj (actor, actor->angle, 11*FRACUNIT);
 	}
 	S_Sound (actor, CHAN_BODY, "BishopBlur", 1, ATTN_NORM);
+
+	// [BB] If we're the server, update the thing's momentum and play the sound.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		SERVERCOMMANDS_MoveThingExact( actor, CM_MOMX|CM_MOMY );
+		SERVERCOMMANDS_SoundActor( actor, CHAN_BODY, "BishopBlur", 1, ATTN_NORM );
+	}
 }
 
 //============================================================================
@@ -361,18 +420,38 @@ void A_BishopDoBlur (AActor *actor)
 
 void A_BishopSpawnBlur (AActor *actor)
 {
+	// [BB] This is server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	AActor *mo;
 
 	if (!--actor->special1)
 	{
 		actor->momx = 0;
 		actor->momy = 0;
+
+		// [BB] If we're the server, update the thing's momentum.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_MoveThingExact( actor, CM_MOMX|CM_MOMY );
+
 		if (pr_sblur() > 96)
 		{
+			// [BB] If we're the server, tell the clients of the state change.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingState( actor, STATE_SEE );
+
 			actor->SetState (actor->SeeState);
 		}
 		else
 		{
+			// [BB] If we're the server, tell the clients of the state change.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingState( actor, STATE_MISSILE );
+			
 			actor->SetState (actor->MissileState);
 		}
 	}
@@ -380,6 +459,13 @@ void A_BishopSpawnBlur (AActor *actor)
 	if (mo)
 	{
 		mo->angle = actor->angle;
+
+		// [BB] If we're the server, tell the clients to spawn the thing and set its angle.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			SERVERCOMMANDS_SpawnThing( mo );
+			SERVERCOMMANDS_SetThingAngle( mo );
+		}
 	}
 }
 
@@ -391,9 +477,21 @@ void A_BishopSpawnBlur (AActor *actor)
 
 void A_BishopChase (AActor *actor)
 {
+	// [BB] This is server-side. The z coordinate seems to go out of sync
+	// on client and server, if you make this client side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	actor->z -= FloatBobOffsets[actor->special2] >> 1;
 	actor->special2 = (actor->special2 + 4) & 63;
 	actor->z += FloatBobOffsets[actor->special2] >> 1;
+
+	// [BB] If we're the server, update the thing's z coordinate.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_MoveThingExact( actor, CM_Z );
 }
 
 //============================================================================
@@ -423,9 +521,21 @@ void A_BishopPainBlur (AActor *actor)
 {
 	AActor *mo;
 
+	// [BB] This is server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if (pr_pain() < 64)
 	{
 		actor->SetState (&ABishop::States[S_BISHOP_BLUR]);
+
+		// [BB] If we're the server, tell the clients to update this thing's state.
+		if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
+			SERVERCOMMANDS_SetThingFrame( actor, &ABishop::States[S_BISHOP_BLUR] );
+
 		return;
 	}
 	fixed_t x = actor->x + (pr_pain.Random2()<<12);
@@ -435,6 +545,13 @@ void A_BishopPainBlur (AActor *actor)
 	if (mo)
 	{
 		mo->angle = actor->angle;
+
+		// [BB] If we're the server, tell the clients to spawn the thing and set its angle.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			SERVERCOMMANDS_SpawnThing( mo );
+			SERVERCOMMANDS_SetThingAngle( mo );
+		}
 	}
 }
 
