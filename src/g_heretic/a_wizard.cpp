@@ -181,14 +181,15 @@ void A_WizAtk3 (AActor *actor)
 {
 	AActor *mo;
 
-	// [BB] This is server-side.
+	A_GhostOff (actor);
+
+	// [BB] This is server-side, the client only needs to run A_GhostOff.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
 		return;
 	}
 
-	A_GhostOff (actor);
 	if (!actor->target)
 	{
 		return;
