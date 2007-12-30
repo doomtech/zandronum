@@ -5,6 +5,9 @@
 #include "p_enemy.h"
 #include "a_action.h"
 #include "m_random.h"
+// [BB] New #includes.
+#include "sv_commands.h"
+#include "cl_demo.h"
 
 static FRandom pr_iceguylook ("IceGuyLook");
 static FRandom pr_iceguychase ("IceGuyChase");
@@ -338,21 +341,38 @@ void A_IceGuyAttack (AActor *actor)
 {
 	fixed_t an;
 
+	// [BB] This is server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if(!actor->target) 
 	{
 		return;
 	}
 	an = (actor->angle+ANG90)>>ANGLETOFINESHIFT;
-	P_SpawnMissileXYZ(actor->x+FixedMul(actor->radius>>1,
+	AActor *missile1 = P_SpawnMissileXYZ(actor->x+FixedMul(actor->radius>>1,
 		finecosine[an]), actor->y+FixedMul(actor->radius>>1,
 		finesine[an]), actor->z+40*FRACUNIT, actor, actor->target,
 		RUNTIME_CLASS(AIceGuyFX));
 	an = (actor->angle-ANG90)>>ANGLETOFINESHIFT;
-	P_SpawnMissileXYZ(actor->x+FixedMul(actor->radius>>1,
+	AActor *missile2 = P_SpawnMissileXYZ(actor->x+FixedMul(actor->radius>>1,
 		finecosine[an]), actor->y+FixedMul(actor->radius>>1,
 		finesine[an]), actor->z+40*FRACUNIT, actor, actor->target,
 		RUNTIME_CLASS(AIceGuyFX));
 	S_SoundID (actor, CHAN_WEAPON, actor->AttackSound, 1, ATTN_NORM);
+
+	// [BB] If we're the server, tell the clients to spawn the missiles and play the sound.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, S_GetName(actor->AttackSound), 1, ATTN_NORM );
+		if ( missile1 )
+			SERVERCOMMANDS_SpawnMissile( missile1 );
+		if ( missile2 )
+			SERVERCOMMANDS_SpawnMissile( missile2 );
+	}
 }
 
 //============================================================================

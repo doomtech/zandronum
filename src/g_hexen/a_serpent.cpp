@@ -6,6 +6,9 @@
 #include "a_action.h"
 #include "m_random.h"
 #include "p_terrain.h"
+// [BB] New #includes.
+#include "sv_commands.h"
+#include "cl_demo.h"
 
 static FRandom pr_serpentchase ("SerpentChase");
 static FRandom pr_serpenthump ("SerpentHump");
@@ -439,6 +442,13 @@ void A_SerpentLowerHump (AActor *actor)
 
 void A_SerpentHumpDecide (AActor *actor)
 {
+	// [BB] This is server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if (static_cast<ASerpent *>(actor)->bLeader)
 	{
 		if (pr_serpenthump() > 30)
@@ -447,6 +457,10 @@ void A_SerpentHumpDecide (AActor *actor)
 		}
 		else if (pr_serpenthump() < 40)
 		{ // Missile attack
+			// [BB] If we're the server, set the thing's state.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingFrame( actor, &ASerpent::States[S_SERPENT_SURFACE1] );
+
 			actor->SetState (&ASerpent::States[S_SERPENT_SURFACE1]);
 			return;
 		}
@@ -460,10 +474,21 @@ void A_SerpentHumpDecide (AActor *actor)
 		if (static_cast<ASerpent *>(actor)->bLeader &&
 			pr_serpenthump() < 128)
 		{
+			// [BB] If we're the server, set the thing's state.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingFrame( actor, &ASerpent::States[S_SERPENT_SURFACE1] );
+
 			actor->SetState (&ASerpent::States[S_SERPENT_SURFACE1]);
 		}
 		else
 		{	
+			// [BB] If we're the server, set the thing's state and play the sound.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			{
+				SERVERCOMMANDS_SetThingFrame( actor, &ASerpent::States[S_SERPENT_HUMP1] );
+				SERVERCOMMANDS_SoundActor( actor, CHAN_BODY, "SerpentActive", 1, ATTN_NORM );
+			}
+
 			actor->SetState (&ASerpent::States[S_SERPENT_HUMP1]);
 			S_Sound (actor, CHAN_BODY, "SerpentActive", 1, ATTN_NORM);
 		}
@@ -512,6 +537,13 @@ void A_SerpentWalk (AActor *actor)
 
 void A_SerpentCheckForAttack (AActor *actor)
 {
+	// [BB] This is server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if (!actor->target)
 	{
 		return;
@@ -520,22 +552,38 @@ void A_SerpentCheckForAttack (AActor *actor)
 	{
 		if (!actor->CheckMeleeRange ())
 		{
+			// [BB] If we're the server, set the thing's state.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingFrame( actor, &ASerpent::States[S_SERPENT_ATK1] );
+
 			actor->SetState (&ASerpent::States[S_SERPENT_ATK1]);
 			return;
 		}
 	}
 	if (P_CheckMeleeRange2 (actor))
 	{
+		// [BB] If we're the server, set the thing's state.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingFrame( actor, &ASerpent::States[S_SERPENT_WALK1] );
+
 		actor->SetState (&ASerpent::States[S_SERPENT_WALK1]);
 	}
 	else if (actor->CheckMeleeRange ())
 	{
 		if (pr_serpentattack() < 32)
 		{
+			// [BB] If we're the server, set the thing's state.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingFrame( actor, &ASerpent::States[S_SERPENT_WALK1] );
+
 			actor->SetState (&ASerpent::States[S_SERPENT_WALK1]);
 		}
 		else
 		{
+			// [BB] If we're the server, set the thing's state.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingFrame( actor, &ASerpent::States[S_SERPENT_ATK1] );
+
 			actor->SetState (&ASerpent::States[S_SERPENT_ATK1]);
 		}
 	}
@@ -549,12 +597,23 @@ void A_SerpentCheckForAttack (AActor *actor)
 
 void A_SerpentChooseAttack (AActor *actor)
 {
+	// [BB] This is server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if (!actor->target || actor->CheckMeleeRange())
 	{
 		return;
 	}
 	if (static_cast<ASerpent *>(actor)->bLeader)
 	{
+		// [BB] If we're the server, set the thing's state.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingFrame( actor, &ASerpent::States[S_SERPENT_MISSILE1] );
+
 		actor->SetState (&ASerpent::States[S_SERPENT_MISSILE1]);
 	}
 }
@@ -567,6 +626,13 @@ void A_SerpentChooseAttack (AActor *actor)
 
 void A_SerpentMeleeAttack (AActor *actor)
 {
+	// [BB] This is server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if (!actor->target)
 	{
 		return;
@@ -577,6 +643,10 @@ void A_SerpentMeleeAttack (AActor *actor)
 		P_DamageMobj (actor->target, actor, actor, damage, NAME_Melee);
 		P_TraceBleed (damage, actor->target, actor);
 		S_Sound (actor, CHAN_BODY, "SerpentMeleeHit", 1, ATTN_NORM);
+
+		// [BB] If we're the server, tell the clients to play the sound.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SoundActor( actor, CHAN_BODY, "SerpentMeleeHit", 1, ATTN_NORM );
 	}
 	if (pr_serpentmeattack() < 96)
 	{
@@ -594,11 +664,22 @@ void A_SerpentMissileAttack (AActor *actor)
 {
 	AActor *mo;
 
+	// [BB] This is server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if (!actor->target)
 	{
 		return;
 	}
 	mo = P_SpawnMissile (actor, actor->target, RUNTIME_CLASS(ASerpentFX));
+
+	// [BB] If we're the server, tell the clients to spawn the missile.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER && mo)
+		SERVERCOMMANDS_SpawnMissile( mo );
 }
 
 //============================================================================
