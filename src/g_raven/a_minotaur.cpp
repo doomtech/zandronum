@@ -629,6 +629,13 @@ void A_MinotaurDecide (AActor *actor)
 		actor->momx = FixedMul (MNTR_CHARGE_SPEED, finecosine[angle]);
 		actor->momy = FixedMul (MNTR_CHARGE_SPEED, finesine[angle]);
 		actor->special1 = TICRATE/2; // Charge duration
+
+		// [BB] If we're the server, update the thing's momentum and set the MF_SKULLFLY flag.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			SERVERCOMMANDS_MoveThingExact( actor, CM_MOMX|CM_MOMY );
+			SERVERCOMMANDS_SetThingFlags( actor, FLAGSET_FLAGS );
+		}
 	}
 	else if (target->z == target->floorz
 		&& dist < 9*64*FRACUNIT
