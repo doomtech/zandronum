@@ -469,9 +469,23 @@ END_DEFAULTS
 
 void A_CHolyAttack3 (AActor *actor)
 {
+	// [BB] Weapons are handled by the server.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	AActor * missile = P_SpawnMissileZ (actor, actor->z + 40*FRACUNIT, actor->target, RUNTIME_CLASS(AHolyMissile));
 	if (missile != NULL) missile->tracer = NULL;	// No initial target
 	S_Sound (actor, CHAN_WEAPON, "HolySymbolFire", 1, ATTN_NORM);
+
+	// [BB] Tell the clients to spawn the missile and play the sound.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		if ( missile ) SERVERCOMMANDS_SpawnMissile( missile );
+		SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "HolySymbolFire", 1, ATTN_NORM );
+	}
 }
 
 //============================================================================

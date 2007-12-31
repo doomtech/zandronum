@@ -6,9 +6,11 @@
 #include "p_enemy.h"
 #include "a_hexenglobal.h"
 #include "gstrings.h"
+// [BB] New #includes.
 #include "cl_demo.h"
 #include "deathmatch.h"
 #include "network.h"
+#include "sv_commands.h"
 
 static FRandom pr_mstafftrack ("MStaffTrack");
 static FRandom pr_bloodscourgedrop ("BloodScourgeDrop");
@@ -361,6 +363,10 @@ void MStaffSpawn2 (AActor *actor, angle_t angle)
 	{
 		mo->target = actor;
 		mo->tracer = P_BlockmapSearch (mo, 10, FrontBlockCheck);
+
+		// [BB] Tell the clients to spawn the missile.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SpawnMissile( mo );
 	}
 }
 
@@ -372,12 +378,23 @@ void MStaffSpawn2 (AActor *actor, angle_t angle)
 
 void A_MStaffAttack2 (AActor *actor)
 {
+	// [BB] Weapons are handled by the server.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	angle_t angle;
 	angle = actor->angle;
 	MStaffSpawn2 (actor, angle);
 	MStaffSpawn2 (actor, angle-ANGLE_1*5);
 	MStaffSpawn2 (actor, angle+ANGLE_1*5);
 	S_Sound (actor, CHAN_WEAPON, "MageStaffFire", 1, ATTN_NORM);
+
+	// [BB] If we're the server, tell the clients to play the sound.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "MageStaffFire", 1, ATTN_NORM );
 }
 
 //============================================================================
