@@ -21,7 +21,7 @@ v0.97d
 *+	- Added custom states and custom damage types (ported the change from ZDoom revision 368-378). [Torr Samaho]
 *+	- Added Linux OpenGL support! [Torr Samaho, Costja]
 *+	- Completely revamped monster movement online! Monsters now move much more smoothly, and require far less bandwidth than before. [Carnevil]
-*+	- Thoroughly updated Skulltag's ZDoom base to the latest ZDoom SVN repository revision (currently 631). [Torr Samaho 366-553+558-631, Carnevil 554-557]
+*+	- Thoroughly updated Skulltag's ZDoom base to the latest ZDoom SVN repository revision (currently 632). [Torr Samaho 366-553+558-632, Carnevil 554-557]
 *-	- Crash logs should finally work on all Windows machines. [Torr Samaho]
 +	- Upgraded the GZDoom renderer to 1.0.29! [Torr Samaho 1.0.25-1.0.26+1.0.28-1.0.29, Carnevil 1.0.27]
 +	- Added client-side scripts! Scripts with the NET tag are now purely executed on the client end. This reduces bandwidth usage, and allows things like custom HUD displays to work properly. [Carnevil]

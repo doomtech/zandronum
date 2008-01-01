@@ -167,7 +167,6 @@ static void M_SetupNextMenu (oldmenu_t *menudef);
 static void M_PlayerSetupTicker ();
 static void M_PlayerSetupDrawer ();
 static void M_RenderPlayerBackdrop ();
-static void M_DrawPlayerBackdrop (int x, int y);
 // [BC] These functions are no longer needed.
 /*
 static void M_EditPlayerName (int choice);
@@ -1859,8 +1858,8 @@ static void M_DrawClassMenu ()
 	{
 		FireScreen->Lock ();
 		M_RenderPlayerBackdrop ();
-		M_DrawPlayerBackdrop (x, y - 1);
 		FireScreen->Unlock ();
+		screen->DrawPlayerBackdrop (FireScreen, FireRemap, x, y - 1);
 	}
 
 	M_DrawFrame (x, y, 72*CleanXfac, 80*CleanYfac-1);
@@ -2411,8 +2410,8 @@ static void M_PlayerSetupDrawer ()
 		{
 			FireScreen->Lock ();
 			M_RenderPlayerBackdrop ();
-			M_DrawPlayerBackdrop (x, y - 1);
 			FireScreen->Unlock ();
+			screen->DrawPlayerBackdrop (FireScreen, FireRemap, x, y - 1);
 		}
 
 		M_DrawFrame (x, y, 72*CleanXfac, 80*CleanYfac-1);
@@ -2719,67 +2718,6 @@ static void M_RenderPlayerBackdrop ()
 	t2ang += x2add;
 	z1ang += z1add;
 	z2ang += z2add;
-}
-
-static void M_DrawPlayerBackdrop (int x, int y)
-{
-	DCanvas *src = FireScreen;
-	DCanvas *dest = screen;
-	BYTE *destline, *srcline;
-	const int destwidth = src->GetWidth() * CleanXfac / 2;
-	const int destheight = src->GetHeight() * CleanYfac / 2;
-	const int desty = y;
-	const int destx = x;
-	const fixed_t fracxstep = FRACUNIT*2 / CleanXfac;
-	const fixed_t fracystep = FRACUNIT*2 / CleanYfac;
-	fixed_t fracx, fracy = 0;
-
-
-	if (currentrenderer == 1)
-	{
-		// Why? :(
-		int srcW, srcH;
-		srcW = src->GetWidth();
-		srcH = src->GetHeight();
-		BYTE *img = new BYTE[srcW * srcH];
-		BYTE *srcImg = src->GetBuffer();
-		for (y = 0; y < srcH; y++)
-		{
-			for (x = 0; x < srcW; x++)
-			{
-				img[x + (y * srcW)] = FireRemap[srcImg[x + (y * srcW)]];
-			}
-		}
-		gl_DrawBuffer(img, srcW, srcH, destx, desty, destwidth, destheight, NULL);
-		delete [] img;
-		return;
-	}
-
-	if (fracxstep == FRACUNIT)
-	{
-		for (y = desty; y < desty + destheight; y++, fracy += fracystep)
-		{
-			srcline = src->GetBuffer() + (fracy >> FRACBITS) * src->GetPitch();
-			destline = dest->GetBuffer() + y * dest->GetPitch() + destx;
-
-			for (x = 0; x < destwidth; x++)
-			{
-				destline[x] = FireRemap[srcline[x]];
-			}
-		}
-	}
-	else
-	{
-		for (y = desty; y < desty + destheight; y++, fracy += fracystep)
-		{
-			srcline = src->GetBuffer() + (fracy >> FRACBITS) * src->GetPitch();
-			destline = dest->GetBuffer() + y * dest->GetPitch() + destx;
-			for (x = fracx = 0; x < destwidth; x++, fracx += fracxstep)
-			{
-				destline[x] = FireRemap[srcline[fracx >> FRACBITS]];
-			}
-		}
-	}
 }
 
 // [BC] Skulltag doesn't use any of this.

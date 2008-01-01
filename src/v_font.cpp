@@ -732,6 +732,7 @@ FFont::FFont ()
 {
 	Chars = NULL;
 	Ranges = NULL;
+	PalRanges = NULL;
 	PatchRemap = NULL;
 	Name = NULL;
 }
