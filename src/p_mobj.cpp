@@ -4860,8 +4860,8 @@ void P_SpawnMapThing (mapthing2_t *mthing, int position)
 	// [RH] sound sequence overriders
 	if (mthing->type >= 1400 && mthing->type < 1410)
 	{
-		R_PointInSubsector (mthing->x<<FRACBITS,
-			mthing->y<<FRACBITS)->sector->seqType = mthing->type - 1400;
+		P_PointInSector (mthing->x<<FRACBITS,
+			mthing->y<<FRACBITS)->seqType = mthing->type - 1400;
 		return;
 	}
 	else if (mthing->type == 1411)
@@ -4879,8 +4879,8 @@ void P_SpawnMapThing (mapthing2_t *mthing, int position)
 		}
 		else
 		{
-			R_PointInSubsector (mthing->x << FRACBITS,
-				mthing->y << FRACBITS)->sector->seqType = type;
+			P_PointInSector (mthing->x << FRACBITS,
+				mthing->y << FRACBITS)->seqType = type;
 		}
 		return;
 	}

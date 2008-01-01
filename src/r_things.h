@@ -36,7 +36,6 @@ struct particle_t
 	int		color;
 	WORD	tnext;
 	WORD	snext;
-	// [GZDoom]
 	subsector_t * subsector;
 };
 

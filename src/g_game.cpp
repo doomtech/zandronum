@@ -2115,7 +2115,7 @@ bool G_CheckSpot (int playernum, mapthing2_t *mthing)
 	y = mthing->y << FRACBITS;
 	z = mthing->z << FRACBITS;
 
-	z += R_PointInSubsector (x, y)->sector->floorplane.ZatPoint (x, y);
+	z += P_PointInSector (x, y)->floorplane.ZatPoint (x, y);
 
 	if (!players[playernum].mo)
 	{ // first spawn of level, before corpses

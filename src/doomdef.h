@@ -246,7 +246,7 @@ enum
 	DF2_INSTANT_RETURN		= 1 << 3,
 
 	// Do not allow players to switch teams in teamgames.
-	DF2_NO_TEAM_SWITCH		= 1 << 4,
+	DF2_NO_TEAMSWITCH		= 1 << 4,
 
 	// Player is automatically placed on a team.
 	DF2_NO_TEAM_SELECT		= 1 << 5,
@@ -273,7 +273,13 @@ enum
 	DF2_SAME_SPAWN_SPOT		= 1 << 12,
 
 	// Lose a frag when killed. More incentive to try to
-	DF2_YES_LOSEFRAG		= 1 << 14,
+	DF2_YES_LOSEFRAG		= 1 << 13,
+
+	// Don't clear frags after each level
+	DF2_YES_KEEPFRAGS		= 1 << 14,
+
+	// Player cannot respawn
+	DF2_NO_RESPAWN			= 1 << 15,
 };
 
 // [RH] Compatibility flags.

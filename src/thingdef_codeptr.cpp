@@ -2544,7 +2544,7 @@ void A_Respawn (AActor *actor)
 	sector_t *sec;
 
 	actor->flags |= MF_SOLID;
-	sec = R_PointInSubsector (x, y)->sector;
+	sec = P_PointInSector (x, y);
 	actor->SetOrigin (x, y, sec->floorplane.ZatPoint (x, y));
 	actor->height = actor->GetDefault()->height;
 	if (P_TestMobjLocation (actor))

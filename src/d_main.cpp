@@ -437,10 +437,12 @@ CUSTOM_CVAR (Int, dmflags2, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK)
 CVAR (Flag, sv_weapondrop,		dmflags2, DF2_YES_WEAPONDROP);
 CVAR (Flag, sv_norunes,			dmflags2, DF2_NO_RUNES);
 CVAR (Flag, sv_instantreturn,	dmflags2, DF2_INSTANT_RETURN);
-CVAR (Flag, sv_noteamswitch,	dmflags2, DF2_NO_TEAM_SWITCH);
+CVAR (Flag, sv_noteamswitch,	dmflags2, DF2_NO_TEAMSWITCH);
 CVAR (Flag, sv_noteamselect,	dmflags2, DF2_NO_TEAM_SELECT);
 CVAR (Flag, sv_doubleammo,		dmflags2, DF2_YES_DOUBLEAMMO);
+CVAR (Flag, sv_keepfrags,		dmflags2, DF2_YES_KEEPFRAGS);
 CVAR (Flag, sv_degeneration,	dmflags2, DF2_YES_DEGENERATION);
+CVAR (Flag, sv_norespawn,		dmflags2, DF2_NO_RESPAWN);
 CVAR (Flag, sv_losefrag,		dmflags2, DF2_YES_LOSEFRAG);
 CVAR (Flag, sv_bfgfreeaim,		dmflags2, DF2_YES_FREEAIMBFG);
 CVAR (Flag, sv_barrelrespawn,	dmflags2, DF2_BARRELS_RESPAWN);

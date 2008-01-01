@@ -2431,7 +2431,8 @@ void G_DoLoadLevel (int position, bool autosave)
 		if (playeringame[i] && ((deathmatch || teamgame || invasion) || players[i].playerstate == PST_DEAD))
 			players[i].playerstate = PST_ENTER;	// [BC]
 
-		players[i].fragcount = 0;
+		if (!(dmflags2 & DF2_YES_KEEPFRAGS) && (alwaysapplydmflags || deathmatch))
+			players[i].fragcount = 0;
 
 		// Reset the number of medals each player has.
 		memset( players[i].ulMedalCount, 0, sizeof( players[i].ulMedalCount ));

@@ -2711,9 +2711,9 @@ void P_DeathThink (player_t *player)
 		(( lastmanstanding || teamlms ) && (( LASTMANSTANDING_GetState( ) != LMSS_WAITINGFORPLAYERS ) &&
 		( LASTMANSTANDING_GetState( ) != LMSS_COUNTDOWN ))) == false )
 	{
-		if ((( player->cmd.ucmd.buttons & BT_USE ) || (( player->cmd.ucmd.buttons & BT_ATTACK ) && (( player->oldbuttons & BT_ATTACK ) == false ))) || 
+		if (((( player->cmd.ucmd.buttons & BT_USE ) || (( player->cmd.ucmd.buttons & BT_ATTACK ) && (( player->oldbuttons & BT_ATTACK ) == false ))) || 
 			(( deathmatch || teamgame || alwaysapplydmflags ) &&
-			( dmflags & DF_FORCE_RESPAWN )))
+			( dmflags & DF_FORCE_RESPAWN ))) && !(dmflags2 & DF2_NO_RESPAWN) )
 		{
 			player->cls = NULL;		// Force a new class if the player is using a random class
 			player->playerstate = ( NETWORK_GetState( ) != NETSTATE_SINGLE ) ? PST_REBORN : PST_ENTER;
@@ -2728,8 +2728,8 @@ void P_DeathThink (player_t *player)
 //		}
 	}
 /*
-	if (player->cmd.ucmd.buttons & BT_USE ||
-		((deathmatch || alwaysapplydmflags) && (dmflags & DF_FORCE_RESPAWN)))
+	if ((player->cmd.ucmd.buttons & BT_USE ||
+		((deathmatch || alwaysapplydmflags) && (dmflags & DF_FORCE_RESPAWN))) && !(dmflags2 & DF2_NO_RESPAWN))
 	{
 		if (level.time >= player->respawn_time || ((player->cmd.ucmd.buttons & BT_USE) && !player->isbot))
 		{

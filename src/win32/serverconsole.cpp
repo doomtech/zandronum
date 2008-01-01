@@ -3518,7 +3518,7 @@ void SERVERCONSOLE_InitializeDMFlagsDisplay( HWND hDlg )
 	else
 		SendDlgItemMessage( hDlg, IDC_INSTANT_RETURN, BM_SETCHECK, BST_UNCHECKED, 0 );
 
-	if ( dmflags2 & DF2_NO_TEAM_SWITCH )
+	if ( dmflags2 & DF2_NO_TEAMSWITCH )
 		SendDlgItemMessage( hDlg, IDC_NO_TEAM_SWITCH, BM_SETCHECK, BST_CHECKED, 0 );
 	else
 		SendDlgItemMessage( hDlg, IDC_NO_TEAM_SWITCH, BM_SETCHECK, BST_UNCHECKED, 0 );
@@ -3743,7 +3743,7 @@ void SERVERCONSOLE_UpdateDMFlagsDisplay( HWND hDlg )
 	if ( SendDlgItemMessage( hDlg, IDC_INSTANT_RETURN, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
 		ulDMFlags2 |= DF2_INSTANT_RETURN;
 	if ( SendDlgItemMessage( hDlg, IDC_NO_TEAM_SWITCH, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
-		ulDMFlags2 |= DF2_NO_TEAM_SWITCH;
+		ulDMFlags2 |= DF2_NO_TEAMSWITCH;
 	if ( SendDlgItemMessage( hDlg, IDC_NO_TEAM_SELECT, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
 		ulDMFlags2 |= DF2_NO_TEAM_SELECT;
 	if ( SendDlgItemMessage( hDlg, IDC_YES_DOUBLEAMMO, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
@@ -3888,7 +3888,7 @@ void SERVERCONSOLE_UpdateDMFlags( HWND hDlg )
 	if ( SendDlgItemMessage( hDlg, IDC_INSTANT_RETURN, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
 		ulDMFlags2 |= DF2_INSTANT_RETURN;
 	if ( SendDlgItemMessage( hDlg, IDC_NO_TEAM_SWITCH, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
-		ulDMFlags2 |= DF2_NO_TEAM_SWITCH;
+		ulDMFlags2 |= DF2_NO_TEAMSWITCH;
 	if ( SendDlgItemMessage( hDlg, IDC_NO_TEAM_SELECT, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
 		ulDMFlags2 |= DF2_NO_TEAM_SELECT;
 	if ( SendDlgItemMessage( hDlg, IDC_YES_DOUBLEAMMO, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
