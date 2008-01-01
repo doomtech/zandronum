@@ -504,10 +504,11 @@ CVAR (Flag, compat_disablestealthmonsters,	compatflags, COMPATF_DISABLESTEALTHMO
 // Draw current display, possibly wiping it from the previous
 //
 //==========================================================================
-CVAR(Bool,test2d,true,0)
+
 void D_Display (bool screenshot)
 {
 	bool wipe;
+	bool hw2d;
 
 	// [BC] No need for servers to do this.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -612,10 +613,12 @@ void D_Display (bool screenshot)
 		wipe = false;
 	}
 
+	hw2d = false;
+
 	if (testpolymost)
 	{
 		drawpolymosttest();
-		C_DrawConsole();
+		C_DrawConsole(hw2d);
 		M_Drawer();
 	}
 	else
@@ -624,7 +627,11 @@ void D_Display (bool screenshot)
 		{
 		case GS_FULLCONSOLE:
 			screen->SetBlendingRect(0,0,0,0);
-			C_DrawConsole ();
+			if (!screenshot)
+			{
+				hw2d = screen->Begin2D();
+			}
+			C_DrawConsole (false);
 			M_Drawer ();
 			if (!screenshot)
 				screen->Update ();
@@ -681,6 +688,14 @@ void D_Display (bool screenshot)
 				AM_Drawer ();
 				ST_Y = saved_ST_Y;
 			}
+			if (!screenshot && (!wipe || NoWipe))
+			{
+				if ((hw2d = screen->Begin2D()))
+				{
+					// Redraw the status bar every frame when using 2D accel
+					SB_state = screen->GetPageCount();
+				}
+			}
 
 	#ifdef ALTERNATIVE_HUD
 
@@ -732,6 +747,10 @@ void D_Display (bool screenshot)
 
 		case GS_INTERMISSION:
 			screen->SetBlendingRect(0,0,0,0);
+			if (!screenshot && (!wipe || NoWipe))
+			{
+				screen->Begin2D();
+			}
 			WI_Drawer ();
 
 			// Render all medals the player currently has.
@@ -759,11 +778,19 @@ void D_Display (bool screenshot)
 
 		case GS_FINALE:
 			screen->SetBlendingRect(0,0,0,0);
+			if (!screenshot && (!wipe || NoWipe))
+			{
+				screen->Begin2D();
+			}
 			F_Drawer ();
 			break;
 
 		case GS_DEMOSCREEN:
 			screen->SetBlendingRect(0,0,0,0);
+			if (!screenshot && (!wipe || NoWipe))
+			{
+				screen->Begin2D();
+			}
 			D_PageDrawer ();
 			break;
 
@@ -771,7 +798,6 @@ void D_Display (bool screenshot)
 			break;
 		}
 	}
-	//screen->Begin2D();
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
@@ -850,28 +876,13 @@ void D_Display (bool screenshot)
 
 	if (!wipe || screenshot || NoWipe < 0 || currentrenderer==1)
 	{
-		NetUpdate ();		// send out any new accumulation
+		NetUpdate ();			// send out any new accumulation
 		// normal update
-		C_DrawConsole ();	// draw console
-		M_Drawer ();		// menu is drawn even on top of everything
+		C_DrawConsole (hw2d);	// draw console
+		M_Drawer ();			// menu is drawn even on top of everything
 		FStat::PrintStat ();
 		if (!screenshot)
 		{
-#if 0
-			if (test2d)
-				screen->Begin2D();
-			screen->DrawTexture(TexMan["M_HTIC"], 0, 0,
-				DTA_Clean, true,
-				TAG_DONE);
-			screen->DrawTexture(TexMan["XHAIRB3"], 200, 100,
-				DTA_DestWidth, 128,
-				DTA_DestHeight, 128,
-				DTA_Alpha, ((gametic & 31) + 1) << (16-5),
-//				DTA_RenderStyle, STYLE_Add,
-				DTA_FillColor, MAKEARGB(ColorMatcher.Pick(254,254,0),254,254,0),
-				DTA_AlphaChannel, true,
-				TAG_DONE);
-#endif
 			screen->Update ();	// page flip or blit buffer
 		}
 	}
@@ -896,7 +907,7 @@ void D_Display (bool screenshot)
 			wipestart = nowtime;
 			screen->Lock (true);
 			done = wipe_ScreenWipe (tics);
-			C_DrawConsole ();
+			C_DrawConsole (hw2d);
 			M_Drawer ();			// menu is drawn even on top of wipes
 			screen->Update ();		// page flip or blit buffer
 			NetUpdate ();
@@ -2717,7 +2728,7 @@ void D_DoomMain (void)
 	if (Args.CheckParm("-cdrom"))
 	{
 		Printf (GStrings("D_CDROM"));
-		mkdir ("c:\\zdoomdat", 0);
+		mkdir (CDROM_DIR, 0);
 	}
 #endif
 

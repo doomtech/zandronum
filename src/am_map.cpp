@@ -33,6 +33,7 @@
 #include "w_wad.h"
 #include "a_sharedglobal.h"
 #include "statnums.h"
+#include "r_translate.h"
 
 #include "m_cheat.h"
 #include "i_system.h"
@@ -1687,7 +1688,7 @@ static void DrawMarker (FTexture *tex, fixed_t x, fixed_t y, int yadjust,
 		DTA_ClipLeft, f_x,
 		DTA_ClipRight, f_x + f_w,
 		DTA_FlipX, flip,
-		DTA_Translation, translation,
+		DTA_Translation, TranslationToTable(translation),
 		DTA_Alpha, alpha,
 		DTA_FillColor, alphacolor,
 		DTA_RenderStyle, renderstyle,

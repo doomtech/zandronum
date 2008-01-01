@@ -3,7 +3,7 @@
 ** Draw patches and blocks to a canvas
 **
 **---------------------------------------------------------------------------
-** Copyright 1998-2006 Randy Heit
+** Copyright 1998-2008 Randy Heit
 ** All rights reserved.
 **
 ** Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,7 @@
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_things.h"
+#include "r_translate.h"
 
 #include "i_system.h"
 #include "i_video.h"
@@ -74,7 +75,7 @@ void STACK_ARGS DCanvas::DrawTextureV(FTexture *img, int x, int y, uint32 tag, v
 
 	DrawParms parms;
 
-	if (!ParseDrawTextureTags(img, x, y, tag, tags, &parms))
+	if (!ParseDrawTextureTags(img, x, y, tag, tags, &parms, false))
 	{
 		return;
 	}
@@ -91,23 +92,28 @@ void STACK_ARGS DCanvas::DrawTextureV(FTexture *img, int x, int y, uint32 tag, v
 	fixedcolormap = identitymap;
 	ESPSResult mode = R_SetPatchStyle (parms.style, parms.alpha, 0, parms.fillcolor);
 
+	if (APART(parms.colorOverlay) != 0)
+	{
+		// In software, DTA_ColorOverlay only does black overlays.
+		// Maybe I will change this later, but right now white is the only
+		// color that is actually used for this parameter.
+		// Note that this is also overriding DTA_Translation in software.
+		if ((parms.colorOverlay & MAKEARGB(0,255,255,255)) == 0)
+		{
+			parms.translation = &NormalLight.Maps[(APART(parms.colorOverlay)*NUMCOLORMAPS/255)*256];
+		}
+	}
+
 	if (parms.style != STYLE_Shaded)
 	{
-		if (parms.font != NULL)
+		if (parms.translation != NULL)
 		{
-			if (img->UseType == FTexture::TEX_FontChar)
-				dc_colormap = parms.font->GetColorTranslation (EColorRange(parms.translation));
-			else
-				dc_colormap = identitymap;
-		}
-		else if (parms.translation != 0)
-		{
-			dc_colormap = translationtables[(parms.translation&0xff00)>>8] + (parms.translation&0x00ff)*256;
+			dc_colormap = (lighttable_t *)parms.translation;
 		}
 		else
 		{
 			dc_colormap = identitymap;
-		}	
+		}
 	}
 
 	BYTE *destorgsave = dc_destorg;
@@ -279,7 +285,7 @@ void STACK_ARGS DCanvas::DrawTextureV(FTexture *img, int x, int y, uint32 tag, v
 	}
 }
 
-bool DCanvas::ParseDrawTextureTags (FTexture *img, int x, int y, DWORD tag, va_list tags, DrawParms *parms) const
+bool DCanvas::ParseDrawTextureTags (FTexture *img, int x, int y, DWORD tag, va_list tags, DrawParms *parms, bool hw) const
 {
 	INTBOOL boolval;
 	int intval;
@@ -307,8 +313,9 @@ bool DCanvas::ParseDrawTextureTags (FTexture *img, int x, int y, DWORD tag, va_l
 	parms->left = img->GetScaledLeftOffset();
 	parms->alpha = FRACUNIT;
 	parms->fillcolor = -1;
-	parms->font = NULL;
-	parms->translation = 0;
+	parms->remap = NULL;
+	parms->translation = NULL;
+	parms->colorOverlay = 0;
 	parms->alphaChannel = false;
 	parms->flipX = false;
 	parms->shadowAlpha = 0;
@@ -446,19 +453,12 @@ bool DCanvas::ParseDrawTextureTags (FTexture *img, int x, int y, DWORD tag, va_l
 			parms->fillcolor = va_arg (tags, int);
 			break;
 
-		case DTA_Font:
-			parms->font = va_arg(tags, FFont*);
-			if (!translationset)
-			{
-				// default translation for fonts should be untranslated which unfortunately is not 0.
-				parms->translation = CR_UNTRANSLATED;
-				translationset = true;
-			}
+		case DTA_Translation:
+			parms->remap = va_arg (tags, FRemapTable *);
 			break;
 
-		case DTA_Translation:
-			parms->translation = va_arg(tags, int);
-			translationset = true;
+		case DTA_ColorOverlay:
+			parms->colorOverlay = va_arg (tags, DWORD);
 			break;
 
 		case DTA_FlipX:
@@ -610,6 +610,11 @@ bool DCanvas::ParseDrawTextureTags (FTexture *img, int x, int y, DWORD tag, va_l
 		return false;
 	}
 
+	if (parms->remap != NULL)
+	{
+		parms->translation = parms->remap->Remap;
+	}
+
 	if (parms->style == STYLE_Count)
 	{
 		if (parms->fillcolor != -1)
@@ -677,72 +682,6 @@ void DCanvas::FillBorder (FTexture *img)
 		Clear (0, Height - bordbottom, Width, Height, 0, 0);					// Bottom
 	}
 }
-
-// This was in m_menu.cpp but it's better to be here because 
-// non-software renderers must be able to override it.
-void DCanvas::DrawPlayerBackdrop (DCanvas *src, const BYTE *FireRemap, int x, int y)
-{
-	DCanvas *dest = this;
-	BYTE *destline, *srcline;
-	const int destwidth = src->GetWidth() * CleanXfac / 2;
-	const int destheight = src->GetHeight() * CleanYfac / 2;
-	const int desty = y;
-	const int destx = x;
-	const fixed_t fracxstep = FRACUNIT*2 / CleanXfac;
-	const fixed_t fracystep = FRACUNIT*2 / CleanYfac;
-	fixed_t fracx, fracy = 0;
-
-	src->Lock();
-
-	if (currentrenderer == 1)
-	{
-		// Why? :(
-		int srcW, srcH;
-		srcW = src->GetWidth();
-		srcH = src->GetHeight();
-		BYTE *img = new BYTE[srcW * srcH];
-		BYTE *srcImg = src->GetBuffer();
-		for (y = 0; y < srcH; y++)
-		{
-			for (x = 0; x < srcW; x++)
-			{
-				img[x + (y * srcW)] = FireRemap[srcImg[x + (y * srcW)]];
-			}
-		}
-		gl_DrawBuffer(img, srcW, srcH, destx, desty, destwidth, destheight, NULL);
-		delete [] img;
-		return;
-	}
-
-	if (fracxstep == FRACUNIT)
-	{
-		for (y = desty; y < desty + destheight; y++, fracy += fracystep)
-		{
-			srcline = src->GetBuffer() + (fracy >> FRACBITS) * src->GetPitch();
-			destline = dest->GetBuffer() + y * dest->GetPitch() + destx;
-
-			for (x = 0; x < destwidth; x++)
-			{
-				destline[x] = FireRemap[srcline[x]];
-			}
-		}
-	}
-	else
-	{
-		for (y = desty; y < desty + destheight; y++, fracy += fracystep)
-		{
-			srcline = src->GetBuffer() + (fracy >> FRACBITS) * src->GetPitch();
-			destline = dest->GetBuffer() + y * dest->GetPitch() + destx;
-			for (x = fracx = 0; x < destwidth; x++, fracx += fracxstep)
-			{
-				destline[x] = FireRemap[srcline[fracx >> FRACBITS]];
-			}
-		}
-	}
-
-	src->Unlock();
-}
-
 
 void DCanvas::PUTTRANSDOT (int xx, int yy, int basecolor, int level)
 {

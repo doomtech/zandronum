@@ -13,6 +13,7 @@
 #include "r_draw.h"
 #include "templates.h"
 #include "a_keys.h"
+#include "r_translate.h"
 #include "deathmatch.h"
 #include "network.h"
 #include "gamemode.h"
@@ -281,7 +282,7 @@ private:
 			DrawImage (Images[imgCHAINBACK], 0, 32);
 			DrawImage (Images[imgCHAIN], 2+(healthPos%17), chainY);
 			DrawImage (Images[imgLIFEGEM], 17+healthPos, chainY, ( NETWORK_GetState( ) != NETSTATE_SINGLE ) ?
-				TRANSLATION(TRANSLATION_PlayersExtra, BYTE(CPlayer-players)) : 0);
+				translationtables[TRANSLATION_PlayersExtra][int(CPlayer - players)] : NULL);
 			DrawImage (Images[imgLTFACE], 0, 32);
 			DrawImage (Images[imgRTFACE], 276, 32);
 			screen->DrawTexture (&ChainShade, ST_X+19, ST_Y+32,
@@ -335,7 +336,7 @@ private:
 			DrawImage (Images[imgBLACKSQ], 180, 3);
 			if (oldarti != NULL)
 			{
-				DrawImage (TexMan(oldarti->Icon), 179, 2, oldarti->Amount > 0 ? NULL : DIM_MAP);
+				DrawDimImage (TexMan(oldarti->Icon), 179, 2, oldarti->Amount <= 0);
 				if (oldartiCount != 1)
 				{
 					DrSmallNumber (oldartiCount, 197, 24);
@@ -497,7 +498,7 @@ private:
 		{
 			for (item = CPlayer->mo->InvFirst, i = 0; item != NULL && i < 7; item = item->NextInv(), ++i)
 			{
-				DrawImage (TexMan(item->Icon), 50+i*31, 2, item->Amount > 0 ? NULL : DIM_MAP);
+				DrawDimImage (TexMan(item->Icon), 50+i*31, 2, item->Amount <= 0);
 				if (item->Amount != 1)
 				{
 					DrSmallNumber (item->Amount, 65+i*31, 24);
@@ -662,7 +663,7 @@ private:
 					TAG_DONE);
 				screen->DrawTexture (TexMan(CPlayer->mo->InvSel->Icon), -61, -31,
 					DTA_HUDRules, HUD_Normal,
-					DTA_Translation, CPlayer->mo->InvSel->Amount > 0 ? NULL : DIM_MAP,
+					DTA_ColorOverlay, CPlayer->mo->InvSel->Amount > 0 ? 0 : DIM_OVERLAY,
 					TAG_DONE);
 				if (CPlayer->mo->InvSel->Amount != 1)
 				{
@@ -684,7 +685,7 @@ private:
 						TAG_DONE);
 					screen->DrawTexture (TexMan(item->Icon), -100+i*31, -32,
 						DTA_HUDRules, HUD_HorizCenter,
-						DTA_Translation, item->Amount > 0 ? NULL : DIM_MAP,
+						DTA_ColorOverlay, item->Amount > 0 ? 0 : DIM_OVERLAY,
 						TAG_DONE);
 					if (item->Amount != 1)
 					{

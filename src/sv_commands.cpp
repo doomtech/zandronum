@@ -6375,6 +6375,7 @@ void SERVERCOMMANDS_SetCameraToTexture( AActor *pCamera, char *pszTexture, LONG 
 //
 void SERVERCOMMANDS_CreateTranslation( ULONG ulTranslation, ULONG ulStart, ULONG ulEnd, ULONG ulPlayerExtra, ULONG ulFlags )
 {
+/*  [BB] Needs to be adapted to the new translation code (FRemapTable).
 	ULONG	ulIdx;
 	BYTE	*pTranslation;
 
@@ -6398,4 +6399,5 @@ void SERVERCOMMANDS_CreateTranslation( ULONG ulTranslation, ULONG ulStart, ULONG
 		for ( ; ulStart <= ulEnd; ulStart++ )
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pTranslation[ulStart] );
 	}
+*/
 }

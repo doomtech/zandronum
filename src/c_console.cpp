@@ -87,7 +87,7 @@ static bool TabbedList;		// True if tab list was shown
 CVAR (Bool, con_notablist, false, CVAR_ARCHIVE)
 
 static int conback;
-static int conshade;
+static DWORD conshade;
 static bool conline;
 
 extern int		gametic;
@@ -260,7 +260,7 @@ static void maybedrawnow (bool tick, bool force)
 		if (nowtime - lastprinttime > 1 || force)
 		{
 			screen->Lock (false);
-			C_DrawConsole ();
+			C_DrawConsole (false);
 			screen->Update ();
 			lastprinttime = nowtime;
 		}
@@ -327,8 +327,8 @@ void C_InitConsole (int width, int height, bool ingame)
 
 			if (conback <= 0)
 			{
-				conshade = DIM_MAP;
 				conback = TexMan.GetTexture (gameinfo.titlePage, FTexture::TEX_MiscPatch);
+				conshade = MAKEARGB(120,0,0,0);
 				conline = true;
 			}
 			else
@@ -1240,7 +1240,7 @@ void C_SetTicker (unsigned int at, bool forceUpdate)
 	maybedrawnow (true, TickerVisible ? forceUpdate : false);
 }
 
-void C_DrawConsole ()
+void C_DrawConsole (bool hw2d)
 {
 	static int oldbottom = 0;
 	int lines, left, offset;
@@ -1302,7 +1302,8 @@ void C_DrawConsole ()
 			screen->DrawTexture( conpic, 0, visheight - screen->GetHeight( ),
 				DTA_DestWidth, screen->GetWidth(),
 				DTA_DestHeight, screen->GetHeight(),
-				DTA_Translation, conshade,
+				DTA_ColorOverlay, conshade,
+				DTA_Alpha, hw2d ? FRACUNIT*3/4 : FRACUNIT,
 				DTA_Masked, false,
 				TAG_DONE );
 

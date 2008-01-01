@@ -16,6 +16,7 @@
 #include "sbarinfo.h"
 #include "sc_man.h"
 #include "gi.h"
+#include "r_translate.h"
 // [BB] New #includes.
 #include "deathmatch.h"
 
@@ -1459,11 +1460,11 @@ private:
 					{
 						if((cmd.flags & DRAWSELECTEDINVENTORY_ARTIFLASH) && artiflash)
 						{
-							DrawImage(Images[ARTIFLASH_OFFSET+(4-artiflash)], cmd.x, cmd.y, CPlayer->mo->InvSel->Amount > 0 ? NULL : DIM_MAP);
+							DrawDimImage(Images[ARTIFLASH_OFFSET+(4-artiflash)], cmd.x, cmd.y, CPlayer->mo->InvSel->Amount <= 0);
 						}
 						else
 						{
-							DrawImage(TexMan(CPlayer->mo->InvSel->Icon), cmd.x, cmd.y, CPlayer->mo->InvSel->Amount > 0 ? NULL : DIM_MAP);
+							DrawDimImage(TexMan(CPlayer->mo->InvSel->Icon), cmd.x, cmd.y, CPlayer->mo->InvSel->Amount <= 0);
 						}
 						if(CPlayer->mo->InvSel->Amount != 1)
 						{
@@ -1702,7 +1703,7 @@ private:
 				continue;
 			}
 			x += (character->LeftOffset+1); //ignore x offsets since we adapt to character size
-			DrawImage(character, x, y, translation, drawingFont);
+			DrawImage(character, x, y, drawingFont->GetColorTranslation(translation));
 			x += width + spacing - (character->LeftOffset+1);
 			str++;
 		}
@@ -1858,7 +1859,7 @@ private:
 				{
 					DrawImage (Images[invBarOffset + imgARTIBOX], x+i*31, y);
 				}
-				DrawImage (TexMan(item->Icon), x+i*31, y, item->Amount > 0 ? NULL : DIM_MAP);
+				DrawDimImage (TexMan(item->Icon), x+i*31, y, item->Amount <= 0);
 				if(item->Amount != 1)
 				{
 					DrawNumber(item->Amount, 3, counterx+i*31, countery, translation);
@@ -1912,13 +1913,14 @@ private:
 			DrawImage(chain, x+(offset%chainsize), y);
 		}
 		if(gem != NULL)
-			DrawImage(gem, x+padleft+offset, y, translate ? getTranslation() : 0);
+			DrawImage(gem, x+padleft+offset, y, translate ? getTranslation() : NULL);
 	}
 
-	int getTranslation()
+	FRemapTable* getTranslation()
 	{
-		if(gameinfo.gametype & GAME_Raven) return TRANSLATION(TRANSLATION_PlayersExtra, BYTE(CPlayer - players));
-		else return TRANSLATION(TRANSLATION_Players, BYTE(CPlayer - players));
+		if(gameinfo.gametype & GAME_Raven)
+			return translationtables[TRANSLATION_PlayersExtra][int(CPlayer - players)];
+		return translationtables[TRANSLATION_Players][int(CPlayer - players)];
 	}
 
 	FImageCollection Images;

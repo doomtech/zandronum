@@ -65,6 +65,8 @@
 #include "a_sharedglobal.h"
 #include "thingdef/thingdef.h"
 #include "vectors.h"
+#include "dobject.h"
+#include "r_translate.h"
 // [BC] New #includes.
 #include "cl_demo.h"
 #include "network.h"

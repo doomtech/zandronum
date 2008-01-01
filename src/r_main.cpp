@@ -50,6 +50,7 @@
 #include "i_system.h"
 #include "vectors.h"
 #include "a_sharedglobal.h"
+#include "r_translate.h"
 // [GZDoom]
 #include "gl/gl_data.h"
 #include "gl/gl_texture.h"
@@ -823,6 +824,7 @@ void R_Init ()
 static void R_Shutdown ()
 {
 	R_DeinitParticles();
+	R_DeinitTranslationTables();
 	R_DeinitPlanes();
 	R_DeinitData();
 }

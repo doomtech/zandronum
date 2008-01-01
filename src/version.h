@@ -47,7 +47,7 @@
 #define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING
 
 // [BC] What version of ZDoom is this based off of?
-#define	ZDOOMVERSIONSTR		"2.1.8-639"
+#define	ZDOOMVERSIONSTR		"2.1.8-651"
 
 /** Release code stuff */
 
@@ -105,6 +105,9 @@
 
 #ifdef unix
 #define HOME_DIR "~/." GAMENAMELOWERCASE
+#define GAME_DIR "." GAMENAMELOWERCASE
+#else
+#define CDROM_DIR "C:\\ZDOOMDAT"
 #endif
 
 // MINSAVEVER is the minimum level snapshot version that can be loaded.

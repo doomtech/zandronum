@@ -52,6 +52,7 @@
 #include "m_random.h"
 #include "p_conversation.h"
 #include "a_strifeglobal.h"
+#include "r_translate.h"
 // [BC] New #includes.
 #include "cooperative.h"
 #include "deathmatch.h"
@@ -1594,7 +1595,7 @@ FUNC(LS_Thing_SetTranslation)
 	}
 	else if (arg1 >= 1 && arg1 < MAX_ACS_TRANSLATIONS)
 	{
-		range = (TRANSLATION_LevelScripted<<8)|(arg1-1);
+		range = TRANSLATION(TRANSLATION_LevelScripted, (arg1-1));
 	}
 	else
 	{

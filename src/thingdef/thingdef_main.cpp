@@ -52,7 +52,6 @@ void ParseClass();
 void ParseGlobalConst();
 void ParseGlobalEnum();
 void FinishThingdef();
-void InitDecorateTranslations();
 void ParseOldDecoration(EDefinitionType def);
 
 // STATIC FUNCTION PROTOTYPES --------------------------------------------
@@ -167,7 +166,6 @@ void LoadDecorations ()
 	bool	bFoundDecorations;
 	int lastlump, lump;
 
-	InitDecorateTranslations();
 	lastlump = 0;
 	bFoundDecorations = false;
 	while ((lump = Wads.FindLump ("DECORATE", &lastlump)) != -1)

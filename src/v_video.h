@@ -2,7 +2,7 @@
 ** v_video.h
 **
 **---------------------------------------------------------------------------
-** Copyright 1998-2006 Randy Heit
+** Copyright 1998-2008 Randy Heit
 ** All rights reserved.
 **
 ** Redistribution and use in source and binary forms, with or without
@@ -81,9 +81,7 @@ enum
 	DTA_DestHeight,		// height of area to draw to
 	DTA_Alpha,			// alpha value for translucency
 	DTA_FillColor,		// color to stencil onto the destination
-	DTA_Font,			// For characters: Font it belongs to
 	DTA_Translation,	// translation table to recolor the source
-	DTA_TranslationPtr,	// translation table to recolor the source
 	DTA_AlphaChannel,	// bool: the source is an alpha channel; used with DTA_FillColor
 	DTA_Clean,			// bool: scale texture size and position by CleanXfac and CleanYfac
 	DTA_320x200,		// bool: scale texture size and position to fit on a virtual 320x200 screen
@@ -108,6 +106,7 @@ enum
 	DTA_HUDRules,		// use fullscreen HUD rules to position and size textures
 	DTA_KeepRatio,		// doesn't adjust screen size for DTA_Virtual* if the aspect ratio is not 4:3
 	DTA_RenderStyle,	// same as render style for actors
+	DTA_ColorOverlay,	// DWORD: ARGB to overlay on top of image. Limited under software.
 
 	// For DrawText calls:
 	DTA_TextLen,		// stop after this many characters, even if \0 not hit
@@ -150,6 +149,7 @@ public:
 
 	// Access control
 	virtual bool Lock () = 0;		// Returns true if the surface was lost since last time
+	virtual bool Lock (bool usesimplecanvas) { return Lock(); }	
 	virtual void Unlock () = 0;
 	virtual bool IsLocked () { return Buffer != NULL; }	// Returns true if the surface is locked
 
@@ -163,19 +163,16 @@ public:
 	virtual void GetBlock (int x, int y, int width, int height, BYTE *dest) const;
 
 	// Dim the entire canvas for the menus
-	virtual void Dim (PalEntry color = 0) const;
+	virtual void Dim (PalEntry color = 0);
 
 	// Dim part of the canvas
-	virtual void Dim (PalEntry color, float amount, int x1, int y1, int w, int h) const;
+	virtual void Dim (PalEntry color, float amount, int x1, int y1, int w, int h);
 
 	// Fill an area with a texture
 	virtual void FlatFill (int left, int top, int right, int bottom, FTexture *src);
 
 	// Set an area to a specified color
-	virtual void Clear (int left, int top, int right, int bottom, int palcolor, uint32 color) const;
-
-	// renders the player backdrop for the menu
-	virtual void DrawPlayerBackdrop (DCanvas *src, const BYTE *FireRemap, int x, int y);
+	virtual void Clear (int left, int top, int right, int bottom, int palcolor, uint32 color);
 
 	// draws a line
 	virtual void DrawLine(int x0, int y0, int x1, int y1, int palColor, uint32 realcolor);
@@ -188,6 +185,12 @@ public:
 
 	// Can be overridden so that the colormaps for sector color/fade won't be built.
 	virtual bool UsesColormap() const;
+
+	// software renderer always returns true but other renderers may not want to implement PCX.
+	bool CanWritePCX();
+
+	// Saves canvas to a file
+	void Save(const char *filename, bool writepcx);
 
 	// Text drawing functions -----------------------------------------------
 
@@ -225,8 +228,9 @@ protected:
 		int left;
 		fixed_t alpha;
 		int fillcolor;
-		FFont *font;
-		int translation;
+		FRemapTable *remap;
+		const BYTE *translation;
+		DWORD colorOverlay;
 		INTBOOL alphaChannel;
 		INTBOOL flipX;
 		fixed_t shadowAlpha;
@@ -240,7 +244,7 @@ protected:
 
 	bool ClipBox (int &left, int &top, int &width, int &height, const BYTE *&src, const int srcpitch) const;
 	virtual void STACK_ARGS DrawTextureV (FTexture *img, int x, int y, uint32 tag, va_list tags);
-	bool ParseDrawTextureTags (FTexture *img, int x, int y, uint32 tag, va_list tags, DrawParms *parms) const;
+	bool ParseDrawTextureTags (FTexture *img, int x, int y, uint32 tag, va_list tags, DrawParms *parms, bool hw) const;
 
 	DCanvas() {}
 
@@ -325,27 +329,28 @@ public:
 	// Set the rect defining the area effected by blending.
 	virtual void SetBlendingRect (int x1, int y1, int x2, int y2);
 
-	bool IsComposited;	// If true, the following functions can be used.
+	bool Accel2D;	// If true, 2D drawing can be accelerated.
 
 	// Begin 2D drawing operations. This is like Update, but it doesn't end
-	// the scene, and it doesn't present the image yet.
-	virtual void Begin2D();
+	// the scene, and it doesn't present the image yet. Returns true if
+	// hardware-accelerated 2D has been entered, false if not.
+	virtual bool Begin2D();
 
 	// DrawTexture calls after Begin2D use native textures.
 
 	// Create a native texture from a game texture.
 	virtual FNativeTexture *CreateTexture(FTexture *gametex);
 
-	// Create a palette texture from a 256-entry palette.
-	virtual FNativeTexture *CreatePalette(const PalEntry *pal);
+	// Create a palette texture from a palette.
+	virtual FNativeTexture *CreatePalette(FRemapTable *remap);
 
 	// texture copy functions
-	virtual void CopyPixelDataRGB(BYTE * buffer, int texwidth, int texheight, int originx, int originy,
-					     const BYTE * patch, int pix_width, int pix_height, int step_x, int step_y,
+	virtual void CopyPixelDataRGB(BYTE *buffer, int texpitch, int texheight, int originx, int originy,
+					     const BYTE *patch, int pix_width, int pix_height, int step_x, int step_y,
 						 int ct);
 
-	virtual void CopyPixelData(BYTE * buffer, int texwidth, int texheight, int originx, int originy,
-					  const BYTE * patch, int pix_width, int pix_height, 
+	virtual void CopyPixelData(BYTE *buffer, int texpitch, int texheight, int originx, int originy,
+					  const BYTE *patch, int pix_width, int pix_height, 
 					  int step_x, int step_y, PalEntry * palette);
 
 
@@ -363,9 +368,6 @@ protected:
 	bool ClipCopyPixelRect(int texwidth, int texheight, int &originx, int &originy,
 						const BYTE *&patch, int &srcwidth, int &srcheight, int step_x, int step_y);
 
-
-	int RateX;
-
 private:
 	DWORD LastMS, LastSec, FrameCount, LastCount, LastTic;
 };
@@ -375,6 +377,7 @@ class FNativeTexture
 {
 public:
 	virtual ~FNativeTexture();
+	virtual bool Update() = 0;
 };
 
 extern FColorMatcher ColorMatcher;

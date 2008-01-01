@@ -101,6 +101,7 @@
 #include "callvote.h"
 #include "invasion.h"
 #include "r_sky.h"
+#include "r_translate.h"
 
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
@@ -10816,6 +10817,7 @@ static void client_SetCameraToTexture( BYTESTREAM_s *pByteStream )
 //
 static void client_CreateTranslation( BYTESTREAM_s *pByteStream )
 {
+/*  [BB] Needs to be adapted to the new translation code (FRemapTable).
 	ULONG	ulTranslation;
 	ULONG	ulStart;
 	ULONG	ulEnd;
@@ -10838,6 +10840,7 @@ static void client_CreateTranslation( BYTESTREAM_s *pByteStream )
 	pTranslation = &translationtables[TRANSLATION_LevelScripted][( ulTranslation * 256 ) - 256];
 	for ( ; ulStart <= ulEnd; ulStart++ )
 		pTranslation[ulStart] = NETWORK_ReadByte( pByteStream );
+*/
 }
 
 //*****************************************************************************

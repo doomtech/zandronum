@@ -201,56 +201,12 @@ extern "C" const BYTE*		ds_source;
 
 extern "C" int				ds_color;		// [RH] For flat color (no texturing)
 
-enum
-{
-	TRANSLATION_Shaded,
-	TRANSLATION_Players,
-	TRANSLATION_PlayersExtra,
-	TRANSLATION_Standard,
-	TRANSLATION_LevelScripted,
-	TRANSLATION_Decals,
-	TRANSLATION_PlayerCorpses,
-	TRANSLATION_Decorate,
-	TRANSLATION_Blood,
-	TRANSLATION_Dim,
-
-	NUM_TRANSLATION_TABLES
-};
-
-extern BYTE*			translationtables[NUM_TRANSLATION_TABLES];
-extern BYTE*			dc_translation;
-
-inline WORD TRANSLATION(BYTE a, BYTE b)
-{
-	return (a<<8) | b;
-}
-inline int GetTranslationType(WORD trans)
-{
-	return trans >> 8;
-}
-
-#define DIM_MAP TRANSLATION(TRANSLATION_Dim, 0)
-
-const int MAX_ACS_TRANSLATIONS = 255;
-const int MAX_DECORATE_TRANSLATIONS = 255;
-
-inline void R_CopyTranslation (WORD to, WORD from)
-{
-	memcpy (&translationtables[to>>8][(to&255)*256],
-		&translationtables[from>>8][(from&255)*256], 256);
-}
-
+extern BYTE shadetables[NUMCOLORMAPS*16*256];
+extern BYTE *dc_translation;
 
 // [RH] Double view pixels by detail mode
 void R_DetailDouble (void);
 
-
-// Initialize color translation tables,
-//	for player rendering etc.
-void R_InitTranslationTables (void);
-
-// [RH] Actually create a player's translation table.
-void R_BuildPlayerTranslation (int player);
 
 
 // If the view size is not full screen, draws a border around it.

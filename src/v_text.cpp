@@ -72,9 +72,10 @@ void STACK_ARGS DCanvas::DrawChar (int normalcolor, int x, int y, BYTE character
 
 	if (NULL != (pic = Font->GetChar (character, &dummy)))
 	{
+		const FRemapTable *range = Font->GetColorTranslation ((EColorRange)normalcolor);
 		va_list taglist;
 		va_start (taglist, character);
-		DrawTexture (pic, x, y, DTA_Font, Font, DTA_Translation, normalcolor, TAG_MORE, &taglist);
+		DrawTexture (pic, x, y, DTA_Translation, range, TAG_MORE, &taglist);
 		va_end (taglist);
 	}
 }
@@ -97,13 +98,11 @@ void STACK_ARGS DCanvas::DrawText (int normalcolor, int x, int y, const char *st
 	int 		cx;
 	int 		cy;
 	int			boldcolor;
-	int			range;
+	const FRemapTable *range;
 	int			height;
 	int			forcedwidth = 0;
 	int			scalex, scaley;
 	int			kerning;
-	FFont		*Font = this->Font;
-
 	FTexture *pic;
 
 	if (Font == NULL || string == NULL)
@@ -113,7 +112,7 @@ void STACK_ARGS DCanvas::DrawText (int normalcolor, int x, int y, const char *st
 		normalcolor = CR_UNTRANSLATED;
 	boldcolor = normalcolor ? normalcolor - 1 : NumTextColors - 1;
 
-	range = normalcolor;
+	range = Font->GetColorTranslation ((EColorRange)normalcolor);
 	height = Font->GetHeight () + 1;
 	kerning = Font->GetDefaultKerning ();
 
@@ -132,6 +131,7 @@ void STACK_ARGS DCanvas::DrawText (int normalcolor, int x, int y, const char *st
 	{
 		va_list *more_p;
 		DWORD data;
+		void *ptrval;
 
 		switch (tag)
 		{
@@ -160,12 +160,7 @@ void STACK_ARGS DCanvas::DrawText (int normalcolor, int x, int y, const char *st
 		// Translation is specified explicitly by the text.
 		case DTA_Translation:
 			*(DWORD *)tags = TAG_IGNORE;
-			data = va_arg (tags, int);
-			break;
-
-		case DTA_Font:
-			*(DWORD *)tags = TAG_IGNORE;
-			Font = va_arg (tags, FFont*);
+			ptrval = va_arg (tags, void*);
 			break;
 
 		case DTA_CleanNoMove:
@@ -227,7 +222,7 @@ void STACK_ARGS DCanvas::DrawText (int normalcolor, int x, int y, const char *st
 			EColorRange newcolor = V_ParseFontColor (ch, normalcolor, boldcolor);
 			if (newcolor != CR_UNDEFINED)
 			{
-				range = newcolor;
+				range = Font->GetColorTranslation (newcolor);
 			}
 			continue;
 		}
@@ -248,7 +243,6 @@ void STACK_ARGS DCanvas::DrawText (int normalcolor, int x, int y, const char *st
 			{
 				w = forcedwidth;
 				DrawTexture (pic, cx, cy,
-					DTA_Font, Font,
 					DTA_Translation, range,
 					DTA_DestWidth, forcedwidth,
 					DTA_DestHeight, height,
@@ -258,7 +252,6 @@ void STACK_ARGS DCanvas::DrawText (int normalcolor, int x, int y, const char *st
 			else
 			{
 				DrawTexture (pic, cx, cy,
-					DTA_Font, Font,
 					DTA_Translation, range,
 					DTA_IsText, true,
 					TAG_MORE, &taglist);

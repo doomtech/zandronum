@@ -72,6 +72,7 @@
 #include "cl_commands.h"
 #include "cl_demo.h"
 #include "win32/g15/g15.h"
+#include "r_translate.h"
 
 // [BC] Ugh.
 void SERVERCONSOLE_UpdatePlayerInfo( LONG lPlayer, ULONG ulUpdateFlags );

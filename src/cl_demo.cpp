@@ -65,6 +65,7 @@
 #include "r_state.h"
 #include "sbar.h"
 #include "version.h"
+#include "r_translate.h"
 
 //*****************************************************************************
 //	PROTOTYPES

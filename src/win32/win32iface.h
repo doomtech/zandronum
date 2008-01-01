@@ -2,7 +2,7 @@
 ** win32iface.h
 **
 **---------------------------------------------------------------------------
-** Copyright 1998-2006 Randy Heit
+** Copyright 1998-2008 Randy Heit
 ** All rights reserved.
 **
 ** Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,9 @@
 #include "v_video.h"
 
 EXTERN_CVAR (Bool, vid_vsync)
+
+class D3DTex;
+class D3DPal;
 
 class Win32Video : public IVideo
 {
@@ -233,31 +236,52 @@ public:
 	bool PaintToWindow ();
 	void SetVSync (bool vsync);
 	void SetBlendingRect (int x1, int y1, int x2, int y2);
-	void Begin2D ();
+	bool Begin2D ();
 	FNativeTexture *CreateTexture (FTexture *gametex);
-	FNativeTexture *CreatePalette (FTexture *pal);
+	FNativeTexture *CreatePalette (FRemapTable *remap);
 	void STACK_ARGS DrawTextureV (FTexture *img, int x, int y, uint32 tag, va_list tags);
-	void Clear (int left, int top, int right, int bottom, int palcolor, uint32 color) const;
-	void Dim (PalEntry color, float amount, int x1, int y1, int w, int h) const;
+	void Clear (int left, int top, int right, int bottom, int palcolor, uint32 color);
+	void Dim (PalEntry color, float amount, int x1, int y1, int w, int h);
 	HRESULT GetHR ();
 
 private:
+	friend class D3DTex;
+	friend class D3DPal;
+
 	bool CreateResources();
 	void ReleaseResources();
 	bool CreateFBTexture();
 	bool CreatePaletteTexture();
+	bool CreateGrayPaletteTexture();
 	bool CreateStencilPaletteTexture();
 	bool CreateShadedPaletteTexture();
 	bool CreateVertexes();
-	void DoOffByOneCheck();
 	void UploadPalette();
 	void FillPresentParameters (D3DPRESENT_PARAMETERS *pp, bool fullscreen, bool vsync);
 	bool UploadVertices();
 	bool Reset();
+	void KillNativePals();
+	void KillNativeTexs();
+	void KillNativeNonPalettedTexs();
 	void Draw3DPart();
-	bool SetStyle(int style, fixed_t alpha, DWORD color, INTBOOL masked);
+	bool SetStyle(D3DTex *tex, DCanvas::DrawParms &parms);
+	void SetColorOverlay(DWORD color, float alpha);
+	void DoWindowedGamma();
 
-	BYTE GammaTable[256];
+	// State
+	void SetAlphaBlend(BOOL enabled, D3DBLEND srcblend=D3DBLEND(0), D3DBLEND destblend=D3DBLEND(0));
+	void SetConstant(int cnum, float r, float g, float b, float a);
+	void SetPixelShader(IDirect3DPixelShader9 *shader);
+	void SetTexture(int tnum, IDirect3DTexture9 *texture);
+	void SetPaletteTexture(IDirect3DTexture9 *texture, int count);
+
+	BOOL AlphaBlendEnabled;
+	D3DBLEND AlphaSrcBlend;
+	D3DBLEND AlphaDestBlend;
+	float Constant[3][4];
+	IDirect3DPixelShader9 *CurPixelShader;
+	IDirect3DTexture9 *Texture[2];
+
 	PalEntry SourcePalette[256];
 	float FlashConstants[2][4];
 	PalEntry FlashColor;
@@ -270,21 +294,27 @@ private:
 	D3DFORMAT FBFormat;
 	D3DFORMAT PalFormat;
 	int FBWidth, FBHeight;
-	int OffByOneAt;
 	bool VSync;
 	RECT BlendingRect;
 	bool UseBlendingRect;
 	int In2D;
+	bool SM14;
+	D3DPal *Palettes;
+	D3DTex *Textures;
 
 	IDirect3DDevice9 *D3DDevice;
 	IDirect3DVertexBuffer9 *VertexBuffer;
 	IDirect3DTexture9 *FBTexture;
+	IDirect3DTexture9 *WindowedRenderTexture;
 	IDirect3DTexture9 *PaletteTexture;
 	IDirect3DTexture9 *StencilPaletteTexture;
 	IDirect3DTexture9 *ShadedPaletteTexture;
 	IDirect3DPixelShader9 *PalTexShader;
 	IDirect3DPixelShader9 *PlainShader;
+	IDirect3DPixelShader9 *PlainStencilShader;
 	IDirect3DPixelShader9 *DimShader;
+	IDirect3DPixelShader9 *GammaFixerShader;
+	IDirect3DSurface9 *OldRenderTarget;
 
 	D3DFB() {}
 };

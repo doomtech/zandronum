@@ -13,6 +13,7 @@
 #include "gstrings.h"
 #include "p_enemy.h"
 #include "gi.h"
+#include "r_translate.h"
 #include "cl_demo.h"
 #include "deathmatch.h"
 #include "network.h"

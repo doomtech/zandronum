@@ -6,6 +6,7 @@
 #include "s_sound.h"
 #include "a_strifeglobal.h"
 #include "doomdata.h"
+#include "r_translate.h"
 #include "cl_demo.h"
 #include "sv_commands.h"
 

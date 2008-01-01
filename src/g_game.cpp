@@ -72,6 +72,7 @@
 #include "gi.h"
 #include "a_keys.h"
 #include "a_artifacts.h"
+#include "r_translate.h"
 #include "chat.h"
 #include "deathmatch.h"
 #include "duel.h"
@@ -2569,7 +2570,7 @@ static void G_QueueBody (AActor *body)
 	if (GetTranslationType(body->Translation) == TRANSLATION_Players ||
 		GetTranslationType(body->Translation) == TRANSLATION_PlayersExtra)
 	{
-		R_CopyTranslation (TRANSLATION(TRANSLATION_PlayerCorpses,modslot), body->Translation);
+		*translationtables[TRANSLATION_PlayerCorpses][modslot] = *TranslationToTable(body->Translation);
 		body->Translation = TRANSLATION(TRANSLATION_PlayerCorpses,modslot);
 	}
 
@@ -3877,15 +3878,15 @@ static void WriteArrayVars (FILE *file, FWorldGlobalArray *vars, unsigned int co
 		arc.WriteCount (j);
 		for (; i <= j; ++i)
 		{
-			const SDWORD *key;
-			SDWORD *val;
-
 			arc.WriteCount (vars[i].CountUsed());
-			FWorldGlobalArrayIterator it(vars[i]);
-			while (it.NextPair (key, val))
+
+			FWorldGlobalArray::ConstIterator it(vars[i]);
+			const FWorldGlobalArray::Pair *pair;
+
+			while (it.NextPair (pair))
 			{
-				arc.WriteCount (*key);
-				arc.WriteCount (*val);
+				arc.WriteCount (pair->Key);
+				arc.WriteCount (pair->Value);
 			}
 		}
 	}
@@ -4095,7 +4096,7 @@ FString G_BuildSaveName (const char *prefix, int slot)
 #ifndef unix
 	else if (Args.CheckParm ("-cdrom"))
 	{
-		leader = "c:/zdoomdat/";
+		leader = CDROM_DIR "/";
 	}
 	else
 	{

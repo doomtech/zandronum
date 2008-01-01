@@ -72,6 +72,7 @@
 #include "statnums.h"
 #include "vectors.h"
 #include "sbarinfo.h"
+#include "r_translate.h"
 #include "cl_main.h"
 #include "deathmatch.h"
 #include "network.h"
@@ -321,7 +322,6 @@ static const char *MapInfoMapLevel[] =
 	"allowrespawn",
 	"teamdamage",
 	"nobotnodes",	// [BC] Allow the prevention of spawning bot nodes (helpful for very large maps).
-	// new [GZDoom]
 	"fogdensity",
 	"outsidefogdensity",
 	"skyfog",
@@ -468,7 +468,6 @@ MapHandlers[] =
 	{ MITYPE_SETFLAG,	LEVEL_ALLOWRESPAWN, 0 },
 	{ MITYPE_FLOAT,		lioffset(teamdamage), 0 },
 	{ MITYPE_SETFLAG,	LEVEL_NOBOTNODES, 0 },	// [BC]
-	// new [GZDoom]
 	{ MITYPE_INT,		lioffset(fogdensity), 0 },
 	{ MITYPE_INT,		lioffset(outsidefogdensity), 0 },
 	{ MITYPE_INT,		lioffset(skyfog), 0 },
@@ -2878,7 +2877,7 @@ void G_InitLevelLocals ()
 	BaseBlendA = 0.0f;		// Remove underwater blend effect, if any
 	NormalLight.Maps = realcolormaps;
 
-	// [BB] Instead of just setting the color, we also have reset Desaturate and build the lights.
+	// [BB] Instead of just setting the color, we also have to reset Desaturate and build the lights.
 	NormalLight.ChangeColor (PalEntry (255, 255, 255), 0);
 
 	level.gravity = sv_gravity * 35/TICRATE;
@@ -3369,40 +3368,38 @@ void G_SerializeLevel (FArchive &arc, bool hubLoad)
 	arc << level.total_monsters << level.total_items << level.total_secrets;
 
 	// Does this level have custom translations?
+	FRemapTable *trans;
+	WORD w;
 	if (arc.IsStoring ())
 	{
-		for (i = 0; i < MAX_ACS_TRANSLATIONS; ++i)
+		for (unsigned int i = 0; i < translationtables[TRANSLATION_LevelScripted].Size(); ++i)
 		{
-			BYTE *trans = &translationtables[TRANSLATION_LevelScripted][i*256];
-			int j;
-			for (j = 0; j < 256; ++j)
+			trans = translationtables[TRANSLATION_LevelScripted][i];
+			if (trans != NULL && !trans->IsIdentity())
 			{
-				if (trans[j] != j)
-				{
-					break;
-				}
-			}
-			if (j < 256)
-			{
-				t = i;
-				arc << t;
-				arc.Write (trans, 256);
+				w = WORD(i);
+				arc << w;
+				trans->Serialize(arc);
 			}
 		}
-		t = 255;
-		arc << t;
+		w = 0xffff;
+		arc << w;
 	}
 	else
 	{
-		arc << t;
-		while (t != 255)
+		while (arc << w, w != 0xffff)
 		{
-			if (t >= MAX_ACS_TRANSLATIONS)
+			if (w >= MAX_ACS_TRANSLATIONS)
 			{ // hack hack to avoid crashing
-				t = 0;
+				w = 0;
 			}
-			arc.Read (&translationtables[TRANSLATION_LevelScripted][t*256], 256);
-			arc << t;
+			trans = translationtables[TRANSLATION_LevelScripted].GetVal(w);
+			if (trans == NULL)
+			{
+				trans = new FRemapTable;
+				translationtables[TRANSLATION_LevelScripted].SetVal(t, trans);
+			}
+			trans->Serialize(arc);
 		}
 	}
 

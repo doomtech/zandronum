@@ -52,6 +52,8 @@
 #include "sbar.h"
 #include "gi.h"
 #include "m_random.h"
+#include "teaminfo.h"
+#include "r_translate.h"
 // [BC] New #includes.
 #include "network.h"
 #include "cl_commands.h"

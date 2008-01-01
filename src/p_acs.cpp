@@ -66,6 +66,7 @@
 #include "sc_man.h"
 #include "c_bind.h"
 #include "info.h"
+#include "r_translate.h"
 #include "deathmatch.h"
 #include "team.h"
 #include "cl_demo.h"
@@ -2520,7 +2521,7 @@ int DLevelScript::RunScript ()
 	DACSThinker *controller = DACSThinker::ActiveThinker;
 	SDWORD *locals = localvars;
 	ScriptFunction *activeFunction = NULL;
-	BYTE *translation = 0;
+	FRemapTable *translation = 0;
 	int resultValue = 1;
 
 	switch (state)
@@ -5118,11 +5119,13 @@ int DLevelScript::RunScript ()
 				sp--;
 				if (i >= 1 && i <= MAX_ACS_TRANSLATIONS)
 				{
-					translation = &translationtables[TRANSLATION_LevelScripted][i*256-256];
-					for (i = 0; i < 256; ++i)
+					translation = translationtables[TRANSLATION_LevelScripted].GetVal(i - 1);
+					if (translation == NULL)
 					{
-						translation[i] = i;
+						translation = new FRemapTable;
+						translationtables[TRANSLATION_LevelScripted].SetVal(i - 1, translation);
 					}
+					translation->MakeIdentity();
 				}
 			}
 			break;
@@ -5133,39 +5136,23 @@ int DLevelScript::RunScript ()
 				int end = STACK(3);
 				int pal1 = STACK(2);
 				int pal2 = STACK(1);
-				fixed_t palcol, palstep;
 				sp -= 4;
 
-				if (translation == NULL)
-				{
-					break;
-				}
-				if (start > end)
-				{
-					swap (start, end);
-					swap (pal1, pal2);
-				}
-				else if (start == end)
-				{
-					translation[start] = pal1;
-					break;
-				}
-				palcol = pal1 << FRACBITS;
-				palstep = ((pal2 << FRACBITS) - palcol) / (end - start);
-				for (int i = start; i <= end; palcol += palstep, ++i)
-				{
-					translation[i] = palcol >> FRACBITS;
-				}
+				if (translation != NULL)
+					translation->AddIndexRange(start, end, pal1, pal2);
 
 				// [BC] If we're the server, send the new translation off to clients, and
 				// store it in our list so we can tell new clients who connect about the
 				// translation.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				{
-					// [BB] We know that translation = &translationtables[TRANSLATION_LevelScripted][i*256-256] for some i.
-					// To obtain i, the calculation below is necessary.
-					ULONG translationindex = translation - &translationtables[TRANSLATION_LevelScripted][0];
-					translationindex = translationindex/256 + 1;
+					// [BB] Obtain the index of the translation.
+					int translationindex;
+					for ( translationindex = 1; translationindex <= MAX_ACS_TRANSLATIONS; translationindex++ )
+					{
+						if ( translation == translationtables[TRANSLATION_LevelScripted].GetVal(translationindex - 1) )
+							break;
+					}
 					SERVER_AddEditedTranslation(translationindex, start, end );
 					SERVERCOMMANDS_CreateTranslation(translationindex, start, end );
 				}
@@ -5177,66 +5164,29 @@ int DLevelScript::RunScript ()
 			  // (would HSV be a good idea too?)
 				int start = STACK(8);
 				int end = STACK(7);
-				fixed_t r1 = STACK(6) << FRACBITS;
-				fixed_t g1 = STACK(5) << FRACBITS;
-				fixed_t b1 = STACK(4) << FRACBITS;
-				fixed_t r2 = STACK(3) << FRACBITS;
-				fixed_t g2 = STACK(2) << FRACBITS;
-				fixed_t b2 = STACK(1) << FRACBITS;
-				fixed_t r, g, b;
-				fixed_t rs, gs, bs;
+				int r1 = STACK(6);
+				int g1 = STACK(5);
+				int b1 = STACK(4);
+				int r2 = STACK(3);
+				int g2 = STACK(2);
+				int b2 = STACK(1);
 				sp -= 8;
 
-				if (translation == NULL)
-				{
-					break;
-				}
-				if (start > end)
-				{
-					swap (start, end);
-					r = r2;
-					g = g2;
-					b = b2;
-					rs = r1 - r2;
-					gs = g1 - g2;
-					bs = b1 - b2;
-				}
-				else
-				{
-					r = r1;
-					g = g1;
-					b = b1;
-					rs = r2 - r1;
-					gs = g2 - g1;
-					bs = b2 - b1;
-				}
-				if (start == end)
-				{
-					translation[start] = ColorMatcher.Pick
-						(r >> FRACBITS, g >> FRACBITS, b >> FRACBITS);
-					break;
-				}
-				rs /= (end - start);
-				gs /= (end - start);
-				bs /= (end - start);
-				for (int i = start; i <= end; ++i)
-				{
-					translation[i] = ColorMatcher.Pick
-						(r >> FRACBITS, g >> FRACBITS, b >> FRACBITS);
-					r += rs;
-					g += gs;
-					b += bs;
-				}
+				if (translation != NULL)
+					translation->AddColorRange(start, end, r1, g1, b1, r2, g2, b2);
 
 				// [BC] If we're the server, send the new translation off to clients, and
 				// store it in our list so we can tell new clients who connect about the
 				// translation.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				{
-					// [BB] We know that translation = &translationtables[TRANSLATION_LevelScripted][i*256-256] for some i.
-					// To obtain i, the calculation below is necessary.
-					ULONG translationindex = translation - &translationtables[TRANSLATION_LevelScripted][0];
-					translationindex = translationindex/256 + 1;
+					// [BB] Obtain the index of the translation.
+					int translationindex;
+					for ( translationindex = 1; translationindex <= MAX_ACS_TRANSLATIONS; translationindex++ )
+					{
+						if ( translation == translationtables[TRANSLATION_LevelScripted].GetVal(translationindex - 1) )
+							break;
+					}
 					SERVER_AddEditedTranslation( translationindex, start, end );
 					SERVERCOMMANDS_CreateTranslation( translationindex, start, end );
 				}
@@ -5246,6 +5196,7 @@ int DLevelScript::RunScript ()
 		case PCD_ENDTRANSLATION:
 			// This might be useful for hardware rendering, but
 			// for software it is superfluous.
+			translation->UpdateNative();
 			translation = NULL;
 			break;
 
