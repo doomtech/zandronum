@@ -373,7 +373,7 @@ private:
 			healthPos = clamp (HealthMarker, 0, 100);
 			DrawImage (ClassImages[lifeClass][imgCHAIN], 35+((healthPos*196/100)%9), 31);
 			DrawImage (ClassImages[lifeClass][imgLIFEGEM], 7+(healthPos*11/5), 31, ( NETWORK_GetState( ) != NETSTATE_SINGLE ) ?
-				translationtables[TRANSLATION_PlayersExtra] + (CPlayer-players)*256 : NULL);
+				TRANSLATION(TRANSLATION_PlayersExtra, BYTE(CPlayer-players)) : 0);
 			DrawImage (Images[imgLFEDGE], 0, 31);
 			DrawImage (Images[imgRTEDGE], 277, 31);
 		}

@@ -272,6 +272,8 @@ enum
 	// Players respawn in the same place they died (co-op).
 	DF2_SAME_SPAWN_SPOT		= 1 << 12,
 
+	// Lose a frag when killed. More incentive to try to
+	DF2_YES_LOSEFRAG		= 1 << 14,
 };
 
 // [RH] Compatibility flags.

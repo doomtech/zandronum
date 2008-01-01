@@ -1,6 +1,6 @@
 #include "r_defs.h"
 #include "r_data.h"
-#include "gl_texture.h"
+#include "gl/gl_texture.h"
 
 CVAR(Bool, gl_vid_compatibility, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
 
@@ -14,6 +14,7 @@ IMPLEMENT_STATELESS_ACTOR (ADynamicLight, Any, -1, 0)
 END_DEFAULTS
 
 CVAR(Bool, gl_precache, false, CVAR_ARCHIVE)
+CVAR(Bool, gl_nogl, true, CVAR_NOSET)
 
 void gl_DrawLine(int, int, int, int, int)
 {
@@ -21,6 +22,7 @@ void gl_DrawLine(int, int, int, int, int)
 
 int FTexture::CopyTrueColorPixels(unsigned char*, int, int, int, int, intptr_t, int)
 {
+	return 0;
 }
 
 FGLTexture *FGLTexture::ValidateTexture(FTexture*)
@@ -123,18 +125,22 @@ void StartGLMenu (void)
 
 int FWarpTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int xx, int yy, intptr_t cm, int translation)
 {
+	return 0;
 }
 
 int FMultiPatchTexture::CopyTrueColorPixels(unsigned char*, int, int, int, int, intptr_t, int)
 {
+	return 0;
 }
 
 int FPNGTexture::CopyTrueColorPixels(unsigned char*, int, int, int, int, intptr_t, int)
 {
+	return 0;
 }
 
 int FWarp2Texture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation)
 {
+	return 0;
 }
 
 /*FWarp2Texture::~FWarp2Texture
@@ -145,14 +151,17 @@ int FWarp2Texture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_hei
 
 int FJPEGTexture::CopyTrueColorPixels(BYTE *, int , int , int , int , intptr_t, int)
 {
+	return 0;
 }
 
 int FTGATexture::CopyTrueColorPixels(BYTE *, int , int , int , int , intptr_t, int)
 {
+	return 0;
 }
 
 int FPCXTexture::CopyTrueColorPixels(BYTE *, int , int , int , int , intptr_t, int)
 {
+	return 0;
 }
 
 void FCanvasTexture::RenderGLView (AActor *viewpoint, int fov)

@@ -1316,12 +1316,14 @@ static menuitem_t DMFlagsItems[] = {
 	{ bitflag,	"Barrels respawn (DM)",	{&dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_BARRELS_RESPAWN} },
 	{ bitflag,	"No respawn protection (DM)",{&dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_NO_RESPAWN_INVUL} },
 	{ bitflag,	"Drop weapon",			{&dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_YES_WEAPONDROP} },
+	{ bitflag,	"Double ammo",			{&dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_YES_DOUBLEAMMO} },
 	{ bitflag,	"Infinite ammo",		{&dmflags},		{0}, {0}, {0}, {(value_t *)DF_INFINITE_AMMO} },
 	{ bitflag,	"No monsters",			{&dmflags},		{0}, {0}, {0}, {(value_t *)DF_NO_MONSTERS} },
 	{ bitflag,	"Monsters respawn",		{&dmflags},		{0}, {0}, {0}, {(value_t *)DF_MONSTERS_RESPAWN} },
 	{ bitflag,	"Items respawn",		{&dmflags},		{0}, {0}, {0}, {(value_t *)DF_ITEMS_RESPAWN} },
 	{ bitflag,	"Mega powerups respawn",{&dmflags},		{0}, {0}, {0}, {(value_t *)DF_RESPAWN_SUPER} },
 	{ bitflag,	"Fast monsters",		{&dmflags},		{0}, {0}, {0}, {(value_t *)DF_FAST_MONSTERS} },
+	{ bitflag,	"Degeneration",			{&dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_YES_DEGENERATION} },
 	{ bitflag,	"Allow jump",			{&dmflags},		{1}, {0}, {0}, {(value_t *)DF_NO_JUMP} },
 	{ bitflag,	"Allow crouch",			{&dmflags},		{1}, {0}, {0}, {(value_t *)DF_NO_CROUCH} },
 	{ bitflag,	"Allow freelook",		{&dmflags},		{1}, {0}, {0}, {(value_t *)DF_NO_FREELOOK} },
@@ -1331,8 +1333,7 @@ static menuitem_t DMFlagsItems[] = {
 	{ bitflag,	"Instant flag return (ST/CTF)",	{&dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_INSTANT_RETURN} },
 	{ bitflag,	"No team switching (ST/CTF)",	{&dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_NO_TEAM_SWITCH} },
 	{ bitflag,	"Server picks teams (ST/CTF)",	{&dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_NO_TEAM_SELECT} },
-	{ bitflag,	"Double ammo (DM)",		{&dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_YES_DOUBLEAMMO} },
-	{ bitflag,	"Degeneration (DM)",	{&dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_YES_DEGENERATION} },
+	{ bitflag,	"Lose frag when fragged",{&dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_YES_LOSEFRAG} },
 	{ redtext,	" ",					{NULL},			{0}, {0}, {0}, {NULL} },
 	{ whitetext,"Cooperative Settings",	{NULL},			{0}, {0}, {0}, {NULL} },
 	{ bitflag,	"Spawn multi. weapons", {&dmflags},		{1}, {0}, {0}, {(value_t *)DF_NO_COOP_WEAPON_SPAWN} },
@@ -3551,7 +3552,7 @@ static void ConfirmIsAGo ()
 //
 //		Set some stuff up for the video modes menu
 //
-static BYTE BitTranslate[16];
+static BYTE BitTranslate[32];
 
 void M_OptInit (void)
 {

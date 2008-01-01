@@ -93,6 +93,12 @@ bool AAmmo::HandlePickup (AInventory *item)
 				receiving = FixedMul(receiving, G_SkillProperty(SKILLP_AmmoFactor));
 			}
 			int oldamount = Amount;
+
+			/* [BB] ST handles this in the SKILLP_AmmoFactor case in G_SkillProperty
+			if (dmflags2 & DF2_YES_DOUBLEAMMO)
+				receiving *= 2;
+			*/
+
 			Amount += receiving;
 			if (Amount > MaxAmount)
 			{

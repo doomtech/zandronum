@@ -378,7 +378,6 @@ void F_TextWrite (void)
 	int c;
 	int cx;
 	int cy;
-	const BYTE *range;
 	int leftmargin;
 	int rowheight;
 	bool scale;
@@ -404,7 +403,6 @@ void F_TextWrite (void)
 	ch = FinaleText.GetChars();
 		
 	count = (FinaleCount - 10)/TEXTSPEED;
-	range = screen->Font->GetColorTranslation (CR_UNTRANSLATED);
 
 	for ( ; count ; count-- )
 	{
@@ -428,7 +426,8 @@ void F_TextWrite (void)
 				screen->DrawTexture (pic,
 					cx + 320 / 2,
 					cy + 200 / 2,
-					DTA_Translation, range,
+					DTA_Font, screen->Font,
+					DTA_Translation, CR_UNTRANSLATED,
 					DTA_Clean, true,
 					TAG_DONE);
 			}
@@ -437,7 +436,8 @@ void F_TextWrite (void)
 				screen->DrawTexture (pic,
 					cx + 320 / 2,
 					cy + 200 / 2,
-					DTA_Translation, range,
+					DTA_Font, screen->Font,
+					DTA_Translation, CR_UNTRANSLATED,
 					TAG_DONE);
 			}
 		}
@@ -523,9 +523,9 @@ static struct
 int 			castnum;
 int 			casttics;
 int				castsprite;			// [RH] For overriding the player sprite with a skin
+int				casttranslation;	// [RH] Draw "our hero" with their chosen suit color
 // [GZDoom]
 fixed_t			castScale;			// [BC] For overriding the scale of the player with the skin's scale
-const BYTE *	casttranslation;	// [RH] Draw "our hero" with their chosen suit color
 FState*			caststate;
 bool	 		castdeath;
 int 			castframes;
@@ -585,10 +585,10 @@ void F_StartCast (void)
 	castnum = 0;
 	caststate = castorder[castnum].info->SeeState;
 	castsprite = caststate->sprite.index;
+	casttranslation = 0;
 	// [GZDoom]
 	castScale = castorder[castnum].info->scaleX;
 	//castscale = 63;
-	casttranslation = NULL;
 	casttics = caststate->GetTics ();
 	castdeath = false;
 	FinaleStage = 3;
@@ -638,7 +638,7 @@ void F_CastTicker (void)
 		if (castnum == 16)
 		{
 			castsprite = skins[players[consoleplayer].userinfo.skin].sprite;
-			casttranslation = translationtables[TRANSLATION_Players] + 256*consoleplayer;
+			casttranslation = TRANSLATION(TRANSLATION_Players, consoleplayer);
 			// [GZDoom]
 			castScale = skins[players[consoleplayer].userinfo.skin].Scale;
 			//castscale = skins[players[consoleplayer].userinfo.skin].scale;
@@ -646,7 +646,7 @@ void F_CastTicker (void)
 		else
 		{
 			castsprite = caststate->sprite.index;
-			casttranslation = NULL;
+			casttranslation = 0;
 			// [GZDoom]
 			castScale = castorder[castnum].info->scaleX;//castScale = FRACUNIT;
 			//castscale = 63;

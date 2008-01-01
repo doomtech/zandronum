@@ -538,6 +538,19 @@ CCMD (give)
 	}
 }
 
+CCMD (take)
+{
+	if (CheckCheatmode () || argv.argc() < 2)
+		return;
+
+	Net_WriteByte (DEM_TAKECHEAT);
+	Net_WriteString (argv[1]);
+	if (argv.argc() > 2)
+		Net_WriteWord (clamp (atoi (argv[2]), 1, 32767));
+	else
+		Net_WriteWord (0);
+}
+
 CCMD (gameversion)
 {
 	Printf ("%s : " __DATE__ "\n", DOTVERSIONSTR);

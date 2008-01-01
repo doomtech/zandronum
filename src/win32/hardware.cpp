@@ -134,8 +134,12 @@ void I_RestartRenderer()
 	
 	changerenderer=false;
 	if (gl_disabled) currentrenderer=0;
+#ifndef NO_GL
 	if (currentrenderer==1) Video = new Win32GLVideo(0);
 	else Video = new Win32Video (0);
+#else
+	Video = new Win32Video (0);
+#endif
 	if (Video == NULL) I_FatalError ("Failed to initialize display");
 	
 	if (currentrenderer==0) bits=8;
@@ -180,8 +184,12 @@ void I_InitGraphics ()
 
 	if (gl_disabled) currentrenderer=0;
 	else currentrenderer = vid_renderer;
+#ifndef NO_GL
 	if (currentrenderer==1) Video = new Win32GLVideo(0);
 	else Video = new Win32Video (0);
+#else
+	Video = new Win32Video (0);
+#endif
 
 	if (Video == NULL)
 		I_FatalError ("Failed to initialize display");

@@ -3358,20 +3358,6 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
 			( CLIENTDEMO_IsPlaying( ) == false ))
 		{
-			// [BC] Apply degeneration flag.
-			if ( dmflags2 & DF2_YES_DEGENERATION )
-			{
-				if ((( level.time & 127 ) == 0 ) && ( player->health > ( deh.StartHealth + player->lMaxHealthBonus )))
-				{
-					player->health--;
-					player->mo->health--;
-
-					// [BC] If we're the server, send out the health change.
-					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_SetPlayerHealth( player - players );
-				}
-			}
-
 			// [BC] Apply regeneration.
 			if (( level.time & 31 ) == 0 && ( player->cheats & CF_REGENERATION ) && ( player->health ))
 			{
@@ -3388,6 +3374,32 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 					}
 				}
 			}
+
+			// Apply degeneration.
+			if ( dmflags2 & DF2_YES_DEGENERATION )
+			{
+				if ((( level.time & 127 ) == 0 ) && ( player->health > ( deh.StartHealth + player->lMaxHealthBonus )))
+				{
+					player->health--;
+					player->mo->health--;
+
+					// [BC] If we're the server, send out the health change.
+					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						SERVERCOMMANDS_SetPlayerHealth( player - players );
+				}
+				/* [BB] This is ZDoom's way of degeneration. Should we use this?
+				if ((gametic % TICRATE) == 0 && player->health > deh.MaxHealth)
+				{
+					if (player->health - 5 < deh.MaxHealth)
+						player->health = deh.MaxHealth;
+					else
+						player->health--;
+
+					player->mo->health = player->health;
+				}
+				*/
+			}
+
 		}
 
 		// Handle air supply

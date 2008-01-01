@@ -526,6 +526,9 @@ void AActor::Die (AActor *source, AActor *inflictor)
 				// [BC] Player receives 10 frags for killing the terminator!
 				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 				{
+					if ((dmflags2 & DF2_YES_LOSEFRAG) && deathmatch)
+						PLAYER_SetFragcount( player, player->fragcount - 1, true, true );
+
 					if ( source->IsTeammate( this ))
 						PLAYER_SetFragcount( source->player, source->player->fragcount - (( bPossessedTerminatorArtifact ) ? 10 : 1 ), true, true );
 					else

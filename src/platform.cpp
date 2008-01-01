@@ -106,20 +106,19 @@ void SERVERCONSOLE_Print( char *pszString )
 	V_StripColors( pszString );
 	std::cout << pszString;
 }
-
+#endif NO_SERVER_GUI
 // ------------------- GL related stuff ------------------- 
+#ifdef NO_GL
 #include "d_player.h"
 #include "p_setup.h"
 #include "doomtype.h"
 #include "r_data.h"
 #include "gl/gl_functions.h"
 #include "gl/gl_texture.h"
-#include "gl/gl_lights.h"
+//#include "gl/gl_lights.h"
 
-#ifdef NO_GL
 // [BB] We need the gl nodes even if we don't display anything on the screen, i.e. on the server.
 #include "gl/gl_nodes.cpp"
-#endif
 /*
 // [BB] This are the necessary things from gl_nodes.cpp
 void gl_CheckNodes(MapData * map) {}
@@ -130,64 +129,12 @@ subsector_t * gamesubsectors = NULL;
 */
 
 #ifdef _WIN32
-typedef unsigned char byte;
-void gl_DrawLine(int x1, int y1, int x2, int y2, int color) {}
-void gl_RenderPlayerView (player_t* player) {}
-void gl_RecreateAllAttachedLights() {}
-void gl_DeleteAllAttachedLights() {}
-void gl_CleanLevelData() {}
-void gl_PreprocessLevel() {}
-void gl_SetFogParams(int _fogdensity, PalEntry _outsidefogcolor, int _outsidefogdensity, int _skyfog) {}
-void gl_DrawBuffer(byte * sbuffer, int width, int height, int x, int y, int dx, int dy, PalEntry * palette) {}
-void gl_DrawSavePic(DCanvas * canvas, const char * Filename, int x, int y, int dx, int dy) {}
-void gl_ScreenShot (const char* fname) {}
-void gl_SetActorLights(AActor *actor) {}
-void gl_DrawTexture(FTexInfo *texInfo) {}
-void gl_ParseDefs(void) {}
-void gl_RenderViewToCanvas(DCanvas * pic, int x, int y, int width, int height) {}
-void StartGLMenu (void) {}
 
-void FTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, 
-																	 intptr_t cm, int translation) {}
-void FPNGTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, 
-																			intptr_t cm, int translation) {}
-void FJPEGTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, 
-																			 intptr_t cm, int translation) {}
-void FTGATexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, 
-																			intptr_t cm, int translation) {}
-void FPCXTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, 
-																			intptr_t cm, int translation) {}
-void FWarpTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int xx, int yy, 
-									 intptr_t cm, int translation) {}
-void FWarp2Texture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int xx, int yy, 
-									 intptr_t cm, int translation) {}
-void FMultiPatchTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, 
-																						 intptr_t cm, int translation) {}
-
-FGLTexture::~FGLTexture() {}
+#include "sdl/glstubs.cpp"
 void FGLTexture::FlushAll() {}
-void FGLTexture::Clean(bool) {}
-const WorldTextureInfo * FGLTexture::Bind(int cm) { return NULL; }
-const PatchTextureInfo * FGLTexture::BindPatch(int cm, int translation, const byte * translationtable) { return NULL; }
-FGLTexture * FGLTexture::ValidateTexture(FTexture * tex) { return NULL; }
-void FCanvasTexture::RenderGLView (AActor *viewpoint, int fov) {}
 
-CVAR(Bool, gl_precache, false, CVAR_ARCHIVE)
-CVAR(Bool, gl_nogl, false, CVAR_ARCHIVE)
-
-IMPLEMENT_STATELESS_ACTOR (ADynamicLight, Any, -1, 0)
-END_DEFAULTS
-
-FCycler::FCycler(void) {}
-void ADynamicLight::Serialize(class FArchive &) {}
-void ADynamicLight::Destroy(void) {}
-void ADynamicLight::Tick(void) {}
-void ADynamicLight::PostBeginPlay(void) {}
-void ADynamicLight::BeginPlay(void) {}
-void ADynamicLight::Activate(class AActor *) {}
-void ADynamicLight::Deactivate(class AActor *) {}
 #endif //_WIN32
-#endif
+#endif //NO_GL
 
 //
 // I_ConsoleInput - [NightFang] - pulled from the old 0.99 code
