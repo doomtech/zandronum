@@ -63,6 +63,7 @@
 #include "doomstat.h"
 #include "d_gui.h"
 #include "v_video.h"
+#include "vectors.h"
 // [BC] New #includes.
 #include "chat.h"
 #include "cl_demo.h"
@@ -167,6 +168,11 @@ CVAR( Int, con_virtualheight, 0, CVAR_ARCHIVE )
 // [BC] Allow text colors?
 // [RC] Now a three-level setting. No/Yes/Not in chat.
 CVAR( Int, con_colorinmessages, 1, CVAR_ARCHIVE )
+CUSTOM_CVAR(Float, con_alpha, 0.75f, CVAR_ARCHIVE)
+{
+	if (self < 0.f) self = 0.f;
+	if (self > 1.f) self = 1.f;
+}
 
 // Command to run when Ctrl-D is pressed at start of line
 CVAR (String, con_ctrl_d, "", CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
@@ -245,7 +251,8 @@ CUSTOM_CVAR (Int, msgmidcolor2, 4, CVAR_ARCHIVE)
 
 static void maybedrawnow (bool tick, bool force)
 {
-	if (ConsoleDrawing || !gotconback || screen->IsLocked ())
+	// FIXME: Does not work right with hw2d
+	if (ConsoleDrawing || !gotconback || screen->IsLocked () || 1)
 	{
 		return;
 	}
@@ -328,7 +335,7 @@ void C_InitConsole (int width, int height, bool ingame)
 			if (conback <= 0)
 			{
 				conback = TexMan.GetTexture (gameinfo.titlePage, FTexture::TEX_MiscPatch);
-				conshade = MAKEARGB(120,0,0,0);
+				conshade = MAKEARGB(175,0,0,0);
 				conline = true;
 			}
 			else
@@ -1303,7 +1310,7 @@ void C_DrawConsole (bool hw2d)
 				DTA_DestWidth, screen->GetWidth(),
 				DTA_DestHeight, screen->GetHeight(),
 				DTA_ColorOverlay, conshade,
-				DTA_Alpha, hw2d ? FRACUNIT*3/4 : FRACUNIT,
+				DTA_Alpha, hw2d ? FLOAT2FIXED(con_alpha) : FRACUNIT,
 				DTA_Masked, false,
 				TAG_DONE );
 

@@ -236,12 +236,16 @@ public:
 	bool PaintToWindow ();
 	void SetVSync (bool vsync);
 	void SetBlendingRect (int x1, int y1, int x2, int y2);
-	bool Begin2D ();
+	bool Begin2D (bool copy3d);
 	FNativeTexture *CreateTexture (FTexture *gametex);
 	FNativeTexture *CreatePalette (FRemapTable *remap);
 	void STACK_ARGS DrawTextureV (FTexture *img, int x, int y, uint32 tag, va_list tags);
 	void Clear (int left, int top, int right, int bottom, int palcolor, uint32 color);
 	void Dim (PalEntry color, float amount, int x1, int y1, int w, int h);
+	bool WipeStartScreen(int type);
+	void WipeEndScreen();
+	bool WipeDo(int ticks);
+	void WipeCleanup();
 	HRESULT GetHR ();
 
 private:
@@ -260,10 +264,11 @@ private:
 	void FillPresentParameters (D3DPRESENT_PARAMETERS *pp, bool fullscreen, bool vsync);
 	bool UploadVertices();
 	bool Reset();
+	void ReleaseDefaultPoolItems();
 	void KillNativePals();
 	void KillNativeTexs();
-	void KillNativeNonPalettedTexs();
-	void Draw3DPart();
+	void DrawLetterbox();
+	void Draw3DPart(bool copy3d);
 	bool SetStyle(D3DTex *tex, DCanvas::DrawParms &parms);
 	void SetColorOverlay(DWORD color, float alpha);
 	void DoWindowedGamma();
@@ -287,6 +292,8 @@ private:
 	PalEntry FlashColor;
 	int FlashAmount;
 	int TrueHeight;
+	int LBOffsetI;
+	float LBOffset;
 	float Gamma;
 	bool UpdatePending;
 	bool NeedPalUpdate;
@@ -299,13 +306,14 @@ private:
 	bool UseBlendingRect;
 	int In2D;
 	bool SM14;
+	bool GatheringWipeScreen;
 	D3DPal *Palettes;
 	D3DTex *Textures;
 
 	IDirect3DDevice9 *D3DDevice;
 	IDirect3DVertexBuffer9 *VertexBuffer;
 	IDirect3DTexture9 *FBTexture;
-	IDirect3DTexture9 *WindowedRenderTexture;
+	IDirect3DTexture9 *TempRenderTexture;
 	IDirect3DTexture9 *PaletteTexture;
 	IDirect3DTexture9 *StencilPaletteTexture;
 	IDirect3DTexture9 *ShadedPaletteTexture;
@@ -314,10 +322,32 @@ private:
 	IDirect3DPixelShader9 *PlainStencilShader;
 	IDirect3DPixelShader9 *DimShader;
 	IDirect3DPixelShader9 *GammaFixerShader;
+	IDirect3DPixelShader9 *BurnShader;
 	IDirect3DSurface9 *OldRenderTarget;
+	IDirect3DTexture9 *InitialWipeScreen, *FinalWipeScreen;
 
 	D3DFB() {}
+
+	class Wiper
+	{
+	public:
+		virtual ~Wiper();
+		virtual bool Run(int ticks, D3DFB *fb) = 0;
+	};
+
+	class Wiper_Melt;			friend class Wiper_Melt;
+	class Wiper_Burn;			friend class Wiper_Burn;
+	class Wiper_Crossfade;		friend class Wiper_Crossfade;
+
+	Wiper *ScreenWipe;
 };
+
+struct FBVERTEX
+{
+	FLOAT x, y, z, rhw;
+	FLOAT tu, tv;
+};
+#define D3DFVF_FBVERTEX (D3DFVF_XYZRHW|D3DFVF_TEX1)
 
 #if 0
 #define STARTLOG		do { if (!dbg) dbg = fopen ("k:/vid.log", "w"); } while(0)

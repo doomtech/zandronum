@@ -257,13 +257,15 @@ public:
 	bool UseBasePalette();
 	int GetSourceLump() { return SourceLump; }
 
-protected:
+	static FTexture *CreateFromFile (PNGHandle *png, const FString &filename);
 
+protected:
 	static bool Check (FileReader &file);
 	static FTexture *Create (FileReader &file, int lumpnum);
-	FPNGTexture (FileReader &lump, int lumpnum, int width, int height, BYTE bitdepth, BYTE colortype, BYTE interlace);
+	FPNGTexture (FileReader &lump, int lumpnum, const FString &filename, int width, int height, BYTE bitdepth, BYTE colortype, BYTE interlace);
 
 	int SourceLump;
+	FString SourceFile;
 	BYTE *Pixels;
 	Span **Spans;
 

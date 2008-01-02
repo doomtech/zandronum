@@ -47,7 +47,7 @@
 #define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING
 
 // [BC] What version of ZDoom is this based off of?
-#define	ZDOOMVERSIONSTR		"2.1.8-651"
+#define	ZDOOMVERSIONSTR		"2.1.8-661"
 
 /** Release code stuff */
 

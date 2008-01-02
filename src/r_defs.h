@@ -96,6 +96,7 @@ class player_s;
 //
 class DSectorEffect;
 struct sector_t;
+struct FRemapTable;
 
 enum
 {
@@ -778,13 +779,14 @@ public:
 	virtual const BYTE *GetPixels () = 0;
 	
 	virtual int CopyTrueColorPixels(BYTE *buffer, int buf_pitch, int buf_height, int x, int y);
+	int CopyTrueColorTranslated(BYTE *buffer, int buf_pitch, int buf_height, int x, int y, FRemapTable *remap);
 	virtual int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
 	virtual bool UseBasePalette();
+	virtual int GetSourceLump() { return -1; }
 
 	virtual void Unload () = 0;
 
 	// [OpenGL]
-	virtual int GetSourceLump() { return -1; }
 	virtual void PrecacheGL();
 	FGLTexture * gltex;
 	// Returns the native pixel format for this image
@@ -911,6 +913,7 @@ public:
 
 	int CheckForTexture (const char *name, int usetype, BITFIELD flags=TEXMAN_TryAny);
 	int GetTexture (const char *name, int usetype, BITFIELD flags=0);
+	int ListTextures (const char *name, TArray<int> &list);
 
 	void WriteTexture (FArchive &arc, int picnum);
 	int ReadTexture (FArchive &arc);
@@ -925,7 +928,7 @@ public:
 
 	int CreateTexture (int lumpnum, int usetype=FTexture::TEX_Any);	// Also calls AddTexture
 	int AddTexture (FTexture *texture);
-	int AddPatch (const char *patchname, int namespc=0);
+	int AddPatch (const char *patchname, int namespc=0, bool tryany = false);
 
 	// Replaces one texture with another. The new texture will be assigned
 	// the same name, slot, and use type as the texture it is replacing.

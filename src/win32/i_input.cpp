@@ -421,7 +421,7 @@ static void I_CheckGUICapture ()
 void I_CheckNativeMouse (bool preferNative)
 {
 	bool wantNative = !HaveFocus ||
-		((!screen || !screen->IsFullscreen()) && (GUICapture || paused || preferNative || !use_mouse));
+		((!screen || !screen->IsFullscreen()) && (gamestate != GS_LEVEL || GUICapture || paused || preferNative || !use_mouse));
 
 	//Printf ("%d %d %d %d\n", HaveFocus, GetFocus() == Window, AppActive, GetForegroundWindow() == Window);
 

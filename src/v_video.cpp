@@ -60,6 +60,7 @@
 #include "sbar.h"
 #include "hardware.h"
 #include "r_translate.h"
+#include "f_wipe.h"
 
 IMPLEMENT_ABSTRACT_CLASS (DCanvas)
 IMPLEMENT_ABSTRACT_CLASS (DFrameBuffer)
@@ -562,68 +563,6 @@ static void BuildTransTable (const PalEntry *palette)
 	Col2RGB8_LessPrecision[64] = Col2RGB8[64];
 }
 
-void DCanvas::Blit (int destx, int desty, int destwidth, int destheight, DCanvas *src,
-					int srcx, int srcy, int srcwidth, int srcheight)
-{
-	fixed_t fracxstep, fracystep;
-	fixed_t fracx, fracy;
-	int x, y;
-	bool lockthis, locksrc;
-
-	if ( (lockthis = (LockCount == 0)) )
-	{
-		if (Lock ())
-		{ // Surface was lost, so nothing to blit
-			Unlock ();
-			return;
-		}
-	}
-
-	if ( (locksrc = (src->LockCount == 0)) )
-	{
-		src->Lock ();
-	}
-
-	fracy = srcy << FRACBITS;
-	fracystep = (srcheight << FRACBITS) / destheight;
-	fracxstep = (srcwidth << FRACBITS) / destwidth;
-
-	BYTE *destline, *srcline;
-	BYTE *destbuffer = Buffer;
-	BYTE *srcbuffer = src->Buffer;
-
-	if (fracxstep == FRACUNIT)
-	{
-		for (y = desty; y < desty + destheight; y++, fracy += fracystep)
-		{
-			memcpy (destbuffer + y * Pitch + destx,
-					srcbuffer + (fracy >> FRACBITS) * src->Pitch + srcx,
-					destwidth);
-		}
-	}
-	else
-	{
-		for (y = desty; y < desty + destheight; y++, fracy += fracystep)
-		{
-			srcline = srcbuffer + (fracy >> FRACBITS) * src->Pitch + srcx;
-			destline = destbuffer + y * Pitch + destx;
-			for (x = fracx = 0; x < destwidth; x++, fracx += fracxstep)
-			{
-				destline[x] = srcline[fracx >> FRACBITS];
-			}
-		}
-	}
-
-	if (lockthis)
-	{
-		Unlock ();
-	}
-	if (locksrc)
-	{
-		src->Unlock ();
-	}
-}
-
 void DCanvas::CalcGamma (float gamma, BYTE gammalookup[256])
 {
 	// I found this formula on the web at
@@ -893,7 +832,7 @@ void DFrameBuffer::SetBlendingRect (int x1, int y1, int x2, int y2)
 {
 }
 
-bool DFrameBuffer::Begin2D ()
+bool DFrameBuffer::Begin2D (bool copy3d)
 {
 	return false;
 }
@@ -906,6 +845,28 @@ FNativeTexture *DFrameBuffer::CreateTexture(FTexture *gametex)
 FNativeTexture *DFrameBuffer::CreatePalette(FRemapTable *remap)
 {
 	return NULL;
+}
+
+bool DFrameBuffer::WipeStartScreen(int type)
+{
+	return wipe_StartScreen(type);
+}
+
+void DFrameBuffer::WipeEndScreen()
+{
+	wipe_EndScreen();
+	Unlock();
+}
+
+bool DFrameBuffer::WipeDo(int ticks)
+{
+	Lock(true);
+	return wipe_ScreenWipe(ticks);
+}
+
+void DFrameBuffer::WipeCleanup()
+{
+	wipe_Cleanup();
 }
 
 //===========================================================================

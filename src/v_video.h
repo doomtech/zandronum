@@ -153,9 +153,6 @@ public:
 	virtual void Unlock () = 0;
 	virtual bool IsLocked () { return Buffer != NULL; }	// Returns true if the surface is locked
 
-	// Copy blocks from one canvas to another
-	virtual void Blit (int destx, int desty, int destwidth, int destheight, DCanvas *src, int srcx, int srcy, int srcwidth, int srcheight);
-
 	// Draw a linear block of pixels into the canvas
 	virtual void DrawBlock (int x, int y, int width, int height, const BYTE *src) const;
 
@@ -332,9 +329,11 @@ public:
 	bool Accel2D;	// If true, 2D drawing can be accelerated.
 
 	// Begin 2D drawing operations. This is like Update, but it doesn't end
-	// the scene, and it doesn't present the image yet. Returns true if
-	// hardware-accelerated 2D has been entered, false if not.
-	virtual bool Begin2D();
+	// the scene, and it doesn't present the image yet. If you are going to
+	// be covering the entire screen with 2D elements, then pass false to
+	// avoid copying the software bufferer to the screen.
+	// Returns true if hardware-accelerated 2D has been entered, false if not.
+	virtual bool Begin2D(bool copy3d);
 
 	// DrawTexture calls after Begin2D use native textures.
 
@@ -353,6 +352,11 @@ public:
 					  const BYTE *patch, int pix_width, int pix_height, 
 					  int step_x, int step_y, PalEntry * palette);
 
+	// Screen wiping
+	virtual bool WipeStartScreen(int type);
+	virtual void WipeEndScreen();
+	virtual bool WipeDo(int ticks);
+	virtual void WipeCleanup();
 
 #ifdef _WIN32
 	virtual void PaletteChanged () = 0;

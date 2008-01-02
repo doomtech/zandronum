@@ -5067,6 +5067,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\win32\fb_d3d9_wipe.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\win32\fb_ddraw.cpp"
 				>
 			</File>

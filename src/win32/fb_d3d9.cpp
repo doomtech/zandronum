@@ -62,7 +62,8 @@
 #include "doomerrors.h"
 #include "r_draw.h"
 #include "r_translate.h"
-
+#include "f_wipe.h"
+#include "st_stuff.h"
 #include "win32iface.h"
 
 #include <mmsystem.h>
@@ -75,13 +76,6 @@
 // TYPES -------------------------------------------------------------------
 
 IMPLEMENT_CLASS(D3DFB)
-
-struct FBVERTEX
-{
-	FLOAT x, y, z, rhw;
-	FLOAT tu, tv;
-};
-#define D3DFVF_FBVERTEX (D3DFVF_XYZRHW|D3DFVF_TEX1)
 
 class D3DTex : public FNativeTexture
 {
@@ -142,7 +136,6 @@ extern bool VidResizing;
 
 EXTERN_CVAR (Bool, fullscreen)
 EXTERN_CVAR (Float, Gamma)
-EXTERN_CVAR (Int, vid_displaybits)
 EXTERN_CVAR (Bool, vid_vsync)
 EXTERN_CVAR (Float, transsouls)
 
@@ -156,6 +149,11 @@ extern cycle_t BlitCycles;
 
 // PUBLIC DATA DEFINITIONS -------------------------------------------------
 
+CUSTOM_CVAR(Bool, test2d, true, CVAR_NOINITCALL)
+{
+	BorderNeedRefresh = SB_state = screen->GetPageCount();
+}
+
 // CODE --------------------------------------------------------------------
 
 D3DFB::D3DFB (int width, int height, bool fullscreen)
@@ -166,7 +164,9 @@ D3DFB::D3DFB (int width, int height, bool fullscreen)
 	D3DDevice = NULL;
 	VertexBuffer = NULL;
 	FBTexture = NULL;
-	WindowedRenderTexture = NULL;
+	TempRenderTexture = NULL;
+	InitialWipeScreen = NULL;
+	FinalWipeScreen = NULL;
 	PaletteTexture = NULL;
 	StencilPaletteTexture = NULL;
 	ShadedPaletteTexture = NULL;
@@ -175,6 +175,7 @@ D3DFB::D3DFB (int width, int height, bool fullscreen)
 	PlainStencilShader = NULL;
 	DimShader = NULL;
 	GammaFixerShader = NULL;
+	BurnShader = NULL;
 	FBFormat = D3DFMT_UNKNOWN;
 	PalFormat = D3DFMT_UNKNOWN;
 	VSync = vid_vsync;
@@ -187,6 +188,8 @@ D3DFB::D3DFB (int width, int height, bool fullscreen)
 	Palettes = NULL;
 	Textures = NULL;
 	Accel2D = true;
+	GatheringWipeScreen = false;
+	ScreenWipe = NULL;
 
 	Gamma = 1.0;
 	FlashConstants[0][3] = FlashConstants[0][2] = FlashConstants[0][1] = FlashConstants[0][0] = 0;
@@ -218,6 +221,9 @@ D3DFB::D3DFB (int width, int height, bool fullscreen)
 			}
 		}
 	}
+	// Offset from top of screen to top of letterboxed screen
+	LBOffsetI = (TrueHeight - Height) / 2;
+	LBOffset = float(LBOffsetI);
 
 	FillPresentParameters (&d3dpp, fullscreen, VSync);
 
@@ -251,8 +257,6 @@ D3DFB::D3DFB (int width, int height, bool fullscreen)
 
 D3DFB::~D3DFB ()
 {
-	KillNativeTexs();
-	KillNativePals();
 	ReleaseResources ();
 	if (D3DDevice != NULL)
 	{
@@ -267,7 +271,7 @@ void D3DFB::FillPresentParameters (D3DPRESENT_PARAMETERS *pp, bool fullscreen, b
 	pp->SwapEffect = D3DSWAPEFFECT_DISCARD;
 	pp->BackBufferWidth = Width;
 	pp->BackBufferHeight = TrueHeight;
-	pp->BackBufferFormat = fullscreen ? D3DFMT_X8R8G8B8 : D3DFMT_UNKNOWN;
+	pp->BackBufferFormat = fullscreen ? D3DFMT_A8R8G8B8 : D3DFMT_UNKNOWN;
 	pp->hDeviceWindow = Window;
 	pp->PresentationInterval = vsync ? D3DPRESENT_INTERVAL_ONE : D3DPRESENT_INTERVAL_IMMEDIATE;
 }
@@ -320,7 +324,13 @@ bool D3DFB::CreateResources ()
 	}
 	if (FAILED(D3DDevice->CreatePixelShader (GammaFixerDef, &GammaFixerShader)))
 	{
+		Printf ("Windowed mode gamma will not work.\n");
 		GammaFixerShader = NULL;
+	}
+	if (FAILED(D3DDevice->CreatePixelShader (BurnShaderDef, &BurnShader)))
+	{
+		Printf ("Burn screenwipe will not work in D3D mode.\n");
+		BurnShader = NULL;
 	}
 	CurPixelShader = NULL;
 	memset(Constant, 0, sizeof(Constant));
@@ -336,6 +346,7 @@ bool D3DFB::CreateResources ()
 		return false;
 	}
 	SetGamma (Gamma);
+	OldRenderTarget = NULL;
 
 	return true;
 }
@@ -343,21 +354,9 @@ bool D3DFB::CreateResources ()
 void D3DFB::ReleaseResources ()
 {
 	I_SaveWindowedPos ();
-	if (FBTexture != NULL)
-	{
-		FBTexture->Release();
-		FBTexture = NULL;
-	}
-	if (WindowedRenderTexture != NULL)
-	{
-		WindowedRenderTexture->Release();
-		WindowedRenderTexture = NULL;
-	}
-	if (VertexBuffer != NULL)
-	{
-		VertexBuffer->Release();
-		VertexBuffer = NULL;
-	}
+	KillNativeTexs();
+	KillNativePals();
+	ReleaseDefaultPoolItems();
 	if (PaletteTexture != NULL)
 	{
 		PaletteTexture->Release();
@@ -398,28 +397,57 @@ void D3DFB::ReleaseResources ()
 		GammaFixerShader->Release();
 		GammaFixerShader = NULL;
 	}
+	if (BurnShader != NULL)
+	{
+		BurnShader->Release();
+		BurnShader = NULL;
+	}
+	if (ScreenWipe != NULL)
+	{
+		delete ScreenWipe;
+		ScreenWipe = NULL;
+	}
+	GatheringWipeScreen = false;
 }
 
-bool D3DFB::Reset ()
+// Free resources created with D3DPOOL_DEFAULT.
+void D3DFB::ReleaseDefaultPoolItems()
 {
-	D3DPRESENT_PARAMETERS d3dpp;
-
-	// Free resources created with D3DPOOL_DEFAULT.
 	if (FBTexture != NULL)
 	{
 		FBTexture->Release();
 		FBTexture = NULL;
 	}
-	if (WindowedRenderTexture != NULL)
+	if (FinalWipeScreen != NULL)
 	{
-		WindowedRenderTexture->Release();
-		WindowedRenderTexture = NULL;
+		if (FinalWipeScreen != TempRenderTexture)
+		{
+			FinalWipeScreen->Release();
+		}
+		FinalWipeScreen = NULL;
+	}
+	if (TempRenderTexture != NULL)
+	{
+		TempRenderTexture->Release();
+		TempRenderTexture = NULL;
+	}
+	if (InitialWipeScreen != NULL)
+	{
+		InitialWipeScreen->Release();
+		InitialWipeScreen = NULL;
 	}
 	if (VertexBuffer != NULL)
 	{
 		VertexBuffer->Release();
 		VertexBuffer = NULL;
 	}
+}
+
+bool D3DFB::Reset ()
+{
+	D3DPRESENT_PARAMETERS d3dpp;
+
+	ReleaseDefaultPoolItems();
 	FillPresentParameters (&d3dpp, !Windowed, VSync);
 	if (!SUCCEEDED(D3DDevice->Reset (&d3dpp)))
 	{
@@ -464,29 +492,6 @@ void D3DFB::KillNativeTexs()
 	}
 }
 
-//==========================================================================
-//
-// D3DFB :: KillNativeNonPalettedTexs
-//
-// Frees all native textures that aren't paletted.
-//
-//==========================================================================
-
-void D3DFB::KillNativeNonPalettedTexs()
-{
-	D3DTex *tex;
-	D3DTex *next;
-
-	for (tex = Textures; tex != NULL; tex = next)
-	{
-		next = tex->Next;
-		if (tex->GetTexFormat() != D3DFMT_L8)
-		{
-			delete tex;
-		}
-	}
-}
-
 bool D3DFB::CreateFBTexture ()
 {
 	if (FAILED(D3DDevice->CreateTexture (Width, Height, 1, D3DUSAGE_DYNAMIC, D3DFMT_L8, D3DPOOL_DEFAULT, &FBTexture, NULL)))
@@ -511,12 +516,9 @@ bool D3DFB::CreateFBTexture ()
 		FBWidth = Width;
 		FBHeight = Height;
 	}
-	if (Windowed && GammaFixerShader)
+	if (FAILED(D3DDevice->CreateTexture (FBWidth, FBHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &TempRenderTexture, NULL)))
 	{
-		if (FAILED(D3DDevice->CreateTexture (FBWidth, FBHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &WindowedRenderTexture, NULL)))
-		{
-			WindowedRenderTexture = false;
-		}
+		TempRenderTexture = NULL;
 	}
 	return true;
 }
@@ -585,7 +587,7 @@ bool D3DFB::CreateVertexes ()
 
 bool D3DFB::UploadVertices()
 {
-	float top = (TrueHeight - Height) * 0.5f - 0.5f;
+	float top = GatheringWipeScreen ? -0.5f : LBOffset - 0.5f;
 	float right = float(Width) - 0.5f;
 	float bot = float(Height) + top;
 	float texright = float(Width) / float(FBWidth);
@@ -752,10 +754,11 @@ void D3DFB::Unlock ()
 
 // When In2D == 0: Copy buffer to screen and present
 // When In2D == 1: Copy buffer to screen but do not present
-// When In2D == 2: Present and set In2D to 0
+// When In2D == 2: Set up for 2D drawing but do not draw anything
+// When In2D == 3: Present and set In2D to 0
 void D3DFB::Update ()
 {
-	if (In2D == 2)
+	if (In2D == 3)
 	{
 		DrawRateStuff();
 		DoWindowedGamma();
@@ -813,7 +816,13 @@ void D3DFB::Update ()
 	clock (BlitCycles);
 
 	LockCount = 0;
-	PaintToWindow ();
+	HRESULT hr = D3DDevice->TestCooperativeLevel();
+	if (FAILED(hr) && (hr != D3DERR_DEVICENOTRESET || !Reset()))
+	{
+		Sleep(1);
+		return;
+	}
+	Draw3DPart(In2D <= 1);
 	if (In2D == 0)
 	{
 		DoWindowedGamma();
@@ -845,54 +854,56 @@ bool D3DFB::PaintToWindow ()
 			return false;
 		}
 	}
-	Draw3DPart();
+	Draw3DPart(true);
 	return true;
 }
 
-void D3DFB::Draw3DPart()
+void D3DFB::Draw3DPart(bool copy3d)
 {
 	RECT texrect = { 0, 0, Width, Height };
 	D3DLOCKED_RECT lockrect;
 
-	if ((FBWidth == Width && FBHeight == Height &&
-		SUCCEEDED(FBTexture->LockRect (0, &lockrect, NULL, D3DLOCK_DISCARD))) ||
-		SUCCEEDED(FBTexture->LockRect (0, &lockrect, &texrect, 0)))
+	if (copy3d)
 	{
-		if (lockrect.Pitch == Pitch)
+		if ((FBWidth == Width && FBHeight == Height &&
+			SUCCEEDED(FBTexture->LockRect (0, &lockrect, NULL, D3DLOCK_DISCARD))) ||
+			SUCCEEDED(FBTexture->LockRect (0, &lockrect, &texrect, 0)))
 		{
-			memcpy (lockrect.pBits, MemBuffer, Width * Height);
-		}
-		else
-		{
-			BYTE *dest = (BYTE *)lockrect.pBits;
-			BYTE *src = MemBuffer;
-			for (int y = 0; y < Height; y++)
+			if (lockrect.Pitch == Pitch)
 			{
-				memcpy (dest, src, Width);
-				dest += lockrect.Pitch;
-				src += Pitch;
+				memcpy (lockrect.pBits, MemBuffer, Width * Height);
 			}
+			else
+			{
+				BYTE *dest = (BYTE *)lockrect.pBits;
+				BYTE *src = MemBuffer;
+				for (int y = 0; y < Height; y++)
+				{
+					memcpy (dest, src, Width);
+					dest += lockrect.Pitch;
+					src += Pitch;
+				}
+			}
+			FBTexture->UnlockRect (0);
 		}
-		FBTexture->UnlockRect (0);
 	}
-	if (TrueHeight != Height)
-	{
-		// Letterbox! Draw black top and bottom borders.
-		int topborder = (TrueHeight - Height) / 2;
-		D3DRECT rects[2] = { { 0, 0, Width, topborder }, { 0, Height + topborder, Width, TrueHeight } };
-		D3DDevice->Clear (2, rects, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0,0,0), 1.f, 0);
-	}
+	DrawLetterbox();
 	D3DDevice->BeginScene();
-	OldRenderTarget = NULL;
-	if (WindowedRenderTexture != NULL)
+	assert(OldRenderTarget == NULL);
+	if (TempRenderTexture != NULL &&
+		((Windowed && GammaFixerShader && TempRenderTexture != FinalWipeScreen) || GatheringWipeScreen))
 	{
 		IDirect3DSurface9 *targetsurf;
-		if (FAILED(WindowedRenderTexture->GetSurfaceLevel(0, &targetsurf)) ||
-			FAILED(D3DDevice->GetRenderTarget(0, &OldRenderTarget)) ||
-			FAILED(D3DDevice->SetRenderTarget(0, targetsurf)))
+		if (SUCCEEDED(TempRenderTexture->GetSurfaceLevel(0, &targetsurf)))
 		{
-			// Setting the render target failed.
-			OldRenderTarget = NULL;
+			if (SUCCEEDED(D3DDevice->GetRenderTarget(0, &OldRenderTarget)))
+			{
+				if (FAILED(D3DDevice->SetRenderTarget(0, targetsurf)))
+				{
+					// Setting the render target failed.
+				}
+			}
+			targetsurf->Release();
 		}
 	}
 
@@ -903,26 +914,47 @@ void D3DFB::Draw3DPart()
 	D3DDevice->SetPixelShaderConstantF (0, FlashConstants[0], 2);
 	memcpy(Constant, FlashConstants, sizeof(FlashConstants));
 	SetAlphaBlend(FALSE);
-	if (!UseBlendingRect || FlashConstants[1][0] == 1)
-	{ // The whole screen as a single quad.
-		D3DDevice->DrawPrimitive (D3DPT_TRIANGLEFAN, 0, 2);
-	}
-	else
-	{ // The screen split up so that only the 3D view is blended.
-		D3DDevice->DrawPrimitive (D3DPT_TRIANGLEFAN, 24, 2);	// middle
-
-		if (!In2D || 1)
-		{
-			// The rest is drawn unblended, so reset the shader constant.
-			static const float FlashZero[2][4] = { { 0, 0, 0, 0 }, { 1, 1, 1, 1 } };
-			D3DDevice->SetPixelShaderConstantF (0, FlashZero[0], 2);
-			memcpy(Constant, FlashZero, sizeof(FlashZero));
-
-			D3DDevice->DrawPrimitive (D3DPT_TRIANGLEFAN,  4, 2);	// left
-			D3DDevice->DrawPrimitive (D3DPT_TRIANGLEFAN,  8, 2);	// right
-			D3DDevice->DrawPrimitive (D3DPT_TRIANGLEFAN, 12, 4);	// bottom
-			D3DDevice->DrawPrimitive (D3DPT_TRIANGLEFAN, 18, 4);	// top
+	if (copy3d)
+	{
+		if (!UseBlendingRect || FlashConstants[1][0] == 1)
+		{ // The whole screen as a single quad.
+			D3DDevice->DrawPrimitive (D3DPT_TRIANGLEFAN, 0, 2);
 		}
+		else
+		{ // The screen split up so that only the 3D view is blended.
+			D3DDevice->DrawPrimitive (D3DPT_TRIANGLEFAN, 24, 2);	// middle
+
+			if (!In2D)
+			{
+				// The rest is drawn unblended, so reset the shader constant.
+				static const float FlashZero[2][4] = { { 0, 0, 0, 0 }, { 1, 1, 1, 1 } };
+				D3DDevice->SetPixelShaderConstantF (0, FlashZero[0], 2);
+				memcpy(Constant, FlashZero, sizeof(FlashZero));
+
+				D3DDevice->DrawPrimitive (D3DPT_TRIANGLEFAN,  4, 2);	// left
+				D3DDevice->DrawPrimitive (D3DPT_TRIANGLEFAN,  8, 2);	// right
+				D3DDevice->DrawPrimitive (D3DPT_TRIANGLEFAN, 12, 4);	// bottom
+				D3DDevice->DrawPrimitive (D3DPT_TRIANGLEFAN, 18, 4);	// top
+			}
+		}
+	}
+}
+
+//==========================================================================
+//
+// D3DFB :: DrawLetterbox
+//
+// Draws the black bars at the top and bottom of the screen for letterboxed
+// modes.
+//
+//==========================================================================
+
+void D3DFB::DrawLetterbox()
+{
+	if (LBOffsetI != 0)
+	{
+		D3DRECT rects[2] = { { 0, 0, Width, LBOffsetI }, { 0, Height + LBOffsetI, Width, TrueHeight } };
+		D3DDevice->Clear (2, rects, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0,0,0), 1.f, 0);
 	}
 }
 
@@ -942,10 +974,11 @@ void D3DFB::DoWindowedGamma()
 		D3DDevice->SetRenderTarget(0, OldRenderTarget);
 		D3DDevice->SetStreamSource(0, VertexBuffer, 0, sizeof(FBVERTEX));
 		D3DDevice->SetFVF(D3DFVF_FBVERTEX);
-		SetTexture(0, WindowedRenderTexture);
-		SetPixelShader(GammaFixerShader);
+		SetTexture(0, TempRenderTexture);
+		SetPixelShader((Windowed && GammaFixerShader != NULL) ? GammaFixerShader : PlainShader);
 		SetAlphaBlend(FALSE);
 		D3DDevice->DrawPrimitive(D3DPT_TRIANGLEFAN, 0, 2);
+		OldRenderTarget->Release();
 		OldRenderTarget = NULL;
 	}
 }
@@ -1134,7 +1167,12 @@ bool D3DTex::Create(IDirect3DDevice9 *D3DDevice)
 
 	hr = D3DDevice->CreateTexture(w, h, 1, 0,
 		GetTexFormat(), D3DPOOL_MANAGED, &Tex, NULL);
-	if (FAILED(hr))
+	if (SUCCEEDED(hr))
+	{
+		TX = 1;
+		TY = 1;
+	}
+	else
 	{ // Try again, using power-of-2 sizes
 		int i;
 
@@ -1146,6 +1184,8 @@ bool D3DTex::Create(IDirect3DDevice9 *D3DDevice)
 		{
 			return false;
 		}
+		TX = GameTex->GetWidth() / float(w);
+		TY = GameTex->GetHeight() / float(h);
 	}
 	if (!Update())
 	{
@@ -1359,20 +1399,20 @@ bool D3DPal::Update()
 //
 //==========================================================================
 
-CVAR(Bool,test2d,true,0)
-bool D3DFB::Begin2D()
+bool D3DFB::Begin2D(bool copy3d)
 {
-	if (!test2d) return false;
+	copy3d = true;
+	if (!test2d)
+	{
+		return false;
+	}
 	if (In2D)
 	{
 		return true;
 	}
-	In2D = 1;
+	In2D = 2 - copy3d;
 	Update();
-	In2D = 2;
-
-	// Set default state for 2D rendering.
-	SetAlphaBlend(TRUE, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
+	In2D = 3;
 
 	return true;
 }
@@ -1439,7 +1479,8 @@ void D3DFB::Clear (int left, int top, int right, int bottom, int palcolor, uint3
 		Dim(color, APART(color)/255.f, left, top, right - left, bottom - top);
 		return;
 	}
-	D3DRECT rect = { left, top, right, bottom };
+	int offs = GatheringWipeScreen ? 0 : LBOffsetI;
+	D3DRECT rect = { left, top + offs, right, bottom + offs };
 	D3DDevice->Clear(1, &rect, D3DCLEAR_TARGET, color | 0xFF000000, 1.f, 0);
 }
 
@@ -1466,12 +1507,14 @@ void D3DFB::Dim (PalEntry color, float amount, int x1, int y1, int w, int h)
 	}
 	else
 	{
+		float x = float(x1) - 0.5f;
+		float y = float(y1) - 0.5f + (GatheringWipeScreen ? 0 : LBOffset);
 		FBVERTEX verts[4] =
 		{
-			{ x1-0.5f,   y1-0.5f,   0.5f, 1, 0, 0 },
-			{ x1+w-0.5f, y1-0.5f,   0.5f, 1, 0, 0 },
-			{ x1+w-0.5f, y1+h-0.5f, 0.5f, 1, 0, 0 },
-			{ x1-0.5f,   y1+h-0.5f, 0.5f, 1, 0, 0 }
+			{ x,   y,   0.5f, 1, 0, 0 },
+			{ x+w, y,   0.5f, 1, 0, 0 },
+			{ x+w, y+h, 0.5f, 1, 0, 0 },
+			{ x,   y+h, 0.5f, 1, 0, 0 }
 		};
 		SetAlphaBlend(TRUE, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
 		SetPixelShader(DimShader);
@@ -1520,8 +1563,8 @@ void STACK_ARGS D3DFB::DrawTextureV (FTexture *img, int x, int y, uint32 tags_fi
 	float y1 = y0 + float(parms.destheight) / 65536.f;
 	float u0 = 0.f;
 	float v0 = 0.f;
-	float u1 = 1.f;
-	float v1 = 1.f;
+	float u1 = tex->TX;
+	float v1 = tex->TY;
 	float uscale = 1.f / parms.texwidth / u1;
 	float vscale = 1.f / parms.texheight / v1 / yscale;
 
@@ -1558,10 +1601,11 @@ void STACK_ARGS D3DFB::DrawTextureV (FTexture *img, int x, int y, uint32 tags_fi
 		x1 = float(parms.rclip);
 	}
 
+	float yoffs = GatheringWipeScreen ? 0.5f : 0.5f - LBOffset;
 	x0 -= 0.5f;
-	y0 -= 0.5f;
+	y0 -= yoffs;
 	x1 -= 0.5f;
-	y1 -= 0.5f;
+	y1 -= yoffs;
 
 	FBVERTEX verts[4] =
 	{
@@ -1732,12 +1776,12 @@ void D3DFB::SetColorOverlay(DWORD color, float alpha)
 {
 	if (APART(color) != 0)
 	{
-		float a = 255.f / APART(color);
+		float a = APART(color) / (255.f * 255.f);
 		float r = RPART(color) * a;
 		float g = GPART(color) * a;
 		float b = BPART(color) * a;
 		SetConstant(0, r, g, b, 0);
-		a = 1 - 1 / a;
+		a = 1 - a * 255;
 		SetConstant(1, a, a, a, alpha);
 	}
 	else

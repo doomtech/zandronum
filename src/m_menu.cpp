@@ -277,7 +277,7 @@ static int			PlayerTics;
 // [BC] This is used in m_options.cpp now.
 /*static*/ int			PlayerRotation;
 
-static DCanvas			*SavePic;
+static FTexture			*SavePic;
 static FBrokenLines		*SaveComment;
 static List				SaveGames;
 static FSaveGameNode	*TopSaveGame;
@@ -1203,7 +1203,7 @@ static void M_ExtractSaveData (const FSaveGameNode *node)
 			}
 
 			// Extract pic
-			SavePic = M_CreateCanvasFromPNG (png);
+			SavePic = FPNGTexture::CreateFromFile(png, node->Filename);
 
 			delete png;
 		}
@@ -1263,21 +1263,11 @@ static void M_DrawSaveLoadCommon ()
 	M_DrawFrame (savepicLeft, savepicTop, savepicWidth, savepicHeight);
 	if (SavePic != NULL)
 	{
-		if (currentrenderer==0)
-		{
-			// The most important question here is:
-			// Why the fuck is it necessary to do this in a way that
-			// reqires making this distinction here and not by virtually
-			// calling an appropriate Blit method for the destination?
-			// 
-			// Making Blit part of the source buffer is just stupid!
-			screen->Blit(savepicLeft, savepicTop, savepicWidth, savepicHeight,
-					 SavePic, 0, 0, SavePic->GetWidth(), SavePic->GetHeight());
-		}
-		else
-		{
-			gl_DrawSavePic(SavePic, SelSaveGame->Filename.GetChars(), savepicLeft, savepicTop, savepicWidth, savepicHeight);
-		}
+		screen->DrawTexture(SavePic, savepicLeft, savepicTop,
+			DTA_DestWidth, savepicWidth,
+			DTA_DestHeight, savepicHeight,
+			DTA_Masked, false,
+			TAG_DONE);
 	}
 	else
 	{

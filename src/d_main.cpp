@@ -505,7 +505,7 @@ CVAR (Flag, compat_disablestealthmonsters,	compatflags, COMPATF_DISABLESTEALTHMO
 //
 //==========================================================================
 
-void D_Display (bool screenshot)
+void D_Display ()
 {
 	bool wipe;
 	bool hw2d;
@@ -580,7 +580,7 @@ void D_Display (bool screenshot)
 	}
 	setmodeneeded = false;
 
-	if (screen->Lock (screenshot))
+	if (screen->Lock (false))
 	{
 		SB_state = screen->GetPageCount ();
 		BorderNeedRefresh = screen->GetPageCount ();
@@ -597,14 +597,13 @@ void D_Display (bool screenshot)
 	else if (gamestate != wipegamestate && gamestate != GS_FULLCONSOLE && gamestate != GS_TITLELEVEL)
 	{ // save the current screen if about to wipe
 		BorderNeedRefresh = screen->GetPageCount ();
-		wipe = true;
 		if (wipegamestate != GS_FORCEWIPEFADE)
 		{
-			wipe_StartScreen (wipetype);
+			wipe = screen->WipeStartScreen (wipetype);
 		}
 		else
 		{
-			wipe_StartScreen (wipe_Fade);
+			wipe = screen->WipeStartScreen (wipe_Fade);
 		}
 		wipegamestate = gamestate;
 	}
@@ -627,14 +626,10 @@ void D_Display (bool screenshot)
 		{
 		case GS_FULLCONSOLE:
 			screen->SetBlendingRect(0,0,0,0);
-			if (!screenshot)
-			{
-				hw2d = screen->Begin2D();
-			}
+			hw2d = screen->Begin2D(false);
 			C_DrawConsole (false);
 			M_Drawer ();
-			if (!screenshot)
-				screen->Update ();
+			screen->Update ();
 			return;
 
 		case GS_LEVEL:
@@ -646,19 +641,13 @@ void D_Display (bool screenshot)
 			// This happens for example if you start a new game, while being on a server.
 			if (viewactive)
 			{
-				if (!menuactive)
+				if (StatusBar != NULL)
 				{
-					screen->SetBlendingRect(viewwindowx, MAX(ConBottom,viewwindowy),
-						viewwindowx + realviewwidth, MAX(ConBottom,viewwindowy + realviewheight));
+					float blend[4] = { 0, 0, 0, 0 };
+					StatusBar->BlendView (blend);
 				}
-				else
-				{
-					// Don't chop the blending effect off at the status bar when the menu is
-					// active. Mostly, this is just to make Strife's dialogs with portrait
-					// images look okay when a blend is active.
-					screen->SetBlendingRect(0,0,0,0);
-				}
-				R_RefreshViewBorder ();
+				screen->SetBlendingRect(viewwindowx, viewwindowy,
+					viewwindowx + realviewwidth, viewwindowy + realviewheight);
 				P_CheckPlayerSprites();
 				if (currentrenderer==0)
 				{
@@ -688,14 +677,13 @@ void D_Display (bool screenshot)
 				AM_Drawer ();
 				ST_Y = saved_ST_Y;
 			}
-			if (!screenshot && (!wipe || NoWipe))
+			if ((hw2d = screen->Begin2D(true)))
 			{
-				if ((hw2d = screen->Begin2D()))
-				{
-					// Redraw the status bar every frame when using 2D accel
-					SB_state = screen->GetPageCount();
-				}
+				// Redraw everything every frame when using 2D accel
+				SB_state = screen->GetPageCount();
+				BorderNeedRefresh = screen->GetPageCount();
 			}
+			R_RefreshViewBorder ();
 
 	#ifdef ALTERNATIVE_HUD
 
@@ -747,10 +735,7 @@ void D_Display (bool screenshot)
 
 		case GS_INTERMISSION:
 			screen->SetBlendingRect(0,0,0,0);
-			if (!screenshot && (!wipe || NoWipe))
-			{
-				screen->Begin2D();
-			}
+			hw2d = screen->Begin2D(false);
 			WI_Drawer ();
 
 			// Render all medals the player currently has.
@@ -778,19 +763,13 @@ void D_Display (bool screenshot)
 
 		case GS_FINALE:
 			screen->SetBlendingRect(0,0,0,0);
-			if (!screenshot && (!wipe || NoWipe))
-			{
-				screen->Begin2D();
-			}
+			hw2d = screen->Begin2D(false);
 			F_Drawer ();
 			break;
 
 		case GS_DEMOSCREEN:
 			screen->SetBlendingRect(0,0,0,0);
-			if (!screenshot && (!wipe || NoWipe))
-			{
-				screen->Begin2D();
-			}
+			hw2d = screen->Begin2D(false);
 			D_PageDrawer ();
 			break;
 
@@ -874,17 +853,14 @@ void D_Display (bool screenshot)
 		NoWipe = 10;
 	}
 
-	if (!wipe || screenshot || NoWipe < 0 || currentrenderer==1)
+	if (!wipe || NoWipe < 0 || currentrenderer==1)
 	{
 		NetUpdate ();			// send out any new accumulation
 		// normal update
 		C_DrawConsole (hw2d);	// draw console
 		M_Drawer ();			// menu is drawn even on top of everything
 		FStat::PrintStat ();
-		if (!screenshot)
-		{
-			screen->Update ();	// page flip or blit buffer
-		}
+		screen->Update ();	// page flip or blit buffer
 	}
 	else
 	{
@@ -892,8 +868,7 @@ void D_Display (bool screenshot)
 		int wipestart, nowtime, tics;
 		bool done;
 
-		wipe_EndScreen ();
-		screen->Unlock ();
+		screen->WipeEndScreen ();
 
 		wipestart = I_GetTime (false);
 
@@ -905,13 +880,13 @@ void D_Display (bool screenshot)
 			nowtime = I_WaitForTic (wipestart);
 			tics = nowtime - wipestart;
 			wipestart = nowtime;
-			screen->Lock (true);
-			done = wipe_ScreenWipe (tics);
-			C_DrawConsole (hw2d);
-			M_Drawer ();			// menu is drawn even on top of wipes
+			done = screen->WipeDo (tics);
+			C_DrawConsole (hw2d);	// console and
+			M_Drawer ();			// menu are drawn even on top of wipes
 			screen->Update ();		// page flip or blit buffer
 			NetUpdate ();
 		} while (!done);
+		screen->WipeCleanup();
 
 		Net_WriteByte (DEM_WIPEOFF);
 	}
@@ -1001,7 +976,7 @@ void D_DoomLoop ()
 //		if ( players[consoleplayer].mo )
 //		players[consoleplayer].viewz = players[consoleplayer].mo->z + 41*FRACUNIT;
 
-				D_Display( false );
+				D_Display( );
 				break;
 			case NETSTATE_SERVER:
 
@@ -1044,7 +1019,7 @@ void D_DoomLoop ()
 				S_UpdateSounds (players[consoleplayer].camera);	// move positional sounds
 				// Update display, next frame, with current state.
 				I_StartTic ();
-				D_Display (false);
+				D_Display ();
 				break;
 			}
 		}
