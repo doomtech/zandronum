@@ -272,6 +272,8 @@ enum
 	// Players respawn in the same place they died (co-op).
 	DF2_SAME_SPAWN_SPOT		= 1 << 12,
 
+	// Player keeps his team after a map change.
+	DF2_YES_KEEP_TEAMS		= 1 << 13,
 };
 
 // [RH] Compatibility flags.

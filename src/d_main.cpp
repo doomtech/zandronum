@@ -446,6 +446,7 @@ CVAR (Flag, sv_barrelrespawn,	dmflags2, DF2_BARRELS_RESPAWN);
 CVAR (Flag, sv_norespawninvul,	dmflags2, DF2_NO_RESPAWN_INVUL);
 CVAR (Flag, sv_shotgunstart,	dmflags2, DF2_COOP_SHOTGUNSTART);
 CVAR (Flag, sv_samespawnspot,	dmflags2, DF2_SAME_SPAWN_SPOT);
+CVAR (Flag, sv_keepteams,		dmflags2, DF2_YES_KEEP_TEAMS);
 
 //==========================================================================
 //
