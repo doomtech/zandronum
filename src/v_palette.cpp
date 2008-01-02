@@ -702,7 +702,8 @@ FDynamicColormap *GetSpecialLights (PalEntry color, PalEntry fade, int desaturat
 	colormap->Desaturate = desaturate;
 	NormalLight.Next = colormap;
 
-	if (screen->UsesColormap())
+	// [BB] The server doesn't have a screen.
+	if ( (NETWORK_GetState( ) != NETSTATE_SERVER) && screen->UsesColormap() )
 	{
 		colormap->Maps = new BYTE[NUMCOLORMAPS*256];
 		colormap->BuildLights ();
