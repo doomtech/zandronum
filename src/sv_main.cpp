@@ -2192,7 +2192,7 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 
 	// Send out any translations that have been edited since the start of the level.
 	for ( ulIdx = 0; ulIdx < g_EditedTranslationList.Size( ); ulIdx++ )
-		SERVERCOMMANDS_CreateTranslation( g_EditedTranslationList[ulIdx].ulIdx, g_EditedTranslationList[ulIdx].ulStart, g_EditedTranslationList[ulIdx].ulEnd );
+		SERVERCOMMANDS_CreateTranslation( g_EditedTranslationList[ulIdx].ulIdx, g_EditedTranslationList[ulIdx].ulStart, g_EditedTranslationList[ulIdx].ulEnd, g_EditedTranslationList[ulIdx].ulPal1, g_EditedTranslationList[ulIdx].ulPal2 );
 }
 
 //*****************************************************************************
@@ -3048,13 +3048,15 @@ void SERVER_ResetInventory( ULONG ulClient )
 
 //*****************************************************************************
 //
-void SERVER_AddEditedTranslation( ULONG ulTranslation, ULONG ulStart, ULONG ulEnd )
+void SERVER_AddEditedTranslation( ULONG ulTranslation, ULONG ulStart, ULONG ulEnd, ULONG ulPal1, ULONG ulPal2 )
 {
 	EDITEDTRANSLATION_s	Translation;
 
 	Translation.ulIdx = ulTranslation;
 	Translation.ulStart = ulStart;
 	Translation.ulEnd = ulEnd;
+	Translation.ulPal1 = ulPal1;
+	Translation.ulPal2 = ulPal2;
 
 	g_EditedTranslationList.Push( Translation );
 }

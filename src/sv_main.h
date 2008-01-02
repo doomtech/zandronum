@@ -256,6 +256,10 @@ typedef struct
 	ULONG			ulStart;
 	ULONG			ulEnd;
 
+	// translation using palette shifting (compare PCD_TRANSLATIONRANGE1)
+	ULONG			ulPal1;
+	ULONG			ulPal2;
+
 } EDITEDTRANSLATION_s;
 
 //*****************************************************************************
@@ -316,7 +320,7 @@ ULONG		SERVER_GetMaxPacketSize( void );
 char		*SERVER_GetMapMusic( void );
 void		SERVER_SetMapMusic( const char *pszMusic );
 void		SERVER_ResetInventory( ULONG ulClient );
-void		SERVER_AddEditedTranslation( ULONG ulTranslation, ULONG ulStart, ULONG ulEnd );
+void		SERVER_AddEditedTranslation( ULONG ulTranslation, ULONG ulStart, ULONG ulEnd, ULONG ulPal1, ULONG ulPal2 );
 void		SERVER_ClearEditedTranslations( void );
 void		SERVER_ErrorCleanup( void );
 void		SERVER_ParsePacket( BYTESTREAM_s *pByteStream );

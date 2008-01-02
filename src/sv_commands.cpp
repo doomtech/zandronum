@@ -68,6 +68,7 @@
 #include "sv_main.h"
 #include "team.h"
 #include "vectors.h"
+#include "r_translate.h"
 
 // :((((((
 polyobj_t	*GetPolyobj( int polyNum );
@@ -6373,13 +6374,13 @@ void SERVERCOMMANDS_SetCameraToTexture( AActor *pCamera, char *pszTexture, LONG 
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_CreateTranslation( ULONG ulTranslation, ULONG ulStart, ULONG ulEnd, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_CreateTranslation( ULONG ulTranslation, ULONG ulStart, ULONG ulEnd, ULONG ulPal1, ULONG ulPal2, ULONG ulPlayerExtra, ULONG ulFlags )
 {
-/*  [BB] Needs to be adapted to the new translation code (FRemapTable).
 	ULONG	ulIdx;
-	BYTE	*pTranslation;
+	FRemapTable	*pTranslation;
 
-	pTranslation = &translationtables[TRANSLATION_LevelScripted][( ulTranslation * 256 ) - 256];
+	
+	pTranslation = translationtables[TRANSLATION_LevelScripted].GetVal(ulTranslation - 1);
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		if ( SERVER_IsValidClient( ulIdx ) == false )
@@ -6391,13 +6392,12 @@ void SERVERCOMMANDS_CreateTranslation( ULONG ulTranslation, ULONG ulStart, ULONG
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 5 + ( ulEnd - ulStart ) + 1, true );
+		SERVER_CheckClientBuffer( ulIdx, 7, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_CREATETRANSLATION );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulTranslation );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulStart );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulEnd );
-		for ( ; ulStart <= ulEnd; ulStart++ )
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pTranslation[ulStart] );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPal1 );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPal2 );
 	}
-*/
 }

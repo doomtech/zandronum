@@ -10817,11 +10817,12 @@ static void client_SetCameraToTexture( BYTESTREAM_s *pByteStream )
 //
 static void client_CreateTranslation( BYTESTREAM_s *pByteStream )
 {
-/*  [BB] Needs to be adapted to the new translation code (FRemapTable).
 	ULONG	ulTranslation;
 	ULONG	ulStart;
 	ULONG	ulEnd;
-	BYTE	*pTranslation;
+	ULONG	ulPal1;
+	ULONG	ulPal2;
+	FRemapTable	*pTranslation;
 
 	// Read in which translation is being created.
 	ulTranslation = NETWORK_ReadShort( pByteStream );
@@ -10830,6 +10831,9 @@ static void client_CreateTranslation( BYTESTREAM_s *pByteStream )
 	ulStart = NETWORK_ReadByte( pByteStream );
 	ulEnd = NETWORK_ReadByte( pByteStream );
 
+	ulPal1 = NETWORK_ReadByte( pByteStream );
+	ulPal2 = NETWORK_ReadByte( pByteStream );
+
 	// [BB] We need to do this check here, otherwise the client could be crashed
 	// by sending a SVC_CREATETRANSLATION packet with an illegal tranlation number.
 	if ( ulTranslation < 1 || ulTranslation > MAX_ACS_TRANSLATIONS )
@@ -10837,10 +10841,16 @@ static void client_CreateTranslation( BYTESTREAM_s *pByteStream )
 		return;
 	}
 
-	pTranslation = &translationtables[TRANSLATION_LevelScripted][( ulTranslation * 256 ) - 256];
-	for ( ; ulStart <= ulEnd; ulStart++ )
-		pTranslation[ulStart] = NETWORK_ReadByte( pByteStream );
-*/
+	pTranslation = translationtables[TRANSLATION_LevelScripted].GetVal(ulTranslation - 1);
+
+	if (pTranslation == NULL)
+	{
+		pTranslation = new FRemapTable;
+		translationtables[TRANSLATION_LevelScripted].SetVal(ulTranslation - 1, pTranslation);
+	}
+	pTranslation->MakeIdentity();
+	pTranslation->AddIndexRange(ulStart, ulEnd, ulPal1, ulPal2);
+	pTranslation->UpdateNative();
 }
 
 //*****************************************************************************
