@@ -182,6 +182,7 @@ static	void	client_MoveThingExact( BYTESTREAM_s *pByteStream );
 static	void	client_DamageThing( BYTESTREAM_s *pByteStream );
 static	void	client_KillThing( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingState( BYTESTREAM_s *pByteStream );
+static	void	client_SetThingTarget( BYTESTREAM_s *pByteStream );
 static	void	client_DestroyThing( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingAngle( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingAngleExact( BYTESTREAM_s *pByteStream );
@@ -196,7 +197,7 @@ static	void	client_SetThingSpecial2( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingTics( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingTID( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingGravity( BYTESTREAM_s *pByteStream );
-static	void	client_SetThingFrame( BYTESTREAM_s *pByteStream );
+static	void	client_SetThingFrame( BYTESTREAM_s *pByteStream, bool bCallStateFunction );
 static	void	client_SetWeaponAmmoGive( BYTESTREAM_s *pByteStream );
 static	void	client_ThingIsCorpse( BYTESTREAM_s *pByteStream );
 static	void	client_HideThing( BYTESTREAM_s *pByteStream );
@@ -530,6 +531,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_DAMAGETHING",
 	"SVC_KILLTHING",
 	"SVC_SETTHINGSTATE",
+	"SVC_SETTHINGTARGET",
 	"SVC_DESTROYTHING",
 	"SVC_SETTHINGANGLE",
 	"SVC_SETTHINGANGLEEXACT",
@@ -545,6 +547,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETTHINGTID",
 	"SVC_SETTHINGGRAVITY",
 	"SVC_SETTHINGFRAME",
+	"SVC_SETTHINGFRAMENF",
 	"SVC_SETWEAPONAMMOGIVE",
 	"SVC_THINGISCORPSE",
 	"SVC_HIDETHING",
@@ -1621,6 +1624,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		client_SetThingState( pByteStream );
 		break;
+	case SVC_SETTHINGTARGET:
+
+		client_SetThingTarget( pByteStream );
+		break;
 	case SVC_DESTROYTHING:
 
 		client_DestroyThing( pByteStream );
@@ -1679,7 +1686,11 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 		break;
 	case SVC_SETTHINGFRAME:
 
-		client_SetThingFrame( pByteStream );
+		client_SetThingFrame( pByteStream, true );
+		break;
+	case SVC_SETTHINGFRAMENF:
+
+		client_SetThingFrame( pByteStream, false );
 		break;
 	case SVC_SETWEAPONAMMOGIVE:
 
@@ -5443,6 +5454,40 @@ static void client_SetThingState( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
+static void client_SetThingTarget( BYTESTREAM_s *pByteStream )
+{
+	AActor		*pActor;
+	AActor		*pTarget;
+	LONG		lID;
+	LONG		lTargetID;
+
+	// Read in the network ID for the object to have its target changed.
+	lID = NETWORK_ReadShort( pByteStream );
+
+	// Read in the network ID of the new target.
+	lTargetID = NETWORK_ReadShort( pByteStream );
+
+	// Find the actor associated with the ID.
+	pActor = CLIENT_FindThingByNetID( lID );
+	if ( pActor == NULL )
+	{
+		// There should probably be the potential for a warning message here.
+		return;
+	}
+
+	// Find the target associated with the ID.
+	pTarget = CLIENT_FindThingByNetID( lTargetID );
+	if ( pTarget == NULL )
+	{
+		// There should probably be the potential for a warning message here.
+		return;
+	}
+
+	pActor->target = pTarget;
+}
+
+//*****************************************************************************
+//
 static void client_DestroyThing( BYTESTREAM_s *pByteStream )
 {
 	AActor	*pActor;
@@ -5956,7 +6001,7 @@ static void client_SetThingGravity( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-static void client_SetThingFrame( BYTESTREAM_s *pByteStream )
+static void client_SetThingFrame( BYTESTREAM_s *pByteStream, bool bCallStateFunction )
 {
 	LONG			lID;
 	const char		*pszState;
@@ -5986,12 +6031,28 @@ static void client_SetThingFrame( BYTESTREAM_s *pByteStream )
 		return;
 	}
 
+	// [BB] In this case lOffset is just the offset from pActor->SpawnState.
+	// Handle this accordingly.
+	if ( stricmp(pszState,"SOffs") == 0 )
+	{
+		if ( bCallStateFunction )
+			pActor->SetState( pActor->SpawnState + lOffset );
+		else
+			pActor->SetStateNF( pActor->SpawnState + lOffset );
+		return;
+	}
+
 	// Build the state name list.
 	MakeStateNameList( pszState, &StateList );
 
 	pNewState = RUNTIME_TYPE( pActor )->ActorInfo->FindState( StateList.Size( ), &StateList[0] );
 	if ( pNewState )
-		pActor->SetState( pNewState + lOffset );
+	{
+		if ( bCallStateFunction )
+			pActor->SetState( pNewState + lOffset );
+		else
+			pActor->SetStateNF( pNewState + lOffset );
+	}
 /*
 	LONG		lID;
 	LONG		lFrame;
