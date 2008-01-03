@@ -3283,7 +3283,9 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 				AInventory *fly = player->mo->FindInventory (NAME_ArtiFly);
 				if (fly != NULL)
 				{
-					player->mo->UseInventory (fly);
+					// [BB] The server tells the client that it used the fly item.
+					if( NETWORK_GetState( ) != NETSTATE_CLIENT )
+						player->mo->UseInventory (fly);
 				}
 			}
 		}
