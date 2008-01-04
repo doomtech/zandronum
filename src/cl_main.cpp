@@ -193,6 +193,7 @@ static	void	client_SetThingArguments( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingTranslation( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingProperty( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingSound( BYTESTREAM_s *pByteStream );
+static	void	client_SetThingSpecial1( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingSpecial2( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingTics( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingTID( BYTESTREAM_s *pByteStream );
@@ -542,6 +543,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETTHINGTRANSLATION",
 	"SVC_SETTHINGPROPERTY",
 	"SVC_SETTHINGSOUND",
+	"SVC_SETTHINGSPECIAL1",
 	"SVC_SETTHINGSPECIAL2",
 	"SVC_SETTHINGTICS",
 	"SVC_SETTHINGTID",
@@ -1667,6 +1669,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETTHINGSOUND:
 
 		client_SetThingSound( pByteStream );
+		break;
+	case SVC_SETTHINGSPECIAL1:
+
+		client_SetThingSpecial1( pByteStream );
 		break;
 	case SVC_SETTHINGSPECIAL2:
 
@@ -5884,6 +5890,34 @@ static void client_SetThingSound( BYTESTREAM_s *pByteStream )
 		Printf( "client_SetThingSound: Unknown sound, %d!\n", ulSound );
 		return;
 	}
+}
+
+//*****************************************************************************
+//
+static void client_SetThingSpecial1( BYTESTREAM_s *pByteStream )
+{
+	LONG	lID;
+	LONG	lSpecial1;
+	AActor	*pActor;
+
+	// Get the ID of the actor whose special2 is being updated.
+	lID = NETWORK_ReadShort( pByteStream );
+
+	// Get the actor's special2.
+	lSpecial1 = NETWORK_ReadShort( pByteStream );
+
+	// Now try to find the corresponding actor.
+	pActor = CLIENT_FindThingByNetID( lID );
+	if ( pActor == NULL )
+	{
+#ifdef CLIENT_WARNING_MESSAGES
+		Printf( "client_SetThingSpecial1: Couldn't find thing: %d\n", lID );
+#endif
+		return;
+	}
+
+	// Set one of the actor's special1.
+	pActor->special1 = lSpecial1;
 }
 
 //*****************************************************************************
