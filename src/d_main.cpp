@@ -670,6 +670,12 @@ void D_Display ()
 				}
 			}
 
+			if ((hw2d = screen->Begin2D(viewactive)))
+			{
+				// Redraw everything every frame when using 2D accel
+				SB_state = screen->GetPageCount();
+				BorderNeedRefresh = screen->GetPageCount();
+			}
 			if (automapactive)
 			{
 				int saved_ST_Y=ST_Y;
@@ -677,13 +683,10 @@ void D_Display ()
 				AM_Drawer ();
 				ST_Y = saved_ST_Y;
 			}
-			if ((hw2d = screen->Begin2D(true)))
+			if (!automapactive || viewactive)
 			{
-				// Redraw everything every frame when using 2D accel
-				SB_state = screen->GetPageCount();
-				BorderNeedRefresh = screen->GetPageCount();
+				R_RefreshViewBorder ();
 			}
-			R_RefreshViewBorder ();
 
 	#ifdef ALTERNATIVE_HUD
 
