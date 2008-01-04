@@ -2214,7 +2214,19 @@ static void C_TabComplete (bool goForward)
 		TabSize = CmdLine[0] - TabStart + 2;
 
 		if (!FindTabCommand ((char *)(CmdLine + TabStart), &TabPos, TabSize))
-			return;		// No initial matches
+		{
+			// [RC] Hack to auto-complete RCON commands.
+			if ( ( TabSize > 5 ) && ( strstr((char *)(CmdLine + TabStart), "rcon") != NULL ) )
+			{
+				TabStart += 5;
+				TabSize -=5;
+
+				if (!FindTabCommand ((char *)(CmdLine + TabStart), &TabPos, TabSize))
+					return;		// No matches even without "RCON".
+			}
+			else
+				return;		// No initial matches
+		}		
 
 		// Show a list of possible completions, if more than one.
 		if (TabbedList || con_notablist)
