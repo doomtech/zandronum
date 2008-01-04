@@ -586,6 +586,7 @@ static bool callvote_CheckValidity( char *pszCommand, char *pszParameters )
 			return ( false );
 		break;
 	case VOTECMD_MAP:
+	case VOTECMD_CHANGEMAP:
 
 		// Don't allow the command if the map doesn't exist.
 		if ( !P_CheckIfMapExists( pszParameters ) )
@@ -593,34 +594,19 @@ static bool callvote_CheckValidity( char *pszCommand, char *pszParameters )
 		// Don't allow to leave the maprotation (Only the server knows the maprotation)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
-			if ( sv_maprotation )
+			if ( sv_maprotation && ( MAPROTATION_IsMapInRotation( pszParameters ) == false ) )
 			{
-				Printf ( "%s\n", pszParameters );
-				if( !MAPROTATION_IsMapInRotation( pszParameters ) )
+				SERVER_PrintfPlayer( PRINT_HIGH, SERVER_GetCurrentClient(), "This map is not in the map rotation.\n" );
+				Printf ( "map %s is not in the map rotation\n", pszParameters );
 				return ( false );
 			}
 		}
 		break;
-	case VOTECMD_CHANGEMAP:
-
-		// Don't allow the command if the map doesn't exist.
-		if ( P_CheckIfMapExists( pszParameters ) == false )
-			return ( false );
-
-		// Don't allow to leave the maprotation (only the server knows the maprotation).
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		{
-			if ( sv_maprotation )
-			{
-				Printf ( "%s\n", pszParameters );
-				if( MAPROTATION_IsMapInRotation( pszParameters ) == false )
-					return ( false );
-			}
-		}
-		break;
 	case VOTECMD_FRAGLIMIT:
+	case VOTECMD_WINLIMIT:
+	case VOTECMD_DUELLIMIT:
 
-		// Fraglimit must be from 0-255.
+		// limit must be from 0-255.
 		if (( parameterInt < 0 ) || ( parameterInt >= 256 ))
 			return ( false );
 		else if ( parameterInt == 0 )
@@ -631,44 +617,9 @@ static bool callvote_CheckValidity( char *pszCommand, char *pszParameters )
 		sprintf( pszParameters, "%d", parameterInt );
 		break;
 	case VOTECMD_TIMELIMIT:
-
-		// Timelimit must be from 0-65535.
-		if (( parameterInt < 0 ) || ( parameterInt >= 65536 ))
-			return ( false );
-		else if ( parameterInt == 0 )
-		{
-			if (( pszParameters[0] != '0' ) || ( strlen( pszParameters ) != 1 ))
-				return ( false );
-		}
-		sprintf( pszParameters, "%d", parameterInt );
-		break;
-	case VOTECMD_WINLIMIT:
-
-		// Winlimit must be from 0-255.
-		if (( parameterInt < 0 ) || ( parameterInt >= 256 ))
-			return ( false );
-		else if ( parameterInt == 0 )
-		{
-			if (( pszParameters[0] != '0' ) || ( strlen( pszParameters ) != 1 ))
-				return ( false );
-		}
-		sprintf( pszParameters, "%d", parameterInt );
-		break;
-	case VOTECMD_DUELLIMIT:
-
-		// Duellimit must be from 0-255.
-		if (( parameterInt < 0 ) || ( parameterInt >= 256 ))
-			return ( false );
-		else if ( parameterInt == 0 )
-		{
-			if (( pszParameters[0] != '0' ) || ( strlen( pszParameters ) != 1 ))
-				return ( false );
-		}
-		sprintf( pszParameters, "%d", parameterInt );
-		break;
 	case VOTECMD_POINTLIMIT:
 
-		// Pointlimit must be from 0-65535.
+		// limit must be from 0-65535.
 		if (( parameterInt < 0 ) || ( parameterInt >= 65536 ))
 			return ( false );
 		else if ( parameterInt == 0 )
