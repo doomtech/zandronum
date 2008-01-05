@@ -99,7 +99,7 @@ void			SERVERCONSOLE_UpdateAverageInboundDataTransfer( LONG lData );
 void			SERVERCONSOLE_UpdatePeakInboundDataTransfer( LONG lData );
 void			SERVERCONSOLE_UpdateCurrentInboundDataTransfer( LONG lData );
 void			SERVERCONSOLE_UpdateTotalUptime( LONG lData );
-void			SERVERCONSOLE_SetCurrent6Mapname( const char *pszString );
+void			SERVERCONSOLE_SetCurrentMapname( const char *pszString );
 void			SERVERCONSOLE_SetupColumns( void );
 void			SERVERCONSOLE_ReListPlayers( void );
 void			SERVERCONSOLE_UpdatePlayerInfo( LONG lPlayer, ULONG ulUpdateFlags );
