@@ -2148,7 +2148,7 @@ void DAutosaver::Tick ()
 //
 extern gamestate_t 	wipegamestate; 
  
-void SERVERCONSOLE_SetCurrentMapname( char *pszString );
+void SERVERCONSOLE_SetCurrentMapname( const char *pszString );
 void SERVERCONSOLE_UpdateScoreboard( void );
 void SERVERCONSOLE_UpdatePlayerInfo( LONG lPlayer, ULONG ulUpdateFlags );
 void G_DoLoadLevel (int position, bool autosave)

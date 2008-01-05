@@ -2295,11 +2295,11 @@ DWORD WINAPI MainDoomThread( LPVOID )
 */
 //*****************************************************************************
 //
-void SERVERCONSOLE_UpdateTitleString( char *pszString )
+void SERVERCONSOLE_UpdateTitleString( const char *pszString )
 {
 	char		szString[256];
 
-	sprintf( szString, "%s", pszString );
+	strncpy( szString, pszString, 255 );
 	SetDlgItemText( g_hDlg, IDC_TITLEBOX, szString );
 	SetWindowText( g_hDlg, szString );
 }
@@ -3197,7 +3197,7 @@ void SERVERCONSOLE_UpdateTotalUptime( LONG lData )
 
 //*****************************************************************************
 //
-void SERVERCONSOLE_SetCurrentMapname( char *pszString )
+void SERVERCONSOLE_SetCurrentMapname( const char *pszString )
 {
 	SendMessage(g_hDlgStatusBar, SB_SETTEXT, (WPARAM)3, (LPARAM)pszString);
 }
@@ -4758,29 +4758,31 @@ void SERVERCONSOLE_UpdateGeneralSettings( HWND hDlg )
 
 //*****************************************************************************
 //
-void SERVERCONSOLE_UpdateOperatingSystem( char *pszString )
+void SERVERCONSOLE_UpdateOperatingSystem( const char *pszString )
 {
-	sprintf( g_szOperatingSystem, pszString );
+	strncpy( g_szOperatingSystem, pszString, 255 );
 }
 
 //*****************************************************************************
 //
-void SERVERCONSOLE_UpdateCPUSpeed( char *pszString )
+void SERVERCONSOLE_UpdateCPUSpeed( const char *pszString )
 {
-	sprintf( g_szCPUSpeed, pszString );
+	strncpy( g_szCPUSpeed, pszString, 255 );
 }
 
 //*****************************************************************************
 //
 void SERVERCONSOLE_UpdateVendor( char *pszString )
 {
-	sprintf( g_szVendor, pszString );
+	strncpy( g_szVendor, pszString, 255 );
 }
 
 //*****************************************************************************
 //
+int iz = 0;
 void SERVERCONSOLE_Print( char *pszString )
 {
+	iz++;
 	char	szBuffer[SERVERCONSOLE_TEXTLENGTH];
 	char	szInputString[SERVERCONSOLE_TEXTLENGTH];
 	char	*psz;
@@ -4866,26 +4868,41 @@ void SERVERCONSOLE_Print( char *pszString )
 	LONG	lTotalLines;
 	LONG	lLineDiff;
 
-	lVisibleLine = SendDlgItemMessage( g_hDlg, IDC_CONSOLEBOX, EM_GETFIRSTVISIBLELINE, 0, 0 );
-	lTotalLines = SendDlgItemMessage( g_hDlg, IDC_CONSOLEBOX, EM_GETLINECOUNT, 0, 0 );
-	lLineDiff = lTotalLines - lVisibleLine;
-	bScroll = ( lLineDiff <= 9);
-
+	/* [RC] Added to fix a bug, but found I didn't need it after all. Yet. Should be useful for the next bug here.
+		LONG	lNewLines = 0
+		LONG	lCharactersInLine = 0;
+	*/
 	while ( 1 )
 	{
 		c = *pszString++;
+//		lCharactersInLine++;
 		if ( c == '\0' )
 		{
 			*psz = c;
 			break;
 		}
+
 		if ( c == '\n' )
 		{
 			*psz++ = '\r';
 			g_ulNumLines++;
+//			lNewLines++;
+//			lCharactersInLine=0;
 		}
+/*
+		if ( lCharactersInLine > 74 )
+		{
+			lCharactersInLine = 0;
+			lNewLines++;
+		}
+*/
 		*psz++ = c;
 	}
+
+	lVisibleLine = SendDlgItemMessage( g_hDlg, IDC_CONSOLEBOX, EM_GETFIRSTVISIBLELINE, 0, 0 );
+	lTotalLines = SendDlgItemMessage( g_hDlg, IDC_CONSOLEBOX, EM_GETLINECOUNT, 0, 0 );
+	lLineDiff = lTotalLines - lVisibleLine;
+	bScroll = ( lLineDiff <= 9 ); //+ lNewLines );
 
 	if ( GetDlgItemText( g_hDlg, IDC_CONSOLEBOX, szBuffer, sizeof( szBuffer )))
 	{
@@ -4930,7 +4947,7 @@ void SERVERCONSOLE_Print( char *pszString )
 
 		// If the user has scrolled all the way down, autoscroll.
 		if ( bScroll )
-			SendDlgItemMessage( g_hDlg, IDC_CONSOLEBOX, EM_LINESCROLL, 0, g_ulNumLines );
+			SendDlgItemMessage( g_hDlg, IDC_CONSOLEBOX, EM_LINESCROLL, 0, lTotalLines );
 
 		// If they've scrolled up but we've trimmed the text, don't autoscroll and compensate. 
 		else if( bRecycled && ( lVisibleLine > 0 ) )
