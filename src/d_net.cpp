@@ -63,7 +63,7 @@
 #include "team.h"
 #include "chat.h"
 
-int P_StartScript (AActor *who, line_t *where, int script, char *map, bool backSide,
+int P_StartScript (AActor *who, line_t *where, int script, const char *map, bool backSide,
 					int arg0, int arg1, int arg2, int always, bool wantResultCode, bool net);
 
 EXTERN_CVAR (Int, disableautosave)

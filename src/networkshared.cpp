@@ -265,7 +265,7 @@ void NETWORK_WriteFloat( BYTESTREAM_s *pByteStream, float Float )
 
 //*****************************************************************************
 //
-char *NETWORK_ReadString( BYTESTREAM_s *pByteStream )
+const char *NETWORK_ReadString( BYTESTREAM_s *pByteStream )
 {
 	char			c;
 	ULONG			ulIdx;

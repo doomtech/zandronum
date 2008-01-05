@@ -5872,7 +5872,7 @@ static void addDefered (level_info_t *i, acsdefered_t::EType type, int script, i
 
 EXTERN_CVAR (Bool, sv_cheats)
 
-int P_StartScript (AActor *who, line_t *where, int script, char *map, bool backSide,
+int P_StartScript (AActor *who, line_t *where, int script, const char *map, bool backSide,
 					int arg0, int arg1, int arg2, int always, bool wantResultCode, bool net)
 {
 	if (map == NULL || 0 == strnicmp (level.mapname, map, 8))

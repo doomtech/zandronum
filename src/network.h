@@ -542,7 +542,7 @@ void			NETWORK_ConvertNameToKeyLetter( const char *&pszName );
 void			NETWORK_ConvertWeaponNameToKeyLetter( const char *&pszName );
 void			NETWORK_ConvertKeyLetterToFullString( const char *&pszName, bool bPrintKeyLetter );
 void			NETWORK_ConvertWeaponKeyLetterToFullString( const char *&pszName );
-void			NETWORK_GenerateMapLumpMD5Hash( MapData *Map, const LONG LumpNumber, char *pszMD5Hash );
+void			NETWORK_GenerateMapLumpMD5Hash( MapData *Map, const LONG LumpNumber, FString &MD5Hash );
 
 // Access functions.
 LONG			NETWORK_GetState( void );

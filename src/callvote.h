@@ -87,7 +87,7 @@ typedef enum
 void			CALLVOTE_Construct( void );
 void			CALLVOTE_Tick( void );
 //void			CALLVOTE_Render( void );
-void			CALLVOTE_BeginVote( char *pszCommand, char *pszParameters, ULONG ulPlayer );
+void			CALLVOTE_BeginVote( FString Command, FString Parameters, ULONG ulPlayer );
 void			CALLVOTE_ClearVote( void );
 bool			CALLVOTE_VoteYes( ULONG ulPlayer );
 bool			CALLVOTE_VoteNo( ULONG ulPlayer );

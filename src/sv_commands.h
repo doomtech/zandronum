@@ -245,7 +245,7 @@ void	SERVERCOMMANDS_StartSectorSequence( sector_t *pSector, char *pszSequence, U
 void	SERVERCOMMANDS_StopSectorSequence( sector_t *pSector, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 
 // Voting commands. These handle the voting.
-void	SERVERCOMMANDS_CallVote( ULONG ulPlayer, char *pszCommand, char *pszParameters, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
+void	SERVERCOMMANDS_CallVote( ULONG ulPlayer, FString Command, FString Parameters, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_PlayerVote( ULONG ulPlayer, bool bVoteYes, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_VoteEnded( bool bVotePassed, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 

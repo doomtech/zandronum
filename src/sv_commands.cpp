@@ -4668,14 +4668,11 @@ void SERVERCOMMANDS_StopSectorSequence( sector_t *pSector, ULONG ulPlayerExtra, 
 //*****************************************************************************
 //*****************************************************************************
 //
-void SERVERCOMMANDS_CallVote( ULONG ulPlayer, char *pszCommand, char *pszParameters, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_CallVote( ULONG ulPlayer, FString Command, FString Parameters, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 
 	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
-		return;
-
-	if (( pszCommand == NULL ) || ( pszParameters == NULL ))
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -4689,11 +4686,11 @@ void SERVERCOMMANDS_CallVote( ULONG ulPlayer, char *pszCommand, char *pszParamet
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 2 + (ULONG)strlen( pszCommand ) + (ULONG)strlen( pszParameters ), true );
+		SERVER_CheckClientBuffer( ulIdx, 2 + ULONG( Command.Len() ) + ULONG ( Parameters.Len() ), true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_CALLVOTE );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszCommand );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszParameters );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, Command.GetChars() );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, Parameters.GetChars() );
 	}
 }
 

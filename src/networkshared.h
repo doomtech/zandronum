@@ -195,7 +195,7 @@ void			NETWORK_WriteLong( BYTESTREAM_s *pByteStream, int Long );
 float			NETWORK_ReadFloat( BYTESTREAM_s *pByteStream );
 void			NETWORK_WriteFloat( BYTESTREAM_s *pByteStream, float Float );
 
-char			*NETWORK_ReadString( BYTESTREAM_s *pByteStream );
+const char		*NETWORK_ReadString( BYTESTREAM_s *pByteStream );
 void			NETWORK_WriteString( BYTESTREAM_s *pByteStream, const char *pszString );
 
 void			NETWORK_WriteBuffer( BYTESTREAM_s *pByteStream, const void *pvBuffer, int nLength );

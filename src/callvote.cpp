@@ -80,7 +80,7 @@ static	ULONG					g_ulKickVoteTargetPlayerIdx;
 static	void			callvote_EndVote( void );
 static	ULONG			callvote_CountPlayersWhoVotedYes( void );
 static	ULONG			callvote_CountPlayersWhoVotedNo( void );
-static	bool			callvote_CheckValidity( char *pszCommand, char *pszParameters );
+static	bool			callvote_CheckValidity( FString &Command, FString &Parameters );
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -154,22 +154,22 @@ void CALLVOTE_Tick( void )
 
 //*****************************************************************************
 //
-void CALLVOTE_BeginVote( char *pszCommand, char *pszParameters, ULONG ulPlayer )
+void CALLVOTE_BeginVote( FString Command, FString Parameters, ULONG ulPlayer )
 {
 	// Don't allow a vote in the middle of another vote.
 	if ( g_VoteState != VOTESTATE_NOVOTE )
 		return;
 
 	// Check and make sure all the parameters are valid.
-	if ( callvote_CheckValidity( pszCommand, pszParameters ) == false )
+	if ( callvote_CheckValidity( Command, Parameters ) == false )
 		return;
 
 	// Play the announcer sound for this.
 	ANNOUNCER_PlayEntry( cl_announcer, "VoteNow" );
 
-	g_VoteCommand = pszCommand;
+	g_VoteCommand = Command;
 	g_VoteCommand += " ";
-	g_VoteCommand += pszParameters;
+	g_VoteCommand += Parameters;
 	g_ulVoteCaller = ulPlayer;
 
 	g_VoteState = VOTESTATE_INVOTE;
@@ -177,7 +177,7 @@ void CALLVOTE_BeginVote( char *pszCommand, char *pszParameters, ULONG ulPlayer )
 
 	// Inform clients about the vote being called.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_CallVote( ulPlayer, pszCommand, pszParameters );
+		SERVERCOMMANDS_CallVote( ulPlayer, Command, Parameters );
 }
 
 //*****************************************************************************
@@ -519,46 +519,43 @@ static ULONG callvote_CountPlayersWhoVotedNo( void )
 
 //*****************************************************************************
 //
-static bool callvote_CheckValidity( char *pszCommand, char *pszParameters )
+static bool callvote_CheckValidity( FString &Command, FString &Parameters )
 {
 	ULONG	ulIdx;
 	ULONG	ulVoteCmd;
 	char	szPlayerName[64];
 
-	if (( pszCommand == NULL ) || ( pszParameters == NULL ))
-		return ( false );
-
 	// First, figure out what kind of command we're trying to vote on.
-	if ( stricmp( "kick", pszCommand ) == 0 )
+	if ( Command.CompareNoCase( "kick" ) == 0 )
 		ulVoteCmd = VOTECMD_KICK;
 	else {
 		int i = 0;
-		while( pszParameters[i] != '\0' )
+		while( Parameters.GetChars()[i] != '\0' )
 		{
-		  if( pszParameters[i] == ';' || pszParameters[i] == ' ' )
+		  if( Parameters.GetChars()[i] == ';' || Parameters.GetChars()[i] == ' ' )
 			  	return ( false );
 		  i++;
 		}
-		if ( stricmp( "map", pszCommand ) == 0 )
+		if ( Command.CompareNoCase( "map" ) == 0 )
 			ulVoteCmd = VOTECMD_MAP;
-		else if ( stricmp( "changemap", pszCommand ) == 0 )
+		else if ( Command.CompareNoCase( "changemap" ) == 0 )
 			ulVoteCmd = VOTECMD_CHANGEMAP;
-		else if ( stricmp( "fraglimit", pszCommand ) == 0 )
+		else if ( Command.CompareNoCase( "fraglimit" ) == 0 )
 			ulVoteCmd = VOTECMD_FRAGLIMIT;
-		else if ( stricmp( "timelimit", pszCommand ) == 0 )
+		else if ( Command.CompareNoCase( "timelimit" ) == 0 )
 			ulVoteCmd = VOTECMD_TIMELIMIT;
-		else if ( stricmp( "winlimit", pszCommand ) == 0 )
+		else if ( Command.CompareNoCase( "winlimit" ) == 0 )
 			ulVoteCmd = VOTECMD_WINLIMIT;
-		else if ( stricmp( "duellimit", pszCommand ) == 0 )
+		else if ( Command.CompareNoCase( "duellimit" ) == 0 )
 			ulVoteCmd = VOTECMD_DUELLIMIT;
-		else if ( stricmp( "pointlimit", pszCommand ) == 0 )
+		else if ( Command.CompareNoCase( "pointlimit" ) == 0 )
 			ulVoteCmd = VOTECMD_POINTLIMIT;
 		else
 			return ( false );
 	}
 
 	// Then, make sure the parameter for each vote is valid.
-	int parameterInt = atoi( pszParameters );
+	int parameterInt = atoi( Parameters.GetChars() );
 	switch ( ulVoteCmd )
 	{
 	case VOTECMD_KICK:
@@ -574,7 +571,7 @@ static bool callvote_CheckValidity( char *pszCommand, char *pszParameters )
 			// Compare the parameter to the version of the player's name without color codes.
 			sprintf( szPlayerName, players[ulIdx].userinfo.netname );
 			V_RemoveColorCodes( szPlayerName );
-			if ( stricmp( pszParameters, szPlayerName ) == 0 ){
+			if ( Parameters.CompareNoCase( szPlayerName ) == 0 ){
 				// to prevent a player from escaping a kick vote by renaming, we store his ID at the beginning of the vote
 				g_ulKickVoteTargetPlayerIdx = ulIdx;
 				break;
@@ -589,15 +586,15 @@ static bool callvote_CheckValidity( char *pszCommand, char *pszParameters )
 	case VOTECMD_CHANGEMAP:
 
 		// Don't allow the command if the map doesn't exist.
-		if ( !P_CheckIfMapExists( pszParameters ) )
+		if ( !P_CheckIfMapExists( Parameters.GetChars() ) )
 			return ( false );
 		// Don't allow to leave the maprotation (Only the server knows the maprotation)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
-			if ( sv_maprotation && ( MAPROTATION_IsMapInRotation( pszParameters ) == false ) )
+			if ( sv_maprotation && ( MAPROTATION_IsMapInRotation( Parameters.GetChars() ) == false ) )
 			{
 				SERVER_PrintfPlayer( PRINT_HIGH, SERVER_GetCurrentClient(), "This map is not in the map rotation.\n" );
-				Printf ( "map %s is not in the map rotation\n", pszParameters );
+				Printf ( "map %s is not in the map rotation\n", Parameters.GetChars() );
 				return ( false );
 			}
 		}
@@ -611,10 +608,10 @@ static bool callvote_CheckValidity( char *pszCommand, char *pszParameters )
 			return ( false );
 		else if ( parameterInt == 0 )
 		{
-			if (( pszParameters[0] != '0' ) || ( strlen( pszParameters ) != 1 ))
+			if (( Parameters.GetChars()[0] != '0' ) || ( Parameters.Len() != 1 ))
 				return ( false );
 		}
-		sprintf( pszParameters, "%d", parameterInt );
+		Parameters.Format( "%d", parameterInt );
 		break;
 	case VOTECMD_TIMELIMIT:
 	case VOTECMD_POINTLIMIT:
@@ -624,10 +621,10 @@ static bool callvote_CheckValidity( char *pszCommand, char *pszParameters )
 			return ( false );
 		else if ( parameterInt == 0 )
 		{
-			if (( pszParameters[0] != '0' ) || ( strlen( pszParameters ) != 1 ))
+			if (( Parameters.GetChars()[0] != '0' ) || ( Parameters.Len() != 1 ))
 				return ( false );
 		}
-		sprintf( pszParameters, "%d", parameterInt );
+		Parameters.Format( "%d", parameterInt );
 		break;
 	default:
 
