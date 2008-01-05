@@ -6196,7 +6196,9 @@ static void client_ThingIsCorpse( BYTESTREAM_s *pByteStream )
 			pActor->SetStateNF( pBaseState );
 			pDeadState = pBaseState->GetNextState( );
 		}
-	} while (( pDeadState != NULL ) && ( pDeadState == pBaseState + 1 ));
+	} while (( pDeadState != NULL ) && ( pDeadState == pBaseState + 1 ) && ( pBaseState->GetTics() != -1 ) );
+	// [BB] The "pBaseState->GetTics() != -1" check prevents jumping over frames with ininite duration.
+	// This matters if the death state is not ended by "Stop".
 
 	if ( bIsMonster )
 		level.killed_monsters++;
