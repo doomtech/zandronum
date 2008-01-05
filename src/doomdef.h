@@ -280,6 +280,9 @@ enum
 
 	// Player cannot respawn
 	DF2_NO_RESPAWN			= 1 << 15,
+
+	// Player keeps his team after a map change.
+	DF2_YES_KEEP_TEAMS		= 1 << 16,
 };
 
 // [RH] Compatibility flags.

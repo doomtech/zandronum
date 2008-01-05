@@ -183,6 +183,7 @@ static	void	client_MoveThingExact( BYTESTREAM_s *pByteStream );
 static	void	client_DamageThing( BYTESTREAM_s *pByteStream );
 static	void	client_KillThing( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingState( BYTESTREAM_s *pByteStream );
+static	void	client_SetThingTarget( BYTESTREAM_s *pByteStream );
 static	void	client_DestroyThing( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingAngle( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingAngleExact( BYTESTREAM_s *pByteStream );
@@ -193,11 +194,12 @@ static	void	client_SetThingArguments( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingTranslation( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingProperty( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingSound( BYTESTREAM_s *pByteStream );
+static	void	client_SetThingSpecial1( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingSpecial2( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingTics( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingTID( BYTESTREAM_s *pByteStream );
 static	void	client_SetThingGravity( BYTESTREAM_s *pByteStream );
-static	void	client_SetThingFrame( BYTESTREAM_s *pByteStream );
+static	void	client_SetThingFrame( BYTESTREAM_s *pByteStream, bool bCallStateFunction );
 static	void	client_SetWeaponAmmoGive( BYTESTREAM_s *pByteStream );
 static	void	client_ThingIsCorpse( BYTESTREAM_s *pByteStream );
 static	void	client_HideThing( BYTESTREAM_s *pByteStream );
@@ -531,6 +533,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_DAMAGETHING",
 	"SVC_KILLTHING",
 	"SVC_SETTHINGSTATE",
+	"SVC_SETTHINGTARGET",
 	"SVC_DESTROYTHING",
 	"SVC_SETTHINGANGLE",
 	"SVC_SETTHINGANGLEEXACT",
@@ -541,11 +544,13 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETTHINGTRANSLATION",
 	"SVC_SETTHINGPROPERTY",
 	"SVC_SETTHINGSOUND",
+	"SVC_SETTHINGSPECIAL1",
 	"SVC_SETTHINGSPECIAL2",
 	"SVC_SETTHINGTICS",
 	"SVC_SETTHINGTID",
 	"SVC_SETTHINGGRAVITY",
 	"SVC_SETTHINGFRAME",
+	"SVC_SETTHINGFRAMENF",
 	"SVC_SETWEAPONAMMOGIVE",
 	"SVC_THINGISCORPSE",
 	"SVC_HIDETHING",
@@ -1622,6 +1627,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		client_SetThingState( pByteStream );
 		break;
+	case SVC_SETTHINGTARGET:
+
+		client_SetThingTarget( pByteStream );
+		break;
 	case SVC_DESTROYTHING:
 
 		client_DestroyThing( pByteStream );
@@ -1662,6 +1671,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		client_SetThingSound( pByteStream );
 		break;
+	case SVC_SETTHINGSPECIAL1:
+
+		client_SetThingSpecial1( pByteStream );
+		break;
 	case SVC_SETTHINGSPECIAL2:
 
 		client_SetThingSpecial2( pByteStream );
@@ -1680,7 +1693,11 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 		break;
 	case SVC_SETTHINGFRAME:
 
-		client_SetThingFrame( pByteStream );
+		client_SetThingFrame( pByteStream, true );
+		break;
+	case SVC_SETTHINGFRAMENF:
+
+		client_SetThingFrame( pByteStream, false );
 		break;
 	case SVC_SETWEAPONAMMOGIVE:
 
@@ -2444,9 +2461,9 @@ void CLIENT_WaitForServer( void )
 
 //*****************************************************************************
 //
-void CLIENT_AuthenticateLevel( char *pszMapName )
+void CLIENT_AuthenticateLevel( const char *pszMapName )
 {
-	char		szChecksum[64];
+	FString		Checksum;
 	MapData		*pMap;
 
 	// [BB] Check if the wads contain the map at all. If not, don't send any checksums.
@@ -2459,14 +2476,14 @@ void CLIENT_AuthenticateLevel( char *pszMapName )
 	}
 
 	// Generate and send checksums for the map lumps.
-	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_VERTEXES, szChecksum );
-	NETWORK_WriteString( &g_LocalBuffer.ByteStream, szChecksum );
-	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_LINEDEFS, szChecksum );
-	NETWORK_WriteString( &g_LocalBuffer.ByteStream, szChecksum );
-	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_SIDEDEFS, szChecksum );
-	NETWORK_WriteString( &g_LocalBuffer.ByteStream, szChecksum );
-	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_SECTORS, szChecksum );
-	NETWORK_WriteString( &g_LocalBuffer.ByteStream, szChecksum );
+	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_VERTEXES, Checksum );
+	NETWORK_WriteString( &g_LocalBuffer.ByteStream, Checksum.GetChars() );
+	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_LINEDEFS, Checksum );
+	NETWORK_WriteString( &g_LocalBuffer.ByteStream, Checksum.GetChars() );
+	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_SIDEDEFS, Checksum );
+	NETWORK_WriteString( &g_LocalBuffer.ByteStream, Checksum.GetChars() );
+	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_SECTORS, Checksum );
+	NETWORK_WriteString( &g_LocalBuffer.ByteStream, Checksum.GetChars() );
 
 	// Finally, free the map.
 	delete ( pMap );
@@ -2474,7 +2491,7 @@ void CLIENT_AuthenticateLevel( char *pszMapName )
 
 //*****************************************************************************
 //
-AActor *CLIENT_SpawnThing( char *pszName, fixed_t X, fixed_t Y, fixed_t Z, LONG lNetID )
+AActor *CLIENT_SpawnThing( const char *pszName, fixed_t X, fixed_t Y, fixed_t Z, LONG lNetID )
 {
 	AActor			*pActor;
 	const PClass	*pType;
@@ -2571,7 +2588,7 @@ AActor *CLIENT_SpawnThing( char *pszName, fixed_t X, fixed_t Y, fixed_t Z, LONG 
 
 //*****************************************************************************
 //
-void CLIENT_SpawnMissile( char *pszName, fixed_t X, fixed_t Y, fixed_t Z, fixed_t MomX, fixed_t MomY, fixed_t MomZ, LONG lNetID, LONG lTargetNetID )
+void CLIENT_SpawnMissile( const char *pszName, fixed_t X, fixed_t Y, fixed_t Z, fixed_t MomX, fixed_t MomY, fixed_t MomZ, LONG lNetID, LONG lTargetNetID )
 {
 	AActor				*pActor;
 	const PClass		*pType;
@@ -3736,7 +3753,7 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 	LONG		lInflictorID;
 	LONG		lHealth;
 	FName		MOD;
-	char		*pszString;
+	const char	*pszString;
 	FName		DamageType;
 	AActor		*pSource;
 	AActor		*pInflictor;
@@ -3909,7 +3926,7 @@ static void client_SetPlayerArmor( BYTESTREAM_s *pByteStream )
 {
 	ULONG		ulPlayer;
 	LONG		lArmorAmount;
-	char		*pszArmorIconName;
+	const char	*pszArmorIconName;
 	AInventory	*pArmor;
 
 	// Read in the player whose armor display is updated.
@@ -3997,7 +4014,7 @@ static void client_SetPlayerUserInfo( BYTESTREAM_s *pByteStream )
 	char		szName[MAXPLAYERNAME + 1];
 	LONG		lGender = 0;
 	LONG		lColor = 0;
-	char		*pszSkin = NULL;
+	const char	*pszSkin = NULL;
 	LONG		lRailgunTrailColor = 0;
 	LONG		lHandicap = 0;
 	LONG		lSkin;
@@ -4366,7 +4383,7 @@ static void client_SetPlayerPoisonCount( BYTESTREAM_s *pByteStream )
 static void client_SetPlayerAmmoCapacity( BYTESTREAM_s *pByteStream )
 {
 	ULONG			ulPlayer;
-	char			*pszName;
+	const char		*pszName;
 	LONG			lMaxAmount;
 	AInventory		*pAmmo;
 
@@ -4829,9 +4846,9 @@ static void client_PlayerIsSpectator( BYTESTREAM_s *pByteStream )
 //
 static void client_PlayerSay( BYTESTREAM_s *pByteStream )
 {
-	ULONG	ulPlayer;
-	ULONG	ulMode;
-	char	*pszString;
+	ULONG		ulPlayer;
+	ULONG		ulMode;
+	const char	*pszString;
 
 	// Read in the player who's supposed to be talking.
 	ulPlayer = NETWORK_ReadByte( pByteStream );
@@ -5023,7 +5040,7 @@ static void client_SpawnThing( BYTESTREAM_s *pByteStream )
 	fixed_t			X;
 	fixed_t			Y;
 	fixed_t			Z;
-	char			*pszName;
+	const char		*pszName;
 	LONG			lID;
 
 	// Read in the XYZ location of the item.
@@ -5048,7 +5065,7 @@ static void client_SpawnThingNoNetID( BYTESTREAM_s *pByteStream )
 	fixed_t			X;
 	fixed_t			Y;
 	fixed_t			Z;
-	char			*pszName;
+	const char		*pszName;
 
 	// Read in the XYZ location of the item.
 	X = NETWORK_ReadShort( pByteStream ) << FRACBITS;
@@ -5069,7 +5086,7 @@ static void client_SpawnThingExact( BYTESTREAM_s *pByteStream )
 	fixed_t			X;
 	fixed_t			Y;
 	fixed_t			Z;
-	char			*pszName;
+	const char		*pszName;
 	LONG			lID;
 
 	// Read in the XYZ location of the item.
@@ -5094,7 +5111,7 @@ static void client_SpawnThingExactNoNetID( BYTESTREAM_s *pByteStream )
 	fixed_t			X;
 	fixed_t			Y;
 	fixed_t			Z;
-	char			*pszName;
+	const char		*pszName;
 
 	// Read in the XYZ location of the item.
 	X = NETWORK_ReadLong( pByteStream );
@@ -5444,6 +5461,40 @@ static void client_SetThingState( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
+static void client_SetThingTarget( BYTESTREAM_s *pByteStream )
+{
+	AActor		*pActor;
+	AActor		*pTarget;
+	LONG		lID;
+	LONG		lTargetID;
+
+	// Read in the network ID for the object to have its target changed.
+	lID = NETWORK_ReadShort( pByteStream );
+
+	// Read in the network ID of the new target.
+	lTargetID = NETWORK_ReadShort( pByteStream );
+
+	// Find the actor associated with the ID.
+	pActor = CLIENT_FindThingByNetID( lID );
+	if ( pActor == NULL )
+	{
+		// There should probably be the potential for a warning message here.
+		return;
+	}
+
+	// Find the target associated with the ID.
+	pTarget = CLIENT_FindThingByNetID( lTargetID );
+	if ( pTarget == NULL )
+	{
+		// There should probably be the potential for a warning message here.
+		return;
+	}
+
+	pActor->target = pTarget;
+}
+
+//*****************************************************************************
+//
 static void client_DestroyThing( BYTESTREAM_s *pByteStream )
 {
 	AActor	*pActor;
@@ -5788,10 +5839,10 @@ static void client_SetThingProperty( BYTESTREAM_s *pByteStream )
 //
 static void client_SetThingSound( BYTESTREAM_s *pByteStream )
 {
-	LONG	lID;
-	ULONG	ulSound;
-	char	*pszSound;
-	AActor	*pActor;
+	LONG		lID;
+	ULONG		ulSound;
+	const char	*pszSound;
+	AActor		*pActor;
 
 	// Get the ID of the actor whose translation is being updated.
 	lID = NETWORK_ReadShort( pByteStream );
@@ -5840,6 +5891,34 @@ static void client_SetThingSound( BYTESTREAM_s *pByteStream )
 		Printf( "client_SetThingSound: Unknown sound, %d!\n", ulSound );
 		return;
 	}
+}
+
+//*****************************************************************************
+//
+static void client_SetThingSpecial1( BYTESTREAM_s *pByteStream )
+{
+	LONG	lID;
+	LONG	lSpecial1;
+	AActor	*pActor;
+
+	// Get the ID of the actor whose special2 is being updated.
+	lID = NETWORK_ReadShort( pByteStream );
+
+	// Get the actor's special2.
+	lSpecial1 = NETWORK_ReadShort( pByteStream );
+
+	// Now try to find the corresponding actor.
+	pActor = CLIENT_FindThingByNetID( lID );
+	if ( pActor == NULL )
+	{
+#ifdef CLIENT_WARNING_MESSAGES
+		Printf( "client_SetThingSpecial1: Couldn't find thing: %d\n", lID );
+#endif
+		return;
+	}
+
+	// Set one of the actor's special1.
+	pActor->special1 = lSpecial1;
 }
 
 //*****************************************************************************
@@ -5957,7 +6036,7 @@ static void client_SetThingGravity( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-static void client_SetThingFrame( BYTESTREAM_s *pByteStream )
+static void client_SetThingFrame( BYTESTREAM_s *pByteStream, bool bCallStateFunction )
 {
 	LONG			lID;
 	const char		*pszState;
@@ -5987,12 +6066,28 @@ static void client_SetThingFrame( BYTESTREAM_s *pByteStream )
 		return;
 	}
 
+	// [BB] In this case lOffset is just the offset from pActor->SpawnState.
+	// Handle this accordingly.
+	if ( stricmp(pszState,"SOffs") == 0 )
+	{
+		if ( bCallStateFunction )
+			pActor->SetState( pActor->SpawnState + lOffset );
+		else
+			pActor->SetStateNF( pActor->SpawnState + lOffset );
+		return;
+	}
+
 	// Build the state name list.
 	MakeStateNameList( pszState, &StateList );
 
 	pNewState = RUNTIME_TYPE( pActor )->ActorInfo->FindState( StateList.Size( ), &StateList[0] );
 	if ( pNewState )
-		pActor->SetState( pNewState + lOffset );
+	{
+		if ( bCallStateFunction )
+			pActor->SetState( pNewState + lOffset );
+		else
+			pActor->SetStateNF( pNewState + lOffset );
+	}
 /*
 	LONG		lID;
 	LONG		lFrame;
@@ -6102,7 +6197,9 @@ static void client_ThingIsCorpse( BYTESTREAM_s *pByteStream )
 			pActor->SetStateNF( pBaseState );
 			pDeadState = pBaseState->GetNextState( );
 		}
-	} while (( pDeadState != NULL ) && ( pDeadState == pBaseState + 1 ));
+	} while (( pDeadState != NULL ) && ( pDeadState == pBaseState + 1 ) && ( pBaseState->GetTics() != -1 ) );
+	// [BB] The "pBaseState->GetTics() != -1" check prevents jumping over frames with ininite duration.
+	// This matters if the death state is not ended by "Stop".
 
 	if ( bIsMonster )
 		level.killed_monsters++;
@@ -6404,7 +6501,7 @@ static void client_SpawnPuff( BYTESTREAM_s *pByteStream )
 	fixed_t			X;
 	fixed_t			Y;
 	fixed_t			Z;
-	char			*pszName;
+	const char		*pszName;
 	ULONG			ulState;
 	bool			bReceiveTranslation;
 	AActor			*pActor;
@@ -6460,8 +6557,8 @@ static void client_SpawnPuff( BYTESTREAM_s *pByteStream )
 //
 static void client_Print( BYTESTREAM_s *pByteStream )
 {
-	ULONG	ulPrintLevel;
-	char	*pszString;
+	ULONG		ulPrintLevel;
+	const char	*pszString;
 
 	// Read in the print level.
 	ulPrintLevel = NETWORK_ReadByte( pByteStream );
@@ -6484,8 +6581,8 @@ static void client_Print( BYTESTREAM_s *pByteStream )
 //
 static void client_PrintMid( BYTESTREAM_s *pByteStream )
 {
-	char	*pszString;
-	bool	bBold;
+	const char	*pszString;
+	bool		bBold;
 
 	// Read in the string that's supposed to be printed.
 	pszString = NETWORK_ReadString( pByteStream );
@@ -6519,7 +6616,7 @@ static void client_PrintHUDMessage( BYTESTREAM_s *pByteStream )
 	LONG		lHUDHeight;
 	LONG		lColor;
 	float		fHoldTime;
-	char		*pszFont;
+	const char	*pszFont;
 	bool		bLog;
 	LONG		lID;
 	DHUDMessage	*pMsg;
@@ -6592,7 +6689,7 @@ static void client_PrintHUDMessageFadeOut( BYTESTREAM_s *pByteStream )
 	LONG				lColor;
 	float				fHoldTime;
 	float				fFadeOutTime;
-	char				*pszFont;
+	const char			*pszFont;
 	bool				bLog;
 	LONG				lID;
 	DHUDMessageFadeOut	*pMsg;
@@ -6670,7 +6767,7 @@ static void client_PrintHUDMessageFadeInOut( BYTESTREAM_s *pByteStream )
 	float					fHoldTime;
 	float					fFadeInTime;
 	float					fFadeOutTime;
-	char					*pszFont;
+	const char				*pszFont;
 	bool					bLog;
 	LONG					lID;
 	DHUDMessageFadeInOut	*pMsg;
@@ -6752,7 +6849,7 @@ static void client_PrintHUDMessageTypeOnFadeOut( BYTESTREAM_s *pByteStream )
 	float						fTypeOnTime;
 	float						fHoldTime;
 	float						fFadeOutTime;
-	char						*pszFont;
+	const char					*pszFont;
 	bool						bLog;
 	LONG						lID;
 	DHUDMessageTypeOnFadeOut	*pMsg;
@@ -7329,7 +7426,7 @@ static void client_TeamFlagDropped( BYTESTREAM_s *pByteStream )
 //
 static void client_SpawnMissile( BYTESTREAM_s *pByteStream )
 {
-	char				*pszName;
+	const char			*pszName;
 	fixed_t				X;
 	fixed_t				Y;
 	fixed_t				Z;
@@ -7364,7 +7461,7 @@ static void client_SpawnMissile( BYTESTREAM_s *pByteStream )
 //
 static void client_SpawnMissileExact( BYTESTREAM_s *pByteStream )
 {
-	char				*pszName;
+	const char			*pszName;
 	fixed_t				X;
 	fixed_t				Y;
 	fixed_t				Z;
@@ -7466,8 +7563,8 @@ static void client_MissileExplode( BYTESTREAM_s *pByteStream )
 //
 static void client_WeaponSound( BYTESTREAM_s *pByteStream )
 {
-	ULONG	ulPlayer;
-	char	*pszSound;
+	ULONG		ulPlayer;
+	const char	*pszSound;
 
 	// Read in the player who's creating a weapon sound.
 	ulPlayer = NETWORK_ReadByte( pByteStream );
@@ -7846,7 +7943,7 @@ static void client_SetSectorFlat( BYTESTREAM_s *pByteStream )
 	sector_t		*pSector;
 	LONG			lSectorID;
 	char			szCeilingFlatName[MAX_NETWORK_STRING];
-	char			*pszFloorFlatName;
+	const char		*pszFloorFlatName;
 	LONG			lFlatLump;
 
 	// Read in the sector ID.
@@ -8470,7 +8567,7 @@ static void client_SetLineTexture( BYTESTREAM_s *pByteStream )
 	line_t		*pLine;
 	side_t		*pSide;
 	ULONG		ulLineIdx;
-	char		*pszTextureName;
+	const char	*pszTextureName;
 	ULONG		ulSide;
 	ULONG		ulPosition;
 	LONG		lTexture;
@@ -8571,17 +8668,17 @@ static void client_SetSideFlags( BYTESTREAM_s *pByteStream )
 //
 static void client_ACSScriptExecute( BYTESTREAM_s *pByteStream )
 {
-	ULONG	ulScript;
-	LONG	lID;
-	LONG	lLineIdx;
-	char	*pszMap;
-	bool	bBackSide;
-	ULONG	ulArg0;
-	ULONG	ulArg1;
-	ULONG	ulArg2;
-	bool	bAlways;
-	AActor	*pActor;
-	line_s	*pLine;
+	ULONG		ulScript;
+	LONG		lID;
+	LONG		lLineIdx;
+	const char	*pszMap;
+	bool		bBackSide;
+	ULONG		ulArg0;
+	ULONG		ulArg1;
+	ULONG		ulArg2;
+	bool		bAlways;
+	AActor		*pActor;
+	line_s		*pLine;
 
 	// Read in the script to be executed.
 	ulScript = NETWORK_ReadShort( pByteStream );
@@ -8626,10 +8723,10 @@ static void client_ACSScriptExecute( BYTESTREAM_s *pByteStream )
 //
 static void client_Sound( BYTESTREAM_s *pByteStream )
 {
-	char	*pszSoundString;
-	LONG	lChannel;
-	LONG	lVolume;
-	LONG	lAttenuation;
+	const char	*pszSoundString;
+	LONG		lChannel;
+	LONG		lVolume;
+	LONG		lAttenuation;
 
 	// Read in the channel.
 	lChannel = NETWORK_ReadByte( pByteStream );
@@ -8653,12 +8750,12 @@ static void client_Sound( BYTESTREAM_s *pByteStream )
 //
 static void client_SoundActor( BYTESTREAM_s *pByteStream )
 {
-	LONG	lID;
-	char	*pszSoundString;
-	LONG	lChannel;
-	LONG	lVolume;
-	LONG	lAttenuation;
-	AActor	*pActor;
+	LONG		lID;
+	const char	*pszSoundString;
+	LONG		lChannel;
+	LONG		lVolume;
+	LONG		lAttenuation;
+	AActor		*pActor;
 
 	// Read in the spot ID.
 	lID = NETWORK_ReadShort( pByteStream );
@@ -8695,12 +8792,12 @@ static void client_SoundActor( BYTESTREAM_s *pByteStream )
 //
 static void client_SoundPoint( BYTESTREAM_s *pByteStream )
 {
-	char	*pszSoundString;
-	LONG	lChannel;
-	LONG	lVolume;
-	LONG	lAttenuation;
-	fixed_t	X;
-	fixed_t	Y;
+	const char	*pszSoundString;
+	LONG		lChannel;
+	LONG		lVolume;
+	LONG		lAttenuation;
+	fixed_t		X;
+	fixed_t		Y;
 
 	// Read in the XY of the sound.
 	X = NETWORK_ReadShort( pByteStream ) << FRACBITS;
@@ -8729,7 +8826,7 @@ static void client_SoundPoint( BYTESTREAM_s *pByteStream )
 static void client_StartSectorSequence( BYTESTREAM_s *pByteStream )
 {
 	LONG		lSectorID;
-	char		*pszSequence;
+	const char	*pszSequence;
 	sector_t	*pSector;
 
 	// Read in the sector ID.
@@ -8772,21 +8869,21 @@ static void client_StopSectorSequence( BYTESTREAM_s *pByteStream )
 //
 static void client_CallVote( BYTESTREAM_s *pByteStream )
 {
-	char	szCommand[128];
-	char	*pszParameters;
-	ULONG	ulVoteCaller;
+	FString		command;
+	FString		parameters;
+	ULONG		ulVoteCaller;
 
 	// Read in the vote starter.
 	ulVoteCaller = NETWORK_ReadByte( pByteStream );
 
 	// Read in the command.
-	sprintf( szCommand, NETWORK_ReadString( pByteStream ));
+	command = NETWORK_ReadString( pByteStream );
 
 	// Read in the parameters.
-	pszParameters = NETWORK_ReadString( pByteStream );
+	parameters = NETWORK_ReadString( pByteStream );
 
 	// Begin the vote!
-	CALLVOTE_BeginVote( szCommand, pszParameters, ulVoteCaller );
+	CALLVOTE_BeginVote( command, parameters, ulVoteCaller );
 }
 
 //*****************************************************************************
@@ -8825,7 +8922,7 @@ static void client_VoteEnded( BYTESTREAM_s *pByteStream )
 static void client_MapLoad( BYTESTREAM_s *pByteStream )
 {
 	bool	bPlaying;
-	char	*pszMap;
+	const char	*pszMap;
 	
 	// Read in the lumpname of the map we're about to load.
 	pszMap = NETWORK_ReadString( pByteStream );
@@ -8857,7 +8954,7 @@ static void client_MapLoad( BYTESTREAM_s *pByteStream )
 //
 static void client_MapNew( BYTESTREAM_s *pByteStream )
 {
-	char	*pszMapName;
+	const char	*pszMapName;
 
 	// Read in the new mapname the server is switching the level to.
 	pszMapName = NETWORK_ReadString( pByteStream );
@@ -8883,7 +8980,7 @@ static void client_MapNew( BYTESTREAM_s *pByteStream )
 static void client_MapExit( BYTESTREAM_s *pByteStream )
 {
 	LONG	lPos;
-	char	*pszNextMap;
+	const char	*pszNextMap;
 
 	// Read in the position we're supposed to spawn at (is this needed?).
 	lPos = NETWORK_ReadByte( pByteStream );
@@ -8904,7 +9001,7 @@ static void client_MapExit( BYTESTREAM_s *pByteStream )
 //
 static void client_MapAuthenticate( BYTESTREAM_s *pByteStream )
 {
-	char	*pszMapName;
+	const char	*pszMapName;
 
 	pszMapName = NETWORK_ReadString( pByteStream );
 
@@ -8964,7 +9061,7 @@ static void client_SetMapNumTotalItems( BYTESTREAM_s *pByteStream )
 //
 static void client_SetMapMusic( BYTESTREAM_s *pByteStream )
 {
-	char	*pszMusicString;
+	const char	*pszMusicString;
 
 	// Read in the music string.
 	pszMusicString = NETWORK_ReadString( pByteStream );
@@ -8977,8 +9074,8 @@ static void client_SetMapMusic( BYTESTREAM_s *pByteStream )
 //
 static void client_SetMapSky( BYTESTREAM_s *pByteStream )
 {
-	char	*pszSky1;
-	char	*pszSky2;
+	const char	*pszSky1;
+	const char	*pszSky2;
 
 	// Read in the texture name of the first sky.
 	pszSky1 = NETWORK_ReadString( pByteStream );
@@ -9008,7 +9105,7 @@ static void client_GiveInventory( BYTESTREAM_s *pByteStream )
 {
 	const PClass	*pType;
 	ULONG			ulPlayer;
-	char			*pszName;
+	const char		*pszName;
 	LONG			lAmount;
 	AInventory		*pInventory;
 
@@ -9107,7 +9204,7 @@ static void client_TakeInventory( BYTESTREAM_s *pByteStream )
 {
 	const PClass	*pType;
 	ULONG			ulPlayer;
-	char			*pszName;
+	const char		*pszName;
 	LONG			lAmount;
 	AInventory		*pInventory;
 
@@ -9164,7 +9261,7 @@ static void client_GivePowerup( BYTESTREAM_s *pByteStream )
 {
 	const PClass	*pType;
 	ULONG			ulPlayer;
-	char			*pszName;
+	const char		*pszName;
 	LONG			lAmount;
 	LONG			lEffectTics;
 	AInventory		*pInventory;
@@ -10782,11 +10879,11 @@ static void client_GenericCheat( BYTESTREAM_s *pByteStream )
 //
 static void client_SetCameraToTexture( BYTESTREAM_s *pByteStream )
 {
-	LONG	lID;
-	char	*pszTexture;
-	LONG	lFOV;
-	AActor	*pCamera;
-	LONG	lPicNum;
+	LONG		lID;
+	const char	*pszTexture;
+	LONG		lFOV;
+	AActor		*pCamera;
+	LONG		lPicNum;
 
 	// Read in the ID of the camera.
 	lID = NETWORK_ReadShort( pByteStream );

@@ -326,8 +326,8 @@ void CLIENTDEMO_WritePacket( BYTESTREAM_s *pByteStream )
 //
 void CLIENTDEMO_ReadPacket( void )
 {
-	LONG	lCommand;
-	char	*pszString;
+	LONG		lCommand;
+	const char	*pszString;
 
 	while ( 1 )
 	{  

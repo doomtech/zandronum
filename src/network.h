@@ -282,6 +282,7 @@ typedef enum
 	SVC_DAMAGETHING,
 	SVC_KILLTHING,
 	SVC_SETTHINGSTATE,
+	SVC_SETTHINGTARGET,
 	SVC_DESTROYTHING,
 	SVC_SETTHINGANGLE,
 	SVC_SETTHINGANGLEEXACT,
@@ -292,11 +293,13 @@ typedef enum
 	SVC_SETTHINGTRANSLATION,
 	SVC_SETTHINGPROPERTY,
 	SVC_SETTHINGSOUND,
+	SVC_SETTHINGSPECIAL1,
 	SVC_SETTHINGSPECIAL2,
 	SVC_SETTHINGTICS,
 	SVC_SETTHINGTID,
 	SVC_SETTHINGGRAVITY,
 	SVC_SETTHINGFRAME,
+	SVC_SETTHINGFRAMENF,
 	SVC_SETWEAPONAMMOGIVE,
 	SVC_THINGISCORPSE,
 	SVC_HIDETHING,
@@ -539,7 +542,7 @@ void			NETWORK_ConvertNameToKeyLetter( const char *&pszName );
 void			NETWORK_ConvertWeaponNameToKeyLetter( const char *&pszName );
 void			NETWORK_ConvertKeyLetterToFullString( const char *&pszName, bool bPrintKeyLetter );
 void			NETWORK_ConvertWeaponKeyLetterToFullString( const char *&pszName );
-void			NETWORK_GenerateMapLumpMD5Hash( MapData *Map, const LONG LumpNumber, char *pszMD5Hash );
+void			NETWORK_GenerateMapLumpMD5Hash( MapData *Map, const LONG LumpNumber, FString &MD5Hash );
 
 // Access functions.
 LONG			NETWORK_GetState( void );

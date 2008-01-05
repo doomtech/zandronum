@@ -1711,6 +1711,27 @@ void SERVERCOMMANDS_SetThingState( AActor *pActor, ULONG ulState )
 
 //*****************************************************************************
 //
+void SERVERCOMMANDS_SetThingTarget( AActor *pActor )
+{
+	ULONG	ulIdx;
+
+	if ( pActor == NULL || pActor->target == NULL )
+		return;
+
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_IsValidClient( ulIdx ) == false )
+			continue;
+
+		SERVER_CheckClientBuffer( ulIdx, 5, true );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGTARGET );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->target->lNetID );
+	}
+}
+
+//*****************************************************************************
+//
 void SERVERCOMMANDS_DestroyThing( AActor *pActor )
 {
 	ULONG	ulIdx;
@@ -2062,6 +2083,33 @@ void SERVERCOMMANDS_SetThingSound( AActor *pActor, ULONG ulSound, char *pszSound
 
 //*****************************************************************************
 //
+void SERVERCOMMANDS_SetThingSpecial1( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	ULONG	ulIdx;
+
+	if ( pActor == NULL )
+		return;
+
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_IsValidClient( ulIdx ) == false )
+			continue;
+
+		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
+			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
+		{
+			continue;
+		}
+
+		SERVER_CheckClientBuffer( ulIdx, 5, true );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGSPECIAL1 );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->special1 );
+	}
+}
+
+//*****************************************************************************
+//
 void SERVERCOMMANDS_SetThingSpecial2( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
@@ -2170,7 +2218,7 @@ void SERVERCOMMANDS_SetThingGravity( AActor *pActor, ULONG ulPlayerExtra, ULONG 
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetThingFrame( AActor *pActor, FState *pState, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetThingFrame( AActor *pActor, FState *pState, ULONG ulPlayerExtra, ULONG ulFlags, bool bCallStateFunction )
 {
 	const char	*pszStateLabel;
 	LONG		lOffset;
@@ -2208,9 +2256,11 @@ void SERVERCOMMANDS_SetThingFrame( AActor *pActor, FState *pState, ULONG ulPlaye
 	}
 
 	// Couldn't find the state, so just try to go based off the spawn state.
+	// [BB] This is a workaround. Therefore name the state "SOffs" so
+	// that the client can handle this differently.
 	if ( pszStateLabel == NULL )
 	{
-		pszStateLabel = "Spawn";
+		pszStateLabel = "SOffs";
 		lOffset = LONG( pState - pActor->SpawnState );
 		if (( lOffset < 0 ) ||
 			( lOffset > 255 ))
@@ -2231,7 +2281,10 @@ void SERVERCOMMANDS_SetThingFrame( AActor *pActor, FState *pState, ULONG ulPlaye
 		}
 
 		SERVER_CheckClientBuffer( ulIdx, 4 + (ULONG)strlen( pszStateLabel ), true );
-		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGFRAME );
+		if ( bCallStateFunction )
+			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGFRAME );
+		else
+			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGFRAMENF );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
 		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszStateLabel );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lOffset );
@@ -4616,14 +4669,11 @@ void SERVERCOMMANDS_StopSectorSequence( sector_t *pSector, ULONG ulPlayerExtra, 
 //*****************************************************************************
 //*****************************************************************************
 //
-void SERVERCOMMANDS_CallVote( ULONG ulPlayer, char *pszCommand, char *pszParameters, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_CallVote( ULONG ulPlayer, FString Command, FString Parameters, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 
 	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
-		return;
-
-	if (( pszCommand == NULL ) || ( pszParameters == NULL ))
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -4637,11 +4687,11 @@ void SERVERCOMMANDS_CallVote( ULONG ulPlayer, char *pszCommand, char *pszParamet
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 2 + (ULONG)strlen( pszCommand ) + (ULONG)strlen( pszParameters ), true );
+		SERVER_CheckClientBuffer( ulIdx, 2 + ULONG( Command.Len() ) + ULONG ( Parameters.Len() ), true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_CALLVOTE );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszCommand );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszParameters );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, Command.GetChars() );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, Parameters.GetChars() );
 	}
 }
 

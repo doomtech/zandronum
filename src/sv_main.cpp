@@ -1023,38 +1023,38 @@ void SERVER_AuthenticateClientLevel( BYTESTREAM_s *pByteStream )
 bool SERVER_PerformAuthenticationChecksum( BYTESTREAM_s *pByteStream )
 {
 	MapData		*pMap;
-	char		szServerVertexString[64];
-	char		szServerLinedefString[64];
-	char		szServerSidedefString[64];
-	char		szServerSectorString[64];
-	char		szClientVertexString[MAX_NETWORK_STRING];
-	char		szClientLinedefString[MAX_NETWORK_STRING];
-	char		szClientSidedefString[MAX_NETWORK_STRING];
-	char		szClientSectorString[MAX_NETWORK_STRING];
+	FString		serverVertexString;
+	FString		serverLinedefString;
+	FString		serverSidedefString;
+	FString		serverSectorString;
+	FString		clientVertexString;
+	FString		clientLinedefString;
+	FString		clientSidedefString;
+	FString		clientSectorString;
 
 	// [BB] Open the map. Since we are already using the map, we won't get a NULL pointer.
 	pMap = P_OpenMapData( level.mapname );
 
 	// Generate checksums for the map lumps.
-	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_VERTEXES, szServerVertexString );
-	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_LINEDEFS, szServerLinedefString );
-	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_SIDEDEFS, szServerSidedefString );
-	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_SECTORS, szServerSectorString );
+	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_VERTEXES, serverVertexString );
+	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_LINEDEFS, serverLinedefString );
+	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_SIDEDEFS, serverSidedefString );
+	NETWORK_GenerateMapLumpMD5Hash( pMap, ML_SECTORS, serverSectorString );
 
 	// Free the map pointer, we don't need it anymore.
 	delete ( pMap );
 
 	// Read in the client's checksum strings.
-	strncpy( szClientVertexString, NETWORK_ReadString( pByteStream ), 64 );
-	strncpy( szClientLinedefString, NETWORK_ReadString( pByteStream ), 64 );
-	strncpy( szClientSidedefString, NETWORK_ReadString( pByteStream ), 64 );
-	strncpy( szClientSectorString, NETWORK_ReadString( pByteStream ), 64 );
+	clientVertexString = NETWORK_ReadString( pByteStream );
+	clientLinedefString = NETWORK_ReadString( pByteStream );
+	clientSidedefString = NETWORK_ReadString( pByteStream );
+	clientSectorString = NETWORK_ReadString( pByteStream );
 
 	// Checksums did not match! Therefore, the level authentication has failed.
-	if (( strcmp( szServerVertexString, szClientVertexString ) != 0 ) ||
-		( strcmp( szServerLinedefString, szClientLinedefString ) != 0 ) ||
-		( strcmp( szServerSidedefString, szClientSidedefString ) != 0 ) ||
-		( strcmp( szServerSectorString, szClientSectorString ) != 0 ))
+	if (( serverVertexString.Compare( clientVertexString ) != 0 ) ||
+		( serverLinedefString.Compare( clientLinedefString ) != 0 ) ||
+		( serverSidedefString.Compare( clientSidedefString ) != 0 ) ||
+		( serverSectorString.Compare( clientSectorString ) != 0 ))
 	{
 		return ( false );
 	}
@@ -1529,7 +1529,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 {
 	LONG			lClient;
 	char			szClientVersion[MAX_NETWORK_STRING];
-	char			szClientPassword[MAX_NETWORK_STRING];
+	FString			clientPassword;
 	char			szServerPassword[MAX_NETWORK_STRING];
 	LONG			lClientNetworkGameVersion;
 	char			szAddress[4][4];
@@ -1585,7 +1585,8 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	strncpy( szClientVersion, NETWORK_ReadString( pByteStream ), 16 );
 
 	// Read in the client's password.
-	strncpy( szClientPassword, strupr( NETWORK_ReadString( pByteStream )), 64 );
+	clientPassword = NETWORK_ReadString( pByteStream );
+	clientPassword.ToUpper();
 
 	// Read in whether or not the client wants to start as a spectator.
 	g_aClients[lClient].bWantStartAsSpectator = !!NETWORK_ReadByte( pByteStream );
@@ -1643,7 +1644,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 		strcpy( szServerPassword, Val.String );
 
 		// Check their password against ours (both not case sensitive).
-		if ( strcmp( strupr( szServerPassword ), szClientPassword ) != 0 )
+		if ( strcmp( strupr( szServerPassword ), clientPassword.GetChars() ) != 0 )
 		{
 			// Client has the wrong password! GET THE FUCK OUT OF HERE!
 			SERVER_ClientError( lClient, NETWORK_ERRORCODE_WRONGPASSWORD );
@@ -1718,7 +1719,7 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 //	ULONG		ulIdx;
 	ULONG		ulFlags;
     player_t	*pPlayer;
-	char		*pszString;
+	FString		nameString;
 	char		szSkin[64];
 	char		szClass[64];
 	char		szOldPlayerName[64];
@@ -1778,17 +1779,17 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 	if ( ulFlags & USERINFO_NAME )
 	{
 		sprintf( szOldPlayerName, pPlayer->userinfo.netname );
-		pszString = NETWORK_ReadString( pByteStream );
+		nameString = NETWORK_ReadString( pByteStream );
 
-		if ( strlen( pszString ) > MAXPLAYERNAME )
-			pszString[MAXPLAYERNAME] = '\0';
+		if ( nameString.Len() > MAXPLAYERNAME )
+			nameString.Truncate(MAXPLAYERNAME);
 
 		// [RC] Remove bad characters from their username.
-		strcpy( pPlayer->userinfo.netname, pszString );
-		V_CleanPlayerName(pszString);
+		strcpy( pPlayer->userinfo.netname, nameString.GetChars() );
+		V_CleanPlayerName(nameString);
 
 		// The user really shouldn't have an invalid name unless they are using a hacked executable.
-		if ( strcmp( pPlayer->userinfo.netname, pszString ) != 0 )
+		if ( nameString.Compare( pPlayer->userinfo.netname ) != 0 )
 		{
 			SERVER_KickPlayer( g_lCurrentClient, "User name contains illegal characters." );
 			return ( false );
@@ -3448,10 +3449,10 @@ static bool server_EndChat( BYTESTREAM_s *pByteStream )
 //
 static bool server_Say( BYTESTREAM_s *pByteStream )
 {
-	ULONG	ulPlayer;
-	ULONG	ulChatMode;
-	char	*pszChatString;
-	ULONG	ulChatInstance;
+	ULONG		ulPlayer;
+	ULONG		ulChatMode;
+	const char	*pszChatString;
+	ULONG		ulChatInstance;
 
 	ulPlayer = g_lCurrentClient;
 
@@ -3510,7 +3511,7 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 	angle_t			Pitch;
 	ULONG			ulGametic;
 	ULONG			ulBits;
-	char			*pszWeapon;
+	const char		*pszWeapon;
 	const PClass	*pType;
 	AInventory		*pInventory;
 //	ULONG			ulIdx;
@@ -3847,10 +3848,11 @@ static bool server_Spectate( BYTESTREAM_s *pByteStream )
 static bool server_RequestJoin( BYTESTREAM_s *pByteStream )
 {
 	UCVarValue	Val;
-	char		szClientJoinPassword[MAX_NETWORK_STRING];
+	FString		clientJoinPassword;
 
 	// Read in the join password.
-	strncpy( szClientJoinPassword, strupr( NETWORK_ReadString( pByteStream )), 64 );
+	clientJoinPassword = NETWORK_ReadString( pByteStream );
+	clientJoinPassword.ToUpper();
 
 	// Player can't rejoin game if he's not spectating!
 	if (( playeringame[g_lCurrentClient] == false ) || ( players[g_lCurrentClient].bSpectating == false ))
@@ -3870,7 +3872,7 @@ static bool server_RequestJoin( BYTESTREAM_s *pByteStream )
 		strcpy( szServerJoinPassword, Val.String );
 
 		// Check their password against ours (both not case sensitive).
-		if ( strcmp( strupr( szServerJoinPassword ), szClientJoinPassword ) != 0 )
+		if ( strcmp( strupr( szServerJoinPassword ), clientJoinPassword.GetChars() ) != 0 )
 		{
 			// Tell the client that the password didn't match.
 			SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "Incorrect join password.\n" );
@@ -3928,7 +3930,7 @@ static bool server_RequestJoin( BYTESTREAM_s *pByteStream )
 static bool server_RequestRCON( BYTESTREAM_s *pByteStream )
 {
 	UCVarValue	Val;
-	char		*pszUserPassword;
+	const char	*pszUserPassword;
 
 	Val = sv_rconpassword.GetGenericRep( CVAR_String );
 
@@ -3954,7 +3956,7 @@ static bool server_RequestRCON( BYTESTREAM_s *pByteStream )
 //
 static bool server_RCONCommand( BYTESTREAM_s *pByteStream )
 {
-	char	*pszCommand;
+	const char	*pszCommand;
 
 	// Read in the command the user sent us.
 	pszCommand = NETWORK_ReadString( pByteStream );
@@ -4009,10 +4011,11 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 	LONG		lDesiredTeam;
 	bool		bOnTeam;
 	UCVarValue	Val;
-	char		szClientJoinPassword[MAX_NETWORK_STRING];
+	FString		clientJoinPassword;
 
 	// Read in the join password.
-	strncpy( szClientJoinPassword, strupr( NETWORK_ReadString( pByteStream )), 64 );
+	clientJoinPassword = NETWORK_ReadString( pByteStream );
+	clientJoinPassword.ToUpper();
 
 	lDesiredTeam = NETWORK_ReadByte( pByteStream );
 	if ( playeringame[g_lCurrentClient] == false )
@@ -4068,7 +4071,7 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 		strcpy( szServerJoinPassword, Val.String );
 
 		// Check their password against ours (both not case sensitive).
-		if ( strcmp( strupr( szServerJoinPassword ), szClientJoinPassword ) != 0 )
+		if ( strcmp( strupr( szServerJoinPassword ), clientJoinPassword.GetChars() ) != 0 )
 		{
 			// Tell the client that the password didn't match.
 			SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "Incorrect join password.\n" );
@@ -4221,8 +4224,8 @@ static bool server_GenericCheat( BYTESTREAM_s *pByteStream )
 //
 static bool server_GiveCheat( BYTESTREAM_s *pByteStream )
 {
-	char	*pszItemName;
-	ULONG	ulAmount;
+	const char	*pszItemName;
+	ULONG		ulAmount;
 
 	// Read in the item name.
 	pszItemName = NETWORK_ReadString( pByteStream );
@@ -4268,7 +4271,7 @@ static bool server_GiveCheat( BYTESTREAM_s *pByteStream )
 //
 static bool server_SummonCheat( BYTESTREAM_s *pByteStream, bool bFriend )
 {
-	char			*pszName;
+	const char		*pszName;
 	AActor			*pSource;
 	const PClass	*pType;
 	AActor			*pActor;
@@ -4553,9 +4556,9 @@ static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 //
 static bool server_CallVote( BYTESTREAM_s *pByteStream )
 {
-	ULONG	ulVoteCmd;
-	char	*pszParameters;
-	char	szCommand[128];
+	ULONG		ulVoteCmd;
+	const char	*pszParameters;
+	char		szCommand[128];
 
 	// Read in the type of vote happening.
 	ulVoteCmd = NETWORK_ReadByte( pByteStream );

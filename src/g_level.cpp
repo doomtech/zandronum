@@ -2152,7 +2152,7 @@ void DAutosaver::Tick ()
 //
 extern gamestate_t 	wipegamestate; 
  
-void SERVERCONSOLE_SetCurrentMapname( char *pszString );
+void SERVERCONSOLE_SetCurrentMapname( const char *pszString );
 void SERVERCONSOLE_UpdateScoreboard( void );
 void SERVERCONSOLE_UpdatePlayerInfo( LONG lPlayer, ULONG ulUpdateFlags );
 void G_DoLoadLevel (int position, bool autosave)
@@ -2177,11 +2177,14 @@ void G_DoLoadLevel (int position, bool autosave)
 		TEAM_SetReturnTicks( i, 0 );
 	}
 
-	// Clear everyone's team.
-	for (i = 0; i < MAXPLAYERS; i++)
+	if ( !(dmflags2 & DF2_YES_KEEP_TEAMS) )
 	{
-		players[i].ulTeam = NUM_TEAMS;
-		players[i].bOnTeam = false;
+		// Clear everyone's team.
+		for (i = 0; i < MAXPLAYERS; i++)
+		{
+			players[i].ulTeam = NUM_TEAMS;
+			players[i].bOnTeam = false;
+		}
 	}
 
 	if ( dmflags2 & DF2_NO_TEAM_SELECT )
@@ -2216,8 +2219,11 @@ void G_DoLoadLevel (int position, bool autosave)
 	// Reset their team.
 	else
 	{
-		for (i = 0; i < MAXPLAYERS; i++)
-			PLAYER_SetTeam( &players[i], NUM_TEAMS, true );
+		if ( !(dmflags2 & DF2_YES_KEEP_TEAMS) )
+		{
+			for (i = 0; i < MAXPLAYERS; i++)
+				PLAYER_SetTeam( &players[i], NUM_TEAMS, true );
+		}
 	}
 
 	// If a campaign is allowed, see if there is one for this map.

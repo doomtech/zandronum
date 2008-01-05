@@ -634,6 +634,18 @@ void V_CleanPlayerName( char *pszString )
 	}
 }
 
+// [BB] Version of V_CleanPlayerName that accepts a FString as argument.
+void V_CleanPlayerName( FString &String )
+{
+	const int length = (int) String.Len();
+	char *tempCharArray = new char[length+1];
+	strncpy( tempCharArray, String.GetChars(), length );
+	tempCharArray[length] = 0;
+	V_CleanPlayerName( tempCharArray );
+	String = tempCharArray;
+	delete[] tempCharArray;
+}
+
 // [RC] Converts COL_ numbers to their \c counterparts.
 char V_GetColorChar( ULONG ulColor )
 {

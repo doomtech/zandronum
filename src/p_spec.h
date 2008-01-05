@@ -1149,7 +1149,7 @@ bool EV_TeleportSector (int tag, int source_tid, int dest_tid, bool fog, int gro
 // [RH] ACS (see also p_acs.h)
 //
 
-int  P_StartScript (AActor *who, line_t *where, int script, char *map, bool backSide,
+int  P_StartScript (AActor *who, line_t *where, int script, const char *map, bool backSide,
 					int arg0, int arg1, int arg2, int always, bool wantResultCode, bool net=false);
 void P_SuspendScript (int script, char *map);
 void P_TerminateScript (int script, char *map);

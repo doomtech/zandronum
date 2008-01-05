@@ -651,7 +651,7 @@ void NETWORK_ConvertWeaponKeyLetterToFullString( const char *&pszName )
 
 //*****************************************************************************
 //
-void NETWORK_GenerateMapLumpMD5Hash( MapData *Map, const LONG LumpNumber, char *pszMD5Hash )
+void NETWORK_GenerateMapLumpMD5Hash( MapData *Map, const LONG LumpNumber, FString &MD5Hash )
 {
 	LONG lLumpSize = Map->Size( LumpNumber );
 	BYTE *pbData = new BYTE[lLumpSize];
@@ -660,7 +660,7 @@ void NETWORK_GenerateMapLumpMD5Hash( MapData *Map, const LONG LumpNumber, char *
 	Map->Read( LumpNumber, pbData );
 
 	// Perform the checksum on our buffer, and free it.
-	CMD5Checksum::GetMD5( pbData, lLumpSize, pszMD5Hash );
+	CMD5Checksum::GetMD5( pbData, lLumpSize, MD5Hash );
 	delete ( pbData );
 }
 

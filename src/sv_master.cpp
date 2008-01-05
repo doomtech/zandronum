@@ -582,10 +582,10 @@ CVAR( Bool, sv_updatemaster, true, CVAR_SERVERINFO )
 CVAR( Bool, sv_broadcast, true, CVAR_ARCHIVE )
 
 // Name of this server on launchers.
-void	SERVERCONSOLE_UpdateTitleString( char *pszString );
+void	SERVERCONSOLE_UpdateTitleString( const char *pszString );
 CUSTOM_CVAR( String, sv_hostname, "Unnamed Skulltag server", CVAR_ARCHIVE )
 {
-	SERVERCONSOLE_UpdateTitleString( (char *)(const char *)self );
+	SERVERCONSOLE_UpdateTitleString( (const char *)self );
 }
 
 // Website that has the wad this server is using, possibly with other info.

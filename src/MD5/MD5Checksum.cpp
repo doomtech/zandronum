@@ -168,7 +168,7 @@ NOTES:			Provides an interface to the CMD5Checksum class. Any data that can
 				A buffer of zero length can be checksummed; all buffers of zero length 
 				will return the same checksum. 
 *****************************************************************************************/
-void CMD5Checksum::GetMD5(BYTE* pBuf, UINT nLength, char *pszOutString)
+void CMD5Checksum::GetMD5(BYTE* pBuf, UINT nLength, FString &OutString)
 {
 	//entry invariants
 //	AfxIsValidAddress(pBuf,nLength,FALSE);
@@ -176,7 +176,7 @@ void CMD5Checksum::GetMD5(BYTE* pBuf, UINT nLength, char *pszOutString)
 	//calculate and return the checksum
 	CMD5Checksum MD5Checksum;
 	MD5Checksum.Update( pBuf, nLength );
-	MD5Checksum.Final(pszOutString);
+	MD5Checksum.Final(OutString);
 }
 
 
@@ -479,7 +479,7 @@ ARGUMENTS:		None
 NOTES:			Performs the final MD5 checksum calculation ('Update' does most of the work,
 				this function just finishes the calculation.) 
 *****************************************************************************************/
-void CMD5Checksum::Final(char *pszOutString)
+void CMD5Checksum::Final(FString &OutString)
 {
 	//Save number of bits
 	BYTE Bits[8];
@@ -538,7 +538,7 @@ void CMD5Checksum::Final(char *pszOutString)
 		strcat( szMD5String, sz );
 	}
 
-	sprintf( pszOutString, szMD5String );
+	OutString = szMD5String;
 }
 
 
