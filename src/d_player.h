@@ -460,9 +460,12 @@ void P_CheckPlayerSprites();
 
 
 #define CROUCHSPEED (FRACUNIT/12)
-#define MAX_DN_ANGLE	56		// Max looking down angle
-#define MAX_UP_ANGLE	32		// Max looking up angle
 
+EXTERN_CVAR(Float, maxviewpitch)
+
+extern int currentrenderer;
+#define MAX_DN_ANGLE	((int)((netgame || currentrenderer==0)? 56 : maxviewpitch))		// Max looking down angle
+#define MAX_UP_ANGLE	((int)((netgame || currentrenderer==0)? 32 : maxviewpitch))		// Max looking up angle
 
 // [GRB] Custom player classes
 enum

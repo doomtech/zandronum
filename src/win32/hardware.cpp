@@ -67,7 +67,6 @@ IVideo *Video;
 extern int NewWidth, NewHeight, NewBits, DisplayBits;
 bool V_DoModeSetup (int width, int height, int bits);
 void I_RestartRenderer();
-void RebuildAllLights();
 int currentrenderer=1;
 bool changerenderer;
 bool gl_disabled;
@@ -129,8 +128,6 @@ void I_RestartRenderer()
 	FGLTexture::FlushAll();
 	font = screen->Font;
 	I_ShutdownGraphics();
-	RebuildAllLights();	// Build the lightmaps for all colormaps. If the hardware renderer is active 
-						// this time consuming step is skipped.
 	
 	changerenderer=false;
 	if (gl_disabled) currentrenderer=0;

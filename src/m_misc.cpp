@@ -74,8 +74,6 @@
 
 #include "gameconfigfile.h"
 
-#include "gl/gl_functions.h"
-
 FGameConfigFile *GameConfig;
 
 CVAR(Bool, screenshot_quiet, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG);

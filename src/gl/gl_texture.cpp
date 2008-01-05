@@ -41,13 +41,7 @@
 
 #include "w_wad.h"
 #include "m_png.h"
-// [BB] Ugly hack to define boolean used by libjpeg
-#ifndef _MSC_VER
-#undef __RPCNDR_H__
-#endif
 #include "r_draw.h"
-#define XMD_H
-#include "r_jpeg.h"
 #include "sbar.h"
 #include "gi.h"
 #include "cmdlib.h"
@@ -56,9 +50,11 @@
 #include "sc_man.h"
 
 #include "gl/gl_struct.h"
+#include "gl/gl_framebuffer.h"
 #include "gl/gl_texture.h"
 #include "gl/gl_functions.h"
 #include "gl/gl_shader.h"
+#include "gl/gl_translate.h"
 
 CUSTOM_CVAR(Bool, gl_warp_shader, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
 {
@@ -135,16 +131,6 @@ void gl_GenerateGlobalBrightmapFromColormap()
 	}
 }
 
-
-
-// internal parameters for ModifyPalette
-enum SpecialModifications
-{
-	CM_ICE=-2,					// The bluish ice translation for frozen corpses
-	CM_GRAY=-3,					// a simple grayscale map for colorizing blood splats
-	CM_BRIGHTMAP=-4,			// Brightness map for colormap based bright colors
-};
-
 static const BYTE IcePalette[16][3] =
 {
 	{  10,  8, 18 },
@@ -167,19 +153,12 @@ static const BYTE IcePalette[16][3] =
 
 //===========================================================================
 // 
-// Conversion classes for the different pixel formats
-//
-//===========================================================================
-typedef void (*CopyFunc)(unsigned char * pout, const unsigned char * pin, int cm, int count, int step);
-
-//===========================================================================
-// 
 // multi-format pixel copy with colormap application
 // requires one of the previously defined conversion classes to work
 //
 //===========================================================================
 template<class T>
-void CopyColors(unsigned char * pout, const unsigned char * pin, int cm, int count, int step)
+void iCopyColors(unsigned char * pout, const unsigned char * pin, int cm, int count, int step)
 {
 	int i;
 	int fac;
@@ -288,6 +267,19 @@ void CopyColors(unsigned char * pout, const unsigned char * pin, int cm, int cou
 	}
 }
 
+typedef void (*CopyFunc)(unsigned char * pout, const unsigned char * pin, int cm, int count, int step);
+
+static CopyFunc copyfuncs[]={
+	iCopyColors<cRGB>,
+	iCopyColors<cRGBA>,
+	iCopyColors<cIA>,
+	iCopyColors<cCMYK>,
+	iCopyColors<cBGR>,
+	iCopyColors<cBGRA>,
+	iCopyColors<cI16>,
+	iCopyColors<cRGB555>,
+	iCopyColors<cPalEntry>
+};
 
 //===========================================================================
 //
@@ -296,48 +288,17 @@ void CopyColors(unsigned char * pout, const unsigned char * pin, int cm, int cou
 // base palette because they wouldn't be used anyway.
 //
 //===========================================================================
-static void CopyPixelDataRGB(BYTE * buffer, int texwidth, int texheight, int originx, int originy,
-						     const BYTE * patch, int pix_width, int pix_height, int step_x, int step_y,
-						     intptr_t cm, CopyFunc CopyColors)
+void OpenGLFrameBuffer::CopyPixelDataRGB(BYTE * buffer, int texpitch, int texheight, int originx, int originy,
+										const BYTE * patch, int srcwidth, int srcheight, int step_x, int step_y,
+										int ct)
 {
-	PalEntry penew[256];
-	int srcwidth=pix_width;
-	int srcheight=pix_height;
-	int pitch=texwidth;
-
-	int y;
-	
-	// clip source rectangle to destination
-	if (originx<0)
+	if (ClipCopyPixelRect(texpitch>>2, texheight, originx, originy, patch, srcwidth, srcheight, step_x, step_y))
 	{
-		srcwidth+=originx;
-		patch-=originx*step_x;
-		originx=0;
-		if (srcwidth<=0) return;
-	}
-	if (originx+srcwidth>texwidth)
-	{
-		srcwidth=texwidth-originx;
-		if (srcwidth<=0) return;
-	}
-		
-	if (originy<0)
-	{
-		srcheight+=originy;
-		patch-=originy*step_y;
-		originy=0;
-		if (srcheight<=0) return;
-	}
-	if (originy+srcheight>texheight)
-	{
-		srcheight=texheight-originy;
-		if (srcheight<=0) return;
-	}
-	buffer+=4*originx + 4*pitch*originy;
-
-	for (y=0;y<srcheight;y++)
-	{
-		CopyColors(&buffer[4*y*pitch], &patch[y*step_y], cm, srcwidth, step_x);
+		buffer+=4*originx + texpitch*originy;
+		for (int y=0;y<srcheight;y++)
+		{
+			copyfuncs[ct](&buffer[y*texpitch], &patch[y*step_y], cm, srcwidth, step_x);
+		}
 	}
 }
 
@@ -471,49 +432,18 @@ void ModifyPalette(PalEntry * pout, PalEntry * pin, int cm, int count)
 // Paletted to True Color texture copy function
 //
 //===========================================================================
-static void CopyPixelData(BYTE * buffer, int texwidth, int texheight, int originx, int originy,
-						  const BYTE * patch, int pix_width, int pix_height, 
-						  int step_x, int step_y,
-						  intptr_t cm, int translation, PalEntry * palette, int applybrightmap)
+void OpenGLFrameBuffer::CopyPixelData(BYTE * buffer, int texpitch, int texheight, int originx, int originy,
+										const BYTE * patch, int srcwidth, int srcheight, 
+										int step_x, int step_y, PalEntry * palette)
 {
 	PalEntry penew[256];
-	int srcwidth=pix_width;
-	int srcheight=pix_height;
-	int pitch=texwidth;
 
 	int x,y,pos,i;
-	
-	// clip source rectangle to destination
-	if (originx<0)
-	{
-		srcwidth+=originx;
-		patch-=originx*step_x;
-		originx=0;
-		if (srcwidth<=0) return;
-	}
-	if (originx+srcwidth>texwidth)
-	{
-		srcwidth=texwidth-originx;
-		if (srcwidth<=0) return;
-	}
-		
-	if (originy<0)
-	{
-		srcheight+=originy;
-		patch-=originy*step_y;
-		originy=0;
-		if (srcheight<=0) return;
-	}
-	if (originy+srcheight>texheight)
-	{
-		srcheight=texheight-originy;
-		if (srcheight<=0) return;
-	}
-	buffer+=4*originx + 4*pitch*originy;
 
-
-	if (translation!=DIRECT_PALETTE)
+	if (ClipCopyPixelRect(texpitch>>2, texheight, originx, originy, patch, srcwidth, srcheight, step_x, step_y))
 	{
+		buffer+=4*originx + texpitch*originy;
+
 		// CM_SHADE is an alpha map with 0==transparent and 1==opaque
 		if (cm == CM_SHADE) 
 		{
@@ -527,29 +457,11 @@ static void CopyPixelData(BYTE * buffer, int texwidth, int texheight, int origin
 		}
 		else if (cm == CM_BRIGHTMAP) 
 		{
-			const unsigned char * ttbl = NULL;
-
-			switch(translation)
-			{
-			case 0:
-				break;
-
-			case (TRANSLATION_Standard<<8) | 8:
-			case (TRANSLATION_Standard<<8) | 7:
-				applybrightmap = false;
-				break;
-
-			default:
-				ttbl = &translationtables[translation>>8][256*(translation&0xff)];
-				break;
-			}
-
-			if (applybrightmap) 
+			if (palette == GetPalette() && translation >= 0)
 			{
 				for(int i=0;i<256;i++) 
 				{
-					int j = ttbl? ttbl[i]:i;
-					if (GlobalBrightmap[j] && palette[j].a==0)
+					if (GlobalBrightmap[i] && palette[i].a==0)
 					{
 						penew[i] = PalEntry(0,255,255,255);
 					}
@@ -561,39 +473,41 @@ static void CopyPixelData(BYTE * buffer, int texwidth, int texheight, int origin
 			}
 			else
 			{
- 				for(int i=0;i<256;i++) 
+				for(int i=0;i<256;i++) 
 					penew[i] = PalEntry(palette[i].a,0,0,0);
 			}
 		}
 		else
 		{
 			// apply any translation. 
-			if (translation)
+			// The ice and blood color translations are done directly
+			// because that yields better results.
+			switch(translation)
 			{
-				// The ice and blood color translations are done in true color
-				// because that yields better results.
-				switch(translation)
+			case CM_GRAY:
+				ModifyPalette(penew, palette, CM_GRAY, 256);
+				break;
+
+			case CM_ICE:
+				ModifyPalette(penew, palette, CM_ICE, 256);
+				break;
+
+			default:
+			{
+				PalEntry *ptrans = GLTranslationPalette::GetPalette(translation);
+				if (ptrans)
 				{
-				case (TRANSLATION_Standard<<8) | 8:
-					ModifyPalette(penew, palette, CM_GRAY, 256);
-					break;
-
-				case (TRANSLATION_Standard<<8) | 7:
-					ModifyPalette(penew, palette, CM_ICE, 256);
-					break;
-
-				default:
-					const unsigned char * tbl = &translationtables[translation>>8][256*(translation&0xff)];
-
 					for(i = 0; i < 256; i++)
 					{
-						penew[i] = (palette[tbl[i]]&0xffffff) | (palette[i]&0xff000000);
+						penew[i] = (ptrans[i]&0xffffff) | (palette[i]&0xff000000);
 					}
+					break;
 				}
 			}
-			else
-			{
+
+			case 0:
 				memcpy(penew, palette, 256*sizeof(PalEntry));
+				break;
 			}
 			if (cm!=0)
 			{
@@ -601,45 +515,32 @@ static void CopyPixelData(BYTE * buffer, int texwidth, int texheight, int origin
 				ModifyPalette(penew, penew, cm, 256);
 			}
 		}
-	}
-	else
-	{
-		// fonts create their own translation palettes
-		BYTE * translationp=(BYTE*)cm;
-		for(int i=0;i<256;i++)
-		{
-			penew[i].r=*translationp++;
-			penew[i].g=*translationp++;
-			penew[i].b=*translationp++;
-			penew[i].a=0;
-		}
-		penew[0].a=255;
-	}
-	// Now penew contains the actual palette that is to be used for creating the image.
+		// Now penew contains the actual palette that is to be used for creating the image.
 
-	// convert the image according to the translated palette.
-	// Please note that the alpha of the passed palette is inverted. This is
-	// so that the base palette can be used without constantly changing it.
-	// This can also handle full PNG translucency.
-	for (y=0;y<srcheight;y++)
-	{
-		pos=4*(y*pitch);
-		for (x=0;x<srcwidth;x++,pos+=4)
+		// convert the image according to the translated palette.
+		// Please note that the alpha of the passed palette is inverted. This is
+		// so that the base palette can be used without constantly changing it.
+		// This can also handle full PNG translucency.
+		for (y=0;y<srcheight;y++)
 		{
-			int v=(unsigned char)patch[y*step_y+x*step_x];
-			if (penew[v].a==0)
+			pos=(y*texpitch);
+			for (x=0;x<srcwidth;x++,pos+=4)
 			{
-				buffer[pos]=penew[v].r;
-				buffer[pos+1]=penew[v].g;
-				buffer[pos+2]=penew[v].b;
-				buffer[pos+3]=255-penew[v].a;
-			}
-			else if (penew[v].a!=255)
-			{
-				buffer[pos  ] = (buffer[pos  ] * penew[v].a + penew[v].r * (1-penew[v].a)) / 255;
-				buffer[pos+1] = (buffer[pos+1] * penew[v].a + penew[v].g * (1-penew[v].a)) / 255;
-				buffer[pos+2] = (buffer[pos+2] * penew[v].a + penew[v].b * (1-penew[v].a)) / 255;
-				buffer[pos+3] = clamp<int>(buffer[pos+3] + (( 255-buffer[pos+3]) * (255-penew[v].a))/255, 0, 255);
+				int v=(unsigned char)patch[y*step_y+x*step_x];
+				if (penew[v].a==0)
+				{
+					buffer[pos]=penew[v].r;
+					buffer[pos+1]=penew[v].g;
+					buffer[pos+2]=penew[v].b;
+					buffer[pos+3]=255-penew[v].a;
+				}
+				else if (penew[v].a!=255)
+				{
+					buffer[pos  ] = (buffer[pos  ] * penew[v].a + penew[v].r * (1-penew[v].a)) / 255;
+					buffer[pos+1] = (buffer[pos+1] * penew[v].a + penew[v].g * (1-penew[v].a)) / 255;
+					buffer[pos+2] = (buffer[pos+2] * penew[v].a + penew[v].b * (1-penew[v].a)) / 255;
+					buffer[pos+3] = clamp<int>(buffer[pos+3] + (( 255-buffer[pos+3]) * (255-penew[v].a))/255, 0, 255);
+				}
 			}
 		}
 	}
@@ -648,53 +549,12 @@ static void CopyPixelData(BYTE * buffer, int texwidth, int texheight, int origin
 
 //===========================================================================
 //
-// FTexture::CopyTrueColorPixels 
+// FMultipatchTexture::UseBasePalette
 //
-// this is the generic case that can handle
-// any properly implemented texture for software rendering.
-// Its drawback is that it is limited to the base palette which is
-// why all classes that handle different palettes should subclass this
-// method
+// returns true if all patches in the texture use the unmodified base
+// palette.
 //
 //===========================================================================
-
-int FTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, 
-									 intptr_t cm, int translation)
-{
-	PalEntry * palette = screen->GetPalette();
-	palette[0].a=255;
-	CopyPixelData(buffer, buf_width, buf_height, x, y,
-				  GetPixels(), Width, Height, Height, 1, 
-				  cm, translation, palette, true);
-
-	palette[0].a=0;
-	return 0;	// any transparency will be ignored.
-}
-
-//===========================================================================
-//
-// FMultipatchTexture::CopyTrueColorPixels
-//
-// This needs to be subclassed so it can handle textures that use
-// patches with different palettes
-//
-//===========================================================================
-
-int FMultiPatchTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, 
-									 intptr_t cm, int translation)
-{
-	int retv = -1;
-
-	for(int i=0;i<NumParts;i++)
-	{
-		Parts[i].Texture->GetWidth();
-		int ret = Parts[i].Texture->CopyTrueColorPixels(buffer, buf_width, buf_height, 
-											  x+Parts[i].OriginX, y+Parts[i].OriginY, cm, translation);
-
-		if (ret > retv) retv = ret;
-	}
-	return retv;
-}
 
 bool FMultiPatchTexture::UseBasePalette() 
 { 
@@ -703,398 +563,6 @@ bool FMultiPatchTexture::UseBasePalette()
 		if (Parts[i].Texture->UseBasePalette()) return true;
 	}
 	return false;
-}
-
-
-//===========================================================================
-//
-// FPNGTexture::CopyTrueColorPixels
-//
-// Preserves the full PNG palette (unlike software mode)
-//
-//===========================================================================
-
-int FPNGTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, 
-									 intptr_t cm, int translation)
-{
-	// Parse pre-IDAT chunks. I skip the CRCs. Is that bad?
-	PalEntry pe[256];
-	DWORD len, id;
-	FWadLump lump = Wads.OpenLumpNum (SourceLump);
-	static char bpp[]={1, 0, 3, 1, 2, 0, 4};
-	int pixwidth = Width * bpp[ColorType];
-	int transpal=false;
-
-	lump.Seek (33, SEEK_SET);
-	for(int i=0;i<256;i++) pe[i]=PalEntry(0,i,i,i);	// default to a gray map
-
-	lump >> len >> id;
-	while (id != MAKE_ID('I','D','A','T') && id != MAKE_ID('I','E','N','D'))
-	{
-		len = BigLong((unsigned int)len);
-		switch (id)
-		{
-		default:
-			lump.Seek (len, SEEK_CUR);
-			break;
-
-		case MAKE_ID('P','L','T','E'):
-			for(int i=0;i<PaletteSize;i++)
-				lump >> pe[i].r >> pe[i].g >> pe[i].b;
-			break;
-
-		case MAKE_ID('t','R','N','S'):
-			for(int i=0;i<len;i++)
-			{
-				lump >> pe[i].a;
-				pe[i].a=255-pe[i].a;	// use inverse alpha so the default palette can be used unchanged
-				if (pe[i].a!=0 && pe[i].a!=255) transpal = true;
-			}
-			break;
-		}
-		lump >> len >> len;	// Skip CRC
-		id = MAKE_ID('I','E','N','D');
-		lump >> id;
-	}
-
-	BYTE * Pixels = new BYTE[pixwidth * Height];
-
-	lump.Seek (StartOfIDAT, SEEK_SET);
-	lump >> len >> id;
-	M_ReadIDAT (&lump, Pixels, Width, Height, pixwidth, BitDepth, ColorType, Interlace, BigLong((unsigned int)len));
-
-	switch (ColorType)
-	{
-	case 0:
-	case 3:
-		CopyPixelData(buffer, buf_width, buf_height, x, y, Pixels, Width, Height, 1, Width, cm, translation, pe, false);
-		break;
-
-	case 2:
-		CopyPixelDataRGB(buffer, buf_width, buf_height, x, y, Pixels, Width, Height, 3, pixwidth, cm, CopyColors<cRGB>);
-		break;
-
-	case 4:
-		CopyPixelDataRGB(buffer, buf_width, buf_height, x, y, Pixels, Width, Height, 2, pixwidth, cm, CopyColors<cIA>);
-		transpal = -1;
-		break;
-
-	case 6:
-		CopyPixelDataRGB(buffer, buf_width, buf_height, x, y, Pixels, Width, Height, 4, pixwidth, cm, CopyColors<cRGBA>);
-		transpal = -1;
-		break;
-
-	default:
-		break;
-
-	}
-	delete[] Pixels;
-	return transpal;
-}
-
-//===========================================================================
-//
-// FJPEGTexture::CopyTrueColorPixels
-//
-// Preserves the full color information (unlike software mode)
-//
-//===========================================================================
-
-int FJPEGTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, 
-									 intptr_t cm, int translation)
-{
-	PalEntry pe[256];
-
-	FWadLump lump = Wads.OpenLumpNum (SourceLump);
-	JSAMPLE *buff = NULL;
-
-	jpeg_decompress_struct cinfo;
-	jpeg_error_mgr jerr;
-
-	cinfo.err = jpeg_std_error(&jerr);
-	cinfo.err->output_message = JPEG_OutputMessage;
-	cinfo.err->error_exit = JPEG_ErrorExit;
-	jpeg_create_decompress(&cinfo);
-
-	try
-	{
-		FLumpSourceMgr sourcemgr(&lump, &cinfo);
-		jpeg_read_header(&cinfo, TRUE);
-
-		if (!((cinfo.out_color_space == JCS_RGB && cinfo.num_components == 3) ||
-			  (cinfo.out_color_space == JCS_CMYK && cinfo.num_components == 4) ||
-			  (cinfo.out_color_space == JCS_GRAYSCALE && cinfo.num_components == 1)))
-		{
-			Printf (TEXTCOLOR_ORANGE "Unsupported color format\n");
-			throw -1;
-		}
-		jpeg_start_decompress(&cinfo);
-
-		int yc = 0;
-		buff = new BYTE[cinfo.output_height * cinfo.output_width * cinfo.output_components];
-
-
-		while (cinfo.output_scanline < cinfo.output_height)
-		{
-			BYTE * ptr = buff + cinfo.output_width * cinfo.output_components * yc;
-			jpeg_read_scanlines(&cinfo, &ptr, 1);
-			yc++;
-		}
-
-		switch (cinfo.out_color_space)
-		{
-		case JCS_RGB:
-			CopyPixelDataRGB(buffer, buf_width, buf_height, x, y, buff, cinfo.output_width, cinfo.output_height, 
-				3, cinfo.output_width * cinfo.output_components, cm, CopyColors<cRGB>);
-			break;
-
-		case JCS_GRAYSCALE:
-			for(int i=0;i<256;i++) pe[i]=PalEntry(0,i,i,i);	// default to a gray map
-			CopyPixelData(buffer, buf_width, buf_height, x, y, buff, cinfo.output_width, cinfo.output_height, 
-				1, cinfo.output_width, cm, translation, pe, false);
-			break;
-
-		case JCS_CMYK:
-			CopyPixelDataRGB(buffer, buf_width, buf_height, x, y, buff, cinfo.output_width, cinfo.output_height, 
-				4, cinfo.output_width * cinfo.output_components, cm, CopyColors<cCMYK>);
-			break;
-		}
-		jpeg_finish_decompress(&cinfo);
-	}
-	catch(int)
-	{
-		Printf (TEXTCOLOR_ORANGE "   in JPEG texture %s\n", Name);
-	}
-	jpeg_destroy_decompress(&cinfo);
-	if (buff != NULL) delete [] buff;
-	return 0;
-}
-
-
-//===========================================================================
-//
-// FTGATexture::CopyTrueColorPixels
-//
-// Preserves the full color information (unlike software mode)
-//
-//===========================================================================
-
-int FTGATexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, 
-									 intptr_t cm, int translation)
-{
-	PalEntry pe[256];
-	FWadLump lump = Wads.OpenLumpNum (SourceLump);
-	TGAHeader hdr;
-	WORD w;
-	BYTE r,g,b,a;
-	BYTE * sbuffer;
-	int transval = 0;
-
-	lump.Read(&hdr, sizeof(hdr));
-	lump.Seek(hdr.id_len, SEEK_CUR);
-	
-#ifdef WORDS_BIGENDIAN
-	hdr.width = LittleShort(hdr.width);
-	hdr.height = LittleShort(hdr.height);
-	hdr.cm_first = LittleShort(hdr.cm_first);
-	hdr.cm_length = LittleShort(hdr.cm_length);
-#endif
-
-	if (hdr.has_cm)
-	{
-		memset(pe, 0, 256*sizeof(PalEntry));
-		for (int i = hdr.cm_first; i < hdr.cm_first + hdr.cm_length && i < 256; i++)
-		{
-			switch (hdr.cm_size)
-			{
-			case 15:
-			case 16:
-				lump >> w;
-				r = (w & 0x001F) << 3;
-				g = (w & 0x03E0) >> 2;
-				b = (w & 0x7C00) >> 7;
-				a = 255;
-				break;
-				
-			case 24:
-				lump >> b >> g >> r;
-				a=255;
-				break;
-				
-			case 32:
-				lump >> b >> g >> r >> a;
-				if ((hdr.img_desc&15)!=8) a=255;
-				else if (a!=0 && a!=255) transval = true;
-				break;
-				
-			default:	// should never happen
-				r=g=b=a=0;
-				break;
-			}
-			pe[i] = PalEntry(255-a, r, g, b);
-		}
-    }
-    
-    int Size = Width * Height * (hdr.bpp>>3);
-   	sbuffer = new BYTE[Size];
-   	
-    if (hdr.img_type < 4)	// uncompressed
-    {
-    	lump.Read(sbuffer, Size);
-    }
-    else				// compressed
-    {
-    	ReadCompressed(lump, sbuffer, hdr.bpp>>3);
-    }
-    
-	BYTE * ptr = sbuffer;
-	int step_x = (hdr.bpp>>3);
-	int Pitch = Width * step_x;
-
-	if (hdr.img_desc&32)
-	{
-		ptr += (Width-1) * step_x;
-		step_x =- step_x;
-	}
-	if (!(hdr.img_desc&64))
-	{
-		ptr += (Height-1) * Pitch;
-		Pitch = -Pitch;
-	}
-
-    switch (hdr.img_type & 7)
-    {
-	case 1:	// paletted
-		CopyPixelData(buffer, buf_width, buf_height, x, y, ptr, Width, Height, step_x, Pitch, cm, translation, pe, false);
-		break;
-
-	case 2:	// RGB
-		switch (hdr.bpp)
-		{
-		case 15:
-		case 16:
-			CopyPixelDataRGB(buffer, buf_width, buf_height, x, y, ptr, Width, Height, step_x, Pitch, cm, CopyColors<cRGB555>);
-			break;
-		
-		case 24:
-			CopyPixelDataRGB(buffer, buf_width, buf_height, x, y, ptr, Width, Height, step_x, Pitch, cm, CopyColors<cBGR>);
-			break;
-		
-		case 32:
-			if ((hdr.img_desc&15)!=8)	// 32 bits without a valid alpha channel
-			{
-				CopyPixelDataRGB(buffer, buf_width, buf_height, x, y, ptr, Width, Height, step_x, Pitch, cm, CopyColors<cBGR>);
-			}
-			else
-			{
-				CopyPixelDataRGB(buffer, buf_width, buf_height, x, y, ptr, Width, Height, step_x, Pitch, cm, CopyColors<cBGRA>);
-				transval = -1;
-			}
-			break;
-		
-		default:
-			break;
-		}
-		break;
-	
-	case 3:	// Grayscale
-		switch (hdr.bpp)
-		{
-		case 8:
-			for(int i=0;i<256;i++) pe[i]=PalEntry(0,i,i,i);	// default to a gray map
-			CopyPixelData(buffer, buf_width, buf_height, x, y, ptr, Width, Height, step_x, Pitch, cm, translation, pe, false);
-			break;
-		
-		case 16:
-			CopyPixelDataRGB(buffer, buf_width, buf_height, x, y, ptr, Width, Height, step_x, Pitch, cm, CopyColors<cI16>);
-			break;
-		
-		default:
-			break;
-		}
-		break;
-
-	default:
-		break;
-    }
-	delete [] sbuffer;
-	return transval;
-}	
-
-//===========================================================================
-//
-// FPCXTexture::CopyTrueColorPixels
-//
-// Preserves the full color information (unlike software mode)
-//
-//===========================================================================
-
-int FPCXTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, 
-									 intptr_t cm, int translation)
-{
-	PalEntry pe[256];
-	PCXHeader header;
-	int bitcount;
-	BYTE * Pixels;
-
-	FWadLump lump = Wads.OpenLumpNum(SourceLump);
-
-	lump.Read(&header, sizeof(header));
-
-	bitcount = header.bitsPerPixel * header.numColorPlanes;
-
-	if (bitcount < 24)
-	{
-		Pixels = new BYTE[Width*Height];
-		if (bitcount < 8)
-		{
-			for (int i=0;i<16;i++)
-			{
-				pe[i] = PalEntry(header.palette[i*3],header.palette[i*3+1],header.palette[i*3+2]);
-			}
-
-			switch (bitcount)
-			{
-			default:
-			case 1:
-				ReadPCX1bit (Pixels, lump, &header);
-				break;
-
-			case 4:
-				ReadPCX4bits (Pixels, lump, &header);
-				break;
-			}
-		}
-		else if (bitcount == 8)
-		{
-			BYTE c;
-			lump.Seek(-769, SEEK_END);
-			lump >> c;
-			c=0x0c;	// Apparently there's many non-compliant PCXs out there...
-			if (c !=0x0c) 
-			{
-				for(int i=0;i<256;i++) pe[i]=PalEntry(0,i,i,i);	// default to a gray map
-			}
-			else for(int i=0;i<256;i++)
-			{
-				BYTE r,g,b;
-				lump >> r >> g >> b;
-				pe[i] = PalEntry(r,g,b);
-			}
-			lump.Seek(sizeof(header), SEEK_SET);
-			ReadPCX8bits (Pixels, lump, &header);
-		}
-		CopyPixelData(buffer, buf_width, buf_height, x, y, Pixels, Width, Height, 1, Width, cm, translation, pe, false);
-	}
-	else
-	{
-		Pixels = new BYTE[Width*Height * 3];
-		BYTE * row = buffer;
-		ReadPCX24bits (Pixels, lump, &header, 3);
-		CopyPixelDataRGB(buffer, buf_width, buf_height, x, y, Pixels, Width, Height, 3, Width*3, cm, CopyColors<cRGB>);
-	}
-	delete [] Pixels;
-	return 0;
 }
 
 //===========================================================================
@@ -1106,17 +574,17 @@ int FPCXTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_heigh
 //
 //===========================================================================
 
-int FWarpTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int xx, int yy, 
-									 intptr_t cm, int translation)
+int FWarpTexture::CopyTrueColorPixels(BYTE * buffer, int buf_pitch, int buf_height, int xx, int yy)
 {
 	if (gl_warp_shader || gl_glsl_renderer)
 	{
-		return SourcePic->CopyTrueColorPixels(buffer, buf_width, buf_height, xx, yy, cm, translation);
+		return SourcePic->CopyTrueColorPixels(buffer, buf_pitch, buf_height, xx, yy);
 	}
 
 	unsigned long * in=new unsigned long[Width*Height];
 	unsigned long * out;
 	bool direct;
+	int buf_width = buf_pitch>>2;
 	
 	gltex->createWarped = true;
 	if (Width == buf_width && Height == buf_height && xx==0 && yy==0)
@@ -1132,7 +600,7 @@ int FWarpTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_heig
 
 	GenTime = r_FrameTime;
 	if (SourcePic->bMasked) memset(in, 0, Width*Height*sizeof(long));
-	int ret = SourcePic->CopyTrueColorPixels((BYTE*)in, Width, Height, 0, 0, cm, translation);
+	int ret = SourcePic->CopyTrueColorPixels((BYTE*)in, Width, Height, 0, 0);
 
 	static unsigned long linebuffer[4096];	// that's the maximum texture size for most graphics cards!
 	int timebase = r_FrameTime*23/28;
@@ -1200,17 +668,17 @@ int FWarpTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_heig
 //
 //===========================================================================
 
-int FWarp2Texture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int xx, int yy, 
-									 intptr_t cm, int translation)
+int FWarp2Texture::CopyTrueColorPixels(BYTE * buffer, int buf_pitch, int buf_height, int xx, int yy)
 {
 	if (gl_warp_shader || gl_glsl_renderer)
 	{
-		return SourcePic->CopyTrueColorPixels(buffer, buf_width, buf_height, xx, yy, cm, translation);
+		return SourcePic->CopyTrueColorPixels(buffer, buf_pitch, buf_height, xx, yy);
 	}
 
 	unsigned long * in=new unsigned long[Width*Height];
 	unsigned long * out;
 	bool direct;
+	int buf_width = buf_pitch>>2;
 	
 	gltex->createWarped = true;
 	if (Width == buf_width && Height == buf_height && xx==0 && yy==0)
@@ -1226,7 +694,7 @@ int FWarp2Texture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_hei
 
 	GenTime = r_FrameTime;
 	if (SourcePic->bMasked) memset(in, 0, Width*Height*sizeof(long));
-	int ret = SourcePic->CopyTrueColorPixels((BYTE*)in, Width, Height, 0, 0, cm, translation);
+	int ret = SourcePic->CopyTrueColorPixels((BYTE*)in, Width, Height, 0, 0);
 
 	int xsize = Width;
 	int ysize = Height;
@@ -1355,9 +823,10 @@ void FBrightmapTexture::Unload ()
 {
 }
 
-int FBrightmapTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation)
+int FBrightmapTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y)
 {
-	SourcePic->CopyTrueColorPixels(buffer, buf_width, buf_height, x, y, CM_BRIGHTMAP, translation);
+	SetTranslationInfo(CM_BRIGHTMAP, 0);
+	SourcePic->CopyTrueColorPixels(buffer, buf_width, buf_height, x, y);
 	return 0;
 }
 
@@ -1379,6 +848,8 @@ FGLTexture::FGLTexture(FTexture * tx)
 
 	glpatch=NULL;
 	gltexture=NULL;
+
+	Shader = NULL;
 
 	HiresLump=-1;
 	hirestexture = NULL;
@@ -1700,19 +1171,18 @@ void FGLTexture::Clean(bool all)
 //
 //===========================================================================
 
-unsigned char * FGLTexture::CreateTexBuffer(int _cm, int translation, const byte * translationtable, int & w, int & h, bool allowhires)
+unsigned char * FGLTexture::CreateTexBuffer(int _cm, int translation, int & w, int & h, bool allowhires)
 {
 	unsigned char * buffer;
 	intptr_t cm = _cm;
 
-
+	SetTranslationInfo(cm, translation);
 
 	// Textures that are already scaled in the texture lump will not get replaced
 	// by hires textures
 	if (gl_texture_usehires && allowhires && scalex==1.f && scaley==1.f)
 	{
-		// Hires textures will not be subject to translations or Boom colormaps!
-		buffer = LoadHiresTexture (&w, &h, cm);
+		buffer = LoadHiresTexture (&w, &h);
 		if (buffer)
 		{
 			return buffer;
@@ -1725,33 +1195,23 @@ unsigned char * FGLTexture::CreateTexBuffer(int _cm, int translation, const byte
 	buffer=new unsigned char[Width*(Height+1)*4];
 	memset(buffer, 0, Width * (Height+1) * 4);
 
-	if (translationtable)
-	{
-		// This is only used by font characters.
-		// This means that 
-		cm=(intptr_t)translationtable;
-		translation=DIRECT_PALETTE;
-	}
-
-	//if (cm<CM_FIRSTCOLORMAP || translation==DIRECT_PALETTE)
+	if (translation<=0)
 	{
 		int trans = 
-			tex->CopyTrueColorPixels(buffer, GetWidth(), GetHeight(), GetLeftOffset() - tex->LeftOffset, 
-				GetTopOffset() - tex->TopOffset, cm, translation);
+			tex->CopyTrueColorPixels(buffer, GetWidth()<<2, GetHeight(), GetLeftOffset() - tex->LeftOffset, 
+				GetTopOffset() - tex->TopOffset);
 
 		CheckTrans(buffer, w*h, trans);
 
 	}
-	/*
 	else
 	{
-		// For Boom colormaps it is easiest to pass a buffer that has been mapped to the base palette
+		// When using translations everything must be mapped to the base palette.
 		// Since FTexture's method is doing exactly that by calling GetPixels let's use that here
 		// to do all the dirty work for us. ;)
-		tex->FTexture::CopyTrueColorPixels(buffer, GetWidth(), GetHeight(), GetLeftOffset() - tex->LeftOffset, 
-				GetTopOffset() - tex->TopOffset, cm, translation);
+		tex->FTexture::CopyTrueColorPixels(buffer, GetWidth()<<2, GetHeight(), GetLeftOffset() - tex->LeftOffset, 
+				GetTopOffset() - tex->TopOffset);
 	}
-	*/
 
 	return buffer;
 }
@@ -1799,15 +1259,18 @@ const PatchTextureInfo * FGLTexture::GetPatchTextureInfo()
 const WorldTextureInfo * FGLTexture::Bind(int texunit, int cm, int clampmode, int translation)
 {
 	bool usebright = false;
+
+	translation = GLTranslationPalette::GetInternalTranslation(translation);
+
 	if (GetWorldTextureInfo())
 	{
 		if (texunit == 0)
 		{
-			if (brightmap && (gl_glsl_renderer || gl_brightmap_shader) &&
+			if (brightmap && (gl_glsl_renderer || gl_brightmap_shader) && translation >= 0 &&
 				cm >= CM_DEFAULT && cm <= CM_DESAT31 && gl_brightmapenabled)
 			{
-				brightmap->gltex->Bind(1, CM_DEFAULT, clampmode, translation);
-				if (brightmap->gltex->bIsBrightmap==0)
+				brightmap->gltex->Bind(1, CM_DEFAULT, clampmode, 0);
+				if (brightmap->gltex->bIsBrightmap == 0)
 				{
 					delete brightmap;
 					brightmap = NULL;
@@ -1835,7 +1298,7 @@ const WorldTextureInfo * FGLTexture::Bind(int texunit, int cm, int clampmode, in
 					}
 				}
 
-				if (!gl_warp_shader)
+				if (tex->bWarped == 0 || !gl_warp_shader)
 				{
 					// If this is a warped texture that needs updating
 					// delete all system textures created for this
@@ -1858,7 +1321,7 @@ const WorldTextureInfo * FGLTexture::Bind(int texunit, int cm, int clampmode, in
 			int w,h;
 
 			// Create this texture
-			unsigned char * buffer = CreateTexBuffer(cm, translation, NULL, w, h);
+			unsigned char * buffer = CreateTexBuffer(cm, translation, w, h);
 
 			ProcessData(buffer, w, h, cm, false);
 			if (!gltexture->CreateTexture(buffer, w, h, true, texunit, cm, translation)) 
@@ -1887,18 +1350,21 @@ const WorldTextureInfo * FGLTexture::Bind(int cm, int clampmode, int translation
 //	Binds a sprite to the renderer
 //
 //===========================================================================
-const PatchTextureInfo * FGLTexture::BindPatch(int texunit, int cm, int translation, const byte * translationtable)
+const PatchTextureInfo * FGLTexture::BindPatch(int texunit, int cm, int translation)
 {
 	bool usebright = false;
+	int transparm = translation;
+
+	translation = GLTranslationPalette::GetInternalTranslation(translation);
 
 	if (GetPatchTextureInfo())
 	{
 		if (texunit == 0)
 		{
-			if (brightmap && (gl_glsl_renderer || gl_brightmap_shader) &&
-				cm >= CM_DEFAULT && cm <= CM_DESAT31 && translationtable == NULL && gl_brightmapenabled)
+			if (brightmap && (gl_glsl_renderer || gl_brightmap_shader) && translation >= 0 && 
+				transparm >= 0 && cm >= CM_DEFAULT && cm <= CM_DESAT31 && gl_brightmapenabled)
 			{
-				brightmap->gltex->BindPatch(1, CM_DEFAULT, translation, translationtable);
+				brightmap->gltex->BindPatch(1, CM_DEFAULT, 0);
 				if (brightmap->gltex->bIsBrightmap==0)
 				{
 					delete brightmap;
@@ -1930,7 +1396,7 @@ const PatchTextureInfo * FGLTexture::BindPatch(int texunit, int cm, int translat
 					}
 				}
 
-				if (!gl_warp_shader)
+				if (tex->bWarped == 0 || !gl_warp_shader)
 				{
 					// If this is a warped texture that needs updating
 					// delete all system textures created for this
@@ -1954,9 +1420,9 @@ const PatchTextureInfo * FGLTexture::BindPatch(int texunit, int cm, int translat
 			int w, h;
 
 			// Create this texture
-			unsigned char * buffer = CreateTexBuffer(cm, translation, translationtable, w, h, false);
+			unsigned char * buffer = CreateTexBuffer(cm, translation, w, h, false);
 			ProcessData(buffer, w, h, cm, true);
-			if (!glpatch->CreateTexture(buffer, w, h, false, texunit, cm, translation, translationtable)) 
+			if (!glpatch->CreateTexture(buffer, w, h, false, texunit, cm, translation)) 
 			{
 				// could not create texture
 				delete buffer;
@@ -1974,9 +1440,9 @@ const PatchTextureInfo * FGLTexture::BindPatch(int texunit, int cm, int translat
 	return NULL;
 }
 
-const PatchTextureInfo * FGLTexture::BindPatch(int cm, int translation, const byte * translationtable)
+const PatchTextureInfo * FGLTexture::BindPatch(int cm, int translation)
 {
-	return BindPatch(0, cm, translation, translationtable);
+	return BindPatch(0, cm, translation);
 }
 
 //==========================================================================
@@ -1994,9 +1460,6 @@ void FGLTexture::FlushAll()
 			(*gltextures)[i]->Clean(true);
 		}
 	}
-
-	// This is the only means to properly reinitialize the status bar from Doom.
-	if (StatusBar && screen) StatusBar->NewGame();
 }
 
 //==========================================================================
@@ -2030,9 +1493,11 @@ FGLTexture * FGLTexture::ValidateTexture(FTexture * tex)
 	if (tex	&& tex->UseType!=FTexture::TEX_Null)
 	{
 		if (!tex->gltex) tex->gltex = new FGLTexture(tex);
-		switch(tex->bWarped)
+		// This can't be put in the constructor because many
+		// textures are created before the GL renderer is operable
+		if ((gl.flags & RFL_GLSL) && !tex->gltex->Shader) switch(tex->bWarped)
 		{
-		case 0:
+		default:
 			tex->gltex->Shader = GLShader::Find("Default");
 			break;
 		case 1:

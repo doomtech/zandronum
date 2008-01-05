@@ -34,7 +34,8 @@
 **---------------------------------------------------------------------------
 **
 */
-#include "../../tarray.h"
+#include "tarray.h"
+#include "doomtype.h"
 #include "gl/gl_intern.h"
 
 #ifndef unix
@@ -461,17 +462,12 @@ static void APIENTRY LoadExtensions()
 //
 //==========================================================================
 
-static void APIENTRY PrintStartupLog(PrintTextFunc pf)
+static void APIENTRY PrintStartupLog()
 {
-	pf ("GL_VENDOR: ");
-	pf ((const char*)glGetString(GL_VENDOR));
-	pf ("\nGL_RENDERER: ");
-	pf ((const char*)glGetString(GL_RENDERER));
-	pf ("\nGL_VERSION: ");
-	pf ((const char*)glGetString(GL_VERSION));
-	pf ("\nGL_EXTENSIONS: ");
-	pf ((const char*)glGetString(GL_EXTENSIONS));
-	pf ("\n");
+	Printf ("GL_VENDOR: %s\n", glGetString(GL_VENDOR));
+	Printf ("GL_RENDERER: %s\n", glGetString(GL_RENDERER));
+	Printf ("GL_VERSION: %s\n", glGetString(GL_VERSION));
+	Printf ("GL_EXTENSIONS: %s\n", glGetString(GL_EXTENSIONS));
 }
 
 //==========================================================================
@@ -480,7 +476,7 @@ static void APIENTRY PrintStartupLog(PrintTextFunc pf)
 //
 //==========================================================================
 
-static bool SetupPixelFormat(bool allowsoftware, bool nostencil, int multisample, PrintTextFunc Printf)
+static bool SetupPixelFormat(bool allowsoftware, bool nostencil, int multisample)
 {
 #ifndef unix
 	int colorDepth;
@@ -706,9 +702,9 @@ static bool SetupPixelFormat(bool allowsoftware, bool nostencil, int multisample
 //==========================================================================
 
 #ifndef unix
-static bool APIENTRY InitHardware (HWND Window, bool allowsoftware, bool nostencil, int multisample, PrintTextFunc pf)
+static bool APIENTRY InitHardware (HWND Window, bool allowsoftware, bool nostencil, int multisample)
 #else
-bool APIENTRY InitHardware (bool allowsoftware, bool nostencil, int multisample, PrintTextFunc pf)
+bool APIENTRY InitHardware (bool allowsoftware, bool nostencil, int multisample)
 #endif
 {
 #ifndef unix
@@ -716,9 +712,9 @@ bool APIENTRY InitHardware (bool allowsoftware, bool nostencil, int multisample,
 	m_hDC = GetDC(Window);
 #endif
 
-	if (!SetupPixelFormat(allowsoftware, nostencil, multisample, pf))
+	if (!SetupPixelFormat(allowsoftware, nostencil, multisample))
 	{
-		pf ("R_OPENGL: Reverting to software mode...\n");
+		Printf ("R_OPENGL: Reverting to software mode...\n");
 		return false;
 	}
 
@@ -727,7 +723,7 @@ bool APIENTRY InitHardware (bool allowsoftware, bool nostencil, int multisample,
 
 	if (m_hRC == NULL)
 	{
-		pf ("R_OPENGL: Couldn't create render context. Reverting to software mode...\n");
+		Printf ("R_OPENGL: Couldn't create render context. Reverting to software mode...\n");
 		return false;
 	}
 

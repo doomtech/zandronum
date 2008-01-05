@@ -393,7 +393,7 @@ void AActor::LinkToWorld (sector_t *sec)
 		return;
 	}
 	Sector = sec;
-	subsector = R_PointInSubsector2(x, y);	// this is from the rendering nodes, not the gameplay nodes!
+	subsector = R_PointInSubsector(x, y);	// this is from the rendering nodes, not the gameplay nodes!
 
 	if ( !(flags & MF_NOSECTOR) )
 	{
@@ -531,7 +531,6 @@ sector_t *AActor::LinkToWorldForMapThing ()
 {
 	// [GZDoom]
 	node_t *node = gamenodes + numgamenodes - 1;
-	//node_t *node = nodes + numnodes - 1;
 
 	do
 	{

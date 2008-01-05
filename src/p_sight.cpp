@@ -161,16 +161,42 @@ bool SightCheck::PTR_SightTraverse (intercept_t *in)
 					// blocks lower edge of view
 					if (highslope>bottomslope)  bottomslope=highslope;
 				}
+				else
+				{
+					// the 3D-floor is inside the viewing cone but neither clips the top nor the bottom so by 
+					// itself it can't be view blocking.
+					// However, if there's a 3D-floor on the other side that obstructs the same vertical range
+					// the 2 together will block sight.
+					sector_t * sb=i==2? li->frontsector:li->backsector;
+
+					for(unsigned int k=0;k<sb->e->ffloors.Size();k++)
+					{
+						F3DFloor*  rover2=sb->e->ffloors[k];
+
+						if(!(rover2->flags & FF_SOLID) || !(rover2->flags & FF_EXISTS)) continue;
+						
+						fixed_t ffb_bottom=rover2->bottom.plane->ZatPoint(trX, trY);
+						fixed_t ffb_top=rover2->top.plane->ZatPoint(trX, trY);
+
+						if (ffb_bottom >= ff_bottom && ffb_bottom<=ff_top ||
+							ffb_top <= ff_top && ffb_top >= ff_bottom ||
+							ffb_top >= ff_top && ffb_bottom <= ff_bottom ||
+							ffb_top <= ff_top && ffb_bottom >= ff_bottom)
+						{
+							return false;
+						}
+					}
+				}
 				// trace is leaving a sector with a 3d-floor
 				if (s==lastsector && frontflag==i-1)
 				{
 					// upper slope intersects with this 3d-floor
-					if (lastztop<ff_bottom && topz>ff_top)
+					if (lastztop<=ff_bottom && topz>ff_top)
 					{
 						topslope=lowslope;
 					}
 					// lower slope intersects with this 3d-floor
-					if (lastzbottom>ff_top && bottomz<ff_top)
+					if (lastzbottom>=ff_top && bottomz<ff_top)
 					{
 						bottomslope=highslope;
 					}

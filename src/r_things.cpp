@@ -2796,7 +2796,7 @@ void R_FindParticleSubsectors ()
 	}
 	for (WORD i = ActiveParticles; i != NO_PARTICLE; i = Particles[i].tnext)
 	{
-		subsector_t *ssec = R_PointInSubsector2 (Particles[i].x, Particles[i].y);
+		subsector_t *ssec = R_PointInSubsector (Particles[i].x, Particles[i].y);
 		int ssnum = ssec-subsectors;
 		Particles[i].subsector = ssec;
 		Particles[i].snext = ParticlesInSubsec[ssnum];

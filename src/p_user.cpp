@@ -74,6 +74,12 @@
 
 static FRandom pr_skullpop ("SkullPop");
 
+CUSTOM_CVAR(Float, maxviewpitch, 90.f, CVAR_ARCHIVE|CVAR_SERVERINFO)
+{
+	if (self>90.f) self=90.f;
+	else if (self<-90.f) self=-90.f;
+}
+
 
 // [RH] # of ticks to complete a turn180
 #define TURN180_TICKS	((TICRATE / 4) + 1)

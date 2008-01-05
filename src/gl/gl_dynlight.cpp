@@ -52,6 +52,7 @@
 #include "stats.h"
 #include "zstring.h"
 
+#include "gl/gl_functions.h"
 #include "gl/gl_lights.h"
 #include "gl/gl_texture.h"
 

@@ -109,34 +109,8 @@ void gl_EnableShader(bool on);
 bool gl_SetShader(int cmap);
 void gl_Init(int width, int height);
 
-void gl_DrawLine(int x0, int y0, int x1, int y1, int BaseColor);
-
-struct FTexInfo
-{
-   FTexture *tex;
-   FFont * font;
-   float x;
-   float y;
-   float width;
-   float height;
-   int clipLeft, clipRight, clipTop, clipBottom;
-   int windowLeft, windowRight;
-   const BYTE *translation;
-   bool loadAlpha, flipX, masked;
-   float alpha;
-   int fillColor;
-   int RenderStyle;
-};
-
-void gl_DrawTexture(FTexInfo *texInfo);
-void gl_DrawBuffer(BYTE * buffer, int width, int height, int x, int y, int dx, int dy, PalEntry * palette);
-void gl_DrawCanvas(DCanvas * canvas, int x, int y, int dx, int dy, PalEntry * palette);
-void gl_DrawSavePic(DCanvas * canvas, const char * Filename, int x, int y, int dx, int dy);
-
-
 // Scene
 
-void gl_ClearScreen();
 void gl_SetupView(fixed_t viewx, fixed_t viewy, fixed_t viewz, angle_t viewangle, bool mirror, bool planemirror, bool nosectorclear=false);
 void gl_SetViewArea();
 void gl_DrawScene();
@@ -213,5 +187,8 @@ __forceinline void gl_Desaturate(int gray, int ired, int igreen, int iblue, BYTE
 }
 
 void gl_ModifyColor(BYTE & red, BYTE & green, BYTE & blue, int cm);
+
+
+extern int currentrenderer;
 
 #endif

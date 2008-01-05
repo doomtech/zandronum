@@ -1982,6 +1982,8 @@ void G_DoCompleted (void)
 {
 	int i; 
 
+	gl_DeleteAllAttachedLights();
+
 	gameaction = ga_nothing;
 
 	if (gamestate == GS_TITLELEVEL)
@@ -2843,6 +2845,7 @@ void G_FinishTravel ()
 			pawndup->Destroy ();
 			pawn->LinkToWorld ();
 			pawn->AddToHash ();
+			pawn->dynamiclights.Clear();	// remove all dynamic lights from the previous level
 			pawn->SetState(pawn->SpawnState);
 
 			// [BC]
@@ -2855,7 +2858,7 @@ void G_FinishTravel ()
 				inv->ChangeStatNum (STAT_INVENTORY);
 				inv->LinkToWorld ();
 				inv->Travelled ();
-				
+				inv->dynamiclights.Clear();	// remove all dynamic lights from the previous level
 				// [BC] This is necessary, otherwise all the sector links for the inventory
 				// end up being off. This is a problem if the object tries to move or
 				// something, which is the case with bobbing objects.
@@ -3301,7 +3304,7 @@ void G_AirControlChanged ()
 void G_SerializeLevel (FArchive &arc, bool hubLoad)
 {
 	int i = level.totaltime;
-
+	
 	// [BC] In client mode, we just want to save the lines we've seen.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))

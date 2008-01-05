@@ -40,7 +40,6 @@
 #include "templates.h"
 #include "i_system.h"
 #include "r_translate.h"
-
 #include "gl/gl_texture.h"
 
 typedef bool (*CheckFunc)(FileReader & file);
@@ -129,8 +128,8 @@ FTexture::FTexture ()
 
 FTexture::~FTexture ()
 {
-	KillNative();
 	if (gltex) delete gltex;
+	KillNative();
 }
 
 bool FTexture::CheckModified ()

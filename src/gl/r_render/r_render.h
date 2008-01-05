@@ -20,9 +20,6 @@ enum TexMode
 	TM_BRIGHTMAP_TEXTURED=4,
 };
 
-typedef void (CALLBACK * PrintTextFunc) (const char * out);
-
-
 struct RenderContext
 {
 	unsigned int flags;
@@ -32,13 +29,13 @@ struct RenderContext
 	void (APIENTRY * LoadExtensions) ();
 	void (APIENTRY * SetTextureMode) (int type);
 	void (APIENTRY * ArrayPointer) (void * data, int stride);
-	void (APIENTRY * PrintStartupLog) (PrintTextFunc pf);
+	void (APIENTRY * PrintStartupLog) ();
 	BOOL (APIENTRY * SetVSync) (int on);
 #ifndef unix
-	bool (APIENTRY * InitHardware) (HWND, bool allowsoftware, bool nostencil, int multisample, PrintTextFunc pf);
+	bool (APIENTRY * InitHardware) (HWND, bool allowsoftware, bool nostencil, int multisample);
 	void (APIENTRY * Shutdown) ();
 #else
-	bool (APIENTRY * InitHardware) (bool allowsoftware, bool nostencil, int multisample, PrintTextFunc pf);
+	bool (APIENTRY * InitHardware) (bool allowsoftware, bool nostencil, int multisample);
 #endif
 	void (APIENTRY * SwapBuffers) ();
 #ifndef unix

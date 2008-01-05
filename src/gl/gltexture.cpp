@@ -75,44 +75,6 @@ CUSTOM_CVAR(Int, gl_texture_format, 0, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINI
 
 //===========================================================================
 // 
-//	This stores all the translations that have been used by textures so far
-//  This way there can be an unlimited amount of translated versions for
-//  any texture and even frequent changes of translation tables by ACS
-//  don't have any significant impact on performance.
-//
-//===========================================================================
-struct TranslationContainer
-{
-	int crc32;
-	int cm;
-	unsigned char translation[256];
-};
-
-static TArray<TranslationContainer> texturetranslations;
-
-static int FindTranslationIndex(int cm, const unsigned char * translation)
-{
-	int crc = CalcCRC32(translation, 256);
-
-	for(int i=0;i<texturetranslations.Size();i++)
-	{
-		if (crc==texturetranslations[i].crc32 && cm==texturetranslations[i].cm)
-		{
-			if (!memcmp(translation, texturetranslations[i].translation, 256)) 
-			{
-				return i;
-			}
-		}
-	}
-	TranslationContainer * t = &texturetranslations[texturetranslations.Reserve(1)];
-	t->crc32=crc;
-	t->cm=cm;
-	memcpy(t->translation, translation, 256);
-	return -(int)texturetranslations.Size()-1;
-}
-
-//===========================================================================
-// 
 //	Static texture data
 //
 //===========================================================================
@@ -282,7 +244,7 @@ GLTexture::GLTexture(int _width, int _height, bool _mipmap, bool wrap)
 		scaleyfac=MIN<float>(1.f,(float)texheight/GLTexture::GetTexDimension(texheight));
 	}
 
-	cm_arraysize=(byte)(CM_FIRSTCOLORMAP + numfakecmaps);
+	cm_arraysize=(byte)CM_FIRSTCOLORMAP;// + numfakecmaps);
 	glTexID = new unsigned[cm_arraysize];
 	memset(glTexID,0,sizeof(unsigned int)*cm_arraysize);
 	clampmode=0;
@@ -341,7 +303,7 @@ GLTexture::~GLTexture()
 //
 //===========================================================================
 
-unsigned * GLTexture::GetTexID(int cm, int translation, const unsigned char * translationtbl)
+unsigned * GLTexture::GetTexID(int cm, int translation)
 {
 	if (cm>=cm_arraysize || cm<0) cm=CM_DEFAULT;
 
@@ -349,21 +311,6 @@ unsigned * GLTexture::GetTexID(int cm, int translation, const unsigned char * tr
 	{
 		return &glTexID[cm];
 	}
-
-	int transtype = translation>>8;
-	if (transtype==TRANSLATION_Players || transtype==TRANSLATION_PlayersExtra ||
-		transtype==TRANSLATION_LevelScripted || transtype==TRANSLATION_PlayerCorpses)
-	{
-		// These types are volatile and can change at run time.
-		// Rather than deleting the old texture it is preferable to keep
-		// it. If this is used for translation cycling it can have a significant
-		// impact on performance. This means that the translation index can't
-		// be used as an identifier!
-		translationtbl=&translationtables[translation>>8][256*(translation&0xff)];
-		translation=-1;
-	}
-
-	if (translation==-1) translation = -FindTranslationIndex(cm, translationtbl);
 
 	// normally there aren't more than very few different 
 	// translations here so this isn't performance critical.
@@ -388,7 +335,7 @@ void GLTexture::ChangeActiveTexture(int texunit)
 	if (texunit != lastactivetexture)
 	{
 		lastactivetexture = texunit;
-		gl.ActiveTexture(GL_TEXTURE0_ARB+texunit);
+		gl.ActiveTexture(GL_TEXTURE0+texunit);
 	}
 }
 //===========================================================================
@@ -399,9 +346,9 @@ void GLTexture::ChangeActiveTexture(int texunit)
 // the lastbound variable will have to be changed
 //
 //===========================================================================
-unsigned int GLTexture::Bind(int texunit, int cm,int translation, const unsigned char * translationtbl)
+unsigned int GLTexture::Bind(int texunit, int cm,int translation)
 {
-	unsigned int * pTexID=GetTexID(cm, translation, translationtbl);
+	unsigned int * pTexID=GetTexID(cm, translation);
 
 	if (*pTexID!=0)
 	{
@@ -421,11 +368,11 @@ unsigned int GLTexture::Bind(int texunit, int cm,int translation, const unsigned
 //
 //===========================================================================
 unsigned int GLTexture::CreateTexture(unsigned char * buffer, int w, int h, bool wrap, int texunit,
-									  int cm, int translation, const unsigned char * translationtbl)
+									  int cm, int translation)
 {
 	if (cm>=cm_arraysize || cm<0) cm=CM_DEFAULT;
 
-	unsigned int * pTexID=GetTexID(cm, translation, translationtbl);
+	unsigned int * pTexID=GetTexID(cm, translation);
 
 	ChangeActiveTexture(texunit);
 	LoadImage(buffer, w, h, *pTexID, wrap? GL_REPEAT:GL_CLAMP, cm==CM_SHADE);

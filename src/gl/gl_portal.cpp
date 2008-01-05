@@ -79,6 +79,27 @@ bool	 GLPortal::inupperstack;
 bool	 GLPortal::inlowerstack;
 bool	 GLPortal::inskybox;
 
+//==========================================================================
+//
+//
+//
+//==========================================================================
+void GLPortal::ClearScreen()
+{
+	gl.MatrixMode(GL_MODELVIEW);
+	gl.PushMatrix();
+	gl.MatrixMode(GL_PROJECTION);
+	gl.PushMatrix();
+	screen->Begin2D(false);
+	screen->Dim(0, 1.f, 0, 0, SCREENWIDTH, SCREENHEIGHT);
+	gl.Enable(GL_DEPTH_TEST);
+	gl.MatrixMode(GL_PROJECTION);
+	gl.PopMatrix();
+	gl.MatrixMode(GL_MODELVIEW);
+	gl.PopMatrix();
+}
+
+
 //-----------------------------------------------------------------------------
 //
 // DrawPortalStencil
@@ -474,7 +495,7 @@ void GLSkyboxPortal::DrawContents()
 
 	if (skyboxrecursion>=3)
 	{
-		gl_ClearScreen();
+		ClearScreen();
 		return;
 	}
 
@@ -549,7 +570,7 @@ void GLPlaneMirrorPortal::DrawContents()
 {
 	if (renderdepth>r_mirror_recursions) 
 	{
-		gl_ClearScreen();
+		ClearScreen();
 		return;
 	}
 
@@ -598,7 +619,7 @@ void GLMirrorPortal::DrawContents()
 {
 	if (renderdepth>r_mirror_recursions) 
 	{
-		gl_ClearScreen();
+		ClearScreen();
 		return;
 	}
 
@@ -719,7 +740,7 @@ void GLHorizonPortal::DrawContents()
 	gltexture=FGLTexture::ValidateTexture(sp->texture);
 	if (!gltexture) 
 	{
-		gl_ClearScreen();
+		ClearScreen();
 		return;
 	}
 

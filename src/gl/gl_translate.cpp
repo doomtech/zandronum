@@ -1,10 +1,10 @@
-
+#include "gl_pch.h"
 /*
-** gfxfuncs.cpp
-** True color graphics functions
+** gl_translate.cpp
+** GL-related translation stuff
 **
 **---------------------------------------------------------------------------
-** Copyright 2003-2005 Christoph Oelckers
+** Copyright 2007 Christoph Oelckers
 ** All rights reserved.
 **
 ** Redistribution and use in source and binary forms, with or without
@@ -36,54 +36,55 @@
 **---------------------------------------------------------------------------
 **
 */
-#include "r_main.h"
-#include "m_swap.h"
-#include "m_png.h"
+
+#include "gl/gl_translate.h"
+#include "gl/gl_texture.h"
 #include "m_crc32.h"
-#include "gl_pch.h"
 
-//===========================================================================
-//
-// averageColor
-//  input is RGBA8 pixel format.
-//	The resulting RGB color can be scaled uniformly so that the highest 
-//	component becomes one.
-//
-//===========================================================================
-PalEntry averageColor(const unsigned long *data, int size, bool maxout)
+TArray<GLTranslationPalette::PalData> GLTranslationPalette::AllPalettes;
+
+
+GLTranslationPalette *GLTranslationPalette::CreatePalette(FRemapTable *remap)
 {
-	int				i;
-	unsigned int	r, g, b;
-
-
-
-	// First clear them.
-	r = g = b = 0;
-	if (size==0) 
-	{
-		return PalEntry(255,255,255);
-	}
-	for(i = 0; i < size; i++)
-	{
-		r += BPART(data[i]);
-		g += GPART(data[i]);
-		b += RPART(data[i]);
-	}
-
-	r = r/size;
-	g = g/size;
-	b = b/size;
-
-	int maxv=max(max(r,g),b);
-
-	if(maxv && maxout)
-	{
-		r *= 255.0f / maxv;
-		g *= 255.0f / maxv;
-		b *= 255.0f / maxv;
-	}
-	return PalEntry(r,g,b);
+	GLTranslationPalette *p = new GLTranslationPalette(remap);
+	p->Update();
+	return p;
 }
 
+bool GLTranslationPalette::Update()
+{
+	PalData pd;
 
+	memset(pd.pe, 0, sizeof(pd.pe));
+	memcpy(pd.pe, remap->Palette, remap->NumEntries * sizeof(*remap->Palette));
+	pd.crc32 = CalcCRC32((BYTE*)pd.pe, sizeof(pd.pe));
+	for(unsigned int i=0;i< AllPalettes.Size(); i++)
+	{
+		if (pd.crc32 == AllPalettes[i].crc32)
+		{
+			if (!memcmp(pd.pe, AllPalettes[i].pe, sizeof(pd.pe))) 
+			{
+				Index = 1+i;
+				return true;
+			}
+		}
+	}
+	Index = 1+AllPalettes.Push(pd);
+	return true;
+}
 
+int GLTranslationPalette::GetInternalTranslation(int trans)
+{
+	if (trans <= 0) return -trans;
+	if (trans == TRANSLATION(TRANSLATION_Standard, 8)) return CM_GRAY;
+	if (trans == TRANSLATION(TRANSLATION_Standard, 7)) return CM_ICE;
+
+	FRemapTable *remap = TranslationToTable(trans);
+	if (remap == NULL) return 0;
+
+	GLTranslationPalette *tpal = static_cast<GLTranslationPalette*>(remap->GetNative());
+	if (tpal == NULL) return 0;
+	return tpal->GetIndex();
+}
+
+	

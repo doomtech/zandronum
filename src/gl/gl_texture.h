@@ -85,6 +85,7 @@ public:
 //
 //===========================================================================
 class GLShader;
+struct FRemapTable;
 
 class FGLTexture : protected WorldTextureInfo, protected PatchTextureInfo
 {
@@ -124,7 +125,7 @@ private:
 	static bool SmoothEdges(unsigned char * buffer,int w, int h, bool clampsides);
 	int CheckDDPK3();
 	int CheckExternalFile(bool & hascolorkey);
-	unsigned char * LoadHiresTexture(int *width, int *height,intptr_t cm);
+	unsigned char * LoadHiresTexture(int *width, int *height);
 
 
 	void SetSize(int w, int h)
@@ -138,15 +139,15 @@ private:
 	void CheckForAlpha(const unsigned char * buffer);
 
 	const WorldTextureInfo * Bind(int texunit, int cm, int clamp, int translation);
-	const PatchTextureInfo * BindPatch(int texunit, int cm, int translation, const BYTE * translationtable);
+	const PatchTextureInfo * BindPatch(int texunit, int cm, int translation);
 
 public:
 	FGLTexture(FTexture * tx);
 	~FGLTexture();
 
-	unsigned char * CreateTexBuffer(int cm, int translation, const BYTE * translationtable, int & w, int & h, bool allowhires=true);
-	const WorldTextureInfo * Bind(int cm, int clamp=0, int translation = 0);
-	const PatchTextureInfo * BindPatch(int cm, int translation=0, const BYTE * translationtable=NULL);
+	unsigned char * CreateTexBuffer(int cm, int translation, int & w, int & h, bool allowhires=true);
+	const WorldTextureInfo * Bind(int cm, int clamp=0, int translation=0);
+	const PatchTextureInfo * BindPatch(int cm, int translation=0);
 
 	const WorldTextureInfo * GetWorldTextureInfo();
 	const PatchTextureInfo * GetPatchTextureInfo();
@@ -243,7 +244,7 @@ public:
 	const BYTE *GetPixels ();
 	void Unload ();
 
-	int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
+	int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y);
 	bool UseBasePalette() { return false; }
 
 protected:

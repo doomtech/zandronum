@@ -122,7 +122,7 @@ void gl_GetGlowColor(unsigned int texno, float * data)
 			if (tex)
 			{
 				int w, h;
-				unsigned char * buffer = tex->CreateTexBuffer(CM_DEFAULT, 0, NULL, w, h);
+				unsigned char * buffer = tex->CreateTexBuffer(CM_DEFAULT, 0, w, h);
 
 				if (buffer)
 				{

@@ -1722,7 +1722,7 @@ bool P_CheckPosition (AActor *thing, fixed_t x, fixed_t y)
 		F3DFloor*  rover;
 		fixed_t    delta1;
 		fixed_t    delta2;
-		int        thingtop = thing->z + thing->height;
+		int        thingtop = thing->z + (thing->height==0? 1:thing->height);
 		
 		for(unsigned i=0;i<tmsector->e->ffloors.Size();i++)
 		{
@@ -1734,6 +1734,7 @@ bool P_CheckPosition (AActor *thing, fixed_t x, fixed_t y)
 			
 			delta1 = thing->z - (ff_bottom + ((ff_top-ff_bottom)/2));
 			delta2 = thingtop - (ff_bottom + ((ff_top-ff_bottom)/2));
+
 			if(ff_top > tmfloorz && abs(delta1) < abs(delta2)) 
 			{
 				tmfloorz = tmdropoffz = ff_top;
@@ -3231,7 +3232,7 @@ const secplane_t * P_CheckSlopeWalk (AActor *actor, fixed_t &xmove, fixed_t &ymo
 						xmove = actor->momx = plane->a * 2;
 						ymove = actor->momy = plane->b * 2;
 					}
-					return NULL;
+					return (actor->floorsector == actor->Sector) ? plane : NULL;
 				}
 			}
 			// Slide the desired location along the plane's normal
@@ -3251,7 +3252,7 @@ const secplane_t * P_CheckSlopeWalk (AActor *actor, fixed_t &xmove, fixed_t &ymo
 				desty += FixedMul (plane->b, t);
 				xmove = destx - actor->x;
 				ymove = desty - actor->y;
-				return (actor->floorsector == actor->Sector) ? plane : NULL;//(plane->c >= STEEPSLOPE);
+				return (actor->floorsector == actor->Sector) ? plane : NULL;
 			}
 		}
 	}

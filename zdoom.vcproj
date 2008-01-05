@@ -56,7 +56,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				AdditionalIncludeDirectories="src\win32,src\sound,src,zlib,src\g_shared,src\g_doom,src\g_raven,src\g_heretic,src\g_hexen,src\g_strife;flac;jpeg-6b;src\MD5;src\OpenGL;src\win32\g15\include"
-				PreprocessorDefinitions="NDEBUG,WIN32,_WIN32,_WINDOWS,USEASM,HAVE_STRUPR,HAVE_FILELENGTH,SILENT_INSTANT_FLOORS,NO_GL"
+				PreprocessorDefinitions="NDEBUG,WIN32,_WIN32,_WINDOWS,USEASM,HAVE_STRUPR,HAVE_FILELENGTH,SILENT_INSTANT_FLOORS"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -170,7 +170,7 @@
 				AdditionalOptions="&quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot; "
 				Optimization="0"
 				AdditionalIncludeDirectories="src\win32;src\sound;src;zlib;src\g_shared;src\g_doom;src\g_raven;src\g_heretic;src\g_hexen;src\g_strife;flac;jpeg-6b;src\MD5;src\OpenGL;src\win32\g15\include"
-				PreprocessorDefinitions="WIN32,_DEBUG,_WIN32,_WINDOWS,USEASM,_CRTDBG_MAP_ALLOC,HAVE_STRUPR,HAVE_FILELENGTH,NO_GL"
+				PreprocessorDefinitions="WIN32,_DEBUG,_WIN32,_WINDOWS,USEASM,_CRTDBG_MAP_ALLOC,HAVE_STRUPR,HAVE_FILELENGTH"
 				MinimalRebuild="true"
 				RuntimeLibrary="1"
 				EnableFunctionLevelLinking="true"
@@ -10036,6 +10036,170 @@
 			<Filter
 				Name="GZDoom Source"
 				>
+				<File
+					RelativePath=".\src\gl\a_dynlight.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gfxfuncs.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_bsp.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_clipper.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_cycler.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_data.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_decal.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_drawinfo.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_dynlight.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_fakeflat.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_flats.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_framebuffer.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_geometric.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_glow.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_hirestex.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_light.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_menu.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_missinglines.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_missingtexture.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_models.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_models_md2.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_models_md3.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_nodes.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_pch.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_portal.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_scene.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_shader.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_sky.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_skydome.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_sprite.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_swshaders.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_texture.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_translate.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_vertex.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_walls.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_walls_draw.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_weapon.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_wipe.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gltexture.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\r_render\r_opengl.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\win32gliface.cpp"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="GZDoom Header"
@@ -10114,6 +10278,10 @@
 				</File>
 				<File
 					RelativePath=".\src\gl\gl_texture.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_translate.h"
 					>
 				</File>
 				<File

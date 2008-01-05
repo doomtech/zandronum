@@ -38,6 +38,7 @@
 **
 */
 #include "p_local.h"
+#include "r_translate.h"
 #include "gl/gl_struct.h"
 #include "gl/gl_renderstruct.h"
 #include "gl/gl_lights.h"
@@ -52,8 +53,8 @@ CVAR(Bool, gl_usecolorblending, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR(Bool, gl_sprite_blend, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG);
 CVAR(Bool, gl_nocoloredspritelighting, false, 0)
 CVAR(Int, gl_spriteclip, 1, CVAR_ARCHIVE)
-CVAR(Int, gl_billboard_mode, 2, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Int, gl_particles_style, 2, CVAR_ARCHIVE | CVAR_GLOBALCONFIG) // 0 = square, 1 = round, 2 = smooth
+CVAR(Int, gl_billboard_mode, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 
 extern bool r_showviewer;
 EXTERN_CVAR (Float, transsouls)
@@ -228,7 +229,7 @@ void GLSprite::Draw(int pass)
 			gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		}
 		// [BB] Restore the alpha test after drawing a smooth particle.
-		if ( (gltexture && gltexture->GetTransparent()) || RenderStyle == STYLE_Transparent)
+		if ((gltexture && gltexture->GetTransparent()) || RenderStyle == STYLE_Transparent)
 		{
 			gl.Enable(GL_ALPHA_TEST);
 		}
@@ -563,12 +564,12 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 	translation=thing->Translation;
 
 	// Since it is easy to get the blood color's RGB value
-	// there is no need to limit this to the current palette.
-	if ((translation>>8)==TRANSLATION_Blood)
+	// there is no need to create multiple textures for this.
+	if (GetTranslationType(translation) == TRANSLATION_Blood)
 	{
-		extern PalEntry BloodTranslations[256];
+		extern TArray<PalEntry> BloodTranslationColors;
 
-		ThingColor = BloodTranslations[translation&255];
+		ThingColor = BloodTranslationColors[GetTranslationIndex(translation)];
 		gl_ModifyColor(ThingColor.r, ThingColor.g, ThingColor.b, Colormap.LightColor.a);
 		ThingColor.a=0;
 
@@ -621,7 +622,12 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 		RenderStyle=STYLE_Normal;
 	}
 
-	if (thing->Sector->e->lightlist.Size()==0 || gl_fixedcolormap || fullbright) 
+	const bool drawWithXYBillboard = ( !(actor->renderflags & RF_FORCEYBILLBOARD)
+									   && players[consoleplayer].camera
+									   && (gl_billboard_mode == 2 || actor->renderflags & RF_FORCEXYBILLBOARD ) );
+
+
+	if (thing->Sector->e->lightlist.Size()==0 || gl_fixedcolormap || fullbright || (drawWithXYBillboard && !modelframe)) 
 	{
 		PutSprite(RenderStyle!=STYLE_Normal);
 	}

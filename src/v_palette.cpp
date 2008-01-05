@@ -96,23 +96,6 @@ CUSTOM_CVAR (Float, Gamma, 1.f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 	}
 }
 
-CUSTOM_CVAR (Float, vid_brightness, 0.f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
-{
-	if (screen != NULL)
-	{
-		screen->SetBrightness (self);
-	}
-}
-
-CUSTOM_CVAR (Float, vid_contrast, 1.f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
-{
-	if (screen != NULL)
-	{
-		screen->SetContrast (self);
-	}
-}
-
-
 
 /****************************/
 /* Palette management stuff */
@@ -658,27 +641,6 @@ void HSVtoRGB (float *r, float *g, float *b, float h, float s, float v)
 
 /****** Colored Lighting Stuffs ******/
 
-void RebuildAllLights()
-{
-	if (currentrenderer==0)
-	{
-		// Since I am not generating the light maps when in hardware mode
-		// this has to be done for all affected colormaps when the
-		// renderer is being switched
-
-		FDynamicColormap *cm;
-
-		for (cm = &NormalLight; cm != NULL; cm = cm->Next)
-		{
-			if (!cm->Maps)
-			{
-				cm->Maps = new BYTE[NUMCOLORMAPS*256];
-				cm->BuildLights ();
-			}
-		}
-	}
-}
-
 FDynamicColormap *GetSpecialLights (PalEntry color, PalEntry fade, int desaturate)
 {
 	FDynamicColormap *colormap;
@@ -695,7 +657,7 @@ FDynamicColormap *GetSpecialLights (PalEntry color, PalEntry fade, int desaturat
 	}
 
 	// Not found. Create it.
-	colormap = new FDynamicColormap;;
+	colormap = new FDynamicColormap;
 	colormap->Next = NormalLight.Next;
 	colormap->Color = color;
 	colormap->Fade = fade;

@@ -51,14 +51,13 @@
 #include "vectors.h"
 #include "a_sharedglobal.h"
 #include "r_translate.h"
-// [GZDoom]
+
 #include "gl/gl_data.h"
 #include "gl/gl_texture.h"
 #include "gl/gl_functions.h"
 
 // [BC] New #includes.
 #include "sv_commands.h"
-
 // MACROS ------------------------------------------------------------------
 
 #if 0
@@ -845,11 +844,11 @@ static void R_Shutdown ()
 
 //==========================================================================
 //
-// R_PointInSubsector
+// P_PointInSubsector
 //
 //==========================================================================
 
-subsector_t *R_PointInSubsector (fixed_t x, fixed_t y)
+subsector_t *P_PointInSubsector (fixed_t x, fixed_t y)
 {
 	node_t *node;
 	int side;
@@ -872,11 +871,11 @@ subsector_t *R_PointInSubsector (fixed_t x, fixed_t y)
 
 //==========================================================================
 //
-// R_PointInSubsector2
+// R_PointInSubsector
 //
 //==========================================================================
 
-subsector_t *R_PointInSubsector2 (fixed_t x, fixed_t y)
+subsector_t *R_PointInSubsector (fixed_t x, fixed_t y)
 {
 	node_t *node;
 	int side;
@@ -975,7 +974,7 @@ void R_InterpolateView (player_t *player, fixed_t frac, InterpolationViewer *ivi
 	}
 	
 	// Due to interpolation this is not necessarily the same as the sector the camera is in.
-	viewsector = R_PointInSubsector2(viewx, viewy)->sector;
+	viewsector = R_PointInSubsector(viewx, viewy)->sector;
 }
 
 //==========================================================================
@@ -1931,19 +1930,19 @@ void FActiveInterpolation::CopyBakToInterp ()
 void FActiveInterpolation::DoAnInterpolation (fixed_t smoothratio)
 {
 	fixed_t *adr1, *adr2, pos;
-	bool recalc=false; // [GZDoom]
+	bool recalc=false;
 
 	switch (Type)
 	{
 	case INTERP_SectorFloor:
 		adr1 = &((sector_t*)Address)->floorplane.d;
 		adr2 = &((sector_t*)Address)->floortexz;
-		recalc=true; // [GZDoom]
+		recalc=true;
 		break;
 	case INTERP_SectorCeiling:
 		adr1 = &((sector_t*)Address)->ceilingplane.d;
 		adr2 = &((sector_t*)Address)->ceilingtexz;
-		recalc=true; // [GZDoom]
+		recalc=true;
 		break;
 	case INTERP_Vertex:
 		adr1 = &((vertex_t*)Address)->x;
@@ -1971,7 +1970,7 @@ void FActiveInterpolation::DoAnInterpolation (fixed_t smoothratio)
 	pos = bakipos[1] = *adr2;
 	*adr2 = oldipos[1] + FixedMul (pos - oldipos[1], smoothratio);
 
-	if (recalc) P_RecalculateAttached3DFloors((sector_t*)Address); // [GZDoom]
+	if (recalc) P_RecalculateAttached3DFloors((sector_t*)Address);
 }
 
 size_t FActiveInterpolation::HashKey (EInterpType type, void *interptr)

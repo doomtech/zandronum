@@ -63,6 +63,7 @@
 #include "sbar.h"
 #include "p_setup.h"
 #include "r_translate.h"
+
 #include "deathmatch.h"
 #include "duel.h"
 #include "team.h"
@@ -77,6 +78,7 @@
 
 #include "gl/gl_functions.h"
 #include "gl/gl_lights.h"
+
 
 extern void P_SpawnMapThing (mapthing2_t *mthing, int position);
 extern bool P_LoadBuildMap (BYTE *mapdata, size_t len, mapthing2_t **things, int *numthings);
@@ -3930,9 +3932,7 @@ void P_SetupLevel (char *lumpname, int position)
 		ForceNodeBuild = true;
 	}
 
-	// [BC] From now on, we're ALWAYS using GL nodes!
-	UsingGLNodes = true;
-	//ForceNodeBuild = true;
+	UsingGLNodes = true;	// There really is no point in building non-GL nodes
 	if (!ForceNodeBuild)
 	{
 		// Check for compressed nodes first, then uncompressed nodes
@@ -4028,7 +4028,7 @@ void P_SetupLevel (char *lumpname, int position)
 	}
 
 	// If the nodes being loaded are not GL nodes the GL renderer needs to create a second set of nodes.
-	// The originals have to be kept for use by R_PointInSubsector.
+	// The originals have to be kept for use by P_PointInSubsector.
 	gl_CheckNodes(map);
 
 	clock (times[10]);
@@ -4102,6 +4102,7 @@ void P_SetupLevel (char *lumpname, int position)
 
 	// Spawn extended specials
 	P_SpawnSpecials2();
+	P_InitTagLists();
 
 	// This must be done BEFORE the PolyObj Spawn!!!
 	// [BB] The server may not execute this

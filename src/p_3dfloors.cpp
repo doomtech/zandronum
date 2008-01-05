@@ -621,7 +621,7 @@ void P_LineOpening (AActor * thing,const line_t *linedef, fixed_t x, fixed_t y, 
 			fixed_t    delta2;
 			int highestfloorpic = tmfloorpic;
 			
-			thingtop = thing->z + thing->height;
+			thingtop = thing->z + (thing->height==0? 1:thing->height);
 			
 			// Check for frontsector's 3D-floors
 			for(i=0;i<front->e->ffloors.Size();i++)
@@ -636,6 +636,7 @@ void P_LineOpening (AActor * thing,const line_t *linedef, fixed_t x, fixed_t y, 
 				
 				delta1 = abs(thing->z - ((ff_bottom + ff_top) / 2));
 				delta2 = abs(thingtop - ((ff_bottom + ff_top) / 2));
+
 				if(ff_bottom < lowestceiling && delta1 >= delta2) lowestceiling = ff_bottom;
 				
 				if(ff_top > highestfloor && delta1 < delta2) highestfloor = ff_top;
@@ -655,6 +656,7 @@ void P_LineOpening (AActor * thing,const line_t *linedef, fixed_t x, fixed_t y, 
 				
 				delta1 = abs(thing->z - ((ff_bottom + ff_top) / 2));
 				delta2 = abs(thingtop - ((ff_bottom + ff_top) / 2));
+				
 				if(ff_bottom < lowestceiling && delta1 >= delta2) lowestceiling = ff_bottom;
 				
 				if(ff_top > highestfloor && delta1 < delta2)
@@ -821,13 +823,6 @@ void P_SpawnSpecials2 (void)
 
 	while (mo=it.Next())
 	{
-		// For GL the default 25% is extremely low so I increase it.
-		// (But this doesn't handle a renderer switch. Whatever.)
-		if (mo->SpawnFlags & MTF_SHADOW)
-		{
-			if (currentrenderer==1) mo->alpha = TRANSLUC50;
-		}
-		
 		// Don't count monsters in end-of-level sectors
 		// In 99.9% of all occurences they are part of a trap
 		// and not supposed to be killed.

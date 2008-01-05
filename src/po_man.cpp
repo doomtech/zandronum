@@ -364,7 +364,6 @@ bool EV_RotatePoly (line_t *line, int polyNum, int speed, int byteAngle,
 		I_Error("EV_RotatePoly: Invalid polyobj num: %d\n", polyNum);
 	}
 	pe = new DRotatePoly (polyNum);
-
 	if (byteAngle)
 	{
 		if (byteAngle == 255)
@@ -621,7 +620,6 @@ void DPolyDoor::Tick ()
 		}
 		return;
 	}
-
 	switch (m_Type)
 	{
 	case PODOOR_SLIDE:
@@ -814,9 +812,7 @@ bool EV_OpenPolyDoor (line_t *line, int polyNum, int speed, angle_t angle,
 	{
 		I_Error("EV_OpenPolyDoor: Invalid polyobj num: %d\n", polyNum);
 	}
-
 	pd = new DPolyDoor (polyNum, type);
-
 	if (type == PODOOR_SLIDE)
 	{
 		pd->m_WaitTics = delay;
@@ -1789,7 +1785,7 @@ static void TranslateToStartSpot (int tag, int originX, int originY)
 	}
 	avg.x /= po->numsegs;
 	avg.y /= po->numsegs;
-	sub = R_PointInSubsector2 (avg.x<<FRACBITS, avg.y<<FRACBITS);
+	sub = R_PointInSubsector (avg.x<<FRACBITS, avg.y<<FRACBITS);
 	if (sub->poly != NULL)
 	{
 		I_Error ("PO_TranslateToStartSpot: Multiple polyobjs in a single subsector.\n");

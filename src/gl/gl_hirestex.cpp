@@ -55,16 +55,16 @@
 int FGLTexture::CheckDDPK3()
 {
 	static const char * doom1texpath[]= {
-		"data/jdoom/textures/doom1/%s.%s", "data/jdoom/textures/%s.%s", NULL };
+		"data/jdoom/textures/doom/%s.%s", "data/jdoom/textures/doom-ult/%s.%s", "data/jdoom/textures/doom1/%s.%s", "data/jdoom/textures/%s.%s", NULL };
 
 	static const char * doom2texpath[]= {
 		"data/jdoom/textures/doom2/%s.%s", "data/jdoom/textures/%s.%s", NULL };
 
 	static const char * pluttexpath[]= {
-		"data/jdoom/textures/plutonia/%s.%s", "data/jdoom/textures/%s.%s", NULL };
+		"data/jdoom/textures/doom2-plut/%s.%s", "data/jdoom/textures/plutonia/%s.%s", "data/jdoom/textures/%s.%s", NULL };
 
 	static const char * tnttexpath[]= {
-		"data/jdoom/textures/tnt/%s.%s", "data/jdoom/textures/%s.%s", NULL };
+		"data/jdoom/textures/doom2-tnt/%s.%s", "data/jdoom/textures/tnt/%s.%s", "data/jdoom/textures/%s.%s", NULL };
 
 	static const char * heretictexpath[]= {
 		"data/jheretic/textures/%s.%s", NULL };
@@ -329,7 +329,7 @@ int FGLTexture::CheckExternalFile(bool & hascolorkey)
 // Checks for the presence of a hires texture replacement and loads it
 //
 //==========================================================================
-unsigned char *FGLTexture::LoadHiresTexture(int *width, int *height,intptr_t cm)
+unsigned char *FGLTexture::LoadHiresTexture(int *width, int *height)
 {
 	if (HiresLump==-1) 
 	{
@@ -350,7 +350,8 @@ unsigned char *FGLTexture::LoadHiresTexture(int *width, int *height,intptr_t cm)
 		unsigned char * buffer=new unsigned char[w*(h+1)*4];
 		memset(buffer, 0, w * (h+1) * 4);
 
-		int trans = hirestexture->CopyTrueColorPixels(buffer, w, h, 0, 0, cm, 0);
+		
+		int trans = hirestexture->CopyTrueColorPixels(buffer, w<<2, h, 0, 0);
 		CheckTrans(buffer, w*h, trans);
 
 		if (bHasColorkey)

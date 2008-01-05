@@ -77,6 +77,7 @@ protected:
 	void FreeModes();
 public:
 	int GetTrueHeight() { return m_trueHeight; }
+
 };
 
 
@@ -108,35 +109,17 @@ public:
 	bool IsLocked ();
 
 
-	PalEntry *GetPalette();
-	void GetFlashedPalette(PalEntry palette[256]);
-	void UpdatePalette();
-	bool SetFlash(PalEntry rgb, int amount);
-	void GetFlash(PalEntry &rgb, int &amount);
-	int GetPageCount();
 	bool IsFullscreen();
 	void PaletteChanged();
 	int QueryNewPalette();
 
-	void Clear (int left, int top, int right, int bottom, int palcolor, uint32 color) const;
-	void Dim(PalEntry color=0) const;
-	void Dim (PalEntry color, float damount, int x1, int y1, int w, int h) const;
-	void FlatFill (int left, int top, int right, int bottom, FTexture *src);
-	void Set2DMode();
-
 	void InitializeState();
-	void Update();
-
-	void DoSetGamma();
-
-	bool SetGamma(float gamma);
-	bool SetBrightness (float bright);
-	bool SetContrast (float contrast);
 
 protected:
 
-	PalEntry SourcePalette[256];
-	//BYTE m_gammaTable[256];
+	bool CanUpdate();
+	void SetGammaTable(WORD * tbl);
+
 	float m_Gamma, m_Brightness, m_Contrast;
 	WORD m_origGamma[768];
 	BOOL m_supportsGamma;
@@ -145,6 +128,7 @@ protected:
 	int m_Lock;
 
 	friend class Win32GLVideo;
+
 };
 
 #endif //__WIN32GLIFACE_H__

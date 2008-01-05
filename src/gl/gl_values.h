@@ -86,6 +86,11 @@ enum SectorRenderFlags
 
 enum EColorManipulation
 {
+	// special internal values
+	CM_BRIGHTMAP=-4,			// Brightness map for colormap based bright colors
+	CM_GRAY=-3,					// a simple grayscale map for colorizing blood splats
+	CM_ICE=-2,					// The bluish ice translation for frozen corpses
+
 	CM_INVALID=-1,
 	CM_DEFAULT=0,					// untranslated
 	CM_DESAT0=CM_DEFAULT,

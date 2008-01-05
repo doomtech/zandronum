@@ -545,7 +545,7 @@ void D_Display ()
 				// Recalculate various view parameters.
 				setsizeneeded = true;
 				// Let the status bar know the screen size changed
-				if ( StatusBar != NULL )
+				if (StatusBar != NULL)
 				{
 					StatusBar->ScreenSizeChanged ();
 				}
@@ -588,10 +588,10 @@ void D_Display ()
 	}
 
 	// [RH] Allow temporarily disabling wipes
-	if (NoWipe || currentrenderer == 1)
+	if (NoWipe)
 	{
 		BorderNeedRefresh = screen->GetPageCount ();
-		if (currentrenderer==0) NoWipe--;
+		NoWipe--;
 		wipe = false;
 		wipegamestate = gamestate;
 	}
@@ -688,7 +688,6 @@ void D_Display ()
 			{
 				R_RefreshViewBorder ();
 			}
-
 	#ifdef ALTERNATIVE_HUD
 
 			if (hud_althud && realviewheight == SCREENHEIGHT)
@@ -857,7 +856,7 @@ void D_Display ()
 		NoWipe = 10;
 	}
 
-	if (!wipe || NoWipe < 0 || currentrenderer==1)
+	if (!wipe || NoWipe < 0)
 	{
 		NetUpdate ();			// send out any new accumulation
 		// normal update
@@ -3099,7 +3098,7 @@ void FStartupScreen::AppendStatusLine(const char *status)
 ADD_STAT (fps)
 {
 	FString out;
-	out.Format ("frame=%04.1f ms  walls=%04.1f ms  planes=%04.1f ms  masked=%04.1f ms",
+	out.Format("frame=%04.1f ms  walls=%04.1f ms  planes=%04.1f ms  masked=%04.1f ms",
 		(double)FrameCycles * SecondsPerCycle * 1000,
 		(double)WallCycles * SecondsPerCycle * 1000,
 		(double)PlaneCycles * SecondsPerCycle * 1000,

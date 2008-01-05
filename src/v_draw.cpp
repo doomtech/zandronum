@@ -47,9 +47,6 @@
 #include "i_video.h"
 #include "templates.h"
 
-#include "gl/gl_functions.h"
-
-
 // [RH] Stretch values to make a 320x200 image best fit the screen
 // without using fractional steppings
 float CleanXfac, CleanYfac;
@@ -121,28 +118,6 @@ void STACK_ARGS DCanvas::DrawTextureV(FTexture *img, int x, int y, uint32 tag, v
 
 	fixed_t x0 = parms.x - Scale (parms.left, parms.destwidth, parms.texwidth);
 	fixed_t y0 = parms.y - Scale (parms.top, parms.destheight, parms.texheight);
-
-#ifndef NO_GL
-	if (currentrenderer == 1)
-	{
-		FTexInfo texInfo;
-		texInfo.tex = img;
-		texInfo.font = Font;
-		texInfo.x = x0 / (float)FRACUNIT; texInfo.y = y0 / (float)FRACUNIT;
-		texInfo.width = parms.destwidth / (float)FRACUNIT; texInfo.height = parms.destheight / (float)FRACUNIT;
-		texInfo.translation = parms.translation;
-		texInfo.loadAlpha = parms.alphaChannel == 1;
-		texInfo.clipLeft = parms.lclip; texInfo.clipRight = parms.rclip;
-		texInfo.clipTop = parms.uclip; texInfo.clipBottom = parms.dclip;
-		texInfo.fillColor = parms.fillcolor; texInfo.alpha = parms.alpha / (float)FRACUNIT;
-		texInfo.windowLeft = parms.windowleft; texInfo.windowRight = parms.windowright;
-		texInfo.flipX = parms.flipX == 1;
-		texInfo.masked = spanptr != NULL;
-		texInfo.RenderStyle = parms.style;
-		gl_DrawTexture(&texInfo);
-		return;
-	}
-#endif
 
 	if (mode != DontDraw)
 	{

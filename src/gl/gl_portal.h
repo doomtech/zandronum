@@ -91,6 +91,7 @@ protected:
 	virtual bool IsSky() { return false; }
 	virtual bool NeedCap() { return true; }
 	virtual bool NeedDepthBuffer() { return true; }
+	void ClearScreen();
 
 public:
 	void RenderPortal(bool usestencil, bool doquery)

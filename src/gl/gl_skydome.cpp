@@ -76,9 +76,9 @@ public:
 		if (faces[0]) return faces[0]->GetPixels();
 		return NULL;
 	}
-	virtual int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation)
+	virtual int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y)
 	{
-		if (faces[0]) return faces[0]->CopyTrueColorPixels(buffer, buf_width, buf_height, x, y, cm, translation);
+		if (faces[0]) return faces[0]->CopyTrueColorPixels(buffer, buf_width, buf_height, x, y);
 		return 0;
 	}
 	bool UseBasePalette() { return false; }	// not really but here it's not important.
@@ -179,7 +179,7 @@ static PalEntry SkyCapColor(unsigned int texno, bool bottom)
 			{
 				int w;
 				int h;
-				unsigned char * buffer = tex->CreateTexBuffer(CM_DEFAULT, 0, NULL, w, h);
+				unsigned char * buffer = tex->CreateTexBuffer(CM_DEFAULT, 0, w, h);
 
 				if (buffer)
 				{

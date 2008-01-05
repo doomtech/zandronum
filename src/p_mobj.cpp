@@ -59,6 +59,7 @@
 #include "g_game.h"
 #include "teaminfo.h"
 #include "r_translate.h"
+
 #include "deathmatch.h"
 #include "duel.h"
 #include "gamemode.h"
@@ -115,6 +116,8 @@ static FRandom pr_spawnmissile ("SpawnMissile");
 static FRandom pr_missiledamage ("MissileDamage");
  FRandom pr_slam ("SkullSlam");
 static FRandom pr_multiclasschoice ("MultiClassChoice");
+static FRandom pr_rockettrail("RocketTrail");
+
 
 /*static*/	NETIDNODE_t	g_NetIDList[MAX_NETID];
 static	ULONG		g_ulFirstFreeNetID = 1;
@@ -1298,7 +1301,7 @@ void P_ExplodeMissile (AActor *mo, line_t *line, AActor *target)
 					if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 					{
 						DImpactDecal::StaticCreate (base->GetDecal (),
-							x, y, z, sides + line->sidenum[side]);
+							x, y, z, sides + line->sidenum[side], ffloor);
 					}
 				}
 			}
@@ -2378,7 +2381,7 @@ void P_ZMovement (AActor *mo)
 		fixed_t ff_top=rover->top.plane->ZatPoint(mo->x, mo->y);
 		
 		fixed_t delta1 = mo->z - (ff_bottom + ((ff_top-ff_bottom)/2));
-		fixed_t delta2 = mo->z + mo->height - (ff_bottom + ((ff_top-ff_bottom)/2));
+		fixed_t delta2 = mo->z + (mo->height? mo->height:1) - (ff_bottom + ((ff_top-ff_bottom)/2));
 
 		if(ff_top > mo->floorz && abs(delta1) < abs(delta2)) mo->floorz = ff_top;
 		if(ff_bottom < mo->ceilingz && abs(delta1) >= abs(delta2)) mo->ceilingz = ff_bottom;
@@ -3165,8 +3168,25 @@ void AActor::SetShade (int r, int g, int b)
 //
 // P_MobjThinker
 //
+
+CVAR(Bool, sv_rocketsmoke, false, CVAR_ARCHIVE|CVAR_SERVERINFO)
+
 void AActor::Tick ()
 {
+	if (effects&FX_ROCKET && sv_rocketsmoke && ++visdir==4)
+	{
+		// add some smoke behind the rocket 
+		visdir=0;
+		AActor * th = Spawn("RocketSmokeTrail", x-momx, y-momy, z, ALLOW_REPLACE);
+		if (th)
+		{
+			th->momz = FRACUNIT;
+			th->tics -= pr_rockettrail()&3;
+			if (th->tics < 1) th->tics = 1;
+		}
+	}
+
+
 	// [RH] Data for Heretic/Hexen scrolling sectors
 	static const BYTE HexenScrollDirs[8] = { 64, 0, 192, 128, 96, 32, 224, 160 };
 	static const BYTE HexenSpeedMuls[3] = { 5, 10, 25 };

@@ -264,7 +264,7 @@ void ADynamicLight::PostBeginPlay()
 		Activate (NULL);
 	}
 
-	subsector = R_PointInSubsector2(x,y);
+	subsector = R_PointInSubsector(x,y);
 }
 
 
@@ -408,7 +408,7 @@ void ADynamicLight::UpdateLocation()
 			PrevX = x = target->x + m_offX;
 			PrevY = y = target->y + m_offZ;
 			PrevZ = z = target->z + m_offY;
-			subsector = R_PointInSubsector2(x, y);
+			subsector = R_PointInSubsector(x, y);
 			Sector = subsector->sector;
 		}
 
@@ -616,7 +616,7 @@ void ADynamicLight::LinkLight()
 	{
 		// passing in radius*radius allows us to do a distance check without any calls to sqrtf
 		::validcount++;
-		subsector_t * subSec = R_PointInSubsector2(x, y);
+		subsector_t * subSec = R_PointInSubsector(x, y);
 		if (subSec)
 		{
 			float fradius = TO_MAP(radius);

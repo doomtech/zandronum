@@ -1155,7 +1155,7 @@ void GLDrawInfo::HandleHackedSubsectors()
 	lowershcount=uppershcount=totalssms=0;
 	clock(totalssms);
 
-	viewsubsector = R_PointInSubsector2(viewx, viewy);
+	viewsubsector = R_PointInSubsector(viewx, viewy);
 
 	// Each subsector may only be processed once in this loop!
 	validcount++;

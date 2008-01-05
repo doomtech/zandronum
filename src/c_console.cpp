@@ -161,13 +161,6 @@ CVAR (Float, con_notifytime, 3.f, CVAR_ARCHIVE)
 CVAR (Bool, con_centernotify, false, CVAR_ARCHIVE)
 // [BC] con_scaletext is back to being a bool.
 CVAR (Bool, con_scaletext, 0, CVAR_ARCHIVE)		// Scale notify text at high resolutions?
-// [BC] Allow users to specify a virtual width and height when text scaling is enabled.
-CVAR( Int, con_virtualwidth, 0, CVAR_ARCHIVE )
-CVAR( Int, con_virtualheight, 0, CVAR_ARCHIVE )
-
-// [BC] Allow text colors?
-// [RC] Now a three-level setting. No/Yes/Not in chat.
-CVAR( Int, con_colorinmessages, 1, CVAR_ARCHIVE )
 CUSTOM_CVAR(Float, con_alpha, 0.75f, CVAR_ARCHIVE)
 {
 	if (self < 0.f) self = 0.f;
@@ -176,6 +169,14 @@ CUSTOM_CVAR(Float, con_alpha, 0.75f, CVAR_ARCHIVE)
 
 // Command to run when Ctrl-D is pressed at start of line
 CVAR (String, con_ctrl_d, "", CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+
+// [BC] Allow users to specify a virtual width and height when text scaling is enabled.
+CVAR( Int, con_virtualwidth, 0, CVAR_ARCHIVE )
+CVAR( Int, con_virtualheight, 0, CVAR_ARCHIVE )
+
+// [BC] Allow text colors?
+// [RC] Now a three-level setting. No/Yes/Not in chat.
+CVAR( Int, con_colorinmessages, 1, CVAR_ARCHIVE )
 
 // [BB] Add a timestamp to every string printed to the logfile.
 CVAR (Bool, sv_logfiletimestamp, true, CVAR_ARCHIVE)
@@ -251,8 +252,7 @@ CUSTOM_CVAR (Int, msgmidcolor2, 4, CVAR_ARCHIVE)
 
 static void maybedrawnow (bool tick, bool force)
 {
-	// FIXME: Does not work right with hw2d
-	if (ConsoleDrawing || !gotconback || screen->IsLocked () || 1)
+	if (ConsoleDrawing || !gotconback || screen->IsLocked ())
 	{
 		return;
 	}
@@ -1293,27 +1293,13 @@ void C_DrawConsole (bool hw2d)
 		visheight = ConBottom;
 		realheight = (visheight * conpic->GetHeight()) / SCREENHEIGHT;
 
-		if (currentrenderer==1)	// take advantage of hardware rendering here!
-		{
-			bool fullconsole = visheight==screen->GetHeight();
-			screen->DrawTexture (conpic, 0, visheight - screen->GetHeight(),
-				DTA_DestWidth, screen->GetWidth(),
-				DTA_DestHeight, screen->GetHeight(),
-				DTA_Alpha, fullconsole? FRACUNIT : FRACUNIT*3/4,
-				DTA_RenderStyle, fullconsole? STYLE_Normal : STYLE_Translucent,
-				DTA_FillColor, fullconsole? 0x4c4c4c : 0x1a1a1a,	// This is hardware only so no palette indices are needed.
-				DTA_Masked, false,
-				TAG_DONE);
-		}
-		else
-			screen->DrawTexture( conpic, 0, visheight - screen->GetHeight( ),
-				DTA_DestWidth, screen->GetWidth(),
-				DTA_DestHeight, screen->GetHeight(),
-				DTA_ColorOverlay, conshade,
-				DTA_Alpha, hw2d ? FLOAT2FIXED(con_alpha) : FRACUNIT,
-				DTA_Masked, false,
-				TAG_DONE );
-
+		screen->DrawTexture (conpic, 0, visheight - screen->GetHeight(),
+			DTA_DestWidth, screen->GetWidth(),
+			DTA_DestHeight, screen->GetHeight(),
+			DTA_ColorOverlay, conshade,
+			DTA_Alpha, hw2d ? FLOAT2FIXED(con_alpha) : FRACUNIT,
+			DTA_Masked, false,
+			TAG_DONE);
 		if (conline && visheight < screen->GetHeight())
 		{
 			screen->Clear (0, visheight, screen->GetWidth(), visheight+1, 0, 0);
@@ -2091,6 +2077,7 @@ struct TabData
 	{
 	}
 };
+
 static TArray<TabData> TabCommands (TArray<TabData>::NoInit);
 static int TabPos;				// Last TabCommand tabbed to
 static int TabStart;			// First char in CmdLine to use for tab completion
@@ -2213,7 +2200,7 @@ static void C_TabComplete (bool goForward)
 			}
 			else
 				return;		// No initial matches
-		}		
+		}
 
 		// Show a list of possible completions, if more than one.
 		if (TabbedList || con_notablist)

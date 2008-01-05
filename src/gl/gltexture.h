@@ -68,14 +68,14 @@ private:
 	TArray<TranslatedTexture> glTexID_Translated;
 
 	void LoadImage(unsigned char * buffer,int w, int h, unsigned int & glTexID,int wrapparam, bool alphatexture=false);
-	unsigned * GetTexID(int cm, int translation, const unsigned char * translationtbl);
+	unsigned * GetTexID(int cm, int translation);
 
 public:
 	GLTexture(int w, int h, bool mip, bool wrap);
 	~GLTexture();
 
-	unsigned int Bind(int texunit, int cm, int translation=0, const unsigned char * translationtbl=NULL);
-	unsigned int CreateTexture(unsigned char * buffer, int w, int h,bool wrap, int texunit, int cm, int translation=0, const unsigned char * translationtbl=NULL);
+	unsigned int Bind(int texunit, int cm, int translation=0);
+	unsigned int CreateTexture(unsigned char * buffer, int w, int h,bool wrap, int texunit, int cm, int translation=0);
 	void Resize(int _width, int _height) ;
 
 	void Clean(bool all);

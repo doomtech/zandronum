@@ -61,7 +61,6 @@
 
 #include "gl/gl_texture.h"
 #include "gl/gl_functions.h"
-void HU_InitHud();
 
 static void R_InitPatches ();
 static int R_CountGroup (const char *start, const char *end);
@@ -1075,20 +1074,7 @@ void R_PrecacheLevel (void)
 				{
 					// [BB] The server may not do this.
 					if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-					{
-						FGLTexture * gltex = FGLTexture::ValidateTexture(tex);
-						if (gltex) 
-						{
-							if (tex->UseType==FTexture::TEX_Sprite) 
-							{
-								gltex->BindPatch(CM_DEFAULT);
-							}
-							else 
-							{
-								gltex->Bind (CM_DEFAULT);
-							}
-						}
-					}
+						tex->PrecacheGL();
 				}
 			}
 			else

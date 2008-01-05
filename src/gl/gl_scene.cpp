@@ -39,7 +39,6 @@
 
 #include "gi.h"
 #include "st_stuff.h"
-#include "gl/gl_framebuffer.h"
 #include "gl/gl_struct.h"
 #include "gl/gl_renderstruct.h"
 #include "gl/gl_portal.h"
@@ -50,6 +49,7 @@
 #include "gl/gl_basic.h"
 #include "gl/gl_functions.h"
 #include "gl/gl_shader.h"
+#include "gl/gl_framebuffer.h"
 
 #define DEG2RAD( a ) ( a * M_PI ) / 180.0F
 #define RAD2DEG( a ) ( a / M_PI ) * 180.0F
@@ -300,7 +300,7 @@ void gl_SetupView(fixed_t viewx, fixed_t viewy, fixed_t viewz, angle_t viewangle
 void gl_SetViewArea()
 {
 	// The render_sector is better suited to represent the current position in GL
-	viewsector = R_PointInSubsector2(viewx, viewy)->render_sector;
+	viewsector = R_PointInSubsector(viewx, viewy)->render_sector;
 
 	// keep the view within the render sector's floor and ceiling
 	fixed_t theZ = viewsector->ceilingplane.ZatPoint (viewx, viewy) - 4*FRACUNIT;
@@ -532,8 +532,9 @@ void gl_DrawScene()
 // Draws a blend over the entire view
 //
 // This mostly duplicates the code in shared_sbar.cpp
-// but I can't use that one because it is done too late so I don't get
-// the blend in time.
+// When I was writing this the original was called too late so that I
+// couldn't get the blend in time. However, since then I made some changes
+// here that would get lost if I switched back so I won't do it.
 //
 //==========================================================================
 // [BC] Blah. Not a great place to include this.
@@ -738,7 +739,7 @@ void gl_EndDrawScene(sector_t * viewsector)
 	gl.Disable(GL_POLYGON_SMOOTH);
 
 	gl_EnableFog(false);
-	static_cast<OpenGLFrameBuffer*>(screen)->Set2DMode();
+	screen->Begin2D(false);
 
 	gl_ResetViewport();
 	gl_DrawPlayerSprites (viewsector);
@@ -843,22 +844,13 @@ void gl_RenderTextureView(FCanvasTexture *Texture, AActor * Viewpoint, int FOV)
 	bounds.left=bounds.top=0;
 	bounds.width=GLTexture::GetTexDimension(gltex->GetWidth());
 	bounds.height=GLTexture::GetTexDimension(gltex->GetHeight());
-	switch (currentrenderer)
-	{
-	case 1: // OpenGL
-		gl.Flush();
-		gl_RenderView(Viewpoint, &bounds, FOV, (float)width/height, (float)width/height, false);
-		gl.Flush();
-		gltex->Bind(CM_DEFAULT);
-		gl.CopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, bounds.width, bounds.height);
-		gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GLTexture::TexFilter[gl_texture_filter].magfilter);
-		break;
 
-	case 2:	// D3D
-
-	default:
-		break;
-	}
+	gl.Flush();
+	gl_RenderView(Viewpoint, &bounds, FOV, (float)width/height, (float)width/height, false);
+	gl.Flush();
+	gltex->Bind(CM_DEFAULT);
+	gl.CopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, bounds.width, bounds.height);
+	gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GLTexture::TexFilter[gl_texture_filter].magfilter);
 }
 
 

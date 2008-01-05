@@ -92,7 +92,6 @@ public:
 	virtual void SetFrontSkyLayer ();
 
 	int CopyTrueColorPixels(BYTE *buffer, int buf_pitch, int buf_height, int x, int y);
-	int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
 	bool UseBasePalette();
 
 protected:
@@ -253,7 +252,6 @@ public:
 	void Unload ();
 	FTextureFormat GetFormat ();
 	int CopyTrueColorPixels(BYTE *buffer, int buf_pitch, int buf_height, int x, int y);
-	int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
 	bool UseBasePalette();
 	int GetSourceLump() { return SourceLump; }
 
@@ -293,7 +291,6 @@ public:
 	const BYTE *GetPixels ();
 	void Unload ();
 	FTextureFormat GetFormat ();
-
 	int GetSourceLump() { return SourceLump; }
 
 protected:
@@ -339,7 +336,6 @@ public:
 	void Unload ();
 	FTextureFormat GetFormat ();
 	int CopyTrueColorPixels(BYTE *buffer, int buf_pitch, int buf_height, int x, int y);
-	int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
 	bool UseBasePalette();
 	int GetSourceLump() { return SourceLump; }
 
@@ -392,7 +388,6 @@ public:
 	FTextureFormat GetFormat ();
 
 	int CopyTrueColorPixels(BYTE *buffer, int buf_pitch, int buf_height, int x, int y);
-	int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
 	bool UseBasePalette();
 	int GetSourceLump() { return SourceLump; }
 
@@ -450,7 +445,6 @@ public:
 	FTextureFormat GetFormat ();
 
 	int CopyTrueColorPixels(BYTE *buffer, int buf_pitch, int buf_height, int x, int y);
-	int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
 	bool UseBasePalette();
 	int GetSourceLump() { return SourceLump; }
 
@@ -488,7 +482,7 @@ public:
 	bool CheckModified ();
 
 	// [OpenGL]
-	int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
+	int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y);
 	bool UseBasePalette() { return false; }
 	int GetSourceLump() { return SourcePic->GetSourceLump(); }
 
@@ -508,7 +502,7 @@ public:
 	FWarp2Texture (FTexture *source);
 
 	// [OpenGL]
-	int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
+	int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y);
 	bool UseBasePalette() { return false; }
 
 protected:

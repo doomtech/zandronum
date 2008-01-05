@@ -1,6 +1,7 @@
 
 
 #include "m_menu.h"
+#include "v_video.h"
 #include "gl/gl_intern.h"
 #include "version.h"
 
@@ -221,5 +222,19 @@ void StartGLLightMenu (void)
 	M_SwitchMenu(&GLLightMenu);
 }
 
+CUSTOM_CVAR (Float, vid_brightness, 0.f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+{
+	if (screen != NULL)
+	{
+		screen->SetGamma(Gamma); //Brightness (self);
+	}
+}
 
+CUSTOM_CVAR (Float, vid_contrast, 1.f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+{
+	if (screen != NULL)
+	{
+		screen->SetGamma(Gamma); //SetContrast (self);
+	}
+}
 

@@ -479,7 +479,8 @@ struct side_s
 	short		SavedBottomTexture;
 
 	int GetLightLevel (bool foggy, int baselight) const;
-	// [GZDoom]
+
+	//For GL
 	FLightNode * lighthead[2];				// all blended lights that may affect this wall
 };
 typedef struct side_s side_t;
@@ -575,7 +576,7 @@ typedef struct subsector_s
 	int			validcount;
 	fixed_t		CenterX, CenterY;
 
-	// subsector related GL data [GZDoom]
+	// subsector related GL data
 	FLightNode *	lighthead[2];	// Light nodes (blended and additive)
 	sector_t *		render_sector;	// The sector this belongs to for rendering
 	int				firstvertex;	// index into the gl_vertices array
@@ -780,15 +781,14 @@ public:
 	
 	virtual int CopyTrueColorPixels(BYTE *buffer, int buf_pitch, int buf_height, int x, int y);
 	int CopyTrueColorTranslated(BYTE *buffer, int buf_pitch, int buf_height, int x, int y, FRemapTable *remap);
-	virtual int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation);
 	virtual bool UseBasePalette();
 	virtual int GetSourceLump() { return -1; }
+	virtual void PrecacheGL();
+	FGLTexture * gltex;
+						
 
 	virtual void Unload () = 0;
 
-	// [OpenGL]
-	virtual void PrecacheGL();
-	FGLTexture * gltex;
 	// Returns the native pixel format for this image
 	virtual FTextureFormat GetFormat();
 
