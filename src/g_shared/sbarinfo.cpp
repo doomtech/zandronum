@@ -30,7 +30,7 @@ static FRandom pr_chainwiggle; //use the same method of chain wiggling as hereti
 
 EXTERN_CVAR(Int, fraglimit)
 
-SBarInfo SBarInfoScript;
+SBarInfo *SBarInfoScript;
 
 enum //gametype flags
 {
@@ -328,7 +328,7 @@ void SBarInfo::ParseSBarInfoBlock(SBarInfoBlock &block)
 				cmd.x = sc_Number;
 				SC_MustGetToken(',');
 				SC_MustGetToken(TK_IntConst);
-				cmd.y = sc_Number - (200 - SBarInfoScript.height); //the position should be absolute on the screen.
+				cmd.y = sc_Number - (200 - SBarInfoScript->height); //the position should be absolute on the screen.
 				if(SC_CheckToken(','))
 				{
 					SC_MustGetToken(TK_Identifier);
@@ -407,7 +407,7 @@ void SBarInfo::ParseSBarInfoBlock(SBarInfoBlock &block)
 				cmd.x = sc_Number;
 				SC_MustGetToken(',');
 				SC_MustGetToken(TK_IntConst);
-				cmd.y = sc_Number - (200 - SBarInfoScript.height);
+				cmd.y = sc_Number - (200 - SBarInfoScript->height);
 				if(SC_CheckToken(','))
 				{
 					SC_MustGetToken(TK_IntConst);
@@ -431,7 +431,7 @@ void SBarInfo::ParseSBarInfoBlock(SBarInfoBlock &block)
 				cmd.x = sc_Number;
 				SC_MustGetToken(',');
 				SC_MustGetToken(TK_IntConst);
-				cmd.y = sc_Number - (200 - SBarInfoScript.height);
+				cmd.y = sc_Number - (200 - SBarInfoScript->height);
 				SC_MustGetToken(';');
 				break;
 			case SBARINFO_DRAWSELECTEDINVENTORY:
@@ -451,7 +451,7 @@ void SBarInfo::ParseSBarInfoBlock(SBarInfoBlock &block)
 				cmd.x = sc_Number;
 				SC_MustGetToken(',');
 				SC_MustGetToken(TK_IntConst);
-				cmd.y = sc_Number - (200 - SBarInfoScript.height);
+				cmd.y = sc_Number - (200 - SBarInfoScript->height);
 				cmd.special2 = cmd.x + 30;
 				cmd.special3 = cmd.y + 24;
 				cmd.translation = CR_GOLD;
@@ -461,7 +461,7 @@ void SBarInfo::ParseSBarInfoBlock(SBarInfoBlock &block)
 					cmd.special2 = sc_Number;
 					SC_MustGetToken(',');
 					SC_MustGetToken(TK_IntConst);
-					cmd.special3 = sc_Number - (200 - SBarInfoScript.height);
+					cmd.special3 = sc_Number - (200 - SBarInfoScript->height);
 					if(SC_CheckToken(','))
 					{
 						SC_MustGetToken(TK_Identifier);
@@ -524,7 +524,7 @@ void SBarInfo::ParseSBarInfoBlock(SBarInfoBlock &block)
 				cmd.x = sc_Number;
 				SC_MustGetToken(',');
 				SC_MustGetNumber();
-				cmd.y = sc_Number - (200 - SBarInfoScript.height);
+				cmd.y = sc_Number - (200 - SBarInfoScript->height);
 				cmd.special2 = cmd.x + 26;
 				cmd.special3 = cmd.y + 22;
 				cmd.translation = CR_GOLD;
@@ -534,7 +534,7 @@ void SBarInfo::ParseSBarInfoBlock(SBarInfoBlock &block)
 					cmd.special2 = sc_Number;
 					SC_MustGetToken(',');
 					SC_MustGetToken(TK_IntConst);
-					cmd.special3 = sc_Number - (200 - SBarInfoScript.height);
+					cmd.special3 = sc_Number - (200 - SBarInfoScript->height);
 					if(SC_CheckToken(','))
 					{
 						SC_MustGetToken(TK_Identifier);
@@ -633,7 +633,7 @@ void SBarInfo::ParseSBarInfoBlock(SBarInfoBlock &block)
 				cmd.x = sc_Number;
 				SC_MustGetToken(',');
 				SC_MustGetToken(TK_IntConst);
-				cmd.y = sc_Number - (200 - SBarInfoScript.height);
+				cmd.y = sc_Number - (200 - SBarInfoScript->height);
 				SC_MustGetToken(';');
 				break;
 			case SBARINFO_DRAWGEM:
@@ -672,7 +672,7 @@ void SBarInfo::ParseSBarInfoBlock(SBarInfoBlock &block)
 				cmd.x = sc_Number;
 				SC_MustGetToken(',');
 				SC_MustGetToken(TK_IntConst);
-				cmd.y = sc_Number - (200 - SBarInfoScript.height);
+				cmd.y = sc_Number - (200 - SBarInfoScript->height);
 				SC_MustGetToken(';');
 				break;
 			case SBARINFO_GAMEMODE:
@@ -928,7 +928,7 @@ protected:
 class FSBarInfo : public FBaseStatusBar
 {
 public:
-	FSBarInfo () : FBaseStatusBar (SBarInfoScript.height)
+	FSBarInfo () : FBaseStatusBar (SBarInfoScript->height)
 	{
 		static const char *InventoryBarLumps[] =
 		{
@@ -936,22 +936,22 @@ public:
 			"INVGEML2",	"INVGEMR1",	"INVGEMR2",
 		};
 		TArray<const char *> patchnames;
-		patchnames.Resize(SBarInfoScript.Images.Size()+6);
+		patchnames.Resize(SBarInfoScript->Images.Size()+6);
 		unsigned int i = 0;
-		for(i = 0;i < SBarInfoScript.Images.Size();i++)
+		for(i = 0;i < SBarInfoScript->Images.Size();i++)
 		{
-			patchnames[i] = SBarInfoScript.Images[i];
+			patchnames[i] = SBarInfoScript->Images[i];
 		}
 		for(i = 0;i < 6;i++)
 		{
-			patchnames[i+SBarInfoScript.Images.Size()] = InventoryBarLumps[i];
+			patchnames[i+SBarInfoScript->Images.Size()] = InventoryBarLumps[i];
 		}
-		invBarOffset = SBarInfoScript.Images.Size();
+		invBarOffset = SBarInfoScript->Images.Size();
 		Images.Init(&patchnames[0], patchnames.Size());
 		drawingFont = V_GetFont("ConFont");
 		faceTimer = ST_FACETIME;
 		faceIndex = 0;
-		if(SBarInfoScript.interpolateHealth)
+		if(SBarInfoScript->interpolateHealth)
 		{
 			oldHealth = 0;
 		}
@@ -977,7 +977,7 @@ public:
 		int hud = 2;
 		if(state == HUD_StatusBar)
 		{
-			if(SBarInfoScript.automapbar && automapactive)
+			if(SBarInfoScript->automapbar && automapactive)
 			{
 				hud = 3;
 			}
@@ -994,13 +994,13 @@ public:
 		{
 			hud = 0;
 		}
-		doCommands(SBarInfoScript.huds[hud]);
+		doCommands(SBarInfoScript->huds[hud]);
 		if(CPlayer->inventorytics > 0 && !(level.flags & LEVEL_NOINVENTORYBAR))
 		{
 			if(state == HUD_StatusBar)
-				doCommands(SBarInfoScript.huds[4]);
+				doCommands(SBarInfoScript->huds[4]);
 			else if(state == HUD_Fullscreen)
-				doCommands(SBarInfoScript.huds[5]);
+				doCommands(SBarInfoScript->huds[5]);
 		}
 	}
 
@@ -1028,7 +1028,7 @@ public:
 		if(level.time & 1)
 			chainWiggle = pr_chainwiggle() & 1;
 		getNewFace(M_Random());
-		if(!SBarInfoScript.interpolateHealth)
+		if(!SBarInfoScript->interpolateHealth)
 		{
 			oldHealth = CPlayer->health;
 		}
@@ -1127,7 +1127,7 @@ private:
 		int ammocount1, ammocount2;
 		GetCurrentAmmo(ammo1, ammo2, ammocount1, ammocount2);
 		int health = CPlayer->mo->health;
-		if(SBarInfoScript.interpolateHealth)
+		if(SBarInfoScript->interpolateHealth)
 		{
 			health = oldHealth;
 		}
@@ -1776,7 +1776,12 @@ FBaseStatusBar *CreateStatusBar ()
 	int stbar = gameinfo.gametype;
 	if(Wads.CheckNumForName("SBARINFO") != -1)
 	{
-		stbar = SBarInfoScript.ParseSBarInfo(Wads.GetNumForName("SBARINFO")); //load last SBARINFO lump to avoid clashes
+		if(SBarInfoScript != NULL)
+		{
+			delete SBarInfoScript;
+		}
+		SBarInfoScript = new SBarInfo();
+		stbar = SBarInfoScript->ParseSBarInfo(Wads.GetNumForName("SBARINFO")); //load last SBARINFO lump to avoid clashes
 	}
 
 	if (stbar == GAME_Doom)
