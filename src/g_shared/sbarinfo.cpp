@@ -870,6 +870,8 @@ public:
 		{
 			width = (int) (((double) width/100)*value);
 		}
+		if(Pixels != NULL)
+			delete Pixels;
 		Pixels = new BYTE[Width*Height];
 		bar->CopyToBlock(Pixels, Width, Height, 0, 0); //draw the bar
 		int run = bar->GetHeight() - (int) (((double) height/100)*value);
@@ -1458,6 +1460,7 @@ private:
 					else
 						bar->PrepareTexture(Images[cmd.sprite], NULL, value, horizontal, reverse);
 					DrawImage(bar, cmd.x, cmd.y);
+					delete bar;
 					break;
 				}
 				case SBARINFO_DRAWGEM:
