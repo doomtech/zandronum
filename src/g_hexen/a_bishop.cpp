@@ -530,11 +530,11 @@ void A_BishopPainBlur (AActor *actor)
 
 	if (pr_pain() < 64)
 	{
-		actor->SetState (&ABishop::States[S_BISHOP_BLUR]);
-
 		// [BB] If we're the server, tell the clients to update this thing's state.
 		if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
 			SERVERCOMMANDS_SetThingFrame( actor, &ABishop::States[S_BISHOP_BLUR] );
+
+		actor->SetState (&ABishop::States[S_BISHOP_BLUR]);
 
 		return;
 	}
