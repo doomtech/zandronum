@@ -2079,6 +2079,9 @@ int DLevelScript::DoSpawn (int type, fixed_t x, fixed_t y, fixed_t z, int tid, i
 				if (actor->CountsAsKill())
 				{
 					level.total_monsters--;
+
+					// [BB] The monster didn't spawn at all, so we need to correct the number of monsters in invasion mode.
+					INVASION_UpdateMonsterCount( actor, true );
 				}
 				// Same, for items
 				if (actor->flags & MF_COUNTITEM)

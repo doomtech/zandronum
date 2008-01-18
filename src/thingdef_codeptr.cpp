@@ -66,9 +66,10 @@
 #include "thingdef/thingdef.h"
 #include "v_video.h"
 #include "deathmatch.h"
+// [BB] new #includes.
 #include "cl_main.h"
 #include "cl_demo.h"
-
+#include "invasion.h"
 
 static FRandom pr_camissile ("CustomActorfire");
 static FRandom pr_camelee ("CustomMelee");
@@ -1778,7 +1779,13 @@ static void InitSpawnedItem(AActor *self, AActor *mo, INTBOOL transfer_translati
 			if (!nocheckpos && !P_TestMobjLocation(mo))
 			{
 				// The monster is blocked so don't spawn it at all!
-				if (mo->CountsAsKill()) level.total_monsters--;
+				if (mo->CountsAsKill())
+				{
+					level.total_monsters--;
+
+					// [BB] The monster didn't spawn at all, so we need to correct the number of monsters in invasion mode.
+					INVASION_UpdateMonsterCount( mo, true );
+				}
 				mo->Destroy();
 				if (pStateCall != NULL) pStateCall->Result=false;	// for an inventory item's use state
 				return;

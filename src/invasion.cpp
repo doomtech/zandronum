@@ -1377,6 +1377,30 @@ void INVASION_ClearMonsterCorpsePointer( AActor *pActor )
 }
 
 //*****************************************************************************
+//
+// [BB] If a monster is spawned or removed, we need to adjust the number of
+// monsters (and perhaps Archviles).
+// removeMonster == false  - pActor was removed
+// removeMonster == true   - pActor was added
+void INVASION_UpdateMonsterCount( AActor* pActor, bool removeMonster )
+{
+	if (( invasion ) &&
+		( INVASION_GetIncreaseNumMonstersOnSpawn( )) &&
+		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
+	{
+		INVASION_SetNumMonstersLeft( INVASION_GetNumMonstersLeft( ) + (removeMonster ? -1 : 1) );
+
+		if ( pActor->GetClass( ) == PClass::FindClass("Archvile") )
+			INVASION_SetNumArchVilesLeft( INVASION_GetNumArchVilesLeft( ) + (removeMonster ? -1 : 1) );
+
+		// [BB] If we're the server, tell the client how many monsters are left.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetInvasionNumMonstersLeft( );
+	}
+}
+
+//*****************************************************************************
 //*****************************************************************************
 //
 static ULONG invasion_GetNumThingsThisWave( ULONG ulNumOnFirstWave, ULONG ulWave, bool bMonster )
