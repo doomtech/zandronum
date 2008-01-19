@@ -67,7 +67,7 @@ private:
 	unsigned int * glTexID;
 	TArray<TranslatedTexture> glTexID_Translated;
 
-	void LoadImage(unsigned char * buffer,int w, int h, unsigned int & glTexID,int wrapparam, bool alphatexture=false);
+	void LoadImage(unsigned char * buffer,int w, int h, unsigned int & glTexID,int wrapparam, bool alphatexture, int texunit);
 	unsigned * GetTexID(int cm, int translation);
 
 public:
@@ -82,8 +82,10 @@ public:
 
 
 	// Get right/bottom UV coordinates for patch drawing
-	float GetUR() { return scalexfac; } // (float)realtexwidth/(float)tex_width; }
-	float GetVB() { return scaleyfac; } //(float)realtexheight/(float)tex_height; }
+	float GetUL() { return 0; }
+	float GetVT() { return 0; }
+	float GetUR() { return scalexfac; }
+	float GetVB() { return scaleyfac; }
 	float GetU(float upix) { return upix/(float)texwidth * scalexfac; }
 	float GetV(float vpix) { return vpix/(float)texheight* scaleyfac; }
 
@@ -93,7 +95,6 @@ public:
 	float FixToTexV(int v) { return (float)v/(float)FRACUNIT/(float)texheight; }
 
 	void SetTextureClamp(int clampmode);
-	static void ChangeActiveTexture(int texunit);
 };
 
 

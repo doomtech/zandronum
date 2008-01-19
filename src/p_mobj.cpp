@@ -884,6 +884,10 @@ bool AActor::UseInventory (AInventory *item)
 	{
 		return false;
 	}
+
+	if (dmflags2 & DF2_INFINITE_INVENTORY)
+		return true;
+
 	if (--item->Amount <= 0 && !(item->ItemFlags & IF_KEEPDEPLETED))
 	{
 		item->Destroy ();
@@ -4153,6 +4157,13 @@ void AActor::HandleSpawnFlags ()
 
 void AActor::BeginPlay ()
 {
+	// If the actor is spawned with the dormant flag set, clear it, and use
+	// the normal deactivation logic to make it properly dormant.
+	if (flags2 & MF2_DORMANT)
+	{
+		flags2 &= ~MF2_DORMANT;
+		Deactivate (NULL);
+	}
 }
 
 bool AActor::isFast()
@@ -4330,9 +4341,8 @@ void P_SpawnPlayer (mapthing2_t *mthing, bool bClientUpdate, player_t *p, bool t
 	int		  playernum;
 	APlayerPawn *mobj, *oldactor;
 	BYTE	  state;
-	fixed_t		SpawnX;
-	fixed_t		SpawnY;
-	angle_t		SpawnAngle;
+	fixed_t spawn_x, spawn_y;
+	angle_t spawn_angle;
 	// [BC]
 	LONG		lSkin;
 	AInventory	*pInventory;
@@ -4399,21 +4409,22 @@ void P_SpawnPlayer (mapthing2_t *mthing, bool bClientUpdate, player_t *p, bool t
 		( deathmatch == false ) &&
 		( teamgame == false ) &&
 		( gameaction != ga_worlddone ) &&
-		( p->bSpawnOkay ))
+		( p->bSpawnOkay ) && 
+		( p->mo != NULL ))
 	{
-		SpawnX = p->SpawnX;
-		SpawnY = p->SpawnY;
-		SpawnAngle = p->SpawnAngle;
+		spawn_x = p->mo->x;
+		spawn_y = p->mo->y;
+		spawn_angle = p->mo->angle;
 	}
 	else
 	{
-		SpawnX = mthing->x << FRACBITS;
-		SpawnY = mthing->y << FRACBITS;
-		SpawnAngle = ANG45 * (mthing->angle/45);
+            spawn_x = mthing->x << FRACBITS;
+            spawn_y = mthing->y << FRACBITS;
+            spawn_angle = ANG45 * (mthing->angle/45);
 	}
 
 	mobj = static_cast<APlayerPawn *>
-		(Spawn (p->cls, SpawnX, SpawnY, ONFLOORZ, NO_REPLACE));
+		(Spawn (p->cls, spawn_x, spawn_y, ONFLOORZ, NO_REPLACE));
 
 	mobj->FriendPlayer = playernum + 1;	// [RH] players are their own friends
 	oldactor = p->mo;
@@ -4444,7 +4455,7 @@ void P_SpawnPlayer (mapthing2_t *mthing, bool bClientUpdate, player_t *p, bool t
 	// [RH] set color translations for player sprites
 	mobj->Translation = TRANSLATION(TRANSLATION_Players,playernum);
 
-	mobj->angle = SpawnAngle;
+	mobj->angle = spawn_angle;
 	mobj->pitch = mobj->roll = 0;
 	mobj->health = p->health;
 	mobj->lFixedColormap = 0;

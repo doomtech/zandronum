@@ -40,7 +40,6 @@
 #include "templates.h"
 #include "i_system.h"
 #include "r_translate.h"
-#include "gl/gl_texture.h"
 
 typedef bool (*CheckFunc)(FileReader & file);
 typedef FTexture * (*CreateFunc)(FileReader & file, int lumpnum);
@@ -122,13 +121,11 @@ FTexture::FTexture ()
   bMasked(true), bAlphaTexture(false), bHasCanvas(false), bWarped(0), bIsPatch(false),
   Rotations(0xFFFF), Width(0), Height(0), WidthMask(0), Native(NULL)
 {
-	gltex=NULL;
 	*Name = 0;
 }
 
 FTexture::~FTexture ()
 {
-	if (gltex) delete gltex;
 	KillNative();
 }
 
@@ -408,17 +405,25 @@ void FTexture::FlipNonSquareBlockRemap (BYTE *dst, const BYTE *src, int x, int y
 	}
 }
 
-FNativeTexture *FTexture::GetNative()
+FNativeTexture *FTexture::GetNative(bool wrapping)
 {
 	if (Native != NULL)
 	{
-		if (CheckModified())
-		{
-			Native->Update();
+		if (!Native->CheckWrapping(wrapping))
+		{ // Texture's wrapping mode is not compatible.
+		  // Destroy it and get a new one.
+			delete Native;
 		}
-		return Native;
+		else
+		{
+			if (CheckModified())
+			{
+				Native->Update();
+			}
+			return Native;
+		}
 	}
-	Native = screen->CreateTexture(this);
+	Native = screen->CreateTexture(this, wrapping);
 	return Native;
 }
 

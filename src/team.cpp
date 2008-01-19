@@ -1434,7 +1434,7 @@ CCMD( changeteam )
 
 	// "No team change" dmflag is set. Ignore this.
 	if (( players[consoleplayer].bOnTeam ) &&
-		( dmflags2 & DF2_NO_TEAMSWITCH ))
+		( dmflags2 & DF2_NO_TEAM_SWITCH ))
 	{
 		Printf( "You are not allowed to change your team!\n" );
 		return;

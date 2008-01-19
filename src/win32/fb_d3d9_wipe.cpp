@@ -135,7 +135,7 @@ EXTERN_CVAR(Bool, test2d)
 
 bool D3DFB::WipeStartScreen(int type)
 {
-	IDirect3DSurface9 *surf, *tsurf;
+	IDirect3DSurface9 *tsurf;
 	D3DSURFACE_DESC desc;
 
 	if (!test2d)
@@ -161,106 +161,39 @@ bool D3DFB::WipeStartScreen(int type)
 		return false;
 	}
 
-	if (Windowed)
-	{
-		// The InitialWipeScreen must have the same pixel format as
-		// the TempRenderTexture.
-		if (SUCCEEDED(TempRenderTexture->GetSurfaceLevel(0, &tsurf)))
-		{
-			if (FAILED(tsurf->GetDesc(&desc)))
-			{
-				tsurf->Release();
-				return false;
-			}
-			tsurf->Release();
-		}
-		else
-		{
-			return false;
-		}
-	}
-	else
-	{
-		if (SUCCEEDED(D3DDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &tsurf)))
-		{
-			if (FAILED(tsurf->GetDesc(&desc)))
-			{
-				tsurf->Release();
-				return false;
-			}
-			tsurf->Release();
-		}
-		else
-		{
-			return false;
-		}
-		// GetFrontBufferData works only with this format
-		desc.Format = D3DFMT_A8R8G8B8;
-	}
+	InitialWipeScreen = GetCurrentScreen();
 
-	if (FAILED(D3DDevice->CreateTexture(desc.Width, desc.Height, 1, 0,
-		desc.Format, D3DPOOL_SYSTEMMEM, &InitialWipeScreen, NULL)))
-	{
-		InitialWipeScreen = NULL;
-		return false;
-	}
-	if (FAILED(InitialWipeScreen->GetSurfaceLevel(0, &surf)))
-	{
-		InitialWipeScreen->Release();
-		InitialWipeScreen = NULL;
-		return false;
-	}
 	if (!Windowed)
 	{
-		if (FAILED(D3DDevice->GetFrontBufferData(0, surf)))
-		{
-			surf->Release();
-			InitialWipeScreen->Release();
-			InitialWipeScreen = NULL;
-			return false;
-		}
 		FinalWipeScreen = TempRenderTexture;
 	}
 	else
 	{
-		if (SUCCEEDED(TempRenderTexture->GetSurfaceLevel(0, &tsurf)))
-		{
-			if (FAILED(D3DDevice->GetRenderTargetData(tsurf, surf)))
-			{
-				tsurf->Release();
-				InitialWipeScreen->Release();
-				InitialWipeScreen = NULL;
-				return false;
-			}
-		}
-		else
-		{
-			InitialWipeScreen->Release();
-			InitialWipeScreen = NULL;
-			return false;
-		}
 		// Create another texture to copy the final wipe screen to so
 		// we can still gamma correct the wipe. Since this is just for
 		// gamma correction, it's okay to fail (though not desirable.)
 		if (GammaFixerShader != NULL && Gamma != 1)
 		{
-			if (FAILED(tsurf->GetDesc(&desc)) ||
-				FAILED(D3DDevice->CreateTexture(desc.Width, desc.Height,
-					1, D3DUSAGE_RENDERTARGET, desc.Format, D3DPOOL_DEFAULT,
-					&FinalWipeScreen, NULL)))
+			if (SUCCEEDED(TempRenderTexture->GetSurfaceLevel(0, &tsurf)))
 			{
-				FinalWipeScreen = TempRenderTexture;
+				if (FAILED(tsurf->GetDesc(&desc)) ||
+					FAILED(D3DDevice->CreateTexture(desc.Width, desc.Height,
+						1, D3DUSAGE_RENDERTARGET, desc.Format, D3DPOOL_DEFAULT,
+						&FinalWipeScreen, NULL)))
+				{
+					FinalWipeScreen = TempRenderTexture;
+				}
+				tsurf->Release();
 			}
 		}
 		else
 		{
 			FinalWipeScreen = TempRenderTexture;
 		}
-		tsurf->Release();
 	}
-	surf->Release();
-	// Even fullscreen will render to the TempRenderTexture, so we can have
-	// a copy of the new screen readily available.
+
+	// Make even fullscreen model render to the TempRenderTexture, so
+	// we can have a copy of the new screen readily available.
 	GatheringWipeScreen = true;
 	return true;
 }
@@ -294,6 +227,8 @@ void D3DFB::WipeEndScreen()
 	{
 		Begin2D(true);
 	}
+
+	EndBatch();			// Make sure all batched primitives have been drawn.
 
 	// Don't do anything if there is no ending point.
 	if (OldRenderTarget == NULL)
@@ -349,11 +284,7 @@ bool D3DFB::WipeDo(int ticks)
 		D3DDevice->BeginScene();
 		InScene = true;
 	}
-	if (OldRenderTarget != NULL)
-	{
-		OldRenderTarget->Release();
-		OldRenderTarget = NULL;
-	}
+	SAFE_RELEASE( OldRenderTarget );
 	if (TempRenderTexture != NULL && TempRenderTexture != FinalWipeScreen &&
 		(Windowed && GammaFixerShader))
 	{
@@ -392,11 +323,7 @@ void D3DFB::WipeCleanup()
 		delete ScreenWipe;
 		ScreenWipe = NULL;
 	}
-	if (InitialWipeScreen != NULL)
-	{
-		InitialWipeScreen->Release();
-		InitialWipeScreen = NULL;
-	}
+	SAFE_RELEASE( InitialWipeScreen );
 	if (FinalWipeScreen != NULL && FinalWipeScreen != TempRenderTexture)
 	{
 		FinalWipeScreen->Release();
@@ -528,7 +455,7 @@ bool D3DFB::Wiper_Melt::Run(int ticks, D3DFB *fb)
 	fb->D3DDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, verts, sizeof(FBVERTEX));
 
 	int i, dy;
-	bool done;
+	bool done = true;
 
 	// Copy the old screen in vertical strips on top of the new one.
 	while (ticks--)
@@ -599,11 +526,7 @@ D3DFB::Wiper_Burn::Wiper_Burn(D3DFB *fb)
 
 D3DFB::Wiper_Burn::~Wiper_Burn()
 {
-	if (BurnTexture != NULL)
-	{
-		BurnTexture->Release();
-		BurnTexture = NULL;
-	}
+	SAFE_RELEASE( BurnTexture );
 }
 
 //==========================================================================

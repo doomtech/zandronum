@@ -2,7 +2,7 @@
 ** Enhanced heads up 'overlay' for fullscreen
 **
 **---------------------------------------------------------------------------
-** Copyright 2003-2005 Christoph Oelckers
+** Copyright 2003-2008 Christoph Oelckers
 ** All rights reserved.
 **
 ** Redistribution and use in source and binary forms, with or without
@@ -45,19 +45,21 @@
 #include "sbar.h"
 #include "sc_man.h"
 #include "templates.h"
+#include "p_local.h"
+// [BB] New #includes.
 #include "deathmatch.h"
 #include "network.h"
 
 #define HUMETA_AltIcon 0x10f000
 
 EXTERN_CVAR(Bool,am_follow)
-EXTERN_CVAR (Int, con_scaletext)
+EXTERN_CVAR (Bool, con_scaletext)
 EXTERN_CVAR (Bool, idmypos)
 
 EXTERN_CVAR (Bool, am_showtime)
 EXTERN_CVAR (Bool, am_showtotaltime)
 
-CVAR(Bool,hud_althudscale, true, CVAR_ARCHIVE)			// Scale the hud to 640x400?
+CVAR(Int,hud_althudscale, 2, CVAR_ARCHIVE)				// Scale the hud to 640x400?
 CVAR(Bool,hud_althud, false, CVAR_ARCHIVE)				// Enable/Disable the alternate HUD
 
 														// These are intentionally not the same as in the automap!
@@ -96,7 +98,6 @@ static FTexture * fragpic;					// Frags icon
 static FTexture * invgems[4];				// Inventory arrows
 
 static int hudwidth, hudheight;				// current width/height for HUD display
-static bool showlog=false;
 
 void AM_GetPosition(fixed_t & x, fixed_t & y);
 
@@ -342,7 +343,7 @@ static void SetKeyTypes()
 		{
 			AKey * key = (AKey*)GetDefaultByType(ti);
 
-			if (key->Icon!=NULL && key->KeyNumber>0)
+			if (key->Icon!=0 && key->KeyNumber>0)
 			{
 				KeyTypes.Push(ti);
 			}
@@ -433,7 +434,7 @@ static int DrawKeys(player_t * CPlayer, int x, int y)
 		// First all keys that are assigned to locks (in reverse order of definition)
 		for(i=KeyTypes.Size()-1;i>=0;i--)
 		{
-			if (inv=CPlayer->mo->FindInventory(KeyTypes[i]))
+			if ((inv=CPlayer->mo->FindInventory(KeyTypes[i])))
 			{
 				DrawOneKey(xo, x, y, c, inv);
 			}
@@ -441,7 +442,7 @@ static int DrawKeys(player_t * CPlayer, int x, int y)
 		// And now the rest
 		for(i=UnassignedKeyTypes.Size()-1;i>=0;i--)
 		{
-			if (inv=CPlayer->mo->FindInventory(UnassignedKeyTypes[i]))
+			if ((inv=CPlayer->mo->FindInventory(UnassignedKeyTypes[i])))
 			{
 				DrawOneKey(xo, x, y, c, inv);
 			}
@@ -574,7 +575,7 @@ static void DrawOneWeapon(player_t * CPlayer, int x, int & y, AWeapon * weapon)
 		if (weapon==CPlayer->ReadyWeapon || weapon==CPlayer->ReadyWeapon->SisterWeapon) trans=0xd999;
 	}
 
-	FState * state, *ReadyState;
+	FState * state=NULL, *ReadyState;
 	
 	int AltIcon = weapon->GetClass()->Meta.GetMetaInt(HUMETA_AltIcon, 0);
 	picnum = AltIcon? AltIcon : weapon->Icon;
@@ -586,13 +587,10 @@ static void DrawOneWeapon(player_t * CPlayer, int x, int & y, AWeapon * weapon)
 			state = weapon->SpawnState;
 		}
 		// no spawn state - now try the ready state
-		// [BB] Custom states are not ported to ST yet.
-		/*
 		else if ((ReadyState = weapon->FindState(NAME_Ready)) && ReadyState->sprite.index!=0)
 		{
 			state = ReadyState;
 		}
-		*/
 		if (state &&  (unsigned)state->sprite.index < (unsigned)sprites.Size ())
 		{
 			spritedef_t * sprdef = &sprites[state->sprite.index];
@@ -748,7 +746,7 @@ static void DrawCoordinates(player_t * CPlayer)
 	else 
 	{
 		AM_GetPosition(x,y);
-		z = R_PointInSubsector(x, y)->sector->floorplane.ZatPoint(x, y);
+		z = P_PointInSector(x, y)->floorplane.ZatPoint(x, y);
 	}
 
 	int vwidth = con_scaletext!=2? SCREENWIDTH : SCREENWIDTH/2;
@@ -778,45 +776,40 @@ static void DrawCoordinates(player_t * CPlayer)
 // draw the overlay
 //
 //---------------------------------------------------------------------------
-void HUD_ShowPop(int pop)
-{
-	if (pop == FBaseStatusBar::POP_Log)
-	{
-		showlog=!showlog;
-	}
-	else if (pop == FBaseStatusBar::POP_None) 
-	{
-		showlog=false;
-	}
-}
-
-void HU_InitHud();
+void HUD_InitHud();
 
 void DrawHUD()
 {
 	player_t * CPlayer = StatusBar->CPlayer;
 
-	if (HudFont==NULL) HU_InitHud();
+	if (HudFont==NULL) HUD_InitHud();
 
 	players[consoleplayer].inventorytics = 0;
 	if (hud_althudscale && SCREENWIDTH>640) 
 	{
-		// The HUD has been optimized for 640x400 but for the software renderer
-		// just double the pixels to reduce scaling artifacts.
-		// (Too bad that I don't get the math for widescreen right so I have to do
-		// it for widescreen in hardware rendering, too...)
 		hudwidth=SCREENWIDTH/2;
-		if (currentrenderer==0 || WidescreenRatio != 0) hudheight=SCREENHEIGHT/2;
-		else hudheight = hudwidth * 30 / BaseRatioSizes[WidescreenRatio][3];
+		if (hud_althudscale == 2) 
+		{
+			// Optionally just double the pixels to reduce scaling artifacts.
+			hudheight=SCREENHEIGHT/2;
+		}
+		else 
+		{
+			if (WidescreenRatio == 4)
+			{
+				hudheight = hudwidth * 30 / BaseRatioSizes[WidescreenRatio][3];	// BaseRatioSizes is inverted for this mode
+			}
+			else
+			{
+				hudheight = hudwidth * 30 / (48*48/BaseRatioSizes[WidescreenRatio][3]);
+			}
+		}
 	}
 	else
 	{
 		hudwidth=SCREENWIDTH;
 		hudheight=SCREENHEIGHT;
 	}
-
-	float blend[4] = {0,0,0,0};
-	StatusBar->BlendView (blend);
 
 	if (!automapactive)
 	{
@@ -843,47 +836,6 @@ void DrawHUD()
 		if (CPlayer->camera && CPlayer->camera->player)
 		{
 			StatusBar->DrawCrosshair();
-		}
-		if (showlog)
-		{
-			if (CPlayer->LogText && *CPlayer->LogText)
-			{
-				int linelen = hudwidth<640? Scale(hudwidth,9,10)-40 : 560;
-				FBrokenLines *lines = V_BreakLines (SmallFont, linelen, CPlayer->LogText);
-				int height = 20;
-
-				for (i = 0; lines[i].Width != -1; i++) height += SmallFont->GetHeight () + 1;
-
-				int x,y,w;
-
-				if (linelen<560)
-				{
-					x=hudwidth/20;
-					y=hudheight/8;
-					w=hudwidth-2*x;
-				}
-				else
-				{
-					x=(hudwidth>>1)-300;
-					y=hudheight*3/10-(height>>1);
-					if (y<0) y=0;
-					w=600;
-				}
-				screen->Dim(0, 0.5f, Scale(x, SCREENWIDTH, hudwidth), Scale(y, SCREENHEIGHT, hudheight), 
-									 Scale(w, SCREENWIDTH, hudwidth), Scale(height, SCREENHEIGHT, hudheight));
-				x+=20;
-				y+=10;
-				for (i = 0; lines[i].Width != -1; i++)
-				{
-
-					screen->DrawText (CR_UNTRANSLATED, x, y, lines[i].Text,
-						DTA_KeepRatio, true,
-						DTA_VirtualWidth, hudwidth, DTA_VirtualHeight, hudheight, TAG_DONE);
-					y += SmallFont->GetHeight ()+1;
-				}
-
-				V_FreeBrokenLines (lines);
-			}
 		}
 		if (idmypos) DrawCoordinates(CPlayer);
 	}
@@ -938,22 +890,7 @@ void DrawHUD()
 //
 /////////////////////////////////////////////////////////////////////////
 
-static void SetIcon (const char * item, const char * sc_String)
-{
-	const PClass * ti = PClass::FindClass(item);
-	if (ti)
-	{
-		AInventory * defaults = (AInventory*)GetDefaultByType(ti);
-		if (defaults)
-		{
-			defaults->Icon = TexMan.AddPatch (sc_String);
-			if (defaults->Icon <= 0) defaults->Icon = TexMan.AddPatch (sc_String, ns_sprites);
-		}
-	}
-}
-
-
-void HU_InitHud()
+void HUD_InitHud()
 {
 	switch (gameinfo.gametype)
 	{
@@ -974,24 +911,10 @@ void HU_InitHud()
 		break;
 	}
 
-	IndexFont=FFont::FindFont("INDXFONT");
-	if (IndexFont == NULL)
-	{
-		int num = Wads.CheckNumForName ("INDXFONT");
-		if (num != -1)
-		{
-			char head[3];
-			{
-				FWadLump lump = Wads.OpenLumpNum (num);
-				lump.Read (head, 3);
-			}
-			if (head[0] == 'F' && head[1] == 'O' && head[2] == 'N')
-			{
-				IndexFont = new FSingleLumpFont ("INDXFONT", num);
-			}
-		}
-	}
-	if (IndexFont==NULL) IndexFont=ConFont;	// Emergency fallback
+	IndexFont = V_GetFont("INDEXFONT");
+
+	if (HudFont == NULL) HudFont = BigFont;
+	if (IndexFont == NULL) IndexFont = ConFont;	// Emergency fallback
 
 	invgems[0] = TexMan[TexMan.AddPatch("INVGEML1")];
 	invgems[1] = TexMan[TexMan.AddPatch("INVGEML2")];
@@ -1045,7 +968,5 @@ void HU_InitHud()
 		}
 		SC_Close();
 	}
-
-	SetIcon("ArmorBonus", "BON2A0");	// Just a personal preference. ;)
 }
 

@@ -72,6 +72,8 @@ protected:
 	}
 
 public:
+	float GetUL() const { return glpatch->GetUL(); }
+	float GetVT() const { return glpatch->GetVT(); }
 	float GetUR() const { return glpatch->GetUR(); }
 	float GetVB() const { return glpatch->GetVB(); }
 	float GetU(float upix) const { return glpatch->GetU(upix); }
@@ -87,7 +89,7 @@ public:
 class GLShader;
 struct FRemapTable;
 
-class FGLTexture : protected WorldTextureInfo, protected PatchTextureInfo
+class FGLTexture : public FNativeTexture, protected WorldTextureInfo, protected PatchTextureInfo
 {
 	friend void Debug_Patch();	// debug code should have full access
 
@@ -95,10 +97,6 @@ class FGLTexture : protected WorldTextureInfo, protected PatchTextureInfo
 public:
 	FTexture * tex;
 	FTexture * hirestexture;
-	FTexture * brightmap;
-	bool bSkybox;
-	char bIsBrightmap;
-	bool bBrightmapDisablesFullbright;
 	char bIsTransparent;
 	bool createWarped;
 	int HiresLump;
@@ -118,6 +116,8 @@ private:
 	short RenderWidth;
 	short RenderHeight;
 	float AlphaThreshold;
+
+	virtual bool Update();
 
 	bool FindHoles(const unsigned char * buffer, int w, int h);
 	bool ProcessData(unsigned char * buffer, int w, int h, int cm, bool ispatch);
@@ -155,7 +155,6 @@ public:
 	void Clean(bool all);
 
 	static void FlushAll();
-	static void DestroyAll();
 	static FGLTexture * ValidateTexture(FTexture * tex);
 	static FGLTexture * ValidateTexture(int no, bool translate=true);
 

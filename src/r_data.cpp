@@ -59,7 +59,6 @@
 
 #include "st_start.h"
 
-#include "gl/gl_texture.h"
 #include "gl/gl_functions.h"
 
 static void R_InitPatches ();
@@ -180,7 +179,7 @@ int FTextureManager::ListTextures (const char *name, TArray<int> &list)
 			// NULL textures must be ignored.
 			if (tex->UseType!=FTexture::TEX_Null) 
 			{
-				int j;
+				unsigned int j;
 				for(j = 0; j < list.Size(); j++)
 				{
 					// Check for overriding definitions from newer WADs
@@ -390,7 +389,7 @@ void FTextureManager::AddHiresTextures ()
 			}
 			else
 			{
-				for(int i = 0; i < tlist.Size(); i++)
+				for(unsigned int i = 0; i < tlist.Size(); i++)
 				{
 					FTexture * newtex = FTexture::CreateTexture (firsttx, FTexture::TEX_Any);
 					if (newtex != NULL)
@@ -467,7 +466,7 @@ void FTextureManager::LoadHiresTex()
 				}
 				else
 				{
-					for(int i = 0; i < tlist.Size(); i++)
+					for(unsigned int i = 0; i < tlist.Size(); i++)
 					{
 						FTexture * oldtex = Textures[tlist[i]].Texture;
 						int sl;
@@ -1070,20 +1069,14 @@ void R_PrecacheLevel (void)
 			if (hitlist[i])
 			{
 				if (currentrenderer != 1) tex->GetPixels ();
-				else if (gl_precache)
-				{
-					// [BB] The server may not do this.
-					if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+				// [BB] The server may not do this.
+				else if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 						tex->PrecacheGL();
-				}
 			}
 			else
 			{
 				tex->Unload ();
-				if (tex->gltex)
-				{
-					tex->gltex->Clean (true);
-				}
+				tex->UncacheGL();
 			}
 		}
 	}

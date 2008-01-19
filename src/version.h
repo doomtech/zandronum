@@ -47,7 +47,7 @@
 #define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING
 
 // [BC] What version of ZDoom is this based off of?
-#define	ZDOOMVERSIONSTR		"2.1.8-666"
+#define	ZDOOMVERSIONSTR		"2.1.8-708"
 
 /** Release code stuff */
 
@@ -91,8 +91,18 @@
 // SAVEVER is the version of the information stored in level snapshots.
 // Note that SAVEVER is not directly comparable to VERSION.
 // SAVESIG should match SAVEVER.
+
+// MINSAVEVER is the minimum level snapshot version that can be loaded.
+#define MINSAVEVER 667
+
+#if SVN_REVISION_NUMBER == 0
+// This can happen if svnrevision is not updated properly (e.g. compiling while offline)
+#define SAVEVER MINSAVEVER
+#define SAVESIG "ZDOOMSAVE"#SAVEVER
+#else
 #define SAVEVER SVN_REVISION_NUMBER
 #define SAVESIG "ZDOOMSAVE"SVN_REVISION_STRING
+#endif
 
 // This is so that derivates can use the same savegame versions without worrying about engine compatibility
 #define GAMESIG "SKULLTAG"
@@ -110,8 +120,6 @@
 #define CDROM_DIR "C:\\ZDOOMDAT"
 #endif
 
-// MINSAVEVER is the minimum level snapshot version that can be loaded.
-#define MINSAVEVER 665
 
 // The maximum length of one save game description for the menus.
 #define SAVESTRINGSIZE		24

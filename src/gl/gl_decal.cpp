@@ -251,12 +251,12 @@ void GLWall::DrawDecal(DBaseDecal *actor, seg_t *seg, sector_t *frontSector, sec
 		
 	zpos+= FRACUNIT*(flipy? decalheight-decaltopo : decaltopo);
 
+	const PatchTextureInfo * pti=tex->BindPatch(p.LightColor.a, actor->Translation);
+
 	dv[1].z=dv[2].z = TO_MAP(zpos);
 	dv[0].z=dv[3].z = dv[1].z - decalheight;
-	dv[1].v=dv[2].v=0;
+	dv[1].v=dv[2].v=pti->GetVT();
 
-
-	const PatchTextureInfo * pti=tex->BindPatch(p.LightColor.a, actor->Translation);
 	dv[1].u=dv[0].u=pti->GetU(lefttex / TO_MAP(actor->ScaleX));
 	dv[3].u=dv[2].u=pti->GetU(righttex / TO_MAP(actor->ScaleX));
 	dv[0].v=dv[3].v=pti->GetVB();

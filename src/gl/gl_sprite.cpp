@@ -71,6 +71,8 @@ int glpart=-2;
 //==========================================================================
 void GLSprite::Draw(int pass)
 {
+	bool alphatestdisabled = false;
+	
 	if (pass!=GLPASS_PLAIN && pass!=GLPASS_TRANSLUCENT) return;
 
 	if (pass==GLPASS_TRANSLUCENT)
@@ -137,9 +139,10 @@ void GLSprite::Draw(int pass)
 			break;
 		}
 	}
-	if ((gltexture && gltexture->GetTransparent()) || RenderStyle == STYLE_Transparent)
+	if (pass == GLPASS_TRANSLUCENT && ((gltexture && gltexture->GetTransparent()) || RenderStyle == STYLE_Transparent))
 	{
 		gl.Disable(GL_ALPHA_TEST);
+		alphatestdisabled = true;
 	}
 
 	if (RenderStyle!=STYLE_Fuzzy)
@@ -229,7 +232,7 @@ void GLSprite::Draw(int pass)
 			gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		}
 		// [BB] Restore the alpha test after drawing a smooth particle.
-		if ((gltexture && gltexture->GetTransparent()) || RenderStyle == STYLE_Transparent)
+		if (alphatestdisabled)
 		{
 			gl.Enable(GL_ALPHA_TEST);
 		}
@@ -402,19 +405,19 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 
 		const PatchTextureInfo * pti = gltexture->GetPatchTextureInfo();
 	
-		vt=0.0f;
+		vt=pti->GetVT();
 		vb=pti->GetVB();
 		gltexture->GetRect(&r);
 		if (patch<0)
 		{
 			r.left=-r.width-r.left;	// mirror the sprite's x-offset
-			ul=0.0f;
+			ul=pti->GetUL();
 			ur=pti->GetUR();
 		}
 		else
 		{
 			ul=pti->GetUR();
-			ur=0.0f;
+			ur=pti->GetUL();
 		}
 		r.Scale(TO_MAP(thing->scaleX),TO_MAP(thing->scaleY));
 
@@ -487,7 +490,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 	// allow disabling of the fullbright flag by a brightmap definition
 	// (e.g. to do the gun flashes of Doom's zombies correctly.
 	bool fullbright =
-		(!gl_brightmap_shader || !gltexture || !gltexture->bBrightmapDisablesFullbright) &&
+		(!gl_brightmap_shader || !gltexture || !gltexture->tex->bm_info.bBrightmapDisablesFullbright) &&
 		 (thing->renderflags & RF_FULLBRIGHT);
 
 	lightlevel=fullbright? 255 : rendersector->ceilingpic == skyflatnum ? 
@@ -593,6 +596,10 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 	else if (RenderStyle == STYLE_Normal)
 	{
 		trans=1.f;
+		if (gltexture && gltexture->GetTransparent())
+		{
+			RenderStyle = STYLE_Transparent;
+		}
 	}
 
 	if (enhancedvision && gl_enhanced_lightamp)
@@ -617,6 +624,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 	actor=thing;
 	index = gl_spriteindex++;
 	particle=NULL;
+	
 	if (RenderStyle==STYLE_Translucent && trans>=1.0f-FLT_EPSILON) 
 	{
 		RenderStyle=STYLE_Normal;

@@ -3396,7 +3396,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 						SERVERCOMMANDS_SetPlayerHealth( player - players );
 				}
 				/* [BB] This is ZDoom's way of degeneration. Should we use this?
-				if ((gametic % TICRATE) == 0 && player->health > deh.MaxHealth)
+				if ((level.time % TICRATE) == 0 && player->health > deh.MaxHealth)
 				{
 					if (player->health - 5 < deh.MaxHealth)
 						player->health = deh.MaxHealth;

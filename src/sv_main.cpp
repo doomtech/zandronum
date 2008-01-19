@@ -4034,7 +4034,7 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 		return ( false );
 
 	// "No team change" dmflag is set. Ignore this.
-	if ( players[g_lCurrentClient].bOnTeam && ( dmflags2 & DF2_NO_TEAMSWITCH ))
+	if ( players[g_lCurrentClient].bOnTeam && ( dmflags2 & DF2_NO_TEAM_SWITCH ))
 		return ( false );
 
 	// If this player has tried to change teams recently, ignore the request.

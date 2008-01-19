@@ -5,7 +5,7 @@
 #include "r_translate.h"
 #include "v_video.h"
 
-class GLTranslationPalette : public FNativeTexture
+class GLTranslationPalette : public FNativePalette
 {
 	struct PalData
 	{

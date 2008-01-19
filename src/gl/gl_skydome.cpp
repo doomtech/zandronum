@@ -103,6 +103,11 @@ public:
 		for(int i=0;i<6;i++) if (faces[i]) faces[i]->PrecacheGL();
 	}
 
+	virtual bool IsSkybox() const 
+	{  
+		return true; 
+	}
+
 };
 
 //-----------------------------------------------------------------------------
@@ -136,8 +141,6 @@ void gl_ParseSkybox()
 	}
 	sb->SetSize();
 	TexMan.AddTexture(sb);
-	FGLTexture * gltex = FGLTexture::ValidateTexture(sb);
-	gltex->bSkybox=true;
 }
 
 //-----------------------------------------------------------------------------
@@ -665,7 +668,7 @@ void GLSkyPortal::DrawContents()
 	gl.PushMatrix();
 	gl_SetupView(0, 0, 0, viewangle, !!(MirrorFlag&1), !!(PlaneMirrorFlag&1), true);
 
-	if (origin->texture[0] && origin->texture[0]->bSkybox)
+	if (origin->texture[0] && origin->texture[0]->tex->IsSkybox())
 	{
 		if (fixedcolormap)
 		{						

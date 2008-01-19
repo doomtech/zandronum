@@ -4,7 +4,7 @@
 #include "doomtype.h"
 #include "tarray.h"
 
-class FNativeTexture;
+class FNativePalette;
 class FArchive;
 
 enum
@@ -33,7 +33,7 @@ struct FRemapTable
 	void MakeIdentity();
 	void KillNative();
 	void UpdateNative();
-	FNativeTexture *GetNative();
+	FNativePalette *GetNative();
 	bool IsIdentity() const;
 	void Serialize(FArchive &ar);
 	void AddIndexRange(int start, int end, int pal1, int pal2);
@@ -41,7 +41,7 @@ struct FRemapTable
 
 	BYTE *Remap;				// For the software renderer
 	PalEntry *Palette;			// The ideal palette this maps to
-	FNativeTexture *Native;		// The Palette stored in a HW texture
+	FNativePalette *Native;		// The Palette stored in a HW texture
 	int NumEntries;				// # of elements in this table (usually 256)
 
 private:
@@ -49,7 +49,24 @@ private:
 	void Alloc(int count);
 };
 
-extern TAutoGrowArray<FRemapTable *> translationtables[NUM_TRANSLATION_TABLES];
+// A class that initializes unusued pointers to NULL. This is used so that when
+// the TAutoGrowArray below is expanded, the new elements will be NULLed.
+class FRemapTablePtr
+{
+public:
+	FRemapTablePtr() throw() : Ptr(0) {}
+	FRemapTablePtr(FRemapTable *p) throw() : Ptr(p) {}
+	FRemapTablePtr(const FRemapTablePtr &p) throw() : Ptr(p.Ptr) {}
+	operator FRemapTable *() const throw() { return Ptr; }
+	FRemapTablePtr &operator= (FRemapTable *p) throw() { Ptr = p; return *this; }
+	FRemapTablePtr &operator= (FRemapTablePtr &p) throw() { Ptr = p.Ptr; return *this; }
+	FRemapTable &operator*() const throw() { return *Ptr; }
+	FRemapTable *operator->() const throw() { return Ptr; }
+private:
+	FRemapTable *Ptr;
+};
+
+extern TAutoGrowArray<FRemapTablePtr, FRemapTable *> translationtables[NUM_TRANSLATION_TABLES];
 
 #define TRANSLATION_SHIFT 16
 #define TRANSLATION_MASK ((1<<TRANSLATION_SHIFT)-1)
@@ -70,8 +87,8 @@ inline int GetTranslationIndex(DWORD trans)
 // Retrieve the FRemapTable that an actor's translation value maps to.
 FRemapTable *TranslationToTable(int translation);
 
-const int MAX_ACS_TRANSLATIONS = 65535;
-const int MAX_DECORATE_TRANSLATIONS = 65535;
+#define MAX_ACS_TRANSLATIONS		65535
+#define MAX_DECORATE_TRANSLATIONS	65535
 
 // Initialize color translation tables, for player rendering etc.
 void R_InitTranslationTables (void);

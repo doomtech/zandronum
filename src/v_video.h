@@ -85,6 +85,7 @@ enum
 	DTA_AlphaChannel,	// bool: the source is an alpha channel; used with DTA_FillColor
 	DTA_Clean,			// bool: scale texture size and position by CleanXfac and CleanYfac
 	DTA_320x200,		// bool: scale texture size and position to fit on a virtual 320x200 screen
+	DTA_Bottom320x200,	// bool: same as DTA_320x200 but centers virtual screen on bottom for 1280x1024 targets
 	DTA_CleanNoMove,	// bool: like DTA_Clean but does not reposition output position
 	DTA_FlipX,			// bool: flip image horizontally	//FIXME: Does not work with DTA_Window(Left|Right)
 	DTA_ShadowColor,	// color of shadow
@@ -123,13 +124,18 @@ enum
 	HUD_HorizCenter
 };
 
+// Screenshot buffer image data types
+enum ESSType
+{
+	SS_PAL,
+	SS_RGB,
+	SS_BGRA
+};
 
 //
 // VIDEO
 //
 // [RH] Made screens more implementation-independant:
-// This layer isn't really necessary, and it would be nice to remove it, I think.
-// But ZDoom is now built around it so much, I'll probably just leave it.
 //
 class DCanvas : public DObject
 {
@@ -167,19 +173,13 @@ public:
 	virtual void Dim (PalEntry color, float amount, int x1, int y1, int w, int h);
 
 	// Fill an area with a texture
-	virtual void FlatFill (int left, int top, int right, int bottom, FTexture *src);
+	virtual void FlatFill (int left, int top, int right, int bottom, FTexture *src, bool local_origin=false);
 
 	// Set an area to a specified color
 	virtual void Clear (int left, int top, int right, int bottom, int palcolor, uint32 color);
 
-	// Call before drawing any lines
-	virtual void BeginLineDrawing();
-
 	// Draws a line
 	virtual void DrawLine(int x0, int y0, int x1, int y1, int palColor, uint32 realcolor);
-
-	// Call after you've finished drawing a batch of lines
-	virtual void EndLineDrawing();
 
 	// Draws a single pixel
 	virtual void DrawPixel(int x, int y, int palcolor, uint32 rgbcolor);
@@ -190,11 +190,13 @@ public:
 	// Can be overridden so that the colormaps for sector color/fade won't be built.
 	virtual bool UsesColormap() const;
 
-	// software renderer always returns true but other renderers may not want to implement PCX.
-	bool CanWritePCX();
+	// Retrieves a buffer containing image data for a screenshot.
+	// Hint: Pitch can be negative for upside-down images, in which case buffer
+	// points to the last row in the buffer, which will be the first row output.
+	virtual void GetScreenshotBuffer(const BYTE *&buffer, int &pitch, ESSType &color_type);
 
-	// Saves canvas to a file
-	void Save(const char *filename, bool writepcx);
+	// Releases the screenshot buffer.
+	virtual void ReleaseScreenshotBuffer();
 
 	// Text drawing functions -----------------------------------------------
 
@@ -280,11 +282,27 @@ protected:
 	DSimpleCanvas() {}
 };
 
+// This class represents a native texture, as opposed to an FTexture.
+class FNativeTexture
+{
+public:
+	virtual ~FNativeTexture();
+	virtual bool Update() = 0;
+	virtual bool CheckWrapping(bool wrapping);
+};
+
+// This class represents a texture lookup palette.
+class FNativePalette
+{
+public:
+	virtual ~FNativePalette();
+	virtual bool Update() = 0;
+};
+
 // A canvas that represents the actual display. The video code is responsible
 // for actually implementing this. Built on top of SimpleCanvas, because it
 // needs a system memory buffer when buffered output is enabled.
 
-class FNativeTexture;
 class DFrameBuffer : public DSimpleCanvas
 {
 	DECLARE_ABSTRACT_CLASS (DFrameBuffer, DSimpleCanvas)
@@ -334,6 +352,12 @@ public:
 	// Set the rect defining the area effected by blending.
 	virtual void SetBlendingRect (int x1, int y1, int x2, int y2);
 
+	// render 3D view
+	virtual void RenderView(player_t *player);
+
+	// renders view to a savegame picture
+	virtual void WriteSavePic (player_t *player, FILE *file, int width, int height);
+
 	bool Accel2D;	// If true, 2D drawing can be accelerated.
 
 	// Begin 2D drawing operations. This is like Update, but it doesn't end
@@ -346,10 +370,10 @@ public:
 	// DrawTexture calls after Begin2D use native textures.
 
 	// Create a native texture from a game texture.
-	virtual FNativeTexture *CreateTexture(FTexture *gametex);
+	virtual FNativeTexture *CreateTexture(FTexture *gametex, bool wrapping);
 
-	// Create a palette texture from a palette.
-	virtual FNativeTexture *CreatePalette(FRemapTable *remap);
+	// Create a palette texture from a remap/palette table.
+	virtual FNativePalette *CreatePalette(FRemapTable *remap);
 
 	// texture copy functions
 	virtual void CopyPixelDataRGB(BYTE *buffer, int texpitch, int texheight, int originx, int originy,
@@ -382,14 +406,6 @@ protected:
 
 private:
 	DWORD LastMS, LastSec, FrameCount, LastCount, LastTic;
-};
-
-// This class represents a native texture, as opposed to an FTexture.
-class FNativeTexture
-{
-public:
-	virtual ~FNativeTexture();
-	virtual bool Update() = 0;
 };
 
 extern FColorMatcher ColorMatcher;
@@ -430,8 +446,6 @@ FString V_GetColorStringByName (const char *name);
 
 // Tries to get color by name, then by string
 int V_GetColor (const DWORD *palette, const char *str);
-
-bool V_SetResolution (int width, int height, int bpp);
 
 #ifdef USEASM
 extern "C" void ASM_PatchPitch (void);

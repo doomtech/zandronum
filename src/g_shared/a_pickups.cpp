@@ -87,17 +87,11 @@ bool AAmmo::HandlePickup (AInventory *item)
 		{
 			int receiving = item->Amount;
 
-			if (!(item->ItemFlags&IF_IGNORESKILL))
-			{
-				// extra ammo in baby mode and nightmare mode
+			if (!(item->ItemFlags & IF_IGNORESKILL))
+			{ // extra ammo in baby mode and nightmare mode
 				receiving = FixedMul(receiving, G_SkillProperty(SKILLP_AmmoFactor));
 			}
 			int oldamount = Amount;
-
-			/* [BB] ST handles this in the SKILLP_AmmoFactor case in G_SkillProperty
-			if (dmflags2 & DF2_YES_DOUBLEAMMO)
-				receiving *= 2;
-			*/
 
 			Amount += receiving;
 			if (Amount > MaxAmount)
@@ -192,6 +186,23 @@ AInventory *AAmmo::CreateCopy (AActor *other)
 	if (copy->Amount > copy->MaxAmount)
 	{ // Don't pick up more ammo than you're supposed to be able to carry.
 		copy->Amount = copy->MaxAmount;
+	}
+	return copy;
+}
+
+//===========================================================================
+//
+// AAmmo :: CreateTossable
+//
+//===========================================================================
+
+AInventory *AAmmo::CreateTossable()
+{
+	AInventory *copy = Super::CreateTossable();
+	if (copy != NULL)
+	{ // Do not increase ammo by dropping it and picking it back up at
+	  // certain skill levels.
+		copy->ItemFlags |= IF_IGNORESKILL;
 	}
 	return copy;
 }

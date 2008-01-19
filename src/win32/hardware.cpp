@@ -64,8 +64,6 @@ IVideo *Video;
 //static IJoystick *Joystick;
 
 
-extern int NewWidth, NewHeight, NewBits, DisplayBits;
-bool V_DoModeSetup (int width, int height, int bits);
 void I_RestartRenderer();
 int currentrenderer=1;
 bool changerenderer;
@@ -108,6 +106,7 @@ CCMD (vid_restart)
 	if (!gl_disabled) changerenderer = true;
 }
 
+/*
 void I_CheckRestartRenderer()
 {
 	if (gl_disabled) return;
@@ -119,32 +118,12 @@ void I_CheckRestartRenderer()
 		if (currentrenderer == vid_renderer) changerenderer = false;
 	}
 }
+*/
 
-void I_RestartRenderer()
-{
-	FFont *font;
-	int bits;
-	
-	FGLTexture::FlushAll();
-	font = screen->Font;
-	I_ShutdownGraphics();
-	
-	changerenderer=false;
-	if (gl_disabled) currentrenderer=0;
 #ifndef NO_GL
-	if (currentrenderer==1) Video = new Win32GLVideo(0);
-	else Video = new Win32Video (0);
 #else
 	Video = new Win32Video (0);
 #endif
-	if (Video == NULL) I_FatalError ("Failed to initialize display");
-	
-	if (currentrenderer==0) bits=8;
-	else bits=32;
-	
-	V_DoModeSetup(NewWidth, NewHeight, bits);
-	screen->SetFont(font);
-}
 
 void I_ShutdownGraphics ()
 {

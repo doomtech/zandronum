@@ -147,9 +147,6 @@ inline float Dist2(float x1,float y1,float x2,float y2)
 }
 
 
-void I_RestartRenderer();
-void I_CheckRestartRenderer();
-
 EXTERN_CVAR(Int, screenblocks)
 
 

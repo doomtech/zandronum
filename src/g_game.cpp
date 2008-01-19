@@ -113,8 +113,6 @@ void	G_ReadDemoTiccmd (ticcmd_t *cmd, int player);
 void	G_WriteDemoTiccmd (ticcmd_t *cmd, int player, int buf);
 void	G_PlayerReborn (int player);
 
-void	G_DoReborn (int playernum, bool freshbot);
-
 void	G_DoNewGame (void);
 void	G_DoLoadGame (void);
 void	G_DoPlayDemo (void);
@@ -3932,6 +3930,7 @@ void G_DoLoadGame ()
 	char *map;
 
 	gameaction = ga_nothing;
+	demoplayback = false;
 
 	FILE *stdfile = fopen (savename.GetChars(), "rb");
 	if (stdfile == NULL)
@@ -4215,17 +4214,8 @@ static void PutSavePic (FILE *file, int width, int height)
 	}
 	else
 	{
-		DCanvas *pic = new DSimpleCanvas (width, height);
-		PalEntry palette[256];
-
-		// Take a snapshot of the player's view
-		pic->Lock ();
 		P_CheckPlayerSprites();
-		R_RenderViewToCanvas (players[consoleplayer].mo, pic, 0, 0, width, height);
-		screen->GetFlashedPalette (palette);
-		M_CreatePNG (file, pic, palette);
-		pic->Unlock ();
-		delete pic;
+		screen->WriteSavePic(&players[consoleplayer], file, width, height);
 	}
 }
 

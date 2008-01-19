@@ -236,6 +236,7 @@ public:
 
 	void ShowPop (int popnum)
 	{
+		FBaseStatusBar::ShowPop(popnum);
 		if (popnum == CurrentPop)
 		{
 			if (popnum == POP_Keys)
@@ -270,6 +271,12 @@ public:
 			KeyPopPos = 0;
 			PendingPop = popnum;
 		}
+	}
+
+	bool MustDrawLog(EHudState state)
+	{
+		// Tell the base class to draw the log if the pop screen won't be displayed.
+		return (state == HUD_None);
 	}
 
 private:
@@ -437,7 +444,7 @@ private:
 			{
 				screen->DrawTexture (Images[CursorImage],
 					42 + 35*i + ST_X, 12 + ST_Y,
-					DTA_320x200, Scaled,
+					DTA_Bottom320x200, Scaled,
 					DTA_Alpha, FRACUNIT - ItemFlash,
 					TAG_DONE);
 			}

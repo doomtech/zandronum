@@ -27,12 +27,17 @@ static FRandom pr_chainwiggle; //use the same method of chain wiggling as hereti
 #define ST_GRINTIME		(TICRATE*2)
 #define ST_RAMPAGETIME	(TICRATE*2)
 #define ST_XDTHTIME		(TICRATE*(3/2))
-#define ST_NUMFACES		80 //9 levels with 8 faces each, 1 god, 1 death, 6 xdeath
+#define ST_NUMFACES		82 //9 levels with 8 faces each, 3 god, 1 death, 6 xdeath
 #define ARTIFLASH_OFFSET (invBarOffset+6)
 
 EXTERN_CVAR(Int, fraglimit)
 
 SBarInfo *SBarInfoScript;
+
+enum //statusbar flags
+{
+	STATUSBARFLAG_FORCESCALED = 1,
+};
 
 enum //gametype flags
 {
@@ -53,6 +58,8 @@ enum //drawimage flags
 	DRAWIMAGE_SWITCHABLE_AND = 64,
 	DRAWIMAGE_INVULNERABILITY = 128,
 	DRAWIMAGE_OFFSET_CENTER = 256,
+	DRAWIMAGE_ARMOR = 512,
+	DRAWIMAGE_WEAPONICON = 1024,
 };
 
 enum //drawnumber flags
@@ -65,6 +72,12 @@ enum //drawnumber flags
 	DRAWNUMBER_AMMOCAPACITY = 32,
 	DRAWNUMBER_FRAGS = 64,
 	DRAWNUMBER_INVENTORY = 128,
+	DRAWNUMBER_KILLS = 256,
+	DRAWNUMBER_MONSTERS = 512,
+	DRAWNUMBER_ITEMS = 1024,
+	DRAWNUMBER_TOTALITEMS = 2048,
+	DRAWNUMBER_SECRETS = 4096,
+	DRAWNUMBER_TOTALSECRETS = 8192,
 };
 
 enum //drawbar flags (will go into special2)
@@ -78,12 +91,15 @@ enum //drawselectedinventory flags
 {
 	DRAWSELECTEDINVENTORY_ALTERNATEONEMPTY = 1,
 	DRAWSELECTEDINVENTORY_ARTIFLASH = 2,
+	DRAWSELECTEDINVENTORY_ALWAYSSHOWCOUNTER = 4,
 };
 
 enum //drawinventorybar flags
 {
 	DRAWINVENTORYBAR_ALWAYSSHOW = 1,
 	DRAWINVENTORYBAR_NOARTIBOX = 2,
+	DRAWINVENTORYBAR_NOARROWS = 4,
+	DRAWINVENTORYBAR_ALWAYSSHOWCOUNTER = 8,
 };
 
 enum //drawgem flags
@@ -96,6 +112,12 @@ enum //drawshader flags
 {
 	DRAWSHADER_VERTICAL = 1,
 	DRAWSHADER_REVERSE = 2,
+};
+
+enum //drawmugshot flags
+{
+	DRAWMUGSHOT_XDEATHFACE = 1,
+	DRAWMUGSHOT_ANIMATEDGODMODE = 2,
 };
 
 static const char *SBarInfoTopLevel[] =
@@ -145,6 +167,7 @@ static const char *SBarInfoRoutineLevel[] =
 	"drawbar",
 	"drawgem",
 	"drawshader",
+	"drawstring",
 	"gamemode",
 	"playerclass",
 	NULL
@@ -160,14 +183,24 @@ enum
 	SBARINFO_DRAWBAR,
 	SBARINFO_DRAWGEM,
 	SBARINFO_DRAWSHADER,
+	SBARINFO_DRAWSTRING,
 	SBARINFO_GAMEMODE,
 	SBARINFO_PLAYERCLASS,
 };
 
-//Laz Bar Script Reader
-int SBarInfo::ParseSBarInfo(int lump)
+void FreeSBarInfoScript()
 {
-	int stbar = GAME_Any;
+	if (SBarInfoScript != NULL)
+	{
+		delete SBarInfoScript;
+		SBarInfoScript = NULL;
+	}
+}
+
+//Laz Bar Script Reader
+void SBarInfo::ParseSBarInfo(int lump)
+{
+	gameType = GAME_Any;
 	SC_OpenLumpNum(lump, Wads.GetLumpFullName(lump));
 	SC_SetCMode(true);
 	while(SC_CheckToken(TK_Identifier) || SC_CheckToken(TK_Include))
@@ -191,15 +224,15 @@ int SBarInfo::ParseSBarInfo(int lump)
 			case SBARINFO_BASE:
 				SC_MustGetToken(TK_Identifier);
 				if(SC_Compare("Doom"))
-					stbar = GAME_Doom;
+					gameType = GAME_Doom;
 				else if(SC_Compare("Heretic"))
-					stbar = GAME_Heretic;
+					gameType = GAME_Heretic;
 				else if(SC_Compare("Hexen"))
-					stbar = GAME_Hexen;
+					gameType = GAME_Hexen;
 				else if(SC_Compare("Strife"))
-					stbar = GAME_Strife;
+					gameType = GAME_Strife;
 				else if(SC_Compare("None"))
-					stbar = GAME_Any;
+					gameType = GAME_Any;
 				else
 					SC_ScriptError("Bad game name: %s", sc_String);
 				SC_MustGetToken(';');
@@ -230,6 +263,18 @@ int SBarInfo::ParseSBarInfo(int lump)
 			{
 				SC_MustGetToken(TK_Identifier);
 				int barNum = SC_MustMatchString(StatusBars);
+				while(SC_CheckToken(','))
+				{
+					SC_MustGetToken(TK_Identifier);
+					if(SC_Compare("forcescaled"))
+					{
+						this->huds[barNum].forceScaled = true;
+					}
+					else
+					{
+						SC_ScriptError("Unkown flag '%s'.", sc_String);
+					}
+				}
 				SC_MustGetToken('{');
 				if(barNum == STBAR_AUTOMAP)
 				{
@@ -242,14 +287,14 @@ int SBarInfo::ParseSBarInfo(int lump)
 	}
 	SC_SetCMode(false);
 	SC_Close();
-	return stbar;
 }
 
 void SBarInfo::ParseSBarInfoBlock(SBarInfoBlock &block)
 {
 	while(SC_CheckToken(TK_Identifier))
 	{
-		SBarInfoCommand cmd = *new SBarInfoCommand();
+		SBarInfoCommand cmd;
+
 		switch(cmd.type = SC_MustMatchString(SBarInfoRoutineLevel))
 		{
 			case SBARINFO_DRAWSWITCHABLEIMAGE:
@@ -313,6 +358,10 @@ void SBarInfo::ParseSBarInfoBlock(SBarInfoBlock &block)
 						cmd.flags += DRAWIMAGE_AMMO1;
 					else if(SC_Compare("ammoicon2"))
 						cmd.flags += DRAWIMAGE_AMMO2;
+					else if(SC_Compare("armoricon"))
+						cmd.flags += DRAWIMAGE_ARMOR;
+					else if(SC_Compare("weaponicon"))
+						cmd.flags += DRAWIMAGE_WEAPONICON;
 					else if(SC_Compare("translatable"))
 					{
 						cmd.flags += DRAWIMAGE_TRANSLATABLE;
@@ -339,7 +388,7 @@ void SBarInfo::ParseSBarInfoBlock(SBarInfoBlock &block)
 				cmd.x = sc_Number;
 				SC_MustGetToken(',');
 				SC_MustGetToken(TK_IntConst);
-				cmd.y = sc_Number - (200 - SBarInfoScript->height); //the position should be absolute on the screen.
+				cmd.y = sc_Number - (200 - this->height); //the position should be absolute on the screen.
 				if(SC_CheckToken(','))
 				{
 					SC_MustGetToken(TK_Identifier);
@@ -352,13 +401,14 @@ void SBarInfo::ParseSBarInfoBlock(SBarInfoBlock &block)
 				break;
 			}
 			case SBARINFO_DRAWNUMBER:
+				cmd.special4 = cmd.special3 = -1;
 				SC_MustGetToken(TK_IntConst);
 				cmd.special = sc_Number;
 				SC_MustGetToken(',');
 				SC_MustGetToken(TK_Identifier);
 				cmd.font = V_GetFont(sc_String);
 				if(cmd.font == NULL)
-						SC_ScriptError("Unknown font '%s'.", sc_String);
+					SC_ScriptError("Unknown font '%s'.", sc_String);
 				SC_MustGetToken(',');
 				SC_MustGetToken(TK_Identifier);
 				cmd.translation = this->GetTranslation(sc_String);
@@ -403,6 +453,18 @@ void SBarInfo::ParseSBarInfoBlock(SBarInfoBlock &block)
 					}
 					else if(SC_Compare("frags"))
 						cmd.flags = DRAWNUMBER_FRAGS;
+					else if(SC_Compare("kills"))
+						cmd.flags += DRAWNUMBER_KILLS;
+					else if(SC_Compare("monsters"))
+						cmd.flags += DRAWNUMBER_MONSTERS;
+					else if(SC_Compare("items"))
+						cmd.flags += DRAWNUMBER_ITEMS;
+					else if(SC_Compare("totalitems"))
+						cmd.flags += DRAWNUMBER_TOTALITEMS;
+					else if(SC_Compare("secrets"))
+						cmd.flags += DRAWNUMBER_SECRETS;
+					else if(SC_Compare("totalsecrets"))
+						cmd.flags += DRAWNUMBER_TOTALSECRETS;
 					else
 					{
 						cmd.flags = DRAWNUMBER_INVENTORY;
@@ -420,11 +482,31 @@ void SBarInfo::ParseSBarInfoBlock(SBarInfoBlock &block)
 				cmd.x = sc_Number;
 				SC_MustGetToken(',');
 				SC_MustGetToken(TK_IntConst);
-				cmd.y = sc_Number - (200 - SBarInfoScript->height);
+				cmd.y = sc_Number - (200 - this->height);
 				if(SC_CheckToken(','))
 				{
-					SC_MustGetToken(TK_IntConst);
-					cmd.special2 = sc_Number;
+					bool needsComma = false;
+					if(SC_CheckToken(TK_IntConst)) //font spacing
+					{
+						cmd.special2 = sc_Number;
+						needsComma = true;
+					}
+					if(!needsComma || SC_CheckToken(',')) //2nd coloring for "low-on" value
+					{
+						SC_MustGetToken(TK_Identifier);
+						cmd.translation2 = this->GetTranslation(sc_String);
+						SC_MustGetToken(',');
+						SC_MustGetToken(TK_IntConst);
+						cmd.special3 = sc_Number;
+						if(SC_CheckToken(',')) //3rd coloring for "high-on" value
+						{
+							SC_MustGetToken(TK_Identifier);
+							cmd.translation3 = this->GetTranslation(sc_String);
+							SC_MustGetToken(',');
+							SC_MustGetToken(TK_IntConst);
+							cmd.special4 = sc_Number;
+						}
+					}
 				}
 				SC_MustGetToken(';');
 				break;
@@ -437,14 +519,28 @@ void SBarInfo::ParseSBarInfoBlock(SBarInfoBlock &block)
 					SC_ScriptError("Exspected a number between 1 and 9, got %d instead.", sc_Number);
 				cmd.special = sc_Number;
 				SC_MustGetToken(',');
-				SC_MustGetToken(TK_IntConst); //xdeath face (could be later used as flags
-				cmd.special2 = sc_Number;
-				SC_MustGetToken(',');
+				while(SC_CheckToken(TK_Identifier))
+				{
+					if(SC_Compare("xdeathface"))
+						cmd.flags += DRAWMUGSHOT_XDEATHFACE;
+					else if(SC_Compare("animatedgodmode"))
+						cmd.flags += DRAWMUGSHOT_ANIMATEDGODMODE;
+					else
+						SC_ScriptError("Unknown flag '%s'.", sc_String);
+					SC_MustGetToken(',');
+				}
 				SC_MustGetToken(TK_IntConst);
 				cmd.x = sc_Number;
 				SC_MustGetToken(',');
 				SC_MustGetToken(TK_IntConst);
-				cmd.y = sc_Number - (200 - SBarInfoScript->height);
+				cmd.y = sc_Number - (200 - this->height);
+				if(SC_CheckToken(',')) //hmm I guess we had a numberic flag in there.
+				{
+					cmd.flags = cmd.x;
+					cmd.x = cmd.y + (200 - this->height);
+					SC_MustGetToken(TK_IntConst);
+					cmd.y = sc_Number - (200 - this->height);
+				}
 				SC_MustGetToken(';');
 				break;
 			case SBARINFO_DRAWSELECTEDINVENTORY:
@@ -462,6 +558,10 @@ void SBarInfo::ParseSBarInfoBlock(SBarInfoBlock &block)
 					{
 						cmd.flags += DRAWSELECTEDINVENTORY_ARTIFLASH;
 					}
+					else if(SC_Compare("alwaysshowcounter"))
+					{
+						cmd.flags += DRAWSELECTEDINVENTORY_ALWAYSSHOWCOUNTER;
+					}
 					else
 					{
 						cmd.font = V_GetFont(sc_String);
@@ -476,7 +576,7 @@ void SBarInfo::ParseSBarInfoBlock(SBarInfoBlock &block)
 				cmd.x = sc_Number;
 				SC_MustGetToken(',');
 				SC_MustGetToken(TK_IntConst);
-				cmd.y = sc_Number - (200 - SBarInfoScript->height);
+				cmd.y = sc_Number - (200 - this->height);
 				cmd.special2 = cmd.x + 30;
 				cmd.special3 = cmd.y + 24;
 				cmd.translation = CR_GOLD;
@@ -486,7 +586,7 @@ void SBarInfo::ParseSBarInfoBlock(SBarInfoBlock &block)
 					cmd.special2 = sc_Number;
 					SC_MustGetToken(',');
 					SC_MustGetToken(TK_IntConst);
-					cmd.special3 = sc_Number - (200 - SBarInfoScript->height);
+					cmd.special3 = sc_Number - (200 - this->height);
 					if(SC_CheckToken(','))
 					{
 						SC_MustGetToken(TK_Identifier);
@@ -528,6 +628,14 @@ void SBarInfo::ParseSBarInfoBlock(SBarInfoBlock &block)
 						{
 							cmd.flags += DRAWINVENTORYBAR_NOARTIBOX;
 						}
+						else if(SC_Compare("noarrows"))
+						{
+							cmd.flags += DRAWINVENTORYBAR_NOARROWS;
+						}
+						else if(SC_Compare("alwaysshowcounter"))
+						{
+							cmd.flags += DRAWINVENTORYBAR_ALWAYSSHOWCOUNTER;
+						}
 						else
 						{
 							SC_ScriptError("Unknown flag '%s'.", sc_String);
@@ -551,7 +659,7 @@ void SBarInfo::ParseSBarInfoBlock(SBarInfoBlock &block)
 				cmd.x = sc_Number;
 				SC_MustGetToken(',');
 				SC_MustGetNumber();
-				cmd.y = sc_Number - (200 - SBarInfoScript->height);
+				cmd.y = sc_Number - (200 - this->height);
 				cmd.special2 = cmd.x + 26;
 				cmd.special3 = cmd.y + 22;
 				cmd.translation = CR_GOLD;
@@ -561,7 +669,7 @@ void SBarInfo::ParseSBarInfoBlock(SBarInfoBlock &block)
 					cmd.special2 = sc_Number;
 					SC_MustGetToken(',');
 					SC_MustGetToken(TK_IntConst);
-					cmd.special3 = sc_Number - (200 - SBarInfoScript->height);
+					cmd.special3 = sc_Number - (200 - this->height);
 					if(SC_CheckToken(','))
 					{
 						SC_MustGetToken(TK_Identifier);
@@ -629,7 +737,13 @@ void SBarInfo::ParseSBarInfoBlock(SBarInfoBlock &block)
 					}
 				}
 				else if(SC_Compare("frags"))
-						cmd.flags = DRAWNUMBER_FRAGS;
+					cmd.flags = DRAWNUMBER_FRAGS;
+				else if(SC_Compare("kills"))
+					cmd.flags = DRAWNUMBER_KILLS;
+				else if(SC_Compare("items"))
+					cmd.flags = DRAWNUMBER_ITEMS;
+				else if(SC_Compare("secrets"))
+					cmd.flags = DRAWNUMBER_SECRETS;
 				else
 				{
 					cmd.flags = DRAWNUMBER_INVENTORY;
@@ -660,7 +774,7 @@ void SBarInfo::ParseSBarInfoBlock(SBarInfoBlock &block)
 				cmd.x = sc_Number;
 				SC_MustGetToken(',');
 				SC_MustGetToken(TK_IntConst);
-				cmd.y = sc_Number - (200 - SBarInfoScript->height);
+				cmd.y = sc_Number - (200 - this->height);
 				SC_MustGetToken(';');
 				break;
 			case SBARINFO_DRAWGEM:
@@ -699,7 +813,7 @@ void SBarInfo::ParseSBarInfoBlock(SBarInfoBlock &block)
 				cmd.x = sc_Number;
 				SC_MustGetToken(',');
 				SC_MustGetToken(TK_IntConst);
-				cmd.y = sc_Number - (200 - SBarInfoScript->height);
+				cmd.y = sc_Number - (200 - this->height);
 				SC_MustGetToken(';');
 				break;
 			case SBARINFO_DRAWSHADER:
@@ -732,7 +846,26 @@ void SBarInfo::ParseSBarInfoBlock(SBarInfoBlock &block)
 				cmd.x = sc_Number;
 				SC_MustGetToken(',');
 				SC_MustGetToken(TK_IntConst);
-				cmd.y = sc_Number - (200 - SBarInfoScript->height);
+				cmd.y = sc_Number - (200 - this->height);
+				SC_MustGetToken(';');
+				break;
+			case SBARINFO_DRAWSTRING:
+				SC_MustGetToken(TK_Identifier);
+				cmd.font = V_GetFont(sc_String);
+				if(cmd.font == NULL)
+					SC_ScriptError("Unknown font '%s'.", sc_String);
+				SC_MustGetToken(',');
+				SC_MustGetToken(TK_Identifier);
+				cmd.translation = this->GetTranslation(sc_String);
+				SC_MustGetToken(',');
+				SC_MustGetToken(TK_StringConst);
+				cmd.setString(sc_String, 0, -1, false);
+				SC_MustGetToken(',');
+				SC_MustGetToken(TK_IntConst);
+				cmd.x = sc_Number;
+				SC_MustGetToken(',');
+				SC_MustGetToken(TK_IntConst);
+				cmd.y = sc_Number - (200 - this->height);
 				SC_MustGetToken(';');
 				break;
 			case SBARINFO_GAMEMODE:
@@ -765,11 +898,11 @@ void SBarInfo::ParseSBarInfoBlock(SBarInfoBlock &block)
 						{
 							foundClass = true;
 							if(i == 0)
-								cmd.special = c;
+								cmd.special = PlayerClasses[c].Type->ClassIndex;
 							else if(i == 1)
-								cmd.special2 = c;
+								cmd.special2 = PlayerClasses[c].Type->ClassIndex;
 							else //should be 2
-								cmd.special3 = c;
+								cmd.special3 = PlayerClasses[c].Type->ClassIndex;
 							break;
 						}
 					}
@@ -825,10 +958,29 @@ EColorRange SBarInfo::GetTranslation(char* translation)
 
 SBarInfo::SBarInfo() //make results more predicable
 {
+	Init();
+}
+
+SBarInfo::SBarInfo(int lumpnum)
+{
+	Init();
+	ParseSBarInfo(lumpnum);
+}
+
+void SBarInfo::Init()
+{
 	automapbar = false;
 	interpolateHealth = false;
 	interpolationSpeed = 8;
 	height = 0;
+}
+
+SBarInfo::~SBarInfo()
+{
+	for (size_t i = 0; i < countof(huds); ++i)
+	{
+		huds[i].commands.Clear();
+	}
 }
 
 void SBarInfoCommand::setString(const char* source, int strnum, int maxlength, bool exact)
@@ -852,24 +1004,6 @@ void SBarInfoCommand::setString(const char* source, int strnum, int maxlength, b
 	string[strnum] = source;
 }
 
-SBarInfoCommand::SBarInfoCommand() //sets the default values for more predicable behavior
-{
-	type = 0;
-	special = 0;
-	special2 = 0;
-	special3 = 0;
-	special4 = 0;
-	flags = 0;
-	x = 0;
-	y = 0;
-	value = 0;
-	sprite = 0;
-	string[0] = "";
-	string[1] = "";
-	translation = CR_UNTRANSLATED;
-	font = V_GetFont("CONFONT");
-}
-
 enum
 {
 	ST_FACENORMALRIGHT,
@@ -881,8 +1015,10 @@ enum
 	ST_FACEGRIN,
 	ST_FACEPAIN,
 	ST_FACEGOD = 72,
-	ST_FACEDEAD = 73,
-	ST_FACEXDEAD = 74,
+	ST_FACEGODRIGHT = 73, //switch the roles of 0 and 1 because 0 is taken by Doom.
+	ST_FACEGODLEFT = 74,
+	ST_FACEDEAD = 75,
+	ST_FACEXDEAD = 76,
 };
 
 enum
@@ -899,6 +1035,11 @@ enum
 class FBarTexture : public FTexture
 {
 public:
+	~FBarTexture()
+	{
+		delete Pixels;
+	}
+
 	void Unload()
 	{
 		if(image != NULL)
@@ -922,12 +1063,9 @@ public:
 		return Pixels;
 	}
 
-	void PrepareTexture(FTexture* bar, FTexture* bg, int value, bool horizontal, bool reverse)
+	FBarTexture(FTexture* bar, FTexture* bg, int value, bool horizontal, bool reverse)
 	{
-		if(value < 0)
-			value = 0;
-		else if(value > 100)
-			value = 100;
+		value = clamp(value, 0, 100);
 		image = bar;
 		//width and height are supposed to be the end result, Width and Height are the input image.  If that makes sense.
 		int width = Width = bar->GetWidth();
@@ -937,6 +1075,7 @@ public:
 			width = (int) (((double) width/100)*value);
 		}
 		Pixels = new BYTE[Width*Height];
+		memset(Pixels, 0, Width*Height); //Prevent garbage when using transparent images
 		bar->CopyToBlock(Pixels, Width, Height, 0, 0); //draw the bar
 		int run = bar->GetHeight() - (int) (((double) height/100)*value);
 		int visible = bar->GetHeight() - run;
@@ -998,8 +1137,8 @@ public:
 	{
 		int i;
 
-		Width = vertical ? 1 : 256;
-		Height = vertical ? 256 : 1;
+		Width = vertical ? 2 : 256;
+		Height = vertical ? 256 : 2;
 		CalcBitSize();
 
 		// Fill the column/row with shading values.
@@ -1007,18 +1146,42 @@ public:
 		// and maximum alpha at the bottom, unless flipped by
 		// setting reverse to true. Horizontal shaders are just
 		// the opposite.
-		if ((!reverse && vertical) || (reverse && !vertical))
+		if (vertical)
 		{
-			for (i = 0; i < 256; ++i)
+			if (!reverse)
 			{
-				Pixels[i] = i;
+				for (i = 0; i < 256; ++i)
+				{
+					Pixels[i] = i;
+					Pixels[256+i] = i;
+				}
+			}
+			else
+			{
+				for (i = 0; i < 256; ++i)
+				{
+					Pixels[i] = 255 - i;
+					Pixels[256+i] = 255 -i;
+				}
 			}
 		}
 		else
 		{
-			for (i = 0; i < 256; ++i)
+			if (!reverse)
 			{
-				Pixels[i] = 255 - i;
+				for (i = 0; i < 256; ++i)
+				{
+					Pixels[i*2] = 255 - i;
+					Pixels[i*2+1] = 255 - i;
+				}
+			}
+			else
+			{
+				for (i = 0; i < 256; ++i)
+				{
+					Pixels[i*2] = i;
+					Pixels[i*2+1] = i;
+				}
 			}
 		}
 		DummySpan[0].TopOffset = 0;
@@ -1033,14 +1196,7 @@ public:
 		{
 			*spans_out = DummySpan;
 		}
-		if (Width == 1)
-		{
-			return Pixels;
-		}
-		else
-		{
-			return Pixels + (column & 255);
-		}
+		return Pixels + (column & WidthMask) * 256;
 	}
 
 	const BYTE *GetPixels()
@@ -1053,15 +1209,52 @@ public:
 	}
 
 private:
-	BYTE Pixels[256];
+	BYTE Pixels[512];
 	Span DummySpan[2];
 };
+
+SBarInfoCommand::SBarInfoCommand() //sets the default values for more predicable behavior
+{
+	type = 0;
+	special = 0;
+	special2 = 0;
+	special3 = 0;
+	special4 = 0;
+	flags = 0;
+	x = 0;
+	y = 0;
+	value = 0;
+	sprite = 0;
+	translation = CR_UNTRANSLATED;
+	translation2 = CR_UNTRANSLATED;
+	translation3 = CR_UNTRANSLATED;
+	font = V_GetFont("CONFONT");
+	bar = NULL;
+}
+
+SBarInfoCommand::~SBarInfoCommand()
+{
+	if (bar != NULL)
+	{
+		delete bar;
+	}
+	subBlock.commands.Clear();
+}
+
+SBarInfoBlock::SBarInfoBlock()
+{
+	forceScaled = false;
+}
 
 //SBarInfo Display
 class FSBarInfo : public FBaseStatusBar
 {
 public:
-	FSBarInfo () : FBaseStatusBar (SBarInfoScript->height)
+	FSBarInfo () : FBaseStatusBar (SBarInfoScript->height),
+		shader_horz_normal(false, false),
+		shader_horz_reverse(false, true),
+		shader_vert_normal(true, false),
+		shader_vert_reverse(true, true)
 	{
 		static const char *InventoryBarLumps[] =
 		{
@@ -1084,6 +1277,7 @@ public:
 		Images.Init(&patchnames[0], patchnames.Size());
 		drawingFont = V_GetFont("ConFont");
 		faceTimer = ST_FACETIME;
+		rampageTimer = 0;
 		faceIndex = 0;
 		if(SBarInfoScript->interpolateHealth)
 		{
@@ -1128,6 +1322,11 @@ public:
 		else
 		{
 			hud = 0;
+		}
+		if(SBarInfoScript->huds[hud].forceScaled) //scale the statusbar
+		{
+			SetScaled(true);
+			setsizeneeded = true;
 		}
 		doCommands(SBarInfoScript->huds[hud]);
 		if(CPlayer->inventorytics > 0 && !(level.flags & LEVEL_NOINVENTORYBAR))
@@ -1251,7 +1450,8 @@ private:
 			sprintf (names[facenum++], "%sEVL%d", prefix, i);  // evil grin ;)
 			sprintf (names[facenum++], "%sKILL%d", prefix, i); // pissed off
 		}
-		sprintf (names[facenum++], "%sGOD0", prefix);
+		for (i = 0; i < 3; i++)
+			sprintf (names[facenum++], "%sGOD%d", prefix, i);
 		sprintf (names[facenum++], "%sDEAD0", prefix);
 		for(i = 0;i < 6;i++) //xdeath
 		{
@@ -1277,7 +1477,7 @@ private:
 		}
 		for(unsigned int i = 0;i < block.commands.Size();i++)
 		{
-			SBarInfoCommand cmd = block.commands[i];
+			SBarInfoCommand& cmd = block.commands[i];
 			switch(cmd.type) //read and execute all the commands
 			{
 				case SBARINFO_DRAWSWITCHABLEIMAGE: //draw the alt image if we don't have the item else this is like a normal drawimage
@@ -1310,20 +1510,20 @@ private:
 					else //check the inventory items and draw selected sprite
 					{
 						AInventory* item = CPlayer->mo->FindInventory(PClass::FindClass(cmd.string[0]));
-						if(item == NULL)
+						if(item == NULL || item->Amount == 0)
 							drawAlt = 1;
 						if((cmd.flags & DRAWIMAGE_SWITCHABLE_AND))
 						{
 							item = CPlayer->mo->FindInventory(PClass::FindClass(cmd.string[1]));
-							if(item != NULL && drawAlt == 0) //both
+							if((item != NULL && item->Amount != 0) && drawAlt == 0) //both
 							{
 								drawAlt = 0;
 							}
-							else if(item != NULL && drawAlt == 1) //2nd
+							else if((item != NULL && item->Amount != 0) && drawAlt == 1) //2nd
 							{
 								drawAlt = 3;
 							}
-							else if(item == NULL && drawAlt == 0) //1st
+							else if((item == NULL || item->Amount == 0) && drawAlt == 0) //1st
 							{
 								drawAlt = 2;
 							}
@@ -1352,6 +1552,20 @@ private:
 					{
 						if(ammo2 != NULL)
 							DrawGraphic(TexMan[ammo2->Icon], cmd.x, cmd.y, cmd.flags);
+					}
+					else if((cmd.flags & DRAWIMAGE_ARMOR))
+					{
+						ABasicArmor *armor = CPlayer->mo->FindInventory<ABasicArmor>();
+						if(armor != NULL && armor->Amount != 0)
+							DrawGraphic(TexMan(armor->Icon), cmd.x, cmd.y, cmd.flags);
+					}
+					else if((cmd.flags & DRAWIMAGE_WEAPONICON))
+					{
+						AWeapon *weapon = CPlayer->ReadyWeapon;
+						if(weapon != NULL && weapon->Icon > 0)
+						{
+							DrawGraphic(TexMan[weapon->Icon], cmd.x, cmd.y, cmd.flags);
+						}
 					}
 					else if((cmd.flags & DRAWIMAGE_INVENTORYICON))
 					{
@@ -1424,6 +1638,18 @@ private:
 					}
 					else if(cmd.flags == DRAWNUMBER_FRAGS)
 						cmd.value = CPlayer->fragcount;
+					else if(cmd.flags == DRAWNUMBER_KILLS)
+						cmd.value = level.killed_monsters;
+					else if(cmd.flags == DRAWNUMBER_MONSTERS)
+						cmd.value = level.total_monsters;
+					else if(cmd.flags == DRAWNUMBER_ITEMS)
+						cmd.value = level.found_items;
+					else if(cmd.flags == DRAWNUMBER_TOTALITEMS)
+						cmd.value = level.total_items;
+					else if(cmd.flags == DRAWNUMBER_SECRETS)
+						cmd.value = level.found_secrets;
+					else if(cmd.flags == DRAWNUMBER_TOTALSECRETS)
+						cmd.value = level.total_secrets;
 					else if(cmd.flags == DRAWNUMBER_INVENTORY)
 					{
 						AInventory* item = CPlayer->mo->FindInventory(PClass::FindClass(cmd.string[0]));
@@ -1436,15 +1662,23 @@ private:
 							cmd.value = 0;
 						}
 					}
-					DrawNumber(cmd.value, cmd.special, cmd.x, cmd.y, cmd.translation, cmd.special2);
+					if(cmd.special3 != -1 && cmd.value <= cmd.special3) //low
+						DrawNumber(cmd.value, cmd.special, cmd.x, cmd.y, cmd.translation2, cmd.special2);
+					else if(cmd.special4 != -1 && cmd.value >= cmd.special4) //high
+						DrawNumber(cmd.value, cmd.special, cmd.x, cmd.y, cmd.translation3, cmd.special2);
+					else
+						DrawNumber(cmd.value, cmd.special, cmd.x, cmd.y, cmd.translation, cmd.special2);
 					break;
 				case SBARINFO_DRAWMUGSHOT:
 				{
 					bool xdth = false;
-					if(cmd.special2 != 0)
+					bool animatedgodmode = false;
+					if(cmd.flags & DRAWMUGSHOT_XDEATHFACE)
 						xdth = true;
+					if(cmd.flags & DRAWMUGSHOT_ANIMATEDGODMODE)
+						animatedgodmode = true;
 					SetFace(oldSkin, cmd.string[0].GetChars());
-					DrawFace(cmd.special, xdth, cmd.x, cmd.y);
+					DrawFace(cmd.special, xdth, animatedgodmode, cmd.x, cmd.y);
 					break;
 				}
 				case SBARINFO_DRAWSELECTEDINVENTORY:
@@ -1458,7 +1692,7 @@ private:
 						{
 							DrawDimImage(TexMan(CPlayer->mo->InvSel->Icon), cmd.x, cmd.y, CPlayer->mo->InvSel->Amount <= 0);
 						}
-						if(CPlayer->mo->InvSel->Amount != 1)
+						if((cmd.flags & DRAWSELECTEDINVENTORY_ALWAYSSHOWCOUNTER) || CPlayer->mo->InvSel->Amount != 1)
 						{
 							if(drawingFont != cmd.font)
 							{
@@ -1476,15 +1710,21 @@ private:
 				{
 					bool alwaysshow = false;
 					bool artibox = true;
+					bool noarrows = false;
+					bool alwaysshowcounter = false;
 					if((cmd.flags & DRAWINVENTORYBAR_ALWAYSSHOW))
 						alwaysshow = true;
 					if((cmd.flags & DRAWINVENTORYBAR_NOARTIBOX))
 						artibox = false;
+					if((cmd.flags & DRAWINVENTORYBAR_NOARROWS))
+						noarrows = true;
+					if((cmd.flags & DRAWINVENTORYBAR_ALWAYSSHOWCOUNTER))
+						alwaysshowcounter = true;
 					if(drawingFont != cmd.font)
 					{
 						drawingFont = cmd.font;
 					}
-					DrawInventoryBar(cmd.special, cmd.value, cmd.x, cmd.y, alwaysshow, cmd.special2, cmd.special3, cmd.translation, artibox);
+					DrawInventoryBar(cmd.special, cmd.value, cmd.x, cmd.y, alwaysshow, cmd.special2, cmd.special3, cmd.translation, artibox, noarrows, alwaysshowcounter);
 					break;
 				}
 				case SBARINFO_DRAWBAR:
@@ -1580,6 +1820,21 @@ private:
 						value = CPlayer->fragcount;
 						max = fraglimit;
 					}
+					else if(cmd.flags == DRAWNUMBER_KILLS)
+					{
+						value = level.killed_monsters;
+						max = level.total_monsters;
+					}
+					else if(cmd.flags == DRAWNUMBER_ITEMS)
+					{
+						value = level.found_items;
+						max = level.total_items;
+					}
+					else if(cmd.flags == DRAWNUMBER_SECRETS)
+					{
+						value = level.found_secrets;
+						max = level.total_secrets;
+					}
 					else if(cmd.flags == DRAWNUMBER_INVENTORY)
 					{
 						AInventory* item = CPlayer->mo->FindInventory(PClass::FindClass(cmd.string[0]));
@@ -1603,12 +1858,14 @@ private:
 					{
 						value = 0;
 					}
-					FBarTexture* bar = new FBarTexture();
+					if(cmd.bar != NULL)
+						delete cmd.bar;
 					if(cmd.special != -1)
-						bar->PrepareTexture(Images[cmd.sprite], Images[cmd.special], value, horizontal, reverse);
+						cmd.bar = new FBarTexture(Images[cmd.sprite], Images[cmd.special], value, horizontal, reverse);
 					else
-						bar->PrepareTexture(Images[cmd.sprite], NULL, value, horizontal, reverse);
-					DrawImage(bar, cmd.x, cmd.y);
+						cmd.bar = new FBarTexture(Images[cmd.sprite], NULL, value, horizontal, reverse);
+					DrawImage(cmd.bar, cmd.x, cmd.y);
+					//delete cmd.bar;
 					break;
 				}
 				case SBARINFO_DRAWGEM:
@@ -1636,11 +1893,7 @@ private:
 				}
 				case SBARINFO_DRAWSHADER:
 				{
-					static FBarShader shader_horz_normal(false, false);
-					static FBarShader shader_horz_reverse(false, true);
-					static FBarShader shader_vert_normal(true, false);
-					static FBarShader shader_vert_reverse(true, true);
-					static FBarShader *const shaders[4] =
+					FBarShader *const shaders[4] =
 					{
 						&shader_horz_normal, &shader_horz_reverse,
 						&shader_vert_normal, &shader_vert_reverse
@@ -1650,12 +1903,19 @@ private:
 					screen->DrawTexture (shaders[(vertical << 1) + reverse], ST_X+cmd.x, ST_Y+cmd.y,
 						DTA_DestWidth, cmd.special,
 						DTA_DestHeight, cmd.special2,
-						DTA_320x200, Scaled,
+						DTA_Bottom320x200, Scaled,
 						DTA_AlphaChannel, true,
 						DTA_FillColor, 0,
 						TAG_DONE);
 					break;
 				}
+				case SBARINFO_DRAWSTRING:
+					if(drawingFont != cmd.font)
+					{
+						drawingFont = cmd.font;
+					}
+					DrawString(cmd.string[0], cmd.x - drawingFont->StringWidth(cmd.string[0]), cmd.y, cmd.translation);
+					break;
 				case SBARINFO_GAMEMODE:
 					if(((cmd.flags & GAMETYPE_SINGLEPLAYER) && (NETWORK_GetState( ) == NETSTATE_SINGLE)) ||
 						((cmd.flags & GAMETYPE_DEATHMATCH) && deathmatch) ||
@@ -1666,7 +1926,7 @@ private:
 					}
 					break;
 				case SBARINFO_PLAYERCLASS:
-					int spawnClass = CPlayer->GetSpawnClass();
+					int spawnClass = CPlayer->cls->ClassIndex;
 					if(cmd.special == spawnClass || cmd.special2 == spawnClass || cmd.special3 == spawnClass)
 					{
 						doCommands(cmd.subBlock);
@@ -1676,7 +1936,7 @@ private:
 		}
 	}
 
-	//draws and image with the specified flags
+	//draws an image with the specified flags
 	void DrawGraphic(FTexture* texture, int x, int y, int flags)
 	{
 		if((flags & DRAWIMAGE_OFFSET_CENTER))
@@ -1695,6 +1955,12 @@ private:
 		x += spacing;
 		while(*str != '\0')
 		{
+			if(*str == ' ')
+			{
+				x += drawingFont->GetSpaceWidth();
+				str++;
+				continue;
+			}
 			int width = drawingFont->GetCharWidth((int) *str);
 			FTexture* character = drawingFont->GetChar((int) *str, &width);
 			if(character == NULL) //missing character.
@@ -1721,13 +1987,16 @@ private:
 	}
 
 	//draws the mug shot
-	void DrawFace(int accuracy, bool xdth, int x, int y)
+	void DrawFace(int accuracy, bool xdth, bool animatedgodmode, int x, int y)
 	{
 		if(CPlayer->health > 0)
 		{
-			if(faceIndex == ST_FACEGOD) //nothing fancy to do here
+			if(faceIndex == ST_FACEGOD || faceIndex == ST_FACEGODLEFT || faceIndex == ST_FACEGODRIGHT) //nothing fancy to do here
 			{
-				DrawImage(Faces[ST_FACEGOD], x, y);
+				if(animatedgodmode)
+					DrawImage(Faces[faceIndex], x, y);
+				else
+					DrawImage(Faces[ST_FACEGOD], x, y);
 			}
 			else
 			{
@@ -1745,7 +2014,7 @@ private:
 			}
 			else
 			{
-				if(faceIndex != ST_FACEXDEAD+6 && faceIndex >= ST_FACEXDEAD) //animate
+				if(faceIndex != ST_FACEXDEAD+5 && faceIndex >= ST_FACEXDEAD) //animate
 				{
 					if(faceTimer == 0)
 					{
@@ -1826,11 +2095,28 @@ private:
 				}
 				return;
 			}
-			// invulnerability
-			if ((CPlayer->cheats & CF_GODMODE) || (CPlayer->mo != NULL && CPlayer->mo->flags2 & MF2_INVULNERABLE))
+			if((CPlayer->cmd.ucmd.buttons & (BT_ATTACK|BT_ALTATTACK)) && !(CPlayer->cheats & (CF_FROZEN | CF_TOTALLYFROZEN)))
 			{
-				faceIndex = ST_FACEGOD;
-				faceTimer = 1;
+				if(rampageTimer == ST_RAMPAGETIME)
+				{
+					faceIndex = ST_FACEPAIN;
+					faceTimer = 1;
+				}
+				else
+				{
+					rampageTimer++;
+				}
+			}
+			else
+			{
+				rampageTimer = 0;
+			}
+			// invulnerability
+			if (((CPlayer->cheats & CF_GODMODE) || (CPlayer->mo != NULL && CPlayer->mo->flags2 & MF2_INVULNERABLE)) && 
+				(faceTimer == 0 || faceIndex <= 2))
+			{
+				faceIndex = ST_FACEGOD + (number % 3);
+				faceTimer = ST_FACETIME;
 			}
 
 			if (faceTimer == 0)
@@ -1844,8 +2130,8 @@ private:
 	}
 
 	void DrawInventoryBar(int type, int num, int x, int y, bool alwaysshow, 
-		int counterx, int countery, EColorRange translation, bool drawArtiboxes) //yes, there is some Copy & Paste here too
-	{
+		int counterx, int countery, EColorRange translation, bool drawArtiboxes, bool noArrows, bool alwaysshowcounter)
+	{ //yes, there is some Copy & Paste here too
 		const AInventory *item;
 		int i;
 
@@ -1860,7 +2146,7 @@ private:
 					DrawImage (Images[invBarOffset + imgARTIBOX], x+i*31, y);
 				}
 				DrawDimImage (TexMan(item->Icon), x+i*31, y, item->Amount <= 0);
-				if(item->Amount != 1)
+				if(alwaysshowcounter || item->Amount != 1)
 				{
 					DrawNumber(item->Amount, 3, counterx+i*31, countery, translation);
 				}
@@ -1881,16 +2167,16 @@ private:
 				DrawImage (Images[invBarOffset + imgARTIBOX], x+i*31, y);
 			}
 			// Is there something to the left?
-			if (CPlayer->mo->FirstInv() != CPlayer->mo->InvFirst)
+			if (!noArrows && CPlayer->mo->FirstInv() != CPlayer->mo->InvFirst)
 			{
 				DrawImage (Images[!(gametic & 4) ?
-					invBarOffset + imgINVLFGEM1 : invBarOffset + imgINVLFGEM2], 38, 2);
+					invBarOffset + imgINVLFGEM1 : invBarOffset + imgINVLFGEM2], x-12, y);
 			}
 			// Is there something to the right?
-			if (item != NULL)
+			if (!noArrows && item != NULL)
 			{
 				DrawImage (Images[!(gametic & 4) ?
-					invBarOffset + imgINVRTGEM1 : invBarOffset + imgINVRTGEM2], 269, 2);
+					invBarOffset + imgINVRTGEM1 : invBarOffset + imgINVRTGEM2], x+num*31+2, y);
 			}
 		}
 	}
@@ -1930,12 +2216,17 @@ private:
 	FString lastPrefix;
 	bool weaponGrin;
 	int faceTimer;
+	int rampageTimer;
 	int faceIndex;
 	int oldHealth;
 	int mugshotHealth;
 	int chainWiggle;
 	int artiflash;
 	unsigned int invBarOffset;
+	FBarShader shader_horz_normal;
+	FBarShader shader_horz_reverse;
+	FBarShader shader_vert_normal;
+	FBarShader shader_vert_reverse;
 };
 
 FBaseStatusBar *CreateCustomStatusBar ()
@@ -1947,40 +2238,37 @@ FBaseStatusBar *CreateStatusBar ()
 {
 	FBaseStatusBar *sbar = NULL;
 
-	int stbar = gameinfo.gametype;
-	if(Wads.CheckNumForName("SBARINFO") != -1)
+	if (SBarInfoScript != NULL)
 	{
-		if(SBarInfoScript != NULL)
-		{
-			delete SBarInfoScript;
-		}
-		SBarInfoScript = new SBarInfo();
-		stbar = SBarInfoScript->ParseSBarInfo(Wads.GetNumForName("SBARINFO")); //load last SBARINFO lump to avoid clashes
-	}
+		int cstype = SBarInfoScript->GetGameType();
 
-	if (stbar == GAME_Doom)
-	{
-		sbar = CreateDoomStatusBar ();
+		if (cstype == GAME_Any || cstype == gameinfo.gametype)
+		{
+			sbar = CreateCustomStatusBar();
+		}
 	}
-	else if (stbar == GAME_Heretic)
+	if (sbar == NULL)
 	{
-		sbar = CreateHereticStatusBar ();
-	}
-	else if (stbar == GAME_Hexen)
-	{
-		sbar = CreateHexenStatusBar ();
-	}
-	else if (stbar == GAME_Strife)
-	{
-		sbar = CreateStrifeStatusBar ();
-	}
-	else if (stbar == GAME_Any)
-	{
-		sbar = CreateCustomStatusBar (); //SBARINFO is empty unless scripted.
-	}
-	else
-	{
-		sbar = new FBaseStatusBar (0);
+		if (gameinfo.gametype == GAME_Doom)
+		{
+			sbar = CreateDoomStatusBar ();
+		}
+		else if (gameinfo.gametype == GAME_Heretic)
+		{
+			sbar = CreateHereticStatusBar ();
+		}
+		else if (gameinfo.gametype == GAME_Hexen)
+		{
+			sbar = CreateHexenStatusBar ();
+		}
+		else if (gameinfo.gametype == GAME_Strife)
+		{
+			sbar = CreateStrifeStatusBar ();
+		}
+		else
+		{
+			sbar = new FBaseStatusBar (0);
+		}
 	}
 
 	return sbar;

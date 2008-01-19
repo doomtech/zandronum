@@ -73,6 +73,8 @@
 #include "vectors.h"
 #include "sbarinfo.h"
 #include "r_translate.h"
+#include "sbarinfo.h"
+// [BB] New #includes.
 #include "cl_main.h"
 #include "deathmatch.h"
 #include "network.h"
@@ -1661,20 +1663,6 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 		paused = 0;
 		S_ResumeSound ();
 	}
-	/* [BB] Moved to CreateStatusBar()
-	//SBarInfo support.
-	int stbar = gameinfo.gametype;
-	if(Wads.CheckNumForName("SBARINFO") != -1)
-	{
-		if(SBarInfoScript != NULL)
-		{
-			delete SBarInfoScript;
-		}
-		SBarInfoScript = new SBarInfo();
-		stbar = SBarInfoScript->ParseSBarInfo(Wads.GetNumForName("SBARINFO")); //load last SBARINFO lump to avoid clashes
-	}
-	//end most of the SBarInfo stuff
-	*/
 
 	// [BC] Reset the end level delay.
 	GAME_SetEndLevelDelay( 0 );
@@ -1688,6 +1676,7 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 	if (StatusBar != NULL)
 	{
 		delete StatusBar;
+		StatusBar = NULL;
 	}
 	// Server has no status bar.
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
@@ -1699,29 +1688,37 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 		else
 			StatusBar = CreateStatusBar ();
 		/*  [BB] Moved to CreateStatusBar()
-		else if (stbar == GAME_Doom)
+		else if (SBarInfoScript != NULL)
 		{
-			StatusBar = CreateDoomStatusBar ();
+			int cstype = SBarInfoScript->GetGameType();
+
+			if (cstype == GAME_Any || cstype == gameinfo.gametype)
+			{
+				StatusBar = CreateCustomStatusBar();
+			}
 		}
-		else if (stbar == GAME_Heretic)
+		if (StatusBar == NULL)
 		{
-			StatusBar = CreateHereticStatusBar ();
-		}
-		else if (stbar == GAME_Hexen)
-		{
-			StatusBar = CreateHexenStatusBar ();
-		}
-		else if (stbar == GAME_Strife)
-		{
-			StatusBar = CreateStrifeStatusBar ();
-		}
-		else if (stbar == GAME_Any)
-		{
-			StatusBar = CreateCustomStatusBar (); //SBARINFO is empty unless scripted.
-		}
-		else
-		{
-			StatusBar = new FBaseStatusBar (0);
+			if (gameinfo.gametype == GAME_Doom)
+			{
+				StatusBar = CreateDoomStatusBar ();
+			}
+			else if (gameinfo.gametype == GAME_Heretic)
+			{
+				StatusBar = CreateHereticStatusBar ();
+			}
+			else if (gameinfo.gametype == GAME_Hexen)
+			{
+				StatusBar = CreateHexenStatusBar ();
+			}
+			else if (gameinfo.gametype == GAME_Strife)
+			{
+				StatusBar = CreateStrifeStatusBar ();
+			}
+			else
+			{
+				StatusBar = new FBaseStatusBar (0);
+			}
 		}
 		*/
 		StatusBar->AttachToPlayer (&players[consoleplayer]);
@@ -1729,10 +1726,13 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 	}
 	setsizeneeded = true;
 
-	// Set the initial quest log text for Strife.
-	for (i = 0; i < MAXPLAYERS; ++i)
+	if (gameinfo.gametype == GAME_Strife)
 	{
-		players[i].SetLogText ("Find help");
+		// Set the initial quest log text for Strife.
+		for (i = 0; i < MAXPLAYERS; ++i)
+		{
+			players[i].SetLogText ("Find help");
+		}
 	}
 
 	// [RH] If this map doesn't exist, bomb out
@@ -1895,10 +1895,30 @@ void G_ChangeLevel(const char * levelname, int position, bool keepFacing, int ne
 		D_DrawIcon = "TELEICON";
 	}
 
-	// un-crouch all players here
-	for(int i=0;i<MAXPLAYERS;i++)
+	for(int i = 0; i < MAXPLAYERS; i++)
 	{
-		players[i].Uncrouch();
+		if (playeringame[i])
+		{
+			player_t *player = &players[i];
+
+			// Un-crouch all players here.
+			player->Uncrouch();
+
+			// If this is co-op, respawn any dead players now so they can
+			// keep their inventory on the next map.
+			if ((NETWORK_GetState( ) != NETSTATE_SINGLE) && !deathmatch && player->playerstate == PST_DEAD)
+			{
+				// Copied from the end of P_DeathThink [[
+				player->cls = NULL;		// Force a new class if the player is using a random class
+				player->playerstate = PST_REBORN;
+				if (player->mo->special1 > 2)
+				{
+					player->mo->special1 = 0;
+				}
+				// ]]
+				G_DoReborn(i, false);
+			}
+		}
 	}
 	gl_DeleteAllAttachedLights();
 }
@@ -2508,6 +2528,7 @@ void G_DoLoadLevel (int position, bool autosave)
 	ACTOR_ClearNetIDList( );
 
 	P_SetupLevel (level.mapname, position);
+	AM_LevelInit();
 
 	// [RH] Start lightning, if MAPINFO tells us to
 	// [BC] Don't do this in client mode.
@@ -3403,15 +3424,11 @@ void G_SerializeLevel (FArchive &arc, bool hubLoad)
 	{
 		while (arc << w, w != 0xffff)
 		{
-			if (w >= MAX_ACS_TRANSLATIONS)
-			{ // hack hack to avoid crashing
-				w = 0;
-			}
 			trans = translationtables[TRANSLATION_LevelScripted].GetVal(w);
 			if (trans == NULL)
 			{
 				trans = new FRemapTable;
-				translationtables[TRANSLATION_LevelScripted].SetVal(t, trans);
+				translationtables[TRANSLATION_LevelScripted].SetVal(w, trans);
 			}
 			trans->Serialize(arc);
 		}
@@ -3419,6 +3436,7 @@ void G_SerializeLevel (FArchive &arc, bool hubLoad)
 
 	// This must be saved, too, of course!
 	FCanvasTextureInfo::Serialize (arc);
+	AM_SerializeMarkers(arc);
 
 	if (!hubLoad)
 	{
@@ -3477,7 +3495,20 @@ void G_UnSnapshotLevel (bool hubLoad)
 			next = it.Next();
 			if (pawn->player == NULL || pawn->player->mo == NULL || !playeringame[pawn->player - players])
 			{
-				pawn->Destroy ();
+				int i;
+
+				// If this isn't the unmorphed original copy of a player, destroy it, because it's extra.
+				for (i = 0; i < MAXPLAYERS; ++i)
+				{
+					if (playeringame[i] && players[i].morphTics && players[i].mo->tracer == pawn)
+					{
+						break;
+					}
+				}
+				if (i == MAXPLAYERS)
+				{
+					pawn->Destroy ();
+				}
 			}
 		}
 	}
@@ -3783,6 +3814,7 @@ static void ParseSkill ()
 	FSkillInfo skill;
 
 	skill.AmmoFactor = FRACUNIT;
+	skill.DoubleAmmoFactor = 2*FRACUNIT;
 	skill.DamageFactor = FRACUNIT;
 	skill.FastMonsters = false;
 	skill.DisableCheats = false;
@@ -3806,6 +3838,11 @@ static void ParseSkill ()
 		{
 			SC_MustGetFloat ();
 			skill.AmmoFactor = FLOAT2FIXED(sc_Float);
+		}
+		else if (SC_Compare ("doubleammofactor"))
+		{
+			SC_MustGetFloat ();
+			skill.DoubleAmmoFactor = FLOAT2FIXED(sc_Float);
 		}
 		else if (SC_Compare ("damagefactor"))
 		{
@@ -3913,14 +3950,11 @@ int G_SkillProperty(ESkillProperty prop)
 		switch(prop)
 		{
 		case SKILLP_AmmoFactor:
-			// [BB] Apply double ammo logic.
-			if (( dmflags2 & DF2_YES_DOUBLEAMMO ) &&
-				( AllSkills[gameskill].AmmoFactor == FRACUNIT ))
+			if (dmflags2 & DF2_YES_DOUBLEAMMO)
 			{
-				return 2*AllSkills[gameskill].AmmoFactor;
+				return AllSkills[gameskill].DoubleAmmoFactor;
 			}
-			else
-				return AllSkills[gameskill].AmmoFactor;
+			return AllSkills[gameskill].AmmoFactor;
 
 		case SKILLP_DamageFactor:
 			return AllSkills[gameskill].DamageFactor;
@@ -3968,6 +4002,7 @@ FSkillInfo &FSkillInfo::operator=(const FSkillInfo &other)
 {
 	Name = other.Name;
 	AmmoFactor = other.AmmoFactor;
+	DoubleAmmoFactor = other.DoubleAmmoFactor;
 	DamageFactor = other.DamageFactor;
 	FastMonsters = other.FastMonsters;
 	DisableCheats = other.DisableCheats;

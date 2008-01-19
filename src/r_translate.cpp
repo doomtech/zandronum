@@ -44,7 +44,7 @@
 #include "gi.h"
 #include "stats.h"
 
-TAutoGrowArray<FRemapTable *> translationtables[NUM_TRANSLATION_TABLES];
+TAutoGrowArray<FRemapTablePtr, FRemapTable *> translationtables[NUM_TRANSLATION_TABLES];
 
 /****************************************************/
 /****************************************************/
@@ -190,7 +190,7 @@ void FRemapTable::UpdateNative()
 	}
 }
 
-FNativeTexture *FRemapTable::GetNative()
+FNativePalette *FRemapTable::GetNative()
 {
 	if (Native == NULL)
 	{
@@ -281,7 +281,7 @@ FRemapTable *TranslationToTable(int translation)
 {
 	unsigned int type = GetTranslationType(translation);
 	unsigned int index = GetTranslationIndex(translation);
-	TAutoGrowArray<FRemapTable *> *slots;
+	TAutoGrowArray<FRemapTablePtr, FRemapTable *> *slots;
 
 	if (type <= 0 || type >= NUM_TRANSLATION_TABLES)
 	{

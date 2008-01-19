@@ -4184,8 +4184,26 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\thingdef_codeptr.cpp"
+					RelativePath=".\src\thingdef\thingdef_codeptr.cpp"
 					>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\$(InputName)1.obj"
+							XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\$(InputName)1.obj"
+							XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath=".\src\thingdef\thingdef_exp.cpp"
@@ -6252,6 +6270,10 @@
 			</File>
 			<File
 				RelativePath=".\src\g_shared\sbarinfo.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\g_shared\shared_hud.cpp"
 				>
 			</File>
 			<File

@@ -70,41 +70,75 @@
 
 // MACROS ------------------------------------------------------------------
 
-// The number of vertices the vertex buffer should hold.
-#define NUM_VERTS	12
+// The number of points for the vertex buffer.
+#define NUM_VERTS		10240
 
-// The number of line endpoints for the line vertex buffer.
-#define NUM_LINE_VERTS	10240
+// The number of indices for the index buffer.
+#define NUM_INDEXES		((NUM_VERTS * 6) / 4)
+
+// The number of quads we can batch together.
+#define MAX_QUAD_BATCH	(NUM_INDEXES / 6)
 
 // TYPES -------------------------------------------------------------------
 
 IMPLEMENT_CLASS(D3DFB)
 
+struct D3DFB::PackedTexture
+{
+	D3DFB::PackingTexture *Owner;
+
+	PackedTexture *Next, **Prev;
+
+	// Pixels this image covers
+	RECT Area;
+
+	// Texture coordinates for this image
+	float Left, Top, Right, Bottom;
+};
+
+struct D3DFB::PackingTexture
+{
+	PackingTexture(D3DFB *fb, int width, int height, D3DFORMAT format);
+	~PackingTexture();
+
+	PackedTexture *GetBestFit(int width, int height, int &area);
+	void AllocateImage(PackedTexture *box, int width, int height);
+	PackedTexture *AllocateBox();
+	void AddEmptyBox(int left, int top, int right, int bottom);
+	void FreeBox(PackedTexture *box);
+
+	PackingTexture *Next;
+	IDirect3DTexture9 *Tex;
+	D3DFORMAT Format;
+	PackedTexture *UsedList;	// Boxes that contain images
+	PackedTexture *EmptyList;	// Boxes that contain empty space
+	PackedTexture *FreeList;	// Boxes that are just waiting to be used
+	int Width, Height;
+	bool OneUse;
+};
+
 class D3DTex : public FNativeTexture
 {
 public:
-	D3DTex(FTexture *tex, D3DFB *fb);
+	D3DTex(FTexture *tex, D3DFB *fb, bool wrapping);
 	~D3DTex();
 
 	FTexture *GameTex;
-	IDirect3DTexture9 *Tex;
+	D3DFB::PackedTexture *Box;
 
 	D3DTex **Prev;
 	D3DTex *Next;
 
-	// Texture coordinates to use for the lower-right corner, should this
-	// texture prove to be larger than the game texture it represents.
-	FLOAT TX, TY;
-
 	bool IsGray;
 
-	bool Create(IDirect3DDevice9 *D3DDevice);
+	bool Create(D3DFB *fb, bool wrapping);
 	bool Update();
+	bool CheckWrapping(bool wrapping);
 	D3DFORMAT GetTexFormat();
 	FTextureFormat ToTexFmt(D3DFORMAT fmt);
 };
 
-class D3DPal : public FNativeTexture
+class D3DPal : public FNativePalette
 {
 public:
 	D3DPal(FRemapTable *remap, D3DFB *fb);
@@ -119,6 +153,27 @@ public:
 
 	FRemapTable *Remap;
 	int RoundedPaletteSize;
+};
+
+// Flags for a buffered quad
+enum
+{
+	BQF_GamePalette		= 1,
+	BQF_ShadedPalette	= 2,
+	BQF_CustomPalette	= 3,
+	BQF_StencilPalette	= 4,
+		BQF_Paletted	= 7,
+	BQF_Bilinear		= 8,
+	BQF_WrapUV			= 16,
+};
+
+// Shaders for a buffered quad
+enum
+{
+	BQS_PalTex,
+	BQS_Plain,
+	BQS_PlainStencil,
+	BQS_ColorOnly
 };
 
 // EXTERNAL FUNCTION PROTOTYPES --------------------------------------------
@@ -157,6 +212,8 @@ CUSTOM_CVAR(Bool, test2d, true, CVAR_NOINITCALL)
 	BorderNeedRefresh = SB_state = screen->GetPageCount();
 }
 
+CVAR(Int, d3d_showpacks, 0, 0)
+
 // CODE --------------------------------------------------------------------
 
 D3DFB::D3DFB (int width, int height, bool fullscreen)
@@ -165,10 +222,13 @@ D3DFB::D3DFB (int width, int height, bool fullscreen)
 	D3DPRESENT_PARAMETERS d3dpp;
 
 	D3DDevice = NULL;
-	LineBuffer = NULL;
+	VertexBuffer = NULL;
+	IndexBuffer = NULL;
 	FBTexture = NULL;
 	TempRenderTexture = NULL;
 	InitialWipeScreen = NULL;
+	ScreenshotTexture = NULL;
+	ScreenshotSurface = NULL;
 	FinalWipeScreen = NULL;
 	PaletteTexture = NULL;
 	StencilPaletteTexture = NULL;
@@ -194,6 +254,8 @@ D3DFB::D3DFB (int width, int height, bool fullscreen)
 	GatheringWipeScreen = false;
 	ScreenWipe = NULL;
 	InScene = false;
+	QuadExtra = new BufferedQuad[MAX_QUAD_BATCH];
+	Packs = NULL;
 
 	Gamma = 1.0;
 	FlashColor0 = 0;
@@ -234,17 +296,12 @@ D3DFB::D3DFB (int width, int height, bool fullscreen)
 	HRESULT hr;
 
 	if (FAILED(hr = D3D->CreateDevice (D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, Window,
-		D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_FPU_PRESERVE, &d3dpp, &D3DDevice)))
+		D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_FPU_PRESERVE, &d3dpp, &D3DDevice)))
 	{
-		D3DDevice = NULL;
-		if (fullscreen)
+		if (FAILED(D3D->CreateDevice (D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, Window,
+			D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_FPU_PRESERVE, &d3dpp, &D3DDevice)))
 		{
-			d3dpp.BackBufferFormat = D3DFMT_R5G6B5;
-			if (FAILED(D3D->CreateDevice (D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, Window,
-				D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_FPU_PRESERVE, &d3dpp, &D3DDevice)))
-			{
-				D3DDevice = NULL;
-			}
+			D3DDevice = NULL;
 		}
 	}
 	if (D3DDevice != NULL)
@@ -257,10 +314,8 @@ D3DFB::D3DFB (int width, int height, bool fullscreen)
 D3DFB::~D3DFB ()
 {
 	ReleaseResources ();
-	if (D3DDevice != NULL)
-	{
-		D3DDevice->Release();
-	}
+	SAFE_RELEASE( D3DDevice );
+	delete[] QuadExtra;
 }
 
 // Called after initial device creation and reset, when everything is set
@@ -277,8 +332,8 @@ void D3DFB::SetInitialState()
 
 	Texture[0] = NULL;
 	Texture[1] = NULL;
-	D3DDevice->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-	D3DDevice->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+	D3DDevice->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_BORDER);
+	D3DDevice->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_BORDER);
 	D3DDevice->SetSamplerState(1, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
 	D3DDevice->SetSamplerState(1, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
 
@@ -302,6 +357,7 @@ void D3DFB::FillPresentParameters (D3DPRESENT_PARAMETERS *pp, bool fullscreen, b
 
 bool D3DFB::CreateResources ()
 {
+	Packs = NULL;
 	if (!Windowed)
 	{
 		// Remove the window border in fullscreen mode
@@ -380,21 +436,11 @@ void D3DFB::ReleaseResources ()
 	KillNativeTexs();
 	KillNativePals();
 	ReleaseDefaultPoolItems();
-	if (PaletteTexture != NULL)
-	{
-		PaletteTexture->Release();
-		PaletteTexture = NULL;
-	}
-	if (StencilPaletteTexture != NULL)
-	{
-		StencilPaletteTexture->Release();
-		StencilPaletteTexture = NULL;
-	}
-	if (ShadedPaletteTexture != NULL)
-	{
-		ShadedPaletteTexture->Release();
-		ShadedPaletteTexture = NULL;
-	}
+	SAFE_RELEASE( ScreenshotSurface );
+	SAFE_RELEASE( ScreenshotTexture );
+	SAFE_RELEASE( PaletteTexture );
+	SAFE_RELEASE( StencilPaletteTexture );
+	SAFE_RELEASE( ShadedPaletteTexture );
 	if (PalTexBilinearShader != NULL)
 	{
 		if (PalTexBilinearShader != PalTexShader)
@@ -403,40 +449,22 @@ void D3DFB::ReleaseResources ()
 		}
 		PalTexBilinearShader = NULL;
 	}
-	if (PalTexShader != NULL)
-	{
-		PalTexShader->Release();
-		PalTexShader = NULL;
-	}
-	if (PlainShader != NULL)
-	{
-		PlainShader->Release();
-		PlainShader = NULL;
-	}
-	if (PlainStencilShader != NULL)
-	{
-		PlainStencilShader->Release();
-		PlainStencilShader = NULL;
-	}
-	if (ColorOnlyShader != NULL)
-	{
-		ColorOnlyShader->Release();
-		ColorOnlyShader = NULL;
-	}
-	if (GammaFixerShader != NULL)
-	{
-		GammaFixerShader->Release();
-		GammaFixerShader = NULL;
-	}
-	if (BurnShader != NULL)
-	{
-		BurnShader->Release();
-		BurnShader = NULL;
-	}
+	SAFE_RELEASE( PalTexShader );
+	SAFE_RELEASE( PlainShader );
+	SAFE_RELEASE( PlainStencilShader );
+	SAFE_RELEASE( ColorOnlyShader );
+	SAFE_RELEASE( GammaFixerShader );
+	SAFE_RELEASE( BurnShader );
 	if (ScreenWipe != NULL)
 	{
 		delete ScreenWipe;
 		ScreenWipe = NULL;
+	}
+	PackingTexture *pack, *next;
+	for (pack = Packs; pack != NULL; pack = next)
+	{
+		next = pack->Next;
+		delete pack;
 	}
 	GatheringWipeScreen = false;
 }
@@ -444,11 +472,7 @@ void D3DFB::ReleaseResources ()
 // Free resources created with D3DPOOL_DEFAULT.
 void D3DFB::ReleaseDefaultPoolItems()
 {
-	if (FBTexture != NULL)
-	{
-		FBTexture->Release();
-		FBTexture = NULL;
-	}
+	SAFE_RELEASE( FBTexture );
 	if (FinalWipeScreen != NULL)
 	{
 		if (FinalWipeScreen != TempRenderTexture)
@@ -457,21 +481,10 @@ void D3DFB::ReleaseDefaultPoolItems()
 		}
 		FinalWipeScreen = NULL;
 	}
-	if (TempRenderTexture != NULL)
-	{
-		TempRenderTexture->Release();
-		TempRenderTexture = NULL;
-	}
-	if (InitialWipeScreen != NULL)
-	{
-		InitialWipeScreen->Release();
-		InitialWipeScreen = NULL;
-	}
-	if (LineBuffer != NULL)
-	{
-		LineBuffer->Release();
-		LineBuffer = NULL;
-	}
+	SAFE_RELEASE( TempRenderTexture );
+	SAFE_RELEASE( InitialWipeScreen );
+	SAFE_RELEASE( VertexBuffer );
+	SAFE_RELEASE( IndexBuffer );
 }
 
 bool D3DFB::Reset ()
@@ -609,12 +622,20 @@ bool D3DFB::CreateShadedPaletteTexture()
 
 bool D3DFB::CreateVertexes ()
 {
-	if (FAILED(D3DDevice->CreateVertexBuffer(sizeof(FBVERTEX)*NUM_LINE_VERTS, 
-		D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_FBVERTEX, D3DPOOL_DEFAULT, &LineBuffer, NULL)))
+	VertexPos = -1;
+	IndexPos = -1;
+	QuadBatchPos = -1;
+	BatchType = BATCH_None;
+	if (FAILED(D3DDevice->CreateVertexBuffer(sizeof(FBVERTEX)*NUM_VERTS, 
+		D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFVF_FBVERTEX, D3DPOOL_DEFAULT, &VertexBuffer, NULL)))
 	{
 		return false;
 	}
-	LineBatchPos = -1;
+	if (FAILED(D3DDevice->CreateIndexBuffer(sizeof(WORD)*NUM_INDEXES,
+		D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &IndexBuffer, NULL)))
+	{
+		return false;
+	}
 	return true;
 }
 
@@ -766,6 +787,8 @@ void D3DFB::Update ()
 		if (InScene)
 		{
 			DrawRateStuff();
+			DrawPackedTextures(d3d_showpacks);
+			EndBatch();		// Make sure all batched primitives are drawn.
 			DoWindowedGamma();
 			D3DDevice->EndScene();
 			D3DDevice->Present(NULL, NULL, NULL, NULL);
@@ -917,7 +940,8 @@ void D3DFB::Draw3DPart(bool copy3d)
 	}
 
 	SetTexture (0, FBTexture);
-	SetPaletteTexture(PaletteTexture, 256, false);
+	SetPaletteTexture(PaletteTexture, 256);
+	SetPixelShader(PalTexShader);
 	D3DDevice->SetFVF (D3DFVF_FBVERTEX);
 	memset(Constant, 0, sizeof(Constant));
 	SetAlphaBlend(FALSE);
@@ -1062,9 +1086,663 @@ void D3DFB::SetBlendingRect(int x1, int y1, int x2, int y2)
 	BlendingRect.bottom = y2;
 }
 
+//==========================================================================
+//
+// D3DFB :: GetScreenshotBuffer
+//
+// Returns a pointer into a surface holding the current screen data.
+//
+//==========================================================================
+
+void D3DFB::GetScreenshotBuffer(const BYTE *&buffer, int &pitch, ESSType &color_type)
+{
+	D3DLOCKED_RECT lrect;
+
+	if (!test2d)
+	{
+		Super::GetScreenshotBuffer(buffer, pitch, color_type);
+		return;
+	}
+	buffer = NULL;
+	if ((ScreenshotTexture = GetCurrentScreen()) != NULL)
+	{
+		if (FAILED(ScreenshotTexture->GetSurfaceLevel(0, &ScreenshotSurface)))
+		{
+			ScreenshotTexture->Release();
+			ScreenshotTexture = NULL;
+		}
+		else if (FAILED(ScreenshotSurface->LockRect(&lrect, NULL, D3DLOCK_READONLY | D3DLOCK_NOSYSLOCK)))
+		{
+			ScreenshotSurface->Release();
+			ScreenshotSurface = NULL;
+			ScreenshotTexture->Release();
+			ScreenshotTexture = NULL;
+		}
+		else
+		{
+			buffer = (const BYTE *)lrect.pBits + lrect.Pitch * LBOffsetI;
+			pitch = lrect.Pitch;
+			color_type = SS_BGRA;
+		}
+	}
+}
+
+//==========================================================================
+//
+// D3DFB :: ReleaseScreenshotBuffer
+//
+//==========================================================================
+
+void D3DFB::ReleaseScreenshotBuffer()
+{
+	if (LockCount > 0)
+	{
+		Super::ReleaseScreenshotBuffer();
+	}
+	if (ScreenshotSurface != NULL)
+	{
+		ScreenshotSurface->UnlockRect();
+		ScreenshotSurface->Release();
+		ScreenshotSurface = NULL;
+	}
+	SAFE_RELEASE( ScreenshotTexture );
+}
+
+//==========================================================================
+//
+// D3DFB :: GetCurrentScreen
+//
+// Returns a texture containing the pixels currently visible on-screen.
+//
+//==========================================================================
+
+IDirect3DTexture9 *D3DFB::GetCurrentScreen()
+{
+	IDirect3DTexture9 *tex;
+	IDirect3DSurface9 *tsurf, *surf;
+	D3DSURFACE_DESC desc;
+
+	if (Windowed)
+	{
+		// The texture we read into must have the same pixel format as
+		// the TempRenderTexture.
+		if (SUCCEEDED(TempRenderTexture->GetSurfaceLevel(0, &tsurf)))
+		{
+			if (FAILED(tsurf->GetDesc(&desc)))
+			{
+				tsurf->Release();
+				return NULL;
+			}
+			tsurf->Release();
+		}
+		else
+		{
+			return NULL;
+		}
+	}
+	else
+	{
+		if (SUCCEEDED(D3DDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &tsurf)))
+		{
+			if (FAILED(tsurf->GetDesc(&desc)))
+			{
+				tsurf->Release();
+				return NULL;
+			}
+			tsurf->Release();
+		}
+		else
+		{
+			return NULL;
+		}
+		// GetFrontBufferData works only with this format
+		desc.Format = D3DFMT_A8R8G8B8;
+	}
+
+	if (FAILED(D3DDevice->CreateTexture(desc.Width, desc.Height, 1, 0,
+		desc.Format, D3DPOOL_SYSTEMMEM, &tex, NULL)))
+	{
+		return NULL;
+	}
+	if (FAILED(tex->GetSurfaceLevel(0, &surf)))
+	{
+		tex->Release();
+		return NULL;
+	}
+
+	if (!Windowed)
+	{
+		if (FAILED(D3DDevice->GetFrontBufferData(0, surf)))
+		{
+			surf->Release();
+			tex->Release();
+			return NULL;
+		}
+	}
+	else
+	{
+		if (SUCCEEDED(TempRenderTexture->GetSurfaceLevel(0, &tsurf)))
+		{
+			if (FAILED(D3DDevice->GetRenderTargetData(tsurf, surf)))
+			{
+				tsurf->Release();
+				tex->Release();
+				return NULL;
+			}
+			tsurf->Release();
+		}
+		else
+		{
+			tex->Release();
+			return NULL;
+		}
+	}
+	surf->Release();
+	return tex;
+}
+
 /**************************************************************************/
 /*                                  2D Stuff                              */
 /**************************************************************************/
+
+//==========================================================================
+//
+// D3DFB :: DrawPackedTextures
+//
+// DEBUG: Draws the packing textures to the screen, starting with the
+// 1-based packnum.
+//
+//==========================================================================
+
+void D3DFB::DrawPackedTextures(int packnum)
+{
+	D3DCOLOR empty_colors[8] =
+	{
+		0xFFFF9999, 0xFF99FF99, 0xFF9999FF, 0xFFFFFF99,
+		0xFFFF99FF, 0xFF99FFFF, 0xFFFFCC99, 0xFF99CCFF
+	};
+	PackingTexture *pack;
+	int x = 8, y = 8;
+
+	if (packnum <= 0)
+	{
+		return;
+	}
+	pack = Packs;
+	while (pack != NULL && pack->OneUse)
+	{ // Skip textures that aren't used as packing containers
+		pack = pack->Next;
+	}
+	while (pack != NULL && packnum != 1)
+	{
+		if (!pack->OneUse)
+		{ // Skip textures that aren't used as packing containers
+			packnum--;
+		}
+		pack = pack->Next;
+	}
+	while (pack != NULL)
+	{
+		if (pack->OneUse)
+		{ // Skip textures that aren't used as packing containers
+			pack = pack->Next;
+			continue;
+		}
+
+		AddColorOnlyQuad(x-1, y-1-LBOffsetI, 258, 258, D3DCOLOR_XRGB(255,255,0));
+
+		CheckQuadBatch();
+
+		BufferedQuad *quad = &QuadExtra[QuadBatchPos];
+		FBVERTEX *vert = &VertexData[VertexPos];
+
+		if (pack->Format == D3DFMT_L8/* && !tex->IsGray*/)
+		{
+			quad->Flags = BQF_WrapUV | BQF_GamePalette;
+			quad->ShaderNum = BQS_PalTex;
+		}
+		else
+		{
+			quad->Flags = BQF_WrapUV;
+			quad->ShaderNum = BQS_Plain;
+		}
+		quad->SrcBlend = 0;
+		quad->DestBlend = 0;
+		quad->Palette = NULL;
+		quad->Texture = pack;
+
+		float x0 = float(x) - 0.5f;
+		float y0 = float(y) - 0.5f;
+		float x1 = x0 + 256.f;
+		float y1 = y0 + 256.f;
+
+		vert[0].x = x0;
+		vert[0].y = y0;
+		vert[0].z = 0;
+		vert[0].rhw = 1;
+		vert[0].color0 = 0;
+		vert[0].color1 = 0xFFFFFFFF;
+		vert[0].tu = 0;
+		vert[0].tv = 0;
+
+		vert[1].x = x1;
+		vert[1].y = y0;
+		vert[1].z = 0;
+		vert[1].rhw = 1;
+		vert[1].color0 = 0;
+		vert[1].color1 = 0xFFFFFFFF;
+		vert[1].tu = 1;
+		vert[1].tv = 0;
+
+		vert[2].x = x1;
+		vert[2].y = y1;
+		vert[2].z = 0;
+		vert[2].rhw = 1;
+		vert[2].color0 = 0;
+		vert[2].color1 = 0xFFFFFFFF;
+		vert[2].tu = 1;
+		vert[2].tv = 1;
+
+		vert[3].x = x0;
+		vert[3].y = y1;
+		vert[3].z = 0;
+		vert[3].rhw = 1;
+		vert[3].color0 = 0;
+		vert[3].color1 = 0xFFFFFFFF;
+		vert[3].tu = 0;
+		vert[3].tv = 1;
+
+		IndexData[IndexPos    ] = VertexPos;
+		IndexData[IndexPos + 1] = VertexPos + 1;
+		IndexData[IndexPos + 2] = VertexPos + 2;
+		IndexData[IndexPos + 3] = VertexPos;
+		IndexData[IndexPos + 4] = VertexPos + 2;
+		IndexData[IndexPos + 5] = VertexPos + 3;
+
+		QuadBatchPos++;
+		VertexPos += 4;
+		IndexPos += 6;
+
+		// Draw entries in the empty list.
+		PackedTexture *box;
+		int emptynum;
+		for (box = pack->EmptyList, emptynum = 0; box != NULL; box = box->Next, emptynum++)
+		{
+			AddColorOnlyQuad(x + box->Area.left, y + box->Area.top - LBOffsetI,
+				box->Area.right - box->Area.left, box->Area.bottom - box->Area.top,
+				empty_colors[emptynum & 7]);
+		}
+
+		x += 256 + 8;
+		if (x > Width - 256)
+		{
+			x = 8;
+			y += 256 + 8;
+			if (y > TrueHeight - 256)
+			{
+				return;
+			}
+		}
+		pack = pack->Next;
+	}
+}
+
+//==========================================================================
+//
+// D3DFB :: AllocPackedTexture
+//
+// Finds space to pack an image inside a packing texture and returns it.
+// Large images and those that need to wrap always get their own textures.
+//
+//==========================================================================
+
+D3DFB::PackedTexture *D3DFB::AllocPackedTexture(int w, int h, bool wrapping, D3DFORMAT format)
+{
+	PackingTexture *bestpack;
+	PackedTexture *bestbox;
+	int area;
+
+	if (w > 256 || h > 256 || wrapping)
+	{ // Create a new packing texture.
+		bestpack = new PackingTexture(this, w, h, format);
+		bestpack->OneUse = true;
+		bestbox = bestpack->GetBestFit(w, h, area);
+	}
+	else
+	{ // Try to find space in an existing packing texture.
+		int bestarea = INT_MAX;
+		int bestareaever = w * h;
+		bestpack = NULL;
+		bestbox = NULL;
+		for (PackingTexture *pack = Packs; pack != NULL; pack = pack->Next)
+		{
+			if (pack->Format == format)
+			{
+				PackedTexture *box = pack->GetBestFit(w, h, area);
+				if (area == bestareaever)
+				{ // An exact fit! Use it!
+					bestpack = pack;
+					bestbox = box;
+					break;
+				}
+				if (area < bestarea)
+				{
+					bestarea = area;
+					bestpack = pack;
+					bestbox = box;
+				}
+			}
+		}
+		if (bestpack == NULL)
+		{ // Create a new packing texture.
+			bestpack = new PackingTexture(this, 256, 256, format);
+			bestbox = bestpack->GetBestFit(w, h, bestarea);
+		}
+	}
+	bestpack->AllocateImage(bestbox, w, h);
+	return bestbox;
+}
+
+//==========================================================================
+//
+// PackingTexture Constructor
+//
+//==========================================================================
+
+D3DFB::PackingTexture::PackingTexture(D3DFB *fb, int w, int h, D3DFORMAT format)
+{
+	Tex = NULL;
+	Format = format;
+	UsedList = NULL;
+	EmptyList = NULL;
+	FreeList = NULL;
+	OneUse = false;
+	Width = 0;
+	Height = 0;
+
+	Next = fb->Packs;
+	fb->Packs = this;
+
+#if 1
+	if (FAILED(fb->D3DDevice->CreateTexture(w, h, 1, 0, format, D3DPOOL_MANAGED, &Tex, NULL)))
+#endif
+	{ // Try again, using power-of-2 sizes
+		int i;
+
+		for (i = 1; i < w; i <<= 1) {} w = i;
+		for (i = 1; i < h; i <<= 1) {} h = i;
+		if (FAILED(fb->D3DDevice->CreateTexture(w, h, 1, 0, format, D3DPOOL_MANAGED, &Tex, NULL)))
+		{
+			return;
+		}
+	}
+	Width = w;
+	Height = h;
+
+	// The whole texture is initially empty.
+	AddEmptyBox(0, 0, w, h);
+}
+
+//==========================================================================
+//
+// PackingTexture Destructor
+//
+//==========================================================================
+
+D3DFB::PackingTexture::~PackingTexture()
+{
+	PackedTexture *box, *next;
+
+	SAFE_RELEASE( Tex );
+	for (box = UsedList; box != NULL; box = next)
+	{
+		next = box->Next;
+		delete box;
+	}
+	for (box = EmptyList; box != NULL; box = next)
+	{
+		next = box->Next;
+		delete box;
+	}
+	for (box = FreeList; box != NULL; box = next)
+	{
+		next = box->Next;
+		delete box;
+	}
+}
+
+//==========================================================================
+//
+// PackingTexture :: GetBestFit
+//
+// Returns the empty box that provides the best fit for the requested
+// dimensions, or NULL if none of them are large enough.
+//
+//==========================================================================
+
+D3DFB::PackedTexture *D3DFB::PackingTexture::GetBestFit(int w, int h, int &area)
+{
+	PackedTexture *box;
+	int smallestarea = INT_MAX;
+	PackedTexture *smallestbox = NULL;
+
+	for (box = EmptyList; box != NULL; box = box->Next)
+	{
+		int boxw = box->Area.right - box->Area.left;
+		int boxh = box->Area.bottom - box->Area.top;
+		if (boxw >= w && boxh >= h)
+		{
+			int boxarea = boxw * boxh;
+			if (boxarea < smallestarea)
+			{
+				smallestarea = boxarea;
+				smallestbox = box;
+				if (boxw == w && boxh == h)
+				{ // An exact fit! Use it!
+					break;
+				}
+			}
+		}
+	}
+	area = smallestarea;
+	return smallestbox;
+}
+
+//==========================================================================
+//
+// PackingTexture :: AllocateImage
+//
+// Moves the box from the empty list to the used list, sizing it to the
+// requested dimensions and adding additional boxes to the empty list if
+// needed.
+//
+// The passed box *MUST* be in this packing textures empty list.
+//
+//==========================================================================
+
+void D3DFB::PackingTexture::AllocateImage(D3DFB::PackedTexture *box, int w, int h)
+{
+	RECT start = box->Area;
+
+	box->Area.right = box->Area.left + w;
+	box->Area.bottom = box->Area.top + h;
+
+	box->Left = float(box->Area.left) / Width;
+	box->Right = float(box->Area.right) / Width;
+	box->Top = float(box->Area.top) / Height;
+	box->Bottom = float(box->Area.bottom) / Height;
+
+	// Remove it from the empty list.
+	*(box->Prev) = box->Next;
+	if (box->Next != NULL)
+	{
+		box->Next->Prev = box->Prev;
+	}
+
+	// Add it to the used list.
+	box->Next = UsedList;
+	if (box->Next != NULL)
+	{
+		box->Next->Prev = &box->Next;
+	}
+	UsedList = box;
+	box->Prev = &UsedList;
+
+	// If we didn't use the whole box, split the remainder into the empty list.
+
+	if (box->Area.bottom + 7 < start.bottom && box->Area.right + 7 < start.right)
+	{
+		// Split like this:
+		//   +---+------+
+		//   |###|      |
+		//   +---+------+
+		//   |          |
+		//   |          |
+		//   +----------+
+		if (box->Area.bottom < start.bottom)
+		{
+			AddEmptyBox(start.left, box->Area.bottom, start.right, start.bottom);
+		}
+		if (box->Area.right < start.right)
+		{
+			AddEmptyBox(box->Area.right, start.top, start.right, box->Area.bottom);
+		}
+	}
+	else
+	{
+		// Split like this:
+		//   +---+------+
+		//   |###|      |
+		//   +---+      |
+		//   |   |      |
+		//   |   |      |
+		//   +---+------+
+		if (box->Area.bottom < start.bottom)
+		{
+			AddEmptyBox(start.left, box->Area.bottom, box->Area.right, start.bottom);
+		}
+		if (box->Area.right < start.right)
+		{
+			AddEmptyBox(box->Area.right, start.top, start.right, start.bottom);
+		}
+	}
+}
+
+//==========================================================================
+//
+// PackingTexture :: AddEmptyBox
+//
+// Adds a box with the specified dimensions to the empty list.
+//
+//==========================================================================
+
+void D3DFB::PackingTexture::AddEmptyBox(int left, int top, int right, int bottom)
+{
+	PackedTexture *box = AllocateBox();
+	box->Area.left = left;
+	box->Area.top = top;
+	box->Area.right = right;
+	box->Area.bottom = bottom;
+	box->Next = EmptyList;
+	if (box->Next != NULL)
+	{
+		box->Next->Prev = &box->Next;
+	}
+	box->Prev = &EmptyList;
+	EmptyList = box;
+}
+
+//==========================================================================
+//
+// PackingTexture :: AllocateBox
+//
+// Returns a new PackedTexture box, either by retrieving one off the free
+// list or by creating a new one. The box is not linked into a list.
+//
+//==========================================================================
+
+D3DFB::PackedTexture *D3DFB::PackingTexture::AllocateBox()
+{
+	PackedTexture *box;
+
+	if (FreeList != NULL)
+	{
+		box = FreeList;
+		FreeList = box->Next;
+		if (box->Next != NULL)
+		{
+			box->Next->Prev = &FreeList;
+		}
+	}
+	else
+	{
+		box = new PackedTexture;
+		box->Owner = this;
+	}
+	return box;
+}
+
+//==========================================================================
+//
+// PackingTexture :: FreeBox
+//
+// Removes a box from its current list and adds it to the empty list,
+// updating EmptyArea. If there are no boxes left in the used list, then
+// the empty list is replaced with a single box, so the texture can be
+// subdivided again.
+//
+//==========================================================================
+
+void D3DFB::PackingTexture::FreeBox(D3DFB::PackedTexture *box)
+{
+	*(box->Prev) = box->Next;
+	if (box->Next != NULL)
+	{
+		box->Next->Prev = box->Prev;
+	}
+	box->Next = EmptyList;
+	box->Prev = &EmptyList;
+	if (EmptyList != NULL)
+	{
+		EmptyList->Prev = &box->Next;
+	}
+	EmptyList = box;
+	if (UsedList == NULL)
+	{ // No more space in use! Move all but this into the free list.
+		if (box->Next != NULL)
+		{
+			D3DFB::PackedTexture *lastbox;
+
+			// Find the last box in the free list.
+			lastbox = FreeList;
+			if (lastbox != NULL)
+			{
+				while (lastbox->Next != NULL)
+				{
+					lastbox = lastbox->Next;
+				}
+			}
+			// Chain the empty list to the end of the free list.
+			if (lastbox != NULL)
+			{
+				lastbox->Next = box->Next;
+				box->Next->Prev = &lastbox->Next;
+			}
+			else
+			{
+				FreeList = box->Next;
+				box->Next->Prev = &FreeList;
+			}
+			box->Next = NULL;
+		}
+		// Now this is the only box in the empty list, so it should
+		// contain the whole texture.
+		box->Area.left = 0;
+		box->Area.top = 0;
+		box->Area.right = Width;
+		box->Area.bottom = Height;
+	}
+}
 
 //==========================================================================
 //
@@ -1072,7 +1750,7 @@ void D3DFB::SetBlendingRect(int x1, int y1, int x2, int y2)
 //
 //==========================================================================
 
-D3DTex::D3DTex(FTexture *tex, D3DFB *fb)
+D3DTex::D3DTex(FTexture *tex, D3DFB *fb, bool wrapping)
 {
 	// Attach to the texture list for the D3DFB
 	Next = fb->Textures;
@@ -1084,10 +1762,10 @@ D3DTex::D3DTex(FTexture *tex, D3DFB *fb)
 	fb->Textures = this;
 
 	GameTex = tex;
-	Tex = NULL;
+	Box = NULL;
 	IsGray = false;
 
-	Create(fb->D3DDevice);
+	Create(fb, wrapping);
 }
 
 //==========================================================================
@@ -1098,10 +1776,10 @@ D3DTex::D3DTex(FTexture *tex, D3DFB *fb)
 
 D3DTex::~D3DTex()
 {
-	if (Tex != NULL)
+	if (Box != NULL)
 	{
-		Tex->Release();
-		Tex = NULL;
+		Box->Owner->FreeBox(Box);
+		Box = NULL;
 	}
 	// Detach from the texture list
 	*Prev = Next;
@@ -1118,6 +1796,25 @@ D3DTex::~D3DTex()
 
 //==========================================================================
 //
+// D3DTex :: CheckWrapping
+//
+// Returns true if the texture is compatible with the specified wrapping
+// mode.
+//
+//==========================================================================
+
+bool D3DTex::CheckWrapping(bool wrapping)
+{
+	 // If it doesn't need to wrap, then it works.
+	if (!wrapping)
+	{
+		return true;
+	}
+	// If it needs to wrap, then it can't be packed inside another texture.
+	return Box->Owner->OneUse;
+}
+//==========================================================================
+//
 // D3DTex :: Create
 //
 // Creates an IDirect3DTexture9 for the texture and copies the image data
@@ -1125,50 +1822,23 @@ D3DTex::~D3DTex()
 //
 //==========================================================================
 
-bool D3DTex::Create(IDirect3DDevice9 *D3DDevice)
+bool D3DTex::Create(D3DFB *fb, bool wrapping)
 {
-	HRESULT hr;
-	int w, h;
-
-	if (Tex != NULL)
+	if (Box != NULL)
 	{
-		Tex->Release();
-		Tex = NULL;
+		Box->Owner->FreeBox(Box);
 	}
 
-	w = GameTex->GetWidth();
-	h = GameTex->GetHeight();
+	Box = fb->AllocPackedTexture(GameTex->GetWidth(), GameTex->GetHeight(), wrapping, GetTexFormat());
 
-#if 1
-	hr = D3DDevice->CreateTexture(w, h, 1, 0,
-		GetTexFormat(), D3DPOOL_MANAGED, &Tex, NULL);
-#else
-	hr = E_FAIL;
-#endif
-	if (SUCCEEDED(hr))
+	if (Box == NULL)
 	{
-		TX = 1;
-		TY = 1;
-	}
-	else
-	{ // Try again, using power-of-2 sizes
-		int i;
-
-		for (i = 1; i < w; i <<= 1) {} w = i;
-		for (i = 1; i < h; i <<= 1) {} h = i;
-		hr = D3DDevice->CreateTexture(w, h, 1, 0,
-			GetTexFormat(), D3DPOOL_MANAGED, &Tex, NULL);
-		if (FAILED(hr))
-		{
-			return false;
-		}
-		TX = GameTex->GetWidth() / float(w);
-		TY = GameTex->GetHeight() / float(h);
+		return false;
 	}
 	if (!Update())
 	{
-		Tex->Release();
-		Tex = NULL;
+		Box->Owner->FreeBox(Box);
+		Box = NULL;
 		return false;
 	}
 	return true;
@@ -1188,23 +1858,22 @@ bool D3DTex::Update()
 	D3DLOCKED_RECT lrect;
 	RECT rect;
 
-	assert(Tex != NULL);
+	assert(Box != NULL);
+	assert(Box->Owner != NULL);
+	assert(Box->Owner->Tex != NULL);
 	assert(GameTex != NULL);
 
-	if (FAILED(Tex->GetLevelDesc(0, &desc)))
+	if (FAILED(Box->Owner->Tex->GetLevelDesc(0, &desc)))
 	{
 		return false;
 	}
-	rect.left = 0;
-	rect.top = 0;
-	rect.right = GameTex->GetWidth();
-	rect.bottom = GameTex->GetHeight();
-	if (FAILED(Tex->LockRect(0, &lrect, &rect, 0)))
+	rect = Box->Area;
+	if (FAILED(Box->Owner->Tex->LockRect(0, &lrect, &rect, 0)))
 	{
 		return false;
 	}
-	GameTex->FillBuffer((BYTE *)lrect.pBits, lrect.Pitch, rect.bottom, ToTexFmt(desc.Format));
-	Tex->UnlockRect(0);
+	GameTex->FillBuffer((BYTE *)lrect.pBits, lrect.Pitch, GameTex->GetHeight(), ToTexFmt(desc.Format));
+	Box->Owner->Tex->UnlockRect(0);
 	return true;
 }
 
@@ -1317,11 +1986,7 @@ D3DPal::D3DPal(FRemapTable *remap, D3DFB *fb)
 
 D3DPal::~D3DPal()
 {
-	if (Tex != NULL)
-	{
-		Tex->Release();
-		Tex = NULL;
-	}
+	SAFE_RELEASE( Tex );
 	// Detach from the palette list
 	*Prev = Next;
 	if (Next != NULL)
@@ -1402,10 +2067,10 @@ bool D3DFB::Begin2D(bool copy3d)
 //
 //==========================================================================
 
-FNativeTexture *D3DFB::CreateTexture(FTexture *gametex)
+FNativeTexture *D3DFB::CreateTexture(FTexture *gametex, bool wrapping)
 {
-	D3DTex *tex = new D3DTex(gametex, this);
-	if (tex->Tex == NULL)
+	D3DTex *tex = new D3DTex(gametex, this, wrapping);
+	if (tex->Box == NULL)
 	{
 		delete tex;
 		return NULL;
@@ -1421,7 +2086,7 @@ FNativeTexture *D3DFB::CreateTexture(FTexture *gametex)
 //
 //==========================================================================
 
-FNativeTexture *D3DFB::CreatePalette(FRemapTable *remap)
+FNativePalette *D3DFB::CreatePalette(FRemapTable *remap)
 {
 	D3DPal *tex = new D3DPal(remap, this);
 	if (tex->Tex == NULL)
@@ -1460,9 +2125,7 @@ void D3DFB::Clear (int left, int top, int right, int bottom, int palcolor, uint3
 		Dim(color, APART(color)/255.f, left, top, right - left, bottom - top);
 		return;
 	}
-	int offs = GatheringWipeScreen ? 0 : LBOffsetI;
-	D3DRECT rect = { left, top + offs, right, bottom + offs };
-	D3DDevice->Clear(1, &rect, D3DCLEAR_TARGET, color | 0xFF000000, 1.f, 0);
+	AddColorOnlyQuad(left, top, right - left, bottom - top, color | 0xFF000000);
 }
 
 //==========================================================================
@@ -1486,66 +2149,53 @@ void D3DFB::Dim (PalEntry color, float amount, int x1, int y1, int w, int h)
 	{
 		return;
 	}
-	if (amount >= 1)
+	if (amount > 1)
 	{
-		D3DRECT rect = { x1, y1, x1 + w, y1 + h };
-		D3DDevice->Clear(1, &rect, D3DCLEAR_TARGET, color | 0xFF000000, 1.f, 0);
+		amount = 1;
 	}
-	else
-	{
-		float x = float(x1) - 0.5f;
-		float y = float(y1) - 0.5f + (GatheringWipeScreen ? 0 : LBOffset);
-		D3DCOLOR d3dcolor = color | (int(amount * 255) << 24);
-		FBVERTEX verts[4] =
-		{
-			{ x,   y,   0, 1, d3dcolor },
-			{ x+w, y,   0, 1, d3dcolor },
-			{ x+w, y+h, 0, 1, d3dcolor },
-			{ x,   y+h, 0, 1, d3dcolor }
-		};
-		SetAlphaBlend(TRUE, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
-		SetPixelShader(ColorOnlyShader);
-		D3DDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, &verts, sizeof(FBVERTEX));
-	}
+	AddColorOnlyQuad(x1, y1, w, h, color | (int(amount * 255) << 24));
 }
 
 //==========================================================================
 //
-// D3DFB :: BeginLineDrawing
+// D3DFB :: BeginLineBatch
 //
 //==========================================================================
 
-void D3DFB::BeginLineDrawing()
+void D3DFB::BeginLineBatch()
 {
-	if (In2D < 2 || !InScene || LineBatchPos >= 0)
+	if (In2D < 2 || !InScene || BatchType == BATCH_Lines)
 	{
 		return;
 	}
-	LineBuffer->Lock(0, 0, (void **)&LineData, D3DLOCK_DISCARD);
-	LineBatchPos = 0;
+	EndQuadBatch();		// Make sure all quads have been drawn first.
+	VertexBuffer->Lock(0, 0, (void **)&VertexData, D3DLOCK_DISCARD);
+	VertexPos = 0;
+	BatchType = BATCH_Lines;
 }
 
 //==========================================================================
 //
-// D3DFB :: EndLineDrawing
+// D3DFB :: EndLineBatch
 //
 //==========================================================================
 
-void D3DFB::EndLineDrawing()
+void D3DFB::EndLineBatch()
 {
-	if (In2D < 2 || !InScene || LineBatchPos < 0)
+	if (In2D < 2 || !InScene || BatchType != BATCH_Lines)
 	{
 		return;
 	}
-	LineBuffer->Unlock();
-	if (LineBatchPos > 0)
+	VertexBuffer->Unlock();
+	if (VertexPos > 0)
 	{
 		SetPixelShader(ColorOnlyShader);
 		SetAlphaBlend(TRUE, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
-		D3DDevice->SetStreamSource(0, LineBuffer, 0, sizeof(FBVERTEX));
-		D3DDevice->DrawPrimitive(D3DPT_LINELIST, 0, LineBatchPos / 2);
+		D3DDevice->SetStreamSource(0, VertexBuffer, 0, sizeof(FBVERTEX));
+		D3DDevice->DrawPrimitive(D3DPT_LINELIST, 0, VertexPos / 2);
 	}
-	LineBatchPos = -1;
+	VertexPos = -1;
+	BatchType = BATCH_None;
 }
 
 //==========================================================================
@@ -1565,42 +2215,35 @@ void D3DFB::DrawLine(int x0, int y0, int x1, int y1, int palcolor, uint32 color)
 	{
 		return;
 	}
-	if (LineBatchPos == NUM_LINE_VERTS)
-	{ // flush the buffer and refill it
-		EndLineDrawing();
-		BeginLineDrawing();
+	if (BatchType != BATCH_Lines)
+	{
+		BeginLineBatch();
 	}
-	if (LineBatchPos >= 0)
-	{ // Batched drawing: Add the endpoints to the vertex buffer.
-		LineData[LineBatchPos].x = float(x0);
-		LineData[LineBatchPos].y = float(y0) + LBOffset;
-		LineData[LineBatchPos].z = 0;
-		LineData[LineBatchPos].rhw = 1;
-		LineData[LineBatchPos].color0 = color;
-		LineData[LineBatchPos].color1 = 0;
-		LineData[LineBatchPos].tu = 0;
-		LineData[LineBatchPos].tv = 0;
-		LineData[LineBatchPos+1].x = float(x1);
-		LineData[LineBatchPos+1].y = float(y1) + LBOffset;
-		LineData[LineBatchPos+1].z = 0;
-		LineData[LineBatchPos+1].rhw = 1;
-		LineData[LineBatchPos+1].color0 = color;
-		LineData[LineBatchPos+1].color1 = 0;
-		LineData[LineBatchPos+1].tu = 0;
-		LineData[LineBatchPos+1].tv = 0;
-		LineBatchPos += 2;
+	if (VertexPos == NUM_VERTS)
+	{ // Flush the buffer and refill it.
+		EndLineBatch();
+		BeginLineBatch();
 	}
-	else
-	{ // Unbatched drawing: Draw it right now.
-		FBVERTEX endpts[2] =
-		{
-			{ float(x0), float(y0), 0, 1, color },
-			{ float(x1), float(y1), 0, 1, color }
-		};
-		SetPixelShader(ColorOnlyShader);
-		SetAlphaBlend(TRUE, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
-		D3DDevice->DrawPrimitiveUP(D3DPT_LINELIST, 1, endpts, sizeof(FBVERTEX));
-	}
+	// Add the endpoints to the vertex buffer.
+	VertexData[VertexPos].x = float(x0);
+	VertexData[VertexPos].y = float(y0) + LBOffset;
+	VertexData[VertexPos].z = 0;
+	VertexData[VertexPos].rhw = 1;
+	VertexData[VertexPos].color0 = color;
+	VertexData[VertexPos].color1 = 0;
+	VertexData[VertexPos].tu = 0;
+	VertexData[VertexPos].tv = 0;
+
+	VertexData[VertexPos+1].x = float(x1);
+	VertexData[VertexPos+1].y = float(y1) + LBOffset;
+	VertexData[VertexPos+1].z = 0;
+	VertexData[VertexPos+1].rhw = 1;
+	VertexData[VertexPos+1].color0 = color;
+	VertexData[VertexPos+1].color1 = 0;
+	VertexData[VertexPos+1].tu = 0;
+	VertexData[VertexPos+1].tv = 0;
+
+	VertexPos += 2;
 }
 
 //==========================================================================
@@ -1624,6 +2267,7 @@ void D3DFB::DrawPixel(int x, int y, int palcolor, uint32 color)
 	{
 		float(x), float(y), 0, 1, color
 	};
+	EndBatch();		// Draw out any batched operations.
 	SetPixelShader(ColorOnlyShader);
 	SetAlphaBlend(TRUE, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
 	D3DDevice->DrawPrimitiveUP(D3DPT_POINTLIST, 1, &pt, sizeof(FBVERTEX));
@@ -1653,7 +2297,7 @@ void STACK_ARGS D3DFB::DrawTextureV (FTexture *img, int x, int y, uint32 tags_fi
 		return;
 	}
 
-	D3DTex *tex = static_cast<D3DTex *>(img->GetNative());
+	D3DTex *tex = static_cast<D3DTex *>(img->GetNative(false));
 
 	if (tex == NULL)
 	{
@@ -1661,18 +2305,20 @@ void STACK_ARGS D3DFB::DrawTextureV (FTexture *img, int x, int y, uint32 tags_fi
 		return;
 	}
 
+	CheckQuadBatch();
+
 	float xscale = float(parms.destwidth) / parms.texwidth / 65536.f;
 	float yscale = float(parms.destheight) / parms.texheight / 65536.f;
 	float x0 = float(parms.x) / 65536.f - float(parms.left) * xscale;
 	float y0 = float(parms.y) / 65536.f - float(parms.top) * yscale;
 	float x1 = x0 + float(parms.destwidth) / 65536.f; 
 	float y1 = y0 + float(parms.destheight) / 65536.f;
-	float u0 = 0.f;
-	float v0 = 0.f;
-	float u1 = tex->TX;
-	float v1 = tex->TY;
-	float uscale = 1.f / (parms.texwidth / u1);
-	float vscale = 1.f / (parms.texheight / v1) / yscale;
+	float u0 = tex->Box->Left;
+	float v0 = tex->Box->Top;
+	float u1 = tex->Box->Right;
+	float v1 = tex->Box->Bottom;
+	float uscale = 1.f / tex->Box->Owner->Width;
+	float vscale = 1.f / tex->Box->Owner->Height / yscale;
 
 	if (y0 < parms.uclip)
 	{
@@ -1706,30 +2352,466 @@ void STACK_ARGS D3DFB::DrawTextureV (FTexture *img, int x, int y, uint32 tags_fi
 		u1 -= float(x1 - parms.rclip) * uscale / xscale;
 		x1 = float(parms.rclip);
 	}
+	parms.bilinear = false;
+
+	D3DCOLOR color0, color1;
+	if (!SetStyle(tex, parms, color0, color1, QuadExtra[QuadBatchPos]))
+	{
+		return;
+	}
+
+	QuadExtra[QuadBatchPos].Texture = tex->Box->Owner;
+	if (parms.bilinear)
+	{
+		QuadExtra[QuadBatchPos].Flags |= BQF_Bilinear;
+	}
 
 	float yoffs = GatheringWipeScreen ? 0.5f : 0.5f - LBOffset;
+
+	// Coordinates are truncated to integers, because that's effectively
+	// what the software renderer does. The hardware will instead round
+	// to nearest, it seems.
+	x0 = floorf(x0) - 0.5f;
+	y0 = floorf(y0) - yoffs;
+	x1 = floorf(x1) - 0.5f;
+	y1 = floorf(y1) - yoffs;
+
+	FBVERTEX *vert = &VertexData[VertexPos];
+
+	vert[0].x = x0;
+	vert[0].y = y0;
+	vert[0].z = 0;
+	vert[0].rhw = 1;
+	vert[0].color0 = color0;
+	vert[0].color1 = color1;
+	vert[0].tu = u0;
+	vert[0].tv = v0;
+
+	vert[1].x = x1;
+	vert[1].y = y0;
+	vert[1].z = 0;
+	vert[1].rhw = 1;
+	vert[1].color0 = color0;
+	vert[1].color1 = color1;
+	vert[1].tu = u1;
+	vert[1].tv = v0;
+
+	vert[2].x = x1;
+	vert[2].y = y1;
+	vert[2].z = 0;
+	vert[2].rhw = 1;
+	vert[2].color0 = color0;
+	vert[2].color1 = color1;
+	vert[2].tu = u1;
+	vert[2].tv = v1;
+
+	vert[3].x = x0;
+	vert[3].y = y1;
+	vert[3].z = 0;
+	vert[3].rhw = 1;
+	vert[3].color0 = color0;
+	vert[3].color1 = color1;
+	vert[3].tu = u0;
+	vert[3].tv = v1;
+
+	IndexData[IndexPos    ] = VertexPos;
+	IndexData[IndexPos + 1] = VertexPos + 1;
+	IndexData[IndexPos + 2] = VertexPos + 2;
+	IndexData[IndexPos + 3] = VertexPos;
+	IndexData[IndexPos + 4] = VertexPos + 2;
+	IndexData[IndexPos + 5] = VertexPos + 3;
+
+	QuadBatchPos++;
+	VertexPos += 4;
+	IndexPos += 6;
+}
+
+//==========================================================================
+//
+// D3DFB :: FlatFill
+//
+// Fills an area with a repeating copy of the texture.
+//
+//==========================================================================
+
+void D3DFB::FlatFill(int left, int top, int right, int bottom, FTexture *src, bool local_origin)
+{
+	if (In2D < 2)
+	{
+		Super::FlatFill(left, top, right, bottom, src, local_origin);
+		return;
+	}
+	if (!InScene)
+	{
+		return;
+	}
+	D3DTex *tex = static_cast<D3DTex *>(src->GetNative(true));
+	if (tex == NULL)
+	{
+		return;
+	}
+	float yoffs = GatheringWipeScreen ? 0.5f : 0.5f - LBOffset;
+	float x0 = float(left);
+	float y0 = float(top);
+	float x1 = float(right);
+	float y1 = float(bottom);
+	float itw = 1.f / float(src->GetWidth());
+	float ith = 1.f / float(src->GetHeight());
+	float xo = local_origin ? x0 : 0;
+	float yo = local_origin ? y0 : 0;
+	float u0 = (x0 - xo) * itw;
+	float v0 = (y0 - yo) * ith;
+	float u1 = (x1 - xo) * itw;
+	float v1 = (y1 - yo) * ith;
 	x0 -= 0.5f;
 	y0 -= yoffs;
 	x1 -= 0.5f;
 	y1 -= yoffs;
 
-	D3DCOLOR color0, color1;
-	parms.bilinear = false;
-	if (!SetStyle(tex, parms, color0, color1))
+	CheckQuadBatch();
+
+	BufferedQuad *quad = &QuadExtra[QuadBatchPos];
+	FBVERTEX *vert = &VertexData[VertexPos];
+
+	if (tex->GetTexFormat() == D3DFMT_L8 && !tex->IsGray)
+	{
+		quad->Flags = BQF_WrapUV | BQF_GamePalette;
+		quad->ShaderNum = BQS_PalTex;
+	}
+	else
+	{
+		quad->Flags = BQF_WrapUV;
+		quad->ShaderNum = BQS_Plain;
+	}
+	quad->SrcBlend = 0;
+	quad->DestBlend = 0;
+	quad->Palette = NULL;
+	quad->Texture = tex->Box->Owner;
+
+	vert[0].x = x0;
+	vert[0].y = y0;
+	vert[0].z = 0;
+	vert[0].rhw = 1;
+	vert[0].color0 = 0;
+	vert[0].color1 = 0xFFFFFFFF;
+	vert[0].tu = u0;
+	vert[0].tv = v0;
+
+	vert[1].x = x1;
+	vert[1].y = y0;
+	vert[1].z = 0;
+	vert[1].rhw = 1;
+	vert[1].color0 = 0;
+	vert[1].color1 = 0xFFFFFFFF;
+	vert[1].tu = u1;
+	vert[1].tv = v0;
+
+	vert[2].x = x1;
+	vert[2].y = y1;
+	vert[2].z = 0;
+	vert[2].rhw = 1;
+	vert[2].color0 = 0;
+	vert[2].color1 = 0xFFFFFFFF;
+	vert[2].tu = u1;
+	vert[2].tv = v1;
+
+	vert[3].x = x0;
+	vert[3].y = y1;
+	vert[3].z = 0;
+	vert[3].rhw = 1;
+	vert[3].color0 = 0;
+	vert[3].color1 = 0xFFFFFFFF;
+	vert[3].tu = u0;
+	vert[3].tv = v1;
+
+	IndexData[IndexPos    ] = VertexPos;
+	IndexData[IndexPos + 1] = VertexPos + 1;
+	IndexData[IndexPos + 2] = VertexPos + 2;
+	IndexData[IndexPos + 3] = VertexPos;
+	IndexData[IndexPos + 4] = VertexPos + 2;
+	IndexData[IndexPos + 5] = VertexPos + 3;
+
+	QuadBatchPos++;
+	VertexPos += 4;
+	IndexPos += 6;
+}
+
+//==========================================================================
+//
+// D3DFB :: AddColorOnlyQuad
+//
+// Adds a single-color, untextured quad to the batch.
+//
+//==========================================================================
+
+void D3DFB::AddColorOnlyQuad(int left, int top, int width, int height, D3DCOLOR color)
+{
+	BufferedQuad *quad;
+	FBVERTEX *verts;
+
+	CheckQuadBatch();
+	quad = &QuadExtra[QuadBatchPos];
+	verts = &VertexData[VertexPos];
+
+	float x = float(left) - 0.5f;
+	float y = float(top) - 0.5f + (GatheringWipeScreen ? 0 : LBOffset);
+
+	quad->Flags = 0;
+	quad->ShaderNum = BQS_ColorOnly;
+	if ((color & 0xFF000000) == 0xFF000000)
+	{
+		quad->SrcBlend = 0;
+		quad->DestBlend = 0;
+	}
+	else
+	{
+		quad->SrcBlend = D3DBLEND_SRCALPHA;
+		quad->DestBlend = D3DBLEND_INVSRCALPHA;
+	}
+	quad->Palette = NULL;
+	quad->Texture = NULL;
+
+	verts[0].x = x;
+	verts[0].y = y;
+	verts[0].z = 0;
+	verts[0].rhw = 1;
+	verts[0].color0 = color;
+	verts[0].color1 = 0;
+	verts[0].tu = 0;
+	verts[0].tv = 0;
+
+	verts[1].x = x + width;
+	verts[1].y = y;
+	verts[1].z = 0;
+	verts[1].rhw = 1;
+	verts[1].color0 = color;
+	verts[1].color1 = 0;
+	verts[1].tu = 0;
+	verts[1].tv = 0;
+
+	verts[2].x = x + width;
+	verts[2].y = y + height;
+	verts[2].z = 0;
+	verts[2].rhw = 1;
+	verts[2].color0 = color;
+	verts[2].color1 = 0;
+	verts[2].tu = 0;
+	verts[2].tv = 0;
+
+	verts[3].x = x;
+	verts[3].y = y + height;
+	verts[3].z = 0;
+	verts[3].rhw = 1;
+	verts[3].color0 = color;
+	verts[3].color1 = 0;
+	verts[3].tu = 0;
+	verts[3].tv = 0;
+
+	IndexData[IndexPos    ] = VertexPos;
+	IndexData[IndexPos + 1] = VertexPos + 1;
+	IndexData[IndexPos + 2] = VertexPos + 2;
+	IndexData[IndexPos + 3] = VertexPos;
+	IndexData[IndexPos + 4] = VertexPos + 2;
+	IndexData[IndexPos + 5] = VertexPos + 3;
+
+	QuadBatchPos++;
+	VertexPos += 4;
+	IndexPos += 6;
+}
+
+//==========================================================================
+//
+// D3DFB :: CheckQuadBatch
+//
+// Make sure there's enough room in the batch for one more quad.
+//
+//==========================================================================
+
+void D3DFB::CheckQuadBatch()
+{
+	if (BatchType == BATCH_Lines)
+	{
+		EndLineBatch();
+	}
+	else if (QuadBatchPos == MAX_QUAD_BATCH)
+	{
+		EndQuadBatch();
+	}
+	if (QuadBatchPos < 0)
+	{
+		BeginQuadBatch();
+	}
+}
+
+//==========================================================================
+//
+// D3DFB :: BeginQuadBatch
+//
+// Locks the vertex buffer for quads and sets the cursor to 0.
+//
+//==========================================================================
+
+void D3DFB::BeginQuadBatch()
+{
+	if (In2D < 2 || !InScene || QuadBatchPos >= 0)
 	{
 		return;
 	}
+	EndLineBatch();		// Make sure all lines have been drawn first.
+	VertexBuffer->Lock(0, 0, (void **)&VertexData, D3DLOCK_DISCARD);
+	IndexBuffer->Lock(0, 0, (void **)&IndexData, D3DLOCK_DISCARD);
+	VertexPos = 0;
+	IndexPos = 0;
+	QuadBatchPos = 0;
+	BatchType = BATCH_Quads;
+}
 
-	FBVERTEX verts[4] =
+//==========================================================================
+//
+// D3DFB :: EndQuadBatch
+//
+// Draws all the quads that have been batched up.
+//
+//==========================================================================
+
+void D3DFB::EndQuadBatch()
+{
+	if (In2D < 2 || !InScene || BatchType != BATCH_Quads)
 	{
-		{ x0, y0, 0, 1, color0, color1, u0, v0 },
-		{ x1, y0, 0, 1, color0, color1, u1, v0 },
-		{ x1, y1, 0, 1, color0, color1, u1, v1 },
-		{ x0, y1, 0, 1, color0, color1, u0, v1 }
-	};
+		return;
+	}
+	BatchType = BATCH_None;
+	VertexBuffer->Unlock();
+	IndexBuffer->Unlock();
+	if (QuadBatchPos == 0)
+	{
+		QuadBatchPos = -1;
+		VertexPos = -1;
+		IndexPos = -1;
+		return;
+	}
+	D3DDevice->SetStreamSource(0, VertexBuffer, 0, sizeof(FBVERTEX));
+	D3DDevice->SetIndices(IndexBuffer);
+	bool uv_wrapped = false;
+	bool uv_should_wrap;
 
-	SetTexture(0, tex->Tex);
-	D3DDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, &verts, sizeof(FBVERTEX));
+	for (int i = 0; i < QuadBatchPos; )
+	{
+		const BufferedQuad *quad = &QuadExtra[i];
+		int j;
+
+		// Quads with matching parameters should be done with a single
+		// DrawPrimitive call.
+		for (j = i + 1; j < QuadBatchPos; ++j)
+		{
+			const BufferedQuad *q2 = &QuadExtra[j];
+			if (quad->Texture != q2->Texture ||
+				quad->Group1 != q2->Group1 ||
+				quad->Palette != q2->Palette)
+			{
+				break;
+			}
+		}
+
+		// Set the palette (if one)
+		if ((quad->Flags & BQF_Paletted) == BQF_GamePalette)
+		{
+			SetPaletteTexture(PaletteTexture, 256);
+		}
+		else if ((quad->Flags & BQF_Paletted) == BQF_CustomPalette)
+		{
+			SetPaletteTexture(quad->Palette->Tex, quad->Palette->RoundedPaletteSize);
+		}
+		else if ((quad->Flags & BQF_Paletted) == BQF_ShadedPalette)
+		{
+			SetPaletteTexture(ShadedPaletteTexture, 256);
+		}
+		else if ((quad->Flags & BQF_Paletted) == BQF_StencilPalette)
+		{
+			SetPaletteTexture(StencilPaletteTexture, 256);
+		}
+		// Set paletted bilinear filtering (IF IT WORKED RIGHT!)
+		if (quad->Flags & (BQF_Paletted | BQF_Bilinear))
+		{
+			SetPalTexBilinearConstants(quad->Texture);
+		}
+
+		// Set the alpha blending
+		if (quad->SrcBlend != 0)
+		{
+			SetAlphaBlend(TRUE, D3DBLEND(quad->SrcBlend), D3DBLEND(quad->DestBlend));
+		}
+		else
+		{
+			SetAlphaBlend(FALSE);
+		}
+
+		// Set the pixel shader
+		if (quad->ShaderNum == BQS_PalTex)
+		{
+			SetPixelShader(!(quad->Flags & BQF_Bilinear) ? PalTexShader : PalTexBilinearShader);
+		}
+		else if (quad->ShaderNum == BQS_Plain)
+		{
+			SetPixelShader(PlainShader);
+		}
+		else if (quad->ShaderNum == BQS_PlainStencil)
+		{
+			SetPixelShader(PlainStencilShader);
+		}
+		else if (quad->ShaderNum == BQS_ColorOnly)
+		{
+			SetPixelShader(ColorOnlyShader);
+		}
+
+		// Set the texture clamp addressing mode
+		uv_should_wrap = !!(quad->Flags & BQF_WrapUV);
+		if (uv_wrapped != uv_should_wrap)
+		{
+			DWORD mode = uv_should_wrap ? D3DTADDRESS_WRAP : D3DTADDRESS_BORDER;
+			uv_wrapped = uv_should_wrap;
+			D3DDevice->SetSamplerState(0, D3DSAMP_ADDRESSU, mode);
+			D3DDevice->SetSamplerState(0, D3DSAMP_ADDRESSV, mode);
+		}
+
+		// Set the texture
+		if (quad->Texture != NULL)
+		{
+			SetTexture(0, quad->Texture->Tex);
+		}
+
+		// Draw the quad
+		D3DDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 4 * i, 4 * (j - i), 6 * i, 2 * (j - i));
+		i = j;
+	}
+	if (uv_wrapped)
+	{
+		D3DDevice->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_BORDER);
+		D3DDevice->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_BORDER);
+	}
+	QuadBatchPos = -1;
+	VertexPos = -1;
+	IndexPos = -1;
+}
+
+//==========================================================================
+//
+// D3DFB :: EndBatch
+//
+// Draws whichever type of primitive is currently being batched.
+//
+//==========================================================================
+
+void D3DFB::EndBatch()
+{
+	if (BatchType == BATCH_Quads)
+	{
+		EndQuadBatch();
+	}
+	else if (BatchType == BATCH_Lines)
+	{
+		EndLineBatch();
+	}
 }
 
 //==========================================================================
@@ -1740,7 +2822,7 @@ void STACK_ARGS D3DFB::DrawTextureV (FTexture *img, int x, int y, uint32 tags_fi
 //
 //==========================================================================
 
-bool D3DFB::SetStyle(D3DTex *tex, DrawParms &parms, D3DCOLOR &color0, D3DCOLOR &color1)
+bool D3DFB::SetStyle(D3DTex *tex, DrawParms &parms, D3DCOLOR &color0, D3DCOLOR &color1, BufferedQuad &quad)
 {
 	D3DFORMAT fmt = tex->GetTexFormat();
 	ERenderStyle style = parms.style;
@@ -1768,6 +2850,7 @@ bool D3DFB::SetStyle(D3DTex *tex, DrawParms &parms, D3DCOLOR &color0, D3DCOLOR &
 	}
 
 	stencilling = false;
+	quad.Palette = NULL;
 
 	switch (style)
 	{
@@ -1777,12 +2860,10 @@ bool D3DFB::SetStyle(D3DTex *tex, DrawParms &parms, D3DCOLOR &color0, D3DCOLOR &
 		{
 			color0 = 0;
 			color1 = parms.fillcolor | (D3DCOLOR(alpha * 255) << 24);
-			SetPaletteTexture(ShadedPaletteTexture, 256, parms.bilinear);
-			if (parms.bilinear)
-			{
-				SetPalTexBilinearConstants(tex);
-			}
-			SetAlphaBlend(TRUE, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
+			quad.Flags = BQF_ShadedPalette;
+			quad.SrcBlend = D3DBLEND_SRCALPHA;
+			quad.DestBlend = D3DBLEND_INVSRCALPHA;
+			quad.ShaderNum = BQS_PalTex;
 			return true;
 		}
 		return false;
@@ -1824,24 +2905,24 @@ bool D3DFB::SetStyle(D3DTex *tex, DrawParms &parms, D3DCOLOR &color0, D3DCOLOR &
 	// turning off the alpha blend.
 	if (!parms.masked && style == STYLE_Normal)
 	{
-		SetAlphaBlend(FALSE);
+		quad.SrcBlend = 0;
+		quad.DestBlend = 0;
 		SetColorOverlay(parms.colorOverlay, 1, color0, color1);
 		if (fmt == D3DFMT_L8 && !tex->IsGray)
 		{
-			SetPaletteTexture(PaletteTexture, 256, parms.bilinear);
-			if (parms.bilinear)
-			{
-				SetPalTexBilinearConstants(tex);
-			}
+			quad.Flags = BQF_GamePalette;
+			quad.ShaderNum = BQS_PalTex;
 		}
 		else
 		{
-			SetPixelShader(PlainShader);
+			quad.Flags = 0;
+			quad.ShaderNum = BQS_Plain;
 		}
 	}
 	else
 	{
-		SetAlphaBlend(TRUE, fglevel, bglevel);
+		quad.SrcBlend = fglevel;
+		quad.DestBlend = bglevel;
 
 		if (!stencilling)
 		{
@@ -1849,29 +2930,25 @@ bool D3DFB::SetStyle(D3DTex *tex, DrawParms &parms, D3DCOLOR &color0, D3DCOLOR &
 			{
 				if (parms.remap != NULL)
 				{
-					D3DPal *pal = reinterpret_cast<D3DPal *>(parms.remap->GetNative());
-					SetPaletteTexture(pal->Tex, pal->RoundedPaletteSize, parms.bilinear);
-					if (parms.bilinear)
-					{
-						SetPalTexBilinearConstants(tex);
-					}
+					quad.Flags = BQF_CustomPalette;
+					quad.Palette = reinterpret_cast<D3DPal *>(parms.remap->GetNative());
+					quad.ShaderNum = BQS_PalTex;
 				}
 				else if (tex->IsGray)
 				{
-					SetPixelShader(PlainShader);
+					quad.Flags = 0;
+					quad.ShaderNum = BQS_Plain;
 				}
 				else
 				{
-					SetPaletteTexture(PaletteTexture, 256, parms.bilinear);
-					if (parms.bilinear)
-					{
-						SetPalTexBilinearConstants(tex);
-					}
+					quad.Flags = BQF_GamePalette;
+					quad.ShaderNum = BQS_PalTex;
 				}
 			}
 			else
 			{
-				SetPixelShader(PlainShader);
+				quad.Flags = 0;
+				quad.ShaderNum = BQS_Plain;
 			}
 			SetColorOverlay(parms.colorOverlay, alpha, color0, color1);
 		}
@@ -1881,12 +2958,13 @@ bool D3DFB::SetStyle(D3DTex *tex, DrawParms &parms, D3DCOLOR &color0, D3DCOLOR &
 			color1 = parms.fillcolor | (D3DCOLOR(alpha * 255) << 24);
 			if (fmt == D3DFMT_L8)
 			{
-				// Doesn't seem to be much point in allowing bilinear with a stencil
-				SetPaletteTexture(StencilPaletteTexture, 256, false);
+				quad.Flags = BQF_StencilPalette;
+				quad.ShaderNum = BQS_PalTex;
 			}
 			else
 			{
-				SetPixelShader(PlainStencilShader);
+				quad.Flags = 0;
+				quad.ShaderNum = BQS_PlainStencil;
 			}
 		}
 	}
@@ -1979,7 +3057,7 @@ void D3DFB::SetTexture(int tnum, IDirect3DTexture9 *texture)
 	}
 }
 
-void D3DFB::SetPaletteTexture(IDirect3DTexture9 *texture, int count, INTBOOL bilinear)
+void D3DFB::SetPaletteTexture(IDirect3DTexture9 *texture, int count)
 {
 	if (count == 256 || SM14)
 	{
@@ -2003,10 +3081,9 @@ void D3DFB::SetPaletteTexture(IDirect3DTexture9 *texture, int count, INTBOOL bil
 		SetConstant(2, 255 * fcount, 0.5f * fcount, 0, 0);
 	}
 	SetTexture(1, texture);
-	SetPixelShader(!bilinear ? PalTexShader : PalTexBilinearShader);
 }
 
-void D3DFB::SetPalTexBilinearConstants(D3DTex *tex)
+void D3DFB::SetPalTexBilinearConstants(PackingTexture *tex)
 {
 	float con[8];
 
@@ -2016,8 +3093,8 @@ void D3DFB::SetPalTexBilinearConstants(D3DTex *tex)
 		return;
 	}
 
-	con[0] = tex->GameTex->GetWidth() / tex->TX;
-	con[1] = tex->GameTex->GetHeight() / tex->TY;
+	con[0] = float(tex->Width);
+	con[1] = float(tex->Height);
 	con[2] = 0;
 	con[3] = 1 / con[0];
 	con[4] = 0;

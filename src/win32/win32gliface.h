@@ -48,6 +48,7 @@ public:
 	bool NextMode (int *width, int *height, bool *letterbox);
 	bool GoFullscreen(bool yes);
 	DFrameBuffer *CreateFrameBuffer (int width, int height, bool fs, DFrameBuffer *old);
+	virtual bool SetResolution (int width, int height, int bits);
 
 protected:
 	struct ModeInfo

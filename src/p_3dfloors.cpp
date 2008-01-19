@@ -42,16 +42,8 @@
 
 #include "gamemode.h"
 
-enum
-{
-	// crappy hack to make certain WADs look better
-	sec_outside = 87,
-};
-
 // [BB] Specifies if the current map uses 3d floors.
 bool mapUses3DFloors;
-
-
 //==========================================================================
 //
 //  3D Floors
@@ -587,7 +579,7 @@ bool P_GetMidTexturePosition(const line_t * line, int sideno, fixed_t * ptextop,
 // Extended P_LineOpening
 //
 //==========================================================================
-extern int tmfloorpic;
+int openfloorpic, openceilingpic;
 
 void P_LineOpening (AActor * thing,const line_t *linedef, fixed_t x, fixed_t y, fixed_t refx, fixed_t refy)
 {
@@ -607,6 +599,8 @@ void P_LineOpening (AActor * thing,const line_t *linedef, fixed_t x, fixed_t y, 
 
 		front = linedef->frontsector;
 		back = linedef->backsector;
+		
+		openfloorpic = openceilingpic = -1;
 
 		// Check for 3D-floors in the sector (mostly identical to what Legacy does here)
 		if(front->e->ffloors.Size() || back->e->ffloors.Size())
@@ -619,7 +613,8 @@ void P_LineOpening (AActor * thing,const line_t *linedef, fixed_t x, fixed_t y, 
 			fixed_t    lowestfloor = lowfloor;
 			fixed_t    delta1;
 			fixed_t    delta2;
-			int highestfloorpic = tmfloorpic;
+			int highestfloorpic = -1;
+			int lowestceilingpic = -1;
 			
 			thingtop = thing->z + (thing->height==0? 1:thing->height);
 			
@@ -670,10 +665,14 @@ void P_LineOpening (AActor * thing,const line_t *linedef, fixed_t x, fixed_t y, 
 			if(highestfloor > openbottom)
 			{
 				openbottom = highestfloor;
-				tmfloorpic = highestfloorpic;
+				openfloorpic = highestfloorpic;
 			}
 			
-			if(lowestceiling < opentop) opentop = lowestceiling;
+			if(lowestceiling < opentop) 
+			{
+				opentop = lowestceiling;
+				openceilingpic = lowestceilingpic;
+			}
 			
 			if(lowestfloor > lowfloor) lowfloor = lowestfloor;
 		}
@@ -751,18 +750,6 @@ void P_CreateExtSectors()
 		sector->e=extsectordata+i;
 		sector->sectornum = i;
 		sector->floor_reflect = sector->ceiling_reflect = 0;
-
-		// apply outside fog to all sectors specially marked
-		// (mostly added to make Herian 2's maps 07 and 19 look better)
-		if ((sector->special&0xff)==sec_outside)
-		{
-			if (level.outsidefog != 0xff000000)
-			{
-				if (fogMap == NULL)
-					fogMap = GetSpecialLights (PalEntry (255,255,255), level.outsidefog, 0);
-				sector->ColorMap = fogMap;
-			}
-		}
 	}
 }
 //==========================================================================

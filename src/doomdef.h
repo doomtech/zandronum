@@ -205,9 +205,9 @@ enum
 	DF_NO_ITEMS				= 1 << 1,	// Do not spawn powerups (DM)
 	DF_WEAPONS_STAY			= 1 << 2,	// Leave weapons around after pickup (DM)
 	DF_FORCE_FALLINGZD		= 1 << 3,	// Falling too far hurts (old ZDoom style)
-	DF_FORCE_FALLINGHX		= 1 << 4,	// Falling too far hurts (Hexen style)
+	DF_FORCE_FALLINGHX		= 2 << 3,	// Falling too far hurts (Hexen style)
 	DF_FORCE_FALLINGST		= 3 << 3,	// Falling too far hurts (Strife style)
-//	DF_INVENTORY_ITEMS		= 1 << 5,	// Wait for player to use powerups when picked up
+//							  1 << 5	-- this space left blank --
 	DF_SAME_LEVEL			= 1 << 6,	// Stay on the same map when someone exits (DM)
 	DF_SPAWN_FARTHEST		= 1 << 7,	// Spawn players as far as possible from other players (DM)
 	DF_FORCE_RESPAWN		= 1 << 8,	// Automatically respawn dead players after respawn_time is up (DM)
@@ -238,51 +238,24 @@ enum
 {
 //	DF2_YES_IMPALING		= 1 << 0,	// Player gets implaed on MF2_IMPALE items
 	DF2_YES_WEAPONDROP		= 1 << 1,	// Drop current weapon upon death
+	DF2_NO_RUNES			= 1 << 2,	// Don't spawn runes
+	DF2_INSTANT_RETURN		= 1 << 3,	// Instantly return flags and skulls when player carrying it dies (ST/CTF)
+	DF2_NO_TEAM_SWITCH		= 1 << 4,	// Do not allow players to switch teams in teamgames
+	DF2_NO_TEAM_SELECT		= 1 << 5,	// Player is automatically placed on a team.
+	DF2_YES_DOUBLEAMMO		= 1 << 6,	// Double amount of ammo that items give you like skill 1 and 5 do
+	DF2_YES_DEGENERATION	= 1 << 7,	// Player slowly loses health when over 100% (Quake-style)
+	DF2_YES_FREEAIMBFG		= 1 << 8,	// Allow BFG freeaiming in multiplayer games.
+	DF2_BARRELS_RESPAWN		= 1 << 9,	// Barrels respawn (duh)
+	DF2_NO_RESPAWN_INVUL	= 1 << 10,	// No respawn invulnerability.
+	DF2_COOP_SHOTGUNSTART	= 1 << 11,	// All playres start with a shotgun when they respawn
+	DF2_SAME_SPAWN_SPOT		= 1 << 12,	// Players respawn in the same place they died (co-op)
 
-	// Don't spawn runes.
-	DF2_NO_RUNES			= 1 << 2,
-
-	// Instantly return flags and skulls when player carrying it dies (ST/CTF).
-	DF2_INSTANT_RETURN		= 1 << 3,
-
-	// Do not allow players to switch teams in teamgames.
-	DF2_NO_TEAMSWITCH		= 1 << 4,
-
-	// Player is automatically placed on a team.
-	DF2_NO_TEAM_SELECT		= 1 << 5,
-
-	// Double amount of ammo that items give you like skill 1 and 5 do.
-	DF2_YES_DOUBLEAMMO		= 1 << 6,
-
-	// Player slowly loses health when over 100% (quake-style).
-	DF2_YES_DEGENERATION	= 1 << 7,
-
-	// Allow BFG freeaiming in multiplayer games.
-	DF2_YES_FREEAIMBFG		= 1 << 8,
-
-	// Barrels respawn (duh).
-	DF2_BARRELS_RESPAWN		= 1 << 9,
-
-	// No respawn invulnerability.
-	DF2_NO_RESPAWN_INVUL	= 1 << 10,
-
-	// All players start with a shotgun when they respawn.
-	DF2_COOP_SHOTGUNSTART	= 1 << 11,
-
-	// Players respawn in the same place they died (co-op).
-	DF2_SAME_SPAWN_SPOT		= 1 << 12,
-
-	// Lose a frag when killed. More incentive to try to
-	DF2_YES_LOSEFRAG		= 1 << 13,
-
-	// Don't clear frags after each level
-	DF2_YES_KEEPFRAGS		= 1 << 14,
-
-	// Player cannot respawn
-	DF2_NO_RESPAWN			= 1 << 15,
-
-	// Player keeps his team after a map change.
-	DF2_YES_KEEP_TEAMS		= 1 << 16,
+	DF2_YES_KEEPFRAGS		= 1 << 13,	// Don't clear frags after each level
+	DF2_NO_RESPAWN			= 1 << 14,	// Player cannot respawn
+	DF2_YES_LOSEFRAG		= 1 << 15,	// Lose a frag when killed. More incentive to try to
+//										// not get yerself killed
+	DF2_INFINITE_INVENTORY	= 1 << 16,	// Infinite inventory.
+	DF2_YES_KEEP_TEAMS		= 1 << 17,	// Player keeps his team after a map change.
 };
 
 // [RH] Compatibility flags.

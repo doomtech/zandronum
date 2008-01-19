@@ -120,13 +120,11 @@
 #include "st_start.h"
 #include "templates.h"
 #include "teaminfo.h"
+#include "hardware.h"
+#include "sbarinfo.h"
 
-#include "gl/gl_functions.h"
 #include "win32/g15/g15.h"
-
-// comment this out if you only want ZDoom's original.
-//#define ALTERNATIVE_HUD
-//EXTERN_CVAR(Bool, hud_althud)
+EXTERN_CVAR(Bool, hud_althud)
 void DrawHUD();
 
 extern player_t *Player;
@@ -434,22 +432,23 @@ CUSTOM_CVAR (Int, dmflags2, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK)
 	}
 }
 
-CVAR (Flag, sv_weapondrop,		dmflags2, DF2_YES_WEAPONDROP);
-CVAR (Flag, sv_norunes,			dmflags2, DF2_NO_RUNES);
-CVAR (Flag, sv_instantreturn,	dmflags2, DF2_INSTANT_RETURN);
-CVAR (Flag, sv_noteamswitch,	dmflags2, DF2_NO_TEAMSWITCH);
-CVAR (Flag, sv_noteamselect,	dmflags2, DF2_NO_TEAM_SELECT);
-CVAR (Flag, sv_doubleammo,		dmflags2, DF2_YES_DOUBLEAMMO);
-CVAR (Flag, sv_keepfrags,		dmflags2, DF2_YES_KEEPFRAGS);
-CVAR (Flag, sv_degeneration,	dmflags2, DF2_YES_DEGENERATION);
-CVAR (Flag, sv_norespawn,		dmflags2, DF2_NO_RESPAWN);
-CVAR (Flag, sv_losefrag,		dmflags2, DF2_YES_LOSEFRAG);
-CVAR (Flag, sv_bfgfreeaim,		dmflags2, DF2_YES_FREEAIMBFG);
-CVAR (Flag, sv_barrelrespawn,	dmflags2, DF2_BARRELS_RESPAWN);
-CVAR (Flag, sv_norespawninvul,	dmflags2, DF2_NO_RESPAWN_INVUL);
-CVAR (Flag, sv_shotgunstart,	dmflags2, DF2_COOP_SHOTGUNSTART);
-CVAR (Flag, sv_samespawnspot,	dmflags2, DF2_SAME_SPAWN_SPOT);
-CVAR (Flag, sv_keepteams,		dmflags2, DF2_YES_KEEP_TEAMS);
+CVAR (Flag, sv_weapondrop,			dmflags2, DF2_YES_WEAPONDROP);
+CVAR (Flag, sv_noteamswitch,		dmflags2, DF2_NO_TEAM_SWITCH);
+CVAR (Flag, sv_doubleammo,			dmflags2, DF2_YES_DOUBLEAMMO);
+CVAR (Flag, sv_degeneration,		dmflags2, DF2_YES_DEGENERATION);
+CVAR (Flag, sv_bfgfreeaim,			dmflags2, DF2_YES_FREEAIMBFG);
+CVAR (Flag, sv_barrelrespawn,		dmflags2, DF2_BARRELS_RESPAWN);
+CVAR (Flag, sv_keepfrags,			dmflags2, DF2_YES_KEEPFRAGS);
+CVAR (Flag, sv_norespawn,			dmflags2, DF2_NO_RESPAWN);
+CVAR (Flag, sv_losefrag,			dmflags2, DF2_YES_LOSEFRAG);
+CVAR (Flag, sv_norespawninvul,		dmflags2, DF2_NO_RESPAWN_INVUL);
+CVAR (Flag, sv_samespawnspot,		dmflags2, DF2_SAME_SPAWN_SPOT);
+
+CVAR (Flag, sv_norunes,				dmflags2, DF2_NO_RUNES);
+CVAR (Flag, sv_instantreturn,		dmflags2, DF2_INSTANT_RETURN);
+CVAR (Flag, sv_noteamselect,		dmflags2, DF2_NO_TEAM_SELECT);
+CVAR (Flag, sv_shotgunstart,		dmflags2, DF2_COOP_SHOTGUNSTART);
+CVAR (Flag, sv_keepteams,			dmflags2, DF2_YES_KEEP_TEAMS);
 
 //==========================================================================
 //
@@ -533,32 +532,13 @@ void D_Display ()
 	}
 
 	// [RH] change the screen mode if needed
-	I_CheckRestartRenderer();
 	if (setmodeneeded)
 	{
-		switch(currentrenderer)
+		// Change screen mode.
+		if (Video->SetResolution (NewWidth, NewHeight, NewBits))
 		{
-		case 0:
-			// Change screen mode.
-			if (V_SetResolution (NewWidth, NewHeight, NewBits))
-			{
-				// Recalculate various view parameters.
-				setsizeneeded = true;
-				// Let the status bar know the screen size changed
-				if (StatusBar != NULL)
-				{
-					StatusBar->ScreenSizeChanged ();
-				}
-				// Refresh the console.
-				C_NewModeAdjust ();
-				// Reload crosshair if transitioned to a different size
-				crosshair.Callback ();
-				setmodeneeded = false;
-			}
-			break;
-
-		case 1:
-			I_RestartRenderer();
+			// Recalculate various view parameters.
+			setsizeneeded = true;
 			// Let the status bar know the screen size changed
 			if (StatusBar != NULL)
 			{
@@ -568,7 +548,6 @@ void D_Display ()
 			C_NewModeAdjust ();
 			// Reload crosshair if transitioned to a different size
 			crosshair.Callback ();
-			break;
 		}
 	}
 
@@ -650,25 +629,13 @@ void D_Display ()
 				screen->SetBlendingRect(viewwindowx, viewwindowy,
 					viewwindowx + realviewwidth, viewwindowy + realviewheight);
 				P_CheckPlayerSprites();
-				if (currentrenderer==0)
-				{
-					// [BB] This check shouldn't be necessary, but should completely prevent
-					// the "tried to render NULL actor" errors.
-					if ( players[consoleplayer].mo != NULL )
-					{
-						R_RenderActorView (players[consoleplayer].mo);
-						R_DetailDouble ();		// [RH] Apply detail mode expansion
-						// [RH] Let cameras draw onto textures that were visible this frame.
-						FCanvasTextureInfo::UpdateAll ();
-					}
-				}
-				else
-				{
-					// [BB] This check shouldn't be necessary, but should completely prevent
-					// the "tried to render NULL actor" errors.
-					if( players[consoleplayer].camera != NULL )
-						gl_RenderPlayerView (&players[consoleplayer]);
-				}
+				// [BB] This check shouldn't be necessary, but should completely prevent
+				// the "tried to render NULL actor" errors.
+				if ( (players[consoleplayer].mo != NULL) && (players[consoleplayer].camera != NULL) )
+					screen->RenderView(&players[consoleplayer]);
+
+
+
 			}
 
 			if ((hw2d = screen->Begin2D(viewactive)))
@@ -688,15 +655,13 @@ void D_Display ()
 			{
 				R_RefreshViewBorder ();
 			}
-	#ifdef ALTERNATIVE_HUD
 
 			if (hud_althud && realviewheight == SCREENHEIGHT)
 			{
 				if (DrawFSHUD || automapactive) DrawHUD();
-				StatusBar->DrawTopStuff (DrawFSHUD ? HUD_Fullscreen : HUD_None);
+				StatusBar->DrawTopStuff (HUD_None);
 			}
 			else 
-	#endif
 			if (realviewheight == SCREENHEIGHT && viewactive)
 			{
 				StatusBar->Draw (DrawFSHUD ? HUD_Fullscreen : HUD_None);
@@ -2872,6 +2837,15 @@ void D_DoomMain (void)
 	Printf ("P_Init: Init Playloop state.\n");
 	StartScreen->LoadingStatus ("Init game engine", 0x3f);
 	P_Init ();
+
+	//SBarInfo support.
+	if(Wads.CheckNumForName("SBARINFO") != -1)
+	{
+		Printf ("ParseSBarInfo: Loading custom status bar definition.\n");
+		SBarInfoScript = new SBarInfo(Wads.GetNumForName("SBARINFO")); //load last SBARINFO lump to avoid clashes
+		atterm(FreeSBarInfoScript);
+	}
+	//end most of the SBarInfo stuff
 
 	Printf ("D_CheckNetGame: Checking network game status.\n");
 	StartScreen->LoadingStatus ("Checking network game status.", 0x3f);

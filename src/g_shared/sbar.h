@@ -194,6 +194,8 @@ public:
 	virtual void SetInteger (int pname, int param);
 	virtual void ShowPop (int popnum);
 	virtual void ReceivedWeapon (AWeapon *weapon);
+	virtual bool MustDrawLog(EHudState state);
+	void DrawLog();
 
 protected:
 	void DrawPowerups ();
@@ -254,6 +256,7 @@ private:
 	static BYTE DamageToAlpha[114];
 
 	DHUDMessage *Messages;
+	bool ShowLog;
 };
 
 extern FBaseStatusBar *StatusBar;

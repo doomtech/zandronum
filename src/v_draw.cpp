@@ -265,6 +265,8 @@ bool DCanvas::ParseDrawTextureTags (FTexture *img, int x, int y, DWORD tag, va_l
 	INTBOOL boolval;
 	int intval;
 	bool translationset = false;
+	bool virtBottom;
+
 	// [BC] Potentially flag the texture as being text so we can handle it differently.
 	bool	bIsText = false;
 
@@ -272,6 +274,8 @@ bool DCanvas::ParseDrawTextureTags (FTexture *img, int x, int y, DWORD tag, va_l
 	{
 		return false;
 	}
+
+	virtBottom = false;
 
 	parms->texwidth = img->GetScaledWidth();
 	parms->texheight = img->GetScaledHeight();
@@ -376,6 +380,16 @@ bool DCanvas::ParseDrawTextureTags (FTexture *img, int x, int y, DWORD tag, va_l
 				parms->virtWidth = 320;
 				parms->virtHeight = 200;
 			}
+			break;
+
+		case DTA_Bottom320x200:
+			boolval = va_arg (tags, INTBOOL);
+			if (boolval)
+			{
+				parms->virtWidth = 320;
+				parms->virtHeight = 200;
+			}
+			virtBottom = true;
 			break;
 
 		case DTA_HUDRules:
@@ -563,9 +577,9 @@ bool DCanvas::ParseDrawTextureTags (FTexture *img, int x, int y, DWORD tag, va_l
 		int bottom = parms->y + parms->destheight;
 
 		if (myratio != 0 && myratio != 4 && !parms->keepratio)
-		{ // The target surface is not 4:3, so expand the specified
-		  // virtual size to avoid undesired stretching of the image.
-		  // Does not handle non-4:3 virtual sizes. I'll worry about
+		{ // The target surface is either 16:9 or 16:10, so expand the
+		  // specified virtual size to avoid undesired stretching of the
+		  // image. Does not handle non-4:3 virtual sizes. I'll worry about
 		  // those if somebody expresses a desire to use them.
 			parms->x = Scale(parms->x - parms->virtWidth*FRACUNIT/2,
 							 Width*960,
@@ -581,8 +595,26 @@ bool DCanvas::ParseDrawTextureTags (FTexture *img, int x, int y, DWORD tag, va_l
 			parms->x = Scale (parms->x, Width, parms->virtWidth);
 			parms->destwidth = Scale (right, Width, parms->virtWidth) - parms->x;
 		}
-		parms->y = Scale (parms->y, Height, parms->virtHeight);
-		parms->destheight = Scale (bottom, Height, parms->virtHeight) - parms->y;
+		if (myratio != 0 && myratio == 4 && !parms->keepratio)
+		{ // The target surface is 5:4
+			parms->y = Scale(parms->y - parms->virtHeight*FRACUNIT/2,
+							 Height*600,
+							 parms->virtHeight*BaseRatioSizes[myratio][1])
+						 + Height*FRACUNIT/2;
+			parms->destheight = Scale(bottom - parms->virtHeight*FRACUNIT/2,
+							 Height*600,
+							 parms->virtHeight*BaseRatioSizes[myratio][1])
+						 + Height*FRACUNIT/2 - parms->y;
+			if (virtBottom)
+			{
+				parms->y += (Height - Height * BaseRatioSizes[myratio][3] / 48) << (FRACBITS - 1);
+			}
+		}
+		else
+		{
+			parms->y = Scale (parms->y, Height, parms->virtHeight);
+			parms->destheight = Scale (bottom, Height, parms->virtHeight) - parms->y;
+		}
 	}
 
 	if (parms->destwidth <= 0 || parms->destheight <= 0)
@@ -712,14 +744,6 @@ void DCanvas::PUTTRANSDOT (int xx, int yy, int basecolor, int level)
 	DWORD bg = bg2rgb[*spot];
 	bg = (fg+bg) | 0x1f07c1f;
 	*spot = RGB32k[0][0][bg&(bg>>15)];
-}
-
-void DCanvas::BeginLineDrawing()
-{
-}
-
-void DCanvas::EndLineDrawing()
-{
 }
 
 void DCanvas::DrawLine(int x0, int y0, int x1, int y1, int palColor, uint32 realcolor)

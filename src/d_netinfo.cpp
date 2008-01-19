@@ -54,6 +54,7 @@
 #include "m_random.h"
 #include "teaminfo.h"
 #include "r_translate.h"
+#include "templates.h"
 // [BC] New #includes.
 #include "network.h"
 #include "cl_commands.h"
@@ -210,12 +211,29 @@ void D_GetPlayerColor (int player, float *h, float *s, float *v)
 {
 /* [BB] New team code by Karate Chris. Currently not used in ST.
 	userinfo_t *info = &players[player].userinfo;
-	int color = teamplay ? teams[info->team].playercolor : info->color;
+	int color = info->color;
 */
 	int color = players[player].userinfo.color;
 
 	RGBtoHSV (RPART(color)/255.f, GPART(color)/255.f, BPART(color)/255.f,
 		h, s, v);
+
+/* [BB] New team code by Karate Chris. Currently not used in ST.
+	if (teamplay && TEAMINFO_IsValidTeam(info->team))
+	{
+		// In team play, force the player to use the team's hue
+		// and adjust the saturation and value so that the team
+		// hue is visible in the final color.
+		float ts, tv;
+		int tcolor = teams[info->team].playercolor;
+
+		RGBtoHSV (RPART(tcolor)/255.f, GPART(tcolor)/255.f, BPART(tcolor)/255.f,
+			h, &ts, &tv);
+
+		*s = clamp(ts + *s * 0.15f - 0.075f, 0.f, 1.f);
+		*v = clamp(tv + *v * 0.5f - 0.25f, 0.f, 1.f);
+	}
+*/
 
 	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 	{
@@ -344,7 +362,7 @@ static void UpdateTeam (int pnum, int team, bool update)
 {
 	userinfo_t *info = &players[pnum].userinfo;
 
-	if ((dmflags2 & DF2_NO_TEAMSWITCH) && (alwaysapplydmflags || deathmatch) && TEAMINFO_IsValidTeam (info->team))
+	if ((dmflags2 & DF2_NO_TEAM_SWITCH) && (alwaysapplydmflags || deathmatch) && TEAMINFO_IsValidTeam (info->team))
 	{
 		Printf ("Team changing has been disabled!\n");
 		return;
@@ -352,7 +370,7 @@ static void UpdateTeam (int pnum, int team, bool update)
 
 	int oldteam;
 
-	if (team < TEAM_None)
+	if (!TEAMINFO_IsValidTeam (team))
 	{
 		team = TEAM_None;
 	}

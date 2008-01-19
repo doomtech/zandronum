@@ -49,6 +49,8 @@
 #include "hardware.h"
 #include "v_video.h"
 
+#define SAFE_RELEASE(x)		{ if (x != NULL) { x->Release(); x = NULL; } }
+
 EXTERN_CVAR (Bool, vid_vsync)
 
 class D3DTex;
@@ -235,15 +237,16 @@ public:
 	void Blank ();
 	bool PaintToWindow ();
 	void SetVSync (bool vsync);
+	void GetScreenshotBuffer(const BYTE *&buffer, int &pitch, ESSType &color_type);
+	void ReleaseScreenshotBuffer();
 	void SetBlendingRect (int x1, int y1, int x2, int y2);
 	bool Begin2D (bool copy3d);
-	FNativeTexture *CreateTexture (FTexture *gametex);
-	FNativeTexture *CreatePalette (FRemapTable *remap);
+	FNativeTexture *CreateTexture (FTexture *gametex, bool wrapping);
+	FNativePalette *CreatePalette (FRemapTable *remap);
 	void STACK_ARGS DrawTextureV (FTexture *img, int x, int y, uint32 tag, va_list tags);
 	void Clear (int left, int top, int right, int bottom, int palcolor, uint32 color);
 	void Dim (PalEntry color, float amount, int x1, int y1, int w, int h);
-	void BeginLineDrawing();
-	void EndLineDrawing();
+	void FlatFill (int left, int top, int right, int bottom, FTexture *src, bool local_origin);
 	void DrawLine(int x0, int y0, int x1, int y1, int palColor, uint32 realcolor);
 	void DrawPixel(int x, int y, int palcolor, uint32 rgbcolor);
 	bool WipeStartScreen(int type);
@@ -256,6 +259,9 @@ private:
 	friend class D3DTex;
 	friend class D3DPal;
 
+	struct PackedTexture;
+	struct PackingTexture;
+
 	struct FBVERTEX
 	{
 		FLOAT x, y, z, rhw;
@@ -263,6 +269,22 @@ private:
 		FLOAT tu, tv;
 	};
 #define D3DFVF_FBVERTEX (D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_SPECULAR | D3DFVF_TEX1)
+
+	struct BufferedQuad
+	{
+		union
+		{
+			struct
+			{
+				BYTE Flags;
+				BYTE ShaderNum;
+				BYTE SrcBlend, DestBlend;
+			};
+			DWORD Group1;
+		};
+		D3DPal *Palette;
+		PackingTexture *Texture;
+	};
 
 	void SetInitialState();
 	bool CreateResources();
@@ -277,22 +299,32 @@ private:
 	void FillPresentParameters (D3DPRESENT_PARAMETERS *pp, bool fullscreen, bool vsync);
 	void CalcFullscreenCoords (FBVERTEX verts[4], bool viewarea_only, D3DCOLOR color0, D3DCOLOR color1) const;
 	bool Reset();
+	IDirect3DTexture9 *GetCurrentScreen();
 	void ReleaseDefaultPoolItems();
 	void KillNativePals();
 	void KillNativeTexs();
+	PackedTexture *AllocPackedTexture(int width, int height, bool wrapping, D3DFORMAT format);
+	void DrawPackedTextures(int packnum);
 	void DrawLetterbox();
 	void Draw3DPart(bool copy3d);
-	bool SetStyle(D3DTex *tex, DCanvas::DrawParms &parms, D3DCOLOR &color0, D3DCOLOR &color1);
+	bool SetStyle(D3DTex *tex, DCanvas::DrawParms &parms, D3DCOLOR &color0, D3DCOLOR &color1, BufferedQuad &quad);
 	static void SetColorOverlay(DWORD color, float alpha, D3DCOLOR &color0, D3DCOLOR &color1);
 	void DoWindowedGamma();
+	void AddColorOnlyQuad(int left, int top, int width, int height, D3DCOLOR color);
+	void CheckQuadBatch();
+	void BeginQuadBatch();
+	void EndQuadBatch();
+	void BeginLineBatch();
+	void EndLineBatch();
+	void EndBatch();
 
 	// State
 	void SetAlphaBlend(BOOL enabled, D3DBLEND srcblend=D3DBLEND(0), D3DBLEND destblend=D3DBLEND(0));
 	void SetConstant(int cnum, float r, float g, float b, float a);
 	void SetPixelShader(IDirect3DPixelShader9 *shader);
 	void SetTexture(int tnum, IDirect3DTexture9 *texture);
-	void SetPaletteTexture(IDirect3DTexture9 *texture, int count, INTBOOL bilinear);
-	void SetPalTexBilinearConstants(D3DTex *texture);
+	void SetPaletteTexture(IDirect3DTexture9 *texture, int count);
+	void SetPalTexBilinearConstants(PackingTexture *texture);
 
 	BOOL AlphaBlendEnabled;
 	D3DBLEND AlphaSrcBlend;
@@ -323,6 +355,7 @@ private:
 	bool GatheringWipeScreen;
 	D3DPal *Palettes;
 	D3DTex *Textures;
+	PackingTexture *Packs;
 
 	IDirect3DDevice9 *D3DDevice;
 	IDirect3DTexture9 *FBTexture;
@@ -330,10 +363,18 @@ private:
 	IDirect3DTexture9 *PaletteTexture;
 	IDirect3DTexture9 *StencilPaletteTexture;
 	IDirect3DTexture9 *ShadedPaletteTexture;
+	IDirect3DTexture9 *ScreenshotTexture;
+	IDirect3DSurface9 *ScreenshotSurface;
 
-	IDirect3DVertexBuffer9 *LineBuffer;
-	int LineBatchPos;
-	FBVERTEX *LineData;
+	IDirect3DVertexBuffer9 *VertexBuffer;
+	FBVERTEX *VertexData;
+	IDirect3DIndexBuffer9 *IndexBuffer;
+	WORD *IndexData;
+	BufferedQuad *QuadExtra;
+	int VertexPos;
+	int IndexPos;
+	int QuadBatchPos;
+	enum { BATCH_None, BATCH_Quads, BATCH_Lines } BatchType;
 
 	IDirect3DPixelShader9 *PalTexShader, *PalTexBilinearShader;
 	IDirect3DPixelShader9 *PlainShader;

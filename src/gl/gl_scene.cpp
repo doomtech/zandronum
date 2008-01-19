@@ -38,6 +38,7 @@
 */
 
 #include "gi.h"
+#include "m_png.h"
 #include "st_stuff.h"
 #include "gl/gl_struct.h"
 #include "gl/gl_renderstruct.h"
@@ -93,10 +94,6 @@ EXTERN_CVAR (Bool, cl_capfps)
 EXTERN_CVAR (Bool, r_deathcamera)
 CVAR(Bool, gl_blendcolormaps, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
-
-// please don't ask me why this is necessary at all.
-// A 90 degree FOV is smaller than it is in the software renderer
-#define FOV_CORRECTION_FACTOR 1.13776f//0.9115f
 
 float viewvecX,viewvecY;
 
@@ -230,7 +227,6 @@ static void gl_StartDrawScene(GL_IRECT * bounds, float fov, float ratio, float f
 
 	float fovy = 2 * RAD2DEG(atan(tan(DEG2RAD(fov) / 2) / fovratio));
 	gluPerspective(fovy, ratio, (float)gl_nearclip, 65536.f);
-	//infinitePerspective(fov/1.6f * FOV_CORRECTION_FACTOR, ratio, (float)gl_nearclip);
 
 	// reset statistics counters
 	render_texsplit=render_vertexsplit=rendered_lines=rendered_flats=rendered_sprites=rendered_decals = 0;
@@ -856,90 +852,12 @@ void gl_RenderTextureView(FCanvasTexture *Texture, AActor * Viewpoint, int FOV)
 
 //-----------------------------------------------------------------------------
 //
-// gl_RenderViewToCanvas
+// gl_SetFixedColormap
 //
 //-----------------------------------------------------------------------------
 
-void gl_RenderViewToCanvas(DCanvas * pic, int x, int y, int width, int height)
+void OpenGLFrameBuffer::SetFixedColormap (player_t *player)
 {
-	int indexSrc, indexDst;
-	GL_IRECT bounds;
-	PalEntry p;
-
-	gl_fixedcolormap=CM_DEFAULT;
-	bounds.left=0;
-	bounds.top=0;
-	bounds.width=width;
-	bounds.height=height;
-	gl.Flush();
-	gl_RenderView(players[consoleplayer].camera, &bounds, FieldOfView * 360.0f / FINEANGLES, 1.6f, 1.6f, true);
-	gl.Flush();
-
-	byte * scr = (byte *)M_Malloc(width * height * 4);
-	gl.ReadPixels(0,0,width, height,GL_RGBA,GL_UNSIGNED_BYTE,scr);
-
-	byte * dst = pic->GetBuffer();
-
-	for (y = 0; y < height; y++)
-	{
-		for (x = 0; x < width; x++)
-		{
-			indexSrc = x + (y * width);
-			indexDst = x + ((height - (y + 1)) * width);
-			p.r = scr[(indexSrc * 4) + 0];
-			p.g = scr[(indexSrc * 4) + 1];
-			p.b = scr[(indexSrc * 4) + 2];
-			dst[indexDst] = ColorMatcher.Pick(p.r, p.g, p.b);
-		}
-	}
-	free(scr);
-
-	// [BC] In GZDoom, this is called every frame, regardless of whether or not
-	// the view is active. In Skulltag, we don't so we have to call this here
-	// to reset everything, such as the viewport, after rendering our view to
-	// a canvas.
-	gl_EndDrawScene( viewsector );
-}
-
-//-----------------------------------------------------------------------------
-//
-// R_RenderPlayerView - the main rendering function
-//
-//-----------------------------------------------------------------------------
-EXTERN_CVAR (Int, r_detail)
-
-void gl_RenderPlayerView (player_t* player)
-{       
-	static AActor * LastCamera;
-
-	if (player->camera != LastCamera)
-	{
-		// If the camera changed don't interpolate
-		// Otherwise there will be some not so nice effects.
-		R_ResetViewInterpolation();
-		LastCamera=player->camera;
-	}
-
-	//Printf("Starting scene\n");
-	All.Reset();
-	All.Start();
-	PortalAll.Reset();
-	RenderAll.Reset();
-	ProcessAll.Reset();
-	flatvertices=flatprimitives=vertexcount=0;
-
-	//gl_LinkLights();
-
-	// Get this before everything else
-	if (cl_capfps || r_NoInterpolate) r_TicFrac = FRACUNIT;
-	else r_TicFrac = I_GetTimeFrac (&r_FrameTime);
-	gl_frameMS = I_MSTime();
-
-	R_FindParticleSubsectors ();
-
-	// prepare all camera textures that have been used in the last frame
-	FCanvasTextureInfo::UpdateAll();
-
 	gl_fixedcolormap=CM_DEFAULT;
 
 	// check for special colormaps
@@ -973,13 +891,86 @@ void gl_RenderPlayerView (player_t* player)
 			}
 		}
 	}
+}
 
+//===========================================================================
+//
+// Render the view to a savegame picture
+//
+//===========================================================================
+
+void OpenGLFrameBuffer::WriteSavePic (player_t *player, FILE *file, int width, int height)
+{
+	GL_IRECT bounds;
+
+	bounds.left=0;
+	bounds.top=0;
+	bounds.width=width;
+	bounds.height=height;
+	gl.Flush();
+	SetFixedColormap(player);
+	sector_t *viewsector = gl_RenderView(players[consoleplayer].camera, &bounds, 
+								FieldOfView * 360.0f / FINEANGLES, 1.6f, 1.6f, true);
+	gl.Disable(GL_STENCIL_TEST);
+	screen->Begin2D(false);
+	gl_DrawBlend(viewsector);
+	gl.Flush();
+
+	byte * scr = (byte *)M_Malloc(width * height * 3);
+	gl.ReadPixels(0,0,width, height,GL_RGB,GL_UNSIGNED_BYTE,scr);
+	M_CreatePNG (file, scr + ((height-1) * width * 3), NULL, SS_RGB, width, height, -width*3);
+	free(scr);
+
+	// [BC] In GZDoom, this is called every frame, regardless of whether or not
+	// the view is active. In Skulltag, we don't so we have to call this here
+	// to reset everything, such as the viewport, after rendering our view to
+	// a canvas.
+	gl_EndDrawScene( viewsector );
+}
+
+//-----------------------------------------------------------------------------
+//
+// R_RenderPlayerView - the main rendering function
+//
+//-----------------------------------------------------------------------------
+
+void OpenGLFrameBuffer::RenderView (player_t* player)
+{       
+	if (player->camera != LastCamera)
+	{
+		// If the camera changed don't interpolate
+		// Otherwise there will be some not so nice effects.
+		R_ResetViewInterpolation();
+		LastCamera=player->camera;
+	}
+
+	//Printf("Starting scene\n");
+	All.Reset();
+	All.Start();
+	PortalAll.Reset();
+	RenderAll.Reset();
+	ProcessAll.Reset();
+	flatvertices=flatprimitives=vertexcount=0;
+
+	// Get this before everything else
+	if (cl_capfps || r_NoInterpolate) r_TicFrac = FRACUNIT;
+	else r_TicFrac = I_GetTimeFrac (&r_FrameTime);
+	gl_frameMS = I_MSTime();
+
+	R_FindParticleSubsectors ();
+
+	// prepare all camera textures that have been used in the last frame
+	FCanvasTextureInfo::UpdateAll();
+
+	SetFixedColormap (player);
+
+	// I stopped using BaseRatioSizes here because the information there wasn't well presented.
 	#define RMUL (1.6f/1.333333f)
 	static float ratios[]={RMUL*1.333333f, RMUL*1.777777f, RMUL*1.6f, RMUL*1.333333f, RMUL*1.2f};
 
 	// now render the main view
 	float fovratio;
-	float ratio = ratios[WidescreenRatio]; //64.f / BaseRatioSizes[WidescreenRatio][3] / 1.333f * 1.6f;
+	float ratio = ratios[WidescreenRatio];
 	if (!(WidescreenRatio&4))
 	{
 		fovratio = 1.6f;
@@ -993,7 +984,6 @@ void gl_RenderPlayerView (player_t* player)
 	gl_EndDrawScene(viewsector);
 
 	All.Stop();
-	//Printf("Finishing scene\n");
 }
 
 //-----------------------------------------------------------------------------

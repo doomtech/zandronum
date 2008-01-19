@@ -39,8 +39,8 @@ struct FLightNode;
 
 
 
-#define MAXWIDTH 2048
-#define MAXHEIGHT 1536
+#define MAXWIDTH 2560
+#define MAXHEIGHT 1600
 
 const WORD NO_INDEX = 0xffffu;
 const DWORD NO_SIDE = 0xffffffffu;
@@ -701,8 +701,6 @@ struct patch_t
 	// the [0] is &columnofs[width] 
 };
 
-
-class FGLTexture;
 class FileReader;
 
 // All FTextures present their data to the world in 8-bit format, but if
@@ -783,17 +781,13 @@ public:
 	int CopyTrueColorTranslated(BYTE *buffer, int buf_pitch, int buf_height, int x, int y, FRemapTable *remap);
 	virtual bool UseBasePalette();
 	virtual int GetSourceLump() { return -1; }
-	virtual void PrecacheGL();
-	FGLTexture * gltex;
-						
-
 	virtual void Unload () = 0;
 
 	// Returns the native pixel format for this image
 	virtual FTextureFormat GetFormat();
 
 	// Returns a native 3D representation of the texture
-	FNativeTexture *GetNative();
+	FNativeTexture *GetNative(bool wrapping);
 
 	// Frees the native 3D representation of the texture
 	void KillNative();
@@ -860,6 +854,33 @@ protected:
 	static void FlipNonSquareBlockRemap (BYTE *blockto, const BYTE *blockfrom, int x, int y, const BYTE *remap);
 
 	friend class D3DTex;
+
+public:
+
+	struct FBrightmapInfo
+	{
+		FTexture *Brightmap;
+		signed char bIsBrightmap;
+		bool bBrightmapDisablesFullbright;
+
+		FBrightmapInfo()
+		{
+			Brightmap = NULL;
+			bIsBrightmap = false;
+			bBrightmapDisablesFullbright = false;
+		}
+
+		~FBrightmapInfo()
+		{
+			if (Brightmap) delete Brightmap;
+			Brightmap = NULL;
+		}
+	};
+
+	virtual void PrecacheGL();
+	virtual void UncacheGL();
+	virtual bool IsSkybox() const { return false; }
+	FBrightmapInfo bm_info;
 };
 
 // Texture manager

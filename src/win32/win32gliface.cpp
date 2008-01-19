@@ -12,7 +12,10 @@
 #include "templates.h"
 #include "version.h"
 #include "c_console.h"
+#include "hardware.h"
 //#include "gl_defs.h"
+
+bool V_DoModeSetup (int width, int height, int bits);
 
 CUSTOM_CVAR(Int, gl_vid_multisample, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL )
 {
@@ -223,6 +226,27 @@ DFrameBuffer *Win32GLVideo::CreateFrameBuffer(int width, int height, bool fs, DF
 
 	return fb;
 }
+
+bool Win32GLVideo::SetResolution (int width, int height, int bits)
+{
+	// This function will destroy the old video context and create a new one
+	// It's the only means to change resolutions in GL under Windows.
+	FFont *font;
+	
+	FGLTexture::FlushAll();
+	font = screen? screen->Font : NULL;
+	I_ShutdownGraphics();
+	
+	Video = new Win32GLVideo(0);
+	if (Video == NULL) I_FatalError ("Failed to initialize display");
+	
+	bits=32;
+	
+	V_DoModeSetup(width, height, bits);
+	if (font != NULL) screen->SetFont(font);
+	return true;	// We must return true because the old video context no longer exists.
+}
+
 
 
 IMPLEMENT_ABSTRACT_CLASS(Win32GLFrameBuffer)

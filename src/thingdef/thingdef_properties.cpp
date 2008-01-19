@@ -748,6 +748,7 @@ static void ActorSkipSuper (AActor *defaults, Baggage &bag)
 		FreeDropItemChain (bag.DropItemList);
 	}
 	ResetBaggage (&bag);
+	MakeStateDefines(NULL);
 }
 
 //==========================================================================
@@ -884,6 +885,7 @@ static void ActorPainChance (AActor *defaults, Baggage &bag)
 	if (!SC_CheckNumber())
 	{
 		FName painType;
+		SC_MustGetString();
 		if (SC_Compare("Normal")) painType = NAME_None;
 		else painType=sc_String;
 		SC_MustGetToken(',');

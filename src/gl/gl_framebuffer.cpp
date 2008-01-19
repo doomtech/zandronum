@@ -70,6 +70,8 @@ OpenGLFrameBuffer::OpenGLFrameBuffer(int width, int height, int bits, int refres
 {
 	memcpy (SourcePalette, GPalette.BaseColors, sizeof(PalEntry)*256);
 	UpdatePalette ();
+	ScreenshotBuffer = NULL;
+	LastCamera = NULL;
 
 	DoSetGamma();
 
@@ -244,7 +246,7 @@ void OpenGLFrameBuffer::DoSetGamma()
 
 			gammaTable[i] = gammaTable[i + 256] = gammaTable[i + 512] = (WORD)clamp<double>(val*256, 0, 0xffff);
 		}
-		gl.SetGammaRamp((void*)gammaTable);
+		SetGammaTable(gammaTable);
 	}
 }
 
@@ -270,11 +272,6 @@ bool OpenGLFrameBuffer::UsesColormap() const
 {
 	// The GL renderer has no use for colormaps so let's
 	// not create them and save us some time.
-	return false;
-}
-
-bool OpenGLFrameBuffer::CanWritePCX()
-{
 	return false;
 }
 
@@ -327,7 +324,28 @@ int OpenGLFrameBuffer::GetPageCount()
 	return 1;
 }
 
-FNativeTexture *OpenGLFrameBuffer::CreatePalette(FRemapTable *remap)
+//==========================================================================
+//
+// DFrameBuffer :: CreateTexture
+//
+// Creates a native texture for a game texture, if supported.
+//
+//==========================================================================
+
+FNativeTexture *OpenGLFrameBuffer::CreateTexture(FTexture *gametex, bool wrapping)
+{
+	return new FGLTexture(gametex);
+}
+
+//==========================================================================
+//
+// DFrameBuffer :: CreatePalette
+//
+// Creates a native palette from a remap table, if supported.
+//
+//==========================================================================
+
+FNativePalette *OpenGLFrameBuffer::CreatePalette(FRemapTable *remap)
 {
 	return GLTranslationPalette::CreatePalette(remap);
 }
@@ -410,6 +428,8 @@ void STACK_ARGS OpenGLFrameBuffer::DrawTextureV(FTexture *img, int x0, int y0, u
 
 		if (!pti) return;
 
+		ox = pti->GetUL();
+		oy = pti->GetVT();
 		cx = pti->GetUR();
 		cy = pti->GetVB();
 	}
@@ -418,8 +438,8 @@ void STACK_ARGS OpenGLFrameBuffer::DrawTextureV(FTexture *img, int x0, int y0, u
 		gltex->Bind(CM_DEFAULT);
 		cx=1.f;
 		cy=-1.f;
+		ox = oy = 0.f;
 	}
-	ox = oy = 0.f;
 	
 	if (parms.flipX)
 	{
@@ -559,7 +579,7 @@ void OpenGLFrameBuffer::Dim(PalEntry color, float damount, int x1, int y1, int w
 //
 //
 //==========================================================================
-void OpenGLFrameBuffer::FlatFill (int left, int top, int right, int bottom, FTexture *src)
+void OpenGLFrameBuffer::FlatFill (int left, int top, int right, int bottom, FTexture *src, bool local_origin)
 {
 	float fU1,fU2,fV1,fV2;
 
@@ -570,10 +590,20 @@ void OpenGLFrameBuffer::FlatFill (int left, int top, int right, int bottom, FTex
 	const WorldTextureInfo * wti = gltexture->Bind(CM_DEFAULT);
 	if (!wti) return;
 	
-	fU1=wti->GetU(left);
-	fV1=wti->GetV(top);
-	fU2=wti->GetU(right);
-	fV2=wti->GetV(bottom);
+	if (!local_origin)
+	{
+		fU1=wti->GetU(left);
+		fV1=wti->GetV(top);
+		fU2=wti->GetU(right);
+		fV2=wti->GetV(bottom);
+	}
+	else
+	{
+		fU1=wti->GetU(0);
+		fV1=wti->GetV(0);
+		fU2=wti->GetU(right-left);
+		fV2=wti->GetV(bottom-top);
+	}
 	gl.Begin(GL_TRIANGLE_STRIP);
 	gl.TexCoord2f(fU1, fV1); gl.Vertex2f(left, top);
 	gl.TexCoord2f(fU1, fV2); gl.Vertex2f(left, bottom);
@@ -591,7 +621,7 @@ void OpenGLFrameBuffer::Clear(int left, int top, int right, int bottom, int palc
 {
 	int rt;
 	int offY = 0;
-	PalEntry p = palcolor==-1? color : GPalette.BaseColors[palcolor];
+	PalEntry p = palcolor==-1? (PalEntry)color : GPalette.BaseColors[palcolor];
 	int width = right-left;
 	int height= bottom-top;
 	
@@ -626,83 +656,27 @@ void OpenGLFrameBuffer::Clear(int left, int top, int right, int bottom, int palc
 //
 //===========================================================================
 
-EXTERN_CVAR(Float, png_gamma)
-EXTERN_CVAR (Float, Gamma)
-
-struct IHDR
+void OpenGLFrameBuffer::GetScreenshotBuffer(const BYTE *&buffer, int &pitch, ESSType &color_type)
 {
-	DWORD		Width;
-	DWORD		Height;
-	BYTE		BitDepth;
-	BYTE		ColorType;
-	BYTE		Compression;
-	BYTE		Filter;
-	BYTE		Interlace;
-};
+	int w = SCREENWIDTH;
+	int h = SCREENHEIGHT;
 
-static inline void MakeChunk (void *where, DWORD type, size_t len)
-{
-	BYTE *const data = (BYTE *)where;
-	*(DWORD *)(data - 8) = BigLong ((unsigned int)len);
-	*(DWORD *)(data - 4) = type;
-	*(DWORD *)(data + len) = BigLong ((unsigned int)CalcCRC32 (data-4, (unsigned int)(len+4)));
+	ReleaseScreenshotBuffer();
+	ScreenshotBuffer = new BYTE[w * h * 3];
+	gl.ReadPixels(0,0,w,h,GL_RGB,GL_UNSIGNED_BYTE,ScreenshotBuffer);
+	pitch = -w*3;
+	color_type = SS_RGB;
+	buffer = ScreenshotBuffer + w * 3 * (h - 1);
 }
 
-void OpenGLFrameBuffer::SaveFile (const char* fname, bool /*savepcx*/)
+//===========================================================================
+// 
+// Releases the screenshot buffer.
+//
+//===========================================================================
+
+void OpenGLFrameBuffer::ReleaseScreenshotBuffer()
 {
-	BYTE work[8 +				// signature
-			  12+2*4+5 +		// IHDR
-			  12+4];			// gAMA
-
-
-	int w=SCREENWIDTH;
-	int h=SCREENHEIGHT;
-	int p=3*w;
-
-	byte * scr2= (byte *)M_Malloc(w * h * 3);
-	byte * scr = (byte *)M_Malloc(w * h * 3);
-	gl.ReadPixels(0,0,w,h,GL_RGB,GL_UNSIGNED_BYTE,scr2);
-
-	for(int i=0;i<h;i++)
-	{
-		memcpy(scr + p * (h-1-i), scr2 + p*i, p);
-	}
-	free(scr2);
-	
-
-	DWORD *const sig = (DWORD *)&work[0];
-	IHDR *const ihdr = (IHDR *)&work[8 + 8];
-	DWORD *const gama = (DWORD *)((BYTE *)ihdr + 2*4+5 + 12);
-
-	sig[0] = MAKE_ID(137,'P','N','G');
-	sig[1] = MAKE_ID(13,10,26,10);
-
-	ihdr->Width = BigLong (w);
-	ihdr->Height = BigLong (h);
-	ihdr->BitDepth = 8;
-	ihdr->ColorType = 2;
-	ihdr->Compression = 0;
-	ihdr->Filter = 0;
-	ihdr->Interlace = 0;
-	MakeChunk (ihdr, MAKE_ID('I','H','D','R'), 2*4+5);
-
-	// Assume a display exponent of 2.2 (100000/2.2 ~= 45454.5)
-	*gama = BigLong (int (45454.5f * (png_gamma == 0.f ? Gamma : png_gamma)));
-	MakeChunk (gama, MAKE_ID('g','A','M','A'), 4);
-
-	FILE * file = fopen(fname, "wb");
-	if (file != NULL)
-	{
-		if (fwrite (work, 1, sizeof(work), file) == sizeof(work))
-		{
-			if (M_SaveBitmap(scr, w*3, h, w*3, file))
-			{
-				M_FinishPNG(file);
-			}
-		}
-	}
-
-	fclose(file);
-	free(scr);
+	if (ScreenshotBuffer != NULL) delete [] ScreenshotBuffer;
+	ScreenshotBuffer = NULL;
 }
-

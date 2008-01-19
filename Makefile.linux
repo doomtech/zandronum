@@ -110,13 +110,13 @@ toolsandpk3: ccdv tools/makewad/makewad tools/dehsupp/dehsupp tools/xlatcc/xlatc
 zdoom.pk3: toolsandpk3
 	ln -sf wadsrc/zdoom.pk3 ./
 
-tools/makewad/makewad:
+tools/makewad/makewad: ccdv
 	$(MAKE) -C tools/makewad/
 
-tools/dehsupp/dehsupp:
+tools/dehsupp/dehsupp: ccdv
 	$(MAKE) -C tools/dehsupp/
 
-tools/xlatcc/xlatcc:
+tools/xlatcc/xlatcc: ccdv
 	$(MAKE) -C tools/xlatcc/
 
 

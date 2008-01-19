@@ -1658,12 +1658,6 @@ void R_RenderActorView (AActor *actor, bool dontmaplines)
 void R_RenderViewToCanvas (AActor *actor, DCanvas *canvas,
 	int x, int y, int width, int height, bool dontmaplines)
 {
-	if (currentrenderer==1)
-	{
-		gl_RenderViewToCanvas(canvas, x, y, width, height);
-		return;
-	}
-
 	const int saveddetail = detailxshift | (detailyshift << 1);
 	const bool savedviewactive = viewactive;
 

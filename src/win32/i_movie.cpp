@@ -67,20 +67,13 @@ int I_PlayMovie (const char *movie)
 
 #else
 
-#define WIN32_LEAN_AND_MEAN
-
-//#include <windows.h>
 #include <dshow.h>
-
 #include "i_movie.h"
-#define control _control_
-
 #include "i_sound.h"
 #include "v_video.h"
 #include "c_console.h"
 #include "win32iface.h"
 #include "sbar.h"
-
 
 EXTERN_CVAR (String, language)
 
@@ -305,12 +298,10 @@ int I_PlayMovie (const char *name)
 		{
 			// Try to avoid nasty palette flashes by clearing the screen to black.
 			// Does not always work. :-(
-			/*
 			static_cast<Win32Video *> (Video)->BlankForGDI ();
 			static_cast<Win32Video *> (Video)->GoFullscreen (false);
 			static_cast<BaseWinFB *> (screen)->ReleaseResources ();
-			*/
-			if (FAILED (drainhr) || FAILED(vidwin->put_FullScreenMode (OATRUE)))
+			if (FAILED (drainhr) || FAILED(hr = vidwin->put_FullScreenMode (OATRUE)))
 			{
 				SizeWindowForVideo ();
 				FullVideo = false;

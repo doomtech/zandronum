@@ -73,6 +73,7 @@
 #include "doomstat.h"
 
 #include "m_misc.h"
+#include "sc_man.h"
 
 // Data.
 #include "m_menu.h"
@@ -110,6 +111,7 @@ void StartGLMenu (void);
 EXTERN_CVAR(Int, vid_renderer)
 EXTERN_CVAR(Bool, nomonsterinterpolation)
 EXTERN_CVAR(Int, showendoom)
+EXTERN_CVAR(Bool, hud_althud)
 
 static value_t Renderers[] = {
 	{ 0.0, "Software" },
@@ -654,6 +656,7 @@ menu_t ControlsMenu =
 static void StartMessagesMenu (void);
 static void StartAutomapMenu (void);
 static void StartHUDMenu (void);
+static void InitCrosshairsList();
 #ifdef G15_ENABLED
 	static void StartG15Menu (void);
 #endif
@@ -676,17 +679,7 @@ EXTERN_CVAR (Bool, r_deathcamera)
 EXTERN_CVAR (Bool, cl_capfps)
 
 
-static value_t Crosshairs[] =
-{
-	{ 0.0, "None" },
-	{ 1.0, "Cross 1" },
-	{ 2.0, "Cross 2" },
-	{ 3.0, "X" },
-	{ 4.0, "Circle" },
-	{ 5.0, "Angle" },
-	{ 6.0, "Triangle" },
-	{ 7.0, "Dot" }
-};
+static TArray<valuestring_t> Crosshairs;
 
 static value_t DetailModes[] =
 {
@@ -765,6 +758,8 @@ static menuitem_t VideoItems[] = {
 
 };
 
+#define CROSSHAIR_INDEX 9
+
 menu_t VideoMenu =
 {
 	"DISPLAY OPTIONS",
@@ -803,7 +798,7 @@ static menuitem_t HUDMenuItems[] = {
 	{ discrete, "Fullscreen HUD",			{&cl_stfullscreenhud},		{2.0}, {0.0},	{0.0}, {FullscreenHUDStyle} },
 	{ discrete, "Stretch status bar",		{&st_scale},				{2.0}, {0.0},	{0.0}, {OnOff} },
 	{ redtext,	" ",						{NULL},						{0.0}, {0.0},	{0.0}, {NULL} },
-	{ discrete,	"Crosshair",				{&crosshair},		   		{8.0}, {0.0},	{0.0}, {Crosshairs} },
+	{ discretes,"Crosshair",				{&crosshair},			   	{8.0}, {0.0},	{0.0}, {NULL} },
 	{ discrete, "Large frag messages",		{&cl_showlargefragmessages},{2.0}, {0.0},	{0.0}, {YesNo} },
 //	{ discrete, "GZDoom HUD",				{&hud_althud},				{2.0}, {0.0},	{0.0}, {OnOff} },
 	{ discrete, "One key display",			{&cl_onekey},				{2.0}, {0.0},	{0.0}, {YesNo} },
@@ -1318,6 +1313,7 @@ static menuitem_t DMFlagsItems[] = {
 	{ bitflag,	"Drop weapon",			{&dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_YES_WEAPONDROP} },
 	{ bitflag,	"Double ammo",			{&dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_YES_DOUBLEAMMO} },
 	{ bitflag,	"Infinite ammo",		{&dmflags},		{0}, {0}, {0}, {(value_t *)DF_INFINITE_AMMO} },
+	{ bitflag,	"Infinite inventory",	{&dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_INFINITE_INVENTORY} },
 	{ bitflag,	"No monsters",			{&dmflags},		{0}, {0}, {0}, {(value_t *)DF_NO_MONSTERS} },
 	{ bitflag,	"Monsters respawn",		{&dmflags},		{0}, {0}, {0}, {(value_t *)DF_MONSTERS_RESPAWN} },
 	{ bitflag,	"No respawn",			{&dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_NO_RESPAWN} },
@@ -1335,7 +1331,8 @@ static menuitem_t DMFlagsItems[] = {
 	{ bitflag,	"Server picks teams (ST/CTF)",	{&dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_NO_TEAM_SELECT} },
 	{ bitflag,	"Lose frag if fragged",	{&dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_YES_LOSEFRAG} },
 	{ bitflag,	"Keep frags gained",	{&dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_YES_KEEPFRAGS} },
-	{ bitflag,	"No team changing",		{&dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_NO_TEAMSWITCH} },
+	{ bitflag,	"No team switching",	{&dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_NO_TEAM_SWITCH} },
+
 	{ redtext,	" ",					{NULL},			{0}, {0}, {0}, {NULL} },
 	{ whitetext,"Cooperative Settings",	{NULL},			{0}, {0}, {0}, {NULL} },
 	{ bitflag,	"Spawn multi. weapons", {&dmflags},		{1}, {0}, {0}, {(value_t *)DF_NO_COOP_WEAPON_SPAWN} },
@@ -1346,8 +1343,8 @@ static menuitem_t DMFlagsItems[] = {
 	{ bitflag,	"Keep powerups",		{&dmflags},		{1}, {0}, {0}, {(value_t *)DF_COOP_LOSE_POWERUPS} },
 	{ bitflag,	"Keep ammo",			{&dmflags},		{1}, {0}, {0}, {(value_t *)DF_COOP_LOSE_AMMO} },
 	{ bitflag,	"Lose half ammo",		{&dmflags},		{0}, {0}, {0}, {(value_t *)DF_COOP_HALVE_AMMO} },
+	{ bitflag,	"Spawn where died",		{&dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_SAME_SPAWN_SPOT} },
 	{ bitflag,	"Start with shotgun",	{&dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_COOP_SHOTGUNSTART} },
-	{ bitflag,	"Spawn where died (coop)",{&dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_SAME_SPAWN_SPOT} },
 };
 
 static menu_t DMFlagsMenu =
@@ -3083,7 +3080,7 @@ static menuitem_t SkirmishDMFlagsItems[] = {
 	{ bitflag,	"Drop weapons (DM)",	{&menu_dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_YES_WEAPONDROP} },
 	{ bitflag,	"Don't spawn runes (DM)",	{&menu_dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_NO_RUNES} },
 	{ bitflag,	"Instant flag return (ST/CTF)",{&menu_dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_INSTANT_RETURN} },
-	{ bitflag,	"No team switching (ST/CTF)",	{&menu_dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_NO_TEAMSWITCH} },
+	{ bitflag,	"No team switching (ST/CTF)",	{&menu_dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_NO_TEAM_SWITCH} },
 	{ bitflag,	"Server picks teams (ST/CTF)",	{&menu_dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_NO_TEAM_SELECT} },
 	{ bitflag,	"Double ammo (DM)",		{&menu_dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_YES_DOUBLEAMMO} },
 	{ bitflag,	"Degeneration (DM)",	{&menu_dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_YES_DEGENERATION} },
@@ -3812,6 +3809,17 @@ int M_FindCurVal (float cur, value_t *values, int numvals)
 	return v;
 }
 
+int M_FindCurVal (float cur, valuestring_t *values, int numvals)
+{
+	int v;
+
+	for (v = 0; v < numvals; v++)
+		if (values[v].value == cur)
+			break;
+
+	return v;
+}
+
 int M_FindCurGUID (const GUID &guid, GUIDName *values, int numvals)
 {
 	int v;
@@ -3996,6 +4004,8 @@ void M_OptDrawer ()
 
 			}
 			break;
+
+			case discretes:
 			case discrete:
 			case cdiscrete:
 			case inverter:
@@ -4028,7 +4038,14 @@ void M_OptDrawer ()
 					{
 						vals = (int)item->b.numvalues;
 					}
+				if (item->type != discretes)
+				{
 					v = M_FindCurVal (value.Float, item->e.values, vals);
+				}
+				else
+				{
+					v = M_FindCurVal (value.Float, item->e.valuestrings, vals);
+				}
 
 					if (v == vals)
 					{
@@ -4038,7 +4055,8 @@ void M_OptDrawer ()
 					else
 					{
 						screen->DrawText (item->type == cdiscrete ? v : ValueColor,
-							x, y, item->e.values[v].name,
+						CurrentMenu->indent + 14, y,
+						item->type != discretes ? item->e.values[v].name : item->e.valuestrings[v].name.GetChars(),
 							DTA_Clean, true, TAG_DONE);
 					}
 				}
@@ -4907,6 +4925,7 @@ void M_OptResponder (event_t *ev)
 				S_Sound (CHAN_VOICE, "menu/cursor", 1, ATTN_NONE);
 				break;
 
+			case discretes:
 			case discrete:
 			case cdiscrete:
 				{
@@ -4936,11 +4955,18 @@ void M_OptResponder (event_t *ev)
 
 						numvals = (int)item->b.min;
 						value = item->a.cvar->GetGenericRep (CVAR_Float);
+					if (item->type != discretes)
+					{
 						cur = M_FindCurVal (value.Float, item->e.values, numvals);
+					}
+					else
+					{
+						cur = M_FindCurVal (value.Float, item->e.valuestrings, numvals);
+					}
 						if (--cur < 0)
 							cur = numvals - 1;
 
-						value.Float = item->e.values[cur].value;
+						value.Float = item->type != discretes ? item->e.values[cur].value : item->e.valuestrings[cur].value;
 						item->a.cvar->SetGenericRep (value, CVAR_Float);
 
 						// Hack hack. Rebuild list of resolutions
@@ -5292,6 +5318,7 @@ void M_OptResponder (event_t *ev)
 				S_Sound (CHAN_VOICE, "menu/cursor", 1, ATTN_NONE);
 				break;
 
+			case discretes:
 			case discrete:
 			case cdiscrete:
 				{
@@ -5321,11 +5348,18 @@ void M_OptResponder (event_t *ev)
 
 						numvals = (int)item->b.min;
 						value = item->a.cvar->GetGenericRep (CVAR_Float);
+					if (item->type != discretes)
+					{
 						cur = M_FindCurVal (value.Float, item->e.values, numvals);
+					}
+					else
+					{
+						cur = M_FindCurVal (value.Float, item->e.valuestrings, numvals);
+					}
 						if (++cur >= numvals)
 							cur = 0;
 
-						value.Float = item->e.values[cur].value;
+						value.Float = item->type != discretes ? item->e.values[cur].value : item->e.valuestrings[cur].value;
 						item->a.cvar->SetGenericRep (value, CVAR_Float);
 
 						// Hack hack. Rebuild list of resolutions
@@ -5670,18 +5704,25 @@ void M_OptResponder (event_t *ev)
 				item->e.mfunc();
 			}
 		}
-		else if (item->type == discrete || item->type == cdiscrete)
+		else if (item->type == discrete || item->type == cdiscrete || item->type == discretes)
 		{
 			int cur;
 			int numvals;
 
 			numvals = (int)item->b.min;
 			value = item->a.cvar->GetGenericRep (CVAR_Float);
-			cur = M_FindCurVal (value.Float, item->e.values, numvals);
+			if (item->type != discretes)
+			{
+				cur = M_FindCurVal (value.Float, item->e.values, numvals);
+			}
+			else
+			{
+				cur = M_FindCurVal (value.Float, item->e.valuestrings, numvals);
+			}
 			if (++cur >= numvals)
 				cur = 0;
 
-			value.Float = item->e.values[cur].value;
+			value.Float = item->type != discretes ? item->e.values[cur].value : item->e.valuestrings[cur].value;
 			item->a.cvar->SetGenericRep (value, CVAR_Float);
 
 			// Hack hack. Rebuild list of resolutions
@@ -5908,13 +5949,27 @@ static void StartHUDMenu (void)
 {
 	M_SwitchMenu (&HUDMenu);
 }
+CCMD (menu_messages)
+{
+	M_StartControlPanel (true);
+	OptionsActive = true;
+	StartMessagesMenu ();
+}
+
 CCMD (menu_automap)
 {
 	M_StartControlPanel (true);
 	OptionsActive = true;
 	StartAutomapMenu ();
 }
-
+/* [BB] ST doesn't use this.
+CCMD (menu_scoreboard)
+{
+	M_StartControlPanel (true);
+	OptionsActive = true;
+	StartScoreboardMenu ();
+}
+*/
 static void StartMapColorsMenu (void)
 {
 	M_SwitchMenu (&MapColorsMenu);
@@ -6231,6 +6286,7 @@ static void MakeSoundChanges (void)
 
 static void VideoOptions (void)
 {
+	InitCrosshairsList();
 	M_SwitchMenu (&VideoMenu);
 }
 
@@ -6238,6 +6294,7 @@ CCMD (menu_display)
 {
 	M_StartControlPanel (true);
 	OptionsActive = true;
+	InitCrosshairsList();
 	M_SwitchMenu (&VideoMenu);
 }
 
@@ -6647,4 +6704,53 @@ void M_Deinit ()
 
 	// Free resolutions from the modes menu.
 	M_FreeModesList();
+}
+
+// Reads any XHAIRS lumps for the names of crosshairs and
+// adds them to the display options menu.
+void InitCrosshairsList()
+{
+	int lastlump, lump;
+	valuestring_t value;
+
+	lastlump = 0;
+
+	Crosshairs.Clear();
+	value.value = 0;
+	value.name = "None";
+	Crosshairs.Push(value);
+
+	while ((lump = Wads.FindLump("XHAIRS", &lastlump)) != -1)
+	{
+		SC_OpenLumpNum(lump, "XHAIRS");
+		while (SC_GetNumber())
+		{
+			value.value = float(sc_Number);
+			SC_MustGetString();
+			value.name = sc_String;
+			if (value.value != 0)
+			{ // Check if it already exists. If not, add it.
+				unsigned int i;
+
+				for (i = 1; i < Crosshairs.Size(); ++i)
+				{
+					if (Crosshairs[i].value == value.value)
+					{
+						break;
+					}
+				}
+				if (i < Crosshairs.Size())
+				{
+					Crosshairs[i].name = value.name;
+				}
+				else
+				{
+					Crosshairs.Push(value);
+				}
+			}
+		}
+		SC_Close();
+	}
+	VideoItems[CROSSHAIR_INDEX].b.numvalues = float(Crosshairs.Size());
+	VideoItems[CROSSHAIR_INDEX].e.valuestrings = &Crosshairs[0];
 }

@@ -107,5 +107,7 @@ void P_SpawnSpecials2( void );
 void P_CreateExtSectors();
 void P_CleanExtSectors();
 
+extern int openfloorpic, openceilingpic;
+
 #endif
 

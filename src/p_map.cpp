@@ -846,7 +846,7 @@ bool PIT_CheckLine (line_t *ld)
 	{
 		tmceilingz = opentop;
 		tmceilingsector = opentopsec;
-		tmceilingpic = opentopsec->ceilingpic;
+		tmceilingpic = openceilingpic==-1? opentopsec->ceilingpic : openceilingpic;
 		ceilingline = ld;
 		BlockingLine = ld;
 	}
@@ -855,7 +855,7 @@ bool PIT_CheckLine (line_t *ld)
 	{
 		tmfloorz = openbottom;
 		tmfloorsector = openbottomsec;
-		tmfloorpic = openbottomsec->floorpic;
+		tmfloorpic = openfloorpic==-1? openbottomsec->floorpic : openfloorpic;
 		BlockingLine = ld;
 	}
 
@@ -2170,7 +2170,7 @@ bool P_TryMove (AActor *thing, fixed_t x, fixed_t y,
 			}
 		}
 		if (thing->flags2 & MF2_CANTLEAVEFLOORPIC
-			&& (tmfloorpic != thing->Sector->floorpic
+			&& (tmfloorpic != thing->floorpic
 				|| tmfloorz - thing->z != 0))
 		{ // must stay within a sector of a certain floor type
 			thing->z = oldz;
@@ -3324,57 +3324,50 @@ bool P_BounceWall (AActor *mo)
 		return false;
 	}
 
-	if (BlockingLine != NULL)
-	{
-		line = BlockingLine;
-	}
-	else
-	{
-		slidemo = mo;
+	slidemo = mo;
 //
 // trace along the three leading corners
 //
-		if (mo->momx > 0)
-		{
-			leadx = mo->x+mo->radius;
-		}
-		else
-		{
-			leadx = mo->x-mo->radius;
-		}
-		if (mo->momy > 0)
-		{
-			leady = mo->y+mo->radius;
-		}
-		else
-		{
-			leady = mo->y-mo->radius;
-		}
-		bestslidefrac = FRACUNIT+1;
-		if (P_PathTraverse(leadx, leady, leadx+mo->momx, leady+mo->momy,
-			PT_ADDLINES, PTR_BounceTraverse))
-		{ // Could not find a wall, so bounce off the floor/ceiling instead.
-			fixed_t floordist = mo->z - mo->floorz;
-			fixed_t ceildist = mo->ceilingz - mo->z;
-			if (floordist <= ceildist)
-			{
-				mo->FloorBounceMissile (mo->Sector->floorplane);
-				return true;
-			}
-			else
-			{
-				mo->FloorBounceMissile (mo->Sector->ceilingplane);
-				return true;
-			}
-			/*
-			else
-			{
-				return (mo->flags2 & MF2_BOUNCE2) != 0;
-			}
-			*/
-		}
-		line = bestslideline;
+	if (mo->momx > 0)
+	{
+		leadx = mo->x+mo->radius;
 	}
+	else
+	{
+		leadx = mo->x-mo->radius;
+	}
+	if (mo->momy > 0)
+	{
+		leady = mo->y+mo->radius;
+	}
+	else
+	{
+		leady = mo->y-mo->radius;
+	}
+	bestslidefrac = FRACUNIT+1;
+	if (P_PathTraverse(leadx, leady, leadx+mo->momx, leady+mo->momy,
+		PT_ADDLINES, PTR_BounceTraverse))
+	{ // Could not find a wall, so bounce off the floor/ceiling instead.
+		fixed_t floordist = mo->z - mo->floorz;
+		fixed_t ceildist = mo->ceilingz - mo->z;
+		if (floordist <= ceildist)
+		{
+			mo->FloorBounceMissile (mo->Sector->floorplane);
+			return true;
+		}
+		else
+		{
+			mo->FloorBounceMissile (mo->Sector->ceilingplane);
+			return true;
+		}
+		/*
+		else
+		{
+			return (mo->flags2 & MF2_BOUNCE2) != 0;
+		}
+		*/
+	}
+	line = bestslideline;
 
 	if (line->special == Line_Horizon)
 	{

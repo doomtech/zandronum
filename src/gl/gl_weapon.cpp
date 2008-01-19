@@ -56,6 +56,7 @@ EXTERN_CVAR(Bool, gl_nocoloredspritelighting)
 
 static void DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed_t sy, int cm_index)
 {
+	float			fU1,fV1;
 	float			fU2,fV2;
 	fixed_t			tx;
 	int				x1,y1,x2,y2;
@@ -101,24 +102,26 @@ static void DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed_t sy,
 	y1=viewwindowy+(vh>>1)-(int)(((float)texturemid/(float)FRACUNIT)*scale);
 	y2=y1+(int)((float)tex->TextureHeight()*scale)+1;
 
-	fU2=pti->GetUR();
-	fV2=pti->GetVB();
-
-	gl.Begin(GL_TRIANGLE_STRIP);
 	if (!mirror)
 	{
-		gl.TexCoord2f(0  , 0  ); gl.Vertex2f(x1,y1);
-		gl.TexCoord2f(0  , fV2); gl.Vertex2f(x1,y2);
-		gl.TexCoord2f(fU2, 0  ); gl.Vertex2f(x2,y1);
-		gl.TexCoord2f(fU2, fV2); gl.Vertex2f(x2,y2);
+		fU1=pti->GetUL();
+		fV1=pti->GetVT();
+		fU2=pti->GetUR();
+		fV2=pti->GetVB();
 	}
 	else
 	{
-		gl.TexCoord2f(fU2, 0  ); gl.Vertex2f(x1,y1);
-		gl.TexCoord2f(fU2, fV2); gl.Vertex2f(x1,y2);
-		gl.TexCoord2f(0  , 0  ); gl.Vertex2f(x2,y1);
-		gl.TexCoord2f(0  , fV2); gl.Vertex2f(x2,y2);
+		fU2=pti->GetUL();
+		fV2=pti->GetVT();
+		fU1=pti->GetUR();
+		fV1=pti->GetVB();
 	}
+
+	gl.Begin(GL_TRIANGLE_STRIP);
+	gl.TexCoord2f(fU1, fV1); gl.Vertex2f(x1,y1);
+	gl.TexCoord2f(fU1, fV2); gl.Vertex2f(x1,y2);
+	gl.TexCoord2f(fU2, fV1); gl.Vertex2f(x2,y1);
+	gl.TexCoord2f(fU2, fV2); gl.Vertex2f(x2,y2);
 	gl.End();
 }
 

@@ -115,7 +115,7 @@ bool OpenGLFrameBuffer::WipeStartScreen(int type)
 	switch (type)
 	{
 	case wipe_Burn:
-		ScreenWipe = new Wiper_Burn();
+		ScreenWipe = new Wiper_Burn;
 		break;
 
 	case wipe_Fade:
@@ -162,7 +162,6 @@ void OpenGLFrameBuffer::WipeEndScreen()
 	gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	GatheringWipeScreen = true;
 	Unlock();
 }
 
@@ -184,15 +183,6 @@ bool OpenGLFrameBuffer::WipeDo(int ticks)
 	if (wipestartscreen == NULL || wipeendscreen == NULL)
 	{
 		return true;
-	}
-	if (GatheringWipeScreen)
-	{ 
-		// This is the first time we've been called for this wipe.
-		GatheringWipeScreen = false;
-	}
-	else
-	{ // This is the second or later time we've been called for this wipe.
-		//D3DDevice->BeginScene();
 	}
 	bool done = ScreenWipe->Run(ticks, this);
 	//DrawLetterbox();
@@ -224,7 +214,6 @@ void OpenGLFrameBuffer::WipeCleanup()
 		delete wipeendscreen;
 		wipeendscreen = NULL;
 	}
-	GatheringWipeScreen = false;
 	gl_SetTextureMode(TM_MODULATE);
 }
 
@@ -328,7 +317,6 @@ bool OpenGLFrameBuffer::Wiper_Melt::Run(int ticks, OpenGLFrameBuffer *fb)
 	// Draw the new screen on the bottom.
 	gl_SetTextureMode(TM_OPAQUE);
 	fb->wipeendscreen->Bind(0, CM_DEFAULT);
-	gl.BlendFunc(GL_ONE, GL_ZERO);
 	gl.Color4f(1.f, 1.f, 1.f, 1.f);
 	gl.Begin(GL_TRIANGLE_STRIP);
 	gl.TexCoord2f(0, fb->wipestartscreen->GetVB());
@@ -392,6 +380,7 @@ bool OpenGLFrameBuffer::Wiper_Melt::Run(int ticks, OpenGLFrameBuffer *fb)
 			}
 		}
 	}
+	gl_SetTextureMode(TM_MODULATE);
 	return done;
 }
 
@@ -461,11 +450,6 @@ bool OpenGLFrameBuffer::Wiper_Burn::Run(int ticks, OpenGLFrameBuffer *fb)
 			*dest++ = MAKEARGB(s,255,255,255);
 		}
 	}
-	BurnTexture->CreateTexture(rgb_buffer, WIDTH, HEIGHT, false, 0, CM_DEFAULT);
-	gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	// Put the initial screen back to the buffer.
 	gl_SetTextureMode(TM_OPAQUE);
@@ -500,8 +484,15 @@ bool OpenGLFrameBuffer::Wiper_Burn::Run(int ticks, OpenGLFrameBuffer *fb)
 
 	// Burn the new screen on top of it.
 	gl.Color4f(1.f, 1.f, 1.f, 1.f);
-	BurnTexture->Bind(0, CM_DEFAULT);
 	fb->wipeendscreen->Bind(1, CM_DEFAULT);
+	//BurnTexture->Bind(0, CM_DEFAULT);
+
+	BurnTexture->CreateTexture(rgb_buffer, WIDTH, HEIGHT, false, 0, CM_DEFAULT);
+	gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
 
 	gl.Begin(GL_TRIANGLE_STRIP);
 	gl.MultiTexCoord2f(GL_TEXTURE0, 0, 0);
@@ -519,8 +510,8 @@ bool OpenGLFrameBuffer::Wiper_Burn::Run(int ticks, OpenGLFrameBuffer *fb)
 	gl.End();
 
 	gl.ActiveTexture(GL_TEXTURE1);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	gl.Disable(GL_TEXTURE_2D);
-	gl_SetTextureMode(TM_MODULATE);
 	gl.ActiveTexture(GL_TEXTURE0);
 
 	// The fire may not always stabilize, so the wipe is forced to end

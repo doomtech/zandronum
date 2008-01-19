@@ -79,8 +79,6 @@ CUSTOM_CVAR(Int, gl_texture_format, 0, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINI
 //
 //===========================================================================
 unsigned int GLTexture::lastbound[GLTexture::MAX_TEXTURES];
-int GLTexture::lastactivetexture=0;
-
 
 GLTexture::TexFilter_s GLTexture::TexFilter[]={
 	{GL_NEAREST,					GL_NEAREST,		false},
@@ -121,7 +119,7 @@ int GLTexture::GetTexDimension(int value)
 // strange crashes deep inside the GL driver when I didn't do it!
 //
 //===========================================================================
-void GLTexture::LoadImage(unsigned char * buffer,int w, int h, unsigned int & glTexID,int wrapparam, bool alphatexture)
+void GLTexture::LoadImage(unsigned char * buffer,int w, int h, unsigned int & glTexID,int wrapparam, bool alphatexture, int texunit)
 {
 	int rh,rw;
 	int texformat=TexFormat[gl_texture_format].texformat;
@@ -131,7 +129,7 @@ void GLTexture::LoadImage(unsigned char * buffer,int w, int h, unsigned int & gl
 	if (alphatexture) texformat=GL_ALPHA8;
 	if (glTexID==0) gl.GenTextures(1,&glTexID);
 	gl.BindTexture(GL_TEXTURE_2D, glTexID);
-	lastbound[lastactivetexture]=glTexID;
+	lastbound[texunit]=glTexID;
 
 	if (!buffer)
 	{
@@ -330,14 +328,6 @@ unsigned * GLTexture::GetTexID(int cm, int translation)
 	return &glTexID_Translated[add].glTexID;
 }
 
-void GLTexture::ChangeActiveTexture(int texunit)
-{
-	if (texunit != lastactivetexture)
-	{
-		lastactivetexture = texunit;
-		gl.ActiveTexture(GL_TEXTURE0+texunit);
-	}
-}
 //===========================================================================
 // 
 //	Binds this patch
@@ -354,8 +344,9 @@ unsigned int GLTexture::Bind(int texunit, int cm,int translation)
 	{
 		if (lastbound[texunit]==*pTexID) return *pTexID;
 		lastbound[texunit]=*pTexID;
-		ChangeActiveTexture(texunit);
+		if (texunit != 0) gl.ActiveTexture(GL_TEXTURE0+texunit);
 		gl.BindTexture(GL_TEXTURE_2D, *pTexID);
+		if (texunit != 0) gl.ActiveTexture(GL_TEXTURE0);
 		return *pTexID;
 	}
 	return 0;
@@ -374,8 +365,9 @@ unsigned int GLTexture::CreateTexture(unsigned char * buffer, int w, int h, bool
 
 	unsigned int * pTexID=GetTexID(cm, translation);
 
-	ChangeActiveTexture(texunit);
-	LoadImage(buffer, w, h, *pTexID, wrap? GL_REPEAT:GL_CLAMP, cm==CM_SHADE);
+	if (texunit != 0) gl.ActiveTexture(GL_TEXTURE0+texunit);
+	LoadImage(buffer, w, h, *pTexID, wrap? GL_REPEAT:GL_CLAMP, cm==CM_SHADE, texunit);
+	if (texunit != 0) gl.ActiveTexture(GL_TEXTURE0);
 	return *pTexID;
 }
 
