@@ -4374,7 +4374,8 @@ void P_SpawnPlayer (mapthing2_t *mthing, bool bClientUpdate, player_t *p, bool t
 	else
 		playernum = p - players;
 
-	if (p->cls == NULL)
+	// [BB] The (p->userinfo.PlayerClass != p->CurrentPlayerClass) check allows the player to change its class when respawning.
+	if (p->cls == NULL || (p->userinfo.PlayerClass != p->CurrentPlayerClass))
 	{
 		// [GRB] Pick a class from player class list
 		if (PlayerClasses.Size () > 1)

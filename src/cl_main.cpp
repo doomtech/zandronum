@@ -113,7 +113,7 @@ int		D_PlayerClassToInt (const char *classname);
 bool	P_AdjustFloorCeil (AActor *thing);
 void	ClientObituary (AActor *self, AActor *inflictor, AActor *attacker, FName MeansOfDeath);
 void	P_CrouchMove(player_t * player, int direction);
-bool	DoThingRaise( AActor *thing );
+bool	DoThingRaise( AActor *thing, bool bIgnorePositionCheck );
 extern	bool	SpawningMapThing;
 extern FILE *Logfile;
 
@@ -5411,7 +5411,7 @@ static void client_SetThingState( BYTESTREAM_s *pByteStream )
 	case STATE_RAISE:
 
 		// When an actor raises, we need to do a whole bunch of other stuff.
-		DoThingRaise( pActor );
+		DoThingRaise( pActor, true );
 		return;
 	case STATE_HEAL:
 
@@ -6083,10 +6083,21 @@ static void client_SetThingFrame( BYTESTREAM_s *pByteStream, bool bCallStateFunc
 	pNewState = RUNTIME_TYPE( pActor )->ActorInfo->FindState( StateList.Size( ), &StateList[0] );
 	if ( pNewState )
 	{
+		// [BB] The offset was calculated by SERVERCOMMANDS_SetThingFrame using GetNextState(),
+		// so we have to use this here, too, to propely find the target state.
+		for ( int i = 0; i < lOffset; i++ )
+		{
+			if ( pNewState != NULL )
+				pNewState = pNewState->GetNextState( );
+		}
+
+		if ( pNewState == NULL )
+			return;
+
 		if ( bCallStateFunction )
-			pActor->SetState( pNewState + lOffset );
+			pActor->SetState( pNewState );
 		else
-			pActor->SetStateNF( pNewState + lOffset );
+			pActor->SetStateNF( pNewState );
 	}
 /*
 	LONG		lID;

@@ -262,6 +262,7 @@ v0.97d
 -	- Fixed: Entering a command in the console with 64 or more chars may cause a crash. [Torr Samaho]
 -	- Fixed: If a client collects all pieces of one weapon online, but not all on the same level, it won't get the completed weapon before the next map change. [Torr Samaho]
 -	- Fixed some potential issues during map authentication. [Torr Samaho]
+-	- Fixed: Attempting to spawn a monster with A_SpawnItem, A_SpawnItemEx or any of the ACS spawn functions always increased the number of remaining monsters in invasion, no matter if the spawn was successful or not. [Torr Samaho]
 !	- Survival co-op is now disabled in hubs. [Carnevil]
 !	- Skulltag's invasion spawners are now defined in skulltag.pk3. [Carnevil]
 !	- Skulltag.wad is now loaded before doom2.wad. This should fix certain texture errors. [Carnevil]
@@ -292,6 +293,7 @@ v0.97d
 !	- If a monster is killed in invasion, one monster corpse from the previous wave is removed (if there still is such a corpse). This should improve the speed on maps like ALINV11. [Torr Samaho]
 !	- Changed: sv_fastweapons is now clamped to values between 0 and 2. [Torr Samaho]
 !	- Changed: The server doesn't call P_Ticker anymore if there are no players. This significantly reduces CPU usage on maps with many monsters (of course only as long as there are no players). [Torr Samaho]
+!	- Changed: If a player selects a new player class, the class will now be changed when respawning. So it's not necessary anymore to spectate and rejoin to change the class. NOTE: Players are still not allowed to change their class in single player or coop game modes offline. [Torr Samaho]
 
 v0.97d-beta4.3
 --------------

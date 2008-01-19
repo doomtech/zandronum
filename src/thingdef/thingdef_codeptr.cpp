@@ -66,9 +66,10 @@
 #include "thingdef/thingdef.h"
 #include "v_video.h"
 #include "deathmatch.h"
+// [BB] new #includes.
 #include "cl_main.h"
 #include "cl_demo.h"
-
+#include "invasion.h"
 
 static FRandom pr_camissile ("CustomActorfire");
 static FRandom pr_camelee ("CustomMelee");
@@ -544,13 +545,17 @@ static void DoJump(AActor * self, FState * CallingState, int offset, ULONG ulCli
 		if (( ulClientUpdateFlags & CLIENTUPDATE_FRAME ) &&
 			( NETWORK_GetState( ) == NETSTATE_SERVER ))
 		{
+			// [BB] For some reason calling SERVERCOMMANDS_SetThingFrame normally here causes clients
+			// to crash when exiting from tnt03a1 to tnt03a2. The crash seems to be caused by calling
+			// SetState on the clients. Just calling SetStateNF instead seems to fix the problem. This
+			// is done by the "false" argument.
 			if (( ulClientUpdateFlags & CLIENTUPDATE_SKIPPLAYER ) &&
 				( self->player ))
 			{
-				SERVERCOMMANDS_SetThingFrame( self, jumpto, ULONG( self->player - players ), SVCF_SKIPTHISCLIENT );
+				SERVERCOMMANDS_SetThingFrame( self, jumpto, ULONG( self->player - players ), SVCF_SKIPTHISCLIENT, false );
 			}
 			else
-				SERVERCOMMANDS_SetThingFrame( self, jumpto );
+				SERVERCOMMANDS_SetThingFrame( self, jumpto, MAXPLAYERS, 0, false );
 
 			if ( ulClientUpdateFlags & CLIENTUPDATE_POSITION )
 				SERVERCOMMANDS_MoveThing( self, CM_X|CM_Y|CM_Z );
@@ -1786,7 +1791,13 @@ static void InitSpawnedItem(AActor *self, AActor *mo, INTBOOL transfer_translati
 			if (!nocheckpos && !P_TestMobjLocation(mo))
 			{
 				// The monster is blocked so don't spawn it at all!
-				if (mo->CountsAsKill()) level.total_monsters--;
+				if (mo->CountsAsKill())
+				{
+					level.total_monsters--;
+
+					// [BB] The monster didn't spawn at all, so we need to correct the number of monsters in invasion mode.
+					INVASION_UpdateMonsterCount( mo, true );
+				}
 				mo->Destroy();
 				if (pStateCall != NULL) pStateCall->Result=false;	// for an inventory item's use state
 				return;

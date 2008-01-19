@@ -4881,9 +4881,9 @@ CCMD( kickfromgame )
 #ifdef	_DEBUG
 CCMD( testchecksum )
 {
-	char			szString[1024];
-	char			szMD5[128];
-	char			append[256];
+	char	szString[1024];
+	FString	MD5String;
+	char	append[256];
 
 	memset( szString, 0, 1024 );
 	memset( append, 0, 256 );
@@ -4894,8 +4894,8 @@ CCMD( testchecksum )
 		strcat( szString, append );
 	}
 	
-	CMD5Checksum::GetMD5( (BYTE *)szString, 1024, szMD5 );
-	Printf( "%s\n", szMD5 );
+	CMD5Checksum::GetMD5( (BYTE *)szString, 1024, MD5String );
+	Printf( "%s\n", MD5String.GetChars() );
 }
 
 //*****************************************************************************
@@ -4904,7 +4904,7 @@ CCMD( testchecksumonlevel )
 	LONG		lBaseLumpNum;
 	LONG		lCurLumpNum;
 	LONG		lLumpSize;
-	char		szChecksum[64];
+	FString		Checksum;
 	FWadLump	Data;
 	BYTE		*pbData;
 
@@ -4921,11 +4921,11 @@ CCMD( testchecksumonlevel )
 	Data.Read( pbData, lLumpSize );
 
 	// Perform the checksum on our buffer, and free it.
-	CMD5Checksum::GetMD5( pbData, lLumpSize, szChecksum );
+	CMD5Checksum::GetMD5( pbData, lLumpSize, Checksum );
 	free( pbData );
 
 	// Now, send the vertex checksum string.
-	Printf( "Verticies: %s\n", szChecksum );
+	Printf( "Verticies: %s\n", Checksum.GetChars() );
 
 	// Get the linedefs lump.
 	lCurLumpNum = lBaseLumpNum + ML_LINEDEFS;
@@ -4937,11 +4937,11 @@ CCMD( testchecksumonlevel )
 	Data.Read( pbData, lLumpSize );
 
 	// Perform the checksum on our buffer, and free it.
-	CMD5Checksum::GetMD5( pbData, lLumpSize, szChecksum );
+	CMD5Checksum::GetMD5( pbData, lLumpSize, Checksum );
 	free( pbData );
 
 	// Now, send the linedefs checksum string.
-	Printf( "Linedefs: %s\n", szChecksum );
+	Printf( "Linedefs: %s\n", Checksum.GetChars() );
 
 	// Get the sidedefs lump.
 	lCurLumpNum = lBaseLumpNum + ML_SIDEDEFS;
@@ -4953,11 +4953,11 @@ CCMD( testchecksumonlevel )
 	Data.Read( pbData, lLumpSize );
 
 	// Perform the checksum on our buffer, and free it.
-	CMD5Checksum::GetMD5( pbData, lLumpSize, szChecksum );
+	CMD5Checksum::GetMD5( pbData, lLumpSize, Checksum );
 	free( pbData );
 
 	// Now, send the sidedefs checksum string.
-	Printf( "Sidedefs: %s\n", szChecksum );
+	Printf( "Sidedefs: %s\n", Checksum.GetChars() );
 
 	// Get the sectors lump.
 	lCurLumpNum = lBaseLumpNum + ML_SECTORS;
@@ -4969,11 +4969,11 @@ CCMD( testchecksumonlevel )
 	Data.Read( pbData, lLumpSize );
 
 	// Perform the checksum on our buffer, and free it.
-	CMD5Checksum::GetMD5( pbData, lLumpSize, szChecksum );
+	CMD5Checksum::GetMD5( pbData, lLumpSize, Checksum );
 	free( pbData );
 
 	// Now, send the sectors checksum string.
-	Printf( "Sectors: %s\n", szChecksum );
+	Printf( "Sectors: %s\n", Checksum.GetChars() );
 }
 
 //*****************************************************************************

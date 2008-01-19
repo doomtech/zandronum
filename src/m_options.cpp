@@ -5114,7 +5114,7 @@ void M_OptResponder (event_t *ev)
 					if ( lClass < -1 )
 						lClass = PlayerClasses.Size() - 1;
 
-					cvar_set( "menu_playerclass", ( lClass == -1 ) ? "random" : PlayerClasses[lClass].Type->TypeName.GetChars( ));
+					cvar_set( "menu_playerclass", ( lClass == -1 ) ? "random" : PlayerClasses[lClass].Type->Meta.GetMetaString (APMETA_DisplayName));
 
 					g_lPlayerSetupClass = lClass;
 				}
@@ -5510,7 +5510,7 @@ void M_OptResponder (event_t *ev)
 					if ( lClass >= PlayerClasses.Size() )
 						lClass = -1;
 
-					cvar_set( "menu_playerclass", ( lClass == -1 ) ? "random" : PlayerClasses[lClass].Type->TypeName.GetChars( ));
+					cvar_set( "menu_playerclass", ( lClass == -1 ) ? "random" : PlayerClasses[lClass].Type->Meta.GetMetaString (APMETA_DisplayName));
 
 					g_lPlayerSetupClass = lClass;
 				}

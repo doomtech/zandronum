@@ -1423,7 +1423,11 @@ FUNC(LS_Thing_SpawnFacing)
 }
 
 // [BC] No longer static so clients can call this function.
-/*static*/ bool DoThingRaise(AActor *thing)
+// [BB] Added bIgnorePositionCheck: If the server instructs the client to raise
+// a thing with SERVERCOMMANDS_SetThingState, the client has to ignore the
+// P_CheckPosition check. For example this is relevant if an Archvile raised
+// the thing.
+/*static*/ bool DoThingRaise(AActor *thing, bool bIgnorePositionCheck = false)
 {
 	if (thing == NULL)
 		return false;	// not valid
@@ -1450,7 +1454,7 @@ FUNC(LS_Thing_SpawnFacing)
 	thing->flags |= MF_SOLID;
 	thing->height = info->height;	// [RH] Use real height
 	thing->radius = info->radius;	// [RH] Use real radius
-	if (!P_CheckPosition (thing, thing->x, thing->y))
+	if (!P_CheckPosition (thing, thing->x, thing->y) && !bIgnorePositionCheck)
 	{
 		thing->flags = oldflags;
 		thing->radius = oldradius;

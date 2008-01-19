@@ -1853,6 +1853,10 @@ void G_PlayerFinishLevel (int player, EFinishLevelType mode, bool resetinventory
 
 	p = &players[player];
 
+	// [BB] Under some circumstances a client may come here with p->mo == NULL.
+	if ( (NETWORK_GetState() == NETSTATE_CLIENT) && (p->mo == NULL) )
+		return;
+
 	// Strip all current powers, unless moving in a hub and the power is okay to keep.
 	item = p->mo->Inventory;
 	while (item != NULL)

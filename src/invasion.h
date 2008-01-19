@@ -158,6 +158,8 @@ void	INVASION_SetCurrentWave( ULONG ulWave );
 bool	INVASION_GetIncreaseNumMonstersOnSpawn( void );
 void	INVASION_SetIncreaseNumMonstersOnSpawn( bool bIncrease );
 
+void	INVASION_UpdateMonsterCount( AActor* pActor, bool removeMonster ); 
+
 //*****************************************************************************
 //  EXTERNAL CONSOLE VARIABLES
 

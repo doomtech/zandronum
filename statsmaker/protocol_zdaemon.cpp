@@ -102,9 +102,9 @@ void ZDAEMON_QueryMasterServer( void )
 //
 bool ZDAEMON_ParseMasterServerResponse( BYTESTREAM_s *pByteStream, TArray<SERVERINFO_s>&aServerInfo, TArray<QUERYINFO_s>&aQueryInfo )
 {
-	ULONG			ulIdx;
+	LONG			lIdx;
 	LONG			lCommand;
-	SERVERINFO_s	ServerInfo;
+	//SERVERINFO_s	ServerInfo;
 	QUERYINFO_s		QueryInfo;
 	LONG			lNumServers;
 
@@ -124,9 +124,9 @@ bool ZDAEMON_ParseMasterServerResponse( BYTESTREAM_s *pByteStream, TArray<SERVER
 		// Get the list of servers.
 		Printf( "Receiving ZDaemon server list...\n" );
 		lNumServers = NETWORK_ReadShort( pByteStream );
-		for ( ulIdx = 0; ulIdx < lNumServers; ulIdx++ )
+		for ( lIdx = 0; lIdx < lNumServers; lIdx++ )
 		{
-			char	*pszString;
+			const char *pszString;
 
 			pszString = NETWORK_ReadString( pByteStream );
 		}
@@ -173,13 +173,13 @@ void ZDAEMON_QueryServer( SERVERINFO_s *pServer )
 //
 bool ZDAEMON_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVERINFO_s *pServer, TArray<QUERYINFO_s>&aQueryInfo )
 {
-	LONG		lCommand;
+	//LONG		lCommand;
 	LONG		lGameType = GAMETYPE_COOPERATIVE;
 	LONG		lNumPWADs;
 	LONG		lNumPlayers;
 	LONG		lNumRealPlayers;
 	ULONG		ulIdx;
-	ULONG		ulBits;
+	//ULONG		ulBits;
 
 	// Make sure this is a server we're actually waiting for a reply from.
 	if ( pServer->ulActiveState != AS_WAITINGFORREPLY )
