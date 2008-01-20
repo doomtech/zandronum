@@ -837,7 +837,6 @@ void R_InitSkins (void)
 		LONG		lLastLump = 0;
 		char		szKey[128];
 		char		szValue[128];
-		char		szSpriteName[4];
 		ULONG		ulIdx;
 
 		// Search through all loaded wads for a lump called "SKININFO".
@@ -856,7 +855,7 @@ void R_InitSkins (void)
 				// Move onto the next skin.
 				i++;
 
-				szSpriteName[0] = 0;
+				intname = 0;
 				crouchname = 0;
 
 				remove = false;
@@ -893,9 +892,14 @@ void R_InitSkins (void)
 						for ( ulIdx = 0; ulIdx < 4; ulIdx++ )
 							szValue[ulIdx] = toupper( szValue[ulIdx] );
 		
-						// [BB]: One has to do a strncpy here: sprintf writes 5 chars ( 4 + terminator)
-						// and szValue is only a char array of length 4!
-						strncpy( szSpriteName, szValue, 4 );
+						intname = *((DWORD *)szValue);
+					}
+					else if (0 == stricmp (szKey, "crouchsprite"))
+					{
+						for ( ulIdx = 0; ulIdx < 4; ulIdx++ )
+							szValue[ulIdx] = toupper( szValue[ulIdx] );
+
+						crouchname = *((DWORD *)szValue);
 					}
 					else if ( stricmp( szKey, "face" ) == 0 )
 					{
@@ -1085,13 +1089,10 @@ void R_InitSkins (void)
 						sprintf( skins[i].name, "UNNAMED SKIN %d", i );
 
 					// Attempt to install a new sprite.
-					if ( szSpriteName[0] != '\0' )
+					if ( intname || crouchname )
 					{
 						char	szTempLumpName[9];
 						LONG	lSpriteNum;
-
-						// Create an integer representation of the sprite name (is this faster?).
-						intname = *(DWORD *)szSpriteName;
 
 						int basens = Wads.GetLumpNamespace(base);
 
@@ -1116,6 +1117,9 @@ void R_InitSkins (void)
 									break;
 								}
 							}
+
+							if ( intname == 0 )
+								continue;
 
 							// Loop through all the lumps searching for frames for this skin.
 							for ( ulIdx = 0; ulIdx < Wads.GetNumLumps( ); ulIdx++ )
@@ -1151,7 +1155,7 @@ void R_InitSkins (void)
 								break;
 							}
 
-							strncpy( temp.name, szSpriteName, 4 );
+							strncpy( temp.name, reinterpret_cast<const char*>(&intname), 4 );
 							temp.name[4] = 0;
 							lSpriteNum = (int)sprites.Push( temp );
 							if ( spr == 0 )
@@ -1160,49 +1164,6 @@ void R_InitSkins (void)
 								skins[i].crouchsprite = lSpriteNum;
 							R_InstallSprite( lSpriteNum );
 						}
-/*						
-						// Loop through all the lumps searching for frames for this skin.
-						for ( ulIdx = 0; ulIdx < Wads.GetNumLumps( ); ulIdx++ )
-						{
-							// Only process skin entries from the wad the SKININFO lump is in.
-							// NOTE: If this isn't done, Skulltag doesn't work with hr.wad.
-							if ( Wads.GetLumpFile( lCurLump ) != Wads.GetLumpFile( ulIdx ))
-								continue;
-
-							Wads.GetLumpName( szTempLumpName, ulIdx );
-							if ( *(DWORD *)szTempLumpName == intname )
-							{
-								LONG	lPicNum = TexMan.AddTexture( new FPatchTexture( ulIdx, FTexture::TEX_SkinSprite ));
-
-								R_InstallSpriteLump( lPicNum, 
-													 szTempLumpName[4] - 'A',
-													 szTempLumpName[5],
-													 false );
-
-								// This lump represents two frames (A3A7, etc.), so install it twice.
-								if ( szTempLumpName[6] )
-									R_InstallSpriteLump( lPicNum,
-													 szTempLumpName[6] - 'A',
-													 szTempLumpName[7],
-													 true );
-							}
-						}
-
-						if ( maxframe <= 0 )
-						{
-							Printf (PRINT_BOLD, "Skin %s (#%d) has no frames. Removing.\n", skins[i].name, i);
-							if (i < numskins-1)
-								memmove (&skins[i], &skins[i+1], sizeof(skins[0])*(numskins-i-1));
-							i--;
-							continue;
-						}
-
-						// Now that all the frames have been installed, install our new sprite.
-						strncpy( temp.name, szSpriteName, 4 );
-						temp.name[4] = 0;
-						skins[i].sprite = (int)sprites.Push( temp );
-						R_InstallSprite( skins[i].sprite );
-*/
 					}
 				}
 
