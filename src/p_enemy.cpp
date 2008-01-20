@@ -1043,7 +1043,13 @@ void P_RandomChaseDir (AActor *actor)
 	if (pr_newchasedir() < 150)
 	{
 		if (P_TryWalk (actor))
+		{
+			// [BB] Set the thing's position.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z );
+
 			return;
+		}
 	}
 
 	turndir = (pr_newchasedir() & 1) ? -1 : 1;
