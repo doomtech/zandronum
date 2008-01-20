@@ -40,14 +40,14 @@
 
 /** Lots of different version numbers **/
 
-#define DOTVERSIONSTR "0.97d"
+#define DOTVERSIONSTR "0.97d-unofficial"
 #define DOTVERSIONSTR_NOREV DOTVERSIONSTR
 
 // [BB] The version string that includes revision / compatibility data.
 #define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING
 
 // [BC] What version of ZDoom is this based off of?
-#define	ZDOOMVERSIONSTR		"2.1.8-708"
+#define	ZDOOMVERSIONSTR		"2.1.8-709"
 
 /** Release code stuff */
 
