@@ -251,7 +251,7 @@ static void DragonSeek (AActor *actor, angle_t thresh, angle_t turnMax)
 		dist = dist/actor->Speed;
 	}
 	// [BB] If we're the server, update the thing's momentum and angle.
-	// Unfortunately there are sync issues, if we don't also update actual position.
+	// Unfortunately there are sync issues, if we don't also update the actual position.
 	// Is there a way to fix this without sending the position?
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_MoveThingExact( actor, CM_X|CM_Y|CM_Z|CM_ANGLE|CM_MOMX|CM_MOMY|CM_MOMZ );

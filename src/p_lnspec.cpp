@@ -866,6 +866,10 @@ FUNC(LS_ThrustThing)
 
 static void ThrustThingHelper (AActor *it, angle_t angle, int force, INTBOOL nolimit)
 {
+	// [BB] This is server side.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		return;
+
 	angle >>= ANGLETOFINESHIFT;
 	it->momx += force * finecosine[angle];
 	it->momy += force * finesine[angle];
@@ -876,8 +880,10 @@ static void ThrustThingHelper (AActor *it, angle_t angle, int force, INTBOOL nol
 	}
 
 	// [BC] If we're the server, update the thing's momentum.
+	// [BB] Unfortunately there are sync issues, if we don't also update the actual position.
+	// Is there a way to fix this without sending the position?
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_MoveThingExact( it, CM_MOMX|CM_MOMY );
+		SERVERCOMMANDS_MoveThingExact( it, CM_X|CM_Y|CM_MOMX|CM_MOMY );
 }
 
 FUNC(LS_ThrustThingZ)	// [BC]
@@ -896,27 +902,39 @@ FUNC(LS_ThrustThingZ)	// [BC]
 
 		while ( (victim = iterator.Next ()) )
 		{
-			if (!arg3)
-				victim->momz = thrust;
-			else
-				victim->momz += thrust;
+			// [BB] This is server side.
+			if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+			{
+				if (!arg3)
+					victim->momz = thrust;
+				else
+					victim->momz += thrust;
+			}
 
 			// [BC] If we're the server, update the thing's momentum.
+			// [BB] Unfortunately there are sync issues, if we don't also update the actual position.
+			// Is there a way to fix this without sending the position?
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_MoveThingExact( victim, CM_MOMZ );
+				SERVERCOMMANDS_MoveThingExact( victim, CM_Z|CM_MOMZ );
 		}
 		return true;
 	}
 	else if (it)
 	{
-		if (!arg3)
-			it->momz = thrust;
-		else
-			it->momz += thrust;
+		// [BB] This is server side.
+		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+		{
+			if (!arg3)
+				it->momz = thrust;
+			else
+				it->momz += thrust;
+		}
 
 		// [BC] If we're the server, update the thing's momentum.
+		// [BB] Unfortunately there are sync issues, if we don't also update the actual position.
+		// Is there a way to fix this without sending the position?
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_MoveThingExact( it, CM_MOMZ );
+			SERVERCOMMANDS_MoveThingExact( it, CM_Z|CM_MOMZ );
 
 		return true;
 	}
