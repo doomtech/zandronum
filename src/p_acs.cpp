@@ -1927,8 +1927,9 @@ int DLevelScript::CountPlayers ()
 {
 	int count = 0, i;
 
+	// [BB] Skulltag doesn't count spectators as players.
 	for (i = 0; i < MAXPLAYERS; i++)
-		if (playeringame[i])
+		if (( playeringame[i] ) && ( players[i].bSpectating == false ))
 			count++;
 	
 	return count;

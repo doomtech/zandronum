@@ -295,6 +295,7 @@ v0.97d
 !	- Changed: sv_fastweapons is now clamped to values between 0 and 2. [Torr Samaho]
 !	- Changed: The server doesn't call P_Ticker anymore if there are no players. This significantly reduces CPU usage on maps with many monsters (of course only as long as there are no players). [Torr Samaho]
 !	- Changed: If a player selects a new player class, the class will now be changed when respawning. So it's not necessary anymore to spectate and rejoin to change the class. NOTE: Players are still not allowed to change their class in single player or coop game modes offline. [Torr Samaho]
+!	- Changed: playercount() now returns the number of active players, i.e. number of players - number of spectators. [Torr Samaho]
 
 v0.97d-beta4.3
 --------------
