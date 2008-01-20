@@ -1050,6 +1050,9 @@ void APlayerPawn::GiveDefaultInventory ()
 	// Now add the items from the DECORATE definition
 	FDropItem *di = GetDropItems(RUNTIME_TYPE(this));
 
+	// [BB] Buckshot only makes sense if this is a Doom, but not a Doom 1 game.
+	const bool bBuckshotPossible = ((gameinfo.gametype == GAME_Doom) && gamemission != doom );
+
 	// [BB] Ugly hack: Stuff for the Doom player. The instagib and buckshot stuff
 	// has to be done before giving the default items.
 	if ( this->GetClass()->IsDescendantOf( PClass::FindClass( "DoomPlayer" ) ) )
@@ -1088,7 +1091,7 @@ void APlayerPawn::GiveDefaultInventory ()
 		}
 		// [BC] In buckshot mode, give the player the SSG, and the maximum amount of shells
 		// possible.
-		else if (( buckshot ) && ( deathmatch || teamgame ))
+		else if (( buckshot && bBuckshotPossible ) && ( deathmatch || teamgame ))
 		{
 			// Give the player the weapon.
 			pInventory = player->mo->GiveInventoryType( PClass::FindClass( "SuperShotgun" )->ActorInfo->GetReplacement( )->Class );
