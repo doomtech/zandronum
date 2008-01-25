@@ -142,7 +142,7 @@ void SERVER_MASTER_Tick( void )
 
 	NETWORK_ClearBuffer( &g_MasterServerBuffer );
 
-	Val = sv_masterip.GetGenericRep( CVAR_String );
+	Val = skulltag_masterip.GetGenericRep( CVAR_String );
 	NETWORK_StringToAddress( Val.String, &g_AddressMasterServer );
 	NETWORK_SetAddressPort( g_AddressMasterServer, g_usMasterPort );
 
@@ -595,7 +595,8 @@ CVAR( String, sv_website, "http://www.skulltag.com/", CVAR_ARCHIVE )
 CVAR( String, sv_hostemail, "bradc@doomworld.com", CVAR_ARCHIVE )
 
 // IP address of the master server.
-CVAR( String, sv_masterip, "skulltag.kicks-ass.net", CVAR_ARCHIVE )
+// [BB] Client and server use this now, therefore the name doesn't begin with "sv_"
+CVAR( String, skulltag_masterip, "skulltag.servegame.com", CVAR_ARCHIVE|CVAR_GLOBALCONFIG )
 
 // IP that the master server should use for this server.
 CVAR( String, sv_masteroverrideip, "", CVAR_ARCHIVE )

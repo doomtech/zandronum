@@ -433,7 +433,7 @@ DWORD WINAPI MAIN_RunMainThread( LPVOID )
 	ZDAEMON_Construct( );
 
 	// Set up the master server info for Skulltag.
-	NETWORK_StringToAddress( "skulltag.kicks-ass.net", &g_PortInfo[PORT_SKULLTAG].MasterServerInfo.Address );
+	NETWORK_StringToAddress( "skulltag.servegame.com", &g_PortInfo[PORT_SKULLTAG].MasterServerInfo.Address );
 	g_PortInfo[PORT_SKULLTAG].MasterServerInfo.Address.usPort = htons( 15300 );
 
 	g_PortInfo[PORT_SKULLTAG].pvQueryMasterServer = SKULLTAG_QueryMasterServer;

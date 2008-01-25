@@ -187,6 +187,4 @@ LONG			BROWSER_CalcNumServers( void );
 //*****************************************************************************
 //	EXTERNAL CONSOLE VARIABLES
 
-EXTERN_CVAR( String, cl_masterip );
-
 #endif // __BROWSER_H__

@@ -1388,7 +1388,7 @@ void G_Ticker ()
 				LONG			lCommand;
 				NETADDRESS_s	MasterAddress;
 				const char		*pszMasterPort;
-				Val = cl_masterip.GetGenericRep( CVAR_String );
+				Val = skulltag_masterip.GetGenericRep( CVAR_String );
 				// [BB] This conversion potentially does a DNS lookup.
 				// There is absolutely no reason to call this at beginning of the while loop above (like done before). 
 				NETWORK_StringToAddress( Val.String, &MasterAddress );

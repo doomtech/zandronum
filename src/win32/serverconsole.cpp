@@ -4151,7 +4151,7 @@ void SERVERCONSOLE_InitializeGeneralSettingsDisplay( HWND hDlg )
 	if ( sv_showlauncherqueries )
 		SendDlgItemMessage( hDlg, IDC_SHOWLAUNCHERQUERIES, BM_SETCHECK, BST_CHECKED, 0 );
 
-	Val = sv_masterip.GetGenericRep( CVAR_String );
+	Val = skulltag_masterip.GetGenericRep( CVAR_String );
 	SetDlgItemText( hDlg, IDC_MASTERIP, Val.String );
 
 	Val = sv_motd.GetGenericRep( CVAR_String );
@@ -4456,7 +4456,7 @@ void SERVERCONSOLE_UpdateGeneralSettings( HWND hDlg )
 	sv_showlauncherqueries = !!SendDlgItemMessage( hDlg, IDC_SHOWLAUNCHERQUERIES, BM_GETCHECK, 0, 0 );
 		
 	GetDlgItemText( hDlg, IDC_MASTERIP, szBuffer, 1024 );
-	sv_masterip = szBuffer;
+	skulltag_masterip = szBuffer;
 
 	GetDlgItemText( hDlg, IDC_MOTD, szBuffer, 1024 );
 	{

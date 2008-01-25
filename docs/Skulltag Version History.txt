@@ -297,6 +297,7 @@ v0.97d
 !	- Changed: If a player selects a new player class, the class will now be changed when respawning. So it's not necessary anymore to spectate and rejoin to change the class. NOTE: Players are still not allowed to change their class in single player or coop game modes offline. [Torr Samaho]
 !	- Changed: playercount() now returns the number of active players, i.e. number of players - number of spectators. [Torr Samaho]
 !	- Changed: The buckshot modifier is now ignored in non Doom 2 games. [Torr Samaho]
+!	- Replaced the CVARs cl_masterip and sv_masterip by the new global CVAR skulltag_masterip (default value skulltag.servegame.com). [Torr Samaho]
 
 v0.97d-beta4.3
 --------------
