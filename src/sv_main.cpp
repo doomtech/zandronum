@@ -211,6 +211,7 @@ CVAR( Bool, sv_disallowbots, false, CVAR_ARCHIVE )
 CVAR( Bool, sv_minimizetosystray, true, CVAR_ARCHIVE )
 CVAR( Int, sv_queryignoretime, 10, CVAR_ARCHIVE )
 CVAR( Bool, sv_markchatlines, false, CVAR_ARCHIVE )
+CVAR( Bool, sv_nokill, false, CVAR_ARCHIVE )
 
 //*****************************************************************************
 //
@@ -3994,6 +3995,13 @@ static bool server_Suicide( BYTESTREAM_s *pByteStream )
 	// If this player has tried to suicide recently, ignore the request.
 	if ( gametic < ( g_aClients[g_lCurrentClient].ulLastSuicideTime + ( TICRATE * 10 )))
 		return ( false );
+
+	// [BB] The server may forbid suiciding completely.
+	if ( sv_nokill )
+	{
+		SERVER_PrintfPlayer( PRINT_HIGH, SERVER_GetCurrentClient(), "Suiciding is not allowed in this server.\n" );
+		return ( false );
+	}
 
 	g_aClients[g_lCurrentClient].ulLastSuicideTime = gametic;
 
