@@ -648,7 +648,7 @@ CCMD (puke)
 			( NETWORK_GetState( ) == NETSTATE_SERVER ) ||
 			( CLIENTDEMO_IsPlaying( )))
 		{
-			P_StartScript (players[consoleplayer].mo, NULL, script, level.mapname, false,
+			P_StartScript (players[consoleplayer].mo, NULL, (script < 0) ? -script : script, level.mapname, false,
 				arg[0], arg[1], arg[2], (script < 0), false, true);
 		}
 		else
