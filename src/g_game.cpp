@@ -2390,24 +2390,30 @@ static mapthing2_t *SelectRandomCooperativeSpot( ULONG ulPlayer, ULONG ulNumSele
 	// Try up to 20 times to find a valid spot.
 	for ( ulNumAttempts = 0; ulNumAttempts < 20; ulNumAttempts++ )
 	{
+		// Find the first valid playerstart.
 		ulIdx = 0;
-		while (( playerstarts[ulIdx].type == 0 ) && ( ulIdx < MAXPLAYERS ))
+		while (( ulIdx < MAXPLAYERS ) && ( playerstarts[ulIdx].type == 0 ))
 			ulIdx++;
 
 		ulSelection = ( pr_dmspawn( ) % ulNumSelections );
 		while ( ulSelection > 0 )
 		{
 			ulSelection--;
-			while (( playerstarts[ulIdx].type == 0 ) && ( ulIdx < MAXPLAYERS ))
+			// [BB] Find the next valid playerstart (assuming that ulNumSelections gives us the number of available starts).
+			ulIdx++;
+			while (( ulIdx < MAXPLAYERS ) && ( playerstarts[ulIdx].type == 0 ))
 				ulIdx++;
 		}
 
-		if ( G_CheckSpot( ulPlayer, &playerstarts[ulIdx] ))
+		if ( ( ulIdx < MAXPLAYERS ) && G_CheckSpot( ulPlayer, &playerstarts[ulIdx] ))
 			return ( &playerstarts[ulIdx] );
 	}
 
 	// Return a spot anyway, since we allow telefragging when a player spawns.
-	return ( &playerstarts[ulIdx] );
+	if ( ulIdx < MAXPLAYERS )
+		return ( &playerstarts[ulIdx] );
+	else
+		return NULL;
 }
 
 void G_DeathMatchSpawnPlayer( int playernum, bool bClientUpdate )
