@@ -2876,21 +2876,21 @@ bool SERVER_IsPlayerAllowedToKnowHealth( ULONG ulPlayer, ULONG ulPlayer2 )
 
 //*****************************************************************************
 //
-char *SERVER_GetCurrentFont( void )
+const char *SERVER_GetCurrentFont( void )
 {
 	return ( g_szCurrentFont );
 }
 
 //*****************************************************************************
 //
-void SERVER_SetCurrentFont( char *pszFont )
+void SERVER_SetCurrentFont( const char *pszFont )
 {
 	sprintf( g_szCurrentFont, pszFont );
 }
 
 //*****************************************************************************
 //
-char *SERVER_GetScriptActiveFont( void )
+const char *SERVER_GetScriptActiveFont( void )
 {
 	return ( g_szScriptActiveFont );
 }

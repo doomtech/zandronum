@@ -2218,7 +2218,7 @@ void DLevelScript::DoSetFont (int fontnum)
 			SERVER_SetScriptActiveFont( "SmallFont" );
 		else
 			SERVER_SetScriptActiveFont( fontname );
-		SERVER_SetCurrentFont( (char *)fontname );
+		SERVER_SetCurrentFont( SERVER_GetScriptActiveFont() );
 		return;
 	}
 
