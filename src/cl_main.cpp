@@ -4340,12 +4340,16 @@ static void client_SetPlayerCamera( BYTESTREAM_s *pByteStream )
 	// Read in the "revert please" status.
 	bRevertPleaseStatus = !!NETWORK_ReadByte( pByteStream );
 
+	AActor *oldcamera = players[consoleplayer].camera;
+
 	// Find the camera by the network ID.
 	pCamera = CLIENT_FindThingByNetID( lID );
 	if ( pCamera == NULL )
 	{
 		players[consoleplayer].camera = players[consoleplayer].mo;
 		players[consoleplayer].cheats &= ~CF_REVERTPLEASE;
+		if (oldcamera != players[consoleplayer].camera)
+			R_ClearPastViewer (players[consoleplayer].camera);
 		return;
 	}
 
@@ -4355,6 +4359,9 @@ static void client_SetPlayerCamera( BYTESTREAM_s *pByteStream )
 		players[consoleplayer].cheats &= ~CF_REVERTPLEASE;
 	else
 		players[consoleplayer].cheats |= CF_REVERTPLEASE;
+
+	if (oldcamera != players[consoleplayer].camera)
+		R_ClearPastViewer (players[consoleplayer].camera);
 }
 
 //*****************************************************************************
