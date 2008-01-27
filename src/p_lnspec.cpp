@@ -2597,7 +2597,7 @@ FUNC(LS_ChangeCamera)
 
 			// [BC] If we're the server, tell this player to change his camera.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SetPlayerCamera( ULONG( it->player - players ), camera->lNetID, true );
+				SERVERCOMMANDS_SetPlayerCamera( ULONG( it->player - players ), camera->lNetID, ( arg2 ) ? true : false );
 		}
 		else
 		{

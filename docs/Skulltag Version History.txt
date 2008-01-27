@@ -266,6 +266,7 @@ v0.97d
 -	- Fixed: Attempting to spawn a monster with A_SpawnItem, A_SpawnItemEx or any of the ACS spawn functions always increased the number of remaining monsters in invasion, no matter if the spawn was successful or not. [Torr Samaho]
 -	- Fixed: SKININFO ignores crouchsprite definition. [Torr Samaho]
 -	- Fixed: SelectRandomCooperativeSpot always returned the first spot. This should resolve the massive telefragging in coop when there are more players than player starts. [Torr Samaho]
+-	- Fixed: Under some circumstances the server told the clients to set CF_REVERTPLEASE in LS_ChangeCamera even though it shouldn't. [Torr Samaho]
 !	- Survival co-op is now disabled in hubs. [Carnevil]
 !	- Skulltag's invasion spawners are now defined in skulltag.pk3. [Carnevil]
 !	- Skulltag.wad is now loaded before doom2.wad. This should fix certain texture errors. [Carnevil]
