@@ -2247,6 +2247,12 @@ END_DEFAULTS
 
 void ARuneDoubleFiringSpeed::InitEffect( )
 {
+	// Nothing to do if there's no owner.
+	if (( Owner == NULL ) || ( Owner->player == NULL ))
+	{
+		return;
+	}
+
 	// Give the player the power to fire twice as fast.
 	Owner->player->cheats |= CF_DOUBLEFIRINGSPEED;
 }
@@ -2320,6 +2326,12 @@ END_DEFAULTS
 
 void ARuneSpread::InitEffect( )
 {
+	// Nothing to do if there's no owner.
+	if (( Owner == NULL ) || ( Owner->player == NULL ))
+	{
+		return;
+	}
+
 	// Give the player the power to shoot 3x the number of missiles he normally would.
 	Owner->player->cheats |= CF_SPREAD;
 }
@@ -2417,6 +2429,12 @@ END_DEFAULTS
 
 void ARuneProsperity::InitEffect( )
 {
+	// Nothing to do if there's no owner.
+	if (( Owner == NULL ) || ( Owner->player == NULL ))
+	{
+		return;
+	}
+
 	// Give the player the power to pickup base health artifacts past 100%.
 	Owner->player->cheats |= CF_PROSPERITY;
 }
@@ -2452,6 +2470,12 @@ END_DEFAULTS
 
 void ARuneReflection::InitEffect( )
 {
+	// Nothing to do if there's no owner.
+	if (( Owner == NULL ) || ( Owner->player == NULL ))
+	{
+		return;
+	}
+
 	// Give the player the power to reflect damage back at their attacker.
 	Owner->player->cheats |= CF_REFLECTION;
 }
@@ -2525,6 +2549,12 @@ END_DEFAULTS
 
 void ARuneSpeed25::InitEffect( )
 {
+	// Nothing to do if there's no owner.
+	if (( Owner == NULL ) || ( Owner->player == NULL ))
+	{
+		return;
+	}
+
 	// Give the player the power to run 25% faster.
 	Owner->player->cheats |= CF_SPEED25;
 }
