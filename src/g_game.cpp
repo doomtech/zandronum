@@ -1023,6 +1023,10 @@ static void ChangeSpy (bool forward)
 			pnum += step;
 			pnum &= MAXPLAYERS-1;
 
+			// Skip other spectators.
+			if ( players[pnum].bSpectating )
+				continue;
+
 			if ( playeringame[pnum] )
 				break;
 		}
