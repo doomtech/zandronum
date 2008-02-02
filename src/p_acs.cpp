@@ -1513,7 +1513,7 @@ void FBehavior::StartTypedScripts (WORD type, AActor *activator, bool always, in
 				( ptr->Flags & SCRIPTF_Net ))
 			{
 				SERVERCOMMANDS_ACSScriptExecute( ptr->Number, activator, NULL, level.mapname, 0, arg1, 0, 0, always );
-				return;
+				continue;
 			}
 
 			DLevelScript *runningScript = P_GetScriptGoing (activator, NULL, ptr->Number,
