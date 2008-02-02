@@ -2105,10 +2105,37 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 		{
 			SERVERCOMMANDS_SpawnMissile( pActor, ulClient, SVCF_ONLYTHISCLIENT );
 		}
-        // Tell the client to spawn this thing.
+		// Tell the client to spawn this thing.
 		else
 		{
 			SERVERCOMMANDS_SpawnThing( pActor, ulClient, SVCF_ONLYTHISCLIENT );
+
+			// [BB] Since the monster movement is client side, the client needs to be
+			// informed about the momentum and the current state. If the frame is not
+			// set, the client thinks the actor is in its spawn state.
+			{
+
+				if ( (pActor->InSpawnState() == false)
+					 && !(( pActor->health <= 0 ) && ( pActor->flags & MF_COUNTKILL )) // [BB] Corpses are handled later.
+					 )
+				{
+					SERVERCOMMANDS_SetThingFrame( pActor, pActor->state, ulClient, SVCF_ONLYTHISCLIENT, false );
+				}
+
+				ULONG ulBits = 0;
+
+				if ( pActor->momx != 0 )
+					ulBits |= CM_MOMX;
+
+				if ( pActor->momy != 0 )
+					ulBits |= CM_MOMY;
+
+				if ( pActor->momz != 0 )
+					ulBits |= CM_MOMZ;
+
+				if ( ulBits != 0 )
+					SERVERCOMMANDS_MoveThingExact( pActor, ulBits, ulClient, SVCF_ONLYTHISCLIENT );
+			}
 
 			// If it's important to update this thing's arguments, do that now.
 			// [BB] Wouldn't it be better, if this is done for all things, for which
