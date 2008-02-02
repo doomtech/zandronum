@@ -3613,7 +3613,7 @@ void GAME_ResetMap( void )
 			( players[ulIdx].bSpectating == false ) &&
 			( players[ulIdx].mo ))
 		{
-			FBehavior::StaticStartTypedScripts( SCRIPT_Enter, players[ulIdx].mo, true, 0, true );
+			FBehavior::StaticStartTypedScripts( SCRIPT_Enter, players[ulIdx].mo, true );
 		}
 	}
 
