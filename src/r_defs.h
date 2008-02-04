@@ -628,6 +628,8 @@ typedef struct FPolyObj
 
 	// Has this polyobject moved at all? If so, we need to tell connecting clients of its new position.
 	bool		bMoved;
+	// [BB] Original start stop, necessary for GAME_ResetMap.
+	fixed_t		SavedStartSpot[3];
 
 	// Has this polyobject rotated at all? If so, we need to tell connecting clients of its new position.
 	bool		bRotated;

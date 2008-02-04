@@ -3068,6 +3068,7 @@ bool GAME_DormantStatusMatchesOriginal( AActor *pActor )
 // Ugh.
 void P_LoadBehavior( MapData *pMap );
 void DECAL_ClearDecals( void );
+polyobj_t *GetPolyobjByIndex( ULONG ulPoly );
 void GAME_ResetMap( void )
 {
 	ULONG							ulIdx;
@@ -3092,6 +3093,41 @@ void GAME_ResetMap( void )
 		( CLIENTDEMO_IsPlaying( )))
 	{
 		return;
+	}
+
+	// [BB] Reset the polyobjs.
+	for ( ulIdx = 0; ulIdx <= po_NumPolyobjs; ulIdx++ )
+	{
+		polyobj_t *pPoly = GetPolyobjByIndex( ulIdx );
+		if ( pPoly == NULL )
+			continue;
+
+		if ( pPoly->bMoved )
+		{
+
+			const LONG lDeltaX = pPoly->SavedStartSpot[0] - pPoly->startSpot[0];
+			const LONG lDeltaY = pPoly->SavedStartSpot[1] - pPoly->startSpot[1];
+
+			PO_MovePolyobj( pPoly->tag, lDeltaX, lDeltaY, true );
+			pPoly->bMoved = false;
+
+			// [BB] If we're the server, tell clients about this polyobj reset.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetPolyobjPosition( pPoly->tag );
+		}
+
+		if ( pPoly->bRotated )
+		{
+			// [BB] AFAIK a polyobj always starts with angle 0;
+			const LONG lDeltaAngle = 0 - pPoly->angle;
+
+			PO_RotatePolyobj( pPoly->tag, lDeltaAngle );
+			pPoly->bRotated = false;
+
+			// [BB] If we're the server, tell clients about this polyobj reset.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetPolyobjRotation( pPoly->tag );
+		}
 	}
 
 	for ( ulIdx = 0; ulIdx < (ULONG)numlines; ulIdx++ )
