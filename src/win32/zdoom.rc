@@ -55,16 +55,15 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ICON1               ICON    DISCARDABLE     "icon1.ico"
-IDI_BOING1              ICON    DISCARDABLE     "boing1.ico"
-IDI_BOING2              ICON    DISCARDABLE     "boing2.ico"
-IDI_BOING3              ICON    DISCARDABLE     "boing3.ico"
-IDI_BOING4              ICON    DISCARDABLE     "boing4.ico"
-IDI_BOING5              ICON    DISCARDABLE     "boing5.ico"
-IDI_BOING6              ICON    DISCARDABLE     "boing6.ico"
-IDI_BOING7              ICON    DISCARDABLE     "boing7.ico"
-IDI_BOING8              ICON    DISCARDABLE     "boing8.ico"
-IDI_ICON5               ICON    DISCARDABLE     "skulltag.ico"
+IDI_ICONST              ICON    DISCARDABLE     "skulltag_xp.ico"
+//IDI_BOING1              ICON    DISCARDABLE     "boing1.ico"
+//IDI_BOING2              ICON    DISCARDABLE     "boing2.ico"
+//IDI_BOING3              ICON    DISCARDABLE     "boing3.ico"
+//IDI_BOING4              ICON    DISCARDABLE     "boing4.ico"
+//IDI_BOING5              ICON    DISCARDABLE     "boing5.ico"
+//IDI_BOING6              ICON    DISCARDABLE     "boing6.ico"
+//IDI_BOING7              ICON    DISCARDABLE     "boing7.ico"
+//IDI_BOING8              ICON    DISCARDABLE     "boing8.ico"
 G15_ICON_ORION			ICON					"g15/res/orion.ico"
 G15_ICON_ARMOR			ICON					"g15/res/armor.ico"
 G15_ICON_STIMPACK		ICON					"g15/res/stimpack.ico"
@@ -306,12 +305,12 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "Comments", "Thanks to id Software for creating DOOM and then releasing the source code. Thanks also to TeamTNT for creating BOOM, which ZDoom (and thus Skulltag) is partially based on.  Giant thanks to Randy Heit for his wonderful ZDoom.\0"
+            VALUE "Comments", "Thanks to id Software for creating DOOM and then releasing the source code. Thanks also to TeamTNT for creating BOOM, which ZDoom (and thus Skulltag) is partially based on.  Giant thanks to Randy Heit for his wonderful ZDoom, and Graf Zahl for GZDoom.\0"
             VALUE "CompanyName", " \0"
             VALUE "FileDescription", "Skulltag\0"
             VALUE "FileVersion", "v" DOTVERSIONSTR_REV "\0"
             VALUE "InternalName", "Skulltag\0"
-            VALUE "LegalCopyright", "Copyright © 1993-1996, id Software & 1998-2007, Randy Heit\0"
+            VALUE "LegalCopyright", "Copyright © 1993-1996, id Software & 1998-2008, Randy Heit and Graf Zahl\0"
             VALUE "LegalTrademarks", "Doom® is a Registered Trademark of id Software, Inc.\0"
             VALUE "OriginalFilename", "skulltag.exe\0"
             VALUE "PrivateBuild", "\0"
@@ -355,7 +354,7 @@ EXSTYLE WS_EX_APPWINDOW
 CAPTION "Welcome"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-	ICON            IDI_ICON5,IDC_STATIC,7,7,32,32
+	ICON            IDI_ICONST,IDC_STATIC,7,7,32,32
 	LTEXT           "Welcome to Skulltag!",IDC_STATIC,42,8,180,8
 	LTEXT           "<Version info>",IDC_WELCOME_VERSION,42,18,180,8
 	GROUPBOX        "IWAD selection",IDC_STATIC,8,32,224-16,102
@@ -860,21 +859,18 @@ BEGIN
     EDITTEXT        IDC_SERVERNAME,108,37,144,14,ES_AUTOHSCROLL
     LTEXT           "Wad URL:",IDC_STATIC,108,54,35,8
     EDITTEXT        IDC_WADURL,108,63,144,14,ES_AUTOHSCROLL
-    LTEXT           "E-mail address:",IDC_STATIC,108,80,48,8
+    LTEXT           "E-mail address:",IDC_STATIC,108,80,80,8
     EDITTEXT        IDC_EMAIL,108,89,144,14,ES_AUTOHSCROLL
-    LTEXT           "Connection type:",IDC_STATIC,108,106,54,8
-    COMBOBOX        IDC_CONNECTIONTYPE,108,115,64,60,CBS_DROPDOWNLIST | 
-                    WS_TABSTOP
     CONTROL         "Broadcast to master server",IDC_UPDATEMASTER,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,108,137,100,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,108,109,100,10
     CONTROL         "Broadcast on LAN",IDC_BROADCAST,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,108,148,74,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,108,119,74,10
     CONTROL         "Show launcher queries",IDC_SHOWLAUNCHERQUERIES,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,108,159,88,10
-    LTEXT           "Master server IP:",IDC_STATIC,108,173,54,8
-    EDITTEXT        IDC_MASTERIP,108,182,144,14,ES_AUTOHSCROLL
-    LTEXT           "Message of the Day:",IDC_STATIC,108,199,97,8
-    EDITTEXT        IDC_MOTD,108,208,144,77,ES_MULTILINE | ES_AUTOVSCROLL | 
+                    BS_AUTOCHECKBOX | WS_TABSTOP,108,129,88,10
+    LTEXT           "Master server IP:",IDC_STATIC,108,143,80,8
+    EDITTEXT        IDC_MASTERIP,108,152,144,14,ES_AUTOHSCROLL
+    LTEXT           "Message of the day:",IDC_STATIC,108,169,97,8
+    EDITTEXT        IDC_MOTD,108,178,144,107,ES_MULTILINE | ES_AUTOVSCROLL | 
                     ES_AUTOHSCROLL | ES_WANTRETURN
     GROUPBOX        "Gameplay",IDC_STATIC,272,16,168,147
     LTEXT           "Fraglimit:",IDC_STATIC,284,28,32,8

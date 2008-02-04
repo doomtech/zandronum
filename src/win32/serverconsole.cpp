@@ -168,14 +168,14 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 
 			// Load the icons.
 			g_hSmallIcon = (HICON)LoadImage( g_hInst,
-					MAKEINTRESOURCE( IDI_ICON5 ),
+					MAKEINTRESOURCE( IDI_ICONST ),
 					IMAGE_ICON,
 					16,
 					16,
 					LR_SHARED );
 
 			SendMessage( hDlg, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)g_hSmallIcon );
-			SendMessage( hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)LoadIcon( g_hInst, MAKEINTRESOURCE( IDI_ICON5 )));
+			SendMessage( hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)LoadIcon( g_hInst, MAKEINTRESOURCE( IDI_ICONST )));
 
 			// Set up the server dialog's status bar.
 			g_hDlgStatusBar = CreateStatusWindow(WS_CHILD | WS_VISIBLE, (LPCTSTR)NULL, hDlg, IDC_SERVER_STATUSBAR);
@@ -593,7 +593,7 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 				NotifyIconData.uID = 0;
 				NotifyIconData.uFlags = NIF_ICON|NIF_MESSAGE|NIF_TIP;
 				NotifyIconData.uCallbackMessage = UWM_TRAY_TRAYID;
-				NotifyIconData.hIcon = g_hSmallIcon;//LoadIcon( g_hInst, MAKEINTRESOURCE( IDI_ICON1 ));
+				NotifyIconData.hIcon = g_hSmallIcon;//LoadIcon( g_hInst, MAKEINTRESOURCE( IDI_ICONST ));
 
 				Val = sv_hostname.GetGenericRep( CVAR_String );
 				sprintf( szString, "%s", Val.String );

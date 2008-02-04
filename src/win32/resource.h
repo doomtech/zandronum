@@ -4,7 +4,6 @@
 //
 #define IDC_SAVEREPORT                  8
 #define IDNO2                           9
-#define IDI_ICON1                       101
 #define IDD_MIDASINITERROR              108
 #define IDD_IWADDIALOG                  112
 #define IDC_INVISIBLECURSOR             114
@@ -32,7 +31,7 @@
 #define IDD_CRASHOVERVIEW               147
 #define IDB_DMFLAGS                     149
 #define IDB_GENERALSETTINGS             150
-#define IDI_ICON5                       151
+#define IDI_ICONST                      151
 #define IDR_MAINMENU                    152
 #define IDD_ADDBOT                      153
 #define IDD_BANIP                       154

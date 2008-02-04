@@ -856,7 +856,7 @@ void DoMain (HINSTANCE hInstance)
 			WndClass.cbClsExtra		= 0;
 			WndClass.cbWndExtra		= 0;
 			WndClass.hInstance		= hInstance;
-			WndClass.hIcon			= LoadIcon (hInstance, MAKEINTRESOURCE(IDI_ICON1));
+			WndClass.hIcon			= LoadIcon (hInstance, MAKEINTRESOURCE(IDI_ICONST));
 			WndClass.hCursor		= TheArrowCursor;
 			WndClass.hbrBackground	= NULL;
 			WndClass.lpszMenuName	= NULL;
