@@ -159,10 +159,22 @@ static int HistSize;
 CVAR (Float, con_notifytime, 3.f, CVAR_ARCHIVE)
 CVAR (Bool, con_centernotify, false, CVAR_ARCHIVE)
 // [BC] con_scaletext is back to being a bool.
-CVAR (Bool, con_scaletext, 0, CVAR_ARCHIVE)		// Scale notify text at high resolutions?
+CVAR (Bool, con_scaletext, 0, CVAR_ARCHIVE)		// Scale text at high resolutions?
+
 // [BC] Allow users to specify a virtual width and height when text scaling is enabled.
-CVAR( Int, con_virtualwidth, 0, CVAR_ARCHIVE )
-CVAR( Int, con_virtualheight, 0, CVAR_ARCHIVE )
+CUSTOM_CVAR( Int, con_virtualwidth, 0, CVAR_ARCHIVE )
+{
+	// [RC] Less than 4 crashes in the menu, less than 8 in game. Set to 32 to be safe.
+	if ( self < 32 )
+		self = 32;
+}
+
+CUSTOM_CVAR( Int, con_virtualheight, 0, CVAR_ARCHIVE )
+{
+	// [RC] Less than 4 crashes in the menu, less than 8 in game. Set to 32 to be safe.
+	if ( self < 32 )
+		self = 32;
+}
 
 // [BC] Allow text colors?
 // [RC] Now a three-level setting. No/Yes/Not in chat.
@@ -607,13 +619,7 @@ void C_AddNotifyString (int printlevel, const char *source)
 
 	// [BC] If text scaling is enabled, allow users to specify a virtual screen width/height.
 	if ( con_scaletext )
-	{
-		if ( con_virtualwidth > 0 )
-			width = con_virtualwidth;
-		// If the virtual screen width is invalid, just scale it normally.
-		else
-			width = DisplayWidth / CleanXfac;
-	}
+		width = con_virtualwidth;
 	else
 		width = DisplayWidth;
 

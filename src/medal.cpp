@@ -926,6 +926,7 @@ void medal_PopQueue( ULONG ulPlayer )
 void medal_TriggerMedal( ULONG ulPlayer, ULONG ulMedal )
 {
 	player_s	*pPlayer;
+	bool		bCreateIcon;
 
 	pPlayer = &players[ulPlayer];
 
@@ -941,17 +942,42 @@ void medal_TriggerMedal( ULONG ulPlayer, ULONG ulMedal )
 	if ( ulMedal >= NUM_MEDALS )
 		return;
 
-	// If the player currently has an icon, delete it.
-	if ( pPlayer->pIcon )
-		pPlayer->pIcon->Destroy( );
-
-	// Spawn the medal as an icon above the player and set its properties.
-	pPlayer->pIcon = Spawn<AFloatyIcon>( pPlayer->mo->x, pPlayer->mo->y, pPlayer->mo->z, NO_REPLACE );
+	// Check if we should create the icon.
 	if ( pPlayer->pIcon )
 	{
-		pPlayer->pIcon->SetState( pPlayer->pIcon->SpawnState + g_Medals[ulMedal].usFrame );
-		pPlayer->pIcon->lTick = MEDAL_ICON_DURATION;
-		pPlayer->pIcon->SetTracer( pPlayer->mo );
+		switch ( pPlayer->pIcon->state - pPlayer->pIcon->SpawnState )
+		{
+			// Medals don't override carrier symbols.
+			case S_BLUEFLAG:
+			case S_BLUESKULL:
+			case S_REDFLAG:
+			case S_REDSKULL:
+			case S_TERMINATORARTIFACT:
+			case S_POSSESSIONARTIFACT:
+
+				bCreateIcon = false;
+				break;
+
+			default:
+
+				bCreateIcon = true;
+				pPlayer->pIcon->Destroy( );
+		}
+	}
+	else
+		bCreateIcon = true;
+
+	// Add it.
+	if ( bCreateIcon )
+	{
+		// Spawn the medal as an icon above the player and set its properties.
+		pPlayer->pIcon = Spawn<AFloatyIcon>( pPlayer->mo->x, pPlayer->mo->y, pPlayer->mo->z, NO_REPLACE );
+		if ( pPlayer->pIcon )
+		{
+			pPlayer->pIcon->SetState( pPlayer->pIcon->SpawnState + g_Medals[ulMedal].usFrame );
+			pPlayer->pIcon->lTick = MEDAL_ICON_DURATION;
+			pPlayer->pIcon->SetTracer( pPlayer->mo );
+		}
 	}
 
 	// Also, locally play the announcer sound associated with this medal.
@@ -1110,8 +1136,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 		ULONG	ulFrame = 65535;
 		ULONG	ulDesiredSprite = 65535;
 
-		// Draw an ally icon if this person is on our team.
-		// Would this be useful for co-op, too?
+		// Draw an ally icon if this person is on our team. Would this be useful for co-op, too?
 		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 		{
 			if ( pPlayer->mo->IsTeammate( players[SCOREBOARD_GetViewPlayer()].mo ) && !players[SCOREBOARD_GetViewPlayer()].bSpectating)
@@ -1119,6 +1144,20 @@ void medal_SelectIcon( ULONG ulPlayer )
 				ulFrame = S_ALLY;
 				ulDesiredSprite = 1;
 			}
+		}
+
+		// Draw a chat icon over the player if they're typing.
+		if ( pPlayer->bChatting )
+		{
+			ulFrame = S_CHAT;
+			ulDesiredSprite = 0;
+		}
+
+		// Draw a lag icon over their head if they're lagging.
+		if ( pPlayer->bLagging )
+		{
+			ulFrame = S_LAG;
+			ulDesiredSprite = 4;
 		}
 
 		// Draw a flag/skull above this player if he's carrying one.
@@ -1163,20 +1202,6 @@ void medal_SelectIcon( ULONG ulPlayer )
 		{
 			ulFrame = S_POSSESSIONARTIFACT;
 			ulDesiredSprite = 5;
-		}
-
-		// Draw a chat icon over the player if they're typing.
-		if ( pPlayer->bChatting )
-		{
-			ulFrame = S_CHAT;
-			ulDesiredSprite = 0;
-		}
-
-		// Draw a lag icon over their head if they're lagging.
-		if ( pPlayer->bLagging )
-		{
-			ulFrame = S_LAG;
-			ulDesiredSprite = 4;
 		}
 
 		// We have an icon that needs to be spawned.
