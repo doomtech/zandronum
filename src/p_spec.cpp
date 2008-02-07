@@ -78,6 +78,7 @@
 #include "possession.h"
 #include "cooperative.h"
 #include "survival.h"
+#include "gamemode.h"
 
 static FRandom pr_playerinspecialsector ("PlayerInSpecialSector");
 
@@ -637,15 +638,16 @@ void P_UpdateSpecials ()
 		{
 			if (( level.time >= (int)( timelimit * TICRATE * 60 )) && ( GAME_GetEndLevelDelay( ) == 0 ))
 			{
-				// Pause for five seconds for the win sequence.
+				// Special game modes handle this differently.
 				if ( duel )
 					DUEL_TimeExpired( );
 				else if ( lastmanstanding || teamlms )
 					LASTMANSTANDING_TimeExpired( );
 				else if ( possession || teampossession )
 					POSSESSION_TimeExpired( );
-				else if ( teamgame )
+				else if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode() ) & GMF_PLAYERSONTEAMS )
 					TEAM_TimeExpired( );
+
 				// End the level after one second.
 				else
 				{
@@ -682,7 +684,6 @@ void P_UpdateSpecials ()
 							bTied = true;
 					}
 
-					// Just print "YOU WIN!" in single player.
 					if ( bTied )
 						sprintf( szString, "\\cdDRAW GAME!" );
 					else

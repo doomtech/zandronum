@@ -722,7 +722,11 @@ void TEAM_TimeExpired( void )
 	// there aren't any, then just end the map.
 	if ( SERVER_CalcNumPlayers( ))
 	{
-		lDifference = TEAM_GetScore( TEAM_BLUE ) - TEAM_GetScore( TEAM_RED );
+		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode() ) & GMF_PLAYERSEARNPOINTS ) 
+			lDifference = TEAM_GetScore( TEAM_BLUE ) - TEAM_GetScore( TEAM_RED );
+		else
+			lDifference = TEAM_GetFragCount( TEAM_BLUE ) - TEAM_GetFragCount( TEAM_RED );
+
 		if ( lDifference > 0 )
 			lWinner = TEAM_BLUE;
 		else if ( lDifference < 0 )
