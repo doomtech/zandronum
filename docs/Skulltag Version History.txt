@@ -241,6 +241,7 @@ v0.97d
 -	- Fixed glitch in which cycling through weapons using the "weapnext" and "weapprev" would occasionally display the weapon name. [Carnevil]
 -	- HUD message logging now works properly on the client end. [Carnevil]
 -	- Improved the scrolling of the server console. When you scroll up, it no longer snaps back down a new message. [Rivecoder]
+-	- Fixed: Bots would be put on "no team" after an intermission. [Rivecoder]
 -	- Fixed: Bots cause hudmessages to appear for player 1 offline. [Torr Samaho]
 -	- Fixed: Clients with activated prediction ignore the CF_FROZEN and CF_TOTALLYFROZEN flags locally. [Torr Samaho]
 -	- Fixed: Display problems with the CPU name string shown on startup. [Torr Samaho]

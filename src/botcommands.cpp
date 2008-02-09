@@ -2456,10 +2456,7 @@ static void botcmd_TryToJoinGame( CSkullBot *pBot )
 	pBot->GetPlayer( )->playerstate = PST_ENTERNOINVENTORY;
 	pBot->GetPlayer( )->bSpectating = false;
 	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
-	{
-		pBot->GetPlayer( )->bOnTeam = true;
-		pBot->GetPlayer( )->ulTeam = TEAM_ChooseBestTeamForPlayer( );
-	}
+		PLAYER_SetTeam( pBot->GetPlayer( ), TEAM_ChooseBestTeamForPlayer( ), true );
 
 	// Tell the bot that he successfully joined.
 	pBot->PostEvent( BOTEVENT_JOINEDGAME );
