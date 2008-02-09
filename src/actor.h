@@ -893,6 +893,8 @@ public:
 	int GetTics(FState * newstate);
 	bool SetState (FState *newstate);
 	bool SetStateNF (FState *newstate);
+	// [BB] Completely hides the actor if it's still needed for a map reset, otherwise destroys the actor.
+	void HideOrDestroyIfSafe ();
 	// [BC]
 	bool InSpawnState( );
 	bool InDeathState();
