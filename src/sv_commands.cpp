@@ -1573,19 +1573,19 @@ void SERVERCOMMANDS_MoveThingExact( AActor *pActor, ULONG ulBits, ULONG ulPlayer
 
 	ulSize = 0;
 	if ( ulBits & CM_X )
-		ulSize += 2;
+		ulSize += 4;
 	if ( ulBits & CM_Y )
-		ulSize += 2;
+		ulSize += 4;
 	if ( ulBits & CM_Z )
-		ulSize += 2;
+		ulSize += 4;
 	if ( ulBits & CM_ANGLE )
 		ulSize += 4;
 	if ( ulBits & CM_MOMX )
-		ulSize += 2;
+		ulSize += 4;
 	if ( ulBits & CM_MOMY )
-		ulSize += 2;
+		ulSize += 4;
 	if ( ulBits & CM_MOMZ )
-		ulSize += 2;
+		ulSize += 4;
 
 	// Nothing to update.
 	if ( ulSize == 0 )
