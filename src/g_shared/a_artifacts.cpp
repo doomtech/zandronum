@@ -23,6 +23,7 @@
 #include "g_game.h"
 #include "deathmatch.h"
 #include "possession.h"
+#include "sv_commands.h"
 
 static FRandom pr_torch ("Torch");
 
@@ -1865,11 +1866,22 @@ END_DEFAULTS
 
 void APowerTerminatorArtifact::InitEffect( )
 {
+	// Nothing to do if there's no owner.
+	if (( Owner == NULL ) || ( Owner->player == NULL ))
+		return;
+
 	// Flag the player as carrying the terminator artifact.
 	Owner->player->cheats |= CF_TERMINATORARTIFACT;
 
 	// Also, give the player a megasphere as part of the bonus.
-	Owner->GiveInventoryType( PClass::FindClass( "Megasphere" ));
+	// [BB] The server handles giving the megasphere.
+	if ( ( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		 ( CLIENTDEMO_IsPlaying( ) == false ))
+	{
+		AInventory *pGivenInventory = Owner->GiveInventoryType( PClass::FindClass( "Megasphere" ));
+		if ( pGivenInventory && (NETWORK_GetState( ) == NETSTATE_SERVER) )
+			SERVERCOMMANDS_GiveInventory( ULONG( Owner->player - players ), pGivenInventory );
+	}
 }
 
 //===========================================================================

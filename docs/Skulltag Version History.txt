@@ -273,6 +273,7 @@ v0.97d
 -	- Fixed: client_SetPlayerCamera should remove "past viewer" information from the renderer in case the camera changed position or direction since the last time it was looked through. [Torr Samaho]
 -	- Fixed: Non spectator players in coop game modes could "spynext" to spectators. [Torr Samaho]
 -	- Fixed: Position and angle of polyobjects are not reverted to the starting values when a map resets. [Torr Samaho]
+-	- Fixed: r_deathcamera doesn't work online if the player possesses the terminator artifact. [Torr Samaho]
 !	- Survival co-op is now disabled in hubs. [Carnevil]
 !	- Skulltag's invasion spawners are now defined in skulltag.pk3. [Carnevil]
 !	- Skulltag.wad is now loaded before doom2.wad. This should fix certain texture errors. [Carnevil]
