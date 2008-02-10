@@ -815,8 +815,9 @@ void SERVERCOMMANDS_SetPlayerPendingWeapon( ULONG ulPlayer, ULONG ulPlayerExtra,
 
 		// Only send this info to spectators.
 		// [BB] Or if this is a COOP game.
-		if ( (PLAYER_IsTrueSpectator( &players[ulIdx] ) == false) && !(GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE ) )
-			continue;
+		// [BB] Everybody needs to know this. Otherwise the Railgun sound is broken and spying in demos doesn't work properly.
+		//if ( (PLAYER_IsTrueSpectator( &players[ulIdx] ) == false) && !(GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE ) )
+		//	continue;
 
 		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
 			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
