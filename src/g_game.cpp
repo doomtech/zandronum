@@ -1439,6 +1439,12 @@ void G_Ticker ()
 						// they come in.
 						BROWSER_DeactivateAllServers( );
 						break;
+
+					case MSC_REQUESTIGNORED:
+
+						Printf( "Refresh request ignored. Please wait 10 seconds before refreshing the list again.\n" );
+						break;
+
 					default:
 
 						Printf( "Unknown command from master server: %d\n", lCommand );
