@@ -4588,20 +4588,30 @@ void G_BeginRecording (const char *startmap)
 
 char defdemoname[128];
 
-void G_DeferedPlayDemo (char *name)
+void G_DeferedPlayDemo (const char *name)
 {
 	strncpy (defdemoname, name, 127);
 	gameaction = ga_playdemo;
 }
 
+extern bool advancedemo;
 CCMD (playdemo)
 {
 	if (argv.argc() > 1)
 	{
+		// [BB] CLIENTDEMO_FinishPlaying() destroy the arguments, so we have to save
+		// the demo name here.
+		FString demoname = argv[1];
 		if ( CLIENTDEMO_IsPlaying( ))
+		{
 			CLIENTDEMO_FinishPlaying( );
+			// [BB] CLIENTDEMO_FinishPlaying() set's advancedemo to true, but we
+			// don't want to advance to the next demo, we want to play the
+			// specified demo.
+			advancedemo = false;
+		}
 
-		G_DeferedPlayDemo (argv[1]);
+		G_DeferedPlayDemo (demoname.GetChars());
 		singledemo = true;
 	}
 }
