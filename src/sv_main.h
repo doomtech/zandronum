@@ -70,7 +70,7 @@
 #define	MAX_USERINFOINSTANCE_STORAGE	4
 
 // Number of seconds before a client times out.
-#define CLIENT_TIMEOUT				15
+#define CLIENT_TIMEOUT				25
 
 // Maximum size of the packets sent out by the server.
 //#define	MAX_UDP_PACKET				8192

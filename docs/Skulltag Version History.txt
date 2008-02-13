@@ -313,7 +313,7 @@ v0.97d
 !	- Team Deathmatch games now display proper messages, and (if a draw game) enter sudden death, when the timelimit is hit. [Rivecoder]
 !	- Changed: The buckshot modifier is now ignored in non Doom 2 games. [Torr Samaho]
 !	- Replaced the CVARs cl_masterip and sv_masterip by the new global CVAR skulltag_masterip (default value skulltag.servegame.com). [Torr Samaho]
-!	- Reduced CLIENT_TIMEOUT from 65 to 15 seconds. [Torr Samaho]
+!	- Reduced CLIENT_TIMEOUT from 65 to 25 seconds. [Torr Samaho, SuperGod, Rivecoder]
 
 v0.97d-beta4.3
 --------------
