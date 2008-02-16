@@ -77,6 +77,8 @@ static	bool			g_bOnePointLeftSoundPlayed;
 
 static	LONG			g_lLastSoundID = 0;
 
+CVAR (Bool, cl_alwaysplayfragsleft, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+
 //*****************************************************************************
 //	PROTOTYPES
 
@@ -220,6 +222,45 @@ void ANNOUNCER_PlayEntry( ULONG ulProfileIdx, const char *pszEntry )
 
 //*****************************************************************************
 //
+void ANNOUNCER_PotentiallyPlayFragsLeftSound( LONG lFragsLeft )
+{
+	switch ( lFragsLeft )
+	{
+	case 3:
+
+		if ( (( g_bThreeFragsLeftSoundPlayed == false ) &&
+			( g_bTwoFragsLeftSoundPlayed == false ) &&
+			( g_bOneFragLeftSoundPlayed == false ))
+			|| cl_alwaysplayfragsleft )
+		{
+			ANNOUNCER_PlayEntry( cl_announcer, "ThreeFragsLeft" );
+			g_bThreeFragsLeftSoundPlayed = true;
+		}
+		break;
+	case 2:
+
+		if ( (( g_bTwoFragsLeftSoundPlayed == false ) &&
+			( g_bOneFragLeftSoundPlayed == false ))
+			|| cl_alwaysplayfragsleft )
+		{
+			ANNOUNCER_PlayEntry( cl_announcer, "TwoFragsLeft" );
+			g_bTwoFragsLeftSoundPlayed = true;
+		}
+		break;
+	case 1:
+
+		if ( (g_bOneFragLeftSoundPlayed == false)
+			|| cl_alwaysplayfragsleft )
+		{
+			ANNOUNCER_PlayEntry( cl_announcer, "OneFragLeft" );
+			g_bOneFragLeftSoundPlayed = true;
+		}
+		break;
+	}
+}
+
+//*****************************************************************************
+//
 void ANNOUNCER_PlayFragSounds( ULONG ulPlayer, LONG lOldFragCount, LONG lNewFragCount )
 {
 	ULONG			ulIdx;
@@ -307,37 +348,7 @@ void ANNOUNCER_PlayFragSounds( ULONG ulPlayer, LONG lOldFragCount, LONG lNewFrag
 	// Potentially play the "3 frags left", etc. announcer sounds.
 	if (( lastmanstanding == false ) && ( teamlms == false ) && ( deathmatch ) && ( fraglimit ))
 	{
-		switch ( fraglimit - lNewFragCount )
-		{
-		case 3:
-
-			if (( g_bThreeFragsLeftSoundPlayed == false ) &&
-				( g_bTwoFragsLeftSoundPlayed == false ) &&
-				( g_bOneFragLeftSoundPlayed == false ))
-
-			{
-				ANNOUNCER_PlayEntry( cl_announcer, "ThreeFragsLeft" );
-				g_bThreeFragsLeftSoundPlayed = true;
-			}
-			break;
-		case 2:
-			
-			if (( g_bTwoFragsLeftSoundPlayed == false ) &&
-				( g_bOneFragLeftSoundPlayed == false ))
-			{
-				ANNOUNCER_PlayEntry( cl_announcer, "TwoFragsLeft" );
-				g_bTwoFragsLeftSoundPlayed = true;
-			}
-			break;
-		case 1:
-
-			if ( g_bOneFragLeftSoundPlayed == false )
-			{
-				ANNOUNCER_PlayEntry( cl_announcer, "OneFragLeft" );
-				g_bOneFragLeftSoundPlayed = true;
-			}
-			break;
-		}
+		ANNOUNCER_PotentiallyPlayFragsLeftSound( fraglimit - lNewFragCount );
 	}
 }
 
@@ -390,33 +401,7 @@ void ANNOUNCER_PlayTeamFragSounds( ULONG ulTeam, LONG lOldFragCount, LONG lNewFr
 	// Potentially play the "3 frags left", etc. announcer sounds.
 	if ( fraglimit )
 	{
-		switch ( fraglimit - lNewFragCount )
-		{
-		case 3:
-
-			if ( g_bThreeFragsLeftSoundPlayed == false )
-			{
-				ANNOUNCER_PlayEntry( cl_announcer, "ThreeFragsLeft" );
-				g_bThreeFragsLeftSoundPlayed = true;
-			}
-			break;
-		case 2:
-			
-			if ( g_bTwoFragsLeftSoundPlayed == false )
-			{
-				ANNOUNCER_PlayEntry( cl_announcer, "TwoFragsLeft" );
-				g_bTwoFragsLeftSoundPlayed = true;
-			}
-			break;
-		case 1:
-
-			if ( g_bOneFragLeftSoundPlayed == false )
-			{
-				ANNOUNCER_PlayEntry( cl_announcer, "OneFragLeft" );
-				g_bOneFragLeftSoundPlayed = true;
-			}
-			break;
-		}
+		ANNOUNCER_PotentiallyPlayFragsLeftSound( fraglimit - lNewFragCount );
 	}
 }
 
