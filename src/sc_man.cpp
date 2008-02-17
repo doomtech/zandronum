@@ -783,6 +783,7 @@ FString SC_TokenName (int token, const char *string)
 		"'^='",
 		"'|='",
 		"'>>'",
+		"'>>>'",
 		"'<<'",
 		"'++'",
 		"'--'",
