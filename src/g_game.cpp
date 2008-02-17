@@ -344,12 +344,9 @@ CCMD (turn180)
 // [BC] New cvar that shows the name of the weapon we're cycling to.
 CVAR( Bool, cl_showweapnameoncycle, true, CVAR_ARCHIVE )
 
-CCMD (weapnext)
+// [BB] Helper function that collects the duplicate code of weapnext and weapprev
+void SelectWeaponAndDisplayName ( AWeapon *pSelectedWeapon )
 {
-	AInventory	*pSelectedWeapon;
-
-	pSelectedWeapon = PickNextWeapon (&players[consoleplayer]);
-
 	// [BC] This can be NULL if we're a spectator.
 	if ( pSelectedWeapon == NULL )
 		return;
@@ -360,20 +357,26 @@ CCMD (weapnext)
 		( demorecording == false ))
 	{
 		players[consoleplayer].mo->UseInventory( pSelectedWeapon );
-		if ( players[consoleplayer].PendingWeapon != pSelectedWeapon )
+		// [BB] UseInventory may select the sister weapon, take this into account here.
+		if ( ( players[consoleplayer].PendingWeapon != pSelectedWeapon )
+			 && ( players[consoleplayer].PendingWeapon != NULL )
+			 && ( players[consoleplayer].PendingWeapon->SisterWeaponType != pSelectedWeapon->GetClass() )
+			)
+		{
 			return;
+		}
 	}
 	else
 		SendItemUse = pSelectedWeapon;
 
 	// [BC] Option to display the name of the weapon being cycled to.
-	if ( cl_showweapnameoncycle )
+	if ( cl_showweapnameoncycle && ( players[consoleplayer].PendingWeapon != NULL ) )
 	{
 		char				szString[64];
 		DHUDMessageFadeOut	*pMsg;
 		
 		// Build the string and text color;
-		sprintf( szString, "%s", pSelectedWeapon->GetClass( )->TypeName.GetChars( ));
+		sprintf( szString, "%s", players[consoleplayer].PendingWeapon->GetClass( )->TypeName.GetChars( ));
 		// [RC] Set the font
 		screen->SetFont( SmallFont );
 		pMsg = new DHUDMessageFadeOut( szString,
@@ -389,50 +392,18 @@ CCMD (weapnext)
 	}
 }
 
+CCMD (weapnext)
+{
+	// [BB] Skulltag does this a little differently from ZDoom.
+	AWeapon	*pSelectedWeapon = PickNextWeapon (&players[consoleplayer]);
+	SelectWeaponAndDisplayName ( pSelectedWeapon );
+}
+
 CCMD (weapprev)
 {
-	AInventory	*pSelectedWeapon;
-
-	pSelectedWeapon = PickPrevWeapon (&players[consoleplayer]);
-
-	// [BC] This can be NULL if we're a spectator.
-	if ( pSelectedWeapon == NULL )
-		return;
-
-	// [BC] If we're the client, switch to this weapon right now, since the whole
-	// DEM_, etc. network code isn't ever executed.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( demorecording == false ))
-	{
-		players[consoleplayer].mo->UseInventory( pSelectedWeapon );
-		if ( players[consoleplayer].PendingWeapon != pSelectedWeapon )
-			return;
-	}
-	else
-		SendItemUse = pSelectedWeapon;
-
-	// [BC] Option to display the name of the weapon being cycled to.
-	if ( cl_showweapnameoncycle )
-	{
-		char				szString[64];
-		DHUDMessageFadeOut	*pMsg;
-		
-		// Build the string and text color;
-		sprintf( szString, "%s", pSelectedWeapon->GetClass( )->TypeName.GetChars( ));
-		// [RC] Set the font
-		screen->SetFont( SmallFont );
-
-		pMsg = new DHUDMessageFadeOut( szString,
-			1.5f,
-			gameinfo.gametype == GAME_Doom ? 0.96f : 0.95f,
-			0,
-			0,
-			CR_GOLD,
-			2.f,
-			0.35f );
-
-		StatusBar->AttachMessage( pMsg, MAKE_ID( 'P', 'N', 'A', 'M' ));
-	}
+	// [BB] Skulltag does this a little differently from ZDoom.
+	AWeapon	*pSelectedWeapon = PickPrevWeapon (&players[consoleplayer]);
+	SelectWeaponAndDisplayName ( pSelectedWeapon );
 }
 
 CCMD (invnext)
