@@ -167,8 +167,6 @@ long MASTERSERVER_AddServerToList( NETADDRESS_s Address )
 //
 void MASTERSERVER_InitializeBans( void )
 {
-	std::cerr << "Initializing ban list...\n";
-
 	if ( !(g_BannedIPs.clearAndLoadFromFile( "banlist.txt" )) )
 		std::cerr << g_BannedIPs.getErrorMessage();
 
@@ -413,10 +411,10 @@ int main( )
 	BYTESTREAM_s	*pByteStream;
 	unsigned long	ulIdx;
 
-	printf( "=== S K U L L T A G ===\n" );
-	printf( "\nMaster server v1.6\n" );
+	std::cerr << "=== S K U L L T A G ===\n";
+	std::cerr << "\nMaster server v1.6\n";
 
-	printf( "Initializing on port: %d\n", DEFAULT_MASTER_PORT );
+	std::cerr << "Initializing on port: " << DEFAULT_MASTER_PORT << std::endl;
 
 	// Initialize the network system.
 	NETWORK_Construct( DEFAULT_MASTER_PORT );
@@ -429,13 +427,15 @@ int main( )
 	NETWORK_ClearBuffer( &g_MessageBuffer );
 
 	// Initialize the bans subsystem.
+	std::cerr << "Initializing ban list...\n";
 	MASTERSERVER_InitializeBans( );
+	int lastParsingTime = I_GetTime( );
 
 	g_lStoredQueryIPHead = 0;
 	g_lStoredQueryIPTail = 0;
 
 	// Done setting up!
-	printf( "Master server initialized!\n\n" );
+	std::cerr << "Master server initialized!\n\n";
 
 	while ( 1 )
 	{
@@ -461,6 +461,14 @@ int main( )
 
 		// See if any servers have timed out.
 		MASTERSERVER_CheckTimeouts( );
+
+		// [BB] Reparse the ban list every 15 minutes.
+		if ( g_lCurrentTime > lastParsingTime + 15*60 )
+		{
+			std::cerr << "Reparsing ban list...\n";
+			MASTERSERVER_InitializeBans( );
+			lastParsingTime = g_lCurrentTime;
+		}
 	}	
 	
 	return ( 0 );
