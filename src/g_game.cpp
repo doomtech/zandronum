@@ -357,9 +357,16 @@ void SelectWeaponAndDisplayName ( AWeapon *pSelectedWeapon )
 		( demorecording == false ))
 	{
 		players[consoleplayer].mo->UseInventory( pSelectedWeapon );
+
+		// [BB] We didn't change our weapon, so there is nothing to do.
+		if ( ( players[consoleplayer].PendingWeapon == WP_NOCHANGE )
+			 || ( players[consoleplayer].PendingWeapon == NULL ) )
+		{
+			return;
+		}
+
 		// [BB] UseInventory may select the sister weapon, take this into account here.
 		if ( ( players[consoleplayer].PendingWeapon != pSelectedWeapon )
-			 && ( players[consoleplayer].PendingWeapon != NULL )
 			 && ( players[consoleplayer].PendingWeapon->SisterWeaponType != pSelectedWeapon->GetClass() )
 			)
 		{
