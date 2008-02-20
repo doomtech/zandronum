@@ -734,6 +734,7 @@ char			*BOTINFO_GetChatFile( ULONG ulIdx );
 char			*BOTINFO_GetChatLump( ULONG ulIdx );
 
 void		BOTSPAWN_AddToTable( char *pszBotName, char *pszBotTeam );
+void		BOTSPAWN_BlockClearTable( void );
 void		BOTSPAWN_ClearTable( void );
 
 // Botspawn access functions.

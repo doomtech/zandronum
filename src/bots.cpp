@@ -97,6 +97,7 @@ static	BOTINFO_s	g_HardcodedBotInfo[NUM_HARDCODED_BOTS];
 static	cycle_t		g_BotCycles;
 static	bool		g_bBotIsInitialized[MAXPLAYERS];
 static	LONG		g_lLastHeader;
+static	bool		g_bBlockClearTable = false;
 static	char		*g_pszDataHeaders[NUM_DATAHEADERS] =
 {
 	"DH_COMMAND",
@@ -2645,8 +2646,21 @@ void BOTSPAWN_AddToTable( char *pszBotName, char *pszBotTeam )
 
 //*****************************************************************************
 //
+void BOTSPAWN_BlockClearTable( void )
+{
+	g_bBlockClearTable = true;
+}
+
+//*****************************************************************************
+//
 void BOTSPAWN_ClearTable( void )
 {
+	if ( g_bBlockClearTable )
+	{
+		g_bBlockClearTable = false;
+		return;
+	}
+
 	ULONG	ulIdx;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
