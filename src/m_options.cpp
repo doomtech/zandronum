@@ -2996,6 +2996,7 @@ void M_StartSkirmishGame( void )
 	// to protect the table. Not very elegant, but seems to work.
 	//G_InitNew( szLevelName, false );
 	G_DeferedInitNew( szLevelName );
+	BOTSPAWN_ClearTable();
 	BOTSPAWN_BlockClearTable();
 	gamestate = gamestate == GS_FULLCONSOLE ? GS_HIDECONSOLE : gamestate;
 
