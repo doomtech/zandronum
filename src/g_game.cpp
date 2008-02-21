@@ -4097,6 +4097,9 @@ void G_DoLoadGame ()
 
 	delete png;
 	fclose (stdfile);
+
+	demoplayback = false;
+	usergame = true;
 }
 
 

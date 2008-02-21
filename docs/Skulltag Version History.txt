@@ -153,6 +153,7 @@ v0.97d
 -	- One Flag CTF now uses the classic HUD's iconic score display, and not the basic team scores one. [Rivecoder]
 -	- Removed cl_alwaysdrawdmstats and cl_alwaysdrawteamstats. [Rivecoder]
 -	- The reminder about how you cannot talk to players/spectators in LMS is now affected by text scaling. [Carnevil]
+-	- Fixed: If you loaded a game while a demo was playing, you'd be stuck. [Rivecoder]
 -	- The dmflag "Don't spawn multiplayer weapons in co-op games" now works properly. [Carnevil]
 -	- Skulltag score pillars now go into the correct frame when the blue team scores a point. [Carnevil]
 -	- The number of found and total items on the map now updates properly. [Carnevil]
