@@ -470,7 +470,7 @@ bool AWhiteFlag::HandlePickup( AInventory *pItem )
 					0,
 					CR_WHITE,
 					3.0f,
-					TEAM_MESSAGE_Y_AXIS );
+					0.25f );
 				StatusBar->AttachMessage( pMsg, 'CNTR' );
 				screen->SetFont( SmallFont );
 			}
