@@ -320,6 +320,7 @@ v0.97d
 !	- Replaced the CVARs cl_masterip and sv_masterip by the new global CVAR skulltag_masterip (default value skulltag.servegame.com). [Torr Samaho]
 !	- Reduced CLIENT_TIMEOUT from 65 to 25 seconds. [Torr Samaho, SuperGod, Rivecoder]
 !	- Changed: Client side demos now save the game version including the revision number. [Torr Samaho]
+!	- Raised the big team game messages so that they don't block your view. [Rivecoder]
 
 v0.97d-beta4.3
 --------------

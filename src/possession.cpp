@@ -613,7 +613,7 @@ void POSSESSION_ArtifactPickedUp( player_s *pPlayer, ULONG ulTicks )
 		screen->SetFont( BigFont );
 		pMsg = new DHUDMessageFadeOut( GStrings( "POSSESSIONARTIFACT_PICKEDUP" ),
 			1.5f,
-			0.425f,
+			TEAM_MESSAGE_Y_AXIS,
 			0,
 			0,
 			CR_RED,
@@ -661,7 +661,7 @@ void POSSESSION_ArtifactDropped( void )
 		screen->SetFont( BigFont );
 		pMsg = new DHUDMessageFadeOut( GStrings( "POSSESSIONARTIFACT_DROPPED" ),
 			1.5f,
-			0.425f,
+			TEAM_MESSAGE_Y_AXIS,
 			0,
 			0,
 			CR_RED,

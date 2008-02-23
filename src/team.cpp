@@ -456,7 +456,7 @@ void TEAM_ScoreSkulltagPoint( player_s *pPlayer, ULONG ulNumPoints, AActor *pPil
 		screen->SetFont( BigFont );
 		pMsg = new DHUDMessageFadeOut( szString,
 			1.5,
-			0.425f,
+			TEAM_MESSAGE_Y_AXIS,
 			0,
 			0,
 			CR_BLUE,
@@ -468,7 +468,7 @@ void TEAM_ScoreSkulltagPoint( player_s *pPlayer, ULONG ulNumPoints, AActor *pPil
 	// If necessary, send it to clients.
 	else
 	{
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.425f, 0, 0, CR_BLUE, 3.0f, 0.5f, "BigFont", false, 'CNTR' );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_BLUE, 3.0f, 0.5f, "BigFont", false, 'CNTR' );
 	}
 
 	// Create the "scored by / assisted by" message.
@@ -490,7 +490,7 @@ void TEAM_ScoreSkulltagPoint( player_s *pPlayer, ULONG ulNumPoints, AActor *pPil
 		screen->SetFont( SmallFont );
 		pMsg = new DHUDMessageFadeOut( szString,
 			1.5f,
-			0.475f,
+			TEAM_MESSAGE_Y_AXIS_SUB,
 			0,
 			0,
 			pPlayer->ulTeam == TEAM_BLUE ? CR_BLUE : CR_RED,
@@ -500,7 +500,7 @@ void TEAM_ScoreSkulltagPoint( player_s *pPlayer, ULONG ulNumPoints, AActor *pPil
 	}
 	// If necessary, send it to clients.
 	else
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.475f, 0, 0, CR_BLUE, 3.0f, 0.5f, "SmallFont", false, 'SUBS' );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_BLUE, 3.0f, 0.5f, "SmallFont", false, 'SUBS' );
 
 	// Give his team a point.
 	TEAM_SetScore( pPlayer->ulTeam, TEAM_GetScore( pPlayer->ulTeam ) + ulNumPoints, true );
@@ -600,7 +600,7 @@ void TEAM_DisplayNeedToReturnSkullMessage( player_s *pPlayer )
 	{
 		pMsg = new DHUDMessageFadeOut( szString,
 			1.5f,
-			0.425f,
+			TEAM_MESSAGE_Y_AXIS,
 			0,
 			0,
 			CR_RED,
@@ -611,7 +611,7 @@ void TEAM_DisplayNeedToReturnSkullMessage( player_s *pPlayer )
 	// If necessary, send it to clients.
 	else
 	{
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.425f, 0, 0, CR_RED, 1.0f, 0.25f, "SmallFont", false, 'CNTR', ULONG( pPlayer - players ), SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_RED, 1.0f, 0.25f, "SmallFont", false, 'CNTR', ULONG( pPlayer - players ), SVCF_ONLYTHISCLIENT );
 	}
 }
 
@@ -652,7 +652,7 @@ void TEAM_FlagDropped( player_s *pPlayer )
 	screen->SetFont( BigFont );
 	pMsg = new DHUDMessageFadeOut( szString,
 		1.5f,
-		0.425f,
+		TEAM_MESSAGE_Y_AXIS,
 		0,
 		0,
 		CR_WHITE,
