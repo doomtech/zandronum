@@ -280,6 +280,7 @@ v0.97d
 -	- Fixed: Things removed by Thing_Remove are not restored when a map resets. [Torr Samaho]
 -	- Fixed: When trying to refresh the server list in the internal server browser more than once within 10 seconds, you got a "Unknown command from master server: 4" message instead of a proper warning. [Torr Samaho]
 -	- Fixed: When selecting a powered weapon with "weapnext" or "weapprev" the name of the non-powered version of the weapon was displayed (in case cl_showweapnameoncycle is set to true). [Torr Samaho]
+-	- Fixed: Using addbot on a map with no appropriate player starts for the selected game mode leads to a crash. [Torr Samaho]
 !	- Survival co-op is now disabled in hubs. [Carnevil]
 !	- Skulltag's invasion spawners are now defined in skulltag.pk3. [Carnevil]
 !	- Skulltag.wad is now loaded before doom2.wad. This should fix certain texture errors. [Carnevil]
