@@ -802,6 +802,20 @@ bool IPList::isIPInList( const char *pszIP0, const char *pszIP1, const char *psz
 
 //*****************************************************************************
 //
+bool IPList::isIPInList( const NETADDRESS_s &Address ) const
+{
+	char szAddress[4][4];
+
+	itoa( Address.abIP[0], szAddress[0], 10 );
+	itoa( Address.abIP[1], szAddress[1], 10 );
+	itoa( Address.abIP[2], szAddress[2], 10 );
+	itoa( Address.abIP[3], szAddress[3], 10 );
+
+	return isIPInList( szAddress[0], szAddress[1], szAddress[2], szAddress[3] );
+}
+
+//*****************************************************************************
+//
 ULONG IPList::doesEntryExist( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3 ) const
 {
 	for ( ULONG ulIdx = 0; ulIdx < _ipVector.size(); ulIdx++ )

@@ -257,6 +257,7 @@ class IPList{
 public:
 	bool clearAndLoadFromFile( const char *Filename );
 	bool isIPInList( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3 ) const;
+	bool isIPInList( const NETADDRESS_s &Address ) const;
 	ULONG doesEntryExist( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3 ) const;
 	IPADDRESSBAN_s getEntry( const ULONG ulIdx ) const;
     std::string getEntryAsString( const ULONG ulIdx ) const;
