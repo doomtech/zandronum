@@ -82,7 +82,7 @@ typedef enum
 //*****************************************************************************
 //	PROTOTYPES
 
-void		CLIENTDEMO_BeginRecording( char *pszDemoName );
+void		CLIENTDEMO_BeginRecording( const char *pszDemoName );
 bool		CLIENTDEMO_ProcessDemoHeader( void );
 void		CLIENTDEMO_WriteUserInfo( void );
 void		CLIENTDEMO_ReadUserInfo( void );
@@ -94,7 +94,7 @@ void		CLIENTDEMO_FinishRecording( void );
 void		CLIENTDEMO_DoPlayDemo( char *pszDemoName );
 void		CLIENTDEMO_FinishPlaying( void );
 LONG		CLIENTDEMO_GetGameticOffset( void );
-void		CLIENTDEMO_WriteLocalCommand( LONG lCommand, char *pszArg );
+void		CLIENTDEMO_WriteLocalCommand( LONG lCommand, const char *pszArg );
 
 bool		CLIENTDEMO_IsRecording( void );
 void		CLIENTDEMO_SetRecording( bool bRecording );

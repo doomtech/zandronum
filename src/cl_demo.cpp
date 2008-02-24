@@ -102,7 +102,7 @@ static	LONG				g_lMaxDemoLength;
 //*****************************************************************************
 //	FUNCTIONS
 
-void CLIENTDEMO_BeginRecording( char *pszDemoName )
+void CLIENTDEMO_BeginRecording( const char *pszDemoName )
 {
 	if ( pszDemoName == NULL )
 		return;
@@ -519,7 +519,7 @@ LONG CLIENTDEMO_GetGameticOffset( void )
 
 //*****************************************************************************
 //
-void CLIENTDEMO_WriteLocalCommand( LONG lCommand, char *pszArg )
+void CLIENTDEMO_WriteLocalCommand( LONG lCommand, const char *pszArg )
 {
 	if ( pszArg )
 		clientdemo_CheckDemoBuffer( (ULONG)strlen( pszArg ) + 1 );
