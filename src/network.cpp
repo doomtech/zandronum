@@ -143,6 +143,9 @@ static	USHORT			g_usLocalPort;
 // Buffer for the Huffman encoding.
 static	UCHAR			g_ucHuffmanBuffer[131072];
 
+// Our local address;
+NETADDRESS_s	g_LocalAddress;
+
 //*****************************************************************************
 //	PROTOTYPES
 
@@ -158,7 +161,6 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 	char			szString[128];
 	ULONG			ulArg;
 	USHORT			usNewPort;
-	NETADDRESS_s	LocalAddress;
 	bool			bSuccess;
 
 	// Initialize the Huffman buffer.
@@ -226,12 +228,12 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 	NETWORK_ClearBuffer( &g_NetworkMessage );
 
 	// Print out our local IP address.
-	LocalAddress = NETWORK_GetLocalAddress( );
-	Printf( "IP address %s\n", NETWORK_AddressToString( LocalAddress ));
+	g_LocalAddress = NETWORK_GetLocalAddress( );
+	Printf( "IP address %s\n", NETWORK_AddressToString( g_LocalAddress ));
 
 	// If hosting, update the server GUI.
 	if( NETWORK_GetState() == NETSTATE_SERVER )
-		SERVERCONSOLE_UpdateIP( LocalAddress );
+		SERVERCONSOLE_UpdateIP( g_LocalAddress );
 
 	// Call NETWORK_Destruct() when Skulltag closes.
 	atterm( NETWORK_Destruct );
