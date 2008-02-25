@@ -866,7 +866,7 @@ bool ABlueFlag::HandlePickup( AInventory *pItem )
 			else
 			{
 				SERVERCOMMANDS_SetPlayerPoints( ULONG( Owner->player - players ));
-				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.42f, 0, 0, CR_RED, 3.0f, 0.5f, "BigFont", false, 'CNTR' );
+				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_RED, 3.0f, 0.5f, "BigFont", false, 'CNTR' );
 			}
 
 			// [RC] Create the "scored by" and "assisted by" message.
@@ -1340,7 +1340,7 @@ bool ARedFlag::HandlePickup( AInventory *pItem )
 			else
 			{
 				SERVERCOMMANDS_SetPlayerPoints( ULONG( Owner->player - players ));
-				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.42f, 0, 0, CR_BLUE, 3.0f, 0.5f, "BigFont", false, 'CNTR' );
+				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_BLUE, 3.0f, 0.5f, "BigFont", false, 'CNTR' );
 			}
 			
 			// [RC] Create the "scored by" and "assisted by" message.
