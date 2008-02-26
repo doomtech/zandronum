@@ -16,6 +16,7 @@ v0.97d
 
 -	- Fixed: The red/blue team scores messages in CTF online are at the wrong position. [Torr Samaho]
 -	- Fixed: A successful kick vote doesn't kick the target. [Torr Samaho]
+-	- Fixed: A client with idmypos set to true crashes when connecting to a server. [Torr Samaho]
 !	- Raised CLIENT_TIMEOUT from 25 to 40 seconds. This should fix the timeout problems after intermission in Heretic. [Torr Samaho]
 
 v0.97d RC9

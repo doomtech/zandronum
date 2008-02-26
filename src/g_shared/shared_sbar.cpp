@@ -1113,7 +1113,8 @@ void FBaseStatusBar::Draw (EHudState state)
 		RefreshBackground ();
 	}
 
-	if (idmypos)
+	// [BB] The following code relies on CPlayer->mo != NULL.
+	if (idmypos && CPlayer->mo)
 	{ // Draw current coordinates
 		int height = screen->Font->GetHeight();
 		int y = ::ST_Y - height;
