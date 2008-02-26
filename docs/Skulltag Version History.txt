@@ -15,6 +15,7 @@ v0.97d
 ------
 
 -	- Fixed: The red/blue team scores messages in CTF online are at the wrong position. [Torr Samaho]
+-	- Fixed: A successful kick vote doesn't kick the target. [Torr Samaho]
 
 v0.97d RC9
 ----------

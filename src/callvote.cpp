@@ -138,7 +138,7 @@ void CALLVOTE_Tick( void )
 					// If the vote is a kick vote, we have to alter g_VoteCommand to kick the cached player idx.
 					if ( strncmp( g_VoteCommand, "kick ", 5 ) == 0 )
 					{
-						g_VoteCommand = "kick_idx";
+						g_VoteCommand = "kick_idx ";
 						g_VoteCommand.AppendFormat( "%d", g_ulKickVoteTargetPlayerIdx );
 					}
 
