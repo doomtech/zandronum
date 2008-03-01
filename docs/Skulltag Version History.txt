@@ -25,6 +25,7 @@ v0.97d
 -	- Fixed: Thing_Remove doesn't properly remove invasion spawners. [Torr Samaho]
 -	- Moved "Lose powerups (CO-OP)" and "Lose half ammo (CO-OP)" boxes to the DMFlags section of the "Configure DMFlags" server window. [Torr Samaho]
 !	- Raised CLIENT_TIMEOUT from 25 to 40 seconds. This should fix the timeout problems after intermission in Heretic. [Torr Samaho]
+!	- Changed the default value of vid_renderer to 0 (software renderer) to reduce compatibility problems with systems that can't use the GL renderer. [Torr Samaho]
 
 v0.97d RC9
 ----------
