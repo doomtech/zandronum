@@ -22,6 +22,7 @@ v0.97d
 -	- Fixed: The new icon and medal hierarchy doesn't always prevent medals from overriding carrier icons. [Torr Samaho]
 -	- Fixed: The fraglimit code is executed on client and server, causing several problems. Among them is the incorrect number of wins display in duels online. [Torr Samaho]
 -	- Fixed: Toggling the "Lose half ammo (CO-OP)" box in the "Configure DMFlags" server window doesn't automatically update the dmflags value in the window. [Torr Samaho]
+-	- Moved "Lose powerups (CO-OP)" and "Lose half ammo (CO-OP)" boxes to the DMFlags section of the "Configure DMFlags" server window. [Torr Samaho]
 !	- Raised CLIENT_TIMEOUT from 25 to 40 seconds. This should fix the timeout problems after intermission in Heretic. [Torr Samaho]
 
 v0.97d RC9
