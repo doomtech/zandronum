@@ -474,6 +474,21 @@ CCMD( addban )
 
 //*****************************************************************************
 //
+CCMD( delban )
+{
+	if ( argv.argc( ) < 2 )
+	{
+		Printf( "Usage: delban <IP address>\n" );
+		return;
+	}
+
+	std::string message;
+	g_ServerBans.removeEntry( argv[1], message );
+	Printf( "delban: %s", message.c_str() );
+}
+
+//*****************************************************************************
+//
 CCMD( addbanexemption )
 {
 	if ( argv.argc( ) < 2 )
@@ -489,6 +504,21 @@ CCMD( addbanexemption )
 
 //*****************************************************************************
 //
+CCMD( delbanexemption )
+{
+	if ( argv.argc( ) < 2 )
+	{
+		Printf( "Usage: delbanexemption <IP address>\n" );
+		return;
+	}
+
+	std::string message;
+	g_ServerBanExemptions.removeEntry( argv[1], message );
+	Printf( "delbanexemption: %s", message.c_str() );
+}
+
+//*****************************************************************************
+//
 CCMD( viewbanlist )
 {
 	ULONG		ulIdx;
@@ -497,6 +527,14 @@ CCMD( viewbanlist )
 	{
 		Printf( "%s", g_ServerBans.getEntryAsString(ulIdx).c_str() );
 	}
+}
+
+//*****************************************************************************
+//
+CCMD( viewbanexemptionlist )
+{
+	for ( ULONG ulIdx = 0; ulIdx < g_ServerBanExemptions.size(); ulIdx++ )
+		Printf( "%s", g_ServerBanExemptions.getEntryAsString(ulIdx).c_str() );
 }
 
 //*****************************************************************************
