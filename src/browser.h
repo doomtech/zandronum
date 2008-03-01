@@ -58,7 +58,7 @@
 //  DEFINES
 
 // Maximum number of servers listed in the browser.
-#define		MAX_BROWSER_SERVERS		256
+#define		MAX_BROWSER_SERVERS		512
 
 //*****************************************************************************
 enum
