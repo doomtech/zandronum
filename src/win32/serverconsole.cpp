@@ -688,6 +688,7 @@ BOOL CALLBACK SERVERCONSOLE_DMFlagsCallback( HWND hDlg, UINT Message, WPARAM wPa
 			case IDC_LOSE_WEAPONS:
 			case IDC_SHOTGUN_START:
 			case IDC_SAME_SPAWN_SPOT:
+			case IDC_DF2_YES_KEEP_TEAMS:
 			case IDC_SHORTTEX:
 			case IDC_STAIRINDEX:
 			case IDC_LIMITPAIN:
@@ -3564,6 +3565,11 @@ void SERVERCONSOLE_InitializeDMFlagsDisplay( HWND hDlg )
 	else
 		SendDlgItemMessage( hDlg, IDC_SAME_SPAWN_SPOT, BM_SETCHECK, BST_UNCHECKED, 0 );
 
+	if ( dmflags2 & DF2_YES_KEEP_TEAMS  )
+		SendDlgItemMessage( hDlg, IDC_DF2_YES_KEEP_TEAMS, BM_SETCHECK, BST_CHECKED, 0 );
+	else
+		SendDlgItemMessage( hDlg, IDC_DF2_YES_KEEP_TEAMS, BM_SETCHECK, BST_UNCHECKED, 0 );
+
 	// COMPATFLAGS
 	if ( compatflags & COMPATF_SHORTTEX )
 		SendDlgItemMessage( hDlg, IDC_SHORTTEX, BM_SETCHECK, BST_CHECKED, 0 );
@@ -3760,6 +3766,8 @@ void SERVERCONSOLE_UpdateDMFlagsDisplay( HWND hDlg )
 		ulDMFlags2 |= DF2_COOP_SHOTGUNSTART;
 	if ( SendDlgItemMessage( hDlg, IDC_SAME_SPAWN_SPOT, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
 		ulDMFlags2 |= DF2_SAME_SPAWN_SPOT;
+	if ( SendDlgItemMessage( hDlg, IDC_DF2_YES_KEEP_TEAMS, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
+		ulDMFlags2 |= DF2_YES_KEEP_TEAMS ;
 
 	sprintf( szString, "dmflags2: %ld", ulDMFlags2 );
 	SetDlgItemText( hDlg, IDC_DMFLAGS2, szString );
@@ -3905,6 +3913,8 @@ void SERVERCONSOLE_UpdateDMFlags( HWND hDlg )
 		ulDMFlags2 |= DF2_COOP_SHOTGUNSTART;
 	if ( SendDlgItemMessage( hDlg, IDC_SAME_SPAWN_SPOT, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
 		ulDMFlags2 |= DF2_SAME_SPAWN_SPOT;
+	if ( SendDlgItemMessage( hDlg, IDC_DF2_YES_KEEP_TEAMS, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
+		ulDMFlags2 |= DF2_YES_KEEP_TEAMS ;
 
 	// If the DMFlags2 have changed, send the update.
 	if ( g_ulStoredDMFlags2 != ulDMFlags2 )

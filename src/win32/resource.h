@@ -335,6 +335,7 @@
 #define IDC_EMAILADDRESS                1221
 #define IDC_PWADS                       1222
 #define IDC_VERSION                     1223
+#define IDC_DF2_YES_KEEP_TEAMS			1224
 #define UWM_TRAY_TRAYID                 32769
 #define UWM_TRAY_NOP                    32770
 #define ID_FILE_IMPORTCONFIGURATION     40001

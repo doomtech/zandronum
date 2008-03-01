@@ -765,7 +765,7 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,353,379,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,407,379,50,14
     GROUPBOX        "DMFlags",IDC_STATIC,8,114,144,282
-    GROUPBOX        "DMFlags2",IDC_STATIC,160,114,144,151
+    GROUPBOX        "DMFlags2",IDC_STATIC,160,114,144,161
     GROUPBOX        "Compatflags",IDC_STATIC,312,114,144,197
     CONTROL         "Falling damage (old)",IDC_FORCE_FALLINGZD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,124,79,10
     CONTROL         "Falling damage (hexen)",IDC_FORCE_FALLINGHX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,134,89,10
@@ -807,6 +807,7 @@ BEGIN
     CONTROL         "Lose weapons (CO-OP)",IDC_LOSE_WEAPONS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,357,91,10
     CONTROL         "Start with shotgun",IDC_SHOTGUN_START,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,168,238,73,10
     CONTROL         "Spawn where died (CO-OP)",IDC_SAME_SPAWN_SPOT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,168,248,103,10
+    CONTROL         "Keep team after a map change",IDC_DF2_YES_KEEP_TEAMS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,168,258,113,10
     CONTROL         "Find shortest textures like Doom",IDC_SHORTTEX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,124,116,10
     CONTROL         "Use buggier stair building",IDC_STAIRINDEX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,134,95,10
     CONTROL         "Limit pain elementals to 20 lost souls",IDC_LIMITPAIN,
