@@ -18,7 +18,7 @@ v0.97d
 +	- Added CCMD addbanexemption to add entries to the whitelist. [Torr Samaho]
 +	- Added CCMDs delban and delbanexemption to remove entries from the banlist/whitelist. [Torr Samaho]
 +	- Added CCMD viewbanexemptionlist to print the whole whitelist. [Torr Samaho]
-+	- If (sv_banfilereparsetime > 0) the whitelist is now reparsed in addition to the banlist. [Torr Samaho]
++	- If (sv_banfilereparsetime > 0) the whitelist is now reparsed in addition to the banlist. This also applies to the CCMD reloadbans. [Torr Samaho]
 -	- Fixed: The red/blue team scores messages in CTF online are at the wrong position. [Torr Samaho]
 -	- Fixed: A successful kick vote doesn't kick the target. [Torr Samaho]
 -	- Fixed: A client with idmypos set to true crashes when connecting to a server. [Torr Samaho]

@@ -61,6 +61,7 @@
 //	PROTOTYPES
 
 static	void	serverban_LoadBans( void );
+static	void	serverban_LoadBansAndBanExemptions( void );
 
 //*****************************************************************************
 //	VARIABLES
@@ -117,11 +118,7 @@ void SERVERBAN_Tick( void )
 			g_ServerBans.clear();
 
 			// Load the banfile, and initialize the bans.
-			serverban_LoadBans( );
-
-			// [BB] Also reparse the ban exemptions.
-			if ( !(g_ServerBanExemptions.clearAndLoadFromFile( sv_banexemptionfile.GetGenericRep( CVAR_String ).String )) )
-				Printf( "%s", g_ServerBanExemptions.getErrorMessage() );
+			serverban_LoadBansAndBanExemptions( );
 		}
 	}
 }
@@ -221,6 +218,16 @@ static void serverban_LoadBans( void )
 
 	if ( !(g_ServerBans.clearAndLoadFromFile( fsFilePath.GetChars() )) )
 		Printf( "%s", g_ServerBans.getErrorMessage() );
+}
+
+//*****************************************************************************
+//
+static void serverban_LoadBansAndBanExemptions( void )
+{
+	serverban_LoadBans();
+
+	if ( !(g_ServerBanExemptions.clearAndLoadFromFile( sv_banexemptionfile.GetGenericRep( CVAR_String ).String )) )
+		Printf( "%s", g_ServerBanExemptions.getErrorMessage() );
 }
 
 //*****************************************************************************
@@ -551,5 +558,5 @@ CCMD( reloadbans )
 	g_ServerBans.clear();
 
 	// Load the banfile, and initialize the bans.
-	serverban_LoadBans( );
+	serverban_LoadBansAndBanExemptions( );
 }
