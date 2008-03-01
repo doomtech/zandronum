@@ -118,6 +118,10 @@ void SERVERBAN_Tick( void )
 
 			// Load the banfile, and initialize the bans.
 			serverban_LoadBans( );
+
+			// [BB] Also reparse the ban exemptions.
+			if ( !(g_ServerBanExemptions.clearAndLoadFromFile( sv_banexemptionfile.GetGenericRep( CVAR_String ).String )) )
+				Printf( "%s", g_ServerBanExemptions.getErrorMessage() );
 		}
 	}
 }
