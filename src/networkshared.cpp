@@ -929,3 +929,30 @@ void IPList::addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP
 	}
 }
 
+//*****************************************************************************
+//
+void IPList::addEntry( const char *pszIPAddress, const char *pszPlayerName, const char *pszComment, std::string &Message )
+{
+	NETADDRESS_s	BanAddress;
+	char			szStringBan[4][4];
+
+	if ( NETWORK_StringToIP( pszIPAddress, szStringBan[0], szStringBan[1], szStringBan[2], szStringBan[3] ))
+	{
+		addEntry( szStringBan[0], szStringBan[1], szStringBan[2], szStringBan[3], pszPlayerName, pszComment, Message );
+	}
+	else if ( NETWORK_StringToAddress( pszIPAddress, &BanAddress ))
+	{
+		itoa( BanAddress.abIP[0], szStringBan[0], 10 );
+		itoa( BanAddress.abIP[1], szStringBan[1], 10 );
+		itoa( BanAddress.abIP[2], szStringBan[2], 10 );
+		itoa( BanAddress.abIP[3], szStringBan[3], 10 );
+
+		addEntry( szStringBan[0], szStringBan[1], szStringBan[2], szStringBan[3], pszPlayerName, pszComment, Message );
+	}
+	else
+	{
+		Message = "Invalid IP address string: ";
+		Message += pszIPAddress;
+		Message += "\n";
+	}
+}

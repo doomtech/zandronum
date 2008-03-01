@@ -262,6 +262,7 @@ public:
 	IPADDRESSBAN_s getEntry( const ULONG ulIdx ) const;
     std::string getEntryAsString( const ULONG ulIdx ) const;
 	void addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3, const char *pszPlayerName, const char *pszComment, std::string &Message );
+	void addEntry( const char *pszIPAddress, const char *pszPlayerName, const char *pszComment, std::string &Message );
 
 	unsigned int size() const { return static_cast<unsigned int>(_ipVector.size()); }
 

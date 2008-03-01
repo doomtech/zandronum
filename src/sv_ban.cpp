@@ -431,6 +431,8 @@ CCMD( ban )
 
 //*****************************************************************************
 //
+// [BB] Reduce code duplication by making this exactly like addbanexemption.
+// Don't change this before the final release of 97D though.
 CCMD( addban )
 {
 	NETADDRESS_s	BanAddress;
@@ -464,6 +466,21 @@ CCMD( addban )
 	}
 	else
 		Printf( "Invalid ban string: %s\n", argv[1] );
+}
+
+//*****************************************************************************
+//
+CCMD( addbanexemption )
+{
+	if ( argv.argc( ) < 2 )
+	{
+		Printf( "Usage: addbanexemption <IP address> [comment]\n" );
+		return;
+	}
+
+	std::string message;
+	g_ServerBanExemptions.addEntry( argv[1], NULL, (argv.argc( ) >= 3) ? argv[2] : NULL, message );
+	Printf( "addbanexemption: %s", message.c_str() );
 }
 
 //*****************************************************************************
