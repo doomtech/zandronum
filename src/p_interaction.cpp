@@ -547,7 +547,9 @@ void AActor::Die (AActor *source, AActor *inflictor)
 			{
 				// [RH] Implement fraglimit
 				// [BC] Betterized!
-				if ( fraglimit <= D_GetFragCount( source->player ))
+				// [BB] Clients may not do this.
+				if ( fraglimit <= D_GetFragCount( source->player )
+					 && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ) )
 				{
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 					{
