@@ -1050,11 +1050,35 @@ void medal_TriggerMedal( ULONG ulPlayer, ULONG ulMedal )
 		{
 			// Medals don't override carrier symbols.
 			case S_BLUEFLAG:
+			case ( S_BLUEFLAG + 1 ):
+			case ( S_BLUEFLAG + 2 ):
+			case ( S_BLUEFLAG + 3 ):
+			case ( S_BLUEFLAG + 4 ):
+			case ( S_BLUEFLAG + 5 ):
 			case S_BLUESKULL:
+			case ( S_BLUESKULL + 1 ):
 			case S_REDFLAG:
+			case ( S_REDFLAG + 1 ):
+			case ( S_REDFLAG + 2 ):
+			case ( S_REDFLAG + 3 ):
+			case ( S_REDFLAG + 4 ):
+			case ( S_REDFLAG + 5 ):
 			case S_REDSKULL:
+			case ( S_REDSKULL + 1 ):
+			case S_WHITEFLAG:
+			case ( S_WHITEFLAG + 1 ):
+			case ( S_WHITEFLAG + 2 ):
+			case ( S_WHITEFLAG + 3 ):
+			case ( S_WHITEFLAG + 4 ):
+			case ( S_WHITEFLAG + 5 ):
 			case S_TERMINATORARTIFACT:
+			case ( S_TERMINATORARTIFACT + 1 ):
+			case ( S_TERMINATORARTIFACT + 2 ):
+			case ( S_TERMINATORARTIFACT + 3 ):
 			case S_POSSESSIONARTIFACT:
+			case ( S_POSSESSIONARTIFACT + 1 ):
+			case ( S_POSSESSIONARTIFACT + 2 ):
+			case ( S_POSSESSIONARTIFACT + 3 ):
 
 				bCreateIcon = false;
 				break;

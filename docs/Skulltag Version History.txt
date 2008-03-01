@@ -18,6 +18,7 @@ v0.97d
 -	- Fixed: A successful kick vote doesn't kick the target. [Torr Samaho]
 -	- Fixed: A client with idmypos set to true crashes when connecting to a server. [Torr Samaho]
 -	- Fixed: In case cl_medals == true, carrier floating icons are not removed immediately after the carrier looses the item. [Torr Samaho]
+-	- Fixed: The new icon and medal hierarchy doesn't always prevent medals from overriding carrier icons. [Torr Samaho]
 !	- Raised CLIENT_TIMEOUT from 25 to 40 seconds. This should fix the timeout problems after intermission in Heretic. [Torr Samaho]
 
 v0.97d RC9
