@@ -692,6 +692,8 @@ void AActor::HideOrDestroyIfSafe ()
 		// unlink from sector and block lists
 		UnlinkFromWorld ();
 		flags |= MF_NOSECTOR|MF_NOBLOCKMAP;
+		// [BB] The dormant flag stops removed invasion spawners from spawning things when hidden.
+		flags2 |= MF2_DORMANT;
 		flags &= ~MF_SOLID;
 		SetState( &AInventory::States[17] );
 	}
