@@ -344,7 +344,11 @@ void MEDAL_Tick( void )
 		// necessary is the fact that the capture medal is awarded before the flag is taken away.
 		// This should be redesigned in the future, but not for 97D.
 		else if ( medal_PlayerHasInvalidCarrierIcon ( ulIdx ) )
+		{
+			players[ulIdx].pIcon->Destroy( );
+			players[ulIdx].pIcon = NULL;
 			medal_TriggerMedal( ulIdx, g_MedalQueue[ulIdx][0].ulMedal );
+		}
 
 		// Don't render icons floating above our own heads.
 		if ( players[ulIdx].pIcon )
