@@ -766,7 +766,7 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,407,399,50,14
     GROUPBOX        "DMFlags",IDC_STATIC,8,114,144,302
     GROUPBOX        "DMFlags2",IDC_STATIC,160,114,144,151
-    GROUPBOX        "Compatflags",IDC_STATIC,312,114,144,187
+    GROUPBOX        "Compatflags",IDC_STATIC,312,114,144,257
     CONTROL         "Falling damage (old)",IDC_FORCE_FALLINGZD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,124,79,10
     CONTROL         "Falling damage (hexen)",IDC_FORCE_FALLINGHX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,134,89,10
     CONTROL         "Weapons stay (DM)",IDC_WEAPONS_STAY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,144,79,10
@@ -835,6 +835,13 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,274,126,10
     CONTROL         "Disable stealth monsters",IDC_DISABLESTEALTHMONSTERS,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,284,92,10
+    CONTROL         "Raven's scrollers use original speed",IDC_COMPATF_RAVENSCROLL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,294,130,10
+    CONTROL         "Use sector based sound target code",IDC_COMPATF_SOUNDTARGET,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,304,130,10
+    CONTROL         "Limit deh.MaxHealth to health bonus",IDC_COMPATF_DEHHEALTH,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,314,130,10
+    CONTROL         "Trace ign. lines w. s. sec on b. sides",IDC_COMPATF_TRACE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,324,130,10
+    CONTROL         "No monster dropoff move",IDC_COMPATF_DROPOFF,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,334,130,10
+    CONTROL         "Scrolling sectors are additive",IDC_COMPATF_BOOMSCROLL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,344,130,10
+    CONTROL         "Monsters see semi-invisible players",IDC_COMPATF_INVISIBILITY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,354,130,10
     CONTROL         149,IDB_DMFLAGS,"Static",SS_BITMAP,70,10,329,90
 END
 

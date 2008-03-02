@@ -120,6 +120,30 @@ static	HICON				g_hSmallIcon = NULL;
 
 static	bool				g_bSmallIconClicked = false;
 
+#define NUMBER_OF_COMPATFLAGS 7
+// [BB] The following two arrays map the compatflag values to the corresponding control IDs.
+static	ULONG				g_compatFlags[NUMBER_OF_COMPATFLAGS] = 
+{
+	COMPATF_RAVENSCROLL,
+	COMPATF_SOUNDTARGET,
+	COMPATF_DEHHEALTH,
+	COMPATF_TRACE,
+	COMPATF_DROPOFF,
+	COMPATF_BOOMSCROLL,
+	COMPATF_INVISIBILITY,
+};
+
+static	ULONG				g_compatFlagsControlIDs[NUMBER_OF_COMPATFLAGS] = 
+{
+	IDC_COMPATF_RAVENSCROLL,
+	IDC_COMPATF_SOUNDTARGET,
+	IDC_COMPATF_DEHHEALTH,
+	IDC_COMPATF_TRACE,
+	IDC_COMPATF_DROPOFF,
+	IDC_COMPATF_BOOMSCROLL,
+	IDC_COMPATF_INVISIBILITY,
+};
+
 //*****************************************************************************
 //	GLOBAL VARIABLES
 
@@ -707,6 +731,13 @@ BOOL CALLBACK SERVERCONSOLE_DMFlagsCallback( HWND hDlg, UINT Message, WPARAM wPa
 			case IDC_ORIGINALSOUNDCURVE:
 			case IDC_OLDINTERMISSION:
 			case IDC_DISABLESTEALTHMONSTERS:
+			case IDC_COMPATF_RAVENSCROLL:
+			case IDC_COMPATF_SOUNDTARGET:
+			case IDC_COMPATF_DEHHEALTH:
+			case IDC_COMPATF_TRACE:
+			case IDC_COMPATF_DROPOFF:
+			case IDC_COMPATF_BOOMSCROLL:
+			case IDC_COMPATF_INVISIBILITY:
 
 				// Now that the dmflags/dmflags2/compatflags have changed, update the display.
 				SERVERCONSOLE_UpdateDMFlagsDisplay( hDlg );
@@ -3359,6 +3390,24 @@ void SERVERCONSOLE_UpdatePlayerInfo( LONG lPlayer, ULONG ulUpdateFlags )
 
 //*****************************************************************************
 //
+void SERVERCONSOLE_UpdateHandleFromFlags( const ULONG lFlags, const ULONG lFlagValue, HWND hDlg, const int nIDDlgItem )
+{
+	if ( lFlags & lFlagValue )
+		SendDlgItemMessage( hDlg, nIDDlgItem, BM_SETCHECK, BST_CHECKED, 0 );
+	else
+		SendDlgItemMessage( hDlg, nIDDlgItem, BM_SETCHECK, BST_UNCHECKED, 0 );
+}
+
+//*****************************************************************************
+//
+void SERVERCONSOLE_UpdateFlagsFromHandle( const HWND hDlg, const int nIDDlgItem, ULONG &lFlags, const ULONG lFlagValue )
+{
+	if ( SendDlgItemMessage( hDlg, nIDDlgItem, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
+		lFlags |= lFlagValue;
+}
+
+//*****************************************************************************
+//
 void SERVERCONSOLE_InitializeDMFlagsDisplay( HWND hDlg )
 {
 	UCVarValue	Val;
@@ -3663,6 +3712,9 @@ void SERVERCONSOLE_InitializeDMFlagsDisplay( HWND hDlg )
 		SendDlgItemMessage( hDlg, IDC_DISABLECOOPERATIVEBACKPACKS, BM_SETCHECK, BST_UNCHECKED, 0 );
 */
 
+	for ( unsigned int i = 0; i < NUMBER_OF_COMPATFLAGS; i++ )
+		SERVERCONSOLE_UpdateHandleFromFlags( compatflags, g_compatFlags[i], hDlg, g_compatFlagsControlIDs[i] );
+
 	// Store current values for dmflags/dmflags2/compatflags.
 	Val = dmflags.GetGenericRep( CVAR_Int );
 	g_ulStoredDMFlags = Val.Int;
@@ -3810,6 +3862,9 @@ void SERVERCONSOLE_UpdateDMFlagsDisplay( HWND hDlg )
 		ulCompatflags |= COMPATF_DISABLESTEALTHMONSTERS;
 //	if ( SendDlgItemMessage( hDlg, IDC_DISABLECOOPERATIVEBACKPACKS, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
 //		ulCompatflags |= COMPATF_DISABLECOOPERATIVEBACKPACKS;
+
+	for ( unsigned int i = 0; i < NUMBER_OF_COMPATFLAGS; i++ )
+		SERVERCONSOLE_UpdateFlagsFromHandle( hDlg, g_compatFlagsControlIDs[i], ulCompatflags, g_compatFlags[i] );
 
 	sprintf( szString, "compatflags: %ld", ulCompatflags );
 	SetDlgItemText( hDlg, IDC_COMPATFLAGS, szString );
@@ -3961,6 +4016,9 @@ void SERVERCONSOLE_UpdateDMFlags( HWND hDlg )
 		ulCompatflags |= COMPATF_DISABLESTEALTHMONSTERS;
 //	if ( SendDlgItemMessage( hDlg, IDC_DISABLECOOPERATIVEBACKPACKS, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
 //		ulCompatflags |= COMPATF_DISABLECOOPERATIVEBACKPACKS;
+
+	for ( unsigned int i = 0; i < NUMBER_OF_COMPATFLAGS; i++ )
+		SERVERCONSOLE_UpdateFlagsFromHandle( hDlg, g_compatFlagsControlIDs[i], ulCompatflags, g_compatFlags[i] );
 
 	// If the compatflags have changed, send the update.
 	if ( g_ulStoredCompatflags != ulCompatflags )
