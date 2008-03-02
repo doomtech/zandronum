@@ -1307,10 +1307,15 @@ void P_SpawnSpecials (void)
 
 	// [RH] Start running any open scripts on this map
 	// [BC] Clients don't run scripts.
+	// [BB] Clients only run the open net scripts.
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
 		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		FBehavior::StaticStartTypedScripts (SCRIPT_Open, NULL, false);
+	}
+	else
+	{
+		FBehavior::StaticStartTypedScripts (SCRIPT_Open, NULL, false, 0, false, true);
 	}
 }
 

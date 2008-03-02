@@ -131,7 +131,7 @@ public:
 	BYTE *FindChunk (DWORD id) const;
 	BYTE *NextChunk (BYTE *chunk) const;
 	const ScriptPtr *FindScript (int number) const;
-	void StartTypedScripts (WORD type, AActor *activator, bool always, int arg1, bool runNow);
+	void StartTypedScripts (WORD type, AActor *activator, bool always, int arg1, bool runNow, bool onlyNetScripts=false);
 	int CountTypedScripts( WORD type );
 	DWORD PC2Ofs (int *pc) const { return (DWORD)((BYTE *)pc - Data); }
 	int *Ofs2PC (DWORD ofs) const {	return (int *)(Data + ofs); }
@@ -156,7 +156,7 @@ public:
 
 	static const ScriptPtr *StaticFindScript (int script, FBehavior *&module);
 	static const char *StaticLookupString (DWORD index);
-	static void StaticStartTypedScripts (WORD type, AActor *activator, bool always, int arg1=0, bool runNow=false);
+	static void StaticStartTypedScripts (WORD type, AActor *activator, bool always, int arg1=0, bool runNow=false, bool onlyNetScripts=false);
 	static void StaticStopMyScripts (AActor *actor);
 	static int StaticCountTypedScripts( WORD type );
 

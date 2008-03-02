@@ -1490,15 +1490,15 @@ const char *FBehavior::LookupString (DWORD index) const
 	}
 }
 
-void FBehavior::StaticStartTypedScripts (WORD type, AActor *activator, bool always, int arg1, bool runNow)
+void FBehavior::StaticStartTypedScripts (WORD type, AActor *activator, bool always, int arg1, bool runNow, bool onlyNetScripts)
 {
 	for (unsigned int i = 0; i < StaticModules.Size(); ++i)
 	{
-		StaticModules[i]->StartTypedScripts (type, activator, always, arg1, runNow);
+		StaticModules[i]->StartTypedScripts (type, activator, always, arg1, runNow, onlyNetScripts);
 	}
 }
 
-void FBehavior::StartTypedScripts (WORD type, AActor *activator, bool always, int arg1, bool runNow)
+void FBehavior::StartTypedScripts (WORD type, AActor *activator, bool always, int arg1, bool runNow, bool onlyNetScripts)
 {
 	const ScriptPtr *ptr;
 	int i;
@@ -1508,6 +1508,12 @@ void FBehavior::StartTypedScripts (WORD type, AActor *activator, bool always, in
 		ptr = &Scripts[i];
 		if (ptr->Type == type)
 		{
+			// [BB] This is no net script, so skip it if onlyNetScripts is true.
+			if ( onlyNetScripts && !( ptr->Flags & SCRIPTF_Net ) )
+			{
+				continue;
+			}
+
 			// [BC] If this is a net script, just let clients execute it themselves.
 			if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
 				( ptr->Flags & SCRIPTF_Net ))
