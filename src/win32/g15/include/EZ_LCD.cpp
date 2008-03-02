@@ -553,7 +553,6 @@ BOOL CEzLcd::Connect()
 		// This means the LCD SDK's lgLcdInit failed, and therefore
 		// we will not be able to ever connect to the LCD, even if
 		// a G-series keyboard is actually connected.
-		Printf(_T("ERROR: LCD SDK initialization failed\n"));
 		m_initSucceeded = FALSE;
 	}
 	else

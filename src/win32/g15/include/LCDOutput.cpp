@@ -98,7 +98,6 @@ HRESULT CLCDOutput::Initialize(lgLcdConnectContext* pContext, BOOL bUseWindow)
         if (ERROR_SUCCESS != res)
         {
             InterlockedDecrement(&lInitCount);;
-            Printf(_T("WARNING: lgLcdInit failed\n"));
             return E_FAIL;
         }
     }
