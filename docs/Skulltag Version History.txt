@@ -14,6 +14,7 @@
 v0.97d
 ------
 
+*-	- Restored Windows 98/ME compatibility. This needs a special binary though and lacks G15 support. [Torr Samaho]
 +	- Added one missing dmflag2 and seven missing compatflags to the "Configure DMFlags" server window. [Torr Samaho]
 +	- Added CCMD addbanexemption to add entries to the whitelist. [Torr Samaho]
 +	- Added CCMDs delban and delbanexemption to remove entries from the banlist/whitelist. [Torr Samaho]

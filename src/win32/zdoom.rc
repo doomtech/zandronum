@@ -9,6 +9,7 @@
 //
 #include "afxres.h"
 #include "../version.h"
+#include "g15/g15.h"
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
@@ -64,11 +65,12 @@ IDI_ICONST              ICON    DISCARDABLE     "skulltag_xp.ico"
 //IDI_BOING6              ICON    DISCARDABLE     "boing6.ico"
 //IDI_BOING7              ICON    DISCARDABLE     "boing7.ico"
 //IDI_BOING8              ICON    DISCARDABLE     "boing8.ico"
+#ifdef G15_ENABLED
 G15_ICON_ORION			ICON					"g15/res/orion.ico"
 G15_ICON_ARMOR			ICON					"g15/res/armor.ico"
 G15_ICON_STIMPACK		ICON					"g15/res/stimpack.ico"
 G15_ICON_SHELLS			ICON					"g15/res/shells.ico"
-
+#endif
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -692,6 +694,11 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,200,208,50,14
 END
 
+// [BB] It doesn't make too much sense to couple the two definitions below
+// with G15_ENABLED, but since G15 support and the defs below both break
+// Win98 compatibility, I still do so to have an easy way to get a Win98
+// compatible binary (just remove the definition of G15_ENABLED from g15.h).
+#ifdef G15_ENABLED
 IDD_REASON DIALOG DISCARDABLE  0, 0, 230, 68
 STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Ready"
@@ -718,6 +725,7 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,187,16,40,14
 
 END
+#endif
 
 //
 // Legacy kick/ban dialogs.
