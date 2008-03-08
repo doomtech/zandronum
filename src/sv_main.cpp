@@ -169,6 +169,9 @@ static	LONG			g_lMapRestartTimer;
 // Buffer that we use for handling packet loss.
 static	NETBUFFER_s		g_PacketLossBuffer;
 
+// List of IP addresses that may connect to full servers.
+static	IPList			g_AdminIPList;
+
 // Statistics.
 static	LONG		g_lTotalServerSeconds = 0;
 static	LONG		g_lTotalNumPlayers = 0;
@@ -212,6 +215,15 @@ CVAR( Bool, sv_minimizetosystray, true, CVAR_ARCHIVE )
 CVAR( Int, sv_queryignoretime, 10, CVAR_ARCHIVE )
 CVAR( Bool, sv_markchatlines, false, CVAR_ARCHIVE )
 CVAR( Bool, sv_nokill, false, CVAR_ARCHIVE )
+
+CUSTOM_CVAR( String, sv_adminlistfile, "adminlist.txt", CVAR_ARCHIVE )
+{
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		return;
+
+	if ( !(g_AdminIPList.clearAndLoadFromFile( sv_adminlistfile.GetGenericRep( CVAR_String ).String ) ) )
+		Printf( "%s", g_AdminIPList.getErrorMessage() );
+}
 
 //*****************************************************************************
 //
@@ -1537,7 +1549,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	UCVarValue		Val;
 	ULONG			ulIdx;
 	NETADDRESS_s	AddressFrom;
-	bool			bLocalClientConnecting;
+	bool			bAdminClientConnecting;
 
 	// Grab the IP address of the packet we've just received.
 	AddressFrom = NETWORK_GetFromAddress( );
@@ -1549,20 +1561,15 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 		// localhost, i.e. 127.0.0.1. If it does, we allow a connect even in case of
 		// SERVER_CalcNumPlayers( ) >= sv_maxclients as long as SERVER_FindFreeClientSlot( )
 		// finds a free slot.
-		bLocalClientConnecting = false;
-		if (( AddressFrom.abIP[0] == 127 ) &&
-			( AddressFrom.abIP[1] == 0 ) &&
-			( AddressFrom.abIP[2] == 0 ) &&
-			( AddressFrom.abIP[3] == 1 ))
-		{
-			bLocalClientConnecting = true;
-		}
+		bAdminClientConnecting = false;
+		if ( g_AdminIPList.isIPInList ( AddressFrom ) )
+			bAdminClientConnecting = true;
 
 		// Try to find a player slot for the connecting client.
 		lClient = SERVER_FindFreeClientSlot( );
 
 		// If the server is full, send him a packet saying that it is.
-		if (( lClient == -1 ) || ( SERVER_CalcNumPlayers( ) >= sv_maxclients && !bLocalClientConnecting ))
+		if (( lClient == -1 ) || ( SERVER_CalcNumPlayers( ) >= sv_maxclients && !bAdminClientConnecting ))
 		{
 			// Tell the client a packet saying the server is full.
 			SERVER_ConnectionError( AddressFrom, "Server is full." );
