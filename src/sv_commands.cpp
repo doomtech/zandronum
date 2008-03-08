@@ -2239,7 +2239,7 @@ void SERVERCOMMANDS_SetThingFrame( AActor *pActor, FState *pState, ULONG ulPlaye
 		// See if any of the states in this label match the given state.
 		lOffset = 0;
 		pCompareState = pActor->GetClass( )->ActorInfo->StateList->Labels[ulIdx].State;
-		while ( 1 )
+		while ( pCompareState )
 		{
 			if ( pState == pCompareState )
 			{

@@ -49,6 +49,7 @@ v0.97d RC9
 *+	- Thoroughly updated Skulltag's ZDoom base to the latest ZDoom SVN repository revision (currently 622). [Torr Samaho 366-554+558-622, Carnevil 555-557]
 *-	- Crash logs should finally work on all Windows machines. [Torr Samaho]
 +	- Added a completely new 97d announcer that was made by SuperGod in a professional sound studio based on the voice of Carnevil. [SuperGod, Aabra, Carnevil, Rivecoder]
++	- Added new sprites for the Abaddon. [Jimmy91]
 +	- Upgraded the GZDoom renderer to 1.0.29! [Torr Samaho 1.0.25-1.0.26+1.0.28-1.0.29, Carnevil 1.0.27]
 +	- Added client-side scripts! Scripts with the NET tag are now purely executed on the client end. This reduces bandwidth usage, and allows things like custom HUD displays to work properly. [Carnevil]
 +	- Added Logitech G15 support! Skulltag now natively supports a (fairly basic) LCD applet which displays the HUD, console, and a few other things. [Rivecoder]
