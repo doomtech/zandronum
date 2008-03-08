@@ -1044,6 +1044,11 @@ bool AActor::GiveAmmo (const PClass *type, int amount)
 void AActor::CopyFriendliness (const AActor *other, bool changeTarget)
 {
 	level.total_monsters -= CountsAsKill();
+
+	// [BB] If the number of total monsters was reduced, update the invasion monster count accordingly.
+	if ( CountsAsKill() )
+		INVASION_UpdateMonsterCount( this, true );
+
 	TIDtoHate = other->TIDtoHate;
 	LastLook = other->LastLook;
 	flags  = (flags & ~MF_FRIENDLY) | (other->flags & MF_FRIENDLY);
@@ -1056,6 +1061,10 @@ void AActor::CopyFriendliness (const AActor *other, bool changeTarget)
 		LastHeard = target = other->target;
 	}
 	level.total_monsters += CountsAsKill();
+
+	// [BB] If the number of total monsters was increased, update the invasion monster count accordingly.
+	if ( CountsAsKill() )
+		INVASION_UpdateMonsterCount( this, false );
 }
 
 //============================================================================
