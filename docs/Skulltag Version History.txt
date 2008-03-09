@@ -14,6 +14,11 @@
 v0.97d
 ------
 
+-	- Fixed: Damaging a charging lost soul online leads to serious sync issues regarding the lost soul between client and server. [Torr Samaho]
+
+v0.97d RC10
+----------
+
 *-	- Restored Windows 98/ME compatibility. [Torr Samaho, Rivecoder]
 +	- Added one missing dmflag2 and seven missing compatflags to the "Configure DMFlags" server window. [Torr Samaho]
 +	- Added CCMD addbanexemption to add entries to the whitelist. [Torr Samaho]

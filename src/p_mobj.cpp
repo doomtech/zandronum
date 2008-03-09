@@ -1658,11 +1658,17 @@ void P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 
 	if ((xmove | ymove) == 0)
 	{
-		if (mo->flags & MF_SKULLFLY)
+		if ( (mo->flags & MF_SKULLFLY)
+			 && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ) )
 		{
 			// the skull slammed into something
 			mo->flags &= ~MF_SKULLFLY;
 			mo->momx = mo->momy = mo->momz = 0;
+
+			// [BB] If we're the server, tell clients of MF_SKULLFLY.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingFlags( mo, FLAGSET_FLAGS );
+
 			if (!(mo->flags2 & MF2_DORMANT))
 			{
 				// [BC] If we are the server, tell clients about the state change and the
@@ -1687,6 +1693,10 @@ void P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 
 				mo->SetState (mo->SpawnState);
 				mo->tics = -1;
+
+				// [BB] If we're the server, tell clients to update this thing's tics.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_SetThingTics( mo );
 			}
 		}
 		return;
@@ -3084,6 +3094,10 @@ bool AActor::Slam (AActor *thing)
 
 			SetState (SpawnState);
 			tics = -1;
+
+			// [BB] If we're the server, tell clients to update this thing's tics.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingTics( this );
 		}
 	}
 	return false;			// stop moving
