@@ -15,6 +15,7 @@ v0.97d
 ------
 
 -	- Fixed: Damaging a charging lost soul online leads to serious sync issues regarding the lost soul between client and server. [Torr Samaho]
+-	- Fixed a z position client/server sync issue of floating monsters. [Torr Samaho]
 
 v0.97d RC10
 ----------
