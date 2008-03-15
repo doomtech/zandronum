@@ -61,6 +61,7 @@
 
 static	ULONG	g_ulLastChangeTeamTime = 0;
 static	ULONG	g_ulLastSuicideTime = 0;
+static	ULONG	g_ulLastDropTime = 0;
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -394,6 +395,12 @@ void CLIENTCOMMANDS_RequestInventoryUse( AInventory *item )
 //
 void CLIENTCOMMANDS_RequestInventoryDrop( AInventory *pItem )
 {
+	if (( g_ulLastDropTime > 0 ) && ( (ULONG)gametic < ( g_ulLastDropTime + ( TICRATE ))))
+	{
+		Printf( "You must wait at least one second before using drop again.\n" );
+		return;
+	}
+
 	const char	*pszString;
 
 	if ( pItem == NULL )
@@ -402,6 +409,8 @@ void CLIENTCOMMANDS_RequestInventoryDrop( AInventory *pItem )
 	pszString = pItem->GetClass( )->TypeName.GetChars( );
 	if ( pszString == NULL )
 		return;
+
+	g_ulLastDropTime = gametic;
 
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_INVENTORYDROP );
 	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, pszString );
