@@ -2813,6 +2813,10 @@ void SERVER_KickPlayerFromGame( ULONG ulPlayer, char *pszReason )
 	char	szKickString[512];
 	char	szName[64];
 
+	// Make sure the target is valid and applicable.
+	if (( ulPlayer >= MAXPLAYERS ) || ( !playeringame[ulPlayer] ))
+		return;
+
 	sprintf( szName, players[ulPlayer].userinfo.netname );
 	V_RemoveColorCodes( szName );
 
@@ -4863,6 +4867,31 @@ CCMD( kick )
 
 	// Didn't find a player that matches the name.
 	Printf( "Unknown player: %s\n", argv[1] );
+	return;
+}
+
+//*****************************************************************************
+//
+CCMD( kickfromgame_idx )
+{
+	// Only the server can boot players!
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		return;
+
+	if ( argv.argc( ) < 2 )
+	{
+		Printf( "Usage: kickfromgame_idx <player index> [reason]\nYou can get the list of players and indexes with the ccmd playerinfo.\n" );
+		return;
+	}
+
+	ULONG ulIdx =  atoi(argv[1]);
+
+	// [BB] Validity checks are done in SERVER_KickPlayerFromGame.
+	// If we provided a reason, give it.
+	if ( argv.argc( ) >= 3 )
+		SERVER_KickPlayerFromGame( ulIdx, argv[2] );
+	else
+		SERVER_KickPlayerFromGame( ulIdx, "None given." );
 	return;
 }
 
