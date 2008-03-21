@@ -1058,6 +1058,7 @@ void CLIENT_AttemptConnection( void )
 	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, cl_startasspectator );
 	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, cl_dontrestorefrags );
 	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, NETGAMEVERSION );
+	NETWORK_WriteString( &g_LocalBuffer.ByteStream, g_lumpsAuthenticationChecksum.GetChars() );
 }
 
 //*****************************************************************************

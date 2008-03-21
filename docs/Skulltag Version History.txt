@@ -14,6 +14,7 @@
 v0.97d
 ------
 
++	- Added an authentication mechanism for several non-map related lumps to get rid of some exploits. [Torr Samaho]
 +	- Added flood protection to the drop/invdrop command. You can't use it online more than once per second anymore. [Torr Samaho]
 +	- Added CCMD kickfromgame_idx, works like kickfromgame but uses the player index instead of the name. [Torr Samaho]
 +	- Added new inventory flag FORCERESPAWNINSURVIVAL. Items with this flag are respawned in survival even if sv_itemrespawn is false. [Torr Samaho]

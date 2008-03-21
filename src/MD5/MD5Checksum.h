@@ -303,7 +303,7 @@ class CMD5Checksum
 {
 public:
 	//interface functions for the RSA MD5 calculation
-	static void GetMD5(BYTE* pBuf, UINT nLength, FString &OutString);
+	static void GetMD5(const BYTE* pBuf, UINT nLength, FString &OutString);
 //	static CString GetMD5(CFile& File);
 //	static CString GetMD5(const CString& strFilePath);
 
@@ -313,8 +313,8 @@ protected:
 	virtual ~CMD5Checksum() {};
 
 	//RSA MD5 implementation
-	void Transform(BYTE Block[64]);
-	void Update(BYTE* Input, ULONG nInputLen);
+	void Transform(const BYTE Block[64]);
+	void Update(const BYTE* Input, ULONG nInputLen);
 	void Final(FString &OutString);
 	inline DWORD RotateLeft(DWORD x, int n);
 	inline void FF( DWORD& A, DWORD B, DWORD C, DWORD D, DWORD X, DWORD S, DWORD T);
@@ -324,7 +324,7 @@ protected:
 
 	//utility functions
 	inline void DWordToByte(BYTE* Output, DWORD* Input, UINT nLength);
-	inline void ByteToDWord(DWORD* Output, BYTE* Input, UINT nLength);
+	inline void ByteToDWord(DWORD* Output, const BYTE* Input, UINT nLength);
 
 private:
 	BYTE  m_lpszBuffer[64];		//input buffer

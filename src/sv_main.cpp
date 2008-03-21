@@ -1580,6 +1580,8 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 			NETWORK_ReadByte( pByteStream );
 			NETWORK_ReadByte( pByteStream );
 			NETWORK_ReadByte( pByteStream );
+			// [BB] Lump authentication string.
+			NETWORK_ReadString( pByteStream );
 			return;
 		}
 	}
@@ -1669,6 +1671,13 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	{
 		// Client has been banned! GET THE FUCK OUT OF HERE!
 		SERVER_ClientError( lClient, NETWORK_ERRORCODE_BANNED );
+		return;
+	}
+
+	if ( strcmp ( NETWORK_ReadString( pByteStream ), g_lumpsAuthenticationChecksum.GetChars() ) )
+	{
+		// Client fails the lump authentication.
+		SERVER_ClientError( lClient, NETWORK_ERRORCODE_AUTHENTICATIONFAILED );
 		return;
 	}
 

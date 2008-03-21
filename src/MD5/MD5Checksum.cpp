@@ -168,7 +168,7 @@ NOTES:			Provides an interface to the CMD5Checksum class. Any data that can
 				A buffer of zero length can be checksummed; all buffers of zero length 
 				will return the same checksum. 
 *****************************************************************************************/
-void CMD5Checksum::GetMD5(BYTE* pBuf, UINT nLength, FString &OutString)
+void CMD5Checksum::GetMD5(const BYTE* pBuf, UINT nLength, FString &OutString)
 {
 	//entry invariants
 //	AfxIsValidAddress(pBuf,nLength,FALSE);
@@ -292,7 +292,7 @@ NOTES:			Four BYTES from the input array are transferred to each DWORD entry
 				The algorithm assumes that the input array is a multiple of 4 bytes long
 				so that there is a perfect fit into the array of 32 bit words.
 *****************************************************************************************/
-void CMD5Checksum::ByteToDWord(DWORD* Output, BYTE* Input, UINT nLength)
+void CMD5Checksum::ByteToDWord(DWORD* Output, const BYTE* Input, UINT nLength)
 {
 	//entry invariants
 	assert( nLength % 4 == 0 );
@@ -323,7 +323,7 @@ NOTES:			An MD5 checksum is calculated by four rounds of 'Transformation'.
 				The MD5 checksum currently held in m_lMD5 is merged by the 
 				transformation process with data passed in 'Block'.  
 *****************************************************************************************/
-void CMD5Checksum::Transform(BYTE Block[64])
+void CMD5Checksum::Transform(const BYTE Block[64])
 {
 	//initialise local data with current checksum
 	ULONG a = m_lMD5[0];
@@ -551,7 +551,7 @@ ARGUMENTS:		BYTE* Input    : input block
 				UINT nInputLen : length of input block
 NOTES:			Computes the partial MD5 checksum for 'nInputLen' bytes of data in 'Input'
 *****************************************************************************************/
-void CMD5Checksum::Update( BYTE* Input,	ULONG nInputLen )
+void CMD5Checksum::Update( const BYTE* Input,	ULONG nInputLen )
 {
 	//Compute number of bytes mod 64
 	UINT nIndex = (UINT)((m_nCount[0] >> 3) & 0x3F);
