@@ -4191,7 +4191,12 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 
 	// Now respawn the player at the appropriate spot. Set the player state to
 	// PST_REBORNNOINVENTORY so everything (weapons, etc.) is cleared.
-	players[g_lCurrentClient].playerstate = PST_REBORNNOINVENTORY;
+	// [BB] If the player was a spectator, we have to set the state to
+	// PST_ENTERNOINVENTORY. Otherwise the enter scripts are not executed.
+	if ( players[g_lCurrentClient].bSpectating )
+		players[g_lCurrentClient].playerstate = PST_ENTERNOINVENTORY;
+	else
+		players[g_lCurrentClient].playerstate = PST_REBORNNOINVENTORY;
 
 	// Also, take away spectator status.
 	players[g_lCurrentClient].bSpectating = false;

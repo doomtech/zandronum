@@ -20,6 +20,7 @@ v0.97d
 +	- Added new inventory flag FORCERESPAWNINSURVIVAL. Items with this flag are respawned in survival even if sv_itemrespawn is false. [Torr Samaho]
 -	- Fixed: Damaging a charging lost soul online leads to serious sync issues regarding the lost soul between client and server. [Torr Samaho]
 -	- Fixed a z position client/server sync issue of floating monsters. [Torr Samaho]
+-	- Fixed: Enter scripts are not executed in team games when a spectator joins a team. [Torr Samaho]
 !	- The drop/invdrop command is not allowed online in non-cooperative game modes anymore. [Torr Samaho]
 !	- RadSuit now has the FORCERESPAWNINSURVIVAL inventory flag. This was necessary because some maps are nearly impossible to finish in survival with sv_itemrespawn == false. [Torr Samaho]
 
