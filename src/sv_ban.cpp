@@ -61,6 +61,7 @@
 //	PROTOTYPES
 
 static	void	serverban_LoadBans( void );
+static	void	serverban_LoadBansAndBanExemptions( void );
 
 //*****************************************************************************
 //	VARIABLES
@@ -117,7 +118,7 @@ void SERVERBAN_Tick( void )
 			g_ServerBans.clear();
 
 			// Load the banfile, and initialize the bans.
-			serverban_LoadBans( );
+			serverban_LoadBansAndBanExemptions( );
 		}
 	}
 }
@@ -217,6 +218,16 @@ static void serverban_LoadBans( void )
 
 	if ( !(g_ServerBans.clearAndLoadFromFile( fsFilePath.GetChars() )) )
 		Printf( "%s", g_ServerBans.getErrorMessage() );
+}
+
+//*****************************************************************************
+//
+static void serverban_LoadBansAndBanExemptions( void )
+{
+	serverban_LoadBans();
+
+	if ( !(g_ServerBanExemptions.clearAndLoadFromFile( sv_banexemptionfile.GetGenericRep( CVAR_String ).String )) )
+		Printf( "%s", g_ServerBanExemptions.getErrorMessage() );
 }
 
 //*****************************************************************************
@@ -431,6 +442,8 @@ CCMD( ban )
 
 //*****************************************************************************
 //
+// [BB] Reduce code duplication by making this exactly like addbanexemption.
+// Don't change this before the final release of 97D though.
 CCMD( addban )
 {
 	NETADDRESS_s	BanAddress;
@@ -468,6 +481,51 @@ CCMD( addban )
 
 //*****************************************************************************
 //
+CCMD( delban )
+{
+	if ( argv.argc( ) < 2 )
+	{
+		Printf( "Usage: delban <IP address>\n" );
+		return;
+	}
+
+	std::string message;
+	g_ServerBans.removeEntry( argv[1], message );
+	Printf( "delban: %s", message.c_str() );
+}
+
+//*****************************************************************************
+//
+CCMD( addbanexemption )
+{
+	if ( argv.argc( ) < 2 )
+	{
+		Printf( "Usage: addbanexemption <IP address> [comment]\n" );
+		return;
+	}
+
+	std::string message;
+	g_ServerBanExemptions.addEntry( argv[1], NULL, (argv.argc( ) >= 3) ? argv[2] : NULL, message );
+	Printf( "addbanexemption: %s", message.c_str() );
+}
+
+//*****************************************************************************
+//
+CCMD( delbanexemption )
+{
+	if ( argv.argc( ) < 2 )
+	{
+		Printf( "Usage: delbanexemption <IP address>\n" );
+		return;
+	}
+
+	std::string message;
+	g_ServerBanExemptions.removeEntry( argv[1], message );
+	Printf( "delbanexemption: %s", message.c_str() );
+}
+
+//*****************************************************************************
+//
 CCMD( viewbanlist )
 {
 	ULONG		ulIdx;
@@ -476,6 +534,14 @@ CCMD( viewbanlist )
 	{
 		Printf( "%s", g_ServerBans.getEntryAsString(ulIdx).c_str() );
 	}
+}
+
+//*****************************************************************************
+//
+CCMD( viewbanexemptionlist )
+{
+	for ( ULONG ulIdx = 0; ulIdx < g_ServerBanExemptions.size(); ulIdx++ )
+		Printf( "%s", g_ServerBanExemptions.getEntryAsString(ulIdx).c_str() );
 }
 
 //*****************************************************************************
@@ -492,5 +558,5 @@ CCMD( reloadbans )
 	g_ServerBans.clear();
 
 	// Load the banfile, and initialize the bans.
-	serverban_LoadBans( );
+	serverban_LoadBansAndBanExemptions( );
 }

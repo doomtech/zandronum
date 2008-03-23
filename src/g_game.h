@@ -61,7 +61,8 @@ LONG	GAME_CountLivingPlayers( void );
 
 // [BC] End changes.
 
-void G_DeferedPlayDemo (char* demo);
+// [BB] Added const to the argument.
+void G_DeferedPlayDemo (const char* demo);
 
 // Can be called by the startup code or M_Responder,
 // calls P_SetupLevel or W_EnterWorld.

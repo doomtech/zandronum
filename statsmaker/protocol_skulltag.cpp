@@ -71,7 +71,7 @@ void SKULLTAG_Construct( void )
 	NETWORK_InitBuffer( &g_MessageBuffer, 8192, BUFFERTYPE_WRITE );
 	NETWORK_ClearBuffer( &g_MessageBuffer );
 
-	NETWORK_StringToAddress( "skulltag.kicks-ass.net", &g_AddressMasterServer );
+	NETWORK_StringToAddress( "skulltag.servegame.com", &g_AddressMasterServer );
 	g_AddressMasterServer.usPort = htons( 15300 );
 
 	// Call SKULLTAG_Destruct when the program terminates.

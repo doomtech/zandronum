@@ -1825,6 +1825,9 @@ void PO_Init (void)
 		{ // Polyobj StartSpot Pt.
 			polyobjs[polyIndex].startSpot[0] = polyspawn->x;
 			polyobjs[polyIndex].startSpot[1] = polyspawn->y;
+			// [BB] Save the original start spot, so that we can reset to it in GAME_ResetMap.
+			polyobjs[polyIndex].SavedStartSpot[0] = polyobjs[polyIndex].startSpot[0];
+			polyobjs[polyIndex].SavedStartSpot[1] = polyobjs[polyIndex].startSpot[1];
 			SpawnPolyobj(polyIndex, polyspawn->angle, polyspawn->type);
 			polyIndex++;
 			*prev = polyspawn->next;

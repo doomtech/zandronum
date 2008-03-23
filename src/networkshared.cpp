@@ -802,6 +802,20 @@ bool IPList::isIPInList( const char *pszIP0, const char *pszIP1, const char *psz
 
 //*****************************************************************************
 //
+bool IPList::isIPInList( const NETADDRESS_s &Address ) const
+{
+	char szAddress[4][4];
+
+	itoa( Address.abIP[0], szAddress[0], 10 );
+	itoa( Address.abIP[1], szAddress[1], 10 );
+	itoa( Address.abIP[2], szAddress[2], 10 );
+	itoa( Address.abIP[3], szAddress[3], 10 );
+
+	return isIPInList( szAddress[0], szAddress[1], szAddress[2], szAddress[3] );
+}
+
+//*****************************************************************************
+//
 ULONG IPList::doesEntryExist( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3 ) const
 {
 	for ( ULONG ulIdx = 0; ulIdx < _ipVector.size(); ulIdx++ )
@@ -915,3 +929,98 @@ void IPList::addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP
 	}
 }
 
+//*****************************************************************************
+//
+void IPList::addEntry( const char *pszIPAddress, const char *pszPlayerName, const char *pszComment, std::string &Message )
+{
+	NETADDRESS_s	BanAddress;
+	char			szStringBan[4][4];
+
+	if ( NETWORK_StringToIP( pszIPAddress, szStringBan[0], szStringBan[1], szStringBan[2], szStringBan[3] ))
+	{
+		addEntry( szStringBan[0], szStringBan[1], szStringBan[2], szStringBan[3], pszPlayerName, pszComment, Message );
+	}
+	else if ( NETWORK_StringToAddress( pszIPAddress, &BanAddress ))
+	{
+		itoa( BanAddress.abIP[0], szStringBan[0], 10 );
+		itoa( BanAddress.abIP[1], szStringBan[1], 10 );
+		itoa( BanAddress.abIP[2], szStringBan[2], 10 );
+		itoa( BanAddress.abIP[3], szStringBan[3], 10 );
+
+		addEntry( szStringBan[0], szStringBan[1], szStringBan[2], szStringBan[3], pszPlayerName, pszComment, Message );
+	}
+	else
+	{
+		Message = "Invalid IP address string: ";
+		Message += pszIPAddress;
+		Message += "\n";
+	}
+}
+
+//*****************************************************************************
+//
+void IPList::removeEntry( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3, std::string &Message )
+{
+	ULONG entryIdx = doesEntryExist( pszIP0, pszIP1, pszIP2, pszIP3 );
+
+	std::stringstream messageStream;
+	messageStream << pszIP0 << "." << pszIP1 << "." << pszIP2 << "." << pszIP3;
+
+	if ( entryIdx < _ipVector.size() )
+	{
+		for ( ULONG ulIdx = entryIdx; ulIdx < _ipVector.size() - 1; ulIdx++ )
+			_ipVector[ulIdx] = _ipVector[ulIdx+1];
+
+		_ipVector.pop_back();
+
+		rewriteListToFile ();
+
+		messageStream << " removed from list.\n";
+		Message = messageStream.str();
+	}
+	else
+	{
+		messageStream << " not found in list.\n";
+		Message = messageStream.str();
+	}
+}
+
+//*****************************************************************************
+//
+void IPList::removeEntry( const char *pszIPAddress, std::string &Message )
+{
+	char			szStringBan[4][4];
+
+	if ( NETWORK_StringToIP( pszIPAddress, szStringBan[0], szStringBan[1], szStringBan[2], szStringBan[3] ))
+	{
+		removeEntry( szStringBan[0], szStringBan[1], szStringBan[2], szStringBan[3], Message );
+	}
+	else
+	{
+		Message = "Invalid IP address string: ";
+		Message += pszIPAddress;
+		Message += "\n";
+	}
+}
+
+//*****************************************************************************
+//
+bool IPList::rewriteListToFile ()
+{
+	FILE		*pFile;
+	std::string	outString;
+
+	if ( (pFile = fopen( _filename.c_str(), "w" )) )
+	{
+		for ( ULONG ulIdx = 0; ulIdx < size(); ulIdx++ )
+			fputs( getEntryAsString(ulIdx).c_str(), pFile );
+
+		fclose( pFile );
+		return true;
+	}
+	else
+	{
+		_error = GenerateCouldNotOpenFileErrorString( "IPList::addEntry", _filename.c_str(), errno );
+		return false;
+	}
+}

@@ -343,12 +343,9 @@ CCMD (turn180)
 // [BC] New cvar that shows the name of the weapon we're cycling to.
 CVAR( Bool, cl_showweapnameoncycle, true, CVAR_ARCHIVE )
 
-CCMD (weapnext)
+// [BB] Helper function that collects the duplicate code of weapnext and weapprev
+void SelectWeaponAndDisplayName ( AWeapon *pSelectedWeapon )
 {
-	AInventory	*pSelectedWeapon;
-
-	pSelectedWeapon = PickNextWeapon (&players[consoleplayer]);
-
 	// [BC] This can be NULL if we're a spectator.
 	if ( pSelectedWeapon == NULL )
 		return;
@@ -359,20 +356,33 @@ CCMD (weapnext)
 		( demorecording == false ))
 	{
 		players[consoleplayer].mo->UseInventory( pSelectedWeapon );
-		if ( players[consoleplayer].PendingWeapon != pSelectedWeapon )
+
+		// [BB] We didn't change our weapon, so there is nothing to do.
+		if ( ( players[consoleplayer].PendingWeapon == WP_NOCHANGE )
+			 || ( players[consoleplayer].PendingWeapon == NULL ) )
+		{
 			return;
+		}
+
+		// [BB] UseInventory may select the sister weapon, take this into account here.
+		if ( ( players[consoleplayer].PendingWeapon != pSelectedWeapon )
+			 && ( players[consoleplayer].PendingWeapon->SisterWeaponType != pSelectedWeapon->GetClass() )
+			)
+		{
+			return;
+		}
 	}
 	else
 		SendItemUse = pSelectedWeapon;
 
 	// [BC] Option to display the name of the weapon being cycled to.
-	if ( cl_showweapnameoncycle )
+	if ( cl_showweapnameoncycle && ( players[consoleplayer].PendingWeapon != NULL ) )
 	{
 		char				szString[64];
 		DHUDMessageFadeOut	*pMsg;
 		
 		// Build the string and text color;
-		sprintf( szString, "%s", pSelectedWeapon->GetClass( )->TypeName.GetChars( ));
+		sprintf( szString, "%s", players[consoleplayer].PendingWeapon->GetClass( )->TypeName.GetChars( ));
 		// [RC] Set the font
 		screen->SetFont( SmallFont );
 		pMsg = new DHUDMessageFadeOut( szString,
@@ -388,50 +398,18 @@ CCMD (weapnext)
 	}
 }
 
+CCMD (weapnext)
+{
+	// [BB] Skulltag does this a little differently from ZDoom.
+	AWeapon	*pSelectedWeapon = PickNextWeapon (&players[consoleplayer]);
+	SelectWeaponAndDisplayName ( pSelectedWeapon );
+}
+
 CCMD (weapprev)
 {
-	AInventory	*pSelectedWeapon;
-
-	pSelectedWeapon = PickPrevWeapon (&players[consoleplayer]);
-
-	// [BC] This can be NULL if we're a spectator.
-	if ( pSelectedWeapon == NULL )
-		return;
-
-	// [BC] If we're the client, switch to this weapon right now, since the whole
-	// DEM_, etc. network code isn't ever executed.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( demorecording == false ))
-	{
-		players[consoleplayer].mo->UseInventory( pSelectedWeapon );
-		if ( players[consoleplayer].PendingWeapon != pSelectedWeapon )
-			return;
-	}
-	else
-		SendItemUse = pSelectedWeapon;
-
-	// [BC] Option to display the name of the weapon being cycled to.
-	if ( cl_showweapnameoncycle )
-	{
-		char				szString[64];
-		DHUDMessageFadeOut	*pMsg;
-		
-		// Build the string and text color;
-		sprintf( szString, "%s", pSelectedWeapon->GetClass( )->TypeName.GetChars( ));
-		// [RC] Set the font
-		screen->SetFont( SmallFont );
-
-		pMsg = new DHUDMessageFadeOut( szString,
-			1.5f,
-			gameinfo.gametype == GAME_Doom ? 0.96f : 0.95f,
-			0,
-			0,
-			CR_GOLD,
-			2.f,
-			0.35f );
-
-		StatusBar->AttachMessage( pMsg, MAKE_ID( 'P', 'N', 'A', 'M' ));
-	}
+	// [BB] Skulltag does this a little differently from ZDoom.
+	AWeapon	*pSelectedWeapon = PickPrevWeapon (&players[consoleplayer]);
+	SelectWeaponAndDisplayName ( pSelectedWeapon );
 }
 
 CCMD (invnext)
@@ -1022,6 +1000,10 @@ static void ChangeSpy (bool forward)
 			pnum += step;
 			pnum &= MAXPLAYERS-1;
 
+			// Skip other spectators.
+			if ( players[pnum].bSpectating )
+				continue;
+
 			if ( playeringame[pnum] )
 				break;
 		}
@@ -1391,7 +1373,7 @@ void G_Ticker ()
 				LONG			lCommand;
 				NETADDRESS_s	MasterAddress;
 				const char		*pszMasterPort;
-				Val = cl_masterip.GetGenericRep( CVAR_String );
+				Val = skulltag_masterip.GetGenericRep( CVAR_String );
 				// [BB] This conversion potentially does a DNS lookup.
 				// There is absolutely no reason to call this at beginning of the while loop above (like done before). 
 				NETWORK_StringToAddress( Val.String, &MasterAddress );
@@ -1438,6 +1420,12 @@ void G_Ticker ()
 						// they come in.
 						BROWSER_DeactivateAllServers( );
 						break;
+
+					case MSC_REQUESTIGNORED:
+
+						Printf( "Refresh request ignored. Please wait 10 seconds before refreshing the list again.\n" );
+						break;
+
 					default:
 
 						Printf( "Unknown command from master server: %d\n", lCommand );
@@ -2393,24 +2381,30 @@ static mapthing2_t *SelectRandomCooperativeSpot( ULONG ulPlayer, ULONG ulNumSele
 	// Try up to 20 times to find a valid spot.
 	for ( ulNumAttempts = 0; ulNumAttempts < 20; ulNumAttempts++ )
 	{
+		// Find the first valid playerstart.
 		ulIdx = 0;
-		while (( playerstarts[ulIdx].type == 0 ) && ( ulIdx < MAXPLAYERS ))
+		while (( ulIdx < MAXPLAYERS ) && ( playerstarts[ulIdx].type == 0 ))
 			ulIdx++;
 
 		ulSelection = ( pr_dmspawn( ) % ulNumSelections );
 		while ( ulSelection > 0 )
 		{
 			ulSelection--;
-			while (( playerstarts[ulIdx].type == 0 ) && ( ulIdx < MAXPLAYERS ))
+			// [BB] Find the next valid playerstart (assuming that ulNumSelections gives us the number of available starts).
+			ulIdx++;
+			while (( ulIdx < MAXPLAYERS ) && ( playerstarts[ulIdx].type == 0 ))
 				ulIdx++;
 		}
 
-		if ( G_CheckSpot( ulPlayer, &playerstarts[ulIdx] ))
+		if ( ( ulIdx < MAXPLAYERS ) && G_CheckSpot( ulPlayer, &playerstarts[ulIdx] ))
 			return ( &playerstarts[ulIdx] );
 	}
 
 	// Return a spot anyway, since we allow telefragging when a player spawns.
-	return ( &playerstarts[ulIdx] );
+	if ( ulIdx < MAXPLAYERS )
+		return ( &playerstarts[ulIdx] );
+	else
+		return NULL;
 }
 
 void G_DeathMatchSpawnPlayer( int playernum, bool bClientUpdate )
@@ -3061,6 +3055,7 @@ bool GAME_DormantStatusMatchesOriginal( AActor *pActor )
 // Ugh.
 void P_LoadBehavior( MapData *pMap );
 void DECAL_ClearDecals( void );
+polyobj_t *GetPolyobjByIndex( ULONG ulPoly );
 void GAME_ResetMap( void )
 {
 	ULONG							ulIdx;
@@ -3085,6 +3080,41 @@ void GAME_ResetMap( void )
 		( CLIENTDEMO_IsPlaying( )))
 	{
 		return;
+	}
+
+	// [BB] Reset the polyobjs.
+	for ( ulIdx = 0; ulIdx <= po_NumPolyobjs; ulIdx++ )
+	{
+		polyobj_t *pPoly = GetPolyobjByIndex( ulIdx );
+		if ( pPoly == NULL )
+			continue;
+
+		if ( pPoly->bMoved )
+		{
+
+			const LONG lDeltaX = pPoly->SavedStartSpot[0] - pPoly->startSpot[0];
+			const LONG lDeltaY = pPoly->SavedStartSpot[1] - pPoly->startSpot[1];
+
+			PO_MovePolyobj( pPoly->tag, lDeltaX, lDeltaY, true );
+			pPoly->bMoved = false;
+
+			// [BB] If we're the server, tell clients about this polyobj reset.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetPolyobjPosition( pPoly->tag );
+		}
+
+		if ( pPoly->bRotated )
+		{
+			// [BB] AFAIK a polyobj always starts with angle 0;
+			const LONG lDeltaAngle = 0 - pPoly->angle;
+
+			PO_RotatePolyobj( pPoly->tag, lDeltaAngle );
+			pPoly->bRotated = false;
+
+			// [BB] If we're the server, tell clients about this polyobj reset.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetPolyobjRotation( pPoly->tag );
+		}
 	}
 
 	for ( ulIdx = 0; ulIdx < (ULONG)numlines; ulIdx++ )
@@ -4071,6 +4101,9 @@ void G_DoLoadGame ()
 
 	delete png;
 	fclose (stdfile);
+
+	demoplayback = false;
+	usergame = true;
 }
 
 
@@ -4540,20 +4573,30 @@ void G_BeginRecording (const char *startmap)
 
 char defdemoname[128];
 
-void G_DeferedPlayDemo (char *name)
+void G_DeferedPlayDemo (const char *name)
 {
 	strncpy (defdemoname, name, 127);
 	gameaction = ga_playdemo;
 }
 
+extern bool advancedemo;
 CCMD (playdemo)
 {
 	if (argv.argc() > 1)
 	{
+		// [BB] CLIENTDEMO_FinishPlaying() destroy the arguments, so we have to save
+		// the demo name here.
+		FString demoname = argv[1];
 		if ( CLIENTDEMO_IsPlaying( ))
+		{
 			CLIENTDEMO_FinishPlaying( );
+			// [BB] CLIENTDEMO_FinishPlaying() set's advancedemo to true, but we
+			// don't want to advance to the next demo, we want to play the
+			// specified demo.
+			advancedemo = false;
+		}
 
-		G_DeferedPlayDemo (argv[1]);
+		G_DeferedPlayDemo (demoname.GetChars());
 		singledemo = true;
 	}
 }

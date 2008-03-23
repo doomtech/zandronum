@@ -551,7 +551,9 @@ void AActor::Die (AActor *source, AActor *inflictor)
 			{
 				// [RH] Implement fraglimit
 				// [BC] Betterized!
-				if ( fraglimit <= D_GetFragCount( source->player ))
+				// [BB] Clients may not do this.
+				if ( fraglimit <= D_GetFragCount( source->player )
+					 && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ) )
 				{
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 					{
@@ -1094,7 +1096,9 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 		target->alpha = OPAQUE;
 		target->visdir = -1;
 	}
-	if (target->flags & MF_SKULLFLY)
+	// [BB] The clients may not do this.
+	if ( (target->flags & MF_SKULLFLY)
+	     && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ) )
 	{
 		target->momx = target->momy = target->momz = 0;
 
@@ -1199,9 +1203,12 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 
 	// Push the target unless the source's weapon's kickback is 0.
 	// (i.e. Guantlets/Chainsaw)
+	// [BB] The server handles this.
 	if (inflictor && inflictor != target	// [RH] Not if hurting own self
 		&& !(target->flags & MF_NOCLIP)
-		&& !(inflictor->flags2 & MF2_NODMGTHRUST))
+		&& !(inflictor->flags2 & MF2_NODMGTHRUST)
+		&& ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+		&& ( CLIENTDEMO_IsPlaying( ) == false ) )
 	{
 		int kickback;
 
@@ -1253,8 +1260,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 			}
 
 			// [BC] Set the thing's momentum.
-			if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
-				( target->player == NULL ))
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
 				SERVERCOMMANDS_MoveThingExact( target, CM_MOMX|CM_MOMY|CM_MOMZ );
 			}
@@ -1533,6 +1539,10 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 			target->threshold = BASETHRESHOLD;
 			if (target->state == target->SpawnState && target->SeeState != NULL)
 			{
+				// [BB] If we are the server, tell clients about the state change.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_SetThingState( target, STATE_SEE );
+
 				target->SetState (target->SeeState);
 			}
 		}

@@ -867,6 +867,10 @@ FUNC(LS_ThrustThing)
 
 static void ThrustThingHelper (AActor *it, angle_t angle, int force, INTBOOL nolimit)
 {
+	// [BB] This is server side.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		return;
+
 	angle >>= ANGLETOFINESHIFT;
 	it->momx += force * finecosine[angle];
 	it->momy += force * finesine[angle];
@@ -877,8 +881,10 @@ static void ThrustThingHelper (AActor *it, angle_t angle, int force, INTBOOL nol
 	}
 
 	// [BC] If we're the server, update the thing's momentum.
+	// [BB] Unfortunately there are sync issues, if we don't also update the actual position.
+	// Is there a way to fix this without sending the position?
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_MoveThingExact( it, CM_MOMX|CM_MOMY );
+		SERVERCOMMANDS_MoveThingExact( it, CM_X|CM_Y|CM_MOMX|CM_MOMY );
 }
 
 FUNC(LS_ThrustThingZ)	// [BC]
@@ -897,27 +903,39 @@ FUNC(LS_ThrustThingZ)	// [BC]
 
 		while ( (victim = iterator.Next ()) )
 		{
-			if (!arg3)
-				victim->momz = thrust;
-			else
-				victim->momz += thrust;
+			// [BB] This is server side.
+			if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+			{
+				if (!arg3)
+					victim->momz = thrust;
+				else
+					victim->momz += thrust;
+			}
 
 			// [BC] If we're the server, update the thing's momentum.
+			// [BB] Unfortunately there are sync issues, if we don't also update the actual position.
+			// Is there a way to fix this without sending the position?
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_MoveThingExact( victim, CM_MOMZ );
+				SERVERCOMMANDS_MoveThingExact( victim, CM_Z|CM_MOMZ );
 		}
 		return true;
 	}
 	else if (it)
 	{
-		if (!arg3)
-			it->momz = thrust;
-		else
-			it->momz += thrust;
+		// [BB] This is server side.
+		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+		{
+			if (!arg3)
+				it->momz = thrust;
+			else
+				it->momz += thrust;
+		}
 
 		// [BC] If we're the server, update the thing's momentum.
+		// [BB] Unfortunately there are sync issues, if we don't also update the actual position.
+		// Is there a way to fix this without sending the position?
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_MoveThingExact( it, CM_MOMZ );
+			SERVERCOMMANDS_MoveThingExact( it, CM_Z|CM_MOMZ );
 
 		return true;
 	}
@@ -1164,7 +1182,9 @@ static void RemoveThing(AActor * actor)
 		// be friendly to the level statistics. ;)
 		if (actor->CountsAsKill() && actor->health > 0) level.total_monsters--;
 		if (actor->flags&MF_COUNTITEM) level.total_items--;
-		actor->Destroy ();
+
+		// [BB] Only destroy the actor if it's not needed for a map reset. Otherwise just hide it.
+		actor->HideOrDestroyIfSafe ();
 	}
 }
 
@@ -1367,7 +1387,7 @@ FUNC(LS_Thing_Hate)
 						hatee == hater ||					// can't hate self
 						!(hatee->flags & MF_SHOOTABLE) ||	// can't hate nonshootable things
 						hatee->health <= 0 ||				// can't hate dead things
-						(hatee->flags & MF2_DORMANT));		// can't target dormant things
+						(hatee->flags2 & MF2_DORMANT));	
 			}
 
 			if (hatee != NULL && hatee != hater && (arg2 == 0 || (hater->goal != NULL && hater->target != hater->goal)))
@@ -2607,7 +2627,7 @@ FUNC(LS_ChangeCamera)
 
 			// [BC] If we're the server, tell this player to change his camera.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SetPlayerCamera( ULONG( it->player - players ), camera->lNetID, true );
+				SERVERCOMMANDS_SetPlayerCamera( ULONG( it->player - players ), camera->lNetID, ( arg2 ) ? true : false );
 		}
 		else
 		{

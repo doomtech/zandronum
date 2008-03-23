@@ -1059,6 +1059,7 @@ void CLIENT_AttemptConnection( void )
 	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, cl_startasspectator );
 	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, cl_dontrestorefrags );
 	NETWORK_WriteByte( &g_LocalBuffer.ByteStream, NETGAMEVERSION );
+	NETWORK_WriteString( &g_LocalBuffer.ByteStream, g_lumpsAuthenticationChecksum.GetChars() );
 }
 
 //*****************************************************************************
@@ -3776,12 +3777,12 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 	// Read in the means of death.
 	MOD = ENamedName(NETWORK_ReadByte( pByteStream ));
 
+	// Read in the thing's damage type.
+	DamageType = NETWORK_ReadString( pByteStream );
+
 	// Read in the player who did the killing's ready weapon so we can properly do obituary
 	// messages.
 	pszString = NETWORK_ReadString( pByteStream );
-
-	// Read in the thing's damage type.
-	DamageType = ENamedName(NETWORK_ReadShort( pByteStream ));
 
 	// Check to make sure everything is valid. If not, break out.
 	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
@@ -4341,12 +4342,16 @@ static void client_SetPlayerCamera( BYTESTREAM_s *pByteStream )
 	// Read in the "revert please" status.
 	bRevertPleaseStatus = !!NETWORK_ReadByte( pByteStream );
 
+	AActor *oldcamera = players[consoleplayer].camera;
+
 	// Find the camera by the network ID.
 	pCamera = CLIENT_FindThingByNetID( lID );
 	if ( pCamera == NULL )
 	{
 		players[consoleplayer].camera = players[consoleplayer].mo;
 		players[consoleplayer].cheats &= ~CF_REVERTPLEASE;
+		if (oldcamera != players[consoleplayer].camera)
+			R_ClearPastViewer (players[consoleplayer].camera);
 		return;
 	}
 
@@ -4356,6 +4361,9 @@ static void client_SetPlayerCamera( BYTESTREAM_s *pByteStream )
 		players[consoleplayer].cheats &= ~CF_REVERTPLEASE;
 	else
 		players[consoleplayer].cheats |= CF_REVERTPLEASE;
+
+	if (oldcamera != players[consoleplayer].camera)
+		R_ClearPastViewer (players[consoleplayer].camera);
 }
 
 //*****************************************************************************
@@ -5307,7 +5315,7 @@ static void client_KillThing( BYTESTREAM_s *pByteStream )
 	lHealth = NETWORK_ReadShort( pByteStream );
 
 	// Read in the thing's damage type.
-	DamageType = ENamedName( NETWORK_ReadShort( pByteStream ));
+	DamageType = NETWORK_ReadString( pByteStream );
 
 	// Read in the actor that killed the player.Thi
 	lSourceID = NETWORK_ReadShort( pByteStream );

@@ -335,9 +335,9 @@ void SERVERCOMMANDS_KillPlayer( ULONG ulPlayer, AActor *pSource, AActor *pInflic
 			continue;
 
 		if ( pszString )
-			SERVER_CheckClientBuffer( ulIdx, 11 + (ULONG)strlen( pszString ), true );
+			SERVER_CheckClientBuffer( ulIdx, 9 + (ULONG)strlen(players[ulPlayer].mo->DamageType.GetChars()) + (ULONG)strlen( pszString ), true );
 		else
-			SERVER_CheckClientBuffer( ulIdx, 11, true );
+			SERVER_CheckClientBuffer( ulIdx, 9 + (ULONG)strlen(players[ulPlayer].mo->DamageType.GetChars()), true );
 
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_KILLPLAYER );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
@@ -345,8 +345,8 @@ void SERVERCOMMANDS_KillPlayer( ULONG ulPlayer, AActor *pSource, AActor *pInflic
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lInflictorID );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].mo->health );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulMOD );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].mo->DamageType.GetChars() );
 		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszString );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].mo->DamageType );
 	}
 }
 
@@ -387,7 +387,7 @@ void SERVERCOMMANDS_SetPlayerArmor( ULONG ulPlayer )
 	AInventory *pArmor = players[ulPlayer].mo->FindInventory< ABasicArmor >( );
 	ULONG ulArmorPoints = ( pArmor != NULL ) ? pArmor->Amount : 0;
 	if ( ulArmorPoints > 0 ){
-		SERVER_CheckClientBuffer( ulPlayer, 3 + (ULONG)strlen( TexMan( pArmor->Icon )->Name ), true );
+		SERVER_CheckClientBuffer( ulPlayer, 4 + (ULONG)strlen( TexMan( pArmor->Icon )->Name ), true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulPlayer )->PacketBuffer.ByteStream, SVC_SETPLAYERARMOR );
 		NETWORK_WriteByte( &SERVER_GetClient( ulPlayer )->PacketBuffer.ByteStream, ulPlayer );
 		NETWORK_WriteShort( &SERVER_GetClient( ulPlayer )->PacketBuffer.ByteStream, ulArmorPoints );
@@ -816,8 +816,9 @@ void SERVERCOMMANDS_SetPlayerPendingWeapon( ULONG ulPlayer, ULONG ulPlayerExtra,
 
 		// Only send this info to spectators.
 		// [BB] Or if this is a COOP game.
-		if ( (PLAYER_IsTrueSpectator( &players[ulIdx] ) == false) && !(GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE ) )
-			continue;
+		// [BB] Everybody needs to know this. Otherwise the Railgun sound is broken and spying in demos doesn't work properly.
+		//if ( (PLAYER_IsTrueSpectator( &players[ulIdx] ) == false) && !(GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE ) )
+		//	continue;
 
 		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
 			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
@@ -1574,19 +1575,19 @@ void SERVERCOMMANDS_MoveThingExact( AActor *pActor, ULONG ulBits, ULONG ulPlayer
 
 	ulSize = 0;
 	if ( ulBits & CM_X )
-		ulSize += 2;
+		ulSize += 4;
 	if ( ulBits & CM_Y )
-		ulSize += 2;
+		ulSize += 4;
 	if ( ulBits & CM_Z )
-		ulSize += 2;
+		ulSize += 4;
 	if ( ulBits & CM_ANGLE )
 		ulSize += 4;
 	if ( ulBits & CM_MOMX )
-		ulSize += 2;
+		ulSize += 4;
 	if ( ulBits & CM_MOMY )
-		ulSize += 2;
+		ulSize += 4;
 	if ( ulBits & CM_MOMZ )
-		ulSize += 2;
+		ulSize += 4;
 
 	// Nothing to update.
 	if ( ulSize == 0 )
@@ -1678,11 +1679,11 @@ void SERVERCOMMANDS_KillThing( AActor *pActor, AActor *pSource, AActor *pInflict
 		if ( SERVER_IsValidClient( ulIdx ) == false )
 			continue;
 
-		SERVER_CheckClientBuffer( ulIdx, 11, true );
+		SERVER_CheckClientBuffer( ulIdx, 9 + ULONG(strlen(pActor->DamageType.GetChars())), true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_KILLTHING );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->health );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->DamageType );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->DamageType.GetChars() );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSourceID );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lInflictorID );
 	}
@@ -2239,7 +2240,7 @@ void SERVERCOMMANDS_SetThingFrame( AActor *pActor, FState *pState, ULONG ulPlaye
 		// See if any of the states in this label match the given state.
 		lOffset = 0;
 		pCompareState = pActor->GetClass( )->ActorInfo->StateList->Labels[ulIdx].State;
-		while ( 1 )
+		while ( pCompareState )
 		{
 			if ( pState == pCompareState )
 			{
@@ -2675,7 +2676,7 @@ void SERVERCOMMANDS_PrintMOTD( const char *pszString, ULONG ulPlayerExtra, ULONG
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_PrintHUDMessage( const char *pszString, float fX, float fY, LONG lHUDWidth, LONG lHUDHeight, LONG lColor, float fHoldTime, char *pszFont, bool bLog, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_PrintHUDMessage( const char *pszString, float fX, float fY, LONG lHUDWidth, LONG lHUDHeight, LONG lColor, float fHoldTime, const char *pszFont, bool bLog, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 
@@ -2707,7 +2708,7 @@ void SERVERCOMMANDS_PrintHUDMessage( const char *pszString, float fX, float fY, 
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_PrintHUDMessageFadeOut( const char *pszString, float fX, float fY, LONG lHUDWidth, LONG lHUDHeight, LONG lColor, float fHoldTime, float fFadeOutTime, char *pszFont, bool bLog, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_PrintHUDMessageFadeOut( const char *pszString, float fX, float fY, LONG lHUDWidth, LONG lHUDHeight, LONG lColor, float fHoldTime, float fFadeOutTime, const char *pszFont, bool bLog, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 
@@ -2740,7 +2741,7 @@ void SERVERCOMMANDS_PrintHUDMessageFadeOut( const char *pszString, float fX, flo
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_PrintHUDMessageFadeInOut( const char *pszString, float fX, float fY, LONG lHUDWidth, LONG lHUDHeight, LONG lColor, float fHoldTime, float fFadeInTime, float fFadeOutTime, char *pszFont, bool bLog, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_PrintHUDMessageFadeInOut( const char *pszString, float fX, float fY, LONG lHUDWidth, LONG lHUDHeight, LONG lColor, float fHoldTime, float fFadeInTime, float fFadeOutTime, const char *pszFont, bool bLog, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 
@@ -2774,7 +2775,7 @@ void SERVERCOMMANDS_PrintHUDMessageFadeInOut( const char *pszString, float fX, f
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_PrintHUDMessageTypeOnFadeOut( const char *pszString, float fX, float fY, LONG lHUDWidth, LONG lHUDHeight, LONG lColor, float fTypeTime, float fHoldTime, float fFadeOutTime, char *pszFont, bool bLog, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_PrintHUDMessageTypeOnFadeOut( const char *pszString, float fX, float fY, LONG lHUDWidth, LONG lHUDHeight, LONG lColor, float fTypeTime, float fHoldTime, float fFadeOutTime, const char *pszFont, bool bLog, LONG lID, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 

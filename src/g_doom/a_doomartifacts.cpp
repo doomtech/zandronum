@@ -31,6 +31,10 @@ public:
 			armor->Destroy ();
 		}
 
+		// [BB] Break out to prevent a crash.
+		if ( player == NULL )
+			return true;
+
 		// [BC] Factor in the player's max. health bonus.
 		player->health += deh.MegasphereHealth;
 		if ( player->cheats & CF_PROSPERITY )

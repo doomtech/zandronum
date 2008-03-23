@@ -330,7 +330,8 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 			if (( players[consoleplayer].camera ) && ( players[consoleplayer].camera != players[consoleplayer].mo ) && ( players[consoleplayer].camera->player ))
 				g_BottomString.AppendFormat(" - ");
 
-			if( teamlms ) {
+			if( teamlms )
+			{
 				g_BottomString += "\\cC";
 				g_BottomString.AppendFormat( "%d ", g_lNumOpponentsLeft );
 				g_BottomString.AppendFormat( "\\cGOPPONENT%s", ( g_lNumOpponentsLeft != 1 ) ? "s" : "" );
@@ -563,14 +564,14 @@ void SCOREBOARD_RenderBoard( ULONG ulDisplayPlayer )
 	{
 		if ( g_ValWidth.Int >= 480 )
 			ulNumIdealColumns = 4;
-		if ( g_ValWidth.Int >= 800 )
+		if ( g_ValWidth.Int >= 600 )
 			ulNumIdealColumns = 5;
 	}
 	else
 	{
 		if ( SCREENWIDTH >= 480 )
 			ulNumIdealColumns = 4;
-		if ( SCREENWIDTH >= 800 )
+		if ( SCREENWIDTH >= 600 )
 			ulNumIdealColumns = 5;
 	}
 
@@ -3433,10 +3434,10 @@ static void scoreboard_Prepare5ColumnDisplay( void )
 
 	// Set up the location of each column.
 	g_aulColumnX[0] = 8;
-	g_aulColumnX[1] = 48;
-	g_aulColumnX[2] = 96;
-	g_aulColumnX[3] = 212;
-	g_aulColumnX[4] = 272;
+	g_aulColumnX[1] = 56;
+	g_aulColumnX[2] = 106;
+	g_aulColumnX[3] = 222;
+	g_aulColumnX[4] = 286;
 
 	// Build columns for modes in which players try to earn points.
 	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNPOINTS )

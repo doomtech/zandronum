@@ -5895,7 +5895,7 @@ void PIT_CeilingRaise (AActor *thing)
 		// [BC] Mark this thing as having moved.
 		thing->ulSTFlags |= STFL_POSITIONCHANGED;
 	}
-	else if ((thing->flags & MF2_PASSMOBJ) && !isgood && thing->z + thing->height < thing->ceilingz)
+	else if ((thing->flags2 & MF2_PASSMOBJ) && !isgood && thing->z + thing->height < thing->ceilingz)
 	{
 		if (!P_TestMobjZ (thing) && onmobj->z <= thing->z)
 		{

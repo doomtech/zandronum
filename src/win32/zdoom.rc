@@ -55,21 +55,19 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ICON1               ICON    DISCARDABLE     "icon1.ico"
-IDI_BOING1              ICON    DISCARDABLE     "boing1.ico"
-IDI_BOING2              ICON    DISCARDABLE     "boing2.ico"
-IDI_BOING3              ICON    DISCARDABLE     "boing3.ico"
-IDI_BOING4              ICON    DISCARDABLE     "boing4.ico"
-IDI_BOING5              ICON    DISCARDABLE     "boing5.ico"
-IDI_BOING6              ICON    DISCARDABLE     "boing6.ico"
-IDI_BOING7              ICON    DISCARDABLE     "boing7.ico"
-IDI_BOING8              ICON    DISCARDABLE     "boing8.ico"
-IDI_ICON5               ICON    DISCARDABLE     "skulltag.ico"
+IDI_ICONST              ICON    DISCARDABLE     "skulltag_xp.ico"
+//IDI_BOING1              ICON    DISCARDABLE     "boing1.ico"
+//IDI_BOING2              ICON    DISCARDABLE     "boing2.ico"
+//IDI_BOING3              ICON    DISCARDABLE     "boing3.ico"
+//IDI_BOING4              ICON    DISCARDABLE     "boing4.ico"
+//IDI_BOING5              ICON    DISCARDABLE     "boing5.ico"
+//IDI_BOING6              ICON    DISCARDABLE     "boing6.ico"
+//IDI_BOING7              ICON    DISCARDABLE     "boing7.ico"
+//IDI_BOING8              ICON    DISCARDABLE     "boing8.ico"
 G15_ICON_ORION			ICON					"g15/res/orion.ico"
 G15_ICON_ARMOR			ICON					"g15/res/armor.ico"
 G15_ICON_STIMPACK		ICON					"g15/res/stimpack.ico"
 G15_ICON_SHELLS			ICON					"g15/res/shells.ico"
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -306,12 +304,12 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "Comments", "Thanks to id Software for creating DOOM and then releasing the source code. Thanks also to TeamTNT for creating BOOM, which ZDoom (and thus Skulltag) is partially based on.  Giant thanks to Randy Heit for his wonderful ZDoom.\0"
+            VALUE "Comments", "Thanks to id Software for creating DOOM and then releasing the source code. Thanks also to TeamTNT for creating BOOM, which ZDoom (and thus Skulltag) is partially based on.  Giant thanks to Randy Heit for his wonderful ZDoom, and Graf Zahl for GZDoom.\0"
             VALUE "CompanyName", " \0"
             VALUE "FileDescription", "Skulltag\0"
             VALUE "FileVersion", "v" DOTVERSIONSTR_REV "\0"
             VALUE "InternalName", "Skulltag\0"
-            VALUE "LegalCopyright", "Copyright © 1993-1996, id Software & 1998-2007, Randy Heit\0"
+            VALUE "LegalCopyright", "Copyright © 1993-1996, id Software & 1998-2008, Randy Heit and Graf Zahl\0"
             VALUE "LegalTrademarks", "Doom® is a Registered Trademark of id Software, Inc.\0"
             VALUE "OriginalFilename", "skulltag.exe\0"
             VALUE "PrivateBuild", "\0"
@@ -355,7 +353,7 @@ EXSTYLE WS_EX_APPWINDOW
 CAPTION "Welcome"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-	ICON            IDI_ICON5,IDC_STATIC,7,7,32,32
+	ICON            IDI_ICONST,IDC_STATIC,7,7,32,32
 	LTEXT           "Welcome to Skulltag!",IDC_STATIC,42,8,180,8
 	LTEXT           "<Version info>",IDC_WELCOME_VERSION,42,18,180,8
 	GROUPBOX        "IWAD selection",IDC_STATIC,8,32,224-16,102
@@ -758,16 +756,16 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,8,28,57,10
 END
 
-IDD_DMFLAGS DIALOG DISCARDABLE  0, 0, 464, 408
+IDD_DMFLAGS DIALOG DISCARDABLE  0, 0, 464, 428
 STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Configure DMFlags"
 FONT 8, "Tahoma"
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,353,379,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,407,379,50,14
-    GROUPBOX        "DMFlags",IDC_STATIC,8,114,144,282
+    DEFPUSHBUTTON   "OK",IDOK,353,399,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,407,399,50,14
+    GROUPBOX        "DMFlags",IDC_STATIC,8,114,144,302
     GROUPBOX        "DMFlags2",IDC_STATIC,160,114,144,151
-    GROUPBOX        "Compatflags",IDC_STATIC,312,114,144,197
+    GROUPBOX        "Compatflags",IDC_STATIC,312,114,144,257
     CONTROL         "Falling damage (old)",IDC_FORCE_FALLINGZD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,124,79,10
     CONTROL         "Falling damage (hexen)",IDC_FORCE_FALLINGHX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,134,89,10
     CONTROL         "Weapons stay (DM)",IDC_WEAPONS_STAY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,144,79,10
@@ -789,6 +787,8 @@ BEGIN
     CONTROL         "Disallow fov",IDC_NO_FOV,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,304,54,10
     CONTROL         "Don't spawn multi. weapons (CO-OP)",IDC_NO_COOP_MP_WEAPON_SPAWN,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,380,130,10
+    CONTROL         "Lose powerups (CO-OP)",IDC_COOP_LOSE_POWERUPS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,390,130,10
+    CONTROL         "Lose half ammo (CO-OP)",IDC_COOP_HALVE_AMMO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,400,116,10
     CONTROL         "Drop weapons (DM)",IDC_YES_WEAPONDROP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,168,124,79,10
     CONTROL         "Don't spawn runes (DM)",IDC_NO_RUNES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,168,134,92,10
     CONTROL         "Instant flag return (ST/CTF)",IDC_INSTANT_RETURN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,168,144,103,10
@@ -798,16 +798,16 @@ BEGIN
     CONTROL         "Lose inventory (CO-OP)",IDC_COOP_LOSE_INVENTORY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,325,130,10
     CONTROL         "Lose armor (CO-OP)",IDC_COOP_LOSE_ARMOR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,336,130,10
     CONTROL         "Double ammo (DM)",IDC_YES_DOUBLEAMMO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,168,176,77,10
-    CONTROL         "Lose powerups (CO-OP)",IDC_COOP_LOSE_POWERUPS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,168,186,130,10
-    CONTROL         "Degeneration",IDC_YES_DEGENERATION,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,168,196,59,10
+    CONTROL         "Degeneration",IDC_YES_DEGENERATION,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,168,186,59,10
     CONTROL         "Lose ammo (CO-OP)",IDC_COOP_LOSE_AMMO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,347,130,10
-    CONTROL         "Allow BFG freeaiming",IDC_YES_FREEAIMBFG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,168,207,83,10
-    CONTROL         "Barrels respawn (DM)",IDC_BARRELS_RESPAWN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,168,217,83,10
-    CONTROL         "No respawn protection (DM)",IDC_NO_RESPAWN_INVUL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,168,227,105,10
+    CONTROL         "Allow BFG freeaiming",IDC_YES_FREEAIMBFG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,168,197,83,10
+    CONTROL         "Barrels respawn (DM)",IDC_BARRELS_RESPAWN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,168,207,83,10
+    CONTROL         "No respawn protection (DM)",IDC_NO_RESPAWN_INVUL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,168,217,105,10
     CONTROL         "Lose keys (CO-OP)",IDC_LOSE_KEYS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,369,77,10
     CONTROL         "Lose weapons (CO-OP)",IDC_LOSE_WEAPONS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,357,91,10
-    CONTROL         "Start with shotgun",IDC_SHOTGUN_START,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,168,238,73,10
-    CONTROL         "Spawn where died (CO-OP)",IDC_SAME_SPAWN_SPOT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,168,248,103,10
+    CONTROL         "Start with shotgun",IDC_SHOTGUN_START,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,168,228,73,10
+    CONTROL         "Spawn where died (CO-OP)",IDC_SAME_SPAWN_SPOT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,168,238,103,10
+    CONTROL         "Keep team after a map change",IDC_DF2_YES_KEEP_TEAMS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,168,248,113,10
     CONTROL         "Find shortest textures like Doom",IDC_SHORTTEX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,124,116,10
     CONTROL         "Use buggier stair building",IDC_STAIRINDEX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,134,95,10
     CONTROL         "Limit pain elementals to 20 lost souls",IDC_LIMITPAIN,
@@ -826,15 +826,21 @@ BEGIN
     CONTROL         "Allow instant respawn",IDC_INSTANTRESPAWN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,244,84,10
     CONTROL         "Disable taunts",IDC_DISABLETAUNTS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,254,61,10
     CONTROL         "Original sound curve",IDC_ORIGINALSOUNDCURVE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,264,81,10
-    LTEXT           "dmflags:",IDC_DMFLAGS,158,369,144,8
-    LTEXT           "dmflags2:",IDC_DMFLAGS2,158,379,144,8
-    LTEXT           "compatflags:",IDC_COMPATFLAGS,158,388,144,8
+    LTEXT           "dmflags:",IDC_DMFLAGS,158,389,144,8
+    LTEXT           "dmflags2:",IDC_DMFLAGS2,158,399,144,8
+    LTEXT           "compatflags:",IDC_COMPATFLAGS,158,408,144,8
     CONTROL         162,IDC_STATIC,"Static",SS_BITMAP,67,12,329,90
     CONTROL         "Use old intermission screens/music",IDC_OLDINTERMISSION,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,274,126,10
     CONTROL         "Disable stealth monsters",IDC_DISABLESTEALTHMONSTERS,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,284,92,10
-    CONTROL         "Lose half ammo (CO-OP)",IDC_COOP_HALVE_AMMO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,294,116,10
+    CONTROL         "Raven's scrollers use original speed",IDC_COMPATF_RAVENSCROLL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,294,130,10
+    CONTROL         "Use sector based sound target code",IDC_COMPATF_SOUNDTARGET,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,304,130,10
+    CONTROL         "Limit deh.MaxHealth to health bonus",IDC_COMPATF_DEHHEALTH,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,314,130,10
+    CONTROL         "Trace ign. lines w. s. sec on b. sides",IDC_COMPATF_TRACE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,324,130,10
+    CONTROL         "No monster dropoff move",IDC_COMPATF_DROPOFF,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,334,130,10
+    CONTROL         "Scrolling sectors are additive",IDC_COMPATF_BOOMSCROLL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,344,130,10
+    CONTROL         "Monsters see semi-invisible players",IDC_COMPATF_INVISIBILITY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,320,354,130,10
     CONTROL         149,IDB_DMFLAGS,"Static",SS_BITMAP,70,10,329,90
 END
 
@@ -860,21 +866,18 @@ BEGIN
     EDITTEXT        IDC_SERVERNAME,108,37,144,14,ES_AUTOHSCROLL
     LTEXT           "Wad URL:",IDC_STATIC,108,54,35,8
     EDITTEXT        IDC_WADURL,108,63,144,14,ES_AUTOHSCROLL
-    LTEXT           "E-mail address:",IDC_STATIC,108,80,48,8
+    LTEXT           "E-mail address:",IDC_STATIC,108,80,80,8
     EDITTEXT        IDC_EMAIL,108,89,144,14,ES_AUTOHSCROLL
-    LTEXT           "Connection type:",IDC_STATIC,108,106,54,8
-    COMBOBOX        IDC_CONNECTIONTYPE,108,115,64,60,CBS_DROPDOWNLIST | 
-                    WS_TABSTOP
     CONTROL         "Broadcast to master server",IDC_UPDATEMASTER,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,108,137,100,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,108,109,100,10
     CONTROL         "Broadcast on LAN",IDC_BROADCAST,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,108,148,74,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,108,119,74,10
     CONTROL         "Show launcher queries",IDC_SHOWLAUNCHERQUERIES,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,108,159,88,10
-    LTEXT           "Master server IP:",IDC_STATIC,108,173,54,8
-    EDITTEXT        IDC_MASTERIP,108,182,144,14,ES_AUTOHSCROLL
-    LTEXT           "Message of the Day:",IDC_STATIC,108,199,97,8
-    EDITTEXT        IDC_MOTD,108,208,144,77,ES_MULTILINE | ES_AUTOVSCROLL | 
+                    BS_AUTOCHECKBOX | WS_TABSTOP,108,129,88,10
+    LTEXT           "Master server IP:",IDC_STATIC,108,143,80,8
+    EDITTEXT        IDC_MASTERIP,108,152,144,14,ES_AUTOHSCROLL
+    LTEXT           "Message of the day:",IDC_STATIC,108,169,97,8
+    EDITTEXT        IDC_MOTD,108,178,144,107,ES_MULTILINE | ES_AUTOVSCROLL | 
                     ES_AUTOHSCROLL | ES_WANTRETURN
     GROUPBOX        "Gameplay",IDC_STATIC,272,16,168,147
     LTEXT           "Fraglimit:",IDC_STATIC,284,28,32,8

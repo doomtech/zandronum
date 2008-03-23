@@ -96,6 +96,7 @@ enum
 	IF_BIGPOWERUP		= 1<<12,	// Affected by RESPAWN_SUPER dmflag
 	IF_KEEPDEPLETED		= 1<<13,	// Items with this flag are retained even when they run out.
 	IF_IGNORESKILL		= 1<<14,	// Ignores any skill related multiplicators when giving this item.
+	IF_FORCERESPAWNINSURVIVAL = 1<<15,	// [BB] Will be respawned in survival even without DF_ITEMS_RESPAWN.
 };
 
 struct vissprite_t;

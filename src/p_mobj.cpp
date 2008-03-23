@@ -542,19 +542,7 @@ bool AActor::SetState (FState *newstate)
 			// [BC] If we're playing a game mode in which the map resets, and this is something
 			// that is level spawned, don't destroy it. Instead, put it in a temporary invisibile
 			// state.
-			if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_MAPRESETS ) &&
-				( ulSTFlags & STFL_LEVELSPAWNED ) &&
-				( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-				( CLIENTDEMO_IsPlaying( ) == false ))
-			{
-				renderflags |= RF_INVISIBLE;
-				flags |= MF_NOBLOCKMAP;
-				flags &= ~MF_SOLID;
-				SetState( &AInventory::States[17] );
-				return ( false );
-			}
-
-			Destroy ();
+			HideOrDestroyIfSafe();
 			return false;
 		}
 		// [BC] What's this block for? It's currently breaking Heretic's tomed
@@ -689,6 +677,33 @@ bool AActor::SetStateNF (FState *newstate)
 	return true;
 }
 
+//----------------------------------------------------------------------------
+//
+// [BB] AActor::HideOrDestroyIfSafe
+//
+//----------------------------------------------------------------------------
+
+void AActor::HideOrDestroyIfSafe ()
+{
+	// [BB] If we're playing a game mode in which the map resets, and this is something
+	// that is level spawned, don't destroy it. Instead, put it in a temporary invisibile
+	// state.
+	if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_MAPRESETS ) &&
+		( ulSTFlags & STFL_LEVELSPAWNED ) &&
+		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
+	{
+		// unlink from sector and block lists
+		UnlinkFromWorld ();
+		flags |= MF_NOSECTOR|MF_NOBLOCKMAP;
+		// [BB] The dormant flag stops removed invasion spawners from spawning things when hidden.
+		flags2 |= MF2_DORMANT;
+		flags &= ~MF_SOLID;
+		SetState( &AInventory::States[17] );
+	}
+	else
+		Destroy();
+}
 //----------------------------------------------------------------------------
 //
 // [BC] AActor::InSpawnState
@@ -1037,6 +1052,11 @@ bool AActor::GiveAmmo (const PClass *type, int amount)
 void AActor::CopyFriendliness (const AActor *other, bool changeTarget)
 {
 	level.total_monsters -= CountsAsKill();
+
+	// [BB] If the number of total monsters was reduced, update the invasion monster count accordingly.
+	if ( CountsAsKill() )
+		INVASION_UpdateMonsterCount( this, true );
+
 	TIDtoHate = other->TIDtoHate;
 	LastLook = other->LastLook;
 	flags  = (flags & ~MF_FRIENDLY) | (other->flags & MF_FRIENDLY);
@@ -1049,6 +1069,10 @@ void AActor::CopyFriendliness (const AActor *other, bool changeTarget)
 		LastHeard = target = other->target;
 	}
 	level.total_monsters += CountsAsKill();
+
+	// [BB] If the number of total monsters was increased, update the invasion monster count accordingly.
+	if ( CountsAsKill() )
+		INVASION_UpdateMonsterCount( this, false );
 }
 
 //============================================================================
@@ -1642,11 +1666,17 @@ void P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 
 	if ((xmove | ymove) == 0)
 	{
-		if (mo->flags & MF_SKULLFLY)
+		if ( (mo->flags & MF_SKULLFLY)
+			 && ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ) )
 		{
 			// the skull slammed into something
 			mo->flags &= ~MF_SKULLFLY;
 			mo->momx = mo->momy = mo->momz = 0;
+
+			// [BB] If we're the server, tell clients of MF_SKULLFLY.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingFlags( mo, FLAGSET_FLAGS );
+
 			if (!(mo->flags2 & MF2_DORMANT))
 			{
 				// [BC] If we are the server, tell clients about the state change and the
@@ -1671,6 +1701,10 @@ void P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 
 				mo->SetState (mo->SpawnState);
 				mo->tics = -1;
+
+				// [BB] If we're the server, tell clients to update this thing's tics.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_SetThingTics( mo );
 			}
 		}
 		return;
@@ -3072,6 +3106,10 @@ bool AActor::Slam (AActor *thing)
 
 			SetState (SpawnState);
 			tics = -1;
+
+			// [BB] If we're the server, tell clients to update this thing's tics.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingTics( this );
 		}
 	}
 	return false;			// stop moving

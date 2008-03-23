@@ -1946,7 +1946,13 @@ void G_ChangeLevel(const char * levelname, int position, bool keepFacing, int ne
 const char *G_GetExitMap()
 {
 	if ( level.flags & LEVEL_CHANGEMAPCHEAT )
+	{
+		// [BB] We need to update the maprotation if the changemap cheat is used.
+		if ( sv_maprotation )
+			MAPROTATION_SetPositionToMap( level.nextmap );
+
 		return ( level.nextmap );
+	}
 
 	// If we failed a campaign, just stay on the current map.
 	if (( CAMPAIGN_InCampaign( )) &&

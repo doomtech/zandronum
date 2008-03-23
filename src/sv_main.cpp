@@ -169,6 +169,9 @@ static	LONG			g_lMapRestartTimer;
 // Buffer that we use for handling packet loss.
 static	NETBUFFER_s		g_PacketLossBuffer;
 
+// List of IP addresses that may connect to full servers.
+static	IPList			g_AdminIPList;
+
 // Statistics.
 static	LONG		g_lTotalServerSeconds = 0;
 static	LONG		g_lTotalNumPlayers = 0;
@@ -211,6 +214,16 @@ CVAR( Bool, sv_disallowbots, false, CVAR_ARCHIVE )
 CVAR( Bool, sv_minimizetosystray, true, CVAR_ARCHIVE )
 CVAR( Int, sv_queryignoretime, 10, CVAR_ARCHIVE )
 CVAR( Bool, sv_markchatlines, false, CVAR_ARCHIVE )
+CVAR( Bool, sv_nokill, false, CVAR_ARCHIVE )
+
+CUSTOM_CVAR( String, sv_adminlistfile, "adminlist.txt", CVAR_ARCHIVE )
+{
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		return;
+
+	if ( !(g_AdminIPList.clearAndLoadFromFile( sv_adminlistfile.GetGenericRep( CVAR_String ).String ) ) )
+		Printf( "%s", g_AdminIPList.getErrorMessage() );
+}
 
 //*****************************************************************************
 //
@@ -1536,7 +1549,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	UCVarValue		Val;
 	ULONG			ulIdx;
 	NETADDRESS_s	AddressFrom;
-	bool			bLocalClientConnecting;
+	bool			bAdminClientConnecting;
 
 	// Grab the IP address of the packet we've just received.
 	AddressFrom = NETWORK_GetFromAddress( );
@@ -1548,20 +1561,15 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 		// localhost, i.e. 127.0.0.1. If it does, we allow a connect even in case of
 		// SERVER_CalcNumPlayers( ) >= sv_maxclients as long as SERVER_FindFreeClientSlot( )
 		// finds a free slot.
-		bLocalClientConnecting = false;
-		if (( AddressFrom.abIP[0] == 127 ) &&
-			( AddressFrom.abIP[1] == 0 ) &&
-			( AddressFrom.abIP[2] == 0 ) &&
-			( AddressFrom.abIP[3] == 1 ))
-		{
-			bLocalClientConnecting = true;
-		}
+		bAdminClientConnecting = false;
+		if ( g_AdminIPList.isIPInList ( AddressFrom ) )
+			bAdminClientConnecting = true;
 
 		// Try to find a player slot for the connecting client.
 		lClient = SERVER_FindFreeClientSlot( );
 
 		// If the server is full, send him a packet saying that it is.
-		if (( lClient == -1 ) || ( SERVER_CalcNumPlayers( ) >= sv_maxclients && !bLocalClientConnecting ))
+		if (( lClient == -1 ) || ( SERVER_CalcNumPlayers( ) >= sv_maxclients && !bAdminClientConnecting ))
 		{
 			// Tell the client a packet saying the server is full.
 			SERVER_ConnectionError( AddressFrom, "Server is full." );
@@ -1572,6 +1580,8 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 			NETWORK_ReadByte( pByteStream );
 			NETWORK_ReadByte( pByteStream );
 			NETWORK_ReadByte( pByteStream );
+			// [BB] Lump authentication string.
+			NETWORK_ReadString( pByteStream );
 			return;
 		}
 	}
@@ -1661,6 +1671,13 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	{
 		// Client has been banned! GET THE FUCK OUT OF HERE!
 		SERVER_ClientError( lClient, NETWORK_ERRORCODE_BANNED );
+		return;
+	}
+
+	if ( strcmp ( NETWORK_ReadString( pByteStream ), g_lumpsAuthenticationChecksum.GetChars() ) )
+	{
+		// Client fails the lump authentication.
+		SERVER_ClientError( lClient, NETWORK_ERRORCODE_AUTHENTICATIONFAILED );
 		return;
 	}
 
@@ -2104,10 +2121,37 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 		{
 			SERVERCOMMANDS_SpawnMissile( pActor, ulClient, SVCF_ONLYTHISCLIENT );
 		}
-        // Tell the client to spawn this thing.
+		// Tell the client to spawn this thing.
 		else
 		{
 			SERVERCOMMANDS_SpawnThing( pActor, ulClient, SVCF_ONLYTHISCLIENT );
+
+			// [BB] Since the monster movement is client side, the client needs to be
+			// informed about the momentum and the current state. If the frame is not
+			// set, the client thinks the actor is in its spawn state.
+			{
+
+				if ( (pActor->InSpawnState() == false)
+					 && !(( pActor->health <= 0 ) && ( pActor->flags & MF_COUNTKILL )) // [BB] Corpses are handled later.
+					 )
+				{
+					SERVERCOMMANDS_SetThingFrame( pActor, pActor->state, ulClient, SVCF_ONLYTHISCLIENT, false );
+				}
+
+				ULONG ulBits = 0;
+
+				if ( pActor->momx != 0 )
+					ulBits |= CM_MOMX;
+
+				if ( pActor->momy != 0 )
+					ulBits |= CM_MOMY;
+
+				if ( pActor->momz != 0 )
+					ulBits |= CM_MOMZ;
+
+				if ( ulBits != 0 )
+					SERVERCOMMANDS_MoveThingExact( pActor, ulBits, ulClient, SVCF_ONLYTHISCLIENT );
+			}
 
 			// If it's important to update this thing's arguments, do that now.
 			// [BB] Wouldn't it be better, if this is done for all things, for which
@@ -2778,6 +2822,10 @@ void SERVER_KickPlayerFromGame( ULONG ulPlayer, char *pszReason )
 	char	szKickString[512];
 	char	szName[64];
 
+	// Make sure the target is valid and applicable.
+	if (( ulPlayer >= MAXPLAYERS ) || ( !playeringame[ulPlayer] ))
+		return;
+
 	sprintf( szName, players[ulPlayer].userinfo.netname );
 	V_RemoveColorCodes( szName );
 
@@ -2875,21 +2923,21 @@ bool SERVER_IsPlayerAllowedToKnowHealth( ULONG ulPlayer, ULONG ulPlayer2 )
 
 //*****************************************************************************
 //
-char *SERVER_GetCurrentFont( void )
+const char *SERVER_GetCurrentFont( void )
 {
 	return ( g_szCurrentFont );
 }
 
 //*****************************************************************************
 //
-void SERVER_SetCurrentFont( char *pszFont )
+void SERVER_SetCurrentFont( const char *pszFont )
 {
 	sprintf( g_szCurrentFont, pszFont );
 }
 
 //*****************************************************************************
 //
-char *SERVER_GetScriptActiveFont( void )
+const char *SERVER_GetScriptActiveFont( void )
 {
 	return ( g_szScriptActiveFont );
 }
@@ -3997,6 +4045,13 @@ static bool server_Suicide( BYTESTREAM_s *pByteStream )
 	if ( gametic < ( g_aClients[g_lCurrentClient].ulLastSuicideTime + ( TICRATE * 10 )))
 		return ( false );
 
+	// [BB] The server may forbid suiciding completely.
+	if ( sv_nokill )
+	{
+		SERVER_PrintfPlayer( PRINT_HIGH, SERVER_GetCurrentClient(), "Suiciding is not allowed in this server.\n" );
+		return ( false );
+	}
+
 	g_aClients[g_lCurrentClient].ulLastSuicideTime = gametic;
 
 	cht_Suicide( &players[g_lCurrentClient] );
@@ -4138,7 +4193,12 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 
 	// Now respawn the player at the appropriate spot. Set the player state to
 	// PST_REBORNNOINVENTORY so everything (weapons, etc.) is cleared.
-	players[g_lCurrentClient].playerstate = PST_REBORNNOINVENTORY;
+	// [BB] If the player was a spectator, we have to set the state to
+	// PST_ENTERNOINVENTORY. Otherwise the enter scripts are not executed.
+	if ( players[g_lCurrentClient].bSpectating )
+		players[g_lCurrentClient].playerstate = PST_ENTERNOINVENTORY;
+	else
+		players[g_lCurrentClient].playerstate = PST_REBORNNOINVENTORY;
 
 	// Also, take away spectator status.
 	players[g_lCurrentClient].bSpectating = false;
@@ -4823,6 +4883,31 @@ CCMD( kick )
 
 	// Didn't find a player that matches the name.
 	Printf( "Unknown player: %s\n", argv[1] );
+	return;
+}
+
+//*****************************************************************************
+//
+CCMD( kickfromgame_idx )
+{
+	// Only the server can boot players!
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		return;
+
+	if ( argv.argc( ) < 2 )
+	{
+		Printf( "Usage: kickfromgame_idx <player index> [reason]\nYou can get the list of players and indexes with the ccmd playerinfo.\n" );
+		return;
+	}
+
+	ULONG ulIdx =  atoi(argv[1]);
+
+	// [BB] Validity checks are done in SERVER_KickPlayerFromGame.
+	// If we provided a reason, give it.
+	if ( argv.argc( ) >= 3 )
+		SERVER_KickPlayerFromGame( ulIdx, argv[2] );
+	else
+		SERVER_KickPlayerFromGame( ulIdx, "None given." );
 	return;
 }
 

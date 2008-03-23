@@ -1231,7 +1231,8 @@ void A_CustomFireBullets( AActor *self,
 
 	// [BB] Client's should only play weapon sounds, if they are looking through the eyes of the player
 	// firing the sound. Otherwise the sound is played because of the SERVERCOMMANDS_WeaponSound command.
-	if ( NETWORK_GetState( ) != NETSTATE_CLIENT || ( player && player->mo->CheckLocalView( consoleplayer ) ) )
+	// We always have to play our own sounds though.
+	if ( (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false )) || ( player && (player->mo->CheckLocalView( consoleplayer ) || (player==&players[consoleplayer])) ) )
 		S_SoundID (self, CHAN_WEAPON, weapon->AttackSound, 1, ATTN_NORM);
 
 	// [BC] Weapons are handled by the server.

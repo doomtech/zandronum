@@ -267,6 +267,8 @@ static flagdef InventoryFlags[] =
 	DEFINE_FLAG(IF, BIGPOWERUP, AInventory, ItemFlags),
 	DEFINE_FLAG(IF, KEEPDEPLETED, AInventory, ItemFlags),
 	DEFINE_FLAG(IF, IGNORESKILL, AInventory, ItemFlags),
+	// [BB] New ST flags.
+	DEFINE_FLAG(IF, FORCERESPAWNINSURVIVAL, AInventory, ItemFlags),
 };
 
 static flagdef WeaponFlags[] =

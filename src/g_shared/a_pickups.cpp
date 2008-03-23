@@ -24,6 +24,7 @@
 #include "announcer.h"
 #include "scoreboard.h"
 #include "gamemode.h"
+#include "cooperative.h"
 
 static FRandom pr_restore ("RestorePos");
 
@@ -122,10 +123,10 @@ bool AAmmo::HandlePickup (AInventory *item)
 					// [BC] If we're a client, tell the server we're switching weapons.
 					if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( Owner->player - players ) == consoleplayer ))
 					{
-						CLIENTCOMMANDS_WeaponSelect( ( char *)best->GetClass( )->TypeName.GetChars( ));
+						CLIENTCOMMANDS_WeaponSelect( best->GetClass( )->TypeName.GetChars( ) );
 
 						if ( CLIENTDEMO_IsRecording( ))
-							CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, (char *)best->GetClass( )->TypeName.GetChars( ));
+							CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, best->GetClass( )->TypeName.GetChars( ) );
 					}
 				}
 			}
@@ -552,6 +553,9 @@ bool AInventory::SpecialDropAction (AActor *dropper)
 
 bool AInventory::ShouldRespawn ()
 {
+	// [BB] Force respawning íf items with the IF_FORCERESPAWNINSURVIVAL flag in survival.
+	if ( survival && (ItemFlags & IF_FORCERESPAWNINSURVIVAL) ) return true;
+
 	if ((ItemFlags & IF_BIGPOWERUP) && !(dmflags & DF_RESPAWN_SUPER)) return false;
 	return !!(dmflags & DF_ITEMS_RESPAWN);
 }

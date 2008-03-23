@@ -495,6 +495,10 @@ bool P_Move (AActor *actor)
 			// [RH] Check to make sure there's nothing in the way of the float
 			if (P_TestMobjZ (actor))
 			{
+				// [BB] If we're the server, tell clients to update the thing's Z position.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_MoveThingExact( actor, CM_Z );
+
 				actor->flags |= MF_INFLOAT;
 				return true;
 			}
@@ -1043,7 +1047,13 @@ void P_RandomChaseDir (AActor *actor)
 	if (pr_newchasedir() < 150)
 	{
 		if (P_TryWalk (actor))
+		{
+			// [BB] Set the thing's position.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z );
+
 			return;
+		}
 	}
 
 	turndir = (pr_newchasedir() & 1) ? -1 : 1;

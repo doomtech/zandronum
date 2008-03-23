@@ -70,7 +70,7 @@
 #define	MAX_USERINFOINSTANCE_STORAGE	4
 
 // Number of seconds before a client times out.
-#define CLIENT_TIMEOUT				65
+#define CLIENT_TIMEOUT				40
 
 // Maximum size of the packets sent out by the server.
 //#define	MAX_UDP_PACKET				8192
@@ -308,9 +308,9 @@ void		SERVER_DeleteCommand( void );
 bool		SERVER_IsEveryoneReadyToGoOn( void );
 bool		SERVER_IsPlayerVisible( ULONG ulPlayer, ULONG ulPlayer2 );
 bool		SERVER_IsPlayerAllowedToKnowHealth( ULONG ulPlayer, ULONG ulPlayer2 );
-char		*SERVER_GetCurrentFont( void );
-void		SERVER_SetCurrentFont( char *pszFont );
-char		*SERVER_GetScriptActiveFont( void );
+const char	*SERVER_GetCurrentFont( void );
+void		SERVER_SetCurrentFont( const char *pszFont );
+const char	*SERVER_GetScriptActiveFont( void );
 void		SERVER_SetScriptActiveFont( const char *pszFont );
 LONG		SERVER_AdjustDoorDirection( LONG lDirection );
 LONG		SERVER_AdjustFloorDirection( LONG lDirection );
@@ -379,7 +379,7 @@ EXTERN_CVAR( Bool, sv_broadcast );
 EXTERN_CVAR( String, sv_hostname );
 EXTERN_CVAR( String, sv_website );
 EXTERN_CVAR( String, sv_hostemail );
-EXTERN_CVAR( String, sv_masterip );
+EXTERN_CVAR( String, skulltag_masterip );
 EXTERN_CVAR( String, sv_masteroverrideip );
 
 #endif	// __SV_MAIN_H__

@@ -2990,8 +2990,14 @@ void M_StartSkirmishGame( void )
 		D_SetupUserInfo( );
 	}
 
-	G_InitNew( szLevelName, false );
-//	G_DeferedInitNew( szLevelName );
+	// [BB] We may not call G_InitNew here, this causes crashes in the software renderer,
+	// for example when going from D2IG03 to D2IG04 (both started from the skirmish menu).
+	// Since G_InitNew calls BOTSPAWN_ClearTable() we have to call BOTSPAWN_BlockClearTable()
+	// to protect the table. Not very elegant, but seems to work.
+	//G_InitNew( szLevelName, false );
+	G_DeferedInitNew( szLevelName );
+	BOTSPAWN_ClearTable();
+	BOTSPAWN_BlockClearTable();
 	gamestate = gamestate == GS_FULLCONSOLE ? GS_HIDECONSOLE : gamestate;
 
 	// Clear out the menus and load the level.

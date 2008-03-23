@@ -77,7 +77,7 @@ void SERVERCONSOLE_UpdateIP( NETADDRESS_s LocalAddress );
 
 // [BB]: Some optimization. For some actors that are sent in bunches, to reduce the size,
 // just send some key letter that identifies the actor, instead of the full name.
-char	*g_szActorKeyLetter[NUMBER_OF_ACTOR_NAME_KEY_LETTERS] = 
+const char	*g_szActorKeyLetter[NUMBER_OF_ACTOR_NAME_KEY_LETTERS] = 
 {
 	"1",
 	"2",
@@ -85,7 +85,7 @@ char	*g_szActorKeyLetter[NUMBER_OF_ACTOR_NAME_KEY_LETTERS] =
 };
 
 //*****************************************************************************
-char	*g_szActorFullName[NUMBER_OF_ACTOR_NAME_KEY_LETTERS] =
+const char	*g_szActorFullName[NUMBER_OF_ACTOR_NAME_KEY_LETTERS] =
 {
 	"BulletPuff",
 	"Blood",
@@ -93,7 +93,7 @@ char	*g_szActorFullName[NUMBER_OF_ACTOR_NAME_KEY_LETTERS] =
 };
 
 //*****************************************************************************
-char	*g_szWeaponKeyLetter[NUMBER_OF_WEAPON_NAME_KEY_LETTERS] = 
+const char	*g_szWeaponKeyLetter[NUMBER_OF_WEAPON_NAME_KEY_LETTERS] = 
 {
 	"1",
 	"2",
@@ -108,7 +108,7 @@ char	*g_szWeaponKeyLetter[NUMBER_OF_WEAPON_NAME_KEY_LETTERS] =
 };
 
 //*****************************************************************************
-char	*g_szWeaponFullName[NUMBER_OF_WEAPON_NAME_KEY_LETTERS] =
+const char	*g_szWeaponFullName[NUMBER_OF_WEAPON_NAME_KEY_LETTERS] =
 {
 	"Fist",
 	"Pistol",
@@ -121,6 +121,9 @@ char	*g_szWeaponFullName[NUMBER_OF_WEAPON_NAME_KEY_LETTERS] =
 	"BFG9000",
 	"BFG10K",
 };
+
+//*****************************************************************************
+FString g_lumpsAuthenticationChecksum;
 
 // The current network state. Single player, client, server, etc.
 static	LONG			g_lNetworkState = NETSTATE_SINGLE;
@@ -143,6 +146,9 @@ static	USHORT			g_usLocalPort;
 // Buffer for the Huffman encoding.
 static	UCHAR			g_ucHuffmanBuffer[131072];
 
+// Our local address;
+NETADDRESS_s	g_LocalAddress;
+
 //*****************************************************************************
 //	PROTOTYPES
 
@@ -158,7 +164,6 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 	char			szString[128];
 	ULONG			ulArg;
 	USHORT			usNewPort;
-	NETADDRESS_s	LocalAddress;
 	bool			bSuccess;
 
 	// Initialize the Huffman buffer.
@@ -226,12 +231,27 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 	NETWORK_ClearBuffer( &g_NetworkMessage );
 
 	// Print out our local IP address.
-	LocalAddress = NETWORK_GetLocalAddress( );
-	Printf( "IP address %s\n", NETWORK_AddressToString( LocalAddress ));
+	g_LocalAddress = NETWORK_GetLocalAddress( );
+	Printf( "IP address %s\n", NETWORK_AddressToString( g_LocalAddress ));
 
 	// If hosting, update the server GUI.
 	if( NETWORK_GetState() == NETSTATE_SERVER )
-		SERVERCONSOLE_UpdateIP( LocalAddress );
+		SERVERCONSOLE_UpdateIP( g_LocalAddress );
+
+	// [BB] Initialize the checksum of the non-map lumps that need to be authenticated when connecting a new player.
+	std::vector<std::string>	lumpsToAuthenticate;
+
+	lumpsToAuthenticate.push_back( "PLAYPAL" );
+	lumpsToAuthenticate.push_back( "COLORMAP" );
+
+	FString checksum, longChecksum;
+
+	for ( unsigned int i = 0; i < lumpsToAuthenticate.size(); i++ )
+	{
+		NETWORK_GenerateLumpMD5Hash( lumpsToAuthenticate[i].c_str(), checksum );
+		longChecksum += checksum;
+	}
+	CMD5Checksum::GetMD5( reinterpret_cast<const BYTE *>(longChecksum.GetChars()), longChecksum.Len(), g_lumpsAuthenticationChecksum );
 
 	// Call NETWORK_Destruct() when Skulltag closes.
 	atterm( NETWORK_Destruct );
@@ -661,6 +681,24 @@ void NETWORK_GenerateMapLumpMD5Hash( MapData *Map, const LONG LumpNumber, FStrin
 
 	// Perform the checksum on our buffer, and free it.
 	CMD5Checksum::GetMD5( pbData, lLumpSize, MD5Hash );
+	delete ( pbData );
+}
+
+//*****************************************************************************
+//
+void NETWORK_GenerateLumpMD5Hash( const char *pszLumpName, FString &MD5Hash )
+{
+	const int lumpNum = Wads.GetNumForName (pszLumpName);
+	const int lumpSize = Wads.LumpLength (lumpNum);
+	BYTE *pbData = new BYTE[lumpSize];
+
+	FWadLump lump = Wads.OpenLumpNum (lumpNum);
+
+	// Dump the data from the lump into our data buffer.
+	lump.Read (pbData, lumpSize);
+
+	// Perform the checksum on our buffer, and free it.
+	CMD5Checksum::GetMD5( pbData, lumpSize, MD5Hash );
 	delete ( pbData );
 }
 

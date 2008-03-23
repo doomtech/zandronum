@@ -292,6 +292,7 @@ void	medal_CheckForExcellent( ULONG ulPlayer );
 void	medal_CheckForTermination( ULONG ulDeadPlayer, ULONG ulPlayer );
 void	medal_CheckForLlama( ULONG ulDeadPlayer, ULONG ulPlayer );
 void	medal_CheckForYouFailIt( ULONG ulPlayer );
+bool	medal_PlayerHasInvalidCarrierIcon ( ULONG ulPlayer );
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -337,6 +338,17 @@ void MEDAL_Tick( void )
 		// some other type of icon.
 		if ( g_MedalQueue[ulIdx][0].ulTick == 0 )
 			medal_SelectIcon( ulIdx );
+		// [BB] Since carrier icons have priority over medals now, we constantly have to
+		// check if the carrier icon is still valid. Previously this was done by medal_SelectIcon
+		// but this is only called if g_MedalQueue[ulIdx][0].ulTick == 0. One problem that makes this
+		// necessary is the fact that the capture medal is awarded before the flag is taken away.
+		// This should be redesigned in the future, but not for 97D.
+		else if ( medal_PlayerHasInvalidCarrierIcon ( ulIdx ) )
+		{
+			players[ulIdx].pIcon->Destroy( );
+			players[ulIdx].pIcon = NULL;
+			medal_TriggerMedal( ulIdx, g_MedalQueue[ulIdx][0].ulMedal );
+		}
 
 		// Don't render icons floating above our own heads.
 		if ( players[ulIdx].pIcon )
@@ -923,9 +935,103 @@ void medal_PopQueue( ULONG ulPlayer )
 
 //*****************************************************************************
 //
+// [BB] Shares a lot of code with medal_SelectIcon. This code duplication
+// should be cleaned in the future, but not before 97D.
+bool medal_PlayerHasInvalidCarrierIcon ( ULONG ulPlayer )
+{
+	player_s *pPlayer = &players[ulPlayer];
+	AInventory	*pInventory = NULL;
+	bool bInvalid = false;
+
+	// Verify that our current icon is valid.
+	if ( pPlayer->pIcon )
+	{
+		switch ( (ULONG)( pPlayer->pIcon->state - pPlayer->pIcon->SpawnState ))
+		{
+		// Flag/skull icon. Delete it if the player no longer has it.
+		case S_BLUESKULL:
+		case ( S_BLUESKULL + 1 ):
+		case S_BLUEFLAG:
+		case ( S_BLUEFLAG + 1 ):
+		case ( S_BLUEFLAG + 2 ):
+		case ( S_BLUEFLAG + 3 ):
+		case ( S_BLUEFLAG + 4 ):
+		case ( S_BLUEFLAG + 5 ):
+		case S_REDSKULL:
+		case ( S_REDSKULL + 1 ):
+		case S_REDFLAG:
+		case ( S_REDFLAG + 1 ):
+		case ( S_REDFLAG + 2 ):
+		case ( S_REDFLAG + 3 ):
+		case ( S_REDFLAG + 4 ):
+		case ( S_REDFLAG + 5 ):
+		case S_WHITEFLAG:
+		case ( S_WHITEFLAG + 1 ):
+		case ( S_WHITEFLAG + 2 ):
+		case ( S_WHITEFLAG + 3 ):
+		case ( S_WHITEFLAG + 4 ):
+		case ( S_WHITEFLAG + 5 ):
+
+			{
+				// Delete the icon if teamgame has been turned off, or if the player
+				// is not on a team.
+				if (( teamgame == false ) ||
+					( pPlayer->bOnTeam == false ))
+				{
+					bInvalid = true;
+					break;
+				}
+
+				// Delete the white flag if the player no longer has it.
+				pInventory = pPlayer->mo->FindInventory( PClass::FindClass( "WhiteFlag" ));
+				if (( oneflagctf ) && ( pInventory == NULL ))
+				{
+					bInvalid = true;
+					break;
+				}
+
+				// Delete the flag/skull if the player no longer has it.
+				pInventory = pPlayer->mo->FindInventory( TEAM_GetFlagItem( !pPlayer->ulTeam ));
+				if (( oneflagctf == false ) && ( pInventory == NULL ))
+				{
+					bInvalid = true;
+					break;
+				}
+
+			}
+
+			break;
+		// Terminator artifact icon. Delete it if the player no longer has it.
+		case S_TERMINATORARTIFACT:
+		case ( S_TERMINATORARTIFACT + 1 ):
+		case ( S_TERMINATORARTIFACT + 2 ):
+		case ( S_TERMINATORARTIFACT + 3 ):
+
+			if (( terminator == false ) || (( pPlayer->cheats & CF_TERMINATORARTIFACT ) == false ))
+				bInvalid = true;
+			break;
+		// Possession artifact icon. Delete it if the player no longer has it.
+		case S_POSSESSIONARTIFACT:
+		case ( S_POSSESSIONARTIFACT + 1 ):
+		case ( S_POSSESSIONARTIFACT + 2 ):
+		case ( S_POSSESSIONARTIFACT + 3 ):
+
+			if ((( possession == false ) && ( teampossession == false )) || (( pPlayer->cheats & CF_POSSESSIONARTIFACT ) == false ))
+				bInvalid = true;
+			break;
+		default:
+			break;
+		}
+	}
+	return bInvalid;
+}
+
+//*****************************************************************************
+//
 void medal_TriggerMedal( ULONG ulPlayer, ULONG ulMedal )
 {
 	player_s	*pPlayer;
+	bool		bCreateIcon;
 
 	pPlayer = &players[ulPlayer];
 
@@ -941,17 +1047,66 @@ void medal_TriggerMedal( ULONG ulPlayer, ULONG ulMedal )
 	if ( ulMedal >= NUM_MEDALS )
 		return;
 
-	// If the player currently has an icon, delete it.
-	if ( pPlayer->pIcon )
-		pPlayer->pIcon->Destroy( );
-
-	// Spawn the medal as an icon above the player and set its properties.
-	pPlayer->pIcon = Spawn<AFloatyIcon>( pPlayer->mo->x, pPlayer->mo->y, pPlayer->mo->z, NO_REPLACE );
+	// Check if we should create the icon.
 	if ( pPlayer->pIcon )
 	{
-		pPlayer->pIcon->SetState( pPlayer->pIcon->SpawnState + g_Medals[ulMedal].usFrame );
-		pPlayer->pIcon->lTick = MEDAL_ICON_DURATION;
-		pPlayer->pIcon->SetTracer( pPlayer->mo );
+		switch ( pPlayer->pIcon->state - pPlayer->pIcon->SpawnState )
+		{
+			// Medals don't override carrier symbols.
+			case S_BLUEFLAG:
+			case ( S_BLUEFLAG + 1 ):
+			case ( S_BLUEFLAG + 2 ):
+			case ( S_BLUEFLAG + 3 ):
+			case ( S_BLUEFLAG + 4 ):
+			case ( S_BLUEFLAG + 5 ):
+			case S_BLUESKULL:
+			case ( S_BLUESKULL + 1 ):
+			case S_REDFLAG:
+			case ( S_REDFLAG + 1 ):
+			case ( S_REDFLAG + 2 ):
+			case ( S_REDFLAG + 3 ):
+			case ( S_REDFLAG + 4 ):
+			case ( S_REDFLAG + 5 ):
+			case S_REDSKULL:
+			case ( S_REDSKULL + 1 ):
+			case S_WHITEFLAG:
+			case ( S_WHITEFLAG + 1 ):
+			case ( S_WHITEFLAG + 2 ):
+			case ( S_WHITEFLAG + 3 ):
+			case ( S_WHITEFLAG + 4 ):
+			case ( S_WHITEFLAG + 5 ):
+			case S_TERMINATORARTIFACT:
+			case ( S_TERMINATORARTIFACT + 1 ):
+			case ( S_TERMINATORARTIFACT + 2 ):
+			case ( S_TERMINATORARTIFACT + 3 ):
+			case S_POSSESSIONARTIFACT:
+			case ( S_POSSESSIONARTIFACT + 1 ):
+			case ( S_POSSESSIONARTIFACT + 2 ):
+			case ( S_POSSESSIONARTIFACT + 3 ):
+
+				bCreateIcon = false;
+				break;
+
+			default:
+
+				bCreateIcon = true;
+				pPlayer->pIcon->Destroy( );
+		}
+	}
+	else
+		bCreateIcon = true;
+
+	// Add it.
+	if ( bCreateIcon )
+	{
+		// Spawn the medal as an icon above the player and set its properties.
+		pPlayer->pIcon = Spawn<AFloatyIcon>( pPlayer->mo->x, pPlayer->mo->y, pPlayer->mo->z, NO_REPLACE );
+		if ( pPlayer->pIcon )
+		{
+			pPlayer->pIcon->SetState( pPlayer->pIcon->SpawnState + g_Medals[ulMedal].usFrame );
+			pPlayer->pIcon->lTick = MEDAL_ICON_DURATION;
+			pPlayer->pIcon->SetTracer( pPlayer->mo );
+		}
 	}
 
 	// Also, locally play the announcer sound associated with this medal.
@@ -1110,8 +1265,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 		ULONG	ulFrame = 65535;
 		ULONG	ulDesiredSprite = 65535;
 
-		// Draw an ally icon if this person is on our team.
-		// Would this be useful for co-op, too?
+		// Draw an ally icon if this person is on our team. Would this be useful for co-op, too?
 		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 		{
 			if ( pPlayer->mo->IsTeammate( players[SCOREBOARD_GetViewPlayer()].mo ) && !players[SCOREBOARD_GetViewPlayer()].bSpectating)
@@ -1119,6 +1273,20 @@ void medal_SelectIcon( ULONG ulPlayer )
 				ulFrame = S_ALLY;
 				ulDesiredSprite = 1;
 			}
+		}
+
+		// Draw a chat icon over the player if they're typing.
+		if ( pPlayer->bChatting )
+		{
+			ulFrame = S_CHAT;
+			ulDesiredSprite = 0;
+		}
+
+		// Draw a lag icon over their head if they're lagging.
+		if ( pPlayer->bLagging )
+		{
+			ulFrame = S_LAG;
+			ulDesiredSprite = 4;
 		}
 
 		// Draw a flag/skull above this player if he's carrying one.
@@ -1163,20 +1331,6 @@ void medal_SelectIcon( ULONG ulPlayer )
 		{
 			ulFrame = S_POSSESSIONARTIFACT;
 			ulDesiredSprite = 5;
-		}
-
-		// Draw a chat icon over the player if they're typing.
-		if ( pPlayer->bChatting )
-		{
-			ulFrame = S_CHAT;
-			ulDesiredSprite = 0;
-		}
-
-		// Draw a lag icon over their head if they're lagging.
-		if ( pPlayer->bLagging )
-		{
-			ulFrame = S_LAG;
-			ulDesiredSprite = 4;
 		}
 
 		// We have an icon that needs to be spawned.

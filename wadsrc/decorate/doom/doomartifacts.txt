@@ -92,6 +92,7 @@ ACTOR RadSuit : PowerupGiver 2025
 	Height 46
 	+INVENTORY.AUTOACTIVATE
 	+INVENTORY.ALWAYSPICKUP
+	+INVENTORY.FORCERESPAWNINSURVIVAL
 	Inventory.MaxAmount 0
 	Inventory.PickupMessage "$GOTSUIT"
 	Powerup.Type IronFeet

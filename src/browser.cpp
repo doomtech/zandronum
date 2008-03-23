@@ -802,7 +802,7 @@ void BROWSER_QueryMasterServer( void )
 	g_bWaitingForMasterResponse = true;
 
 	// Setup the master server IP.
-	NETWORK_StringToAddress( cl_masterip.GetGenericRep( CVAR_String ).String, &g_AddressMasterServer );
+	NETWORK_StringToAddress( skulltag_masterip.GetGenericRep( CVAR_String ).String, &g_AddressMasterServer );
 	NETWORK_SetAddressPort( g_AddressMasterServer, g_usMasterPort );
 
 	// Clear out the buffer, and write out launcher challenge.
@@ -908,9 +908,6 @@ static void browser_QueryServer( ULONG ulServer )
 
 //*****************************************************************************
 //	CONSOLE VARIABLES/COMMANDS
-
-// IP address of the master server.
-CVAR( String, cl_masterip, "skulltag.kicks-ass.net", CVAR_ARCHIVE )
 
 //*****************************************************************************
 //

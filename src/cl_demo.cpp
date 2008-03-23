@@ -103,7 +103,7 @@ static	LONG				g_lMaxDemoLength;
 //*****************************************************************************
 //	FUNCTIONS
 
-void CLIENTDEMO_BeginRecording( char *pszDemoName )
+void CLIENTDEMO_BeginRecording( const char *pszDemoName )
 {
 	if ( pszDemoName == NULL )
 		return;
@@ -131,7 +131,7 @@ void CLIENTDEMO_BeginRecording( char *pszDemoName )
 	// Write version information helpful for this demo.
 	NETWORK_WriteByte( &g_ByteStream, CLD_DEMOVERSION );
 	NETWORK_WriteShort( &g_ByteStream, DEMOGAMEVERSION );
-	NETWORK_WriteString( &g_ByteStream, DOTVERSIONSTR );
+	NETWORK_WriteString( &g_ByteStream, DOTVERSIONSTR_REV );
 	NETWORK_WriteLong( &g_ByteStream, rngseed );
 /*
 	// Write cvars chunk.
@@ -520,7 +520,7 @@ LONG CLIENTDEMO_GetGameticOffset( void )
 
 //*****************************************************************************
 //
-void CLIENTDEMO_WriteLocalCommand( LONG lCommand, char *pszArg )
+void CLIENTDEMO_WriteLocalCommand( LONG lCommand, const char *pszArg )
 {
 	if ( pszArg )
 		clientdemo_CheckDemoBuffer( (ULONG)strlen( pszArg ) + 1 );

@@ -58,7 +58,7 @@
 //  DEFINES
 
 // Maximum number of servers listed in the browser.
-#define		MAX_BROWSER_SERVERS		256
+#define		MAX_BROWSER_SERVERS		512
 
 //*****************************************************************************
 enum
@@ -186,7 +186,5 @@ LONG			BROWSER_CalcNumServers( void );
 
 //*****************************************************************************
 //	EXTERNAL CONSOLE VARIABLES
-
-EXTERN_CVAR( String, cl_masterip );
 
 #endif // __BROWSER_H__

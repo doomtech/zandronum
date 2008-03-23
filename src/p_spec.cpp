@@ -78,6 +78,7 @@
 #include "possession.h"
 #include "cooperative.h"
 #include "survival.h"
+#include "gamemode.h"
 
 static FRandom pr_playerinspecialsector ("PlayerInSpecialSector");
 
@@ -650,15 +651,16 @@ void P_UpdateSpecials ()
 		{
 			if (( level.time >= (int)( timelimit * TICRATE * 60 )) && ( GAME_GetEndLevelDelay( ) == 0 ))
 			{
-				// Pause for five seconds for the win sequence.
+				// Special game modes handle this differently.
 				if ( duel )
 					DUEL_TimeExpired( );
 				else if ( lastmanstanding || teamlms )
 					LASTMANSTANDING_TimeExpired( );
 				else if ( possession || teampossession )
 					POSSESSION_TimeExpired( );
-				else if ( teamgame )
+				else if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode() ) & GMF_PLAYERSONTEAMS )
 					TEAM_TimeExpired( );
+
 				// End the level after one second.
 				else
 				{
@@ -695,7 +697,6 @@ void P_UpdateSpecials ()
 							bTied = true;
 					}
 
-					// Just print "YOU WIN!" in single player.
 					if ( bTied )
 						sprintf( szString, "\\cdDRAW GAME!" );
 					else
@@ -1319,10 +1320,15 @@ void P_SpawnSpecials (void)
 
 	// [RH] Start running any open scripts on this map
 	// [BC] Clients don't run scripts.
+	// [BB] Clients only run the open net scripts.
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
 		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		FBehavior::StaticStartTypedScripts (SCRIPT_Open, NULL, false);
+	}
+	else
+	{
+		FBehavior::StaticStartTypedScripts (SCRIPT_Open, NULL, false, 0, false, true);
 	}
 }
 

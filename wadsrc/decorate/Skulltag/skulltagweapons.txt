@@ -92,8 +92,8 @@ ACTOR RailGun : DoomWeapon 5012
 	Flash:
 		TNT1 A 5 bright A_Light1
 		TNT1 A 5 bright A_Light2
+		TNT1 A 0 bright A_Light0
 		Goto LightDone
-		stop
 	Spawn:
 		RAIL A -1
 		stop

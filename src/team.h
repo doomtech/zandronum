@@ -66,6 +66,10 @@ enum
 	NUM_TEAMS
 };
 
+// [RC] Global constant for	team messages.
+#define TEAM_MESSAGE_Y_AXIS		0.135f
+#define TEAM_MESSAGE_Y_AXIS_SUB 0.195f
+
 //*****************************************************************************
 //	STRUCTURES
 
