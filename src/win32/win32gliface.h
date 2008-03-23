@@ -58,8 +58,8 @@ protected:
 			width (inX),
 			height (inY),
 			bits (inBits),
-			realheight (inRealY),
-			refreshHz (inRefresh)
+			refreshHz (inRefresh),
+			realheight (inRealY)
 		{}
 		ModeInfo *next;
 		int width, height, bits, refreshHz, realheight;

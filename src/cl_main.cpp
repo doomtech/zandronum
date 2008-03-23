@@ -5821,7 +5821,7 @@ static void client_SetThingProperty( BYTESTREAM_s *pByteStream )
 		break;
 	case APROP_RenderStyle:
 
-		pActor->RenderStyle = ulPropertyValue;
+		pActor->RenderStyle.AsDWORD = ulPropertyValue;
 		break;
 	case APROP_JumpZ:
 

@@ -73,6 +73,9 @@ CUSTOM_CVAR(Int, gl_texture_format, 0, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINI
 	FGLTexture::FlushAll();
 }
 
+CVAR(Bool, gl_clamping_bug, false,  CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+
+
 //===========================================================================
 // 
 //	Static texture data
@@ -332,11 +335,8 @@ unsigned * GLTexture::GetTexID(int cm, int translation)
 // 
 //	Binds this patch
 //
-// If this has to be extended for multitexturing this function and
-// the lastbound variable will have to be changed
-//
 //===========================================================================
-unsigned int GLTexture::Bind(int texunit, int cm,int translation)
+unsigned int GLTexture::Bind(int texunit, int cm,int translation, int clampmode)
 {
 	unsigned int * pTexID=GetTexID(cm, translation);
 
@@ -383,11 +383,11 @@ unsigned int GLTexture::CreateTexture(unsigned char * buffer, int w, int h, bool
 //===========================================================================
 void GLTexture::SetTextureClamp(int newclampmode)
 {
-	if ((clampmode&GLT_CLAMPX) != (newclampmode&GLT_CLAMPX))
+	if (gl_clamping_bug || (clampmode&GLT_CLAMPX) != (newclampmode&GLT_CLAMPX))
 	{
 		gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, newclampmode&GLT_CLAMPX? GL_CLAMP_TO_EDGE : GL_REPEAT);
 	}
-	if ((clampmode&GLT_CLAMPY) != (newclampmode&GLT_CLAMPY))
+	if (gl_clamping_bug || (clampmode&GLT_CLAMPY) != (newclampmode&GLT_CLAMPY))
 	{
 		gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, newclampmode&GLT_CLAMPY? GL_CLAMP_TO_EDGE : GL_REPEAT);
 	}

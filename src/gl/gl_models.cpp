@@ -247,70 +247,70 @@ void gl_InitModels()
 	memset(&smf, 0, sizeof(smf));
 	while ((Lump = Wads.FindLump("MODELDEF", &lastLump)) != -1)
 	{
-		SC_OpenLumpNum(Lump, "MODELDEF");
-		while (SC_GetString())
+		FScanner sc(Lump, "MODELDEF");
+		while (sc.GetString())
 		{
-			if (SC_Compare("model"))
+			if (sc.Compare("model"))
 			{
-				SC_MustGetString();
+				sc.MustGetString();
 				memset(&smf, 0, sizeof(smf));
 				smf.xscale=smf.yscale=smf.zscale=1.f;
 
-				smf.type = PClass::FindClass(sc_String);
-				if (!smf.type) SC_ScriptError("MODELDEF: Unknown actor type '%s'\n", sc_String);
+				smf.type = PClass::FindClass(sc.String);
+				if (!smf.type) sc.ScriptError("MODELDEF: Unknown actor type '%s'\n", sc.String);
 				GetDefaultByType(smf.type)->hasmodel=true;
-				SC_MustGetStringName("{");
-				while (!SC_CheckString("}"))
+				sc.MustGetStringName("{");
+				while (!sc.CheckString("}"))
 				{
-					SC_MustGetString();
-					if (SC_Compare("path"))
+					sc.MustGetString();
+					if (sc.Compare("path"))
 					{
-						SC_MustGetString();
-						FixPathSeperator(sc_String);
-						path = sc_String;
+						sc.MustGetString();
+						FixPathSeperator(sc.String);
+						path = sc.String;
 						if (path[(int)path.Len()-1]!='/') path+='/';
 					}
-					else if (SC_Compare("model"))
+					else if (sc.Compare("model"))
 					{
-						SC_MustGetNumber();
-						index=sc_Number;
+						sc.MustGetNumber();
+						index=sc.Number;
 						if (index<0 || index>=MAX_MODELS_PER_FRAME)
 						{
-							SC_ScriptError("Too many models in %s", smf.type->TypeName.GetChars());
+							sc.ScriptError("Too many models in %s", smf.type->TypeName.GetChars());
 						}
-						SC_MustGetString();
-						FixPathSeperator(sc_String);
-						smf.models[index] = FindModel(path.GetChars(), sc_String);
+						sc.MustGetString();
+						FixPathSeperator(sc.String);
+						smf.models[index] = FindModel(path.GetChars(), sc.String);
 						if (!smf.models[index])
 						{
-							Printf("%s: model not found\n", sc_String);
+							Printf("%s: model not found\n", sc.String);
 						}
 					}
-					else if (SC_Compare("scale"))
+					else if (sc.Compare("scale"))
 					{
-						SC_MustGetFloat();
-						smf.xscale=sc_Float;
-						SC_MustGetFloat();
-						smf.yscale=sc_Float;
-						SC_MustGetFloat();
-						smf.zscale=sc_Float;
+						sc.MustGetFloat();
+						smf.xscale=sc.Float;
+						sc.MustGetFloat();
+						smf.yscale=sc.Float;
+						sc.MustGetFloat();
+						smf.zscale=sc.Float;
 					}
 					// [BB] Added zoffset reading.
-					else if (SC_Compare("zoffset"))
+					else if (sc.Compare("zoffset"))
 					{
-						SC_MustGetFloat();
-						smf.zoffset=sc_Float;
+						sc.MustGetFloat();
+						smf.zoffset=sc.Float;
 					}
 					// [BB] Added model flags reading.
-					else if (SC_Compare("ignoretranslation"))
+					else if (sc.Compare("ignoretranslation"))
 					{
 						smf.flags |= MDL_IGNORETRANSLATION;
 					}
-					else if (SC_Compare("pitchfrommomentum"))
+					else if (sc.Compare("pitchfrommomentum"))
 					{
 						smf.flags |= MDL_PITCHFROMMOMENTUM;
 					}
-					else if (SC_Compare("rotating"))
+					else if (sc.Compare("rotating"))
 					{
 						smf.flags |= MDL_ROTATING;
 						smf.xrotate = 0.;
@@ -321,74 +321,74 @@ void gl_InitModels()
 						smf.rotationCenterZ = 0.;
 						smf.rotationSpeed = 1.;
 					}
-					else if (SC_Compare("rotation-speed"))
+					else if (sc.Compare("rotation-speed"))
 					{
-						SC_MustGetFloat();
-						smf.rotationSpeed = sc_Float;
+						sc.MustGetFloat();
+						smf.rotationSpeed = sc.Float;
 					}
-					else if (SC_Compare("rotation-vector"))
+					else if (sc.Compare("rotation-vector"))
 					{
-						SC_MustGetFloat();
-						smf.xrotate = sc_Float;
-						SC_MustGetFloat();
-						smf.yrotate = sc_Float;
-						SC_MustGetFloat();
-						smf.zrotate = sc_Float;
+						sc.MustGetFloat();
+						smf.xrotate = sc.Float;
+						sc.MustGetFloat();
+						smf.yrotate = sc.Float;
+						sc.MustGetFloat();
+						smf.zrotate = sc.Float;
 					}
-					else if (SC_Compare("rotation-center"))
+					else if (sc.Compare("rotation-center"))
 					{
-						SC_MustGetFloat();
-						smf.rotationCenterX = sc_Float;
-						SC_MustGetFloat();
-						smf.rotationCenterY = sc_Float;
-						SC_MustGetFloat();
-						smf.rotationCenterZ = sc_Float;
+						sc.MustGetFloat();
+						smf.rotationCenterX = sc.Float;
+						sc.MustGetFloat();
+						smf.rotationCenterY = sc.Float;
+						sc.MustGetFloat();
+						smf.rotationCenterZ = sc.Float;
 					}
-					else if (SC_Compare("interpolatedoubledframes"))
+					else if (sc.Compare("interpolatedoubledframes"))
 					{
 						smf.flags |= MDL_INTERPOLATEDOUBLEDFRAMES;
 					}
-					else if (SC_Compare("nointerpolation"))
+					else if (sc.Compare("nointerpolation"))
 					{
 						smf.flags |= MDL_NOINTERPOLATION;
 					}
-					else if (SC_Compare("skin"))
+					else if (sc.Compare("skin"))
 					{
-						SC_MustGetNumber();
-						index=sc_Number;
+						sc.MustGetNumber();
+						index=sc.Number;
 						if (index<0 || index>=MAX_MODELS_PER_FRAME)
 						{
-							SC_ScriptError("Too many models in %s", smf.type->TypeName.GetChars());
+							sc.ScriptError("Too many models in %s", smf.type->TypeName.GetChars());
 						}
-						SC_MustGetString();
-						FixPathSeperator(sc_String);
-						if (SC_Compare(""))
+						sc.MustGetString();
+						FixPathSeperator(sc.String);
+						if (sc.Compare(""))
 						{
 							smf.skins[index]=NULL;
 						}
 						else
 						{
-							smf.skins[index]=LoadSkin(path.GetChars(), sc_String);
+							smf.skins[index]=LoadSkin(path.GetChars(), sc.String);
 							if (smf.skins[index] == NULL)
 							{
 								Printf("Skin '%s' not found in '%s'\n",
-									sc_String, smf.type->TypeName.GetChars());
+									sc.String, smf.type->TypeName.GetChars());
 							}
 						}
 					}
-					else if (SC_Compare("frameindex") || SC_Compare("frame"))
+					else if (sc.Compare("frameindex") || sc.Compare("frame"))
 					{
-						bool isframe=!!SC_Compare("frame");
+						bool isframe=!!sc.Compare("frame");
 
-						SC_MustGetString();
+						sc.MustGetString();
 						smf.sprite = -1;
 						for (i = 0; i < (int)sprites.Size (); ++i)
 						{
-							if (strncmp (sprites[i].name, sc_String, 4) == 0)
+							if (strncmp (sprites[i].name, sc.String, 4) == 0)
 							{
 								if (sprites[i].numframes==0)
 								{
-									//SC_ScriptError("Sprite %s has no frames", sc_String);
+									//sc.ScriptError("Sprite %s has no frames", sc.String);
 								}
 								smf.sprite = i;
 								break;
@@ -396,32 +396,32 @@ void gl_InitModels()
 						}
 						if (smf.sprite==-1)
 						{
-							SC_ScriptError("Unknown sprite %s in model definition for %s", sc_String, smf.type->TypeName.GetChars());
+							sc.ScriptError("Unknown sprite %s in model definition for %s", sc.String, smf.type->TypeName.GetChars());
 						}
 
-						SC_MustGetString();
-						FString framechars = sc_String;
+						sc.MustGetString();
+						FString framechars = sc.String;
 
-						SC_MustGetNumber();
-						index=sc_Number;
+						sc.MustGetNumber();
+						index=sc.Number;
 						if (index<0 || index>=MAX_MODELS_PER_FRAME)
 						{
-							SC_ScriptError("Too many models in %s", smf.type->TypeName.GetChars());
+							sc.ScriptError("Too many models in %s", smf.type->TypeName.GetChars());
 						}
 						if (isframe)
 						{
-							SC_MustGetString();
+							sc.MustGetString();
 							if (smf.models[index]!=NULL) 
 							{
-								smf.modelframes[index] = smf.models[index]->FindFrame(sc_String);
-								if (smf.modelframes[index]==-1) SC_ScriptError("Unknown frame '%s' in %s", sc_String, smf.type->TypeName.GetChars());
+								smf.modelframes[index] = smf.models[index]->FindFrame(sc.String);
+								if (smf.modelframes[index]==-1) sc.ScriptError("Unknown frame '%s' in %s", sc.String, smf.type->TypeName.GetChars());
 							}
 							else smf.modelframes[index] = -1;
 						}
 						else
 						{
-							SC_MustGetNumber();
-							smf.modelframes[index] = sc_Number;
+							sc.MustGetNumber();
+							smf.modelframes[index] = sc.Number;
 						}
 
 						for(i=0; framechars[i]>0; i++)
@@ -431,7 +431,7 @@ void gl_InitModels()
 
 							if (c<0 || c>=29)
 							{
-								SC_ScriptError("Invalid frame character %c found", c+'A');
+								sc.ScriptError("Invalid frame character %c found", c+'A');
 							}
 							if (map[c]) continue;
 							smf.frame=c;
@@ -501,10 +501,8 @@ void gl_RenderModel(GLSprite * spr, int cm)
 	gl.MatrixMode(GL_MODELVIEW);
 	gl.PushMatrix();
 	gl.DepthFunc(GL_LEQUAL);
-	// [BB] In case the model should be rendered translucent, do back face culling.
-	// This solves a few of the problems caused by the lack of depth sorting.
-	// TO-DO: Implement proper depth sorting.
-	if ( spr->actor->RenderStyle!=STYLE_Normal )
+
+	if (spr->trans < 1.f - FLT_EPSILON)
 	{
 		gl.Enable(GL_CULL_FACE);
 		glFrontFace(GL_CW);
@@ -617,6 +615,8 @@ void gl_RenderModel(GLSprite * spr, int cm)
 	gl.MatrixMode(GL_MODELVIEW);
 	gl.PopMatrix();
 	gl.DepthFunc(GL_LESS);
-	if ( spr->actor->RenderStyle!=STYLE_Normal )
+	if (spr->trans < 1.f - FLT_EPSILON)
+	{
 		gl.Disable(GL_CULL_FACE);
+	}
 }

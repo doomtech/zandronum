@@ -2,7 +2,7 @@
  Author: Marcus Boerger <helly@users.sourceforge.net>
 */
 
-/* $Id: stream_lc.h,v 1.10 2006/02/26 20:36:09 helly Exp $ */
+/* $Id: stream_lc.h 767 2007-06-26 15:21:10Z helly $ */
 
 #ifndef _stream_lc_h
 #define _stream_lc_h
@@ -258,7 +258,9 @@ protected:
 
 	virtual int sync()
 	{
-		fwrite(buffer.c_str(), sizeof(_E), buffer.length(), fp);
+		if (buffer.length() != 0) {
+			fwrite(buffer.c_str(), sizeof(_E), buffer.length(), fp);
+		}
 		buffer.clear();
 		return fp == 0
 			|| _Tr::eq_int_type(_Tr::eof(), overflow())
@@ -267,7 +269,9 @@ protected:
 
 	virtual std::streamsize xsputn(const _E *buf, std::streamsize cnt)
 	{
-		fwrite(buffer.c_str(), sizeof(_E), buffer.length(), fp);
+		if (buffer.length() != 0) {
+			fwrite(buffer.c_str(), sizeof(_E), buffer.length(), fp);
+		}
 		buffer.clear();
 		/*fline += std::count(buf, buf + cnt, '\n');*/
 		for (std::streamsize pos = 0; pos < cnt; ++pos) 
@@ -277,7 +281,11 @@ protected:
 				++fline;
 			}
 		}
-		return fwrite(buf, sizeof(_E), cnt, fp);
+		if (cnt != 0) {
+			return fwrite(buf, sizeof(_E), cnt, fp);
+		} else {
+			return 0;
+		}
 	}
 
 private:

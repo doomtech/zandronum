@@ -98,6 +98,11 @@ void GLWall::PutWall(bool translucent)
 		2,		//RENDERWALL_FFBLOCK           // depends on render and texture settings
 		4,		//RENDERWALL_COLORLAYER        // color layer needs special handling
 	};
+	
+	if (gltexture && gltexture->GetTransparent())
+	{
+		translucent = true;
+	}
 
 	if (gl_fixedcolormap) 
 	{
@@ -219,7 +224,7 @@ void GLWall::PutWall(bool translucent)
 void GLWall::Put3DWall(lightlist_t * lightlist, bool translucent)
 {
 	bool fadewall = (!translucent && lightlist->caster && (lightlist->caster->flags&FF_FADEWALLS) && 
-		!gl_isBlack((*lightlist->p_extra_colormap)->Fade));
+		!gl_isBlack((*lightlist->p_extra_colormap)->Fade)) && gl_isBlack(Colormap.FadeColor);
 
 	lightlevel=*lightlist->p_lightlevel;
 	// relative light won't get changed here. It is constant across the entire wall.
@@ -879,18 +884,9 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 		switch (seg->sidedef->Flags& WALLF_ADDTRANS)//TRANSBITS)
 		{
 		case 0:
-			if (seg->linedef->alpha<255)
-			{
-				RenderStyle=STYLE_Translucent;
-				alpha=(float)seg->linedef->alpha/255.0f;
-				translucent=true;
-			}
-			else if (seg->linedef->alpha==255)
-			{
-				RenderStyle=STYLE_Normal;
-				alpha=1.0f;
-				translucent=false;
-			}
+			RenderStyle=STYLE_Translucent;
+			alpha=(float)seg->linedef->alpha/255.0f;
+			translucent = seg->linedef->alpha<255 || (gltexture && gltexture->GetTransparent());
 			break;
 
 		case WALLF_ADDTRANS:
@@ -898,11 +894,6 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 			alpha=(float)seg->linedef->alpha/255.0f;
 			translucent=true;
 			break;
-		}
-		if (gltexture && gltexture->GetTransparent())
-		{
-			if (RenderStyle == STYLE_Normal) RenderStyle = STYLE_Translucent;
-			translucent = true;
 		}
 
 		//
@@ -978,7 +969,6 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 			else SplitWall(realfront, translucent);
 		}
 		alpha=1.0f;
-		RenderStyle=STYLE_Normal;
 	}
 	// restore some values that have been altered in this function!
 	glseg=glsave;
@@ -1361,7 +1351,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 
 #ifdef _MSC_VER
 #ifdef _DEBUG
-	if (seg->linedef-lines==341)
+	if (seg->linedef-lines==64)
 		__asm nop
 #endif
 #endif

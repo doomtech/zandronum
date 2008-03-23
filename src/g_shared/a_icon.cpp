@@ -143,7 +143,7 @@ void AFloatyIcon::Tick( )
 	}
 
 	// If the tracer has some type of visibility affect, apply it to the icon.
-	if ( tracer->RenderStyle != STYLE_Normal || tracer->alpha != OPAQUE )
+	if ( !(tracer->RenderStyle == LegacyRenderStyles[STYLE_Normal]) || tracer->alpha != OPAQUE )
 	{
 		this->RenderStyle = tracer->RenderStyle;
 		this->alpha = tracer->alpha;
@@ -158,7 +158,7 @@ void AFloatyIcon::SetTracer( AActor *pTracer )
 	SetOrigin( tracer->x, tracer->y, tracer->z + tracer->height + ( 4 * FRACUNIT ));
 
 	// If the tracer has some type of visibility affect, apply it to the icon.
-	if ( tracer->RenderStyle != STYLE_Normal || tracer->alpha != OPAQUE )
+	if ( !(tracer->RenderStyle == LegacyRenderStyles[STYLE_Normal]) || tracer->alpha != OPAQUE )
 	{
 		this->RenderStyle = tracer->RenderStyle;
 		this->alpha = tracer->alpha;

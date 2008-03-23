@@ -30,8 +30,8 @@
 ** THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **---------------------------------------------------------------------------
 **
-** This file does _not_ implement hardware-acclerated rendering. It is just
-** a means of getting the pixel data to the screen in a more reliable
+** This file does _not_ implement hardware-acclerated 3D rendering. It is
+** just a means of getting the pixel data to the screen in a more reliable
 ** method on modern hardware by copying the entire frame to a texture,
 ** drawing that to the screen, and presenting.
 */
@@ -148,6 +148,7 @@ public:
 	D3DPal *Next;
 
 	IDirect3DTexture9 *Tex;
+	D3DCOLOR BorderColor;
 
 	bool Update();
 
@@ -159,12 +160,12 @@ public:
 enum
 {
 	BQF_GamePalette		= 1,
-	BQF_ShadedPalette	= 2,
-	BQF_CustomPalette	= 3,
-	BQF_StencilPalette	= 4,
+	BQF_CustomPalette	= 7,
 		BQF_Paletted	= 7,
 	BQF_Bilinear		= 8,
 	BQF_WrapUV			= 16,
+	BQF_InvertSource	= 32,
+	BQF_DisableAlphaTest= 64,
 };
 
 // Shaders for a buffered quad
@@ -172,7 +173,7 @@ enum
 {
 	BQS_PalTex,
 	BQS_Plain,
-	BQS_PlainStencil,
+	BQS_RedToAlpha,
 	BQS_ColorOnly
 };
 
@@ -207,7 +208,7 @@ extern cycle_t BlitCycles;
 
 // PUBLIC DATA DEFINITIONS -------------------------------------------------
 
-CUSTOM_CVAR(Bool, test2d, true, CVAR_NOINITCALL)
+CUSTOM_CVAR(Bool, vid_hw2d, true, CVAR_NOINITCALL)
 {
 	BorderNeedRefresh = SB_state = screen->GetPageCount();
 }
@@ -231,12 +232,12 @@ D3DFB::D3DFB (int width, int height, bool fullscreen)
 	ScreenshotSurface = NULL;
 	FinalWipeScreen = NULL;
 	PaletteTexture = NULL;
-	StencilPaletteTexture = NULL;
-	ShadedPaletteTexture = NULL;
 	PalTexShader = NULL;
+	InvPalTexShader = NULL;
 	PalTexBilinearShader = NULL;
 	PlainShader = NULL;
-	PlainStencilShader = NULL;
+	InvPlainShader = NULL;
+	RedToAlphaShader = NULL;
 	ColorOnlyShader = NULL;
 	GammaFixerShader = NULL;
 	BurnShader = NULL;
@@ -256,6 +257,7 @@ D3DFB::D3DFB (int width, int height, bool fullscreen)
 	InScene = false;
 	QuadExtra = new BufferedQuad[MAX_QUAD_BATCH];
 	Packs = NULL;
+	PixelDoubling = 0;
 
 	Gamma = 1.0;
 	FlashColor0 = 0;
@@ -283,6 +285,7 @@ D3DFB::D3DFB (int width, int height, bool fullscreen)
 			if (mode->width == Width && mode->height == Height)
 			{
 				TrueHeight = mode->realheight;
+				PixelDoubling = mode->doubling;
 				break;
 			}
 		}
@@ -322,8 +325,8 @@ D3DFB::~D3DFB ()
 // to D3D's defaults.
 void D3DFB::SetInitialState()
 {
-	D3DDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
 	AlphaBlendEnabled = FALSE;
+	AlphaBlendOp = D3DBLENDOP_ADD;
 	AlphaSrcBlend = D3DBLEND(0);
 	AlphaDestBlend = D3DBLEND(0);
 
@@ -332,15 +335,45 @@ void D3DFB::SetInitialState()
 
 	Texture[0] = NULL;
 	Texture[1] = NULL;
-	D3DDevice->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_BORDER);
-	D3DDevice->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_BORDER);
-	D3DDevice->SetSamplerState(1, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-	D3DDevice->SetSamplerState(1, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+	D3DDevice->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
+	D3DDevice->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+	D3DDevice->SetSamplerState(1, D3DSAMP_ADDRESSU, SM14 ? D3DTADDRESS_BORDER : D3DTADDRESS_CLAMP);
+	D3DDevice->SetSamplerState(1, D3DSAMP_ADDRESSV, SM14 ? D3DTADDRESS_BORDER : D3DTADDRESS_CLAMP);
 
 	D3DDevice->SetRenderState(D3DRS_ANTIALIASEDLINEENABLE, TRUE);
 
-	SetGamma (Gamma);
+	NeedGammaUpdate = true;
+	NeedPalUpdate = true;
 	OldRenderTarget = NULL;
+
+	if (!Windowed && SM14)
+	{
+		// Fix for Radeon 9000, possibly other R200s: When the device is
+		// reset, it resets the gamma ramp, but the driver apparently keeps a
+		// cached copy of the ramp that it doesn't update, so when
+		// SetGammaRamp is called later to handle the NeedGammaUpdate flag,
+		// it doesn't do anything, because the gamma ramp is the same as the
+		// one passed in the last call, even though the visible gamma ramp 
+		// actually has changed.
+		//
+		// So here we force the gamma ramp to something absolutely horrible and
+		// trust that we will be able to properly set the gamma later when
+		// NeedGammaUpdate is handled.
+		D3DGAMMARAMP ramp;
+		memset(&ramp, 0, sizeof(ramp));
+		D3DDevice->SetGammaRamp(0, 0, &ramp);
+	}
+
+	// Used by the inverse color shaders
+	float ones[4] = { 1, 1, 1, 1 };
+	D3DDevice->SetPixelShaderConstantF(6, ones, 1);
+
+	// D3DRS_ALPHATESTENABLE defaults to FALSE
+	// D3DRS_ALPHAREF defaults to 0
+	D3DDevice->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_NOTEQUAL);
+	AlphaTestEnabled = FALSE;
+
+	CurBorderColor = 0;
 }
 
 void D3DFB::FillPresentParameters (D3DPRESENT_PARAMETERS *pp, bool fullscreen, bool vsync)
@@ -348,8 +381,8 @@ void D3DFB::FillPresentParameters (D3DPRESENT_PARAMETERS *pp, bool fullscreen, b
 	memset (pp, 0, sizeof(*pp));
 	pp->Windowed = !fullscreen;
 	pp->SwapEffect = D3DSWAPEFFECT_DISCARD;
-	pp->BackBufferWidth = Width;
-	pp->BackBufferHeight = TrueHeight;
+	pp->BackBufferWidth = Width << PixelDoubling;
+	pp->BackBufferHeight = TrueHeight << PixelDoubling;
 	pp->BackBufferFormat = fullscreen ? D3DFMT_A8R8G8B8 : D3DFMT_UNKNOWN;
 	pp->hDeviceWindow = Window;
 	pp->PresentationInterval = vsync ? D3DPRESENT_INTERVAL_ONE : D3DPRESENT_INTERVAL_IMMEDIATE;
@@ -396,15 +429,21 @@ bool D3DFB::CreateResources ()
 	{
 		return false;
 	}
+	if (FAILED(D3DDevice->CreatePixelShader (InvPalTexShader20Def, &InvPalTexShader)) &&
+		(SM14 = true, FAILED(D3DDevice->CreatePixelShader (InvPalTexShader14Def, &InvPalTexShader))))
+	{
+		return false;
+	}
 	if (FAILED(D3DDevice->CreatePixelShader (PlainShaderDef, &PlainShader)) ||
-		FAILED(D3DDevice->CreatePixelShader (PlainStencilDef, &PlainStencilShader)) ||
+		FAILED(D3DDevice->CreatePixelShader (InvPlainShaderDef, &InvPlainShader)) ||
+		FAILED(D3DDevice->CreatePixelShader (RedToAlphaDef, &RedToAlphaShader)) ||
 		FAILED(D3DDevice->CreatePixelShader (ColorOnlyDef, &ColorOnlyShader)))
 	{
 		return false;
 	}
 	if (FAILED(D3DDevice->CreatePixelShader (GammaFixerDef, &GammaFixerShader)))
 	{
-		Printf ("Windowed mode gamma will not work.\n");
+//		Printf ("Using Shader Model 1.4: Windowed mode gamma will not work.\n");
 		GammaFixerShader = NULL;
 	}
 	if (FAILED(D3DDevice->CreatePixelShader(PalTexBilinearDef, &PalTexBilinearShader)))
@@ -413,13 +452,10 @@ bool D3DFB::CreateResources ()
 	}
 	if (FAILED(D3DDevice->CreatePixelShader (BurnShaderDef, &BurnShader)))
 	{
-		Printf ("Burn screenwipe will not work in D3D mode.\n");
 		BurnShader = NULL;
 	}
 	if (!CreateFBTexture() ||
-		!CreatePaletteTexture() ||
-		!CreateStencilPaletteTexture() ||
-		!CreateShadedPaletteTexture())
+		!CreatePaletteTexture())
 	{
 		return false;
 	}
@@ -439,8 +475,6 @@ void D3DFB::ReleaseResources ()
 	SAFE_RELEASE( ScreenshotSurface );
 	SAFE_RELEASE( ScreenshotTexture );
 	SAFE_RELEASE( PaletteTexture );
-	SAFE_RELEASE( StencilPaletteTexture );
-	SAFE_RELEASE( ShadedPaletteTexture );
 	if (PalTexBilinearShader != NULL)
 	{
 		if (PalTexBilinearShader != PalTexShader)
@@ -450,8 +484,10 @@ void D3DFB::ReleaseResources ()
 		PalTexBilinearShader = NULL;
 	}
 	SAFE_RELEASE( PalTexShader );
+	SAFE_RELEASE( InvPalTexShader );
 	SAFE_RELEASE( PlainShader );
-	SAFE_RELEASE( PlainStencilShader );
+	SAFE_RELEASE( InvPlainShader );
+	SAFE_RELEASE( RedToAlphaShader );
 	SAFE_RELEASE( ColorOnlyShader );
 	SAFE_RELEASE( GammaFixerShader );
 	SAFE_RELEASE( BurnShader );
@@ -497,6 +533,7 @@ bool D3DFB::Reset ()
 	{
 		return false;
 	}
+	LOG("Device was reset\n");
 	if (!CreateFBTexture() || !CreateVertexes())
 	{
 		return false;
@@ -578,48 +615,6 @@ bool D3DFB::CreatePaletteTexture ()
 	return true;
 }
 
-bool D3DFB::CreateStencilPaletteTexture()
-{
-	// The stencil palette is a special palette where the first entry is zero alpha,
-	// and everything else is white with full alpha.
-	if (FAILED(D3DDevice->CreateTexture(256, 1, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &StencilPaletteTexture, NULL)))
-	{
-		return false;
-	}
-	D3DLOCKED_RECT lockrect;
-	if (SUCCEEDED(StencilPaletteTexture->LockRect(0, &lockrect, NULL, 0)))
-	{
-		DWORD *pix = (DWORD *)lockrect.pBits;
-		*pix = 0;
-		memset(pix + 1, 0xFF, 255*4);
-		StencilPaletteTexture->UnlockRect(0);
-	}
-	return true;
-}
-
-bool D3DFB::CreateShadedPaletteTexture()
-{
-	// The shaded palette is similar to the stencil palette, except each entry's
-	// alpha is the same as its index.
-	if (FAILED(D3DDevice->CreateTexture(256, 1, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &ShadedPaletteTexture, NULL)))
-	{
-		return false;
-	}
-	D3DLOCKED_RECT lockrect;
-	if (SUCCEEDED(ShadedPaletteTexture->LockRect(0, &lockrect, NULL, 0)))
-	{
-		BYTE *pix = (BYTE *)lockrect.pBits;
-		for (int i = 0; i < 256; ++i)
-		{
-			pix[3] = i;
-			pix[2] = pix[1] = pix[0] = 255;
-			pix += 4;
-		}
-		ShadedPaletteTexture->UnlockRect(0);
-	}
-	return true;
-}
-
 bool D3DFB::CreateVertexes ()
 {
 	VertexPos = -1;
@@ -639,7 +634,7 @@ bool D3DFB::CreateVertexes ()
 	return true;
 }
 
-void D3DFB::CalcFullscreenCoords (FBVERTEX verts[4], bool viewarea_only, D3DCOLOR color0, D3DCOLOR color1) const
+void D3DFB::CalcFullscreenCoords (FBVERTEX verts[4], bool viewarea_only, bool can_double, D3DCOLOR color0, D3DCOLOR color1) const
 {
 	float offset = OldRenderTarget != NULL ? 0 : LBOffset;
 	float top = offset - 0.5f;
@@ -661,9 +656,9 @@ void D3DFB::CalcFullscreenCoords (FBVERTEX verts[4], bool viewarea_only, D3DCOLO
 	else
 	{ // Calculate vertices for the whole screen
 		mxl = -0.5f;
-		mxr = float(Width) - 0.5f;
+		mxr = float(Width << (can_double ? PixelDoubling : 0)) - 0.5f;
 		myt = top;
-		myb = float(Height) + top;
+		myb = float(Height << (can_double ? PixelDoubling : 0)) + top;
 		tmxl = 0;
 		tmxr = texright;
 		tmyt = 0;
@@ -752,7 +747,8 @@ bool D3DFB::Lock (bool buffered)
 	{
 		return false;
 	}
-
+	assert (!In2D);
+	Accel2D = vid_hw2d;
 	Buffer = MemBuffer;
 	return false;
 }
@@ -829,12 +825,12 @@ void D3DFB::Update ()
 			{
 				ramp.blue[i] = ramp.green[i] = ramp.red[i] = WORD(65535.f * powf(i / 255.f, igamma));
 			}
+			LOG("SetGammaRamp\n");
 			D3DDevice->SetGammaRamp(0, D3DSGR_CALIBRATE, &ramp);
 		}
 		psgamma[2] = psgamma[1] = psgamma[0] = igamma;
 		psgamma[3] = 1;
 		D3DDevice->SetPixelShaderConstantF(7, psgamma, 1);
-		NeedPalUpdate = true;
 	}
 	
 	if (NeedPalUpdate)
@@ -862,7 +858,7 @@ void D3DFB::Update ()
 	}
 
 	unclock (BlitCycles);
-	LOG1 ("cycles = %d\n", BlitCycles);
+	//LOG1 ("cycles = %d\n", BlitCycles);
 
 	Buffer = NULL;
 	UpdatePending = false;
@@ -891,11 +887,11 @@ bool D3DFB::PaintToWindow ()
 
 void D3DFB::Draw3DPart(bool copy3d)
 {
-	RECT texrect = { 0, 0, Width, Height };
-	D3DLOCKED_RECT lockrect;
-
 	if (copy3d)
 	{
+		RECT texrect = { 0, 0, Width, Height };
+		D3DLOCKED_RECT lockrect;
+
 		if ((FBWidth == Width && FBHeight == Height &&
 			SUCCEEDED(FBTexture->LockRect (0, &lockrect, NULL, D3DLOCK_DISCARD))) ||
 			SUCCEEDED(FBTexture->LockRect (0, &lockrect, &texrect, 0)))
@@ -923,7 +919,7 @@ void D3DFB::Draw3DPart(bool copy3d)
 	D3DDevice->BeginScene();
 	assert(OldRenderTarget == NULL);
 	if (TempRenderTexture != NULL &&
-		((Windowed && GammaFixerShader && TempRenderTexture != FinalWipeScreen) || GatheringWipeScreen))
+		((Windowed && GammaFixerShader && TempRenderTexture != FinalWipeScreen) || GatheringWipeScreen || PixelDoubling))
 	{
 		IDirect3DSurface9 *targetsurf;
 		if (SUCCEEDED(TempRenderTexture->GetSurfaceLevel(0, &targetsurf)))
@@ -940,15 +936,16 @@ void D3DFB::Draw3DPart(bool copy3d)
 	}
 
 	SetTexture (0, FBTexture);
-	SetPaletteTexture(PaletteTexture, 256);
+	SetPaletteTexture(PaletteTexture, 256, BorderColor);
 	SetPixelShader(PalTexShader);
 	D3DDevice->SetFVF (D3DFVF_FBVERTEX);
 	memset(Constant, 0, sizeof(Constant));
-	SetAlphaBlend(FALSE);
+	SetAlphaBlend(D3DBLENDOP(0));
+	EnableAlphaTest(FALSE);
 	if (copy3d)
 	{
 		FBVERTEX verts[4];
-		CalcFullscreenCoords(verts, test2d, FlashColor0, FlashColor1);
+		CalcFullscreenCoords(verts, Accel2D, false, FlashColor0, FlashColor1);
 		D3DDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, verts, sizeof(FBVERTEX));
 	}
 }
@@ -986,12 +983,13 @@ void D3DFB::DoWindowedGamma()
 	{
 		FBVERTEX verts[4];
 
-		CalcFullscreenCoords(verts, false, 0, 0xFFFFFFFF);
+		CalcFullscreenCoords(verts, false, true, 0, 0xFFFFFFFF);
 		D3DDevice->SetRenderTarget(0, OldRenderTarget);
 		D3DDevice->SetFVF(D3DFVF_FBVERTEX);
 		SetTexture(0, TempRenderTexture);
 		SetPixelShader((Windowed && GammaFixerShader != NULL) ? GammaFixerShader : PlainShader);
-		SetAlphaBlend(FALSE);
+		SetAlphaBlend(D3DBLENDOP(0));
+		EnableAlphaTest(FALSE);
 		D3DDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, verts, sizeof(FBVERTEX));
 		OldRenderTarget->Release();
 		OldRenderTarget = NULL;
@@ -1001,12 +999,22 @@ void D3DFB::DoWindowedGamma()
 void D3DFB::UploadPalette ()
 {
 	D3DLOCKED_RECT lockrect;
-	int i;
 
 	if (SUCCEEDED(PaletteTexture->LockRect (0, &lockrect, NULL, 0)))
 	{
 		BYTE *pix = (BYTE *)lockrect.pBits;
-		for (i = 0; i < 256; ++i, pix += 4)
+		int i, skipat;
+
+		// It is impossible to get the Radeon 9000 to do the proper palette
+		// lookup. It *will* skip at least one entry in the palette. So we
+		// let it and have it look at the texture border color for color 255.
+		// I assume that every other card based on a related graphics chipset
+		// is similarly affected, which basically means that all Shader Model
+		// 1.4 cards suffer from this problem, since they all use some variant
+		// of the ATI R200.
+		skipat = SM14 ? 256 - 8 : 256;
+
+		for (i = 0; i < skipat; ++i, pix += 4)
 		{
 			pix[0] = SourcePalette[i].b;
 			pix[1] = SourcePalette[i].g;
@@ -1014,7 +1022,16 @@ void D3DFB::UploadPalette ()
 			pix[3] = (i == 0 ? 0 : 255);
 			// To let masked textures work, the first palette entry's alpha is 0.
 		}
+		pix += 4;
+		for (; i < 255; ++i, pix += 4)
+		{
+			pix[0] = SourcePalette[i].b;
+			pix[1] = SourcePalette[i].g;
+			pix[2] = SourcePalette[i].r;
+			pix[3] = 255;
+		}
 		PaletteTexture->UnlockRect (0);
+		BorderColor = D3DCOLOR_XRGB(SourcePalette[255].r, SourcePalette[255].g, SourcePalette[255].b);
 	}
 }
 
@@ -1098,7 +1115,7 @@ void D3DFB::GetScreenshotBuffer(const BYTE *&buffer, int &pitch, ESSType &color_
 {
 	D3DLOCKED_RECT lrect;
 
-	if (!test2d)
+	if (!Accel2D)
 	{
 		Super::GetScreenshotBuffer(buffer, pitch, color_type);
 		return;
@@ -1162,7 +1179,7 @@ IDirect3DTexture9 *D3DFB::GetCurrentScreen()
 	IDirect3DSurface9 *tsurf, *surf;
 	D3DSURFACE_DESC desc;
 
-	if (Windowed)
+	if (Windowed || PixelDoubling)
 	{
 		// The texture we read into must have the same pixel format as
 		// the TempRenderTexture.
@@ -1210,7 +1227,7 @@ IDirect3DTexture9 *D3DFB::GetCurrentScreen()
 		return NULL;
 	}
 
-	if (!Windowed)
+	if (!Windowed && !PixelDoubling)
 	{
 		if (FAILED(D3DDevice->GetFrontBufferData(0, surf)))
 		{
@@ -1296,18 +1313,17 @@ void D3DFB::DrawPackedTextures(int packnum)
 		BufferedQuad *quad = &QuadExtra[QuadBatchPos];
 		FBVERTEX *vert = &VertexData[VertexPos];
 
+		quad->Group1 = 0;
 		if (pack->Format == D3DFMT_L8/* && !tex->IsGray*/)
 		{
-			quad->Flags = BQF_WrapUV | BQF_GamePalette;
+			quad->Flags = BQF_WrapUV | BQF_GamePalette | BQF_DisableAlphaTest;
 			quad->ShaderNum = BQS_PalTex;
 		}
 		else
 		{
-			quad->Flags = BQF_WrapUV;
+			quad->Flags = BQF_WrapUV | BQF_DisableAlphaTest;
 			quad->ShaderNum = BQS_Plain;
 		}
-		quad->SrcBlend = 0;
-		quad->DestBlend = 0;
 		quad->Palette = NULL;
 		quad->Texture = pack;
 
@@ -1956,6 +1972,9 @@ D3DPal::D3DPal(FRemapTable *remap, D3DFB *fb)
 	if (fb->SM14)
 	{
 		count = 256;
+		// If the palette isn't big enough, then we don't need to
+		// worry about setting the gamma ramp.
+		BorderColor = (remap->NumEntries >= 256 - 8) ? ~0 : 0;
 	}
 	else
 	{
@@ -1965,6 +1984,7 @@ D3DPal::D3DPal(FRemapTable *remap, D3DFB *fb)
 		for (pow2count = 1; pow2count < remap->NumEntries; pow2count <<= 1)
 		{ }
 		count = pow2count;
+		BorderColor = 0;
 	}
 	RoundedPaletteSize = count;
 	if (SUCCEEDED(fb->D3DDevice->CreateTexture(count, 1, 1, 0, 
@@ -2013,6 +2033,7 @@ bool D3DPal::Update()
 	D3DLOCKED_RECT lrect;
 	D3DCOLOR *buff;
 	const PalEntry *pal;
+	int skipat, i;
 
 	assert(Tex != NULL);
 
@@ -2023,12 +2044,19 @@ bool D3DPal::Update()
 	buff = (D3DCOLOR *)lrect.pBits;
 	pal = Remap->Palette;
 
-	// Should I allow the source palette to specify alpha values?
-	buff[0] = D3DCOLOR_ARGB(0, pal[0].r, pal[0].g, pal[0].b);
-	for (int i = 1; i < Remap->NumEntries; ++i)
+	// See explanation in UploadPalette() for skipat rationale.
+	skipat = MIN(Remap->NumEntries, BorderColor != 0 ? 256 - 8 : 256);
+
+	for (i = 0; i < skipat; ++i)
 	{
-		buff[i] = D3DCOLOR_XRGB(pal[i].r, pal[i].g, pal[i].b);
+		buff[i] = D3DCOLOR_ARGB(i == 0 ? 0 : 255, pal[i].r, pal[i].g, pal[i].b);
 	}
+	for (++i; i < Remap->NumEntries; ++i)
+	{
+		buff[i] = D3DCOLOR_ARGB(255, pal[i-1].r, pal[i-1].g, pal[i-1].b);
+	}
+	BorderColor = D3DCOLOR_ARGB(255, pal[i-1].r, pal[i-1].g, pal[i-1].b);
+
 	Tex->UnlockRect(0);
 	return true;
 }
@@ -2044,7 +2072,7 @@ bool D3DPal::Update()
 
 bool D3DFB::Begin2D(bool copy3d)
 {
-	if (!test2d)
+	if (!Accel2D)
 	{
 		return false;
 	}
@@ -2190,7 +2218,7 @@ void D3DFB::EndLineBatch()
 	if (VertexPos > 0)
 	{
 		SetPixelShader(ColorOnlyShader);
-		SetAlphaBlend(TRUE, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
+		SetAlphaBlend(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
 		D3DDevice->SetStreamSource(0, VertexBuffer, 0, sizeof(FBVERTEX));
 		D3DDevice->DrawPrimitive(D3DPT_LINELIST, 0, VertexPos / 2);
 	}
@@ -2269,7 +2297,7 @@ void D3DFB::DrawPixel(int x, int y, int palcolor, uint32 color)
 	};
 	EndBatch();		// Draw out any batched operations.
 	SetPixelShader(ColorOnlyShader);
-	SetAlphaBlend(TRUE, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
+	SetAlphaBlend(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
 	D3DDevice->DrawPrimitiveUP(D3DPT_POINTLIST, 1, &pt, sizeof(FBVERTEX));
 }
 
@@ -2473,18 +2501,17 @@ void D3DFB::FlatFill(int left, int top, int right, int bottom, FTexture *src, bo
 	BufferedQuad *quad = &QuadExtra[QuadBatchPos];
 	FBVERTEX *vert = &VertexData[VertexPos];
 
+	quad->Group1 = 0;
 	if (tex->GetTexFormat() == D3DFMT_L8 && !tex->IsGray)
 	{
-		quad->Flags = BQF_WrapUV | BQF_GamePalette;
+		quad->Flags = BQF_WrapUV | BQF_GamePalette | BQF_DisableAlphaTest;
 		quad->ShaderNum = BQS_PalTex;
 	}
 	else
 	{
-		quad->Flags = BQF_WrapUV;
+		quad->Flags = BQF_WrapUV | BQF_DisableAlphaTest;
 		quad->ShaderNum = BQS_Plain;
 	}
-	quad->SrcBlend = 0;
-	quad->DestBlend = 0;
 	quad->Palette = NULL;
 	quad->Texture = tex->Box->Owner;
 
@@ -2556,15 +2583,11 @@ void D3DFB::AddColorOnlyQuad(int left, int top, int width, int height, D3DCOLOR 
 	float x = float(left) - 0.5f;
 	float y = float(top) - 0.5f + (GatheringWipeScreen ? 0 : LBOffset);
 
-	quad->Flags = 0;
+	quad->Group1 = 0;
 	quad->ShaderNum = BQS_ColorOnly;
-	if ((color & 0xFF000000) == 0xFF000000)
+	if ((color & 0xFF000000) != 0xFF000000)
 	{
-		quad->SrcBlend = 0;
-		quad->DestBlend = 0;
-	}
-	else
-	{
+		quad->BlendOp = D3DBLENDOP_ADD;
 		quad->SrcBlend = D3DBLEND_SRCALPHA;
 		quad->DestBlend = D3DBLEND_INVSRCALPHA;
 	}
@@ -2716,48 +2739,43 @@ void D3DFB::EndQuadBatch()
 		// Set the palette (if one)
 		if ((quad->Flags & BQF_Paletted) == BQF_GamePalette)
 		{
-			SetPaletteTexture(PaletteTexture, 256);
+			SetPaletteTexture(PaletteTexture, 256, BorderColor);
 		}
 		else if ((quad->Flags & BQF_Paletted) == BQF_CustomPalette)
 		{
-			SetPaletteTexture(quad->Palette->Tex, quad->Palette->RoundedPaletteSize);
-		}
-		else if ((quad->Flags & BQF_Paletted) == BQF_ShadedPalette)
-		{
-			SetPaletteTexture(ShadedPaletteTexture, 256);
-		}
-		else if ((quad->Flags & BQF_Paletted) == BQF_StencilPalette)
-		{
-			SetPaletteTexture(StencilPaletteTexture, 256);
+			SetPaletteTexture(quad->Palette->Tex, quad->Palette->RoundedPaletteSize, quad->Palette->BorderColor);
 		}
 		// Set paletted bilinear filtering (IF IT WORKED RIGHT!)
-		if (quad->Flags & (BQF_Paletted | BQF_Bilinear))
+		if ((quad->Flags & (BQF_Paletted | BQF_Bilinear)) == (BQF_Paletted | BQF_Bilinear))
 		{
 			SetPalTexBilinearConstants(quad->Texture);
 		}
 
 		// Set the alpha blending
-		if (quad->SrcBlend != 0)
-		{
-			SetAlphaBlend(TRUE, D3DBLEND(quad->SrcBlend), D3DBLEND(quad->DestBlend));
-		}
-		else
-		{
-			SetAlphaBlend(FALSE);
-		}
+		SetAlphaBlend(D3DBLENDOP(quad->BlendOp), D3DBLEND(quad->SrcBlend), D3DBLEND(quad->DestBlend));
+
+		// Set the alpha test
+		EnableAlphaTest(!(quad->Flags & BQF_DisableAlphaTest));
 
 		// Set the pixel shader
 		if (quad->ShaderNum == BQS_PalTex)
 		{
-			SetPixelShader(!(quad->Flags & BQF_Bilinear) ? PalTexShader : PalTexBilinearShader);
+			if (!(quad->Flags & BQF_Bilinear))
+			{
+				SetPixelShader((quad->Flags & BQF_InvertSource) ? InvPalTexShader : PalTexShader);
+			}
+			else
+			{
+				SetPixelShader(PalTexBilinearShader);
+			}
 		}
 		else if (quad->ShaderNum == BQS_Plain)
 		{
-			SetPixelShader(PlainShader);
+			SetPixelShader((quad->Flags & BQF_InvertSource) ? InvPlainShader : PlainShader);
 		}
-		else if (quad->ShaderNum == BQS_PlainStencil)
+		else if (quad->ShaderNum == BQS_RedToAlpha)
 		{
-			SetPixelShader(PlainStencilShader);
+			SetPixelShader(RedToAlphaShader);
 		}
 		else if (quad->ShaderNum == BQS_ColorOnly)
 		{
@@ -2825,90 +2843,80 @@ void D3DFB::EndBatch()
 bool D3DFB::SetStyle(D3DTex *tex, DrawParms &parms, D3DCOLOR &color0, D3DCOLOR &color1, BufferedQuad &quad)
 {
 	D3DFORMAT fmt = tex->GetTexFormat();
-	ERenderStyle style = parms.style;
-	D3DBLEND fglevel, bglevel;
+	FRenderStyle style = parms.style;
 	float alpha;
 	bool stencilling;
 
-	alpha = clamp<fixed_t> (parms.alpha, 0, FRACUNIT) / 65536.f;
-
-	if (style == STYLE_OptFuzzy)
+	if (style.Flags & STYLEF_TransSoulsAlpha)
 	{
-		style = STYLE_Translucent;
-	}
-	else if (style == STYLE_SoulTrans)
-	{
-		style = STYLE_Translucent;
 		alpha = transsouls;
 	}
-
-	// FIXME: STYLE_Fuzzy is not written
-	if (style == STYLE_Fuzzy)
+	else if (style.Flags & STYLEF_Alpha1)
 	{
-		style = STYLE_Translucent;
-		alpha = transsouls;
+		alpha = 1;
+	}
+	else
+	{
+		alpha = clamp<fixed_t> (parms.alpha, 0, FRACUNIT) / 65536.f;
+	}
+
+	// FIXME: Fuzz effect is not written
+	if (style.BlendOp == STYLEOP_FuzzOrAdd || style.BlendOp == STYLEOP_Fuzz)
+	{
+		style.BlendOp = STYLEOP_Add;
+	}
+	else if (style.BlendOp == STYLEOP_FuzzOrSub)
+	{
+		style.BlendOp = STYLEOP_Sub;
+	}
+	else if (style.BlendOp == STYLEOP_FuzzOrRevSub)
+	{
+		style.BlendOp = STYLEOP_RevSub;
 	}
 
 	stencilling = false;
 	quad.Palette = NULL;
 
-	switch (style)
+	switch (style.BlendOp)
 	{
-		// Special modes
-	case STYLE_Shaded:
-		if (alpha > 0)
-		{
-			color0 = 0;
-			color1 = parms.fillcolor | (D3DCOLOR(alpha * 255) << 24);
-			quad.Flags = BQF_ShadedPalette;
-			quad.SrcBlend = D3DBLEND_SRCALPHA;
-			quad.DestBlend = D3DBLEND_INVSRCALPHA;
-			quad.ShaderNum = BQS_PalTex;
-			return true;
-		}
-		return false;
-
-		// Standard modes
-	case STYLE_Stencil:
-		stencilling = true;
-	case STYLE_Normal:
-		fglevel = D3DBLEND_SRCALPHA;
-		bglevel = D3DBLEND_INVSRCALPHA;
-		alpha = 1;
-		break;
-
-	case STYLE_TranslucentStencil:
-		stencilling = true;
-	case STYLE_Translucent:
-		fglevel = D3DBLEND_SRCALPHA;
-		bglevel = D3DBLEND_INVSRCALPHA;
-		if (alpha == 0)
-		{
-			return false;
-		}
-		if (alpha == 1 && style == STYLE_Translucent)
-		{
-			style = STYLE_Normal;
-		}
-		break;
-
-	case STYLE_Add:
-		fglevel = D3DBLEND_SRCALPHA;
-		bglevel = D3DBLEND_ONE;
-		break;
-
 	default:
-		return false;
+	case STYLEOP_Add:		quad.BlendOp = D3DBLENDOP_ADD;			break;
+	case STYLEOP_Sub:		quad.BlendOp = D3DBLENDOP_SUBTRACT;		break;
+	case STYLEOP_RevSub:	quad.BlendOp = D3DBLENDOP_REVSUBTRACT;	break;
+	case STYLEOP_None:		return false;
+	}
+	quad.SrcBlend = GetStyleAlpha(style.SrcAlpha);
+	quad.DestBlend = GetStyleAlpha(style.DestAlpha);
+
+	if (style.Flags & STYLEF_InvertOverlay)
+	{
+		// Only the overlay color is inverted, not the overlay alpha.
+		parms.colorOverlay = D3DCOLOR_ARGB(APART(parms.colorOverlay),
+			255 - RPART(parms.colorOverlay), 255 - GPART(parms.colorOverlay),
+			255 - BPART(parms.colorOverlay));
 	}
 
-	// Masking can only be turned off for STYLE_Normal, because it requires
-	// turning off the alpha blend.
-	if (!parms.masked && style == STYLE_Normal)
+	SetColorOverlay(parms.colorOverlay, alpha, color0, color1);
+
+	if (style.Flags & STYLEF_ColorIsFixed)
 	{
-		quad.SrcBlend = 0;
-		quad.DestBlend = 0;
-		SetColorOverlay(parms.colorOverlay, 1, color0, color1);
-		if (fmt == D3DFMT_L8 && !tex->IsGray)
+		if (style.Flags & STYLEF_InvertSource)
+		{ // Since the source color is a constant, we can invert it now
+		  // without spending time doing it in the shader.
+			parms.fillcolor = D3DCOLOR_XRGB(255 - RPART(parms.fillcolor),
+				255 - GPART(parms.fillcolor), 255 - BPART(parms.fillcolor));
+		}
+		// Set up the color mod to replace the color from the image data.
+		color0 = (color0 & D3DCOLOR_RGBA(0,0,0,255)) | (parms.fillcolor & D3DCOLOR_RGBA(255,255,255,0));
+		color1 &= D3DCOLOR_RGBA(0,0,0,255);
+
+		if (style.Flags & STYLEF_RedIsAlpha)
+		{
+			// Note that if the source texture is paletted, the palette is ignored.
+			quad.Flags = 0;
+			quad.ShaderNum = BQS_RedToAlpha;
+		}
+		else if (fmt == D3DFMT_L8)
 		{
 			quad.Flags = BQF_GamePalette;
 			quad.ShaderNum = BQS_PalTex;
@@ -2921,55 +2929,71 @@ bool D3DFB::SetStyle(D3DTex *tex, DrawParms &parms, D3DCOLOR &color0, D3DCOLOR &
 	}
 	else
 	{
-		quad.SrcBlend = fglevel;
-		quad.DestBlend = bglevel;
-
-		if (!stencilling)
+		if (style.Flags & STYLEF_RedIsAlpha)
 		{
-			if (fmt == D3DFMT_L8)
+			quad.Flags = 0;
+			quad.ShaderNum = BQS_RedToAlpha;
+		}
+		else if (fmt == D3DFMT_L8)
+		{
+			if (parms.remap != NULL)
 			{
-				if (parms.remap != NULL)
-				{
-					quad.Flags = BQF_CustomPalette;
-					quad.Palette = reinterpret_cast<D3DPal *>(parms.remap->GetNative());
-					quad.ShaderNum = BQS_PalTex;
-				}
-				else if (tex->IsGray)
-				{
-					quad.Flags = 0;
-					quad.ShaderNum = BQS_Plain;
-				}
-				else
-				{
-					quad.Flags = BQF_GamePalette;
-					quad.ShaderNum = BQS_PalTex;
-				}
+				quad.Flags = BQF_CustomPalette;
+				quad.Palette = reinterpret_cast<D3DPal *>(parms.remap->GetNative());
+				quad.ShaderNum = BQS_PalTex;
 			}
-			else
+			else if (tex->IsGray)
 			{
 				quad.Flags = 0;
 				quad.ShaderNum = BQS_Plain;
 			}
-			SetColorOverlay(parms.colorOverlay, alpha, color0, color1);
+			else
+			{
+				quad.Flags = BQF_GamePalette;
+				quad.ShaderNum = BQS_PalTex;
+			}
 		}
 		else
 		{
-			color0 = 0;
-			color1 = parms.fillcolor | (D3DCOLOR(alpha * 255) << 24);
-			if (fmt == D3DFMT_L8)
-			{
-				quad.Flags = BQF_StencilPalette;
-				quad.ShaderNum = BQS_PalTex;
-			}
-			else
-			{
-				quad.Flags = 0;
-				quad.ShaderNum = BQS_PlainStencil;
-			}
+			quad.Flags = 0;
+			quad.ShaderNum = BQS_Plain;
+		}	
+		if (style.Flags & STYLEF_InvertSource)
+		{
+			quad.Flags |= BQF_InvertSource;
 		}
+	}
+
+	// For unmasked images, force the alpha from the image data to be ignored.
+	if (!parms.masked)
+	{
+		color0 = (color0 & D3DCOLOR_RGBA(255, 255, 255, 0)) | D3DCOLOR_COLORVALUE(0, 0, 0, alpha);
+		color1 &= D3DCOLOR_RGBA(255, 255, 255, 0);
+
+		// If our alpha is one and we are doing normal adding, then we can turn the blend off completely.
+		if (quad.BlendOp == D3DBLENDOP_ADD &&
+			((alpha == 1 && quad.SrcBlend == D3DBLEND_SRCALPHA) || quad.SrcBlend == D3DBLEND_ONE) &&
+			((alpha == 1 && quad.DestBlend == D3DBLEND_INVSRCALPHA) || quad.DestBlend == D3DBLEND_ZERO))
+		{
+			quad.BlendOp = D3DBLENDOP(0);
+		}
+		quad.Flags |= BQF_DisableAlphaTest;
 	}
 	return true;
 }
+
+D3DBLEND D3DFB::GetStyleAlpha(int type)
+{
+	switch (type)
+	{
+	case STYLEALPHA_Zero:		return D3DBLEND_ZERO;
+	case STYLEALPHA_One:		return D3DBLEND_ONE;
+	case STYLEALPHA_Src:		return D3DBLEND_SRCALPHA;
+	case STYLEALPHA_InvSrc:		return D3DBLEND_INVSRCALPHA;
+	default:					return D3DBLEND_ZERO;
+	}
+}
+
 
 void D3DFB::SetColorOverlay(DWORD color, float alpha, D3DCOLOR &color0, D3DCOLOR &color1)
 {
@@ -2991,9 +3015,18 @@ void D3DFB::SetColorOverlay(DWORD color, float alpha, D3DCOLOR &color0, D3DCOLOR
 	}
 }
 
-void D3DFB::SetAlphaBlend(BOOL enabled, D3DBLEND srcblend, D3DBLEND destblend)
+void D3DFB::EnableAlphaTest(BOOL enabled)
 {
-	if (!enabled)
+	if (enabled != AlphaTestEnabled)
+	{
+		AlphaTestEnabled = enabled;
+		D3DDevice->SetRenderState(D3DRS_ALPHATESTENABLE, enabled);
+	}
+}
+
+void D3DFB::SetAlphaBlend(D3DBLENDOP op, D3DBLEND srcblend, D3DBLEND destblend)
+{
+	if (op == 0)
 	{ // Disable alpha blend
 		if (AlphaBlendEnabled)
 		{
@@ -3010,6 +3043,11 @@ void D3DFB::SetAlphaBlend(BOOL enabled, D3DBLEND srcblend, D3DBLEND destblend)
 		{
 			AlphaBlendEnabled = TRUE;
 			D3DDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
+		}
+		if (AlphaBlendOp != op)
+		{
+			AlphaBlendOp = op;
+			D3DDevice->SetRenderState(D3DRS_BLENDOP, op);
 		}
 		if (AlphaSrcBlend != srcblend)
 		{
@@ -3057,12 +3095,19 @@ void D3DFB::SetTexture(int tnum, IDirect3DTexture9 *texture)
 	}
 }
 
-void D3DFB::SetPaletteTexture(IDirect3DTexture9 *texture, int count)
+CVAR(Float, pal, 0.5f, 0)
+CVAR(Float, pc, 255.f, 0)
+void D3DFB::SetPaletteTexture(IDirect3DTexture9 *texture, int count, D3DCOLOR border_color)
 {
-	if (count == 256 || SM14)
+	if (SM14)
 	{
 		// Shader Model 1.4 only uses 256-color palettes.
-		SetConstant(2, 255 / 256.f, 0.5f / 256.f, 0, 0);
+		SetConstant(2, 1.f, 0.5f / 256.f, 0, 0);
+		if (border_color != 0 && CurBorderColor != border_color)
+		{
+			CurBorderColor = border_color;
+			D3DDevice->SetSamplerState(1, D3DSAMP_BORDERCOLOR, border_color);
+		}
 	}
 	else
 	{
@@ -3073,12 +3118,12 @@ void D3DFB::SetPaletteTexture(IDirect3DTexture9 *texture, int count)
 		// the palette indexes so they lie exactly in the center of each
 		// texel. For a normal palette with 256 entries, that means the
 		// range we use should be [0.5,255.5], adjusted so the coordinate
-		// is still with [0.0,1.0].
+		// is still within [0.0,1.0].
 		//
 		// The constant register c2 is used to hold the multiplier in the
 		// x part and the adder in the y part.
 		float fcount = 1 / float(count);
-		SetConstant(2, 255 * fcount, 0.5f * fcount, 0, 0);
+		SetConstant(2, pc * fcount, pal * fcount, 0, 0);
 	}
 	SetTexture(1, texture);
 }

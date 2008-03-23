@@ -6722,12 +6722,12 @@ void InitCrosshairsList()
 
 	while ((lump = Wads.FindLump("XHAIRS", &lastlump)) != -1)
 	{
-		SC_OpenLumpNum(lump, "XHAIRS");
-		while (SC_GetNumber())
+		FScanner sc(lump, "XHAIRS");
+		while (sc.GetNumber())
 		{
-			value.value = float(sc_Number);
-			SC_MustGetString();
-			value.name = sc_String;
+			value.value = float(sc.Number);
+			sc.MustGetString();
+			value.name = sc.String;
 			if (value.value != 0)
 			{ // Check if it already exists. If not, add it.
 				unsigned int i;
@@ -6749,7 +6749,6 @@ void InitCrosshairsList()
 				}
 			}
 		}
-		SC_Close();
 	}
 	VideoItems[CROSSHAIR_INDEX].b.numvalues = float(Crosshairs.Size());
 	VideoItems[CROSSHAIR_INDEX].e.valuestrings = &Crosshairs[0];

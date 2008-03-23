@@ -76,6 +76,7 @@ extern void ChildSigHandler (int signum);
 EXTERN_CVAR (Float, snd_midivolume)
 EXTERN_CVAR (Int, snd_samplerate)
 EXTERN_CVAR (Int, snd_mididevice)
+CVAR(Bool, snd_modplug, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
 //[BB] Not used anywhere.
 //void Enable_FSOUND_IO_Loader ();
@@ -102,7 +103,7 @@ CUSTOM_CVAR (Float, snd_musicvolume, 0.3f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 	else if (self > 1.f)
 		self = 1.f;
 	else if (currSong != NULL && !currSong->IsMIDI ())
-		currSong->SetVolume (clamp<float> (self * relative_volume, 0.f, 1.f));
+		currSong->SetVolume (clamp<float> (self, 0.f, 1.f));
 }
 
 MusInfo::~MusInfo ()
@@ -418,14 +419,58 @@ void *I_RegisterSong (const char *filename, char * musiccache, int offset, int l
 		// been identified already, so don't even bother trying to load it.
 		if (info == NULL && GSnd != NULL && len >= 1024)
 		{
-			// First try loading it as MOD, then as a stream
-			if (file != NULL) fclose (file);
-			file = NULL;
-			info = new MODSong (offset>=0? filename : musiccache, offset, len);
-			if (!info->IsValid ())
+			if (snd_modplug)
 			{
-				delete info;
-				info = new StreamSong (offset>=0? filename : musiccache, offset, len);
+				unsigned char fullhead[4];
+				if (file != NULL)
+				{
+					if (fread (fullhead, 1, 4, file) != 6)
+					{
+						fclose (file);
+						return 0;
+					}
+					fseek (file, -4, SEEK_CUR);
+				}
+				else
+				{
+					memcpy(fullhead, musiccache, 4);
+				}
+
+				info = NULL;
+				if (fullhead[0]==0xff || !memcmp(fullhead, "ID3",3) || !memcmp(fullhead, "OggS",4))
+				{
+					info = new StreamSong (offset>=0? filename : musiccache, offset, len);
+					if (!info->IsValid ())
+					{
+						if (info != NULL) delete info;
+						info = NULL;
+					}
+					else
+					{
+						if (file != NULL) fclose (file);
+						file = NULL;
+					}
+				}
+				if (info == NULL)
+				{
+					// First try loading it as MOD, then as a stream
+					info = new ModPlugSong (file, musiccache, len);
+
+					if (file != NULL) fclose (file);
+					file = NULL;
+				}
+			}
+			else
+			{
+				// First try loading it as MOD, then as a stream
+				info = new MODSong (offset>=0? filename : musiccache, offset, len);
+				if (file != NULL) fclose (file);
+				file = NULL;
+				if (!info->IsValid ())
+				{
+					delete info;
+					info = new StreamSong (offset>=0? filename : musiccache, offset, len);
+				}
 			}
 		}
 	}

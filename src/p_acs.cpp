@@ -593,20 +593,19 @@ void FBehavior::StaticLoadDefaultModules ()
 
 	while ((lump = Wads.FindLump ("LOADACS", &lastlump)) != -1)
 	{
-		SC_OpenLumpNum (lump, "LOADACS");
-		while (SC_GetString())
+		FScanner sc(lump, "LOADACS");
+		while (sc.GetString())
 		{
-			int acslump = Wads.CheckNumForName (sc_String, ns_acslibrary);
+			int acslump = Wads.CheckNumForName (sc.String, ns_acslibrary);
 			if (acslump >= 0)
 			{
 				StaticLoadModule (acslump);
 			}
 			else
 			{
-				Printf ("Could not find autoloaded ACS library %s\n", sc_String);
+				Printf ("Could not find autoloaded ACS library %s\n", sc.String);
 			}
 		}
-		SC_Close ();
 	}
 }
 
@@ -1548,6 +1547,7 @@ const char *FBehavior::LookupString (DWORD index) const
 
 void FBehavior::StaticStartTypedScripts (WORD type, AActor *activator, bool always, int arg1, bool runNow)
 {
+	DPrintf("Starting all scripts of type %d\n", type);
 	for (unsigned int i = 0; i < StaticModules.Size(); ++i)
 	{
 		StaticModules[i]->StartTypedScripts (type, activator, always, arg1, runNow);
@@ -2299,11 +2299,28 @@ void DLevelScript::DoSetFont (int fontnum)
 #define APROP_Frightened	14
 #define APROP_Gravity		15
 #define APROP_Friendly		16
+#define APROP_SpawnHealth   17
 #define APROP_SeeSound		5	// Sounds can only be set, not gotten
 #define APROP_AttackSound	6
 #define APROP_PainSound		7
 #define APROP_DeathSound	8
 #define APROP_ActiveSound	9
+
+// These are needed for ACS's APROP_RenderStyle
+static const int LegacyRenderStyleIndices[] =
+{
+	0,	// STYLE_None,
+	1,  // STYLE_Normal,
+	2,  // STYLE_Fuzzy,
+	3,	// STYLE_SoulTrans,
+	4,	// STYLE_OptFuzzy,
+	5,	// STYLE_Stencil,
+	64,	// STYLE_Translucent
+	65,	// STYLE_Add,
+	66,	// STYLE_Shaded,
+	67,	// STYLE_TranslucentStencil,
+	-1
+};
 
 void DLevelScript::SetActorProperty (int tid, int property, int value)
 {
@@ -2367,11 +2384,19 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 		break;
 
 	case APROP_RenderStyle:
-		actor->RenderStyle = value;	
+		for(int i=0; LegacyRenderStyleIndices[i] >= 0; i++)
+		{
+			if (LegacyRenderStyleIndices[i] == value) 
+			{
+				actor->RenderStyle = ERenderStyle(i);
+				break;
+			}
+		}
 
 		// [BC] If we're the server, tell clients to update this actor property.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SetThingProperty( actor, APROP_RenderStyle );
+
 		break;
 
 	case APROP_Ambush:
@@ -2414,6 +2439,14 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 			actor->flags |= MF_FRIENDLY;
 		else
 			actor->flags &= ~MF_FRIENDLY;
+		break;
+		
+
+	case APROP_SpawnHealth:
+		if (actor->IsKindOf (RUNTIME_CLASS (APlayerPawn)))
+		{
+			static_cast<APlayerPawn *>(actor)->MaxHealth = value;
+		}
 		break;
 		
 	case APROP_Gravity:
@@ -2489,12 +2522,30 @@ int DLevelScript::GetActorProperty (int tid, int property)
 	case APROP_Speed:		return actor->Speed;
 	case APROP_Damage:		return actor->Damage;	// Should this call GetMissileDamage() instead?
 	case APROP_Alpha:		return actor->alpha;
-	case APROP_RenderStyle:	return actor->RenderStyle;
+	case APROP_RenderStyle:	for (int style = STYLE_None; style < STYLE_Count; ++style)
+							{ // Check for a legacy render style that matches.
+								if (LegacyRenderStyles[style] == actor->RenderStyle)
+								{
+									return LegacyRenderStyleIndices[style];
+								}
+							}
+							// The current render style isn't expressable as a legacy style,
+							// so pretends it's normal.
+							return STYLE_Normal;
 	case APROP_Gravity:		return actor->gravity;
 	case APROP_Ambush:		return !!(actor->flags & MF_AMBUSH);
 	case APROP_ChaseGoal:	return !!(actor->flags5 & MF5_CHASEGOAL);
 	case APROP_Frightened:	return !!(actor->flags4 & MF4_FRIGHTENED);
 	case APROP_Friendly:	return !!(actor->flags & MF_FRIENDLY);
+	case APROP_SpawnHealth: if (actor->IsKindOf (RUNTIME_CLASS (APlayerPawn)))
+							{
+								return static_cast<APlayerPawn *>(actor)->MaxHealth;
+							}
+							else
+							{
+								return actor->GetDefault()->health;
+							}
+	
 	case APROP_JumpZ:		if (actor->IsKindOf (RUNTIME_CLASS (APlayerPawn)))
 							{
 								return static_cast<APlayerPawn *>(actor)->JumpZ;	// [GRB]

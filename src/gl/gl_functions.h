@@ -57,9 +57,19 @@ inline bool gl_isFullbright(PalEntry color, int lightlevel)
 struct FColormap;
 void gl_GetLightColor(int lightlevel, int rellight, const FColormap * cm, float * pred, float * pgreen, float * pblue, bool weapon=false);
 void gl_SetColor(int light, int rellight, const FColormap * cm, float alpha, PalEntry ThingColor = 0xffffff, bool weapon=false);
+void gl_SetColor(int light, int rellight, const FColormap * cm, float *red, float *green, float *blue, PalEntry ThingColor=0xffffff, bool weapon=false);
 
 void gl_GetSpriteLight(fixed_t x, fixed_t y, fixed_t z, subsector_t * subsec, int desaturation, float * out);
 void gl_SetSpriteLight(AActor * thing, int lightlevel, int rellight, FColormap * cm, float alpha, PalEntry ThingColor = 0xffffff, bool weapon=false);
+
+void gl_GetSpriteLight(AActor * thing, int lightlevel, int rellight, FColormap * cm,
+					   float *red, float *green, float *blue,
+					   PalEntry ThingColor, bool weapon);
+
+void gl_SetRenderStyle(FRenderStyle style, bool drawopaque, bool allowcolorblending);
+void gl_SetSpriteLighting(FRenderStyle style, AActor *thing, int lightlevel, int rellight, FColormap *cm, 
+						  PalEntry ThingColor, float alpha, bool fullbright, bool weapon);
+
 
 struct particle_t;
 void gl_SetSpriteLight(particle_t * thing, int lightlevel, int rellight, FColormap *cm, float alpha, PalEntry ThingColor = 0xffffff);
@@ -67,7 +77,7 @@ void gl_SetSpriteLight(particle_t * thing, int lightlevel, int rellight, FColorm
 void gl_InitFog();
 void gl_SetFogParams(int _fogdensity, PalEntry _outsidefogcolor, int _outsidefogdensity, int _skyfog);
 float gl_GetFogDensity(int lightlevel, PalEntry fogcolor);
-void gl_SetFog(int lightlevel, PalEntry pe, int renderstyle, int cm);
+void gl_SetFog(int lightlevel, PalEntry pe, bool isadditive, int cm);
 
 // textures + sprites
 

@@ -661,6 +661,8 @@ $playersounddup	player	male	*land		*grunt
 $playersound	player	male	*jump		plrjmp
 $playersound	player	male	*burndeath	hedat1
 
+$playeralias	chicken male	*usefail	chicken/peck
+
 chicken/sight			chicpai
 chicken/pain			chicpai
 chicken/death			chicdth
@@ -992,6 +994,7 @@ $playeralias	mage	male	*usefail	PlayerMageFailedUse
 $playeralias	mage	male	*puzzfail	PuzzleFailMage
 $playersound	mage	male	*jump		mgjump
 
+$playeralias	pig		male	*usefail	PigActive1
 
 $alias world/drip		Ambient10
 $alias world/watersplash	WaterSplash
@@ -1076,6 +1079,9 @@ $alias menu/invalid		DoorCloseMetal	// Hexen does not use this, but I do
 $alias menu/dismiss		PlatformStop
 $alias menu/choose		DoorCloseLight
 $alias menu/clear		PlatformStop
+
+// Hexen does not have ripslop sound like Heretic
+misc/ripslop			dsempty
 
 $limit DoorCloseLight 4
 

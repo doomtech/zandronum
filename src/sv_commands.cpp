@@ -2022,7 +2022,7 @@ void SERVERCOMMANDS_SetThingProperty( AActor *pActor, ULONG ulProperty, ULONG ul
 		break;
 	case APROP_RenderStyle:
 
-		ulPropertyValue = pActor->RenderStyle;
+		ulPropertyValue = pActor->RenderStyle.AsDWORD;
 		break;
 	case APROP_JumpZ:
 

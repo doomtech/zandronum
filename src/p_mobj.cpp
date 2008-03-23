@@ -183,7 +183,6 @@ CVAR (Int, cl_pufftype, 0, CVAR_ARCHIVE);
 CVAR (Int, cl_bloodtype, 0, CVAR_ARCHIVE);
 
 AActor *MissileActor;
-AActor *PuffSpawned;
 
 // CODE --------------------------------------------------------------------
 
@@ -272,7 +271,7 @@ void AActor::Serialize (FArchive &arc)
 	}
 	arc << effects
 		<< alpha
-		<< alphacolor
+		<< fillcolor
 		<< pitch
 		<< roll
 		<< Sector
@@ -308,6 +307,7 @@ void AActor::Serialize (FArchive &arc)
 		<< player
 		<< SpawnPoint[0] << SpawnPoint[1] << SpawnPoint[2]
 		<< SpawnAngle
+		<< skillrespawncount
 		<< tracer
 		<< floorclip
 		<< tid
@@ -420,7 +420,7 @@ void AActor::Serialize (FArchive &arc)
 		touching_sectorlist = NULL;
 		LinkToWorld (Sector);
 		AddToHash ();
-		SetShade (alphacolor);
+		SetShade (fillcolor);
 		if (player)
 		{
 			if (playeringame[player - players] && 
@@ -1286,7 +1286,7 @@ void P_ExplodeMissile (AActor *mo, line_t *line, AActor *target)
 					{
 						// find a 3D-floor to stick to
 						sector_t * backsector=sides[line->sidenum[side^1]].sector;
-						for(int i=0;i<backsector->e->ffloors.Size();i++)
+						for(unsigned int i=0;i<backsector->e->ffloors.Size();i++)
 						{
 							F3DFloor * rover=backsector->e->ffloors[i];
 
@@ -1332,7 +1332,7 @@ void P_ExplodeMissile (AActor *mo, line_t *line, AActor *target)
 			}
 			else
 			{
-				mo->RenderStyle = deh.ExplosionStyle;
+				mo->RenderStyle = ERenderStyle(deh.ExplosionStyle);
 				mo->alpha = deh.ExplosionAlpha;
 			}
 		}
@@ -2374,7 +2374,7 @@ void P_ZMovement (AActor *mo)
 	// [GrafZahl] This is a really ugly workaround... :(
 	// But unless the collision code is completely rewritten it is the 
 	// only way to avoid problems caused by incorrect positioning info...
-	for(int i=0;i<mo->Sector->e->ffloors.Size();i++)
+	for(unsigned int i=0;i<mo->Sector->e->ffloors.Size();i++)
     {
 		F3DFloor*  rover=mo->Sector->e->ffloors[i];
 
@@ -2818,6 +2818,8 @@ void P_NightmareRespawn (AActor *mobj)
 	AActor *mo;
 	AActor *info = mobj->GetDefault();
 
+	mobj->skillrespawncount++;
+
 	// spawn the new monster (assume the spawn will be good)
 	if (info->flags & MF_SPAWNCEILING)
 		z = ONCEILINGZ;
@@ -2862,6 +2864,8 @@ void P_NightmareRespawn (AActor *mobj)
 	mo->reactiontime = 18;
 	mo->CopyFriendliness (mobj, false);
 	mo->Translation = mobj->Translation;
+
+	mo->skillrespawncount = mobj->skillrespawncount;
 
 	// [BC] If we're the server, tell clients to spawn the thing.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -3161,12 +3165,12 @@ bool AActor::IsOkayToAttack (AActor *link)
 void AActor::SetShade (DWORD rgb)
 {
 	PalEntry *entry = (PalEntry *)&rgb;
-	alphacolor = rgb | (ColorMatcher.Pick (entry->r, entry->g, entry->b) << 24);
+	fillcolor = rgb | (ColorMatcher.Pick (entry->r, entry->g, entry->b) << 24);
 }
 
 void AActor::SetShade (int r, int g, int b)
 {
-	alphacolor = MAKEARGB(ColorMatcher.Pick (r, g, b), r, g, b);
+	fillcolor = MAKEARGB(ColorMatcher.Pick (r, g, b), r, g, b);
 }
 
 //
@@ -3321,6 +3325,7 @@ void AActor::Tick ()
 		else
 		{
 			// [RH] Fade a stealth monster in and out of visibility
+		RenderStyle.Flags &= ~STYLEF_Alpha1;
 			if (visdir > 0)
 			{
 				alpha += 2*FRACUNIT/TICRATE;
@@ -3491,6 +3496,7 @@ void AActor::Tick ()
 		static secplane_t copyplane;
 
 		// Check 3D floors as well
+		if (floorsector->e)	// apparently this can be called when the data is already gone-
 		for(unsigned int i=0;i<floorsector->e->ffloors.Size();i++)
 		{
 			F3DFloor * rover= floorsector->e->ffloors[i];
@@ -3677,6 +3683,9 @@ void AActor::Tick ()
 		if (pr_nightmarerespawn() > 4)
 			return;
 
+		if (G_SkillProperty (SKILLP_RespawnLimit) && (this)->skillrespawncount >= G_SkillProperty (SKILLP_RespawnLimit))
+			return;
+
 		P_NightmareRespawn (this);
 	}
 }
@@ -3744,7 +3753,7 @@ bool AActor::UpdateWaterLevel (fixed_t oldz, bool dosplash)
 			else
 			{
 			// Check 3D floors as well!
-			for(int i=0;i<Sector->e->ffloors.Size();i++)
+			for(unsigned int i=0;i<Sector->e->ffloors.Size();i++)
 			{
 				F3DFloor*  rover=Sector->e->ffloors[i];
 
@@ -4419,9 +4428,9 @@ void P_SpawnPlayer (mapthing2_t *mthing, bool bClientUpdate, player_t *p, bool t
 	}
 	else
 	{
-            spawn_x = mthing->x << FRACBITS;
-            spawn_y = mthing->y << FRACBITS;
-            spawn_angle = ANG45 * (mthing->angle/45);
+		spawn_x = mthing->x << FRACBITS;
+		spawn_y = mthing->y << FRACBITS;
+		spawn_angle = ANG45 * (mthing->angle/45);
 	}
 
 	mobj = static_cast<APlayerPawn *>
@@ -4682,12 +4691,6 @@ void P_SpawnMapThing (mapthing2_t *mthing, int position)
 	int mask;
 	AActor *mobj;
 	fixed_t x, y, z;
-	static unsigned int classFlags[] =
-	{
-		MTF_FIGHTER,
-		MTF_CLERIC,
-		MTF_MAGE,
-	};
 
 	if (mthing->type == 0 || mthing->type == -1)
 		return;
@@ -5079,7 +5082,7 @@ void P_SpawnMapThing (mapthing2_t *mthing, int position)
 //
 
 // [BC] Added bTellClientToSpawn.
-AActor *P_SpawnPuff (const PClass *pufftype, fixed_t x, fixed_t y, fixed_t z, angle_t dir, int updown, bool hitthing, bool bTellClientToSpawn)
+AActor *P_SpawnPuff (const PClass *pufftype, fixed_t x, fixed_t y, fixed_t z, angle_t dir, int updown, bool hitthing, bool temporary, bool bTellClientToSpawn)
 {
 	AActor *puff;
 	// [BC]
@@ -5138,15 +5141,18 @@ AActor *P_SpawnPuff (const PClass *pufftype, fixed_t x, fixed_t y, fixed_t z, an
 			SERVERCOMMANDS_SpawnThingNoNetID( puff );
 	}
 
-	if (cl_pufftype && updown != 3 && (puff->flags4 & MF4_ALLOWPARTICLES))
-	{
+	if (cl_pufftype && updown != 3 && !temporary && (puff->flags4 & MF4_ALLOWPARTICLES))
+
+{
 		P_DrawSplash2 (32, x, y, z, dir, updown, 1);
 		puff->renderflags |= RF_INVISIBLE;
 	}
 
-	if (hitthing && puff->SeeSound)
-	{ // Hit thing sound
-		S_SoundID (puff, CHAN_BODY, puff->SeeSound, 1, ATTN_NORM);
+	if (!temporary)
+	{
+		if (hitthing && puff->SeeSound)
+		{ // Hit thing sound
+			S_SoundID (puff, CHAN_BODY, puff->SeeSound, 1, ATTN_NORM);
 
 		// [BC] If we're the server, play this sound.
 		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
@@ -5154,20 +5160,22 @@ AActor *P_SpawnPuff (const PClass *pufftype, fixed_t x, fixed_t y, fixed_t z, an
 		{
 			SERVERCOMMANDS_SoundActor( puff, CHAN_BODY, S_GetName( puff->SeeSound ), 1, ATTN_NORM );
 		}
-	}
-	else if (puff->AttackSound)
-	{
-		S_SoundID (puff, CHAN_BODY, puff->AttackSound, 1, ATTN_NORM);
-
-		// [BC] If we're the server, play this sound.
-		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
-			( bTellClientToSpawn ))
-		{
-			SERVERCOMMANDS_SoundActor( puff, CHAN_BODY, S_GetName( puff->AttackSound ), 1, ATTN_NORM );
 		}
+		else if (puff->AttackSound)
+		{
+			S_SoundID (puff, CHAN_BODY, puff->AttackSound, 1, ATTN_NORM);
+
+			// [BC] If we're the server, play this sound.
+			if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
+				( bTellClientToSpawn ))
+			{
+				SERVERCOMMANDS_SoundActor( puff, CHAN_BODY, S_GetName( puff->AttackSound ), 1, ATTN_NORM );
+			}
+		}
+
+
 	}
 
-	PuffSpawned = puff;
 	return puff;
 }
 
@@ -5405,7 +5413,7 @@ bool P_HitWater (AActor * thing, sector_t * sec, fixed_t z)
 	// don't splash above the object
 	else if (z>thing->z+(thing->height>>1)) return false;
 
-	for(int i=0;i<sec->e->ffloors.Size();i++)
+	for(unsigned int i=0;i<sec->e->ffloors.Size();i++)
 	{		
 		F3DFloor * rover = sec->e->ffloors[i];
 		if (!(rover->flags & FF_EXISTS)) continue;
@@ -5537,7 +5545,7 @@ bool P_HitFloor (AActor *thing)
 		}
 
 		// Check 3D floors
-		for(int i=0;i<m->m_sector->e->ffloors.Size();i++)
+		for(unsigned int i=0;i<m->m_sector->e->ffloors.Size();i++)
 		{		
 			F3DFloor * rover = m->m_sector->e->ffloors[i];
 			if (!(rover->flags & FF_EXISTS)) continue;
@@ -5622,7 +5630,7 @@ bool P_CheckMissileSpawn (AActor* th)
 						th->target->player->ulConsecutiveHits = 0;
 				}
 
-				P_ExplodeMissile (th, NULL, NULL);
+				P_ExplodeMissile (th, NULL, BlockingMobj);
 			}
 			return false;
 		}

@@ -144,7 +144,7 @@ fixed_t			FocalLengthY;
 float			FocalLengthXfloat;
 int 			viewangleoffset;
 int 			validcount = 1; 	// increment every time a check is made
-lighttable_t	*basecolormap;		// [RH] colormap currently drawing with
+FDynamicColormap*basecolormap;		// [RH] colormap currently drawing with
 int				fixedlightlev;
 lighttable_t	*fixedcolormap;
 float			WallTMapScale;
@@ -791,6 +791,7 @@ void R_Init ()
 	atterm (R_Shutdown);
 
 	R_InitData ();
+	gl_ParseDefs();
 	R_InitPointToAngle ();
 	R_InitTables ();
 	// viewwidth / viewheight are set by the defaults
@@ -1139,7 +1140,7 @@ void R_SetupFrame (AActor *actor)
 	// [BB] consoleplayer should be able to toggle the chase cam.
 	if (player != NULL && gamestate != GS_TITLELEVEL &&
 		((/*player->*/players[consoleplayer].cheats & CF_CHASECAM) || (r_deathcamera && camera->health <= 0)) &&
-		(camera->RenderStyle != STYLE_None) &&
+		(camera->RenderStyle.BlendOp != STYLEOP_None) &&
 		!(camera->renderflags & RF_INVISIBLE) &&
 		camera->sprite != 0)	// Sprite 0 is always TNT1
 	{

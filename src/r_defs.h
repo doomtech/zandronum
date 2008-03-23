@@ -781,6 +781,7 @@ public:
 	int CopyTrueColorTranslated(BYTE *buffer, int buf_pitch, int buf_height, int x, int y, FRemapTable *remap);
 	virtual bool UseBasePalette();
 	virtual int GetSourceLump() { return -1; }
+
 	virtual void Unload () = 0;
 
 	// Returns the native pixel format for this image
@@ -798,11 +799,11 @@ public:
 	int GetWidth () { return Width; }
 	int GetHeight () { return Height; }
 
-	int GetScaledWidth () { return DivScale16(Width, xScale); }
-	int GetScaledHeight () { return DivScale16(Height, yScale); }
+	int GetScaledWidth () { int foo = (Width << 17) / xScale; return (foo >> 1) + (foo & 1); }
+	int GetScaledHeight () { int foo = (Height << 17) / yScale; return (foo >> 1) + (foo & 1); }
 
-	int GetScaledLeftOffset () { return DivScale16(LeftOffset, xScale); }
-	int GetScaledTopOffset () { return DivScale16(TopOffset, yScale); }
+	int GetScaledLeftOffset () { int foo = (LeftOffset << 17) / xScale; return (foo >> 1) + (foo & 1); }
+	int GetScaledTopOffset () { int foo = (TopOffset << 17) / yScale; return (foo >> 1) + (foo & 1); }
 
 	virtual void SetFrontSkyLayer();
 
@@ -851,7 +852,7 @@ protected:
 	static void FlipSquareBlock (BYTE *block, int x, int y);
 	static void FlipSquareBlockRemap (BYTE *block, int x, int y, const BYTE *remap);
 	static void FlipNonSquareBlock (BYTE *blockto, const BYTE *blockfrom, int x, int y, int srcpitch);
-	static void FlipNonSquareBlockRemap (BYTE *blockto, const BYTE *blockfrom, int x, int y, const BYTE *remap);
+	static void FlipNonSquareBlockRemap (BYTE *blockto, const BYTE *blockfrom, int x, int y, int srcpitch, const BYTE *remap);
 
 	friend class D3DTex;
 
@@ -901,6 +902,7 @@ public:
 		int texnum = GetTexture (texname, FTexture::TEX_MiscPatch);
 		return Textures[texnum].Texture;
 	}
+	FTexture *FindTexture(const char *texname, int usetype = FTexture::TEX_MiscPatch, BITFIELD flags = TEXMAN_TryAny);
 
 	// Get texture with translation
 	FTexture *operator() (int texnum)
@@ -941,15 +943,19 @@ public:
 
 	void AddTexturesLump (const void *lumpdata, int lumpsize, int patcheslump, int firstdup=0, bool texture1=false);
 	void AddTexturesLumps (int lump1, int lump2, int patcheslump);
-	void AddGroup(const char * startlump, const char * endlump, int ns, int usetype);
+	void AddGroup(int wadnum, const char * startlump, const char * endlump, int ns, int usetype);
 	void AddPatches (int lumpnum);
 	void AddTiles (void *tileFile);
-	void AddHiresTextures ();
-	void LoadHiresTex();
+	void AddHiresTextures (int wadnum);
+	void LoadHiresTex(int wadnum);
 
 	int CreateTexture (int lumpnum, int usetype=FTexture::TEX_Any);	// Also calls AddTexture
 	int AddTexture (FTexture *texture);
 	int AddPatch (const char *patchname, int namespc=0, bool tryany = false);
+
+	void LoadTextureX(int wadnum);
+	void AddTexturesForWad(int wadnum);
+	void Init();
 
 	// Replaces one texture with another. The new texture will be assigned
 	// the same name, slot, and use type as the texture it is replacing.
@@ -976,8 +982,6 @@ private:
 	TArray<WORD> Translation;
 	WORD HashFirst[HASH_SIZE];
 	int DefaultTexture;
-
-	friend void R_InitData ();
 };
 
 extern FTextureManager TexMan;
@@ -997,7 +1001,7 @@ struct vissprite_t
 	fixed_t			xiscale;		// negative if flipped
 	fixed_t			idepth;			// 1/z
 	fixed_t			texturemid;
-	DWORD			AlphaColor;
+	DWORD			FillColor;
 	lighttable_t	*colormap;
 	sector_t		*heightsec;		// killough 3/27/98: height sector for underwater/fake ceiling
 	sector_t		*sector;		// [RH] sector this sprite is in
@@ -1006,7 +1010,7 @@ struct vissprite_t
 	FTexture		*pic;
 	short 			renderflags;
 	DWORD			Translation;	// [RH] for color translation
-	BYTE			RenderStyle;
+	FRenderStyle	RenderStyle;
 	BYTE			FakeFlatStat;	// [RH] which side of fake/floor ceiling sprite is on
 	BYTE			bSplitSprite;	// [RH] Sprite was split by a drawseg
 };

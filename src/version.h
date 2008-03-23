@@ -47,7 +47,7 @@
 #define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING
 
 // [BC] What version of ZDoom is this based off of?
-#define	ZDOOMVERSIONSTR		"2.1.8-709"
+#define	ZDOOMVERSIONSTR		"2.2.0-748"
 
 /** Release code stuff */
 
@@ -93,7 +93,7 @@
 // SAVESIG should match SAVEVER.
 
 // MINSAVEVER is the minimum level snapshot version that can be loaded.
-#define MINSAVEVER 667
+#define MINSAVEVER 714
 
 #if SVN_REVISION_NUMBER == 0
 // This can happen if svnrevision is not updated properly (e.g. compiling while offline)
@@ -112,6 +112,7 @@
 #define GAMENAME "Skulltag"
 #define GAMENAMELOWERCASE "skulltag"
 #define FORUM_URL "http://www.skulltag.com/forum/"
+#define BUGS_FORUM_URL	"http://www.skulltag.com/forum/"
 
 #ifdef unix
 #define HOME_DIR "~/." GAMENAMELOWERCASE

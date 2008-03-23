@@ -253,14 +253,14 @@ void GLFlat::Draw(int pass)
 	{
 	case GLPASS_BASE:
 		gl_SetColor(lightlevel, extralight*gl_weaponlight, &Colormap,1.0f);
-		if (!foggy) gl_SetFog(lightlevel, Colormap.FadeColor, STYLE_Normal, Colormap.LightColor.a);
+		if (!foggy) gl_SetFog(lightlevel, Colormap.FadeColor, false, Colormap.LightColor.a);
 		DrawSubsectors(false);
 		break;
 
 	case GLPASS_BASE_MASKED:
 	case GLPASS_PLAIN:			// Single-pass rendering
 		gl_SetColor(lightlevel, extralight*gl_weaponlight, &Colormap,1.0f);
-		if (!foggy || pass == GLPASS_PLAIN) gl_SetFog(lightlevel, Colormap.FadeColor, STYLE_Normal, Colormap.LightColor.a);
+		if (!foggy || pass == GLPASS_PLAIN) gl_SetFog(lightlevel, Colormap.FadeColor, false, Colormap.LightColor.a);
 		// fall through
 	case GLPASS_TEXTURE:
 		gltexture->Bind(Colormap.LightColor.a);
@@ -270,15 +270,15 @@ void GLFlat::Draw(int pass)
 		break;
 
 	case GLPASS_FOG:
-		gl_SetFog(lightlevel, Colormap.FadeColor, STYLE_Normal, Colormap.LightColor.a);
+		gl_SetFog(lightlevel, Colormap.FadeColor, false, Colormap.LightColor.a);
 		DrawSubsectors(false);
 		break;
 
 	case GLPASS_LIGHT:
 	case GLPASS_LIGHT_ADDITIVE:
 
-		if (!foggy)	gl_SetFog((255+lightlevel)>>1, Colormap.FadeColor, STYLE_Normal, Colormap.LightColor.a);
-		else gl_SetFog(lightlevel, Colormap.FadeColor, STYLE_Add, Colormap.LightColor.a);	
+		if (!foggy)	gl_SetFog((255+lightlevel)>>1, Colormap.FadeColor, false, Colormap.LightColor.a);
+		else gl_SetFog(lightlevel, Colormap.FadeColor, true, Colormap.LightColor.a);	
 
 		if (sub)
 		{
@@ -316,7 +316,7 @@ void GLFlat::Draw(int pass)
 	case GLPASS_TRANSLUCENT:
 		if (renderstyle==STYLE_Add) gl.BlendFunc(GL_SRC_ALPHA, GL_ONE);
 		gl_SetColor(lightlevel, extralight*gl_weaponlight, &Colormap, alpha);
-		gl_SetFog(lightlevel, Colormap.FadeColor, STYLE_Normal, Colormap.LightColor.a);
+		gl_SetFog(lightlevel, Colormap.FadeColor, false, Colormap.LightColor.a);
 		gl.AlphaFunc(GL_GEQUAL,0.5f*(alpha));
 		if (!gltexture)	gl_EnableTexture(false);
 
@@ -355,10 +355,10 @@ inline void GLFlat::PutFlat()
 	}
 	if ((gl.flags&RFL_NOSTENCIL) && !(renderflags&SSRF_RENDER3DPLANES))
 	{
-		renderstyle=STYLE_Normal;
+		renderstyle=STYLE_Translucent;
 		alpha=1.f;
 	}
-	if (renderstyle!=STYLE_Normal)
+	if (renderstyle!=STYLE_Translucent || alpha < 1.f - FLT_EPSILON)
 	{
 		int list = (renderflags&SSRF_RENDER3DPLANES) ? GLDL_TRANSLUCENT : GLDL_TRANSLUCENTBORDER;
 		gl_drawinfo->drawlists[list].AddFlat (this);
@@ -503,7 +503,7 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 
 				Colormap.CopyLightColor(*light->p_extra_colormap);
 			}
-			renderstyle = (alpha<1.0f-FLT_EPSILON) ? STYLE_Translucent : STYLE_Normal;
+			renderstyle = STYLE_Translucent;
 			if (alpha!=0.0f) Process(frontsector, false, false);
 		}
 	}
@@ -541,7 +541,7 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 				if(!(sector->CeilingFlags&SECF_ABSLIGHTING)) lightlevel = *light->p_lightlevel;
 				Colormap.CopyLightColor(*light->p_extra_colormap);
 			}
-			renderstyle = (alpha<1.0f-FLT_EPSILON)? STYLE_Translucent : STYLE_Normal;
+			renderstyle = STYLE_Translucent;
 			if (alpha!=0.0f) Process(frontsector, true, false);
 		}
 	}
@@ -599,8 +599,7 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 								Colormap.FadeColor=frontsector->ColorMap->Fade;
 
 								alpha=rover->alpha/255.0f;
-								renderstyle = rover->flags&FF_ADDITIVETRANS? STYLE_Add : 
-											  rover->alpha<255? STYLE_Translucent : STYLE_Normal;
+								renderstyle = rover->flags&FF_ADDITIVETRANS? STYLE_Add : STYLE_Translucent;
 								Process(rover->top.model, rover->top.isceiling, !!(rover->flags&FF_FOG));
 							}
 							lastceilingheight=ff_top;
@@ -622,8 +621,7 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 								Colormap.FadeColor=frontsector->ColorMap->Fade;
 
 								alpha=rover->alpha/255.0f;
-								renderstyle = rover->flags&FF_ADDITIVETRANS? STYLE_Add : 
-											  rover->alpha<255? STYLE_Translucent : STYLE_Normal;
+								renderstyle = rover->flags&FF_ADDITIVETRANS? STYLE_Add : STYLE_Translucent;
 								Process(rover->bottom.model, rover->bottom.isceiling, !!(rover->flags&FF_FOG));
 							}
 							lastceilingheight=ff_bottom;
@@ -665,8 +663,7 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 								}
 
 								alpha=rover->alpha/255.0f;
-								renderstyle = rover->flags&FF_ADDITIVETRANS? STYLE_Add : 
-											  rover->alpha<255? STYLE_Translucent : STYLE_Normal;
+								renderstyle = rover->flags&FF_ADDITIVETRANS? STYLE_Add : STYLE_Translucent;
 								Process(rover->bottom.model, rover->bottom.isceiling, !!(rover->flags&FF_FOG));
 							}
 							lastfloorheight=ff_bottom;
@@ -688,8 +685,7 @@ void GLFlat::ProcessSector(sector_t * frontsector, subsector_t * sub)
 								Colormap.FadeColor=frontsector->ColorMap->Fade;
 
 								alpha=rover->alpha/255.0f;
-								renderstyle = rover->flags&FF_ADDITIVETRANS? STYLE_Add : 
-											  rover->alpha<255? STYLE_Translucent : STYLE_Normal;
+								renderstyle = rover->flags&FF_ADDITIVETRANS? STYLE_Add : STYLE_Translucent;
 								Process(rover->top.model, rover->top.isceiling, !!(rover->flags&FF_FOG));
 							}
 							lastfloorheight=ff_top;

@@ -13,9 +13,9 @@
 #include "version.h"
 #include "c_console.h"
 #include "hardware.h"
+#include "v_video.h"
 //#include "gl_defs.h"
 
-bool V_DoModeSetup (int width, int height, int bits);
 
 CUSTOM_CVAR(Int, gl_vid_multisample, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL )
 {
@@ -26,7 +26,7 @@ RenderContext gl;
 
 
 CVAR(Bool, gl_vid_allowsoftware, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
-CVAR(Bool, gl_vid_compatibility, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
+EXTERN_CVAR(Bool, gl_vid_compatibility)
 CVAR(Int, gl_vid_refreshHz, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
 
 Win32GLVideo::Win32GLVideo(int parm) : m_Modes(NULL), m_IsFullscreen(false)

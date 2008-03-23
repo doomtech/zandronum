@@ -257,11 +257,9 @@ void A_FHammerAttack (AActor *actor)
 		}
 	}
 	// didn't find any targets in meleerange, so set to throw out a hammer
-	PuffSpawned = NULL;
 	angle = pmo->angle;
 	slope = P_AimLineAttack (pmo, angle, HAMMER_RANGE);
-	P_LineAttack (pmo, angle, HAMMER_RANGE, slope, damage, NAME_Melee, RUNTIME_CLASS(AHammerPuff));
-	if (PuffSpawned)
+	if (P_LineAttack (pmo, angle, HAMMER_RANGE, slope, damage, NAME_Melee, RUNTIME_CLASS(AHammerPuff)) != NULL)
 	{
 		pmo->special1 = false;
 	}
@@ -273,13 +271,15 @@ void A_FHammerAttack (AActor *actor)
 	// [BC] Apply spread.
 	if ( player->cheats & CF_SPREAD )
 	{
-		P_LineAttack( pmo, angle + ( ANGLE_45 / 3 ), HAMMER_RANGE, slope, damage, NAME_Melee, RUNTIME_CLASS( AHammerPuff ));
-		if ( PuffSpawned )
+		if (P_LineAttack( pmo, angle + ( ANGLE_45 / 3 ), HAMMER_RANGE, slope, damage, NAME_Melee, RUNTIME_CLASS( AHammerPuff )) != NULL)
 			pmo->special1 = false;
+		else
+			pmo->special1 = true;
 
-		P_LineAttack( pmo, angle - ( ANGLE_45 / 3 ), HAMMER_RANGE, slope, damage, NAME_Melee, RUNTIME_CLASS( AHammerPuff ));
-		if ( PuffSpawned )
+		if (P_LineAttack( pmo, angle - ( ANGLE_45 / 3 ), HAMMER_RANGE, slope, damage, NAME_Melee, RUNTIME_CLASS( AHammerPuff )) != NULL)
 			pmo->special1 = false;
+		else
+			pmo->special1 = true;
 	}
 
 hammerdone:

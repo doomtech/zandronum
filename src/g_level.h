@@ -114,7 +114,11 @@
 #define LEVEL_INFINITE_FLIGHT		UCONST64(0x2000000000000)
 
 #define LEVEL_ALLOWRESPAWN			UCONST64(0x4000000000000)
-#define	LEVEL_NOBOTNODES			UCONST64(0x8000000000000)	// [BC] Level does not use bot nodes.
+
+#define LEVEL_FORCETEAMPLAYON		UCONST64(0x8000000000000)
+#define LEVEL_FORCETEAMPLAYOFF		UCONST64(0x10000000000000)
+
+#define	LEVEL_NOBOTNODES			UCONST64(0x20000000000000)	// [BC] Level does not use bot nodes.
 
 
 
@@ -249,6 +253,8 @@ struct level_locals_s
 	SBYTE		WallVertLight;			// Light diffs for vert/horiz walls
 	SBYTE		WallHorizLight;
 
+	bool		FromSnapshot;			// The current map was restored from a snapshot
+
 	const char	*f1;
 
 	float		teamdamage;
@@ -338,9 +344,8 @@ void G_DeferedInitNew (const char *mapname, int skill = -1);
 
 void G_ExitLevel (int position, bool keepFacing);
 void G_SecretExitLevel (int position);
-
-// [BC]
-const char *G_GetNextLevelName( void );
+const char *G_GetExitMap();
+const char *G_GetSecretExitMap();
 
 void G_ChangeLevel(const char * levelname, int position, bool keepFacing, int nextSkill=-1, 
 				   bool nointermission=false, bool resetinventory=false, bool nomonsters=false);
@@ -385,6 +390,7 @@ enum ESkillProperty
 	SKILLP_DamageFactor,
 	SKILLP_FastMonsters,
 	SKILLP_Respawn,
+	SKILLP_RespawnLimit,
 	SKILLP_Aggressiveness,
 	SKILLP_DisableCheats,
 	SKILLP_AutoUseHealth,
@@ -406,6 +412,7 @@ struct FSkillInfo
 	bool AutoUseHealth;
 	bool EasyBossBrain;
 	int RespawnCounter;
+	int RespawnLimit;
 	fixed_t Aggressiveness;
 	int SpawnFilter;
 	int ACSReturn;

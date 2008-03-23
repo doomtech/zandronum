@@ -1,8 +1,20 @@
-/* $Id: translate.cc,v 1.5 2005/12/28 18:33:37 helly Exp $ */
+/* $Id: translate.cc 713 2007-04-29 15:33:47Z helly $ */
 #include "globals.h"
 
 namespace re2c
 {
+
+static const char * sHex = "0123456789ABCDEF";
+
+char octCh(uint c)
+{
+	return '0' + c % 8;
+}
+
+char hexCh(uint c)
+{
+	return sHex[c & 0x0F];
+}
 
 uint asc2asc[256] =
     {

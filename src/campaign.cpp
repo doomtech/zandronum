@@ -68,7 +68,7 @@ static	bool				g_bInCampaign;
 //*****************************************************************************
 //	PROTOTYPES
 
-static	void					campaign_ParseCampaignInfoLump( void );
+static	void					campaign_ParseCampaignInfoLump( FScanner &sc );
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -134,12 +134,10 @@ void CAMPAIGN_ParseCampaignInfo( void )
 	while (( lCurLump = Wads.FindLump( "CMPGNINF", (int *)&lLastLump )) != -1 )
 	{
 		// Make pszBotInfo point to the raw data (which should be a text file) in the BOTINFO lump.
-		SC_OpenLumpNum( lCurLump, "CMPGNINF" );
+		FScanner sc( lCurLump, "CMPGNINF" );
 
 		// Parse the lump.
-		campaign_ParseCampaignInfoLump( );
-
-		SC_Close( );
+		campaign_ParseCampaignInfoLump( sc );
 	}
 }
 
@@ -248,7 +246,7 @@ bool CAMPAIGN_DidPlayerBeatMap( void )
 //*****************************************************************************
 //*****************************************************************************
 //
-static void campaign_ParseCampaignInfoLump( void )
+static void campaign_ParseCampaignInfoLump( FScanner &sc )
 {
 	char			szKey[32];
 	char			szValue[32];
@@ -261,7 +259,7 @@ static void campaign_ParseCampaignInfoLump( void )
 
 	// Begin parsing that text. COM_Parse will create a token (com_token), and
 	// pszBotInfo will skip past the token.
-	while ( SC_GetString( ))
+	while ( sc.GetString( ))
 	{
 		if ( pInfo == NULL )
 		{
@@ -297,27 +295,27 @@ static void campaign_ParseCampaignInfoLump( void )
 			pInfo->BotSpawn[ulIdx].szBotTeam[0] = 0;
 		}
 
-		while ( sc_String[0] != '{' )
-			SC_GetString( );
+		while ( sc.String[0] != '{' )
+			sc.GetString( );
 
 		// We've encountered a starting bracket. Now continue to parse until we hit an end bracket.
-		while ( sc_String[0] != '}' )
+		while ( sc.String[0] != '}' )
 		{
 			// The current token should be our key. (key = value) If it's an end bracket, break.
-			SC_GetString( );
-			strncpy( szKey, sc_String, 31 );
+			sc.GetString( );
+			strncpy( szKey, sc.String, 31 );
 			szKey[31] = 0;
-			if ( sc_String[0] == '}' )
+			if ( sc.String[0] == '}' )
 				break;
 
 			// The following key must be an = sign. If not, the user made an error!
-			SC_GetString( );
-			if ( stricmp( sc_String, "=" ) != 0 )
+			sc.GetString( );
+			if ( stricmp( sc.String, "=" ) != 0 )
 				I_Error( "CAMPAIGN_ParseCampaignInfo: Missing \"=\" in CMPGNINF lump for field \"%s\"!\n", szKey );
 
 			// The last token should be our value.
-			SC_GetString( );
-			strncpy( szValue, sc_String, 31 );
+			sc.GetString( );
+			strncpy( szValue, sc.String, 31 );
 			szValue[31] = 0;
 
 			// Now try to match our key with a valid bot info field.

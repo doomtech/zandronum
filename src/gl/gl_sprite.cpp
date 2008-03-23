@@ -71,15 +71,15 @@ int glpart=-2;
 //==========================================================================
 void GLSprite::Draw(int pass)
 {
-	bool alphatestdisabled = false;
-	
+	bool additivefog = false;
+
 	if (pass!=GLPASS_PLAIN && pass!=GLPASS_TRANSLUCENT) return;
 
 	if (pass==GLPASS_TRANSLUCENT)
 	{
 		// The translucent pass requires special setup for the various modes.
 
-		if (!gl_sprite_blend && RenderStyle != STYLE_Normal && actor && !(actor->momx|actor->momy))
+		if (!gl_sprite_blend && hw_styleflags != STYLEHW_Solid && actor && !(actor->momx|actor->momy))
 		{
 			// Draw translucent non-moving sprites with a slightly altered z-offset to avoid z-fighting 
 			// when in the same position as a regular sprite.
@@ -89,16 +89,29 @@ void GLSprite::Draw(int pass)
 			gl.PolygonOffset(-1.0f, -64.0f);
 		}
 
-		if (!gl_isBlack(Colormap.FadeColor)) gl_EnableBrightmap(false);
-
-		switch(RenderStyle)
+		// Brightmaps will only be used when doing regular drawing ops and having no fog
+		if (!gl_isBlack(Colormap.FadeColor) || RenderStyle.BlendOp != STYLEOP_Add)
 		{
-		case STYLE_Fuzzy:
+			gl_EnableBrightmap(false);
+		}
+
+		gl_SetRenderStyle(RenderStyle, false, 
+			// The rest of the needed checks are done inside gl_SetRenderStyle
+			trans > 1.f - FLT_EPSILON && gl_usecolorblending && actor && (actor->renderflags & RF_FULLBRIGHT));
+
+		if (hw_styleflags == STYLEHW_NoAlphaTest)
+		{
+			gl.Disable(GL_ALPHA_TEST);
+		}
+		else
+		{
+			gl.AlphaFunc(GL_GEQUAL,trans/2.f);
+		}
+
+		if (RenderStyle.BlendOp == STYLEOP_Fuzz)
 		{
 			float fuzzalpha=0.44f;
 			float minalpha=0.1f;
-			gl.BlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
-			gl_EnableBrightmap(false);
 
 			// fog + fuzz don't work well without some fiddling with the alpha value!
 			if (!gl_isBlack(Colormap.FadeColor))
@@ -118,55 +131,49 @@ void GLSprite::Draw(int pass)
 
 			gl.AlphaFunc(GL_GEQUAL,minalpha);
 			gl.Color4f(0.2f,0.2f,0.2f,fuzzalpha);
-			break;
+			additivefog = true;
 		}
-
-		case STYLE_Add:
-			if (trans<1.0-FLT_EPSILON || !gl_usecolorblending || !(actor->renderflags & RF_FULLBRIGHT))
-			{
-				gl.BlendFunc(GL_SRC_ALPHA,GL_ONE);
-				gl.AlphaFunc(GL_GEQUAL,0.5f*trans);
-				break;
-			}
-			gl.BlendFunc(GL_SRC_COLOR, GL_ONE);
-			break;
-
-		case STYLE_Normal:
-			trans=1.0f;
-
-		case STYLE_Translucent:
-			gl.AlphaFunc(GL_GEQUAL,0.5f*trans);
-			break;
-		}
-	}
-	if (pass == GLPASS_TRANSLUCENT && ((gltexture && gltexture->GetTransparent()) || RenderStyle == STYLE_Transparent))
-	{
-		gl.Disable(GL_ALPHA_TEST);
-		alphatestdisabled = true;
-	}
-
-	if (RenderStyle!=STYLE_Fuzzy)
-	{
-		bool res=false;
-		if (gl_lights && !gl_fixedcolormap)
+		else if (RenderStyle.BlendOp == STYLEOP_Add && RenderStyle.DestAlpha == STYLEALPHA_One)
 		{
-			if (actor && gl_light_sprites && !(actor->renderflags & RF_FULLBRIGHT))
-			{
-				gl_SetSpriteLight(actor, lightlevel, extralight*gl_weaponlight, &Colormap, trans, ThingColor);
-				res=true;
-			}
-			else if (particle && gl_light_particles)
+			additivefog = true;
+		}
+	}
+	if (RenderStyle.BlendOp!=STYLEOP_Fuzz)
+	{
+		if (actor)
+		{
+			gl_SetSpriteLighting(RenderStyle, actor, lightlevel, extralight*gl_weaponlight, &Colormap, ThingColor, 
+								 trans, !!(actor->renderflags & RF_FULLBRIGHT), false);
+		}
+		else if (particle)
+		{
+			if (gl_light_particles)
 			{
 				gl_SetSpriteLight(particle, lightlevel, extralight*gl_weaponlight, &Colormap, trans, ThingColor);
-				res=true;
+			}
+			else 
+			{
+				gl_SetColor(lightlevel, extralight*gl_weaponlight, &Colormap, trans, ThingColor);
 			}
 		}
-		if (!res) gl_SetColor(lightlevel, extralight*gl_weaponlight, &Colormap, trans, ThingColor);
+		else return;
 	}
 
 	if (gl_isBlack(Colormap.FadeColor)) foglevel=lightlevel;
 
-	gl_SetFog(foglevel,  Colormap.FadeColor, RenderStyle, Colormap.LightColor.a);
+	if (RenderStyle.Flags & STYLEF_FadeToBlack) 
+	{
+		Colormap.FadeColor=0;
+		additivefog = true;
+	}
+
+	if (RenderStyle.Flags & STYLEF_InvertOverlay) 
+	{
+		Colormap.FadeColor = Colormap.FadeColor.InverseColor();
+		additivefog=false;
+	}
+
+	gl_SetFog(foglevel,  Colormap.FadeColor, additivefog, Colormap.LightColor.a);
 
 	if (gltexture) gltexture->BindPatch(Colormap.LightColor.a,translation);
 	else if (!modelframe) gl_EnableTexture(false);
@@ -176,7 +183,7 @@ void GLSprite::Draw(int pass)
 		// [BB] Billboard stuff
 		const bool drawWithXYBillboard = ( !(actor && actor->renderflags & RF_FORCEYBILLBOARD)
 		                                   && players[consoleplayer].camera
-		                                   && (gl_billboard_mode == 2 || (actor && actor->renderflags & RF_FORCEXYBILLBOARD )) );
+		                                   && (gl_billboard_mode == 1 || (actor && actor->renderflags & RF_FORCEXYBILLBOARD )) );
 		if ( drawWithXYBillboard )
 		{
 			// Save the current view matrix.
@@ -225,19 +232,21 @@ void GLSprite::Draw(int pass)
 	if (pass==GLPASS_TRANSLUCENT)
 	{
 		gl_EnableBrightmap(true);
+		gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		gl.BlendEquation(GL_FUNC_ADD);
+		gl_SetTextureMode(TM_MODULATE);
 
-		// For translucent objects restore the default blending mode here!
-		if (RenderStyle == STYLE_Add || RenderStyle == STYLE_Fuzzy)
-		{
-			gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		}
 		// [BB] Restore the alpha test after drawing a smooth particle.
-		if (alphatestdisabled)
+		if (hw_styleflags == STYLEHW_NoAlphaTest)
 		{
 			gl.Enable(GL_ALPHA_TEST);
 		}
+		else
+		{
+			gl.AlphaFunc(GL_GEQUAL,0.5f);
+		}
 
-		if (!gl_sprite_blend && RenderStyle != STYLE_Normal && actor && !(actor->momx|actor->momy))
+		if (!gl_sprite_blend && hw_styleflags != STYLEHW_Solid && actor && !(actor->momx|actor->momy))
 		{
 			gl.Disable(GL_POLYGON_OFFSET_FILL);
 			gl.PolygonOffset(0, 0);
@@ -282,7 +291,7 @@ void GLSprite::SplitSprite(sector_t * frontsector, bool translucent)
 	GLSprite copySprite;
 	fixed_t lightbottom;
 	float maplightbottom;
-	int i;
+	unsigned int i;
 	bool put=false;
 	TArray<lightlist_t> & lightlist=frontsector->e->lightlist;
 
@@ -331,6 +340,46 @@ void GLSprite::SplitSprite(sector_t * frontsector, bool translucent)
 }
 
 
+void GLSprite::SetSpriteColor(sector_t *sector, fixed_t center_y)
+{
+	fixed_t lightbottom;
+	float maplightbottom;
+	unsigned int i;
+	TArray<lightlist_t> & lightlist=actor->Sector->e->lightlist;
+
+	for(i=0;i<lightlist.Size();i++)
+	{
+		// Particles don't go through here so we can safely assume that actor is not NULL
+		if (i<lightlist.Size()-1) lightbottom=lightlist[i+1].plane.ZatPoint(actor->x,actor->y);
+		else lightbottom=sector->floorplane.ZatPoint(actor->x,actor->y);
+
+		//maplighttop=TO_MAP(lightlist[i].height);
+		maplightbottom=TO_MAP(lightbottom);
+		if (maplightbottom<z2) maplightbottom=z2;
+
+		if (maplightbottom<center_y)
+		{
+			lightlevel=*lightlist[i].p_lightlevel;
+			Colormap.CopyLightColor(*lightlist[i].p_extra_colormap);
+
+			if (gl_nocoloredspritelighting)
+			{
+				int v = (Colormap.LightColor.r + Colormap.LightColor.g + Colormap.LightColor.b )/3;
+				Colormap.LightColor.r=
+				Colormap.LightColor.g=
+				Colormap.LightColor.b=(255+v+v)/3;
+			}
+
+			if (!gl_isWhite(ThingColor))
+			{
+				Colormap.LightColor.r=(Colormap.LightColor.r*ThingColor.r)>>8;
+				Colormap.LightColor.g=(Colormap.LightColor.g*ThingColor.g)>>8;
+				Colormap.LightColor.b=(Colormap.LightColor.b*ThingColor.b)>>8;
+			}
+			return;
+		}
+	}
+}
 
 
 //==========================================================================
@@ -346,8 +395,8 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 	if (thing==viewactor) return;
 
  	// invisible things
-	if (thing->renderflags&RF_INVISIBLE || thing->RenderStyle==STYLE_None) return; 
 	if (thing->sprite==0) return;
+	if (thing->renderflags & RF_INVISIBLE || !thing->RenderStyle.IsVisible(thing->alpha)) return; 
 
 	// [RH] Interpolate the sprite's position to make it look smooth
 	fixed_t thingx = thing->PrevX + FixedMul (r_TicFrac, thing->x - thing->PrevX);
@@ -355,11 +404,15 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 	fixed_t thingz = thing->PrevZ + FixedMul (r_TicFrac, thing->z - thing->PrevZ);
 
 	// too close to the camera. This doesn't look good if it is a sprite.
-	if (P_AproxDistance(thingx-viewx, thingy-viewy)<2*FRACUNIT) 
+	if (P_AproxDistance(thingx-viewx, thingy-viewy)<2*FRACUNIT)
 	{
-		if (!gl_FindModelFrame(RUNTIME_TYPE(thing), thing->sprite, thing->frame /*, thing->state*/))
+		// exclude vertically moving objects from this check.
+		if (!(thing->momx==0 && thing->momy==0 && thing->momz!=0))
 		{
-			return;
+			if (!gl_FindModelFrame(RUNTIME_TYPE(thing), thing->sprite, thing->frame /*, thing->state*/))
+			{
+				return;
+			}
 		}
 	}
 
@@ -573,47 +626,53 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 		extern TArray<PalEntry> BloodTranslationColors;
 
 		ThingColor = BloodTranslationColors[GetTranslationIndex(translation)];
-		gl_ModifyColor(ThingColor.r, ThingColor.g, ThingColor.b, Colormap.LightColor.a);
 		ThingColor.a=0;
 
 		translation = TRANSLATION(TRANSLATION_Standard, 8);
 	}
 	else ThingColor=0xffffff;
 
-	RenderStyle=thing->RenderStyle;
-	trans=TO_MAP(thing->alpha);
+	RenderStyle = thing->RenderStyle;
+	RenderStyle.CheckFuzz();
+	trans = TO_MAP(thing->alpha);
+	hw_styleflags = STYLEHW_Normal;
 
-
-	if (RenderStyle == STYLE_OptFuzzy)
+	if (RenderStyle.Flags & STYLEF_TransSoulsAlpha)
 	{
-		RenderStyle = STYLE_Fuzzy;	// This option is useless in OpenGL The fuzz effect looks much better here!
-	}
-	else if (RenderStyle == STYLE_SoulTrans)
-	{
-		RenderStyle = STYLE_Translucent;
 		trans = transsouls;
 	}
-	else if (RenderStyle == STYLE_Normal)
+	else if (RenderStyle.Flags & STYLEF_Alpha1)
 	{
+		trans = 1.f;
+	}
+
+	if (trans >= 1.f-FLT_EPSILON && RenderStyle.BlendOp != STYLEOP_Fuzz && (
+			(RenderStyle.SrcAlpha == STYLEALPHA_One && RenderStyle.DestAlpha == STYLEALPHA_Zero) ||
+			(RenderStyle.SrcAlpha == STYLEALPHA_Src && RenderStyle.DestAlpha == STYLEALPHA_InvSrc)
+			))
+	{
+		// This is a non-translucent sprite (i.e. STYLE_Normal or equivalent)
 		trans=1.f;
-		if (gltexture && gltexture->GetTransparent())
-		{
-			RenderStyle = STYLE_Transparent;
-		}
+		
+		hw_styleflags = STYLEHW_Solid;
+	}
+	if (gltexture && gltexture->GetTransparent())
+	{
+		hw_styleflags = STYLEHW_NoAlphaTest;
 	}
 
 	if (enhancedvision && gl_enhanced_lightamp)
 	{
-		if (RenderStyle==STYLE_Fuzzy)
+		if (RenderStyle.BlendOp == STYLEOP_Fuzz)
 		{
 			// enhanced vision makes them more visible!
 			trans=0.5f;
-			RenderStyle=STYLE_Translucent;
+			RenderStyle = STYLE_Translucent;
 		}
-		else if (thing->flags&MF_STEALTH)	
+		else if (thing->flags & MF_STEALTH)	
 		{
 			// enhanced vision overcomes stealth!
-			if (trans<0.5f) trans=0.5f;
+			if (trans < 0.5f) trans = 0.5f;
 		}
 	}
 
@@ -625,28 +684,23 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 	index = gl_spriteindex++;
 	particle=NULL;
 	
-	if (RenderStyle==STYLE_Translucent && trans>=1.0f-FLT_EPSILON) 
-	{
-		RenderStyle=STYLE_Normal;
-	}
-
 	const bool drawWithXYBillboard = ( !(actor->renderflags & RF_FORCEYBILLBOARD)
 									   && players[consoleplayer].camera
-									   && (gl_billboard_mode == 2 || actor->renderflags & RF_FORCEXYBILLBOARD ) );
+									   && (gl_billboard_mode == 1 || actor->renderflags & RF_FORCEXYBILLBOARD ) );
 
 
-	if (thing->Sector->e->lightlist.Size()==0 || gl_fixedcolormap || fullbright || (drawWithXYBillboard && !modelframe)) 
+	if (drawWithXYBillboard || modelframe)
 	{
-		PutSprite(RenderStyle!=STYLE_Normal);
+		if (!gl_fixedcolormap && !fullbright) SetSpriteColor(actor->Sector, actor->y + (actor->height>>1));
+		PutSprite(hw_styleflags != STYLEHW_Solid);
 	}
-	else if (modelframe)
+	else if (thing->Sector->e->lightlist.Size()==0 || gl_fixedcolormap || fullbright) 
 	{
-		// FIXME: Get the appropriate light color here!
-		PutSprite(RenderStyle!=STYLE_Normal);
+		PutSprite(hw_styleflags != STYLEHW_Solid);
 	}
 	else
 	{
-		SplitSprite(thing->Sector,RenderStyle!=STYLE_Normal);
+		SplitSprite(thing->Sector, hw_styleflags != STYLEHW_Solid);
 	}
 	rendered_sprites++;
 }
@@ -670,6 +724,7 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 	
 	if (particle->trans==0) return;
 	lightlevel = sector->lightlevel;
+
 
 	if (gl_fixedcolormap) 
 	{
@@ -696,9 +751,9 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 	}
 
 	trans=particle->trans/255.0f;
+	RenderStyle = STYLE_Translucent;
 
 	ThingColor = GPalette.BaseColors[particle->color];
-	gl_ModifyColor(ThingColor.r, ThingColor.g, ThingColor.b, Colormap.LightColor.a);
 	ThingColor.a=0;
 
 	modelframe=NULL;
@@ -757,16 +812,11 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 	actor=NULL;
 	this->particle=particle;
 	
-	// [BB] Smooth particles have to be rendered without the alpha test.
-	if (gl_particles_style == 2)
-		RenderStyle=STYLE_Transparent;
-	else
-	{
-		if (trans>=1.0f-FLT_EPSILON) RenderStyle=STYLE_Normal;
-		else RenderStyle=STYLE_Translucent;
-	}
+	// [BB] Translucent particles have to be rendered without the alpha test.
+	if (gl_particles_style != 2 && trans>=1.0f-FLT_EPSILON) hw_styleflags = STYLEHW_Solid;
+	else hw_styleflags = STYLEHW_NoAlphaTest;
 
-	PutSprite(RenderStyle==STYLE_Translucent || RenderStyle==STYLE_Transparent);
+	PutSprite(hw_styleflags != STYLEHW_Solid);
 	rendered_sprites++;
 }
 

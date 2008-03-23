@@ -116,28 +116,28 @@ public:
 //
 //-----------------------------------------------------------------------------
 
-void gl_ParseSkybox()
+void gl_ParseSkybox(FScanner &sc)
 {
 	int facecount=0;
 
-	SC_MustGetString();
+	sc.MustGetString();
 
 	FSkyBox * sb = new FSkyBox;
-	uppercopy(sb->Name, sc_String);
+	uppercopy(sb->Name, sc.String);
 	sb->Name[8]=0;
-	SC_MustGetStringName("{");
-	while (!SC_CheckString("}"))
+	sc.MustGetStringName("{");
+	while (!sc.CheckString("}"))
 	{
-		SC_MustGetString();
+		sc.MustGetString();
 		if (facecount<6) 
 		{
-			sb->faces[facecount] = TexMan[TexMan.GetTexture(sc_String, FTexture::TEX_Wall, FTextureManager::TEXMAN_TryAny|FTextureManager::TEXMAN_Overridable)];
+			sb->faces[facecount] = TexMan[TexMan.GetTexture(sc.String, FTexture::TEX_Wall, FTextureManager::TEXMAN_TryAny|FTextureManager::TEXMAN_Overridable)];
 		}
 		facecount++;
 	}
 	if (facecount != 3 && facecount != 6)
 	{
-		SC_ScriptError("%s: Skybox definition requires either 3 or 6 faces", sb->Name);
+		sc.ScriptError("%s: Skybox definition requires either 3 or 6 faces", sb->Name);
 	}
 	sb->SetSize();
 	TexMan.AddTexture(sb);

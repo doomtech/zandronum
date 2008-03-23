@@ -40,6 +40,7 @@
 #include "p_local.h"
 #include "p_lnspec.h"
 #include "a_sharedglobal.h"
+#include "r_blend.h"
 #include "gl/gl_struct.h"
 #include "gl/gl_renderstruct.h"
 #include "gl/gl_portal.h"
@@ -229,7 +230,7 @@ void GLWall::RenderMirrorSurface()
 	gl.BlendFunc(GL_SRC_ALPHA,GL_ONE);
 	gl.AlphaFunc(GL_GREATER,0);
 	gl.DepthFunc(GL_LEQUAL);
-	gl_SetFog(lightlevel, Colormap.FadeColor, STYLE_Add, Colormap.LightColor.a);
+	gl_SetFog(lightlevel, Colormap.FadeColor, true, Colormap.LightColor.a);
 
 	FGLTexture * pat=FGLTexture::ValidateTexture(lump);
 	pat->BindPatch(Colormap.LightColor.a, 0);
@@ -269,13 +270,17 @@ void GLWall::RenderMirrorSurface()
 void GLWall::RenderTranslucentWall()
 {
 	bool transparent = gltexture? gltexture->GetTransparent() : false;
+	
+	// currently the only modes possible are solid, additive or translucent
+	// and until that changes I won't fix this code for the new blending modes!
+	bool isadditive = RenderStyle == STYLE_Add;
 
 	if (!transparent) gl.AlphaFunc(GL_GEQUAL,0.5f*fabs(alpha));
 	else gl.Disable(GL_ALPHA_TEST);
-	if (RenderStyle==STYLE_Add) gl.BlendFunc(GL_SRC_ALPHA,GL_ONE);
+	if (isadditive) gl.BlendFunc(GL_SRC_ALPHA,GL_ONE);
 
-	if (type!=RENDERWALL_M2SNF) gl_SetFog(lightlevel, Colormap.FadeColor, RenderStyle, Colormap.LightColor.a);
-	else gl_SetFog(255, 0, STYLE_Normal, CM_DEFAULT);
+	if (type!=RENDERWALL_M2SNF) gl_SetFog(lightlevel, Colormap.FadeColor, isadditive, Colormap.LightColor.a);
+	else gl_SetFog(255, 0, false, CM_DEFAULT);
 
 	if (gltexture) 
 	{
@@ -293,7 +298,7 @@ void GLWall::RenderTranslucentWall()
 	RenderWall(1,NULL);
 
 	// restore default settings
-	if (RenderStyle==STYLE_Add) gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	if (isadditive) gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	if (!transparent) gl.Enable(GL_ALPHA_TEST);
 
 	if (!gltexture)	
@@ -339,8 +344,8 @@ void GLWall::Draw(int pass)
 		gl_SetColor(lightlevel, rellight + (extralight * gl_weaponlight), &Colormap,1.0f);
 		if (!(flags&GLWF_FOGGY) || pass == GLPASS_PLAIN) 
 		{
-			if (type!=RENDERWALL_M2SNF) gl_SetFog(lightlevel, Colormap.FadeColor, STYLE_Normal, Colormap.LightColor.a);
-			else gl_SetFog(255, 0, STYLE_Normal, CM_DEFAULT);
+			if (type!=RENDERWALL_M2SNF) gl_SetFog(lightlevel, Colormap.FadeColor, false, Colormap.LightColor.a);
+			else gl_SetFog(255, 0, false, CM_DEFAULT);
 		}
 
 		// fall through
@@ -356,8 +361,8 @@ void GLWall::Draw(int pass)
 	case GLPASS_LIGHT:
 	case GLPASS_LIGHT_ADDITIVE:
 		// black fog is diminishing light and should affect lights less than the rest!
-		if (!(flags&GLWF_FOGGY)) gl_SetFog((255+lightlevel)>>1, 0, STYLE_Normal, CM_DEFAULT);
-		else gl_SetFog(lightlevel, Colormap.FadeColor, STYLE_Add, Colormap.LightColor.a);	
+		if (!(flags&GLWF_FOGGY)) gl_SetFog((255+lightlevel)>>1, 0, false, CM_DEFAULT);
+		else gl_SetFog(lightlevel, Colormap.FadeColor, true, Colormap.LightColor.a);	
 
 		if (!seg->bPolySeg)
 		{
@@ -389,7 +394,7 @@ void GLWall::Draw(int pass)
 	case GLPASS_DECALS_NOFOG:
 		if (seg->sidedef && seg->sidedef->AttachedDecals)
 		{
-			if (pass==GLPASS_DECALS) gl_SetFog(lightlevel, Colormap.FadeColor, STYLE_Normal, Colormap.LightColor.a);
+			if (pass==GLPASS_DECALS) gl_SetFog(lightlevel, Colormap.FadeColor, false, Colormap.LightColor.a);
 			DoDrawDecals(seg->sidedef->AttachedDecals, seg);
 		}
 		break;

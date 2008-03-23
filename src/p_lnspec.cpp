@@ -743,7 +743,7 @@ FUNC(LS_Generic_Lift)
 FUNC(LS_Exit_Normal)
 // Exit_Normal (position)
 {
-	if (CheckIfExitIsGood (it))
+	if (CheckIfExitIsGood (it, FindLevelInfo(G_GetExitMap())))
 	{
 		G_ExitLevel (arg0, false);
 		return true;
@@ -754,7 +754,7 @@ FUNC(LS_Exit_Normal)
 FUNC(LS_Exit_Secret)
 // Exit_Secret (position)
 {
-	if (CheckIfExitIsGood (it))
+	if (CheckIfExitIsGood (it, FindLevelInfo(G_GetSecretExitMap())))
 	{
 		G_SecretExitLevel (arg0);
 		return true;
@@ -769,7 +769,7 @@ FUNC(LS_Teleport_NewMap)
 	{
 		level_info_t *info = FindLevelByNum (arg0);
 
-		if (info && CheckIfExitIsGood (it))
+		if (info && CheckIfExitIsGood (it, info))
 		{
 			G_ChangeLevel(info->mapname, arg1, !!arg2);
 			return true;
@@ -829,7 +829,7 @@ FUNC(LS_TeleportInSector)
 FUNC(LS_Teleport_EndGame)
 // Teleport_EndGame ()
 {
-	if (!backSide && CheckIfExitIsGood (it))
+	if (!backSide && CheckIfExitIsGood (it, NULL))
 	{
 		G_SetForEndGame (level.nextmap);
 		G_ExitLevel (0, false);
@@ -929,7 +929,17 @@ FUNC(LS_Thing_SetSpecial)	// [BC]
 // [RH] Use the SetThingSpecial ACS command instead.
 // It can set all args and not just the first three.
 {
-	if (arg0 != 0)
+	if (arg0 == 0)
+	{
+		if (it != NULL)
+		{
+			it->special = arg1;
+			it->args[0] = arg2;
+			it->args[1] = arg3;
+			it->args[2] = arg4;
+		}
+	}
+	else
 	{
 		AActor *actor;
 		FActorIterator iterator (arg0);
@@ -1606,14 +1616,31 @@ FUNC(LS_Thing_SetTranslation)
 		range = 0;
 	}
 
-	while ( (target = iterator.Next ()) )
+	if (arg0 == 0)
 	{
-		ok = true;
-		target->Translation = range==0? target->GetDefault()->Translation : range;
+		if (it != NULL)
+		{
+			ok = true;
+			it->Translation = range==0? it->GetDefault()->Translation : range;
 
-		// [BC] If we're the server, tell clients to set this thing's translation.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetThingTranslation( target );
+			// [BC] If we're the server, tell clients to set this thing's translation.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingTranslation( it );
+
+			}
+	}
+	else
+	{
+		while ( (target = iterator.Next ()) )
+		{
+			ok = true;
+			target->Translation = range==0? target->GetDefault()->Translation : range;
+
+			// [BC] If we're the server, tell clients to set this thing's translation.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingTranslation( target );
+			}
+
 	}
 
 	return ok;

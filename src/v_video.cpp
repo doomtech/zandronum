@@ -132,8 +132,9 @@ int DisplayWidth, DisplayHeight, DisplayBits;
 FFont *SmallFont, *SmallFont2, *BigFont, *ConFont;
 
 extern "C" {
-DWORD *Col2RGB8_LessPrecision[65];
 DWORD Col2RGB8[65][256];
+DWORD *Col2RGB8_LessPrecision[65];
+DWORD Col2RGB8_Inverse[65][256];
 BYTE RGB32k[32][32][32];
 }
 
@@ -682,6 +683,15 @@ static void BuildTransTable (const PalEntry *palette)
 	}
 	Col2RGB8_LessPrecision[0] = Col2RGB8[0];
 	Col2RGB8_LessPrecision[64] = Col2RGB8[64];
+
+	// create the inverse swizzled palette
+	for (x = 0; x < 65; x++)
+		for (y = 0; y < 256; y++)
+		{
+			Col2RGB8_Inverse[x][y] = (((((255-palette[y].r)*x)>>4)<<20) |
+									  (((255-palette[y].g)*x)>>4) |
+									  ((((255-palette[y].b)*x)>>4)<<10)) & 0x3feffbff;
+		}
 }
 
 //==========================================================================
@@ -1308,6 +1318,27 @@ void DFrameBuffer::CopyPixelData(BYTE * buffer, int texpitch, int texheight, int
 
 //===========================================================================
 //
+// Texture precaching
+//
+//===========================================================================
+
+void DFrameBuffer::PrecacheTexture(FTexture *tex, bool cache)
+{
+	if (tex != NULL)
+	{
+		if (cache)
+		{
+			tex->GetPixels ();
+		}
+		else
+		{
+			tex->Unload ();
+		}
+	}
+}
+
+//===========================================================================
+//
 // Render the view 
 //
 //===========================================================================
@@ -1375,6 +1406,10 @@ bool V_DoModeSetup (int width, int height, int bits)
 	screen = buff;
 	screen->SetFont (SmallFont);
 	screen->SetGamma (Gamma);
+
+	// Load fonts now so they can be packed into textures straight away,
+	// if D3DFB is being used for the display.
+	FFont::StaticPreloadFonts();
 
 	{
 		int ratio;

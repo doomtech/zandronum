@@ -12,7 +12,9 @@
 
 #define DWORD WINDOWS_DWORD	// I don't want to depend on this throughout the GL code!
 
+#ifdef _MSC_VER
 #pragma warning(disable : 4995)     // MIPS
+#endif
 
 #include <windows.h>
 #include <mmsystem.h>

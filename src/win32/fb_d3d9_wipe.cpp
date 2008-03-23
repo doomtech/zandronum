@@ -108,8 +108,6 @@ private:
 
 // EXTERNAL DATA DECLARATIONS ----------------------------------------------
 
-EXTERN_CVAR(Bool, test2d)
-
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 
 // PUBLIC DATA DEFINITIONS -------------------------------------------------
@@ -138,7 +136,7 @@ bool D3DFB::WipeStartScreen(int type)
 	IDirect3DSurface9 *tsurf;
 	D3DSURFACE_DESC desc;
 
-	if (!test2d)
+	if (!Accel2D)
 	{
 		return Super::WipeStartScreen(type);
 	}
@@ -163,33 +161,26 @@ bool D3DFB::WipeStartScreen(int type)
 
 	InitialWipeScreen = GetCurrentScreen();
 
-	if (!Windowed)
+	// Create another texture to copy the final wipe screen to so
+	// we can still gamma correct the wipe. Since this is just for
+	// gamma correction, it's okay to fail (though not desirable.)
+	if (PixelDoubling || (GammaFixerShader != NULL && Windowed))
 	{
-		FinalWipeScreen = TempRenderTexture;
+		if (SUCCEEDED(TempRenderTexture->GetSurfaceLevel(0, &tsurf)))
+		{
+			if (FAILED(tsurf->GetDesc(&desc)) ||
+				FAILED(D3DDevice->CreateTexture(desc.Width, desc.Height,
+					1, D3DUSAGE_RENDERTARGET, desc.Format, D3DPOOL_DEFAULT,
+					&FinalWipeScreen, NULL)))
+			{
+				FinalWipeScreen = TempRenderTexture;
+			}
+			tsurf->Release();
+		}
 	}
 	else
 	{
-		// Create another texture to copy the final wipe screen to so
-		// we can still gamma correct the wipe. Since this is just for
-		// gamma correction, it's okay to fail (though not desirable.)
-		if (GammaFixerShader != NULL && Gamma != 1)
-		{
-			if (SUCCEEDED(TempRenderTexture->GetSurfaceLevel(0, &tsurf)))
-			{
-				if (FAILED(tsurf->GetDesc(&desc)) ||
-					FAILED(D3DDevice->CreateTexture(desc.Width, desc.Height,
-						1, D3DUSAGE_RENDERTARGET, desc.Format, D3DPOOL_DEFAULT,
-						&FinalWipeScreen, NULL)))
-				{
-					FinalWipeScreen = TempRenderTexture;
-				}
-				tsurf->Release();
-			}
-		}
-		else
-		{
-			FinalWipeScreen = TempRenderTexture;
-		}
+		FinalWipeScreen = TempRenderTexture;
 	}
 
 	// Make even fullscreen model render to the TempRenderTexture, so
@@ -209,7 +200,7 @@ bool D3DFB::WipeStartScreen(int type)
 
 void D3DFB::WipeEndScreen()
 {
-	if (!test2d)
+	if (!Accel2D)
 	{
 		Super::WipeEndScreen();
 		return;
@@ -259,7 +250,7 @@ void D3DFB::WipeEndScreen()
 
 bool D3DFB::WipeDo(int ticks)
 {
-	if (!test2d)
+	if (!Accel2D)
 	{
 		return Super::WipeDo(ticks);
 	}
@@ -285,8 +276,7 @@ bool D3DFB::WipeDo(int ticks)
 		InScene = true;
 	}
 	SAFE_RELEASE( OldRenderTarget );
-	if (TempRenderTexture != NULL && TempRenderTexture != FinalWipeScreen &&
-		(Windowed && GammaFixerShader))
+	if (TempRenderTexture != NULL && TempRenderTexture != FinalWipeScreen)
 	{
 		IDirect3DSurface9 *targetsurf;
 		if (SUCCEEDED(TempRenderTexture->GetSurfaceLevel(0, &targetsurf)))
@@ -303,6 +293,7 @@ bool D3DFB::WipeDo(int ticks)
 	}
 	In2D = 3;
 
+	EnableAlphaTest(FALSE);
 	bool done = ScreenWipe->Run(ticks, this);
 	DrawLetterbox();
 	return done;
@@ -330,7 +321,7 @@ void D3DFB::WipeCleanup()
 	}
 	FinalWipeScreen = NULL;
 	GatheringWipeScreen = false;
-	if (!test2d)
+	if (!Accel2D)
 	{
 		Super::WipeCleanup();
 		return;
@@ -389,10 +380,10 @@ bool D3DFB::Wiper_Crossfade::Run(int ticks, D3DFB *fb)
 	// Draw the new screen on top of it.
 	FBVERTEX verts[4];
 
-	fb->CalcFullscreenCoords(verts, false, D3DCOLOR_COLORVALUE(0,0,0,Clock / 32.f), D3DCOLOR_RGBA(255,255,255,0));
+	fb->CalcFullscreenCoords(verts, false, false, D3DCOLOR_COLORVALUE(0,0,0,Clock / 32.f), D3DCOLOR_RGBA(255,255,255,0));
 	fb->D3DDevice->SetFVF(D3DFVF_FBVERTEX);
 	fb->SetTexture(0, fb->FinalWipeScreen);
-	fb->SetAlphaBlend(TRUE, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
+	fb->SetAlphaBlend(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
 	fb->SetPixelShader(fb->PlainShader);
 	fb->D3DDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, verts, sizeof(FBVERTEX));
 
@@ -447,14 +438,16 @@ bool D3DFB::Wiper_Melt::Run(int ticks, D3DFB *fb)
 	// Draw the new screen on the bottom.
 	FBVERTEX verts[4];
 
-	fb->CalcFullscreenCoords(verts, false, 0, 0xFFFFFFFF);
+	fb->CalcFullscreenCoords(verts, false, false, 0, 0xFFFFFFFF);
 	fb->D3DDevice->SetFVF(D3DFVF_FBVERTEX);
 	fb->SetTexture(0, fb->FinalWipeScreen);
-	fb->SetAlphaBlend(FALSE);
+	fb->SetAlphaBlend(D3DBLENDOP(0));
 	fb->SetPixelShader(fb->PlainShader);
 	fb->D3DDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, verts, sizeof(FBVERTEX));
 
 	int i, dy;
+	int fbwidth = fb->Width;
+	int fbheight = fb->Height;
 	bool done = true;
 
 	// Copy the old screen in vertical strips on top of the new one.
@@ -479,12 +472,12 @@ bool D3DFB::Wiper_Melt::Run(int ticks, D3DFB *fb)
 				RECT rect;
 				POINT dpt;
 
-				dpt.x = i * fb->Width / WIDTH;
-				dpt.y = MAX(0, y[i] * fb->Height / HEIGHT);
+				dpt.x = i * fbwidth / WIDTH;
+				dpt.y = MAX(0, y[i] * fbheight / HEIGHT);
 				rect.left = dpt.x;
 				rect.top = fb->LBOffsetI;
-				rect.right = (i + 1) * fb->Width / WIDTH;
-				rect.bottom = fb->Height - dpt.y + fb->LBOffsetI;
+				rect.right = (i + 1) * fbwidth / WIDTH;
+				rect.bottom = fbheight - dpt.y + fb->LBOffsetI;
 				dpt.y += fb->LBOffsetI;
 				if (rect.bottom > rect.top)
 				{
@@ -599,11 +592,21 @@ bool D3DFB::Wiper_Burn::Run(int ticks, D3DFB *fb)
 	fb->D3DDevice->SetFVF(D3DFVF_BURNVERTEX);
 	fb->SetTexture(0, fb->FinalWipeScreen);
 	fb->SetTexture(1, BurnTexture);
-	fb->SetAlphaBlend(TRUE, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
+	fb->SetAlphaBlend(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
 	fb->SetPixelShader(fb->BurnShader);
 	fb->D3DDevice->SetSamplerState(1, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+	if (fb->SM14)
+	{
+		fb->D3DDevice->SetSamplerState(1, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
+		fb->D3DDevice->SetSamplerState(1, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+	}
 	fb->D3DDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, verts, sizeof(BURNVERTEX));
 	fb->D3DDevice->SetSamplerState(1, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+	if (fb->SM14)
+	{
+		fb->D3DDevice->SetSamplerState(1, D3DSAMP_ADDRESSU, D3DTADDRESS_BORDER);
+		fb->D3DDevice->SetSamplerState(1, D3DSAMP_ADDRESSV, D3DTADDRESS_BORDER);
+	}
 	fb->D3DDevice->SetFVF(D3DFVF_FBVERTEX);
 
 	// The fire may not always stabilize, so the wipe is forced to end

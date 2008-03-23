@@ -53,6 +53,12 @@
 
 
 
+//==========================================================================
+//
+// FMultiPatchTexture :: FMultiPatchTexture
+//
+//==========================================================================
+
 FMultiPatchTexture::FMultiPatchTexture (const void *texdef, FPatchLookup *patchlookup, int maxpatchnum, bool strife)
 : Pixels (0), Spans(0), Parts(0), bRedirect(false)
 {
@@ -155,6 +161,12 @@ FMultiPatchTexture::FMultiPatchTexture (const void *texdef, FPatchLookup *patchl
 	}
 }
 
+//==========================================================================
+//
+// FMultiPatchTexture :: ~FMultiPatchTexture
+//
+//==========================================================================
+
 FMultiPatchTexture::~FMultiPatchTexture ()
 {
 	Unload ();
@@ -170,6 +182,12 @@ FMultiPatchTexture::~FMultiPatchTexture ()
 	}
 }
 
+//==========================================================================
+//
+// FMultiPatchTexture :: SetFrontSkyLayer
+//
+//==========================================================================
+
 void FMultiPatchTexture::SetFrontSkyLayer ()
 {
 	for (int i = 0; i < NumParts; ++i)
@@ -179,6 +197,12 @@ void FMultiPatchTexture::SetFrontSkyLayer ()
 	bNoRemap0 = true;
 }
 
+//==========================================================================
+//
+// FMultiPatchTexture :: Unload
+//
+//==========================================================================
+
 void FMultiPatchTexture::Unload ()
 {
 	if (Pixels != NULL)
@@ -187,6 +211,12 @@ void FMultiPatchTexture::Unload ()
 		Pixels = NULL;
 	}
 }
+
+//==========================================================================
+//
+// FMultiPatchTexture :: GetPixels
+//
+//==========================================================================
 
 const BYTE *FMultiPatchTexture::GetPixels ()
 {
@@ -200,6 +230,12 @@ const BYTE *FMultiPatchTexture::GetPixels ()
 	}
 	return Pixels;
 }
+
+//==========================================================================
+//
+// FMultiPatchTexture :: GetColumn
+//
+//==========================================================================
 
 const BYTE *FMultiPatchTexture::GetColumn (unsigned int column, const Span **spans_out)
 {
@@ -229,6 +265,12 @@ const BYTE *FMultiPatchTexture::GetColumn (unsigned int column, const Span **spa
 	return Pixels + column*Height;
 }
 
+//==========================================================================
+//
+// FMultiPatchTexture :: MakeTexture
+//
+//==========================================================================
+
 void FMultiPatchTexture::MakeTexture ()
 {
 	// Add a little extra space at the end if the texture's height is not
@@ -249,6 +291,12 @@ void FMultiPatchTexture::MakeTexture ()
 		Spans = CreateSpans (Pixels);
 	}
 }
+
+//==========================================================================
+//
+// FMultiPatchTexture :: CheckForHacks
+//
+//==========================================================================
 
 void FMultiPatchTexture::CheckForHacks ()
 {
@@ -393,6 +441,14 @@ int FMultiPatchTexture::CopyTrueColorPixels(BYTE *buffer, int buf_pitch, int buf
 	return retv;
 }
 
+//==========================================================================
+//
+// FMultiPatchTexture :: GetFormat
+//
+// only returns 'paletted' if all patches use the base palette.
+//
+//==========================================================================
+
 FTextureFormat FMultiPatchTexture::GetFormat() 
 { 
 	if (NumParts == 1) return Parts[0].Texture->GetFormat();
@@ -405,8 +461,171 @@ FTextureFormat FMultiPatchTexture::GetFormat()
 }
 
 
+#if 0
+//==========================================================================
+//
+// Stuff that checks whether a multipatch texture is merely the same
+// as its previous definition. If so it's discarded and the old one
+// kept. This way there is less interference with WADs that redefine
+// the entire original list of textures
+//
+//==========================================================================
+
+struct TextureCheckList
+{
+	struct ComparePatch
+	{
+		SWORD	originx;
+		SWORD	originy;
+		union
+		{
+			char chars[8];
+			QWORD asint;
+		} patchtexture;
+	};
+
+	struct CompareTexture
+	{
+		union 
+		{
+			char chars[8];
+			QWORD asint;
+		} name;
+		WORD		Flags;				// [RH] Was unused
+		BYTE		ScaleX;				// [RH] Scaling (8 is normal)
+		BYTE		ScaleY;				// [RH] Same as above
+		SWORD		width;
+		SWORD		height;
+		SWORD		patchcount;
+		ComparePatch patches[1];
+
+		static CompareTexture *Create(const maptexture_t *orgdata, const FPatchLookup *patchlookup, int numpatches)
+		{
+			CompareTexture *c = (CompareTexture*)M_Calloc(sizeof(CompareTexture) + (orgdata->patchcount-1) * sizeof(ComparePatch), 1);
+			uppercopy(c->name.chars, (const char*)orgdata->name);
+			c->Flags = orgdata->Flags;
+			c->ScaleX = orgdata->ScaleX;
+			c->ScaleY = orgdata->ScaleY;
+			c->width = orgdata->width;
+			c->height = orgdata->height;
+			c->patchcount = orgdata->patchcount;
+			for(int i=0; i<orgdata->patchcount;i++)
+			{
+				c->patches[i].originx = orgdata->patches[i].originx;
+				c->patches[i].originy = orgdata->patches[i].originy;
+				int pnum = orgdata->patches[i].patch;
+				if (pnum >= 0 && pnum < numpatches)
+				{
+					uppercopy(c->patches[i].patchtexture.chars, patchlookup[pnum].Name);
+				}
+				else c->patches[i].patchtexture.asint = -1;
+			}
+			return c;
+		}
+
+		static CompareTexture *Create(const strifemaptexture_t *orgdata, const FPatchLookup *patchlookup, int numpatches)
+		{
+			CompareTexture *c = (CompareTexture*)M_Calloc(sizeof(CompareTexture) + (orgdata->patchcount-1) * sizeof(ComparePatch), 1);
+			uppercopy(c->name.chars, (const char *)orgdata->name);
+			c->Flags = orgdata->Flags;
+			c->ScaleX = orgdata->ScaleX;
+			c->ScaleY = orgdata->ScaleY;
+			c->width = orgdata->width;
+			c->height = orgdata->height;
+			c->patchcount = orgdata->patchcount;
+			for(int i=0; i<orgdata->patchcount;i++)
+			{
+				c->patches[i].originx = orgdata->patches[i].originx;
+				c->patches[i].originy = orgdata->patches[i].originy;
+				int pnum = orgdata->patches[i].patch;
+				if (pnum >= 0 && pnum < numpatches)
+				{
+					uppercopy(c->patches[i].patchtexture.chars, patchlookup[pnum].Name);
+				}
+				else c->patches[i].patchtexture.asint = -1;
+			}
+			return c;
+		}
+	};
+
+
+
+	typedef TMap<QWORD, CompareTexture *> TexMap;
+
+	TexMap data;
+
+	TextureCheckList()
+	{
+	}
+
+	~TextureCheckList()
+	{
+		TexMap::Iterator it(data);
+		TexMap::Pair *pair;
+
+		while (it.NextPair (pair))
+		{
+			if (pair->Value != NULL) free(pair->Value);
+		}
+	}
+
+	bool Check(const void *tdata, FPatchLookup *patchlookup, int numpatches, bool isstrife)
+	{
+		CompareTexture * tex;
+
+		if (!isstrife)
+		{
+			tex = CompareTexture::Create((const maptexture_t *)tdata, patchlookup, numpatches);
+		}
+		else
+		{
+			tex = CompareTexture::Create((const strifemaptexture_t *)tdata, patchlookup, numpatches);
+		}
+
+		bool res = false;
+		if (!strnicmp(tex->name.chars, "BIGDOOR1", 8))
+		{
+			__asm nop
+		}
+		CompareTexture **ppc = data.CheckKey(tex->name.asint);
+		if (ppc != NULL)
+		{
+			// The texture is considered the same if the original
+			// is binary identical.
+			// First check the number of patches to avoid problems
+			if (tex->patchcount == (*ppc)->patchcount)
+				res = !memcmp(tex, *ppc, sizeof(CompareTexture) + (tex->patchcount-1) * sizeof(ComparePatch));
+
+			if (!res)
+			{
+				// Texture is not identical - remove the old one
+				free(*ppc);
+				*ppc=NULL;
+			}
+		}
+		if (!res)
+		{
+			data[tex->name.asint] = tex;
+		}
+		else
+		{
+			free (tex);
+		}
+		return res;
+	}
+};
+#endif
+
+
+//==========================================================================
+//
+// FTextureManager :: AddTexturesLump
+//
+//==========================================================================
+
 void FTextureManager::AddTexturesLump (const void *lumpdata, int lumpsize, int patcheslump, int firstdup, bool texture1)
 {
+	//TextureCheckList checklist;
 	FPatchLookup *patchlookup;
 	int i, j;
 	DWORD numpatches;
@@ -534,17 +753,30 @@ void FTextureManager::AddTexturesLump (const void *lumpdata, int lumpsize, int p
 		}
 		if (j + 1 == firstdup)
 		{
-			FTexture *tex = new FMultiPatchTexture ((const BYTE *)maptex + offset, patchlookup, numpatches, isStrife);
-			if (i == 1 && texture1)
+			//if (!checklist.Check((const BYTE *)maptex + offset, patchlookup, numpatches, isStrife))
 			{
-				tex->UseType = FTexture::TEX_Null;
+				FTexture *tex = new FMultiPatchTexture ((const BYTE *)maptex + offset, patchlookup, numpatches, isStrife);
+				if (i == 1 && texture1)
+				{
+					tex->UseType = FTexture::TEX_Null;
+				}
+				TexMan.AddTexture (tex);
+
+				//Printf("Using texture %s\n", tex->Name);
 			}
-			TexMan.AddTexture (tex);
+			//else Printf("skipping texture %.8s\n", (const BYTE *)maptex + offset);
+
 			StartScreen->Progress();
 		}
 	}
 }
 
+
+//==========================================================================
+//
+// FTextureManager :: AddTexturesLumps
+//
+//==========================================================================
 
 void FTextureManager::AddTexturesLumps (int lump1, int lump2, int patcheslump)
 {

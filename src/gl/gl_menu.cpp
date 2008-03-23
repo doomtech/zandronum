@@ -20,6 +20,8 @@ CUSTOM_CVAR(Bool, gl_nogl, false, CVAR_GLOBALCONFIG|CVAR_ARCHIVE|CVAR_NOINITCALL
 	Printf("This won't take effect until "GAMENAME" is restarted.\n");
 }
 
+CVAR(Bool, gl_vid_compatibility, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
+
 EXTERN_CVAR (Bool, vid_vsync)
 EXTERN_CVAR(Int, gl_spriteclip)
 EXTERN_CVAR(Int, gl_lightmode)
@@ -104,8 +106,8 @@ static value_t Hz[] =
 
 static value_t BillboardModes[] =
 {
-	{ 1.0, "Y Axis" },
-	{ 2.0, "X/Y Axis" },
+	{ 0.0, "Y Axis" },
+	{ 1.0, "X/Y Axis" },
 };
 
 

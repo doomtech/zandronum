@@ -85,12 +85,7 @@ public:
 	void Destroy();
 	void Activate(AActor *activator);
 	void Deactivate(AActor *activator);
-	void SetOffset(fixed_t x, fixed_t y, fixed_t z)
-	{
-		m_offX = x;
-		m_offY = y;
-		m_offZ = z;
-	}
+	void SetOffset(fixed_t x, fixed_t y, fixed_t z);
 	void UpdateLocation();
 	bool IsOwned() const { return owned; }
 	bool IsActive() const { return !(flags2&MF2_DORMANT); }
@@ -111,8 +106,6 @@ protected:
 	unsigned int m_lastUpdate;
 	FCycler m_cycler;
 	subsector_t * subsector;
-	
-
 
 public:
 	int m_intensity[2];
@@ -120,6 +113,7 @@ public:
 	BYTE lighttype;
 	bool owned;
 	bool halo;
+	AActor *Owner;	// NOTE: This is *NOT* subject to pointer cleanup!!!
 
 	// intermediate texture coordinate data
 	// this is stored in the light object to avoid recalculating it

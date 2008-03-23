@@ -58,7 +58,6 @@ IMPLEMENT_CLASS(OpenGLFrameBuffer)
 EXTERN_CVAR (Float, vid_brightness)
 EXTERN_CVAR (Float, vid_contrast)
 
-
 //==========================================================================
 //
 //
@@ -339,6 +338,28 @@ FNativeTexture *OpenGLFrameBuffer::CreateTexture(FTexture *gametex, bool wrappin
 
 //==========================================================================
 //
+// DFrameBuffer :: PrecacheTexture
+//
+//==========================================================================
+
+void OpenGLFrameBuffer::PrecacheTexture(FTexture *tex, bool cache)
+{
+	if (tex != NULL)
+	{
+		if (cache)
+		{
+			tex->PrecacheGL();
+		}
+		else
+		{
+			tex->UncacheGL();
+		}
+	}
+}
+
+
+//==========================================================================
+//
 // DFrameBuffer :: CreatePalette
 //
 // Creates a native palette from a remap table, if supported.
@@ -452,8 +473,7 @@ void STACK_ARGS OpenGLFrameBuffer::DrawTextureV(FTexture *img, int x0, int y0, u
 	// just ignore for now...
 	if (parms.windowleft || parms.windowright != img->GetScaledWidth()) return;
 	
-	if (parms.fillcolor > 0  || parms.style == STYLE_Shaded ||
-		parms.style == STYLE_TranslucentStencil || parms.style == STYLE_Stencil)
+	if (parms.style.Flags & STYLEF_ColorIsFixed)
 	{
 		r = RPART(parms.fillcolor)/255.0f;
 		g = GPART(parms.fillcolor)/255.0f;
@@ -472,14 +492,8 @@ void STACK_ARGS OpenGLFrameBuffer::DrawTextureV(FTexture *img, int x0, int y0, u
 	int space = (GetTrueHeight()-GetHeight())/2;
 	gl.Scissor(parms.lclip, btm - parms.dclip + space, parms.rclip - parms.lclip, parms.dclip - parms.uclip);
 	
-	if (parms.style == STYLE_TranslucentStencil || parms.style == STYLE_Stencil)
-	{
-		gl_SetTextureMode(TM_MASK);
-	}
-	else if (!parms.masked) 
-	{
-		gl_SetTextureMode(TM_OPAQUE);
-	}
+	gl_SetRenderStyle(parms.style, !parms.masked, false);
+
 	gl.Color4f(r, g, b, FIXED2FLOAT(parms.alpha));
 	
 	gl.Disable(GL_ALPHA_TEST);
@@ -497,10 +511,9 @@ void STACK_ARGS OpenGLFrameBuffer::DrawTextureV(FTexture *img, int x0, int y0, u
 	
 	gl.Scissor(0, 0, GetWidth(), GetHeight());
 	gl.Disable(GL_SCISSOR_TEST);
-	if (!parms.masked || parms.style == STYLE_TranslucentStencil || parms.style == STYLE_Stencil) 
-	{
-		gl_SetTextureMode(TM_MODULATE);
-	}
+	gl_SetTextureMode(TM_MODULATE);
+	gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	gl.BlendEquation(GL_FUNC_ADD);
 }
 
 //==========================================================================

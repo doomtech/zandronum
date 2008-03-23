@@ -72,6 +72,8 @@ public:
 					  const BYTE * patch, int pix_width, int pix_height, 
 					  int step_x, int step_y, PalEntry * palette);
 
+	void PrecacheTexture(FTexture *tex, bool cache);
+
 	// Create a native texture from a game texture.
 	FNativeTexture *CreateTexture(FTexture *gametex, bool wrapping);
 	FNativePalette *CreatePalette(FRemapTable *remap);

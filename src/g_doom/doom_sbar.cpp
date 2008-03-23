@@ -2095,7 +2095,7 @@ void DrawFullHUD_GameInformation()
 
 FDoomStatusBar::FDoomStatusBarTexture::FDoomStatusBarTexture ()
 {
-	BaseTexture = TexMan[TexMan.AddPatch("STBAR")];
+	BaseTexture = TexMan["STBAR"];
 	if (BaseTexture==NULL)
 	{
 		I_Error("Fatal error: STBAR not found");

@@ -61,7 +61,7 @@ int MaxGlowingTexture;	// TexMan.NumTextures can't be used because it may change
 //	Reads glow definitions from GLDEFS
 //
 //===========================================================================
-void gl_InitGlow()
+void gl_InitGlow(FScanner &sc)
 {
 	if (GlowingTextures.Size()==0)
 	{
@@ -72,17 +72,17 @@ void gl_InitGlow()
 		memset(&GlowingTextures[0], 0, sizeof(bool)*MaxGlowingTexture);
 	}
 
-	SC_MustGetStringName("{");
-	while (!SC_CheckString("}"))
+	sc.MustGetStringName("{");
+	while (!sc.CheckString("}"))
 	{
-		SC_MustGetString();
-		if (SC_Compare("FLATS"))
+		sc.MustGetString();
+		if (sc.Compare("FLATS"))
 		{
-			SC_MustGetStringName("{");
-			while (!SC_CheckString("}"))
+			sc.MustGetStringName("{");
+			while (!sc.CheckString("}"))
 			{
-				SC_MustGetString();
-				int flump=TexMan.CheckForTexture(sc_String, FTexture::TEX_Flat,FTextureManager::TEXMAN_TryAny);
+				sc.MustGetString();
+				int flump=TexMan.CheckForTexture(sc.String, FTexture::TEX_Flat,FTextureManager::TEXMAN_TryAny);
 				if (flump!=-1 && flump<MaxGlowingTexture) 
 				{
 					GlowingTextures[flump]=true;
@@ -90,13 +90,13 @@ void gl_InitGlow()
 			}
 		}
 
-		if (SC_Compare("WALLS"))
+		if (sc.Compare("WALLS"))
 		{
-			SC_MustGetStringName("{");
-			while (!SC_CheckString("}"))
+			sc.MustGetStringName("{");
+			while (!sc.CheckString("}"))
 			{
-				SC_MustGetString();
-				int flump=TexMan.CheckForTexture(sc_String, FTexture::TEX_Wall,FTextureManager::TEXMAN_TryAny);
+				sc.MustGetString();
+				int flump=TexMan.CheckForTexture(sc.String, FTexture::TEX_Wall,FTextureManager::TEXMAN_TryAny);
 				if (flump!=-1 && flump<MaxGlowingTexture) 
 				{
 					GlowingTextures[flump]=true;

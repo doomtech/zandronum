@@ -1883,8 +1883,6 @@ void A_Look (AActor *actor)
 //==========================================================================
 void A_Wander (AActor *self)
 {
-	int delta;
-
 	// [RH] Strife probably clears this flag somewhere, but I couldn't find where.
 	// This seems as good a place as any.
 	self->flags4 &= ~MF4_INCOMBAT;
@@ -1892,9 +1890,9 @@ void A_Wander (AActor *self)
 	if (self->flags4 & MF4_STANDSTILL)
 		return;
 
-	if (self->threshold != 0)
+	if (self->reactiontime != 0)
 	{
-		self->threshold--;
+		self->reactiontime--;
 		return;
 	}
 
@@ -1902,7 +1900,7 @@ void A_Wander (AActor *self)
 	if (self->movedir < DI_NODIR)
 	{
 		self->angle &= (angle_t)(7<<29);
-		delta = self->angle - (self->movedir << 29);
+		int delta = self->angle - (self->movedir << 29);
 		if (delta > 0)
 		{
 			self->angle -= ANG90/2;

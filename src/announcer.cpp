@@ -80,7 +80,7 @@ static	LONG			g_lLastSoundID = 0;
 //*****************************************************************************
 //	PROTOTYPES
 
-static	void					announcer_ParseAnnouncerInfoLump( void );
+static	void					announcer_ParseAnnouncerInfoLump( FScanner &sc );
 static	bool					announcer_AddAnnouncerProfile( ANNOUNCERPROFILE_s *pInfo );
 static	void					announcer_AddProfileEntry( ANNOUNCERPROFILE_s *pInfo, const char *pszEntry, const char *pszSound );
 static	ANNOUNCERENTRY_s		*announcer_FindEntry( ANNOUNCERPROFILE_s *pInfo, const char *pszEntry );
@@ -145,13 +145,10 @@ void ANNOUNCER_ParseAnnouncerInfo( void )
 	while (( lCurLump = Wads.FindLump( "ANCRINFO", (int *)&lLastLump )) != -1 )
 	{
 		// Make pszBotInfo point to the raw data (which should be a text file) in the ANCRINFO lump.
-		SC_OpenLumpNum( lCurLump, "ANCRINFO" );
+		FScanner sc( lCurLump, "ANCRINFO" );
 
 		// Parse the lump.
-		announcer_ParseAnnouncerInfoLump( );
-
-		// Finish parsing the lump.
-		SC_Close( );
+		announcer_ParseAnnouncerInfoLump( sc );
 	}
 }
 
@@ -558,7 +555,7 @@ char *ANNOUNCER_GetName( ULONG ulIdx )
 //*****************************************************************************
 //*****************************************************************************
 //
-static void announcer_ParseAnnouncerInfoLump( void )
+static void announcer_ParseAnnouncerInfoLump( FScanner &sc )
 {
 	char				szKey[64];
 	char				szValue[64];
@@ -567,7 +564,7 @@ static void announcer_ParseAnnouncerInfoLump( void )
 
 	// Begin parsing that text. COM_Parse will create a token (com_token), and
 	// pszBotInfo will skip past the token.
-	while ( SC_GetString( ))
+	while ( sc.GetString( ))
 	{
 		// Initialize our announcer info variable.
 		strncpy( AnnouncerProfile.szName, "UNNAMED ANNOUNCER", 63 );
@@ -582,27 +579,27 @@ static void announcer_ParseAnnouncerInfoLump( void )
 			AnnouncerProfile.paAnnouncerEntries[ulIdx]->szSound[0] = '\0';
 		}
 
-		while ( sc_String[0] != '{' )
-			SC_GetString( );
+		while ( sc.String[0] != '{' )
+			sc.GetString( );
 
 		// We've encountered a starting bracket. Now continue to parse until we hit an end bracket.
-		while ( sc_String[0] != '}' )
+		while ( sc.String[0] != '}' )
 		{
 			// The current token should be our key. (key = value) If it's an end bracket, break.
-			SC_GetString( );
-			strncpy( szKey, sc_String, 63 );
+			sc.GetString( );
+			strncpy( szKey, sc.String, 63 );
 			szKey[63] = 0;
-			if ( sc_String[0] == '}' )
+			if ( sc.String[0] == '}' )
 				break;
 
 			// The following key must be an = sign. If not, the user made an error!
-			SC_GetString( );
-			if ( stricmp( sc_String, "=" ) != 0 )
+			sc.GetString( );
+			if ( stricmp( sc.String, "=" ) != 0 )
 					I_Error( "ANNOUNCER_ParseAnnouncerInfo: Missing \"=\" in ANCRINFO lump for field \"%s\".\n", szKey );
 
 			// The last token should be our value.
-			SC_GetString( );
-			strncpy( szValue, sc_String, 63 );
+			sc.GetString( );
+			strncpy( szValue, sc.String, 63 );
 			szValue[63] = 0;
 
 			// If we're specifying the name of the profile, set it here.

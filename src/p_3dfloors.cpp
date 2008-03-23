@@ -332,7 +332,7 @@ void P_Recalculate3DFloors(sector_t * sector)
 	unsigned		pickindex;
 	F3DFloor *		clipped=NULL;
 	fixed_t			clipped_top;
-	fixed_t			clipped_bottom;
+	fixed_t			clipped_bottom=0;
 	fixed_t			maxheight, minheight;
 	unsigned		i, j;
 	lightlist_t newlight;

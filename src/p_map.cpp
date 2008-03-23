@@ -773,7 +773,7 @@ bool PIT_CheckLine (line_t *ld)
 		}
 	}
 
-	fixed_t sx, sy;
+	fixed_t sx=0, sy=0;
 
 	// set openrange, opentop, openbottom
 	if ((((ld->frontsector->floorplane.a | ld->frontsector->floorplane.b) |
@@ -803,16 +803,16 @@ bool PIT_CheckLine (line_t *ld)
 			ld->backsector->floorplane.ic);*/
 		if (r <= 0)
 		{
-			P_LineOpening (tmthing, ld, ld->v1->x, ld->v1->y, tmx, tmy);
+			P_LineOpening (tmthing, ld, sx=ld->v1->x, sy=ld->v1->y, tmx, tmy);
 		}
 		else if (r >= (1<<24))
 		{
-			P_LineOpening (tmthing, ld, ld->v2->x, ld->v2->y, tmthing->x, tmthing->y);
+			P_LineOpening (tmthing, ld, sx=ld->v2->x, sy=ld->v2->y, tmthing->x, tmthing->y);
 		}
 		else
 		{
-			P_LineOpening (tmthing, ld, ld->v1->x + MulScale24 (r, ld->dx),
-				ld->v1->y + MulScale24 (r, ld->dy), tmx, tmy);
+			P_LineOpening (tmthing, ld, sx=ld->v1->x + MulScale24 (r, ld->dx),
+				sy=ld->v1->y + MulScale24 (r, ld->dy), tmx, tmy);
 		}
 
 		// the floorplane on both sides is identical with the current one
@@ -3850,14 +3850,14 @@ static bool CheckForSpectral (FTraceResults &res)
 	return false;
 }
 
-void P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
+AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 				   int pitch, int damage, FName damageType, const PClass *pufftype)
 {
 	// [BB] The only reason the client should try to execute P_LineAttack, is the online hitscan decal fix. 
 	if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) &&
 		( cl_hitscandecalhack == false ))
 	{
-		return;
+		return NULL;
 	}
 	fixed_t vx, vy, vz, shootz;
 	FTraceResults trace;
@@ -3898,7 +3898,7 @@ void P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 			( CLIENTDEMO_IsPlaying( )))
 		{
-			return;
+			return NULL;
 		}
 		AActor *puffDefaults = GetDefaultByType (pufftype);
 		if (puffDefaults->ActiveSound)
@@ -3911,11 +3911,11 @@ void P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 		}
 		if (puffDefaults->flags3 & MF3_ALWAYSPUFF)
 		{ // Spawn the puff anyway
-			P_SpawnPuff (pufftype, trace.X, trace.Y, trace.Z, angle - ANG180, 2);
+			puff = P_SpawnPuff (pufftype, trace.X, trace.Y, trace.Z, angle - ANG180, 2);
 		}
 		else
 		{
-			return;
+			return NULL;
 		}
 	}
 	else
@@ -3954,7 +3954,7 @@ void P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 				( CLIENTDEMO_IsPlaying( )))
 			{
-				return;
+				return NULL;
 			}
 		}
 		else
@@ -3963,7 +3963,7 @@ void P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 				( CLIENTDEMO_IsPlaying( )))
 			{
-				return;
+				return NULL;
 			}
 
 			bool bloodsplatter = (t1->flags5 & MF5_BLOODSPLATTER) ||
@@ -4037,7 +4037,7 @@ void P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 				{ 
 					// Since the puff is the damage inflictor we need it here 
 					// regardless of whether it is displayed or not.
-					puff = P_SpawnPuff (pufftype, hitx, hity, hitz, angle - ANG180, 2, true, false);
+					puff = P_SpawnPuff (pufftype, hitx, hity, hitz, angle - ANG180, 2, true, true, false);
 					killPuff = true;
 				}
 				P_DamageMobj (trace.Actor, puff ? puff : t1, t1, damage, damageType, flags);
@@ -4048,7 +4048,7 @@ void P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 
 			if (puff == NULL)
 			{ // Spawn puff just to get a mass for the splash
-				puff = P_SpawnPuff (pufftype, hitx, hity, hitz, angle - ANG180, 2, true, false);
+				puff = P_SpawnPuff (pufftype, hitx, hity, hitz, angle - ANG180, 2, true, true, false);
 				killPuff = true;
 			}
 			SpawnDeepSplash (t1, trace, puff, vx, vy, vz);
@@ -4057,10 +4057,12 @@ void P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 	if (killPuff && puff != NULL)
 	{
 		puff->Destroy();
+		puff = NULL;
 	}
+	return puff;
 }
 
-void P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
+AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 				   int pitch, int damage, FName damageType, FName pufftype)
 {
 	const PClass * type = PClass::FindClass(pufftype);
@@ -4070,8 +4072,9 @@ void P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 	}
 	else
 	{
-		P_LineAttack(t1, angle, distance, pitch, damage, damageType, type);
+		return P_LineAttack(t1, angle, distance, pitch, damage, damageType, type);
 	}
+	return NULL;
 }
 
 void P_TraceBleed (int damage, fixed_t x, fixed_t y, fixed_t z, AActor *actor, angle_t angle, int pitch)
@@ -4251,7 +4254,17 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 
 	x1 = source->x;
 	y1 = source->y;
-	shootz = source->z - source->floorclip + (source->height >> 1) + 8*FRACUNIT;
+
+	shootz = source->z - source->floorclip + (source->height >> 1);
+
+	if (source->player != NULL)
+	{
+		shootz += FixedMul (source->player->mo->AttackZOffset, source->player->crouchfactor);
+	}
+	else
+	{
+		shootz += 8*FRACUNIT;
+	}
 
 	angle = (source->angle - ANG90) >> ANGLETOFINESHIFT;
 	x1 += offset*finecosine[angle];
@@ -4316,6 +4329,9 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 
 	// Now hurt anything the trace hit
 	unsigned int i;
+	const PClass *puffclass = PClass::FindClass(puff);
+	AActor *puffDefaults = puffclass == NULL? NULL : GetDefaultByType (puffclass);
+	FName damagetype = (puffDefaults == NULL || puffDefaults->DamageType == NAME_None) ? FName(NAME_Railgun) : puffDefaults->DamageType;
 
 	// Initialize bHitPlayer.
 	bHitPlayer = false;
@@ -4331,7 +4347,6 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 		if ((RailHits[i].HitActor->flags & MF_NOBLOOD) ||
 			(RailHits[i].HitActor->flags2 & (MF2_DORMANT|MF2_INVULNERABLE)))
 		{
-			const PClass *puffclass = PClass::FindClass(puff);
 			if (puffclass != NULL) P_SpawnPuff (puffclass, x, y, z, source->angle - ANG180, 1, true);
 		}
 		else
@@ -4344,9 +4359,9 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 		{
 			// Support for instagib.
 			if ( instagib )
-				P_DamageMobj (RailHits[i].HitActor, source, source, 999, NAME_Railgun, DMG_NO_ARMOR);
+				P_DamageMobj (RailHits[i].HitActor, source, source, 999, damagetype, DMG_NO_ARMOR);
 			else
-				P_DamageMobj (RailHits[i].HitActor, source, source, damage, NAME_Railgun, DMG_NO_ARMOR);
+				P_DamageMobj (RailHits[i].HitActor, source, source, damage, damagetype, DMG_NO_ARMOR);
 		}
 		P_TraceBleed (damage, x, y, z, RailHits[i].HitActor, angle, pitch);
 

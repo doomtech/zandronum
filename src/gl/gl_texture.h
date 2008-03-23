@@ -224,7 +224,11 @@ public:
 
 	bool GetTransparent()
 	{
-		if (bIsTransparent == -1) tex->PrecacheGL();
+		if (bIsTransparent == -1) 
+		{
+			if (tex->UseType==FTexture::TEX_Sprite) BindPatch(CM_DEFAULT);
+			else Bind (CM_DEFAULT);
+		}
 		return !!bIsTransparent;
 	}
 

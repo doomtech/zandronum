@@ -360,7 +360,7 @@ CUSTOM_CVAR( Int, botdebug_shownodes, 0, CVAR_ARCHIVE )
 //*****************************************************************************
 //	PROTOTYPES
 
-static	void					bots_ParseBotInfoLump( void );
+static	void					bots_ParseBotInfoLump( FScanner &sc );
 
 void	SERVERCONSOLE_ReListPlayers( void );
 
@@ -1741,12 +1741,10 @@ void BOTS_ParseBotInfo( void )
 	while (( lCurLump = Wads.FindLump( "BOTINFO", (int *)&lLastLump )) != -1 )
 	{
 		// Make pszBotInfo point to the raw data (which should be a text file) in the BOTINFO lump.
-		SC_OpenLumpNum( lCurLump, "BOTINFO" );
+		FScanner sc( lCurLump, "BOTINFO" );
 
 		// Parse the lump.
-		bots_ParseBotInfoLump( );
-
-		SC_Close( );
+		bots_ParseBotInfoLump( sc );
 	}
 }
 
@@ -2168,7 +2166,7 @@ void BOTS_PostWeaponFiredEvent( ULONG ulPlayer, BOTEVENT_e EventIfSelf, BOTEVENT
 //*****************************************************************************
 //*****************************************************************************
 //
-void bots_ParseBotInfoLump( void )
+void bots_ParseBotInfoLump( FScanner &sc )
 {
 	char		szKey[64];
 	char		szValue[128];
@@ -2176,7 +2174,7 @@ void bots_ParseBotInfoLump( void )
 
 	// Begin parsing that text. COM_Parse will create a token (com_token), and
 	// pszBotInfo will skip past the token.
-	while ( SC_GetString( ))
+	while ( sc.GetString( ))
 	{
 		// Initialize our botinfo variable.
 		BotInfo.bRevealed					= true;
@@ -2199,27 +2197,27 @@ void bots_ParseBotInfoLump( void )
 		sprintf( BotInfo.szChatFile,		"" );
 		sprintf( BotInfo.szChatLump,		"" );
 
-		while ( sc_String[0] != '{' )
-			SC_GetString( );
+		while ( sc.String[0] != '{' )
+			sc.GetString( );
 
 		// We've encountered a starting bracket. Now continue to parse until we hit an end bracket.
-		while ( sc_String[0] != '}' )
+		while ( sc.String[0] != '}' )
 		{
 			// The current token should be our key. (key = value) If it's an end bracket, break.
-			SC_GetString( );
-			strncpy( szKey, sc_String, 63 );
+			sc.GetString( );
+			strncpy( szKey, sc.String, 63 );
 			szKey[63] = 0;
-			if ( sc_String[0] == '}' )
+			if ( sc.String[0] == '}' )
 				break;
 
 			// The following key must be an = sign. If not, the user made an error!
-			SC_GetString( );
-			if ( stricmp( sc_String, "=" ) != 0 )
+			sc.GetString( );
+			if ( stricmp( sc.String, "=" ) != 0 )
 				I_Error( "BOTS_ParseBotInfo: Missing \"=\" in BOTINFO lump for field \"%s\"!", szKey );
 
 			// The last token should be our value.
-			SC_GetString( );
-			strncpy( szValue, sc_String, 127 );
+			sc.GetString( );
+			strncpy( szValue, sc.String, 127 );
 			szValue[127] = 0;
 
 			// Now try to match our key with a valid bot info field.

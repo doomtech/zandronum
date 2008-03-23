@@ -72,8 +72,6 @@ CVAR(String, crashlog_dir, "", CVAR_ARCHIVE|CVAR_GLOBALCONFIG);
 
 // MACROS ------------------------------------------------------------------
 
-#define BUGS_FORUM_URL	"http://forum.zdoom.org/index.php?c=3"
-
 #define REMOTE_HOST		"localhost"
 #define REMOTE_PORT		"80"
 #define UPLOAD_URI		"/test.php"

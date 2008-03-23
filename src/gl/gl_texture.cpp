@@ -249,6 +249,17 @@ void iCopyColors(unsigned char * pout, const unsigned char * pin, int cm, int co
 			pin+=step;
 		}
 		break;
+
+	case CM_SHADE:
+		// Alpha shade uses the red channel for true color pics
+		for(i=0;i<count;i++)
+		{
+			pout[0] = pout[1] =	pout[2] = 255;
+			pout[3] = T::R(pin);
+			pout+=4;
+			pin+=step;
+		}
+		break;
 	
 	default:
 		if (cm<=CM_DESAT31)
@@ -771,7 +782,7 @@ void FCanvasTexture::RenderGLView (AActor *viewpoint, int fov)
 
 void FTexture::PrecacheGL()
 {
-	if (currentrenderer == 1 && gl_precache)
+	if (gl_precache)
 	{
 		FGLTexture * gltex = FGLTexture::ValidateTexture(this);
 		if (gltex) 
@@ -1310,11 +1321,14 @@ const WorldTextureInfo * FGLTexture::Bind(int texunit, int cm, int clampmode, in
 				if (gl.flags & RFL_GLSL)
 				{
 					if (createWarped && gl_warp_shader && tex->bWarped!=0)
+					{
 						Clean(true);
+						GetWorldTextureInfo();
+					}
 						
 					if ((gl_warp_shader && tex->bWarped!=0) || 
 						(usebright) ||
-						((tex->bHasCanvas || gl_colormap_shader) && cm!=CM_DEFAULT && cm!=CM_SHADE && gl_texturemode != TM_MASK))
+						((tex->bHasCanvas || gl_colormap_shader) && cm!=CM_DEFAULT && /*!(cm>=CM_DESAT1 && cm<=CM_DESAT31) &&*/  cm!=CM_SHADE && gl_texturemode != TM_MASK))
 					{
 						Shader->Bind(cm, usebright);
 						if (cm != CM_SHADE) cm = CM_DEFAULT;
@@ -1343,7 +1357,8 @@ const WorldTextureInfo * FGLTexture::Bind(int texunit, int cm, int clampmode, in
 		}
 
 		// Bind it to the system.
-		if (!gltexture->Bind(texunit, cm, translation))
+		// clamping in x-direction may cause problems when rendering segs
+		if (!gltexture->Bind(texunit, cm, translation, gl_render_precise? clampmode&GLT_CLAMPY : clampmode))
 		{
 			int w,h;
 
@@ -1359,8 +1374,7 @@ const WorldTextureInfo * FGLTexture::Bind(int texunit, int cm, int clampmode, in
 			}
 			delete buffer;
 		}
-		// clamping in x-direction may cause problems when rendering segs
-		gltexture->SetTextureClamp(gl_render_precise? clampmode&GLT_CLAMPY : clampmode);
+		if (texunit == 0) gltexture->SetTextureClamp(gl_render_precise? clampmode&GLT_CLAMPY : clampmode);
 
 		if (tex->bHasCanvas) static_cast<FCanvasTexture*>(tex)->NeedUpdate();
 		return (WorldTextureInfo*)this; 
@@ -1411,11 +1425,14 @@ const PatchTextureInfo * FGLTexture::BindPatch(int texunit, int cm, int translat
 				if (gl.flags & RFL_GLSL)
 				{
 					if (createWarped && gl_warp_shader && tex->bWarped!=0)
+					{
 						Clean(true);
-						
+						GetPatchTextureInfo();
+					}
+
 					if ((gl_warp_shader && tex->bWarped!=0) || 
 						(usebright) ||
-						((tex->bHasCanvas || gl_colormap_shader) && cm!=CM_DEFAULT && cm!=CM_SHADE && gl_texturemode != TM_MASK))
+						((tex->bHasCanvas || gl_colormap_shader) && cm!=CM_DEFAULT && /*!(cm>=CM_DESAT1 && cm<=CM_DESAT31) &&*/ cm!=CM_SHADE && gl_texturemode != TM_MASK))
 					{
 						Shader->Bind(cm, usebright);
 						if (cm != CM_SHADE) cm = CM_DEFAULT;
@@ -1445,7 +1462,7 @@ const PatchTextureInfo * FGLTexture::BindPatch(int texunit, int cm, int translat
 
 		// Bind it to the system. For multitexturing this
 		// should be the only thing that needs adjusting
-		if (!glpatch->Bind(texunit, cm, translation))
+		if (!glpatch->Bind(texunit, cm, translation, -1))
 		{
 			int w, h;
 
@@ -1539,7 +1556,7 @@ FGLTexture * FGLTexture::ValidateTexture(int no, bool translate)
 //
 //==========================================================================
 
-void gl_ParseBrightmap(int deflump)
+void gl_ParseBrightmap(FScanner &sc, int deflump)
 {
 	int type = FTexture::TEX_Any;
 	bool disable_fullbright=false;
@@ -1548,57 +1565,57 @@ void gl_ParseBrightmap(int deflump)
 	int maplump = -1;
 	FString maplumpname;
 
-	SC_MustGetString();
-	if (SC_Compare("texture")) type = FTexture::TEX_Wall;
-	else if (SC_Compare("flat")) type = FTexture::TEX_Flat;
-	else if (SC_Compare("sprite")) type = FTexture::TEX_Sprite;
-	else SC_UnGet();
+	sc.MustGetString();
+	if (sc.Compare("texture")) type = FTexture::TEX_Wall;
+	else if (sc.Compare("flat")) type = FTexture::TEX_Flat;
+	else if (sc.Compare("sprite")) type = FTexture::TEX_Sprite;
+	else sc.UnGet();
 
-	SC_MustGetString();
-	int no = TexMan.CheckForTexture(sc_String, type);
+	sc.MustGetString();
+	int no = TexMan.CheckForTexture(sc.String, type);
 	FTexture *tex = TexMan[no];
 
-	SC_MustGetToken('{');
-	while (!SC_CheckToken('}'))
+	sc.MustGetToken('{');
+	while (!sc.CheckToken('}'))
 	{
-		SC_MustGetString();
-		if (SC_Compare("disablefullbright"))
+		sc.MustGetString();
+		if (sc.Compare("disablefullbright"))
 		{
 			// This can also be used without a brightness map to disable
 			// fullbright in rotations that only use brightness maps on
 			// other angles.
 			disable_fullbright = true;
 		}
-		else if (SC_Compare("thiswad"))
+		else if (sc.Compare("thiswad"))
 		{
 			// only affects textures defined in the WAD containing the definition file.
 			thiswad = true;
 		}
-		else if (SC_Compare ("iwad"))
+		else if (sc.Compare ("iwad"))
 		{
 			// only affects textures defined in the IWAD.
 			iwad = true;
 		}
-		else if (SC_Compare ("map"))
+		else if (sc.Compare ("map"))
 		{
-			SC_MustGetString();
+			sc.MustGetString();
 
 			if (maplump >= 0)
 			{
 				Printf("Multiple brightmap definitions in texture %s\n", tex? tex->Name : "(null)");
 			}
 
-			maplump = Wads.CheckNumForFullName(sc_String);
+			maplump = Wads.CheckNumForFullName(sc.String);
 
 			// Try a normal WAD name lookup only if it's a proper name without path separator and
 			// not longer than 8 characters.
-			if (maplump==-1 && strlen(sc_String) <= 8 && !strchr(sc_String, '/')) 
-				maplump = Wads.CheckNumForName(sc_String);
+			if (maplump==-1 && strlen(sc.String) <= 8 && !strchr(sc.String, '/')) 
+				maplump = Wads.CheckNumForName(sc.String);
 
 			if (maplump==-1) 
-				Printf("Brightmap '%s' not found in texture '%s'\n", sc_String, tex? tex->Name : "(null)");
+				Printf("Brightmap '%s' not found in texture '%s'\n", sc.String, tex? tex->Name : "(null)");
 
-			maplumpname = sc_String;
+			maplumpname = sc.String;
 		}
 	}
 	if (!tex)

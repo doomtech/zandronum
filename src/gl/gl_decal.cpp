@@ -158,7 +158,7 @@ void GLWall::DrawDecal(DBaseDecal *actor, seg_t *seg, sector_t *frontSector, sec
 	
 	float red, green, blue;
 	
-	if (actor->RenderStyle == STYLE_Shaded)
+	if (actor->RenderStyle.Flags & STYLEF_ColorIsFixed)
 	{
 		loadAlpha = true;
 		p.LightColor.a=CM_SHADE;
@@ -314,30 +314,16 @@ void GLWall::DrawDecal(DBaseDecal *actor, seg_t *seg, sector_t *frontSector, sec
 	// fog is set once per wall in the calling function and not per decal!
 
 	gl.Color4f(red, green, blue, a);
-	switch(actor->RenderStyle)
-	{
-	case STYLE_Shaded:
-	case STYLE_Translucent:
-		gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		gl.AlphaFunc(GL_GREATER,0.0f);
-		break;
 
-	case STYLE_Add:
-		gl.BlendFunc(GL_SRC_ALPHA, GL_ONE);
-		gl.AlphaFunc(GL_GREATER,0.0f);
-		break;
+	FRenderStyle style = actor->RenderStyle;
+	style.Flags &= ~STYLEF_ColorIsFixed;	// this is handled differently for decals (see above)
 
-	case STYLE_Fuzzy:
-		gl.BlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
-		gl.AlphaFunc(GL_GREATER,0.0f);
-		break;
+	gl_SetRenderStyle(style, false, false);
 
-	default:
-		gl.BlendFunc(GL_ONE,GL_ZERO);	
-		gl.AlphaFunc(GL_GEQUAL,0.5f);
-		break;
+	// If srcalpha is one it looks better with a higher alpha threshold
+	if (style.SrcAlpha == STYLEALPHA_One) gl.AlphaFunc(GL_GEQUAL, 0.5f);
+	else gl.AlphaFunc(GL_GREATER, 0.f);
 
-	}
 	gl.Begin(GL_TRIANGLE_FAN);
 	for(i=0;i<4;i++)
 	{

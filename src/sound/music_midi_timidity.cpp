@@ -1,6 +1,7 @@
 #include "i_musicinterns.h"
 #include "c_cvars.h"
 #include "cmdlib.h"
+#include "templates.h"
 
 #ifdef __FreeBSD__
 #include <signal.h>
@@ -60,6 +61,17 @@ CVAR (String, timidity_reverb, "0", CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (Bool, timidity_stereo, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (Bool, timidity_8bit, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (Bool, timidity_byteswap, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+// added because Timidity's output is rather loud.
+CUSTOM_CVAR (Float, timidity_mastervolume, 1.0f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+{
+	if (self < 0.f)
+		self = 0.f;
+	else if (self > 4.f)
+		self = 4.f;
+	else if (currSong != NULL && !currSong->IsMIDI ())
+		currSong->SetVolume (clamp<float> (snd_musicvolume, 0.f, 1.f));
+}
+
 
 CUSTOM_CVAR (Int, timidity_pipe, 60, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 { // pipe size in ms
@@ -584,6 +596,11 @@ bool TimiditySong::FillStream (SoundStream *stream, void *buff, int len, void *u
 	}
 #endif
 	return true;
+}
+
+void TimiditySong::SetVolume (float volume)
+{
+	if (m_Stream!=NULL) m_Stream->SetVolume (volume*timidity_mastervolume);
 }
 
 bool TimiditySong::IsPlaying ()

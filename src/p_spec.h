@@ -27,6 +27,8 @@
 
 #include "dsectoreffect.h"
 
+class FScanner;
+
 //jff 2/23/98 identify the special classes that can share sectors
 
 typedef enum
@@ -158,7 +160,7 @@ inline FArchive &operator<< (FArchive &arc, DPusher::EPusher &type)
 // [RH] If a deathmatch game, checks to see if noexit is enabled.
 //		If so, it kills the player and returns false. Otherwise,
 //		it returns true, and the player is allowed to live.
-bool	CheckIfExitIsGood (AActor *self);
+bool	CheckIfExitIsGood (AActor *self, level_info_t *info);
 
 // at map load
 void	P_SpawnSpecials (void);
@@ -418,7 +420,7 @@ void	EV_StartLightFading (int tag, int value, int tics);
 bool	P_ChangeSwitchTexture (side_t *side, int useAgain, BYTE special, bool *quest=NULL);
 
 void	P_InitSwitchList ();
-void	P_ProcessSwitchDef ();
+void	P_ProcessSwitchDef (FScanner &sc);
 
 //
 // P_PLATS
@@ -699,7 +701,7 @@ struct FDoorAnimation
 	char *CloseSound;
 };
 
-void P_ParseAnimatedDoor ();
+void P_ParseAnimatedDoor (FScanner &sc);
 
 class DAnimatedDoor : public DMovingCeiling
 {

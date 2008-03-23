@@ -49,6 +49,8 @@
 #include "gl/gl_portal.h"
 
 
+EXTERN_CVAR (Float, transsouls)
+
 CVAR (Bool, gl_lights_debug, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
 CUSTOM_CVAR (Bool, gl_lights, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 {
@@ -250,6 +252,21 @@ void gl_GetLightColor(int lightlevel, int rellight, const FColormap * cm, float 
 // set current light color
 //
 //==========================================================================
+void gl_SetColor(int light, int rellight, const FColormap * cm, float *red, float *green, float *blue, PalEntry ThingColor, bool weapon)
+{ 
+	float r,g,b;
+	gl_GetLightColor(light, rellight, cm, &r, &g, &b, weapon);
+
+	*red = r * ThingColor.r/255.0f;
+	*green = g * ThingColor.g/255.0f;
+	*blue = b * ThingColor.b/255.0f;
+}
+
+//==========================================================================
+//
+// set current light color
+//
+//==========================================================================
 void gl_SetColor(int light, int rellight, const FColormap * cm, float alpha, PalEntry ThingColor, bool weapon)
 { 
 	float r,g,b;
@@ -342,7 +359,7 @@ void gl_InitFog()
 //
 //==========================================================================
 
-void gl_SetFog(int lightlevel, PalEntry fogcolor, int blendmode, int cm)
+void gl_SetFog(int lightlevel, PalEntry fogcolor, bool isadditive, int cm)
 {
 
 	float fogdensity;
@@ -373,7 +390,7 @@ void gl_SetFog(int lightlevel, PalEntry fogcolor, int blendmode, int cm)
 	{
 		// For additive rendering using the regular fog color here would mean applying it twice
 		// so always use black
-		if (blendmode==STYLE_Add || blendmode==STYLE_Fuzzy)
+		if (isadditive)
 		{
 			fogcolor=0;
 		}
@@ -555,6 +572,8 @@ void gl_GetSpriteLight(fixed_t x, fixed_t y, fixed_t z, subsector_t * subsec, in
 	}
 }
 
+
+
 static void gl_SetSpriteLight(fixed_t x, fixed_t y, fixed_t z, subsector_t * subsec, 
                               int lightlevel, int rellight, FColormap * cm, float alpha, 
 							  PalEntry ThingColor, bool weapon)
@@ -568,7 +587,6 @@ static void gl_SetSpriteLight(fixed_t x, fixed_t y, fixed_t z, subsector_t * sub
 	r = clamp<float>(result[0]+r, 0, 1.0f) * ThingColor.r/255.f;
 	g = clamp<float>(result[1]+g, 0, 1.0f) * ThingColor.g/255.f;
 	b = clamp<float>(result[2]+b, 0, 1.0f) * ThingColor.b/255.f;
-
 	gl.Color4f(r, g, b, alpha);
 }
 
@@ -587,6 +605,103 @@ void gl_SetSpriteLight(particle_t * thing, int lightlevel, int rellight, FColorm
 					  cm, alpha, ThingColor, false);
 }
 
+//==========================================================================
+//
+// Sets render state to draw the given render style
+// includes: Texture mode, blend equation and blend mode
+//
+//==========================================================================
+void gl_SetRenderStyle(FRenderStyle style, bool drawopaque, bool allowcolorblending)
+{
+	static int blendstyles[] = { GL_ZERO, GL_ONE, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA };
+	static int renderops[] = { 0, GL_FUNC_ADD, GL_FUNC_SUBTRACT, GL_FUNC_REVERSE_SUBTRACT, -1, -1, -1, -1};
+
+	int srcblend = blendstyles[style.SrcAlpha&3];
+	int dstblend = blendstyles[style.DestAlpha&3];
+	int blendequation = renderops[style.BlendOp&7];
+	int texturemode = drawopaque? TM_OPAQUE : TM_MODULATE;
+
+	if (style.Flags & STYLEF_ColorIsFixed)
+	{
+		texturemode = TM_MASK;
+	}
+	else if (style.Flags & STYLEF_InvertSource)
+	{
+		texturemode = drawopaque? TM_INVERTOPAQUE : TM_INVERT;
+	}
+
+	if (blendequation == -1)
+	{
+		srcblend = GL_DST_COLOR;
+		dstblend = GL_ONE_MINUS_SRC_ALPHA;
+		blendequation = GL_FUNC_ADD;
+	}
+
+	if (allowcolorblending && srcblend == GL_SRC_ALPHA && dstblend == GL_ONE && blendequation == GL_FUNC_ADD)
+	{
+		srcblend = GL_SRC_COLOR;
+	}
+
+	gl.BlendFunc(srcblend, dstblend);
+	gl.BlendEquation(blendequation);
+	gl_SetTextureMode(texturemode);
+}
+
+//==========================================================================
+//
+// Sets render state to draw the given render style
+//
+//==========================================================================
+void gl_SetSpriteLighting(FRenderStyle style, AActor *thing, int lightlevel, int rellight, FColormap *cm, 
+						  PalEntry ThingColor, float alpha, bool fullbright, bool weapon)
+{
+	FColormap internal_cm;
+
+	if (style.Flags & STYLEF_RedIsAlpha)
+	{
+		cm->LightColor.a = CM_SHADE;
+	}
+	if (style.Flags & STYLEF_ColorIsFixed)
+	{
+		if (style.Flags & STYLEF_InvertSource)
+		{
+			ThingColor = PalEntry(thing->fillcolor).InverseColor();
+		}
+		else
+		{
+			ThingColor = thing->fillcolor;
+		}
+		gl_ModifyColor(ThingColor.r, ThingColor.g, ThingColor.b, cm->LightColor.a);
+	}
+
+	// This doesn't work like in the software renderer.
+	if (style.Flags & STYLEF_InvertSource)
+	{
+		internal_cm = *cm;
+		cm = &internal_cm;
+
+		int gray = (internal_cm.LightColor.r*77 + internal_cm.LightColor.r*143 + internal_cm.LightColor.r*36)>>8;
+		cm->LightColor.r = cm->LightColor.g = cm->LightColor.b = gray;
+	}
+
+	if (style.BlendOp == STYLEOP_Fuzz)
+	{
+		gl.Color4f(0.2f * ThingColor.r / 255.f, 0.2f * ThingColor.g / 255.f, 
+					0.2f * ThingColor.b / 255.f, (alpha = 0.33f));
+	}
+	else
+	{
+		if (gl_light_sprites && gl_lights && !fullbright)
+		{
+			gl_SetSpriteLight(thing, lightlevel, rellight, cm, alpha, ThingColor, weapon);
+		}
+		else
+		{
+			gl_SetColor(lightlevel, rellight, cm, alpha, ThingColor, weapon);
+		}
+	}
+	gl.AlphaFunc(GL_GEQUAL,alpha/2.f);
+}
 
 //==========================================================================
 //
@@ -600,5 +715,6 @@ CCMD(skyfog)
 		skyfog=strtol(argv[1],NULL,0);
 	}
 }
+
 
 

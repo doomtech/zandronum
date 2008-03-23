@@ -752,12 +752,12 @@ void GLHorizonPortal::DrawContents()
 	{
 		// glowing textures are always drawn full bright without color
 		gl_SetColor(255, 0, NULL, 1.f);
-		gl_SetFog(255, origin->colormap.FadeColor, STYLE_Normal, origin->colormap.LightColor.a);
+		gl_SetFog(255, origin->colormap.FadeColor, false, origin->colormap.LightColor.a);
 	}
 	else 
 	{
 		gl_SetColor(origin->lightlevel, extralight*gl_weaponlight, &origin->colormap, 1.0f);
-		gl_SetFog(origin->lightlevel, origin->colormap.FadeColor, STYLE_Normal, origin->colormap.LightColor.a);
+		gl_SetFog(origin->lightlevel, origin->colormap.FadeColor, false, origin->colormap.LightColor.a);
 	}
 
 

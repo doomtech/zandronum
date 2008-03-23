@@ -427,11 +427,11 @@ void CChatFile::ParseChatLump( char *pszLumpName )
 	if ( lLump == -1 )
 		lLump = Wads.GetNumForFullName( pszLumpName );
 
-	SC_OpenLumpNum( lLump, pszLumpName );
+	FScanner sc( lLump, pszLumpName );
 
-	while ( SC_GetString( ))
+	while ( sc.GetString( ))
 	{
-		char	*pszStart = sc_String;
+		char	*pszStart = sc.String;
 		char	*pszEndPoint;
 
 		// Remove white space at start of line.

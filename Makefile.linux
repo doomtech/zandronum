@@ -23,7 +23,7 @@ else
 endif
 LDFLAGS += FLAC/*.o -lz -ljpeg `sdl-config --libs`
 ifndef SERVERONLY
-  LDFLAGS += -lfmod -lGL -lGLU `pkg-config gtk+-2.0 --libs`
+  LDFLAGS +=  -lmodplug-lfmod -lGL -lGLU `pkg-config gtk+-2.0 --libs`
 endif
 NASMFLAGS += -f elf -DM_TARGET_LINUX
 
@@ -130,6 +130,7 @@ tools/updaterevision/updaterevision:
 
 clean: cleanobjs
 	rm -f $(ZDOOMDEBUG) $(ZDOOM) $(ZDOOM).map
+	#rm -f $(ZDOOM).pk3
 	rm -f ccdv
 
 cleantools:

@@ -53,7 +53,7 @@ public:
 	WORD Translation;
 	WORD PicNum;
 	DWORD RenderFlags;
-	BYTE RenderStyle;
+	FRenderStyle RenderStyle;
 	sector_t * Sector;	// required for 3D floors
 
 protected:

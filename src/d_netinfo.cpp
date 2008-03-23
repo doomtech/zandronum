@@ -854,7 +854,7 @@ void D_ReadUserInfoStrings (int i, BYTE **stream, bool update)
 
 			if (compact)
 			{
-				value = D_UnescapeUserInfo(ptr, breakpt - ptr);
+				value = D_UnescapeUserInfo(ptr, breakpt != NULL ? breakpt - ptr : strlen(ptr));
 				infotype++;
 			}
 			else
@@ -888,7 +888,6 @@ void D_ReadUserInfoStrings (int i, BYTE **stream, bool update)
 					infotype = j;
 				}
 			}
-
 			switch (infotype)
 			{
 			case INFO_Autoaim: {
@@ -980,7 +979,7 @@ void D_ReadUserInfoStrings (int i, BYTE **stream, bool update)
 				break;
 
 			case INFO_SwitchOnPickup:
-				if (*value >= '0' && *value <= '9')
+				if (value[0] >= '0' && value[0] <= '9')
 				{
 					info->switchonpickup = atoi (value);
 				}

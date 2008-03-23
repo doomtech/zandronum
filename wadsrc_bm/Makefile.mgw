@@ -1,0 +1,18 @@
+MAKEWAD=../tools/makewad/makewad
+
+ifneq ($(MAKECMDGOALS),clean)
+include Makefile2
+endif
+
+wadmake: zdoom.lst $(MAKEWAD).exe 
+	$(MAKEWAD) -make wadmake zdoom.lst
+
+clean:
+ifeq (msys,$(OSTYPE))
+	rm -f wadmake brightmaps.pk3 
+else
+	del /q /f wadmake brightmaps.pk3 2>nul
+endif
+
+../tools/makewad/makewad.exe:
+	$(MAKE) -C ../tools/makewad -f Makefile

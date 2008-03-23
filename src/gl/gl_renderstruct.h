@@ -55,6 +55,14 @@ int GetCeilingLight (const sector_t *sec);
 struct GLDrawList;
 class ADynamicLight;
 
+
+enum HWRenderStyle
+{
+	STYLEHW_Normal,			// default
+	STYLEHW_Solid,			// drawn solid (needs special treatment for sprites)
+	STYLEHW_NoAlphaTest,	// disable alpha test
+};
+
 //==========================================================================
 //
 // One sector plane, still in fixed point
@@ -137,11 +145,12 @@ public:
 
 
 	FColormap Colormap;
+	ERenderStyle RenderStyle;
 	
 	fixed_t viewdistance;
+
 	byte lightlevel;
 	byte type;
-	byte RenderStyle;
 	byte flags;
 	short rellight;
 
@@ -266,6 +275,7 @@ public:
 	FGLTexture *gltexture;
 
 	FColormap Colormap;	// light and fog
+	ERenderStyle renderstyle;
 
 	float alpha;
 	GLSectorPlane plane;
@@ -274,7 +284,6 @@ public:
 	bool foggy;
 	bool ceiling;
 	byte renderflags;
-	byte renderstyle;
 
 	void DrawSubsector(subsector_t * sub);
 	void DrawSubsectorLights(subsector_t * sub, int pass);
@@ -304,12 +313,13 @@ public:
 	friend struct GLDrawList;
 	friend void Mod_RenderModel(GLSprite * spr, model_t * mdl, int framenumber);
 
-	unsigned char RenderStyle;
 	byte lightlevel;
 	byte foglevel;
+	byte hw_styleflags;
 	PalEntry ThingColor;	// thing's own color
 	FColormap Colormap;
 	FSpriteModelFrame * modelframe;
+	FRenderStyle RenderStyle;
 
 	int translation;
 	int index;
@@ -336,6 +346,7 @@ public:
 	void Process(AActor* thing,sector_t * sector);
 	void ProcessParticle (particle_t *particle, sector_t *sector);//, int shade, int fakeside)
 	void SetThingColor(PalEntry);
+	void SetSpriteColor(sector_t *sector, fixed_t y);
 
 	// Lines start-end and fdiv must intersect.
 	double CalcIntersectionVertex(GLWall * w2)

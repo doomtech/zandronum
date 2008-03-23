@@ -287,6 +287,21 @@ private:
 	}
 };
 
+// TDeletingArray -----------------------------------------------------------
+// An array that deletes its elements when it gets deleted.
+template<class T, class TT=T>
+class TDeletingArray : public TArray<T, TT>
+{
+public:
+	~TDeletingArray<T, TT> ()
+	{
+		for (unsigned int i = 0; i < TArray<T,TT>::Size(); ++i)
+		{
+			delete (*this)[i];
+		}
+	}
+};
+
 // TAutoGrowArray -----------------------------------------------------------
 // An array with accessors that automatically grow the array as needed.
 // It can still be used as a normal TArray if needed. ACS uses this for
@@ -789,8 +804,8 @@ public:
 	// NextPair
 	//
 	// Returns false if there are no more entries in the table. Otherwise, it
-	// returns true, and key and value are filled with pointers to the
-	// respective parts of the next pair in the table.
+	// returns true, and pair is filled with a pointer to the pair in the
+	// table.
 	//
 	//=======================================================================
 

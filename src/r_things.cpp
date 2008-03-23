@@ -524,7 +524,7 @@ void R_InitSkins (void)
 			sndlumps[j] = -1;
 		skins[i].namespc = Wads.GetLumpNamespace (base);
 
-		SC_OpenLumpNum (base, "S_SKIN");
+		FScanner sc(base, "S_SKIN");
 		intname = 0;
 		crouchname = 0;
 
@@ -533,19 +533,19 @@ void R_InitSkins (void)
 		transtype = NULL;
 
 		// Data is stored as "key = data".
-		while (SC_GetString ())
+		while (sc.GetString ())
 		{
-			strncpy (key, sc_String, sizeof(key)-1);
-			if (!SC_GetString() || sc_String[0] != '=')
+			strncpy (key, sc.String, sizeof(key)-1);
+			if (!sc.GetString() || sc.String[0] != '=')
 			{
 				Printf (PRINT_BOLD, "Bad format for skin %d: %s\n", i, key);
 				break;
 			}
-			SC_GetString ();
+			sc.GetString ();
 			if (0 == stricmp (key, "name"))
 			{
 				// [BC] MAX_SKIN_NAME.
-				strncpy (skins[i].name, sc_String, MAX_SKIN_NAME);
+				strncpy (skins[i].name, sc.String, MAX_SKIN_NAME);
 				for (j = 0; (size_t)j < i; j++)
 				{
 					if (stricmp (skins[i].name, skins[j].name) == 0)
@@ -560,27 +560,27 @@ void R_InitSkins (void)
 			else if (0 == stricmp (key, "sprite"))
 			{
 				for (j = 3; j >= 0; j--)
-					sc_String[j] = toupper (sc_String[j]);
-				intname = *((DWORD *)sc_String);
+					sc.String[j] = toupper (sc.String[j]);
+				intname = *((DWORD *)sc.String);
 			}
 			else if (0 == stricmp (key, "crouchsprite"))
 			{
 				for (j = 3; j >= 0; j--)
-					sc_String[j] = toupper (sc_String[j]);
-				crouchname = *((DWORD *)sc_String);
+					sc.String[j] = toupper (sc.String[j]);
+				crouchname = *((DWORD *)sc.String);
 			}
 			else if (0 == stricmp (key, "face"))
 			{
 				for (j = 2; j >= 0; j--)
-					skins[i].face[j] = toupper (sc_String[j]);
+					skins[i].face[j] = toupper (sc.String[j]);
 			}
 			else if (0 == stricmp (key, "gender"))
 			{
-				skins[i].gender = D_GenderToInt (sc_String);
+				skins[i].gender = D_GenderToInt (sc.String);
 			}
 			else if (0 == stricmp (key, "scale"))
 			{
-				skins[i].Scale = clamp<fixed_t> (FLOAT2FIXED(atof (sc_String)), 1, 256*FRACUNIT);
+				skins[i].Scale = clamp<fixed_t> (FLOAT2FIXED(atof (sc.String)), 1, 256*FRACUNIT);
 			}
 			else if (0 == stricmp (key, "game"))
 			{
@@ -593,7 +593,7 @@ void R_InitSkins (void)
 
 				transtype = basetype;
 
-				if (stricmp (sc_String, "heretic") == 0)
+				if (stricmp (sc.String, "heretic") == 0)
 				{
 					if (gameinfo.gametype == GAME_Doom)
 					{
@@ -605,7 +605,7 @@ void R_InitSkins (void)
 						remove = true;
 					}
 				}
-				else if (stricmp (sc_String, "strife") == 0)
+				else if (stricmp (sc.String, "strife") == 0)
 				{
 					if (gameinfo.gametype != GAME_Strife)
 					{
@@ -630,7 +630,7 @@ void R_InitSkins (void)
 			}
 			else if (0 == stricmp (key, "class"))
 			{ // [GRB] Define the skin for a specific player class
-				int pclass = D_PlayerClassToInt (sc_String);
+				int pclass = D_PlayerClassToInt (sc.String);
 
 				if (pclass < 0)
 				{
@@ -642,11 +642,11 @@ void R_InitSkins (void)
 			}
 			else if (key[0] == '*')
 			{ // Player sound replacment (ZDoom extension)
-				int lump = Wads.CheckNumForName (sc_String, skins[i].namespc);
+				int lump = Wads.CheckNumForName (sc.String, skins[i].namespc);
 				if (lump == -1)
 				{
-					lump = Wads.CheckNumForFullName (sc_String);
-					if (lump == -1) lump = Wads.CheckNumForName (sc_String, ns_sounds);
+					lump = Wads.CheckNumForFullName (sc.String);
+					if (lump == -1) lump = Wads.CheckNumForName (sc.String, ns_sounds);
 				}
 				if (lump != -1)
 				{
@@ -676,16 +676,16 @@ void R_InitSkins (void)
 				{
 					if (stricmp (key, skinsoundnames[j][0]) == 0)
 					{
-						sndlumps[j] = Wads.CheckNumForName (sc_String, skins[i].namespc);
+						sndlumps[j] = Wads.CheckNumForName (sc.String, skins[i].namespc);
 						if (sndlumps[j] == -1)
 						{ // Replacement not found, try finding it in the global namespace
-							sndlumps[j] = Wads.CheckNumForFullName (sc_String);
-							if (sndlumps[j] == -1) sndlumps[j] = Wads.CheckNumForName (sc_String, ns_sounds);
+							sndlumps[j] = Wads.CheckNumForFullName (sc.String);
+							if (sndlumps[j] == -1) sndlumps[j] = Wads.CheckNumForName (sc.String, ns_sounds);
 						}
 					}
 				}
 				//if (j == 8)
-				//	Printf ("Funny info for skin %i: %s = %s\n", i, key, sc_String);
+				//	Printf ("Funny info for skin %i: %s = %s\n", i, key, sc.String);
 			}
 		}
 
@@ -823,8 +823,6 @@ void R_InitSkins (void)
 			}
 		}
 
-		SC_Close ();
-
 		// Make sure face prefix is a full 3 chars
 		if (skins[i].face[1] == 0 || skins[i].face[2] == 0)
 		{
@@ -845,14 +843,14 @@ void R_InitSkins (void)
 		while (( lCurLump = Wads.FindLump( "SKININFO", (int *)&lLastLump )) != -1 )
 		{
 			// Load the found SKININFO lump.
-			SC_OpenLumpNum( lCurLump, "SKININFO" );
+			FScanner sc( lCurLump, "SKININFO" );
 
 			// Begin parsing the lump.
-			while ( SC_GetString( ))
+			while ( sc.GetString( ))
 			{
 				// Parse until we find a starting bracket.
-				while ( sc_String[0] != '{' )
-					SC_GetString( );
+				while ( sc.String[0] != '{' )
+					sc.GetString( );
 
 				// Move onto the next skin.
 				i++;
@@ -869,22 +867,22 @@ void R_InitSkins (void)
 					sndlumps[ulIdx] = -1;
 
 				// We've encountered a starting bracket. Now continue to parse until we hit an end bracket.
-				while ( sc_String[0] != '}' )
+				while ( sc.String[0] != '}' )
 				{
 					// The current token should be our key. (key = value) If it's an end bracket, break.
-					SC_GetString( );
-					sprintf( szKey, sc_String );
-					if ( sc_String[0] == '}' )
+					sc.GetString( );
+					sprintf( szKey, sc.String );
+					if ( sc.String[0] == '}' )
 						break;
 
 					// The following key must be an = sign. If not, the user made an error!
-					SC_GetString( );
-					if ( stricmp( sc_String, "=" ) != 0 )
+					sc.GetString( );
+					if ( stricmp( sc.String, "=" ) != 0 )
 						I_Error( "R_InitSkins: Missing \"=\" in SKININFO lump for field \"%s\".\n", szKey );
 
 					// The last token should be our value.
-					SC_GetString( );
-					sprintf( szValue, sc_String );
+					sc.GetString( );
+					sprintf( szValue, sc.String );
 
 					// Now try to match our key with a valid bot info field.
 					if ( stricmp( szKey, "name" ) == 0 )
@@ -946,7 +944,7 @@ void R_InitSkins (void)
 						// NOTE TO SELF: What is transtype?
 						transtype = basetype;
 
-						if ( stricmp( sc_String, "heretic" ) == 0 )
+						if ( stricmp( sc.String, "heretic" ) == 0 )
 						{
 							// I guess you can use heretic skins in Doom?
 							if ( gameinfo.gametype == GAME_Doom )
@@ -957,7 +955,7 @@ void R_InitSkins (void)
 							else if ( gameinfo.gametype != GAME_Heretic )
 								remove = true;
 						}
-						else if ( stricmp ( sc_String, "strife" ) == 0 )
+						else if ( stricmp ( sc.String, "strife" ) == 0 )
 						{
 							// Only allow the use of Strife skins in Strife.
 							if ( gameinfo.gametype != GAME_Strife )
@@ -983,7 +981,7 @@ void R_InitSkins (void)
 					{
 						LONG	lClass;
 
-						lClass = D_PlayerClassToInt( sc_String );
+						lClass = D_PlayerClassToInt( sc.String );
 
 						// If the class this skin is for doesn't exist, remove the skin.
 						if ( lClass < 0 )
@@ -998,10 +996,10 @@ void R_InitSkins (void)
 					else if ( szKey[0] == '*' )
 					{
 						LONG	lIdx;
-						LONG	lLump = Wads.CheckNumForName( sc_String, skins[i].namespc );
+						LONG	lLump = Wads.CheckNumForName( sc.String, skins[i].namespc );
 
 						if ( lLump == -1 )
-							lLump = Wads.CheckNumForName( sc_String );
+							lLump = Wads.CheckNumForName( sc.String );
 
 						if ( lLump != -1 )
 						{
@@ -1234,8 +1232,6 @@ void R_InitSkins (void)
 					}
 				}
 			}
-
-			SC_Close( );
 		}
 	}
 
@@ -1349,23 +1345,22 @@ ULONG R_CountSkinInfoSkins( void )
 	while (( lCurLump = Wads.FindLump( "SKININFO", (int *)&lLastLump )) != -1 )
 	{
 		// Open the found skininfo lump.
-		SC_OpenLumpNum( lCurLump, "SKININFO" );
+		FScanner sc( lCurLump, "SKININFO" );
 
 		// Begin parsing that text found within that lump.
-		while ( SC_GetString( ))
+		while ( sc.GetString( ))
 		{
 			// We found a starting brace. This indicated we're creating a new skin.
-			while ( sc_String[0] != '{' )
-				SC_GetString( );
+			while ( sc.String[0] != '{' )
+				sc.GetString( );
 
 			ulNumSkins++;
 
 			// Continue to parse until we've found the corresponding closing brace.
-			while ( sc_String[0] != '}' )
-				SC_GetString( );
+			while ( sc.String[0] != '}' )
+				sc.GetString( );
 		}
 
-		SC_Close( );
 	}
 
 	return ( ulNumSkins );
@@ -1637,7 +1632,7 @@ void R_DrawVisSprite (vissprite_t *vis)
 
 	dc_colormap = vis->colormap;
 
-	mode = R_SetPatchStyle (vis->RenderStyle, vis->alpha, vis->Translation, vis->AlphaColor);
+	mode = R_SetPatchStyle (vis->RenderStyle, vis->alpha, vis->Translation, vis->FillColor);
 
 	if (mode != DontDraw)
 	{
@@ -1737,10 +1732,10 @@ void R_ProjectSprite (AActor *thing, int fakeside)
 	SWORD				TopOffset;
 	SWORD				LeftOffset;
 
+	// Don't waste time projecting sprites that are definitely not visible.
 	if (thing == NULL ||
 		(thing->renderflags & RF_INVISIBLE) ||
-		thing->RenderStyle == STYLE_None ||
- 		(thing->RenderStyle >= STYLE_Translucent && thing->alpha <= 0))
+		!thing->RenderStyle.IsVisible(thing->alpha))
 	{
 		return;
 	}
@@ -1942,7 +1937,7 @@ void R_ProjectSprite (AActor *thing, int fakeside)
 	fixed_t yscale = DivScale16(thing->scaleY, tex->yScale);
 	vis->renderflags = thing->renderflags;
 	vis->RenderStyle = thing->RenderStyle;
-	vis->AlphaColor = thing->alphacolor;
+	vis->FillColor = thing->fillcolor;
 	vis->xscale = xscale;
 	vis->yscale = Scale (InvZtoScale, yscale, tz)>>4;
 	vis->idepth = (DWORD)DivScale32 (1, tz) >> 1;	// tz is 20.12, so idepth ought to be 12.20, but
@@ -1974,7 +1969,34 @@ void R_ProjectSprite (AActor *thing, int fakeside)
 
 	if (vis->x1 > x1)
 		vis->startfrac += vis->xiscale*(vis->x1-x1);
-	
+
+	// The software renderer cannot invert the source without inverting the overlay
+	// too. That means if the source is inverted, we need to do the reverse of what
+	// the invert overlay flag says to do.
+	INTBOOL invertcolormap = (vis->RenderStyle.Flags & STYLEF_InvertOverlay);
+
+	if (vis->RenderStyle.Flags & STYLEF_InvertSource)
+	{
+		invertcolormap = !invertcolormap;
+	}
+
+	FDynamicColormap *mybasecolormap = basecolormap;
+
+	if (vis->RenderStyle.Flags & STYLEF_FadeToBlack)
+	{
+		if (invertcolormap)
+		{
+			// Fade to white
+			mybasecolormap = GetSpecialLights(mybasecolormap->Color, MAKERGB(255,255,255), mybasecolormap->Desaturate);
+			invertcolormap = false;
+		}
+		else
+		{
+			// Fade to black
+			mybasecolormap = GetSpecialLights(mybasecolormap->Color, MAKERGB(0,0,0), mybasecolormap->Desaturate);
+		}
+	}
+
 	// get light level
 	if (fixedcolormap)
 	{
@@ -2009,17 +2031,29 @@ void R_ProjectSprite (AActor *thing, int fakeside)
 	}
 	else if (fixedlightlev)
 	{
-		vis->colormap = basecolormap + fixedlightlev;
+		if (invertcolormap)
+		{
+			mybasecolormap = GetSpecialLights(mybasecolormap->Color, mybasecolormap->Fade.InverseColor(), mybasecolormap->Desaturate);
+		}
+		vis->colormap = mybasecolormap->Maps + fixedlightlev;
 	}
 	else if (!foggy && (thing->renderflags & RF_FULLBRIGHT))
 	{
 		// full bright
-		vis->colormap = basecolormap;	// [RH] Use basecolormap
+		if (invertcolormap)
+		{
+			mybasecolormap = GetSpecialLights(mybasecolormap->Color, mybasecolormap->Fade.InverseColor(), mybasecolormap->Desaturate);
+		}
+		vis->colormap = mybasecolormap->Maps;
 	}
 	else
 	{
 		// diminished light
-		vis->colormap = basecolormap + (GETPALOOKUP (
+		if (invertcolormap)
+		{
+			mybasecolormap = GetSpecialLights(mybasecolormap->Color, mybasecolormap->Fade.InverseColor(), mybasecolormap->Desaturate);
+		}
+		vis->colormap = mybasecolormap->Maps + (GETPALOOKUP (
 			(fixed_t)DivScale12 (r_SpriteVisibility, tz), spriteshade) << COLORMAPSHIFT);
 	}
 }
@@ -2170,9 +2204,41 @@ void R_DrawPSprite (pspdef_t* psp, int pspnum, AActor *owner, fixed_t sx, fixed_
 	{
 		vis->alpha = owner->alpha;
 		vis->RenderStyle = owner->RenderStyle;
+
+		// The software renderer cannot invert the source without inverting the overlay
+		// too. That means if the source is inverted, we need to do the reverse of what
+		// the invert overlay flag says to do.
+		INTBOOL invertcolormap = (vis->RenderStyle.Flags & STYLEF_InvertOverlay);
+
+		if (vis->RenderStyle.Flags & STYLEF_InvertSource)
+		{
+			invertcolormap = !invertcolormap;
+		}
+
+		FDynamicColormap *mybasecolormap = basecolormap;
+
+		if (vis->RenderStyle.Flags & STYLEF_FadeToBlack)
+		{
+			if (invertcolormap)
+			{
+				// Fade to white
+				mybasecolormap = GetSpecialLights(mybasecolormap->Color, MAKERGB(255,255,255), mybasecolormap->Desaturate);
+				invertcolormap = false;
+			}
+			else
+			{
+				// Fade to black
+				mybasecolormap = GetSpecialLights(mybasecolormap->Color, MAKERGB(0,0,0), mybasecolormap->Desaturate);
+			}
+		}
+
 		if (fixedlightlev)
 		{
-			vis->colormap = basecolormap + fixedlightlev;
+			if (invertcolormap)
+			{
+				mybasecolormap = GetSpecialLights(mybasecolormap->Color, mybasecolormap->Fade.InverseColor(), mybasecolormap->Desaturate);
+			}
+			vis->colormap = mybasecolormap->Maps + fixedlightlev;
 		}
 		else if (fixedcolormap)
 		{
@@ -2182,12 +2248,20 @@ void R_DrawPSprite (pspdef_t* psp, int pspnum, AActor *owner, fixed_t sx, fixed_
 		else if (!foggy && psp->state->GetFullbright())
 		{
 			// full bright
-			vis->colormap = basecolormap;	// [RH] use basecolormap
+			if (invertcolormap)
+			{
+				mybasecolormap = GetSpecialLights(mybasecolormap->Color, mybasecolormap->Fade.InverseColor(), mybasecolormap->Desaturate);
+			}
+			vis->colormap = mybasecolormap->Maps;	// [RH] use basecolormap
 		}
 		else
 		{
 			// local light
-			vis->colormap = basecolormap + (GETPALOOKUP (0, spriteshade) << COLORMAPSHIFT);
+			if (invertcolormap)
+			{
+				mybasecolormap = GetSpecialLights(mybasecolormap->Color, mybasecolormap->Fade.InverseColor(), mybasecolormap->Desaturate);
+			}
+			vis->colormap = mybasecolormap->Maps + (GETPALOOKUP (0, spriteshade) << COLORMAPSHIFT);
 		}
 		if (camera->Inventory != NULL)
 		{
@@ -2231,7 +2305,7 @@ void R_DrawPlayerSprites (void)
 	r_actualextralight = foggy ? 0 : extralight << 4;
 
 	// [RH] set basecolormap
-	basecolormap = sec->ColorMap->Maps;
+	basecolormap = sec->ColorMap;
 
 	// get light level
 	lightnum = ((floorlight + ceilinglight) >> 1) + r_actualextralight;
