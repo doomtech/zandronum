@@ -1541,7 +1541,7 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 {
 	LONG			lClient;
-	char			szClientVersion[MAX_NETWORK_STRING];
+	FString			clientVersion;
 	FString			clientPassword;
 	char			szServerPassword[MAX_NETWORK_STRING];
 	LONG			lClientNetworkGameVersion;
@@ -1592,7 +1592,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 		SERVER_DisconnectClient( lClient, false, true );
 
 	// Read in the client version info.
-	strncpy( szClientVersion, NETWORK_ReadString( pByteStream ), 16 );
+	clientVersion = NETWORK_ReadString( pByteStream );
 
 	// Read in the client's password.
 	clientPassword = NETWORK_ReadString( pByteStream );
@@ -1621,7 +1621,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	memset( g_aClients[lClient].UnreliablePacketBuffer.pbData, -1, sizeof ( g_aClients[lClient].UnreliablePacketBuffer.pbData ));
 
 	// Who is connecting?
-	Printf( "Connect (v%s): %s\n", szClientVersion, NETWORK_AddressToString( NETWORK_GetFromAddress( )));
+	Printf( "Connect (v%s): %s\n", clientVersion.GetChars(), NETWORK_AddressToString( NETWORK_GetFromAddress( )));
 
 	// Setup the client.
 	g_aClients[lClient].State = CLS_CHALLENGE;
@@ -1629,7 +1629,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 
 	{
 		// Make sure the version matches.
-		if ( stricmp( szClientVersion, DOTVERSIONSTR ) != 0 )
+		if ( stricmp( clientVersion.GetChars(), DOTVERSIONSTR ) != 0 )
 		{
 			SERVER_ClientError( lClient, NETWORK_ERRORCODE_WRONGVERSION );
 			return;
