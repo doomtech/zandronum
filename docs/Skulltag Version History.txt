@@ -11,6 +11,12 @@
 =
 ===============================================================================================================
 
+
+??????
+------
+
++	- - Added double definition support for the old DECORATE standard. In this case, the new actors override the old ones. [Rivecoder]
+
 v0.97d
 ------
 

@@ -506,7 +506,7 @@ void PrintFreqs(void)
 		{
 			sprintf(string, "\t%.8f,\n",((float)freqs[ix])/total);
 			//OutputDebugString(string);
-			Printf(PRINT_HIGH, string);
+			Printf(string);
 		}
 	}
 	huffman_ZeroFreq();

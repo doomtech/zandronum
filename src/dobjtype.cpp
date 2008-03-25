@@ -145,7 +145,16 @@ void PClass::InsertIntoHash ()
 		}
 		else if (lexx == 0)
 		{ // This type has already been inserted
-			I_FatalError ("Tried to register class '%s' more than once.", TypeName.GetChars());
+
+			/* [RC] This doesn't work and probably isn't worth it.
+				// [RC] Rename the existing type.
+				FString newName = TypeName + "2";
+				Printf("WARNING: Actor %s already exists. Renaming the existing to %s.\n", TypeName.GetChars(), newName);
+				(*hashpos)->TypeName = newName;
+			*/
+
+			// [RC] Override the existing type. Insert it here.
+			break;
 		}
 		else
 		{ // Type comes right here
