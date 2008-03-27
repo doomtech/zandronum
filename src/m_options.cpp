@@ -1644,7 +1644,7 @@ void SendNewColor (int red, int green, int blue);
 void M_PlayerSetup (void);
 void M_AccountSetup( void );
 void M_SetupPlayerSetupMenu( void );
-void M_Browse( void );
+void M_StartBrowserMenu( void );
 void M_Spectate( void );
 void M_CallVote( void );
 void M_ChangeTeam( void );
@@ -1653,7 +1653,7 @@ void M_Skirmish( void );
 static menuitem_t MultiplayerItems[] =
 {
 	{ more,		"Offline skirmish",				{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_Skirmish} }, // [RC] Clarification that Skirmish is not hosting
-	{ more,		"Browse servers",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_Browse} },
+	{ more,		"Browse servers",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_StartBrowserMenu} },
 	{ more,		"Player setup",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_PlayerSetup} },
 //	{ more,		"Account setup",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_AccountSetup} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
@@ -1751,6 +1751,8 @@ bool M_ScrollServerList( bool bUp );
 LONG M_CalcLastSortedIndex( void );
 bool M_ShouldShowServer( LONG lServer );
 void M_BrowserMenuDrawer( void );
+void M_StartIdeSe( void );
+void M_StartInternalBrowse( void );
 
 static	void			browsermenu_SortServers( ULONG ulSortType );
 static	int	STACK_ARGS	browsermenu_PingCompareFunc( const void *arg1, const void *arg2 );
@@ -1765,7 +1767,28 @@ CVAR( Int, menu_browser_servers, 0, CVAR_ARCHIVE )
 CVAR( Int, menu_browser_gametype, 0, CVAR_ARCHIVE )
 CVAR( Int, menu_browser_sortby, 0, CVAR_ARCHIVE );
 CVAR( Bool, menu_browser_showempty, true, CVAR_ARCHIVE );
-CVAR( Bool, menu_browser_showfull, true, CVAR_ARCHIVE );
+CVAR( Bool, menu_browser_showfull, true, CVAR_ARCHIVE )
+
+static menuitem_t BrowserTypeItems[] = 
+{
+	{ more,		"IdeSe",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_StartIdeSe} },
+	{ more,		"Internal browser",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_StartInternalBrowse} },
+};
+
+menu_t BrowserTypeMenu = {
+	"SELECT BROWSER",
+	0,
+	countof(BrowserTypeItems),
+	0,
+	BrowserTypeItems,
+	0,
+	0,
+	0,
+	0,
+	false,
+	NULL,
+};
+
 static menuitem_t BrowserItems[] =
 {
 	{ discrete, "Servers",				{&menu_browser_servers},		{2.0}, {0.0},	{0.0}, {ServerTypeVals} },
@@ -1804,7 +1827,20 @@ menu_t BrowserMenu = {
 	NULL,
 };
 
-void M_Browse( void )
+void M_StartBrowserMenu( void )
+{
+	// Switch the menu.
+	M_SwitchMenu( &BrowserTypeMenu );
+}
+
+void M_StartIdeSe( void )
+{
+	FString path = progdir; path.AppendFormat("idese.exe");
+	launchProgram(path);
+	exit(0);
+}
+
+void M_StartInternalBrowse( void )
 {
 	g_lSelectedServer = -1;
 

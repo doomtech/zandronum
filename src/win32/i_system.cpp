@@ -36,6 +36,7 @@
 #include <windows.h>
 #include <mmsystem.h>
 #include <richedit.h>
+#include <shellapi.h>
 
 #define USE_WINDOWS_DWORD
 #include "hardware.h"
@@ -926,4 +927,10 @@ FString I_GetSteamPath()
 	}
 	path = "";
 	return path;
+}
+
+// [RC] Lunches the path given.
+void launchProgram( FString path )
+{
+	ShellExecute( NULL, "open", path, NULL, NULL, 0 );
 }
