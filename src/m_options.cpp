@@ -1751,7 +1751,6 @@ bool M_ScrollServerList( bool bUp );
 LONG M_CalcLastSortedIndex( void );
 bool M_ShouldShowServer( LONG lServer );
 void M_BrowserMenuDrawer( void );
-void M_StartIdeSe( void );
 void M_StartInternalBrowse( void );
 
 static	void			browsermenu_SortServers( ULONG ulSortType );
@@ -1769,25 +1768,36 @@ CVAR( Int, menu_browser_sortby, 0, CVAR_ARCHIVE );
 CVAR( Bool, menu_browser_showempty, true, CVAR_ARCHIVE );
 CVAR( Bool, menu_browser_showfull, true, CVAR_ARCHIVE )
 
-static menuitem_t BrowserTypeItems[] = 
-{
-	{ more,		"IdeSe",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_StartIdeSe} },
-	{ more,		"Internal browser",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_StartInternalBrowse} },
-};
+// [RC] In Windows, a menu to launch IDEse or the internal browser is shown. There currently isn't an IDEse for Linux.
+#ifdef WIN32
+	void M_StartIdeSe( void );	
+	static menuitem_t BrowserTypeItems[] = 
+	{
+		{ more,		"IDEse",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_StartIdeSe} },
+		{ more,		"Internal browser",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_StartInternalBrowse} },
+	};
 
-menu_t BrowserTypeMenu = {
-	"SELECT BROWSER",
-	0,
-	countof(BrowserTypeItems),
-	0,
-	BrowserTypeItems,
-	0,
-	0,
-	0,
-	0,
-	false,
-	NULL,
-};
+	menu_t BrowserTypeMenu = {
+		"SELECT BROWSER",
+		0,
+		countof(BrowserTypeItems),
+		0,
+		BrowserTypeItems,
+		0,
+		0,
+		0,
+		0,
+		false,
+		NULL,
+	};
+
+	void M_StartIdeSe( void )
+	{
+		FString path = progdir; path.AppendFormat("idese.exe");
+		launchProgram(path);
+		exit(0);
+	}
+#endif
 
 static menuitem_t BrowserItems[] =
 {
@@ -1830,14 +1840,11 @@ menu_t BrowserMenu = {
 void M_StartBrowserMenu( void )
 {
 	// Switch the menu.
-	M_SwitchMenu( &BrowserTypeMenu );
-}
-
-void M_StartIdeSe( void )
-{
-	FString path = progdir; path.AppendFormat("idese.exe");
-	launchProgram(path);
-	exit(0);
+	#ifdef WIN32
+		M_SwitchMenu( &BrowserTypeMenu );
+	#else
+		M_StartInternalBrowse( );
+	#endif
 }
 
 void M_StartInternalBrowse( void )
