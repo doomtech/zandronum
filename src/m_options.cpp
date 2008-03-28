@@ -127,6 +127,9 @@ CVAR (Float, mouse_sensitivity, 1.f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (Bool, show_messages, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (Bool, show_obituaries, true, CVAR_ARCHIVE)
 
+// [RC] Played when a chat message arrives. Values: off, default, Doom 1 (dstink), Doom 2 (dsradio).
+CVAR (Int, chat_sound, 1, CVAR_ARCHIVE)
+
 extern int	skullAnimCounter;
 
 EXTERN_CVAR (String, name)
@@ -1127,10 +1130,19 @@ static value_t MessageColorLevels[] = {
 	{ 2.0, "Not in chat" }
 };
 
+static value_t ChatSounds[] = {
+	{ 0.0, "Off" },
+	{ 1.0, "Default" },
+	{ 2.0, "Doom 1" },
+	{ 3.0, "Doom 2" }
+};
+
+
 static menuitem_t MessagesItems[] = {
 	{ more,		"Text scaling",			{NULL},					{0.0}, {0.0}, 	{0.0}, {(value_t *)SetupTextScalingMenu} },
 	{ discrete, "Show messages",		{&show_messages},		{2.0}, {0.0},   {0.0}, {OnOff} },
 	{ discrete, "Show obituaries",		{&show_obituaries},		{2.0}, {0.0},   {0.0}, {OnOff} },
+	{ discrete, "Chat sound",			{&chat_sound},			{4.0}, {0.0},   {0.0}, {ChatSounds} },
 	{ discrete, "Minimum message level",{&msglevel},		   	{3.0}, {0.0},   {0.0}, {MessageLevels} },
 	{ discrete, "Center messages",		{&con_centernotify},	{2.0}, {0.0},	{0.0}, {OnOff} },
 	{ discrete, "Color in messages",	{&con_colorinmessages},	{3.0}, {0.0},	{0.0}, {MessageColorLevels} },
