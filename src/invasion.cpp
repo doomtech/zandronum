@@ -784,8 +784,10 @@ void INVASION_StartCountdown( ULONG ulTicks )
 
 		while (( pActor = ActorIterator.Next( )))
 		{
+			// Skip friendly or dormant actors.
 			if ((( pActor->flags & MF_COUNTKILL ) == false ) ||
-				( pActor->flags & MF_FRIENDLY ))
+				( pActor->flags & MF_FRIENDLY ) ||
+				( pActor->flags2 & MF2_DORMANT ))
 			{
 				continue;
 			}

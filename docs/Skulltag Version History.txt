@@ -17,6 +17,7 @@
 
 +	- Added double definition support for the old DECORATE standard. In this case, the new actors override the old ones. [Rivecoder]
 +	- Under Windows, choosing "browse servers" in the Multiplayer menu brings up a new menu, letting you chooe between IDEse and the internal browser. Hopefully, this should prevent newbies getting stuck at the old browser. [Rivecoder]
+!	- Dormant actors are no longer removed in Invasion countdowns. [Rivecoder]
 
 v0.97d
 ------
