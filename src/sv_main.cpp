@@ -137,7 +137,7 @@ static	bool	server_ChangeTeam( BYTESTREAM_s *pByteStream );
 static	bool	server_SpectateInfo( BYTESTREAM_s *pByteStream );
 static	bool	server_GenericCheat( BYTESTREAM_s *pByteStream );
 static	bool	server_GiveCheat( BYTESTREAM_s *pByteStream );
-static	bool	server_SummonCheat( BYTESTREAM_s *pByteStream, bool bFriend = false );
+static	bool	server_SummonCheat( BYTESTREAM_s *pByteStream, LONG lType );
 static	bool	server_ReadyToGoOn( BYTESTREAM_s *pByteStream );
 static	bool	server_ChangeDisplayPlayer( BYTESTREAM_s *pByteStream );
 static	bool	server_AuthenticateLevel( BYTESTREAM_s *pByteStream );
@@ -3375,13 +3375,11 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 		// Client is attempting to use the give cheat. Only legal if sv_cheats is enabled.
 		return ( server_GiveCheat( pByteStream ));
 	case CLC_SUMMONCHEAT:
-
-		// Client is attempting to use the summon cheat. Only legal if sv_cheats is enabled.
-		return ( server_SummonCheat( pByteStream ));
 	case CLC_SUMMONFRIENDCHEAT:
+	case CLC_SUMMONFOECHEAT:
 
-		// Client is attempting to use the summonfriend cheat. Only legal if sv_cheats is enabled.
-		return ( server_SummonCheat( pByteStream, true ));
+		// Client is attempting to use a summon cheat. Only legal if sv_cheats is enabled.
+		return ( server_SummonCheat( pByteStream, lCommand ));
 	case CLC_READYTOGOON:
 
 		// Client is ready to go on to the next level.
@@ -4327,7 +4325,7 @@ static bool server_GiveCheat( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-static bool server_SummonCheat( BYTESTREAM_s *pByteStream, bool bFriend )
+static bool server_SummonCheat( BYTESTREAM_s *pByteStream, LONG lType )
 {
 	const char		*pszName;
 	AActor			*pSource;
@@ -4367,14 +4365,24 @@ static bool server_SummonCheat( BYTESTREAM_s *pByteStream, bool bFriend )
 						pSource->z + 8 * FRACUNIT, ALLOW_REPLACE );
 
 			// [BB] If this is the summonfriend cheat, we have to make the monster friendly.
-			if (pActor != NULL && bFriend)
+			if (pActor != NULL && lType != CLC_SUMMONCHEAT)
 			{
 				if (pActor->CountsAsKill()) 
 				{
 					level.total_monsters--;
 				}
-				pActor->FriendPlayer = g_lCurrentClient + 1;
-				pActor->flags |= MF_FRIENDLY;
+
+				if (lType == CLC_SUMMONFRIENDCHEAT)
+				{
+					pActor->FriendPlayer = g_lCurrentClient + 1;
+					pActor->flags |= MF_FRIENDLY;
+				}
+				else
+				{
+					pActor->FriendPlayer = 0;
+					pActor->flags &= ~MF_FRIENDLY;
+				}
+
 				pActor->LastHeard = players[g_lCurrentClient].mo;
 
 				// [BC] Do some invasion mode stuff.

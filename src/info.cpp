@@ -771,7 +771,7 @@ CCMD (summon)
 	{
 		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 		{
-			CLIENTCOMMANDS_SummonCheat( argv[1] );
+			CLIENTCOMMANDS_SummonCheat( argv[1], CLC_SUMMONCHEAT );
 			return;
 		}
 
@@ -795,7 +795,7 @@ CCMD (summonfriend)
 	{
 		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 		{
-			CLIENTCOMMANDS_SummonCheat( argv[1], true );
+			CLIENTCOMMANDS_SummonCheat( argv[1], CLC_SUMMONFRIENDCHEAT );
 			return;
 		}
 
@@ -819,8 +819,7 @@ CCMD (summonfoe)
 	{
 		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 		{
-			// [BB] TO-DO: Implement this.
-			Printf ("Client side code for summonfoe not implemented\n");
+			CLIENTCOMMANDS_SummonCheat( argv[1], CLC_SUMMONFOECHEAT );
 			return;
 		}
 
