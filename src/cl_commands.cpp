@@ -168,12 +168,7 @@ void CLIENTCOMMANDS_ClientMove( void )
 	if ( ulBits & CLIENT_UPDATE_ROLL )
 		NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, pCmd->ucmd.roll );
 	if ( ulBits & CLIENT_UPDATE_BUTTONS )
-	{
-		if ( iwanttousecrouchingeventhoughitsretardedandunnecessaryanditsimplementationishorribleimeanverticallyshrinkingskinscomeonthatsinsanebutwhatevergoaheadandhaveyourcrouching == false )
-			NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, pCmd->ucmd.buttons & ~BT_DUCK );
-		else
-			NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, pCmd->ucmd.buttons );
-	}
+		NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, pCmd->ucmd.buttons );
 	if ( ulBits & CLIENT_UPDATE_FORWARDMOVE )
 		NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, pCmd->ucmd.forwardmove );
 	if ( ulBits & CLIENT_UPDATE_SIDEMOVE )

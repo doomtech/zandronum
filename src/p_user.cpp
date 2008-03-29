@@ -2884,16 +2884,7 @@ void P_CrouchMove(player_t * player, int direction)
 //
 //----------------------------------------------------------------------------
 
-CVAR( Bool, cl_disallowfullpitch, false, CVAR_ARCHIVE );
-CUSTOM_CVAR( Bool, iwanttousecrouchingeventhoughitsretardedandunnecessaryanditsimplementationishorribleimeanverticallyshrinkingskinscomeonthatsinsanebutwhatevergoaheadandhaveyourcrouching, false, 0 )
-{
-	// [BC] Since this affects the dmflags that are sent out to the clients, resend
-	// dmflags if this changes.
-	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( gamestate != GS_STARTUP ))
-	{
-		SERVERCOMMANDS_SetGameDMFlags( );
-	}
-}
+CVAR( Bool, cl_disallowfullpitch, false, CVAR_ARCHIVE )
 
 void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 {
@@ -3134,8 +3125,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 	// [BC] Also, don't do this for clients other than ourself in client mode.
 	if ((( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false )) || (( player - players ) == consoleplayer ))
 	{
-		if (player->morphTics == 0 && player->health > 0 && level.IsCrouchingAllowed()
-			&& ( iwanttousecrouchingeventhoughitsretardedandunnecessaryanditsimplementationishorribleimeanverticallyshrinkingskinscomeonthatsinsanebutwhatevergoaheadandhaveyourcrouching ))
+		if (player->morphTics == 0 && player->health > 0 && level.IsCrouchingAllowed())
 		{
 			if (!(player->cheats & CF_TOTALLYFROZEN))
 			{
