@@ -638,7 +638,7 @@ static bool callvote_CheckValidity( FString &Command, FString &Parameters )
 //*****************************************************************************
 //	CONSOLE COMMANDS/VARIABLES
 
-CVAR( Bool, sv_nocallvote, false, CVAR_ARCHIVE );
+CVAR( Int, sv_nocallvote, 0, CVAR_ARCHIVE );
 CVAR( Bool, sv_nokickvote, false, CVAR_ARCHIVE );
 CVAR( Bool, sv_nomapvote, false, CVAR_ARCHIVE );
 CVAR( Bool, sv_nochangemapvote, false, CVAR_ARCHIVE );

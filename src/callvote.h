@@ -109,7 +109,7 @@ ULONG			*CALLVOTE_GetPlayersWhoVotedNo( void );
 //*****************************************************************************
 //	EXTERNAL CONSOLE VARIABLES
 
-EXTERN_CVAR( Bool, sv_nocallvote )
+EXTERN_CVAR( Int, sv_nocallvote )
 EXTERN_CVAR( Bool, sv_nokickvote );
 EXTERN_CVAR( Bool, sv_nomapvote );
 EXTERN_CVAR( Bool, sv_nochangemapvote );

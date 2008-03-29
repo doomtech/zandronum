@@ -4637,7 +4637,7 @@ static bool server_CallVote( BYTESTREAM_s *pByteStream )
 
 	// Don't allow one person to call a vote, and vote by himself.
 	// Also, don't allow votes if the server has them disabled.
-	if (( CALLVOTE_CountNumEligibleVoters( ) < 2 ) || ( sv_nocallvote ))
+	if (( CALLVOTE_CountNumEligibleVoters( ) < 2 ) || ( sv_nocallvote == 1) || (sv_nocallvote == 2 && players[g_lCurrentClient].bSpectating ))
 		return ( false );
 
 	switch ( ulVoteCmd )
