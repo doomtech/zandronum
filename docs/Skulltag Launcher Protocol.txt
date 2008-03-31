@@ -1,0 +1,182 @@
+==========================
+SKULLTAG Launcher Protocol
+==========================
+
+Version 0.1 by Rivecoder ~ March 30, 2008
+-----------------------------------------
+
+There's been a lot of demand for out launcher protocol by people who would like to create their own custom utilities and launchers. Well, we've decided to release this publicly, so here it is!
+
+** Definitions
+*********************************************************************************
+All Skulltag servers and masters use UDP as their protocol.
+Definition of types:
+  Byte: 8 bit integer
+  Short: 16 bit integer
+  Long: 32 bit integer
+  Float: Long representation of a float
+  
+** Getting the list of servers
+*********************************************************************************
+This is very easy, accomplished by sending a single long to the server:
+
+  Type    Value       Description
+  -------------------------------
+  Long    199         Launcher challenge
+  
+The server will respond, either with:
+
+  Type    Value       Description
+  -------------------------------
+  Byte    0           Beginning of list 
+  Byte    3           Denied; your IP is banned
+  Byte    4           Denied; your IP has made a request in the past 10 seconds
+  
+Assuming you were accepted, you get this next block, which is repeated for every server.
+  
+  Type    Value       Description
+  -------------------------------
+  Byte    1           Beginning of server
+  Byte    0-255       IP octet
+  Byte    0-255       IP octet
+  Byte    0-255       IP octet
+  Byte    0-255       IP octet
+  Short   0-65535     IP port
+
+Finally, the response should end with this:
+
+  Type    Value       Description
+  -------------------------------
+  Byte    2           End of list 
+
+** Querying individual servers
+*********************************************************************************
+This is more complicated, partly because Skulltag servers use Huffman compression for all of their traffic.
+You'll need a copy of huffman.cpp to encode and decode your traffic appropiately.
+
+As with the master, you begin with the challenge long.
+
+  Type    Value       Description
+  -------------------------------
+  Long    199         Launcher challenge
+
+Next you need to choose what data you'd like. To do so, bitshift the combination of flags with a boolean OR.
+
+The flags are:
+	SQF_NAME					    0x00000001
+	SQF_URL						    0x00000002
+	SQF_EMAIL					    0x00000004
+	SQF_MAPNAME					  0x00000008
+	SQF_MAXCLIENTS				0x00000010
+	SQF_MAXPLAYERS				0x00000020
+	SQF_PWADS					    0x00000040
+	SQF_GAMETYPE				  0x00000080
+	SQF_GAMENAME				  0x00000100
+	SQF_IWAD					    0x00000200
+	SQF_FORCEPASSWORD			0x00000400
+	SQF_FORCEJOINPASSWORD	0x00000800
+	SQF_GAMESKILL				  0x00001000
+	SQF_BOTSKILL				  0x00002000
+	SQF_DMFLAGS					  0x00004000
+	SQF_LIMITS					  0x00010000
+	SQF_TEAMDAMAGE				0x00020000
+	SQF_TEAMSCORES				0x00040000
+	SQF_NUMPLAYERS				0x00080000
+	SQF_PLAYERDATA				0x00100000
+	
+For example, to get the server's name and player count, you'd use (SQF_NAME|SQF_NUMPLAYERS).
+Please use these flags appropiately; it saves your users' and server hosters' bandwidth.
+
+  Type    Value       Description
+  -------------------------------
+  Long    Flags      Desired information
+
+Next you send the time. This will be sent back to you so you can determine ping.
+
+  Type    Value       Description
+  -------------------------------
+  Long    Time        The current time
+  
+The server will respond, either with:
+
+  Type    Value       Description
+  -------------------------------
+  Long    5660023     Beginning of data 
+  Long    5660024     Denied; your IP has made a request in the past 10 seconds
+  Long    5660025     Denied; your IP is banned
+
+Regardless of this message, you'll also get:
+
+  Type    Value       Description
+  -------------------------------
+  Long    Time        The time you sent to the server
+  
+Next, assuming you were accepted, you'll get:
+
+  Type    Value       Request flag      Description
+  -------------------------------
+  String  Version                           Long version string without revision number, as seen in the console. (ex: "0.97d-RC10")
+  Long    Flags                             The info you'll be receiving. This may differ from what you asked for - see below.
+  String              SQF_NAME              The server's name (sv_hostname)
+  String              SQF_URL               The server's WAD URL (sv_website)
+  String              SQF_EMAIL             The server host's e-mail (sv_hostemail)
+  String              SQF_MAPNAME           The current map's name
+  Byte                SQF_MAXCLIENTS        The max number of clients (sv_maxclients)
+  Byte                SQF_MAXPLAYERS        The max number of players (sv_maxplayers)
+  Byte                SQF_PWADS             The number of PWADs loaded
+  String              SQF_PWADS             The PWAD's name                       ] Repeated for each PWAD
+  Byte                SQF_GAMETYPE          The current game mode. See below.
+  Byte                SQF_GAMETYPE          Instagib - true (1) / false (0)
+  Byte                SQF_GAMETYPE          Buckshot - true (1) / false (0)
+  String              SQF_GAMENAME          The base game's name ("DOOM", "DOOM II", "HERETIC", "HEXEN", "ERROR!")
+  String              SQF_IWAD              The IWAD's name
+  Byte                SQF_FORCEPASSWORD     Whether a password is required to join the server (sv_forcepassword)
+  Byte                SQF_FORCEJOINPASSWORD Whether a password is required to join the game (sv_forcejoinpassword)
+  Byte                SQF_GAMESKILL         The game's difficulty (skill)
+  Byte                SQF_BOTSKILL          The bot difficulty (botskill)
+  Long                SQF_DMFLAGS           DMFlags
+  Long                SQF_DMFLAGS           DMFlags2
+  Long                SQF_DMFLAGS           Compatflags
+  Short               SQF_LIMITS            fraglimit
+  Short               SQF_LIMITS            timelimit
+  Short               SQF_LIMITS            time left (seconds)
+  Short               SQF_LIMITS            duellimit
+  Short               SQF_LIMITS            pointlimit
+  Short               SQF_LIMITS            winlimit
+  Float               SQF_TEAMDAMAGE        The team damage scalar (teamdamage)
+  Short               SQF_TEAMSCORES        This team's fragcount/wincount/score  ] Repeated for each team (blue, then red)
+  Byte                SQF_NUMPLAYERS        The number of players in the server
+  String              SQF_PLAYERDATA        This player's name
+  Short               SQF_PLAYERDATA        This player's pointcount/fragcount/killcount
+  Short               SQF_PLAYERDATA        This player's ping
+  Byte                SQF_PLAYERDATA        Whether this player is spectating - true (1) / false (0)
+  Byte                SQF_PLAYERDATA        Whether this player is a bot - true (1) / false (0)
+  Byte    index/255   SQF_PLAYERDATA        Which team this player is on (in teamgames). 255 if no team.
+  Byte                SQF_PLAYERDATA        Time, in seconds, that this player has been in the server.
+  
+And that's it!  
+* Note on flags: If you request team-based info but the server isn't in a teamgame, it will automatically remove the flag from your query.
+  Similarly, if you request SQF_PLAYERDATA it will alse add SQF_NUMPLAYERS.
+  Take care to use this new value when parsing the server's response.
+* Note on game modes: They are covered like so.
+	0   GAMEMODE_COOPERATIVE
+	1   GAMEMODE_SURVIVAL
+	2   GAMEMODE_INVASION
+	3   GAMEMODE_DEATHMATCH
+	4   GAMEMODE_TEAMPLAY
+	5   GAMEMODE_DUEL
+	6   GAMEMODE_TERMINATOR
+	7   GAMEMODE_LASTMANSTANDING
+	8   GAMEMODE_TEAMLMS
+	9   GAMEMODE_POSSESSION
+	10  GAMEMODE_TEAMPOSSESSION
+	11  GAMEMODE_TEAMGAME
+	12  GAMEMODE_CTF
+	13  GAMEMODE_ONEFLAGCTF
+	14  GAMEMODE_SKULLTAG
+
+
+Note that this spec is volatile and can change between versions.
+Happy coding!
+
+Rivecoder
