@@ -4367,36 +4367,24 @@ static bool server_SummonCheat( BYTESTREAM_s *pByteStream, LONG lType )
 			// [BB] If this is the summonfriend cheat, we have to make the monster friendly.
 			if (pActor != NULL && lType != CLC_SUMMONCHEAT)
 			{
-				if (pActor->CountsAsKill()) 
-				{
-					level.total_monsters--;
-				}
-
 				if (lType == CLC_SUMMONFRIENDCHEAT)
 				{
+					if (pActor->CountsAsKill()) 
+					{
+						level.total_monsters--;
+
+						// [BB] The monster is friendly, so we need to correct the number of monsters in invasion mode.
+						INVASION_UpdateMonsterCount( pActor, true );
+					}
+
 					pActor->FriendPlayer = g_lCurrentClient + 1;
 					pActor->flags |= MF_FRIENDLY;
+					pActor->LastHeard = players[g_lCurrentClient].mo;
 				}
 				else
 				{
 					pActor->FriendPlayer = 0;
 					pActor->flags &= ~MF_FRIENDLY;
-				}
-
-				pActor->LastHeard = players[g_lCurrentClient].mo;
-
-				// [BC] Do some invasion mode stuff.
-				if (( invasion ) &&
-					( INVASION_GetIncreaseNumMonstersOnSpawn( )))
-				{
-					INVASION_SetNumMonstersLeft( INVASION_GetNumMonstersLeft( ) - 1 );
-
-					if ( pActor->GetClass( ) == PClass::FindClass( "Archvile" ))
-						INVASION_SetNumArchVilesLeft( INVASION_GetNumArchVilesLeft( ) - 1 );
-
-					// [BC] If we're the server, tell the client how many monsters are left.
-					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_SetInvasionNumMonstersLeft( );
 				}
 			}
 
