@@ -2225,8 +2225,27 @@ void SERVERCOMMANDS_SetThingFrame( AActor *pActor, FState *pState, ULONG ulPlaye
 	ULONG		ulIdx;
 	FState		*pCompareState;
 
-	if ( pActor == NULL )
+	if ( (pActor == NULL) || (pState == NULL) )
 		return;
+
+	// [BB] Special handling of certain states. This perhaps is not necessary
+	// but at least saves a little net traffic.
+	if ( bCallStateFunction 
+		 && (ulPlayerExtra == MAXPLAYERS)
+		 && (ulFlags == 0)
+		)
+	{
+		if ( pState == pActor->MeleeState )
+		{
+			SERVERCOMMANDS_SetThingState( pActor, STATE_MELEE );
+			return;
+		}
+		else if ( pState == pActor->MissileState )
+		{
+			SERVERCOMMANDS_SetThingState( pActor, STATE_MISSILE );
+			return;
+		}
+	}
 
 	// Begin searching through the actor's state labels to find the state that corresponds
 	// to the given state.
