@@ -24,6 +24,7 @@
 !	- Dormant actors are no longer removed in Invasion countdowns. [Rivecoder]
 !	- Extended the 'sv_nocallvote' console variable. When 'sv_nocallvote' is at 0, all players can call votes, when it's at 1, no players can call votes, when it's at 2, only players in game can call votes. [Karate Chris]
 !	- Removed the tediously annoying crouching console variable. [Karate Chris]
+!	- Restored the plasma bump compat flag handling from the pre 97b era. This doesn't perfectly resemble the vanilla Doom behavior, but should be better than nothing. [Torr Samaho]
 
 v0.97d
 ------

@@ -2140,7 +2140,7 @@ explode:
 
 //*****************************************************************************
 // prBoom version of XY movement.
-void P_OldXYMovement( AActor *mo, bool bForceSlide )
+void P_OldXYMovement( AActor *mo )
 {
 	player_t *player;
 	fixed_t ptryx, ptryy;
@@ -3558,9 +3558,9 @@ void AActor::Tick ()
 
 	// Handle X and Y momemtums
 	BlockingMobj = NULL;
-//	if ( player && ( player->bSpectating == false ) && ( i_compatflags & COMPATF_PLASMA_BUMP_BUG ))
-//		P_OldXYMovement( this, bForceSlide );
-//	else
+	if ( player && ( player->bSpectating == false ) && ( i_compatflags & COMPATF_PLASMA_BUMP_BUG ))
+		P_OldXYMovement( this );
+	else
 		P_XYMovement (this, cummx, cummy);
 	if (ObjectFlags & OF_MassDestruction)
 	{ // actor was destroyed
