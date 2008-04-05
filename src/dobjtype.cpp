@@ -3,6 +3,8 @@
 #include "actor.h"
 #include "autosegs.h"
 #include "templates.h"
+// [BB] New #includes.
+#include "v_text.h"
 
 TArray<PClass *> PClass::m_RuntimeActors;
 TArray<PClass *> PClass::m_Types;
@@ -145,6 +147,7 @@ void PClass::InsertIntoHash ()
 		}
 		else if (lexx == 0)
 		{ // This type has already been inserted
+			//I_FatalError ("Tried to register class '%s' more than once.", TypeName.GetChars());
 
 			/* [RC] This doesn't work and probably isn't worth it.
 				// [RC] Rename the existing type.
@@ -154,6 +157,7 @@ void PClass::InsertIntoHash ()
 			*/
 
 			// [RC] Override the existing type. Insert it here.
+			Printf(TEXTCOLOR_ORANGE "WARNING: Actor %s already exists. Overriding the existing type.\n", TypeName.GetChars() );
 			break;
 		}
 		else
