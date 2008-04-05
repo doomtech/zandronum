@@ -18,10 +18,11 @@
 +	- Added double definition support for the old DECORATE standard. In this case, the new actors override the old ones. [Rivecoder]
 +	- Under Windows, choosing "browse servers" in the Multiplayer menu brings up a new menu, letting you choose between IDEse and the internal browser. Hopefully, this should prevent newbies getting stuck at the old browser. [Rivecoder]
 +	- Added the CVAR chat_sound. With it, you can turn chat sounds off (0), play the default (1), or the Doom 2 (2) or Doom 1 (3) sounds. [Rivecoder]
+-	- Fixed: The 'summonfoe' console command didn't work online. [Karate Chris]
+-	- Fixed: Using the CCMD stat crashes the server. [Torr Samaho]
 !	- Dormant actors are no longer removed in Invasion countdowns. [Rivecoder]
 !	- Extended the 'sv_nocallvote' console variable. When 'sv_nocallvote' is at 0, all players can call votes, when it's at 1, no players can call votes, when it's at 2, only players in game can call votes. [Karate Chris]
--	- Fixed: The 'summonfoe' console command didn't work online. [Karate Chris]
--	- Removed the tediously annoying crouching console variable. [Karate Chris]
+!	- Removed the tediously annoying crouching console variable. [Karate Chris]
 
 v0.97d
 ------
