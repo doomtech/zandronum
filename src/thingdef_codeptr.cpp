@@ -1761,7 +1761,8 @@ void A_TakeFromTarget(AActor * self)
 //
 //===========================================================================
 
-static void InitSpawnedItem(AActor *self, AActor *mo, INTBOOL transfer_translation, INTBOOL setmaster, INTBOOL nocheckpos)
+// [BB] Changed return value to bool (returns false if the actor already was destroyed).
+static bool InitSpawnedItem(AActor *self, AActor *mo, INTBOOL transfer_translation, INTBOOL setmaster, INTBOOL nocheckpos)
 {
 	if (mo)
 	{
@@ -1789,7 +1790,7 @@ static void InitSpawnedItem(AActor *self, AActor *mo, INTBOOL transfer_translati
 				}
 				mo->Destroy();
 				if (pStateCall != NULL) pStateCall->Result=false;	// for an inventory item's use state
-				return;
+				return false;
 			}
 			else if (originator)
 			{
@@ -1824,6 +1825,7 @@ static void InitSpawnedItem(AActor *self, AActor *mo, INTBOOL transfer_translati
 			mo->target=originator? originator : self;
 		}
 	}
+	return true;
 }
 
 //===========================================================================
@@ -1883,10 +1885,10 @@ void A_SpawnItem(AActor * self)
 					self->y + FixedMul(distance, finesine[self->angle>>ANGLETOFINESHIFT]), 
 					self->z - self->floorclip + zheight, ALLOW_REPLACE);
 
-	InitSpawnedItem(self, mo, transfer_translation, useammo, false);
+	bool bSpawnSuccessful = InitSpawnedItem(self, mo, transfer_translation, useammo, false);
 
-	// [BC] If we're the server, tell clients to spawn the item.
-	if ( mo && NETWORK_GetState( ) == NETSTATE_SERVER )
+	// [BC] If we're the server and the spawn was not blocked, tell clients to spawn the item.
+	if ( mo && bSpawnSuccessful && (NETWORK_GetState( ) == NETSTATE_SERVER) )
 	{
 		SERVERCOMMANDS_SpawnThing( mo );
 
@@ -1991,7 +1993,7 @@ void A_SpawnItemEx(AActor * self)
 	}
 
 	AActor * mo = Spawn( missile, x, y, self->z + self->floorclip + zofs, ALLOW_REPLACE);
-	InitSpawnedItem(self, mo, (flags & SIXF_TRANSFERTRANSLATION), (flags&SIXF_SETMASTER), (flags&SIXF_NOCHECKPOSITION));
+	bool bSpawnSuccessful = InitSpawnedItem(self, mo, (flags & SIXF_TRANSFERTRANSLATION), (flags&SIXF_SETMASTER), (flags&SIXF_NOCHECKPOSITION));
 	if (mo)
 	{
 		mo->momx=xmom;
@@ -2000,8 +2002,8 @@ void A_SpawnItemEx(AActor * self)
 		mo->angle=Angle;
 		if (flags & SIXF_TELEFRAG) P_TeleportMove(mo, mo->x, mo->y, mo->z, true);
 
-		// [BB] If we're the server, tell clients to spawn the item
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		// [BB] If we're the server and the spawn was not blocked, tell clients to spawn the item
+		if ( bSpawnSuccessful && (NETWORK_GetState( ) == NETSTATE_SERVER) )
 		{
 			SERVERCOMMANDS_SpawnThing( mo );
 
