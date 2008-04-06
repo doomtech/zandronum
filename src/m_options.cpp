@@ -758,7 +758,8 @@ static menuitem_t VideoItems[] = {
 
 };
 
-#define CROSSHAIR_INDEX 9
+// [BB] Moved crosshair selection to the HUD menu.
+//#define CROSSHAIR_INDEX 9
 
 menu_t VideoMenu =
 {
@@ -805,6 +806,12 @@ static menuitem_t HUDMenuItems[] = {
 
 
 };
+
+#ifdef G15_ENABLED
+#define CROSSHAIR_INDEX 6
+#else
+#define CROSSHAIR_INDEX 5
+#endif
 
 menu_t HUDMenu =
 {
@@ -6756,6 +6763,7 @@ void InitCrosshairsList()
 			}
 		}
 	}
-	VideoItems[CROSSHAIR_INDEX].b.numvalues = float(Crosshairs.Size());
-	VideoItems[CROSSHAIR_INDEX].e.valuestrings = &Crosshairs[0];
+	// [BB] Moved crosshair selection to the HUD menu.
+	HUDMenuItems[CROSSHAIR_INDEX].b.numvalues = float(Crosshairs.Size());
+	HUDMenuItems[CROSSHAIR_INDEX].e.valuestrings = &Crosshairs[0];
 }
