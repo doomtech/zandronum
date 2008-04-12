@@ -2334,7 +2334,13 @@ void M_DrawServerInfo( void )
 
 	ulCurYPos += ulTextHeight;
 
-	sprintf( szString, "WADs: \\cc%d", BROWSER_GetNumPWADs( g_lSelectedServer ));
+	sprintf( szString, "IWAD: \\cc%s", BROWSER_GetIWADName( g_lSelectedServer ));
+	V_ColorizeString( szString );
+	screen->DrawText( CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
+
+	ulCurYPos += ulTextHeight;
+
+	sprintf( szString, "PWADs: \\cc%d", BROWSER_GetNumPWADs( g_lSelectedServer ));
 	V_ColorizeString( szString );
 	screen->DrawText( CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
 
