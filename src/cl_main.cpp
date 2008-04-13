@@ -3989,6 +3989,12 @@ static void client_SetPlayerState( BYTESTREAM_s *pByteStream )
 	case STATE_PLAYER_ATTACK:
 
 		players[ulPlayer].mo->PlayAttacking( );
+		// [BB] This partially fixes the problem that attack animations are not displayed in demos
+		// if you are spying a player that you didn't spy when recording the demo.
+		// By design this won't display alternate attacks. Invesitage if this can be done in a better
+		// way (whithout increasing nettraffic).
+		if ( CLIENTDEMO_IsPlaying( ) && players[ulPlayer].ReadyWeapon )
+			P_SetPsprite (&players[ulPlayer], ps_weapon, players[ulPlayer].ReadyWeapon->GetAtkState(!!players[ulPlayer].refire));
 		break;
 	case STATE_PLAYER_ATTACK2:
 
