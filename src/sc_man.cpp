@@ -624,6 +624,10 @@ bool SC_GetFloat (void)
 		if (*stopper != 0)
 		{
 			I_Error ("SC_GetFloat: Bad numeric constant \"%s\".\n"
+#ifndef WIN32
+				// [BB] Precompiled Linux binaries seem to have a problem parsing floats when the language setting uses ',' instead of '.' as float seperator.
+				"Perhaps a problem with your LANG enviroment variable, try \"export LANG=C\".\n"
+#endif
 				"Script %s, Line %d\n", sc_String, ScriptName.GetChars(), sc_Line);
 		}
 		sc_Number = (int)sc_Float;
