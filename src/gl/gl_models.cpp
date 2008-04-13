@@ -491,6 +491,11 @@ FSpriteModelFrame * gl_FindModelFrame(const PClass * ti, int sprite, int frame)
 }
 
 
+//===========================================================================
+//
+// gl_RenderModel
+//
+//===========================================================================
 
 void gl_RenderModel(GLSprite * spr, int cm)
 {
@@ -619,4 +624,84 @@ void gl_RenderModel(GLSprite * spr, int cm)
 	gl.DepthFunc(GL_LESS);
 	if ( spr->actor->RenderStyle!=STYLE_Normal )
 		gl.Disable(GL_CULL_FACE);
+}
+
+
+//===========================================================================
+//
+// gl_RenderHUDModel
+//
+//===========================================================================
+
+void gl_RenderHUDModel(pspdef_t *psp, fixed_t ofsx, fixed_t ofsy, int cm)
+{
+	AActor * playermo=players[consoleplayer].camera;
+	FSpriteModelFrame *smf = gl_FindModelFrame(playermo->player->ReadyWeapon->GetClass(), psp->state->sprite.index, psp->state->GetFrame());
+
+	// [BB] No model found for this sprite, so we can't render anything.
+	if ( smf == NULL )
+		return;
+
+	// [BB] The model has to be drawn independtly from the position of the player,
+	// so we have to reset the GL_MODELVIEW matrix.
+	gl.MatrixMode(GL_MODELVIEW);
+	gl.PushMatrix();
+	gl.LoadIdentity();
+	gl.DepthFunc(GL_LEQUAL);
+
+	// [BB] In case the model should be rendered translucent, do back face culling.
+	// This solves a few of the problems caused by the lack of depth sorting.
+	// TO-DO: Implement proper depth sorting.
+	if ( playermo->RenderStyle!=STYLE_Normal )
+	{
+		gl.Enable(GL_CULL_FACE);
+		glFrontFace(GL_CCW);
+	}
+
+	// Scaling and model space offset.
+	gl.Scalef(	
+		smf->xscale,
+		smf->zscale,	// y scale for a sprite means height, i.e. z in the world!
+		smf->yscale);
+
+	// [BB] Apply zoffset here, needs to be scaled by 1 / smf->zscale, so that zoffset doesn't depend on the z-scaling.
+	gl.Translatef(0., smf->zoffset / smf->zscale, 0.);
+
+	// [BB] Weapon bob. Looks somewhat strange.
+	gl.Translatef(TO_MAP(ofsx/2), 0., TO_MAP((ofsy-WEAPONTOP)/2));
+
+	// [BB] For some reason the jDoom models need to be rotated.
+	gl.Rotatef(90., 0, 1, 0);
+
+	for(int i=0; i<MAX_MODELS_PER_FRAME; i++)
+	{
+		FModel * mdl = smf->models[i];
+
+		if (mdl!=NULL)
+		{
+			mdl->RenderFrame(smf->skins[i], smf->modelframes[i], 0);
+		}
+	}
+	gl.MatrixMode(GL_MODELVIEW);
+	gl.PopMatrix();
+	gl.DepthFunc(GL_LESS);
+	if ( playermo->RenderStyle!=STYLE_Normal )
+		gl.Disable(GL_CULL_FACE);
+}
+
+
+//===========================================================================
+//
+// gl_IsHUDModelForPlayerAvailable
+//
+//===========================================================================
+
+bool gl_IsHUDModelForPlayerAvailable (player_t * player)
+{
+	if ( (player == NULL) || (player->ReadyWeapon == NULL) )
+		return false;
+
+	FState* state = player->psprites[0].state;
+	FSpriteModelFrame *smf = gl_FindModelFrame(player->ReadyWeapon->GetClass(), state->sprite.index, state->Frame);
+	return ( smf != NULL );
 }

@@ -44,6 +44,7 @@
 #include "gl/gl_functions.h"
 #include "gl/gl_intern.h"
 #include "gl/gl_shader.h"
+#include "gl/gl_models.h"
 
 EXTERN_CVAR (Bool, r_drawplayersprites)
 EXTERN_CVAR(Bool, gl_nocoloredspritelighting)
@@ -54,7 +55,7 @@ EXTERN_CVAR(Bool, gl_nocoloredspritelighting)
 //
 //==========================================================================
 
-static void DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed_t sy, int cm_index)
+static void DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed_t sy, int cm_index, bool hudModelStep)
 {
 	float			fU2,fV2;
 	fixed_t			tx;
@@ -63,6 +64,13 @@ static void DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed_t sy,
 	fixed_t			scalex;
 	fixed_t			texturemid;
 	
+	// [BB] In the HUD model step we just render the model and break out. 
+	if ( hudModelStep )
+	{
+		gl_RenderHUDModel( psp, sx, sy, cm_index );
+		return;
+	}
+
 	// decide which patch to use
 	int lump = gl_GetSpriteFrame(psp->state->sprite.index, psp->state->GetFrame(), 0);
 	bool mirror = lump < 0;
@@ -128,7 +136,7 @@ static void DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed_t sy,
 //
 //==========================================================================
 
-void gl_DrawPlayerSprites(sector_t * viewsector)
+void gl_DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 {
 	int i;
 	pspdef_t *psp;
@@ -251,7 +259,7 @@ void gl_DrawPlayerSprites(sector_t * viewsector)
 	// now draw the different layers of the weapon
 	gl_EnableBrightmap(true);
 	for (i=0, psp=player->psprites; i<=ps_flash; i++,psp++)
-		if (psp->state) DrawPSprite (player,psp,psp->sx+ofsx, psp->sy+ofsy, cm.LightColor.a);
+		if (psp->state) DrawPSprite (player,psp,psp->sx+ofsx, psp->sy+ofsy, cm.LightColor.a, hudModelStep);
 	gl_EnableBrightmap(false);
 
 	// Restore default settings
@@ -270,7 +278,7 @@ void gl_DrawPlayerSprites(sector_t * viewsector)
 
 	// The Targeter's sprites are always drawn normally!
 	for (; i<NUMPSPRITES; i++,psp++)
-		if (psp->state) DrawPSprite (player,psp,psp->sx, psp->sy, CM_DEFAULT);
+		if (psp->state) DrawPSprite (player,psp,psp->sx, psp->sy, CM_DEFAULT, hudModelStep);
 
 }
 
