@@ -698,7 +698,7 @@ void gl_RenderHUDModel(pspdef_t *psp, fixed_t ofsx, fixed_t ofsy, int cm)
 
 bool gl_IsHUDModelForPlayerAvailable (player_t * player)
 {
-	if ( (player == NULL) || (player->ReadyWeapon == NULL) )
+	if ( (player == NULL) || (player->ReadyWeapon == NULL) || (player->psprites[0].state == NULL) )
 		return false;
 
 	FState* state = player->psprites[0].state;
