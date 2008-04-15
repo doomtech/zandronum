@@ -497,6 +497,74 @@ FSpriteModelFrame * gl_FindModelFrame(const PClass * ti, int sprite, int frame)
 //
 //===========================================================================
 
+void gl_RenderFrameModels( const FSpriteModelFrame *smf,
+						   const FState *curState,
+						   const int curTics,
+						   const PClass *ti,
+						   int cm,
+						   int translation = 0 )
+{
+	// [BB] Frame interpolation: Find the FSpriteModelFrame smfNext which follows after smf in the animation
+	// and the scalar value inter ( element of [0,1) ), both necessary to determine the interpolated frame.
+	FSpriteModelFrame * smfNext = NULL;
+	double inter = 0.;
+	if( gl_interpolate_model_frames && !(smf->flags & MDL_NOINTERPOLATION) )
+	{
+		FState *nextState = curState->GetNextState( );
+		if( curState != nextState && nextState )
+		{
+			// [BB] To interpolate at more than 35 fps we take tic fractions into account.
+			float ticFraction = 0.;
+			// [BB] In case the tic counter is frozen we have to leave ticFraction at zero.
+			if ( ConsoleState == c_up && menuactive != MENU_On && !(level.flags & LEVEL_FROZEN) )
+			{
+				float time = GetTimeFloat();
+				ticFraction = (time - static_cast<int>(time));
+			}
+			inter = static_cast<double>(curState->Tics - curTics - ticFraction)/static_cast<double>(curState->Tics);
+
+			// [BB] For some actors (e.g. ZPoisonShroom) spr->actor->tics can be bigger than curState->Tics.
+			// In this case inter is negative and we need to set it to zero.
+			if ( inter < 0. )
+				inter = 0.;
+			else
+			{
+				// [BB] Workaround for actors that use the same frame twice in a row.
+				// Most of the standard Doom monsters do this in their see state.
+				if ( (smf->flags & MDL_INTERPOLATEDOUBLEDFRAMES) )
+				{
+					const FState *prevState = curState - 1;
+					if ( (curState->sprite.index == prevState->sprite.index) && ( curState->Frame == prevState->Frame) )
+					{
+						inter /= 2.;
+						inter += 0.5;
+					}
+					if ( (curState->sprite.index == nextState->sprite.index) && ( curState->Frame == nextState->Frame) )
+					{
+						inter /= 2.;
+						nextState = nextState->GetNextState( );
+					}
+				}
+				if ( inter != 0.0 )
+					smfNext = gl_FindModelFrame(ti, nextState->sprite.index, nextState->Frame);
+			}
+		}
+	}
+
+	for(int i=0; i<MAX_MODELS_PER_FRAME; i++)
+	{
+		FModel * mdl = smf->models[i];
+
+		if (mdl!=NULL)
+		{
+			if ( smfNext && smf->modelframes[i] != smfNext->modelframes[i] )
+				mdl->RenderFrameInterpolated(smf->skins[i], smf->modelframes[i], smfNext->modelframes[i], inter, cm, translation);
+			else
+				mdl->RenderFrame(smf->skins[i], smf->modelframes[i], cm, translation);
+		}
+	}
+}
+
 void gl_RenderModel(GLSprite * spr, int cm)
 {
 	FSpriteModelFrame * smf = spr->modelframe;
@@ -554,70 +622,11 @@ void gl_RenderModel(GLSprite * spr, int cm)
 	// [BB] Apply zoffset here, needs to be scaled by 1 / smf->zscale, so that zoffset doesn't depend on the z-scaling.
 	gl.Translatef(0., smf->zoffset / smf->zscale, 0.);
 
-	// [BB] Frame interpolation: Find the FSpriteModelFrame smfNext which follows after smf in the animation
-	// and the scalar value inter ( element of [0,1) ), both necessary to determine the interpolated frame.
-	FSpriteModelFrame * smfNext = NULL;
-	double inter = 0.;
-	if( gl_interpolate_model_frames && !(smf->flags & MDL_NOINTERPOLATION) )
-	{
-		FState *curState = spr->actor->state;
-		FState *nextState = curState->GetNextState( );
-		if( curState != nextState && nextState )
-		{
-			// [BB] To interpolate at more than 35 fps we take tic fractions into account.
-			float ticFraction = 0.;
-			// [BB] In case the tic counter is frozen we have to leave ticFraction at zero.
-			if ( ConsoleState == c_up && menuactive != MENU_On && !(level.flags & LEVEL_FROZEN) )
-			{
-				float time = GetTimeFloat();
-				ticFraction = (time - static_cast<int>(time));
-			}
-			inter = static_cast<double>(curState->Tics - spr->actor->tics - ticFraction)/static_cast<double>(curState->Tics);
-
-			// [BB] For some actors (e.g. ZPoisonShroom) spr->actor->tics can be bigger than curState->Tics.
-			// In this case inter is negative and we need to set it to zero.
-			if ( inter < 0. )
-				inter = 0.;
-			else
-			{
-				// [BB] Workaround for actors that use the same frame twice in a row.
-				// Most of the standard Doom monsters do this in their see state.
-				if ( (smf->flags & MDL_INTERPOLATEDOUBLEDFRAMES) )
-				{
-					FState *prevState = curState - 1;
-					if ( (curState->sprite.index == prevState->sprite.index) && ( curState->Frame == prevState->Frame) )
-					{
-						inter /= 2.;
-						inter += 0.5;
-					}
-					if ( (curState->sprite.index == nextState->sprite.index) && ( curState->Frame == nextState->Frame) )
-					{
-						inter /= 2.;
-						nextState = nextState->GetNextState( );
-					}
-				}
-				if ( inter != 0.0 )
-					smfNext = gl_FindModelFrame(RUNTIME_TYPE(spr->actor), nextState->sprite.index, nextState->Frame);
-			}
-		}
-	}
-
 	int translation = 0;
 	if ( !(smf->flags & MDL_IGNORETRANSLATION) )
 		translation = spr->actor->Translation;
 
-	for(int i=0; i<MAX_MODELS_PER_FRAME; i++)
-	{
-		FModel * mdl = smf->models[i];
-
-		if (mdl!=NULL)
-		{
-			if ( smfNext && smf->modelframes[i] != smfNext->modelframes[i] )
-				mdl->RenderFrameInterpolated(smf->skins[i], smf->modelframes[i], smfNext->modelframes[i], inter, cm, translation);
-			else
-				mdl->RenderFrame(smf->skins[i], smf->modelframes[i], cm, translation);
-		}
-	}
+	gl_RenderFrameModels( smf, spr->actor->state, spr->actor->tics, RUNTIME_TYPE(spr->actor), cm, translation );
 
 	gl.MatrixMode(GL_MODELVIEW);
 	gl.PopMatrix();
@@ -673,15 +682,8 @@ void gl_RenderHUDModel(pspdef_t *psp, fixed_t ofsx, fixed_t ofsy, int cm)
 	// [BB] For some reason the jDoom models need to be rotated.
 	gl.Rotatef(90., 0, 1, 0);
 
-	for(int i=0; i<MAX_MODELS_PER_FRAME; i++)
-	{
-		FModel * mdl = smf->models[i];
+	gl_RenderFrameModels( smf, psp->state, psp->tics, playermo->player->ReadyWeapon->GetClass(), cm );
 
-		if (mdl!=NULL)
-		{
-			mdl->RenderFrame(smf->skins[i], smf->modelframes[i], 0);
-		}
-	}
 	gl.MatrixMode(GL_MODELVIEW);
 	gl.PopMatrix();
 	gl.DepthFunc(GL_LESS);
