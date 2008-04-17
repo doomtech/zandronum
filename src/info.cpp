@@ -769,18 +769,19 @@ CCMD (summon)
 
 	if (argv.argc() > 1)
 	{
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
-		{
-			CLIENTCOMMANDS_SummonCheat( argv[1], CLC_SUMMONCHEAT );
-			return;
-		}
-
 		const PClass *type = PClass::FindClass (argv[1]);
 		if (type == NULL)
 		{
 			Printf ("Unknown class '%s'\n", argv[1]);
 			return;
 		}
+
+		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		{
+			CLIENTCOMMANDS_SummonCheat( type->TypeName.GetChars( ), CLC_SUMMONCHEAT );
+			return;
+		}
+
 		Net_WriteByte (DEM_SUMMON);
 		Net_WriteString (type->TypeName.GetChars());
 	}
@@ -793,18 +794,19 @@ CCMD (summonfriend)
 
 	if (argv.argc() > 1)
 	{
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
-		{
-			CLIENTCOMMANDS_SummonCheat( argv[1], CLC_SUMMONFRIENDCHEAT );
-			return;
-		}
-
 		const PClass *type = PClass::FindClass (argv[1]);
 		if (type == NULL)
 		{
 			Printf ("Unknown class '%s'\n", argv[1]);
 			return;
 		}
+
+		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		{
+			CLIENTCOMMANDS_SummonCheat( type->TypeName.GetChars( ), CLC_SUMMONFRIENDCHEAT );
+			return;
+		}
+
 		Net_WriteByte (DEM_SUMMONFRIEND);
 		Net_WriteString (type->TypeName.GetChars());
 	}
@@ -817,18 +819,19 @@ CCMD (summonfoe)
 
 	if (argv.argc() > 1)
 	{
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
-		{
-			CLIENTCOMMANDS_SummonCheat( argv[1], CLC_SUMMONFOECHEAT );
-			return;
-		}
-
 		const PClass *type = PClass::FindClass (argv[1]);
 		if (type == NULL)
 		{
 			Printf ("Unknown class '%s'\n", argv[1]);
 			return;
 		}
+
+		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		{
+			CLIENTCOMMANDS_SummonCheat( type->TypeName.GetChars( ), CLC_SUMMONFOECHEAT );
+			return;
+		}
+
 		Net_WriteByte (DEM_SUMMONFOE);
 		Net_WriteString (type->TypeName.GetChars());
 	}

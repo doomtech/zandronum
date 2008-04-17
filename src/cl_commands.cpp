@@ -311,7 +311,7 @@ void CLIENTCOMMANDS_GiveCheat( char *pszItem, LONG lAmount )
 
 //*****************************************************************************
 //
-void CLIENTCOMMANDS_SummonCheat( char *pszItem, LONG lType )
+void CLIENTCOMMANDS_SummonCheat( const char *pszItem, LONG lType )
 {
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, lType );
 	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, pszItem );
