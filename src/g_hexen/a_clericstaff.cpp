@@ -191,13 +191,6 @@ void A_CStaffCheck (AActor *actor)
 	int i;
 	player_t *player;
 
-	// [BC] Don't do this in client mode.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
-	{
-		return;
-	}
-
 	if (NULL == (player = actor->player))
 	{
 		return;
@@ -218,15 +211,19 @@ void A_CStaffCheck (AActor *actor)
 			if ((linetarget->player || linetarget->flags3&MF3_ISMONSTER)
 				&& (!(linetarget->flags2&(MF2_DORMANT+MF2_INVULNERABLE))))
 			{
-				newLife = player->health+(damage>>3);
-				newLife = newLife > 100 ? 100 : newLife;
-				if (newLife > player->health)
+				// [CW] Clients should not set their own health.
+				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( !CLIENTDEMO_IsPlaying( )))
 				{
-					pmo->health = player->health = newLife;
+					newLife = player->health+(damage>>3);
+					newLife = newLife > 100 ? 100 : newLife;
+					if (newLife > player->health)
+					{
+						pmo->health = player->health = newLife;
 
-					// [BC] Send the health update.
-					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_SetPlayerHealth( ULONG( player - players ));
+						// [BC] Send the health update.
+						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+							SERVERCOMMANDS_SetPlayerHealth( ULONG( player - players ));
+					}
 				}
 				P_SetPsprite (player, ps_weapon, &ACWeapStaff::States[S_CSTAFFATK2]);
 			}
@@ -245,9 +242,13 @@ void A_CStaffCheck (AActor *actor)
 				linetarget->x, linetarget->y);
 			if (linetarget->player || linetarget->flags3&MF3_ISMONSTER)
 			{
-				newLife = player->health+(damage>>4);
-				newLife = newLife > 100 ? 100 : newLife;
-				pmo->health = player->health = newLife;
+				// [CW] Clients should not set their own health.
+				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( !CLIENTDEMO_IsPlaying( )))
+				{
+					newLife = player->health+(damage>>4);
+					newLife = newLife > 100 ? 100 : newLife;
+					pmo->health = player->health = newLife;
+				}
 
 				// [BC] Send the health update.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
