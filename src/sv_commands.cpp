@@ -6352,7 +6352,7 @@ void SERVERCOMMANDS_SetWallScroller( LONG lId, LONG lSidechoice, LONG lXSpeed, L
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_DoFlashFader( float fR1, float fG1, float fB1, float fA1, float fR2, float fG2, float fB2, float fA2, float fTime, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_DoFlashFader( float fR1, float fG1, float fB1, float fA1, float fR2, float fG2, float fB2, float fA2, float fTime, ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 
@@ -6367,7 +6367,7 @@ void SERVERCOMMANDS_DoFlashFader( float fR1, float fG1, float fB1, float fA1, fl
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 37, true );
+		SERVER_CheckClientBuffer( ulIdx, 38, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_DOFLASHFADER );
 		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fR1 );
 		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fG1 );
@@ -6378,6 +6378,7 @@ void SERVERCOMMANDS_DoFlashFader( float fR1, float fG1, float fB1, float fA1, fl
 		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fB2 );
 		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fA2 );
 		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fTime );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer);
 	}
 }
 

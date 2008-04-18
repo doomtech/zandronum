@@ -29,6 +29,7 @@
 -	- Partially fixed: Attack animations are not displayed in demos if you are spying a player that you didn't spy when recording the demo. By design this won't display alternate attacks. [Torr Samaho]
 -	- Fixed: The summon commands should inform a client when an invalid class is specified. [Karate Chris]
 -	- Fixed: The Cleric's staff didn't animate correctly when draining health. [Karate Chris]
+-	- Fixed: 'A_SetBlend' didn't work online. [Karate Chris]
 !	- Dormant actors are no longer removed in Invasion countdowns. [Rivecoder]
 !	- Extended the 'sv_nocallvote' console variable. When 'sv_nocallvote' is at 0, all players can call votes, when it's at 1, no players can call votes, when it's at 2, only players in game can call votes. [Karate Chris]
 !	- Removed the tediously annoying crouching console variable. [Karate Chris]

@@ -10860,8 +10860,9 @@ static void client_DoFlashFader( BYTESTREAM_s *pByteStream )
 	float	fB2;
 	float	fA2;
 	float	fTime;
+	ULONG	ulPlayer;
 
-	// Read in the colors and time for the flash fader.
+	// Read in the colors, time for the flash fader and which player to apply the effect to.
 	fR1 = NETWORK_ReadFloat( pByteStream );
 	fG1 = NETWORK_ReadFloat( pByteStream );
 	fB1 = NETWORK_ReadFloat( pByteStream );
@@ -10874,9 +10875,11 @@ static void client_DoFlashFader( BYTESTREAM_s *pByteStream )
 
 	fTime = NETWORK_ReadFloat( pByteStream );
 
+	ulPlayer = NETWORK_ReadByte( pByteStream );
+
 	// Create the flash fader.
-	if ( players[consoleplayer].mo )
-		new DFlashFader( fR1, fG1, fB1, fA1, fR2, fG2, fB2, fA2, fTime, players[consoleplayer].mo );
+	if ( players[ulPlayer].mo )
+		new DFlashFader( fR1, fG1, fB1, fA1, fR2, fG2, fB2, fA2, fTime, players[ulPlayer].mo );
 }
 
 //*****************************************************************************
