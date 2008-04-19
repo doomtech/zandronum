@@ -1004,6 +1004,9 @@ void S_SoundID (int channel, int sound_id, float volume, int attenuation)
 
 void S_SoundID (AActor *ent, int channel, int sound_id, float volume, int attenuation)
 {
+	// [BB] For some reason, this check is necessary in Heretic survival.
+	if (ent == NULL)
+		return;
 	if (ent->Sector->MoreFlags & SECF_SILENT)
 		return;
 	S_StartSound (&ent->x, ent, channel, sound_id, volume, SELECT_ATTEN(attenuation), false);
