@@ -261,7 +261,6 @@ static flagdef InventoryFlags[] =
 	DEFINE_FLAG(IF, INVBAR, AInventory, ItemFlags),
 	DEFINE_FLAG(IF, HUBPOWER, AInventory, ItemFlags),
 	DEFINE_FLAG(IF, INTERHUBSTRIP, AInventory, ItemFlags),
-	DEFINE_FLAG(IF, PICKUPFLASH, AInventory, ItemFlags),
 	DEFINE_FLAG(IF, ALWAYSPICKUP, AInventory, ItemFlags),
 	DEFINE_FLAG(IF, FANCYPICKUPSOUND, AInventory, ItemFlags),
 	DEFINE_FLAG(IF, BIGPOWERUP, AInventory, ItemFlags),
@@ -269,6 +268,9 @@ static flagdef InventoryFlags[] =
 	DEFINE_FLAG(IF, IGNORESKILL, AInventory, ItemFlags),
 	// [BB] New ST flags.
 	DEFINE_FLAG(IF, FORCERESPAWNINSURVIVAL, AInventory, ItemFlags),
+
+	DEFINE_DEPRECATED_FLAG(PICKUPFLASH, AInventory, 5),
+
 };
 
 static flagdef WeaponFlags[] =
@@ -415,6 +417,16 @@ static void HandleDeprecatedFlags(AActor *defaults, bool set, int index)
 		break;
 	case 4:	// LONGMELEERANGE
 		defaults->meleethreshold = set? 196*FRACUNIT : 0;
+		break;
+	case 5:	// INVENTORY.PICKUPFLASH
+		if (set)
+		{
+			static_cast<AInventory*>(defaults)->PickupFlash = fuglyname("PickupFlash");
+		}
+		else
+		{
+			static_cast<AInventory*>(defaults)->PickupFlash = NULL;
+		}
 		break;
 	default:
 		break;	// silence GCC
@@ -1839,6 +1851,15 @@ static void InventoryDefMaxAmount (FScanner &sc, AInventory *defaults, Baggage &
 
 
 //==========================================================================
+//
+//==========================================================================
+static void InventoryPickupflash (FScanner &sc, AInventory *defaults, Baggage &bag)
+{
+	sc.MustGetString();
+	defaults->PickupFlash = fuglyname(sc.String);
+}
+
+//==========================================================================
 // [BC]
 //==========================================================================
 static void InventoryPickupAnnouncerEntry (FScanner &sc, AInventory *defaults, Baggage &bag)
@@ -2619,6 +2640,7 @@ static const ActorProps props[] =
 	{ "inventory.icon",				(apf)InventoryIcon,			RUNTIME_CLASS(AInventory) },
 	{ "inventory.maxamount",		(apf)InventoryMaxAmount,	RUNTIME_CLASS(AInventory) },
 	{ "inventory.pickupannouncerentry",	(apf)InventoryPickupAnnouncerEntry,		RUNTIME_CLASS(AInventory) },	// [BC]
+	{ "inventory.pickupflash",		(apf)InventoryPickupflash,	RUNTIME_CLASS(AInventory) },
 	{ "inventory.pickupmessage",	(apf)InventoryPickupmsg,	RUNTIME_CLASS(AInventory) },
 	{ "inventory.pickupsound",		(apf)InventoryPickupsound,	RUNTIME_CLASS(AInventory) },
 	{ "inventory.respawntics",		(apf)InventoryRespawntics,	RUNTIME_CLASS(AInventory) },

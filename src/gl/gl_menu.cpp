@@ -126,7 +126,7 @@ menuitem_t OpenGLItems[] = {
 	{ discrete, "Sprite billboard",			{&gl_billboard_mode},			{2.0}, {0.0}, {0.0}, {BillboardModes} },
 	{ redtext,	" ",						{NULL},							{0.0}, {0.0}, {0.0}, {NULL} },
 	{ discrete, "Vertical Sync",			{&vid_vsync},					{2.0}, {0.0}, {0.0}, {OnOff} },
-//	{ discrete, "Refresh rate",				{&gl_vid_refreshHz},			{7.0}, {0.0}, {0.0}, {Hz} },
+//	{ discrete, "Refresh rate",				{&vid_refreshrate},			{7.0}, {0.0}, {0.0}, {Hz} },
 //	{ more,		"Apply Refresh rate setting",{NULL+},						{7.0}, {0.0}, {0.0}, {(value_t *)ApplyRefresh} },
 	{ discrete, "Rendering quality",		{&gl_render_precise},			{2.0}, {0.0}, {0.0}, {Precision} },
 	{ discrete, "Environment map on mirrors",{&gl_mirror_envmap},			{2.0}, {0.0}, {0.0}, {OnOff} },

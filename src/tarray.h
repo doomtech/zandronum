@@ -90,7 +90,7 @@ public:
 				{
 					DoDelete (0, Count-1);
 				}
-				free (Array);
+				M_Free (Array);
 			}
 			DoCopy (other);
 		}
@@ -104,7 +104,7 @@ public:
 			{
 				DoDelete (0, Count-1);
 			}
-			free (Array);
+			M_Free (Array);
 			Array = NULL;
 			Count = 0;
 			Most = 0;
@@ -179,7 +179,7 @@ public:
 			{
 				if (Array != NULL)
 				{
-					free (Array);
+					M_Free (Array);
 					Array = NULL;
 				}
 			}
@@ -605,7 +605,7 @@ protected:
 				Nodes[i].~Node();
 			}
 		}
-		free(Nodes);
+		M_Free(Nodes);
 		Nodes = NULL;
 		Size = 0;
 		LastFree = NULL;
@@ -629,7 +629,7 @@ protected:
 				nold[i].~Node();
 			}
 		}
-		free(nold);
+		M_Free(nold);
 	}
 
 	void Rehash()

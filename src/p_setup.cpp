@@ -3779,7 +3779,7 @@ void P_FreeExtraLevelData()
 		while (node != NULL)
 		{
 			msecnode_t *next = node->m_snext;
-			free (node);
+			M_Free (node);
 			node = next;
 		}
 		headsecnode = NULL;

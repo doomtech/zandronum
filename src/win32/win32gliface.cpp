@@ -27,7 +27,7 @@ RenderContext gl;
 
 CVAR(Bool, gl_vid_allowsoftware, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
 EXTERN_CVAR(Bool, gl_vid_compatibility)
-CVAR(Int, gl_vid_refreshHz, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
+EXTERN_CVAR(Int, vid_refreshrate)
 
 Win32GLVideo::Win32GLVideo(int parm) : m_Modes(NULL), m_IsFullscreen(false)
 {
@@ -192,7 +192,7 @@ DFrameBuffer *Win32GLVideo::CreateFrameBuffer(int width, int height, bool fs, DF
 	m_DisplayBits = gl_vid_compatibility? 16:32;
 	m_DisplayHz = 60;
 
-	if (gl_vid_refreshHz == 0)
+	if (vid_refreshrate == 0)
 	{
 		for (ModeInfo *mode = m_Modes; mode != NULL; mode = mode->next)
 		{
@@ -204,7 +204,7 @@ DFrameBuffer *Win32GLVideo::CreateFrameBuffer(int width, int height, bool fs, DF
 	}
 	else
 	{
-		m_DisplayHz = gl_vid_refreshHz;
+		m_DisplayHz = vid_refreshrate;
 	}
 
 	if (old != NULL)
@@ -388,5 +388,13 @@ void Win32GLFrameBuffer::ReleaseResources ()
 void Win32GLFrameBuffer::SetVSync (bool vsync)
 {
 	if (gl.SetVSync!=NULL) gl.SetVSync(vsync);
+}
+
+void Win32GLFrameBuffer::NewRefreshRate ()
+{
+	if (m_Fullscreen)
+	{
+		setmodeneeded = true;
+	}
 }
 

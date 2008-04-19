@@ -232,7 +232,7 @@ void FWadCollection::InitMultipleFiles (wadlist_t **filenames)
 
 		// [BC] Added the "loaded automatically" parameter.
 		AddFile (name, NULL, -1, (*filenames)->bLoadedAutomatically);
-		free (*filenames);
+		M_Free (*filenames);
 		*filenames = next;
 
 		// The first two files are always zdoom.wad and the IWAD, which
@@ -309,7 +309,7 @@ static DWORD Zip_FindCentralDir(FileReader * fin)
 	FileSize = fin->Tell();
 	uMaxBack = MIN<DWORD>(0xffff, FileSize);
 
-	buf = (unsigned char*)M_Malloc(BUFREADCOMMENT+4);
+	buf = (unsigned char*)malloc(BUFREADCOMMENT+4);
 	if (buf == NULL) return 0;
 
 	uBackRead = 4;

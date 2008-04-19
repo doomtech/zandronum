@@ -3253,11 +3253,11 @@ void G_MakeEpisodes ()
 
 		static const char *hepinames[5] =
 		{
-			"MNU_COTD",
-			"MNU_HELLSMAW",
-			"MNU_DOME",
-			"MNU_OSSUARY",
-			"MNU_DEMESNE",
+			"$MNU_COTD",
+			"$MNU_HELLSMAW",
+			"$MNU_DOME",
+			"$MNU_OSSUARY",
+			"$MNU_DEMESNE",
 		};
 		static const char hepikeys[5] = { 'c', 'h', 'd', 'o', 's' };
 

@@ -315,12 +315,12 @@ static oldmenu_t MainDef =
 //
 static oldmenuitem_t HereticMainMenu[] =
 {
-	{1,1,'n',"MNU_NEWGAME",false,false,M_NewGame, CR_UNTRANSLATED},
-	{1,1,'m',"MNU_MULTIPLAYER",false,false,M_Multiplayer, CR_UNTRANSLATED},
-	{1,1,'o',"MNU_OPTIONS",false,false,M_Options, CR_UNTRANSLATED},
-	{1,1,'f',"MNU_GAMEFILES",false,false,M_GameFiles, CR_UNTRANSLATED},
-	{1,1,'i',"MNU_INFO",false,false,M_ReadThis, CR_UNTRANSLATED},
-	{1,1,'q',"MNU_QUITGAME",false,false,M_QuitGame, CR_UNTRANSLATED}
+	{1,1,'n',"$MNU_NEWGAME",false,false,M_NewGame, CR_UNTRANSLATED},
+	{1,1,'m',"$MNU_MULTIPLAYER",false,false,M_Multiplayer, CR_UNTRANSLATED},
+	{1,1,'o',"$MNU_OPTIONS",false,false,M_Options, CR_UNTRANSLATED},
+	{1,1,'f',"$MNU_GAMEFILES",false,false,M_GameFiles, CR_UNTRANSLATED},
+	{1,1,'i',"$MNU_INFO",false,false,M_ReadThis, CR_UNTRANSLATED},
+	{1,1,'q',"$MNU_QUITGAME",false,false,M_QuitGame, CR_UNTRANSLATED}
 };
 
 static oldmenu_t HereticMainDef =
@@ -337,10 +337,10 @@ static oldmenu_t HereticMainDef =
 //
 static oldmenuitem_t ClassItems[] =
 {
-	{ 1,1, 'f', "MNU_FIGHTER", false, false, SCClass, CR_UNTRANSLATED },
-	{ 1,1, 'c', "MNU_CLERIC", false, false, SCClass, CR_UNTRANSLATED },
-	{ 1,1, 'm', "MNU_MAGE", false, false, SCClass, CR_UNTRANSLATED },
-	{ 1,1, 'r', "MNU_RANDOM", false, false, SCClass, CR_UNTRANSLATED}	// [RH]
+	{ 1,1, 'f', "$MNU_FIGHTER", false, false, SCClass, CR_UNTRANSLATED },
+	{ 1,1, 'c', "$MNU_CLERIC", false, false, SCClass, CR_UNTRANSLATED },
+	{ 1,1, 'm', "$MNU_MAGE", false, false, SCClass, CR_UNTRANSLATED },
+	{ 1,1, 'r', "$MNU_RANDOM", false, false, SCClass, CR_UNTRANSLATED}	// [RH]
 };
 
 static oldmenu_t ClassMenu =
@@ -409,8 +409,8 @@ oldmenu_t EpiDef =
 //
 static oldmenuitem_t FilesItems[] =
 {
-	{1,1,'l',"MNU_LOADGAME",false,false,M_LoadGame, CR_UNTRANSLATED},
-	{1,1,'s',"MNU_SAVEGAME",false,false,M_SaveGame, CR_UNTRANSLATED}
+	{1,1,'l',"$MNU_LOADGAME",false,false,M_LoadGame, CR_UNTRANSLATED},
+	{1,1,'s',"$MNU_SAVEGAME",false,false,M_SaveGame, CR_UNTRANSLATED}
 };
 
 static oldmenu_t FilesMenu =
@@ -3547,8 +3547,9 @@ void M_Drawer ()
 								color = CR_RED;
 							}
 						}
-						screen->DrawText (color, x, y,
-							GStrings(currentMenu->menuitems[i].name),
+						const char *text = currentMenu->menuitems[i].name;
+						if (*text == '$') text = GStrings(text+1);
+						screen->DrawText (color, x, y, text,
 							DTA_Clean, true, TAG_DONE);
 					}
 					else

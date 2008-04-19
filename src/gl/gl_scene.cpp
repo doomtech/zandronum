@@ -919,7 +919,7 @@ void OpenGLFrameBuffer::WriteSavePic (player_t *player, FILE *file, int width, i
 	byte * scr = (byte *)M_Malloc(width * height * 3);
 	gl.ReadPixels(0,0,width, height,GL_RGB,GL_UNSIGNED_BYTE,scr);
 	M_CreatePNG (file, scr + ((height-1) * width * 3), NULL, SS_RGB, width, height, -width*3);
-	free(scr);
+	M_Free(scr);
 
 	// [BC] In GZDoom, this is called every frame, regardless of whether or not
 	// the view is active. In Skulltag, we don't so we have to call this here

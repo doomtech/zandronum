@@ -1074,16 +1074,19 @@ CCMD (playerinfo)
 	else
 	{
 		int i = atoi (argv[1]);
-		Printf ("Name:				%s\n", players[i].userinfo.netname);
-		Printf ("Team:				%s\n", players[i].bOnTeam ? TEAM_GetName( players[i].ulTeam ) : "NONE" );
-		Printf ("Aimdist:			%d\n", players[i].userinfo.aimdist);
-		Printf ("Color:				%06x\n", players[i].userinfo.color);
-		Printf ("Skin:				%d\n", players[i].userinfo.skin);
-		Printf ("Gender:			%d\n", players[i].userinfo.gender);
-		Printf ("SwitchOnPickup:	%s\n", players[i].userinfo.switchonpickup == 0 ? "never" : players[i].userinfo.switchonpickup == 1 ? "only higher ranked" : "always" );
-		Printf ("MoveBob:			%g\n", players[i].userinfo.MoveBob/65536.f);
-		Printf ("StillBob:			%g\n", players[i].userinfo.StillBob/65536.f);
-		Printf ("PlayerClass:		%d\n", players[i].userinfo.PlayerClass);
+		userinfo_t *ui = &players[i].userinfo;
+		Printf ("Name:        %s\n",		ui->netname);
+		Printf ("Team:        %s (%d)\n",	players[i].bOnTeam ? TEAM_GetName( players[i].ulTeam ) : "NONE", players[i].ulTeam );
+		Printf ("Aimdist:     %d\n",		ui->aimdist);
+		Printf ("Color:       %06x\n",		ui->color);
+		Printf ("Skin:        %s (%d)\n",	skins[ui->skin].name, ui->skin);
+		Printf ("Gender:      %s (%d)\n",	GenderNames[ui->gender], ui->gender);
+		Printf ("SwitchOnPickup:	%s\n",	ui->switchonpickup == 0 ? "never" : ui->switchonpickup == 1 ? "only higher ranked" : "always" );
+		Printf ("MoveBob:     %g\n",		ui->MoveBob/65536.f);
+		Printf ("StillBob:    %g\n",		ui->StillBob/65536.f);
+		Printf ("PlayerClass: %s (%d)\n",
+			ui->PlayerClass == -1 ? "Random" : PlayerClasses[ui->PlayerClass].Type->Meta.GetMetaString (APMETA_DisplayName),
+			ui->PlayerClass);
 	}
 }
 

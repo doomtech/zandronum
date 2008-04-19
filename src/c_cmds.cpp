@@ -794,7 +794,7 @@ CCMD (fov)
 		}
 		else
 		{
-			Printf ("The arbitrator has disabled FOV changes.\n");
+			Printf ("A setting controller has disabled FOV changes.\n");
 			return;
 		}
 	}

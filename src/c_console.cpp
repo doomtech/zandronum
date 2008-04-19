@@ -492,7 +492,7 @@ void C_DeinitConsole ()
 	{
 		GameAtExit *next = cmd->Next;
 		AddCommandString (cmd->Command);
-		free (cmd);
+		M_Free (cmd);
 		cmd = next;
 	}
 
@@ -1304,7 +1304,7 @@ void C_DrawConsole (bool hw2d)
 			DTA_DestWidth, screen->GetWidth(),
 			DTA_DestHeight, screen->GetHeight(),
 			DTA_ColorOverlay, conshade,
-			DTA_Alpha, hw2d ? FLOAT2FIXED(con_alpha) : FRACUNIT,
+			DTA_Alpha, (hw2d && gamestate != GS_FULLCONSOLE) ? FLOAT2FIXED(con_alpha) : FRACUNIT,
 			DTA_Masked, false,
 			TAG_DONE);
 		if (conline && visheight < screen->GetHeight())
@@ -1855,7 +1855,7 @@ static bool C_HandleKey (event_t *ev, BYTE *buffer, int len)
 				if (HistSize == MAXHISTSIZE)
 				{
 					HistTail = HistTail->Newer;
-					free (HistTail->Older);
+					M_Free (HistTail->Older);
 					HistTail->Older = NULL;
 				}
 				else

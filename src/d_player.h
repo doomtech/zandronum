@@ -297,6 +297,8 @@ public:
 
 	FName		LastDamageType;			// [RH] For damage-specific pain and death sounds
 
+	bool		settings_controller;	// Player can control game settings.
+
 	float		BlendR;		// [RH] Final blending values
 	float		BlendG;
 	float		BlendB;

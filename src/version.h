@@ -47,7 +47,7 @@
 #define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING
 
 // [BC] What version of ZDoom is this based off of?
-#define	ZDOOMVERSIONSTR		"2.2.0-748"
+#define	ZDOOMVERSIONSTR		"2.2.0-755"
 
 /** Release code stuff */
 
@@ -79,7 +79,7 @@
 // Protocol version used in demos.
 // Bump it if you change existing DEM_ commands or add new ones.
 // Otherwise, it should be safe to leave it alone.
-#define DEMOGAMEVERSION 0x209
+#define DEMOGAMEVERSION 0x20A
 
 // Minimum demo version we can play.
 // Bump it whenever you change or remove existing DEM_ commands.

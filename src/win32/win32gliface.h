@@ -28,7 +28,6 @@ EXTERN_CVAR(Int, vid_defheight);
 EXTERN_CVAR(Int, vid_renderer);
 
 EXTERN_CVAR(Bool, gl_vid_allowsoftware);
-EXTERN_CVAR(Int, gl_vid_refreshHz);
 
 extern HINSTANCE g_hInst;
 extern HWND Window;
@@ -101,6 +100,8 @@ public:
 	virtual void ReleaseResources ();
 
 	void SetVSync (bool vsync);
+	void NewRefreshRate ();
+
 
 	int GetTrueHeight() { return static_cast<Win32GLVideo*>(Video)->GetTrueHeight(); }
 

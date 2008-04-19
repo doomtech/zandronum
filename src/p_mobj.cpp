@@ -4581,7 +4581,7 @@ void P_SpawnPlayer (mapthing2_t *mthing, bool bClientUpdate, player_t *p, bool t
 		p->mo->GiveDeathmatchInventory ();
 	}
 	// [BC] Don't filter coop inventory in teamgame mode.
-	else if (( NETWORK_GetState( ) != NETSTATE_SINGLE ) && state == PST_REBORN && oldactor != NULL && ( teamgame == false ))
+	else if ((( NETWORK_GetState( ) != NETSTATE_SINGLE ) || (level.flags & LEVEL_ALLOWRESPAWN) ) && state == PST_REBORN && oldactor != NULL && ( teamgame == false ))
 	{ // Special inventory handling for respawning in coop
 		p->mo->FilterCoopRespawnInventory (oldactor);
 	}
