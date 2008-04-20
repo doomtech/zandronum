@@ -256,6 +256,7 @@ void gl_InitVertexData()
 	}
 
 	delete [] vt_sectorlists;
+	atterm(gl_CleanVertexData);
 }
 
 

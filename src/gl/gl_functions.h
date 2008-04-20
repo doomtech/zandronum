@@ -59,7 +59,7 @@ void gl_GetLightColor(int lightlevel, int rellight, const FColormap * cm, float 
 void gl_SetColor(int light, int rellight, const FColormap * cm, float alpha, PalEntry ThingColor = 0xffffff, bool weapon=false);
 void gl_SetColor(int light, int rellight, const FColormap * cm, float *red, float *green, float *blue, PalEntry ThingColor=0xffffff, bool weapon=false);
 
-void gl_GetSpriteLight(fixed_t x, fixed_t y, fixed_t z, subsector_t * subsec, int desaturation, float * out);
+void gl_GetSpriteLight(AActor *Self, fixed_t x, fixed_t y, fixed_t z, subsector_t * subsec, int desaturation, float * out);
 void gl_SetSpriteLight(AActor * thing, int lightlevel, int rellight, FColormap * cm, float alpha, PalEntry ThingColor = 0xffffff, bool weapon=false);
 
 void gl_GetSpriteLight(AActor * thing, int lightlevel, int rellight, FColormap * cm,

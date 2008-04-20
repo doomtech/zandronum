@@ -353,6 +353,9 @@ void AActor::Serialize (FArchive &arc)
 		<< pMonsterSpot
 		<< pPickupSpot;
 
+	if (SaveVersion >=778)
+		arc << master;
+
 	if (arc.IsStoring ())
 	{
 		int convnum = 0;
@@ -5644,7 +5647,7 @@ bool P_CheckMissileSpawn (AActor* th)
 	if (!P_TryMove (th, th->x, th->y, false))
 	{
 		// [RH] Don't explode ripping missiles that spawn inside something
-		if (BlockingMobj == NULL || !(th->flags2 & MF2_RIP))
+		if (BlockingMobj == NULL || !(th->flags2 & MF2_RIP) || (BlockingMobj->flags5 & MF5_DONTRIP))
 		{
 			// If this is a monster spawned by A_CustomMissile subtract it from the counter.
 			if (th->CountsAsKill())

@@ -162,23 +162,22 @@ public:
    void SetOffset(fixed_t x, fixed_t y, fixed_t z) { m_X = x; m_Y = y; m_Z = z; }
    void SetSubtractive(bool subtract) { m_subtractive = subtract; }
    void SetAdditive(bool add) { m_additive = add; }
+   void SetDontLightSelf(bool add) { m_dontlightself = add; }
    void SetHalo(bool halo) { m_halo = halo; }
 protected:
-   char *m_Name;
+   FString m_Name;
    unsigned char m_Args[5];
    angle_t m_Angle;
    fixed_t m_X, m_Y, m_Z;
    ELightType m_type;
-   bool m_subtractive, m_additive, m_halo;
+   bool m_subtractive, m_additive, m_halo, m_dontlightself;
 };
 
 TArray<FLightDefaults *> LightDefaults;
 
 FLightDefaults::FLightDefaults(const char *name, ELightType type)
 {
-	m_Name = new char[strlen(name) + 1];
-	sprintf(m_Name, "%s", name);
-
+	m_Name = name;
 	m_type = type;
 
 	m_X = m_Y = m_Z = 0;
@@ -187,11 +186,11 @@ FLightDefaults::FLightDefaults(const char *name, ELightType type)
 	m_subtractive = false;
 	m_additive = false;
 	m_halo = false;
+	m_dontlightself = false;
 }
 
 FLightDefaults::~FLightDefaults()
 {
-	if (m_Name) delete [] m_Name;
 }
 
 void FLightDefaults::ApplyProperties(ADynamicLight * light) const
@@ -203,9 +202,10 @@ void FLightDefaults::ApplyProperties(ADynamicLight * light) const
 	for (int a = 0; a < 3; a++) light->args[a] = clamp<int>((int)(m_Args[a] * gl_lights_intensity), 0, 255);
 	light->m_intensity[0] = m_Args[LIGHT_INTENSITY] * gl_lights_size;
 	light->m_intensity[1] = m_Args[LIGHT_SECONDARY_INTENSITY] * gl_lights_size;
-	light->flags4&=~(MF4_ADDITIVE|MF4_SUBTRACTIVE);
+	light->flags4&=~(MF4_ADDITIVE|MF4_SUBTRACTIVE|MF4_DONTLIGHTSELF);
 	if (m_subtractive) light->flags4|=MF4_SUBTRACTIVE;
 	if (m_additive) light->flags4|=MF4_ADDITIVE;
+	if (m_dontlightself) light->flags4|=MF4_DONTLIGHTSELF;
 }
 
 
@@ -232,6 +232,7 @@ static const char *LightTags[]=
    "subtractive",
    "additive",
    "halo",
+   "dontlightself",
    NULL
 };
 
@@ -250,7 +251,8 @@ enum {
    LIGHTTAG_CLOSEBRACE,
    LIGHTTAG_SUBTRACTIVE,
    LIGHTTAG_ADDITIVE,
-   LIGHTTAG_HALO
+   LIGHTTAG_HALO,
+   LIGHTTAG_DONTLIGHTSELF,
 };
 
 
@@ -314,221 +316,218 @@ void gl_AddLightDefaults(FLightDefaults *defaults)
 // parse thing 9800
 void gl_ParsePointLight(FScanner &sc)
 {
-   int type;
-   float floatTriple[3];
-   int intVal;
-   FString name;
-   FLightDefaults *defaults;
+	int type;
+	float floatTriple[3];
+	int intVal;
+	FString name;
+	FLightDefaults *defaults;
 
-   // get name
-   sc.GetString();
-   name = sc.String;
+	// get name
+	sc.GetString();
+	name = sc.String;
 
-   // check for opening brace
-   sc.GetString();
-   if (sc.Compare("{"))
-   {
-      defaults = new FLightDefaults(name.GetChars(), PointLight);
-      ScriptDepth++;
-      while (ScriptDepth)
-      {
-         sc.GetString();
-         if ((type = sc.MatchString(LightTags)) != -1)
-         {
-            switch (type)
-            {
-            case LIGHTTAG_OPENBRACE:
-               ScriptDepth++;
-               break;
-            case LIGHTTAG_CLOSEBRACE:
-               ScriptDepth--;
-               break;
-            case LIGHTTAG_COLOR:
-               gl_ParseTriple(sc, floatTriple);
-               defaults->SetArg(LIGHT_RED, clamp<int>((int)(floatTriple[0] * 255), 0, 255));
-               defaults->SetArg(LIGHT_GREEN, clamp<int>((int)(floatTriple[1] * 255), 0, 255));
-               defaults->SetArg(LIGHT_BLUE, clamp<int>((int)(floatTriple[2] * 255), 0, 255));
-               break;
-            case LIGHTTAG_OFFSET:
-               gl_ParseTriple(sc, floatTriple);
-               defaults->SetOffset(FROM_MAP(floatTriple[0]), FROM_MAP(floatTriple[1]), FROM_MAP(floatTriple[2]));
-               break;
-            case LIGHTTAG_SIZE:
-               intVal = clamp<int>(gl_ParseInt(sc), 0, 255);
-               defaults->SetArg(LIGHT_INTENSITY, intVal);
-               break;
-            case LIGHTTAG_SUBTRACTIVE:
-               defaults->SetSubtractive(gl_ParseInt(sc) != 0);
-               break;
-            case LIGHTTAG_ADDITIVE:
-               defaults->SetAdditive(gl_ParseInt(sc) != 0);
-               break;
-            case LIGHTTAG_HALO:
-               defaults->SetHalo(gl_ParseInt(sc) != 0);
-               break;
-            }
-         }
-         else
-         {
-            sc.ScriptError("Unknown tag: %s\n", sc.String);
-         }
-      }
-      gl_AddLightDefaults(defaults);
-   }
-   else
-   {
-      sc.ScriptError("Expected '{'.\n");
-   }
+	// check for opening brace
+	sc.GetString();
+	if (sc.Compare("{"))
+	{
+		defaults = new FLightDefaults(name.GetChars(), PointLight);
+		ScriptDepth++;
+		while (ScriptDepth)
+		{
+			sc.GetString();
+			type = sc.MatchString(LightTags);
+			switch (type)
+			{
+			case LIGHTTAG_OPENBRACE:
+				ScriptDepth++;
+				break;
+			case LIGHTTAG_CLOSEBRACE:
+				ScriptDepth--;
+				break;
+			case LIGHTTAG_COLOR:
+				gl_ParseTriple(sc, floatTriple);
+				defaults->SetArg(LIGHT_RED, clamp<int>((int)(floatTriple[0] * 255), 0, 255));
+				defaults->SetArg(LIGHT_GREEN, clamp<int>((int)(floatTriple[1] * 255), 0, 255));
+				defaults->SetArg(LIGHT_BLUE, clamp<int>((int)(floatTriple[2] * 255), 0, 255));
+				break;
+			case LIGHTTAG_OFFSET:
+				gl_ParseTriple(sc, floatTriple);
+				defaults->SetOffset(FROM_MAP(floatTriple[0]), FROM_MAP(floatTriple[1]), FROM_MAP(floatTriple[2]));
+				break;
+			case LIGHTTAG_SIZE:
+				intVal = clamp<int>(gl_ParseInt(sc), 0, 255);
+				defaults->SetArg(LIGHT_INTENSITY, intVal);
+				break;
+			case LIGHTTAG_SUBTRACTIVE:
+				defaults->SetSubtractive(gl_ParseInt(sc) != 0);
+				break;
+			case LIGHTTAG_ADDITIVE:
+				defaults->SetAdditive(gl_ParseInt(sc) != 0);
+				break;
+			case LIGHTTAG_HALO:
+				defaults->SetHalo(gl_ParseInt(sc) != 0);
+				break;
+			case LIGHTTAG_DONTLIGHTSELF:
+				defaults->SetDontLightSelf(gl_ParseInt(sc) != 0);
+				break;
+			default:
+				sc.ScriptError("Unknown tag: %s\n", sc.String);
+			}
+		}
+		gl_AddLightDefaults(defaults);
+	}
+	else
+	{
+		sc.ScriptError("Expected '{'.\n");
+	}
 }
 
 
 void gl_ParsePulseLight(FScanner &sc)
 {
-   int type;
-   float floatVal, floatTriple[3];
-   int intVal;
-   FString name;
-   FLightDefaults *defaults;
+	int type;
+	float floatVal, floatTriple[3];
+	int intVal;
+	FString name;
+	FLightDefaults *defaults;
 
-   // get name
-   sc.GetString();
-   name = sc.String;
+	// get name
+	sc.GetString();
+	name = sc.String;
 
-   // check for opening brace
-   sc.GetString();
-   if (sc.Compare("{"))
-   {
-      defaults = new FLightDefaults(name.GetChars(), PulseLight);
-      ScriptDepth++;
-      while (ScriptDepth)
-      {
-         sc.GetString();
-         if ((type = sc.MatchString(LightTags)) != -1)
-         {
-            switch (type)
-            {
-            case LIGHTTAG_OPENBRACE:
-               ScriptDepth++;
-               break;
-            case LIGHTTAG_CLOSEBRACE:
-               ScriptDepth--;
-               break;
-            case LIGHTTAG_COLOR:
-               gl_ParseTriple(sc, floatTriple);
-               defaults->SetArg(LIGHT_RED, clamp<int>((int)(floatTriple[0] * 255), 0, 255));
-               defaults->SetArg(LIGHT_GREEN, clamp<int>((int)(floatTriple[1] * 255), 0, 255));
-               defaults->SetArg(LIGHT_BLUE, clamp<int>((int)(floatTriple[2] * 255), 0, 255));
-               break;
-            case LIGHTTAG_OFFSET:
-               gl_ParseTriple(sc, floatTriple);
-			   defaults->SetOffset(FROM_MAP(floatTriple[0]), FROM_MAP(floatTriple[1]), FROM_MAP(floatTriple[2]));
-               break;
-            case LIGHTTAG_SIZE:
-               intVal = clamp<int>(gl_ParseInt(sc), 0, 255);
-               defaults->SetArg(LIGHT_INTENSITY, intVal);
-               break;
-            case LIGHTTAG_SECSIZE:
-               intVal = clamp<int>(gl_ParseInt(sc), 0, 255);
-               defaults->SetArg(LIGHT_SECONDARY_INTENSITY, intVal);
-               break;
-            case LIGHTTAG_INTERVAL:
-               floatVal = gl_ParseFloat(sc);
-               defaults->SetAngle(FLOAT_TO_ANGLE(floatVal * TICRATE));
-               break;
-            case LIGHTTAG_SUBTRACTIVE:
-               defaults->SetSubtractive(gl_ParseInt(sc) != 0);
-               break;
-            case LIGHTTAG_HALO:
-               defaults->SetHalo(gl_ParseInt(sc) != 0);
-               break;
-            }
-         }
-         else
-         {
-            sc.ScriptError("Unknown tag: %s\n", sc.String);
-         }
-      }
-      gl_AddLightDefaults(defaults);
-   }
-   else
-   {
-      sc.ScriptError("Expected '{'.\n");
-   }
+	// check for opening brace
+	sc.GetString();
+	if (sc.Compare("{"))
+	{
+		defaults = new FLightDefaults(name.GetChars(), PulseLight);
+		ScriptDepth++;
+		while (ScriptDepth)
+		{
+			sc.GetString();
+			type = sc.MatchString(LightTags);
+			switch (type)
+			{
+			case LIGHTTAG_OPENBRACE:
+				ScriptDepth++;
+				break;
+			case LIGHTTAG_CLOSEBRACE:
+				ScriptDepth--;
+				break;
+			case LIGHTTAG_COLOR:
+				gl_ParseTriple(sc, floatTriple);
+				defaults->SetArg(LIGHT_RED, clamp<int>((int)(floatTriple[0] * 255), 0, 255));
+				defaults->SetArg(LIGHT_GREEN, clamp<int>((int)(floatTriple[1] * 255), 0, 255));
+				defaults->SetArg(LIGHT_BLUE, clamp<int>((int)(floatTriple[2] * 255), 0, 255));
+				break;
+			case LIGHTTAG_OFFSET:
+				gl_ParseTriple(sc, floatTriple);
+				defaults->SetOffset(FROM_MAP(floatTriple[0]), FROM_MAP(floatTriple[1]), FROM_MAP(floatTriple[2]));
+				break;
+			case LIGHTTAG_SIZE:
+				intVal = clamp<int>(gl_ParseInt(sc), 0, 255);
+				defaults->SetArg(LIGHT_INTENSITY, intVal);
+				break;
+			case LIGHTTAG_SECSIZE:
+				intVal = clamp<int>(gl_ParseInt(sc), 0, 255);
+				defaults->SetArg(LIGHT_SECONDARY_INTENSITY, intVal);
+				break;
+			case LIGHTTAG_INTERVAL:
+				floatVal = gl_ParseFloat(sc);
+				defaults->SetAngle(FLOAT_TO_ANGLE(floatVal * TICRATE));
+				break;
+			case LIGHTTAG_SUBTRACTIVE:
+				defaults->SetSubtractive(gl_ParseInt(sc) != 0);
+				break;
+			case LIGHTTAG_HALO:
+				defaults->SetHalo(gl_ParseInt(sc) != 0);
+				break;
+			case LIGHTTAG_DONTLIGHTSELF:
+				defaults->SetDontLightSelf(gl_ParseInt(sc) != 0);
+				break;
+			default:
+				sc.ScriptError("Unknown tag: %s\n", sc.String);
+			}
+		}
+		gl_AddLightDefaults(defaults);
+	}
+	else
+	{
+		sc.ScriptError("Expected '{'.\n");
+	}
 }
 
 
 void gl_ParseFlickerLight(FScanner &sc)
 {
-   int type;
-   float floatVal, floatTriple[3];
-   int intVal;
-   FString name;
-   FLightDefaults *defaults;
+	int type;
+	float floatVal, floatTriple[3];
+	int intVal;
+	FString name;
+	FLightDefaults *defaults;
 
-   // get name
-   sc.GetString();
-   name = sc.String;
+	// get name
+	sc.GetString();
+	name = sc.String;
 
-   // check for opening brace
-   sc.GetString();
-   if (sc.Compare("{"))
-   {
-      defaults = new FLightDefaults(name.GetChars(), FlickerLight);
-      ScriptDepth++;
-      while (ScriptDepth)
-      {
-         sc.GetString();
-         if ((type = sc.MatchString(LightTags)) != -1)
-         {
-            switch (type)
-            {
-            case LIGHTTAG_OPENBRACE:
-               ScriptDepth++;
-               break;
-            case LIGHTTAG_CLOSEBRACE:
-               ScriptDepth--;
-               break;
-            case LIGHTTAG_COLOR:
-               gl_ParseTriple(sc, floatTriple);
-               defaults->SetArg(LIGHT_RED, clamp<int>((int)(floatTriple[0] * 255), 0, 255));
-               defaults->SetArg(LIGHT_GREEN, clamp<int>((int)(floatTriple[1] * 255), 0, 255));
-               defaults->SetArg(LIGHT_BLUE, clamp<int>((int)(floatTriple[2] * 255), 0, 255));
-               break;
-            case LIGHTTAG_OFFSET:
-               gl_ParseTriple(sc, floatTriple);
-			   defaults->SetOffset(FROM_MAP(floatTriple[0]), FROM_MAP(floatTriple[1]), FROM_MAP(floatTriple[2]));
-               break;
-            case LIGHTTAG_SIZE:
-               intVal = clamp<int>(gl_ParseInt(sc), 0, 255);
-               defaults->SetArg(LIGHT_INTENSITY, intVal);
-               break;
-            case LIGHTTAG_SECSIZE:
-               intVal = clamp<int>(gl_ParseInt(sc), 0, 255);
-               defaults->SetArg(LIGHT_SECONDARY_INTENSITY, intVal);
-               break;
-            case LIGHTTAG_CHANCE:
-               floatVal = gl_ParseFloat(sc);
-               defaults->SetAngle((angle_t)(floatVal * ANGLE_MAX));
-               break;
-            case LIGHTTAG_SUBTRACTIVE:
-               defaults->SetSubtractive(gl_ParseInt(sc) != 0);
-               break;
-            case LIGHTTAG_HALO:
-               defaults->SetHalo(gl_ParseInt(sc) != 0);
-               break;
-            }
-         }
-         else
-         {
-            sc.ScriptError("Unknown tag: %s\n", sc.String);
-         }
-      }
-      gl_AddLightDefaults(defaults);
-   }
-   else
-   {
-      sc.ScriptError("Expected '{'.\n");
-   }
+	// check for opening brace
+	sc.GetString();
+	if (sc.Compare("{"))
+	{
+		defaults = new FLightDefaults(name.GetChars(), FlickerLight);
+		ScriptDepth++;
+		while (ScriptDepth)
+		{
+			sc.GetString();
+			type = sc.MatchString(LightTags);
+			switch (type)
+			{
+			case LIGHTTAG_OPENBRACE:
+				ScriptDepth++;
+				break;
+			case LIGHTTAG_CLOSEBRACE:
+				ScriptDepth--;
+				break;
+			case LIGHTTAG_COLOR:
+				gl_ParseTriple(sc, floatTriple);
+				defaults->SetArg(LIGHT_RED, clamp<int>((int)(floatTriple[0] * 255), 0, 255));
+				defaults->SetArg(LIGHT_GREEN, clamp<int>((int)(floatTriple[1] * 255), 0, 255));
+				defaults->SetArg(LIGHT_BLUE, clamp<int>((int)(floatTriple[2] * 255), 0, 255));
+				break;
+			case LIGHTTAG_OFFSET:
+				gl_ParseTriple(sc, floatTriple);
+				defaults->SetOffset(FROM_MAP(floatTriple[0]), FROM_MAP(floatTriple[1]), FROM_MAP(floatTriple[2]));
+				break;
+			case LIGHTTAG_SIZE:
+				intVal = clamp<int>(gl_ParseInt(sc), 0, 255);
+				defaults->SetArg(LIGHT_INTENSITY, intVal);
+				break;
+			case LIGHTTAG_SECSIZE:
+				intVal = clamp<int>(gl_ParseInt(sc), 0, 255);
+				defaults->SetArg(LIGHT_SECONDARY_INTENSITY, intVal);
+				break;
+			case LIGHTTAG_CHANCE:
+				floatVal = gl_ParseFloat(sc);
+				defaults->SetAngle((angle_t)(floatVal * ANGLE_MAX));
+				break;
+			case LIGHTTAG_SUBTRACTIVE:
+				defaults->SetSubtractive(gl_ParseInt(sc) != 0);
+				break;
+			case LIGHTTAG_HALO:
+				defaults->SetHalo(gl_ParseInt(sc) != 0);
+				break;
+			case LIGHTTAG_DONTLIGHTSELF:
+				defaults->SetDontLightSelf(gl_ParseInt(sc) != 0);
+				break;
+			default:
+				sc.ScriptError("Unknown tag: %s\n", sc.String);
+			}
+		}
+		gl_AddLightDefaults(defaults);
+	}
+	else
+	{
+		sc.ScriptError("Expected '{'.\n");
+	}
 }
 
 
@@ -553,48 +552,47 @@ void gl_ParseFlickerLight2(FScanner &sc)
 		while (ScriptDepth)
 		{
 			sc.GetString();
-			if ((type = sc.MatchString(LightTags)) != -1)
+			type = sc.MatchString(LightTags);
+			switch (type)
 			{
-				switch (type)
-				{
-				case LIGHTTAG_OPENBRACE:
-					ScriptDepth++;
-					break;
-				case LIGHTTAG_CLOSEBRACE:
-					ScriptDepth--;
-					break;
-				case LIGHTTAG_COLOR:
-					gl_ParseTriple(sc, floatTriple);
-					defaults->SetArg(LIGHT_RED, clamp<int>((int)(floatTriple[0] * 255), 0, 255));
-					defaults->SetArg(LIGHT_GREEN, clamp<int>((int)(floatTriple[1] * 255), 0, 255));
-					defaults->SetArg(LIGHT_BLUE, clamp<int>((int)(floatTriple[2] * 255), 0, 255));
-					break;
-				case LIGHTTAG_OFFSET:
-					gl_ParseTriple(sc, floatTriple);
-					defaults->SetOffset(FROM_MAP(floatTriple[0]), FROM_MAP(floatTriple[1]), FROM_MAP(floatTriple[2]));
-					break;
-				case LIGHTTAG_SIZE:
-					intVal = clamp<int>(gl_ParseInt(sc), 0, 255);
-					defaults->SetArg(LIGHT_INTENSITY, intVal);
-					break;
-				case LIGHTTAG_SECSIZE:
-					intVal = clamp<int>(gl_ParseInt(sc), 0, 255);
-					defaults->SetArg(LIGHT_SECONDARY_INTENSITY, intVal);
-					break;
-				case LIGHTTAG_INTERVAL:
-					floatVal = gl_ParseFloat(sc);
-					defaults->SetAngle((angle_t)(floatVal * ANGLE_MAX));
-					break;
-				case LIGHTTAG_SUBTRACTIVE:
-					defaults->SetSubtractive(gl_ParseInt(sc) != 0);
-					break;
-				case LIGHTTAG_HALO:
-					defaults->SetHalo(gl_ParseInt(sc) != 0);
-					break;
-				}
-			}
-			else
-			{
+			case LIGHTTAG_OPENBRACE:
+				ScriptDepth++;
+				break;
+			case LIGHTTAG_CLOSEBRACE:
+				ScriptDepth--;
+				break;
+			case LIGHTTAG_COLOR:
+				gl_ParseTriple(sc, floatTriple);
+				defaults->SetArg(LIGHT_RED, clamp<int>((int)(floatTriple[0] * 255), 0, 255));
+				defaults->SetArg(LIGHT_GREEN, clamp<int>((int)(floatTriple[1] * 255), 0, 255));
+				defaults->SetArg(LIGHT_BLUE, clamp<int>((int)(floatTriple[2] * 255), 0, 255));
+				break;
+			case LIGHTTAG_OFFSET:
+				gl_ParseTriple(sc, floatTriple);
+				defaults->SetOffset(FROM_MAP(floatTriple[0]), FROM_MAP(floatTriple[1]), FROM_MAP(floatTriple[2]));
+				break;
+			case LIGHTTAG_SIZE:
+				intVal = clamp<int>(gl_ParseInt(sc), 0, 255);
+				defaults->SetArg(LIGHT_INTENSITY, intVal);
+				break;
+			case LIGHTTAG_SECSIZE:
+				intVal = clamp<int>(gl_ParseInt(sc), 0, 255);
+				defaults->SetArg(LIGHT_SECONDARY_INTENSITY, intVal);
+				break;
+			case LIGHTTAG_INTERVAL:
+				floatVal = gl_ParseFloat(sc);
+				defaults->SetAngle((angle_t)(floatVal * ANGLE_MAX));
+				break;
+			case LIGHTTAG_SUBTRACTIVE:
+				defaults->SetSubtractive(gl_ParseInt(sc) != 0);
+				break;
+			case LIGHTTAG_HALO:
+				defaults->SetHalo(gl_ParseInt(sc) != 0);
+				break;
+			case LIGHTTAG_DONTLIGHTSELF:
+				defaults->SetDontLightSelf(gl_ParseInt(sc) != 0);
+				break;
+			default:
 				sc.ScriptError("Unknown tag: %s\n", sc.String);
 			}
 		}
@@ -615,68 +613,67 @@ void gl_ParseFlickerLight2(FScanner &sc)
 
 void gl_ParseSectorLight(FScanner &sc)
 {
-   int type;
-   float floatVal;
-   float floatTriple[3];
-   FString name;
-   FLightDefaults *defaults;
+	int type;
+	float floatVal;
+	float floatTriple[3];
+	FString name;
+	FLightDefaults *defaults;
 
-   // get name
-   sc.GetString();
-   name = sc.String;
+	// get name
+	sc.GetString();
+	name = sc.String;
 
-   // check for opening brace
-   sc.GetString();
-   if (sc.Compare("{"))
-   {
-      defaults = new FLightDefaults(name.GetChars(), SectorLight);
-      ScriptDepth++;
-      while (ScriptDepth)
-      {
-         sc.GetString();
-         if ((type = sc.MatchString(LightTags)) != -1)
-         {
-            switch (type)
-            {
-            case LIGHTTAG_OPENBRACE:
-               ScriptDepth++;
-               break;
-            case LIGHTTAG_CLOSEBRACE:
-               ScriptDepth--;
-               break;
-            case LIGHTTAG_COLOR:
-               gl_ParseTriple(sc, floatTriple);
-               defaults->SetArg(LIGHT_RED, clamp<int>((int)(floatTriple[0] * 255), 0, 255));
-               defaults->SetArg(LIGHT_GREEN, clamp<int>((int)(floatTriple[1] * 255), 0, 255));
-               defaults->SetArg(LIGHT_BLUE, clamp<int>((int)(floatTriple[2] * 255), 0, 255));
-               break;
-            case LIGHTTAG_OFFSET:
-               gl_ParseTriple(sc, floatTriple);
-			   defaults->SetOffset(FROM_MAP(floatTriple[0]), FROM_MAP(floatTriple[1]), FROM_MAP(floatTriple[2]));
-               break;
-            case LIGHTTAG_SCALE:
-               floatVal = gl_ParseFloat(sc);
-               defaults->SetArg(LIGHT_SCALE, (byte)(floatVal * 255));
-               break;
-            case LIGHTTAG_SUBTRACTIVE:
-               defaults->SetSubtractive(gl_ParseInt(sc) != 0);
-               break;
-            case LIGHTTAG_HALO:
-               defaults->SetHalo(gl_ParseInt(sc) != 0);
-               break;
-            }
-         }
-         else
-         {
-            sc.ScriptError("Unknown tag: %s\n", sc.String);
-         }
-      }
-      gl_AddLightDefaults(defaults);
-   }
-   else
-   {
-      sc.ScriptError("Expected '{'.\n");
-   }
+	// check for opening brace
+	sc.GetString();
+	if (sc.Compare("{"))
+	{
+		defaults = new FLightDefaults(name.GetChars(), SectorLight);
+		ScriptDepth++;
+		while (ScriptDepth)
+		{
+			sc.GetString();
+			type = sc.MatchString(LightTags);
+			switch (type)
+			{
+			case LIGHTTAG_OPENBRACE:
+				ScriptDepth++;
+				break;
+			case LIGHTTAG_CLOSEBRACE:
+				ScriptDepth--;
+				break;
+			case LIGHTTAG_COLOR:
+				gl_ParseTriple(sc, floatTriple);
+				defaults->SetArg(LIGHT_RED, clamp<int>((int)(floatTriple[0] * 255), 0, 255));
+				defaults->SetArg(LIGHT_GREEN, clamp<int>((int)(floatTriple[1] * 255), 0, 255));
+				defaults->SetArg(LIGHT_BLUE, clamp<int>((int)(floatTriple[2] * 255), 0, 255));
+				break;
+			case LIGHTTAG_OFFSET:
+				gl_ParseTriple(sc, floatTriple);
+				defaults->SetOffset(FROM_MAP(floatTriple[0]), FROM_MAP(floatTriple[1]), FROM_MAP(floatTriple[2]));
+				break;
+			case LIGHTTAG_SCALE:
+				floatVal = gl_ParseFloat(sc);
+				defaults->SetArg(LIGHT_SCALE, (byte)(floatVal * 255));
+				break;
+			case LIGHTTAG_SUBTRACTIVE:
+				defaults->SetSubtractive(gl_ParseInt(sc) != 0);
+				break;
+			case LIGHTTAG_HALO:
+				defaults->SetHalo(gl_ParseInt(sc) != 0);
+				break;
+			case LIGHTTAG_DONTLIGHTSELF:
+				defaults->SetDontLightSelf(gl_ParseInt(sc) != 0);
+				break;
+			default:
+				sc.ScriptError("Unknown tag: %s\n", sc.String);
+			}
+		}
+		gl_AddLightDefaults(defaults);
+	}
+	else
+	{
+		sc.ScriptError("Expected '{'.\n");
+	}
 }
 
 
@@ -725,24 +722,20 @@ void gl_ParseFrame(FScanner &sc, FString name)
 		while (ScriptDepth > startDepth)
 		{
 			sc.GetString();
-			if ((type = sc.MatchString(LightTags)) != -1)
+			type = sc.MatchString(LightTags);
+			switch (type)
 			{
-				switch (type)
-				{
-				case LIGHTTAG_OPENBRACE:
-					ScriptDepth++;
-					break;
-				case LIGHTTAG_CLOSEBRACE:
-					ScriptDepth--;
-					break;
-				case LIGHTTAG_LIGHT:
-					gl_ParseString(sc);
-					gl_AddLightAssociation(new FLightAssociation(name.GetChars(), frameName.GetChars(), sc.String));
-					break;
-				}
-			}
-			else
-			{
+			case LIGHTTAG_OPENBRACE:
+				ScriptDepth++;
+				break;
+			case LIGHTTAG_CLOSEBRACE:
+				ScriptDepth--;
+				break;
+			case LIGHTTAG_LIGHT:
+				gl_ParseString(sc);
+				gl_AddLightAssociation(new FLightAssociation(name.GetChars(), frameName.GetChars(), sc.String));
+				break;
+			default:
 				sc.ScriptError("Unknown tag: %s\n", sc.String);
 			}
 		}
@@ -756,46 +749,42 @@ void gl_ParseFrame(FScanner &sc, FString name)
 
 void gl_ParseObject(FScanner &sc)
 {
-   int type;
-   FString name;
+	int type;
+	FString name;
 
-   // get name
-   sc.GetString();
-   name = sc.String;
+	// get name
+	sc.GetString();
+	name = sc.String;
 
-   // check for opening brace
-   sc.GetString();
-   if (sc.Compare("{"))
-   {
-      ScriptDepth++;
-      while (ScriptDepth)
-      {
-         sc.GetString();
-         if ((type = sc.MatchString(LightTags)) != -1)
-         {
-            switch (type)
-            {
-            case LIGHTTAG_OPENBRACE:
-               ScriptDepth++;
-               break;
-            case LIGHTTAG_CLOSEBRACE:
-               ScriptDepth--;
-               break;
-            case LIGHTTAG_FRAME:
-               gl_ParseFrame(sc, name);
-               break;
-            }
-         }
-         else
-         {
-            sc.ScriptError("Unknown tag: %s\n", sc.String);
-         }
-      }
-   }
-   else
-   {
-      sc.ScriptError("Expected '{'.\n");
-   }
+	// check for opening brace
+	sc.GetString();
+	if (sc.Compare("{"))
+	{
+		ScriptDepth++;
+		while (ScriptDepth)
+		{
+			sc.GetString();
+			type = sc.MatchString(LightTags);
+			switch (type)
+			{
+			case LIGHTTAG_OPENBRACE:
+				ScriptDepth++;
+				break;
+			case LIGHTTAG_CLOSEBRACE:
+				ScriptDepth--;
+				break;
+			case LIGHTTAG_FRAME:
+				gl_ParseFrame(sc, name);
+				break;
+			default:
+				sc.ScriptError("Unknown tag: %s\n", sc.String);
+			}
+		}
+	}
+	else
+	{
+		sc.ScriptError("Expected '{'.\n");
+	}
 }
 
 
@@ -1112,40 +1101,36 @@ void gl_RecreateAllAttachedLights()
 //==========================================================================
 void gl_DoParseDefs(FScanner &sc, int workingLump)
 {
-   int recursion=0;
-   int lump, type;
+	int recursion=0;
+	int lump, type;
 
-   // Get actor class name.
-   while (true)
-   {
-      sc.SavePos();
-      if (!sc.GetToken ())
-      {
-         return;
-      }
-      if ((type = sc.MatchString(CoreKeywords)) == -1)
-      {
-         sc.ScriptError("Error parsing defs.  Unknown tag: %s.\n", sc.String);
-         break;
-      }
-      switch (type)
-      {
-         case TAG_INCLUDE:
-         {
-            sc.MustGetString();
-            // This is not using sc.Open because it can print a more useful error message when done here
-            lump = Wads.CheckNumForFullName(sc.String);
-            // Try a normal WAD name lookup only if it's a proper name without path
-            // separator and not longer than 8 characters.
-            if (lump==-1 && strlen(sc.String) <= 8 && !strchr(sc.String, '/'))
-               lump = Wads.CheckNumForName(sc.String);
-            if (lump==-1)
-               sc.ScriptError("Lump '%s' not found", sc.String);
+	// Get actor class name.
+	while (true)
+	{
+		sc.SavePos();
+		if (!sc.GetToken ())
+		{
+			return;
+		}
+		type = sc.MatchString(CoreKeywords);
+		switch (type)
+		{
+		case TAG_INCLUDE:
+			{
+				sc.MustGetString();
+				// This is not using sc.Open because it can print a more useful error message when done here
+				lump = Wads.CheckNumForFullName(sc.String);
+				// Try a normal WAD name lookup only if it's a proper name without path
+				// separator and not longer than 8 characters.
+				if (lump==-1 && strlen(sc.String) <= 8 && !strchr(sc.String, '/'))
+					lump = Wads.CheckNumForName(sc.String);
+				if (lump==-1)
+					sc.ScriptError("Lump '%s' not found", sc.String);
 
-			FScanner newscanner(lump, sc.String);
-			gl_DoParseDefs(newscanner, lump);
-            break;
-         }
+				FScanner newscanner(lump, sc.String);
+				gl_DoParseDefs(newscanner, lump);
+				break;
+			}
 		case LIGHT_POINT:
 			gl_ParsePointLight(sc);
 			break;
@@ -1188,7 +1173,9 @@ void gl_DoParseDefs(FScanner &sc, int workingLump)
 				if (cls) GetDefaultByType(cls)->renderflags |= RF_NEVERFULLBRIGHT;
 			}
 			break;
-
+		default:
+			sc.ScriptError("Error parsing defs.  Unknown tag: %s.\n", sc.String);
+			break;
 		}
 	}
 }

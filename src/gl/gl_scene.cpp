@@ -376,28 +376,34 @@ void gl_DrawScene()
 
 	gl.Disable(GL_POLYGON_OFFSET_FILL);	// just in case
 
+	if (!gl_texture) gl_EnableTexture(false);
 	gl_EnableBrightmap(true);
 	gl_drawinfo->drawlists[GLDL_PLAIN].Sort();
-	gl_drawinfo->drawlists[GLDL_PLAIN].Draw(GLPASS_PLAIN);
+	gl_drawinfo->drawlists[GLDL_PLAIN].Draw(gl_texture? GLPASS_PLAIN : GLPASS_BASE);
 	gl_EnableBrightmap(false);
 	gl_drawinfo->drawlists[GLDL_FOG].Sort();
-	gl_drawinfo->drawlists[GLDL_FOG].Draw(GLPASS_PLAIN);
+	gl_drawinfo->drawlists[GLDL_FOG].Draw(gl_texture? GLPASS_PLAIN : GLPASS_BASE);
 	gl_drawinfo->drawlists[GLDL_LIGHTFOG].Sort();
-	gl_drawinfo->drawlists[GLDL_LIGHTFOG].Draw(GLPASS_PLAIN);
+	gl_drawinfo->drawlists[GLDL_LIGHTFOG].Draw(gl_texture? GLPASS_PLAIN : GLPASS_BASE);
 
 
 	gl.Enable(GL_ALPHA_TEST);
 
 	// Part 2: masked geometry. This is set up so that only pixels with alpha>0.5 will show
+	if (!gl_texture) 
+	{
+		gl_EnableTexture(true);
+		gl_SetTextureMode(TM_MASK);
+	}
 	gl.AlphaFunc(GL_GEQUAL,gl_mask_threshold);
 	gl_EnableBrightmap(true);
 	gl_drawinfo->drawlists[GLDL_MASKED].Sort();
-	gl_drawinfo->drawlists[GLDL_MASKED].Draw(GLPASS_PLAIN);
+	gl_drawinfo->drawlists[GLDL_MASKED].Draw(gl_texture? GLPASS_PLAIN : GLPASS_BASE_MASKED);
 	gl_EnableBrightmap(false);
 	gl_drawinfo->drawlists[GLDL_FOGMASKED].Sort();
-	gl_drawinfo->drawlists[GLDL_FOGMASKED].Draw(GLPASS_PLAIN);
+	gl_drawinfo->drawlists[GLDL_FOGMASKED].Draw(gl_texture? GLPASS_PLAIN : GLPASS_BASE_MASKED);
 	gl_drawinfo->drawlists[GLDL_LIGHTFOGMASKED].Sort();
-	gl_drawinfo->drawlists[GLDL_LIGHTFOGMASKED].Draw(GLPASS_PLAIN);
+	gl_drawinfo->drawlists[GLDL_LIGHTFOGMASKED].Draw(gl_texture? GLPASS_PLAIN : GLPASS_BASE_MASKED);
 
 	// And now the multipass stuff
 
@@ -446,6 +452,8 @@ void gl_DrawScene()
 		gl_drawinfo->drawlists[GLDL_LIGHT].Sort();
 		gl_drawinfo->drawlists[GLDL_LIGHT].Draw(GLPASS_TEXTURE);
 		gl.Enable(GL_ALPHA_TEST);
+		gl_drawinfo->drawlists[GLDL_LIGHTBRIGHT].Sort();
+		gl_drawinfo->drawlists[GLDL_LIGHTBRIGHT].Draw(GLPASS_TEXTURE);
 		gl_drawinfo->drawlists[GLDL_LIGHTMASKED].Sort();
 		gl_drawinfo->drawlists[GLDL_LIGHTMASKED].Draw(GLPASS_TEXTURE);
 	}

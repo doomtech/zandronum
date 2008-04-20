@@ -51,7 +51,7 @@ extern FreeList<gl_subsectorrendernode> SSR_List;
 //
 //
 //==========================================================================
-class StaticSortNodeArray : public TArray<SortNode*>
+class StaticSortNodeArray : public TDeletingArray<SortNode*>
 {
 	unsigned usecount;
 public:

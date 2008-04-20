@@ -153,7 +153,7 @@ void gl_ParseSkybox(FScanner &sc)
 CVAR (Int, gl_sky_detail, 16, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 EXTERN_CVAR (Bool, r_stretchsky)
 
-static PalEntry * SkyColors;
+static TArray<PalEntry> SkyColors;
 size_t MaxSkyTexture;	// TexMan.NumTextures can't be used because it may change after allocating the array here!
 extern int skyfog;
 
@@ -166,11 +166,11 @@ static PalEntry SkyCapColor(unsigned int texno, bool bottom)
 {
 	PalEntry col;
 
-	if (!SkyColors)
+	if (SkyColors.Size()==0)
 	{
 		MaxSkyTexture=TexMan.NumTextures();
-		SkyColors=new PalEntry[MaxSkyTexture*2];	// once for top cap, once for bottom cap
-		memset(SkyColors, 0, sizeof(PalEntry)*MaxSkyTexture);
+		SkyColors.Resize(unsigned(MaxSkyTexture*2));	// once for top cap, once for bottom cap
+		memset(&SkyColors[0], 0, sizeof(PalEntry)*MaxSkyTexture);
 	}
 
 	if (texno<MaxSkyTexture)

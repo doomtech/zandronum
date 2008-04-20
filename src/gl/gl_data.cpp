@@ -86,7 +86,6 @@ static int LS_Sector_SetPlaneReflection (line_t *ln, AActor *it, bool backSide,
 
 TArray<GLVertex> gl_vertices(1024);
 
-static line_t ** gl_linebuffer;
 extern bool gl_disabled;
 
 // A simple means so that I don't have to link to the debug stuff when I don't need it!
@@ -478,7 +477,6 @@ void gl_PreprocessLevel()
 	
 	if (gl_disabled) return;
 
-	gl_linebuffer = new line_t *[numsides];
 	PrepareSectorData();
 	for(i=0;i<numsectors;i++) PrepareTransparentDoors(&sectors[i]);
 	pitch=0.0f;
@@ -580,13 +578,6 @@ void gl_CleanLevelData()
 		delete [] sectors[0].subsectors;
 		sectors[0].subsectors=NULL;
 	}
-	// [BB] After deleting gl_linebuffer you have to set the pointer to NULL.
-	// Otherwise it could be deleted twice.
-	if (gl_linebuffer){
-		delete [] gl_linebuffer;
-		gl_linebuffer = NULL;
-	}
-
 	if (gamenodes && gamenodes!=nodes)
 	{
 		delete [] gamenodes;

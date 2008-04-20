@@ -513,7 +513,7 @@ inline fixed_t P_AproxDistance3(fixed_t dx, fixed_t dy, fixed_t dz)
 // Sets the light for a sprite - takes dynamic lights into account
 //
 //==========================================================================
-void gl_GetSpriteLight(fixed_t x, fixed_t y, fixed_t z, subsector_t * subsec, int desaturation, float * out)
+void gl_GetSpriteLight(AActor *self, fixed_t x, fixed_t y, fixed_t z, subsector_t * subsec, int desaturation, float * out)
 {
 	ADynamicLight *light;
 	float frac, lr, lg, lb;
@@ -528,7 +528,8 @@ void gl_GetSpriteLight(fixed_t x, fixed_t y, fixed_t z, subsector_t * subsec, in
 		while (node)
 		{
 			light=node->lightsource;
-			if (!(light->flags2&MF2_DORMANT))
+			if (!(light->flags2&MF2_DORMANT) &&
+				(!(light->flags4&MF4_DONTLIGHTSELF) || light->target != self))
 			{
 				float dist = FVector3( TO_MAP(x - light->x), TO_MAP(y - light->y), TO_MAP(z - light->z) ).Length();
 				radius = light->GetRadius() * gl_lights_size;
@@ -574,13 +575,13 @@ void gl_GetSpriteLight(fixed_t x, fixed_t y, fixed_t z, subsector_t * subsec, in
 
 
 
-static void gl_SetSpriteLight(fixed_t x, fixed_t y, fixed_t z, subsector_t * subsec, 
+static void gl_SetSpriteLight(AActor *self, fixed_t x, fixed_t y, fixed_t z, subsector_t * subsec, 
                               int lightlevel, int rellight, FColormap * cm, float alpha, 
 							  PalEntry ThingColor, bool weapon)
 {
 	float r,g,b;
 	float result[3];
-	gl_GetSpriteLight(x, y, z, subsec, cm? cm->LightColor.a : 0, result);
+	gl_GetSpriteLight(self, x, y, z, subsec, cm? cm->LightColor.a : 0, result);
 	gl_GetLightColor(lightlevel, rellight, cm, &r, &g, &b, weapon);
 	// Note: Due to subtractive lights the values can easily become negative so we have to clamp both
 	// at the low and top end of the range!
@@ -595,13 +596,13 @@ void gl_SetSpriteLight(AActor * thing, int lightlevel, int rellight, FColormap *
 { 
 	subsector_t * subsec = thing->subsector;
 
-	gl_SetSpriteLight(thing->x, thing->y, thing->z+(thing->height>>1), subsec, 
+	gl_SetSpriteLight(thing, thing->x, thing->y, thing->z+(thing->height>>1), subsec, 
 					  lightlevel, rellight, cm, alpha, ThingColor, weapon);
 }
 
 void gl_SetSpriteLight(particle_t * thing, int lightlevel, int rellight, FColormap *cm, float alpha, PalEntry ThingColor)
 { 
-	gl_SetSpriteLight(thing->x, thing->y, thing->z, thing->subsector, lightlevel, rellight, 
+	gl_SetSpriteLight(NULL, thing->x, thing->y, thing->z, thing->subsector, lightlevel, rellight, 
 					  cm, alpha, ThingColor, false);
 }
 

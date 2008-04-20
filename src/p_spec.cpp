@@ -473,7 +473,7 @@ void P_PlayerInSpecialSector (player_t *player, sector_t * sector)
 
 		case Damage_InstantDeath:
 			// Strife's instant death sector
-			P_DamageMobj (player->mo, NULL, NULL, 999, NAME_None);
+			P_DamageMobj (player->mo, NULL, NULL, 999, NAME_InstantDeath);
 			break;
 
 		case dDamage_Hellslime:

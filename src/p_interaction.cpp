@@ -2410,6 +2410,9 @@ CCMD (kill)
 
 	if (argv.argc() > 1)
 	{
+		if (CheckCheatmode ())
+			return;
+
 		if (!stricmp (argv[1], "monsters"))
 		{
 			// Kill all the monsters
@@ -2421,8 +2424,8 @@ CCMD (kill)
 		}
 		else
 		{
-			Printf("cannot kill '%s'\n", argv[1]);
-			return;
+			Net_WriteByte (DEM_KILLCLASSCHEAT);
+			Net_WriteString (argv[1]);
 		}
 	}
 	else

@@ -866,7 +866,7 @@ int FBrightmapTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf
 // The GL texture maintenance class
 //
 //===========================================================================
-TArray<FGLTexture *> * FGLTexture::gltextures;
+TArray<FGLTexture *> FGLTexture::gltextures;
 
 //===========================================================================
 //
@@ -929,9 +929,7 @@ FGLTexture::FGLTexture(FTexture * tx)
 
 	if (tex->bHasCanvas) scaley=-scaley;
 
-	if (!gltextures) 
-		gltextures = new TArray<FGLTexture *>;
-	index = gltextures->Push(this);
+	index = gltextures.Push(this);
 
 }
 
@@ -947,11 +945,11 @@ FGLTexture::~FGLTexture()
 	if (areas) delete [] areas;
 	if (hirestexture) delete hirestexture;
 
-	for(int i=0;i<gltextures->Size();i++)
+	for(unsigned i=0;i<gltextures.Size();i++)
 	{
-		if ((*gltextures)[i]==this) 
+		if (gltextures[i]==this) 
 		{
-			gltextures->Delete(i);
+			gltextures.Delete(i);
 			break;
 		}
 	}
@@ -1077,53 +1075,59 @@ bool FGLTexture::FindHoles(const unsigned char * buffer, int w, int h)
 // taking the value of one of the neighboring pixels is fully sufficient
 //
 //===========================================================================
-#define CHKPIX(ofs) \
-	(l1[(ofs)*4+3]==255 ? (( ((long*)l1)[0] = ((long*)l1)[ofs]&0xffffff), trans=true ) : false)
+#ifdef WORDS_BIGENDIAN
+#define MSB 0
+#define SOME_MASK 0xffffff00
+#else
+#define MSB 3
+#define SOME_MASK 0x00ffffff
+#endif
+
+#define CHKPIX(ofs) (l1[(ofs)*4+MSB]==255 ? (( ((long*)l1)[0] = ((long*)l1)[ofs]&SOME_MASK), trans=true ) : false)
 
 bool FGLTexture::SmoothEdges(unsigned char * buffer,int w, int h, bool clampsides)
 {
-	int x,y;
-	bool trans=buffer[3]==0; // If I set this to false here the code won't detect textures 
-							 // that only contain transparent pixels.
-	unsigned char * l1;
+  int x,y;
+  bool trans=buffer[MSB]==0; // If I set this to false here the code won't detect textures 
+                                // that only contain transparent pixels.
+  unsigned char * l1;
 
-	if (h<=1 || w<=1) return false;	// makes (a) no sense and (b) doesn't work with this code!
+  if (h<=1 || w<=1) return false;  // makes (a) no sense and (b) doesn't work with this code!
 
-	l1=buffer;
+  l1=buffer;
 
 
-	if (l1[3]==0 && !CHKPIX(1)) CHKPIX(w);
-	l1+=4;
-	for(x=1;x<w-1;x++, l1+=4)
-	{
-		if (l1[3]==0 &&	!CHKPIX(-1) && !CHKPIX(1)) CHKPIX(w);
-	}
-	if (l1[3]==0 && !CHKPIX(-1)) CHKPIX(w);
-	l1+=4;
+  if (l1[MSB]==0 && !CHKPIX(1)) CHKPIX(w);
+  l1+=4;
+  for(x=1;x<w-1;x++, l1+=4)
+  {
+    if (l1[MSB]==0 &&  !CHKPIX(-1) && !CHKPIX(1)) CHKPIX(w);
+  }
+  if (l1[MSB]==0 && !CHKPIX(-1)) CHKPIX(w);
+  l1+=4;
 
-	for(y=1;y<h-1;y++)
-	{
-		if (l1[3]==0 && !CHKPIX(-w) && !CHKPIX(1)) CHKPIX(w);
-		l1+=4;
-		for(x=1;x<w-1;x++, l1+=4)
-		{
-			if (l1[3]==0 &&	!CHKPIX(-w) && !CHKPIX(-1) && !CHKPIX(1)) CHKPIX(w);
-		}
-		if (l1[3]==0 && !CHKPIX(-w) && !CHKPIX(-1)) CHKPIX(w);
-		l1+=4;
-	}
+  for(y=1;y<h-1;y++)
+  {
+    if (l1[MSB]==0 && !CHKPIX(-w) && !CHKPIX(1)) CHKPIX(w);
+    l1+=4;
+    for(x=1;x<w-1;x++, l1+=4)
+    {
+      if (l1[MSB]==0 &&  !CHKPIX(-w) && !CHKPIX(-1) && !CHKPIX(1)) CHKPIX(w);
+    }
+    if (l1[MSB]==0 && !CHKPIX(-w) && !CHKPIX(-1)) CHKPIX(w);
+    l1+=4;
+  }
 
-	if (l1[3]==0 && !CHKPIX(-w)) CHKPIX(1);
-	l1+=4;
-	for(x=1;x<w-1;x++, l1+=4)
-	{
-		if (l1[3]==0 &&	!CHKPIX(-w) && !CHKPIX(-1)) CHKPIX(1);
-	}
-	if (l1[3]==0 && !CHKPIX(-w)) CHKPIX(-1);
+  if (l1[MSB]==0 && !CHKPIX(-w)) CHKPIX(1);
+  l1+=4;
+  for(x=1;x<w-1;x++, l1+=4)
+  {
+    if (l1[MSB]==0 &&  !CHKPIX(-w) && !CHKPIX(-1)) CHKPIX(1);
+  }
+  if (l1[MSB]==0 && !CHKPIX(-w)) CHKPIX(-1);
 
-	return trans;
+  return trans;
 }
-
 
 //===========================================================================
 // 
@@ -1500,12 +1504,9 @@ const PatchTextureInfo * FGLTexture::BindPatch(int cm, int translation)
 
 void FGLTexture::FlushAll()
 {
-	if (gltextures)
+	for(int i=gltextures.Size()-1;i>=0;i--)
 	{
-		for(int i=gltextures->Size()-1;i>=0;i--)
-		{
-			(*gltextures)[i]->Clean(true);
-		}
+		gltextures[i]->Clean(true);
 	}
 }
 

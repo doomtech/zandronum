@@ -30,6 +30,7 @@ enum
 // This is as good as something new - and it can be set directly in the ActorInfo!
 #define MF4_SUBTRACTIVE MF4_MISSILEEVENMORE
 #define MF4_ADDITIVE MF4_MISSILEMORE
+#define MF4_DONTLIGHTSELF MF4_SEESDAGGERS
 
 enum ELightType
 {

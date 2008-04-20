@@ -17,9 +17,9 @@
 
 // Mega sphere --------------------------------------------------------------
 
-class AMegasphere : public APowerupGiver
+class AMegasphere : public AInventory
 {
-	DECLARE_ACTOR (AMegasphere, APowerupGiver)
+	DECLARE_ACTOR (AMegasphere, AInventory)
 public:
 	virtual bool Use (bool pickup)
 	{
@@ -127,9 +127,9 @@ END_DEFAULTS
 									  RPF_PARTIALINVISIBILITY|RPF_TIMEFREEZESPHERE|RPF_INVISIBILITY | \
 									  RPF_DOOMSPHERE|RPF_TURBOSPHERE )
 
-class ARandomPowerup : public APowerupGiver
+class ARandomPowerup : public AInventory
 {
-	DECLARE_ACTOR (ARandomPowerup, APowerupGiver)
+	DECLARE_ACTOR (ARandomPowerup, AInventory)
 public:
 	virtual bool	Use (bool pickup);
 	void			Serialize( FArchive &arc );

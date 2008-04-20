@@ -47,7 +47,7 @@
 #define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING
 
 // [BC] What version of ZDoom is this based off of?
-#define	ZDOOMVERSIONSTR		"2.2.0-755"
+#define	ZDOOMVERSIONSTR		"2.2.0-781"
 
 /** Release code stuff */
 
@@ -79,7 +79,7 @@
 // Protocol version used in demos.
 // Bump it if you change existing DEM_ commands or add new ones.
 // Otherwise, it should be safe to leave it alone.
-#define DEMOGAMEVERSION 0x20A
+#define DEMOGAMEVERSION 0x20B
 
 // Minimum demo version we can play.
 // Bump it whenever you change or remove existing DEM_ commands.
@@ -97,11 +97,12 @@
 
 #if SVN_REVISION_NUMBER == 0
 // This can happen if svnrevision is not updated properly (e.g. compiling while offline)
-#define SAVEVER MINSAVEVER
-#define SAVESIG "ZDOOMSAVE"#SAVEVER
+#define SAVEVER			MINSAVEVER
+#define MAKESAVESIG(x)	"ZDOOMSAVE" #x
+#define SAVESIG			MAKESAVESIG(SAVEVER)
 #else
-#define SAVEVER SVN_REVISION_NUMBER
-#define SAVESIG "ZDOOMSAVE"SVN_REVISION_STRING
+#define SAVEVER			SVN_REVISION_NUMBER
+#define SAVESIG			"ZDOOMSAVE"SVN_REVISION_STRING
 #endif
 
 // This is so that derivates can use the same savegame versions without worrying about engine compatibility

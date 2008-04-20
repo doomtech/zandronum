@@ -467,9 +467,15 @@ void S_Start ()
 		LastLocalSndSeq = LocalSndSeq;
 	}
 
+	SoundPaused = false;
+
+	// stop the old music if it has been paused.
+	// This ensures that the new music is started from the beginning
+	// if it's the same as the last one and it has been paused.
+	if (MusicPaused) S_StopMusic(true);
+
 	// start new music for the level
 	MusicPaused = false;
-	SoundPaused = false;
 
 	// [BC] In client mode, let the server tell us what music to play.
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) || 

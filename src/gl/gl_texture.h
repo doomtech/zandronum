@@ -93,7 +93,7 @@ class FGLTexture : public FNativeTexture, protected WorldTextureInfo, protected 
 {
 	friend void Debug_Patch();	// debug code should have full access
 
-	static TArray<FGLTexture *> * gltextures;
+	static TArray<FGLTexture *> gltextures;
 public:
 	FTexture * tex;
 	FTexture * hirestexture;

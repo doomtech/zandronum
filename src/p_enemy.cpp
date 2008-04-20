@@ -2173,7 +2173,7 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 	if (actor->flags & MF_JUSTATTACKED)
 	{
 		actor->flags &= ~MF_JUSTATTACKED;
-		if ((!actor->isFast()) &&
+		if ((!actor->isFast()) && !dontmove &&
 			// [BC] Don't decide a new chase dir in client mode.
 			( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
 			( CLIENTDEMO_IsPlaying( ) == false ))
