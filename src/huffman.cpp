@@ -380,7 +380,7 @@ void HUFFMAN_Destruct( void )
 {
 	huffman_RecursiveFreeNode( HuffTree );
 
-	free( HuffTree );
+	M_Free( HuffTree );
 	HuffTree = NULL;
 }
 
@@ -432,7 +432,7 @@ void HUFFMAN_Encode( unsigned char *in, unsigned char *out, int inlen, int *outl
 			if(in[i]!=buf[i])
 				I_FatalError("bogus compression");
 		}
-		free(buf);
+		M_Free(buf);
 	}
 #endif*/
 }
@@ -647,7 +647,7 @@ static void huffman_RecursiveFreeNode( huffnode_t *pNode )
 	{
 		huffman_RecursiveFreeNode( pNode->one );
 
-		free( pNode->one );
+		M_Free( pNode->one );
 		pNode->one = NULL;
 	}
 
@@ -655,7 +655,7 @@ static void huffman_RecursiveFreeNode( huffnode_t *pNode )
 	{
 		huffman_RecursiveFreeNode( pNode->zero );
 
-		free( pNode->zero );
+		M_Free( pNode->zero );
 		pNode->zero = NULL;
 	}
 }
