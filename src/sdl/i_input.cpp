@@ -286,7 +286,7 @@ static void I_CheckNativeMouse ()
             == (SDL_APPINPUTFOCUS|SDL_APPACTIVE);
     bool fs = (SDL_GetVideoSurface ()->flags & SDL_FULLSCREEN) != 0;
     
-    bool wantNative = !focus || !use_mouse || (!fs && (GUICapture || paused || gamestate != GS_LEVEL));
+    bool wantNative = !focus || !use_mouse || (!fs && (GUICapture || paused || demoplayback || gamestate != GS_LEVEL));
 
     if (wantNative != NativeMouse)
     {

@@ -63,7 +63,6 @@ extern int NewWidth, NewHeight, NewBits, DisplayBits;
 #ifndef NO_GL
 bool V_DoModeSetup (int width, int height, int bits);
 void I_RestartRenderer();
-void RebuildAllLights();
 
 int currentrenderer=1;
 #else
@@ -111,6 +110,7 @@ CCMD (vid_restart)
 	if (!gl_disabled) changerenderer = true;
 }
 
+/*
 void I_CheckRestartRenderer()
 {
 	if (gl_disabled) return;
@@ -124,32 +124,7 @@ void I_CheckRestartRenderer()
 	}
 #endif
 }
-
-void I_RestartRenderer()
-{
-#ifndef NO_GL
-	FFont *font;
-	int bits;
-	
-	FGLTexture::FlushAll();
-	font = screen->Font;
-	I_ShutdownGraphics();
-	RebuildAllLights();	// Build the lightmaps for all colormaps. If the hardware renderer is active 
-						// this time consuming step is skipped.
-	
-	changerenderer=false;
-	if (gl_disabled) currentrenderer=0;
-	if (currentrenderer==1) Video = new SDLGLVideo(0);
-	else Video = new SDLVideo (0);
-	if (Video == NULL) I_FatalError ("Failed to initialize display");
-	
-	if (currentrenderer==0) bits=8;
-	else bits=32;
-	
-	V_DoModeSetup(NewWidth, NewHeight, bits);
-	screen->SetFont(font);
-#endif
-}
+*/
 
 void I_ShutdownGraphics ()
 {
@@ -164,6 +139,13 @@ void I_InitGraphics ()
 	UCVarValue val;
 
 #ifndef NO_GL
+	// hack by stevenaaus to force software mode if no 32bpp
+	const SDL_VideoInfo *i = SDL_GetVideoInfo();
+	if ((i->vfmt)->BytesPerPixel != 4) {
+		fprintf (stderr, "n32 bit colour not found, disabling OpenGL.n");
+		fprintf (stderr, "To enable OpenGL, restart X with 32 color (try 'startx -- :1 -depth 24'), and enable OpenGL in the Display Options.nn");
+		gl_nogl=true;
+	} 
 	gl_disabled = gl_nogl;
 #else
 	gl_disabled = true;

@@ -1,13 +1,16 @@
 #ifndef PLATFORM_H
 #define PLATFORM_H
 
+// [C] now this file is also included by some /src files
+// [C] therefore this file should probably be moved to another place but definetely not to /src/gl dir
+
 // [BB] Some Winelib specfic things.
 #ifdef __WINE__
 #ifdef _WIN32
 #ifdef unix
 #undef unix
-#endif
-#endif
+#endif	//unix
+#endif	//_WIN32
 
 #include <cmath>
 #define sqrtf sqrt
@@ -18,7 +21,7 @@
 #define atan2f(x,y) static_cast<float>(atan2(x,y))
 #define fmodf(x,y) static_cast<float>(fmod(x,y))
 #define modff(x,y)  ((float)modf((double)(x), (double *)(y)))
-#endif
+#endif	//__WINE__
 
 // [BB] Linux specific thigs, mostly missing functions.
 #ifndef _WIN32
@@ -30,6 +33,17 @@
 char* itoa(int value, char* str, int base);
 char *strupr(char *string);
 
+// [C]
+struct POINT { 
+  long int x; 
+  long int y; 
+};
+struct RECT { 
+  long int left; 
+  long int top; 
+  long int right; 
+  long int bottom; 
+}; 
 void I_Sleep( int iMS );
 char *I_ConsoleInput (void);
 
@@ -41,11 +55,11 @@ typedef bool BOOL;
 // [BB] FreeBSD specific defines
 #ifdef __FreeBSD__
 #define __va_copy(x,y) va_copy(x,y)
-#endif
+#endif	//__FreeBSD__
 
 #ifdef _MSC_VER
 // [BB] Silence the "'stricmp': The POSIX name for this item is deprecated." warning.
 #pragma warning(disable:4996)
-#endif
+#endif	//_MSC_VER
 
-#endif
+#endif	//ndef PLATFORM_H

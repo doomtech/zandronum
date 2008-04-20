@@ -2,8 +2,6 @@
 #include "r_data.h"
 #include "gl/gl_texture.h"
 
-CVAR(Bool, gl_vid_compatibility, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
-
 #ifdef NO_GL
 class ADynamicLight : public AActor
 {
@@ -13,16 +11,18 @@ class ADynamicLight : public AActor
 IMPLEMENT_STATELESS_ACTOR (ADynamicLight, Any, -1, 0)
 END_DEFAULTS
 
+CVAR(Bool, gl_vid_compatibility, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
 CVAR(Bool, gl_precache, false, CVAR_ARCHIVE)
 CVAR(Bool, gl_nogl, true, CVAR_NOSET)
+CVAR (Float, vid_brightness, 0.f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+CVAR (Float, vid_contrast, 1.f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
 void gl_DrawLine(int, int, int, int, int)
 {
 }
 
-int FTexture::CopyTrueColorPixels(unsigned char*, int, int, int, int, intptr_t, int)
+void FTexture::UncacheGL()
 {
-	return 0;
 }
 
 FGLTexture *FGLTexture::ValidateTexture(FTexture*)
@@ -44,7 +44,11 @@ void FGLTexture::Clean(bool)
 {
 }
 
-const PatchTextureInfo *FGLTexture::BindPatch(int, int, unsigned char const*)
+bool FGLTexture::Update()
+{
+}
+
+const PatchTextureInfo *FGLTexture::BindPatch(int, int, int)
 {
 	return NULL;
 }
@@ -123,43 +127,12 @@ void StartGLMenu (void)
 {
 }
 
-int FWarpTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int xx, int yy, intptr_t cm, int translation)
+int FWarpTexture::CopyTrueColorPixels(BYTE*, int, int, int, int)
 {
 	return 0;
 }
 
-int FMultiPatchTexture::CopyTrueColorPixels(unsigned char*, int, int, int, int, intptr_t, int)
-{
-	return 0;
-}
-
-int FPNGTexture::CopyTrueColorPixels(unsigned char*, int, int, int, int, intptr_t, int)
-{
-	return 0;
-}
-
-int FWarp2Texture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y, intptr_t cm, int translation)
-{
-	return 0;
-}
-
-/*FWarp2Texture::~FWarp2Texture
-{
-	Unload ();
-	delete SourcePic;
-}*/
-
-int FJPEGTexture::CopyTrueColorPixels(BYTE *, int , int , int , int , intptr_t, int)
-{
-	return 0;
-}
-
-int FTGATexture::CopyTrueColorPixels(BYTE *, int , int , int , int , intptr_t, int)
-{
-	return 0;
-}
-
-int FPCXTexture::CopyTrueColorPixels(BYTE *, int , int , int , int , intptr_t, int)
+int FWarp2Texture::CopyTrueColorPixels(BYTE*, int, int, int, int)
 {
 	return 0;
 }
