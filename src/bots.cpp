@@ -1674,7 +1674,7 @@ void BOTS_Destruct( void )
 
 		if ( g_BotInfo[ulIdx] != NULL )
 		{
-			free( g_BotInfo[ulIdx] );
+			M_Free( g_BotInfo[ulIdx] );
 			g_BotInfo[ulIdx] = NULL;
 		}
 	}
@@ -1707,7 +1707,7 @@ bool BOTS_AddBotInfo( BOTINFO_s *pBotInfo )
 			continue;
 
 		// Allocate some memory for this new block.
-		g_BotInfo[ulIdx] = (BOTINFO_s *)malloc( sizeof( BOTINFO_s ));
+		g_BotInfo[ulIdx] = (BOTINFO_s *)M_Malloc( sizeof( BOTINFO_s ));
 
 		// Now copy all the data we passed in into this block.
 		g_BotInfo[ulIdx]->bRevealed						= pBotInfo->bRevealed;

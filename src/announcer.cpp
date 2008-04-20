@@ -121,16 +121,16 @@ void ANNOUNCER_Destruct( void )
 				{
 					if ( g_AnnouncerProfile[ulIdx]->paAnnouncerEntries[ulIdx2] )
 					{
-						free( g_AnnouncerProfile[ulIdx]->paAnnouncerEntries[ulIdx2] );
+						M_Free( g_AnnouncerProfile[ulIdx]->paAnnouncerEntries[ulIdx2] );
 						g_AnnouncerProfile[ulIdx]->paAnnouncerEntries[ulIdx2] = NULL;
 					}
 				}
 
-				free( g_AnnouncerProfile[ulIdx]->paAnnouncerEntries );
+				M_Free( g_AnnouncerProfile[ulIdx]->paAnnouncerEntries );
 				g_AnnouncerProfile[ulIdx]->paAnnouncerEntries = NULL;
 			}
 
-			free( g_AnnouncerProfile[ulIdx] );
+			M_Free( g_AnnouncerProfile[ulIdx] );
 			g_AnnouncerProfile[ulIdx] = NULL;
 		}
 	}
@@ -555,10 +555,10 @@ static void announcer_ParseAnnouncerInfoLump( FScanner &sc )
 		strncpy( AnnouncerProfile.szName, "UNNAMED ANNOUNCER", 63 );
 		AnnouncerProfile.szName[63] = 0;
 
-		AnnouncerProfile.paAnnouncerEntries = (ANNOUNCERENTRY_s **)malloc( sizeof( ANNOUNCERENTRY_s ** ) * MAX_ANNOUNCERPROFILE_ENTRIES );
+		AnnouncerProfile.paAnnouncerEntries = (ANNOUNCERENTRY_s **)M_Malloc( sizeof( ANNOUNCERENTRY_s ** ) * MAX_ANNOUNCERPROFILE_ENTRIES );
 		for ( ulIdx = 0; ulIdx < MAX_ANNOUNCERPROFILE_ENTRIES; ulIdx++ )
 		{
-			AnnouncerProfile.paAnnouncerEntries[ulIdx] = (ANNOUNCERENTRY_s *)malloc( sizeof( ANNOUNCERENTRY_s ));
+			AnnouncerProfile.paAnnouncerEntries[ulIdx] = (ANNOUNCERENTRY_s *)M_Malloc( sizeof( ANNOUNCERENTRY_s ));
 
 			AnnouncerProfile.paAnnouncerEntries[ulIdx]->szName[0] = '\0';
 			AnnouncerProfile.paAnnouncerEntries[ulIdx]->szSound[0] = '\0';
@@ -607,11 +607,11 @@ static void announcer_ParseAnnouncerInfoLump( FScanner &sc )
 		// Finally, free all the memory allocated for this temporary profile.
 		for ( ulIdx = 0; ulIdx < MAX_ANNOUNCERPROFILE_ENTRIES; ulIdx++ )
 		{
-			free( AnnouncerProfile.paAnnouncerEntries[ulIdx] );
+			M_Free( AnnouncerProfile.paAnnouncerEntries[ulIdx] );
 			AnnouncerProfile.paAnnouncerEntries[ulIdx] = NULL;
 		}
 
-		free( AnnouncerProfile.paAnnouncerEntries );
+		M_Free( AnnouncerProfile.paAnnouncerEntries );
 		AnnouncerProfile.paAnnouncerEntries = NULL;
 	}
 }
@@ -630,16 +630,16 @@ static bool announcer_AddAnnouncerProfile( ANNOUNCERPROFILE_s *pInfo )
 			continue;
 
 		// Allocate some memory for this new block.
-		g_AnnouncerProfile[ulIdx] = (ANNOUNCERPROFILE_s *)malloc( sizeof( ANNOUNCERPROFILE_s ));
+		g_AnnouncerProfile[ulIdx] = (ANNOUNCERPROFILE_s *)M_Malloc( sizeof( ANNOUNCERPROFILE_s ));
 
 		// Now copy all the data we passed in into this block.
 		strncpy( g_AnnouncerProfile[ulIdx]->szName, pInfo->szName, 63 );
 		g_AnnouncerProfile[ulIdx]->szName[63] = 0;
 
-		g_AnnouncerProfile[ulIdx]->paAnnouncerEntries = (ANNOUNCERENTRY_s **)malloc( sizeof( ANNOUNCERENTRY_s ) * MAX_ANNOUNCERPROFILE_ENTRIES );
+		g_AnnouncerProfile[ulIdx]->paAnnouncerEntries = (ANNOUNCERENTRY_s **)M_Malloc( sizeof( ANNOUNCERENTRY_s ) * MAX_ANNOUNCERPROFILE_ENTRIES );
 		for ( ulIdx2 = 0; ulIdx2 < MAX_ANNOUNCERPROFILE_ENTRIES; ulIdx2++ )
 		{
-			g_AnnouncerProfile[ulIdx]->paAnnouncerEntries[ulIdx2] = (ANNOUNCERENTRY_s *)malloc( sizeof( ANNOUNCERENTRY_s ));
+			g_AnnouncerProfile[ulIdx]->paAnnouncerEntries[ulIdx2] = (ANNOUNCERENTRY_s *)M_Malloc( sizeof( ANNOUNCERENTRY_s ));
 
 			strncpy( g_AnnouncerProfile[ulIdx]->paAnnouncerEntries[ulIdx2]->szName, pInfo->paAnnouncerEntries[ulIdx2]->szName, 31 );
 			strncpy( g_AnnouncerProfile[ulIdx]->paAnnouncerEntries[ulIdx2]->szSound, pInfo->paAnnouncerEntries[ulIdx2]->szSound, 63 );

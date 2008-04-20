@@ -579,7 +579,7 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 		pStream -= ( strlen( foo ) + 1 );
 		D_ReadUserInfoStrings( consoleplayer, &pStream, false );
 		pStream -= ( strlen( foo ) + 1 );
-		free( pStream );
+		M_Free( pStream );
 	}
 	else
 	{

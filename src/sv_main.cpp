@@ -5007,7 +5007,7 @@ CCMD( testchecksumonlevel )
 
 	// Perform the checksum on our buffer, and free it.
 	CMD5Checksum::GetMD5( pbData, lLumpSize, Checksum );
-	free( pbData );
+	delete[] pbData;
 
 	// Now, send the vertex checksum string.
 	Printf( "Verticies: %s\n", Checksum.GetChars() );
@@ -5023,7 +5023,7 @@ CCMD( testchecksumonlevel )
 
 	// Perform the checksum on our buffer, and free it.
 	CMD5Checksum::GetMD5( pbData, lLumpSize, Checksum );
-	free( pbData );
+	delete[] pbData;
 
 	// Now, send the linedefs checksum string.
 	Printf( "Linedefs: %s\n", Checksum.GetChars() );
@@ -5039,7 +5039,7 @@ CCMD( testchecksumonlevel )
 
 	// Perform the checksum on our buffer, and free it.
 	CMD5Checksum::GetMD5( pbData, lLumpSize, Checksum );
-	free( pbData );
+	delete[] pbData;
 
 	// Now, send the sidedefs checksum string.
 	Printf( "Sidedefs: %s\n", Checksum.GetChars() );
@@ -5055,7 +5055,7 @@ CCMD( testchecksumonlevel )
 
 	// Perform the checksum on our buffer, and free it.
 	CMD5Checksum::GetMD5( pbData, lLumpSize, Checksum );
-	free( pbData );
+	delete[] pbData;
 
 	// Now, send the sectors checksum string.
 	Printf( "Sectors: %s\n", Checksum.GetChars() );

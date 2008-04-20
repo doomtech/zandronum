@@ -202,7 +202,7 @@ void ASTAR_BuildNodes( void )
 		g_aPaths[ulIdx].bInGoalNode = false;
 		g_aPaths[ulIdx].lStackPos = 0;
 		g_aPaths[ulIdx].pActor = NULL;
-		g_aPaths[ulIdx].paVisualizations = (AActor **)malloc( sizeof(AActor *) * g_lNodeListSize );
+		g_aPaths[ulIdx].paVisualizations = (AActor **)M_Malloc( sizeof(AActor *) * g_lNodeListSize );
 		for ( ulIdx2 = 0; ulIdx2 < (ULONG)g_lNodeListSize; ulIdx2++ )
 			g_aPaths[ulIdx].paVisualizations[ulIdx2] = NULL;
 		g_aPaths[ulIdx].pCurrentNode = NULL;
@@ -215,7 +215,7 @@ void ASTAR_BuildNodes( void )
 		g_aPaths[ulIdx].ulNumSearchedNodes = 0;
 
 		g_ulPriorityQueuePosition[ulIdx] = 0;
-		g_apOpenListPriorityQueue[ulIdx] = (ASTARNODE_t **)malloc( sizeof(ASTARNODE_t *) * ( g_lNodeListSize + 1 ));
+		g_apOpenListPriorityQueue[ulIdx] = (ASTARNODE_t **)M_Malloc( sizeof(ASTARNODE_t *) * ( g_lNodeListSize + 1 ));
 		for ( ulIdx2 = 0; ulIdx2 < (ULONG)g_lNodeListSize; ulIdx2++ )
 			g_apOpenListPriorityQueue[ulIdx][ulIdx2] = NULL;
 	}
@@ -238,10 +238,10 @@ void ASTAR_ClearNodes( void )
 
 	for ( ulIdx = 0; ulIdx < MAX_PATHS; ulIdx++ )
 	{
-		free( g_apOpenListPriorityQueue[ulIdx] );
+		M_Free( g_apOpenListPriorityQueue[ulIdx] );
 		g_apOpenListPriorityQueue[ulIdx] = NULL;
 
-		free( g_aPaths[ulIdx].paVisualizations );
+		M_Free( g_aPaths[ulIdx].paVisualizations );
 		g_aPaths[ulIdx].paVisualizations = NULL;
 	}
 

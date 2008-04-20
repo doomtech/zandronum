@@ -410,7 +410,7 @@ void CLIENTDEMO_FinishRecording( void )
 	// Write the contents of the buffer to the file, and free the memory we
 	// allocated for the demo.
 	M_WriteFile( g_szDemoName, g_pbDemoBuffer, lDemoLength ); 
-	free( g_pbDemoBuffer );
+	M_Free( g_pbDemoBuffer );
 	g_pbDemoBuffer = NULL;
 
 	// We're no longer recording a demo.
