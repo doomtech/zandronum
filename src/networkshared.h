@@ -203,6 +203,7 @@ void			NETWORK_WriteBuffer( BYTESTREAM_s *pByteStream, const void *pvBuffer, int
 // Debugging function.
 void			NETWORK_WriteHeader( BYTESTREAM_s *pByteStream, int Byte );
 
+bool			NETWORK_CompareAddress( NETADDRESS_s Address1, NETADDRESS_s Address2, bool bIgnorePort );
 bool			NETWORK_StringToAddress( const char *pszString, NETADDRESS_s *pAddress );
 void			NETWORK_SocketAddressToNetAddress( struct sockaddr_in *s, NETADDRESS_s *a );
 bool			NETWORK_StringToIP( const char *pszAddress, char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 );
@@ -278,6 +279,72 @@ public:
 
 private:
 	bool rewriteListToFile ();
+};
+
+/**
+ * Class to store a list of IP address that this server has been queried by recently.
+ *
+ * \author BB
+ */
+class QueryIPQueue {
+
+	typedef struct
+	{
+		// The IP address of someone who just queried the master server.
+		NETADDRESS_s	Address;
+
+		// This is the next time we're allowed to respond to a query from this IP address.
+		long			lNextAllowedTime;
+
+	} STORED_QUERY_IP_t;
+
+	//! This is the maximum number of IPs that we can store in our query list.
+	static const int maxStoredQueryIPs	= 512;
+
+	STORED_QUERY_IP_t _StoredQueryIPs[maxStoredQueryIPs];
+	LONG _storedQueryIPHead;
+	LONG _storedQueryIPTail;
+public:
+	QueryIPQueue ()
+		: _storedQueryIPHead ( 0 ),
+		  _storedQueryIPTail ( 0 )
+	{
+	}
+
+	void adjustHead ( const LONG CurrentTime ) {
+		while (( _storedQueryIPHead != _storedQueryIPTail ) && ( CurrentTime >= _StoredQueryIPs[_storedQueryIPHead].lNextAllowedTime ) )
+		{
+			_storedQueryIPHead++;
+			_storedQueryIPHead = _storedQueryIPHead % maxStoredQueryIPs;
+		}
+	}
+
+	bool addressInQueue ( const NETADDRESS_s AddressFrom ) const {
+		// If head == tail, the 
+		if ( _storedQueryIPHead != _storedQueryIPTail )
+		{
+			ULONG ulIdx = _storedQueryIPHead;
+			while ( ulIdx != static_cast<ULONG>(_storedQueryIPTail) )
+			{
+				if ( NETWORK_CompareAddress( AddressFrom, _StoredQueryIPs[ulIdx].Address, true ))
+					return true;
+
+				ulIdx++;
+				ulIdx = ulIdx % maxStoredQueryIPs;
+			}
+		}
+		return false;
+	}
+	void addAddress ( const NETADDRESS_s AddressFrom, const LONG CurrentTime, std::ostream *errorOut = NULL ) {
+		_StoredQueryIPs[_storedQueryIPTail].Address = AddressFrom;
+		_StoredQueryIPs[_storedQueryIPTail].lNextAllowedTime = CurrentTime + 10;
+
+		_storedQueryIPTail++;
+		_storedQueryIPTail = _storedQueryIPTail % maxStoredQueryIPs;
+
+		if ( (_storedQueryIPTail == _storedQueryIPHead) && errorOut )
+			*errorOut << "WARNING! _storedQueryIPTail == _storedQueryIPHead\n";
+	}
 };
 
 #endif	// __NETWORKSHARED_H__
