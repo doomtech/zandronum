@@ -15,12 +15,13 @@
 ??????
 ------
 
-*	- Added basic HUD model support. [Torr Samaho]
+*+	- Added basic HUD model support. [Torr Samaho]
 +	- Added double definition support for the old DECORATE standard. In this case, the new actors override the old ones. [Rivecoder]
 +	- Under Windows, choosing "browse servers" in the Multiplayer menu brings up a new menu, letting you choose between IDEse and the internal browser. Hopefully, this should prevent newbies getting stuck at the old browser. [Rivecoder]
 +	- Added the CVAR chat_sound. With it, you can turn chat sounds off (0), play the default (1), or the Doom 2 (2) or Doom 1 (3) sounds. [Rivecoder]
 +	- Added the dynamic light definitions for Strife made by Dark_Knight. [Torr Samaho]
 +	- The error message of the float parser under Linux now mentions the LANG enviroment variable as possible cause for the error. [Torr Samaho]
++ 	- Added CVAR cl_allowmultipleannouncersounds (default true). If true, multiple announcer sounds can be played at once (like in 97D beta 4.3 and earlier), otherwise any announcer sound stops all previous announcers (like in 97D). [Torr Samaho]
 -	- Fixed: The 'summonfoe' console command didn't work online. [Karate Chris, Torr Samaho]
 -	- Fixed: Using the CCMD stat crashes the server. [Torr Samaho]
 -	- Fixed: A_Chase doesn't work properly online when a custom missile or melee state is specified as argument. [Torr Samaho]

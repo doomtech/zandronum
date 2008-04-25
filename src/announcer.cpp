@@ -78,6 +78,7 @@ static	bool			g_bOnePointLeftSoundPlayed;
 static	LONG			g_lLastSoundID = 0;
 
 CVAR (Bool, cl_alwaysplayfragsleft, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+CVAR (Bool, cl_allowmultipleannouncersounds, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
 //*****************************************************************************
 //	PROTOTYPES
@@ -212,7 +213,9 @@ void ANNOUNCER_PlayEntry( ULONG ulProfileIdx, const char *pszEntry )
 		( strlen( pEntry->szSound ) > 0 ))
 	{
 		// Stop any existing announcer sounds.
-		S_StopSoundID( g_lLastSoundID, INT_MAX, 1, false, 0, 0 );
+		// [BB] Only do this, if the user doesn't like multiple announcer sounds at once
+		if ( cl_allowmultipleannouncersounds == false )
+			S_StopSoundID( g_lLastSoundID, INT_MAX, 1, false, 0, 0 );
 
 		// Play the sound.
 		g_lLastSoundID = S_FindSound( pEntry->szSound );
