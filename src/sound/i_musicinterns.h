@@ -37,7 +37,8 @@ class MusInfo
 public:
 	MusInfo () : m_Status(STATE_Stopped) {}
 	virtual ~MusInfo ();
-	virtual void SetVolume (float volume) = 0;
+	virtual void MusicVolumeChanged();		// snd_musicvolume changed
+	virtual void TimidityVolumeChanged();	// timidity_mastervolume changed
 	virtual void Play (bool looping) = 0;
 	virtual void Pause () = 0;
 	virtual void Resume () = 0;
@@ -46,6 +47,7 @@ public:
 	virtual bool IsMIDI () const = 0;
 	virtual bool IsValid () const = 0;
 	virtual bool SetPosition (int order);
+	virtual void Update();
 
 	enum EState
 	{
@@ -56,130 +58,186 @@ public:
 	bool m_Looping;
 };
 
-// MUS file played with MIDI output messages --------------------------------
-
 #ifdef _WIN32
-class MUSSong2 : public MusInfo
+
+// A device that provides a WinMM-like MIDI streaming interface -------------
+
+class MIDIDevice
 {
 public:
-	MUSSong2 (FILE *file, char * musiccache, int length);
-	~MUSSong2 ();
+	MIDIDevice();
+	virtual ~MIDIDevice();
 
-	void SetVolume (float volume);
-	void Play (bool looping);
-	void Pause ();
-	void Resume ();
-	void Stop ();
-	bool IsPlaying ();
-	bool IsMIDI () const;
-	bool IsValid () const;
+	virtual int Open(void (*callback)(unsigned int, void *, DWORD, DWORD), void *userdata) = 0;
+	virtual void Close() = 0;
+	virtual bool IsOpen() const = 0;
+	virtual int GetTechnology() const = 0;
+	virtual int SetTempo(int tempo) = 0;
+	virtual int SetTimeDiv(int timediv) = 0;
+	virtual int StreamOut(MIDIHDR *data) = 0;
+	virtual int Resume() = 0;
+	virtual void Stop() = 0;
+	virtual int PrepareHeader(MIDIHDR *data) = 0;
+	virtual int UnprepareHeader(MIDIHDR *data) = 0;
+};
+
+// WinMM implementation of a MIDI output device -----------------------------
+
+class WinMIDIDevice : public MIDIDevice
+{
+public:
+	WinMIDIDevice(int dev_id);
+	~WinMIDIDevice();
+	int Open(void (*callback)(unsigned int, void *, DWORD, DWORD), void *userdata);
+	void Close();
+	bool IsOpen() const;
+	int GetTechnology() const;
+	int SetTempo(int tempo);
+	int SetTimeDiv(int timediv);
+	int StreamOut(MIDIHDR *data);
+	int Resume();
+	void Stop();
+	int PrepareHeader(MIDIHDR *data);
+	int UnprepareHeader(MIDIHDR *data);
+
+protected:
+	static void CALLBACK CallbackFunc(HMIDIOUT, UINT, DWORD_PTR, DWORD, DWORD);
+
+	HMIDISTRM MidiOut;
+	UINT DeviceID;
+	DWORD SavedVolume;
+	bool VolumeWorks;
+
+	void (*Callback)(unsigned int, void *, DWORD, DWORD);
+	void *CallbackData;
+};
+
+// Base class for streaming MUS and MIDI files ------------------------------
+
+
+class MIDIStreamer : public MusInfo
+{
+public:
+	MIDIStreamer();
+	~MIDIStreamer();
+
+	void MusicVolumeChanged();
+	void Play(bool looping);
+	void Pause();
+	void Resume();
+	void Stop();
+	bool IsPlaying();
+	bool IsMIDI() const;
+	bool IsValid() const;
+	void Update();
 
 protected:
 	static DWORD WINAPI PlayerProc (LPVOID lpParameter);
+	static void Callback(UINT uMsg, void *userdata, DWORD dwParam1, DWORD dwParam2);
+	DWORD PlayerLoop();
 	void OutputVolume (DWORD volume);
-	int SendCommand ();
+	int FillBuffer(int buffer_num, int max_events, DWORD max_time);
+	bool ServiceEvent();
+	int VolumeControllerChange(int channel, int volume);
+
+	// Virtuals for subclasses to override
+	virtual void CheckCaps();
+	virtual void DoInitialSetup() = 0;
+	virtual void DoRestart() = 0;
+	virtual bool CheckDone() = 0;
+	virtual DWORD *MakeEvents(DWORD *events, DWORD *max_event_p, DWORD max_time) = 0;
 
 	enum
 	{
-		SEND_DONE,
-		SEND_WAIT
+		MAX_EVENTS = 128
 	};
 
-	HMIDIOUT MidiOut;
+	enum
+	{
+		SONG_MORE,
+		SONG_DONE,
+		SONG_ERROR
+	};
+
+	MIDIDevice *MIDI;
 	HANDLE PlayerThread;
-	HANDLE PauseEvent;
 	HANDLE ExitEvent;
-	HANDLE VolumeChangeEvent;
-	DWORD SavedVolume;
-	bool VolumeWorks;
+	HANDLE BufferDoneEvent;
 
-	BYTE *MusBuffer;
-	MUSHeader *MusHeader;
-	BYTE LastVelocity[16];
+	DWORD Events[2][MAX_EVENTS*3];
+	MIDIHDR Buffer[2];
+	int BufferNum;
+	int EndQueued;
+	bool VolumeChanged;
+	bool Restarting;
+	bool InitialPlayback;
+	DWORD NewVolume;
+	int Division;
+	int Tempo;
+	int InitialTempo;
 	BYTE ChannelVolumes[16];
-	size_t MusP, MaxMusP;
+	DWORD Volume;
 };
-#endif
 
-// MIDI file played with MIDI output messages -------------------------------
+// MUS file played with a MIDI stream ---------------------------------------
 
-#ifdef _WIN32
-class MIDISong2 : public MusInfo
+class MUSSong2 : public MIDIStreamer
 {
 public:
-	MIDISong2 (FILE *file, char * musiccache, int length);
-	~MIDISong2 ();
-
-	void SetVolume (float volume);
-	void Play (bool looping);
-	void Pause ();
-	void Resume ();
-	void Stop ();
-	bool IsPlaying ();
-	bool IsMIDI () const;
-	bool IsValid () const;
+	MUSSong2 (FILE *file, char *musiccache, int length);
+	~MUSSong2 ();
 
 protected:
+	void DoInitialSetup();
+	void DoRestart();
+	bool CheckDone();
+	DWORD *MakeEvents(DWORD *events, DWORD *max_events_p, DWORD max_time);
+
+	MUSHeader *MusHeader;
+	BYTE *MusBuffer;
+	BYTE LastVelocity[16];
+	size_t MusP, MaxMusP;
+};
+
+// MIDI file played with a MIDI stream --------------------------------------
+
+class MIDISong2 : public MIDIStreamer
+{
+public:
+	MIDISong2 (FILE *file, char *musiccache, int length);
+	~MIDISong2 ();
+
+protected:
+	void CheckCaps();
+	void DoInitialSetup();
+	void DoRestart();
+	bool CheckDone();
+	DWORD *MakeEvents(DWORD *events, DWORD *max_events_p, DWORD max_time);
+
 	struct TrackInfo;
 
-	static DWORD WINAPI PlayerProc (LPVOID lpParameter);
-	void OutputVolume (DWORD volume);
 	void ProcessInitialMetaEvents ();
-	DWORD SendCommands ();
-	void SendCommand (TrackInfo *track);
+	DWORD *SendCommand (DWORD *event, TrackInfo *track, DWORD delay);
 	TrackInfo *FindNextDue ();
-
-	HMIDIOUT MidiOut;
-	HANDLE PlayerThread;
-	HANDLE PauseEvent;
-	HANDLE ExitEvent;
-	HANDLE VolumeChangeEvent;
-	DWORD SavedVolume;
-	bool VolumeWorks;
+	void SetTempo(int new_tempo);
 
 	BYTE *MusHeader;
-	BYTE ChannelVolumes[16];
 	TrackInfo *Tracks;
 	TrackInfo *TrackDue;
 	int NumTracks;
 	int Format;
-	int Division;
-	int Tempo;
 	WORD DesignationMask;
 };
-#endif
 
-// MOD file played with FMOD ------------------------------------------------
+#endif	/* _WIN32 */
 
-class MODSong : public MusInfo
-{
-public:
-	MODSong (const char *file, int offset, int length);
-	~MODSong ();
-	void SetVolume (float volume);
-	void Play (bool looping);
-	void Pause ();
-	void Resume ();
-	void Stop ();
-	bool IsPlaying ();
-	bool IsMIDI () const { return false; }
-	bool IsValid () const { return m_Module != NULL; }
-	bool SetPosition (int order);
-
-protected:
-	MODSong () {}
-
-	SoundTrackerModule *m_Module;
-};
-
-// OGG/MP3/WAV/other format streamed through FMOD ---------------------------
+// Anything supported by FMOD out of the box --------------------------------
 
 class StreamSong : public MusInfo
 {
 public:
 	StreamSong (const char *file, int offset, int length);
 	~StreamSong ();
-	void SetVolume (float volume);
 	void Play (bool looping);
 	void Pause ();
 	void Resume ();
@@ -187,6 +245,7 @@ public:
 	bool IsPlaying ();
 	bool IsMIDI () const { return false; }
 	bool IsValid () const { return m_Stream != NULL; }
+	bool SetPosition (int order);
 
 protected:
 	StreamSong () : m_Stream(NULL), m_LastPos(0) {}
@@ -195,54 +254,8 @@ protected:
 	int m_LastPos;
 };
 
-// SPC file, rendered with SNESAPU.DLL and streamed through FMOD ------------
-
 #if defined(_WIN32) || !defined(NO_SOUND)
-typedef void (__stdcall *SNESAPUInfo_TYPE) (DWORD*, DWORD*, DWORD*);
-typedef void (__stdcall *GetAPUData_TYPE) (void**, BYTE**, BYTE**, DWORD**, void**, void**, DWORD**, DWORD**);
-typedef void (__stdcall *LoadSPCFile_TYPE) (void*);
-typedef void (__stdcall *ResetAPU_TYPE) (DWORD);
-typedef void (__stdcall *SetDSPAmp_TYPE) (DWORD);
-typedef void (__stdcall *FixAPU_TYPE) (WORD, BYTE, BYTE, BYTE, BYTE, BYTE);
-typedef void (__stdcall *SetAPUOpt_TYPE) (DWORD, DWORD, DWORD, DWORD, DWORD, DWORD);
-typedef void *(__stdcall *EmuAPU_TYPE) (void *, DWORD, BYTE);
-
-class SPCSong : public StreamSong
-{
-public:
-	SPCSong (FILE *file, char * musiccache, int length);
-	~SPCSong ();
-	void Play (bool looping);
-	bool IsPlaying ();
-	bool IsValid () const;
-
-protected:
-	bool LoadEmu ();
-	void CloseEmu ();
-
-	static bool FillStream (SoundStream *stream, void *buff, int len, void *userdata);
-
-#ifdef _WIN32
-	HINSTANCE HandleAPU;
-#else
-	void *HandleAPU;
 #endif
-	int APUVersion;
-
-	bool Stereo;
-	bool Is8Bit;
-
-	SNESAPUInfo_TYPE SNESAPUInfo;
-	GetAPUData_TYPE GetAPUData;
-	LoadSPCFile_TYPE LoadSPCFile;
-	ResetAPU_TYPE ResetAPU;
-	SetDSPAmp_TYPE SetDSPAmp;
-	FixAPU_TYPE FixAPU;
-	SetAPUOpt_TYPE SetAPUOpt;
-	EmuAPU_TYPE EmuAPU;
-};
-#endif
-
 // MIDI file played with Timidity and possibly streamed through FMOD --------
 
 class TimiditySong : public StreamSong
@@ -254,7 +267,7 @@ public:
 	void Stop ();
 	bool IsPlaying ();
 	bool IsValid () const { return CommandLine.Len() > 0; }
-	void SetVolume (float volume);
+	void TimidityVolumeChanged();
 
 protected:
 	void PrepTimidity ();
@@ -283,8 +296,9 @@ protected:
 
 class ModPlugSong : public StreamSong
 {
+
 public:
-	ModPlugSong (FILE *file, char * musiccache, int length);
+	static ModPlugSong *Create(FILE *file, char *musiccache, int length);
 	~ModPlugSong ();
 	bool IsPlaying ();
 	bool SetPosition (int order);
@@ -292,6 +306,7 @@ public:
 
 protected:
 	static bool FillStream (SoundStream *stream, void *buff, int len, void *userdata);
+	ModPlugSong (ModPlugFile *dat);
 
 	ModPlugFile * Data;
 	int order;
@@ -316,25 +331,6 @@ protected:
 	OPLmusicBlock *Music;
 };
 
-// FLAC file streamed through FMOD (You should probably use Vorbis instead) -
-
-class FLACSong : public StreamSong
-{
-public:
-	FLACSong (FILE *file, char * musiccache, int length);
-	~FLACSong ();
-	void Play (bool looping);
-	bool IsPlaying ();
-	bool IsValid () const;
-
-protected:
-	static bool FillStream (SoundStream *stream, void *buff, int len, void *userdata);
-
-	class FLACStreamer;
-
-	FLACStreamer *State;
-};
-
 // CD track/disk played through the multimedia system -----------------------
 
 class CDSong : public MusInfo
@@ -342,7 +338,6 @@ class CDSong : public MusInfo
 public:
 	CDSong (int track, int id);
 	~CDSong ();
-	void SetVolume (float volume) {}
 	void Play (bool looping);
 	void Pause ();
 	void Resume ();

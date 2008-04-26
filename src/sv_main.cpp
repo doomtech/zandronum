@@ -311,7 +311,7 @@ void SERVER_Construct( void )
 	USHORT		usPort;
 
 	// Check if the user wants to use an alternate port for the server.
-	pszPort = Args.CheckValue( "-port" );
+	pszPort = Args->CheckValue( "-port" );
     if ( pszPort )
     {
        usPort = atoi( pszPort );
@@ -349,7 +349,7 @@ void SERVER_Construct( void )
 	}
 
 	// If they used "-host <#>", make <#> the max number of players.
-	pszMaxClients = Args.CheckValue( "-host" );
+	pszMaxClients = Args->CheckValue( "-host" );
 	if ( pszMaxClients )
 		sv_maxclients = atoi( pszMaxClients );
 
@@ -508,7 +508,7 @@ void SERVER_Tick( void )
 	{
 		while ( lCurTics-- )
 		{
-			DObject::BeginFrame ();
+			//DObject::BeginFrame ();
 
 			// Recieve packets.
 			SERVER_GetPackets( );
@@ -619,7 +619,7 @@ void SERVER_Tick( void )
 				SERVERCONSOLE_UpdateAverageInboundDataTransfer( g_lTotalInboundDataTransferred );
 			}
 
-			DObject::EndFrame ();
+			//DObject::EndFrame ();
 		}
 /*
 		if ( 1 )

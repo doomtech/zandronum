@@ -719,7 +719,7 @@ void CLIENT_Construct( void )
 	g_ulRetryTicks = 0;
 
 	// Check if the user wants to use an alternate port for the server.
-	pszPort = Args.CheckValue( "-port" );
+	pszPort = Args->CheckValue( "-port" );
     if ( pszPort )
     {
        usPort = atoi( pszPort );
@@ -739,7 +739,7 @@ void CLIENT_Construct( void )
 	memset( g_ReceivedPacketBuffer.abData, 0, MAX_UDP_PACKET * 256 );
 
 	// Connect to a server right off the bat.
-    pszIPAddress = Args.CheckValue( "-connect" );
+    pszIPAddress = Args->CheckValue( "-connect" );
     if ( pszIPAddress )
     {
 		// Convert the given IP string into our server address.
@@ -775,7 +775,7 @@ void CLIENT_Construct( void )
 		}
 
 		// If we've elected to record a demo, begin that process now.
-		pszDemoName = Args.CheckValue( "-record" );
+		pszDemoName = Args->CheckValue( "-record" );
 		if ( pszDemoName )
 			CLIENTDEMO_BeginRecording( pszDemoName );
     }
@@ -11021,7 +11021,7 @@ CCMD( connect )
 	CLIENT_SetConnectionState( CTS_ATTEMPTINGCONNECTION );
 
 	// If we've elected to record a demo, begin that process now.
-	pszDemoName = Args.CheckValue( "-record" );
+	pszDemoName = Args->CheckValue( "-record" );
 	if (( gamestate == GS_STARTUP ) && ( pszDemoName ))
 		CLIENTDEMO_BeginRecording( pszDemoName );
 }

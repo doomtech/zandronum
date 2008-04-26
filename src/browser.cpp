@@ -104,7 +104,7 @@ void BROWSER_Construct( void )
 	NETWORK_ClearBuffer( &g_ServerBuffer );
 
 	// Allow the user to specify which port the master server is on.
-	pszPort = Args.CheckValue( "-masterport" );
+	pszPort = Args->CheckValue( "-masterport" );
     if ( pszPort )
     {
        g_usMasterPort = atoi( pszPort );

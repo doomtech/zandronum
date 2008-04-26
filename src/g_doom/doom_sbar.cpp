@@ -37,10 +37,11 @@ CVAR( Bool, cl_onekey, false, CVAR_ARCHIVE );
 CVAR( Bool, cl_stfullscreenhud, true, CVAR_ARCHIVE );
 EXTERN_CVAR (Bool, vid_fps)
 
-class FDoomStatusBar : public FBaseStatusBar
+class DDoomStatusBar : public DBaseStatusBar
 {
+	DECLARE_CLASS(DDoomStatusBar, DBaseStatusBar)
 public:
-	FDoomStatusBar () : FBaseStatusBar (32)
+	DDoomStatusBar () : DBaseStatusBar (32)
 	{
 		static const char *sharedLumpNames[] =
 		{
@@ -54,8 +55,8 @@ public:
 		};
 		FTexture *tex;
 
-		FBaseStatusBar::Images.Init (sharedLumpNames, NUM_BASESB_IMAGES);
-		tex = FBaseStatusBar::Images[imgBNumbers];
+		DBaseStatusBar::Images.Init (sharedLumpNames, NUM_BASESB_IMAGES);
+		tex = DBaseStatusBar::Images[imgBNumbers];
 		BigWidth = tex->GetWidth();
 		BigHeight = tex->GetHeight();
 
@@ -63,7 +64,7 @@ public:
 		bEvilGrin = false;
 	}
 
-	~FDoomStatusBar ()
+	~DDoomStatusBar ()
 	{
 	}
 
@@ -137,7 +138,7 @@ public:
 
 	void MultiplayerChanged ()
 	{
-		FBaseStatusBar::MultiplayerChanged ();
+		DBaseStatusBar::MultiplayerChanged ();
 		if ( NETWORK_GetState( ) != NETSTATE_SINGLE )
 		{
 			// set face background color
@@ -149,7 +150,7 @@ public:
 	{
 		player_t *oldplayer = CPlayer;
 
-		FBaseStatusBar::AttachToPlayer (player);
+		DBaseStatusBar::AttachToPlayer (player);
 		if (oldplayer != CPlayer)
 		{
 			SetFace (&skins[CPlayer->userinfo.skin]);
@@ -164,14 +165,14 @@ public:
 
 	void Tick ()
 	{
-		FBaseStatusBar::Tick ();
+		DBaseStatusBar::Tick ();
 		RandomNumber = M_Random ();
 		UpdateFace ();
 	}
 
 	void Draw (EHudState state)
 	{
-		FBaseStatusBar::Draw (state);
+		DBaseStatusBar::Draw (state);
 
 		if (state == HUD_Fullscreen)
 		{
@@ -427,7 +428,7 @@ private:
 	void DrawArm (int on, int picnum, int x, int y, bool drawBackground)
 	{
 		int w;
-		FTexture *pic = on ? FBaseStatusBar::Images[imgSmNumbers + 2 + picnum] : Images[imgGNUM2 + picnum];
+		FTexture *pic = on ? DBaseStatusBar::Images[imgSmNumbers + 2 + picnum] : Images[imgGNUM2 + picnum];
 
 		if (pic != NULL)
 		{
@@ -1381,7 +1382,7 @@ void DrawFullHUD_GameInformation()
 
 	void DrawInventoryBar ()
 	{
-		const AInventory *item;
+		AInventory *item;
 		int i;
 
 		// If the player has no artifacts, don't draw the bar
@@ -1441,7 +1442,7 @@ void DrawFullHUD_GameInformation()
 	// [BB] Draws the inventory in the classical and the new fullscreen HUD.
 	void DrawFullScreenInventory( const int ammotop )
 	{
-		const AInventory *item;
+		AInventory *item;
 		int i;
 		if (CPlayer->mo && !(level.flags & LEVEL_NOINVENTORYBAR))
 		{
@@ -1515,7 +1516,7 @@ void DrawFullHUD_GameInformation()
 
 	void DrawFullScreenStuff ()
 	{
-		const AInventory *item;
+		AInventory *item;
 		//int i;
 		int ammotop;
 		// [BC]
@@ -2093,7 +2094,9 @@ void DrawFullHUD_GameInformation()
 	bool bEvilGrin;
 };
 
-FDoomStatusBar::FDoomStatusBarTexture::FDoomStatusBarTexture ()
+IMPLEMENT_CLASS(DDoomStatusBar)
+
+DDoomStatusBar::FDoomStatusBarTexture::FDoomStatusBarTexture ()
 {
 	BaseTexture = TexMan["STBAR"];
 	if (BaseTexture==NULL)
@@ -2109,7 +2112,7 @@ FDoomStatusBar::FDoomStatusBarTexture::FDoomStatusBarTexture ()
 	STBFremap = NULL;
 }
 
-const BYTE *FDoomStatusBar::FDoomStatusBarTexture::GetColumn (unsigned int column, const Span **spans_out)
+const BYTE *DDoomStatusBar::FDoomStatusBarTexture::GetColumn (unsigned int column, const Span **spans_out)
 {
 	if (Pixels == NULL)
 	{
@@ -2120,7 +2123,7 @@ const BYTE *FDoomStatusBar::FDoomStatusBarTexture::GetColumn (unsigned int colum
 	return Pixels + column*Height;
 }
 
-const BYTE *FDoomStatusBar::FDoomStatusBarTexture::GetPixels ()
+const BYTE *DDoomStatusBar::FDoomStatusBarTexture::GetPixels ()
 {
 	if (Pixels == NULL)
 	{
@@ -2129,7 +2132,7 @@ const BYTE *FDoomStatusBar::FDoomStatusBarTexture::GetPixels ()
 	return Pixels;
 }
 
-void FDoomStatusBar::FDoomStatusBarTexture::Unload ()
+void DDoomStatusBar::FDoomStatusBarTexture::Unload ()
 {
 	if (Pixels != NULL)
 	{
@@ -2138,13 +2141,13 @@ void FDoomStatusBar::FDoomStatusBarTexture::Unload ()
 	}
 }
 												
-FDoomStatusBar::FDoomStatusBarTexture::~FDoomStatusBarTexture ()
+DDoomStatusBar::FDoomStatusBarTexture::~FDoomStatusBarTexture ()
 {
 	Unload ();
 }
 
 
-void FDoomStatusBar::FDoomStatusBarTexture::MakeTexture ()
+void DDoomStatusBar::FDoomStatusBarTexture::MakeTexture ()
 {
 	Pixels = new BYTE[Width*Height];
 	const BYTE *pix = BaseTexture->GetPixels();
@@ -2161,7 +2164,7 @@ void FDoomStatusBar::FDoomStatusBarTexture::MakeTexture ()
 	if ( NETWORK_GetState( ) != NETSTATE_SINGLE ) DrawToBar("STFBANY", 143, 1, STBFremap? STBFremap->Remap : NULL);
 }
 
-int FDoomStatusBar::FDoomStatusBarTexture::CopyTrueColorPixels(BYTE *buffer, int buf_pitch, int buf_height, int x, int y)
+int DDoomStatusBar::FDoomStatusBarTexture::CopyTrueColorPixels(BYTE *buffer, int buf_pitch, int buf_height, int x, int y)
 {
 	FTexture *tex;
 
@@ -2194,7 +2197,7 @@ int FDoomStatusBar::FDoomStatusBarTexture::CopyTrueColorPixels(BYTE *buffer, int
 
 
 
-void FDoomStatusBar::FDoomStatusBarTexture::DrawToBar (const char *name, int x, int y, const BYTE *colormap_in)
+void DDoomStatusBar::FDoomStatusBarTexture::DrawToBar (const char *name, int x, int y, const BYTE *colormap_in)
 {
 	FTexture *pic;
 	BYTE colormap[256];
@@ -2224,14 +2227,14 @@ void FDoomStatusBar::FDoomStatusBarTexture::DrawToBar (const char *name, int x, 
 	}
 }
 
-void FDoomStatusBar::FDoomStatusBarTexture::SetPlayerRemap(FRemapTable *remap)
+void DDoomStatusBar::FDoomStatusBarTexture::SetPlayerRemap(FRemapTable *remap)
 {
 	Unload();
 	KillNative();
 	STBFremap = remap;
 }
 
-FBaseStatusBar *CreateDoomStatusBar ()
+DBaseStatusBar *CreateDoomStatusBar ()
 {
-	return new FDoomStatusBar;
+	return new DDoomStatusBar;
 }

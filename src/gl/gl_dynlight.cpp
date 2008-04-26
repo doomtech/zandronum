@@ -1022,7 +1022,7 @@ void gl_SetActorLights(AActor *actor)
 				(LightAssociations[i]->Frame()==frame || LightAssociations[i]->Frame()==-1))
 			{
 				// I'm skipping the single rotations because that really doesn't make sense!
-				if (count < actor->dynamiclights.Size()) light = (ADynamicLight*)actor->dynamiclights[count];
+				if (count < actor->dynamiclights.Size()) light = barrier_cast<ADynamicLight*>(actor->dynamiclights[count]);
 				else
 				{
 					light = Spawn<ADynamicLight>(actor->x, actor->y, actor->z, NO_REPLACE);

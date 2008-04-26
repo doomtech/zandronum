@@ -542,7 +542,7 @@ protected:
 struct FCanvasTextureInfo
 {
 	FCanvasTextureInfo *Next;
-	AActor *Viewpoint;
+	TObjPtr<AActor> Viewpoint;
 	FCanvasTexture *Texture;
 	int PicNum;
 	int FOV;
@@ -551,6 +551,7 @@ struct FCanvasTextureInfo
 	static void UpdateAll ();
 	static void EmptyList ();
 	static void Serialize (FArchive &arc);
+	static void Mark();
 
 	// [BC]
 	static void UpdateToClient( ULONG ulClient );

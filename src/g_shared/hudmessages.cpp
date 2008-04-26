@@ -45,7 +45,10 @@
 // [BC] This is just a boolean now.
 EXTERN_CVAR (Bool, con_scaletext)
 
-IMPLEMENT_CLASS (DHUDMessage)
+IMPLEMENT_POINTY_CLASS (DHUDMessage)
+ DECLARE_POINTER(Next)
+END_POINTERS
+
 IMPLEMENT_CLASS (DHUDMessageFadeOut)
 IMPLEMENT_CLASS (DHUDMessageFadeInOut)
 IMPLEMENT_CLASS (DHUDMessageTypeOnFadeOut)

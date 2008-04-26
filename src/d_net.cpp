@@ -936,6 +936,8 @@ void NetUpdate (void)
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		return;
 
+	GC::CheckGC();
+
 	if (ticdup == 0)
 	{
 		return;
@@ -1607,7 +1609,7 @@ void D_CheckNetGame (void)
 	
 	consoleplayer = doomcom.consoleplayer;
 
-	v = Args.CheckValue ("-netmode");
+	v = Args->CheckValue ("-netmode");
 	if (v != NULL)
 	{
 		NetMode = atoi (v) != 0 ? NET_PacketServer : NET_PeerToPeer;
@@ -1616,7 +1618,7 @@ void D_CheckNetGame (void)
 	// [RH] Setup user info
 	D_SetupUserInfo ();
 
-	if (Args.CheckParm ("-debugfile"))
+	if (Args->CheckParm ("-debugfile"))
 	{
 		char	filename[20];
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -1777,24 +1779,24 @@ void TryRunTics (void)
 		frameon++;
 
 		// run the count tics
-		while (counts--)
+		if (counts > 0)
 		{
-			if (advancedemo)
+			while (counts--)
 			{
-				D_DoAdvanceDemo ();
+				if (advancedemo)
+				{
+					D_DoAdvanceDemo ();
+				}
+				C_Ticker ();
+				M_Ticker ();
+				I_GetTime (true);
+				G_Ticker ();
+				gametic++;
+
+				NetUpdate ();	// check for new console commands
 			}
-			DObject::BeginFrame ();
-			C_Ticker ();
-			M_Ticker ();
-			I_GetTime (true);
-			G_Ticker ();
-			DObject::EndFrame ();
-			gametic++;
-
-			NetUpdate ();	// check for new console commands
 		}
-
-//		DObject::EndFrame ();
+		S_UpdateSounds (players[consoleplayer].camera);	// move positional sounds
 	}
 	else
 	{
@@ -1943,6 +1945,8 @@ void TryRunTics (void)
 		}
 
 		// run the count tics
+	if (counts > 0)
+	{
 		while (counts--)
 		{
 			if (gametic > lowtic)
@@ -1954,15 +1958,15 @@ void TryRunTics (void)
 				D_DoAdvanceDemo ();
 			}
 			if (debugfile) fprintf (debugfile, "run tic %d\n", gametic);
-			DObject::BeginFrame ();
 			C_Ticker ();
 			M_Ticker ();
 			I_GetTime (true);
 			G_Ticker ();
-			DObject::EndFrame ();
 			gametic++;
 
 			NetUpdate ();	// check for new console commands
+		}
+		S_UpdateSounds (players[consoleplayer].camera);	// move positional sounds
 		}
 	}
 }

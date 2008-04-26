@@ -1466,14 +1466,13 @@ static menuitem_t SoundItems[] =
 {
 	{ slider,	"Sound effects volume",	{&snd_sfxvolume},		{0.0}, {1.0},	{0.05}, {NULL} },
 #ifdef _WIN32
-	{ slider,	"MIDI music volume",	{&snd_midivolume},		{0.0}, {1.0},	{0.05}, {NULL} },
-	{ slider,	"Other music volume",	{&snd_musicvolume},		{0.0}, {1.0},	{0.05}, {NULL} },
+	{ slider,	"Music volume",			{&snd_musicvolume},		{0.0}, {1.0},	{0.05}, {NULL} },
 	{ slider,	"Movie volume",			{&snd_movievolume},		{0.0}, {1.0},	{0.05}, {NULL} },
 #else
 	{ slider,	"Music volume",			{&snd_musicvolume},		{0.0}, {1.0},	{0.05}, {NULL} },
 #endif
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
-	{ discrete, "Underwater EAX Reverb",{&snd_waterreverb},		{2.0}, {0.0},	{0.0}, {OnOff} },
+	{ discrete, "Underwater Reverb",	{&snd_waterreverb},		{2.0}, {0.0},	{0.0}, {OnOff} },
 	{ discrete, "Flip Stereo Channels",	{&snd_flipstereo},		{2.0}, {0.0},	{0.0}, {OnOff} },
 	{ discrete, "Random Pitch Variations", {&snd_pitched},		{2.0}, {0.0},	{0.0}, {OnOff} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },

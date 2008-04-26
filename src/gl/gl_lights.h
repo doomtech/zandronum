@@ -114,7 +114,7 @@ public:
 	BYTE lighttype;
 	bool owned;
 	bool halo;
-	AActor *Owner;	// NOTE: This is *NOT* subject to pointer cleanup!!!
+	AActor *Owner;	// NOTE: This is *NOT* subject to pointer cleanup or garbage collection!!!
 
 	// intermediate texture coordinate data
 	// this is stored in the light object to avoid recalculating it
@@ -248,9 +248,6 @@ enum
 {
 	STAT_DLIGHT=64
 };
-
-extern TArray<ADynamicLight *> PointLights;
-
 
 
 //

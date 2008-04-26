@@ -566,7 +566,7 @@ void HostGame (int i)
 	int node;
 	int gotack[MAXNETNODES+1];
 
-	if ((i == Args.NumArgs() - 1) || !(numplayers = atoi (Args.GetArg(i+1))))
+	if ((i == Args->NumArgs() - 1) || !(numplayers = atoi (Args->GetArg(i+1))))
 	{	// No player count specified, assume 2
 		numplayers = 2;
 	}
@@ -744,15 +744,15 @@ bool Guest_WaitForOthers (void *userdata)
 
 void JoinGame (int i)
 {
-	if ((i == Args.NumArgs() - 1) ||
-		(Args.GetArg(i+1)[0] == '-') ||
-		(Args.GetArg(i+1)[0] == '+'))
+	if ((i == Args->NumArgs() - 1) ||
+		(Args->GetArg(i+1)[0] == '-') ||
+		(Args->GetArg(i+1)[0] == '+'))
 		I_FatalError ("You need to specify the host machine's address");
 
 	StartNetwork (true);
 
 	// Host is always node 1
-	BuildAddress (&sendaddress[1], Args.GetArg(i+1));
+	BuildAddress (&sendaddress[1], Args->GetArg(i+1));
 	sendplayer[1] = 0;
 	doomcom.numnodes = 2;
 
@@ -791,7 +791,7 @@ void I_InitNetwork (void)
 	memset (&doomcom, 0, sizeof(doomcom));
 
 	// set up for network
-	v = Args.CheckValue ("-dup");
+	v = Args->CheckValue ("-dup");
 	if (v)
 	{
 		doomcom.ticdup = clamp (atoi (v), 1, MAXTICDUP);
@@ -801,12 +801,12 @@ void I_InitNetwork (void)
 		doomcom.ticdup = 1;
 	}
 
-	if (Args.CheckParm ("-extratic"))
+	if (Args->CheckParm ("-extratic"))
 		doomcom.extratics = 1;
 	else
 		doomcom.extratics = 0;
 
-	v = Args.CheckValue ("-port");
+	v = Args->CheckValue ("-port");
 	if (v)
 	{
 		DOOMPORT = atoi (v);
@@ -817,11 +817,11 @@ void I_InitNetwork (void)
 	//		player 1: -host <numplayers>
 	//		player x: -join <player 1's address>
 /*
-	if ( (i = Args.CheckParm ("-host")) )
+	if ( (i = Args->CheckParm ("-host")) )
 	{
 		HostGame (i);
 	}
-	else if ( (i = Args.CheckParm ("-join")) )
+	else if ( (i = Args->CheckParm ("-join")) )
 	{
 		JoinGame (i);
 	}

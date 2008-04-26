@@ -79,7 +79,7 @@ extern "C" int cc_install_handlers(int, int*, const char*, int(*)(char*, char*))
 bool GtkAvailable;
 
 // The command line arguments.
-DArgs Args;
+DArgs *Args;
 
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 
@@ -141,9 +141,9 @@ static int DoomSpecificInfo (char *buffer, char *end)
 	p = 0;
 	p += snprintf (buffer+p, size-p, GAMENAME" version " DOTVERSIONSTR " (" __DATE__ ")\n");
 	p += snprintf (buffer+p, size-p, "\nCommand line:");
-	for (i = 0; i < Args.NumArgs(); ++i)
+	for (i = 0; i < Args->NumArgs(); ++i)
 	{
-		p += snprintf (buffer+p, size-p, " %s", Args.GetArg(i));
+		p += snprintf (buffer+p, size-p, " %s", Args->GetArg(i));
 	}
 	p += snprintf (buffer+p, size-p, "\n");
 	
@@ -203,12 +203,12 @@ int main (int argc, char **argv)
 	GtkAvailable = gtk_init_check (&argc, &argv);
 #endif
 	
-	Args.SetArgs (argc, argv);
+	Args = new DArgs(argc, argv);
 
 #ifdef SERVER_ONLY
-	Args.AppendArg( "-host" );
+	Args->AppendArg( "-host" );
 #endif
-	if ( Args.CheckParm( "-host" ))
+	if ( Args->CheckParm( "-host" ))
 	{
 		if (SDL_Init (SDL_INIT_TIMER|SDL_INIT_NOPARACHUTE) == -1)
 		{
@@ -231,7 +231,6 @@ int main (int argc, char **argv)
 	
     try
     {
-
 		/*
 		  killough 1/98:
 

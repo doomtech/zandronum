@@ -3291,6 +3291,10 @@ bool PTR_BounceTraverse (intercept_t *in)
 
 	if (opentop - slidemo->z < slidemo->height)
 		goto bounceblocking;				// mobj is too high
+
+	if (openbottom > slidemo->z)
+		goto bounceblocking;				// mobj is too low
+
 	return true;			// this line doesn't block movement
 
 // the line does block movement, see if it is closer than best so far
@@ -3345,8 +3349,9 @@ bool P_BounceWall (AActor *mo)
 		leady = mo->y-mo->radius;
 	}
 	bestslidefrac = FRACUNIT+1;
+	bestslideline = BlockingLine;
 	if (P_PathTraverse(leadx, leady, leadx+mo->momx, leady+mo->momy,
-		PT_ADDLINES, PTR_BounceTraverse))
+		PT_ADDLINES, PTR_BounceTraverse) && BlockingLine == NULL)
 	{ // Could not find a wall, so bounce off the floor/ceiling instead.
 		fixed_t floordist = mo->z - mo->floorz;
 		fixed_t ceildist = mo->ceilingz - mo->z;
@@ -3360,12 +3365,6 @@ bool P_BounceWall (AActor *mo)
 			mo->FloorBounceMissile (mo->Sector->ceilingplane);
 			return true;
 		}
-		/*
-		else
-		{
-			return (mo->flags2 & MF2_BOUNCE2) != 0;
-		}
-		*/
 	}
 	line = bestslideline;
 

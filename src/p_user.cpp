@@ -334,21 +334,55 @@ player_s::player_s()
 // that match the pointer passed in. If you add any pointers that point to
 // DObject (or a subclass), add them here too.
 
-void player_s::FixPointers (const DObject *old, DObject *rep)
+size_t player_s::FixPointers (const DObject *old, DObject *rep)
 {
 	APlayerPawn *replacement = static_cast<APlayerPawn *>(rep);
-	if (mo == old)				mo = replacement;
-	if (poisoner == old)		poisoner = replacement;
-	if (attacker == old)		attacker = replacement;
-	if (camera == old)			camera = replacement;
-	if (ReadyWeapon == old)		ReadyWeapon = static_cast<AWeapon *>(rep);
-	if (PendingWeapon == old)	PendingWeapon = static_cast<AWeapon *>(rep);
-
+	size_t changed = 0;
+	if (mo == old)				mo = replacement, changed++;
+	if (poisoner == old)		poisoner = replacement, changed++;
+	if (attacker == old)		attacker = replacement, changed++;
+	if (camera == old)			camera = replacement, changed++;
+	/* [BB] ST doesn't have these.
+	if (dest == old)			dest = replacement, changed++;
+	if (prev == old)			prev = replacement, changed++;
+	if (enemy == old)			enemy = replacement, changed++;
+	if (missile == old)			missile = replacement, changed++;
+	if (mate == old)			mate = replacement, changed++;
+	if (last_mate == old)		last_mate = replacement, changed++;
+	*/
+	if (ReadyWeapon == old)		ReadyWeapon = static_cast<AWeapon *>(rep), changed++;
+	if (PendingWeapon == old)	PendingWeapon = static_cast<AWeapon *>(rep), changed++;
 	// [BC]
-	if ( pIcon == old )
-		pIcon = static_cast<AFloatyIcon *>( rep );
-	if ( OldPendingWeapon == old )
-		OldPendingWeapon = static_cast<AWeapon *>( rep );
+	if ( pIcon == old )		pIcon = static_cast<AFloatyIcon *>( rep ), changed++;
+	if ( OldPendingWeapon == old )		OldPendingWeapon = static_cast<AWeapon *>( rep ), changed++;
+
+	return changed;
+}
+
+size_t player_s::PropagateMark()
+{
+	GC::Mark(mo);
+	GC::Mark(poisoner);
+	GC::Mark(attacker);
+	GC::Mark(camera);
+	/* [BB] ST doesn't have these.
+	GC::Mark(dest);
+	GC::Mark(prev);
+	GC::Mark(enemy);
+	GC::Mark(missile);
+	GC::Mark(mate);
+	GC::Mark(last_mate);
+	*/
+	GC::Mark(ReadyWeapon);
+	if (PendingWeapon != WP_NOCHANGE)
+	{
+		GC::Mark(PendingWeapon);
+	}
+	// [BB]
+	GC::Mark(pIcon);
+	if (OldPendingWeapon != WP_NOCHANGE)
+		GC::Mark(OldPendingWeapon);
+	return sizeof(*this);
 }
 
 void player_s::SetLogNumber (int num)

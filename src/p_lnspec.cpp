@@ -978,7 +978,7 @@ FUNC(LS_Thing_ChangeTID)
 {
 	if (arg0 == 0)
 	{
-		if (it != NULL && !(it->ObjectFlags & OF_MassDestruction))
+		if (it != NULL && !(it->ObjectFlags & OF_EuthanizeMe))
 		{
 			it->RemoveFromHash ();
 			it->tid = arg1;
@@ -996,7 +996,7 @@ FUNC(LS_Thing_ChangeTID)
 			actor = next;
 			next = iterator.Next ();
 
-			if (!(actor->ObjectFlags & OF_MassDestruction))
+			if (!(actor->ObjectFlags & OF_EuthanizeMe))
 			{
 				actor->RemoveFromHash ();
 				actor->tid = arg1;
@@ -1316,7 +1316,7 @@ FUNC(LS_Thing_Hate)
 			if (arg2 != 0)
 			{
 				hater->TIDtoHate = arg1;
-				hater->LastLook.Actor = NULL;
+				hater->LastLookActor = NULL;
 
 				// If the TID to hate is 0, then don't forget the target and
 				// lastenemy fields.

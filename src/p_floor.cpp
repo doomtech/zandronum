@@ -871,7 +871,7 @@ bool EV_FloorCrushStop (int tag)
 		sector_t *sec = sectors + secnum;
 
 		if (sec->floordata && sec->floordata->IsKindOf (RUNTIME_CLASS(DFloor)) &&
-			static_cast<DFloor *>(sec->floordata)->m_Type == DFloor::floorRaiseAndCrush)
+			barrier_cast<DFloor *>(sec->floordata)->m_Type == DFloor::floorRaiseAndCrush)
 		{
 			// [BC] If we're stopping, this is probably a good time to verify all the clients
 			// have the correct floor/ceiling height for this sector.
@@ -891,7 +891,7 @@ bool EV_FloorCrushStop (int tag)
 
 			// [BC] If we're the server, tell clients to destroy the floor.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_DestroyFloor( static_cast<DFloor *>( sec->floordata )->m_lFloorID );
+				SERVERCOMMANDS_DestroyFloor( barrier_cast<DFloor *>( sec->floordata )->m_lFloorID );
 
 			sec->floordata->Destroy ();
 			sec->floordata = NULL;

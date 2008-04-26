@@ -98,7 +98,7 @@ void SERVER_MASTER_Construct( void )
 	NETWORK_ClearBuffer( &g_MasterServerBuffer );
 
 	// Allow the user to specify which port the master server is on.
-	pszPort = Args.CheckValue( "-masterport" );
+	pszPort = Args->CheckValue( "-masterport" );
     if ( pszPort )
     {
        g_usMasterPort = atoi( pszPort );
@@ -183,7 +183,7 @@ void SERVER_MASTER_Broadcast( void )
 		return;
 
 	// User doesn't wish to broadcast this server.
-	if (( sv_broadcast == false ) || ( Args.CheckParm( "-nobroadcast" )))
+	if (( sv_broadcast == false ) || ( Args->CheckParm( "-nobroadcast" )))
 		return;
 
 //	NETWORK_ClearBuffer( &g_MasterServerBuffer );

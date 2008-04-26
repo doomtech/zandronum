@@ -1716,9 +1716,12 @@ void FCanvasTextureInfo::Add (AActor *viewpoint, int picnum, int fov)
 		if (probe->Texture == texture)
 		{
 			// Yes, change its assignment to this new camera
+			if (probe->Viewpoint != viewpoint || probe->FOV != fov)
+			{
+				texture->bFirstUpdate = true;
+			}
 			probe->Viewpoint = viewpoint;
 			probe->FOV = fov;
-			texture->bFirstUpdate = true;
 			return;
 		}
 	}
@@ -1814,6 +1817,22 @@ void FCanvasTextureInfo::Serialize (FArchive &arc)
 			Add (viewpoint, picnum, fov);
 			arc << viewpoint;
 		}
+	}
+}
+
+//==========================================================================
+//
+// FCanvasTextureInfo :: Mark
+//
+// Marks all viewpoints in the list for the collector.
+//
+//==========================================================================
+
+void FCanvasTextureInfo::Mark()
+{
+	for (FCanvasTextureInfo *probe = List; probe != NULL; probe = probe->Next)
+	{
+		GC::Mark(probe->Viewpoint);
 	}
 }
 

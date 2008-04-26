@@ -114,7 +114,7 @@ bool AAmmo::HandlePickup (AInventory *item)
 				(Owner->player->ReadyWeapon == NULL ||
 				 (Owner->player->ReadyWeapon->WeaponFlags & WIF_WIMPY_WEAPON)))
 			{
-				AWeapon *best = static_cast<APlayerPawn *>(Owner)->BestWeapon (GetClass());
+				AWeapon *best = barrier_cast<APlayerPawn *>(Owner)->BestWeapon (GetClass());
 				if (best != NULL && (Owner->player->ReadyWeapon == NULL ||
 					best->SelectionOrder < Owner->player->ReadyWeapon->SelectionOrder))
 				{
@@ -1278,7 +1278,7 @@ PalEntry AInventory::GetBlend ()
 //
 //===========================================================================
 
-AInventory *AInventory::PrevItem () const
+AInventory *AInventory::PrevItem ()
 {
 	AInventory *item = Owner->Inventory;
 
@@ -1297,7 +1297,7 @@ AInventory *AInventory::PrevItem () const
 //
 //===========================================================================
 
-AInventory *AInventory::PrevInv () const
+AInventory *AInventory::PrevInv ()
 {
 	AInventory *lastgood = NULL;
 	AInventory *item = Owner->Inventory;
@@ -1320,7 +1320,7 @@ AInventory *AInventory::PrevInv () const
 //
 //===========================================================================
 
-AInventory *AInventory::NextInv () const
+AInventory *AInventory::NextInv ()
 {
 	AInventory *item = Inventory;
 

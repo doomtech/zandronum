@@ -1671,7 +1671,7 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 
 	if (StatusBar != NULL)
 	{
-		delete StatusBar;
+		StatusBar->Destroy();
 		StatusBar = NULL;
 	}
 	// Server has no status bar.
@@ -1679,7 +1679,7 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 	{
 		if (bTitleLevel)
 		{
-			StatusBar = new FBaseStatusBar (0);
+			StatusBar = new DBaseStatusBar (0);
 		}
 		else
 			StatusBar = CreateStatusBar ();
@@ -1729,9 +1729,10 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 			}
 			else
 			{
-				StatusBar = new FBaseStatusBar (0);
+				StatusBar = new DBaseStatusBar (0);
 			}
 		}
+		GC::WriteBarrier(StatusBar);
 		*/
 		StatusBar->AttachToPlayer (&players[consoleplayer]);
 		StatusBar->NewGame ();
@@ -2892,7 +2893,7 @@ void G_FinishTravel ()
 			pawn->target = NULL;
 			pawn->lastenemy = NULL;
 			pawn->player->mo = pawn;
-			DObject::PointerSubstitution (oldpawn, pawn);
+			DObject::StaticPointerSubstitution (oldpawn, pawn);
 			oldpawn->Destroy();
 			pawndup->Destroy ();
 			pawn->LinkToWorld ();

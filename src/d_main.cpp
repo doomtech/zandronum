@@ -963,7 +963,6 @@ void D_DoomLoop ()
 				if (singletics)
 				{
 					I_StartTic ();
-					DObject::BeginFrame ();
 					D_ProcessEvents ();
 					G_BuildTiccmd (&netcmds[consoleplayer][maketic%BACKUPTICS]);
 					if (advancedemo)
@@ -976,15 +975,13 @@ void D_DoomLoop ()
 					G_Ticker ();
 					gametic++;
 					maketic++;
-					DObject::EndFrame ();
+					GC::CheckGC ();
 					Net_NewMakeTic ();
 				}
 				else
 				{
 					TryRunTics (); // will run at least one tic
 				}
-				// [RH] Use the consoleplayer's camera to update sounds
-				S_UpdateSounds (players[consoleplayer].camera);	// move positional sounds
 				// Update display, next frame, with current state.
 				I_StartTic ();
 				D_Display ();
@@ -1902,7 +1899,7 @@ static EIWADType IdentifyVersion (const char *zdoom_wad)
 {
 	WadStuff wads[sizeof(IWADNames)/sizeof(char *)];
 	size_t foundwads[NUM_IWAD_TYPES] = { 0 };
-	const char *iwadparm = Args.CheckValue ("-iwad");
+	const char *iwadparm = Args->CheckValue ("-iwad");
 	size_t numwads;
 	int pickwad;
 	size_t i;
@@ -2172,7 +2169,7 @@ static const char *BaseFileSearch (const char *file, const char *ext, bool lookf
 bool ConsiderPatches (const char *arg, const char *ext)
 {
 	bool noDef = false;
-	DArgs *files = Args.GatherFiles (arg, ext, false);
+	DArgs *files = Args->GatherFiles (arg, ext, false);
 
 	if (files->NumArgs() > 0)
 	{
@@ -2188,7 +2185,7 @@ bool ConsiderPatches (const char *arg, const char *ext)
 		}
 		noDef = true;
 	}
-	delete files;
+	files->Destroy();
 	return noDef;
 }
 
@@ -2302,8 +2299,7 @@ void D_DoomMain (void)
 	LONG		lIdx;
 
 	srand(I_MSTime());
-	
-	atterm (DObject::StaticShutdown);
+
 	PClass::StaticInit ();
 	atterm (C_DeinitConsole);
 
@@ -2313,12 +2309,12 @@ void D_DoomMain (void)
 	GAMEMODE_Construct( );
 
 	// Determine if we're going to be a server, client, or local player.
-	if ( Args.CheckParm( "-host" ))
+	if ( Args->CheckParm( "-host" ))
 		NETWORK_SetState( NETSTATE_SERVER );
 
 #ifndef	WIN32
 	// Check if we should read standard input.
-	if (Args.CheckParm("-noinput"))
+	if (Args->CheckParm("-noinput"))
 		do_stdin = 0;
 #endif
 
@@ -2409,19 +2405,19 @@ void D_DoomMain (void)
 	execFiles = new DArgs;
 	GameConfig->AddAutoexec (execFiles, GameNames[gameinfo.gametype]);
 	D_MultiExec (execFiles, true);
-	delete execFiles;
+	execFiles->Destroy();
 
 	// Run .cfg files at the start of the command line.
-	execFiles = Args.GatherFiles (NULL, ".cfg", false);
+	execFiles = Args->GatherFiles (NULL, ".cfg", false);
 	D_MultiExec (execFiles, true);
-	delete execFiles;
+	execFiles->Destroy();
 
 	C_ExecCmdLineParams ();		// [RH] do all +set commands on the command line
 
-	DArgs *files = Args.GatherFiles ("-file", ".wad", true);
-	DArgs *files1 = Args.GatherFiles (NULL, ".zip", false);
-	DArgs *files2 = Args.GatherFiles (NULL, ".pk3", false);
-	DArgs *files3 = Args.GatherFiles (NULL, ".txt", false);
+	DArgs *files = Args->GatherFiles ("-file", ".wad", true);
+	DArgs *files1 = Args->GatherFiles (NULL, ".zip", false);
+	DArgs *files2 = Args->GatherFiles (NULL, ".pk3", false);
+	DArgs *files3 = Args->GatherFiles (NULL, ".txt", false);
 	if (files->NumArgs() > 0 || files1->NumArgs() > 0 || files2->NumArgs() > 0 || files3->NumArgs() > 0)
 	{
 		// Check for -file in shareware
@@ -2448,10 +2444,10 @@ void D_DoomMain (void)
 			D_AddWildFile (files3->GetArg (i));
 		}
 	}
-	delete files;
-	delete files1;
-	delete files2;
-	delete files3;
+	files->Destroy();
+	files1->Destroy();
+	files2->Destroy();
+	files3->Destroy();
 
 	Printf ("W_Init: Init WADfiles.\n");
 	Wads.InitMultipleFiles (&wadfiles);
@@ -2531,73 +2527,73 @@ void D_DoomMain (void)
 
 	Printf ("P_Init: Checking cmd-line parameters...\n");
 	flags = dmflags;
-	if (Args.CheckParm ("-nomonsters"))		flags |= DF_NO_MONSTERS;
-	if (Args.CheckParm ("-respawn"))		flags |= DF_MONSTERS_RESPAWN;
-	if (Args.CheckParm ("-fast"))			flags |= DF_FAST_MONSTERS;
+	if (Args->CheckParm ("-nomonsters"))	flags |= DF_NO_MONSTERS;
+	if (Args->CheckParm ("-respawn"))		flags |= DF_MONSTERS_RESPAWN;
+	if (Args->CheckParm ("-fast"))			flags |= DF_FAST_MONSTERS;
 
-	devparm = !!Args.CheckParm ("-devparm");
+	devparm = !!Args->CheckParm ("-devparm");
 
-	if (Args.CheckParm ("-altdeath"))
+	if (Args->CheckParm ("-altdeath"))
 	{
 		deathmatch = 1;
 		flags |= DF_SPAWN_FARTHEST | DF_ITEMS_RESPAWN | DF_NO_MONSTERS;
 	}
-	else if (Args.CheckParm ("-deathmatch"))
+	else if (Args->CheckParm ("-deathmatch"))
 	{
 		deathmatch = 1;
 		flags |= DF_SPAWN_FARTHEST | DF_WEAPONS_STAY | DF_ITEMS_RESPAWN | DF_NO_MONSTERS;
 	}
-	if (Args.CheckParm ("-teamplay"))
+	if (Args->CheckParm ("-teamplay"))
 	{
 		teamplay = 1;
 		flags |= DF_SPAWN_FARTHEST | DF_WEAPONS_STAY | DF_ITEMS_RESPAWN | DF_NO_MONSTERS;
 	}
-	if (Args.CheckParm ("-duel"))
+	if (Args->CheckParm ("-duel"))
 	{
 		duel = 1;
 		flags |= DF_WEAPONS_STAY | DF_ITEMS_RESPAWN | DF_NO_MONSTERS;
 	}
-	if (Args.CheckParm ("-terminator"))
+	if (Args->CheckParm ("-terminator"))
 	{
 		terminator = 1;
 		flags |= DF_SPAWN_FARTHEST | DF_WEAPONS_STAY | DF_ITEMS_RESPAWN | DF_NO_MONSTERS;
 	}
-	if (Args.CheckParm ("-lastmanstanding"))
+	if (Args->CheckParm ("-lastmanstanding"))
 	{
 		lastmanstanding = 1;
 		flags |= DF_SPAWN_FARTHEST | DF_WEAPONS_STAY | DF_ITEMS_RESPAWN | DF_NO_MONSTERS;
 	}
-	if (Args.CheckParm ("-teamlms"))
+	if (Args->CheckParm ("-teamlms"))
 	{
 		teamlms = 1;
 		flags |= DF_SPAWN_FARTHEST | DF_WEAPONS_STAY | DF_ITEMS_RESPAWN | DF_NO_MONSTERS;
 	}
-	if (Args.CheckParm ("-possession"))
+	if (Args->CheckParm ("-possession"))
 	{
 		possession = 1;
 		flags |= DF_SPAWN_FARTHEST | DF_WEAPONS_STAY | DF_ITEMS_RESPAWN | DF_NO_MONSTERS;
 	}
-	if (Args.CheckParm ("-teampossession"))
+	if (Args->CheckParm ("-teampossession"))
 	{
 		teampossession = 1;
 		flags |= DF_SPAWN_FARTHEST | DF_WEAPONS_STAY | DF_ITEMS_RESPAWN | DF_NO_MONSTERS;
 	}
-	if ( Args.CheckParm( "-teamgame" ))
+	if ( Args->CheckParm( "-teamgame" ))
 	{
 		teamgame = 1;
 		flags |= DF_WEAPONS_STAY | DF_ITEMS_RESPAWN | DF_NO_MONSTERS;
 	}	
-	if ( Args.CheckParm( "-ctf" ))
+	if ( Args->CheckParm( "-ctf" ))
 	{
 		ctf = 1;
 		flags |= DF_WEAPONS_STAY | DF_ITEMS_RESPAWN | DF_NO_MONSTERS;
 	}
-	if ( Args.CheckParm( "-oneflagctf" ))
+	if ( Args->CheckParm( "-oneflagctf" ))
 	{
 		oneflagctf = 1;
 		flags |= DF_WEAPONS_STAY | DF_ITEMS_RESPAWN | DF_NO_MONSTERS;
 	}
-	if ( Args.CheckParm( "-skulltag" ))
+	if ( Args->CheckParm( "-skulltag" ))
 	{
 		skulltag = 1;
 		flags |= DF_WEAPONS_STAY | DF_ITEMS_RESPAWN | DF_NO_MONSTERS;
@@ -2620,27 +2616,27 @@ void D_DoomMain (void)
 	}
 	autostart = false;
 				
-	const char *val = Args.CheckValue ("-skill");
+	const char *val = Args->CheckValue ("-skill");
 	if (val)
 	{
 		gameskill = val[0] - '1';
 		autostart = true;
 	}
 
-	p = Args.CheckParm ("-warp");
-	if (p && p < Args.NumArgs() - 1)
+	p = Args->CheckParm ("-warp");
+	if (p && p < Args->NumArgs() - 1)
 	{
 		int ep, map;
 
 		if (gameinfo.flags & GI_MAPxx)
 		{
 			ep = 1;
-			map = atoi (Args.GetArg(p+1));
+			map = atoi (Args->GetArg(p+1));
 		}
 		else 
 		{
-			ep = atoi (Args.GetArg(p+1));
-			map = p < Args.NumArgs() - 2 ? atoi (Args.GetArg(p+2)) : 10;
+			ep = atoi (Args->GetArg(p+1));
+			map = p < Args->NumArgs() - 2 ? atoi (Args->GetArg(p+2)) : 10;
 			if (map < 1 || map > 9)
 			{
 				map = ep;
@@ -2653,19 +2649,19 @@ void D_DoomMain (void)
 	}
 
 	// [RH] Hack to handle +map
-	p = Args.CheckParm ("+map");
-	if (p && p < Args.NumArgs()-1)
+	p = Args->CheckParm ("+map");
+	if (p && p < Args->NumArgs()-1)
 	{
-		MapData * map = P_OpenMapData(Args.GetArg (p+1));
+		MapData * map = P_OpenMapData(Args->GetArg (p+1));
 		if (map == NULL)
 		{
-			Printf ("Can't find map %s\n", Args.GetArg (p+1));
+			Printf ("Can't find map %s\n", Args->GetArg (p+1));
 		}
 		else
 		{
 			delete map;
-			strncpy (startmap, Args.GetArg (p+1), 8);
-			Args.GetArg (p)[0] = '-';
+			strncpy (startmap, Args->GetArg (p+1), 8);
+			Args->GetArg (p)[0] = '-';
 			autostart = true;
 		}
 	}
@@ -2678,7 +2674,7 @@ void D_DoomMain (void)
 	// We do not need to support -cdrom under Unix, because all the files
 	// that would go to c:\\zdoomdat are already stored in .zdoom inside
 	// the user's home directory.
-	if (Args.CheckParm("-cdrom"))
+	if (Args->CheckParm("-cdrom"))
 	{
 		Printf (GStrings("D_CDROM"));
 		mkdir (CDROM_DIR, 0);
@@ -2690,7 +2686,7 @@ void D_DoomMain (void)
 		UCVarValue value;
 		static char one_hundred[] = "100";
 
-		value.String = Args.CheckValue ("-turbo");
+		value.String = Args->CheckValue ("-turbo");
 		if (value.String == NULL)
 			value.String = one_hundred;
 		else
@@ -2699,7 +2695,7 @@ void D_DoomMain (void)
 		turbo.SetGenericRepDefault (value, CVAR_String);
 	}
 
-	v = Args.CheckValue ("-timer");
+	v = Args->CheckValue ("-timer");
 	if (v)
 	{
 		double time = strtod (v, NULL);
@@ -2707,7 +2703,7 @@ void D_DoomMain (void)
 		timelimit = (float)time;
 	}
 
-	v = Args.CheckValue ("-avg");
+	v = Args->CheckValue ("-avg");
 	if (v)
 	{
 		Printf ("Austin Virtual Gaming: Levels will end after 20 minutes\n");
@@ -2862,7 +2858,7 @@ void D_DoomMain (void)
 
 	// [BC] 
 	Printf( "Initializing network subsystem.\n" );
-	if ( Args.CheckParm( "-host" ))
+	if ( Args->CheckParm( "-host" ))
 		SERVER_Construct( );
 	else
 	{
@@ -2886,9 +2882,7 @@ void D_DoomMain (void)
 	// [RH] Run any saved commands from the command line or autoexec.cfg now.
 	gamestate = GS_FULLCONSOLE;
 	Net_NewMakeTic ();
-	DObject::BeginFrame ();
 	DThinker::RunThinkers ();
-	DObject::EndFrame ();
 	gamestate = GS_STARTUP;
 
 	// Server doesn't record/play demos, etc.
@@ -2899,7 +2893,7 @@ void D_DoomMain (void)
 		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
 		{
 			// start the apropriate game based on parms
-			v = Args.CheckValue ("-record");
+		v = Args->CheckValue ("-record");
 
 			if (v)
 			{
@@ -2912,24 +2906,23 @@ void D_DoomMain (void)
 		StartScreen = NULL;
 		V_Init2();
 
-		files = Args.GatherFiles ("-playdemo", ".lmp", false);
+		files = Args->GatherFiles ("-playdemo", ".lmp", false);
 		if (files->NumArgs() > 0)
 		{
 			singledemo = true;				// quit after one demo
 			G_DeferedPlayDemo (files->GetArg (0));
-			delete files;
 			D_DoomLoop ();	// never returns
 		}
-		delete files;
+		files->Destroy();
 
-		v = Args.CheckValue ("-timedemo");
+		v = Args->CheckValue ("-timedemo");
 		if (v)
 		{
 			G_TimeDemo (v);
 			D_DoomLoop ();	// never returns
 		}
 			
-		v = Args.CheckValue ("-loadgame");
+		v = Args->CheckValue ("-loadgame");
 		if (v)
 		{
 			file = v;
@@ -2998,7 +2991,7 @@ void D_DoomMain (void)
 		gameaction = ga_fullconsole;
 
 	// [BC] If we specified -private, make sv_updatemaster false.
-	if ( Args.CheckParm( "-private" ))
+	if ( Args->CheckParm( "-private" ))
 		sv_updatemaster = false;
 
 	// [BC] Potentially send an update to the master server.
@@ -3009,13 +3002,13 @@ void D_DoomMain (void)
 	}
 
 	// [BC] Little hack for +addbot.
-	for ( lIdx = 0; lIdx < ( Args.NumArgs( ) - 1 ); lIdx++ )
+	for ( lIdx = 0; lIdx < ( Args->NumArgs( ) - 1 ); lIdx++ )
 	{
-		if ( stricmp( Args.GetArg( lIdx ), "+addbot" ) == 0 )
+		if ( stricmp( Args->GetArg( lIdx ), "+addbot" ) == 0 )
 		{
 			char	szString[128];
 
-			sprintf( szString, "addbot %s", Args.GetArg( lIdx + 1 ));
+			sprintf( szString, "addbot %s", Args->GetArg( lIdx + 1 ));
 			AddCommandString( szString );
 		}
 	}

@@ -1240,10 +1240,11 @@ SBarInfoBlock::SBarInfoBlock()
 }
 
 //SBarInfo Display
-class FSBarInfo : public FBaseStatusBar
+class DSBarInfo : public DBaseStatusBar
 {
+	DECLARE_CLASS(DSBarInfo, DBaseStatusBar)
 public:
-	FSBarInfo () : FBaseStatusBar (SBarInfoScript->height),
+	DSBarInfo () : DBaseStatusBar (SBarInfoScript->height),
 		shader_horz_normal(false, false),
 		shader_horz_reverse(false, true),
 		shader_vert_normal(true, false),
@@ -1281,7 +1282,7 @@ public:
 		artiflash = 4;
 	}
 
-	~FSBarInfo ()
+	~DSBarInfo ()
 	{
 		Images.Uninit();
 		Faces.Uninit();
@@ -1293,7 +1294,7 @@ public:
 		if ( CPlayer->mo == NULL )
 			return;
 
-		FBaseStatusBar::Draw(state);
+		DBaseStatusBar::Draw(state);
 		int hud = 2;
 		if(state == HUD_StatusBar)
 		{
@@ -1347,7 +1348,7 @@ public:
 	void AttachToPlayer (player_t *player)
 	{
 		player_t *oldplayer = CPlayer;
-		FBaseStatusBar::AttachToPlayer(player);
+		DBaseStatusBar::AttachToPlayer(player);
 		if (oldplayer != CPlayer)
 		{
 			SetFace(&skins[CPlayer->userinfo.skin], "STF");
@@ -1356,7 +1357,7 @@ public:
 
 	void Tick ()
 	{
-		FBaseStatusBar::Tick();
+		DBaseStatusBar::Tick();
 		if(level.time & 1)
 			chainWiggle = pr_chainwiggle() & 1;
 		getNewFace(M_Random());
@@ -2192,7 +2193,7 @@ private:
 		}
 		else //dead
 		{
-			if(!xdth || CPlayer->mo->health > -CPlayer->mo->GetDefault()->health)
+			if(!xdth || !(CPlayer->cheats & CF_EXTREMELYDEAD))
 			{
 				DrawImage(Faces[ST_FACEDEAD], x, y);
 			}
@@ -2316,7 +2317,7 @@ private:
 	void DrawInventoryBar(int type, int num, int x, int y, bool alwaysshow, 
 		int counterx, int countery, EColorRange translation, bool drawArtiboxes, bool noArrows, bool alwaysshowcounter)
 	{ //yes, there is some Copy & Paste here too
-		const AInventory *item;
+		AInventory *item;
 		int i;
 
 		// If the player has no artifacts, don't draw the bar
@@ -2414,14 +2415,16 @@ private:
 	FBarShader shader_vert_reverse;
 };
 
-FBaseStatusBar *CreateCustomStatusBar ()
+IMPLEMENT_CLASS(DSBarInfo);
+
+DBaseStatusBar *CreateCustomStatusBar ()
 {
-	return new FSBarInfo;
+	return new DSBarInfo;
 }
 
-FBaseStatusBar *CreateStatusBar ()
+DBaseStatusBar *CreateStatusBar ()
 {
-	FBaseStatusBar *sbar = NULL;
+	DBaseStatusBar *sbar = NULL;
 
 	if (SBarInfoScript != NULL)
 	{
@@ -2468,9 +2471,10 @@ FBaseStatusBar *CreateStatusBar ()
 		}
 		else
 		{
-			sbar = new FBaseStatusBar (0);
+			sbar = new DBaseStatusBar (0);
 		}
 	}
+	GC::WriteBarrier(StatusBar);
 
 	return sbar;
 }

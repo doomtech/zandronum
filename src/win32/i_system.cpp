@@ -212,7 +212,7 @@ int I_WaitForTicEvent (int prevtic)
 {
 	while (prevtic >= tics)
 	{
-		WaitForSingleObject (NewTicArrived, 1000/TICRATE);
+		WaitForSingleObject(NewTicArrived, 1000/TICRATE);
 	}
 
 	return tics;
@@ -445,7 +445,7 @@ void I_Init (void)
 		UINT delay;
 		char *cmdDelay;
 
-		cmdDelay = Args.CheckValue ("-timerdelay");
+		cmdDelay = Args->CheckValue ("-timerdelay");
 		delay = 0;
 		if (cmdDelay != 0)
 		{

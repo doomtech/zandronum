@@ -63,6 +63,10 @@
 #define XHAIRPICKUPSIZE		(FRACUNIT*2+XHAIRSHRINKSIZE)
 #define POWERUPICONSIZE		32
 
+IMPLEMENT_POINTY_CLASS(DBaseStatusBar)
+	DECLARE_POINTER(Messages)
+END_POINTERS
+
 EXTERN_CVAR (Bool, am_showmonsters)
 EXTERN_CVAR (Bool, am_showsecrets)
 EXTERN_CVAR (Bool, am_showitems)
@@ -72,7 +76,7 @@ EXTERN_CVAR (Bool, noisedebug)
 EXTERN_CVAR (Bool, hud_scale)
 EXTERN_CVAR (Bool, con_scaletext)
 
-FBaseStatusBar *StatusBar;
+DBaseStatusBar *StatusBar;
 
 extern int setblocks;
 
@@ -141,7 +145,7 @@ CVAR (Bool, idmypos, false, 0);
 
 // [RH] Amount of red flash for up to 114 damage points. Calculated by hand
 //		using a logarithmic scale and my trusty HP48G.
-BYTE FBaseStatusBar::DamageToAlpha[114] =
+BYTE DBaseStatusBar::DamageToAlpha[114] =
 {
 	  0,   8,  16,  23,  30,  36,  42,  47,  53,  58,  62,  67,  71,  75,  79,
 	 83,  87,  90,  94,  97, 100, 103, 107, 109, 112, 115, 118, 120, 123, 125,
@@ -159,7 +163,7 @@ BYTE FBaseStatusBar::DamageToAlpha[114] =
 //
 //---------------------------------------------------------------------------
 
-FBaseStatusBar::FBaseStatusBar (int reltop)
+DBaseStatusBar::DBaseStatusBar (int reltop)
 {
 	Centering = false;
 	FixedOrigin = false;
@@ -175,11 +179,11 @@ FBaseStatusBar::FBaseStatusBar (int reltop)
 
 //---------------------------------------------------------------------------
 //
-// Destructor
+// PROP Destroy
 //
 //---------------------------------------------------------------------------
 
-FBaseStatusBar::~FBaseStatusBar ()
+void DBaseStatusBar::Destroy ()
 {
 	DHUDMessage *msg;
 
@@ -187,9 +191,10 @@ FBaseStatusBar::~FBaseStatusBar ()
 	while (msg)
 	{
 		DHUDMessage *next = msg->Next;
-		delete msg;
+		msg->Destroy();
 		msg = next;
 	}
+	Super::Destroy();
 }
 
 //---------------------------------------------------------------------------
@@ -198,7 +203,7 @@ FBaseStatusBar::~FBaseStatusBar ()
 //
 //---------------------------------------------------------------------------
 
-void FBaseStatusBar::SetScaled (bool scale)
+void DBaseStatusBar::SetScaled (bool scale)
 {
 	Scaled = RelTop != 0 && (SCREENWIDTH != 320 && scale);
 	if (!Scaled)
@@ -240,7 +245,7 @@ void FBaseStatusBar::SetScaled (bool scale)
 //
 //---------------------------------------------------------------------------
 
-void FBaseStatusBar::AttachToPlayer (player_s *player)
+void DBaseStatusBar::AttachToPlayer (player_s *player)
 {
 	CPlayer = player;
 	SB_state = screen->GetPageCount ();
@@ -252,7 +257,7 @@ void FBaseStatusBar::AttachToPlayer (player_s *player)
 //
 //---------------------------------------------------------------------------
 
-int FBaseStatusBar::GetPlayer ()
+int DBaseStatusBar::GetPlayer ()
 {
 	return int(CPlayer - players);
 }
@@ -263,7 +268,7 @@ int FBaseStatusBar::GetPlayer ()
 //
 //---------------------------------------------------------------------------
 
-void FBaseStatusBar::MultiplayerChanged ()
+void DBaseStatusBar::MultiplayerChanged ()
 {
 	SB_state = screen->GetPageCount ();
 }
@@ -274,7 +279,7 @@ void FBaseStatusBar::MultiplayerChanged ()
 //
 //---------------------------------------------------------------------------
 
-void FBaseStatusBar::Tick ()
+void DBaseStatusBar::Tick ()
 {
 	DHUDMessage *msg = Messages;
 	DHUDMessage **prev = &Messages;
@@ -286,7 +291,7 @@ void FBaseStatusBar::Tick ()
 		if (msg->Tick ())
 		{
 			*prev = next;
-			delete msg;
+			msg->Destroy();
 		}
 		else
 		{
@@ -312,15 +317,16 @@ void FBaseStatusBar::Tick ()
 //
 //---------------------------------------------------------------------------
 
-void FBaseStatusBar::AttachMessage (DHUDMessage *msg, DWORD id)
+void DBaseStatusBar::AttachMessage (DHUDMessage *msg, DWORD id)
 {
 	DHUDMessage *old = NULL;
 	DHUDMessage **prev;
+	DObject *container = this;
 
 	old = (id == 0 || id == 0xFFFFFFFF) ? NULL : DetachMessage (id);
 	if (old != NULL)
 	{
-		delete old;
+		old->Destroy();
 	}
 
 	prev = &Messages;
@@ -330,12 +336,14 @@ void FBaseStatusBar::AttachMessage (DHUDMessage *msg, DWORD id)
 	// it gets drawn back to front.)
 	while (*prev != NULL && (*prev)->SBarID > id)
 	{
+		container = *prev;
 		prev = &(*prev)->Next;
 	}
 
 	msg->Next = *prev;
 	msg->SBarID = id;
 	*prev = msg;
+	GC::WriteBarrier(container, msg);
 }
 
 //---------------------------------------------------------------------------
@@ -344,7 +352,7 @@ void FBaseStatusBar::AttachMessage (DHUDMessage *msg, DWORD id)
 //
 //---------------------------------------------------------------------------
 
-DHUDMessage *FBaseStatusBar::DetachMessage (DHUDMessage *msg)
+DHUDMessage *DBaseStatusBar::DetachMessage (DHUDMessage *msg)
 {
 	DHUDMessage *probe = Messages;
 	DHUDMessage **prev = &Messages;
@@ -364,7 +372,7 @@ DHUDMessage *FBaseStatusBar::DetachMessage (DHUDMessage *msg)
 	return probe;
 }
 
-DHUDMessage *FBaseStatusBar::DetachMessage (DWORD id)
+DHUDMessage *DBaseStatusBar::DetachMessage (DWORD id)
 {
 	DHUDMessage *probe = Messages;
 	DHUDMessage **prev = &Messages;
@@ -390,7 +398,7 @@ DHUDMessage *FBaseStatusBar::DetachMessage (DWORD id)
 //
 //---------------------------------------------------------------------------
 
-void FBaseStatusBar::DetachAllMessages ()
+void DBaseStatusBar::DetachAllMessages ()
 {
 	DHUDMessage *probe = Messages;
 
@@ -398,7 +406,7 @@ void FBaseStatusBar::DetachAllMessages ()
 	while (probe != NULL)
 	{
 		DHUDMessage *next = probe->Next;
-		delete probe;
+		probe->Destroy();
 		probe = next;
 	}
 }
@@ -409,7 +417,7 @@ void FBaseStatusBar::DetachAllMessages ()
 //
 //---------------------------------------------------------------------------
 
-bool FBaseStatusBar::CheckMessage (DHUDMessage *msg)
+bool DBaseStatusBar::CheckMessage (DHUDMessage *msg)
 {
 	DHUDMessage *probe = Messages;
 	while (probe && probe != msg)
@@ -425,7 +433,7 @@ bool FBaseStatusBar::CheckMessage (DHUDMessage *msg)
 //
 //---------------------------------------------------------------------------
 
-void FBaseStatusBar::ShowPlayerName ()
+void DBaseStatusBar::ShowPlayerName ()
 {
 	EColorRange color;
 
@@ -442,7 +450,7 @@ void FBaseStatusBar::ShowPlayerName ()
 //
 //---------------------------------------------------------------------------
 
-void FBaseStatusBar::DrawImage (FTexture *img,
+void DBaseStatusBar::DrawImage (FTexture *img,
 	int x, int y, FRemapTable *translation) const
 {
 	if (img != NULL)
@@ -463,7 +471,7 @@ void FBaseStatusBar::DrawImage (FTexture *img,
 //
 //---------------------------------------------------------------------------
 
-void FBaseStatusBar::DrawDimImage (FTexture *img,
+void DBaseStatusBar::DrawDimImage (FTexture *img,
 	int x, int y, bool dimmed) const
 {
 	if (img != NULL)
@@ -484,7 +492,7 @@ void FBaseStatusBar::DrawDimImage (FTexture *img,
 //
 //---------------------------------------------------------------------------
 
-void FBaseStatusBar::DrawFadedImage (FTexture *img,
+void DBaseStatusBar::DrawFadedImage (FTexture *img,
 	int x, int y, fixed_t shade) const
 {
 	if (img != NULL)
@@ -506,7 +514,7 @@ void FBaseStatusBar::DrawFadedImage (FTexture *img,
 //
 //---------------------------------------------------------------------------
 
-void FBaseStatusBar::DrawPartialImage (FTexture *img, int wx, int ww) const
+void DBaseStatusBar::DrawPartialImage (FTexture *img, int wx, int ww) const
 {
 	if (img != NULL)
 	{
@@ -526,7 +534,7 @@ void FBaseStatusBar::DrawPartialImage (FTexture *img, int wx, int ww) const
 //
 //---------------------------------------------------------------------------
 
-void FBaseStatusBar::DrINumber (signed int val, int x, int y, int imgBase) const
+void DBaseStatusBar::DrINumber (signed int val, int x, int y, int imgBase) const
 {
 	int oldval;
 
@@ -558,7 +566,7 @@ void FBaseStatusBar::DrINumber (signed int val, int x, int y, int imgBase) const
 	DrawImage (Images[imgBase+val], x+18, y);
 }
 
-void FBaseStatusBar::DrBDash(int x, int y) const
+void DBaseStatusBar::DrBDash(int x, int y) const
 {
 		FTexture *pic;
 		pic = Images[imgBNEGATIVE];
@@ -575,7 +583,7 @@ void FBaseStatusBar::DrBDash(int x, int y) const
 //
 //---------------------------------------------------------------------------
 
-void FBaseStatusBar::DrBNumber (signed int val, int x, int y, int size) const
+void DBaseStatusBar::DrBNumber (signed int val, int x, int y, int size) const
 {
 	bool neg;
 	int i, w;
@@ -635,7 +643,7 @@ void FBaseStatusBar::DrBNumber (signed int val, int x, int y, int size) const
 //
 //---------------------------------------------------------------------------
 
-void FBaseStatusBar::DrSmallNumber (int val, int x, int y) const
+void DBaseStatusBar::DrSmallNumber (int val, int x, int y) const
 {
 	int digit = 0;
 
@@ -666,7 +674,7 @@ void FBaseStatusBar::DrSmallNumber (int val, int x, int y) const
 //
 //---------------------------------------------------------------------------
 
-void FBaseStatusBar::DrINumberOuter (signed int val, int x, int y, bool center, int w) const
+void DBaseStatusBar::DrINumberOuter (signed int val, int x, int y, bool center, int w) const
 {
 	bool negative = false;
 
@@ -730,7 +738,7 @@ void FBaseStatusBar::DrINumberOuter (signed int val, int x, int y, bool center, 
 //
 //---------------------------------------------------------------------------
 
-void FBaseStatusBar::DrBNumberOuter (signed int val, int x, int y, int size) const
+void DBaseStatusBar::DrBNumberOuter (signed int val, int x, int y, int size) const
 {
 	int xpos;
 	int w;
@@ -837,7 +845,7 @@ void FBaseStatusBar::DrBNumberOuter (signed int val, int x, int y, int size) con
 //
 //---------------------------------------------------------------------------
 
-void FBaseStatusBar::DrBNumberOuterFont (signed int val, int x, int y, int size) const
+void DBaseStatusBar::DrBNumberOuterFont (signed int val, int x, int y, int size) const
 {
 	int xpos;
 	int w, v;
@@ -938,7 +946,7 @@ void FBaseStatusBar::DrBNumberOuterFont (signed int val, int x, int y, int size)
 //
 //---------------------------------------------------------------------------
 
-void FBaseStatusBar::DrSmallNumberOuter (int val, int x, int y, bool center) const
+void DBaseStatusBar::DrSmallNumberOuter (int val, int x, int y, bool center) const
 {
 	int digit = 0;
 
@@ -970,7 +978,7 @@ void FBaseStatusBar::DrSmallNumberOuter (int val, int x, int y, bool center) con
 //
 //---------------------------------------------------------------------------
 
-void FBaseStatusBar::RefreshBackground () const
+void DBaseStatusBar::RefreshBackground () const
 {
 	int x, x2, y, ratio;
 
@@ -1005,7 +1013,7 @@ void FBaseStatusBar::RefreshBackground () const
 //
 //---------------------------------------------------------------------------
 
-void FBaseStatusBar::DrawCrosshair ()
+void DBaseStatusBar::DrawCrosshair ()
 {
 	static DWORD prevcolor = 0xffffffff;
 	static int palettecolor = 0;
@@ -1100,7 +1108,7 @@ void FBaseStatusBar::DrawCrosshair ()
 //
 //---------------------------------------------------------------------------
 
-void FBaseStatusBar::FlashCrosshair ()
+void DBaseStatusBar::FlashCrosshair ()
 {
 	CrosshairSize = XHAIRPICKUPSIZE;
 }
@@ -1111,7 +1119,7 @@ void FBaseStatusBar::FlashCrosshair ()
 //
 //---------------------------------------------------------------------------
 
-void FBaseStatusBar::DrawMessages (int bottom) const
+void DBaseStatusBar::DrawMessages (int bottom)
 {
 	DHUDMessage *msg = Messages;
 	while (msg)
@@ -1128,7 +1136,7 @@ void FBaseStatusBar::DrawMessages (int bottom) const
 //
 //---------------------------------------------------------------------------
 
-void FBaseStatusBar::Draw (EHudState state)
+void DBaseStatusBar::Draw (EHudState state)
 {
 	char line[64+10];
 
@@ -1283,7 +1291,7 @@ void FBaseStatusBar::Draw (EHudState state)
 }
 
 
-void FBaseStatusBar::DrawLog ()
+void DBaseStatusBar::DrawLog ()
 {
 	int hudwidth, hudheight;
 
@@ -1347,12 +1355,12 @@ void FBaseStatusBar::DrawLog ()
 	}
 }
 
-bool FBaseStatusBar::MustDrawLog(EHudState)
+bool DBaseStatusBar::MustDrawLog(EHudState)
 {
 	return true;
 }
 
-void FBaseStatusBar::DrawTeamScores ()
+void DBaseStatusBar::DrawTeamScores ()
 {
 	// [BC] Draw skulls and flags in team game.
 	char	szPatchName[16];
@@ -1396,7 +1404,7 @@ void FBaseStatusBar::DrawTeamScores ()
 }
 
 
-void FBaseStatusBar::DrawCornerScore ()
+void DBaseStatusBar::DrawCornerScore ()
 {
 	// Draw Skulltag's old style HUD elements in Doom, Heretic, and Hexen (assuming we aren't using the new HUD).
 	if( !(cl_stfullscreenhud && gameinfo.gametype == GAME_Doom) && (gameinfo.gametype != GAME_Strife)  )
@@ -1417,7 +1425,7 @@ void FBaseStatusBar::DrawCornerScore ()
 //
 //---------------------------------------------------------------------------
 
-void FBaseStatusBar::DrawTopStuff (EHudState state)
+void DBaseStatusBar::DrawTopStuff (EHudState state)
 {
 	if (demoplayback && demover != DEMOGAMEVERSION)
 	{
@@ -1451,7 +1459,7 @@ void FBaseStatusBar::DrawTopStuff (EHudState state)
 //
 //---------------------------------------------------------------------------
 
-void FBaseStatusBar::DrawPowerups ()
+void DBaseStatusBar::DrawPowerups ()
 {
 	// Each icon gets a 32x32 block to draw itself in.
 	int x, y;
@@ -1483,7 +1491,7 @@ SV_AddBlend
 [RH] This is from Q2.
 =============
 */
-void FBaseStatusBar::AddBlend (float r, float g, float b, float a, float v_blend[4])
+void DBaseStatusBar::AddBlend (float r, float g, float b, float a, float v_blend[4])
 {
 	float a2, a3;
 
@@ -1505,7 +1513,7 @@ void FBaseStatusBar::AddBlend (float r, float g, float b, float a, float v_blend
 //---------------------------------------------------------------------------
 
 CVAR( Float, blood_fade_scalar, 0.5f, CVAR_ARCHIVE )
-void FBaseStatusBar::BlendView (float blend[4])
+void DBaseStatusBar::BlendView (float blend[4])
 {
 	int cnt;
 
@@ -1583,7 +1591,7 @@ void FBaseStatusBar::BlendView (float blend[4])
 				(int)(blend[2] * 255.0f), (int)(blend[3] * 256.0f));
 }
 /*
-void FBaseStatusBar::DrawConsistancy () const
+void DBaseStatusBar::DrawConsistancy () const
 {
 	static bool firsttime = true;
 	int i;
@@ -1628,7 +1636,7 @@ void FBaseStatusBar::DrawConsistancy () const
 }
 */
 player_s	*P_PlayerScan( AActor *mo );
-void FBaseStatusBar::DrawTargetName ()
+void DBaseStatusBar::DrawTargetName ()
 {
 	// [BC] The player may not have a body between intermission-less maps.
 	if (( CPlayer->camera == NULL ) ||
@@ -1709,37 +1717,37 @@ void FBaseStatusBar::DrawTargetName ()
 	}
 }
 
-void FBaseStatusBar::FlashItem (const PClass *itemtype)
+void DBaseStatusBar::FlashItem (const PClass *itemtype)
 {
 }
 
-void FBaseStatusBar::SetFace (void *)
+void DBaseStatusBar::SetFace (void *)
 {
 }
 
-void FBaseStatusBar::NewGame ()
+void DBaseStatusBar::NewGame ()
 {
 }
 
-void FBaseStatusBar::SetInteger (int pname, int param)
+void DBaseStatusBar::SetInteger (int pname, int param)
 {
 }
 
-void FBaseStatusBar::ShowPop (int popnum)
+void DBaseStatusBar::ShowPop (int popnum)
 {
 	ShowLog = (popnum == POP_Log && !ShowLog);
 }
 
-void FBaseStatusBar::ReceivedWeapon (AWeapon *weapon)
+void DBaseStatusBar::ReceivedWeapon (AWeapon *weapon)
 {
 }
 
-void FBaseStatusBar::Serialize (FArchive &arc)
+void DBaseStatusBar::Serialize (FArchive &arc)
 {
 	arc << Messages;
 }
 
-void FBaseStatusBar::ScreenSizeChanged ()
+void DBaseStatusBar::ScreenSizeChanged ()
 {
 	st_scale.Callback ();
 	SB_state = screen->GetPageCount ();
@@ -1761,7 +1769,7 @@ void FBaseStatusBar::ScreenSizeChanged ()
 //
 //---------------------------------------------------------------------------
 
-AInventory *FBaseStatusBar::ValidateInvFirst (int numVisible) const
+AInventory *DBaseStatusBar::ValidateInvFirst (int numVisible) const
 {
 	AInventory *item;
 	int i;
@@ -1845,14 +1853,14 @@ AInventory *FBaseStatusBar::ValidateInvFirst (int numVisible) const
 
 //============================================================================
 //
-// FBaseStatusBar :: GetCurrentAmmo
+// DBaseStatusBar :: GetCurrentAmmo
 //
 // Returns the types and amounts of ammo used by the current weapon. If the
 // weapon only uses one type of ammo, it is always returned as ammo1.
 //
 //============================================================================
 
-void FBaseStatusBar::GetCurrentAmmo (AAmmo *&ammo1, AAmmo *&ammo2, int &ammocount1, int &ammocount2) const
+void DBaseStatusBar::GetCurrentAmmo (AAmmo *&ammo1, AAmmo *&ammo2, int &ammocount1, int &ammocount2) const
 {
 	if (CPlayer->ReadyWeapon != NULL)
 	{

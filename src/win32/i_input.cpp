@@ -1114,7 +1114,7 @@ void DI_EnumJoy ()
 	JoyActive = 0;
 	JoystickNames.Clear ();
 
-	if (g_pdi != NULL && !Args.CheckParm ("-nojoy"))
+	if (g_pdi != NULL && !Args->CheckParm ("-nojoy"))
 	{
 		g_pdi->EnumDevices (DI8DEVCLASS_GAMECTRL, EnumJoysticksCallback, NULL, DIEDFL_ALLDEVICES);
 	}
@@ -1412,7 +1412,7 @@ bool I_InitInput (void *hwnd)
 	NativeMouse = -1;
 	GetCursorPos (&UngrabbedPointerPos);
 
-	noidle = !!Args.CheckParm ("-noidle");
+	noidle = !!Args->CheckParm ("-noidle");
 	g_pdi = NULL;
 	g_pdi3 = NULL;
 
@@ -1940,20 +1940,16 @@ void I_GetEvent ()
 	// crashed, we will execute the APC it sent now.
 	SleepEx (0, TRUE);
 
-//	for (;;) {
-		while (PeekMessage (&mess, NULL, 0, 0, PM_REMOVE))
+	while (PeekMessage (&mess, NULL, 0, 0, PM_REMOVE))
+	{
+		if (mess.message == WM_QUIT)
+			exit (mess.wParam);
+		if (EAXEditWindow == 0 || !IsDialogMessage (EAXEditWindow, &mess))
 		{
-			if (mess.message == WM_QUIT)
-				exit (mess.wParam);
-			if (EAXEditWindow == 0 || !IsDialogMessage (EAXEditWindow, &mess))
-			{
-				TranslateMessage (&mess);
-				DispatchMessage (&mess);
-			}
+			TranslateMessage (&mess);
+			DispatchMessage (&mess);
 		}
-//		if (havefocus || netgame || gamestate != GS_LEVEL)
-//			break;
-//	}
+	}
 
 	KeyRead ();
 

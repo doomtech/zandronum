@@ -112,7 +112,7 @@ struct CallReturn
 };
 
 static DLevelScript *P_GetScriptGoing (AActor *who, line_t *where, int num, const ScriptPtr *code, FBehavior *module,
-	bool lineSide, int arg0, int arg1, int arg2, int always, bool delay);
+	bool lineSide, int arg0, int arg1, int arg2, int always);
 
 struct FBehavior::ArrayInfo
 {
@@ -494,7 +494,7 @@ private:
 	sector_t *Sector;
 	fixed_t WatchD, LastD;
 	int Special, Arg0, Arg1, Arg2, Arg3, Arg4;
-	AActor *Activator;
+	TObjPtr<AActor> Activator;
 	line_t *Line;
 	bool LineSide;
 	bool bCeiling;
@@ -1579,7 +1579,7 @@ void FBehavior::StartTypedScripts (WORD type, AActor *activator, bool always, in
 			}
 
 			DLevelScript *runningScript = P_GetScriptGoing (activator, NULL, ptr->Number,
-				ptr, this, 0, arg1, 0, 0, always, true);
+				ptr, this, 0, arg1, 0, 0, always);
 			if (runNow)
 			{
 				runningScript->RunScript ();
@@ -1638,9 +1638,12 @@ void FBehavior::StaticStopMyScripts (AActor *actor)
 
 //---- The ACS Interpreter ----//
 
-IMPLEMENT_CLASS (DACSThinker)
+IMPLEMENT_POINTY_CLASS (DACSThinker)
+ DECLARE_POINTER(LastScript)
+ DECLARE_POINTER(Scripts)
+END_POINTERS
 
-DACSThinker *DACSThinker::ActiveThinker = NULL;
+TObjPtr<DACSThinker> DACSThinker::ActiveThinker;
 
 DACSThinker::DACSThinker ()
 {
@@ -1660,13 +1663,6 @@ DACSThinker::DACSThinker ()
 
 DACSThinker::~DACSThinker ()
 {
-	DLevelScript *script = Scripts;
-	while (script)
-	{
-		DLevelScript *next = script->next;
-		script->Destroy ();
-		script = next;
-	}
 	Scripts = NULL;
 	ActiveThinker = NULL;
 }
@@ -1728,7 +1724,9 @@ void DACSThinker::StopScriptsFor (AActor *actor)
 }
 
 IMPLEMENT_POINTY_CLASS (DLevelScript)
- DECLARE_POINTER (activator)
+ DECLARE_POINTER(next)
+ DECLARE_POINTER(prev)
+ DECLARE_POINTER(activator)
 END_POINTERS
 
 void DLevelScript::Serialize (FArchive &arc)
@@ -1797,13 +1795,25 @@ void DLevelScript::Unlink ()
 	DACSThinker *controller = DACSThinker::ActiveThinker;
 
 	if (controller->LastScript == this)
+	{
 		controller->LastScript = prev;
+		GC::WriteBarrier(controller, prev);
+	}
 	if (controller->Scripts == this)
+	{
 		controller->Scripts = next;
+		GC::WriteBarrier(controller, next);
+	}
 	if (prev)
+	{
 		prev->next = next;
+		GC::WriteBarrier(prev, next);
+	}
 	if (next)
+	{
 		next->prev = prev;
+		GC::WriteBarrier(next, prev);
+	}
 }
 
 void DLevelScript::Link ()
@@ -1811,12 +1821,19 @@ void DLevelScript::Link ()
 	DACSThinker *controller = DACSThinker::ActiveThinker;
 
 	next = controller->Scripts;
+	GC::WriteBarrier(this, next);
 	if (controller->Scripts)
+	{
 		controller->Scripts->prev = this;
+		GC::WriteBarrier(controller->Scripts, this);
+	}
 	prev = NULL;
 	controller->Scripts = this;
+	GC::WriteBarrier(controller, this);
 	if (controller->LastScript == NULL)
+	{
 		controller->LastScript = this;
+	}
 }
 
 void DLevelScript::PutLast ()
@@ -5345,9 +5362,9 @@ int DLevelScript::RunScript ()
 			}
 			else
 			{
-				if (activator->IsKindOf (RUNTIME_CLASS(AScriptedMarine)))
+				if (activator != NULL && activator->IsKindOf (RUNTIME_CLASS(AScriptedMarine)))
 				{
-					static_cast<AScriptedMarine *>(activator)->SetWeapon (
+					barrier_cast<AScriptedMarine *>(activator)->SetWeapon (
 						(AScriptedMarine::EMarineWeapon)STACK(1));
 				}
 			}
@@ -5372,9 +5389,9 @@ int DLevelScript::RunScript ()
 					}
 					else
 					{
-						if (activator->IsKindOf (RUNTIME_CLASS(AScriptedMarine)))
+						if (activator != NULL && activator->IsKindOf (RUNTIME_CLASS(AScriptedMarine)))
 						{
-							static_cast<AScriptedMarine *>(activator)->SetSprite (type);
+							barrier_cast<AScriptedMarine *>(activator)->SetSprite (type);
 						}
 					}
 				}
@@ -5631,7 +5648,7 @@ int DLevelScript::RunScript ()
 				
 				if (STACK(3) == 0)
 				{
-					state = RUNTIME_TYPE(activator)->ActorInfo->FindState (statelist.Size(), &statelist[0], !!STACK(1));
+					state = activator->GetClass()->ActorInfo->FindState (statelist.Size(), &statelist[0], !!STACK(1));
 					if (state != NULL)
 					{
 						// [BC] Tell clients to change this thing's state.
@@ -5654,7 +5671,7 @@ int DLevelScript::RunScript ()
 
 					while ( (actor = iterator.Next ()) )
 					{
-						state = RUNTIME_TYPE(actor)->ActorInfo->FindState (statelist.Size(), &statelist[0], !!STACK(1));
+						state = actor->GetClass()->ActorInfo->FindState (statelist.Size(), &statelist[0], !!STACK(1));
 						if (state != NULL)
 						{
 							// [BC] Tell clients to change this thing's state.
@@ -5834,7 +5851,6 @@ int DLevelScript::RunScript ()
 		Unlink ();
 		if (controller->RunningScripts[script] == this)
 			controller->RunningScripts[script] = NULL;
-		this->Destroy ();
 	}
 	else
 	{
@@ -5857,7 +5873,7 @@ int DLevelScript::RunScript ()
 #undef PushtoStack
 
 static DLevelScript *P_GetScriptGoing (AActor *who, line_t *where, int num, const ScriptPtr *code, FBehavior *module,
-	bool backSide, int arg0, int arg1, int arg2, int always, bool delay)
+	bool backSide, int arg0, int arg1, int arg2, int always)
 {
 	DACSThinker *controller = DACSThinker::ActiveThinker;
 
@@ -5871,11 +5887,11 @@ static DLevelScript *P_GetScriptGoing (AActor *who, line_t *where, int num, cons
 		return NULL;
 	}
 
-	return new DLevelScript (who, where, num, code, module, backSide, arg0, arg1, arg2, always, delay);
+	return new DLevelScript (who, where, num, code, module, backSide, arg0, arg1, arg2, always);
 }
 
 DLevelScript::DLevelScript (AActor *who, line_t *where, int num, const ScriptPtr *code, FBehavior *module,
-							bool backside, int arg0, int arg1, int arg2, int always, bool delay)
+							bool backside, int arg0, int arg1, int arg2, int always)
 	: activeBehavior (module)
 {
 	if (DACSThinker::ActiveThinker == NULL)
@@ -5900,17 +5916,12 @@ DLevelScript::DLevelScript (AActor *who, line_t *where, int num, const ScriptPtr
 		SERVER_SetScriptActiveFont( "SmallFont" );
 
 	hudwidth = hudheight = 0;
-	if (delay)
-	{
-		// From Hexen: Give the world some time to set itself up before running open scripts.
-		//script->state = SCRIPT_Delayed;
-		//script->statedata = TICRATE;
-		state = SCRIPT_Running;
-	}
-	else
-	{
-		state = SCRIPT_Running;
-	}
+	state = SCRIPT_Running;
+	// Hexen waited one second before executing any open scripts. I didn't realize
+	// this when I wrote my ACS implementation. Now that I know, it's still best to
+	// run them right away because there are several map properties that can't be
+	// set in an editor. If an open script sets them, it looks dumb if a second
+	// goes by while they're in their default state.
 
 	if (!always)
 		DACSThinker::ActiveThinker->RunningScripts[num] = this;
@@ -5951,7 +5962,7 @@ void P_DoDeferedScripts ()
 					NULL, def->script,
 					scriptdata, module,
 					0, def->arg0, def->arg1, def->arg2,
-					def->type == acsdefered_t::defexealways, true);
+					def->type == acsdefered_t::defexealways);
 			}
 			else
 			{
@@ -6024,7 +6035,7 @@ int P_StartScript (AActor *who, line_t *where, int script, const char *map, bool
 				}
 			}
 			DLevelScript *runningScript = P_GetScriptGoing (who, where, script,
-				scriptdata, module, backSide, arg0, arg1, arg2, always, false);
+				scriptdata, module, backSide, arg0, arg1, arg2, always);
 			if (runningScript != NULL)
 			{
 				if (wantResultCode)

@@ -310,6 +310,16 @@ void FGameConfigFile::DoGlobalSetup ()
 					vsync->ResetToDefault ();
 				}
 			}
+			if (last < 206)
+			{ // spc_amp is now a float, not an int.
+				FBaseCVar *amp = FindCVar ("spc_amp", NULL);
+				if (amp != NULL)
+				{
+					UCVarValue val = amp->GetGenericRep(CVAR_Float);
+					val.Float /= 16.f;
+					amp->SetGenericRep(val, CVAR_Float);
+				}
+			}
 		}
 	}
 }
@@ -566,7 +576,7 @@ FString FGameConfigFile::GetConfigPath (bool tryProg)
 	char *pathval;
 	FString path;
 
-	pathval = Args.CheckValue ("-config");
+	pathval = Args->CheckValue ("-config");
 	if (pathval != NULL)
 		return FString(pathval);
 
@@ -619,7 +629,7 @@ FString FGameConfigFile::GetConfigPath (bool tryProg)
 
 	if (path.IsEmpty())
 	{
-		if (Args.CheckParm ("-cdrom"))
+		if (Args->CheckParm ("-cdrom"))
 			return CDROM_DIR "\\skulltag.ini";
 
 		path = progdir;
@@ -666,7 +676,7 @@ void FGameConfigFile::AddAutoexec (DArgs *list, const char *game)
 			FString path;
 			
 #ifndef unix
-			if (Args.CheckParm ("-cdrom"))
+			if (Args->CheckParm ("-cdrom"))
 			{
 				path = CDROM_DIR "\\autoexec.cfg";
 			}

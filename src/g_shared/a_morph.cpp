@@ -59,7 +59,7 @@ bool P_MorphPlayer (player_t *p, const PClass *spawntype)
 	}
 
 	morphed = static_cast<APlayerPawn *>(Spawn (spawntype, actor->x, actor->y, actor->z, NO_REPLACE));
-	DObject::PointerSubstitution (actor, morphed);
+	DObject::StaticPointerSubstitution (actor, morphed);
 	morphed->angle = actor->angle;
 	morphed->target = actor->target;
 	morphed->tracer = actor;
@@ -144,7 +144,7 @@ bool P_UndoPlayerMorph (player_t *player, bool force)
 	{
 		return false;
 	}
-	mo = static_cast<APlayerPawn *>(pmo->tracer);
+	mo = barrier_cast<APlayerPawn *>(pmo->tracer);
 	mo->SetOrigin (pmo->x, pmo->y, pmo->z);
 	mo->flags |= MF_SOLID;
 	pmo->flags &= ~MF_SOLID;
@@ -158,7 +158,7 @@ bool P_UndoPlayerMorph (player_t *player, bool force)
 	pmo->player = NULL;
 
 	mo->ObtainInventory (pmo);
-	DObject::PointerSubstitution (pmo, mo);
+	DObject::StaticPointerSubstitution (pmo, mo);
 	mo->angle = pmo->angle;
 	mo->player = player;
 	mo->reactiontime = 18;
@@ -250,7 +250,7 @@ bool P_MorphMonster (AActor *actor, const PClass *spawntype)
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_DestroyThing( actor );
 
-	DObject::PointerSubstitution (actor, morphed);
+	DObject::StaticPointerSubstitution (actor, morphed);
 	morphed->tid = actor->tid;
 	morphed->angle = actor->angle;
 	morphed->UnmorphedMe = actor;
@@ -331,7 +331,7 @@ bool P_UpdateMorphedMonster (AMorphedMonster *beast)
 	memcpy (actor->args, beast->args, sizeof(actor->args));
 	actor->AddToHash ();
 	beast->UnmorphedMe = NULL;
-	DObject::PointerSubstitution (beast, actor);
+	DObject::StaticPointerSubstitution (beast, actor);
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_DestroyThing( beast );
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )

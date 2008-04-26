@@ -14,6 +14,7 @@
 #include "c_console.h"
 #include "hardware.h"
 #include "v_video.h"
+#include "i_input.h"
 //#include "gl_defs.h"
 
 
@@ -44,7 +45,6 @@ Win32GLVideo::~Win32GLVideo()
 {
 	FreeModes();
 	FGLTexture::FlushAll();
-	gl.SetFullscreen(0,0,0,0);
 }
 
 void Win32GLVideo::SetWindowedScale(float scale)
@@ -307,6 +307,15 @@ Win32GLFrameBuffer::~Win32GLFrameBuffer()
 		gl.SetGammaRamp((void *)m_origGamma);
 	}
 	I_SaveWindowedPos();
+
+	gl.SetFullscreen(0,0,0,0);
+
+	ShowWindow (Window, SW_SHOW);
+	SetWindowLong(Window, GWL_STYLE, WS_VISIBLE | WS_CLIPSIBLINGS | WS_OVERLAPPEDWINDOW);
+	SetWindowLong(Window, GWL_EXSTYLE, WS_EX_WINDOWEDGE);
+	SetWindowPos(Window, 0, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+	I_GetEvent();
+
 	gl.Shutdown();
 }
 

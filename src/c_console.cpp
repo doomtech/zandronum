@@ -265,7 +265,7 @@ CUSTOM_CVAR (Int, msgmidcolor2, 4, CVAR_ARCHIVE)
 static void maybedrawnow (bool tick, bool force)
 {
 	// FIXME: Does not work right with hw2d
-	if (ConsoleDrawing || !gotconback || screen->IsLocked () || screen->Accel2D)
+	if (ConsoleDrawing || !gotconback || screen == NULL || screen->IsLocked () || screen->Accel2D)
 	{
 		return;
 	}
@@ -336,7 +336,7 @@ void C_InitConsole (int width, int height, bool ingame)
 	g_szLogFilename[0] = 0;
 
 	// [BC] The server has no use for a console.
-	if ( Args.CheckParm( "-host" ))
+	if ( Args->CheckParm( "-host" ))
 		return;
 
 	if ( (vidactive = ingame) )
@@ -556,7 +556,7 @@ void C_DeinitConsole ()
 static void ClearConsole ()
 {
 	// [BC] The server has no need for this.
-	if ( Args.CheckParm( "-host" ))
+	if ( Args->CheckParm( "-host" ))
 		return;
 
 	RowAdjust = 0;
@@ -586,7 +586,7 @@ void C_AddNotifyString (int printlevel, const char *source)
 	} addtype = NEWLINE;
 
 	// [BC] The server has no need for this.
-	if ( Args.CheckParm( "-host" ))
+	if ( Args->CheckParm( "-host" ))
 		return;
 
 	FBrokenLines *lines;
@@ -939,7 +939,7 @@ int PrintString (int printlevel, const char *outline)
 	}
 
 	// For servers, dump message to console window.
-	if ( Args.CheckParm( "-host" ))
+	if ( Args->CheckParm( "-host" ))
 	{
 		if ( printlevel == PRINT_LOW ){
 			const int length = static_cast<int>(strlen (outlinecopy));

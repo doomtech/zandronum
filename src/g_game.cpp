@@ -1380,7 +1380,7 @@ void G_Ticker ()
 				NETWORK_StringToAddress( Val.String, &MasterAddress );
 
 				// Allow the user to specify which port the master server is on.
-				pszMasterPort = Args.CheckValue( "-masterport" );
+				pszMasterPort = Args->CheckValue( "-masterport" );
 				if ( pszMasterPort )
 					MasterAddress.usPort = NETWORK_ntohs( atoi( pszMasterPort ));
 				else 
@@ -2971,7 +2971,7 @@ void GAME_CheckMode( void )
 		delete ( StatusBar );
 
 		if ( gamestate == GS_TITLELEVEL )
-			StatusBar = new FBaseStatusBar( 0 );
+			StatusBar = new DBaseStatusBar( 0 );
 		else
 			StatusBar = CreateStatusBar ();
 		/* [BB] Moved to CreateStatusBar()
@@ -3541,7 +3541,8 @@ void GAME_ResetMap( void )
 				pNewActor->reactiontime = 18;
 
 				pNewActor->TIDtoHate = pActor->TIDtoHate;
-				pNewActor->LastLook = pActor->LastLook;
+				pNewActor->LastLookActor = pActor->LastLookActor;
+				pNewActor->LastLookPlayerNumber = pActor->LastLookPlayerNumber;
 				pNewActor->flags3 |= pActor->flags3 & MF3_HUNTPLAYERS;
 				pNewActor->flags4 |= pActor->flags4 & MF4_NOHATEPLAYERS;
 			}
@@ -4105,6 +4106,10 @@ void G_DoLoadGame ()
 
 	demoplayback = false;
 	usergame = true;
+	// At this point, the GC threshold is likely a lot higher than the
+	// amount of memory in use, so bring it down now by starting a
+	// collection.
+	GC::StartCollection();
 }
 
 
@@ -4132,7 +4137,7 @@ FString G_BuildSaveName (const char *prefix, int slot)
 	const char *leader;
 	const char *slash = "";
 
-	if (NULL != (leader = Args.CheckValue ("-savedir")))
+	if (NULL != (leader = Args->CheckValue ("-savedir")))
 	{
 		size_t len = strlen (leader);
 		if (leader[len-1] != '\\' && leader[len-1] != '/')
@@ -4141,7 +4146,7 @@ FString G_BuildSaveName (const char *prefix, int slot)
 		}
 	}
 #ifndef unix
-	else if (Args.CheckParm ("-cdrom"))
+	else if (Args->CheckParm ("-cdrom"))
 	{
 		leader = CDROM_DIR "/";
 	}
@@ -4495,7 +4500,7 @@ void G_RecordDemo (char* name)
 	strcpy (demoname, name);
 	FixPathSeperator (demoname);
 	DefaultExtension (demoname, ".lmp");
-	v = Args.CheckValue ("-maxdemo");
+	v = Args->CheckValue ("-maxdemo");
 	maxdemosize = 0x20000;
 	demobuffer = (BYTE *)M_Malloc (maxdemosize);
 
@@ -4843,8 +4848,8 @@ void G_DoPlayDemo (void)
 //
 void G_TimeDemo (char* name)
 {
-	nodrawers = !!Args.CheckParm ("-nodraw");
-	noblit = !!Args.CheckParm ("-noblit");
+	nodrawers = !!Args->CheckParm ("-nodraw");
+	noblit = !!Args->CheckParm ("-noblit");
 	timingdemo = true;
 	singletics = true;
 

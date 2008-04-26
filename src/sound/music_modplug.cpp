@@ -42,12 +42,10 @@
 // 192 approximately replicates the volume of a WinAmp Wave export of the song.
 CVAR(Int, snd_mod_mastervolume, 192, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
-ModPlugSong::ModPlugSong (FILE *iofile, char * musiccache, int len)
+ModPlugSong *ModPlugSong::Create (FILE *iofile, char * musiccache, int len)
 {
 	char *buffer;
 
-	Data = NULL;
-	order = 0;
 	if (iofile != NULL)
 	{
 		buffer = new char[len];
@@ -55,22 +53,35 @@ ModPlugSong::ModPlugSong (FILE *iofile, char * musiccache, int len)
 	}
 	else buffer = musiccache;
 
+	ModPlugFile *Data = ModPlug_Load(buffer, len);
+
+	if (iofile != NULL) delete buffer;
+	if (Data == NULL) return NULL;
+	
+	ModPlugSong *ret = new ModPlugSong(Data);
+	if (!ret->IsValid())
+	{
+		ModPlug_Unload(Data);
+		delete ret;
+		return NULL;
+	}
+	return ret;
+}
+
+ModPlugSong::ModPlugSong (ModPlugFile *dat)
+{
+	Data = NULL;
+	order = 0;
+
 	m_Stream = GSnd->CreateStream (FillStream, 16384, 0, 44100, this);
 	if (m_Stream == NULL)
 	{
 		Printf (PRINT_BOLD, "Could not create music stream.\n");
-		if (iofile != NULL) delete buffer;
 		return;
 	}
 
-	Data = ModPlug_Load(buffer, len);
-	if (Data == NULL)
-	{
-		if (iofile != NULL) delete buffer;
-		delete m_Stream;
-		m_Stream = NULL;
-		return;
-	}
+	// For some reason the sound will stutter if Data is set before creating the stream.
+	Data = dat;
 	ModPlug_SetMasterVolume(Data, snd_mod_mastervolume);
 }
 
@@ -106,6 +117,12 @@ bool ModPlugSong::FillStream (SoundStream *stream, void *buf, int len, void *use
 {
 	char *buff = (char *)buf;
 	ModPlugSong *song = (ModPlugSong *)userdata;
+
+	if (song->Data == NULL)
+	{
+		memset(buff, 0, len);
+		return true;
+	}
 
 	int read = ModPlug_Read(song->Data, buff, len);
 

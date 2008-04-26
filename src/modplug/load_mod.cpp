@@ -172,6 +172,16 @@ BOOL IsMagic(LPCSTR s1, LPCSTR s2)
 	return ((*(DWORD *)s1) == (*(DWORD *)s2)) ? TRUE : FALSE;
 }
 
+BOOL CheckAsciiString(const BYTE *p, int len)
+{
+	// checks if the field contains a valid ASCII string
+	// It also allows the rest of an old string after the 0-terminator.
+	for (int i=0; i<len;i++)
+	{
+		if ((p[i] > 0 && p[i] < ' ') || p[i] > 127) return false;	// not an ASCII string
+	}
+	return true;
+}
 
 BOOL CSoundFile::ReadMod(const BYTE *lpStream, DWORD dwMemLength)
 //---------------------------------------------------------------
@@ -181,7 +191,7 @@ BOOL CSoundFile::ReadMod(const BYTE *lpStream, DWORD dwMemLength)
 	PMODMAGIC pMagic;
 	UINT nErr;
 
-	if ((!lpStream) || (dwMemLength < 0x600)) return FALSE;
+	if ((!lpStream) || (dwMemLength < 0x600) || !CheckAsciiString(lpStream, 20)) return FALSE;
 	dwMemPos = 20;
 	m_nSamples = 31;
 	m_nChannels = 4;
@@ -200,11 +210,7 @@ BOOL CSoundFile::ReadMod(const BYTE *lpStream, DWORD dwMemLength)
 	if (IsMagic(s,"16CN")) m_nChannels = 16; else
 	if (IsMagic(s,"32CN")) m_nChannels = 32; else 
 	{
-		// don't accept any unknown magics. If we did this the code would play all garbage that's
-		// thrown at it
-		//if (s[0] || s[1] || s[2] || s[3]) 
-			return FALSE;
-		//m_nSamples = 15;
+		m_nSamples = 15;
 	}
 	// Load Samples
 	nErr = 0;
@@ -214,6 +220,12 @@ BOOL CSoundFile::ReadMod(const BYTE *lpStream, DWORD dwMemLength)
 		PMODSAMPLE pms = (PMODSAMPLE)(lpStream+dwMemPos);
 		MODINSTRUMENT *psmp = &Ins[i];
 		UINT loopstart, looplen;
+
+		// name field is not valid so abort
+		if (!CheckAsciiString((BYTE*)pms->name, 22)) 
+		{
+			return FALSE;
+		}
 
 		memcpy(m_szNames[i], pms->name, 22);
 		m_szNames[i][22] = 0;

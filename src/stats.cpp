@@ -44,6 +44,7 @@
 #include "st_stuff.h"
 #include "c_dispatch.h"
 #include "m_swap.h"
+#include "sbar.h"
 
 FStat *FStat::FirstStat;
 
@@ -88,7 +89,7 @@ void FStat::ToggleStat (const char *name)
 void FStat::ToggleStat ()
 {
 	m_Active = !m_Active;
-	SB_state = screen->GetPageCount ();
+	SB_state = StatusBar == NULL ? 0 : screen->GetPageCount ();
 }
 
 void FStat::PrintStat ()

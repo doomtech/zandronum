@@ -16,7 +16,6 @@
 //
 //
 // DESCRIPTION:  none
-// Dolby Pro Logic code by Gavino.
 //
 //-----------------------------------------------------------------------------
 
@@ -78,11 +77,10 @@
 
 #define NORM_PITCH				128
 #define NORM_PRIORITY			64
-#define NORM_SEP				128
-#define NONE_SEP				-2
+#define NORM_SEP				0
 
 #define S_PITCH_PERTURB 		1
-#define S_STEREO_SWING			(96<<FRACBITS)
+#define S_STEREO_SWING			0.75
 
 /* Sound curve parameters for Doom */
 
@@ -93,7 +91,7 @@ const int S_CLIPPING_DIST = 1200;
 // Originally: 200.
 const int S_CLOSE_DIST =	160;
 
-const int S_ATTENUATOR =	S_CLIPPING_DIST - S_CLOSE_DIST;
+const float S_ATTENUATOR =	S_CLIPPING_DIST - S_CLOSE_DIST;
 
 // TYPES -------------------------------------------------------------------
 
@@ -150,7 +148,7 @@ static bool		SoundPaused;		// whether sound effects are paused
 static bool		MusicPaused;		// whether music is paused
 static MusPlayingInfo mus_playing;	// music currently being played
 static FString	 LastSong;			// last music that was played
-static BYTE		*SoundCurve;
+static float	*SoundCurve;
 static int		nextcleanup;
 static FPlayList *PlayList;
 static bool		g_bNewSoundCurve;
@@ -164,8 +162,7 @@ int numChannels;
 
 CVAR (Bool, snd_surround, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)	// [RH] Use surround sounds?
 FBoolCVar noisedebug ("noise", false, 0);	// [RH] Print sound debugging info?
-CVAR (Int, snd_channels, 12, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)	// number of channels available
-CVAR (Bool, snd_matrix, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+CVAR (Int, snd_channels, 32, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)	// number of channels available
 CVAR (Bool, snd_flipstereo, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
 // CODE --------------------------------------------------------------------
@@ -292,7 +289,11 @@ void S_Init ()
 	atterm (S_Shutdown);
 
 	// remove old data (S_Init can be called multiple times!)
-	if (SoundCurve) delete [] SoundCurve;
+	if (SoundCurve)
+	{
+		delete[] SoundCurve;
+	}
+
 	if ( g_aOriginalSoundCurve )
 		delete [] ( g_aOriginalSoundCurve );
 
@@ -308,28 +309,33 @@ void S_Init ()
 		g_bNewSoundCurve = true;
 
 		MAX_SND_DIST = Wads.LumpLength (curvelump);
-		SoundCurve = new BYTE[MAX_SND_DIST];
-		Wads.ReadLump (curvelump, SoundCurve);
+		SoundCurve = new float[MAX_SND_DIST];
+		FMemLump lump = Wads.ReadLump(curvelump);
+		BYTE *lumpmem = (BYTE *)lump.GetMem();
 
 		// The maximum value in a SNDCURVE lump is 127, so scale it to
-		// fit our sound system's volume levels.
+		// fit our sound system's volume levels. Also, FMOD's volumes
+		// are linear, whereas we want the "dumb" logarithmic volumes
+		// for our "2D" sounds.
 		for (i = 0; i < S_CLIPPING_DIST; ++i)
 		{
-			SoundCurve[i] = SoundCurve[i] * 255 / 127;
+			SoundCurve[i] = (powf(10.f, (lumpmem[i] / 127.f)) - 1.f) / 9.f;
 		}
 	}
 	else
 		MAX_SND_DIST = S_CLIPPING_DIST;
+		SoundCurve = new float[S_CLIPPING_DIST];
 
 	// Also, initialize the original sound curve.
 	g_aOriginalSoundCurve = new BYTE[S_CLIPPING_DIST];
 	for (i = 0; i < S_CLIPPING_DIST; ++i)
 	{
-		g_aOriginalSoundCurve[i] = MIN (255, (S_CLIPPING_DIST - i) * 255 / S_ATTENUATOR);
+		//SoundCurve[i] = (powf(10.f, MIN(1.f, (S_CLIPPING_DIST - i) / S_ATTENUATOR)) - 1.f) / 9.f;
+		//g_aOriginalSoundCurve[i] = (powf(10.f, MIN(1.f, (S_CLIPPING_DIST - i) / S_ATTENUATOR)) - 1.f) / 9.f;
 	}
 
 	// Allocating the virtual channels
-	numChannels = GSnd ? GSnd->SetChannels (snd_channels) : 0;
+	numChannels = GSnd ? GSnd->GetNumChannels() : 0;
 	if (Channel != NULL)
 	{
 		delete[] Channel;
@@ -631,14 +637,14 @@ static void S_StartSound (fixed_t *pt, AActor *mover, int channel,
 	int sound_id, float volume, float attenuation, bool looping)
 {
 	sfxinfo_t *sfx;
-	int dist, vol;
+	int dist;
+	float vol;
 	int i;
 	int chanflags;
 	int basepriority, priority;
-	int sep;
+	float sep;
 	int org_id;
 	fixed_t x, y, z;
-	angle_t angle;
 
 	static int sndcount = 0;
 	int chan;
@@ -689,14 +695,9 @@ static void S_StartSound (fixed_t *pt, AActor *mover, int channel,
 	if (volume > 1)
 		volume = 1;
 
-	if (attenuation == 0)
+	if (attenuation <= 0)
 	{
-		sep = NONE_SEP;
-		dist = 0;
-	}
-	else if (attenuation < 0)
-	{
-		sep = snd_surround ? -1 : NONE_SEP;
+		sep = NORM_SEP;
 		dist = 0;
 	}
 	else
@@ -898,42 +899,31 @@ static void S_StartSound (fixed_t *pt, AActor *mover, int channel,
 
 	// See if we should use the original sound curve.
 	if (( g_bNewSoundCurve == false ) || ( i_compatflags & COMPATF_ORIGINALSOUNDCURVE ))
-		vol = (int)(g_aOriginalSoundCurve[dist]*volume);
+		vol = g_aOriginalSoundCurve[dist] * volume;
 	else
-		vol = (int)(SoundCurve[dist]*volume);
+		vol = SoundCurve[dist] * volume;
+
 	if (sep == -3)
 	{
 		AActor *listener = players[consoleplayer].camera;
-		if (listener == NULL)
-		{
-			sep = NONE_SEP;
-		}
-		else if (dist == 0)
+		if (listener == NULL || dist == 0)
 		{
 			sep = NORM_SEP;
 		}
 		else
 		{
-			angle = R_PointToAngle2 (listener->x, listener->y, x, y);
-			if (angle > listener->angle)
-				angle = angle - listener->angle;
-			else
-				angle = angle + (ANGLE_MAX - listener->angle);
-			angle >>= ANGLETOFINESHIFT;
-			sep = NORM_SEP - (FixedMul (S_STEREO_SWING, finesine[angle])>>FRACBITS);
+			double angle = atan2(double(y - listener->y), double(x - listener->x));
+			double listener_angle = (listener->angle >> 1) * (M_PI / 1073741824.0);
+
+			if (angle <= listener_angle)
+			{
+				angle += 2*M_PI;
+			}
+			angle -= listener_angle;
+			sep = -S_STEREO_SWING * sin(angle);
 			if (snd_flipstereo)
 			{
-				sep = 255-sep;
-			}
-			if (snd_matrix)
-			{
-				int rearsep = NORM_SEP -
-					(FixedMul (S_STEREO_SWING, finecosine[angle])>>FRACBITS);
-				if (rearsep > 128)
-				{
-					sep = -1;
-					attenuation = -1;
-				}
+				sep = -sep;
 			}
 		}
 	}
@@ -1393,13 +1383,14 @@ void S_UpdateSounds (void *listener_p)
 {
 	fixed_t *listener;
 	fixed_t x, y;
-	int i, dist, vol;
-	angle_t angle;
-	int sep;
+	int i, dist;
+	float vol, sep;
 
 	// [BC] Server doesn't use music/sound.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		return;
+
+	I_UpdateMusic();
 
 	if (GSnd == NULL)
 		return;
@@ -1485,31 +1476,25 @@ void S_UpdateSounds (void *listener_p)
 
 			// See if we should use the original sound curve.
 			if (( g_bNewSoundCurve == false ) || ( i_compatflags & COMPATF_ORIGINALSOUNDCURVE ))
-				vol = (int)(g_aOriginalSoundCurve[dist]*Channel[i].volume);
+				vol = g_aOriginalSoundCurve[dist]*Channel[i].volume;
 			else
-				vol = (int)(SoundCurve[dist]*Channel[i].volume);
+				vol = SoundCurve[dist] * Channel[i].volume;
+
 
 			if (dist > 0)
 			{
-				angle = R_PointToAngle2(listener[0], listener[1], x, y);
-				if (angle > players[consoleplayer].camera->angle)
-					angle = angle - players[consoleplayer].camera->angle;
-				else
-					angle = angle + (ANGLE_MAX - players[consoleplayer].camera->angle);
-				angle >>= ANGLETOFINESHIFT;
-				sep = NORM_SEP - (FixedMul (S_STEREO_SWING, finesine[angle])>>FRACBITS);
+				double angle = atan2(double(y - listener[1]), double(x - listener[0]));
+				double listener_angle = (players[consoleplayer].camera->angle >> 1) * (M_PI / 1073741824.0);
+
+				if (angle <= listener_angle)
+				{
+					angle += 2*M_PI;
+				}
+				angle -= listener_angle;
+				sep = -S_STEREO_SWING * sin(angle);
 				if (snd_flipstereo)
 				{
-					sep = 255-sep;
-				}
-				if (snd_matrix)
-				{
-					int rearsep = NORM_SEP -
-						(FixedMul (S_STEREO_SWING, finecosine[angle])>>FRACBITS);
-					if (rearsep > 128)
-					{
-						sep = -1;
-					}
+					sep = -sep;
 				}
 			}
 			else

@@ -112,7 +112,7 @@ struct DDecalThinker : public DThinker
 public:
 	DDecalThinker (DBaseDecal *decal) : DThinker (STAT_DECALTHINKER), TheDecal (decal) {}
 	void Serialize (FArchive &arc);
-	DBaseDecal *TheDecal;
+	TObjPtr<DBaseDecal> TheDecal;
 protected:
 	DDecalThinker () : DThinker (STAT_DECALTHINKER) {}
 };
@@ -1145,6 +1145,7 @@ void DDecalFader::Tick ()
 		{
 			TheDecal->Destroy ();		// remove the decal
 			Destroy ();					// remove myself
+			return;
 		}
 		if (StartTrans == -1)
 		{

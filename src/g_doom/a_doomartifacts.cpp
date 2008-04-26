@@ -273,7 +273,7 @@ bool ARandomPowerup::Use (bool pickup)
 			}
 		}
 
-		if (( pItem->ObjectFlags & OF_MassDestruction ) == false )
+		if (( pItem->ObjectFlags & OF_EuthanizeMe ) == false )
 			pItem->Destroy( );
 	}
 

@@ -191,7 +191,7 @@ IMPLEMENT_POINTY_CLASS (AActor)
  DECLARE_POINTER (lastenemy)
  DECLARE_POINTER (tracer)
  DECLARE_POINTER (goal)
- DECLARE_POINTER (LastLook)	// This is actually a union
+ DECLARE_POINTER (LastLookActor)
  DECLARE_POINTER (Inventory)
  DECLARE_POINTER (LastHeard)
  DECLARE_POINTER (master)
@@ -263,11 +263,13 @@ void AActor::Serialize (FArchive &arc)
 	arc << TIDtoHate;
 	if (TIDtoHate == 0)
 	{
-		arc << LastLook.PlayerNumber;
+		arc << LastLookPlayerNumber;
+		LastLookActor = NULL;
 	}
 	else
 	{
-		arc << LastLook.Actor;
+		arc << LastLookActor;
+		LastLookPlayerNumber = -1;
 	}
 	arc << effects
 		<< alpha
@@ -346,15 +348,13 @@ void AActor::Serialize (FArchive &arc)
 		<< DamageType
 		<< gravity
 		<< FastChaseStrafeCount
+		<< master
 		<< (DWORD &)lNetID // [BC] We need to archive this so that it's restored properly when going between maps in a hub.
 		<< (DWORD &)ulSTFlags
 		<< (DWORD &)ulNetworkFlags
 		<< (DWORD &)ulInvasionWave
 		<< pMonsterSpot
 		<< pPickupSpot;
-
-	if (SaveVersion >=778)
-		arc << master;
 
 	if (arc.IsStoring ())
 	{
@@ -611,7 +611,8 @@ bool AActor::SetState (FState *newstate)
 			newstate->GetAction() (this);
 
 			// Check whether the called action function resulted in destroying the actor
-			if (ObjectFlags & OF_MassDestruction) return false;
+			if (ObjectFlags & OF_EuthanizeMe)
+				return false;
 		}
 		newstate = newstate->GetNextState();
 	} while (tics == 0);
@@ -863,7 +864,7 @@ void AActor::DestroyAllInventory ()
 //
 //============================================================================
 
-AInventory *AActor::FirstInv () const
+AInventory *AActor::FirstInv ()
 {
 	if (Inventory == NULL)
 	{
@@ -969,7 +970,7 @@ AInventory *AActor::DropInventory (AInventory *item)
 //
 //============================================================================
 
-AInventory *AActor::FindInventory (const PClass *type) const
+AInventory *AActor::FindInventory (const PClass *type)
 {
 	AInventory *item;
 
@@ -986,7 +987,7 @@ AInventory *AActor::FindInventory (const PClass *type) const
 	return item;
 }
 
-AInventory *AActor::FindInventory (FName type) const
+AInventory *AActor::FindInventory (FName type)
 {
 	return FindInventory(PClass::FindClass(type));
 }
@@ -1052,7 +1053,7 @@ bool AActor::GiveAmmo (const PClass *type, int amount)
 //
 //============================================================================
 
-void AActor::CopyFriendliness (const AActor *other, bool changeTarget)
+void AActor::CopyFriendliness (AActor *other, bool changeTarget)
 {
 	level.total_monsters -= CountsAsKill();
 
@@ -1061,7 +1062,8 @@ void AActor::CopyFriendliness (const AActor *other, bool changeTarget)
 		INVASION_UpdateMonsterCount( this, true );
 
 	TIDtoHate = other->TIDtoHate;
-	LastLook = other->LastLook;
+	LastLookActor = other->LastLookActor;
+	LastLookPlayerNumber = other->LastLookPlayerNumber;
 	flags  = (flags & ~MF_FRIENDLY) | (other->flags & MF_FRIENDLY);
 	flags3 = (flags3 & ~(MF3_NOSIGHTCHECK | MF3_HUNTPLAYERS)) | (other->flags3 & (MF3_NOSIGHTCHECK | MF3_HUNTPLAYERS));
 	flags4 = (flags4 & ~MF4_NOHATEPLAYERS) | (other->flags4 & MF4_NOHATEPLAYERS);
@@ -1259,7 +1261,7 @@ void P_ExplodeMissile (AActor *mo, line_t *line, AActor *target)
 	if (!(mo->SetState (nextstate)))
 		return;
 	
-	if (mo->ObjectFlags & OF_MassDestruction)
+	if (mo->ObjectFlags & OF_EuthanizeMe)
 	{
 		return;
 	}
@@ -1926,7 +1928,7 @@ void P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 					{
 						// [BC] If the object was destroyed in P_BounceWall, no need to play
 						// the bounce sound.
-						if (( mo->ObjectFlags & OF_MassDestruction ) == false )
+						if (( mo->ObjectFlags & OF_EuthanizeMe ) == false )
 						{
 							// [BC] Actors don't yet have a bounce sound, so this will have to be hacked for now.
 							if ( mo->GetClass( ) == RUNTIME_CLASS( AGrenade ) && !(mo->flags3 & MF3_NOWALLBOUNCESND))
@@ -3596,7 +3598,7 @@ void AActor::Tick ()
 //		P_OldXYMovement( this, bForceSlide );
 //	else
 		P_XYMovement (this, cummx, cummy);
-	if (ObjectFlags & OF_MassDestruction)
+	if (ObjectFlags & OF_EuthanizeMe)
 	{ // actor was destroyed
 		return;
 	}
@@ -3658,7 +3660,7 @@ void AActor::Tick ()
 			P_ZMovement (this);
 		}
 
-		if (ObjectFlags & OF_MassDestruction)
+		if (ObjectFlags & OF_EuthanizeMe)
 			return;		// actor was destroyed
 	}
 	else if (z <= floorz)
@@ -3710,8 +3712,15 @@ void AActor::Tick ()
 
 		int respawn_monsters = G_SkillProperty(SKILLP_Respawn);
 		// check for nightmare respawn
-		if (!respawn_monsters || !(flags3 & MF3_ISMONSTER) || (flags2 & MF2_DORMANT))
-			return;
+		if (!(flags5 & MF5_ALWAYSRESPAWN))
+		{
+			if (!respawn_monsters || !(flags3 & MF3_ISMONSTER) || (flags2 & MF2_DORMANT) || (flags5 & MF5_NEVERRESPAWN))
+				return;
+
+			int limit = G_SkillProperty (SKILLP_RespawnLimit);
+			if (limit > 0 && skillrespawncount >= limit)
+				return;
+		}
 
 		movecount++;
 
@@ -3722,9 +3731,6 @@ void AActor::Tick ()
 			return;
 
 		if (pr_nightmarerespawn() > 4)
-			return;
-
-		if (G_SkillProperty (SKILLP_RespawnLimit) && (this)->skillrespawncount >= G_SkillProperty (SKILLP_RespawnLimit))
 			return;
 
 		P_NightmareRespawn (this);
@@ -3982,7 +3988,7 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 
 	if (actor->flags3 & MF3_ISMONSTER)
 	{
-		actor->LastLook.PlayerNumber = rng() % MAXPLAYERS;
+		actor->LastLookPlayerNumber = rng() % MAXPLAYERS;
 		actor->TIDtoHate = 0;
 	}
 
@@ -4073,7 +4079,7 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 	if (!SpawningMapThing)
 	{
 		actor->BeginPlay ();
-		if (actor->ObjectFlags & OF_MassDestruction)
+		if (actor->ObjectFlags & OF_EuthanizeMe)
 		{
 			unclock( g_SpawnCycles );
 			return NULL;
@@ -4245,6 +4251,15 @@ void AActor::Deactivate (AActor *activator)
 			tics = -1;
 		}
 	}
+}
+
+size_t AActor::PropagateMark()
+{
+	for (unsigned i=0; i<dynamiclights.Size(); i++)
+	{
+		GC::Mark(dynamiclights[i]);
+	}
+	return Super::PropagateMark();
 }
 
 //=============================================================================
@@ -4680,11 +4695,30 @@ void P_SpawnPlayer (mapthing2_t *mthing, bool bClientUpdate, player_t *p, bool t
 		// [BC] Added PST_REBORNNOINVENTORY.
 		else if (state == PST_REBORN || state == PST_REBORNNOINVENTORY)
 		{
+			//assert (oldactor != NULL);
 			// [BC] In Skulltag, it's okay if the player is being reborn without an oldactor,
 			// since there's times where we delete a player's body, and respawn him without him
 			// having been killed (ex. when a player changes teams).
 			if ( oldactor != NULL )
-				DObject::PointerSubstitution (oldactor, p->mo);
+			{
+				// before relocating all pointers to the player all sound targets
+				// pointing to the old actor have to be NULLed. Otherwise all
+				// monsters who last targeted this player will wake up immediately
+				// after the player has respawned.
+				AActor *th;
+				TThinkerIterator<AActor> it;
+				while ((th = it.Next()))
+				{
+					if (th->LastHeard == oldactor) th->LastHeard = NULL;
+				}
+				for(int i = 0; i < numsectors; i++)
+				{
+					if (sectors[i].SoundTarget == oldactor) sectors[i].SoundTarget = NULL;
+				}
+
+				DObject::StaticPointerSubstitution (oldactor, p->mo);
+			}
+
 /* [BB] Check if this neeeds to be done
 			// PointerSubstitution() will also affect the bodyque, so undo that now.
 			for (int ii=0; ii < BODYQUESIZE; ++ii)
@@ -5104,7 +5138,7 @@ void P_SpawnMapThing (mapthing2_t *mthing, int position)
 
 	mobj->angle = (DWORD)((mthing->angle * UCONST64(0x100000000)) / 360);
 	mobj->BeginPlay ();
-	if (mobj->ObjectFlags & OF_MassDestruction)
+	if (mobj->ObjectFlags & OF_EuthanizeMe)
 	{
 		return;
 	}
@@ -6167,7 +6201,7 @@ void AActor::Crash()
 		!(flags3 & MF3_CRASHED) &&
 		!(flags & MF_ICECORPSE))
 	{
-		FState * crashstate=NULL;
+		FState *crashstate = NULL;
 		
 		if (DamageType != NAME_None)
 		{
@@ -6178,7 +6212,7 @@ void AActor::Crash()
 			int gibhealth = -abs(GetClass()->Meta.GetMetaInt (AMETA_GibHealth,
 				gameinfo.gametype == GAME_Doom ? -GetDefault()->health : -GetDefault()->health/2));
 
-			if (health<gibhealth)
+			if (health < gibhealth)
 			{ // Extreme death
 				crashstate = FindState (NAME_Crash, NAME_Extreme);
 			}

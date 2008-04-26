@@ -55,7 +55,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="src\win32,src\sound,src,zlib,src\g_shared,src\g_doom,src\g_raven,src\g_heretic,src\g_hexen,src\g_strife;flac;jpeg-6b;src\MD5;src\OpenGL;src\win32\g15\include"
+				AdditionalIncludeDirectories="src\win32,src\sound,src,zlib,src\g_shared,src\g_doom,src\g_raven,src\g_heretic,src\g_hexen,src\g_strife;flac;jpeg-6b;snes_spc\snes_spc;src\MD5;src\OpenGL;src\win32\g15\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_WIN32,_WINDOWS,USEASM,HAVE_STRUPR,HAVE_FILELENGTH,SILENT_INSTANT_FLOORS"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -90,7 +90,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="gdi32.lib user32.lib comctl32.lib shell32.lib advapi32.lib comdlg32.lib ole32.lib dxguid.lib dsound.lib ddraw.lib dinput8.lib strmiids.lib wsock32.lib winmm.lib fmodvc.lib setupapi.lib ws2_32.lib opengl32.lib glu32.lib"
+				AdditionalDependencies="gdi32.lib user32.lib comctl32.lib shell32.lib advapi32.lib comdlg32.lib ole32.lib dxguid.lib dsound.lib ddraw.lib dinput8.lib strmiids.lib wsock32.lib winmm.lib fmodex_vc.lib setupapi.lib ws2_32.lib opengl32.lib glu32.lib"
 				ShowProgress="0"
 				OutputFile="..\$(ProjectName).exe"
 				LinkIncremental="1"
@@ -169,7 +169,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="&quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot; "
 				Optimization="0"
-				AdditionalIncludeDirectories="src\win32;src\sound;src;zlib;src\g_shared;src\g_doom;src\g_raven;src\g_heretic;src\g_hexen;src\g_strife;flac;jpeg-6b;src\MD5;src\OpenGL;src\win32\g15\include"
+				AdditionalIncludeDirectories="src\win32;src\sound;src;zlib;src\g_shared;src\g_doom;src\g_raven;src\g_heretic;src\g_hexen;src\g_strife;flac;jpeg-6b;snes_spc\snes_spc;src\MD5;src\OpenGL;src\win32\g15\include"
 				PreprocessorDefinitions="WIN32,_DEBUG,_WIN32,_WINDOWS,USEASM,_CRTDBG_MAP_ALLOC,HAVE_STRUPR,HAVE_FILELENGTH"
 				MinimalRebuild="true"
 				RuntimeLibrary="1"
@@ -201,7 +201,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="gdi32.lib user32.lib comctl32.lib shell32.lib advapi32.lib comdlg32.lib ole32.lib dxguid.lib dsound.lib ddraw.lib dinput8.lib strmiids.lib wsock32.lib winmm.lib setupapi.lib ws2_32.lib opengl32.lib glu32.lib fmodvc.lib $(NOINHERIT)"
+				AdditionalDependencies="gdi32.lib user32.lib comctl32.lib shell32.lib advapi32.lib comdlg32.lib ole32.lib dxguid.lib dsound.lib ddraw.lib dinput8.lib strmiids.lib wsock32.lib winmm.lib setupapi.lib ws2_32.lib opengl32.lib glu32.lib fmodex_vc.lib $(NOINHERIT)"
 				OutputFile="..\$(ProjectName)-debug.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -1215,6 +1215,10 @@
 						AdditionalOptions="&quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot; "
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\src\dobjgc.cpp"
+				>
 			</File>
 			<File
 				RelativePath=".\src\dobjtype.cpp"
@@ -9364,15 +9368,7 @@
 			Name="Audio Files"
 			>
 			<File
-				RelativePath=".\src\sound\altsound.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\sound\altsound.h"
-				>
-			</File>
-			<File
-				RelativePath=".\src\sound\altsoundmixer.cpp"
+				RelativePath=".\src\sound\fmod_wrap.h"
 				>
 			</File>
 			<File
@@ -9384,47 +9380,43 @@
 				>
 			</File>
 			<File
-				RelativePath="src\sound\i_music.cpp"
+				RelativePath=".\src\sound\i_music.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\sound\i_music.h"
+				RelativePath=".\src\sound\i_music.h"
 				>
 			</File>
 			<File
-				RelativePath="src\sound\i_musicinterns.h"
+				RelativePath=".\src\sound\i_musicinterns.h"
 				>
 			</File>
 			<File
-				RelativePath="src\sound\i_sound.cpp"
+				RelativePath=".\src\sound\i_sound.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\sound\i_sound.h"
+				RelativePath=".\src\sound\i_sound.h"
 				>
 			</File>
 			<File
-				RelativePath="src\sound\music_cd.cpp"
+				RelativePath=".\src\sound\music_cd.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\sound\music_flac.cpp"
+				RelativePath=".\src\sound\music_midi_base.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\sound\music_midi_midiout.cpp"
+				RelativePath=".\src\sound\music_midi_midiout.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\sound\music_midi_stream.cpp"
+				RelativePath=".\src\sound\music_midi_timidity.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\sound\music_midi_timidity.cpp"
-				>
-			</File>
-			<File
-				RelativePath="src\sound\music_mod.cpp"
+				RelativePath=".\src\sound\music_midistream.cpp"
 				>
 			</File>
 			<File
@@ -9432,27 +9424,23 @@
 				>
 			</File>
 			<File
-				RelativePath="src\sound\music_mus_midiout.cpp"
+				RelativePath=".\src\sound\music_mus_midiout.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\sound\music_mus_opl.cpp"
+				RelativePath=".\src\sound\music_mus_opl.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\sound\music_spc.cpp"
+				RelativePath=".\src\sound\music_spc.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\sound\music_stream.cpp"
+				RelativePath=".\src\sound\music_stream.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\sound\sample_flac.cpp"
-				>
-			</File>
-			<File
-				RelativePath="src\sound\sample_flac.h"
+				RelativePath=".\src\sound\music_win_mididevice.cpp"
 				>
 			</File>
 			<Filter
@@ -9523,75 +9511,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\modplug\load_669.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\modplug\load_amf.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\modplug\load_ams.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\modplug\load_dbm.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\modplug\load_dmf.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\modplug\load_dsm.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\modplug\load_far.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\modplug\load_it.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\src\modplug\load_j2b.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\modplug\load_mdl.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\modplug\load_med.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\modplug\load_mod.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\modplug\load_mt2.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\modplug\load_mtm.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\modplug\load_okt.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\modplug\load_pat.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\modplug\load_psm.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\modplug\load_ptm.cpp"
 					>
 				</File>
 				<File
@@ -9603,15 +9527,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\modplug\load_ult.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\modplug\load_umx.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\modplug\load_wav.cpp"
 					>
 				</File>
 				<File

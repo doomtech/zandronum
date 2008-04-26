@@ -1,9 +1,51 @@
-#ifdef _WIN32
+/*
+** music_spc.cpp
+** SPC codec for FMOD Ex, using snes_spc for decoding.
+**
+**---------------------------------------------------------------------------
+** Copyright 2008 Randy Heit
+** All rights reserved.
+**
+** Redistribution and use in source and binary forms, with or without
+** modification, are permitted provided that the following conditions
+** are met:
+**
+** 1. Redistributions of source code must retain the above copyright
+**    notice, this list of conditions and the following disclaimer.
+** 2. Redistributions in binary form must reproduce the above copyright
+**    notice, this list of conditions and the following disclaimer in the
+**    documentation and/or other materials provided with the distribution.
+** 3. The name of the author may not be used to endorse or promote products
+**    derived from this software without specific prior written permission.
+**
+** THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+** IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+** OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+** IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+** INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+** NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+** DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+** THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+** THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+**---------------------------------------------------------------------------
+**
+*/
 
-#include "i_musicinterns.h"
+// HEADER FILES ------------------------------------------------------------
+
 #include "templates.h"
 #include "c_cvars.h"
+#include "SNES_SPC.h"
+#include "SPC_Filter.h"
+#include "fmod_wrap.h"
 #include "doomdef.h"
+#include "m_swap.h"
+#include "m_fixed.h"
+
+// MACROS ------------------------------------------------------------------
+
+// TYPES -------------------------------------------------------------------
 
 struct XID6Tag
 {
@@ -12,262 +54,287 @@ struct XID6Tag
 	WORD Value;
 };
 
+struct SPCCodecData
+{
+	SNES_SPC *SPC;
+	SPC_Filter *Filter;
+	FMOD_CODEC_WAVEFORMAT WaveFormat;
+	bool bPlayed;
+};
+
+// EXTERNAL FUNCTION PROTOTYPES --------------------------------------------
+
+// PUBLIC FUNCTION PROTOTYPES ----------------------------------------------
+
+FMOD_RESULT SPC_CreateCodec(FMOD::System *sys);
+
+// PRIVATE FUNCTION PROTOTYPES ---------------------------------------------
+
+static FMOD_RESULT SPC_DoOpen(FMOD_CODEC_STATE *codec, SPCCodecData *userdata);
+static FMOD_RESULT F_CALLBACK SPC_Open(FMOD_CODEC_STATE *codec, FMOD_MODE usermode, FMOD_CREATESOUNDEXINFO *userexinfo);
+static FMOD_RESULT F_CALLBACK SPC_Close(FMOD_CODEC_STATE *codec);
+static FMOD_RESULT F_CALLBACK SPC_Read(FMOD_CODEC_STATE *codec, void *buffer, unsigned int size, unsigned int *read);
+static FMOD_RESULT F_CALLBACK SPC_SetPosition(FMOD_CODEC_STATE *codec_state, int subsound, unsigned int position, FMOD_TIMEUNIT postype);
+
+// EXTERNAL DATA DECLARATIONS ----------------------------------------------
+
 EXTERN_CVAR (Int, snd_samplerate)
 
-CVAR (Int, spc_amp, 30, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
-CVAR (Bool, spc_8bit, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
-CVAR (Bool, spc_stereo, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
-CVAR (Bool, spc_lowpass, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
-CVAR (Bool, spc_surround, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
-CVAR (Bool, spc_oldsamples, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
-CVAR (Bool, spc_noecho, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+// PUBLIC DATA DEFINITIONS -------------------------------------------------
 
-CUSTOM_CVAR (Int, spc_quality, 1, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+CVAR (Float, spc_amp, 1.875f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+
+// PRIVATE DATA DEFINITIONS ------------------------------------------------
+
+static FMOD_CODEC_DESCRIPTION SPCCodecDescription = {
+	"Super Nintendo SPC File",
+	0x00000001,
+	1,
+	FMOD_TIMEUNIT_MS | FMOD_TIMEUNIT_PCM,
+	SPC_Open,
+	SPC_Close,
+	SPC_Read,
+	NULL,
+	SPC_SetPosition,
+	NULL,
+	NULL,
+	NULL
+};
+
+// CODE --------------------------------------------------------------------
+
+//==========================================================================
+//
+// SPC_CreateCodec
+//
+//==========================================================================
+
+FMOD_RESULT SPC_CreateCodec(FMOD::System *sys)
 {
-	if (spc_quality < 0)
-	{
-		spc_quality = 0;
-	}
-	else if (spc_quality > 3)
-	{
-		spc_quality = 3;
-	}
+	return sys->createCodec(&SPCCodecDescription);
 }
 
-CUSTOM_CVAR (Int, spc_frequency, 32000, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+//==========================================================================
+//
+// SPC_Open
+//
+//==========================================================================
+
+static FMOD_RESULT SPC_DoOpen(FMOD_CODEC_STATE *codec, SPCCodecData *userdata)
 {
-	if (spc_frequency < 8000)
-	{
-		spc_frequency = 8000;
+	FMOD_RESULT result;
+	char spcfile[SNES_SPC::spc_file_size];
+	unsigned int bytesread;
+	SNES_SPC *spc;
+	SPC_Filter *filter;
+
+	if (codec->filesize < 66048)
+	{ // Anything smaller than this is definitely not a (valid) SPC.
+		return FMOD_ERR_FORMAT;
 	}
-	else if (spc_frequency > 65535)
+	result = codec->fileseek(codec->filehandle, 0, 0);
+	if (result != FMOD_OK)
 	{
-		spc_frequency = 65535;
+		return result;
 	}
-}
-
-SPCSong::SPCSong (FILE *iofile, char * musiccache, int len)
-{
-
-	if (!LoadEmu ())
+	// Check the signature.
+	result = codec->fileread(codec->filehandle, spcfile, SNES_SPC::signature_size, &bytesread, NULL);
+	if (result != FMOD_OK || bytesread != SNES_SPC::signature_size ||
+		memcmp(spcfile, SNES_SPC::signature, SNES_SPC::signature_size) != 0)
 	{
-		return;
+		result = FMOD_ERR_FORMAT;
+		// If the length is right and this is just a different version, try
+		// to pretend it's the current one.
+		if (bytesread == SNES_SPC::signature_size)
+		{
+			memcpy(spcfile + 28, SNES_SPC::signature + 28, 7);
+			if (memcmp(spcfile, SNES_SPC::signature, SNES_SPC::signature_size) == 0)
+			{
+				result = FMOD_OK;
+			}
+		}
 	}
-
-	FileReader * file;
-
-	if (iofile != NULL) file = new FileReader(iofile, len);
-	else file = new MemoryReader(musiccache, len);
-
-	// No sense in using a higher frequency than the final output
-	int freq = MIN (*spc_frequency, *snd_samplerate);
-
-	Is8Bit = spc_8bit;
-	Stereo = spc_stereo;
-
-	m_Stream = GSnd->CreateStream (FillStream, 16384,
-		(Stereo ? 0 : SoundStream::Mono) |
-		(Is8Bit ? SoundStream::Bits8 : 0),
-		freq, this);
-	if (m_Stream == NULL)
+	if (result != FMOD_OK)
 	{
-		Printf (PRINT_BOLD, "Could not create music stream.\n");
-		CloseEmu ();
-		delete file;
-		return;
+		return result;
 	}
-
-	ResetAPU (spc_amp);
-	SetAPUOpt (~0, Stereo + 1, Is8Bit ? 8 : 16, freq, spc_quality,
-		(spc_lowpass ? 1 : 0) | (spc_oldsamples ? 2 : 0) | (spc_surround ? 4 : 0) | (spc_noecho ? 16 : 0));
-
-	BYTE spcfile[66048];
-
-	file->Read (spcfile, 66048);
-
-	if (LoadSPCFile != NULL)
+	// Load the rest of the file.
+	result = codec->fileread(codec->filehandle, spcfile + SNES_SPC::signature_size,
+		SNES_SPC::spc_file_size - SNES_SPC::signature_size, &bytesread, NULL);
+	if (result != FMOD_OK || bytesread < SNES_SPC::spc_min_file_size - SNES_SPC::signature_size)
 	{
-		LoadSPCFile (spcfile);
+		return FMOD_ERR_FILE_BAD;
 	}
-	else
+	bytesread += SNES_SPC::signature_size;
+
+	// Create the SPC.
+	spc = (userdata != NULL) ? userdata->SPC : new SNES_SPC;
+	spc->init();
+	if (spc->load_spc(spcfile, bytesread) != NULL)
 	{
-		void *apuram;
-		BYTE *extraram;
-		void *dsp;
-
-		GetAPUData (&apuram, &extraram, NULL, NULL, &dsp, NULL, NULL, NULL);
-
-		memcpy (apuram, spcfile + 0x100, 65536);
-		memcpy (dsp, spcfile + 0x10100, 128);
-		memcpy (extraram, spcfile + 0x101c0, 64);
-
-		FixAPU (spcfile[37]+spcfile[38]*256, spcfile[39], spcfile[41], spcfile[40], spcfile[42], spcfile[43]);
+		if (userdata != NULL)
+		{
+			delete spc;
+		}
+		return FMOD_ERR_FILE_BAD;
 	}
+	spc->clear_echo();
 
-	// Search for amplification tag in extended ID666 info
-	if (len > 66056)
+	// Create the filter.
+	filter = (userdata != NULL) ? userdata->Filter : new SPC_Filter;
+	filter->set_gain(int(SPC_Filter::gain_unit * spc_amp));
+
+	// Search for amplification tag in extended ID666 info.
+	if (codec->filesize > SNES_SPC::spc_file_size + 8 && bytesread == SNES_SPC::spc_file_size)
 	{
 		DWORD id;
 
-		file->Read (&id, 4);
-		if (id == MAKE_ID('x','i','d','6'))
+		result = codec->fileread(codec->filehandle, &id, 4, &bytesread, NULL);
+		if (result == FMOD_OK && bytesread == 4 && id == MAKE_ID('x','i','d','6'))
 		{
 			DWORD size;
 
-			(*file) >> size;
-			DWORD pos = 66056;
-
-			while (pos < size)
+			result = codec->fileread(codec->filehandle, &size, 4, &bytesread, NULL);
+			if (result == FMOD_OK && bytesread == 4)
 			{
-				XID6Tag tag;
-				
-				file->Read (&tag, 4);
-				if (tag.Type == 0)
+				size = LittleLong(size);
+				DWORD pos = SNES_SPC::spc_file_size + 8;
+
+				while (pos < size)
 				{
-					// Don't care about these
-				}
-				else
-				{
-					if (pos + LittleShort(tag.Value) <= size)
+					XID6Tag tag;
+
+					result = codec->fileread(codec->filehandle, &tag, 4, &bytesread, NULL);
+					if (result != FMOD_OK || bytesread != 4)
 					{
-						if (tag.Type == 4 && tag.ID == 0x36)
+						break;
+					}
+					if (tag.Type == 0)
+					{
+						// Don't care about these
+					}
+					else
+					{
+						if ((pos += LittleShort(tag.Value)) <= size)
 						{
-							DWORD amp;
-							(*file) >> amp;
-							if (APUVersion < 98)
+							if (tag.Type == 4 && tag.ID == 0x36)
 							{
-								amp >>= 12;
+								DWORD amp;
+								result = codec->fileread(codec->filehandle, &amp, 4, &bytesread, NULL);
+								if (result == FMOD_OK && bytesread == 4)
+								{
+									filter->set_gain(LittleLong(amp) >> 8);
+								}
+								break;
 							}
-							SetDSPAmp (amp);
+						}
+						if (FMOD_OK != codec->fileseek(codec->filehandle, pos, NULL))
+						{
 							break;
 						}
 					}
-					file->Seek (LittleShort(tag.Value), SEEK_CUR);
 				}
 			}
 		}
 	}
-	delete file;
-}
-
-SPCSong::~SPCSong ()
-{
-	Stop ();
-	CloseEmu ();
-}
-
-bool SPCSong::IsValid () const
-{
-	return HandleAPU != NULL;
-}
-
-bool SPCSong::IsPlaying ()
-{
-	return m_Status == STATE_Playing;
-}
-
-void SPCSong::Play (bool looping)
-{
-	m_Status = STATE_Stopped;
-	m_Looping = true;
-
-	if (m_Stream->Play (true, snd_musicvolume))
+	if (userdata == NULL)
 	{
-		m_Status = STATE_Playing;
+		userdata = new SPCCodecData;
+		userdata->SPC = spc;
+		userdata->Filter = filter;
+		memset(&userdata->WaveFormat, 0, sizeof(userdata->WaveFormat));
+		userdata->WaveFormat.format = FMOD_SOUND_FORMAT_PCM16;
+		userdata->WaveFormat.channels = 2;
+		userdata->WaveFormat.frequency = SNES_SPC::sample_rate;
+		userdata->WaveFormat.lengthbytes = SNES_SPC::spc_file_size;
+		userdata->WaveFormat.lengthpcm = ~0u;
+		userdata->WaveFormat.blockalign = 4;
+		codec->numsubsounds = 0;
+		codec->waveformat = &userdata->WaveFormat;
+		codec->plugindata = userdata;
 	}
+	userdata->bPlayed = false;
+	return FMOD_OK;
 }
 
-bool SPCSong::FillStream (SoundStream *stream, void *buff, int len, void *userdata)
+//==========================================================================
+//
+// SPC_Open
+//
+//==========================================================================
+
+static FMOD_RESULT F_CALLBACK SPC_Open(FMOD_CODEC_STATE *codec, FMOD_MODE usermode, FMOD_CREATESOUNDEXINFO *userexinfo)
 {
-	SPCSong *song = (SPCSong *)userdata;
-	song->EmuAPU (buff, len >> (song->Stereo + !song->Is8Bit), 1);
-	if (song->Is8Bit)
+	return SPC_DoOpen(codec, NULL);
+}
+
+//==========================================================================
+//
+// SPC_Close
+//
+//==========================================================================
+
+static FMOD_RESULT F_CALLBACK SPC_Close(FMOD_CODEC_STATE *codec)
+{
+	SPCCodecData *data = (SPCCodecData *)codec->plugindata;
+	if (data != NULL)
 	{
-		BYTE *bytebuff = (BYTE *)buff;
-		for (int i = 0; i < len; ++i)
+		delete data->Filter;
+		delete data->SPC;
+		delete data;
+	}
+	return FMOD_OK;
+}
+
+//==========================================================================
+//
+// SPC_Read
+//
+//==========================================================================
+
+static FMOD_RESULT F_CALLBACK SPC_Read(FMOD_CODEC_STATE *codec, void *buffer, unsigned int size, unsigned int *read)
+{
+	SPCCodecData *data = (SPCCodecData *)codec->plugindata;
+	if (read != NULL)
+	{
+		*read = size;
+	}
+	data->bPlayed = true;
+	if (data->SPC->play(size >> 1, (short *)buffer) != NULL)
+	{
+		return FMOD_ERR_PLUGIN;
+	}
+	data->Filter->run((short *)buffer, size >> 1);
+	return FMOD_OK;
+}
+
+static FMOD_RESULT F_CALLBACK SPC_SetPosition(FMOD_CODEC_STATE *codec, int subsound, unsigned int position, FMOD_TIMEUNIT postype)
+{
+	SPCCodecData *data = (SPCCodecData *)codec->plugindata;
+	FMOD_RESULT result;
+
+	if (data->bPlayed)
+	{ // Must reload the file after it's already played something.
+		result = SPC_DoOpen(codec, data);
+		if (result != FMOD_OK)
 		{
-			bytebuff[i] -= 128;
+			return result;
 		}
 	}
-	return true;
-}
-
-bool SPCSong::LoadEmu ()
-{
-	APUVersion = 0;
-
-	HandleAPU = LoadLibraryA ("snesapu.dll");
-	if (HandleAPU == NULL)
+	if (position != 0)
 	{
-		Printf ("Could not load snesapu.dll\n");
-		return false;
-	}
-
-	SNESAPUInfo = (SNESAPUInfo_TYPE)GetProcAddress (HandleAPU, "SNESAPUInfo");
-	if (SNESAPUInfo == NULL)
-	{
-		Printf ("This snesapu.dll is too old.\n");
-	}
-	else
-	{
-		DWORD ver, min, opt;
-
-		SNESAPUInfo (&ver, &min, &opt);
-
-		if ((min & 0xffff00) >= 0x8500 && (min & 0xffff00) < 0x9800)
+		if (postype == FMOD_TIMEUNIT_PCM)
 		{
-			APUVersion = 85;
+			data->SPC->skip(position * 4);
 		}
-		else if ((min & 0xffff00) == 0x9800)
+		else if (postype == FMOD_TIMEUNIT_MS)
 		{
-			APUVersion = 98;
-		}
-		else if ((min & 0xffff00) == 0x11000)
-		{
-			APUVersion = 110;
+			data->SPC->skip(Scale(position, SNES_SPC::sample_rate, 1000) * 4);
 		}
 		else
 		{
-			char letters[4];
-			letters[0] = (char)ver; letters[1] = 0;
-			letters[2] = (char)min; letters[3] = 0;
-			Printf ("This snesapu.dll is too new.\nIt is version %lx.%02lx%s and"
-				"is backward compatible with DLL version %lx.%02lx%s.\n"
-				"ZDoom is only known to support DLL versions 0.95 - 2.0\n",
-				(ver>>16) & 255, (ver>>8) & 255, letters,
-				(min>>16) & 255, (min>>8) & 255, letters+2);
-		}
-		if (APUVersion != 0)
-		{
-			if (!(GetAPUData = (GetAPUData_TYPE)GetProcAddress (HandleAPU, "GetAPUData")) ||
-				!(ResetAPU = (ResetAPU_TYPE)GetProcAddress (HandleAPU, "ResetAPU")) ||
-				!(SetDSPAmp = (SetDSPAmp_TYPE)GetProcAddress (HandleAPU, "SetDSPAmp")) ||
-				!(FixAPU = (FixAPU_TYPE)GetProcAddress (HandleAPU, "FixAPU")) ||
-				!(SetAPUOpt = (SetAPUOpt_TYPE)GetProcAddress (HandleAPU, "SetAPUOpt")) ||
-				!(EmuAPU = (EmuAPU_TYPE)GetProcAddress (HandleAPU, "EmuAPU")))
-			{
-				Printf ("Snesapu.dll is missing some functions.\n");
-				APUVersion = 0;
-			}
-			LoadSPCFile = (LoadSPCFile_TYPE)GetProcAddress (HandleAPU, "LoadSPCFile");
+			return FMOD_ERR_UNSUPPORTED;
 		}
 	}
-	if (APUVersion == 0)
-	{
-		FreeLibrary (HandleAPU);
-		HandleAPU = NULL;
-		return false;
-	}
-	return true;
+	return FMOD_OK;
 }
-
-void SPCSong::CloseEmu ()
-{
-	if (HandleAPU != NULL)
-	{
-		FreeLibrary (HandleAPU);
-		HandleAPU = NULL;
-	}
-}
-
-#endif

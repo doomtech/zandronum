@@ -474,7 +474,7 @@ bool AWeapon::CheckAmmo (int fireMode, bool autoSwitch, bool requireAmmo)
 		bool gotSome = CheckAmmo (PrimaryFire, false) || CheckAmmo (AltFire, false);
 		if (!gotSome && autoSwitch)
 		{
-			static_cast<APlayerPawn *> (Owner)->PickNewWeapon (NULL);
+			barrier_cast<APlayerPawn *>(Owner)->PickNewWeapon (NULL);
 		}
 		return gotSome;
 	}
@@ -512,7 +512,7 @@ bool AWeapon::CheckAmmo (int fireMode, bool autoSwitch, bool requireAmmo)
 	// out of ammo, pick a weapon to change to
 	if (autoSwitch)
 	{
-		static_cast<APlayerPawn *> (Owner)->PickNewWeapon (NULL);
+		barrier_cast<APlayerPawn *>(Owner)->PickNewWeapon (NULL);
 	}
 	return false;
 }

@@ -40,6 +40,7 @@ brightmap sprite PLAYF4F6
 
 brightmap sprite PLAYF5
 {
+	map "brightmaps/doom/PLAYf5.png"
 	iwad
 	disablefullbright
 }
@@ -74,6 +75,7 @@ brightmap sprite POSSF4F6
 
 brightmap sprite POSSF5
 {
+	map "brightmaps/doom/possf5.png"
 	iwad
 	disablefullbright
 }
@@ -109,6 +111,7 @@ brightmap sprite SPOSF4F6
 brightmap sprite SPOSF5
 {
 	iwad
+	map "brightmaps/doom/SPOSf5.png"
 	disablefullbright
 }
 
@@ -141,6 +144,7 @@ brightmap sprite CPOSE4
 
 brightmap sprite CPOSE5
 {
+	map "brightmaps/doom/CPOSE5.png"
 	iwad
 	disablefullbright
 }
@@ -189,12 +193,14 @@ brightmap sprite CPOSF3
 
 brightmap sprite CPOSF4
 {
+	map "brightmaps/doom/CPOSF4.png"
 	iwad
 	disablefullbright
 }
 
 brightmap sprite CPOSF5
 {
+	map "brightmaps/doom/CPOSF5.png"
 	iwad
 	disablefullbright
 }
@@ -1076,6 +1082,7 @@ brightmap sprite FATTH4H6
 
 brightmap sprite FATTH5
 {
+	map "brightmaps/doom/FATTH5.png"
 	iwad
 	disablefullbright
 }
