@@ -1,4 +1,4 @@
-#include "gl_pch.h"
+
 /*
 ** gl_sky.cpp
 **
@@ -34,6 +34,7 @@
 **---------------------------------------------------------------------------
 **
 */
+#include "gl/gl_include.h"
 #include "doomtype.h"
 #include "sc_man.h"
 #include "w_wad.h"

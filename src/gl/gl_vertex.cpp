@@ -1,4 +1,4 @@
-#include "gl_pch.h"
+
 /*
 ** gl_vertex.cpp
 **
@@ -38,6 +38,7 @@
 
 
 
+#include "gl/gl_include.h"
 #include "gl/gl_struct.h"
 #include "gl/gl_renderstruct.h"
 #include "gl/gl_portal.h"
@@ -215,12 +216,14 @@ void gl_InitVertexData()
 
 				if (sec)
 				{
+					extsector_t::xfloor &x = sec->e->XFloor;
+
 					AddToVertex(sec, vt_sectorlists[v-vertexes]);
 					if (sec->heightsec) AddToVertex(sec->heightsec, vt_sectorlists[v-vertexes]);
 
-					for(l=0;l<sec->e->ffloors.Size();l++)
+					for(l=0;l<x.ffloors.Size();l++)
 					{
-						F3DFloor * rover=sec->e->ffloors[l];
+						F3DFloor * rover = x.ffloors[l];
 						if(!(rover->flags & FF_EXISTS)) continue;
 						if (rover->flags&FF_NOSHADE) continue; // FF_NOSHADE doesn't create any wall splits 
 

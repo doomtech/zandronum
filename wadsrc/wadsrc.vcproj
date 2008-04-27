@@ -48,8 +48,8 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="nmake /nologo MAKEWAD=..\tools\makewad\makewad XLATCC=..\tools\xlatcc\xlatcc DEHSUPP=..\tools\dehsupp\dehsupp NOLOGO=/nologo andcopy"
-				ReBuildCommandLine="nmake /nologo MAKEWAD=..\tools\makewad\makewad NOLOGO=/nologo XLATCC=..\tools\xlatcc\xlatcc DEHSUPP=..\tools\dehsupp\dehsupp nrebuild"
+				BuildCommandLine="nmake /nologo MAKEWAD=..\tools\makewad\makewad NOLOGO=/nologo andcopy"
+				ReBuildCommandLine="nmake /nologo MAKEWAD=..\tools\makewad\makewad NOLOGO=/nologo nrebuild"
 				CleanCommandLine="del wadmake zdoom.pk3"
 				Output="zdoom.pk3"
 				PreprocessorDefinitions=""
@@ -90,8 +90,8 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="nmake /nologo MAKEWAD=..\tools\makewad\makewad XLATCC=..\tools\xlatcc\xlatcc DEHSUPP=..\tools\dehsupp\dehsupp NOLOGO=/nologo"
-				ReBuildCommandLine="nmake /nologo MAKEWAD=..\tools\makewad\makewad NOLOGO=/nologo XLATCC=..\tools\xlatcc\xlatcc DEHSUPP=..\tools\dehsupp\dehsupp nrebuild"
+				BuildCommandLine="nmake /nologo MAKEWAD=..\tools\makewad\makewad NOLOGO=/nologo"
+				ReBuildCommandLine="nmake /nologo MAKEWAD=..\tools\makewad\makewad NOLOGO=/nologo nrebuild"
 				CleanCommandLine="del wadmake zdoom.pk3"
 				Output="zdoom.pk3"
 				PreprocessorDefinitions=""
@@ -161,19 +161,23 @@
 				RelativePath=".\x11r6rgb.txt"
 				>
 			</File>
+			<File
+				RelativePath=".\xhairs.txt"
+				>
+			</File>
 			<Filter
 				Name="Map Translators"
 				>
 				<File
-					RelativePath=".\xlat\doomxlat.txt"
+					RelativePath=".\xlat\doom.txt"
 					>
 				</File>
 				<File
-					RelativePath=".\xlat\hereticxlat.txt"
+					RelativePath=".\xlat\heretic.txt"
 					>
 				</File>
 				<File
-					RelativePath=".\xlat\strifexlat.txt"
+					RelativePath=".\xlat\strife.txt"
 					>
 				</File>
 				<Filter
@@ -389,6 +393,10 @@
 					</File>
 					<File
 						RelativePath=".\decorate\doom\doomkeys.txt"
+						>
+					</File>
+					<File
+						RelativePath=".\decorate\doom\doomweapons.txt"
 						>
 					</File>
 					<File

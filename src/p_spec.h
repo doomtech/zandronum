@@ -52,9 +52,16 @@ public:
 		sc_carry,
 		sc_carry_ceiling,	// killough 4/11/98: carry objects hanging on ceilings
 	};
+	enum EScrollPos
+	{
+		scw_top=1,
+		scw_mid=2,
+		scw_bottom=4,
+		scw_all=7,
+	};
 	
-	DScroller (EScrollType type, fixed_t dx, fixed_t dy, int control, int affectee, int accel);
-	DScroller (fixed_t dx, fixed_t dy, const line_t *l, int control, int accel);
+	DScroller (EScrollType type, fixed_t dx, fixed_t dy, int control, int affectee, int accel, int scrollpos = scw_all);
+	DScroller (fixed_t dx, fixed_t dy, const line_t *l, int control, int accel, int scrollpos = scw_all);
 	~DScroller ();
 
 	void Serialize (FArchive &arc);
@@ -65,6 +72,7 @@ public:
 	void SetRate (fixed_t dx, fixed_t dy) { m_dx = dx; m_dy = dy; }
 	bool IsType (EScrollType type) const { return type == m_Type; }
 	int GetAffectee () const { return m_Affectee; }
+	int GetScrollParts() const { return m_Parts; }
 
 	// [BC] Create this object for this new client entering the game.
 	void	UpdateToClient( ULONG ulClient );
@@ -77,6 +85,7 @@ protected:
 	fixed_t m_LastHeight;	// Last known height of control sector
 	fixed_t m_vdx, m_vdy;	// Accumulated velocity if accelerative
 	int m_Accel;			// Whether it's accelerative
+	int m_Parts;			// Which parts of a sidedef are being scrolled?
 
 private:
 	DScroller ();
@@ -418,6 +427,7 @@ void	EV_StartLightFading (int tag, int value, int tics);
 #define BUTTONTIME TICRATE		// 1 second, in ticks. 
 
 bool	P_ChangeSwitchTexture (side_t *side, int useAgain, BYTE special, bool *quest=NULL);
+bool	P_CheckSwitchRange(AActor *user, line_t *line, int sideno);
 
 void	P_InitSwitchList ();
 void	P_ProcessSwitchDef (FScanner &sc);
@@ -551,7 +561,7 @@ public:
 	};
 
 	DPillar (sector_t *sector, EPillar type, fixed_t speed, fixed_t height,
-			 fixed_t height2, int crush);
+			 fixed_t height2, int crush, bool hexencrush);
 
 	// [BC] New constructor where we just pass in the sector.
 	DPillar (sector_t *sector);
@@ -567,10 +577,15 @@ public:
 	void	SetID( LONG lID );
 
 	void	SetType( EPillar Type );
+	EPillar	GetType( );
 	void	SetFloorSpeed( LONG lSpeed );
+	LONG	GetFloorSpeed( );
 	void	SetCeilingSpeed( LONG lSpeed );
+	LONG	GetCeilingSpeed( );
 	void	SetFloorTarget( LONG lTarget );
+	LONG	GetFloorTarget( );
 	void	SetCeilingTarget( LONG lTarget );
+	LONG	GetCeilingTarget( );
 
 protected:
 	EPillar		m_Type;
@@ -579,6 +594,7 @@ protected:
 	fixed_t		m_FloorTarget;
 	fixed_t		m_CeilingTarget;
 	int			m_Crush;
+	bool		m_Hexencrush;
 
 	// [BC] This is the pillar's unique network ID.
 	LONG		m_lPillarID;
@@ -600,7 +616,7 @@ inline FArchive &operator<< (FArchive &arc, DPillar::EPillar &type)
 }
 
 bool EV_DoPillar (DPillar::EPillar type, int tag, fixed_t speed, fixed_t height,
-				  fixed_t height2, int crush);
+				  fixed_t height2, int crush, bool hexencrush);
 
 //
 // P_DOORS
@@ -819,6 +835,7 @@ protected:
 	fixed_t		m_Speed1;		// [RH] dnspeed of crushers
 	fixed_t		m_Speed2;		// [RH] upspeed of crushers
 	int 		m_Crush;
+	bool		m_Hexencrush;
 	int			m_Silent;
 	int 		m_Direction;	// 1 = up, 0 = waiting, -1 = down
 
@@ -838,14 +855,14 @@ private:
 
 	friend bool EV_DoCeiling (DCeiling::ECeiling type, line_t *line,
 		int tag, fixed_t speed, fixed_t speed2, fixed_t height,
-		int crush, int silent, int change);
+		int crush, int silent, int change, bool hexencrush);
 	friend bool EV_CeilingCrushStop (int tag);
 	friend void P_ActivateInStasisCeiling (int tag);
 };
 
 bool EV_DoCeiling (DCeiling::ECeiling type, line_t *line,
 	int tag, fixed_t speed, fixed_t speed2, fixed_t height,
-	int crush, int silent, int change);
+	int crush, int silent, int change, bool hexencrush);
 bool EV_CeilingCrushStop (int tag);
 void P_ActivateInStasisCeiling (int tag);
 
@@ -951,6 +968,7 @@ public:
 protected:
 	EFloor	 	m_Type;
 	int 		m_Crush;
+	bool		m_Hexencrush;
 	int 		m_Direction;
 	short 		m_NewSpecial;
 	short		m_Texture;
@@ -972,7 +990,7 @@ protected:
 		fixed_t stairsize, fixed_t speed, int delay, int reset, int igntxt,
 		int usespecials);
 	friend bool EV_DoFloor (DFloor::EFloor floortype, line_t *line, int tag,
-		fixed_t speed, fixed_t height, int crush, int change);
+		fixed_t speed, fixed_t height, int crush, int change, bool hexencrush);
 	friend bool EV_FloorCrushStop (int tag);
 	friend bool EV_DoDonut (int tag, fixed_t pillarspeed, fixed_t slimespeed);
 private:
@@ -983,7 +1001,7 @@ bool EV_BuildStairs (int tag, DFloor::EStair type, line_t *line,
 	fixed_t stairsize, fixed_t speed, int delay, int reset, int igntxt,
 	int usespecials);
 bool EV_DoFloor (DFloor::EFloor floortype, line_t *line, int tag,
-	fixed_t speed, fixed_t height, int crush, int change);
+	fixed_t speed, fixed_t height, int crush, int change, bool hexencrush);
 bool EV_FloorCrushStop (int tag);
 bool EV_DoDonut (int tag, fixed_t pillarspeed, fixed_t slimespeed);
 

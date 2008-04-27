@@ -100,6 +100,7 @@ enum
 
 static flagdef ActorFlags[]=
 {
+	DEFINE_FLAG(MF, PICKUP, APlayerPawn, flags),
 	DEFINE_FLAG(MF, SOLID, AActor, flags),
 	DEFINE_FLAG(MF, SHOOTABLE, AActor, flags),
 	DEFINE_FLAG(MF, NOSECTOR, AActor, flags),
@@ -233,6 +234,7 @@ static flagdef ActorFlags[]=
 	DEFINE_FLAG(MF5, ALWAYSRESPAWN, AActor, flags5),
 	DEFINE_FLAG(MF5, NEVERRESPAWN, AActor, flags5),
 	DEFINE_FLAG(MF5, DONTRIP, AActor, flags5),
+	DEFINE_FLAG(MF5, NOINFIGHTING, AActor, flags5),
 
 	// [BC] New DECORATE flag defines here.
 	DEFINE_FLAG(STFL, BLUETEAM, AActor, ulSTFlags),

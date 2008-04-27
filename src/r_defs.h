@@ -36,6 +36,7 @@
 struct FLightNode;
 
 #include "dthinker.h"
+#include "r_interpolate.h"
 
 
 
@@ -86,7 +87,7 @@ struct vertex_s
 typedef struct vertex_s vertex_t;
 
 // Forward of LineDefs, for Sectors.
-struct line_s;
+struct line_t;
 
 class player_s;
 
@@ -188,10 +189,22 @@ struct secplane_t
 		d = d - FixedMul (hdiff, c);
 	}
 
+	// Moves a plane up/down by hdiff units
+	fixed_t GetChangedHeight (fixed_t hdiff)
+	{
+		return d - FixedMul (hdiff, c);
+	}
+
 	// Returns how much this plane's height would change if d were set to oldd
 	fixed_t HeightDiff (fixed_t oldd) const
 	{
 		return FixedMul (oldd - d, ic);
+	}
+
+	// Returns how much this plane's height would change if d were set to oldd
+	fixed_t HeightDiff (fixed_t oldd, fixed_t newd) const
+	{
+		return FixedMul (oldd - newd, ic);
 	}
 
 	fixed_t PointToDist (fixed_t x, fixed_t y, fixed_t z) const
@@ -259,12 +272,61 @@ struct FExtraLight
 	WORD NumUsedLights;
 	FLightStack *Lights;	// Lights arranged from top to bottom
 
-	void InsertLight (const secplane_t &plane, line_s *line, int type);
+	void InsertLight (const secplane_t &plane, line_t *line, int type);
 };
+
+// this substructure contains a few sector properties that are stored in dynamic arrays
+// These must not be copied by R_FakeFlat etc. or bad things will happen.
+struct sector_t;
+
+struct FLinkedSector
+{
+	sector_t *Sector;
+	int Type;
+};
+
+
+struct extsector_t
+{
+	// Boom sector transfer information
+	struct fakefloor
+	{
+		TArray<sector_t *> Sectors;
+	} FakeFloor;
+
+	// 3DMIDTEX information
+	struct midtex
+	{
+		struct plane
+		{
+			TArray<sector_t *> AttachedSectors;		// all sectors containing 3dMidtex lines attached to this sector
+			TArray<line_t *> AttachedLines;			// all 3dMidtex lines attached to this sector
+		} Floor, Ceiling;
+	} Midtex;
+
+	// Linked sector information
+	struct linked
+	{
+		struct plane
+		{
+			TArray<FLinkedSector> Sectors;
+		} Floor, Ceiling;
+	} Linked;
+	struct xfloor
+	{
+		TDeletingArray<F3DFloor *>		ffloors;		// 3D floors in this sector
+		TArray<lightlist_t>				lightlist;		// 3D light list
+		TArray<sector_t*>				attached;		// 3D floors attached to this sector
+	} XFloor;
+	
+	void Serialize(FArchive &arc);
+};
+
 
 struct sector_t
 {
 	// Member functions
+	bool IsLinked(sector_t *other, bool ceiling) const;
 	fixed_t FindLowestFloorSurrounding (vertex_t **v) const;
 	fixed_t FindHighestFloorSurrounding (vertex_t **v) const;
 	fixed_t FindNextHighestFloor (vertex_t **v) const;
@@ -345,7 +407,7 @@ struct sector_t
 	SWORD nextsec;		// -1 or number of next step sector
 
 	short linecount;
-	struct line_s **lines;		// [linecount] size
+	struct line_t **lines;		// [linecount] size
 
 	// killough 3/7/98: support flat heights drawn at another sector's heights
 	sector_t *heightsec;		// other sector, or NULL if no other sector
@@ -382,7 +444,7 @@ struct sector_t
 	short						oldspecial;			//jff 2/16/98 remembers if sector WAS secret (automap)
 
 	// [GZDoom]
-	extsector_t	*				e;
+	extsector_t	*				e;		// This stores data that requires construction/destruction. Such data must not be copied by R_FakeFlat.
 	float						ceiling_reflect, floor_reflect;
 	int							sectornum;			// for comparing sector copies
 
@@ -455,16 +517,28 @@ enum
 	WALLF_ABSLIGHTING	= 1,	// Light is absolute instead of relative
 	WALLF_NOAUTODECALS	= 2,	// Do not attach impact decals to this wall
 	WALLF_ADDTRANS		= 4,	// Use additive instead of normal translucency
-	WALLF_AUTOCONTRAST	= 8,	// Automatically handle fake contrast in side_s::GetLightLevel
+	WALLF_AUTOCONTRAST	= 8,	// Automatically handle fake contrast in side_t::GetLightLevel
 };
 
-struct side_s
+struct side_t
 {
-	fixed_t 	textureoffset;	// add this to the calculated texture column
-	fixed_t 	rowoffset;		// add this to the calculated texture top
+	enum ETexpart
+	{
+		top=0,
+		mid=1,
+		bottom=2
+	};
+	struct part
+	{
+		fixed_t xoffset;
+		fixed_t yoffset;
+		int texture;
+		//int Light;
+	};
+
 	sector_t*	sector;			// Sector the SideDef is facing.
 	DBaseDecal*	AttachedDecals;	// [RH] Decals bound to the wall
-	int			toptexture, bottomtexture, midtexture;	// texture indices
+	part		textures[3];
 	WORD		linenum;
 	DWORD		LeftSide, RightSide;	// [RH] Group walls into loops
 	WORD		TexelLength;
@@ -480,11 +554,66 @@ struct side_s
 
 	int GetLightLevel (bool foggy, int baselight) const;
 
+	int GetTexture(int which) const
+	{
+		return textures[which].texture;
+	}
+	void SetTexture(int which, int tex)
+	{
+		textures[which].texture = tex;
+	}
+
+	void SetTextureXOffset(int which, fixed_t offset)
+	{
+		textures[which].xoffset = offset;
+	}
+	void SetTextureXOffset(fixed_t offset)
+	{
+		textures[top].xoffset =
+		textures[mid].xoffset =
+		textures[bottom].xoffset = offset;
+	}
+	fixed_t GetTextureXOffset(int which) const
+	{
+		return textures[which].xoffset;
+	}
+	void AddTextureXOffset(int which, fixed_t delta)
+	{
+		textures[which].xoffset += delta;
+	}
+
+	void SetTextureYOffset(int which, fixed_t offset)
+	{
+		textures[which].yoffset = offset;
+	}
+	void SetTextureYOffset(fixed_t offset)
+	{
+		textures[top].yoffset =
+		textures[mid].yoffset =
+		textures[bottom].yoffset = offset;
+	}
+	fixed_t GetTextureYOffset(int which) const
+	{
+		return textures[which].yoffset;
+	}
+	void AddTextureYOffset(int which, fixed_t delta)
+	{
+		textures[which].yoffset += delta;
+	}
+
+	void SetInterpolation(int position)
+	{
+		setinterpolation(EInterpType(INTERP_WallPanning_Top+position), this);
+	}
+	void StopInterpolation(int position)
+	{
+		stopinterpolation(EInterpType(INTERP_WallPanning_Top+position), this);
+	}
 	//For GL
 	FLightNode * lighthead[2];				// all blended lights that may affect this wall
 };
-typedef struct side_s side_t;
 
+FArchive &operator<< (FArchive &arc, side_t::part &p);
 
 //
 // Move clipping aid for LineDefs.
@@ -504,7 +633,7 @@ enum slopetype_t
 #define	TEXCHANGE_BACKMEDIUM	16
 #define	TEXCHANGE_BACKBOTTOM	32
 
-struct line_s
+struct line_t
 {
 	vertex_t	*v1, *v2;	// vertices, from v1 to v2
 	fixed_t 	dx, dy;		// precalculated v2 - v1 for side checking
@@ -514,7 +643,7 @@ struct line_s
 	short		id;			// <--- same as tag or set with Line_SetIdentification
 	int			args[5];	// <--- hexen-style arguments (expanded to ZDoom's full width)
 	int			firstid, nextid;
-	DWORD		sidenum[2];	// sidenum[1] will be 0xffffffff if one sided
+	DWORD		sidenum[2];	// sidenum[1] will be NO_SIDE if one sided
 	fixed_t		bbox[4];	// bounding box, for the extent of the LineDef.
 	slopetype_t	slopetype;	// To aid move clipping.
 	sector_t	*frontsector, *backsector;
@@ -531,7 +660,6 @@ struct line_s
 	BYTE		SavedAlpha;
 
 };
-typedef struct line_s line_t;
 
 // phares 3/14/98
 //
@@ -943,7 +1071,7 @@ public:
 	void WriteTexture (FArchive &arc, int picnum);
 	int ReadTexture (FArchive &arc);
 
-	void AddTexturesLump (const void *lumpdata, int lumpsize, int patcheslump, int firstdup=0, bool texture1=false);
+	void AddTexturesLump (const void *lumpdata, int lumpsize, int deflumpnum, int patcheslump, int firstdup=0, bool texture1=false);
 	void AddTexturesLumps (int lump1, int lump2, int patcheslump);
 	void AddGroup(int wadnum, const char * startlump, const char * endlump, int ns, int usetype);
 	void AddPatches (int lumpnum);

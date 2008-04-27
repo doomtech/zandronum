@@ -59,7 +59,7 @@
 //
 //==========================================================================
 
-FMultiPatchTexture::FMultiPatchTexture (const void *texdef, FPatchLookup *patchlookup, int maxpatchnum, bool strife)
+FMultiPatchTexture::FMultiPatchTexture (const void *texdef, FPatchLookup *patchlookup, int maxpatchnum, bool strife, int deflumpnum)
 : Pixels (0), Spans(0), Parts(0), bRedirect(false)
 {
 	union
@@ -159,6 +159,7 @@ FMultiPatchTexture::FMultiPatchTexture (const void *texdef, FPatchLookup *patchl
 			bRedirect = true;
 		}
 	}
+	DefinitionLump = deflumpnum;
 }
 
 //==========================================================================
@@ -623,7 +624,7 @@ struct TextureCheckList
 //
 //==========================================================================
 
-void FTextureManager::AddTexturesLump (const void *lumpdata, int lumpsize, int patcheslump, int firstdup, bool texture1)
+void FTextureManager::AddTexturesLump (const void *lumpdata, int lumpsize, int deflumpnum, int patcheslump, int firstdup, bool texture1)
 {
 	//TextureCheckList checklist;
 	FPatchLookup *patchlookup;
@@ -755,7 +756,7 @@ void FTextureManager::AddTexturesLump (const void *lumpdata, int lumpsize, int p
 		{
 			//if (!checklist.Check((const BYTE *)maptex + offset, patchlookup, numpatches, isStrife))
 			{
-				FTexture *tex = new FMultiPatchTexture ((const BYTE *)maptex + offset, patchlookup, numpatches, isStrife);
+				FMultiPatchTexture *tex = new FMultiPatchTexture ((const BYTE *)maptex + offset, patchlookup, numpatches, isStrife, deflumpnum);
 				if (i == 1 && texture1)
 				{
 					tex->UseType = FTexture::TEX_Null;
@@ -785,12 +786,12 @@ void FTextureManager::AddTexturesLumps (int lump1, int lump2, int patcheslump)
 	if (lump1 >= 0)
 	{
 		FMemLump texdir = Wads.ReadLump (lump1);
-		AddTexturesLump (texdir.GetMem(), Wads.LumpLength (lump1), patcheslump, firstdup, true);
+		AddTexturesLump (texdir.GetMem(), Wads.LumpLength (lump1), lump1, patcheslump, firstdup, true);
 	}
 	if (lump2 >= 0)
 	{
 		FMemLump texdir = Wads.ReadLump (lump2);
-		AddTexturesLump (texdir.GetMem(), Wads.LumpLength (lump2), patcheslump, firstdup, false);
+		AddTexturesLump (texdir.GetMem(), Wads.LumpLength (lump2), lump2, patcheslump, firstdup, false);
 	}
 }
 

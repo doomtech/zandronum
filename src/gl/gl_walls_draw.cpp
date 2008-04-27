@@ -1,4 +1,4 @@
-#include "gl_pch.h"
+
 /*
 ** gl_walls_draw.cpp
 ** Wall rendering
@@ -37,6 +37,7 @@
 **
 */
 
+#include "gl/gl_include.h"
 #include "p_local.h"
 #include "p_lnspec.h"
 #include "a_sharedglobal.h"

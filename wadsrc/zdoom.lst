@@ -57,15 +57,23 @@ in_htc1.txt           		in_htc1.txt
 in_htc2.txt           		in_htc2.txt
 in_htc3.txt           		in_htc3.txt
 lockdefs.txt             	lockdefs.txt
+sbarinfo.txt				sbarinfo.txt
+
+========
+# Doom map format translators
+
+xlat/base.txt				xlat/base.txt
+xlat/doom.txt				xlat/doom.txt
+xlat/heretic.txt			xlat/heretic.txt
+xlat/strife.txt				xlat/strife.txt
+xlat/defines.i				xlat/defines.i
+
 
 ========
 # Support lumps
 
-dehsupp.lmp	                dehsupp.lmp
+dehsupp.txt	                dehsupp.txt
 
-doomx.lmp	                xlat/doom.x
-hereticx.lmp                xlat/heretic.x
-strifex.lmp	                xlat/strife.x
 
 animated.lmp                animated.lmp
 spaldoom.lmp                spaldoom.lmp

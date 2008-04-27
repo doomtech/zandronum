@@ -3133,16 +3133,16 @@ void GAME_ResetMap( void )
 		{
 			if ( lines[ulIdx].sidenum[0] != 0xffff )
 			{
-				sides[lines[ulIdx].sidenum[0]].toptexture = sides[lines[ulIdx].sidenum[0]].SavedTopTexture;
-				sides[lines[ulIdx].sidenum[0]].midtexture = sides[lines[ulIdx].sidenum[0]].SavedMidTexture;
-				sides[lines[ulIdx].sidenum[0]].bottomtexture = sides[lines[ulIdx].sidenum[0]].SavedBottomTexture;
+				sides[lines[ulIdx].sidenum[0]].SetTexture(side_t::top, sides[lines[ulIdx].sidenum[0]].SavedTopTexture);
+				sides[lines[ulIdx].sidenum[0]].SetTexture(side_t::mid, sides[lines[ulIdx].sidenum[0]].SavedMidTexture);
+				sides[lines[ulIdx].sidenum[0]].SetTexture(side_t::bottom, sides[lines[ulIdx].sidenum[0]].SavedBottomTexture);
 			}
 
 			if ( lines[ulIdx].sidenum[1] != NO_SIDE )
 			{
-				sides[lines[ulIdx].sidenum[1]].toptexture = sides[lines[ulIdx].sidenum[1]].SavedTopTexture;
-				sides[lines[ulIdx].sidenum[1]].midtexture = sides[lines[ulIdx].sidenum[1]].SavedMidTexture;
-				sides[lines[ulIdx].sidenum[1]].bottomtexture = sides[lines[ulIdx].sidenum[1]].SavedBottomTexture;
+				sides[lines[ulIdx].sidenum[1]].SetTexture(side_t::top, sides[lines[ulIdx].sidenum[1]].SavedTopTexture);
+				sides[lines[ulIdx].sidenum[1]].SetTexture(side_t::mid, sides[lines[ulIdx].sidenum[1]].SavedMidTexture);
+				sides[lines[ulIdx].sidenum[1]].SetTexture(side_t::bottom, sides[lines[ulIdx].sidenum[1]].SavedBottomTexture);
 			}
 
 			// If we're the server, tell clients about this texture change.

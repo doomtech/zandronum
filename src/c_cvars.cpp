@@ -138,6 +138,7 @@ FBaseCVar::~FBaseCVar ()
 			else
 				CVars = m_Next;
 		}
+		C_RemoveTabCommand(Name);
 		delete[] Name;
 	}
 }

@@ -95,6 +95,7 @@ bool SightCheck::PTR_SightTraverse (intercept_t *in)
 {
 	line_t  *li;
 	fixed_t slope;
+	FLineOpening open;
 
 	li = in->d.line;
 
@@ -103,18 +104,18 @@ bool SightCheck::PTR_SightTraverse (intercept_t *in)
 //
 	fixed_t trX=trace.x + FixedMul (trace.dx, in->frac);
 	fixed_t trY=trace.y + FixedMul (trace.dy, in->frac);
-	P_LineOpening(li, trX, trY);
+	P_LineOpening (open, NULL, li, trX, trY);
 
-	if (openrange <= 0)		// quick test for totally closed doors
+	if (open.range <= 0)		// quick test for totally closed doors
 		return false;		// stop
 
 	// check bottom
-	slope = FixedDiv (openbottom - sightzstart, in->frac);
+	slope = FixedDiv (open.bottom - sightzstart, in->frac);
 	if (slope > bottomslope)
 		bottomslope = slope;
 
 	// check top
-	slope = FixedDiv (opentop - sightzstart, in->frac);
+	slope = FixedDiv (open.top - sightzstart, in->frac);
 	if (slope < topslope)
 		topslope = slope;
 
@@ -122,7 +123,7 @@ bool SightCheck::PTR_SightTraverse (intercept_t *in)
 		return false;		// stop
 
 	// now handle 3D-floors
-	if(li->frontsector->e->ffloors.Size() || li->backsector->e->ffloors.Size())
+	if(li->frontsector->e->XFloor.ffloors.Size() || li->backsector->e->XFloor.ffloors.Size())
 	{
 		int  frontflag;
 		
@@ -137,9 +138,9 @@ bool SightCheck::PTR_SightTraverse (intercept_t *in)
 			fixed_t topz= FixedMul (topslope, in->frac) + sightzstart;
 			fixed_t bottomz= FixedMul (bottomslope, in->frac) + sightzstart;
 
-			for(unsigned int j=0;j<s->e->ffloors.Size();j++)
+			for(unsigned int j=0;j<s->e->XFloor.ffloors.Size();j++)
 			{
-				F3DFloor*  rover=s->e->ffloors[j];
+				F3DFloor*  rover=s->e->XFloor.ffloors[j];
 
 				if(!(rover->flags & FF_SOLID) || !(rover->flags & FF_EXISTS)) continue;
 				
@@ -169,9 +170,9 @@ bool SightCheck::PTR_SightTraverse (intercept_t *in)
 					// the 2 together will block sight.
 					sector_t * sb=i==2? li->frontsector:li->backsector;
 
-					for(unsigned int k=0;k<sb->e->ffloors.Size();k++)
+					for(unsigned int k=0;k<sb->e->XFloor.ffloors.Size();k++)
 					{
-						F3DFloor*  rover2=sb->e->ffloors[k];
+						F3DFloor*  rover2=sb->e->XFloor.ffloors[k];
 
 						if(!(rover2->flags & FF_SOLID) || !(rover2->flags & FF_EXISTS)) continue;
 						
@@ -385,16 +386,16 @@ bool SightCheck::P_SightTraverseIntercepts ()
 		}
 	}
 
-	if (lastsector==seeingthing->Sector && lastsector->e->ffloors.Size())
+	if (lastsector==seeingthing->Sector && lastsector->e->XFloor.ffloors.Size())
 	{
 		// we must do one last check whether the trace has crossed a 3D floor in the last sector
 
 		fixed_t topz= topslope + sightzstart;
 		fixed_t bottomz= bottomslope + sightzstart;
 		
-		for(unsigned int i=0;i<lastsector->e->ffloors.Size();i++)
+		for(unsigned int i=0;i<lastsector->e->XFloor.ffloors.Size();i++)
 		{
-			F3DFloor*  rover = lastsector->e->ffloors[i];
+			F3DFloor*  rover = lastsector->e->XFloor.ffloors[i];
 
 			if(!(rover->flags & FF_SOLID) || !(rover->flags & FF_EXISTS)) continue;
 			

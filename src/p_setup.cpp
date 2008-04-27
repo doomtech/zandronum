@@ -83,6 +83,7 @@
 extern void P_SpawnMapThing (mapthing2_t *mthing, int position);
 extern bool P_LoadBuildMap (BYTE *mapdata, size_t len, mapthing2_t **things, int *numthings);
 
+extern void P_LoadTranslator(const char *lump);
 extern void P_TranslateLineDef (line_t *ld, maplinedef_t *mld);
 extern void P_TranslateTeleportThings (void);
 extern int	P_TranslateSectorSpecial (int);
@@ -445,14 +446,15 @@ bool P_CheckIfMapExists(const char * mapname){
 //
 //===========================================================================
 
-static void SetTexture (int *texture, DWORD *blend, char *name8)
+static void SetTexture (side_t *side, int position, DWORD *blend, char *name8)
 {
 	char name[9];
 	strncpy (name, name8, 8);
 	name[8] = 0;
+	int texture;
 	if ((*blend = R_ColormapNumForName (name)) == 0)
 	{
-		if ((*texture = TexMan.CheckForTexture (name, FTexture::TEX_Wall,
+		if ((texture = TexMan.CheckForTexture (name, FTexture::TEX_Wall,
 			FTextureManager::TEXMAN_Overridable|FTextureManager::TEXMAN_TryAny)
 			) == -1)
 		{
@@ -461,7 +463,7 @@ static void SetTexture (int *texture, DWORD *blend, char *name8)
 			strncpy (name2, name, 8);
 			name2[8] = 0;
 			*blend = strtoul (name2, &stop, 16);
-			*texture = 0;
+			texture = 0;
 		}
 		else
 		{
@@ -470,17 +472,19 @@ static void SetTexture (int *texture, DWORD *blend, char *name8)
 	}
 	else
 	{
-		*texture = 0;
+		texture = 0;
 	}
+	side->SetTexture(position, texture);
 }
 
-static void SetTextureNoErr (int *texture, DWORD *color, char *name8, bool *validcolor, bool isfog)
+static void SetTextureNoErr (side_t *side, int position, DWORD *color, char *name8, bool *validcolor, bool isFog)
 {
 	char name[9];
+	int texture;
 	strncpy (name, name8, 8);
 	name[8] = 0;
 	*validcolor = false;
-	if ((*texture = TexMan.CheckForTexture (name, FTexture::TEX_Wall,
+	if ((texture = TexMan.CheckForTexture (name, FTexture::TEX_Wall,
 		FTextureManager::TEXMAN_Overridable|FTextureManager::TEXMAN_TryAny)
 		) == -1)
 	{
@@ -491,14 +495,14 @@ static void SetTextureNoErr (int *texture, DWORD *color, char *name8, bool *vali
 		if (*name != '#')
 		{
 			*color = strtoul (name, &stop, 16);
-			*texture = 0;
+			texture = 0;
 			*validcolor = (*stop == 0) && (stop >= name + 2) && (stop <= name + 6);
 			return;
 		}
 		else	// Support for Legacy's color format!
 		{
 			int l=(int)strlen(name);
-			*texture = 0;
+			texture = 0;
 			*validcolor = false;
 			if (l>=7) 
 			{
@@ -510,7 +514,7 @@ static void SetTextureNoErr (int *texture, DWORD *color, char *name8, bool *vali
 				name2[4]=0; int green=strtol(name2+2,NULL,16);
 				name2[2]=0; int red=strtol(name2,NULL,16);
 
-				if (!isfog) 
+				if (!isFog) 
 				{
 					if (factor==0) 
 					{
@@ -525,13 +529,14 @@ static void SetTextureNoErr (int *texture, DWORD *color, char *name8, bool *vali
 				}
 
 				*color=MAKEARGB(factor, red, green, blue);
-				*texture = 0;
+				texture = 0;
 				*validcolor = true;
 				return;
 			}
 		}
-		*texture = 0;
+		texture = 0;
 	}
+	side->SetTexture(position, texture);
 }
 
 //===========================================================================
@@ -1140,6 +1145,10 @@ void P_LoadSectors (MapData * map)
 	map->Read(ML_SECTORS, msp);
 	ms = (mapsector_t*)msp;
 	ss = sectors;
+	
+	// Extended properties
+	sectors[0].e = new extsector_t[numsectors];
+
 	for (i = 0; i < numsectors; i++, ss++, ms++)
 	{
 		// [BC] Store changes for flats, height, and light. If these change over the course of
@@ -1149,6 +1158,7 @@ void P_LoadSectors (MapData * map)
 		ss->bCeilingHeightChange = false;
 		ss->bLightChange = false;
 
+		ss->e = &sectors[0].e[i];
 		ss->floortexz = LittleShort(ms->floorheight)<<FRACBITS;
 		ss->floorplane.d = -ss->floortexz;
 		ss->floorplane.c = FRACUNIT;
@@ -1204,8 +1214,10 @@ void P_LoadSectors (MapData * map)
 		// killough 8/28/98: initialize all sectors to normal friction
 		ss->friction = ORIG_FRICTION;
 		ss->movefactor = ORIG_FRICTION_FACTOR;
+
+		// This is so that R_FakeFlat copies can still retrieve the sector's index.
+		ss->sectornum = i;
 	}
-	P_CreateExtSectors();
 	delete[] msp;
 }
 
@@ -1892,6 +1904,10 @@ void P_AdjustLine (line_t *ld)
 		case Polyobj_ExplicitLine:
 			ld->id = ld->args[4];
 			break;
+
+		case Static_Init:
+			if (ld->args[1] == Init_SectorLink) ld->id = ld->args[0];
+			break;
 		}
 	}
 }
@@ -2115,6 +2131,7 @@ void P_LoadLineDefs (MapData * map)
 
 		if (level.flags & LEVEL_CLIPMIDTEX) ld->flags |= ML_CLIP_MIDTEX;
 		if (level.flags & LEVEL_WRAPMIDTEX) ld->flags |= ML_WRAP_MIDTEX;
+		if (level.flags & LEVEL_CHECKSWITCHRANGE) ld->flags |= ML_CHECKSWITCHRANGE;
 	}
 	delete[] mldf;
 }
@@ -2201,6 +2218,7 @@ void P_LoadLineDefs2 (MapData * map)
 
 		if (level.flags & LEVEL_CLIPMIDTEX) ld->flags |= ML_CLIP_MIDTEX;
 		if (level.flags & LEVEL_WRAPMIDTEX) ld->flags |= ML_WRAP_MIDTEX;
+		if (level.flags & LEVEL_CHECKSWITCHRANGE) ld->flags |= ML_CHECKSWITCHRANGE;
 	}
 	delete[] mldf;
 }
@@ -2421,8 +2439,8 @@ void P_LoadSideDefs2 (MapData * map)
 			msd->rowoffset += 102;
 		}
 
-		sd->textureoffset = LittleShort(msd->textureoffset)<<FRACBITS;
-		sd->rowoffset = LittleShort(msd->rowoffset)<<FRACBITS;
+		sd->SetTextureXOffset(LittleShort(msd->textureoffset)<<FRACBITS);
+		sd->SetTextureYOffset(LittleShort(msd->rowoffset)<<FRACBITS);
 		sd->linenum = NO_INDEX;
 
 		// killough 4/4/98: allow sidedef texture names to be overloaded
@@ -2447,9 +2465,9 @@ void P_LoadSideDefs2 (MapData * map)
 			  //	  instead of figuring something out from the colormap.
 			if (sec != NULL)
 			{
-				SetTexture (&sd->bottomtexture, &sec->bottommap, msd->bottomtexture);
-				SetTexture (&sd->midtexture, &sec->midmap, msd->midtexture);
-				SetTexture (&sd->toptexture, &sec->topmap, msd->toptexture);
+				SetTexture (sd, side_t::bottom, &sec->bottommap, msd->bottomtexture);
+				SetTexture (sd, side_t::mid, &sec->midmap, msd->midtexture);
+				SetTexture (sd, side_t::top, &sec->topmap, msd->toptexture);
 			}
 			break;
 
@@ -2461,10 +2479,11 @@ void P_LoadSideDefs2 (MapData * map)
 				DWORD color, fog;
 				bool colorgood, foggood;
 
-				SetTextureNoErr (&sd->bottomtexture, &fog, msd->bottomtexture, &foggood, true);
-				SetTextureNoErr (&sd->toptexture, &color, msd->toptexture, &colorgood, false);
+				SetTextureNoErr (sd, side_t::bottom, &fog, msd->bottomtexture, &foggood, true);
+				SetTextureNoErr (sd, side_t::top, &color, msd->toptexture, &colorgood, false);
 				strncpy (name, msd->midtexture, 8);
-				sd->midtexture = TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable);
+				sd->SetTexture(side_t::mid, 
+					TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable));
 
 				if (colorgood | foggood)
 				{
@@ -2494,20 +2513,20 @@ void P_LoadSideDefs2 (MapData * map)
 			if (msd->toptexture[0]=='#')
 			{
 				strncpy (name, msd->toptexture, 8);
-				sd->toptexture = -strtol(name+1, NULL, 10);	// store the alpha as a negative texture index
+				sd->SetTexture(side_t::top, -strtol(name+1, NULL, 10));	// store the alpha as a negative texture index
 															// This will be sorted out by the 3D-floor code later.
 			}
 			else
 			{
 				strncpy (name, msd->toptexture, 8);
-				sd->toptexture = TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable);
+				sd->SetTexture(side_t::top, TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable));
 			}
 
 			strncpy (name, msd->midtexture, 8);
-			sd->midtexture = TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable);
+			sd->SetTexture(side_t::mid, TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable));
 
 			strncpy (name, msd->bottomtexture, 8);
-			sd->bottomtexture = TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable);
+			sd->SetTexture(side_t::bottom, TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable));
 			break;
 
 		case TranslucentLine:	// killough 4/11/98: apply translucency to 2s normal texture
@@ -2518,53 +2537,48 @@ void P_LoadSideDefs2 (MapData * map)
 				if (strnicmp ("TRANMAP", msd->midtexture, 8) == 0)
 				{
 					// The translator set the alpha argument already; no reason to do it again.
-					sd->midtexture = 0;
+					sd->SetTexture(side_t::mid, 0);
 				}
 				else if ((lumpnum = Wads.CheckNumForName (msd->midtexture)) > 0 &&
 					Wads.LumpLength (lumpnum) == 65536)
 				{
 					sidetemp[i].a.alpha = P_DetermineTranslucency (lumpnum);
-					sd->midtexture = 0;
+					sd->SetTexture(side_t::mid, 0);
 				}
 				else
 				{
 					strncpy (name, msd->midtexture, 8);
-					sd->midtexture = TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable);
+					sd->SetTexture(side_t::mid, 
+						TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable));
 				}
 
 				strncpy (name, msd->toptexture, 8);
-				sd->toptexture = TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable);
+				sd->SetTexture(side_t::top, TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable));
 
 				strncpy (name, msd->bottomtexture, 8);
-				sd->bottomtexture = TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable);
+				sd->SetTexture(side_t::bottom, TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable));
 				break;
 			}
 			// Fallthrough for Hexen maps is intentional
-#if 0
-			sd->midtexture = strncasecmp("TRANMAP", msd->midtexture, 8) ?
-				(sd->special = W_CheckNumForName(msd->midtexture)) < 0 ||
-				W_LumpLength(sd->special) != 65536 ?
-				sd->special=0, R_TextureNumForName(msd->midtexture) :
-					(sd->special++, 0) : (sd->special=0);
-			sd->toptexture = R_TextureNumForName(msd->toptexture);
-			sd->bottomtexture = R_TextureNumForName(msd->bottomtexture);
-#endif
 
 		default:			// normal cases
 			strncpy (name, msd->midtexture, 8);
-			sd->midtexture = TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable);
+			sd->SetTexture(side_t::mid, 
+				TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable));
 
 			strncpy (name, msd->toptexture, 8);
-			sd->toptexture = TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable);
+			sd->SetTexture(side_t::top, 
+				TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable));
 
 			strncpy (name, msd->bottomtexture, 8);
-			sd->bottomtexture = TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable);
+			sd->SetTexture(side_t::bottom, 
+				TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable));
 			break;
 		}
 
-		sd->SavedTopTexture = sd->toptexture;
-		sd->SavedMidTexture = sd->midtexture;
-		sd->SavedBottomTexture = sd->bottomtexture;
+		sd->SavedTopTexture = sd->GetTexture(side_t::top);
+		sd->SavedMidTexture = sd->GetTexture(side_t::mid);
+		sd->SavedBottomTexture = sd->GetTexture(side_t::bottom);
 	}
 	delete[] msdf;
 }
@@ -3752,7 +3766,7 @@ void P_FreeLevelData ()
 	level.total_monsters = level.total_items = level.total_secrets =
 		level.killed_monsters = level.found_items = level.found_secrets =
 		wminfo.maxfrags = 0;
-	P_CleanExtSectors();
+		
 	FBehavior::StaticUnloadModules ();
 	if (vertexes != NULL)
 	{
@@ -3766,6 +3780,7 @@ void P_FreeLevelData ()
 	}
 	if (sectors != NULL)
 	{
+		delete[] sectors[0].e;
 		delete[] sectors;
 		sectors = NULL;
 		numsectors = 0;	// needed for the pointer cleanup code
@@ -3917,7 +3932,6 @@ void P_SetupLevel (char *lumpname, int position)
 
 	wminfo.partime = 180;
 
-	clearinterpolations();	// [RH] Nothing to interpolate on a fresh level.
 	FCanvasTextureInfo::EmptyList ();
 	R_FreePastViewers ();
 
@@ -3962,6 +3976,7 @@ void P_SetupLevel (char *lumpname, int position)
 
 	// Free all level data from the previous map
 	P_FreeLevelData ();
+	clearinterpolations();	// [RH] Nothing to interpolate on a fresh level.
 
 	MapData * map = P_OpenMapData(lumpname);
 	if (map == NULL)
@@ -4006,7 +4021,15 @@ void P_SetupLevel (char *lumpname, int position)
 			{
 				level.flags &= ~LEVEL_LAXMONSTERACTIVATION;
 			}
+
+			// We need translators only for Doom format maps.
+			// If none has been defined in a map use the game's default.
+			P_LoadTranslator(level.info->translator != NULL? (const char *)level.info->translator : gameinfo.translator);
 		}
+		/* [BB] ST doesn't have fragglescript support.
+		T_LoadScripts (map);    
+		*/
+
 		FBehavior::StaticLoadDefaultModules ();
 
 		P_LoadStrifeConversations (lumpname);
@@ -4212,9 +4235,6 @@ void P_SetupLevel (char *lumpname, int position)
 		delete[] buildthings;
 	}
 	delete map;
-
-	// Reordered the spawning of specials due to the needs of the 
-	// OpenGL renderer!
 
 	// set up world state
 	P_SpawnSpecials ();

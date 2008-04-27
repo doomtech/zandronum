@@ -73,7 +73,7 @@
 #include "vectors.h"
 #include "sbarinfo.h"
 #include "r_translate.h"
-#include "sbarinfo.h"
+#include "p_lnspec.h"
 // [BB] New #includes.
 #include "cl_main.h"
 #include "deathmatch.h"
@@ -329,6 +329,9 @@ static const char *MapInfoMapLevel[] =
 	"skyfog",
 	"teamplayon",
 	"teamplayoff",
+	"checkswitchrange",
+	"nocheckswitchrange",
+	"translator",
 	NULL
 };
 
@@ -399,8 +402,8 @@ MapHandlers[] =
 	{ MITYPE_SETFLAG,	LEVEL_FORCENOSKYSTRETCH, 0 },
 	{ MITYPE_SCFLAGS,	LEVEL_FREELOOK_YES, ~LEVEL_FREELOOK_NO },
 	{ MITYPE_SCFLAGS,	LEVEL_FREELOOK_NO, ~LEVEL_FREELOOK_YES },
-	{ MITYPE_SCFLAGS,	LEVEL_JUMP_YES, ~LEVEL_JUMP_NO },
-	{ MITYPE_SCFLAGS,	LEVEL_JUMP_NO, ~LEVEL_JUMP_YES },
+	{ MITYPE_CLRFLAG,	LEVEL_JUMP_NO, 0 },
+	{ MITYPE_SETFLAG,	LEVEL_JUMP_NO, 0 },
 	{ MITYPE_SCFLAGS,	LEVEL_FALLDMG_HX, ~LEVEL_FALLDMG_ZD },
 	{ MITYPE_SCFLAGS,	LEVEL_FALLDMG_ZD, ~LEVEL_FALLDMG_HX },
 	{ MITYPE_SCFLAGS,	LEVEL_FALLDMG_ZD, ~LEVEL_FALLDMG_HX },
@@ -445,8 +448,8 @@ MapHandlers[] =
 	{ MITYPE_LUMPNAME,	lioffset(soundinfo), 0 },
 	{ MITYPE_SETFLAG,	LEVEL_CLIPMIDTEX, 0 },
 	{ MITYPE_SETFLAG,	LEVEL_WRAPMIDTEX, 0 },
-	{ MITYPE_SCFLAGS,	LEVEL_CROUCH_YES, ~LEVEL_CROUCH_NO },
-	{ MITYPE_SCFLAGS,	LEVEL_CROUCH_NO, ~LEVEL_CROUCH_YES },
+	{ MITYPE_CLRFLAG,	LEVEL_CROUCH_NO, 0 },
+	{ MITYPE_SETFLAG,	LEVEL_CROUCH_NO, 0 },
 	{ MITYPE_SCFLAGS,	LEVEL_PAUSE_MUSIC_IN_MENUS, 0 },
 	{ MITYPE_COMPATFLAG, COMPATF_SHORTTEX},
 	{ MITYPE_COMPATFLAG, COMPATF_STAIRINDEX},
@@ -477,6 +480,9 @@ MapHandlers[] =
 	{ MITYPE_INT,		lioffset(skyfog), 0 },
 	{ MITYPE_SCFLAGS,	LEVEL_FORCETEAMPLAYON, ~LEVEL_FORCETEAMPLAYOFF },
 	{ MITYPE_SCFLAGS,	LEVEL_FORCETEAMPLAYOFF, ~LEVEL_FORCETEAMPLAYON },
+	{ MITYPE_SETFLAG,	LEVEL_CHECKSWITCHRANGE, 0 },
+	{ MITYPE_CLRFLAG,	LEVEL_CHECKSWITCHRANGE, 0 },
+	{ MITYPE_STRING,	lioffset(translator), 0 },
 };
 
 static const char *MapInfoClusterLevel[] =
@@ -627,6 +633,20 @@ void G_ParseMapInfo ()
 	}
 }
 
+static FSpecialAction *CopySpecialActions(FSpecialAction *spec)
+{
+	FSpecialAction **pSpec = &spec;
+
+	while (*pSpec)
+	{
+		FSpecialAction *newspec = new FSpecialAction;
+		*newspec = **pSpec;
+		*pSpec = newspec;
+		pSpec = &newspec->Next;
+	}
+	return spec;
+}
+
 static void G_DoParseMapInfo (int lump)
 {
 	level_info_t defaultinfo;
@@ -646,8 +666,7 @@ static void G_DoParseMapInfo (int lump)
 		switch (sc.MustMatchString (MapInfoTopLevel))
 		{
 		case MITL_DEFAULTMAP:
-			if (defaultinfo.music != NULL) delete [] defaultinfo.music;
-			if (defaultinfo.intermusic != NULL) delete [] defaultinfo.intermusic;
+			ClearLevelInfoStrings(&defaultinfo);
 			SetLevelDefaults (&defaultinfo);
 			ParseMapInfoLower (sc, MapHandlers, MapInfoMapLevel, &defaultinfo, NULL, defaultinfo.flags);
 			break;
@@ -690,6 +709,11 @@ static void G_DoParseMapInfo (int lump)
 			{
 				levelinfo->intermusic = copystring (levelinfo->intermusic);
 			}
+			if (levelinfo->translator != NULL)
+			{
+				levelinfo->translator = copystring (levelinfo->translator);
+			}
+			levelinfo->specialactions = CopySpecialActions(levelinfo->specialactions);
 			if (HexenHack)
 			{
 				levelinfo->WallHorizLight = levelinfo->WallVertLight = 0;
@@ -795,14 +819,7 @@ static void G_DoParseMapInfo (int lump)
 
 		}
 	}
-	if (defaultinfo.music != NULL)
-	{
-		delete [] defaultinfo.music;
-	}
-	if (defaultinfo.intermusic != NULL)
-	{
-		delete [] defaultinfo.intermusic;
-	}
+	ClearLevelInfoStrings(&defaultinfo);
 }
 
 static void ClearLevelInfoStrings(level_info_t *linfo)
@@ -821,6 +838,11 @@ static void ClearLevelInfoStrings(level_info_t *linfo)
 	{
 		delete[] linfo->level_name;
 		linfo->level_name = NULL;
+	}
+	if (linfo->translator != NULL)
+	{
+		delete[] linfo->translator;
+		linfo->translator = NULL;
 	}
 	for (FSpecialAction *spac = linfo->specialactions; spac != NULL; )
 	{
@@ -1142,10 +1164,9 @@ static void ParseMapInfoLower (FScanner &sc,
 
 		case MITYPE_SPECIALACTION:
 			{
-				int FindLineSpecial(const char *str);
-
 				FSpecialAction **so = (FSpecialAction**)(info + handler->data1);
 				FSpecialAction *sa = new FSpecialAction;
+				int min_arg, max_arg;
 				sa->Next = *so;
 				*so = sa;
 				sc.SetCMode(true);
@@ -1153,14 +1174,23 @@ static void ParseMapInfoLower (FScanner &sc,
 				sa->Type = FName(sc.String);
 				sc.CheckString(",");
 				sc.MustGetString();
-				strlwr(sc.String);
-				sa->Action = FindLineSpecial(sc.String);
+				sa->Action = P_FindLineSpecial(sc.String, &min_arg, &max_arg);
+				if (sa->Action == 0 || min_arg < 0)
+				{
+					sc.ScriptError("Unknown specialaction '%s'");
+				}
 				int j = 0;
 				while (j < 5 && sc.CheckString(","))
 				{
 					sc.MustGetNumber();
 					sa->Args[j++] = sc.Number;
 				}
+				/*
+				if (j<min || j>max)
+				{
+					// Should be an error but can't for compatibility.
+				}
+				*/
 				sc.SetCMode(false);
 			}
 			break;
@@ -2836,7 +2866,7 @@ void G_StartTravel ()
 //==========================================================================
 
 // [BC]
-bool	P_AdjustFloorCeil (AActor *thing);
+bool	P_OldAdjustFloorCeil (AActor *thing);
 void G_FinishTravel ()
 {
 	TThinkerIterator<APlayerPawn> it (STAT_TRAVELLING);
@@ -2915,7 +2945,7 @@ void G_FinishTravel ()
 				// [BC] This is necessary, otherwise all the sector links for the inventory
 				// end up being off. This is a problem if the object tries to move or
 				// something, which is the case with bobbing objects.
-				P_AdjustFloorCeil( inv );
+				P_OldAdjustFloorCeil( inv );
 			}
 			if (level.FromSnapshot)
 			{
@@ -3052,20 +3082,20 @@ void G_InitLevelLocals ()
 
 bool level_locals_s::IsJumpingAllowed() const
 {
-	if (level.flags & LEVEL_JUMP_NO)
+	if (dmflags & DF_NO_JUMP)
 		return false;
-	if (level.flags & LEVEL_JUMP_YES)
+	if (dmflags & DF_YES_JUMP)
 		return true;
-	return !(dmflags & DF_NO_JUMP);
+	return !(level.flags & LEVEL_JUMP_NO);
 }
 
 bool level_locals_s::IsCrouchingAllowed() const
 {
-	if (level.flags & LEVEL_CROUCH_NO)
+	if (dmflags & DF_NO_CROUCH)
 		return false;
-	if (level.flags & LEVEL_CROUCH_YES)
+	if (dmflags & DF_YES_CROUCH)
 		return true;
-	return !(dmflags & DF_NO_CROUCH);
+	return !(level.flags & LEVEL_CROUCH_NO);
 }
 
 bool level_locals_s::IsFreelookAllowed() const

@@ -1,5 +1,3 @@
-#include "gl_pch.h"
-
 
 /*
 ** gl_glow.cpp
@@ -40,6 +38,7 @@
 **
 */
 
+#include "gl/gl_include.h"
 #include "w_wad.h"
 #include "sc_man.h"
 

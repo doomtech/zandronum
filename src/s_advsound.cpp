@@ -3,7 +3,7 @@
 ** Routines for managing SNDINFO lumps and ambient sounds
 **
 **---------------------------------------------------------------------------
-** Copyright 1998-2007 Randy Heit
+** Copyright 1998-2008 Randy Heit
 ** All rights reserved.
 **
 ** Redistribution and use in source and binary forms, with or without
@@ -148,7 +148,9 @@ enum SICommands
 	SI_IfDoom,
 	SI_IfHeretic,
 	SI_IfHexen,
-	SI_IfStrife
+	SI_IfStrife,
+	SI_Rolloff,
+	SI_Volume,
 };
 
 // Blood was a cool game. If Monolith ever releases the source for it,
@@ -188,7 +190,7 @@ MidiDeviceMap MidiDevices;
 // EXTERNAL FUNCTION PROTOTYPES --------------------------------------------
 
 void S_StartNamedSound (AActor *ent, fixed_t *pt, int channel, 
-	const char *name, float volume, float attenuation, bool looping);
+	const char *name, float volume, float attenuation);
 extern bool IsFloat (const char *str);
 
 // PUBLIC FUNCTION PROTOTYPES ----------------------------------------------
@@ -243,6 +245,8 @@ static const char *SICommandStrings[] =
 	"$ifheretic",
 	"$ifhexen",
 	"$ifstrife",
+	"$rolloff",
+	"$volume",
 	NULL
 };
 
@@ -436,12 +440,29 @@ int S_AddSoundLump (const char *logicalname, int lump)
 {
 	sfxinfo_t newsfx;
 
-	memset (&newsfx.lumpnum, 0, sizeof(newsfx)-sizeof(newsfx.name));
+	newsfx.data = NULL;
 	newsfx.name = logicalname;
 	newsfx.lumpnum = lump;
-	newsfx.link = sfxinfo_t::NO_LINK;
+	newsfx.next = 0;
+	newsfx.index = 0;
+	newsfx.Volume = 1;
 	newsfx.PitchMask = CurrentPitchMask;
-	newsfx.MaxChannels = 2;
+	newsfx.NearLimit = 2;
+	newsfx.bRandomHeader = false;
+	newsfx.bPlayerReserve = false;
+	newsfx.bForce11025 = false;
+	newsfx.bForce22050 = false;
+	newsfx.bLoadRAW = false;
+	newsfx.bPlayerCompat = false;
+	newsfx.b16bit = false;
+	newsfx.bUsed = false;
+	newsfx.bSingular = false;
+	newsfx.bTentative = false;
+	newsfx.RolloffType = ROLLOFF_Doom;
+	newsfx.link = sfxinfo_t::NO_LINK;
+	newsfx.MinDistance = 0;
+	newsfx.MaxDistance = 0;
+
 	return (int)S_sfx.Push (newsfx);
 }
 
@@ -761,10 +782,10 @@ static void S_ClearSoundData()
 
 	if (GSnd != NULL)
 	{
-		GSnd->StopAllChannels();
+		S_StopAllChannels();
 		for (i = 0; i < S_sfx.Size(); ++i)
 		{
-			GSnd->UnloadSound (&S_sfx[i]);
+			GSnd->UnloadSound(&S_sfx[i]);
 		}
 	}
 	S_sfx.Clear();
@@ -1096,9 +1117,7 @@ static void S_AddSNDINFO (int lump)
 				sc.MustGetString ();
 				sfx = S_FindSoundTentative (sc.String);
 				sc.MustGetNumber ();
-				//S_sfx[sfx].MaxChannels = clamp<BYTE> (sc.Number, 0, 255);
-				//Can't use clamp because of GCC bugs
-				S_sfx[sfx].MaxChannels = MIN (MAX (sc.Number, 0), 255);
+				S_sfx[sfx].NearLimit = MIN(MAX(sc.Number, 0), 255);
 				}
 				break;
 
@@ -1128,6 +1147,73 @@ static void S_AddSNDINFO (int lump)
 				sc.MustGetNumber ();
 				CurrentPitchMask = (1 << clamp (sc.Number, 0, 7)) - 1;
 				break;
+
+			case SI_Volume: {
+				// $volume <logical name> <volume>
+				int sfx;
+
+				sc.MustGetString();
+				sfx = S_FindSoundTentative(sc.String);
+				sc.MustGetFloat();
+				S_sfx[sfx].Volume = sc.Float;
+				}
+				break;
+
+			case SI_Rolloff: {
+				// $rolloff *|<logical name> [linear|log|custom] <min dist> <max dist/rolloff factor>
+				// Using * for the name makes it the default for sounds that don't specify otherwise.
+				float *min, *max;
+				int type;
+				int sfx;
+
+				sc.MustGetString();
+				if (sc.Compare("*"))
+				{
+					sfx = -1;
+					min = &S_MinDistance;
+					max = &S_MaxDistanceOrRolloffFactor;
+				}
+				else
+				{
+					sfx = S_FindSoundTentative(sc.String);
+					min = &S_sfx[sfx].MinDistance;
+					max = &S_sfx[sfx].MaxDistance;
+				}
+				type = ROLLOFF_Doom;
+				if (!sc.CheckFloat())
+				{
+					sc.MustGetString();
+					if (sc.Compare("linear"))
+					{
+						type = ROLLOFF_Linear;
+					}
+					else if (sc.Compare("log"))
+					{
+						type = ROLLOFF_Log;
+					}
+					else if (sc.Compare("custom"))
+					{
+						type = ROLLOFF_Custom;
+					}
+					else
+					{
+						sc.ScriptError("Unknown rolloff type '%s'", sc.String);
+					}
+					sc.MustGetFloat();
+				}
+				if (sfx < 0)
+				{
+					S_RolloffType = type;
+				}
+				else
+				{
+					S_sfx[sfx].RolloffType = type;
+				}
+				*min = sc.Float;
+				sc.MustGetFloat();
+				*max = sc.Float;
+				break;
+			  }
 
 			case SI_Random: {
 				// $random <logical name> { <logical name> ... }
@@ -1178,10 +1264,11 @@ static void S_AddSNDINFO (int lump)
 				sc.MustGetString();
 				FName nm = sc.String;
 				sc.MustGetString();
-				if (sc.Compare("timidity")) MidiDevices[nm] = 1;
-				else if (sc.Compare("standard")) MidiDevices[nm] = 0;
-				else if (sc.Compare("opl")) MidiDevices[nm] = 2;
-				else if (sc.Compare("default")) MidiDevices[nm] = -1;
+				if (sc.Compare("timidity")) MidiDevices[nm] = MDEV_TIMIDITY;
+				else if (sc.Compare("fmod")) MidiDevices[nm] = MDEV_FMOD;
+				else if (sc.Compare("standard")) MidiDevices[nm] = MDEV_MMAPI;
+				else if (sc.Compare("opl")) MidiDevices[nm] = MDEV_OPL;
+				else if (sc.Compare("default")) MidiDevices[nm] = MDEV_DEFAULT;
 				else sc.ScriptError("Unknown MIDI device %s\n", sc.String);
 				}
 				break;
@@ -1820,8 +1907,8 @@ void AAmbientSound::Tick ()
 
 		if (ambient->sound[0])
 		{
-			S_StartNamedSound (this, NULL, CHAN_BODY, ambient->sound,
-				ambient->volume, ambient->attenuation, true);
+			S_StartNamedSound (this, NULL, CHAN_BODY|CHAN_LOOP, ambient->sound,
+				ambient->volume, ambient->attenuation);
 			SetTicker (ambient);
 		}
 		else
@@ -1834,7 +1921,7 @@ void AAmbientSound::Tick ()
 		if (ambient->sound[0])
 		{
 			S_StartNamedSound (this, NULL, CHAN_BODY, ambient->sound,
-				ambient->volume, ambient->attenuation, false);
+				ambient->volume, ambient->attenuation);
 			SetTicker (ambient);
 		}
 		else
@@ -1891,20 +1978,15 @@ void AAmbientSound::Activate (AActor *activator)
 
 	if (!bActive)
 	{
-		if (!(amb->type & 3) && !amb->periodmin)
+		if ((amb->type & 3) == 0 && amb->periodmin == 0)
 		{
-			int sndnum = S_FindSound (amb->sound);
+			int sndnum = S_FindSound(amb->sound);
 			if (sndnum == 0)
 			{
 				Destroy ();
 				return;
 			}
-			sfxinfo_t *sfx = &S_sfx[sndnum];
-
-			// Make sure the sound has been loaded so we know how long it is
-			if (!sfx->data && GSnd != NULL)
-				GSnd->LoadSound (sfx);
-			amb->periodmin = (sfx->ms * TICRATE) / 1000;
+			amb->periodmin = Scale(GSnd->GetMSLength(&S_sfx[sndnum]), TICRATE, 1000);
 		}
 
 		NextCheck = gametic;

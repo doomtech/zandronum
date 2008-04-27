@@ -44,8 +44,8 @@
 #define DOTVERSIONSTR_NOREV DOTVERSIONSTR
 
 #define ZDVER_STRING "2.2.0"
-#define ZD_SVN_REVISION_STRING "807"
-#define ZD_SVN_REVISION_NUMBER 807
+#define ZD_SVN_REVISION_STRING "862"
+#define ZD_SVN_REVISION_NUMBER 862
 
 // [BB] The version string that includes revision / compatibility data.
 #define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING
@@ -83,7 +83,7 @@
 // Protocol version used in demos.
 // Bump it if you change existing DEM_ commands or add new ones.
 // Otherwise, it should be safe to leave it alone.
-#define DEMOGAMEVERSION 0x20B
+#define DEMOGAMEVERSION 0x20C
 
 // Minimum demo version we can play.
 // Bump it whenever you change or remove existing DEM_ commands.
@@ -97,13 +97,28 @@
 // SAVESIG should match SAVEVER.
 
 // MINSAVEVER is the minimum level snapshot version that can be loaded.
-#define MINSAVEVER 795
+#define MINSAVEVER 854
 
-#if SVN_REVISION_NUMBER == 0
-// This can happen if svnrevision is not updated properly (e.g. compiling while offline)
+#if ZD_SVN_REVISION_NUMBER < MINSAVEVER
+// Never write a savegame with a version lower than what we need
 #define SAVEVER			MINSAVEVER
-#define MAKESAVESIG(x)	"ZDOOMSAVE" #x
-#define SAVESIG			MAKESAVESIG(SAVEVER)
+#define SAVESIG			MakeSaveSig()
+static inline const char *MakeSaveSig()
+{
+	static char foo[] = { 'Z','D','O','O','M','S','A','V','E',
+#if SAVEVER > 9999
+		'0' + (SAVEVER / 10000),
+#endif
+#if SAVEVER > 999
+		'0' + ((SAVEVER / 1000) % 10),
+#endif
+		'0' + ((SAVEVER / 100) % 10),
+		'0' + ((SAVEVER / 10) % 10),
+		'0' + (SAVEVER % 10),
+		'\0'
+	};
+	return foo;
+}
 #else
 // savegame versioning is based on ZDoom revisions
 #define SAVEVER			ZD_SVN_REVISION_NUMBER

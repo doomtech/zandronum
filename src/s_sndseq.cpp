@@ -102,8 +102,7 @@ public:
 	DSeqActorNode (AActor *actor, int sequence, int modenum);
 	void Destroy ();
 	void Serialize (FArchive &arc);
-	void MakeSound () { S_SoundID (m_Actor, CHAN_BODY, m_CurrentSoundID, clamp(m_Volume, 0.f, 1.f), m_Atten); }
-	void MakeLoopedSound () { S_LoopedSoundID (m_Actor, CHAN_BODY, m_CurrentSoundID, clamp(m_Volume, 0.f, 1.f), m_Atten); }
+	void MakeSound (int loop) { S_SoundID (m_Actor, CHAN_BODY|loop, m_CurrentSoundID, clamp(m_Volume, 0.f, 1.f), m_Atten); }
 	bool IsPlaying () { return S_IsActorPlayingSomething (m_Actor, CHAN_BODY, m_CurrentSoundID); }
 	void *Source () { return m_Actor; }
 	DSeqNode *SpawnChild (int seqnum) { return SN_StartSequence (m_Actor, seqnum, SEQ_NOTRANS, m_ModeNum, true); }
@@ -119,8 +118,7 @@ public:
 	DSeqPolyNode (polyobj_t *poly, int sequence, int modenum);
 	void Destroy ();
 	void Serialize (FArchive &arc);
-	void MakeSound () { S_SoundID (&m_Poly->startSpot[0], CHAN_BODY, m_CurrentSoundID, clamp(m_Volume, 0.f, 1.f), m_Atten); }
-	void MakeLoopedSound () { S_LoopedSoundID (&m_Poly->startSpot[0], CHAN_BODY, m_CurrentSoundID, clamp(m_Volume, 0.f, 1.f), m_Atten); }
+	void MakeSound (int loop) { S_SoundID (&m_Poly->startSpot[0], CHAN_BODY|loop, m_CurrentSoundID, clamp(m_Volume, 0.f, 1.f), m_Atten); }
 	bool IsPlaying () { return S_GetSoundPlayingInfo (&m_Poly->startSpot[0], m_CurrentSoundID); }
 	void *Source () { return m_Poly; }
 	DSeqNode *SpawnChild (int seqnum) { return SN_StartSequence (m_Poly, seqnum, SEQ_NOTRANS, m_ModeNum, true); }
@@ -133,11 +131,10 @@ class DSeqSectorNode : public DSeqNode
 {
 	DECLARE_CLASS (DSeqSectorNode, DSeqNode)
 public:
-	DSeqSectorNode (sector_t *sec, int sequence, int modenum);
+	DSeqSectorNode (sector_t *sec, int sequence, int modenum, bool is_door);
 	void Destroy ();
 	void Serialize (FArchive &arc);
-	void MakeSound () { S_SoundID (&m_Sector->soundorg[0], CHAN_BODY, m_CurrentSoundID, clamp(m_Volume, 0.f, 1.f), m_Atten); Looping = false; }
-	void MakeLoopedSound () { S_LoopedSoundID (&m_Sector->soundorg[0], CHAN_BODY, m_CurrentSoundID, clamp(m_Volume, 0.f, 1.f), m_Atten); Looping = true; }
+	void MakeSound (int loop) { S_SoundID (&m_Sector->soundorg[0], CHAN_BODY|(m_IsDoor ? 0 : CHAN_AREA)|loop, m_CurrentSoundID, clamp(m_Volume, 0.f, 1.f), m_Atten); Looping = !!loop; }
 	bool IsPlaying () { return S_GetSoundPlayingInfo (m_Sector->soundorg, m_CurrentSoundID); }
 	void *Source () { return m_Sector; }
 	DSeqNode *SpawnChild (int seqnum) { return SN_StartSequence (m_Sector, seqnum, SEQ_NOTRANS, m_ModeNum, true); }
@@ -145,6 +142,7 @@ public:
 private:
 	DSeqSectorNode() {}
 	sector_t *m_Sector;
+	bool m_IsDoor;
 };
 
 // When destroyed, destroy the sound sequences too.
@@ -163,7 +161,7 @@ struct FSoundSequencePtrArray : public TArray<FSoundSequence *>
 
 static void AssignTranslations (FScanner &sc, int seq, seqtype_t type);
 static void AssignHexenTranslations (void);
-static void AddSequence (int curseq, FName seqname, FName slot, int stopsound, const TArray<DWORD> &ScriptTemp);
+static void AddSequence (int curseq, FName seqname, FName slot, int stopsound, const TArray<DWORD> &ScriptTemp, bool bDoorSound);
 static int FindSequence (const char *searchname);
 static int FindSequence (FName seqname);
 static bool TwiddleSeqNum (int &sequence, seqtype_t type);
@@ -397,7 +395,7 @@ IMPLEMENT_CLASS (DSeqSectorNode)
 void DSeqSectorNode::Serialize (FArchive &arc)
 {
 	Super::Serialize (arc);
-	arc << m_Sector << Looping;
+	arc << m_Sector << Looping << m_IsDoor;
 }
 
 //==========================================================================
@@ -410,15 +408,14 @@ static void AssignTranslations (FScanner &sc, int seq, seqtype_t type)
 {
 	sc.Crossed = false;
 
-	while (sc.GetString () && !sc.Crossed)
+	while (sc.GetString() && !sc.Crossed)
 	{
-		if (IsNum (sc.String))
+		if (IsNum(sc.String))
 		{
 			SeqTrans[(atoi(sc.String) & 63) + type * 64] = seq;
 		}
 	}
-
-	sc.UnGet ();
+	sc.UnGet();
 }
 
 //==========================================================================
@@ -446,11 +443,14 @@ static void AssignHexenTranslations (void)
 			int trans;
 
 			if (HexenSequences[i].Seqs[j] & 0x40)
-				trans = 64;
+			{
+				trans = 64 * SEQ_DOOR;
+				Sequences[seq]->bDoorSound |= true;
+			}
 			else if (HexenSequences[i].Seqs[j] & 0x80)
-				trans = 64*2;
+				trans = 64 * SEQ_ENVIRONMENT;
 			else
-				trans = 0;
+				trans = 64 * SEQ_PLATFORM;
 
 			SeqTrans[trans + (HexenSequences[i].Seqs[j] & 0x3f)] = seq;
 		}
@@ -502,6 +502,8 @@ void S_ParseSndSeq (int levellump)
 		FScanner sc(lump, "SNDSEQ");
 		while (sc.GetString ())
 		{
+			bool bDoorSound = false;
+
 			if (*sc.String == ':' || *sc.String == '[')
 			{
 				if (curseq != -1)
@@ -526,6 +528,7 @@ void S_ParseSndSeq (int levellump)
 				ScriptTemp.Clear();
 				stopsound = 0;
 				slot = NAME_None;
+				bDoorSound = false;
 				if (seqtype == '[')
 				{
 					sc.SetCMode (true);
@@ -542,7 +545,7 @@ void S_ParseSndSeq (int levellump)
 				if (sc.String[0] == ']')
 				{ // End of this definition
 					ScriptTemp[0] = MakeCommand(SS_CMD_SELECT, (ScriptTemp.Size()-1)/2);
-					AddSequence (curseq, seqname, slot, stopsound, ScriptTemp);
+					AddSequence (curseq, seqname, slot, stopsound, ScriptTemp, bDoorSound);
 					curseq = -1;
 					sc.SetCMode (false);
 				}
@@ -557,7 +560,9 @@ void S_ParseSndSeq (int levellump)
 					}
 					else
 					{
-						AssignTranslations (sc, curseq, seqtype_t(sc.MustMatchString (SSStrings + SS_STRING_PLATFORM)));
+						seqtype_t seqtype = seqtype_t(sc.MustMatchString (SSStrings + SS_STRING_PLATFORM));
+						AssignTranslations (sc, curseq, seqtype);
+						if (seqtype == SEQ_DOOR) bDoorSound = true;
 					}
 				}
 				continue;
@@ -656,7 +661,7 @@ void S_ParseSndSeq (int levellump)
 					break;
 
 				case SS_STRING_END:
-					AddSequence (curseq, seqname, slot, stopsound, ScriptTemp);
+					AddSequence (curseq, seqname, slot, stopsound, ScriptTemp, bDoorSound);
 					curseq = -1;
 					break;
 
@@ -666,6 +671,7 @@ void S_ParseSndSeq (int levellump)
 
 				case SS_STRING_DOOR:
 					AssignTranslations (sc, curseq, SEQ_DOOR);
+					bDoorSound = true;
 					break;
 
 				case SS_STRING_ENVIRONMENT:
@@ -684,12 +690,13 @@ void S_ParseSndSeq (int levellump)
 		AssignHexenTranslations ();
 }
 
-static void AddSequence (int curseq, FName seqname, FName slot, int stopsound, const TArray<DWORD> &ScriptTemp)
+static void AddSequence (int curseq, FName seqname, FName slot, int stopsound, const TArray<DWORD> &ScriptTemp, bool bDoorSound)
 {
 	Sequences[curseq] = (FSoundSequence *)M_Malloc (sizeof(FSoundSequence) + sizeof(DWORD)*ScriptTemp.Size());
 	Sequences[curseq]->SeqName = seqname;
 	Sequences[curseq]->Slot = slot;
 	Sequences[curseq]->StopSound = stopsound;
+	Sequences[curseq]->bDoorSound = bDoorSound;
 	memcpy (Sequences[curseq]->Script, &ScriptTemp[0], sizeof(DWORD)*ScriptTemp.Size());
 	Sequences[curseq]->Script[ScriptTemp.Size()] = MakeCommand(SS_CMD_END, 0);
 }
@@ -738,11 +745,12 @@ DSeqPolyNode::DSeqPolyNode (polyobj_t *poly, int sequence, int modenum)
 {
 }
 
-DSeqSectorNode::DSeqSectorNode (sector_t *sec, int sequence, int modenum)
+DSeqSectorNode::DSeqSectorNode (sector_t *sec, int sequence, int modenum, bool is_door)
 	: DSeqNode (sequence, modenum),
 	  Looping (false),
 	  m_Sector (sec)
 {
+	m_IsDoor = is_door;
 }
 
 //==========================================================================
@@ -787,7 +795,7 @@ DSeqNode *SN_StartSequence (AActor *actor, int sequence, seqtype_t type, int mod
 	return NULL;
 }
 
-DSeqNode *SN_StartSequence (sector_t *sector, int sequence, seqtype_t type, int modenum, bool nostop)
+DSeqNode *SN_StartSequence (sector_t *sector, int sequence, seqtype_t type, int modenum, bool is_door, bool nostop)
 {
 	if (!nostop)
 	{
@@ -795,7 +803,7 @@ DSeqNode *SN_StartSequence (sector_t *sector, int sequence, seqtype_t type, int 
 	}
 	if (TwiddleSeqNum (sequence, type))
 	{
-		return new DSeqSectorNode (sector, sequence, modenum);
+		return new DSeqSectorNode (sector, sequence, modenum, is_door);
 	}
 	return NULL;
 }
@@ -839,12 +847,12 @@ DSeqNode *SN_StartSequence (AActor *actor, FName seqname, int modenum)
 	return NULL;
 }
 
-DSeqNode *SN_StartSequence (sector_t *sec, const char *seqname, int modenum)
+DSeqNode *SN_StartSequence (sector_t *sec, const char *seqname, int modenum, bool is_door)
 {
 	int seqnum = FindSequence (seqname);
 	if (seqnum >= 0)
 	{
-		return SN_StartSequence (sec, seqnum, SEQ_NOTRANS, modenum);
+		return SN_StartSequence (sec, seqnum, SEQ_NOTRANS, modenum, is_door);
 	}
 	return NULL;
 }
@@ -993,7 +1001,7 @@ void DSeqNode::Tick ()
 			if (!IsPlaying())
 			{
 				m_CurrentSoundID = GetData(*m_SequencePtr);
-				MakeSound ();
+				MakeSound (0);
 			}
 			m_SequencePtr++;
 			break;
@@ -1015,7 +1023,7 @@ void DSeqNode::Tick ()
 			{
 				// Does not advance sequencePtr, so it will repeat as necessary.
 				m_CurrentSoundID = GetData(*m_SequencePtr);
-				MakeLoopedSound ();
+				MakeSound (CHAN_LOOP);
 			}
 			return;
 
@@ -1023,7 +1031,7 @@ void DSeqNode::Tick ()
 			// Like SS_CMD_PLAYREPEAT, sequencePtr is not advanced, so this
 			// command will repeat until the sequence is stopped.
 			m_CurrentSoundID = GetData(m_SequencePtr[0]);
-			MakeSound ();
+			MakeSound (0);
 			m_DelayUntilTic = TIME_REFERENCE + m_SequencePtr[1];
 			return;
 

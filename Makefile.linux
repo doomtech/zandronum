@@ -23,11 +23,11 @@ else
 endif
 LDFLAGS += FLAC/*.o -lz -ljpeg `sdl-config --libs`
 ifndef SERVERONLY
-  LDFLAGS +=  -lmodplug-lfmod -lGL -lGLU `pkg-config gtk+-2.0 --libs`
+  LDFLAGS +=  -lmodplug -lfmodex -lGL -lGLU `pkg-config gtk+-2.0 --libs`
 endif
 NASMFLAGS += -f elf -DM_TARGET_LINUX
-
-SRCDIRS = src/ $(addprefix src/,g_doom/ g_heretic/ g_hexen/ g_raven/ g_shared/ g_strife/ MD5/ oplsynth/ sound/ sdl/ textures/ thingdef/ win32/g15/)
+SRCDIRS = src/ $(addprefix src/,g_doom/ g_heretic/ g_hexen/ g_raven/ g_shared/ g_strife/ MD5/ oplsynth/ sound/ sdl/ textures/ thingdef/ win32/g15/ xlat/)
+INCLUDES += -Isnes_spc/snes_spc/ -I/usr/include/fmodex/
 ifndef SERVERONLY
   SRCDIRS += $(addprefix src/,gl/ gl/r_render/)
 endif
@@ -44,7 +44,7 @@ else
 endif
 
 CPPSRCS = $(wildcard $(addsuffix *.cpp,$(SRCDIRS)))
-CSRCS = $(wildcard $(addsuffix *.c,$(SRCDIRS)))
+CSRCS = $(filter-out src/xlat/xlat_parser.c, $(wildcard $(addsuffix *.c,$(SRCDIRS))))
 ifdef NOASM
   CFLAGS += -DNOASM
 else
@@ -83,10 +83,10 @@ OBJS = $(addprefix $(OBJDIR)/,$(AOBJFILES)) $(COBJS)
 
 all: $(ZDOOMBIN) toolsandpk3 zdoom.pk3
 
-$(ZDOOMBIN): ccdv updaterev $(OBJDIR) $(OBJS)
+$(ZDOOMBIN): ccdv updaterev $(OBJDIR) $(OBJS) snes_spc/libsnes_spc.a
 	$(CCDV) $(CXX) $(LDFLAGS) $(OBJDIR)/autostart.o \
 	$(filter-out %/autostart.o %/autozend.o,$(OBJS)) \
-	$(OBJDIR)/autozend.o -o $(ZDOOMBIN)
+	snes_spc/libsnes_spc.a $(OBJDIR)/autozend.o -o $(ZDOOMBIN)
 
 $(OBJDIR)/%.o: %.cpp
 	$(CCDV) $(CXX) $(CXXFLAGS) -o $@ -c $<
@@ -101,23 +101,36 @@ $(OBJDIR)/%.o: %.nas
 $(OBJDIR)/nodebuild_classify_sse2.o: nodebuild_classify_sse2.cpp
 	$(CCDV) $(CXX) $(CXXFLAGS) -msse2 -mfpmath=sse -c -o $@ $<
 
+# This file needs special handling because GCC misoptimizes it otherwise.
+$(OBJDIR)/fmopl.o: src/oplsynth/fmopl.cpp
+	$(CCDV) $(CXX) $(CXXFLAGS) -fno-tree-dominator-opts -fno-tree-fre -c -o $@ $<
+
+src/xlat/xlat_parser.h src/xlat/xlat_parser.c: tools/lemon/lemon src/xlat/xlat_parser.y
+	$(CCDV) tools/lemon/lemon -s src/xlat/xlat_parser.y
+
 $(OBJDIR):
 	mkdir $(OBJDIR)
 
-toolsandpk3: ccdv tools/makewad/makewad tools/dehsupp/dehsupp tools/xlatcc/xlatcc
+toolsandpk3: ccdv tools/makewad/makewad
 	$(MAKE) -C wadsrc/
 
 zdoom.pk3: toolsandpk3
 	ln -sf wadsrc/zdoom.pk3 ./
 
+snes_spc/libsnes_spc.a:
+	$(MAKE) -C snes_spc/
+
 tools/makewad/makewad: ccdv
 	$(MAKE) -C tools/makewad/
 
-tools/dehsupp/dehsupp: ccdv
-	$(MAKE) -C tools/dehsupp/
+tools/lemon/lemon:
+	$(MAKE) -C tools/lemon/
 
-tools/xlatcc/xlatcc: ccdv
-	$(MAKE) -C tools/xlatcc/
+tools/updaterevision/updaterevision: ccdv
+	make -C tools/updaterevision/
+
+src/svnrevision_gz.h: tools/updaterevision/updaterevision
+	tools/updaterevision/updaterevision src src/svnrevision_gz.h
 
 
 updaterev: tools/updaterevision/updaterevision

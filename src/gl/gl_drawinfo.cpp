@@ -1,4 +1,4 @@
-#include "gl_pch.h"
+
 /*
 ** gl_drawinfo.cpp
 ** Implements the draw info structure which contains most of the
@@ -38,6 +38,7 @@
 **---------------------------------------------------------------------------
 **
 */
+#include "gl/gl_include.h"
 #include "gl/gl_renderstruct.h"
 #include "gl/gl_texture.h"
 #include "gl/gl_intern.h"

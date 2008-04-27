@@ -1619,8 +1619,9 @@ bool AActor::OkayToSwitchTarget (AActor *other)
 	}
 	
 	int infight;
-	if (level.flags & LEVEL_TOTALINFIGHTING) infight=1;
-	else if (level.flags & LEVEL_NOINFIGHTING) infight=-1;
+	if (flags5 & MF5_NOINFIGHTING) infight=-1;	
+	else if (level.flags & LEVEL_TOTALINFIGHTING) infight=1;
+	else if (level.flags & LEVEL_NOINFIGHTING) infight=-1;	
 	else infight = infighting;
 	
 	// [BC] No infighting during invasion mode.

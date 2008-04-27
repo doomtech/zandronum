@@ -1,4 +1,4 @@
-#include "gl_pch.h"
+
 /*
 ** gl_framebuffer.cpp
 ** Implementation of the non-hardware specific parts of the
@@ -38,6 +38,7 @@
 **
 */
 
+#include "gl/gl_include.h"
 #include "files.h"
 #include "m_swap.h"
 #include "r_draw.h"

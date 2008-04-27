@@ -23,7 +23,6 @@
 #include "c_cvars.h"
 #include "mus2midi.h"
 #include "i_sound.h"
-#include "modplug/modplug.h"
 
 void I_InitMusicWin32 ();
 void I_ShutdownMusicWin32 ();
@@ -35,7 +34,7 @@ extern float relative_volume;
 class MusInfo
 {
 public:
-	MusInfo () : m_Status(STATE_Stopped) {}
+	MusInfo ();
 	virtual ~MusInfo ();
 	virtual void MusicVolumeChanged();		// snd_musicvolume changed
 	virtual void TimidityVolumeChanged();	// timidity_mastervolume changed
@@ -48,6 +47,7 @@ public:
 	virtual bool IsValid () const = 0;
 	virtual bool SetPosition (int order);
 	virtual void Update();
+	virtual FString GetStats();
 
 	enum EState
 	{
@@ -56,11 +56,22 @@ public:
 		STATE_Paused
 	} m_Status;
 	bool m_Looping;
+	bool m_NotStartedYet;	// Song has been created but not yet played
 };
 
 #ifdef _WIN32
 
 // A device that provides a WinMM-like MIDI streaming interface -------------
+
+#ifndef _WIN32
+struct MIDIHDR
+{
+	BYTE *lpData;
+	DWORD dwBufferLength;
+	DWORD dwBytesRecorded;
+	MIDIHDR *Next;
+};
+#endif
 
 class MIDIDevice
 {
@@ -112,8 +123,31 @@ protected:
 	void *CallbackData;
 };
 
-// Base class for streaming MUS and MIDI files ------------------------------
+// OPL implementation of a MIDI output device -------------------------------
 
+class OPLMIDIDevice : public MIDIDevice, OPLmusicBlock
+{
+public:
+	OPLMIDIDevice();
+	~OPLMIDIDevice();
+	int Open(void (*callback)(unsigned int, void *, DWORD, DWORD), void *userdata);
+	void Close();
+	bool IsOpen() const;
+	int GetTechnology() const;
+	int SetTempo(int tempo);
+	int SetTimeDiv(int timediv);
+	int StreamOut(MIDIHDR *data);
+	int Resume();
+	void Stop();
+	int PrepareHeader(MIDIHDR *data);
+	int UnprepareHeader(MIDIHDR *data);
+
+protected:
+	void (*Callback)(unsigned int, void *, DWORD, DWORD);
+	void *CallbackData;
+};
+
+// Base class for streaming MUS and MIDI files ------------------------------
 
 class MIDIStreamer : public MusInfo
 {
@@ -246,6 +280,7 @@ public:
 	bool IsMIDI () const { return false; }
 	bool IsValid () const { return m_Stream != NULL; }
 	bool SetPosition (int order);
+	FString GetStats();
 
 protected:
 	StreamSong () : m_Stream(NULL), m_LastPos(0) {}
@@ -294,25 +329,6 @@ protected:
 #endif
 };
 
-class ModPlugSong : public StreamSong
-{
-
-public:
-	static ModPlugSong *Create(FILE *file, char *musiccache, int length);
-	~ModPlugSong ();
-	bool IsPlaying ();
-	bool SetPosition (int order);
-	void Play(bool);
-
-protected:
-	static bool FillStream (SoundStream *stream, void *buff, int len, void *userdata);
-	ModPlugSong (ModPlugFile *dat);
-
-	ModPlugFile * Data;
-	int order;
-};
-
-
 // MUS file played by a software OPL2 synth and streamed through FMOD -------
 
 class OPLMUSSong : public StreamSong
@@ -328,7 +344,7 @@ public:
 protected:
 	static bool FillStream (SoundStream *stream, void *buff, int len, void *userdata);
 
-	OPLmusicBlock *Music;
+	OPLmusicFile *Music;
 };
 
 // CD track/disk played through the multimedia system -----------------------

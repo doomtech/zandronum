@@ -53,6 +53,7 @@
 #include "p_conversation.h"
 #include "a_strifeglobal.h"
 #include "r_translate.h"
+#include "p_3dmidtex.h"
 // [BC] New #includes.
 #include "cooperative.h"
 #include "deathmatch.h"
@@ -71,6 +72,7 @@
 #define TICS(a)			(((a)*TICRATE)/35)
 #define OCTICS(a)		(((a)*TICRATE)/8)
 #define	BYTEANGLE(a)	((angle_t)((a)<<24))
+#define CRUSHTYPE(a)	((a)==1? false : (a)==2? true : gameinfo.gametype == GAME_Hexen)
 
 static FRandom pr_glass ("GlassBreak");
 
@@ -231,61 +233,61 @@ FUNC(LS_Generic_Door)
 FUNC(LS_Floor_LowerByValue)
 // Floor_LowerByValue (tag, speed, height)
 {
-	return EV_DoFloor (DFloor::floorLowerByValue, ln, arg0, SPEED(arg1), FRACUNIT*arg2, 0, 0);
+	return EV_DoFloor (DFloor::floorLowerByValue, ln, arg0, SPEED(arg1), FRACUNIT*arg2, 0, 0, false);
 }
 
 FUNC(LS_Floor_LowerToLowest)
 // Floor_LowerToLowest (tag, speed)
 {
-	return EV_DoFloor (DFloor::floorLowerToLowest, ln, arg0, SPEED(arg1), 0, 0, 0);
+	return EV_DoFloor (DFloor::floorLowerToLowest, ln, arg0, SPEED(arg1), 0, 0, 0, false);
 }
 
 FUNC(LS_Floor_LowerToHighest)
 // Floor_LowerToHighest (tag, speed, adjust)
 {
-	return EV_DoFloor (DFloor::floorLowerToHighest, ln, arg0, SPEED(arg1), (arg2-128)*FRACUNIT, 0, 0);
+	return EV_DoFloor (DFloor::floorLowerToHighest, ln, arg0, SPEED(arg1), (arg2-128)*FRACUNIT, 0, 0, false);
 }
 
 FUNC(LS_Floor_LowerToNearest)
 // Floor_LowerToNearest (tag, speed)
 {
-	return EV_DoFloor (DFloor::floorLowerToNearest, ln, arg0, SPEED(arg1), 0, 0, 0);
+	return EV_DoFloor (DFloor::floorLowerToNearest, ln, arg0, SPEED(arg1), 0, 0, 0, false);
 }
 
 FUNC(LS_Floor_RaiseByValue)
 // Floor_RaiseByValue (tag, speed, height)
 {
-	return EV_DoFloor (DFloor::floorRaiseByValue, ln, arg0, SPEED(arg1), FRACUNIT*arg2, 0, 0);
+	return EV_DoFloor (DFloor::floorRaiseByValue, ln, arg0, SPEED(arg1), FRACUNIT*arg2, 0, 0, false);
 }
 
 FUNC(LS_Floor_RaiseToHighest)
 // Floor_RaiseToHighest (tag, speed)
 {
-	return EV_DoFloor (DFloor::floorRaiseToHighest, ln, arg0, SPEED(arg1), 0, 0, 0);
+	return EV_DoFloor (DFloor::floorRaiseToHighest, ln, arg0, SPEED(arg1), 0, 0, 0, false);
 }
 
 FUNC(LS_Floor_RaiseToNearest)
 // Floor_RaiseToNearest (tag, speed)
 {
-	return EV_DoFloor (DFloor::floorRaiseToNearest, ln, arg0, SPEED(arg1), 0, 0, 0);
+	return EV_DoFloor (DFloor::floorRaiseToNearest, ln, arg0, SPEED(arg1), 0, 0, 0, false);
 }
 
 FUNC(LS_Floor_RaiseAndCrush)
-// Floor_RaiseAndCrush (tag, speed, crush)
+// Floor_RaiseAndCrush (tag, speed, crush, crushmode)
 {
-	return EV_DoFloor (DFloor::floorRaiseAndCrush, ln, arg0, SPEED(arg1), 0, arg2, 0);
+	return EV_DoFloor (DFloor::floorRaiseAndCrush, ln, arg0, SPEED(arg1), 0, arg2, 0, CRUSHTYPE(arg3));
 }
 
 FUNC(LS_Floor_RaiseByValueTimes8)
 // FLoor_RaiseByValueTimes8 (tag, speed, height)
 {
-	return EV_DoFloor (DFloor::floorRaiseByValue, ln, arg0, SPEED(arg1), FRACUNIT*arg2*8, 0, 0);
+	return EV_DoFloor (DFloor::floorRaiseByValue, ln, arg0, SPEED(arg1), FRACUNIT*arg2*8, 0, 0, false);
 }
 
 FUNC(LS_Floor_LowerByValueTimes8)
 // Floor_LowerByValueTimes8 (tag, speed, height)
 {
-	return EV_DoFloor (DFloor::floorLowerByValue, ln, arg0, SPEED(arg1), FRACUNIT*arg2*8, 0, 0);
+	return EV_DoFloor (DFloor::floorLowerByValue, ln, arg0, SPEED(arg1), FRACUNIT*arg2*8, 0, 0, false);
 }
 
 FUNC(LS_Floor_CrushStop)
@@ -297,51 +299,51 @@ FUNC(LS_Floor_CrushStop)
 FUNC(LS_Floor_LowerInstant)
 // Floor_LowerInstant (tag, unused, height)
 {
-	return EV_DoFloor (DFloor::floorLowerInstant, ln, arg0, 0, arg2*FRACUNIT*8, 0, 0);
+	return EV_DoFloor (DFloor::floorLowerInstant, ln, arg0, 0, arg2*FRACUNIT*8, 0, 0, false);
 }
 
 FUNC(LS_Floor_RaiseInstant)
 // Floor_RaiseInstant (tag, unused, height)
 {
-	return EV_DoFloor (DFloor::floorRaiseInstant, ln, arg0, 0, arg2*FRACUNIT*8, 0, 0);
+	return EV_DoFloor (DFloor::floorRaiseInstant, ln, arg0, 0, arg2*FRACUNIT*8, 0, 0, false);
 }
 
 FUNC(LS_Floor_MoveToValueTimes8)
 // Floor_MoveToValueTimes8 (tag, speed, height, negative)
 {
 	return EV_DoFloor (DFloor::floorMoveToValue, ln, arg0, SPEED(arg1),
-					   arg2*FRACUNIT*8*(arg3?-1:1), 0, 0);
+					   arg2*FRACUNIT*8*(arg3?-1:1), 0, 0, false);
 }
 
 FUNC(LS_Floor_MoveToValue)
 // Floor_MoveToValue (tag, speed, height, negative)
 {
 	return EV_DoFloor (DFloor::floorMoveToValue, ln, arg0, SPEED(arg1),
-					   arg2*FRACUNIT*(arg3?-1:1), 0, 0);
+					   arg2*FRACUNIT*(arg3?-1:1), 0, 0, false);
 }
 
 FUNC(LS_Floor_RaiseToLowestCeiling)
 // Floor_RaiseToLowestCeiling (tag, speed)
 {
-	return EV_DoFloor (DFloor::floorRaiseToLowestCeiling, ln, arg0, SPEED(arg1), 0, 0, 0);
+	return EV_DoFloor (DFloor::floorRaiseToLowestCeiling, ln, arg0, SPEED(arg1), 0, 0, 0, false);
 }
 
 FUNC(LS_Floor_RaiseByTexture)
 // Floor_RaiseByTexture (tag, speed)
 {
-	return EV_DoFloor (DFloor::floorRaiseByTexture, ln, arg0, SPEED(arg1), 0, 0, 0);
+	return EV_DoFloor (DFloor::floorRaiseByTexture, ln, arg0, SPEED(arg1), 0, 0, 0, false);
 }
 
 FUNC(LS_Floor_RaiseByValueTxTy)
 // Floor_RaiseByValueTxTy (tag, speed, height)
 {
-	return EV_DoFloor (DFloor::floorRaiseAndChange, ln, arg0, SPEED(arg1), arg2*FRACUNIT, 0, 0);
+	return EV_DoFloor (DFloor::floorRaiseAndChange, ln, arg0, SPEED(arg1), arg2*FRACUNIT, 0, 0, false);
 }
 
 FUNC(LS_Floor_LowerToLowestTxTy)
 // Floor_LowerToLowestTxTy (tag, speed)
 {
-	return EV_DoFloor (DFloor::floorLowerAndChange, ln, arg0, SPEED(arg1), arg2*FRACUNIT, 0, 0);
+	return EV_DoFloor (DFloor::floorLowerAndChange, ln, arg0, SPEED(arg1), arg2*FRACUNIT, 0, 0, false);
 }
 
 FUNC(LS_Floor_Waggle)
@@ -407,7 +409,7 @@ FUNC(LS_Generic_Floor)
 	}
 
 	return EV_DoFloor (type, ln, arg0, SPEED(arg1), arg2*FRACUNIT,
-					   (arg4 & 16) ? 20 : -1, arg4 & 7);
+					   (arg4 & 16) ? 20 : -1, arg4 & 7, false);
 					   
 }
 
@@ -463,55 +465,55 @@ FUNC(LS_Generic_Stairs)
 FUNC(LS_Pillar_Build)
 // Pillar_Build (tag, speed, height)
 {
-	return EV_DoPillar (DPillar::pillarBuild, arg0, SPEED(arg1), arg2*FRACUNIT, 0, -1);
+	return EV_DoPillar (DPillar::pillarBuild, arg0, SPEED(arg1), arg2*FRACUNIT, 0, -1, false);
 }
 
 FUNC(LS_Pillar_BuildAndCrush)
-// Pillar_BuildAndCrush (tag, speed, height, crush)
+// Pillar_BuildAndCrush (tag, speed, height, crush, crushtype)
 {
-	return EV_DoPillar (DPillar::pillarBuild, arg0, SPEED(arg1), arg2*FRACUNIT, 0, arg3);
+	return EV_DoPillar (DPillar::pillarBuild, arg0, SPEED(arg1), arg2*FRACUNIT, 0, arg3, CRUSHTYPE(arg4));
 }
 
 FUNC(LS_Pillar_Open)
 // Pillar_Open (tag, speed, f_height, c_height)
 {
-	return EV_DoPillar (DPillar::pillarOpen, arg0, SPEED(arg1), arg2*FRACUNIT, arg3*FRACUNIT, -1);
+	return EV_DoPillar (DPillar::pillarOpen, arg0, SPEED(arg1), arg2*FRACUNIT, arg3*FRACUNIT, -1, false);
 }
 
 FUNC(LS_Ceiling_LowerByValue)
 // Ceiling_LowerByValue (tag, speed, height)
 {
-	return EV_DoCeiling (DCeiling::ceilLowerByValue, ln, arg0, SPEED(arg1), 0, arg2*FRACUNIT, -1, 0, 0);
+	return EV_DoCeiling (DCeiling::ceilLowerByValue, ln, arg0, SPEED(arg1), 0, arg2*FRACUNIT, -1, 0, 0, false);
 }
 
 FUNC(LS_Ceiling_RaiseByValue)
 // Ceiling_RaiseByValue (tag, speed, height)
 {
-	return EV_DoCeiling (DCeiling::ceilRaiseByValue, ln, arg0, SPEED(arg1), 0, arg2*FRACUNIT, -1, 0, 0);
+	return EV_DoCeiling (DCeiling::ceilRaiseByValue, ln, arg0, SPEED(arg1), 0, arg2*FRACUNIT, -1, 0, 0, false);
 }
 
 FUNC(LS_Ceiling_LowerByValueTimes8)
 // Ceiling_LowerByValueTimes8 (tag, speed, height)
 {
-	return EV_DoCeiling (DCeiling::ceilLowerByValue, ln, arg0, SPEED(arg1), 0, arg2*FRACUNIT*8, -1, 0, 0);
+	return EV_DoCeiling (DCeiling::ceilLowerByValue, ln, arg0, SPEED(arg1), 0, arg2*FRACUNIT*8, -1, 0, 0, false);
 }
 
 FUNC(LS_Ceiling_RaiseByValueTimes8)
 // Ceiling_RaiseByValueTimes8 (tag, speed, height)
 {
-	return EV_DoCeiling (DCeiling::ceilRaiseByValue, ln, arg0, SPEED(arg1), 0, arg2*FRACUNIT*8, -1, 0, 0);
+	return EV_DoCeiling (DCeiling::ceilRaiseByValue, ln, arg0, SPEED(arg1), 0, arg2*FRACUNIT*8, -1, 0, 0, false);
 }
 
 FUNC(LS_Ceiling_CrushAndRaise)
-// Ceiling_CrushAndRaise (tag, speed, crush)
+// Ceiling_CrushAndRaise (tag, speed, crush, crushtype)
 {
-	return EV_DoCeiling (DCeiling::ceilCrushAndRaise, ln, arg0, SPEED(arg1), SPEED(arg1)/2, 0, arg2, 0, 0);
+	return EV_DoCeiling (DCeiling::ceilCrushAndRaise, ln, arg0, SPEED(arg1), SPEED(arg1)/2, 0, arg2, 0, 0, CRUSHTYPE(arg3));
 }
 
 FUNC(LS_Ceiling_LowerAndCrush)
-// Ceiling_LowerAndCrush (tag, speed, crush)
+// Ceiling_LowerAndCrush (tag, speed, crush, crushtype)
 {
-	return EV_DoCeiling (DCeiling::ceilLowerAndCrush, ln, arg0, SPEED(arg1), SPEED(arg1), 0, arg2, 0, 0);
+	return EV_DoCeiling (DCeiling::ceilLowerAndCrush, ln, arg0, SPEED(arg1), SPEED(arg1), 0, arg2, 0, 0, CRUSHTYPE(arg3));
 }
 
 FUNC(LS_Ceiling_CrushStop)
@@ -521,83 +523,83 @@ FUNC(LS_Ceiling_CrushStop)
 }
 
 FUNC(LS_Ceiling_CrushRaiseAndStay)
-// Ceiling_CrushRaiseAndStay (tag, speed, crush)
+// Ceiling_CrushRaiseAndStay (tag, speed, crush, crushtype)
 {
-	return EV_DoCeiling (DCeiling::ceilCrushRaiseAndStay, ln, arg0, SPEED(arg1), SPEED(arg1)/2, 0, arg2, 0, 0);
+	return EV_DoCeiling (DCeiling::ceilCrushRaiseAndStay, ln, arg0, SPEED(arg1), SPEED(arg1)/2, 0, arg2, 0, 0, CRUSHTYPE(arg3));
 }
 
 FUNC(LS_Ceiling_MoveToValueTimes8)
 // Ceiling_MoveToValueTimes8 (tag, speed, height, negative)
 {
 	return EV_DoCeiling (DCeiling::ceilMoveToValue, ln, arg0, SPEED(arg1), 0,
-						 arg2*FRACUNIT*8*((arg3) ? -1 : 1), -1, 0, 0);
+						 arg2*FRACUNIT*8*((arg3) ? -1 : 1), -1, 0, 0, false);
 }
 
 FUNC(LS_Ceiling_MoveToValue)
 // Ceiling_MoveToValue (tag, speed, height, negative)
 {
 	return EV_DoCeiling (DCeiling::ceilMoveToValue, ln, arg0, SPEED(arg1), 0,
-						 arg2*FRACUNIT*((arg3) ? -1 : 1), -1, 0, 0);
+						 arg2*FRACUNIT*((arg3) ? -1 : 1), -1, 0, 0, false);
 }
 
 FUNC(LS_Ceiling_LowerToHighestFloor)
 // Ceiling_LowerToHighestFloor (tag, speed)
 {
-	return EV_DoCeiling (DCeiling::ceilLowerToHighestFloor, ln, arg0, SPEED(arg1), 0, 0, -1, 0, 0);
+	return EV_DoCeiling (DCeiling::ceilLowerToHighestFloor, ln, arg0, SPEED(arg1), 0, 0, -1, 0, 0, false);
 }
 
 FUNC(LS_Ceiling_LowerInstant)
 // Ceiling_LowerInstant (tag, unused, height)
 {
-	return EV_DoCeiling (DCeiling::ceilLowerInstant, ln, arg0, 0, 0, arg2*FRACUNIT*8, -1, 0, 0);
+	return EV_DoCeiling (DCeiling::ceilLowerInstant, ln, arg0, 0, 0, arg2*FRACUNIT*8, -1, 0, 0, false);
 }
 
 FUNC(LS_Ceiling_RaiseInstant)
 // Ceiling_RaiseInstant (tag, unused, height)
 {
-	return EV_DoCeiling (DCeiling::ceilRaiseInstant, ln, arg0, 0, 0, arg2*FRACUNIT*8, -1, 0, 0);
+	return EV_DoCeiling (DCeiling::ceilRaiseInstant, ln, arg0, 0, 0, arg2*FRACUNIT*8, -1, 0, 0, false);
 }
 
 FUNC(LS_Ceiling_CrushRaiseAndStayA)
-// Ceiling_CrushRaiseAndStayA (tag, dnspeed, upspeed, damage)
+// Ceiling_CrushRaiseAndStayA (tag, dnspeed, upspeed, damage, crushtype)
 {
-	return EV_DoCeiling (DCeiling::ceilCrushRaiseAndStay, ln, arg0, SPEED(arg1), SPEED(arg2), 0, arg3, 0, 0);
+	return EV_DoCeiling (DCeiling::ceilCrushRaiseAndStay, ln, arg0, SPEED(arg1), SPEED(arg2), 0, arg3, 0, 0, CRUSHTYPE(arg4));
 }
 
 FUNC(LS_Ceiling_CrushRaiseAndStaySilA)
-// Ceiling_CrushRaiseAndStaySilA (tag, dnspeed, upspeed, damage)
+// Ceiling_CrushRaiseAndStaySilA (tag, dnspeed, upspeed, damage, crushtype)
 {
-	return EV_DoCeiling (DCeiling::ceilCrushRaiseAndStay, ln, arg0, SPEED(arg1), SPEED(arg2), 0, arg3, 1, 0);
+	return EV_DoCeiling (DCeiling::ceilCrushRaiseAndStay, ln, arg0, SPEED(arg1), SPEED(arg2), 0, arg3, 1, 0, CRUSHTYPE(arg4));
 }
 
 FUNC(LS_Ceiling_CrushAndRaiseA)
-// Ceiling_CrushAndRaiseA (tag, dnspeed, upspeed, damage)
+// Ceiling_CrushAndRaiseA (tag, dnspeed, upspeed, damage, crushtype)
 {
-	return EV_DoCeiling (DCeiling::ceilCrushAndRaise, ln, arg0, SPEED(arg1), SPEED(arg2), 0, arg3, 0, 0);
+	return EV_DoCeiling (DCeiling::ceilCrushAndRaise, ln, arg0, SPEED(arg1), SPEED(arg2), 0, arg3, 0, 0, CRUSHTYPE(arg4));
 }
 
 FUNC(LS_Ceiling_CrushAndRaiseSilentA)
-// Ceiling_CrushAndRaiseSilentA (tag, dnspeed, upspeed, damage)
+// Ceiling_CrushAndRaiseSilentA (tag, dnspeed, upspeed, damage, crushtype)
 {
-	return EV_DoCeiling (DCeiling::ceilCrushAndRaise, ln, arg0, SPEED(arg1), SPEED(arg2), 0, arg3, 1, 0);
+	return EV_DoCeiling (DCeiling::ceilCrushAndRaise, ln, arg0, SPEED(arg1), SPEED(arg2), 0, arg3, 1, 0, CRUSHTYPE(arg4));
 }
 
 FUNC(LS_Ceiling_RaiseToNearest)
 // Ceiling_RaiseToNearest (tag, speed)
 {
-	return EV_DoCeiling (DCeiling::ceilRaiseToNearest, ln, arg0, SPEED(arg1), 0, 0, -1, 0, 0);
+	return EV_DoCeiling (DCeiling::ceilRaiseToNearest, ln, arg0, SPEED(arg1), 0, 0, -1, 0, 0, false);
 }
 
 FUNC(LS_Ceiling_LowerToLowest)
 // Ceiling_LowerToLowest (tag, speed)
 {
-	return EV_DoCeiling (DCeiling::ceilLowerToLowest, ln, arg0, SPEED(arg1), 0, 0, -1, 0, 0);
+	return EV_DoCeiling (DCeiling::ceilLowerToLowest, ln, arg0, SPEED(arg1), 0, 0, -1, 0, 0, false);
 }
 
 FUNC(LS_Ceiling_LowerToFloor)
 // Ceiling_LowerToFloor (tag, speed)
 {
-	return EV_DoCeiling (DCeiling::ceilLowerToFloor, ln, arg0, SPEED(arg1), 0, 0, -1, 0, 0);
+	return EV_DoCeiling (DCeiling::ceilLowerToFloor, ln, arg0, SPEED(arg1), 0, 0, -1, 0, 0, false);
 }
 
 FUNC(LS_Generic_Ceiling)
@@ -628,14 +630,22 @@ FUNC(LS_Generic_Ceiling)
 	}
 
 	return EV_DoCeiling (type, ln, arg0, SPEED(arg1), SPEED(arg1), arg2*FRACUNIT,
-						 (arg4 & 16) ? 20 : -1, 0, arg4 & 7);
+						 (arg4 & 16) ? 20 : -1, 0, arg4 & 7, false);
 }
 
 FUNC(LS_Generic_Crusher)
 // Generic_Crusher (tag, dnspeed, upspeed, silent, damage)
 {
 	return EV_DoCeiling (DCeiling::ceilCrushAndRaise, ln, arg0, SPEED(arg1),
-						 SPEED(arg2), 0, arg4, arg3 ? 2 : 0, 0);
+						 SPEED(arg2), 0, arg4, arg3 ? 2 : 0, 0, false);
+}
+
+FUNC(LS_Generic_Crusher2)
+// Generic_Crusher2 (tag, dnspeed, upspeed, silent, damage)
+{
+	// same as above but uses Hexen's crushing method.
+	return EV_DoCeiling (DCeiling::ceilCrushAndRaise, ln, arg0, SPEED(arg1),
+						 SPEED(arg2), 0, arg4, arg3 ? 2 : 0, 0, true);
 }
 
 FUNC(LS_Plat_PerpetualRaise)
@@ -1804,8 +1814,8 @@ FUNC(LS_FloorAndCeiling_RaiseByValue)
 FUNC(LS_FloorAndCeiling_LowerRaise)
 // FloorAndCeiling_LowerRaise (tag, fspeed, cspeed)
 {
-	return EV_DoCeiling (DCeiling::ceilRaiseToHighest, ln, arg0, SPEED(arg2), 0, 0, 0, 0, 0) |
-		   EV_DoFloor     (DFloor::floorLowerToLowest, ln, arg0, SPEED(arg1), 0, 0, 0);
+	return EV_DoCeiling (DCeiling::ceilRaiseToHighest, ln, arg0, SPEED(arg2), 0, 0, 0, 0, 0, false) |
+		   EV_DoFloor     (DFloor::floorLowerToLowest, ln, arg0, SPEED(arg1), 0, 0, 0, false);
 }
 
 FUNC(LS_Elevator_MoveToFloor)
@@ -1827,9 +1837,9 @@ FUNC(LS_Elevator_LowerToNearest)
 }
 
 FUNC(LS_Light_ForceLightning)
-// Light_ForceLightning (tag)
+// Light_ForceLightning (mode)
 {
-	P_ForceLightning ();
+	P_ForceLightning (arg0);
 	return true;
 }
 
@@ -2132,11 +2142,29 @@ FUNC(LS_Sector_SetFriction)
 	return true;
 }
 
-/*static*/ void SetWallScroller (int id, int sidechoice, fixed_t dx, fixed_t dy)
+FUNC(LS_Sector_SetLink)
+// Sector_SetLink (controltag, linktag, floor/ceiling, movetype)
+{
+	if (arg0 != 0)	// control tag == 0 is for static initialization and must not be handled here
+	{
+		int control = P_FindSectorFromTag(arg0, -1);
+		if (control != 0)
+		{
+			return P_AddSectorLinks(&sectors[control], arg1, arg2, arg3);
+		}
+	}
+	return false;
+}
+
+
+/*static*/ void SetWallScroller (int id, int sidechoice, fixed_t dx, fixed_t dy, int Where)
 {
 	// [BB] The server has to tell the clients to call SetWallScroller.
 	if( NETWORK_GetState() == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetWallScroller( id, sidechoice, dx, dy );
+		SERVERCOMMANDS_SetWallScroller( id, sidechoice, dx, dy, Where );
+
+	Where &=7;
+	if (Where == 0) return;
 
 	if ((dx | dy) == 0)
 	{
@@ -2149,7 +2177,8 @@ FUNC(LS_Sector_SetFriction)
 			int wallnum = scroller->GetWallNum ();
 
 			if (wallnum >= 0 && lines[sides[wallnum].linenum].id == id &&
-				lines[sides[wallnum].linenum].sidenum[sidechoice] == (DWORD)wallnum)
+				lines[sides[wallnum].linenum].sidenum[sidechoice] == (DWORD)wallnum &&
+				Where == scroller->GetScrollParts())
 			{
 				scroller->Destroy ();
 			}
@@ -2167,7 +2196,8 @@ FUNC(LS_Sector_SetFriction)
 			{
 				if ((collect.RefNum = ((DScroller *)collect.Obj)->GetWallNum ()) != -1 &&
 					lines[sides[collect.RefNum].linenum].id == id &&
-					lines[sides[collect.RefNum].linenum].sidenum[sidechoice] == (DWORD)collect.RefNum)
+					lines[sides[collect.RefNum].linenum].sidenum[sidechoice] == (DWORD)collect.RefNum &&
+					Where == ((DScroller *)collect.Obj)->GetScrollParts())
 				{
 					((DScroller *)collect.Obj)->SetRate (dx, dy);
 					Collection.Push (collect);
@@ -2191,7 +2221,7 @@ FUNC(LS_Sector_SetFriction)
 			{
 				if (lines[linenum].sidenum[sidechoice] != NO_SIDE)
 				{
-					new DScroller (DScroller::sc_side, dx, dy, -1, lines[linenum].sidenum[sidechoice], 0);
+					new DScroller (DScroller::sc_side, dx, dy, -1, lines[linenum].sidenum[sidechoice], 0, Where);
 				}
 			}
 		}
@@ -2219,8 +2249,18 @@ FUNC(LS_Scroll_Texture_Both)
 		sidechoice = 0;
 	}
 
-	SetWallScroller (arg0, sidechoice, dx, dy);
+	SetWallScroller (arg0, sidechoice, dx, dy, 7);
 
+	return true;
+}
+
+FUNC(LS_Scroll_Wall)
+// Scroll_Wall (id, x, y, side, flags)
+{
+	if (arg0 == 0)
+		return false;
+
+	SetWallScroller (arg0, !!arg3, arg1, arg2, arg4);
 	return true;
 }
 
@@ -2566,6 +2606,59 @@ FUNC(LS_Line_AlignFloor)
 	} while ( (line = P_FindLineFromID (arg0, line)) >= 0);
 	return ret;
 }
+
+FUNC(LS_Line_SetTextureOffset)
+// Line_SetTextureOffset (id, x, y, side, flags)
+{
+	const fixed_t NO_CHANGE = 32767<<FRACBITS;
+
+	if (arg0 == 0 || arg3 < 0 || arg3 > 1)
+		return false;
+
+	for(int line = -1; (line = P_FindLineFromID (arg0, line)) >= 0; )
+	{
+		if (lines[line].sidenum[arg3] != NO_SIDE)
+		{
+			side_t *side = &sides[lines[line].sidenum[arg3]];
+
+			if ((arg4&8)==0)
+			{
+				// set
+				if (arg1 != NO_CHANGE)
+				{
+					if (arg4&1) side->SetTextureXOffset(side_t::top, arg1);
+					if (arg4&2) side->SetTextureXOffset(side_t::mid, arg1);
+					if (arg4&4) side->SetTextureXOffset(side_t::bottom, arg1);
+				}
+				if (arg2 != NO_CHANGE)
+				{
+					if (arg4&1) side->SetTextureYOffset(side_t::top, arg2);
+					if (arg4&2) side->SetTextureYOffset(side_t::mid, arg2);
+					if (arg4&4) side->SetTextureYOffset(side_t::bottom, arg2);
+				}
+			}
+			else
+			{
+				// add
+				if (arg1 != NO_CHANGE)
+				{
+					if (arg4&1) side->AddTextureXOffset(side_t::top, arg1);
+					if (arg4&2) side->AddTextureXOffset(side_t::mid, arg1);
+					if (arg4&4) side->AddTextureXOffset(side_t::bottom, arg1);
+				}
+				if (arg2 != NO_CHANGE)
+				{
+					if (arg4&1) side->AddTextureYOffset(side_t::top, arg2);
+					if (arg4&2) side->AddTextureYOffset(side_t::mid, arg2);
+					if (arg4&4) side->AddTextureYOffset(side_t::bottom, arg2);
+				}
+			}
+		}
+	}
+	return true;
+}
+
+
 
 FUNC(LS_ChangeCamera)
 // ChangeCamera (tid, who, revert?)
@@ -3027,8 +3120,8 @@ FUNC(LS_ClearForceField)
 			{
 				line->flags &= ~(ML_BLOCKING|ML_BLOCKEVERYTHING);
 				line->special = 0;
-				sides[line->sidenum[0]].midtexture = 0;
-				sides[line->sidenum[1]].midtexture = 0;
+				sides[line->sidenum[0]].SetTexture(side_t::mid, 0);
+				sides[line->sidenum[1]].SetTexture(side_t::mid, 0);
 
 				// [BC] Mark this line's texture change flags.
 				line->ulTexChangeFlags |= TEXCHANGE_FRONTMEDIUM|TEXCHANGE_BACKMEDIUM;
@@ -3236,12 +3329,12 @@ lnSpecFunc LineSpecials[256] =
 	LS_Ceiling_CrushRaiseAndStay,
 	LS_Floor_CrushStop,
 	LS_Ceiling_MoveToValue,
-	LS_NOP,		// 48
+	LS_NOP,		// Sector_Attach3dMidtex
 	LS_GlassBreak,
 	LS_NOP,		// 50: ExtraFloor_LightOnly
-	LS_NOP,		// 51
-	LS_NOP,		// 52
-	LS_NOP,		// 53
+	LS_Sector_SetLink,
+	LS_Scroll_Wall,
+	LS_Line_SetTextureOffset,
 	LS_NOP,		// 54
 	LS_NOP,		// 55
 	LS_NOP,		// 56
@@ -3357,7 +3450,7 @@ lnSpecFunc LineSpecials[256] =
 	LS_NOP,		// 166
 	LS_NOP,		// 167
 	LS_NOP,		// 168
-	LS_NOP,		// 169
+	LS_Generic_Crusher2,
 	LS_Sector_SetCeilingScale2,
 	LS_Sector_SetFloorScale2,
 	LS_Plat_UpNearestWaitDownStay,
@@ -3445,3 +3538,64 @@ lnSpecFunc LineSpecials[256] =
 	LS_Ceiling_LowerToFloor,
 	LS_Ceiling_CrushRaiseAndStaySilA
 };
+
+struct FLineSpecial
+{
+	const char *name;
+	BYTE number;
+	BYTE min_args;
+	SBYTE max_args;
+};
+
+#define DEFINE_SPECIAL(name, num, min, max) {#name, num, min, max},
+static FLineSpecial LineSpecialNames[]={
+#include "actionspecials.h"
+};
+
+//==========================================================================
+//
+// P_FindLineSpecial
+//
+// Finds a line special and also returns the min and max argument count.
+//
+//==========================================================================
+static int STACK_ARGS lscmp (const void * a, const void * b)
+{
+	return stricmp( ((FLineSpecial*)a)->name, ((FLineSpecial*)b)->name);
+}
+
+
+int P_FindLineSpecial (const char *string, int *min_args, int *max_args)
+{
+	static bool sorted=false;
+
+	if (!sorted)
+	{
+		qsort(LineSpecialNames, countof(LineSpecialNames), sizeof(FLineSpecial), lscmp);
+		sorted = true;
+	}
+
+	int min = 0, max = countof(LineSpecialNames) - 1;
+
+	while (min <= max)
+	{
+		int mid = (min + max) / 2;
+		int lexval = stricmp (string, LineSpecialNames[mid].name);
+		if (lexval == 0)
+		{
+			if (min_args != NULL) *min_args = LineSpecialNames[mid].min_args;
+			if (max_args != NULL) *max_args = LineSpecialNames[mid].max_args;
+			return LineSpecialNames[mid].number;
+		}
+		else if (lexval > 0)
+		{
+			min = mid + 1;
+		}
+		else
+		{
+			max = mid - 1;
+		}
+	}
+	return 0;
+}
+

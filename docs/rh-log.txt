@@ -1,8 +1,218 @@
+March 22, 2008 (Changes by Graf Zahl)
+- Changed DEHSUPP loader so that it reads the text file directly. As a result
+  the DEHSUPP compiler is gone now. Unlike XLATCC I'm using FScanner though.
+  A fully featured parser seems like overkill for this simple text file.
+- Added Line_SetTextureOffset special.
+- Added 'allowprotection' keyword to terrain definitions to allow damaging
+  flats that don't damage players with a radiation suit.
+- Fixed: SNDINFO rolloff setting for Strife was missing.
+- Added more options to Light_ForceLightning: Setting the first arg to 0
+  will behave as before, setting it to 1 will create exactly one lighting
+  and setting it to 2 will terminate lightning for the current level
+  completely. And it will also work on maps that don't have lightning set
+  in MAPINFO now.
+- Added: Sector movement that causes deep water to change its height now
+  will trigger associated sector actions and adjust the actor's water level.
+- Fixed: The serializer for side_t::part never read the texture information
+  from a savegame.
+- Fixed: side_t::StopInterpolation called setinterpolation instead of
+  stopinterpolation. Also moved the clearinterpolation call in 
+  P_SetupLevel after the P_FreeLevelData to make absolutely sure that
+  nothing in there can leave an interpolator behind by accident.
+- Applied Linux fixes by Jim.
+SBARINFO update by Blzut3:
+- Fixed: the playerclass command needed a null pointer check to prevent
+  crashing on respawn.
+- Fixed: Mug Shot states were not reset on respawn.
+- Removed keepoffsets flag since apparently it was keeping the offsets by
+  default.  The means that the only thing not affected by the offsets was using
+  nullimage as a background.  Since I wasn't able to get a result I liked I'm
+  going to say that if you want a black background with high res positioning
+  you will have to create your own bar image.  Maybe I'll fix it some other
+  time.
+- Added: monospacefonts variable which allows for all of the fonts to be
+  monospaced by a specified character (from their fontset of corse).
+- Made SBarInfo recognize the bar names for the Strife popups but they don't
+  do anything beyond that.  The names are: popuplog, popupkeys, and popupstatus.
+- Started converting the drawing routine to be more flexable towards high
+  resolution status bars.  (Only did one call so far.)
+  
+March 21, 2008
+- Fixed: Actor-less sounds that aren't played on CHAN_AUTO should still be
+  subject to channel overriding.
+- Re-added priority selection based on sound usage.
+- Reduced the number of virtual channels to match the number of real
+  channels.
+- Added customizable rolloff, including Doom's standard linear gain rolloff.
+  SNDINFO commands are:
+    $rolloff <sound> <min distance> <max distance>          -- linear gain (like Doom)
+    $rolloff <sound> linear <min distance> <max distance>   -- linear volume
+    $rolloff <sound> log <min distance> <rolloff factor>    -- logarithmic
+    $rolloff <sound> custom <min distance> <max distance>   -- use SNDCURVE lump
+  Anything closer than min distance is full volume and anything further than
+  max distance is inaudible. Logarithmic rolloff does not have a maximum
+  distance; it has a scalar that controls how quickly the volume drops off
+  instead.
+
+March 21, 2008 (Changes by Graf Zahl)
+- Disabled scrolling of 3DMIDTEX textures. Due to the special needs this 
+  cannot work properly.
+- Added new Scroll_Wall special to allow more control over wall scrolling.
+  Since it uses fixed point parameters it can only be used in scripts though.
+- Added flags parameters to all wall scroller specials that didn't use
+  all 5 args.
+- Separated scrolling of the 3 different texture parts of a sidedef.
+  While doing this I did some more restructuring of the sidedef structure
+  and changed it so that all state changes to sidedefs that affect rendering 
+  have to be made with access functions. This is not of much use to the
+  software renderer but it allows far easier caching of rendering data
+  for OpenGL because the only place I need to check is in the access functions.
+- Added Karate Chris's ThingCountSector submission.
+- Made texture indices in FSwitchDef full integers. Since that required
+  some data restructuring I also eliminated the MAX_FRAMES limit of 128
+  per switch.
+
+March 20, 2008
+- Removed some debug output from SBarInfo::ParseSBarInfo().
+- Fixed: Heretic linetype translations included the wrong file.
+- Removed all 2D sound positioning code from s_sound.cpp. Everything uses
+  FMOD's 3D engine now.
+- Removed all the channel selection code from s_sound.cpp. FMOD has code to
+  handle this sort of thing, so let's use it.
+- Replaced S_StopSoundID() with S_CheckSingular(). There is no longer a limit
+  on the number of copies of a particular sound that can be playing at once,
+  aside from Strife's special singular sounds. (Sorry, Heretic and Hexen.)
+  Consequently, the SNDINFO $limit command is now ignored.
+- Removed ATTN_SURROUND, since FMOD Ex doesn't exactly support it, and it
+  only worked as intended on stereo speakers anyway.
+- Cleaned out ancient crud from i_sound.cpp.
+
+March 20, 2008 (Changes by Graf Zahl)
+- Fixed: A_CustomMissile with aimmode 2 ignored spawnofs_xy.
+- Changed savegame versioning so that the written version is never lower
+  than the minmum one reported as compatible. 
+- Added mirrored movement modes for linked sectors.
+- Added Eternity-style initialization for linked sectors as a new subtype
+  of Static_Init.
+- Added linked sectors. The control sector determines how they move but if
+  any one of the linked sectors is blocked, movement for all linked sectors
+  will be affected. This will allow lifts consisting out of more than one
+  sector without the risk of breaking them if only one of the sectors is
+  blocked.
+- Fixed: A_Mushroom created an actor on the stack.
+
+March 19, 2008
+- Fixed: lempar.c needs to specify the __cdecl calling convention for malloc
+  and free under VC++.
+- Fixed: The source no longer built with GCC.
+
+March 19, 2008 (Changes by Graf Zahl)
+- Added a new parameter to all crushing action specials that selects
+  which crushing mode is used: 0 uses the game's default for compatibility,
+  1 uses Doom's mode (crushers continue to move while damaging any actors ) and
+  2 uses Hexen's mode (crushers stay at blocking actor's top until they die).
+  Since Generic_Crusher already used all 5 args I created a second version for
+  Hexen crushing mode.
+- Added PICKUP flag to DECORATE.
+- Integrated xlatcc into ZDoom.exe so that the linedef translation files
+  don't need to be compiled and can be stored as text in zdoom.pk3.
+- Removed thingdef_specials.h and thingdef_specials.gperf and replaced
+  line special definition with something that automatically gets updated
+  if new specials are added.
+- Added copyright/license headers to a few files.
+- Fixed: ACS SetMugShotState needs to check the StatusBar pointer for the
+  proper object type.
+- Move SBarInfo loading code in d_main.cpp into a static method of DSBarInfo.
+- Removed dobject.err from the repository. It only contained a list of compiler
+  errors for some very old version of dobject.cpp.
+- Fixed: A_JumpIfCloser was missing a z-check.
+- Added Blzut3's SBARINFO update #13:
+  - Split sbarinfo.cpp into two files sbarinfo_display.cpp and sbarinfo_parser.cpp
+  - Rewrote the mug shot system for SBarInfo to allow for scripting and custom
+    states for different means of death.
+  - SBarInfo now loads all SBarInfo lumps instead of just the last one.  Clashing
+    status bar definitions will now be cleared before the bar is read.
+  - Fixed: When using transparency with bars the new drawing method (bg over fg)
+    didn't work.  In the case that the border value is set to 0 it will revert to
+    the old method (fg over bg).
+  - Fixed: drawbar lost any high res information it was given.
+  - Added: ACS command SetMugShotState(str state) which sets the mug shot state
+    for the activating player.
+  - Added: keepoffsets flag to drawbar.  When set the offsets in the fg image will
+    also be applied when displaying the bar.
+
+March 18, 2008
+- Added a cheap pitch shifting for underwater environments that should be fairly
+  close to Duke's. It sounds okay for some sounds, but others like the BFG, where
+  the timing of the sound actually matters, don't sound good. I shall have to
+  replace it with a real pitch shifter DSP unit.
+- Removed hardware 3D sound support, since software is cooler.
+- Fixed the TArray serializer declaration.
+  (Thank you for your warnings, GCC! ;-)
+- Changed root sector marking so that it can happen incrementally.
+
+March 18, 2008 (Changes by Graf Zahl)
+- VC++ doesn't seem to like the TArray serializer so I added a workaround
+  to be able to save the 3dMidtex attachment info.
+- Fixed: The TArray serializer needs to be declared as a friend of TArray
+  in order to be able to access its fields.
+- Since there are no backwards compatibility issues due to savegame version
+  bumping I closed all gaps in the level flag set.
+- Bumped min. Savegame version and Netgame version for 3dMidtex related
+  changes.
+- Changed Jump and Crouch DMFlags into 3-way switches:
+  0: map default, 1: off, 2: on. Since I needed new bits the rest of
+  the DMFlag bit values had to be changed as a result.
+- fixed: PTR_SlideTraverse didn't check ML_BLOCKMONSTERS for sliding
+  actors without MF3_NOBLOCKMONST.
+- Added MAPINFO commands 'checkswitchrange' and 'nocheckswitchrange'
+  that can enable or disable switch range checking globally per map.
+- Changed ML_3DMIDTEX to force ML_CHECKSWITCHRANGE.
+- Added a ML_CHECKSWITCHRANGE flag which allows checking whether the 
+  player can actually reach the switch he wants to use.
+- Made DActiveButton::EWhere global so that I can use it outside thr
+  DActiveButton class.
+
+March 17, 2008 (Changes by Graf Zahl)
+- Changed P_LineOpening to pass its result in a struct instead of global
+  variables.
+- Added Eternity's 3DMIDTEX feature (no Eternity code used though.)
+  It should be feature complete with the exception of the ML_BLOCKMONSTERS
+  flag handling. That particular part of Eternity's implementation is
+  sub-optimal because it hijacks an existing flag and doesn't seem to make
+  much sense to me. Maybe I'll implement it as a separate flag later.
+
+March 17, 2008
+- Fixed: The botinfo field of DCajunMaster was improperly listed as an object
+  pointer.
+
+March 16, 2008 (Changes by Graf Zahl)
+- Fixed: FreshThinkers's max. index is MAX_STATNUM so the code shouldn't
+  to access FreshThinkers[MAX_STATNUM+1].
+
+March 15, 2008
+- Fixed: The only time bestslideline is ever NULL is before it ever gets set.
+  That means my P_BounceWall() "fix" from March 6 wasn't really a working fix.
+- Fixed: If an object is flagged for euthanization while it's in the gray
+  list, it should just be ignored during the propagation stage.
+- After sleeping on it and realizing what was really going in, I generalized
+  the inventory fix from the 13th: The actor is flagged by Destroy(), then it
+  is later inserted into the thinker list by DThinker::SerializeAll(). So
+  rather than unlinking the skipped player from their inventory, just make
+  sure any flagged thinkers aren't inserted into a list.
+- Fixed: FCanvasTextureInfo::Viewpoint needed a read barrier, and the whole
+  list should serve as a root.
+
 March 14, 2008 (Changes by Graf Zahl)
 - fixed: A_PainShootSkull was missing a NULL pointer check for the spawn type.
 - implemented Vavoom's vertex height things (1504, 1505) that can explicitly
   define slopes for triangular sectors. The height is specified as the thing's
   z-coordinate.
+
+March 14, 2008
+- Reimplemented SPC playback as a custom codec for FMOD.
+- Removed spc_frequency, because snes_spc only supports the SPC's native
+  frequency of 32000 Hz.
 
 March 13, 2008
 - Fixed: When returning to a hub map, inventory belonging to the temporary

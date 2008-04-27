@@ -1,4 +1,4 @@
-#include "gl_pch.h"
+
 /*
 ** gl_missinglines.cpp
 ** This mess is only needed because ZDBSP likes to throw out lines 
@@ -37,6 +37,7 @@
 **---------------------------------------------------------------------------
 **
 */
+#include "gl/gl_include.h"
 #include "p_local.h"
 #include "gl/gl_struct.h"
 #include "gl/gl_renderstruct.h"

@@ -1,4 +1,4 @@
-#include "gl_pch.h"
+
 /*
 ** gl_bsp.cpp
 ** Main rendering loop / BSP traversal / visibility clipping
@@ -37,6 +37,7 @@
 **
 */
 
+#include "gl/gl_include.h"
 #include "p_lnspec.h"
 #include "p_local.h"
 #include "a_sharedglobal.h"
@@ -128,7 +129,7 @@ static bool CheckClip(seg_t * seg, sector_t * frontsector, sector_t * backsector
 	// now check for closed sectors!
 	if (bs_ceilingheight1<=fs_floorheight1 && bs_ceilingheight2<=fs_floorheight2) 
 	{
-		FTexture * tex = TexMan(seg->sidedef->toptexture);
+		FTexture * tex = TexMan(seg->sidedef->GetTexture(side_t::top));
 		if (!tex || tex->UseType==FTexture::TEX_Null) return false;
 		if (backsector->ceilingpic==skyflatnum && frontsector->ceilingpic==skyflatnum) return false;
 		return true;
@@ -136,7 +137,7 @@ static bool CheckClip(seg_t * seg, sector_t * frontsector, sector_t * backsector
 
 	if (fs_ceilingheight1<=bs_floorheight1 && fs_ceilingheight2<=bs_floorheight2) 
 	{
-		FTexture * tex = TexMan(seg->sidedef->bottomtexture);
+		FTexture * tex = TexMan(seg->sidedef->GetTexture(side_t::bottom));
 		if (!tex || tex->UseType==FTexture::TEX_Null) return false;
 
 		// properly render skies (consider door "open" if both floors are sky):
@@ -149,12 +150,12 @@ static bool CheckClip(seg_t * seg, sector_t * frontsector, sector_t * backsector
 		// preserve a kind of transparent door/lift special effect:
 		if (bs_ceilingheight1 < fs_ceilingheight1 || bs_ceilingheight2 < fs_ceilingheight2) 
 		{
-			FTexture * tex = TexMan(seg->sidedef->toptexture);
+			FTexture * tex = TexMan(seg->sidedef->GetTexture(side_t::top));
 			if (!tex || tex->UseType==FTexture::TEX_Null) return false;
 		}
 		if (bs_floorheight1 > fs_floorheight1 || bs_floorheight2 > fs_floorheight2)
 		{
-			FTexture * tex = TexMan(seg->sidedef->bottomtexture);
+			FTexture * tex = TexMan(seg->sidedef->GetTexture(side_t::bottom));
 			if (!tex || tex->UseType==FTexture::TEX_Null) return false;
 		}
 		if (backsector->ceilingpic==skyflatnum && frontsector->ceilingpic==skyflatnum) return false;
@@ -215,7 +216,7 @@ static void AddLine (seg_t *seg,sector_t * sector,subsector_t * polysub)
 	{
 		if (sector->sectornum == seg->backsector->sectornum)
 		{
-			FTexture * tex = TexMan(seg->sidedef->midtexture);
+			FTexture * tex = TexMan(seg->sidedef->GetTexture(side_t::mid));
 			if (!tex || tex->UseType==FTexture::TEX_Null) 
 			{
 				// nothing to do here!

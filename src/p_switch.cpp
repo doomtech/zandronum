@@ -37,6 +37,7 @@
 #include "doomdef.h"
 #include "p_local.h"
 #include "p_lnspec.h"
+#include "p_3dmidtex.h"
 #include "m_random.h"
 #include "g_game.h"
 #include "s_sound.h"
@@ -62,22 +63,14 @@ class DActiveButton : public DThinker
 {
 	DECLARE_CLASS (DActiveButton, DThinker)
 public:
-	enum EWhere
-	{
-		BUTTON_Top,
-		BUTTON_Middle,
-		BUTTON_Bottom,
-		BUTTON_Nowhere
-	};
-
 	DActiveButton ();
-	DActiveButton (side_t *, EWhere, WORD switchnum, fixed_t x, fixed_t y, bool flippable);
+	DActiveButton (side_t *, int, WORD switchnum, fixed_t x, fixed_t y, bool flippable);
 
 	void Serialize (FArchive &arc);
 	void Tick ();
 
 	side_t	*m_Side;
-	EWhere	m_Where;
+	SBYTE	m_Part;
 	WORD	m_SwitchDef;
 	WORD	m_Frame;
 	WORD	m_Timer;
@@ -86,29 +79,20 @@ public:
 
 protected:
 	bool AdvanceFrame ();
-	void StoreTexture (short tex) const;
-
-	friend FArchive &operator<< (FArchive &arc, EWhere &where)
-	{
-		BYTE val = (BYTE)where;
-		arc << val;
-		where = (EWhere)val;
-		return arc;
-	}
 };
 
 struct FSwitchDef
 {
-	SWORD PreTexture;	// texture to switch from
+	int PreTexture;		// texture to switch from
 	WORD PairIndex;		// switch def to use to return to PreTexture
 	SWORD Sound;		// sound to play at start of animation
 	WORD NumFrames;		// # of animation frames
 	bool QuestPanel;	// Special texture for Strife mission
-	union				// Array of times followed by array of textures
+	struct frame		// Array of times followed by array of textures
 	{					//   actual length of each array is <NumFrames>
-		DWORD Times[1];
-		SWORD Textures[3];
-	} u;
+		DWORD Time;
+		int Texture;
+	} u[1];
 };
 
 static int STACK_ARGS SortSwitchDefs (const void *a, const void *b);
@@ -171,11 +155,11 @@ void P_InitSwitchList ()
 			{
 				def1 = (FSwitchDef *)M_Malloc (sizeof(FSwitchDef));
 				def2 = (FSwitchDef *)M_Malloc (sizeof(FSwitchDef));
-				def1->PreTexture = def2->u.Textures[2] = TexMan.CheckForTexture (list_p /* .name1 */, FTexture::TEX_Wall, texflags);
-				def2->PreTexture = def1->u.Textures[2] = TexMan.CheckForTexture (list_p + 9, FTexture::TEX_Wall, texflags);
+				def1->PreTexture = def2->u[0].Texture = TexMan.CheckForTexture (list_p /* .name1 */, FTexture::TEX_Wall, texflags);
+				def2->PreTexture = def1->u[0].Texture = TexMan.CheckForTexture (list_p + 9, FTexture::TEX_Wall, texflags);
 				def1->Sound = def2->Sound = 0;
 				def1->NumFrames = def2->NumFrames = 1;
-				def1->u.Times[0] = def2->u.Times[0] = 0;
+				def1->u[0].Time = def2->u[0].Time = 0;
 				def2->PairIndex = AddSwitchDef (def1);
 				def1->PairIndex = AddSwitchDef (def2);
 			}
@@ -321,12 +305,12 @@ void P_ProcessSwitchDef (FScanner &sc)
 		def2 = (FSwitchDef *)M_Malloc (sizeof(FSwitchDef));
 		def2->Sound = def1->Sound;
 		def2->NumFrames = 1;
-		def2->u.Times[0] = 0;
-		def2->u.Textures[2] = picnum;
+		def2->u[0].Time = 0;
+		def2->u[0].Texture = picnum;
 	}
 
 	def1->PreTexture = picnum;
-	def2->PreTexture = def1->u.Textures[def1->NumFrames*2+def1->NumFrames-1];
+	def2->PreTexture = def1->u[def1->NumFrames-1].Texture;
 	if (def1->PreTexture == def2->PreTexture)
 	{
 		sc.ScriptError ("The on state for switch %s must end with a texture other than %s", picname.GetChars(), picname.GetChars());
@@ -340,14 +324,12 @@ FSwitchDef *ParseSwitchDef (FScanner &sc, bool ignoreBad)
 {
 	const BITFIELD texflags = FTextureManager::TEXMAN_Overridable | FTextureManager::TEXMAN_TryAny;
 	FSwitchDef *def;
-	SWORD pics[MAX_FRAMES];
-	DWORD times[MAX_FRAMES];
-	int numframes;
+	TArray<FSwitchDef::frame> frames;
+	FSwitchDef::frame thisframe;
 	int picnum;
 	bool bad;
 	SWORD sound;
 
-	numframes = 0;
 	sound = 0;
 	bad = false;
 
@@ -364,10 +346,6 @@ FSwitchDef *ParseSwitchDef (FScanner &sc, bool ignoreBad)
 		}
 		else if (sc.Compare ("pic"))
 		{
-			if (numframes == MAX_FRAMES)
-			{
-				sc.ScriptError ("Switch has too many frames");
-			}
 			sc.MustGetString ();
 			picnum = TexMan.CheckForTexture (sc.String, FTexture::TEX_Wall, texflags);
 			if (picnum < 0 && !ignoreBad)
@@ -375,12 +353,12 @@ FSwitchDef *ParseSwitchDef (FScanner &sc, bool ignoreBad)
 				//Printf ("Unknown switch texture %s\n", sc.String);
 				bad = true;
 			}
-			pics[numframes] = picnum;
+			thisframe.Texture = picnum;
 			sc.MustGetString ();
 			if (sc.Compare ("tics"))
 			{
 				sc.MustGetNumber ();
-				times[numframes] = sc.Number & 65535;
+				thisframe.Time = sc.Number & 65535;
 			}
 			else if (sc.Compare ("rand"))
 			{
@@ -394,13 +372,14 @@ FSwitchDef *ParseSwitchDef (FScanner &sc, bool ignoreBad)
 				{
 					swap (min, max);
 				}
-				times[numframes] = ((max - min + 1) << 16) | min;
+				thisframe.Time = ((max - min + 1) << 16) | min;
 			}
 			else
 			{
+			    thisframe.Time = 0;     // Shush, GCC.
 				sc.ScriptError ("Must specify a duration for switch frame");
 			}
-			numframes++;
+			frames.Push(thisframe);
 		}
 		else
 		{
@@ -408,7 +387,7 @@ FSwitchDef *ParseSwitchDef (FScanner &sc, bool ignoreBad)
 			break;
 		}
 	}
-	if (numframes == 0)
+	if (frames.Size() == 0)
 	{
 		sc.ScriptError ("Switch state needs at least one frame");
 	}
@@ -416,11 +395,11 @@ FSwitchDef *ParseSwitchDef (FScanner &sc, bool ignoreBad)
 	{
 		return NULL;
 	}
-	def = (FSwitchDef *)M_Malloc (myoffsetof (FSwitchDef, u.Times[0]) + numframes * 6);
+
+	def = (FSwitchDef *)M_Malloc (myoffsetof (FSwitchDef, u[0]) + frames.Size()*sizeof(frames[0]));
 	def->Sound = sound;
-	def->NumFrames = numframes;
-	memcpy (&def->u.Times[0], times, numframes * 4);
-	memcpy (&def->u.Textures[numframes*2], pics, numframes * 2);
+	def->NumFrames = frames.Size();
+	memcpy (&def->u[0], &frames[0], frames.Size() * sizeof(frames[0]));
 	def->PairIndex = 65535;
 	return def;
 }
@@ -445,7 +424,7 @@ static WORD AddSwitchDef (FSwitchDef *def)
 // Start a button counting down till it turns off.
 // [RH] Rewritten to remove MAXBUTTONS limit.
 //
-static bool P_StartButton (side_t *side, DActiveButton::EWhere w, int switchnum,
+static bool P_StartButton (side_t *side, int Where, int switchnum,
 						   fixed_t x, fixed_t y, bool useagain)
 {
 	DActiveButton *button;
@@ -461,14 +440,15 @@ static bool P_StartButton (side_t *side, DActiveButton::EWhere w, int switchnum,
 		}
 	}
 
-	new DActiveButton (side, w, switchnum, x, y, useagain);
+	new DActiveButton (side, Where, switchnum, x, y, useagain);
 	return true;
 }
 
-static int TryFindSwitch (SWORD texture)
+static int TryFindSwitch (side_t *side, int Where)
 {
 	int mid, low, high;
 
+	int texture = side->GetTexture(Where);
 	high = (int)(SwitchList.Size () - 1);
 	if (high >= 0)
 	{
@@ -494,31 +474,89 @@ static int TryFindSwitch (SWORD texture)
 }
 
 //
+// Checks whether a switch is reachable
+// This is optional because old maps can rely on being able to 
+// use non-reachable switches.
+//
+bool P_CheckSwitchRange(AActor *user, line_t *line, int sideno)
+{
+	fixed_t checktop;
+	fixed_t checkbot;
+	side_t *side = &sides[line->sidenum[sideno]];
+	sector_t *front = sides[line->sidenum[sideno]].sector;
+	sector_t *back = sides[line->sidenum[1-sideno]].sector;
+	FLineOpening open;
+
+	// 3DMIDTEX forces CHECKSWITCHRANGE because otherwise it might cause problems.
+	if (!(line->flags & (ML_3DMIDTEX|ML_CHECKSWITCHRANGE))) return true;
+
+	// calculate the point where the user would touch the wall.
+	divline_t dll, dlu;
+	fixed_t inter, checkx, checky;
+
+	P_MakeDivline (line, &dll);
+
+	dlu.x = user->x;
+	dlu.y = user->y;
+	dlu.dx = finecosine[user->angle >> ANGLETOFINESHIFT];
+	dlu.dy = finesine[user->angle >> ANGLETOFINESHIFT];
+	inter = P_InterceptVector(&dll, &dlu);
+
+	checkx = dll.x + FixedMul(dll.dx, inter);
+	checky = dll.y + FixedMul(dll.dy, inter);
+
+	// Now get the information from the line.
+	P_LineOpening(open, NULL, line, checkx, checky, user->x, user->y);
+	if (open.range <= 0) return true;
+
+	if ((TryFindSwitch (side, side_t::top)) != -1)
+	{
+		return (user->z + user->height >= open.top);
+	}
+	else if ((TryFindSwitch (side, side_t::bottom)) != -1)
+	{
+		return (user->z <= open.bottom);
+	}
+	else if ((line->flags & (ML_3DMIDTEX)) || (TryFindSwitch (side, side_t::mid)) != -1)
+	{
+		// 3DMIDTEX lines will force a mid texture check if no switch is found on this line
+		// to keep compatibility with Eternity's implementation.
+		if (!P_GetMidTexturePosition(line, sideno, &checktop, &checkbot)) return false;
+		return user->z < checktop || user->z + user->height > checkbot;
+	}
+	else
+	{
+		// no switch found. Check whether the player can touch either top or bottom texture
+		return (user->z + user->height >= open.top) || (user->z <= open.bottom);
+	}
+}
+
+//
 // Function that changes wall texture.
 // Tell it if switch is ok to use again (1=yes, it's a button).
 //
 bool P_ChangeSwitchTexture (side_t *side, int useAgain, BYTE special, bool *quest)
 {
-	DActiveButton::EWhere where;
-	int *texture;
+	int texture;
 	int i, sound;
 	// [BC]
 	ULONG	ulShift;
+	// [BB] Check the ulShift handling.
 
-	if ((i = TryFindSwitch (side->toptexture)) != -1)
+	if ((i = TryFindSwitch (side, side_t::top)) != -1)
 	{
-		texture = &side->toptexture;
-		where = DActiveButton::BUTTON_Top;
+		texture = side_t::top;
+		ulShift = 0;
 	}
-	else if ((i = TryFindSwitch (side->bottomtexture)) != -1)
+	else if ((i = TryFindSwitch (side, side_t::bottom)) != -1)
 	{
-		texture = &side->bottomtexture;
-		where = DActiveButton::BUTTON_Bottom;
+		texture = side_t::bottom;
+		ulShift = 2;
 	}
-	else if ((i = TryFindSwitch (side->midtexture)) != -1)
+	else if ((i = TryFindSwitch (side, side_t::mid)) != -1)
 	{
-		texture = &side->midtexture;
-		where = DActiveButton::BUTTON_Middle;
+		texture = side_t::mid;
+		ulShift = 1;
 	}
 	else
 	{
@@ -533,9 +571,6 @@ bool P_ChangeSwitchTexture (side_t *side, int useAgain, BYTE special, bool *ques
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
 		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
-		ulShift = 0;
-		ulShift += where;
-
 		if (( side->linenum >= 0 ) && ( side->linenum < numlines ))
 		{
 			lines[side->linenum].ulTexChangeFlags |= 1 << ulShift;
@@ -569,14 +604,14 @@ bool P_ChangeSwitchTexture (side_t *side, int useAgain, BYTE special, bool *ques
 
 	pt[0] = line->v1->x + (line->dx >> 1);
 	pt[1] = line->v1->y + (line->dy >> 1);
-	*texture = SwitchList[i]->u.Textures[SwitchList[i]->NumFrames*2];
+	side->SetTexture(texture, SwitchList[i]->u[0].Texture);
 
 	// [BC] If we're the server, tell clients to set the line texture.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_SetLineTexture( side->linenum );
 
 	if (useAgain || SwitchList[i]->NumFrames > 1)
-		playsound = P_StartButton (side, where, i, pt[0], pt[1], !!useAgain);
+		playsound = P_StartButton (side, texture, i, pt[0], pt[1], !!useAgain);
 	else 
 		playsound = true;
 	if (playsound)
@@ -599,7 +634,7 @@ IMPLEMENT_CLASS (DActiveButton)
 DActiveButton::DActiveButton ()
 {
 	m_Side = NULL;
-	m_Where = BUTTON_Nowhere;
+	m_Part = -1;
 	m_SwitchDef = 0;
 	m_Timer = 0;
 	m_X = 0;
@@ -607,11 +642,11 @@ DActiveButton::DActiveButton ()
 	bFlippable = false;
 }
 
-DActiveButton::DActiveButton (side_t *side, EWhere where, WORD switchnum,
+DActiveButton::DActiveButton (side_t *side, int Where, WORD switchnum,
 							  fixed_t x, fixed_t y, bool useagain)
 {
 	m_Side = side;
-	m_Where = where;
+	m_Part = SBYTE(Where);
 	m_X = x;
 	m_Y = y;
 	bFlippable = useagain;
@@ -630,7 +665,7 @@ void DActiveButton::Serialize (FArchive &arc)
 	{
 		sidenum = m_Side ? m_Side - sides : -1;
 	}
-	arc << sidenum << m_Where << m_SwitchDef << m_Frame << m_Timer << bFlippable << m_X << m_Y;
+	arc << sidenum << m_Part << m_SwitchDef << m_Frame << m_Timer << bFlippable << m_X << m_Y;
 	if (arc.IsLoading ())
 	{
 		m_Side = sidenum >= 0 ? sides + sidenum : NULL;
@@ -671,7 +706,7 @@ void DActiveButton::Tick ()
 		}
 		bool killme = AdvanceFrame ();
 
-		StoreTexture (def->u.Textures[def->NumFrames*2+m_Frame]);
+		m_Side->SetTexture(m_Part, def->u[m_Frame].Texture);
 
 		// [BC] If we're the server, tell clients to update the switch texture.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -702,39 +737,19 @@ bool DActiveButton::AdvanceFrame ()
 	}
 	else
 	{
-		if (def->u.Times[m_Frame] & 0xffff0000)
+		if (def->u[m_Frame].Time & 0xffff0000)
 		{
 			int t = pr_switchanim();
 
 			m_Timer = (WORD)((((t | (pr_switchanim() << 8))
-				% def->u.Times[m_Frame]) >> 16)
-				+ (def->u.Times[m_Frame] & 0xffff));
+				% def->u[m_Frame].Time) >> 16)
+				+ (def->u[m_Frame].Time & 0xffff));
 		}
 		else
 		{
-			m_Timer = (WORD)def->u.Times[m_Frame];
+			m_Timer = (WORD)def->u[m_Frame].Time;
 		}
 	}
 	return ret;
 }
 
-void DActiveButton::StoreTexture (short tex) const
-{
-	switch (m_Where)
-	{
-	case BUTTON_Middle:
-		m_Side->midtexture = tex;
-		break;
-
-	case BUTTON_Bottom:
-		m_Side->bottomtexture = tex;
-		break;
-
-	case BUTTON_Top:
-		m_Side->toptexture = tex;
-		break;
-
-	default:
-		return;
-	}
-}

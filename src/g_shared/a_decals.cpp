@@ -246,7 +246,7 @@ int DBaseDecal::StickToWall (side_t *wall, fixed_t x, fixed_t y, F3DFloor * fflo
 			Z -= front->floortexz;
 		else
 			Z -= front->ceilingtexz;
-		tex = wall->midtexture;
+		tex = wall->GetTexture(side_t::mid);
 	}
 	else if (back->floorplane.ZatPoint (x, y) >= Z)
 	{
@@ -255,7 +255,7 @@ int DBaseDecal::StickToWall (side_t *wall, fixed_t x, fixed_t y, F3DFloor * fflo
 			Z -= front->ceilingtexz;
 		else
 			Z -= back->floortexz;
-		tex = wall->bottomtexture;
+		tex = wall->GetTexture(side_t::bottom);
 	}
 	else if (back->ceilingplane.ZatPoint (x, y) <= Z)
 	{
@@ -264,7 +264,7 @@ int DBaseDecal::StickToWall (side_t *wall, fixed_t x, fixed_t y, F3DFloor * fflo
 			Z -= front->ceilingtexz;
 		else
 			Z -= back->ceilingtexz;
-		tex = wall->toptexture;
+		tex = wall->GetTexture(side_t::top);
 	}
 	else if (ffloor) // this is a 3d-floor segment - do this only if we know which one!
 	{
@@ -277,15 +277,15 @@ int DBaseDecal::StickToWall (side_t *wall, fixed_t x, fixed_t y, F3DFloor * fflo
 
 		if (ffloor->flags & FF_UPPERTEXTURE)
 		{
-			tex = wall->toptexture;
+			tex = wall->GetTexture(side_t::top);
 		}
 		else if (ffloor->flags & FF_LOWERTEXTURE)
 		{
-			tex = wall->bottomtexture;
+			tex = wall->GetTexture(side_t::bottom);
 		}
 		else
 		{
-			tex = sides[ffloor->master->sidenum[0]].midtexture;
+			tex = sides[ffloor->master->sidenum[0]].GetTexture(side_t::mid);
 		}
 	}
 	else return 0;

@@ -216,13 +216,21 @@ inline void P_MakeDivline (const line_t *li, divline_t *dl)
 fixed_t P_InterceptVector (const divline_t *v2, const divline_t *v1);
 int 	P_BoxOnLineSide (const fixed_t *tmbox, const line_t *ld);
 
-extern fixed_t			opentop;
-extern fixed_t			openbottom;
-extern fixed_t			openrange;
-extern fixed_t			lowfloor;
+struct FLineOpening
+{
+	fixed_t			top;
+	fixed_t			bottom;
+	fixed_t			range;
+	fixed_t			lowfloor;
+	sector_t		*bottomsec;
+	sector_t		*topsec;
+	int				ceilingpic;
+	int				floorpic;
+	bool			touchmidtex;
+};
 
-void	P_LineOpening (const line_t *linedef, fixed_t x, fixed_t y, fixed_t refx=FIXED_MIN, fixed_t refy=0);
-void	P_OldLineOpening (const line_t *linedef, fixed_t x, fixed_t y);
+void	P_LineOpening (FLineOpening &open, AActor *thing, const line_t *linedef, fixed_t x, fixed_t y, fixed_t refx=FIXED_MIN, fixed_t refy=0);
+//void	P_OldLineOpening (const line_t *linedef, fixed_t x, fixed_t y);
 
 bool P_BlockLinesIterator (int x, int y, bool(*func)(line_t*));
 bool P_BlockThingsIterator (int x, int y, bool(*func)(AActor*), TArray<AActor *> &checkarray, AActor *start=NULL);
@@ -285,7 +293,7 @@ extern AActor			*LastRipped;
 bool	P_TestMobjLocation (AActor *mobj);
 bool	P_TestMobjZ (AActor *mobj, bool quick=true);
 bool	P_CheckPosition (AActor *thing, fixed_t x, fixed_t y);
-bool	P_OldCheckPosition (AActor *thing, fixed_t x, fixed_t y);
+//bool	P_OldCheckPosition (AActor *thing, fixed_t x, fixed_t y);
 AActor	*P_CheckOnmobj (AActor *thing);
 void	P_FakeZMovement (AActor *mo);
 bool	P_TryMove (AActor* thing, fixed_t x, fixed_t y, bool dropoff, const secplane_t * onfloor = NULL);
@@ -304,10 +312,9 @@ bool	P_UsePuzzleItem (AActor *actor, int itemType);
 void	PIT_ThrustSpike (AActor *actor);
 void	P_FindFloorCeiling (AActor *actor);
 
-bool	P_ChangeSector (sector_t* sector, int crunch, int amt, int floorOrCeil);
+bool	P_ChangeSector (sector_t* sector, int crunch, int amt, int floorOrCeil, bool isreset);
 
 extern	AActor*	linetarget; 	// who got hit (or NULL)
-extern	AActor *PuffSpawned;	// points to last puff spawned
 
 fixed_t P_AimLineAttack (AActor *t1, angle_t angle, fixed_t distance, fixed_t vrange=0, bool forcenosmart=false);
 AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance, int pitch, int damage, FName damageType, const PClass *pufftype);

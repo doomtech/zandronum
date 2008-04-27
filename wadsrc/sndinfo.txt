@@ -46,6 +46,9 @@ world/quake			dsquake
 misc/freeze			icedth1
 misc/icebreak			icebrk1a
 
+// The released source code used a min distance of 160. Why?
+// Retail Doom and Strife use 200.
+$rolloff * 200 1200
 
 /***************************************************************************/
 /*									   */
@@ -54,6 +57,7 @@ misc/icebreak			icebrk1a
 /***************************************************************************/
 
 $ifdoom
+
 
 // BOOM has pitch shifting equivalent to a range of 4. I never got to hear
 // Doom when it used pitch shifting, so I don't know if this is correct or not.
@@ -319,6 +323,7 @@ imp/death1			dsbgdth1
 imp/death2			dsbgdth2
 imp/attack			dsfirsht
 imp/shotx			dsfirxpl
+$limit imp/active 6
 
 // Demon
 
@@ -643,6 +648,8 @@ $endif	// ifdoom
 
 $ifheretic
 
+$rolloff * custom 0 1600
+
 $pitchshiftrange 2
 
 $playersound	player	male	*wimpydeath	plrwdth
@@ -928,6 +935,8 @@ $endif	// ifheretic
 
 $ifhexen
 
+$rolloff * custom 0 2025
+
 $pitchshiftrange 3
 
 $random PlayerFighterExtremeDeathPicker	{ PlayerFighterExtreme1Death
@@ -1106,6 +1115,8 @@ $endif	// ifhexen
 //===========================================================================
 
 $ifstrife
+
+$rolloff * 200 1200
 
 $playersound	player	male	*death		dspldeth
 $playersound	player	male	*xdeath		dspdiehi

@@ -67,6 +67,7 @@ void DPillar::Serialize (FArchive &arc)
 		<< m_FloorTarget
 		<< m_CeilingTarget
 		<< m_Crush
+		<< m_Hexencrush
 		// [BC]
 		<< (DWORD &)m_lPillarID;
 }
@@ -95,10 +96,22 @@ void DPillar::SetType( EPillar Type )
 	m_Type = Type;
 }
 
+// [BB]
+DPillar::EPillar DPillar::GetType( )
+{
+	return m_Type;
+}
+
 // [BC]
 void DPillar::SetFloorSpeed( LONG lSpeed )
 {
 	m_FloorSpeed = lSpeed;
+}
+
+// [BB]
+LONG DPillar::GetFloorSpeed( )
+{
+	return m_FloorSpeed;
 }
 
 // [BC]
@@ -107,16 +120,34 @@ void DPillar::SetCeilingSpeed( LONG lSpeed )
 	m_CeilingSpeed = lSpeed;
 }
 
+// [BB]
+LONG DPillar::GetCeilingSpeed( )
+{
+	return m_CeilingSpeed;
+}
+
 // [BC]
 void DPillar::SetFloorTarget( LONG lTarget )
 {
 	m_FloorTarget = lTarget;
 }
 
+// [BB]
+LONG DPillar::GetFloorTarget( )
+{
+	return m_FloorTarget;
+}
+
 // [BC]
 void DPillar::SetCeilingTarget( LONG lTarget )
 {
 	m_CeilingTarget = lTarget;
+}
+
+// [BB]
+LONG DPillar::GetCeilingTarget( )
+{
+	return m_CeilingTarget;
 }
 
 void DPillar::Tick ()
@@ -129,13 +160,13 @@ void DPillar::Tick ()
 
 	if (m_Type == pillarBuild)
 	{
-		r = MoveFloor (m_FloorSpeed, m_FloorTarget, m_Crush, 1);
-		s = MoveCeiling (m_CeilingSpeed, m_CeilingTarget, m_Crush, -1);
+		r = MoveFloor (m_FloorSpeed, m_FloorTarget, m_Crush, 1, m_Hexencrush);
+		s = MoveCeiling (m_CeilingSpeed, m_CeilingTarget, m_Crush, -1, m_Hexencrush);
 	}
 	else
 	{
-		r = MoveFloor (m_FloorSpeed, m_FloorTarget, m_Crush, -1);
-		s = MoveCeiling (m_CeilingSpeed, m_CeilingTarget, m_Crush, 1);
+		r = MoveFloor (m_FloorSpeed, m_FloorTarget, m_Crush, -1, m_Hexencrush);
+		s = MoveCeiling (m_CeilingSpeed, m_CeilingTarget, m_Crush, 1, m_Hexencrush);
 	}
 
 	if (r == pastdest && s == pastdest)
@@ -160,17 +191,17 @@ void DPillar::Tick ()
 	{
 		if (r == crushed)
 		{
-			MoveFloor (m_FloorSpeed, oldfloor, -1, -1);
+			MoveFloor (m_FloorSpeed, oldfloor, -1, -1, m_Hexencrush);
 		}
 		if (s == crushed)
 		{
-			MoveCeiling (m_CeilingSpeed, oldceiling, -1, 1);
+			MoveCeiling (m_CeilingSpeed, oldceiling, -1, 1, m_Hexencrush);
 		}
 	}
 }
 
 DPillar::DPillar (sector_t *sector, EPillar type, fixed_t speed,
-				  fixed_t floordist, fixed_t ceilingdist, int crush)
+				  fixed_t floordist, fixed_t ceilingdist, int crush, bool hexencrush)
 	: DMover (sector)
 {
 	fixed_t newheight;
@@ -182,6 +213,7 @@ DPillar::DPillar (sector_t *sector, EPillar type, fixed_t speed,
 
 	m_Type = type;
 	m_Crush = crush;
+	m_Hexencrush = hexencrush;
 
 	if (type == pillarBuild)
 	{
@@ -244,13 +276,13 @@ DPillar::DPillar (sector_t *sector, EPillar type, fixed_t speed,
 	}
 
 	if (sector->seqType >= 0)
-		SN_StartSequence (sector, sector->seqType, SEQ_PLATFORM, 0);
+		SN_StartSequence (sector, sector->seqType, SEQ_PLATFORM, 0, false);
 	else
-		SN_StartSequence (sector, "Floor", 0);
+		SN_StartSequence (sector, "Floor", 0, false);
 }
 
 bool EV_DoPillar (DPillar::EPillar type, int tag, fixed_t speed, fixed_t height,
-				  fixed_t height2, int crush)
+				  fixed_t height2, int crush, bool hexencrush)
 {
 	bool rtn = false;
 	int secnum = -1;
@@ -276,19 +308,19 @@ bool EV_DoPillar (DPillar::EPillar type, int tag, fixed_t speed, fixed_t height,
 			continue;
 
 		rtn = true;
-		pPillar = new DPillar (sec, type, speed, height, height2, crush);
+		pPillar = new DPillar (sec, type, speed, height, height2, crush, hexencrush);
 
 		if ( pPillar )
 		{
 			// [BC] Assign the mover's network ID. However, don't do this on the client end.
 			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
-				pPillar->m_lPillarID = P_GetFirstFreePillarID( );
+				pPillar->SetID ( P_GetFirstFreePillarID( ) );
 			else
-				pPillar->m_lPillarID = -1;
+				pPillar->SetID ( -1 );
 
 			// [BC] If we're the server, tell clients to create the pillar.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_DoPillar( pPillar->m_Type, sec, pPillar->m_FloorSpeed, pPillar->m_CeilingSpeed, pPillar->m_FloorTarget, pPillar->m_CeilingTarget, pPillar->m_lPillarID );
+				SERVERCOMMANDS_DoPillar( pPillar->GetType(), sec, pPillar->GetFloorSpeed(), pPillar->GetCeilingSpeed(), pPillar->GetFloorTarget(), pPillar->GetCeilingTarget(), pPillar->GetID() );
 		}
 	}
 	return rtn;

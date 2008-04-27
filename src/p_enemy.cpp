@@ -1859,11 +1859,11 @@ void A_Look (AActor *actor)
 	{
 		if (actor->flags2 & MF2_BOSS)
 		{ // full volume
-			S_SoundID (actor, CHAN_VOICE, actor->SeeSound, 1, ATTN_SURROUND);
+			S_SoundID (actor, CHAN_VOICE, actor->SeeSound, 1, ATTN_NONE);
 
 			// [BC] Play the sound for clients.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SoundActor( actor, CHAN_VOICE, S_GetName( actor->SeeSound ), 1, ATTN_SURROUND );
+				SERVERCOMMANDS_SoundActor( actor, CHAN_VOICE, S_GetName( actor->SeeSound ), 1, ATTN_NONE );
 		}
 		else
 		{
@@ -2797,7 +2797,7 @@ void A_Scream (AActor *actor)
 		if (actor->flags2 & MF2_BOSS)
 		{
 			// full volume
-			S_SoundID (actor, CHAN_VOICE, actor->DeathSound, 1, ATTN_SURROUND);
+			S_SoundID (actor, CHAN_VOICE, actor->DeathSound, 1, ATTN_NONE);
 		}
 		else
 		{
@@ -3181,13 +3181,13 @@ void A_BossDeath (AActor *actor)
 	{
 		if (type == NAME_Fatso)
 		{
-			EV_DoFloor (DFloor::floorLowerToLowest, NULL, 666, FRACUNIT, 0, 0, 0);
+			EV_DoFloor (DFloor::floorLowerToLowest, NULL, 666, FRACUNIT, 0, 0, 0, false);
 			return;
 		}
 		
 		if (type == NAME_Arachnotron)
 		{
-			EV_DoFloor (DFloor::floorRaiseByTexture, NULL, 667, FRACUNIT, 0, 0, 0);
+			EV_DoFloor (DFloor::floorRaiseByTexture, NULL, 667, FRACUNIT, 0, 0, 0, false);
 			return;
 		}
 	}
@@ -3196,7 +3196,7 @@ void A_BossDeath (AActor *actor)
 		switch (level.flags & LEVEL_SPECACTIONSMASK)
 		{
 		case LEVEL_SPECLOWERFLOOR:
-			EV_DoFloor (DFloor::floorLowerToLowest, NULL, 666, FRACUNIT, 0, 0, 0);
+			EV_DoFloor (DFloor::floorLowerToLowest, NULL, 666, FRACUNIT, 0, 0, 0, false);
 			return;
 		
 		case LEVEL_SPECOPENDOOR:

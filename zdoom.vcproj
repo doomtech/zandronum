@@ -2211,6 +2211,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\p_3dmidtex.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\p_acs.cpp"
 				>
 				<FileConfiguration
@@ -2541,6 +2545,10 @@
 						AdditionalOptions="&quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot; "
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\src\p_linkedsectors.cpp"
+				>
 			</File>
 			<File
 				RelativePath=".\src\p_lnspec.cpp"
@@ -4612,6 +4620,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\p_3dmidtex.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\p_acs.h"
 				>
 			</File>
@@ -6269,11 +6281,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\g_shared\sbarinfo.cpp"
+				RelativePath=".\src\g_shared\sbarinfo.h"
 				>
 			</File>
 			<File
-				RelativePath=".\src\g_shared\sbarinfo.h"
+				RelativePath=".\src\g_shared\sbarinfo_display.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\g_shared\sbarinfo_parser.cpp"
 				>
 			</File>
 			<File
@@ -10231,10 +10247,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\gl\gl_pch.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\gl\gl_portal.cpp"
 					>
 				</File>
@@ -10527,6 +10539,42 @@
 					>
 				</File>
 			</Filter>
+		</Filter>
+		<Filter
+			Name="Xlat"
+			>
+			<File
+				RelativePath=".\src\xlat\parse_xlat.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\xlat\xlat.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\xlat\xlat_parser.y"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Generating xlat_parser.c and xlat_parser.h..."
+						CommandLine="tools\lemon\lemon.exe &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						Outputs="$(InputDir)xlat_parser.c;$(InputDir)xlat_parser.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Generating xlat_parser.c and xlat_parser.h..."
+						CommandLine="tools\lemon\lemon.exe &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						Outputs="$(InputDir)xlat_parser.c;$(InputDir)xlat_parser.h"
+					/>
+				</FileConfiguration>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

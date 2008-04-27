@@ -1311,13 +1311,14 @@ void P_ExplodeMissile (AActor *mo, line_t *line, AActor *target)
 					z = mo->z;
 
 					F3DFloor * ffloor=NULL;
-					if (line->sidenum[side^1]!=NO_SIDE && sides[line->sidenum[side^1]].sector->e->ffloors.Size())
+					if (line->sidenum[side^1]!=NO_SIDE)
 					{
-						// find a 3D-floor to stick to
 						sector_t * backsector=sides[line->sidenum[side^1]].sector;
-						for(unsigned int i=0;i<backsector->e->ffloors.Size();i++)
+						extsector_t::xfloor &xf = backsector->e->XFloor;
+						// find a 3D-floor to stick to
+						for(unsigned int i=0;i<xf.ffloors.Size();i++)
 						{
-							F3DFloor * rover=backsector->e->ffloors[i];
+							F3DFloor * rover=xf.ffloors[i];
 
 							if ((rover->flags&(FF_EXISTS|FF_SOLID|FF_RENDERSIDES))==(FF_EXISTS|FF_SOLID|FF_RENDERSIDES))
 							{
@@ -2077,15 +2078,15 @@ explode:
 			if (mo->floorz > mo->Sector->floorplane.ZatPoint (mo->x, mo->y))
 			{
 				unsigned i;
-				for(i=0;i<mo->Sector->e->ffloors.Size();i++)
+				for(i=0;i<mo->Sector->e->XFloor.ffloors.Size();i++)
 				{
 					// Sliding around on 3D floors looks extremely bad so
 					// if the floor comes from one in the current sector stop sliding the corpse!
-					F3DFloor * rover=mo->Sector->e->ffloors[i];
+					F3DFloor * rover=mo->Sector->e->XFloor.ffloors[i];
 					if (!(rover->flags&FF_EXISTS)) continue;
 					if (rover->flags&FF_SOLID && rover->top.plane->ZatPoint(mo->x,mo->y)==mo->floorz) break;
 				}
-				if (i==mo->Sector->e->ffloors.Size()) return;
+				if (i==mo->Sector->e->XFloor.ffloors.Size()) return;
 			}
 		}
 	}
@@ -2413,9 +2414,9 @@ void P_ZMovement (AActor *mo)
 	// [GrafZahl] This is a really ugly workaround... :(
 	// But unless the collision code is completely rewritten it is the 
 	// only way to avoid problems caused by incorrect positioning info...
-	for(unsigned int i=0;i<mo->Sector->e->ffloors.Size();i++)
+	for(unsigned int i=0;i<mo->Sector->e->XFloor.ffloors.Size();i++)
     {
-		F3DFloor*  rover=mo->Sector->e->ffloors[i];
+		F3DFloor*  rover=mo->Sector->e->XFloor.ffloors[i];
 
 		if (!(rover->flags&FF_EXISTS)) continue;
 		if(!(rover->flags & FF_SOLID) || !(rover->flags & FF_EXISTS)) continue;
@@ -3540,9 +3541,9 @@ void AActor::Tick ()
 
 		// Check 3D floors as well
 		if (floorsector->e)	// apparently this can be called when the data is already gone-
-		for(unsigned int i=0;i<floorsector->e->ffloors.Size();i++)
+		for(unsigned int i=0;i<floorsector->e->XFloor.ffloors.Size();i++)
 		{
-			F3DFloor * rover= floorsector->e->ffloors[i];
+			F3DFloor * rover= floorsector->e->XFloor.ffloors[i];
 			if(!(rover->flags & FF_SOLID) || !(rover->flags & FF_EXISTS)) continue;
 
 			if (rover->top.plane->ZatPoint(x, y) == floorz)
@@ -3800,9 +3801,9 @@ bool AActor::UpdateWaterLevel (fixed_t oldz, bool dosplash)
 			else
 			{
 			// Check 3D floors as well!
-			for(unsigned int i=0;i<Sector->e->ffloors.Size();i++)
+			for(unsigned int i=0;i<Sector->e->XFloor.ffloors.Size();i++)
 			{
-				F3DFloor*  rover=Sector->e->ffloors[i];
+				F3DFloor*  rover=Sector->e->XFloor.ffloors[i];
 
 				if (!(rover->flags & FF_EXISTS)) continue;
 				if(!(rover->flags & FF_SWIMMABLE) || rover->flags & FF_SOLID) continue;
@@ -4356,7 +4357,7 @@ void AActor::AdjustFloorClip ()
 	const msecnode_t *m;
 
 	// possibly standing on a 3D-floor!
-	if (Sector->e->ffloors.Size() && z>Sector->floorplane.ZatPoint(x,y)) floorclip=0;
+	if (Sector->e->XFloor.ffloors.Size() && z>Sector->floorplane.ZatPoint(x,y)) floorclip=0;
 
 	// [RH] clip based on shallowest floor player is standing on
 	// If the sector has a deep water effect, then let that effect
@@ -5488,9 +5489,9 @@ bool P_HitWater (AActor * thing, sector_t * sec, fixed_t z)
 	// don't splash above the object
 	else if (z>thing->z+(thing->height>>1)) return false;
 
-	for(unsigned int i=0;i<sec->e->ffloors.Size();i++)
+	for(unsigned int i=0;i<sec->e->XFloor.ffloors.Size();i++)
 	{		
-		F3DFloor * rover = sec->e->ffloors[i];
+		F3DFloor * rover = sec->e->XFloor.ffloors[i];
 		if (!(rover->flags & FF_EXISTS)) continue;
 		if (rover->top.plane->ZatPoint(thing->x, thing->y) == z)
 		{
@@ -5620,9 +5621,9 @@ bool P_HitFloor (AActor *thing)
 		}
 
 		// Check 3D floors
-		for(unsigned int i=0;i<m->m_sector->e->ffloors.Size();i++)
+		for(unsigned int i=0;i<m->m_sector->e->XFloor.ffloors.Size();i++)
 		{		
-			F3DFloor * rover = m->m_sector->e->ffloors[i];
+			F3DFloor * rover = m->m_sector->e->XFloor.ffloors[i];
 			if (!(rover->flags & FF_EXISTS)) continue;
 			if (rover->flags & (FF_SOLID|FF_SWIMMABLE))
 			{

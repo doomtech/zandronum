@@ -1,4 +1,4 @@
-#include "gl_pch.h"
+
 /*
 ** gltexture.cpp
 ** Low level OpenGL texture handling. These classes are also
@@ -38,6 +38,7 @@
 **
 */
 
+#include "gl/gl_include.h"
 #include "templates.h"
 #include "r_draw.h"
 #include "m_crc32.h"
@@ -245,7 +246,7 @@ GLTexture::GLTexture(int _width, int _height, bool _mipmap, bool wrap)
 		scaleyfac=MIN<float>(1.f,(float)texheight/GLTexture::GetTexDimension(texheight));
 	}
 
-	cm_arraysize=(byte)CM_FIRSTCOLORMAP;// + numfakecmaps);
+	cm_arraysize=(BYTE)CM_FIRSTCOLORMAP;// + numfakecmaps);
 	glTexID = new unsigned[cm_arraysize];
 	memset(glTexID,0,sizeof(unsigned int)*cm_arraysize);
 	clampmode=0;

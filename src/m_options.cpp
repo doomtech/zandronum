@@ -145,7 +145,6 @@ EXTERN_CVAR (Int, crosshair)
 EXTERN_CVAR (Bool, freelook)
 EXTERN_CVAR (Int, snd_buffersize)
 EXTERN_CVAR (Int, snd_samplerate)
-EXTERN_CVAR (Bool, snd_3d)
 EXTERN_CVAR (Bool, snd_waterreverb)
 EXTERN_CVAR (Int, sv_smartaim)
 EXTERN_CVAR (String,	playerclass)
@@ -1310,6 +1309,18 @@ value_t SmartAim[4] = {
 	{ 3.0, "Only monsters" }
 };
 
+value_t DF_Jump[3] = {
+	{ 0, "Default" },
+	{ DF_NO_JUMP, "Off" },
+	{ DF_YES_JUMP, "On" }
+};
+
+value_t DF_Crouch[3] = {
+	{ 0, "Default" },
+	{ DF_NO_CROUCH, "Off" },
+	{ DF_YES_CROUCH, "On" }
+};
+
 static menuitem_t DMFlagsItems[] = {
 	{ discrete, "Teamplay",				{&teamplay},	{2.0}, {0.0}, {0.0}, {OnOff} },
 	{ slider,	"Team damage scalar",	{&teamdamage},	{0.0}, {1.0}, {0.05},{NULL} },
@@ -1338,8 +1349,8 @@ static menuitem_t DMFlagsItems[] = {
 	{ bitflag,	"Mega powerups respawn",{&dmflags},		{0}, {0}, {0}, {(value_t *)DF_RESPAWN_SUPER} },
 	{ bitflag,	"Fast monsters",		{&dmflags},		{0}, {0}, {0}, {(value_t *)DF_FAST_MONSTERS} },
 	{ bitflag,	"Degeneration",			{&dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_YES_DEGENERATION} },
-	{ bitflag,	"Allow jump",			{&dmflags},		{1}, {0}, {0}, {(value_t *)DF_NO_JUMP} },
-	{ bitflag,	"Allow crouch",			{&dmflags},		{1}, {0}, {0}, {(value_t *)DF_NO_CROUCH} },
+	{ bitmask,	"Allow jump",			{&dmflags},		{3.0}, {DF_NO_JUMP|DF_YES_JUMP}, {0}, {DF_Jump} },
+	{ bitmask,	"Allow crouch",			{&dmflags},		{3.0}, {DF_NO_CROUCH|DF_YES_CROUCH}, {0}, {DF_Crouch} },
 	{ bitflag,	"Allow freelook",		{&dmflags},		{1}, {0}, {0}, {(value_t *)DF_NO_FREELOOK} },
 	{ bitflag,	"Allow FOV",			{&dmflags},		{1}, {0}, {0}, {(value_t *)DF_NO_FOV} },
 	{ bitflag,	"Allow BFG aiming",		{&dmflags2},	{0}, {0}, {0}, {(value_t *)DF2_YES_FREEAIMBFG} },
@@ -1425,68 +1436,135 @@ static menu_t CompatibilityMenu =
  *=======================================*/
 
 #ifdef _WIN32
-EXTERN_CVAR (Float, snd_midivolume)
 EXTERN_CVAR (Float, snd_movievolume)
 #endif
 EXTERN_CVAR (Bool, snd_flipstereo)
 EXTERN_CVAR (Bool, snd_pitched)
+EXTERN_CVAR (String, snd_output_format)
+EXTERN_CVAR (String, snd_speakermode)
+EXTERN_CVAR (String, snd_resampler)
+EXTERN_CVAR (String, snd_output)
+EXTERN_CVAR (Int, snd_buffersize)
+EXTERN_CVAR (Int, snd_buffercount)
+EXTERN_CVAR (Int, snd_samplerate)
+EXTERN_CVAR (Bool, snd_hrtf)
+EXTERN_CVAR (Bool, snd_waterreverb)
+EXTERN_CVAR (Int, snd_mididevice)
 
 static void MakeSoundChanges ();
 static void AdvSoundOptions ();
-static void ChooseMIDI ();
 
 static value_t SampleRates[] =
 {
-	{ 4000.f, "4000 Hz" },
-	{ 8000.f, "8000 Hz" },
-	{ 11025.f, "11025 Hz" },
-	{ 22050.f, "22050 Hz" },
-	{ 32000.f, "32000 Hz" },
-	{ 44100.f, "44100 Hz" },
-	{ 48000.f, "48000 Hz" },
-	{ 65535.f, "65535 Hz" }
+	{ 0.f,		"Default" },
+	{ 4000.f,	"4000 Hz" },
+	{ 8000.f,	"8000 Hz" },
+	{ 11025.f,	"11025 Hz" },
+	{ 22050.f,	"22050 Hz" },
+	{ 32000.f,	"32000 Hz" },
+	{ 44100.f,	"44100 Hz" },
+	{ 48000.f,	"48000 Hz" }
 };
 
 static value_t BufferSizes[] =
 {
-	{   0.f, "Default" },
-	{  20.f, "20 ms" },
-	{  40.f, "40 ms" },
-	{  60.f, "60 ms" },
-	{  80.f, "80 ms" },
-	{ 100.f, "100 ms" },
-	{ 120.f, "120 ms" },
-	{ 140.f, "140 ms" },
-	{ 160.f, "160 ms" },
-	{ 180.f, "180 ms" },
-	{ 200.f, "200 ms" },
+	{    0.f, "Default" },
+	{   64.f, "64 samples" },
+	{  128.f, "128 samples" },
+	{  256.f, "256 samples" },
+	{  512.f, "512 samples" },
+	{ 1024.f, "1024 samples" },
+	{ 2048.f, "2048 samples" },
+	{ 4096.f, "4096 samples" }
+};
+
+static value_t BufferCounts[] =
+{
+	{    0.f, "Default" },
+	{    2.f, "2" },
+	{    3.f, "3" },
+	{    4.f, "4" },
+	{    5.f, "5" },
+	{    6.f, "6" },
+	{    7.f, "7" },
+	{    8.f, "8" },
+	{    9.f, "9" },
+	{   10.f, "10" },
+	{   11.f, "11" },
+	{   12.f, "12" }
+};
+
+static valueenum_t Outputs[] =
+{
+	{ "Default",		"Default" },
+#if defined(_WIN32)
+	{ "DirectSound",	"DirectSound" },
+	{ "WASAPI",			"Vista WASAPI" },
+	{ "ASIO",			"ASIO" },
+	{ "WaveOut",		"WaveOut" },
+	{ "OpenAL",			"OpenAL (very beta)" },
+#elif defined(unix)
+	{ "OSS",			"OSS" },
+	{ "ALSA",			"ALSA" },
+	{ "ESD",			"ESD" },
+#elif defined(__APPLE__)
+	{ "Sound Manager",	"Sound Manager" },
+	{ "Core Audio",		"Core Audio" },
+#endif
+	{ "No sound",		"No sound" }
+};
+
+static valueenum_t OutputFormats[] =
+{
+	{ "PCM-8",		"8-bit" },
+	{ "PCM-16",		"16-bit" },
+	{ "PCM-24",		"24-bit" },
+	{ "PCM-32",		"32-bit" },
+	{ "PCM-Float",	"32-bit float" }
+};
+
+static valueenum_t SpeakerModes[] =
+{
+	{ "Auto",		"Auto" },
+	{ "Mono",		"Mono" },
+	{ "Stereo",		"Stereo" },
+	{ "Prologic",	"Dolby Prologic Decoder" },
+	{ "Quad",		"Quad" },
+	{ "Surround",	"5 speakers" },
+	{ "5.1",		"5.1 speakers" },
+	{ "7.1",		"7.1 speakers" }
+};
+
+static valueenum_t Resamplers[] =
+{
+	{ "NoInterp",	"No interpolation" },
+	{ "Linear",		"Linear" },
+	{ "Cubic",		"Cubic" },
+	{ "Spline",		"Spline" }
 };
 
 static menuitem_t SoundItems[] =
 {
-	{ slider,	"Sound effects volume",	{&snd_sfxvolume},		{0.0}, {1.0},	{0.05}, {NULL} },
-#ifdef _WIN32
+	{ slider,	"Sounds volume",		{&snd_sfxvolume},		{0.0}, {1.0},	{0.05}, {NULL} },
 	{ slider,	"Music volume",			{&snd_musicvolume},		{0.0}, {1.0},	{0.05}, {NULL} },
-	{ slider,	"Movie volume",			{&snd_movievolume},		{0.0}, {1.0},	{0.05}, {NULL} },
-#else
-	{ slider,	"Music volume",			{&snd_musicvolume},		{0.0}, {1.0},	{0.05}, {NULL} },
-#endif
+	{ discrete, "MIDI device",			{&snd_mididevice},		{0.0}, {0.0},	{0.0}, {NULL} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
-	{ discrete, "Underwater Reverb",	{&snd_waterreverb},		{2.0}, {0.0},	{0.0}, {OnOff} },
-	{ discrete, "Flip Stereo Channels",	{&snd_flipstereo},		{2.0}, {0.0},	{0.0}, {OnOff} },
-	{ discrete, "Random Pitch Variations", {&snd_pitched},		{2.0}, {0.0},	{0.0}, {OnOff} },
+	{ discrete, "Underwater reverb",	{&snd_waterreverb},		{2.0}, {0.0},	{0.0}, {OnOff} },
+	{ discrete, "Randomize pitches",	{&snd_pitched},			{2.0}, {0.0},	{0.0}, {OnOff} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
-	{ more,		"Activate below settings", {NULL},			{0.0}, {0.0},	{0.0}, {(value_t *)MakeSoundChanges} },
+	{ more,		"Restart sound",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)MakeSoundChanges} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
-	{ discrete, "Sample Rate",			{&snd_samplerate},		{8.0}, {0.0},	{0.0}, {SampleRates} },
-	{ discrete, "Buffer Size",			{&snd_buffersize},		{11.0}, {0.0},	{0.0}, {BufferSizes} },
-	{ discrete, "3D Sound",				{&snd_3d},				{2.0}, {0.0},	{0.0}, {OnOff} },
+	{ ediscrete,"Output system",		{&snd_output},			{countof(Outputs)}, {0.0}, {0.0}, {(value_t *)Outputs} },
+	{ ediscrete,"Output format",		{&snd_output_format},	{5.0}, {0.0},	{0.0}, {(value_t *)OutputFormats} },
+	{ ediscrete,"Speaker mode",			{&snd_speakermode},		{8.0}, {0.0},	{0.0}, {(value_t *)SpeakerModes} },
+	{ ediscrete,"Resampler",			{&snd_resampler},		{4.0}, {0.0},	{0.0}, {(value_t *)Resamplers} },
+	{ discrete, "HRTF filter",			{&snd_hrtf},			{2.0}, {0.0},	{0.0}, {(value_t *)OnOff} },
+	{ discrete, "Sample rate",			{&snd_samplerate},		{8.0}, {0.0},	{0.0}, {SampleRates} },
+	{ discrete, "Buffer size",			{&snd_buffersize},		{8.0}, {0.0},	{0.0}, {BufferSizes} },
+	{ discrete, "Buffer count",			{&snd_buffercount},		{12.0}, {0.0},	{0.0}, {BufferCounts} },
 
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
-	{ more,		"Advanced Options",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)AdvSoundOptions} },
-#ifdef _WIN32
-	{ more,		"Select MIDI Device",	{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)ChooseMIDI} },
-#endif
+	{ more,		"Advanced options",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)AdvSoundOptions} },
 };
 
 static menu_t SoundMenu =
@@ -1498,29 +1576,7 @@ static menu_t SoundMenu =
 	SoundItems,
 };
 
-#ifdef _WIN32
-/*=======================================
- *
- * MIDI Device Menu
- *
- *=======================================*/
-
-EXTERN_CVAR (Int, snd_mididevice)
-
-static menuitem_t MidiDeviceItems[] =
-{
-	{ discrete, "Device",				{&snd_mididevice},	{0.0}, {0.0},	{0.0}, {NULL} },
-};
-
-static menu_t MidiDeviceMenu =
-{
-	"SELECT MIDI DEVICE",
-	0,
-	1,
-	0,
-	MidiDeviceItems,
-};
-#endif
+#define MIDI_DEVICE_ITEM 2
 
 /*=======================================
  *
@@ -1529,26 +1585,13 @@ static menu_t MidiDeviceMenu =
  *=======================================*/
 
 EXTERN_CVAR (Bool, opl_enable)
-EXTERN_CVAR (Int, opl_frequency)
 EXTERN_CVAR (Bool, opl_onechip)
-
-static value_t OPLSampleRates[] =
-{
-	{ 4000.f, "4000 Hz" },
-	{ 6215.f, "6215 Hz" },
-	{ 12429.f, "12429 Hz" },
-	{ 24858.f, "24858 Hz" },
-	{ 49716.f, "49716 Hz" },
-};
 
 static menuitem_t AdvSoundItems[] =
 {
 	{ whitetext,"OPL Synthesis",			{NULL},				{0.0}, {0.0},	{0.0}, {NULL} },
 	{ discrete, "Use FM Synth for MUS music",{&opl_enable},		{2.0}, {0.0},	{0.0}, {OnOff} },
 	{ discrete, "Only emulate one OPL chip", {&opl_onechip},	{2.0}, {0.0},	{0.0}, {OnOff} },
-	{ discrete, "OPL synth sample rate",	 {&opl_frequency},	{5.0}, {0.0},	{0.0}, {OPLSampleRates} },
-
-
 };
 
 static menu_t AdvSoundMenu =
@@ -3853,6 +3896,42 @@ int M_FindCurGUID (const GUID &guid, GUIDName *values, int numvals)
 	return v;
 }
 
+const char *M_FindCurVal(const char *cur, valueenum_t *values, int numvals)
+{
+	for (int v = 0; v < numvals; ++v)
+	{
+		if (stricmp(values[v].value, cur) == 0)
+		{
+			return values[v].name;
+		}
+	}
+	return cur;
+}
+
+const char *M_FindPrevVal(const char *cur, valueenum_t *values, int numvals)
+{
+	for (int v = 0; v < numvals; ++v)
+	{
+		if (stricmp(values[v].value, cur) == 0)
+		{
+			return values[v == 0 ? numvals - 1 : v - 1].value;
+		}
+	}
+	return values[0].value;
+}
+
+const char *M_FindNextVal(const char *cur, valueenum_t *values, int numvals)
+{
+	for (int v = 0; v < numvals; ++v)
+	{
+		if (stricmp(values[v].value, cur) == 0)
+		{
+			return values[v == numvals - 1 ? 0 : v + 1].value;
+		}
+	}
+	return values[0].value;
+}
+
 void M_OptDrawer ()
 {
 	EColorRange color;
@@ -4082,6 +4161,16 @@ void M_OptDrawer ()
 							DTA_Clean, true, TAG_DONE);
 					}
 				}
+			}
+			break;
+
+			case ediscrete:
+			{
+				const char *v;
+
+				value = item->a.cvar->GetGenericRep (CVAR_String);
+				v = M_FindCurVal(value.String, item->e.enumvalues, (int)item->b.numvalues);
+				screen->DrawText(ValueColor, CurrentMenu->indent + 14, y, v, DTA_Clean, true, TAG_DONE);
 			}
 			break;
 
@@ -5002,6 +5091,13 @@ void M_OptResponder (event_t *ev)
 				}
 				S_Sound (CHAN_VOICE, "menu/change", 1, ATTN_NONE);
 				break;
+			case ediscrete:
+				value = item->a.cvar->GetGenericRep(CVAR_String);
+				value.String = const_cast<char *>(M_FindPrevVal(value.String, item->e.enumvalues, (int)item->b.numvalues));
+				item->a.cvar->SetGenericRep(value, CVAR_String);
+				S_Sound (CHAN_VOICE, "menu/change", 1, ATTN_NONE);
+				break;
+
 			case bitmask:
 				{
 					int cur;
@@ -5395,6 +5491,13 @@ void M_OptResponder (event_t *ev)
 				}
 				S_Sound (CHAN_VOICE, "menu/change", 1, ATTN_NONE);
 				break;
+			case ediscrete:
+				value = item->a.cvar->GetGenericRep(CVAR_String);
+				value.String = const_cast<char *>(M_FindNextVal(value.String, item->e.enumvalues, (int)item->b.numvalues));
+				item->a.cvar->SetGenericRep(value, CVAR_String);
+				S_Sound (CHAN_VOICE, "menu/change", 1, ATTN_NONE);
+				break;
+
 			case bitmask:
 				{
 					int cur;
@@ -6260,9 +6363,19 @@ CCMD (menu_joystick)
 	JoystickOptions ();
 }
 
+static void FreeMIDIMenuList()
+{
+	if (SoundItems[MIDI_DEVICE_ITEM].e.values != NULL)
+	{
+		delete[] SoundItems[MIDI_DEVICE_ITEM].e.values;
+	}
+}
+
 static void SoundOptions ()
 {
-	M_SwitchMenu (&SoundMenu);
+	I_BuildMIDIMenuList(&SoundItems[MIDI_DEVICE_ITEM].e.values, &SoundItems[MIDI_DEVICE_ITEM].b.min);
+	atterm(FreeMIDIMenuList);
+	M_SwitchMenu(&SoundMenu);
 }
 
 CCMD (menu_sound)
@@ -6283,22 +6396,6 @@ CCMD (menu_advsound)
 	OptionsActive = true;
 	AdvSoundOptions ();
 }
-
-#ifdef _WIN32
-static void ChooseMIDI ()
-{
-	I_BuildMIDIMenuList (&MidiDeviceItems[0].e.values,
-						 &MidiDeviceItems[0].b.min);
-	M_SwitchMenu (&MidiDeviceMenu);
-}
-
-CCMD (menu_mididevice)
-{
-	M_StartControlPanel (true);
-	OptionsActive = true;
-	ChooseMIDI ();
-}
-#endif
 
 static void MakeSoundChanges (void)
 {

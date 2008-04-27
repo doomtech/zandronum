@@ -1,4 +1,4 @@
-#include "gl_pch.h"
+
 /*
 ** gltexture.cpp
 ** The texture classes for hardware rendering
@@ -39,6 +39,7 @@
 **
 */
 
+#include "gl/gl_include.h"
 #include "w_wad.h"
 #include "m_png.h"
 #include "r_draw.h"

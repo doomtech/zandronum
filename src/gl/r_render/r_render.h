@@ -1,7 +1,6 @@
 #ifndef R_RENDER
 #define R_RENDER
 
-
 enum RenderFlags
 {
 	RFL_NPOT_TEXTURE=1,
@@ -50,12 +49,12 @@ struct RenderContext
 	void (APIENTRY * SwapBuffers) ();
 #ifndef unix
 	void (APIENTRY * SetGammaRamp) (void * ramp);
-	BOOL (APIENTRY * GetGammaRamp) (void * ramp);
+	bool (APIENTRY * GetGammaRamp) (void * ramp);
 #else
 	void (APIENTRY * SetGammaRamp) (Uint16 *redtable, Uint16 *greentable, Uint16 *bluetable);
-	BOOL (APIENTRY * GetGammaRamp) (Uint16 *redtable, Uint16 *greentable, Uint16 *bluetable);
+	bool (APIENTRY * GetGammaRamp) (Uint16 *redtable, Uint16 *greentable, Uint16 *bluetable);
 #endif
-	BOOL (APIENTRY * SetFullscreen) (int w, int h, int bits, int hz);
+	bool (APIENTRY * SetFullscreen) (int w, int h, int bits, int hz);
 
 
 	void (APIENTRY * Begin) (GLenum mode);

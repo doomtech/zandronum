@@ -1,4 +1,3 @@
-#include "gl_pch.h"
 
 /*
 ** a_dynlight.cpp
@@ -35,6 +34,7 @@
 **
 */
 
+#include "gl/gl_include.h"
 #include "templates.h"
 #include "m_random.h"
 #include "r_main.h"
@@ -693,7 +693,7 @@ CCMD(listlights)
 	ADynamicLight * dl;
 	TThinkerIterator<ADynamicLight> it;
 
-	while (dl=it.Next())
+	while ((dl=it.Next()))
 	{
 		walls=0;
 		sectors=0;

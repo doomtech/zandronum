@@ -1,4 +1,4 @@
-#include "gl_pch.h"
+
 /*
 ** gl_wall.cpp
 ** Wall rendering preparation
@@ -37,6 +37,7 @@
 **
 */
 
+#include "gl/gl_include.h"
 #include "p_local.h"
 #include "p_lnspec.h"
 #include "a_sharedglobal.h"
@@ -263,7 +264,7 @@ void GLWall::SplitWall(sector_t * frontsector, bool translucent)
 	float maplightbottomleft;
 	float maplightbottomright;
 	int i;
-	TArray<lightlist_t> & lightlist=frontsector->e->lightlist;
+	TArray<lightlist_t> & lightlist=frontsector->e->XFloor.lightlist;
 
 	if (glseg.x1==glseg.x2 && glseg.y1==glseg.y2)
 	{
@@ -475,7 +476,7 @@ bool GLWall::DoHorizon(seg_t * seg,sector_t * fs, vertex_t * v1,vertex_t * v2)
 			hi.lightlevel=GetCeilingLight(fs);
 			hi.colormap=fs->ColorMap;
 
-			if (fs->e->ffloors.Size())
+			if (fs->e->XFloor.ffloors.Size())
 			{
 				light = P_GetPlaneLight(fs, &fs->ceilingplane, true);
 
@@ -505,7 +506,7 @@ bool GLWall::DoHorizon(seg_t * seg,sector_t * fs, vertex_t * v1,vertex_t * v2)
 			hi.lightlevel=GetFloorLight(fs);
 			hi.colormap=fs->ColorMap;
 
-			if (fs->e->ffloors.Size())
+			if (fs->e->XFloor.ffloors.Size())
 			{
 				light = P_GetPlaneLight(fs, &fs->floorplane, false);
 
@@ -671,18 +672,33 @@ void GLWall::DoTexture(int _type,seg_t * seg,int peg,
 	// The Vertex values can be destroyed in this function and must be restored aferward!
 	GLSeg glsave=glseg;
 	int lh=ceilingrefheight-floorrefheight;
+	int texpos;
+
+	switch (_type)
+	{
+	case RENDERWALL_TOP:
+		texpos = side_t::top;
+		break;
+	case RENDERWALL_BOTTOM:
+		texpos = side_t::bottom;
+		break;
+	default:
+		texpos = side_t::mid;
+		break;
+	}
 
 	type = (seg->linedef->special == Line_Mirror && _type == RENDERWALL_M1S && 
 		!(gl.flags & RFL_NOSTENCIL) && gl_mirrors) ? RENDERWALL_MIRROR : _type;
 
-	ceilingrefheight+= 	gltexture->RowOffset(seg->sidedef->rowoffset)+
+	ceilingrefheight+= 	gltexture->RowOffset(seg->sidedef->GetTextureYOffset(texpos))+
 						(peg ? (gltexture->TextureHeight()<<FRACBITS)-lh-v_offset:0);
 
-	if (!SetWallCoordinates(seg, ceilingrefheight, topleft, topright, bottomleft, bottomright, seg->sidedef->textureoffset)) return;
+	if (!SetWallCoordinates(seg, ceilingrefheight, topleft, topright, bottomleft, bottomright, 
+							seg->sidedef->GetTextureXOffset(texpos))) return;
 
 	// Add this wall to the render list
 	sector_t * sec = sub? sub->sector : seg->frontsector;
-	if (sec->e->lightlist.Size()==0 || gl_fixedcolormap) PutWall(false);
+	if (sec->e->XFloor.lightlist.Size()==0 || gl_fixedcolormap) PutWall(false);
 	else SplitWall(sec, false);
 	glseg=glsave;
 }
@@ -713,7 +729,7 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 		// Align the texture to the ORIGINAL sector's height!!
 		// At this point slopes don't matter because they don't affect the texture's z-position
 
-		fixed_t rowoffset=gltexture->RowOffset(seg->sidedef->rowoffset);
+		fixed_t rowoffset=gltexture->RowOffset(seg->sidedef->GetTextureYOffset(side_t::mid));
 		if ( (seg->linedef->flags & ML_DONTPEGBOTTOM) >0)
 		{
 			texturebottom=max(realfront->floortexz,realback->floortexz)+rowoffset;
@@ -742,7 +758,7 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 		// Set up the top
 		//
 		//
-		FTexture * tex = TexMan(seg->sidedef->toptexture);
+		FTexture * tex = TexMan(seg->sidedef->GetTexture(side_t::top));
 		if (!tex || tex->UseType==FTexture::TEX_Null)
 		{
 			// texture is missing - use the higher plane
@@ -769,7 +785,7 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 		// Set up the bottom
 		//
 		//
-		tex = TexMan(seg->sidedef->bottomtexture);
+		tex = TexMan(seg->sidedef->GetTexture(side_t::bottom));
 		if (!tex || tex->UseType==FTexture::TEX_Null)
 		{
 			// texture is missing - use the lower plane
@@ -824,7 +840,7 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 	// set up texture coordinate stuff
 	//
 	// 
-	fixed_t t_ofs = seg->sidedef->textureoffset;
+	fixed_t t_ofs = seg->sidedef->GetTextureXOffset(side_t::mid);
 
 	if (gltexture)
 	{
@@ -951,7 +967,7 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 				// Draw the stuff
 				//
 				//
-				if (realfront->e->lightlist.Size()==0 || gl_fixedcolormap) split.PutWall(translucent);
+				if (realfront->e->XFloor.lightlist.Size()==0 || gl_fixedcolormap) split.PutWall(translucent);
 				else split.SplitWall(realfront, translucent);
 
 				t=1;
@@ -965,7 +981,7 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 			// Draw the stuff without splitting
 			//
 			//
-			if (realfront->e->lightlist.Size()==0 || gl_fixedcolormap) PutWall(translucent);
+			if (realfront->e->XFloor.lightlist.Size()==0 || gl_fixedcolormap) PutWall(translucent);
 			else SplitWall(realfront, translucent);
 		}
 		alpha=1.0f;
@@ -1012,9 +1028,9 @@ void GLWall::BuildFFBlock(seg_t * seg, F3DFloor * rover,
 	{
 		int texno;
 		
-		if (rover->flags&FF_UPPERTEXTURE) texno = seg->sidedef->toptexture;
-		else if (rover->flags&FF_LOWERTEXTURE) texno = seg->sidedef->bottomtexture;
-		else texno = mastersd->midtexture;
+		if (rover->flags&FF_UPPERTEXTURE) texno = seg->sidedef->GetTexture(side_t::top);
+		else if (rover->flags&FF_LOWERTEXTURE) texno = seg->sidedef->GetTexture(side_t::bottom);
+		else texno = mastersd->GetTexture(side_t::mid);
 			
 		gltexture = FGLTexture::ValidateTexture(texno);
 
@@ -1024,16 +1040,16 @@ void GLWall::BuildFFBlock(seg_t * seg, F3DFloor * rover,
 
 		
 		to=(rover->flags&(FF_UPPERTEXTURE|FF_LOWERTEXTURE))? 
-			0:gltexture->TextureOffset(mastersd->textureoffset);
-		ul=wti->FixToTexU(to+gltexture->TextureOffset(seg->sidedef->textureoffset));
+			0:gltexture->TextureOffset(mastersd->GetTextureXOffset(side_t::mid));
+		ul=wti->FixToTexU(to+gltexture->TextureOffset(seg->sidedef->GetTextureXOffset(side_t::mid)));
 		texlength = wti->FloatToTexU(seg->sidedef->TexelLength);
 
 		uplft.u = lolft.u = ul + texlength * glseg.fracleft;
 		uprgt.u = lorgt.u = ul + texlength * glseg.fracright;
 		
-		fixed_t rowoffset=gltexture->RowOffset(seg->sidedef->rowoffset);
+		fixed_t rowoffset=gltexture->RowOffset(seg->sidedef->GetTextureYOffset(side_t::mid));
 		to=(rover->flags&(FF_UPPERTEXTURE|FF_LOWERTEXTURE))? 
-			0:gltexture->RowOffset(mastersd->rowoffset);
+			0:gltexture->RowOffset(mastersd->GetTextureYOffset(side_t::mid));
 		
 		uplft.v=wti->FixToTexV(to+rowoffset+*rover->top.texheight-ff_topleft);
 		uprgt.v=wti->FixToTexV(to+rowoffset+*rover->top.texheight-ff_topright);
@@ -1062,7 +1078,7 @@ void GLWall::BuildFFBlock(seg_t * seg, F3DFloor * rover,
 	}
 	
 	sector_t * sec = sub? sub->sector : seg->frontsector;
-	if (sec->e->lightlist.Size()==0 || gl_fixedcolormap) PutWall(translucent);
+	if (sec->e->XFloor.lightlist.Size()==0 || gl_fixedcolormap) PutWall(translucent);
 	else SplitWall(sec, translucent);
 	alpha=1.0f;
 	lightlevel = savelight;
@@ -1078,7 +1094,7 @@ void GLWall::InverseFloors(seg_t * seg, sector_t * frontsector,
 						   fixed_t topleft, fixed_t topright, 
 						   fixed_t bottomleft, fixed_t bottomright)
 {
-	TArray<F3DFloor *> & frontffloors=frontsector->e->ffloors;
+	TArray<F3DFloor *> & frontffloors=frontsector->e->XFloor.ffloors;
 
 	for(int i=0;i<frontffloors.Size();i++)
 	{
@@ -1146,7 +1162,7 @@ void GLWall::ClipFFloors(seg_t * seg, F3DFloor * ffloor, sector_t * frontsector,
 						 fixed_t topleft, fixed_t topright, 
 						 fixed_t bottomleft, fixed_t bottomright)
 {
-	TArray<F3DFloor *> & frontffloors=frontsector->e->ffloors;
+	TArray<F3DFloor *> & frontffloors=frontsector->e->XFloor.ffloors;
 
 	int flags=ffloor->flags&FF_SWIMMABLE|FF_TRANSLUCENT;
 
@@ -1236,7 +1252,7 @@ void GLWall::DoFFloorBlocks(seg_t * seg,sector_t * frontsector,sector_t * backse
 							fixed_t bch1, fixed_t bch2, fixed_t bfh1, fixed_t bfh2)
 
 {
-	TArray<F3DFloor *> & backffloors=backsector->e->ffloors;
+	TArray<F3DFloor *> & backffloors=backsector->e->XFloor.ffloors;
 	fixed_t topleft, topright, bottomleft, bottomright;
 	bool renderedsomething=false;
 
@@ -1325,7 +1341,7 @@ void GLWall::DoFFloorBlocks(seg_t * seg,sector_t * frontsector,sector_t * backse
 	}
 
 	// draw all inverse floors below the lowest one
-	if (frontsector->e->ffloors.Size() > 0)
+	if (frontsector->e->XFloor.ffloors.Size() > 0)
 	{
 		if (topleft>bottomleft || topright>bottomright)
 			InverseFloors(seg, frontsector, topleft, topright, bottomleft, bottomright);
@@ -1351,7 +1367,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 
 #ifdef _MSC_VER
 #ifdef _DEBUG
-	if (seg->linedef-lines==64)
+	if (seg->linedef-lines==308)
 		__asm nop
 #endif
 #endif
@@ -1482,7 +1498,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 		SkyNormal(frontsector,v1,v2);
 		
 		// normal texture
-		gltexture=FGLTexture::ValidateTexture(seg->sidedef->midtexture);
+		gltexture=FGLTexture::ValidateTexture(seg->sidedef->GetTexture(side_t::mid));
 		if (!gltexture) return;
 
 		DoTexture(RENDERWALL_M1S,seg,(seg->linedef->flags & ML_DONTPEGBOTTOM)>0,
@@ -1536,7 +1552,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 
 			if (bch1a<fch1 || bch2a<fch2)
 			{
-				gltexture=FGLTexture::ValidateTexture(seg->sidedef->toptexture);
+				gltexture=FGLTexture::ValidateTexture(seg->sidedef->GetTexture(side_t::top));
 				if (gltexture) 
 				{
 					DoTexture(RENDERWALL_TOP,seg,(seg->linedef->flags & (ML_DONTPEGTOP))==0,
@@ -1572,13 +1588,13 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 							!gl_fixedcolormap &&
 							(frontsector->ceilingpic!=skyflatnum || backsector->ceilingpic!=skyflatnum));
 
-		gltexture=FGLTexture::ValidateTexture(seg->sidedef->midtexture);
+		gltexture=FGLTexture::ValidateTexture(seg->sidedef->GetTexture(side_t::mid));
 		if (gltexture || drawfogboundary)
 		{
 			DoMidTexture(seg, drawfogboundary, realfront, realback, fch1, fch2, ffh1, ffh2, bch1, bch2, bfh1, bfh2);
 		}
 
-		if (backsector->e->ffloors.Size() || frontsector->e->ffloors.Size()) 
+		if (backsector->e->XFloor.ffloors.Size() || frontsector->e->XFloor.ffloors.Size()) 
 		{
 			DoFFloorBlocks(seg,frontsector,backsector, fch1, fch2, ffh1, ffh2, bch1, bch2, bfh1, bfh2);
 		}
@@ -1598,7 +1614,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 
 			if (bfh1>ffh1 || bfh2>ffh2)
 			{
-				gltexture=FGLTexture::ValidateTexture(seg->sidedef->bottomtexture);
+				gltexture=FGLTexture::ValidateTexture(seg->sidedef->GetTexture(side_t::bottom));
 				if (gltexture) 
 				{
 					DoTexture(RENDERWALL_BOTTOM,seg,(seg->linedef->flags & ML_DONTPEGBOTTOM)>0,

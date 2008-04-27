@@ -1,4 +1,3 @@
-#include "gl_pch.h"
 
 /*
 ** gl_sprite.cpp
@@ -37,6 +36,7 @@
 **---------------------------------------------------------------------------
 **
 */
+#include "gl/gl_include.h"
 #include "p_local.h"
 #include "r_translate.h"
 #include "gl/gl_struct.h"
@@ -97,7 +97,8 @@ void GLSprite::Draw(int pass)
 
 		gl_SetRenderStyle(RenderStyle, false, 
 			// The rest of the needed checks are done inside gl_SetRenderStyle
-			trans > 1.f - FLT_EPSILON && gl_usecolorblending && actor && (actor->renderflags & RF_FULLBRIGHT));
+			trans > 1.f - FLT_EPSILON && gl_usecolorblending && actor && (actor->renderflags & RF_FULLBRIGHT) &&
+			gltexture && !gltexture->GetTransparent());
 
 		if (hw_styleflags == STYLEHW_NoAlphaTest)
 		{
@@ -293,7 +294,7 @@ void GLSprite::SplitSprite(sector_t * frontsector, bool translucent)
 	float maplightbottom;
 	unsigned int i;
 	bool put=false;
-	TArray<lightlist_t> & lightlist=frontsector->e->lightlist;
+	TArray<lightlist_t> & lightlist=frontsector->e->XFloor.lightlist;
 
 	//y1+=y;
 	//y2+=y;
@@ -345,7 +346,7 @@ void GLSprite::SetSpriteColor(sector_t *sector, fixed_t center_y)
 	fixed_t lightbottom;
 	float maplightbottom;
 	unsigned int i;
-	TArray<lightlist_t> & lightlist=actor->Sector->e->lightlist;
+	TArray<lightlist_t> & lightlist=actor->Sector->e->XFloor.lightlist;
 
 	for(i=0;i<lightlist.Size();i++)
 	{
@@ -487,12 +488,13 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 				(thing->flags&MF_ICECORPSE || !(thing->flags&MF_CORPSE))) || gl_spriteclip==2)
 			{
 				float btm=1000000.0f;
+				extsector_t::xfloor &x = thing->Sector->e->XFloor;
 
-				if (thing->Sector->e->ffloors.Size())
+				if (x.ffloors.Size())
 				{
-					for(int i=0;i<thing->Sector->e->ffloors.Size();i++)
+					for(int i=0;i<x.ffloors.Size();i++)
 					{
-						F3DFloor * ff=thing->Sector->e->ffloors[i];
+						F3DFloor * ff=x.ffloors[i];
 						fixed_t floorh=ff->top.plane->ZatPoint(thingx, thingy);
 						if (floorh==thing->floorz) 
 						{
@@ -694,7 +696,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 		if (!gl_fixedcolormap && !fullbright) SetSpriteColor(actor->Sector, actor->y + (actor->height>>1));
 		PutSprite(hw_styleflags != STYLEHW_Solid);
 	}
-	else if (thing->Sector->e->lightlist.Size()==0 || gl_fixedcolormap || fullbright) 
+	else if (thing->Sector->e->XFloor.lightlist.Size()==0 || gl_fixedcolormap || fullbright) 
 	{
 		PutSprite(hw_styleflags != STYLEHW_Solid);
 	}
@@ -732,7 +734,7 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 	}
 	else
 	{
-		TArray<lightlist_t> & lightlist=sector->e->lightlist;
+		TArray<lightlist_t> & lightlist=sector->e->XFloor.lightlist;
 		int lightbottom;
 
 		Colormap = sector->ColorMap;

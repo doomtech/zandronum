@@ -1,4 +1,3 @@
-#include "gl_pch.h"
 
 /*
 ** gl_dynlight.cpp
@@ -40,6 +39,7 @@
 */
 
 
+#include "gl/gl_include.h"
 #include "a_doomglobal.h"
 #include "c_cvars.h"
 #include "c_dispatch.h"

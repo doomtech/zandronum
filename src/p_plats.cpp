@@ -63,9 +63,9 @@ void DPlat::Serialize (FArchive &arc)
 void DPlat::PlayPlatSound (const char *sound)
 {
 	if (m_Sector->seqType >= 0)
-		SN_StartSequence (m_Sector, m_Sector->seqType, SEQ_PLATFORM, 0);
+		SN_StartSequence (m_Sector, m_Sector->seqType, SEQ_PLATFORM, 0, false);
 	else
-		SN_StartSequence (m_Sector, sound, 0);
+		SN_StartSequence (m_Sector, sound, 0, false);
 }
 
 //
@@ -78,7 +78,7 @@ void DPlat::Tick ()
 	switch (m_Status)
 	{
 	case up:
-		res = MoveFloor (m_Speed, m_High, m_Crush, 1);
+		res = MoveFloor (m_Speed, m_High, m_Crush, 1, false);
 		
 		// [BC] That's all we need to do in client mode.
 		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
@@ -154,8 +154,7 @@ void DPlat::Tick ()
 		}
 		break;
 	case down:
-
-		res = MoveFloor (m_Speed, m_Low, -1, -1);
+		res = MoveFloor (m_Speed, m_Low, -1, -1, false);
 
 		// [BC] That's all we need to do in client mode.
 		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
@@ -217,6 +216,12 @@ void DPlat::Tick ()
 					SERVERCOMMANDS_ChangePlatStatus( m_lPlatID, m_Status );
 			}
 		}
+		else if (res == crushed && m_Crush < 0 && m_Type != platToggle)
+		{
+			m_Status = up;
+			m_Count = m_Wait;
+			PlayPlatSound ("Platform");
+		}
 
 		//jff 1/26/98 remove the plat if it bounced so it can be tried again
 		//only affects plats that raise and bounce
@@ -257,7 +262,7 @@ void DPlat::Tick ()
 
 			if (m_Type == platToggle)
 			{
-				SN_StartSequence (m_Sector, "Silence", 0);
+				SN_StartSequence (m_Sector, "Silence", 0, false);
 
 				// [BC] If we're the server, tell clients to play the plat sound.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -547,7 +552,7 @@ manual_plat:
 			plat->m_Low = sec->floorplane.PointToDist (spot, newheight);
 			plat->m_High = sec->floorplane.d;
 			plat->m_Status = DPlat::down;
-			SN_StartSequence (sec, "Silence", 0);
+			SN_StartSequence (sec, "Silence", 0, false);
 			break;
 
 		case DPlat::platDownToNearestFloor:

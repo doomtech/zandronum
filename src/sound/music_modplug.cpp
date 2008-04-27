@@ -42,7 +42,24 @@
 // 192 approximately replicates the volume of a WinAmp Wave export of the song.
 CVAR(Int, snd_mod_mastervolume, 192, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
-ModPlugSong *ModPlugSong::Create (FILE *iofile, char * musiccache, int len)
+class ModPlugSong : public StreamSong
+{
+
+public:
+	~ModPlugSong ();
+	bool IsPlaying ();
+	bool SetPosition (int order);
+	void Play(bool);
+
+	static bool FillStream (SoundStream *stream, void *buff, int len, void *userdata);
+	ModPlugSong (ModPlugFile *dat);
+
+	ModPlugFile * Data;
+	int order;
+};
+
+
+StreamSong *ModPlugSong_Create (FILE *iofile, char * musiccache, int len)
 {
 	char *buffer;
 

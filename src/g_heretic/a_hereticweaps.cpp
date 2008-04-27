@@ -3183,7 +3183,7 @@ void A_SkullRodStorm (AActor *actor)
 	P_CheckMissileSpawn (mo);
 	if (actor->special1 != -1 && !S_IsActorPlayingSomething (actor, CHAN_BODY, -1))
 	{
-		S_LoopedSoundID (actor, CHAN_BODY, actor->special1, 1, ATTN_NORM);
+		S_SoundID (actor, CHAN_BODY|CHAN_LOOP, actor->special1, 1, ATTN_NORM);
 	}
 }
 
@@ -3569,7 +3569,7 @@ void A_FirePhoenixPL2 (AActor *actor)
 	{
 		if (!player->refire || !S_IsActorPlayingSomething (player->mo, CHAN_WEAPON, -1))
 		{
-			S_LoopedSoundID (player->mo, CHAN_WEAPON, soundid, 1, ATTN_NORM);
+			S_SoundID (player->mo, CHAN_WEAPON|CHAN_LOOP, soundid, 1, ATTN_NORM);
 		}
 		return;
 	}
@@ -3589,7 +3589,7 @@ void A_FirePhoenixPL2 (AActor *actor)
 	mo->momz = FixedMul (mo->Speed, slope);
 	if (!player->refire || !S_IsActorPlayingSomething (pmo, CHAN_WEAPON, -1))
 	{
-		S_LoopedSoundID (pmo, CHAN_WEAPON, soundid, 1, ATTN_NORM);
+		S_SoundID (pmo, CHAN_WEAPON|CHAN_LOOP, soundid, 1, ATTN_NORM);
 	}
 
 	// [BC] Apply spread.
@@ -3604,7 +3604,7 @@ void A_FirePhoenixPL2 (AActor *actor)
 		mo->momz = FixedMul (mo->Speed, slope);
 		if (!player->refire || !S_IsActorPlayingSomething (pmo, CHAN_WEAPON, -1))
 		{
-			S_LoopedSoundID (pmo, CHAN_WEAPON, soundid, 1, ATTN_NORM);
+			S_SoundID (pmo, CHAN_WEAPON|CHAN_LOOP, soundid, 1, ATTN_NORM);
 		}
 
 		angle = pmo->angle - ( ANGLE_45 / 3 );
@@ -3616,7 +3616,7 @@ void A_FirePhoenixPL2 (AActor *actor)
 		mo->momz = FixedMul (mo->Speed, slope);
 		if (!player->refire || !S_IsActorPlayingSomething (pmo, CHAN_WEAPON, -1))
 		{
-			S_LoopedSoundID (pmo, CHAN_WEAPON, soundid, 1, ATTN_NORM);
+			S_SoundID (pmo, CHAN_WEAPON|CHAN_LOOP, soundid, 1, ATTN_NORM);
 		}
 	}
 

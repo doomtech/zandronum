@@ -14,8 +14,8 @@
 v0.97d
 ------
 
-*+	- Thoroughly updated Skulltag's ZDoom base to the latest ZDoom SVN repository revision (currently 807). [Torr Samaho]
-+	- Upgraded the GZDoom renderer to 1.1.00 (revision 61)! [Torr Samaho]
+*+	- Thoroughly updated Skulltag's ZDoom base to the latest ZDoom SVN repository revision (currently 862). [Torr Samaho]
++	- Upgraded the GZDoom renderer to 1.1.02 (revision 81)! [Torr Samaho]
 +	- Added an authentication mechanism for several non-map related lumps to get rid of some exploits. [Torr Samaho]
 +	- Added flood protection to the drop/invdrop command. You can't use it online more than once per second anymore. [Torr Samaho]
 +	- Added CCMD kickfromgame_idx, works like kickfromgame but uses the player index instead of the name. [Torr Samaho]

@@ -59,6 +59,7 @@ void DFloor::Serialize (FArchive &arc)
 		<< m_PauseTime
 		<< m_StepTime
 		<< m_PerStepTime
+		<< m_Hexencrush
 		// [BC]
 		<< (DWORD &)m_lFloorID;
 }
@@ -207,7 +208,7 @@ void DFloor::Tick ()
 	if (m_Type == waitStair)
 		return;
 
-	res = MoveFloor (m_Speed, m_FloorDestDist, m_Crush, m_Direction);
+	res = MoveFloor (m_Speed, m_FloorDestDist, m_Crush, m_Direction, m_Hexencrush);
 
 	// [BC] If we're in client mode, just move the floor and get out. The server will
 	// tell us when it stops.
@@ -450,11 +451,11 @@ static void StartFloorSound (sector_t *sec)
 {
 	if (sec->seqType >= 0)
 	{
-		SN_StartSequence (sec, sec->seqType, SEQ_PLATFORM, 0);
+		SN_StartSequence (sec, sec->seqType, SEQ_PLATFORM, 0, false);
 	}
 	else
 	{
-		SN_StartSequence (sec, "Floor", 0);
+		SN_StartSequence (sec, "Floor", 0, false);
 	}
 }
 
@@ -558,7 +559,7 @@ void DFloor::SetFloorDestDist( fixed_t FloorDestDist )
 // [RH] Added tag, speed, height, crush, change params.
 //
 bool EV_DoFloor (DFloor::EFloor floortype, line_t *line, int tag,
-				 fixed_t speed, fixed_t height, int crush, int change)
+				 fixed_t speed, fixed_t height, int crush, int change, bool hexencrush)
 {
 	int 		secnum;
 	bool 		rtn;
@@ -601,6 +602,7 @@ manual_floor:
 		floor = new DFloor (sec);
 		floor->m_Type = floortype;
 		floor->m_Crush = -1;
+		floor->m_Hexencrush = hexencrush;
 		floor->m_Speed = speed;
 		floor->m_ResetCount = 0;				// [RH]
 		floor->m_OrgDist = sec->floorplane.d;	// [RH]
@@ -1065,6 +1067,7 @@ manual_stair:
 		floor->m_StepTime = floor->m_PerStepTime = persteptime;
 
 		floor->m_Crush = (!usespecials && speed == 4*FRACUNIT) ? 10 : -1; //jff 2/27/98 fix uninitialized crush field
+		floor->m_Hexencrush = false;
 
 		floor->m_Speed = speed;
 		height = sec->floorplane.ZatPoint (0, 0) + stairstep;
@@ -1256,6 +1259,7 @@ bool EV_DoDonut (int tag, fixed_t pillarspeed, fixed_t slimespeed)
 			floor = new DFloor (s2);
 			floor->m_Type = DFloor::donutRaise;
 			floor->m_Crush = -1;
+			floor->m_Hexencrush = false;
 			floor->m_Direction = 1;
 			floor->m_Sector = s2;
 			floor->m_Speed = slimespeed;
@@ -1282,6 +1286,7 @@ bool EV_DoDonut (int tag, fixed_t pillarspeed, fixed_t slimespeed)
 			floor = new DFloor (s1);
 			floor->m_Type = DFloor::floorLowerToNearest;
 			floor->m_Crush = -1;
+			floor->m_Hexencrush = false;
 			floor->m_Direction = -1;
 			floor->m_Sector = s1;
 			floor->m_Speed = pillarspeed;
@@ -1542,7 +1547,7 @@ void DWaggleBase::DoWaggle (bool ceiling)
 			dist = FixedMul (m_OriginalDist - plane->d, plane->ic);
 			*texz -= plane->HeightDiff (m_OriginalDist);
 			plane->d = m_OriginalDist;
-			P_ChangeSector (m_Sector, true, dist, ceiling);
+			P_ChangeSector (m_Sector, true, dist, ceiling, false);
 			if (ceiling)
 			{
 				m_Sector->ceilingdata = NULL;
@@ -1579,7 +1584,7 @@ void DWaggleBase::DoWaggle (bool ceiling)
 		FixedMul (FloatBobOffsets[(m_Accumulator>>FRACBITS)&63], m_Scale));
 	*texz += plane->HeightDiff (dist);
 	dist = plane->HeightDiff (dist);
-	P_ChangeSector (m_Sector, true, dist, ceiling);
+	P_ChangeSector (m_Sector, true, dist, ceiling, false);
 
 	// [BC] At the peak and troughs of the waggle, update the clients with the current
 	// position of the floor/ceiling.

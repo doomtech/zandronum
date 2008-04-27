@@ -51,6 +51,7 @@
 #include "p_lnspec.h"
 #include "p_terrain.h"
 #include "p_acs.h"
+#include "p_3dmidtex.h"
 
 #include "g_game.h"
 
@@ -104,7 +105,8 @@ void DScroller::Serialize (FArchive &arc)
 		<< m_Control
 		<< m_LastHeight
 		<< m_vdx << m_vdy
-		<< m_Accel;
+		<< m_Accel
+		<< m_Parts;
 }
 
 DPusher::DPusher ()
@@ -339,6 +341,12 @@ bool P_TestActivateLine (line_t *line, AActor *mo, int side, int activationType)
 	{ 
 		return false;
 	}
+
+	if (activationType == SPAC_USE)
+	{
+		if (!P_CheckSwitchRange(mo, line, side)) return false;
+	}
+
 	if (mo && !mo->player &&
 		!(mo->flags & MF_MISSILE) &&
 		!(line->flags & ML_MONSTERSCANACTIVATE) &&
@@ -622,8 +630,22 @@ void P_PlayerOnSpecialFlat (player_t *player, int floorType)
 	if (Terrains[floorType].DamageAmount &&
 		!(level.time & Terrains[floorType].DamageTimeMask))
 	{
-		P_DamageMobj (player->mo, NULL, NULL, Terrains[floorType].DamageAmount,
-			Terrains[floorType].DamageMOD);
+		AInventory *ironfeet = NULL;
+
+		if (Terrains[floorType].AllowProtection)
+		{
+			for (ironfeet = player->mo->Inventory; ironfeet != NULL; ironfeet = ironfeet->Inventory)
+			{
+				if (ironfeet->IsKindOf (RUNTIME_CLASS(APowerIronFeet)))
+					break;
+			}
+		}
+
+		if (ironfeet == NULL)
+		{
+			P_DamageMobj (player->mo, NULL, NULL, Terrains[floorType].DamageAmount,
+				Terrains[floorType].DamageMOD);
+		}
 		if (Terrains[floorType].Splash != -1)
 		{
 			S_SoundID (player->mo, CHAN_AUTO,
@@ -1202,6 +1224,7 @@ void P_SpawnSpecials (void)
 			for (s = -1; (s = P_FindSectorFromTag(lines[i].args[0],s)) >= 0;)
 			{
 				sectors[s].heightsec = sec;
+				sec->e->FakeFloor.Sectors.Push(&sectors[s]);
 			}
 			break;
 
@@ -1221,6 +1244,17 @@ void P_SpawnSpecials (void)
 		// per wall independently
 		case Transfer_WallLight:
 			new DWallLightTransfer (sides[*lines[i].sidenum].sector, lines[i].args[0], lines[i].args[1]);
+			break;
+
+		case Sector_Attach3dMidtex:
+			P_Attach3dMidtexLinesToSector(lines[i].frontsector, lines[i].args[0], lines[i].args[1], !!lines[i].args[2]);
+			break;
+
+		case Sector_SetLink:
+			if (lines[i].args[0] == 0)
+			{
+				P_AddSectorLinks(lines[i].frontsector, lines[i].args[1], lines[i].args[2], lines[i].args[3]);
+			}
 			break;
 
 		// [RH] ZDoom Static_Init settings
@@ -1263,6 +1297,11 @@ void P_SpawnSpecials (void)
 						sectors[s].mod = 0;//MOD_UNKNOWN;
 					}
 				}
+				break;
+
+			case Init_SectorLink:
+				if (lines[i].args[3] == 0)
+					P_AddSectorLinksByID(lines[i].frontsector, lines[i].args[0], lines[i].args[2]);
 				break;
 
 			// killough 10/98:
@@ -1378,8 +1417,22 @@ void DScroller::Tick ()
 	switch (m_Type)
 	{
 		case sc_side:					// killough 3/7/98: Scroll wall texture
-			sides[m_Affectee].textureoffset += dx;
-			sides[m_Affectee].rowoffset += dy;
+			if (m_Parts & scw_top)
+			{
+				sides[m_Affectee].AddTextureXOffset(side_t::top, dx);
+				sides[m_Affectee].AddTextureYOffset(side_t::top, dy);
+			}
+			if (m_Parts & scw_mid && (lines[sides[m_Affectee].linenum].backsector == NULL ||
+				!(lines[sides[m_Affectee].linenum].flags&ML_3DMIDTEX)))
+			{
+				sides[m_Affectee].AddTextureXOffset(side_t::mid, dx);
+				sides[m_Affectee].AddTextureYOffset(side_t::mid, dy);
+			}
+			if (m_Parts & scw_bottom)
+			{
+				sides[m_Affectee].AddTextureXOffset(side_t::bottom, dx);
+				sides[m_Affectee].AddTextureYOffset(side_t::bottom, dy);
+			}
 			break;
 
 		case sc_floor:						// killough 3/7/98: Scroll floor texture
@@ -1439,13 +1492,14 @@ void DScroller::UpdateToClient( ULONG ulClient )
 //
 
 DScroller::DScroller (EScrollType type, fixed_t dx, fixed_t dy,
-					  int control, int affectee, int accel)
+					  int control, int affectee, int accel, int scrollpos)
 	: DThinker (STAT_SCROLLER)
 {
 	m_Type = type;
 	m_dx = dx;
 	m_dy = dy;
 	m_Accel = accel;
+	m_Parts = scrollpos;
 	m_vdx = m_vdy = 0;
 	if ((m_Control = control) != -1)
 		m_LastHeight =
@@ -1459,7 +1513,19 @@ DScroller::DScroller (EScrollType type, fixed_t dx, fixed_t dy,
 
 	case sc_side:
 		sides[affectee].Flags |= WALLF_NOAUTODECALS;
-		setinterpolation (INTERP_WallPanning, &sides[affectee]);
+		if (m_Parts & scw_top)
+		{
+			sides[m_Affectee].SetInterpolation(side_t::top);
+		}
+		if (m_Parts & scw_mid && (lines[sides[m_Affectee].linenum].backsector == NULL ||
+			!(lines[sides[m_Affectee].linenum].flags&ML_3DMIDTEX)))
+		{
+			sides[m_Affectee].SetInterpolation(side_t::mid);
+		}
+		if (m_Parts & scw_bottom)
+		{
+			sides[m_Affectee].SetInterpolation(side_t::bottom);
+		}
 		break;
 
 	case sc_floor:
@@ -1480,7 +1546,19 @@ DScroller::~DScroller ()
 	switch (m_Type)
 	{
 	case sc_side:
-		stopinterpolation (INTERP_WallPanning, &sides[m_Affectee]);
+		if (m_Parts & scw_top)
+		{
+			sides[m_Affectee].StopInterpolation(side_t::top);
+		}
+		if (m_Parts & scw_mid && (lines[sides[m_Affectee].linenum].backsector == NULL ||
+			!(lines[sides[m_Affectee].linenum].flags&ML_3DMIDTEX)))
+		{
+			sides[m_Affectee].StopInterpolation(side_t::mid);
+		}
+		if (m_Parts & scw_bottom)
+		{
+			sides[m_Affectee].StopInterpolation(side_t::bottom);
+		}
 		break;
 
 	case sc_floor:
@@ -1504,7 +1582,7 @@ DScroller::~DScroller ()
 // killough 5/25/98: cleaned up arithmetic to avoid drift due to roundoff
 
 DScroller::DScroller (fixed_t dx, fixed_t dy, const line_t *l,
-					 int control, int accel)
+					 int control, int accel, int scrollpos)
 	: DThinker (STAT_SCROLLER)
 {
 	fixed_t x = abs(l->dx), y = abs(l->dy), d;
@@ -1520,16 +1598,30 @@ DScroller::DScroller (fixed_t dx, fixed_t dy, const line_t *l,
 	m_dy = y;
 	m_vdx = m_vdy = 0;
 	m_Accel = accel;
+	m_Parts = scrollpos;
 	if ((m_Control = control) != -1)
 		m_LastHeight = sectors[control].CenterFloor() + sectors[control].CenterCeiling();
 	m_Affectee = *l->sidenum;
 	sides[m_Affectee].Flags |= WALLF_NOAUTODECALS;
 
-	setinterpolation (INTERP_WallPanning, &sides[m_Affectee]);
+	if (m_Parts & scw_top)
+	{
+		sides[m_Affectee].SetInterpolation(side_t::top);
+	}
+	if (m_Parts & scw_mid && (lines[sides[m_Affectee].linenum].backsector == NULL ||
+		!(lines[sides[m_Affectee].linenum].flags&ML_3DMIDTEX)))
+	{
+		sides[m_Affectee].SetInterpolation(side_t::mid);
+	}
+	if (m_Parts & scw_bottom)
+	{
+		sides[m_Affectee].SetInterpolation(side_t::bottom);
+	}
 }
 
 // Amount (dx,dy) vector linedef is shifted right to get scroll amount
 #define SCROLL_SHIFT 5
+#define SCROLLTYPE(i) ((i)<=0 ? 7:(i))
 
 // Initialize the scrollers
 static void P_SpawnScrollers(void)
@@ -1635,28 +1727,28 @@ static void P_SpawnScrollers(void)
 		case Scroll_Texture_Offsets:
 			// killough 3/2/98: scroll according to sidedef offsets
 			s = lines[i].sidenum[0];
-			new DScroller (DScroller::sc_side, -sides[s].textureoffset,
-						   sides[s].rowoffset, -1, s, accel);
+			new DScroller (DScroller::sc_side, -sides[s].GetTextureXOffset(side_t::mid),
+				sides[s].GetTextureYOffset(side_t::mid), -1, s, accel, SCROLLTYPE(l->args[0]));
 			break;
 
 		case Scroll_Texture_Left:
 			new DScroller (DScroller::sc_side, l->args[0] * (FRACUNIT/64), 0,
-						   -1, lines[i].sidenum[0], accel);
+						   -1, lines[i].sidenum[0], accel, SCROLLTYPE(l->args[1]));
 			break;
 
 		case Scroll_Texture_Right:
 			new DScroller (DScroller::sc_side, l->args[0] * (-FRACUNIT/64), 0,
-						   -1, lines[i].sidenum[0], accel);
+						   -1, lines[i].sidenum[0], accel, SCROLLTYPE(l->args[1]));
 			break;
 
 		case Scroll_Texture_Up:
 			new DScroller (DScroller::sc_side, 0, l->args[0] * (FRACUNIT/64),
-						   -1, lines[i].sidenum[0], accel);
+						   -1, lines[i].sidenum[0], accel, SCROLLTYPE(l->args[1]));
 			break;
 
 		case Scroll_Texture_Down:
 			new DScroller (DScroller::sc_side, 0, l->args[0] * (-FRACUNIT/64),
-						   -1, lines[i].sidenum[0], accel);
+						   -1, lines[i].sidenum[0], accel, SCROLLTYPE(l->args[1]));
 			break;
 
 		case Scroll_Texture_Both:

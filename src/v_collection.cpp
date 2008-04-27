@@ -60,8 +60,38 @@ void FImageCollection::Init (const char **patchNames, int numPatches, int namesp
 
 	for (int i = 0; i < numPatches; ++i)
 	{
-		ImageMap[i] = TexMan.CheckForTexture(patchNames[i], namespc, true);
+		int picnum = TexMan.AddPatch (patchNames[i], namespc, true);
+
+		if (picnum == -1 && namespc != ns_sprites)
+		{
+			picnum = TexMan.AddPatch (patchNames[i], ns_sprites);
+		}
+		ImageMap[i] = picnum;
 	}
+}
+
+// [MH] Mainly for mugshots with skins and SBARINFO
+void FImageCollection::Add (const char **patchNames, int numPatches, int namespc)
+{
+	int NewNumImages = NumImages + numPatches;
+	int *NewImageMap = new int[NewNumImages];
+
+	memcpy(NewImageMap, ImageMap, (NumImages * sizeof(int)));
+
+	for (int i = 0; i < numPatches; ++i)
+	{
+		int picnum = TexMan.AddPatch (patchNames[i], namespc, true);
+
+		if (picnum == -1 && namespc != ns_sprites)
+		{
+			picnum = TexMan.AddPatch (patchNames[i], ns_sprites);
+		}
+		NewImageMap[NumImages + i] = picnum;
+	}
+
+	delete[] ImageMap;
+	ImageMap = NewImageMap;
+	NumImages = NewNumImages;
 }
 
 void FImageCollection::Uninit ()

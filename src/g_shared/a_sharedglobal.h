@@ -8,7 +8,7 @@
 
 class FDecalTemplate;
 struct vertex_s;
-struct side_s;
+struct side_t;
 
 extern void P_SpawnDirt (AActor *actor, fixed_t radius);
 
@@ -19,7 +19,6 @@ bool P_MorphMonster (AActor *actor, const PClass *morphClass);
 bool P_UpdateMorphedMonster (AActor *actor);
 
 
-struct side_s;
 struct F3DFloor;
 
 class DBaseDecal : public DThinker
@@ -35,12 +34,12 @@ public:
 
 	void Serialize (FArchive &arc);
 	void Destroy ();
-	int StickToWall (side_s *wall, fixed_t x, fixed_t y, F3DFloor * ffloor = NULL);
-	fixed_t GetRealZ (const side_s *wall) const;
+	int StickToWall (side_t *wall, fixed_t x, fixed_t y, F3DFloor * ffloor = NULL);
+	fixed_t GetRealZ (const side_t *wall) const;
 	void SetShade (DWORD rgb);
 	void SetShade (int r, int g, int b);
-	void Spread (const FDecalTemplate *tpl, side_s *wall, fixed_t x, fixed_t y, fixed_t z, F3DFloor * ffloor = NULL);
-	void GetXY (side_s *side, fixed_t &x, fixed_t &y) const;
+	void Spread (const FDecalTemplate *tpl, side_t *wall, fixed_t x, fixed_t y, fixed_t z, F3DFloor * ffloor = NULL);
+	void GetXY (side_t *side, fixed_t &x, fixed_t &y) const;
 
 	static void SerializeChain (FArchive &arc, DBaseDecal **firstptr);
 
@@ -58,12 +57,12 @@ public:
 	sector_t * Sector;	// required for 3D floors
 
 protected:
-	virtual DBaseDecal *CloneSelf (const FDecalTemplate *tpl, fixed_t x, fixed_t y, fixed_t z, side_s *wall, F3DFloor * ffloor = NULL) const;
-	void CalcFracPos (side_s *wall, fixed_t x, fixed_t y);
+	virtual DBaseDecal *CloneSelf (const FDecalTemplate *tpl, fixed_t x, fixed_t y, fixed_t z, side_t *wall, F3DFloor * ffloor = NULL) const;
+	void CalcFracPos (side_t *wall, fixed_t x, fixed_t y);
 	void Remove ();
 
-	static void SpreadLeft (fixed_t r, vertex_s *v1, side_s *feelwall, F3DFloor * ffloor = NULL);
-	static void SpreadRight (fixed_t r, side_s *feelwall, fixed_t wallsize, F3DFloor * ffloor = NULL);
+	static void SpreadLeft (fixed_t r, vertex_s *v1, side_t *feelwall, F3DFloor * ffloor = NULL);
+	static void SpreadRight (fixed_t r, side_t *feelwall, fixed_t wallsize, F3DFloor * ffloor = NULL);
 };
 
 class DImpactDecal : public DBaseDecal
@@ -71,10 +70,10 @@ class DImpactDecal : public DBaseDecal
 	DECLARE_CLASS (DImpactDecal, DBaseDecal)
 public:
 	DImpactDecal (fixed_t z);
-	DImpactDecal (side_s *wall, const FDecalTemplate *templ);
+	DImpactDecal (side_t *wall, const FDecalTemplate *templ);
 
-	static DImpactDecal *StaticCreate (const char *name, fixed_t x, fixed_t y, fixed_t z, side_s *wall, F3DFloor * ffloor = NULL, PalEntry color=0);
-	static DImpactDecal *StaticCreate (const FDecalTemplate *tpl, fixed_t x, fixed_t y, fixed_t z, side_s *wall, F3DFloor * ffloor = NULL, PalEntry color=0);
+	static DImpactDecal *StaticCreate (const char *name, fixed_t x, fixed_t y, fixed_t z, side_t *wall, F3DFloor * ffloor = NULL, PalEntry color=0);
+	static DImpactDecal *StaticCreate (const FDecalTemplate *tpl, fixed_t x, fixed_t y, fixed_t z, side_t *wall, F3DFloor * ffloor = NULL, PalEntry color=0);
 
 	void BeginPlay ();
 	void Destroy ();
@@ -83,7 +82,7 @@ public:
 	static void SerializeTime (FArchive &arc);
 
 protected:
-	DBaseDecal *CloneSelf (const FDecalTemplate *tpl, fixed_t x, fixed_t y, fixed_t z, side_s *wall, F3DFloor * ffloor = NULL) const;
+	DBaseDecal *CloneSelf (const FDecalTemplate *tpl, fixed_t x, fixed_t y, fixed_t z, side_t *wall, F3DFloor * ffloor = NULL) const;
 	static void CheckMax ();
 
 private:

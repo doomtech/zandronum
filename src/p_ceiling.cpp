@@ -60,6 +60,7 @@ void DCeiling::Serialize (FArchive &arc)
 		<< m_NewSpecial
 		<< m_Tag
 		<< m_OldDirection
+		<< m_Hexencrush
 		// [BC]
 		<< (DWORD &)m_lCeilingID;
 }
@@ -68,16 +69,16 @@ void DCeiling::PlayCeilingSound ()
 {
 	if (m_Sector->seqType >= 0)
 	{
-		SN_StartSequence (m_Sector, m_Sector->seqType, SEQ_PLATFORM, 0);
+		SN_StartSequence (m_Sector, m_Sector->seqType, SEQ_PLATFORM, 0, false);
 	}
 	else
 	{
 		if (m_Silent == 2)
-			SN_StartSequence (m_Sector, "Silence", 0);
+			SN_StartSequence (m_Sector, "Silence", 0, false);
 		else if (m_Silent == 1)
-			SN_StartSequence (m_Sector, "CeilingSemiSilent", 0);
+			SN_StartSequence (m_Sector, "CeilingSemiSilent", 0, false);
 		else
-			SN_StartSequence (m_Sector, "CeilingNormal", 0);
+			SN_StartSequence (m_Sector, "CeilingNormal", 0, false);
 	}
 }
 
@@ -162,7 +163,7 @@ void DCeiling::Tick ()
 		
 	case -1:
 		// DOWN
-		res = MoveCeiling (m_Speed, m_BottomHeight, m_Crush, m_Direction);
+		res = MoveCeiling (m_Speed, m_BottomHeight, m_Crush, m_Direction, m_Hexencrush);
 		
 		// [BC] Don't need to do anything more here if we're a client.
 		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
@@ -268,6 +269,7 @@ DCeiling::DCeiling (sector_t *sec, fixed_t speed1, fixed_t speed2, int silent)
 	: DMovingCeiling (sec)
 {
 	m_Crush = -1;
+	m_Hexencrush = false;
 	m_Speed = m_Speed1 = speed1;
 	m_Speed2 = speed2;
 	m_Silent = silent;
@@ -350,7 +352,7 @@ void DCeiling::SetCrush( LONG lCrush )
 // [RH] Added tag, speed, speed2, height, crush, silent, change params
 bool EV_DoCeiling (DCeiling::ECeiling type, line_t *line,
 				   int tag, fixed_t speed, fixed_t speed2, fixed_t height,
-				   int crush, int silent, int change)
+				   int crush, int silent, int change, bool hexencrush)
 {
 	int 		secnum;
 	bool 		rtn;
@@ -546,6 +548,7 @@ manual_ceiling:
 		ceiling->m_Tag = tag;
 		ceiling->m_Type = type;
 		ceiling->m_Crush = crush;
+		ceiling->m_Hexencrush = hexencrush;
 
 		// Do not interpolate instant movement ceilings.
 		// Note for ZDoomGL: Check to make sure that you update the sector

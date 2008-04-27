@@ -1,4 +1,4 @@
-#include "gl_pch.h"
+
 /*
 ** gl_sky.cpp
 ** Sky preparation code.
@@ -37,6 +37,7 @@
 **
 */
 
+#include "gl/gl_include.h"
 #include "a_sharedglobal.h"
 #include "r_sky.h"
 #include "gl/gl_renderstruct.h"
@@ -114,16 +115,28 @@ void GLWall::SkyTexture(int sky1,ASkyViewpoint * skyboxx, bool ceiling)
 		{
 			const line_t *l = &lines[(sky1&(PL_SKYFLAT-1))-1];
 			const side_t *s = &sides[l->sidenum[0]];
+			int pos;
 			
-			skyinfo.texture[0]=FGLTexture::ValidateTexture(s->toptexture);
-			if (!skyinfo.texture[0]) return;
-			skyinfo.skytexno1=s->toptexture;
-			skyinfo.x_offset[0] = ANGLE_TO_FLOAT(s->textureoffset);
-			skyinfo.y_offset = TO_MAP(s->rowoffset);
+			if (level.flags & LEVEL_SWAPSKIES && s->GetTexture(side_t::bottom) != 0)
+			{
+				pos = side_t::bottom;
+			}
+			else
+			{
+				pos = side_t::top;
+			}
+
+			int texno = s->GetTexture(pos);
+			skyinfo.texture[0] = FGLTexture::ValidateTexture(texno);
+			if (!skyinfo.texture[0] || skyinfo.texture[0]->tex->UseType == FTexture::TEX_Null) goto normalsky;
+			skyinfo.skytexno1 = texno;
+			skyinfo.x_offset[0] = ANGLE_TO_FLOAT(s->GetTextureXOffset(pos));
+			skyinfo.y_offset = TO_MAP(s->GetTextureYOffset(pos));
 			skyinfo.mirrored = !l->args[2];
 		}
 		else
 		{
+		normalsky:
 			if (level.flags&LEVEL_DOUBLESKY)
 			{
 				skyinfo.texture[1]=FGLTexture::ValidateTexture(sky1texture);
@@ -211,14 +224,14 @@ void GLWall::SkyTop(seg_t * seg,sector_t * fs,sector_t * bs,vertex_t * v1,vertex
 			if (bs->floorplane.a==0 && bs->floorplane.b==0 && fs->floorplane.a==0 && fs->floorplane.b==0 &&
 				bs->floortexz==fs->floortexz+FRACUNIT)
 			{
-				FTexture * tex = TexMan(seg->sidedef->bottomtexture);
+				FTexture * tex = TexMan(seg->sidedef->GetTexture(side_t::bottom));
 				if (!tex || tex->UseType==FTexture::TEX_Null) return;
 			}
 		}
 
 		ztop[0]=ztop[1]=32768.0f;
 
-		FTexture * tex = TexMan(seg->sidedef->toptexture);
+		FTexture * tex = TexMan(seg->sidedef->GetTexture(side_t::top));
 		if (/*tex && tex->UseType!=FTexture::TEX_Null &&*/ bs->ceilingpic != skyflatnum)
 
 		{
@@ -263,7 +276,7 @@ void GLWall::SkyBottom(seg_t * seg,sector_t * fs,sector_t * bs,vertex_t * v1,ver
 	if (fs->floorpic==skyflatnum)
 	{
 		if ((bs->special&0xff) == NoSkyDraw) return;
-		FTexture * tex = TexMan(seg->sidedef->bottomtexture);
+		FTexture * tex = TexMan(seg->sidedef->GetTexture(side_t::bottom));
 		
 		// For lower skies the normal logic only applies to walls with no lower texture!
 		if (tex->UseType==FTexture::TEX_Null)

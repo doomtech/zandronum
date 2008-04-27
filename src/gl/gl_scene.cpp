@@ -1,4 +1,4 @@
-#include "gl_pch.h"
+
 /*
 ** gl_scene.cpp
 ** manages the rendering of the player's view
@@ -37,6 +37,7 @@
 **
 */
 
+#include "gl/gl_include.h"
 #include "gi.h"
 #include "m_png.h"
 #include "st_stuff.h"
@@ -570,7 +571,7 @@ static void gl_DrawBlend(sector_t * viewsector)
 	// don't draw sector based blends when an invulnerability colormap is active
 	if (!gl_fixedcolormap)
 	{
-		if (!viewsector->e->ffloors.Size())
+		if (!viewsector->e->XFloor.ffloors.Size())
 		{
 			if (viewsector->heightsec && !(viewsector->MoreFlags&SECF_IGNOREHEIGHTSEC))
 			{
@@ -585,7 +586,7 @@ static void gl_DrawBlend(sector_t * viewsector)
 		}
 		else
 		{
-			TArray<lightlist_t> & lightlist = viewsector->e->lightlist;
+			TArray<lightlist_t> & lightlist = viewsector->e->XFloor.lightlist;
 
 			for(int i=0;i<lightlist.Size();i++)
 			{

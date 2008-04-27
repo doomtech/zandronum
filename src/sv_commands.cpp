@@ -4358,7 +4358,7 @@ void SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulF
 			SERVER_CheckClientBuffer( ulIdx, 5 + 8, true );
 			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETLINETEXTURE );
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulLine );
-			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sides[lines[ulLine].sidenum[0]].toptexture ? TexMan[sides[lines[ulLine].sidenum[0]].toptexture]->Name : "-" );
+			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sides[lines[ulLine].sidenum[0]].GetTexture(side_t::top) ? TexMan[sides[lines[ulLine].sidenum[0]].GetTexture(side_t::top)]->Name : "-" );
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 0 );
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 0 );
 		}
@@ -4368,7 +4368,7 @@ void SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulF
 			SERVER_CheckClientBuffer( ulIdx, 5 + 8, true );
 			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETLINETEXTURE );
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulLine );
-			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sides[lines[ulLine].sidenum[0]].midtexture ? TexMan[sides[lines[ulLine].sidenum[0]].midtexture]->Name : "-" );
+			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sides[lines[ulLine].sidenum[0]].GetTexture(side_t::mid) ? TexMan[sides[lines[ulLine].sidenum[0]].GetTexture(side_t::mid)]->Name : "-" );
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 0 );
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 1 );
 		}
@@ -4378,7 +4378,7 @@ void SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulF
 			SERVER_CheckClientBuffer( ulIdx, 5 + 8, true );
 			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETLINETEXTURE );
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulLine );
-			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sides[lines[ulLine].sidenum[0]].bottomtexture ? TexMan[sides[lines[ulLine].sidenum[0]].bottomtexture]->Name : "-" );
+			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sides[lines[ulLine].sidenum[0]].GetTexture(side_t::bottom) ? TexMan[sides[lines[ulLine].sidenum[0]].GetTexture(side_t::bottom)]->Name : "-" );
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 0 );
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 2 );
 		}
@@ -4391,7 +4391,7 @@ void SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulF
 			SERVER_CheckClientBuffer( ulIdx, 5 + 8, true );
 			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETLINETEXTURE );
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulLine );
-			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sides[lines[ulLine].sidenum[1]].toptexture ? TexMan[sides[lines[ulLine].sidenum[1]].toptexture]->Name : "-" );
+			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sides[lines[ulLine].sidenum[1]].GetTexture(side_t::top) ? TexMan[sides[lines[ulLine].sidenum[1]].GetTexture(side_t::top)]->Name : "-" );
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 1 );
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 0 );
 		}
@@ -4401,7 +4401,7 @@ void SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulF
 			SERVER_CheckClientBuffer( ulIdx, 5 + 8, true );
 			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETLINETEXTURE );
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulLine );
-			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sides[lines[ulLine].sidenum[1]].midtexture ? TexMan[sides[lines[ulLine].sidenum[1]].midtexture]->Name : "-" );
+			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sides[lines[ulLine].sidenum[1]].GetTexture(side_t::mid) ? TexMan[sides[lines[ulLine].sidenum[1]].GetTexture(side_t::mid)]->Name : "-" );
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 1 );
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 1 );
 		}
@@ -4411,7 +4411,7 @@ void SERVERCOMMANDS_SetLineTexture( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulF
 			SERVER_CheckClientBuffer( ulIdx, 5 + 8, true );
 			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETLINETEXTURE );
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulLine );
-			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sides[lines[ulLine].sidenum[1]].bottomtexture ? TexMan[sides[lines[ulLine].sidenum[1]].bottomtexture]->Name : "-" );
+			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sides[lines[ulLine].sidenum[1]].GetTexture(side_t::bottom) ? TexMan[sides[lines[ulLine].sidenum[1]].GetTexture(side_t::bottom)]->Name : "-" );
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 1 );
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, 2 );
 		}
@@ -6310,7 +6310,7 @@ void SERVERCOMMANDS_SetScroller( LONG lType, LONG lXSpeed, LONG lYSpeed, LONG lT
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetWallScroller( LONG lId, LONG lSidechoice, LONG lXSpeed, LONG lYSpeed, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetWallScroller( LONG lId, LONG lSidechoice, LONG lXSpeed, LONG lYSpeed, LONG lWhere, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 
@@ -6325,12 +6325,13 @@ void SERVERCOMMANDS_SetWallScroller( LONG lId, LONG lSidechoice, LONG lXSpeed, L
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 14, true );
+		SERVER_CheckClientBuffer( ulIdx, 18, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETWALLSCROLLER );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lId );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lSidechoice );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lXSpeed );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lYSpeed );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lWhere );
 	}
 }
 

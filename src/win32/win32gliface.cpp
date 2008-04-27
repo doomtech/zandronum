@@ -1,4 +1,4 @@
-#include "gl/gl_pch.h"
+#include "gl/gl_include.h"
 
 #include "win32iface.h"
 #include "win32gliface.h"

@@ -62,8 +62,8 @@
 #define LEVEL_SNDSEQTOTALCTRL		UCONST64(0x00001000)
 #define LEVEL_FORCENOSKYSTRETCH		UCONST64(0x00002000)
 
-#define LEVEL_JUMP_NO				UCONST64(0x00004000)
-#define LEVEL_JUMP_YES				UCONST64(0x00008000)
+#define LEVEL_CROUCH_NO				UCONST64(0x00004000)
+#define LEVEL_JUMP_NO				UCONST64(0x00008000)
 #define LEVEL_FREELOOK_NO			UCONST64(0x00010000)
 #define LEVEL_FREELOOK_YES			UCONST64(0x00020000)
 
@@ -103,24 +103,21 @@
 #define LEVEL_CLIPMIDTEX			UCONST64(0x20000000000)
 #define LEVEL_WRAPMIDTEX			UCONST64(0x40000000000)
 
-#define LEVEL_CROUCH_NO				UCONST64(0x80000000000)
-#define LEVEL_CROUCH_YES			UCONST64(0x100000000000)
+#define LEVEL_CHECKSWITCHRANGE		UCONST64(0x80000000000)	
 
-#define LEVEL_PAUSE_MUSIC_IN_MENUS	UCONST64(0x200000000000)
-#define LEVEL_TOTALINFIGHTING		UCONST64(0x400000000000)
-#define LEVEL_NOINFIGHTING			UCONST64(0x800000000000)
+#define LEVEL_PAUSE_MUSIC_IN_MENUS	UCONST64(0x100000000000)
+#define LEVEL_TOTALINFIGHTING		UCONST64(0x200000000000)
+#define LEVEL_NOINFIGHTING			UCONST64(0x400000000000)
 
-#define LEVEL_NOMONSTERS			UCONST64(0x1000000000000)
-#define LEVEL_INFINITE_FLIGHT		UCONST64(0x2000000000000)
+#define LEVEL_NOMONSTERS			UCONST64(0x800000000000)
+#define LEVEL_INFINITE_FLIGHT		UCONST64(0x1000000000000)
 
-#define LEVEL_ALLOWRESPAWN			UCONST64(0x4000000000000)
+#define LEVEL_ALLOWRESPAWN			UCONST64(0x2000000000000)
 
-#define LEVEL_FORCETEAMPLAYON		UCONST64(0x8000000000000)
-#define LEVEL_FORCETEAMPLAYOFF		UCONST64(0x10000000000000)
+#define LEVEL_FORCETEAMPLAYON		UCONST64(0x4000000000000)
+#define LEVEL_FORCETEAMPLAYOFF		UCONST64(0x8000000000000)
 
 #define	LEVEL_NOBOTNODES			UCONST64(0x20000000000000)	// [BC] Level does not use bot nodes.
-
-
 
 struct acsdefered_s;
 
@@ -128,7 +125,7 @@ struct FSpecialAction
 {
 	FName Type;					// this is initialized before the actors...
 	BYTE Action;
-	WORD Args[5];				// must allow 16 bit tags for 666 & 667!
+	int Args[5];				// must allow 16 bit tags for 666 & 667!
 	FSpecialAction *Next;
 };
 
@@ -167,6 +164,7 @@ struct level_info_s
 	int			airsupply;
 	DWORD		compatflags;
 	DWORD		compatmask;
+	char		*translator;	// for converting Doom-format linedef and sector types.
 
 	// Redirection: If any player is carrying the specified item, then
 	// you go to the RedirectMap instead of this one.
@@ -181,13 +179,13 @@ struct level_info_s
 	char		soundinfo[9];
 	char		sndseq[9];
 	char		bordertexture[9];
-	FSpecialAction * specialactions;
-
-	float		teamdamage;
 
 	int			fogdensity;
 	int			outsidefogdensity;
 	int			skyfog;
+	FSpecialAction * specialactions;
+
+	float		teamdamage;
 };
 typedef struct level_info_s level_info_t;
 

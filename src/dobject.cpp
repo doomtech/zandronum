@@ -418,17 +418,19 @@ void DObject::Destroy ()
 size_t DObject::PropagateMark()
 {
 	const PClass *info = GetClass();
-
-	const size_t *offsets = info->FlatPointers;
-	if (offsets == NULL)
+	if (!PClass::bShutdown)
 	{
-		const_cast<PClass *>(info)->BuildFlatPointers();
-		offsets = info->FlatPointers;
-	}
-	while (*offsets != ~(size_t)0)
-	{
-		GC::Mark((DObject **)((BYTE *)this + *offsets));
-		offsets++;
+		const size_t *offsets = info->FlatPointers;
+		if (offsets == NULL)
+		{
+			const_cast<PClass *>(info)->BuildFlatPointers();
+			offsets = info->FlatPointers;
+		}
+		while (*offsets != ~(size_t)0)
+		{
+			GC::Mark((DObject **)((BYTE *)this + *offsets));
+			offsets++;
+		}
 	}
 	return info->Size;
 }
@@ -491,7 +493,7 @@ size_t DObject::StaticPointerSubstitution (DObject *old, DObject *notOld)
 		for (i = 0; i < numsectors; ++i)
 		{
 #define SECTOR_CHECK(f,t) \
-	if (sectors[i].f == static_cast<t *>(old)) { sectors[i].f = static_cast<t *>(notOld); changed++; }
+	if (sectors[i].f.p == static_cast<t *>(old)) { sectors[i].f = static_cast<t *>(notOld); changed++; }
 			SECTOR_CHECK( SoundTarget, AActor );
 			SECTOR_CHECK( CeilingSkyBox, ASkyViewpoint );
 			SECTOR_CHECK( FloorSkyBox, ASkyViewpoint );
@@ -502,6 +504,14 @@ size_t DObject::StaticPointerSubstitution (DObject *old, DObject *notOld)
 #undef SECTOR_CHECK
 		}
 	}
+
+	/* [BB] ST doesn't use these bots.
+	// Go through bot stuff.
+	if (bglobal.firstthing.p == (AActor *)old)		bglobal.firstthing = (AActor *)notOld, ++changed;
+	if (bglobal.body1.p == (AActor *)old)			bglobal.body1 = (AActor *)notOld, ++changed;
+	if (bglobal.body2.p == (AActor *)old)			bglobal.body2 = (AActor *)notOld, ++changed;
+	*/
+
 	return changed;
 }
 

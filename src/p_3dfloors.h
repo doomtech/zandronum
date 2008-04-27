@@ -1,9 +1,6 @@
 #ifndef __SECTORE_H
 #define __SECTORE_H
 
-#define ML_3DMIDTEX		0x40000000
-
-
 // 3D floor flags. Most are the same as in Legacy but I added some for EDGE's and Vavoom's features as well.
 
 typedef enum
@@ -59,7 +56,7 @@ struct F3DFloor
 	fixed_t				delta;
 	
 	int					flags;
-	line_s*				master;
+	line_t*				master;
 	
 	sector_t *			model;
 	sector_t *			target;
@@ -82,19 +79,9 @@ typedef struct lightlist_s {
 } lightlist_t;
 
 
-// this substructure contains a few sector properties that are stored in dynamic arrays
-// These must not be copied by R_FakeFlat etc. or bad things will happen!
-struct extsector_t
-{
-	// 3D floor stuff
-	TArray<F3DFloor *>		ffloors;		// 3D floors in this sector
-	TArray<lightlist_t>		lightlist;		// 3D light list
-	TArray<sector_t*>		attached;		// 3D floors attached to this sector
-};
 
 class player_s;
 void P_PlayerOnSpecial3DFloor(player_s* player);
-void P_LineOpening (AActor * thing,const line_s *linedef, fixed_t x, fixed_t y, fixed_t refx=FIXED_MIN, fixed_t refy=0);
 
 void P_Get3DFloorAndCeiling(AActor * thing, sector_t * sector, fixed_t * floorz, fixed_t * ceilingz, int * floorpic);
 bool P_CheckFor3DFloorHit(AActor * mo);
@@ -102,12 +89,13 @@ bool P_CheckFor3DCeilingHit(AActor * mo);
 void P_Recalculate3DFloors(sector_t *);
 void P_RecalculateAttached3DFloors(sector_t * sec);
 lightlist_t * P_GetPlaneLight(sector_t * , secplane_t * plane, bool underside);
-bool P_GetMidTexturePosition(const line_s * linedef, int side, fixed_t * ptextop, fixed_t * ptexbot);
 void P_SpawnSpecials2( void );
-void P_CreateExtSectors();
-void P_CleanExtSectors();
 
-extern int openfloorpic, openceilingpic;
+struct FLineOpening;
+
+void P_LineOpening_XFloors (FLineOpening &open, AActor * thing, const line_t *linedef, 
+							fixed_t x, fixed_t y, fixed_t refx, fixed_t refy);
+
 
 #endif
 

@@ -332,6 +332,8 @@ void P_SerializeWorld (FArchive &arc)
 			<< sec->FloorSkyBox << sec->CeilingSkyBox
 			<< sec->ZoneNumber
 			<< sec->oldspecial;
+
+		sec->e->Serialize(arc);
 		if (arc.IsStoring ())
 		{
 			arc << sec->ColorMap->Color
@@ -422,22 +424,10 @@ void P_SerializeWorld (FArchive &arc)
 				continue;
 
 			side_t *si = &sides[li->sidenum[j]];
-			arc << si->textureoffset
-				<< si->rowoffset;
-
-			if (arc.IsStoring ())
-			{
-				TexMan.WriteTexture (arc, si->toptexture);
-				TexMan.WriteTexture (arc, si->bottomtexture);
-				TexMan.WriteTexture (arc, si->midtexture);
-			}
-			else
-			{
-				si->toptexture = TexMan.ReadTexture (arc);
-				si->bottomtexture = TexMan.ReadTexture (arc);
-				si->midtexture = TexMan.ReadTexture (arc);
-			}
-			arc << si->Light
+			arc << si->textures[side_t::top]
+				<< si->textures[side_t::mid]
+				<< si->textures[side_t::bottom]
+				<< si->Light
 				<< si->Flags
 				<< si->LeftSide
 				<< si->RightSide;
@@ -468,6 +458,16 @@ void P_SerializeWorld (FArchive &arc)
 	}
 }
 
+void extsector_t::Serialize(FArchive &arc)
+{
+	arc << FakeFloor.Sectors
+		<< Midtex.Floor.AttachedLines 
+		<< Midtex.Floor.AttachedSectors
+		<< Midtex.Ceiling.AttachedLines
+		<< Midtex.Ceiling.AttachedSectors
+		<< Linked.Floor.Sectors
+		<< Linked.Ceiling.Sectors;
+}
 
 //
 // Thinkers

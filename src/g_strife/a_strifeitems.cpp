@@ -74,8 +74,8 @@ void A_RemoveForceField (AActor *self)
 		{
 			line->flags &= ~(ML_BLOCKING|ML_BLOCKEVERYTHING);
 			line->special = 0;
-			sides[line->sidenum[0]].midtexture = 0;
-			sides[line->sidenum[1]].midtexture = 0;
+			sides[line->sidenum[0]].SetTexture(side_t::mid, 0);
+			sides[line->sidenum[1]].SetTexture(side_t::mid, 0);
 		}
 	}
 }
@@ -522,13 +522,6 @@ bool AUpgradeAccuracy::TryPickup (AActor *toucher)
 }
 
 // Start a slideshow --------------------------------------------------------
-
-class ASlideshowStarter : public ADummyStrifeItem
-{
-	DECLARE_STATELESS_ACTOR (ASlideshowStarter, ADummyStrifeItem)
-public:
-	bool TryPickup (AActor *toucher);
-};
 
 IMPLEMENT_STATELESS_ACTOR (ASlideshowStarter, Strife, -1, 0)
 	PROP_StrifeType (343)

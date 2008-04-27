@@ -1,6 +1,6 @@
 /*
 ** i_sound.cpp
-** System interface for sound; uses fmod.dll
+** Stubs for sound interfaces.
 **
 **---------------------------------------------------------------------------
 ** Copyright 1998-2006 Randy Heit
@@ -75,60 +75,20 @@ extern HINSTANCE g_hInst;
 #include "w_wad.h"
 #include "i_video.h"
 #include "s_sound.h"
+#include "v_text.h"
 #include "gi.h"
 
 #include "doomdef.h"
 
 EXTERN_CVAR (Float, snd_sfxvolume)
-CVAR (Int, snd_samplerate, 48000, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+CVAR (Int, snd_samplerate, 0, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (Int, snd_buffersize, 0, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (String, snd_output, "default", CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
 // killough 2/21/98: optionally use varying pitched sounds
 CVAR (Bool, snd_pitched, false, CVAR_ARCHIVE)
 
-// Maps sfx channels onto FMOD channels
-static struct ChanMap
-{
-	int soundID;		// sfx playing on this channel
-	long channelID;
-	bool bIsLooping;
-	bool bIs3D;
-	unsigned int lastPos;
-} *ChannelMap;
-
 SoundRenderer *GSnd;
-
-static int numChannels;
-static unsigned int DriverCaps;
-static int OutputType;
-
-static bool SoundDown = true;
-
-#if 0
-static const char *FmodErrors[] =
-{
-	"No errors",
-	"Cannot call this command after FSOUND_Init.  Call FSOUND_Close first.",
-	"This command failed because FSOUND_Init was not called",
-	"Error initializing output device.",
-	"Error initializing output device, but more specifically, the output device is already in use and cannot be reused.",
-	"Playing the sound failed.",
-	"Soundcard does not support the features needed for this soundsystem (16bit stereo output)",
-	"Error setting cooperative level for hardware.",
-	"Error creating hardware sound buffer.",
-	"File not found",
-	"Unknown file format",
-	"Error loading file",
-	"Not enough memory ",
-	"The version number of this file format is not supported",
-	"Incorrect mixer selected",
-	"An invalid parameter was passed to this function",
-	"Tried to use a3d and not an a3d hardware card, or dll didnt exist, try another output type.",
-	"Tried to use an EAX command on a non EAX enabled channel or output.",
-	"Failed to allocate a new channel"
-};
-#endif
 
 
 //
@@ -142,7 +102,7 @@ static const char *FmodErrors[] =
 // Maximum volume of a sound effect.
 //==========================================================================
 
-CUSTOM_CVAR (Float, snd_sfxvolume, 0.5f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
+CUSTOM_CVAR (Float, snd_sfxvolume, 1.f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
 {
 	if (self < 0.f)
 		self = 0.f;
@@ -170,23 +130,13 @@ void I_InitSound ()
 		return;
 	}
 
-	// clamp snd_samplerate to FMOD's limits
-	if (snd_samplerate < 4000)
-	{
-		snd_samplerate = 4000;
-	}
-	else if (snd_samplerate > 65535)
-	{
-		snd_samplerate = 65535;
-	}
-
 	GSnd = new FMODSoundRenderer;
 
 	if (!GSnd->IsValid ())
 	{
 		delete GSnd;
 		GSnd = NULL;
-		Printf ("Sound init failed. Using nosound.\n");
+		Printf (TEXTCOLOR_RED"Sound init failed. Using nosound.\n");
 	}
 	I_InitMusic ();
 	snd_sfxvolume.Callback ();
@@ -249,33 +199,15 @@ ADD_STAT (sound)
 	}
 	else
 	{
-		return "no sound";
+		return "No sound";
 	}
 }
 
 SoundRenderer::SoundRenderer ()
-: Sound3D (false)
 {
 }
 
 SoundRenderer::~SoundRenderer ()
-{
-}
-
-long SoundRenderer::StartSound3D (sfxinfo_t *sfx, float vol, int pitch, int channel, bool looping, float pos[3], float vel[3], bool pauseable)
-{
-	return 0;
-}
-
-void SoundRenderer::UpdateSoundParams3D (long handle, float pos[3], float vel[3])
-{
-}
-
-void SoundRenderer::UpdateListener (AActor *listener)
-{
-}
-
-void SoundRenderer::UpdateSounds ()
 {
 }
 
@@ -295,4 +227,9 @@ SoundStream::~SoundStream ()
 bool SoundStream::SetPosition(int pos)
 {
 	return false;
+}
+
+FString SoundStream::GetStats()
+{
+	return "No stream stats available.";
 }

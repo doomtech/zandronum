@@ -111,6 +111,13 @@ inline FArchive &operator<< (FArchive &arc, side_t *&side)
 	return arc.SerializePointer (sides, (BYTE **)&side, sizeof(*sides));
 }
 
+inline FArchive &operator<< (FArchive &arc, FLinkedSector &link)
+{
+	arc << link.Sector << link.Type;
+	return arc;
+}
+
+
 //
 // POV data.
 //

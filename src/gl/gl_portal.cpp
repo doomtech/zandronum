@@ -1,4 +1,4 @@
-#include "gl_pch.h"
+
 /*
 ** gl_portal.cpp
 **   Generalized portal maintenance classes for skyboxes, horizons etc.
@@ -38,6 +38,7 @@
 **
 */
 
+#include "gl/gl_include.h"
 #include "p_local.h"
 #include "vectors.h"
 #include "gl/gl_struct.h"

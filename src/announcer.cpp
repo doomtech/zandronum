@@ -209,7 +209,7 @@ void ANNOUNCER_PlayEntry( ULONG ulProfileIdx, const char *pszEntry )
 		( strlen( pEntry->szSound ) > 0 ))
 	{
 		// Stop any existing announcer sounds.
-		S_StopSoundID( g_lLastSoundID, INT_MAX, 1, false, 0, 0 );
+		S_StopSoundID( g_lLastSoundID, CHAN_VOICE );
 
 		// Play the sound.
 		g_lLastSoundID = S_FindSound( pEntry->szSound );

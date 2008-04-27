@@ -93,7 +93,9 @@ bool Trace (fixed_t x, fixed_t y, fixed_t z, sector_t *sector,
 	res.ffloor=NULL;
 	sectorsel=0;
 
-	if (sector->e->ffloors.Size())
+	TDeletingArray<F3DFloor*> &ff = sector->e->XFloor.ffloors;
+
+	if (ff.Size())
 	{
 		memcpy(&DummySector[0],sector,sizeof(sector_t));
 		CurSector=sector=&DummySector[0];
@@ -101,9 +103,9 @@ bool Trace (fixed_t x, fixed_t y, fixed_t z, sector_t *sector,
 		fixed_t bf = sector->floorplane.ZatPoint (x, y);
 		fixed_t bc = sector->ceilingplane.ZatPoint (x, y);
 
-		for(unsigned int i=0;i<sector->e->ffloors.Size();i++)
+		for(unsigned int i=0;i<ff.Size();i++)
 		{
-			F3DFloor * rover=sector->e->ffloors[i];
+			F3DFloor * rover=ff[i];
 
 			if (rover->flags&FF_SOLID && rover->flags&FF_EXISTS)
 			{
@@ -309,15 +311,15 @@ static bool PTR_TraceIterator (intercept_t *in)
 		else
 		{ 	// made it past the wall
 			// check for 3D floors first
-			if (entersector->e->ffloors.Size())
+			if (entersector->e->XFloor.ffloors.Size())
 			{
 				memcpy(&DummySector[sectorsel],entersector,sizeof(sector_t));
 				entersector=&DummySector[sectorsel];
 				sectorsel^=1;
 
-				for(unsigned int i=0;i<entersector->e->ffloors.Size();i++)
+				for(unsigned int i=0;i<entersector->e->XFloor.ffloors.Size();i++)
 				{
-					F3DFloor * rover=entersector->e->ffloors[i];
+					F3DFloor * rover=entersector->e->XFloor.ffloors[i];
 
 					if (rover->flags&FF_SOLID && rover->flags&FF_EXISTS)
 					{
@@ -486,8 +488,8 @@ cont:
 			abs(hity - in->d.thing->y) > in->d.thing->radius) return true;
 	}
 
-	// check for fake floors first
-	if (CurSector->e->ffloors.Size())
+	// check for extrafloors first
+	if (CurSector->e->XFloor.ffloors.Size())
 	{
 		fixed_t ff_floor=CurSector->floorplane.ZatPoint(hitx, hity);
 		fixed_t ff_ceiling=CurSector->ceilingplane.ZatPoint(hitx, hity);

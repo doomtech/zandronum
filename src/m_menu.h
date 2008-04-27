@@ -80,8 +80,7 @@ void M_OptInit (void);
 // [RH] Initialize the video modes menu
 void M_InitVideoModesMenu (void);
 
-struct menu_s;
-void M_SwitchMenu (struct menu_s *menu);
+void M_SwitchMenu (struct menu_t *menu);
 
 void M_PopMenuStack (void);
 
@@ -113,6 +112,7 @@ typedef enum {
 	discrete,
 	discretes,
 	cdiscrete,
+	ediscrete,
 	discrete_guid,
 	control,
 	screenres,
@@ -173,8 +173,9 @@ typedef struct menuitem_s {
 		char			 *res3;
 	} d;
 	union {
-		struct value_s	 *values;
+		struct value_t	 *values;
 		struct valuestring_t *valuestrings;
+		struct valueenum_t	 *enumvalues;
 		GUIDName		 *guidvalues;
 		char			 *command;
 		void			(*cfunc)(FBaseCVar *cvar, float newval);
@@ -191,7 +192,7 @@ typedef struct menuitem_s {
 	} f;
 } menuitem_t;
 
-typedef struct menu_s {
+struct menu_t {
 	const char		   *texttitle;
 	int				lastOn;
 	int				numitems;
@@ -206,16 +207,21 @@ typedef struct menu_s {
 
 	// Special flags for this menu.
 	int				iFlags;
-} menu_t;
+};
 
-typedef struct value_s {
+struct value_t {
 	float		value;
 	const char	*name;
-} value_t;
+};
 
 struct valuestring_t {
 	float		value;
 	FString		name;
+};
+
+struct valueenum_t {
+	const char *value;	// Value of cvar
+	const char *name;	// Name on menu
 };
 
 typedef struct

@@ -504,7 +504,7 @@ void A_AlienSpectreDeath (AActor *self)
 
 	if (self->GetClass() == RUNTIME_CLASS(AAlienSpectre1))
 	{
-		EV_DoFloor (DFloor::floorLowerToLowest, NULL, 999, FRACUNIT, 0, 0, 0);
+		EV_DoFloor (DFloor::floorLowerToLowest, NULL, 999, FRACUNIT, 0, 0, 0, false);
 		log = 95;
 	}
 	else if (self->GetClass() == RUNTIME_CLASS(AAlienSpectre2))
@@ -576,7 +576,7 @@ void A_AlienSpectreDeath (AActor *self)
 		{	// Another Sigil piece. Woohoo!
 			log = 83;
 		}
-		EV_DoFloor (DFloor::floorLowerToLowest, NULL, 666, FRACUNIT, 0, 0, 0);
+		EV_DoFloor (DFloor::floorLowerToLowest, NULL, 666, FRACUNIT, 0, 0, 0, false);
 	}
 	else
 	{

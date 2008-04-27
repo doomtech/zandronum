@@ -1,4 +1,4 @@
-#include "../gl_pch.h"
+
 /*
 ** r_opengl.cpp
 **
@@ -34,6 +34,7 @@
 **---------------------------------------------------------------------------
 **
 */
+#include "gl/gl_include.h"
 #include "tarray.h"
 #include "doomtype.h"
 #include "gl/gl_intern.h"
@@ -756,7 +757,7 @@ static void APIENTRY Shutdown()
 
 
 #ifndef unix
-static BOOL APIENTRY SetFullscreen(int w, int h, int bits, int hz)
+static bool APIENTRY SetFullscreen(int w, int h, int bits, int hz)
 {
 	DEVMODE dm;
 
@@ -810,13 +811,13 @@ static void APIENTRY SetGammaRamp (Uint16 *redtable, Uint16 *greentable, Uint16 
 }
 
 #ifndef unix
-static BOOL APIENTRY GetGammaRamp (void * ramp)
+static bool APIENTRY GetGammaRamp (void * ramp)
 #else
-static BOOL APIENTRY GetGammaRamp (Uint16 *redtable, Uint16 *greentable, Uint16 *bluetable)
+static bool APIENTRY GetGammaRamp (Uint16 *redtable, Uint16 *greentable, Uint16 *bluetable)
 #endif
 {
 #ifndef unix
-	return GetDeviceGammaRamp(m_hDC, ramp);
+	return !!GetDeviceGammaRamp(m_hDC, ramp);
 #else
 	return (SDL_GetGammaRamp(redtable, greentable, bluetable) >= 0);
 #endif

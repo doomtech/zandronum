@@ -298,6 +298,7 @@ enum
 	MF5_ALWAYSRESPAWN	= 0x00020000,	// always respawns, regardless of skill setting
 	MF5_NEVERRESPAWN	= 0x00040000,	// never respawns, regardless of skill setting
 	MF5_DONTRIP			= 0x00080000,	// Ripping projectiles explode when hittin this actor
+	MF5_NOINFIGHTING	= 0x00100000,	// This actor doesn't switch target when it's hurt 
 
 	// [BC] More object flags for Skulltag.
 
@@ -770,6 +771,7 @@ public:
 	TObjPtr<AActor>	master;			// Thing which spawned this one (prevents mutual attacks)
 	fixed_t			floorclip;		// value to use for floor clipping
 	SWORD			tid;			// thing identifier
+	BYTE			SoundChans;		// Bitfield indicating which sound channels are playing.
 	BYTE			special;		// special
 	BYTE			SavedSpecial;	// [BC] Saved actor special for when a map gets reset.
 	int				args[5];		// special arguments
@@ -900,7 +902,7 @@ public:
 	enum { S_NULL = 2, S_GENERICFREEZEDEATH = 3 };
 
 	// [GZDoom]
-	TArray<TObjPtr<AActor>>		dynamiclights;
+	TArray<TObjPtr<AActor> >		dynamiclights;
 	void *				lightassociations;
 	bool				hasmodel;
 	subsector_s *		subsector;

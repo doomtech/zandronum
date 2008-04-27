@@ -1,4 +1,3 @@
-#include "gl_pch.h"
 
 /*
 ** gl_data.cpp
@@ -38,6 +37,7 @@
 **
 */
 
+#include "gl/gl_include.h"
 #include "i_system.h"
 #include "p_local.h"
 #include "p_lnspec.h"
@@ -356,7 +356,7 @@ static void PrepareTransparentDoors(sector_t * sector)
 	if (sector->subsectorcount==0) return;
 
 	sector->transdoorheight=sector->floortexz;
-	sector->transdoor= !(sector->e->ffloors.Size() || sector->heightsec || sector->floorplane.a || sector->floorplane.b);
+	sector->transdoor= !(sector->e->XFloor.ffloors.Size() || sector->heightsec || sector->floorplane.a || sector->floorplane.b);
 
 	if (sector->transdoor)
 	{
@@ -385,8 +385,8 @@ static void PrepareTransparentDoors(sector_t * sector)
 					sector->transdoor=false;
 					return;
 				}
-				if (sides[sector->lines[i]->sidenum[1-side]].toptexture==0) notextures++;
-				if (sides[sector->lines[i]->sidenum[1-side]].bottomtexture==0) nobtextures++;
+				if (sides[sector->lines[i]->sidenum[1-side]].GetTexture(side_t::top) == 0) notextures++;
+				if (sides[sector->lines[i]->sidenum[1-side]].GetTexture(side_t::bottom) == 0) nobtextures++;
 			}
 		}
 		if (selfref+notextures==sector->linecount || sector->ceilingpic==skyflatnum)

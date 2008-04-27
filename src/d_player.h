@@ -314,6 +314,11 @@ public:
 	fixed_t crouchoffset;
 	fixed_t crouchviewdelta;
 
+	// [CW] I moved these here for multiplayer conversation support.
+	AActor *ConversationNPC, *ConversationPC;
+	angle_t ConversationNPCAngle;
+	bool ConversationFaceTalker;
+
 	// [BC] Start of a lot of new stuff.
 	// This player is on a team for ST/CTF.
 	bool		bOnTeam;

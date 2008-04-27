@@ -360,11 +360,11 @@ void A_PlaySoundEx (AActor *self)
 	int attenuation;
 	switch (attenuation_raw)
 	{
-		case -1: attenuation=ATTN_STATIC;	break; // drop off rapidly
+		case -1: attenuation = ATTN_STATIC;	break; // drop off rapidly
 		default:
-		case  0: attenuation=ATTN_NORM;		break; // normal
-		case  1: attenuation=ATTN_NONE;		break; // full volume
-		case  2: attenuation=ATTN_SURROUND;	break; // full volume surround
+		case  0: attenuation = ATTN_NORM;	break; // normal
+		case  1:
+		case  2: attenuation = ATTN_NONE;	break; // full volume
 	}
 
 	if (channel < NAME_Auto || channel > NAME_SoundSlot7)
@@ -380,7 +380,7 @@ void A_PlaySoundEx (AActor *self)
 	{
 		if (!S_IsActorPlayingSomething (self, channel - NAME_Auto, soundid))
 		{
-			S_LoopedSoundID (self, channel - NAME_Auto, soundid, 1, attenuation);
+			S_SoundID (self, (channel - NAME_Auto) | CHAN_LOOP, soundid, 1, attenuation);
 		}
 	}
 }
@@ -660,7 +660,11 @@ void A_JumpIfCloser(AActor * self)
 	if (target==NULL) return;
 
 	fixed_t dist = fixed_t(EvalExpressionF (StateParameters[index], self) * FRACUNIT);
-	if (index > 0 && P_AproxDistance(self->x-target->x, self->y-target->y) < dist)
+	if (index > 0 && P_AproxDistance(self->x-target->x, self->y-target->y) < dist &&
+		( (self->z > target->z && self->z - (target->z + target->height) < dist) || 
+		  (self->z <=target->z && target->z - (self->z + self->height) < dist) 
+		)
+	   )
 		DoJump(self, CallingState, StateParameters[index+1], true);	// [BC] Since monsters don't have targets on the client end, we need to send an update.
 }
 
@@ -906,7 +910,11 @@ void A_CustomMissile(AActor * self)
 				break;
 
 			case 2:
+				self->x+=x;
+				self->y+=y;
 				missile = P_SpawnMissileAngleZ(self, self->z+SpawnHeight, ti, self->angle, 0);
+				self->x-=x;
+				self->y-=y;
 
 				// It is not necessary to use the correct angle here.
 				// The only important thing is that the horizontal momentum is correct.

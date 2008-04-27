@@ -110,7 +110,7 @@ void	G_PlayerReborn( int player );
 //void	ChangeSpy (bool forward);
 polyobj_t *GetPolyobj (int polyNum);
 int		D_PlayerClassToInt (const char *classname);
-bool	P_AdjustFloorCeil (AActor *thing);
+bool	P_OldAdjustFloorCeil (AActor *thing);
 void	ClientObituary (AActor *self, AActor *inflictor, AActor *attacker, FName MeansOfDeath);
 void	P_CrouchMove(player_t * player, int direction);
 bool	DoThingRaise( AActor *thing, bool bIgnorePositionCheck );
@@ -2675,7 +2675,7 @@ void CLIENT_MoveThing( AActor *pActor, fixed_t X, fixed_t Y, fixed_t Z )
 	if ((( pActor->flags & MF_NOBLOCKMAP ) == false ) &&
 		(( pActor->flags & MF_COUNTKILL ) == false ))
 	{
-		P_AdjustFloorCeil( pActor );
+		P_OldAdjustFloorCeil( pActor );
 	}
 }
 
@@ -7744,7 +7744,7 @@ static void client_SetSectorFloorPlane( BYTESTREAM_s *pByteStream )
 	pSector->floorplane.ChangeHeight( -lDelta );
 
 	// Call this to update various actor's within the sector.
-	P_ChangeSector( pSector, false, -lDelta, 0 );
+	P_ChangeSector( pSector, false, -lDelta, 0, false );
 
 	// Finally, adjust textures.
 	pSector->floortexz += pSector->floorplane.HeightDiff( lLastPos );
@@ -8626,15 +8626,15 @@ static void client_SetLineTexture( BYTESTREAM_s *pByteStream )
 	{
 	case 0 /*TEXTURE_TOP*/:
 			
-		pSide->toptexture = lTexture;
+		pSide->SetTexture(side_t::top, lTexture);
 		break;
 	case 1 /*TEXTURE_MIDDLE*/:
 
-		pSide->midtexture = lTexture;
+		pSide->SetTexture(side_t::mid, lTexture);
 		break;
 	case 2 /*TEXTURE_BOTTOM*/:
 
-		pSide->bottomtexture = lTexture;
+		pSide->SetTexture(side_t::bottom, lTexture);
 		break;
 	default:
 
@@ -8697,7 +8697,7 @@ static void client_ACSScriptExecute( BYTESTREAM_s *pByteStream )
 	ULONG		ulArg2;
 	bool		bAlways;
 	AActor		*pActor;
-	line_s		*pLine;
+	line_t		*pLine;
 
 	// Read in the script to be executed.
 	ulScript = NETWORK_ReadShort( pByteStream );
@@ -8861,7 +8861,7 @@ static void client_StartSectorSequence( BYTESTREAM_s *pByteStream )
 		return;
 
 	// Finally, play the given sound sequence for this sector.
-	SN_StartSequence( pSector, pszSequence, 0 );
+	SN_StartSequence( pSector, pszSequence, 0, false );
 }
 
 //*****************************************************************************
@@ -10032,7 +10032,7 @@ static void client_PlayPlatSound( BYTESTREAM_s *pByteStream )
 		break;
 	case 2:
 
-		SN_StartSequence( pPlat->GetSector( ), "Silence", 0 );
+		SN_StartSequence( pPlat->GetSector( ), "Silence", 0, false );
 		break;
 	case 3:
 
@@ -10197,9 +10197,9 @@ static void client_DoPillar( BYTESTREAM_s *pByteStream )
 
 	// Begin playing the sound sequence for the pillar.
 	if ( pSector->seqType >= 0 )
-		SN_StartSequence( pSector, pSector->seqType, SEQ_PLATFORM, 0 );
+		SN_StartSequence( pSector, pSector->seqType, SEQ_PLATFORM, 0, false );
 	else
-		SN_StartSequence( pSector, "Floor", 0 );
+		SN_StartSequence( pSector, "Floor", 0, false );
 }
 
 //*****************************************************************************
@@ -10817,7 +10817,7 @@ static void client_SetScroller( BYTESTREAM_s *pByteStream )
 //*****************************************************************************
 //
 // [BB] SetWallScroller is defined in p_lnspec.cpp.
-void SetWallScroller(int id, int sidechoice, fixed_t dx, fixed_t dy);
+void SetWallScroller(int id, int sidechoice, fixed_t dx, fixed_t dy, int Where);
 
 static void client_SetWallScroller( BYTESTREAM_s *pByteStream )
 {
@@ -10825,6 +10825,7 @@ static void client_SetWallScroller( BYTESTREAM_s *pByteStream )
 	LONG					lSidechoice;
 	fixed_t					dX;
 	fixed_t					dY;
+	LONG					lWhere;
 
 	// Read in the id.
 	lId = NETWORK_ReadLong( pByteStream );
@@ -10838,8 +10839,11 @@ static void client_SetWallScroller( BYTESTREAM_s *pByteStream )
 	// Read in the Y speed.
 	dY = NETWORK_ReadLong( pByteStream );
 
+	// Read in where.
+	lWhere = NETWORK_ReadLong( pByteStream );
+
 	// Finally, create or update the scroller.
-	SetWallScroller (lId, lSidechoice, dX, dY );
+	SetWallScroller (lId, lSidechoice, dX, dY, lWhere );
 }
 
 //*****************************************************************************

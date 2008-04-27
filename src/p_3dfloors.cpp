@@ -1,10 +1,10 @@
 /*
 ** p_3dfloor.cpp
 **
-** 3D-floor handling (and a little other stuff as well. ;))
+** 3D-floor handling
 **
 **---------------------------------------------------------------------------
-** Copyright 2005 Christoph Oelckers
+** Copyright 2005-2008 Christoph Oelckers
 ** All rights reserved.
 **
 ** Redistribution and use in source and binary forms, with or without
@@ -60,8 +60,8 @@ static void P_Add3DFloor(sector_t* sec, sector_t* sec2, line_t* master, int flag
 	F3DFloor*      ffloor;
 	unsigned  i;
 		
-	for(i = 0; i < sec2->e->attached.Size(); i++) if(sec2->e->attached[i] == sec) return;
-	sec2->e->attached.Push(sec);
+	for(i = 0; i < sec2->e->XFloor.attached.Size(); i++) if(sec2->e->XFloor.attached[i] == sec) return;
+	sec2->e->XFloor.attached.Push(sec);
 	
 	//Add the floor
 	ffloor = new F3DFloor;
@@ -129,7 +129,7 @@ static void P_Add3DFloor(sector_t* sec, sector_t* sec2, line_t* master, int flag
 		ffloor->alpha = FRACUNIT;
 	}
 
-	sec->e->ffloors.Push(ffloor);
+	sec->e->XFloor.ffloors.Push(ffloor);
 }
 
 //==========================================================================
@@ -202,9 +202,9 @@ static int P_Set3DFloor(line_t * line, int param,int param2, int alpha)
 			if (param2&32) flags|=FF_LOWERTEXTURE;
 			if (param2&64) flags|=FF_ADDITIVETRANS|FF_TRANSLUCENT;
 			if (param2&512) flags|=FF_FADEWALLS;
-			if (sides[line->sidenum[0]].toptexture<0 && alpha<255)
+			if (sides[line->sidenum[0]].GetTexture(side_t::top)<0 && alpha<255)
 			{
-				alpha=clamp(-sides[line->sidenum[0]].toptexture, 0, 255);
+				alpha=clamp(-sides[line->sidenum[0]].GetTexture(side_t::top), 0, 255);
 			}
 			if (alpha==0) flags&=~(FF_RENDERALL|FF_BOTHPLANES|FF_ALLSIDES);
 			else if (alpha!=255) flags|=FF_TRANSLUCENT;
@@ -213,7 +213,7 @@ static int P_Set3DFloor(line_t * line, int param,int param2, int alpha)
 		P_Add3DFloor(ss, sec, line, flags, alpha);
 	}
 	// To be 100% safe this should be done even if the alpha by texture value isn't used.
-	if (sides[line->sidenum[0]].toptexture<0) sides[line->sidenum[0]].toptexture=0;
+	if (sides[line->sidenum[0]].GetTexture(side_t::top)<0) sides[line->sidenum[0]].SetTexture(side_t::top, 0);
 	return 1;
 }
 
@@ -229,9 +229,9 @@ void P_PlayerOnSpecial3DFloor(player_t* player)
 {
 	sector_t * sector = player->mo->Sector;
 
-	for(unsigned i=0;i<sector->e->ffloors.Size();i++)
+	for(unsigned i=0;i<sector->e->XFloor.ffloors.Size();i++)
 	{
-		F3DFloor* rover=sector->e->ffloors[i];
+		F3DFloor* rover=sector->e->XFloor.ffloors[i];
 
 		if (!(rover->flags & FF_EXISTS)) continue;
 		if (rover->flags & FF_FIX) continue;
@@ -267,9 +267,9 @@ bool P_CheckFor3DFloorHit(AActor * mo)
 
 	//if ((mo->player && (mo->player->cheats & CF_PREDICTING))) return false;
 
-	for(unsigned i=0;i<sector->e->ffloors.Size();i++)
+	for(unsigned i=0;i<sector->e->XFloor.ffloors.Size();i++)
 	{
-		F3DFloor* rover=sector->e->ffloors[i];
+		F3DFloor* rover=sector->e->XFloor.ffloors[i];
 
 		if (!(rover->flags & FF_EXISTS)) continue;
 
@@ -297,9 +297,9 @@ bool P_CheckFor3DCeilingHit(AActor * mo)
 
 	//if ((mo->player && (mo->player->cheats & CF_PREDICTING))) return false;
 
-	for(unsigned i=0;i<sector->e->ffloors.Size();i++)
+	for(unsigned i=0;i<sector->e->XFloor.ffloors.Size();i++)
 	{
-		F3DFloor* rover=sector->e->ffloors[i];
+		F3DFloor* rover=sector->e->XFloor.ffloors[i];
 
 		if (!(rover->flags & FF_EXISTS)) continue;
 
@@ -337,8 +337,8 @@ void P_Recalculate3DFloors(sector_t * sector)
 	unsigned		i, j;
 	lightlist_t newlight;
 
-	TArray<F3DFloor*> & ffloors=sector->e->ffloors;
-	TArray<lightlist_t> & lightlist = sector->e->lightlist;
+	TArray<F3DFloor*> & ffloors=sector->e->XFloor.ffloors;
+	TArray<lightlist_t> & lightlist = sector->e->XFloor.lightlist;
 
 	// Sort the floors top to bottom for quicker access here and later
 	// Translucent and swimmable floors are split if they overlap with solid ones.
@@ -505,9 +505,11 @@ void P_Recalculate3DFloors(sector_t * sector)
 
 void P_RecalculateAttached3DFloors(sector_t * sec)
 {
-	for(unsigned int i=0; i<sec->e->attached.Size(); i++)
+	extsector_t::xfloor &x = sec->e->XFloor;
+
+	for(unsigned int i=0; i<x.attached.Size(); i++)
 	{
-		P_Recalculate3DFloors(sec->e->attached[i]);
+		P_Recalculate3DFloors(x.attached[i]);
 	}
 	P_Recalculate3DFloors(sec);
 }
@@ -520,97 +522,51 @@ void P_RecalculateAttached3DFloors(sector_t * sec)
 lightlist_t * P_GetPlaneLight(sector_t * sector, secplane_t * plane, bool underside)
 {
 	unsigned   i;
+	TArray<lightlist_t> &lightlist = sector->e->XFloor.lightlist;
 
 	fixed_t planeheight=plane->ZatPoint(CenterSpot(sector));
 	if(underside) planeheight--;
 	
-	for(i = 1; i < sector->e->lightlist.Size(); i++)
-		if (sector->e->lightlist[i].plane.ZatPoint(CenterSpot(sector)) <= planeheight) 
-			return &sector->e->lightlist[i - 1];
+	for(i = 1; i < lightlist.Size(); i++)
+		if (lightlist[i].plane.ZatPoint(CenterSpot(sector)) <= planeheight) 
+			return &lightlist[i - 1];
 		
-	return &sector->e->lightlist[sector->e->lightlist.Size() - 1];
+	return &lightlist[lightlist.Size() - 1];
 }
-
-
-
-//============================================================================
-//
-// GetMidTexturePosition
-//
-//============================================================================
-bool P_GetMidTexturePosition(const line_t * line, int sideno, fixed_t * ptextop, fixed_t * ptexbot)
-{
-	side_t *side = &sides[line->sidenum[sideno]];
-
-	if (line->sidenum[0]==NO_SIDE || line->sidenum[1]==NO_SIDE || !side->midtexture) return false;
-	
-	FTexture * tex= TexMan(side->midtexture);
-
-	fixed_t rowoffset=side->rowoffset;
-	fixed_t textureheight=tex->GetHeight()<<FRACBITS;
-	if (tex->yScale != FRACUNIT && !tex->bWorldPanning)
-	{
-		rowoffset = DivScale16(rowoffset, tex->yScale);
-		textureheight = DivScale16(textureheight, tex->yScale);
-	}
-
-
-	if(line->flags & ML_DONTPEGBOTTOM)
-	{
-		*ptexbot = rowoffset +
-				   MAX<fixed_t>(line->frontsector->floortexz, line->backsector->floortexz);
-
-		*ptextop = *ptexbot + textureheight;
-	}
-	else
-	{
-		*ptextop = rowoffset +
-				   MIN<fixed_t>(line->frontsector->ceilingtexz, line->backsector->ceilingtexz);
-		
-		*ptexbot = *ptextop - textureheight;
-	}
-	return true;
-}
-
-
 
 //==========================================================================
 //
 // Extended P_LineOpening
 //
 //==========================================================================
-int openfloorpic, openceilingpic;
 
-void P_LineOpening (AActor * thing,const line_t *linedef, fixed_t x, fixed_t y, fixed_t refx, fixed_t refy)
+void P_LineOpening_XFloors (FLineOpening &open, AActor * thing, const line_t *linedef, 
+							fixed_t x, fixed_t y, fixed_t refx, fixed_t refy)
 {
-
-	P_LineOpening(linedef, x, y, refx, refy);
-	if (openrange<=0) return;
-
     if(thing)
     {
 		sector_t *front, *back;
 
 		fixed_t thingbot, thingtop;
-		fixed_t tt, tb;
 		
 		thingbot = thing->z;
 		thingtop = thingbot + thing->height;
 
 		front = linedef->frontsector;
 		back = linedef->backsector;
-		
-		openfloorpic = openceilingpic = -1;
+
+		extsector_t::xfloor &xf = front->e->XFloor;
+		extsector_t::xfloor &xb = back->e->XFloor;
 
 		// Check for 3D-floors in the sector (mostly identical to what Legacy does here)
-		if(front->e->ffloors.Size() || back->e->ffloors.Size())
+		if(xf.ffloors.Size() || xb.ffloors.Size())
 		{
 			F3DFloor*      rover;
 			unsigned i;
 
-			fixed_t    lowestceiling = opentop;
-			fixed_t    highestfloor = openbottom;
-			fixed_t    lowestfloor = lowfloor;
+			fixed_t    lowestceiling = open.top;
+			fixed_t    highestfloor = open.bottom;
+			fixed_t    lowestfloor = open.lowfloor;
 			fixed_t    delta1;
 			fixed_t    delta2;
 			int highestfloorpic = -1;
@@ -619,9 +575,9 @@ void P_LineOpening (AActor * thing,const line_t *linedef, fixed_t x, fixed_t y, 
 			thingtop = thing->z + (thing->height==0? 1:thing->height);
 			
 			// Check for frontsector's 3D-floors
-			for(i=0;i<front->e->ffloors.Size();i++)
+			for(i=0;i<xf.ffloors.Size();i++)
 			{
-				rover=front->e->ffloors[i];
+				rover=xf.ffloors[i];
 
 				if (!(rover->flags&FF_EXISTS)) continue;
 				if (!(rover->flags & FF_SOLID)) continue;
@@ -639,9 +595,9 @@ void P_LineOpening (AActor * thing,const line_t *linedef, fixed_t x, fixed_t y, 
 			}
 			
 			// Check for backsector's 3D-floors
-			for(i=0;i<back->e->ffloors.Size();i++)
+			for(i=0;i<xb.ffloors.Size();i++)
 			{
-				rover=back->e->ffloors[i];
+				rover=xb.ffloors[i];
 
 				if (!(rover->flags&FF_EXISTS)) continue;
 				if (!(rover->flags & FF_SOLID)) continue;
@@ -662,96 +618,24 @@ void P_LineOpening (AActor * thing,const line_t *linedef, fixed_t x, fixed_t y, 
 				else if(ff_top > lowestfloor && delta1 < delta2) lowestfloor = ff_top;
 			}
 			
-			if(highestfloor > openbottom)
+			if(highestfloor > open.bottom)
 			{
-				openbottom = highestfloor;
-				openfloorpic = highestfloorpic;
+				open.bottom = highestfloor;
+				open.floorpic = highestfloorpic;
 			}
 			
-			if(lowestceiling < opentop) 
+			if(lowestceiling < open.top) 
 			{
-				opentop = lowestceiling;
-				openceilingpic = lowestceilingpic;
+				open.top = lowestceiling;
+				open.ceilingpic = lowestceilingpic;
 			}
 			
-			if(lowestfloor > lowfloor) lowfloor = lowestfloor;
-		}
-
-		// some rudimentary 3DMidtex handling
-		if((linedef->flags & ML_3DMIDTEX) && 
-			P_GetMidTexturePosition(linedef, 0, &tt, &tb))
-		{
-			if (thing->z + (thing->height/2) < (tt + tb)/2)
-			{
-				if(tb < opentop) opentop = tb;
-			}
-			else
-			{
-				if(tt > openbottom) openbottom = tt;
-			}
+			if(lowestfloor > open.lowfloor) open.lowfloor = lowestfloor;
 		}
     }
-
-	openrange = opentop - openbottom;
 }
 
 
-//==========================================================================
-//
-// Extended sector data
-//
-//==========================================================================
-
-static extsector_t * extsectordata;
-
-
-//==========================================================================
-//
-// Deletes the extended sector data
-//
-//==========================================================================
-
-void P_CleanExtSectors()
-{
-	int i;
-	
-	if (extsectordata)
-	{
-		for (i=0; i<numsectors; i++)
-		{
-			for(unsigned j=0;j<extsectordata[i].ffloors.Size();j++) delete extsectordata[i].ffloors[j];
-
-			// destroy embedded objects (TArrays)
-			extsectordata[i].extsector_t::~extsector_t();
-		}
-		M_Free(extsectordata);
-		extsectordata = NULL;
-	}
-}
-
-
-//==========================================================================
-//
-// Creates the extended sector data
-//
-//==========================================================================
-
-void P_CreateExtSectors()
-{
-	int i;
-	sector_t * sector;
-	FDynamicColormap	*fogMap=NULL;
-
-	// Extended properties - DON'T USE new HERE!
-	extsectordata= (extsector_t *)calloc (numsectors,sizeof(extsector_t));
-
-	for (i=0,sector=sectors;i<numsectors;i++,sector++)
-	{
-		sector->e=extsectordata+i;
-		sector->sectornum = i;
-		sector->floor_reflect = sector->ceiling_reflect = 0;
-	}
-}
 //==========================================================================
 //
 // Spawns non-ZDoom specials
