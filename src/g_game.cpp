@@ -2968,7 +2968,11 @@ void GAME_CheckMode( void )
 	// Reset the status bar.
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
-		delete ( StatusBar );
+		if ( StatusBar )
+		{
+			StatusBar->Destroy();
+			StatusBar = NULL;
+		}
 
 		if ( gamestate == GS_TITLELEVEL )
 			StatusBar = new DBaseStatusBar( 0 );

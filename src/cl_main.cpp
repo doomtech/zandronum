@@ -3199,7 +3199,10 @@ static void client_EndSnapshot( BYTESTREAM_s *pByteStream )
 
 	// Now that we've received the snapshot, create the status bar.
 	if ( StatusBar != NULL )
-		delete ( StatusBar );
+	{
+		StatusBar->Destroy();
+		StatusBar = NULL;
+	}
 
 	StatusBar = CreateStatusBar ();
 	/*  [BB] Moved to CreateStatusBar()
