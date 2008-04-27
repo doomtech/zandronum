@@ -12,7 +12,7 @@ public:
 	typedef BOOST::uint8_t uint8_t;
 	
 	// Must be called once before using
-	blargg_err_t init();
+	__declspec(dllexport) blargg_err_t init();
 	
 	// Sample pairs generated per second
 	enum { sample_rate = 32000 };
@@ -72,17 +72,17 @@ public:
 	// Loads SPC data into emulator
 	enum { spc_min_file_size = 0x10180 };
 	enum { spc_file_size     = 0x10200 };
-	blargg_err_t load_spc( void const* in, long size );
+	__declspec(dllexport) blargg_err_t load_spc( void const* in, long size );
 	
 	// Clears echo region. Useful after loading an SPC as many have garbage in echo.
-	void clear_echo();
+	__declspec(dllexport) void clear_echo();
 
 	// Plays for count samples and write samples to out. Discards samples if out
 	// is NULL. Count must be a multiple of 2 since output is stereo.
-	blargg_err_t play( int count, sample_t* out );
+	__declspec(dllexport) blargg_err_t play( int count, sample_t* out );
 	
 	// Skips count samples. Several times faster than play() when using fast DSP.
-	blargg_err_t skip( int count );
+	__declspec(dllexport) blargg_err_t skip( int count );
 	
 // State save/load (only available with accurate DSP)
 
@@ -129,6 +129,9 @@ public:
 	
 	enum { signature_size = 35 };
 	static char const signature [signature_size + 1];
+
+	// [BB] added for dynamic linking.
+	static __declspec(dllexport) const char * const get_signature();
 
 private:
 	SPC_DSP dsp;

@@ -140,15 +140,15 @@ static FMOD_RESULT SPC_DoOpen(FMOD_CODEC_STATE *codec, SPCCodecData *userdata)
 	// Check the signature.
 	result = codec->fileread(codec->filehandle, spcfile, SNES_SPC::signature_size, &bytesread, NULL);
 	if (result != FMOD_OK || bytesread != SNES_SPC::signature_size ||
-		memcmp(spcfile, SNES_SPC::signature, SNES_SPC::signature_size) != 0)
+		memcmp(spcfile, SNES_SPC::get_signature(), SNES_SPC::signature_size) != 0)
 	{
 		result = FMOD_ERR_FORMAT;
 		// If the length is right and this is just a different version, try
 		// to pretend it's the current one.
 		if (bytesread == SNES_SPC::signature_size)
 		{
-			memcpy(spcfile + 28, SNES_SPC::signature + 28, 7);
-			if (memcmp(spcfile, SNES_SPC::signature, SNES_SPC::signature_size) == 0)
+			memcpy(spcfile + 28, SNES_SPC::get_signature() + 28, 7);
+			if (memcmp(spcfile, SNES_SPC::get_signature(), SNES_SPC::signature_size) == 0)
 			{
 				result = FMOD_OK;
 			}

@@ -212,6 +212,12 @@ void SNES_SPC::reset()
 char const SNES_SPC::signature [signature_size + 1] =
 		"SNES-SPC700 Sound File Data v0.30\x1A\x1A";
 
+// [BB] added for dynamic linking.
+const char * const SNES_SPC::get_signature()
+{
+	return SNES_SPC::signature;
+}
+
 blargg_err_t SNES_SPC::load_spc( void const* data, long size )
 {
 	spc_file_t const* const spc = (spc_file_t const*) data;

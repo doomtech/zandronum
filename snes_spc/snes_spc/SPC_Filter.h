@@ -11,7 +11,7 @@ public:
 	
 	// Filters count samples of stereo sound in place. Count must be a multiple of 2.
 	typedef short sample_t;
-	void run( sample_t* io, int count );
+	__declspec(dllexport) void run( sample_t* io, int count );
 	
 // Optional features
 
@@ -30,7 +30,7 @@ public:
 	void set_bass( int bass );
 	
 public:
-	SPC_Filter();
+	__declspec( dllexport ) SPC_Filter();
 	BLARGG_DISABLE_NOTHROW
 private:
 	enum { gain_bits = 8 };
