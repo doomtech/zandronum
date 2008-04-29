@@ -1,6 +1,8 @@
 # The big list of all things zdoom.wad.
 
-@zdoom.pk3
+@skulltag.pk3
+
+vga-rom-font.16				vga-rom.f16
 
 graphics/invgemr2.lmp    	invgemr2.lmp
 graphics/invgemr1.lmp    	invgemr1.lmp
@@ -57,6 +59,7 @@ in_htc1.txt           		in_htc1.txt
 in_htc2.txt           		in_htc2.txt
 in_htc3.txt           		in_htc3.txt
 lockdefs.txt             	lockdefs.txt
+teaminfo.txt				teaminfo.txt
 
 ========
 # Support lumps
@@ -66,6 +69,7 @@ dehsupp.lmp	                dehsupp.lmp
 doomx.lmp	                xlat/doom.x
 hereticx.lmp                xlat/heretic.x
 strifex.lmp	                xlat/strife.x
+sectorx.txt					sectorx.txt
 
 animated.lmp                animated.lmp
 spaldoom.lmp                spaldoom.lmp
@@ -134,6 +138,7 @@ sprites/iceca0.png		    iceca0.png
 sprites/icecb0.png		    icecb0.png
 sprites/icecc0.png		    icecc0.png
 sprites/icecd0.png		    icecd0.png
+sprites/amrka0.png			amrka0.png
 
 # crouching DoomPlayer
 sprites/plyca1.lmp  		crouch/plyca1.lmp
@@ -217,9 +222,10 @@ sounds/railgf1.flac		    railgunfire.flac
 ========
 # Mapinfos
 
+mapinfo/doomcommon.txt		mapinfo/doomcommon.txt
 mapinfo/doom1.txt			mapinfo/doom1.txt
 mapinfo/doom2.txt			mapinfo/doom2.txt
-mapinfo/plutonia.txt			mapinfo/plutonia.txt
+mapinfo/plutonia.txt		mapinfo/plutonia.txt
 mapinfo/tnt.txt				mapinfo/tnt.txt
 mapinfo/heretic.txt			mapinfo/heretic.txt
 mapinfo/hexen.txt			mapinfo/hexen.txt
@@ -248,35 +254,69 @@ graphics/invgeml1.png		gzd/graphics/invgeml1.png
 graphics/invgeml2.png		gzd/graphics/invgeml2.png
 graphics/invgemr1.png		gzd/graphics/invgemr1.png
 graphics/invgemr2.png		gzd/graphics/invgemr2.png
-shaders/gold.fp				gzd/shaders/gold.fp		
-shaders/gold.vp             gzd/shaders/gold.vp    
-shaders/inverse.fp          gzd/shaders/inverse.fp 
-shaders/inverse.vp          gzd/shaders/inverse.vp 
-shaders/warp1.fp            gzd/shaders/warp1.fp   
-shaders/warp1.vp            gzd/shaders/warp1.vp   
-shaders/warp1ovr.fp         gzd/shaders/warp1ovr.fp
-shaders/warp1ovr.vp         gzd/shaders/warp1ovr.vp
-shaders/warp2.fp            gzd/shaders/warp2.fp   
-shaders/warp2.vp            gzd/shaders/warp2.vp   
-shaders/warp2ovr.fp         gzd/shaders/warp2ovr.fp
-shaders/warp2ovr.vp         gzd/shaders/warp2ovr.vp
+
+shaders/main.fp                                   gzd/shaders/main.fp
+shaders/main.vp                                   gzd/shaders/main.vp
+shaders/main_desat.fp                             gzd/shaders/main_desat.fp
+shaders/main_nofog.vp                             gzd/shaders/main_nofog.vp
+shaders/light/light_doom.fp                       gzd/shaders/light/light_doom.fp
+shaders/light/light_eyefog.fp                     gzd/shaders/light/light_eyefog.fp
+shaders/light/light_brightmap.fp                  gzd/shaders/light/light_brightmap.fp
+shaders/light/light_gold.fp                       gzd/shaders/light/light_gold.fp
+shaders/light/light_green.fp                      gzd/shaders/light/light_green.fp
+shaders/light/light_inverse.fp                    gzd/shaders/light/light_inverse.fp
+shaders/light/light_norm.fp                       gzd/shaders/light/light_norm.fp
+shaders/light/light_red.fp                        gzd/shaders/light/light_red.fp
+shaders/tex/tex_norm.fp                           gzd/shaders/tex/tex_norm.fp
+shaders/tex/tex_warp1.fp                          gzd/shaders/tex/tex_warp1.fp
+shaders/tex/tex_warp2.fp                          gzd/shaders/tex/tex_warp2.fp
+
+
+
 sprites/rsmka0.png			gzd/sprites/rsmka0.png
 sprites/rsmkb0.png			gzd/sprites/rsmkb0.png
 sprites/rsmkc0.png			gzd/sprites/rsmkc0.png
 sprites/rsmkd0.png			gzd/sprites/rsmkd0.png
 sprites/rsmke0.png			gzd/sprites/rsmke0.png
 textures/gllight.png		gzd/textures/gllight.png
+textures/glpart.png			gzd/textures/glpart.png
+textures/glpart2.png		gzd/textures/glpart2.png
 textures/mirror.png			gzd/textures/mirror.png
-decorate.gzd				gzd/decorate.gzd
+decorate.z					gzd/decorate.gzd
 
-========
+
+
 ========
 # Decorate stuff
 
-decorate.txt				decorate/decorate.txt
+decorate.txt								decorate/decorate.txt
+actors/nativeclasses.txt					decorate/nativeclasses.txt
+actors/constants.txt						decorate/constants.txt
 
+#actors/shared/botstuff.txt					decorate/shared/botstuff.txt
+#actors/shared/sharedmisc.txt				decorate/shared/sharedmisc.txt
+actors/shared/blood.txt						decorate/shared/blood.txt
 actors/shared/debris.txt					decorate/shared/debris.txt
 actors/shared/splashes.txt					decorate/shared/splashes.txt
+actors/shared/pickups.txt					decorate/shared/pickups.txt
+actors/shared/fountain.txt					decorate/shared/fountain.txt
+actors/shared/soundsequence.txt				decorate/shared/soundsequence.txt
+
+actors/doom/doomplayer.txt					decorate/doom/doomplayer.txt
+actors/doom/possessed.txt					decorate/doom/possessed.txt
+actors/doom/doomimp.txt						decorate/doom/doomimp.txt
+#actors/doom/demon.txt						decorate/doom/demon.txt
+actors/doom/lostsoul.txt					decorate/doom/lostsoul.txt
+#actors/doom/cacodemon.txt					decorate/doom/cacodemon.txt
+#actors/doom/bruiser.txt						decorate/doom/bruiser.txt
+actors/doom/arachnotron.txt					decorate/doom/arachnotron.txt
+#actors/doom/fatso.txt						decorate/doom/fatso.txt
+actors/doom/revenant.txt					decorate/doom/revenant.txt
+actors/doom/painelemental.txt				decorate/doom/painelemental.txt
+actors/doom/archvile.txt					decorate/doom/archvile.txt
+actors/doom/cyberdemon.txt					decorate/doom/cyberdemon.txt
+actors/doom/spidermaster.txt				decorate/doom/spidermaster.txt
+actors/doom/keen.txt						decorate/doom/keen.txt
 
 actors/doom/deadthings.txt					decorate/doom/deadthings.txt
 actors/doom/doomammo.txt					decorate/doom/doomammo.txt
@@ -284,18 +324,30 @@ actors/doom/doomarmor.txt					decorate/doom/doomarmor.txt
 actors/doom/doomartifacts.txt				decorate/doom/doomartifacts.txt
 actors/doom/doomhealth.txt					decorate/doom/doomhealth.txt
 actors/doom/doomkeys.txt					decorate/doom/doomkeys.txt
+#actors/doom/doommisc.txt					decorate/doom/doommisc.txt
 actors/doom/doomdecorations.txt				decorate/doom/doomdecorations.txt
+actors/doom/doomweapons.txt					decorate/doom/doomweapons.txt
 actors/doom/stealthmonsters.txt				decorate/doom/stealthmonsters.txt
 
+actors/raven/artiegg.txt					decorate/raven/artiegg.txt
 actors/raven/ravenartifacts.txt				decorate/raven/ravenartifacts.txt
 actors/raven/ravenhealth.txt				decorate/raven/ravenhealth.txt
+actors/raven/ravenambient.txt				decorate/raven/ravenambient.txt
 
+actors/heretic/hereticplayer.txt			decorate/heretic/hereticplayer.txt
 actors/heretic/hereticammo.txt				decorate/heretic/hereticammo.txt
 actors/heretic/hereticarmor.txt				decorate/heretic/hereticarmor.txt
 actors/heretic/hereticartifacts.txt			decorate/heretic/hereticartifacts.txt
 actors/heretic/heretickeys.txt				decorate/heretic/heretickeys.txt
 actors/heretic/hereticdecorations.txt		decorate/heretic/hereticdecorations.txt
+actors/heretic/mummy.txt					decorate/heretic/mummy.txt
+actors/heretic/clink.txt					decorate/heretic/clink.txt
+actors/heretic/beast.txt					decorate/heretic/beast.txt
+actors/heretic/snake.txt					decorate/heretic/snake.txt
 
+actors/hexen/fighterplayer.txt				decorate/hexen/fighterplayer.txt
+actors/hexen/clericplayer.txt               decorate/hexen/clericplayer.txt 
+actors/hexen/mageplayer.txt                 decorate/hexen/mageplayer.txt   
 actors/hexen/flame.txt						decorate/hexen/flame.txt
 actors/hexen/hexenarmor.txt					decorate/hexen/hexenarmor.txt
 actors/hexen/hexendecorations.txt			decorate/hexen/hexendecorations.txt
@@ -305,10 +357,15 @@ actors/hexen/mana.txt						decorate/hexen/mana.txt
 actors/hexen/puzzleitems.txt				decorate/hexen/puzzleitems.txt
 actors/hexen/scriptprojectiles.txt			decorate/hexen/scriptprojectiles.txt
 actors/hexen/speedboots.txt					decorate/hexen/speedboots.txt
+actors/hexen/ettin.txt						decorate/hexen/ettin.txt
+actors/hexen/centaur.txt                    decorate/hexen/centaur.txt
+actors/hexen/demons.txt                     decorate/hexen/demons.txt
 
+actors/strife/strifeplayer.txt				decorate/strife/strifeplayer.txt
 actors/strife/beggars.txt					decorate/strife/beggars.txt
 actors/strife/merchants.txt                 decorate/strife/merchants.txt
 actors/strife/peasants.txt                  decorate/strife/peasants.txt
+actors/strife/strifebishop.txt              decorate/strife/strifebishop.txt
 actors/strife/questitems.txt                decorate/strife/questitems.txt
 actors/strife/ratbuddy.txt                  decorate/strife/ratbuddy.txt
 actors/strife/strifeammo.txt                decorate/strife/strifeammo.txt
@@ -318,3 +375,60 @@ actors/strife/strifekeys.txt                decorate/strife/strifekeys.txt
 actors/strife/strifestuff.txt               decorate/strife/strifestuff.txt
 actors/strife/zombie.txt                    decorate/strife/zombie.txt
 
+# [BB] Skulltag additions starting here.
+
+# Textures for Bouncy easter egg on D2DUEL1.
+textures/Bouncy1.jpg						textures/Bouncy1.jpg
+textures/Bouncy2.jpg						textures/Bouncy2.jpg
+textures/Bouncy3.jpg						textures/Bouncy3.jpg
+textures/Bouncy4.jpg						textures/Bouncy4.jpg
+textures/Bouncy5.jpg						textures/Bouncy5.jpg
+textures/Bouncy6.jpg						textures/Bouncy6.jpg
+textures/Bouncy7.jpg						textures/Bouncy7.jpg
+textures/Bouncy8.jpg						textures/Bouncy8.jpg
+
+# OpenGL dynamic light definitions.
+DOOMDEFS.lmp								DOOMDEFS.lmp
+HEXNDEFS.lmp								HEXNDEFS.lmp
+HTICDEFS.lmp								HTICDEFS.lmp
+STRFDEFS.txt								STRFDEFS.txt
+
+actors/doom/doomspawners.txt					decorate/doom/doomspawners.txt
+actors/heretic/hereticspawners.txt		decorate/heretic/hereticspawners.txt
+actors/hexen/hexenspawners.txt		decorate/hexen/hexenspawners.txt
+
+# The bots' chatfiles.
+bots/chatfiles/1337.txt						bots/chatfiles/1337.txt
+bots/chatfiles/chubbs.txt					bots/chatfiles/chubbs.txt
+bots/chatfiles/crash.txt					bots/chatfiles/crash.txt
+bots/chatfiles/cyborg.txt					bots/chatfiles/cyborg.txt
+bots/chatfiles/cygnus.txt					bots/chatfiles/cygnus.txt
+bots/chatfiles/daisy.txt					bots/chatfiles/daisy.txt
+bots/chatfiles/fob.txt						bots/chatfiles/fob.txt
+bots/chatfiles/frad.txt						bots/chatfiles/frad.txt
+bots/chatfiles/hissy.txt					bots/chatfiles/hissy.txt
+bots/chatfiles/insect.txt					bots/chatfiles/insect.txt
+bots/chatfiles/linguica.txt					bots/chatfiles/linguica.txt
+bots/chatfiles/massmouth.txt				bots/chatfiles/massmouth.txt
+bots/chatfiles/meepy.txt					bots/chatfiles/meepy.txt
+bots/chatfiles/mewse.txt					bots/chatfiles/mewse.txt
+bots/chatfiles/orion.txt					bots/chatfiles/orion.txt
+bots/chatfiles/quotebot.txt					bots/chatfiles/quotebot.txt
+bots/chatfiles/reol.txt						bots/chatfiles/reol.txt
+bots/chatfiles/rigel.txt					bots/chatfiles/rigel.txt
+bots/chatfiles/romero.txt					bots/chatfiles/romero.txt
+bots/chatfiles/soldier.txt					bots/chatfiles/soldier.txt
+bots/chatfiles/ultimus.txt					bots/chatfiles/ultimus.txt
+bots/chatfiles/xxenemyxx.txt				bots/chatfiles/xxenemyxx.txt
+
+# [BC] New Skulltag actors.
+actors/Skulltag/skulltagarmor.txt			decorate/Skulltag/skulltagarmor.txt
+actors/Skulltag/skulltagartifacts.txt		decorate/Skulltag/skulltagartifacts.txt
+actors/Skulltag/skulltagdeadthings.txt		decorate/Skulltag/skulltagdeadthings.txt
+actors/Skulltag/skulltagdecorations.txt		decorate/Skulltag/skulltagdecorations.txt
+actors/Skulltag/skulltaghealth.txt			decorate/Skulltag/skulltaghealth.txt
+actors/Skulltag/skulltagmonsters.txt			decorate/Skulltag/skulltagmonsters.txt
+actors/Skulltag/skulltagrunes.txt			decorate/Skulltag/skulltagrunes.txt
+actors/Skulltag/skulltagscorepillars.txt	decorate/Skulltag/skulltagscorepillars.txt
+actors/Skulltag/skulltagstatues.txt			decorate/Skulltag/skulltagstatues.txt
+actors/Skulltag/skulltagweapons.txt			decorate/Skulltag/skulltagweapons.txt
