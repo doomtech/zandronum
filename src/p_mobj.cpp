@@ -6356,7 +6356,8 @@ CCMD( respawnactors )
 				pNewActor->reactiontime = 18;
 
 				pNewActor->TIDtoHate = pActor->TIDtoHate;
-				pNewActor->LastLook = pActor->LastLook;
+				pNewActor->LastLookActor = pActor->LastLookActor;
+				pNewActor->LastLookPlayerNumber = pActor->LastLookPlayerNumber;
 				pNewActor->flags3 |= pActor->flags3 & MF3_HUNTPLAYERS;
 				pNewActor->flags4 |= pActor->flags4 & MF4_NOHATEPLAYERS;
 			}

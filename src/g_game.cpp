@@ -3619,7 +3619,7 @@ void GAME_ResetMap( void )
 
 	// Unload the ACS scripts so we can reload them.
 	FBehavior::StaticUnloadModules( );
-	delete ( DACSThinker::ActiveThinker );
+	DACSThinker::ActiveThinker->Destroy();
 	DACSThinker::ActiveThinker = NULL;
 
 	// Open the current map and load its BEHAVIOR lump.
