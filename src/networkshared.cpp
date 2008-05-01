@@ -363,6 +363,22 @@ void NETWORK_WriteHeader( BYTESTREAM_s *pByteStream, int Byte )
 
 //*****************************************************************************
 //
+bool NETWORK_CompareAddress( NETADDRESS_s Address1, NETADDRESS_s Address2, bool bIgnorePort )
+{
+	if (( Address1.abIP[0] == Address2.abIP[0] ) &&
+		( Address1.abIP[1] == Address2.abIP[1] ) &&
+		( Address1.abIP[2] == Address2.abIP[2] ) &&
+		( Address1.abIP[3] == Address2.abIP[3] ) &&
+		( bIgnorePort ? 1 : ( Address1.usPort == Address2.usPort )))
+	{
+		return ( true );
+	}
+
+	return ( false );
+}
+
+//*****************************************************************************
+//
 bool NETWORK_StringToAddress( const char *s, NETADDRESS_s *a )
 {
 	struct hostent  *h;

@@ -497,6 +497,7 @@ enum
 	CLC_INVENTORYUSE,
 	CLC_INVENTORYDROP,
 	CLC_SUMMONFRIENDCHEAT,
+	CLC_SUMMONFOECHEAT,
 
 	NUM_CLIENT_COMMANDS
 
@@ -533,9 +534,6 @@ NETADDRESS_s	NETWORK_GetFromAddress( void );
 void			NETWORK_LaunchPacket( NETBUFFER_s *pBuffer, NETADDRESS_s Address );
 const char		*NETWORK_AddressToString( NETADDRESS_s Address );
 const char		*NETWORK_AddressToStringIgnorePort( NETADDRESS_s Address );
-//bool			NETWORK_StringToAddress( char *pszString, NETADDRESS_s *pAddress );
-bool			NETWORK_CompareAddress( NETADDRESS_s Address1, NETADDRESS_s Address2, bool bIgnorePort );
-//void			NETWORK_SocketAddressToNetAddress( struct sockaddr_in *s, NETADDRESS_s *a );
 void			NETWORK_NetAddressToSocketAddress( NETADDRESS_s &Address, struct sockaddr_in &SocketAddress );
 void			NETWORK_SetAddressPort( NETADDRESS_s &Address, USHORT usPort );
 NETADDRESS_s	NETWORK_GetLocalAddress( void );
@@ -548,7 +546,7 @@ void			NETWORK_ConvertWeaponNameToKeyLetter( const char *&pszName );
 void			NETWORK_ConvertKeyLetterToFullString( const char *&pszName, bool bPrintKeyLetter );
 void			NETWORK_ConvertWeaponKeyLetterToFullString( const char *&pszName );
 void			NETWORK_GenerateMapLumpMD5Hash( MapData *Map, const LONG LumpNumber, FString &MD5Hash );
-void			NETWORK_GenerateLumpMD5Hash( const char *pszLumpName, FString &MD5Hash );
+void			NETWORK_GenerateLumpMD5Hash( const int LumpNum, FString &MD5Hash );
 
 // Access functions.
 LONG			NETWORK_GetState( void );

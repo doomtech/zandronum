@@ -168,12 +168,7 @@ void CLIENTCOMMANDS_ClientMove( void )
 	if ( ulBits & CLIENT_UPDATE_ROLL )
 		NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, pCmd->ucmd.roll );
 	if ( ulBits & CLIENT_UPDATE_BUTTONS )
-	{
-		if ( iwanttousecrouchingeventhoughitsretardedandunnecessaryanditsimplementationishorribleimeanverticallyshrinkingskinscomeonthatsinsanebutwhatevergoaheadandhaveyourcrouching == false )
-			NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, pCmd->ucmd.buttons & ~BT_DUCK );
-		else
-			NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, pCmd->ucmd.buttons );
-	}
+		NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, pCmd->ucmd.buttons );
 	if ( ulBits & CLIENT_UPDATE_FORWARDMOVE )
 		NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, pCmd->ucmd.forwardmove );
 	if ( ulBits & CLIENT_UPDATE_SIDEMOVE )
@@ -316,12 +311,9 @@ void CLIENTCOMMANDS_GiveCheat( char *pszItem, LONG lAmount )
 
 //*****************************************************************************
 //
-void CLIENTCOMMANDS_SummonCheat( char *pszItem, bool bFriend )
+void CLIENTCOMMANDS_SummonCheat( const char *pszItem, LONG lType )
 {
-	if( !bFriend )
-		NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_SUMMONCHEAT );
-	else
-		NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_SUMMONFRIENDCHEAT );
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, lType );
 	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, pszItem );
 }
 

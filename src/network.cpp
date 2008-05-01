@@ -70,6 +70,11 @@
 
 #include "MD5Checksum.h"
 
+enum LumpAuthenticationMode {
+	LAST_LUMP,
+	ALL_LUMPS
+};
+
 void SERVERCONSOLE_UpdateIP( NETADDRESS_s LocalAddress );
 
 //*****************************************************************************
@@ -240,16 +245,43 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 
 	// [BB] Initialize the checksum of the non-map lumps that need to be authenticated when connecting a new player.
 	std::vector<std::string>	lumpsToAuthenticate;
+	std::vector<LumpAuthenticationMode>	lumpsToAuthenticateMode;
 
 	lumpsToAuthenticate.push_back( "PLAYPAL" );
+	lumpsToAuthenticateMode.push_back( LAST_LUMP );
 	lumpsToAuthenticate.push_back( "COLORMAP" );
-
+	lumpsToAuthenticateMode.push_back( LAST_LUMP );
+	lumpsToAuthenticate.push_back( "HTICDEFS" );
+	lumpsToAuthenticateMode.push_back( ALL_LUMPS );
+	lumpsToAuthenticate.push_back( "HEXNDEFS" );
+	lumpsToAuthenticateMode.push_back( ALL_LUMPS );
+	lumpsToAuthenticate.push_back( "STRFDEFS" );
+	lumpsToAuthenticateMode.push_back( ALL_LUMPS );
+	lumpsToAuthenticate.push_back( "DOOMDEFS" );
+	lumpsToAuthenticateMode.push_back( ALL_LUMPS );
+	lumpsToAuthenticate.push_back( "GLDEFS" );
+	lumpsToAuthenticateMode.push_back( ALL_LUMPS );
 	FString checksum, longChecksum;
 
 	for ( unsigned int i = 0; i < lumpsToAuthenticate.size(); i++ )
 	{
-		NETWORK_GenerateLumpMD5Hash( lumpsToAuthenticate[i].c_str(), checksum );
-		longChecksum += checksum;
+		switch ( lumpsToAuthenticateMode[i] ){
+			case LAST_LUMP:
+				NETWORK_GenerateLumpMD5Hash( Wads.GetNumForName (lumpsToAuthenticate[i].c_str()), checksum );
+				longChecksum += checksum;
+				break;
+
+			case ALL_LUMPS:
+				int workingLump, lastLump;
+
+				lastLump = 0;
+				while ((workingLump = Wads.FindLump(lumpsToAuthenticate[i].c_str(), &lastLump)) != -1)
+				{
+					NETWORK_GenerateLumpMD5Hash( workingLump, checksum );
+					longChecksum += checksum;
+				}
+				break;
+		}
 	}
 	CMD5Checksum::GetMD5( reinterpret_cast<const BYTE *>(longChecksum.GetChars()), longChecksum.Len(), g_lumpsAuthenticationChecksum );
 
@@ -536,22 +568,6 @@ void NETWORK_SetAddressPort( NETADDRESS_s &Address, USHORT usPort )
 
 //*****************************************************************************
 //
-bool NETWORK_CompareAddress( NETADDRESS_s Address1, NETADDRESS_s Address2, bool bIgnorePort )
-{
-	if (( Address1.abIP[0] == Address2.abIP[0] ) &&
-		( Address1.abIP[1] == Address2.abIP[1] ) &&
-		( Address1.abIP[2] == Address2.abIP[2] ) &&
-		( Address1.abIP[3] == Address2.abIP[3] ) &&
-		( bIgnorePort ? 1 : ( Address1.usPort == Address2.usPort )))
-	{
-		return ( true );
-	}
-
-	return ( false );
-}
-
-//*****************************************************************************
-//
 NETADDRESS_s NETWORK_GetLocalAddress( void )
 {
 	char				szBuffer[512];
@@ -686,13 +702,12 @@ void NETWORK_GenerateMapLumpMD5Hash( MapData *Map, const LONG LumpNumber, FStrin
 
 //*****************************************************************************
 //
-void NETWORK_GenerateLumpMD5Hash( const char *pszLumpName, FString &MD5Hash )
+void NETWORK_GenerateLumpMD5Hash( const int LumpNum, FString &MD5Hash )
 {
-	const int lumpNum = Wads.GetNumForName (pszLumpName);
-	const int lumpSize = Wads.LumpLength (lumpNum);
+	const int lumpSize = Wads.LumpLength (LumpNum);
 	BYTE *pbData = new BYTE[lumpSize];
 
-	FWadLump lump = Wads.OpenLumpNum (lumpNum);
+	FWadLump lump = Wads.OpenLumpNum (LumpNum);
 
 	// Dump the data from the lump into our data buffer.
 	lump.Read (pbData, lumpSize);

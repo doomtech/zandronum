@@ -131,6 +131,9 @@ CVAR (Bool, show_obituaries, true, CVAR_ARCHIVE)
 EXTERN_CVAR (Bool, longsavemessages)
 EXTERN_CVAR (Bool, screenshot_quiet)
 
+// [RC] Played when a chat message arrives. Values: off, default, Doom 1 (dstink), Doom 2 (dsradio).
+CVAR (Int, chat_sound, 1, CVAR_ARCHIVE)
+
 extern int	skullAnimCounter;
 
 EXTERN_CVAR (String, name)
@@ -1135,10 +1138,19 @@ static value_t MessageColorLevels[] = {
 	{ 2.0, "Not in chat" }
 };
 
+static value_t ChatSounds[] = {
+	{ 0.0, "Off" },
+	{ 1.0, "Default" },
+	{ 2.0, "Doom 1" },
+	{ 3.0, "Doom 2" }
+};
+
+
 static menuitem_t MessagesItems[] = {
 	{ more,		"Text scaling",			{NULL},					{0.0}, {0.0}, 	{0.0}, {(value_t *)SetupTextScalingMenu} },
 	{ discrete, "Show messages",		{&show_messages},		{2.0}, {0.0},   {0.0}, {OnOff} },
 	{ discrete, "Show obituaries",		{&show_obituaries},		{2.0}, {0.0},   {0.0}, {OnOff} },
+	{ discrete, "Chat sound",			{&chat_sound},			{4.0}, {0.0},   {0.0}, {ChatSounds} },
 	{ discrete, "Minimum message level",{&msglevel},		   	{3.0}, {0.0},   {0.0}, {MessageLevels} },
 	{ discrete, "Center messages",		{&con_centernotify},	{2.0}, {0.0},	{0.0}, {OnOff} },
 	{ discrete, "Color in messages",	{&con_colorinmessages},	{3.0}, {0.0},	{0.0}, {MessageColorLevels} },
@@ -1703,7 +1715,7 @@ void SendNewColor (int red, int green, int blue);
 void M_PlayerSetup (void);
 void M_AccountSetup( void );
 void M_SetupPlayerSetupMenu( void );
-void M_Browse( void );
+void M_StartBrowserMenu( void );
 void M_Spectate( void );
 void M_CallVote( void );
 void M_ChangeTeam( void );
@@ -1712,7 +1724,7 @@ void M_Skirmish( void );
 static menuitem_t MultiplayerItems[] =
 {
 	{ more,		"Offline skirmish",				{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_Skirmish} }, // [RC] Clarification that Skirmish is not hosting
-	{ more,		"Browse servers",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_Browse} },
+	{ more,		"Browse servers",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_StartBrowserMenu} },
 	{ more,		"Player setup",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_PlayerSetup} },
 //	{ more,		"Account setup",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_AccountSetup} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
@@ -1810,6 +1822,7 @@ bool M_ScrollServerList( bool bUp );
 LONG M_CalcLastSortedIndex( void );
 bool M_ShouldShowServer( LONG lServer );
 void M_BrowserMenuDrawer( void );
+void M_StartInternalBrowse( void );
 
 static	void			browsermenu_SortServers( ULONG ulSortType );
 static	int	STACK_ARGS	browsermenu_PingCompareFunc( const void *arg1, const void *arg2 );
@@ -1824,7 +1837,39 @@ CVAR( Int, menu_browser_servers, 0, CVAR_ARCHIVE )
 CVAR( Int, menu_browser_gametype, 0, CVAR_ARCHIVE )
 CVAR( Int, menu_browser_sortby, 0, CVAR_ARCHIVE );
 CVAR( Bool, menu_browser_showempty, true, CVAR_ARCHIVE );
-CVAR( Bool, menu_browser_showfull, true, CVAR_ARCHIVE );
+CVAR( Bool, menu_browser_showfull, true, CVAR_ARCHIVE )
+
+// [RC] In Windows, a menu to launch IDEse or the internal browser is shown. There currently isn't an IDEse for Linux.
+#ifdef WIN32
+	void M_StartIdeSe( void );	
+	static menuitem_t BrowserTypeItems[] = 
+	{
+		{ more,		"IDEse",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_StartIdeSe} },
+		{ more,		"Internal browser",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_StartInternalBrowse} },
+	};
+
+	menu_t BrowserTypeMenu = {
+		"SELECT BROWSER",
+		0,
+		countof(BrowserTypeItems),
+		0,
+		BrowserTypeItems,
+		0,
+		0,
+		0,
+		0,
+		false,
+		NULL,
+	};
+
+	void M_StartIdeSe( void )
+	{
+		FString path = progdir; path.AppendFormat("idese.exe");
+		launchProgram(path);
+		exit(0);
+	}
+#endif
+
 static menuitem_t BrowserItems[] =
 {
 	{ discrete, "Servers",				{&menu_browser_servers},		{2.0}, {0.0},	{0.0}, {ServerTypeVals} },
@@ -1863,7 +1908,17 @@ menu_t BrowserMenu = {
 	NULL,
 };
 
-void M_Browse( void )
+void M_StartBrowserMenu( void )
+{
+	// Switch the menu.
+	#ifdef WIN32
+		M_SwitchMenu( &BrowserTypeMenu );
+	#else
+		M_StartInternalBrowse( );
+	#endif
+}
+
+void M_StartInternalBrowse( void )
 {
 	g_lSelectedServer = -1;
 
@@ -2338,7 +2393,13 @@ void M_DrawServerInfo( void )
 
 	ulCurYPos += ulTextHeight;
 
-	sprintf( szString, "WADs: \\cc%d", BROWSER_GetNumPWADs( g_lSelectedServer ));
+	sprintf( szString, "IWAD: \\cc%s", BROWSER_GetIWADName( g_lSelectedServer ));
+	V_ColorizeString( szString );
+	screen->DrawText( CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
+
+	ulCurYPos += ulTextHeight;
+
+	sprintf( szString, "PWADs: \\cc%d", BROWSER_GetNumPWADs( g_lSelectedServer ));
 	V_ColorizeString( szString );
 	screen->DrawText( CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
 

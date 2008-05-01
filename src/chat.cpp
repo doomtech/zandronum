@@ -95,6 +95,7 @@ CVAR( String, chatmacro8, "I'll take care of it.", CVAR_ARCHIVE )
 CVAR( String, chatmacro9, "Yes", CVAR_ARCHIVE )
 CVAR( String, chatmacro0, "No", CVAR_ARCHIVE )
 EXTERN_CVAR( Int, con_colorinmessages );
+EXTERN_CVAR( Int, chat_sound );
 
 //*****************************************************************************
 FStringCVar	*g_ChatMacros[10] =
@@ -477,8 +478,13 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 
 	Printf( ulChatLevel, "%s\n", OutString.GetChars() );
 
-	if ( show_messages )
+	// [RC] User can choose the chat sound.
+	if ( chat_sound == 1 ) // Default
 		S_Sound( CHAN_VOICE, gameinfo.chatSound, 1, ATTN_NONE );
+	else if ( chat_sound == 2 ) // Doom 1
+		S_Sound( CHAN_VOICE, "misc/chat2", 1, ATTN_NONE );
+	else if ( chat_sound == 3 ) // Doom 2
+		S_Sound( CHAN_VOICE, "misc/chat", 1, ATTN_NONE );
 
 	BOTCMD_SetLastChatString( pszString );
 	BOTCMD_SetLastChatPlayer( players[ulPlayer].userinfo.netname );

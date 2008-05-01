@@ -52,6 +52,7 @@
 #include "gl/gl_functions.h"
 #include "gl/gl_shader.h"
 #include "gl/gl_framebuffer.h"
+#include "gl/gl_models.h"
 
 #define DEG2RAD( a ) ( a * M_PI ) / 180.0F
 #define RAD2DEG( a ) ( a / M_PI ) * 180.0F
@@ -735,8 +736,19 @@ static void gl_DrawBlend(sector_t * viewsector)
 //-----------------------------------------------------------------------------
 void gl_EndDrawScene(sector_t * viewsector)
 {
-	extern void gl_DrawPlayerSprites (sector_t *);
-	
+	extern void gl_DrawPlayerSprites (sector_t *, bool);
+
+	// [BB] HUD models need to be rendered here. Make sure that
+	// gl_DrawPlayerSprites is only called once. Either to draw
+	// HUD models or to draw the weapon sprites.
+	const bool renderHUDModel = gl_IsHUDModelForPlayerAvailable( players[consoleplayer].camera->player );
+	if ( renderHUDModel )
+	{
+		// [BB] The HUD model should be drawn over everything else already drawn.
+		gl.Clear(GL_DEPTH_BUFFER_BIT);
+		gl_DrawPlayerSprites (viewsector, true);
+	}
+
 	gl.DisableClientState(GL_TEXTURE_COORD_ARRAY);
 	gl.DisableClientState(GL_VERTEX_ARRAY);
 
@@ -747,7 +759,9 @@ void gl_EndDrawScene(sector_t * viewsector)
 	screen->Begin2D(false);
 
 	gl_ResetViewport();
-	gl_DrawPlayerSprites (viewsector);
+	// [BB] Only draw the sprites if we didn't render a HUD model before.
+	if ( renderHUDModel == false )
+		gl_DrawPlayerSprites (viewsector, false);
 	gl_DrawBlend(viewsector);
 
 	// Restore standard rendering state

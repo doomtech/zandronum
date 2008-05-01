@@ -469,8 +469,6 @@ bool	PLAYER_ShouldSpawnAsSpectator( player_s *pPlayer );
 bool	PLAYER_Taunt( player_s *pPlayer );
 LONG	PLAYER_GetRailgunColor( player_s *pPlayer );
 
-EXTERN_CVAR( Bool, iwanttousecrouchingeventhoughitsretardedandunnecessaryanditsimplementationishorribleimeanverticallyshrinkingskinscomeonthatsinsanebutwhatevergoaheadandhaveyourcrouching );
-
 void P_CheckPlayerSprites();
 
 

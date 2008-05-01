@@ -78,10 +78,7 @@ static	IPList	g_BannedIPs;
 static	IPList	g_BannedIPExemptions;
 
 // List of IP address that this server has been queried by recently.
-static	STORED_QUERY_IP_t		g_StoredQueryIPs[MAX_STORED_QUERY_IPS];
-
-static	LONG					g_lStoredQueryIPHead;
-static	LONG					g_lStoredQueryIPTail;
+static	QueryIPQueue g_queryIPQueue;
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -315,42 +312,25 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 			// Clear out the message buffer.
 			NETWORK_ClearBuffer( &g_MessageBuffer );
 
-			// First, check to see if we've been queried by this address recently.
-			if ( g_lStoredQueryIPHead != g_lStoredQueryIPTail )
+			// Check to see if this IP exists in our stored query IP list. If it does, then
+			// ignore it, since it queried us less than 10 seconds ago.
+			if ( g_queryIPQueue.addressInQueue ( AddressFrom ) )
 			{
-				ulIdx = g_lStoredQueryIPHead;
-				while ( ulIdx != (ULONG)g_lStoredQueryIPTail )
-				{
-					// Check to see if this IP exists in our stored query IP list. If it does, then
-					// ignore it, since it queried us less than 10 seconds ago.
-					if ( NETWORK_CompareAddress( AddressFrom, g_StoredQueryIPs[ulIdx].Address, true ))
-					{
-						// Write our header.
-						NETWORK_WriteLong( &g_MessageBuffer.ByteStream, MSC_REQUESTIGNORED );
+				// Write our header.
+				NETWORK_WriteLong( &g_MessageBuffer.ByteStream, MSC_REQUESTIGNORED );
 
-						// Send the packet.
-						NETWORK_LaunchPacket( &g_MessageBuffer, AddressFrom );
+				// Send the packet.
+				NETWORK_LaunchPacket( &g_MessageBuffer, AddressFrom );
 
-						printf( "Ignored launcher challenge.\n" );
+				printf( "Ignored launcher challenge.\n" );
 
-						// Nothing more to do here.
-						return;
-					}
-
-					ulIdx++;
-					ulIdx = ulIdx % MAX_STORED_QUERY_IPS;
-				}
+				// Nothing more to do here.
+				return;
 			}
-			
+
 			// This IP didn't exist in the list. and it wasn't banned. 
 			// So, add it, and keep it there for 10 seconds.
-			g_StoredQueryIPs[g_lStoredQueryIPTail].Address = AddressFrom;
-			g_StoredQueryIPs[g_lStoredQueryIPTail].lNextAllowedTime = g_lCurrentTime + 10;
-
-			g_lStoredQueryIPTail++;
-			g_lStoredQueryIPTail = g_lStoredQueryIPTail % MAX_STORED_QUERY_IPS;
-			if ( g_lStoredQueryIPTail == g_lStoredQueryIPHead )
-				printf( "WARNING! g_lStoredQueryIPTail == g_lStoredQueryIPHead\n" );
+			g_queryIPQueue.addAddress ( AddressFrom, g_lCurrentTime, &std::cerr );
 
 			// Write our message header to the launcher.
 			NETWORK_WriteLong( &g_MessageBuffer.ByteStream, MSC_BEGINSERVERLIST );
@@ -431,9 +411,6 @@ int main( )
 	MASTERSERVER_InitializeBans( );
 	int lastParsingTime = I_GetTime( );
 
-	g_lStoredQueryIPHead = 0;
-	g_lStoredQueryIPTail = 0;
-
 	// Done setting up!
 	std::cerr << "Master server initialized!\n\n";
 
@@ -453,11 +430,7 @@ int main( )
 			MASTERSERVER_ParseCommands( pByteStream );
 		}
 
-		while (( g_lStoredQueryIPHead != g_lStoredQueryIPTail ) && ( g_lCurrentTime >= g_StoredQueryIPs[g_lStoredQueryIPHead].lNextAllowedTime ))
-		{
-			g_lStoredQueryIPHead++;
-			g_lStoredQueryIPHead = g_lStoredQueryIPHead % MAX_STORED_QUERY_IPS;
-		}
+		g_queryIPQueue.adjustHead ( g_lCurrentTime );
 
 		// See if any servers have timed out.
 		MASTERSERVER_CheckTimeouts( );

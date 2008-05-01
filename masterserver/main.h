@@ -58,9 +58,6 @@
 // so big that this number can't hold them all!
 #define	MAX_SERVERS						512
 
-// This is the maximum number of IPs that we can store in our query list.
-#define	MAX_STORED_QUERY_IPS			512
-
 //*****************************************************************************
 //	STRUCTURES
 
@@ -76,16 +73,5 @@ typedef struct
 	bool			bAvailable;
 
 } SERVER_s;
-
-//*****************************************************************************
-typedef struct
-{
-	// The IP address of someone who just queried the master server.
-	NETADDRESS_s	Address;
-
-	// This is the next time we're allowed to respond to a query from this IP address.
-	long			lNextAllowedTime;
-
-} STORED_QUERY_IP_t;
 
 #endif	// __MAIN_H__

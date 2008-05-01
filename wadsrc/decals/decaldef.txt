@@ -26,8 +26,8 @@ stretcher BloodStretcher
 
 slider BloodSlider
 {
-	SlideTime	35
-	DistY		-5
+	SlideTime		35
+	DistY			-5
 }
 
 combiner BloodSmearer
@@ -185,13 +185,13 @@ decal BloodSplat7
 
 decalgroup BloodSplat
 {
-	BloodSplat1	2
-	BloodSplat2	1
-	BloodSplat3	5
-	BloodSplat4	5
-	BloodSplat5	5
-	BloodSplat6	5
-	BloodSplat7	6
+	BloodSplat1		2
+	BloodSplat2		1
+	BloodSplat3		5
+	BloodSplat4		5
+	BloodSplat5		5
+	BloodSplat6		5
+	BloodSplat7		6
 }
 
 decal BloodSmear1
@@ -216,8 +216,8 @@ decal BloodSmear2
 
 decalgroup BloodSmear
 {
-	BloodSmear1	1
-	BloodSmear2	1
+	BloodSmear1		1
+	BloodSmear2		1
 }
 
 /***** Rocket Scorches *****************************************************/
@@ -314,8 +314,8 @@ decal BFGScorch2
 
 decalgroup BFGScorch
 {
-	BFGScorch1	1
-	BFGScorch2	1
+	BFGScorch1		1
+	BFGScorch2		1
 }
 
 decal BFGLightning1
@@ -521,6 +521,7 @@ decal RevenantScorch
 	randomflipx
 	randomflipy
 }
+
 
 // Graf Zahl provided definitions for the other games.
 
@@ -942,15 +943,19 @@ decalgroup SwordLightning
 
 /***** Generators **********************************************************/
 
-generator Pistol			BulletChip
-generator Chainsaw			BulletChip
-generator Shotgun			BulletChip
+generator Pistol				BulletChip
+generator Chainsaw				BulletChip
+generator Shotgun				BulletChip
 generator SuperShotgun			BulletChip
-generator Chaingun			BulletChip
+generator Chaingun				BulletChip
+// [BC] New ones here for ST's new weapons.
+generator Minigun				BulletChip
+generator Railgun				RailScorch
+generator BFG10K				BFGLightning
 
 generator PlasmaBall			PlasmaScorch
-generator Rocket			Scorch
-generator BFGBall			BFGLightning
+generator Rocket				Scorch
+generator BFGBall				BFGLightning
 
 generator MarinePistol			BulletChip
 generator MarineShotgun			BulletChip
@@ -958,17 +963,27 @@ generator MarineSSG			BulletChip
 generator MarineChaingun		BulletChip
 generator MarineRailgun			RailScorch
 
-generator ZombieMan			BulletChip
+generator ZombieMan				BulletChip
 generator ShotgunGuy			BulletChip
 generator ChaingunGuy			BulletChip
+// [BC] This one's for ST's new SSG zombie.
+generator SuperShotgunGuy		BulletChip
 generator WolfensteinSS			BulletChip
 generator SpiderMastermind		BulletChip
 
 generator ArachnotronPlasma		ArachnotronScorch
-generator BaronBall			BaronScorch
+generator BaronBall				BaronScorch
+// [BC] For the Belphegor.
+generator BelphegorBall				BaronScorch
 generator CacodemonBall			CacoScorch
+// [BC] Cacolantern.
+generator CacolanternBall			CacoScorch
 generator DoomImpBall			DoomImpScorch
-generator FatShot			Scorch
+// [BC] Dark imp.
+generator DarkImpBall			DoomImpScorch
+generator FatShot				Scorch
+// [BC] HecteFATFATFAT
+generator HectShot				Scorch
 generator RevenantTracer		RevenantScorch
 
 generator VolcanoBlast			DoomImpScorch

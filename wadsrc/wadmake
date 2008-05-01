@@ -1,4 +1,5 @@
-zdoom.pk3: zdoom.lst \
+skulltag.pk3: zdoom.lst \
+	vga-rom.f16 \
 	invgemr2.lmp \
 	invgemr1.lmp \
 	invgeml2.lmp \
@@ -46,10 +47,12 @@ zdoom.pk3: zdoom.lst \
 	in_htc2.txt \
 	in_htc3.txt \
 	lockdefs.txt \
+	teaminfo.txt \
 	dehsupp.lmp \
 	xlat/doom.x \
 	xlat/heretic.x \
 	xlat/strife.x \
+	sectorx.txt \
 	animated.lmp \
 	spaldoom.lmp \
 	spalhtic.lmp \
@@ -104,6 +107,7 @@ zdoom.pk3: zdoom.lst \
 	icecb0.png \
 	icecc0.png \
 	icecd0.png \
+	amrka0.png \
 	crouch/plyca1.lmp \
 	crouch/plyca2a8.lmp \
 	crouch/plyca3a7.lmp \
@@ -169,6 +173,7 @@ zdoom.pk3: zdoom.lst \
 	spark2.flac \
 	spark3.flac \
 	railgunfire.flac \
+	mapinfo/doomcommon.txt \
 	mapinfo/doom1.txt \
 	mapinfo/doom2.txt \
 	mapinfo/plutonia.txt \
@@ -177,9 +182,63 @@ zdoom.pk3: zdoom.lst \
 	mapinfo/hexen.txt \
 	mapinfo/strife.txt \
 	strfhelp.o \
+	textcolors.txt \
+	gzd/althudcf.txt \
+	gzd/etc.h.txt \
+	gzd/things.h.txt \
+	gzd/fontdefs.txt \
+	gzd/lspec.h.txt \
+	gzd/indxfont.lmp \
+	gzd/graphics/i_pistol.lmp \
+	gzd/graphics/invgeml1.png \
+	gzd/graphics/invgeml2.png \
+	gzd/graphics/invgemr1.png \
+	gzd/graphics/invgemr2.png \
+	gzd/shaders/main.fp \
+	gzd/shaders/main.vp \
+	gzd/shaders/main_desat.fp \
+	gzd/shaders/main_nofog.vp \
+	gzd/shaders/light/light_doom.fp \
+	gzd/shaders/light/light_eyefog.fp \
+	gzd/shaders/light/light_brightmap.fp \
+	gzd/shaders/light/light_gold.fp \
+	gzd/shaders/light/light_green.fp \
+	gzd/shaders/light/light_inverse.fp \
+	gzd/shaders/light/light_norm.fp \
+	gzd/shaders/light/light_red.fp \
+	gzd/shaders/tex/tex_norm.fp \
+	gzd/shaders/tex/tex_warp1.fp \
+	gzd/shaders/tex/tex_warp2.fp \
+	gzd/sprites/rsmka0.png \
+	gzd/sprites/rsmkb0.png \
+	gzd/sprites/rsmkc0.png \
+	gzd/sprites/rsmkd0.png \
+	gzd/sprites/rsmke0.png \
+	gzd/textures/gllight.png \
+	gzd/textures/glpart.png \
+	gzd/textures/glpart2.png \
+	gzd/textures/mirror.png \
+	gzd/decorate.gzd \
 	decorate/decorate.txt \
+	decorate/nativeclasses.txt \
+	decorate/constants.txt \
+	decorate/shared/blood.txt \
 	decorate/shared/debris.txt \
 	decorate/shared/splashes.txt \
+	decorate/shared/pickups.txt \
+	decorate/shared/fountain.txt \
+	decorate/shared/soundsequence.txt \
+	decorate/doom/doomplayer.txt \
+	decorate/doom/possessed.txt \
+	decorate/doom/doomimp.txt \
+	decorate/doom/lostsoul.txt \
+	decorate/doom/arachnotron.txt \
+	decorate/doom/revenant.txt \
+	decorate/doom/painelemental.txt \
+	decorate/doom/archvile.txt \
+	decorate/doom/cyberdemon.txt \
+	decorate/doom/spidermaster.txt \
+	decorate/doom/keen.txt \
 	decorate/doom/deadthings.txt \
 	decorate/doom/doomammo.txt \
 	decorate/doom/doomarmor.txt \
@@ -187,14 +246,25 @@ zdoom.pk3: zdoom.lst \
 	decorate/doom/doomhealth.txt \
 	decorate/doom/doomkeys.txt \
 	decorate/doom/doomdecorations.txt \
+	decorate/doom/doomweapons.txt \
 	decorate/doom/stealthmonsters.txt \
+	decorate/raven/artiegg.txt \
 	decorate/raven/ravenartifacts.txt \
 	decorate/raven/ravenhealth.txt \
+	decorate/raven/ravenambient.txt \
+	decorate/heretic/hereticplayer.txt \
 	decorate/heretic/hereticammo.txt \
 	decorate/heretic/hereticarmor.txt \
 	decorate/heretic/hereticartifacts.txt \
 	decorate/heretic/heretickeys.txt \
 	decorate/heretic/hereticdecorations.txt \
+	decorate/heretic/mummy.txt \
+	decorate/heretic/clink.txt \
+	decorate/heretic/beast.txt \
+	decorate/heretic/snake.txt \
+	decorate/hexen/fighterplayer.txt \
+	decorate/hexen/clericplayer.txt \
+	decorate/hexen/mageplayer.txt \
 	decorate/hexen/flame.txt \
 	decorate/hexen/hexenarmor.txt \
 	decorate/hexen/hexendecorations.txt \
@@ -204,9 +274,14 @@ zdoom.pk3: zdoom.lst \
 	decorate/hexen/puzzleitems.txt \
 	decorate/hexen/scriptprojectiles.txt \
 	decorate/hexen/speedboots.txt \
+	decorate/hexen/ettin.txt \
+	decorate/hexen/centaur.txt \
+	decorate/hexen/demons.txt \
+	decorate/strife/strifeplayer.txt \
 	decorate/strife/beggars.txt \
 	decorate/strife/merchants.txt \
 	decorate/strife/peasants.txt \
+	decorate/strife/strifebishop.txt \
 	decorate/strife/questitems.txt \
 	decorate/strife/ratbuddy.txt \
 	decorate/strife/strifeammo.txt \
@@ -214,5 +289,52 @@ zdoom.pk3: zdoom.lst \
 	decorate/strife/strifeitems.txt \
 	decorate/strife/strifekeys.txt \
 	decorate/strife/strifestuff.txt \
-	decorate/strife/zombie.txt
+	decorate/strife/zombie.txt \
+	textures/Bouncy1.jpg \
+	textures/Bouncy2.jpg \
+	textures/Bouncy3.jpg \
+	textures/Bouncy4.jpg \
+	textures/Bouncy5.jpg \
+	textures/Bouncy6.jpg \
+	textures/Bouncy7.jpg \
+	textures/Bouncy8.jpg \
+	DOOMDEFS.lmp \
+	HEXNDEFS.lmp \
+	HTICDEFS.lmp \
+	STRFDEFS.txt \
+	decorate/doom/doomspawners.txt \
+	decorate/heretic/hereticspawners.txt \
+	decorate/hexen/hexenspawners.txt \
+	bots/chatfiles/1337.txt \
+	bots/chatfiles/chubbs.txt \
+	bots/chatfiles/crash.txt \
+	bots/chatfiles/cyborg.txt \
+	bots/chatfiles/cygnus.txt \
+	bots/chatfiles/daisy.txt \
+	bots/chatfiles/fob.txt \
+	bots/chatfiles/frad.txt \
+	bots/chatfiles/hissy.txt \
+	bots/chatfiles/insect.txt \
+	bots/chatfiles/linguica.txt \
+	bots/chatfiles/massmouth.txt \
+	bots/chatfiles/meepy.txt \
+	bots/chatfiles/mewse.txt \
+	bots/chatfiles/orion.txt \
+	bots/chatfiles/quotebot.txt \
+	bots/chatfiles/reol.txt \
+	bots/chatfiles/rigel.txt \
+	bots/chatfiles/romero.txt \
+	bots/chatfiles/soldier.txt \
+	bots/chatfiles/ultimus.txt \
+	bots/chatfiles/xxenemyxx.txt \
+	decorate/Skulltag/skulltagarmor.txt \
+	decorate/Skulltag/skulltagartifacts.txt \
+	decorate/Skulltag/skulltagdeadthings.txt \
+	decorate/Skulltag/skulltagdecorations.txt \
+	decorate/Skulltag/skulltaghealth.txt \
+	decorate/Skulltag/skulltagmonsters.txt \
+	decorate/Skulltag/skulltagrunes.txt \
+	decorate/Skulltag/skulltagscorepillars.txt \
+	decorate/Skulltag/skulltagstatues.txt \
+	decorate/Skulltag/skulltagweapons.txt
 	..\tools\makewad\makewad.EXE zdoom.lst

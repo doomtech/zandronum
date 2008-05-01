@@ -40,7 +40,7 @@
 
 /** Lots of different version numbers **/
 
-#define DOTVERSIONSTR "0.97d-unofficial"
+#define DOTVERSIONSTR "0.97d2-unofficial"
 #define DOTVERSIONSTR_NOREV DOTVERSIONSTR
 
 #define ZDVER_STRING "2.2.0"
@@ -73,7 +73,8 @@
 // 004 = 0.97c3
 // 005 = 0.97d-beta4
 // 006 = 0.97d-beta4.2
-#define NETGAMEVERSION 007
+// 007 = 0.97d-RC9
+#define NETGAMEVERSION 0x008
 
 // Version stored in the ini's [LastRun] section.
 // Bump it if you made some configuration change that you want to

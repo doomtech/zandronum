@@ -88,6 +88,10 @@ void FStat::ToggleStat (const char *name)
 
 void FStat::ToggleStat ()
 {
+	// [BB] The server has no screen and therefore can't display stats.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		return;
+
 	m_Active = !m_Active;
 	SB_state = StatusBar == NULL ? 0 : screen->GetPageCount ();
 }

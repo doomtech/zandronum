@@ -11,11 +11,39 @@
 =
 ===============================================================================================================
 
+
+??????
+------
+
+*+	- Added basic HUD model support. [Torr Samaho]
+*+	- Thoroughly updated Skulltag's ZDoom base to the latest ZDoom SVN repository revision (currently 871). [Torr Samaho]
++	- Upgraded the GZDoom renderer to 1.1.02 (revision 85)! [Torr Samaho]
++	- Added double definition support for the old DECORATE standard. In this case, the new actors override the old ones. [Rivecoder]
++	- Under Windows, choosing "browse servers" in the Multiplayer menu brings up a new menu, letting you choose between IDEse and the internal browser. Hopefully, this should prevent newbies getting stuck at the old browser. [Rivecoder]
++	- Added the CVAR chat_sound. With it, you can turn chat sounds off (0), play the default (1), or the Doom 2 (2) or Doom 1 (3) sounds. [Rivecoder]
++	- Added the dynamic light definitions for Strife made by Dark_Knight. [Torr Samaho]
++	- The error message of the float parser under Linux now mentions the LANG enviroment variable as possible cause for the error. [Torr Samaho]
++ 	- Added CVAR cl_allowmultipleannouncersounds (default true). If true, multiple announcer sounds can be played at once (like in 97D beta 4.3 and earlier), otherwise any announcer sound stops all previous announcers (like in 97D). [Torr Samaho]
++	- Extended the authentication mechanism for non-map related lumps to get rid of more exploits. [Torr Samaho]
+-	- Fixed: The 'summonfoe' console command didn't work online. [Karate Chris, Torr Samaho]
+-	- Fixed: Using the CCMD stat crashes the server. [Torr Samaho]
+-	- Fixed: A_Chase doesn't work properly online when a custom missile or melee state is specified as argument. [Torr Samaho]
+-	- Fixed: Summoning a monster that doesn't count as a kill with the CCMD summonfriend messed up the invasion monster count online. [Torr Samaho]
+-	- Fixed: If a spawn by A_SpawnItem or A_SpawnItemEx is blocked, the server still instructs the clients to spawn the thing, leading to a "ghost" actor on the clients. [Torr Samaho]
+-	- Partially fixed: Attack animations are not displayed in demos if you are spying a player that you didn't spy when recording the demo. By design this won't display alternate attacks. [Torr Samaho]
+-	- Fixed: The summon commands should inform a client when an invalid class is specified. [Karate Chris]
+-	- Fixed: The Cleric's staff didn't animate correctly when draining health. [Karate Chris]
+-	- Fixed: 'A_SetBlend' didn't work online. [Karate Chris]
+-	- Fixed: Heretic survival crashes within seconds after the countdown ends. [Torr Samaho]
+!	- Dormant actors are no longer removed in Invasion countdowns. [Rivecoder]
+!	- Extended the 'sv_nocallvote' console variable. When 'sv_nocallvote' is at 0, all players can call votes, when it's at 1, no players can call votes, when it's at 2, only players in game can call votes. [Karate Chris]
+!	- Removed the tediously annoying crouching console variable. [Karate Chris]
+!	- Restored the plasma bump compat flag handling from the pre 97b era. This doesn't perfectly resemble the vanilla Doom behavior, but should be better than nothing. [Torr Samaho]
+!	- The IWAD is now displayed in the internal browser. [Karate Chris]
+
 v0.97d
 ------
 
-*+	- Thoroughly updated Skulltag's ZDoom base to the latest ZDoom SVN repository revision (currently 871). [Torr Samaho]
-+	- Upgraded the GZDoom renderer to 1.1.02 (revision 85)! [Torr Samaho]
 +	- Added an authentication mechanism for several non-map related lumps to get rid of some exploits. [Torr Samaho]
 +	- Added flood protection to the drop/invdrop command. You can't use it online more than once per second anymore. [Torr Samaho]
 +	- Added CCMD kickfromgame_idx, works like kickfromgame but uses the player index instead of the name. [Torr Samaho]

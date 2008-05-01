@@ -2304,7 +2304,7 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
 				SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, S_GetName( actor->AttackSound ), 1, ATTN_NORM );
-				SERVERCOMMANDS_SetThingState( actor, STATE_MELEE );
+				SERVERCOMMANDS_SetThingFrame( actor, meleestate );
 				SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z );
 			}
 
@@ -2328,7 +2328,7 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 			// Also, update the thing's position.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
-				SERVERCOMMANDS_SetThingState( actor, STATE_MISSILE );
+				SERVERCOMMANDS_SetThingFrame( actor, missilestate );
 				SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z );
 			}
 

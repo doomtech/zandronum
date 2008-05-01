@@ -492,6 +492,79 @@ FSpriteModelFrame * gl_FindModelFrame(const PClass * ti, int sprite, int frame)
 }
 
 
+//===========================================================================
+//
+// gl_RenderModel
+//
+//===========================================================================
+
+void gl_RenderFrameModels( const FSpriteModelFrame *smf,
+						   const FState *curState,
+						   const int curTics,
+						   const PClass *ti,
+						   int cm,
+						   int translation = 0 )
+{
+	// [BB] Frame interpolation: Find the FSpriteModelFrame smfNext which follows after smf in the animation
+	// and the scalar value inter ( element of [0,1) ), both necessary to determine the interpolated frame.
+	FSpriteModelFrame * smfNext = NULL;
+	double inter = 0.;
+	if( gl_interpolate_model_frames && !(smf->flags & MDL_NOINTERPOLATION) )
+	{
+		FState *nextState = curState->GetNextState( );
+		if( curState != nextState && nextState )
+		{
+			// [BB] To interpolate at more than 35 fps we take tic fractions into account.
+			float ticFraction = 0.;
+			// [BB] In case the tic counter is frozen we have to leave ticFraction at zero.
+			if ( ConsoleState == c_up && menuactive != MENU_On && !(level.flags & LEVEL_FROZEN) )
+			{
+				float time = GetTimeFloat();
+				ticFraction = (time - static_cast<int>(time));
+			}
+			inter = static_cast<double>(curState->Tics - curTics - ticFraction)/static_cast<double>(curState->Tics);
+
+			// [BB] For some actors (e.g. ZPoisonShroom) spr->actor->tics can be bigger than curState->Tics.
+			// In this case inter is negative and we need to set it to zero.
+			if ( inter < 0. )
+				inter = 0.;
+			else
+			{
+				// [BB] Workaround for actors that use the same frame twice in a row.
+				// Most of the standard Doom monsters do this in their see state.
+				if ( (smf->flags & MDL_INTERPOLATEDOUBLEDFRAMES) )
+				{
+					const FState *prevState = curState - 1;
+					if ( (curState->sprite.index == prevState->sprite.index) && ( curState->Frame == prevState->Frame) )
+					{
+						inter /= 2.;
+						inter += 0.5;
+					}
+					if ( (curState->sprite.index == nextState->sprite.index) && ( curState->Frame == nextState->Frame) )
+					{
+						inter /= 2.;
+						nextState = nextState->GetNextState( );
+					}
+				}
+				if ( inter != 0.0 )
+					smfNext = gl_FindModelFrame(ti, nextState->sprite.index, nextState->Frame);
+			}
+		}
+	}
+
+	for(int i=0; i<MAX_MODELS_PER_FRAME; i++)
+	{
+		FModel * mdl = smf->models[i];
+
+		if (mdl!=NULL)
+		{
+			if ( smfNext && smf->modelframes[i] != smfNext->modelframes[i] )
+				mdl->RenderFrameInterpolated(smf->skins[i], smf->modelframes[i], smfNext->modelframes[i], inter, cm, translation);
+			else
+				mdl->RenderFrame(smf->skins[i], smf->modelframes[i], cm, translation);
+		}
+	}
+}
 
 void gl_RenderModel(GLSprite * spr, int cm)
 {
@@ -502,8 +575,10 @@ void gl_RenderModel(GLSprite * spr, int cm)
 	gl.MatrixMode(GL_MODELVIEW);
 	gl.PushMatrix();
 	gl.DepthFunc(GL_LEQUAL);
-
-	if (spr->trans < 1.f - FLT_EPSILON)
+	// [BB] In case the model should be rendered translucent, do back face culling.
+	// This solves a few of the problems caused by the lack of depth sorting.
+	// TO-DO: Implement proper depth sorting.
+	if (!( spr->actor->RenderStyle == LegacyRenderStyles[STYLE_Normal] ))
 	{
 		gl.Enable(GL_CULL_FACE);
 		glFrontFace(GL_CW);
@@ -548,76 +623,88 @@ void gl_RenderModel(GLSprite * spr, int cm)
 	// [BB] Apply zoffset here, needs to be scaled by 1 / smf->zscale, so that zoffset doesn't depend on the z-scaling.
 	gl.Translatef(0., smf->zoffset / smf->zscale, 0.);
 
-	// [BB] Frame interpolation: Find the FSpriteModelFrame smfNext which follows after smf in the animation
-	// and the scalar value inter ( element of [0,1) ), both necessary to determine the interpolated frame.
-	FSpriteModelFrame * smfNext = NULL;
-	double inter = 0.;
-	if( gl_interpolate_model_frames && !(smf->flags & MDL_NOINTERPOLATION) )
-	{
-		FState *curState = spr->actor->state;
-		FState *nextState = curState->GetNextState( );
-		if( curState != nextState && nextState )
-		{
-			// [BB] To interpolate at more than 35 fps we take tic fractions into account.
-			float ticFraction = 0.;
-			// [BB] In case the tic counter is frozen we have to leave ticFraction at zero.
-			if ( ConsoleState == c_up && menuactive != MENU_On && !(level.flags & LEVEL_FROZEN) )
-			{
-				float time = GetTimeFloat();
-				ticFraction = (time - static_cast<int>(time));
-			}
-			inter = static_cast<double>(curState->Tics - spr->actor->tics - ticFraction)/static_cast<double>(curState->Tics);
-
-			// [BB] For some actors (e.g. ZPoisonShroom) spr->actor->tics can be bigger than curState->Tics.
-			// In this case inter is negative and we need to set it to zero.
-			if ( inter < 0. )
-				inter = 0.;
-			else
-			{
-				// [BB] Workaround for actors that use the same frame twice in a row.
-				// Most of the standard Doom monsters do this in their see state.
-				if ( (smf->flags & MDL_INTERPOLATEDOUBLEDFRAMES) )
-				{
-					FState *prevState = curState - 1;
-					if ( (curState->sprite.index == prevState->sprite.index) && ( curState->Frame == prevState->Frame) )
-					{
-						inter /= 2.;
-						inter += 0.5;
-					}
-					if ( (curState->sprite.index == nextState->sprite.index) && ( curState->Frame == nextState->Frame) )
-					{
-						inter /= 2.;
-						nextState = nextState->GetNextState( );
-					}
-				}
-				if ( inter != 0.0 )
-					smfNext = gl_FindModelFrame(RUNTIME_TYPE(spr->actor), nextState->sprite.index, nextState->Frame);
-			}
-		}
-	}
-
 	int translation = 0;
 	if ( !(smf->flags & MDL_IGNORETRANSLATION) )
 		translation = spr->actor->Translation;
 
-	for(int i=0; i<MAX_MODELS_PER_FRAME; i++)
-	{
-		FModel * mdl = smf->models[i];
-
-		if (mdl!=NULL)
-		{
-			if ( smfNext && smf->modelframes[i] != smfNext->modelframes[i] )
-				mdl->RenderFrameInterpolated(smf->skins[i], smf->modelframes[i], smfNext->modelframes[i], inter, cm, translation);
-			else
-				mdl->RenderFrame(smf->skins[i], smf->modelframes[i], cm, translation);
-		}
-	}
+	gl_RenderFrameModels( smf, spr->actor->state, spr->actor->tics, RUNTIME_TYPE(spr->actor), cm, translation );
 
 	gl.MatrixMode(GL_MODELVIEW);
 	gl.PopMatrix();
 	gl.DepthFunc(GL_LESS);
-	if (spr->trans < 1.f - FLT_EPSILON)
-	{
+	if (!( spr->actor->RenderStyle == LegacyRenderStyles[STYLE_Normal] ))
 		gl.Disable(GL_CULL_FACE);
+}
+
+
+//===========================================================================
+//
+// gl_RenderHUDModel
+//
+//===========================================================================
+
+void gl_RenderHUDModel(pspdef_t *psp, fixed_t ofsx, fixed_t ofsy, int cm)
+{
+	AActor * playermo=players[consoleplayer].camera;
+	FSpriteModelFrame *smf = gl_FindModelFrame(playermo->player->ReadyWeapon->GetClass(), psp->state->sprite.index, psp->state->GetFrame());
+
+	// [BB] No model found for this sprite, so we can't render anything.
+	if ( smf == NULL )
+		return;
+
+	// [BB] The model has to be drawn independtly from the position of the player,
+	// so we have to reset the GL_MODELVIEW matrix.
+	gl.MatrixMode(GL_MODELVIEW);
+	gl.PushMatrix();
+	gl.LoadIdentity();
+	gl.DepthFunc(GL_LEQUAL);
+
+	// [BB] In case the model should be rendered translucent, do back face culling.
+	// This solves a few of the problems caused by the lack of depth sorting.
+	// TO-DO: Implement proper depth sorting.
+	if (!( playermo->RenderStyle == LegacyRenderStyles[STYLE_Normal] ))
+	{
+		gl.Enable(GL_CULL_FACE);
+		glFrontFace(GL_CCW);
 	}
+
+	// Scaling and model space offset.
+	gl.Scalef(	
+		smf->xscale,
+		smf->zscale,	// y scale for a sprite means height, i.e. z in the world!
+		smf->yscale);
+
+	// [BB] Apply zoffset here, needs to be scaled by 1 / smf->zscale, so that zoffset doesn't depend on the z-scaling.
+	gl.Translatef(0., smf->zoffset / smf->zscale, 0.);
+
+	// [BB] Weapon bob. Looks somewhat strange.
+	gl.Translatef(TO_MAP(ofsx/2), 0., TO_MAP((ofsy-WEAPONTOP)/2));
+
+	// [BB] For some reason the jDoom models need to be rotated.
+	gl.Rotatef(90., 0, 1, 0);
+
+	gl_RenderFrameModels( smf, psp->state, psp->tics, playermo->player->ReadyWeapon->GetClass(), cm );
+
+	gl.MatrixMode(GL_MODELVIEW);
+	gl.PopMatrix();
+	gl.DepthFunc(GL_LESS);
+	if (!( playermo->RenderStyle == LegacyRenderStyles[STYLE_Normal] ))
+		gl.Disable(GL_CULL_FACE);
+}
+
+
+//===========================================================================
+//
+// gl_IsHUDModelForPlayerAvailable
+//
+//===========================================================================
+
+bool gl_IsHUDModelForPlayerAvailable (player_t * player)
+{
+	if ( (player == NULL) || (player->ReadyWeapon == NULL) || (player->psprites[0].state == NULL) )
+		return false;
+
+	FState* state = player->psprites[0].state;
+	FSpriteModelFrame *smf = gl_FindModelFrame(player->ReadyWeapon->GetClass(), state->sprite.index, state->Frame);
+	return ( smf != NULL );
 }

@@ -2286,10 +2286,6 @@ showme:
 						}
 					}
 
-					// [BC] If we're the server, tell this client to do the fade.
-					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_DoFlashFader( fr1, fg1, fb1, fa1, fr2, fg2, fb2, fa2, ftime, ULONG( viewer - players ), SVCF_ONLYTHISCLIENT );
-
 					new DFlashFader (fr1, fg1, fb1, fa1, fr2, fg2, fb2, fa2, ftime, viewer->mo);
 				}
 			}

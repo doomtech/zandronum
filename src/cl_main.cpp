@@ -3993,6 +3993,12 @@ static void client_SetPlayerState( BYTESTREAM_s *pByteStream )
 	case STATE_PLAYER_ATTACK:
 
 		players[ulPlayer].mo->PlayAttacking( );
+		// [BB] This partially fixes the problem that attack animations are not displayed in demos
+		// if you are spying a player that you didn't spy when recording the demo.
+		// By design this won't display alternate attacks. Invesitage if this can be done in a better
+		// way (whithout increasing nettraffic).
+		if ( CLIENTDEMO_IsPlaying( ) && players[ulPlayer].ReadyWeapon )
+			P_SetPsprite (&players[ulPlayer], ps_weapon, players[ulPlayer].ReadyWeapon->GetAtkState(!!players[ulPlayer].refire));
 		break;
 	case STATE_PLAYER_ATTACK2:
 
@@ -10862,8 +10868,9 @@ static void client_DoFlashFader( BYTESTREAM_s *pByteStream )
 	float	fB2;
 	float	fA2;
 	float	fTime;
+	ULONG	ulPlayer;
 
-	// Read in the colors and time for the flash fader.
+	// Read in the colors, time for the flash fader and which player to apply the effect to.
 	fR1 = NETWORK_ReadFloat( pByteStream );
 	fG1 = NETWORK_ReadFloat( pByteStream );
 	fB1 = NETWORK_ReadFloat( pByteStream );
@@ -10876,9 +10883,11 @@ static void client_DoFlashFader( BYTESTREAM_s *pByteStream )
 
 	fTime = NETWORK_ReadFloat( pByteStream );
 
+	ulPlayer = NETWORK_ReadByte( pByteStream );
+
 	// Create the flash fader.
-	if ( players[consoleplayer].mo )
-		new DFlashFader( fR1, fG1, fB1, fA1, fR2, fG2, fB2, fA2, fTime, players[consoleplayer].mo );
+	if ( players[ulPlayer].mo )
+		new DFlashFader( fR1, fG1, fB1, fA1, fR2, fG2, fB2, fA2, fTime, players[ulPlayer].mo );
 }
 
 //*****************************************************************************

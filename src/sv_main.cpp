@@ -137,7 +137,7 @@ static	bool	server_ChangeTeam( BYTESTREAM_s *pByteStream );
 static	bool	server_SpectateInfo( BYTESTREAM_s *pByteStream );
 static	bool	server_GenericCheat( BYTESTREAM_s *pByteStream );
 static	bool	server_GiveCheat( BYTESTREAM_s *pByteStream );
-static	bool	server_SummonCheat( BYTESTREAM_s *pByteStream, bool bFriend = false );
+static	bool	server_SummonCheat( BYTESTREAM_s *pByteStream, LONG lType );
 static	bool	server_ReadyToGoOn( BYTESTREAM_s *pByteStream );
 static	bool	server_ChangeDisplayPlayer( BYTESTREAM_s *pByteStream );
 static	bool	server_AuthenticateLevel( BYTESTREAM_s *pByteStream );
@@ -3377,13 +3377,11 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 		// Client is attempting to use the give cheat. Only legal if sv_cheats is enabled.
 		return ( server_GiveCheat( pByteStream ));
 	case CLC_SUMMONCHEAT:
-
-		// Client is attempting to use the summon cheat. Only legal if sv_cheats is enabled.
-		return ( server_SummonCheat( pByteStream ));
 	case CLC_SUMMONFRIENDCHEAT:
+	case CLC_SUMMONFOECHEAT:
 
-		// Client is attempting to use the summonfriend cheat. Only legal if sv_cheats is enabled.
-		return ( server_SummonCheat( pByteStream, true ));
+		// Client is attempting to use a summon cheat. Only legal if sv_cheats is enabled.
+		return ( server_SummonCheat( pByteStream, lCommand ));
 	case CLC_READYTOGOON:
 
 		// Client is ready to go on to the next level.
@@ -4329,7 +4327,7 @@ static bool server_GiveCheat( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-static bool server_SummonCheat( BYTESTREAM_s *pByteStream, bool bFriend )
+static bool server_SummonCheat( BYTESTREAM_s *pByteStream, LONG lType )
 {
 	const char		*pszName;
 	AActor			*pSource;
@@ -4369,28 +4367,26 @@ static bool server_SummonCheat( BYTESTREAM_s *pByteStream, bool bFriend )
 						pSource->z + 8 * FRACUNIT, ALLOW_REPLACE );
 
 			// [BB] If this is the summonfriend cheat, we have to make the monster friendly.
-			if (pActor != NULL && bFriend)
+			if (pActor != NULL && lType != CLC_SUMMONCHEAT)
 			{
-				if (pActor->CountsAsKill()) 
+				if (lType == CLC_SUMMONFRIENDCHEAT)
 				{
-					level.total_monsters--;
+					if (pActor->CountsAsKill()) 
+					{
+						level.total_monsters--;
+
+						// [BB] The monster is friendly, so we need to correct the number of monsters in invasion mode.
+						INVASION_UpdateMonsterCount( pActor, true );
+					}
+
+					pActor->FriendPlayer = g_lCurrentClient + 1;
+					pActor->flags |= MF_FRIENDLY;
+					pActor->LastHeard = players[g_lCurrentClient].mo;
 				}
-				pActor->FriendPlayer = g_lCurrentClient + 1;
-				pActor->flags |= MF_FRIENDLY;
-				pActor->LastHeard = players[g_lCurrentClient].mo;
-
-				// [BC] Do some invasion mode stuff.
-				if (( invasion ) &&
-					( INVASION_GetIncreaseNumMonstersOnSpawn( )))
+				else
 				{
-					INVASION_SetNumMonstersLeft( INVASION_GetNumMonstersLeft( ) - 1 );
-
-					if ( pActor->GetClass( ) == PClass::FindClass( "Archvile" ))
-						INVASION_SetNumArchVilesLeft( INVASION_GetNumArchVilesLeft( ) - 1 );
-
-					// [BC] If we're the server, tell the client how many monsters are left.
-					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_SetInvasionNumMonstersLeft( );
+					pActor->FriendPlayer = 0;
+					pActor->flags &= ~MF_FRIENDLY;
 				}
 			}
 
@@ -4631,7 +4627,7 @@ static bool server_CallVote( BYTESTREAM_s *pByteStream )
 
 	// Don't allow one person to call a vote, and vote by himself.
 	// Also, don't allow votes if the server has them disabled.
-	if (( CALLVOTE_CountNumEligibleVoters( ) < 2 ) || ( sv_nocallvote ))
+	if (( CALLVOTE_CountNumEligibleVoters( ) < 2 ) || ( sv_nocallvote == 1) || (sv_nocallvote == 2 && players[g_lCurrentClient].bSpectating ))
 		return ( false );
 
 	switch ( ulVoteCmd )
