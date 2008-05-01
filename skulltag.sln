@@ -28,6 +28,16 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Skulltag Master Server Sour
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "snes_spc", "snes_spc\snes_spc.vcproj", "{E83FD370-2E72-4D4C-9427-FF9D9DED1E88}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wadsrc", "wadsrc\wadsrc.vcproj", "{1D179D4B-F008-431B-8C72-111F8372584F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{24A19C02-F041-4AB0-A1A1-02E1E88EDBD3} = {24A19C02-F041-4AB0-A1A1-02E1E88EDBD3}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "makewad", "tools\makewad\makewad.vcproj", "{24A19C02-F041-4AB0-A1A1-02E1E88EDBD3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F9D9E7D4-E1A2-4866-9E85-B1B14137EE63} = {F9D9E7D4-E1A2-4866-9E85-B1B14137EE63}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug DLL|Win32 = Debug DLL|Win32
@@ -170,6 +180,30 @@ Global
 		{E83FD370-2E72-4D4C-9427-FF9D9DED1E88}.Release|Win32.ActiveCfg = Release|Win32
 		{E83FD370-2E72-4D4C-9427-FF9D9DED1E88}.Release|Win32.Build.0 = Release|Win32
 		{E83FD370-2E72-4D4C-9427-FF9D9DED1E88}.Release|x64.ActiveCfg = Release|Win32
+		{1D179D4B-F008-431B-8C72-111F8372584F}.Debug DLL|Win32.ActiveCfg = Debug|Win32
+		{1D179D4B-F008-431B-8C72-111F8372584F}.Debug DLL|Win32.Build.0 = Debug|Win32
+		{1D179D4B-F008-431B-8C72-111F8372584F}.Debug DLL|x64.ActiveCfg = Debug|Win32
+		{1D179D4B-F008-431B-8C72-111F8372584F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1D179D4B-F008-431B-8C72-111F8372584F}.Debug|Win32.Build.0 = Debug|Win32
+		{1D179D4B-F008-431B-8C72-111F8372584F}.Debug|x64.ActiveCfg = Debug|Win32
+		{1D179D4B-F008-431B-8C72-111F8372584F}.Release DLL|Win32.ActiveCfg = Release|Win32
+		{1D179D4B-F008-431B-8C72-111F8372584F}.Release DLL|Win32.Build.0 = Release|Win32
+		{1D179D4B-F008-431B-8C72-111F8372584F}.Release DLL|x64.ActiveCfg = Release|Win32
+		{1D179D4B-F008-431B-8C72-111F8372584F}.Release|Win32.ActiveCfg = Release|Win32
+		{1D179D4B-F008-431B-8C72-111F8372584F}.Release|Win32.Build.0 = Release|Win32
+		{1D179D4B-F008-431B-8C72-111F8372584F}.Release|x64.ActiveCfg = Release|Win32
+		{24A19C02-F041-4AB0-A1A1-02E1E88EDBD3}.Debug DLL|Win32.ActiveCfg = Debug|Win32
+		{24A19C02-F041-4AB0-A1A1-02E1E88EDBD3}.Debug DLL|Win32.Build.0 = Debug|Win32
+		{24A19C02-F041-4AB0-A1A1-02E1E88EDBD3}.Debug DLL|x64.ActiveCfg = Debug|Win32
+		{24A19C02-F041-4AB0-A1A1-02E1E88EDBD3}.Debug|Win32.ActiveCfg = Debug|Win32
+		{24A19C02-F041-4AB0-A1A1-02E1E88EDBD3}.Debug|Win32.Build.0 = Debug|Win32
+		{24A19C02-F041-4AB0-A1A1-02E1E88EDBD3}.Debug|x64.ActiveCfg = Debug|Win32
+		{24A19C02-F041-4AB0-A1A1-02E1E88EDBD3}.Release DLL|Win32.ActiveCfg = Release|Win32
+		{24A19C02-F041-4AB0-A1A1-02E1E88EDBD3}.Release DLL|Win32.Build.0 = Release|Win32
+		{24A19C02-F041-4AB0-A1A1-02E1E88EDBD3}.Release DLL|x64.ActiveCfg = Release|Win32
+		{24A19C02-F041-4AB0-A1A1-02E1E88EDBD3}.Release|Win32.ActiveCfg = Release|Win32
+		{24A19C02-F041-4AB0-A1A1-02E1E88EDBD3}.Release|Win32.Build.0 = Release|Win32
+		{24A19C02-F041-4AB0-A1A1-02E1E88EDBD3}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
