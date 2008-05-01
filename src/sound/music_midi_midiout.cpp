@@ -35,8 +35,6 @@
 ** have them sound right.
 */
 
-#ifdef _WIN32
-
 // HEADER FILES ------------------------------------------------------------
 
 #include "i_musicinterns.h"
@@ -87,8 +85,6 @@ struct MIDISong2::TrackInfo
 
 // EXTERNAL DATA DECLARATIONS ----------------------------------------------
 
-extern UINT mididevice;
-
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 
 static BYTE EventLengths[7] = { 2, 2, 2, 2, 1, 1, 2 };
@@ -106,16 +102,18 @@ static BYTE CommonLengths[15] = { 0, 1, 2, 1, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0 }
 //
 //==========================================================================
 
-MIDISong2::MIDISong2 (FILE *file, char *musiccache, int len)
-: MusHeader(0), Tracks(0)
+MIDISong2::MIDISong2 (FILE *file, char *musiccache, int len, bool opl)
+: MIDIStreamer(opl), MusHeader(0), Tracks(0)
 {
 	int p;
 	int i;
 
+#ifdef _WIN32
 	if (ExitEvent == NULL)
 	{
 		return;
 	}
+#endif
 	MusHeader = new BYTE[len];
 	if (file != NULL)
 	{
@@ -309,34 +307,61 @@ bool MIDISong2::CheckDone()
 
 DWORD *MIDISong2::MakeEvents(DWORD *events, DWORD *max_event_p, DWORD max_time)
 {
+	DWORD *start_events;
 	DWORD tot_time = 0;
 	DWORD time = 0;
+	DWORD delay;
 
+	start_events = events;
 	while (TrackDue && events < max_event_p && tot_time <= max_time)
 	{
-		time = TrackDue->Delay;
-		// Advance time for all tracks by the amount needed for the one up next.
-		if (time != 0)
-		{
-			tot_time += time * Tempo / Division;
-			for (int i = 0; i < NumTracks; ++i)
-			{
-				if (!Tracks[i].Finished)
-				{
-					Tracks[i].Delay -= time;
-				}
-			}
-		}
-		// Play all events for this tic.
+		// It's possible that this tick may be nothing meta-events and
+		// not generate any real events. Repeat this until we actually
+		// get some output so we don't send an empty buffer to the MIDI
+		// device.
 		do
 		{
-			events = SendCommand(events, TrackDue, time);
-			TrackDue = FindNextDue();
-			time = 0;
+			delay = TrackDue->Delay;
+			time += delay;
+			// Advance time for all tracks by the amount needed for the one up next.
+			tot_time += delay * Tempo / Division;
+			AdvanceTracks(delay);
+			// Play all events for this tick.
+			do
+			{
+				DWORD *new_events = SendCommand(events, TrackDue, time);
+				TrackDue = FindNextDue();
+				if (new_events != events)
+				{
+					time = 0;
+				}
+				events = new_events;
+			}
+			while (TrackDue && TrackDue->Delay == 0 && events < max_event_p);
 		}
-		while (TrackDue && TrackDue->Delay == 0 && events < max_event_p);
+		while (start_events == events && TrackDue);
+		time = 0;
 	}
 	return events;
+}
+
+//==========================================================================
+//
+// MIDISong2 :: AdvanceTracks
+//
+// Advaces time for all tracks by the specified amount.
+//
+//==========================================================================
+
+void MIDISong2::AdvanceTracks(DWORD time)
+{
+	for (int i = 0; i < NumTracks; ++i)
+	{
+		if (!Tracks[i].Finished)
+		{
+			Tracks[i].Delay -= time;
+		}
+	}
 }
 
 //==========================================================================
@@ -724,9 +749,8 @@ MIDISong2::TrackInfo *MIDISong2::FindNextDue ()
 
 void MIDISong2::SetTempo(int new_tempo)
 {
-	if (MMSYSERR_NOERROR == MIDI->SetTempo(new_tempo))
+	if (0 == MIDI->SetTempo(new_tempo))
 	{
 		Tempo = new_tempo;
 	}
 }
-#endif

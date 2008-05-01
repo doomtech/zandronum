@@ -1,6 +1,6 @@
 /*
-** music_mididevice.cpp
-** Provides a WinMM implementation of a generic MIDI output device.
+** music_win_mididevice.cpp
+** Provides a WinMM implementation of a MIDI output device.
 **
 **---------------------------------------------------------------------------
 ** Copyright 2008 Randy Heit
@@ -205,11 +205,36 @@ void WinMIDIDevice::Stop()
 
 //==========================================================================
 //
+// WinMIDIDevice :: Pause
+//
+// Some docs claim pause is unreliable and can cause the stream to stop
+// functioning entirely. Truth or fiction?
+//
+//==========================================================================
+
+bool WinMIDIDevice::Pause(bool paused)
+{
+	return false;
+}
+
+//==========================================================================
+//
 // WinMIDIDevice :: StreamOut
 //
 //==========================================================================
 
 int WinMIDIDevice::StreamOut(MIDIHDR *header)
+{
+	return midiStreamOut(MidiOut, header, sizeof(MIDIHDR));
+}
+
+//==========================================================================
+//
+// WinMIDIDevice :: StreamOutSync
+//
+//==========================================================================
+
+int WinMIDIDevice::StreamOutSync(MIDIHDR *header)
 {
 	return midiStreamOut(MidiOut, header, sizeof(MIDIHDR));
 }
@@ -234,6 +259,34 @@ int WinMIDIDevice::PrepareHeader(MIDIHDR *header)
 int WinMIDIDevice::UnprepareHeader(MIDIHDR *header)
 {
 	return midiOutUnprepareHeader((HMIDIOUT)MidiOut, header, sizeof(MIDIHDR));
+}
+
+//==========================================================================
+//
+// WinMIDIDevice :: FakeVolume
+//
+// Because there are too many MIDI devices out there that don't support
+// global volume changes, fake the volume for all of them.
+//
+//==========================================================================
+
+bool WinMIDIDevice::FakeVolume()
+{
+	return true;
+}
+
+//==========================================================================
+//
+// WinMIDIDevice :: NeedThreadedCallback
+//
+// When using the MM system, the callback can't yet touch the buffer, so
+// the real processing needs to happen in a different thread.
+//
+//==========================================================================
+
+bool WinMIDIDevice::NeedThreadedCallback()
+{
+	return true;
 }
 
 //==========================================================================

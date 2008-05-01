@@ -95,20 +95,19 @@ int musicBlock::occupyChannel(uint slot, uint channel,
 						 int note, int volume, struct OP2instrEntry *instrument, uchar secondary)
 {
 	struct OPL2instrument *instr;
-	struct OPLdata *data = &driverdata;
 	struct channelEntry *ch = &channels[slot];
 
 	ch->channel = channel;
 	ch->note = note;
 	ch->flags = secondary ? CH_SECONDARY : 0;
-	if (data->channelModulation[channel] >= MOD_MIN)
+	if (driverdata.channelModulation[channel] >= MOD_MIN)
 		ch->flags |= CH_VIBRATO;
 	ch->time = MLtime;
 	if (volume == -1)
-		volume = data->channelLastVolume[channel];
+		volume = driverdata.channelLastVolume[channel];
 	else
-		data->channelLastVolume[channel] = volume;
-	ch->realvolume = calcVolume(data->channelVolume[channel], 256, ch->volume = volume);
+		driverdata.channelLastVolume[channel] = volume;
+	ch->realvolume = calcVolume(driverdata.channelVolume[channel], 256, ch->volume = volume);
 	if (instrument->flags & FL_FIXED_PITCH)
 		note = instrument->note;
 	else if (channel == PERCUSSION)
@@ -117,7 +116,7 @@ int musicBlock::occupyChannel(uint slot, uint channel,
 		ch->finetune = (instrument->finetune - 0x80) >> 1;
 	else
 		ch->finetune = 0;
-	ch->pitch = ch->finetune + data->channelPitch[channel];
+	ch->pitch = ch->finetune + driverdata.channelPitch[channel];
 	if (secondary)
 		instr = &instrument->instr[1];
 	else
@@ -135,7 +134,7 @@ int musicBlock::occupyChannel(uint slot, uint channel,
 	io->OPLwriteInstrument(slot, instr);
 	if (ch->flags & CH_VIBRATO)
 		writeModulation(slot, instr, 1);
-	io->OPLwritePan(slot, instr, data->channelPan[channel]);
+	io->OPLwritePan(slot, instr, driverdata.channelPan[channel]);
 	io->OPLwriteVolume(slot, instr, ch->realvolume);
 	writeFrequency(slot, note, ch->pitch, 1);
 	return slot;
@@ -208,7 +207,8 @@ struct OP2instrEntry *musicBlock::getInstrument(uint channel, uchar note)
 		if (note < 35 || note > 81)
 			return NULL;		/* wrong percussion number */
 		instrnumber = note + (128-35);
-	} else
+	}
+	else
 	{
 		instrnumber = driverdata.channelInstr[channel];
 	}
@@ -253,8 +253,7 @@ void musicBlock::OPLreleaseNote(uint channel, uchar note)
 {
 	uint i;
 	uint id = channel;
-	struct OPLdata *data = &driverdata;
-	uint sustain = data->channelSustain[channel];
+	uint sustain = driverdata.channelSustain[channel];
 
 	for(i = 0; i < io->OPLchannels; i++)
 	{
@@ -273,11 +272,9 @@ void musicBlock::OPLpitchWheel(uint channel, int pitch)
 {
 	uint i;
 	uint id = channel;
-	struct OPLdata *data = &driverdata;
 
-	//pitch -= 0x80;
-	pitch >>= 1;
-	data->channelPitch[channel] = pitch;
+	pitch >>= 7;
+	driverdata.channelPitch[channel] = pitch;
 	for(i = 0; i < io->OPLchannels; i++)
 	{
 		struct channelEntry *ch = &channels[i];
@@ -295,15 +292,14 @@ void musicBlock::OPLchangeControl(uint channel, uchar controller, int value)
 {
 	uint i;
 	uint id = channel;
-	struct OPLdata *data = &driverdata;
 
 	switch (controller)
 	{
 	case ctrlPatch:			/* change instrument */
-		data->channelInstr[channel] = value;
+		OPLprogramChange(channel, value);
 		break;
 	case ctrlModulation:
-		data->channelModulation[channel] = value;
+		driverdata.channelModulation[channel] = value;
 		for(i = 0; i < io->OPLchannels; i++)
 		{
 			struct channelEntry *ch = &channels[i];
@@ -325,7 +321,7 @@ void musicBlock::OPLchangeControl(uint channel, uchar controller, int value)
 		}
 		break;
 	case ctrlVolume:		/* change volume */
-		data->channelVolume[channel] = value;
+		driverdata.channelVolume[channel] = value;
 		for(i = 0; i < io->OPLchannels; i++)
 		{
 			struct channelEntry *ch = &channels[i];
@@ -338,7 +334,7 @@ void musicBlock::OPLchangeControl(uint channel, uchar controller, int value)
 		}
 		break;
 	case ctrlPan:			/* change pan (balance) */
-		data->channelPan[channel] = value -= 64;
+		driverdata.channelPan[channel] = value -= 64;
 		for(i = 0; i < io->OPLchannels; i++)
 		{
 			struct channelEntry *ch = &channels[i];
@@ -350,25 +346,28 @@ void musicBlock::OPLchangeControl(uint channel, uchar controller, int value)
 		}
 		break;
 	case ctrlSustainPedal:		/* change sustain pedal (hold) */
-		data->channelSustain[channel] = value;
+		driverdata.channelSustain[channel] = value;
 		if (value < 0x40)
 			releaseSustain(channel);
 		break;
 	}
 }
 
+void musicBlock::OPLprogramChange(uint channel, int value)
+{
+	driverdata.channelInstr[channel] = value;
+}
 
-void musicBlock::OPLplayMusic()
+void musicBlock::OPLplayMusic(int vol)
 {
 	uint i;
-	struct OPLdata *data = &driverdata;
 
 	for (i = 0; i < CHANNELS; i++)
 	{
-		data->channelVolume[i] = 127;	/* default volume 127 (full volume) */
-		data->channelSustain[i] = 0;
-		data->channelLastVolume[i] = 64;
-		data->channelPitch[i] = 64;
+		driverdata.channelVolume[i] = vol;	/* default volume 127 for MUS (full volume) */
+		driverdata.channelSustain[i] = 0;
+		driverdata.channelLastVolume[i] = 64;
+		driverdata.channelPitch[i] = 64;
 	}
 }
 

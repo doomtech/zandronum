@@ -455,8 +455,11 @@ void FTextureManager::AddHiresTextures (int wadnum)
 				{
 					// A texture with this name does not yet exist
 					FTexture * newtex = FTexture::CreateTexture (firsttx, FTexture::TEX_Any);
-					newtex->UseType=FTexture::TEX_Override;
-					AddTexture(newtex);
+					if (newtex != NULL)
+					{
+						newtex->UseType=FTexture::TEX_Override;
+						AddTexture(newtex);
+					}
 				}
 				else
 				{
@@ -530,12 +533,16 @@ void FTextureManager::LoadHiresTex(int wadnum)
 					FName texname = sc.String;
 
 					sc.MustGetString();
-					int lumpnum = Wads.CheckNumForFullName(sc.String);
-					if (lumpnum < 0) lumpnum = Wads.CheckNumForName(sc.String, ns_graphics);
+					int lumpnum = Wads.CheckNumForFullName(sc.String, true, ns_graphics);
 
 					if (tlist.Size() == 0)
 					{
 						Printf("Attempting to remap non-existent texture %s to %s\n",
+							texname.GetChars(), sc.String);
+					}
+					else if (lumpnum == -1)
+					{
+						Printf("Attempting to remap texture %s to non-existent lump %s\n",
 							texname.GetChars(), sc.String);
 					}
 					else
@@ -572,8 +579,7 @@ void FTextureManager::LoadHiresTex(int wadnum)
 					sc.GetString();
 					memcpy(src, sc.String, 8);
 
-					int lumpnum = Wads.CheckNumForFullName(sc.String);
-					if (lumpnum < 0) lumpnum = Wads.CheckNumForName(sc.String, ns_graphics);
+					int lumpnum = Wads.CheckNumForFullName(sc.String, true, ns_graphics);
 
 					sc.GetString();
 					is32bit = !!sc.Compare("force32bit");

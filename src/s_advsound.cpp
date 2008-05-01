@@ -496,8 +496,7 @@ int S_FindSoundTentative (const char *name)
 
 int S_AddSound (const char *logicalname, const char *lumpname, FScanner *sc)
 {
-	int lump = Wads.CheckNumForFullName (lumpname);
-	if (lump == -1) lump = Wads.CheckNumForName (lumpname, ns_sounds);
+	int lump = Wads.CheckNumForFullName (lumpname, true, ns_sounds);
 	return S_AddSound (logicalname, lump);
 }
 
@@ -539,6 +538,7 @@ static int S_AddSound (const char *logicalname, int lumpnum, FScanner *sc)
 		sfx->bRandomHeader = false;
 		sfx->link = sfxinfo_t::NO_LINK;
 		sfx->bTentative = false;
+		if (sfx->NearLimit == -1) sfx->NearLimit = 2;
 		//sfx->PitchMask = CurrentPitchMask;
 	}
 	else
@@ -563,7 +563,7 @@ int S_AddPlayerSound (const char *pclass, int gender, int refid,
 	
 	if (lumpname)
 	{
-		lump = Wads.CheckNumForFullName (lumpname);
+		lump = Wads.CheckNumForFullName (lumpname, true, ns_sounds);
 		if (lump == -1) lump = Wads.CheckNumForName (lumpname, ns_sounds);
 	}
 
@@ -1107,6 +1107,7 @@ static void S_AddSNDINFO (int lump)
 					sfxfrom = S_sfx[sfxfrom].link;
 				}
 				S_sfx[sfxfrom].link = S_FindSoundTentative (sc.String);
+				S_sfx[sfxfrom].NearLimit = -1;	// Aliases must use the original sound's limit.
 				}
 				break;
 
@@ -1236,6 +1237,7 @@ static void S_AddSNDINFO (int lump)
 				if (list.Size() == 1)
 				{ // Only one sound: treat as $alias
 					S_sfx[random.SfxHead].link = list[0];
+					S_sfx[random.SfxHead].NearLimit = -1;
 				}
 				else if (list.Size() > 1)
 				{ // Only add non-empty random lists
@@ -1244,6 +1246,7 @@ static void S_AddSNDINFO (int lump)
 					S_sfx[random.SfxHead].bRandomHeader = true;
 					S_rnd[S_sfx[random.SfxHead].link].Sounds = new WORD[random.NumSounds];
 					memcpy (S_rnd[S_sfx[random.SfxHead].link].Sounds, &list[0], sizeof(WORD)*random.NumSounds);
+					S_sfx[random.SfxHead].NearLimit = -1;
 				}
 				}
 				break;
@@ -1595,7 +1598,7 @@ static int S_LookupPlayerSound (int classidx, int gender, int refid)
 	// If we're not done parsing SNDINFO yet, assume that the target sound is valid
 	if (PlayerClassesIsSorted &&
 		(sndnum == 0 ||
-		((S_sfx[sndnum].lumpnum == -1 || S_sfx[sndnum].lumpnum == sfx_empty) && S_sfx[sndnum].link == 0xffff)))
+		((S_sfx[sndnum].lumpnum == -1 || S_sfx[sndnum].lumpnum == sfx_empty) && S_sfx[sndnum].link == sfxinfo_t::NO_LINK)))
 	{ // This sound is unavailable.
 		if (ingender != 0)
 		{ // Try "male"

@@ -99,7 +99,7 @@ extern float S_GetMusicVolume (const char *music);
 static fixed_t P_AproxDistance2(fixed_t *listener, fixed_t x, fixed_t y);
 static void S_StartSound(fixed_t *pt, AActor *mover, int channel,
 	int sound_id, float volume, float attenuation);
-static bool S_CheckSoundLimit(sfxinfo_t *sfx, float pos[3]);
+static bool S_CheckSoundLimit(sfxinfo_t *sfx, float pos[3], int NearLimit);
 static void S_ActivatePlayList(bool goBack);
 static void CalcPosVel(fixed_t *pt, AActor *mover, int constz, float pos[3],
 	float vel[3]);
@@ -736,20 +736,27 @@ static void S_StartSound (fixed_t *pt, AActor *mover, int channel,
 	if (volume <= 0)
 		return;
 
+	// When resolving a link we do not want to get the NearLimit of
+	// the referenced sound so some additional checks are required
+	int NearLimit = sfx->NearLimit;
+
 	// Resolve player sounds, random sounds, and aliases
 	while (sfx->link != sfxinfo_t::NO_LINK)
 	{
 		if (sfx->bPlayerReserve)
 		{
 			sound_id = S_FindSkinnedSound (mover, sound_id);
+			NearLimit = sfx[sound_id].NearLimit;
 		}
 		else if (sfx->bRandomHeader)
 		{
 			sound_id = S_PickReplacement (sound_id);
+			if (NearLimit < 0) NearLimit = sfx[sound_id].NearLimit;
 		}
 		else
 		{
 			sound_id = sfx->link;
+			if (NearLimit < 0) NearLimit = sfx[sound_id].NearLimit;
 		}
 		sfx = &S_sfx[sound_id];
 	}
@@ -760,7 +767,7 @@ static void S_StartSound (fixed_t *pt, AActor *mover, int channel,
 
 	// If this sound doesn't like playing near itself, don't play it if
 	// that's what would happen.
-	if (sfx->NearLimit && pt != NULL && S_CheckSoundLimit(sfx, pos))
+	if (NearLimit > 0 && pt != NULL && S_CheckSoundLimit(sfx, pos, NearLimit))
 		return;
 
 	// Make sure the sound is loaded.
@@ -991,12 +998,12 @@ bool S_CheckSingular(int sound_id)
 //
 //==========================================================================
 
-bool S_CheckSoundLimit(sfxinfo_t *sfx, float pos[3])
+bool S_CheckSoundLimit(sfxinfo_t *sfx, float pos[3], int NearLimit)
 {
 	FSoundChan *chan;
 	int count;
 	
-	for (chan = Channels, count = 0; chan != NULL && count < sfx->NearLimit; chan = chan->NextChan)
+	for (chan = Channels, count = 0; chan != NULL && count < NearLimit; chan = chan->NextChan)
 	{
 		if (chan->SfxInfo == sfx)
 		{
@@ -1009,7 +1016,7 @@ bool S_CheckSoundLimit(sfxinfo_t *sfx, float pos[3])
 			}
 		}
 	}
-	return count >= sfx->NearLimit;
+	return count >= NearLimit;
 }
 
 //==========================================================================
@@ -1412,13 +1419,10 @@ bool S_ChangeMusic (const char *musicname, int order, bool looping, bool force)
 
 		if (!FileExists (musicname))
 		{
-			if ((lumpnum = Wads.CheckNumForName (musicname, ns_music)) == -1)
+			if ((lumpnum = Wads.CheckNumForFullName (musicname, true, ns_music)) == -1)
 			{
-				if ((lumpnum = Wads.CheckNumForFullName (musicname)) == -1)
-				{
-					Printf ("Music \"%s\" not found\n", musicname);
-					return false;
-				}
+				Printf ("Music \"%s\" not found\n", musicname);
+				return false;
 			}
 			if (!Wads.IsUncompressedFile(lumpnum))
 			{

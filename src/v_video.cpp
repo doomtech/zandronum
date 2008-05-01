@@ -1643,9 +1643,12 @@ void V_Init2()
 	float gamma = static_cast<DDummyFrameBuffer *>(screen)->Gamma;
 	FFont *font = screen->Font;
 
-	screen->ObjectFlags |= OF_YesReallyDelete;
-	delete screen;
-	screen = NULL;
+	{
+		DFrameBuffer *s = screen;
+		screen = NULL;
+		s->ObjectFlags |= OF_YesReallyDelete;
+		delete s;
+	}
 
 	I_InitGraphics();
 	I_ClosestResolution (&width, &height, 8);
@@ -1666,10 +1669,12 @@ void V_Init2()
 
 void V_Shutdown()
 {
-	if (screen != NULL)
+	if (screen)
 	{
-		delete screen;
+		DFrameBuffer *s = screen;
 		screen = NULL;
+		s->ObjectFlags |= OF_YesReallyDelete;
+		delete s;
 	}
 	while (FFont::FirstFont != NULL)
 	{

@@ -164,10 +164,10 @@ FScanner &FScanner::operator=(const FScanner &other)
 
 void FScanner::Open (const char *name)
 {
-	int lump = Wads.CheckNumForFullName(name);
+	int lump = Wads.CheckNumForFullName(name, true);
 	if (lump == -1)
 	{
-		lump = Wads.GetNumForName(name);
+		I_Error("Could not find script lump '%s'\n", name);
 	}
 	OpenLumpNum(lump, name);
 }
@@ -979,32 +979,6 @@ void STACK_ARGS FScanner::ScriptError (const char *message, ...)
 	}
 
 	I_Error ("Script error, \"%s\" line %d:\n%s\n", ScriptName.GetChars(),
-		AlreadyGot? AlreadyGotLine : Line, composed.GetChars());
-}
-
-//==========================================================================
-//
-// FScanner::ScriptError
-//
-//==========================================================================
-
-void STACK_ARGS FScanner::ScriptMessage (const char *message, ...)
-{
-	FString composed;
-
-	if (message == NULL)
-	{
-		composed = "Bad syntax.";
-	}
-	else
-	{
-		va_list arglist;
-		va_start (arglist, message);
-		composed.VFormat (message, arglist);
-		va_end (arglist);
-	}
-
-	Printf ("Script error, \"%s\" line %d:\n%s\n", ScriptName.GetChars(),
 		AlreadyGot? AlreadyGotLine : Line, composed.GetChars());
 }
 

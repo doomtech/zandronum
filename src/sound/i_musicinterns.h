@@ -59,8 +59,6 @@ public:
 	bool m_NotStartedYet;	// Song has been created but not yet played
 };
 
-#ifdef _WIN32
-
 // A device that provides a WinMM-like MIDI streaming interface -------------
 
 #ifndef _WIN32
@@ -69,8 +67,30 @@ struct MIDIHDR
 	BYTE *lpData;
 	DWORD dwBufferLength;
 	DWORD dwBytesRecorded;
-	MIDIHDR *Next;
+	MIDIHDR *lpNext;
 };
+
+enum
+{
+	MOD_MIDIPORT = 1,
+	MOD_SYNTH,
+	MOD_SQSYNTH,
+	MOD_FMSYNTH,
+	MOD_MAPPER,
+	MOD_WAVETABLE,
+	MOD_SWSYNTH
+};
+
+typedef BYTE *LPSTR;
+
+#define MEVT_TEMPO			((BYTE)1)
+#define MEVT_NOP			((BYTE)2)
+#define MEVT_LONGMSG		((BYTE)128)
+
+#define MEVT_EVENTTYPE(x)	((BYTE)((x) >> 24))
+#define MEVT_EVENTPARM(x)   ((x) & 0xffffff)
+
+#define MOM_DONE			969
 #endif
 
 class MIDIDevice
@@ -86,14 +106,19 @@ public:
 	virtual int SetTempo(int tempo) = 0;
 	virtual int SetTimeDiv(int timediv) = 0;
 	virtual int StreamOut(MIDIHDR *data) = 0;
+	virtual int StreamOutSync(MIDIHDR *data) = 0;
 	virtual int Resume() = 0;
 	virtual void Stop() = 0;
 	virtual int PrepareHeader(MIDIHDR *data) = 0;
 	virtual int UnprepareHeader(MIDIHDR *data) = 0;
+	virtual bool FakeVolume() = 0;
+	virtual bool Pause(bool paused) = 0;
+	virtual bool NeedThreadedCallback() = 0;
 };
 
 // WinMM implementation of a MIDI output device -----------------------------
 
+#ifdef _WIN32
 class WinMIDIDevice : public MIDIDevice
 {
 public:
@@ -106,10 +131,14 @@ public:
 	int SetTempo(int tempo);
 	int SetTimeDiv(int timediv);
 	int StreamOut(MIDIHDR *data);
+	int StreamOutSync(MIDIHDR *data);
 	int Resume();
 	void Stop();
 	int PrepareHeader(MIDIHDR *data);
 	int UnprepareHeader(MIDIHDR *data);
+	bool FakeVolume();
+	bool NeedThreadedCallback();
+	bool Pause(bool paused);
 
 protected:
 	static void CALLBACK CallbackFunc(HMIDIOUT, UINT, DWORD_PTR, DWORD, DWORD);
@@ -122,6 +151,7 @@ protected:
 	void (*Callback)(unsigned int, void *, DWORD, DWORD);
 	void *CallbackData;
 };
+#endif
 
 // OPL implementation of a MIDI output device -------------------------------
 
@@ -137,14 +167,31 @@ public:
 	int SetTempo(int tempo);
 	int SetTimeDiv(int timediv);
 	int StreamOut(MIDIHDR *data);
+	int StreamOutSync(MIDIHDR *data);
 	int Resume();
 	void Stop();
 	int PrepareHeader(MIDIHDR *data);
 	int UnprepareHeader(MIDIHDR *data);
+	bool FakeVolume();
+	bool NeedThreadedCallback();
+	bool Pause(bool paused);
 
 protected:
+	static bool FillStream(SoundStream *stream, void *buff, int len, void *userdata);
+
 	void (*Callback)(unsigned int, void *, DWORD, DWORD);
 	void *CallbackData;
+
+	void CalcTickRate();
+	void HandleEvent(int status, int parm1, int parm2);
+	int PlayTick();
+
+	SoundStream *Stream;
+	double Tempo;
+	double Division;
+	MIDIHDR *Events;
+	bool Started;
+	DWORD Position;
 };
 
 // Base class for streaming MUS and MIDI files ------------------------------
@@ -152,7 +199,7 @@ protected:
 class MIDIStreamer : public MusInfo
 {
 public:
-	MIDIStreamer();
+	MIDIStreamer(bool opl);
 	~MIDIStreamer();
 
 	void MusicVolumeChanged();
@@ -166,14 +213,13 @@ public:
 	void Update();
 
 protected:
-	static DWORD WINAPI PlayerProc (LPVOID lpParameter);
-	static void Callback(UINT uMsg, void *userdata, DWORD dwParam1, DWORD dwParam2);
-	DWORD PlayerLoop();
+	static void Callback(unsigned int uMsg, void *userdata, DWORD dwParam1, DWORD dwParam2);
+
 	void OutputVolume (DWORD volume);
 	int FillBuffer(int buffer_num, int max_events, DWORD max_time);
 	bool ServiceEvent();
 	int VolumeControllerChange(int channel, int volume);
-
+	
 	// Virtuals for subclasses to override
 	virtual void CheckCaps();
 	virtual void DoInitialSetup() = 0;
@@ -193,11 +239,16 @@ protected:
 		SONG_ERROR
 	};
 
-	MIDIDevice *MIDI;
+#ifdef _WIN32
+	static DWORD WINAPI PlayerProc (LPVOID lpParameter);
+	DWORD PlayerLoop();
+	
 	HANDLE PlayerThread;
 	HANDLE ExitEvent;
 	HANDLE BufferDoneEvent;
+#endif
 
+	MIDIDevice *MIDI;
 	DWORD Events[2][MAX_EVENTS*3];
 	MIDIHDR Buffer[2];
 	int BufferNum;
@@ -211,6 +262,8 @@ protected:
 	int InitialTempo;
 	BYTE ChannelVolumes[16];
 	DWORD Volume;
+	bool UseOPLDevice;
+	bool CallbackIsThreaded;
 };
 
 // MUS file played with a MIDI stream ---------------------------------------
@@ -238,7 +291,7 @@ protected:
 class MIDISong2 : public MIDIStreamer
 {
 public:
-	MIDISong2 (FILE *file, char *musiccache, int length);
+	MIDISong2 (FILE *file, char *musiccache, int length, bool opl);
 	~MIDISong2 ();
 
 protected:
@@ -247,6 +300,7 @@ protected:
 	void DoRestart();
 	bool CheckDone();
 	DWORD *MakeEvents(DWORD *events, DWORD *max_events_p, DWORD max_time);
+	void AdvanceTracks(DWORD time);
 
 	struct TrackInfo;
 
@@ -262,8 +316,6 @@ protected:
 	int Format;
 	WORD DesignationMask;
 };
-
-#endif	/* _WIN32 */
 
 // Anything supported by FMOD out of the box --------------------------------
 

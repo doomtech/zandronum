@@ -25,13 +25,13 @@ public:
 protected:
 	virtual int PlayTick() = 0;
 
+	void Serialize();
+	void Unserialize();
+
 	double NextTickIn;
 	double SamplesPerTick;
 	bool TwoChips;
 	bool Looping;
-
-	int *SampleBuff;
-	int SampleBuffSize;
 
 #ifdef _WIN32
 	CRITICAL_SECTION ChipAccess;
