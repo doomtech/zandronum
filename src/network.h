@@ -546,7 +546,7 @@ void			NETWORK_ConvertWeaponNameToKeyLetter( const char *&pszName );
 void			NETWORK_ConvertKeyLetterToFullString( const char *&pszName, bool bPrintKeyLetter );
 void			NETWORK_ConvertWeaponKeyLetterToFullString( const char *&pszName );
 void			NETWORK_GenerateMapLumpMD5Hash( MapData *Map, const LONG LumpNumber, FString &MD5Hash );
-void			NETWORK_GenerateLumpMD5Hash( const char *pszLumpName, FString &MD5Hash );
+void			NETWORK_GenerateLumpMD5Hash( const int LumpNum, FString &MD5Hash );
 
 // Access functions.
 LONG			NETWORK_GetState( void );

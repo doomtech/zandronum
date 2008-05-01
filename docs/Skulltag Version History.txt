@@ -22,6 +22,7 @@
 +	- Added the dynamic light definitions for Strife made by Dark_Knight. [Torr Samaho]
 +	- The error message of the float parser under Linux now mentions the LANG enviroment variable as possible cause for the error. [Torr Samaho]
 + 	- Added CVAR cl_allowmultipleannouncersounds (default true). If true, multiple announcer sounds can be played at once (like in 97D beta 4.3 and earlier), otherwise any announcer sound stops all previous announcers (like in 97D). [Torr Samaho]
++	- Extended the authentication mechanism for non-map related lumps to get rid of more exploits. [Torr Samaho]
 -	- Fixed: The 'summonfoe' console command didn't work online. [Karate Chris, Torr Samaho]
 -	- Fixed: Using the CCMD stat crashes the server. [Torr Samaho]
 -	- Fixed: A_Chase doesn't work properly online when a custom missile or melee state is specified as argument. [Torr Samaho]
