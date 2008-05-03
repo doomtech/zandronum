@@ -44,8 +44,8 @@
 #define DOTVERSIONSTR_NOREV DOTVERSIONSTR
 
 #define ZDVER_STRING "2.2.0"
-#define ZD_SVN_REVISION_STRING "871"
-#define ZD_SVN_REVISION_NUMBER 871
+#define ZD_SVN_REVISION_STRING "910"
+#define ZD_SVN_REVISION_NUMBER 910
 
 // [BB] The version string that includes revision / compatibility data.
 #define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING
@@ -79,7 +79,7 @@
 // Version stored in the ini's [LastRun] section.
 // Bump it if you made some configuration change that you want to
 // be able to migrate in FGameConfigFile::DoGlobalSetup().
-#define LASTRUNVERSION "206"
+#define LASTRUNVERSION "207"
 
 // Protocol version used in demos.
 // Bump it if you change existing DEM_ commands or add new ones.
@@ -98,7 +98,7 @@
 // SAVESIG should match SAVEVER.
 
 // MINSAVEVER is the minimum level snapshot version that can be loaded.
-#define MINSAVEVER 854
+#define MINSAVEVER 894
 
 #if ZD_SVN_REVISION_NUMBER < MINSAVEVER
 // Never write a savegame with a version lower than what we need

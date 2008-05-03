@@ -81,6 +81,7 @@ struct MapData
 };
 
 MapData * P_OpenMapData(const char * mapname);
+bool P_CheckMapData(const char * mapname);
 
 bool P_CheckIfMapExists(const char * mapname);
 

@@ -120,7 +120,7 @@ void A_GPosAttack (AActor *self)
 	A_FaceTarget (self);		
 	S_Sound (self, CHAN_WEAPON, "ssgguy/attack", 1, ATTN_NORM);
 
-	P_BulletSlope (self);
+	angle_t pitch = P_BulletSlope (self);
 		
 	for (i=0 ; i<7 ; i++)
 	{
@@ -137,7 +137,7 @@ void A_GPosAttack (AActor *self)
 		P_LineAttack (self,
 					  angle,
 					  MISSILERANGE,
-					  bulletpitch + (pr_gposattack.Random2() * 332063), damage, NAME_None, NAME_BulletPuff);
+					  pitch + (pr_gposattack.Random2() * 332063), damage, NAME_None, NAME_BulletPuff);
 	}
 }
 

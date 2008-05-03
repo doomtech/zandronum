@@ -1747,7 +1747,7 @@ void BOTS_ParseBotInfo( void )
 	while (( lCurLump = Wads.FindLump( "BOTINFO", (int *)&lLastLump )) != -1 )
 	{
 		// Make pszBotInfo point to the raw data (which should be a text file) in the BOTINFO lump.
-		FScanner sc( lCurLump, "BOTINFO" );
+		FScanner sc( lCurLump );
 
 		// Parse the lump.
 		bots_ParseBotInfoLump( sc );

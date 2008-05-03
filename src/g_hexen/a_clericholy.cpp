@@ -576,6 +576,7 @@ void SpawnSpiritTail (AActor *spirit)
 void A_CHolyAttack (AActor *actor)
 {
 	player_t *player;
+	AActor *linetarget;
 
 	if (NULL == (player = actor->player))
 	{
@@ -597,17 +598,17 @@ void A_CHolyAttack (AActor *actor)
 		return;
 	}
 
-	AActor * missile = P_SpawnPlayerMissile (actor, RUNTIME_CLASS(AHolyMissile));
+	AActor * missile = P_SpawnPlayerMissile (actor, 0,0,0, RUNTIME_CLASS(AHolyMissile), 0, &linetarget);
 	if (missile != NULL) missile->tracer = linetarget;
 
 	// [BC] Apply spread.
 	if ( player->cheats & CF_SPREAD )
 	{
-		missile = P_SpawnPlayerMissile( actor, RUNTIME_CLASS( AHolyMissile ), actor->angle + ( ANGLE_45 / 3 ));
+		missile = P_SpawnPlayerMissile (actor, 0,0,0, RUNTIME_CLASS(AHolyMissile), actor->angle + ( ANGLE_45 / 3 ), &linetarget);
 		if ( missile != NULL )
 			missile->tracer = linetarget;
 
-		missile = P_SpawnPlayerMissile( actor, RUNTIME_CLASS( AHolyMissile ), actor->angle - ( ANGLE_45 / 3 ));
+		missile = P_SpawnPlayerMissile (actor, 0,0,0, RUNTIME_CLASS(AHolyMissile), actor->angle - ( ANGLE_45 / 3 ), &linetarget);
 		if ( missile != NULL )
 			missile->tracer = linetarget;
 	}

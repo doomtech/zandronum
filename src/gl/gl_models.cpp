@@ -248,7 +248,7 @@ void gl_InitModels()
 	memset(&smf, 0, sizeof(smf));
 	while ((Lump = Wads.FindLump("MODELDEF", &lastLump)) != -1)
 	{
-		FScanner sc(Lump, "MODELDEF");
+		FScanner sc(Lump);
 		while (sc.GetString())
 		{
 			if (sc.Compare("model"))

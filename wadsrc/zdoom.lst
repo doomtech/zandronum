@@ -66,17 +66,17 @@ sbarinfo.txt				sbarinfo.txt
 ========
 # Doom map format translators
 
-xlat/base.txt				xlat/base.txt
 xlat/doom.txt				xlat/doom.txt
 xlat/heretic.txt			xlat/heretic.txt
 xlat/strife.txt				xlat/strife.txt
+xlat/base.txt				xlat/base.txt
 xlat/defines.i				xlat/defines.i
 
 
 ========
 # Support lumps
 
-dehsupp.lmp                 dehsupp.lmp
+dehsupp.lmp	                dehsupp.lmp
 
 
 animated.lmp                animated.lmp
@@ -150,6 +150,11 @@ sprites/icecc0.png		    icecc0.png
 sprites/icecd0.png		    icecd0.png
 sprites/amrka0.png			amrka0.png
 sprites/pista0.png			pista0.png
+sprites/rsmka0.png			rsmka0.png
+sprites/rsmkb0.png			rsmkb0.png
+sprites/rsmkc0.png			rsmkc0.png
+sprites/rsmkd0.png			rsmkd0.png
+sprites/rsmke0.png			rsmke0.png
 
 # crouching DoomPlayer
 sprites/plyca1.lmp  		crouch/plyca1.lmp
@@ -251,7 +256,7 @@ acs/strfhelp.o				strfhelp.o
 # Font color ranges
 textcolors.txt				textcolors.txt
 fontdefs.txt				fontdefs.txt
-indexfont.fon				indexfont.fon
+indexfont					indexfont.fon
 
 
 ========
@@ -281,11 +286,6 @@ shaders/tex/tex_warp2.fp                          gzd/shaders/tex/tex_warp2.fp
 
 
 
-sprites/rsmka0.png			gzd/sprites/rsmka0.png
-sprites/rsmkb0.png			gzd/sprites/rsmkb0.png
-sprites/rsmkc0.png			gzd/sprites/rsmkc0.png
-sprites/rsmkd0.png			gzd/sprites/rsmkd0.png
-sprites/rsmke0.png			gzd/sprites/rsmke0.png
 textures/gllight.png		gzd/textures/gllight.png
 textures/glpart.png			gzd/textures/glpart.png
 textures/glpart2.png		gzd/textures/glpart2.png

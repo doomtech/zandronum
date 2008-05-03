@@ -60,6 +60,7 @@ static const char *SBarInfoTopLevel[] =
 	"lowerhealthcap",
 	"statusbar",
 	"mugshot",
+	"createpopup",
 	NULL
 };
 
@@ -93,6 +94,7 @@ static const char *SBarInfoRoutineLevel[] =
 	"gamemode",
 	"playerclass",
 	"aspectratio",
+	"isselected",
 	"weaponammo", //event
 	"ininventory",
 	NULL
@@ -130,17 +132,14 @@ void SBarInfo::ParseSBarInfo(int lump)
 {
 	gameType = gameinfo.gametype;
 	bool baseSet = false;
-	FScanner sc(lump, Wads.GetLumpFullName(lump));
+	FScanner sc(lump);
 	sc.SetCMode(true);
 	while(sc.CheckToken(TK_Identifier) || sc.CheckToken(TK_Include))
 	{
 		if(sc.TokenType == TK_Include)
 		{
 			sc.MustGetToken(TK_StringConst);
-			int lump = Wads.CheckNumForFullName(sc.String); //zip/pk3
-			//Do a normal wad lookup.
-			if (lump == -1 && sc.StringLen <= 8 && !strchr(sc.String, '/')) 
-				lump = Wads.CheckNumForName(sc.String);
+			int lump = Wads.CheckNumForFullName(sc.String, true);
 			if (lump == -1) 
 				sc.ScriptError("Lump '%s' not found", sc.String);
 			ParseSBarInfo(lump);
@@ -305,6 +304,43 @@ void SBarInfo::ParseSBarInfo(int lump)
 					MugShotStates.Delete(index);
 				}
 				MugShotStates.Push(state);
+				break;
+			}
+			case SBARINFO_CREATEPOPUP:
+			{
+				int pop = 0;
+				sc.MustGetToken(TK_Identifier);
+				if(sc.Compare("keys"))
+					pop = 0;
+				else if(sc.Compare("log"))
+					pop = 1;
+				else if(sc.Compare("status"))
+					pop = 2;
+				else
+					sc.ScriptError("Unkown popup: '%s'", sc.String);
+				Popup &popup = popups[pop];
+				sc.MustGetToken(',');
+				sc.MustGetToken(TK_IntConst);
+				popup.width = sc.Number;
+				sc.MustGetToken(',');
+				sc.MustGetToken(TK_IntConst);
+				popup.height = sc.Number;
+				sc.MustGetToken(',');
+				if(!sc.CheckToken(TK_None))
+				{
+					sc.MustGetToken(TK_Identifier);
+					if(sc.Compare("slideinbottom"))
+					{
+						popup.transition = TRANSITION_SLIDEINBOTTOM;
+						sc.MustGetToken(',');
+						sc.MustGetToken(TK_IntConst);
+						popup.speed = sc.Number;
+					}
+					else
+						sc.ScriptError("Unkown transition type: '%s'", sc.String);
+				}
+				popup.init();
+				sc.MustGetToken(';');
 				break;
 			}
 		}
@@ -493,6 +529,14 @@ void SBarInfo::ParseSBarInfoBlock(FScanner &sc, SBarInfoBlock &block)
 							sc.ScriptError("Global variable number out of range: %d", sc.Number);
 						cmd.value = sc.Number;
 					}
+					else if(sc.Compare("globalarray")) //acts like variable[playernumber()]
+					{
+						cmd.flags += DRAWNUMBER_GLOBALARRAY;
+						sc.MustGetToken(TK_IntConst);
+						if(sc.Number < 0 || sc.Number >= NUM_GLOBALVARS)
+							sc.ScriptError("Global variable number out of range: %d", sc.Number);
+						cmd.value = sc.Number;
+					}
 					else
 					{
 						cmd.flags = DRAWNUMBER_INVENTORY;
@@ -505,6 +549,18 @@ void SBarInfo::ParseSBarInfoBlock(FScanner &sc, SBarInfoBlock &block)
 						}
 					}
 					sc.MustGetToken(',');
+				}
+				while(sc.CheckToken(TK_Identifier))
+				{
+					if(sc.Compare("fillzeros"))
+					{
+						cmd.flags += DRAWNUMBER_FILLZEROS;
+						Printf("%d", cmd.flags);
+					}
+					else
+						sc.ScriptError("Unknown flag '%s'.", sc.String);
+					if(!sc.CheckToken('|'))
+						sc.MustGetToken(',');
 				}
 				this->getCoordinates(sc, cmd);
 				if(sc.CheckToken(','))
@@ -535,9 +591,11 @@ void SBarInfo::ParseSBarInfoBlock(FScanner &sc, SBarInfoBlock &block)
 				sc.MustGetToken(';');
 				break;
 			case SBARINFO_DRAWMUGSHOT:
-				sc.MustGetToken(TK_StringConst);
-				cmd.setString(sc, sc.String, 0, 3, true);
-				sc.MustGetToken(',');
+				if(sc.CheckToken(TK_StringConst))
+				{
+					cmd.setString(sc, sc.String, 0, 3, true);
+					sc.MustGetToken(',');
+				}
 				sc.MustGetToken(TK_IntConst); //accuracy
 				if(sc.Number < 1 || sc.Number > 9)
 					sc.ScriptError("Expected a number between 1 and 9, got %d instead.", sc.Number);
@@ -951,6 +1009,33 @@ void SBarInfo::ParseSBarInfoBlock(FScanner &sc, SBarInfoBlock &block)
 				sc.MustGetToken('{');
 				this->ParseSBarInfoBlock(sc, cmd.subBlock);
 				break;
+			case SBARINFO_ISSELECTED:
+				if(sc.CheckToken(TK_Identifier))
+				{
+					if(sc.Compare("not"))
+					{
+						cmd.flags += SBARINFOEVENT_NOT;
+					}
+					else
+						sc.ScriptError("Expected 'not' got '%s' instead.", sc.String);
+				}
+				sc.MustGetToken(TK_StringConst);
+				for(int i = 0;i < 2;i++)
+				{
+					cmd.setString(sc, sc.String, i);
+					const PClass* item = PClass::FindClass(sc.String);
+					if(item == NULL || !RUNTIME_CLASS(AWeapon)->IsAncestorOf(item))
+					{
+						sc.ScriptError("'%s' is not a type of weapon.", sc.String);
+					}
+					if(sc.CheckToken(','))
+						sc.MustGetToken(TK_StringConst);
+					else
+						break;
+				}
+				sc.MustGetToken('{');
+				this->ParseSBarInfoBlock(sc, cmd.subBlock);
+				break;
 			case SBARINFO_WEAPONAMMO:
 				sc.MustGetToken(TK_Identifier);
 				if(sc.Compare("not"))
@@ -983,7 +1068,6 @@ void SBarInfo::ParseSBarInfoBlock(FScanner &sc, SBarInfoBlock &block)
 				this->ParseSBarInfoBlock(sc, cmd.subBlock);
 				break;
 			case SBARINFO_ININVENTORY:
-			{
 				sc.MustGetToken(TK_Identifier);
 				if(sc.Compare("not"))
 				{
@@ -1014,7 +1098,6 @@ void SBarInfo::ParseSBarInfoBlock(FScanner &sc, SBarInfoBlock &block)
 				sc.MustGetToken('{');
 				this->ParseSBarInfoBlock(sc, cmd.subBlock);
 				break;
-			}
 		}
 		block.commands.Push(cmd);
 	}
@@ -1192,6 +1275,88 @@ const MugShotState *FindMugShotState(FString state)
 			return &MugShotStates[i];
 	}
 	return NULL;
+}
+
+//Popup
+Popup::Popup()
+{
+	transition = TRANSITION_NONE;
+	height = 320;
+	width = 200;
+	speed = 0;
+	x = 320;
+	y = 200;
+	opened = false;
+	moving = false;
+}
+
+void Popup::init()
+{
+	x = width;
+	y = height;
+	if(transition == TRANSITION_SLIDEINBOTTOM)
+	{
+		x = 0;
+	}
+}
+
+void Popup::tick()
+{
+	if(transition == TRANSITION_SLIDEINBOTTOM)
+	{
+		if(moving)
+		{
+			if(opened)
+				y -= clamp(height + (y - height), 1, speed);
+			else
+				y += clamp(height - y, 1, speed);
+		}
+		if(y != 0 && y != height)
+			moving = true;
+		else
+			moving = false;
+	}
+	else
+	{
+		moving = false;
+		if(opened)
+		{
+			y = 0;
+			x = 0;
+		}
+		else
+		{
+			y = height;
+			x = width;
+		}
+	}
+}
+
+bool Popup::isDoneMoving()
+{
+	return !moving;
+}
+
+int Popup::getXOffset()
+{
+	return x;
+}
+
+int Popup::getYOffset()
+{
+	return y;
+}
+
+void Popup::open()
+{
+	opened = true;
+	moving = true;
+}
+
+void Popup::close()
+{
+	opened = false;
+	moving = true;
 }
 
 //Used to allow replacements of states

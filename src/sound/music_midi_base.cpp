@@ -13,8 +13,6 @@ static bool		nummididevicesset;
 #ifdef _WIN32
 	   UINT		mididevice;
 
-CVAR (Bool, snd_midiprecache, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG);
-
 CUSTOM_CVAR (Int, snd_mididevice, -1, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 {
 	UINT oldmididev = mididevice;
@@ -22,7 +20,7 @@ CUSTOM_CVAR (Int, snd_mididevice, -1, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 	if (!nummididevicesset)
 		return;
 
-	if ((self >= (signed)nummididevices) || (self < -3))
+	if ((self >= (signed)nummididevices) || (self < -4))
 	{
 		Printf ("ID out of range. Using default device.\n");
 		self = 0;
@@ -126,10 +124,8 @@ static void PrintMidiDevice (int id, const char *name, WORD tech, DWORD support)
 	case MOD_SQSYNTH:		Printf ("SQSYNTH");			break;
 	case MOD_FMSYNTH:		Printf ("FMSYNTH");			break;
 	case MOD_MAPPER:		Printf ("MAPPER");			break;
-#ifdef MOD_WAVETABLE
 	case MOD_WAVETABLE:		Printf ("WAVETABLE");		break;
 	case MOD_SWSYNTH:		Printf ("SWSYNTH");			break;
-#endif
 	}
 	if (support & MIDICAPS_CACHE)
 	{
@@ -156,8 +152,9 @@ CCMD (snd_listmididevices)
 	MIDIOUTCAPS caps;
 	MMRESULT res;
 
-	PrintMidiDevice (-2, "TiMidity++", 0, 0);
-	PrintMidiDevice (-1, "FMOD", 0, 0);
+	PrintMidiDevice (-3, "Emulated OPL FM Synth", MOD_FMSYNTH, 0);
+	PrintMidiDevice (-2, "TiMidity++", 0, MOD_SWSYNTH);
+	PrintMidiDevice (-1, "FMOD", 0, MOD_SWSYNTH);
 	if (nummididevices != 0)
 	{
 		for (id = 0; id < nummididevices; ++id)
@@ -207,6 +204,7 @@ void I_BuildMIDIMenuList (struct value_t **outValues, float *numValues)
 
 CCMD (snd_listmididevices)
 {
+	Printf("%s-3. Emulated OPL FM Synth\n", -3 == snd_mididevice ? TEXTCOLOR_BOLD : "");
 	Printf("%s-2. TiMidity++\n", -2 == snd_mididevice ? TEXTCOLOR_BOLD : "");
 	Printf("%s-1. FMOD\n", -1 == snd_mididevice ? TEXTCOLOR_BOLD : "");
 }

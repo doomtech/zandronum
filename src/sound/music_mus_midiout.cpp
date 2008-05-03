@@ -31,8 +31,6 @@
 **---------------------------------------------------------------------------
 */
 
-#ifdef _WIN32
-
 // HEADER FILES ------------------------------------------------------------
 
 #include "i_musicinterns.h"
@@ -51,8 +49,6 @@
 // PRIVATE FUNCTION PROTOTYPES ---------------------------------------------
 
 // EXTERNAL DATA DECLARATIONS ----------------------------------------------
-
-extern UINT mididevice;
 
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 
@@ -88,13 +84,15 @@ static const BYTE CtrlTranslate[15] =
 //
 //==========================================================================
 
-MUSSong2::MUSSong2 (FILE *file, char *musiccache, int len)
-: MIDIStreamer(false), MusHeader(0), MusBuffer(0)
+MUSSong2::MUSSong2 (FILE *file, char *musiccache, int len, EMIDIDevice type)
+: MIDIStreamer(type), MusHeader(0), MusBuffer(0)
 {
+#ifdef _WIN32
 	if (ExitEvent == NULL)
 	{
 		return;
 	}
+#endif
 
 	MusHeader = (MUSHeader *)new BYTE[len];
 	if (file != NULL)
@@ -179,6 +177,35 @@ void MUSSong2::DoRestart()
 bool MUSSong2::CheckDone()
 {
 	return MusP >= MaxMusP;
+}
+
+//==========================================================================
+//
+// MUSSong2 :: Precache
+//
+// MUS songs contain information in their header for exactly this purpose.
+//
+//==========================================================================
+
+void MUSSong2::Precache()
+{
+	WORD *work = (WORD *)alloca(MusHeader->NumInstruments * sizeof(WORD));
+	const WORD *used = (WORD *)MusHeader + sizeof(MUSHeader) / sizeof(WORD);
+	int i, j;
+
+	for (i = j = 0; i < MusHeader->NumInstruments; ++i)
+	{
+		WORD instr = LittleShort(used[i]);
+		if (instr < 128)
+		{
+			work[j++] = instr;
+		}
+		else if (used[i] >= 135 && used[i] <= 181)
+		{ // Percussions are 100-based, not 128-based, eh?
+			work[j++] = instr - 100 + (1 << 14);
+		}
+	}
+	MIDI->PrecacheInstruments(&work[0], j);
 }
 
 //==========================================================================
@@ -304,4 +331,32 @@ end:
 	}
 	return events;
 }
-#endif
+
+//==========================================================================
+//
+// MUSSong2 :: GetOPLDumper
+//
+//==========================================================================
+
+MusInfo *MUSSong2::GetOPLDumper(const char *filename)
+{
+	return new MUSSong2(this, filename);
+}
+
+//==========================================================================
+//
+// MUSSong2 OPL Dumping Constructor
+//
+//==========================================================================
+
+MUSSong2::MUSSong2(const MUSSong2 *original, const char *filename)
+: MIDIStreamer(filename)
+{
+	int songstart = LittleShort(original->MusHeader->SongStart);
+	MaxMusP = original->MaxMusP;
+	MusHeader = (MUSHeader *)new BYTE[songstart + MaxMusP];
+	memcpy(MusHeader, original->MusHeader, songstart + MaxMusP);
+	MusBuffer = (BYTE *)MusHeader + songstart;
+	Division = 140;
+	InitialTempo = 1000000;
+}

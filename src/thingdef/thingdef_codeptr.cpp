@@ -650,8 +650,7 @@ void A_JumpIfCloser(AActor * self)
 	else
 	{
 		// Does the player aim at something that can be shot?
-		P_BulletSlope(self);
-		target = linetarget;
+		P_BulletSlope(self, &target);
 	}
 
 	if (pStateCall != NULL) pStateCall->Result=false;	// Jumps should never set the result for inventory state chains!
@@ -1221,9 +1220,8 @@ void A_CustomFireBullets( AActor *self,
 
 	static_cast<APlayerPawn *>(self)->PlayAttacking2 ();
 
-	P_BulletSlope(self);
+	bslope = P_BulletSlope(self);
 	bangle = self->angle;
-	bslope = bulletpitch;
 
 	PuffType = PClass::FindClass(PuffTypeName);
 	if (!PuffType) PuffType = PClass::FindClass(NAME_BulletPuff);
@@ -1331,9 +1329,10 @@ void A_FireCustomMissileHelper ( AActor * self,
 								 const fixed_t shootangle,
 								 const PClass * ti,
 								 const angle_t Angle,
-								 const INTBOOL AimAtAngle )
+								 const INTBOOL AimAtAngle,
+								 AActor *&linetarget )
 {
-	AActor * misl=P_SpawnPlayerMissile (self, x, y, z, ti, shootangle);
+	AActor * misl=P_SpawnPlayerMissile (self, x, y, z, ti, shootangle, &linetarget);
 	// automatic handling of seeker missiles
 	if (misl)
 	{
@@ -1371,6 +1370,7 @@ void A_FireCustomMissile (AActor * self)
 
 	player_t *player=self->player;
 	AWeapon * weapon=player->ReadyWeapon;
+	AActor *linetarget;
 
 	if (UseAmmo && weapon)
 	{
@@ -1396,19 +1396,19 @@ void A_FireCustomMissile (AActor * self)
 
 		if (AimAtAngle) shootangle+=Angle;
 
-		A_FireCustomMissileHelper( self, x, y, z, shootangle, ti, Angle , AimAtAngle );
+		A_FireCustomMissileHelper( self, x, y, z, shootangle, ti, Angle , AimAtAngle, linetarget );
 
 		if (NULL != self->player )
 		{
 			if ( self->player->cheats & CF_SPREAD )
 			{
-				A_FireCustomMissileHelper( self, x, y, z, shootangle + ( ANGLE_45 / 3 ), ti, Angle, AimAtAngle );
-				A_FireCustomMissileHelper( self, x, y, z, shootangle - ( ANGLE_45 / 3 ), ti, Angle, AimAtAngle );
+				A_FireCustomMissileHelper( self, x, y, z, shootangle + ( ANGLE_45 / 3 ), ti, Angle, AimAtAngle, linetarget );
+				A_FireCustomMissileHelper( self, x, y, z, shootangle - ( ANGLE_45 / 3 ), ti, Angle, AimAtAngle, linetarget );
 			}
 		}
 
 /*
-		AActor * misl=P_SpawnPlayerMissile (self, x, y, z, ti, shootangle);
+		AActor * misl=P_SpawnPlayerMissile (self, x, y, z, ti, shootangle, &linetarget);
 		// automatic handling of seeker missiles
 		if (misl)
 		{
@@ -1462,6 +1462,7 @@ void A_CustomPunch (AActor *self)
 
 	angle_t 	angle;
 	int 		pitch;
+	AActor *	linetarget;
 
 	// [BC] Weapons are handled by the server.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -1475,7 +1476,7 @@ void A_CustomPunch (AActor *self)
 
 	angle = self->angle + (pr_cwpunch.Random2() << 18);
 	if (Range == 0) Range = MELEERANGE;
-	pitch = P_AimLineAttack (self, angle, Range);
+	pitch = P_AimLineAttack (self, angle, Range, &linetarget);
 
 	// only use ammo when actually hitting something!
 	if (UseAmmo && linetarget && weapon)
@@ -1495,7 +1496,7 @@ void A_CustomPunch (AActor *self)
 	PuffType = PClass::FindClass(PuffTypeName);
 	if (!PuffType) PuffType = PClass::FindClass(NAME_BulletPuff);
 
-	P_LineAttack (self, angle, Range, pitch, Damage, GetDefaultByType(PuffType)->DamageType, PuffType);
+	P_LineAttack (self, angle, Range, pitch, Damage, GetDefaultByType(PuffType)->DamageType, PuffType, true);
 
 	// turn to face target
 	if (linetarget)
@@ -2697,8 +2698,7 @@ void A_JumpIfTargetInLOS(AActor * self)
 	else
 	{
 		// Does the player aim at something that can be shot?
-		P_BulletSlope(self);
-		target = linetarget;
+		P_BulletSlope(self, &target);
 	}
 
 	// No target - return

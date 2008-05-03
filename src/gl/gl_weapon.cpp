@@ -121,9 +121,9 @@ static void DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed_t sy,
 	else
 	{
 		fU2=pti->GetUL();
-		fV2=pti->GetVT();
+		fV1=pti->GetVT();
 		fU1=pti->GetUR();
-		fV1=pti->GetVB();
+		fV2=pti->GetVB();
 	}
 
 	gl.Begin(GL_TRIANGLE_STRIP);

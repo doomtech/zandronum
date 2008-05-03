@@ -703,6 +703,13 @@ static value_t ColumnMethods[] = {
 	{ 1.0, "Optimized" }
 };
 
+static value_t RocketTrailTypes[] = {
+	{ 0.0, "Off" },
+	{ 1.0, "Particles" },
+	{ 2.0, "Sprites" },
+	{ 3.0, "Sprites & Particles" }
+};
+
 static value_t BloodTypes[] = {
 	{ 0.0, "Sprites" },
 	{ 1.0, "Sprites & Particles" },
@@ -750,7 +757,7 @@ static menuitem_t VideoItems[] = {
 	{ discrete, "Death camera",			{&r_deathcamera},		{4.0}, {0.0},	{0.0}, {YesNo} },
 	{ discrete, "Use fuzz effect",		{&r_drawfuzz},			{2.0}, {0.0},	{0.0}, {YesNo} },
 	{ discrete, "Respawn invul effect",	{&cl_respawninvuleffect},	{3.0}, {0.0},	{0.0}, {RespawnInvulEffectTypes} },
-	{ discrete, "Rocket Trails",		{&cl_rockettrails},		{2.0}, {0.0},	{0.0}, {OnOff} },
+	{ discrete, "Rocket Trails",		{&cl_rockettrails},		{4.0}, {0.0},	{0.0}, {RocketTrailTypes} },
 	{ discrete, "Grenade Trails",		{&cl_grenadetrails},		{2.0}, {0.0},	{0.0}, {OnOff} },
 	{ discrete, "Blood Type",			{&cl_bloodtype},	   	{3.0}, {0.0},	{0.0}, {BloodTypes} },
 	{ discrete, "Bullet Puff Type",		{&cl_pufftype},			{2.0}, {0.0},	{0.0}, {PuffTypes} },
@@ -1593,7 +1600,6 @@ static menu_t SoundMenu =
  *
  *=======================================*/
 
-EXTERN_CVAR (Bool, opl_enable)
 EXTERN_CVAR (Bool, opl_onechip)
 
 static menuitem_t AdvSoundItems[] =
@@ -6902,7 +6908,7 @@ void InitCrosshairsList()
 
 	while ((lump = Wads.FindLump("XHAIRS", &lastlump)) != -1)
 	{
-		FScanner sc(lump, "XHAIRS");
+		FScanner sc(lump);
 		while (sc.GetNumber())
 		{
 			value.value = float(sc.Number);

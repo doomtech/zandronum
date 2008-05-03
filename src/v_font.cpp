@@ -220,12 +220,6 @@ FFont *V_GetFont(const char *name)
 		int lump = -1;
 
 		lump = Wads.CheckNumForFullName(name, true);
-		if (lump < 0 && strlen(name) > 8)
-		{
-			FString fullname;
-			fullname.Format("%s.fon", name);
-			lump = Wads.CheckNumForFullName(fullname);
-		}
 		
 		if (lump != -1)
 		{
@@ -299,6 +293,7 @@ FFont::FFont (const char *name, const char *nametemplate, int first, int count, 
 	double *luminosity;
 	int maxyoffs;
 	bool doomtemplate = gameinfo.gametype == GAME_Doom ? strncmp (nametemplate, "STCFN", 5) == 0 : false;
+	bool stcfn121 = false;
 
 	Chars = new CharData[count];
 	charlumps = new int[count];
@@ -316,26 +311,34 @@ FFont::FFont (const char *name, const char *nametemplate, int first, int count, 
 
 	for (i = 0; i < count; i++)
 	{
+		charlumps[i] = -1;
 		sprintf (buffer, nametemplate, i + start);
 		lump = Wads.CheckNumForName (buffer, ns_graphics);
 		if (doomtemplate && lump >= 0 && i + start == 121)
 		{ // HACKHACK: Don't load STCFN121 in doom(2), because
-		  // it's not really a lower-case 'y' but an upper-case 'I'.
+		  // it's not really a lower-case 'y' but a '|'.
 		  // Because a lot of wads with their own font seem to foolishly
-		  // copy STCFN121 and make it an 'I' themselves, wads must
+		  // copy STCFN121 and make it a '|' themselves, wads must
 		  // provide STCFN120 (x) and STCFN122 (z) for STCFN121 to load.
 			if (Wads.CheckNumForName ("STCFN120", ns_graphics) == -1 ||
 				Wads.CheckNumForName ("STCFN122", ns_graphics) == -1)
 			{
+				// insert the incorrectly named '|' graphic in its correct position.
+				if (count > 124-start) charlumps[124-start] = lump;
 				lump = -1;
+				stcfn121 = true;
 			}
 		}
-		charlumps[i] = lump;
+
 		if (lump >= 0)
 		{
 			FTexture *pic = TexMan[buffer];
 			if (pic != NULL)
 			{
+				// set the lump here only if it represents a valid texture
+				if (i != 124-start || !stcfn121)
+					charlumps[i] = lump;
+
 				int height = pic->GetScaledHeight();
 				int yoffs = pic->GetScaledTopOffset();
 
@@ -1206,7 +1209,7 @@ FFontChar1::FFontChar1 (int sourcelump, const BYTE *sourceremap)
 	Name[0] = 0;					// Make this texture unnamed
 
 	// now copy all the properties from the base texture
-	CopySize(BaseTexture);
+	if (BaseTexture != NULL) CopySize(BaseTexture);
 	Pixels = NULL;
 }
 
@@ -1637,7 +1640,7 @@ void V_InitCustomFonts()
 
 	while ((llump = Wads.FindLump ("FONTDEFS", &lastlump)) != -1)
 	{
-		sc.OpenLumpNum(llump, "FONTDEFS");
+		sc.OpenLumpNum(llump);
 		while (sc.GetString())
 		{
 			memset (lumplist, -1, sizeof(lumplist));
@@ -1697,7 +1700,7 @@ void V_InitCustomFonts()
 					if (format == 1) goto wrong;
 					int *p = &lumplist[*(unsigned char*)sc.String];
 					sc.MustGetString();
-					*p = Wads.CheckNumForName (sc.String);
+					*p = Wads.CheckNumForFullName (sc.String, true);
 					format=2;
 				}
 			}
@@ -1765,7 +1768,7 @@ void V_InitFontColors ()
 
 	while ((lump = Wads.FindLump ("TEXTCOLO", &lastlump)) != -1)
 	{
-		FScanner sc(lump, "textcolors.txt");
+		FScanner sc(lump);
 		while (sc.GetString())
 		{
 			names.Clear();

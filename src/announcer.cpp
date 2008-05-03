@@ -148,7 +148,7 @@ void ANNOUNCER_ParseAnnouncerInfo( void )
 	while (( lCurLump = Wads.FindLump( "ANCRINFO", (int *)&lLastLump )) != -1 )
 	{
 		// Make pszBotInfo point to the raw data (which should be a text file) in the ANCRINFO lump.
-		FScanner sc( lCurLump, "ANCRINFO" );
+		FScanner sc( lCurLump );
 
 		// Parse the lump.
 		announcer_ParseAnnouncerInfoLump( sc );

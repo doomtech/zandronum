@@ -45,6 +45,7 @@
 #include "sc_man.h"
 #include "gi.h"
 #include "st_start.h"
+#include "cmdlib.h"
 
 extern void R_InitBuildTiles();
 
@@ -385,8 +386,21 @@ int FTextureManager::AddPatch (const char *patchname, int namespc, bool tryany)
 
 void FTextureManager::AddGroup(int wadnum, const char * startlump, const char * endlump, int ns, int usetype)
 {
-	int firsttx = Wads.CheckNumForName (startlump);
-	int lasttx = Wads.CheckNumForName (endlump);
+	int firsttx;
+	int lasttx;
+
+	if (startlump && endlump)
+	{
+		firsttx = Wads.CheckNumForName (startlump);
+		lasttx = Wads.CheckNumForName (endlump);
+	}
+	else
+	{
+		// If there are no markers we have to search the entire lump directory... :(
+		firsttx = 0;
+		lasttx = Wads.GetNumLumps() - 1;
+	}
+
 	char name[9];
 
 	if (firsttx == -1 || lasttx == -1)
@@ -403,7 +417,7 @@ void FTextureManager::AddGroup(int wadnum, const char * startlump, const char * 
 
 	for (firsttx += 1; firsttx < lasttx; ++firsttx)
 	{
-		if (Wads.GetLumpFile(firsttx) == wadnum)
+		if (Wads.GetLumpFile(firsttx) == wadnum && Wads.GetLumpNamespace(firsttx) == ns)
 		{
 			Wads.GetLumpName (name, firsttx);
 
@@ -508,7 +522,7 @@ void FTextureManager::LoadHiresTex(int wadnum)
 	{
 		if (Wads.GetLumpFile(remapLump) == wadnum)
 		{
-			FScanner sc(remapLump, "HIRESTEX");
+			FScanner sc(remapLump);
 			while (sc.GetString())
 			{
 				if (sc.Compare("remap")) // remap an existing texture
@@ -520,6 +534,8 @@ void FTextureManager::LoadHiresTex(int wadnum)
 					else if (sc.Compare("flat")) type=FTexture::TEX_Flat, mode=FTextureManager::TEXMAN_Overridable;
 					else if (sc.Compare("sprite")) type=FTexture::TEX_Sprite, mode=0;
 					else type = FTexture::TEX_Any, mode = 0;
+
+					if (type != FTexture::TEX_Any) sc.MustGetString();
 
 					sc.String[8]=0;
 
@@ -577,7 +593,7 @@ void FTextureManager::LoadHiresTex(int wadnum)
 				else if (sc.Compare("define")) // define a new "fake" texture
 				{
 					sc.GetString();
-					memcpy(src, sc.String, 8);
+					memcpy(src, ExtractFileBase(sc.String, false), 8);
 
 					int lumpnum = Wads.CheckNumForFullName(sc.String, true, ns_graphics);
 
@@ -607,6 +623,14 @@ void FTextureManager::LoadHiresTex(int wadnum)
 						}
 					}				
 					//else Printf("Unable to define hires texture '%s'\n", tex->Name);
+				}
+				else if (sc.Compare("texture"))
+				{
+					ParseXTexture(sc, FTexture::TEX_Override);
+				}
+				else if (sc.Compare("sprite"))
+				{
+					ParseXTexture(sc, FTexture::TEX_Sprite);
 				}
 			}
 		}
@@ -684,6 +708,10 @@ void FTextureManager::AddTexturesForWad(int wadnum)
 
 	// First step: Load sprites
 	AddGroup(wadnum, "S_START", "S_END", ns_sprites, FTexture::TEX_Sprite);
+
+	// When loading a Zip, all graphics in the patches/ directory should be
+	// added as well.
+	AddGroup(wadnum, NULL, NULL, ns_patches, FTexture::TEX_WallPatch);
 
 	// Second step: TEXTUREx lumps
 	LoadTextureX(wadnum);

@@ -13,6 +13,8 @@
 #include "gstrings.h"
 #include "templates.h"
 #include "a_strifeglobal.h"
+#include "a_morph.h"
+// [BB] New #includes.
 #include "deathmatch.h"
 #include "network.h"
 #include "sv_commands.h"
@@ -229,10 +231,25 @@ bool P_GiveBody (AActor *actor, int num)
 		// [BC] Add the player's max. health bonus to his max.
 		else
 			max = static_cast<APlayerPawn*>(actor)->GetMaxHealth() + player->stamina + player->lMaxHealthBonus;
-		if (player->morphTics)
-		{
-			max = MAXMORPHHEALTH;
-		}
+		// [MH] First step in predictable generic morph effects
+ 		if (player->morphTics)
+ 		{
+			if (player->MorphStyle & MORPH_FULLHEALTH)
+			{
+				if (!(player->MorphStyle & MORPH_ADDSTAMINA))
+				{
+					max -= player->stamina;
+				}
+			}
+			else // old health behaviour
+			{
+				max = MAXMORPHHEALTH;
+				if (player->MorphStyle & MORPH_ADDSTAMINA)
+				{
+					max += player->stamina;
+				}
+			}
+ 		}
 		// [RH] For Strife: A negative body sets you up with a percentage
 		// of your full health.
 		if (num < 0)
@@ -1027,7 +1044,7 @@ static void PrintPickupMessage (const char *str)
 		{
 			str=GStrings(str+1);
 		}
-		Printf (PRINT_LOW, "%s\n", str);
+		if (str[0] != 0) Printf (PRINT_LOW, "%s\n", str);
 	}
 }
 
@@ -1395,6 +1412,8 @@ void AInventory::GiveQuest (AActor *toucher)
 
 bool AInventory::TryPickup (AActor *toucher)
 {
+	AActor *newtoucher = toucher; // in case changed by the powerup
+
 	// If HandlePickup() returns true, it will set the IF_PICKUPGOOD flag
 	// to indicate that this item has been picked up. If the item cannot be
 	// picked up, then it leaves the flag cleared.
@@ -1441,7 +1460,23 @@ bool AInventory::TryPickup (AActor *toucher)
 		{
 			return false;
 		}
-		copy->AttachToOwner (toucher);
+		// Some powerups cannot activate absolutely, for
+		// example, PowerMorph; fail the pickup if so.
+		if (copy->ItemFlags & IF_INITEFFECTFAILED)
+		{
+			if (copy != this) copy->Destroy();
+			else ItemFlags &= ~IF_INITEFFECTFAILED;
+			return false;
+		}
+		// Handle owner-changing powerups
+		if (copy->ItemFlags & IF_CREATECOPYMOVED)
+		{
+			newtoucher = copy->Owner;
+			copy->Owner = NULL;
+			copy->ItemFlags &= ~IF_CREATECOPYMOVED;
+		}
+		// Continue onwards with the rest
+		copy->AttachToOwner (newtoucher);
 		if (ItemFlags & IF_AUTOACTIVATE)
 		{
 			if (copy->Use (true))
@@ -1455,7 +1490,7 @@ bool AInventory::TryPickup (AActor *toucher)
 		}
 	}
 
-	GiveQuest(toucher);
+	GiveQuest(newtoucher);
 	return true;
 }
 
@@ -1616,9 +1651,24 @@ bool AHealth::TryPickup (AActor *other)
 		{
 			// [BC] Add the player's max. health bonus to his max.
 			max = static_cast<APlayerPawn*>(other)->GetMaxHealth() + player->stamina + player->lMaxHealthBonus;
-			if (player->morphTics)
-			{
-				max = MAXMORPHHEALTH;
+			// [MH] First step in predictable generic morph effects
+ 			if (player->morphTics)
+ 			{
+				if (player->MorphStyle & MORPH_FULLHEALTH)
+				{
+					if (!(player->MorphStyle & MORPH_ADDSTAMINA))
+					{
+						max -= player->stamina;
+					}
+				}
+				else // old health behaviour
+				{
+					max = MAXMORPHHEALTH;
+					if (player->MorphStyle & MORPH_ADDSTAMINA)
+					{
+						max += player->stamina;
+					}
+				}
 			}
 		}
 		// [BC] Apply max. health bonus to the max. allowable health.

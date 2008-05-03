@@ -213,6 +213,7 @@ void A_JabDagger (AActor *actor)
 	int 		damage;
 	int 		pitch;
 	int			power;
+	AActor *linetarget;
 
 	// [BC] Weapons are handled by the server.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -230,8 +231,8 @@ void A_JabDagger (AActor *actor)
 	}
 
 	angle = actor->angle + (pr_jabdagger.Random2() << 18);
-	pitch = P_AimLineAttack (actor, angle, 80*FRACUNIT);
-	P_LineAttack (actor, angle, 80*FRACUNIT, pitch, damage, NAME_Melee, RUNTIME_CLASS(AStrifeSpark));
+	pitch = P_AimLineAttack (actor, angle, 80*FRACUNIT, &linetarget);
+	P_LineAttack (actor, angle, 80*FRACUNIT, pitch, damage, NAME_Melee, RUNTIME_CLASS(AStrifeSpark), true);
 
 	// turn to face target
 	if (linetarget)
@@ -736,7 +737,7 @@ bool AAssaultGun::HandlePickup (AInventory *item)
 //
 //============================================================================
 
-void P_StrifeGunShot (AActor *mo, bool accurate)
+void P_StrifeGunShot (AActor *mo, bool accurate, angle_t pitch)
 {
 	angle_t angle;
 	int damage;
@@ -756,7 +757,7 @@ void P_StrifeGunShot (AActor *mo, bool accurate)
 		angle += pr_sgunshot.Random2() << (20 - mo->player->accuracy * 5 / 100);
 	}
 
-	P_LineAttack (mo, angle, PLAYERMISSILERANGE, bulletpitch, damage, NAME_None, RUNTIME_CLASS(AStrifePuff));
+	P_LineAttack (mo, angle, PLAYERMISSILERANGE, pitch, damage, NAME_None, RUNTIME_CLASS(AStrifePuff));
 }
 
 //============================================================================
@@ -806,8 +807,7 @@ void A_FireAssaultGun (AActor *self)
 		return;
 	}
 
-	P_BulletSlope (self);
-	P_StrifeGunShot (self, accurate);
+	P_StrifeGunShot (self, accurate, P_BulletSlope (self));
 }
 
 // Standing variant of the assault gun --------------------------------------
@@ -1031,7 +1031,7 @@ void A_RocketInFlight (AActor *self)
 	AActor *trail;
 
 	S_Sound (self, CHAN_VOICE, "misc/missileinflight", 1, ATTN_NORM);
-	P_SpawnPuff (RUNTIME_CLASS(AMiniMissilePuff), self->x, self->y, self->z, self->angle - ANGLE_180, 2, true);
+	P_SpawnPuff (RUNTIME_CLASS(AMiniMissilePuff), self->x, self->y, self->z, self->angle - ANGLE_180, 2, PF_HITTHING);
 	trail = Spawn<ARocketTrail> (self->x - self->momx, self->y - self->momy, self->z, ALLOW_REPLACE);
 	if (trail != NULL)
 	{
@@ -1431,13 +1431,13 @@ void A_FireMauler1 (AActor *self)
 		SERVERCOMMANDS_WeaponSound( ULONG( self->player - players ), "weapons/mauler2charge", ULONG( self->player - players ), SVCF_SKIPTHISCLIENT );
 	}
 
-	P_BulletSlope (self);
+	int bpitch = P_BulletSlope (self);
 
 	for (int i = 0; i < 20; ++i)
 	{
 		int damage = 5 * (pr_mauler1() % 3 + 1);
 		angle_t angle = self->angle + (pr_mauler1.Random2() << 19);
-		int pitch = bulletpitch + (pr_mauler1.Random2() * 332063);
+		int pitch = bpitch + (pr_mauler1.Random2() * 332063);
 		
 		// Strife used a range of 2112 units for the mauler to signal that
 		// it should use a different puff. ZDoom's default range is longer
@@ -1576,7 +1576,7 @@ AActor *P_SpawnSubMissile (AActor *source, PClass *type, AActor *target)
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
 		SERVERCOMMANDS_SpawnMissile( other );
-		SERVERCOMMANDS_MissileExplode( other, BlockingLine );
+		SERVERCOMMANDS_MissileExplode( other, other->BlockingLine );
 	}
 
 	return NULL;
@@ -2366,6 +2366,7 @@ void A_FireSigil1 (AActor *actor)
 {
 	AActor *spot;
 	player_t *player = actor->player;
+	AActor *linetarget;
 
 	if (player == NULL || player->ReadyWeapon == NULL)
 		return;
@@ -2385,7 +2386,7 @@ void A_FireSigil1 (AActor *actor)
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_WeaponSound( ULONG( player - players ), "weapons/sigilcharge", ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 
-	P_BulletSlope (actor);
+	P_BulletSlope (actor, &linetarget);
 	if (linetarget != NULL)
 	{
 		spot = Spawn<ASpectralLightningSpot> (linetarget->x, linetarget->y, ONFLOORZ, ALLOW_REPLACE);
@@ -2500,6 +2501,7 @@ void A_FireSigil4 (AActor *actor)
 {
 	AActor *spot;
 	player_t *player = actor->player;
+	AActor *linetarget;
 
 	if (player == NULL || player->ReadyWeapon == NULL)
 		return;
@@ -2519,10 +2521,10 @@ void A_FireSigil4 (AActor *actor)
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_WeaponSound( ULONG( player - players ), "weapons/sigilcharge", ULONG( player - players ), SVCF_SKIPTHISCLIENT );
 
-	P_BulletSlope (actor);
+	P_BulletSlope (actor, &linetarget);
 	if (linetarget != NULL)
 	{
-		spot = P_SpawnPlayerMissile (actor, RUNTIME_CLASS(ASpectralLightningBigV1));
+		spot = P_SpawnPlayerMissile (actor, 0,0,0, RUNTIME_CLASS(ASpectralLightningBigV1), 0, &linetarget);
 		if (spot != NULL)
 		{
 			spot->tracer = linetarget;

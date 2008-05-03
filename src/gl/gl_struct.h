@@ -6,7 +6,7 @@
 #include "tarray.h"
 #include "gl_values.h"
 
-typedef struct vertex_s vertex_t;
+struct vertex_t;
 extern DWORD gl_boomcolormap;
 extern DWORD gl_fixedcolormap;
 class FGLTexture;

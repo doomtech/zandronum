@@ -455,6 +455,7 @@ void A_CFlameMissile (AActor *actor)
 		return;
 	}
 
+	AActor *BlockingMobj = actor->BlockingMobj;
 	if (BlockingMobj && BlockingMobj->flags&MF_SHOOTABLE)
 	{ // Hit something, so spawn the flame circle around the thing
 		dist = BlockingMobj->radius+18*FRACUNIT;

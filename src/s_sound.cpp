@@ -50,6 +50,8 @@
 #include "gi.h"
 #include "templates.h"
 #include "zstring.h"
+#include "timidity/timidity.h"
+// [BB] New #includes.
 #include "cl_demo.h"
 #include "deathmatch.h"
 #include "network.h"
@@ -305,7 +307,7 @@ void S_Init ()
 	{
 		S_ReturnChannel(Channels);
 	}
-	
+
 	// no sounds are playing, and they are not paused
 	MusicPaused = false;
 	SoundPaused = false;
@@ -393,10 +395,21 @@ void S_Start ()
 		
 		// Check for local sound definitions. Only reload if they differ
 		// from the previous ones.
+		const char *LocalSndInfo;
+		const char *LocalSndSeq;
 		
 		// To be certain better check whether level is valid!
-		char *LocalSndInfo = level.info ? level.info->soundinfo : (char*)"";
-		char *LocalSndSeq  = level.info ? level.info->sndseq : (char*)"";
+		if (level.info && level.info->soundinfo)
+		{
+			LocalSndInfo = level.info->soundinfo;
+			LocalSndSeq  = level.info->sndseq;
+		}
+		else
+		{
+			LocalSndInfo = "";
+			LocalSndSeq  = "";
+		}
+
 		bool parse_ss = false;
 
 		// This level uses a different local SNDINFO
@@ -414,7 +427,7 @@ void S_Start ()
 			if (*LocalSndInfo)
 			{
 				// Now parse the local SNDINFO
-				int j = Wads.CheckNumForName(LocalSndInfo);
+				int j = Wads.CheckNumForFullName(LocalSndInfo, true);
 				if (j>=0) S_AddLocalSndInfo(j);
 			}
 
@@ -427,7 +440,7 @@ void S_Start ()
 		}
 		if (parse_ss)
 		{
-			S_ParseSndSeq(*LocalSndSeq? Wads.CheckNumForName(LocalSndSeq) : -1);
+			S_ParseSndSeq(*LocalSndSeq? Wads.CheckNumForFullName(LocalSndSeq, true) : -1);
 		}
 		else
 		
@@ -767,7 +780,8 @@ static void S_StartSound (fixed_t *pt, AActor *mover, int channel,
 
 	// If this sound doesn't like playing near itself, don't play it if
 	// that's what would happen.
-	if (NearLimit > 0 && pt != NULL && S_CheckSoundLimit(sfx, pos, NearLimit))
+	if (NearLimit > 0 && pt != NULL && mover != players[consoleplayer].camera &&
+		S_CheckSoundLimit(sfx, pos, NearLimit))
 		return;
 
 	// Make sure the sound is loaded.

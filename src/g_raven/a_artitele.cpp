@@ -70,18 +70,22 @@ bool AArtiTeleport::Use (bool pickup)
 		destAngle = ANG45 * (playerstarts[Owner->player - players].angle/45);
 	}
 	P_Teleport (Owner, destX, destY, ONFLOORZ, destAngle, true, true, false);
-	if (gameinfo.gametype == GAME_Hexen && Owner->player->morphTics)
-	{ // Teleporting away will undo any morph effects (pig)
-		P_UndoPlayerMorph (Owner->player);
-	}
-	if (gameinfo.gametype == GAME_Heretic)
-	{ // Full volume laugh
-		S_Sound (Owner, CHAN_VOICE, "*evillaugh", 1, ATTN_NONE);
+	bool canlaugh = true;
+ 	if (Owner->player->morphTics && (Owner->player->MorphStyle & MORPH_UNDOBYCHAOSDEVICE))
+ 	{ // Teleporting away will undo any morph effects (pig)
+		if (!P_UndoPlayerMorph (Owner->player) && (Owner->player->MorphStyle & MORPH_FAILNOLAUGH))
+		{
+			canlaugh = false;
+		}
+ 	}
+	if (canlaugh)
+ 	{ // Full volume laugh
+ 		S_Sound (Owner, CHAN_VOICE, "*evillaugh", 1, ATTN_NONE);
 
 		// [BC] Play the laugh for clients.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SoundActor( Owner, CHAN_VOICE, "*evillaugh", 1, ATTN_NONE );
-	}
+ 	}
 	return true;
 }
 

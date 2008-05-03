@@ -254,6 +254,22 @@ protected:
 	void EndEffect( );
 };
 
+class APowerMorph : public APowerup
+{
+	DECLARE_STATELESS_ACTOR( APowerMorph, APowerup )
+public:
+	void Serialize (FArchive &arc);
+
+	FNameNoInit	PlayerClass, MorphFlash, UnMorphFlash;
+	int MorphStyle;
+
+protected:
+	void InitEffect ();
+	void EndEffect ();
+	// Variables
+	player_s *player;
+};
+
 // [BC] Start of new Skulltag powerup types.
 class APowerPossessionArtifact : public APowerup
 {

@@ -134,7 +134,7 @@ void CAMPAIGN_ParseCampaignInfo( void )
 	while (( lCurLump = Wads.FindLump( "CMPGNINF", (int *)&lLastLump )) != -1 )
 	{
 		// Make pszBotInfo point to the raw data (which should be a text file) in the BOTINFO lump.
-		FScanner sc( lCurLump, "CMPGNINF" );
+		FScanner sc( lCurLump );
 
 		// Parse the lump.
 		campaign_ParseCampaignInfoLump( sc );

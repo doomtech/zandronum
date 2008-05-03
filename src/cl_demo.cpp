@@ -422,13 +422,14 @@ void CLIENTDEMO_FinishRecording( void )
 
 //*****************************************************************************
 //
-void CLIENTDEMO_DoPlayDemo( char *pszDemoName )
+void CLIENTDEMO_DoPlayDemo( const char *pszDemoName )
 {
 	LONG	lDemoLump;
 	LONG	lDemoLength;
+	FString demoName = pszDemoName;
 
 	// First, check if the demo is in a lump.
-	lDemoLump = Wads.CheckNumForName( pszDemoName );
+	lDemoLump = Wads.CheckNumForName( demoName );
 	if ( lDemoLump >= 0 )
 	{
 		lDemoLength = Wads.LumpLength( lDemoLump );
@@ -439,9 +440,9 @@ void CLIENTDEMO_DoPlayDemo( char *pszDemoName )
 	}
 	else
 	{
-		FixPathSeperator( pszDemoName );
-		DefaultExtension( pszDemoName, ".cld" );
-		lDemoLength = M_ReadFile( pszDemoName, &g_pbDemoBuffer );
+		FixPathSeperator( demoName );
+		DefaultExtension( demoName, ".cld" );
+		lDemoLength = M_ReadFile( demoName, &g_pbDemoBuffer );
 	}
 
 	g_ByteStream.pbStream = g_pbDemoBuffer;

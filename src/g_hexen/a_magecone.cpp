@@ -161,6 +161,7 @@ void A_FireConePL1 (AActor *actor)
 	AActor *mo;
 	bool conedone=false;
 	player_t *player;
+	AActor *linetarget;
 
 	if (NULL == (player = actor->player))
 	{
@@ -190,7 +191,7 @@ void A_FireConePL1 (AActor *actor)
 	for (i = 0; i < 16; i++)
 	{
 		angle = actor->angle+i*(ANG45/16);
-		slope = P_AimLineAttack (actor, angle, MELEERANGE);
+		slope = P_AimLineAttack (actor, angle, MELEERANGE, &linetarget);
 		if (linetarget)
 		{
 			P_DamageMobj (linetarget, actor, actor, damage, NAME_Ice);

@@ -89,6 +89,196 @@ static	TArray<line_t *>	g_pPathLineArray;
 static	bool		botpath_CheckThing( AActor *pThing );
 static	bool		botpath_CheckLine( line_t *pLine );
 
+// [BB] Todo: Get rid of P_BoxOnLineSide, P_BlockLinesIterator and P_BlockThingsIterator!
+
+//==========================================================================
+//
+// P_BoxOnLineSide
+//
+// Considers the line to be infinite
+// Returns side 0 or 1, -1 if box crosses the line.
+//
+//==========================================================================
+
+int P_BoxOnLineSide (const fixed_t *tmbox, const line_t *ld)
+{
+	// [BB] tmbox == NULL will result in a crash if we don't bail out here.
+	if( tmbox == NULL )
+		return -1;
+
+	int p1;
+	int p2;
+		
+	switch (ld->slopetype)
+	{
+	case ST_HORIZONTAL:
+		p1 = tmbox[BOXTOP] > ld->v1->y;
+		p2 = tmbox[BOXBOTTOM] > ld->v1->y;
+		if (ld->dx < 0)
+		{
+			p1 ^= 1;
+			p2 ^= 1;
+		}
+		break;
+		
+	case ST_VERTICAL:
+		p1 = tmbox[BOXRIGHT] < ld->v1->x;
+		p2 = tmbox[BOXLEFT] < ld->v1->x;
+		if (ld->dy < 0)
+		{
+			p1 ^= 1;
+			p2 ^= 1;
+		}
+		break;
+		
+	case ST_POSITIVE:
+		p1 = P_PointOnLineSide (tmbox[BOXLEFT], tmbox[BOXTOP], ld);
+		p2 = P_PointOnLineSide (tmbox[BOXRIGHT], tmbox[BOXBOTTOM], ld);
+		break;
+		
+	case ST_NEGATIVE:
+	default:	// Just to assure GCC that p1 and p2 really do get initialized
+		p1 = P_PointOnLineSide (tmbox[BOXRIGHT], tmbox[BOXTOP], ld);
+		p2 = P_PointOnLineSide (tmbox[BOXLEFT], tmbox[BOXBOTTOM], ld);
+		break;
+	}
+
+	return (p1 == p2) ? p1 : -1;
+}
+
+//
+// P_BlockLinesIterator
+// The validcount flags are used to avoid checking lines
+// that are marked in multiple mapblocks,
+// so increment validcount before the first call
+// to P_BlockLinesIterator, then make one or more calls
+// to it.
+//
+extern polyblock_t **PolyBlockMap;
+
+bool P_BlockLinesIterator (int x, int y, bool(*func)(line_t*))
+{
+	if (x<0 || y<0 || x>=bmapwidth || y>=bmapheight)
+	{
+		return true;
+	}
+	else
+	{
+		int	offset;
+		int *list;
+
+		/* [RH] Polyobj stuff from Hexen --> */
+		polyblock_t *polyLink;
+
+		offset = y*bmapwidth + x;
+		if (PolyBlockMap)
+		{
+			polyLink = PolyBlockMap[offset];
+			while (polyLink)
+			{
+				if (polyLink->polyobj && polyLink->polyobj->validcount != validcount)
+				{
+					int i;
+					seg_t **tempSeg = polyLink->polyobj->segs;
+					polyLink->polyobj->validcount = validcount;
+
+					for (i = polyLink->polyobj->numsegs; i; i--, tempSeg++)
+					{
+						if ((*tempSeg)->linedef->validcount != validcount)
+						{
+							(*tempSeg)->linedef->validcount = validcount;
+							if (!func ((*tempSeg)->linedef))
+								return false;
+						}
+					}
+				}
+				polyLink = polyLink->next;
+			}
+		}
+		/* <-- Polyobj stuff from Hexen */
+
+		offset = *(blockmap + offset);
+
+		// There is an extra entry at the beginning of every block.
+		// Apparently, id had originally intended for it to be used
+		// to keep track of things, but the final code does not do that.
+		for (list = blockmaplump + offset + 1; *list != -1; list++)
+		{
+			line_t *ld = &lines[*list];
+
+			if (ld->validcount != validcount)
+			{
+				ld->validcount = validcount;
+					
+				if ( !func(ld) )
+					return false;
+			}
+		}
+	}
+	return true;		// everything was checked
+}
+
+
+//
+// P_BlockThingsIterator
+//
+
+bool P_BlockThingsIterator (int x, int y, bool(*func)(AActor*), TArray<AActor *> &checkarray, AActor *actor)
+{
+	if ((unsigned int)x >= (unsigned int)bmapwidth ||
+		(unsigned int)y >= (unsigned int)bmapheight)
+	{
+		return true;
+	}
+	else
+	{
+		FBlockNode *block;
+		int index = y*bmapwidth + x;
+
+		if (actor == NULL)
+		{
+			block = blocklinks[index];
+		}
+		else
+		{
+			block = actor->BlockNode;
+			while (block != NULL && block->BlockIndex != index)
+			{
+				block = block->NextBlock;
+			}
+			if (block != NULL)
+			{
+				block = block->NextActor;
+			}
+		}
+		while (block != NULL)
+		{
+			FBlockNode *next = block->NextActor;
+			int i;
+
+			// Don't recheck things that were already checked
+			for (i = (int)checkarray.Size() - 1; i >= 0; --i)
+			{
+				if (checkarray[i] == block->Me)
+				{
+					break;
+				}
+			}
+			if (i < 0)
+			{
+				checkarray.Push (block->Me);
+				if (!func (block->Me))
+				{
+					return false;
+				}
+			}
+			block = next;
+		}
+	}
+	return true;
+}
+
+
 //*****************************************************************************
 //	FUNCTIONS
 

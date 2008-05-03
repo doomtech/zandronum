@@ -564,7 +564,6 @@ int S_AddPlayerSound (const char *pclass, int gender, int refid,
 	if (lumpname)
 	{
 		lump = Wads.CheckNumForFullName (lumpname, true, ns_sounds);
-		if (lump == -1) lump = Wads.CheckNumForName (lumpname, ns_sounds);
 	}
 
 	return S_AddPlayerSound (pclass, gender, refid, lump);
@@ -898,7 +897,7 @@ static void S_AddSNDINFO (int lump)
 	bool skipToEndIf;
 	TArray<WORD> list;
 
-	FScanner sc(lump, "SNDINFO");
+	FScanner sc(lump);
 	skipToEndIf = false;
 
 	while (sc.GetString ())

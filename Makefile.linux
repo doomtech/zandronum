@@ -1,5 +1,7 @@
 # created on 4/12/2006 by James Bentler
 
+
+FMOD_PREFIX = /usr/local
 CXX = apg++
 CC = apgcc
 NASM ?= nasm
@@ -23,11 +25,12 @@ else
 endif
 LDFLAGS += FLAC/*.o -lz -ljpeg `sdl-config --libs`
 ifndef SERVERONLY
-  LDFLAGS +=  -lmodplug -lfmodex -lGL -lGLU `pkg-config gtk+-2.0 --libs`
+  LDFLAGS +=  $(FMOD_PREFIX)/lib/libfmodex.so -lGL -lGLU `pkg-config gtk+-2.0 --libs`
 endif
+
 NASMFLAGS += -f elf -DM_TARGET_LINUX
 SRCDIRS = src/ $(addprefix src/,g_doom/ g_heretic/ g_hexen/ g_raven/ g_shared/ g_strife/ MD5/ oplsynth/ sound/ sdl/ textures/ thingdef/ win32/g15/ xlat/)
-INCLUDES += -Isnes_spc/snes_spc/ -I/usr/include/fmodex/
+INCLUDES += -Isnes_spc/snes_spc/ -I$(FMOD_PREFIX)/include/fmodex/
 ifndef SERVERONLY
   SRCDIRS += $(addprefix src/,gl/ gl/r_render/)
 endif
@@ -97,8 +100,9 @@ $(OBJDIR)/%.o: %.c
 $(OBJDIR)/%.o: %.nas
 	$(CCDV) $(NASM) -o $@ $(NASMFLAGS) $<
 
+
 # This file needs special handling so that it actually gets compiled with SSE2 support.
-$(OBJDIR)/nodebuild_classify_sse2.o: nodebuild_classify_sse2.cpp
+$(OBJDIR)/nodebuild_classify_sse2.o: src/nodebuild_classify_sse2.cpp
 	$(CCDV) $(CXX) $(CXXFLAGS) -msse2 -mfpmath=sse -c -o $@ $<
 
 # This file needs special handling because GCC misoptimizes it otherwise.
@@ -117,20 +121,20 @@ toolsandpk3: ccdv tools/makewad/makewad
 zdoom.pk3: toolsandpk3
 	ln -sf wadsrc/zdoom.pk3 ./
 
-snes_spc/libsnes_spc.a:
+snes_spc/libsnes_spc.a: ccdv
 	$(MAKE) -C snes_spc/
 
 tools/makewad/makewad: ccdv
 	$(MAKE) -C tools/makewad/
 
-tools/lemon/lemon:
+tools/lemon/lemon: ccdv
 	$(MAKE) -C tools/lemon/
 
 tools/updaterevision/updaterevision: ccdv
-	make -C tools/updaterevision/
+	$(MAKE) -C tools/updaterevision/
 
 src/svnrevision_gz.h: tools/updaterevision/updaterevision
-	tools/updaterevision/updaterevision src src/svnrevision_gz.h
+	tools/updaterevision/updaterevision . src/svnrevision_gz.h
 
 
 updaterev: tools/updaterevision/updaterevision

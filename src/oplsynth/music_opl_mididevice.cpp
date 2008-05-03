@@ -40,6 +40,7 @@
 #include "doomdef.h"
 #include "m_swap.h"
 #include "w_wad.h"
+#include "fmopl.h"
 
 // MACROS ------------------------------------------------------------------
 
@@ -105,7 +106,7 @@ OPLMIDIDevice::~OPLMIDIDevice()
 
 int OPLMIDIDevice::Open(void (*callback)(unsigned int, void *, DWORD, DWORD), void *userdata)
 {
-	if (io == NULL || io->OPLinit(TwoChips + 1, uint(OPL_SAMPLE_RATE)))
+	if (io == NULL || io->OPLinit(TwoChips + 1))
 	{
 		return 1;
 	}
@@ -209,6 +210,7 @@ int OPLMIDIDevice::SetTimeDiv(int timediv)
 void OPLMIDIDevice::CalcTickRate()
 {
 	SamplesPerTick = OPL_SAMPLE_RATE / (1000000.0 / Tempo) / Division;
+	io->SetClockRate(SamplesPerTick);
 }
 
 //==========================================================================
@@ -221,7 +223,7 @@ int OPLMIDIDevice::Resume()
 {
 	if (!Started)
 	{
-		if (Stream->Play(true, 1, false))
+		if (Stream->Play(true, 1))
 		{
 			Started = true;
 			BlockForStats = this;
@@ -259,9 +261,9 @@ void OPLMIDIDevice::Stop()
 
 int OPLMIDIDevice::StreamOutSync(MIDIHDR *header)
 {
-	Serialize();
+	ChipAccess.Enter();
 	StreamOut(header);
-	Unserialize();
+	ChipAccess.Leave();
 	return 0;
 }
 
@@ -510,5 +512,5 @@ void OPLMIDIDevice::HandleEvent(int status, int parm1, int parm2)
 bool OPLMIDIDevice::FillStream(SoundStream *stream, void *buff, int len, void *userdata)
 {
 	OPLMIDIDevice *device = (OPLMIDIDevice *)userdata;
-	return device->ServiceStream (buff, len);
+	return device->ServiceStream(buff, len);
 }

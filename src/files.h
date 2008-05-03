@@ -9,14 +9,17 @@
 class FileReader
 {
 public:
+	FileReader ();
 	FileReader (const char *filename);
 	FileReader (FILE *file);
 	FileReader (FILE *file, long length);
+	bool Open (const char *filename);
 	virtual ~FileReader ();
 
 	virtual long Tell () const;
 	virtual long Seek (long offset, int origin);
 	virtual long Read (void *buffer, long len);
+	virtual char *Gets(char *strbuf, int len);
 	long GetLength () const { return Length; }
 
 	// If you use the underlying FILE without going through this class,
@@ -58,9 +61,11 @@ public:
 		return *this;
 	}
 
+
 protected:
 	FileReader (const FileReader &other, long length);
-	FileReader ();
+
+	char *GetsFromBuffer(const char * bufptr, char *strbuf, int len);
 
 	FILE *File;
 	long Length;
@@ -145,6 +150,7 @@ public:
 	virtual long Tell () const;
 	virtual long Seek (long offset, int origin);
 	virtual long Read (void *buffer, long len);
+	virtual char *Gets(char *strbuf, int len);
 
 protected:
 	const char * bufptr;

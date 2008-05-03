@@ -225,7 +225,7 @@ void A_MakePod (AActor *actor)
 	y = actor->y;
 	z = actor->z;
 	mo = Spawn<APod> (x, y, ONFLOORZ, ALLOW_REPLACE);
-	if (P_CheckPosition (mo, x, y) == false)
+	if (!P_CheckPosition (mo, x, y))
 	{ // Didn't fit
 		mo->Destroy ();
 		return;

@@ -264,6 +264,9 @@ player_s::player_s()
   attacker(0),
   extralight(0),
   morphTics(0),
+  MorphedPlayerClass(0),
+  MorphStyle(0),
+  MorphExitFlash(0),
   PremorphWeapon(0),
   chickenPeck(0),
   jumpTics(0),
@@ -463,6 +466,7 @@ BEGIN_STATELESS_DEFAULTS (APlayerPawn, Any, -1, 0)
 	PROP_PlayerPawn_SideMove2 (FRACUNIT)
 	PROP_PlayerPawn_ColorRange (0, 0)
 	PROP_PlayerPawn_SoundClass ("player")
+	PROP_PlayerPawn_Face ("None")
 	PROP_PlayerPawn_MorphWeapon ("None")
 END_DEFAULTS
 
@@ -1508,6 +1512,8 @@ void APlayerPawn::ActivateMorphWeapon ()
 		}
 	}
 	P_SetPsprite (player, ps_flash, NULL);
+
+	player->PendingWeapon = WP_NOCHANGE;
 }
 
 //===========================================================================
@@ -3365,7 +3371,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 		if ((cmd->ucmd.buttons & BT_USE) && !(player->oldbuttons & BT_USE))
 		{
 			P_UseLines (player);
-			P_UseItems (player);
+			//P_UseItems (player);
 		}
 		// Morph counter
 		if (player->morphTics)
@@ -3634,6 +3640,9 @@ void player_s::Serialize (FArchive &arc)
 		<< extralight
 		<< fixedcolormap
 		<< morphTics
+		<< MorphedPlayerClass
+		<< MorphStyle
+		<< MorphExitFlash
 		<< PremorphWeapon
 		<< chickenPeck
 		<< jumpTics

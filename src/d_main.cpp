@@ -196,6 +196,7 @@ extern cycle_t WallCycles, PlaneCycles, MaskedCycles, WallScanCycles;
 CVAR (Bool, queryiwad, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG);
 CVAR (String, defaultiwad, "", CVAR_ARCHIVE|CVAR_GLOBALCONFIG);
 CVAR (Int, wipetype, 1, CVAR_ARCHIVE);
+CVAR (Int, snd_drawoutput, 0, 0);
 
 bool DrawFSHUD;				// [RH] Draw fullscreen HUD?
 wadlist_t *wadfiles;		// [RH] remove limit on # of loaded wads
@@ -836,6 +837,11 @@ void D_Display ()
 		NoWipe = 10;
 	}
 
+	if (snd_drawoutput && GSnd != NULL)
+	{
+		GSnd->DrawWaveDebug(snd_drawoutput);
+	}
+
 	if (!wipe || NoWipe < 0)
 	{
 		NetUpdate ();			// send out any new accumulation
@@ -1219,10 +1225,8 @@ void D_DoAdvanceDemo (void)
 	// [RH] If you want something more dynamic for your title, create a map
 	// and name it TITLEMAP. That map will be loaded and used as the title.
 
-	MapData * map = P_OpenMapData("TITLEMAP");
-	if (map != NULL)
+	if (P_CheckMapData("TITLEMAP"))
 	{
-		delete map;
 		G_InitNew ("TITLEMAP", true);
 		return;
 	}
@@ -2113,7 +2117,7 @@ static const char *BaseFileSearch (const char *file, const char *ext, bool lookf
 
 	if (lookfirstinprogdir)
 	{
-		sprintf (wad, "%s%s%s", progdir, progdir[strlen (progdir) - 1] != '/' ? "/" : "", file);
+		sprintf (wad, "%s%s%s", progdir.GetChars(), progdir[progdir.Len() - 1] != '/' ? "/" : "", file);
 		if (FileExists (wad))
 		{
 			return wad;
@@ -2676,14 +2680,12 @@ void D_DoomMain (void)
 	p = Args->CheckParm ("+map");
 	if (p && p < Args->NumArgs()-1)
 	{
-		MapData * map = P_OpenMapData(Args->GetArg (p+1));
-		if (map == NULL)
+		if (!P_CheckMapData(Args->GetArg (p+1)))
 		{
 			Printf ("Can't find map %s\n", Args->GetArg (p+1));
 		}
 		else
 		{
-			delete map;
 			strncpy (startmap, Args->GetArg (p+1), 8);
 			Args->GetArg (p)[0] = '-';
 			autostart = true;
@@ -2750,10 +2752,6 @@ void D_DoomMain (void)
 		StartScreen->AppendStatusLine(temp);
 	}
 
-	// [RH] Now that all text strings are set up,
-	// insert them into the level and cluster data.
-	G_MakeEpisodes ();
-	
 	// [RH] Parse through all loaded mapinfo lumps
 	Printf ("G_ParseMapInfo: Load map definitions.\n");
 	G_ParseMapInfo ();

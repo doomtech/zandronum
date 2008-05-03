@@ -23,7 +23,7 @@ void A_FAxeCheckReadyG (AActor *actor);
 void A_FAxeCheckUpG (AActor *actor);
 void A_FAxeAttack (AActor *actor);
 
-extern void AdjustPlayerAngle (AActor *pmo);
+extern void AdjustPlayerAngle (AActor *pmo, AActor *linetarget);
 
 EXTERN_CVAR (Int, cl_bloodtype)
 
@@ -323,6 +323,7 @@ void A_FAxeAttack (AActor *actor)
 	player_t *player;
 	AWeapon *weapon;
 	const PClass *pufftype;
+	AActor *linetarget;
 
 	if (NULL == (player = actor->player))
 	{
@@ -349,64 +350,64 @@ void A_FAxeAttack (AActor *actor)
 	for (i = 0; i < 16; i++)
 	{
 		angle = pmo->angle+i*(ANG45/16);
-		slope = P_AimLineAttack (pmo, angle, AXERANGE);
+		slope = P_AimLineAttack (pmo, angle, AXERANGE, &linetarget);
 		if (linetarget)
 		{
-			P_LineAttack (pmo, angle, AXERANGE, slope, damage, NAME_Melee, pufftype);
+			P_LineAttack (pmo, angle, AXERANGE, slope, damage, NAME_Melee, pufftype, true);
 			if (linetarget->flags3&MF3_ISMONSTER || linetarget->player)
 			{
 				P_ThrustMobj (linetarget, angle, power);
 			}
-			AdjustPlayerAngle (pmo);
+			AdjustPlayerAngle (pmo, linetarget);
 
 			// [BC] Apply spread.
 			if ( player->cheats & CF_SPREAD )
 			{
-				P_LineAttack (pmo, angle + ( ANGLE_45 / 3 ), AXERANGE, slope, damage, NAME_Melee, pufftype);
+				P_LineAttack (pmo, angle + ( ANGLE_45 / 3 ), AXERANGE, slope, damage, NAME_Melee, pufftype, true);
 				if (linetarget->flags3&MF3_ISMONSTER || linetarget->player)
 				{
 					P_ThrustMobj (linetarget, angle + ( ANGLE_45 / 3 ), power);
 				}
-				AdjustPlayerAngle (pmo);
+				AdjustPlayerAngle (pmo, linetarget);
 
-				P_LineAttack (pmo, angle - ( ANGLE_45 / 3 ), AXERANGE, slope, damage, NAME_Melee, pufftype);
+				P_LineAttack (pmo, angle - ( ANGLE_45 / 3 ), AXERANGE, slope, damage, NAME_Melee, pufftype, true);
 				if (linetarget->flags3&MF3_ISMONSTER || linetarget->player)
 				{
 					P_ThrustMobj (linetarget, angle - ( ANGLE_45 / 3 ), power);
 				}
-				AdjustPlayerAngle (pmo);
+				AdjustPlayerAngle (pmo, linetarget);
 			}
 
 			useMana++; 
 			goto axedone;
 		}
 		angle = pmo->angle-i*(ANG45/16);
-		slope = P_AimLineAttack (pmo, angle, AXERANGE);
+		slope = P_AimLineAttack (pmo, angle, AXERANGE, &linetarget);
 		if (linetarget)
 		{
-			P_LineAttack (pmo, angle, AXERANGE, slope, damage, NAME_Melee, pufftype);
+			P_LineAttack (pmo, angle, AXERANGE, slope, damage, NAME_Melee, pufftype, true);
 			if (linetarget->flags3&MF3_ISMONSTER)
 			{
 				P_ThrustMobj (linetarget, angle, power);
 			}
-			AdjustPlayerAngle (pmo);
+			AdjustPlayerAngle (pmo, linetarget);
 
 			// [BC] Apply spread.
 			if ( player->cheats & CF_SPREAD )
 			{
-				P_LineAttack (pmo, angle + ( ANGLE_45 / 3 ), AXERANGE, slope, damage, NAME_Melee, pufftype);
+				P_LineAttack (pmo, angle + ( ANGLE_45 / 3 ), AXERANGE, slope, damage, NAME_Melee, pufftype, true);
 				if (linetarget->flags3&MF3_ISMONSTER || linetarget->player)
 				{
 					P_ThrustMobj (linetarget, angle + ( ANGLE_45 / 3 ), power);
 				}
-				AdjustPlayerAngle (pmo);
+				AdjustPlayerAngle (pmo, linetarget);
 
-				P_LineAttack (pmo, angle - ( ANGLE_45 / 3 ), AXERANGE, slope, damage, NAME_Melee, pufftype);
+				P_LineAttack (pmo, angle - ( ANGLE_45 / 3 ), AXERANGE, slope, damage, NAME_Melee, pufftype, true);
 				if (linetarget->flags3&MF3_ISMONSTER || linetarget->player)
 				{
 					P_ThrustMobj (linetarget, angle - ( ANGLE_45 / 3 ), power);
 				}
-				AdjustPlayerAngle (pmo);
+				AdjustPlayerAngle (pmo, linetarget);
 			}
 
 			useMana++; 
@@ -417,14 +418,14 @@ void A_FAxeAttack (AActor *actor)
 	pmo->special1 = 0;
 
 	angle = pmo->angle;
-	slope = P_AimLineAttack (pmo, angle, MELEERANGE);
-	P_LineAttack (pmo, angle, MELEERANGE, slope, damage, NAME_Melee, pufftype);
+	slope = P_AimLineAttack (pmo, angle, MELEERANGE, &linetarget);
+	P_LineAttack (pmo, angle, MELEERANGE, slope, damage, NAME_Melee, pufftype, true);
 
 	// [BC] Apply spread.
 	if ( player->cheats & CF_SPREAD )
 	{
-		P_LineAttack( pmo, angle + ( ANGLE_45 / 3 ), MELEERANGE, slope, damage, NAME_Melee, pufftype );
-		P_LineAttack( pmo, angle - ( ANGLE_45 / 3 ), MELEERANGE, slope, damage, NAME_Melee, pufftype );
+		P_LineAttack (pmo, angle + ( ANGLE_45 / 3 ), MELEERANGE, slope, damage, NAME_Melee, pufftype, true);
+		P_LineAttack (pmo, angle - ( ANGLE_45 / 3 ), MELEERANGE, slope, damage, NAME_Melee, pufftype, true);
 	}
 
 axedone:

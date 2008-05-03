@@ -595,7 +595,7 @@ void FBehavior::StaticLoadDefaultModules ()
 
 	while ((lump = Wads.FindLump ("LOADACS", &lastlump)) != -1)
 	{
-		FScanner sc(lump, "LOADACS");
+		FScanner sc(lump);
 		while (sc.GetString())
 		{
 			int acslump = Wads.CheckNumForName (sc.String, ns_acslibrary);

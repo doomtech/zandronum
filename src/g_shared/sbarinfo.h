@@ -40,6 +40,7 @@
 #include "v_collection.h"
 
 #define NUMHUDS 9
+#define NUMPOPUPS 3
 
 class FBarTexture;
 class FScanner;
@@ -47,6 +48,35 @@ class FScanner;
 struct SBarInfoCommand; //we need to be able to use this before it is defined.
 struct MugShotState;
 
+//Popups!
+enum PopupTransition
+{
+	TRANSITION_NONE,
+	TRANSITION_SLIDEINBOTTOM,
+};
+
+struct Popup
+{
+	PopupTransition transition;
+	bool opened;
+	bool moving;
+	int height;
+	int width;
+	int speed;
+	int x;
+	int y;
+
+	Popup();
+	void init();
+	void tick();
+	void open();
+	void close();
+	bool isDoneMoving();
+	int getXOffset();
+	int getYOffset();
+};
+
+//SBarInfo
 struct SBarInfoBlock
 {
 	TArray<SBarInfoCommand> commands;
@@ -82,6 +112,7 @@ struct SBarInfo
 {
 	TArray<FString> Images;
 	SBarInfoBlock huds[NUMHUDS];
+	Popup popups[NUMPOPUPS];
 	bool automapbar;
 	bool interpolateHealth;
 	bool interpolateArmor;
@@ -183,22 +214,24 @@ enum //drawimage flags
 
 enum //drawnumber flags
 {
-	DRAWNUMBER_HEALTH = 1,
-	DRAWNUMBER_ARMOR = 2,
-	DRAWNUMBER_AMMO1 = 4,
-	DRAWNUMBER_AMMO2 = 8,
-	DRAWNUMBER_AMMO = 16,
-	DRAWNUMBER_AMMOCAPACITY = 32,
-	DRAWNUMBER_FRAGS = 64,
-	DRAWNUMBER_INVENTORY = 128,
-	DRAWNUMBER_KILLS = 256,
-	DRAWNUMBER_MONSTERS = 512,
-	DRAWNUMBER_ITEMS = 1024,
-	DRAWNUMBER_TOTALITEMS = 2048,
-	DRAWNUMBER_SECRETS = 4096,
-	DRAWNUMBER_TOTALSECRETS = 8192,
-	DRAWNUMBER_ARMORCLASS = 16384,
-	DRAWNUMBER_GLOBALVAR = 32768,
+	DRAWNUMBER_HEALTH = 0x1,
+	DRAWNUMBER_ARMOR = 0x2,
+	DRAWNUMBER_AMMO1 = 0x4,
+	DRAWNUMBER_AMMO2 = 0x8,
+	DRAWNUMBER_AMMO = 0x10,
+	DRAWNUMBER_AMMOCAPACITY = 0x20,
+	DRAWNUMBER_FRAGS = 0x40,
+	DRAWNUMBER_INVENTORY = 0x80,
+	DRAWNUMBER_KILLS = 0x100,
+	DRAWNUMBER_MONSTERS = 0x200,
+	DRAWNUMBER_ITEMS = 0x400,
+	DRAWNUMBER_TOTALITEMS = 0x800,
+	DRAWNUMBER_SECRETS = 0x1000,
+	DRAWNUMBER_TOTALSECRETS = 0x2000,
+	DRAWNUMBER_ARMORCLASS = 0x4000,
+	DRAWNUMBER_GLOBALVAR = 0x8000,
+	DRAWNUMBER_GLOBALARRAY = 0x10000,
+	DRAWNUMBER_FILLZEROS = 0x20000,
 };
 
 enum //drawbar flags (will go into special2)
@@ -274,6 +307,7 @@ enum //Key words
 	SBARINFO_LOWERHEALTHCAP,
 	SBARINFO_STATUSBAR,
 	SBARINFO_MUGSHOT,
+	SBARINFO_CREATEPOPUP,
 };
 
 enum //Bar types
@@ -305,6 +339,7 @@ enum //Bar key words
 	SBARINFO_GAMEMODE,
 	SBARINFO_PLAYERCLASS,
 	SBARINFO_ASPECTRATIO,
+	SBARINFO_ISSELECTED,
 	SBARINFO_WEAPONAMMO,
 	SBARINFO_ININVENTORY,
 };
@@ -337,10 +372,10 @@ public:
 	void ShowPop(int popnum);
 	void SetMugShotState(const char* stateName, bool waitTillDone=false);
 private:
-	void doCommands(SBarInfoBlock &block);
-	void DrawGraphic(FTexture* texture, int x, int y, int flags);
+	void doCommands(SBarInfoBlock &block, int xOffset=0, int yOffset=0);
+	void DrawGraphic(FTexture* texture, int x, int y, int flags=0);
 	void DrawString(const char* str, int x, int y, EColorRange translation, int spacing=0);
-	void DrawNumber(int num, int len, int x, int y, EColorRange translation, int spacing=0);
+	void DrawNumber(int num, int len, int x, int y, EColorRange translation, int spacing=0, bool fillzeros=false);
 	void DrawFace(FString &defaultFace, int accuracy, bool xdth, bool animatedgodmode, int x, int y);
 	int updateState(bool xdth, bool animatedgodmode);
 	void DrawInventoryBar(int type, int num, int x, int y, bool alwaysshow, 
@@ -363,6 +398,7 @@ private:
 	int mugshotHealth;
 	int chainWiggle;
 	int artiflash;
+	int pendingPopup;
 	int currentPopup;
 	unsigned int invBarOffset;
 	FBarShader shader_horz_normal;

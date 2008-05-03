@@ -247,6 +247,7 @@ enum
 	ADEF_PlayerPawn_CrouchSprite,
 	ADEF_PlayerPawn_DisplayName,
 	ADEF_PlayerPawn_SoundClass,
+	ADEF_PlayerPawn_Face,
 	ADEF_PlayerPawn_ScoreIcon,
 	ADEF_PlayerPawn_MorphWeapon,
 	// [BC] New property for the announcer entry to be played when the inventory item is

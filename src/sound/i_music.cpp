@@ -70,6 +70,7 @@ extern void ChildSigHandler (int signum);
 #include "tempfiles.h"
 #include "templates.h"
 #include "stats.h"
+#include "timidity/timidity.h"
 
 //[BB] fmod.h is not needed here.
 //#include <fmod.h>
@@ -149,9 +150,16 @@ FString MusInfo::GetStats()
 	return "No stats available for this song";
 }
 
+MusInfo *MusInfo::GetOPLDumper(const char *filename)
+{
+	return NULL;
+}
+
 void I_InitMusic (void)
 {
 	static bool setatterm = false;
+
+	Timidity::LoadConfig();
 
 	snd_musicvolume.Callback ();
 
@@ -184,8 +192,9 @@ void I_ShutdownMusic(void)
 		S_StopMusic (true);
 		assert (currSong == NULL);
 	}
+	Timidity::FreeAll();
 #ifdef _WIN32
-	I_ShutdownMusicWin32 ();
+	I_ShutdownMusicWin32();
 #endif // _WIN32
 }
 
@@ -306,7 +315,6 @@ void *I_RegisterSong (const char *filename, char *musiccache, int offset, int le
 			/*	MUS are played as:
 			- OPL: 
 				- if explicitly selected by $mididevice 
-				- when opl_enable is true and no midi device is set for the song
 				- when snd_mididevice  is -3 and no midi device is set for the song
 
 			  Timidity: 
@@ -323,13 +331,17 @@ void *I_RegisterSong (const char *filename, char *musiccache, int offset, int le
 				- when snd_mididevice  is >= 0 and no midi device is set for the song
 				- as fallback when both OPL and Timidity failed and snd_mididevice is >= 0
 			*/
-			if (((opl_enable || snd_mididevice == -3) && device == MDEV_DEFAULT) || device == MDEV_OPL)
+			if ((snd_mididevice == -3 && device == MDEV_DEFAULT) || device == MDEV_OPL)
 			{
-				info = new OPLMUSSong (file, musiccache, len);
+				info = new MUSSong2 (file, musiccache, len, MIDI_OPL);
 			}
 			else if (device == MDEV_TIMIDITY || (device == MDEV_DEFAULT && snd_mididevice == -2))
 			{
 				info = new TimiditySong (file, musiccache, len);
+			}
+			else if ((snd_mididevice == -4 && device == MDEV_DEFAULT) && GSnd != NULL)
+			{
+				info = new MUSSong2(file, musiccache, len, MIDI_Timidity);
 			}
 			if (info != NULL && !info->IsValid())
 			{
@@ -371,7 +383,7 @@ void *I_RegisterSong (const char *filename, char *musiccache, int offset, int le
 #ifdef _WIN32
 		if (info == NULL)
 		{
-			info = new MUSSong2 (file, musiccache, len);
+			info = new MUSSong2 (file, musiccache, len, MIDI_Win);
 		}
 #endif // _WIN32
 	}
@@ -386,7 +398,6 @@ void *I_RegisterSong (const char *filename, char *musiccache, int offset, int le
 			/*	MIDI are played as:
 			  OPL: 
 				- if explicitly selected by $mididevice 
-				- when opl_enable is true and no midi device is set for the song
 				- when snd_mididevice  is -3 and no midi device is set for the song
 
 			  Timidity: 
@@ -405,11 +416,15 @@ void *I_RegisterSong (const char *filename, char *musiccache, int offset, int le
 			*/
 			if ((device == MDEV_OPL || (snd_mididevice == -3 && device == MDEV_DEFAULT)) && GSnd != NULL)
 			{
-				info = new MIDISong2 (file, musiccache, len, true);
+				info = new MIDISong2 (file, musiccache, len, MIDI_OPL);
 			}
 			else if ((device == MDEV_TIMIDITY || (snd_mididevice == -2 && device == MDEV_DEFAULT)) && GSnd != NULL)
 			{
 				info = new TimiditySong (file, musiccache, len);
+			}
+			else if ((snd_mididevice == -4 && device == MDEV_DEFAULT) && GSnd != NULL)
+			{
+				info = new MIDISong2(file, musiccache, len, MIDI_Timidity);
 			}
 			if (info != NULL && !info->IsValid())
 			{
@@ -420,12 +435,15 @@ void *I_RegisterSong (const char *filename, char *musiccache, int offset, int le
 #ifdef _WIN32
 			if (info == NULL && device != MDEV_FMOD && (snd_mididevice >= 0 || device == MDEV_MMAPI))
 			{
-				info = new MIDISong2 (file, musiccache, len, false);
+				info = new MIDISong2 (file, musiccache, len, MIDI_Win);
 			}
 #endif // _WIN32
 		}
-		// Check for RDosPlay raw OPL format
-		else if (id == MAKE_ID('R','A','W','A') && len >= 12)
+		// Check for various raw OPL formats
+		else if (len >= 12 &&
+			(id == MAKE_ID('R','A','W','A') ||		// Rdos Raw OPL
+			 id == MAKE_ID('D','B','R','A') ||		// DosBox Raw OPL
+			  id == MAKE_ID('A','D','L','I')))		// Martin Fernandez's modified IMF
 		{
 			DWORD fullsig[2];
 
@@ -443,30 +461,9 @@ void *I_RegisterSong (const char *filename, char *musiccache, int offset, int le
 				memcpy(fullsig, musiccache, 8);
 			}
 
-			if (fullsig[1] == MAKE_ID('D','A','T','A'))
-			{
-				info = new OPLMUSSong (file, musiccache, len);
-			}
-		}
-		// Check for Martin Fernandez's modified IMF format
-		else if (id == MAKE_ID('A','D','L','I'))
-		{
-			char fullhead[6];
-
-			if (file != NULL)
-			{
-				if (fread (fullhead, 1, 6, file) != 6)
-				{
-					fclose (file);
-					return 0;
-				}
-				fseek (file, -6, SEEK_CUR);
-			}
-			else
-			{
-				memcpy(fullhead, musiccache, 6);
-			}
-			if (fullhead[4] == 'B' && fullhead[5] == 1)
+			if ((fullsig[0] == MAKE_ID('R','A','W','A') && fullsig[1] == MAKE_ID('D','A','T','A')) ||
+				(fullsig[0] == MAKE_ID('D','B','R','A') && fullsig[1] == MAKE_ID('W','O','P','L')) ||
+				(fullsig[0] == MAKE_ID('A','D','L','I') && (fullsig[1] & MAKE_ID(255,255,0,0)) == MAKE_ID('B',1,0,0)))
 			{
 				info = new OPLMUSSong (file, musiccache, len);
 			}
@@ -596,4 +593,41 @@ ADD_STAT(music)
 		return currSong->GetStats();
 	}
 	return "No song playing";
+}
+
+//==========================================================================
+//
+// CCMD writeopl
+//
+// If the current song can be played with OPL instruments, dump it to
+// the specified file on disk.
+//
+//==========================================================================
+
+CCMD (writeopl)
+{
+	if (argv.argc() == 2)
+	{
+		if (currSong == NULL)
+		{
+			Printf ("No song is currently playing.\n");
+		}
+		else
+		{
+			MusInfo *dumper = currSong->GetOPLDumper(argv[1]);
+			if (dumper == NULL)
+			{
+				Printf ("Current song cannot be saved as OPL data.\n");
+			}
+			else
+			{
+				dumper->Play(false);
+				delete dumper;
+			}
+		}
+	}
+	else
+	{
+		Printf ("Usage: writeopl <filename>");
+	}
 }

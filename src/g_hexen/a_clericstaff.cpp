@@ -190,6 +190,7 @@ void A_CStaffCheck (AActor *actor)
 	int slope;
 	int i;
 	player_t *player;
+	AActor *linetarget;
 
 	if (NULL == (player = actor->player))
 	{
@@ -202,7 +203,7 @@ void A_CStaffCheck (AActor *actor)
 	for (i = 0; i < 3; i++)
 	{
 		angle = pmo->angle+i*(ANG45/16);
-		slope = P_AimLineAttack (pmo, angle, fixed_t(1.5*MELEERANGE));
+		slope = P_AimLineAttack (pmo, angle, fixed_t(1.5*MELEERANGE), &linetarget);
 		if (linetarget)
 		{
 			P_LineAttack (pmo, angle, fixed_t(1.5*MELEERANGE), slope, damage, NAME_Melee, RUNTIME_CLASS(ACStaffPuff));
@@ -234,7 +235,7 @@ void A_CStaffCheck (AActor *actor)
 			break;
 		}
 		angle = pmo->angle-i*(ANG45/16);
-		slope = P_AimLineAttack (player->mo, angle, fixed_t(1.5*MELEERANGE));
+		slope = P_AimLineAttack (player->mo, angle, fixed_t(1.5*MELEERANGE), &linetarget);
 		if (linetarget)
 		{
 			P_LineAttack (pmo, angle, fixed_t(1.5*MELEERANGE), slope, damage, NAME_Melee, RUNTIME_CLASS(ACStaffPuff));

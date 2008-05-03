@@ -157,7 +157,7 @@ extern const AInventory *SendItemUse, *SendItemDrop;
 
 void *statcopy;					// for statistics driver
 
-level_locals_t level;			// info about current level
+FLevelLocals level;			// info about current level
 
 static TArray<cluster_info_t> wadclusterinfos;
 TArray<level_info_t> wadlevelinfos;
@@ -200,6 +200,7 @@ static const char *MapInfoTopLevel[] =
 	"clearepisodes",
 	"skill",
 	"clearskills",
+	"adddefaultmap",
 	NULL
 };
 
@@ -212,6 +213,7 @@ enum
 	MITL_CLEAREPISODES,
 	MITL_SKILL,
 	MITL_CLEARSKILLS,
+	MITL_ADDDEFAULTMAP,
 };
 
 static const char *MapInfoMapLevel[] =
@@ -358,7 +360,6 @@ enum EMIType
 	MITYPE_REDIRECT,
 	MITYPE_SPECIALACTION,
 	MITYPE_COMPATFLAG,
-	MITYPE_F1, // [RC] F1 help
 };
 
 struct MapInfoHandler
@@ -435,18 +436,18 @@ MapHandlers[] =
 	{ MITYPE_CLRFLAG,	LEVEL_LAXMONSTERACTIVATION, LEVEL_LAXACTIVATIONMAPINFO },
 	{ MITYPE_SETFLAG,	LEVEL_LAXMONSTERACTIVATION, LEVEL_LAXACTIVATIONMAPINFO },
 	{ MITYPE_COMPATFLAG, COMPATF_BOOMSCROLL},
-	{ MITYPE_LUMPNAME,	lioffset(exitpic), 0 },
-	{ MITYPE_LUMPNAME,	lioffset(exitpic), 0 },
-	{ MITYPE_LUMPNAME,	lioffset(enterpic), 0 },
+	{ MITYPE_STRING,	lioffset(exitpic), 0 },
+	{ MITYPE_STRING,	lioffset(exitpic), 0 },
+	{ MITYPE_STRING,	lioffset(enterpic), 0 },
 	{ MITYPE_MUSIC,		lioffset(intermusic), lioffset(intermusicorder) },
 	{ MITYPE_INT,		lioffset(airsupply), 0 },
 	{ MITYPE_SPECIALACTION, lioffset(specialactions), 0 },
 	{ MITYPE_SETFLAG,	LEVEL_KEEPFULLINVENTORY, 0 },
 	{ MITYPE_SETFLAG,	LEVEL_MONSTERFALLINGDAMAGE, 0 },
 	{ MITYPE_CLRFLAG,	LEVEL_MONSTERFALLINGDAMAGE, 0 },
-	{ MITYPE_LUMPNAME,	lioffset(sndseq), 0 },
-	{ MITYPE_LUMPNAME,	lioffset(soundinfo), 0 },
-	{ MITYPE_LUMPNAME,	lioffset(soundinfo), 0 },
+	{ MITYPE_STRING,	lioffset(sndseq), 0 },
+	{ MITYPE_STRING,	lioffset(soundinfo), 0 },
+	{ MITYPE_STRING,	lioffset(soundinfo), 0 },
 	{ MITYPE_SETFLAG,	LEVEL_CLIPMIDTEX, 0 },
 	{ MITYPE_SETFLAG,	LEVEL_WRAPMIDTEX, 0 },
 	{ MITYPE_CLRFLAG,	LEVEL_CROUCH_NO, 0 },
@@ -467,7 +468,7 @@ MapHandlers[] =
 	{ MITYPE_COMPATFLAG, COMPATF_BOOMSCROLL},
 	{ MITYPE_COMPATFLAG, COMPATF_INVISIBILITY},
 	{ MITYPE_LUMPNAME,	lioffset(bordertexture), 0 },
-	{ MITYPE_F1,        lioffset(f1), 0, }, 
+	{ MITYPE_LUMPNAME,  lioffset(f1), 0, }, 
 	{ MITYPE_SCFLAGS,	LEVEL_NOINFIGHTING, ~LEVEL_TOTALINFIGHTING },
 	{ MITYPE_SCFLAGS,	0, ~(LEVEL_NOINFIGHTING|LEVEL_TOTALINFIGHTING)},
 	{ MITYPE_SCFLAGS,	LEVEL_TOTALINFIGHTING, ~LEVEL_NOINFIGHTING },
@@ -515,7 +516,7 @@ MapInfoHandler ClusterHandlers[] =
 	{ MITYPE_HEX,		cioffset(cdid), 0 },
 	{ MITYPE_SETFLAG,	CLUSTER_ENTERTEXTINLUMP, 0 },
 	{ MITYPE_SETFLAG,	CLUSTER_EXITTEXTINLUMP, 0 },
-	{ MITYPE_STRING,	cioffset(clustername), 0 },
+	{ MITYPE_STRING,	cioffset(clustername), CLUSTER_LOOKUPNAME },
 };
 
 static void ParseMapInfoLower (FScanner &sc,
@@ -558,10 +559,6 @@ static void SetLevelDefaults (level_info_t *levelinfo)
 	{
 		// For maps without a BEHAVIOR, this will be cleared.
 		levelinfo->flags |= LEVEL_LAXMONSTERACTIVATION;
-	}
-	else
-	{
-		levelinfo->flags |= LEVEL_MONSTERFALLINGDAMAGE;
 	}
 	levelinfo->airsupply = 10;
 
@@ -649,6 +646,48 @@ static FSpecialAction *CopySpecialActions(FSpecialAction *spec)
 	return spec;
 }
 
+static void CopyString (char *& string)
+{
+	if (string != NULL)
+		string = copystring(string);
+}
+
+static void SafeDelete(char *&string)
+{
+	if (string != NULL)
+	{
+		delete[] string;
+		string = NULL;
+	}
+}
+
+static void ClearLevelInfoStrings(level_info_t *linfo)
+{
+	SafeDelete(linfo->music);
+	SafeDelete(linfo->intermusic);
+	SafeDelete(linfo->level_name);
+	SafeDelete(linfo->translator);
+	SafeDelete(linfo->enterpic);
+	SafeDelete(linfo->exitpic);
+	SafeDelete(linfo->soundinfo);
+	SafeDelete(linfo->sndseq);
+	for (FSpecialAction *spac = linfo->specialactions; spac != NULL; )
+	{
+		FSpecialAction *next = spac->Next;
+		delete spac;
+		spac = next;
+	}
+}
+
+static void ClearClusterInfoStrings(cluster_info_t *cinfo)
+{
+	SafeDelete(cinfo->exittext);
+	SafeDelete(cinfo->entertext);
+	SafeDelete(cinfo->messagemusic);
+	SafeDelete(cinfo->clustername);
+}
+
+
 static void G_DoParseMapInfo (int lump)
 {
 	level_info_t defaultinfo;
@@ -658,7 +697,7 @@ static void G_DoParseMapInfo (int lump)
 	int clusterindex;
 	QWORD levelflags;
 
-	FScanner sc(lump, Wads.GetLumpFullName(lump));
+	FScanner sc(lump);
 
 	SetLevelDefaults (&defaultinfo);
 	HexenHack = false;
@@ -670,6 +709,11 @@ static void G_DoParseMapInfo (int lump)
 		case MITL_DEFAULTMAP:
 			ClearLevelInfoStrings(&defaultinfo);
 			SetLevelDefaults (&defaultinfo);
+			ParseMapInfoLower (sc, MapHandlers, MapInfoMapLevel, &defaultinfo, NULL, defaultinfo.flags);
+			break;
+
+		case MITL_ADDDEFAULTMAP:
+			// Same as above but adds to the existing definitions instead of replacing them completely
 			ParseMapInfoLower (sc, MapHandlers, MapInfoMapLevel, &defaultinfo, NULL, defaultinfo.flags);
 			break;
 
@@ -690,7 +734,8 @@ static void G_DoParseMapInfo (int lump)
 							| LEVEL_FALLDMG_HX
 							| LEVEL_ACTOWNSPECIAL
 							| LEVEL_MISSILESACTIVATEIMPACT
-							| LEVEL_INFINITE_FLIGHT;
+							| LEVEL_INFINITE_FLIGHT
+							| LEVEL_MONSTERFALLINGDAMAGE;
 			}
 			levelindex = FindWadLevelInfo (sc.String);
 			if (levelindex == -1)
@@ -703,18 +748,13 @@ static void G_DoParseMapInfo (int lump)
 			}
 			levelinfo = &wadlevelinfos[levelindex];
 			memcpy (levelinfo, &defaultinfo, sizeof(*levelinfo));
-			if (levelinfo->music != NULL)
-			{
-				levelinfo->music = copystring (levelinfo->music);
-			}
-			if (levelinfo->intermusic != NULL)
-			{
-				levelinfo->intermusic = copystring (levelinfo->intermusic);
-			}
-			if (levelinfo->translator != NULL)
-			{
-				levelinfo->translator = copystring (levelinfo->translator);
-			}
+			CopyString(levelinfo->music);
+			CopyString(levelinfo->intermusic);
+			CopyString(levelinfo->translator);
+			CopyString(levelinfo->enterpic);
+			CopyString(levelinfo->exitpic);
+			CopyString(levelinfo->soundinfo);
+			CopyString(levelinfo->sndseq);
 			levelinfo->specialactions = CopySpecialActions(levelinfo->specialactions);
 			if (HexenHack)
 			{
@@ -722,14 +762,19 @@ static void G_DoParseMapInfo (int lump)
 			}
 			uppercopy (levelinfo->mapname, sc.String);
 			sc.MustGetString ();
-			if (sc.Compare ("lookup"))
+			if (sc.String[0] == '$')
 			{
-				sc.MustGetString ();
-				ReplaceString (&levelinfo->level_name, sc.String);
+				// For consistency with other definitions allow $Stringtablename here, too.
 				levelflags |= LEVEL_LOOKUPLEVELNAME;
+				ReplaceString (&levelinfo->level_name, sc.String+1);
 			}
 			else
 			{
+				if (sc.Compare ("lookup"))
+				{
+					sc.MustGetString ();
+					levelflags |= LEVEL_LOOKUPLEVELNAME;
+				}
 				ReplaceString (&levelinfo->level_name, sc.String);
 			}
 			// Set up levelnum now so that you can use Teleport_NewMap specials
@@ -756,10 +801,6 @@ static void G_DoParseMapInfo (int lump)
 			{
 				strcpy (levelinfo->skypic2, levelinfo->skypic1);
 			}
-			if (levelinfo->f1 != NULL)
-			{
-				levelinfo->f1 = copystring (levelinfo->f1);
-			}
 			SetLevelNum (levelinfo, levelinfo->levelnum);	// Wipe out matching levelnums from other maps.
 			if (levelinfo->pname[0] != 0)
 			{
@@ -781,22 +822,7 @@ static void G_DoParseMapInfo (int lump)
 			else
 			{
 				clusterinfo = &wadclusterinfos[clusterindex];
-				if (clusterinfo->entertext != NULL)
-				{
-					delete[] clusterinfo->entertext;
-				}
-				if (clusterinfo->exittext != NULL)
-				{
-					delete[] clusterinfo->exittext;
-				}
-				if (clusterinfo->messagemusic != NULL)
-				{
-					delete[] clusterinfo->messagemusic;
-				}
-				if (clusterinfo->clustername != NULL)
-				{
-					delete[] clusterinfo->clustername;
-				}
+				ClearClusterInfoStrings(clusterinfo);
 			}
 			memset (clusterinfo, 0, sizeof(cluster_info_t));
 			clusterinfo->cluster = sc.Number;
@@ -822,60 +848,6 @@ static void G_DoParseMapInfo (int lump)
 		}
 	}
 	ClearLevelInfoStrings(&defaultinfo);
-}
-
-static void ClearLevelInfoStrings(level_info_t *linfo)
-{
-	if (linfo->music != NULL)
-	{
-		delete[] linfo->music;
-		linfo->music = NULL;
-	}
-	if (linfo->intermusic != NULL)
-	{
-		delete[] linfo->intermusic;
-		linfo->intermusic = NULL;
-	}
-	if (linfo->level_name != NULL)
-	{
-		delete[] linfo->level_name;
-		linfo->level_name = NULL;
-	}
-	if (linfo->translator != NULL)
-	{
-		delete[] linfo->translator;
-		linfo->translator = NULL;
-	}
-	for (FSpecialAction *spac = linfo->specialactions; spac != NULL; )
-	{
-		FSpecialAction *next = spac->Next;
-		delete spac;
-		spac = next;
-	}
-}
-
-static void ClearClusterInfoStrings(cluster_info_t *cinfo)
-{
-	if (cinfo->exittext != NULL)
-	{
-		delete[] cinfo->exittext;
-		cinfo->exittext = NULL;
-	}
-	if (cinfo->entertext != NULL)
-	{
-		delete[] cinfo->entertext;
-		cinfo->entertext = NULL;
-	}
-	if (cinfo->messagemusic != NULL)
-	{
-		delete[] cinfo->messagemusic;
-		cinfo->messagemusic = NULL;
-	}
-	if (cinfo->clustername != NULL)
-	{
-		delete[] cinfo->clustername;
-		cinfo->clustername = NULL;
-	}
 }
 
 static void ClearEpisodes()
@@ -942,13 +914,6 @@ static void ParseMapInfoLower (FScanner &sc,
 		case MITYPE_REDIRECT:
 			sc.MustGetString ();
 			levelinfo->RedirectType = sc.String;
-			/*
-			if (levelinfo->RedirectType == NULL ||
-				!(levelinfo->RedirectType->IsDescendantOf (RUNTIME_CLASS(AInventory))))
-			{
-				SC_ScriptError ("%s is not an inventory item", sc.String);
-			}
-			*/
 			// Intentional fall-through
 
 		case MITYPE_MAPNAME: {
@@ -1107,7 +1072,7 @@ static void ParseMapInfoLower (FScanner &sc,
 				clusterinfo = &wadclusterinfos[clusterindex];
 				memset (clusterinfo, 0, sizeof(cluster_info_t));
 				clusterinfo->cluster = sc.Number;
-				if (gameinfo.gametype == GAME_Hexen)
+				if (HexenHack)
 				{
 					clusterinfo->flags |= CLUSTER_HUB;
 				}
@@ -1116,21 +1081,18 @@ static void ParseMapInfoLower (FScanner &sc,
 
 		case MITYPE_STRING:
 			sc.MustGetString ();
-			if (sc.Compare ("lookup"))
+			if (sc.String[0] == '$')
 			{
+				// For consistency with other definitions allow $Stringtablename here, too.
 				flags |= handler->data2;
-				sc.MustGetString ();
+				ReplaceString ((char **)(info + handler->data1), sc.String+1);
 			}
-			ReplaceString ((char **)(info + handler->data1), sc.String);
-			break;
-
-		case MITYPE_F1:
-			sc.MustGetString ();
+			else
 			{
-				char *colon = strchr (sc.String, ':');
-				if (colon)
+				if (sc.Compare ("lookup"))
 				{
-					*colon = 0;
+					flags |= handler->data2;
+					sc.MustGetString ();
 				}
 				ReplaceString ((char **)(info + handler->data1), sc.String);
 			}
@@ -1240,6 +1202,7 @@ static void ParseEpisodeInfo (FScanner &sc)
 	bool remove = false;
 	char key = 0;
 	bool noskill = false;
+	bool optional = false;
 	bool	bBotEpisode = false;
 	char	szBotSkillTitle[64];
 	bool	bBotSkillPicIsGFX = false;
@@ -1261,7 +1224,12 @@ static void ParseEpisodeInfo (FScanner &sc)
 	}
 	do
 	{
-		if (sc.Compare ("name"))
+		if (sc.Compare ("optional"))
+		{
+			// For M4 in Doom and M4 and M5 in Heretic
+			optional = true;
+		}
+		else if (sc.Compare ("name"))
 		{
 			sc.MustGetString ();
 			ReplaceString (&pic, sc.String);
@@ -1309,6 +1277,17 @@ static void ParseEpisodeInfo (FScanner &sc)
 		}
 	}
 	while (sc.GetString ());
+
+	if (optional && !remove)
+	{
+		if (!P_CheckMapData(map))
+		{
+			// If the episode is optional and the map does not exist
+			// just ignore this episode definition.
+			return;
+		}
+	}
+
 
 	for (i = 0; i < EpiDef.numitems; ++i)
 	{
@@ -1487,8 +1466,8 @@ void P_RemoveDefereds (void)
 
 bool CheckWarpTransMap (char mapname[9], bool substitute)
 {
-	if (mapname[0] == '&' && mapname[1] == 'w' &&
-		mapname[2] == 't' && mapname[3] == '@')
+	if (mapname[0] == '&' && (mapname[1]&223) == 'W' &&
+		(mapname[2]&223) == 'T' && mapname[3] == '@')
 	{
 		level_info_t *lev = FindLevelByWarpTrans (atoi (mapname + 4));
 		if (lev != NULL)
@@ -1530,9 +1509,10 @@ CCMD (map)
 {
 	if (argv.argc() > 1)
 	{
-		MapData * map = P_OpenMapData(argv[1]);
-		if (map == NULL)
+		if (!P_CheckMapData(argv[1]))
+		{
 			Printf ("No map %s\n", argv[1]);
+		}
 		else
 		{
 			if ( sv_maprotation )
@@ -1559,7 +1539,6 @@ CCMD (map)
 			if ( invasion )
 				INVASION_SetState( IS_WAITINGFORPLAYERS );
 
-			delete map;
 			G_DeferedInitNew (argv[1]);
 		}
 	}
@@ -1580,12 +1559,12 @@ CCMD (open)
 	if (argv.argc() > 1)
 	{
 		sprintf(d_mapname, "file:%s", argv[1]);
-		MapData * map = P_OpenMapData(d_mapname);
-		if (map == NULL)
+		if (!P_CheckMapData(d_mapname))
+		{
 			Printf ("No map %s\n", d_mapname);
+		}
 		else
 		{
-			delete map;
 			gameaction = ga_newgame2;
 			d_skill = -1;
 		}
@@ -1781,12 +1760,10 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 	}
 
 	// [RH] If this map doesn't exist, bomb out
-	MapData * map = P_OpenMapData(mapname);
-	if (!map)
+	if (!P_CheckMapData(mapname))
 	{
 		I_Error ("Could not find map %s\n", mapname);
 	}
-	delete map;
 
 	oldSpeed = GameSpeed;
 	wantFast = !!G_SkillProperty(SKILLP_FastMonsters);
@@ -2020,10 +1997,8 @@ const char *G_GetSecretExitMap()
 
 	if (level.secretmap[0] != 0)
 	{
-		MapData *map = P_OpenMapData(level.secretmap);
-		if (map != NULL)
+		if (P_CheckMapData(level.secretmap))
 		{
-			delete map;
 			nextmap = level.secretmap;
 		}
 	}
@@ -2512,7 +2487,7 @@ void G_DoLoadLevel (int position, bool autosave)
 
 	// DOOM determines the sky texture to be used
 	// depending on the current episode and the game version.
-	// [RH] Fetch sky parameters from level_locals_t.
+	// [RH] Fetch sky parameters from FLevelLocals.
 	sky1texture = TexMan.GetTexture (level.skypic1, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable);
 	sky2texture = TexMan.GetTexture (level.skypic2, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable);
 
@@ -2895,11 +2870,11 @@ void G_FinishTravel ()
 
 			// The player being spawned here is a short lived dummy and
 			// must not start any ENTER script or big problems will happen.
+			//pawndup = P_SpawnPlayer (&playerstarts[pawn->player - players], true);
 			G_CooperativeSpawnPlayer( pawn->player - players, false, true );
 
 			// [BC]
 			lSavedNetID = pawndup->lNetID;
-
 			pawndup = pawn->player->mo;
 			if (!startkeepfacing)
 			{
@@ -3044,7 +3019,6 @@ void G_InitLevelLocals ()
 		level.levelnum = info->levelnum;
 		level.music = info->music;
 		level.musicorder = info->musicorder;
-		level.f1 = info->f1; // [RC] And import the f1 name
 
 		strncpy (level.level_name, info->level_name, 63);
 		G_MaybeLookupLevelName (NULL);
@@ -3082,7 +3056,7 @@ void G_InitLevelLocals ()
 	gl_SetFogParams(info->fogdensity, info->outsidefog, info->outsidefogdensity, info->skyfog);
 }
 
-bool level_locals_s::IsJumpingAllowed() const
+bool FLevelLocals::IsJumpingAllowed() const
 {
 	if (dmflags & DF_NO_JUMP)
 		return false;
@@ -3091,7 +3065,7 @@ bool level_locals_s::IsJumpingAllowed() const
 	return !(level.flags & LEVEL_JUMP_NO);
 }
 
-bool level_locals_s::IsCrouchingAllowed() const
+bool FLevelLocals::IsCrouchingAllowed() const
 {
 	if (dmflags & DF_NO_CROUCH)
 		return false;
@@ -3100,7 +3074,7 @@ bool level_locals_s::IsCrouchingAllowed() const
 	return !(level.flags & LEVEL_CROUCH_NO);
 }
 
-bool level_locals_s::IsFreelookAllowed() const
+bool FLevelLocals::IsFreelookAllowed() const
 {
 	if (level.flags & LEVEL_FREELOOK_NO)
 		return false;
@@ -3177,10 +3151,8 @@ level_info_t *CheckLevelRedirect (level_info_t *info)
 				if (playeringame[i] && players[i].mo->FindInventory (type))
 				{
 					// check for actual presence of the map.
-					MapData * map = P_OpenMapData(info->RedirectMap);
-					if (map != NULL)
+					if (P_CheckMapData(info->RedirectMap))
 					{
-						delete map;
 						return FindLevelInfo(info->RedirectMap);
 					}
 					break;
@@ -3265,116 +3237,6 @@ const char *G_MaybeLookupLevelName (level_info_t *ininfo)
 		return thename;
 	}
 	return info != NULL ? info->level_name : NULL;
-}
-
-void G_MakeEpisodes ()
-{
-	int i;
-
-	// Set the default episodes
-	if (EpiDef.numitems == 0)
-	{
-		static const char eps[5][8] =
-		{
-			"E1M1", "E2M1", "E3M1", "E4M1", "E5M1"
-		};
-		static const char depinames[4][7] =
-		{
-			"M_EPI1", "M_EPI2", "M_EPI3", "M_EPI4"
-		};
-		static const char depikeys[4] = { 'k', 't', 'i', 't' };
-
-		static const char *hepinames[5] =
-		{
-			"$MNU_COTD",
-			"$MNU_HELLSMAW",
-			"$MNU_DOME",
-			"$MNU_OSSUARY",
-			"$MNU_DEMESNE",
-		};
-		static const char hepikeys[5] = { 'c', 'h', 'd', 'o', 's' };
-
-		if (gameinfo.flags & GI_MAPxx)
-		{
-			if (gameinfo.gametype == GAME_Hexen)
-			{
-				// "&wt@01" is a magic name that will become whatever map has
-				// warptrans 1.
-				strcpy (EpisodeMaps[0], "&wt@01");
-				EpisodeMenu[0].name = copystring ("Hexen");
-				EpisodeMenu[0].alphaKey = 'h';
-				EpisodeMenu[0].fulltext = true;
-				EpiDef.numitems = 1;
-			}
-			else
-			{
-				strcpy (EpisodeMaps[0], "MAP01");
-				EpisodeMenu[0].name = copystring ("M_HOE");
-				EpisodeMenu[0].fulltext = false;
-				EpisodeMenu[0].alphaKey = 'h';
-				EpisodeMenu[0].bBotSkill = false;
-				EpisodeMenu[0].bBotSkillFullText = false;
-
-				strcpy (EpisodeMaps[1], "D2DM1");
-				EpisodeMenu[1].name = copystring ("M_MORTAL");
-				EpisodeMenu[1].fulltext = false;
-				EpisodeMenu[1].alphaKey = 't';
-				EpisodeMenu[1].bBotSkill = true;
-				EpisodeMenu[1].bBotSkillFullText = false;
-				sprintf( EpisodeSkillHeaders[1], "M_DMATCH" );
-				
-				strcpy (EpisodeMaps[2], "D2INV1");
-				EpisodeMenu[2].name = copystring ("M_IMPEND");
-				EpisodeMenu[2].fulltext = false;
-				EpisodeMenu[2].alphaKey = 'i';
-				EpisodeMenu[2].bBotSkill = false;
-				EpisodeMenu[2].bBotSkillFullText = false;
-				sprintf( EpisodeSkillHeaders[2], "M_SKTAG" );
-
-				EpiDef.numitems = 3;
-			}
-		}
-		else if (gameinfo.gametype == GAME_Doom)
-		{
-			memcpy (EpisodeMaps, eps, 4*8);
-			for (i = 0; i < 4; ++i)
-			{
-				EpisodeMenu[i].name = copystring (depinames[i]);
-				EpisodeMenu[i].fulltext = false;
-				EpisodeMenu[i].alphaKey = depikeys[i];
-				EpisodeMenu[i].bBotSkill = false;
-				EpisodeMenu[i].bBotSkillFullText = false;
-			}
-			if (gameinfo.flags & GI_MENUHACK_RETAIL)
-			{
-				EpiDef.numitems = 4;
-			}
-			else
-			{
-				EpiDef.numitems = 3;
-			}
-		}
-		else
-		{
-			memcpy (EpisodeMaps, eps, 5*8);
-			for (i = 0; i < 5; ++i)
-			{
-				EpisodeMenu[i].name = copystring (hepinames[i]);
-				EpisodeMenu[i].fulltext = true;
-				EpisodeMenu[i].alphaKey = hepikeys[i];
-				EpisodeMenu[i].bBotSkill = false;
-				EpisodeMenu[i].bBotSkillFullText = false;
-			}
-			if (gameinfo.flags & GI_MENUHACK_EXTENDED)
-			{
-				EpiDef.numitems = 5;
-			}
-			else
-			{
-				EpiDef.numitems = 3;
-			}
-		}
-	}
 }
 
 void G_AirControlChanged ()
@@ -3835,7 +3697,7 @@ void P_ReadACSDefereds (PNGHandle *png)
 }
 
 
-void level_locals_s::Tick ()
+void FLevelLocals::Tick ()
 {
 	// Reset carry sectors
 	if (Scrolls != NULL)
@@ -3844,7 +3706,7 @@ void level_locals_s::Tick ()
 	}
 }
 
-void level_locals_s::AddScroller (DScroller *scroller, int secnum)
+void FLevelLocals::AddScroller (DScroller *scroller, int secnum)
 {
 	if (secnum < 0)
 	{

@@ -386,12 +386,10 @@ CCMD (idclev)
 		// Catch invalid maps.
 		mapname = CalcMapName (epsd, map);
 
-		MapData * mapd = P_OpenMapData(mapname);
-		if (mapd == NULL)
+		if (!P_CheckMapData(mapname))
 			return;
 
 		// So be it.
-		delete mapd;
 		Printf ("%s\n", GStrings("STSTR_CLEV"));
       	G_DeferedInitNew (mapname);
 		players[0].health = 0;		// Force reset
@@ -413,11 +411,9 @@ CCMD (hxvisit)
 		{
 			// Just because it's in MAPINFO doesn't mean it's in the wad.
 
-			MapData * map = P_OpenMapData(mapname);
-			if (map != NULL)
+			if (P_CheckMapData(mapname))
 			{
 				// So be it.
-				delete map;
 				Printf ("%s\n", GStrings("STSTR_CLEV"));
       			G_DeferedInitNew (mapname);
 				return;
@@ -443,14 +439,12 @@ CCMD (changemap)
 
 	if (argv.argc() > 1)
 	{
-		MapData * map = P_OpenMapData(argv[1]);
-		if (map == NULL)
+		if (!P_CheckMapData(argv[1]))
 		{
 			Printf ("No map %s\n", argv[1]);
 		}
 		else
 		{
-			delete map;
 			// Fuck that DEM shit!
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
@@ -961,8 +955,10 @@ CCMD (wdir)
 //-----------------------------------------------------------------------------
 CCMD(linetarget)
 {
+	AActor *linetarget;
+
 	if (CheckCheatmode () || players[consoleplayer].mo == NULL) return;
-	P_AimLineAttack(players[consoleplayer].mo,players[consoleplayer].mo->angle,MISSILERANGE, 0);
+	P_AimLineAttack(players[consoleplayer].mo,players[consoleplayer].mo->angle,MISSILERANGE, &linetarget, 0);
 	if (linetarget)
 	{
 		Printf("Target=%s, Health=%d, Spawnhealth=%d\n",

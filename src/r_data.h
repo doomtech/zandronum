@@ -83,17 +83,18 @@ class FMultiPatchTexture : public FTexture
 {
 public:
 	FMultiPatchTexture (const void *texdef, FPatchLookup *patchlookup, int maxpatchnum, bool strife, int deflump);
+	FMultiPatchTexture (FScanner &sc, int usetype);
 	~FMultiPatchTexture ();
 
 	const BYTE *GetColumn (unsigned int column, const Span **spans_out);
 	const BYTE *GetPixels ();
 	FTextureFormat GetFormat();
+	bool UseBasePalette() ;
 	void Unload ();
 	virtual void SetFrontSkyLayer ();
 
 	int CopyTrueColorPixels(BYTE *buffer, int buf_pitch, int buf_height, int x, int y);
 	int GetSourceLump() { return DefinitionLump; }
-	bool UseBasePalette();
 
 protected:
 	BYTE *Pixels;
@@ -103,7 +104,13 @@ protected:
 	struct TexPart
 	{
 		SWORD OriginX, OriginY;
+		BYTE Mirror:2;
+		BYTE Rotate:2;
+		BYTE textureOwned:1;
 		FTexture *Texture;
+
+		TexPart();
+		~TexPart();
 	};
 
 	int NumParts;
@@ -114,6 +121,7 @@ protected:
 
 private:
 	void CheckForHacks ();
+	void ParsePatch(FScanner &sc, TexPart & part);
 };
 
 // A texture defined between F_START and F_END markers

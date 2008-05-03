@@ -299,6 +299,8 @@ enum
 	MF5_NEVERRESPAWN	= 0x00040000,	// never respawns, regardless of skill setting
 	MF5_DONTRIP			= 0x00080000,	// Ripping projectiles explode when hittin this actor
 	MF5_NOINFIGHTING	= 0x00100000,	// This actor doesn't switch target when it's hurt 
+	MF5_NOINTERACTION	= 0x00200000,	// Thing is completely excluded from any gameplay related checks
+	MF5_NOTIMEFREEZE	= 0x00400000,	// Actor is not affected by time freezer
 
 	// [BC] More object flags for Skulltag.
 
@@ -491,6 +493,7 @@ inline T *GetDefault ()
 	return (T *)(RUNTIME_CLASS(T)->Defaults);
 }
 
+struct line_t;
 struct secplane_t;
 
 // [BC] Prototype these classes here so they can be included in the actor structure.
@@ -792,6 +795,10 @@ public:
 	int				bouncecount;	// Strife's grenades only bounce twice before exploding
 	fixed_t			gravity;		// [GRB] Gravity factor
 	int 			FastChaseStrafeCount;
+
+	AActor			*BlockingMobj;	// Actor that blocked the last move
+	line_t			*BlockingLine;	// Line that blocked the last move
+
 	// [KS] These temporary-use properties are needed to allow A_LookEx to pass its parameters to
 	// LookFor*InBlock in P_BlockmapSearch so that friendly enemies and monsters that look for
 	// other monsters can find their targets properly. If there's a cleaner way of doing this,
@@ -809,6 +816,7 @@ public:
 	//Added by MC:
 	SDWORD id;						// Player ID (for items, # in list.)
 
+	BYTE smokecounter;
 	BYTE FloatBobPhase;
 	BYTE FriendPlayer;				// [RH] Player # + 1 this friendly monster works for (so 0 is no player, 1 is player 0, etc)
 	DWORD Translation;
@@ -892,6 +900,7 @@ public:
 	bool InDeathState();
 	virtual bool UpdateWaterLevel (fixed_t oldz, bool splash=true);
 	bool isFast();
+	void SetIdle();
 
 	FState *FindState (FName label) const;
 	FState *FindState (FName label, FName sublabel, bool exact = false) const;

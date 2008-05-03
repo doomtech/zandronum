@@ -524,7 +524,7 @@ void R_InitSkins (void)
 			sndlumps[j] = -1;
 		skins[i].namespc = Wads.GetLumpNamespace (base);
 
-		FScanner sc(base, "S_SKIN");
+		FScanner sc(base);
 		intname = 0;
 		crouchname = 0;
 
@@ -573,6 +573,7 @@ void R_InitSkins (void)
 			{
 				for (j = 2; j >= 0; j--)
 					skins[i].face[j] = toupper (sc.String[j]);
+				skins[i].face[3] = '\0';
 			}
 			else if (0 == stricmp (key, "gender"))
 			{
@@ -840,7 +841,7 @@ void R_InitSkins (void)
 		while (( lCurLump = Wads.FindLump( "SKININFO", (int *)&lLastLump )) != -1 )
 		{
 			// Load the found SKININFO lump.
-			FScanner sc( lCurLump, "SKININFO" );
+			FScanner sc( lCurLump );
 
 			// Begin parsing the lump.
 			while ( sc.GetString( ))
@@ -1304,7 +1305,7 @@ ULONG R_CountSkinInfoSkins( void )
 	while (( lCurLump = Wads.FindLump( "SKININFO", (int *)&lLastLump )) != -1 )
 	{
 		// Open the found skininfo lump.
-		FScanner sc( lCurLump, "SKININFO" );
+		FScanner sc( lCurLump );
 
 		// Begin parsing that text found within that lump.
 		while ( sc.GetString( ))
@@ -1383,11 +1384,20 @@ void R_InitSprites ()
 	for (i = 0; i < PlayerClasses.Size (); i++)
 	{
 		const PClass *basetype = PlayerClasses[i].Type;
+		const char *pclassface = basetype->Meta.GetMetaString (APMETA_Face);
 
 		strcpy (skins[i].name, "Base");
-		skins[i].face[0] = 'S';
-		skins[i].face[1] = 'T';
-		skins[i].face[2] = 'F';
+		if (strcmp(pclassface, "None") == 0)
+		{
+			skins[i].face[0] = 'S';
+			skins[i].face[1] = 'T';
+			skins[i].face[2] = 'F';
+			skins[i].face[3] = '\0';
+		}
+		else
+		{
+			strcpy(skins[i].face, pclassface);
+		}
 		skins[i].range0start = basetype->Meta.GetMetaInt (APMETA_ColorRange) & 255;
 		skins[i].range0end = basetype->Meta.GetMetaInt (APMETA_ColorRange) >> 8;
 		skins[i].Scale = GetDefaultByType (basetype)->scaleX;

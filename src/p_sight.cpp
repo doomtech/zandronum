@@ -43,8 +43,7 @@ static int sightcounts[6];
 static cycle_t SightCycles;
 static cycle_t MaxSightCycles;
 
-// we might as well use the global intercepts array instead of creating a new one
-extern TArray<intercept_t> intercepts;
+static TArray<intercept_t> intercepts (128);
 
 class SightCheck
 {

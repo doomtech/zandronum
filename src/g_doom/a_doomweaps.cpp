@@ -36,6 +36,7 @@ void A_Punch (AActor *actor)
 	angle_t 	angle;
 	int 		damage;
 	int 		pitch;
+	AActor		*linetarget;
 
 	// [BC] Weapons are handled by the server.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -62,14 +63,14 @@ void A_Punch (AActor *actor)
 	angle = actor->angle;
 
 	angle += pr_punch.Random2() << 18;
-	pitch = P_AimLineAttack (actor, angle, MELEERANGE);
-	P_LineAttack (actor, angle, MELEERANGE, pitch, damage, NAME_None, NAME_BulletPuff);
+	pitch = P_AimLineAttack (actor, angle, MELEERANGE, &linetarget);
+	P_LineAttack (actor, angle, MELEERANGE, pitch, damage, NAME_Melee, NAME_BulletPuff, true);
 
 	// [BC] Apply spread.
 	if (( actor->player ) && ( actor->player->cheats & CF_SPREAD ))
 	{
-		P_LineAttack( actor, angle + ( ANGLE_45 / 3 ), MELEERANGE, pitch, damage, NAME_None, NAME_BulletPuff);
-		P_LineAttack( actor, angle - ( ANGLE_45 / 3 ), MELEERANGE, pitch, damage, NAME_None, NAME_BulletPuff);
+		P_LineAttack( actor, angle + ( ANGLE_45 / 3 ), MELEERANGE, pitch, damage, NAME_Melee, NAME_BulletPuff, true);
+		P_LineAttack( actor, angle - ( ANGLE_45 / 3 ), MELEERANGE, pitch, damage, NAME_Melee, NAME_BulletPuff, true);
 	}
 
 	// [BC] If the player hit a player with his attack, potentially give him a medal.
@@ -155,8 +156,7 @@ void A_FirePistol (AActor *actor)
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 		return;
 
-	P_BulletSlope (actor);
-	P_GunShot (actor, accurate, PClass::FindClass(NAME_BulletPuff));
+	P_GunShot (actor, accurate, PClass::FindClass(NAME_BulletPuff), P_BulletSlope (actor));
 
 	// [BC] Apply spread.
 	if (( actor->player ) && ( actor->player->cheats & CF_SPREAD ))
@@ -165,12 +165,12 @@ void A_FirePistol (AActor *actor)
 
 		SavedActorAngle = actor->angle;
 		actor->angle += ( ANGLE_45 / 3 );
-		P_GunShot( actor, accurate, PClass::FindClass(NAME_BulletPuff));
+		P_GunShot (actor, accurate, PClass::FindClass(NAME_BulletPuff), P_BulletSlope (actor));
 		actor->angle = SavedActorAngle;
 
 		SavedActorAngle = actor->angle;
 		actor->angle -= ( ANGLE_45 / 3 );
-		P_GunShot( actor, accurate, PClass::FindClass(NAME_BulletPuff));
+		P_GunShot (actor, accurate, PClass::FindClass(NAME_BulletPuff), P_BulletSlope (actor));
 		actor->angle = SavedActorAngle;
 	}
 
@@ -196,6 +196,7 @@ void A_Saw (AActor *actor)
 	angle_t 	angle;
 	int 		damage=0;
 	player_t *player;
+	AActor *linetarget;
 
 	// [BC] Weapons are handled by the server.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -242,18 +243,18 @@ void A_Saw (AActor *actor)
 	
 	// use meleerange + 1 so the puff doesn't skip the flash (i.e. plays all states)
 	P_LineAttack (actor, angle, MELEERANGE+1,
-				  P_AimLineAttack (actor, angle, MELEERANGE+1), damage,
+				  P_AimLineAttack (actor, angle, MELEERANGE+1, &linetarget), damage,
 				  GetDefaultByType(pufftype)->DamageType, pufftype);
 
 	// [BC] Apply spread.
 	if ( player->cheats & CF_SPREAD )
 	{
 		P_LineAttack( actor, angle + ( ANGLE_45 / 3 ), MELEERANGE + 1,
-					  P_AimLineAttack( actor, angle + ( ANGLE_45 / 3 ), MELEERANGE + 1 ), damage,
+					  P_AimLineAttack( actor, angle + ( ANGLE_45 / 3 ), MELEERANGE + 1, &linetarget ), damage,
 					  NAME_None, pufftype );
 
 		P_LineAttack( actor, angle - ( ANGLE_45 / 3 ), MELEERANGE + 1,
-					  P_AimLineAttack( actor, angle - ( ANGLE_45 / 3 ), MELEERANGE + 1 ), damage,
+					  P_AimLineAttack( actor, angle - ( ANGLE_45 / 3 ), MELEERANGE + 1, &linetarget ), damage,
 					  NAME_None, pufftype );
 	}
 
@@ -339,6 +340,8 @@ void A_FireShotgun (AActor *actor)
 	}
 	player->mo->PlayAttacking2 ();
 
+	angle_t pitch = P_BulletSlope (actor);
+
 	// [BC] If we're the server, tell clients to update this player's state.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_SetPlayerState( ULONG( player - players ), STATE_PLAYER_ATTACK2, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
@@ -347,10 +350,9 @@ void A_FireShotgun (AActor *actor)
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 		return;
 
-	P_BulletSlope (actor);
 
 	for (i=0 ; i<7 ; i++)
-		P_GunShot (actor, false, PClass::FindClass(NAME_BulletPuff));
+		P_GunShot (actor, false, PClass::FindClass(NAME_BulletPuff), pitch);
 
 	// [BC] Apply spread.
 	if ( player->cheats & CF_SPREAD )
@@ -360,13 +362,13 @@ void A_FireShotgun (AActor *actor)
 		SavedActorAngle = actor->angle;
 		actor->angle += ( ANGLE_45 / 3 );
 		for (i=0 ; i<7 ; i++)
-			P_GunShot( actor, false, PClass::FindClass(NAME_BulletPuff));
+			P_GunShot (actor, false, PClass::FindClass(NAME_BulletPuff), pitch);
 		actor->angle = SavedActorAngle;
 
 		SavedActorAngle = actor->angle;
 		actor->angle -= ( ANGLE_45 / 3 );
 		for (i=0 ; i<7 ; i++)
-			P_GunShot( actor, false, PClass::FindClass(NAME_BulletPuff));
+			P_GunShot (actor, false, PClass::FindClass(NAME_BulletPuff), pitch);
 		actor->angle = SavedActorAngle;
 	}
 
@@ -423,7 +425,7 @@ void A_FireShotgun2 (AActor *actor)
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT && !cl_hitscandecalhack )
 		return;
 
-	P_BulletSlope (actor);
+	angle_t pitch = P_BulletSlope (actor);
 		
 	for (i=0 ; i<20 ; i++)
 	{
@@ -440,7 +442,7 @@ void A_FireShotgun2 (AActor *actor)
 		P_LineAttack (actor,
 					  angle,
 					  PLAYERMISSILERANGE,
-					  bulletpitch + (pr_fireshotgun2.Random2() * 332063), damage,
+					  pitch + (pr_fireshotgun2.Random2() * 332063), damage,
 					  NAME_None, NAME_BulletPuff);
 
 		// [BC] Apply spread.
@@ -449,13 +451,13 @@ void A_FireShotgun2 (AActor *actor)
 			P_LineAttack (actor,
 						  angle + ( ANGLE_45 / 3 ),
 						  PLAYERMISSILERANGE,
-						  bulletpitch + (pr_fireshotgun2.Random2() * 332063), damage,
+						  pitch + (pr_fireshotgun2.Random2() * 332063), damage,
 						  NAME_None, NAME_BulletPuff);
 
 			P_LineAttack (actor,
 						  angle - ( ANGLE_45 / 3 ),
 						  PLAYERMISSILERANGE,
-						  bulletpitch + (pr_fireshotgun2.Random2() * 332063), damage,
+						  pitch + (pr_fireshotgun2.Random2() * 332063), damage,
 						  NAME_None, NAME_BulletPuff);
 		}
 	}
@@ -630,8 +632,7 @@ void A_FireCGun (AActor *actor)
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 		return;
 
-	P_BulletSlope (actor);
-	P_GunShot (actor, !player->refire, PClass::FindClass(NAME_BulletPuff));
+	P_GunShot (actor, !player->refire, PClass::FindClass(NAME_BulletPuff), P_BulletSlope (actor));
 
 	// [BC] Apply apread.
 	if ( player->cheats & CF_SPREAD )
@@ -640,12 +641,12 @@ void A_FireCGun (AActor *actor)
 
 		SavedActorAngle = actor->angle;
 		actor->angle += ( ANGLE_45 / 3 );
-		P_GunShot( actor, !player->refire, PClass::FindClass(NAME_BulletPuff));
+		P_GunShot (actor, !player->refire, PClass::FindClass(NAME_BulletPuff), P_BulletSlope (actor));
 		actor->angle = SavedActorAngle;
 	
 		SavedActorAngle = actor->angle;
 		actor->angle -= ( ANGLE_45 / 3 );
-		P_GunShot( actor, !player->refire, PClass::FindClass(NAME_BulletPuff));
+		P_GunShot (actor, !player->refire, PClass::FindClass(NAME_BulletPuff), P_BulletSlope (actor));
 		actor->angle = SavedActorAngle;
 	}
 
@@ -1314,6 +1315,7 @@ void A_BFGSpray (AActor *mo)
 	const PClass		*spraytype = NULL;
 	int					numrays = 40;
 	int					damagecnt = 15;
+	AActor				*linetarget;
 	// [BC] Pointer to the spawned tracer that we send to clients.
 	AActor				*pActor;
 
@@ -1350,7 +1352,7 @@ void A_BFGSpray (AActor *mo)
 		an = mo->angle - ANG90/2 + ANG90/numrays*i;
 
 		// mo->target is the originator (player) of the missile
-		P_AimLineAttack (mo->target, an, 16*64*FRACUNIT, ANGLE_1*32);
+		P_AimLineAttack (mo->target, an, 16*64*FRACUNIT, &linetarget, ANGLE_1*32);
 
 		if (!linetarget)
 			continue;
@@ -1522,11 +1524,11 @@ extern	AActor	*shootthing;
 void ABFG10kShot::BeginPlay ()
 {
 	Super::BeginPlay ( );
-
+/*
 	// BFG10k shots create an explosion, in which case we need to know the target.
 	if ( shootthing && shootthing->player )
 		target = shootthing;
-
+*/
 	SetState( this->SpawnState );
 }
 
@@ -1559,8 +1561,7 @@ void A_FireBFG10k( AActor *pActor )
 		return;
 	}
 
-	P_BulletSlope( pActor );
-	P_GunShot( pActor, true, RUNTIME_CLASS( ABFG10kShot ));
+	P_GunShot( pActor, true, RUNTIME_CLASS( ABFG10kShot ), P_BulletSlope( pActor ));
 
 	// Apply spread.
 	if ( pPlayer->cheats & CF_SPREAD )
@@ -1570,11 +1571,11 @@ void A_FireBFG10k( AActor *pActor )
 		SavedActorAngle = pActor->angle;
 
 		pActor->angle += ( ANGLE_45 / 3 );
-		P_GunShot( pActor, true, RUNTIME_CLASS( ABFG10kShot ));
+		P_GunShot( pActor, true, RUNTIME_CLASS( ABFG10kShot ), P_BulletSlope( pActor ));
 		pActor->angle = SavedActorAngle;
 
 		pActor->angle -= ( ANGLE_45 / 3 );
-		P_GunShot( pActor, true, RUNTIME_CLASS( ABFG10kShot ));
+		P_GunShot( pActor, true, RUNTIME_CLASS( ABFG10kShot ), P_BulletSlope( pActor ));
 		pActor->angle = SavedActorAngle;
 	}
 

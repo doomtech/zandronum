@@ -216,6 +216,10 @@ FString SoundRenderer::GatherStats ()
 	return "No stats for this sound renderer.";
 }
 
+void SoundRenderer::DrawWaveDebug(int mode)
+{
+}
+
 void SoundRenderer::ResetEnvironment ()
 {
 }
@@ -233,3 +237,4 @@ FString SoundStream::GetStats()
 {
 	return "No stream stats available.";
 }
+

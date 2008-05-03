@@ -427,7 +427,7 @@ void CChatFile::ParseChatLump( char *pszLumpName )
 	if ( lLump == -1 )
 		lLump = Wads.GetNumForFullName( pszLumpName );
 
-	FScanner sc( lLump, pszLumpName );
+	FScanner sc( lLump );
 
 	while ( sc.GetString( ))
 	{

@@ -50,6 +50,7 @@
 #include "p_lnspec.h"
 #include "v_palette.h"
 #include "c_console.h"
+#include "c_cvars.h"
 #include "p_acs.h"
 #include "vectors.h"
 #include "announcer.h"
@@ -80,7 +81,7 @@
 #include "gl/gl_lights.h"
 
 
-extern void P_SpawnMapThing (mapthing2_t *mthing, int position);
+extern AActor *P_SpawnMapThing (mapthing2_t *mthing, int position);
 extern bool P_LoadBuildMap (BYTE *mapdata, size_t len, mapthing2_t **things, int *numthings);
 
 extern void P_LoadTranslator(const char *lump);
@@ -320,7 +321,7 @@ MapData *P_OpenMapData(const char * mapname)
 			if (lumpfile != nextfile)
 			{
 				// The following lump is from a different file so whatever this is,
-				// it is not a multi-lump Doom level.
+				// it is not a multi-lump Doom level so let's assume it is a Build map.
 				return map;
 			}
 
@@ -420,6 +421,13 @@ MapData *P_OpenMapData(const char * mapname)
 	return map;		
 }
 
+bool P_CheckMapData(const char *mapname)
+{
+	MapData *mapd = P_OpenMapData(mapname);
+	if (mapd == NULL) return false;
+	delete mapd;
+	return true;
+}
 
 //===========================================================================
 //
@@ -1314,6 +1322,26 @@ void P_LoadNodes (MapData * map)
 	delete[] mnp;
 }
 
+//===========================================================================
+//
+// SpawnMapThing
+//
+//===========================================================================
+CVAR(Bool, dumpspawnedthings, false, 0)
+
+static void SpawnMapThing(int index, mapthing2_t *mt, int position)
+{
+	AActor *spawned = P_SpawnMapThing(mt, position);
+	if (dumpspawnedthings)
+	{
+		Printf("%5d: (%5d, %5d, %5d), doomednum = %5d, flags = %04x, type = %s\n",
+			index, mt->x, mt->y, mt->z, mt->type, mt->flags, 
+			spawned? spawned->GetClass()->TypeName.GetChars() : "(none)");
+	}
+	/*
+	T_AddSpawnedThing(spawned);
+	*/
+}
 
 //===========================================================================
 //
@@ -1375,7 +1403,7 @@ void P_LoadThings (MapData * map, int position)
 		mt2.angle = LittleShort(mt->angle);
 		mt2.type = LittleShort(mt->type);
 
-		P_SpawnMapThing (&mt2, position);
+		SpawnMapThing (i, &mt2, position);
 	}
 	delete [] mtp;
 }
@@ -1819,7 +1847,7 @@ void P_LoadThings2 (MapData * map, int position)
 
 	for (i=0, mt = (mapthing2_t*)mtp; i < numthings; i++,mt++)
 	{
-		P_SpawnMapThing (mt, position);
+		SpawnMapThing (i, mt, position);
 	}
 	delete[] mtp;
 }
@@ -4230,7 +4258,7 @@ void P_SetupLevel (char *lumpname, int position)
 	{
 		for (i = 0; i < numbuildthings; ++i)
 		{
-			P_SpawnMapThing (&buildthings[i], 0);
+			SpawnMapThing (i, &buildthings[i], 0);
 		}
 		delete[] buildthings;
 	}

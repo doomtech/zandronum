@@ -32,15 +32,17 @@ END_DEFAULTS
 
 bool AArtiTomeOfPower::Use (bool pickup)
 {
-	if (Owner->player->morphTics)
+	if (Owner->player->morphTics && (Owner->player->MorphStyle & MORPH_UNDOBYTOMEOFPOWER))
 	{ // Attempt to undo chicken
-		if (P_UndoPlayerMorph (Owner->player) == false)
+		if (!P_UndoPlayerMorph (Owner->player))
 		{ // Failed
-			P_DamageMobj (Owner, NULL, NULL, 1000000, NAME_Telefrag);
+			if (!(Owner->player->MorphStyle & MORPH_FAILNOTELEFRAG))
+			{
+				P_DamageMobj (Owner, NULL, NULL, 1000000, NAME_Telefrag);
+			}
 		}
 		else
 		{ // Succeeded
-			Owner->player->morphTics = 0;
 			S_Sound (Owner, CHAN_VOICE, "*evillaugh", 1, ATTN_IDLE);
 		}
 		return true;

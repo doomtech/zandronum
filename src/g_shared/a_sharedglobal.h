@@ -7,19 +7,11 @@
 #include "a_pickups.h"
 
 class FDecalTemplate;
-struct vertex_s;
+struct vertex_t;
 struct side_t;
+struct F3DFloor;
 
 extern void P_SpawnDirt (AActor *actor, fixed_t radius);
-
-bool P_MorphPlayer (player_s *player);
-bool P_UndoPlayerMorph (player_s *player, bool force);
-
-bool P_MorphMonster (AActor *actor, const PClass *morphClass);
-bool P_UpdateMorphedMonster (AActor *actor);
-
-
-struct F3DFloor;
 
 class DBaseDecal : public DThinker
 {
@@ -61,7 +53,7 @@ protected:
 	void CalcFracPos (side_t *wall, fixed_t x, fixed_t y);
 	void Remove ();
 
-	static void SpreadLeft (fixed_t r, vertex_s *v1, side_t *feelwall, F3DFloor * ffloor = NULL);
+	static void SpreadLeft (fixed_t r, vertex_t *v1, side_t *feelwall, F3DFloor * ffloor = NULL);
 	static void SpreadRight (fixed_t r, side_t *feelwall, fixed_t wallsize, F3DFloor * ffloor = NULL);
 };
 
@@ -199,7 +191,8 @@ public:
 	int DoSpecialDamage (AActor *target, int damage);
 	void Serialize (FArchive &arc);
 
-	FNameNoInit	PlayerClass, MonsterClass;
+	FNameNoInit	PlayerClass, MonsterClass, MorphFlash, UnMorphFlash;
+	int Duration, MorphStyle;
 };
 
 class AMorphedMonster : public AActor
@@ -213,7 +206,8 @@ public:
 	void Destroy ();
 
 	TObjPtr<AActor> UnmorphedMe;
-	int UnmorphTime;
+	int UnmorphTime, MorphStyle;
+	const PClass *MorphExitFlash;
 	DWORD FlagsSave;
 };
 

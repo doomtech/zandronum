@@ -561,24 +561,6 @@ void OpenGLFrameBuffer::CopyPixelData(BYTE * buffer, int texpitch, int texheight
 
 //===========================================================================
 //
-// FMultipatchTexture::UseBasePalette
-//
-// returns true if all patches in the texture use the unmodified base
-// palette.
-//
-//===========================================================================
-
-bool FMultiPatchTexture::UseBasePalette() 
-{ 
-	for(int i=0;i<NumParts;i++)
-	{
-		if (Parts[i].Texture->UseBasePalette()) return true;
-	}
-	return false;
-}
-
-//===========================================================================
-//
 // FWarpTexture::CopyTrueColorPixels
 //
 // Since the base texture can be anything the warping must be done in

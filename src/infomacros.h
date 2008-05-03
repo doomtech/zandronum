@@ -218,8 +218,9 @@ public:
 #define PROP_PlayerPawn_CrouchSprite(x)	ADD_STRING_PROP(ADEF_PlayerPawn_CrouchSprite,"\24",x)
 #define PROP_PlayerPawn_DisplayName(x)	ADD_STRING_PROP(ADEF_PlayerPawn_DisplayName,"\25",x)
 #define PROP_PlayerPawn_SoundClass(x)	ADD_STRING_PROP(ADEF_PlayerPawn_SoundClass,"\26",x)
-#define PROP_PlayerPawn_ScoreIcon(x)	ADD_STRING_PROP(ADEF_PlayerPawn_ScoreIcon,"\27",x)
-#define PROP_PlayerPawn_MorphWeapon(x)	ADD_STRING_PROP(ADEF_PlayerPawn_MorphWeapon,"\30",x)
+#define PROP_PlayerPawn_Face(x)			ADD_STRING_PROP(ADEF_PlayerPawn_Face,"\27",x) // Octal - 'tis quaint!
+#define PROP_PlayerPawn_ScoreIcon(x)	ADD_STRING_PROP(ADEF_PlayerPawn_ScoreIcon,"\30",x)
+#define PROP_PlayerPawn_MorphWeapon(x)	ADD_STRING_PROP(ADEF_PlayerPawn_MorphWeapon,"\31",x)
 // [BC] Announcer pickup entry property.
 #define PROP_Inventory_PickupAnnouncerEntry(x)	ADD_STRING_PROP(ADEF_Inventory_PickupAnnouncerEntry,"\31",x)
 

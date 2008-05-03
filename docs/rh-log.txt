@@ -1,7 +1,350 @@
+April 5, 2008 (Changes by Graf Zahl)
+- Added the option to use $ as a prefix to a string table name everywhere in
+  MAPINFO where 'lookup' could be specified so that there is one consistent
+  way to do it.
+- Externalized all default episode definitions. Added an 'optional' keyword
+  to handle M4 and 5 in Doom and Heretic.
+- Added P_CheckMapData function and replaced all calls to P_OpenMapData that
+  only checked for a map's presence with it.
+- Added Martin Howe's player statusbar face submission.
+- Added an 'adddefaultmap' option for MAPINFO. This is the same as 'defaultmap'
+  but keeps all existing information in the default and just adds to it. This
+  is needed because Hexen and Strife set some information in their base
+  MAPINFO and using 'defaultmap' in a PWAD would override that.
+- Fixed: Using MAPINFO's f1 option could cause memory leaks.
+- Added option to load lumps by full name to several places:
+  * Finale texts loaded from a text lump
+  * Demos
+  * Local SNDINFOs
+  * Local SNDSEQs
+  * Image names in FONTDEFS
+  * intermission script names
+- Changed the STCFN121 handling. The character is not an 'I' but a '|' so
+  instead of discarding it it should be inserted at position 124.
+- Renamed indexfont.fon to indexfont so that I could remove a special case
+  from V_GetFont that was just added for this one font.
+- Added a 'dumpspawnedthings' CVAR that enables a listing of all things in 
+  the map and the actor type they spawned.
+
+April 5, 2008 (SBarInfo Update #16)
+- Added: fillzeros flag for drawnumber.  When set the string will always have
+  a length of the specified size and zeros will fill in for the missing places.
+  If the number is negative the negative sign will take the place of the last
+  digit.
+- Added: globalarray type to drawnumber which will display the value in a
+  global array with the index set to the player's number.  Untested.
+- Added: isselected command to SBarInfo.
+- Fixed: Bi and Tri colored numbers didn't work.
+- Fixed: Crash when using nullimage as the last image in drawswitchableimage.
+- Applied Graf suggestion to include the y coord when calulating heights to fix
+  most of the gaps caused by round off errors.  At least for now anyways and it
+  is only applied for drawimage.
+- SBarInfo inventory bars have been converted to use screen->DrawTexture()
+
+April 4, 2008 (Changes by Graf Zahl)
+- Increased limit for demon/melee to 4.
+- Fixed: P_CheckSwitchRange accessed invalid memory when testing a one-sided
+  line.
+- Fixed: P_SpawnPuff assumed that all melee attacks have the same range
+  (MELEERANGE) and didn't set the puff to its melee state if the range
+  was different. Even worse, it checked a global variable for this so
+  the behavior was undefined when P_SpawnPuff was called from anywhere
+  else but P_LineAttack. To reduce the amount of parameters I combined
+  this information with the hitthing and temporary parameters into one
+  flags parameter. Also changed P_LineAttack so that it gets passed
+  an additional parameter that specifies whether the attack is a melee
+  attack or not and set this to true in all calls that are to be considered
+  melee attacks. I couldn't use the damage type because A_CustomPunch
+  and A_CustomMeleeAttack allow passing any damage type they want.
+- Added a sprite option as an alternative of particles for FX_ROCKET 
+  and FX_GRENADE.
+
+April 3, 2008
+- Changed the Makefiles that are used by both Linux and MinGW so that msys
+  detection occurs only if $OS is Windows_NT. Otherwise, spurious nul files
+  are created when compiling on Linux.
+
+April 3, 2008 (Changes by Graf Zahl)
+- Fixed: The minimum parameter count for ACS_Execute and ACS_ExecuteAlways for
+  DECORATE was wrong (2 instead of 1.)
+
+April 2, 2008 (Changes by Graf Zahl)
+- Changed: Hexen set every cluster to be a hub if it hadn't been defined before
+  a level using this cluster. Now it will only do that if HexenHack is true, 
+  i.e. when original Hexen format MAPINFOs are parsed. For ZDoom format 
+  MAPINFOs it will now be the same as for the other games which means that 
+  'hub' has to be declared explicitly.
+- Added an Idle state that is entered in place of the spawn state if a monster
+  has to return to its inactive state if it can't find any more targets.
+- Added MF5_NOINTERACTION flag which completely disables all physics related
+  code for any actor with this flag. Mostly useful for particle effects where
+  the actors just move a certain distance and then disappear.
+- Removed the last remains of the antialias precalculation code from
+  am_map.cpp because it was no longer used.
+- Fixed: Two-sided lines bordering a secret sector were not drawn in the
+  proper color
+- Fixed: The automap didn't check ACS_LockedExecuteDoor for its lock color.
+
+April 2, 2008
+- Switched sounds local to the listener from head-relative 3D sounds to 2D
+  sounds so stereo sounds have full separation. I tried using set3DSpread,
+  but that still caused some blending of the channels.
+- Changed FScanner so that opening a lump gives the complete wad+lump name
+  rather than a generic one, so identifying errors among files that all have
+  the same lump name no longer involves any degree of guesswork in
+  determining exactly which file the error occurred in.
+- Added a check to S_ParseSndSeq() for SNDSEQ lumps with unterminated final
+  sequences.
+- Fixed: Parts of s_sndseq.cpp that scan the Sequences array need NULL
+  pointer checks, in case an improper sequence was encountered during
+  parsing but not early enough to avoid creating a slot for it in the array.
+- Added support for dumping from RAW/DRO/IMF files, so now anything that
+  can be played as OPL can also be dumped.
+- Removed the opl_enable cvar, since OPL playback is now selectable as just
+  another MIDI device.
+
+April 1, 2008
+- Added support for DRO playback and dual-chip RAW playback.
+
+March 30, 2008
+- Removed MUS support from OPLMUSSong, since using the OPLMIDIDevice with
+  MUSSong2 works just as well. There are still lots of leftover bits in
+  the class that should probably be removed at some point, too.
+- Added dual-chip dumping support for the RAW format.
+- Added DosBox Raw OPL (.DRO) dumping support. For whatever reason,
+  in_adlib calculates the song length for this format wrong, even though
+  the exact length is stored right in the header. (But in_adlib seems buggy
+  in general; too bad it's the only Windows version of Adplug that seems to
+  exist.)
+- Rewrote the OPL dumper to work with MIDI as well as MUS.
+
+March 30, 2008 (Changes by Graf Zahl)
+- Changed: When the screen is being deleted the 'screen' variable should be
+  set to NULL before performing the delete. Otherwise, in some abnormal
+  situations, it could happen that the destroyed screen object is still
+  being accessed.
+- Fixed: V_Shutdown didn't set OF_YesReallyDelete before deleting screen.
+- Fixed: The HIRESTEX parser didn't check if a graphic specified in a remap
+  command actually existed.
+- Fixed: My $Limit fix from yesterday didn't work because NearLimit was
+  an unsigned byte and the comparisons with -1 didn't work. Made it a
+  signed word instead.
+- Made sfxinfo_t::Link an unsigned int because it limited the amount of 
+  usable sounds to 65535.
+
+March 29, 2008
+- Fixed: OPLMIDIDevice sent the wrong pitch wheel value to the player code.
+  Missimp.mid sounds a lot better now, though still a little off.
+- Fixed: MIDI files that had ticks with nothing but meta-events did not play
+  properly. (fixes sonic3_finalboss.mid)
+- Applied Const's Makefile.linux changes.
+- Made the OPL MIDI synth available from Linux.
+
+March 29, 2008 (Changes by Graf Zahl)
+- Added SnowKate709's A_DamageMaster/A_DamageChildren patch.
+- Added a SFX_TRANSFERAMBUSHFLAG for A_SpawnItemEx.
+- Added "Shaded" as a valid parameter for DECORATE's RenderStyle.
+- Added Karate Chris's patch for a MAPINFO option making Strife conversations
+  not halt the game.
+- Extended the $limit fix that $alias and $random definitions can have their
+  own $limit now.
+- Fixed: When resolving a linked sound the limit of the current sound was
+  ignored and the one of the referenced sound being used. This was particularly
+  noticable when using the chaingun in a group of Zombiemen.
+- Added a namespc parameter to FWadCollection::CheckNumForFullName which is
+  used when a normal lump name has to be looked up and changed all
+  CheckNumForFullName/CheckNumForName combinations in the source to use
+  the extended version of CheckNumForFullName only to have consistent
+  behavior for lump name lookup.
+
+March 28, 2008
+- Moved sound sample rate, buffer size, and buffer count to the
+  advanced sound options menu. Removed opl_enable from the menu.
+- Added OPL synth as MIDI device -3. Since this is based on the MUS player
+  code, it only supports those events and controllers supported by MUS.
+  Some of Duke's MIDIs sound awful, but I think that may be more because
+  it's using different instruments... There's a thread in the MIDI streamer
+  class that could be taken out for Linux, since it doesn't need to deal
+  with the Windows Multimedia API, but for now, this is still Windows-only.
+- Changed the output of the OPL emulator from 32-bit integers to 32-bit
+  floats, so I can write its output directly to the stream buffer. In
+  addition, this lets me bring the OPL volume level much closer to the
+  standard MIDI volume.
+
+March 27, 2008
+- Did some restructuring of the OPL code in preparation for turning it
+  into a general MIDI player.
+- Fixed: Passing false for a stream callback did not stop the stream.
+- Removed opl_frequency, since the only time the emulation sounds good is
+  when it plays at the exact frequency of a real chip.
+- Music no longer plays at all when snd_musicvolume is 0.
+- Bumped up snd_sfxvolume and snd_musicvolume default values.
+- Changed D3DFB to explicitly request double buffering instead of assuming
+  that the drivers will treat a BackBufferCount of 0 as a request for
+  double buffering.
+- Fixed: Unsetting a cvar did not remove it from the list of tab
+  completions.
+- Added "" as a synonym for "nullimage" in SBARINFO.
+- Fixed: MAKESAVESIG's stringifier in version.h did not work as expected.
+  It stringified the passed macro name, not the value of the macro.
+- Moved DCajunMaster off the DObject hierarchy.
+- Changed DCajunMaster::getspawned into a TArray of FStrings. It was
+  mysteriously being left pointing to uninitialized memory during the
+  final GC at exit and crashing.
+- Fixed: The code that removed hexdd.wad from the list of IWADs when
+  hexen.wad was not present did not work.
+
+March 27, 2008 (Changes by Graf Zahl)
+- Fixed: DCajunMaster::End was missing a write barrier for getspawned. The
+  same problem in D_DoomMain.
+- Made bglobal a pointer because it was causing problems with the garbage 
+  collector.
+
+March 26, 2008
+- Added uppercase copies of the IWAD names to the IWAD search for Unix land.
+- Added FMOD_OPENONLY to the callback version of CreateStream() to prevent it
+  from doing prebuffering of the song. This was causing the Linux version to
+  hang while waiting for input from the pipe, since Timidity hadn't been
+  started yet. I tried using a select call in the FillStream() method, but it
+  always seems to return the pipe as having nothing available. Unfortunately,
+  the game still falls all over itself if Timidity isn't available. Instead
+  of execvp failing nicely, X errors kill the game. I don't know why it's
+  doing that. My advice for Linux music: Skip Timidity++ and get a DLS patch
+  set (/WINDOWS/system32/drivers/gm.dls is probably the most common by far)
+  and set the snd_midipatchset cvar to point to it. It's faster and also
+  sounds a whole lot better than the crappy freepats Ubuntu wants to install
+  with Timidity++ (thank goodness I have the official patches from a real
+  GUS so I don't need to use them).
+- GCC fixes.
+
+March 26, 2008 (Changes by Graf Zahl)
+- Fixed: After starting new music the music volume has to be reset so that
+  the song's relative volume takes effect.
+- Removed the arbitrary 1024 bytes limit when the file being played is a MIDI
+  file. I had a D_DM2TTL that's only 990 bytes.
+- Restructured I_RegisterSong so that $mididevice works again and also supports
+  selecting FMOD.
+- Added Jim' Linux fix.
+- Added MartinHowe's fix for mugshot display in status bars.
+
+March 25, 2008
+- The garbage collector is now run one last time just before exiting the game.
+- Removed movie volume from the sound menu and renamed some of the other
+  options to give the MIDI device name more room to display itself.
+- Moved the midi device selection into the main sound menu.
+- Added FMOD as MIDI device -1, to replace the MIDI mapper. This is still the
+  default device. By default, it uses exactly the same DLS instruments as the
+  Microsoft GS Wavetable Synth. If you have another set DLS level 1 patch set
+  you want to use, set the snd_midipatchset cvar to specify where it should
+  load the instruments from.
+- Changed the ProduceMIDI function to store its output into a TArray<BYTE>.
+  An overloaded version wraps around it to continue to supply file-writing
+  support for external Timidity++ usage.
+- Added an FMOD credits banner to comply with their non-commercial license.
+- Reimplemented the snd_buffersize cvar for the FMOD Ex sound system. Rather
+  than a time in ms, this is now the length in samples of the DSP buffer.
+  Also added the snd_buffercount cvar to offer complete control over the
+  call to FMOD::System::setDSPBufferSize(). Note that with any snd_samplerate
+  below about 44kHz, you will need to set snd_buffersize to avoid long
+  latencies.
+- Reimplemented the snd_output cvar for the FMOD Ex sound system.
+- Changed snd_samplerate default to 0. This now means to use the default
+  sample rate.
+- Made snd_output, snd_output_format, snd_speakermode, snd_resampler, and
+  snd_hrtf available through the menu.
+- Split the HRTF effect selection into its own cvar: snd_hrtf.
+- Removed 96000 Hz option from the menu. It's still available through the
+  cvar, if desired.
+- Fixed: If Windows sound init failed, retry with DirectSound. (Apparently,
+  WASAPI doesn't work with more than two speakers and PCM-Float output at the
+  same time.)
+- Fixed: Area sounds only played from the front speakers once you got within
+  the 2D panning area.
+
+March 25, 2008 (Changes by Graf Zahl)
+- Added Karate Chris's submission for multiplayer Strife conversations.
+- Increased the limit for 'imp/active' to 6. This sound definitely benefits  
+  from a higher limit.
+- Fixed: $limit should not apply to sounds played from the menu.
+- Fixed: The SNDSEQ parser tried to set bDoorSound before actually creating
+  the sound sequence data.
+- Changed Lemon so that it always writes the header. It still kept recompiling
+  the grammar over and over again once it had been changed locally.
+- Fixed: ANIMATED allowed animations between different texture types.
+- Added a debuganimated CCMD that can be used to output some information
+  if a WAD shows broken animations.
+
+March 24, 2008
+- Removed xlat_parser.h from the repository. Lemon was always being run on
+  xlat_parser.y because both files had the same time stamp after an update,
+  and Lemon only rewrites the header file if it's changed.
+- Added $volume SNDINFO command. This is multiplied with the volume the sound
+  is played at to arrive at the final volume (before distance attenuation).
+- Added the CHAN_AREA flag to disable 3D panning within the min distance of a
+  sound. Sector sound sequences (except doors) use this flag.
+- Added the CHAN_LOOP flag to replace the S_Looped* sound functions.
+- Restored the sound limiting.
+
+March 24, 2008 (Changes by Graf Zahl)
+- Fixed: THe handling for enum values in Xlat was incorrect. The rule with 
+  value assignment must set the counter one higher than the current value.
+- Fixed: The definition of enums in the Xlat grammar was right-recursive
+  which could create stack overflows in the parser. Made it left-recursive as
+  recommended in Lemon's docs. 
+- Added Thomas's submissions for decal assignment to puffs and NOINFIGHTING flag.
+- Reverted changes of r715 in v_collection.cpp because they broke loading
+  of status bar face graphics belonging to skins.
+SBARINFO update #15
+- Fixed: Monospacing fonts wasn't quite correct.
+- Fixed: The new mug shot code forgot to use the first arg of drawmugshot (the
+  one that picks the default sprite prefix).
+- Added: lowerHealthCap variable to SBarInfo, which is set to true by default.
+- Added: ininventory event to SBarInfo to detect if one or two items are in (or
+  not in) the player's inventory.
+- Added: The ability to print global vars using drawnumber.  I need someone to
+  test it though.
+- Added: aspectratio command to detect what the user's aspect ratio is.
+- Added: missing spacing argument to drawstring.
+- Changed the sbarinfo display routine for drawnumber to not use cmd.value to
+  store what it is about to display.  Now it uses a new variable.
+- More conversions from DrawImage to screen->DrawTexture.  I think only the
+  inventory bar drawing functions have to be changed now.
+
+March 23, 2008 (Changes by Graf Zahl)
+- Fixed: The Sequence pointer in ASoundSequenceSlot was not declared as
+  a pointer and it was missing both read and write barriers.
+- Fixed: The sector translators must clear unused bits because they might
+  render a sector's special inoperable.
+- Expanded the args for MAPINFO special actions to 32 bit integers as in
+  the rest of the game.
+- Fixed: The specialaction list was not copied properly when transferred
+  from the defaultinfo.
+- Fixed: The defaultinfo for MAPINFO wasn't cleared fully after MAPINFO
+  parsing was completed.
+- Made Doom-format linedef translators a map property so that it's easier
+  to define replacements or extensions.
+
+March 22, 2008
+- Changed MIDI playback to not bother playing super short songs that don't
+  contain enough music to fill the initial output buffers.
+- Removed the read barrier around ADehackedPickup::RealPickup. If the real
+  pickup is picked up, it may very well destroy itself before the dehacked
+  wrapper's stubs that use it are called.
+- Reverted revision 840. For a file we don't want end users to be touching,
+  making DEHSUPP plain text sends out mixed messages: "Don't mess with this.
+  Oh, by the way, it's plain text now to make it easier for you to edit."
+  Is there some reason other than a desire to do away with binary lumps to
+  make the distributed lump text?
+- Added a new speakermode for Stereo + HRTF: "Headphones". This is the only
+  way to get the HRTF low pass filter effect now.
+- Fixed: No more than one sector could make noise at once.
+- Trying out sound without varying priorities again. 
+- Fixed: Need to use setSpeakerMix to let 2D sounds (aka streamed music) use
+  their full volume range.
+
 March 22, 2008 (Changes by Graf Zahl)
-- Changed DEHSUPP loader so that it reads the text file directly. As a result
-  the DEHSUPP compiler is gone now. Unlike XLATCC I'm using FScanner though.
-  A fully featured parser seems like overkill for this simple text file.
+- Added sector type translation to xlat_parser and removed the old sectorx
+  lump.
 - Added Line_SetTextureOffset special.
 - Added 'allowprotection' keyword to terrain definitions to allow damaging
   flats that don't damage players with a radiation suit.
@@ -418,7 +761,7 @@ February 26, 2008
 - More write barriers and pointer declarations. Here are rules I've come up
   with so far for when write barriers can be ommitted:
   * Initializing pointers for a newly created object: A new object can never
-    black, so none of its pointers that get set by the constructor (or code
+    be black, so none of its pointers that get set by the constructor (or code
     just following its creation) need to be  behind write barriers.
   * Creating a new thinker and storing it in a pointer: The thinker
     constructor already puts it behind a write barrier when it links it into
@@ -5681,7 +6024,7 @@ February 9, 2005
   took me a while to figure out the problem, ZDoom can now play raw OPL songs.
 
 February 7, 2005
-- Added the writeopl command to write a song in RDosPlay raw OPL format. It's usage is:
+- Added the writeopl command to write a song in RDosPlay raw OPL format. Its usage is:
     writeopl [songname] <filename>
   If the currently playing song is a MUS song being played through the OPL emulation,
   then you just need to specify the filename. Otherwise, you need to provide the
