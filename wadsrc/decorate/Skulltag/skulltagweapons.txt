@@ -177,6 +177,7 @@ ACTOR BFG10kShot
 	Height 8
 	Speed 20
 	Damage 160
+	DamageType BFG10k
 	+NOBLOCKMAP
 	+NOGRAVITY
 	+ACTIVATEIMPACT
