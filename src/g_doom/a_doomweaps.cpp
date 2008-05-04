@@ -1399,7 +1399,7 @@ void A_BFGsound (AActor *actor)
 }
 
 // BFG 10k -----------------------------------------------------------------
-
+/*
 void A_FireBFG10k( AActor *pActor );
 void A_BFG10kSound( AActor *pActor );
 void A_BFG10kCoolDown( AActor *pActor );
@@ -1524,11 +1524,11 @@ extern	AActor	*shootthing;
 void ABFG10kShot::BeginPlay ()
 {
 	Super::BeginPlay ( );
-/*
+
 	// BFG10k shots create an explosion, in which case we need to know the target.
 	if ( shootthing && shootthing->player )
 		target = shootthing;
-*/
+
 	SetState( this->SpawnState );
 }
 
@@ -1616,3 +1616,4 @@ void A_BFG10kCoolDown( AActor *actor )
 			SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "weapons/bfg10kcool", 1, ATTN_NORM );
 	}
 }
+*/

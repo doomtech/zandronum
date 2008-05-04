@@ -1,4 +1,3 @@
 - Either adapt P_UseItems to the latest ZDoom changes or remove it. Currently it's just disabled.
 - Make the old movement code compatible with the latest ZDoom code (P_OldXYMovement)
 - Make the botpath code use the new ZDoom iterators instead of the old copies of P_BoxOnLineSide, P_BlockLinesIterator and P_BlockThingsIterator
-- Check how to repair ABFG10kShot::BeginPlay ()
