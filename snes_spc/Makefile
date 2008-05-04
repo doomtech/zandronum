@@ -1,5 +1,7 @@
 # Makefile for snes_spc, derived from zlib/Makefile.mgw.
 
+DYNAMIC=1
+
 CMD=0
 ifeq (Windows_NT,$(OS))
   CMD=1
@@ -9,6 +11,7 @@ ifeq (Windows_NT,$(OS))
 endif
 
 STATICLIB = libsnes_spc.a
+DYNAMICLIB = libsnes_spc.so
 
 CCDV = @../ccdv
 
@@ -21,10 +24,16 @@ LDFLAGS = $(LOC) -s
 AR = ar
 ARFLAGS = rcs
 
+SOFLAGS = -shared
+
 OBJS = snes_spc/dsp.o snes_spc/SNES_SPC.o snes_spc/SNES_SPC_misc.o snes_spc/SNES_SPC_state.o \
 	snes_spc/spc.o snes_spc/SPC_DSP.o snes_spc/SPC_Filter.o
 
+ifeq (0,$(DYNAMIC))
 all: $(STATICLIB)
+else
+all: $(DYNAMICLIB)
+endif
 
 .cpp.o:
 	$(CCDV) $(CC) $(CFLAGS) -c -o $@ $<
@@ -32,15 +41,21 @@ all: $(STATICLIB)
 $(STATICLIB): $(OBJS)
 	$(CCDV) $(AR) $(ARFLAGS) $@ $(OBJS)
 
+$(DYNAMICLIB): $(OBJS)
+	$(CCDV) $(CC) $(SOFLAGS) $(OBJS) -o $@
+	cp $(DYNAMICLIB) ../$(DYNAMICLIB)
+
 
 .PHONY: clean
 
 clean:
 ifeq (0,$(CMD))
 	rm -f $(STATICLIB)
+	rm -f $(DYNAMICLIB)
 	rm -f snes_spc/*.o
 else
 	-del /q /f $(STATICLIB) 2>nul
+	-del /q /f $(DYNAMICLIB) 2>nul
 	-del /q /f snes_spc\*.o 2>nul
 endif
 

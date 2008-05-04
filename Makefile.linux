@@ -23,7 +23,7 @@ ifdef SERVERONLY
 else
   CFLAGS += `pkg-config gtk+-2.0 --cflags` -I$(FMOD_PREFIX)/inc/
 endif
-LDFLAGS += FLAC/*.o -lz -ljpeg `sdl-config --libs`
+LDFLAGS += FLAC/*.o -lz -ljpeg `sdl-config --libs` libsnes_spc.so
 ifndef SERVERONLY
   LDFLAGS +=  -lfmodex -lGL -lGLU `pkg-config gtk+-2.0 --libs`
 endif
@@ -89,10 +89,10 @@ OBJS = $(addprefix $(OBJDIR)/,$(AOBJFILES)) $(COBJS)
 
 all: $(ZDOOMBIN) toolsandpk3 zdoom.pk3
 
-$(ZDOOMBIN): ccdv updaterev src/xlat/xlat_parser.h src/xlat/xlat_parser.c $(OBJDIR) $(OBJS) snes_spc/libsnes_spc.a
+$(ZDOOMBIN): ccdv updaterev src/xlat/xlat_parser.h src/xlat/xlat_parser.c $(OBJDIR) $(OBJS) snes_spc/libsnes_spc.so
 	$(CCDV) $(CXX) $(LDFLAGS) $(OBJDIR)/autostart.o \
 	$(filter-out %/autostart.o %/autozend.o,$(OBJS)) \
-	snes_spc/libsnes_spc.a $(OBJDIR)/autozend.o -o $(ZDOOMBIN)
+	$(OBJDIR)/autozend.o -o $(ZDOOMBIN)
 
 $(OBJDIR)/%.o: %.cpp
 	$(CCDV) $(CXX) $(CXXFLAGS) -o $@ -c $<
@@ -123,7 +123,7 @@ toolsandpk3: ccdv tools/makewad/makewad tools/lemon/lemon
 zdoom.pk3: toolsandpk3
 	cp wadsrc/skulltag.pk3 ../skulltag.pk3
 
-snes_spc/libsnes_spc.a: ccdv
+snes_spc/libsnes_spc.so: ccdv
 	$(MAKE) -C snes_spc/
 
 tools/makewad/makewad: ccdv
