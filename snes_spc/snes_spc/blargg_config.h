@@ -21,4 +21,10 @@
 	#include "config.h"
 #endif
 
+#ifdef WIN32
+#define DLL __declspec(dllexport)
+#else
+#define DLL
+#endif
+
 #endif

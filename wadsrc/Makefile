@@ -18,7 +18,7 @@ wadmake: zdoom.lst
 	$(MAKEWAD) -make wadmake zdoom.lst
 
 clean:
-	$(RM) wadmake zdoom.pk3
+	$(RM) wadmake skulltag.pk3
 
 # This target is for Visual C++'s Rebuild All command
 nrebuild: clean

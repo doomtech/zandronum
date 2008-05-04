@@ -1,41 +1,41 @@
 # created on 4/12/2006 by James Bentler
 
 
-FMOD_PREFIX = /usr/local
+FMOD_PREFIX = ../fmodapi41404linux/api
 CXX = apg++
 CC = apgcc
 NASM ?= nasm
 CCDV = @./ccdv
 ifdef DEBUG
-  CFLAGS ?= -pipe -Wall -Wno-unused -Wno-format -fno-strict-aliasing
+  CFLAGS ?= -pipe -Wall -Wno-unused -fno-strict-aliasing
 else
-  CFLAGS ?= -pipe -Wall -Wno-unused -Wno-format -fno-strict-aliasing -O2 -fomit-frame-pointer
+  CFLAGS ?= -pipe -Wall -Wno-unused -fno-strict-aliasing -O2 -fomit-frame-pointer
   CXXFLAGS ?= -fno-rtti
 endif
-ifdef GC
-  CFLAGS += -ffunction-sections
-  LDFLAGS += -Wl,--gc-sections
-endif
-CFLAGS += -MMD -DHAVE_FILELENGTH -D__forceinline=inline -IFLAC `sdl-config --cflags`
+#ifdef GC
+#  CFLAGS += -ffunction-sections
+#  LDFLAGS += -Wl,--gc-sections
+#endif
+CFLAGS += -MMD -DHAVE_FILELENGTH -D__forceinline=inline `sdl-config --cflags`
 CFLAGS += -Dstrnicmp=strncasecmp -DNEED_STRUPR -DNO_SERVER_GUI
 ifdef SERVERONLY
   CFLAGS += -DNO_SOUND -DNO_GL -DNO_GTK -DSERVER_ONLY
 else
-  CFLAGS += `pkg-config gtk+-2.0 --cflags` -I../fmodapi375linux/api/inc/
+  CFLAGS += `pkg-config gtk+-2.0 --cflags` -I$(FMOD_PREFIX)/inc/
 endif
 LDFLAGS += FLAC/*.o -lz -ljpeg `sdl-config --libs`
 ifndef SERVERONLY
-  LDFLAGS +=  $(FMOD_PREFIX)/lib/libfmodex.so -lGL -lGLU `pkg-config gtk+-2.0 --libs`
+  LDFLAGS +=  -lfmodex -lGL -lGLU `pkg-config gtk+-2.0 --libs`
 endif
 
 NASMFLAGS += -f elf -DM_TARGET_LINUX
-SRCDIRS = src/ $(addprefix src/,g_doom/ g_heretic/ g_hexen/ g_raven/ g_shared/ g_strife/ MD5/ oplsynth/ sound/ sdl/ textures/ thingdef/ win32/g15/ xlat/)
-INCLUDES += -Isnes_spc/snes_spc/ -I$(FMOD_PREFIX)/include/fmodex/
+SRCDIRS = src/ $(addprefix src/,g_doom/ g_heretic/ g_hexen/ g_raven/ g_shared/ g_strife/ MD5/ oplsynth/ sound/ sdl/ textures/ thingdef/ win32/g15/ xlat/ timidity/)
 ifndef SERVERONLY
   SRCDIRS += $(addprefix src/,gl/ gl/r_render/)
 endif
 VPATH = $(SRCDIRS)
 INCLUDES = $(addprefix -I,$(SRCDIRS) src/gl)
+INCLUDES += -Isnes_spc/snes_spc/
 CFLAGS += $(INCLUDES)
 
 ifndef SERVERONLY
@@ -75,7 +75,10 @@ ifdef DEBUG
 else
   OBJDIR = $(RELEASEOBJ)
   CFLAGS += -DNDEBUG
-  LDFLAGS += -s -Wl,-Map=$(ZDOOM).map
+  LDFLAGS += -Wl,-Map=$(ZDOOM).map
+  ifndef NOSTRIP
+    LDFLAGS += -s
+  endif
   ZDOOMBIN = $(ZDOOM)
 endif
 CXXFLAGS += $(CFLAGS)
@@ -86,7 +89,7 @@ OBJS = $(addprefix $(OBJDIR)/,$(AOBJFILES)) $(COBJS)
 
 all: $(ZDOOMBIN) toolsandpk3 zdoom.pk3
 
-$(ZDOOMBIN): ccdv updaterev $(OBJDIR) $(OBJS) snes_spc/libsnes_spc.a
+$(ZDOOMBIN): ccdv updaterev src/xlat/xlat_parser.h src/xlat/xlat_parser.c $(OBJDIR) $(OBJS) snes_spc/libsnes_spc.a
 	$(CCDV) $(CXX) $(LDFLAGS) $(OBJDIR)/autostart.o \
 	$(filter-out %/autostart.o %/autozend.o,$(OBJS)) \
 	snes_spc/libsnes_spc.a $(OBJDIR)/autozend.o -o $(ZDOOMBIN)
@@ -100,9 +103,8 @@ $(OBJDIR)/%.o: %.c
 $(OBJDIR)/%.o: %.nas
 	$(CCDV) $(NASM) -o $@ $(NASMFLAGS) $<
 
-
 # This file needs special handling so that it actually gets compiled with SSE2 support.
-$(OBJDIR)/nodebuild_classify_sse2.o: src/nodebuild_classify_sse2.cpp
+$(OBJDIR)/nodebuild_classify_sse2.o: nodebuild_classify_sse2.cpp
 	$(CCDV) $(CXX) $(CXXFLAGS) -msse2 -mfpmath=sse -c -o $@ $<
 
 # This file needs special handling because GCC misoptimizes it otherwise.
@@ -115,11 +117,11 @@ src/xlat/xlat_parser.h src/xlat/xlat_parser.c: tools/lemon/lemon src/xlat/xlat_p
 $(OBJDIR):
 	mkdir $(OBJDIR)
 
-toolsandpk3: ccdv tools/makewad/makewad
+toolsandpk3: ccdv tools/makewad/makewad tools/lemon/lemon
 	$(MAKE) -C wadsrc/
 
 zdoom.pk3: toolsandpk3
-	ln -sf wadsrc/zdoom.pk3 ./
+	cp wadsrc/skulltag.pk3 ../skulltag.pk3
 
 snes_spc/libsnes_spc.a: ccdv
 	$(MAKE) -C snes_spc/
@@ -130,30 +132,24 @@ tools/makewad/makewad: ccdv
 tools/lemon/lemon: ccdv
 	$(MAKE) -C tools/lemon/
 
-tools/updaterevision/updaterevision: ccdv
-	$(MAKE) -C tools/updaterevision/
-
-src/svnrevision_gz.h: tools/updaterevision/updaterevision
-	tools/updaterevision/updaterevision . src/svnrevision_gz.h
-
-
 updaterev: tools/updaterevision/updaterevision
 	@tools/updaterevision/updaterevision . src/svnrevision.h
 
-tools/updaterevision/updaterevision:
+tools/updaterevision/updaterevision: ccdv
 	$(MAKE) -C tools/updaterevision
 
 .PHONY : clean cleandeps cleanobjs distclean toolsandpk3 cleantools updaterev
 
 clean: cleanobjs
 	rm -f $(ZDOOMDEBUG) $(ZDOOM) $(ZDOOM).map
-	#rm -f $(ZDOOM).pk3
 	rm -f ccdv
+	@$(MAKE) -C snes_spc clean
 
 cleantools:
+	@$(MAKE) -C wadsrc clean
 	@$(MAKE) -C tools/makewad clean
-	@$(MAKE) -C tools/dehsupp clean
-	@$(MAKE) -C tools/xlatcc clean
+	@$(MAKE) -C tools/updaterevision clean
+	@$(MAKE) -C tools/lemon clean
 
 cleandebug:
 	rm -f $(ZDOOMDEBUG) $(DEBUGOBJ)/*.o $(DEBUGOBJ)/*.d
@@ -166,6 +162,7 @@ cleanrelease:
 # I could use a recursive delete instead, but that could be dangerous...
 distclean: clean cleandeps
 	-rmdir $(RELEASEOBJ) $(DEBUGOBJ)
+	rm -f skulltag.pk3
 
 cleandeps:
 	rm -f $(RELEASEOBJ)/*.d $(DEBUGOBJ)/*.d
