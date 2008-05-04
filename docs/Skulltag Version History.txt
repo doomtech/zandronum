@@ -17,7 +17,8 @@ latestzdoom branch
 *+	- Thoroughly updated Skulltag's ZDoom base to the latest ZDoom SVN repository revision (currently 871). [Torr Samaho]
 +	- Upgraded the GZDoom renderer to 1.1.02 (revision 85)! [Torr Samaho]
 +	- Weapon flag RADIUSDAMAGE_BOSSES is now available in DECORATE. Weapons with this flag do damage to bosses and other monsters that have the MF3_NORADIUSDMG flag. [Torr Samaho]
-+	- Converted BFG10K to DECORATE. Since ZDoom doesn't support hitscan puff ownership, fast projectiles are used instead of the hitscan puffs. The DECORATE code of the BFG10K was inspired by the BFG10K from Protojo's stweaps.wad. [Torr Samaho]
++	- Added new actor flag PUFFGETSOWNER to flags5. If selected, the owner of the puff is set to the player who fired it. [Torr Samaho]
++	- Converted BFG10K to DECORATE. 
 
 
 ??????

@@ -240,6 +240,7 @@ static flagdef ActorFlags[]=
 	DEFINE_FLAG(MF5, NOINFIGHTING, AActor, flags5),
 	DEFINE_FLAG(MF5, NOINTERACTION, AActor, flags5),
 	DEFINE_FLAG(MF5, NOTIMEFREEZE, AActor, flags5),
+	DEFINE_FLAG(MF5, PUFFGETSOWNER, AActor, flags5), // [BB] added PUFFGETSOWNER
 
 	// [BC] New DECORATE flag defines here.
 	DEFINE_FLAG(STFL, BLUETEAM, AActor, ulSTFlags),
