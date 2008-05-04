@@ -50,7 +50,9 @@
 #include "gi.h"
 #include "templates.h"
 #include "zstring.h"
+#ifdef USE_TIMIDITY
 #include "timidity/timidity.h"
+#endif
 // [BB] New #includes.
 #include "cl_demo.h"
 #include "deathmatch.h"

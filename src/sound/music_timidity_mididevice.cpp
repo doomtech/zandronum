@@ -32,6 +32,7 @@
 **
 */
 
+#ifdef USE_TIMIDITY
 // HEADER FILES ------------------------------------------------------------
 
 #include "i_musicinterns.h"
@@ -535,3 +536,5 @@ bool TimidityMIDIDevice::FillStream(SoundStream *stream, void *buff, int len, vo
 	TimidityMIDIDevice *device = (TimidityMIDIDevice *)userdata;
 	return device->ServiceStream(buff, len);
 }
+
+#endif // USE_TIMIDITY

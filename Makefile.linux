@@ -29,7 +29,7 @@ ifndef SERVERONLY
 endif
 
 NASMFLAGS += -f elf -DM_TARGET_LINUX
-SRCDIRS = src/ $(addprefix src/,g_doom/ g_heretic/ g_hexen/ g_raven/ g_shared/ g_strife/ MD5/ oplsynth/ sound/ sdl/ textures/ thingdef/ win32/g15/ xlat/ timidity/)
+SRCDIRS = src/ $(addprefix src/,g_doom/ g_heretic/ g_hexen/ g_raven/ g_shared/ g_strife/ MD5/ oplsynth/ sound/ sdl/ textures/ thingdef/ win32/g15/ xlat/)
 ifndef SERVERONLY
   SRCDIRS += $(addprefix src/,gl/ gl/r_render/)
 endif
