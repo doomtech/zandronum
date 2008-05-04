@@ -315,6 +315,7 @@ static flagdef WeaponFlags[] =
 	DEFINE_FLAG(WIF, NO_AUTO_SWITCH, AWeapon, WeaponFlags),
 	//WIF_BOT_REACTION_SKILL_THING = 1<<31, // I don't understand this
 	DEFINE_FLAG(WIF, ALLOW_WITH_RESPAWN_INVUL, AWeapon, WeaponFlags), // [BB] Marks weapons that can be used while respawn invulnerability is active.
+	DEFINE_FLAG(WIF, RADIUSDAMAGE_BOSSES, AWeapon, WeaponFlags),	// [BB] This weapon does damage to bosses and other monsters that have the MF3_NORADIUSDMG flag.
 	DEFINE_FLAG(WIF, NOLMS, AWeapon, WeaponFlags), // [BB] Marks weapons that are not given to the player in LMS.
 };
 

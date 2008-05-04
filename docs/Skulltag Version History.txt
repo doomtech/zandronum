@@ -12,12 +12,16 @@
 ===============================================================================================================
 
 
-??????
+latestzdoom branch
 ------
-
-*+	- Added basic HUD model support. [Torr Samaho]
 *+	- Thoroughly updated Skulltag's ZDoom base to the latest ZDoom SVN repository revision (currently 871). [Torr Samaho]
 +	- Upgraded the GZDoom renderer to 1.1.02 (revision 85)! [Torr Samaho]
++	- Weapon flag RADIUSDAMAGE_BOSSES is now available in DECORATE. Weapons with this flag do damage to bosses and other monsters that have the MF3_NORADIUSDMG flag. [Torr Samaho]
+
+
+??????
+------
+*+	- Added basic HUD model support. [Torr Samaho]
 +	- Added double definition support for the old DECORATE standard. In this case, the new actors override the old ones. [Rivecoder]
 +	- Under Windows, choosing "browse servers" in the Multiplayer menu brings up a new menu, letting you choose between IDEse and the internal browser. Hopefully, this should prevent newbies getting stuck at the old browser. [Rivecoder]
 +	- Added the CVAR chat_sound. With it, you can turn chat sounds off (0), play the default (1), or the Doom 2 (2) or Doom 1 (3) sounds. [Rivecoder]
