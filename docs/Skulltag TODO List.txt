@@ -2,4 +2,3 @@
 - Make the old movement code compatible with the latest ZDoom code (P_OldXYMovement)
 - Make the botpath code use the new ZDoom iterators instead of the old copies of P_BoxOnLineSide, P_BlockLinesIterator and P_BlockThingsIterator
 - Check how to repair ABFG10kShot::BeginPlay ()
-- Repair Skulltag's episode selection menu

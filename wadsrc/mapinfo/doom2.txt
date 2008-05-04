@@ -2,9 +2,18 @@
 
 clearepisodes
 episode map01
-	name "Hell On Earth"
+	picname "M_HOE"
 	key h
 
+episode d2dm1
+	picname "M_MORTAL"
+	key t
+	botepisode
+	botskillpicname "M_DMATCH"
+
+episode d2inv1
+	picname "M_IMPEND"
+	key i
 
 map MAP01 lookup HUSTR_1
 titlepatch CWILV00
