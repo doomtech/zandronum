@@ -107,7 +107,7 @@ public:
 			gl.Uniform1iARB(texturemode_index, mode); 
 		}
 	}
-	bool Bind();
+	bool Bind(float Speed);
 
 };
 
@@ -255,7 +255,7 @@ int FShader::GetUniformIndex(FName pname)
 //
 //==========================================================================
 
-bool FShader::Bind()
+bool FShader::Bind(float Speed)
 {
 	if (gl_activeShader!=this)
 	{
@@ -264,7 +264,7 @@ bool FShader::Bind()
 		SetFogEnabled(gl_fogenabled);
 		gl_activeShader=this;
 	}
-	if (timer_index >=0) gl.Uniform1fARB(timer_index, gl_frameMS/1000.f);
+	if (timer_index >=0 && Speed > 0.f) gl.Uniform1fARB(timer_index, gl_frameMS*Speed/1000.f);
 	return true;
 }
 
@@ -544,7 +544,7 @@ GLShader *GLShader::Find(const char * shn)
 }
 
 
-void GLShader::Bind(int cm, bool brightmap)
+void GLShader::Bind(int cm, bool brightmap, float Speed)
 {
 	FShader *sh=NULL;
 	switch(cm)
@@ -557,7 +557,7 @@ void GLShader::Bind(int cm, bool brightmap)
 		sh = container->shader_cm[cm-CM_INVERT+1];
 		// [BB] If there was a problem when loading the shader, sh is NULL here.
 		if( sh )
-			sh->Bind();
+			sh->Bind(Speed);
 		break;
 
 	default:
@@ -567,7 +567,7 @@ void GLShader::Bind(int cm, bool brightmap)
 		// [BB] If there was a problem when loading the shader, sh is NULL here.
 		if( sh )
 		{
-			sh->Bind();
+			sh->Bind(Speed);
 			if (desat)
 			{
 				gl.Uniform1fARB(sh->desaturation_index, 1.f-float(cm-CM_DESAT0)/(CM_DESAT31-CM_DESAT0));
@@ -609,7 +609,7 @@ void gl_EnableTexture(bool on)
 			gl.Enable(GL_TEXTURE_2D);
 			if (shader_when_disabled != NULL)
 			{
-				shader_when_disabled->Bind();
+				shader_when_disabled->Bind(0.f);
 			}
 		}
 	}

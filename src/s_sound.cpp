@@ -404,11 +404,18 @@ void S_Start ()
 		if (level.info && level.info->soundinfo)
 		{
 			LocalSndInfo = level.info->soundinfo;
-			LocalSndSeq  = level.info->sndseq;
 		}
 		else
 		{
 			LocalSndInfo = "";
+		}
+
+		if (level.info && level.info->sndseq)
+		{
+			LocalSndSeq  = level.info->sndseq;
+		}
+		else
+		{
 			LocalSndSeq  = "";
 		}
 
@@ -882,7 +889,7 @@ static void S_StartSound (fixed_t *pt, AActor *mover, int channel,
 		chan->X = x;
 		chan->Y = y;
 		chan->Z = z;
-		chan->ChanFlags = chanflags;
+		chan->ChanFlags |= chanflags;
 		if (mover != NULL)
 		{
 			mover->SoundChans |= 1 << channel;
@@ -1265,10 +1272,12 @@ void S_UpdateSounds (void *listener_p)
 	if (GSnd == NULL)
 		return;
 
-	// [RH] Update playlist
-	if (PlayList &&
-		mus_playing.handle &&
-		!I_QrySongPlaying(mus_playing.handle))
+	// [RH] Update music and/or playlist. I_QrySongPlaying() must be called
+	// to attempt to reconnect to broken net streams and to advance the
+	// playlist when the current song finishes.
+	if (mus_playing.handle != NULL &&
+		!I_QrySongPlaying(mus_playing.handle) &&
+		PlayList)
 	{
 		PlayList->Advance();
 		S_ActivatePlayList(false);
@@ -1431,42 +1440,64 @@ bool S_ChangeMusic (const char *musicname, int order, bool looping, bool force)
 		int lumpnum = -1;
 		int offset, length;
 		int device = MDEV_DEFAULT;
-	
+		void *handle = NULL;
 
 		int *devp = MidiDevices.CheckKey(FName(musicname));
 		if (devp != NULL) device = *devp;
+
+		// Strip off any leading file:// component.
+		if (strncmp(musicname, "file://", 7) == 0)
+		{
+			musicname += 7;
+		}
 
 		if (!FileExists (musicname))
 		{
 			if ((lumpnum = Wads.CheckNumForFullName (musicname, true, ns_music)) == -1)
 			{
-				Printf ("Music \"%s\" not found\n", musicname);
-				return false;
-			}
-			if (!Wads.IsUncompressedFile(lumpnum))
-			{
-				// We must cache the music data and use it from memory.
-
-				// shut down old music before reallocating and overwriting the cache!
-				S_StopMusic (true);
-
-				offset = -1;							// this tells the low level code that the music 
-														// is being used from memory
-				length = Wads.LumpLength (lumpnum);
-				if (length == 0)
+				if (strstr(musicname, "://") > musicname)
 				{
+					// Looks like a URL; try it as such.
+					handle = I_RegisterURLSong(musicname);
+					if (handle == NULL)
+					{
+						Printf ("Could not open \"%s\"\n", musicname);
+						return false;
+					}
+				}
+				else
+				{
+					Printf ("Music \"%s\" not found\n", musicname);
 					return false;
 				}
-				musiccache.Resize(length);
-				Wads.ReadLump(lumpnum, &musiccache[0]);
 			}
-			else
+			if (handle == NULL)
 			{
-				offset = Wads.GetLumpOffset (lumpnum);
-				length = Wads.LumpLength (lumpnum);
-				if (length == 0)
+				if (!Wads.IsUncompressedFile(lumpnum))
 				{
-					return false;
+					// We must cache the music data and use it from memory.
+
+					// shut down old music before reallocating and overwriting the cache!
+					S_StopMusic (true);
+
+					offset = -1;							// this tells the low level code that the music 
+															// is being used from memory
+					length = Wads.LumpLength (lumpnum);
+					if (length == 0)
+					{
+						return false;
+					}
+					musiccache.Resize(length);
+					Wads.ReadLump(lumpnum, &musiccache[0]);
+				}
+				else
+				{
+					offset = Wads.GetLumpOffset (lumpnum);
+					length = Wads.LumpLength (lumpnum);
+					if (length == 0)
+					{
+						return false;
+					}
 				}
 			}
 		}
@@ -1490,7 +1521,11 @@ bool S_ChangeMusic (const char *musicname, int order, bool looping, bool force)
 		}
 
 		// load & register it
-		if (offset != -1)
+		if (handle != NULL)
+		{
+			mus_playing.handle = handle;
+		}
+		else if (offset != -1)
 		{
 			mus_playing.handle = I_RegisterSong (lumpnum != -1 ?
 				Wads.GetWadFullName (Wads.GetLumpFile (lumpnum)) :

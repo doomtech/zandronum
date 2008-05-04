@@ -330,7 +330,7 @@ int FGLTexture::CheckExternalFile(bool & hascolorkey)
 // Checks for the presence of a hires texture replacement and loads it
 //
 //==========================================================================
-unsigned char *FGLTexture::LoadHiresTexture(int *width, int *height)
+unsigned char *FGLTexture::LoadHiresTexture(int *width, int *height, int cm)
 {
 	if (HiresLump==-1) 
 	{
@@ -351,8 +351,11 @@ unsigned char *FGLTexture::LoadHiresTexture(int *width, int *height)
 		unsigned char * buffer=new unsigned char[w*(h+1)*4];
 		memset(buffer, 0, w * (h+1) * 4);
 
+		FGLBitmap bmp(buffer, w*4, w, h);
+		bmp.SetTranslationInfo(cm);
+
 		
-		int trans = hirestexture->CopyTrueColorPixels(buffer, w<<2, h, 0, 0);
+		int trans = hirestexture->CopyTrueColorPixels(&bmp, 0, 0);
 		CheckTrans(buffer, w*h, trans);
 
 		if (bHasColorkey)

@@ -5861,7 +5861,21 @@ int DLevelScript::RunScript ()
 				static_cast<DSBarInfo*>(StatusBar)->SetMugShotState(FBehavior::StaticLookupString(STACK(1)));
 			}
 			break;
-		
+
+		case PCD_CHECKPLAYERCAMERA:
+			{
+				int playernum = STACK(1);
+				
+				if (playernum < 0 || playernum >= MAXPLAYERS || !playeringame[playernum] || players[playernum].camera == NULL)
+				{
+					STACK(1) = -1;
+				}
+				else 
+				{
+					STACK(1) = players[playernum].camera->tid;
+				}
+			}	
+			break;
 		}
 	}
 

@@ -85,6 +85,7 @@ extern BYTE GoldColormap[256];
 // [BC] New Skulltag colormaps.
 extern BYTE RedColormap[256];
 extern BYTE GreenColormap[256];
+extern BYTE DesaturateColormap[31][256];
 extern FPalette GPalette;
 extern "C" {
 extern FDynamicColormap NormalLight;
@@ -92,8 +93,6 @@ extern FDynamicColormap NormalLight;
 
 // The color overlay to use for depleted items
 #define DIM_OVERLAY MAKEARGB(170,0,0,0)
-
-extern int Near255;		// A color near 255 in appearance, but not 255
 
 int BestColor (const uint32 *pal, int r, int g, int b, int first=1, int num=255);
 

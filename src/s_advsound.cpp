@@ -302,7 +302,7 @@ void S_HashSounds ()
 {
 	unsigned int i;
 	unsigned int j;
-	size_t size;
+	unsigned int size;
 
 	S_sfx.ShrinkToFit ();
 	size = S_sfx.Size ();

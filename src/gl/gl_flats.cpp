@@ -61,10 +61,10 @@ EXTERN_CVAR (Bool, gl_lights_checkside);
 
 void gl_SetPlaneTextureRotation(const GLSectorPlane * secplane, FGLTexture * gltexture)
 {
-	float uoffs=TO_MAP(secplane->xoffs)/gltexture->TextureWidth();
-	float voffs=TO_MAP(secplane->yoffs)/gltexture->TextureHeight();
-	float xscale=TO_MAP(secplane->xscale)/gltexture->TextureWidth()*64.0f;
-	float yscale=TO_MAP(secplane->yscale)/gltexture->TextureHeight()*64.0f;
+	float uoffs=TO_MAP(secplane->xoffs)/gltexture->TextureWidth(FGLTexture::GLUSE_TEXTURE);
+	float voffs=TO_MAP(secplane->yoffs)/gltexture->TextureHeight(FGLTexture::GLUSE_TEXTURE);
+	float xscale=TO_MAP(secplane->xscale)/gltexture->TextureWidth(FGLTexture::GLUSE_TEXTURE)*64.0f;
+	float yscale=TO_MAP(secplane->yscale)/gltexture->TextureHeight(FGLTexture::GLUSE_TEXTURE)*64.0f;
 	float angle=-ANGLE_TO_FLOAT(secplane->angle);
 
 	gl.MatrixMode(GL_TEXTURE);

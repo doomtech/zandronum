@@ -63,15 +63,6 @@ public:
 	void Dim (PalEntry color, float damount, int x1, int y1, int w, int h);
 	void FlatFill (int left, int top, int right, int bottom, FTexture *src, bool local_origin=false);
 
-	// texture copy functions
-	virtual void CopyPixelDataRGB(BYTE * buffer, int texwidth, int texheight, int originx, int originy,
-					     const BYTE * patch, int pix_width, int pix_height, int step_x, int step_y,
-						 int ct);
-
-	virtual void CopyPixelData(BYTE * buffer, int texwidth, int texheight, int originx, int originy,
-					  const BYTE * patch, int pix_width, int pix_height, 
-					  int step_x, int step_y, PalEntry * palette);
-
 	void PrecacheTexture(FTexture *tex, bool cache);
 
 	// Create a native texture from a game texture.
@@ -81,13 +72,6 @@ public:
 	void RenderView (player_t* player);
 	void WriteSavePic (player_t *player, FILE *file, int width, int height);
 
-
-	void SetTranslationInfo(int _cm, int _trans=-1337)
-	{
-		if (_cm != -1) cm = _cm;
-		if (_trans != -1337) translation = _trans;
-	}
-
 	bool WipeStartScreen(int type);
 	void WipeEndScreen();
 	bool WipeDo(int ticks);
@@ -96,8 +80,12 @@ public:
 
 private:
 	PalEntry Flash;
+
+	// Texture creation info
 	int cm;
 	int translation;
+	bool iscomplex;
+
 	PalEntry SourcePalette[256];
 	BYTE *ScreenshotBuffer;
 
@@ -121,11 +109,6 @@ private:
 	void SetFixedColormap (player_t *player);
 
 };
-
-inline void SetTranslationInfo(int _cm, int _trans=-1337)
-{
-	static_cast<OpenGLFrameBuffer*>(screen)->SetTranslationInfo(_cm,_trans);
-}
 
 
 #endif //__GL_FRAMEBUFFER

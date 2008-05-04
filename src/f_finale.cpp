@@ -526,7 +526,7 @@ int 			casttics;
 int				castsprite;			// [RH] For overriding the player sprite with a skin
 const FRemapTable *casttranslation;	// [RH] Draw "our hero" with their chosen suit color
 // [GZDoom]
-fixed_t			castScale;			// [BC] For overriding the scale of the player with the skin's scale
+fixed_t			castScaleX, castScaleY;			// [BC] For overriding the scale of the player with the skin's scale
 FState*			caststate;
 bool	 		castdeath;
 int 			castframes;
@@ -588,8 +588,8 @@ void F_StartCast (void)
 	castsprite = caststate->sprite.index;
 	casttranslation = NULL;
 	// [GZDoom]
-	castScale = castorder[castnum].info->scaleX;
-	//castscale = 63;
+	castScaleX = castorder[castnum].info->scaleX;
+	castScaleY = castorder[castnum].info->scaleY;
 	casttics = caststate->GetTics ();
 	castdeath = false;
 	FinaleStage = 3;
@@ -635,16 +635,16 @@ void F_CastTicker (void)
 			castsprite = skins[players[consoleplayer].userinfo.skin].sprite;
 			casttranslation = translationtables[TRANSLATION_Players][consoleplayer];
 			// [GZDoom]
-			castScale = skins[players[consoleplayer].userinfo.skin].Scale;
-			//castscale = skins[players[consoleplayer].userinfo.skin].scale;
+			castScaleX = skins[players[consoleplayer].userinfo.skin].ScaleX;
+			castScaleY = skins[players[consoleplayer].userinfo.skin].ScaleY;
 		}
 		else
 		{
 			castsprite = caststate->sprite.index;
 			casttranslation = NULL;
 			// [GZDoom]
-			castScale = castorder[castnum].info->scaleX;//castScale = FRACUNIT;
-			//castscale = 63;
+			castScaleX = castorder[castnum].info->scaleX;
+			castScaleY = castorder[castnum].info->scaleY;
 		}
 		castframes = 0;
 	}
@@ -779,8 +779,8 @@ void F_CastDrawer (void)
 			DTA_320x200, true,
 			DTA_FlipX, sprframe->Flip & 1,
 			// [GZDoom] 
-			DTA_DestWidth, MulScale16 (pic->GetWidth(), castScale ),
-			DTA_DestHeight, MulScale16 (pic->GetHeight(), castScale ),
+			DTA_DestWidth, MulScale16 (pic->GetWidth(), castScaleX ),
+			DTA_DestHeight, MulScale16 (pic->GetHeight(), castScaleY ),
 			//DTA_DestWidth, MulScale6 (pic->GetWidth() * CleanXfac, castscale + 1),
 			//DTA_DestHeight, MulScale6 (pic->GetHeight() * CleanYfac, castscale + 1),
 			DTA_Translation, casttranslation,

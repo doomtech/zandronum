@@ -856,13 +856,13 @@ void gl_RenderTextureView(FCanvasTexture *Texture, AActor * Viewpoint, int FOV)
 	GL_IRECT bounds;
 	FGLTexture * gltex = FGLTexture::ValidateTexture(Texture);
 
-	int width = gltex->TextureWidth();
-	int height = gltex->TextureHeight();
+	int width = gltex->TextureWidth(FGLTexture::GLUSE_TEXTURE);
+	int height = gltex->TextureHeight(FGLTexture::GLUSE_TEXTURE);
 
 	gl_fixedcolormap=CM_DEFAULT;
 	bounds.left=bounds.top=0;
-	bounds.width=GLTexture::GetTexDimension(gltex->GetWidth());
-	bounds.height=GLTexture::GetTexDimension(gltex->GetHeight());
+	bounds.width=GLTexture::GetTexDimension(gltex->GetWidth(FGLTexture::GLUSE_TEXTURE));
+	bounds.height=GLTexture::GetTexDimension(gltex->GetHeight(FGLTexture::GLUSE_TEXTURE));
 
 	gl.Flush();
 	gl_RenderView(Viewpoint, &bounds, FOV, (float)width/height, (float)width/height, false);

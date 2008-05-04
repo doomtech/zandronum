@@ -32,6 +32,7 @@
 #include "files.h"
 
 CVAR(String, timidity_config, CONFIG_FILE, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+CVAR(Int, timidity_voices, 32, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
 namespace Timidity
 {
@@ -413,6 +414,13 @@ void FreeAll()
 
 int LoadConfig(const char *filename)
 {
+	/* !!! FIXME: This may be ugly, but slightly less so than requiring the
+	 *			  default search path to have only one element. I think.
+	 *
+	 *			  We only need to include the likely locations for the config
+	 *			  file itself since that file should contain any other directory
+	 *			  that needs to be added to the search path.
+	 */
 	clear_pathlist();
 #ifdef _WIN32
 	add_to_pathlist("C:\\TIMIDITY");
@@ -443,25 +451,23 @@ Renderer::Renderer(float sample_rate)
 {
 	rate = sample_rate;
 	patches = NULL;
-	default_instrument = NULL;
-#ifdef FAST_DECAY
-	fast_decay = true;
-#else
-	fast_decay = false;
-#endif
 	resample_buffer_size = 0;
 	resample_buffer = NULL;
+	voice = NULL;
+	adjust_panning_immediately = false;
 
 	control_ratio = clamp(int(rate / CONTROLS_PER_SECOND), 1, MAX_CONTROL_RATIO);
+
+	lost_notes = 0;
+	cut_notes = 0;
+
+	default_instrument = NULL;
+	default_program = DEFAULT_PROGRAM;
 	if (def_instr_name.IsNotEmpty())
 		set_default_instrument(def_instr_name);
 
-	voices = DEFAULT_VOICES;
-	memset(voice, 0, sizeof(voice));
-	memset(drumvolume, 0, sizeof(drumvolume));
-	memset(drumpanpot, 0, sizeof(drumpanpot));
-	memset(drumreverberation, 0, sizeof(drumreverberation));
-	memset(drumchorusdepth, 0, sizeof(drumchorusdepth));
+	voices = clamp<int>(timidity_voices, 16, 256);
+	voice = new Voice[voices];
 	drumchannels = DEFAULT_DRUMCHANNELS;
 }
 
@@ -470,6 +476,10 @@ Renderer::~Renderer()
 	if (resample_buffer != NULL)
 	{
 		M_Free(resample_buffer);
+	}
+	if (voice != NULL)
+	{
+		delete[] voice;
 	}
 }
 
@@ -490,24 +500,9 @@ void Renderer::ComputeOutput(float *buffer, int count)
 	}
 	for (int i = 0; i < voices; i++, v++)
 	{
-		if (v->status != VOICE_FREE)
+		if (v->status & VOICE_RUNNING)
 		{
-			if (v->sample_offset == 0 && v->echo_delay_count)
-			{
-				if (v->echo_delay_count >= count)
-				{
-					v->echo_delay_count -= count;
-				}
-				else
-				{
-					mix_voice(this, buffer + v->echo_delay_count, v, count - v->echo_delay_count);
-					v->echo_delay_count = 0;
-				}
-			}
-			else
-			{
-				mix_voice(this, buffer, v, count);
-			}
+			mix_voice(this, buffer, v, count);
 		}
 	}
 }
@@ -519,6 +514,11 @@ void Renderer::MarkInstrument(int banknum, int percussion, int instr)
 	if (banknum >= MAXBANK)
 	{
 		return;
+	}
+	if (banknum != 0)
+	{
+		/* Mark the standard bank in case it's not defined by this one. */
+		MarkInstrument(0, percussion, instr);
 	}
 	if (percussion)
 	{
@@ -532,9 +532,9 @@ void Renderer::MarkInstrument(int banknum, int percussion, int instr)
 	{
 		return;
 	}
-	if (bank->tone[instr].layer == NULL)
+	if (bank->instrument[instr] == NULL)
 	{
-		bank->tone[instr].layer = MAGIC_LOAD_INSTRUMENT;
+		bank->instrument[instr] = MAGIC_LOAD_INSTRUMENT;
 	}
 }
 
@@ -557,9 +557,6 @@ void cmsg(int type, int verbosity_level, const char *fmt, ...)
 	va_start(args, fmt);
 	vsprintf(buf, fmt, args);
 	va_end(args);
-	size_t l = strlen(buf);
-	buf[l] = '\n';
-	buf[l+1] = '\0';
 	OutputDebugString(buf);
 #endif
 }

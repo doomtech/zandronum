@@ -110,7 +110,8 @@ CUSTOM_CVAR( Int, cl_skins, 1, CVAR_ARCHIVE )
 		if (( lSkin >= 0 ) && ( lSkin < numskins ))
 		{
 			players[ulIdx].mo->sprite = skins[lSkin].sprite;
-			players[ulIdx].mo->scaleX = players[ulIdx].mo->scaleY = skins[lSkin].Scale;
+			players[ulIdx].mo->scaleX = skins[lSkin].ScaleX;
+			players[ulIdx].mo->scaleY = skins[lSkin].ScaleY;
 /*
 			// Make sure the player doesn't change sprites when his state changes.
 			if ( lSkin == R_FindSkin( "base", players[ulIdx].CurrentPlayerClass ))
@@ -581,7 +582,8 @@ void R_InitSkins (void)
 			}
 			else if (0 == stricmp (key, "scale"))
 			{
-				skins[i].Scale = clamp<fixed_t> (FLOAT2FIXED(atof (sc.String)), 1, 256*FRACUNIT);
+				skins[i].ScaleX = clamp<fixed_t> (FLOAT2FIXED(atof (sc.String)), 1, 256*FRACUNIT);
+				skins[i].ScaleY = skins[i].ScaleX;
 			}
 			else if (0 == stricmp (key, "game"))
 			{
@@ -932,7 +934,9 @@ void R_InitSkins (void)
 					else if ( stricmp( szKey, "color" ) == 0 )
 						sprintf( skins[i].szColor, szValue );
 					else if ( stricmp( szKey, "scale" ) == 0 )
-						skins[i].Scale = clamp<fixed_t> (FLOAT2FIXED(atof (szValue)), 1, 256*FRACUNIT);
+					{
+						skins[i].ScaleX = skins[i].ScaleY = clamp<fixed_t> (FLOAT2FIXED(atof (szValue)), 1, 256*FRACUNIT);
+					}
 					else if ( stricmp( szKey, "game" ) == 0 )
 					{
 						// If the user is specifying another game, then select a different
@@ -1367,7 +1371,8 @@ void R_InitSprites ()
 		const PClass *type = PlayerClasses[0].Type;
 		skins[i].range0start = type->Meta.GetMetaInt (APMETA_ColorRange) & 255;
 		skins[i].range0end = type->Meta.GetMetaInt (APMETA_ColorRange) >> 8;
-		skins[i].Scale = GetDefaultByType (type)->scaleX;
+		skins[i].ScaleX = GetDefaultByType (type)->scaleX;
+		skins[i].ScaleY = GetDefaultByType (type)->scaleY;
 		// [BC] We need to initialize the default sprite, because when we create a skin
 		// using SKININFO, we don't necessarily specify a sprite.
 		skins[i].sprite = GetDefaultByType (type)->SpawnState->sprite.index;
@@ -1400,7 +1405,8 @@ void R_InitSprites ()
 		}
 		skins[i].range0start = basetype->Meta.GetMetaInt (APMETA_ColorRange) & 255;
 		skins[i].range0end = basetype->Meta.GetMetaInt (APMETA_ColorRange) >> 8;
-		skins[i].Scale = GetDefaultByType (basetype)->scaleX;
+		skins[i].ScaleX = GetDefaultByType (basetype)->scaleX;
+		skins[i].ScaleY = GetDefaultByType (basetype)->scaleY;
 		skins[i].sprite = GetDefaultByType (basetype)->SpawnState->sprite.index;
 		skins[i].namespc = ns_global;
 

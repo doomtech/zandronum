@@ -39,6 +39,7 @@
 #include "w_wad.h"
 #include "templates.h"
 #include "m_png.h"
+#include "bitmap.h"
 
 
 bool FPNGTexture::Check(FileReader & file)
@@ -333,6 +334,10 @@ const BYTE *FPNGTexture::GetColumn (unsigned int column, const Span **spans_out)
 	}
 	if (spans_out != NULL)
 	{
+		if (Spans == NULL)
+		{
+			Spans = CreateSpans (Pixels);
+		}
 		*spans_out = Spans[column];
 	}
 	return Pixels + column*Height;
@@ -478,10 +483,6 @@ void FPNGTexture::MakeTexture ()
 		}
 	}
 	delete lump;
-	if (Spans == NULL)
-	{
-		Spans = CreateSpans (Pixels);
-	}
 }
 
 //===========================================================================
@@ -490,7 +491,7 @@ void FPNGTexture::MakeTexture ()
 //
 //===========================================================================
 
-int FPNGTexture::CopyTrueColorPixels(BYTE *buffer, int buf_pitch, int buf_height, int x, int y)
+int FPNGTexture::CopyTrueColorPixels(FBitmap *bmp, int x, int y, int rotate, FCopyInfo *inf)
 {
 	// Parse pre-IDAT chunks. I skip the CRCs. Is that bad?
 	PalEntry pe[256];
@@ -510,7 +511,7 @@ int FPNGTexture::CopyTrueColorPixels(BYTE *buffer, int buf_pitch, int buf_height
 	}
 
 	lump->Seek (33, SEEK_SET);
-	for(int i=0;i<256;i++) pe[i]=PalEntry(0,i,i,i);	// default to a gray map
+	for(int i=0;i<256;i++) pe[i]=PalEntry(255,i,i,i);	// default to a gray map
 
 	(*lump) >> len >> id;
 	while (id != MAKE_ID('I','D','A','T') && id != MAKE_ID('I','E','N','D'))
@@ -533,7 +534,6 @@ int FPNGTexture::CopyTrueColorPixels(BYTE *buffer, int buf_pitch, int buf_height
 			for(DWORD i=0;i<len;i++)
 			{
 				(*lump) >> pe[i].a;
-				pe[i].a=255-pe[i].a;	// use inverse alpha so the default palette can be used unchanged
 				if (pe[i].a!=0 && pe[i].a!=255) transpal = true;
 			}
 			break;
@@ -554,20 +554,20 @@ int FPNGTexture::CopyTrueColorPixels(BYTE *buffer, int buf_pitch, int buf_height
 	{
 	case 0:
 	case 3:
-		screen->CopyPixelData(buffer, buf_pitch, buf_height, x, y, Pixels, Width, Height, 1, Width, pe);
+		bmp->CopyPixelData(x, y, Pixels, Width, Height, 1, Width, rotate, pe, inf);
 		break;
 
 	case 2:
-		screen->CopyPixelDataRGB(buffer, buf_pitch, buf_height, x, y, Pixels, Width, Height, 3, pixwidth, CF_RGB);
+		bmp->CopyPixelDataRGB(x, y, Pixels, Width, Height, 3, pixwidth, rotate, CF_RGB, inf);
 		break;
 
 	case 4:
-		screen->CopyPixelDataRGB(buffer, buf_pitch, buf_height, x, y, Pixels, Width, Height, 2, pixwidth, CF_IA);
+		bmp->CopyPixelDataRGB(x, y, Pixels, Width, Height, 2, pixwidth, rotate, CF_IA, inf);
 		transpal = -1;
 		break;
 
 	case 6:
-		screen->CopyPixelDataRGB(buffer, buf_pitch, buf_height, x, y, Pixels, Width, Height, 4, pixwidth, CF_RGBA);
+		bmp->CopyPixelDataRGB(x, y, Pixels, Width, Height, 4, pixwidth, rotate, CF_RGBA, inf);
 		transpal = -1;
 		break;
 

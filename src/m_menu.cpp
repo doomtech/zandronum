@@ -1628,7 +1628,7 @@ void M_DrawReadThis ()
 	else
 	{
 		// Did the mapper choose a custom help page via MAPINFO?
-		if (level.info->f1[0] != 0)
+		if ((level.info != NULL) && level.info->f1[0] != 0)
 		{
 			tex = TexMan.FindTexture(level.info->f1);
 		}
@@ -2432,19 +2432,21 @@ static void M_PlayerSetupDrawer ()
 	// [BC] NOTE: This part renders the actual character.
 	{
 		spriteframe_t *sprframe;
-		fixed_t Scale;
+		fixed_t ScaleX, ScaleY;
 
 		if (GetDefaultByType (PlayerClass->Type)->flags4 & MF4_NOSKIN ||
 			g_lPlayerSetupClass == -1 ||
 			PlayerState->sprite.index != GetDefaultByType (PlayerClass->Type)->SpawnState->sprite.index)
 		{
 			sprframe = &SpriteFrames[sprites[PlayerState->sprite.index].spriteframes + PlayerState->GetFrame()];
-			Scale = GetDefaultByType (PlayerClass->Type)->scaleX;
+			ScaleX = GetDefaultByType(PlayerClass->Type)->scaleX;
+			ScaleY = GetDefaultByType(PlayerClass->Type)->scaleY;
 		}
 		else
 		{
 			sprframe = &SpriteFrames[sprites[skins[g_ulPlayerSetupSkin].sprite].spriteframes + PlayerState->GetFrame()];
-			Scale = skins[g_ulPlayerSetupSkin].Scale;
+			ScaleX = skins[g_ulPlayerSetupSkin].ScaleX;
+			ScaleY = skins[g_ulPlayerSetupSkin].ScaleY;
 		}
 
 		if (sprframe != NULL)
@@ -2476,8 +2478,8 @@ static void M_PlayerSetupDrawer ()
 				screen->DrawTexture (tex,
 					(320 - 52 - 32 + xo - 160)*CleanXfac + (SCREENWIDTH)/2,
 					(ulOldPlayerSetupYOffset + ulLineHeight*3 + 57 - 104)*CleanYfac + (SCREENHEIGHT/2),
-					DTA_DestWidth, MulScale16 (tex->GetWidth() * CleanXfac, Scale),
-					DTA_DestHeight, MulScale16 (tex->GetHeight() * CleanYfac, Scale),
+					DTA_DestWidth, MulScale16 (tex->GetWidth() * CleanXfac, ScaleX),
+					DTA_DestHeight, MulScale16 (tex->GetHeight() * CleanYfac, ScaleY),
 					DTA_Translation, translationtables[TRANSLATION_Players](consoleplayer),
 					TAG_DONE);
 
@@ -3854,7 +3856,7 @@ void M_Init (void)
 		for (i = 0; i < 256; i++)
 		{
 			FireRemap.Remap[i] = ColorMatcher.Pick (i/2+32, 0, i/4);
-			FireRemap.Palette[i] = PalEntry(i/2+32, 0, i/4);
+			FireRemap.Palette[i] = PalEntry(255, i/2+32, 0, i/4);
 		}
 	}
 	else
@@ -3863,7 +3865,7 @@ void M_Init (void)
 		for (i = 0; i < 256; ++i)
 		{
 			FireRemap.Remap[i] = ColorMatcher.Pick (i/4, i*13/40+7, i/4);
-			FireRemap.Palette[i] = PalEntry(i/4, i*13/40+7, i/4);
+			FireRemap.Palette[i] = PalEntry(255, i/4, i*13/40+7, i/4);
 		}
 	}
 }

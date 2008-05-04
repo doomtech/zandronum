@@ -2922,6 +2922,8 @@ void A_Pain (AActor *actor)
 // killough 11/98: kill an object
 void A_Die (AActor *actor)
 {
+	ENamedName name;
+	
 	// [BC] This is handled server-side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
@@ -2929,7 +2931,17 @@ void A_Die (AActor *actor)
 		return;
 	}
 
-	P_DamageMobj (actor, NULL, NULL, actor->health, NAME_None);
+	int index=CheckIndex(1, &CallingState);
+	if (index<0)
+	{
+		name = NAME_None;
+	}
+	else
+	{
+		name = ENamedName(StateParameters[index]);
+	}
+
+	P_DamageMobj (actor, NULL, NULL, actor->health, name);
 }
 
 //

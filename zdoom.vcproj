@@ -9236,6 +9236,14 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\textures\bitmap.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\textures\bitmap.h"
+					>
+				</File>
+				<File
 					RelativePath=".\src\textures\buildtexture.cpp"
 					>
 				</File>

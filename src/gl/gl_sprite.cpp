@@ -461,7 +461,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 	
 		vt=pti->GetVT();
 		vb=pti->GetVB();
-		gltexture->GetRect(&r);
+		gltexture->GetRect(&r, FGLTexture::GLUSE_PATCH);
 		if (patch<0)
 		{
 			r.left=-r.width-r.left;	// mirror the sprite's x-offset
@@ -789,7 +789,7 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 			vt=0.0f;
 			vb=pti->GetVB();
 			GL_RECT r;
-			gltexture->GetRect(&r);
+			gltexture->GetRect(&r, FGLTexture::GLUSE_PATCH);
 			ul=pti->GetUR();
 			ur=0.0f;
 		}

@@ -691,7 +691,7 @@ void GLWall::DoTexture(int _type,seg_t * seg,int peg,
 		!(gl.flags & RFL_NOSTENCIL) && gl_mirrors) ? RENDERWALL_MIRROR : _type;
 
 	ceilingrefheight+= 	gltexture->RowOffset(seg->sidedef->GetTextureYOffset(texpos))+
-						(peg ? (gltexture->TextureHeight()<<FRACBITS)-lh-v_offset:0);
+						(peg ? (gltexture->TextureHeight(FGLTexture::GLUSE_TEXTURE)<<FRACBITS)-lh-v_offset:0);
 
 	if (!SetWallCoordinates(seg, ceilingrefheight, topleft, topright, bottomleft, bottomright, 
 							seg->sidedef->GetTextureXOffset(texpos))) return;
@@ -733,12 +733,12 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 		if ( (seg->linedef->flags & ML_DONTPEGBOTTOM) >0)
 		{
 			texturebottom=max(realfront->floortexz,realback->floortexz)+rowoffset;
-			texturetop=texturebottom+(gltexture->TextureHeight()<<FRACBITS);
+			texturetop=texturebottom+(gltexture->TextureHeight(FGLTexture::GLUSE_TEXTURE)<<FRACBITS);
 		}
 		else
 		{
 			texturetop=min(realfront->ceilingtexz,realback->ceilingtexz)+rowoffset;
-			texturebottom=texturetop-(gltexture->TextureHeight()<<FRACBITS);
+			texturebottom=texturetop-(gltexture->TextureHeight(FGLTexture::GLUSE_TEXTURE)<<FRACBITS);
 		}
 	}
 	else texturetop=texturebottom=0;
@@ -845,7 +845,7 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 	if (gltexture)
 	{
 		// First adjust the texture offset so that the left edge of the linedef is inside the range [0..1].
-		fixed_t texwidth = gltexture->TextureAdjustWidth()<<FRACBITS;
+		fixed_t texwidth = gltexture->TextureAdjustWidth(FGLTexture::GLUSE_TEXTURE)<<FRACBITS;
 		
 		t_ofs%=texwidth;
 		if (t_ofs<-texwidth) t_ofs+=texwidth;	// shift negative results of % into positive range
@@ -858,8 +858,8 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 		fixed_t textureoffset=gltexture->TextureOffset(t_ofs);
 		int righttex=(textureoffset>>FRACBITS)+seg->sidedef->TexelLength;
 		
-		if ((textureoffset==0 && righttex<=gltexture->TextureWidth()) || 
-			(textureoffset>=0 && righttex==gltexture->TextureWidth()))
+		if ((textureoffset==0 && righttex<=gltexture->TextureWidth(FGLTexture::GLUSE_TEXTURE)) || 
+			(textureoffset>=0 && righttex==gltexture->TextureWidth(FGLTexture::GLUSE_TEXTURE)))
 		{
 			flags|=GLT_CLAMPX;
 		}

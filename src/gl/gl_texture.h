@@ -5,6 +5,7 @@
 #include "gl/gltexture.h"
 #include "r_data.h"
 #include "i_system.h"
+#include "textures/bitmap.h"
 
 EXTERN_CVAR(Bool, gl_precache)
 EXTERN_CVAR(Bool, gl_brightmap_shader)
@@ -13,6 +14,31 @@ struct GL_RECT;
 
 void ModifyPalette(PalEntry * pout, PalEntry * pin, int cm, int count);
 void CopyColorsRGBA(unsigned char * pout, const unsigned char * pin, int cm, int count, int step);
+
+class FGLBitmap : public FBitmap
+{
+	int cm;
+	int translation;
+public:
+
+	FGLBitmap() { cm = CM_DEFAULT; translation = 0; }
+	FGLBitmap(BYTE *buffer, int pitch, int width, int height)
+		: FBitmap(buffer, pitch, width, height)
+	{ cm = CM_DEFAULT; translation = 0; }
+
+	void SetTranslationInfo(int _cm, int _trans=-1337)
+	{
+		if (_cm != -1) cm = _cm;
+		if (_trans != -1337) translation = _trans;
+
+	}
+
+	virtual void CopyPixelDataRGB(int originx, int originy, const BYTE *patch, int srcwidth, 
+								int srcheight, int step_x, int step_y, int rotate, int ct, FCopyInfo *inf = NULL);
+	virtual void CopyPixelData(int originx, int originy, const BYTE * patch, int srcwidth, int srcheight, 
+								int step_x, int step_y, int rotate, PalEntry * palette, FCopyInfo *inf = NULL);
+};
+
 
 // Two intermediate classes which wrap the low level textures.
 // These ones are returned by the Bind* functions to ensure
@@ -95,6 +121,12 @@ class FGLTexture : public FNativeTexture, protected WorldTextureInfo, protected 
 
 	static TArray<FGLTexture *> gltextures;
 public:
+	enum ETexUse
+	{
+		GLUSE_PATCH,
+		GLUSE_TEXTURE,
+	};
+
 	FTexture * tex;
 	FTexture * hirestexture;
 	char bIsTransparent;
@@ -109,12 +141,12 @@ private:
 	GL_RECT * areas;
 	GLShader * Shader;
 
-	short LeftOffset;
-	short TopOffset;
-	short Width;
-	short Height;
-	short RenderWidth;
-	short RenderHeight;
+	short LeftOffset[2];
+	short TopOffset[2];
+	short Width[2];
+	short Height[2];
+	short RenderWidth[2];
+	short RenderHeight[2];
 	float AlphaThreshold;
 
 	virtual bool Update();
@@ -125,16 +157,8 @@ private:
 	static bool SmoothEdges(unsigned char * buffer,int w, int h, bool clampsides);
 	int CheckDDPK3();
 	int CheckExternalFile(bool & hascolorkey);
-	unsigned char * LoadHiresTexture(int *width, int *height);
+	unsigned char * LoadHiresTexture(int *width, int *height, int cm);
 
-
-	void SetSize(int w, int h)
-	{
-		Width=w;
-		Height=h;
-		scalex=(float)Width/RenderWidth;
-		scaley=(float)Height/RenderHeight;
-	}
 
 	void CheckForAlpha(const unsigned char * buffer);
 
@@ -145,7 +169,7 @@ public:
 	FGLTexture(FTexture * tx);
 	~FGLTexture();
 
-	unsigned char * CreateTexBuffer(int cm, int translation, int & w, int & h, bool allowhires=true);
+	unsigned char * CreateTexBuffer(ETexUse use, int cm, int translation, int & w, int & h, bool allowhires=true);
 	const WorldTextureInfo * Bind(int cm, int clamp=0, int translation=0);
 	const PatchTextureInfo * BindPatch(int cm, int translation=0);
 
@@ -160,10 +184,10 @@ public:
 
 	// Patch drawing utilities
 
-	void GetRect(GL_RECT * r) const;
+	void GetRect(GL_RECT * r, ETexUse i) const;
 
-	int TextureHeight() const { return RenderHeight; }
-	int TextureWidth() const { return RenderWidth; }
+	int TextureHeight(ETexUse i) const { return RenderHeight[i]; }
+	int TextureWidth(ETexUse i) const { return RenderWidth[i]; }
 
 	int GetAreaCount() const { return areacount; }
 	GL_RECT * GetAreas() const { return areas; }
@@ -181,40 +205,40 @@ public:
 	}
 
 	// Returns the size for which texture offset coordinates are used.
-	fixed_t TextureAdjustWidth() const
+	fixed_t TextureAdjustWidth(ETexUse i) const
 	{
-		if (tex->bWorldPanning) return RenderWidth;
-		else return Width;
+		if (tex->bWorldPanning) return RenderWidth[i];
+		else return Width[i];
 	}
 
-	int GetWidth() const
+	int GetWidth(ETexUse i) const
 	{
-		return Width;
+		return Width[i];
 	}
 
-	int GetHeight() const
+	int GetHeight(ETexUse i) const
 	{
-		return Height;
+		return Height[i];
 	}
 
-	int GetLeftOffset() const
+	int GetLeftOffset(ETexUse i) const
 	{
-		return LeftOffset;
+		return LeftOffset[i];
 	}
 
-	int GetTopOffset() const
+	int GetTopOffset(ETexUse i) const
 	{
-		return TopOffset;
+		return TopOffset[i];
 	}
 
-	int GetScaledLeftOffset() const
+	int GetScaledLeftOffset(ETexUse i) const
 	{
-		return DivScale16(LeftOffset, tex->xScale);
+		return DivScale16(LeftOffset[i], tex->xScale);
 	}
 
-	int GetScaledTopOffset() const
+	int GetScaledTopOffset(ETexUse i) const
 	{
-		return DivScale16(TopOffset, tex->yScale);
+		return DivScale16(TopOffset[i], tex->yScale);
 	}
 
 	int GetIndex() const
@@ -247,7 +271,7 @@ public:
 	const BYTE *GetPixels ();
 	void Unload ();
 
-	int CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y);
+	int CopyTrueColorPixels(FBitmap *bmp, int x, int y, int rotate, FCopyInfo *inf);
 	bool UseBasePalette() { return false; }
 
 protected:

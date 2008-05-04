@@ -39,6 +39,7 @@
 #include "r_local.h"
 #include "w_wad.h"
 #include "templates.h"
+#include "bitmap.h"
 
 
 bool FPCXTexture::Check(FileReader & file)
@@ -418,7 +419,7 @@ void FPCXTexture::MakeTexture()
 //
 //===========================================================================
 
-int FPCXTexture::CopyTrueColorPixels(BYTE *buffer, int buf_pitch, int buf_height, int x, int y)
+int FPCXTexture::CopyTrueColorPixels(FBitmap *bmp, int x, int y, int rotate, FCopyInfo *inf)
 {
 	PalEntry pe[256];
 	PCXHeader header;
@@ -461,25 +462,24 @@ int FPCXTexture::CopyTrueColorPixels(BYTE *buffer, int buf_pitch, int buf_height
 			c=0x0c;	// Apparently there's many non-compliant PCXs out there...
 			if (c !=0x0c) 
 			{
-				for(int i=0;i<256;i++) pe[i]=PalEntry(0,i,i,i);	// default to a gray map
+				for(int i=0;i<256;i++) pe[i]=PalEntry(255,i,i,i);	// default to a gray map
 			}
 			else for(int i=0;i<256;i++)
 			{
 				BYTE r,g,b;
 				lump >> r >> g >> b;
-				pe[i] = PalEntry(r,g,b);
+				pe[i] = PalEntry(255, r,g,b);
 			}
 			lump.Seek(sizeof(header), SEEK_SET);
 			ReadPCX8bits (Pixels, lump, &header);
 		}
-		screen->CopyPixelData(buffer, buf_pitch, buf_height, x, y, Pixels, Width, Height, 1, Width, pe);
+		bmp->CopyPixelData(x, y, Pixels, Width, Height, 1, Width, rotate, pe, inf);
 	}
 	else
 	{
 		Pixels = new BYTE[Width*Height * 3];
-		BYTE * row = buffer;
 		ReadPCX24bits (Pixels, lump, &header, 3);
-		screen->CopyPixelDataRGB(buffer, buf_pitch, buf_height, x, y, Pixels, Width, Height, 3, Width*3, CF_RGB);
+		bmp->CopyPixelDataRGB(x, y, Pixels, Width, Height, 3, Width*3, rotate, CF_RGB, inf);
 	}
 	delete [] Pixels;
 	return 0;

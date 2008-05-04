@@ -269,9 +269,8 @@ void CLIENTDEMO_ReadUserInfo( void )
 			GetDefaultByType (players[consoleplayer].cls)->SpawnState->sprite.index)
 		{ // Only change the sprite if the player is using a standard one
 			players[consoleplayer].mo->sprite = skins[players[consoleplayer].userinfo.skin].sprite;
-			// [GZDoom]
-			players[consoleplayer].mo->scaleX = players[consoleplayer].mo->scaleY = skins[players[consoleplayer].userinfo.skin].Scale;
-			//players[i].mo->xscale = players[i].mo->yscale = skins[info->skin].scale;
+			players[consoleplayer].mo->scaleX = skins[players[consoleplayer].userinfo.skin].ScaleX;
+			players[consoleplayer].mo->scaleY = skins[players[consoleplayer].userinfo.skin].ScaleY;
 		}
 	}
 }

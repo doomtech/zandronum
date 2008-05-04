@@ -40,6 +40,7 @@
 #include "templates.h"
 #include "i_system.h"
 #include "r_translate.h"
+#include "bitmap.h"
 
 typedef bool (*CheckFunc)(FileReader & file);
 typedef FTexture * (*CreateFunc)(FileReader & file, int lumpnum);
@@ -120,7 +121,7 @@ FTexture::FTexture ()
 : LeftOffset(0), TopOffset(0),
   WidthBits(0), HeightBits(0), xScale(FRACUNIT), yScale(FRACUNIT),
   UseType(TEX_Any), bNoDecals(false), bNoRemap0(false), bWorldPanning(false),
-  bMasked(true), bAlphaTexture(false), bHasCanvas(false), bWarped(0), bIsPatch(false),
+  bMasked(true), bAlphaTexture(false), bHasCanvas(false), bWarped(0), bIsPatch(false), bComplex(false),
   Rotations(0xFFFF), Width(0), Height(0), WidthMask(0), Native(NULL)
 {
 	*Name = 0;
@@ -270,57 +271,41 @@ void FTexture::FreeSpans (Span **spans) const
 	M_Free (spans);
 }
 
-void FTexture::CopyToBlock (BYTE *dest, int dwidth, int dheight, int xpos, int ypos, const BYTE *translation)
+void FTexture::CopyToBlock (BYTE *dest, int dwidth, int dheight, int xpos, int ypos, int rotate, const BYTE *translation)
 {
-	int x1 = xpos, x2 = x1 + GetWidth(), xo = -x1;
+	const BYTE *pixels = GetPixels();
+	int srcwidth = Width;
+	int srcheight = Height;
+	int step_x = Height;
+	int step_y = 1;
 
-	if (x1 < 0)
+	if (ClipCopyPixelRect(dwidth, dheight, xpos, ypos, pixels, srcwidth, srcheight, step_x, step_y, rotate))
 	{
-		x1 = 0;
-	}
-	if (x2 > dwidth)
-	{
-		x2 = dwidth;
-	}
-	for (; x1 < x2; ++x1)
-	{
-		const BYTE *data;
-		const Span *span;
-		BYTE *outtop = &dest[dheight * x1];
-
-		data = GetColumn (x1 + xo, &span);
-
-		while (span->Length != 0)
+		dest += ypos + dheight * xpos;
+		if (translation == NULL)
 		{
-			int len = span->Length;
-			int y = ypos + span->TopOffset;
-			int adv = span->TopOffset;
-
-			if (y < 0)
+			for (int x = 0; x < srcwidth; x++)
 			{
-				adv -= y;
-				len += y;
-				y = 0;
-			}
-			if (y + len > dheight)
-			{
-				len = dheight - y;
-			}
-			if (len > 0)
-			{
-				if (translation == NULL)
+				int pos = x * dheight;
+				for (int y = 0; y < srcheight; y++, pos++)
 				{
-					memcpy (outtop + y, data + adv, len);
-				}
-				else
-				{
-					for (int j = 0; j < len; ++j)
-					{
-						outtop[y+j] = translation[data[adv+j]];
-					}
+					// the optimizer is doing a good enough job here so there's no need to optimize this by hand
+					BYTE v = pixels[y * step_y + x * step_x]; 
+					if (v != 0) dest[pos] = v;
 				}
 			}
-			span++;
+		}
+		else
+		{
+			for (int x = 0; x < srcwidth; x++)
+			{
+				int pos = x * dheight;
+				for (int y = 0; y < srcheight; y++, pos++)
+				{
+					BYTE v = pixels[y * step_y + x * step_x]; 
+					if (v != 0) dest[pos] = translation[v];
+				}
+			}
 		}
 	}
 }
@@ -472,8 +457,11 @@ void FTexture::FillBuffer(BYTE *buff, int pitch, int height, FTextureFormat fmt)
 		break;
 
 	case TEX_RGB:
-		CopyTrueColorPixels(buff, pitch, height, 0, 0); 
+	{
+		FBitmap bmp(buff, pitch, pitch/4, height);
+		CopyTrueColorPixels(&bmp, 0, 0); 
 		break;
+	}
 
 	default:
 		I_Error("FTexture::FillBuffer: Unsupported format %d", fmt);
@@ -492,27 +480,19 @@ void FTexture::FillBuffer(BYTE *buff, int pitch, int height, FTextureFormat fmt)
 //
 //===========================================================================
 
-int FTexture::CopyTrueColorPixels(BYTE *buffer, int buf_pitch, int buf_height, int x, int y)
+int FTexture::CopyTrueColorPixels(FBitmap *bmp, int x, int y, int rotate, FCopyInfo *inf)
 {
 	PalEntry *palette = screen->GetPalette();
-	palette[0].a=255;	// temporarily modify the first color's alpha
-	screen->CopyPixelData(buffer, buf_pitch, buf_height, x, y,
-				  GetPixels(), Width, Height, Height, 1, 
-				  palette);
-
-	palette[0].a=0;
+	for(int i=1;i<256;i++) palette[i].a = 255;	// set proper alpha values
+	bmp->CopyPixelData(x, y, GetPixels(), Width, Height, Height, 1, rotate, palette, inf);
+	for(int i=1;i<256;i++) palette[i].a = 0;
 	return 0;
 }
 
-int FTexture::CopyTrueColorTranslated(BYTE *buffer, int buf_pitch, int buf_height, int x, int y, FRemapTable *remap)
+int FTexture::CopyTrueColorTranslated(FBitmap *bmp, int x, int y, int rotate, FRemapTable *remap, FCopyInfo *inf)
 {
 	PalEntry *palette = remap->Palette;
-	palette[0].a=255;	// temporarily modify the first color's alpha
-	screen->CopyPixelData(buffer, buf_pitch, buf_height, x, y,
-				  GetPixels(), Width, Height, Height, 1, 
-				  palette);
-
-	palette[0].a=0;
+	bmp->CopyPixelData(x, y, GetPixels(), Width, Height, Height, 1, rotate, palette, inf);
 	return 0;
 }
 

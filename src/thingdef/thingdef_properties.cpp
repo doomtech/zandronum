@@ -772,11 +772,11 @@ static int ParseMorphStyle (FScanner &sc)
 {
  	static const char * morphstyles[]={
 		"MRF_ADDSTAMINA", "MRF_FULLHEALTH", "MRF_UNDOBYTOMEOFPOWER", "MRF_UNDOBYCHAOSDEVICE",
-		"MRF_FAILNOTELEFRAG", "MRF_FAILNOLAUGH", "MRF_WHENINVULNERABLE", NULL};
+		"MRF_FAILNOTELEFRAG", "MRF_FAILNOLAUGH", "MRF_WHENINVULNERABLE", "MRF_LOSEACTUALWEAPON", NULL};
  
  	static const int morphstyle_values[]={
 		MORPH_ADDSTAMINA, MORPH_FULLHEALTH, MORPH_UNDOBYTOMEOFPOWER, MORPH_UNDOBYCHAOSDEVICE,
-		MORPH_FAILNOTELEFRAG, MORPH_FAILNOLAUGH, MORPH_WHENINVULNERABLE};
+		MORPH_FAILNOTELEFRAG, MORPH_FAILNOLAUGH, MORPH_WHENINVULNERABLE, MORPH_LOSEACTUALWEAPON};
 
 	// May be given flags by number...
 	if (sc.CheckNumber())
@@ -1301,11 +1301,11 @@ static void ActorStates (FScanner &sc, AActor *defaults, Baggage &bag)
 static void ActorRenderStyle (FScanner &sc, AActor *defaults, Baggage &bag)
 {
 	static const char * renderstyles[]={
-		"NONE","NORMAL","FUZZY","SOULTRANS","OPTFUZZY","STENCIL","TRANSLUCENT", "ADD",NULL};
+		"NONE","NORMAL","FUZZY","SOULTRANS","OPTFUZZY","STENCIL","TRANSLUCENT", "ADD","SHADED", NULL};
 
 	static const int renderstyle_values[]={
 		STYLE_None, STYLE_Normal, STYLE_Fuzzy, STYLE_SoulTrans, STYLE_OptFuzzy,
-			STYLE_TranslucentStencil, STYLE_Translucent, STYLE_Add};
+			STYLE_TranslucentStencil, STYLE_Translucent, STYLE_Add, STYLE_Shaded};
 
 	sc.MustGetString();
 	defaults->RenderStyle = LegacyRenderStyles[renderstyle_values[sc.MustMatchString(renderstyles)]];

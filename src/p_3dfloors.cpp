@@ -545,77 +545,53 @@ void P_LineOpening_XFloors (FLineOpening &open, AActor * thing, const line_t *li
 {
     if(thing)
     {
-		sector_t *front, *back;
-
 		fixed_t thingbot, thingtop;
 		
 		thingbot = thing->z;
 		thingtop = thingbot + thing->height;
 
-		front = linedef->frontsector;
-		back = linedef->backsector;
-
-		extsector_t::xfloor &xf = front->e->XFloor;
-		extsector_t::xfloor &xb = back->e->XFloor;
+		extsector_t::xfloor *xf[2] = {&linedef->frontsector->e->XFloor, &linedef->backsector->e->XFloor};
 
 		// Check for 3D-floors in the sector (mostly identical to what Legacy does here)
-		if(xf.ffloors.Size() || xb.ffloors.Size())
+		if(xf[0]->ffloors.Size() || xf[1]->ffloors.Size())
 		{
-			F3DFloor*      rover;
-			unsigned i;
-
 			fixed_t    lowestceiling = open.top;
 			fixed_t    highestfloor = open.bottom;
-			fixed_t    lowestfloor = open.lowfloor;
-			fixed_t    delta1;
-			fixed_t    delta2;
+			fixed_t    lowestfloor[2] = {open.lowfloor, open.lowfloor};
 			int highestfloorpic = -1;
 			int lowestceilingpic = -1;
 			
 			thingtop = thing->z + (thing->height==0? 1:thing->height);
 			
-			// Check for frontsector's 3D-floors
-			for(i=0;i<xf.ffloors.Size();i++)
+			for(int j=0;j<2;j++)
 			{
-				rover=xf.ffloors[i];
-
-				if (!(rover->flags&FF_EXISTS)) continue;
-				if (!(rover->flags & FF_SOLID)) continue;
-
-				fixed_t ff_bottom=rover->bottom.plane->ZatPoint(x, y);
-				fixed_t ff_top=rover->top.plane->ZatPoint(x, y);
-				
-				delta1 = abs(thing->z - ((ff_bottom + ff_top) / 2));
-				delta2 = abs(thingtop - ((ff_bottom + ff_top) / 2));
-
-				if(ff_bottom < lowestceiling && delta1 >= delta2) lowestceiling = ff_bottom;
-				
-				if(ff_top > highestfloor && delta1 < delta2) highestfloor = ff_top;
-				else if(ff_top > lowestfloor && delta1 < delta2) lowestfloor = ff_top;
-			}
-			
-			// Check for backsector's 3D-floors
-			for(i=0;i<xb.ffloors.Size();i++)
-			{
-				rover=xb.ffloors[i];
-
-				if (!(rover->flags&FF_EXISTS)) continue;
-				if (!(rover->flags & FF_SOLID)) continue;
-				
-				fixed_t ff_bottom=rover->bottom.plane->ZatPoint(x, y);
-				fixed_t ff_top=rover->top.plane->ZatPoint(x, y);
-				
-				delta1 = abs(thing->z - ((ff_bottom + ff_top) / 2));
-				delta2 = abs(thingtop - ((ff_bottom + ff_top) / 2));
-				
-				if(ff_bottom < lowestceiling && delta1 >= delta2) lowestceiling = ff_bottom;
-				
-				if(ff_top > highestfloor && delta1 < delta2)
+				// Check for frontsector's 3D-floors
+				for(unsigned i=0;i<xf[j]->ffloors.Size();i++)
 				{
-					highestfloor = ff_top;
-					highestfloorpic = *rover->top.texture;
+					F3DFloor *rover = xf[j]->ffloors[i];
+
+					if (!(rover->flags&FF_EXISTS)) continue;
+					if (!(rover->flags & FF_SOLID)) continue;
+					
+					fixed_t ff_bottom=rover->bottom.plane->ZatPoint(x, y);
+					fixed_t ff_top=rover->top.plane->ZatPoint(x, y);
+					
+					fixed_t delta1 = abs(thingbot - ((ff_bottom + ff_top) / 2));
+					fixed_t delta2 = abs(thingtop - ((ff_bottom + ff_top) / 2));
+					
+					if(ff_bottom < lowestceiling && delta1 >= delta2) 
+					{
+						lowestceiling = ff_bottom;
+						lowestceilingpic = *rover->bottom.texture;
+					}
+					
+					if(ff_top > highestfloor && delta1 < delta2)
+					{
+						highestfloor = ff_top;
+						highestfloorpic = *rover->top.texture;
+					}
+					if(ff_top > lowestfloor[j] && ff_top <= thing->z) lowestfloor[j] = ff_top;
 				}
-				else if(ff_top > lowestfloor && delta1 < delta2) lowestfloor = ff_top;
 			}
 			
 			if(highestfloor > open.bottom)
@@ -630,7 +606,7 @@ void P_LineOpening_XFloors (FLineOpening &open, AActor * thing, const line_t *li
 				open.ceilingpic = lowestceilingpic;
 			}
 			
-			if(lowestfloor > open.lowfloor) open.lowfloor = lowestfloor;
+			open.lowfloor = MIN(lowestfloor[0], lowestfloor[1]);
 		}
     }
 }

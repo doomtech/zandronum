@@ -3,6 +3,7 @@
 #endif
 #include <string.h>
 #include <assert.h>
+#include <math.h>
 
 #include "opl_mus_player.h"
 #include "doomtype.h"
@@ -12,19 +13,16 @@
 #include "c_cvars.h"
 #include "i_system.h"
 #include "stats.h"
-#include "v_text.h"
-#include "c_dispatch.h"
 
 #define IMF_RATE				700.0
 
 EXTERN_CVAR (Bool, opl_onechip)
 
-OPLmusicBlock *BlockForStats;
-
 OPLmusicBlock::OPLmusicBlock()
 {
 	scoredata = NULL;
 	NextTickIn = 0;
+	LastOffset = 0;
 	TwoChips = !opl_onechip;
 	Looping = false;
 	io = NULL;
@@ -33,7 +31,6 @@ OPLmusicBlock::OPLmusicBlock()
 
 OPLmusicBlock::~OPLmusicBlock()
 {
-	BlockForStats = NULL;
 	delete io;
 }
 
@@ -52,6 +49,7 @@ void OPLmusicBlock::Restart()
 	OPLplayMusic (127);
 	MLtime = 0;
 	playingcount = 0;
+	LastOffset = 0;
 }
 
 OPLmusicFile::OPLmusicFile (FILE *file, char *musiccache, int len)
@@ -214,6 +212,7 @@ bool OPLmusicBlock::ServiceStream (void *buff, int numbytes)
 			{
 				YM3812UpdateOne (1, samples1, samplesleft);
 			}
+			OffsetSamples(samples1, samplesleft);
 			assert(NextTickIn == ticky);
 			NextTickIn -= samplesleft;
 			assert (NextTickIn >= 0);
@@ -236,6 +235,7 @@ bool OPLmusicBlock::ServiceStream (void *buff, int numbytes)
 						{
 							YM3812UpdateOne (1, samples1, numsamples);
 						}
+						OffsetSamples(samples1, numsamples);
 					}
 					res = false;
 					break;
@@ -259,6 +259,79 @@ bool OPLmusicBlock::ServiceStream (void *buff, int numbytes)
 	}
 	ChipAccess.Leave();
 	return res;
+}
+
+void OPLmusicBlock::OffsetSamples(float *buff, int count)
+{
+	// Three out of four of the OPL waveforms are non-negative. Depending on
+	// timbre selection, this can cause the output waveform to tend toward
+	// very large positive values. Heretic's music is particularly bad for
+	// this. This function attempts to compensate by offseting the sample
+	// data back to around the [-1.0, 1.0] range.
+
+	double max = -1e10, min = 1e10, offset, step;
+	int i, ramp, largest_at = 0;
+
+	// Find max and min values for this segment of the waveform.
+	for (i = 0; i < count; ++i)
+	{
+		if (buff[i] > max)
+		{
+			max = buff[i];
+			largest_at = i;
+		}
+		if (buff[i] < min)
+		{
+			min = buff[i];
+			largest_at = i;
+		}
+	}
+	// Prefer to keep the offset at 0, even if it means a little clipping.
+	if (LastOffset == 0 && min >= -1.1 && max <= 1.1)
+	{
+		offset = 0;
+	}
+	else
+	{
+		offset = (max + min) / 2;
+		// If the new offset is close to 0, make it 0 to avoid making another
+		// full loop through the sample data.
+		if (fabs(offset) < 1/256.0)
+		{
+			offset = 0;
+		}
+	}
+	// Ramp the offset change so there aren't any abrupt clicks in the output.
+	// If the ramp is too short, it can sound scratchy. cblood2.mid is
+	// particularly unforgiving of short ramps.
+	if (count >= 512)
+	{
+		ramp = 512;
+		step = (offset - LastOffset) / 512;
+	}
+	else
+	{
+		ramp = MIN(count, MAX(196, largest_at));
+		step = (offset - LastOffset) / ramp;
+	}
+	offset = LastOffset;
+	i = 0;
+	if (step != 0)
+	{
+		for (; i < ramp; ++i)
+		{
+			buff[i] = float(buff[i] - offset);
+			offset += step;
+		}
+	}
+	if (offset != 0)
+	{
+		for (; i < count; ++i)
+		{
+			buff[i] = float(buff[i] - offset);
+		}
+	}
+	LastOffset = float(offset);
 }
 
 int OPLmusicFile::PlayTick ()
@@ -377,36 +450,7 @@ int OPLmusicFile::PlayTick ()
 
 ADD_STAT (opl)
 {
-	if (BlockForStats != NULL)
-	{
-		FString out;
-		char star[3] = { TEXTCOLOR_ESCAPE, 'A', '*' };
-		for (uint i = 0; i < BlockForStats->io->OPLchannels; ++i)
-		{
-			if (BlockForStats->channels[i].flags & CH_FREE)
-			{
-				star[1] = CR_BRICK + 'A';
-			}
-			else if (BlockForStats->channels[i].flags & CH_SUSTAIN)
-			{
-				star[1] = CR_ORANGE + 'A';
-			}
-			else if (BlockForStats->channels[i].flags & CH_SECONDARY)
-			{
-				star[1] = CR_BLUE + 'A';
-			}
-			else
-			{
-				star[1] = CR_GREEN + 'A';
-			}
-			out.AppendCStrPart (star, 3);
-		}
-		return out;
-	}
-	else
-	{
-		return YM3812GetVoiceString ();
-	}
+	return YM3812GetVoiceString ();
 }
 
 OPLmusicFile::OPLmusicFile(const OPLmusicFile *source, const char *filename)

@@ -3497,7 +3497,8 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	if ( !bMorph )
 	{
 		pActor->sprite = skins[lSkin].sprite;
-		pActor->scaleX = pActor->scaleY = skins[lSkin].Scale;
+		pActor->scaleX = skins[lSkin].ScaleX;
+		pActor->scaleY = skins[lSkin].ScaleY;
 	}
 
 	pPlayer->DesiredFOV = pPlayer->FOV = 90.f;
@@ -4128,7 +4129,8 @@ static void client_SetPlayerUserInfo( BYTESTREAM_s *pByteStream )
 		if ( pPlayer->mo )
 		{
 			pPlayer->mo->sprite = skins[lSkin].sprite;
-			pPlayer->mo->scaleX = pPlayer->mo->scaleY = skins[lSkin].Scale;
+			pPlayer->mo->scaleX = skins[lSkin].ScaleX;
+			pPlayer->mo->scaleY = skins[lSkin].ScaleY;
 		}
 	}
 

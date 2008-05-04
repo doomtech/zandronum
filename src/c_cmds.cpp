@@ -475,40 +475,6 @@ CCMD (changemap)
 	}
 }
 
-CCMD( nextmap )
-{
-	if ( level.info == NULL )
-	{
-		Printf( "You can't use nextmap, when not in a level.\n" );
-		return;
-	}
-
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
-	{
-		Printf( "Only the server can change the map.\n" );
-		return;
-	}
-
-	// Fuck that DEM shit!
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-	{
-		G_ExitLevel( 0, false );
-	}
-	else
-	{
-		if (argv.argc() > 1)
-		{
-			Net_WriteByte (DEM_CHANGEMAP2);
-			Net_WriteByte (atoi(argv[1]));
-		}
-		else
-		{
-			Net_WriteByte (DEM_CHANGEMAP);
-		}
-		Net_WriteString( level.nextmap );
-	}
-}
-
 CCMD (give)
 {
 	if (CheckCheatmode () || argv.argc() < 2)
@@ -1047,6 +1013,81 @@ CCMD(thaw)
 
 	Net_WriteByte (DEM_GENERICCHEAT);
 	Net_WriteByte (CHT_CLEARFROZENPROPS);
+}
+
+//-----------------------------------------------------------------------------
+//
+//
+//
+//-----------------------------------------------------------------------------
+
+CCMD(nextmap)
+{
+	if ( level.info == NULL )
+	{
+		Printf( "You can't use nextmap, when not in a level.\n" );
+		return;
+	}
+
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	{
+		Printf( "Only the server can change the map.\n" );
+		return;
+	}
+
+	// Fuck that DEM shit!
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		G_ExitLevel( 0, false );
+	}
+	else
+	{
+		if (argv.argc() > 1)
+		{
+			Net_WriteByte (DEM_CHANGEMAP2);
+			Net_WriteByte (atoi(argv[1]));
+		}
+		else
+		{
+			Net_WriteByte (DEM_CHANGEMAP);
+		}
+		Net_WriteString( level.nextmap );
+	}
+/* [BB] For the time being I'll keep ST's nextmap version.
+	char * next=NULL;
+	
+	if (*level.nextmap) next = level.nextmap;
+
+	if (next != NULL && strncmp(next, "enDSeQ", 6))
+	{
+		G_InitNew(next, false);
+	}
+	else
+	{
+		Printf("no next map!\n");
+	}
+*/
+}
+
+//-----------------------------------------------------------------------------
+//
+//
+//
+//-----------------------------------------------------------------------------
+CCMD(nextsecret)
+{
+	char * next=NULL;
+	
+	if (*level.secretmap) next = level.secretmap;
+
+	if (next != NULL && strncmp(next, "enDSeQ", 6))
+	{
+		G_InitNew(next, false);
+	}
+	else
+	{
+		Printf("no next secret map!\n");
+	}
 }
 
 //*****************************************************************************

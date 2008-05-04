@@ -60,7 +60,7 @@ void AWeapon::Serialize (FArchive &arc)
 		<< ProjectileType << AltProjectileType
 		<< SelectionOrder
 		<< MoveCombatDist
-		<< Ammo1 << Ammo2 << SisterWeapon
+		<< Ammo1 << Ammo2 << SisterWeapon << GivenAsMorphWeapon
 		<< bAltFire;
 }
 
@@ -211,8 +211,7 @@ AInventory *AWeapon::CreateCopy (AActor *other)
 //
 // A weapon that's tossed out should contain no ammo, so you can't cheat
 // by dropping it and then picking it back up.
-//
-//===========================================================================
+//=======================
 
 AInventory *AWeapon::CreateTossable ()
 {
@@ -334,6 +333,7 @@ void AWeapon::AttachToOwner (AActor *other)
 			}
 		}
 	}
+	GivenAsMorphWeapon = false; // will be set explicitly by morphing code
 }
 
 //===========================================================================

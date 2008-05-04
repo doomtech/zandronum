@@ -1,4 +1,418 @@
+April 30, 2008
+- Fixed: I had instrument vibrato setting the tremolo_sweep_increment value
+  in the instrument loader, effectively disabling vibrato.
+
+April 29, 2008
+- Fixed: FString::StripRight() stripped the final character of the string if
+  there were no designated characters to strip at the end of it.
+- Added support for Shoutcast/Icecast playlists.
+- Added an error message when a playlist could not be opened.
+- Added support for PLS format playlists, in addition to M3U.
+- Changed FPlayList to use an array of FStrings.
+- Fixed: Playlists required every song to be specified by an absolute path.
+- Fixed a copy-and-paste error in win32/i_main.cpp for 64-bit mode.
+- Tweaked OPL centering a little.
+
+April 28, 2008
+- Added dynamic recentering for the OPL synth. The chip has four basic
+  waveforms, and three of them are non-negative. This can cause a tendency
+  for the resulting output waveform to go into very high ranges depending on
+  the timbres used, and Heretic's exemplify this problem.
+- Reduced the OPL volume level slightly.
+- Fixed: The waveform view from snd_drawoutput was upside-down.
+- Various fixes for compiling working 64-bit binaries with Visual C++. The
+  number of changes was pleasantly small, and a cursory check seems to show
+  everything working alright.
+
+April 27, 2008
+- Separated the skin scale values into separate X and Y values so that skins
+  automatically generated for different player classes can use both the
+  scaling values that can be set for the actor.
+
+April 26, 2008
+- Fixed: Any MIDI ticks that contain only events that are interpreted by
+  the MIDI parser and not passed on to the MIDI device would mess up timing
+  for future events.
+- Changed EMIDI controller 110-113 handling to more accurately match the
+  EMIDI specs: Track designations and exclusions should be ignored past
+  the initial beat, and EMIDI program change and volume events should be
+  ignored unless they were used in the initial beat.
+- Fixed: When FMOD::System::init() returns FMOD_ERR_OUTPUT_CREATEBUFFER, it
+  could also be because the user selected PCM-Float output, but the driver
+  doesn't support it (even if it claims to *cough*Audigy XP drivers*cough*).
+
+April 26, 2008 (Changes by Graf Zahl)
+- Added speed factors for texture warp commands.
+- Added damage type parameter to A_Die.
+
+April 25, 2008
+- Re-enabled TiMidity's loop and envelope stripping for instruments that look
+  like they weren't really meant to be played by the GUS MIDI library.
+
+April 25, 2008 (SBarInfo Update #18)
+- Simplified the DrawGraphic function in sbarinfo_display.cpp
+- Added xOffset, yOffset, and alpha to every drawing function in
+  sbarinfo_display.cpp.  So Strife popups can be handeled better and allow for
+  other effects (translucent bars?).  I'm thinking about making a struct for
+  these five (also x and y) arguments so that the argument lists don't become a
+  mess.
+- Changed DRAWIMAGE in sbarinfo_display.cpp to not use so many calls to
+  DrawGraphic.
+- DrawKeyBar wasn't using screen->DrawTexture.
+- Added a Fade transition for popups.  It takes two args fade in rate and fade
+  out rate.  Both are floats (1.0 = 1 tic to complete 0.5 = 2 tics to complete
+  and so on).
+- Added a translucency arg to statusbars.  1.0 = opaque and 0.0 = invisible.
+
+April 24, 2008
+- Fixed: When an instrument's envelope runs out, it does not immediately ramp
+  to zero. Rather, it lets the remainder of the sample finish playing.
+- Fixed: When playing a MIDI file with EMIDI track designations to turn a
+  track off, any ticks that had only events on the disabled track would cause
+  the delay for that track to be thrown away, and the following notes on
+  enabled tracks would play too soon. This could be heard quite clearly in
+  xplasma.mid, where track 4 (FMGlass Drone 1) would interfere with the timing
+  of tracks 13 and 14 (EP1 Melody and EP1 Echo).
+
+April 24, 2008 (Changes by Graf Zahl)
+- Fixed: DFlashFader did some operations in its destructor that had to be moved
+  to its Destroy method.
+- Fixed: Dropped weapons from dying players should not double ammo.
+
+April 23, 2008
+- Fixed: When note_on() is called and another copy of the same note is
+  already playing on the channel, it should stop it with finish_note(), not
+  kill_note(). This can be clearly heard in the final cymbal crashes of
+  D_DM2TTL where TiMidity cuts them off because the final cymbals are played
+  with a velocity of 1 before the preceding cymbals have finished. (I wonder
+  if I should be setting the self_nonexclusive flag for GUS patches to
+  disable even this behavior, though, since gf1note.c doesn't turn off
+  duplicate notes.)
+- Changed envelope handling to hopefully match the GUS player's. The most
+  egregious mistake TiMidity makes is to treat bit 6 as an envelope enable
+  bit. This is not what it does; every sample has an envelope. Rather, this
+  is a "no sampled release" flag. Also, despite fiddling with the
+  PATCH_SUSTAIN flag during instrument loading, TiMidity never actually
+  used it. Nor did it do anything at all with the PATCH_FAST_REL flag.
+
+April 23, 2008 (Changes by Graf Zahl)
+- Fixed: wbstartstruct's lump name fields were only 8 characters long
+  and not properly zero-terminated when all 8 characters were used.
+- Fixed: Local sound sequence definitions caused a crash because a proper
+  NULL check was missing.
+
+April 22, 2008 (Changes by Graf Zahl)
+- Added translucent blending modes to FMultipatchTexture (not tested yet!)
+- Also changed all true color texture creation functions to use proper alpha
+  values instead of inverted ones.
+- Changed FRemapTable so that all palette entries must contain proper alpha
+  values. 
+  
+April 21, 2008 (Changes by Graf Zahl)
+- Fixed: The F1 screen check in m_menu.cpp was missing a NULL pointer check.
+  
+April 20, 2008 (Changes by Graf Zahl)
+- Changed: The boss brain's explosions play weapons/rocklx which is an 
+  unlimited sound. This can become extremely loud. Replaced with a new
+  sound which is just an alias to weapons/rocklx but has a limit of 4.
+
+April 19, 2008
+- Fixed: MugShotFrame::getTexture() allocated space for the sprite name that
+  it never freed. I'm not sure it's a good assumption that 9 characters is
+  always long enough, either, since you can have longer file names than that
+  inside a zip.
+- Fixed: DSBarInfo::DrawGem() crashed if chain or gem was NULL.
+- Fixed: Sound sequences are not thinkers, therefore they must be explicitly
+  marked as roots for the GC.
+- Reduced the range that area sounds require to interpolate between 2D and
+  3D panning.
+- The listener's velocity is now set at 0 for the sound engine. The player
+  moves so fast that you can hear the doppler shift just by running around,
+  otherwise.
+- Changed the sound code so that all sounds that start playing on a single
+  tic actually start playing at the exact same sample position.
+- Added the writewave command to write the internal TiMidity's output to a
+  wave file.
+- Changed the default channel velocity for MUS files from 64 to 100 to
+  better match apparent MIDI practice. (Would like to know what this is
+  supposed to be.)
+- Changed the mus2midi channel assignments to match the internal player's.
+- Fixed: apply_envelope_to_amp() should clamp the mix levels to 0.
+
+April 18, 2008
+- Made the maximum number of TiMidity voices configurable through the
+  timidity_voices cvar.
+- Added stats lines for the OPL and Timidity MIDI devices.
+- Completely changed the way TiMidity volume calculations are done. It
+  should now be extremely close to the output a real GUS would produce with
+  its official MIDI player (excepting where TiMidity normalizes sample
+  volumes). The new equations more closely match what is specified by the DLS
+  and SF2 specs (but not quite), so I presume it's also more musically
+  correct than what TiMidity (and TiMidity++) do.
+
+April 18, 2008 (Changes by Graf Zahl)
+- Fixed: FBlockThingsIterator didn't set the current block coordinates if
+  they were outside the blockmap. This could cause extreme delays if an
+  iteration started outside the valid boundaries.
+
+April 17, 2008
+- Fixed: The music stream needs to zero the FMOD_REVERB_CHANNELPROPERTIES
+  before sending it to Channel::getReverbProperties().
+- Fixed: The earthquake effect did not play its sound as an actual looping
+  sound. I'm a bit surprised this only recently started causing problems.
+
+April 17, 2008 (Changes by Graf Zahl)
+- Added Martin Howe's fixes for morphing and DECORATE function prototypes.
+- Minor fixes in texture code.
+
+April 16, 2008
+- Fixed: The FMOD::System object was never released, only closed, so
+  snd_reset would eventually run into the hard limit on the total number
+  of FMOD::System objects that can be created concurrently (currently 15).
+- Added proper error checks to the FMOD initialization process.
+- Updated fmod_wrap.h for FMOD 4.14.
+- Set note velocity back to using a linear sounding volume curve, although
+  it's now used to scale channel volume and expression, so recompute_amp()
+  is still only doing one volume curve lookup.
+- Fixed: TimidityMIDIDevice caused a crash at the end of a non-looping song.
+
+April 16, 2008 (Changes by Graf Zahl)
+- Made translation support for multipatch textures operational.
+
+April 15, 2008
+- Added support for the GUS patch format's scale_frequency and scale_factor
+  parameters. These seem to be used primarily to restrict percussion
+  instruments to specific notes.
+- Changed note velocity to not use the volume curve in recompute_amp(), since
+  this sounds closer to TiMidity++, although I don't believe it's correct
+  MIDI behavior. Also changed expression so that it scales the channel volume
+  before going through the curve.
+- Reworked load_instrument() to be less opaque.
+- Went through the TiMidity code and removed pretty much all of the SDL_mixer
+  extensions. The only exception would be kill_others(), which I reworked
+  into a kill_key_group() function, which should be useful for DLS
+  instruments in the future.
+
+April 15, 2008 (Changes by Graf Zahl)
+- Added translation support to multipatch textures. Not tested yet!
+- Added Martin Howe's morph weapon update.
+- Changed true color texture creation to use a newly defined Bitmap class
+  instead of having the copy functions in the frame buffer class.
+- Fixed: The WolfSS didn't have its obituary defined.
+- Added submission for ACS CheckPlayerCamera ACS function.
+- Removed FRadiusThingsIterator after discovering that VC++ misoptimized
+  it in P_CheckPosition. Now FBlockThingsIterator is used with the distance
+  check being done manually.
+
+April 14, 2008 (Changes by Graf Zahl)
+- Added rotation 90° angles only) and mirroring to the Multipatch texture 
+  composition code.
+- Fixed: The game crashed when a level was ended while a player was morphed
+  by a powerup.
+- Fixed: A_VileAttack positioned the fire on the wrong side of the target.
+- Reorganized the HackHack code so that the image creation was moved into
+  MakeTexture. This was necessary because Unload deleted the pixel data
+  and broke the whole thing.
+- Fixed: FPatchTexture::HackHack and FDoomStatusbarTexture::DrawToBar used the
+  obsolete and uninitialized variable Near255. 
+- Removed the span creation code specific to FPatchTexture. It only has an
+  advantage when the lump has already been loaded in memory but since that
+  is no longer the case now the generic version in FTexture is actually better.
+- Changed: FTexture::CopyToBlock no longer uses the spans but the pixel buffer
+  directly. Since most patches in multipatch textures are non transparent
+  the added overhead from creating the spans far outweighs any savings they
+  might provide. It is also simpler to handle for mirrored or rotated patches now.
+- Changed: Textures only create the spans when really needed. Flats and native
+  textures, for example, do not and it only created needless overhead that they
+  were always created along with the pixel buffer.
+- Made use of player and actor variables consistent in a_hereticweaps.cpp.
+- Fixed: A few calls to P_SpawnPlayerMissile passed 0 as angle
+
+April 13, 2008 (Changes by Graf Zahl)
+- Fixed a few bugs in the parser for composite textures.
+- Changed: When loading Zips all patches in the patches/ directory should
+  be loaded, not only those used by a texture in TEXTUREx. 
+- Disabled timidity_mastervolume for the internal Timidity again because
+  with the altered volume calculation it is no longer needed and the default
+  volume is on the same level as OPL and FMOD.
+
+April 12, 2008
+- Changed FMOD_INIT_ENABLE_DSPNET use to its replacement from 4.14.00,
+  FMOD_INIT_ENABLE_PROFILE. Renamed the corresponding cvar to snd_profile.
+- Removed the normalize parameter from SoundStream::Play().
+- Disabled the chorus and reverb effects added to SDL_mixer's Timidity,
+  because they were probably never tested well, either. Thanks to the bug
+  in vc_alloc(), they were never even activated.
+- Restored the exact frequency range search that was missing from SDL_mixer's
+  verion of select_sample().
+- Fixed: vc_alloc(), kill_others(), and note_on() treated Voice::status as a
+  bit mask, when it's not. These were changes made to SDL_mixer's Timidity.
+- Restored the original Timidity volume equation. The other louder one was
+  put in when I didn't realize all channels were mono and many notes sounded
+  too quiet because they never completed their attack phase.
+- Fixed: FileReader::Gets() acted as if fgets() always read the maximum
+  number of characters.
+- Fixed: FileReader::Open() did not set FilePos and StartPos to 0.
+
+April 12, 2008 (Changes by Graf Zahl)
+- Changed the internal Timidity player so that it uses timidity_mastervolume
+  because it has the same sound volume issues as the external one.
+- Replaced use of stdio in Timidity with FileReader and added the option to read
+  from the lump directory. If the main config file is inside the lump directory
+  it will assume that everything else is as well. If it is a real file it will be
+  assumed that the rest is real files as well.
+- Fixed: None of the error returns in read_config_file closed the file being read.
+- Added Martin Howe's morph system update.
+- Added support for defining composite textures in HIRESTEX. It is not fully tested
+  and right now can't do much more than the old TEXTUREx method.
+- Added a few NULL pointer checks to the texture code.
+- Made duplicate class names in DECORATE non-fatal. There is really no stability
+  concern here and the worst that can happen is that the wrong actor is spawned.
+  This was a constant hassle when testing with WADs that contain duplicate resources.
+
+April 11, 2008
+- Removed some GCC warnings.
+- Fixed: MinGW doesn't have _get_pgmptr(), so it couldn't compile i_main.cpp.
+- Fixed: MOD_WAVETABLE and MOD_SWSYNTH are not defined by w32api, so MinGW
+  failed compiling the new MIDI code.
+- Fixed: LocalSndInfo and LocalSndSeq in S_Start() need to be const char
+  pointers, since "" is a constant.
+- Fixed: parsecontext.h was missing a newline at the end of the file.
+- Fixed: Timidity::Channel::mono, rpn, and nrpn were not initialized. In
+  particular, this meant that every channel was almost certainly in mono mode,
+  which can sound pretty bad if the song isn't meant to be played that way.
+- Added bank numbers to the MIDI precaching for Timidity, since I guess I do
+  need to care about banks, if even the Duke MIDIs use various banks.
+- Fixed: snd_midiprecache only exists in Win32 builds, so gameconfigfile.cpp
+  shouldn't unconditionally link against it.
+- Fixed: pre_resample() was still disabled, and it left two samples at the end
+  of the new wave data uninitialized.
+- Moved the xmap table from timidity/tables.cpp to playmidi.cpp. Now I can get
+  rid of timidity/tables.cpp, which conflicts in name with the main Doom
+  tables.cpp. (And interestingly, VC++ automatically renamed the object file,
+  so I wasn't aware of the problem with GCC.)
+
+April 11, 2008 (Changes by Graf Zahl)
+- Added a Gets function to the FileReader class which I planned to use
+  to enable Timidity to read its config and sound patches from Zips. 
+  I put this on hold though after finding out that the sound quality 
+  isn't even near that of Timidity++.
+- GCC-Fixes (FString::GetChars() for Printf calls)
+- Added a dummy Weapon.NOLMS flag so that Skulltag weapons using this flag
+  can be loaded
+
+April 10, 2008
+- Changed the MIDIStreamer to send the all notes off controller to each
+  channel when restarting the song, rather than emitting a single note off
+  event which only has 1 in 127 chance of being for a note that's playing
+  on that channel. Then I decided it would probably be a good idea to reset
+  all the controllers as well.
+- Increasing the size of the internal Timidity stream buffer from 1/14 sec
+  (copied from the OPL player) improved its sound dramatically, so apparently
+  Timidity has issues with short stream buffers. It's now at 1/2 sec in
+  length. However, there seems to be something weird going on with
+  corazonazul_ff6boss.mid near the beginning where it stops and immediately
+  restarts a guitar on the exact same note.
+- Added a new sound debugging cvar: snd_drawoutput, which can show various
+  oscilloscopes and spectrums.
+
+April 10, 2008 (Changes by Graf Zahl)
+- Eliminated some more global variables (onmobj, DoRipping, LastRipped,
+  MissileActor, bulletpitch and linetarget.)
+
+April 9, 2008
+- Internal TiMidity now plays music. Unfortunately, it doesn't sound right. :(
+- Changed the progdir global variable into an FString.
+
+April 9, 2008 (Changes by Graf Zahl)
+- Replaced P_PathTraverse with an FPathTraverse class, rewrote all code using
+  P_PathTraverse and got rid of a lot of global variables in the process.
+- Simplified the use of the checkarray in FBlockThingsIterator: Since the entire
+  game runs single threaded there is no need for multiple check arrays if 
+  recursive use occurs. Using the same array with a higher start index is 
+  sufficient if the size is reset after finishing using the iterator.
+
+April 9, 2008 (SBarInfo Update #17)
+- Fixed: SBarInfo tried to calculate scaled offsets on unscaled status bars.
+- Added: createpopup to SBarInfo.  No we don't have custom popups yet.  It only
+  defines the transition effect.  Currently none or slideinbottom.
+- Made the first argument of DrawMugShot optional (think of it as an overloaded
+  function).  The use of the first argument is deprecated due to the event of
+  per player class faces.
+- More changes from DrawImage to screen->DrawTexture().  I guess I didn't get
+  them all just yet.
+  
+April 8, 2008
+- Added the FCriticalSection class in critsec.h to make it easier to
+  use critical sections in other places besides the OPL player.
+- Reimplemented snd_midiprecache, now for MIDI as well as MUS, and
+  defaulting to false.
+
+April 8, 2008 (Changes by Graf Zahl)
+- Eliminated all use of global variables used as output for P_CheckPosition
+  and P_TryMove. Moved BlockingLine and BlockingMobj into AActor because 
+  the global variables can be easily overwritten with certain DECORATE 
+  constructs.
+- Removed some unnecessary morphing code.
+- Fixed some bugs in the HIRESTEX parser.
+- Added floating point support and #include and #define tokens to 
+  FParseContext  Not used yet.
+- replaced the value scanning code in FParseContext::GetToken with
+  calls to strtol.
+- Changed XlatParseContext::FindToken to do a binary search over the
+  valid token names.
+- Fixed: The check arrays for BlockThingsIterators were not properly
+  freed and each iterator allocated a new one as a result.
+- Split the Xlat parser context class into a generic part that can be 
+  used for other Lemon-based parsers in the future and a smaller
+  Xlat-specific part.
+- Changed: P_TeleportMove now always sets BlockingLine to NULL and
+  P_FindFloorCeiling doesn't set it at all. The way it was set in 
+  PIT_FindFloorCeiling didn't look correct. (Note: It's amazing how
+  easy it is to break P_TryMove et.al. with DECORATE if you just know
+  which combinations of code pointers will cause problems. This definitely
+  needs to be addressed.)
+- Changed P_FindFloorCeiling so that it doesn't need global variables 
+  anymore. I also moved the code to set the calling actor's information
+  into this function because that's all it is used for. This also fixes
+  another bug:
+- AInventory::BecomePickup called P_FindFloorCeiling to get
+  proper position values for the item but never set the item's information
+  to the return value of this call.
+- Removed the check for Heretic when playing *evillaugh when using the 
+  Chaos Device. This sound is not defined by the other games so it won't
+  play by default.
+- Added MORPH_UNDOMORPHBYTOMEOFPOWER and MORPH_UNDOMORPHBYCHAOSDEVICE flags
+  for the morph style so that the special behavior of these two items
+  can be switched on and off.
+- Added Martin Howe's morph system enhancement.
+
+April 7, 2008 (Changes by Graf Zahl)
+- Removed PT_EARLYOUT from P_PathTraverse because it wasn't used anywhere.
+- Rewrote BlockThingsIterator code not to use callbacks anymore.
+
+April 6, 2008 (Changes by Graf Zahl)
+- Fixed: PIT_FindFloorCeiling required tmx and tmy to be set but 
+  P_FindFloorCeiling never did that.
+- Merged Check_Sides and PIT_CrossLine into A_PainShootSkull.
+- Replaced P_BlockLinesIterator with FBlockLinesIterator in all places it was
+  used. This also allowed to remove all the global variable saving in
+  P_CreateSecNodeList.
+- Added a new FBlockLinesIterator class that doesn't need a callback
+  function because debugging the previous bug proved to be a bit annoying
+  because it involved a P_BlockLinesIterator loop.
+- Fixed: The MBF code to move monsters away from dropoffs did not work as 
+  intended due to some random decisions in P_DoNewChaseDir. When in the
+  avoiding dropoff mode these are ignored now. This should cure the problem
+  that monsters hanging over a dropoff tended to drop down.
+- Added a NOTIMEFREEZE flag that excludes actors from being affected by
+  the time freezer powerup.
+- Changed: Empty pickup messages are no longer printed.
+
 April 5, 2008 (Changes by Graf Zahl)
+- Changed secret sector drawing in automap so that lines with the ML_SECRET
+  flag are only drawn as part of a secret sector if that secret has already
+  been found, even if the option is set to always show secret sectors.
 - Added the option to use $ as a prefix to a string table name everywhere in
   MAPINFO where 'lookup' could be specified so that there is one consistent
   way to do it.

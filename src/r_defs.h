@@ -90,6 +90,8 @@ struct line_t;
 
 class player_s;
 class FScanner;
+class FBitmap;
+struct FCopyInfo;
 
 //
 // The SECTORS record, at runtime.
@@ -909,8 +911,8 @@ public:
 	// Returns the whole texture, stored in column-major order
 	virtual const BYTE *GetPixels () = 0;
 	
-	virtual int CopyTrueColorPixels(BYTE *buffer, int buf_pitch, int buf_height, int x, int y);
-	int CopyTrueColorTranslated(BYTE *buffer, int buf_pitch, int buf_height, int x, int y, FRemapTable *remap);
+	virtual int CopyTrueColorPixels(FBitmap *bmp, int x, int y, int rotate=0, FCopyInfo *inf = NULL);
+	int CopyTrueColorTranslated(FBitmap *bmp, int x, int y, int rotate, FRemapTable *remap, FCopyInfo *inf = NULL);
 	virtual bool UseBasePalette();
 	virtual int GetSourceLump() { return -1; }
 
@@ -939,7 +941,12 @@ public:
 
 	virtual void SetFrontSkyLayer();
 
-	void CopyToBlock (BYTE *dest, int dwidth, int dheight, int x, int y, const BYTE *translation=NULL);
+	void CopyToBlock (BYTE *dest, int dwidth, int dheight, int x, int y, const BYTE *translation=NULL)
+	{
+		CopyToBlock(dest, dwidth, dheight, x, y, 0, translation);
+	}
+
+	void CopyToBlock (BYTE *dest, int dwidth, int dheight, int x, int y, int rotate, const BYTE *translation=NULL);
 
 	// Returns true if the next call to GetPixels() will return an image different from the
 	// last call to GetPixels(). This should be considered valid only if a call to CheckModified()
@@ -1199,7 +1206,8 @@ public:
 	BYTE		range0start;
 	BYTE		range0end;
 	bool		othergame;	// [GRB]
-	fixed_t		Scale;
+	fixed_t		ScaleX;
+	fixed_t		ScaleY;
 	int			sprite;
 	int			crouchsprite;
 	int			namespc;	// namespace for this skin

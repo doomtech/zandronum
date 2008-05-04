@@ -25,7 +25,7 @@ public:
 	static void Initialize();
 	static void Clear();
 	static GLShader *Find(const char * shn);
-	void Bind(int cm, bool brightmap);
+	void Bind(int cm, bool brightmap, float Speed);
 	static void Unbind();
 	static void Rebind();
 

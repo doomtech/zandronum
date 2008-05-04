@@ -49,6 +49,7 @@
 #include "stats.h"
 #include "templates.h"
 #include "sc_man.h"
+#include "r_translate.h"
 
 #include "gl/gl_struct.h"
 #include "gl/gl_framebuffer.h"
@@ -95,8 +96,8 @@ EXTERN_CVAR(Bool, gl_render_precise)
 
 CVAR(Bool, gl_precache, false, CVAR_ARCHIVE)
 
-static char GlobalBrightmap[256];
 static bool HasGlobalBrightmap;
+static FRemapTable GlobalBrightmap;
 
 //===========================================================================
 // 
@@ -112,7 +113,13 @@ void gl_GenerateGlobalBrightmapFromColormap()
 	const unsigned char *cmapdata = (const unsigned char *)cmap.GetMem();
 	const unsigned char *paldata = (const unsigned char *)palette.GetMem();
 
-	memset(GlobalBrightmap, 255, 256);
+	const int black = 0;
+	const int white = ColorMatcher.Pick(255,255,255);
+
+
+	GlobalBrightmap.MakeIdentity();
+	memset(GlobalBrightmap.Remap, white, 256);
+	for(int i=0;i<256;i++) GlobalBrightmap.Palette[i]=PalEntry(255,255,255);
 	for(int j=0;j<32;j++)
 	{
 		for(int i=0;i<256;i++)
@@ -121,36 +128,17 @@ void gl_GenerateGlobalBrightmapFromColormap()
 			// and Hexen.
 			if (cmapdata[i+j*256]!=i || (paldata[3*i]<10 && paldata[3*i+1]<10 && paldata[3*i+2]<10))
 			{
-				GlobalBrightmap[i]=0;
+				GlobalBrightmap.Remap[i]=black;
+				GlobalBrightmap.Palette[i]=PalEntry(0,0,0);
 			}
 		}
 	}
 	for(int i=0;i<256;i++)
 	{
-		HasGlobalBrightmap|=!!GlobalBrightmap[i];
+		HasGlobalBrightmap |= GlobalBrightmap.Remap[i] == black;
 		//if (GlobalBrightmap[i]) Printf("Marked color %d as fullbright\n",i);
 	}
 }
-
-static const BYTE IcePalette[16][3] =
-{
-	{  10,  8, 18 },
-	{  15, 15, 26 },
-	{  20, 16, 36 },
-	{  30, 26, 46 },
-	{  40, 36, 57 },
-	{  50, 46, 67 },
-	{  59, 57, 78 },
-	{  69, 67, 88 },
-	{  79, 77, 99 },
-	{  89, 87,109 },
-	{  99, 97,120 },
-	{ 109,107,130 },
-	{ 118,118,141 },
-	{ 128,128,151 },
-	{ 138,138,162 },
-	{ 148,148,172 }
-};
 
 //===========================================================================
 // 
@@ -300,16 +288,16 @@ static CopyFunc copyfuncs[]={
 // base palette because they wouldn't be used anyway.
 //
 //===========================================================================
-void OpenGLFrameBuffer::CopyPixelDataRGB(BYTE * buffer, int texpitch, int texheight, int originx, int originy,
-										const BYTE * patch, int srcwidth, int srcheight, int step_x, int step_y,
-										int ct)
+void FGLBitmap::CopyPixelDataRGB(int originx, int originy,
+								const BYTE * patch, int srcwidth, int srcheight, int step_x, int step_y,
+								int rotate, int ct, FCopyInfo *inf)
 {
-	if (ClipCopyPixelRect(texpitch>>2, texheight, originx, originy, patch, srcwidth, srcheight, step_x, step_y))
+	if (ClipCopyPixelRect(Width, Height, originx, originy, patch, srcwidth, srcheight, step_x, step_y, rotate))
 	{
-		buffer+=4*originx + texpitch*originy;
+		BYTE *buffer = GetPixels() + 4*originx + Pitch*originy;
 		for (int y=0;y<srcheight;y++)
 		{
-			copyfuncs[ct](&buffer[y*texpitch], &patch[y*step_y], cm, srcwidth, step_x);
+			copyfuncs[ct](&buffer[y*Pitch], &patch[y*step_y], cm, srcwidth, step_x);
 		}
 	}
 }
@@ -337,6 +325,7 @@ void ModifyPalette(PalEntry * pout, PalEntry * pin, int cm, int count)
 		{
 			int gray = (pin[i].r*77 + pin[i].g*143 + pin[i].b*37) >> 8;
 			gl_InverseMap(gray, pout[i].r, pout[i].g, pout[i].b);
+			pout[i].a = pin[i].a;
 		}
 		break;
 
@@ -346,6 +335,7 @@ void ModifyPalette(PalEntry * pout, PalEntry * pin, int cm, int count)
 		{
 			int gray = (pin[i].r*77 + pin[i].g*143 + pin[i].b*37) >> 8;
 			gl_GoldMap(gray, pout[i].r, pout[i].g, pout[i].b);
+			pout[i].a = pin[i].a;
 		}
 		break;
 
@@ -355,6 +345,7 @@ void ModifyPalette(PalEntry * pout, PalEntry * pin, int cm, int count)
 		{
 			int gray = (pin[i].r*77 + pin[i].g*143 + pin[i].b*37) >> 8;
 			gl_RedMap(gray, pout[i].r, pout[i].g, pout[i].b);
+			pout[i].a = pin[i].a;
 		}
 		break;
 
@@ -364,6 +355,7 @@ void ModifyPalette(PalEntry * pout, PalEntry * pin, int cm, int count)
 		{
 			int gray = (pin[i].r*77 + pin[i].g*143 + pin[i].b*37) >> 8;
 			gl_GreenMap(gray, pout[i].r, pout[i].g, pout[i].b);
+			pout[i].a = pin[i].a;
 		}
 		break;
 
@@ -444,49 +436,26 @@ void ModifyPalette(PalEntry * pout, PalEntry * pin, int cm, int count)
 // Paletted to True Color texture copy function
 //
 //===========================================================================
-void OpenGLFrameBuffer::CopyPixelData(BYTE * buffer, int texpitch, int texheight, int originx, int originy,
-										const BYTE * patch, int srcwidth, int srcheight, 
-										int step_x, int step_y, PalEntry * palette)
+void FGLBitmap::CopyPixelData(int originx, int originy, const BYTE * patch, int srcwidth, int srcheight, 
+										int step_x, int step_y, int rotate, PalEntry * palette, FCopyInfo *inf)
 {
 	PalEntry penew[256];
 
 	int x,y,pos,i;
 
-	if (ClipCopyPixelRect(texpitch>>2, texheight, originx, originy, patch, srcwidth, srcheight, step_x, step_y))
+	if (ClipCopyPixelRect(Width, Height, originx, originy, patch, srcwidth, srcheight, step_x, step_y, rotate))
 	{
-		buffer+=4*originx + texpitch*originy;
+		BYTE *buffer = GetPixels() + 4*originx + Pitch*originy;
 
 		// CM_SHADE is an alpha map with 0==transparent and 1==opaque
 		if (cm == CM_SHADE) 
 		{
 			for(int i=0;i<256;i++) 
 			{
-				if (palette[i].a!=255)
-					penew[i]=PalEntry(255-i,255,255,255);
+				if (palette[i].a != 0)
+					penew[i]=PalEntry(i, 255,255,255);
 				else
-					penew[i]=0xffffffff;	// If the palette contains transparent colors keep them.
-			}
-		}
-		else if (cm == CM_BRIGHTMAP) 
-		{
-			if (palette == GetPalette() && translation >= 0)
-			{
-				for(int i=0;i<256;i++) 
-				{
-					if (GlobalBrightmap[i] && palette[i].a==0)
-					{
-						penew[i] = PalEntry(0,255,255,255);
-					}
-					else
-					{
-						penew[i] = PalEntry(255,0,0,0);
-					}
-				}
-			}
-			else
-			{
-				for(int i=0;i<256;i++) 
-					penew[i] = PalEntry(palette[i].a,0,0,0);
+					penew[i]=PalEntry(0,255,255,255);	// If the palette contains transparent colors keep them.
 			}
 		}
 		else
@@ -535,17 +504,18 @@ void OpenGLFrameBuffer::CopyPixelData(BYTE * buffer, int texpitch, int texheight
 		// This can also handle full PNG translucency.
 		for (y=0;y<srcheight;y++)
 		{
-			pos=(y*texpitch);
+			pos=(y*Pitch);
 			for (x=0;x<srcwidth;x++,pos+=4)
 			{
 				int v=(unsigned char)patch[y*step_y+x*step_x];
-				if (penew[v].a==0)
+				if (penew[v].a!=0)
 				{
-					buffer[pos]=penew[v].r;
-					buffer[pos+1]=penew[v].g;
-					buffer[pos+2]=penew[v].b;
-					buffer[pos+3]=255-penew[v].a;
+					buffer[pos]   = penew[v].r;
+					buffer[pos+1] = penew[v].g;
+					buffer[pos+2] = penew[v].b;
+					buffer[pos+3] = penew[v].a;
 				}
+				/*
 				else if (penew[v].a!=255)
 				{
 					buffer[pos  ] = (buffer[pos  ] * penew[v].a + penew[v].r * (1-penew[v].a)) / 255;
@@ -553,6 +523,7 @@ void OpenGLFrameBuffer::CopyPixelData(BYTE * buffer, int texpitch, int texheight
 					buffer[pos+2] = (buffer[pos+2] * penew[v].a + penew[v].b * (1-penew[v].a)) / 255;
 					buffer[pos+3] = clamp<int>(buffer[pos+3] + (( 255-buffer[pos+3]) * (255-penew[v].a))/255, 0, 255);
 				}
+				*/
 			}
 		}
 	}
@@ -568,23 +539,31 @@ void OpenGLFrameBuffer::CopyPixelData(BYTE * buffer, int texpitch, int texheight
 //
 //===========================================================================
 
-int FWarpTexture::CopyTrueColorPixels(BYTE * buffer, int buf_pitch, int buf_height, int xx, int yy)
+int FWarpTexture::CopyTrueColorPixels(FBitmap *bmp, int xx, int yy, int rotate, FCopyInfo *inf)
 {
-	if (gl_warp_shader || gl_glsl_renderer)
+	int buf_pitch = bmp->GetPitch();
+	int buf_width = bmp->GetWidth();
+	int buf_height = bmp->GetHeight();
+
+	if (gl_warp_shader || gl_glsl_renderer || rotate != 0 || inf != NULL || Width > 256 || Height > 256)
 	{
-		return SourcePic->CopyTrueColorPixels(buffer, buf_pitch, buf_height, xx, yy);
+		return SourcePic->CopyTrueColorPixels(bmp, xx, yy, rotate, inf);
 	}
 
-	unsigned long * in=new unsigned long[Width*Height];
+	FGLBitmap inb;
+
+	if (!inb.Create(Width, Height))
+		return false;
+
+	unsigned long * in = (unsigned long *)inb.GetPixels();
 	unsigned long * out;
 	bool direct;
-	int buf_width = buf_pitch>>2;
 	
 	FGLTexture *gltex = FGLTexture::ValidateTexture(this);
 	gltex->createWarped = true;
 	if (Width == buf_width && Height == buf_height && xx==0 && yy==0)
 	{
-		out = (unsigned long*)buffer;
+		out = (unsigned long*)bmp->GetPixels();
 		direct=true;
 	}
 	else
@@ -595,10 +574,10 @@ int FWarpTexture::CopyTrueColorPixels(BYTE * buffer, int buf_pitch, int buf_heig
 
 	GenTime = r_FrameTime;
 	if (SourcePic->bMasked) memset(in, 0, Width*Height*sizeof(long));
-	int ret = SourcePic->CopyTrueColorPixels((BYTE*)in, Width<<2, Height, 0, 0);
+	int ret = SourcePic->CopyTrueColorPixels(&inb, 0, 0);
 
-	static unsigned long linebuffer[4096];	// that's the maximum texture size for most graphics cards!
-	int timebase = r_FrameTime*23/28;
+	static unsigned long linebuffer[256];	// anything larger will bring down performance so it is excluded above.
+	int timebase = DWORD(r_FrameTime*Speed*23/28);
 	int xsize = Width;
 	int ysize = Height;
 	int xmask = xsize - 1;
@@ -618,7 +597,7 @@ int FWarpTexture::CopyTrueColorPixels(BYTE * buffer, int buf_pitch, int buf_heig
 			*dest = *(source+(yf<<ds_xbits));
 		}
 	}
-	timebase = r_FrameTime*32/28;
+	timebase = DWORD(r_FrameTime*Speed*32/28);
 	int y;
 	for (y = ysize-1; y >= 0; y--)
 	{
@@ -638,7 +617,7 @@ int FWarpTexture::CopyTrueColorPixels(BYTE * buffer, int buf_pitch, int buf_heig
 		if (xx<0) xx=0;
 		if (yy<0) yy=0;
 
-		unsigned long * targ = ((unsigned long*)buffer) + xx + yy*buf_width;
+		unsigned long * targ = ((unsigned long*)bmp->GetPixels()) + xx + yy*buf_width;
 		int linelen=MIN<int>(Width, buf_width-xx);
 		int linecount=MIN<int>(Height, buf_height-yy);
 
@@ -649,7 +628,6 @@ int FWarpTexture::CopyTrueColorPixels(BYTE * buffer, int buf_pitch, int buf_heig
 		}
 		delete [] out;
 	}
-	delete [] in;
 	GenTime=r_FrameTime;
 	return ret;
 }
@@ -663,23 +641,31 @@ int FWarpTexture::CopyTrueColorPixels(BYTE * buffer, int buf_pitch, int buf_heig
 //
 //===========================================================================
 
-int FWarp2Texture::CopyTrueColorPixels(BYTE * buffer, int buf_pitch, int buf_height, int xx, int yy)
+int FWarp2Texture::CopyTrueColorPixels(FBitmap *bmp, int xx, int yy, int rotate, FCopyInfo *inf)
 {
-	if (gl_warp_shader || gl_glsl_renderer)
+	int buf_pitch = bmp->GetPitch();
+	int buf_width = bmp->GetWidth();
+	int buf_height = bmp->GetHeight();
+
+	if (gl_warp_shader || gl_glsl_renderer || rotate != 0 || inf != NULL || Width > 256 || Height > 256)
 	{
-		return SourcePic->CopyTrueColorPixels(buffer, buf_pitch, buf_height, xx, yy);
+		return SourcePic->CopyTrueColorPixels(bmp, xx, yy, rotate, inf);
 	}
 
-	unsigned long * in=new unsigned long[Width*Height];
+	FGLBitmap inb;
+
+	if (!inb.Create(Width, Height))
+		return false;
+
+	unsigned long * in = (unsigned long *)inb.GetPixels();
 	unsigned long * out;
 	bool direct;
-	int buf_width = buf_pitch>>2;
 	
 	FGLTexture *gltex = FGLTexture::ValidateTexture(this);
 	gltex->createWarped = true;
 	if (Width == buf_width && Height == buf_height && xx==0 && yy==0)
 	{
-		out = (unsigned long*)buffer;
+		out = (unsigned long*)bmp->GetPixels();
 		direct=true;
 	}
 	else
@@ -690,7 +676,7 @@ int FWarp2Texture::CopyTrueColorPixels(BYTE * buffer, int buf_pitch, int buf_hei
 
 	GenTime = r_FrameTime;
 	if (SourcePic->bMasked) memset(in, 0, Width*Height*sizeof(long));
-	int ret = SourcePic->CopyTrueColorPixels((BYTE*)in, Width<<2, Height, 0, 0);
+	int ret = SourcePic->CopyTrueColorPixels(&inb, 0, 0);
 
 	int xsize = Width;
 	int ysize = Height;
@@ -702,7 +688,7 @@ int FWarp2Texture::CopyTrueColorPixels(BYTE * buffer, int buf_pitch, int buf_hei
 
 	for(ybits=-1,i=ysize; i; i>>=1, ybits++);
 
-	DWORD timebase = r_FrameTime * 40 / 28;
+	DWORD timebase = (r_FrameTime * Speed * 40 / 28);
 	for (x = xsize-1; x >= 0; x--)
 	{
 		for (y = ysize-1; y >= 0; y--)
@@ -721,22 +707,22 @@ int FWarp2Texture::CopyTrueColorPixels(BYTE * buffer, int buf_pitch, int buf_hei
 
 	if (!direct)
 	{
-		// Negative offsets cannot occur here.
+		// This can only happen for sprites so
+		// negative offsets cannot occur here.
 		if (xx<0) xx=0;
 		if (yy<0) yy=0;
 
-		unsigned long * targ = ((unsigned long*)buffer) + xx + yy*buf_width;
+		unsigned long * targ = ((unsigned long*)bmp->GetPixels()) + xx + yy*buf_width;
 		int linelen=MIN<int>(Width, buf_width-xx);
 		int linecount=MIN<int>(Height, buf_height-yy);
 
 		for(i=0;i<linecount;i++)
 		{
 			memcpy(targ, &out[Width*i], linelen*sizeof(unsigned long));
-			targ+=buf_width;
+			targ+=buf_pitch/4;
 		}
 		delete [] out;
 	}
-	delete [] in;
 	GenTime=r_FrameTime;
 	return ret;
 }
@@ -837,10 +823,9 @@ void FBrightmapTexture::Unload ()
 {
 }
 
-int FBrightmapTexture::CopyTrueColorPixels(BYTE * buffer, int buf_width, int buf_height, int x, int y)
+int FBrightmapTexture::CopyTrueColorPixels(FBitmap *bmp, int x, int y, int rotate, FCopyInfo *inf)
 {
-	SetTranslationInfo(CM_BRIGHTMAP, 0);
-	SourcePic->CopyTrueColorPixels(buffer, buf_width, buf_height, x, y);
+	SourcePic->CopyTrueColorTranslated(bmp, x, y, rotate, &GlobalBrightmap);
 	return 0;
 }
 
@@ -874,12 +859,15 @@ FGLTexture::FGLTexture(FTexture * tx)
 
 	bHasColorkey = false;
 
-	Width = tex->GetWidth();
-	Height = tex->GetHeight();
-	LeftOffset = tex->LeftOffset;
-	TopOffset = tex->TopOffset;
-	RenderWidth = tex->GetScaledWidth();
-	RenderHeight = tex->GetScaledHeight();
+	for (int i=GLUSE_PATCH; i<=GLUSE_TEXTURE; i++)
+	{
+		Width[i] = tex->GetWidth();
+		Height[i] = tex->GetHeight();
+		LeftOffset[i] = tex->LeftOffset;
+		TopOffset[i] = tex->TopOffset;
+		RenderWidth[i] = tex->GetScaledWidth();
+		RenderHeight[i] = tex->GetScaledHeight();
+	}
 
 	scalex = tex->xScale/(float)FRACUNIT;
 	scaley = tex->yScale/(float)FRACUNIT;
@@ -891,12 +879,12 @@ FGLTexture::FGLTexture(FTexture * tx)
 		tex->UseType == FTexture::TEX_SkinSprite || 
 		tex->UseType == FTexture::TEX_Decal)
 	{
-		RenderWidth+=2;
-		RenderHeight+=2;
-		Width+=2;
-		Height+=2;
-		LeftOffset+=1;
-		TopOffset+=1;
+		RenderWidth[GLUSE_PATCH]+=2;
+		RenderHeight[GLUSE_PATCH]+=2;
+		Width[GLUSE_PATCH]+=2;
+		Height[GLUSE_PATCH]+=2;
+		LeftOffset[GLUSE_PATCH]+=1;
+		TopOffset[GLUSE_PATCH]+=1;
 	}
 
 	if ((gl.flags & RFL_GLSL) && tx->UseBasePalette() && HasGlobalBrightmap &&
@@ -954,12 +942,12 @@ bool FGLTexture::Update ()
 // GetRect
 //
 //===========================================================================
-void FGLTexture::GetRect(GL_RECT * r) const
+void FGLTexture::GetRect(GL_RECT * r, FGLTexture::ETexUse i) const
 {
-	r->left=-(float)GetScaledLeftOffset();
-	r->top=-(float)GetScaledTopOffset();
-	r->width=(float)TextureWidth();
-	r->height=(float)TextureHeight();
+	r->left=-(float)GetScaledLeftOffset(i);
+	r->top=-(float)GetScaledTopOffset(i);
+	r->width=(float)TextureWidth(i);
+	r->height=(float)TextureHeight(i);
 }
 
 //===========================================================================
@@ -1193,37 +1181,55 @@ void FGLTexture::Clean(bool all)
 //
 //===========================================================================
 
-unsigned char * FGLTexture::CreateTexBuffer(int _cm, int translation, int & w, int & h, bool allowhires)
+unsigned char * FGLTexture::CreateTexBuffer(ETexUse use, int _cm, int translation, int & w, int & h, bool allowhires)
 {
 	unsigned char * buffer;
 	intptr_t cm = _cm;
+	int W, H;
 
-	SetTranslationInfo(cm, translation);
 
 	// Textures that are already scaled in the texture lump will not get replaced
 	// by hires textures
 	if (gl_texture_usehires && allowhires && scalex==1.f && scaley==1.f)
 	{
-		buffer = LoadHiresTexture (&w, &h);
+		buffer = LoadHiresTexture (&w, &h, _cm);
 		if (buffer)
 		{
 			return buffer;
 		}
 	}
 
-	w=Width;
-	h=Height;
+	W = w = Width[use];
+	H = h = Height[use];
 
-	buffer=new unsigned char[Width*(Height+1)*4];
-	memset(buffer, 0, Width * (Height+1) * 4);
 
-	if (translation<=0)
+	buffer=new unsigned char[W*(H+1)*4];
+	memset(buffer, 0, W * (H+1) * 4);
+
+	FGLBitmap bmp(buffer, W*4, W, H);
+	bmp.SetTranslationInfo(cm, translation);
+
+	if (tex->bComplex)
+	{
+		FBitmap imgCreate;
+
+		// The texture contains special processing so it must be composited using with the
+		// base bitmap class and then be converted as a whole.
+		if (imgCreate.Create(W, H))
+		{
+			memset(imgCreate.GetPixels(), 0, W * H * 4);
+			int trans = 
+				tex->CopyTrueColorPixels(&imgCreate, GetLeftOffset(use) - tex->LeftOffset, GetTopOffset(use) - tex->TopOffset);
+			bmp.CopyPixelDataRGB(0, 0, imgCreate.GetPixels(), W, H, 4, W * 4, 0, CF_BGRA);
+			CheckTrans(buffer, W*H, trans);
+		}
+	}
+	else if (translation<=0)
 	{
 		int trans = 
-			tex->CopyTrueColorPixels(buffer, GetWidth()<<2, GetHeight(), GetLeftOffset() - tex->LeftOffset, 
-				GetTopOffset() - tex->TopOffset);
+			tex->CopyTrueColorPixels(&bmp, GetLeftOffset(use) - tex->LeftOffset, GetTopOffset(use) - tex->TopOffset);
 
-		CheckTrans(buffer, w*h, trans);
+		CheckTrans(buffer, W*H, trans);
 
 	}
 	else
@@ -1231,8 +1237,7 @@ unsigned char * FGLTexture::CreateTexBuffer(int _cm, int translation, int & w, i
 		// When using translations everything must be mapped to the base palette.
 		// Since FTexture's method is doing exactly that by calling GetPixels let's use that here
 		// to do all the dirty work for us. ;)
-		tex->FTexture::CopyTrueColorPixels(buffer, GetWidth()<<2, GetHeight(), GetLeftOffset() - tex->LeftOffset, 
-				GetTopOffset() - tex->TopOffset);
+		tex->FTexture::CopyTrueColorPixels(&bmp, GetLeftOffset(use) - tex->LeftOffset, GetTopOffset(use) - tex->TopOffset);
 	}
 
 	return buffer;
@@ -1249,7 +1254,7 @@ const WorldTextureInfo * FGLTexture::GetWorldTextureInfo()
 {
 
 	if (tex->UseType==FTexture::TEX_Null) return NULL;		// Cannot register a NULL texture!
-	if (!gltexture) gltexture=new GLTexture(Width, Height, true, true);
+	if (!gltexture) gltexture=new GLTexture(Width[GLUSE_TEXTURE], Height[GLUSE_TEXTURE], true, true);
 	if (gltexture) return (WorldTextureInfo*)this; 	
 	return NULL;
 }
@@ -1266,7 +1271,7 @@ const PatchTextureInfo * FGLTexture::GetPatchTextureInfo()
 	if (tex->UseType==FTexture::TEX_Null) return NULL;		// Cannot register a NULL texture!
 	if (!glpatch) 
 	{
-		glpatch=new GLTexture(Width, Height, false, false);
+		glpatch=new GLTexture(Width[GLUSE_PATCH], Height[GLUSE_PATCH], false, false);
 	}
 	if (glpatch) return (PatchTextureInfo*)this; 	
 	return NULL;
@@ -1317,7 +1322,7 @@ const WorldTextureInfo * FGLTexture::Bind(int texunit, int cm, int clampmode, in
 						(usebright) ||
 						((tex->bHasCanvas || gl_colormap_shader) && cm!=CM_DEFAULT && /*!(cm>=CM_DESAT1 && cm<=CM_DESAT31) &&*/  cm!=CM_SHADE && gl_texturemode != TM_MASK))
 					{
-						Shader->Bind(cm, usebright);
+						Shader->Bind(cm, usebright, tex->bWarped? static_cast<FWarpTexture*>(tex)->GetSpeed() : 0.f);
 						if (cm != CM_SHADE) cm = CM_DEFAULT;
 					}
 					else
@@ -1338,7 +1343,7 @@ const WorldTextureInfo * FGLTexture::Bind(int texunit, int cm, int clampmode, in
 			}
 			else
 			{
-				Shader->Bind(cm, usebright);
+				Shader->Bind(cm, usebright, tex->bWarped? static_cast<FWarpTexture*>(tex)->GetSpeed() : 0.f);
 				if (cm != CM_SHADE) cm = CM_DEFAULT;
 			}
 		}
@@ -1350,7 +1355,7 @@ const WorldTextureInfo * FGLTexture::Bind(int texunit, int cm, int clampmode, in
 			int w,h;
 
 			// Create this texture
-			unsigned char * buffer = CreateTexBuffer(cm, translation, w, h);
+			unsigned char * buffer = CreateTexBuffer(GLUSE_TEXTURE, cm, translation, w, h);
 
 			ProcessData(buffer, w, h, cm, false);
 			if (!gltexture->CreateTexture(buffer, w, h, true, texunit, cm, translation)) 
@@ -1421,7 +1426,7 @@ const PatchTextureInfo * FGLTexture::BindPatch(int texunit, int cm, int translat
 						(usebright) ||
 						((tex->bHasCanvas || gl_colormap_shader) && cm!=CM_DEFAULT && /*!(cm>=CM_DESAT1 && cm<=CM_DESAT31) &&*/ cm!=CM_SHADE && gl_texturemode != TM_MASK))
 					{
-						Shader->Bind(cm, usebright);
+						Shader->Bind(cm, usebright, tex->bWarped? static_cast<FWarpTexture*>(tex)->GetSpeed() : 0.f);
 						if (cm != CM_SHADE) cm = CM_DEFAULT;
 					}
 					else
@@ -1442,7 +1447,7 @@ const PatchTextureInfo * FGLTexture::BindPatch(int texunit, int cm, int translat
 			}
 			else
 			{
-				Shader->Bind(cm, usebright);
+				Shader->Bind(cm, usebright, tex->bWarped? static_cast<FWarpTexture*>(tex)->GetSpeed() : 0.f);
 				if (cm != CM_SHADE) cm = CM_DEFAULT;
 			}
 		}
@@ -1454,7 +1459,7 @@ const PatchTextureInfo * FGLTexture::BindPatch(int texunit, int cm, int translat
 			int w, h;
 
 			// Create this texture
-			unsigned char * buffer = CreateTexBuffer(cm, translation, w, h, false);
+			unsigned char * buffer = CreateTexBuffer(GLUSE_PATCH, cm, translation, w, h, false);
 			ProcessData(buffer, w, h, cm, true);
 			if (!glpatch->CreateTexture(buffer, w, h, false, texunit, cm, translation)) 
 			{

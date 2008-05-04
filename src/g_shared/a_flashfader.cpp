@@ -25,7 +25,7 @@ DFlashFader::DFlashFader (float r1, float g1, float b1, float a1,
 		SERVERCOMMANDS_DoFlashFader( Blends[0][0], Blends[0][1], Blends[0][2], Blends[0][3], Blends[1][0], Blends[1][1], Blends[1][2], Blends[1][3], time, ULONG( who->player - players));
 }
 
-DFlashFader::~DFlashFader ()
+void DFlashFader::Destroy ()
 {
 	SetBlend (1.f);
 }

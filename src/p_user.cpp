@@ -1501,6 +1501,10 @@ void APlayerPawn::ActivateMorphWeapon ()
 		if (player->ReadyWeapon == NULL)
 		{
 			player->ReadyWeapon = static_cast<AWeapon *>(player->mo->GiveInventoryType (morphweapon));
+			if (player->ReadyWeapon != NULL)
+			{
+				player->ReadyWeapon->GivenAsMorphWeapon = true; // flag is used only by new beastweap semantics in P_UndoPlayerMorph
+			}
 		}
 		if (player->ReadyWeapon != NULL)
 		{
@@ -1582,6 +1586,7 @@ void APlayerPawn::Die (AActor *source, AActor *inflictor)
 					{
 						static_cast<AWeapon *>(item)->AmmoGive2 = weap->Ammo2->Amount;
 					}
+					item->ItemFlags |= IF_IGNORESKILL;
 
 					// [BB] Now that the ammo amount from weapon pickups is handled on the server
 					// this shouldn't be necessary anymore. Remove after thorough testing.
@@ -1596,11 +1601,13 @@ void APlayerPawn::Die (AActor *source, AActor *inflictor)
 				if (item != NULL)
 				{
 					item->Amount = weap->Ammo1->Amount;
+					item->ItemFlags |= IF_IGNORESKILL;
 				}
 				item = P_DropItem (this, weap->AmmoType2, -1, 256);
 				if (item != NULL)
 				{
 					item->Amount = weap->Ammo2->Amount;
+					item->ItemFlags |= IF_IGNORESKILL;
 				}
 			}
 		}
@@ -2134,7 +2141,7 @@ void P_CheckPlayerSprites()
 
 			if (lSkin != 0)
 			{
-				defscaleY = skins[lSkin].Scale;
+				defscaleY = skins[lSkin].ScaleY;
 			}
 			
 			// Set the crouch sprite

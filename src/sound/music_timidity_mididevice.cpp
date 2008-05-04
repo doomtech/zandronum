@@ -40,9 +40,32 @@
 #include "doomdef.h"
 #include "m_swap.h"
 #include "w_wad.h"
+#include "v_text.h"
 #include "timidity/timidity.h"
+#include <errno.h>
 
 // MACROS ------------------------------------------------------------------
+
+// TYPES -------------------------------------------------------------------
+
+struct FmtChunk
+{
+	DWORD ChunkID;
+	DWORD ChunkLen;
+	WORD  FormatTag;
+	WORD  Channels;
+	DWORD SamplesPerSec;
+	DWORD AvgBytesPerSec;
+	WORD  BlockAlign;
+	WORD  BitsPerSample;
+	WORD  ExtensionSize;
+	WORD  ValidBitsPerSample;
+	DWORD ChannelMask;
+	DWORD SubFormatA;
+	WORD  SubFormatB;
+	WORD  SubFormatC;
+	BYTE  SubFormatD[8];
+};
 
 // EXTERNAL FUNCTION PROTOTYPES --------------------------------------------
 
@@ -75,6 +98,26 @@ TimidityMIDIDevice::TimidityMIDIDevice()
 	Started = false;
 	Renderer = NULL;
 	Renderer = new Timidity::Renderer(GSnd->GetOutputRate());
+}
+
+//==========================================================================
+//
+// TimidityMIDIDevice Constructor with rate parameter
+//
+//==========================================================================
+
+TimidityMIDIDevice::TimidityMIDIDevice(int rate)
+{
+	// Need to support multiple instances with different playback rates
+	// before we can use this parameter.
+	rate = (int)GSnd->GetOutputRate();
+	Stream = NULL;
+	Tempo = 0;
+	Division = 0;
+	Events = NULL;
+	Started = false;
+	Renderer = NULL;
+	Renderer = new Timidity::Renderer((float)rate);
 }
 
 //==========================================================================
@@ -485,7 +528,7 @@ bool TimidityMIDIDevice::ServiceStream (void *buff, int numbytes)
 	memset(buff, 0, numbytes);
 
 	CritSec.Enter();
-	while (numsamples > 0)
+	while (Events != NULL && numsamples > 0)
 	{
 		double ticky = NextTickIn;
 		int tick_in = int(NextTickIn);
@@ -509,7 +552,7 @@ bool TimidityMIDIDevice::ServiceStream (void *buff, int numbytes)
 			{ // end of song
 				if (numsamples > 0)
 				{
-					Renderer->ComputeOutput(samples1, samplesleft);
+					Renderer->ComputeOutput(samples1, numsamples);
 				}
 				res = false;
 				break;
@@ -520,6 +563,10 @@ bool TimidityMIDIDevice::ServiceStream (void *buff, int numbytes)
 				assert(NextTickIn >= 0);
 			}
 		}
+	}
+	if (Events == NULL)
+	{
+		res = false;
 	}
 	CritSec.Leave();
 	return res;
@@ -535,6 +582,187 @@ bool TimidityMIDIDevice::FillStream(SoundStream *stream, void *buff, int len, vo
 {
 	TimidityMIDIDevice *device = (TimidityMIDIDevice *)userdata;
 	return device->ServiceStream(buff, len);
+}
+
+//==========================================================================
+//
+// TimidityMIDIDevice :: GetStats
+//
+//==========================================================================
+
+FString TimidityMIDIDevice::GetStats()
+{
+	FString dots;
+	FString out;
+	int i, used;
+
+	CritSec.Enter();
+	for (i = used = 0; i < Renderer->voices; ++i)
+	{
+		int status = Renderer->voice[i].status;
+
+		if (!(status & Timidity::VOICE_RUNNING))
+		{
+			dots << TEXTCOLOR_PURPLE".";
+		}
+		else
+		{
+			used++;
+			if (status & Timidity::VOICE_SUSTAINING)
+			{
+				dots << TEXTCOLOR_BLUE;
+			}
+			else if (status & Timidity::VOICE_RELEASING)
+			{
+				dots << TEXTCOLOR_ORANGE;
+			}
+			else if (status & Timidity::VOICE_STOPPING)
+			{
+				dots << TEXTCOLOR_RED;
+			}
+			else
+			{
+				dots << TEXTCOLOR_GREEN;
+			}
+			if (Renderer->voice[i].envelope_increment == 0)
+			{
+				dots << "+";
+			}
+			else
+			{
+				dots << ('0' + Renderer->voice[i].envelope_stage);
+			}
+		}
+	}
+	CritSec.Leave();
+	out.Format(TEXTCOLOR_YELLOW"%3d/%3d ", used, Renderer->voices);
+	out += dots;
+	if (Renderer->cut_notes | Renderer->lost_notes)
+	{
+		out.AppendFormat(TEXTCOLOR_RED" %d/%d", Renderer->cut_notes, Renderer->lost_notes);
+	}
+	return out;
+}
+
+//==========================================================================
+//
+// TimidityWaveWriterMIDIDevice Constructor
+//
+//==========================================================================
+
+TimidityWaveWriterMIDIDevice::TimidityWaveWriterMIDIDevice(const char *filename, int rate)
+{
+	File = fopen(filename, "wb");
+	if (File != NULL)
+	{ // Write wave header
+		DWORD work[3];
+		FmtChunk fmt;
+
+		work[0] = MAKE_ID('R','I','F','F');
+		work[1] = 0;								// filled in later
+		work[2] = MAKE_ID('W','A','V','E');
+		if (3 != fwrite(work, 4, 3, File)) goto fail;
+
+		fmt.ChunkID = MAKE_ID('f','m','t',' ');
+		fmt.ChunkLen = LittleLong(sizeof(fmt) - 8);
+		fmt.FormatTag = LittleShort(0xFFFE);		// WAVE_FORMAT_EXTENSIBLE
+		fmt.Channels = LittleShort(2);
+		fmt.SamplesPerSec = LittleLong((int)Renderer->rate);
+		fmt.AvgBytesPerSec = LittleLong((int)Renderer->rate * 8);
+		fmt.BlockAlign = LittleShort(8);
+		fmt.BitsPerSample = LittleShort(32);
+		fmt.ExtensionSize = LittleShort(2 + 4 + 16);
+		fmt.ValidBitsPerSample = LittleShort(32);
+		fmt.ChannelMask = LittleLong(3);
+		fmt.SubFormatA = LittleLong(0x00000003);	// Set subformat to KSDATAFORMAT_SUBTYPE_IEEE_FLOAT
+		fmt.SubFormatB = LittleShort(0x0000);
+		fmt.SubFormatC = LittleShort(0x0010);
+		fmt.SubFormatD[0] = 0x80;
+		fmt.SubFormatD[1] = 0x00;
+		fmt.SubFormatD[2] = 0x00;
+		fmt.SubFormatD[3] = 0xaa;
+		fmt.SubFormatD[4] = 0x00;
+		fmt.SubFormatD[5] = 0x38;
+		fmt.SubFormatD[6] = 0x9b;
+		fmt.SubFormatD[7] = 0x71;
+		if (1 != fwrite(&fmt, sizeof(fmt), 1, File)) goto fail;
+
+		work[0] = MAKE_ID('d','a','t','a');
+		work[1] = 0;								// filled in later
+		if (2 != fwrite(work, 4, 2, File)) goto fail;
+
+		return;
+fail:
+		Printf("Failed to write %s: %s\n", filename, strerror(errno));
+		fclose(File);
+		File = NULL;
+	}
+}
+
+//==========================================================================
+//
+// TimidityWaveWriterMIDIDevice Destructor
+//
+//==========================================================================
+
+TimidityWaveWriterMIDIDevice::~TimidityWaveWriterMIDIDevice()
+{
+	if (File != NULL)
+	{
+		long pos = ftell(File);
+		DWORD size;
+
+		// data chunk size
+		size = LittleLong(pos - 8);
+		if (0 == fseek(File, 4, SEEK_SET))
+		{
+			if (1 == fwrite(&size, 4, 1, File))
+			{
+				size = LittleLong(pos - 12 - sizeof(FmtChunk) - 8);
+				if (0 == fseek(File, 4 + sizeof(FmtChunk) + 4, SEEK_CUR))
+				{
+					if (1 == fwrite(&size, 4, 1, File))
+					{
+						fclose(File);
+						return;
+					}
+				}
+			}
+		}
+		Printf("Could not finish writing wave file: %s\n", strerror(errno));
+		fclose(File);
+	}
+}
+
+//==========================================================================
+//
+// TimidityWaveWriterMIDIDevice :: Resume
+//
+//==========================================================================
+
+int TimidityWaveWriterMIDIDevice::Resume()
+{
+	float writebuffer[4096];
+
+	while (ServiceStream(writebuffer, sizeof(writebuffer)))
+	{
+		if (fwrite(writebuffer, sizeof(writebuffer), 1, File) != 1)
+		{
+			Printf("Could not write entire wave file: %s\n", strerror(errno));
+			return 1;
+		}
+	}
+	return 0;
+}
+
+//==========================================================================
+//
+// TimidityWaveWriterMIDIDevice Stop
+//
+//==========================================================================
+
+void TimidityWaveWriterMIDIDevice::Stop()
+{
 }
 
 #endif // USE_TIMIDITY

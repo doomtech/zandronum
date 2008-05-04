@@ -91,6 +91,7 @@ TArray<line_t *> spechit;
 // Temporary holder for thing_sectorlist threads
 msecnode_t* sector_list = NULL;		// phares 3/16/98
 
+
 //==========================================================================
 //
 // PIT_FindFloorCeiling
@@ -265,7 +266,7 @@ bool P_TeleportMove (AActor *thing, fixed_t x, fixed_t y, fixed_t z, bool telefr
 
 	if (tmf.touchmidtex) tmf.dropoffz = tmf.floorz;
 
-	FRadiusThingsIterator it2(x, y, thing->radius);
+	FBlockThingsIterator it2(FBoundingBox(x, y, thing->radius));
 	AActor *th;
 
 	while ((th = it2.Next()))
@@ -279,6 +280,10 @@ bool P_TeleportMove (AActor *thing, fixed_t x, fixed_t y, fixed_t z, bool telefr
 
 		// don't clip against self
 		if (th == thing)
+			continue;
+
+		fixed_t blockdist = th->radius + tmf.thing->radius;
+		if ( abs(th->x - tmf.x) >= blockdist || abs(th->y - tmf.y) >= blockdist)
 			continue;
 
 		// [RH] Z-Check
@@ -343,7 +348,7 @@ bool P_TeleportMove (AActor *thing, fixed_t x, fixed_t y, fixed_t z, bool telefr
 void P_PlayerStartStomp (AActor *actor)
 {
 	AActor *th;
-	FRadiusThingsIterator it(actor->x, actor->y, actor->radius);
+	FBlockThingsIterator it(FBoundingBox(actor->x, actor->y, actor->radius));
 
 	while ((th = it.Next()))
 	{
@@ -352,6 +357,9 @@ void P_PlayerStartStomp (AActor *actor)
 
 		// don't clip against self, and don't kill your own voodoo dolls
 		if (th == actor || (th->player == actor->player && th->player != NULL))
+			continue;
+
+		if (!th->intersects(actor))
 			continue;
 
 		// only kill monsters and other players
@@ -782,13 +790,17 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 	fixed_t topz;
 	bool 	solid;
 	int 	damage;
-				
+
 	// don't clip against self
 	if (thing == tm.thing)
 		return true;
 
 	if (!(thing->flags & (MF_SOLID|MF_SPECIAL|MF_SHOOTABLE)) )
 		return true;	// can't hit thing
+
+	fixed_t blockdist = thing->radius + tm.thing->radius;
+	if ( abs(thing->x - tm.x) >= blockdist || abs(thing->y - tm.y) >= blockdist)
+		return true;
 
 	tm.thing->BlockingMobj = thing;
 	topz = thing->z + thing->height;
@@ -1418,8 +1430,6 @@ bool P_CheckPosition (AActor *thing, fixed_t x, fixed_t y, FCheckPosition &tm)
 	tm.x = x;
 	tm.y = y;
 
-	FBoundingBox box(x, y, thing->radius);
-
 	newsec = P_PointInSector (x,y);
 	tm.ceilingline = thing->BlockingLine = NULL;
 	
@@ -1488,51 +1498,54 @@ bool P_CheckPosition (AActor *thing, fixed_t x, fixed_t y, FCheckPosition &tm)
 	}
 
 	tm.stepthing = NULL;
+	FBoundingBox box(x, y, thing->radius);
 
-	FRadiusThingsIterator it2(x, y, thing->radius);
-	AActor *th;
-	while ((th = it2.Next()))
 	{
-		if (!PIT_CheckThing(th, tm))
-		{ // [RH] If a thing can be stepped up on, we need to continue checking
-		  // other things in the blocks and see if we hit something that is
-		  // definitely blocking. Otherwise, we need to check the lines, or we
-		  // could end up stuck inside a wall.
-			AActor *BlockingMobj = thing->BlockingMobj;
+		FBlockThingsIterator it2(box);
+		AActor *th;
+		while ((th = it2.Next()))
+		{
+			if (!PIT_CheckThing(th, tm))
+			{ // [RH] If a thing can be stepped up on, we need to continue checking
+			  // other things in the blocks and see if we hit something that is
+			  // definitely blocking. Otherwise, we need to check the lines, or we
+			  // could end up stuck inside a wall.
+				AActor *BlockingMobj = thing->BlockingMobj;
 
-			if (BlockingMobj == NULL || (i_compatflags & COMPATF_NO_PASSMOBJ))
-			{ // Thing slammed into something; don't let it move now.
-				thing->height = realheight;
-				return false;
-			}
-			else if (!BlockingMobj->player && !(thing->flags & (MF_FLOAT|MF_MISSILE|MF_SKULLFLY)) &&
-				BlockingMobj->z+BlockingMobj->height-thing->z <= thing->MaxStepHeight)
-			{
-				if (thingblocker == NULL ||
-					BlockingMobj->z > thingblocker->z)
-				{
-					thingblocker = BlockingMobj;
-				}
-				thing->BlockingMobj = NULL;
-			}
-			else if (thing->player &&
-				thing->z + thing->height - BlockingMobj->z <= thing->MaxStepHeight)
-			{
-				if (thingblocker)
-				{ // There is something to step up on. Return this thing as
-				  // the blocker so that we don't step up.
+				if (BlockingMobj == NULL || (i_compatflags & COMPATF_NO_PASSMOBJ))
+				{ // Thing slammed into something; don't let it move now.
 					thing->height = realheight;
 					return false;
 				}
-				// Nothing is blocking us, but this actor potentially could
-				// if there is something else to step on.
-				fakedblocker = BlockingMobj;
-				thing->BlockingMobj = NULL;
-			}
-			else
-			{ // Definitely blocking
-				thing->height = realheight;
-				return false;
+				else if (!BlockingMobj->player && !(thing->flags & (MF_FLOAT|MF_MISSILE|MF_SKULLFLY)) &&
+					BlockingMobj->z+BlockingMobj->height-thing->z <= thing->MaxStepHeight)
+				{
+					if (thingblocker == NULL ||
+						BlockingMobj->z > thingblocker->z)
+					{
+						thingblocker = BlockingMobj;
+					}
+					thing->BlockingMobj = NULL;
+				}
+				else if (thing->player &&
+					thing->z + thing->height - BlockingMobj->z <= thing->MaxStepHeight)
+				{
+					if (thingblocker)
+					{ // There is something to step up on. Return this thing as
+					  // the blocker so that we don't step up.
+						thing->height = realheight;
+						return false;
+					}
+					// Nothing is blocking us, but this actor potentially could
+					// if there is something else to step on.
+					fakedblocker = BlockingMobj;
+					thing->BlockingMobj = NULL;
+				}
+				else
+				{ // Definitely blocking
+					thing->height = realheight;
+					return false;
+				}
 			}
 		}
 	}
@@ -1620,11 +1633,15 @@ bool P_TestMobjZ (AActor *actor, bool quick, AActor **pOnmobj)
 		return true;
 	}
 
-	FRadiusThingsIterator it(actor->x, actor->y, actor->radius);
+	FBlockThingsIterator it(FBoundingBox(actor->x, actor->y, actor->radius));
 	AActor *thing;
 
 	while ((thing = it.Next()))
 	{
+		if (!thing->intersects(actor))
+		{
+			continue;
+		}
 		if (!(thing->flags & MF_SOLID))
 		{ // Can't hit thing
 			continue;
@@ -4834,7 +4851,7 @@ void P_RadiusAttack (AActor *bombspot, AActor *bombsource, int bombdamage, int b
 	float bombdamagefloat = (float)bombdamage;
 	FVector3 bombvec(FIXED2FLOAT(bombspot->x), FIXED2FLOAT(bombspot->y), FIXED2FLOAT(bombspot->z));
 
-	FRadiusThingsIterator it(bombspot->x, bombspot->y, bombdistance<<FRACBITS);
+	FBlockThingsIterator it(FBoundingBox(bombspot->x, bombspot->y, bombdistance<<FRACBITS));
 	AActor *thing;
 
 	while ((thing = it.Next()))
@@ -5119,9 +5136,13 @@ void P_FindAboveIntersectors (AActor *actor)
 
 
 	AActor *thing;
-	FRadiusThingsIterator it(actor->x, actor->y, actor->radius);
+	FBlockThingsIterator it(FBoundingBox(actor->x, actor->y, actor->radius));
 	while ((thing = it.Next()))
 	{
+		if (!thing->intersects(actor))
+		{
+			continue;
+		}
 		if (!(thing->flags & MF_SOLID))
 		{ // Can't hit thing
 			continue;
@@ -5157,9 +5178,13 @@ void P_FindBelowIntersectors (AActor *actor)
 		return;
 
 	AActor *thing;
-	FRadiusThingsIterator it(actor->x, actor->y, actor->radius);
+	FBlockThingsIterator it(FBoundingBox(actor->x, actor->y, actor->radius));
 	while ((thing = it.Next()))
 	{
+		if (!thing->intersects(actor))
+		{
+			continue;
+		}
 		if (!(thing->flags & MF_SOLID))
 		{ // Can't hit thing
 			continue;

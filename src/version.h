@@ -44,8 +44,8 @@
 #define DOTVERSIONSTR_NOREV DOTVERSIONSTR
 
 #define ZDVER_STRING "2.2.0"
-#define ZD_SVN_REVISION_STRING "910"
-#define ZD_SVN_REVISION_NUMBER 910
+#define ZD_SVN_REVISION_STRING "952"
+#define ZD_SVN_REVISION_NUMBER 952
 
 // [BB] The version string that includes revision / compatibility data.
 #define DOTVERSIONSTR_REV DOTVERSIONSTR "-r" SVN_REVISION_STRING
@@ -98,7 +98,7 @@
 // SAVESIG should match SAVEVER.
 
 // MINSAVEVER is the minimum level snapshot version that can be loaded.
-#define MINSAVEVER 894
+#define MINSAVEVER 932
 
 #if ZD_SVN_REVISION_NUMBER < MINSAVEVER
 // Never write a savegame with a version lower than what we need

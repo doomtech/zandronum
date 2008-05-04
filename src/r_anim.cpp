@@ -42,8 +42,6 @@
 #include "sc_man.h"
 #include "templates.h"
 #include "w_wad.h"
-// [BC] New #includes.
-#include "network.h"
 
 // MACROS ------------------------------------------------------------------
 
@@ -340,6 +338,11 @@ static void R_InitAnimDefs ()
 						else
 							warper = new FWarpTexture (warper);
 						TexMan.ReplaceTexture (picnum, warper, false);
+					}
+
+					if (sc.CheckFloat())
+					{
+						static_cast<FWarpTexture*>(warper)->SetSpeed(sc.Float);
 					}
 
 					// No decals on warping textures, by default.

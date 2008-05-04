@@ -52,6 +52,7 @@ public:
 	virtual void Update();
 	virtual FString GetStats();
 	virtual MusInfo *GetOPLDumper(const char *filename);
+	virtual MusInfo *GetWaveDumper(const char *filename, int rate);
 
 	enum EState
 	{
@@ -125,7 +126,8 @@ public:
 	virtual bool Pause(bool paused) = 0;
 	virtual bool NeedThreadedCallback() = 0;
 	virtual void PrecacheInstruments(const WORD *instruments, int count);
-	virtual void TimidityVolumeChanged() {}
+	virtual void TimidityVolumeChanged();
+	virtual FString GetStats();
 };
 
 // WinMM implementation of a MIDI output device -----------------------------
@@ -188,6 +190,7 @@ public:
 	bool FakeVolume();
 	bool NeedThreadedCallback();
 	bool Pause(bool paused);
+	FString GetStats();
 
 protected:
 	static bool FillStream(SoundStream *stream, void *buff, int len, void *userdata);
@@ -226,6 +229,7 @@ class TimidityMIDIDevice : public MIDIDevice
 {
 public:
 	TimidityMIDIDevice();
+	TimidityMIDIDevice(int rate);
 	~TimidityMIDIDevice();
 
 	int Open(void (*callback)(unsigned int, void *, DWORD, DWORD), void *userdata);
@@ -245,6 +249,7 @@ public:
 	bool NeedThreadedCallback();
 	void PrecacheInstruments(const WORD *instruments, int count);
 	void TimidityVolumeChanged();
+	FString GetStats();
 
 protected:
 	static bool FillStream(SoundStream *stream, void *buff, int len, void *userdata);
@@ -266,6 +271,20 @@ protected:
 	MIDIHDR *Events;
 	bool Started;
 	DWORD Position;
+};
+
+// Internal TiMidity disk writing version of a MIDI device ------------------
+
+class TimidityWaveWriterMIDIDevice : public TimidityMIDIDevice
+{
+public:
+	TimidityWaveWriterMIDIDevice(const char *filename, int rate);
+	~TimidityWaveWriterMIDIDevice();
+	int Resume();
+	void Stop();
+
+protected:
+	FILE *File;
 };
 
 // Base class for streaming MUS and MIDI files ------------------------------
@@ -294,9 +313,10 @@ public:
 	bool IsMIDI() const;
 	bool IsValid() const;
 	void Update();
+	FString GetStats();
 
 protected:
-	MIDIStreamer(const char *dumpname);
+	MIDIStreamer(const char *dumpname, EMIDIDevice type);
 
 	void OutputVolume (DWORD volume);
 	int FillBuffer(int buffer_num, int max_events, DWORD max_time);
@@ -362,9 +382,10 @@ public:
 	~MUSSong2();
 
 	MusInfo *GetOPLDumper(const char *filename);
+	MusInfo *GetWaveDumper(const char *filename, int rate);
 
 protected:
-	MUSSong2(const MUSSong2 *original, const char *filename);	//OPL dump constructor
+	MUSSong2(const MUSSong2 *original, const char *filename, EMIDIDevice type);	// file dump constructor
 
 	void DoInitialSetup();
 	void DoRestart();
@@ -387,9 +408,10 @@ public:
 	~MIDISong2();
 
 	MusInfo *GetOPLDumper(const char *filename);
+	MusInfo *GetWaveDumper(const char *filename, int rate);
 
 protected:
-	MIDISong2(const MIDISong2 *original, const char *filename);	// OPL dump constructor
+	MIDISong2(const MIDISong2 *original, const char *filename, EMIDIDevice type);	// file dump constructor
 
 	void CheckCaps();
 	void DoInitialSetup();
@@ -433,10 +455,9 @@ public:
 	FString GetStats();
 
 protected:
-	StreamSong () : m_Stream(NULL), m_LastPos(0) {}
+	StreamSong () : m_Stream(NULL) {}
 
 	SoundStream *m_Stream;
-	int m_LastPos;
 };
 
 #if defined(_WIN32) || !defined(NO_SOUND)

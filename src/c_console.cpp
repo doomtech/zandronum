@@ -967,15 +967,18 @@ int PrintString (int printlevel, const char *outline)
 	if ( con_colorinmessages == 0 )
 		V_RemoveColorCodes( outlinecopy );
 
-	I_PrintStr (outlinecopy);
-
-	AddToConsole (printlevel, outlinecopy);
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+	if (printlevel != PRINT_LOG)
 	{
-		if (vidactive && screen && screen->Font)
+		I_PrintStr (outlinecopy);
+
+		AddToConsole (printlevel, outlinecopy);
+		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		{
-			C_AddNotifyString (printlevel, outlinecopy);
-			maybedrawnow (false, false);
+			if (vidactive && screen && screen->Font)
+			{
+				C_AddNotifyString (printlevel, outlinecopy);
+				maybedrawnow (false, false);
+			}
 		}
 	}
 	const int length = static_cast<int>(strlen (outlinecopy));

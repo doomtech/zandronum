@@ -121,7 +121,7 @@ void gl_GetGlowColor(unsigned int texno, float * data)
 			if (tex)
 			{
 				int w, h;
-				unsigned char * buffer = tex->CreateTexBuffer(CM_DEFAULT, 0, w, h);
+				unsigned char * buffer = tex->CreateTexBuffer(FGLTexture::GLUSE_TEXTURE, CM_DEFAULT, 0, w, h);
 
 				if (buffer)
 				{

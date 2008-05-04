@@ -157,6 +157,11 @@ MusInfo *MusInfo::GetOPLDumper(const char *filename)
 	return NULL;
 }
 
+MusInfo *MusInfo::GetWaveDumper(const char *filename, int rate)
+{
+	return NULL;
+}
+
 void I_InitMusic (void)
 {
 	static bool setatterm = false;
@@ -262,6 +267,23 @@ void I_UnRegisterSong (void *handle)
 	{
 		delete info;
 	}
+}
+
+void *I_RegisterURLSong (const char *url)
+{
+	StreamSong *song;
+
+	if (GSnd == NULL)
+	{
+		return NULL;
+	}
+	song = new StreamSong(url, 0, 0);
+	if (song->IsValid())
+	{
+		return song;
+	}
+	delete song;
+	return NULL;
 }
 
 void *I_RegisterSong (const char *filename, char *musiccache, int offset, int len, int device)
@@ -635,5 +657,43 @@ CCMD (writeopl)
 	else
 	{
 		Printf ("Usage: writeopl <filename>");
+	}
+}
+
+//==========================================================================
+//
+// CCMD writewave
+//
+// If the current song can be represented as a waveform, dump it to
+// the specified file on disk. The sample rate parameter is merely a
+// suggestion, and the dumper is free to ignore it.
+//
+//==========================================================================
+
+CCMD (writewave)
+{
+	if (argv.argc() >= 2 && argv.argc() <= 3)
+	{
+		if (currSong == NULL)
+		{
+			Printf ("No song is currently playing.\n");
+		}
+		else
+		{
+			MusInfo *dumper = currSong->GetWaveDumper(argv[1], argv.argc() == 3 ? atoi(argv[2]) : 0);
+			if (dumper == NULL)
+			{
+				Printf ("Current song cannot be saved as wave data.\n");
+			}
+			else
+			{
+				dumper->Play(false);
+				delete dumper;
+			}
+		}
+	}
+	else
+	{
+		Printf ("Usage: writewave <filename> [sample rate]");
 	}
 }

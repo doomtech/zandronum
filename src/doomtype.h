@@ -45,7 +45,9 @@
 #if (!defined(_M_IX86) && !defined(__i386__)) || defined(__APPLE__)
 // The assembly code requires an x86 processor.
 // And needs to be tweaked for Mach-O before enabled on Macs.
+#ifndef NOASM
 #define NOASM
+#endif
 #endif
 
 #ifndef NOASM
@@ -199,7 +201,7 @@ enum
 #define PRINT_HIGH				2				// critical messages
 #define PRINT_CHAT				3				// chat messages
 #define PRINT_TEAMCHAT			4				// chat messages from a teammate
-#define PRINT_OPENGL			5				// [BC] Output for OpenGL messages.
+#define PRINT_LOG				5				// only to logfile
 #define PRINT_BOLD				200				// What Printf_Bold used
 
 // [BC] heh, why did I define this here?

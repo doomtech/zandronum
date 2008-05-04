@@ -598,7 +598,7 @@ void A_CHolyAttack (AActor *actor)
 		return;
 	}
 
-	AActor * missile = P_SpawnPlayerMissile (actor, 0,0,0, RUNTIME_CLASS(AHolyMissile), 0, &linetarget);
+	AActor * missile = P_SpawnPlayerMissile (actor, 0,0,0, RUNTIME_CLASS(AHolyMissile), actor->angle, &linetarget);
 	if (missile != NULL) missile->tracer = linetarget;
 
 	// [BC] Apply spread.
