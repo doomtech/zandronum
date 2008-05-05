@@ -1294,6 +1294,10 @@ void A_CustomFireBullets( AActor *self,
 	{
 		BOTS_PostWeaponFiredEvent( ULONG( player - players ), BOTEVENT_FIREDMINIGUN, BOTEVENT_ENEMY_FIREDMINIGUN, BOTEVENT_PLAYER_FIREDMINIGUN );
 	}
+	else if ( stricmp( pzsWeaponName, "BFG10k" ) == 0 )
+	{
+		BOTS_PostWeaponFiredEvent( ULONG( player - players ), BOTEVENT_FIREDBFG10K, BOTEVENT_ENEMY_FIREDBFG10K, BOTEVENT_PLAYER_FIREDBFG10K );
+	}
 
 }
 
