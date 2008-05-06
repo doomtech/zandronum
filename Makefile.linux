@@ -23,9 +23,9 @@ ifdef SERVERONLY
 else
   CFLAGS += `pkg-config gtk+-2.0 --cflags` -I$(FMOD_PREFIX)/inc/
 endif
-LDFLAGS += FLAC/*.o -lz -ljpeg `sdl-config --libs` libsnes_spc.so
+LDFLAGS += -lz -ljpeg `sdl-config --libs`
 ifndef SERVERONLY
-  LDFLAGS +=  -lfmodex -lGL -lGLU `pkg-config gtk+-2.0 --libs`
+  LDFLAGS += libsnes_spc.so -lfmodex -lGL -lGLU `pkg-config gtk+-2.0 --libs`
 endif
 
 NASMFLAGS += -f elf -DM_TARGET_LINUX

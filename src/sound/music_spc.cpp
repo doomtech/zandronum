@@ -38,7 +38,9 @@
 #include "c_cvars.h"
 #include "SNES_SPC.h"
 #include "SPC_Filter.h"
+#ifndef NO_SOUND
 #include "fmod_wrap.h"
+#endif
 #include "doomdef.h"
 #include "m_swap.h"
 #include "m_fixed.h"
@@ -46,6 +48,8 @@
 // MACROS ------------------------------------------------------------------
 
 // TYPES -------------------------------------------------------------------
+
+#ifndef NO_SOUND
 
 struct XID6Tag
 {
@@ -75,6 +79,7 @@ static FMOD_RESULT F_CALLBACK SPC_Open(FMOD_CODEC_STATE *codec, FMOD_MODE usermo
 static FMOD_RESULT F_CALLBACK SPC_Close(FMOD_CODEC_STATE *codec);
 static FMOD_RESULT F_CALLBACK SPC_Read(FMOD_CODEC_STATE *codec, void *buffer, unsigned int size, unsigned int *read);
 static FMOD_RESULT F_CALLBACK SPC_SetPosition(FMOD_CODEC_STATE *codec_state, int subsound, unsigned int position, FMOD_TIMEUNIT postype);
+#endif // NO_SOUND
 
 // EXTERNAL DATA DECLARATIONS ----------------------------------------------
 
@@ -85,6 +90,8 @@ EXTERN_CVAR (Int, snd_samplerate)
 CVAR (Float, spc_amp, 1.875f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
+
+#ifndef NO_SOUND
 
 static FMOD_CODEC_DESCRIPTION SPCCodecDescription = {
 	"Super Nintendo SPC File",
@@ -338,3 +345,5 @@ static FMOD_RESULT F_CALLBACK SPC_SetPosition(FMOD_CODEC_STATE *codec, int subso
 	}
 	return FMOD_OK;
 }
+
+#endif // NO_SOUND

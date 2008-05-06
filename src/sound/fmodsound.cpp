@@ -84,6 +84,7 @@ struct FEnumList
 
 // EXTERNAL FUNCTION PROTOTYPES --------------------------------------------
 
+#ifndef NO_SOUND
 FMOD_RESULT SPC_CreateCodec(FMOD::System *sys);
 
 // PUBLIC FUNCTION PROTOTYPES ----------------------------------------------
@@ -97,6 +98,7 @@ static FMOD_RESULT F_CALLBACK Memory_Open(const char *name, int unicode, unsigne
 static FMOD_RESULT F_CALLBACK Memory_Close(void *handle, void *userdata);
 static FMOD_RESULT F_CALLBACK Memory_Read(void *handle, void *buffer, unsigned int sizebytes, unsigned int *bytesread, void *userdata);
 static FMOD_RESULT F_CALLBACK Memory_Seek(void *handle, unsigned int pos, void *userdata);
+#endif
 
 // EXTERNAL DATA DECLARATIONS ----------------------------------------------
 
@@ -109,7 +111,6 @@ EXTERN_CVAR (Int, snd_channels)
 
 // PUBLIC DATA DEFINITIONS -------------------------------------------------
 
-#ifndef NO_SOUND
 ReverbContainer *ForcedEnvironment;
 
 CVAR (Int, snd_driver, 0, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
@@ -121,6 +122,8 @@ CVAR (String, snd_speakermode, "Auto", CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (String, snd_output_format, "PCM-16", CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (String, snd_midipatchset, "", CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR (Bool, snd_profile, false, 0)
+
+#ifndef NO_SOUND
 
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 
@@ -605,7 +608,7 @@ bool FMODSoundRenderer::Init()
 
 	if (!ShowedBanner)
 	{
-		Printf("FMOD Sound System, copyright © Firelight Technologies Pty, Ltd., 1994-2008.\n");
+		Printf("FMOD Sound System, copyright ï¿½ Firelight Technologies Pty, Ltd., 1994-2008.\n");
 		ShowedBanner = true;
 	}
 #ifdef _WIN32

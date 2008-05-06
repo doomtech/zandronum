@@ -46,6 +46,7 @@ void FGLTexture::Clean(bool)
 
 bool FGLTexture::Update()
 {
+	return false;
 }
 
 const PatchTextureInfo *FGLTexture::BindPatch(int, int, int)
@@ -55,11 +56,6 @@ const PatchTextureInfo *FGLTexture::BindPatch(int, int, int)
 
 FGLTexture::~FGLTexture()
 {
-}
-
-bool FMultiPatchTexture::UseBasePalette()
-{ 
-	return false;
 }
 
 void gl_RenderPlayerView(player_s*)
@@ -127,12 +123,12 @@ void StartGLMenu (void)
 {
 }
 
-int FWarpTexture::CopyTrueColorPixels(BYTE*, int, int, int, int)
+int FWarpTexture::CopyTrueColorPixels(FBitmap*, int, int, int, FCopyInfo*)
 {
 	return 0;
 }
 
-int FWarp2Texture::CopyTrueColorPixels(BYTE*, int, int, int, int)
+int FWarp2Texture::CopyTrueColorPixels(FBitmap*, int, int, int, FCopyInfo*)
 {
 	return 0;
 }
