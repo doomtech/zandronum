@@ -1543,19 +1543,19 @@ DBaseStatusBar *CreateStatusBar ()
 
 		if(cstype == GAME_Doom) //Did the user specify a "base"
 		{
-			StatusBar = CreateDoomStatusBar ();
+			sbar = CreateDoomStatusBar ();
 		}
 		else if(cstype == GAME_Heretic)
 		{
-			StatusBar = CreateHereticStatusBar();
+			sbar = CreateHereticStatusBar();
 		}
 		else if(cstype == GAME_Hexen)
 		{
-			StatusBar = CreateHexenStatusBar();
+			sbar = CreateHexenStatusBar();
 		}
 		else if(cstype == GAME_Strife)
 		{
-			StatusBar = CreateStrifeStatusBar();
+			sbar = CreateStrifeStatusBar();
 		}
 		else //Use the default, empty or custom.
 		{
@@ -1585,7 +1585,7 @@ DBaseStatusBar *CreateStatusBar ()
 			sbar = new DBaseStatusBar (0);
 		}
 	}
-	GC::WriteBarrier(StatusBar);
+	GC::WriteBarrier(sbar);
 
 	return sbar;
 }
