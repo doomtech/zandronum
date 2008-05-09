@@ -60,6 +60,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				OutputFile="$(OutDir)\$(ProjectName)-debug.dll"
 			/>
 			<Tool
 				Name="VCALinkTool"
