@@ -1035,6 +1035,15 @@ void gl_SetActorLights(AActor *actor)
 				count++;
 			}
 		}
+		// [BB] Under some circumstances dynamiclights contains NULL pointers, for
+		// example after a player respawns in multiplayer. Since the following code
+		// will crash in this case, I remove the NULL pointers from the array here.
+		// Of course, this is just an ugly hack and should be fixed properly!
+		for( int i = actor->dynamiclights.Size()-1; i >= 0; i-- )
+		{
+			if ( actor->dynamiclights[i] == NULL )
+				actor->dynamiclights.Delete(i);
+		}
 		for(;count<actor->dynamiclights.Size();count++)
 		{
 			actor->dynamiclights[count]->flags2|=MF2_DORMANT;
