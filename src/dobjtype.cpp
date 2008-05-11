@@ -37,8 +37,6 @@
 #include "actor.h"
 #include "autosegs.h"
 #include "templates.h"
-// [BB] New #includes.
-#include "v_text.h"
 
 TArray<PClass *> PClass::m_RuntimeActors;
 TArray<PClass *> PClass::m_Types;
@@ -143,7 +141,7 @@ void PClass::StaticFreeData (PClass *type)
 			{
 				delete type->ActorInfo->PainChances;
 				type->ActorInfo->PainChances = NULL;
-			} 
+			}
 			delete type->ActorInfo;
 			type->ActorInfo = NULL;
 		}
@@ -185,6 +183,7 @@ void PClass::InsertIntoHash ()
 		{ // This type has already been inserted
 		  // ... but there is no need whatsoever to make it a fatal error!
 			Printf ("Tried to register class '%s' more than once.\n", TypeName.GetChars());
+			break;
 		}
 		else
 		{ // Type comes right here
