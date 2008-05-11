@@ -33,7 +33,11 @@
 */
 
 #include "i_system.h"
-#include <malloc.h>
+#include <stdlib.h>
+
+#ifdef __FreeBSD__
+#include <malloc_np.h>
+#endif
 
 #ifndef _MSC_VER
 #define _NORMAL_BLOCK			0
