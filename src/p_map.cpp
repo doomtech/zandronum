@@ -4859,17 +4859,10 @@ void P_RadiusAttack (AActor *bombspot, AActor *bombsource, int bombdamage, int b
 		if (!(thing->flags & MF_SHOOTABLE) )
 			continue;
 
-	// [BC] New weapon flag that allows radius damage on monsters that have protection
-	// from radius damage.
-	if (( bombsource == NULL ) || ( bombsource->player == NULL ) ||
-		( bombsource->player->ReadyWeapon == NULL ) ||
-		(( bombsource->player->ReadyWeapon->WeaponFlags & WIF_RADIUSDAMAGE_BOSSES ) == false ))
-	{
 		// Boss spider and cyborg and Heretic's ep >= 2 bosses
 		// take no damage from concussion.
 		if (thing->flags3 & MF3_NORADIUSDMG && !(bombspot->flags4 & MF4_FORCERADIUSDMG))
 			continue;
-	}
 
 		if (!DamageSource && thing == bombsource)
 		{ // don't damage the source of the explosion

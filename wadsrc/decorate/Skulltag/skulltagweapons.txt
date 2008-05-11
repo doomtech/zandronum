@@ -118,7 +118,6 @@ ACTOR BFG10K : DoomWeapon 5013
 	Weapon.Kickback 100
 	Inventory.Pickupmessage "$PICKUP_BFG10K"
 	+WEAPON.NOAUTOFIRE
-	+WEAPON.RADIUSDAMAGE_BOSSES
 	+WEAPON.NOLMS
 	States
 	{
@@ -185,6 +184,7 @@ ACTOR BFG10kShot
 	+NOTELEPORT 
 	+PUFFONACTORS
 	+PUFFGETSOWNER
+	+FORCERADIUSDMG
 	Renderstyle Add
 	Alpha 0.75
 	SeeSound "weapons/bfg10kx"
