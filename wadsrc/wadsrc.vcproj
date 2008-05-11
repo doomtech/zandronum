@@ -708,6 +708,50 @@
 						>
 					</File>
 				</Filter>
+				<Filter
+					Name="Skulltag"
+					>
+					<File
+						RelativePath=".\decorate\Skulltag\skulltagarmor.txt"
+						>
+					</File>
+					<File
+						RelativePath=".\decorate\Skulltag\skulltagartifacts.txt"
+						>
+					</File>
+					<File
+						RelativePath=".\decorate\Skulltag\skulltagdeadthings.txt"
+						>
+					</File>
+					<File
+						RelativePath=".\decorate\Skulltag\skulltagdecorations.txt"
+						>
+					</File>
+					<File
+						RelativePath=".\decorate\Skulltag\skulltaghealth.txt"
+						>
+					</File>
+					<File
+						RelativePath=".\decorate\Skulltag\skulltagmonsters.txt"
+						>
+					</File>
+					<File
+						RelativePath=".\decorate\Skulltag\skulltagrunes.txt"
+						>
+					</File>
+					<File
+						RelativePath=".\decorate\Skulltag\skulltagscorepillars.txt"
+						>
+					</File>
+					<File
+						RelativePath=".\decorate\Skulltag\skulltagstatues.txt"
+						>
+					</File>
+					<File
+						RelativePath=".\decorate\Skulltag\skulltagweapons.txt"
+						>
+					</File>
+				</Filter>
 			</Filter>
 		</Filter>
 		<File
