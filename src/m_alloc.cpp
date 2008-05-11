@@ -33,9 +33,10 @@
 */
 
 #include "i_system.h"
+#ifndef __FreeBSD__
+#include <malloc.h>
+#else
 #include <stdlib.h>
-
-#ifdef __FreeBSD__
 #include <malloc_np.h>
 #endif
 
