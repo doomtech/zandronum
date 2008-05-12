@@ -1,3 +1,26 @@
+
+// Blood sprite ------------------------------------------------------------
+
+ACTOR Blood
+{
+	SpawnID 130
+	Mass 5
+	+NOBLOCKMAP
+	+NOTELEPORT
+	// [BC]
+	+NONETID
+	States
+	{
+	Spawn:
+		BLUD CBA 8
+		Stop
+	Spray:
+		SPRY ABCDEF 3
+		SPRY G 2
+		Stop
+	}
+}
+
 // Blood splatter -----------------------------------------------------------
 
 ACTOR BloodSplatter
@@ -43,3 +66,4 @@ ACTOR AxeBlood
 	}
 }
 
+	

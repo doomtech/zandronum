@@ -2,7 +2,7 @@
 #include "actors/constants.txt"
 
 //#include "actors/shared/botstuff.txt"
-//#include "actors/shared/sharedmisc.txt"
+#include "actors/shared/sharedmisc.txt"
 #include "actors/shared/blood.txt"
 #include "actors/shared/debris.txt"
 #include "actors/shared/splashes.txt"

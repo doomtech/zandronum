@@ -256,6 +256,9 @@ static flagdef ActorFlags[]=
 	DEFINE_FLAG(STFL, QUARTERGRAVITY, AActor, ulSTFlags),
 	DEFINE_FLAG(STFL, EXPLODEONDEATH, AActor, ulSTFlags),
 
+	// [BB] New DECORATE network related flag defines here.
+	DEFINE_FLAG(NETFL, NONETID, AActor, ulNetworkFlags),
+
 	// Effect flags
 	DEFINE_FLAG(FX, VISIBILITYPULSE, AActor, effects),
 	DEFINE_FLAG2(FX_ROCKET, ROCKETTRAIL, AActor, effects),
