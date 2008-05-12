@@ -222,7 +222,7 @@ public:
 #define PROP_PlayerPawn_ScoreIcon(x)	ADD_STRING_PROP(ADEF_PlayerPawn_ScoreIcon,"\30",x)
 #define PROP_PlayerPawn_MorphWeapon(x)	ADD_STRING_PROP(ADEF_PlayerPawn_MorphWeapon,"\31",x)
 // [BC] Announcer pickup entry property.
-#define PROP_Inventory_PickupAnnouncerEntry(x)	ADD_STRING_PROP(ADEF_Inventory_PickupAnnouncerEntry,"\31",x)
+#define PROP_Inventory_PickupAnnouncerEntry(x)	ADD_STRING_PROP(ADEF_Inventory_PickupAnnouncerEntry,"\32",x)
 
 #define PROP_XScale(x)					ADD_LONG_PROP(ADEF_XScale,x)
 #define PROP_YScale(x)					ADD_LONG_PROP(ADEF_YScale,x)
