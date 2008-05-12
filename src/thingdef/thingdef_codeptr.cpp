@@ -2596,10 +2596,20 @@ void A_Respawn (AActor *actor)
 		actor->SetState (actor->SpawnState);
 		actor->renderflags &= ~RF_INVISIBLE;
 
+		// [BB] Clients destroy barrels in A_BarrelDestroy, so if we're the server
+		// tell them to spawn the barrel. So far this is only tested for barrels and
+		// perhaps needs to be rewritten to work for things not using A_BarrelDestroy.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SpawnThing( actor );
+
 		int index=CheckIndex(1, NULL);
 		if (index<0 || EvalExpressionN (StateParameters[index], actor))
 		{
-			Spawn<ATeleportFog> (x, y, actor->z + TELEFOGHEIGHT, ALLOW_REPLACE);
+			AActor *pFog = Spawn<ATeleportFog> (x, y, actor->z + TELEFOGHEIGHT, ALLOW_REPLACE);
+
+			// [BB] If we're the server, tell the clients to spawn the fog.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SpawnThing( pFog );
 		}
 		if (actor->CountsAsKill()) level.total_monsters++;
 	}

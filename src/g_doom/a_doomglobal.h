@@ -13,18 +13,6 @@ class ABossBrain : public AActor
 	DECLARE_ACTOR (ABossBrain, AActor)
 };
 
-class AExplosiveBarrel : public AActor
-{
-	DECLARE_ACTOR (AExplosiveBarrel, AActor)
-};
-
-class ABulletPuff : public AActor
-{
-	DECLARE_ACTOR (ABulletPuff, AActor)
-public:
-	void BeginPlay ();
-};
-
 // [BC]
 class AGrenade : public AActor
 {

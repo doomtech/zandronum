@@ -19,6 +19,7 @@ latestzdoom branch
 +	- Added new actor flag PUFFGETSOWNER to flags5. If selected, the owner of the puff is set to the player who fired it. [Torr Samaho]
 +	- Converted BFG10K to DECORATE. 
 +	- Actor flag NONETID is now available in DECORATE. Actors with this flag are not assigned a network id when spawned. Only use it, if you know what you are doing! [Torr Samaho]
+-	- Fixed problems with A_Respawn online. So far this is only tested to work with ExplosiveBarrel though. [Torr Samaho]
 
 
 ??????
