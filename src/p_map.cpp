@@ -3770,6 +3770,13 @@ AActor *P_LineAttack (AActor *t1, angle_t angle, fixed_t distance,
 					SpawnShootDecal (puff, trace);
 				}				
 				
+				// [BB] Clients dont' spawn the puff, so we have to look if the default puff has a decal defined.
+				else if( ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || CLIENTDEMO_IsPlaying( ) )
+							&& pufftype && (GetDefaultByType (pufftype) != NULL) && GetDefaultByType (pufftype)->DecalGenerator)
+				{
+					SpawnShootDecal (GetDefaultByType (pufftype), trace);
+				}
+
 				else
 				{
 					SpawnShootDecal (t1, trace);
