@@ -2572,8 +2572,8 @@ AActor *CLIENT_SpawnThing( const char *pszName, fixed_t X, fixed_t Y, fixed_t Z,
 			g_NetIDList[lNetID].pActor = pActor;
 		}
 
-		pActor->SpawnPoint[0] = X >> FRACBITS;
-		pActor->SpawnPoint[1] = Y >> FRACBITS;
+		pActor->SpawnPoint[0] = X;
+		pActor->SpawnPoint[1] = Y;
 
 		// Whenever blood spawns, its momz is always 2 * FRACUNIT.
 		if ( stricmp( pszName, "blood" ) == 0 )
@@ -2740,8 +2740,8 @@ void CLIENT_RestoreSpecialPosition( AActor *pActor )
 	fixed_t _x, _y;
 	sector_t *sec;
 
-	_x = pActor->SpawnPoint[0] << FRACBITS;
-	_y = pActor->SpawnPoint[1] << FRACBITS;
+	_x = pActor->SpawnPoint[0];
+	_y = pActor->SpawnPoint[1];
 	sec = R_PointInSubsector (_x, _y)->sector;
 
 	pActor->SetOrigin( _x, _y, sec->floorplane.ZatPoint( _x, _y ));
@@ -2749,7 +2749,7 @@ void CLIENT_RestoreSpecialPosition( AActor *pActor )
 
 	if ( pActor->flags & MF_SPAWNCEILING )
 	{
-		pActor->z = pActor->ceilingz - pActor->height - ( pActor->SpawnPoint[2] << FRACBITS );
+		pActor->z = pActor->ceilingz - pActor->height - ( pActor->SpawnPoint[2] );
 	}
 	else if ( pActor->flags2 & MF2_SPAWNFLOAT )
 	{
@@ -2766,7 +2766,7 @@ void CLIENT_RestoreSpecialPosition( AActor *pActor )
 	}
 	else
 	{
-		pActor->z = (pActor->SpawnPoint[2] << FRACBITS) + pActor->floorz;
+		pActor->z = (pActor->SpawnPoint[2]) + pActor->floorz;
 		if (pActor->flags2 & MF2_FLOATBOB)
 		{
 			pActor->z += FloatBobOffsets[(pActor->FloatBobPhase + level.time) & 63];

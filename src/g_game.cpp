@@ -3004,7 +3004,7 @@ bool GAME_ZPositionMatchesOriginal( AActor *pActor )
 
 	// Determine the Z position to spawn this actor in.
 	if ( pActor->flags & MF_SPAWNCEILING )
-		return ( pActor->z == ( pActor->Sector->ceilingplane.ZatPoint( pActor->x, pActor->y ) - pActor->height - ( pActor->SpawnPoint[2] << FRACBITS )));
+		return ( pActor->z == ( pActor->Sector->ceilingplane.ZatPoint( pActor->x, pActor->y ) - pActor->height - ( pActor->SpawnPoint[2] )));
 	else if ( pActor->flags2 & MF2_SPAWNFLOAT )
 	{
 		Space = pActor->Sector->ceilingplane.ZatPoint( pActor->x, pActor->y ) - pActor->height - pActor->Sector->floorplane.ZatPoint( pActor->x, pActor->y );
@@ -3022,9 +3022,9 @@ bool GAME_ZPositionMatchesOriginal( AActor *pActor )
 			return ( pActor->z == pActor->Sector->floorplane.ZatPoint( pActor->x, pActor->y ));
 	}
 	else if ( pActor->flags2 & MF2_FLOATBOB )
-		return ( pActor->z == (( pActor->SpawnPoint[2] << FRACBITS ) + FloatBobOffsets[( pActor->FloatBobPhase + level.time ) & 63] ));
+		return ( pActor->z == (( pActor->SpawnPoint[2] ) + FloatBobOffsets[( pActor->FloatBobPhase + level.time ) & 63] ));
 	else
-		return ( pActor->z == ( pActor->Sector->floorplane.ZatPoint( pActor->x, pActor->y ) + ( pActor->SpawnPoint[2] << FRACBITS )));
+		return ( pActor->z == ( pActor->Sector->floorplane.ZatPoint( pActor->x, pActor->y ) + ( pActor->SpawnPoint[2] )));
 }
 
 //*****************************************************************************
@@ -3399,8 +3399,8 @@ void GAME_ResetMap( void )
 				pActorInfo = pActor->GetDefault( );
 
 				// Spawn the new actor.
-				X = pActor->SpawnPoint[0] << FRACBITS;
-				Y = pActor->SpawnPoint[1] << FRACBITS;
+				X = pActor->SpawnPoint[0];
+				Y = pActor->SpawnPoint[1];
 
 				// Determine the Z point based on its flags.
 				if ( pActorInfo->flags & MF_SPAWNCEILING )
@@ -3408,7 +3408,7 @@ void GAME_ResetMap( void )
 				else if ( pActorInfo->flags2 & MF2_SPAWNFLOAT )
 					Z = FLOATRANDZ;
 				else if ( pActorInfo->flags2 & MF2_FLOATBOB )
-					Z = pActor->SpawnPoint[2] << FRACBITS;
+					Z = pActor->SpawnPoint[2];
 				else
 					Z = ONFLOORZ;
 
@@ -3416,9 +3416,9 @@ void GAME_ResetMap( void )
 
 				// Adjust the Z position after it's spawned.
 				if ( Z == ONFLOORZ )
-					pNewActor->z += pActor->SpawnPoint[2] << FRACBITS;
+					pNewActor->z += pActor->SpawnPoint[2];
 				else if ( Z == ONCEILINGZ )
-					pNewActor->z -= pActor->SpawnPoint[2] << FRACBITS;
+					pNewActor->z -= pActor->SpawnPoint[2];
 
 				// Inherit attributes from the old actor.
 				pNewActor->SpawnPoint[0] = pActor->SpawnPoint[0];
@@ -3495,8 +3495,8 @@ void GAME_ResetMap( void )
 		}
 
 		// Spawn the new actor.
-		X = pActor->SpawnPoint[0] << FRACBITS;
-		Y = pActor->SpawnPoint[1] << FRACBITS;
+		X = pActor->SpawnPoint[0];
+		Y = pActor->SpawnPoint[1];
 
 		// Determine the Z point based on its flags.
 		if ( pActorInfo->flags & MF_SPAWNCEILING )
@@ -3504,7 +3504,7 @@ void GAME_ResetMap( void )
 		else if ( pActorInfo->flags2 & MF2_SPAWNFLOAT )
 			Z = FLOATRANDZ;
 		else if ( pActorInfo->flags2 & MF2_FLOATBOB )
-			Z = pActor->SpawnPoint[2] << FRACBITS;
+			Z = pActor->SpawnPoint[2];
 		else
 			Z = ONFLOORZ;
 
@@ -3515,9 +3515,9 @@ void GAME_ResetMap( void )
 		if( pNewActor != NULL ){
 			// Adjust the Z position after it's spawned.
 			if ( Z == ONFLOORZ )
-				pNewActor->z += pActor->SpawnPoint[2] << FRACBITS;
+				pNewActor->z += pActor->SpawnPoint[2];
 			else if ( Z == ONCEILINGZ )
-				pNewActor->z -= pActor->SpawnPoint[2] << FRACBITS;
+				pNewActor->z -= pActor->SpawnPoint[2];
 
 			// Inherit attributes from the old actor.
 			pNewActor->SpawnPoint[0] = pActor->SpawnPoint[0];
@@ -3619,8 +3619,11 @@ void GAME_ResetMap( void )
 
 	// Unload the ACS scripts so we can reload them.
 	FBehavior::StaticUnloadModules( );
-	DACSThinker::ActiveThinker->Destroy();
-	DACSThinker::ActiveThinker = NULL;
+	if ( DACSThinker::ActiveThinker != NULL )
+	{
+		DACSThinker::ActiveThinker->Destroy();
+		DACSThinker::ActiveThinker = NULL;
+	}
 
 	// Open the current map and load its BEHAVIOR lump.
 	pMap = P_OpenMapData( level.mapname );

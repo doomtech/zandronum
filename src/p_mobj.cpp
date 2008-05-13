@@ -6348,8 +6348,8 @@ CCMD( respawnactors )
 			pActorInfo = pActor->GetDefault( );
 
 			// This item appears to be untouched; no need to respawn it.
-			if (( pActor->x == pActor->SpawnPoint[0] << FRACBITS ) &&
-				( pActor->y == pActor->SpawnPoint[1] << FRACBITS ) &&
+			if (( pActor->x == pActor->SpawnPoint[0] ) &&
+				( pActor->y == pActor->SpawnPoint[1] ) &&
 				( pActor->state == pActor->SpawnState ) &&
 				( pActor->health == pActorInfo->health ))
 			{
@@ -6362,19 +6362,19 @@ CCMD( respawnactors )
 			else if ( pActorInfo->flags2 & MF2_SPAWNFLOAT )
 				Z = FLOATRANDZ;
 			else if ( pActorInfo->flags2 & MF2_FLOATBOB )
-				Z = pActor->SpawnPoint[2] << FRACBITS;
+				Z = pActor->SpawnPoint[2];
 			else
 				Z = ONFLOORZ;
 
 			// Spawn the new monster.
-			X = pActor->SpawnPoint[0] << FRACBITS;
-			Y = pActor->SpawnPoint[1] << FRACBITS;
+			X = pActor->SpawnPoint[0];
+			Y = pActor->SpawnPoint[1];
 			pNewActor = Spawn( RUNTIME_TYPE( pActor ), X, Y, Z, NO_REPLACE );
 
 			if ( Z == ONFLOORZ )
-				pNewActor->z += pNewActor->SpawnPoint[2] << FRACBITS;
+				pNewActor->z += pNewActor->SpawnPoint[2];
 			else if ( Z == ONCEILINGZ )
-				pNewActor->z -= pNewActor->SpawnPoint[2] << FRACBITS;
+				pNewActor->z -= pNewActor->SpawnPoint[2];
 
 			// Inherit attributes from the old actor.
 			pNewActor->SpawnPoint[0] = pActor->SpawnPoint[0];
