@@ -407,7 +407,7 @@ void FDecalLib::ReadDecals(FScanner &sc)
 	}
 }
 
-BYTE FDecalLib::GetDecalID (FScanner &sc)
+WORD FDecalLib::GetDecalID (FScanner &sc)
 {
 	sc.MustGetString ();
 	if (!IsNum (sc.String))
@@ -418,18 +418,18 @@ BYTE FDecalLib::GetDecalID (FScanner &sc)
 	else
 	{
 		unsigned long num = strtoul (sc.String, NULL, 10);
-		if (num < 1 || num > 255)
+		if (num < 1 || num > 65535)
 		{
-			sc.MustGetStringName ("Decal ID must be between 1 and 255");
+			sc.MustGetStringName ("Decal ID must be between 1 and 65535");
 		}
-		return (BYTE)num;
+		return (WORD)num;
 	}
 }
 
 void FDecalLib::ParseDecal (FScanner &sc)
 {
 	FString decalName;
-	BYTE decalNum;
+	WORD decalNum;
 	FDecalTemplate newdecal;
 	int code, picnum;
 
@@ -546,7 +546,7 @@ void FDecalLib::ParseDecal (FScanner &sc)
 void FDecalLib::ParseDecalGroup (FScanner &sc)
 {
 	FString groupName;
-	BYTE decalNum;
+	WORD decalNum;
 	FDecalBase *targetDecal;
 	FDecalGroup *group;
 
@@ -841,7 +841,7 @@ void FDecalLib::ReplaceDecalRef (FDecalBase *from, FDecalBase *to, FDecalBase *r
 	root->ReplaceDecalRef (from, to);
 }
 
-void FDecalLib::AddDecal (const char *name, BYTE num, const FDecalTemplate &decal)
+void FDecalLib::AddDecal (const char *name, WORD num, const FDecalTemplate &decal)
 {
 	FDecalTemplate *newDecal = new FDecalTemplate;
 
@@ -914,7 +914,7 @@ void FDecalLib::AddDecal (FDecalBase *decal)
 	}
 }
 
-const FDecalTemplate *FDecalLib::GetDecalByNum (BYTE num) const
+const FDecalTemplate *FDecalLib::GetDecalByNum (WORD num) const
 {
 	if (num == 0)
 	{
@@ -942,7 +942,7 @@ const FDecalTemplate *FDecalLib::GetDecalByName (const char *name) const
 	return NULL;
 }
 
-FDecalBase *FDecalLib::ScanTreeForNum (const BYTE num, FDecalBase *root)
+FDecalBase *FDecalLib::ScanTreeForNum (const WORD num, FDecalBase *root)
 {
 	while (root != NULL)
 	{

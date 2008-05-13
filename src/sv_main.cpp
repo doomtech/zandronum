@@ -2682,7 +2682,7 @@ void SERVER_UpdateLines( ULONG ulClient )
 			SERVERCOMMANDS_SetLineTexture( ulLine, ulClient, SVCF_ONLYTHISCLIENT );
 
 		// Is the alpha of this line altered?
-		if ( lines[ulLine].alpha != lines[ulLine].SavedAlpha )
+		if ( lines[ulLine].Alpha != lines[ulLine].SavedAlpha )
 			SERVERCOMMANDS_SetLineAlpha( ulLine, ulClient, SVCF_ONLYTHISCLIENT );
 
 		// Has the line's blocking status changed?

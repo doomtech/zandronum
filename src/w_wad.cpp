@@ -1434,11 +1434,12 @@ int FWadCollection::MergeLumps (const char *start, const char *end, int space)
 				{
 					newlumps++;
 					strncpy (newlumpinfos[0].name, ustart, 8);
-					newlumpinfos[0].fullname=NULL;
+					newlumpinfos[0].fullname = NULL;
 					newlumpinfos[0].wadnum = -1;
 					newlumpinfos[0].position =
 						newlumpinfos[0].size = 0;
 					newlumpinfos[0].namespc = ns_global;
+					newlumpinfos[0].flags = 0;
 				}
 
 				newlumpinfos[newlumps++] = LumpInfo[i];
@@ -1455,11 +1456,12 @@ int FWadCollection::MergeLumps (const char *start, const char *end, int space)
 				{
 					newlumps++;
 					strncpy (newlumpinfos[0].name, ustart, 8);
-					newlumpinfos[0].fullname=NULL;
+					newlumpinfos[0].fullname = NULL;
 					newlumpinfos[0].wadnum = -1;
 					newlumpinfos[0].position =
 						newlumpinfos[0].size = 0;
 					newlumpinfos[0].namespc = ns_global;
+					newlumpinfos[0].flags = 0;
 				}
 			}
 			else
@@ -1507,6 +1509,7 @@ int FWadCollection::MergeLumps (const char *start, const char *end, int space)
 		LumpInfo[NumLumps].position =
 			LumpInfo[NumLumps].size = 0;
 		LumpInfo[NumLumps].namespc = ns_global;
+		LumpInfo[NumLumps].flags = 0;
 		NumLumps++;
 	}
 

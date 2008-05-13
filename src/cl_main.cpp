@@ -8569,13 +8569,13 @@ static void client_SetLineAlpha( BYTESTREAM_s *pByteStream )
 {
 	line_t	*pLine;
 	ULONG	ulLineIdx;
-	ULONG	ulAlpha;
+	fixed_t	alpha;
 
 	// Read in the line to have its alpha altered.
 	ulLineIdx = NETWORK_ReadShort( pByteStream );
 
 	// Read in the new alpha.
-	ulAlpha = NETWORK_ReadByte( pByteStream );
+	alpha = NETWORK_ReadLong( pByteStream );
 
 	pLine = &lines[ulLineIdx];
 	if (( pLine == NULL ) || ( ulLineIdx >= static_cast<ULONG>(numlines) ))
@@ -8587,7 +8587,7 @@ static void client_SetLineAlpha( BYTESTREAM_s *pByteStream )
 	}
 
 	// Finally, set the alpha.
-	pLine->alpha = ulAlpha;
+	pLine->Alpha = alpha;
 }
 
 //*****************************************************************************

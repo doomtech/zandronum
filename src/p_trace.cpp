@@ -93,7 +93,7 @@ bool Trace (fixed_t x, fixed_t y, fixed_t z, sector_t *sector,
 	res.HitType = TRACE_HitNone;
 
 	// Do a 3D floor check in the starting sector
-	res.ffloor=NULL;
+	memset(&res, 0, sizeof(res));
 	inf.sectorsel=0;
 
 	TDeletingArray<F3DFloor*> &ff = sector->e->XFloor.ffloors;
@@ -166,7 +166,7 @@ bool Trace (fixed_t x, fixed_t y, fixed_t z, sector_t *sector,
 	// recalculate the trace's end points for robustness
 	if (inf.TraceTraverse (ptflags))
 	{ // check for intersection with floor/ceiling
-		res.Sector = inf.CurSector;
+		res.Sector = &sectors[inf.CurSector->sectornum];
 
 		if (inf.CheckSectorPlane (inf.CurSector, true))
 		{
@@ -306,7 +306,7 @@ bool FTraceInfo::TraceTraverse (int ptflags)
 					hitz >= bc ? TIER_Upper : TIER_Middle;
 				if (TraceFlags & TRACE_Impact)
 				{
-					P_ActivateLine (in->d.line, IgnoreThis, lineside, SPAC_IMPACT);
+					P_ActivateLine (in->d.line, IgnoreThis, lineside, SPAC_Impact);
 				}
 			}
 			else
@@ -356,7 +356,7 @@ bool FTraceInfo::TraceTraverse (int ptflags)
 								Results->ffloor = rover;
 								if ((TraceFlags & TRACE_Impact) && in->d.line->special)
 								{
-									P_ActivateLine (in->d.line, IgnoreThis, lineside, SPAC_IMPACT);
+									P_ActivateLine (in->d.line, IgnoreThis, lineside, SPAC_Impact);
 								}
 								goto cont;
 							}
@@ -369,12 +369,12 @@ bool FTraceInfo::TraceTraverse (int ptflags)
 				Results->HitType = TRACE_HitNone;
 				if (TraceFlags & TRACE_PCross)
 				{
-					P_ActivateLine (in->d.line, IgnoreThis, lineside, SPAC_PCROSS);
+					P_ActivateLine (in->d.line, IgnoreThis, lineside, SPAC_PCross);
 				}
 				if (TraceFlags & TRACE_Impact)
 				{ // This is incorrect for "impact", but Hexen did this, so
 				  // we need to as well, for compatibility
-					P_ActivateLine (in->d.line, IgnoreThis, lineside, SPAC_IMPACT);
+					P_ActivateLine (in->d.line, IgnoreThis, lineside, SPAC_Impact);
 				}
 			}
 cont:
@@ -382,7 +382,7 @@ cont:
 			if (Results->HitType != TRACE_HitNone)
 			{
 				// We hit something, so figure out where exactly
-				Results->Sector = CurSector;
+				Results->Sector = &sectors[CurSector->sectornum];
 
 				if (Results->HitType != TRACE_HitWall &&
 					!CheckSectorPlane (CurSector, Results->HitType == TRACE_HitFloor))
@@ -408,7 +408,7 @@ cont:
 					}
 					if (Results->HitType == TRACE_HitWall && TraceFlags & TRACE_Impact)
 					{
-						P_ActivateLine (in->d.line, IgnoreThis, lineside, SPAC_IMPACT);
+						P_ActivateLine (in->d.line, IgnoreThis, lineside, SPAC_Impact);
 					}
 				}
 
@@ -507,7 +507,7 @@ cont:
 
 			// the trace hit a 3D-floor before the thing.
 			// Calculate an intersection and abort.
-			Results->Sector = CurSector;
+			Results->Sector = &sectors[CurSector->sectornum];
 			if (!CheckSectorPlane(CurSector, Results->HitType==TRACE_HitFloor))
 			{
 				Results->HitType=TRACE_HitNone;

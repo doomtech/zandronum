@@ -81,13 +81,19 @@
 #include "gl/gl_lights.h"
 
 
-extern AActor *P_SpawnMapThing (mapthing2_t *mthing, int position);
-extern bool P_LoadBuildMap (BYTE *mapdata, size_t len, mapthing2_t **things, int *numthings);
+void P_SpawnSlopeMakers (FMapThing *firstmt, FMapThing *lastmt);
+void P_SetSlopes ();
+
+extern AActor *P_SpawnMapThing (FMapThing *mthing, int position);
+extern bool P_LoadBuildMap (BYTE *mapdata, size_t len, FMapThing **things, int *numthings);
 
 extern void P_LoadTranslator(const char *lump);
 extern void P_TranslateLineDef (line_t *ld, maplinedef_t *mld);
 extern void P_TranslateTeleportThings (void);
 extern int	P_TranslateSectorSpecial (int);
+
+void P_ParseTextMap(MapData *map);
+void P_SpawnTextThings(int position);
 
 extern int numinterpolations;
 extern unsigned int R_OldBlend;
@@ -135,6 +141,8 @@ zone_t*			zones;
 FExtraLight*	ExtraLights;
 FLightStack*	LightStacks;
 
+TArray<FMapThing> MapThingsConverted;
+
 int sidecount;
 struct sidei_t	// [RH] Only keep BOOM sidedef init stuff around for init
 {
@@ -157,7 +165,7 @@ struct sidei_t	// [RH] Only keep BOOM sidedef init stuff around for init
 		} b;
 	};
 }				*sidetemp;
-static WORD		*linemap;
+TArray<int>		linemap;
 
 bool			UsingGLNodes;
 
@@ -191,30 +199,30 @@ FBlockNode**	blocklinks;		// for thing chains
 //
 BYTE*			rejectmatrix;
 
-static bool		ForceNodeBuild;
+bool		ForceNodeBuild;
 
 // Maintain single and multi player starting spots.
-TArray<mapthing2_t> deathmatchstarts (16);
+TArray<FMapThing> deathmatchstarts (16);
 
 // [BC] Temporary team spawn spots.
-TArray<mapthing2_t>	TemporaryTeamStarts( 16 );
+TArray<FMapThing>	TemporaryTeamStarts( 16 );
 
 // [BC] Blue team spawn spots.
-TArray<mapthing2_t>	BlueTeamStarts( 16 );
+TArray<FMapThing>	BlueTeamStarts( 16 );
 
 // [BC] Red team spawn spots.
-TArray<mapthing2_t>	RedTeamStarts( 16 );
+TArray<FMapThing>	RedTeamStarts( 16 );
 
 // [BC] Generic invasion spawn spots.
-TArray<mapthing2_t>	GenericInvasionStarts( 16 );
+TArray<FMapThing>	GenericInvasionStarts( 16 );
 
 // [RC] Possession starts
-TArray<mapthing2_t> PossessionStarts(16);
+TArray<FMapThing> PossessionStarts(16);
 
 // [RC] Terminator starts
-TArray<mapthing2_t> TerminatorStarts(16);
+TArray<FMapThing> TerminatorStarts(16);
 
-mapthing2_t		playerstarts[MAXPLAYERS];
+FMapThing		playerstarts[MAXPLAYERS];
 
 static void P_AllocateSideDefs (int count);
 static void P_SetSideNum (DWORD *sidenum_p, WORD sidenum);
@@ -341,20 +349,68 @@ MapData *P_OpenMapData(const char * mapname)
 			}
 
 			int index = 0;
-			for(int i = 1;; i++)
+
+			if (stricmp(Wads.GetLumpFullName(lump_name + 1), "TEXTMAP"))
 			{
-				// Since levels must be stored in WADs they can't really have full
-				// names and for any valid level lump this always returns the short name.
-				const char * lumpname = Wads.GetLumpFullName(lump_name + i);
-				index = GetMapIndex(mapname, index, lumpname, i != 1 || map->MapLumps[0].Size == 0);
-				if (index == ML_BEHAVIOR) map->HasBehavior = true;
+				for(int i = 1;; i++)
+				{
+					// Since levels must be stored in WADs they can't really have full
+					// names and for any valid level lump this always returns the short name.
+					const char * lumpname = Wads.GetLumpFullName(lump_name + i);
+					index = GetMapIndex(mapname, index, lumpname, i != 1 || map->MapLumps[0].Size == 0);
+					if (index == ML_BEHAVIOR) map->HasBehavior = true;
 
-				// The next lump is not part of this map anymore
-				if (index < 0) break;
+					// The next lump is not part of this map anymore
+					if (index < 0) break;
 
-				map->MapLumps[index].FilePos = Wads.GetLumpOffset(lump_name + i);
-				map->MapLumps[index].Size = Wads.LumpLength(lump_name + i);
-				strncpy(map->MapLumps[index].Name, lumpname, 8);
+					map->MapLumps[index].FilePos = Wads.GetLumpOffset(lump_name + i);
+					map->MapLumps[index].Size = Wads.LumpLength(lump_name + i);
+					strncpy(map->MapLumps[index].Name, lumpname, 8);
+				}
+			}
+			else
+			{
+				map->isText = true;
+				map->MapLumps[1].FilePos = Wads.GetLumpOffset(lump_name + 1);
+				map->MapLumps[1].Size = Wads.LumpLength(lump_name + 1);
+				for(int i = 2;; i++)
+				{
+					const char * lumpname = Wads.GetLumpFullName(lump_name + i);
+
+					if (lumpname == NULL)
+					{
+						I_Error("Invalid map definition for %s", mapname);
+					}
+					else if (!stricmp(lumpname, "ZNODES"))
+					{
+						index = ML_GLZNODES;
+					}
+					else if (!stricmp(lumpname, "BLOCKMAP"))
+					{
+						// there is no real point in creating a blockmap but let's use it anyway
+						index = ML_BLOCKMAP;
+					}
+					else if (!stricmp(lumpname, "REJECT"))
+					{
+						index = ML_REJECT;
+					}
+					else if (!stricmp(lumpname, "DIALOGUE"))
+					{
+						index = ML_CONVERSATION;
+					}
+					else if (!stricmp(lumpname, "BEHAVIOR"))
+					{
+						index = ML_BEHAVIOR;
+					}
+					else if (!stricmp(lumpname, "ENDMAP"))
+					{
+						break;
+					}
+					else continue;
+					map->MapLumps[index].FilePos = Wads.GetLumpOffset(lump_name + i);
+					map->MapLumps[index].Size = Wads.LumpLength(lump_name + i);
+					strncpy(map->MapLumps[index].Name, lumpname, 8);
+				}
 			}
 			return map;
 		}
@@ -393,6 +449,51 @@ MapData *P_OpenMapData(const char * mapname)
 
 			(*map->file) >> offset >> size;
 			map->file->Read(lumpname, 8);
+
+			if (i == 1 && !strnicmp(lumpname, "TEXTMAP", 8))
+			{
+				map->isText = true;
+				map->MapLumps[1].FilePos = offset;
+				map->MapLumps[1].Size = size;
+				for(int i = 2;; i++)
+				{
+					(*map->file) >> offset >> size;
+					long v = map->file->Read(lumpname, 8);
+					if (v < 8)
+					{
+						I_Error("Invalid map definition for %s", mapname);
+					}
+					else if (!stricmp(lumpname, "ZNODES"))
+					{
+						index = ML_GLZNODES;
+					}
+					else if (!stricmp(lumpname, "BLOCKMAP"))
+					{
+						// there is no real point in creating a blockmap but let's use it anyway
+						index = ML_BLOCKMAP;
+					}
+					else if (!stricmp(lumpname, "REJECT"))
+					{
+						index = ML_REJECT;
+					}
+					else if (!stricmp(lumpname, "DIALOGUE"))
+					{
+						index = ML_CONVERSATION;
+					}
+					else if (!stricmp(lumpname, "BEHAVIOR"))
+					{
+						index = ML_BEHAVIOR;
+					}
+					else if (!stricmp(lumpname, "ENDMAP"))
+					{
+						return map;
+					}
+					else continue;
+					map->MapLumps[index].FilePos = offset;
+					map->MapLumps[index].Size = size;
+					strncpy(map->MapLumps[index].Name, lumpname, 8);
+				}
+			}
 
 			if (i>0)
 			{
@@ -1329,13 +1430,13 @@ void P_LoadNodes (MapData * map)
 //===========================================================================
 CVAR(Bool, dumpspawnedthings, false, 0)
 
-static void SpawnMapThing(int index, mapthing2_t *mt, int position)
+void SpawnMapThing(int index, FMapThing *mt, int position)
 {
 	AActor *spawned = P_SpawnMapThing(mt, position);
 	if (dumpspawnedthings)
 	{
 		Printf("%5d: (%5d, %5d, %5d), doomednum = %5d, flags = %04x, type = %s\n",
-			index, mt->x, mt->y, mt->z, mt->type, mt->flags, 
+			index, mt->x>>FRACBITS, mt->y>>FRACBITS, mt->z>>FRACBITS, mt->type, mt->flags, 
 			spawned? spawned->GetClass()->TypeName.GetChars() : "(none)");
 	}
 	/*
@@ -1349,9 +1450,18 @@ static void SpawnMapThing(int index, mapthing2_t *mt, int position)
 //
 //===========================================================================
 
+WORD MakeSkill(int flags)
+{
+	WORD res = 0;
+	if (flags & 1) res |= 1+2;
+	if (flags & 2) res |= 4;
+	if (flags & 4) res |= 8+16;
+	return res;
+}
+
 void P_LoadThings (MapData * map, int position)
 {
-	mapthing2_t mt2;		// [RH] for translation
+	FMapThing mt2;		// [RH] for translation
 	int	lumplen = map->Size(ML_THINGS);
 	int numthings = lumplen / sizeof(mapthing_t);
 
@@ -1376,6 +1486,10 @@ void P_LoadThings (MapData * map, int position)
 		short flags = LittleShort(mt->options);
 
 		memset (&mt2, 0, sizeof(mt2));
+
+		mt2.SkillFilter = MakeSkill(flags);
+		mt2.ClassFilter = 0xffff;	// Doom map format doesn't have class flags so spawn for all player classes
+		flags &= ~MTF_SKILLMASK;
 		mt2.flags = (short)((flags & 0xf) | 0x7e0);
 		if (gameinfo.gametype == GAME_Strife)
 		{
@@ -1398,411 +1512,14 @@ void P_LoadThings (MapData * map, int position)
 		}
 		if (flags & BTF_NOTSINGLE)			mt2.flags &= ~MTF_SINGLE;
 
-		mt2.x = LittleShort(mt->x);
-		mt2.y = LittleShort(mt->y);
+		mt2.x = LittleShort(mt->x) << FRACBITS;
+		mt2.y = LittleShort(mt->y) << FRACBITS;
 		mt2.angle = LittleShort(mt->angle);
 		mt2.type = LittleShort(mt->type);
 
 		SpawnMapThing (i, &mt2, position);
 	}
 	delete [] mtp;
-}
-
-//===========================================================================
-//
-// P_SpawnSlopeMakers
-//
-//===========================================================================
-
-static void P_SlopeLineToPoint (int lineid, fixed_t x, fixed_t y, fixed_t z, bool slopeCeil)
-{
-	int linenum = -1;
-
-	while ((linenum = P_FindLineFromID (lineid, linenum)) != -1)
-	{
-		const line_t *line = &lines[linenum];
-		sector_t *sec;
-		secplane_t *plane;
-		
-		if (P_PointOnLineSide (x, y, line) == 0)
-		{
-			sec = line->frontsector;
-		}
-		else
-		{
-			sec = line->backsector;
-		}
-		if (sec == NULL)
-		{
-			continue;
-		}
-		if (slopeCeil)
-		{
-			plane = &sec->ceilingplane;
-		}
-		else
-		{
-			plane = &sec->floorplane;
-		}
-
-		FVector3 p, v1, v2, cross;
-
-		p[0] = FIXED2FLOAT (line->v1->x);
-		p[1] = FIXED2FLOAT (line->v1->y);
-		p[2] = FIXED2FLOAT (plane->ZatPoint (line->v1->x, line->v1->y));
-		v1[0] = FIXED2FLOAT (line->dx);
-		v1[1] = FIXED2FLOAT (line->dy);
-		v1[2] = FIXED2FLOAT (plane->ZatPoint (line->v2->x, line->v2->y)) - p[2];
-		v2[0] = FIXED2FLOAT (x - line->v1->x);
-		v2[1] = FIXED2FLOAT (y - line->v1->y);
-		v2[2] = FIXED2FLOAT (z) - p[2];
-
-		cross = v1 ^ v2;
-		double len = cross.Length();
-		if (len == 0)
-		{
-			Printf ("Slope thing at (%d,%d) lies directly on its target line.\n", int(x>>16), int(y>>16));
-			return;
-		}
-		cross /= len;
-		// Fix backward normals
-		if ((cross.Z < 0 && !slopeCeil) || (cross.Z > 0 && slopeCeil))
-		{
-			cross = -cross;
-		}
-
-		plane->a = FLOAT2FIXED (cross[0]);
-		plane->b = FLOAT2FIXED (cross[1]);
-		plane->c = FLOAT2FIXED (cross[2]);
-		//plane->ic = FLOAT2FIXED (1.f/cross[2]);
-		plane->ic = DivScale32 (1, plane->c);
-		plane->d = -TMulScale16 (plane->a, x,
-								 plane->b, y,
-								 plane->c, z);
-	}
-}
-
-//===========================================================================
-//
-// P_CopyPlane
-//
-//===========================================================================
-
-static void P_CopyPlane (int tag, fixed_t x, fixed_t y, bool copyCeil)
-{
-	sector_t *dest = P_PointInSector (x, y);
-	sector_t *source;
-	int secnum;
-	size_t planeofs;
-
-	secnum = P_FindSectorFromTag (tag, -1);
-	if (secnum == -1)
-	{
-		return;
-	}
-
-	source = &sectors[secnum];
-
-	if (copyCeil)
-	{
-		planeofs = myoffsetof(sector_t, ceilingplane);
-	}
-	else
-	{
-		planeofs = myoffsetof(sector_t, floorplane);
-	}
-	*(secplane_t *)((BYTE *)dest + planeofs) = *(secplane_t *)((BYTE *)source + planeofs);
-}
-
-//===========================================================================
-//
-// P_SetSlope
-//
-//===========================================================================
-
-void P_SetSlope (secplane_t *plane, bool setCeil, int xyangi, int zangi,
-	fixed_t x, fixed_t y, fixed_t z)
-{
-	angle_t xyang;
-	angle_t zang;
-
-	if (zangi >= 180)
-	{
-		zang = ANGLE_180-ANGLE_1;
-	}
-	else if (zangi <= 0)
-	{
-		zang = ANGLE_1;
-	}
-	else
-	{
-		zang = Scale (zangi, ANGLE_90, 90);
-	}
-	if (setCeil)
-	{
-		zang += ANGLE_180;
-	}
-	zang >>= ANGLETOFINESHIFT;
-
-	xyang = (angle_t)Scale (xyangi, ANGLE_90, 90 << ANGLETOFINESHIFT);
-
-	FVector3 norm;
-
-	norm[0] = float(finecosine[zang]) * float(finecosine[xyang]);
-	norm[1] = float(finecosine[zang]) * float(finesine[xyang]);
-	norm[2] = float(finesine[zang]) * 65536.f;
-	norm.MakeUnit();
-	plane->a = (int)(norm[0] * 65536.f);
-	plane->b = (int)(norm[1] * 65536.f);
-	plane->c = (int)(norm[2] * 65536.f);
-	//plane->ic = (int)(65536.f / norm[2]);
-	plane->ic = DivScale32 (1, plane->c);
-	plane->d = -TMulScale16 (plane->a, x,
-							 plane->b, y,
-							 plane->c, z);
-}
-
-
-//===========================================================================
-//
-// P_VavoomSlope
-//
-//===========================================================================
-
-void P_VavoomSlope(sector_t * sec, int id, fixed_t x, fixed_t y, fixed_t z, int which)
-{
-	for (int i=0;i<sec->linecount;i++)
-	{
-		line_t * l=sec->lines[i];
-
-		if (l->args[0]==id)
-		{
-			FVector3 v1, v2, cross;
-			secplane_t *srcplane = (which == 0) ? &sec->floorplane : &sec->ceilingplane;
-			fixed_t srcheight = (which == 0) ? sec->floortexz : sec->ceilingtexz;
-
-			v1[0] = FIXED2FLOAT (x - l->v2->x);
-			v1[1] = FIXED2FLOAT (y - l->v2->y);
-			v1[2] = FIXED2FLOAT (z - srcheight);
-			
-			v2[0] = FIXED2FLOAT (x - l->v1->x);
-			v2[1] = FIXED2FLOAT (y - l->v1->y);
-			v2[2] = FIXED2FLOAT (z - srcheight);
-
-			cross = v1 ^ v2;
-			double len = cross.Length();
-			if (len == 0)
-			{
-				Printf ("Slope thing at (%d,%d) lies directly on its target line.\n", int(x>>16), int(y>>16));
-				return;
-			}
-			cross /= len;
-
-			// Fix backward normals
-			if ((cross.Z < 0 && which == 0) || (cross.Z > 0 && which == 1))
-			{
-				cross = -cross;
-			}
-
-
-			srcplane->a = FLOAT2FIXED (cross[0]);
-			srcplane->b = FLOAT2FIXED (cross[1]);
-			srcplane->c = FLOAT2FIXED (cross[2]);
-			//plane->ic = FLOAT2FIXED (1.f/cross[2]);
-			srcplane->ic = DivScale32 (1, srcplane->c);
-			srcplane->d = -TMulScale16 (srcplane->a, x,
-										srcplane->b, y,
-										srcplane->c, z);
-			return;
-		}
-	}
-}
-				   
-enum
-{
-	THING_SlopeFloorPointLine = 9500,
-	THING_SlopeCeilingPointLine = 9501,
-	THING_SetFloorSlope = 9502,
-	THING_SetCeilingSlope = 9503,
-	THING_CopyFloorPlane = 9510,
-	THING_CopyCeilingPlane = 9511,
-	THING_VavoomFloor=1500,
-	THING_VavoomCeiling=1501,
-	THING_VertexFloorZ=1504,
-	THING_VertexCeilingZ=1505,
-};
-
-//==========================================================================
-//
-//	P_SetSlopesFromVertexHeights
-//
-//==========================================================================
-
-static void P_SetSlopesFromVertexHeights(mapthing2_t *firstmt, mapthing2_t *lastmt)
-{
-	TMap<int, fixed_t> vt_heights[2];
-	mapthing2_t *mt;
-	bool vt_found = false;
-
-	for (mt = firstmt; mt < lastmt; ++mt)
-	{
-		if (mt->type == THING_VertexFloorZ || mt->type == THING_VertexCeilingZ)
-		{
-			for(int i=0; i<numvertexes; i++)
-			{
-				if (vertexes[i].x == mt->x << FRACBITS && vertexes[i].y == mt->y << FRACBITS)
-				{
-					if (mt->type == THING_VertexFloorZ) 
-					{
-						vt_heights[0][i] = mt->z << FRACBITS;
-					}
-					else 
-					{
-						vt_heights[1][i] = mt->z << FRACBITS;
-					}
-					vt_found = true;
-				}
-			}
-			mt->type = 0;
-		}
-	}
-	if (vt_found)
-	{
-		for (int i = 0; i < numsectors; i++)
-		{
-			sector_t *sec = &sectors[i];
-			if (sec->linecount != 3) continue;	// only works with triangular sectors
-
-			FVector3 vt1, vt2, vt3, cross;
-			FVector3 vec1, vec2;
-			int vi1, vi2, vi3;
-
-			vi1 = sec->lines[0]->v1 - vertexes;
-			vi2 = sec->lines[0]->v2 - vertexes;
-			vi3 = (sec->lines[1]->v1 == sec->lines[0]->v1 || sec->lines[1]->v1 == sec->lines[0]->v2)?
-				sec->lines[1]->v2 - vertexes : sec->lines[1]->v1 - vertexes;
-
-			vt1.X = FIXED2FLOAT(vertexes[vi1].x);
-			vt1.Y = FIXED2FLOAT(vertexes[vi1].y);
-			vt2.X = FIXED2FLOAT(vertexes[vi2].x);
-			vt2.Y = FIXED2FLOAT(vertexes[vi2].y);
-			vt3.X = FIXED2FLOAT(vertexes[vi3].x);
-			vt3.Y = FIXED2FLOAT(vertexes[vi3].y);
-
-			for(int j=0; j<2; j++)
-			{
-				fixed_t *h1 = vt_heights[j].CheckKey(vi1);
-				fixed_t *h2 = vt_heights[j].CheckKey(vi2);
-				fixed_t *h3 = vt_heights[j].CheckKey(vi3);
-				fixed_t z3;
-				if (h1==NULL && h2==NULL && h3==NULL) continue;
-
-				vt1.Z = FIXED2FLOAT(h1? *h1 : j==0? sec->floortexz : sec->ceilingtexz);
-				vt2.Z = FIXED2FLOAT(h2? *h2 : j==0? sec->floortexz : sec->ceilingtexz);
-				z3 = h3? *h3 : j==0? sec->floortexz : sec->ceilingtexz;
-				vt3.Z = FIXED2FLOAT(z3);
-
-				if (P_PointOnLineSide(vertexes[vi3].x, vertexes[vi3].y, sec->lines[0]) == 0)
-				{
-					vec1 = vt2 - vt3;
-					vec2 = vt1 - vt3;
-				}
-				else
-				{
-					vec1 = vt1 - vt3;
-					vec2 = vt2 - vt3;
-				}
-
-				FVector3 cross = vec1 ^ vec2;
-
-				double len = cross.Length();
-				if (len == 0)
-				{
-					// Only happens when all vertices in this sector are on the same line.
-					// Let's just ignore this case.
-					continue;
-				}
-				cross /= len;
-
-				// Fix backward normals
-				if ((cross.Z < 0 && j == 0) || (cross.Z > 0 && j == 1))
-				{
-					cross = -cross;
-				}
-
-				secplane_t *srcplane = j==0? &sec->floorplane : &sec->ceilingplane;
-
-				srcplane->a = FLOAT2FIXED (cross[0]);
-				srcplane->b = FLOAT2FIXED (cross[1]);
-				srcplane->c = FLOAT2FIXED (cross[2]);
-				srcplane->ic = DivScale32 (1, srcplane->c);
-				srcplane->d = -TMulScale16 (srcplane->a, vertexes[vi3].x,
-											srcplane->b, vertexes[vi3].y,
-											srcplane->c, z3);
-			}
-		}
-	}
-}
-
-//===========================================================================
-//
-// P_SpawnSlopeMakers
-//
-//===========================================================================
-
-static void P_SpawnSlopeMakers (mapthing2_t *firstmt, mapthing2_t *lastmt)
-{
-	mapthing2_t *mt;
-
-	for (mt = firstmt; mt < lastmt; ++mt)
-	{
-		if ((mt->type >= THING_SlopeFloorPointLine &&
-			 mt->type <= THING_SetCeilingSlope) ||
-			mt->type==THING_VavoomFloor || mt->type==THING_VavoomCeiling)
-		{
-			fixed_t x, y, z;
-			secplane_t *refplane;
-			sector_t *sec;
-
-			x = mt->x << FRACBITS;
-			y = mt->y << FRACBITS;
-			sec = P_PointInSector (x, y);
-			if (mt->type & 1)
-			{
-				refplane = &sec->ceilingplane;
-			}
-			else
-			{
-				refplane = &sec->floorplane;
-			}
-			z = refplane->ZatPoint (x, y) + (mt->z << FRACBITS);
-			if (mt->type==THING_VavoomFloor || mt->type==THING_VavoomCeiling)
-			{
-				P_VavoomSlope(sec, mt->thingid, x, y, mt->z<<FRACBITS, mt->type & 1); 
-			}
-			else if (mt->type <= THING_SlopeCeilingPointLine)
-			{
-				P_SlopeLineToPoint (mt->args[0], x, y, z, mt->type & 1);
-			}
-			else
-			{
-				P_SetSlope (refplane, mt->type & 1, mt->angle, mt->args[0], x, y, z);
-			}
-			mt->type = 0;
-		}
-	}
-
-	for (mt = firstmt; mt < lastmt; ++mt)
-	{
-		if (mt->type == THING_CopyFloorPlane ||
-			mt->type == THING_CopyCeilingPlane)
-		{
-			P_CopyPlane (mt->args[0], mt->x << FRACBITS, mt->y << FRACBITS, mt->type & 1);
-			mt->type = 0;
-		}
-	}
-
-	P_SetSlopesFromVertexHeights(firstmt, lastmt);
 }
 
 //===========================================================================
@@ -1820,36 +1537,42 @@ static void P_SpawnSlopeMakers (mapthing2_t *firstmt, mapthing2_t *lastmt)
 void P_LoadThings2 (MapData * map, int position)
 {
 	int	lumplen = map->MapLumps[ML_THINGS].Size;
-	int numthings = lumplen / sizeof(mapthing2_t);
+	int numthings = lumplen / sizeof(mapthinghexen_t);
 
 	int i;
 	char *mtp;
-	mapthing2_t *mt;
+
+	MapThingsConverted.Resize(numthings);
+	FMapThing *mti = &MapThingsConverted[0];
 
 	mtp = new char[lumplen];
 	map->Read(ML_THINGS, mtp);
+	mapthinghexen_t *mth = (mapthinghexen_t*)mtp;
 
-#ifdef WORDS_BIGENDIAN
-	for (i=0, mt = (mapthing2_t*)mtp; i < numthings; i++,mt++)
+	for(int i = 0; i< numthings; i++)
 	{
-		mt->thingid = LittleShort(mt->thingid);
-		mt->x = LittleShort(mt->x);
-		mt->y = LittleShort(mt->y);
-		mt->z = LittleShort(mt->z);
-		mt->angle = LittleShort(mt->angle);
-		mt->type = LittleShort(mt->type);
-		mt->flags = LittleShort(mt->flags);
-	}
-#endif
-
-	// [RH] Spawn slope creating things first.
-	P_SpawnSlopeMakers ((mapthing2_t*)mtp, ((mapthing2_t*)mtp)+numthings);
-
-	for (i=0, mt = (mapthing2_t*)mtp; i < numthings; i++,mt++)
-	{
-		SpawnMapThing (i, mt, position);
+		mti[i].thingid = LittleShort(mth[i].thingid);
+		mti[i].x = LittleShort(mth[i].x)<<FRACBITS;
+		mti[i].y = LittleShort(mth[i].y)<<FRACBITS;
+		mti[i].z = LittleShort(mth[i].z)<<FRACBITS;
+		mti[i].angle = LittleShort(mth[i].angle);
+		mti[i].type = LittleShort(mth[i].type);
+		mti[i].flags = LittleShort(mth[i].flags);
+		mti[i].special = mth[i].special;
+		for(int j=0;j<5;j++) mti[i].args[j] = mth[i].args[j];
+		mti[i].SkillFilter = MakeSkill(mti[i].flags);
+		mti[i].ClassFilter = (mti[i].flags & MTF_CLASS_MASK) >> MTF_CLASS_SHIFT;
+		mti[i].flags &= ~(MTF_SKILLMASK|MTF_CLASS_MASK);
 	}
 	delete[] mtp;
+
+	// [RH] Spawn slope creating things first.
+	P_SpawnSlopeMakers (mti, mti + numthings);
+
+	for (i=0; i < numthings; i++)
+	{
+		SpawnMapThing (i, &mti[i], position);
+	}
 }
 
 
@@ -1902,7 +1625,10 @@ void P_AdjustLine (line_t *ld)
 		ld->bbox[BOXBOTTOM] = v2->y;
 		ld->bbox[BOXTOP] = v1->y;
 	}
+}
 
+void P_SetLineID (line_t *ld)
+{
 	// [RH] Set line id (as appropriate) here
 	// for Doom format maps this must be done in P_TranslateLineDef because
 	// the tag doesn't always go into the first arg.
@@ -1959,118 +1685,118 @@ void P_SaveLineSpecial (line_t *ld)
 	}
 }
 
+void P_FinishLoadingLineDef(line_t *ld, int alpha)
+{
+	ld->frontsector = ld->sidenum[0]!=NO_SIDE ? sides[ld->sidenum[0]].sector : 0;
+	ld->backsector  = ld->sidenum[1]!=NO_SIDE ? sides[ld->sidenum[1]].sector : 0;
+	float dx = FIXED2FLOAT(ld->v2->x - ld->v1->x);
+	float dy = FIXED2FLOAT(ld->v2->y - ld->v1->y);
+	SBYTE light;
+	int linenum = ld-lines;
+
+	if (ld->frontsector == NULL)
+	{
+		Printf ("Line %d has no front sector\n", linemap[linenum]);
+	}
+
+	// [RH] Set some new sidedef properties
+	int len = (int)(sqrtf (dx*dx + dy*dy) + 0.5f);
+	light = dy == 0 ? level.WallHorizLight :
+			dx == 0 ? level.WallVertLight : 0;
+
+	if (ld->sidenum[0] != NO_SIDE)
+	{
+		sides[ld->sidenum[0]].linenum = linenum;
+		sides[ld->sidenum[0]].TexelLength = len;
+		sides[ld->sidenum[0]].Light = light;
+	}
+	if (ld->sidenum[1] != NO_SIDE)
+	{
+		sides[ld->sidenum[1]].linenum = linenum;
+		sides[ld->sidenum[1]].TexelLength = len;
+		sides[ld->sidenum[1]].Light = light;
+	}
+
+	// [BC] Back up the line's alpha here.
+	ld->SavedAlpha = ld->Alpha;
+
+	switch (ld->special)
+	{						// killough 4/11/98: handle special types
+		int j;
+
+	case TranslucentLine:			// killough 4/11/98: translucent 2s textures
+		// [RH] Second arg controls how opaque it is.
+		if (alpha < 0)
+		{
+			alpha = ld->args[1];
+		}
+		alpha = Scale(alpha, FRACUNIT, 255); 
+		if (!ld->args[0])
+		{
+			ld->Alpha = alpha;
+
+			// [BC] Back up the line's alpha here.
+			ld->SavedAlpha = ld->Alpha;
+
+			if (ld->args[2] == 1)
+			{
+				sides[ld->sidenum[0]].Flags |= WALLF_ADDTRANS;
+				if (ld->sidenum[1] != NO_SIDE)
+				{
+					sides[ld->sidenum[1]].Flags |= WALLF_ADDTRANS;
+				}
+			}
+
+			// [BC] Back up the side's flags here.
+			sides[ld->sidenum[0]].SavedFlags = sides[ld->sidenum[0]].Flags;
+			if (ld->sidenum[1] != NO_SIDE)
+			{
+				sides[ld->sidenum[1]].SavedFlags = sides[ld->sidenum[1]].Flags;
+			}
+		}
+		else
+		{
+			for (j = 0; j < numlines; j++)
+			{
+				if (lines[j].id == ld->args[0])
+				{
+					lines[j].Alpha = alpha;
+
+					// [BC] Back up the line's alpha here.
+					lines[j].SavedAlpha = lines[j].Alpha;
+
+					if (lines[j].args[2] == 1)
+					{
+						sides[lines[j].sidenum[0]].Flags |= WALLF_ADDTRANS;
+						if (lines[j].sidenum[1] != NO_SIDE)
+						{
+							sides[lines[j].sidenum[1]].Flags |= WALLF_ADDTRANS;
+						}
+					}
+
+					// [BC] Back up the side's flags here.
+					sides[lines[j].sidenum[0]].SavedFlags = sides[lines[j].sidenum[0]].Flags;
+					if (lines[j].sidenum[1] != NO_SIDE)
+					{
+						sides[lines[j].sidenum[1]].SavedFlags = sides[lines[j].sidenum[1]].Flags;
+					}
+				}
+			}
+		}
+		ld->special = 0;
+
+		// [BC] Erase the line's backed up special.
+		ld->SavedSpecial = ld->special;
+
+		break;
+	}
+}
 // killough 4/4/98: delay using sidedefs until they are loaded
 void P_FinishLoadingLineDefs ()
 {
-	WORD len;
-	int i, linenum;
-	line_t *ld = lines;
-
-	for (i = numlines, linenum = 0; i--; ld++, linenum++)
+	for (int i = 0; i < numlines; i++)
 	{
-		ld->frontsector = ld->sidenum[0]!=NO_SIDE ? sides[ld->sidenum[0]].sector : 0;
-		ld->backsector  = ld->sidenum[1]!=NO_SIDE ? sides[ld->sidenum[1]].sector : 0;
-		float dx = FIXED2FLOAT(ld->v2->x - ld->v1->x);
-		float dy = FIXED2FLOAT(ld->v2->y - ld->v1->y);
-		SBYTE light;
-
-		if (ld->frontsector == NULL)
-		{
-			Printf ("Line %d has no front sector\n", linemap[linenum]);
-		}
-
-		// [RH] Set some new sidedef properties
-		len = (int)(sqrtf (dx*dx + dy*dy) + 0.5f);
-		light = dy == 0 ? level.WallHorizLight :
-				dx == 0 ? level.WallVertLight : 0;
-
-		if (ld->sidenum[0] != NO_SIDE)
-		{
-			sides[ld->sidenum[0]].linenum = linenum;
-			sides[ld->sidenum[0]].TexelLength = len;
-			sides[ld->sidenum[0]].Light = light;
-		}
-		if (ld->sidenum[1] != NO_SIDE)
-		{
-			sides[ld->sidenum[1]].linenum = linenum;
-			sides[ld->sidenum[1]].TexelLength = len;
-			sides[ld->sidenum[1]].Light = light;
-		}
-
-		// [BC] Back up the line's alpha here.
-		ld->SavedAlpha = ld->alpha;
-
-		switch (ld->special)
-		{						// killough 4/11/98: handle special types
-			int j;
-			int alpha;
-
-		case TranslucentLine:			// killough 4/11/98: translucent 2s textures
-			// [RH] Second arg controls how opaque it is.
-			alpha = sidetemp[ld->sidenum[0]].a.alpha;
-			if (alpha < 0)
-			{
-				alpha = ld->args[1];
-			}
-			if (!ld->args[0])
-			{
-				ld->alpha = (BYTE)alpha;
-
-				// [BC] Back up the line's alpha here.
-				ld->SavedAlpha = ld->alpha;
-
-				if (ld->args[2] == 1)
-				{
-					sides[ld->sidenum[0]].Flags |= WALLF_ADDTRANS;
-					if (ld->sidenum[1] != NO_SIDE)
-					{
-						sides[ld->sidenum[1]].Flags |= WALLF_ADDTRANS;
-					}
-				}
-
-				// [BC] Back up the side's flags here.
-				sides[ld->sidenum[0]].SavedFlags = sides[ld->sidenum[0]].Flags;
-				if (ld->sidenum[1] != NO_SIDE)
-				{
-					sides[ld->sidenum[1]].SavedFlags = sides[ld->sidenum[1]].Flags;
-				}
-			}
-			else
-			{
-				for (j = 0; j < numlines; j++)
-				{
-					if (lines[j].id == ld->args[0])
-					{
-						lines[j].alpha = (BYTE)alpha;
-
-						// [BC] Back up the line's alpha here.
-						lines[j].SavedAlpha = lines[j].alpha;
-
-						if (lines[j].args[2] == 1)
-						{
-							sides[lines[j].sidenum[0]].Flags |= WALLF_ADDTRANS;
-							if (lines[j].sidenum[1] != NO_SIDE)
-							{
-								sides[lines[j].sidenum[1]].Flags |= WALLF_ADDTRANS;
-							}
-						}
-
-						// [BC] Back up the side's flags here.
-						sides[lines[j].sidenum[0]].SavedFlags = sides[lines[j].sidenum[0]].Flags;
-						if (lines[j].sidenum[1] != NO_SIDE)
-						{
-							sides[lines[j].sidenum[1]].SavedFlags = sides[lines[j].sidenum[1]].Flags;
-						}
-					}
-				}
-			}
-			ld->special = 0;
-
-			// [BC] Erase the line's backed up special.
-			ld->SavedSpecial = ld->special;
-
-			break;
-		}
+		P_FinishLoadingLineDef(&lines[i], sidetemp[lines[i].sidenum[0]].a.alpha);
 	}
 }
 
@@ -2084,7 +1810,7 @@ void P_LoadLineDefs (MapData * map)
 		
 	numlines = lumplen / sizeof(maplinedef_t);
 	lines = new line_t[numlines];
-	linemap = new WORD[numlines];
+	linemap.Resize(numlines);
 	memset (lines, 0, numlines*sizeof(line_t));
 
 	mldf = new char[lumplen];
@@ -2132,7 +1858,7 @@ void P_LoadLineDefs (MapData * map)
 	ld = lines;
 	for (i = numlines; i > 0; i--, mld++, ld++)
 	{
-		ld->alpha = 255;	// [RH] Opaque by default
+		ld->Alpha = FRACUNIT;	// [RH] Opaque by default
 
 		// [RH] Translate old linedef special and flags to be
 		//		compatible with the new format.
@@ -2175,7 +1901,7 @@ void P_LoadLineDefs2 (MapData * map)
 		
 	numlines = lumplen / sizeof(maplinedef2_t);
 	lines = new line_t[numlines];
-	linemap = new WORD[numlines];
+	linemap.Resize(numlines);
 	memset (lines, 0, numlines*sizeof(line_t));
 
 	mldf = new char[lumplen];
@@ -2226,13 +1952,14 @@ void P_LoadLineDefs2 (MapData * map)
 
 		ld->v1 = &vertexes[LittleShort(mld->v1)];
 		ld->v2 = &vertexes[LittleShort(mld->v2)];
-		ld->alpha = 255;	// [RH] Opaque by default
+		ld->Alpha = FRACUNIT;	// [RH] Opaque by default
 		ld->id = -1;
 
 		P_SetSideNum (&ld->sidenum[0], LittleShort(mld->sidenum[0]));
 		P_SetSideNum (&ld->sidenum[1], LittleShort(mld->sidenum[1]));
 
 		P_AdjustLine (ld);
+		P_SetLineID(ld);
 		P_SaveLineSpecial (ld);
 
 		// [BC] Backup certain properties of the line.
@@ -2247,6 +1974,11 @@ void P_LoadLineDefs2 (MapData * map)
 		if (level.flags & LEVEL_CLIPMIDTEX) ld->flags |= ML_CLIP_MIDTEX;
 		if (level.flags & LEVEL_WRAPMIDTEX) ld->flags |= ML_WRAP_MIDTEX;
 		if (level.flags & LEVEL_CHECKSWITCHRANGE) ld->flags |= ML_CHECKSWITCHRANGE;
+
+		// convert the activation type
+		ld->activation = 1 << GET_SPAC(ld->flags);
+		if (ld->activation == SPAC_AnyCross) ld->activation = SPAC_Impact|SPAC_PCross;	// this is really PTouch
+		ld->flags &= ~ML_SPAC_MASK;
 	}
 	delete[] mldf;
 }
@@ -2306,6 +2038,11 @@ static void P_SetSideNum (DWORD *sidenum_p, WORD sidenum)
 static void P_LoopSidedefs ()
 {
 	int i;
+
+	if (sidetemp == NULL)
+	{
+		sidetemp = new sidei_t[MAX(numvertexes, numsides)];
+	}
 
 	for (i = 0; i < numvertexes; ++i)
 	{
@@ -2440,6 +2177,136 @@ int P_DetermineTranslucency (int lumpnum)
 	return newcolor.r;
 }
 
+void P_ProcessSideTextures(bool checktranmap, side_t *sd, sector_t *sec, mapsidedef_t *msd, int special, int tag, short *alpha)
+{
+	char name[9];
+	name[8] = 0;
+
+	switch (special)
+	{
+	case Transfer_Heights:	// variable colormap via 242 linedef
+		  // [RH] The colormap num we get here isn't really a colormap,
+		  //	  but a packed ARGB word for blending, so we also allow
+		  //	  the blend to be specified directly by the texture names
+		  //	  instead of figuring something out from the colormap.
+		if (sec != NULL)
+		{
+			SetTexture (sd, side_t::bottom, &sec->bottommap, msd->bottomtexture);
+			SetTexture (sd, side_t::mid, &sec->midmap, msd->midtexture);
+			SetTexture (sd, side_t::top, &sec->topmap, msd->toptexture);
+		}
+		break;
+
+	case Static_Init:
+		// [RH] Set sector color and fog
+		// upper "texture" is light color
+		// lower "texture" is fog color
+		{
+			DWORD color, fog;
+			bool colorgood, foggood;
+
+			SetTextureNoErr (sd, side_t::bottom, &fog, msd->bottomtexture, &foggood, true);
+			SetTextureNoErr (sd, side_t::top, &color, msd->toptexture, &colorgood, false);
+			strncpy (name, msd->midtexture, 8);
+			sd->SetTexture(side_t::mid, 
+				TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable));
+
+			if (colorgood | foggood)
+			{
+				int s;
+				FDynamicColormap *colormap = NULL;
+
+				for (s = 0; s < numsectors; s++)
+				{
+					if (sectors[s].tag == tag)
+					{
+						if (!colorgood) color = sectors[s].ColorMap->Color;
+						if (!foggood) fog = sectors[s].ColorMap->Fade;
+						if (colormap == NULL ||
+							colormap->Color != color ||
+							colormap->Fade != fog)
+						{
+							colormap = GetSpecialLights (color, fog, 0);
+						}
+						sectors[s].ColorMap = colormap;
+					}
+				}
+			}
+		}
+		break;
+
+	case Sector_Set3DFloor:
+		if (msd->toptexture[0]=='#')
+		{
+			strncpy (name, msd->toptexture, 8);
+			sd->SetTexture(side_t::top, -strtol(name+1, NULL, 10));	// store the alpha as a negative texture index
+														// This will be sorted out by the 3D-floor code later.
+		}
+		else
+		{
+			strncpy (name, msd->toptexture, 8);
+			sd->SetTexture(side_t::top, TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable));
+		}
+
+		strncpy (name, msd->midtexture, 8);
+		sd->SetTexture(side_t::mid, TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable));
+
+		strncpy (name, msd->bottomtexture, 8);
+		sd->SetTexture(side_t::bottom, TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable));
+		break;
+
+	case TranslucentLine:	// killough 4/11/98: apply translucency to 2s normal texture
+		if (checktranmap)
+		{
+			int lumpnum;
+
+			if (strnicmp ("TRANMAP", msd->midtexture, 8) == 0)
+			{
+				// The translator set the alpha argument already; no reason to do it again.
+				sd->SetTexture(side_t::mid, 0);
+			}
+			else if ((lumpnum = Wads.CheckNumForName (msd->midtexture)) > 0 &&
+				Wads.LumpLength (lumpnum) == 65536)
+			{
+				*alpha = (short)P_DetermineTranslucency (lumpnum);
+				sd->SetTexture(side_t::mid, 0);
+			}
+			else
+			{
+				strncpy (name, msd->midtexture, 8);
+				sd->SetTexture(side_t::mid, 
+					TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable));
+			}
+
+			strncpy (name, msd->toptexture, 8);
+			sd->SetTexture(side_t::top, TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable));
+
+			strncpy (name, msd->bottomtexture, 8);
+			sd->SetTexture(side_t::bottom, TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable));
+			break;
+		}
+		// Fallthrough for Hexen maps is intentional
+
+	default:			// normal cases
+		strncpy (name, msd->midtexture, 8);
+		sd->SetTexture(side_t::mid, 
+			TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable));
+
+		strncpy (name, msd->toptexture, 8);
+		sd->SetTexture(side_t::top, 
+			TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable));
+
+		strncpy (name, msd->bottomtexture, 8);
+		sd->SetTexture(side_t::bottom, 
+			TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable));
+		break;
+	}
+
+	sd->SavedTopTexture = sd->GetTexture(side_t::top);
+	sd->SavedMidTexture = sd->GetTexture(side_t::mid);
+	sd->SavedBottomTexture = sd->GetTexture(side_t::bottom);
+}
+
 // killough 4/4/98: delay using texture names until
 // after linedefs are loaded, to allow overloading.
 // killough 5/3/98: reformatted, cleaned up
@@ -2447,11 +2314,8 @@ int P_DetermineTranslucency (int lumpnum)
 void P_LoadSideDefs2 (MapData * map)
 {
 	int  i;
-	char name[9];
 	char * msdf = new char[map->Size(ML_SIDEDEFS)];
 	map->Read(ML_SIDEDEFS, msdf);
-
-	name[8] = 0;
 
 	for (i = 0; i < numsides; i++)
 	{
@@ -2484,270 +2348,10 @@ void P_LoadSideDefs2 (MapData * map)
 		{
 			sd->sector = sec = &sectors[LittleShort(msd->sector)];
 		}
-		switch (sidetemp[i].a.special)
-		{
-		case Transfer_Heights:	// variable colormap via 242 linedef
-			  // [RH] The colormap num we get here isn't really a colormap,
-			  //	  but a packed ARGB word for blending, so we also allow
-			  //	  the blend to be specified directly by the texture names
-			  //	  instead of figuring something out from the colormap.
-			if (sec != NULL)
-			{
-				SetTexture (sd, side_t::bottom, &sec->bottommap, msd->bottomtexture);
-				SetTexture (sd, side_t::mid, &sec->midmap, msd->midtexture);
-				SetTexture (sd, side_t::top, &sec->topmap, msd->toptexture);
-			}
-			break;
-
-		case Static_Init:
-			// [RH] Set sector color and fog
-			// upper "texture" is light color
-			// lower "texture" is fog color
-			{
-				DWORD color, fog;
-				bool colorgood, foggood;
-
-				SetTextureNoErr (sd, side_t::bottom, &fog, msd->bottomtexture, &foggood, true);
-				SetTextureNoErr (sd, side_t::top, &color, msd->toptexture, &colorgood, false);
-				strncpy (name, msd->midtexture, 8);
-				sd->SetTexture(side_t::mid, 
-					TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable));
-
-				if (colorgood | foggood)
-				{
-					int s;
-					FDynamicColormap *colormap = NULL;
-
-					for (s = 0; s < numsectors; s++)
-					{
-						if (sectors[s].tag == sidetemp[i].a.tag)
-						{
-							if (!colorgood) color = sectors[s].ColorMap->Color;
-							if (!foggood) fog = sectors[s].ColorMap->Fade;
-							if (colormap == NULL ||
-								colormap->Color != color ||
-								colormap->Fade != fog)
-							{
-								colormap = GetSpecialLights (color, fog, 0);
-							}
-							sectors[s].ColorMap = colormap;
-						}
-					}
-				}
-			}
-			break;
-
-		case Sector_Set3DFloor:
-			if (msd->toptexture[0]=='#')
-			{
-				strncpy (name, msd->toptexture, 8);
-				sd->SetTexture(side_t::top, -strtol(name+1, NULL, 10));	// store the alpha as a negative texture index
-															// This will be sorted out by the 3D-floor code later.
-			}
-			else
-			{
-				strncpy (name, msd->toptexture, 8);
-				sd->SetTexture(side_t::top, TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable));
-			}
-
-			strncpy (name, msd->midtexture, 8);
-			sd->SetTexture(side_t::mid, TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable));
-
-			strncpy (name, msd->bottomtexture, 8);
-			sd->SetTexture(side_t::bottom, TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable));
-			break;
-
-		case TranslucentLine:	// killough 4/11/98: apply translucency to 2s normal texture
-			if (!map->HasBehavior)
-			{
-				int lumpnum;
-
-				if (strnicmp ("TRANMAP", msd->midtexture, 8) == 0)
-				{
-					// The translator set the alpha argument already; no reason to do it again.
-					sd->SetTexture(side_t::mid, 0);
-				}
-				else if ((lumpnum = Wads.CheckNumForName (msd->midtexture)) > 0 &&
-					Wads.LumpLength (lumpnum) == 65536)
-				{
-					sidetemp[i].a.alpha = P_DetermineTranslucency (lumpnum);
-					sd->SetTexture(side_t::mid, 0);
-				}
-				else
-				{
-					strncpy (name, msd->midtexture, 8);
-					sd->SetTexture(side_t::mid, 
-						TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable));
-				}
-
-				strncpy (name, msd->toptexture, 8);
-				sd->SetTexture(side_t::top, TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable));
-
-				strncpy (name, msd->bottomtexture, 8);
-				sd->SetTexture(side_t::bottom, TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable));
-				break;
-			}
-			// Fallthrough for Hexen maps is intentional
-
-		default:			// normal cases
-			strncpy (name, msd->midtexture, 8);
-			sd->SetTexture(side_t::mid, 
-				TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable));
-
-			strncpy (name, msd->toptexture, 8);
-			sd->SetTexture(side_t::top, 
-				TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable));
-
-			strncpy (name, msd->bottomtexture, 8);
-			sd->SetTexture(side_t::bottom, 
-				TexMan.GetTexture (name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable));
-			break;
-		}
-
-		sd->SavedTopTexture = sd->GetTexture(side_t::top);
-		sd->SavedMidTexture = sd->GetTexture(side_t::mid);
-		sd->SavedBottomTexture = sd->GetTexture(side_t::bottom);
+		P_ProcessSideTextures(!map->HasBehavior, sd, sec, msd, 
+							  sidetemp[i].a.special, sidetemp[i].a.tag, &sidetemp[i].a.alpha);
 	}
 	delete[] msdf;
-}
-
-// [RH] Set slopes for sectors, based on line specials
-//
-// P_AlignPlane
-//
-// Aligns the floor or ceiling of a sector to the corresponding plane
-// on the other side of the reference line. (By definition, line must be
-// two-sided.)
-//
-// If (which & 1), sets floor.
-// If (which & 2), sets ceiling.
-//
-
-static void P_AlignPlane (sector_t *sec, line_t *line, int which)
-{
-	sector_t *refsec;
-	int bestdist;
-	vertex_t *refvert = (*sec->lines)->v1;	// Shut up, GCC
-	int i;
-	line_t **probe;
-
-	if (line->backsector == NULL)
-		return;
-
-	// Find furthest vertex from the reference line. It, along with the two ends
-	// of the line will define the plane.
-	bestdist = 0;
-	for (i = sec->linecount*2, probe = sec->lines; i > 0; i--)
-	{
-		int dist;
-		vertex_t *vert;
-
-		// Do calculations with only the upper bits, because the lower ones
-		// are all zero, and we would overflow for a lot of distances if we
-		// kept them around.
-
-		if (i & 1)
-			vert = (*probe++)->v2;
-		else
-			vert = (*probe)->v1;
-		dist = abs (((line->v1->y - vert->y) >> FRACBITS) * (line->dx >> FRACBITS) -
-					((line->v1->x - vert->x) >> FRACBITS) * (line->dy >> FRACBITS));
-
-		if (dist > bestdist)
-		{
-			bestdist = dist;
-			refvert = vert;
-		}
-	}
-
-	refsec = line->frontsector == sec ? line->backsector : line->frontsector;
-
-	FVector3 p, v1, v2, cross;
-
-	const secplane_t *refplane;
-	secplane_t *srcplane;
-	fixed_t srcheight, destheight;
-
-	refplane = (which == 0) ? &refsec->floorplane : &refsec->ceilingplane;
-	srcplane = (which == 0) ? &sec->floorplane : &sec->ceilingplane;
-	srcheight = (which == 0) ? sec->floortexz : sec->ceilingtexz;
-	destheight = (which == 0) ? refsec->floortexz : refsec->ceilingtexz;
-
-	p[0] = FIXED2FLOAT (line->v1->x);
-	p[1] = FIXED2FLOAT (line->v1->y);
-	p[2] = FIXED2FLOAT (destheight);
-	v1[0] = FIXED2FLOAT (line->dx);
-	v1[1] = FIXED2FLOAT (line->dy);
-	v1[2] = 0;
-	v2[0] = FIXED2FLOAT (refvert->x - line->v1->x);
-	v2[1] = FIXED2FLOAT (refvert->y - line->v1->y);
-	v2[2] = FIXED2FLOAT (srcheight - destheight);
-
-	cross = (v1 ^ v2).Unit();
-
-	// Fix backward normals
-	if ((cross.Z < 0 && which == 0) || (cross.Z > 0 && which == 1))
-	{
-		cross = -cross;
-	}
-
-	srcplane->a = FLOAT2FIXED (cross[0]);
-	srcplane->b = FLOAT2FIXED (cross[1]);
-	srcplane->c = FLOAT2FIXED (cross[2]);
-	//srcplane->ic = FLOAT2FIXED (1.f/cross[2]);
-	srcplane->ic = DivScale32 (1, srcplane->c);
-	srcplane->d = -TMulScale16 (srcplane->a, line->v1->x,
-								srcplane->b, line->v1->y,
-								srcplane->c, destheight);
-}
-
-void P_SetSlopes ()
-{
-	int i, s;
-
-	for (i = 0; i < numlines; i++)
-	{
-		if (lines[i].special == Plane_Align)
-		{
-			lines[i].special = 0;
-			lines[i].id = lines[i].args[2];
-			if (lines[i].backsector != NULL)
-			{
-				// args[0] is for floor, args[1] is for ceiling
-				//
-				// As a special case, if args[1] is 0,
-				// then args[0], bits 2-3 are for ceiling.
-				for (s = 0; s < 2; s++)
-				{
-					int bits = lines[i].args[s] & 3;
-
-					if (s == 1 && bits == 0)
-						bits = (lines[i].args[0] >> 2) & 3;
-
-					if (bits == 1)			// align front side to back
-					{
-						P_AlignPlane (lines[i].frontsector, lines + i, s);
-
-						// [BC] Backup the sector's plane.
-						if ( s == 0 )
-							lines[i].frontsector->SavedFloorPlane = lines[i].frontsector->floorplane;
-						else
-							lines[i].frontsector->SavedCeilingPlane = lines[i].frontsector->ceilingplane;
-					}
-					else if (bits == 2)		// align back side to front
-					{
-						P_AlignPlane (lines[i].backsector, lines + i, s);
-
-						// [BC] Backup the sector's plane.
-						if ( s == 0 )
-							lines[i].backsector->SavedFloorPlane = lines[i].backsector->floorplane;
-						else
-							lines[i].backsector->SavedCeilingPlane = lines[i].backsector->ceilingplane;
-					}
-				}
-			}
-		}
-	}
 }
 
 
@@ -3538,38 +3142,30 @@ void P_GetPolySpots (MapData * map, TArray<FNodeBuilder::FPolyStart> &spots, TAr
 	{
 		int spot1, spot2, spot3, anchor;
 
-		int	lumplen = map->Size(ML_THINGS);
-		int num = lumplen / sizeof(mapthing2_t);
-
-		mapthing2_t *mt;
-
-		map->Seek(ML_THINGS);
-		mt = new mapthing2_t[num];
-		map->file->Read(mt, num * sizeof(mapthing2_t));
-
 		if (gameinfo.gametype == GAME_Hexen)
 		{
-			spot1 = LittleShort(PO_HEX_SPAWN_TYPE);
-			spot2 = LittleShort(PO_HEX_SPAWNCRUSH_TYPE);
-			anchor = LittleShort(PO_HEX_ANCHOR_TYPE);
+			spot1 = PO_HEX_SPAWN_TYPE;
+			spot2 = PO_HEX_SPAWNCRUSH_TYPE;
+			anchor = PO_HEX_ANCHOR_TYPE;
 		}
 		else
 		{
-			spot1 = LittleShort(PO_SPAWN_TYPE);
-			spot2 = LittleShort(PO_SPAWNCRUSH_TYPE);
-			anchor = LittleShort(PO_ANCHOR_TYPE);
+			spot1 = PO_SPAWN_TYPE;
+			spot2 = PO_SPAWNCRUSH_TYPE;
+			anchor = PO_ANCHOR_TYPE;
 		}
-		spot3 = LittleShort(PO_SPAWNHURT_TYPE);
+		spot3 = PO_SPAWNHURT_TYPE;
 
-		for (int i = 0; i < num; ++i)
+		for (unsigned int i = 0; i < MapThingsConverted.Size(); ++i)
 		{
-			if (mt[i].type == spot1 || mt[i].type == spot2 || mt[i].type == spot3 || mt[i].type == anchor)
+			if (MapThingsConverted[i].type == spot1 || MapThingsConverted[i].type == spot2 || 
+				MapThingsConverted[i].type == spot3 || MapThingsConverted[i].type == anchor)
 			{
 				FNodeBuilder::FPolyStart newvert;
-				newvert.x = LittleShort(mt[i].x) << FRACBITS;
-				newvert.y = LittleShort(mt[i].y) << FRACBITS;
-				newvert.polynum = LittleShort(mt[i].angle);
-				if (mt[i].type == anchor)
+				newvert.x = MapThingsConverted[i].x;
+				newvert.y = MapThingsConverted[i].y;
+				newvert.polynum = MapThingsConverted[i].angle;
+				if (MapThingsConverted[i].type == anchor)
 				{
 					anchors.Push (newvert);
 				}
@@ -3579,7 +3175,6 @@ void P_GetPolySpots (MapData * map, TArray<FNodeBuilder::FPolyStart> &spots, TAr
 				}
 			}
 		}
-		delete[] mt;
 	}
 }
 
@@ -3953,7 +3548,7 @@ void P_FreeExtraLevelData()
 void P_SetupLevel (char *lumpname, int position)
 {
 	cycle_t times[20] = { 0 };
-	mapthing2_t *buildthings;
+	FMapThing *buildthings;
 	int numbuildthings;
 	int i;
 	bool buildmap;
@@ -4043,16 +3638,19 @@ void P_SetupLevel (char *lumpname, int position)
 		}
 		else
 		{
-			// Doom format maps get strict monster activation unless the mapinfo
+			// We need translators only for Doom format maps.
+			// If none has been defined in a map use the game's default.
+			P_LoadTranslator(level.info->translator != NULL? (const char *)level.info->translator : gameinfo.translator);
+		}
+
+		if (!map->HasBehavior || map->isText)
+		{
+			// Doom format and UDMF text maps get strict monster activation unless the mapinfo
 			// specifies differently.
 			if (!(level.flags & LEVEL_LAXACTIVATIONMAPINFO))
 			{
 				level.flags &= ~LEVEL_LAXMONSTERACTIVATION;
 			}
-
-			// We need translators only for Doom format maps.
-			// If none has been defined in a map use the game's default.
-			P_LoadTranslator(level.info->translator != NULL? (const char *)level.info->translator : gameinfo.translator);
 		}
 		/* [BB] ST doesn't have fragglescript support.
 		T_LoadScripts (map);    
@@ -4060,42 +3658,50 @@ void P_SetupLevel (char *lumpname, int position)
 
 		FBehavior::StaticLoadDefaultModules ();
 
-		P_LoadStrifeConversations (lumpname);
+		P_LoadStrifeConversations (map, lumpname);
 
-		clock (times[0]);
-		P_LoadVertexes (map);
-		unclock (times[0]);
+		if (!map->isText)
+		{
+			clock (times[0]);
+			P_LoadVertexes (map);
+			unclock (times[0]);
+			
+			// Check for maps without any BSP data at all (e.g. SLIGE)
+			clock (times[1]);
+			P_LoadSectors (map);
+			unclock (times[1]);
 
-		// Check for maps without any BSP data at all (e.g. SLIGE)
-		clock (times[1]);
-		P_LoadSectors (map);
-		unclock (times[1]);
+			clock (times[2]);
+			P_LoadSideDefs (map);
+			unclock (times[2]);
 
-		clock (times[2]);
-		P_LoadSideDefs (map);
-		unclock (times[2]);
+			clock (times[3]);
+			if (!map->HasBehavior)
+				P_LoadLineDefs (map);
+			else
+				P_LoadLineDefs2 (map);	// [RH] Load Hexen-style linedefs
+			unclock (times[3]);
 
-		clock (times[3]);
-		if (!map->HasBehavior)
-			P_LoadLineDefs (map);
+			clock (times[4]);
+			P_LoadSideDefs2 (map);
+			unclock (times[4]);
+
+			clock (times[5]);
+			P_FinishLoadingLineDefs ();
+			unclock (times[5]);
+
+		}
 		else
-			P_LoadLineDefs2 (map);	// [RH] Load Hexen-style linedefs
-		unclock (times[3]);
-
-		clock (times[4]);
-		P_LoadSideDefs2 (map);
-		unclock (times[4]);
-
-		clock (times[5]);
-		P_FinishLoadingLineDefs ();
-		unclock (times[5]);
+		{
+			P_ParseTextMap(map);
+		}
 
 		clock (times[6]);
 		P_LoopSidedefs ();
 		unclock (times[6]);
 
-		delete[] linemap;
-		linemap = NULL;
+		linemap.Clear();
+		linemap.ShrinkToFit();
 	}
 	else
 	{
@@ -4150,7 +3756,7 @@ void P_SetupLevel (char *lumpname, int position)
 				}
 			}
 		}
-		else
+		else if (!map->isText)	// regular nodes are not supported for text maps
 		{
 			clock (times[7]);
 			P_LoadSubsectors (map);
@@ -4164,7 +3770,7 @@ void P_SetupLevel (char *lumpname, int position)
 			if (!ForceNodeBuild) P_LoadSegs (map);
 			unclock (times[9]);
 		}
-
+		else ForceNodeBuild = true;
 
 		// If loading the regular nodes failed try GL nodes before considering a rebuild
 		if (ForceNodeBuild)
@@ -4237,11 +3843,16 @@ void P_SetupLevel (char *lumpname, int position)
 
 	if (!buildmap)
 	{
-		clock (times[14]);
-		if (!map->HasBehavior)
-			P_LoadThings (map, position);
-		else
-			P_LoadThings2 (map, position);	// [RH] Load Hexen-style things
+		if (!map->isText)
+		{
+			clock (times[14]);
+			if (!map->HasBehavior)
+				P_LoadThings (map, position);
+			else
+				P_LoadThings2 (map, position);	// [RH] Load Hexen-style things
+		}
+		else P_SpawnTextThings(position);
+
 		for (i = 0; i < MAXPLAYERS; ++i)
 		{
 			if (playeringame[i] && players[i].mo != NULL)
@@ -4410,6 +4021,7 @@ void P_SetupLevel (char *lumpname, int position)
 			Printf ("Time%3d:%10llu cycles (%s)\n", i, times[i], timenames[i]);
 		}
 	}
+	MapThingsConverted.Clear();
 
 	// Set these modules' state to "waiting for players", which may or may not begin the next match.
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&

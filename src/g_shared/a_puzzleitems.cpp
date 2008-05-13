@@ -50,16 +50,24 @@ bool APuzzleItem::Use (bool pickup)
 	}
 	// [RH] Always play the sound if the use fails.
 	S_Sound (Owner, CHAN_VOICE, "*puzzfail", 1, ATTN_IDLE);
-	const char *message = GetClass()->Meta.GetMetaString (AIMETA_PuzzFailMessage);
-	if (message != NULL && *message=='$') message = GStrings[message + 1];
-	if (message == NULL) message = GStrings("TXT_USEPUZZLEFAILED");
-	C_MidPrintBold (message);
 
-	// [BC] If we're the server, play the sound and print the message.
+	// [BC] If we're the server, play the sound.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-	{
 		SERVERCOMMANDS_SoundActor( Owner, CHAN_VOICE, "*puzzfail", 1, ATTN_IDLE );
-		SERVERCOMMANDS_PrintMid( message, true );
+
+	// [BB] The server has to generate the message in any case.
+	if (Owner != NULL && ( Owner->CheckLocalView (consoleplayer) || ( NETWORK_GetState( ) == NETSTATE_SERVER ) ) )
+	{
+		const char *message = GetClass()->Meta.GetMetaString (AIMETA_PuzzFailMessage);
+		if (message != NULL && *message=='$') message = GStrings[message + 1];
+		if (message == NULL) message = GStrings("TXT_USEPUZZLEFAILED");
+		C_MidPrintBold (message);
+
+		// [BB] If we're the server, print the message. This sends the message to all players.
+		// Should be tweaked so that it only is shown to those who are watching through the
+		// eyes of Owner-player.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_PrintMid( message, true );
 	}
 
 	return false;

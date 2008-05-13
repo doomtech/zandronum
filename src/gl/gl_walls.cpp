@@ -50,6 +50,7 @@
 #include "gl/gl_texture.h"
 #include "gl/gl_basic.h"
 #include "gl/gl_functions.h"
+#include "vectors.h"
 
 UniqueList<GLSkyInfo> UniqueSkies;
 UniqueList<GLHorizonInfo> UniqueHorizons;
@@ -893,7 +894,7 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 	// set up alpha blending
 	//
 	// 
-	if (seg->linedef->alpha)// && seg->linedef->special!=Line_Fogsheet)
+	if (seg->linedef->Alpha)// && seg->linedef->special!=Line_Fogsheet)
 	{
 		bool translucent;
 
@@ -901,13 +902,13 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 		{
 		case 0:
 			RenderStyle=STYLE_Translucent;
-			alpha=(float)seg->linedef->alpha/255.0f;
-			translucent = seg->linedef->alpha<255 || (gltexture && gltexture->GetTransparent());
+			alpha=FIXED2FLOAT(seg->linedef->Alpha);
+			translucent = seg->linedef->Alpha < FRACUNIT || (gltexture && gltexture->GetTransparent());
 			break;
 
 		case WALLF_ADDTRANS:
 			RenderStyle=STYLE_Add;
-			alpha=(float)seg->linedef->alpha/255.0f;
+			alpha=FIXED2FLOAT(seg->linedef->Alpha);
 			translucent=true;
 			break;
 		}

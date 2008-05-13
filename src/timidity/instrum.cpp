@@ -32,16 +32,15 @@
 #include "m_swap.h"
 #include "files.h"
 #include "templates.h"
+#include "gf1patch.h"
 
 namespace Timidity
 {
 
 extern Instrument *load_instrument_dls(Renderer *song, int drum, int bank, int instrument);
 
-extern int openmode;
-
 Instrument::Instrument()
-: type(INST_GUS), samples(0), sample(NULL)
+: samples(0), sample(NULL)
 {
 }
 
@@ -52,7 +51,7 @@ Instrument::~Instrument()
 
 	for (i = samples, sp = &(sample[0]); i != 0; i--, sp++)
 	{
-		if (sp->data != NULL)
+		if (sp->type == INST_GUS && sp->data != NULL)
 		{
 			free(sp->data);
 		}
@@ -80,28 +79,6 @@ ToneBank::~ToneBank()
 			instrument[i] = NULL;
 		}
 	}
-}
-
-
-int convert_envelope_rate(Renderer *song, BYTE rate)
-{
-	int r;
-
-	r  = 3 - ((rate>>6) & 0x3);
-	r *= 3;
-	r  = (int)(rate & 0x3f) << r; /* 6.9 fixed point */
-
-	/* 15.15 fixed point. */
-	return int(((r * 44100) / song->rate) * song->control_ratio) << 9;
-}
-
-int convert_envelope_offset(BYTE offset)
-{
-	/* This is not too good... Can anyone tell me what these values mean?
-	Are they GUS-style "exponential" volumes? And what does that mean? */
-
-	/* 15.15 fixed point */
-	return offset << (7 + 15);
 }
 
 int convert_tremolo_sweep(Renderer *song, BYTE sweep)
@@ -268,7 +245,6 @@ failread:
 	ip->samples = layer_data.Samples;
 	ip->sample = (Sample *)safe_malloc(sizeof(Sample) * layer_data.Samples);
 	memset(ip->sample, 0, sizeof(Sample) * layer_data.Samples);
-	ip->type = INST_GUS;
 	for (i = 0; i < layer_data.Samples; ++i)
 	{
 		if (sizeof(patch_data) != fp->Read(&patch_data, sizeof(patch_data)))
@@ -286,22 +262,23 @@ fail:
 		sp->loop_start = LittleLong(patch_data.StartLoop);
 		sp->loop_end = LittleLong(patch_data.EndLoop);
 		sp->sample_rate = LittleShort(patch_data.SampleRate);
-		sp->low_freq = LittleLong(patch_data.LowFrequency);
-		sp->high_freq = LittleLong(patch_data.HighFrequency);
-		sp->root_freq = LittleLong(patch_data.RootFrequency);
+		sp->low_freq = float(LittleLong(patch_data.LowFrequency));
+		sp->high_freq = float(LittleLong(patch_data.HighFrequency)) + 0.9999f;
+		sp->root_freq = float(LittleLong(patch_data.RootFrequency));
 		sp->high_vel = 127;
+		sp->velocity = -1;
+		sp->type = INST_GUS;
 
+		// Expand to SF2 range.
 		if (panning == -1)
 		{
-			sp->panning = patch_data.Balance & 0x0F;
-			sp->panning = (sp->panning << 3) | (sp->panning >> 1);
+			sp->panning = (patch_data.Balance & 0x0F) * 1000 / 15 - 500;
 		}
 		else
 		{
-			sp->panning = panning & 0x7f;
+			sp->panning = (panning & 0x7f) * 1000 / 127 - 500;
 		}
-		sp->panning |= sp->panning << 7;
-		song->compute_pan(sp->panning, sp->left_offset, sp->right_offset);
+		song->compute_pan((sp->panning + 500) / 1000.0, INST_GUS, sp->left_offset, sp->right_offset);
 
 		/* tremolo */
 		if (patch_data.TremoloRate == 0 || patch_data.TremoloDepth == 0)
@@ -353,6 +330,10 @@ fail:
 			{
 				sp->scale_factor *= 1024;
 			}
+			else if (sp->scale_factor > 2048)
+			{
+				sp->scale_factor = 1024;
+			}
 			if (sp->scale_factor != 1024)
 			{
 				cmsg(CMSG_INFO, VERB_DEBUG, " * Scale: note %d, factor %d\n",
@@ -381,53 +362,58 @@ fail:
 			if (header.Description[j] != 0)
 				break;
 		}
-		if (j == DESC_SIZE)
+		/* Strip any loops and envelopes we're permitted to */
+		/* [RH] (But PATCH_BACKWARD isn't a loop flag at all!) */
+		if ((strip_loop == 1) && 
+			(sp->modes & (PATCH_SUSTAIN | PATCH_LOOPEN | PATCH_BIDIR | PATCH_BACKWARD)))
 		{
-			/* Strip any loops and envelopes we're permitted to */
-			/* [RH] (But PATCH_BACKWARD isn't a loop flag at all!) */
-			if ((strip_loop == 1) && 
-				(sp->modes & (PATCH_SUSTAIN | PATCH_LOOPEN | PATCH_BIDIR | PATCH_BACKWARD)))
+			cmsg(CMSG_INFO, VERB_DEBUG, " - Removing loop and/or sustain\n");
+			if (j == DESC_SIZE)
 			{
-				cmsg(CMSG_INFO, VERB_DEBUG, " - Removing loop and/or sustain\n");
 				sp->modes &= ~(PATCH_SUSTAIN | PATCH_LOOPEN | PATCH_BIDIR | PATCH_BACKWARD);
 			}
+			sp->modes |= PATCH_T_NO_LOOP;
+		}
 
-			if (strip_envelope == 1)
+		if (strip_envelope == 1)
+		{
+			cmsg(CMSG_INFO, VERB_DEBUG, " - Removing envelope\n");
+			/* [RH] The envelope isn't really removed, but this is the way the standard
+			 * Gravis patches get that effect: All rates at maximum, and all offsets at
+			 * a constant level.
+			 */
+			if (j == DESC_SIZE)
 			{
-				cmsg(CMSG_INFO, VERB_DEBUG, " - Removing envelope\n");
-				/* [RH] The envelope isn't really removed, but this is the way the standard
-				 * Gravis patches get that effect: All rates at maximum, and all offsets at
-				 * a constant level.
-				 */
-				for (j = 1; j < ENVELOPES; ++j)
+				int k;
+				for (k = 1; k < ENVELOPES; ++k)
 				{ /* Find highest offset. */
-					if (patch_data.EnvelopeOffset[j] > patch_data.EnvelopeOffset[0])
+					if (patch_data.EnvelopeOffset[k] > patch_data.EnvelopeOffset[0])
 					{
-						patch_data.EnvelopeOffset[0] = patch_data.EnvelopeOffset[j];
+						patch_data.EnvelopeOffset[0] = patch_data.EnvelopeOffset[k];
 					}
 				}
-				for (j = 0; j < ENVELOPES; ++j)
+				for (k = 0; k < ENVELOPES; ++k)
 				{
-					patch_data.EnvelopeRate[j] = 63;
-					patch_data.EnvelopeOffset[j] = patch_data.EnvelopeOffset[0];
+					patch_data.EnvelopeRate[k] = 63;
+					patch_data.EnvelopeOffset[k] = patch_data.EnvelopeOffset[0];
 				}
 			}
+			sp->modes |= PATCH_T_NO_ENVELOPE;
 		}
-#if 0
 		else if (strip_envelope != 0)
 		{
 			/* Have to make a guess. */
 			if (!(sp->modes & (PATCH_LOOPEN | PATCH_BIDIR | PATCH_BACKWARD)))
 			{
 				/* No loop? Then what's there to sustain? No envelope needed either... */
-				sp->modes &= ~(PATCH_SUSTAIN | PATCH_NO_SRELEASE);
+				sp->modes |= PATCH_T_NO_ENVELOPE;
 				cmsg(CMSG_INFO, VERB_DEBUG, " - No loop, removing sustain and envelope\n");
 			}
-			else if (memcmp(patch_data.EnvelopeRate, "??????", 6) == 0 || patch_data.EnvelopeOffset[RELEASEC] >= 100) 
+			else if (memcmp(patch_data.EnvelopeRate, "??????", 6) == 0 || patch_data.EnvelopeOffset[GF1_RELEASEC] >= 100) 
 			{
 				/* Envelope rates all maxed out? Envelope end at a high "offset"?
 				   That's a weird envelope. Take it out. */
-				sp->modes &= ~PATCH_NO_SRELEASE;
+				sp->modes |= PATCH_T_NO_ENVELOPE;
 				cmsg(CMSG_INFO, VERB_DEBUG, " - Weirdness, removing envelope\n");
 			}
 			else if (!(sp->modes & PATCH_SUSTAIN))
@@ -436,17 +422,20 @@ fail:
 				   justified, but patches without sustain usually don't need the
 				   envelope either... at least the Gravis ones. They're mostly
 				   drums.  I think. */
-				sp->modes &= ~PATCH_NO_SRELEASE;
+				sp->modes |= PATCH_T_NO_ENVELOPE;
 				cmsg(CMSG_INFO, VERB_DEBUG, " - No sustain, removing envelope\n");
 			}
 		}
-#endif
+		if (!(sp->modes & PATCH_NO_SRELEASE))
+		{ // TiMidity thinks that this is an envelope enable flag.
+			sp->modes |= PATCH_T_NO_ENVELOPE;
+		}
 
 		for (j = 0; j < 6; j++)
 		{
-			sp->envelope_rate[j] = convert_envelope_rate(song, patch_data.EnvelopeRate[j]);
+			sp->envelope.gf1.rate[j] = patch_data.EnvelopeRate[j];
 			/* [RH] GF1NEW clamps the offsets to the range [5,251], so we do too. */
-			sp->envelope_offset[j] = convert_envelope_offset(clamp<BYTE>(patch_data.EnvelopeOffset[j], 5, 251));
+			sp->envelope.gf1.offset[j] = clamp<BYTE>(patch_data.EnvelopeOffset[j], 5, 251);
 		}
 
 		/* Then read the sample data */
@@ -487,10 +476,10 @@ fail:
 		}
 		else
 		{
-#if defined(ADJUST_SAMPLE_VOLUMES)
 			/* Try to determine a volume scaling factor for the sample.
-			This is a very crude adjustment, but things sound more
-			balanced with it. Still, this should be a runtime option. */
+			   This is a very crude adjustment, but things sound more
+			   balanced with it. Still, this should be a runtime option.
+			   (This is ignored unless midi_timiditylike is turned on.) */
 			int i;
 			sample_t maxamp = 0, a;
 			sample_t *tmp;
@@ -502,9 +491,6 @@ fail:
 			}
 			sp->volume = 1 / maxamp;
 			cmsg(CMSG_INFO, VERB_DEBUG, " * volume comp: %f\n", sp->volume);
-#else
-			sp->volume = 1;
-#endif
 		}
 
 		/* Then fractional samples */
@@ -648,53 +634,62 @@ static int fill_bank(Renderer *song, int dr, int b)
 	{
 		if (bank->instrument[i] == MAGIC_LOAD_INSTRUMENT)
 		{
+			bank->instrument[i] = NULL;
 			bank->instrument[i] = load_instrument_dls(song, dr, b, i);
 			if (bank->instrument[i] != NULL)
 			{
 				continue;
 			}
-			if (bank->tone[i].name.IsEmpty())
+			Instrument *ip;
+			ip = load_instrument_font_order(song, 0, dr, b, i);
+			if (ip == NULL)
 			{
-				cmsg(CMSG_WARNING, (b != 0) ? VERB_VERBOSE : VERB_NORMAL,
-					"No instrument mapped to %s %d, program %d%s\n",
-					(dr) ? "drum set" : "tone bank", b, i, 
-					(b != 0) ? "" : " - this instrument will not be heard");
+				if (bank->tone[i].fontbank >= 0)
+				{
+					ip = load_instrument_font(song, bank->tone[i].name, dr, b, i);
+				}
+				else
+				{
+					ip = load_instrument(song, bank->tone[i].name, 
+						(dr) ? 1 : 0,
+						bank->tone[i].pan,
+						bank->tone[i].amp,
+						(bank->tone[i].note != -1) ? bank->tone[i].note : ((dr) ? i : -1),
+						(bank->tone[i].strip_loop != -1) ? bank->tone[i].strip_loop : ((dr) ? 1 : -1),
+						(bank->tone[i].strip_envelope != -1) ? bank->tone[i].strip_envelope : ((dr) ? 1 : -1),
+						bank->tone[i].strip_tail);
+				}
+				if (ip == NULL)
+				{
+					ip = load_instrument_font_order(song, 1, dr, b, i);
+				}
+			}
+			bank->instrument[i] = ip;
+			if (ip == NULL)
+			{
+				if (bank->tone[i].name.IsEmpty())
+				{
+					cmsg(CMSG_WARNING, (b != 0) ? VERB_VERBOSE : VERB_NORMAL,
+						"No instrument mapped to %s %d, program %d%s\n",
+						(dr) ? "drum set" : "tone bank", b, i, 
+						(b != 0) ? "" : " - this instrument will not be heard");
+				}
+				else
+				{
+					cmsg(CMSG_ERROR, VERB_NORMAL, 
+						"Couldn't load instrument %s (%s %d, program %d)\n",
+						bank->tone[i].name.GetChars(),
+						(dr) ? "drum set" : "tone bank", b, i);
+				}
 				if (b != 0)
 				{
 					/* Mark the corresponding instrument in the default
 					   bank / drumset for loading (if it isn't already) */
-					if (!dr)
+					if (((dr) ? drumset[0] : tonebank[0])->instrument[i] != NULL)
 					{
-						if (tonebank[0]->instrument[i] != NULL)
-						{
-							tonebank[0]->instrument[i] = MAGIC_LOAD_INSTRUMENT;
-						}
-					}
-					else
-					{
-						if (drumset[0]->instrument[i] != NULL)
-						{
-							drumset[0]->instrument[i] = MAGIC_LOAD_INSTRUMENT;
-						}
+						((dr) ? drumset[0] : tonebank[0])->instrument[i] = MAGIC_LOAD_INSTRUMENT;
 					}
 				}
-				bank->instrument[i] = NULL;
-				errors++;
-			}
-			else if (!(bank->instrument[i] =
-				load_instrument(song, bank->tone[i].name, 
-					(dr) ? 1 : 0,
-					bank->tone[i].pan,
-					bank->tone[i].amp,
-					(bank->tone[i].note != -1) ? bank->tone[i].note : ((dr) ? i : -1),
-					(bank->tone[i].strip_loop != -1) ? bank->tone[i].strip_loop : ((dr) ? 1 : -1),
-					(bank->tone[i].strip_envelope != -1) ? bank->tone[i].strip_envelope : ((dr) ? 1 : -1),
-					bank->tone[i].strip_tail)))
-			{
-				cmsg(CMSG_ERROR, VERB_NORMAL, 
-					"Couldn't load instrument %s (%s %d, program %d)\n",
-					bank->tone[i].name.GetChars(),
-					(dr) ? "drum set" : "tone bank", b, i);
 				errors++;
 			}
 		}

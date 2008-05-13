@@ -180,28 +180,28 @@ extern	bool	 		playeringame[MAXPLAYERS];
 
 
 // Player spawn spots for deathmatch.
-extern TArray<mapthing2_t> deathmatchstarts;
+extern TArray<FMapThing> deathmatchstarts;
 
 // [BC] Temporary team spawn spots.
-extern	TArray<mapthing2_t>	TemporaryTeamStarts;
+extern	TArray<FMapThing>	TemporaryTeamStarts;
 
 // [BC] Blue team spawn spots.
-extern	TArray<mapthing2_t>	BlueTeamStarts;
+extern	TArray<FMapThing>	BlueTeamStarts;
 
 // [BC] Red team spawn spots.
-extern	TArray<mapthing2_t>	RedTeamStarts;
+extern	TArray<FMapThing>	RedTeamStarts;
 
 // [RC] Possession starts
-extern	TArray<mapthing2_t>	PossessionStarts;
+extern	TArray<FMapThing>	PossessionStarts;
 
 // [RC] Terminator starts
-extern	TArray<mapthing2_t>	TerminatorStarts;
+extern	TArray<FMapThing>	TerminatorStarts;
 
 // [BC] Generic invasion spawn spots.
-extern	TArray<mapthing2_t>	GenericInvasionStarts;
+extern	TArray<FMapThing>	GenericInvasionStarts;
 
 // Player spawn spots.
-extern	mapthing2_t		playerstarts[MAXPLAYERS];
+extern	FMapThing		playerstarts[MAXPLAYERS];
 
 // Intermission stats.
 // Parameters for world map / intermission.

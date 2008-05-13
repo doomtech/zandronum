@@ -29,6 +29,7 @@
 
 // Some global defines, that configure the game.
 #include "doomdef.h"
+#include "m_swap.h"
 
 
 
@@ -55,12 +56,16 @@ enum
 	ML_BLOCKMAP,		// LUT, motion clipping, walls/grid element
 	ML_BEHAVIOR,		// [RH] Hexen-style scripts. If present, THINGS
 						//		and LINEDEFS are also Hexen-style.
+	ML_CONVERSATION,	// Strife dialog (only for TEXTMAP format)
 	ML_MAX,
 
 	// [RH] These are compressed (and extended) nodes. They combine the data from
 	// vertexes, segs, ssectors, and nodes into a single lump.
 	ML_ZNODES = ML_NODES,
-	ML_GLZNODES = ML_SSECTORS
+	ML_GLZNODES = ML_SSECTORS,
+
+	// for text map format
+	ML_TEXTMAP = ML_THINGS,
 };
 
 
@@ -130,41 +135,9 @@ typedef struct
 #define ML_DONTDRAW 		0x0080	// don't draw on the automap
 #define ML_MAPPED			0x0100	// set if already drawn in automap
 #define ML_REPEAT_SPECIAL	0x0200	// special is repeatable
+
 #define ML_SPAC_SHIFT		10
-#define ML_SPAC_MASK		0x1c00
-static inline int GET_SPAC (int flags)
-{
-	return (flags&ML_SPAC_MASK) >> ML_SPAC_SHIFT;
-}
-
-// Special activation types
-#define SPAC_CROSS		0	// when player crosses line
-#define SPAC_USE		1	// when player uses line
-#define SPAC_MCROSS		2	// when monster crosses line
-#define SPAC_IMPACT		3	// when projectile hits line
-#define SPAC_PUSH		4	// when player/monster pushes line
-#define SPAC_PCROSS		5	// when projectile crosses line
-#define SPAC_USETHROUGH	6	// SPAC_USE, but passes it through
-#define SPAC_PTOUCH		7	// when a projectiles crosses or hits line
-
-#define SPAC_OTHERCROSS	8	// [RH] Not a real activation type. Here for compatibility.
-
-
-// [RH] BOOM's ML_PASSUSE flag (conflicts with ML_REPEATSPECIAL)
-#define ML_PASSUSE_BOOM				0x0200
-
-// [RH] In case I feel like it, here it is...
-#define ML_3DMIDTEX_ETERNITY		0x0400
-
-// If this bit is set, then all non-original-Doom bits are cleared when
-// translating the line. Only applies when playing Doom with Doom-format maps.
-// Hexen format maps and the other games are not affected by this.
-#define ML_RESERVED_ETERNITY		0x0800
-
-// [RH] Extra flags for Strife compatibility
-#define ML_TRANSLUCENT_STRIFE		0x1000
-#define ML_RAILING_STRIFE			0x0200
-#define ML_BLOCK_FLOATERS_STRIFE	0x0400
+#define ML_SPAC_MASK		0x1c00	// Hexen's activator mask. These flags are no longer used.
 
 // Extended flags
 #define ML_MONSTERSCANACTIVATE		0x00002000	// [RH] Monsters (as well as players) can active the line
@@ -177,6 +150,47 @@ static inline int GET_SPAC (int flags)
 #define ML_WRAP_MIDTEX				0x00100000
 #define ML_3DMIDTEX					0x00200000
 #define ML_CHECKSWITCHRANGE			0x00400000
+#define ML_FIRSTSIDEONLY			0x00800000	// activated only when crossed from front side
+
+
+static inline int GET_SPAC (int flags)
+{
+	return (flags&ML_SPAC_MASK) >> ML_SPAC_SHIFT;
+}
+
+// Special activation types
+enum SPAC
+{
+	SPAC_Cross = 1<<0,		// when player crosses line
+	SPAC_Use = 1<<1,		// when player uses line
+	SPAC_MCross = 1<<2,		// when monster crosses line
+	SPAC_Impact = 1<<3,		// when projectile hits line
+	SPAC_Push = 1<<4,		// when player pushes line	
+	SPAC_PCross = 1<<5,		// when projectile crosses line
+	SPAC_UseThrough = 1<<6,	// when player uses line (doesn't block)
+	// SPAC_PTOUCH is mapped to SPAC_PCross|SPAC_Impact
+	SPAC_AnyCross = 1<<7,	// when anything without the MF2_TELEPORT flag crosses the line
+	SPAC_MUse = 1<<8,		// monsters can use
+	SPAC_MPush = 1<<9,		// monsters can push
+
+	SPAC_PlayerActivate = (SPAC_Cross|SPAC_Use|SPAC_Impact|SPAC_Push|SPAC_AnyCross|SPAC_UseThrough),
+};
+
+// [RH] BOOM's ML_PASSUSE flag (conflicts with ML_REPEATSPECIAL)
+#define ML_PASSUSE_BOOM				0x0200
+
+#define ML_3DMIDTEX_ETERNITY		0x0400
+
+// If this bit is set, then all non-original-Doom bits are cleared when
+// translating the line. Only applies when playing Doom with Doom-format maps.
+// Hexen format maps and the other games are not affected by this.
+#define ML_RESERVED_ETERNITY		0x0800
+
+// [RH] Extra flags for Strife compatibility
+#define ML_TRANSLUCENT_STRIFE		0x1000
+#define ML_RAILING_STRIFE			0x0200
+#define ML_BLOCK_FLOATERS_STRIFE	0x0400
+
 
 // Sector definition, from editing
 typedef struct
@@ -241,7 +255,7 @@ typedef struct
 } mapthing_t;
 
 // [RH] Hexen-compatible MapThing.
-typedef struct MapThing
+typedef struct
 {
 	unsigned short thingid;
 	short		x;
@@ -252,9 +266,25 @@ typedef struct MapThing
 	short		flags;
 	BYTE		special;
 	BYTE		args[5];
+} mapthinghexen_t;
+
+// Internal representation of a mapthing
+struct FMapThing
+{
+	int			thingid;
+	fixed_t		x;
+	fixed_t		y;
+	fixed_t		z;
+	short		angle;
+	short		type;
+	WORD		SkillFilter;
+	WORD		ClassFilter;
+	DWORD		flags;
+	int			special;
+	int			args[5];
 
 	void Serialize (FArchive &);
-} mapthing2_t;
+};
 
 
 // [RH] MapThing flags.
@@ -266,9 +296,14 @@ typedef struct MapThing
 #define MTF_AMBUSH			0x0008	// Thing is deaf
 */
 #define MTF_DORMANT			0x0010	// Thing is dormant (use Thing_Activate)
+/*
 #define MTF_FIGHTER			0x0020
 #define MTF_CLERIC			0x0040
 #define MTF_MAGE			0x0080
+*/
+#define MTF_CLASS_MASK		0x00e0
+#define MTF_CLASS_SHIFT		5
+
 #define MTF_SINGLE			0x0100	// Thing appears in single-player games
 #define MTF_COOPERATIVE		0x0200	// Thing appears in cooperative games
 #define MTF_DEATHMATCH		0x0400	// Thing appears in deathmatch games

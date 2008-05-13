@@ -813,7 +813,8 @@ manual_floor:
 			#ifdef SILENT_INSTANT_FLOORS
 			if (floortype != DFloor::floorRaiseInstant && floortype != DFloor::floorLowerInstant) 
 			{
-				if (!line || GET_SPAC(line->flags) != SPAC_USE || line->backsector!=sec)
+				// [BB] Corrected the SPAC syntax according to the latest ZDoom changes.
+				if (!line || !(line->activation & (SPAC_Use|SPAC_MUse)) || line->backsector!=sec)
 					silent = true;
 			}
 			#endif

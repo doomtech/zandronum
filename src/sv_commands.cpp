@@ -4339,10 +4339,10 @@ void SERVERCOMMANDS_SetLineAlpha( ULONG ulLine, ULONG ulPlayerExtra, ULONG ulFla
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 4, true );
+		SERVER_CheckClientBuffer( ulIdx, 7, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETLINEALPHA );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulLine );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lines[ulLine].alpha );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lines[ulLine].Alpha );
 	}
 }
 

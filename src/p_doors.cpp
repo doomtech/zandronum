@@ -584,7 +584,7 @@ bool EV_DoDoor (DDoor::EVlDoor type, line_t *line, AActor *thing,
 						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 							SERVERCOMMANDS_ChangeDoorDirection( door->GetID( ), door->m_Direction );
 					}
-					else if (GET_SPAC(line->flags) != SPAC_PUSH)
+					else if (!(line->activation & (SPAC_Push|SPAC_MPush)))
 						// [RH] activate push doors don't go back down when you
 						//		run into them (otherwise opening them would be
 						//		a real pain).

@@ -2096,20 +2096,20 @@ void G_PlayerReborn (int player)
 //
 // G_CheckSpot	
 // Returns false if the player cannot be respawned
-// at the given mapthing2_t spot  
+// at the given mapthing spot  
 // because something is occupying it 
 //
 
-bool G_CheckSpot (int playernum, mapthing2_t *mthing)
+bool G_CheckSpot (int playernum, FMapThing *mthing)
 {
 	fixed_t x;
 	fixed_t y;
 	fixed_t z, oldz;
 	int i;
 
-	x = mthing->x << FRACBITS;
-	y = mthing->y << FRACBITS;
-	z = mthing->z << FRACBITS;
+	x = mthing->x;
+	y = mthing->y;
+	z = mthing->z;
 
 	z += P_PointInSector (x, y)->floorplane.ZatPoint (x, y);
 
@@ -2148,8 +2148,8 @@ bool G_CheckSpot (int playernum, mapthing2_t *mthing)
 // called at level load and each death 
 //
 
-// [RH] Returns the distance of the closest player to the given mapthing2_t.
-static fixed_t PlayersRangeFromSpot (mapthing2_t *spot)
+// [RH] Returns the distance of the closest player to the given mapthing
+static fixed_t PlayersRangeFromSpot (FMapThing *spot)
 {
 	fixed_t closest = INT_MAX;
 	fixed_t distance;
@@ -2160,8 +2160,8 @@ static fixed_t PlayersRangeFromSpot (mapthing2_t *spot)
 		if (!playeringame[i] || !players[i].mo || players[i].health <= 0)
 			continue;
 
-		distance = P_AproxDistance (players[i].mo->x - spot->x * FRACUNIT,
-									players[i].mo->y - spot->y * FRACUNIT);
+		distance = P_AproxDistance (players[i].mo->x - spot->x,
+									players[i].mo->y - spot->y);
 
 		if (distance < closest)
 			closest = distance;
@@ -2171,7 +2171,7 @@ static fixed_t PlayersRangeFromSpot (mapthing2_t *spot)
 }
 
 // Returns the average distance this spot is from all the enemies of ulPlayer.
-static fixed_t TeamLMSPlayersRangeFromSpot( ULONG ulPlayer, mapthing2_t *spot )
+static fixed_t TeamLMSPlayersRangeFromSpot( ULONG ulPlayer, FMapThing *spot )
 {
 	ULONG	ulNumSpots;
 	fixed_t	distance = INT_MAX;
@@ -2199,10 +2199,10 @@ static fixed_t TeamLMSPlayersRangeFromSpot( ULONG ulPlayer, mapthing2_t *spot )
 }
 
 // [RH] Select the deathmatch spawn spot farthest from everyone.
-static mapthing2_t *SelectFarthestDeathmatchSpot( ULONG ulPlayer, size_t selections )
+static FMapThing *SelectFarthestDeathmatchSpot( ULONG ulPlayer, size_t selections )
 {
 	fixed_t bestdistance = 0;
-	mapthing2_t *bestspot = NULL;
+	FMapThing *bestspot = NULL;
 	unsigned int i;
 
 	for (i = 0; i < selections; i++)
@@ -2228,12 +2228,12 @@ static mapthing2_t *SelectFarthestDeathmatchSpot( ULONG ulPlayer, size_t selecti
 
 
 // Try to find a deathmatch spawn spot farthest from our enemies.
-static mapthing2_t *SelectBestTeamLMSSpot( ULONG ulPlayer, size_t selections )
+static FMapThing *SelectBestTeamLMSSpot( ULONG ulPlayer, size_t selections )
 {
 	ULONG		ulIdx;
 	fixed_t		Distance;
 	fixed_t		BestDistance;
-	mapthing2_t	*pBestSpot;
+	FMapThing	*pBestSpot;
 
 	pBestSpot = NULL;
 	BestDistance = 0;
@@ -2259,7 +2259,7 @@ static mapthing2_t *SelectBestTeamLMSSpot( ULONG ulPlayer, size_t selections )
 }
 
 // [RH] Select a deathmatch spawn spot at random (original mechanism)
-static mapthing2_t *SelectRandomDeathmatchSpot (int playernum, unsigned int selections)
+static FMapThing *SelectRandomDeathmatchSpot (int playernum, unsigned int selections)
 {
 	unsigned int i, j;
 
@@ -2276,7 +2276,7 @@ static mapthing2_t *SelectRandomDeathmatchSpot (int playernum, unsigned int sele
 	return &deathmatchstarts[i];
 }
 // [RC] Select a possession start
-static mapthing2_t *SelectRandomPossessionSpot (int playernum, unsigned int selections)
+static FMapThing *SelectRandomPossessionSpot (int playernum, unsigned int selections)
 {
 	unsigned int i, j;
 
@@ -2297,7 +2297,7 @@ static mapthing2_t *SelectRandomPossessionSpot (int playernum, unsigned int sele
 }
 
 // [RC] Select a terminator start
-static mapthing2_t *SelectRandomTerminatorSpot (int playernum, unsigned int selections)
+static FMapThing *SelectRandomTerminatorSpot (int playernum, unsigned int selections)
 {
 	unsigned int i, j;
 
@@ -2319,7 +2319,7 @@ static mapthing2_t *SelectRandomTerminatorSpot (int playernum, unsigned int sele
 
 
 // Select a temporary team spawn spot at random.
-static mapthing2_t *SelectTemporaryTeamSpot( USHORT usPlayer, ULONG ulNumSelections )
+static FMapThing *SelectTemporaryTeamSpot( USHORT usPlayer, ULONG ulNumSelections )
 {
 	ULONG	ulNumAttempts;
 	ULONG	ulSelection;
@@ -2337,7 +2337,7 @@ static mapthing2_t *SelectTemporaryTeamSpot( USHORT usPlayer, ULONG ulNumSelecti
 }
 
 // Select a blue team spawn spot at random.
-static mapthing2_t *SelectRandomBlueTeamSpot( USHORT usPlayer, ULONG ulNumSelections )
+static FMapThing *SelectRandomBlueTeamSpot( USHORT usPlayer, ULONG ulNumSelections )
 {
 	ULONG	ulNumAttempts;
 	ULONG	ulSelection;
@@ -2355,7 +2355,7 @@ static mapthing2_t *SelectRandomBlueTeamSpot( USHORT usPlayer, ULONG ulNumSelect
 }
 
 // Select a blue team spawn spot at random.
-static mapthing2_t *SelectRandomRedTeamSpot( USHORT usPlayer, ULONG ulNumSelections )
+static FMapThing *SelectRandomRedTeamSpot( USHORT usPlayer, ULONG ulNumSelections )
 {
 	ULONG	ulNumAttempts;
 	ULONG	ulSelection;
@@ -2373,7 +2373,7 @@ static mapthing2_t *SelectRandomRedTeamSpot( USHORT usPlayer, ULONG ulNumSelecti
 }
 
 // Select a cooperative spawn spot at random.
-static mapthing2_t *SelectRandomCooperativeSpot( ULONG ulPlayer, ULONG ulNumSelections )
+static FMapThing *SelectRandomCooperativeSpot( ULONG ulPlayer, ULONG ulNumSelections )
 {
 	ULONG		ulNumAttempts;
 	ULONG		ulSelection;
@@ -2411,7 +2411,7 @@ static mapthing2_t *SelectRandomCooperativeSpot( ULONG ulPlayer, ULONG ulNumSele
 void G_DeathMatchSpawnPlayer( int playernum, bool bClientUpdate )
 {
 	unsigned int selections;
-	mapthing2_t *spot;
+	FMapThing *spot;
 
 	selections = deathmatchstarts.Size ();
 	// [RH] We can get by with just 1 deathmatch start
@@ -2442,7 +2442,7 @@ void G_DeathMatchSpawnPlayer( int playernum, bool bClientUpdate )
 void G_TemporaryTeamSpawnPlayer( ULONG ulPlayer, bool bClientUpdate )
 {
 	ULONG		ulNumSelections;
-	mapthing2_t	*pSpot;
+	FMapThing	*pSpot;
 
 	ulNumSelections = TemporaryTeamStarts.Size( );
 
@@ -2489,7 +2489,7 @@ void G_TemporaryTeamSpawnPlayer( ULONG ulPlayer, bool bClientUpdate )
 void G_TeamgameSpawnPlayer( ULONG ulPlayer, ULONG ulTeam, bool bClientUpdate )
 {
 	ULONG		ulNumSelections;
-	mapthing2_t	*pSpot;
+	FMapThing	*pSpot;
 
 	if ( ulTeam == TEAM_BLUE )
 	{
@@ -2521,7 +2521,7 @@ void G_CooperativeSpawnPlayer( ULONG ulPlayer, bool bClientUpdate, bool bTempPla
 {
 	ULONG		ulNumSpots;
 	ULONG		ulIdx;
-	mapthing2_t	*pSpot;
+	FMapThing	*pSpot;
 
 	// If there's a valid start for this player, spawn him there.
 	if (( playerstarts[ulPlayer].type != 0 ) && ( G_CheckSpot( ulPlayer, &playerstarts[ulPlayer] )))
@@ -3158,9 +3158,9 @@ void GAME_ResetMap( void )
 		}
 
 		// Restore the line's alpha if it changed.
-		if ( lines[ulIdx].alpha != lines[ulIdx].SavedAlpha )
+		if ( lines[ulIdx].Alpha != lines[ulIdx].SavedAlpha )
 		{
-			lines[ulIdx].alpha = lines[ulIdx].SavedAlpha;
+			lines[ulIdx].Alpha = lines[ulIdx].SavedAlpha;
 
 			// If we're the server, tell clients about this alpha change.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -3655,7 +3655,7 @@ void GAME_SpawnTerminatorArtifact( void )
 {
 	ULONG		ulIdx;
 	AActor		*pTerminatorBall;
-	mapthing2_t	*pSpot;
+	FMapThing	*pSpot;
 
 	// [RC] Spawn it at a Terminator start, or a deathmatch spot
 	if(TerminatorStarts.Size() > 0) 	// Use the terminator starts, if the mapper added them
@@ -3690,7 +3690,7 @@ void GAME_SpawnPossessionArtifact( void )
 {
 	ULONG		ulIdx;
 	AActor		*pPossessionStone;
-	mapthing2_t	*pSpot;
+	FMapThing	*pSpot;
 
 	// [RC] Spawn it at a Possession start, or a deathmatch spot
 	if(PossessionStarts.Size() > 0) 	// Did the mapper place possession starts? Use those

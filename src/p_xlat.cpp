@@ -62,14 +62,13 @@ typedef enum
 
 void P_TranslateLineDef (line_t *ld, maplinedef_t *mld)
 {
-	static FMemLump tlatebase;
 	unsigned short special = (unsigned short) LittleShort(mld->special);
 	short tag = LittleShort(mld->tag);
 	DWORD flags = LittleShort(mld->flags);
 	INTBOOL passthrough;
 	if (flags & ML_TRANSLUCENT_STRIFE)
 	{
-		ld->alpha = 255*3/4;
+		ld->Alpha = FRACUNIT*3/4;
 	}
 	if (gameinfo.gametype == GAME_Strife)
 	{
@@ -128,13 +127,16 @@ void P_TranslateLineDef (line_t *ld, maplinedef_t *mld)
 		ld->args[4] = linetrans->args[4];
 
 		ld->flags = flags | ((linetrans->flags & 0x1f) << 9);
+		if (linetrans->flags & 0x20) ld->flags |= ML_FIRSTSIDEONLY;
+		ld->activation = 1 << GET_SPAC(ld->flags);
+		if (ld->activation == SPAC_AnyCross) ld->activation = SPAC_Impact|SPAC_PCross;	// this is really PTouch
+		ld->flags &= ~ML_SPAC_MASK;
 
-		if (passthrough && (GET_SPAC(ld->flags) == SPAC_USE))
+		if (passthrough && ld->activation == SPAC_Use)
 		{
-			ld->flags &= ~ML_SPAC_MASK;
-			ld->flags |= SPAC_USETHROUGH << ML_SPAC_SHIFT;
+			ld->activation = SPAC_UseThrough;
 		}
-		switch (linetrans->flags & 0xe0)
+		switch (linetrans->flags & LINETRANS_TAGMASK)
 		{
 		case LINETRANS_HAS2TAGS:	// First two arguments are tags
 			ld->args[1] = tag;
@@ -158,7 +160,7 @@ void P_TranslateLineDef (line_t *ld, maplinedef_t *mld)
 			ld->args[4] = tag;
 			break;
 		}
-		if ((ld->flags & ML_SECRET) && (GET_SPAC(ld->flags) == SPAC_USE || GET_SPAC(ld->flags) == SPAC_USETHROUGH))
+		if ((ld->flags & ML_SECRET) && ld->activation & (SPAC_Use|SPAC_UseThrough))
 		{
 			ld->flags &= ~ML_MONSTERSCANACTIVATE;
 		}
@@ -178,7 +180,7 @@ void P_TranslateLineDef (line_t *ld, maplinedef_t *mld)
 			case WalkMany:
 				flags |= ML_REPEAT_SPECIAL;
 			case WalkOnce:
-				flags |= SPAC_CROSS << ML_SPAC_SHIFT;
+				ld->activation = SPAC_Cross;
 				break;
 
 			case SwitchMany:
@@ -187,15 +189,15 @@ void P_TranslateLineDef (line_t *ld, maplinedef_t *mld)
 			case SwitchOnce:
 			case PushOnce:
 				if (passthrough)
-					flags |= SPAC_USETHROUGH << ML_SPAC_SHIFT;
+					ld->activation = SPAC_UseThrough;
 				else
-					flags |= SPAC_USE << ML_SPAC_SHIFT;
+					ld->activation = SPAC_Use;
 				break;
 
 			case GunMany:
 				flags |= ML_REPEAT_SPECIAL;
 			case GunOnce:
-				flags |= SPAC_IMPACT << ML_SPAC_SHIFT;
+				ld->activation = SPAC_Impact;
 				break;
 			}
 
@@ -265,6 +267,11 @@ void P_TranslateLineDef (line_t *ld, maplinedef_t *mld)
 				}
 			}
 			ld->flags = flags;
+			if (flags & ML_MONSTERSCANACTIVATE && ld->activation == SPAC_Cross)
+			{
+				// In Boom anything can activate such a line so set the proper type here.
+				ld->activation = SPAC_AnyCross;
+			}
 			return;
 		}
 	}

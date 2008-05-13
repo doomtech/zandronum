@@ -242,11 +242,11 @@ END_DEFAULTS
 void ASectorSilencer::BeginPlay ()
 {
 	Super::BeginPlay ();
-	Sector->MoreFlags |= SECF_SILENT;
+	Sector->Flags |= SECF_SILENT;
 }
 
 void ASectorSilencer::Destroy ()
 {
-	Sector->MoreFlags &= ~SECF_SILENT;
+	Sector->Flags &= ~SECF_SILENT;
 	Super::Destroy ();
 }

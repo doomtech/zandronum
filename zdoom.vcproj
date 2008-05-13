@@ -2953,6 +2953,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\src\p_slopes.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\p_spec.cpp"
 				>
 				<FileConfiguration
@@ -3203,6 +3207,10 @@
 						AdditionalOptions="&quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot; "
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\src\p_udmf.cpp"
+				>
 			</File>
 			<File
 				RelativePath=".\src\p_user.cpp"

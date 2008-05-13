@@ -329,6 +329,7 @@ void P_SerializeWorld (FArchive &arc)
 			<< sec->CeilingFlags
 			<< sec->sky
 			<< sec->MoreFlags
+			<< sec->Flags
 			<< sec->FloorSkyBox << sec->CeilingSkyBox
 			<< sec->ZoneNumber
 			<< sec->oldspecial;
@@ -407,8 +408,9 @@ void P_SerializeWorld (FArchive &arc)
 	for (i = 0, li = lines; i < numlines; i++, li++)
 	{
 		arc << li->flags
+			<< li->activation
 			<< li->special
-			<< li->alpha
+			<< li->Alpha
 			<< li->id
 			<< li->args[0] << li->args[1] << li->args[2] << li->args[3] << li->args[4];
 		// [BC]

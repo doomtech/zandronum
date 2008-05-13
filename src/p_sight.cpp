@@ -256,8 +256,8 @@ bool SightCheck::P_SightCheckLine (line_t *ld)
 			return false;
 		}
 		if (SeePastShootableLines &&
-			(GET_SPAC(ld->flags) != SPAC_IMPACT ||
-			(ld->special != ACS_Execute && ld->special != ACS_ExecuteAlways)) ||
+			!(ld->activation & SPAC_Impact) ||
+			(ld->special != ACS_Execute && ld->special != ACS_ExecuteAlways) ||
 			(ld->args[1] != 0 && ld->args[1] != level.levelnum))
 		{
 			// Pretend the other side is invisible if this is not an impact line
@@ -536,8 +536,6 @@ sightcounts[1]++;
 
 		if ((mapxstep | mapystep) == 0)
 			break;
-
-
 
 		switch ((((yintercept >> FRACBITS) == mapy) << 1) | ((xintercept >> FRACBITS) == mapx))
 		{
