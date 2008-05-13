@@ -3680,7 +3680,7 @@ void GAME_SpawnTerminatorArtifact( void )
 		return;
 
 	// Spawn the ball.
-	pTerminatorBall = Spawn( PClass::FindClass( "Terminator" ), pSpot->x << FRACBITS, pSpot->y << FRACBITS, ONFLOORZ, NO_REPLACE );
+	pTerminatorBall = Spawn( PClass::FindClass( "Terminator" ), pSpot->x, pSpot->y, ONFLOORZ, NO_REPLACE );
 
 	// If we're the server, tell clients to spawn the new ball.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -3715,7 +3715,7 @@ void GAME_SpawnPossessionArtifact( void )
 		return;
 
 	// Spawn the ball.
-	pPossessionStone = Spawn( PClass::FindClass( "PossessionStone" ), pSpot->x << FRACBITS, pSpot->y << FRACBITS, ONFLOORZ, NO_REPLACE );
+	pPossessionStone = Spawn( PClass::FindClass( "PossessionStone" ), pSpot->x, pSpot->y, ONFLOORZ, NO_REPLACE );
 
 	// If we're the server, tell clients to spawn the possession stone.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
