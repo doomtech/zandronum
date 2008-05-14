@@ -2498,9 +2498,9 @@ static bool P_CheckForResurrection(AActor *self, bool usevilestates)
 			}
 			self->target = temp;
 								
-					// [BC] If we are the server, tell clients about the state change.
-					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_SetThingState( self, STATE_HEAL );
+			// [BC] If we are the server, tell clients about the state change.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingState( self, STATE_HEAL );
 
 			// Make the state the monster enters customizable.
 			FState * state = self->FindState(NAME_Heal);
@@ -2537,10 +2537,18 @@ static bool P_CheckForResurrection(AActor *self, bool usevilestates)
 			corpsehit->flags2 = info->flags2;
 			corpsehit->flags3 = info->flags3;
 			corpsehit->flags4 = info->flags4;
-					// [BC] Apply new ST flags as well.
-					corpsehit->flags5 = info->flags5;
-					corpsehit->ulSTFlags = info->ulSTFlags;
-					corpsehit->ulNetworkFlags = info->ulNetworkFlags;
+
+			// [BC] Apply new ST flags as well.
+			corpsehit->flags5 = info->flags5;
+			// [BB] The STFL_LEVELSPAWNED flag may not be removed by the default flags.
+			// Otherwise level spawned actors revived by an Archvile won't be restored
+			// during a call of GAME_ResetMap.
+			const bool actorWasLevelSpawned = !!(corpsehit->ulSTFlags & STFL_LEVELSPAWNED);
+			corpsehit->ulSTFlags = info->ulSTFlags;
+			if ( actorWasLevelSpawned )
+				corpsehit->ulSTFlags |= STFL_LEVELSPAWNED;
+			corpsehit->ulNetworkFlags = info->ulNetworkFlags;
+
 			corpsehit->health = info->health;
 			corpsehit->target = NULL;
 			corpsehit->lastenemy = NULL;
@@ -2550,15 +2558,8 @@ static bool P_CheckForResurrection(AActor *self, bool usevilestates)
 			{
 				level.total_monsters++;
 
-						// [BC] Update invasion's HUD.
-						if ( invasion )
-						{
-							INVASION_SetNumMonstersLeft( INVASION_GetNumMonstersLeft( ) + 1 );
-
-							// [BC] If we're the server, tell the client how many monsters are left.
-							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-								SERVERCOMMANDS_SetInvasionNumMonstersLeft( );
-						}
+				// [BB] The number of total monsters was increased, update the invasion monster count accordingly.
+				INVASION_UpdateMonsterCount( corpsehit, false );
 			}
 
 			// You are the Archvile's minion now, so hate what it hates

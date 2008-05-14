@@ -21,6 +21,7 @@ latestzdoom branch
 +	- Actor flag NONETID is now available in DECORATE. Actors with this flag are not assigned a network id when spawned. Only use it, if you know what you are doing! [Torr Samaho]
 +	- All the server side code that manipulates actors on the clients now checks for valid net ids. A warning is printed if it's not possible to manipulate an actor because of a missing net id. [Torr Samaho]
 -	- Fixed problems with A_Respawn online. So far this is only tested to work with ExplosiveBarrel though. [Torr Samaho]
+-	- Fixed: Level spawned actors revived by an Archvile aren't restored by GAME_ResetMap(). [Torr Samaho]
 
 
 ??????
