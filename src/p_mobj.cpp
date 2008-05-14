@@ -2896,6 +2896,12 @@ void P_NightmareRespawn (AActor *mobj)
 
 	mo->skillrespawncount = mobj->skillrespawncount;
 
+	// [BB] The new actor has to inherit the STFL_LEVELSPAWNED flag from the old one.
+	// Otherwise level spawned actors respawned by P_NightmareRespawn won't be restored
+	// during a call of GAME_ResetMap.
+	if ( mobj->ulSTFlags & STFL_LEVELSPAWNED )
+		mo->ulSTFlags |= STFL_LEVELSPAWNED;
+
 	// [BC] If we're the server, tell clients to spawn the thing.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
