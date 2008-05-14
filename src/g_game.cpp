@@ -3621,8 +3621,14 @@ void GAME_ResetMap( void )
 	FBehavior::StaticUnloadModules( );
 	if ( DACSThinker::ActiveThinker != NULL )
 	{
-		DACSThinker::ActiveThinker->Destroy();
-		DACSThinker::ActiveThinker = NULL;
+		// [BB] Mark all running scripts for removal.
+		for (int i = 0; i < 1000; i++)
+		{
+			if ( DACSThinker::ActiveThinker->RunningScripts[i] != NULL )
+				DACSThinker::ActiveThinker->RunningScripts[i]->SetState(DLevelScript::SCRIPT_PleaseRemove);
+		}
+		// [BB] Remove all marked scripts.
+		DACSThinker::ActiveThinker->Tick();
 	}
 
 	// Open the current map and load its BEHAVIOR lump.
