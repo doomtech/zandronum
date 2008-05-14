@@ -3371,6 +3371,12 @@ void GAME_ResetMap( void )
 		SERVERCOMMANDS_SetMapNumFoundSecrets( );
 	}
 
+	// [BB] Recount the total number of monsters. We can't just adjust the old
+	// level.total_monsters value, since we lost track of monsters that were not spawned
+	// by the map and removed during the game, e.g. killed lost souls spawned by a pain
+	// elemental.
+	level.total_monsters = 0;
+
 	// Restart the map music.
 	S_ChangeMusic( level.music, level.musicorder );
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -3459,10 +3465,6 @@ void GAME_ResetMap( void )
 		// Destroy any actor not present when the map loaded.
 		if (( pActor->ulSTFlags & STFL_LEVELSPAWNED ) == false )
 		{
-			// If this is a monster, decrement the total number of monsters on the level.
-			if ( pActor->CountsAsKill( ))
-				level.total_monsters--;
-
 			// If this is an item, decrement the total number of item on the level.
 			if ( pActor->flags & MF_COUNTITEM )
 				level.total_items--;
@@ -3490,6 +3492,10 @@ void GAME_ResetMap( void )
 		{
 			if ( pActor->special != pActor->SavedSpecial )
 				pActor->special = pActor->SavedSpecial;
+
+			// [BB] This is a valid monster on the map, count it.
+			if ( pActor->CountsAsKill( ) && !(pActor->flags & MF_FRIENDLY) )
+				level.total_monsters++;
 
 			continue;
 		}
@@ -3549,6 +3555,11 @@ void GAME_ResetMap( void )
 				pNewActor->LastLookPlayerNumber = pActor->LastLookPlayerNumber;
 				pNewActor->flags3 |= pActor->flags3 & MF3_HUNTPLAYERS;
 				pNewActor->flags4 |= pActor->flags4 & MF4_NOHATEPLAYERS;
+
+				// [BB] Spawning pNewActor increased the monster count. Since ActorIterator will also catch
+				// the newly spawned actor, this will be counted again. Adjust for this here.
+				if ( !(pNewActor->flags & MF_FRIENDLY) )
+					level.total_monsters--;
 			}
 
 			pNewActor->flags &= ~MF_DROPPED;
@@ -3556,11 +3567,6 @@ void GAME_ResetMap( void )
 
 			// Handle the spawn flags of the item.
 			pNewActor->HandleSpawnFlags( );
-
-			// If the old actor counts as a kill, remove it from the total monster count
-			// since it's being deleted.
-			if ( pActor->CountsAsKill( ))
-				level.total_monsters--;
 
 			// If the old actor counts as an item, remove it from the total item count
 			// since it's being deleted.

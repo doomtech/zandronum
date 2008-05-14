@@ -4130,21 +4130,8 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 	{
 		level.total_monsters++;
 
-		// [BC] Do some invasion mode stuff.
-		if (( invasion ) &&
-			( INVASION_GetIncreaseNumMonstersOnSpawn( )) &&
-			( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-			( CLIENTDEMO_IsPlaying( ) == false ))
-		{
-			INVASION_SetNumMonstersLeft( INVASION_GetNumMonstersLeft( ) + 1 );
-
-			if ( actor->GetClass( ) == PClass::FindClass("Archvile") )
-				INVASION_SetNumArchVilesLeft( INVASION_GetNumArchVilesLeft( ) + 1 );
-
-			// [BC] If we're the server, tell the client how many monsters are left.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SetInvasionNumMonstersLeft( );
-		}
+		// [BB] The number of total monsters was increased, update the invasion monster count accordingly.
+		INVASION_UpdateMonsterCount( actor, false );
 	}
 	// [RH] Same, for items
 	if (actor->flags & MF_COUNTITEM)
