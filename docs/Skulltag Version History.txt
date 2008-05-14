@@ -23,6 +23,7 @@ latestzdoom branch
 -	- Fixed problems with A_Respawn online. So far this is only tested to work with ExplosiveBarrel though. [Torr Samaho]
 -	- Fixed: Level spawned actors revived by an Archvile aren't restored by GAME_ResetMap(). [Torr Samaho]
 -	- Fixed: Level spawned actors that have been respawned in nightmare aren't restored by GAME_ResetMap(). [Torr Samaho]
+-	- Fixed: Level spawned actors that have been removed by A_FreezeDeathChunks aren't restored by GAME_ResetMap(). [Torr Samaho]
 
 
 ??????

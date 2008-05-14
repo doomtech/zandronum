@@ -313,7 +313,8 @@ void A_FreezeDeathChunks (AActor *actor)
 	}
 	A_NoBlocking (actor);
 
-	actor->Destroy ();
+	// [BB] Only destroy the actor if it's not needed for a map reset. Otherwise just hide it.
+	actor->HideOrDestroyIfSafe ();
 }
 
 //----------------------------------------------------------------------------
