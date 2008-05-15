@@ -3061,7 +3061,7 @@ bool GAME_DormantStatusMatchesOriginal( AActor *pActor )
 void P_LoadBehavior( MapData *pMap );
 void DECAL_ClearDecals( void );
 polyobj_t *GetPolyobjByIndex( ULONG ulPoly );
-void GAME_ResetMap( void )
+void GAME_ResetMap( bool bRunEnterScripts )
 {
 	ULONG							ulIdx;
 	MapData							*pMap;
@@ -3633,6 +3633,18 @@ void GAME_ResetMap( void )
 			if ( DACSThinker::ActiveThinker->RunningScripts[i] != NULL )
 				DACSThinker::ActiveThinker->RunningScripts[i]->SetState(DLevelScript::SCRIPT_PleaseRemove);
 		}
+
+		// [BB] Stop the scripts attached to the ingame players.
+		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+		{
+			if (( playeringame[ulIdx] ) &&
+				( players[ulIdx].bSpectating == false ) &&
+				( players[ulIdx].mo ))
+			{
+				FBehavior::StaticStopMyScripts (players[ulIdx].mo);
+			}
+		}
+
 		// [BB] Remove all marked scripts.
 		DACSThinker::ActiveThinker->Tick();
 	}
@@ -3650,14 +3662,17 @@ void GAME_ResetMap( void )
 	// Restart running any open scripts on this map, since we just destroyed them all!
 	FBehavior::StaticStartTypedScripts( SCRIPT_Open, NULL, false );
 
-	// Restart players' enter scripts.
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	// [BB] Restart players' enter scripts if necessary.
+	if ( bRunEnterScripts )
 	{
-		if (( playeringame[ulIdx] ) &&
-			( players[ulIdx].bSpectating == false ) &&
-			( players[ulIdx].mo ))
+		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 		{
-			FBehavior::StaticStartTypedScripts( SCRIPT_Enter, players[ulIdx].mo, true );
+			if (( playeringame[ulIdx] ) &&
+				( players[ulIdx].bSpectating == false ) &&
+				( players[ulIdx].mo ))
+			{
+				FBehavior::StaticStartTypedScripts( SCRIPT_Enter, players[ulIdx].mo, true );
+			}
 		}
 	}
 

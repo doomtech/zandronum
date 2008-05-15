@@ -751,7 +751,9 @@ void INVASION_StartFirstCountdown( ULONG ulTicks )
 		SERVERCOMMANDS_DoGameModeCountdown( ulTicks );
 
 	// Reset the map.
-	GAME_ResetMap( );
+	// [BB] Since the players are not respawed after the reset, we have to re-run the
+	// enter scripts in GAME_ResetMap.
+	GAME_ResetMap( true );
 }
 
 //*****************************************************************************
