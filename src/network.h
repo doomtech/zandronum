@@ -61,17 +61,17 @@
 //	DEFINES
 
 // Movement stuff.
-#define CM_X			1
-#define CM_Y			2
-#define CM_Z			4
-#define CM_ANGLE		8
-#define CM_MOMX			16
-#define CM_MOMY			32
-#define CM_MOMZ			64
-#define CM_COLORMAP		128
-#define	CM_WATERLEVEL	256
-#define	CM_NOTVISIBLE	512
-
+enum
+{
+	CM_X			= 1 << 0,
+	CM_Y			= 1 << 1,
+	CM_Z			= 1 << 2,
+	CM_ANGLE		= 1 << 3,
+	CM_MOMX			= 1 << 4,
+	CM_MOMY			= 1 << 5,
+	CM_MOMZ			= 1 << 6,
+	CM_PITCH		= 1 << 7,
+};
 // Should we use huffman compression?
 #define	USE_HUFFMAN_COMPRESSION
 

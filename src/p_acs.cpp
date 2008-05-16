@@ -5643,6 +5643,10 @@ int DLevelScript::RunScript ()
 			if (STACK(2) == 0)
 			{
 				activator->pitch = STACK(1) << 16;
+
+				// [BB] Tell the clients about the changed pitch.
+				if( NETWORK_GetState() == NETSTATE_SERVER )
+					SERVERCOMMANDS_MoveThingExact( activator, CM_PITCH );
 			}
 			else
 			{
@@ -5652,6 +5656,10 @@ int DLevelScript::RunScript ()
 				while ( (actor = iterator.Next ()) )
 				{
 					actor->pitch = STACK(1) << 16;
+
+					// [BB] Tell the clients about the changed pitch.
+					if( NETWORK_GetState() == NETSTATE_SERVER )
+						SERVERCOMMANDS_MoveThingExact( actor, CM_PITCH );
 				}
 			}
 			sp -= 2;

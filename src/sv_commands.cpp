@@ -1535,6 +1535,8 @@ void SERVERCOMMANDS_MoveThing( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra
 		ulSize += 2;
 	if ( ulBits & CM_MOMZ )
 		ulSize += 2;
+	if ( ulBits & CM_PITCH )
+		ulSize += 4;
 
 	// Nothing to update.
 	if ( ulSize == 0 )
@@ -1577,6 +1579,10 @@ void SERVERCOMMANDS_MoveThing( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->momy >> FRACBITS );
 		if ( ulBits & CM_MOMZ )
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->momz >> FRACBITS );
+
+		// Write pitch.
+		if ( ulBits & CM_PITCH )
+			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->pitch );
 	}
 }
 
@@ -1604,6 +1610,8 @@ void SERVERCOMMANDS_MoveThingExact( AActor *pActor, ULONG ulBits, ULONG ulPlayer
 	if ( ulBits & CM_MOMY )
 		ulSize += 4;
 	if ( ulBits & CM_MOMZ )
+		ulSize += 4;
+	if ( ulBits & CM_PITCH )
 		ulSize += 4;
 
 	// Nothing to update.
@@ -1647,6 +1655,10 @@ void SERVERCOMMANDS_MoveThingExact( AActor *pActor, ULONG ulBits, ULONG ulPlayer
 			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->momy );
 		if ( ulBits & CM_MOMZ )
 			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->momz );
+
+		// Write pitch.
+		if ( ulBits & CM_PITCH )
+			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->pitch );
 	}
 }
 
