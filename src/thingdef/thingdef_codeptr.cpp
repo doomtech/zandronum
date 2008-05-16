@@ -1092,10 +1092,25 @@ void A_CustomComboAttack (AActor *self)
 		return;
 				
 	A_FaceTarget (self);
+
+	// [BB] This is handled server-side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	if (self->CheckMeleeRange ())
 	{
 		if (DamageType==NAME_None) DamageType = NAME_Melee;	// Melee is the default type
-		if (MeleeSound) S_SoundID (self, CHAN_WEAPON, MeleeSound, 1, ATTN_NORM);
+		if (MeleeSound)
+		{
+			S_SoundID (self, CHAN_WEAPON, MeleeSound, 1, ATTN_NORM);
+
+			// [BB] If we're the server, make the sound on the client end.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, S_GetName( MeleeSound ), 1, ATTN_NORM );
+		}
 		P_DamageMobj (self->target, self, self, damage, DamageType);
 		if (bleed) P_TraceBleed (damage, self->target, self);
 	}
