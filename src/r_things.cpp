@@ -539,7 +539,7 @@ void R_InitSkins (void)
 			strncpy (key, sc.String, sizeof(key)-1);
 			if (!sc.GetString() || sc.String[0] != '=')
 			{
-				Printf (PRINT_BOLD, "Bad format for skin %d: %s\n", i, key);
+				Printf (PRINT_BOLD, "Bad format for skin %d: %s\n", (int)i, key);
 				break;
 			}
 			sc.GetString ();
@@ -551,7 +551,7 @@ void R_InitSkins (void)
 				{
 					if (stricmp (skins[i].name, skins[j].name) == 0)
 					{
-						sprintf (skins[i].name, "skin%d", i);
+						sprintf (skins[i].name, "skin%d", (int)i);
 						Printf (PRINT_BOLD, "Skin %s duplicated as %s\n",
 							skins[j].name, skins[i].name);
 						break;
@@ -732,7 +732,7 @@ void R_InitSkins (void)
 		if (!remove)
 		{
 			if (skins[i].name[0] == 0)
-				sprintf (skins[i].name, "skin%d", i);
+				sprintf (skins[i].name, "skin%d", (int)i);
 
 			// Now collect the sprite frames for this skin. If the sprite name was not
 			// specified, use whatever immediately follows the specifier lump.
@@ -783,7 +783,7 @@ void R_InitSkins (void)
 
 				if (spr == 0 && maxframe <= 0)
 				{
-					Printf (PRINT_BOLD, "Skin %s (#%d) has no frames. Removing.\n", skins[i].name, i);
+					Printf (PRINT_BOLD, "Skin %s (#%d) has no frames. Removing.\n", skins[i].name, (int)i);
 					remove = true;
 					break;
 				}

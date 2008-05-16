@@ -383,7 +383,7 @@ void	P_ResetSpawnCounters( void );
 void	P_UseLines (player_t* player);
 //void	P_UseItems (player_t* player);
 bool	P_UsePuzzleItem (AActor *actor, int itemType);
-void	P_FindFloorCeiling (AActor *actor);
+void	P_FindFloorCeiling (AActor *actor, bool onlymidtex = false);
 
 bool	P_ChangeSector (sector_t* sector, int crunch, int amt, int floorOrCeil, bool isreset);
 

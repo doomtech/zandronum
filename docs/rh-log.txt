@@ -1,3 +1,85 @@
+May 13, 2008 (Changes by Graf Zahl)
+- Changed: For actors not being spawned on the floor P_FindFloorCeiling should
+  be used to prevent them from dropping through 3DMIDTEX textures.
+- Fixed: AMageStaffFX2::IsOkayToAttack overwrote the projectile's angle variable.
+
+May 13, 2008
+- Changed the types of object hash indices in FArchive from size_t to DWORD.
+  This seems to fix crashes on GCC 64-bit builds when saving games. Not sure
+  if it was a GCC bug or my bug, since it worked fine with VC++, but since the
+  code that calculates the index only returns a DWORD, storing it as a size_t
+  was rather pointless.
+- Added the C99 printf size specifiers 't' (ptrdiff_t) and 'z' (size_t) to
+  FString::Format() so that I can fix all the problem printf strings that a
+  64-bit GCC compile finds.
+
+May 12, 2008 (Changes by Graf Zahl)
+- Added Skulltag's PUFFGETSOWNER flag.
+- Fixed: Parsing sector special bit masks must be done backwards so that later
+  definitions take precedence.
+- Added base translation tables for UDMF compatibility maps which only should
+  handle the native line and sector types of each game.
+- Turned the inactive SILENT_INSTANT_FLOORS define into a compatibility option
+  so that it can be (un)set in a map definition and the menu.
+- Fixed: SPAC_AnyCross didn't work.
+- Fixed: Pushable doors must also check for SPAC_MPush.
+- Fixed: P_LoadThings2 did not adjust the byte order for the thingid field.
+
+May 11, 2008 (Changes by Graf Zahl)
+- Changed: HIRESTEX 'define' textures now replace existing textures
+  of type MiscPatch with the same name.
+- Added UDMF line trigger types MonsterUse and MonsterPush.
+- Separated skill and class filter bits from FMapThing::flags so that
+  UDMF can define up to 16 of each. Also separated easy/baby and
+  hard/nightmare and changed default MAPINFO definitions.
+
+May 10, 2008
+- Fixed: FWadCollection::MergeLumps() did not initialize the flags for any
+  marker lumps it inserted.
+- Fixed: Need write barriers when modifying SequenceListHead.
+
+May 9, 2008
+- Added a new cvar: midi_timiditylike. This re-enables TiMidity handling of
+  GUS patch flags, envelopes, and volume levels, while trying to be closer
+  to TiMidity++ than original TiMidity.
+- Renamed timidity_config and timidity_voices to midi_config and midi_voices
+  respectively.
+
+May 9, 2008 (Changes by Graf Zahl)
+- Changed: Crosshair drawing uses the current player class's default health instead
+  of 100 to calculate the color for the crosshair.
+- Added SECF_NOFALLINGDAMAGE flag plus Sector_ChangeFlags to set it. Also separated
+  all user settable flags from MoreFlags into their own Flags variable.
+
+May 8, 2008
+- Reduced volume, expression, and panning controllers back to 7 bits.
+- Added very basic Soundfont support to the internal TiMidity. Things missing:
+  filter, LFOs, modulation envelope, chorus, reverb, and modulators. May or
+  may not be compatible with TiMidity++'s soundfont extensions.
+
+May 8, 2008 (Changes by Graf Zahl)
+- Changed all thing coordinates that were stored as shorts into fixed_t.
+- Separated mapthing2_t into mapthinghexen_t and the internal FMapThing so
+  that it is easier to add new features in the UDMF map format.
+- Added some initial code to read UDMF maps.
+
+May 6, 2008
+- Added support for quoted strings to the TiMidity config parser.
+
+May 2, 2008 (Changes by Graf Zahl)
+- Split off the slope creation code from p_Setup.cpp into its own file.
+- Separated the linedef activation types into a bit mask that allows combination
+  of all types on the same linedef. Also added a 'first side only' flag. This
+  is not usable from Hexen or Doom format maps though but in preparation of
+  the UDMF format discussed here:
+  http://www.doomworld.com/vb/source-ports/43145-udmf-v0-99-specification-draft-aka-textmap/
+- Changed linedef's alpha property from a byte to fixed point after seeing that
+  255 wasn't handled to be fully opaque.
+- fixed a GCC warning in fmodsound.cpp
+
+April 30, 2008 (Changes by Graf Zahl)
+- Fixed: Warped textures didn't work anymore because the default speed was 0.
+
 April 30, 2008
 - Fixed: I had instrument vibrato setting the tremolo_sweep_increment value
   in the instrument loader, effectively disabling vibrato.
@@ -205,7 +287,7 @@ April 15, 2008 (Changes by Graf Zahl)
   check being done manually.
 
 April 14, 2008 (Changes by Graf Zahl)
-- Added rotation 90° angles only) and mirroring to the Multipatch texture 
+- Added rotation 90ï¿½ angles only) and mirroring to the Multipatch texture 
   composition code.
 - Fixed: The game crashed when a level was ended while a player was morphed
   by a powerup.
@@ -5409,7 +5491,7 @@ April 22, 2006 (Changes by Graf Zahl)
 - Fixed the issues with .96x's railgun code and added it to the current
   version.
 - Fixed: Setting of the friendly Minotaur's angle was inconsistent and
-  could cause it to move backwards in a féw situation.
+  could cause it to move backwards in a fï¿½w situation.
 - Fixed: The minotaur did checks for type by checking for the MF_FRIENDLY
   flag, not by checking for the actor class. That made it impossible to
   spawn friendly 'normal' minotaurs.
@@ -16375,7 +16457,7 @@ September 12, 1998
 
 September 4, 1998
 - Added weapnext and weapprev commands courtesy of
-  Papst Johannes Jörg IV. [which were later completely
+  Papst Johannes Jï¿½rg IV. [which were later completely
   rewritten by me]
 - Add support for suspending and resuming scripts (easy when
   you know you can only have one copy running at a time).

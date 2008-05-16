@@ -504,6 +504,7 @@ CVAR (Flag, compat_trace,		compatflags, COMPATF_TRACE);
 CVAR (Flag, compat_dropoff,		compatflags, COMPATF_DROPOFF);
 CVAR (Flag, compat_boomscroll,	compatflags, COMPATF_BOOMSCROLL);
 CVAR (Flag, compat_invisibility,compatflags, COMPATF_INVISIBILITY);
+CVAR (Flag, compat_silentinstantfloors,compatflags, COMPATF_SILENT_INSTANT_FLOORS);
 CVAR (Flag, compat_limited_airmovement, compatflags, COMPATF_LIMITED_AIRMOVEMENT);
 CVAR (Flag, compat_plasmabump,	compatflags, COMPATF_PLASMA_BUMP_BUG);
 CVAR (Flag, compat_instantrespawn,	compatflags, COMPATF_INSTANTRESPAWN);

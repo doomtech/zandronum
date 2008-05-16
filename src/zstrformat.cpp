@@ -217,6 +217,16 @@ namespace StringFormat
 					flags |= F_BIGI;
 				}
 			}
+			else if (*c == 't')
+			{
+				flags |= F_PTRDIFF;
+				++c;
+			}
+			else if (*c == 'z')
+			{
+				flags |= F_SIZE;
+				++c;
+			}
 
 			base = c+1;
 
@@ -277,7 +287,11 @@ namespace StringFormat
 			}
 			else
 			{
-				if (size == F_HALFHALF)
+				if (size == 0)
+				{
+					intarg = va_arg (arglist, int);
+				}
+				else if (size == F_HALFHALF)
 				{
 					intarg = va_arg (arglist, int);
 					intarg = (signed char)intarg;
@@ -300,6 +314,16 @@ namespace StringFormat
 				else if (size == F_LONGLONG)
 				{
 					int64arg = va_arg (arglist, int64_t);
+				}
+				else if (size == F_PTRDIFF)
+				{
+					if (sizeof(ptrdiff_t) == sizeof(int)) intarg = va_arg (arglist, int);
+					else { int64arg = va_arg (arglist, int64_t); size = F_LONGLONG; }
+				}
+				else if (size == F_SIZE)
+				{
+					if (sizeof(size_t) == sizeof(int)) intarg = va_arg (arglist, int);
+					else { int64arg = va_arg (arglist, int64_t); size = F_LONGLONG; }
 				}
 				else
 				{

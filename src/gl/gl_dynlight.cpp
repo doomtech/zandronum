@@ -1039,6 +1039,7 @@ void gl_SetActorLights(AActor *actor)
 		// example after a player respawns in multiplayer. Since the following code
 		// will crash in this case, I remove the NULL pointers from the array here.
 		// Of course, this is just an ugly hack and should be fixed properly!
+		// (assuming the real cause is found...)
 		for( int i = actor->dynamiclights.Size()-1; i >= 0; i-- )
 		{
 			if ( actor->dynamiclights[i] == NULL )

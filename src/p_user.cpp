@@ -2482,13 +2482,13 @@ void P_MovePlayer (player_t *player, ticcmd_t *cmd)
 /*
 		if (debugfile)
 		{
-			fprintf (debugfile, "move player for pl %d%c: (%d,%d,%d) (%d,%d) %d %d w%d [", player-players,
+			fprintf (debugfile, "move player for pl %d%c: (%d,%d,%d) (%d,%d) %d %d w%d [", int(player-players),
 				player->cheats&CF_PREDICTING?'p':' ',
 				player->mo->x, player->mo->y, player->mo->z,forwardmove, sidemove, movefactor, friction, player->mo->waterlevel);
 			msecnode_t *n = player->mo->touching_sectorlist;
 			while (n != NULL)
 			{
-				fprintf (debugfile, "%d ", n->m_sector-sectors);
+				fprintf (debugfile, "%td ", n->m_sector-sectors);
 				n = n->m_tnext;
 			}
 			fprintf (debugfile, "]\n");
@@ -2959,7 +2959,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 		// Just print an error if a bot tried to spawn.
 		if ( player->pSkullBot )
 		{
-			Printf( "%s \\c-left: No player %d start\n", player->userinfo.netname, player - players + 1 );
+			Printf( "%s \\c-left: No player %td start\n", player->userinfo.netname, player - players + 1 );
 			BOTS_RemoveBot( player - players, false );
 			return;
 		}
@@ -2969,7 +2969,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 			{
 //				// Don't really bitch here, because this tends to happen if people use the "map"
 //				// rcon command.
-				Printf( "No player %d start\n", player - players + 1 );
+				Printf( "No player %td start\n", player - players + 1 );
 				SERVER_DisconnectClient( player - players, true, true );
 				return;
 			}
@@ -2979,11 +2979,11 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 					(( player - players ) != consoleplayer ))
 				{
 					//PLAYER_SetSpectator(player, true, false);
-					Printf( "P_PlayerThink: No body for player %d!\n", player - players + 1 );
+					Printf( "P_PlayerThink: No body for player %td!\n", player - players + 1 );
 					return;
 				}
 				else
-					I_Error ("No player %d start\n", player - players + 1);
+					I_Error ("No player %td start\n", player - players + 1);
 			}
 		}
 	}
@@ -2991,7 +2991,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 /*
 	if (debugfile && !(player->cheats & CF_PREDICTING))
 	{
-		fprintf (debugfile, "tic %d for pl %d: (%d, %d, %d, %u) b:%02x p:%d y:%d f:%d s:%d u:%d\n",
+		fprintf (debugfile, "tic %d for pl %td: (%d, %d, %d, %u) b:%02x p:%d y:%d f:%d s:%d u:%d\n",
 			gametic, player-players, player->mo->x, player->mo->y, player->mo->z,
 			player->mo->angle>>ANGLETOFINESHIFT, player->cmd.ucmd.buttons,
 			player->cmd.ucmd.pitch, player->cmd.ucmd.yaw, player->cmd.ucmd.forwardmove,

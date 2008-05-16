@@ -284,6 +284,8 @@ enum
 	COMPATF_DROPOFF			= 1 << 14,	// Monsters cannot move when hanging over a dropoff
 	COMPATF_BOOMSCROLL		= 1 << 15,	// Scrolling sectors are additive like in Boom
 	COMPATF_INVISIBILITY	= 1 << 16,	// Monsters can see semi-invisible players
+	// [BB] Changed from 1 << 17 to 1<<24.
+	COMPATF_SILENT_INSTANT_FLOORS = 1<<24,	// Instantly moving floors are not silent
 
 	// [BC] Start of new compatflags.
 
