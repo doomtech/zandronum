@@ -1143,7 +1143,10 @@ void medal_SelectIcon( ULONG ulPlayer )
 	if (( cl_icons == false ) || ( NETWORK_GetState( ) == NETSTATE_SERVER ) || pPlayer->bSpectating )
 	{
 		if ( pPlayer->pIcon )
+		{
 			pPlayer->pIcon->Destroy( );
+			pPlayer->pIcon = NULL;
+		}
 
 		return;
 	}
@@ -1158,7 +1161,10 @@ void medal_SelectIcon( ULONG ulPlayer )
 		case S_CHAT:
 
 			if ( pPlayer->bChatting == false )
+			{
 				pPlayer->pIcon->Destroy( );
+				pPlayer->pIcon = NULL;
+			}
 			else
 				ulActualSprite = 0;
 			break;
@@ -1166,7 +1172,10 @@ void medal_SelectIcon( ULONG ulPlayer )
 		case S_ALLY:
 
 			if ( ( players[ SCOREBOARD_GetViewPlayer() ].bSpectating ) || ( !pPlayer->mo->IsTeammate( players[ SCOREBOARD_GetViewPlayer() ].mo ) ) )
+			{
 				pPlayer->pIcon->Destroy( );
+				pPlayer->pIcon = NULL;
+			}
 			else
 				ulActualSprite = 1;
 			break;
@@ -1217,7 +1226,10 @@ void medal_SelectIcon( ULONG ulPlayer )
 
 				// We wish to delete the icon, so do that now.
 				if ( bDelete )
+				{
 					pPlayer->pIcon->Destroy( );
+					pPlayer->pIcon = NULL;
+				}
 				else
 					ulActualSprite = 2;
 			}
@@ -1230,7 +1242,10 @@ void medal_SelectIcon( ULONG ulPlayer )
 		case ( S_TERMINATORARTIFACT + 3 ):
 
 			if (( terminator == false ) || (( pPlayer->cheats & CF_TERMINATORARTIFACT ) == false ))
+			{
 				pPlayer->pIcon->Destroy( );
+				pPlayer->pIcon = NULL;
+			}
 			else
 				ulActualSprite = 3;
 			break;
@@ -1242,6 +1257,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 				( pPlayer->bLagging == false ))
 			{
 				pPlayer->pIcon->Destroy( );
+				pPlayer->pIcon = NULL;
 			}
 			else
 				ulActualSprite = 4;
@@ -1253,7 +1269,10 @@ void medal_SelectIcon( ULONG ulPlayer )
 		case ( S_POSSESSIONARTIFACT + 3 ):
 
 			if ((( possession == false ) && ( teampossession == false )) || (( pPlayer->cheats & CF_POSSESSIONARTIFACT ) == false ))
+			{
 				pPlayer->pIcon->Destroy( );
+				pPlayer->pIcon = NULL;
+			}
 			else
 				ulActualSprite = 5;
 			break;
@@ -1339,7 +1358,10 @@ void medal_SelectIcon( ULONG ulPlayer )
 			if (( pPlayer->pIcon == NULL ) || ( ulDesiredSprite != ulActualSprite ))
 			{
 				if ( pPlayer->pIcon )
+				{
 					pPlayer->pIcon->Destroy( );
+					pPlayer->pIcon = NULL;
+				}
 
 				pPlayer->pIcon = Spawn<AFloatyIcon>( pPlayer->mo->x, pPlayer->mo->y, pPlayer->mo->z + pPlayer->mo->height + ( 4 * FRACUNIT ), NO_REPLACE );
 				if ( pPlayer->pIcon )
