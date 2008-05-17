@@ -664,7 +664,7 @@ void A_JumpIfCloser(AActor * self)
 		  (self->z <=target->z && target->z - (self->z + self->height) < dist) 
 		)
 	   )
-		DoJump(self, CallingState, StateParameters[index+1], true);	// [BC] Since monsters don't have targets on the client end, we need to send an update.
+		DoJump(self, CallingState, StateParameters[index+1], CLIENTUPDATE_FRAME|CLIENTUPDATE_POSITION);	// [BC] Since monsters don't have targets on the client end, we need to send an update.
 }
 
 //==========================================================================
