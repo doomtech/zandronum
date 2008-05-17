@@ -2300,18 +2300,41 @@ void SERVERCOMMANDS_SetThingFrame( AActor *pActor, FState *pState, ULONG ulPlaye
 		}
 	}
 
-	// Couldn't find the state, so just try to go based off the spawn state.
-	// [BB] This is a workaround. Therefore name the state "SOffs" so
-	// that the client can handle this differently.
+	// Couldn't find the state, so just try to go based off one of the standard states.
+	// [BB] This is a workaround. Therefore let the name of the state string begin
+	// with ':' so that the client can handle this differently.
+	// [BB] Because of inheritance it's not sufficient to only try the SpawnState.
 	if ( pszStateLabel == NULL )
 	{
-		pszStateLabel = "SOffs";
 		lOffset = LONG( pState - pActor->SpawnState );
-		if (( lOffset < 0 ) ||
-			( lOffset > 255 ))
+		if (( lOffset < 0 ) || ( lOffset > 255 ))
 		{
-			return;
+			// [BB] SpawnState doesn't work. Try MissileState.
+			lOffset = LONG( pState - pActor->MissileState );
+			if (( lOffset < 0 ) || ( lOffset > 255 ))
+			{
+				// [BB] Try SeeState.
+				lOffset = LONG( pState - pActor->SeeState );
+				if (( lOffset < 0 ) || ( lOffset > 255 ))
+				{
+					// [BB] Try MeleeState.
+					lOffset = LONG( pState - pActor->MeleeState );
+					if (( lOffset < 0 ) || ( lOffset > 255 ))
+					{
+						Printf ( "Warning: SERVERCOMMANDS_SetThingFrame failed to set the frame for actor %s.\n", pActor->GetClass()->TypeName.GetChars() );
+						return;
+					}
+					else
+						pszStateLabel = ":N";
+				}
+				else
+					pszStateLabel = ":T";
+			}
+			else
+				pszStateLabel = ":M";
 		}
+		else
+			pszStateLabel = ":S";
 	}
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )

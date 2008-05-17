@@ -28,6 +28,7 @@ latestzdoom branch
 -	- Fixed: Enter scripts were run twice in all game modes that reset (expect for invasion). For example this broke the custom HUD of sp_usimp.pk3 in survival. [Torr Samaho]
 -	- Fixed: If the ACS function SetActorPitch was called on a server, the clients were not notified about the updated pitch. [Torr Samaho]
 -	- Fixed: No melee sound is played online by A_CustomComboAttack. [Torr Samaho]
+-	- Fixed: For some actors the server tried but failed to instruct the clients to set the actor to a certain frame. [Torr Samaho]
 
 
 ??????
