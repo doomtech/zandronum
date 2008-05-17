@@ -258,12 +258,14 @@ enum
 	DF2_COOP_SHOTGUNSTART	= 1 << 11,	// All playres start with a shotgun when they respawn
 	DF2_SAME_SPAWN_SPOT		= 1 << 12,	// Players respawn in the same place they died (co-op)
 
-	DF2_YES_KEEPFRAGS		= 1 << 13,	// Don't clear frags after each level
-	DF2_NO_RESPAWN			= 1 << 14,	// Player cannot respawn
-	DF2_YES_LOSEFRAG		= 1 << 15,	// Lose a frag when killed. More incentive to try to
+	// [BB] I don't want to change the dmflag numbers compared to 97D.
+	DF2_YES_KEEP_TEAMS		= 1 << 13,	// Player keeps his team after a map change.
+
+	DF2_YES_KEEPFRAGS		= 1 << 14,	// Don't clear frags after each level
+	DF2_NO_RESPAWN			= 1 << 15,	// Player cannot respawn
+	DF2_YES_LOSEFRAG		= 1 << 16,	// Lose a frag when killed. More incentive to try to
 //										// not get yerself killed
-	DF2_INFINITE_INVENTORY	= 1 << 16,	// Infinite inventory.
-	DF2_YES_KEEP_TEAMS		= 1 << 17,	// Player keeps his team after a map change.
+	DF2_INFINITE_INVENTORY	= 1 << 17,	// Infinite inventory.
 };
 
 // [RH] Compatibility flags.
