@@ -29,6 +29,7 @@ latestzdoom branch
 -	- Fixed: If the ACS function SetActorPitch was called on a server, the clients were not notified about the updated pitch. [Torr Samaho]
 -	- Fixed: No melee sound is played online by A_CustomComboAttack. [Torr Samaho]
 -	- Fixed: For some actors the server tried but failed to instruct the clients to set the actor to a certain frame. [Torr Samaho]
+-	- Fixed: A_Print crashes the server online. [Torr Samaho]
 !	- Changed: Spectators are now allowed to use chasecam in all game modes. [Torr Samaho]
 !	- Changed: When a jump is done online in A_JumpIfCloser, the server now synchronizes the actor position with the clients to reduce the sync issues caused by the client side monster movement. [Torr Samaho]
 

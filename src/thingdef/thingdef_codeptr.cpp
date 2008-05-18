@@ -2201,19 +2201,25 @@ void A_Print(AActor * actor)
 	int index=CheckIndex(3, NULL);
 	if (index<0) return;
 
+	// [BB] The server always generates the message and just checks whom to send it to.
 	if (actor->CheckLocalView (consoleplayer) ||
-		(actor->target!=NULL && actor->target->CheckLocalView (consoleplayer)))
+		(actor->target!=NULL && actor->target->CheckLocalView (consoleplayer))
+		|| ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
 	{
 		float time = EvalExpressionF (StateParameters[index+1], actor);
 		FName fontname = (ENamedName)StateParameters[index+2];
-		FFont * oldfont = screen->Font;
+		FFont * oldfont = ( NETWORK_GetState( ) != NETSTATE_SERVER ) ? screen->Font : NULL;
 		float saved = con_midtime;
 
 		
-		if (fontname != NAME_None)
+		// [BB] The server doesn't have a screen.
+		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		{
-			FFont * font = V_GetFont(fontname);
-			if (font != NULL) screen->SetFont(font);
+			if (fontname != NAME_None)
+			{
+				FFont * font = V_GetFont(fontname);
+				if (font != NULL) screen->SetFont(font);
+			}
 		}
 		if (time > 0)
 		{
@@ -2221,7 +2227,23 @@ void A_Print(AActor * actor)
 		}
 		
 		C_MidPrint(FName((ENamedName)StateParameters[index]).GetChars());
-		screen->SetFont(oldfont);
+		// [BB] The server sends out the message and doesn't have a screen.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			LONG player = -1;
+			if ( actor->player )
+				player = ULONG(actor->player-players);
+			else if ( actor->target && actor->target->player )
+				player = ULONG(actor->target->player-players);
+			// [BB] We can't use SERVERCOMMANDS_PrintMid since time and font may be altered.
+			// To avoid writing yet another special server command for this, just use
+			// SERVERCOMMANDS_PrintHUDMessage and fill it with the default arguments of used
+			// in C_MidPrint.
+			if ( player >= 0 )
+				SERVERCOMMANDS_PrintHUDMessage( FName((ENamedName)StateParameters[index]).GetChars(), 1.5f, 0.375f, 0, 0, CR_GOLD, con_midtime, (fontname != NAME_None) ? fontname.GetChars() : SERVER_GetCurrentFont( ), true, MAKE_ID('C','N','T','R'), ULONG(player), SVCF_ONLYTHISCLIENT );
+		}
+		else
+			screen->SetFont(oldfont);
 		con_midtime = saved;
 	}
 }
