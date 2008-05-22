@@ -2889,6 +2889,12 @@ void P_NightmareRespawn (AActor *mobj)
 	mo->CopyFriendliness (mobj, false);
 	mo->Translation = mobj->Translation;
 
+	// [BB] The new actor has to inherit the STFL_LEVELSPAWNED flag from the old one.
+	// Otherwise level spawned actors respawned by P_NightmareRespawn won't be restored
+	// during a call of GAME_ResetMap.
+	if ( mobj->ulSTFlags & STFL_LEVELSPAWNED )
+		mo->ulSTFlags |= STFL_LEVELSPAWNED;
+
 	// [BC] If we're the server, tell clients to spawn the thing.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
@@ -4051,21 +4057,8 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 	{
 		level.total_monsters++;
 
-		// [BC] Do some invasion mode stuff.
-		if (( invasion ) &&
-			( INVASION_GetIncreaseNumMonstersOnSpawn( )) &&
-			( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-			( CLIENTDEMO_IsPlaying( ) == false ))
-		{
-			INVASION_SetNumMonstersLeft( INVASION_GetNumMonstersLeft( ) + 1 );
-
-			if ( actor->GetClass( ) == PClass::FindClass("Archvile") )
-				INVASION_SetNumArchVilesLeft( INVASION_GetNumArchVilesLeft( ) + 1 );
-
-			// [BC] If we're the server, tell the client how many monsters are left.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SetInvasionNumMonstersLeft( );
-		}
+		// [BB] The number of total monsters was increased, update the invasion monster count accordingly.
+		INVASION_UpdateMonsterCount( actor, false );
 	}
 	// [RH] Same, for items
 	if (actor->flags & MF_COUNTITEM)

@@ -3053,7 +3053,7 @@ bool GAME_DormantStatusMatchesOriginal( AActor *pActor )
 void P_LoadBehavior( MapData *pMap );
 void DECAL_ClearDecals( void );
 polyobj_t *GetPolyobjByIndex( ULONG ulPoly );
-void GAME_ResetMap( void )
+void GAME_ResetMap( bool bRunEnterScripts )
 {
 	ULONG							ulIdx;
 	MapData							*pMap;
@@ -3363,6 +3363,12 @@ void GAME_ResetMap( void )
 		SERVERCOMMANDS_SetMapNumFoundSecrets( );
 	}
 
+	// [BB] Recount the total number of monsters. We can't just adjust the old
+	// level.total_monsters value, since we lost track of monsters that were not spawned
+	// by the map and removed during the game, e.g. killed lost souls spawned by a pain
+	// elemental.
+	level.total_monsters = 0;
+
 	// Restart the map music.
 	S_ChangeMusic( level.music, level.musicorder );
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -3451,10 +3457,6 @@ void GAME_ResetMap( void )
 		// Destroy any actor not present when the map loaded.
 		if (( pActor->ulSTFlags & STFL_LEVELSPAWNED ) == false )
 		{
-			// If this is a monster, decrement the total number of monsters on the level.
-			if ( pActor->CountsAsKill( ))
-				level.total_monsters--;
-
 			// If this is an item, decrement the total number of item on the level.
 			if ( pActor->flags & MF_COUNTITEM )
 				level.total_items--;
@@ -3482,6 +3484,10 @@ void GAME_ResetMap( void )
 		{
 			if ( pActor->special != pActor->SavedSpecial )
 				pActor->special = pActor->SavedSpecial;
+
+			// [BB] This is a valid monster on the map, count it.
+			if ( pActor->CountsAsKill( ) && !(pActor->flags & MF_FRIENDLY) )
+				level.total_monsters++;
 
 			continue;
 		}
@@ -3540,6 +3546,11 @@ void GAME_ResetMap( void )
 				pNewActor->LastLook = pActor->LastLook;
 				pNewActor->flags3 |= pActor->flags3 & MF3_HUNTPLAYERS;
 				pNewActor->flags4 |= pActor->flags4 & MF4_NOHATEPLAYERS;
+
+				// [BB] Spawning pNewActor increased the monster count. Since ActorIterator will also catch
+				// the newly spawned actor, this will be counted again. Adjust for this here.
+				if ( !(pNewActor->flags & MF_FRIENDLY) )
+					level.total_monsters--;
 			}
 
 			pNewActor->flags &= ~MF_DROPPED;
@@ -3547,11 +3558,6 @@ void GAME_ResetMap( void )
 
 			// Handle the spawn flags of the item.
 			pNewActor->HandleSpawnFlags( );
-
-			// If the old actor counts as a kill, remove it from the total monster count
-			// since it's being deleted.
-			if ( pActor->CountsAsKill( ))
-				level.total_monsters--;
 
 			// If the old actor counts as an item, remove it from the total item count
 			// since it's being deleted.
@@ -3610,8 +3616,29 @@ void GAME_ResetMap( void )
 
 	// Unload the ACS scripts so we can reload them.
 	FBehavior::StaticUnloadModules( );
-	delete ( DACSThinker::ActiveThinker );
-	DACSThinker::ActiveThinker = NULL;
+	if ( DACSThinker::ActiveThinker != NULL )
+	{
+		// [BB] Mark all running scripts for removal.
+		for (int i = 0; i < 1000; i++)
+		{
+			if ( DACSThinker::ActiveThinker->RunningScripts[i] != NULL )
+				DACSThinker::ActiveThinker->RunningScripts[i]->SetState(DLevelScript::SCRIPT_PleaseRemove);
+		}
+
+		// [BB] Stop the scripts attached to the ingame players.
+		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+		{
+			if (( playeringame[ulIdx] ) &&
+				( players[ulIdx].bSpectating == false ) &&
+				( players[ulIdx].mo ))
+			{
+				FBehavior::StaticStopMyScripts (players[ulIdx].mo);
+			}
+		}
+
+		// [BB] Remove all marked scripts.
+		DACSThinker::ActiveThinker->Tick();
+	}
 
 	// Open the current map and load its BEHAVIOR lump.
 	pMap = P_OpenMapData( level.mapname );
@@ -3626,14 +3653,17 @@ void GAME_ResetMap( void )
 	// Restart running any open scripts on this map, since we just destroyed them all!
 	FBehavior::StaticStartTypedScripts( SCRIPT_Open, NULL, false );
 
-	// Restart players' enter scripts.
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	// [BB] Restart players' enter scripts if necessary.
+	if ( bRunEnterScripts )
 	{
-		if (( playeringame[ulIdx] ) &&
-			( players[ulIdx].bSpectating == false ) &&
-			( players[ulIdx].mo ))
+		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 		{
-			FBehavior::StaticStartTypedScripts( SCRIPT_Enter, players[ulIdx].mo, true );
+			if (( playeringame[ulIdx] ) &&
+				( players[ulIdx].bSpectating == false ) &&
+				( players[ulIdx].mo ))
+			{
+				FBehavior::StaticStartTypedScripts( SCRIPT_Enter, players[ulIdx].mo, true );
+			}
 		}
 	}
 

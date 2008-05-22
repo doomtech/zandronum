@@ -41,7 +41,7 @@ void	GAME_CheckMode( void );
 
 // [BC] Function that reverts the map into its original state when it first loaded, without
 // actually reloading the map.
-void	GAME_ResetMap( void );
+void	GAME_ResetMap( bool bRunEnterScripts = false );
 
 // [BC] Spawn the terminator artifact at a random deathmatch spot for terminator games.
 void	GAME_SpawnTerminatorArtifact( void );
