@@ -75,6 +75,23 @@ polyobj_t	*GetPolyobj( int polyNum );
 //*****************************************************************************
 //	FUNCTIONS
 
+// [BB] Check if the actor has a valid net ID. Returns true if it does, returns false and prints a warning if not.
+bool EnsureActorHasNetID( AActor *pActor )
+{
+	if ( pActor == NULL )
+		return false;
+
+	if ( pActor->lNetID == -1 )
+	{
+		Printf ( "Warning: Actor %s doesn't have a netID and therefore can't be manipulated online!\n", pActor->GetClass()->TypeName.GetChars() );
+		return false;
+	}
+	else
+		return true;
+}
+
+//*****************************************************************************
+//
 void SERVERCOMMANDS_Ping( ULONG ulTime )
 {
 	ULONG	ulIdx;
@@ -1499,7 +1516,7 @@ void SERVERCOMMANDS_MoveThing( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra
 	ULONG	ulIdx;
 	ULONG	ulSize;
 
-	if ( pActor == NULL )
+	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
 	ulSize = 0;
@@ -1569,7 +1586,7 @@ void SERVERCOMMANDS_MoveThingExact( AActor *pActor, ULONG ulBits, ULONG ulPlayer
 	ULONG	ulIdx;
 	ULONG	ulSize;
 
-	if ( pActor == NULL )
+	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
 	ulSize = 0;
@@ -1638,7 +1655,7 @@ void SERVERCOMMANDS_DamageThing( AActor *pActor )
 {
 	ULONG	ulIdx;
 
-	if ( pActor == NULL )
+	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1660,7 +1677,7 @@ void SERVERCOMMANDS_KillThing( AActor *pActor, AActor *pSource, AActor *pInflict
 	LONG	lSourceID;
 	LONG	lInflictorID;
 
-	if ( pActor == NULL )
+	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
 	if ( pSource )
@@ -1694,7 +1711,7 @@ void SERVERCOMMANDS_SetThingState( AActor *pActor, ULONG ulState )
 {
 	ULONG	ulIdx;
 
-	if ( pActor == NULL )
+	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1715,7 +1732,7 @@ void SERVERCOMMANDS_SetThingTarget( AActor *pActor )
 {
 	ULONG	ulIdx;
 
-	if ( pActor == NULL || pActor->target == NULL )
+	if ( !EnsureActorHasNetID (pActor) || !EnsureActorHasNetID(pActor->target) )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1736,7 +1753,7 @@ void SERVERCOMMANDS_DestroyThing( AActor *pActor )
 {
 	ULONG	ulIdx;
 
-	if ( pActor == NULL )
+	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1756,7 +1773,7 @@ void SERVERCOMMANDS_SetThingAngle( AActor *pActor, ULONG ulPlayerExtra, ULONG ul
 {
 	ULONG	ulIdx;
 
-	if ( pActor == NULL )
+	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1783,7 +1800,7 @@ void SERVERCOMMANDS_SetThingAngleExact( AActor *pActor, ULONG ulPlayerExtra, ULO
 {
 	ULONG	ulIdx;
 
-	if ( pActor == NULL )
+	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1810,7 +1827,7 @@ void SERVERCOMMANDS_SetThingMoveDir( AActor *pActor, ULONG ulPlayerExtra, ULONG 
 {
 	ULONG	ulIdx;
 
-	if ( pActor == NULL )
+	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1837,7 +1854,7 @@ void SERVERCOMMANDS_SetThingWaterLevel( AActor *pActor, ULONG ulPlayerExtra, ULO
 {
 	ULONG	ulIdx;
 
-	if ( pActor == NULL )
+	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1865,7 +1882,7 @@ void SERVERCOMMANDS_SetThingFlags( AActor *pActor, ULONG ulFlagSet, ULONG ulPlay
 	ULONG	ulIdx;
 	ULONG	ulActorFlags;
 
-	if ( pActor == NULL )
+	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
 	switch ( ulFlagSet )
@@ -1924,7 +1941,7 @@ void SERVERCOMMANDS_SetThingArguments( AActor *pActor, ULONG ulPlayerExtra, ULON
 {
 	ULONG	ulIdx;
 
-	if ( pActor == NULL )
+	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1955,11 +1972,7 @@ void SERVERCOMMANDS_SetThingTranslation( AActor *pActor, ULONG ulPlayerExtra, UL
 {
 	ULONG	ulIdx;
 
-	if ( pActor == NULL )
-		return;
-
-	// If the actor doesn't have a network ID, we can't tell clients which actor to update.
-	if ( pActor->ulNetworkFlags & NETFL_NONETID )
+	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -2006,7 +2019,7 @@ void SERVERCOMMANDS_SetThingProperty( AActor *pActor, ULONG ulProperty, ULONG ul
 	ULONG	ulIdx;
 	ULONG	ulPropertyValue = 0;
 
-	if ( pActor == NULL )
+	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
 	// Set one of the actor's properties, depending on what was read in.
@@ -2059,7 +2072,7 @@ void SERVERCOMMANDS_SetThingSound( AActor *pActor, ULONG ulSound, char *pszSound
 {
 	ULONG	ulIdx;
 
-	if ( pActor == NULL )
+	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -2087,7 +2100,7 @@ void SERVERCOMMANDS_SetThingSpecial1( AActor *pActor, ULONG ulPlayerExtra, ULONG
 {
 	ULONG	ulIdx;
 
-	if ( pActor == NULL )
+	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -2114,7 +2127,7 @@ void SERVERCOMMANDS_SetThingSpecial2( AActor *pActor, ULONG ulPlayerExtra, ULONG
 {
 	ULONG	ulIdx;
 
-	if ( pActor == NULL )
+	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -2141,7 +2154,7 @@ void SERVERCOMMANDS_SetThingTics( AActor *pActor, ULONG ulPlayerExtra, ULONG ulF
 {
 	ULONG	ulIdx;
 
-	if ( pActor == NULL )
+	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -2168,7 +2181,7 @@ void SERVERCOMMANDS_SetThingTID( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFl
 {
 	ULONG	ulIdx;
 
-	if ( pActor == NULL )
+	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -2195,7 +2208,7 @@ void SERVERCOMMANDS_SetThingGravity( AActor *pActor, ULONG ulPlayerExtra, ULONG 
 {
 	ULONG	ulIdx;
 
-	if ( pActor == NULL )
+	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -2225,7 +2238,7 @@ void SERVERCOMMANDS_SetThingFrame( AActor *pActor, FState *pState, ULONG ulPlaye
 	ULONG		ulIdx;
 	FState		*pCompareState;
 
-	if ( (pActor == NULL) || (pState == NULL) )
+	if ( !EnsureActorHasNetID (pActor) || (pState == NULL) )
 		return;
 
 	// [BB] Special handling of certain states. This perhaps is not necessary
@@ -2316,7 +2329,7 @@ void SERVERCOMMANDS_SetWeaponAmmoGive( AActor *pActor, ULONG ulPlayerExtra, ULON
 {
 	ULONG	ulIdx;
 
-	if ( pActor == NULL )
+	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
 	if ( pActor->IsKindOf( RUNTIME_CLASS( AWeapon )) == false )
@@ -2347,7 +2360,7 @@ void SERVERCOMMANDS_ThingIsCorpse( AActor *pActor, ULONG ulPlayerExtra, ULONG ul
 {
 	ULONG	ulIdx;
 
-	if ( pActor == NULL )
+	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -2375,7 +2388,7 @@ void SERVERCOMMANDS_HideThing( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlag
 	ULONG	ulIdx;
 
 	// [BB] The client will call HideIndefinitely on the actor, which only is possible on AInventory and descendants.
-	if ( pActor == NULL || !(pActor->IsKindOf( RUNTIME_CLASS( AInventory ))) )
+	if ( !EnsureActorHasNetID (pActor) || !(pActor->IsKindOf( RUNTIME_CLASS( AInventory ))) )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -2401,7 +2414,7 @@ void SERVERCOMMANDS_TeleportThing( AActor *pActor, bool bSourceFog, bool bDestFo
 {
 	ULONG	ulIdx;
 
-	if ( pActor == NULL )
+	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -2438,7 +2451,7 @@ void SERVERCOMMANDS_ThingActivate( AActor *pActor, AActor *pActivator, ULONG ulP
 {
 	ULONG	ulIdx;
 
-	if ( pActor == NULL )
+	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -2468,7 +2481,7 @@ void SERVERCOMMANDS_ThingDeactivate( AActor *pActor, AActor *pActivator, ULONG u
 {
 	ULONG	ulIdx;
 
-	if ( pActor == NULL )
+	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -2498,7 +2511,7 @@ void SERVERCOMMANDS_RespawnDoomThing( AActor *pActor, bool bFog, ULONG ulPlayerE
 {
 	ULONG	ulIdx;
 
-	if ( pActor == NULL )
+	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -2525,7 +2538,7 @@ void SERVERCOMMANDS_RespawnRavenThing( AActor *pActor, ULONG ulPlayerExtra, ULON
 {
 	ULONG	ulIdx;
 
-	if ( pActor == NULL )
+	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -3509,7 +3522,7 @@ void SERVERCOMMANDS_MissileExplode( AActor *pMissile, line_t *pLine, ULONG ulPla
 {
 	ULONG	ulIdx;
 
-	if ( pMissile == NULL )
+	if ( !EnsureActorHasNetID (pMissile) )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -3608,7 +3621,7 @@ void SERVERCOMMANDS_WeaponRailgun( AActor *pSource, const FVector3 &Start, const
 	ULONG	ulIdx;
 
 	// Evidently, to draw a railgun trail, there must be a source actor.
-	if ( pSource == NULL )
+	if ( !EnsureActorHasNetID (pSource) )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -4573,7 +4586,7 @@ void SERVERCOMMANDS_SoundActor( AActor *pActor, LONG lChannel, const char *pszSo
 {
 	ULONG	ulIdx;
 
-	if ( pActor == NULL )
+	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -6218,7 +6231,7 @@ void SERVERCOMMANDS_Earthquake( AActor *pCenter, LONG lIntensity, LONG lDuration
 {
 	ULONG	ulIdx;
 
-	if ( pCenter == NULL )
+	if ( !EnsureActorHasNetID (pCenter) )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -6415,7 +6428,7 @@ void SERVERCOMMANDS_SetCameraToTexture( AActor *pCamera, char *pszTexture, LONG 
 {
 	ULONG	ulIdx;
 
-	if (( pCamera == NULL ) ||
+	if ((!EnsureActorHasNetID (pCamera) ) ||
 		( pszTexture == NULL ))
 	{
 		return;
