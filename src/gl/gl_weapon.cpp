@@ -1,4 +1,3 @@
-
 /*
 ** gl_weapon.cpp
 ** Weapon sprite drawing
@@ -257,16 +256,33 @@ void gl_DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 	for (i=0, psp=player->psprites; i<=ps_flash; i++,psp++)
 		if (psp->state) DrawPSprite (player,psp,psp->sx+ofsx, psp->sy+ofsy, cm.LightColor.a, hudModelStep);
 	gl_EnableBrightmap(false);
+}
 
+//==========================================================================
+//
+// R_DrawPlayerSprites
+//
+//==========================================================================
+
+void gl_DrawTargeterSprites()
+{
+	int i;
+	pspdef_t *psp;
+	AActor * playermo=players[consoleplayer].camera;
+	player_t * player=playermo->player;
+	
+	if(!player || playermo->renderflags&RF_INVISIBLE || !r_drawplayersprites ||
+		viewactor!=playermo) return;
+
+	gl_EnableBrightmap(false);
 	gl.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	gl.AlphaFunc(GL_GEQUAL,0.5f);
 	gl.BlendEquation(GL_FUNC_ADD);
 	gl.Color3f(1.0f,1.0f,1.0f);
 	gl_SetTextureMode(TM_MODULATE);
 
-	// The Targeter's sprites are always drawn normally!
-	for (; i<NUMPSPRITES; i++,psp++)
-		if (psp->state) DrawPSprite (player,psp,psp->sx, psp->sy, CM_DEFAULT, hudModelStep);
-
+	// The Targeter's sprites are always drawn normally.
+	for (i=ps_targetcenter, psp = &player->psprites[ps_targetcenter]; i<NUMPSPRITES; i++,psp++)
+		if (psp->state) DrawPSprite (player,psp,psp->sx, psp->sy, CM_DEFAULT, false);
 }
 

@@ -737,6 +737,7 @@ static void gl_DrawBlend(sector_t * viewsector)
 void gl_EndDrawScene(sector_t * viewsector)
 {
 	extern void gl_DrawPlayerSprites (sector_t *, bool);
+	extern void gl_DrawTargeterSprites();
 
 	// [BB] HUD models need to be rendered here. Make sure that
 	// gl_DrawPlayerSprites is only called once. Either to draw
@@ -761,7 +762,10 @@ void gl_EndDrawScene(sector_t * viewsector)
 	gl_ResetViewport();
 	// [BB] Only draw the sprites if we didn't render a HUD model before.
 	if ( renderHUDModel == false )
+	{
 		gl_DrawPlayerSprites (viewsector, false);
+	}
+	gl_DrawTargeterSprites();
 	gl_DrawBlend(viewsector);
 
 	// Restore standard rendering state

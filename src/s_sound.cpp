@@ -110,7 +110,6 @@ static void CalcPosVel(fixed_t *pt, AActor *mover, int constz, float pos[3],
 
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 
-static bool		SoundPaused;		// whether sound effects are paused
 static bool		MusicPaused;		// whether music is paused
 static MusPlayingInfo mus_playing;	// music currently being played
 static FString	 LastSong;			// last music that was played
@@ -312,7 +311,6 @@ void S_Init ()
 
 	// no sounds are playing, and they are not paused
 	MusicPaused = false;
-	SoundPaused = false;
 }
 
 //==========================================================================
@@ -456,8 +454,6 @@ void S_Start ()
 		LastLocalSndInfo = LocalSndInfo;
 		LastLocalSndSeq = LocalSndSeq;
 	}
-
-	SoundPaused = false;
 
 	// stop the old music if it has been paused.
 	// This ensures that the new music is started from the beginning
@@ -1220,10 +1216,9 @@ void S_PauseSound (bool notmusic)
 		I_PauseSong (mus_playing.handle);
 		MusicPaused = true;
 	}
-	if (GSnd != NULL && !SoundPaused)
+	if (GSnd != NULL)
 	{
 		GSnd->SetSfxPaused (true);
-		SoundPaused = true;
 	}
 }
 
@@ -1245,10 +1240,9 @@ void S_ResumeSound ()
 		I_ResumeSong (mus_playing.handle);
 		MusicPaused = false;
 	}
-	if (GSnd != NULL && SoundPaused)
+	if (GSnd != NULL)
 	{
 		GSnd->SetSfxPaused (false);
-		SoundPaused = false;
 	}
 }
 

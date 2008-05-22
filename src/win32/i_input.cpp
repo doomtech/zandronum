@@ -740,10 +740,6 @@ LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		if (wParam)
 		{
 			SetPriorityClass (GetCurrentProcess (), INGAME_PRIORITY_CLASS);
-			if (GSnd != NULL)
-			{
-				GSnd->ResetEnvironment();
-			}
 		}
 		else if (!noidle && NETWORK_GetState( ) != NETSTATE_CLIENT )
 		{
