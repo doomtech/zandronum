@@ -4251,7 +4251,7 @@ static bool server_GenericCheat( BYTESTREAM_s *pByteStream )
 
 	// If it's legal, do the cheat.
 	if (( sv_cheats ) ||
-		(( ulCheat == CHT_CHASECAM ) &&	( deathmatch == false ) && ( teamgame == false )))
+		(( ulCheat == CHT_CHASECAM ) &&	(( ( deathmatch == false ) && ( teamgame == false ) ) || (players[g_lCurrentClient].bSpectating) )))
 	{
 		cht_DoCheat( &players[g_lCurrentClient], ulCheat );
 

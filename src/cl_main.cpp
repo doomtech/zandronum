@@ -5168,6 +5168,7 @@ static void client_MoveThing( BYTESTREAM_s *pByteStream )
 		if ( lBits & CM_MOMX ) NETWORK_ReadShort( pByteStream );
 		if ( lBits & CM_MOMY ) NETWORK_ReadShort( pByteStream );
 		if ( lBits & CM_MOMZ ) NETWORK_ReadShort( pByteStream );
+		if ( lBits & CM_PITCH ) NETWORK_ReadLong( pByteStream );
 
 		return;
 	}
@@ -5198,6 +5199,10 @@ static void client_MoveThing( BYTESTREAM_s *pByteStream )
 		pActor->momy = NETWORK_ReadShort( pByteStream ) << FRACBITS;
 	if ( lBits & CM_MOMZ )
 		pActor->momz = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+
+	// Read in the pitch data.
+	if ( lBits & CM_PITCH )
+		pActor->pitch = NETWORK_ReadLong( pByteStream );
 
 	// If the server is moving us, don't let our prediction get messed up.
 	if ( pActor == players[consoleplayer].mo )
@@ -5239,6 +5244,7 @@ static void client_MoveThingExact( BYTESTREAM_s *pByteStream )
 		if ( lBits & CM_MOMX ) NETWORK_ReadLong( pByteStream );
 		if ( lBits & CM_MOMY ) NETWORK_ReadLong( pByteStream );
 		if ( lBits & CM_MOMZ ) NETWORK_ReadLong( pByteStream );
+		if ( lBits & CM_PITCH ) NETWORK_ReadLong( pByteStream );
 
 		return;
 	}
@@ -5269,6 +5275,10 @@ static void client_MoveThingExact( BYTESTREAM_s *pByteStream )
 		pActor->momy = NETWORK_ReadLong( pByteStream );
 	if ( lBits & CM_MOMZ )
 		pActor->momz = NETWORK_ReadLong( pByteStream );
+
+	// Read in the pitch data.
+	if ( lBits & CM_PITCH )
+		pActor->pitch = NETWORK_ReadLong( pByteStream );
 }
 
 //*****************************************************************************
@@ -6079,14 +6089,45 @@ static void client_SetThingFrame( BYTESTREAM_s *pByteStream, bool bCallStateFunc
 		return;
 	}
 
-	// [BB] In this case lOffset is just the offset from pActor->SpawnState.
+	// [BB] In this case lOffset is just the offset from one of the default states.
 	// Handle this accordingly.
-	if ( stricmp(pszState,"SOffs") == 0 )
+	if ( pszState[0] == ':' )
 	{
-		if ( bCallStateFunction )
-			pActor->SetState( pActor->SpawnState + lOffset );
-		else
-			pActor->SetStateNF( pActor->SpawnState + lOffset );
+		FState* pBaseState = NULL;
+
+		switch ( pszState[1] )
+		{
+		case 'S':
+			pBaseState = pActor->SpawnState;
+
+			break;
+		case 'M':
+			pBaseState = pActor->MissileState;
+
+			break;
+		case 'T':
+			pBaseState = pActor->SeeState;
+
+			break;
+		case 'N':
+			pBaseState = pActor->MeleeState;
+
+			break;
+		default:
+			// [BB] Unknown base state specified. We can't do anythig.
+			return;
+		}
+
+		// [BB] We can only set the state, if the actor has pBaseState. But unless the server
+		// is sending us garbage or this client has altered actor defintions, this check
+		// should always succeed.
+		if ( pBaseState )
+		{
+			if ( bCallStateFunction )
+				pActor->SetState( pBaseState + lOffset );
+			else
+				pActor->SetStateNF( pBaseState + lOffset );
+		}
 		return;
 	}
 

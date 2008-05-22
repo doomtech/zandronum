@@ -4581,6 +4581,11 @@ void P_SpawnPlayer (mapthing2_t *mthing, bool bClientUpdate, player_t *p, bool t
 		if ( p->pSkullBot )
 			p->pSkullBot->PostEvent( BOTEVENT_SPECTATING );
 	}
+	// [BB] If this not a coop game and cheats are not allowed, remove the chasecam.
+	else if ( !( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE ) && ( sv_cheats == false ) )
+	{
+		p->cheats &= ~(CF_CHASECAM);
+	}
 
 	// "Fix" for one of the starts on exec.wad MAP01: If you start inside the ceiling,
 	// drop down below it, even if that means sinking into the floor.
