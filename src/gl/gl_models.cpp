@@ -704,6 +704,6 @@ bool gl_IsHUDModelForPlayerAvailable (player_t * player)
 		return false;
 
 	FState* state = player->psprites[0].state;
-	FSpriteModelFrame *smf = gl_FindModelFrame(player->ReadyWeapon->GetClass(), state->sprite.index, state->Frame);
+	FSpriteModelFrame *smf = gl_FindModelFrame(player->ReadyWeapon->GetClass(), state->sprite.index, state->GetFrame());
 	return ( smf != NULL );
 }
