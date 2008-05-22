@@ -49,6 +49,7 @@ v0.97d
 -	- Fixed: Damaging a charging lost soul online leads to serious sync issues regarding the lost soul between client and server. [Torr Samaho]
 -	- Fixed a z position client/server sync issue of floating monsters. [Torr Samaho]
 -	- Fixed: Enter scripts are not executed in team games when a spectator joins a team. [Torr Samaho]
+-	- Fixed exploit: Dropping ammo at baby and nightmare skill levels would give you back more than you dropped (ported from ZDoom revision 708). [Torr Samaho]
 !	- The drop/invdrop command is not allowed online in non-cooperative game modes anymore. [Torr Samaho]
 !	- RadSuit now has the FORCERESPAWNINSURVIVAL inventory flag. This was necessary because some maps are nearly impossible to finish in survival with sv_itemrespawn == false. [Torr Samaho]
 
