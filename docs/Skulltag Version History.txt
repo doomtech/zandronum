@@ -35,6 +35,7 @@
 -	- Fixed: 'A_SetBlend' didn't work online. [Karate Chris]
 -	- Fixed: Heretic survival crashes within seconds after the countdown ends. [Torr Samaho]
 -	- Fixed: SetFont() doesn't work properly online. [Torr Samaho]
+-	- Fixed: A_Mushroom possibly causes problems with the invasion monster count. [Torr Samaho]
 -	- Fixed: Level spawned actors revived by an Archvile aren't restored by GAME_ResetMap(). [Torr Samaho]
 -	- Fixed: Level spawned actors that have been respawned in nightmare aren't restored by GAME_ResetMap(). [Torr Samaho]
 -	- Fixed: Level spawned actors that have been removed by A_FreezeDeathChunks aren't restored by GAME_ResetMap(). [Torr Samaho]

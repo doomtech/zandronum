@@ -595,41 +595,21 @@ void A_Mushroom (AActor *actor)
 		if (n == 0)
 			n = actor->GetMissileDamage (0, 1);
 	}
-	if (spawntype == NULL) spawntype = RUNTIME_CLASS(AFatShot);
+	if (spawntype == NULL) spawntype = PClass::FindClass("FatShot");
 
 	A_Explode (actor);	// First make normal explosion
 
 	// Now launch mushroom cloud
+	AActor *target = Spawn("Mapspot", 0, 0, 0, NO_REPLACE);	// We need something to aim at.
+	target->height = actor->height;
 	for (i = -n; i <= n; i += 8)
 	{
 		for (j = -n; j <= n; j += 8)
 		{
-			// [BC] Had to redo this a bit because Skulltag has some actor properties,
-			// and really doesn't like "AActor target = *actor;".
-/*
-			AActor target = *actor, *mo;
-			target.x += i << FRACBITS; // Aim in many directions from source
-			target.y += j << FRACBITS;
-			target.z += P_AproxDistance(i,j) << (FRACBITS+2); // Aim up fairly high
-			mo = P_SpawnMissile (actor, &target, spawntype); // Launch fireball
-			if (mo != NULL)
-			{
-				mo->momx >>= 1;
-				mo->momy >>= 1;				  // Slow it down a bit
-				mo->momz >>= 1;
-				mo->flags &= ~MF_NOGRAVITY;   // Make debris fall under gravity
-			}
-*/
-			AActor *target;
 			AActor *mo;
-
-			target = Spawn( actor->GetClass( ), actor->x, actor->y, actor->z, NO_REPLACE);
-			if ( target == NULL )
-				continue;
-
-			target->x += i << FRACBITS; // Aim in many directions from source
-			target->y += j << FRACBITS;
-			target->z += P_AproxDistance(i,j) << (FRACBITS+2); // Aim up fairly high
+			target->x = actor->x + (i << FRACBITS); // Aim in many directions from source
+			target->y = actor->y + (j << FRACBITS);
+			target->z = actor->z + (P_AproxDistance(i,j) << (FRACBITS+2)); // Aim up fairly high
 			mo = P_SpawnMissile (actor, target, spawntype); // Launch fireball
 			if (mo != NULL)
 			{
@@ -638,8 +618,7 @@ void A_Mushroom (AActor *actor)
 				mo->momz >>= 1;
 				mo->flags &= ~MF_NOGRAVITY;   // Make debris fall under gravity
 			}
-
-			target->Destroy( );
 		}
 	}
+	target->Destroy();
 }
