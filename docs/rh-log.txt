@@ -1,3 +1,122 @@
+May 23, 2008 (Changes by Graf Zahl)
+- Fixed: The compatibility searches for teleport destinations did not work
+  properly when the teleporter had both a tid and a tag. Now, if a teleporter
+  has a tag these are skipped because they are only present for Hexen
+  compatibility.
+- Fixed: The first texture in a TEXTURE1 lump, although invalid when used
+  elsewhere, must be usable as sky (see Requiem.wad's SKY3.)
+- Fixed: side_t::GetLightLevel relied on the global 'linedef' variable for
+  automatic fake contrast.
+- Changed: Fake contrast now uses the WALLF_AUTOCONTRAST globally instead
+  of manipulating the sides' light values individually. This allows changing
+  the fake contrast at run time and also allows adding individual relative
+  lighting on top of it which is a planned UDMF feature.
+
+May 22, 2008
+- Fixed: ActorStencilColor() did not set the palette part of the actor's
+  fill color, so it would always produce black for STYLE_Shaded.
+- Added volume reduction for stereo sounds played in 3D to obtain levels
+  closer to FMOD 3, which downmixed all stereo sounds to mono before
+  playing them in 3D. Also added experimental 3D spread for stereo sounds
+  so that you can actually hear them in stereo.
+
+May 22, 2008 (Changes by Graf Zahl)
+- Reworked a few options that previously depended on LEVEL_HEXENFORMAT
+  (actors being forced to the ground by instantly moving sectors, strife
+  railing handling and shooting lines with a non-zero but unassigned tag.)
+  With UDMF such semantics have to be handled diffently. 
+- finalized UDMF 1.0 implementation.
+- Added Martin Howe's latest morph update.
+
+May 21, 2008
+- Fixed: When R_DrawTiltedPlane() calculates the p vector, it can overflow
+  if the view is near the bounds of the fixed point coordinate system. This
+  happens because it rotates the view position around (0,0) according to
+  the current viewangle, so the resultant coordinate may be outside the
+  bounds of fixed point. All important math in this function is now done
+  entirely in floating point.
+- Fixed: Slopes didn't draw right on 64-bit platforms.
+
+May 20, 2008
+- Fixed: With hardware 2D, the console and menu need not reimplement palette
+  flashes to ensure their visibility.
+- Fixed: DFlashFader::Destroy() did not call its super method.
+- Fixed: If a player was morphed into a class with a taller view height,
+  their perceived view height would not change until they walked up a step.
+
+May 19, 2008
+- Since KDIZD is the only mapset I know of that used reverb, and it didn't
+  define any new ones of its own, I'm pre-emptively renaming the SNDEAX lump
+  to REVERBS to remove any possible misunderstanding that this is something
+  that requires EAX hardware support. (Ideally, it would have been REVERBDEF,
+  but that's 10 characters long.) The eaxedit console command has also been
+  renamed to reverbedit for the same reason.
+- Fixed: The Palette part of FRemapTable was not initialized with alpha values
+  other than 0. I'm not sure if it would be better to fix this in the game
+  palette that it copies from or not, but right now, they get set
+  unconditionally to 255.
+- Fixed: M_DrawSave() and M_DrawLoad() need to use GetScaledWidth(), in case
+  the texture is high-res.
+- Replaced all instances of "flags +=" in sbarinfo_parser.cpp with "flags |="
+  so that using the same flag multiple times will not have unexpected results.
+
+May 19, 2008 (sbarinfo update #21)
+- Added: sigil image type to correctly draw the sigil's icon.
+- Added: Strife inventory bar style.  This is the only style that is radically
+  different from the others.  First of all it changes the SELECTBO to be
+  INVCURS and draws it before the icons.  Each box is changed to have a width
+  of 35 pixels instead of 31 pixels.  And the INVCURS graphic is drawn at
+  (x-6, y-2).
+- Added: whennnotzero flag to drawnumber which will cause it to draw nothing if
+  the value is 0.
+- Fixed: New mugshot code would not leave the god state when it was supposed to
+  enter the rampage state.
+- Fixed: The ouch state was mostly broken.
+
+May 18, 2008 (SBarInfo Update #20)
+- Added: hasweaponpiece command to check for custom weapon pieces.
+- Added: usessecondaryammo command to check if the current weapon has a second
+  ammo type.
+- Most of SBarInfo's mugshot scripting can be used with the default Doom status
+  bar.
+- Fixed: By default drawmugshot would never come out of normal god mode state.
+  In addition the state change to and from god mode was not quite as responsive
+  as the original code.
+  
+May 17, 2008 (Changes by Graf Zahl)
+- Fixed: When FTextureManager::CheckForTexture finds a matching NULL texture
+  it should always return 0, not the actual texture's index.
+- Fixed coordinate checks for objects on 3DMidtex lines.
+- Fixed: All translucent blending operations for CopyColors must treat an 
+  alpha of 0 so that the pixel is not modified or texture composition as 
+  intended will not work.
+
+May 16, 2008
+- Fixed: 3D hardware texture filling did not copy pixels with 0 alpha,
+  preserving whatever was underneath in the texture box previously.
+- Fixed: s_sound.cpp had its own idea of whether or not sounds were paused
+  and did not entirely keep it in sync with the sound system's. This meant
+  that when starting a new game from the menu, all sounds were played as
+  menu sounds until you did something to pause the game, because s_sound.cpp
+  thought sounds were unpaused, while the FMOD system thought they were.
+
+May 15, 2008 (Changes by Graf Zahl)
+- I finally managed to test the translucency options for composite texture
+  definitions in HIRESTEX. The feature should be complete now.
+- Fixed: A_CheckTargetInLOS used BAM angles instead of degrees which is the
+  DECORATE convention.
+- Added Snowkate709's A_CheckTargetInLOS addition.
+- Added listmaps CCMD.
+
+May 14, 2008
+- Revised underwater effect now uses a lowpass filter in combination with an
+  optional freeverb unit.
+- Removed ResetEnvironment hack, since with software reverb, losing the
+  existing reverb when focus is lost isn't a problem.
+- Commented out the TiMidity FIXME messages.
+- Fixed: FBarShader::GetColumn() passed incorrect information to the software
+  renderer for horizontal bars.
+
 May 13, 2008 (Changes by Graf Zahl)
 - Changed: For actors not being spawned on the floor P_FindFloorCeiling should
   be used to prevent them from dropping through 3DMIDTEX textures.

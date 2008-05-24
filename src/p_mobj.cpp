@@ -2064,16 +2064,19 @@ explode:
 		{
 			if (mo->floorz > mo->Sector->floorplane.ZatPoint (mo->x, mo->y))
 			{
-				unsigned i;
-				for(i=0;i<mo->Sector->e->XFloor.ffloors.Size();i++)
+				if (mo->dropoffz != mo->floorz) // 3DMidtex or other special cases that must be excluded
 				{
-					// Sliding around on 3D floors looks extremely bad so
-					// if the floor comes from one in the current sector stop sliding the corpse!
-					F3DFloor * rover=mo->Sector->e->XFloor.ffloors[i];
-					if (!(rover->flags&FF_EXISTS)) continue;
-					if (rover->flags&FF_SOLID && rover->top.plane->ZatPoint(mo->x,mo->y)==mo->floorz) break;
+					unsigned i;
+					for(i=0;i<mo->Sector->e->XFloor.ffloors.Size();i++)
+					{
+						// Sliding around on 3D floors looks extremely bad so
+						// if the floor comes from one in the current sector stop sliding the corpse!
+						F3DFloor * rover=mo->Sector->e->XFloor.ffloors[i];
+						if (!(rover->flags&FF_EXISTS)) continue;
+						if (rover->flags&FF_SOLID && rover->top.plane->ZatPoint(mo->x,mo->y)==mo->floorz) break;
+					}
+					if (i==mo->Sector->e->XFloor.ffloors.Size()) return;
 				}
-				if (i==mo->Sector->e->XFloor.ffloors.Size()) return;
 			}
 		}
 	}
@@ -3275,7 +3278,6 @@ void AActor::Tick ()
 	}
 	else
 	{
-
 		AInventory * item = Inventory;
 
 		// Handle powerup effects here so that the order is controlled
@@ -5156,6 +5158,7 @@ AActor *P_SpawnMapThing (FMapThing *mthing, int position)
 	mobj->SpawnPoint[2] = mthing->z;
 	mobj->SpawnAngle = mthing->angle;
 	mobj->SpawnFlags = mthing->flags;
+	P_FindFloorCeiling(mobj, true);
 
 	if (!(mobj->flags2 & MF2_ARGSDEFINED))
 	{

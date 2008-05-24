@@ -411,6 +411,7 @@ MapData *P_OpenMapData(const char * mapname)
 					else if (!stricmp(lumpname, "BEHAVIOR"))
 					{
 						index = ML_BEHAVIOR;
+						map->HasBehavior = true;
 					}
 					else if (!stricmp(lumpname, "ENDMAP"))
 					{
@@ -452,14 +453,16 @@ MapData *P_OpenMapData(const char * mapname)
 		(*map->file) >> numentries >> dirofs;
 
 		map->file->Seek(dirofs, SEEK_SET);
-		for(DWORD i = 0; i < numentries; i++)
+		(*map->file) >> map->MapLumps[0].FilePos >> map->MapLumps[0].Size;
+		map->file->Read(map->MapLumps[0].Name, 8);
+
+		for(DWORD i = 1; i < numentries; i++)
 		{
 			DWORD offset, size;
 			char lumpname[8];
 
 			(*map->file) >> offset >> size;
 			map->file->Read(lumpname, 8);
-
 			if (i == 1 && !strnicmp(lumpname, "TEXTMAP", 8))
 			{
 				map->isText = true;
@@ -473,28 +476,29 @@ MapData *P_OpenMapData(const char * mapname)
 					{
 						I_Error("Invalid map definition for %s", mapname);
 					}
-					else if (!stricmp(lumpname, "ZNODES"))
+					else if (!strnicmp(lumpname, "ZNODES",8))
 					{
 						index = ML_GLZNODES;
 					}
-					else if (!stricmp(lumpname, "BLOCKMAP"))
+					else if (!strnicmp(lumpname, "BLOCKMAP",8))
 					{
 						// there is no real point in creating a blockmap but let's use it anyway
 						index = ML_BLOCKMAP;
 					}
-					else if (!stricmp(lumpname, "REJECT"))
+					else if (!strnicmp(lumpname, "REJECT",8))
 					{
 						index = ML_REJECT;
 					}
-					else if (!stricmp(lumpname, "DIALOGUE"))
+					else if (!strnicmp(lumpname, "DIALOGUE",8))
 					{
 						index = ML_CONVERSATION;
 					}
-					else if (!stricmp(lumpname, "BEHAVIOR"))
+					else if (!strnicmp(lumpname, "BEHAVIOR",8))
 					{
 						index = ML_BEHAVIOR;
+						map->HasBehavior = true;
 					}
-					else if (!stricmp(lumpname, "ENDMAP"))
+					else if (!strnicmp(lumpname, "ENDMAP",8))
 					{
 						return map;
 					}
@@ -1283,6 +1287,7 @@ void P_LoadSectors (MapData * map)
 		ss->bLightChange = false;
 
 		ss->e = &sectors[0].e[i];
+		if (!map->HasBehavior) ss->Flags |= SECF_FLOORDROP;
 		ss->floortexz = LittleShort(ms->floorheight)<<FRACBITS;
 		ss->floorplane.d = -ss->floortexz;
 		ss->floorplane.c = FRACUNIT;
@@ -1706,7 +1711,6 @@ void P_FinishLoadingLineDef(line_t *ld, int alpha)
 	ld->backsector  = ld->sidenum[1]!=NO_SIDE ? sides[ld->sidenum[1]].sector : 0;
 	float dx = FIXED2FLOAT(ld->v2->x - ld->v1->x);
 	float dy = FIXED2FLOAT(ld->v2->y - ld->v1->y);
-	SBYTE light;
 	int linenum = ld-lines;
 
 	if (ld->frontsector == NULL)
@@ -1716,20 +1720,16 @@ void P_FinishLoadingLineDef(line_t *ld, int alpha)
 
 	// [RH] Set some new sidedef properties
 	int len = (int)(sqrtf (dx*dx + dy*dy) + 0.5f);
-	light = dy == 0 ? level.WallHorizLight :
-			dx == 0 ? level.WallVertLight : 0;
 
 	if (ld->sidenum[0] != NO_SIDE)
 	{
 		sides[ld->sidenum[0]].linenum = linenum;
 		sides[ld->sidenum[0]].TexelLength = len;
-		sides[ld->sidenum[0]].Light = light;
 	}
 	if (ld->sidenum[1] != NO_SIDE)
 	{
 		sides[ld->sidenum[1]].linenum = linenum;
 		sides[ld->sidenum[1]].TexelLength = len;
-		sides[ld->sidenum[1]].Light = light;
 	}
 
 	// [BC] Back up the line's alpha here.
@@ -2349,6 +2349,7 @@ void P_LoadSideDefs2 (MapData * map)
 		sd->SetTextureXOffset(LittleShort(msd->textureoffset)<<FRACBITS);
 		sd->SetTextureYOffset(LittleShort(msd->rowoffset)<<FRACBITS);
 		sd->linenum = NO_INDEX;
+		sd->Flags = WALLF_AUTOCONTRAST;
 
 		// killough 4/4/98: allow sidedef texture names to be overloaded
 		// killough 4/11/98: refined to allow colormaps to work as wall
@@ -3667,9 +3668,16 @@ void P_SetupLevel (char *lumpname, int position)
 				level.flags &= ~LEVEL_LAXMONSTERACTIVATION;
 			}
 		}
-		/* [BB] ST doesn't have fragglescript support.
-		T_LoadScripts (map);    
-		*/
+
+		if (!map->HasBehavior && !map->isText)
+		{
+			// set compatibility flags
+			if (gameinfo.gametype == GAME_Strife)
+			{
+				level.flags |= LEVEL_RAILINGHACK;
+			}
+			level.flags |= LEVEL_DUMMYSWITCHES;
+		}
 
 		FBehavior::StaticLoadDefaultModules ();
 

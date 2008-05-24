@@ -264,11 +264,12 @@ bool P_ActivateLine (line_t *line, AActor *mo, int side, int activationType)
 	}
 	// some old WADs use this method to create walls that change the texture when shot.
 	else if (activationType == SPAC_Impact &&					// only for shootable triggers
-		!(level.flags & LEVEL_HEXENFORMAT) &&					// only in Doom-format maps
+		(level.flags & LEVEL_DUMMYSWITCHES) &&					// this is only a compatibility setting for an old hack!
 		!repeat &&												// only non-repeatable triggers
 		(special<Generic_Floor || special>Generic_Crusher) &&	// not for Boom's generalized linedefs
 		special &&												// not for lines without a special
-		line->id &&												// only if there's a tag (which is stored in the id field)
+		line->args[0] == line->id &&							// Safety check: exclude edited UDMF linedefs or ones that don't map the tag to args[0]
+		line->args[0] &&										// only if there's a tag (which is stored in the first arg)
 		P_FindSectorFromTag (line->args[0], -1) == -1)			// only if no sector is tagged to this linedef
 	{
 		P_ChangeSwitchTexture (&sides[line->sidenum[0]], repeat, special);
@@ -906,10 +907,16 @@ DWallLightTransfer::DWallLightTransfer (sector_t *srcSec, int target, BYTE flags
 	for (linenum = -1; (linenum = P_FindLineFromID (target, linenum)) >= 0; )
 	{
 		if (flags & WLF_SIDE1 && lines[linenum].sidenum[0]!=NO_SIDE)
+		{
+			sides[lines[linenum].sidenum[0]].Flags &= ~WALLF_AUTOCONTRAST;
 			sides[lines[linenum].sidenum[0]].Flags |= wallflags;
+		}
 
 		if (flags & WLF_SIDE2 && lines[linenum].sidenum[1]!=NO_SIDE)
+		{
+			sides[lines[linenum].sidenum[0]].Flags &= ~WALLF_AUTOCONTRAST;
 			sides[lines[linenum].sidenum[1]].Flags |= wallflags;
+		}
 	}
 	ChangeStatNum(STAT_LIGHTTRANSFER);
 }
@@ -935,12 +942,12 @@ void DWallLightTransfer::DoTransfer (BYTE lightlevel, int target, BYTE flags)
 
 		if (flags & WLF_SIDE1 && line->sidenum[0]!=NO_SIDE)
 		{
-			sides[line->sidenum[0]].Light = (BYTE)lightlevel;
+			sides[line->sidenum[0]].Light = lightlevel;
 		}
 
 		if (flags & WLF_SIDE2 && line->sidenum[1]!=NO_SIDE)
 		{
-			sides[line->sidenum[1]].Light = (BYTE)lightlevel;
+			sides[line->sidenum[1]].Light = lightlevel;
 		}
 	}
 }

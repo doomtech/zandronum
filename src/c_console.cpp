@@ -1370,7 +1370,7 @@ void C_DrawConsole (bool hw2d)
 		}
 
 		// Apply palette blend effects
-		if (StatusBar != NULL)
+		if (StatusBar != NULL && !hw2d)
 		{
 			player_t *player = StatusBar->CPlayer;
 			if (player->camera != NULL && player->camera->player != NULL)

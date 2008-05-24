@@ -88,7 +88,7 @@ FRandom pr_acs ("ACS");
 #define CLAMPCOLOR(c)		(EColorRange)((unsigned)(c) >= NUM_TEXT_COLORS ? CR_UNTRANSLATED : (c))
 #define HUDMSG_LOG			(0x80000000)
 #define HUDMSG_COLORSTRING	(0x40000000)
-#define LANGREGIONMASK		MAKE_ID(0,0,0xff,0xff)	
+#define LANGREGIONMASK		MAKE_ID(0,0,0xff,0xff)
 
 // Flags for ReplaceTextures
 #define NOT_BOTTOM			1
@@ -153,7 +153,7 @@ static void DoClearInv (AActor *actor)
 				AAmmo *ammo = static_cast<AAmmo*>(inv);
 				ammo->Amount = 0;
 			}
-			else 
+			else
 				inv->Destroy ();
 		}
 		else if (inv->GetClass() == RUNTIME_CLASS(AHexenArmor))
@@ -216,7 +216,7 @@ static void DoGiveInv (AActor *actor, const PClass *info, int amount)
 	AInventory *item = static_cast<AInventory *>(Spawn (info, 0,0,0, NO_REPLACE));
 
 	// This shouldn't count for the item statistics!
-	if (item->flags & MF_COUNTITEM) 
+	if (item->flags & MF_COUNTITEM)
 	{
 		level.total_items--;
 		item->flags &= ~MF_COUNTITEM;
@@ -337,9 +337,9 @@ static void DoTakeInv (AActor *actor, const PClass *info, int amount)
 			SERVERCOMMANDS_TakeInventory( actor->player - players, item->GetClass( )->TypeName.GetChars( ), item->Amount );
 		if (item->Amount <= 0)
 		{
-			// If it's not ammo or an internal armor, destroy it. 
-			// Ammo needs to stick around, even when it's zero for the benefit 
-			// of the weapons that use it and to maintain the maximum ammo 
+			// If it's not ammo or an internal armor, destroy it.
+			// Ammo needs to stick around, even when it's zero for the benefit
+			// of the weapons that use it and to maintain the maximum ammo
 			// amounts a backpack might have given.
 			// Armor shouldn't be removed because they only work properly when
 			// they are the last items in the inventory.
@@ -559,7 +559,7 @@ void DPlaneWatcher::Tick ()
 	}
 
 	fixed_t newd;
-	
+
 	if (bCeiling)
 	{
 		newd = Sector->ceilingplane.d;
@@ -861,7 +861,7 @@ FBehavior::FBehavior (int lumpnum, FileReader * fr, int len)
 
 	Data = object;
 	DataSize = len;
-	
+
 	if (Format == ACS_Old)
 	{
 		DWORD dirofs = LittleLong(((DWORD *)object)[1]);
@@ -1263,7 +1263,7 @@ void FBehavior::LoadScriptsDirectory ()
 			}
 		}
 		break;
-		
+
 	default:
 		break;
 	}
@@ -1903,11 +1903,11 @@ int DLevelScript::ThingCount (int type, int stringid, int tid, int tag)
 		const char *type_name = FBehavior::StaticLookupString (stringid);
 		if (type_name == NULL)
 			return 0;
-	
+
 		kind = PClass::FindClass (type_name);
 		if (kind == NULL || kind->ActorInfo == NULL)
 			return 0;
-	
+
 	}
 	else
 	{
@@ -2018,7 +2018,7 @@ int DLevelScript::CountPlayers ()
 	for (i = 0; i < MAXPLAYERS; i++)
 		if (( playeringame[i] ) && ( players[i].bSpectating == false ))
 			count++;
-	
+
 	return count;
 }
 
@@ -2419,7 +2419,7 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 	case APROP_RenderStyle:
 		for(int i=0; LegacyRenderStyleIndices[i] >= 0; i++)
 		{
-			if (LegacyRenderStyleIndices[i] == value) 
+			if (LegacyRenderStyleIndices[i] == value)
 			{
 				actor->RenderStyle = ERenderStyle(i);
 				break;
@@ -2466,14 +2466,14 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 		else
 			actor->flags4 &= ~MF4_FRIGHTENED;
 		break;
-		
+
 	case APROP_Friendly:
 		if (value)
 			actor->flags |= MF_FRIENDLY;
 		else
 			actor->flags &= ~MF_FRIENDLY;
 		break;
-		
+
 
 	case APROP_SpawnHealth:
 		if (actor->IsKindOf (RUNTIME_CLASS (APlayerPawn)))
@@ -2481,7 +2481,7 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 			static_cast<APlayerPawn *>(actor)->MaxHealth = value;
 		}
 		break;
-		
+
 	case APROP_Gravity:
 		actor->gravity = value;
 		break;
@@ -2503,7 +2503,7 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 		break;
 
 	case APROP_PainSound:
-		actor->PainSound = S_FindSound (FBehavior::StaticLookupString (value));	
+		actor->PainSound = S_FindSound (FBehavior::StaticLookupString (value));
 
 		// [BC] If we're the server, tell clients to update this actor property.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -2578,7 +2578,7 @@ int DLevelScript::GetActorProperty (int tid, int property)
 							{
 								return actor->GetDefault()->health;
 							}
-	
+
 	case APROP_JumpZ:		if (actor->IsKindOf (RUNTIME_CLASS (APlayerPawn)))
 							{
 								return static_cast<APlayerPawn *>(actor)->JumpZ;	// [GRB]
@@ -2629,7 +2629,7 @@ int DLevelScript::RunScript ()
 		while ((secnum = P_FindSectorFromTag (statedata, secnum)) >= 0)
 			if (sectors[secnum].floordata || sectors[secnum].ceilingdata)
 				return resultValue;
-		
+
 		// If we got here, none of the tagged sectors were busy
 		state = SCRIPT_Running;
 	}
@@ -3780,7 +3780,7 @@ int DLevelScript::RunScript ()
 			STACK(2) = Random (STACK(2), STACK(1));
 			sp--;
 			break;
-			
+
 		case PCD_RANDOMDIRECT:
 			PushToStack (Random (pc[0], pc[1]));
 			pc += 2;
@@ -4873,7 +4873,7 @@ int DLevelScript::RunScript ()
 			break;
 
 		case PCD_CHECKACTORINVENTORY:
-			STACK(2) = CheckInventory (SingleActorFromTID(STACK(2), NULL),  
+			STACK(2) = CheckInventory (SingleActorFromTID(STACK(2), NULL),
 										FBehavior::StaticLookupString (STACK(1)));
 			sp--;
 			break;
@@ -5367,7 +5367,7 @@ int DLevelScript::RunScript ()
 				}
 			}
 			break;
-			
+
 		case PCD_SETMARINEWEAPON:
 			if (STACK(2) != 0)
 			{
@@ -5563,12 +5563,12 @@ int DLevelScript::RunScript ()
 				if (sky1name[0] != 0)
 				{
 					strncpy (level.skypic1, sky1name, 8);
-					sky1texture = TexMan.GetTexture (sky1name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable);
+					sky1texture = TexMan.GetTexture (sky1name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable|FTextureManager::TEXMAN_ReturnFirst);
 				}
 				if (sky2name[0] != 0)
 				{
 					strncpy (level.skypic2, sky2name, 8);
-					sky2texture = TexMan.GetTexture (sky2name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable);
+					sky2texture = TexMan.GetTexture (sky2name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable|FTextureManager::TEXMAN_ReturnFirst);
 				}
 				R_InitSkyMap ();
 
@@ -5672,7 +5672,7 @@ int DLevelScript::RunScript ()
 				FState *state;
 
 				MakeStateNameList(statename, &statelist);
-				
+
 				if (STACK(3) == 0)
 				{
 					state = activator->GetClass()->ActorInfo->FindState (statelist.Size(), &statelist[0], !!STACK(1));
@@ -5753,7 +5753,7 @@ int DLevelScript::RunScript ()
 		case PCD_CHANGELEVEL:
 			{
 				int flags = STACK(2);
-				G_ChangeLevel(FBehavior::StaticLookupString(STACK(4)), STACK(3), 
+				G_ChangeLevel(FBehavior::StaticLookupString(STACK(4)), STACK(3),
 					!!(flags & CHANGELEVEL_KEEPFACING), STACK(1),
 					!!(flags & CHANGELEVEL_NOINTERMISSION),
 					!!(flags & CHANGELEVEL_RESETINVENTORY),
@@ -5773,7 +5773,7 @@ int DLevelScript::RunScript ()
 				sp -= 5;
 
 				int secnum = -1;
-				
+
 				while ((secnum = P_FindSectorFromTag (tag, secnum)) >= 0)
 				{
 					AActor *actor, *next;
@@ -5864,28 +5864,146 @@ int DLevelScript::RunScript ()
 		}
 
 		case PCD_SETMUGSHOTSTATE:
-			if(StatusBar != NULL && StatusBar->IsKindOf(RUNTIME_CLASS(DSBarInfo)))
-			{
-				static_cast<DSBarInfo*>(StatusBar)->SetMugShotState(FBehavior::StaticLookupString(STACK(1)));
-			}
+			StatusBar->SetMugShotState(FBehavior::StaticLookupString(STACK(1)));
 			break;
 
 		case PCD_CHECKPLAYERCAMERA:
 			{
 				int playernum = STACK(1);
-				
+
 				if (playernum < 0 || playernum >= MAXPLAYERS || !playeringame[playernum] || players[playernum].camera == NULL)
 				{
 					STACK(1) = -1;
 				}
-				else 
+				else
 				{
 					STACK(1) = players[playernum].camera->tid;
 				}
+			}
+			break;
+
+		case PCD_MORPHACTOR:
+			{
+				int tag = STACK(7);
+				FName playerclass_name = FBehavior::StaticLookupString(STACK(6));
+				const PClass *playerclass = PClass::FindClass (playerclass_name);
+				FName monsterclass_name = FBehavior::StaticLookupString(STACK(5));
+				const PClass *monsterclass = PClass::FindClass (monsterclass_name);
+				int duration = STACK(4);
+				int style = STACK(3);
+				FName morphflash_name = FBehavior::StaticLookupString(STACK(2));
+				const PClass *morphflash = PClass::FindClass (morphflash_name);
+				FName unmorphflash_name = FBehavior::StaticLookupString(STACK(1));
+				const PClass *unmorphflash = PClass::FindClass (unmorphflash_name);
+				int changes = 0;
+
+				if (tag == 0)
+				{
+					if (activator->player)
+					{
+						if (P_MorphPlayer(activator->player, activator->player, playerclass, duration, style, morphflash, unmorphflash))
+						{
+							changes++;
+						}
+					}
+					else
+					{
+						if (P_MorphMonster(activator, monsterclass, duration, style, morphflash, unmorphflash))
+						{
+							changes++;
+						}
+					}
+				}
+				else
+				{
+					FActorIterator iterator (tag);
+					AActor *actor;
+
+					while ( (actor = iterator.Next ()) )
+					{
+						if (actor->player)
+						{
+							if (P_MorphPlayer(activator->player, actor->player, playerclass, duration, style, morphflash, unmorphflash))
+							{
+								changes++;
+							}
+						}
+						else
+						{
+							if (P_MorphMonster(actor, monsterclass, duration, style, morphflash, unmorphflash))
+							{
+								changes++;
+							}
+						}
+					}
+				}
+
+				STACK(7) = changes;
+				sp -= 6;
 			}	
 			break;
-		}
-	}
+
+		case PCD_UNMORPHACTOR:
+			{
+				int tag = STACK(2);
+				bool force = !!STACK(1);
+				int changes = 0;
+
+				if (tag == 0)
+				{
+					if (activator->player)
+					{
+						if (P_UndoPlayerMorph(activator->player, activator->player, force))
+						{
+							changes++;
+						}
+					}
+					else
+					{
+						if (activator->GetClass()->IsDescendantOf(RUNTIME_CLASS(AMorphedMonster)))
+						{
+							AMorphedMonster *morphed_actor = barrier_cast<AMorphedMonster *>(activator);
+							if (P_UndoMonsterMorph(morphed_actor, force))
+							{
+								changes++;
+							}
+						}
+					}
+				}
+				else
+				{
+					FActorIterator iterator (tag);
+					AActor *actor;
+
+					while ( (actor = iterator.Next ()) )
+					{
+						if (actor->player)
+						{
+							if (P_UndoPlayerMorph(activator->player, actor->player, force))
+							{
+								changes++;
+							}
+						}
+						else
+						{
+							if (actor->GetClass()->IsDescendantOf(RUNTIME_CLASS(AMorphedMonster)))
+							{
+								AMorphedMonster *morphed_actor = static_cast<AMorphedMonster *>(actor);
+								if (P_UndoMonsterMorph(morphed_actor, force))
+								{
+									changes++;
+								}
+							}
+						}
+					}
+				}
+
+				STACK(2) = changes;
+				sp -= 1;
+			}	
+			break;
+ 		}
+ 	}
 
 	if (state == SCRIPT_DivideBy0)
 	{

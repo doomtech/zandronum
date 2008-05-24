@@ -47,3 +47,9 @@ mugshot "XDeath"
 	XDTH4 10;
 	XDTH5 -1;
 }
+
+// [BB] For the DoomSphere / TerminatorArtifact
+mugshot "Quad", health
+{
+	ARNO0 1;
+}

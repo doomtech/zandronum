@@ -1911,7 +1911,7 @@ void G_PlayerFinishLevel (int player, EFinishLevelType mode, bool resetinventory
 
 	if (p->morphTics)
 	{ // Undo morph
-		P_UndoPlayerMorph (p, true);
+		P_UndoPlayerMorph (p, p, true);
 	}
 
 	// [BC] Reset a bunch of other Skulltag stuff.

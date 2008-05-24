@@ -216,6 +216,7 @@ enum //drawimage flags
 	DRAWIMAGE_OFFSET_CENTER = 256,
 	DRAWIMAGE_ARMOR = 512,
 	DRAWIMAGE_WEAPONICON = 1024,
+	DRAWIMAGE_SIGIL = 2048,
 };
 
 enum //drawnumber flags
@@ -238,6 +239,7 @@ enum //drawnumber flags
 	DRAWNUMBER_GLOBALVAR = 0x8000,
 	DRAWNUMBER_GLOBALARRAY = 0x10000,
 	DRAWNUMBER_FILLZEROS = 0x20000,
+	DRAWNUMBER_WHENNOTZERO = 0x40000,
 };
 
 enum //drawbar flags (will go into special2)
@@ -346,6 +348,8 @@ enum //Bar key words
 	SBARINFO_PLAYERCLASS,
 	SBARINFO_ASPECTRATIO,
 	SBARINFO_ISSELECTED,
+	SBARINFO_USESSECONDARYAMMO,
+	SBARINFO_HASWEAPONPIECE,
 	SBARINFO_WEAPONAMMO,
 	SBARINFO_ININVENTORY,
 };
@@ -384,9 +388,9 @@ private:
 	void DrawNumber(int num, int len, int x, int y, int xOffset, int yOffset, int alpha, EColorRange translation, int spacing=0, bool fillzeros=false);
 	void DrawFace(FString &defaultFace, int accuracy, bool xdth, bool animatedgodmode, int x, int y, int xOffset, int yOffset, int alpha);
 	int updateState(bool xdth, bool animatedgodmode);
-	void DrawInventoryBar(int type, int num, int x, int y, int xOffset, int yOffset, int alpha, bool alwaysshow, 
+	void DrawInventoryBar(int type, int num, int x, int y, int xOffset, int yOffset, int alpha, bool alwaysshow,
 		int counterx, int countery, EColorRange translation, bool drawArtiboxes, bool noArrows, bool alwaysshowcounter);
-	void DrawGem(FTexture* chain, FTexture* gem, int value, int x, int y, int xOffset, int yOffset, int alpha, int padleft, int padright, int chainsize, 
+	void DrawGem(FTexture* chain, FTexture* gem, int value, int x, int y, int xOffset, int yOffset, int alpha, int padleft, int padright, int chainsize,
 		bool wiggle, bool translate);
 	FRemapTable* getTranslation();
 
@@ -397,6 +401,8 @@ private:
 	MugShotState *currentState;
 	bool weaponGrin;
 	bool damageFaceActive;
+	bool mugshotNormal;
+	bool ouchActive;
 	int lastDamageAngle;
 	int rampageTimer;
 	int oldHealth;

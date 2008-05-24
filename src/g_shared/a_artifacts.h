@@ -267,7 +267,7 @@ protected:
 	void InitEffect ();
 	void EndEffect ();
 	// Variables
-	player_s *player;
+	player_s *Player;
 };
 
 // [BC] Start of new Skulltag powerup types.

@@ -162,6 +162,10 @@ static bool PIT_FindFloorCeiling (line_t *ld, const FBoundingBox &box, FCheckPos
 		tmf.floorsector = open.bottomsec;
 		tmf.touchmidtex = open.touchmidtex;
 	}
+	else if (open.bottom == tmf.floorz)
+	{
+		tmf.touchmidtex |= open.touchmidtex;
+	}
 
 	if (open.lowfloor < tmf.dropoffz)
 		tmf.dropoffz = open.lowfloor;
@@ -206,7 +210,7 @@ void P_FindFloorCeiling (AActor *actor, bool onlymidtex)
 
 	if (tmf.touchmidtex) tmf.dropoffz = tmf.floorz;
 
-	if (!onlymidtex || (tmf.touchmidtex && (tmf.floorz < actor->z)))
+	if (!onlymidtex || (tmf.touchmidtex && (tmf.floorz <= actor->z)))
 	{
 		actor->floorz = tmf.floorz;
 		actor->dropoffz = tmf.dropoffz;
@@ -535,6 +539,10 @@ bool PIT_CheckLine (line_t *ld, const FBoundingBox &box, FCheckPosition &tm)
 	if (box.BoxOnLineSide (ld) != -1)
 		return true;
 
+	if (ld-lines == 10
+		)
+		__asm nop
+
 	// A line has been hit
 /*
 =
@@ -666,8 +674,7 @@ bool PIT_CheckLine (line_t *ld, const FBoundingBox &box, FCheckPosition &tm)
 		// better than Strife's handling of rails, which lets you jump into rails
 		// from either side. How long until somebody reports this as a bug and I'm
 		// forced to say, "It's not a bug. It's a feature?" Ugh.
-		(gameinfo.gametype != GAME_Strife ||
-		 level.flags & LEVEL_HEXENFORMAT ||
+		(!(level.flags & LEVEL_RAILINGHACK) ||
 		 open.bottom == tm.thing->Sector->floorplane.ZatPoint (sx, sy)))
 	{
 		open.bottom += 32*FRACUNIT;
@@ -690,6 +697,10 @@ bool PIT_CheckLine (line_t *ld, const FBoundingBox &box, FCheckPosition &tm)
 		tm.floorpic = open.floorpic;
 		tm.touchmidtex = open.touchmidtex;
 		tm.thing->BlockingLine = ld;
+	}
+	else if (open.bottom == tm.floorz)
+	{
+		tm.touchmidtex |= open.touchmidtex;
 	}
 
 	if (open.lowfloor < tm.dropoffz)
@@ -1585,7 +1596,11 @@ bool P_CheckPosition (AActor *thing, fixed_t x, fixed_t y, FCheckPosition &tm)
 	if (tm.ceilingz - tm.floorz < thing->height)
 		return false;
 
-	if (tm.stepthing != NULL || tm.touchmidtex)
+	if (tm.touchmidtex)
+	{
+		tm.dropoffz = tm.floorz;
+	}
+	else if (tm.stepthing != NULL)
 	{
 		tm.dropoffz = thingdropoffz;
 	}
@@ -1778,7 +1793,7 @@ bool P_TryMove (AActor *thing, fixed_t x, fixed_t y,
 	oldz = thing->z;
 	if (onfloor)
 	{
-		thing->z = thing->floorsector->floorplane.ZatPoint (x, y);
+		thing->z = onfloor->ZatPoint (x, y);
 	}
 	if (!P_CheckPosition (thing, x, y, tm))
 	{
@@ -5055,6 +5070,7 @@ void P_RadiusAttack (AActor *bombspot, AActor *bombsource, int bombdamage, int b
 
 struct FChangePosition
 {
+	sector_t *sector;
 	int moveamt;
 	int crushchange;
 	bool nofit;
@@ -5518,7 +5534,7 @@ void PIT_FloorDrop (AActor *thing, FChangePosition *cpos)
 			P_CheckFakeFloorTriggers (thing, oldz);
 		}
 		else if ((thing->flags & MF_NOGRAVITY) ||
-			((!(level.flags & LEVEL_HEXENFORMAT) || cpos->moveamt < 9*FRACUNIT)
+			(((cpos->sector->Flags & SECF_FLOORDROP) || cpos->moveamt < 9*FRACUNIT)
 			 && thing->z - thing->floorz <= cpos->moveamt))
 		{
 			thing->z = thing->floorz;
@@ -5686,7 +5702,7 @@ bool P_ChangeSector (sector_t *sector, int crunch, int amt, int floorOrCeil, boo
 	cpos.crushchange = crunch;
 	cpos.moveamt = abs (amt);
 	cpos.movemidtex = false;
-
+	cpos.sector = sector;
 
 	// Also process all sectors that have 3D floors transferred from the
 	// changed sector.

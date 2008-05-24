@@ -14,6 +14,7 @@
 #include "templates.h"
 #include "i_system.h"
 #include "r_translate.h"
+#include "sbarinfo.h"
 #include "cl_demo.h"
 #include "deathmatch.h"
 #include "network.h"
@@ -61,7 +62,14 @@ public:
 		BigHeight = tex->GetHeight();
 
 		DoCommonInit ();
+
 		bEvilGrin = false;
+		bNormal = true;
+		bDamageFaceActive = false;
+		bOuchActive = false;
+		CurrentState = NULL;
+		RampageTimer = 0;
+		LastDamageAngle = 1;
 	}
 
 	~DDoomStatusBar ()
@@ -76,64 +84,6 @@ public:
 		{
 			AttachToPlayer (CPlayer);
 		}
-	}
-
-	void SetFace (void *skn)
-	{
-		const char *nameptrs[ST_NUMFACES];
-		char names[ST_NUMFACES][9];
-		char prefix[4];
-		int i, j;
-		int namespc;
-		int facenum;
-		FPlayerSkin *skin = (FPlayerSkin *)skn;
-
-		for (i = 0; i < ST_NUMFACES; i++)
-		{
-			nameptrs[i] = names[i];
-		}
-
-		if (skin->face[0] != 0)
-		{
-			prefix[0] = skin->face[0];
-			prefix[1] = skin->face[1];
-			prefix[2] = skin->face[2];
-			prefix[3] = 0;
-			namespc = skin->namespc;
-		}
-		else
-		{
-			prefix[0] = 'S';
-			prefix[1] = 'T';
-			prefix[2] = 'F';
-			prefix[3] = 0;
-			namespc = ns_global;
-		}
-
-		facenum = 0;
-
-		for (i = 0; i < ST_NUMPAINFACES; i++)
-		{
-			for (j = 0; j < ST_NUMSTRAIGHTFACES; j++)
-			{
-				sprintf (names[facenum++], "%sST%d%d", prefix, i, j);
-			}
-			sprintf (names[facenum++], "%sTR%d0", prefix, i);  // turn right
-			sprintf (names[facenum++], "%sTL%d0", prefix, i);  // turn left
-			sprintf (names[facenum++], "%sOUCH%d", prefix, i); // ouch!
-			sprintf (names[facenum++], "%sEVL%d", prefix, i);  // evil grin ;)
-			sprintf (names[facenum++], "%sKILL%d", prefix, i); // pissed off
-			sprintf( names[facenum++], "%sARNO%d", prefix, i );	// Quad dmg
-		}
-		sprintf (names[facenum++], "%sGOD0", prefix);
-		sprintf (names[facenum++], "%sDEAD0", prefix);
-
-		Faces.Uninit ();
-		Faces.Init (nameptrs, ST_NUMFACES, namespc);
-
-		FaceIndex = 0;
-		FaceCount = 0;
-		OldFaceIndex = -1;
 	}
 
 	void AddFaceToImageCollection (void *skn, FImageCollection *images)
@@ -172,7 +122,30 @@ public:
 	{
 		DBaseStatusBar::Tick ();
 		RandomNumber = M_Random ();
-		UpdateFace ();
+
+		//Do some stuff related to the mug shot that has to be done at 35fps
+		if(CurrentState != NULL)
+		{
+			CurrentState->tick();
+			if(CurrentState->finished)
+			{
+				bNormal = true;
+				bOuchActive = false;
+				CurrentState = NULL;
+			}
+		}
+		if((CPlayer->cmd.ucmd.buttons & (BT_ATTACK|BT_ALTATTACK)) && !(CPlayer->cheats & (CF_FROZEN | CF_TOTALLYFROZEN)))
+		{
+			if(RampageTimer != ST_RAMPAGEDELAY)
+			{
+				RampageTimer++;
+			}
+		}
+		else
+		{
+			RampageTimer = 0;
+		}
+		FaceHealth = CPlayer->health;
 	}
 
 	void Draw (EHudState state)
@@ -197,7 +170,6 @@ public:
 				OldKeys = -1;
 				memset (OldAmmo, 255, sizeof(OldAmmo));
 				memset (OldMaxAmmo, 255, sizeof(OldMaxAmmo));
-				OldFaceIndex = -1;
 				OldHealth = -1;
 				OldArmor = -1;
 				OldActiveAmmo = -1;
@@ -214,32 +186,48 @@ public:
 		}
 	}
 
+	//See sbarinfo_display.cpp
+	void SetMugShotState (const char* stateName, bool waitTillDone=false)
+	{
+		bNormal = false; //Assume we are not setting god or normal for now.
+		bOuchActive = false;
+		MugShotState *state = (MugShotState *) FindMugShotState(stateName);
+		if(state != CurrentState)
+		{
+			if(!waitTillDone || CurrentState == NULL || CurrentState->finished)
+			{
+				CurrentState = state;
+				state->reset();
+			}
+		}
+	}
+
 private:
 	struct FDoomStatusBarTexture : public FTexture
 	{
 		void DrawToBar (const char *name, int x, int y, const BYTE *colormap_in = NULL);
 
-	public:
-		FDoomStatusBarTexture ();
-		const BYTE *GetColumn (unsigned int column, const Span **spans_out);
-		const BYTE *GetPixels ();
-		void Unload ();
-		~FDoomStatusBarTexture ();
-		void SetPlayerRemap(FRemapTable *remap);
-		int CopyTrueColorPixels(FBitmap *bmp, int x, int y, int rotate, FCopyInfo *inf = NULL);
+		public:
+			FDoomStatusBarTexture ();
+			const BYTE *GetColumn (unsigned int column, const Span **spans_out);
+			const BYTE *GetPixels ();
+			void Unload ();
+			~FDoomStatusBarTexture ();
+			void SetPlayerRemap(FRemapTable *remap);
+			int CopyTrueColorPixels(FBitmap *bmp, int x, int y, int rotate, FCopyInfo *inf = NULL);
 
-		FTextureFormat GetFormat()
-		{
-			return TEX_RGB;
-		}
+			FTextureFormat GetFormat()
+			{
+				return TEX_RGB;
+			}
 
 
-	protected:
-		void MakeTexture ();
+		protected:
+			void MakeTexture ();
 
-		FTexture *BaseTexture;
-		BYTE *Pixels;
-		FRemapTable *STFBRemap;
+			FTexture *BaseTexture;
+			BYTE *Pixels;
+			FRemapTable *STFBRemap;
 	}
 	StatusBarTex;
 
@@ -273,8 +261,6 @@ private:
 		StatusBarTex.Unload ();
 
 		SB_state = screen->GetPageCount ();
-		FaceLastAttackDown = -1;
-		FacePriority = 0;
 	}
 
 	void DrawMainBar ()
@@ -524,42 +510,6 @@ private:
 			{
 				if ((( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false )) || ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players ))))
 					DrSmallNumber (maxammo[i], 302, 5 + 6*i);
-			}
-		}
-	}
-
-	void DrawFace ()
-	{
-		// [BC] The player may not have a body between intermission-less maps.
-		if ( CPlayer->mo == NULL )
-			return;
-
-		// If a player has an inventory item selected, it takes the place of the
-		// face, for lack of a better place to put it.
-		if (OldFaceIndex != FaceIndex)
-		{
-			FaceRefresh = screen->GetPageCount ();
-			OldFaceIndex = FaceIndex;
-		}
-		if (FaceRefresh || (CPlayer->mo->InvSel != NULL && !(level.flags & LEVEL_NOINVENTORYBAR)))
-		{
-			if (FaceRefresh)
-			{
-				FaceRefresh--;
-			}
-			DrawPartialImage (&StatusBarTex, 142, 37);
-			if (CPlayer->mo->InvSel == NULL || (level.flags & LEVEL_NOINVENTORYBAR))
-			{
-				DrawImage (Faces[FaceIndex], 143, 0);
-			}
-			else
-			{
-				DrawDimImage (TexMan(CPlayer->mo->InvSel->Icon), 144, 0, CPlayer->mo->InvSel->Amount <= 0);
-				if (CPlayer->mo->InvSel->Amount != 1)
-				{
-					DrSmallNumber (CPlayer->mo->InvSel->Amount, 165, 24);
-				}
-				OldFaceIndex = -1;
 			}
 		}
 	}
@@ -1802,7 +1752,7 @@ void DrawFullHUD_GameInformation()
 		int 		health;
 		static int	lastcalc;
 		static int	oldhealth = -1;
-		
+
 		health = CPlayer->health > 100 ? 100 : CPlayer->health;
 
 		if (health != oldhealth)
@@ -1818,186 +1768,167 @@ void DrawFullHUD_GameInformation()
 		bEvilGrin = true;
 	}
 
-	//
-	// This is a not-very-pretty routine which handles the face states
-	// and their timing. The precedence of expressions is:
-	//	dead > evil grin > turned head > straight ahead
-	//
-	void UpdateFace ()
+	int UpdateState ()
 	{
 		int 		i;
 		angle_t 	badguyangle;
 		angle_t 	diffang;
-		
 
-		if (FacePriority < 10)
+		if(CPlayer->health > 0)
 		{
-			// dead
-			if (CPlayer->health <= 0)
+			if(bEvilGrin)
 			{
-				FacePriority = 9;
-				FaceIndex = ST_DEADFACE;
-				FaceCount = 1;
-			}
-		}
-
-		if (FacePriority < 9)
-		{
-			if (CPlayer->bonuscount)
-			{
-				// picking up bonus
-				if (bEvilGrin) 
-				{
-					// evil grin if just picked up weapon
+				if(CurrentState == NULL)
 					bEvilGrin = false;
-					FacePriority = 8;
-					FaceCount = ST_EVILGRINCOUNT;
-					FaceIndex = CalcPainOffset() + ST_EVILGRINOFFSET;
-				}
-			}
-			else 
-			{
-				// This happens when a weapon is added to the inventory
-				// by other means than being picked up.
-				bEvilGrin = false;
-			}
-		}
-
-		if (FacePriority < 8)
-		{
-			if (CPlayer->damagecount
-				&& CPlayer->attacker
-				&& CPlayer->attacker != CPlayer->mo)
-			{
-				// being attacked
-				FacePriority = 7;
-				
-				if (FaceHealth != -9999 && FaceHealth - CPlayer->health > ST_MUCHPAIN)
+				else if(CPlayer->bonuscount)
 				{
-					FaceCount = ST_TURNCOUNT;
-					FaceIndex = CalcPainOffset() + ST_OUCHOFFSET;
-					FacePriority = 8;
-				}
-				else if (CPlayer->mo != NULL)
-				{
-					badguyangle = R_PointToAngle2(CPlayer->mo->x,
-												  CPlayer->mo->y,
-												  CPlayer->attacker->x,
-												  CPlayer->attacker->y);
-					
-					if (badguyangle > CPlayer->mo->angle)
-					{
-						// whether right or left
-						diffang = badguyangle - CPlayer->mo->angle;
-						i = diffang > ANG180; 
-					}
-					else
-					{
-						// whether left or right
-						diffang = CPlayer->mo->angle - badguyangle;
-						i = diffang <= ANG180; 
-					} // confusing, aint it?
-
-					
-					FaceCount = ST_TURNCOUNT;
-					FaceIndex = CalcPainOffset();
-					
-					if (diffang < ANG45)
-					{
-						// head-on	  
-						FaceIndex += ST_RAMPAGEOFFSET;
-					}
-					else if (i)
-					{
-						// turn face right
-						FaceIndex += ST_TURNOFFSET;
-					}
-					else
-					{
-						// turn face left
-						FaceIndex += ST_TURNOFFSET+1;
-					}
+					SetMugShotState("grin", false);
+					return 0;
 				}
 			}
-		}
-  
-		if (FacePriority < 7)
-		{
-			// getting hurt because of your own damn stupidity
+
 			if (CPlayer->damagecount)
 			{
-				if (OldHealth != -1 && CPlayer->health - OldHealth > ST_MUCHPAIN)
+				int damageAngle = 1;
+				if(CPlayer->attacker && CPlayer->attacker != CPlayer->mo)
 				{
-					FacePriority = 7;
-					FaceCount = ST_TURNCOUNT;
-					FaceIndex = CalcPainOffset() + ST_OUCHOFFSET;
+					if(CPlayer->mo != NULL)
+					{
+						//The next 12 lines is from the Doom statusbar code.
+						badguyangle = R_PointToAngle2(CPlayer->mo->x, CPlayer->mo->y, CPlayer->attacker->x, CPlayer->attacker->y);
+						if(badguyangle > CPlayer->mo->angle)
+						{
+							// whether right or left
+							diffang = badguyangle - CPlayer->mo->angle;
+							i = diffang > ANG180;
+						}
+						else
+						{
+							// whether left or right
+							diffang = CPlayer->mo->angle - badguyangle;
+							i = diffang <= ANG180;
+						} // confusing, aint it?
+						if(i && diffang >= ANG45)
+						{
+							damageAngle = 0;
+						}
+						else if(!i && diffang >= ANG45)
+						{
+							damageAngle = 2;
+						}
+					}
+				}
+				bool useOuch = false;
+				const char* stateName = new char[5];
+				if ((FaceHealth != -1 && CPlayer->health - FaceHealth > 20) || bOuchActive)
+				{
+					useOuch = true;
+					stateName = "ouch";
 				}
 				else
-				{
-					FacePriority = 6;
-					FaceCount = ST_TURNCOUNT;
-					FaceIndex = CalcPainOffset() + ST_RAMPAGEOFFSET;
-				}
-
+					stateName = "pain";
+				char* fullStateName = new char[sizeof(stateName)+sizeof((const char*) CPlayer->LastDamageType) + 1];
+				sprintf(fullStateName, "%s.%s", stateName, (const char*) CPlayer->LastDamageType);
+				if(FindMugShotState(fullStateName) != NULL)
+					SetMugShotState(fullStateName);
+				else
+					SetMugShotState(stateName);
+				bDamageFaceActive = !(CurrentState == NULL);
+				LastDamageAngle = damageAngle;
+				bOuchActive = useOuch;
+				return damageAngle;
 			}
-
-		}
-  
-		if (FacePriority < 6)
-		{
-			// rapid firing
-			if ((CPlayer->cmd.ucmd.buttons & (BT_ATTACK|BT_ALTATTACK)) && !(CPlayer->cheats & (CF_FROZEN | CF_TOTALLYFROZEN)))
+			if(bDamageFaceActive)
 			{
-				if (FaceLastAttackDown == -1)
-					FaceLastAttackDown = ST_RAMPAGEDELAY;
-				else if (!--FaceLastAttackDown)
+				if(CurrentState == NULL)
+					bDamageFaceActive = false;
+				else
 				{
-					FacePriority = 5;
-					FaceIndex = CalcPainOffset() + ST_RAMPAGEOFFSET;
-					FaceCount = 1;
-					FaceLastAttackDown = 1;
+					bool useOuch = false;
+					const char* stateName = new char[5];
+					if ((FaceHealth != -1 && CPlayer->health - FaceHealth > 20) || bOuchActive)
+					{
+						useOuch = true;
+						stateName = "ouch";
+					}
+					else
+						stateName = "pain";
+					char* fullStateName = new char[sizeof(stateName)+sizeof((const char*) CPlayer->LastDamageType) + 1];
+					sprintf(fullStateName, "%s.%s", stateName, (const char*) CPlayer->LastDamageType);
+					if(FindMugShotState(fullStateName) != NULL)
+						SetMugShotState(fullStateName);
+					else
+						SetMugShotState(stateName);
+					bOuchActive = useOuch;
+					return LastDamageAngle;
 				}
 			}
+
+			if(RampageTimer == ST_RAMPAGEDELAY)
+			{
+				SetMugShotState("rampage", !bNormal); //If we have nothing better to show use the rampage face.
+				return 0;
+			}
+
+			if(bNormal)
+			{
+				if((CPlayer->cheats & CF_GODMODE) || (CPlayer->mo != NULL && CPlayer->mo->flags2 & MF2_INVULNERABLE))
+					SetMugShotState("god");
+				// [BB] Quad damage!
+				else if (( CPlayer->cheats & CF_TERMINATORARTIFACT ) ||
+						(( CPlayer->mo != NULL ) && ( CPlayer->mo->FindInventory( PClass::FindClass( "PowerQuadDamage" )))))
+					SetMugShotState("quad");
+				else
+					SetMugShotState("normal");
+				bNormal = true; //SetMugShotState sets bNormal to false.
+			}
+		}
+		else
+		{
+			const char* stateName = new char[7];
+			stateName = "death";
+			//new string the size of stateName and the damage type put together
+			char* fullStateName = new char[sizeof(stateName)+sizeof((const char*) CPlayer->LastDamageType) + 1];
+			sprintf(fullStateName, "%s.%s", stateName, (const char*) CPlayer->LastDamageType);
+			if(FindMugShotState(fullStateName) != NULL)
+				SetMugShotState(fullStateName);
 			else
+				SetMugShotState(stateName);
+		}
+		return 0;
+	}
+
+	void DrawFace ()
+	{
+		// [BC] The player may not have a body between intermission-less maps.
+		if ( CPlayer->mo == NULL )
+			return;
+
+		if (CPlayer->mo->InvSel == NULL || (level.flags & LEVEL_NOINVENTORYBAR))
+		{
+			int angle = UpdateState();
+			int level = 0;
+			for(level = 0;CPlayer->health < (4-level)*(CPlayer->mo->GetMaxHealth()/5);level++);
+			if(CurrentState != NULL)
 			{
-				FaceLastAttackDown = -1;
+				FString defaultFace = "STF";
+				FPlayerSkin *skin = &skins[CPlayer->morphTics ? CPlayer->MorphedPlayerClass : CPlayer->userinfo.skin];
+				FTexture *face = CurrentState->getCurrentFrameTexture(defaultFace, skin, level, angle);
+				if (face != NULL)
+				{
+					DrawPartialImage (&StatusBarTex, 142, 37);
+					DrawImage (face, 143, 0);
+				}
 			}
 		}
-  
-		if (FacePriority < 5)
+		else
 		{
-			// invulnerability
-			if ((CPlayer->cheats & CF_GODMODE)
-				|| (CPlayer->mo != NULL && CPlayer->mo->flags2 & MF2_INVULNERABLE))
+			DrawDimImage (TexMan(CPlayer->mo->InvSel->Icon), 144, 0, CPlayer->mo->InvSel->Amount <= 0);
+			if (CPlayer->mo->InvSel->Amount != 1)
 			{
-				FacePriority = 4;
-				FaceIndex = ST_GODFACE;
-				FaceCount = 1;
+				DrSmallNumber (CPlayer->mo->InvSel->Amount, 165, 24);
 			}
 		}
-
-		if ( FacePriority < 4 )
-		{
-			// Quad damage!
-			if (( CPlayer->cheats & CF_TERMINATORARTIFACT ) ||
-				(( CPlayer->mo != NULL ) && ( CPlayer->mo->FindInventory( PClass::FindClass( "PowerQuadDamage" )))))
-			{
-				FacePriority = 3;
-				FaceIndex = CalcPainOffset( ) + ST_QUADOFFSET;
-				FaceCount = 1;
-			}
-		}
-
-		// look left or look right if the facecount has timed out
-		if (!FaceCount)
-		{
-			FaceIndex = CalcPainOffset() + (RandomNumber % 3);
-			FaceCount = ST_STRAIGHTFACECOUNT;
-			FacePriority = 0;
-		}
-
-		FaceCount--;
-		FaceHealth = CPlayer->health;
 	}
 
 	enum
@@ -2045,15 +1976,11 @@ void DrawFullHUD_GameInformation()
 
 
 	FImageCollection Images;
-	FImageCollection Faces;
 
 	int BigWidth;
 	int BigHeight;
 
-	int FaceIndex;
-	int FaceCount;
 	int RandomNumber;
-	int OldFaceIndex;
 	BYTE OldArms[6];
 	int OldKeys;
 	int OldAmmo[4];
@@ -2063,9 +1990,6 @@ void DrawFullHUD_GameInformation()
 	int OldActiveAmmo;
 	int OldFrags;
 	int OldPoints;
-	int FaceHealth;
-	int FaceLastAttackDown;
-	int FacePriority;
 
 	char HealthRefresh;
 	char ArmorRefresh;
@@ -2078,7 +2002,15 @@ void DrawFullHUD_GameInformation()
 	char FaceRefresh;
 	char KeysRefresh;
 
+	//Mugshot
+	MugShotState *CurrentState;
+	int RampageTimer;
+	int LastDamageAngle;
+	int FaceHealth;
 	bool bEvilGrin;
+	bool bDamageFaceActive;
+	bool bNormal;
+	bool bOuchActive;
 };
 
 IMPLEMENT_CLASS(DDoomStatusBar)
@@ -2127,7 +2059,7 @@ void DDoomStatusBar::FDoomStatusBarTexture::Unload ()
 		Pixels = NULL;
 	}
 }
-												
+
 DDoomStatusBar::FDoomStatusBarTexture::~FDoomStatusBarTexture ()
 {
 	Unload ();

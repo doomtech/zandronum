@@ -90,7 +90,8 @@ void GLSprite::Draw(int pass)
 		}
 
 		// Brightmaps will only be used when doing regular drawing ops and having no fog
-		if (!gl_isBlack(Colormap.FadeColor) || RenderStyle.BlendOp != STYLEOP_Add)
+		if (!gl_isBlack(Colormap.FadeColor) || level.flags&LEVEL_HASFADETABLE || 
+			RenderStyle.BlendOp != STYLEOP_Add)
 		{
 			gl_EnableBrightmap(false);
 		}

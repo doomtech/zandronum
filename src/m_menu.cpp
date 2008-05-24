@@ -1094,7 +1094,7 @@ void M_DrawLoad (void)
 	{
 		FTexture *title = TexMan["M_LOADG"];
 		screen->DrawTexture (title,
-			(SCREENWIDTH-title->GetWidth()*CleanXfac)/2, 20*CleanYfac,
+			(SCREENWIDTH - title->GetScaledWidth()*CleanXfac)/2, 20*CleanYfac,
 			DTA_CleanNoMove, true, TAG_DONE);
 	}
 	else
@@ -1457,7 +1457,7 @@ void M_DrawSave()
 	{
 		FTexture *title = TexMan["M_SAVEG"];
 		screen->DrawTexture (title,
-			(SCREENWIDTH-title->GetWidth()*CleanXfac)/2, 20*CleanYfac,
+			(SCREENWIDTH-title->GetScaledWidth()*CleanXfac)/2, 20*CleanYfac,
 			DTA_CleanNoMove, true, TAG_DONE);
 	}
 	else
@@ -3475,7 +3475,7 @@ void M_Drawer ()
 	PalEntry fade = 0;
 
 	const player_t *player = &players[consoleplayer];
-	if (player->camera != NULL && (gamestate == GS_LEVEL || gamestate == GS_TITLELEVEL))
+	if (!screen->Accel2D && player->camera != NULL && (gamestate == GS_LEVEL || gamestate == GS_TITLELEVEL))
 	{
 		if (player->camera->player != NULL)
 		{

@@ -2277,7 +2277,6 @@ void P_CalcHeight (player_t *player)
 
 	// Regular movement bobbing
 	// (needs to be calculated for gun swing even if not on ground)
-	// OPTIMIZE: tablify angle
 
 	// killough 10/98: Make bobbing depend only on player-applied motion.
 	//
@@ -3404,7 +3403,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 			}
 			if (!--player->morphTics)
 			{ // Attempt to undo the chicken/pig
-				P_UndoPlayerMorph (player);
+				P_UndoPlayerMorph (player, player);
 			}
 		}
 		// Cycle psprites

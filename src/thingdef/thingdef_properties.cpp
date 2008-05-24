@@ -774,11 +774,13 @@ static int ParseMorphStyle (FScanner &sc)
 {
  	static const char * morphstyles[]={
 		"MRF_ADDSTAMINA", "MRF_FULLHEALTH", "MRF_UNDOBYTOMEOFPOWER", "MRF_UNDOBYCHAOSDEVICE",
-		"MRF_FAILNOTELEFRAG", "MRF_FAILNOLAUGH", "MRF_WHENINVULNERABLE", "MRF_LOSEACTUALWEAPON", NULL};
- 
+		"MRF_FAILNOTELEFRAG", "MRF_FAILNOLAUGH", "MRF_WHENINVULNERABLE", "MRF_LOSEACTUALWEAPON",
+		"MRF_NEWTIDBEHAVIOUR", "MRF_UNDOBYDEATH", "MRF_UNDOBYDEATHFORCED", "MRF_UNDOBYDEATHSAVES", NULL};
+
  	static const int morphstyle_values[]={
 		MORPH_ADDSTAMINA, MORPH_FULLHEALTH, MORPH_UNDOBYTOMEOFPOWER, MORPH_UNDOBYCHAOSDEVICE,
-		MORPH_FAILNOTELEFRAG, MORPH_FAILNOLAUGH, MORPH_WHENINVULNERABLE, MORPH_LOSEACTUALWEAPON};
+		MORPH_FAILNOTELEFRAG, MORPH_FAILNOLAUGH, MORPH_WHENINVULNERABLE, MORPH_LOSEACTUALWEAPON,
+		MORPH_NEWTIDBEHAVIOUR, MORPH_UNDOBYDEATH, MORPH_UNDOBYDEATHFORCED, MORPH_UNDOBYDEATHSAVES};
 
 	// May be given flags by number...
 	if (sc.CheckNumber())
@@ -1493,7 +1495,7 @@ static void ActorTranslation (FScanner &sc, AActor *defaults, Baggage &bag)
 //==========================================================================
 //
 //==========================================================================
-static void ActorStencilColor (FScanner &sc,AActor *defaults, Baggage &bag)
+static void ActorStencilColor (FScanner &sc, AActor *defaults, Baggage &bag)
 {
 	int r,g,b;
 
@@ -1516,7 +1518,7 @@ static void ActorStencilColor (FScanner &sc,AActor *defaults, Baggage &bag)
 		g=GPART(c);
 		b=BPART(c);
 	}
-	defaults->fillcolor = MAKERGB(r,g,b);
+	defaults->fillcolor = MAKERGB(r,g,b) | (ColorMatcher.Pick (r, g, b) << 24);
 }
 
 

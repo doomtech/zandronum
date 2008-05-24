@@ -6,26 +6,6 @@
 // [BB] New #includes.
 #include "sv_commands.h"
 
-
-
-// an internal class to hold the information for player class independent weapon piece handling
-class AWeaponHolder : public AInventory
-{
-	DECLARE_ACTOR(AWeaponHolder, AInventory)
-
-public:
-	int PieceMask;
-	const PClass * PieceWeapon;
-
-	void Serialize (FArchive &arc)
-	{
-		Super::Serialize(arc);
-		arc << PieceMask << PieceWeapon;
-	}
-};
-
-
-
 IMPLEMENT_STATELESS_ACTOR (AWeaponHolder, Any, -1, 0)
 	PROP_Flags (MF_NOBLOCKMAP|MF_NOSECTOR)
 	PROP_Inventory_FlagsSet (IF_UNDROPPABLE)
