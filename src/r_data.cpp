@@ -283,6 +283,8 @@ void R_InitData ()
 		R_InitBuildTiles ();
 		TexMan.AddGroup("TX_START", "TX_END", ns_newtextures, FTexture::TEX_Override);
 		TexMan.DefaultTexture = TexMan.CheckForTexture ("-NOFLAT-", FTexture::TEX_Override, 0);
+		// [BB] The server currently needs the fonts at least for DLevelScript::DoSetFont.
+		V_InitFonts();
 		return;
 	}
 	*/

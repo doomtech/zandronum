@@ -261,6 +261,10 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 	lumpsToAuthenticateMode.push_back( ALL_LUMPS );
 	lumpsToAuthenticate.push_back( "GLDEFS" );
 	lumpsToAuthenticateMode.push_back( ALL_LUMPS );
+	lumpsToAuthenticate.push_back( "DECORATE" );
+	lumpsToAuthenticateMode.push_back( ALL_LUMPS );
+	lumpsToAuthenticate.push_back( "LOADACS" );
+	lumpsToAuthenticateMode.push_back( ALL_LUMPS );
 	FString checksum, longChecksum;
 
 	for ( unsigned int i = 0; i < lumpsToAuthenticate.size(); i++ )
