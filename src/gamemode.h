@@ -67,6 +67,7 @@
 #define	GMF_MAPRESETS					0x00000200
 #define	GMF_DEADSPECTATORS				0x00000400
 #define	GMF_PLAYERSONTEAMS				0x00000800
+#define	GMF_USEMAXLIVES					0x00001000
 
 //*****************************************************************************
 typedef enum

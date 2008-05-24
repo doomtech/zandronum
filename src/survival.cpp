@@ -65,6 +65,8 @@
 #include "sv_commands.h"
 #include "v_video.h"
 
+CVAR( Int, sv_maxlives, 0, CVAR_ARCHIVE );
+
 //*****************************************************************************
 //	VARIABLES
 
@@ -160,7 +162,7 @@ ULONG SURVIVAL_CountActivePlayers( bool bLiving )
 	{
 		if (( playeringame[ulIdx] ) && ( players[ulIdx].bSpectating == false ))
 		{
-			if (( bLiving ) && ( players[ulIdx].health == 0 ))
+			if (( bLiving ) && ( players[ulIdx].health == 0 ) && ( players[ulIdx].ulLivesLeft == 0 ))
 				continue;
 
 			ulPlayers++;
@@ -294,6 +296,11 @@ void SURVIVAL_DoFight( void )
 				players[ulIdx].pSkullBot->PostEvent( BOTEVENT_LMS_FIGHT );
 		}
 	}
+
+	// [BB] To properly handle respawning of the consoleplayer in single player
+	// we need to put the game into a "fake multiplayer" mode.
+	if ( (NETWORK_GetState( ) == NETSTATE_SINGLE) && sv_maxlives > 0 )
+		NETWORK_SetState( NETSTATE_SINGLE_MULTIPLAYER );
 
 	SCOREBOARD_RefreshHUD( );
 }
