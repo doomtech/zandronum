@@ -117,6 +117,10 @@ ULONG		GAMEMODE_GetFlags( GAMEMODE_e GameMode );
 char		*GAMEMODE_GetShortName( GAMEMODE_e GameMode );
 char		*GAMEMODE_GetF1Texture( GAMEMODE_e GameMode );
 void		GAMEMODE_DetermineGameMode( void );
+void		GAMEMODE_RespawnDeadSpectatorsAndPopQueue( void );
+
+// [BB] This function doesn't really belong here. Find a better place for it.
+void		GAMEMODE_DisplayStandardMessage( const char *pszMessage );
 
 GAMEMODE_e	GAMEMODE_GetCurrentMode( void );
 void		GAMEMODE_SetCurrentMode( GAMEMODE_e GameMode );

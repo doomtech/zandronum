@@ -3932,7 +3932,8 @@ static bool server_RequestJoin( BYTESTREAM_s *pByteStream )
 		( SERVER_CalcNumNonSpectatingPlayers( MAXPLAYERS ) >= Val.Int ) ||
 		( SURVIVAL_GetState( ) == SURVS_INPROGRESS ) ||
 		( SURVIVAL_GetState( ) == SURVS_MISSIONFAILED ) ||
-		(( lastmanstanding || teamlms ) && (( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) || ( LASTMANSTANDING_GetState( ) == LMSS_WINSEQUENCE ))))
+		(( lastmanstanding || teamlms ) && (( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) || ( LASTMANSTANDING_GetState( ) == LMSS_WINSEQUENCE ))) ||
+		( INVASION_PreventPlayersFromJoining() ) )
 	{
 		JOINSLOT_t	JoinSlot;
 

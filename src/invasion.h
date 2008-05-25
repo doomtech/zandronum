@@ -65,6 +65,7 @@ typedef enum
 	IS_BOSSFIGHT,
 	IS_WAVECOMPLETE,
 	IS_COUNTDOWN,
+	IS_MISSIONFAILED,
 
 } INVASIONSTATE_e;
 
@@ -159,6 +160,8 @@ bool	INVASION_GetIncreaseNumMonstersOnSpawn( void );
 void	INVASION_SetIncreaseNumMonstersOnSpawn( bool bIncrease );
 
 void	INVASION_UpdateMonsterCount( AActor* pActor, bool removeMonster ); 
+
+bool	INVASION_PreventPlayersFromJoining( void );
 
 //*****************************************************************************
 //  EXTERNAL CONSOLE VARIABLES

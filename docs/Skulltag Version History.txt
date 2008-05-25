@@ -20,7 +20,6 @@ latestzdoom branch
 +	- Added new actor flag PUFFGETSOWNER to flags5. If selected, the owner of the puff is set to the player who fired it. [Torr Samaho]
 +	- Converted BFG10K to DECORATE. 
 +	- Actor flag NONETID is now available in DECORATE. Actors with this flag are not assigned a network id when spawned. Only use it, if you know what you are doing! [Torr Samaho]
-+	- Added new CVAR sv_maxlives. This specifies how many times you are allowed to respawn in survival. [Torr Samaho]
 -	- Fixed problems with A_Respawn online. So far this is only tested to work with ExplosiveBarrel though. [Torr Samaho]
 
 
@@ -28,6 +27,7 @@ latestzdoom branch
 ------
 
 *+	- Added basic HUD model support. [Torr Samaho]
+*+	- Added survival invasion! In particular, added new CVAR sv_maxlives. This specifies how many times you are allowed to respawn in survival and invasion. sv_maxlives == 0 means no respawing in survival, but unlimited respawning in invasion. [Torr Samaho]
 +	- Added double definition support for the old DECORATE standard. In this case, the new actors override the old ones. [Rivecoder]
 +	- Under Windows, choosing "browse servers" in the Multiplayer menu brings up a new menu, letting you choose between IDEse and the internal browser. Hopefully, this should prevent newbies getting stuck at the old browser. [Rivecoder]
 +	- Added the CVAR chat_sound. With it, you can turn chat sounds off (0), play the default (1), or the Doom 2 (2) or Doom 1 (3) sounds. [Rivecoder]
