@@ -1928,6 +1928,13 @@ void G_ChangeLevel(const char * levelname, int position, bool keepFacing, int ne
 			// Un-crouch all players here.
 			player->Uncrouch();
 
+			// [BB] sv_maxlives is meant to specify the number of lives per map.
+			// So restore ulLivesLeft after a map change.
+			if ( sv_maxlives > 0 && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_USEMAXLIVES ) )
+			{
+				player->ulLivesLeft = sv_maxlives - 1;
+			}
+
 			// If this is co-op, respawn any dead players now so they can
 			// keep their inventory on the next map.
 			if ((NETWORK_GetState( ) != NETSTATE_SINGLE) && !deathmatch && player->playerstate == PST_DEAD)
