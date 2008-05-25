@@ -72,6 +72,8 @@
 #include "sv_commands.h"
 #include "thingdef/thingdef.h"
 #include "v_video.h"
+#include "survival.h"
+#include "gamemode.h"
 
 void	SERVERCONSOLE_UpdateScoreboard( );
 
@@ -726,6 +728,24 @@ void INVASION_Tick( void )
 				ANNOUNCER_PlayEntry( cl_announcer, "One" );
 		}
 		break;
+	case IS_INPROGRESS:
+	case IS_BOSSFIGHT:
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+			( CLIENTDEMO_IsPlaying( )))
+		{
+			break;
+		}
+
+		// [BB] If everyone is dead, the mission has failed!
+		// [BB] Invasion with (sv_maxlives == 0) allows unlimited respawns.
+		if ( ( sv_maxlives > 0 ) && ( SURVIVAL_CountActivePlayers( true ) == 0 ) )
+		{
+			// Put the game state in the mission failed state.
+			INVASION_SetState( IS_MISSIONFAILED );
+
+			// Pause for five seconds for the failed sequence.
+			GAME_SetEndLevelDelay( 5 * TICRATE );
+		}
 	}
 }
 
@@ -754,6 +774,11 @@ void INVASION_StartFirstCountdown( ULONG ulTicks )
 	// [BB] Since the players are not respawed after the reset, we have to re-run the
 	// enter scripts in GAME_ResetMap.
 	GAME_ResetMap( true );
+
+	// [BB] To properly handle respawning of the consoleplayer in single player
+	// we need to put the game into a "fake multiplayer" mode.
+	if ( (NETWORK_GetState( ) == NETSTATE_SINGLE) && sv_maxlives > 0 )
+		NETWORK_SetState( NETSTATE_SINGLE_MULTIPLAYER );
 }
 
 //*****************************************************************************
@@ -1239,6 +1264,9 @@ void INVASION_SetState( INVASIONSTATE_e State )
 		}
 
 		break;
+	case IS_MISSIONFAILED:
+		GAMEMODE_DisplayStandardMessage ( "MISSION FAILED!" );
+		break;
 	}
 
 	// Tell clients about the state change.
@@ -1402,6 +1430,14 @@ void INVASION_UpdateMonsterCount( AActor* pActor, bool removeMonster )
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SetInvasionNumMonstersLeft( );
 	}
+}
+
+//*****************************************************************************
+//
+bool INVASION_PreventPlayersFromJoining( void )
+{
+	// [BB] Invasion with (sv_maxlives == 0) allows unlimited respawns.
+	return ( invasion && ( sv_maxlives > 0 ) && ( INVASION_GetState() != IS_WAITINGFORPLAYERS ) && ( INVASION_GetState() != IS_FIRSTCOUNTDOWN ) );
 }
 
 //*****************************************************************************

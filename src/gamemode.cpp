@@ -52,6 +52,15 @@
 #include "deathmatch.h"
 #include "gamemode.h"
 #include "team.h"
+#include "network.h"
+#include "sv_commands.h"
+#include "g_game.h"
+#include "joinqueue.h"
+#include "cl_demo.h"
+#include "survival.h"
+// [BB] The next includes are only needed for GAMEMODE_DisplayStandardMessage
+#include "sbar.h"
+#include "v_video.h"
 
 //*****************************************************************************
 //	VARIABLES
@@ -78,7 +87,7 @@ void GAMEMODE_Construct( void )
 	strncpy( g_GameModes[GAMEMODE_SURVIVAL].szF1Texture, "F1_SCP", 8 );
 
 	// Invasion.
-	g_GameModes[GAMEMODE_INVASION].ulFlags = GMF_COOPERATIVE|GMF_PLAYERSEARNKILLS|GMF_MAPRESETS;
+	g_GameModes[GAMEMODE_INVASION].ulFlags = GMF_COOPERATIVE|GMF_PLAYERSEARNKILLS|GMF_MAPRESETS|GMF_DEADSPECTATORS|GMF_USEMAXLIVES;
 	strncpy( g_GameModes[GAMEMODE_INVASION].szShortName, "INVAS", 8 );
 	strncpy( g_GameModes[GAMEMODE_INVASION].szF1Texture, "F1_INV", 8 );
 
@@ -209,6 +218,84 @@ void GAMEMODE_DetermineGameMode( void )
 		g_CurrentGameMode = GAMEMODE_ONEFLAGCTF;
 	if ( skulltag )
 		g_CurrentGameMode = GAMEMODE_SKULLTAG;
+}
+
+//*****************************************************************************
+//
+void GAMEMODE_RespawnDeadSpectatorsAndPopQueue( void )
+{
+	// [BB] This is server side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
+	// Respawn any players who were downed during the previous round.
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if (( playeringame[ulIdx] == false ) ||
+			( PLAYER_IsTrueSpectator( &players[ulIdx] )))
+		{
+			continue;
+		}
+
+		// We don't want to respawn players as soon as the map starts; we only
+		// want to respawn dead spectators.
+		if (( players[ulIdx].mo ) &&
+			( players[ulIdx].mo->health > 0 ) &&
+			( players[ulIdx].bDeadSpectator == false ))
+		{
+			continue;
+		}
+
+		players[ulIdx].bSpectating = false;
+		players[ulIdx].bDeadSpectator = false;
+		if ( sv_maxlives > 0 && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_USEMAXLIVES ) )
+		{
+			players[ulIdx].ulLivesLeft = sv_maxlives - 1;
+		}
+		players[ulIdx].playerstate = PST_REBORNNOINVENTORY;
+
+		if (( players[ulIdx].mo ) && ( players[ulIdx].mo->health > 0 ))
+		{
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_DestroyThing( players[ulIdx].mo );
+
+			players[ulIdx].mo->Destroy( );
+			players[ulIdx].mo = NULL;
+		}
+
+		G_CooperativeSpawnPlayer( ulIdx, true );
+	}
+
+	// Let anyone who's been waiting in line join now.
+	JOINQUEUE_PopQueue( -1 );
+}
+
+//*****************************************************************************
+//
+void GAMEMODE_DisplayStandardMessage( const char *pszMessage )
+{
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+	{
+		DHUDMessageFadeOut	*pMsg;
+
+		screen->SetFont( BigFont );
+
+		// Display "%s WINS!" HUD message.
+		pMsg = new DHUDMessageFadeOut( pszMessage,
+			160.4f,
+			75.0f,
+			320,
+			200,
+			CR_RED,
+			3.0f,
+			2.0f );
+
+		StatusBar->AttachMessage( pMsg, 'CNTR' );
+		screen->SetFont( SmallFont );
+	}
 }
 
 //*****************************************************************************

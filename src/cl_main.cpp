@@ -7132,6 +7132,10 @@ static void client_SetGameModeLimits( BYTESTREAM_s *pByteStream )
 	// Read in, and set the value for sv_fastweapons.
 	Value.Int = NETWORK_ReadByte( pByteStream );
 	sv_fastweapons.ForceSet( Value, CVAR_Int );
+
+	// Read in, and set the value for sv_maxlives.
+	Value.Int = NETWORK_ReadByte( pByteStream );
+	sv_maxlives.ForceSet( Value, CVAR_Int );
 }
 
 //*****************************************************************************

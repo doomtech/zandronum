@@ -67,6 +67,7 @@
 #include "sv_commands.h"
 #include "sv_main.h"
 #include "team.h"
+#include "survival.h"
 #include "vectors.h"
 
 // :((((((
@@ -2968,7 +2969,7 @@ void SERVERCOMMANDS_SetGameModeLimits( ULONG ulPlayerExtra, ULONG ulFlags )
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 14, true );
+		SERVER_CheckClientBuffer( ulIdx, 15, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETGAMEMODELIMITS );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, fraglimit );
 		NETWORK_WriteFloat( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, timelimit );
@@ -2978,6 +2979,7 @@ void SERVERCOMMANDS_SetGameModeLimits( ULONG ulPlayerExtra, ULONG ulFlags )
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, wavelimit );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sv_cheats );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sv_fastweapons );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sv_maxlives );
     }
 }
 

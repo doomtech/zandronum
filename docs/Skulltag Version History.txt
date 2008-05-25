@@ -16,6 +16,7 @@
 ------
 
 *+	- Added basic HUD model support. [Torr Samaho]
+*+	- Added survival invasion! In particular, added new CVAR sv_maxlives. This specifies how many times you are allowed to respawn in survival and invasion. sv_maxlives == 0 means no respawing in survival, but unlimited respawning in invasion. [Torr Samaho]
 +	- Added double definition support for the old DECORATE standard. In this case, the new actors override the old ones. [Rivecoder]
 +	- Under Windows, choosing "browse servers" in the Multiplayer menu brings up a new menu, letting you choose between IDEse and the internal browser. Hopefully, this should prevent newbies getting stuck at the old browser. [Rivecoder]
 +	- Added the CVAR chat_sound. With it, you can turn chat sounds off (0), play the default (1), or the Doom 2 (2) or Doom 1 (3) sounds. [Rivecoder]

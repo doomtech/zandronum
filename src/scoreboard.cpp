@@ -1473,7 +1473,10 @@ void SCOREBOARD_RenderInvasionFirstCountdown( ULONG ulTimeLeft )
 	{
 		screen->SetFont( BigFont );
 
-		sprintf( szString, "PREPARE FOR INVASION!" );
+		if ( sv_maxlives > 0 )
+			sprintf( szString, "SURVIVAL INVASION" );
+		else
+			sprintf( szString, "PREPARE FOR INVASION!" );
 		screen->DrawText( gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
 			160 - ( BigFont->StringWidth( szString ) / 2 ),
 			ulCurYPos,

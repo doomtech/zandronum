@@ -1767,6 +1767,12 @@ void G_Ticker ()
 					SURVIVAL_SetState( SURVS_WAITINGFORPLAYERS );
 					SURVIVAL_Tick( );
 				}
+				else if ( invasion )
+				{
+					INVASION_SetState( IS_WAITINGFORPLAYERS );
+					GAMEMODE_RespawnDeadSpectatorsAndPopQueue();
+					INVASION_Tick( );
+				}
 				else
 					G_ExitLevel( 0, false );
 			}

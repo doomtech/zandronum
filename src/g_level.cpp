@@ -1900,6 +1900,16 @@ void G_ChangeLevel(const char * levelname, int position, bool keepFacing, int ne
 	for(int i=0;i<MAXPLAYERS;i++)
 	{
 		players[i].Uncrouch();
+
+		if (playeringame[i])
+		{
+			// [BB] sv_maxlives is meant to specify the number of lives per map.
+			// So restore ulLivesLeft after a map change.
+			if ( sv_maxlives > 0 && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_USEMAXLIVES ) )
+			{
+				players[i].ulLivesLeft = sv_maxlives - 1;
+			}
+		}
 	}
 	gl_DeleteAllAttachedLights();
 }

@@ -51,7 +51,8 @@
 #include "c_dispatch.h"
 #include "tarray.h"
 #include "thingdef/thingdef.h"
-#include "a_doomglobal.h"
+// [BB] New #includes.
+#include "sv_commands.h"
 #include "deathmatch.h"
 #include "duel.h"
 #include "g_game.h"
@@ -71,6 +72,7 @@
 #include "possession.h"
 #include "cl_commands.h"
 #include "gamemode.h"
+#include "invasion.h"
 
 static FRandom pr_skullpop ("SkullPop");
 
@@ -2687,8 +2689,10 @@ void P_DeathThink (player_t *player)
 	}
 
 	// [BC] If this is LMS or survival, put him in spectator mode.
+	// [BB] Do this in general, if the gamemode currently prevents people from joining.
 	if ((( lastmanstanding || teamlms ) && ( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS )) ||
-		(( survival ) && ( SURVIVAL_GetState( ) == SURVS_INPROGRESS )))
+		(( survival ) && ( SURVIVAL_GetState( ) == SURVS_INPROGRESS )) ||
+		( INVASION_PreventPlayersFromJoining() ))
 	{
 		if ( level.time >= player->respawn_time )
 		{
