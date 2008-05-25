@@ -291,6 +291,7 @@ player_s::player_s()
   bChatting( 0 ),
   bSpectating( 0 ),
   bDeadSpectator( 0 ),
+  ulLivesLeft( 0 ),
   bStruckPlayer( 0 ),
   ulRailgunShots( 0 ),
   pIcon( 0 ),
@@ -2708,15 +2709,21 @@ void P_DeathThink (player_t *player)
 			}
 			else
 			{
-				PLAYER_SetSpectator( player, false, true );
+				// [BB] No lives left, make this player a dead spectator.
+				if ( player->ulLivesLeft == 0 )
+				{
+					PLAYER_SetSpectator( player, false, true );
 
-				// Tell the other players to mark this player as a spectator.
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_PlayerIsSpectator( player - players );
+					// Tell the other players to mark this player as a spectator.
+					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						SERVERCOMMANDS_PlayerIsSpectator( player - players );
+				}
 			}
 		}
 
-		return;
+		// [BB] No lives left, no need to do anything else in this function.
+		if ( player->ulLivesLeft == 0 )
+			return;
 	}
 
 	if (( level.time >= player->respawn_time ) &&
@@ -2732,6 +2739,11 @@ void P_DeathThink (player_t *player)
 			if (player->mo->special1 > 2)
 			{
 				player->mo->special1 = 0;
+			}
+			// [BB] The player will be reborn, so take a way one life.
+			if ( player->ulLivesLeft > 0 )
+			{
+				player->ulLivesLeft--;
 			}
 		}
 //		else if ( player->pSkullBot )

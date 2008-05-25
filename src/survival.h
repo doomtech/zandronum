@@ -88,5 +88,6 @@ void			SURVIVAL_SetState( SURVIVALSTATE_e State );
 //  EXTERNAL CONSOLE VARIABLES
 
 EXTERN_CVAR( Int, sv_survivalcountdowntime )
+EXTERN_CVAR( Int, sv_maxlives )
 
 #endif	// __SURVIVAL_H__

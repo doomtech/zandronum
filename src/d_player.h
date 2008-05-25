@@ -347,6 +347,9 @@ public:
 	// This player is currently spectating after dying in LMS or survival co-op.
 	bool		bDeadSpectator;
 
+	// [BB] Number of times the player may still respawn in LMS or survival co-op.
+	ULONG		ulLivesLeft;
+
 	// This player hit another player with his attack.
 	bool		bStruckPlayer;
 

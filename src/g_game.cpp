@@ -1969,6 +1969,7 @@ void G_PlayerReborn (int player)
 	bool		bOnTeam;
 	bool		bSpectating;
 	bool		bDeadSpectator;
+	ULONG		ulLivesLeft;
 	ULONG		ulTeam;
 	LONG		lPointCount;
 	ULONG		ulDeathCount;
@@ -1998,6 +1999,7 @@ void G_PlayerReborn (int player)
 	bOnTeam = p->bOnTeam;
 	bSpectating = p->bSpectating;
 	bDeadSpectator = p->bDeadSpectator;
+	ulLivesLeft = p->ulLivesLeft;
 	ulTeam = p->ulTeam;
 	lPointCount = p->lPointCount;
 	ulDeathCount = p->ulDeathCount;
@@ -2031,6 +2033,7 @@ void G_PlayerReborn (int player)
 	p->bOnTeam = bOnTeam;
 	p->bSpectating = bSpectating;
 	p->bDeadSpectator = bDeadSpectator;
+	p->ulLivesLeft = ulLivesLeft;
 	p->ulTeam = ulTeam;
 	p->lPointCount = lPointCount;
 	p->ulDeathCount = ulDeathCount;

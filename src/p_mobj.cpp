@@ -68,6 +68,7 @@
 #include "team.h"
 #include "sv_commands.h"
 #include "cl_demo.h"
+#include "survival.h"
 
 #include "gl/gl_functions.h"
 
@@ -4654,6 +4655,10 @@ void P_SpawnPlayer (mapthing2_t *mthing, bool bClientUpdate, player_t *p, bool t
 	{
 		p->ulTime = 0;
 		p->ulDeathCount = 0;
+		if ( sv_maxlives > 0 && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_USEMAXLIVES ) )
+		{
+			p->ulLivesLeft = sv_maxlives - 1;
+		}
 	}
 	// If this is a bot, tell him he's been respawned.
 	else if (( state == PST_REBORN ) || ( state == PST_REBORNNOINVENTORY ))
