@@ -311,6 +311,7 @@
 #define IDC_POINTLIMIT                  1196
 #define IDC_DUELLIMIT                   1197
 #define IDC_WINLIMIT                    1198
+#define IDC_MAXLIVES                    1199
 #define IDC_SPIN4                       1200
 #define IDC_SPIN5                       1201
 #define IDC_SPIN7                       1202
@@ -343,6 +344,7 @@
 #define IDC_COMPATF_DROPOFF				1229
 #define IDC_COMPATF_BOOMSCROLL			1230
 #define IDC_COMPATF_INVISIBILITY		1231
+#define IDC_SPIN9                       1232
 #define UWM_TRAY_TRAYID                 32769
 #define UWM_TRAY_NOP                    32770
 #define ID_FILE_IMPORTCONFIGURATION     4001

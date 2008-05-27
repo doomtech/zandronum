@@ -70,6 +70,7 @@
 #include "v_text.h"
 #include "version.h"
 #include "network.h"
+#include "survival.h"
 
 #ifdef	GUI_SERVER_CONSOLE
 
@@ -104,6 +105,7 @@ static	ULONG				g_ulStoredTimelimit;
 static	ULONG				g_ulStoredPointlimit;
 static	ULONG				g_ulStoredDuellimit;
 static	ULONG				g_ulStoredWinlimit;
+static	ULONG				g_ulStoredMaxlives;
 
 // Array of player indicies for the scoreboard.
 static	LONG				g_lPlayerIndicies[MAXPLAYERS];
@@ -1961,6 +1963,10 @@ BOOL CALLBACK SERVERCONSOLE_ServerInformationCallback( HWND hDlg, UINT Message, 
 			sprintf( szString, "Winlimit: %d", Val.Int );
 			SetDlgItemText( hDlg, IDC_WINLIMIT, szString );
 
+			Val = sv_maxlives.GetGenericRep( CVAR_Int );
+			sprintf( szString, "Maxlives: %d", Val.Int );
+			SetDlgItemText( hDlg, IDC_MAXLIVES, szString );
+
 			sprintf( szString, "Gameplay mode: %s", skulltag ? "Skulltag" :
 				oneflagctf ? "One flag CTF" :
 				ctf ? "Capture the flag" :
@@ -2241,6 +2247,7 @@ BOOL CALLBACK SERVERCONSOLE_GeneralSettingsCallback( HWND hDlg, UINT Message, WP
 		SendDlgItemMessage( hDlg, IDC_POINTLIMIT, EM_SETLIMITTEXT, 4, 0 );
 		SendDlgItemMessage( hDlg, IDC_DUELLIMIT, EM_SETLIMITTEXT, 4, 0 );
 		SendDlgItemMessage( hDlg, IDC_WINLIMIT, EM_SETLIMITTEXT, 4, 0 );
+		SendDlgItemMessage( hDlg, IDC_MAXLIVES, EM_SETLIMITTEXT, 4, 0 );
 		SendDlgItemMessage( hDlg, IDC_PASSWORD, EM_SETLIMITTEXT, 32, 0 );
 		SendDlgItemMessage( hDlg, IDC_JOINPASSWORD, EM_SETLIMITTEXT, 32, 0 );
 		SendDlgItemMessage( hDlg, IDC_RCONPASSWORD, EM_SETLIMITTEXT, 32, 0 );
@@ -2252,6 +2259,7 @@ BOOL CALLBACK SERVERCONSOLE_GeneralSettingsCallback( HWND hDlg, UINT Message, WP
 		SendDlgItemMessage( hDlg, IDC_SPIN4, UDM_SETRANGE, 0, MAKELONG( 9999,0 ));
 		SendDlgItemMessage( hDlg, IDC_SPIN5, UDM_SETRANGE, 0, MAKELONG( 9999,0 ));
 		SendDlgItemMessage( hDlg, IDC_SPIN7, UDM_SETRANGE, 0, MAKELONG( 9999,0 ));
+		SendDlgItemMessage( hDlg, IDC_SPIN9, UDM_SETRANGE, 0, MAKELONG( 9999,0 ));
 		SendDlgItemMessage( hDlg, IDC_SPIN1, UDM_SETRANGE, 0, MAKELONG( MAXPLAYERS,0 ));
 		SendDlgItemMessage( hDlg, IDC_SPIN6, UDM_SETRANGE, 0, MAKELONG( MAXPLAYERS,0 ));
 
@@ -4281,6 +4289,10 @@ void SERVERCONSOLE_InitializeGeneralSettingsDisplay( HWND hDlg )
 	SetDlgItemText( hDlg, IDC_WINLIMIT, Val.String );
 	g_ulStoredWinlimit = atoi( Val.String );
 
+	Val = sv_maxlives.GetGenericRep( CVAR_String );
+	SetDlgItemText( hDlg, IDC_MAXLIVES, Val.String );
+	g_ulStoredMaxlives = atoi( Val.String );
+
 	SendDlgItemMessage( hDlg, IDC_GAMEPLAYMODE, CB_INSERTSTRING, -1, (WPARAM)(LPSTR)"Cooperative" );
 	SendDlgItemMessage( hDlg, IDC_GAMEPLAYMODE, CB_INSERTSTRING, -1, (WPARAM)(LPSTR)"Survival Cooperative" );
 	SendDlgItemMessage( hDlg, IDC_GAMEPLAYMODE, CB_INSERTSTRING, -1, (WPARAM)(LPSTR)"Invasion" );
@@ -4589,6 +4601,13 @@ void SERVERCONSOLE_UpdateGeneralSettings( HWND hDlg )
 	if ( atoi( szBuffer ) != (LONG)g_ulStoredWinlimit )
 	{
 		sprintf( szString, "winlimit %s", szBuffer );
+		SERVER_AddCommand( szString );
+	}
+
+	GetDlgItemText( hDlg, IDC_MAXLIVES, szBuffer, 1024 );
+	if ( atoi( szBuffer ) != (LONG)g_ulStoredMaxlives )
+	{
+		sprintf( szString, "sv_maxlives %s", szBuffer );
 		SERVER_AddCommand( szString );
 	}
 
