@@ -539,9 +539,13 @@ bool PIT_CheckLine (line_t *ld, const FBoundingBox &box, FCheckPosition &tm)
 	if (box.BoxOnLineSide (ld) != -1)
 		return true;
 
+#ifdef _MSC_VER
+#ifdef _DEBUG
 	if (ld-lines == 10
 		)
 		__asm nop
+#endif
+#endif
 
 	// A line has been hit
 /*

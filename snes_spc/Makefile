@@ -16,7 +16,7 @@ DYNAMICLIB = libsnes_spc.so
 CCDV = @../ccdv
 
 CC = gcc
-CFLAGS = $(LOC) -O3 -Wall -fomit-frame-pointer
+CFLAGS = $(LOC) -fPIC -O3 -Wall -fomit-frame-pointer
 
 LD = $(CC)
 LDFLAGS = $(LOC) -s
