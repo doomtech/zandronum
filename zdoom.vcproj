@@ -6316,6 +6316,14 @@
 					/>
 				</FileConfiguration>
 			</File>
+			<File
+				RelativePath=".\src\g_shared\st_hud.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\g_shared\st_hud.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Doom Game"

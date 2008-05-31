@@ -58,6 +58,7 @@
 #include "lastmanstanding.h"
 #include "network.h"
 #include "gamemode.h"
+#include "st_hud.h"
 
 #define XHAIRSHRINKSIZE		(FRACUNIT/18)
 #define XHAIRPICKUPSIZE		(FRACUNIT*2+XHAIRSHRINKSIZE)
@@ -1451,6 +1452,9 @@ void DBaseStatusBar::DrawTopStuff (EHudState state)
 
 	// [BC] Draw the name of the player that's in our crosshair.
 	DrawTargetName( );
+
+	// [BB] Possibly draw info of the other players (health, armor, ...)
+	DrawHUD_CoopInfo();
 }
 
 //---------------------------------------------------------------------------
