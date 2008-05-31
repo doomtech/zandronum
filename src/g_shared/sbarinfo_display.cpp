@@ -56,6 +56,8 @@
 #include "a_strifeglobal.h"
 // [BB] New #includes.
 #include "deathmatch.h"
+#include "cooperative.h"
+#include "team.h"
 
 static FRandom pr_chainwiggle; //use the same method of chain wiggling as heretic.
 
@@ -605,6 +607,18 @@ void DSBarInfo::doCommands(SBarInfoBlock &block, int xOffset, int yOffset, int a
 					if (item != NULL)
 						texture = TexMan[item->Icon];
 				}
+				else if(cmd.flags & DRAWIMAGE_RUNEICON)
+				{
+					AInventory *item = CPlayer->mo->Inventory;
+					for(item = CPlayer->mo->Inventory;item != NULL;item = item->Inventory)
+					{
+						if(item->Icon > 0 && item->GetClass() != PClass::FindClass("Rune") && item->IsKindOf(PClass::FindClass("Rune")))
+						{
+							texture = TexMan[item->Icon];
+							break;
+						}
+					}
+				}
 				else if((cmd.flags & DRAWIMAGE_INVENTORYICON))
 					texture = TexMan[cmd.sprite];
 				else if(cmd.sprite != -1)
@@ -707,6 +721,8 @@ void DSBarInfo::doCommands(SBarInfoBlock &block, int xOffset, int yOffset, int a
 					value = ACS_GlobalVars[cmd.value];
 				else if(cmd.flags & DRAWNUMBER_GLOBALARRAY)
 					value = ACS_GlobalArrays[cmd.value][consoleplayer];
+				else if(cmd.flags & DRAWNUMBER_TEAMSCORE)
+					value = TEAM_GetScore(cmd.value);
 				else if(cmd.flags & DRAWNUMBER_INVENTORY)
 				{
 					AInventory* item = CPlayer->mo->FindInventory(PClass::FindClass(cmd.string[0]));
@@ -894,6 +910,11 @@ void DSBarInfo::doCommands(SBarInfoBlock &block, int xOffset, int yOffset, int a
 				{
 					value = level.found_secrets;
 					max = level.total_secrets;
+				}
+				else if(cmd.flags == DRAWNUMBER_TEAMSCORE)
+				{
+					value = TEAM_GetScore(cmd.value);
+					max = pointlimit;
 				}
 				else if(cmd.flags == DRAWNUMBER_INVENTORY)
 				{
@@ -1117,7 +1138,18 @@ void DSBarInfo::doCommands(SBarInfoBlock &block, int xOffset, int yOffset, int a
 				if(((cmd.flags & GAMETYPE_SINGLEPLAYER) && (NETWORK_GetState( ) == NETSTATE_SINGLE)) ||
 					((cmd.flags & GAMETYPE_DEATHMATCH) && deathmatch) ||
 					((cmd.flags & GAMETYPE_COOPERATIVE) && (NETWORK_GetState( ) != NETSTATE_SINGLE) && !deathmatch) ||
-					((cmd.flags & GAMETYPE_TEAMGAME) && teamplay))
+					((cmd.flags & GAMETYPE_TEAMGAME) && teamplay) ||
+					((cmd.flags & GAMETYPE_CTF) && ctf) ||
+					((cmd.flags & GAMETYPE_ONEFLAGCTF) && oneflagctf) ||
+					((cmd.flags & GAMETYPE_SKULLTAG) && skulltag) ||
+					((cmd.flags & GAMETYPE_INVASION) && invasion) ||
+					((cmd.flags & GAMETYPE_POSSESSION) && possession) ||
+					((cmd.flags & GAMETYPE_TEAMPOSSESSION) && teampossession) ||
+					((cmd.flags & GAMETYPE_LASTMANSTANDING) && lastmanstanding) ||
+					((cmd.flags & GAMETYPE_TEAMLMS) && teamlms) ||
+					((cmd.flags & GAMETYPE_SURVIVAL) && survival) ||
+					((cmd.flags & GAMETYPE_INSTAGIB) && instagib) ||
+					((cmd.flags & GAMETYPE_BUCKSHOT) && buckshot))
 				{
 					doCommands(cmd.subBlock, xOffset, yOffset, alpha);
 				}

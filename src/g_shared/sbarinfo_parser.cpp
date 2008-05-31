@@ -45,6 +45,8 @@
 #include "m_random.h"
 #include "gi.h"
 #include "i_system.h"
+//[BL] New Includes
+#include "teaminfo.h"
 
 SBarInfo *SBarInfoScript;
 TArray<MugShotState> MugShotStates;
@@ -441,6 +443,8 @@ void SBarInfo::ParseSBarInfoBlock(FScanner &sc, SBarInfoBlock &block)
 						cmd.flags |= DRAWIMAGE_WEAPONICON;
 					else if(sc.Compare("sigil"))
 						cmd.flags |= DRAWIMAGE_SIGIL;
+					else if(sc.Compare("runeicon"))
+						cmd.flags |= DRAWIMAGE_RUNEICON;
 					else if(sc.Compare("translatable"))
 					{
 						cmd.flags |= DRAWIMAGE_TRANSLATABLE;
@@ -557,6 +561,23 @@ void SBarInfo::ParseSBarInfoBlock(FScanner &sc, SBarInfoBlock &block)
 						if(sc.Number < 0 || sc.Number >= NUM_GLOBALVARS)
 							sc.ScriptError("Global variable number out of range: %d", sc.Number);
 						cmd.value = sc.Number;
+					}
+					else if(sc.Compare("teamscore")) //Takes in a number for team
+					{
+						cmd.flags |= DRAWNUMBER_TEAMSCORE;
+						sc.MustGetToken(TK_StringConst);
+						int t = -1;
+						for(unsigned int i = 0;i < teams.Size();i++)
+						{
+							if(teams[i].name.CompareNoCase(sc.String) == 0)
+							{
+								t = (int) i;
+								break;
+							}
+						}
+						if(t == -1)
+							sc.ScriptError("'%s' is not a valid team.", sc.String);
+						cmd.value = t;
 					}
 					else
 					{
@@ -835,6 +856,23 @@ void SBarInfo::ParseSBarInfoBlock(FScanner &sc, SBarInfoBlock &block)
 					cmd.flags = DRAWNUMBER_ITEMS;
 				else if(sc.Compare("secrets"))
 					cmd.flags = DRAWNUMBER_SECRETS;
+				else if(sc.Compare("teamscore")) //Takes in a number for team
+				{
+					cmd.flags |= DRAWNUMBER_TEAMSCORE;
+					sc.MustGetToken(TK_StringConst);
+					int t = -1;
+					for(unsigned int i = 0;i < teams.Size();i++)
+					{
+						if(teams[i].name.CompareNoCase(sc.String) == 0)
+						{
+							t = (int) i;
+							break;
+						}
+					}
+					if(t == -1)
+						sc.ScriptError("'%s' is not a valid team.", sc.String);
+					cmd.value = t;
+				}
 				else
 				{
 					cmd.flags = DRAWNUMBER_INVENTORY;
@@ -979,6 +1017,28 @@ void SBarInfo::ParseSBarInfoBlock(FScanner &sc, SBarInfoBlock &block)
 						cmd.flags |= GAMETYPE_DEATHMATCH;
 					else if(sc.Compare("teamgame"))
 						cmd.flags |= GAMETYPE_TEAMGAME;
+					else if(sc.Compare("ctf"))
+						cmd.flags |= GAMETYPE_CTF;
+					else if(sc.Compare("oneflagctf"))
+						cmd.flags |= GAMETYPE_ONEFLAGCTF;
+					else if(sc.Compare("skulltag"))
+						cmd.flags |= GAMETYPE_SKULLTAG;
+					else if(sc.Compare("invasion"))
+						cmd.flags |= GAMETYPE_INVASION;
+					else if(sc.Compare("possession"))
+						cmd.flags |= GAMETYPE_POSSESSION;
+					else if(sc.Compare("teampossession"))
+						cmd.flags |= GAMETYPE_TEAMPOSSESSION;
+					else if(sc.Compare("lastmanstanding"))
+						cmd.flags |= GAMETYPE_LASTMANSTANDING;
+					else if(sc.Compare("teamlms"))
+						cmd.flags |= GAMETYPE_TEAMLMS;
+					else if(sc.Compare("survival"))
+						cmd.flags |= GAMETYPE_SURVIVAL;
+					else if(sc.Compare("instagib"))
+						cmd.flags |= GAMETYPE_INSTAGIB;
+					else if(sc.Compare("buckshot"))
+						cmd.flags |= GAMETYPE_BUCKSHOT;
 					else
 						sc.ScriptError("Unknown gamemode: %s", sc.String);
 					if(sc.CheckToken('{'))
