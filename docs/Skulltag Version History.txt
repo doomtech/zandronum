@@ -24,7 +24,6 @@ latestzdoom branch
 +	- Added runeicon to SBarInfo's drawimage. [Blzut3]
 +	- Added teamscore to SBarInfo's drawnumber and drawbar.  Its takes one parameter for team name. [Blzut3]
 -	- Fixed errors while compiling and running 64-bit versions of Skulltag. [Blzut3]
--	- Fixed problems with A_Respawn online. So far this is only tested to work with ExplosiveBarrel though. [Torr Samaho]
 
 
 ??????
@@ -41,6 +40,8 @@ latestzdoom branch
 + 	- Added CVAR cl_allowmultipleannouncersounds (default true). If true, multiple announcer sounds can be played at once (like in 97D beta 4.3 and earlier), otherwise any announcer sound stops all previous announcers (like in 97D). [Torr Samaho]
 +	- Extended the authentication mechanism for non-map related lumps to get rid of more exploits. [Torr Samaho]
 +	- All the server side code that manipulates actors on the clients now checks for valid net ids. A warning is printed if it's not possible to manipulate an actor because of a missing net id. [Torr Samaho]
++	- Added: sv_maxlives can now be configured from the "General settings" Windows server window. [Torr Samaho]
++	- Added new CVAR sv_showwarnings (default true). If set to false, the new server side warning messages are suppressed. May be necessary for certain mods to prevent the warnings from flooding the log. [Torr Samaho]
 -	- Fixed: The 'summonfoe' console command didn't work online. [Karate Chris, Torr Samaho]
 -	- Fixed: Using the CCMD stat crashes the server. [Torr Samaho]
 -	- Fixed: A_Chase doesn't work properly online when a custom missile or melee state is specified as argument. [Torr Samaho]
@@ -62,6 +63,8 @@ latestzdoom branch
 -	- Fixed: No melee sound is played online by A_CustomComboAttack. [Torr Samaho]
 -	- Fixed: For some actors the server tried but failed to instruct the clients to set the actor to a certain frame. [Torr Samaho]
 -	- Fixed: A_Print crashes the server online. [Torr Samaho]
+-	- Fixed: When starting a new survival game offline, while one is currently in progress, you immediately get "mission failed". [Torr Samaho]
+-	- Fixed problems with A_Respawn online. [Torr Samaho]
 !	- Changed: Spectators are now allowed to use chasecam in all game modes. [Torr Samaho]
 !	- Changed: When a jump is done online in A_JumpIfCloser, the server now synchronizes the actor position with the clients to reduce the sync issues caused by the client side monster movement. [Torr Samaho]
 !	- Dormant actors are no longer removed in Invasion countdowns. [Rivecoder]

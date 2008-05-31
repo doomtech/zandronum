@@ -71,6 +71,8 @@
 #include "vectors.h"
 #include "r_translate.h"
 
+CVAR (Bool, sv_showwarnings, true, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
+
 // :((((((
 polyobj_t	*GetPolyobj( int polyNum );
 
@@ -85,7 +87,8 @@ bool EnsureActorHasNetID( AActor *pActor )
 
 	if ( pActor->lNetID == -1 )
 	{
-		Printf ( "Warning: Actor %s doesn't have a netID and therefore can't be manipulated online!\n", pActor->GetClass()->TypeName.GetChars() );
+		if ( sv_showwarnings )
+			Printf ( "Warning: Actor %s doesn't have a netID and therefore can't be manipulated online!\n", pActor->GetClass()->TypeName.GetChars() );
 		return false;
 	}
 	else
@@ -2247,7 +2250,7 @@ void SERVERCOMMANDS_SetThingGravity( AActor *pActor, ULONG ulPlayerExtra, ULONG 
 //
 void SERVERCOMMANDS_SetThingFrame( AActor *pActor, FState *pState, ULONG ulPlayerExtra, ULONG ulFlags, bool bCallStateFunction )
 {
-	const char	*pszStateLabel;
+	FString stateLabel;
 	LONG		lOffset;
 	ULONG		ulIdx;
 	FState		*pCompareState;
@@ -2276,10 +2279,9 @@ void SERVERCOMMANDS_SetThingFrame( AActor *pActor, FState *pState, ULONG ulPlaye
 
 	// Begin searching through the actor's state labels to find the state that corresponds
 	// to the given state.
-	pszStateLabel = NULL;
 	for ( ulIdx = 0; ulIdx < (ULONG)pActor->GetClass( )->ActorInfo->StateList->NumLabels; ulIdx++ )
 	{
-		if ( pszStateLabel != NULL )
+		if ( stateLabel.IsNotEmpty() )
 			break;
 
 		// See if any of the states in this label match the given state.
@@ -2289,7 +2291,7 @@ void SERVERCOMMANDS_SetThingFrame( AActor *pActor, FState *pState, ULONG ulPlaye
 		{
 			if ( pState == pCompareState )
 			{
-				pszStateLabel = pActor->GetClass( )->ActorInfo->StateList->Labels[ulIdx].Label.GetChars( );
+				stateLabel = pActor->GetClass( )->ActorInfo->StateList->Labels[ulIdx].Label.GetChars( );
 				break;
 			}
 
@@ -2305,7 +2307,7 @@ void SERVERCOMMANDS_SetThingFrame( AActor *pActor, FState *pState, ULONG ulPlaye
 	// [BB] This is a workaround. Therefore let the name of the state string begin
 	// with ':' so that the client can handle this differently.
 	// [BB] Because of inheritance it's not sufficient to only try the SpawnState.
-	if ( pszStateLabel == NULL )
+	if ( stateLabel.IsEmpty() )
 	{
 		lOffset = LONG( pState - pActor->SpawnState );
 		if (( lOffset < 0 ) || ( lOffset > 255 ))
@@ -2322,20 +2324,36 @@ void SERVERCOMMANDS_SetThingFrame( AActor *pActor, FState *pState, ULONG ulPlaye
 					lOffset = LONG( pState - pActor->MeleeState );
 					if (( lOffset < 0 ) || ( lOffset > 255 ))
 					{
-						Printf ( "Warning: SERVERCOMMANDS_SetThingFrame failed to set the frame for actor %s.\n", pActor->GetClass()->TypeName.GetChars() );
-						return;
+						// [BB] Apparently pActor doesn't own the state. Find out who does.
+						const PClass *pStateOwnerClass = FState::StaticFindStateOwner ( pState );
+						const AActor *pStateOwner = ( pStateOwnerClass != NULL ) ? GetDefaultByType ( pStateOwnerClass ) : NULL;
+						if ( pStateOwner )
+						{
+							lOffset = LONG( pState - pStateOwner->SpawnState );
+						}
+						if (( lOffset < 0 ) || ( lOffset > 255 ))
+						{
+							if ( sv_showwarnings )
+								Printf ( "Warning: SERVERCOMMANDS_SetThingFrame failed to set the frame for actor %s.\n", pActor->GetClass()->TypeName.GetChars() );
+							return;
+						}
+						else
+						{
+							stateLabel = ";";
+							stateLabel += pStateOwnerClass->TypeName;
+						}
 					}
 					else
-						pszStateLabel = ":N";
+						stateLabel = ":N";
 				}
 				else
-					pszStateLabel = ":T";
+					stateLabel = ":T";
 			}
 			else
-				pszStateLabel = ":M";
+				stateLabel = ":M";
 		}
 		else
-			pszStateLabel = ":S";
+			stateLabel = ":S";
 	}
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -2349,13 +2367,13 @@ void SERVERCOMMANDS_SetThingFrame( AActor *pActor, FState *pState, ULONG ulPlaye
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 4 + (ULONG)strlen( pszStateLabel ), true );
+		SERVER_CheckClientBuffer( ulIdx, 4 + static_cast<ULONG>( stateLabel.Len() ), true );
 		if ( bCallStateFunction )
 			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGFRAME );
 		else
 			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETTHINGFRAMENF );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszStateLabel );
+		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, stateLabel.GetChars() );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lOffset );
 	}
 }

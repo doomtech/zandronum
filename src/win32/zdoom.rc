@@ -905,6 +905,11 @@ BEGIN
     CONTROL         "Spin7",IDC_SPIN7,"msctls_updown32",UDS_SETBUDDYINT | 
                     UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,392,37,11,14
+    LTEXT           "Maxlives:",IDC_STATIC,360,54,32,8
+    EDITTEXT        IDC_MAXLIVES,360,63,32,14,ES_AUTOHSCROLL
+    CONTROL         "Spin9",IDC_SPIN9,"msctls_updown32",UDS_SETBUDDYINT | 
+                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
+                    UDS_NOTHOUSANDS,392,63,11,14
     LTEXT           "Gameplay mode:",IDC_STATIC,284,80,54,8
     COMBOBOX        IDC_GAMEPLAYMODE,284,89,96,205,CBS_DROPDOWNLIST | 
                     WS_TABSTOP

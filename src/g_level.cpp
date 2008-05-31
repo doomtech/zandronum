@@ -1618,6 +1618,13 @@ void G_NewInit ()
 	D_SetupUserInfo( );
 
 	NextSkill = -1;
+
+	// [BB] For certain game modes, we need to reset the current state,
+	// since it's possible that we were in the middle of a game when
+	// deciding to start a new game.
+	// TODO: Check if this needs to be done for other game modes.
+	if ( survival )
+		SURVIVAL_SetState( SURVS_WAITINGFORPLAYERS );
 }
 
 void G_DoNewGame (void)

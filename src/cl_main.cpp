@@ -6095,33 +6095,43 @@ static void client_SetThingFrame( BYTESTREAM_s *pByteStream, bool bCallStateFunc
 		return;
 	}
 
-	// [BB] In this case lOffset is just the offset from one of the default states.
+	// [BB] In this case lOffset is just the offset from one of the default states of the actor or the state owner.
 	// Handle this accordingly.
-	if ( pszState[0] == ':' )
+	if ( pszState[0] == ':' || pszState[0] == ';' )
 	{
 		FState* pBaseState = NULL;
 
-		switch ( pszState[1] )
+		if ( pszState[0] == ':' )
 		{
-		case 'S':
-			pBaseState = pActor->SpawnState;
+			switch ( pszState[1] )
+			{
+			case 'S':
+				pBaseState = pActor->SpawnState;
 
-			break;
-		case 'M':
-			pBaseState = pActor->MissileState;
+				break;
+			case 'M':
+				pBaseState = pActor->MissileState;
 
-			break;
-		case 'T':
-			pBaseState = pActor->SeeState;
+				break;
+			case 'T':
+				pBaseState = pActor->SeeState;
 
-			break;
-		case 'N':
-			pBaseState = pActor->MeleeState;
+				break;
+			case 'N':
+				pBaseState = pActor->MeleeState;
 
-			break;
-		default:
-			// [BB] Unknown base state specified. We can't do anythig.
-			return;
+				break;
+			default:
+				// [BB] Unknown base state specified. We can't do anythig.
+				return;
+			}
+		}
+		else if ( pszState[0] == ';' )
+		{
+			const PClass *pStateOwnerClass = PClass::FindClass ( pszState+1 );
+			const AActor *pStateOwner = ( pStateOwnerClass != NULL ) ? GetDefaultByType ( pStateOwnerClass ) : NULL;
+			if ( pStateOwner )
+				pBaseState = pStateOwner->SpawnState;
 		}
 
 		// [BB] We can only set the state, if the actor has pBaseState. But unless the server
