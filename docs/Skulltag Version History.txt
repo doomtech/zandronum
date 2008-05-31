@@ -49,6 +49,7 @@ v0.97d2 RC1
 -	- Fixed: For some actors the server tried but failed to instruct the clients to set the actor to a certain frame. [Torr Samaho]
 -	- Fixed: A_Print crashes the server online. [Torr Samaho]
 -	- Fixed: When starting a new survival game offline, while one is currently in progress, you immediately get "mission failed". [Torr Samaho]
+-	- Fixed problems with A_Respawn online. [Torr Samaho]
 !	- Changed: Spectators are now allowed to use chasecam in all game modes. [Torr Samaho]
 !	- Changed: When a jump is done online in A_JumpIfCloser, the server now synchronizes the actor position with the clients to reduce the sync issues caused by the client side monster movement. [Torr Samaho]
 !	- Dormant actors are no longer removed in Invasion countdowns. [Rivecoder]
