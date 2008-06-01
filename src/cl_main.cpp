@@ -3957,14 +3957,14 @@ static void client_SetPlayerArmor( BYTESTREAM_s *pByteStream )
 //
 static void client_SetPlayerState( BYTESTREAM_s *pByteStream )
 {
-	ULONG		ulPlayer;
-	ULONG		ulState;
+	ULONG			ulPlayer;
+	PLAYERSTATE_e	ulState;
 
 	// Read in the player whose state is being updated.
 	ulPlayer = NETWORK_ReadByte( pByteStream );
 	
 	// Read in the state to update him to.
-	ulState = NETWORK_ReadByte( pByteStream );
+	ulState = static_cast<PLAYERSTATE_e>(NETWORK_ReadByte( pByteStream ));
 
 	// If this isn't a valid player, break out.
 	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
@@ -3992,14 +3992,27 @@ static void client_SetPlayerState( BYTESTREAM_s *pByteStream )
 		players[ulPlayer].mo->PlayRunning( );
 		break;
 	case STATE_PLAYER_ATTACK:
+	case STATE_PLAYER_ATTACK_ALTFIRE:
 
 		players[ulPlayer].mo->PlayAttacking( );
 		// [BB] This partially fixes the problem that attack animations are not displayed in demos
-		// if you are spying a player that you didn't spy when recording the demo.
-		// By design this won't display alternate attacks. Invesitage if this can be done in a better
-		// way (whithout increasing nettraffic).
-		if ( CLIENTDEMO_IsPlaying( ) && players[ulPlayer].ReadyWeapon )
-			P_SetPsprite (&players[ulPlayer], ps_weapon, players[ulPlayer].ReadyWeapon->GetAtkState(!!players[ulPlayer].refire));
+		// if you are spying a player that you didn't spy when recording the demo. Still has problems
+		// with A_ReFire.
+		//
+		// [BB] This is also needed to update the ammo count of the other players in coop game modes.
+		//
+		// [BB] It's necessary at all, because the server only informs a client about the cmd.ucmd.buttons
+		// value (containing the information if a player uses BT_ATTACK or BT_ALTATTACK) of the player
+		// who's eyes the client is spying through.
+		if ( ( CLIENTDEMO_IsPlaying( ) || ( ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE ) && ulPlayer != consoleplayer ) )
+				&& players[ulPlayer].ReadyWeapon )
+		{
+			if ( ulState == STATE_PLAYER_ATTACK )
+				P_SetPsprite (&players[ulPlayer], ps_weapon, players[ulPlayer].ReadyWeapon->GetAtkState(!!players[ulPlayer].refire));
+			else
+				P_SetPsprite (&players[ulPlayer], ps_weapon, players[ulPlayer].ReadyWeapon->GetAltAtkState(!!players[ulPlayer].refire));
+
+		}
 		break;
 	case STATE_PLAYER_ATTACK2:
 

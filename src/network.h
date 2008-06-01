@@ -101,10 +101,14 @@ enum
 #define	STATE_CRASH				10
 
 // Identifying player states (again, cheap & easy)
-#define	STATE_PLAYER_IDLE		1
-#define	STATE_PLAYER_SEE		2
-#define	STATE_PLAYER_ATTACK		3
-#define	STATE_PLAYER_ATTACK2	4
+typedef enum
+{
+	STATE_PLAYER_IDLE,
+	STATE_PLAYER_SEE,
+	STATE_PLAYER_ATTACK,
+	STATE_PLAYER_ATTACK2,
+	STATE_PLAYER_ATTACK_ALTFIRE,
+} PLAYERSTATE_e;
 
 // HUD message types.
 #define	HUDMESSAGETYPE_NORMAL			1
