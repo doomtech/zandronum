@@ -293,6 +293,10 @@ void P_FireWeaponAlt (player_t *player)
 		return;
 	}
 
+	// [BB] If we're the server, tell clients to update this player's state.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SetPlayerState( ULONG( player - players ), STATE_PLAYER_ATTACK_ALTFIRE, ULONG( player - players ), SVCF_SKIPTHISCLIENT );
+
 	player->mo->PlayAttacking ();
 	weapon->bAltFire = true;
 

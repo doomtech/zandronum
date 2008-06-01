@@ -151,10 +151,16 @@ void DrawHUD_CoopInfo()
 		HUD_DrawTextAligned ( healthColor, curYPos, drawString.GetChars(), drawLeft, bScale, virtualWidth, virtualHeight );
 		curYPos += coopInfoFont->GetHeight( ) + 1;
 
-		// [BB] Draw player weapon and ammo1.
+		// [BB] Draw player weapon and Ammo1/Ammo2.
 		if ( players[i].ReadyWeapon )
 		{
-			drawString.Format( "%s \\cf%d", players[i].ReadyWeapon->GetClass()->TypeName.GetChars(), players[i].ReadyWeapon->Ammo1 ? players[i].ReadyWeapon->Ammo1->Amount : 0);
+			drawString = players[i].ReadyWeapon->GetClass()->TypeName;
+			if ( players[i].ReadyWeapon->Ammo1 )
+				drawString.AppendFormat( " \\cf%d", players[i].ReadyWeapon->Ammo1->Amount );
+			else
+				drawString += " \\cg-";
+			if ( players[i].ReadyWeapon->Ammo2 )
+				drawString.AppendFormat( " \\cf%d", players[i].ReadyWeapon->Ammo2->Amount );
 			V_ColorizeString( drawString );
 			HUD_DrawTextAligned ( CR_GREEN, curYPos, drawString.GetChars(), drawLeft, bScale, virtualWidth, virtualHeight );
 		}

@@ -417,7 +417,7 @@ void SERVERCOMMANDS_SetPlayerArmor( ULONG ulPlayer )
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetPlayerState( ULONG ulPlayer, ULONG ulState, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SetPlayerState( ULONG ulPlayer, PLAYERSTATE_e ulState, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 
