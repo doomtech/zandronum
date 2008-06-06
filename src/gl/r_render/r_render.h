@@ -9,6 +9,9 @@ enum RenderFlags
 	RFL_FRAGMENT_PROGRAM=4,
 	RFL_GLSL=8,
 	RFL_OCCLUSION_QUERY=16,
+	// [BB] Added texture compression flags.
+	RFL_TEXTURE_COMPRESSION=128,
+	RFL_TEXTURE_COMPRESSION_S3TC=256,
 };
 
 enum TexMode
