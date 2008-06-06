@@ -592,26 +592,26 @@ extern	ULONG		g_ulPlayerSetupColor;
 extern	LONG		g_lPlayerSetupClass;
 
 menuitem_t PlayerSetupItems[] = {
-	{ string,	"Name",						&menu_name,				2.0, 0.0, 0.0, NULL  },
-	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ skintype,	"Skin",						&menu_skin,				2.0, 0.0, 0.0, NULL	 },
-	{ classtype,"Class",					&menu_playerclass,		2.0, 0.0, 0.0, NULL	 },
-	{ discrete, "Gender",					&menu_gender,			3.0, 0.0, 0.0, GenderVals },
-	{ slider,	"Red",						&menu_color,			0.0, 255.0, 1.0, NULL  },
-	{ slider,	"Green",					&menu_color,			0.0, 255.0, 1.0, NULL  },
-	{ slider,	"Blue",						&menu_color,			0.0, 255.0, 1.0, NULL  },
-	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ discrete,	"Always Run",				&cl_run,				2.0, 0.0, 0.0, OnOff },
-	{ number,	"Handicap",					&menu_handicap,			0.0, 200.0, 5.0, NULL },
-	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ discrete, "Railgun color",			&menu_railcolor,		11.0, 0.0, 0.0, TrailColorVals },
-	{ discrete,	"Autoaim",					&menu_autoaim,			7.0, 0.0, 0.0, AutoaimVals },
-	{ more,		"Weapon setup",				NULL,					0.0, 0.0, 0.0, {(value_t *)M_WeaponSetup} },
-	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ announcer,"Announcer",				&cl_announcer,			0.0, 0.0, 0.0, NULL },
+	{ string,	"Name",						{&menu_name},				{2.0}, {0.0}, {0.0}, {NULL}  },
+	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ skintype,	"Skin",						{&menu_skin},				{2.0}, {0.0}, {0.0}, {NULL}	 },
+	{ classtype,"Class",					{&menu_playerclass},		{2.0}, {0.0}, {0.0}, {NULL}	 },
+	{ discrete, "Gender",					{&menu_gender},			{3.0}, {0.0}, {0.0}, {GenderVals} },
+	{ slider,	"Red",						{&menu_color},			{0.0}, {255.0}, {1.0}, {NULL}  },
+	{ slider,	"Green",					{&menu_color},			{0.0}, {255.0}, {1.0}, {NULL}  },
+	{ slider,	"Blue",						{&menu_color},			{0.0}, {255.0}, {1.0}, {NULL}  },
+	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ discrete,	"Always Run",				{&cl_run},				{2.0}, {0.0}, {0.0}, {OnOff} },
+	{ number,	"Handicap",					{&menu_handicap},			{0.0}, {200.0}, {5.0}, {NULL} },
+	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ discrete, "Railgun color",			{&menu_railcolor},		{11.0}, {0.0}, {0.0}, {TrailColorVals} },
+	{ discrete,	"Autoaim",					{&menu_autoaim},			{7.0}, {0.0}, {0.0}, {AutoaimVals} },
+	{ more,		"Weapon setup",				{NULL},					{0.0}, {0.0}, {0.0}, {(value_t *)M_WeaponSetup} },
+	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ announcer,"Announcer",				{&cl_announcer},			{0.0}, {0.0}, {0.0}, {NULL} },
 // [RC] Moved switch team to the Multiplayer menu
-	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ more,		"Undo changes",				NULL,					0.0, 0.0, 0.0, {(value_t *)M_UndoPlayerSetupChanges} },
+	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ more,		"Undo changes",				{NULL},					{0.0}, {0.0}, {0.0}, {(value_t *)M_UndoPlayerSetupChanges} },
 };
 
 menu_t PlayerSetupMenu = {
@@ -1742,7 +1742,10 @@ void M_NewGame(int choice)
 	// if we are not in client mode. This solution is quite hacky and
 	// should be changed in the future.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT && PlayerClasses.Size() > 1 )
-		AddCommandString( "disconnect" );
+	{
+		static char disconnect[] = "disconnect";
+		AddCommandString( disconnect );
+	}
 
 	// Set up episode menu positioning
 	if (gameinfo.gametype & (GAME_Doom|GAME_Strife))
@@ -1863,8 +1866,8 @@ static void M_DrawClassMenu ()
 	else
 	{
 		screen->DrawTexture (FireTexture, x, y - 1,
-			DTA_DestWidth, 72 * CleanXfac,
-			DTA_DestHeight, 80 * CleanYfac,
+			DTA_DestWidth, static_cast<int> (72 * CleanXfac),
+			DTA_DestHeight, static_cast<int> (80 * CleanYfac),
 			DTA_Translation, &FireRemap,
 			DTA_Masked, true,
 			TAG_DONE);
@@ -2107,7 +2110,8 @@ static void M_ChooseClass (int choice)
 	// Afterwards the client just joins.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 	{
-		AddCommandString( "join" );
+		static char join[] = "join";
+		AddCommandString( join );
 		M_ClearMenus( );
 		return;
 	}
@@ -2419,8 +2423,8 @@ static void M_PlayerSetupDrawer ()
 		else
 		{
 			screen->DrawTexture (FireTexture, x, y - 1,
-				DTA_DestWidth, 72 * CleanXfac,
-				DTA_DestHeight, 80 * CleanYfac,
+				DTA_DestWidth, static_cast<int> (72 * CleanXfac),
+				DTA_DestHeight, static_cast<int> (80 * CleanYfac),
 				DTA_Translation, &FireRemap,
 				DTA_Masked, false,
 				TAG_DONE);
