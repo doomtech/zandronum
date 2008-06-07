@@ -1789,7 +1789,7 @@ END_DEFAULTS
 bool AMaxHealth::TryPickup( AActor *pOther )
 {
 	LONG		lMax;
-	player_s	*pPlayer;
+	player_t	*pPlayer;
 
 	pPlayer = pOther->player;
 	if ( pPlayer != NULL )

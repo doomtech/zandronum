@@ -1537,7 +1537,7 @@ void ABFG10kShot::BeginPlay ()
 //
 void A_FireBFG10k( AActor *pActor )
 {
-	player_s	*pPlayer;
+	player_t	*pPlayer;
 	AWeapon		*pWeapon;
 
 	pPlayer = pActor->player;

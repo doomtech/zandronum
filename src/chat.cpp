@@ -515,7 +515,7 @@ void chat_SetChatMode( ULONG ulMode )
 {
 	if ( ulMode < NUM_CHATMODES )
 	{
-		player_s	*pPlayer = &players[consoleplayer];
+		player_t	*pPlayer = &players[consoleplayer];
 
 		g_ulChatMode = ulMode;
 

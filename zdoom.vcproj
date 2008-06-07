@@ -6265,6 +6265,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\g_shared\sbar_mugshot.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\g_shared\sbarinfo.h"
 				>
 			</File>
@@ -8956,6 +8960,10 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath=".\src\r_interpolate.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\r_main.cpp"
 					>
 					<FileConfiguration
@@ -9165,6 +9173,10 @@
 				</File>
 				<File
 					RelativePath=".\src\r_draw.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\r_interpolate.h"
 					>
 				</File>
 				<File
@@ -9417,6 +9429,10 @@
 			</File>
 			<File
 				RelativePath=".\src\sound\music_cd.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\sound\music_dumb.cpp"
 				>
 			</File>
 			<File

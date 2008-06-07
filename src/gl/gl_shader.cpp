@@ -192,7 +192,7 @@ void FShader::AddAttrib(const char * pname)
 {
 	FName nm = FName(pname);
 
-	for(int i=0;i<attribs.Size();i++)
+	for(unsigned int i=0;i<attribs.Size();i++)
 	{
 		if (attrib_names[i]==nm) return;
 	}
@@ -208,7 +208,7 @@ void FShader::AddAttrib(const char * pname)
 
 int FShader::GetAttribIndex(FName pname)
 {
-	for(int i=0;i<attribs.Size();i++)
+	for(unsigned int i=0;i<attribs.Size();i++)
 	{
 		if (attrib_names[i]==pname) return attribs[i];
 	}
@@ -226,7 +226,7 @@ void FShader::AddUniform(const char * pname)
 {
 	FName nm = FName(pname);
 
-	for(int i=0;i<uniforms.Size();i++)
+	for(unsigned int i=0;i<uniforms.Size();i++)
 	{
 		if (uniform_names[i]==nm) return;
 	}
@@ -242,7 +242,7 @@ void FShader::AddUniform(const char * pname)
 
 int FShader::GetUniformIndex(FName pname)
 {
-	for(int i=0;i<uniforms.Size();i++)
+	for(unsigned int i=0;i<uniforms.Size();i++)
 	{
 		if (uniform_names[i]==pname) return uniforms[i];
 	}
@@ -475,7 +475,7 @@ static FShaderContainer * GetShader(const char * n,const char * fn)
 {
 	FName sfn = fn;
 
-	for(int i=0;i<AllContainers.Size();i++)
+	for(unsigned int i=0;i<AllContainers.Size();i++)
 	{
 		if (AllContainers[i]->TexFileName == sfn)
 		{
@@ -516,11 +516,11 @@ void GLShader::Clear()
 {
 	if (gl.flags & RFL_GLSL)
 	{
-		for(int i=0;i<AllContainers.Size();i++)
+		for(unsigned int i=0;i<AllContainers.Size();i++)
 		{
 			delete AllContainers[i];
 		}
-		for(int i=0;i<AllShaders.Size();i++)
+		for(unsigned int i=0;i<AllShaders.Size();i++)
 		{
 			delete AllShaders[i];
 		}
@@ -533,7 +533,7 @@ GLShader *GLShader::Find(const char * shn)
 {
 	FName sfn = shn;
 
-	for(int i=0;i<AllShaders.Size();i++)
+	for(unsigned int i=0;i<AllShaders.Size();i++)
 	{
 		if (AllContainers[i]->Name == sfn)
 		{

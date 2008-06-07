@@ -45,6 +45,8 @@
 #include "a_doomglobal.h"
 #include "a_action.h"
 #include "thingdef/thingdef.h"
+#include "d_dehacked.h"
+// [BB] New #includes.
 #include "cl_demo.h"
 #include "cooperative.h"
 #include "deathmatch.h"
@@ -2123,6 +2125,14 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 	}
 	if (!actor->target || !(actor->target->flags & MF_SHOOTABLE))
 	{ // look for a new target
+		if (actor->target != NULL && (actor->target->flags2 & MF2_NONSHOOTABLE))
+		{
+			// Target is only temporarily unshootable, so remember it.
+			actor->lastenemy = actor->target;
+			// Switch targets faster, since we're only changing because we can't
+			// hurt our old one temporarily.
+			actor->threshold = 0;
+		}
 		if (P_LookForPlayers (actor, true) && actor->target != actor->goal)
 		{ // got a new target
 			actor->flags &= ~MF_INCHASE;
@@ -2836,6 +2846,11 @@ AInventory *P_DropItem (AActor *source, const PClass *type, int special, int cha
 				// [BC] If we're the server, tell clients that the thing is dropped.
 				//if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				//	SERVERCOMMANDS_SetWeaponAmmoGive( mo );
+			}			
+			else if (mo->IsKindOf (RUNTIME_CLASS(ADehackedPickup)))
+			{
+				// For weapons and ammo modified by Dehacked we need to flag the item.
+				static_cast<ADehackedPickup *>(mo)->droppedbymonster = true;
 			}
 			if (inv->SpecialDropAction (source))
 			{

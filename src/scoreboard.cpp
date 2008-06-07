@@ -101,19 +101,19 @@ static	LONG	g_lNumOpponentsLeft = 0;
 static	LONG	g_lNumAlliesLeft = 0;
 
 // Who has the terminator artifact?
-static	player_s	*g_pTerminatorArtifactCarrier = NULL;
+static	player_t	*g_pTerminatorArtifactCarrier = NULL;
 
 // Who has the possession artifact?
-static	player_s	*g_pPossessionArtifactCarrier = NULL;
+static	player_t	*g_pPossessionArtifactCarrier = NULL;
 
 // Who is carrying the red flag/skull?
-static	player_s	*g_pRedCarrier = NULL;
+static	player_t	*g_pRedCarrier = NULL;
 
 // Who is carrying the red flag/skull?
-static	player_s	*g_pBlueCarrier = NULL;
+static	player_t	*g_pBlueCarrier = NULL;
 
 // Who is carrying the white flag?
-static	player_s	*g_pWhiteCarrier = NULL;
+static	player_t	*g_pWhiteCarrier = NULL;
 
 // Centered text that displays in the bottom of the screen.
 static	FString		g_BottomString;
@@ -1741,7 +1741,7 @@ bool SCOREBOARD_IsTied( ULONG ulPlayerNum )
 
 //*****************************************************************************
 //
-void SCOREBOARD_DisplayFragMessage( player_s *pFraggedPlayer )
+void SCOREBOARD_DisplayFragMessage( player_t *pFraggedPlayer )
 {
 	char	szString[128];
 	DHUDMessageFadeOut	*pMsg;
@@ -1903,7 +1903,7 @@ void SCOREBOARD_DisplayFragMessage( player_s *pFraggedPlayer )
 
 //*****************************************************************************
 //
-void SCOREBOARD_DisplayFraggedMessage( player_s *pFraggingPlayer )
+void SCOREBOARD_DisplayFraggedMessage( player_t *pFraggingPlayer )
 {
 	char	szString[128];
 	DHUDMessageFadeOut	*pMsg;

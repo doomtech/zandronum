@@ -30,9 +30,6 @@
 #define ST_STRAIGHTFACECOUNT	(TICRATE/2)
 #define ST_TURNCOUNT			(1*TICRATE)
 #define ST_OUCHCOUNT			(1*TICRATE)
-#define ST_RAMPAGEDELAY 		(2*TICRATE)
-
-#define ST_MUCHPAIN 			20
 
 CVAR( Bool, cl_onekey, false, CVAR_ARCHIVE );
 CVAR( Bool, cl_stfullscreenhud, true, CVAR_ARCHIVE );
@@ -62,14 +59,6 @@ public:
 		BigHeight = tex->GetHeight();
 
 		DoCommonInit ();
-
-		bEvilGrin = false;
-		bNormal = true;
-		bDamageFaceActive = false;
-		bOuchActive = false;
-		CurrentState = NULL;
-		RampageTimer = 0;
-		LastDamageAngle = 1;
 	}
 
 	~DDoomStatusBar ()
@@ -115,7 +104,7 @@ public:
 			// set face background color
 			StatusBarTex.SetPlayerRemap(translationtables[TRANSLATION_Players][int(CPlayer - players)]);
 		}
-		bEvilGrin = false;
+		MugShot.bEvilGrin = false;
 	}
 
 	void Tick ()
@@ -124,28 +113,7 @@ public:
 		RandomNumber = M_Random ();
 
 		//Do some stuff related to the mug shot that has to be done at 35fps
-		if(CurrentState != NULL)
-		{
-			CurrentState->tick();
-			if(CurrentState->finished)
-			{
-				bNormal = true;
-				bOuchActive = false;
-				CurrentState = NULL;
-			}
-		}
-		if((CPlayer->cmd.ucmd.buttons & (BT_ATTACK|BT_ALTATTACK)) && !(CPlayer->cheats & (CF_FROZEN | CF_TOTALLYFROZEN)))
-		{
-			if(RampageTimer != ST_RAMPAGEDELAY)
-			{
-				RampageTimer++;
-			}
-		}
-		else
-		{
-			RampageTimer = 0;
-		}
-		FaceHealth = CPlayer->health;
+		MugShot.Tick(CPlayer);
 	}
 
 	void Draw (EHudState state)
@@ -175,29 +143,12 @@ public:
 				OldActiveAmmo = -1;
 				OldFrags = -9999;
 				OldPoints = -9999;
-				FaceHealth = -9999;
 			}
 			DrawMainBar ();
 			if (CPlayer->inventorytics > 0 && !(level.flags & LEVEL_NOINVENTORYBAR))
 			{
 				DrawInventoryBar ();
 				SB_state = screen->GetPageCount ();
-			}
-		}
-	}
-
-	//See sbarinfo_display.cpp
-	void SetMugShotState (const char* stateName, bool waitTillDone=false)
-	{
-		bNormal = false; //Assume we are not setting god or normal for now.
-		bOuchActive = false;
-		MugShotState *state = (MugShotState *) FindMugShotState(stateName);
-		if(state != CurrentState)
-		{
-			if(!waitTillDone || CurrentState == NULL || CurrentState->finished)
-			{
-				CurrentState = state;
-				state->reset();
 			}
 		}
 	}
@@ -1765,170 +1716,39 @@ void DrawFullHUD_GameInformation()
 
 	void ReceivedWeapon (AWeapon *weapon)
 	{
-		bEvilGrin = true;
+		MugShot.bEvilGrin = true;
 	}
 
-	int UpdateState ()
-	{
-		int 		i;
-		angle_t 	badguyangle;
-		angle_t 	diffang;
-
-		if(CPlayer->health > 0)
-		{
-			if(bEvilGrin)
-			{
-				if(CurrentState == NULL)
-					bEvilGrin = false;
-				else if(CPlayer->bonuscount)
-				{
-					SetMugShotState("grin", false);
-					return 0;
-				}
-			}
-
-			if (CPlayer->damagecount)
-			{
-				int damageAngle = 1;
-				if(CPlayer->attacker && CPlayer->attacker != CPlayer->mo)
-				{
-					if(CPlayer->mo != NULL)
-					{
-						//The next 12 lines is from the Doom statusbar code.
-						badguyangle = R_PointToAngle2(CPlayer->mo->x, CPlayer->mo->y, CPlayer->attacker->x, CPlayer->attacker->y);
-						if(badguyangle > CPlayer->mo->angle)
-						{
-							// whether right or left
-							diffang = badguyangle - CPlayer->mo->angle;
-							i = diffang > ANG180;
-						}
-						else
-						{
-							// whether left or right
-							diffang = CPlayer->mo->angle - badguyangle;
-							i = diffang <= ANG180;
-						} // confusing, aint it?
-						if(i && diffang >= ANG45)
-						{
-							damageAngle = 0;
-						}
-						else if(!i && diffang >= ANG45)
-						{
-							damageAngle = 2;
-						}
-					}
-				}
-				bool useOuch = false;
-				const char* stateName = new char[5];
-				if ((FaceHealth != -1 && CPlayer->health - FaceHealth > 20) || bOuchActive)
-				{
-					useOuch = true;
-					stateName = "ouch";
-				}
-				else
-					stateName = "pain";
-				char* fullStateName = new char[sizeof(stateName)+sizeof((const char*) CPlayer->LastDamageType) + 1];
-				sprintf(fullStateName, "%s.%s", stateName, (const char*) CPlayer->LastDamageType);
-				if(FindMugShotState(fullStateName) != NULL)
-					SetMugShotState(fullStateName);
-				else
-					SetMugShotState(stateName);
-				bDamageFaceActive = !(CurrentState == NULL);
-				LastDamageAngle = damageAngle;
-				bOuchActive = useOuch;
-				return damageAngle;
-			}
-			if(bDamageFaceActive)
-			{
-				if(CurrentState == NULL)
-					bDamageFaceActive = false;
-				else
-				{
-					bool useOuch = false;
-					const char* stateName = new char[5];
-					if ((FaceHealth != -1 && CPlayer->health - FaceHealth > 20) || bOuchActive)
-					{
-						useOuch = true;
-						stateName = "ouch";
-					}
-					else
-						stateName = "pain";
-					char* fullStateName = new char[sizeof(stateName)+sizeof((const char*) CPlayer->LastDamageType) + 1];
-					sprintf(fullStateName, "%s.%s", stateName, (const char*) CPlayer->LastDamageType);
-					if(FindMugShotState(fullStateName) != NULL)
-						SetMugShotState(fullStateName);
-					else
-						SetMugShotState(stateName);
-					bOuchActive = useOuch;
-					return LastDamageAngle;
-				}
-			}
-
-			if(RampageTimer == ST_RAMPAGEDELAY)
-			{
-				SetMugShotState("rampage", !bNormal); //If we have nothing better to show use the rampage face.
-				return 0;
-			}
-
-			if(bNormal)
-			{
-				if((CPlayer->cheats & CF_GODMODE) || (CPlayer->mo != NULL && CPlayer->mo->flags2 & MF2_INVULNERABLE))
-					SetMugShotState("god");
-				// [BB] Quad damage!
-				else if (( CPlayer->cheats & CF_TERMINATORARTIFACT ) ||
-						(( CPlayer->mo != NULL ) && ( CPlayer->mo->FindInventory( PClass::FindClass( "PowerQuadDamage" )))))
-					SetMugShotState("quad");
-				else
-					SetMugShotState("normal");
-				bNormal = true; //SetMugShotState sets bNormal to false.
-			}
-		}
-		else
-		{
-			const char* stateName = new char[7];
-			stateName = "death";
-			//new string the size of stateName and the damage type put together
-			char* fullStateName = new char[sizeof(stateName)+sizeof((const char*) CPlayer->LastDamageType) + 1];
-			sprintf(fullStateName, "%s.%s", stateName, (const char*) CPlayer->LastDamageType);
-			if(FindMugShotState(fullStateName) != NULL)
-				SetMugShotState(fullStateName);
-			else
-				SetMugShotState(stateName);
-		}
-		return 0;
-	}
-
-	void DrawFace ()
+	void DrawFace()
 	{
 		// [BC] The player may not have a body between intermission-less maps.
 		if ( CPlayer->mo == NULL )
 			return;
 
+		// If a player has an inventory item selected, it takes the place of the
+		// face, for lack of a better place to put it.
 		if (CPlayer->mo->InvSel == NULL || (level.flags & LEVEL_NOINVENTORYBAR))
 		{
-			int angle = UpdateState();
-			int level = 0;
-			for(level = 0;CPlayer->health < (4-level)*(CPlayer->mo->GetMaxHealth()/5);level++);
-			if(CurrentState != NULL)
+			FTexture *face = MugShot.GetFace(CPlayer, "STF", 5, false, false);
+			if (face != NULL)
 			{
-				FString defaultFace = "STF";
-				FPlayerSkin *skin = &skins[CPlayer->morphTics ? CPlayer->MorphedPlayerClass : CPlayer->userinfo.skin];
-				FTexture *face = CurrentState->getCurrentFrameTexture(defaultFace, skin, level, angle);
-				if (face != NULL)
-				{
-					DrawPartialImage (&StatusBarTex, 142, 37);
-					DrawImage (face, 143, 0);
-				}
+				DrawPartialImage(&StatusBarTex, 142, 37);
+				DrawImage(face, 143, 0);
 			}
 		}
 		else
 		{
-			DrawDimImage (TexMan(CPlayer->mo->InvSel->Icon), 144, 0, CPlayer->mo->InvSel->Amount <= 0);
+			DrawDimImage(TexMan(CPlayer->mo->InvSel->Icon), 144, 0, CPlayer->mo->InvSel->Amount <= 0);
 			if (CPlayer->mo->InvSel->Amount != 1)
 			{
-				DrSmallNumber (CPlayer->mo->InvSel->Amount, 165, 24);
+				DrSmallNumber(CPlayer->mo->InvSel->Amount, 165, 24);
 			}
 		}
+	}
+
+	void SetMugShotState (const char *state_name, bool wait_till_done, bool reset)
+	{
+		MugShot.SetState(state_name, wait_till_done, reset);
 	}
 
 	enum
@@ -1999,18 +1819,9 @@ void DrawFullHUD_GameInformation()
 	char ArmsRefresh[3];
 	char AmmoRefresh;
 	char MaxAmmoRefresh;
-	char FaceRefresh;
 	char KeysRefresh;
 
-	//Mugshot
-	MugShotState *CurrentState;
-	int RampageTimer;
-	int LastDamageAngle;
-	int FaceHealth;
-	bool bEvilGrin;
-	bool bDamageFaceActive;
-	bool bNormal;
-	bool bOuchActive;
+	FMugShot MugShot;
 };
 
 IMPLEMENT_CLASS(DDoomStatusBar)

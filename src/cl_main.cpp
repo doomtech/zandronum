@@ -108,7 +108,7 @@
 
 void	G_PlayerReborn( int player );
 //void	ChangeSpy (bool forward);
-polyobj_t *GetPolyobj (int polyNum);
+FPolyObj *GetPolyobj (int polyNum);
 int		D_PlayerClassToInt (const char *classname);
 bool	P_OldAdjustFloorCeil (AActor *thing);
 void	ClientObituary (AActor *self, AActor *inflictor, AActor *attacker, FName MeansOfDeath);
@@ -2956,7 +2956,7 @@ bool CLIENT_IsParsingPacket( void )
 
 //*****************************************************************************
 //
-void CLIENT_ResetPlayerData( player_s *pPlayer )
+void CLIENT_ResetPlayerData( player_t *pPlayer )
 {
 	pPlayer->mo = NULL;
 	pPlayer->playerstate = 0;
@@ -4672,7 +4672,7 @@ static void client_UpdatePlayerTime( BYTESTREAM_s *pByteStream )
 //
 static void client_MoveLocalPlayer( BYTESTREAM_s *pByteStream )
 {
-	player_s	*pPlayer;
+	player_t	*pPlayer;
 	ULONG		ulClientTicOnServerEnd;
 	fixed_t		X;
 	fixed_t		Y;
@@ -10421,7 +10421,7 @@ static void client_DoRotatePoly( BYTESTREAM_s *pByteStream )
 {
 	LONG			lSpeed;
 	LONG			lPolyNum;
-	polyobj_t		*pPoly;
+	FPolyObj		*pPoly;
 	DRotatePoly		*pRotatePoly;
 
 	// Read in the speed.
@@ -10485,7 +10485,7 @@ static void client_DoMovePoly( BYTESTREAM_s *pByteStream )
 	LONG			lXSpeed;
 	LONG			lYSpeed;
 	LONG			lPolyNum;
-	polyobj_t		*pPoly;
+	FPolyObj		*pPoly;
 	DMovePoly		*pMovePoly;
 
 	// Read in the speed.
@@ -10553,7 +10553,7 @@ static void client_DoPolyDoor( BYTESTREAM_s *pByteStream )
 	LONG			lYSpeed;
 	LONG			lSpeed;
 	LONG			lPolyNum;
-	polyobj_t		*pPoly;
+	FPolyObj		*pPoly;
 	DPolyDoor		*pPolyDoor;
 
 	// Read in the type of poly door (swing or slide).
@@ -10623,7 +10623,7 @@ static void client_SetPolyDoorSpeedPosition( BYTESTREAM_s *pByteStream )
 	LONG			lYSpeed;
 	LONG			lX;
 	LONG			lY;
-	polyobj_t		*pPoly;
+	FPolyObj		*pPoly;
 	LONG			lDeltaX;
 	LONG			lDeltaY;
 
@@ -10660,7 +10660,7 @@ static void client_PlayPolyobjSound( BYTESTREAM_s *pByteStream )
 {
 	LONG						lID;
 	NETWORK_POLYOBJSOUND_e		Sound;
-	polyobj_t	*pPoly;
+	FPolyObj	*pPoly;
 
 	// Read in the polyobject ID.
 	lID = NETWORK_ReadShort( pByteStream );
@@ -10692,7 +10692,7 @@ static void client_PlayPolyobjSound( BYTESTREAM_s *pByteStream )
 static void client_SetPolyobjPosition( BYTESTREAM_s *pByteStream )
 {
 	LONG			lPolyNum;
-	polyobj_t		*pPoly;
+	FPolyObj		*pPoly;
 	LONG			lX;
 	LONG			lY;
 	LONG			lDeltaX;
@@ -10729,7 +10729,7 @@ static void client_SetPolyobjPosition( BYTESTREAM_s *pByteStream )
 static void client_SetPolyobjRotation( BYTESTREAM_s *pByteStream )
 {
 	LONG			lPolyNum;
-	polyobj_t		*pPoly;
+	FPolyObj		*pPoly;
 	LONG			lAngle;
 	LONG			lDeltaAngle;
 

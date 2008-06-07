@@ -133,6 +133,9 @@ struct FSpecialAction
 	FSpecialAction *Next;
 };
 
+class FCompressedMemFile;
+class DScroller;
+
 struct level_info_t
 {
 	char		mapname[9];
@@ -282,7 +285,12 @@ enum EndTypes
 struct EndSequence
 {
 	BYTE EndType;
+	bool Advanced;
+	bool MusicLooping;
+	bool PlayTheEnd;
 	char PicName[9];
+	char PicName2[9];
+	FString Music;
 };
 
 extern TArray<EndSequence> EndSequences;

@@ -81,7 +81,7 @@ typedef struct lightlist_s {
 
 
 class player_s;
-void P_PlayerOnSpecial3DFloor(player_s* player);
+void P_PlayerOnSpecial3DFloor(player_t* player);
 
 void P_Get3DFloorAndCeiling(AActor * thing, sector_t * sector, fixed_t * floorz, fixed_t * ceilingz, int * floorpic);
 bool P_CheckFor3DFloorHit(AActor * mo);

@@ -453,8 +453,12 @@ bool P_GiveBody (AActor *actor, int num);
 void P_PoisonPlayer (player_t *player, AActor *poisoner, AActor *source, int poison);
 void P_PoisonDamage (player_t *player, AActor *source, int damage, bool playPainSound);
 
-#define DMG_NO_ARMOR			1
-#define DMG_INFLICTOR_IS_PUFF	2
+enum EDmgFlags
+{
+	DMG_NO_ARMOR = 1,
+	DMG_INFLICTOR_IS_PUFF = 2,
+	DMG_THRUSTLESS = 4,
+};
 
 
 // ===== PO_MAN =====
@@ -466,14 +470,52 @@ typedef enum
 	PODOOR_SWING,
 } podoortype_t;
 
-inline FArchive &operator<< (FArchive &arc, podoortype_t &type)
-{
-	BYTE val = (BYTE)type;
-	arc << val;
-	type = (podoortype_t)val;
-	return arc;
-}
+bool EV_RotatePoly (line_t *line, int polyNum, int speed, int byteAngle, int direction, bool overRide);
+bool EV_MovePoly (line_t *line, int polyNum, int speed, angle_t angle, fixed_t dist, bool overRide);
+bool EV_OpenPolyDoor (line_t *line, int polyNum, int speed, angle_t angle, int delay, int distance, podoortype_t type);
 
+
+
+// [RH] Data structure for P_SpawnMapThing() to keep track
+//		of polyobject-related things.
+typedef struct polyspawns_s
+{
+	struct polyspawns_s *next;
+	fixed_t x;
+	fixed_t y;
+	short angle;
+	short type;
+} polyspawns_t;
+
+enum
+{
+	PO_HEX_ANCHOR_TYPE = 3000,
+	PO_HEX_SPAWN_TYPE,
+	PO_HEX_SPAWNCRUSH_TYPE,
+
+	// [RH] Thing numbers that don't conflict with Doom things
+	PO_ANCHOR_TYPE = 9300,
+	PO_SPAWN_TYPE,
+	PO_SPAWNCRUSH_TYPE,
+	PO_SPAWNHURT_TYPE
+};
+
+extern FPolyObj *polyobjs; // list of all poly-objects on the level
+extern int po_NumPolyobjs;
+extern polyspawns_t *polyspawns;	// [RH] list of polyobject things to spawn
+
+
+bool PO_MovePolyobj (int num, int x, int y, bool force=false);
+bool PO_RotatePolyobj (int num, angle_t angle);
+void PO_Init ();
+bool PO_Busy (int polyobj);
+
+//
+// P_SPEC
+//
+#include "p_spec.h"
+
+// [BB] Moved here from po_man.cpp
 class DPolyAction : public DThinker
 {
 	DECLARE_CLASS (DPolyAction, DThinker)
@@ -499,10 +541,8 @@ protected:
 
 	void SetInterpolation ();
 
-	friend void ThrustMobj (AActor *actor, seg_t *seg, polyobj_t *po);
+	friend void ThrustMobj (AActor *actor, seg_t *seg, FPolyObj *po);
 };
-
-void ThrustMobj (AActor *actor, seg_t *seg, polyobj_t *po);
 
 class DRotatePoly : public DPolyAction
 {
@@ -518,9 +558,6 @@ private:
 	friend bool EV_RotatePoly (line_t *line, int polyNum, int speed, int byteAngle, int direction, bool overRide);
 };
 
-bool EV_RotatePoly (line_t *line, int polyNum, int speed, int byteAngle, int direction, bool overRide);
-
-bool EV_RotatePoly (line_t *line, int polyNum, int speed, int byteAngle, int direction, bool overRide);
 
 class DMovePoly : public DPolyAction
 {
@@ -548,7 +585,6 @@ protected:
 	friend bool EV_MovePoly (line_t *line, int polyNum, int speed, angle_t angle, fixed_t dist, bool overRide);
 };
 
-bool EV_MovePoly (line_t *line, int polyNum, int speed, angle_t angle, fixed_t dist, bool overRide);
 
 class DPolyDoor : public DMovePoly
 {
@@ -580,47 +616,5 @@ protected:
 private:
 	DPolyDoor ();
 };
-
-bool EV_OpenPolyDoor (line_t *line, int polyNum, int speed, angle_t angle, int delay, int distance, podoortype_t type);
-
-// [RH] Data structure for P_SpawnMapThing() to keep track
-//		of polyobject-related things.
-typedef struct polyspawns_s
-{
-	struct polyspawns_s *next;
-	fixed_t x;
-	fixed_t y;
-	short angle;
-	short type;
-} polyspawns_t;
-
-enum
-{
-	PO_HEX_ANCHOR_TYPE = 3000,
-	PO_HEX_SPAWN_TYPE,
-	PO_HEX_SPAWNCRUSH_TYPE,
-
-	// [RH] Thing numbers that don't conflict with Doom things
-	PO_ANCHOR_TYPE = 9300,
-	PO_SPAWN_TYPE,
-	PO_SPAWNCRUSH_TYPE,
-	PO_SPAWNHURT_TYPE
-};
-
-extern polyobj_t *polyobjs; // list of all poly-objects on the level
-extern int po_NumPolyobjs;
-extern polyspawns_t *polyspawns;	// [RH] list of polyobject things to spawn
-
-
-bool PO_MovePolyobj (int num, int x, int y, bool force=false);
-bool PO_RotatePolyobj (int num, angle_t angle);
-void PO_Init ();
-bool PO_Busy (int polyobj);
-
-//
-// P_SPEC
-//
-#include "p_spec.h"
-
 
 #endif	// __P_LOCAL__

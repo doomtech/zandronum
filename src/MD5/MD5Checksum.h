@@ -21,6 +21,7 @@
 #endif // _MSC_VER > 1000
 
 #include "doomdef.h"
+#include "zstring.h"
 
 /****************************************************************************************
 This software is derived from the RSA Data Security, Inc. MD5 Message-Digest Algorithm. 

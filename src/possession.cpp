@@ -70,7 +70,7 @@ static	void			possession_DisplayScoreInfo( ULONG ulPlayer );
 //*****************************************************************************
 //	VARIABLES
 
-static	player_s		*g_pPossessionArtifactCarrier = NULL;
+static	player_t		*g_pPossessionArtifactCarrier = NULL;
 static	ULONG			g_ulPSNCountdownTicks = 0;
 static	ULONG			g_ulPSNArtifactHoldTicks = 0;
 static	PSNSTATE_e		g_PSNState;
@@ -527,7 +527,7 @@ void POSSESSION_DoFight( void )
 
 //*****************************************************************************
 //
-void POSSESSION_ScorePossessionPoint( player_s *pPlayer )
+void POSSESSION_ScorePossessionPoint( player_t *pPlayer )
 {
 	bool				bPointLimitReached;
 
@@ -578,7 +578,7 @@ void POSSESSION_ScorePossessionPoint( player_s *pPlayer )
 
 //*****************************************************************************
 //
-void POSSESSION_ArtifactPickedUp( player_s *pPlayer, ULONG ulTicks )
+void POSSESSION_ArtifactPickedUp( player_t *pPlayer, ULONG ulTicks )
 {
 	DHUDMessageFadeOut	*pMsg;
 

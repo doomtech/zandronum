@@ -38,8 +38,8 @@
 #include "sc_man.h"
 #include "v_font.h"
 #include "w_wad.h"
-#include "sbar.h"
 #include "d_player.h"
+#include "sbar.h"
 #include "sbarinfo.h"
 #include "templates.h"
 #include "m_random.h"
@@ -49,7 +49,6 @@
 #include "teaminfo.h"
 
 SBarInfo *SBarInfoScript;
-TArray<MugShotState> MugShotStates;
 
 static const char *SBarInfoTopLevel[] =
 {
@@ -289,28 +288,28 @@ void SBarInfo::ParseSBarInfo(int lump)
 			case SBARINFO_MUGSHOT:
 			{
 				sc.MustGetToken(TK_StringConst);
-				MugShotState state(sc.String);
+				FMugShotState state(sc.String);
 				if(sc.CheckToken(',')) //first loop must be a comma
 				{
 					do
 					{
 						sc.MustGetToken(TK_Identifier);
 						if(sc.Compare("health"))
-							state.usesLevels = true;
+							state.bUsesLevels = true;
 						else if(sc.Compare("health2"))
-							state.usesLevels = state.health2 = true;
+							state.bUsesLevels = state.bHealth2 = true;
 						else if(sc.Compare("healthspecial"))
-							state.usesLevels = state.healthspecial = true;
+							state.bUsesLevels = state.bHealthSpecial = true;
 						else if(sc.Compare("directional"))
-							state.directional = true;
+							state.bDirectional = true;
 						else
 							sc.ScriptError("Unknown MugShot state flag '%s'.", sc.String);
 					}
 					while(sc.CheckToken(',') || sc.CheckToken('|'));
 				}
 				ParseMugShotBlock(sc, state);
-				int index = 0;
-				if((index = FindMugShotStateIndex(state.state)) != -1) //We already had this state, remove the old one.
+				int index;
+				if((index = FindMugShotStateIndex(state.State)) != -1) //We already had this state, remove the old one.
 				{
 					MugShotStates.Delete(index);
 				}
@@ -562,6 +561,17 @@ void SBarInfo::ParseSBarInfoBlock(FScanner &sc, SBarInfoBlock &block)
 							sc.ScriptError("Global variable number out of range: %d", sc.Number);
 						cmd.value = sc.Number;
 					}
+					else if(sc.Compare("poweruptime"))
+					{
+						cmd.flags |= DRAWNUMBER_POWERUPTIME;
+						sc.MustGetToken(TK_Identifier);
+						cmd.setString(sc, sc.String, 0);
+						const PClass* item = PClass::FindClass(sc.String);
+						if(item == NULL || !PClass::FindClass("PowerupGiver")->IsAncestorOf(item))
+						{
+							sc.ScriptError("'%s' is not a type of PowerupGiver.", sc.String);
+						}
+					}
 					else if(sc.Compare("teamscore")) //Takes in a number for team
 					{
 						cmd.flags |= DRAWNUMBER_TEAMSCORE;
@@ -582,7 +592,6 @@ void SBarInfo::ParseSBarInfoBlock(FScanner &sc, SBarInfoBlock &block)
 					else
 					{
 						cmd.flags = DRAWNUMBER_INVENTORY;
-						sc.MustGetToken(TK_Identifier);
 						cmd.setString(sc, sc.String, 0);
 						const PClass* item = PClass::FindClass(sc.String);
 						if(item == NULL || !PClass::FindClass("Inventory")->IsAncestorOf(item)) //must be a kind of ammo
@@ -856,6 +865,17 @@ void SBarInfo::ParseSBarInfoBlock(FScanner &sc, SBarInfoBlock &block)
 					cmd.flags = DRAWNUMBER_ITEMS;
 				else if(sc.Compare("secrets"))
 					cmd.flags = DRAWNUMBER_SECRETS;
+				else if(sc.Compare("poweruptime"))
+				{
+					cmd.flags |= DRAWNUMBER_POWERUPTIME;
+					sc.MustGetToken(TK_Identifier);
+					cmd.setString(sc, sc.String, 0);
+					const PClass* item = PClass::FindClass(sc.String);
+					if(item == NULL || !PClass::FindClass("PowerupGiver")->IsAncestorOf(item))
+					{
+						sc.ScriptError("'%s' is not a type of PowerupGiver.", sc.String);
+					}
+				}
 				else if(sc.Compare("teamscore")) //Takes in a number for team
 				{
 					cmd.flags |= DRAWNUMBER_TEAMSCORE;
@@ -1039,8 +1059,9 @@ void SBarInfo::ParseSBarInfoBlock(FScanner &sc, SBarInfoBlock &block)
 						cmd.flags |= GAMETYPE_INSTAGIB;
 					else if(sc.Compare("buckshot"))
 						cmd.flags |= GAMETYPE_BUCKSHOT;
-					else
-						sc.ScriptError("Unknown gamemode: %s", sc.String);
+					//else I'm removing this error to allow cross port compatiblity.  If it doesn't know what a gamemode is lets just ignore it.
+					//	sc.ScriptError("Unknown gamemode: %s", sc.String);
+
 					if(sc.CheckToken('{'))
 						break;
 					sc.MustGetToken(',');
@@ -1212,12 +1233,12 @@ void SBarInfo::ParseSBarInfoBlock(FScanner &sc, SBarInfoBlock &block)
 	sc.MustGetToken('}');
 }
 
-void SBarInfo::ParseMugShotBlock(FScanner &sc, MugShotState &state)
+void SBarInfo::ParseMugShotBlock(FScanner &sc, FMugShotState &state)
 {
 	sc.MustGetToken('{');
 	while(!sc.CheckToken('}'))
 	{
-		MugShotFrame frame;
+		FMugShotFrame frame;
 		bool multiframe = false;
 		if(sc.CheckToken('{'))
 			multiframe = true;
@@ -1225,15 +1246,15 @@ void SBarInfo::ParseMugShotBlock(FScanner &sc, MugShotState &state)
 		{
 			sc.MustGetToken(TK_Identifier);
 			if(strlen(sc.String) > 5)
-				sc.ScriptError("MugShot frames can not exceed 5 characters.");
-			frame.graphic.Push(sc.String);
+				sc.ScriptError("MugShot frames cannot exceed 5 characters.");
+			frame.Graphic.Push(sc.String);
 		}
 		while(multiframe && sc.CheckToken(','));
 		if(multiframe)
 			sc.MustGetToken('}');
-		frame.delay = getSignedInteger(sc);
+		frame.Delay = getSignedInteger(sc);
 		sc.MustGetToken(';');
-		state.frames.Push(frame);
+		state.Frames.Push(frame);
 	}
 }
 
@@ -1375,17 +1396,6 @@ SBarInfoBlock::SBarInfoBlock()
 	alpha = FRACUNIT;
 }
 
-const MugShotState *FindMugShotState(FString state)
-{
-	state.ToLower();
-	for(unsigned int i = 0;i < MugShotStates.Size();i++)
-	{
-		if(MugShotStates[i].state == state)
-			return &MugShotStates[i];
-	}
-	return NULL;
-}
-
 //Popup
 Popup::Popup()
 {
@@ -1494,15 +1504,4 @@ void Popup::close()
 {
 	opened = false;
 	moving = true;
-}
-
-//Used to allow replacements of states
-int FindMugShotStateIndex(FName state)
-{
-	for(unsigned int i = 0;i < MugShotStates.Size();i++)
-	{
-		if(MugShotStates[i].state == state)
-			return i;
-	}
-	return -1;
 }

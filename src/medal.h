@@ -169,7 +169,7 @@ void	MEDAL_Render( void );
 
 void	MEDAL_GiveMedal( ULONG ulPlayer, ULONG ulMedal );
 void	MEDAL_RenderAllMedals( LONG lYOffset );
-void	MEDAL_RenderAllMedalsFullscreen( player_s *pPlayer );
+void	MEDAL_RenderAllMedalsFullscreen( player_t *pPlayer );
 ULONG	MEDAL_GetDisplayedMedal( ULONG ulPlayer );
 void	MEDAL_ClearMedalQueue( ULONG ulPlayer );
 void	MEDAL_PlayerDied( ULONG ulPlayer, ULONG ulSourcePlayer );

@@ -365,7 +365,7 @@ void MEDAL_Tick( void )
 //
 void MEDAL_Render( void )
 {
-	player_s	*pPlayer;
+	player_t	*pPlayer;
 	ULONG		ulPlayer;
 	ULONG		ulMedal;
 	ULONG		ulTick;
@@ -463,7 +463,7 @@ void MEDAL_Render( void )
 //
 void MEDAL_GiveMedal( ULONG ulPlayer, ULONG ulMedal )
 {
-	player_s	*pPlayer;
+	player_t	*pPlayer;
 	
 	// Make sure all inputs are valid first.
 	if (( ulPlayer >= MAXPLAYERS ) ||
@@ -517,7 +517,7 @@ void MEDAL_GiveMedal( ULONG ulPlayer, ULONG ulMedal )
 //
 void MEDAL_RenderAllMedals( LONG lYOffset )
 {
-	player_s	*pPlayer;
+	player_t	*pPlayer;
 	ULONG		ulPlayer;
 	ULONG		ulCurXPos;
 	ULONG		ulCurYPos;
@@ -624,7 +624,7 @@ void MEDAL_RenderAllMedals( LONG lYOffset )
 
 //*****************************************************************************
 //
-void MEDAL_RenderAllMedalsFullscreen( player_s *pPlayer )
+void MEDAL_RenderAllMedalsFullscreen( player_t *pPlayer )
 {
 	bool		bScale;
 	ULONG		ulCurXPos;
@@ -939,7 +939,7 @@ void medal_PopQueue( ULONG ulPlayer )
 // should be cleaned in the future, but not before 97D.
 bool medal_PlayerHasInvalidCarrierIcon ( ULONG ulPlayer )
 {
-	player_s *pPlayer = &players[ulPlayer];
+	player_t *pPlayer = &players[ulPlayer];
 	AInventory	*pInventory = NULL;
 	bool bInvalid = false;
 
@@ -1030,7 +1030,7 @@ bool medal_PlayerHasInvalidCarrierIcon ( ULONG ulPlayer )
 //
 void medal_TriggerMedal( ULONG ulPlayer, ULONG ulMedal )
 {
-	player_s	*pPlayer;
+	player_t	*pPlayer;
 	bool		bCreateIcon;
 
 	pPlayer = &players[ulPlayer];
@@ -1129,7 +1129,7 @@ void medal_TriggerMedal( ULONG ulPlayer, ULONG ulMedal )
 void medal_SelectIcon( ULONG ulPlayer )
 {
 	AInventory	*pInventory;
-	player_s	*pPlayer;
+	player_t	*pPlayer;
 	ULONG		ulActualSprite = 65535;
 
 	if ( ulPlayer >= MAXPLAYERS )

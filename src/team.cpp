@@ -377,7 +377,7 @@ ULONG TEAM_ChooseBestTeamForPlayer( void )
 
 //*****************************************************************************
 //
-void TEAM_ScoreSkulltagPoint( player_s *pPlayer, ULONG ulNumPoints, AActor *pPillar )
+void TEAM_ScoreSkulltagPoint( player_t *pPlayer, ULONG ulNumPoints, AActor *pPillar )
 {
 	char				szString[256];
 	POS_t				SkullOrigin;
@@ -580,7 +580,7 @@ void TEAM_ScoreSkulltagPoint( player_s *pPlayer, ULONG ulNumPoints, AActor *pPil
 
 //*****************************************************************************
 //
-void TEAM_DisplayNeedToReturnSkullMessage( player_s *pPlayer )
+void TEAM_DisplayNeedToReturnSkullMessage( player_t *pPlayer )
 {
 	char						szString[256];
 	DHUDMessageFadeOut			*pMsg;
@@ -617,7 +617,7 @@ void TEAM_DisplayNeedToReturnSkullMessage( player_s *pPlayer )
 
 //*****************************************************************************
 //
-void TEAM_FlagDropped( player_s *pPlayer )
+void TEAM_FlagDropped( player_t *pPlayer )
 {
 	DHUDMessageFadeOut	*pMsg;
 	char				szString[64];

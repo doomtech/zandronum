@@ -847,7 +847,7 @@ bool FWeaponSlots::LocateWeapon (const PClass *type, int *const slot, int *const
 	return false;
 }
 
-static bool FindMostRecentWeapon (player_s *player, int *slot, int *index)
+static bool FindMostRecentWeapon (player_t *player, int *slot, int *index)
 {
 	if (player->PendingWeapon != WP_NOCHANGE)
 	{
@@ -884,7 +884,7 @@ static bool FindMostRecentWeapon (player_s *player, int *slot, int *index)
 	}
 }
 
-AWeapon *PickNextWeapon (player_s *player)
+AWeapon *PickNextWeapon (player_t *player)
 {
 	int startslot, startindex;
 
@@ -917,7 +917,7 @@ AWeapon *PickNextWeapon (player_s *player)
 	return player->ReadyWeapon;
 }
 
-AWeapon *PickPrevWeapon (player_s *player)
+AWeapon *PickPrevWeapon (player_t *player)
 {
 	int startslot, startindex;
 

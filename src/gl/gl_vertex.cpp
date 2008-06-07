@@ -197,7 +197,8 @@ void gl_InitVertexData()
 
 	TArray<int> * vt_sectorlists;
 
-	int i,j,k,l;
+	int i,j,k;
+	unsigned int l;
 
 	vt_sectorlists = new TArray<int>[numvertexes];
 

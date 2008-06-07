@@ -443,7 +443,7 @@ bool FMD2Model::Load(const char * path, const char * buffer, int length)
 
 	if (info.offsetFrames + info.frameSize * info.numFrames > length)
 	{
-		Printf("LoadModel: Model '%s' file too short\n");
+		Printf("LoadModel: Model '%s' file too short\n", path);
 		return false;
 	}
 

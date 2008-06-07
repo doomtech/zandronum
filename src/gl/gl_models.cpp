@@ -428,7 +428,7 @@ void gl_InitModels()
 						for(i=0; framechars[i]>0; i++)
 						{
 							char map[29]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-							char c = toupper(framechars[i])-'A';
+							int c = toupper(framechars[i])-'A';
 
 							if (c<0 || c>=29)
 							{

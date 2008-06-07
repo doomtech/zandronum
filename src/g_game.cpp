@@ -3069,7 +3069,7 @@ bool GAME_DormantStatusMatchesOriginal( AActor *pActor )
 // Ugh.
 void P_LoadBehavior( MapData *pMap );
 void DECAL_ClearDecals( void );
-polyobj_t *GetPolyobjByIndex( ULONG ulPoly );
+FPolyObj *GetPolyobjByIndex( ULONG ulPoly );
 void GAME_ResetMap( bool bRunEnterScripts )
 {
 	ULONG							ulIdx;
@@ -3099,7 +3099,7 @@ void GAME_ResetMap( bool bRunEnterScripts )
 	// [BB] Reset the polyobjs.
 	for ( ulIdx = 0; ulIdx <= po_NumPolyobjs; ulIdx++ )
 	{
-		polyobj_t *pPoly = GetPolyobjByIndex( ulIdx );
+		FPolyObj *pPoly = GetPolyobjByIndex( ulIdx );
 		if ( pPoly == NULL )
 			continue;
 

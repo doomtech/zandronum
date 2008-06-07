@@ -620,6 +620,7 @@ SortNode * GLDrawList::DoSort(SortNode * head)
 			case GLDIT_SPRITE:
 				SortSpriteIntoPlane(head,node);
 				break;
+			case GLDIT_POLY: break;
 			}
 			node=next;
 		}
@@ -645,6 +646,8 @@ SortNode * GLDrawList::DoSort(SortNode * head)
 				case GLDIT_SPRITE:
 					SortSpriteIntoWall(head,node);
 					break;
+				case GLDIT_POLY: break;
+				case GLDIT_FLAT: break;
 				}
 				node=next;
 			}
@@ -695,6 +698,7 @@ void GLDrawList::DoDraw(int pass, int i)
 			RenderSprite.Stop();
 		}
 		break;
+	case GLDIT_POLY: break;
 	}
 }
 
@@ -722,7 +726,7 @@ void GLDrawList::DoDrawSorted(SortNode * head)
 			}
 		}
 	}
-	while (head=head->right);
+	while ((head=head->right));
 }
 
 //==========================================================================
@@ -798,6 +802,7 @@ static int __cdecl dicmp (const void *a, const void *b)
 			lights[i]=s->lightlevel;
 		}
 		break;
+		case GLDIT_POLY: break;
 		}
 	}
 	if (tx[0]!=tx[1]) return tx[0]-tx[1];
@@ -876,7 +881,7 @@ void GLDrawInfo::StartScene()
 	memset(&ss_renderflags[0], 0, numsubsectors*sizeof(ss_renderflags[0]));
 
 
-	for(int i=0;i< otherfloorplanes.Size();i++)
+	for(unsigned int i=0;i< otherfloorplanes.Size();i++)
 	{
 		gl_subsectorrendernode * node = otherfloorplanes[i];
 		while (node)
@@ -888,7 +893,7 @@ void GLDrawInfo::StartScene()
 	}
 	otherfloorplanes.Clear();
 
-	for(int i=0;i< otherceilingplanes.Size();i++)
+	for(unsigned int i=0;i< otherceilingplanes.Size();i++)
 	{
 		gl_subsectorrendernode * node = otherceilingplanes[i];
 		while (node)

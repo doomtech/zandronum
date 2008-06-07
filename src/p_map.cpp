@@ -259,7 +259,8 @@ bool P_TeleportMove (AActor *thing, fixed_t x, fixed_t y, fixed_t z, bool telefr
 					
 	spechit.Clear ();
 
-	bool StompAlwaysFrags = thing->player || (level.flags & LEVEL_MONSTERSTELEFRAG) || telefrag;
+	bool StompAlwaysFrags = thing->player || (thing->flags2 & MF2_TELESTOMP) || 
+							(level.flags & LEVEL_MONSTERSTELEFRAG) || telefrag;
 
 	FBoundingBox box(x, y, thing->radius);
 	FBlockLinesIterator it(box);
@@ -307,11 +308,11 @@ bool P_TeleportMove (AActor *thing, fixed_t x, fixed_t y, fixed_t z, bool telefr
 
 		// monsters don't stomp things except on boss level
 		// [RH] Some Heretic/Hexen monsters can telestomp
-		if (StompAlwaysFrags || (thing->flags2 & MF2_TELESTOMP))
+		if (StompAlwaysFrags)
 		{
 			// [BC] Damage is never done client-side.
 			if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
-				P_DamageMobj (th, thing, thing, 1000000, NAME_Telefrag);
+				P_DamageMobj (th, thing, thing, 1000000, NAME_Telefrag, DMG_THRUSTLESS);
 			continue;
 		}
 		return false;
@@ -538,14 +539,6 @@ bool PIT_CheckLine (line_t *ld, const FBoundingBox &box, FCheckPosition &tm)
 
 	if (box.BoxOnLineSide (ld) != -1)
 		return true;
-
-#ifdef _MSC_VER
-#ifdef _DEBUG
-	if (ld-lines == 10
-		)
-		__asm nop
-#endif
-#endif
 
 	// A line has been hit
 /*
@@ -4672,7 +4665,7 @@ void P_UseLines (player_t *player)
 
 // [BB] Not compatible with the latest ZDoom changes, but do we really need this?
 /*
-void P_UseItems( player_s *pPlayer )
+void P_UseItems( player_t *pPlayer )
 {
 	fixed_t 	x1;
 	fixed_t 	y1;
@@ -4728,7 +4721,7 @@ void P_UseItems( player_s *pPlayer )
 ================
 */
 
-player_s *P_PlayerScan( AActor *pSource )
+player_t *P_PlayerScan( AActor *pSource )
 {
 	fixed_t vx, vy, vz, shootz;
 	FTraceResults	trace;

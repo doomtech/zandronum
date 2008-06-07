@@ -118,7 +118,7 @@ inline void M_AddToBox(fixed_t* box,fixed_t x,fixed_t y)
 static void SpreadHackedFlag(subsector_t * sub)
 {
 	// The subsector pointer hasn't been set yet!
-	for(int i=0;i<sub->numlines;i++)
+	for(DWORD i=0;i<sub->numlines;i++)
 	{
 		seg_t * seg = &segs[sub->firstline+i];
 
@@ -168,7 +168,7 @@ static bool PointOnLine (int x, int y, int x1, int y1, int dx, int dy)
 static void PrepareSectorData()
 {
 	int 				i;
-	int 				j;
+	DWORD 				j;
 	size_t				/*ii,*/ jj;
 	TArray<subsector_t *> undetermined;
 	subsector_t *		ss;
@@ -312,7 +312,7 @@ static void PrepareSectorData()
 		if (subsectors[i].sector == subsectors[i].render_sector)
 		{
 			seg_t * seg = &segs[subsectors[i].firstline];
-			for(int j=0;j<subsectors[i].numlines;j++)
+			for(DWORD j=0;j<subsectors[i].numlines;j++)
 			{
 				if (!(subsectors[i].hacked&1) && seg[j].linedef==0 && 
 						seg[j].PartnerSeg!=NULL && 
@@ -438,7 +438,8 @@ side_t* getNextSide(sector_t * sec, line_t* line)
 
 void gl_PreprocessLevel()
 {
-	int i,j;
+	int i;
+	DWORD j;
 
 	static bool modelsdone=false;
 
@@ -529,7 +530,7 @@ CCMD(dumpgeometry)
 			subsector_t * sub = sector->subsectors[j];
 
 			Printf("    Subsector %d - real sector = %d - %s\n", sub-subsectors, sub->sector->sectornum, sub->hacked&1? "hacked":"");
-			for(int k=0;k<sub->numlines;k++)
+			for(DWORD k=0;k<sub->numlines;k++)
 			{
 				seg_t * seg = &segs[sub->firstline+k];
 				if (seg->linedef)

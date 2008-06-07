@@ -39,7 +39,7 @@
 
 // [RH] Draw deathmatch scores
 
-class player_s;
-void HU_DrawScores (player_s *me);
+class player_t;
+void HU_DrawScores (player_t *me);
 */
 #endif

@@ -51,6 +51,7 @@
 #include "r_state.h"
 #include "stats.h"
 #include "zstring.h"
+#include "d_dehacked.h"
 
 #include "gl/gl_functions.h"
 #include "gl/gl_lights.h"
@@ -67,22 +68,14 @@ void gl_ParseBrightmap(FScanner &sc, int);
 //
 // Dehacked aliasing
 //
-// There's no need for a complicated alias list. All the needed
-// information is directly accessible!
-//
 //==========================================================================
-extern TArray<PClass *> DehackedPickups;
-
-class ADehackedPickup : public AInventory
-{
-	DECLARE_ACTOR (ADehackedPickup, AInventory)
-};
 
 inline const PClass * GetRealType(const PClass * ti)
 {
-	if (GetDefaultByType(ti)->SpawnState == &ADehackedPickup::States[0])
+	FActorInfo *rep = ti->ActorInfo->GetReplacement();
+	if (rep != ti->ActorInfo && rep != NULL && rep->Class->IsDescendantOf(RUNTIME_CLASS(ADehackedPickup)))
 	{
-		return DehackedPickups[GetDefaultByType(ti)->health];
+		return rep->Class;
 	}
 	return ti;
 }
@@ -924,7 +917,7 @@ FInternalLightAssociation::FInternalLightAssociation(FLightAssociation * asso)
 {
 
 	m_AssocLight=NULL;
-	for(int i=0;i<LightDefaults.Size();i++)
+	for(unsigned int i=0;i<LightDefaults.Size();i++)
 	{
 		if (!strcmp(asso->Light(), LightDefaults[i]->GetName()))
 		{
@@ -961,7 +954,7 @@ inline TArray<FInternalLightAssociation *> * gl_GetActorLights(AActor * actor)
 
 void gl_InitializeActorLights()
 {
-	for(int i=0;i<LightAssociations.Size();i++)
+	for(unsigned int i=0;i<LightAssociations.Size();i++)
 	{
 		const PClass * ti = PClass::FindClass(LightAssociations[i]->ActorName());
 		if (ti)
@@ -1008,7 +1001,7 @@ void gl_SetActorLights(AActor *actor)
 		TArray<FInternalLightAssociation *> & LightAssociations=*l;
 		ADynamicLight *lights, *tmpLight, *light;
 		unsigned int i;
-		int count;
+		unsigned int count;
 
 		int sprite = actor->state->sprite.index;
 		int frame = actor->state->GetFrame();
@@ -1073,7 +1066,7 @@ void gl_DeleteAllAttachedLights()
 	AActor * a;
 	ADynamicLight * l;
 
-	while (a=it.Next()) 
+	while ((a=it.Next())) 
 	{
 		a->dynamiclights.Clear();
 	}
@@ -1096,7 +1089,7 @@ void gl_RecreateAllAttachedLights()
 	TThinkerIterator<AActor> it;
 	AActor * a;
 
-	while (a=it.Next()) 
+	while ((a=it.Next())) 
 	{
 		gl_SetActorLights(a);
 	}
@@ -1190,7 +1183,7 @@ void gl_DoParseDefs(FScanner &sc, int workingLump)
 	}
 }
 
-void gl_LoadDynLightDefs(char * defsLump)
+void gl_LoadDynLightDefs(const char * defsLump)
 {
 	int workingLump, lastLump;
 
@@ -1205,7 +1198,7 @@ void gl_LoadDynLightDefs(char * defsLump)
 
 void gl_ParseDefs()
 {
-	char *defsLump;
+	const char *defsLump;
 
 	atterm( gl_ReleaseLights ); 
 	switch (gameinfo.gametype)

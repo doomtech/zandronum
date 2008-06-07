@@ -108,7 +108,7 @@ void GLPortal::ClearScreen()
 //-----------------------------------------------------------------------------
 void GLPortal::DrawPortalStencil()
 {
-	for(int i=0;i<lines.Size();i++)
+	for(unsigned int i=0;i<lines.Size();i++)
 	{
 		lines[i].RenderWall(0, NULL);
 
@@ -260,7 +260,7 @@ inline void GLPortal::ClearClipper()
 
 	// Set the clipper to the minimal visible area
 	clipper.AddClipRange(0,0xffffffff);
-	for(int i=0;i<lines.Size();i++)
+	for(unsigned int i=0;i<lines.Size();i++)
 	{
 		angle_t startAngle = R_PointToAngle2(savedviewx, savedviewy, 
 												FROM_MAP(lines[i].glseg.x2), FROM_MAP(lines[i].glseg.y2));

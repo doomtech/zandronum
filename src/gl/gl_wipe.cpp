@@ -331,7 +331,7 @@ bool OpenGLFrameBuffer::Wiper_Melt::Run(int ticks, OpenGLFrameBuffer *fb)
 	gl.End();
 
 	int i, dy;
-	bool done;
+	bool done = false;
 
 	fb->wipestartscreen->Bind(0, CM_DEFAULT);
 	// Copy the old screen in vertical strips on top of the new one.

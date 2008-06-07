@@ -141,7 +141,7 @@ static void DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed_t sy,
 
 void gl_DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 {
-	int i;
+	unsigned int i;
 	pspdef_t *psp;
 	bool fullbright=false;
 	int lightlevel=0;

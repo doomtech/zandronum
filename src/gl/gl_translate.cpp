@@ -86,5 +86,3 @@ int GLTranslationPalette::GetInternalTranslation(int trans)
 	if (tpal == NULL) return 0;
 	return tpal->GetIndex();
 }
-
-	

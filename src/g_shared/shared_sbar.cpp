@@ -246,7 +246,7 @@ void DBaseStatusBar::SetScaled (bool scale)
 //
 //---------------------------------------------------------------------------
 
-void DBaseStatusBar::AttachToPlayer (player_s *player)
+void DBaseStatusBar::AttachToPlayer (player_t *player)
 {
 	CPlayer = player;
 	SB_state = screen->GetPageCount ();
@@ -1361,6 +1361,10 @@ bool DBaseStatusBar::MustDrawLog(EHudState)
 	return true;
 }
 
+void DBaseStatusBar::SetMugShotState(const char *stateName, bool waitTillDone, bool reset)
+{
+}
+
 void DBaseStatusBar::DrawTeamScores ()
 {
 	// [BC] Draw skulls and flags in team game.
@@ -1639,7 +1643,7 @@ void DBaseStatusBar::DrawConsistancy () const
 	}
 }
 */
-player_s	*P_PlayerScan( AActor *mo );
+player_t	*P_PlayerScan( AActor *mo );
 void DBaseStatusBar::DrawTargetName ()
 {
 	// [BC] The player may not have a body between intermission-less maps.
@@ -1664,7 +1668,7 @@ void DBaseStatusBar::DrawTargetName ()
 	// Look for players directly in front of the player.
 	if ( camera )
 	{
-		player_s			*pTargetPlayer;
+		player_t			*pTargetPlayer;
 		ULONG				ulTextColor;
 		char				szString[64];
 		DHUDMessageFadeOut	*pMsg;

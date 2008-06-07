@@ -558,6 +558,10 @@ public:
 	CDDAFile (FILE *file, int length);
 };
 
+// Module played via foo_dumb -----------------------------------------------
+
+MusInfo *MOD_OpenSong(FILE *file, char *musiccache, int len);
+
 // --------------------------------------------------------------------------
 
 extern MusInfo *currSong;

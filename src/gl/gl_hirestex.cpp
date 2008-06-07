@@ -312,7 +312,7 @@ int FGLTexture::CheckExternalFile(bool & hascolorkey)
 
 		for (const char ** extp=extensions; *extp; extp++)
 		{
-			checkName.Format(*checklist, progdir, tex->Name, *extp);
+			checkName.Format(*checklist, progdir.GetChars(), tex->Name, *extp);
 			if (_access(checkName, 0) == 0) 
 			{
 				hascolorkey = !!strstr(checkName, "-ck.");

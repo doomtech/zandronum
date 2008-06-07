@@ -4347,7 +4347,7 @@ void CSkullBot::SetScriptEventDelay( ULONG ulDelay )
 
 //*****************************************************************************
 //
-player_s *CSkullBot::GetPlayer( void )
+player_t *CSkullBot::GetPlayer( void )
 {
 	return ( m_pPlayer );
 }

@@ -493,7 +493,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 
 				if (x.ffloors.Size())
 				{
-					for(int i=0;i<x.ffloors.Size();i++)
+					for(unsigned int i=0;i<x.ffloors.Size();i++)
 					{
 						F3DFloor * ff=x.ffloors[i];
 						fixed_t floorh=ff->top.plane->ZatPoint(thingx, thingy);
@@ -739,7 +739,7 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 		int lightbottom;
 
 		Colormap = sector->ColorMap;
-		for(int i=0;i<lightlist.Size();i++)
+		for(unsigned int i=0;i<lightlist.Size();i++)
 		{
 			if (i<lightlist.Size()-1) lightbottom = lightlist[i+1].plane.ZatPoint(particle->x,particle->y);
 			else lightbottom = sector->floorplane.ZatPoint(particle->x,particle->y);

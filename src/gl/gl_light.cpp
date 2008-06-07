@@ -75,7 +75,7 @@ CUSTOM_CVAR (Bool, gl_lights_additive, false,  CVAR_ARCHIVE | CVAR_GLOBALCONFIG 
 	ADynamicLight * mo;
 
 	// Relink the lights if they switch lists
-	while (mo=it.Next())
+	while ((mo=it.Next()))
 	{
 		if (!(mo->flags&MF4_ADDITIVE))
 		{

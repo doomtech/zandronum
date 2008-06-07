@@ -5617,7 +5617,8 @@ int DLevelScript::RunScript ()
 		case PCD_SETACTORANGLE:		// [GRB]
 			if (STACK(2) == 0)
 			{
-				activator->angle = STACK(1) << 16;
+				if (activator != NULL)
+					activator->angle = STACK(1) << 16;
 				// [BB] Tell the clients about the changed angle.
 				if( NETWORK_GetState() == NETSTATE_SERVER )
 					SERVERCOMMANDS_SetThingAngleExact( activator );
@@ -5642,7 +5643,8 @@ int DLevelScript::RunScript ()
 		case PCD_SETACTORPITCH:
 			if (STACK(2) == 0)
 			{
-				activator->pitch = STACK(1) << 16;
+				if (activator != NULL)
+					activator->pitch = STACK(1) << 16;
 
 				// [BB] Tell the clients about the changed pitch.
 				if( NETWORK_GetState() == NETSTATE_SERVER )
@@ -5675,19 +5677,22 @@ int DLevelScript::RunScript ()
 
 				if (STACK(3) == 0)
 				{
-					state = activator->GetClass()->ActorInfo->FindState (statelist.Size(), &statelist[0], !!STACK(1));
-					if (state != NULL)
+					if (activator != NULL)
 					{
+						state = activator->GetClass()->ActorInfo->FindState (statelist.Size(), &statelist[0], !!STACK(1));
+						if (state != NULL)
+						{
 						// [BC] Tell clients to change this thing's state.
 						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 							SERVERCOMMANDS_SetThingFrame( activator, state );
 
-						activator->SetState (state);
-						STACK(3) = 1;
-					}
-					else
-					{
-						STACK(3) = 0;
+							activator->SetState (state);
+							STACK(3) = 1;
+						}
+						else
+						{
+							STACK(3) = 0;
+						}
 					}
 				}
 				else

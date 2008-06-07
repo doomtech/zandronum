@@ -576,7 +576,7 @@ public:
 	ULONG		GetScriptEventDelay( void );
 	void		SetScriptEventDelay( ULONG ulDelay );
 
-	player_s	*GetPlayer( void );
+	player_t	*GetPlayer( void );
 
 	FWadLump	*GetRawScriptData( void );
 
@@ -669,7 +669,7 @@ private:
 	//*************************************************************************
 
 	// Points back to the reference player.
-	player_s		*m_pPlayer;
+	player_t		*m_pPlayer;
 
 	// XYZ position of the bot's target.
 	POS_t			m_posTarget;

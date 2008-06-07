@@ -88,7 +88,7 @@ struct vertex_t
 // Forward of LineDefs, for Sectors.
 struct line_t;
 
-class player_s;
+class player_t;
 class FScanner;
 class FBitmap;
 struct FCopyInfo;
@@ -238,7 +238,7 @@ inline FArchive &operator<< (FArchive &arc, secplane_t &plane)
 }
 
 #include "p_3dfloors.h"
-struct subsector_s;
+struct subsector_t;
 
 // Ceiling/floor flags
 enum
@@ -326,6 +326,8 @@ struct extsector_t
 			TArray<FLinkedSector> Sectors;
 		} Floor, Ceiling;
 	} Linked;
+
+	// 3D floors
 	struct xfloor
 	{
 		TDeletingArray<F3DFloor *>		ffloors;		// 3D floors in this sector
@@ -432,7 +434,7 @@ struct sector_t
 
 	// list of mobjs that are at least partially in the sector
 	// thinglist is a subset of touching_thinglist
-	struct msecnode_s *touching_thinglist;				// phares 3/14/98
+	struct msecnode_t *touching_thinglist;				// phares 3/14/98
 
 	float gravity;		// [RH] Sector gravity (1.0 is normal)
 	short damage;		// [RH] Damage to do while standing on floor
@@ -466,7 +468,7 @@ struct sector_t
 	bool						transdoor;			// For transparent door hacks
 	fixed_t						transdoorheight;	// for transparent door hacks
 	int							subsectorcount;		// list of subsectors
-	subsector_s **				subsectors;
+	subsector_t **				subsectors;
 
 	// [BC] Is this sector a floor or ceiling?
 	int		floorOrCeiling;
@@ -531,8 +533,7 @@ enum
 {
 	WALLF_ABSLIGHTING	= 1,	// Light is absolute instead of relative
 	WALLF_NOAUTODECALS	= 2,	// Do not attach impact decals to this wall
-	WALLF_ADDTRANS		= 4,	// Use additive instead of normal translucency
-	WALLF_AUTOCONTRAST	= 8,	// Automatically handle fake contrast in side_t::GetLightLevel
+	WALLF_AUTOCONTRAST	= 4,	// Automatically handle fake contrast in side_t::GetLightLevel
 };
 
 struct side_t
@@ -554,7 +555,7 @@ struct side_t
 	sector_t*	sector;			// Sector the SideDef is facing.
 	DBaseDecal*	AttachedDecals;	// [RH] Decals bound to the wall
 	part		textures[3];
-	WORD		linenum;
+	DWORD		linenum;
 	DWORD		LeftSide, RightSide;	// [RH] Group walls into loops
 	WORD		TexelLength;
 	SWORD		Light;
@@ -693,16 +694,16 @@ struct line_t
 //
 // For the links, NULL means top or end of list.
 
-typedef struct msecnode_s
+struct msecnode_t
 {
 	sector_t			*m_sector;	// a sector containing this object
 	AActor				*m_thing;	// this object
-	struct msecnode_s	*m_tprev;	// prev msecnode_t for this thing
-	struct msecnode_s	*m_tnext;	// next msecnode_t for this thing
-	struct msecnode_s	*m_sprev;	// prev msecnode_t for this sector
-	struct msecnode_s	*m_snext;	// next msecnode_t for this sector
+	struct msecnode_t	*m_tprev;	// prev msecnode_t for this thing
+	struct msecnode_t	*m_tnext;	// next msecnode_t for this thing
+	struct msecnode_t	*m_sprev;	// prev msecnode_t for this sector
+	struct msecnode_t	*m_snext;	// next msecnode_t for this sector
 	bool visited;	// killough 4/4/98, 4/7/98: used in search algorithms
-} msecnode_t;
+};
 
 //
 // A SubSector.
@@ -711,7 +712,7 @@ typedef struct msecnode_s
 // define (all or some) sides of a convex BSP leaf.
 //
 struct FPolyObj;
-typedef struct subsector_s
+struct subsector_t
 {
 	sector_t	*sector;
 	DWORD		numlines;
@@ -730,12 +731,12 @@ typedef struct subsector_s
 	bool			degenerate;
 	char			hacked;			// 1: is part of a render hack
 									// 2: has one-sided walls
-} subsector_t;
+};
 
 //
 // The LineSeg.
 //
-struct seg_s
+struct seg_t
 {
 	vertex_t*	v1;
 	vertex_t*	v2;
@@ -748,17 +749,20 @@ struct seg_s
 	sector_t*		backsector;		// NULL for one-sided lines
 
 	subsector_t*	Subsector;
-	seg_s*			PartnerSeg;
+	seg_t*			PartnerSeg;
 
 	BITFIELD		bPolySeg:1;
 };
-typedef struct seg_s seg_t;
 
 // ===== Polyobj data =====
-typedef struct FPolyObj
+struct FPolyObj
 {
 	int			numsegs;
 	seg_t		**segs;
+	int			numlines;
+	line_t		**lines;
+	int			numvertices;
+	vertex_t	**vertices;
 	fixed_t		startSpot[3];
 	vertex_t	*originalPts;	// used as the base for the rotations
 	vertex_t	*prevPts; 		// use to restore the old point values
@@ -772,6 +776,8 @@ typedef struct FPolyObj
 	fixed_t		size;			// polyobj size (area of POLY_AREAUNIT == size of FRACUNIT)
 	DThinker	*specialdata;	// pointer to a thinker, if the poly is moving
 
+	~FPolyObj();
+
 	// Has this polyobject moved at all? If so, we need to tell connecting clients of its new position.
 	bool		bMoved;
 	// [BB] Original start stop, necessary for GAME_ResetMap.
@@ -782,13 +788,13 @@ typedef struct FPolyObj
 
 	// Was the polyobject blocked the last time it tried to move?
 	bool		bBlocked;
+};
 
-} polyobj_t;
 
 //
 // BSP node.
 //
-struct node_s
+struct node_t
 {
 	// Partition line.
 	fixed_t		x;
@@ -802,28 +808,23 @@ struct node_s
 		int		intchildren[2];	// Used by nodebuilder.
 	};
 };
-typedef struct node_s node_t;
 
 
-typedef struct polyblock_s
+struct polyblock_t
 {
-	polyobj_t *polyobj;
-	struct polyblock_s *prev;
-	struct polyblock_s *next;
-} polyblock_t;
+	FPolyObj *polyobj;
+	struct polyblock_t *prev;
+	struct polyblock_t *next;
+};
 
 
 
 // posts are runs of non masked source pixels
-struct post_s
+struct column_t
 {
 	BYTE		topdelta;		// -1 is the last post in a column
 	BYTE		length; 		// length data bytes follows
 };
-typedef struct post_s post_t;
-
-// column_t is a list of 0 or more post_t, (byte)-1 terminated
-typedef post_t	column_t;
 
 
 
@@ -889,7 +890,6 @@ public:
 	BYTE bAlphaTexture:1;	// Texture is an alpha channel without color information
 	BYTE bHasCanvas:1;		// Texture is based off FCanvasTexture
 	BYTE bWarped:2;			// This is a warped texture. Used to avoid multiple warps on one texture
-	BYTE bIsPatch:1;		// 1 if an FPatchTexture. Required to fix FMultipatchTexture::CheckForHacks
 	BYTE bComplex:1;		// Will be used to mark extended MultipatchTextures that have to be
 							// fully composited before subjected to any kinf of postprocessing instead of
 							// doing it per patch.
@@ -992,6 +992,8 @@ public:
 		if (MulScale16(yScale, fitheight) != Height) yScale++;
 	}
 
+	virtual void HackHack (int newheight);	// called by FMultipatchTexture to discover corrupt patches.
+
 protected:
 	WORD Width, Height, WidthMask;
 	static BYTE GrayMap[256];
@@ -1080,7 +1082,7 @@ public:
 			{
 				totexnum = fromtexnum;
 			}
-			Translation[fromtexnum] = WORD(totexnum);
+			Translation[fromtexnum] = totexnum;
 		}
 	}
 
@@ -1104,8 +1106,9 @@ public:
 	void AddPatches (int lumpnum);
 	void AddTiles (void *tileFile);
 	void AddHiresTextures (int wadnum);
-	void LoadHiresTex(int wadnum);
+	void LoadTextureDefs(int wadnum, const char *lumpname);
 	void ParseXTexture(FScanner &sc, int usetype);
+	void SortTexturesByType(int start, int end);
 
 	int CreateTexture (int lumpnum, int usetype=FTexture::TEX_Any);	// Also calls AddTexture
 	int AddTexture (FTexture *texture);
@@ -1133,12 +1136,12 @@ private:
 	struct TextureHash
 	{
 		FTexture *Texture;
-		WORD HashNext;
+		int HashNext;
 	};
-	enum { HASH_END = 0xFFFF, HASH_SIZE = 1027 };
+	enum { HASH_END = -1, HASH_SIZE = 1027 };
 	TArray<TextureHash> Textures;
-	TArray<WORD> Translation;
-	WORD HashFirst[HASH_SIZE];
+	TArray<int> Translation;
+	int HashFirst[HASH_SIZE];
 	int DefaultTexture;
 };
 

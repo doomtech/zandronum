@@ -146,9 +146,6 @@ EXTERN_CVAR (Bool, cl_run)
 EXTERN_CVAR (Bool, cl_identifytarget)
 EXTERN_CVAR (Int, crosshair)
 EXTERN_CVAR (Bool, freelook)
-EXTERN_CVAR (Int, snd_buffersize)
-EXTERN_CVAR (Int, snd_samplerate)
-EXTERN_CVAR (Bool, snd_waterreverb)
 EXTERN_CVAR (Int, sv_smartaim)
 EXTERN_CVAR (String,	playerclass)
 
@@ -439,7 +436,7 @@ menu_t OptionMenu =
  *=======================================*/
 
 EXTERN_CVAR (Bool, use_mouse)
-EXTERN_CVAR (Bool, m_filter)
+EXTERN_CVAR (Bool, smooth_mouse)
 EXTERN_CVAR (Float, m_forward)
 EXTERN_CVAR (Float, m_pitch)
 EXTERN_CVAR (Float, m_side)
@@ -455,7 +452,7 @@ static menuitem_t MouseItems[] =
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ slider,	"Overall sensitivity",	{&mouse_sensitivity},	{0.5}, {2.5},	{0.1}, {NULL} },
 	{ discrete,	"Prescale mouse movement",{&m_noprescale},		{2.0}, {0.0},	{0.0}, {NoYes} },
-	{ discrete, "Smooth mouse movement",{&m_filter},			{2.0}, {0.0},	{0.0}, {YesNo} },
+	{ discrete, "Smooth mouse movement",{&smooth_mouse},			{2.0}, {0.0},	{0.0}, {YesNo} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ slider,	"Turning speed",		{&m_yaw},				{0.5}, {2.5},	{0.1}, {NULL} },
 	{ slider,	"Mouselook speed",		{&m_pitch},				{0.5}, {2.5},	{0.1}, {NULL} },
@@ -1474,6 +1471,7 @@ EXTERN_CVAR (Int, snd_mididevice)
 
 static void MakeSoundChanges ();
 static void AdvSoundOptions ();
+static void ModReplayerOptions ();
 
 static value_t SampleRates[] =
 {
@@ -1584,6 +1582,7 @@ static menuitem_t SoundItems[] =
 
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ more,		"Advanced options",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)AdvSoundOptions} },
+	{ more,		"Module replayer options", {NULL},				{0.0}, {0.0},	{0.0}, {(value_t *)ModReplayerOptions} },
 };
 
 static menu_t SoundMenu =
@@ -1624,6 +1623,68 @@ static menu_t AdvSoundMenu =
 	AdvSoundItems,
 };
 
+/*=======================================
+ *
+ * Module Replayer Options Menu
+ *
+ *=======================================*/
+
+EXTERN_CVAR(Bool, mod_dumb)
+EXTERN_CVAR(Int, mod_samplerate)
+EXTERN_CVAR(Int, mod_volramp)
+EXTERN_CVAR(Int, mod_interp)
+EXTERN_CVAR(Bool, mod_autochip)
+EXTERN_CVAR(Int, mod_autochip_size_force)
+EXTERN_CVAR(Int, mod_autochip_size_scan)
+EXTERN_CVAR(Int, mod_autochip_scan_threshold)
+
+static value_t ModReplayers[] =
+{
+	{ 0.0, "FMOD" },
+	{ 1.0, "foo_dumb" }
+};
+
+static value_t ModInterpolations[] =
+{
+	{ 0.0, "None" },
+	{ 1.0, "Linear" },
+	{ 2.0, "Cubic" }
+};
+
+static value_t ModVolumeRamps[] =
+{
+	{ 0.0, "None" },
+	{ 1.0, "Logarithmic" },
+	{ 2.0, "Linear" },
+	{ 3.0, "XM=lin, else none" },
+	{ 4.0, "XM=lin, else log" }
+};
+
+static menuitem_t ModReplayerItems[] =
+{
+	{ discrete, "Replayer engine",		{&mod_dumb},			{2.0}, {0.0},	{0.0}, {ModReplayers} },
+	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
+	{ discrete, "Sample rate",			{&mod_samplerate},		{8.0}, {0.0},	{0.0}, {SampleRates} },
+	{ discrete, "Interpolation",		{&mod_interp},			{3.0}, {0.0},	{0.0}, {ModInterpolations} },
+	{ discrete, "Volume ramping",		{&mod_volramp},			{5.0}, {0.0},	{0.0}, {ModVolumeRamps} },
+	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
+	{ discrete, "Chip-o-matic",			{&mod_autochip},		{2.0}, {0.0},	{0.0}, {OnOff} },
+	// TODO if the menu system is ever rewritten: Provide a decent
+	// mechanism to edit the chip-o-matic settings like you can with
+	// the foo_dumb preferences in foobar2000.
+};
+
+static menu_t ModReplayerMenu =
+{
+	"MODULE REPLAYER OPTIONS",
+	0,
+	countof(ModReplayerItems),
+	0,
+	ModReplayerItems,
+};
+
+
+//===========================================================================
 static void ActivateConfirm (const char *text, void (*func)())
 {
 	ConfirmItems[0].label = text;
@@ -4008,6 +4069,7 @@ void M_OptDrawer ()
 	int y, width, i, x, ytop, fontheight;
 	menuitem_t *item;
 	UCVarValue value;
+	DWORD overlay;
 	int labelofs;
 
 	if (!CurrentMenu->DontDim)
@@ -4062,6 +4124,7 @@ void M_OptDrawer ()
 		}
 
 		item = CurrentMenu->items + i;
+		overlay = 0;
 
 		if (item->type != screenres && item->type != browserslot)
 		{
@@ -4117,6 +4180,13 @@ void M_OptDrawer ()
 				screen->DrawText( CR_UNTRANSLATED, 272, y, "PLYRS", DTA_Clean, true, TAG_DONE );
 				break;
 
+			case discrete:
+				if (item->d.graycheck != NULL && !(**item->d.graycheck))
+				{
+					overlay = MAKEARGB(128,0,0,0);
+				}
+				// Intentional fall-through
+
 			default:
 
 				// Align this menu to the left-hand side.
@@ -4131,8 +4201,7 @@ void M_OptDrawer ()
 					? CR_YELLOW : LabelColor;
 				break;
 			}
-
-			screen->DrawText (color, x, y, item->label, DTA_Clean, true, TAG_DONE);
+			screen->DrawText (color, x, y, item->label, DTA_Clean, true, DTA_ColorOverlay, overlay, TAG_DONE);
 
 			if ( CurrentMenu->iFlags & MNF_ALIGNLEFT )
 				x = 32 + width + 6;
@@ -4183,6 +4252,8 @@ void M_OptDrawer ()
 			{
 				int v, vals;
 
+				overlay = 0;
+
 				// [BC] Hack for autoaim.
 				if ( strcmp( item->label, "Autoaim" ) == 0 )
 				{
@@ -4217,18 +4288,25 @@ void M_OptDrawer ()
 				{
 					v = M_FindCurVal (value.Float, item->e.valuestrings, vals);
 				}
+				if (item->type == discrete)
+				{
+					if (item->d.graycheck != NULL && !(**item->d.graycheck))
+					{
+						overlay = MAKEARGB(96,48,0,0);
+					}
+				}
 
 					if (v == vals)
 					{
 						screen->DrawText (ValueColor, x, y, "Unknown",
-							DTA_Clean, true, TAG_DONE);
+							DTA_Clean, true, DTA_ColorOverlay, overlay, TAG_DONE);
 					}
 					else
 					{
 						screen->DrawText (item->type == cdiscrete ? v : ValueColor,
 						x, y,
 						item->type != discretes ? item->e.values[v].name : item->e.valuestrings[v].name.GetChars(),
-							DTA_Clean, true, TAG_DONE);
+							DTA_Clean, true, DTA_ColorOverlay, overlay, TAG_DONE);
 					}
 				}
 			}
@@ -6471,6 +6549,25 @@ static void MakeSoundChanges (void)
 {
 	static char snd_reset[] = "snd_reset";
 	AddCommandString (snd_reset);
+}
+
+static void ModReplayerOptions()
+{
+	for (size_t i = 2; i < countof(ModReplayerItems); ++i)
+	{
+		if (ModReplayerItems[i].type == discrete)
+		{
+			ModReplayerItems[i].d.graycheck = &mod_dumb;
+		}
+	}
+	M_SwitchMenu(&ModReplayerMenu);
+}
+
+CCMD (menu_modreplayer)
+{
+	M_StartControlPanel(true);
+	OptionsActive = true;
+	ModReplayerOptions();
 }
 
 static void VideoOptions (void)

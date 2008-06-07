@@ -74,7 +74,7 @@
 CVAR (Bool, sv_showwarnings, true, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
 
 // :((((((
-polyobj_t	*GetPolyobj( int polyNum );
+FPolyObj	*GetPolyobj( int polyNum );
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -6226,7 +6226,7 @@ void SERVERCOMMANDS_PlayPolyobjSound( LONG lPolyNum, NETWORK_POLYOBJSOUND_e Soun
 void SERVERCOMMANDS_SetPolyobjPosition( LONG lPolyNum, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG		ulIdx;
-	polyobj_t	*pPoly;
+	FPolyObj	*pPoly;
 
 	pPoly = GetPolyobj( lPolyNum );
 	if ( pPoly == NULL )
@@ -6256,7 +6256,7 @@ void SERVERCOMMANDS_SetPolyobjPosition( LONG lPolyNum, ULONG ulPlayerExtra, ULON
 void SERVERCOMMANDS_SetPolyobjRotation( LONG lPolyNum, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG		ulIdx;
-	polyobj_t	*pPoly;
+	FPolyObj	*pPoly;
 
 	pPoly = GetPolyobj( lPolyNum );
 	if ( pPoly == NULL )

@@ -64,9 +64,9 @@
 #include "cl_demo.h"
 #include "cl_main.h"
 
-void P_MovePlayer (player_s *player, ticcmd_t *cmd);
-void P_CalcHeight (player_s *player);
-void P_DeathThink (player_s *player);
+void P_MovePlayer (player_t *player, ticcmd_t *cmd);
+void P_CalcHeight (player_t *player);
+void P_DeathThink (player_t *player);
 bool	P_AdjustFloorCeil (AActor *thing);
 
 //*****************************************************************************
@@ -97,9 +97,9 @@ CVAR( Bool, cl_showonetickpredictionerrors, false, 0 );
 //*****************************************************************************
 //	PROTOTYPES
 
-static	void	client_predict_BeginPrediction( player_s *pPlayer );
-static	void	client_predict_DoPrediction( player_s *pPlayer, ULONG ulTicks );
-static	void	client_predict_EndPrediction( player_s *pPlayer );
+static	void	client_predict_BeginPrediction( player_t *pPlayer );
+static	void	client_predict_DoPrediction( player_t *pPlayer, ULONG ulTicks );
+static	void	client_predict_EndPrediction( player_t *pPlayer );
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -266,7 +266,7 @@ bool CLIENT_PREDICT_IsPredicting( void )
 //*****************************************************************************
 //*****************************************************************************
 //
-static void client_predict_BeginPrediction( player_s *pPlayer )
+static void client_predict_BeginPrediction( player_t *pPlayer )
 {
 	g_SavedAngle[g_ulGameTick % MAXSAVETICS] = pPlayer->mo->angle;
 	g_SavedPitch[g_ulGameTick % MAXSAVETICS] = pPlayer->mo->pitch;
@@ -279,7 +279,7 @@ static void client_predict_BeginPrediction( player_s *pPlayer )
 
 //*****************************************************************************
 //
-static void client_predict_DoPrediction( player_s *pPlayer, ULONG ulTicks )
+static void client_predict_DoPrediction( player_t *pPlayer, ULONG ulTicks )
 {
 	LONG		lTick;
 
@@ -310,7 +310,7 @@ static void client_predict_DoPrediction( player_s *pPlayer, ULONG ulTicks )
 
 //*****************************************************************************
 //
-static void client_predict_EndPrediction( player_s *pPlayer )
+static void client_predict_EndPrediction( player_t *pPlayer )
 {
 	pPlayer->mo->angle = g_SavedAngle[g_ulGameTick % MAXSAVETICS];
 	pPlayer->mo->pitch = g_SavedPitch[g_ulGameTick % MAXSAVETICS];

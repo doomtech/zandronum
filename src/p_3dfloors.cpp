@@ -557,7 +557,9 @@ void P_LineOpening_XFloors (FLineOpening &open, AActor * thing, const line_t *li
 		{
 			fixed_t    lowestceiling = open.top;
 			fixed_t    highestfloor = open.bottom;
-			fixed_t    lowestfloor[2] = {open.lowfloor, open.lowfloor};
+			fixed_t    lowestfloor[2] = {
+				linedef->frontsector->floorplane.ZatPoint(x, y), 
+				linedef->backsector->floorplane.ZatPoint(x, y) };
 			int highestfloorpic = -1;
 			int lowestceilingpic = -1;
 			
@@ -668,7 +670,7 @@ void P_SpawnSpecials2 (void)
 	TThinkerIterator<AActor> it;
 	AActor * mo;
 
-	while (mo=it.Next())
+	while ((mo=it.Next()))
 	{
 		// Don't count monsters in end-of-level sectors
 		// In 99.9% of all occurences they are part of a trap

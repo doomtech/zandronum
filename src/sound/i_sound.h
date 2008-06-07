@@ -37,6 +37,12 @@
 
 #include "s_sound.h"
 
+enum ECodecType
+{
+	CODEC_Unknown,
+	CODEC_Vorbis,
+};
+
 class SoundStream
 {
 public:
@@ -92,6 +98,9 @@ public:
 	// Pauses or resumes all sound effect channels.
 	virtual void SetSfxPaused (bool paused) = 0;
 
+	// Pauses or resumes *every* channel, including environmental reverb.
+	virtual void SetInactive(bool inactive) = 0;
+
 	// Updates the volume, separation, and pitch of a sound channel.
 	virtual void UpdateSoundParams3D (FSoundChan *chan, float pos[3], float vel[3]) = 0;
 
@@ -106,6 +115,7 @@ public:
 	virtual void PrintStatus () = 0;
 	virtual void PrintDriversList () = 0;
 	virtual FString GatherStats ();
+	virtual short *DecodeSample(int outlen, const void *coded, int sizebytes, ECodecType type);
 
 	virtual void DrawWaveDebug(int mode);
 };

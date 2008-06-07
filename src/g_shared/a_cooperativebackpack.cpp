@@ -137,7 +137,7 @@ bool ACooperativeBackpack::TryPickup( AActor *pToucher )
 //
 //===========================================================================
 
-void ACooperativeBackpack::FillBackpack( player_s *pPlayer )
+void ACooperativeBackpack::FillBackpack( player_t *pPlayer )
 {
 	AInventory	*pInventory;
 	AInventory	*pGivenInventory;

@@ -82,7 +82,7 @@ CUSTOM_CVAR(Int, gl_texture_format, 0, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINI
 	FGLTexture::FlushAll();
 }
 
-CVAR(Bool, gl_clamping_bug, false,  CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+CVAR(Bool, gl_clamping_bug, true,  CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 
 
 //===========================================================================
@@ -292,7 +292,7 @@ void GLTexture::Clean(bool all)
 		//gl.DeleteTextures(cm_arraysize-1,glTexID+1);
 		memset(glTexID+1,0,sizeof(unsigned int)*(cm_arraysize-1));
 	}
-	for(int i=0;i<glTexID_Translated.Size();i++)
+	for(unsigned int i=0;i<glTexID_Translated.Size();i++)
 	{
 		gl.DeleteTextures(1,&glTexID_Translated[i].glTexID);
 	}
@@ -329,7 +329,7 @@ unsigned * GLTexture::GetTexID(int cm, int translation)
 
 	// normally there aren't more than very few different 
 	// translations here so this isn't performance critical.
-	for(int i=0;i<glTexID_Translated.Size();i++)
+	for(unsigned int i=0;i<glTexID_Translated.Size();i++)
 	{
 		if (glTexID_Translated[i].cm == cm &&
 			glTexID_Translated[i].translation == translation)

@@ -227,7 +227,7 @@ class ACooperativeBackpack : public AInventory
 public:
 
 	virtual bool TryPickup( AActor *pToucher );
-	void FillBackpack( player_s *pPlayer );
+	void FillBackpack( player_t *pPlayer );
 protected:
 
 	virtual const char *PickupMessage( );

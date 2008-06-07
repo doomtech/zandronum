@@ -154,7 +154,7 @@ void gl_CollectMissingLines()
 				// Sort the segs so inserting new ones becomes easier
 				qsort(&linesegs[i][0], linesegs[i].Size(), sizeof(seg_t*), segcmp);
 
-				for(int j=0;j<linesegs[i].Size();j++)
+				for(unsigned int j=0;j<linesegs[i].Size();j++)
 				{
 					if (linesegs[i][j]->v1 != seg.v1)
 					{

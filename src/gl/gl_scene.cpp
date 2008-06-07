@@ -589,7 +589,7 @@ static void gl_DrawBlend(sector_t * viewsector)
 		{
 			TArray<lightlist_t> & lightlist = viewsector->e->XFloor.lightlist;
 
-			for(int i=0;i<lightlist.Size();i++)
+			for(unsigned int i=0;i<lightlist.Size();i++)
 			{
 				fixed_t lightbottom;
 				if (i<lightlist.Size()-1) 

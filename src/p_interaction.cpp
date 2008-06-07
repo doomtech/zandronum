@@ -1249,6 +1249,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 	if (inflictor && inflictor != target	// [RH] Not if hurting own self
 		&& !(target->flags & MF_NOCLIP)
 		&& !(inflictor->flags2 & MF2_NODMGTHRUST)
+		&& !(flags & DMG_THRUSTLESS)
 		&& ( NETWORK_GetState( ) != NETSTATE_CLIENT )
 		&& ( CLIENTDEMO_IsPlaying( ) == false ) )
 	{
@@ -1798,7 +1799,7 @@ bool CheckCheatmode ();
 
 //*****************************************************************************
 //
-void PLAYER_SetFragcount( player_s *pPlayer, LONG lFragCount, bool bAnnounce, bool bUpdateTeamFrags )
+void PLAYER_SetFragcount( player_t *pPlayer, LONG lFragCount, bool bAnnounce, bool bUpdateTeamFrags )
 {
 	// Don't bother with fragcount during warm-ups.
 	if ((( duel ) && ( DUEL_GetState( ) == DS_COUNTDOWN )) ||
@@ -1871,7 +1872,7 @@ void PLAYER_ResetAllPlayersFragcount( void )
 
 //*****************************************************************************
 //
-void PLAYER_GivePossessionPoint( player_s *pPlayer )
+void PLAYER_GivePossessionPoint( player_t *pPlayer )
 {
 	char				szString[64];
 	DHUDMessageFadeOut	*pMsg;
@@ -2008,7 +2009,7 @@ void PLAYER_GivePossessionPoint( player_s *pPlayer )
 
 //*****************************************************************************
 //
-void PLAYER_SetTeam( player_s *pPlayer, ULONG ulTeam, bool bNoBroadcast )
+void PLAYER_SetTeam( player_t *pPlayer, ULONG ulTeam, bool bNoBroadcast )
 {
 	bool	bBroadcastChange = false;
 
@@ -2065,7 +2066,7 @@ void PLAYER_SetTeam( player_s *pPlayer, ULONG ulTeam, bool bNoBroadcast )
 //
 // [BC] *grumble*
 void	G_DoReborn (int playernum, bool freshbot);
-void PLAYER_SetSpectator( player_s *pPlayer, bool bBroadcast, bool bDeadSpectator )
+void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectator )
 {
 	AActor	*pOldBody;
 
@@ -2234,7 +2235,7 @@ void PLAYER_SetSpectator( player_s *pPlayer, bool bBroadcast, bool bDeadSpectato
 
 //*****************************************************************************
 //
-void PLAYER_SetWins( player_s *pPlayer, ULONG ulWins )
+void PLAYER_SetWins( player_t *pPlayer, ULONG ulWins )
 {
 	// Set the player's fragcount.
 	pPlayer->ulWins = ulWins;
@@ -2255,7 +2256,7 @@ void PLAYER_SetWins( player_s *pPlayer, ULONG ulWins )
 
 //*****************************************************************************
 //
-void PLAYER_GetName( player_s *pPlayer, char *pszOutBuf )
+void PLAYER_GetName( player_t *pPlayer, char *pszOutBuf )
 {
 	// Build the buffer, which has a "remove color code" tag at the end of it.
 	sprintf( pszOutBuf, "%s\\c-", pPlayer->userinfo.netname );
@@ -2263,7 +2264,7 @@ void PLAYER_GetName( player_s *pPlayer, char *pszOutBuf )
 
 //*****************************************************************************
 //
-bool PLAYER_IsTrueSpectator( player_s *pPlayer )
+bool PLAYER_IsTrueSpectator( player_t *pPlayer )
 {
 	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DEADSPECTATORS )
 		return (( pPlayer->bSpectating ) && ( pPlayer->bDeadSpectator == false ));
@@ -2273,7 +2274,7 @@ bool PLAYER_IsTrueSpectator( player_s *pPlayer )
 
 //*****************************************************************************
 //
-void PLAYER_StruckPlayer( player_s *pPlayer )
+void PLAYER_StruckPlayer( player_t *pPlayer )
 {
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 		return;
@@ -2309,7 +2310,7 @@ void PLAYER_StruckPlayer( player_s *pPlayer )
 
 //*****************************************************************************
 //
-bool PLAYER_ShouldSpawnAsSpectator( player_s *pPlayer )
+bool PLAYER_ShouldSpawnAsSpectator( player_t *pPlayer )
 {
 	UCVarValue	Val;
 
@@ -2370,7 +2371,7 @@ bool PLAYER_ShouldSpawnAsSpectator( player_s *pPlayer )
 
 //*****************************************************************************
 //
-bool PLAYER_Taunt( player_s *pPlayer )
+bool PLAYER_Taunt( player_t *pPlayer )
 {
 	// Don't taunt if we're not in a level!
 	if ( gamestate != GS_LEVEL )
@@ -2393,7 +2394,7 @@ bool PLAYER_Taunt( player_s *pPlayer )
 
 //*****************************************************************************
 //
-LONG PLAYER_GetRailgunColor( player_s *pPlayer )
+LONG PLAYER_GetRailgunColor( player_t *pPlayer )
 {
 	// Determine the railgun trail's color.
 	switch ( pPlayer->userinfo.lRailgunTrailColor )

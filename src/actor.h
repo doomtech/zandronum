@@ -42,7 +42,7 @@
 #include "doomdef.h"
 #include "r_blend.h"
 
-struct subsector_s;
+struct subsector_t;
 //
 // NOTES: AActor
 //
@@ -772,7 +772,7 @@ public:
 									// player to freeze a bit after teleporting
 	SDWORD			threshold;		// if > 0, the target will be chased
 									// no matter what (even if shot)
-	player_s		*player;		// only valid if type of APlayerPawn
+	player_t		*player;		// only valid if type of APlayerPawn
 	TObjPtr<AActor>	LastLookActor;	// Actor last looked for (if TIDtoHate != 0)
 	fixed_t			SpawnPoint[3]; 	// For nightmare respawn
 	WORD			SpawnAngle;
@@ -815,7 +815,7 @@ public:
 	angle_t			LookExFOV;		// Field of Vision
 
 	// a linked list of sectors where this object appears
-	struct msecnode_s	*touching_sectorlist;				// phares 3/14/98
+	struct msecnode_t	*touching_sectorlist;				// phares 3/14/98
 
 	TObjPtr<AInventory>	Inventory;		// [RH] This actor's inventory
 	DWORD			InventoryID;	// A unique ID to keep track of inventory items
@@ -921,7 +921,7 @@ public:
 	TArray<TObjPtr<AActor> >		dynamiclights;
 	void *				lightassociations;
 	bool				hasmodel;
-	subsector_s *		subsector;
+	subsector_t *		subsector;
 
 	size_t PropagateMark();
 };

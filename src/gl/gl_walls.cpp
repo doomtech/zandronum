@@ -264,7 +264,7 @@ void GLWall::SplitWall(sector_t * frontsector, bool translucent)
 	fixed_t lightbottomright;
 	float maplightbottomleft;
 	float maplightbottomright;
-	int i;
+	unsigned int i;
 	TArray<lightlist_t> & lightlist=frontsector->e->XFloor.lightlist;
 
 	if (glseg.x1==glseg.x2 && glseg.y1==glseg.y2)
@@ -896,9 +896,9 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 	// 
 	if (seg->linedef->Alpha)// && seg->linedef->special!=Line_Fogsheet)
 	{
-		bool translucent;
+		bool translucent = false;
 
-		switch (seg->sidedef->Flags& WALLF_ADDTRANS)//TRANSBITS)
+		switch (seg->linedef->flags& ML_ADDTRANS)//TRANSBITS)
 		{
 		case 0:
 			RenderStyle=STYLE_Translucent;
@@ -906,7 +906,7 @@ void GLWall::DoMidTexture(seg_t * seg, bool drawfogboundary,
 			translucent = seg->linedef->Alpha < FRACUNIT || (gltexture && gltexture->GetTransparent());
 			break;
 
-		case WALLF_ADDTRANS:
+		case ML_ADDTRANS:
 			RenderStyle=STYLE_Add;
 			alpha=FIXED2FLOAT(seg->linedef->Alpha);
 			translucent=true;
@@ -1097,7 +1097,7 @@ void GLWall::InverseFloors(seg_t * seg, sector_t * frontsector,
 {
 	TArray<F3DFloor *> & frontffloors=frontsector->e->XFloor.ffloors;
 
-	for(int i=0;i<frontffloors.Size();i++)
+	for(unsigned int i=0;i<frontffloors.Size();i++)
 	{
 		F3DFloor * rover=frontffloors[i];
 		if (!(rover->flags&FF_EXISTS)) continue;
@@ -1167,7 +1167,7 @@ void GLWall::ClipFFloors(seg_t * seg, F3DFloor * ffloor, sector_t * frontsector,
 
 	int flags=ffloor->flags&FF_SWIMMABLE|FF_TRANSLUCENT;
 
-	for(int i=0;i<frontffloors.Size();i++)
+	for(unsigned int i=0;i<frontffloors.Size();i++)
 	{
 		F3DFloor * rover=frontffloors[i];
 		if (!(rover->flags&FF_EXISTS)) continue;
@@ -1282,7 +1282,7 @@ void GLWall::DoFFloorBlocks(seg_t * seg,sector_t * frontsector,sector_t * backse
 		bottomright=bfh2;
 	}
 
-	for(int i=0;i<backffloors.Size();i++)
+	for(unsigned int i=0;i<backffloors.Size();i++)
 	{
 		F3DFloor * rover=backffloors[i];
 		if (!(rover->flags&FF_EXISTS)) continue;
@@ -1440,7 +1440,7 @@ void GLWall::Process(seg_t *seg, sector_t * frontsector, sector_t * backsector, 
 	{
 		if (seg->sidedef->Flags & WALLF_AUTOCONTRAST)
 		{
-			rellight = (seg->linedef->dx==0? level.WallVertLight : seg->linedef->dy==0 ? level.WallHorizLight : 0)<<1;
+			rellight = (seg->linedef->dx==0? level.WallVertLight : seg->linedef->dy==0 ? level.WallHorizLight : 0);
 		}
 		else if (!(seg->sidedef->Flags & WALLF_ABSLIGHTING))
 		{

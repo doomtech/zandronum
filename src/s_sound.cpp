@@ -943,8 +943,7 @@ void S_StartNamedSound (AActor *ent, fixed_t *pt, int channel,
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		return;
 
-	if (name == NULL ||
-		(ent != NULL && ent->Sector->MoreFlags & SECF_SILENT))
+	if (name == NULL || (ent != NULL && ent->Sector->Flags & SECF_SILENT))
 	{
 		return;
 	}

@@ -418,10 +418,31 @@ static void I_CheckGUICapture ()
 	}
 }
 
+CUSTOM_CVAR(Int, mouse_capturemode, 1, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
+{
+	if (self < 0) self = 0;
+	else if (self > 2) self = 2;
+}
+
+static bool inGame()
+{
+	switch (mouse_capturemode)
+	{
+	default:
+	case 0:
+		return gamestate == GS_LEVEL;
+	case 1:
+		return gamestate == GS_LEVEL || gamestate == GS_INTERMISSION || gamestate == GS_FINALE;
+	case 2:
+		return true;
+	}
+}
+
 void I_CheckNativeMouse (bool preferNative)
 {
 	bool wantNative = !HaveFocus ||
-		((!screen || !screen->IsFullscreen()) && (gamestate != GS_LEVEL || GUICapture || paused || preferNative || !use_mouse));
+		((!screen || !screen->IsFullscreen()) && 
+		(!inGame() || GUICapture || paused || preferNative || !use_mouse));
 
 	//Printf ("%d %d %d\n", wantNative, preferNative, NativeMouse);
 
@@ -1538,7 +1559,10 @@ static void SetSoundPaused (int state)
 	{
 		if (paused <= 0)
 		{
-			S_ResumeSound ();
+			if (GSnd != NULL)
+			{
+				GSnd->SetInactive(false);
+			}
 			if (NETWORK_GetState( ) == NETSTATE_SINGLE
 #ifdef _DEBUG
 				&& !demoplayback
@@ -1553,7 +1577,10 @@ static void SetSoundPaused (int state)
 	{
 		if (paused == 0)
 		{
-			S_PauseSound (false);
+			if (GSnd !=  NULL)
+			{
+				GSnd->SetInactive(true);
+			}
 			if (NETWORK_GetState( ) == NETSTATE_SINGLE
 #ifdef _DEBUG
 				&& !demoplayback

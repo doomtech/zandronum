@@ -292,7 +292,6 @@ bool SightCheck::P_SightBlockLinesIterator (int x, int y)
 	int *list;
 
 	polyblock_t *polyLink;
-	seg_t **segList;
 	int i;
 	extern polyblock_t **PolyBlockMap;
 
@@ -306,10 +305,9 @@ bool SightCheck::P_SightBlockLinesIterator (int x, int y)
 			if (polyLink->polyobj->validcount != validcount)
 			{
 				polyLink->polyobj->validcount = validcount;
-				segList = polyLink->polyobj->segs;
-				for (i = 0; i < polyLink->polyobj->numsegs; i++, segList++)
+				for (i = 0; i < polyLink->polyobj->numlines; i++)
 				{
-					if (!P_SightCheckLine ((*segList)->linedef))
+					if (!P_SightCheckLine (polyLink->polyobj->lines[i]))
 						return false;
 				}
 			}

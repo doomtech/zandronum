@@ -728,15 +728,14 @@ line_t *FBlockLinesIterator::Next()
 					polyLink->polyobj->validcount = validcount;
 				}
 
-				seg_t *seg = polyLink->polyobj->segs[polyIndex];
+				line_t *ld = polyLink->polyobj->lines[polyIndex];
 
-				if (++polyIndex >= polyLink->polyobj->numsegs)
+				if (++polyIndex >= polyLink->polyobj->numlines)
 				{
 					polyLink = polyLink->next;
 					polyIndex = 0;
 				}
 
-				line_t *ld = seg->linedef;
 				if (ld->validcount == validcount)
 				{
 					continue;

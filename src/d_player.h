@@ -64,7 +64,7 @@ enum
 	APMETA_Hexenarmor4,
 };
 
-class player_s;
+class player_t;
 class	CSkullBot;
 class	AFloatyIcon;
 
@@ -225,10 +225,10 @@ typedef enum
 //
 // Extended player object info: player_t
 //
-class player_s
+class player_t
 {
 public:
-	player_s();
+	player_t();
 
 	void Serialize (FArchive &arc);
 	size_t FixPointers (const DObject *obj, DObject *replacement);
@@ -449,13 +449,11 @@ public:
 	int GetSpawnClass();
 };
 
-typedef player_s player_t;
-
 // Bookkeeping on players - state.
-extern player_s players[MAXPLAYERS];
+extern player_t players[MAXPLAYERS];
 extern DWORD playerswiping;
 
-inline FArchive &operator<< (FArchive &arc, player_s *&p)
+inline FArchive &operator<< (FArchive &arc, player_t *&p)
 {
 	return arc.SerializePointer (players, (BYTE **)&p, sizeof(*players));
 }
@@ -463,18 +461,18 @@ inline FArchive &operator<< (FArchive &arc, player_s *&p)
 //*****************************************************************************
 //	PROTOTYPES
 
-void	PLAYER_SetFragcount( player_s *pPlayer, LONG lFragCount, bool bAnnounce, bool bUpdateTeamFrags );
+void	PLAYER_SetFragcount( player_t *pPlayer, LONG lFragCount, bool bAnnounce, bool bUpdateTeamFrags );
 void	PLAYER_ResetAllPlayersFragcount( void );
-void	PLAYER_GivePossessionPoint( player_s *pPlayer );
-void	PLAYER_SetTeam( player_s *pPlayer, ULONG ulTeam, bool bNoBroadcast );
-void	PLAYER_SetSpectator( player_s *pPlayer, bool bBroadcast, bool bDeadSpectator );
-void	PLAYER_SetWins( player_s *pPlayer, ULONG ulWins );
-void	PLAYER_GetName( player_s *pPlayer, char *pszOutBuf );
-bool	PLAYER_IsTrueSpectator( player_s *pPlayer );
-void	PLAYER_StruckPlayer( player_s *pPlayer );
-bool	PLAYER_ShouldSpawnAsSpectator( player_s *pPlayer );
-bool	PLAYER_Taunt( player_s *pPlayer );
-LONG	PLAYER_GetRailgunColor( player_s *pPlayer );
+void	PLAYER_GivePossessionPoint( player_t *pPlayer );
+void	PLAYER_SetTeam( player_t *pPlayer, ULONG ulTeam, bool bNoBroadcast );
+void	PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectator );
+void	PLAYER_SetWins( player_t *pPlayer, ULONG ulWins );
+void	PLAYER_GetName( player_t *pPlayer, char *pszOutBuf );
+bool	PLAYER_IsTrueSpectator( player_t *pPlayer );
+void	PLAYER_StruckPlayer( player_t *pPlayer );
+bool	PLAYER_ShouldSpawnAsSpectator( player_t *pPlayer );
+bool	PLAYER_Taunt( player_t *pPlayer );
+LONG	PLAYER_GetRailgunColor( player_t *pPlayer );
 
 void P_CheckPlayerSprites();
 

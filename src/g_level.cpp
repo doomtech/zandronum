@@ -361,6 +361,7 @@ enum EMIType
 	MITYPE_REDIRECT,
 	MITYPE_SPECIALACTION,
 	MITYPE_COMPATFLAG,
+	MITYPE_STRINGT,
 };
 
 struct MapInfoHandler
@@ -508,8 +509,8 @@ static const char *MapInfoClusterLevel[] =
 
 MapInfoHandler ClusterHandlers[] =
 {
-	{ MITYPE_STRING,	cioffset(entertext), CLUSTER_LOOKUPENTERTEXT },
-	{ MITYPE_STRING,	cioffset(exittext), CLUSTER_LOOKUPEXITTEXT },
+	{ MITYPE_STRINGT,	cioffset(entertext), CLUSTER_LOOKUPENTERTEXT },
+	{ MITYPE_STRINGT,	cioffset(exittext), CLUSTER_LOOKUPEXITTEXT },
 	{ MITYPE_MUSIC,		cioffset(messagemusic), cioffset(musicorder) },
 	{ MITYPE_LUMPNAME,	cioffset(finaleflat), 0 },
 	{ MITYPE_LUMPNAME,	cioffset(finaleflat), CLUSTER_FINALEPIC },
@@ -518,7 +519,7 @@ MapInfoHandler ClusterHandlers[] =
 	{ MITYPE_HEX,		cioffset(cdid), 0 },
 	{ MITYPE_SETFLAG,	CLUSTER_ENTERTEXTINLUMP, 0 },
 	{ MITYPE_SETFLAG,	CLUSTER_EXITTEXTINLUMP, 0 },
-	{ MITYPE_STRING,	cioffset(clustername), CLUSTER_LOOKUPNAME },
+	{ MITYPE_STRINGT,	cioffset(clustername), CLUSTER_LOOKUPNAME },
 };
 
 static void ParseMapInfoLower (FScanner &sc,
@@ -936,7 +937,62 @@ static void ParseMapInfoLower (FScanner &sc,
 					sprintf (sc.String, "MAP%02d", map);
 				}
 			}
-			if (strnicmp (sc.String, "EndGame", 7) == 0)
+			if (sc.Compare ("endgame"))
+			{
+				newSeq.Advanced = true;
+				newSeq.EndType = END_Pic1;
+				newSeq.PlayTheEnd = false;
+				newSeq.MusicLooping = true;
+				sc.MustGetStringName("{");
+				while (!sc.CheckString("}"))
+				{
+					sc.MustGetString();
+					if (sc.Compare("pic"))
+					{
+						sc.MustGetString();
+						newSeq.EndType = END_Pic;
+						strncpy (newSeq.PicName, sc.String, 8);
+						newSeq.PicName[8] = 0;
+					}
+					else if (sc.Compare("hscroll"))
+					{
+						newSeq.EndType = END_Bunny;
+						sc.MustGetString();
+						strncpy (newSeq.PicName, sc.String, 8);
+						newSeq.PicName[8] = 0;
+						sc.MustGetString();
+						strncpy (newSeq.PicName2, sc.String, 8);
+						newSeq.PicName2[8] = 0;
+						if (sc.CheckNumber())
+							newSeq.PlayTheEnd = !!sc.Number;
+					}
+					else if (sc.Compare("vscroll"))
+					{
+						newSeq.EndType = END_Demon;
+						sc.MustGetString();
+						strncpy (newSeq.PicName, sc.String, 8);
+						newSeq.PicName[8] = 0;
+						sc.MustGetString();
+						strncpy (newSeq.PicName2, sc.String, 8);
+						newSeq.PicName2[8] = 0;
+					}
+					else if (sc.Compare("cast"))
+					{
+						newSeq.EndType = END_Cast;
+					}
+					else if (sc.Compare("music"))
+					{
+						sc.MustGetString();
+						newSeq.Music = sc.String;
+						if (sc.CheckNumber())
+						{
+							newSeq.MusicLooping = !!sc.Number;
+						}
+					}
+				}
+				useseq = true;
+			}
+			else if (strnicmp (sc.String, "EndGame", 7) == 0)
 			{
 				// If we're in a multiplayer game, don't do the finale, just go back to the
 				// beginning.
@@ -1017,7 +1073,13 @@ static void ParseMapInfoLower (FScanner &sc,
 			}
 			if (useseq)
 			{
-				int seqnum = FindEndSequence (newSeq.EndType, newSeq.PicName);
+				int seqnum = -1;
+				
+				if (!newSeq.Advanced)
+				{
+					seqnum = FindEndSequence (newSeq.EndType, newSeq.PicName);
+				}
+
 				if (seqnum == -1)
 				{
 					seqnum = (int)EndSequences.Push (newSeq);
@@ -1081,7 +1143,7 @@ static void ParseMapInfoLower (FScanner &sc,
 			}
 			break;
 
-		case MITYPE_STRING:
+		case MITYPE_STRINGT:
 			sc.MustGetString ();
 			if (sc.String[0] == '$')
 			{
@@ -1098,6 +1160,11 @@ static void ParseMapInfoLower (FScanner &sc,
 				}
 				ReplaceString ((char **)(info + handler->data1), sc.String);
 			}
+			break;
+
+		case MITYPE_STRING:
+			sc.MustGetString();
+			ReplaceString ((char **)(info + handler->data1), sc.String);
 			break;
 
 		case MITYPE_MUSIC:
@@ -1365,7 +1432,7 @@ static int FindEndSequence (int type, const char *picname)
 	num = EndSequences.Size ();
 	for (i = 0; i < num; i++)
 	{
-		if (EndSequences[i].EndType == type &&
+		if (EndSequences[i].EndType == type && !EndSequences[i].Advanced &&
 			(type != END_Pic || stricmp (EndSequences[i].PicName, picname) == 0))
 		{
 			return (int)i;

@@ -109,8 +109,8 @@
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
 
 void	G_PlayerReborn( int player );
-polyobj_t	*GetPolyobj( int polyNum );
-polyobj_t	*GetPolyobjByIndex( ULONG ulPoly );
+FPolyObj	*GetPolyobj( int polyNum );
+FPolyObj	*GetPolyobjByIndex( ULONG ulPoly );
 
 void SERVERCONSOLE_UpdatePlayerInfo( LONG lPlayer, ULONG ulUpdateFlags );
 void SERVERCONSOLE_ReListPlayers( void );
@@ -1975,7 +1975,7 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 {
 	AActor						*pActor;
 	ULONG						ulIdx;
-	player_s*					pPlayer;
+	player_t*					pPlayer;
 	AInventory					*pInventory;
 	TThinkerIterator<AActor>	Iterator;
 
@@ -2528,7 +2528,7 @@ void SERVER_UpdateSectors( ULONG ulClient )
 {
 	ULONG							ulIdx;
 	sector_t						*pSector;
-	polyobj_t						*pPoly;
+	FPolyObj						*pPoly;
 	TThinkerIterator<DFireFlicker>	FireFlickerIterator;
 	DFireFlicker					*pFireFlicker;
 	TThinkerIterator<DFlicker>		FlickerIterator;
