@@ -27,7 +27,12 @@ latestzdoom branch
 -	- The fire background for player setup and class select was not scaled properly. [Blzut3]
 
 
-??????
+v0.97d2 RC3
+------
+
++	- Added support for OpenGL texture compression. Depending on the GPU capabilities up to four new texture formats (COMPR_RGBA, S3TC_DXT1, S3TC_DXT3, S3TC_DXT5) are selectable with gl_texture_format. [Torr Samaho]
+
+v0.97d2 RC2
 ------
 
 *+	- Added basic HUD model support. [Torr Samaho]
@@ -43,7 +48,6 @@ latestzdoom branch
 +	- All the server side code that manipulates actors on the clients now checks for valid net ids. A warning is printed if it's not possible to manipulate an actor because of a missing net id. [Torr Samaho]
 +	- Added: sv_maxlives can now be configured from the "General settings" Windows server window. [Torr Samaho]
 +	- Added new CVAR sv_showwarnings (default true). If set to false, the new server side warning messages are suppressed. May be necessary for certain mods to prevent the warnings from flooding the log. [Torr Samaho]
-+	- Added support for OpenGL texture compression. Depending on the GPU capabilities up to four new texture formats (COMPR_RGBA, S3TC_DXT1, S3TC_DXT3, S3TC_DXT5) are selectable with gl_texture_format. [Torr Samaho]
 -	- Fixed: The 'summonfoe' console command didn't work online. [Karate Chris, Torr Samaho]
 -	- Fixed: Using the CCMD stat crashes the server. [Torr Samaho]
 -	- Fixed: A_Chase doesn't work properly online when a custom missile or melee state is specified as argument. [Torr Samaho]

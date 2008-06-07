@@ -57,7 +57,7 @@
 //*****************************************************************************
 //	CONSOLE VARIABLES
 
-CVAR( Bool, cl_drawcoopinfo, false, CVAR_ARCHIVE )
+CVAR( Bool, cl_drawcoopinfo, true, CVAR_ARCHIVE )
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -120,7 +120,7 @@ void DrawHUD_CoopInfo()
 	for ( int i = 0; i < MAXPLAYERS; i++ )
 	{
 		// [BB] Only draw the info of players who are actually in the game.
-		if ( (playeringame[i] == false) || (players[i].mo == NULL) )
+		if ( (playeringame[i] == false) || ( players[i].bSpectating ) || (players[i].mo == NULL) )
 			continue;
 
 		// [BB] No need to draw the info of the player who's eyes we are looking through.
@@ -138,21 +138,25 @@ void DrawHUD_CoopInfo()
 		curYPos += coopInfoFont->GetHeight( ) + 1;
 
 		// [BB] Draw player health (color coded) and armor.
-		AInventory* pArmor = players[i].mo->FindInventory(RUNTIME_CLASS(ABasicArmor));
-		drawString.Format( "%d \\cD/ %d", players[i].mo->health, pArmor ? pArmor->Amount : 0 );
-		V_ColorizeString( drawString );
-		EColorRange healthColor = CR_UNDEFINED;
-		if ( players[i].mo->health > 66 )
-			healthColor = CR_GREEN;
-		else if ( players[i].mo->health > 33 )
-			healthColor = CR_GOLD;
+		EColorRange healthColor = CR_RED;
+		// [BB] Player is alive.
+		if ( players[i].mo->health > 0 )
+		{
+			AInventory* pArmor = players[i].mo->FindInventory(RUNTIME_CLASS(ABasicArmor));
+			drawString.Format( "%d \\cD/ %d", players[i].mo->health, pArmor ? pArmor->Amount : 0 );
+			V_ColorizeString( drawString );
+			if ( players[i].mo->health > 66 )
+				healthColor = CR_GREEN;
+			else if ( players[i].mo->health > 33 )
+				healthColor = CR_GOLD;
+		}
 		else
-			healthColor = CR_RED;
+			drawString = "dead";
 		HUD_DrawTextAligned ( healthColor, curYPos, drawString.GetChars(), drawLeft, bScale, virtualWidth, virtualHeight );
 		curYPos += coopInfoFont->GetHeight( ) + 1;
 
-		// [BB] Draw player weapon and Ammo1/Ammo2.
-		if ( players[i].ReadyWeapon )
+		// [BB] Draw player weapon and Ammo1/Ammo2, but only if the player is alive.
+		if ( players[i].ReadyWeapon && players[i].mo->health > 0 )
 		{
 			drawString = players[i].ReadyWeapon->GetClass()->TypeName;
 			if ( players[i].ReadyWeapon->Ammo1 )
