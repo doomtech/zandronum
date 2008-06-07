@@ -40,7 +40,7 @@
 
 /** Lots of different version numbers **/
 
-#define DOTVERSIONSTR "0.97d2-unofficial"
+#define DOTVERSIONSTR "0.97e-alpha"
 #define DOTVERSIONSTR_NOREV DOTVERSIONSTR
 
 #define ZDVER_STRING "2.2.0"
