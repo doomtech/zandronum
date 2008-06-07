@@ -16,6 +16,8 @@
 #include "dikeys.h"
 #include "templates.h"
 #include "s_sound.h"
+// [BB] New #includes.
+#include "chat.h"
 
 static void I_CheckGUICapture ();
 static void I_CheckNativeMouse ();
