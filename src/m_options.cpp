@@ -2949,7 +2949,7 @@ CVAR( Int, menu_modifier, 0, CVAR_ARCHIVE );
 
 static menuitem_t SkirmishItems[] = {
 	{ levelslot,"Level",					&menu_level,			0.0, 0.0, 0.0, NULL  },
-	{ discrete,	"Game mode",				&menu_gamemode,			15.0, 0.0, 1.0, GameModeVals },
+	{ discrete,	"Game mode",				&menu_gamemode,			15.0, 0.0, 0.0, GameModeVals },
 	{ discrete, "Modifier",					&menu_modifier,			3.0, 0.0, 0.0, ModifierVals },
 	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
 	{ number,	"Timelimit",				&menu_timelimit,		0.0, 100.0, 1.0, NULL  },
@@ -2959,8 +2959,8 @@ static menuitem_t SkirmishItems[] = {
 	{ number,	"Winlimit",					&menu_winlimit,			0.0, 100.0, 1.0, NULL  },
 	{ number,	"Wavelimit",				&menu_wavelimit,		0.0, 10.0, 1.0, NULL  },
 	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ discrete,	"Skill",					&menu_skill,			5.0, 0.0, 1.0, GameskillVals },
-	{ discrete,	"Botskill",					&menu_botskill,			5.0, 0.0, 1.0, BotskillVals },
+	{ discrete,	"Skill",					&menu_skill,			5.0, 0.0, 0.0, GameskillVals },
+	{ discrete,	"Botskill",					&menu_botskill,			5.0, 0.0, 0.0, BotskillVals },
 	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
 	{ more,		"Bot setup",				NULL,					0.0, 0.0, 0.0, (value_t *)M_BotSetup },
 	{ more,		"Gameplay options",			NULL,					0.0, 0.0, 0.0, {(value_t *)SkirmishGameplayOptions} },
