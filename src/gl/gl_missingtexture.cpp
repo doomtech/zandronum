@@ -1,4 +1,3 @@
-
 /*
 ** gl_missingtexture.cpp
 ** Handles missing upper and lower textures and self referencing sector hacks

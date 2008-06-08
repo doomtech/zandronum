@@ -1,4 +1,3 @@
-
 /*
 ** gl_portal.cpp
 **   Generalized portal maintenance classes for skyboxes, horizons etc.

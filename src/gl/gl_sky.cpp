@@ -1,4 +1,3 @@
-
 /*
 ** gl_sky.cpp
 ** Sky preparation code.

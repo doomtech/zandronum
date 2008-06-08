@@ -1,4 +1,3 @@
-
 /*
 ** gl_wall.cpp
 ** Wall rendering preparation

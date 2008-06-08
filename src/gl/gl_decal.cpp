@@ -1,4 +1,3 @@
-
 /*
 ** gl_decal.cpp
 ** OpenGL decal rendering code

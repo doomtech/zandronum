@@ -1,4 +1,3 @@
-
 /*
 ** gl_translate.cpp
 ** GL-related translation stuff

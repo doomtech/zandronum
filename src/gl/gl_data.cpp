@@ -1,4 +1,3 @@
-
 /*
 ** gl_data.cpp
 ** Maintenance data for GL renderer (mostly to handle rendering hacks)
@@ -592,5 +591,6 @@ void gl_CleanLevelData()
 	}
 	gl_CleanVertexData();
 }
+
 
 

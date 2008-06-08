@@ -1,4 +1,3 @@
-
 /*
 ** gl_framebuffer.cpp
 ** Implementation of the non-hardware specific parts of the

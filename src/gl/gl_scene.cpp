@@ -1,4 +1,3 @@
-
 /*
 ** gl_scene.cpp
 ** manages the rendering of the player's view

@@ -1,4 +1,3 @@
-
 /*
 ** gfxfuncs.cpp
 ** True color graphics functions

@@ -1,4 +1,3 @@
-
 /*
 ** gl_glow.cpp
 ** Glowing flats like Doomsday

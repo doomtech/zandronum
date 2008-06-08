@@ -1,4 +1,3 @@
-
 /*
 ** gl_drawinfo.cpp
 ** Implements the draw info structure which contains most of the

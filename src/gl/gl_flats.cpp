@@ -1,4 +1,3 @@
-
 /*
 ** gl_flat.cpp
 ** Flat rendering

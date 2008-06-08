@@ -1,4 +1,3 @@
-
 /*
 ** gl_light.cpp
 ** Light level / fog management / dynamic lights

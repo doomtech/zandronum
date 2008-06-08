@@ -1,4 +1,3 @@
-
 /*
 ** r_opengl.cpp
 **

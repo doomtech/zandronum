@@ -1,4 +1,3 @@
-
 /*
 ** a_dynlight.cpp
 ** Implements actors representing dynamic lights (hardware independent)

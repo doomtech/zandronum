@@ -1,4 +1,3 @@
-
 /*
 ** gl_missinglines.cpp
 ** This mess is only needed because ZDBSP likes to throw out lines 

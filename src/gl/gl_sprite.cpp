@@ -1,4 +1,3 @@
-
 /*
 ** gl_sprite.cpp
 ** Sprite/Particle rendering

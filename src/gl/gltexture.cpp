@@ -1,4 +1,3 @@
-
 /*
 ** gltexture.cpp
 ** Low level OpenGL texture handling. These classes are also

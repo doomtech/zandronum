@@ -1,4 +1,3 @@
-
 /*
 ** gl_walls_draw.cpp
 ** Wall rendering

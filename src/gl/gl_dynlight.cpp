@@ -1,4 +1,3 @@
-
 /*
 ** gl_dynlight.cpp
 ** Light definitions for actors.

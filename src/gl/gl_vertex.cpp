@@ -1,4 +1,3 @@
-
 /*
 ** gl_vertex.cpp
 **

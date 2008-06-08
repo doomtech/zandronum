@@ -1,4 +1,3 @@
-
 /*
 ** gl_shader.cpp
 **

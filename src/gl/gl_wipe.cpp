@@ -1,4 +1,3 @@
-
 /*
 ** gl_wipe.cpp
 ** Screen wipe stuff

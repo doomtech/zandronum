@@ -1,4 +1,3 @@
-
 /*
 ** gl_bsp.cpp
 ** Main rendering loop / BSP traversal / visibility clipping

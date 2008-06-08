@@ -1,4 +1,3 @@
-
 /*
 ** gl_cycler.cpp
 ** Implements the cycler for dynamic lights and texture shaders.

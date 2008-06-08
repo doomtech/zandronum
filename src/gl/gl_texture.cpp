@@ -1,4 +1,3 @@
-
 /*
 ** gltexture.cpp
 ** The texture classes for hardware rendering

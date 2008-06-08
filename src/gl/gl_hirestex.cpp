@@ -1,4 +1,3 @@
-
 /*
 ** Hires texture management
 **

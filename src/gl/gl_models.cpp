@@ -1,4 +1,3 @@
-
 /*
 ** gl_models.cpp
 **
