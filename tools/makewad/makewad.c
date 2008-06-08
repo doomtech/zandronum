@@ -148,7 +148,7 @@ int appendtozip (zipFile zipfile, const char * zipname, const char *filename)
 	if (readbuf == NULL)
 	{
 		fclose(lumpfile);
-		fprintf (stderr, "Could not allocate %d bytes\n", len);
+		fprintf (stderr, "Could not allocate %u bytes\n", (int)len);
 		return 1;
 	}
 	// read the whole source file into buffer
@@ -323,7 +323,7 @@ int buildwad (FILE *listfile, char *listfilename, const char *makecmd, char *mak
 				{
 					fprintf (wadfile, " \\\n\t\"%s\"", filename);
 				}
-				// ARGH! Stupid make. Too bad but then these files can't be checked. 
+				// ARGH! Stupid make. Too bad, but then these files can't be checked. 
 				// Still better than something that doesn't work at all though!
 				else if (!strpbrk(filename, "[]^"))	
 				{

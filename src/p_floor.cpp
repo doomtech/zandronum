@@ -29,6 +29,8 @@
 #include "doomstat.h"
 #include "r_state.h"
 #include "tables.h"
+#include "r_interpolate.h"
+// [BB] New #includes.
 #include "cl_demo.h"
 #include "network.h"
 #include "sv_commands.h"
@@ -64,7 +66,10 @@ void DFloor::Serialize (FArchive &arc)
 		<< (DWORD &)m_lFloorID;
 }
 
-IMPLEMENT_CLASS (DElevator)
+IMPLEMENT_POINTY_CLASS (DElevator)
+	DECLARE_POINTER(m_Interp_Floor)
+	DECLARE_POINTER(m_Interp_Ceiling)
+END_POINTERS
 
 DElevator::DElevator ()
 {
@@ -78,8 +83,25 @@ void DElevator::Serialize (FArchive &arc)
 		<< m_FloorDestDist
 		<< m_CeilingDestDist
 		<< m_Speed
+		<< m_Interp_Floor
+		<< m_Interp_Ceiling
 		// [BC]
 		<< (DWORD &)m_lElevatorID;
+}
+
+void DElevator::Destroy()
+{
+	if (m_Interp_Ceiling != NULL)
+	{
+		m_Interp_Ceiling->DelRef();
+		m_Interp_Ceiling = NULL;
+	}
+	if (m_Interp_Floor != NULL)
+	{
+		m_Interp_Floor->DelRef();
+		m_Interp_Floor = NULL;
+	}
+	Super::Destroy();
 }
 
 // [BC]
@@ -130,7 +152,10 @@ void DElevator::SetCeilingDestDist( LONG lDestDist )
 	m_CeilingDestDist = lDestDist;
 }
 
-IMPLEMENT_CLASS (DWaggleBase)
+IMPLEMENT_POINTY_CLASS (DWaggleBase)
+	DECLARE_POINTER(m_Interpolation)
+END_POINTERS
+
 IMPLEMENT_CLASS (DFloorWaggle)
 IMPLEMENT_CLASS (DCeilingWaggle)
 
@@ -149,6 +174,7 @@ void DWaggleBase::Serialize (FArchive &arc)
 		<< m_ScaleDelta
 		<< m_Ticker
 		<< m_State
+		<< m_Interpolation
 		// [BC]
 		<< (DWORD &)m_lWaggleID;
 }
@@ -297,7 +323,7 @@ void DFloor::Tick ()
 			}
 
 			m_Sector->floordata = NULL; //jff 2/22/98
-			stopinterpolation (INTERP_SectorFloor, m_Sector);
+			StopInterpolation();
 
 			//jff 2/26/98 implement stair retrigger lockout while still building
 			// note this only applies to the retriggerable generalized stairs
@@ -415,8 +441,6 @@ void DElevator::Tick ()
 
 		m_Sector->floordata = NULL;		//jff 2/22/98
 		m_Sector->ceilingdata = NULL;	//jff 2/22/98
-		stopinterpolation (INTERP_SectorFloor, m_Sector);
-		stopinterpolation (INTERP_SectorCeiling, m_Sector);
 		Destroy ();		// remove elevator from actives
 	}
 }
@@ -802,7 +826,7 @@ manual_floor:
 			(floor->m_Direction<0 && floor->m_FloorDestDist<sec->floorplane.d) ||	// moving down but going up
 			(floor->m_Speed >= abs(sec->floorplane.d - floor->m_FloorDestDist)))	// moving in one step
 		{
-			stopinterpolation (INTERP_SectorFloor, sec);
+			floor->StopInterpolation();
 
 			// [Graf Zahl]
 			// Don't make sounds for instant movement hacks but make an exception for
@@ -1313,8 +1337,8 @@ DElevator::DElevator (sector_t *sec)
 {
 	sec->floordata = this;
 	sec->ceilingdata = this;
-	setinterpolation (INTERP_SectorFloor, sec);
-	setinterpolation (INTERP_SectorCeiling, sec);
+	m_Interp_Floor = sec->SetInterpolation(sector_t::FloorMove, true);
+	m_Interp_Ceiling = sec->SetInterpolation(sector_t::CeilingMove, true);
 }
 
 //
@@ -1441,6 +1465,16 @@ DWaggleBase::DWaggleBase (sector_t *sec)
 {
 }
 
+void DWaggleBase::Destroy()
+{
+	if (m_Interpolation != NULL)
+	{
+		m_Interpolation->DelRef();
+		m_Interpolation = NULL;
+	}
+	Super::Destroy();
+}
+
 // [BC]
 void DWaggleBase::UpdateToClient( ULONG ulClient )
 {
@@ -1546,12 +1580,10 @@ void DWaggleBase::DoWaggle (bool ceiling)
 			if (ceiling)
 			{
 				m_Sector->ceilingdata = NULL;
-				stopinterpolation (INTERP_SectorCeiling, m_Sector);
 			}
 			else
 			{
 				m_Sector->floordata = NULL;
-				stopinterpolation (INTERP_SectorFloor, m_Sector);
 			}
 
 			// [BC] If we're the server, tell clients to delete the waggle.
@@ -1612,7 +1644,7 @@ DFloorWaggle::DFloorWaggle (sector_t *sec)
 	: Super (sec)
 {
 	sec->floordata = this;
-	setinterpolation (INTERP_SectorFloor, sec);
+	m_Interpolation = sec->SetInterpolation(sector_t::FloorMove, false);
 }
 
 void DFloorWaggle::Tick ()
@@ -1634,7 +1666,7 @@ DCeilingWaggle::DCeilingWaggle (sector_t *sec)
 	: Super (sec)
 {
 	sec->ceilingdata = this;
-	setinterpolation (INTERP_SectorCeiling, sec);
+	m_Interpolation = sec->SetInterpolation(sector_t::CeilingMove, false);
 }
 
 void DCeilingWaggle::Tick ()

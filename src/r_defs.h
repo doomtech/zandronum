@@ -36,9 +36,6 @@
 struct FLightNode;
 
 #include "dthinker.h"
-#include "r_interpolate.h"
-
-
 
 #define MAXWIDTH 2560
 #define MAXHEIGHT 1600
@@ -92,6 +89,7 @@ class player_t;
 class FScanner;
 class FBitmap;
 struct FCopyInfo;
+class DInterpolation;
 
 //
 // The SECTORS record, at runtime.
@@ -363,6 +361,9 @@ struct sector_t
 	void SetColor(int r, int g, int b, int desat);
 	void SetFade(int r, int g, int b);
 
+	DInterpolation *SetInterpolation(int position, bool attach);
+	void StopInterpolation(int position);
+
 	// Member variables
 	fixed_t		CenterFloor () const { return floorplane.ZatPoint (soundorg[0], soundorg[1]); }
 	fixed_t		CenterCeiling () const { return ceilingplane.ZatPoint (soundorg[0], soundorg[1]); }
@@ -416,6 +417,15 @@ struct sector_t
 	TObjPtr<DSectorEffect> floordata;			// jff 2/22/98 make thinkers on
 	TObjPtr<DSectorEffect> ceilingdata;			// floors, ceilings, lighting,
 	TObjPtr<DSectorEffect> lightingdata;		// independent of one another
+
+	enum
+	{
+		CeilingMove,
+		FloorMove,
+		CeilingScroll,
+		FloorScroll
+	};
+	TObjPtr<DInterpolation> interpolations[4];
 
 	// jff 2/26/98 lockout machinery for stairbuilding
 	SBYTE stairlock;	// -2 on first locked -1 after thinker done 0 normally
@@ -549,6 +559,7 @@ struct side_t
 		fixed_t xoffset;
 		fixed_t yoffset;
 		int texture;
+		TObjPtr<DInterpolation> interpolation;
 		//int Light;
 	};
 
@@ -617,14 +628,8 @@ struct side_t
 		textures[which].yoffset += delta;
 	}
 
-	void SetInterpolation(int position)
-	{
-		setinterpolation(EInterpType(INTERP_WallPanning_Top+position), this);
-	}
-	void StopInterpolation(int position)
-	{
-		stopinterpolation(EInterpType(INTERP_WallPanning_Top+position), this);
-	}
+	DInterpolation *SetInterpolation(int position);
+	void StopInterpolation(int position);
 	//For GL
 	FLightNode * lighthead[2];				// all blended lights that may affect this wall
 };
@@ -775,8 +780,11 @@ struct FPolyObj
 	int			seqType;
 	fixed_t		size;			// polyobj size (area of POLY_AREAUNIT == size of FRACUNIT)
 	DThinker	*specialdata;	// pointer to a thinker, if the poly is moving
+	TObjPtr<DInterpolation> interpolation;
 
 	~FPolyObj();
+	DInterpolation *SetInterpolation();
+	void StopInterpolation();
 
 	// Has this polyobject moved at all? If so, we need to tell connecting clients of its new position.
 	bool		bMoved;

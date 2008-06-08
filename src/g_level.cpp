@@ -132,6 +132,14 @@ static	FRandom		g_RandomMapSeed( "MapSeed" );
 
 TArray<EndSequence> EndSequences;
 
+EndSequence::EndSequence()
+{
+	EndType = END_Pic;
+	Advanced = false;
+	MusicLooping = false;
+	PlayTheEnd = false;
+}
+
 extern bool timingdemo;
 
 // Start time for timing demos
@@ -951,18 +959,15 @@ static void ParseMapInfoLower (FScanner &sc,
 					{
 						sc.MustGetString();
 						newSeq.EndType = END_Pic;
-						strncpy (newSeq.PicName, sc.String, 8);
-						newSeq.PicName[8] = 0;
+						newSeq.PicName = sc.String;
 					}
 					else if (sc.Compare("hscroll"))
 					{
 						newSeq.EndType = END_Bunny;
 						sc.MustGetString();
-						strncpy (newSeq.PicName, sc.String, 8);
-						newSeq.PicName[8] = 0;
+						newSeq.PicName = sc.String;
 						sc.MustGetString();
-						strncpy (newSeq.PicName2, sc.String, 8);
-						newSeq.PicName2[8] = 0;
+						newSeq.PicName2 = sc.String;
 						if (sc.CheckNumber())
 							newSeq.PlayTheEnd = !!sc.Number;
 					}
@@ -970,11 +975,9 @@ static void ParseMapInfoLower (FScanner &sc,
 					{
 						newSeq.EndType = END_Demon;
 						sc.MustGetString();
-						strncpy (newSeq.PicName, sc.String, 8);
-						newSeq.PicName[8] = 0;
+						newSeq.PicName = sc.String;
 						sc.MustGetString();
-						strncpy (newSeq.PicName2, sc.String, 8);
-						newSeq.PicName2[8] = 0;
+						newSeq.PicName2 = sc.String;
 					}
 					else if (sc.Compare("cast"))
 					{
@@ -1033,8 +1036,7 @@ static void ParseMapInfoLower (FScanner &sc,
 			{
 				sc.MustGetString ();
 				newSeq.EndType = END_Pic;
-				strncpy (newSeq.PicName, sc.String, 8);
-				newSeq.PicName[8] = 0;
+				newSeq.PicName = sc.String;
 				useseq = true;
 			}
 			else if (sc.Compare ("endbunny"))
@@ -1450,7 +1452,6 @@ static void SetEndSequence (char *nextmap, int type)
 	{
 		EndSequence newseq;
 		newseq.EndType = type;
-		memset (newseq.PicName, 0, sizeof(newseq.PicName));
 		seqnum = (int)EndSequences.Push (newseq);
 	}
 	strcpy (nextmap, "enDSeQ");
@@ -3416,7 +3417,7 @@ void G_SerializeLevel (FArchive &arc, bool hubLoad)
 	// [BB]: Server has no status bar.
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		StatusBar->Serialize (arc);
-	SerializeInterpolations (arc);
+	//SerializeInterpolations (arc);
 
 	arc << level.total_monsters << level.total_items << level.total_secrets;
 

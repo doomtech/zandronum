@@ -519,10 +519,11 @@ bool PO_Busy (int polyobj);
 class DPolyAction : public DThinker
 {
 	DECLARE_CLASS (DPolyAction, DThinker)
+	HAS_OBJECT_POINTERS
 public:
 	DPolyAction (int polyNum);
-	~DPolyAction ();
 	void Serialize (FArchive &arc);
+	void Destroy();
 
 	void StopInterpolation ();
 
@@ -538,6 +539,7 @@ protected:
 	int m_PolyObj;
 	int m_Speed;
 	int m_Dist;
+	TObjPtr<DInterpolation> m_Interpolation;
 
 	void SetInterpolation ();
 

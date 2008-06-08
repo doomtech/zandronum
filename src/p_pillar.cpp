@@ -37,12 +37,16 @@
 #include "p_spec.h"
 #include "g_level.h"
 #include "s_sndseq.h"
+#include "r_interpolate.h"
 // [BC] New #includes.
 #include "cl_demo.h"
 #include "network.h"
 #include "sv_commands.h"
 
-IMPLEMENT_CLASS (DPillar)
+IMPLEMENT_POINTY_CLASS (DPillar)
+	DECLARE_POINTER(m_Interp_Floor)
+	DECLARE_POINTER(m_Interp_Ceiling)
+END_POINTERS
 
 DPillar::DPillar ()
 {
@@ -54,8 +58,23 @@ DPillar::DPillar(sector_t *sector)
 {
 	sector->floordata = this;
 	sector->ceilingdata = this;
-	setinterpolation (INTERP_SectorFloor, sector);
-	setinterpolation (INTERP_SectorCeiling, sector);
+	m_Interp_Floor = sector->SetInterpolation(sector_t::FloorMove, true);
+	m_Interp_Ceiling = sector->SetInterpolation(sector_t::CeilingMove, true);
+}
+
+void DPillar::Destroy()
+{
+	if (m_Interp_Ceiling != NULL)
+	{
+		m_Interp_Ceiling->DelRef();
+		m_Interp_Ceiling = NULL;
+	}
+	if (m_Interp_Floor != NULL)
+	{
+		m_Interp_Floor->DelRef();
+		m_Interp_Floor = NULL;
+	}
+	Super::Destroy();
 }
 
 void DPillar::Serialize (FArchive &arc)
@@ -68,6 +87,8 @@ void DPillar::Serialize (FArchive &arc)
 		<< m_CeilingTarget
 		<< m_Crush
 		<< m_Hexencrush
+		<< m_Interp_Floor
+		<< m_Interp_Ceiling
 		// [BC]
 		<< (DWORD &)m_lPillarID;
 }
@@ -208,8 +229,8 @@ DPillar::DPillar (sector_t *sector, EPillar type, fixed_t speed,
 	vertex_t *spot;
 
 	sector->floordata = sector->ceilingdata = this;
-	setinterpolation (INTERP_SectorFloor, sector);
-	setinterpolation (INTERP_SectorCeiling, sector);
+	m_Interp_Floor = sector->SetInterpolation(sector_t::FloorMove, true);
+	m_Interp_Ceiling = sector->SetInterpolation(sector_t::CeilingMove, true);
 
 	m_Type = type;
 	m_Crush = crush;

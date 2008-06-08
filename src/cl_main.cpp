@@ -10196,10 +10196,12 @@ static void client_DestroyElevator( BYTESTREAM_s *pByteStream )
 		return;
 	}
 
+	/* [BB] I think ZDoom does all this is Destroy now.
 	pElevator->GetSector( )->floordata = NULL;
 	pElevator->GetSector( )->ceilingdata = NULL;
 	stopinterpolation( INTERP_SectorFloor, pElevator->GetSector( ));
 	stopinterpolation( INTERP_SectorCeiling, pElevator->GetSector( ));
+	*/
 
 	// Finally, destroy the elevator.
 	pElevator->Destroy( );

@@ -2320,7 +2320,6 @@ extern bool gl_disabled;
 void D_DoomMain (void)
 {
 	int p, flags;
-	FString file;
 	char *v;
 	const char *wad;
 	DArgs *execFiles;
@@ -2391,6 +2390,8 @@ void D_DoomMain (void)
 
 	if (!(gameinfo.flags & GI_SHAREWARE))
 	{
+		FString file;
+
 		// [RH] zvox.wad - A wad I had intended to be automatically generated
 		// from Q2's pak0.pak so the female and cyborg player could have
 		// voices. I never got around to writing the utility to do it, though.
@@ -2943,7 +2944,7 @@ void D_DoomMain (void)
 		v = Args->CheckValue ("-loadgame");
 		if (v)
 		{
-			file = v;
+			FString file(v);
 			FixPathSeperator (file);
 			DefaultExtension (file, ".zds");
 			G_LoadGame (file);

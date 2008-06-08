@@ -188,7 +188,6 @@ void DDoor::Tick ()
 			case doorRaise:
 			case doorClose:
 				m_Sector->ceilingdata = NULL;	//jff 2/22/98
-				stopinterpolation (INTERP_SectorCeiling, m_Sector);
 
 				// [BC] If we're the server, tell clients to destroy the door.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -278,7 +277,6 @@ void DDoor::Tick ()
 			case doorCloseWaitOpen:
 			case doorOpen:
 				m_Sector->ceilingdata = NULL;	//jff 2/22/98
-				stopinterpolation (INTERP_SectorCeiling, m_Sector);
 				
 				// [BC] If we're the server, tell clients to destroy the door.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -981,7 +979,7 @@ DAnimatedDoor::DAnimatedDoor (sector_t *sec, line_t *line, int speed, int delay)
 
 	// The DMovingCeiling constructor automatically sets up an interpolation for us.
 	// Stop it, since the ceiling is moving instantly here.
-	stopinterpolation (INTERP_SectorCeiling, sec);
+	StopInterpolation();
 	m_WhichDoorIndex = P_FindSlidingDoorType (sides[line->sidenum[0]].GetTexture(side_t::top));
 	if (m_WhichDoorIndex < 0)
 	{

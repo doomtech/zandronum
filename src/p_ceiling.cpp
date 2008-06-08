@@ -565,7 +565,7 @@ manual_ceiling:
 		}
 		if (ceiling->m_Speed >= movedist)
 		{
-			stopinterpolation (INTERP_SectorCeiling, sec);
+			ceiling->StopInterpolation();
 		}
 
 		// [BC] If we're the server, tell clients to create a ceiling.

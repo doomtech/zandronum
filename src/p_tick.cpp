@@ -29,6 +29,8 @@
 #include "s_sound.h"
 #include "doomstat.h"
 #include "sbar.h"
+#include "r_interpolate.h"
+// [BB] New #includes.
 #include "g_game.h"
 #include "team.h"
 #include "network.h"
@@ -93,7 +95,7 @@ void P_Ticker (void)
 	// [BC] Server doesn't need any of this.
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
-		updateinterpolations ();
+		interpolator.UpdateInterpolations ();
 		r_NoInterpolate = true;
 
 		// run the tic

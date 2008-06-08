@@ -64,7 +64,7 @@
 #include "sbar.h"
 #include "p_setup.h"
 #include "r_translate.h"
-
+#include "r_interpolate.h"
 #include "deathmatch.h"
 #include "duel.h"
 #include "team.h"
@@ -3596,7 +3596,7 @@ void P_SetupLevel (char *lumpname, int position)
 
 	// Free all level data from the previous map
 	P_FreeLevelData ();
-	clearinterpolations();	// [RH] Nothing to interpolate on a fresh level.
+	interpolator.ClearInterpolations();	// [RH] Nothing to interpolate on a fresh level.
 
 	MapData * map = P_OpenMapData(lumpname);
 	if (map == NULL)

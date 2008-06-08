@@ -24,15 +24,23 @@ protected:
 class DMover : public DSectorEffect
 {
 	DECLARE_CLASS (DMover, DSectorEffect)
+	HAS_OBJECT_POINTERS
 public:
 	DMover (sector_t *sector);
 protected:
 	enum EResult { ok, crushed, pastdest };
+	TObjPtr<DInterpolation> interpolation;
 private:
 	bool MoveAttached(int crush, fixed_t move, int floorOrCeiling, bool resetfailed);
 	EResult MovePlane (fixed_t speed, fixed_t dest, int crush, int floorOrCeiling, int direction, bool hexencrush);
 protected:
 	DMover ();
+	void Serialize (FArchive &arc);
+	// [BB] Changed Destroy to public, so that it can be called in cl_main.cpp.
+public:
+	void Destroy();
+protected:
+	void StopInterpolation();
 	inline EResult MoveFloor (fixed_t speed, fixed_t dest, int crush, int direction, bool hexencrush)
 	{
 		return MovePlane (speed, dest, crush, 0, direction, hexencrush);
