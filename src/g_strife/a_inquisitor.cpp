@@ -305,7 +305,12 @@ void A_InquisitorJump (AActor *self)
 
 	// [BC] If we're the server, update the thing's position.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_MoveThing( self, CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
+	{
+		SERVERCOMMANDS_MoveThingExact( self, CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
+
+		// [CW] Also, set the flags to ensure the actor can fly.
+		SERVERCOMMANDS_SetThingFlags( self, FLAGSET_FLAGS );
+	}
 }
 
 void A_InquisitorCheckLand (AActor *self)

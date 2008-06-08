@@ -2392,6 +2392,10 @@ void A_FireSigil1 (AActor *actor)
 		if (spot != NULL)
 		{
 			spot->tracer = linetarget;
+
+			// [CW] Spawn the lightning.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SpawnThing( spot );
 		}
 	}
 	else
@@ -2401,6 +2405,10 @@ void A_FireSigil1 (AActor *actor)
 		{
 			spot->momx += 28 * finecosine[actor->angle >> ANGLETOFINESHIFT];
 			spot->momy += 28 * finesine[actor->angle >> ANGLETOFINESHIFT];
+
+			// [CW] Spawn the lightning.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SpawnMissile( spot );
 		}
 	}
 	if (spot != NULL)

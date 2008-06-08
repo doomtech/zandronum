@@ -283,11 +283,19 @@ void A_201fc (AActor *self)
 	AActor *flash;
 	fixed_t x, y;
 
+	// [CW] Clients may not do this.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+		return;
+
 	if (self->threshold != 0)
 		--self->threshold;
 
 	self->momx += pr_zap5.Random2(3) << FRACBITS;
 	self->momy += pr_zap5.Random2(3) << FRACBITS;
+
+	// [CW] Tell clients to spawn the actor.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_MoveThingExact( self, CM_MOMX|CM_MOMY );
 
 	x = self->x + pr_zap5.Random2(3) * FRACUNIT * 50;
 	y = self->y + pr_zap5.Random2(3) * FRACUNIT * 50;
@@ -299,11 +307,19 @@ void A_201fc (AActor *self)
 	flash->momz = -18*FRACUNIT;
 	flash->health = self->health;
 
+	// [CW] Tell clients to spawn the actor.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SpawnMissile( flash );
+
 	flash = Spawn<ASpectralLightningV2> (self->x, self->y, ONCEILINGZ, ALLOW_REPLACE);
 
 	flash->target = self->target;
 	flash->momz = -18*FRACUNIT;
 	flash->health = self->health;
+
+	// [CW] Tell clients to spawn the missile.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SpawnMissile( flash );
 }
 // In Strife, this number is stored in the data segment, but it doesn't seem to be
 // altered anywhere.

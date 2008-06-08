@@ -9,6 +9,9 @@
 #include "c_console.h"
 #include "gstrings.h"
 #include "network.h"
+// [CW] New includes.
+#include "cl_demo.h"
+#include "sv_commands.h"
 
 static FRandom pr_spectrespawn ("AlienSpectreSpawn");
 static FRandom pr_212e4 ("212e4");
@@ -342,33 +345,73 @@ END_DEFAULTS
 
 //============================================================================
 
-static void GenericSpectreSpawn (AActor *actor, const PClass *type)
+// [CW] Slightly modified to return the new actor.
+AActor *GenericSpectreSpawn (AActor *actor, const PClass *type)
 {
 	AActor *spectre = Spawn (type, actor->x, actor->y, actor->z, ALLOW_REPLACE);
 	if (spectre != NULL)
 	{
 		spectre->momz = pr_spectrespawn() << 9;
 	}
+
+	// [CW]
+	return ( spectre );
 }
 
 void A_SpawnSpectre1 (AActor *actor)
 {
-	GenericSpectreSpawn (actor, RUNTIME_CLASS(AAlienSpectre1));
+	// [CW] Clients may not do this.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+		return;
+
+	// [CW]
+	AActor *pActor = GenericSpectreSpawn (actor, RUNTIME_CLASS(AAlienSpectre1));
+
+	// [CW] Tell clients to spawn the actor.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SpawnThing( pActor );
 }
 
 void A_SpawnSpectre3 (AActor *actor)
 {
-	GenericSpectreSpawn (actor, RUNTIME_CLASS(AAlienSpectre3));
+	// [CW] Clients may not do this.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+		return;
+
+	// [CW]
+	AActor *pActor = GenericSpectreSpawn (actor, RUNTIME_CLASS(AAlienSpectre3));
+
+	// [CW] Tell clients to spawn the actor.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SpawnThing( pActor );
 }
 
 void A_SpawnSpectre4 (AActor *actor)
 {
-	GenericSpectreSpawn (actor, RUNTIME_CLASS(AAlienSpectre4));
+	// [CW] Clients may not do this.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+		return;
+
+	// [CW]
+	AActor *pActor = GenericSpectreSpawn (actor, RUNTIME_CLASS(AAlienSpectre4));
+
+	// [CW] Tell clients to spawn the actor.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SpawnThing( pActor );
 }
 
 void A_SpawnSpectre5 (AActor *actor)
 {
-	GenericSpectreSpawn (actor, RUNTIME_CLASS(AAlienSpectre5));
+	// [CW] Clients may not do this.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+		return;
+
+	// [CW]
+	AActor *pActor = GenericSpectreSpawn (actor, RUNTIME_CLASS(AAlienSpectre5));
+
+	// [CW] Tell clients to spawn the actor.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SpawnThing( pActor );
 }
 
 void A_212e4 (AActor *self)
@@ -417,6 +460,10 @@ void A_204a4 (AActor *self)
 		{
 			missile->tracer = self->target;
 			missile->health = -2;
+
+			// [CW] Tell clients to spawn the missile.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SpawnMissile( missile );
 		}
 	}
 }
@@ -429,6 +476,10 @@ void A_204d0 (AActor *self)
 		if (missile != NULL)
 		{
 			missile->health = -2;
+
+			// [CW] Tell clients to spawn the missile.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SpawnMissile( missile );
 		}
 	}
 }
@@ -441,6 +492,10 @@ void A_20314 (AActor *self)
 		if (missile != NULL)
 		{
 			missile->health = -2;
+
+			// [CW] Tell clients to spawn the missile.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SpawnMissile( missile );
 		}
 	}
 }
@@ -466,6 +521,10 @@ void A_20334 (AActor *self)
 	foo->target = self;
 	foo->health = -2;
 	foo->tracer = self->target;
+
+	// [CW] Tell clients to spawn the actor.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SpawnMissile( foo );
 
 	self->angle -= ANGLE_180 / 20 * 10;
 	for (int i = 0; i < 20; ++i)
