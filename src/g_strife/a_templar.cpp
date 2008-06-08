@@ -5,6 +5,8 @@
 #include "p_enemy.h"
 #include "s_sound.h"
 #include "a_strifeglobal.h"
+// [CW] New include.
+#include "sv_commands.h"
 
 static FRandom pr_templar ("Templar");
 
@@ -131,6 +133,11 @@ void A_1fce8 (AActor *self)
 		return;
 
 	S_Sound (self, CHAN_WEAPON, "templar/shoot", 1, ATTN_NORM);
+
+	// [CW] Tell clients to play the sound.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SoundActor( self, CHAN_WEAPON, "templar/shoot", 1, ATTN_NORM );
+
 	A_FaceTarget (self);
 	pitch = P_AimLineAttack (self, self->angle, MISSILERANGE);
 

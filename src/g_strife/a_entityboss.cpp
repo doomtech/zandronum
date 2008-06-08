@@ -5,6 +5,9 @@
 #include "p_enemy.h"
 #include "s_sound.h"
 #include "a_strifeglobal.h"
+// [CW] New includes.
+#include "cl_demo.h"
+#include "sv_commands.h"
 
 static FRandom pr_entity ("Entity");
 
@@ -302,6 +305,10 @@ void A_200e0 (AActor *self)
 			bar->target = self;
 			bar->tracer = self->target;
 			bar->health = -2;
+
+			// [CW] Tell clients to spawn the actor.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SpawnThing( bar );
 		}
 		break;
 
@@ -312,6 +319,10 @@ void A_200e0 (AActor *self)
 			if (bar != NULL)
 			{
 				bar->health = -2;
+
+				// [CW] Tell clients to spawn the missile.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_SpawnMissile( bar );
 			}
 		}
 		break;
@@ -328,6 +339,10 @@ void A_200e0 (AActor *self)
 			{
 				bar->health = -2;
 				bar->tracer = self->target;
+
+				// [CW] Tell clients to spawn the missile.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_SpawnMissile( bar );
 			}
 		}
 		break;
@@ -340,6 +355,10 @@ void A_200e0 (AActor *self)
 			if (bar != NULL)
 			{
 				bar->health = -2;
+
+				// [CW] Tell clients to spawn the missile.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_SpawnMissile( bar );
 			}
 		}
 		break;
@@ -349,17 +368,29 @@ void A_200e0 (AActor *self)
 
 void A_SpawnEntity (AActor *self)
 {
+	// [CW] Clients may not do this.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+		return;
+
 	AActor *entity = Spawn<AEntityBoss> (self->x, self->y, self->z + 70*FRACUNIT, ALLOW_REPLACE);
 	if (entity != NULL)
 	{
 		entity->angle = self->angle;
 		entity->target = self->target;
 		entity->momz = 5*FRACUNIT;
+
+		// [CW] Tell clients to spawn the actor. (Treat it as a missile so it's momentum is sent to the clients.)
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SpawnMissile( entity );
 	}
 }
 
 void A_20c74 (AActor *selfa)
 {
+	// [CW] Clients may not do this.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+		return;
+
 	AEntityBoss *self = static_cast<AEntityBoss *>(selfa);
 	AEntitySecond *second;
 	fixed_t secondRadius = GetDefault<AEntitySecond>()->radius * 2;
@@ -374,6 +405,10 @@ void A_20c74 (AActor *selfa)
 	second->momx += FixedMul (finecosine[an], 320000);
 	second->momy += FixedMul (finesine[an], 320000);
 
+	// [CW] Tell clients to spawn the actor. (Treat it as a missile so it's momentum is sent to the clients.)
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SpawnMissile( second );
+
 	an = (self->angle + ANGLE_90) >> ANGLETOFINESHIFT;
 	second = Spawn<AEntitySecond> (self->SpawnX + FixedMul (secondRadius, finecosine[an]),
 		self->SpawnY + FixedMul (secondRadius, finesine[an]), self->SpawnZ, ALLOW_REPLACE);
@@ -382,11 +417,20 @@ void A_20c74 (AActor *selfa)
 	second->momy = FixedMul (secondRadius, finesine[an]) << 2;
 	A_FaceTarget (second);
 
+	// [CW] Tell clients to spawn the actor. (Treat it as a missile so it's momentum is sent to the clients.)
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SpawnMissile( second );
+
 	an = (self->angle - ANGLE_90) >> ANGLETOFINESHIFT;
 	second = Spawn<AEntitySecond> (self->SpawnX + FixedMul (secondRadius, finecosine[an]),
 		self->SpawnY + FixedMul (secondRadius, finesine[an]), self->SpawnZ, ALLOW_REPLACE);
 	second->target = self->target;
 	second->momx = FixedMul (secondRadius, finecosine[an]) << 2;
 	second->momy = FixedMul (secondRadius, finesine[an]) << 2;
+
+	// [CW] Tell clients to spawn the actor. (Treat it as a missile so it's momentum is sent to the clients.)
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SpawnMissile( second );
+
 	A_FaceTarget (second);
 }

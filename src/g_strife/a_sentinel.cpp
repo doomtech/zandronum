@@ -3,6 +3,9 @@
 #include "a_action.h"
 #include "p_local.h"
 #include "m_random.h"
+// [CW] New includes.
+#include "cl_demo.h"
+#include "sv_commands.h"
 
 static FRandom pr_sentinelrefire ("SentinelRefire");
 
@@ -126,9 +129,18 @@ void A_SentinelBob (AActor *self)
 {
 	fixed_t minz, maxz;
 
+	// [CW] This is handled by the server.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+		return;
+
 	if (self->flags & MF_INFLOAT)
 	{
 		self->momz = 0;
+
+		// [CW] Moving the actor is server side.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_MoveThing( self, CM_MOMZ );
+
 		return;
 	}
 	if (self->threshold != 0)
@@ -149,13 +161,25 @@ void A_SentinelBob (AActor *self)
 		self->momz += FRACUNIT;
 	}
 	self->reactiontime = (minz >= self->z) ? 4 : 0;
+
+	// [CW] Moving the actor is server side.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_MoveThingExact( self, CM_MOMZ );
 }
 
 void A_SentinelAttack (AActor *self)
 {
 	AActor *missile, *trail;
 
-	missile = P_SpawnMissileZAimed (self, self->z + 32*FRACUNIT, self->target, RUNTIME_CLASS(ASentinelFX2));
+	// [CW] If we aren't a client, spawn the missile.
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( !CLIENTDEMO_IsPlaying( )))
+	{
+		missile = P_SpawnMissileZAimed (self, self->z + 32*FRACUNIT, self->target, RUNTIME_CLASS(ASentinelFX2));
+
+		// [CW] Spawn the missile server side.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SpawnMissile( missile );
+	}
 
 	if (missile != NULL && (missile->momx|missile->momy) != 0)
 	{
@@ -182,6 +206,10 @@ void A_SentinelRefire (AActor *self)
 {
 	A_FaceTarget (self);
 
+	// [CW] Clients may not do this.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+		return;
+
 	if (pr_sentinelrefire() >= 30)
 	{
 		if (self->target == NULL ||
@@ -190,6 +218,10 @@ void A_SentinelRefire (AActor *self)
 			P_HitFriend(self) ||
 			pr_sentinelrefire() < 40)
 		{
+			// [CW] Tell clients to set the frame.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetThingFrame( self, self->SeeState );
+
 			self->SetState (self->SeeState);
 		}
 	}

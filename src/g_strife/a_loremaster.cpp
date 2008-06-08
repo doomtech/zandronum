@@ -6,6 +6,9 @@
 #include "p_local.h"
 #include "s_sound.h"
 #include "vectors.h"
+// [CW] New includes.
+#include "cl_demo.h"
+#include "sv_commands.h"
 
 static FRandom pr_atk1 ("FooMelee");
 
@@ -202,7 +205,12 @@ void A_20598 (AActor *self)
 {
 	if (self->target != NULL)
 	{
-		P_SpawnMissile (self, self->target, RUNTIME_CLASS(ALoreShot));
+		// [CW]
+		AActor *pMissile = P_SpawnMissile (self, self->target, RUNTIME_CLASS(ALoreShot));
+
+		// [CW] Tell clients to spawn the missile.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SpawnMissile( pMissile );
 	}
 }
 

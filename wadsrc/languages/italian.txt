@@ -1,5 +1,6 @@
 /* Italian strings. Contributed, but alas, I forget by who.
  * If whoever wrote these wants credit, send me an e-mail and I'll add your name to this header. 
+ * Fixed and finished by CKeen
  */
 
 [ita]
@@ -52,9 +53,9 @@ GOTSTIM = "Raccolto uno stimpack.";
 GOTMEDINEED = "Hai raccolto un medikit di cui avevi PROPRIO bisogno!";
 GOTMEDIKIT = "Raccolto un medikit.";
 GOTSUPER = "Sfera dell'Anima!";
-GOTBLUECARD = "Raccolta una card blu.";
-GOTYELWCARD = "Raccolta una card gialla.";
-GOTREDCARD = "Raccolta una card rossa.";
+GOTBLUECARD = "Raccolta una tessera blu.";
+GOTYELWCARD = "Raccolta una tessera gialla.";
+GOTREDCARD = "Raccolta una tessera rossa.";
 GOTBLUESKUL = "Raccolta una chiave-teschio blu.";
 GOTYELWSKUL = "Raccolta una chiave-teschio gialla.";
 GOTREDSKUL = "Raccolta una chiave-teschio rossa.";
@@ -74,7 +75,7 @@ GOTCELLBOX = "Raccolta una confezione di batterie.";
 GOTSHELLS = "Raccolte 4 cartucce per fucile.";
 GOTSHELLBOX = "Raccolta una scatola di cartucce per fucile.";
 GOTBACKPACK = "Raccolto uno zaino zeppo di munizioni!";
-GOTBFG9000 = "Hai trovato il BFG9000! Eh, si'!";
+GOTBFG9000 = "Hai trovato il BFG9000! Oh, si'!";
 GOTCHAINGUN = "Hai trovato un mitragliatore!";
 GOTCHAINSAW = "Una motosega! Trova un po' di carne!";
 GOTLAUNCHER = "Hai trovato un lanciarazzi!";
@@ -128,38 +129,38 @@ HUSTR_E4M7 = "E4M7: E l'inferno segui'";
 HUSTR_E4M8 = "E4M8: Verso il Crudele";
 HUSTR_E4M9 = "E4M9: Paura";
 
-HUSTR_1 = "livello 1: ingresso";
-HUSTR_2 = "livello 2: sotterranei";
-HUSTR_3 = "livello 3: le forche";
-HUSTR_4 = "livello 4: l'epicentro";
-HUSTR_5 = "livello 5: i tunnel dei rifiuti";
-HUSTR_6 = "livello 6: la pressa";
-HUSTR_7 = "livello 7: morte pura";
-HUSTR_8 = "livello 8: trucchi e trappole";
-HUSTR_9 = "livello 9: il pozzo";
-HUSTR_10 = "livello 10: base di rifornimento";
+HUSTR_1 = "livello 1: Ingresso";
+HUSTR_2 = "livello 2: Sotterranei";
+HUSTR_3 = "livello 3: Le forche";
+HUSTR_4 = "livello 4: L'epicentro";
+HUSTR_5 = "livello 5: I tunnel dei rifiuti";
+HUSTR_6 = "livello 6: La pressa";
+HUSTR_7 = "livello 7: Morte pura";
+HUSTR_8 = "livello 8: Trucchi e trappole";
+HUSTR_9 = "livello 9: Il pozzo";
+HUSTR_10 = "livello 10: Base di rifornimento";
 HUSTR_11 = "livello 11: 'o' della distruzione!";
-HUSTR_12 = "livello 12: la fabbrica";
-HUSTR_13 = "livello 13: periferia";
-HUSTR_14 = "livello 14: gli antri profondi";
-HUSTR_15 = "livello 15: zona industriale";
-HUSTR_16 = "livello 16: sobborghi";
-HUSTR_17 = "livello 17: possedimenti";
-HUSTR_18 = "livello 18: il cortile";
-HUSTR_19 = "livello 19: la cittadella";
-HUSTR_20 = "livello 20: preso!";
-HUSTR_21 = "livello 21: nirvana";
-HUSTR_22 = "livello 22: le catacombe";
-HUSTR_23 = "livello 23: barili del divertimento";
-HUSTR_24 = "livello 24: l'abisso";
-HUSTR_25 = "livello 25: cascate di sangue";
-HUSTR_26 = "livello 26: le miniere abbandonate";
-HUSTR_27 = "livello 27: casa dei mostri";
-HUSTR_28 = "livello 28: il mondo dello spirito";
-HUSTR_29 = "livello 29: la fine imminente";
-HUSTR_30 = "livello 30: icona del peccato";
-HUSTR_31 = "livello 31: wolfenstein";
-HUSTR_32 = "livello 32: grosse";
+HUSTR_12 = "livello 12: La fabbrica";
+HUSTR_13 = "livello 13: Periferia";
+HUSTR_14 = "livello 14: Gli antri profondi";
+HUSTR_15 = "livello 15: Zona industriale";
+HUSTR_16 = "livello 16: Sobborghi";
+HUSTR_17 = "livello 17: Possedimenti";
+HUSTR_18 = "livello 18: Il cortile";
+HUSTR_19 = "livello 19: La cittadella";
+HUSTR_20 = "livello 20: Preso!";
+HUSTR_21 = "livello 21: Nirvana";
+HUSTR_22 = "livello 22: Le catacombe";
+HUSTR_23 = "livello 23: Barili del divertimento";
+HUSTR_24 = "livello 24: L'abisso";
+HUSTR_25 = "livello 25: Cascate di sangue";
+HUSTR_26 = "livello 26: Le miniere abbandonate";
+HUSTR_27 = "livello 27: Casa dei mostri";
+HUSTR_28 = "livello 28: Il mondo dello spirito";
+HUSTR_29 = "livello 29: La fine imminente";
+HUSTR_30 = "livello 30: Icona del peccato";
+HUSTR_31 = "livello 31: Wolfenstein";
+HUSTR_32 = "livello 32: Grosse";
 
 PHUSTR_1 = "livello 1: congo";
 PHUSTR_2 = "livello 2: pozzo delle anime";
@@ -328,7 +329,7 @@ E4TEXT =
 	"\n"
 	"prossima fermata, l'Inferno in terra!";
 C1TEXT =
-	"SEI ENTRATO PROFONDAMENTE NEL SPAZIOPORTO\n"
+	"SEI ENTRATO PROFONDAMENTE NELLO SPAZIOPORTO\n"
 	"INFESTATO. MA QUALCOSA NON VA. I\n"
 	"MOSTRI HANNO PORTATO LA LORO REALTA'\n"
 	"CON SE' E LA TECNOLOGIA DELLO SPAZIOPORTO\n"
@@ -533,7 +534,7 @@ CC_PAIN = "DOLORE ELEMENTALE";
 CC_REVEN = "REVENANT";
 CC_MANCU = "MANCUBO";
 CC_ARCH = "ARCH-VILE";
-CC_SPIDER = "IL CERVELLO RAGNO";
+CC_SPIDER = "IL RAGNO CERVELLO";
 CC_CYBER = "IL CYBERDEMONIO";
 CC_HERO = "IL NOSTRO EROE";
 
@@ -582,7 +583,7 @@ MULTI5 = "Frag DA PAURA!";
 OB_SUICIDE = "%o si e' suicidato.";
 OB_FALLING = "%o e' caduto troppo in basso.";
 OB_CRUSH = "%o e' stato schiacciato.";
-OB_EXIT = "%o ha provato a uscire.";
+OB_EXIT = "%o ha provato ad uscire.";
 OB_WATER = "%o non sapeva nuotare.";
 OB_SLIME = "%o e' mutato.";
 OB_LAVA = "%o si e' sciolto.";
@@ -612,7 +613,7 @@ OB_SPECTREHIT = "%o e' stato divorato da uno spettro.";
 OB_BARONHIT = "%o e' stato scoperchiato da un Barone dell'Inferno.";
 OB_KNIGHTHIT = "%o e' stato sbudellato da un Cavaliere dell'Inferno.";
 OB_ZOMBIE = "%o e' stato ucciso da uno zombie.";
-OB_SHOTGUY = "%o e' sato impallinato da un sergente.";
+OB_SHOTGUY = "%o e' stato impallinato da un sergente.";
 OB_VILE = "%o e' stato incenerito da un arch-vile.";
 OB_UNDEAD = "%o non ha potuto evitare il missile di un revenant.";
 OB_FATSO = "%o e' stato disintegrato da un mancubo.";
@@ -646,6 +647,46 @@ OB_SNAKE = "%o e' stato stritolato da un serpente.";
 OB_WIZARD = "%o e' stato maledetto da un mago.";
 OB_WIZARDHIT = "%o e' stato toccato da un mago.";
 
+OB_FIREDEMON = "%o ha assaggiato il fuoco di un Afrit.";
+OB_DEMON1 = "%o e' stato ustionato da un Serpente.";
+OB_DEMON2 = "%o e' stato avvelenato da un Serpente.";
+OB_ETTIN = "%o e' stato schiacciato da un Ettin.";
+OB_CENTAUR = "%o e' stato mutilato da un Centauro.";
+OB_SLAUGHTAURHIT = "%o e' stato macellato da uno Slaughtaur.";
+OB_SLAUGHTAUR = "%o e' stato colpito dalla palla di fuoco di uno Slaughtaur.";
+OB_BISHOP = "%o e' perito al potere oscuro di un Bishop.";
+OB_ICEGUY = "%o e' stato congelato da un Wedingo.";
+OB_SERPENTHIT = "%o e' stato frantumato da uno Stalker.";
+OB_SERPENT = "%o e' stato fuso da uno Stalker.";
+OB_WRAITH = "%o e' stato carbonizzato da un Reiver.";
+OB_WRAITHHIT = "%o ha avuto rubata la sua vita da un Reiver.";
+OB_DRAGON = "%o e' stato incenerito da un Death Wyvern.";
+OB_KORAX = "%o e' stato spazzato via da Korax.";
+OB_FBOSS = "%o e' stato assassinato da Zedek.";
+OB_MBOSS = "%o non ha potuto assorbire il mana di Menelkir.";
+OB_CBOSS = "%o e' stato battezzato da Traductus.";
+OB_HERESIARCH = "%o ha avuto le sue ossa spaccate dall'Heresiarch.";
+
+OB_ACOLYTE = "%o e' stato fanaticamente fucilato Acolyte.";
+OB_MACIL = "%o non si sarebbe mai dovuto ribellare contro Macil.";
+OB_REBEL = "%o e' stato impallinato da un Ribelle.";
+OB_BEGGAR = "%o e' stato picchiato a morte dal povero.";
+OB_PEASANT = "%o non avrebbe mai dovuto ingaggiare una lotta con un civile.";
+OB_ALIENSPECTE = "%o e' stato colpito dallo Spectre.";
+OB_ENTITY = "%o ha assaggiato la collera dell'unico Dio.";
+OB_LOREMASTER = "%o non ha potuto fuggire dalla stretta del Lore Master.";
+OB_PROGRAMMER = "%o e' stato cancellato dal Programmer.";
+OB_STFBISHOP = "%o e' stato lanciato via dal Bishop.";
+OB_SENTINEL = "%o e' stato abbattuto da una sentinella.";
+OB_CRUSADER = "%o e' stato spazzato via da un crociato.";
+OB_INQUISITOR = "%o e' stato condannato da un inquisitore.";
+OB_STALKER = "%o e' stato  da uno Stalker.";
+OB_TURRET = "%o ha provocato le difese automatiche.";
+OB_TEMPLARHIT = "%o e' stato trafitto da templare.";
+OB_TEMPLAR = "%o e' stato vaporizzato da un templare.";
+OB_REAVERHIT = "%o e' stato fatto a pezzi da Reaver.";
+OB_REAVER = "%o e' stato impallinato da un Reaver.";
+
 OB_MPFIST = "%o si e' schiantato contro il pugno di %k.";
 OB_MPCHAINSAW = "%o e' stato falciato dalla motosega di %k.";
 OB_MPPISTOL = "%o e' stato sforacchiato dalla pistola di %k'.";
@@ -675,6 +716,233 @@ STARTUP2 = "";
 STARTUP3 = "";
 STARTUP4 = "";
 STARTUP5 = "";
+
+PICKUP_REDARMOR = "Hai trovato un'armatura rossa!";
+PICKUP_MAXHEALTHBONUS = "Raccolto un max. bonus di energia.";
+PICKUP_MAXARMORBONUS = "Raccolto un max. bonus di armatura.";
+
+PICKUP_TURBOSPHERE = "Turbosfera!";
+PICKUP_ANTIGRAVBELT = "Cinghia anti gravita'! Wheee!";
+PICKUP_TIMEFREEZER = "Time freeze!";
+PICKUP_INFRAREDGOGGLES = "Occhiali a Infrarossi";
+PICKUP_INFRAREDTRACKER = "Infrared tracker";
+PICKUP_INVISIBILITY = "Invisibilita'";
+PICKUP_DOOMSPHERE = "Sfera Del Destino";
+PICKUP_GUARDSPHERE = "Sfera-Guardia";
+PICKUP_TERMINATOR = "Terminator!";
+PICKUP_POSSESSIONSTONE = "Pietra Dell'Inferno!";
+
+PICKUP_BLUEFLAG = "HAI PRESO LA BANDIERA BLU!";
+PICKUP_BLUESKULL_ST = "HAI PRESO IL TESCHIO BLU!";
+PICKUP_REDFLAG = "HAI PRESO LA BANDIERA ROSSA!";
+PICKUP_REDSKULL_ST = "HAI PRESO IL TESCHIO ROSSO!";
+PICKUP_WHITEFLAG = "Hai preso la bandiera!";
+
+PICKUP_COOPERATIVEBACKPACK = "Raccolto uno zaino pieno di armi e munizioni!";
+
+PICKUP_STRENGTH = "Runa Forza!";
+PICKUP_RAGE = "Runa del Furore!";
+PICKUP_DRAIN = "Runa dell'Assorbimento!";
+PICKUP_SPREAD = "Runa della Propagazione!";
+PICKUP_RESISTANCE = "Runa della Resistenza!";
+PICKUP_REGENERATION = "Runa della Regenerazione!";
+PICKUP_PROSPERITY = "Runa della Prosperita'!";
+PICKUP_REFLECTION = "Runa del Riflesso!";
+PICKUP_HIGHJUMP = "Runa del Salto!";
+PICKUP_HASTE = "Runa della Velocita'!";
+
+PICKUP_PISTOL_DROPPED = "Hai trovato una pistola.";
+PICKUP_PISTOL = "Hai ripreso la tua pistola!  Meno male!";
+PICKUP_MINIGUN = "Hai trovato un minigun!";
+PICKUP_GRENADELAUNCHER = "Hai trovato un lancia granate!!";
+PICKUP_RAILGUN = "Hai trovato un railgun!";
+PICKUP_BFG10K = "Hai trovato il BFG10000!  Oh, si!";
+
+// Possession strings.
+POSSESSIONARTIFACT_PICKEDUP = "Hellstone Raccolta!";
+POSSESSIONARTIFACT_DROPPED = "Hellstone Persa!";
+
+// Obituary strings.
+OB_FIST_2 = "%o e' stato picchiato a sangue da %k.";
+OB_FIST_RARE = "%o e' stato molestato dai pugni di %k.";
+OB_PISTOL_RARE = "%o si e' ritrovato un proiettile nel culo, omaggio di %k.";
+OB_CHAINSAW_RARE = "%o e' stato h4kk4t0 dalla motosega di %k.";
+OB_MINIGUN = "%o e' stato trapanato dal minigun di %k.";
+OB_MINIGUN_2 = "%o e' stato colpito dal minigun di %k.";
+OB_ROCKET_GIB = "%o ha cavalcato il razzo di %k.";
+OB_ROCKET_GIB_2 = "%o e' stato liquidato dal razzo di %k.";
+OB_ROCKET_GIB_3 = "%o e' stato fatto a pezzi dal razzo di %k.";
+OB_ROCKET_GIB_4 = "%o e' stato distrutto dal razzo di %k.";
+OB_ROCKET_RARE = "%o e' stato stuprato dal razzo di %k.";
+OB_ROCKET_SELF_2 = "%o scopre lo splash damage.";
+OB_ROCKET_SELF_3 = "%o si e' fottuto da solo.";
+OB_ROCKET_SELF_RARE = "%o ha deciso di infilarsi un razzo in culo.";
+OB_GRENADE = "%o e' capitato sulla granata di %k.";
+OB_GRENADE_SPLASH = "%o e' stato stracciato dai frammenti di proiettile di %k.";
+OB_GRENADE_SELF = "%o si e' ucciso con la propria granata.";
+OB_PLASMARIFLE_RARE = "%o e' stato ownato dal plasma gun di %k.";
+OB_BFG_GIB_RARE = "%o e' stato castrato dalla grossa fottuta arma di %k.";
+OB_BFG10K = "%o e' stato annientato dal BFG10K di %k.";
+OB_BFG10K_RARE = "%o got a blast in the ass from %k's BFG10K.";
+OB_BFG10K_SELF = "%o si e' ucciso col suo BFG10K.";
+
+OB_CACODEMON_MELEE_RARE = "%o ha provato a fare amicizia con un cacodemone.";
+OB_BARON_MELEE_RARE = "%o e' stato colpito da un barone dell'inferno.";
+OB_DARKIMP_MELEE = "%o e' stato squarciato da un imp oscuro.";
+OB_DARKIMP = "%o e' stato bruciato da un imp oscuro.";
+OB_BLOODDEMON_MELEE = "%o e' stato mangiato da un demone di sangue.";
+OB_SSGGUY = "%o e' stato smembrato da uno zombie con doppietta.";
+OB_BELPHEGOR_MELEE = "%o e' stato assassinato da un Belphegor.";
+OB_BELPHEGOR = "%o e' stato assassinato da un Belphegor.";
+OB_CACOLANTERN_MELEE = "%o si e' avvicinato troppo a un caco-lanterna.";
+OB_CACOLANTERN = "%o e' stato abbattuto da un caco-lanterna.";
+OB_ABADDON_MELEE = "%o e' diventato cibo per un abaddon.";
+OB_ABADDON = "%o e' stato abbattuto da un abaddon.";
+OB_HECTEBUS = "%o e' stato cremato da un hectebus.";
+
+OB_IMPALED = "%o e' stato impalato su un bastone.";
+OB_SPACE = "%o ha provato ad esplorare lo spazio.";
+OB_SELF_2 = "%o ha avuto un attacco di cuore.";
+OB_FALL_2 = "%o si e' spiaccicato come un coglione.";
+OB_EXIT_2 = "%o sembra annoiato di questo livello.";
+OB_REFLECTION = "%o e' stato ucciso per mezzo della runa del riflesso di %k.";
+
+// Medal strings. (THESE ARE NOT USED ATM).
+MEDALSTRING_EXCELLENT = "Eccellente!";
+MEDALSTRING_INCREDIBLE = "Incredibile!";
+MEDALSTRING_IMPRESSIVE = "Impressionante!";
+MEDALSTRING_MOSTIMPRESSIVE = "Più Impressionante!";
+MEDALSTRING_DOMINATION = "Dominazione!";
+MEDALSTRING_TOTALDOMINATION = "Dominazione Totale!";
+MEDALSTRING_ACCURACY = "Accuratezza!";
+MEDALSTRING_PRECISION = "Precisione!";
+MEDALSTRING_LLAMA = "Llama!";
+MEDALSTRING_YOUFAILIT = "Sei Un Fallito!";
+
+// Level names.
+LEVEL_SP_PRE_1 = "level 1";
+LEVEL_SP_PRE_2 = "level 2";
+LEVEL_SP_PRE_3 = "level 3";
+LEVEL_SP_PRE_4 = "level 4";
+LEVEL_SP_PRE_5 = "level 5";
+LEVEL_SP_PRE_6 = "level 6";
+LEVEL_SP_PRE_7 = "level 7";
+LEVEL_SP_PRE_8 = "level 8";
+LEVEL_SP_PRE_9 = "level 9";
+LEVEL_SP_PRE_10 = "level 10";
+LEVEL_SP_PRE_11 = "level 11";
+LEVEL_SP_PRE_12 = "level 12";
+LEVEL_SP_PRE_13 = "level 13";
+LEVEL_SP_PRE_14 = "level 14";
+LEVEL_SP_PRE_15 = "level 15";
+LEVEL_SP_PRE_16 = "level 16";
+LEVEL_SP_PRE_17 = "level 17";
+LEVEL_SP_PRE_18 = "level 18";
+LEVEL_SP_PRE_19 = "level 19";
+LEVEL_SP_PRE_20 = "level 20";
+LEVEL_SP_PRE_21 = "level 21";
+LEVEL_SP_PRE_22 = "level 22";
+LEVEL_SP_PRE_23 = "level 23";
+LEVEL_SP_PRE_24 = "level 24";
+LEVEL_SP_PRE_25 = "level 25";
+LEVEL_SP_PRE_26 = "level 26";
+LEVEL_SP_PRE_27 = "level 27";
+LEVEL_SP_PRE_28 = "level 28";
+LEVEL_SP_PRE_29 = "level 29";
+LEVEL_SP_PRE_30 = "level 30";
+LEVEL_SP_PRE_31 = "level 31";
+LEVEL_SP_PRE_32 = "level 32";
+
+LEVEL_DM_1 = "Centro di Esercitazione";
+LEVEL_DM_2 = "Centro di Sperimentazione";
+LEVEL_DM_3 = "Centro di Battaglia";
+LEVEL_DM_4 = "Struttura di Contenimento";
+LEVEL_DM_5 = "Installazione del Vulcano";
+LEVEL_DM_6 = "L'ultimo Bastione";
+LEVEL_DM_7 = "Rifugio di Linguica";
+LEVEL_DM_8 = "Tempio del Dolore";
+LEVEL_DM_9 = "Camera Infernale";
+LEVEL_DM_10 = "Espiazione Finale";
+LEVEL_DM_SEC = "Un Livello Segreto";
+
+LEVEL_DUEL_1 = "Station Alpha";
+LEVEL_DUEL_2 = "Base Delta";
+LEVEL_DUEL_3 = "Incrocio Sigma";
+LEVEL_DUEL_4 = "Sito di Disposizione";
+LEVEL_DUEL_5 = "Cortile della Rovina";
+LEVEL_DUEL_6 = "Margine della Disperazione";
+LEVEL_DUEL_7 = "All'Inferno";
+LEVEL_DUEL_8 = "Impious Demesne";
+LEVEL_DUEL_9 = "Giorno Del Giudizio";
+LEVEL_DUEL_10 = "Il Vuoto della Dannazione";
+LEVEL_DUEL_SEC = "Corridoio della Battaglia";
+
+LEVEL_LMS_1 = "Corridoio della Furtivita'";
+LEVEL_LMS_2 = "Corridoio della Sopravvivenza";
+LEVEL_LMS_3 = "Corridoio della Morte";
+LEVEL_LMS_4 = "Area di Contenimento";
+LEVEL_LMS_5 = "Terreno Svuotato";
+LEVEL_LMS_6 = "Incubo Incessante";
+LEVEL_LMS_7 = "Territori Soffocanti";
+LEVEL_LMS_8 = "Rifugio Dimenticato";
+LEVEL_LMS_9 = "Cliffside Bunker";
+LEVEL_LMS_10 = "Odio Oscuro";
+
+LEVEL_CTF_1 = "Eredita' di McKinley";
+LEVEL_CTF_2 = "Mt. Capture";
+LEVEL_CTF_3 = "Tempio Maledetto";
+LEVEL_CTF_4 = "Area -51 Gradi Celsius";
+LEVEL_CTF_5 = "Casa del Massmouth";
+LEVEL_CTF_6 = "Rovine di Sangue";
+LEVEL_CTF_7 = "Tana della santita'";
+LEVEL_CTF_8 = "Orrendo Sopra";
+LEVEL_CTF_9 = "Disastro";
+LEVEL_CTF_10 = "Mare Destinato";
+
+LEVEL_ST_1 = "Bastioni Del Destino";
+LEVEL_ST_2 = "Anello Di Fuoco";
+LEVEL_ST_3 = "Fortezza Di Sangue";
+LEVEL_ST_4 = "'O' della devastazione!";
+LEVEL_ST_5 = "Viaggio Acido";
+LEVEL_ST_6 = "Rocket Jump Canyon";
+LEVEL_ST_7 = "Vuoto Infinito";
+LEVEL_ST_8 = "Stazione 12";
+LEVEL_ST_9 = "Astronave Galattica";
+LEVEL_ST_10 = "Corsa Dell'Oblio";
+
+// Cluster strings.
+DM1TEXT =
+		"Congratulazioni, Hai trovato qualcosa che\n"
+		"nessuno avrebbe probabilente mai sospettato:\n"
+		"IL LIVELLO DEATHMATCH SEGRETO! datti un colpo\n"
+		"nel di dietro e tieniti pronto... E' tempo di\n"
+		"combattere!";
+DM2TEXT =
+		"Il piu' grande male che il mondo abbia\n"
+		"conosciuto e' stato finalmente ucciso. \n"
+		"Linguica, la \"salsiccia della morte\", non\n"
+		"terra' mai piu' in prigione cacodemoni di lusso.\n"
+		"guardi da lontano la tana di Linguica, che serviva\n"
+		"come prigione di hissy, sbriciolarsi.\n"
+		"\n"
+		"HISSY E' LIBERO! guardi con delizia\n"
+		"il lussuoso cacodemone conosciuto come hissy\n"
+		"che emerge dalle macerie, e da a te un\n"
+		"\"HISS\" ADDIO, e galleggia via contento.\n"
+		"fai un respiro di sollievo, sapendo che\n"
+		"HISSY, e tutti gli altri lussuosi cacodemoni,\n"
+		"possono vagabondare liberi di nuovo.";
+
+// Cast call.
+CC_SSGGUY = "ZOMBIE CON DOPPIETTA";
+CC_DARKIMP = "IMP OSCURO";
+CC_BLOODDEMON = "DEMONE DI SANGUE";
+CC_CACOLANTERN = "CACO-LANTERNA";
+CC_HECTEBUS = "HECTEBUS";
+
+//	{ str_notchanged, "STSTR_HISSYON", "Fearless Rage Mode ON", NULL },
+//	{ str_notchanged, "STSTR_HISSYOFF", "Fearless Rage Mode OFF", NULL },
+
 
 // Heretic strings
 HE1TEXT =
@@ -911,7 +1179,7 @@ TXT_MANA_BOTH = "MANA MISTO";
 TXT_KEY_STEEL = "CHIAVE D'ACCIAIO";
 TXT_KEY_CAVE = "CHIAVE DELLA CAVERNA";
 TXT_KEY_AXE = "CHIAVE DELL'ASCIA";
-TXT_KEY_FIRE = "CHIAVE DEL FUOCO";
+TXT_KEY_FIRE = "CHIAVE DI FUOCO";
 TXT_KEY_EMERALD = "CHIAVE DI SMERALDO";
 TXT_KEY_DUNGEON = "CHIAVE DEL DUNGEON";
 TXT_KEY_SILVER = "CHIAVE D'ARGENTO";
@@ -919,6 +1187,18 @@ TXT_KEY_RUSTED = "CHIAVE ARRUGGINITA";
 TXT_KEY_HORN = "CHIAVE DEL CORNO";
 TXT_KEY_SWAMP = "CHIAVE DELLA PALUDE";
 TXT_KEY_CASTLE = "CHIAVE DEL CASTELLO";
+
+TXT_NEED_KEY_STEEL = "Hai bisogno della chiave d'acciaio";
+TXT_NEED_KEY_CAVE = "Hai bisogno della chiave della caverna";
+TXT_NEED_KEY_AXE = "Hai bisogno della chiave dell'ascia";
+TXT_NEED_KEY_FIRE = "Hai bisogno della chiave di fuoco";
+TXT_NEED_KEY_EMERALD = "Hai bisogno della chiave di smeraldo";
+TXT_NEED_KEY_DUNGEON = "Hai bisogno della chiave del dungeon";
+TXT_NEED_KEY_SILVER = "Hai bisogno della chiave di argento";
+TXT_NEED_KEY_RUSTED = "Hai bisogno della chiave arrugginita";
+TXT_NEED_KEY_HORN = "Hai bisogno della chiave del corno";
+TXT_NEED_KEY_SWAMP = "Hai bisogno della chiave della palude";
+TXT_NEED_KEY_CASTLE = "Hai bisogno della chiave della palude";
 
 // Artifacts
 
@@ -973,6 +1253,172 @@ TXT_QUIETUS_PIECE = "PARTE DEL QUIETUS";
 TXT_WRAITHVERGE_PIECE = "PARTE DELLA VERGA DELLA FURIA";
 TXT_BLOODSCOURGE_PIECE = "PARTE DEL FLAGELLO DI SANGUE";
 
+// Strife locks
+
+TXT_NEEDKEY = "Non hai la chiave";
+TXT_NEED_PASSCARD = "Ti serve una passcard";
+TXT_NEED_PASSCARD_DOOR = "Ti serve una passcard per aprire questa porta";
+TXT_NEED_IDCARD = "Ti serve una chiave ID";
+TXT_NEED_PRISONKEY = "Non hai la chiave per la prigione";
+TXT_NEED_HANDPRINT = "Mano scannerizzata non sul file";
+TXT_NEED_GOLDKEY = "Ti serve la chiave d'oro";
+TXT_NEED_IDBADGE = "Ti serve un distintivo ID";
+TXT_NEED_IDBADGE_DOOR = "Ti serve un distintivo ID per aprire questa porta";
+TXT_NEED_SILVERKEY = "Ti serve la chiave d'argento";
+TXT_NEED_BRASSKEY = "Ti serve la chiave di ottone";
+TXT_NEED_REDCRYSTAL = "Hai bisogno del cristallo rosso";
+TXT_NEED_BLUECRYSTAL = "Hai bisogno del cristallo blu";
+
+// Strife Quest messages
+
+TXT_QUEST_14 = "Hai colpito il cristallo";
+TXT_QUEST_16 = "Hai colpito i cancelli";
+TXT_QUEST_27 = "Hai colpito i computer";
+
+TXT_KILLED_BISHOP = "Hai ucciso il Bishop!";
+TXT_KILLED_ORACLE = "Hai ucciso l'oracolo!";
+TXT_KILLED_MACIL = "Hai ucciso Macil!";
+TXT_KILLED_LOREMASTER = "Hai ucciso il Loremaster!";
+
+// Strife pickup messages
+
+TXT_METALARMOR = "Hai preso un'armatura di metallo.";
+TXT_LEATHERARMOR = "Hai preso un'armatura di pelle.";
+TXT_MEDPATCH = "Hai preso il pacco medico.";
+TXT_MEDICALKIT = "Hai preso il kit medico.";
+TXT_SURGERYKIT = "Hai preso il pacco da operazione.";
+TXT_STRIFEMAP = "Hai preso la mappa";
+TXT_BELDINSRING = "Hai preso l'anello.";
+TXT_OFFERINGCHALICE = "Hai preso il calice di offerta.";
+TXT_EAR = "Hai raccolto l'orecchio.";
+TXT_BROKENCOUPLING = "Hai preso il coupling rotto.";
+TXT_SHADOWARMOR = "Hai preso l'armatura d'ombra.";
+TXT_ENVSUIT = "Hai preso il vestito ambientale.";
+TXT_GUARDUNIFORM = "Hai preso l'uniforme da guardia.";
+TXT_OFFICERSUNIFORM = "Hai preso l'uniforme da ufficiale.";
+TXT_FTHROWERPARTS = "Hai preso le parti del lanciafiamme.";
+TXT_REPORT = "Hai preso il rapporto.";
+TXT_INFO = "Hai preso le info.";
+TXT_TARGETER = "Hai preso il targeter.";
+TXT_COMMUNICATOR = "Hai preso il comunicatore";
+TXT_COIN = "Hai preso una moneta.";
+TXT_XGOLD = "Hai preso dell'oro.";
+TXT_BEACON = "hai preso il segnale di teletrasporto.";
+TXT_DEGNINORE = "Hai preso il Degnin Ore.";
+TXT_SCANNER = "Hai preso lo scanner.";
+TXT_NEEDMAP = "Lo scanner non funziona senza una mappa!\n";
+TXT_PRISONPASS = "Hai preso il pass per la prigione.";
+
+TXT_STRIFECROSSBOW = "Hai trovato una balestra";
+TXT_ASSAULTGUN = "Hai trovato un fucile d'assalto";
+TXT_MMLAUNCHER = "Hai trovato un mini lancia missili";
+TXT_FLAMER = "Hai trovato un lanciafiamme";
+TXT_MAULER = "Hai trovato il Mauler!";
+TXT_GLAUNCHER = "Hai trovato un lancia granate";
+TXT_SIGIL = "Hai trovato il SIGIL!";
+
+
+TXT_BASEKEY = "Hai raccolto la chiave della base.";
+TXT_GOVSKEY = "Hai raccolto la chiave del governatore.";
+TXT_PASSCARD = "Hai raccolto la passcard.";
+TXT_IDBADGE = "Hai raccolto il distintivo ID.";
+TXT_PRISONKEY = "Hai raccolto la chiave della prigione.";
+TXT_SEVEREDHAND = "Hai raccolto la mano separata.";
+TXT_POWER1KEY = "Hai raccolto la chiave Power1.";
+TXT_POWER2KEY = "Hai raccolto la chiave Power2.";
+TXT_POWER3KEY = "Hai raccolto la chiave Power3.";
+TXT_GOLDKEY = "Hai raccolto la chiave d'oro.";
+TXT_IDCARD = "Hai raccolto la chiave ID.";
+TXT_SILVERKEY = "Hai raccolto la chiave d'argento.";
+TXT_ORACLEKEY = "Hai raccolto la chiave dell'oracolo.";
+TXT_MILITARYID = "Hai raccolto il military ID.";
+TXT_ORDERKEY = "Hai raccolto la chiave dell'order.";
+TXT_WAREHOUSEKEY = "Hai raccolto la chiave del magazzino.";
+TXT_BRASSKEY = "Hai raccolto la chiave d'ottone.";
+TXT_REDCRYSTAL = "Hai raccolto la chiave del cristallo rosso.";
+TXT_BLUECRYSTAL = "Hai raccolto la chiave del cristallo blu.";
+TXT_CHAPELKEY = "Hai raccolto la chiave della cappella.";
+TXT_CATACOMBKEY = "Hai raccolto la chiave delle catacombe.";
+TXT_SECURITYKEY = "Hai raccolto la chiave di sicurezza.";
+TXT_COREKEY = "Hai raccolto la chiave del nucleo.";
+TXT_MAULERKEY = "Hai raccolto la chiave del Mauler.";
+TXT_FACTORYKEY = "Hai raccolto la chiave della fabbrica.";
+TXT_MINEKEY = "Hai raccolto la chiave delle miniere.";
+TXT_NEWKEY5 = "Hai raccolto la nuova chiave 5."; 
+TXT_ORACLEPASS = "Hai raccolto il pass dell'oracolo.";
+
+TXT_HEGRENADES = "Hai preso delle granate HE.";
+TXT_PHGRENADES = "Hai preso delle granate al fosforo.";
+TXT_CLIPOFBULLETS = "Hai preso un caricatore.";
+TXT_BOXOFBULLETS = "Hai preso una scatola di proiettili.";
+TXT_MINIMISSILES = "Hai preso dei mini-missili.";
+TXT_CRATEOFMISSILES = "Hai preso una cassa di missili.";
+TXT_ENERGYPOD = "Hai preso un pod di energia.";
+TXT_ENERGYPACK = "Hai preso un pacco di energia.";
+TXT_POISONBOLTS = "Hai preso delle frecce avvelenate.";
+TXT_ELECTRICBOLTS = "Hai preso delle frecce elettriche.";
+TXT_AMMOSATCHEL = "Hai preso una cartella di munizioni";
+
+// Random dialogs
+
+TXT_RANDOM_PEASANT_01 = "Per favore non colpirmi.";
+TXT_RANDOM_PEASANT_02 = "Se hai intenzione di colpirmi, io non valgo lo sforzo.";
+TXT_RANDOM_PEASANT_03 = "Io non so niente.";
+TXT_RANDOM_PEASANT_04 = "Vai via o chiamo le guardie!";
+TXT_RANDOM_PEASANT_05 = "A volte desidero che tutti questi ribelli imparino quale sia il loro posto e finiscano questa cosa insensata.";
+TXT_RANDOM_PEASANT_06 = "Lasciami solo, OK?";
+TXT_RANDOM_PEASANT_07 = "Non ne sono sicuro, ma a volte penso di conoscere alcuni degli acolytes.";
+TXT_RANDOM_PEASANT_08 = "L'Order tiene tutto quanto in stretta sorveglianza qui.";
+TXT_RANDOM_PEASANT_09 = "Non c'e' modo che questa sia solo una forza di sicurezza.";
+TXT_RANDOM_PEASANT_10 = "Ho sentito che l'Order e' molto nervoso riguardo alle azioni del Front qui.";
+
+TXT_RANDOM_REBEL_01 = "Non c'e' modo che l'Order stia in piedi contro di noi.";
+TXT_RANDOM_REBEL_02 = "Siamo quasi pronti a colpire. I piani di Macil stanno andando a posto.";
+TXT_RANDOM_REBEL_03 = "Siamo tutti dietro di te, non preoccuparti.";
+TXT_RANDOM_REBEL_04 = "Non avvicinarti troppo a nessuno di questi grossi robot. Ti fonderanno pezzo per pezzo!";
+TXT_RANDOM_REBEL_05 = "Il giorno della nostra gloria arrivera' presto, e quelli che si oppongono a noi saranno schiacciati!";
+TXT_RANDOM_REBEL_06 = "Non rilassarti troppo. Abbiamo ancora il nostro lavoro da fare.";
+TXT_RANDOM_REBEL_07 = "Macil dice che tu sei la nuova speranza. Portatelo in mente.";
+TXT_RANDOM_REBEL_08 = "Quando toglieremo di mezzo questi cialtroni, saremo capaci di ricostruire questo mondo come dovrebbe essere.";
+TXT_RANDOM_REBEL_09 = "Ricorda che non stai combattendo solo per te, ma per chiunque qua dentro e fuori.";
+TXT_RANDOM_REBEL_10 = "Finche' anche solo uno di noi rimane in piedi, noi vinceremo.";
+
+TXT_RANDOM_AGUARD_01 = "Gira al largo, cittadino.";
+TXT_RANDOM_AGUARD_02 = "Segui la vera fede, solo allora tu comincierai a capire.";
+TXT_RANDOM_AGUARD_03 = "Solo attraverso la morte qualcuno può essere veramente rinato.";
+TXT_RANDOM_AGUARD_04 = "Non sono interessato alla tua stupidaggine senza senso.";
+TXT_RANDOM_AGUARD_05 = "Se io avessi voluto parlare con te te lo avrei detto.";
+TXT_RANDOM_AGUARD_06 = "Vai e infastidisci qualcun'altro!";
+TXT_RANDOM_AGUARD_07 = "Continua a muoverti!";
+TXT_RANDOM_AGUARD_08 = "Se l'allarme si spegne, devi solo sparire dalla nostra strada!";
+TXT_RANDOM_AGUARD_09 = "L'order pulira' profondamente il mondo e lo porterà in una nuova era.";
+TXT_RANDOM_AGUARD_10 = "Problemi? No, io penso di no.";
+
+TXT_RANDOM_BEGGAR_01 = "Elemosina per il povero?";
+TXT_RANDOM_BEGGAR_02 = "Cosa stai guardando, abitante della superficie?";
+TXT_RANDOM_BEGGAR_03 = "Non avresti nessun altro cibo?";
+TXT_RANDOM_BEGGAR_04 = "Voi persone della superficie non ci capirete mai.";
+TXT_RANDOM_BEGGAR_05 = "Hah, le guardie non ci possono trovare. Quegli idioti non sanno nemmeno che esistiamo.";
+TXT_RANDOM_BEGGAR_06 = "Un giorno tutti tranne quelli che servono l'Order saranno costretti ad unirsi a noi.";
+TXT_RANDOM_BEGGAR_07 = "Fissati ora, ma tu sai che questa sarà la tua faccia un giorno.";
+TXT_RANDOM_BEGGAR_08 = "Non c'è niente di più fastidioso che un abitante della superficie con attitudine!";
+TXT_RANDOM_BEGGAR_09 = "L'order farà polpette del tuo patetico Front.";
+TXT_RANDOM_BEGGAR_10 = "Guarda te stesso, abitante della superficie. Noi conosciamo i nostri nemici!";
+
+TXT_RANDOM_PGUARD_01 = "Noi siamo le mani del fato. Imparare la nostra collera significa trovare l'oblio!";
+TXT_RANDOM_PGUARD_02 = "L'order pulira' profondamente il mondo dei deboli e corrotti!";
+TXT_RANDOM_PGUARD_03 = "Obbedisci alla volonta' dei maestri!";
+TXT_RANDOM_PGUARD_04 = "Lunga vita ai fratelli dell'Order!";
+TXT_RANDOM_PGUARD_05 = "Il pensiero libero e' un'illusione che lega i deboli mentali.";
+TXT_RANDOM_PGUARD_06 = "Il potere è la via per la gloria. Seguire l'Order corrisponde a seguire questa via!";
+TXT_RANDOM_PGUARD_07 = "Prendi il tuo posto tra quelli che hanno ragione, unisciti a noi!";
+TXT_RANDOM_PGUARD_08 = "L'Order protegge cio' che e' suo.";
+TXT_RANDOM_PGUARD_09 = "Acolytes? Loro devono ancora vedere la vera gloria dell'Order.";
+TXT_RANDOM_PGUARD_10 = "Se c'e' un briciolo di onore dentro quel patetico guscio di corpo, tu entrerai nelle braccia dell'Order.";
+
+TXT_RANDOMGOODBYE_1 = "Arrivederci!";
+TXT_RANDOMGOODBYE_2 = "Grazie, arrivederci!";
+TXT_RANDOMGOODBYE_3 = "Ci vediamo dopo!";
 
 // Bloodbath announcer
 

@@ -6,6 +6,9 @@
 #include "s_sound.h"
 #include "a_strifeglobal.h"
 #include "f_finale.h"
+// [CW] New includes.
+#include "cl_demo.h"
+#include "sv_commands.h"
 
 static FRandom pr_prog ("Programmer");
 
@@ -245,6 +248,10 @@ void A_SpotLightning (AActor *self)
 {
 	AActor *spot;
 
+	// [CW] Clients may not do this.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
+		return;
+
 	if (self->target == NULL)
 		return;
 
@@ -255,6 +262,10 @@ void A_SpotLightning (AActor *self)
 		spot->target = self;
 		spot->health = -2;
 		spot->tracer = self->target;
+
+		// [CW] Tell clients to spawn the actor.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SpawnThing( spot );
 	}
 }
 
