@@ -37,6 +37,7 @@ v0.97d2 RC3
 -	- Fixed: The activator of the alarm should receive a message. [Karate Chris]
 -	- Fixed: The Sigil was broken client side. [Karate Chris]
 -	- Fixed: Strife's AlienSpectre, EntityBoss, Inquisitor, LoreMaster, Programmer's lightning, Sentinel and Templar didn't work properly online. [Karate Chris]
+-	- Fixed: Dead spectators aren't revived after a map change in survival invasion. [Torr Samaho]
 
 v0.97d2 RC2
 ------

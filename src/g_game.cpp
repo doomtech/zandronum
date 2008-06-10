@@ -1774,7 +1774,6 @@ void G_Ticker ()
 				else if ( invasion )
 				{
 					INVASION_SetState( IS_WAITINGFORPLAYERS );
-					GAMEMODE_RespawnDeadSpectatorsAndPopQueue();
 					INVASION_Tick( );
 				}
 				else

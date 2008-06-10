@@ -1249,6 +1249,11 @@ void INVASION_SetState( INVASIONSTATE_e State )
 		g_ulNumBossMonsters = 0;
 		g_ulInvasionCountdownTicks = 0;
 
+		// [BB] Respawn any players who were downed during the previous round.
+		// [BB] INVASION_SetState ( IS_WAITINGFORPLAYERS ) may also be called if invasion is false.
+		if ( invasion )
+			GAMEMODE_RespawnDeadSpectatorsAndPopQueue();
+
 		// Nothing else to do here if we're not in invasion mode.
 		if ( 1 )//( invasion == false )
 			break;
