@@ -845,7 +845,7 @@ ULONG IPList::doesEntryExist( const char *pszIP0, const char *pszIP1, const char
 		}
 	}
 
-	return ( _ipVector.size() );
+	return ( (ULONG) _ipVector.size() );
 }
 
 //*****************************************************************************
@@ -886,6 +886,33 @@ std::string IPList::getEntryAsString( const ULONG ulIdx ) const
 		entryStream << std::endl;
 	}
 	return entryStream.str();
+}
+
+//*****************************************************************************
+// [RC]
+//
+ULONG IPList::getEntryIndex( const NETADDRESS_s &Address ) const
+{
+	char szAddress[4][4];
+
+	itoa( Address.abIP[0], szAddress[0], 10 );
+	itoa( Address.abIP[1], szAddress[1], 10 );
+	itoa( Address.abIP[2], szAddress[2], 10 );
+	itoa( Address.abIP[3], szAddress[3], 10 );
+	
+	return doesEntryExist( szAddress[0], szAddress[1], szAddress[2], szAddress[3] );
+}
+
+//*****************************************************************************
+//
+const char *IPList::getEntryComment( const NETADDRESS_s &Address ) const
+{
+	ULONG ulIdx = getEntryIndex(Address);
+
+	if( ulIdx < _ipVector.size() )
+		return _ipVector[ulIdx].szComment;
+
+	return NULL;
 }
 
 //*****************************************************************************

@@ -49,6 +49,7 @@
 //-----------------------------------------------------------------------------
 
 #include <stdarg.h>
+#include <time.h>
 
 #include "networkheaders.h"
 #include "MD5Checksum.h"
@@ -148,6 +149,11 @@ static	bool	server_InventoryUseAll( BYTESTREAM_s *pByteStream );
 static	bool	server_InventoryUse( BYTESTREAM_s *pByteStream );
 static	bool	server_InventoryDrop( BYTESTREAM_s *pByteStream );
 
+// [RC]
+#ifdef CREATE_PACKET_LOG
+static  void	server_LogPacket( BYTESTREAM_s *pByteStream, NETADDRESS_s Address, const char *pszReason );
+#endif
+
 //*****************************************************************************
 //	VARIABLES
 
@@ -198,6 +204,22 @@ static	ULONG		g_ulMaxPacketSize = 0;
 
 // List of all translations edited by level scripts.
 static	TArray<EDITEDTRANSLATION_s>		g_EditedTranslationList;
+
+// [RC] File to log packets to.
+#ifdef CREATE_PACKET_LOG
+static	FILE		*PacketLogFile = NULL;
+static	IPList		g_HackerIPList;
+
+CUSTOM_CVAR( String, sv_hackerlistfile, "hackerlist.txt", CVAR_ARCHIVE )
+{
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		return;
+
+	if ( !(g_HackerIPList.clearAndLoadFromFile( sv_hackerlistfile.GetGenericRep( CVAR_String ).String ) ) )
+		Printf( "%s", g_HackerIPList.getErrorMessage() );
+}
+
+#endif
 
 //*****************************************************************************
 //	CONSOLE VARIABLES
@@ -360,6 +382,35 @@ void SERVER_Construct( void )
 	sprintf( g_szCurrentFont, "SmallFont" );
 	sprintf( g_szScriptActiveFont, "SmallFont" );
 
+	
+#ifdef CREATE_PACKET_LOG
+
+	// [RC] Create the packet log.
+	FString logfilename;
+	time_t clock;
+	struct tm *lt;
+	time (&clock);
+	lt = localtime (&clock);
+	if (lt != NULL)
+		logfilename.Format("packetLog_%d_%02d_%02d-%02d_%02d_%02d.txt", lt->tm_year + 1900, lt->tm_mon + 1, lt->tm_mday, lt->tm_hour, lt->tm_min, lt->tm_sec);
+	else
+		logfilename.Format("packetLog.txt");
+
+	if ( (PacketLogFile = fopen (logfilename, "w")) )
+	{
+		FString output;
+		UCVarValue		Val;
+		Val = sv_hostname.GetGenericRep( CVAR_String );
+		output.Format("Packet logging started...\n\ton: %d/%d/%d, at %02d:%02d:%02d\n\tat server: %s\n\nDo not distribute this file to the public!\n=====================================================================\n",
+			lt->tm_mon + 1, lt->tm_mday, lt->tm_year + 1900, lt->tm_hour, lt->tm_min, lt->tm_sec,  Val.String);
+		fputs(output, PacketLogFile);
+		Printf("Packet logging enabled. DO NOT DISTRIBUTE THIS EXE TO THE PUBLIC! -- Rivecoder\n");
+	}
+	else
+		Printf("Could not start the packet log.\n"), 
+
+#endif
+
 	// Call SERVER_Destruct() when Skulltag closes.
 	atterm( SERVER_Destruct );
 
@@ -383,6 +434,10 @@ void SERVER_Destruct( void )
 		NETWORK_FreeBuffer( &g_aClients[ulIdx].SavedPacketBuffer );
 		NETWORK_FreeBuffer( &g_aClients[ulIdx].UnreliablePacketBuffer );
 	}
+
+#ifdef CREATE_PACKET_LOG
+	fclose(PacketLogFile);
+#endif
 }
 
 //DWORD	g_LastMS, g_LastSec, g_FrameCount, g_LastCount, g_LastTic;
@@ -933,6 +988,21 @@ void SERVER_GetPackets( void )
 		pByteStream = &NETWORK_GetNetworkMessageBuffer( )->ByteStream;
 		pByteStream->pbStream = NETWORK_GetNetworkMessageBuffer( )->pbData;
 		pByteStream->pbStreamEnd = pByteStream->pbStream + NETWORK_GetNetworkMessageBuffer( )->ulCurrentSize;
+
+		// [RC]
+		#ifdef CREATE_PACKET_LOG
+			pByteStream->pbStreamBeginning = pByteStream->pbStream;
+			pByteStream->bPacketAlreadyLogged = false;
+
+			// We've already had trouble from this IP, so log all of his traffic.
+			if ( g_HackerIPList.isIPInList( NETWORK_GetFromAddress( ) ) )
+			{
+				FString outString;
+				outString.Format("Alleged hacker (first offense: %s)", g_HackerIPList.getEntryComment(  NETWORK_GetFromAddress( ) ));
+				server_LogPacket( pByteStream, NETWORK_GetFromAddress( ), outString.GetChars() );
+			}
+
+		#endif
 
 		// We've gotten a packet. Try to figure out if it's from a connected client.
         g_lCurrentClient = SERVER_FindClientByAddress( NETWORK_GetFromAddress( ));
@@ -1523,6 +1593,10 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 			default:
 
 				Printf( "Unknown challenge (%d) from %s.\n", lCommand, NETWORK_AddressToString( NETWORK_GetFromAddress( )));
+				
+				#ifdef CREATE_PACKET_LOG
+					server_LogPacket(pByteStream,  NETWORK_GetFromAddress( ), "Unknown connection challenge.");
+				#endif
 				return;
 			}
 		}
@@ -1632,6 +1706,9 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 		if ( stricmp( clientVersion.GetChars(), DOTVERSIONSTR ) != 0 )
 		{
 			SERVER_ClientError( lClient, NETWORK_ERRORCODE_WRONGVERSION );
+			#ifdef CREATE_PACKET_LOG
+				server_LogPacket(pByteStream,  NETWORK_GetFromAddress( ), "Wrong version.");
+			#endif
 			return;
 		}
 	}
@@ -1640,6 +1717,10 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	if ( NETGAMEVERSION != lClientNetworkGameVersion )
 	{
 		SERVER_ClientError( lClient, NETWORK_ERRORCODE_WRONGPROTOCOLVERSION );
+		#ifdef CREATE_PACKET_LOG
+				server_LogPacket(pByteStream,  NETWORK_GetFromAddress( ), "Wrong netcode version.");
+		#endif
+
 		return;
 	}
 
@@ -5078,3 +5159,69 @@ CCMD( trytocrashclient )
 	}
 }
 #endif	// _DEBUG
+
+#ifdef CREATE_PACKET_LOG
+
+//*****************************************************************************
+// [RC] Logs a suspicious packet to the log.
+static void	server_LogPacket( BYTESTREAM_s *pByteStream, NETADDRESS_s Address, const char *pszReason )
+{
+	FString		logLine;
+	BYTE		*OriginalPosition = pByteStream->pbStream;
+
+	// Already logged this one.
+	if ( pByteStream->bPacketAlreadyLogged)
+		return;
+
+	pByteStream->bPacketAlreadyLogged = true;
+
+	Printf( "Logging packet from %s, because: %s.\n", NETWORK_AddressToString( Address ), pszReason);
+
+	// Log all further packets from this IP.
+	if ( !g_HackerIPList.isIPInList( Address ) )
+	{
+		char szAddress[4][4];
+
+		itoa( Address.abIP[0], szAddress[0], 10 );
+		itoa( Address.abIP[1], szAddress[1], 10 );
+		itoa( Address.abIP[2], szAddress[2], 10 );
+		itoa( Address.abIP[3], szAddress[3], 10 );
+		std::string reason;
+		reason = "Hacker";
+		g_HackerIPList.addEntry( szAddress[0], szAddress[1], szAddress[2],  szAddress[3], "", pszReason, reason);
+	}
+
+	// Write the start of the log entry.
+	logLine.Format("\nLogging packet from %s:", NETWORK_AddressToString( Address ));
+	FString logfilename;
+	time_t clock;
+	struct tm *lt;
+	time (&clock);
+	lt = localtime (&clock);
+	logLine.AppendFormat("\n\ton: %d/%d/%d, at %02d:%02d:%02d", lt->tm_mon + 1, lt->tm_mday, lt->tm_year + 1900, lt->tm_hour, lt->tm_min, lt->tm_sec); 
+	logLine.AppendFormat("\n\treason: %s\n\n", pszReason);
+	fputs( logLine , PacketLogFile );
+
+	// Advance to the beginning of the packet.
+	while ( pByteStream->pbStream != pByteStream->pbStreamBeginning )
+		pByteStream->pbStream -= 1;
+
+	// Next, log all the bytes, until the end.
+	while ( pByteStream->pbStream != pByteStream->pbStreamEnd )
+	{
+		int Byte = *pByteStream->pbStream;
+		pByteStream->pbStream += 1;		
+		logLine.Format("%d ", Byte);
+
+		fputs(logLine, PacketLogFile);
+	}
+
+	// Return the stream to where we were.
+	while ( pByteStream->pbStream != OriginalPosition )
+		pByteStream->pbStream -= 1;
+
+	logLine.Format("\nEnd of packet.\n");
+	fputs( logLine, PacketLogFile );
+	fflush (PacketLogFile);
+}
+#endif
