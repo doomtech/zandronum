@@ -20,6 +20,7 @@ v0.97d2 RC3
 -	- Fixed: The activator of the alarm should receive a message. [Karate Chris]
 -	- Fixed: The Sigil was broken client side. [Karate Chris]
 -	- Fixed: Strife's AlienSpectre, EntityBoss, Inquisitor, LoreMaster, Programmer's lightning, Sentinel and Templar didn't work properly online. [Karate Chris]
+-	- Fixed: A single malformed packet could be use to freeze a server for about 5 seconds. Kudos to Luigi Auriemma for submitting a detailed report on this issue. [Torr Samaho]
 
 v0.97d2 RC2
 ------

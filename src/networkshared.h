@@ -272,7 +272,7 @@ public:
 	bool isIPInList( const NETADDRESS_s &Address ) const;
 	ULONG doesEntryExist( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3 ) const;
 	IPADDRESSBAN_s getEntry( const ULONG ulIdx ) const;
-    std::string getEntryAsString( const ULONG ulIdx ) const;
+	std::string getEntryAsString( const ULONG ulIdx ) const;
 	ULONG getEntryIndex( const NETADDRESS_s &Address ) const; // [RC]
 	const char *getEntryComment( const NETADDRESS_s &Address ) const; // [RC]
 	void addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3, const char *pszPlayerName, const char *pszComment, std::string &Message );

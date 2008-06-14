@@ -845,7 +845,7 @@ ULONG IPList::doesEntryExist( const char *pszIP0, const char *pszIP1, const char
 		}
 	}
 
-	return ( (ULONG) _ipVector.size() );
+	return ( static_cast<ULONG>(_ipVector.size()) );
 }
 
 //*****************************************************************************
@@ -899,7 +899,7 @@ ULONG IPList::getEntryIndex( const NETADDRESS_s &Address ) const
 	itoa( Address.abIP[1], szAddress[1], 10 );
 	itoa( Address.abIP[2], szAddress[2], 10 );
 	itoa( Address.abIP[3], szAddress[3], 10 );
-	
+
 	return doesEntryExist( szAddress[0], szAddress[1], szAddress[2], szAddress[3] );
 }
 
