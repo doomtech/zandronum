@@ -2652,10 +2652,10 @@ void SERVER_UpdateSectors( ULONG ulClient )
 			SERVERCOMMANDS_SetSectorCeilingPlane( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
 
 		// Update the panning.
-		if (( pSector->ceiling_xoffs != 0 ) ||
-			( pSector->ceiling_yoffs != 0 ) ||
-			( pSector->floor_xoffs != 0 ) ||
-			( pSector->floor_yoffs != 0 ))
+		if (( pSector->GetXOffset(sector_t::ceiling) != 0 ) ||
+			( pSector->GetYOffset(sector_t::ceiling) != 0 ) ||
+			( pSector->GetXOffset(sector_t::floor) != 0 ) ||
+			( pSector->GetYOffset(sector_t::floor) != 0 ))
 		{
 			SERVERCOMMANDS_SetSectorPanning( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
 		}
@@ -2678,14 +2678,14 @@ void SERVER_UpdateSectors( ULONG ulClient )
 		}
 
 		// Update the sector's ceiling/floor rotation.
-		if (( pSector->ceiling_angle != 0 ) || ( pSector->floor_angle != 0 ))
+		if (( pSector->GetAngle(sector_t::ceiling) != 0 ) || ( pSector->GetAngle(sector_t::floor) != 0 ))
 			SERVERCOMMANDS_SetSectorRotation( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
 
 		// Update the sector's ceiling/floor scale.
-		if (( pSector->ceiling_xscale != FRACUNIT ) ||
-			( pSector->ceiling_yscale != FRACUNIT ) ||
-			( pSector->floor_xscale != FRACUNIT ) ||
-			( pSector->floor_yscale != FRACUNIT ))
+		if (( pSector->GetXScale(sector_t::ceiling) != FRACUNIT ) ||
+			( pSector->GetYScale(sector_t::ceiling) != FRACUNIT ) ||
+			( pSector->GetXScale(sector_t::floor) != FRACUNIT ) ||
+			( pSector->GetYScale(sector_t::floor) != FRACUNIT ))
 		{
 			SERVERCOMMANDS_SetSectorScale( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
 		}
@@ -2698,10 +2698,10 @@ void SERVER_UpdateSectors( ULONG ulClient )
 		}
 
 		// Update the sector's angle/y-offset.
-		if (( pSector->base_ceiling_angle != 0 ) ||
-			( pSector->base_ceiling_yoffs != 0 ) ||
-			( pSector->base_floor_angle != 0 ) ||
-			( pSector->base_floor_yoffs != 0 ))
+		if (( pSector->planes[sector_t::ceiling].xform.base_angle != 0 ) ||
+			( pSector->planes[sector_t::ceiling].xform.base_yoffs != 0 ) ||
+			( pSector->planes[sector_t::floor].xform.base_angle != 0 ) ||
+			( pSector->planes[sector_t::floor].xform.base_yoffs != 0 ))
 		{
 			SERVERCOMMANDS_SetSectorAngleYOffset( ulIdx );
 		}

@@ -254,8 +254,8 @@ void DSBarInfo::Draw (EHudState state)
 			popbar = STBAR_POPUPKEYS;
 		else if(currentPopup == POP_Status)
 			popbar = STBAR_POPUPSTATUS;
-		doCommands(SBarInfoScript->huds[popbar], SBarInfoScript->popups[currentPopup].getXOffset(), SBarInfoScript->popups[currentPopup].getYOffset(),
-			SBarInfoScript->popups[currentPopup].getAlpha(SBarInfoScript->huds[popbar].alpha));
+		doCommands(SBarInfoScript->huds[popbar], SBarInfoScript->popups[currentPopup-1].getXOffset(), SBarInfoScript->popups[currentPopup-1].getYOffset(),
+			SBarInfoScript->popups[currentPopup-1].getAlpha(SBarInfoScript->huds[popbar].alpha));
 	}
 }
 
@@ -329,12 +329,12 @@ void DSBarInfo::Tick ()
 	MugShot.Tick(CPlayer);
 	if(currentPopup != POP_None)
 	{
-		SBarInfoScript->popups[currentPopup].tick();
-		if(SBarInfoScript->popups[currentPopup].opened == false && SBarInfoScript->popups[currentPopup].isDoneMoving())
+		SBarInfoScript->popups[currentPopup-1].tick();
+		if(SBarInfoScript->popups[currentPopup-1].opened == false && SBarInfoScript->popups[currentPopup-1].isDoneMoving())
 		{
 			currentPopup = pendingPopup;
 			if(currentPopup != POP_None)
-				SBarInfoScript->popups[currentPopup].open();
+				SBarInfoScript->popups[currentPopup-1].open();
 		}
 	}
 }
@@ -359,13 +359,13 @@ void DSBarInfo::ShowPop(int popnum)
 	else
 		pendingPopup = POP_None;
 	if(currentPopup != POP_None)
-		SBarInfoScript->popups[currentPopup].close();
+		SBarInfoScript->popups[currentPopup-1].close();
 	else
 	{
 		currentPopup = pendingPopup;
 		pendingPopup = POP_None;
 		if(currentPopup != POP_None)
-			SBarInfoScript->popups[currentPopup].open();
+			SBarInfoScript->popups[currentPopup-1].open();
 	}
 }
 

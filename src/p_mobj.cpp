@@ -337,6 +337,7 @@ void AActor::Serialize (FArchive &arc)
 		<< MaxDropOffHeight 
 		<< MaxStepHeight
 		<< bouncefactor
+		<< wallbouncefactor
 		<< bouncecount
 		<< maxtargetrange
 		<< meleethreshold
@@ -3794,7 +3795,7 @@ bool AActor::UpdateWaterLevel (fixed_t oldz, bool dosplash)
 		return false;
 	}
 
-	if (Sector->MoreFlags & SECF_UNDERWATERMASK)
+	if (Sector->MoreFlags & SECF_UNDERWATER)	// intentionally not SECF_UNDERWATERMASK
 	{
 		waterlevel = 3;
 	}
@@ -3804,7 +3805,7 @@ bool AActor::UpdateWaterLevel (fixed_t oldz, bool dosplash)
 		if (hsec != NULL && !(hsec->MoreFlags & SECF_IGNOREHEIGHTSEC))
 		{
 			fh = hsec->floorplane.ZatPoint (x, y);
-			//if (hsec->MoreFlags & SECF_UNDERWATERMASK)	// also check Boom-style non-swimmable sectors!
+			//if (hsec->MoreFlags & SECF_UNDERWATERMASK)	// also check Boom-style non-swimmable sectors
 			{
 				if (z < fh)
 				{
@@ -3829,7 +3830,7 @@ bool AActor::UpdateWaterLevel (fixed_t oldz, bool dosplash)
 				}
 			}
 			// even non-swimmable deep water must be checked here to do the splashes correctly
-			// But the water level must be reset when this function returns!
+			// But the water level must be reset when this function returns
 			if (!(hsec->MoreFlags&SECF_UNDERWATERMASK)) reset=true;
 
 			}
@@ -3938,6 +3939,7 @@ BEGIN_DEFAULTS (AActor, Any, -1, 0)
 	PROP_MaxDropOffHeight(24)
 	PROP_MaxStepHeight(24)
 	PROP_BounceFactor(FRACUNIT*7/10)
+	PROP_WallBounceFactor(FRACUNIT*3/4)
 	PROP_BounceCount(-1)
 	PROP_FloatSpeed(4)
 	PROP_Gravity(FRACUNIT)
@@ -5529,7 +5531,8 @@ bool P_HitWater (AActor * thing, sector_t * sec, fixed_t z)
 	{		
 		F3DFloor * rover = sec->e->XFloor.ffloors[i];
 		if (!(rover->flags & FF_EXISTS)) continue;
-		if (rover->top.plane->ZatPoint(thing->x, thing->y) == z)
+		fixed_t planez = rover->top.plane->ZatPoint(thing->x, thing->y);
+		if (z >= planez - 2*FRACUNIT && z <= planez + 3*FRACUNIT)	// account for offset used in P_LineAttack
 		{
 			if (rover->flags & (FF_SOLID|FF_SWIMMABLE) )
 			{
@@ -5537,6 +5540,8 @@ bool P_HitWater (AActor * thing, sector_t * sec, fixed_t z)
 				goto foundone;
 			}
 		}
+		planez = rover->bottom.plane->ZatPoint(thing->x, thing->y);
+		if (planez < z) return false;
 	}
 	if (sec->heightsec == NULL ||
 		//!sec->heightsec->waterzone ||
@@ -5627,7 +5632,7 @@ foundone:
 
 		// [BC] Tell clients to play the sound.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SoundPoint( thing->x, thing->y, CHAN_ITEM, smallsplash ? S_GetName( splash->SmallSplashSound ) : S_GetName( splash->NormalSplashSound ), 1, ATTN_IDLE );
+			SERVERCOMMANDS_SoundPoint( thing->x, thing->y, thing->z, CHAN_ITEM, smallsplash ? S_GetName( splash->SmallSplashSound ) : S_GetName( splash->NormalSplashSound ), 1, ATTN_IDLE );
 	}
 
 	// Don't let deep water eat missiles

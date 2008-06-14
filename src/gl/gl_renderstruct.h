@@ -80,27 +80,22 @@ struct GLSectorPlane
 
 	void GetFromSector(sector_t * sec, bool ceiling)
 	{
+		xoffs = sec->GetXOffset(ceiling);
+		yoffs = sec->GetYOffset(ceiling);
+		xscale = sec->GetXScale(ceiling);
+		yscale = sec->GetYScale(ceiling);
+		angle = sec->GetAngle(ceiling);
 		if (ceiling)
 		{
 			texture = sec->ceilingpic;
 			plane = sec->ceilingplane;
 			texheight = sec->ceilingtexz;
-			xoffs = sec->ceiling_xoffs;
-			yoffs = sec->ceiling_yoffs + sec->base_ceiling_yoffs;
-			xscale = sec->ceiling_xscale;
-			yscale = sec->ceiling_yscale;
-			angle = sec->ceiling_angle + sec->base_ceiling_angle;
 		}
 		else
 		{
 			texture = sec->floorpic;
 			plane = sec->floorplane;
 			texheight = sec->floortexz;
-			xoffs = sec->floor_xoffs;
-			yoffs = sec->floor_yoffs + sec->base_floor_yoffs;
-			xscale = sec->floor_xscale;
-			yscale = sec->floor_yscale;
-			angle = sec->floor_angle + sec->base_floor_angle;
 		}
 	}
 };

@@ -3959,10 +3959,10 @@ void SERVERCOMMANDS_SetSectorPanning( ULONG ulSector, ULONG ulPlayerExtra, ULONG
 		SERVER_CheckClientBuffer( ulIdx, 7, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSECTORPANNING );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].ceiling_xoffs / FRACUNIT );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].ceiling_yoffs / FRACUNIT );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].floor_xoffs / FRACUNIT );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].floor_yoffs / FRACUNIT );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].GetXOffset(sector_t::ceiling) / FRACUNIT );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].GetYOffset(sector_t::ceiling) / FRACUNIT );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].GetXOffset(sector_t::floor) / FRACUNIT );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].GetYOffset(sector_t::floor) / FRACUNIT );
 	}
 }
 
@@ -3989,8 +3989,8 @@ void SERVERCOMMANDS_SetSectorRotation( ULONG ulSector, ULONG ulPlayerExtra, ULON
 		SERVER_CheckClientBuffer( ulIdx, 7, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSECTORROTATION );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ( sectors[ulSector].ceiling_angle / ANGLE_1 ));
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ( sectors[ulSector].floor_angle / ANGLE_1 ));
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ( sectors[ulSector].GetAngle(sector_t::ceiling) / ANGLE_1 ));
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ( sectors[ulSector].GetAngle(sector_t::floor) / ANGLE_1 ));
 	}
 }
 
@@ -4017,10 +4017,10 @@ void SERVERCOMMANDS_SetSectorScale( ULONG ulSector, ULONG ulPlayerExtra, ULONG u
 		SERVER_CheckClientBuffer( ulIdx, 11, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSECTORSCALE );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ( sectors[ulSector].ceiling_xscale / FRACBITS ));
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ( sectors[ulSector].ceiling_yscale / FRACBITS ));
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ( sectors[ulSector].floor_xscale / FRACBITS ));
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ( sectors[ulSector].floor_yscale / FRACBITS ));
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ( sectors[ulSector].GetXScale(sector_t::ceiling) / FRACBITS ));
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ( sectors[ulSector].GetYScale(sector_t::ceiling) / FRACBITS ));
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ( sectors[ulSector].GetXScale(sector_t::floor) / FRACBITS ));
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ( sectors[ulSector].GetYScale(sector_t::floor) / FRACBITS ));
 	}
 }
 
@@ -4075,10 +4075,10 @@ void SERVERCOMMANDS_SetSectorAngleYOffset( ULONG ulSector, ULONG ulPlayerExtra, 
 		SERVER_CheckClientBuffer( ulIdx, 19, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSECTORANGLEYOFFSET );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulSector );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].base_ceiling_angle );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].base_ceiling_yoffs );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].base_floor_angle );
-		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].base_floor_yoffs );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].planes[sector_t::ceiling].xform.base_angle );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].planes[sector_t::ceiling].xform.base_yoffs );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].planes[sector_t::floor].xform.base_angle );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, sectors[ulSector].planes[sector_t::floor].xform.base_yoffs );
 	}
 }
 
@@ -4668,7 +4668,7 @@ void SERVERCOMMANDS_SoundActor( AActor *pActor, LONG lChannel, const char *pszSo
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SoundPoint( LONG lX, LONG lY, LONG lChannel, const char *pszSound, float fVolume, LONG lAttenuation, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_SoundPoint( LONG lX, LONG lY, LONG lZ, LONG lChannel, const char *pszSound, float fVolume, LONG lAttenuation, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 
@@ -4683,10 +4683,11 @@ void SERVERCOMMANDS_SoundPoint( LONG lX, LONG lY, LONG lChannel, const char *psz
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 8 + (ULONG)strlen( pszSound ), true );
+		SERVER_CheckClientBuffer( ulIdx, 10 + (ULONG)strlen( pszSound ), true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SOUNDPOINT );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lX >> FRACBITS );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lY >> FRACBITS );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lZ >> FRACBITS );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, lChannel );
 		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszSound );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, LONG( fVolume * 127 ));

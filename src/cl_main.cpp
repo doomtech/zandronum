@@ -8111,11 +8111,11 @@ static void client_SetSectorPanning( BYTESTREAM_s *pByteStream )
 	}
 
 	// Finally, set the offsets.
-	pSector->ceiling_xoffs = lCeilingXOffset * FRACUNIT;
-	pSector->ceiling_yoffs = lCeilingYOffset * FRACUNIT;
+	pSector->SetXOffset(sector_t::ceiling, lCeilingXOffset * FRACUNIT);
+	pSector->SetYOffset(sector_t::ceiling, lCeilingYOffset * FRACUNIT);
 
-	pSector->floor_xoffs = lFloorXOffset * FRACUNIT;
-	pSector->floor_yoffs = lFloorYOffset * FRACUNIT;
+	pSector->SetXOffset(sector_t::floor, lFloorXOffset * FRACUNIT);
+	pSector->SetYOffset(sector_t::floor, lFloorYOffset * FRACUNIT);
 }
 
 //*****************************************************************************
@@ -8146,8 +8146,8 @@ static void client_SetSectorRotation( BYTESTREAM_s *pByteStream )
 	}
 
 	// Finally, set the rotation.
-	pSector->ceiling_angle = ( lCeilingRotation * ANGLE_1 );
-	pSector->floor_angle = ( lFloorRotation * ANGLE_1 );
+	pSector->SetAngle(sector_t::ceiling, ( lCeilingRotation * ANGLE_1 ) );
+	pSector->SetAngle(sector_t::floor, ( lFloorRotation * ANGLE_1 ) );
 }
 
 //*****************************************************************************
@@ -8181,10 +8181,10 @@ static void client_SetSectorScale( BYTESTREAM_s *pByteStream )
 	}
 
 	// Finally, set the scale.
-	pSector->ceiling_xscale = lCeilingXScale;
-	pSector->ceiling_yscale = lCeilingYScale;
-	pSector->floor_xscale = lFloorXScale;
-	pSector->floor_yscale = lFloorYScale;
+	pSector->SetXScale(sector_t::ceiling, lCeilingXScale);
+	pSector->SetYScale(sector_t::ceiling, lCeilingYScale);
+	pSector->SetXScale(sector_t::floor, lFloorXScale);
+	pSector->SetYScale(sector_t::floor, lFloorYScale);
 }
 
 //*****************************************************************************
@@ -8255,10 +8255,10 @@ static void client_SetSectorAngleYOffset( BYTESTREAM_s *pByteStream )
 	}
 
 	// Set the sector's angle and y-offset.
-	pSector->base_ceiling_angle = lCeilingAngle;
-	pSector->base_ceiling_yoffs = lCeilingYOffset;
-	pSector->base_floor_angle = lFloorAngle;
-	pSector->base_floor_yoffs = lFloorYOffset;
+	pSector->planes[sector_t::ceiling].xform.base_angle = lCeilingAngle;
+	pSector->planes[sector_t::ceiling].xform.base_yoffs = lCeilingYOffset;
+	pSector->planes[sector_t::floor].xform.base_angle = lFloorAngle;
+	pSector->planes[sector_t::floor].xform.base_yoffs = lFloorYOffset;
 }
 
 //*****************************************************************************
@@ -8896,10 +8896,12 @@ static void client_SoundPoint( BYTESTREAM_s *pByteStream )
 	LONG		lAttenuation;
 	fixed_t		X;
 	fixed_t		Y;
+	fixed_t		Z;
 
 	// Read in the XY of the sound.
 	X = NETWORK_ReadShort( pByteStream ) << FRACBITS;
 	Y = NETWORK_ReadShort( pByteStream ) << FRACBITS;
+	Z = NETWORK_ReadShort( pByteStream ) << FRACBITS;
 
 	// Read in the channel.
 	lChannel = NETWORK_ReadByte( pByteStream );
@@ -8916,7 +8918,7 @@ static void client_SoundPoint( BYTESTREAM_s *pByteStream )
 	lAttenuation = NETWORK_ReadByte( pByteStream );
 
 	// Finally, play the sound.
-	S_Sound( X, Y, CHAN_BODY, pszSoundString, (float)lVolume / 127.f, lAttenuation );
+	S_SoundID ( X, Y, Z, CHAN_BODY, S_FindSound(pszSoundString), (float)lVolume / 127.f, lAttenuation );
 }
 
 //*****************************************************************************

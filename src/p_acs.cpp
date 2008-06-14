@@ -4502,7 +4502,7 @@ int DLevelScript::RunScript ()
 
 					// [BC] If we're the server, tell clients to play this sound.
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-						SERVERCOMMANDS_SoundPoint( activationline->frontsector->soundorg[0], activationline->frontsector->soundorg[1], CHAN_AUTO, (char *)lookup, STACK( 1 ), ATTN_NORM );
+						SERVERCOMMANDS_SoundPoint( activationline->frontsector->soundorg[0], activationline->frontsector->soundorg[1], activationline->frontsector->soundorg[2], CHAN_AUTO, (char *)lookup, STACK( 1 ), ATTN_NORM );
 				}
 				else
 				{
@@ -5571,6 +5571,7 @@ int DLevelScript::RunScript ()
 					sky2texture = TexMan.GetTexture (sky2name, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable|FTextureManager::TEXMAN_ReturnFirst);
 				}
 				R_InitSkyMap ();
+				sp -= 2;
 
 				// [BC] If we're the server, tell clients to update their sky.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )

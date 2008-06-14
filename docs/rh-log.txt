@@ -1,3 +1,54 @@
+June 12, 2008
+- Add environment 255, 255 as a way to get the software underwater effect in
+  any zone you want.
+- Using a too-recent version of FMOD now gives an error, since there may be
+  breaking changes to the API from one version to the next (excluding
+  revisions in stable branches, which only represent bug fixes).
+- Updated fmod_wrap.h for FMOD 4.16 and corrected a bug that had gone
+  unnoticed before: The delayhi and delaylo parameters for Channel::setDelay()
+  and getDelay() were swapped.
+
+June 12, 2008 (Changes by Graf Zahl)
+- Fixed: P_ChangeSector could incorrectly block movement when checking for
+  mid textures linked to a moving floor.
+- Fixed AActor's bouncefactor definitions which I accidentally changed when
+  adding wallbouncefactor.
+- Fixed: A_SpawnItemEx added the floorclip offset to the z coordinate instead 
+  of subtracting it.
+
+June 11, 2008 (Changes by Graf Zahl)
+- Fixed: SBARINFO's popup code used 1-based indices to address a C++ array.
+- Fixed: ACS's ChangeSky command didn't clean up the stack.
+- Fixed: Wall scrolling interpolations incremented their reference count twice.
+- Fixed: Before a level's thinkers are loaded all previous interpolations must
+  be cleared.
+- Fixed: deleted interpolations didn't NULL the pointer in the interpolated
+  object. Also added all interpolation pointers to DSectorMarker to ensure
+  that they are properyl processed by the garbage collector.
+
+June 10, 2008 (Changes by Graf Zahl)
+- Added scaling to double size for idmypos display.
+- Changed: Players don't telefrag when they are spawned now but after all
+  actors have been spawned to avoid accidental voodoo doll telefragging.
+- Fixed: ACS scripts for non-existent maps were started on the current one.
+- Added a 'wallbouncefactor' property to AActor.
+- Reverted forceunderwater change from r1026 and fixed the problem for real:
+  SECF_FORCEDUNDERWATER only has meaning when coming from the heightsec.
+  So the initial check of the current sector in AActor::UpdateWaterLevel
+  must only check for SECF_UNDERWATER, not SECF_UNDERWATERMASK.
+
+June 9, 2008
+- Dehacked fix discovered by entryway: Dehacked only changes the blue armor's
+  armortype. It does not touch the armor given by the megasphere.
+- Changed forcewater handling so that only control sectors created by one-
+  sided lines become swimmable, since there's a good chance that a two-sided
+  line is creating the control sector out of a normal, accessible portion of
+  the map. (See e.g. linedef 29242 of zdoomcmp1.)
+
+June 7, 2008
+- Added self-modifying code notifications for Valgrind.
+  Build with make VALGRIND=1 to turn them on.
+
 June 6, 2008
 - Fixed: There was still an inventory bar check in FMugShot::GetFace() after
   separating it from DDoomStatusBar.

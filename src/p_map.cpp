@@ -3210,7 +3210,7 @@ bool FSlide::BounceWall (AActor *mo)
 	deltaangle >>= ANGLETOFINESHIFT;
 
 	movelen = P_AproxDistance (mo->momx, mo->momy);
-	movelen = (movelen * 192) >> 8; // friction
+	movelen = FixedMul(movelen, mo->wallbouncefactor);
 
 	FBoundingBox box(mo->x, mo->y, mo->radius);
 	if (box.BoxOnLineSide (line) == -1)
@@ -5516,6 +5516,8 @@ void PIT_FloorDrop (AActor *thing, FChangePosition *cpos)
 
 	P_AdjustFloorCeil (thing, cpos);
 
+	if (oldfloorz == thing->floorz) return;
+
 	if (thing->momz == 0 &&
 		(!(thing->flags & MF_NOGRAVITY) ||
 		 (thing->z == oldfloorz && !(thing->flags & MF_NOLIFTDROP))))
@@ -5554,6 +5556,8 @@ void PIT_FloorRaise (AActor *thing, FChangePosition *cpos)
 	fixed_t oldfloorz = thing->floorz;
 
 	P_AdjustFloorCeil (thing, cpos);
+
+	if (oldfloorz == thing->floorz) return;
 
 	// Move things intersecting the floor up
 	if (thing->z <= thing->floorz ||

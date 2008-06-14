@@ -3258,53 +3258,53 @@ void GAME_ResetMap( bool bRunEnterScripts )
 			}
 		}
 
-		if (( sectors[ulIdx].SavedFloorXOffset != sectors[ulIdx].floor_xoffs ) ||
-			( sectors[ulIdx].SavedFloorYOffset != sectors[ulIdx].floor_yoffs ) ||
-			( sectors[ulIdx].SavedCeilingXOffset != sectors[ulIdx].ceiling_xoffs ) ||
-			( sectors[ulIdx].SavedCeilingYOffset != sectors[ulIdx].ceiling_yoffs ))
+		if (( sectors[ulIdx].SavedFloorXOffset != sectors[ulIdx].GetXOffset(sector_t::floor) ) ||
+			( sectors[ulIdx].SavedFloorYOffset != sectors[ulIdx].GetYOffset(sector_t::floor) ) ||
+			( sectors[ulIdx].SavedCeilingXOffset != sectors[ulIdx].GetXOffset(sector_t::ceiling) ) ||
+			( sectors[ulIdx].SavedCeilingYOffset != sectors[ulIdx].GetYOffset(sector_t::ceiling) ))
 		{
-			sectors[ulIdx].floor_xoffs = sectors[ulIdx].SavedFloorXOffset;
-			sectors[ulIdx].floor_yoffs = sectors[ulIdx].SavedFloorYOffset;
-			sectors[ulIdx].ceiling_xoffs = sectors[ulIdx].SavedCeilingXOffset;
-			sectors[ulIdx].ceiling_yoffs = sectors[ulIdx].SavedCeilingYOffset;
+			sectors[ulIdx].SetXOffset(sector_t::floor, sectors[ulIdx].SavedFloorXOffset);
+			sectors[ulIdx].SetYOffset(sector_t::floor, sectors[ulIdx].SavedFloorYOffset);
+			sectors[ulIdx].SetXOffset(sector_t::ceiling, sectors[ulIdx].SavedCeilingXOffset);
+			sectors[ulIdx].SetYOffset(sector_t::ceiling, sectors[ulIdx].SavedCeilingYOffset);
 
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SetSectorPanning( ulIdx );
 		}
 
-		if (( sectors[ulIdx].SavedFloorXScale != sectors[ulIdx].floor_xscale ) ||
-			( sectors[ulIdx].SavedFloorYScale != sectors[ulIdx].floor_yscale ) ||
-			( sectors[ulIdx].SavedCeilingXScale != sectors[ulIdx].ceiling_xscale ) ||
-			( sectors[ulIdx].SavedCeilingYScale != sectors[ulIdx].ceiling_yscale ))
+		if (( sectors[ulIdx].SavedFloorXScale != sectors[ulIdx].GetXScale(sector_t::floor) ) ||
+			( sectors[ulIdx].SavedFloorYScale != sectors[ulIdx].GetYScale(sector_t::floor) ) ||
+			( sectors[ulIdx].SavedCeilingXScale != sectors[ulIdx].GetXScale(sector_t::ceiling) ) ||
+			( sectors[ulIdx].SavedCeilingYScale != sectors[ulIdx].GetYScale(sector_t::ceiling) ))
 		{
-			sectors[ulIdx].floor_xscale = sectors[ulIdx].SavedFloorXScale;
-			sectors[ulIdx].floor_yscale = sectors[ulIdx].SavedFloorYScale;
-			sectors[ulIdx].ceiling_xscale = sectors[ulIdx].SavedCeilingXScale;
-			sectors[ulIdx].ceiling_yscale = sectors[ulIdx].SavedCeilingYScale;
+			sectors[ulIdx].SetXScale(sector_t::floor, sectors[ulIdx].SavedFloorXScale);
+			sectors[ulIdx].SetYScale(sector_t::floor, sectors[ulIdx].SavedFloorYScale);
+			sectors[ulIdx].SetXScale(sector_t::ceiling, sectors[ulIdx].SavedCeilingXScale);
+			sectors[ulIdx].SetYScale(sector_t::ceiling, sectors[ulIdx].SavedCeilingYScale);
 
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SetSectorScale( ulIdx );
 		}
 
-		if (( sectors[ulIdx].SavedFloorAngle != sectors[ulIdx].floor_angle ) ||
-			( sectors[ulIdx].SavedCeilingAngle != sectors[ulIdx].ceiling_angle ))
+		if (( sectors[ulIdx].SavedFloorAngle != sectors[ulIdx].GetAngle(sector_t::floor) ) ||
+			( sectors[ulIdx].SavedCeilingAngle != sectors[ulIdx].GetAngle(sector_t::ceiling) ))
 		{
-			sectors[ulIdx].floor_angle = sectors[ulIdx].SavedFloorAngle;
-			sectors[ulIdx].ceiling_angle = sectors[ulIdx].SavedCeilingAngle;
+			sectors[ulIdx].SetAngle(sector_t::floor, sectors[ulIdx].SavedFloorAngle);
+			sectors[ulIdx].SetAngle(sector_t::ceiling, sectors[ulIdx].SavedCeilingAngle);
 
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SetSectorRotation( ulIdx );
 		}
 
-		if (( sectors[ulIdx].SavedBaseFloorAngle != sectors[ulIdx].base_floor_angle ) ||
-			( sectors[ulIdx].SavedBaseFloorYOffset != sectors[ulIdx].base_floor_yoffs ) ||
-			( sectors[ulIdx].SavedBaseCeilingAngle != sectors[ulIdx].base_ceiling_angle ) ||
-			( sectors[ulIdx].SavedBaseCeilingYOffset != sectors[ulIdx].base_ceiling_yoffs ))
+		if (( sectors[ulIdx].SavedBaseFloorAngle != sectors[ulIdx].planes[sector_t::floor].xform.base_angle ) ||
+			( sectors[ulIdx].SavedBaseFloorYOffset != sectors[ulIdx].planes[sector_t::floor].xform.base_yoffs ) ||
+			( sectors[ulIdx].SavedBaseCeilingAngle != sectors[ulIdx].planes[sector_t::ceiling].xform.base_angle ) ||
+			( sectors[ulIdx].SavedBaseCeilingYOffset != sectors[ulIdx].planes[sector_t::ceiling].xform.base_yoffs ))
 		{
-			sectors[ulIdx].base_floor_angle = sectors[ulIdx].SavedBaseFloorAngle;
-			sectors[ulIdx].base_floor_yoffs = sectors[ulIdx].SavedBaseFloorYOffset;
-			sectors[ulIdx].base_ceiling_angle = sectors[ulIdx].SavedBaseCeilingAngle;
-			sectors[ulIdx].base_ceiling_yoffs = sectors[ulIdx].SavedBaseCeilingYOffset;
+			sectors[ulIdx].planes[sector_t::floor].xform.base_angle = sectors[ulIdx].SavedBaseFloorAngle;
+			sectors[ulIdx].planes[sector_t::floor].xform.base_yoffs = sectors[ulIdx].SavedBaseFloorYOffset;
+			sectors[ulIdx].planes[sector_t::ceiling].xform.base_angle = sectors[ulIdx].SavedBaseCeilingAngle;
+			sectors[ulIdx].planes[sector_t::ceiling].xform.base_yoffs = sectors[ulIdx].SavedBaseCeilingYOffset;
 
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SetSectorAngleYOffset( ulIdx );

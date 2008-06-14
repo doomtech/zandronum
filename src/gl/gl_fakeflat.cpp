@@ -131,13 +131,7 @@ sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, bool back)
 		if (!back)
 		{
 			dest->floorpic = diffTex ? sec->floorpic : s->floorpic;
-			dest->floor_xoffs		= s->floor_xoffs;
-			dest->floor_yoffs		= s->floor_yoffs;
-			dest->floor_xscale		= s->floor_xscale;
-			dest->floor_yscale		= s->floor_yscale;
-			dest->floor_angle		= s->floor_angle;
-			dest->base_floor_angle	= s->base_floor_angle;
-			dest->base_floor_yoffs	= s->base_floor_yoffs;
+			dest->planes[sector_t::floor].xform = s->planes[sector_t::floor].xform;
 
 			dest->ceilingplane		= s->floorplane;
 			
@@ -148,25 +142,13 @@ sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, bool back)
 				//dest->floorplane.FlipVert ();
 				//dest->floorplane.ChangeHeight (+1);
 				dest->ceilingpic			= dest->floorpic;
-				dest->ceiling_xoffs			= dest->floor_xoffs;
-				dest->ceiling_yoffs			= dest->floor_yoffs;
-				dest->ceiling_xscale		= dest->floor_xscale;
-				dest->ceiling_yscale		= dest->floor_yscale;
-				dest->ceiling_angle			= dest->floor_angle;
-				dest->base_ceiling_angle	= dest->base_floor_angle;
-				dest->base_ceiling_yoffs	= dest->base_floor_yoffs;
+				dest->planes[sector_t::ceiling].xform = dest->planes[sector_t::floor].xform;
 
 			} 
 			else 
 			{
 				dest->ceilingpic			= diffTex ? s->floorpic : s->ceilingpic;
-				dest->ceiling_xoffs			= s->ceiling_xoffs;
-				dest->ceiling_yoffs			= s->ceiling_yoffs;
-				dest->ceiling_xscale		= s->ceiling_xscale;
-				dest->ceiling_yscale		= s->ceiling_yscale;
-				dest->ceiling_angle			= s->ceiling_angle;
-				dest->base_ceiling_angle	= s->base_ceiling_angle;
-				dest->base_ceiling_yoffs	= s->base_ceiling_yoffs;
+				dest->planes[sector_t::ceiling].xform = s->planes[sector_t::ceiling].xform;
 			}
 			
 			if (!(s->MoreFlags & SECF_NOFAKELIGHT))
@@ -192,23 +174,13 @@ sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, bool back)
 		{
 			dest->ceilingpic = diffTex ? sec->ceilingpic : s->ceilingpic;
 			dest->floorpic			= s->ceilingpic;
-			dest->floor_xoffs		= dest->ceiling_xoffs		= s->ceiling_xoffs;
-			dest->floor_yoffs		= dest->ceiling_yoffs		= s->ceiling_yoffs;
-			dest->floor_xscale		= dest->ceiling_xscale		= s->ceiling_xscale;
-			dest->floor_yscale		= dest->ceiling_yscale		= s->ceiling_yscale;
-			dest->floor_angle		= dest->ceiling_angle		= s->ceiling_angle;
-			dest->base_floor_angle	= dest->base_ceiling_angle	= s->base_ceiling_angle;
-			dest->base_floor_yoffs	= dest->base_ceiling_yoffs	= s->base_ceiling_yoffs;
+			dest->planes[sector_t::ceiling].xform = dest->planes[sector_t::floor].xform = s->planes[sector_t::ceiling].xform;
 			
 			if (s->floorpic != skyflatnum)
 			{
 				dest->ceilingplane	= sec->ceilingplane;
 				dest->floorpic		= s->floorpic;
-				dest->floor_xoffs	= s->floor_xoffs;
-				dest->floor_yoffs	= s->floor_yoffs;
-				dest->floor_xscale	= s->floor_xscale;
-				dest->floor_yscale	= s->floor_yscale;
-				dest->floor_angle	= s->floor_angle;
+				dest->planes[sector_t::floor].xform = s->planes[sector_t::floor].xform;
 			}
 			
 			if (!(s->MoreFlags & SECF_NOFAKELIGHT))

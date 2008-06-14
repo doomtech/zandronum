@@ -337,6 +337,21 @@ struct extsector_t
 };
 
 
+struct FTransform
+{
+	// killough 3/7/98: floor and ceiling texture offsets
+	fixed_t xoffs, yoffs;
+
+	// [RH] floor and ceiling texture scales
+	fixed_t xscale, yscale;
+
+	// [RH] floor and ceiling texture rotation
+	angle_t angle;
+
+	// base values
+	fixed_t base_angle, base_yoffs;
+};
+
 struct sector_t
 {
 	// Member functions
@@ -364,6 +379,102 @@ struct sector_t
 	DInterpolation *SetInterpolation(int position, bool attach);
 	void StopInterpolation(int position);
 
+	enum
+	{
+		floor,
+		ceiling
+	};
+
+	struct splane
+	{
+		FTransform xform;
+	};
+
+
+	splane planes[2];
+
+	void SetXOffset(int pos, fixed_t o)
+	{
+		planes[pos].xform.xoffs = o;
+	}
+
+	void AddXOffset(int pos, fixed_t o)
+	{
+		planes[pos].xform.xoffs += o;
+	}
+
+	fixed_t GetXOffset(int pos) const
+	{
+		return planes[pos].xform.xoffs;
+	}
+
+	void SetYOffset(int pos, fixed_t o)
+	{
+		planes[pos].xform.yoffs = o;
+	}
+
+	void AddYOffset(int pos, fixed_t o)
+	{
+		planes[pos].xform.yoffs += o;
+	}
+
+	fixed_t GetYOffset(int pos, bool addbase = true) const
+	{
+		if (!addbase)
+		{
+			return planes[pos].xform.yoffs;
+		}
+		else
+		{
+			return planes[pos].xform.yoffs + planes[pos].xform.base_yoffs;
+		}
+	}
+
+	void SetXScale(int pos, fixed_t o)
+	{
+		planes[pos].xform.xscale = o;
+	}
+
+	fixed_t GetXScale(int pos) const
+	{
+		return planes[pos].xform.xscale;
+	}
+
+	void SetYScale(int pos, fixed_t o)
+	{
+		planes[pos].xform.yscale = o;
+	}
+
+	fixed_t GetYScale(int pos) const
+	{
+		return planes[pos].xform.yscale;
+	}
+
+	void SetAngle(int pos, angle_t o)
+	{
+		planes[pos].xform.angle = o;
+	}
+
+	angle_t GetAngle(int pos, bool addbase = true) const
+	{
+		if (!addbase)
+		{
+			return planes[pos].xform.angle;
+		}
+		else
+		{
+			return planes[pos].xform.angle + planes[pos].xform.base_angle;
+		}
+	}
+
+	void SetBase(int pos, fixed_t y, angle_t o)
+	{
+		planes[pos].xform.base_yoffs = y;
+		planes[pos].xform.base_angle = o;
+	}
+
+
+
 	// Member variables
 	fixed_t		CenterFloor () const { return floorplane.ZatPoint (soundorg[0], soundorg[1]); }
 	fixed_t		CenterCeiling () const { return ceilingplane.ZatPoint (soundorg[0], soundorg[1]); }
@@ -374,20 +485,6 @@ struct sector_t
 
 	// [RH] give floor and ceiling even more properties
 	FDynamicColormap *ColorMap;	// [RH] Per-sector colormap
-
-	// killough 3/7/98: floor and ceiling texture offsets
-	fixed_t		  floor_xoffs,   floor_yoffs;
-	fixed_t		ceiling_xoffs, ceiling_yoffs;
-
-	// [RH] floor and ceiling texture scales
-	fixed_t		  floor_xscale,   floor_yscale;
-	fixed_t		ceiling_xscale, ceiling_yscale;
-
-	// [RH] floor and ceiling texture rotation
-	angle_t		floor_angle, ceiling_angle;
-
-	fixed_t		base_ceiling_angle, base_ceiling_yoffs;
-	fixed_t		base_floor_angle, base_floor_yoffs;
 
 	BYTE		FloorLight, CeilingLight;
 	BYTE		FloorFlags, CeilingFlags;
@@ -524,7 +621,11 @@ struct sector_t
 	short				SavedMOD;
 	float				SavedCeilingReflect;
 	float				SavedFloorReflect;
+
 };
+
+FArchive &operator<< (FArchive &arc, sector_t::splane &p);
+
 
 struct ReverbContainer;
 struct zone_t
@@ -580,6 +681,11 @@ struct side_t
 	short		SavedBottomTexture;
 
 	int GetLightLevel (bool foggy, int baselight) const;
+
+	void SetLight(SWORD l)
+	{
+		Light = l;
+	}
 
 	int GetTexture(int which) const
 	{
@@ -797,7 +903,6 @@ struct FPolyObj
 	// Was the polyobject blocked the last time it tried to move?
 	bool		bBlocked;
 };
-
 
 //
 // BSP node.

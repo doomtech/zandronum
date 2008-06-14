@@ -1689,17 +1689,7 @@ bool R_AlignFlat (int linenum, int side, int fc)
 		dist = -dist;
 	}
 
-	if (fc)
-	{
-		sec->base_ceiling_angle = 0-angle;
-		sec->base_ceiling_yoffs = dist & ((1<<(FRACBITS+8))-1);
-	}
-	else
-	{
-		sec->base_floor_angle = 0-angle;
-		sec->base_floor_yoffs = dist & ((1<<(FRACBITS+8))-1);
-	}
-
+	sec->SetBase(fc, dist & ((1<<(FRACBITS+8))-1), 0-angle);
 	// [BC] If we're the server, tell clients to update the sector's angle/y-offset.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_SetSectorAngleYOffset( static_cast<ULONG>(sec - sectors) );

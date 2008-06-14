@@ -2043,7 +2043,7 @@ void A_SpawnItemEx(AActor * self)
 		return;
 	}
 
-	AActor * mo = Spawn( missile, x, y, self->z + self->floorclip + zofs, ALLOW_REPLACE);
+	AActor * mo = Spawn( missile, x, y, self->z - self->floorclip + zofs, ALLOW_REPLACE);
 	bool bSpawnSuccessful = InitSpawnedItem(self, mo, flags);
 	if (mo)
 	{

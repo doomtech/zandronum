@@ -625,12 +625,22 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 	// there is no need to create multiple textures for this.
 	if (GetTranslationType(translation) == TRANSLATION_Blood)
 	{
-		extern TArray<PalEntry> BloodTranslationColors;
+		if (Colormap.LightColor.a < CM_INVERT || Colormap.LightColor.a > CM_GREENMAP)
+		{
+			extern TArray<PalEntry> BloodTranslationColors;
 
-		ThingColor = BloodTranslationColors[GetTranslationIndex(translation)];
-		ThingColor.a=0;
-
-		translation = TRANSLATION(TRANSLATION_Standard, 8);
+			ThingColor = BloodTranslationColors[GetTranslationIndex(translation)];
+			ThingColor.a=0;
+			// This is to apply desaturation to the color
+			gl_ModifyColor(ThingColor.r, ThingColor.g, ThingColor.b, Colormap.LightColor.a);
+			translation = TRANSLATION(TRANSLATION_Standard, 8);
+		}
+		else 
+		{
+			// Blood color must be disabled when using any monochrome colormap
+			ThingColor = 0xffffff;
+			translation = 0;
+		}
 	}
 	else ThingColor=0xffffff;
 

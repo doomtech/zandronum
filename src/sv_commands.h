@@ -238,7 +238,7 @@ void	SERVERCOMMANDS_ACSScriptExecute( ULONG ulScript, AActor *pActivator, LONG l
 // Sound commands. These play a sound.
 void	SERVERCOMMANDS_Sound( LONG lChannel, const char *pszSound, float fVolume, LONG lAttenuation, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 void	SERVERCOMMANDS_SoundActor( AActor *pActor, LONG lChannel, const char *pszSound, float fVolume, LONG lAttenuation, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
-void	SERVERCOMMANDS_SoundPoint( LONG lX, LONG lY, LONG lChannel, const char *pszSound, float fVolume, LONG lAttenuation, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
+void	SERVERCOMMANDS_SoundPoint( LONG lX, LONG lY, LONG lZ, LONG lChannel, const char *pszSound, float fVolume, LONG lAttenuation, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );
 
 // Sector sequence commands. These handle sector sound sequences.
 void	SERVERCOMMANDS_StartSectorSequence( sector_t *pSector, char *pszSequence, ULONG ulPlayerExtra = MAXPLAYERS, ULONG ulFlags = 0 );

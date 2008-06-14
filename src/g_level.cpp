@@ -74,6 +74,7 @@
 #include "sbarinfo.h"
 #include "r_translate.h"
 #include "p_lnspec.h"
+#include "r_interpolate.h"
 // [BB] New #includes.
 #include "cl_main.h"
 #include "deathmatch.h"
@@ -3410,6 +3411,7 @@ void G_SerializeLevel (FArchive &arc, bool hubLoad)
 	}
 
 	FBehavior::StaticSerializeModuleStates (arc);
+	if (arc.IsLoading()) interpolator.ClearInterpolations();
 	P_SerializeThinkers (arc, hubLoad);
 	P_SerializeWorld (arc);
 	P_SerializePolyobjs (arc);

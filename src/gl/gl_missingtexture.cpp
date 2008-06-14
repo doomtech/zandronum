@@ -1264,11 +1264,11 @@ void GLDrawInfo::CollectSectorStacksCeiling(subsector_t * sub, sector_t * anchor
 		me->ceilingplane != anchor->ceilingplane ||
 		GetCeilingLight(me) != GetCeilingLight(anchor) ||
 		me->ColorMap != anchor->ColorMap ||
-		me->ceiling_xoffs != anchor->ceiling_xoffs || 
-		me->ceiling_yoffs + me->base_ceiling_yoffs != anchor->ceiling_yoffs + anchor->base_ceiling_yoffs ||
-		me->ceiling_xscale != anchor->ceiling_xscale || 
-		me->ceiling_yscale != anchor->ceiling_yscale ||
-		me->ceiling_angle + me->base_ceiling_angle != anchor->ceiling_angle + anchor->base_ceiling_angle)
+		me->GetXOffset(sector_t::ceiling) != anchor->GetXOffset(sector_t::ceiling) || 
+		me->GetYOffset(sector_t::ceiling) != anchor->GetYOffset(sector_t::ceiling) || 
+		me->GetXScale(sector_t::ceiling) != anchor->GetXScale(sector_t::ceiling) || 
+		me->GetYScale(sector_t::ceiling) != anchor->GetYScale(sector_t::ceiling) || 
+		me->GetAngle(sector_t::ceiling) != anchor->GetAngle(sector_t::ceiling))
 	{
 		// different visplane so it can't belong to this stack
 		return;
@@ -1312,11 +1312,11 @@ void GLDrawInfo::CollectSectorStacksFloor(subsector_t * sub, sector_t * anchor)
 		me->floorplane != anchor->floorplane ||
 		GetFloorLight(me) != GetFloorLight(anchor) ||
 		me->ColorMap != anchor->ColorMap ||
-		me->floor_xoffs != anchor->floor_xoffs || 
-		me->floor_yoffs + me->base_floor_yoffs != anchor->floor_yoffs + anchor->base_floor_yoffs ||
-		me->floor_xscale != anchor->floor_xscale || 
-		me->floor_yscale != anchor->floor_yscale ||
-		me->floor_angle + me->base_floor_angle != anchor->floor_angle + anchor->base_floor_angle)
+		me->GetXOffset(sector_t::floor) != anchor->GetXOffset(sector_t::floor) || 
+		me->GetYOffset(sector_t::floor) != anchor->GetYOffset(sector_t::floor) || 
+		me->GetXScale(sector_t::floor) != anchor->GetXScale(sector_t::floor) || 
+		me->GetYScale(sector_t::floor) != anchor->GetYScale(sector_t::floor) || 
+		me->GetAngle(sector_t::floor) != anchor->GetAngle(sector_t::floor))
 	{
 		// different visplane so it can't belong to this stack
 		return;

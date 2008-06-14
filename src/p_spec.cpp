@@ -948,12 +948,12 @@ void DWallLightTransfer::DoTransfer (BYTE lightlevel, int target, BYTE flags)
 
 		if (flags & WLF_SIDE1 && line->sidenum[0]!=NO_SIDE)
 		{
-			sides[line->sidenum[0]].Light = lightlevel;
+			sides[line->sidenum[0]].SetLight(lightlevel);
 		}
 
 		if (flags & WLF_SIDE2 && line->sidenum[1]!=NO_SIDE)
 		{
-			sides[line->sidenum[1]].Light = lightlevel;
+			sides[line->sidenum[1]].SetLight(lightlevel);
 		}
 	}
 }
@@ -1202,7 +1202,7 @@ void P_SpawnSpecials (void)
 		// killough 3/7/98:
 		// support for drawn heights coming from different sector
 		case Transfer_Heights:
-			sec = sides[*lines[i].sidenum].sector;
+			sec = sides[lines[i].sidenum[0]].sector;
 			if (lines[i].args[1] & 2)
 			{
 				sec->MoreFlags |= SECF_FAKEFLOORONLY;
@@ -1340,20 +1340,20 @@ void P_SpawnSpecials (void)
 		sectors[i].SavedCeilingTexZ = sectors[i].ceilingtexz;
 		sectors[i].SavedFloorTexZ = sectors[i].floortexz;
 		sectors[i].SavedColorMap = sectors[i].ColorMap;
-		sectors[i].SavedFloorXOffset = sectors[i].floor_xoffs;
-		sectors[i].SavedFloorYOffset = sectors[i].floor_yoffs;
-		sectors[i].SavedCeilingXOffset = sectors[i].ceiling_xoffs;
-		sectors[i].SavedCeilingYOffset = sectors[i].ceiling_yoffs;
-		sectors[i].SavedFloorXScale = sectors[i].floor_xscale;
-		sectors[i].SavedFloorYScale = sectors[i].floor_yscale;
-		sectors[i].SavedCeilingXScale = sectors[i].ceiling_xscale;
-		sectors[i].SavedCeilingYScale = sectors[i].ceiling_yscale;
-		sectors[i].SavedFloorAngle = sectors[i].floor_angle;
-		sectors[i].SavedCeilingAngle = sectors[i].ceiling_angle;
-		sectors[i].SavedBaseFloorAngle = sectors[i].base_floor_angle;
-		sectors[i].SavedBaseFloorYOffset = sectors[i].base_floor_yoffs;
-		sectors[i].SavedBaseCeilingAngle = sectors[i].base_ceiling_angle;
-		sectors[i].SavedBaseCeilingYOffset = sectors[i].base_ceiling_yoffs;
+		sectors[i].SavedFloorXOffset = sectors[i].GetXOffset(sector_t::floor);
+		sectors[i].SavedFloorYOffset = sectors[i].GetYOffset(sector_t::floor);
+		sectors[i].SavedCeilingXOffset = sectors[i].GetXOffset(sector_t::ceiling);
+		sectors[i].SavedCeilingYOffset = sectors[i].GetYOffset(sector_t::ceiling);
+		sectors[i].SavedFloorXScale = sectors[i].GetXScale(sector_t::floor);
+		sectors[i].SavedFloorYScale = sectors[i].GetYScale(sector_t::floor);
+		sectors[i].SavedCeilingXScale = sectors[i].GetXScale(sector_t::ceiling);
+		sectors[i].SavedCeilingYScale = sectors[i].GetYScale(sector_t::ceiling);
+		sectors[i].SavedFloorAngle = sectors[i].GetAngle(sector_t::floor);
+		sectors[i].SavedCeilingAngle = sectors[i].GetAngle(sector_t::ceiling);
+		sectors[i].SavedBaseFloorAngle = sectors[i].planes[sector_t::floor].xform.base_angle;
+		sectors[i].SavedBaseFloorYOffset = sectors[i].planes[sector_t::floor].xform.base_yoffs;
+		sectors[i].SavedBaseCeilingAngle = sectors[i].planes[sector_t::ceiling].xform.base_angle;
+		sectors[i].SavedBaseCeilingYOffset = sectors[i].planes[sector_t::ceiling].xform.base_yoffs;
 		sectors[i].SavedFriction = sectors[i].friction;
 		sectors[i].SavedMoveFactor = sectors[i].movefactor;
 		sectors[i].SavedSpecial = sectors[i].special;
@@ -1442,13 +1442,13 @@ void DScroller::Tick ()
 			break;
 
 		case sc_floor:						// killough 3/7/98: Scroll floor texture
-			sectors[m_Affectee].floor_xoffs += dx;
-			sectors[m_Affectee].floor_yoffs += dy;
+			sectors[m_Affectee].AddXOffset(sector_t::floor, dx);
+			sectors[m_Affectee].AddYOffset(sector_t::floor, dy);
 			break;
 
 		case sc_ceiling:					// killough 3/7/98: Scroll ceiling texture
-			sectors[m_Affectee].ceiling_xoffs += dx;
-			sectors[m_Affectee].ceiling_yoffs += dy;
+			sectors[m_Affectee].AddXOffset(sector_t::ceiling, dx);
+			sectors[m_Affectee].AddYOffset(sector_t::ceiling, dy);
 			break;
 
 		// [RH] Don't actually carry anything here. That happens later.
