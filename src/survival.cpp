@@ -65,7 +65,7 @@
 #include "sv_commands.h"
 #include "v_video.h"
 
-CUSTOM_CVAR( Int, sv_maxlives, 0, CVAR_SERVERINFO )
+CUSTOM_CVAR( Int, sv_maxlives, 0, CVAR_SERVERINFO | CVAR_LATCH )
 {
 	if ( self >= 256 )
 		self = 255;

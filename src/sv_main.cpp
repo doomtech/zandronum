@@ -49,6 +49,7 @@
 //-----------------------------------------------------------------------------
 
 #include <stdarg.h>
+#include <time.h>
 
 #include "networkheaders.h"
 #include "MD5Checksum.h"
@@ -148,6 +149,11 @@ static	bool	server_InventoryUseAll( BYTESTREAM_s *pByteStream );
 static	bool	server_InventoryUse( BYTESTREAM_s *pByteStream );
 static	bool	server_InventoryDrop( BYTESTREAM_s *pByteStream );
 
+// [RC]
+#ifdef CREATE_PACKET_LOG
+static  void	server_LogPacket( BYTESTREAM_s *pByteStream, NETADDRESS_s Address, const char *pszReason );
+#endif
+
 //*****************************************************************************
 //	VARIABLES
 
@@ -198,6 +204,22 @@ static	ULONG		g_ulMaxPacketSize = 0;
 
 // List of all translations edited by level scripts.
 static	TArray<EDITEDTRANSLATION_s>		g_EditedTranslationList;
+
+// [RC] File to log packets to.
+#ifdef CREATE_PACKET_LOG
+static	FILE		*PacketLogFile = NULL;
+static	IPList		g_HackerIPList;
+
+CUSTOM_CVAR( String, sv_hackerlistfile, "hackerlist.txt", CVAR_ARCHIVE )
+{
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+		return;
+
+	if ( !(g_HackerIPList.clearAndLoadFromFile( sv_hackerlistfile.GetGenericRep( CVAR_String ).String ) ) )
+		Printf( "%s", g_HackerIPList.getErrorMessage() );
+}
+
+#endif
 
 //*****************************************************************************
 //	CONSOLE VARIABLES
@@ -361,6 +383,34 @@ void SERVER_Construct( void )
 	sprintf( g_szCurrentFont, "SmallFont" );
 	sprintf( g_szScriptActiveFont, "SmallFont" );
 
+#ifdef CREATE_PACKET_LOG
+
+	// [RC] Create the packet log.
+	FString logfilename;
+	time_t clock;
+	struct tm *lt;
+	time (&clock);
+	lt = localtime (&clock);
+	if (lt != NULL)
+		logfilename.Format("packetLog_%d_%02d_%02d-%02d_%02d_%02d.txt", lt->tm_year + 1900, lt->tm_mon + 1, lt->tm_mday, lt->tm_hour, lt->tm_min, lt->tm_sec);
+	else
+		logfilename.Format("packetLog.txt");
+
+	if ( (PacketLogFile = fopen (logfilename, "w")) )
+	{
+		FString output;
+		UCVarValue		Val;
+		Val = sv_hostname.GetGenericRep( CVAR_String );
+		output.Format("Packet logging started...\n\ton: %d/%d/%d, at %02d:%02d:%02d\n\tat server: %s\n\nDo not distribute this file to the public!\n=====================================================================\n",
+			lt->tm_mon + 1, lt->tm_mday, lt->tm_year + 1900, lt->tm_hour, lt->tm_min, lt->tm_sec,  Val.String);
+		fputs(output, PacketLogFile);
+		Printf("Packet logging enabled. DO NOT DISTRIBUTE THIS EXE TO THE PUBLIC! -- Rivecoder\n");
+	}
+	else
+		Printf("Could not start the packet log.\n"), 
+
+#endif
+
 	// Call SERVER_Destruct() when Skulltag closes.
 	atterm( SERVER_Destruct );
 
@@ -384,6 +434,11 @@ void SERVER_Destruct( void )
 		NETWORK_FreeBuffer( &g_aClients[ulIdx].SavedPacketBuffer );
 		NETWORK_FreeBuffer( &g_aClients[ulIdx].UnreliablePacketBuffer );
 	}
+
+#ifdef CREATE_PACKET_LOG
+	if ( PacketLogFile )
+		fclose( PacketLogFile );
+#endif
 }
 
 //DWORD	g_LastMS, g_LastSec, g_FrameCount, g_LastCount, g_LastTic;
@@ -929,21 +984,36 @@ void SERVER_GetPackets( void )
 	BYTESTREAM_s	*pByteStream;
 
 	while ( NETWORK_GetPackets( ) > 0 )
-    {
+	{
 		// Set up our byte stream.
 		pByteStream = &NETWORK_GetNetworkMessageBuffer( )->ByteStream;
 		pByteStream->pbStream = NETWORK_GetNetworkMessageBuffer( )->pbData;
 		pByteStream->pbStreamEnd = pByteStream->pbStream + NETWORK_GetNetworkMessageBuffer( )->ulCurrentSize;
 
+		// [RC]
+#ifdef CREATE_PACKET_LOG
+		pByteStream->pbStreamBeginning = pByteStream->pbStream;
+		pByteStream->bPacketAlreadyLogged = false;
+
+		// We've already had trouble from this IP, so log all of his traffic.
+		if ( g_HackerIPList.isIPInList( NETWORK_GetFromAddress( ) ) )
+		{
+			FString outString;
+			outString.Format("Alleged hacker (first offense: %s)", g_HackerIPList.getEntryComment(  NETWORK_GetFromAddress( ) ));
+			server_LogPacket( pByteStream, NETWORK_GetFromAddress( ), outString.GetChars() );
+		}
+
+#endif
+
 		// We've gotten a packet. Try to figure out if it's from a connected client.
-        g_lCurrentClient = SERVER_FindClientByAddress( NETWORK_GetFromAddress( ));
+		g_lCurrentClient = SERVER_FindClientByAddress( NETWORK_GetFromAddress( ));
 
 		// Packet is not from an existing client; must be someone trying to connect!
 		if ( g_lCurrentClient == -1 )
 		{
 			SERVER_DetermineConnectionType( pByteStream );
-            continue;
-        }
+			continue;
+		}
 
 #ifdef	_DEBUG
 		// Emulate packet loss for debugging.
@@ -959,7 +1029,7 @@ void SERVER_GetPackets( void )
 
 		// Invalidate this.
 		g_lCurrentClient = -1;
-    }
+	}
 }
 
 //*****************************************************************************
@@ -1466,81 +1536,85 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 {
 	ULONG	ulFlags;
 	ULONG	ulTime;
+	LONG	lCommand;
 
-	while ( 1 )
+	lCommand = NETWORK_ReadByte( pByteStream );
+
+	// [BB] It's absolutely crucial that we only handle the first command in a packet
+	// that comes from someone that's not a client yet. Otherwise a single malformed
+	// packet can be used to bombard the server with connection requests, freezing the server for about 5 seconds.
+
+	// End of message.
+	if ( lCommand == -1 )
+		return;
+
+	// If it's not a launcher querying the server, it must be a client.
+	if ( lCommand != CLCC_ATTEMPTCONNECTION )
 	{
-		LONG	lCommand;
-
-		lCommand = NETWORK_ReadByte( pByteStream );
-
-		// End of message.
-		if ( lCommand == -1 )
-			break;
-
-		// If it's not a launcher querying the server, it must be a client.
-		if ( lCommand != CLCC_ATTEMPTCONNECTION )
+		switch ( lCommand )
 		{
-			switch ( lCommand )
-			{
-			// Launcher is querying this server.
-			case LAUNCHER_SERVER_CHALLENGE:
+		// Launcher is querying this server.
+		case LAUNCHER_SERVER_CHALLENGE:
 
-				// Read in three more bytes, because it was a long that was sent to us.
-				NETWORK_ReadByte( pByteStream );
-				NETWORK_ReadByte( pByteStream );
-				NETWORK_ReadByte( pByteStream );
+			// Read in three more bytes, because it was a long that was sent to us.
+			NETWORK_ReadByte( pByteStream );
+			NETWORK_ReadByte( pByteStream );
+			NETWORK_ReadByte( pByteStream );
 
-				// Read in what the query wants to know.
-				ulFlags = NETWORK_ReadLong( pByteStream );
+			// Read in what the query wants to know.
+			ulFlags = NETWORK_ReadLong( pByteStream );
 
-				// Read in the time the launcher sent us.
-				ulTime = NETWORK_ReadLong( pByteStream );
+			// Read in the time the launcher sent us.
+			ulTime = NETWORK_ReadLong( pByteStream );
 
-				// Received launcher query!
-				if ( sv_showlauncherqueries )
-					Printf( "Launcher challenge from: %s\n", NETWORK_AddressToString( NETWORK_GetFromAddress( )));
+			// Received launcher query!
+			if ( sv_showlauncherqueries )
+				Printf( "Launcher challenge from: %s\n", NETWORK_AddressToString( NETWORK_GetFromAddress( )));
 
-				SERVER_MASTER_SendServerInfo( NETWORK_GetFromAddress( ), ulFlags, ulTime, false );
-				return;
-			// Ignore; possibly a client who thinks he's still in a game, but isn't.
-			case CLC_USERINFO:
-			case CLC_STARTCHAT:
-			case CLC_ENDCHAT:
-			case CLC_SAY:
-			case CLC_CLIENTMOVE:
-			case CLC_MISSINGPACKET:
-			case CLC_PONG:
-			case CLC_WEAPONSELECT:
-			case CLC_TAUNT:
-			case CLC_SPECTATE:
-			case CLC_REQUESTJOIN:
-			case CLC_REQUESTRCON:
-			case CLC_RCONCOMMAND:
-			case CLC_SUICIDE:
-			case CLC_CHANGETEAM:
-			case CLC_SPECTATEINFO:
-			case CLC_GENERICCHEAT:
-			case CLC_GIVECHEAT:
-			case CLC_SUMMONCHEAT:
-			case CLC_READYTOGOON:
-			case CLC_CHANGEDISPLAYPLAYER:
-			case CLC_AUTHENTICATELEVEL:
-
-				return;
-			default:
-
-				Printf( "Unknown challenge (%d) from %s.\n", lCommand, NETWORK_AddressToString( NETWORK_GetFromAddress( )));
-				return;
-			}
-		}
-
-		// Don't handle connection attempts from clients if we're in intermission.
-		if ( gamestate != GS_LEVEL )
+			SERVER_MASTER_SendServerInfo( NETWORK_GetFromAddress( ), ulFlags, ulTime, false );
 			return;
+		// Ignore; possibly a client who thinks he's still in a game, but isn't.
+		case CLC_USERINFO:
+		case CLC_STARTCHAT:
+		case CLC_ENDCHAT:
+		case CLC_SAY:
+		case CLC_CLIENTMOVE:
+		case CLC_MISSINGPACKET:
+		case CLC_PONG:
+		case CLC_WEAPONSELECT:
+		case CLC_TAUNT:
+		case CLC_SPECTATE:
+		case CLC_REQUESTJOIN:
+		case CLC_REQUESTRCON:
+		case CLC_RCONCOMMAND:
+		case CLC_SUICIDE:
+		case CLC_CHANGETEAM:
+		case CLC_SPECTATEINFO:
+		case CLC_GENERICCHEAT:
+		case CLC_GIVECHEAT:
+		case CLC_SUMMONCHEAT:
+		case CLC_READYTOGOON:
+		case CLC_CHANGEDISPLAYPLAYER:
+		case CLC_AUTHENTICATELEVEL:
 
-		// Setup a new player (setup CLIENT_t and player_t)
-		SERVER_SetupNewConnection( pByteStream, true );
+			return;
+		default:
+
+			Printf( "Unknown challenge (%d) from %s.\n", lCommand, NETWORK_AddressToString( NETWORK_GetFromAddress( )));
+
+#ifdef CREATE_PACKET_LOG
+			server_LogPacket(pByteStream,  NETWORK_GetFromAddress( ), "Unknown connection challenge.");
+#endif
+			return;
+		}
 	}
+
+	// Don't handle connection attempts from clients if we're in intermission.
+	if ( gamestate != GS_LEVEL )
+		return;
+
+	// Setup a new player (setup CLIENT_t and player_t)
+	SERVER_SetupNewConnection( pByteStream, true );
 }
 
 //*****************************************************************************
@@ -1639,6 +1713,9 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 		if ( stricmp( clientVersion.GetChars(), DOTVERSIONSTR ) != 0 )
 		{
 			SERVER_ClientError( lClient, NETWORK_ERRORCODE_WRONGVERSION );
+#ifdef CREATE_PACKET_LOG
+			server_LogPacket(pByteStream,  NETWORK_GetFromAddress( ), "Wrong version.");
+#endif
 			return;
 		}
 	}
@@ -1647,6 +1724,10 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	if ( NETGAMEVERSION != lClientNetworkGameVersion )
 	{
 		SERVER_ClientError( lClient, NETWORK_ERRORCODE_WRONGPROTOCOLVERSION );
+#ifdef CREATE_PACKET_LOG
+		server_LogPacket(pByteStream,  NETWORK_GetFromAddress( ), "Wrong netcode version.");
+#endif
+
 		return;
 	}
 
@@ -5087,3 +5168,69 @@ CCMD( trytocrashclient )
 	}
 }
 #endif	// _DEBUG
+
+#ifdef CREATE_PACKET_LOG
+
+//*****************************************************************************
+// [RC] Logs a suspicious packet to the log.
+static void	server_LogPacket( BYTESTREAM_s *pByteStream, NETADDRESS_s Address, const char *pszReason )
+{
+	FString		logLine;
+	BYTE		*OriginalPosition = pByteStream->pbStream;
+
+	// Already logged this one.
+	if ( pByteStream->bPacketAlreadyLogged)
+		return;
+
+	pByteStream->bPacketAlreadyLogged = true;
+
+	Printf( "Logging packet from %s, because: %s.\n", NETWORK_AddressToString( Address ), pszReason);
+
+	// Log all further packets from this IP.
+	if ( !g_HackerIPList.isIPInList( Address ) )
+	{
+		char szAddress[4][4];
+
+		itoa( Address.abIP[0], szAddress[0], 10 );
+		itoa( Address.abIP[1], szAddress[1], 10 );
+		itoa( Address.abIP[2], szAddress[2], 10 );
+		itoa( Address.abIP[3], szAddress[3], 10 );
+		std::string reason;
+		reason = "Hacker";
+		g_HackerIPList.addEntry( szAddress[0], szAddress[1], szAddress[2],  szAddress[3], "", pszReason, reason);
+	}
+
+	// Write the start of the log entry.
+	logLine.Format("\nLogging packet from %s:", NETWORK_AddressToString( Address ));
+	FString logfilename;
+	time_t clock;
+	struct tm *lt;
+	time (&clock);
+	lt = localtime (&clock);
+	logLine.AppendFormat("\n\ton: %d/%d/%d, at %02d:%02d:%02d", lt->tm_mon + 1, lt->tm_mday, lt->tm_year + 1900, lt->tm_hour, lt->tm_min, lt->tm_sec); 
+	logLine.AppendFormat("\n\treason: %s\n\n", pszReason);
+	fputs( logLine , PacketLogFile );
+
+	// Advance to the beginning of the packet.
+	while ( pByteStream->pbStream != pByteStream->pbStreamBeginning )
+		pByteStream->pbStream -= 1;
+
+	// Next, log all the bytes, until the end.
+	while ( pByteStream->pbStream != pByteStream->pbStreamEnd )
+	{
+		int Byte = *pByteStream->pbStream;
+		pByteStream->pbStream += 1;		
+		logLine.Format("%d ", Byte);
+
+		fputs(logLine, PacketLogFile);
+	}
+
+	// Return the stream to where we were.
+	while ( pByteStream->pbStream != OriginalPosition )
+		pByteStream->pbStream -= 1;
+
+	logLine.Format("\nEnd of packet.\n");
+	fputs( logLine, PacketLogFile );
+	fflush (PacketLogFile);
+}
+#endif

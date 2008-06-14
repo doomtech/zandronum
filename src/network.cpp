@@ -312,7 +312,7 @@ int NETWORK_GetPackets( void )
 	struct sockaddr_in	SocketFrom;
 	INT					iSocketFromLength;
 
-    iSocketFromLength = sizeof( SocketFrom );
+	iSocketFromLength = sizeof( SocketFrom );
 
 #ifdef	WIN32
 	lNumBytes = recvfrom( g_NetworkSocket, (char *)g_ucHuffmanBuffer, sizeof( g_ucHuffmanBuffer ), 0, (struct sockaddr *)&SocketFrom, &iSocketFromLength );
@@ -321,37 +321,37 @@ int NETWORK_GetPackets( void )
 #endif
 
 	// If the number of bytes returned is -1, an error has occured.
-    if ( lNumBytes == -1 ) 
-    { 
+	if ( lNumBytes == -1 ) 
+	{ 
 #ifdef __WIN32__
-        errno = WSAGetLastError( );
+		errno = WSAGetLastError( );
 
-        if ( errno == WSAEWOULDBLOCK )
-            return ( false );
+		if ( errno == WSAEWOULDBLOCK )
+			return ( false );
 
 		// Connection reset by peer. Doesn't mean anything to the server.
 		if ( errno == WSAECONNRESET )
 			return ( false );
 
-        if ( errno == WSAEMSGSIZE )
+		if ( errno == WSAEMSGSIZE )
 		{
-             Printf( "NETWORK_GetPackets:  WARNING! Oversize packet from %s\n", NETWORK_AddressToString( g_AddressFrom ));
-             return ( false );
-        }
+			Printf( "NETWORK_GetPackets:  WARNING! Oversize packet from %s\n", NETWORK_AddressToString( g_AddressFrom ));
+			return ( false );
+		}
 
-        Printf( "NETWORK_GetPackets: WARNING!: Error #%d: %s\n", errno, strerror( errno ));
+		Printf( "NETWORK_GetPackets: WARNING!: Error #%d: %s\n", errno, strerror( errno ));
 		return ( false );
 #else
-        if ( errno == EWOULDBLOCK )
-            return ( false );
+		if ( errno == EWOULDBLOCK )
+			return ( false );
 
-        if ( errno == ECONNREFUSED )
-            return ( false );
+		if ( errno == ECONNREFUSED )
+			return ( false );
 
-        Printf( "NETWORK_GetPackets: WARNING!: Error #%d: %s\n", errno, strerror( errno ));
-        return ( false );
+		Printf( "NETWORK_GetPackets: WARNING!: Error #%d: %s\n", errno, strerror( errno ));
+		return ( false );
 #endif
-    }
+	}
 
 	// No packets or an error, so don't process anything.
 	if ( lNumBytes <= 0 )
@@ -372,7 +372,7 @@ int NETWORK_GetPackets( void )
 	g_NetworkMessage.ByteStream.pbStreamEnd = g_NetworkMessage.ByteStream.pbStream + g_NetworkMessage.ulCurrentSize;
 
 	// Store the IP address of the sender.
-    NETWORK_SocketAddressToNetAddress( &SocketFrom, &g_AddressFrom );
+	NETWORK_SocketAddressToNetAddress( &SocketFrom, &g_AddressFrom );
 
 	return ( g_NetworkMessage.ulCurrentSize );
 }

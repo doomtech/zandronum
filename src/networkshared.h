@@ -66,6 +66,9 @@
 // Maximum size of the packets sent out by the server.
 #define	MAX_UDP_PACKET				8192
 
+// [RC] A security debug feature to catch malicious packets.
+// #define CREATE_PACKET_LOG
+
 //*****************************************************************************
 typedef enum
 {
@@ -140,6 +143,14 @@ typedef struct
 	// Pointer to the end of the stream. When pbStream > pbStreamEnd, the
 	// entire stream has been read.
 	BYTE		*pbStreamEnd;
+
+#ifdef CREATE_PACKET_LOG
+	// [RC] Pointer to the start of the stream.
+	BYTE		*pbStreamBeginning;
+
+	// [RC] Whether or not we've logged this.
+	bool		bPacketAlreadyLogged;
+#endif
 
 } BYTESTREAM_s;
 
@@ -261,7 +272,9 @@ public:
 	bool isIPInList( const NETADDRESS_s &Address ) const;
 	ULONG doesEntryExist( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3 ) const;
 	IPADDRESSBAN_s getEntry( const ULONG ulIdx ) const;
-    std::string getEntryAsString( const ULONG ulIdx ) const;
+	std::string getEntryAsString( const ULONG ulIdx ) const;
+	ULONG getEntryIndex( const NETADDRESS_s &Address ) const; // [RC]
+	const char *getEntryComment( const NETADDRESS_s &Address ) const; // [RC]
 	void addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3, const char *pszPlayerName, const char *pszComment, std::string &Message );
 	void addEntry( const char *pszIPAddress, const char *pszPlayerName, const char *pszComment, std::string &Message );
 	void removeEntry( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3, std::string &Message );

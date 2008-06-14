@@ -114,7 +114,9 @@ void DrawHUD_CoopInfo()
 	FString drawString;
 
 	// [BB] We may not draw in the first 4 lines, this is reserved for chat messages.
-	int curYPos = 4 * coopInfoFont->GetHeight( );
+	// Leave free another line to prevent the keys from being drawn over in ST's
+	// fullscreen HUD.
+	const int yOffset = 5 * coopInfoFont->GetHeight( );
 	int playersDrawn = 0;
 
 	for ( int i = 0; i < MAXPLAYERS; i++ )
@@ -127,9 +129,9 @@ void DrawHUD_CoopInfo()
 		if ( players[i].mo->CheckLocalView( consoleplayer ) )
 			continue;
 
-		curYPos = 4 * coopInfoFont->GetHeight( ) + (playersDrawn/2) * ( 4 * coopInfoFont->GetHeight( ) + 3 ) ;
+		int curYPos = yOffset + (playersDrawn/2) * ( 4 * coopInfoFont->GetHeight( ) + 3 ) ;
 
-		bool drawLeft = ( playersDrawn % 2 == 0 );
+		const bool drawLeft = ( playersDrawn % 2 == 0 );
 
 		// [BB] Draw player name.
 		drawString = players[i].userinfo.netname;
