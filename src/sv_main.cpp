@@ -237,6 +237,7 @@ CVAR( Bool, sv_minimizetosystray, true, CVAR_ARCHIVE )
 CVAR( Int, sv_queryignoretime, 10, CVAR_ARCHIVE )
 CVAR( Bool, sv_markchatlines, false, CVAR_ARCHIVE )
 CVAR( Bool, sv_nokill, false, CVAR_ARCHIVE )
+CVAR( Bool, sv_pure, true, CVAR_SERVERINFO | CVAR_LATCH )
 
 CUSTOM_CVAR( String, sv_adminlistfile, "adminlist.txt", CVAR_ARCHIVE )
 {
@@ -1237,8 +1238,14 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 
 	// Send the message of the day.
 	Val = sv_motd.GetGenericRep( CVAR_String );
-	if ( Val.String[0] != '\0' )
-		SERVERCOMMANDS_PrintMOTD( Val.String, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+	FString motd = Val.String;
+
+	// [BB] This server doesn't enforce the special lump authentication. Inform the client about it!
+	if ( !sv_pure )
+		motd += "\n\nThis server doesn't enforce the special lump authentication.\nEnter at your own risk.\n";
+
+	if ( motd.IsNotEmpty() )
+		SERVERCOMMANDS_PrintMOTD( motd.GetChars(), g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 	// [BB] Client is using the "join full server from localhost" hack. Inform him about it!
 	if ( ( SERVER_CalcNumPlayers( ) > sv_maxclients ) )
@@ -1755,7 +1762,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 		return;
 	}
 
-	if ( strcmp ( NETWORK_ReadString( pByteStream ), g_lumpsAuthenticationChecksum.GetChars() ) )
+	if ( sv_pure && strcmp ( NETWORK_ReadString( pByteStream ), g_lumpsAuthenticationChecksum.GetChars() ) )
 	{
 		// Client fails the lump authentication.
 		SERVER_ClientError( lClient, NETWORK_ERRORCODE_AUTHENTICATIONFAILED );
