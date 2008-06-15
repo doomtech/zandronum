@@ -178,6 +178,9 @@ static	NETBUFFER_s		g_PacketLossBuffer;
 // List of IP addresses that may connect to full servers.
 static	IPList			g_AdminIPList;
 
+// List of IP address that we want to ignore for a short amount of time.
+static	QueryIPQueue	g_floodProtectionIPQueue;
+
 // Statistics.
 static	LONG		g_lTotalServerSeconds = 0;
 static	LONG		g_lTotalNumPlayers = 0;
@@ -700,6 +703,10 @@ void SERVER_Tick( void )
 		}
 */
 		g_lGameTime = lNowTime;
+
+		// [BB] Remove IP adresses from g_floodProtectionIPQueue that have been in
+		// there long enough.
+		g_floodProtectionIPQueue.adjustHead ( g_lGameTime / 1000 );
 	}
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1538,6 +1545,11 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 	ULONG	ulTime;
 	LONG	lCommand;
 
+	// [BB] We recently got something from this IP that may be used to flood the log.
+	// Ignore the new command to prevent flooding.
+	if ( g_floodProtectionIPQueue.addressInQueue( NETWORK_GetFromAddress( ) ) )
+		return;
+
 	lCommand = NETWORK_ReadByte( pByteStream );
 
 	// [BB] It's absolutely crucial that we only handle the first command in a packet
@@ -1575,6 +1587,7 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 			return;
 		// Ignore; possibly a client who thinks he's still in a game, but isn't.
 		case CLC_USERINFO:
+		case CLC_QUIT:
 		case CLC_STARTCHAT:
 		case CLC_ENDCHAT:
 		case CLC_SAY:
@@ -1596,11 +1609,32 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 		case CLC_READYTOGOON:
 		case CLC_CHANGEDISPLAYPLAYER:
 		case CLC_AUTHENTICATELEVEL:
+		case CLC_CALLVOTE:
+		case CLC_VOTEYES:
+		case CLC_VOTENO:
+		case CLC_INVENTORYUSEALL:
+		case CLC_INVENTORYUSE:
+		case CLC_INVENTORYDROP:
+		case CLC_SUMMONFRIENDCHEAT:
+		case CLC_SUMMONFOECHEAT: 
+
+			Printf( "CLC command (%d) from someone not in game (%s). Ignoring IP for 10 seconds.\n", lCommand, NETWORK_AddressToString( NETWORK_GetFromAddress( )));
+			// [BB] Block all further challenges of this IP for ten seconds to prevent log flooding.
+			g_floodProtectionIPQueue.addAddress ( NETWORK_GetFromAddress( ), g_lGameTime / 1000 );
+
+			return;
+		// [BB] 200 was CLCC_ATTEMPTCONNECTION in 97d-beta4.3 and earlier versions.
+		case 200: 
+			Printf( "Challenge (%d) from (%s). Likely an old client (97d-beta4.3 or older) trying to connect. Ignoring IP for 10 seconds.\n", lCommand, NETWORK_AddressToString( NETWORK_GetFromAddress( )));
+			// [BB] Block all further challenges of this IP for ten seconds to prevent log flooding.
+			g_floodProtectionIPQueue.addAddress ( NETWORK_GetFromAddress( ), g_lGameTime / 1000 );
 
 			return;
 		default:
 
-			Printf( "Unknown challenge (%d) from %s.\n", lCommand, NETWORK_AddressToString( NETWORK_GetFromAddress( )));
+			Printf( "Unknown challenge (%d) from %s. Ignoring IP for 10 seconds.\n", lCommand, NETWORK_AddressToString( NETWORK_GetFromAddress( )));
+			// [BB] Block all further challenges of this IP for ten seconds to prevent log flooding.
+			g_floodProtectionIPQueue.addAddress ( NETWORK_GetFromAddress( ), g_lGameTime / 1000 );
 
 #ifdef CREATE_PACKET_LOG
 			server_LogPacket(pByteStream,  NETWORK_GetFromAddress( ), "Unknown connection challenge.");
