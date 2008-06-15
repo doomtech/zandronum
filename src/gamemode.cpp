@@ -275,6 +275,38 @@ void GAMEMODE_RespawnDeadSpectatorsAndPopQueue( void )
 
 //*****************************************************************************
 //
+void GAMEMODE_RespawnAllPlayers( void )
+{
+	// [BB] This is server side.
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
+	{
+		// Respawn the players.
+		for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+		{
+			if (( playeringame[ulIdx] == false ) ||
+				( PLAYER_IsTrueSpectator( &players[ulIdx] )))
+			{
+				continue;
+			}
+
+			if ( players[ulIdx].mo )
+			{
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_DestroyThing( players[ulIdx].mo );
+
+				players[ulIdx].mo->Destroy( );
+				players[ulIdx].mo = NULL;
+			}
+
+			players[ulIdx].playerstate = PST_ENTER;
+			G_CooperativeSpawnPlayer( ulIdx, true );
+		}
+	}
+}
+
+//*****************************************************************************
+//
 void GAMEMODE_DisplayStandardMessage( const char *pszMessage )
 {
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
