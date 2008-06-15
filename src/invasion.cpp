@@ -771,9 +771,11 @@ void INVASION_StartFirstCountdown( ULONG ulTicks )
 		SERVERCOMMANDS_DoGameModeCountdown( ulTicks );
 
 	// Reset the map.
-	// [BB] Since the players are not respawed after the reset, we have to re-run the
-	// enter scripts in GAME_ResetMap.
-	GAME_ResetMap( true );
+	GAME_ResetMap( false );
+	// [BB] Since the map reset possibly alters floor heights, players may get
+	// stuck if we don't respawn them now.
+	GAMEMODE_RespawnAllPlayers();
+	GAMEMODE_ResetPlayersKillCount();
 
 	// [BB] To properly handle respawning of the consoleplayer in single player
 	// we need to put the game into a "fake multiplayer" mode.
