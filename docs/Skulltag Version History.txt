@@ -41,6 +41,7 @@ v0.97d2 RC3
 -	- Fixed: A single malformed packet could be use to freeze a server for about 5 seconds. Kudos to Luigi Auriemma for submitting a detailed report on this issue. [Torr Samaho]
 -	- Fixed: Coop info possibly covers the keys displayed in the fullscreen HUD. [Torr Samaho]
 -	- Fixed: Players may get stuck after a map reset in invasion. [Torr Samaho]
+-	- Fixed: The kill count is not reseted after a map reset in invasion. [Torr Samaho]
 !	- Changed: Changes to the CVAR sv_maxlives are now applied on the next map change (like done with sv_cheats). This fixes the problems that previously occurred when changing sv_maxlives during a game. [Torr Samaho]
 
 v0.97d2 RC2

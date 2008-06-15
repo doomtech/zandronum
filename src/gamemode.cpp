@@ -307,6 +307,22 @@ void GAMEMODE_RespawnAllPlayers( void )
 
 //*****************************************************************************
 //
+void GAMEMODE_ResetPlayersKillCount( void )
+{
+	// Reset everyone's kill count.
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		players[ulIdx].killcount = 0;
+		players[ulIdx].ulRailgunShots = 0;
+
+		// [BB] Notify the clients about the killcount change.
+		if ( playeringame[ulIdx] && (NETWORK_GetState() == NETSTATE_SERVER) )
+			SERVERCOMMANDS_SetPlayerKillCount ( ulIdx );
+	}
+}
+
+//*****************************************************************************
+//
 void GAMEMODE_DisplayStandardMessage( const char *pszMessage )
 {
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )

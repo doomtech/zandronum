@@ -775,6 +775,7 @@ void INVASION_StartFirstCountdown( ULONG ulTicks )
 	// [BB] Since the map reset possibly alters floor heights, players may get
 	// stuck if we don't respawn them now.
 	GAMEMODE_RespawnAllPlayers();
+	GAMEMODE_ResetPlayersKillCount();
 
 	// [BB] To properly handle respawning of the consoleplayer in single player
 	// we need to put the game into a "fake multiplayer" mode.
