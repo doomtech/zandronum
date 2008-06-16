@@ -4274,13 +4274,14 @@ void client_SetPlayerChatStatus( BYTESTREAM_s *pByteStream )
 {
 	// Read in the player.
 	ULONG ulPlayer = NETWORK_ReadByte( pByteStream );
+	bool bChatting = !!NETWORK_ReadByte( pByteStream );
 
 	// Ensure that he's valid.
 	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	// Read and set his chat status.
-	players[ulPlayer].bChatting = !!NETWORK_ReadByte( pByteStream );
+	players[ulPlayer].bChatting = bChatting;
 }
 
 //*****************************************************************************
@@ -4289,13 +4290,14 @@ void client_SetPlayerConsoleStatus( BYTESTREAM_s *pByteStream )
 {
 	// Read in the player.
 	ULONG ulPlayer = NETWORK_ReadByte( pByteStream );
+	bool bInConsole = !!NETWORK_ReadByte( pByteStream );
 
 	// Ensure that he's valid.
 	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	// Read and set his "in console" status.
-	players[ulPlayer].bInConsole = !!NETWORK_ReadByte( pByteStream );
+	players[ulPlayer].bInConsole = bInConsole;
 }
 
 //*****************************************************************************
@@ -4304,13 +4306,14 @@ void client_SetPlayerLaggingStatus( BYTESTREAM_s *pByteStream )
 {
 	// Read in the player.
 	ULONG ulPlayer = NETWORK_ReadByte( pByteStream );
+	bool bLagging = !!NETWORK_ReadByte( pByteStream );
 
 	// Ensure that he's valid.
 	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	// Read and set his lag status.
-	players[ulPlayer].bLagging = !!NETWORK_ReadByte( pByteStream );
+	players[ulPlayer].bLagging = bLagging;
 }
 
 //*****************************************************************************
@@ -4319,13 +4322,14 @@ static void client_SetPlayerReadyToGoOnStatus( BYTESTREAM_s *pByteStream )
 {
 	// Read in the player.
 	ULONG ulPlayer = NETWORK_ReadByte( pByteStream );
+	bool bReadyToGoOn = !!NETWORK_ReadByte( pByteStream );
 
 	// Ensure that he's valid.
 	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	// Read and set his "ready to go on" status.
-	players[ulPlayer].bReadyToGoOn = !!NETWORK_ReadByte( pByteStream );
+	players[ulPlayer].bReadyToGoOn = bReadyToGoOn;
 }
 
 //*****************************************************************************
