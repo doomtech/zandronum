@@ -67,6 +67,7 @@
 #include "chat.h"
 #include "cl_demo.h"
 #include "cl_main.h"
+#include "cl_commands.h"
 #include "deathmatch.h"
 #include "network.h"
 #include "win32/g15/g15.h"
@@ -970,7 +971,7 @@ int PrintString (int printlevel, const char *outline)
 	}
 	
 	// [RC] Send this to the G15 LCD, if enabled.
-	if (  G15_IsReady() )
+	if ( G15_IsReady() )
 		G15_Printf( outlinecopy );
 
 	if ( g_bAllowColorCodes )
@@ -1527,11 +1528,22 @@ void C_ToggleConsole ()
 		HistPos = NULL;
 		TabbedLast = false;
 		TabbedList = false;
+		players[consoleplayer].bInConsole = true;
+
+		// [RC] Tell the server so we get an "in console" icon.
+		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+			CLIENTCOMMANDS_EnterConsole( );
 	}
 	else if (gamestate != GS_FULLCONSOLE && gamestate != GS_STARTUP)
 	{
 		ConsoleState = c_rising;
 		C_FlushDisplay ();
+		players[consoleplayer].bInConsole = false;
+
+		// [RC] Tell the server so our "in console" icon is removed.
+		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+			CLIENTCOMMANDS_ExitConsole( );
+
 	}
 }
 

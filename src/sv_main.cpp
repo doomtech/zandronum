@@ -1590,6 +1590,8 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 		case CLC_QUIT:
 		case CLC_STARTCHAT:
 		case CLC_ENDCHAT:
+		case CLC_ENTERCONSOLE:
+		case CLC_EXITCONSOLE:
 		case CLC_SAY:
 		case CLC_CLIENTMOVE:
 		case CLC_MISSINGPACKET:
@@ -3441,11 +3443,35 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case CLC_STARTCHAT:
 
 		// Client is beginning to type.
-		return ( server_StartChat( pByteStream ));
+		players[g_lCurrentClient].bChatting = true;
+
+		// Tell clients about the change in this player's chatting status.
+		SERVERCOMMANDS_SetPlayerChatStatus( g_lCurrentClient );
+
+		return false;
 	case CLC_ENDCHAT:
 
 		// Client is done talking.
-		return ( server_EndChat( pByteStream ));
+		players[g_lCurrentClient].bChatting = false;
+
+		// Tell clients about the change in this player's chatting status.
+		SERVERCOMMANDS_SetPlayerChatStatus( g_lCurrentClient );
+
+		return false;
+	case CLC_ENTERCONSOLE:
+
+		// Player has entered the console - give him an icon.
+		players[g_lCurrentClient].bInConsole = true;
+		SERVERCOMMANDS_SetPlayerConsoleStatus( g_lCurrentClient );
+
+		return false;
+	case CLC_EXITCONSOLE:
+
+		// Player has left the console - remove his icon.
+		players[g_lCurrentClient].bInConsole = false;
+		SERVERCOMMANDS_SetPlayerConsoleStatus( g_lCurrentClient );
+
+		return false;
 	case CLC_SAY:
 
 		// Client is talking.
@@ -3524,8 +3550,18 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 		return ( server_SummonCheat( pByteStream, lCommand ));
 	case CLC_READYTOGOON:
 
-		// Client is ready to go on to the next level.
-		return ( server_ReadyToGoOn( pByteStream ));
+		// Users can only toggle if they haven't yet, and we must be in intermission.
+		if ( gamestate != GS_INTERMISSION || players[g_lCurrentClient].bReadyToGoOn )
+			return ( false );
+
+		// Toggle this player (specator)'s "ready to go on" status.
+		// [RC] Now a permanent choice.
+		players[g_lCurrentClient].bReadyToGoOn = true;
+
+		if ( SERVER_IsEveryoneReadyToGoOn( ) == false )
+			SERVERCOMMANDS_SetPlayerReadyToGoOnStatus( g_lCurrentClient );
+
+		return false;
 	case CLC_CHANGEDISPLAYPLAYER:
 
 		// Client is changing the player whose eyes he is looking through.
@@ -3604,31 +3640,6 @@ void SERVER_GiveInventoryToPlayer( const player_t *player, AInventory *pInventor
 		return;
 
 	SERVERCOMMANDS_GiveInventoryNotOverwritingAmount( player->mo, pInventory );
-}
-
-//*****************************************************************************
-//*****************************************************************************
-//
-static bool server_StartChat( BYTESTREAM_s *pByteStream )
-{
-	players[g_lCurrentClient].bChatting = true;
-
-	// Tell clients about the change in this player's chatting status.
-	SERVERCOMMANDS_SetPlayerChatStatus( g_lCurrentClient );
-
-	return ( false );
-}
-
-//*****************************************************************************
-//
-static bool server_EndChat( BYTESTREAM_s *pByteStream )
-{
-	players[g_lCurrentClient].bChatting = false;
-
-	// Tell clients about the change in this player's chatting status.
-	SERVERCOMMANDS_SetPlayerChatStatus( g_lCurrentClient );
-
-	return ( false );
 }
 
 //*****************************************************************************
@@ -4542,23 +4553,6 @@ static bool server_SummonCheat( BYTESTREAM_s *pByteStream, LONG lType )
 		SERVER_KickPlayer( g_lCurrentClient, "Attempted to cheat whith sv_cheats being false!" );
 		return ( true );
 	}
-
-	return ( false );
-}
-
-//*****************************************************************************
-//
-static bool server_ReadyToGoOn( BYTESTREAM_s *pByteStream )
-{
-	// Don't allow this to be toggled unless we're in intermission.
-	if ( gamestate != GS_INTERMISSION )
-		return ( false );
-
-	// Toggle this player (specator)'s "ready to go on" status.
-	players[g_lCurrentClient].bReadyToGoOn = !players[g_lCurrentClient].bReadyToGoOn;
-
-	if ( SERVER_IsEveryoneReadyToGoOn( ) == false )
-		SERVERCOMMANDS_SetPlayerReadyToGoOnStatus( g_lCurrentClient );
 
 	return ( false );
 }

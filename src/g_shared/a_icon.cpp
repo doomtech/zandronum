@@ -12,7 +12,10 @@ FState AFloatyIcon::States[] =
 	S_BRIGHT( ARNO,	'D',	6,	NULL,				&States[S_TERMINATORARTIFACT+0]),
 #define S_CHAT			( S_TERMINATORARTIFACT + 4 )
 	S_BRIGHT( TALK,	'A',	-1,	NULL,				NULL ),
-#define S_ALLY			( S_CHAT + 1 )
+#define S_INCONSOLE		( S_CHAT + 1 )
+	S_BRIGHT( CNSL, 'A',	9,	NULL,				&States[S_INCONSOLE+1]),
+	S_BRIGHT( CNSL, 'B',	9,	NULL,				&States[S_INCONSOLE+0]),
+#define S_ALLY			( S_INCONSOLE + 2 )
 	S_NORMAL( ALLY, 'A',	-1,	NULL,				NULL ),
 #define	S_BLUEFLAG		( S_ALLY + 1 )
 	S_NORMAL (BFLS, 'A',   3, NULL 				, &States[S_BLUEFLAG+1]),

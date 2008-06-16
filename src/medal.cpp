@@ -74,196 +74,35 @@
 //	VARIABLES
 
 static	MEDAL_t	g_Medals[NUM_MEDALS] =
-{
-	{
-		// MEDAL_EXCELLENT
-		"EXCLA0",
-		S_EXCELLENT,
-		"Excellent!",
-		CR_GRAY,
-		"Excellent",
-		NULL,
-	},	
-	{
-		// MEDAL_INCREDIBLE
-		"INCRA0",
-		S_INCREDIBLE,
-		"Incredible!",
-		CR_RED,
-		"Incredible",
-		NULL,
-	},	
-	{
-		// MEDAL_IMPRESSIVE
-		"IMPRA0",
-		S_IMPRESSIVE,
-		"Impressive!",
-		CR_GRAY,
-		"Impressive",
-		NULL,
-	},
-	{
-		// MEDAL_MOSTIMPRESSIVE
-		"MIMPA0",
-		S_MOST_IMPRESSIVE,
-		"Most impressive!",
-		CR_RED,
-		"MostImpressive",
-		NULL,
-	},
-	{
-		// MEDAL_DOMINATION
-		"DOMNA0",
-		S_DOMINATION,
-		"Domination!",
-		CR_GRAY,
-		"Domination",
-		NULL,
-	},	
-	{
-		// MEDAL_TOTALDOMINATION
-		"TDOMA0",
-		S_TOTAL_DOMINATION,
-		"Total domination!",
-		CR_RED,
-		"TotalDomination",
-		NULL,
-	},	
-	{
-		// MEDAL_ACCURACY
-		"ACCUA0",
-		S_ACCURACY,
-		"Accuracy!",
-		CR_GRAY,
-		"Accuracy",
-		NULL,
-	},	
-	{
-		// MEDAL_PRECISION
-		"PRECA0",
-		S_PRECISION,
-		"Precision!",
-		CR_RED,
-		"Precision",
-		NULL,
-	},	
-	{
-		// MEDAL_VICTORY
-		"VICTA0",
-		S_VICTORY,
-		"Victory!",
-		CR_GRAY,
-		"Victory",
-		NULL,
-	},	
-	{
-		// MEDAL_PERFECT
-		"PFCTA0",
-		S_PERFECT,
-		"Perfect!",
-		CR_RED,
-		"Perfect",
-		NULL,
-	},	
-	{
-		// MEDAL_TERMINATION
-		"TRMAA0",
-		S_TERMINATION,
-		"Termination!",
-		CR_GRAY,
-		"Termination",
-		NULL,
-	},	
-	{
-		// MEDAL_FIRSTFRAG
-		"FFRGA0",
-		S_FIRSTFRAG,
-		"First frag!",
-		CR_GRAY,
-		"FirstFrag",
-		NULL,
-	},	
-	{
-		// MEDAL_CAPTURE
-		"CAPTA0",
-		S_CAPTURE,
-		"Capture!",
-		CR_GRAY,
-		"Capture",
-		NULL,
-	},	
-	{
-		// MEDAL_TAG
-		"STAGA0",
-		S_TAG,
-		"Tag!",
-		CR_GRAY,
-		"Tag",
-		NULL,
-	},	
-	{
-		// MEDAL_ASSIST
-		"ASSTA0",
-		S_ASSIST,
-		"Assist!",
-		CR_GRAY,
-		"Assist",
-		NULL,
-	},	
-	{
-		// MEDAL_DEFENSE
-		"DFNSA0",
-		S_DEFENSE,
-		"Defense!",
-		CR_GRAY,
-		"Defense",
-		NULL,
-	},	
-	{
-		// MEDAL_LLAMA
-		"LLAMA0",
-		S_LLAMA,
-		"Llama!",
-		CR_GREEN,
-		"Llama",
-		"misc/llama",
-	},	
-	{
-		// MEDAL_SPAM
-		"SPAMA0",
-		S_SPAM,
-		"Spam!",
-		CR_GREEN,
-		"Spam",
-		"misc/spam",
-	},	
-	{
-		// MEDAL_YOUFAILIT
-		"FAILA0",
-		S_YOUFAILIT,
-		"You fail it!",
-		CR_GREEN,
-		"YouFailIt",
-		NULL,
-	},	
-	{
-		// MEDAL_YOURSKILLISNOTENOUGH
-		"SKILA0",
-		S_YOURSKILLISNOTENOUGH,
-		"Your skill is not enough!",
-		CR_ORANGE,
-		"YourSkillIsNotEnough",
-		NULL,
-	},
-	{
-		// MEDAL_FISTING
-		"FISTA0",
-		S_FISTING,
-		"Fisting!",
-		CR_GRAY,
-		"Fisting",
-		NULL,
-	},
+{	
+	{ "EXCLA0", S_EXCELLENT, "Excellent!", CR_GRAY, "Excellent", NUM_MEDALS, NULL,	},
+	{ "INCRA0", S_INCREDIBLE, "Incredible!", CR_RED, "Incredible", MEDAL_EXCELLENT, NULL, },	
+
+	{ "IMPRA0", S_IMPRESSIVE, "Impressive!", CR_GRAY, "Impressive", NUM_MEDALS, NULL, },
+	{ "MIMPA0", S_MOST_IMPRESSIVE, "Most impressive!", CR_RED, "MostImpressive", MEDAL_IMPRESSIVE, NULL, },
+	
+	{ "DOMNA0", S_DOMINATION, "Domination!", CR_GRAY, "Domination", NUM_MEDALS, NULL, },	
+	{ "TDOMA0", S_TOTAL_DOMINATION, "Total domination!", CR_RED, "TotalDomination", MEDAL_DOMINATION, NULL, },	
+	
+	{ "ACCUA0", S_ACCURACY, "Accuracy!", CR_GRAY, "Accuracy", NUM_MEDALS, NULL, },
+	{ "PRECA0", S_PRECISION, "Precision!", CR_RED, "Precision", MEDAL_ACCURACY, NULL, },
+
+	{ "FAILA0", S_YOUFAILIT, "You fail it!", CR_GREEN, "YouFailIt", NUM_MEDALS, NULL, },	
+	{ "SKILA0", S_YOURSKILLISNOTENOUGH, "Your skill is not enough!", CR_ORANGE, "YourSkillIsNotEnough", MEDAL_YOUFAILIT, NULL, },
+
+	{ "LLAMA0", S_LLAMA, "Llama!", CR_GREEN, "Llama", NUM_MEDALS, "misc/llama", },
+	{ "SPAMA0", S_SPAM, "Spam!", CR_GREEN, "Spam", MEDAL_LLAMA, "misc/spam", },	
+
+	{ "VICTA0", S_VICTORY, "Victory!", CR_GRAY, "Victory", NUM_MEDALS, NULL, },
+	{ "PFCTA0", S_PERFECT, "Perfect!", CR_RED, "Perfect", MEDAL_VICTORY, NULL, },	
+
+	{ "TRMAA0", S_TERMINATION, "Termination!", CR_GRAY, "Termination", NUM_MEDALS, NULL, },	
+	{ "FFRGA0", S_FIRSTFRAG, "First frag!", CR_GRAY, "FirstFrag", NUM_MEDALS, NULL, },	
+	{ "CAPTA0", S_CAPTURE, "Capture!", CR_GRAY, "Capture", NUM_MEDALS, NULL, },	
+	{ "STAGA0", S_TAG, "Tag!", CR_GRAY, "Tag", NUM_MEDALS, NULL, },	
+	{ "ASSTA0", S_ASSIST, "Assist!", CR_GRAY, "Assist", NUM_MEDALS, NULL, },	
+	{ "DFNSA0", S_DEFENSE, "Defense!", CR_GRAY, "Defense", NUM_MEDALS, NULL, },	
+	{ "FISTA0", S_FISTING, "Fisting!", CR_GRAY, "Fisting", NUM_MEDALS, NULL, },
 };
 
 static	MEDALQUEUE_t	g_MedalQueue[MAXPLAYERS][MEDALQUEUE_DEPTH];
@@ -292,7 +131,7 @@ void	medal_CheckForExcellent( ULONG ulPlayer );
 void	medal_CheckForTermination( ULONG ulDeadPlayer, ULONG ulPlayer );
 void	medal_CheckForLlama( ULONG ulDeadPlayer, ULONG ulPlayer );
 void	medal_CheckForYouFailIt( ULONG ulPlayer );
-bool	medal_PlayerHasInvalidCarrierIcon ( ULONG ulPlayer );
+bool	medal_PlayerHasCarrierIcon( ULONG ulPlayer );
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -338,17 +177,9 @@ void MEDAL_Tick( void )
 		// some other type of icon.
 		if ( g_MedalQueue[ulIdx][0].ulTick == 0 )
 			medal_SelectIcon( ulIdx );
-		// [BB] Since carrier icons have priority over medals now, we constantly have to
-		// check if the carrier icon is still valid. Previously this was done by medal_SelectIcon
-		// but this is only called if g_MedalQueue[ulIdx][0].ulTick == 0. One problem that makes this
-		// necessary is the fact that the capture medal is awarded before the flag is taken away.
-		// This should be redesigned in the future, but not for 97D.
-		else if ( medal_PlayerHasInvalidCarrierIcon ( ulIdx ) )
-		{
-			players[ulIdx].pIcon->Destroy( );
-			players[ulIdx].pIcon = NULL;
-			medal_TriggerMedal( ulIdx, g_MedalQueue[ulIdx][0].ulMedal );
-		}
+
+		// [BB] Remove any old carrier icons.
+		medal_PlayerHasCarrierIcon ( ulIdx );
 
 		// Don't render icons floating above our own heads.
 		if ( players[ulIdx].pIcon )
@@ -464,7 +295,8 @@ void MEDAL_Render( void )
 void MEDAL_GiveMedal( ULONG ulPlayer, ULONG ulMedal )
 {
 	player_s	*pPlayer;
-	
+	ULONG		ulWhereToInsertMedal = -1;
+
 	// Make sure all inputs are valid first.
 	if (( ulPlayer >= MAXPLAYERS ) ||
 		(( deathmatch || teamgame ) == false ) ||
@@ -478,31 +310,57 @@ void MEDAL_GiveMedal( ULONG ulPlayer, ULONG ulMedal )
 	pPlayer = &players[ulPlayer];
 
 	// Increase the player's count of this type of medal.
-	pPlayer->ulMedalCount[ulMedal]++;
+	pPlayer->ulMedalCount[ulMedal]++;	
 
-	// If a medal is already being displayed...
-	if ( g_MedalQueue[ulPlayer][0].ulTick )
+	// The queue is empty, so put this medal first.
+	if ( !g_MedalQueue[ulPlayer][0].ulTick )
+		ulWhereToInsertMedal = 0;
+	else
 	{
-		// If it's the same type of medal as the one being awarded, just reset the time.
-		if ( g_MedalQueue[ulPlayer][0].ulMedal == ulMedal )
+		// Go through the queue.
+		ULONG ulQueueIdx = 0;
+		while ( ulQueueIdx < MEDALQUEUE_DEPTH - 1 && g_MedalQueue[ulPlayer][ulQueueIdx].ulTick )
 		{
-			g_MedalQueue[ulPlayer][0].ulTick = MEDAL_ICON_DURATION;
+			// Is this a duplicate/suboordinate of the new medal?
+			if ( g_MedalQueue[ulPlayer][ulQueueIdx].ulMedal == g_Medals[ulMedal].ulLowerMedal ||
+				 g_MedalQueue[ulPlayer][ulQueueIdx].ulMedal == ulMedal )
+			{
+				// Commandeer its slot!
+				if ( ulWhereToInsertMedal == -1 )
+				{
+					ulWhereToInsertMedal = ulQueueIdx;
+					ulQueueIdx++;
+				}
+
+				// Or remove it, as it's a duplicate.
+				else
+				{
+					g_MedalQueue[ulPlayer][ulQueueIdx].ulMedal		= g_MedalQueue[ulPlayer][ulQueueIdx + 1].ulMedal;
+					g_MedalQueue[ulPlayer][ulQueueIdx].ulTick		= g_MedalQueue[ulPlayer][ulQueueIdx + 1].ulTick;
+				}
+			}
+			else
+				ulQueueIdx++;
+		}
+	}
+
+	// [RC] No special place for the medal, so just queue it.
+	if ( ulWhereToInsertMedal == -1 )
+		medal_AddToQueue( ulPlayer, ulMedal );
+	else
+	{
+		// Update the slot in line.
+		g_MedalQueue[ulPlayer][ulWhereToInsertMedal].ulTick	= MEDAL_ICON_DURATION;
+		g_MedalQueue[ulPlayer][ulWhereToInsertMedal].ulMedal	= ulMedal;
+
+		// If it's replacing/is the medal on top, play the sound.
+		if ( ulWhereToInsertMedal == 0 )
+		{
+			medal_TriggerMedal( ulPlayer, ulMedal );
 
 			if ( pPlayer->pIcon )
 				pPlayer->pIcon->lTick = MEDAL_ICON_DURATION;
 		}
-		else
-			// Otherwise, throw it on the queue.
-			medal_AddToQueue( ulPlayer, ulMedal );
-	}
-	// Otherwise, just display it.
-	else
-	{
-		medal_TriggerMedal( ulPlayer, ulMedal );
-
-		// Initialize this as the first entry in the queue.
-		g_MedalQueue[ulPlayer][0].ulTick	= MEDAL_ICON_DURATION;
-		g_MedalQueue[ulPlayer][0].ulMedal	= ulMedal;
 	}
 
 	// If this player is a bot, tell it that it received a medal.
@@ -934,14 +792,14 @@ void medal_PopQueue( ULONG ulPlayer )
 }
 
 //*****************************************************************************
-//
-// [BB] Shares a lot of code with medal_SelectIcon. This code duplication
-// should be cleaned in the future, but not before 97D.
-bool medal_PlayerHasInvalidCarrierIcon ( ULONG ulPlayer )
+// [BB, RC] Returns whether the player wears a carrier icon (flag/skull/hellstone/etc) and removes any invalid ones.
+// 
+bool medal_PlayerHasCarrierIcon ( ULONG ulPlayer )
 {
 	player_s *pPlayer = &players[ulPlayer];
 	AInventory	*pInventory = NULL;
 	bool bInvalid = false;
+	bool bHasIcon = true;
 
 	// Verify that our current icon is valid.
 	if ( pPlayer->pIcon )
@@ -1020,10 +878,21 @@ bool medal_PlayerHasInvalidCarrierIcon ( ULONG ulPlayer )
 				bInvalid = true;
 			break;
 		default:
+			bHasIcon = false;
 			break;
 		}
 	}
-	return bInvalid;
+
+	// Remove it.
+	if ( bInvalid && bHasIcon )
+	{
+		players[ulPlayer].pIcon->Destroy( );
+		players[ulPlayer].pIcon = NULL;
+
+		medal_TriggerMedal( ulPlayer, g_MedalQueue[ulPlayer][0].ulMedal );
+	}
+
+	return bHasIcon && !bInvalid;
 }
 
 //*****************************************************************************
@@ -1031,7 +900,6 @@ bool medal_PlayerHasInvalidCarrierIcon ( ULONG ulPlayer )
 void medal_TriggerMedal( ULONG ulPlayer, ULONG ulMedal )
 {
 	player_s	*pPlayer;
-	bool		bCreateIcon;
 
 	pPlayer = &players[ulPlayer];
 
@@ -1044,61 +912,15 @@ void medal_TriggerMedal( ULONG ulPlayer, ULONG ulMedal )
 		return;
 
 	// Make sure this medal is valid.
-	if ( ulMedal >= NUM_MEDALS )
+	if ( ulMedal >= NUM_MEDALS || !g_MedalQueue[ulPlayer][0].ulTick )
 		return;
 
-	// Check if we should create the icon.
-	if ( pPlayer->pIcon )
+	// Medals don't override carrier symbols.
+	if ( !medal_PlayerHasCarrierIcon( ulPlayer) )
 	{
-		switch ( pPlayer->pIcon->state - pPlayer->pIcon->SpawnState )
-		{
-			// Medals don't override carrier symbols.
-			case S_BLUEFLAG:
-			case ( S_BLUEFLAG + 1 ):
-			case ( S_BLUEFLAG + 2 ):
-			case ( S_BLUEFLAG + 3 ):
-			case ( S_BLUEFLAG + 4 ):
-			case ( S_BLUEFLAG + 5 ):
-			case S_BLUESKULL:
-			case ( S_BLUESKULL + 1 ):
-			case S_REDFLAG:
-			case ( S_REDFLAG + 1 ):
-			case ( S_REDFLAG + 2 ):
-			case ( S_REDFLAG + 3 ):
-			case ( S_REDFLAG + 4 ):
-			case ( S_REDFLAG + 5 ):
-			case S_REDSKULL:
-			case ( S_REDSKULL + 1 ):
-			case S_WHITEFLAG:
-			case ( S_WHITEFLAG + 1 ):
-			case ( S_WHITEFLAG + 2 ):
-			case ( S_WHITEFLAG + 3 ):
-			case ( S_WHITEFLAG + 4 ):
-			case ( S_WHITEFLAG + 5 ):
-			case S_TERMINATORARTIFACT:
-			case ( S_TERMINATORARTIFACT + 1 ):
-			case ( S_TERMINATORARTIFACT + 2 ):
-			case ( S_TERMINATORARTIFACT + 3 ):
-			case S_POSSESSIONARTIFACT:
-			case ( S_POSSESSIONARTIFACT + 1 ):
-			case ( S_POSSESSIONARTIFACT + 2 ):
-			case ( S_POSSESSIONARTIFACT + 3 ):
+		if ( pPlayer->pIcon )
+			pPlayer->pIcon->Destroy( );
 
-				bCreateIcon = false;
-				break;
-
-			default:
-
-				bCreateIcon = true;
-				pPlayer->pIcon->Destroy( );
-		}
-	}
-	else
-		bCreateIcon = true;
-
-	// Add it.
-	if ( bCreateIcon )
-	{
 		// Spawn the medal as an icon above the player and set its properties.
 		pPlayer->pIcon = Spawn<AFloatyIcon>( pPlayer->mo->x, pPlayer->mo->y, pPlayer->mo->z, NO_REPLACE );
 		if ( pPlayer->pIcon )
@@ -1166,8 +988,18 @@ void medal_SelectIcon( ULONG ulPlayer )
 				pPlayer->pIcon = NULL;
 			}
 			else
-				ulActualSprite = 0;
+				ulActualSprite = 12;
 			break;
+		// In console icon. Delete it if the player is no longer in the console.
+		case S_INCONSOLE:
+		case ( S_INCONSOLE + 1):
+
+			if ( pPlayer->bInConsole == false )
+				pPlayer->pIcon->Destroy( );
+			else
+				ulActualSprite = 1;
+			break;
+
 		// Ally icon. Delete it if the player is now our enemy or if we're spectating.
 		case S_ALLY:
 
@@ -1290,7 +1122,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 			if ( pPlayer->mo->IsTeammate( players[SCOREBOARD_GetViewPlayer()].mo ) && !players[SCOREBOARD_GetViewPlayer()].bSpectating)
 			{
 				ulFrame = S_ALLY;
-				ulDesiredSprite = 1;
+				ulDesiredSprite = 2;
 			}
 		}
 
@@ -1298,7 +1130,14 @@ void medal_SelectIcon( ULONG ulPlayer )
 		if ( pPlayer->bChatting )
 		{
 			ulFrame = S_CHAT;
-			ulDesiredSprite = 0;
+			ulDesiredSprite = 12;
+		}
+
+		// Draw a console icon over the player if they're in the console.
+		if ( pPlayer->bInConsole )
+		{
+			ulFrame = S_INCONSOLE;
+			ulDesiredSprite = 1;
 		}
 
 		// Draw a lag icon over their head if they're lagging.
@@ -1488,13 +1327,9 @@ void medal_CheckForTermination( ULONG ulDeadPlayer, ULONG ulPlayer )
 //
 void medal_CheckForLlama( ULONG ulDeadPlayer, ULONG ulPlayer )
 {
-	// If the target player had been in the middle of typing, award a "llama" medal.
-	// Also do this if the killed player is lagging.
-	if (( players[ulDeadPlayer].bChatting ) ||
-		( players[ulDeadPlayer].bLagging ))
-	{
+	// Award a "llama" medal if the victim had been typing, lagging, or in the console.
+	if ( players[ulDeadPlayer].bChatting ||	players[ulDeadPlayer].bLagging || players[ulDeadPlayer].bInConsole )
 		medal_GiveMedal( ulPlayer, MEDAL_LLAMA );
-	}
 }
 
 //*****************************************************************************

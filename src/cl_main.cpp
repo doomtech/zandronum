@@ -146,6 +146,7 @@ static	void	client_SetPlayerPoints( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerWins( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerKillCount( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerChatStatus( BYTESTREAM_s *pByteStream );
+static	void	client_SetPlayerConsoleStatus( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerLaggingStatus( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerReadyToGoOnStatus( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerTeam( BYTESTREAM_s *pByteStream );
@@ -498,6 +499,7 @@ static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETPLAYERWINS",
 	"SVC_SETPLAYERKILLCOUNT",
 	"SVC_SETPLAYERCHATSTATUS",
+	"SVC_SETPLAYERCONSOLESTATUS",
 	"SVC_SETPLAYERLAGGINGSTATUS",
 	"SVC_SETPLAYERREADYTOGOONSTATUS",
 	"SVC_SETPLAYERTEAM",
@@ -1490,6 +1492,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETPLAYERCHATSTATUS:
 
 		client_SetPlayerChatStatus( pByteStream );
+		break;
+	case SVC_SETPLAYERCONSOLESTATUS:
+
+		client_SetPlayerConsoleStatus( pByteStream );
 		break;
 	case SVC_SETPLAYERLAGGINGSTATUS:
 
@@ -4266,63 +4272,60 @@ static void client_SetPlayerKillCount( BYTESTREAM_s *pByteStream )
 //
 void client_SetPlayerChatStatus( BYTESTREAM_s *pByteStream )
 {
-	ULONG	ulPlayer;
-	bool	bChatting;
+	// Read in the player.
+	ULONG ulPlayer = NETWORK_ReadByte( pByteStream );
 
-	// Read in the player whose chat status is being altered.
-	ulPlayer = NETWORK_ReadByte( pByteStream );
-
-	// Is the player chatting, or not?
-	bChatting = !!NETWORK_ReadByte( pByteStream );
-
-	// If this is an invalid player, break out.
+	// Ensure that he's valid.
 	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	// Finally, set the player's chat status.
-	players[ulPlayer].bChatting = bChatting;
+	// Read and set his chat status.
+	players[ulPlayer].bChatting = !!NETWORK_ReadByte( pByteStream );
+}
+
+//*****************************************************************************
+//
+void client_SetPlayerConsoleStatus( BYTESTREAM_s *pByteStream )
+{
+	// Read in the player.
+	ULONG ulPlayer = NETWORK_ReadByte( pByteStream );
+
+	// Ensure that he's valid.
+	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+		return;
+
+	// Read and set his "in console" status.
+	players[ulPlayer].bInConsole = !!NETWORK_ReadByte( pByteStream );
 }
 
 //*****************************************************************************
 //
 void client_SetPlayerLaggingStatus( BYTESTREAM_s *pByteStream )
 {
-	ULONG	ulPlayer;
-	bool	bLagging;
+	// Read in the player.
+	ULONG ulPlayer = NETWORK_ReadByte( pByteStream );
 
-	// Read in the player whose chat status is being altered.
-	ulPlayer = NETWORK_ReadByte( pByteStream );
-
-	// Is the player lagging, or not?
-	bLagging = !!NETWORK_ReadByte( pByteStream );
-
-	// If this is an invalid player, break out.
+	// Ensure that he's valid.
 	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	// Finally, set the player's lagging status.
-	players[ulPlayer].bLagging = bLagging;
+	// Read and set his lag status.
+	players[ulPlayer].bLagging = !!NETWORK_ReadByte( pByteStream );
 }
 
 //*****************************************************************************
 //
 static void client_SetPlayerReadyToGoOnStatus( BYTESTREAM_s *pByteStream )
 {
-	ULONG	ulPlayer;
-	bool	bReadyToGoOn;
+	// Read in the player.
+	ULONG ulPlayer = NETWORK_ReadByte( pByteStream );
 
-	// Read in the player whose "ready to go on" status is being altered.
-	ulPlayer = NETWORK_ReadByte( pByteStream );
-
-	// Read in whether or not he's ready.
-	bReadyToGoOn = !!NETWORK_ReadByte( pByteStream );
-
-	// If this is an invalid player, break out.
+	// Ensure that he's valid.
 	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	// Finally, set the player's "ready to go on" status.
-	players[ulPlayer].bReadyToGoOn = bReadyToGoOn;
+	// Read and set his "ready to go on" status.
+	players[ulPlayer].bReadyToGoOn = !!NETWORK_ReadByte( pByteStream );
 }
 
 //*****************************************************************************

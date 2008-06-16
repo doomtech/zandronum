@@ -341,6 +341,9 @@ public:
 	// This player is chatting.
 	bool		bChatting;
 
+	// [RC] This player is in the console or menu.
+	bool		bInConsole;
+
 	// This player is currently spectating.
 	bool		bSpectating;
 

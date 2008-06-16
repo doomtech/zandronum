@@ -85,5 +85,7 @@ void	CLIENTCOMMANDS_VoteNo( void );
 void	CLIENTCOMMANDS_RequestInventoryUseAll( void );
 void	CLIENTCOMMANDS_RequestInventoryUse( AInventory *item );
 void	CLIENTCOMMANDS_RequestInventoryDrop( AInventory *pItem );
+void	CLIENTCOMMANDS_EnterConsole( void );
+void	CLIENTCOMMANDS_ExitConsole( void );
 
 #endif	// __CL_COMMANDS_H__
