@@ -788,7 +788,10 @@ void medal_PopQueue( ULONG ulPlayer )
 		medal_TriggerMedal( ulPlayer, g_MedalQueue[ulPlayer][0].ulMedal );
 	// If there isn't, just delete the medal that has been displaying.
 	else if ( players[ulPlayer].pIcon )
+	{
 		players[ulPlayer].pIcon->Destroy( );
+		players[ulPlayer].pIcon = NULL;
+	}
 }
 
 //*****************************************************************************
@@ -995,7 +998,10 @@ void medal_SelectIcon( ULONG ulPlayer )
 		case ( S_INCONSOLE + 1):
 
 			if ( pPlayer->bInConsole == false )
+			{
 				pPlayer->pIcon->Destroy( );
+				pPlayer->pIcon = NULL;
+			}
 			else
 				ulActualSprite = 1;
 			break;
