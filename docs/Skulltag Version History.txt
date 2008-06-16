@@ -12,9 +12,19 @@
 ===============================================================================================================
 
 
-v0.97d2 RC3
-------
+<trunk>
+-------
 
++	- Added medal families: "higher" medals, such as incredible, now immediately replace lower medals, such as excellent. This means that when on a spree, you can go right from excellent to incredible, accuracy to precision, impressive to most impressive, and so on without waiting for the lower medal to slide off. Overall this makes the queue run a lot faster, especially if you have a large backlog of medals. [Rivecoder]
++	- Added an "in console" icon that's shown above a player's head when he's in the menu or console. [Rivecoder]
+!	- Changed up the display of medals when you have the key down. Higher medals are now on the right, opposite their subordinates. [Rivecoder]
+!	- Each player's "ready to go on" status, shown at the intermission, can now only be turned on. Hopefully, this will help clear up what this command is for and prevent rapid toggling of it. [Rivecoder]
+
+
+v0.97d2 RC3
+-----------
+
++	- Completely NEW and expanded encryption of the executable, so that hacking it is now even more difficult than before. [SuperGod]
 +	- Added support for OpenGL texture compression. Depending on the GPU capabilities up to four new texture formats (COMPR_RGBA, S3TC_DXT1, S3TC_DXT3, S3TC_DXT5) are selectable with gl_texture_format. [Torr Samaho]
 +	- Actor flag ALLOWCLIENTSPAWN is now available in DECORATE. The server doesn't tell clients to spawn actors with this flag, the clients spawn them on their own when loading the map. This is useful for decorations that will never be moved, removed, or changed in any way. Only use it, if you know what you are doing! [Torr Samaho]
 +	- Added CKeen's submission for an updated Italian language file. [Karate Chris]
@@ -32,7 +42,7 @@ v0.97d2 RC3
 !	- Changed: Changes to the CVAR sv_maxlives are now applied on the next map change (like done with sv_cheats). This fixes the problems that previously occurred when changing sv_maxlives during a game. [Torr Samaho]
 
 v0.97d2 RC2
-------
+-----------
 
 *+	- Added basic HUD model support. [Torr Samaho]
 *+	- Added survival invasion! In particular, added new CVAR sv_maxlives. This specifies how many times you are allowed to respawn in survival and invasion. sv_maxlives == 0 means no respawing in survival, but unlimited respawning in invasion. [Torr Samaho]
@@ -94,7 +104,7 @@ v0.97d
 !	- RadSuit now has the FORCERESPAWNINSURVIVAL inventory flag. This was necessary because some maps are nearly impossible to finish in survival with sv_itemrespawn == false. [Torr Samaho]
 
 v0.97d RC10
-----------
+-----------
 
 *-	- Restored Windows 98/ME compatibility. [Torr Samaho, Rivecoder]
 +	- Added one missing dmflag2 and seven missing compatflags to the "Configure DMFlags" server window. [Torr Samaho]

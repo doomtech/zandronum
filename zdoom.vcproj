@@ -9260,6 +9260,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\docs\Skulltag Launcher Protocol.txt"
+				>
+			</File>
+			<File
+				RelativePath=".\docs\Skulltag Version History.txt"
+				>
+			</File>
+			<File
 				RelativePath="docs\zdoom.txt"
 				>
 			</File>
