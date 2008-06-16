@@ -2,7 +2,7 @@
 SKULLTAG Launcher Protocol
 ==========================
 
-Version 0.1 by Rivecoder ~ March 30, 2008
+Version 0.2 by Rivecoder ~ April 9, 2008
 -----------------------------------------
 
 There's been a lot of demand for out launcher protocol by people who would like to create their own custom utilities and launchers. Well, we've decided to release this publicly, so here it is!
@@ -15,7 +15,11 @@ Definition of types:
   Short: 16 bit integer
   Long: 32 bit integer
   Float: Long representation of a float
-  
+
+** Huffman
+*********************************************************************************
+All Skulltag network traffic uses Huffman compression. You'll need a copy of huffman.cpp or huffman.java to encode and decode your traffic appropiately.
+
 ** Getting the list of servers
 *********************************************************************************
 This is very easy, accomplished by sending a single long to the server:
@@ -28,7 +32,7 @@ The server will respond, either with:
 
   Type    Value       Description
   -------------------------------
-  Byte    0           Beginning of list 
+  Long    0           Beginning of list 
   Byte    3           Denied; your IP is banned
   Byte    4           Denied; your IP has made a request in the past 10 seconds
   
@@ -51,9 +55,6 @@ Finally, the response should end with this:
 
 ** Querying individual servers
 *********************************************************************************
-This is more complicated, partly because Skulltag servers use Huffman compression for all of their traffic.
-You'll need a copy of huffman.cpp to encode and decode your traffic appropiately.
-
 As with the master, you begin with the challenge long.
 
   Type    Value       Description
