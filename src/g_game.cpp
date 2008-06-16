@@ -1101,6 +1101,10 @@ bool G_Responder (event_t *ev)
 	{
 		if ( CHAT_Input( ev )) 
 			return ( true );
+
+		// [RC] If the player hits the spacebar, and they aren't in the game, ask them if they'd like to join.
+		if ( ev->data1 == KEY_SPACE && players[consoleplayer].bSpectating )
+			M_JoinMenu();
 	}
 
 	if (gamestate == GS_LEVEL)

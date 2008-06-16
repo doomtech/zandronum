@@ -19,7 +19,8 @@
 +	- Added an "in console" icon that's shown above a player's head when he's in the menu or console. [Rivecoder]
 !	- Changed up the display of medals when you have the key down. Higher medals are now on the right, opposite their subordinates. [Rivecoder]
 !	- Each player's "ready to go on" status, shown at the intermission, can now only be turned on. Hopefully, this will help clear up what this command is for and prevent rapid toggling of it. [Rivecoder]
-
+!	- You can now join the game while spectating during intermission. [Rivecoder]
+!	- Fixed a typo in the BFG10k's obituary. [Rivecoder]
 
 v0.97d2 RC3
 -----------

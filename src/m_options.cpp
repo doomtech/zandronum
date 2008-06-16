@@ -3831,12 +3831,38 @@ bool M_StartOptionsMenu (void)
 	return true;
 }
 
+// [RC] Handler for the space key. Shows the appropiate menu or message.
+bool M_JoinMenu ( void )
+{
+	if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DEADSPECTATORS ) && players[consoleplayer].bDeadSpectator )
+	{
+		Printf( "You cannot rejoin the game until the round is over!\n" );
+		return ( true );
+	}
+
+	// ST/CTF without a selection room, or another team game.
+	if (( teamplay || ( teamgame && TemporaryTeamStarts.Size( ) == 0 ) || teamlms || teampossession ) && (( dmflags2 & DF2_NO_TEAM_SELECT ) == false ))
+	{
+		M_StartControlPanel( true );
+		M_StartJoinTeamMenu( );
+	}
+	else
+	{
+		M_StartControlPanel( true );
+		M_StartJoinMenu( );
+	}
+
+	return true;
+}
+
 bool M_StartJoinTeamMenu (void)
 {
 	OptionsActive = true;
 	M_SwitchMenu (&JoinTeamMenu);
 	return true;
 }
+
+
 
 bool M_StartJoinMenu (void)
 {
