@@ -17,11 +17,13 @@
 
 +	- Added medal families: "higher" medals, such as incredible, now immediately replace lower medals, such as excellent. This means that when on a spree, you can go right from excellent to incredible, accuracy to precision, impressive to most impressive, and so on without waiting for the lower medal to slide off. Overall this makes the queue run a lot faster, especially if you have a large backlog of medals. [Rivecoder]
 +	- Added an "in console" icon that's shown above a player's head when he's in the menu or console. [Rivecoder]
+-	- Fixed: The reflection rune's obituary would read "[victim] was killed via [victim]'s reflection rune". [Rivecoder]
+-	- Fixed: Joining a survival invasion server with "start as spectator" off would make you join immediately.  [Rivecoder]
+-	- Fixed: Clients sometimes accidentally switch the weapon of one of the other players locally. [Torr Samaho]
 !	- Changed up the display of medals when you have the key down. Higher medals are now on the right, opposite their subordinates. [Rivecoder]
 !	- Each player's "ready to go on" status, shown at the intermission, can now only be turned on. Hopefully, this will help clear up what this command is for and prevent rapid toggling of it. [Rivecoder]
 !	- You can now join the game while spectating during intermission. [Rivecoder]
 !	- Fixed a typo in the BFG10k's obituary. [Rivecoder]
--	- Fixed: Clients sometimes accidentally switch the weapon of one of the other players locally. [Torr Samaho]
 
 v0.97d2 RC3
 -----------

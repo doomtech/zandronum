@@ -2311,6 +2311,10 @@ bool PLAYER_ShouldSpawnAsSpectator( player_s *pPlayer )
 		return ( true );
 	}
 
+	// [RC] If an invasion game is in progress with sv_maxlives, the player should start as a spectator.
+	if ( invasion && INVASION_PreventPlayersFromJoining() )
+		return ( true );
+
 	// Players entering a teamplay game must choose a team first before joining the fray.
 	if (( pPlayer->bOnTeam == false ) || ( playeringame[pPlayer - players] == false ))
 	{
