@@ -193,9 +193,11 @@ static	void			scoreboard_DrawBottomString( void );
 //*****************************************************************************
 //	CONSOLE VARIABLES
 
-CVAR (Bool, r_drawspectatingstring, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG);
-EXTERN_CVAR( Bool, cl_stfullscreenhud);
-EXTERN_CVAR( Int, screenblocks);
+CVAR (Bool, r_drawspectatingstring, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG );
+EXTERN_CVAR( Bool, cl_stfullscreenhud );
+EXTERN_CVAR( Int, screenblocks );
+EXTERN_CVAR( Bool, st_scale );
+
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -891,6 +893,15 @@ void SCOREBOARD_RenderStats_RankSpread( void )
 	char		szString[160];
 
 	ulYPos = ST_Y - ( g_ulTextHeight * 2 ) + 1;
+
+	// [RC] Move this up to make room for armor on the fullscreen, classic display.
+	if ( !st_scale && screenblocks > 10 )
+		ulYPos -= ( g_ulTextHeight * 2 );
+
+	// [RC] Don't draw this if there aren't any competitors.
+	if ( g_ulNumPlayers <= 1 )
+		return;
+
 	sprintf( szString, "\\cGRANK: \\cC%d/%s%d", g_ulRank + 1, g_bIsTied ? "\\cG" : "", g_ulNumPlayers );
 	V_ColorizeString( szString );
 

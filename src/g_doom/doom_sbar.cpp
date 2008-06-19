@@ -799,7 +799,11 @@ void DrawFullHUD_Armor()
 		pArmor = CPlayer->mo->FindInventory<ABasicArmor>( );
 	else
 		pArmor = NULL;
-		
+	
+	// [RC] No armor? Then don't draw this.
+	if ( !pArmor || pArmor->Amount <= 0 )
+		return;
+
 	if ( pArmor )
 		sprintf( szPatchName, TexMan[pArmor->Icon]->Name );
 	else
@@ -1218,15 +1222,18 @@ void DrawFullHUD_GameInformation()
 	{
 		ULONG	ulRedPoints; // Frags or points
 		ULONG	ulBluePoints;
-		if(teamlms) {
+		if ( teamlms )
+		{
 			ulBluePoints = TEAM_GetWinCount( TEAM_BLUE );
 			ulRedPoints = TEAM_GetWinCount( TEAM_RED );
 		}			
-		else if(teamplay) {
+		else if ( teamplay )
+		{
 			ulBluePoints = TEAM_GetFragCount( TEAM_BLUE );
 			ulRedPoints = TEAM_GetFragCount( TEAM_RED );
 		}
-		else {
+		else
+		{
 			ulBluePoints = TEAM_GetScore( TEAM_BLUE );
 			ulRedPoints = TEAM_GetScore( TEAM_RED );
 		}
@@ -1258,11 +1265,10 @@ void DrawFullHUD_GameInformation()
 				szString,
 				TAG_DONE );
 		}
-		
 	}
-	// Or it's just simple deathmatch.
-	// Draw the individual rank/spread.
-	else if ( deathmatch )
+
+	// Just simple deathmatch. Draw the individual rank/spread if there are competitors.
+	else if ( deathmatch && SCOREBOARD_GetNumPlayers( ) > 1 )
 	{
 		ulCurXPos = 4;
 		if ( bScale )
@@ -1292,7 +1298,9 @@ void DrawFullHUD_GameInformation()
 				TAG_DONE );
 		}
 
-		if(!duel) { // [RC] Have spread, don't need rank. I mean, come on, there's only two players.
+		// [RC] Don't draw rank in duel mode. I mean, come on, there's only two players.
+		if ( !duel )
+		{
 			ulCurYPos += ConFont->GetHeight( ) + 4;
 			sprintf( szString, "rank: \\cC%d/%s%d", SCOREBOARD_GetRank( ) + 1, SCOREBOARD_IsTied( ) ? "\\cG" : "", SCOREBOARD_GetNumPlayers( ));
 			V_ColorizeString( szString );
@@ -1316,9 +1324,12 @@ void DrawFullHUD_GameInformation()
 			}
 		}
 	}
+
 	// [RC] Draw wave and arch-viles (if any) in Invasion
-	else if( invasion ) {
-		if((INVASION_GetState( ) == IS_INPROGRESS) || (INVASION_GetState( ) == IS_BOSSFIGHT)) {
+	else if ( invasion )
+	{
+		if (( INVASION_GetState( ) == IS_INPROGRESS ) || ( INVASION_GetState( ) == IS_BOSSFIGHT ))
+		{
 			ulCurXPos = 4;
 			if ( bScale )
 				ulCurYPos = ValHeight.Int - 4 - ( TexMan["MEDIA0"]->GetHeight( ) + 4 ) * 4 - ( TexMan["ARM1A0"]->GetHeight( ) + 4 ) - 14;
