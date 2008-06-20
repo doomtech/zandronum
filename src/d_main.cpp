@@ -584,7 +584,8 @@ void D_Display ()
 	}
 
 	// [RH] Allow temporarily disabling wipes
-	if (NoWipe)
+	// [BB] Wipes cause more harm than good on the client. Disable them for now.
+	if (NoWipe || (NETWORK_GetState() == NETSTATE_CLIENT) )
 	{
 		BorderNeedRefresh = screen->GetPageCount ();
 		NoWipe--;

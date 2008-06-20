@@ -25,6 +25,7 @@ latestzdoom branch
 +	- Added teamscore to SBarInfo's drawnumber and drawbar.  Its takes one parameter for team name. [Blzut3]
 -	- Fixed errors while compiling and running 64-bit versions of Skulltag. [Blzut3]
 -	- The fire background for player setup and class select was not scaled properly. [Blzut3]
+!	- Disabled screen wipes on the clients, since they cause more harm than good there. [Torr Samaho]
 
 
 v0.97d2 RC3
