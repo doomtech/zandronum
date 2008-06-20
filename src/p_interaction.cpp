@@ -292,15 +292,15 @@ void ClientObituary (AActor *self, AActor *inflictor, AActor *attacker, FName Me
 		{
 			// [BC] NAME_SpawnTelefrag, too.
 			if ((mod == NAME_Telefrag) || (mod == NAME_SpawnTelefrag)) message = GStrings("OB_MPTELEFRAG");
-
 			// [BC] Handle Skulltag's reflection rune.
 			// [RC] Moved here to fix the "[victim] was killed via [victim]'s reflection rune" bug.
-			if ( mod == NAME_Reflection )
+			else if ( mod == NAME_Reflection )
 			{
 				messagename = "OB_REFLECTION";
 				message = GStrings(messagename);
 			}
-			else if (message == NULL)
+
+			if (message == NULL)
 			{
 				if (inflictor != NULL)
 				{
