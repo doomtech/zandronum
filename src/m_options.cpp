@@ -1703,8 +1703,8 @@ void M_SendVote( void );
 
 static menuitem_t CallVoteItems[] =
 {
-	{ discrete,	"Command",				&menu_votecommand,		{8.0}, {0.0},	{0.0}, VoteCommandVals },
-	{ string,	"Parameter(s)",			&menu_voteparameters,	{0.0}, {0.0},	{0.0}, NULL },
+	{ discrete,	"Command",				{&menu_votecommand},	{8.0}, {0.0},	{0.0}, {VoteCommandVals} },
+	{ string,	"Parameter(s)",			{&menu_voteparameters},	{0.0}, {0.0},	{0.0}, {NULL} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ more,		"Send vote",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_SendVote} },
 };
@@ -1800,18 +1800,18 @@ static menuitem_t MultiplayerItems[] =
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ more,		"Spectate",				{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_Spectate} },
 	{ more,		"Call a vote",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_CallVote} },
-	{ more,		"Switch teams",				NULL,					0.0, 0.0, 0.0, {(value_t *)M_ChangeTeam} },
+	{ more,		"Switch teams",				{NULL},					{0.0}, {0.0}, {0.0}, {(value_t *)M_ChangeTeam} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ discrete, "Allow skins",			{&cl_skins},			{3.0}, {0.0},	{0.0}, {AllowSkinVals} },
 	{ discrete, "Allow taunts",			{&cl_taunts},			{2.0}, {0.0},	{0.0}, {OnOff} },
 //	{ discrete, "Allow medals",			{&cl_medals},			{2.0}, {0.0},	{0.0}, {OnOff} },
 //	{ discrete, "Allow icons",			{&cl_icons},			{2.0}, {0.0},	{0.0}, {OnOff} },
-	{ discrete,	"Identify players",		&cl_identifytarget,		2.0, 0.0, 0.0, OnOff },
-	{ discrete,	"Start as spectator",	&cl_startasspectator,	{2.0}, {0.0},	{0.0}, {YesNo} },
+	{ discrete,	"Identify players",		{&cl_identifytarget},	{2.0}, {0.0}, {0.0}, {OnOff} },
+	{ discrete,	"Start as spectator",	{&cl_startasspectator},	{2.0}, {0.0},	{0.0}, {YesNo} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
-	{ string,	"Server password",		&cl_password,				{0.0}, {0.0},	{0.0}, {NULL} },
-	{ string,	"Join password",		&cl_joinpassword,		{0.0}, {0.0},	{0.0}, {NULL} },
-	{ discrete, "Reset frags at join",	&cl_dontrestorefrags,	2.0, 0.0, 0.0, YesNo },
+	{ string,	"Server password",		{&cl_password},				{0.0}, {0.0},	{0.0}, {NULL} },
+	{ string,	"Join password",		{&cl_joinpassword},		{0.0}, {0.0},	{0.0}, {NULL} },
+	{ discrete, "Reset frags at join",	{&cl_dontrestorefrags},	{2.0}, {0.0},	{0.0}, {YesNo} },
 };
 
 menu_t MultiplayerMenu = {
@@ -2013,7 +2013,7 @@ void M_BrowserMenuDrawer( void )
 	char	szString[256];
 
 	lNumServers = M_CalcLastSortedIndex( );
-	sprintf( szString, "Currently showing %d servers", lNumServers );
+	sprintf( szString, "Currently showing %d servers", static_cast<int> (lNumServers) );
 	screen->DrawText( CR_WHITE, 160 - ( SmallFont->StringWidth( szString ) / 2 ), 190, szString, DTA_Clean, true, TAG_DONE );
 }
 
@@ -2049,11 +2049,11 @@ void M_CheckConnectToServer( void )
 
 		// If the server uses a PWAD, make sure we have it loaded. If not, ask the user
 		// if he'd like to join the server anyway.
-		for ( ulIdx = 0; ulIdx < BROWSER_GetNumPWADs( g_lSelectedServer ); ulIdx++ )
+		for ( ulIdx = 0; ulIdx < static_cast<unsigned> (BROWSER_GetNumPWADs( g_lSelectedServer )); ulIdx++ )
 		{
 			strcat( szWadList, BROWSER_GetPWADName( g_lSelectedServer, ulIdx ));
 
-			if ( ulIdx + 1 < BROWSER_GetNumPWADs( g_lSelectedServer ))
+			if ( ulIdx + 1 < static_cast<unsigned> (BROWSER_GetNumPWADs( g_lSelectedServer )))
 			{
 				char	szSpace[1];
 
@@ -2469,13 +2469,13 @@ void M_DrawServerInfo( void )
 
 	ulCurYPos += ulTextHeight;
 
-	sprintf( szString, "PWADs: \\cc%d", BROWSER_GetNumPWADs( g_lSelectedServer ));
+	sprintf( szString, "PWADs: \\cc%d", static_cast<int> (BROWSER_GetNumPWADs( g_lSelectedServer )));
 	V_ColorizeString( szString );
 	screen->DrawText( CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
 
 	ulCurYPos += ulTextHeight;
 
-	for ( ulIdx = 0; ulIdx < MIN( (int)BROWSER_GetNumPWADs( g_lSelectedServer ), 4 ); ulIdx++ )
+	for ( ulIdx = 0; ulIdx < static_cast<unsigned> (MIN( (int)BROWSER_GetNumPWADs( g_lSelectedServer ), 4 )); ulIdx++ )
 	{
 		sprintf( szString, "\\cc%s", BROWSER_GetPWADName( g_lSelectedServer, ulIdx ));
 		V_ColorizeString( szString );
@@ -2496,7 +2496,7 @@ void M_DrawServerInfo( void )
 
 	ulCurYPos += ulTextHeight;
 
-	sprintf( szString, "Players: \\cc%d/%d", BROWSER_GetNumPlayers( g_lSelectedServer ), BROWSER_GetMaxClients( g_lSelectedServer ));
+	sprintf( szString, "Players: \\cc%d/%d", static_cast<int> (BROWSER_GetNumPlayers( g_lSelectedServer )), static_cast<int> (BROWSER_GetMaxClients( g_lSelectedServer )));
 	V_ColorizeString( szString );
 	screen->DrawText( CR_UNTRANSLATED, 16, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
 
@@ -2512,17 +2512,17 @@ void M_DrawServerInfo( void )
 
 		ulCurYPos += ( ulTextHeight * 2 );
 
-		for ( ulIdx = 0; ulIdx < MIN( (int)BROWSER_GetNumPlayers( g_lSelectedServer ), 4 ); ulIdx++ )
+		for ( ulIdx = 0; static_cast<signed> (ulIdx) < MIN( (int)BROWSER_GetNumPlayers( g_lSelectedServer ), 4 ); ulIdx++ )
 		{
 			sprintf( szString, "%s", BROWSER_GetPlayerName( g_lSelectedServer, ulIdx ));
 			V_ColorizeString( szString );
 			screen->DrawText( CR_GRAY, 32, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
 
-			sprintf( szString, "%d", BROWSER_GetPlayerFragcount( g_lSelectedServer, ulIdx ));
+			sprintf( szString, "%d", static_cast<int> (BROWSER_GetPlayerFragcount( g_lSelectedServer, ulIdx )));
 			V_ColorizeString( szString );
 			screen->DrawText( CR_GRAY, 192, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
 
-			sprintf( szString, "%d", BROWSER_GetPlayerPing( g_lSelectedServer, ulIdx ));
+			sprintf( szString, "%d", static_cast<int> (BROWSER_GetPlayerPing( g_lSelectedServer, ulIdx )));
 			V_ColorizeString( szString );
 			screen->DrawText( CR_GRAY, 256, ulCurYPos, szString, DTA_Clean, true, TAG_DONE );
 
@@ -2566,7 +2566,8 @@ void M_ChangeTeam( void )
 {
 	// Clear the menus, and send the changeteam command.
 	M_ClearMenus( );
-	AddCommandString( "changeteam" );
+	static char changeteam[] = "changeteam";
+	AddCommandString( changeteam );
 }
 
 
@@ -2809,26 +2810,26 @@ void M_WeaponSetupMenuDrawer( void )
 }
 
 static menuitem_t WeaponSetupItems[] = {
-	{ discrete,	"Switch on pickup",			&switchonpickup,		3.0, 0.0, 0.0, SwitchOnPickupVals  },
-	{ discrete,	"Allow switch with no ammo",&cl_noammoswitch,		2.0, 0.0, 0.0, YesNo  },
-	{ discrete,	"Cycle with original order",&cl_useoriginalweaponorder,2.0, 0.0, 0.0, YesNo  },
-	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
+	{ discrete,	"Switch on pickup",			{&switchonpickup},		{3.0}, {0.0}, {0.0}, {SwitchOnPickupVals}  },
+	{ discrete,	"Allow switch with no ammo",{&cl_noammoswitch},		{2.0}, {0.0}, {0.0}, {YesNo}  },
+	{ discrete,	"Cycle with original order",{&cl_useoriginalweaponorder},{2.0}, {0.0}, {0.0}, {YesNo}  },
+	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
 //	{ redtext,	"WEAPON PREFERENCES",		NULL,					0.0, 0.0, 0.0, NULL  },
-	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ weaponslot,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ weaponslot,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ weaponslot,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ weaponslot,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ weaponslot,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ weaponslot,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ weaponslot,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ weaponslot,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ weaponslot,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ weaponslot,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ weaponslot,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ weaponslot,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ weaponslot,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
+	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ weaponslot,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ weaponslot,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ weaponslot,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ weaponslot,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ weaponslot,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ weaponslot,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ weaponslot,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ weaponslot,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ weaponslot,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ weaponslot,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ weaponslot,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ weaponslot,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ weaponslot,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
 };
 
 menu_t WeaponSetupMenu = {
@@ -2855,7 +2856,7 @@ void M_RefreshWeaponSetupItems( void )
 
 	// Populate the weapon setup menu with the current weapon preferences.
 	ulSlotStart = 1;
-	for ( ulIdx = 0; ulIdx < CurrentMenu->numitems; ulIdx++ )
+	for ( ulIdx = 0; ulIdx < static_cast<unsigned> (CurrentMenu->numitems); ulIdx++ )
 	{
 		pItem = CurrentMenu->items + ulIdx;
 		if ( pItem->type == weaponslot )
@@ -2865,13 +2866,13 @@ void M_RefreshWeaponSetupItems( void )
 			pszString = NULL;//GetWeaponPrefNameByRank( ulSlotStart );
 			if ( pszString )
 			{
-				sprintf( g_szWeaponPrefStringBuffer[ulIdx], "Slot %d: \\cc%s", ulSlotStart, pszString );
+				sprintf( g_szWeaponPrefStringBuffer[ulIdx], "Slot %d: \\cc%s", static_cast<unsigned int> (ulSlotStart), pszString );
 				V_ColorizeString( g_szWeaponPrefStringBuffer[ulIdx] );
 				pItem->label = g_szWeaponPrefStringBuffer[ulIdx];
 			}
 			else
 			{
-				sprintf( g_szWeaponPrefStringBuffer[ulIdx], "" );
+				g_szWeaponPrefStringBuffer[ulIdx][0] = 0;
 				V_ColorizeString( g_szWeaponPrefStringBuffer[ulIdx] );
 				pItem->label = g_szWeaponPrefStringBuffer[ulIdx];
 			}
@@ -2948,24 +2949,24 @@ CVAR( Int, menu_dmflags2, 512, CVAR_ARCHIVE );
 CVAR( Int, menu_modifier, 0, CVAR_ARCHIVE );
 
 static menuitem_t SkirmishItems[] = {
-	{ levelslot,"Level",					&menu_level,			0.0, 0.0, 0.0, NULL  },
-	{ discrete,	"Game mode",				&menu_gamemode,			15.0, 0.0, 0.0, GameModeVals },
-	{ discrete, "Modifier",					&menu_modifier,			3.0, 0.0, 0.0, ModifierVals },
-	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ number,	"Timelimit",				&menu_timelimit,		0.0, 100.0, 1.0, NULL  },
-	{ number,	"Fraglimit",				&menu_fraglimit,		0.0, 100.0, 5.0, NULL  },
-	{ number,	"Pointlimit",				&menu_pointlimit,		0.0, 100.0, 1.0, NULL  },
-	{ number,	"Duellimit",				&menu_duellimit,		0.0, 100.0, 1.0, NULL  },
-	{ number,	"Winlimit",					&menu_winlimit,			0.0, 100.0, 1.0, NULL  },
-	{ number,	"Wavelimit",				&menu_wavelimit,		0.0, 10.0, 1.0, NULL  },
-	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ discrete,	"Skill",					&menu_skill,			5.0, 0.0, 0.0, GameskillVals },
-	{ discrete,	"Botskill",					&menu_botskill,			5.0, 0.0, 0.0, BotskillVals },
-	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ more,		"Bot setup",				NULL,					0.0, 0.0, 0.0, (value_t *)M_BotSetup },
-	{ more,		"Gameplay options",			NULL,					0.0, 0.0, 0.0, {(value_t *)SkirmishGameplayOptions} },
-	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ more,		"Start game!",				NULL,					0.0, 0.0, 0.0, {(value_t *)M_StartSkirmishGame} },
+	{ levelslot,"Level",					{&menu_level},			{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ discrete,	"Game mode",				{&menu_gamemode},		{15.0}, {0.0}, {0.0}, {GameModeVals} },
+	{ discrete, "Modifier",					{&menu_modifier},		{3.0}, {0.0}, {0.0}, {ModifierVals} },
+	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ number,	"Timelimit",				{&menu_timelimit},		{0.0}, {100.0}, {1.0}, {NULL}  },
+	{ number,	"Fraglimit",				{&menu_fraglimit},		{0.0}, {100.0}, {5.0}, {NULL}  },
+	{ number,	"Pointlimit",				{&menu_pointlimit},		{0.0}, {100.0}, {1.0}, {NULL}  },
+	{ number,	"Duellimit",				{&menu_duellimit},		{0.0}, {100.0}, {1.0}, {NULL}  },
+	{ number,	"Winlimit",					{&menu_winlimit},		{0.0}, {100.0}, {1.0}, {NULL}  },
+	{ number,	"Wavelimit",				{&menu_wavelimit},		{0.0}, {10.0}, {1.0}, {NULL}  },
+	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ discrete,	"Skill",					{&menu_skill},			{5.0}, {0.0}, {0.0}, {GameskillVals} },
+	{ discrete,	"Botskill",					{&menu_botskill},		{5.0}, {0.0}, {0.0}, {BotskillVals} },
+	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ more,		"Bot setup",				{NULL},					{0.0}, {0.0}, {0.0}, {(value_t *)M_BotSetup} },
+	{ more,		"Gameplay options",			{NULL},					{0.0}, {0.0}, {0.0}, {(value_t *)SkirmishGameplayOptions} },
+	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ more,		"Start game!",				{NULL},					{0.0}, {0.0}, {0.0}, {(value_t *)M_StartSkirmishGame} },
 };
 
 menu_t SkirmishMenu = {
@@ -3006,7 +3007,7 @@ void M_ClearBotSlotList( void )
 	{
 		for ( ulIdx = 0; ulIdx < 16; ulIdx++ )
 		{
-			sprintf( szCVarName, "menu_teambotspawn%d", ulIdx );
+			sprintf( szCVarName, "menu_teambotspawn%d", static_cast<unsigned int> (ulIdx) );
 			pVar = FindCVar( szCVarName, NULL );
 
 			Val = pVar->GetGenericRep( CVAR_Int );
@@ -3018,7 +3019,7 @@ void M_ClearBotSlotList( void )
 	{
 		for ( ulIdx = 0; ulIdx < 16; ulIdx++ )
 		{
-			sprintf( szCVarName, "menu_botspawn%d", ulIdx );
+			sprintf( szCVarName, "menu_botspawn%d", static_cast<unsigned int> (ulIdx) );
 			pVar = FindCVar( szCVarName, NULL );
 
 			Val = pVar->GetGenericRep( CVAR_Int );
@@ -3204,7 +3205,7 @@ void M_StartSkirmishGame( void )
 	{
 		for ( ulIdx = 0; ulIdx < 16; ulIdx++ )
 		{
-			sprintf( szCVarName, "menu_teambotspawn%d", ulIdx );
+			sprintf( szCVarName, "menu_teambotspawn%d", static_cast<unsigned int> (ulIdx) );
 			pVar = FindCVar( szCVarName, NULL );
 
 			Val = pVar->GetGenericRep( CVAR_Int );
@@ -3214,9 +3215,15 @@ void M_StartSkirmishGame( void )
 				V_ColorizeString( szBuffer );
 				V_RemoveColorCodes( szBuffer );
 				if ( ulIdx < 5 )
-					BOTSPAWN_AddToTable( szBuffer, "red" );
+				{
+					static char red[] = "red";
+					BOTSPAWN_AddToTable( szBuffer, red );
+				}
 				else
-					BOTSPAWN_AddToTable( szBuffer, "blue" );
+				{
+					static char blue[] = "blue";
+					BOTSPAWN_AddToTable( szBuffer, blue );
+				}
 			}
 		}
 
@@ -3230,7 +3237,7 @@ void M_StartSkirmishGame( void )
 	{
 		for ( ulIdx = 0; ulIdx < 16; ulIdx++ )
 		{
-			sprintf( szCVarName, "menu_botspawn%d", ulIdx );
+			sprintf( szCVarName, "menu_botspawn%d", static_cast<unsigned int> (ulIdx) );
 			pVar = FindCVar( szCVarName, NULL );
 
 			Val = pVar->GetGenericRep( CVAR_Int );
@@ -3303,27 +3310,27 @@ static menu_t SkirmishDMFlagsMenu =
  *=======================================*/
 
 static menuitem_t BotSetupItems[] = {
-	{ discrete,	"Botskill",					&menu_botskill,			5.0, 0.0, 1.0, BotskillVals },
-	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ botslot,	"Slot 1:",					NULL,					0.0, 0.0, 0.0, NULL },
-	{ botslot,	"Slot 2:",					NULL,					0.0, 0.0, 0.0, NULL },
-	{ botslot,	"Slot 3:",					NULL,					0.0, 0.0, 0.0, NULL },
-	{ botslot,	"Slot 4:",					NULL,					0.0, 0.0, 0.0, NULL },
-	{ botslot,	"Slot 5:",					NULL,					0.0, 0.0, 0.0, NULL },
-	{ botslot,	"Slot 6:",					NULL,					0.0, 0.0, 0.0, NULL },
-	{ botslot,	"Slot 7:",					NULL,					0.0, 0.0, 0.0, NULL },
-	{ botslot,	"Slot 8:",					NULL,					0.0, 0.0, 0.0, NULL },
-	{ botslot,	"Slot 9:",					NULL,					0.0, 0.0, 0.0, NULL },
-	{ botslot,	"Slot 10:",					NULL,					0.0, 0.0, 0.0, NULL },
-	{ botslot,	"Slot 11:",					NULL,					0.0, 0.0, 0.0, NULL },
-	{ botslot,	"Slot 12:",					NULL,					0.0, 0.0, 0.0, NULL },
-	{ botslot,	"Slot 13:",					NULL,					0.0, 0.0, 0.0, NULL },
-	{ botslot,	"Slot 14:",					NULL,					0.0, 0.0, 0.0, NULL },
-	{ botslot,	"Slot 15:",					NULL,					0.0, 0.0, 0.0, NULL },
-	{ botslot,	"Slot 16:",					NULL,					0.0, 0.0, 0.0, NULL },
-	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ more,		"Clear list",				NULL,					0.0, 0.0, 0.0, {(value_t *)M_ClearBotSlotList} },
-	{ more,		"Start game!",				NULL,					0.0, 0.0, 0.0, {(value_t *)M_StartSkirmishGame} },
+	{ discrete,	"Botskill",					{&menu_botskill},		{5.0}, {0.0}, {1.0}, {BotskillVals} },
+	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ botslot,	"Slot 1:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ botslot,	"Slot 2:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ botslot,	"Slot 3:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ botslot,	"Slot 4:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ botslot,	"Slot 5:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ botslot,	"Slot 6:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ botslot,	"Slot 7:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ botslot,	"Slot 8:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ botslot,	"Slot 9:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ botslot,	"Slot 10:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ botslot,	"Slot 11:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ botslot,	"Slot 12:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ botslot,	"Slot 13:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ botslot,	"Slot 14:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ botslot,	"Slot 15:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ botslot,	"Slot 16:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ more,		"Clear list",				{NULL},					{0.0}, {0.0}, {0.0}, {(value_t *)M_ClearBotSlotList} },
+	{ more,		"Start game!",				{NULL},					{0.0}, {0.0}, {0.0}, {(value_t *)M_StartSkirmishGame} },
 };
 
 menu_t BotSetupMenu = {
@@ -3348,27 +3355,27 @@ menu_t BotSetupMenu = {
  *=======================================*/
 
 static menuitem_t TeamBotSetupItems[] = {
-	{ discrete,	"Botskill",					&menu_botskill,			5.0, 0.0, 1.0, BotskillVals },
-	{ discrete,	"Player team",				&menu_team,				2.0, 0.0, 1.0, TeamVals },
-	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ redtext,	"Red Team",					NULL,					0.0, 0.0, 0.0, NULL  },
-	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ botslot,	"Slot 1:",					NULL,					0.0, 0.0, 0.0, NULL },
-	{ botslot,	"Slot 2:",					NULL,					0.0, 0.0, 0.0, NULL },
-	{ botslot,	"Slot 3:",					NULL,					0.0, 0.0, 0.0, NULL },
-	{ botslot,	"Slot 4:",					NULL,					0.0, 0.0, 0.0, NULL },
-	{ botslot,	"Slot 5:",					NULL,					0.0, 0.0, 0.0, NULL },
-	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ redtext,	"Blue Team",				NULL,					0.0, 0.0, 0.0, NULL  },
-	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ botslot,	"Slot 1:",					NULL,					0.0, 0.0, 0.0, NULL },
-	{ botslot,	"Slot 2:",					NULL,					0.0, 0.0, 0.0, NULL },
-	{ botslot,	"Slot 3:",					NULL,					0.0, 0.0, 0.0, NULL },
-	{ botslot,	"Slot 4:",					NULL,					0.0, 0.0, 0.0, NULL },
-	{ botslot,	"Slot 5:",					NULL,					0.0, 0.0, 0.0, NULL },
-	{ redtext,	" ",						NULL,					0.0, 0.0, 0.0, NULL  },
-	{ more,		"Clear list",				NULL,					0.0, 0.0, 0.0, {(value_t *)M_ClearBotSlotList} },
-	{ more,		"Start game!",				NULL,					0.0, 0.0, 0.0, {(value_t *)M_StartSkirmishGame} },
+	{ discrete,	"Botskill",					{&menu_botskill},		{5.0}, {0.0}, {1.0}, {BotskillVals} },
+	{ discrete,	"Player team",				{&menu_team},			{2.0}, {0.0}, {1.0}, {TeamVals} },
+	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ redtext,	"Red Team",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ botslot,	"Slot 1:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ botslot,	"Slot 2:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ botslot,	"Slot 3:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ botslot,	"Slot 4:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ botslot,	"Slot 5:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ redtext,	"Blue Team",				{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ botslot,	"Slot 1:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ botslot,	"Slot 2:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ botslot,	"Slot 3:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ botslot,	"Slot 4:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ botslot,	"Slot 5:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ more,		"Clear list",				{NULL},					{0.0}, {0.0}, {0.0}, {(value_t *)M_ClearBotSlotList} },
+	{ more,		"Start game!",				{NULL},					{0.0}, {0.0}, {0.0}, {(value_t *)M_StartSkirmishGame} },
 };
 
 menu_t TeamBotSetupMenu = {
@@ -3403,7 +3410,7 @@ void M_BotSetup( void )
 	{
 		for ( ulIdx = 0; ulIdx < 16; ulIdx++ )
 		{
-			sprintf( szCVarName, "menu_teambotspawn%d", ulIdx );
+			sprintf( szCVarName, "menu_teambotspawn%d", static_cast<unsigned int> (ulIdx) );
 			pVar = FindCVar( szCVarName, NULL );
 
 			Val = pVar->GetGenericRep( CVAR_Int );
@@ -3421,7 +3428,7 @@ void M_BotSetup( void )
 	{
 		for ( ulIdx = 0; ulIdx < 16; ulIdx++ )
 		{
-			sprintf( szCVarName, "menu_botspawn%d", ulIdx );
+			sprintf( szCVarName, "menu_botspawn%d", static_cast<unsigned int> (ulIdx) );
 			pVar = FindCVar( szCVarName, NULL );
 
 			Val = pVar->GetGenericRep( CVAR_Int );
@@ -3474,7 +3481,8 @@ static menuitem_t JoinTeamItems[] =
 
 static void AutoSelectTeam( void )
 {
-	AddCommandString( "team autoselect" );
+	static char autoselect[] = "team autoselect";
+	AddCommandString( autoselect );
 	M_ClearMenus( );
 }
 
@@ -3482,7 +3490,8 @@ static void AutoSelectTeam( void )
 static void ShowHelp( void )
 {
 	M_ClearMenus( );
-	AddCommandString( "menu_help" );
+	static char menu_help[] = "menu_help";
+	AddCommandString( menu_help );
 }
 
 static void JoinRed( void )
@@ -3503,7 +3512,8 @@ static void JoinBlue( void )
 
 static void JoinRandom( void )
 {
-	AddCommandString( "team random" );
+	static char team_random[] = "team random";
+	AddCommandString( team_random );
 	M_ClearMenus( );
 }
 
@@ -3557,11 +3567,13 @@ static void JoinGame( void )
 	if( PlayerClasses.Size() > 1 && gameinfo.gametype != GAME_Hexen )
 	{
 		M_ClearMenus( );
-		AddCommandString( "menu_class" );
+		static char menu_class[] = "menu_class";
+		AddCommandString( menu_class );
 	}
 	else
 	{
-		AddCommandString( "join" );
+		static char join[] = "join";
+		AddCommandString( join );
 		M_ClearMenus( );
 	}
 }
@@ -3632,13 +3644,13 @@ CVAR( Float, menu_textsizescalar, 0.0f, 0 )
 void	TextScalingMenuDrawer( void );
 
 static menuitem_t TextScalingMenuItems[] = {
-	{ discrete,	"Enable text scaling",	&con_scaletext,			2.0,	0.0,	0.0,	OnOff },
-	{ txslider,	"Text size scalar",		&menu_textsizescalar,	0.0,	0.0,	1.0,	NULL },
-	{ mnnumber,	"Virtual width",		&con_virtualwidth,		0.0,	0.0,	0.0,	NULL },
-	{ mnnumber,	"Virtual height",		&con_virtualheight,		0.0,	0.0,	0.0,	NULL },
-	{ redtext,	" ",					NULL,					0.0,	0.0,	0.0,	NULL },
-	{ redtext,	" ",					NULL,					0.0,	0.0,	0.0,	NULL },
-	{ whitetext,"SAMPLE TEXT",			NULL,					0.0,	0.0,	0.0,	NULL },
+	{ discrete,	"Enable text scaling",	{&con_scaletext},		{2.0},	{0.0},	{0.0},	{OnOff} },
+	{ txslider,	"Text size scalar",		{&menu_textsizescalar},	{0.0},	{0.0},	{1.0},	{NULL} },
+	{ mnnumber,	"Virtual width",		{&con_virtualwidth},	{0.0},	{0.0},	{0.0},	{NULL} },
+	{ mnnumber,	"Virtual height",		{&con_virtualheight},	{0.0},	{0.0},	{0.0},	{NULL} },
+	{ redtext,	" ",					{NULL},					{0.0},	{0.0},	{0.0},	{NULL} },
+	{ redtext,	" ",					{NULL},					{0.0},	{0.0},	{0.0},	{NULL} },
+	{ whitetext,"SAMPLE TEXT",			{NULL},					{0.0},	{0.0},	{0.0},	{NULL} },
 };
 
 menu_t TextScalingMenu =
@@ -4535,7 +4547,7 @@ void M_OptDrawer ()
 				{
 					char	szString[16];
 				
-					sprintf( szString, "%d", item->a.cvar->GetGenericRep( CVAR_Int ));
+					sprintf( szString, "%d", item->a.cvar->GetGenericRep( CVAR_Int ).Int);
 					screen->DrawText( CR_GREY, x, y, szString, DTA_Clean, true, TAG_DONE );
 				}
 				break;
@@ -4597,7 +4609,7 @@ void M_OptDrawer ()
 
 					if ( wadlevelinfos.Size( ) > 0 )
 					{
-						if ( *item->a.intcvar >= wadlevelinfos.Size( ))
+						if ( *item->a.intcvar >= static_cast<signed> (wadlevelinfos.Size( )))
 							*item->a.intcvar = 0;
 
 						sprintf( szMapName, "%s - %s", wadlevelinfos[*item->a.intcvar].mapname, G_MaybeLookupLevelName( &wadlevelinfos[*item->a.intcvar] ));
@@ -4633,7 +4645,7 @@ void M_OptDrawer ()
 				{
 					char	szString[16];
 				
-					sprintf( szString, "%d", item->a.cvar->GetGenericRep( CVAR_Int ));
+					sprintf( szString, "%d", item->a.cvar->GetGenericRep( CVAR_Int ).Int);
 					screen->DrawText( CR_GREY, x, y, szString, DTA_Clean, true, TAG_DONE );
 				}
 				break;
@@ -4697,7 +4709,7 @@ void M_OptDrawer ()
 					lColor = CR_GRAY;
 
 				// Draw ping.
-				sprintf( szString, "%d", BROWSER_GetPing( lServer ));
+				sprintf( szString, "%d", static_cast<int> (BROWSER_GetPing( lServer )));
 				screen->DrawText( lColor, 16, y, szString, DTA_Clean, true, TAG_DONE );
 
 				// Draw name.
@@ -4721,7 +4733,7 @@ void M_OptDrawer ()
 				screen->DrawText( lColor, 224, y, szString, DTA_Clean, true, TAG_DONE );
 
 				// Draw players.
-				sprintf( szString, "%d/%d", BROWSER_GetNumPlayers( lServer ), BROWSER_GetMaxClients( lServer ));
+				sprintf( szString, "%d/%d", static_cast<int> (BROWSER_GetNumPlayers( lServer )), static_cast<int> (BROWSER_GetMaxClients( lServer )));
 				screen->DrawText( lColor, 272, y, szString, DTA_Clean, true, TAG_DONE );
 
 				screen->SetFont( ConFont );
@@ -5840,7 +5852,7 @@ void M_OptResponder (event_t *ev)
 					lAnnouncerIdx = *(item->a.intcvar);
 
 					lAnnouncerIdx++;
-					if ( lAnnouncerIdx >= ANNOUNCER_GetNumProfiles( ))
+					if ( lAnnouncerIdx >= static_cast<signed> (ANNOUNCER_GetNumProfiles( )))
 						lAnnouncerIdx = -1;
 
 					*(item->a.intcvar) = lAnnouncerIdx;
@@ -5854,7 +5866,7 @@ void M_OptResponder (event_t *ev)
 					sLevelIdx = *(item->a.intcvar);
 
 					sLevelIdx++;
-					if ( sLevelIdx >= wadlevelinfos.Size( ))
+					if ( sLevelIdx >= static_cast<signed> (wadlevelinfos.Size( )))
 						sLevelIdx = 0;
 
 					*(item->a.intcvar) = sLevelIdx;
@@ -6087,16 +6099,16 @@ void M_OptResponder (event_t *ev)
 			ULONG	ulRankOn;
 
 			ulRankOn = 0;
-			for ( ulIdx = 0; ulIdx < CurrentMenu->numitems; ulIdx++ )
+			for ( ulIdx = 0; static_cast<signed> (ulIdx) < CurrentMenu->numitems; ulIdx++ )
 			{
 				if (( CurrentMenu->items + ulIdx )->type == weaponslot )
 					ulRankOn++;
 
-				if ( ulIdx == CurrentItem )
+				if ( static_cast<signed> (ulIdx) == CurrentItem )
 					break;
 			}
 
-			if (( ulRankOn != 0 ) && ( ulIdx != CurrentMenu->numitems ))
+			if (( ulRankOn != 0 ) && ( static_cast<signed> (ulIdx) != CurrentMenu->numitems ))
 			{
 				const char	*pszString;
 				
@@ -6122,16 +6134,16 @@ void M_OptResponder (event_t *ev)
 			ULONG	ulRankOn;
 
 			ulRankOn = 0;
-			for ( ulIdx = 0; ulIdx < CurrentMenu->numitems; ulIdx++ )
+			for ( ulIdx = 0; static_cast<signed> (ulIdx) < CurrentMenu->numitems; ulIdx++ )
 			{
 				if (( CurrentMenu->items + ulIdx )->type == weaponslot )
 					ulRankOn++;
 
-				if ( ulIdx == CurrentItem )
+				if ( static_cast<signed> (ulIdx) == CurrentItem )
 					break;
 			}
 
-			if (( ulRankOn != 0 ) && ( ulIdx != CurrentMenu->numitems ))
+			if (( ulRankOn != 0 ) && ( static_cast<signed> (ulIdx) != CurrentMenu->numitems ))
 			{
 				const char	*pszString;
 				

@@ -1237,7 +1237,7 @@ bool FNativeTexture::CheckWrapping(bool wrapping)
 
 CCMD(clean)
 {
-	Printf ("CleanXfac: %d\nCleanYfac: %d\n", CleanXfac, CleanYfac);
+	Printf ("CleanXfac: %f\nCleanYfac: %f\n", CleanXfac, CleanYfac);
 }
 
 //

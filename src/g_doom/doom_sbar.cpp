@@ -675,7 +675,7 @@ void DrawFullHUD_Health()
 				TAG_DONE );
 		}
 
-		sprintf( szString, "%d", ( CPlayer->cheats & CF_PROSPERITY ) ? ( deh.MaxSoulsphere + 50 ) : deh.StartHealth + CPlayer->lMaxHealthBonus );
+		sprintf( szString, "%d", static_cast<int> (( CPlayer->cheats & CF_PROSPERITY ) ? ( deh.MaxSoulsphere + 50 ) : deh.StartHealth + CPlayer->lMaxHealthBonus) );
 		if ( bScale )
 		{
 			screen->DrawText( CR_RED,
@@ -932,21 +932,21 @@ void DrawFullHUD_GameInformation()
 	if (deathmatch || teamgame || invasion || (cooperative && ( NETWORK_GetState( ) != NETSTATE_SINGLE )))
 	{
 		if ( possession || teampossession )
-			sprintf( szString, "%d", CPlayer->lPointCount );
+			sprintf( szString, "%d", static_cast<int> (CPlayer->lPointCount) );
 		else if ( teamlms )
-			sprintf( szString, "" ); // Frags would be distracting and confusing with the 'x left' being wins.
+			szString[0] = 0; // Frags would be distracting and confusing with the 'x left' being wins.
 		else if ( lastmanstanding )
-			sprintf( szString, "%d", CPlayer->ulWins );
+			sprintf( szString, "%d", static_cast<unsigned int> (CPlayer->ulWins) );
 		else if ( deathmatch )
 			sprintf( szString, "%d", CPlayer->fragcount );
 		else if (teamgame)
-			sprintf( szString, "%d", CPlayer->lPointCount );
+			sprintf( szString, "%d", static_cast<int> (CPlayer->lPointCount) );
 		else if ( invasion || cooperative )
 			sprintf( szString, "%d", CPlayer->killcount );
 
 		LONG left = SCOREBOARD_GetLeftToLimit( );
 		if(left > 0)
-			sprintf( szString, "%s \\cb(%d left)", szString, left );
+			sprintf( szString, "%s \\cb(%d left)", szString, static_cast<int> (left) );
 		
 		V_ColorizeString( szString );
 
@@ -1054,7 +1054,7 @@ void DrawFullHUD_GameInformation()
 				TAG_DONE );
 		}
 
-		sprintf( szString, "%d", TEAM_GetScore( TEAM_BLUE ));
+		sprintf( szString, "%d", static_cast<int> (TEAM_GetScore( TEAM_BLUE )));
 		if ( bScale )
 		{
 			screen->DrawText( CR_RED,
@@ -1097,7 +1097,7 @@ void DrawFullHUD_GameInformation()
 				TAG_DONE );
 		}
 
-		sprintf( szString, "%d", TEAM_GetScore( TEAM_RED ));
+		sprintf( szString, "%d", static_cast<int> (TEAM_GetScore( TEAM_RED )));
 		if ( bScale )
 		{
 			screen->DrawText( CR_RED,
@@ -1141,7 +1141,7 @@ void DrawFullHUD_GameInformation()
 		else
 			ulCurYPos = SCREENHEIGHT - 4 - ( TexMan["MEDIA0"]->GetHeight( ) + 4 ) - ( TexMan["ARM1A0"]->GetHeight( ) + 4 ) - 14;
 
-		sprintf( szString , "\\cG%d \\cb- \\ch%d", ulRedPoints, ulBluePoints);
+		sprintf( szString , "\\cG%d \\cb- \\ch%d", static_cast<unsigned int> (ulRedPoints), static_cast<unsigned int> (ulBluePoints));
 		V_ColorizeString( szString );
 		ulCurYPos -= ((ConFont->GetHeight( ) + 1) * 5);
 
@@ -1175,7 +1175,7 @@ void DrawFullHUD_GameInformation()
 		else
 			ulCurYPos = SCREENHEIGHT - 4 - ( TexMan["MEDIA0"]->GetHeight( ) + 4 ) *2 - ( TexMan["ARM1A0"]->GetHeight( ) + 4 ) - 14;
 		
-		sprintf( szString, "spread: \\cC%s%d", SCOREBOARD_GetSpread( ) > 0 ? "+" : "", SCOREBOARD_GetSpread( ));
+		sprintf( szString, "spread: \\cC%s%d", SCOREBOARD_GetSpread( ) > 0 ? "+" : "", static_cast<int> (SCOREBOARD_GetSpread( )));
 		V_ColorizeString( szString );
 
 		if ( bScale )
@@ -1199,7 +1199,7 @@ void DrawFullHUD_GameInformation()
 
 		if(!duel) { // [RC] Have spread, don't need rank. I mean, come on, there's only two players.
 			ulCurYPos += ConFont->GetHeight( ) + 4;
-			sprintf( szString, "rank: \\cC%d/%s%d", SCOREBOARD_GetRank( ) + 1, SCOREBOARD_IsTied( ) ? "\\cG" : "", SCOREBOARD_GetNumPlayers( ));
+			sprintf( szString, "rank: \\cC%d/%s%d", static_cast<unsigned int> (SCOREBOARD_GetRank( ) + 1), SCOREBOARD_IsTied( ) ? "\\cG" : "", static_cast<unsigned int> (SCOREBOARD_GetNumPlayers( )));
 			V_ColorizeString( szString );
 			if ( bScale )
 			{
@@ -1231,7 +1231,7 @@ void DrawFullHUD_GameInformation()
 				ulCurYPos = SCREENHEIGHT - 4 - ( TexMan["MEDIA0"]->GetHeight( ) + 4 ) * 4 - ( TexMan["ARM1A0"]->GetHeight( ) + 4 ) - 14;
 			
 			// Wave
-			sprintf( szString, "Wave: %d \\cbof %d", INVASION_GetCurrentWave( ), (ULONG) wavelimit);
+			sprintf( szString, "Wave: %d \\cbof %d", static_cast<unsigned int> (INVASION_GetCurrentWave( )), static_cast<unsigned int> (wavelimit));
 			V_ColorizeString( szString );
 			if ( bScale )
 			{
@@ -1255,7 +1255,7 @@ void DrawFullHUD_GameInformation()
 
 			// Arch-viles
 			if(INVASION_GetNumArchVilesLeft( ) > 0) {
-				sprintf( szString, "Arch-viles: %d", INVASION_GetNumArchVilesLeft( ));
+				sprintf( szString, "Arch-viles: %d", static_cast<unsigned int> (INVASION_GetNumArchVilesLeft( )));
 				V_ColorizeString( szString );
 				if ( bScale )
 				{

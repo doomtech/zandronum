@@ -106,7 +106,7 @@ void SERVERCONSOLE_Print( char *pszString )
 	V_StripColors( pszString );
 	std::cout << pszString;
 }
-#endif NO_SERVER_GUI
+#endif //NO_SERVER_GUI
 // ------------------- GL related stuff ------------------- 
 #ifdef NO_GL
 #include "d_player.h"

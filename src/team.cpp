@@ -305,7 +305,7 @@ void TEAM_ExecuteReturnRoutine( ULONG ulTeamIdx, AActor *pReturner )
 	// or whatever reason.
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 	{
-		while ( pFlag = Iterator.Next( ))
+		while ( (pFlag = Iterator.Next( )))
 		{
 			if (( pFlag->GetClass( ) != pClass ) || (( pFlag->flags & MF_DROPPED ) == false ))
 				continue;
@@ -444,7 +444,7 @@ void TEAM_ScoreSkulltagPoint( player_t *pPlayer, ULONG ulNumPoints, AActor *pPil
 		break;
 	default:
 
-		sprintf( szString, "\\c%s scores %d points!", coloredTeamName.GetChars(), ulNumPoints );
+		sprintf( szString, "\\c%s scores %d points!", coloredTeamName.GetChars(), static_cast<unsigned int> (ulNumPoints) );
 		break;
 	}
 
@@ -462,13 +462,13 @@ void TEAM_ScoreSkulltagPoint( player_t *pPlayer, ULONG ulNumPoints, AActor *pPil
 			CR_BLUE,
 			3.0f,
 			0.5f );
-		StatusBar->AttachMessage( pMsg, 'CNTR' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 		screen->SetFont( SmallFont );
 	}
 	// If necessary, send it to clients.
 	else
 	{
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_BLUE, 3.0f, 0.5f, "BigFont", false, 'CNTR' );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_BLUE, 3.0f, 0.5f, "BigFont", false, MAKE_ID('C','N','T','R') );
 	}
 
 	// Create the "scored by / assisted by" message.
@@ -496,11 +496,11 @@ void TEAM_ScoreSkulltagPoint( player_t *pPlayer, ULONG ulNumPoints, AActor *pPil
 			pPlayer->ulTeam == TEAM_BLUE ? CR_BLUE : CR_RED,
 			3.0f,
 			0.5f );
-		StatusBar->AttachMessage( pMsg, 'SUBS' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('S','U','B','S') );
 	}
 	// If necessary, send it to clients.
 	else
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_BLUE, 3.0f, 0.5f, "SmallFont", false, 'SUBS' );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_BLUE, 3.0f, 0.5f, "SmallFont", false, MAKE_ID('S','U','B','S') );
 
 	// Give his team a point.
 	TEAM_SetScore( pPlayer->ulTeam, TEAM_GetScore( pPlayer->ulTeam ) + ulNumPoints, true );
@@ -606,12 +606,12 @@ void TEAM_DisplayNeedToReturnSkullMessage( player_t *pPlayer )
 			CR_RED,
 			1.0f,
 			0.25f );
-		StatusBar->AttachMessage( pMsg, 'CNTR' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 	}
 	// If necessary, send it to clients.
 	else
 	{
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_RED, 1.0f, 0.25f, "SmallFont", false, 'CNTR', ULONG( pPlayer - players ), SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_RED, 1.0f, 0.25f, "SmallFont", false, MAKE_ID('C','N','T','R'), ULONG( pPlayer - players ), SVCF_ONLYTHISCLIENT );
 	}
 }
 
@@ -658,7 +658,7 @@ void TEAM_FlagDropped( player_t *pPlayer )
 		CR_WHITE,
 		3.0f,
 		0.25f );
-	StatusBar->AttachMessage( pMsg, 'CNTR' );
+	StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 	screen->SetFont( SmallFont );
 
 	// Finally, play the announcer entry associated with this event.
@@ -700,12 +700,12 @@ void TEAM_DoWinSequence( ULONG ulTeamIdx )
 			3.0f,
 			2.0f );
 
-		StatusBar->AttachMessage( pMsg, 'CNTR' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 		screen->SetFont( SmallFont );
 	}
 	else
 	{
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 0.25f, "BigFont", false, 'CNTR' );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 0.25f, "BigFont", false, MAKE_ID('C','N','T','R') );
 	}
 }
 
@@ -757,12 +757,12 @@ void TEAM_TimeExpired( void )
 						3.0f,
 						2.0f );
 
-					StatusBar->AttachMessage( pMsg, 'CNTR' );
+					StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 					screen->SetFont( SmallFont );
 				}
 				else
 				{
-					SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", false, 'CNTR' );
+					SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", false, MAKE_ID('C','N','T','R') );
 				}
 			}
 
@@ -1527,7 +1527,7 @@ CCMD( changeteam )
 
 	// If the desired team matches our current team, break out.
 	// [BB] Don't break out if we are a spectator. In this case we don't change our team, but we want to join.
-	if (( players[consoleplayer].bOnTeam ) && ( lDesiredTeam == players[consoleplayer].ulTeam )
+	if (( players[consoleplayer].bOnTeam ) && ( lDesiredTeam == static_cast<signed> (players[consoleplayer].ulTeam) )
 		&& !(players[consoleplayer].bSpectating) )
 	{
 		return;

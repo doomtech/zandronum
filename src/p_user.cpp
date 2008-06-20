@@ -920,7 +920,7 @@ const char *APlayerPawn::GetSoundClass ()
 	// [BC] If this player's skin is disabled, just use the base sound class.
 	if (( cl_skins == 1 ) || (( cl_skins >= 2 ) &&
 		( player != NULL ) &&
-		( player->userinfo.skin < numskins ) &&
+		( player->userinfo.skin < static_cast<signed> (numskins) ) &&
 		( skins[player->userinfo.skin].bCheat == false )))
 	{
 		if (player != NULL &&
@@ -2868,7 +2868,7 @@ void PLAYER_JoinGameFromSpectators( int iChar )
 		if ( ulResult == MAXPLAYERS )
 			Printf( "Join queue full!\n" );
 		else
-			Printf( "Your position in line is: %d\n", ulResult + 1 );
+			Printf( "Your position in line is: %d\n", static_cast<unsigned int> (ulResult + 1) );
 		return;
 	}
 
@@ -3522,7 +3522,7 @@ void P_PredictPlayer (player_t *player)
 		player != &players[consoleplayer] ||
 		player->playerstate != PST_LIVE ||
 		!netgame ||
-		/*player->morphTics ||*
+		player->morphTics ||*
 		(player->cheats & CF_PREDICTING))
 	{
 		return;

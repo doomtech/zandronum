@@ -373,7 +373,7 @@ ULONG WI_CalcRank( void )
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		if (( playeringame[ulIdx] == false ) ||
-			( ulIdx == consoleplayer ) ||
+			( static_cast<signed> (ulIdx) == consoleplayer ) ||
 			( PLAYER_IsTrueSpectator( &players[ulIdx] )))
 		{
 			continue;
@@ -1393,7 +1393,7 @@ void WI_UpdateCampaignStats( void )
 		}
 		else if ( lastmanstanding )
 		{
-			if ( cnt_Frags >= players[consoleplayer].ulWins )
+			if ( cnt_Frags >= static_cast<signed> (players[consoleplayer].ulWins) )
 			{
 				cnt_Frags = players[consoleplayer].ulWins;
 				S_Sound( CHAN_VOICE, NEXTSTAGE, 1, ATTN_NONE );
@@ -1473,7 +1473,7 @@ void WI_UpdateCampaignStats( void )
 		}
 		else
 		{
-			if ( cnt_Deaths >= players[consoleplayer].ulDeathCount )
+			if ( cnt_Deaths >= static_cast<signed> (players[consoleplayer].ulDeathCount) )
 			{
 				cnt_Deaths = players[consoleplayer].ulDeathCount;
 				S_Sound( CHAN_VOICE, NEXTSTAGE, 1, ATTN_NONE );
@@ -1517,11 +1517,11 @@ void WI_UpdateCampaignStats( void )
 		}
 		else
 		{
-			if ( cnt_Rank >= WI_CalcRank( ))
+			if ( cnt_Rank >= static_cast<signed> (WI_CalcRank( )))
 				cnt_Rank = WI_CalcRank( );
 		}
 
-		if ( cnt_NumPlayers >= (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) ? 2 : SERVER_CalcNumPlayers( )))
+		if ( cnt_NumPlayers >= static_cast<signed> ((( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) ? 2 : SERVER_CalcNumPlayers( ))))
 		{
 			cnt_NumPlayers = (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) ? 2 : SERVER_CalcNumPlayers( ));
 			S_Sound( CHAN_VOICE, NEXTSTAGE, 1, ATTN_NONE );

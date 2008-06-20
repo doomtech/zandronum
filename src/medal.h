@@ -128,22 +128,22 @@ enum
 typedef struct
 {
 	// Icon that displays on the screen when this medal is received.
-	char		szLumpName[8];
+	const char	szLumpName[8];
 
 	// Frame the floaty icon above the player's head is set to.
 	USHORT		usFrame;
 
 	// Text that appears below the medal icon when received.
-	char		*szStr;
+	const char	*szStr;
 
 	// Color that text is displayed in.
 	ULONG		ulTextColor;
 
 	// Announcer entry that's played when this medal is triggered.
-	char		szAnnouncerEntry[32];
+	const char	szAnnouncerEntry[32];
 
 	// Name of sound to play when this medal type is triggered.
-	char		szSoundName[64];
+	const char	szSoundName[64];
 
 } MEDAL_t;
 

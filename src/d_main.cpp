@@ -786,7 +786,7 @@ void D_Display ()
 				0.15f,
 				0.35f );
 
-			StatusBar->AttachMessage( pMsg, 'CLAG' );
+			StatusBar->AttachMessage( pMsg, MAKE_ID('C','L','A','G') );
 		}
 		// Draw a "CONNECTION INTERRUPTED" message if the client is lagging.
 		else if ( CLIENT_GetClientLagging( ) == true )
@@ -808,7 +808,7 @@ void D_Display ()
 				0.15f,
 				0.35f );
 
-			StatusBar->AttachMessage( pMsg, 'CLAG' );
+			StatusBar->AttachMessage( pMsg, MAKE_ID('C','L','A','G') );
 		}
 	}
 

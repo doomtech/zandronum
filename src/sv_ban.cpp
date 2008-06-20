@@ -364,12 +364,12 @@ CCMD( ban_idx )
 	if ( argv.argc( ) >= 3 )
 	{
 		SERVERBAN_AddBan( szBanAddress[0], szBanAddress[1], szBanAddress[2], szBanAddress[3], szPlayerName, argv[2] );
-		sprintf( szString, "kick_idx %d \"%s\"", ulIdx, argv[2] );
+		sprintf( szString, "kick_idx %d \"%s\"", static_cast<unsigned int> (ulIdx), argv[2] );
 	}
 	else
 	{
 		SERVERBAN_AddBan( szBanAddress[0], szBanAddress[1], szBanAddress[2], szBanAddress[3], szPlayerName, NULL );
-		sprintf( szString, "kick_idx %d", ulIdx );
+		sprintf( szString, "kick_idx %d", static_cast<unsigned int> (ulIdx) );
 	}
 
 	SERVER_AddCommand( szString );

@@ -574,7 +574,7 @@ bool P_ChangeSwitchTexture (side_t *side, int useAgain, BYTE special, bool *ques
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
 		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
-		if (( side->linenum >= 0 ) && ( side->linenum < numlines ))
+		if ( side->linenum < static_cast<unsigned> (numlines) )
 		{
 			lines[side->linenum].ulTexChangeFlags |= 1 << ulShift;
 			ulShift += 3;

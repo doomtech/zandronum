@@ -653,7 +653,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 								3.0f,
 								2.0f );
 
-							StatusBar->AttachMessage( pMsg, 'CNTR' );
+							StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 							screen->SetFont( SmallFont );
 
 							szString[0] = 0;
@@ -666,7 +666,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 								3.0f,
 								2.0f );
 
-							StatusBar->AttachMessage( pMsg, 'FRAG' );
+							StatusBar->AttachMessage( pMsg, MAKE_ID('F','R','A','G') );
 
 							pMsg = new DHUDMessageFadeOut( szString,
 								0.0f,
@@ -677,14 +677,14 @@ void AActor::Die (AActor *source, AActor *inflictor)
 								3.0f,
 								2.0f );
 
-							StatusBar->AttachMessage( pMsg, 'PLAC' );
+							StatusBar->AttachMessage( pMsg, MAKE_ID('P','L','A','C') );
 						}
 						else
 						{
-							SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_WHITE, 3.0f, 2.0f, "BigFont", false, 'CNTR' );
+							SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_WHITE, 3.0f, 2.0f, "BigFont", false, MAKE_ID('C','N','T','R') );
 							szString[0] = 0;
-							SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 0.0f, 0.0f, 0, 0, CR_WHITE, 3.0f, 2.0f, "BigFont", false, 'FRAG' );
-							SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 0.0f, 0.0f, 0, 0, CR_WHITE, 3.0f, 2.0f, "BigFont", false, 'PLAC' );
+							SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 0.0f, 0.0f, 0, 0, CR_WHITE, 3.0f, 2.0f, "BigFont", false, MAKE_ID('F','R','A','G') );
+							SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 0.0f, 0.0f, 0, 0, CR_WHITE, 3.0f, 2.0f, "BigFont", false, MAKE_ID('P','L','A','C') );
 						}
 
 						GAME_SetEndLevelDelay( 5 * TICRATE );
@@ -904,7 +904,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 		if (( player ) && ( source ) && ( source->player ) && ( player != source->player ) && ( MeansOfDeath != NAME_SpawnTelefrag ))
 		{
 			if ((( deathmatch == false ) || (( fraglimit == 0 ) || ( source->player->fragcount < fraglimit ))) &&
-				(( lastmanstanding == false ) || (( winlimit == 0 ) || ( source->player->ulWins < winlimit ))) &&
+				(( lastmanstanding == false ) || (( winlimit == 0 ) || ( source->player->ulWins < static_cast<unsigned> (winlimit) ))) &&
 				(( teamlms == false ) || (( winlimit == 0 ) || ( TEAM_GetWinCount( source->player->ulTeam ) < winlimit ))))
 			{
 				// Display a large "You were fragged by <name>." message in the middle of the screen.
@@ -1946,12 +1946,12 @@ void PLAYER_GivePossessionPoint( player_t *pPlayer )
 					3.0f,
 					2.0f );
 
-				StatusBar->AttachMessage( pMsg, 'CNTR' );
+				StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 				screen->SetFont( SmallFont );
 			}
 			else
 			{
-				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", false, 'CNTR' );
+				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", false, MAKE_ID('C','N','T','R') );
 			}
 
 			// End the level after five seconds.
@@ -1993,12 +1993,12 @@ void PLAYER_GivePossessionPoint( player_t *pPlayer )
 					3.0f,
 					2.0f );
 
-				StatusBar->AttachMessage( pMsg, 'CNTR' );
+				StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 				screen->SetFont( SmallFont );
 			}
 			else
 			{
-				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.375f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", false, 'CNTR' );
+				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, 0.375f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", false, MAKE_ID('C','N','T','R') );
 			}
 
 			// End the level after five seconds.
@@ -2133,9 +2133,9 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 	// If this player was eligible to get an assist, cancel that.
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 	{
-		if ( TEAM_GetAssistPlayer( TEAM_BLUE ) == pPlayer - players )
+		if ( TEAM_GetAssistPlayer( TEAM_BLUE ) == static_cast<unsigned> (pPlayer - players) )
 			TEAM_SetAssistPlayer( TEAM_BLUE, MAXPLAYERS );
-		if ( TEAM_GetAssistPlayer( TEAM_RED ) == pPlayer - players )
+		if ( TEAM_GetAssistPlayer( TEAM_RED ) == static_cast<unsigned> (pPlayer - players) )
 			TEAM_SetAssistPlayer( TEAM_RED, MAXPLAYERS );
 	}
 
@@ -2323,7 +2323,7 @@ bool PLAYER_ShouldSpawnAsSpectator( player_t *pPlayer )
 
 		// If the number of players in the game exceeds sv_maxplayers, spawn as a spectator.
 		Val = sv_maxplayers.GetGenericRep( CVAR_Int );
-		if ( SERVER_CalcNumNonSpectatingPlayers( pPlayer - players ) >= Val.Int )
+		if ( SERVER_CalcNumNonSpectatingPlayers( pPlayer - players ) >= static_cast<unsigned> (Val.Int) )
 			return ( true );
 	}
 

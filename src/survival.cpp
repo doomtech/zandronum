@@ -159,6 +159,8 @@ void SURVIVAL_Tick( void )
 			// Pause for five seconds for the failed sequence.
 			GAME_SetEndLevelDelay( 5 * TICRATE );
 		}
+	default:
+		break;
 	}
 }
 
@@ -270,7 +272,7 @@ void SURVIVAL_DoFight( void )
 			2.0f,
 			1.0f );
 
-		StatusBar->AttachMessage( pMsg, 'CNTR' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 		screen->SetFont( SmallFont );
 	}
 	// Display a little thing in the server window so servers can know when matches begin.
@@ -454,9 +456,11 @@ void SURVIVAL_SetState( SURVIVALSTATE_e State )
 				3.0f,
 				2.0f );
 
-			StatusBar->AttachMessage( pMsg, 'CNTR' );
+			StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 			screen->SetFont( SmallFont );
 		}
+		break;
+	default:
 		break;
 	}
 

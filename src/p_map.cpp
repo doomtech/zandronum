@@ -1110,7 +1110,7 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 		{
 			if (( thing->ulSTFlags & STFL_SCOREPILLAR ) &&
 				( tm.thing->FindInventory( TEAM_GetFlagItem( !tm.thing->player->ulTeam ))) &&
-				( thing->args[0] == NUM_TEAMS || tm.thing->player->ulTeam == thing->args[0] ) &&
+				( thing->args[0] == NUM_TEAMS || static_cast<signed> (tm.thing->player->ulTeam) == thing->args[0] ) &&
 				( thing->args[1] > 0 ))
 			{
 				if (( tm.thing->player->ulTeam == TEAM_BLUE ) ? ( TEAM_GetBlueSkullTaken( ) == false ) : ( TEAM_GetRedSkullTaken( ) == false ))

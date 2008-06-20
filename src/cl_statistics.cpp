@@ -139,12 +139,12 @@ ADD_STAT( nettraffic )
 	FString	Out;
 
 	Out.Format( "In: %5d/%5d/%5d        Out: %5d/%5d/%5d", 
-		g_lBytesReceivedThisTick,
-		g_lBytesReceivedLastSecond,
-		g_lMaxBytesReceivedPerSecond,
-		g_lBytesSentThisTick,
-		g_lBytesSentLastSecond,
-		g_lMaxBytesSentPerSecond );
+		static_cast<int> (g_lBytesReceivedThisTick),
+		static_cast<int> (g_lBytesReceivedLastSecond),
+		static_cast<int> (g_lMaxBytesReceivedPerSecond),
+		static_cast<int> (g_lBytesSentThisTick),
+		static_cast<int> (g_lBytesSentLastSecond),
+		static_cast<int> (g_lMaxBytesSentPerSecond) );
 
 	return ( Out );
 }

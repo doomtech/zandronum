@@ -79,7 +79,7 @@
 static	ULONG	g_ulChatMode;
 static	char	g_szChatBuffer[MAX_CHATBUFFER_LENGTH];
 static	LONG	g_lStringLength;
-static	char	*g_pszChatPrompt = "SAY: ";
+static	const char	*g_pszChatPrompt = "SAY: ";
 
 //*****************************************************************************
 //	CONSOLE VARIABLES

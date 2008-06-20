@@ -1623,7 +1623,7 @@ void D_CheckNetGame (void)
 	{
 		char	filename[20];
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			sprintf (filename,"debugserver.txt",consoleplayer);
+			sprintf (filename,"debugserver.txt");
 		else
 			sprintf (filename,"debug%i.txt",consoleplayer);
 		Printf ("debug output to: %s\n",filename);

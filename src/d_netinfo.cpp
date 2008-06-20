@@ -784,8 +784,8 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 					 info->gender == GENDER_FEMALE ? "female" :
 						info->gender == GENDER_NEUTER ? "other" : "male",
 					 info->switchonpickup,
-					 info->lRailgunTrailColor,
-					 info->lHandicap,
+					 static_cast<int> (info->lRailgunTrailColor),
+					 static_cast<int> (info->lHandicap),
 					 (float)(info->MoveBob) / 65536.f,
 					 (float)(info->StillBob) / 65536.f,
 					 info->PlayerClass == -1 ? "Random" :
@@ -817,8 +817,8 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 				info->gender == GENDER_FEMALE ? "female" :
 					info->gender == GENDER_NEUTER ? "other" : "male",
 				info->switchonpickup,
-				info->lRailgunTrailColor,
-				info->lHandicap,
+				static_cast<int> (info->lRailgunTrailColor),
+				static_cast<int> (info->lHandicap),
 				(float)(info->MoveBob) / 65536.f,
 				(float)(info->StillBob) / 65536.f,
 				info->PlayerClass == -1 ? "Random" :
@@ -1077,7 +1077,7 @@ CCMD (playerinfo)
 		int i = atoi (argv[1]);
 		userinfo_t *ui = &players[i].userinfo;
 		Printf ("Name:        %s\n",		ui->netname);
-		Printf ("Team:        %s (%d)\n",	players[i].bOnTeam ? TEAM_GetName( players[i].ulTeam ) : "NONE", players[i].ulTeam );
+		Printf ("Team:        %s (%d)\n",	players[i].bOnTeam ? TEAM_GetName( players[i].ulTeam ) : "NONE", static_cast<unsigned int> (players[i].ulTeam) );
 		Printf ("Aimdist:     %d\n",		ui->aimdist);
 		Printf ("Color:       %06x\n",		ui->color);
 		Printf ("Skin:        %s (%d)\n",	skins[ui->skin].name, ui->skin);

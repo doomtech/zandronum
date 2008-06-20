@@ -477,7 +477,7 @@ static	LONG				g_lMissingPacketTicks;
 // Debugging variables.
 static	LONG				g_lLastCmd;
 #ifdef _DEBUG
-static	char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
+static	const char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 {
 	"SVC_HEADER",
 	"SVC_UNRELIABLEPACKET",
@@ -1189,7 +1189,7 @@ void CLIENT_CheckForMissingPackets( void )
 				if ( g_lPacketSequence[lIdx2] == lIdx )
 				{
 					if ( debugfile )
-						fprintf( debugfile, "We have packet %d.\n", lIdx );
+						fprintf( debugfile, "We have packet %d.\n", static_cast<int> (lIdx) );
 
 					break;
 				}
@@ -1199,7 +1199,7 @@ void CLIENT_CheckForMissingPackets( void )
 			if ( lIdx2 == 256 )
 			{
 				if ( debugfile )
-					fprintf( debugfile, "Missing packet %d.\n", lIdx );
+					fprintf( debugfile, "Missing packet %d.\n", static_cast<int> (lIdx) );
 
 				NETWORK_WriteLong( &g_LocalBuffer.ByteStream, lIdx );
 			}
@@ -1299,7 +1299,7 @@ void CLIENT_ParsePacket( BYTESTREAM_s *pByteStream, bool bSequencedPacket )
 	if ( debugfile )
 	{
 		if ( bSequencedPacket )
-			fprintf( debugfile, "End parsing packet %d.\n", g_lLastParsedSequence + 1 );
+			fprintf( debugfile, "End parsing packet %d.\n", static_cast<int> (g_lLastParsedSequence + 1) );
 		else
 			fprintf( debugfile, "End parsing packet.\n" );
 	}
@@ -1410,7 +1410,7 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 				break;
 			default:
 
-				sprintf( szErrorString, "Unknown error code: %d!\n\nYour version may be different. Please check http://www.skulltag.com/ for updates.", ulErrorCode );
+				sprintf( szErrorString, "Unknown error code: %d!\n\nYour version may be different. Please check http://www.skulltag.com/ for updates.", static_cast<unsigned int> (ulErrorCode) );
 				break;
 			}
 
@@ -2283,7 +2283,7 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	default:
 
 #ifdef _DEBUG
-		sprintf( szString, "CLIENT_ParsePacket: Illegible server message: %d\nLast command: (%s)\n", lCommand, g_pszHeaderNames[g_lLastCmd] );
+		sprintf( szString, "CLIENT_ParsePacket: Illegible server message: %d\nLast command: (%s)\n", static_cast<int> (lCommand), g_pszHeaderNames[g_lLastCmd] );
 #else
 		sprintf( szString, "CLIENT_ParsePacket: Illegible server message: %d\nLast command: %d\n", lCommand, g_lLastCmd );
 #endif
@@ -2297,7 +2297,7 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 #ifdef _DEBUG
 void CLIENT_PrintCommand( LONG lCommand )
 {
-	char	*pszString;
+	const char	*pszString;
 
 	if ( lCommand < 0 )
 		return;
@@ -2345,7 +2345,7 @@ void CLIENT_PrintCommand( LONG lCommand )
 
 //*****************************************************************************
 //
-void CLIENT_QuitNetworkGame( char *pszString )
+void CLIENT_QuitNetworkGame( const char *pszString )
 {
 	ULONG	ulIdx;
 
@@ -2507,7 +2507,7 @@ AActor *CLIENT_SpawnThing( const char *pszName, fixed_t X, fixed_t Y, fixed_t Z,
 
 	// Potentially print the name, position, and network ID of the thing spawning.
 	if ( cl_showspawnnames )
-		Printf( "Name: %s: (%d, %d, %d), %d\n", pszName, X >> FRACBITS, Y >> FRACBITS, Z >> FRACBITS, lNetID );
+		Printf( "Name: %s: (%d, %d, %d), %d\n", pszName, X >> FRACBITS, Y >> FRACBITS, Z >> FRACBITS, static_cast<int> (lNetID) );
 
 	// If there's already an actor with the network ID of the thing we're spawning, kill it!
 	pActor = CLIENT_FindThingByNetID( lNetID );
@@ -2604,7 +2604,7 @@ void CLIENT_SpawnMissile( const char *pszName, fixed_t X, fixed_t Y, fixed_t Z, 
 
 	// Potentially print the name, position, and network ID of the thing spawning.
 	if ( cl_showspawnnames )
-		Printf( "Name: %s: (%d, %d, %d), %d\n", pszName, X >> FRACBITS, Y >> FRACBITS, Z >> FRACBITS, lNetID );
+		Printf( "Name: %s: (%d, %d, %d), %d\n", pszName, X >> FRACBITS, Y >> FRACBITS, Z >> FRACBITS, static_cast<int> (lNetID) );
 
 	// If there's already an actor with the network ID of the thing we're spawning, kill it!
 	pActor = CLIENT_FindThingByNetID( lNetID );
@@ -4004,7 +4004,7 @@ static void client_SetPlayerState( BYTESTREAM_s *pByteStream )
 		// [BB] It's necessary at all, because the server only informs a client about the cmd.ucmd.buttons
 		// value (containing the information if a player uses BT_ATTACK or BT_ALTATTACK) of the player
 		// who's eyes the client is spying through.
-		if ( ( CLIENTDEMO_IsPlaying( ) || ( ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE ) && ulPlayer != consoleplayer ) )
+		if ( ( CLIENTDEMO_IsPlaying( ) || ( ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE ) && static_cast<signed> (ulPlayer) != consoleplayer ) )
 				&& players[ulPlayer].ReadyWeapon )
 		{
 			if ( ulState == STATE_PLAYER_ATTACK )
@@ -5872,7 +5872,7 @@ static void client_SetThingProperty( BYTESTREAM_s *pByteStream )
 		break;
 	default:
 
-		Printf( "client_SetThingProperty: Unknown property, %d!\n", ulProperty );
+		Printf( "client_SetThingProperty: Unknown property, %d!\n", static_cast<unsigned int> (ulProperty) );
 		return;
 	}
 }
@@ -5930,7 +5930,7 @@ static void client_SetThingSound( BYTESTREAM_s *pByteStream )
 		break;
 	default:
 
-		Printf( "client_SetThingSound: Unknown sound, %d!\n", ulSound );
+		Printf( "client_SetThingSound: Unknown sound, %d!\n", static_cast<unsigned int> (ulSound) );
 		return;
 	}
 }
@@ -10803,7 +10803,7 @@ static void client_SetQueuePosition( BYTESTREAM_s *pByteStream )
 	if ( lPosition == MAXPLAYERS )
 		Printf( "Join queue full!\n" );
 	else
-		Printf( "Your position in line is: %d\n", lPosition + 1 );
+		Printf( "Your position in line is: %d\n", static_cast<int> (lPosition + 1) );
 
 	// Update the joinqueue module with our position in line.
 	JOINQUEUE_SetClientPositionInLine( lPosition );
@@ -10835,7 +10835,7 @@ static void client_DoScroller( BYTESTREAM_s *pByteStream )
 	if (( Type != DScroller::sc_floor ) && ( Type != DScroller::sc_ceiling ) &&
 		( Type != DScroller::sc_carry ) && ( Type != DScroller::sc_carry_ceiling ) && ( Type != DScroller::sc_side ) )
 	{
-		Printf( "client_DoScroller: Unknown type: %d!\n", (LONG)Type );
+		Printf( "client_DoScroller: Unknown type: %d!\n", static_cast<int> (Type) );
 		return;
 	}
 
@@ -10889,7 +10889,7 @@ static void client_SetScroller( BYTESTREAM_s *pByteStream )
 	if (( Type != DScroller::sc_floor ) && ( Type != DScroller::sc_ceiling ) &&
 		( Type != DScroller::sc_carry ) && ( Type != DScroller::sc_carry_ceiling ))
 	{
-		Printf( "client_SetScroller: Unknown type: %d!\n", (LONG)Type );
+		Printf( "client_SetScroller: Unknown type: %d!\n", static_cast<int> (Type) );
 		return;
 	}
 

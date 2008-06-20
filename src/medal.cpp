@@ -82,7 +82,7 @@ static	MEDAL_t	g_Medals[NUM_MEDALS] =
 		"Excellent!",
 		CR_GRAY,
 		"Excellent",
-		NULL,
+		{NULL},
 	},	
 	{
 		// MEDAL_INCREDIBLE
@@ -91,7 +91,7 @@ static	MEDAL_t	g_Medals[NUM_MEDALS] =
 		"Incredible!",
 		CR_RED,
 		"Incredible",
-		NULL,
+		{NULL},
 	},	
 	{
 		// MEDAL_IMPRESSIVE
@@ -100,7 +100,7 @@ static	MEDAL_t	g_Medals[NUM_MEDALS] =
 		"Impressive!",
 		CR_GRAY,
 		"Impressive",
-		NULL,
+		{NULL},
 	},
 	{
 		// MEDAL_MOSTIMPRESSIVE
@@ -109,7 +109,7 @@ static	MEDAL_t	g_Medals[NUM_MEDALS] =
 		"Most impressive!",
 		CR_RED,
 		"MostImpressive",
-		NULL,
+		{NULL},
 	},
 	{
 		// MEDAL_DOMINATION
@@ -118,7 +118,7 @@ static	MEDAL_t	g_Medals[NUM_MEDALS] =
 		"Domination!",
 		CR_GRAY,
 		"Domination",
-		NULL,
+		{NULL},
 	},	
 	{
 		// MEDAL_TOTALDOMINATION
@@ -127,7 +127,7 @@ static	MEDAL_t	g_Medals[NUM_MEDALS] =
 		"Total domination!",
 		CR_RED,
 		"TotalDomination",
-		NULL,
+		{NULL},
 	},	
 	{
 		// MEDAL_ACCURACY
@@ -136,7 +136,7 @@ static	MEDAL_t	g_Medals[NUM_MEDALS] =
 		"Accuracy!",
 		CR_GRAY,
 		"Accuracy",
-		NULL,
+		{NULL},
 	},	
 	{
 		// MEDAL_PRECISION
@@ -145,7 +145,7 @@ static	MEDAL_t	g_Medals[NUM_MEDALS] =
 		"Precision!",
 		CR_RED,
 		"Precision",
-		NULL,
+		{NULL},
 	},	
 	{
 		// MEDAL_VICTORY
@@ -154,7 +154,7 @@ static	MEDAL_t	g_Medals[NUM_MEDALS] =
 		"Victory!",
 		CR_GRAY,
 		"Victory",
-		NULL,
+		{NULL},
 	},	
 	{
 		// MEDAL_PERFECT
@@ -163,7 +163,7 @@ static	MEDAL_t	g_Medals[NUM_MEDALS] =
 		"Perfect!",
 		CR_RED,
 		"Perfect",
-		NULL,
+		{NULL},
 	},	
 	{
 		// MEDAL_TERMINATION
@@ -172,7 +172,7 @@ static	MEDAL_t	g_Medals[NUM_MEDALS] =
 		"Termination!",
 		CR_GRAY,
 		"Termination",
-		NULL,
+		{NULL},
 	},	
 	{
 		// MEDAL_FIRSTFRAG
@@ -181,7 +181,7 @@ static	MEDAL_t	g_Medals[NUM_MEDALS] =
 		"First frag!",
 		CR_GRAY,
 		"FirstFrag",
-		NULL,
+		{NULL},
 	},	
 	{
 		// MEDAL_CAPTURE
@@ -190,7 +190,7 @@ static	MEDAL_t	g_Medals[NUM_MEDALS] =
 		"Capture!",
 		CR_GRAY,
 		"Capture",
-		NULL,
+		{NULL},
 	},	
 	{
 		// MEDAL_TAG
@@ -199,7 +199,7 @@ static	MEDAL_t	g_Medals[NUM_MEDALS] =
 		"Tag!",
 		CR_GRAY,
 		"Tag",
-		NULL,
+		{NULL},
 	},	
 	{
 		// MEDAL_ASSIST
@@ -208,7 +208,7 @@ static	MEDAL_t	g_Medals[NUM_MEDALS] =
 		"Assist!",
 		CR_GRAY,
 		"Assist",
-		NULL,
+		{NULL},
 	},	
 	{
 		// MEDAL_DEFENSE
@@ -217,7 +217,7 @@ static	MEDAL_t	g_Medals[NUM_MEDALS] =
 		"Defense!",
 		CR_GRAY,
 		"Defense",
-		NULL,
+		{NULL},
 	},	
 	{
 		// MEDAL_LLAMA
@@ -244,7 +244,7 @@ static	MEDAL_t	g_Medals[NUM_MEDALS] =
 		"You fail it!",
 		CR_GREEN,
 		"YouFailIt",
-		NULL,
+		{NULL},
 	},	
 	{
 		// MEDAL_YOURSKILLISNOTENOUGH
@@ -253,7 +253,7 @@ static	MEDAL_t	g_Medals[NUM_MEDALS] =
 		"Your skill is not enough!",
 		CR_ORANGE,
 		"YourSkillIsNotEnough",
-		NULL,
+		{NULL},
 	},
 	{
 		// MEDAL_FISTING
@@ -262,7 +262,7 @@ static	MEDAL_t	g_Medals[NUM_MEDALS] =
 		"Fisting!",
 		CR_GRAY,
 		"Fisting",
-		NULL,
+		{NULL},
 	},
 };
 
@@ -412,11 +412,11 @@ void MEDAL_Render( void )
 			ulCurXPos = 160;
 
 			if ( g_Medals[ulMedal].ulTextColor == CR_RED )
-				sprintf( szString, TEXTCOLOR_RED "%s " TEXTCOLOR_WHITE "X %d", g_Medals[ulMedal].szStr, ulNumMedals );
+				sprintf( szString, TEXTCOLOR_RED "%s " TEXTCOLOR_WHITE "X %d", g_Medals[ulMedal].szStr, static_cast<unsigned int> (ulNumMedals) );
 			else if ( g_Medals[ulMedal].ulTextColor == CR_GREEN )
-				sprintf( szString, TEXTCOLOR_GREEN "%s " TEXTCOLOR_RED "X %d", g_Medals[ulMedal].szStr, ulNumMedals );
+				sprintf( szString, TEXTCOLOR_GREEN "%s " TEXTCOLOR_RED "X %d", g_Medals[ulMedal].szStr, static_cast<unsigned int> (ulNumMedals) );
 			else
-				sprintf( szString, TEXTCOLOR_WHITE "%s " TEXTCOLOR_RED "X %d", g_Medals[ulMedal].szStr, ulNumMedals );
+				sprintf( szString, TEXTCOLOR_WHITE "%s " TEXTCOLOR_RED "X %d", g_Medals[ulMedal].szStr, static_cast<unsigned int> (ulNumMedals) );
 
 			if ( ulTick > ( 1 * TICRATE ))
 				screen->DrawTexture( TexMan[szPatchName], ulCurXPos, (LONG)( ulCurYPos / CleanYfac ), DTA_Clean, true, TAG_DONE );
@@ -592,7 +592,7 @@ void MEDAL_RenderAllMedals( LONG lYOffset )
 					ulCurYPos,
 					DTA_Clean, bScale, TAG_DONE );
 	
-				sprintf( szString, "%d", pPlayer->ulMedalCount[ulIdx] );
+				sprintf( szString, "%d", static_cast<unsigned int> (pPlayer->ulMedalCount[ulIdx]) );
 				screen->DrawText( CR_RED,
 					ulCurXPos - ( SmallFont->StringWidth( szString ) / 2 ) + TexMan[szPatchName]->GetWidth( ) / 2,
 					ulCurYPos,
@@ -741,7 +741,7 @@ void MEDAL_RenderAllMedalsFullscreen( player_t *pPlayer )
 				TAG_DONE );
 		}
 
-		sprintf( szString, "%d", pPlayer->ulMedalCount[ulIdx] );
+		sprintf( szString, "%d", static_cast<unsigned int> (pPlayer->ulMedalCount[ulIdx]) );
 		screen->SetFont( BigFont );
 		if ( bScale )
 		{
@@ -1437,7 +1437,7 @@ void medal_CheckForFisting( ULONG ulPlayer )
 	// BFG9000, award him a "SPAM!" medal.
 	if ( players[ulPlayer].ReadyWeapon->GetClass( ) == PClass::FindClass( "BFG9000" ))
 	{
-		if ( players[ulPlayer].ulLastBFGFragTick == level.time )
+		if ( players[ulPlayer].ulLastBFGFragTick == static_cast<unsigned> (level.time) )
 		{
 			// Award the medal.
 			medal_GiveMedal( ulPlayer, MEDAL_SPAM );

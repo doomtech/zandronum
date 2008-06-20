@@ -286,7 +286,7 @@ void		SERVER_AuthenticateClientLevel( BYTESTREAM_s *pByteStream );
 bool		SERVER_PerformAuthenticationChecksum( BYTESTREAM_s *pByteStream );
 void		SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream );
 bool		SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick );
-void		SERVER_ConnectionError( NETADDRESS_s Address, char *pszMessage );
+void		SERVER_ConnectionError( NETADDRESS_s Address, const char *pszMessage );
 void		SERVER_ClientError( ULONG ulClient, ULONG ulErrorCode );
 void		SERVER_SendFullUpdate( ULONG ulClient );
 void		SERVER_WriteCommands( void );
@@ -301,8 +301,8 @@ void		SERVER_UpdateLines( ULONG ulClient );
 void		SERVER_UpdateSides( ULONG ulClient );
 void		SERVER_ReconnectNewLevel( const char *pszMapName );
 void		SERVER_LoadNewLevel( const char *pszMapName );
-void		SERVER_KickPlayer( ULONG ulPlayer, char *pszReason );
-void		SERVER_KickPlayerFromGame( ULONG ulPlayer, char *pszReason );
+void		SERVER_KickPlayer( ULONG ulPlayer, const char *pszReason );
+void		SERVER_KickPlayerFromGame( ULONG ulPlayer, const char *pszReason );
 void		SERVER_AddCommand( char *pszCommand );
 void		SERVER_DeleteCommand( void );
 bool		SERVER_IsEveryoneReadyToGoOn( void );
@@ -335,7 +335,7 @@ void		SERVER_MASTER_Destruct( void );
 void		SERVER_MASTER_Tick( void );
 void		SERVER_MASTER_Broadcast( void );
 void		SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ulTime, bool bBroadcasting );
-char		*SERVER_MASTER_GetGameName( void );
+const char	*SERVER_MASTER_GetGameName( void );
 
 // Statistic functions.
 LONG		SERVER_STATISTIC_GetTotalSecondsElapsed( void );

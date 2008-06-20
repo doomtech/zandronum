@@ -189,7 +189,7 @@ void JOINQUEUE_PlayerLeftGame( bool bWantPop )
 	return;
 
 	// Nothing to do if there's nobody waiting in the queue.
-	if ( g_lJoinQueue[0].ulPlayer == -1 )
+	if ( static_cast<signed> (g_lJoinQueue[0].ulPlayer) == -1 )
 		return;
 
 	// Try to find the next person in line.
@@ -197,7 +197,7 @@ void JOINQUEUE_PlayerLeftGame( bool bWantPop )
 	while ( 1 )
 	{
 		// Found end of list.
-		if (( g_lJoinQueue[ulIdx].ulPlayer == -1 ) || ( ulIdx == MAXPLAYERS ))
+		if (( static_cast<signed> (g_lJoinQueue[ulIdx].ulPlayer) == -1 ) || ( ulIdx == MAXPLAYERS ))
 			break;
 
 		// Found a player waiting in line. They will now join the game!
@@ -265,7 +265,7 @@ void JOINQUEUE_SpectatorLeftGame( ULONG ulPlayer )
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		// Hit the end of the list.
-		if ( g_lJoinQueue[ulIdx].ulPlayer == -1 )
+		if ( static_cast<signed> (g_lJoinQueue[ulIdx].ulPlayer) == -1 )
 			continue;
 
 		// This player was in line. Bump everyone in line after him up one position.
@@ -292,7 +292,7 @@ void JOINQUEUE_PopQueue( LONG lNumSlots )
 	ULONG	ulIdx2;
 
 	// Nothing to do if there's nobody waiting in the queue.
-	if ( g_lJoinQueue[0].ulPlayer == -1 )
+	if ( static_cast<signed> (g_lJoinQueue[0].ulPlayer) == -1 )
 		return;
 
 	// Don't allow joining during LMS or team LMS games.
@@ -311,7 +311,7 @@ void JOINQUEUE_PopQueue( LONG lNumSlots )
 	{
 		// Found end of list.
 		if (( ulIdx == MAXPLAYERS ) ||
-			( g_lJoinQueue[ulIdx].ulPlayer == -1 ) ||
+			( static_cast<signed> (g_lJoinQueue[ulIdx].ulPlayer) == -1 ) ||
 			( lNumSlots == 0 ))
 		{
 			break;
@@ -407,7 +407,7 @@ ULONG JOINQUEUE_AddPlayer( JOINSLOT_t JoinSlot )
 			return ( ulIdx );
 
 		// Found an empty slot.
-		if ( g_lJoinQueue[ulIdx].ulPlayer == -1 )
+		if ( static_cast<signed> (g_lJoinQueue[ulIdx].ulPlayer) == -1 )
 		{
 			g_lJoinQueue[ulIdx].ulPlayer	= JoinSlot.ulPlayer;
 			g_lJoinQueue[ulIdx].ulTeam		= JoinSlot.ulTeam;

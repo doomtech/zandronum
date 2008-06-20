@@ -746,6 +746,8 @@ void INVASION_Tick( void )
 			// Pause for five seconds for the failed sequence.
 			GAME_SetEndLevelDelay( 5 * TICRATE );
 		}
+	default:
+		break;	
 	}
 }
 
@@ -906,7 +908,7 @@ void INVASION_BeginWave( ULONG ulWave )
 			2.0f,
 			1.0f );
 
-		StatusBar->AttachMessage( pMsg, 'CNTR' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 		screen->SetFont( SmallFont );
 	}
 	// Display a little thing in the server window so servers can know when waves begin.
@@ -1185,9 +1187,9 @@ void INVASION_DoWaveComplete( void )
 		screen->SetFont( BigFont );
 
 		if ( (LONG)g_ulCurrentWave == wavelimit )
-			sprintf( szString, "VICTORY!", g_ulCurrentWave );
+			sprintf( szString, "VICTORY!" );
 		else
-			sprintf( szString, "WAVE %d COMPLETE!", g_ulCurrentWave );
+			sprintf( szString, "WAVE %d COMPLETE!", static_cast<unsigned int> (g_ulCurrentWave) );
 		V_ColorizeString( szString );
 
 		// Display "VICTORY!"/"WAVE %d COMPLETE!" HUD message.
@@ -1200,7 +1202,7 @@ void INVASION_DoWaveComplete( void )
 			3.0f,
 			2.0f );
 
-		StatusBar->AttachMessage( pMsg, 'CNTR' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 		screen->SetFont( SmallFont );
 	}
 
@@ -1273,6 +1275,8 @@ void INVASION_SetState( INVASIONSTATE_e State )
 		break;
 	case IS_MISSIONFAILED:
 		GAMEMODE_DisplayStandardMessage ( "MISSION FAILED!" );
+		break;
+	default:
 		break;
 	}
 

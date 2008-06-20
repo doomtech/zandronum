@@ -148,7 +148,10 @@ void MAPROTATION_AdvanceMap( void )
 				 ( g_ulCurMapInList == ulLastMap ));
 	}
 	else
-		g_ulCurMapInList = ( ++g_ulCurMapInList % MAPROTATION_GetNumEntries( ));
+	{
+		g_ulCurMapInList++; //Increment the varaible here to satisfy GCC.
+		g_ulCurMapInList = ( g_ulCurMapInList % MAPROTATION_GetNumEntries( ));
+	}
 }
 
 //*****************************************************************************

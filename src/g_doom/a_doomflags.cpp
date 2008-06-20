@@ -471,14 +471,14 @@ bool AWhiteFlag::HandlePickup( AInventory *pItem )
 					CR_WHITE,
 					3.0f,
 					0.25f );
-				StatusBar->AttachMessage( pMsg, 'CNTR' );
+				StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 				screen->SetFont( SmallFont );
 			}
 			// If necessary, send it to clients.
 			else
 			{
 				SERVERCOMMANDS_SetPlayerPoints( ULONG( Owner->player - players ));
-				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_WHITE, 3.0f, 0.25f, "BigFont", false, 'CNTR' );
+				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_WHITE, 3.0f, 0.25f, "BigFont", false, MAKE_ID('C','N','T','R') );
 			}
 
 			// [BC] Rivecoder's "scored by" message.
@@ -501,11 +501,11 @@ bool AWhiteFlag::HandlePickup( AInventory *pItem )
 					CR_BLUE,
 					3.0f,
 					0.5f );
-				StatusBar->AttachMessage( pMsg, 'SUBS' );
+				StatusBar->AttachMessage( pMsg, MAKE_ID('S','U','B','S') );
 			}
 			// If necessary, send it to clients.
 			else
-				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_BLUE, 3.0f, 0.5f, "SmallFont", false, 'SUBS' );
+				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_BLUE, 3.0f, 0.5f, "SmallFont", false, MAKE_ID('S','U','B','S') );
 
 			// Take the flag away.
 			pInventory = Owner->FindInventory( this->GetClass( ));
@@ -601,7 +601,7 @@ void AWhiteFlag::DisplayFlagTaken( AActor *pToucher )
 			CR_WHITE,
 			3.0f,
 			0.25f );
-		StatusBar->AttachMessage( pMsg, 'CNTR' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 		screen->SetFont( SmallFont );
 	}
 	// If necessary, send it to clients.
@@ -609,11 +609,11 @@ void AWhiteFlag::DisplayFlagTaken( AActor *pToucher )
 	{
 		sprintf( szString, "\\cCYou have the flag!" );
 		V_ColorizeString( szString );
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_WHITE, 3.0f, 0.25f, "BigFont", false, 'CNTR', ULONG( pToucher->player - players ), SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_WHITE, 3.0f, 0.25f, "BigFont", false, MAKE_ID('C','N','T','R'), ULONG( pToucher->player - players ), SVCF_ONLYTHISCLIENT );
 
 		sprintf( szString, "\\cCWhite flag taken!" );
 		V_ColorizeString( szString );
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_WHITE, 3.0f, 0.25f, "BigFont", false, 'CNTR', ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_WHITE, 3.0f, 0.25f, "BigFont", false, MAKE_ID('C','N','T','R'), ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT );
 	}
 
 	// [BC] Rivecoder's "held by" messages.
@@ -642,12 +642,12 @@ void AWhiteFlag::DisplayFlagTaken( AActor *pToucher )
 				CR_BLUE,
 				3.0f,
 				0.25f );
-			StatusBar->AttachMessage( pMsg, 'SUBS' );
+			StatusBar->AttachMessage( pMsg, MAKE_ID('S','U','B','S') );
 		}
 	}
 	// If necessary, send it to clients.
 	else
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_BLUE, 3.0f, 0.25f, "SmallFont", false, 'SUBS', ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT  );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_BLUE, 3.0f, 0.25f, "SmallFont", false, MAKE_ID('S','U','B','S'), ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT  );
 }
 
 //===========================================================================
@@ -747,7 +747,7 @@ void AWhiteFlag::DisplayFlagReturn( void )
 			CR_WHITE,
 			3.0f,
 			0.25f );
-		StatusBar->AttachMessage( pMsg, 'CNTR' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 		screen->SetFont( SmallFont );
 	}
 }
@@ -837,11 +837,11 @@ bool ABlueFlag::HandlePickup( AInventory *pItem )
 			{
 				screen->SetFont( SmallFont );
 				pMsg = new DHUDMessageFadeOut( "", 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_RED, 3.0f, 0.5f );
-				StatusBar->AttachMessage( pMsg, 'SUBS' );
+				StatusBar->AttachMessage( pMsg, MAKE_ID('S','U','B','S') );
 			}
 			// If necessary, send it to clients.
 			else
-				SERVERCOMMANDS_PrintHUDMessageFadeOut( "", 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_RED, 3.0f, 0.5f, "SmallFont", false, 'SUBS' );
+				SERVERCOMMANDS_PrintHUDMessageFadeOut( "", 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_RED, 3.0f, 0.5f, "SmallFont", false, MAKE_ID('S','U','B','S') );
 
 			// Create the "captured" message.
 			sprintf( szString, "\\cGRed team scores!" );
@@ -859,14 +859,14 @@ bool ABlueFlag::HandlePickup( AInventory *pItem )
 					CR_RED,
 					3.0f,
 					0.5f );
-				StatusBar->AttachMessage( pMsg, 'CNTR' );
+				StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 				screen->SetFont( SmallFont );
 			}
 			// If necessary, send it to clients.
 			else
 			{
 				SERVERCOMMANDS_SetPlayerPoints( ULONG( Owner->player - players ));
-				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_RED, 3.0f, 0.5f, "BigFont", false, 'CNTR' );
+				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_RED, 3.0f, 0.5f, "BigFont", false, MAKE_ID('C','N','T','R') );
 			}
 
 			// [RC] Create the "scored by" and "assisted by" message.
@@ -899,11 +899,11 @@ bool ABlueFlag::HandlePickup( AInventory *pItem )
 					CR_RED,
 					3.0f,
 					0.5f );
-				StatusBar->AttachMessage( pMsg, 'SUBS' );
+				StatusBar->AttachMessage( pMsg, MAKE_ID('S','U','B','S') );
 			}
 			// If necessary, send it to clients.
 			else
-				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_RED, 3.0f, 0.5f, "SmallFont", false, 'SUBS' );
+				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_RED, 3.0f, 0.5f, "SmallFont", false, MAKE_ID('S','U','B','S') );
 
 			
 			// If someone just recently returned the flag, award him with an "Assist!" medal.
@@ -1016,7 +1016,7 @@ void ABlueFlag::DisplayFlagTaken( AActor *pToucher )
 			CR_BLUE,
 			3.0f,
 			0.25f );
-		StatusBar->AttachMessage( pMsg, 'CNTR' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 		screen->SetFont( SmallFont );
 	}
 	// If necessary, send it to clients.
@@ -1024,11 +1024,11 @@ void ABlueFlag::DisplayFlagTaken( AActor *pToucher )
 	{
 		sprintf( szString, "\\cHYou have the blue flag!" );
 		V_ColorizeString( szString );
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_BLUE, 3.0f, 0.25f, "BigFont", false, 'CNTR', ULONG( pToucher->player - players ), SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_BLUE, 3.0f, 0.25f, "BigFont", false, MAKE_ID('C','N','T','R'), ULONG( pToucher->player - players ), SVCF_ONLYTHISCLIENT );
 
 		sprintf( szString, "\\cHBlue flag taken!" );
 		V_ColorizeString( szString );
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_BLUE, 3.0f, 0.25f, "BigFont", false, 'CNTR', ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_BLUE, 3.0f, 0.25f, "BigFont", false, MAKE_ID('C','N','T','R'), ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT );
 	}
 
 	// [RC] Create the "held by" message for blue.
@@ -1051,12 +1051,12 @@ void ABlueFlag::DisplayFlagTaken( AActor *pToucher )
 					CR_BLUE,
 					3.0f,
 					0.25f );
-				StatusBar->AttachMessage( pMsg, 'SUBS' );
+				StatusBar->AttachMessage( pMsg, MAKE_ID('S','U','B','S') );
 			}
 		}
 		// If necessary, send it to clients.
 		else
-			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_BLUE, 3.0f, 0.25f, "SmallFont", false, 'SUBS', ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT  );
+			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_BLUE, 3.0f, 0.25f, "SmallFont", false, MAKE_ID('S','U','B','S'), ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT  );
 }
 
 //===========================================================================
@@ -1143,11 +1143,11 @@ void ABlueFlag::ReturnFlag( AActor *pReturner )
 				CR_BLUE,
 				3.0f,
 				0.25f );
-			StatusBar->AttachMessage( pMsg, 'SUBS' );
+			StatusBar->AttachMessage( pMsg, MAKE_ID('S','U','B','S') );
 		}
 		// If necessary, send it to clients.
 		else
-			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_BLUE, 3.0f, 0.25f, "SmallFont", false, 'SUBS' );
+			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_BLUE, 3.0f, 0.25f, "SmallFont", false, MAKE_ID('S','U','B','S') );
 	}
 	else
 	{
@@ -1170,11 +1170,11 @@ void ABlueFlag::ReturnFlag( AActor *pReturner )
 				CR_BLUE,
 				3.0f,
 				0.25f );
-			StatusBar->AttachMessage( pMsg, 'SUBS' );
+			StatusBar->AttachMessage( pMsg, MAKE_ID('S','U','B','S') );
 		}
 		// If necessary, send it to clients.
 		else
-			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_BLUE, 3.0f, 0.25f, "SmallFont", false, 'SUBS' );
+			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_BLUE, 3.0f, 0.25f, "SmallFont", false, MAKE_ID('S','U','B','S') );
 	}
 }
 
@@ -1220,7 +1220,7 @@ void ABlueFlag::DisplayFlagReturn( void )
 			CR_BLUE,
 			3.0f,
 			0.25f );
-		StatusBar->AttachMessage( pMsg, 'CNTR' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 		screen->SetFont( SmallFont );
 	}
 }
@@ -1310,11 +1310,11 @@ bool ARedFlag::HandlePickup( AInventory *pItem )
 			{
 				screen->SetFont( SmallFont );
 				pMsg = new DHUDMessageFadeOut( "",1.5f,TEAM_MESSAGE_Y_AXIS_SUB,0,0,CR_RED,3.0f,0.5f );
-				StatusBar->AttachMessage( pMsg, 'SUBS' );
+				StatusBar->AttachMessage( pMsg, MAKE_ID('S','U','B','S') );
 			}
 			// If necessary, send it to clients.
 			else
-				SERVERCOMMANDS_PrintHUDMessageFadeOut( "", 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_RED, 3.0f, 0.5f, "SmallFont", false, 'SUBS' );
+				SERVERCOMMANDS_PrintHUDMessageFadeOut( "", 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_RED, 3.0f, 0.5f, "SmallFont", false, MAKE_ID('S','U','B','S') );
 
 
 			// Create the "captured" message.
@@ -1333,14 +1333,14 @@ bool ARedFlag::HandlePickup( AInventory *pItem )
 					CR_BLUE,
 					3.0f,
 					0.5f );
-				StatusBar->AttachMessage( pMsg, 'CNTR' );
+				StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 				screen->SetFont( SmallFont );
 			}
 			// If necessary, send it to clients.
 			else
 			{
 				SERVERCOMMANDS_SetPlayerPoints( ULONG( Owner->player - players ));
-				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_BLUE, 3.0f, 0.5f, "BigFont", false, 'CNTR' );
+				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_BLUE, 3.0f, 0.5f, "BigFont", false, MAKE_ID('C','N','T','R') );
 			}
 			
 			// [RC] Create the "scored by" and "assisted by" message.
@@ -1373,11 +1373,11 @@ bool ARedFlag::HandlePickup( AInventory *pItem )
 					CR_BLUE,
 					3.0f,
 					0.5f );
-				StatusBar->AttachMessage( pMsg, 'SUBS' );
+				StatusBar->AttachMessage( pMsg, MAKE_ID('S','U','B','S') );
 			}
 			// If necessary, send it to clients.
 			else
-				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_BLUE, 3.0f, 0.5f, "SmallFont", false, 'SUBS' );
+				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_BLUE, 3.0f, 0.5f, "SmallFont", false, MAKE_ID('S','U','B','S') );
 			
 
 			// If someone just recently returned the flag, award him with an "Assist!" medal.
@@ -1489,7 +1489,7 @@ void ARedFlag::DisplayFlagTaken( AActor *pToucher )
 			CR_RED,
 			3.0f,
 			0.25f );
-		StatusBar->AttachMessage( pMsg, 'CNTR' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 		screen->SetFont( SmallFont );
 	}
 	// If necessary, send it to clients.
@@ -1497,11 +1497,11 @@ void ARedFlag::DisplayFlagTaken( AActor *pToucher )
 	{
 		sprintf( szString, "\\cGYou have the red flag!" );
 		V_ColorizeString( szString );
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_RED, 3.0f, 0.25f, "BigFont", false, 'CNTR', ULONG( pToucher->player - players ), SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_RED, 3.0f, 0.25f, "BigFont", false, MAKE_ID('C','N','T','R'), ULONG( pToucher->player - players ), SVCF_ONLYTHISCLIENT );
 
 		sprintf( szString, "\\cGRed flag taken!" );
 		V_ColorizeString( szString );
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_RED, 3.0f, 0.25f, "BigFont", false, 'CNTR', ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_RED, 3.0f, 0.25f, "BigFont", false, MAKE_ID('C','N','T','R'), ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT );
 	}
 
 	// [RC] Create the "held by" message for red.
@@ -1524,12 +1524,12 @@ void ARedFlag::DisplayFlagTaken( AActor *pToucher )
 					CR_RED,
 					3.0f,
 					0.25f );
-				StatusBar->AttachMessage( pMsg, 'SUBS' );
+				StatusBar->AttachMessage( pMsg, MAKE_ID('S','U','B','S') );
 			}
 		}
 		// If necessary, send it to clients.
 		else
-			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_RED, 3.0f, 0.25f, "SmallFont", false, 'SUBS', ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT );
+			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_RED, 3.0f, 0.25f, "SmallFont", false, MAKE_ID('S','U','B','S'), ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT );
 }
 
 //===========================================================================
@@ -1616,11 +1616,11 @@ void ARedFlag::ReturnFlag( AActor *pReturner )
 				CR_RED,
 				3.0f,
 				0.25f );
-			StatusBar->AttachMessage( pMsg, 'SUBS' );
+			StatusBar->AttachMessage( pMsg, MAKE_ID('S','U','B','S') );
 		}
 		// If necessary, send it to clients.
 		else
-			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_RED, 3.0f, 0.25f, "SmallFont", false, 'SUBS' );
+			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_RED, 3.0f, 0.25f, "SmallFont", false, MAKE_ID('S','U','B','S') );
 	}
 	else
 	{
@@ -1643,11 +1643,11 @@ void ARedFlag::ReturnFlag( AActor *pReturner )
 				CR_RED,
 				3.0f,
 				0.25f );
-			StatusBar->AttachMessage( pMsg, 'SUBS' );
+			StatusBar->AttachMessage( pMsg, MAKE_ID('S','U','B','S') );
 		}
 		// If necessary, send it to clients.
 		else
-			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_RED, 3.0f, 0.25f, "SmallFont", false, 'SUBS' );
+			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_RED, 3.0f, 0.25f, "SmallFont", false, MAKE_ID('S','U','B','S') );
 	}
 
 }
@@ -1694,7 +1694,7 @@ void ARedFlag::DisplayFlagReturn( void )
 			CR_RED,
 			3.0f,
 			0.25f );
-		StatusBar->AttachMessage( pMsg, 'CNTR' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 		screen->SetFont( SmallFont );
 	}
 }
@@ -1808,7 +1808,7 @@ void ABlueSkullST::DisplayFlagTaken( AActor *pToucher )
 			CR_BLUE,
 			3.0f,
 			0.25f );
-		StatusBar->AttachMessage( pMsg, 'CNTR' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 		screen->SetFont( SmallFont );
 	}
 	// If necessary, send it to clients.
@@ -1816,11 +1816,11 @@ void ABlueSkullST::DisplayFlagTaken( AActor *pToucher )
 	{
 		sprintf( szString, "\\cHYou have the blue skull!" );
 		V_ColorizeString( szString );
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_BLUE, 3.0f, 0.25f, "BigFont", false, 'CNTR', ULONG( pToucher->player - players ), SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_BLUE, 3.0f, 0.25f, "BigFont", false, MAKE_ID('C','N','T','R'), ULONG( pToucher->player - players ), SVCF_ONLYTHISCLIENT );
 
 		sprintf( szString, "\\cHBlue skull taken!" );
 		V_ColorizeString( szString );
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_BLUE, 3.0f, 0.25f, "BigFont", false, 'CNTR', ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_BLUE, 3.0f, 0.25f, "BigFont", false, MAKE_ID('C','N','T','R'), ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT );
 	}
 
 	// [RC] Create the "held by" message for blue.
@@ -1843,12 +1843,12 @@ void ABlueSkullST::DisplayFlagTaken( AActor *pToucher )
 					CR_BLUE,
 					3.0f,
 					0.25f );
-				StatusBar->AttachMessage( pMsg, 'SUBS' );
+				StatusBar->AttachMessage( pMsg, MAKE_ID('S','U','B','S') );
 			}
 		}
 		// If necessary, send it to clients.
 		else
-			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_BLUE, 3.0f, 0.25f, "SmallFont", false, 'SUBS', ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT  );
+			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_BLUE, 3.0f, 0.25f, "SmallFont", false, MAKE_ID('S','U','B','S'), ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT  );
 }
 
 //===========================================================================
@@ -1934,11 +1934,11 @@ void ABlueSkullST::ReturnFlag( AActor *pReturner )
 				CR_BLUE,
 				3.0f,
 				0.25f );
-			StatusBar->AttachMessage( pMsg, 'SUBS' );
+			StatusBar->AttachMessage( pMsg, MAKE_ID('S','U','B','S') );
 		}
 		// If necessary, send it to clients.
 		else
-			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_BLUE, 3.0f, 0.25f, "SmallFont", false, 'SUBS' );
+			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_BLUE, 3.0f, 0.25f, "SmallFont", false, MAKE_ID('S','U','B','S') );
 	}
 	else
 	{
@@ -1961,11 +1961,11 @@ void ABlueSkullST::ReturnFlag( AActor *pReturner )
 				CR_RED,
 				3.0f,
 				0.25f );
-			StatusBar->AttachMessage( pMsg, 'SUBS' );
+			StatusBar->AttachMessage( pMsg, MAKE_ID('S','U','B','S') );
 		}
 		// If necessary, send it to clients.
 		else
-			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_RED, 3.0f, 0.25f, "SmallFont", false, 'SUBS' );
+			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_RED, 3.0f, 0.25f, "SmallFont", false, MAKE_ID('S','U','B','S') );
 	}
 
 }
@@ -2012,7 +2012,7 @@ void ABlueSkullST::DisplayFlagReturn( void )
 			CR_BLUE,
 			3.0f,
 			0.25f );
-		StatusBar->AttachMessage( pMsg, 'CNTR' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 		screen->SetFont( SmallFont );
 	}
 }
@@ -2126,7 +2126,7 @@ void ARedSkullST::DisplayFlagTaken( AActor *pToucher )
 			CR_RED,
 			3.0f,
 			0.25f );
-		StatusBar->AttachMessage( pMsg, 'CNTR' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 		screen->SetFont( SmallFont );
 	}
 	// If necessary, send it to clients.
@@ -2134,11 +2134,11 @@ void ARedSkullST::DisplayFlagTaken( AActor *pToucher )
 	{
 		sprintf( szString, "\\cGYou have the red skull!" );
 		V_ColorizeString( szString );
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_RED, 3.0f, 0.25f, "BigFont", false, 'CNTR', ULONG( pToucher->player - players ), SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_RED, 3.0f, 0.25f, "BigFont", false, MAKE_ID('C','N','T','R'), ULONG( pToucher->player - players ), SVCF_ONLYTHISCLIENT );
 
 		sprintf( szString, "\\cGRed skull taken!" );
 		V_ColorizeString( szString );
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_RED, 3.0f, 0.25f, "BigFont", false, 'CNTR', ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_RED, 3.0f, 0.25f, "BigFont", false, MAKE_ID('C','N','T','R'), ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT );
 	}
 
 	// [RC] Create the "held by" message for red.
@@ -2161,12 +2161,12 @@ void ARedSkullST::DisplayFlagTaken( AActor *pToucher )
 					CR_RED,
 					3.0f,
 					0.25f );
-				StatusBar->AttachMessage( pMsg, 'SUBS' );
+				StatusBar->AttachMessage( pMsg, MAKE_ID('S','U','B','S') );
 			}
 		}
 		// If necessary, send it to clients.
 		else
-			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_RED, 3.0f, 0.25f, "SmallFont", false, 'SUBS', ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT );
+			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_RED, 3.0f, 0.25f, "SmallFont", false, MAKE_ID('S','U','B','S'), ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT );
 }
 
 //===========================================================================
@@ -2252,11 +2252,11 @@ void ARedSkullST::ReturnFlag( AActor *pReturner )
 				CR_RED,
 				3.0f,
 				0.25f );
-			StatusBar->AttachMessage( pMsg, 'SUBS' );
+			StatusBar->AttachMessage( pMsg, MAKE_ID('S','U','B','S') );
 		}
 		// If necessary, send it to clients.
 		else
-			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_RED, 3.0f, 0.25f, "SmallFont", false, 'SUBS' );
+			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_RED, 3.0f, 0.25f, "SmallFont", false, MAKE_ID('S','U','B','S') );
 	}
 	else
 	{
@@ -2279,11 +2279,11 @@ void ARedSkullST::ReturnFlag( AActor *pReturner )
 				CR_RED,
 				3.0f,
 				0.25f );
-			StatusBar->AttachMessage( pMsg, 'SUBS' );
+			StatusBar->AttachMessage( pMsg, MAKE_ID('S','U','B','S') );
 		}
 		// If necessary, send it to clients.
 		else
-			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_RED, 3.0f, 0.25f, "SmallFont", false, 'SUBS' );
+			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_RED, 3.0f, 0.25f, "SmallFont", false, MAKE_ID('S','U','B','S') );
 	}
 }
 
@@ -2329,7 +2329,7 @@ void ARedSkullST::DisplayFlagReturn( void )
 			CR_RED,
 			3.0f,
 			0.25f );
-		StatusBar->AttachMessage( pMsg, 'CNTR' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 		screen->SetFont( SmallFont );
 	}
 }

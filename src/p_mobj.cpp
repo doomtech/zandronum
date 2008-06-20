@@ -2144,7 +2144,7 @@ explode:
 }
 
 /* [BB] Not compatible with latest ZDoom changes and wasn't used.
-////*****************************************************************************
+////////////////////////////////////////////////////////////////////////////////
 //// prBoom version of XY movement.
 //void P_OldXYMovement( AActor *mo )
 //{
@@ -2183,7 +2183,7 @@ explode:
 //		// This explains the tendency for Mancubus fireballs
 //		// to pass through walls.
 //		// CPhipps - compatibility optioned
-///*
+//
 //		if ( 0 )
 ////		if (xmove > MAXMOVE/2 || ymove > MAXMOVE/2 ||
 ////			xmove < -MAXMOVE/2 || ymove < -MAXMOVE/2)
@@ -3869,7 +3869,7 @@ bool AActor::UpdateWaterLevel (fixed_t oldz, bool dosplash)
 		}
 	}
 		
-	// some additional checks to make deep sectors à la Boom splash without setting
+	// some additional checks to make deep sectors ï¿½ la Boom splash without setting
 	// the water flags. 
 	if (boomwaterlevel == 0 && waterlevel != 0 && dosplash) P_HitWater(this, Sector, fh);
 	boomwaterlevel=waterlevel;
@@ -4580,7 +4580,7 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 	else
 		lSkin = p->userinfo.skin;
 
-	if (( lSkin < 0 ) || ( lSkin >= numskins ))
+	if (( lSkin < 0 ) || ( static_cast<unsigned> (lSkin) >= numskins ))
 		lSkin = R_FindSkin( "base", p->CurrentPlayerClass );
 
 	mobj->sprite = skins[lSkin].sprite;
@@ -6321,7 +6321,7 @@ ADD_STAT( spawns )
 	FString	Out;
 
 	Out.Format( "Actors spawned: %d in %04.1f ms",
-		g_lStaleSpawnCount, SecondsPerCycle * (double)g_StaleSpawnCycles * 1000 );
+		static_cast<int> (g_lStaleSpawnCount), SecondsPerCycle * (double)g_StaleSpawnCycles * 1000 );
 
 	return ( Out );
 }
@@ -6334,7 +6334,7 @@ CCMD( dumpactors )
 	AActor						*pActor;
 	TThinkerIterator<AActor>	Iterator;
 
-	while ( pActor = Iterator.Next( ))
+	while ( (pActor = Iterator.Next( )))
 		Printf( "%s (%d, %d)\n", pActor->GetClass( )->TypeName.GetChars( ), pActor->x >> FRACBITS, pActor->y >> FRACBITS );
 }
 
@@ -6348,7 +6348,7 @@ CCMD( respawnactors )
 	fixed_t						Z;
 	TThinkerIterator<AActor>	Iterator;
 
-	while ( pActor = Iterator.Next( ))
+	while ( (pActor = Iterator.Next( )))
 	{
 		if (( pActor->state == &AInventory::States[0] ) ||
 			( pActor->state == &AInventory::States[3] ) ||

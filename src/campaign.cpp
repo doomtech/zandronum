@@ -457,7 +457,7 @@ static void campaign_ParseCampaignInfoLump( FScanner &sc )
 
 				lBotIndex = atoi( szIndex );
 				if (( lBotIndex < 0 ) || ( lBotIndex >= MAXPLAYERS ))
-					I_Error( "CAMPAIGN_ParseCampaignInfo: Invalid \"botteam\" index, %d!", lBotIndex );
+					I_Error( "CAMPAIGN_ParseCampaignInfo: Invalid \"botteam\" index, %d!", static_cast<int> (lBotIndex) );
 
 				strncpy( pInfo->BotSpawn[lBotIndex].szBotTeam, szValue, 7 );
 				pInfo->BotSpawn[lBotIndex].szBotTeam[7] = 0;
@@ -494,7 +494,7 @@ static void campaign_ParseCampaignInfoLump( FScanner &sc )
 
 				lBotIndex = atoi( szIndex );
 				if (( lBotIndex < 0 ) || ( lBotIndex >= MAXPLAYERS ))
-					I_Error( "CAMPAIGN_ParseCampaignInfo: Invalid \"bot\" index, %d!", lBotIndex );
+					I_Error( "CAMPAIGN_ParseCampaignInfo: Invalid \"bot\" index, %d!", static_cast<int> (lBotIndex) );
 
 				strncpy( pInfo->BotSpawn[lBotIndex].szBotName, szValue, 31 );
 				pInfo->BotSpawn[lBotIndex].szBotName[31] = 0;

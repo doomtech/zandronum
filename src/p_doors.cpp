@@ -616,7 +616,7 @@ bool EV_DoDoor (DDoor::EVlDoor type, line_t *line, AActor *thing,
 			}
 			return false;
 		}
-		if ( pDoor = new DDoor (sec, type, speed, delay, lightTag))
+		if ( (pDoor = new DDoor (sec, type, speed, delay, lightTag)))
 		{
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_DoDoor( sec, speed, pDoor->GetDirection( ), lightTag, pDoor->GetID( ));
@@ -635,7 +635,7 @@ bool EV_DoDoor (DDoor::EVlDoor type, line_t *line, AActor *thing,
 			if (sec->ceilingdata)
 				continue;
 
-			if ( pDoor = new DDoor (sec, type, speed, delay, lightTag))
+			if ( (pDoor = new DDoor (sec, type, speed, delay, lightTag)))
 			{
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 					SERVERCOMMANDS_DoDoor( sec, speed, pDoor->GetDirection( ), lightTag, pDoor->GetID( ));

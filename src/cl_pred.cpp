@@ -161,7 +161,7 @@ void CLIENT_PREDICT_PlayerPredict( void )
 			( pPlayer->ServerXYZ[1] != pPlayer->mo->y ) ||
 			( pPlayer->ServerXYZ[2] != pPlayer->mo->z ))
 		{
-			Printf( "(%d) WARNING! ServerXYZ does not match local origin after 1 tick!\n", g_ulGameTick );
+			Printf( "(%d) WARNING! ServerXYZ does not match local origin after 1 tick!\n", static_cast<unsigned int> (g_ulGameTick) );
 			Printf( "     X: %d, %d\n", pPlayer->ServerXYZ[0], pPlayer->mo->x );
 			Printf( "     Y: %d, %d\n", pPlayer->ServerXYZ[1], pPlayer->mo->y );
 			Printf( "     Z: %d, %d\n", pPlayer->ServerXYZ[2], pPlayer->mo->z );
@@ -171,7 +171,7 @@ void CLIENT_PREDICT_PlayerPredict( void )
 			( pPlayer->ServerXYZMom[1] != pPlayer->mo->momy ) ||
 			( pPlayer->ServerXYZMom[2] != pPlayer->mo->momz ))
 		{
-			Printf( "(%d) WARNING! ServerXYZMom does not match local origin after 1 tick!\n", g_ulGameTick );
+			Printf( "(%d) WARNING! ServerXYZMom does not match local origin after 1 tick!\n", static_cast<unsigned int> (g_ulGameTick) );
 			Printf( "     X: %d, %d\n", pPlayer->ServerXYZMom[0], pPlayer->mo->momx );
 			Printf( "     Y: %d, %d\n", pPlayer->ServerXYZMom[1], pPlayer->mo->momy );
 			Printf( "     Z: %d, %d\n", pPlayer->ServerXYZMom[2], pPlayer->mo->momz );
@@ -221,11 +221,11 @@ void CLIENT_PREDICT_PlayerPredict( void )
 			( SavedY == pPlayer->mo->y ) &&
 			( SavedZ == pPlayer->mo->z ))
 		{
-			Printf( "SUCCESSFULLY predicted %d ticks!\n", ulPredictionTicks );
+			Printf( "SUCCESSFULLY predicted %d ticks!\n", static_cast<unsigned int> (ulPredictionTicks) );
 		}
 		else
 		{
-			Printf( "FAILED to predict %d ticks.\n", ulPredictionTicks );
+			Printf( "FAILED to predict %d ticks.\n", static_cast<unsigned int> (ulPredictionTicks) );
 		}
 	}
 #endif
