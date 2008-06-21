@@ -668,7 +668,7 @@ bool FMODSoundRenderer::Init()
 
 	if (!ShowedBanner)
 	{
-		Printf("FMOD Sound System, copyright Â© Firelight Technologies Pty, Ltd., 1994-2008.\n");
+		Printf("FMOD Sound System, copyright © Firelight Technologies Pty, Ltd., 1994-2008.\n");
 		ShowedBanner = true;
 	}
 #ifdef _WIN32
