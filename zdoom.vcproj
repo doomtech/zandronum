@@ -3605,6 +3605,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\sectinfo.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\skins.cpp"
 				>
 				<FileConfiguration
@@ -4713,6 +4717,10 @@
 			</File>
 			<File
 				RelativePath=".\src\scoreboard.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\sectinfo.h"
 				>
 			</File>
 			<File

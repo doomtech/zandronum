@@ -23,8 +23,10 @@ latestzdoom branch
 +	- Added 11 new game mode types to SBarInfo.  They are as follows: ctf, oneflagctf, skulltag, invasion, possession, teampossession, lastmanstanding, teamlms, survival, instagib, and buckshot. [Blzut3]
 +	- Added runeicon to SBarInfo's drawimage. [Blzut3]
 +	- Added teamscore to SBarInfo's drawnumber and drawbar.  Its takes one parameter for team name. [Blzut3]
++	- Added basic SECTINFO support, currently only displayed in coop info. [Blzut3]
 -	- Fixed errors while compiling and running 64-bit versions of Skulltag. [Blzut3]
 -	- The fire background for player setup and class select was not scaled properly. [Blzut3]
++	- Fixed crash problems with the bots in the 64-bit version of Skulltag. [Blzut3, Torr Samaho]
 !	- Disabled screen wipes on the clients, since they cause more harm than good there. [Torr Samaho]
 
 

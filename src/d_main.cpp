@@ -116,6 +116,7 @@
 #include "possession.h"
 #include "cl_demo.h"
 #include "gamemode.h"
+#include "sectinfo.h"
 
 #include "st_start.h"
 #include "templates.h"
@@ -2758,6 +2759,9 @@ void D_DoomMain (void)
 	// [RH] Parse through all loaded mapinfo lumps
 	Printf ("G_ParseMapInfo: Load map definitions.\n");
 	G_ParseMapInfo ();
+
+	// [BL] Load SectInfo
+	SECTINFO_Load();
 
 	// [RH] Parse any SNDINFO lumps
 	Printf ("S_InitData: Load sound definitions.\n");

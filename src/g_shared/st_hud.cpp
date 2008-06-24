@@ -53,6 +53,7 @@
 #include "v_video.h"
 #include "v_text.h"
 #include "gamemode.h"
+#include "g_level.h"
 
 //*****************************************************************************
 //	CONSOLE VARIABLES
@@ -138,6 +139,18 @@ void DrawHUD_CoopInfo()
 		V_ColorizeString( drawString );
 		HUD_DrawTextAligned ( CR_GREY, curYPos, drawString.GetChars(), drawLeft, bScale, virtualWidth, virtualHeight );
 		curYPos += coopInfoFont->GetHeight( ) + 1;
+
+		// [BL] Draw the player's location, [BB] but only if the map has any SectorInfo.
+		if ( level.info->SectorInfo.Names.Size() > 0 )
+		{
+			if(level.info->SectorInfo.Names.Size() > players[i].mo->Sector->sectornum && level.info->SectorInfo.Names[players[i].mo->Sector->sectornum] != NULL)
+				drawString = *level.info->SectorInfo.Names[players[i].mo->Sector->sectornum];
+			else
+				drawString = FString("\\cmUnknown Location\\c-");
+			V_ColorizeString( drawString );
+			HUD_DrawTextAligned ( CR_GREY, curYPos, drawString.GetChars(), drawLeft, bScale, virtualWidth, virtualHeight );
+			curYPos += coopInfoFont->GetHeight( ) + 1;
+		}
 
 		// [BB] Draw player health (color coded) and armor.
 		EColorRange healthColor = CR_RED;

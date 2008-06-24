@@ -39,6 +39,8 @@
 #include "m_fixed.h"
 #include "tarray.h"
 #include "name.h"
+//[BL] New Includes
+#include "sectinfo.h"
 
 #define NUM_WORLDVARS			256
 #define NUM_GLOBALVARS			64
@@ -194,6 +196,8 @@ struct level_info_t
 
 	float		teamdamage;
 
+	//[BL] Link a sectinfo to a map
+	SectInfo	SectorInfo;
 };
 
 // [RH] These get zeroed every tic and are updated by thinkers.
