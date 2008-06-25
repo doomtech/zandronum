@@ -26,6 +26,7 @@
 -	- Fixed a positioning bug with rank/spread on the classic HUD when st_scale was off. [Rivecoder]
 -	- Fixed: Clients may completely freeze, i.e. get stuck in an infinite loop, when handling actors with a looping death state that loops over multiple frames, but doesn't loop back to the beginning of the death state. [Torr Samaho]
 -	- Fixed: The first player waiting in line in a survival invasion game joins the game when one of the in game players leave. [Torr Samaho]
+-	- Fixed: After using the CCMD map on the server, clients may accidentally be blocked for 10 seconds before they can enter the new map. [Torr Samaho]
 !	- Changed up the display of medals when you have the key down. Higher medals are now on the right, opposite their subordinates. [Rivecoder]
 !	- Each player's "ready to go on" status, shown at the intermission, can now only be turned on. Hopefully, this will help clear up what this command is for and prevent rapid toggling of it. [Rivecoder]
 !	- Rank/Spread is no longer drawn if there's only one player. [Rivecoder]

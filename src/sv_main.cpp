@@ -1620,9 +1620,14 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 		case CLC_SUMMONFRIENDCHEAT:
 		case CLC_SUMMONFOECHEAT: 
 
+			// [BB] After a map change with the CCMD map, legitimate clients may get caught by
+			// this. Since the packet is completely ignored anyway, there is no need to ban the
+			// IP for ten seconds.
+			/*
 			Printf( "CLC command (%d) from someone not in game (%s). Ignoring IP for 10 seconds.\n", lCommand, NETWORK_AddressToString( NETWORK_GetFromAddress( )));
 			// [BB] Block all further challenges of this IP for ten seconds to prevent log flooding.
 			g_floodProtectionIPQueue.addAddress ( NETWORK_GetFromAddress( ), g_lGameTime / 1000 );
+			*/
 
 			return;
 		// [BB] 200 was CLCC_ATTEMPTCONNECTION in 97d-beta4.3 and earlier versions.
