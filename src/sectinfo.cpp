@@ -35,28 +35,60 @@ void SECTINFO_Load()
 void SECTINFO_ParseNames(FScanner &sc, TArray<FString *> &SectorNames);
 void SECTINFO_ParseSectors(FScanner &sc, TArray<bool> &Sectors);
 
+// Valid properties
+static const char *SectInfoProperties[] =
+{
+	"names",
+	"base0",
+	"base1",
+	NULL
+};
+enum
+{
+	SECTINFO_NAMES,
+	SECTINFO_BASE0,
+	SECTINFO_BASE1,
+};
+
 void SECTINFO_Parse(int lump)
 {
 	level_info_t *mapinfo;
 
 	FScanner sc(lump);
 	sc.SetCMode(true);
-	while(sc.CheckToken('['))
+	while(true)
 	{
-		sc.MustGetToken(TK_Identifier);
-		//If you define a SectInfo for a map not defined by mapinfo interesting results may occur.
-		//This is because it will set the sectinfo for the defaultmap.
-		mapinfo = FindLevelInfo(sc.String);
-		sc.MustGetToken(']');
-		sc.MustGetToken(TK_Identifier);
-		if(sc.Compare("names"))
-			SECTINFO_ParseNames(sc, mapinfo->SectorInfo.Names);
-		else if(sc.Compare("base0")) // I think this needs to be reversed for ZDaemon compatibility (ZDaemon uses 0 as red 1 as blue), but then Skulltag mappers would be confused...
-			SECTINFO_ParseSectors(sc, mapinfo->SectorInfo.Base[0]);
-		else if(sc.Compare("base1"))
-			SECTINFO_ParseSectors(sc, mapinfo->SectorInfo.Base[1]);
+		if(sc.CheckToken('['))
+		{
+			sc.MustGetToken(TK_Identifier);
+			//If you define a SectInfo for a map not defined by mapinfo interesting results may occur.
+			//This is because it will set the sectinfo for the defaultmap.
+			mapinfo = FindLevelInfo(sc.String);
+			sc.MustGetToken(']');
+		}
+		else if(mapinfo != NULL)
+		{
+			if(!sc.CheckToken(TK_Identifier))
+			{
+				break;
+			}
+			switch(sc.MustMatchString(SectInfoProperties))
+			{
+				case SECTINFO_NAMES:
+					SECTINFO_ParseNames(sc, mapinfo->SectorInfo.Names);
+					break;
+				case SECTINFO_BASE0: // I think this needs to be reversed for ZDaemon compatibility (ZDaemon uses 0 as red 1 as blue), but then Skulltag mappers would be confused...
+					SECTINFO_ParseSectors(sc, mapinfo->SectorInfo.Base[0]);
+					break;
+				case SECTINFO_BASE1:
+					SECTINFO_ParseSectors(sc, mapinfo->SectorInfo.Base[1]);
+					break;
+			}
+		}
 		else
-			sc.ScriptError("Unknown property: '%s'", sc.String);
+		{
+			sc.ScriptError("Invalid Syntax");
+		}
 	}
 }
 

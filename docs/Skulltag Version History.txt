@@ -26,7 +26,8 @@ latestzdoom branch
 +	- Added basic SECTINFO support, currently only displayed in coop info. [Blzut3]
 -	- Fixed errors while compiling and running 64-bit versions of Skulltag. [Blzut3]
 -	- The fire background for player setup and class select was not scaled properly. [Blzut3]
-+	- Fixed crash problems with the bots in the 64-bit version of Skulltag. [Blzut3, Torr Samaho]
+-	- Fixed crash problems with the bots in the 64-bit version of Skulltag. [Blzut3, Torr Samaho]
+-	- Fixed error in SECTINFO parser where only one property could be set per map header. [Blzut3]
 !	- Disabled screen wipes on the clients, since they cause more harm than good there. [Torr Samaho]
 
 
