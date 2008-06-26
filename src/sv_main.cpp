@@ -240,6 +240,7 @@ CVAR( Bool, sv_minimizetosystray, true, CVAR_ARCHIVE )
 CVAR( Int, sv_queryignoretime, 10, CVAR_ARCHIVE )
 CVAR( Bool, sv_markchatlines, false, CVAR_ARCHIVE )
 CVAR( Bool, sv_nokill, false, CVAR_ARCHIVE )
+CVAR( Bool, sv_nodrop, false, CVAR_ARCHIVE )
 CVAR( Bool, sv_pure, true, CVAR_SERVERINFO | CVAR_LATCH )
 
 CUSTOM_CVAR( String, sv_adminlistfile, "adminlist.txt", CVAR_ARCHIVE )
@@ -4918,6 +4919,13 @@ static bool server_InventoryDrop( BYTESTREAM_s *pByteStream )
 	if (( gamestate != GS_LEVEL ) ||
 		( paused ))
 	{
+		return ( false );
+	}
+
+	// [BB] The server may forbid dropping completely.
+	if ( sv_nodrop )
+	{
+		SERVER_PrintfPlayer( PRINT_HIGH, SERVER_GetCurrentClient(), "Dropping items is not allowed in this server.\n" );
 		return ( false );
 	}
 
