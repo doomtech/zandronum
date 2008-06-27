@@ -2388,6 +2388,15 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 	// Send out any translations that have been edited since the start of the level.
 	for ( ulIdx = 0; ulIdx < g_EditedTranslationList.Size( ); ulIdx++ )
 		SERVERCOMMANDS_CreateTranslation( g_EditedTranslationList[ulIdx].ulIdx, g_EditedTranslationList[ulIdx].ulStart, g_EditedTranslationList[ulIdx].ulEnd );
+
+	// [BB] If the sky differs from the standard sky, let the client know about it.
+	if ( level.info 
+	     && ( ( stricmp( level.skypic1, level.info->skypic1 ) != 0 )
+	          || ( stricmp( level.skypic2, level.info->skypic2 ) != 0 ) )
+	   )
+	{
+		SERVERCOMMANDS_SetMapSky( ulClient, SVCF_ONLYTHISCLIENT );
+	}
 }
 
 //*****************************************************************************
