@@ -29,6 +29,7 @@
 -	- Fixed: The first player waiting in line in a survival invasion game joins the game when one of the in game players leave. [Torr Samaho]
 -	- Fixed: After using the CCMD map on the server, clients may accidentally be blocked for 10 seconds before they can enter the new map. [Torr Samaho]
 -	- Fixed: Clients are not informed if the current sky differs from the default map sky when connecting to a server. [Torr Samaho]
+-	- Fixed: In competitive game modes with sv_noexit == true, players are not killed when trying to exit a map while being in a sector with sector special 75 (dDamage_End). This happened for example in exec.wad on map09. [Torr Samaho]
 !	- Changed up the display of medals when you have the key down. Higher medals are now on the right, opposite their subordinates. [Rivecoder]
 !	- Each player's "ready to go on" status, shown at the intermission, can now only be turned on. Hopefully, this will help clear up what this command is for and prevent rapid toggling of it. [Rivecoder]
 !	- Rank/Spread is no longer drawn if there's only one player. [Rivecoder]
