@@ -314,7 +314,7 @@ protected:
 
 	//RSA MD5 implementation
 	void Transform(const BYTE Block[64]);
-	void Update(const BYTE* Input, ULONG nInputLen);
+	void Update(const BYTE* Input, DWORD nInputLen);
 	void Final(FString &OutString);
 	inline DWORD RotateLeft(DWORD x, int n);
 	inline void FF( DWORD& A, DWORD B, DWORD C, DWORD D, DWORD X, DWORD S, DWORD T);
@@ -328,8 +328,8 @@ protected:
 
 private:
 	BYTE  m_lpszBuffer[64];		//input buffer
-	ULONG m_nCount[2];			//number of bits, modulo 2^64 (lsb first)
-	ULONG m_lMD5[4];			//MD5 checksum
+	DWORD m_nCount[2];			//number of bits, modulo 2^64 (lsb first)
+	DWORD m_lMD5[4];			//MD5 checksum
 };
 
 #endif // !defined(AFX_MD5CHECKSUM_H__2BC7928E_4C15_11D3_B2EE_A4A60E20D2C3__INCLUDED_)

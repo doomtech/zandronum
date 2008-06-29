@@ -70,15 +70,9 @@ Ltd.) and provided that the RSA Data Security notices are complied with.
 [BC] - Originally, this only worked with MFC libraries. Since Skulltag does not use MFC
 libraries, I've gone ahead and modified parts of this code to make it standalone.
 */
-
+#include "doomtype.h"
 #include <assert.h>
-#ifdef _WIN32
-#include <windows.h>
-#else
-typedef unsigned long DWORD;
-#endif
 
-#define USE_WINDOWS_DWORD
 #include "MD5Checksum.h"
 #include "MD5ChecksumDefines.h"
 
@@ -306,10 +300,10 @@ void CMD5Checksum::ByteToDWord(DWORD* Output, const BYTE* Input, UINT nLength)
 	//transfer the data by shifting and copying
 	for ( ; j < nLength; i++, j += 4)
 	{
-		Output[i] = (ULONG)Input[j]			| 
-					(ULONG)Input[j+1] << 8	| 
-					(ULONG)Input[j+2] << 16 | 
-					(ULONG)Input[j+3] << 24;
+		Output[i] = (DWORD)Input[j]			| 
+					(DWORD)Input[j+1] << 8	| 
+					(DWORD)Input[j+2] << 16 | 
+					(DWORD)Input[j+3] << 24;
 	}
 }
 
@@ -326,13 +320,13 @@ NOTES:			An MD5 checksum is calculated by four rounds of 'Transformation'.
 void CMD5Checksum::Transform(const BYTE Block[64])
 {
 	//initialise local data with current checksum
-	ULONG a = m_lMD5[0];
-	ULONG b = m_lMD5[1];
-	ULONG c = m_lMD5[2];
-	ULONG d = m_lMD5[3];
+	DWORD a = m_lMD5[0];
+	DWORD b = m_lMD5[1];
+	DWORD c = m_lMD5[2];
+	DWORD d = m_lMD5[3];
 
-	//copy BYTES from input 'Block' to an array of ULONGS 'X'
-	ULONG X[16];
+	//copy BYTES from input 'Block' to an array of DWORDS 'X'
+	DWORD X[16];
 	ByteToDWord( X, Block, 64 );
 
 	//Perform Round 1 of the transformation
@@ -551,7 +545,7 @@ ARGUMENTS:		BYTE* Input    : input block
 				UINT nInputLen : length of input block
 NOTES:			Computes the partial MD5 checksum for 'nInputLen' bytes of data in 'Input'
 *****************************************************************************************/
-void CMD5Checksum::Update( const BYTE* Input,	ULONG nInputLen )
+void CMD5Checksum::Update( const BYTE* Input,	DWORD nInputLen )
 {
 	//Compute number of bytes mod 64
 	UINT nIndex = (UINT)((m_nCount[0] >> 3) & 0x3F);
