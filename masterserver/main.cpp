@@ -50,6 +50,7 @@
 
 #include "../src/networkheaders.h"
 #include "../src/networkshared.h"
+#include "../src/svnrevision.h"
 #include "network.h"
 #include "main.h"
 
@@ -392,7 +393,7 @@ int main( )
 	unsigned long	ulIdx;
 
 	std::cerr << "=== S K U L L T A G ===\n";
-	std::cerr << "\nMaster server v1.6\n";
+	std::cerr << "\nMaster server v1.6-"SVN_REVISION_STRING"\n";
 
 	std::cerr << "Initializing on port: " << DEFAULT_MASTER_PORT << std::endl;
 
