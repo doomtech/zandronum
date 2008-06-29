@@ -15,6 +15,7 @@
 v0.97d2
 -------
 
+*+	- Optimized the monster movement code. Under some circumstances this drastically decreases network traffic. Compare map09 of dr2008v2.zip to see an example, where a lot of bandwidth is saved. Special thanks to SuperGod for finding a way to reproduce the excessive net traffic. Without it, this problem would still silently be wasting net traffic. [Torr Samaho]
 +	- Added new CVAR sv_nodrop. If set to true on a server, clients can't use the drop CCMD online. [Torr Samaho]
 -	- Fixed: The reflection rune's obituary would read "[victim] was killed via [victim]'s reflection rune". [Rivecoder]
 -	- Fixed: Joining a survival invasion server with "start as spectator" off would make you join immediately.  [Rivecoder]
