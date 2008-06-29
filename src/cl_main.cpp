@@ -3629,7 +3629,8 @@ static void client_MovePlayer( BYTESTREAM_s *pByteStream )
 	ulPlayer = NETWORK_ReadByte( pByteStream );
 
 	// Is this player visible? If not, there's no other information to read in.
-	bVisible = !!NETWORK_ReadByte( pByteStream );
+	ULONG ulFlags = NETWORK_ReadByte( pByteStream );
+	bVisible = ( ulFlags & PLAYER_VISIBLE );
 
 	// The server only sends position, angle, etc. information if the player is actually
 	// visible to us.
@@ -3694,6 +3695,18 @@ static void client_MovePlayer( BYTESTREAM_s *pByteStream )
 	{
 		P_CrouchMove( &players[ulPlayer], -1 );
 	}
+
+	// [BB] Set whether the player is attacking or not.
+	// Check: Is it a good idea to only do this, when the player is visible?
+	if ( ulFlags & PLAYER_ATTACK )
+		players[ulPlayer].cmd.ucmd.buttons |= BT_ATTACK;
+	else
+		players[ulPlayer].cmd.ucmd.buttons &= ~BT_ATTACK;
+
+	if ( ulFlags & PLAYER_ALTATTACK )
+		players[ulPlayer].cmd.ucmd.buttons |= BT_ALTATTACK;
+	else
+		players[ulPlayer].cmd.ucmd.buttons &= ~BT_ALTATTACK;
 }
 
 //*****************************************************************************
@@ -4012,6 +4025,9 @@ static void client_SetPlayerState( BYTESTREAM_s *pByteStream )
 		// [BB] It's necessary at all, because the server only informs a client about the cmd.ucmd.buttons
 		// value (containing the information if a player uses BT_ATTACK or BT_ALTATTACK) of the player
 		// who's eyes the client is spying through.
+		// [BB] SERVERCOMMANDS_MovePlayer/client_MovePlayer now informs a client about BT_ATTACK or BT_ALTATTACK
+		// of every player. This hopefully properly fixes these problems once and for all.
+		/*
 		if ( ( CLIENTDEMO_IsPlaying( ) || ( ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_COOPERATIVE ) && static_cast<signed> (ulPlayer) != consoleplayer ) )
 				&& players[ulPlayer].ReadyWeapon )
 		{
@@ -4021,6 +4037,7 @@ static void client_SetPlayerState( BYTESTREAM_s *pByteStream )
 				P_SetPsprite (&players[ulPlayer], ps_weapon, players[ulPlayer].ReadyWeapon->GetAltAtkState(!!players[ulPlayer].refire));
 
 		}
+		*/
 		break;
 	case STATE_PLAYER_ATTACK2:
 
@@ -4650,6 +4667,8 @@ static void client_UpdatePlayerExtraData( BYTESTREAM_s *pByteStream )
 	}
 	players[ulPlayer].mo->pitch = lPitch;
 	players[ulPlayer].mo->waterlevel = ulWaterLevel;
+	// [BB] The attack buttons are now already set in *_MovePlayer, so additionally setting
+	// them here is obsolete. I don't want to change this before 97D2 final though.
 	players[ulPlayer].cmd.ucmd.buttons = ulButtons;
 //	players[ulPlayer].momx = lMomX;
 //	players[ulPlayer].momy = lMomY;
@@ -7622,7 +7641,6 @@ static void client_MissileExplode( BYTESTREAM_s *pByteStream )
 	fixed_t		Z;
 	bool		bNeedExplode = true;
 	FState		*pDeadState;
-	FState		*pState;
 
 	// Read in the network ID of the exploding missile.
 	lID = NETWORK_ReadShort( pByteStream );
@@ -7655,6 +7673,7 @@ static void client_MissileExplode( BYTESTREAM_s *pByteStream )
 	// See if any of these death frames match our current frame. If they do,
 	// don't explode the missile.
 	pDeadState = pActor->FindState(NAME_Death);
+	std::vector<FState*> checkedDeathFrames;
 	while ( pDeadState != NULL )
 	{
 		if ( pActor->state == pDeadState )
@@ -7663,11 +7682,20 @@ static void client_MissileExplode( BYTESTREAM_s *pByteStream )
 			break;
 		}
 
-		pState = pDeadState;
+		bool breakLoop = false;
+		// [BB] Check if we already encountered pDeadState.
+		for ( unsigned int i = 0; i < checkedDeathFrames.size(); i++ )
+		{
+			if ( pDeadState == checkedDeathFrames[i] )
+				breakLoop = true;
+		}
+		// [BB] Save the frame pointer, necessary to check if we encounter this frame again.
+		checkedDeathFrames.push_back( pDeadState );
+
 		pDeadState = pDeadState->GetNextState( );
 
-		// If the state loops back to the beginning of the death state, or to itself, break out.
-		if (( pDeadState == pActor->FindState(NAME_Death) ) || ( pState == pDeadState ))
+		// [BB] If the state loops back to any state we already encountered, break out to prevent an infinite loop.
+		if ( breakLoop )
 			break;
 	}
 

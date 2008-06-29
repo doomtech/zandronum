@@ -293,15 +293,15 @@ void ClientObituary (AActor *self, AActor *inflictor, AActor *attacker, FName Me
 		{
 			// [BC] NAME_SpawnTelefrag, too.
 			if ((mod == NAME_Telefrag) || (mod == NAME_SpawnTelefrag)) message = GStrings("OB_MPTELEFRAG");
-
 			// [BC] Handle Skulltag's reflection rune.
 			// [RC] Moved here to fix the "[victim] was killed via [victim]'s reflection rune" bug.
-			if ( mod == NAME_Reflection )
+			else if ( mod == NAME_Reflection )
 			{
 				messagename = "OB_REFLECTION";
 				message = GStrings(messagename);
 			}
-			else if (message == NULL)
+
+			if (message == NULL)
 			{
 				if (inflictor != NULL)
 				{
@@ -1330,7 +1330,10 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 
 		// end of game hell hack
 		if ((target->Sector->special & 255) == dDamage_End
-			&& damage >= target->health)
+			&& damage >= target->health
+			// [BB] A player who tries to exit a map in a competitive game mode when DF_NO_EXIT is set,
+			// should not be saved by the hack, but killed.
+			&& MeansOfDeath != NAME_Exit)
 		{
 			damage = target->health - 1;
 		}
@@ -2360,7 +2363,7 @@ bool PLAYER_ShouldSpawnAsSpectator( player_t *pPlayer )
 	}
 
 	// [RC] If an invasion game is in progress with sv_maxlives, the player should start as a spectator.
-	if ( invasion && INVASION_PreventPlayersFromJoining() )
+	if ( INVASION_PreventPlayersFromJoining() )
 		return ( true );
 
 	// Players entering a teamplay game must choose a team first before joining the fray.

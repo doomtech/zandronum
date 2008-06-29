@@ -255,9 +255,16 @@ void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlay
 void SERVERCOMMANDS_MovePlayer( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
+	ULONG ulPlayerAttackFlags = 0;
 
 	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
 		return;
+
+	// [BB] Check if ulPlayer is pressing any attack buttons.
+	if ( players[ulPlayer].cmd.ucmd.buttons & BT_ATTACK )
+		ulPlayerAttackFlags |= PLAYER_ATTACK;
+	if ( players[ulPlayer].cmd.ucmd.buttons & BT_ALTATTACK )
+		ulPlayerAttackFlags |= PLAYER_ALTATTACK;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -277,11 +284,11 @@ void SERVERCOMMANDS_MovePlayer( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFla
 		// If this player cannot be seen by (or is not allowed to be seen by) the
 		// player, don't send position information.
 		if ( SERVER_IsPlayerVisible( ulIdx, ulPlayer ) == false )
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, false );
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, ulPlayerAttackFlags );
 		else
 		{
 			// The player IS visible, so his info is coming!
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, true );
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, PLAYER_VISIBLE|ulPlayerAttackFlags );
 
 			// Write position.
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->UnreliablePacketBuffer.ByteStream, players[ulPlayer].mo->x >> FRACBITS );

@@ -240,6 +240,7 @@ CVAR( Bool, sv_minimizetosystray, true, CVAR_ARCHIVE )
 CVAR( Int, sv_queryignoretime, 10, CVAR_ARCHIVE )
 CVAR( Bool, sv_markchatlines, false, CVAR_ARCHIVE )
 CVAR( Bool, sv_nokill, false, CVAR_ARCHIVE )
+CVAR( Bool, sv_nodrop, false, CVAR_ARCHIVE )
 CVAR( Bool, sv_pure, true, CVAR_SERVERINFO | CVAR_LATCH )
 
 CUSTOM_CVAR( String, sv_adminlistfile, "adminlist.txt", CVAR_ARCHIVE )
@@ -1620,9 +1621,14 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 		case CLC_SUMMONFRIENDCHEAT:
 		case CLC_SUMMONFOECHEAT: 
 
+			// [BB] After a map change with the CCMD map, legitimate clients may get caught by
+			// this. Since the packet is completely ignored anyway, there is no need to ban the
+			// IP for ten seconds.
+			/*
 			Printf( "CLC command (%d) from someone not in game (%s). Ignoring IP for 10 seconds.\n", static_cast<int> (lCommand), NETWORK_AddressToString( NETWORK_GetFromAddress( )));
 			// [BB] Block all further challenges of this IP for ten seconds to prevent log flooding.
 			g_floodProtectionIPQueue.addAddress ( NETWORK_GetFromAddress( ), g_lGameTime / 1000 );
+			*/
 
 			return;
 		// [BB] 200 was CLCC_ATTEMPTCONNECTION in 97d-beta4.3 and earlier versions.
@@ -2382,6 +2388,15 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 	// Send out any translations that have been edited since the start of the level.
 	for ( ulIdx = 0; ulIdx < g_EditedTranslationList.Size( ); ulIdx++ )
 		SERVERCOMMANDS_CreateTranslation( g_EditedTranslationList[ulIdx].ulIdx, g_EditedTranslationList[ulIdx].ulStart, g_EditedTranslationList[ulIdx].ulEnd, g_EditedTranslationList[ulIdx].ulPal1, g_EditedTranslationList[ulIdx].ulPal2 );
+
+	// [BB] If the sky differs from the standard sky, let the client know about it.
+	if ( level.info 
+	     && ( ( stricmp( level.skypic1, level.info->skypic1 ) != 0 )
+	          || ( stricmp( level.skypic2, level.info->skypic2 ) != 0 ) )
+	   )
+	{
+		SERVERCOMMANDS_SetMapSky( ulClient, SVCF_ONLYTHISCLIENT );
+	}
 }
 
 //*****************************************************************************
@@ -4915,6 +4930,13 @@ static bool server_InventoryDrop( BYTESTREAM_s *pByteStream )
 	if (( gamestate != GS_LEVEL ) ||
 		( paused ))
 	{
+		return ( false );
+	}
+
+	// [BB] The server may forbid dropping completely.
+	if ( sv_nodrop )
+	{
+		SERVER_PrintfPlayer( PRINT_HIGH, SERVER_GetCurrentClient(), "Dropping items is not allowed in this server.\n" );
 		return ( false );
 	}
 
