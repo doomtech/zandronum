@@ -15,7 +15,7 @@
 #include "actors/doom/doomimp.txt"
 //#include "actors/doom/demon.txt"
 #include "actors/doom/lostsoul.txt"
-//#include "actors/doom/cacodemon.txt"
+#include "actors/doom/cacodemon.txt"
 //#include "actors/doom/bruiser.txt"
 #include "actors/doom/revenant.txt"
 #include "actors/doom/arachnotron.txt"

@@ -19,6 +19,7 @@ latestzdoom branch
 *+	- Upgraded the GZDoom renderer to 1.1.04 (revision 122)! [Torr Samaho]
 +	- Added new actor flag PUFFGETSOWNER to flags5. If selected, the owner of the puff is set to the player who fired it. [Torr Samaho]
 +	- Converted BFG10K to DECORATE. [Torr Samaho]
++	- Converted Cacolantern and Abaddon to DECORATE. [Karate Chris, The Doom Master, Torr Samaho]
 +	- Actor flag NONETID is now available in DECORATE. Actors with this flag are not assigned a network id when spawned. Only use it, if you know what you are doing! [Torr Samaho]
 +	- Added 11 new game mode types to SBarInfo.  They are as follows: ctf, oneflagctf, skulltag, invasion, possession, teampossession, lastmanstanding, teamlms, survival, instagib, and buckshot. [Blzut3]
 +	- Added runeicon to SBarInfo's drawimage. [Blzut3]

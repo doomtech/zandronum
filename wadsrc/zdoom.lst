@@ -318,7 +318,7 @@ actors/doom/possessed.txt					decorate/doom/possessed.txt
 actors/doom/doomimp.txt						decorate/doom/doomimp.txt
 #actors/doom/demon.txt						decorate/doom/demon.txt
 actors/doom/lostsoul.txt					decorate/doom/lostsoul.txt
-#actors/doom/cacodemon.txt					decorate/doom/cacodemon.txt
+actors/doom/cacodemon.txt					decorate/doom/cacodemon.txt
 #actors/doom/bruiser.txt						decorate/doom/bruiser.txt
 actors/doom/arachnotron.txt					decorate/doom/arachnotron.txt
 #actors/doom/fatso.txt						decorate/doom/fatso.txt

@@ -67,3 +67,137 @@ actor DarkImpBall : DoomImpBall // [RT] Inherits from DoomImpBall for convenienc
     stop
   }
 }
+
+//=================================================================================================
+//
+// Cacolantern
+//
+//=================================================================================================
+
+ACTOR Cacolantern : Cacodemon 5006
+{
+	SpawnID 159
+	Health 800
+	Obituary "$OB_CACOLANTERN"
+	HitObituary "$OB_CACOLANTERN_MELEE"
+	States
+	{
+	Spawn:
+		HED2 A 10 A_Look
+		Loop
+	See:
+		HED2 A 3 A_Chase
+		Loop
+	Pain:
+		HED2 E 3
+		HED2 E 3 A_Pain
+		HED2 F 6
+		Goto See
+	Missile:
+		HED2 BC 5 A_FaceTarget
+		HED2 D 5 BRIGHT A_BasicAttack (8, "None", "CacolanternBall", 32)
+		Goto See
+	Death:
+		HED2 G 8 A_NoBlocking
+		HED2 H 8 A_Scream
+		HED2 IJK 8
+		HED2 L -1 A_SetFloorClip
+		Stop
+	Raise:
+		HED2 L 8 A_UnsetFloorClip
+		HED2 KJIHG 8
+		Goto See
+	}
+}
+
+ACTOR CacolanternBall
+{
+	SpawnID 219
+	Radius 6
+	Height 8
+	Speed 20
+	Damage 5
+	Projectile
+	+RANDOMIZE
+	RenderStyle Add
+	SeeSound "caco/attack"
+	DeathSound "caco/shotx"
+	States
+	{
+	Spawn:
+		BAL8 AB 4 BRIGHT
+		Loop
+	Death:
+		BAL8 CDE 6 BRIGHT
+		Stop
+	}
+}
+
+//=================================================================================================
+//
+// Abaddon
+//
+//=================================================================================================
+
+ACTOR Abaddon : Cacolantern 5015
+{
+	SpawnID 220
+	Health 1200
+	Speed 12
+	PainChance 40
+	Obituary "$OB_ABADDON"
+	HitObituary "$OB_ABADDON_MELEE"
+	States
+	{
+	Spawn:
+		HED3 A 10 A_Look
+		Loop
+	See:
+		HED3 A 3 A_Chase
+		Loop
+	Pain:
+		HED3 E 3
+		HED3 E 3 A_Pain
+		HED3 F 6
+		Goto See
+	Missile:
+		HED3 BC 5 A_FaceTarget
+		HED3 D 5 BRIGHT A_BasicAttack (8, "None", "AbaddonBall", 32)
+		HED3 BC 5 A_FaceTarget
+		HED3 D 5 BRIGHT A_BasicAttack (8, "None", "AbaddonBall", 32)
+		Goto See
+	Death:
+		HED3 G 8 A_NoBlocking
+		HED3 H 8 A_Scream
+		HED3 IJK 8
+		HED3 L -1 A_SetFloorClip
+		Stop
+	Raise:
+		HED3 L 8 A_UnSetFloorClip
+		HED3 KJIHG 8
+		Goto See
+	}
+}
+
+ACTOR AbaddonBall
+{
+	SpawnID 221
+	Radius 6
+	Height 8
+	Speed 20
+	Damage 10
+	Projectile
+	+RANDOMIZE
+	RenderStyle Add
+	SeeSound "caco/attack"
+	DeathSound "caco/shotx"
+	States
+	{
+	Spawn:
+		BAL3 AB 4 BRIGHT
+		Loop
+	Death:
+		BAL3 CDE 6 BRIGHT
+		Stop
+	}
+}
