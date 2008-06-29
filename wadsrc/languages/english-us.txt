@@ -771,7 +771,7 @@ OB_PLASMARIFLE_RARE = "%o was owned %k's plasma gun.";
 OB_BFG_GIB_RARE = "%o was gibbed by %k's big fucking gun.";
 OB_BFG10K = "%o was blasted by %k's BFG10K.";
 OB_BFG10K_RARE = "%o got a blast in the ass from %k's BFG10K.";
-OB_BFG10K_SELF = "%o got wreckless with %p BFG10K.";
+OB_BFG10K_SELF = "%o got reckless with %p BFG10K.";
 
 OB_CACODEMON_MELEE_RARE = "%o tried to get friendly with a cacodemon.";
 OB_BARON_MELEE_RARE = "%o was bitchslapped by a Baron of Hell.";
