@@ -447,17 +447,17 @@ static	FString				g_MOTD;
 // Is the client module parsing a packet?
 static	bool				g_bIsParsingPacket;
 
-// This contains the last 256 packets we've received.
+// This contains the last PACKET_BUFFER_SIZE packets we've received.
 static	PACKETBUFFER_s		g_ReceivedPacketBuffer;
 
 // This is the start position of each packet within that buffer.
-static	LONG				g_lPacketBeginning[256];
+static	LONG				g_lPacketBeginning[PACKET_BUFFER_SIZE];
 
-// This is the sequences of the last 256 packets we've received.
-static	LONG				g_lPacketSequence[256];
+// This is the sequences of the last PACKET_BUFFER_SIZE packets we've received.
+static	LONG				g_lPacketSequence[PACKET_BUFFER_SIZE];
 
-// This is the  size of the last 256 packets we've received.
-static	LONG				g_lPacketSize[256];
+// This is the  size of the last PACKET_BUFFER_SIZE packets we've received.
+static	LONG				g_lPacketSize[PACKET_BUFFER_SIZE];
 
 // This is the index of the incoming packet.
 static	BYTE				g_bPacketNum;
@@ -735,8 +735,8 @@ void CLIENT_Construct( void )
 	NETWORK_ClearBuffer( &g_LocalBuffer );
 
 	// Initialize the stored packets buffer.
-	g_ReceivedPacketBuffer.lMaxSize = MAX_UDP_PACKET * 256;
-	memset( g_ReceivedPacketBuffer.abData, 0, MAX_UDP_PACKET * 256 );
+	g_ReceivedPacketBuffer.lMaxSize = MAX_UDP_PACKET * PACKET_BUFFER_SIZE;
+	memset( g_ReceivedPacketBuffer.abData, 0, MAX_UDP_PACKET * PACKET_BUFFER_SIZE );
 
 	// Connect to a server right off the bat.
     pszIPAddress = Args->CheckValue( "-connect" );
@@ -1035,7 +1035,7 @@ void CLIENT_AttemptConnection( void )
 	// Reset a bunch of stuff.
 	NETWORK_ClearBuffer( &g_LocalBuffer );
 	memset( g_ReceivedPacketBuffer.abData, 0, MAX_UDP_PACKET * 32 );
-	for ( ulIdx = 0; ulIdx < 256; ulIdx++ )
+	for ( ulIdx = 0; ulIdx < PACKET_BUFFER_SIZE; ulIdx++ )
 	{
 		g_lPacketBeginning[ulIdx] = 0;
 		g_lPacketSequence[ulIdx] = -1;
@@ -1134,7 +1134,7 @@ bool CLIENT_GetNextPacket( void )
 	ULONG	ulIdx;
 
 	// Find the next packet in the sequence.
-	for ( ulIdx = 0; ulIdx < 256; ulIdx++ )
+	for ( ulIdx = 0; ulIdx < PACKET_BUFFER_SIZE; ulIdx++ )
 	{
 		// Found it!
 		if ( g_lPacketSequence[ulIdx] == ( g_lLastParsedSequence + 1 ))
@@ -1170,11 +1170,13 @@ void CLIENT_CheckForMissingPackets( void )
 
 	if ( g_lLastParsedSequence != g_lHighestReceivedSequence )
 	{
-		// If we've missed more than 256 packets, there's no hope that we can recover from this
-		// since the server only backs up 256 of our packets. We have to end the game.
-		if (( g_lHighestReceivedSequence - g_lLastParsedSequence ) >= 256 )
+		// If we've missed more than PACKET_BUFFER_SIZE packets, there's no hope that we can recover from this
+		// since the server only backs up PACKET_BUFFER_SIZE of our packets. We have to end the game.
+		if (( g_lHighestReceivedSequence - g_lLastParsedSequence ) >= PACKET_BUFFER_SIZE )
 		{
-			CLIENT_QuitNetworkGame( "CLIENT_CheckForMissingPackets: Missing more than 256 packets. Unable to recover." );
+			FString quitMessage;
+			quitMessage.Format ( "CLIENT_CheckForMissingPackets: Missing more than %d packets. Unable to recover.", PACKET_BUFFER_SIZE );
+			CLIENT_QuitNetworkGame( quitMessage.GetChars() );
 			return;
 		}
 
@@ -1183,7 +1185,7 @@ void CLIENT_CheckForMissingPackets( void )
 		// Now, go through and figure out what packets we're missing. Request these from the server.
 		for ( lIdx = g_lLastParsedSequence + 1; lIdx <= g_lHighestReceivedSequence - 1; lIdx++ )
 		{
-			for ( lIdx2 = 0; lIdx2 < 256; lIdx2++ )
+			for ( lIdx2 = 0; lIdx2 < PACKET_BUFFER_SIZE; lIdx2++ )
 			{
 				// We've found this packet! No need to tell the server we're missing it.
 				if ( g_lPacketSequence[lIdx2] == lIdx )
@@ -1196,7 +1198,7 @@ void CLIENT_CheckForMissingPackets( void )
 			}
 
 			// If we didn't find the packet, tell the server we're missing it.
-			if ( lIdx2 == 256 )
+			if ( lIdx2 == PACKET_BUFFER_SIZE )
 			{
 				if ( debugfile )
 					fprintf( debugfile, "Missing packet %d.\n", static_cast<int> (lIdx) );
@@ -1237,7 +1239,7 @@ bool CLIENT_ReadPacketHeader( BYTESTREAM_s *pByteStream )
 		Printf( "CLIENT_ReadPacketHeader: WARNING! Expected SVC_HEADER or SVC_UNRELIABLEPACKET!\n" );
 
 	// Check to see if we've already received this packet. If so, skip it.
-	for ( lIdx = 0; lIdx < 256; lIdx++ )
+	for ( lIdx = 0; lIdx < PACKET_BUFFER_SIZE; lIdx++ )
 	{
 		if ( g_lPacketSequence[lIdx] == lSequence )
 			return ( false );

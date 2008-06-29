@@ -98,7 +98,7 @@ typedef enum
 typedef struct
 {
 	// This array of bytes is the storage for the packet data.
-	BYTE	abData[MAX_UDP_PACKET * 256];
+	BYTE	abData[MAX_UDP_PACKET * PACKET_BUFFER_SIZE];
 
 	// This is the number of bytes in paData.
 	LONG	lMaxSize;
