@@ -522,8 +522,7 @@ bool P_Move (AActor *actor)
 		// position.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
-			SERVERCOMMANDS_SetThingMoveDir( actor );
-			SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z );
+			SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z|CM_MOVEDIR );
 		}
 
 		// if the special is not a door that can be opened, return false
@@ -632,8 +631,7 @@ void P_DoNewChaseDir (AActor *actor, fixed_t deltax, fixed_t deltay)
 			// position.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
-				SERVERCOMMANDS_SetThingMoveDir( actor );
-				SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z );
+				SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z|CM_MOVEDIR );
 			}
 
 			return;
@@ -663,8 +661,7 @@ void P_DoNewChaseDir (AActor *actor, fixed_t deltax, fixed_t deltay)
 			// position.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
-				SERVERCOMMANDS_SetThingMoveDir( actor );
-				SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z );
+				SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z|CM_MOVEDIR );
 			}
 
 			// either moved forward or attacked
@@ -681,8 +678,7 @@ void P_DoNewChaseDir (AActor *actor, fixed_t deltax, fixed_t deltay)
 			// position.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
-				SERVERCOMMANDS_SetThingMoveDir( actor );
-				SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z );
+				SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z|CM_MOVEDIR );
 			}
 
 			return;
@@ -701,8 +697,7 @@ void P_DoNewChaseDir (AActor *actor, fixed_t deltax, fixed_t deltay)
 				// position.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				{
-					SERVERCOMMANDS_SetThingMoveDir( actor );
-					SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z );
+					SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z|CM_MOVEDIR );
 				}
 
 				return;
@@ -724,8 +719,7 @@ void P_DoNewChaseDir (AActor *actor, fixed_t deltax, fixed_t deltay)
 					// position.
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 					{
-						SERVERCOMMANDS_SetThingMoveDir( actor );
-						SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z );
+						SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z|CM_MOVEDIR );
 					}
 
 					return;
@@ -746,8 +740,7 @@ void P_DoNewChaseDir (AActor *actor, fixed_t deltax, fixed_t deltay)
 					// position.
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 					{
-						SERVERCOMMANDS_SetThingMoveDir( actor );
-						SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z );
+						SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z|CM_MOVEDIR );
 					}
 
 					return;
@@ -765,8 +758,7 @@ void P_DoNewChaseDir (AActor *actor, fixed_t deltax, fixed_t deltay)
 			// position.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
-				SERVERCOMMANDS_SetThingMoveDir( actor );
-				SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z );
+				SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z|CM_MOVEDIR );
 			}
 
 			return;
@@ -779,8 +771,7 @@ void P_DoNewChaseDir (AActor *actor, fixed_t deltax, fixed_t deltay)
 	// position.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
-		SERVERCOMMANDS_SetThingMoveDir( actor );
-		SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z );
+		SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z|CM_MOVEDIR );
 	}
 }
 
@@ -975,8 +966,7 @@ void P_RandomChaseDir (AActor *actor)
 					// position.
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 					{
-						SERVERCOMMANDS_SetThingMoveDir( actor );
-						SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z );
+						SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z|CM_MOVEDIR );
 					}
 					return;
 				}
@@ -1002,8 +992,7 @@ void P_RandomChaseDir (AActor *actor)
 					// position.
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 					{
-						SERVERCOMMANDS_SetThingMoveDir( actor );
-						SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z );
+						SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z|CM_MOVEDIR );
 					}
 
 					// either moved forward or attacked
@@ -1020,8 +1009,7 @@ void P_RandomChaseDir (AActor *actor)
 					// position.
 					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 					{
-						SERVERCOMMANDS_SetThingMoveDir( actor );
-						SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z );
+						SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z|CM_MOVEDIR );
 					}
 
 					return;
@@ -1061,8 +1049,7 @@ void P_RandomChaseDir (AActor *actor)
 				// position.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				{
-					SERVERCOMMANDS_SetThingMoveDir( actor );
-					SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z );
+					SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z|CM_MOVEDIR );
 				}
 
 				return;
@@ -1104,8 +1091,7 @@ void P_RandomChaseDir (AActor *actor)
 			// position.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
-				SERVERCOMMANDS_SetThingMoveDir( actor );
-				SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z );
+				SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z|CM_MOVEDIR );
 			}
 
 			actor->movecount = pr_newchasedir() & 15;
@@ -1119,8 +1105,7 @@ void P_RandomChaseDir (AActor *actor)
 	// position.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
-		SERVERCOMMANDS_SetThingMoveDir( actor );
-		SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z );
+		SERVERCOMMANDS_MoveThing( actor, CM_X|CM_Y|CM_Z|CM_MOVEDIR );
 	}
 }
 

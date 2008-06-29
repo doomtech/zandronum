@@ -878,6 +878,15 @@ public:
 	// [RH] Used to interpolate the view to get >35 FPS
 	fixed_t PrevX, PrevY, PrevZ;
 
+	// [BB] Last tic in which the server sent a xyz-position / movedir update about this actor to the clients.
+	int	lastNetXUpdateTic, lastNetYUpdateTic, lastNetZUpdateTic, lastNetMovedirUpdateTic;
+
+	// [BB] Last xyz-position that was sent to the client.
+	fixed_t lastX, lastY, lastZ;
+
+	// [BB] Last movedir that was sent to the client.
+	BYTE lastMovedir;
+
 	// ThingIDs
 	static void ClearTIDHashes ();
 	void AddToHash ();

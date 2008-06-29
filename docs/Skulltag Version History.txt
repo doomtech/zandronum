@@ -17,6 +17,7 @@ latestzdoom branch
 
 *+	- Thoroughly updated Skulltag's ZDoom base to the latest ZDoom SVN repository revision (currently 1033). [Torr Samaho]
 *+	- Upgraded the GZDoom renderer to 1.1.04 (revision 122)! [Torr Samaho]
+*+	- Optimized the monster movement code. Under some circumstances this drastically decreases network traffic. Compare map09 of dr2008v2.zip to see an example, where a lot of bandwidth is saved. Special thanks to SuperGod for finding a way to reproduce the excessive net traffic. Without it, this problem would still silently be wasting net traffic. [Torr Samaho]
 +	- Added new actor flag PUFFGETSOWNER to flags5. If selected, the owner of the puff is set to the player who fired it. [Torr Samaho]
 +	- Converted BFG10K to DECORATE. [Torr Samaho]
 +	- Converted Cacolantern and Abaddon to DECORATE. [Karate Chris, The Doom Master, Torr Samaho]
