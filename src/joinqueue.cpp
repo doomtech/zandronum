@@ -305,6 +305,10 @@ void JOINQUEUE_PopQueue( LONG lNumSlots )
 		(( SURVIVAL_GetState( ) == SURVS_INPROGRESS ) || ( SURVIVAL_GetState( ) == SURVS_MISSIONFAILED )))
 		return;
 
+	// [BB] Don't allow joining during survival invasion games.
+	if ( INVASION_PreventPlayersFromJoining() )
+		return;
+
 	// Try to find the next person in line.
 	ulIdx = 0;
 	while ( 1 )
