@@ -71,6 +71,7 @@ enum
 	CM_MOMY			= 1 << 5,
 	CM_MOMZ			= 1 << 6,
 	CM_PITCH		= 1 << 7,
+	CM_MOVEDIR		= 1 << 8,
 };
 
 // [BB] Flags for client_MovePlayer/SERVERCOMMANDS_MovePlayer

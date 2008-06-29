@@ -96,6 +96,47 @@ bool EnsureActorHasNetID( AActor *pActor )
 
 //*****************************************************************************
 //
+// [BB] Check if the actor already was updated during this tic, and alters ulBits accorindly.
+void RemoveUnnecessaryPositionUpdateFlags( AActor *pActor, ULONG &ulBits )
+{
+	if ( (pActor->lastNetXUpdateTic == gametic) && (pActor->lastX == pActor->x) )
+		ulBits  &= ~CM_X;
+	if ( (pActor->lastNetYUpdateTic == gametic) && (pActor->lastY == pActor->y) )
+		ulBits  &= ~CM_Y;
+	if ( (pActor->lastNetZUpdateTic == gametic) && (pActor->lastZ == pActor->z) )
+		ulBits  &= ~CM_Z;
+	if ( (pActor->lastNetMovedirUpdateTic == gametic) && (pActor->lastMovedir == pActor->movedir) )
+		ulBits  &= ~CM_MOVEDIR;
+}
+
+//*****************************************************************************
+//
+// [BB] Mark the actor as updated according to ulBits.
+void ActorNetPositionUpdated( AActor *pActor, ULONG &ulBits )
+{
+	if ( ulBits & CM_X )
+	{
+		pActor->lastNetXUpdateTic = gametic;
+		pActor->lastX = pActor->x;
+	}
+	if ( ulBits & CM_Y )
+	{
+		pActor->lastNetYUpdateTic = gametic;
+		pActor->lastY = pActor->y;
+	}
+	if ( ulBits & CM_Z )
+	{
+		pActor->lastNetZUpdateTic = gametic;
+		pActor->lastZ = pActor->z;
+	}
+	if ( ulBits & CM_MOVEDIR )
+	{
+		pActor->lastNetMovedirUpdateTic = gametic;
+		pActor->lastMovedir = pActor->movedir;
+	}
+}
+//*****************************************************************************
+//
 void SERVERCOMMANDS_Ping( ULONG ulTime )
 {
 	ULONG	ulIdx;
@@ -1499,6 +1540,10 @@ void SERVERCOMMANDS_MoveThing( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
 
+	// [BB] Only skip updates, if sent to all players.
+	if ( ulFlags == 0 )
+		RemoveUnnecessaryPositionUpdateFlags ( pActor, ulBits );
+
 	ulSize = 0;
 	if ( ulBits & CM_X )
 		ulSize += 2;
@@ -1516,6 +1561,8 @@ void SERVERCOMMANDS_MoveThing( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra
 		ulSize += 2;
 	if ( ulBits & CM_PITCH )
 		ulSize += 4;
+	if ( ulBits & CM_MOVEDIR )
+		ulSize += 1;
 
 	// Nothing to update.
 	if ( ulSize == 0 )
@@ -1562,7 +1609,15 @@ void SERVERCOMMANDS_MoveThing( AActor *pActor, ULONG ulBits, ULONG ulPlayerExtra
 		// Write pitch.
 		if ( ulBits & CM_PITCH )
 			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->pitch );
+
+		// Write movedir.
+		if ( ulBits & CM_MOVEDIR )
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->movedir );
 	}
+
+	// [BB] Only mark something as updated, if it the update was sent to all players.
+	if ( ulFlags == 0 )
+		ActorNetPositionUpdated ( pActor, ulBits );
 }
 
 //*****************************************************************************
@@ -1574,6 +1629,10 @@ void SERVERCOMMANDS_MoveThingExact( AActor *pActor, ULONG ulBits, ULONG ulPlayer
 
 	if ( !EnsureActorHasNetID (pActor) )
 		return;
+
+	// [BB] Only skip updates, if sent to all players.
+	if ( ulFlags == 0 )
+		RemoveUnnecessaryPositionUpdateFlags ( pActor, ulBits );
 
 	ulSize = 0;
 	if ( ulBits & CM_X )
@@ -1592,6 +1651,8 @@ void SERVERCOMMANDS_MoveThingExact( AActor *pActor, ULONG ulBits, ULONG ulPlayer
 		ulSize += 4;
 	if ( ulBits & CM_PITCH )
 		ulSize += 4;
+	if ( ulBits & CM_MOVEDIR )
+		ulSize += 1;
 
 	// Nothing to update.
 	if ( ulSize == 0 )
@@ -1638,7 +1699,15 @@ void SERVERCOMMANDS_MoveThingExact( AActor *pActor, ULONG ulBits, ULONG ulPlayer
 		// Write pitch.
 		if ( ulBits & CM_PITCH )
 			NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->pitch );
+
+		// Write movedir.
+		if ( ulBits & CM_MOVEDIR )
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->movedir );
 	}
+
+	// [BB] Only mark something as updated, if it the update was sent to all players.
+	if ( ulFlags == 0 )
+		ActorNetPositionUpdated ( pActor, ulBits );
 }
 
 //*****************************************************************************

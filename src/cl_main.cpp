@@ -5208,6 +5208,7 @@ static void client_MoveThing( BYTESTREAM_s *pByteStream )
 		if ( lBits & CM_MOMY ) NETWORK_ReadShort( pByteStream );
 		if ( lBits & CM_MOMZ ) NETWORK_ReadShort( pByteStream );
 		if ( lBits & CM_PITCH ) NETWORK_ReadLong( pByteStream );
+		if ( lBits & CM_MOVEDIR ) NETWORK_ReadByte( pByteStream );
 
 		return;
 	}
@@ -5242,6 +5243,10 @@ static void client_MoveThing( BYTESTREAM_s *pByteStream )
 	// Read in the pitch data.
 	if ( lBits & CM_PITCH )
 		pActor->pitch = NETWORK_ReadLong( pByteStream );
+
+	// Read in the movedir data.
+	if ( lBits & CM_MOVEDIR )
+		pActor->movedir = NETWORK_ReadByte( pByteStream );
 
 	// If the server is moving us, don't let our prediction get messed up.
 	if ( pActor == players[consoleplayer].mo )
@@ -5284,6 +5289,7 @@ static void client_MoveThingExact( BYTESTREAM_s *pByteStream )
 		if ( lBits & CM_MOMY ) NETWORK_ReadLong( pByteStream );
 		if ( lBits & CM_MOMZ ) NETWORK_ReadLong( pByteStream );
 		if ( lBits & CM_PITCH ) NETWORK_ReadLong( pByteStream );
+		if ( lBits & CM_MOVEDIR ) NETWORK_ReadByte( pByteStream );
 
 		return;
 	}
@@ -5318,6 +5324,10 @@ static void client_MoveThingExact( BYTESTREAM_s *pByteStream )
 	// Read in the pitch data.
 	if ( lBits & CM_PITCH )
 		pActor->pitch = NETWORK_ReadLong( pByteStream );
+
+	// Read in the movedir data.
+	if ( lBits & CM_MOVEDIR )
+		pActor->movedir = NETWORK_ReadByte( pByteStream );
 }
 
 //*****************************************************************************

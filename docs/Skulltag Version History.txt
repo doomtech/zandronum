@@ -15,6 +15,7 @@
 <trunk>
 -------
 
+*+	- Optimized the monster movement code. Under some circumstances this drastically decreases network traffic. Compare map09 of dr2008v2.zip to see an example, where a lot of bandwidth is saved. Special thanks to SuperGod for finding a way to reproduce the excessive net traffic. Without it, this problem would still silently be wasting net traffic. [Torr Samaho]
 +	- Added medal families: "higher" medals, such as incredible, now immediately replace lower medals, such as excellent. This means that when on a spree, you can go right from excellent to incredible, accuracy to precision, impressive to most impressive, and so on without waiting for the lower medal to slide off. Overall this makes the queue run a lot faster, especially if you have a large backlog of medals. [Rivecoder]
 +	- Added an "in console" icon that's shown above a player's head when he's in the menu or console. [Rivecoder]
 +	- The five/one minute warning announcer sounds are now played. [Rivecoder]
