@@ -18,7 +18,8 @@ v0.97d2
 -	- Fixed: The reflection rune's obituary would read "[victim] was killed via [victim]'s reflection rune". [Rivecoder]
 -	- Fixed: Joining a survival invasion server with "start as spectator" off would make you join immediately.  [Rivecoder]
 -	- Fixed: Clients sometimes accidentally switch the weapon of one of the other players locally. [Torr Samaho]
-!	- Fixed a typo in the BFG10k's obituary. [Rivecoder]
+-	- Fixed a typo in the callvote code. [Rivecoder]
+-	- Fixed a typo in the BFG10k's obituary. [Rivecoder]
 
 v0.97d2 RC3
 -----------
