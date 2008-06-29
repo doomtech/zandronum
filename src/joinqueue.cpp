@@ -189,7 +189,7 @@ void JOINQUEUE_PlayerLeftGame( bool bWantPop )
 	return;
 
 	// Nothing to do if there's nobody waiting in the queue.
-	if ( static_cast<signed> (g_lJoinQueue[0].ulPlayer) == -1 )
+	if ( g_lJoinQueue[0].ulPlayer == MAXPLAYERS )
 		return;
 
 	// Try to find the next person in line.
@@ -197,7 +197,7 @@ void JOINQUEUE_PlayerLeftGame( bool bWantPop )
 	while ( 1 )
 	{
 		// Found end of list.
-		if (( static_cast<signed> (g_lJoinQueue[ulIdx].ulPlayer) == -1 ) || ( ulIdx == MAXPLAYERS ))
+		if (( g_lJoinQueue[ulIdx].ulPlayer == MAXPLAYERS ) || ( ulIdx == MAXPLAYERS ))
 			break;
 
 		// Found a player waiting in line. They will now join the game!
@@ -248,7 +248,7 @@ void JOINQUEUE_PlayerLeftGame( bool bWantPop )
 	}
 
 	// Clear out the last slot.
-	g_lJoinQueue[MAXPLAYERS - 1].ulPlayer = -1;
+	g_lJoinQueue[MAXPLAYERS - 1].ulPlayer = MAXPLAYERS;
 
 	// If we're the server, tell everyone their new position in line.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -265,7 +265,7 @@ void JOINQUEUE_SpectatorLeftGame( ULONG ulPlayer )
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		// Hit the end of the list.
-		if ( static_cast<signed> (g_lJoinQueue[ulIdx].ulPlayer) == -1 )
+		if ( g_lJoinQueue[ulIdx].ulPlayer == MAXPLAYERS )
 			continue;
 
 		// This player was in line. Bump everyone in line after him up one position.
@@ -292,7 +292,7 @@ void JOINQUEUE_PopQueue( LONG lNumSlots )
 	ULONG	ulIdx2;
 
 	// Nothing to do if there's nobody waiting in the queue.
-	if ( static_cast<signed> (g_lJoinQueue[0].ulPlayer) == -1 )
+	if ( g_lJoinQueue[0].ulPlayer == MAXPLAYERS )
 		return;
 
 	// Don't allow joining during LMS or team LMS games.
@@ -311,7 +311,7 @@ void JOINQUEUE_PopQueue( LONG lNumSlots )
 	{
 		// Found end of list.
 		if (( ulIdx == MAXPLAYERS ) ||
-			( static_cast<signed> (g_lJoinQueue[ulIdx].ulPlayer) == -1 ) ||
+			( g_lJoinQueue[ulIdx].ulPlayer == MAXPLAYERS ) ||
 			( lNumSlots == 0 ))
 		{
 			break;
@@ -407,7 +407,7 @@ ULONG JOINQUEUE_AddPlayer( JOINSLOT_t JoinSlot )
 			return ( ulIdx );
 
 		// Found an empty slot.
-		if ( static_cast<signed> (g_lJoinQueue[ulIdx].ulPlayer) == -1 )
+		if ( g_lJoinQueue[ulIdx].ulPlayer == MAXPLAYERS )
 		{
 			g_lJoinQueue[ulIdx].ulPlayer	= JoinSlot.ulPlayer;
 			g_lJoinQueue[ulIdx].ulTeam		= JoinSlot.ulTeam;
@@ -426,7 +426,7 @@ void JOINQUEUE_ClearList( void )
 	ULONG	ulIdx;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-		g_lJoinQueue[ulIdx].ulPlayer = -1;
+		g_lJoinQueue[ulIdx].ulPlayer = MAXPLAYERS;
 }
 
 //*****************************************************************************
