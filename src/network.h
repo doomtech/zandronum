@@ -72,12 +72,23 @@ enum
 	CM_MOMZ			= 1 << 6,
 	CM_PITCH		= 1 << 7,
 };
+
+// [BB] Flags for client_MovePlayer/SERVERCOMMANDS_MovePlayer
+enum
+{
+	PLAYER_VISIBLE		= 1 << 0,
+	PLAYER_ATTACK			= 1 << 1,
+	PLAYER_ALTATTACK	= 1 << 2,
+};
+
+/* [BB] This is not used anywhere anymore.
 // Should we use huffman compression?
 #define	USE_HUFFMAN_COMPRESSION
 
 // Extra player update info for spectators.
 #define	PLAYER_UPDATE_WEAPON	1
 #define	PLAYER_UPDATE_PITCH		2
+*/
 
 // Movement flags being sent by the client.
 #define	CLIENT_UPDATE_YAW				0x01

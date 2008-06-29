@@ -21,6 +21,9 @@ v0.97d2
 -	- Fixed a typo in the callvote code. [Rivecoder]
 -	- Fixed a typo in the BFG10k's obituary. [Rivecoder]
 -	- Fixed: Clients may completely freeze, i.e. get stuck in an infinite loop, when handling actors with a looping death state that loops over multiple frames, but doesn't loop back to the beginning of the death state. [Torr Samaho]
+!	- Changed: Clients are now always informed when other players are pressing any attack buttons. This is done in a way that doesn't increase net traffic at all and fixes several problems: [Torr Samaho]
+		- Now fully fixed: Attack animations are not always displayed properly in demos if you are spying a player that you didn't spy when recording the demo.
+		- When using coop spy, other players may get stuck in the attack state locally.
 
 v0.97d2 RC3
 -----------
