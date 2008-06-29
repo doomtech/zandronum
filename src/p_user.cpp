@@ -2887,36 +2887,8 @@ CCMD( join ) {
 //
 bool PLAYER_Responder( event_t *pEvent )
 {
-	// Nothing to handle if they're not spectating.
-	if ( players[consoleplayer].bSpectating == false )
-		return ( false );
-
-	if ( pEvent->type == EV_GUI_KeyDown )
-	{
-		// If the player hits the spacebar, ask them if they'd like to join the current game.
- 		if ( pEvent->data2 == ' ' )
-		{
-			if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DEADSPECTATORS ) && players[consoleplayer].bDeadSpectator )
-			{
-				Printf( "You cannot rejoin the game until the round is over!\n" );
-				return ( true );
-			}
-
-			if (( teamplay || ( teamgame && TemporaryTeamStarts.Size( ) == 0 ) || teamlms || teampossession ) && (( dmflags2 & DF2_NO_TEAM_SELECT ) == false ))
-			{
-				M_StartControlPanel( true );
-				M_StartJoinTeamMenu( );
-			}
-			else {
-				M_StartControlPanel( true );
-				M_StartJoinMenu( );
-			}
-
-			return ( true );
-		}
-	}
-
-	return ( false );
+	// [RC] This isn't used ATM.
+	return false;
 }
 
 //----------------------------------------------------------------------------

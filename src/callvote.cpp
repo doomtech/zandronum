@@ -671,7 +671,7 @@ CCMD( callvote )
 	// Don't allow one person to call a vote, and vote by himself.
 	if ( CALLVOTE_CountNumEligibleVoters( ) < 2 )
 	{
-		Printf( "There must be at least two eligle voters to call a vote!\n" );
+		Printf( "There must be at least two eligible voters to call a vote!\n" );
 		return;
 	}
 

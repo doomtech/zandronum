@@ -61,7 +61,8 @@
 // Same values as defined in AFloatyIcon::States[].
 #define	S_TERMINATORARTIFACT			0
 #define S_CHAT					( S_TERMINATORARTIFACT + 4 )
-#define S_ALLY					( S_CHAT + 1 )
+#define S_INCONSOLE				( S_CHAT + 1 )
+#define S_ALLY					( S_INCONSOLE + 2 )
 #define	S_BLUEFLAG				( S_ALLY + 1 )
 #define	S_REDFLAG				( S_BLUEFLAG + 6 )
 #define	S_WHITEFLAG				( S_REDFLAG + 6 )
@@ -93,31 +94,39 @@
 
 //*****************************************************************************
 enum
-{
+{	
 	MEDAL_EXCELLENT,
 	MEDAL_INCREDIBLE,
+
 	MEDAL_IMPRESSIVE,
 	MEDAL_MOSTIMPRESSIVE,
+	
 	MEDAL_DOMINATION,
 	MEDAL_TOTALDOMINATION,
+	
 	MEDAL_ACCURACY,
 	MEDAL_PRECISION,
+	
+	MEDAL_YOUFAILIT,
+	MEDAL_YOURSKILLISNOTENOUGH,
+
+	MEDAL_LLAMA,
+	MEDAL_SPAM,	
+
 	MEDAL_VICTORY,
 	MEDAL_PERFECT,
+	
 	MEDAL_TERMINATION,
 	MEDAL_FIRSTFRAG,
 	MEDAL_CAPTURE,
 	MEDAL_TAG,
 	MEDAL_ASSIST,
 	MEDAL_DEFENSE,
-	MEDAL_LLAMA,
-	MEDAL_SPAM,
-	MEDAL_YOUFAILIT,
-	MEDAL_YOURSKILLISNOTENOUGH,
 	MEDAL_FISTING,
 
 	NUM_MEDALS
 };
+
 
 //*****************************************************************************
 #define	MEDALQUEUE_DEPTH			NUM_MEDALS
@@ -142,8 +151,13 @@ typedef struct
 	// Announcer entry that's played when this medal is triggered.
 	const char	szAnnouncerEntry[32];
 
+	// [RC] The "lower" medal that this overrides.
+	ULONG		ulLowerMedal;
+
 	// Name of sound to play when this medal type is triggered.
 	const char	szSoundName[64];
+
+	
 
 } MEDAL_t;
 

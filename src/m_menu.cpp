@@ -71,6 +71,7 @@
 #include "chat.h"
 #include "cl_demo.h"
 #include "cl_main.h"
+#include "cl_commands.h"
 #include "network.h"
 #include "deathmatch.h"
 #include "team.h"
@@ -3465,6 +3466,12 @@ void M_StartControlPanel (bool makeSound)
 	{
 		S_Sound (CHAN_VOICE, "menu/activate", 1, ATTN_NONE);
 	}
+
+	players[consoleplayer].bInConsole = true;
+
+	// [RC] Tell the server so we get an "in console" icon.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		CLIENTCOMMANDS_EnterConsole( );
 }
 
 
@@ -3653,6 +3660,12 @@ void M_ClearMenus ()
 	drawSkull = true;
 	M_DemoNoPlay = false;
 	BorderNeedRefresh = screen->GetPageCount ();
+
+	players[consoleplayer].bInConsole = false;
+
+	// [RC] Tell the server so our "in console" icon is removed.
+	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+		CLIENTCOMMANDS_ExitConsole( );
 }
 
 

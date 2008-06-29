@@ -65,6 +65,9 @@ bool M_StartOptionsMenu (void);
 //  Setup join team menu
 bool M_StartJoinTeamMenu (void);
 
+// [RC] Shows the appropiate join menu or message.
+bool M_JoinMenu ( void );
+
 // [RC] Join, but no teams
 bool M_StartJoinMenu (void);
 

@@ -122,6 +122,20 @@ void CLIENTCOMMANDS_EndChat( void )
 
 //*****************************************************************************
 //
+void CLIENTCOMMANDS_EnterConsole( void )
+{
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_ENTERCONSOLE );
+}
+
+//*****************************************************************************
+//
+void CLIENTCOMMANDS_ExitConsole( void )
+{
+	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_EXITCONSOLE );
+}
+
+//*****************************************************************************
+//
 void CLIENTCOMMANDS_Say( ULONG ulMode, const char *pszString )
 {
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_SAY );

@@ -509,6 +509,13 @@ bool AWeapon::CheckAmmo (int fireMode, bool autoSwitch, bool requireAmmo)
 	{
 		return true;
 	}
+
+	// [BB] Clients should only handle out of ammo weapon switches for themself, since
+	// they sometimes don't know the exact ammount of ammo the other players have. They
+	// are informed by the server of the weapon change anyway.
+	if ( (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) && ( Owner->player - players != consoleplayer ))
+		return false;
+
 	// out of ammo, pick a weapon to change to
 	if (autoSwitch)
 	{

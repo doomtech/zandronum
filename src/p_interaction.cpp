@@ -236,8 +236,6 @@ void ClientObituary (AActor *self, AActor *inflictor, AActor *attacker, FName Me
 	case NAME_Drowning:		messagename = "OB_WATER";		break;
 	case NAME_Slime:		messagename = "OB_SLIME";		break;
 	case NAME_Fire:			if (attacker == NULL) messagename = "OB_LAVA";		break;
-	// [BC] Handle Skulltag's reflection rune.
-	case NAME_Reflection:	messagename = "OB_REFLECTION";	break;
 	}
 
 	if (messagename != NULL)
@@ -295,7 +293,15 @@ void ClientObituary (AActor *self, AActor *inflictor, AActor *attacker, FName Me
 		{
 			// [BC] NAME_SpawnTelefrag, too.
 			if ((mod == NAME_Telefrag) || (mod == NAME_SpawnTelefrag)) message = GStrings("OB_MPTELEFRAG");
-			if (message == NULL)
+
+			// [BC] Handle Skulltag's reflection rune.
+			// [RC] Moved here to fix the "[victim] was killed via [victim]'s reflection rune" bug.
+			if ( mod == NAME_Reflection )
+			{
+				messagename = "OB_REFLECTION";
+				message = GStrings(messagename);
+			}
+			else if (message == NULL)
 			{
 				if (inflictor != NULL)
 				{
@@ -2352,6 +2358,10 @@ bool PLAYER_ShouldSpawnAsSpectator( player_t *pPlayer )
 	{
 		return ( true );
 	}
+
+	// [RC] If an invasion game is in progress with sv_maxlives, the player should start as a spectator.
+	if ( invasion && INVASION_PreventPlayersFromJoining() )
+		return ( true );
 
 	// Players entering a teamplay game must choose a team first before joining the fray.
 	if (( pPlayer->bOnTeam == false ) || ( playeringame[pPlayer - players] == false ))
