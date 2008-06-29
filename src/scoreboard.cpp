@@ -219,7 +219,7 @@ static void SCOREBOARD_DrawBottomString( void )
 			0.10f,
 			0.15f );
 
-		StatusBar->AttachMessage( pMsg, 'WAIT' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('W','A','I','T') );
 	}
 }
 
@@ -298,7 +298,7 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 	g_BottomString = "";
 
 	// If the console player is looking through someone else's eyes, draw the following message.
-	if ( SCOREBOARD_GetViewPlayer() != consoleplayer )
+	if ( static_cast<signed> (SCOREBOARD_GetViewPlayer()) != consoleplayer )
 	{
 		char cColor = V_GetColorChar( CR_RED );
 
@@ -321,7 +321,7 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 			if(g_lNumAlliesLeft < 1)
 				g_BottomString += "\\cgLAST PLAYER ALIVE"; // Uh-oh.
 			else {
-				g_BottomString.AppendFormat( "\\cc%d ", g_lNumAlliesLeft );
+				g_BottomString.AppendFormat( "\\cc%d ", static_cast<int> (g_lNumAlliesLeft) );
 				g_BottomString.AppendFormat( "\\cGALL%s LEFT", ( g_lNumAlliesLeft != 1 ) ? "IES" : "Y" );
 			}
 		}
@@ -335,12 +335,12 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 			if( teamlms )
 			{
 				g_BottomString += "\\cC";
-				g_BottomString.AppendFormat( "%d ", g_lNumOpponentsLeft );
+				g_BottomString.AppendFormat( "%d ", static_cast<int> (g_lNumOpponentsLeft) );
 				g_BottomString.AppendFormat( "\\cGOPPONENT%s", ( g_lNumOpponentsLeft != 1 ) ? "s" : "" );
 				g_BottomString += "\\cC";					
 				if(g_lNumAlliesLeft > 0)
 				{
-					g_BottomString.AppendFormat( ", %d ", g_lNumAlliesLeft );
+					g_BottomString.AppendFormat( ", %d ", static_cast<int> (g_lNumAlliesLeft) );
 					g_BottomString.AppendFormat( "\\cGALL%s LEFT ", ( g_lNumAlliesLeft != 1 ) ? "IES" : "Y" );
 				}
 				else
@@ -349,7 +349,7 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 			else
 			{
 				g_BottomString += "\\cC";
-				g_BottomString.AppendFormat( "%d ", g_lNumOpponentsLeft );
+				g_BottomString.AppendFormat( "%d ", static_cast<int> (g_lNumOpponentsLeft) );
 				g_BottomString.AppendFormat( "\\cGOPPONENT%s LEFT", ( g_lNumOpponentsLeft != 1 ) ? "S" : "" );
 			}
 		}
@@ -381,7 +381,7 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 			default:
 
 				g_BottomString += "\\cdWAITING TO PLAY - ";
-				g_BottomString.AppendFormat( "%d", lPosition + 1 );
+				g_BottomString.AppendFormat( "%d", static_cast<int> (lPosition + 1) );
 				g_BottomString += "TH IN LINE";
 				break;
 			}
@@ -418,6 +418,8 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 				return;
 			}
 			break;
+		default:
+			break;
 		}
 	}
 
@@ -440,6 +442,8 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 				return;
 			}
 			break;
+		default:
+			break;
 		}
 	}
 
@@ -460,6 +464,8 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 			{
 				g_BottomString += "\\cgWAITING FOR PLAYERS";
 			}
+			break;
+		default:
 			break;
 		}
 	}
@@ -482,6 +488,8 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 				// Nothing more to do if we're just waiting for players.
 				return;
 			}
+			break;
+		default:
 			break;
 		}
 	}
@@ -506,6 +514,8 @@ void SCOREBOARD_Render( ULONG ulDisplayPlayer )
 
 			// Render the number of monsters left, etc.
 			SCOREBOARD_RenderInvasionStats( );
+			break;
+		default:
 			break;
 		}
 	}
@@ -837,7 +847,7 @@ void SCOREBOARD_RenderStats_TeamScores( void )
 		else
 			return;
 
-		sprintf( szString , "\\cG%s: \\cC%d", TEAM_GetName( TEAM_RED ), lRedScore );
+		sprintf( szString , "\\cG%s: \\cC%d", TEAM_GetName( TEAM_RED ), static_cast<int> (lRedScore) );
 		V_ColorizeString( szString );
 
 		if ( g_bScale )
@@ -861,7 +871,7 @@ void SCOREBOARD_RenderStats_TeamScores( void )
 
 		ulYPos += g_ulTextHeight;
 
-		sprintf( szString , "\\cG%s: \\cC%d", TEAM_GetName( TEAM_BLUE ), lBlueScore );
+		sprintf( szString , "\\cG%s: \\cC%d", TEAM_GetName( TEAM_BLUE ), static_cast<int> (lBlueScore) );
 		V_ColorizeString( szString );
 
 		if ( g_bScale )
@@ -902,7 +912,7 @@ void SCOREBOARD_RenderStats_RankSpread( void )
 	if ( g_ulNumPlayers <= 1 )
 		return;
 
-	sprintf( szString, "\\cGRANK: \\cC%d/%s%d", g_ulRank + 1, g_bIsTied ? "\\cG" : "", g_ulNumPlayers );
+	sprintf( szString, "\\cGRANK: \\cC%d/%s%d", static_cast<unsigned int> (g_ulRank + 1), g_bIsTied ? "\\cG" : "", static_cast<unsigned int> (g_ulNumPlayers) );
 	V_ColorizeString( szString );
 
 	if ( g_bScale )
@@ -926,7 +936,7 @@ void SCOREBOARD_RenderStats_RankSpread( void )
 
 	ulYPos += g_ulTextHeight;
 
-	sprintf( szString, "\\cGSPREAD: \\cC%s%d", g_lSpread > 0 ? "+" : "", g_lSpread );
+	sprintf( szString, "\\cGSPREAD: \\cC%s%d", g_lSpread > 0 ? "+" : "", static_cast<int> (g_lSpread) );
 	V_ColorizeString( szString );
 
 	if ( g_bScale )
@@ -951,7 +961,7 @@ void SCOREBOARD_RenderStats_RankSpread( void )
 	// 'Wins' isn't an entry on the statusbar, so we have to draw this here.
 	if (( duel ) && ( players[consoleplayer].camera->player->ulWins > 0 ))
 	{
-		sprintf( szString, "\\cGWINS: \\cC%d", players[consoleplayer].camera->player->ulWins );
+		sprintf( szString, "\\cGWINS: \\cC%d", static_cast<unsigned int> (players[consoleplayer].camera->player->ulWins) );
 		V_ColorizeString( szString );
 
 		if ( g_bScale )
@@ -978,7 +988,7 @@ void SCOREBOARD_RenderStats_RankSpread( void )
 	{
 		if ( players[consoleplayer].camera->player->ulWins > 0 )
 		{
-			sprintf( szString, "\\cGWINS: \\cC%d", players[consoleplayer].camera->player->ulWins );
+			sprintf( szString, "\\cGWINS: \\cC%d", static_cast<unsigned int> (players[consoleplayer].camera->player->ulWins) );
 			V_ColorizeString( szString );
 
 			if ( g_bScale )
@@ -1016,10 +1026,10 @@ void SCOREBOARD_RenderInvasionStats( void )
 		char			szString[128];
 		DHUDMessage		*pMsg;
 
-		sprintf( szString, "WAVE: %d  MONSTERS: %d  ARCH-VILES: %d", INVASION_GetCurrentWave( ), INVASION_GetNumMonstersLeft( ), INVASION_GetNumArchVilesLeft( ));
+		sprintf( szString, "WAVE: %d  MONSTERS: %d  ARCH-VILES: %d", static_cast<unsigned int> (INVASION_GetCurrentWave( )), static_cast<unsigned int> (INVASION_GetNumMonstersLeft( )), static_cast<unsigned int> (INVASION_GetNumArchVilesLeft( )));
 		pMsg = new DHUDMessage( szString, 0.5f, 0.075f, 0, 0, CR_RED, 0.1f );
 
-		StatusBar->AttachMessage( pMsg, 'INVS' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('I','N','V','S') );
 	}
 }
 
@@ -1070,7 +1080,7 @@ void SCOREBOARD_RenderInVoteClassic( void )
 
 	// Render how much time is left to vote.
 	ulCurYPos += 16;
-	sprintf( szString, "Vote ends in: %d", ( CALLVOTE_GetCountdownTicks( ) + TICRATE ) / TICRATE );
+	sprintf( szString, "Vote ends in: %d", static_cast<unsigned int> (( CALLVOTE_GetCountdownTicks( ) + TICRATE ) / TICRATE) );
 	screen->DrawText( CR_RED,
 		160 - ( SmallFont->StringWidth( szString ) / 2 ),
 		ulCurYPos,
@@ -1094,14 +1104,14 @@ void SCOREBOARD_RenderInVoteClassic( void )
 
 	// Display how many have voted for "Yes" and "No".
 	ulCurYPos += 16;
-	sprintf( szString, "YES: %d", ulNumYes );
+	sprintf( szString, "YES: %d", static_cast<unsigned int> (ulNumYes) );
 	screen->DrawText( CR_UNTRANSLATED,
 		32,
 		ulCurYPos,
 		szString,
 		DTA_Clean, true, TAG_DONE );
 
-	sprintf( szString, "NO: %d", ulNumNo );
+	sprintf( szString, "NO: %d", static_cast<unsigned int> (ulNumNo) );
 	screen->DrawText( CR_UNTRANSLATED,
 		320 - 32 - SmallFont->StringWidth( szString ),
 		ulCurYPos,
@@ -1159,14 +1169,14 @@ void SCOREBOARD_RenderInVote( void )
 		if ( pulPlayersWhoVotedYes[ulIdx] != MAXPLAYERS )
 		{
 			ulNumYes++;
-			if( pulPlayersWhoVotedYes[ulIdx] == consoleplayer )
+			if( static_cast<signed> (pulPlayersWhoVotedYes[ulIdx]) == consoleplayer )
 				bWeVotedYes = true;
 		}
 
 		if ( pulPlayersWhoVotedNo[ulIdx] != MAXPLAYERS )
 		{
 			ulNumNo++;
-			if( pulPlayersWhoVotedNo[ulIdx] == consoleplayer)
+			if( static_cast<signed> (pulPlayersWhoVotedNo[ulIdx]) == consoleplayer)
 				bWeVotedNo = true;
 		}
 	}
@@ -1176,7 +1186,7 @@ void SCOREBOARD_RenderInVote( void )
 
 	// Render the title and time left.
 	screen->SetFont( BigFont );
-	sprintf( szString, "VOTE NOW! ( %d )", ( CALLVOTE_GetCountdownTicks( ) + TICRATE ) / TICRATE );
+	sprintf( szString, "VOTE NOW! ( %d )", static_cast<unsigned int> (( CALLVOTE_GetCountdownTicks( ) + TICRATE ) / TICRATE) );
 
 	if(g_bScale)
 	{
@@ -1220,7 +1230,7 @@ void SCOREBOARD_RenderInVote( void )
 
 	// Render the number of votes.
 	ulCurYPos += 8;
-	sprintf( szString, "\\c%sYes: %d, \\c%sNo: %d",  bWeVotedYes ? "k" : "s",  ulNumYes, bWeVotedNo ? "k" : "s", ulNumNo );
+	sprintf( szString, "\\c%sYes: %d, \\c%sNo: %d",  bWeVotedYes ? "k" : "s",  static_cast<unsigned int> (ulNumYes), bWeVotedNo ? "k" : "s", static_cast<unsigned int> (ulNumNo) );
 	V_ColorizeString( szString );
 	if(g_bScale)
 	{
@@ -1244,8 +1254,10 @@ void SCOREBOARD_RenderInVote( void )
 		// Render the explanation of keys.
 		ulCurYPos += 8;
 
-		C_FindBind( "vote_yes", szKeyYes );
-		C_FindBind( "vote_no", szKeyNo );
+		static char vote_yes[] = "vote_yes";
+		static char vote_no[] = "vote no";
+		C_FindBind( vote_yes, szKeyYes );
+		C_FindBind( vote_no, szKeyNo );
 		sprintf( szString, "%s | %s", szKeyYes, szKeyNo);
 		if(g_bScale)
 		{
@@ -1327,7 +1339,7 @@ void SCOREBOARD_RenderDuelCountdown( ULONG ulTimeLeft )
 	}
 
 	ulCurYPos += 24;
-	sprintf( szString, "Match begins in: %d", ulTimeLeft / TICRATE );
+	sprintf( szString, "Match begins in: %d", static_cast<unsigned int> (ulTimeLeft / TICRATE) );
 	screen->DrawText( CR_UNTRANSLATED,
 		160 - ( SmallFont->StringWidth( szString ) / 2 ),
 		ulCurYPos,
@@ -1379,7 +1391,7 @@ void SCOREBOARD_RenderLMSCountdown( ULONG ulTimeLeft )
 	}
 
 	ulCurYPos += 24;
-	sprintf( szString, "Match begins in: %d", ulTimeLeft / TICRATE );
+	sprintf( szString, "Match begins in: %d", static_cast<unsigned int> (ulTimeLeft / TICRATE) );
 	screen->DrawText( CR_UNTRANSLATED,
 		160 - ( SmallFont->StringWidth( szString ) / 2 ),
 		ulCurYPos,
@@ -1431,7 +1443,7 @@ void SCOREBOARD_RenderPossessionCountdown( const char *pszString, ULONG ulTimeLe
 	}
 
 	ulCurYPos += 24;
-	sprintf( szString, "Match begins in: %d", ulTimeLeft / TICRATE );
+	sprintf( szString, "Match begins in: %d", static_cast<unsigned int> (ulTimeLeft / TICRATE) );
 	screen->DrawText( CR_UNTRANSLATED,
 		160 - ( SmallFont->StringWidth( szString ) / 2 ),
 		ulCurYPos,
@@ -1463,7 +1475,7 @@ void SCOREBOARD_RenderSurvivalCountdown( ULONG ulTimeLeft )
 	}
 
 	ulCurYPos += 24;
-	sprintf( szString, "Match begins in: %d", ulTimeLeft / TICRATE );
+	sprintf( szString, "Match begins in: %d", static_cast<unsigned int> (ulTimeLeft / TICRATE) );
 	screen->DrawText( CR_UNTRANSLATED,
 		160 - ( SmallFont->StringWidth( szString ) / 2 ),
 		ulCurYPos,
@@ -1498,7 +1510,7 @@ void SCOREBOARD_RenderInvasionFirstCountdown( ULONG ulTimeLeft )
 	}
 
 	ulCurYPos += 24;
-	sprintf( szString, "First wave begins in: %d", ulTimeLeft / TICRATE );
+	sprintf( szString, "First wave begins in: %d", static_cast<unsigned int> (ulTimeLeft / TICRATE) );
 	screen->DrawText( CR_UNTRANSLATED,
 		160 - ( SmallFont->StringWidth( szString ) / 2 ),
 		ulCurYPos,
@@ -1587,7 +1599,7 @@ void SCOREBOARD_RenderInvasionCountdown( ULONG ulTimeLeft )
 							sprintf( szSuffix, "th" );
 					}
 
-					sprintf( szString, "%d%s wave", ulWave, szSuffix );
+					sprintf( szString, "%d%s wave", static_cast<unsigned int> (ulWave), szSuffix );
 				}
 				break;
 			}
@@ -1603,7 +1615,7 @@ void SCOREBOARD_RenderInvasionCountdown( ULONG ulTimeLeft )
 	}
 
 	ulCurYPos += 24;
-	sprintf( szString, "begins in: %d", ulTimeLeft / TICRATE );
+	sprintf( szString, "begins in: %d", static_cast<unsigned int> (ulTimeLeft / TICRATE) );
 	screen->DrawText( CR_UNTRANSLATED,
 		160 - ( SmallFont->StringWidth( szString ) / 2 ),
 		ulCurYPos,
@@ -1774,18 +1786,18 @@ void SCOREBOARD_DisplayFragMessage( player_s *pFraggedPlayer )
 		2.5f,
 		0.5f );
 
-	StatusBar->AttachMessage( pMsg, 'FRAG' );
+	StatusBar->AttachMessage( pMsg, MAKE_ID('F','R','A','G') );
 	screen->SetFont( SmallFont );
 
 	if ( teamplay )
 	{
 		// Build the score message.
 		if ( TEAM_GetFragCount( TEAM_RED ) == TEAM_GetFragCount( TEAM_BLUE ))
-			sprintf( szString, "Teams are tied at %d", TEAM_GetFragCount( TEAM_RED ));
+			sprintf( szString, "Teams are tied at %d", static_cast<int> (TEAM_GetFragCount( TEAM_RED )));
 		else if ( TEAM_GetFragCount( TEAM_RED ) > TEAM_GetFragCount( TEAM_BLUE ))
-			sprintf( szString, "\\cG%s\\c- leads %d to %d", TEAM_GetName( TEAM_RED ), TEAM_GetFragCount( TEAM_RED ), TEAM_GetFragCount( TEAM_BLUE ));
+			sprintf( szString, "\\cG%s\\c- leads %d to %d", TEAM_GetName( TEAM_RED ), static_cast<int> (TEAM_GetFragCount( TEAM_RED )), static_cast<int> (TEAM_GetFragCount( TEAM_BLUE )));
 		else
-			sprintf( szString, "\\cH%s\\c- leads %d to %d", TEAM_GetName( TEAM_BLUE ), TEAM_GetFragCount( TEAM_BLUE ), TEAM_GetFragCount( TEAM_RED ));
+			sprintf( szString, "\\cH%s\\c- leads %d to %d", TEAM_GetName( TEAM_BLUE ), static_cast<int> (TEAM_GetFragCount( TEAM_BLUE )), static_cast<int> (TEAM_GetFragCount( TEAM_RED )));
 
 		V_ColorizeString( szString );
 		pMsg = new DHUDMessageFadeOut( szString,
@@ -1797,17 +1809,17 @@ void SCOREBOARD_DisplayFragMessage( player_s *pFraggedPlayer )
 			2.5f,
 			0.5f );
 
-		StatusBar->AttachMessage( pMsg, 'PLAC' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('P','L','A','C') );
 	}
 	else if ( teamgame || teampossession )
 	{
 		// Build the score message.
 		if ( TEAM_GetScore( TEAM_RED ) == TEAM_GetScore( TEAM_BLUE ))
-			sprintf( szString, "Teams are tied at %d", TEAM_GetScore( TEAM_RED ));
+			sprintf( szString, "Teams are tied at %d", static_cast<int> (TEAM_GetScore( TEAM_RED )));
 		else if ( TEAM_GetScore( TEAM_RED ) > TEAM_GetScore( TEAM_BLUE ))
-			sprintf( szString, "\\cG%s\\c- leads %d to %d", TEAM_GetName( TEAM_RED ), TEAM_GetScore( TEAM_RED ), TEAM_GetScore( TEAM_BLUE ));
+			sprintf( szString, "\\cG%s\\c- leads %d to %d", TEAM_GetName( TEAM_RED ), static_cast<int> (TEAM_GetScore( TEAM_RED )), static_cast<int> (TEAM_GetScore( TEAM_BLUE )));
 		else
-			sprintf( szString, "\\cH%s\\c- leads %d to %d", TEAM_GetName( TEAM_BLUE ), TEAM_GetScore( TEAM_BLUE ), TEAM_GetScore( TEAM_RED ));
+			sprintf( szString, "\\cH%s\\c- leads %d to %d", TEAM_GetName( TEAM_BLUE ), static_cast<int> (TEAM_GetScore( TEAM_BLUE )), static_cast<int> (TEAM_GetScore( TEAM_RED )));
 
 		V_ColorizeString( szString );
 		pMsg = new DHUDMessageFadeOut( szString,
@@ -1819,7 +1831,7 @@ void SCOREBOARD_DisplayFragMessage( player_s *pFraggedPlayer )
 			2.5f,
 			0.5f );
 
-		StatusBar->AttachMessage( pMsg, 'PLAC' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('P','L','A','C') );
 	}
 	else if (( deathmatch ) && ( lastmanstanding == false ) && ( teamlms == false ))
 	{
@@ -1831,7 +1843,7 @@ void SCOREBOARD_DisplayFragMessage( player_s *pFraggedPlayer )
 		if ( bIsTied )
 			sprintf( szString, "Tied for " );
 		else
-			sprintf( szString, "" );
+			szString[0] = 0;
 
 		// Determine  what color and number to print for their rank.
 		switch ( g_ulRank )
@@ -1850,13 +1862,13 @@ void SCOREBOARD_DisplayFragMessage( player_s *pFraggedPlayer )
 			break;
 		default:
 
-			sprintf( szString, "%s%dth ", szString, ( g_ulRank + 1 ));
+			sprintf( szString, "%s%dth ", szString, static_cast<unsigned int> ( g_ulRank + 1 ));
 			break;
 		}
 
 		// Tack on the rest of the string.
 		if ( possession || teampossession )
-			sprintf( szString, "%s\\c-place with %d point%s", szString, players[consoleplayer].lPointCount, players[consoleplayer].lPointCount == 1 ? "" : "s" );
+			sprintf( szString, "%s\\c-place with %d point%s", szString, static_cast<int> (players[consoleplayer].lPointCount), players[consoleplayer].lPointCount == 1 ? "" : "s" );
 		else
 			sprintf( szString, "%s\\c-place with %d frag%s", szString, players[consoleplayer].fragcount, players[consoleplayer].fragcount == 1 ? "" : "s" );
 
@@ -1870,14 +1882,14 @@ void SCOREBOARD_DisplayFragMessage( player_s *pFraggedPlayer )
 			2.5f,
 			0.5f );
 
-		StatusBar->AttachMessage( pMsg, 'PLAC' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('P','L','A','C') );
 	}
 	else if ( lastmanstanding )
 	{
 		LONG	lMenLeftStanding;
 
 		lMenLeftStanding = GAME_CountLivingPlayers( ) - 1;
-		sprintf( szString, "%d opponent%s left standing", lMenLeftStanding, ( lMenLeftStanding != 1 ) ? "s" : "" );
+		sprintf( szString, "%d opponent%s left standing", static_cast<int> (lMenLeftStanding), ( lMenLeftStanding != 1 ) ? "s" : "" );
 
 		V_ColorizeString( szString );
 		pMsg = new DHUDMessageFadeOut( szString,
@@ -1889,14 +1901,14 @@ void SCOREBOARD_DisplayFragMessage( player_s *pFraggedPlayer )
 			2.5f,
 			0.5f );
 
-		StatusBar->AttachMessage( pMsg, 'PLAC' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('P','L','A','C') );
 	}
 	else if (( teamlms ) && ( players[consoleplayer].bOnTeam ))
 	{
 		LONG	lMenLeftStanding;
 
 		lMenLeftStanding = LASTMANSTANDING_TeamCountMenStanding( !players[consoleplayer].ulTeam );
-		sprintf( szString, "%d opponent%s left standing", lMenLeftStanding, ( lMenLeftStanding != 1 ) ? "s" : "" );
+		sprintf( szString, "%d opponent%s left standing", static_cast<int> (lMenLeftStanding), ( lMenLeftStanding != 1 ) ? "s" : "" );
 
 		V_ColorizeString( szString );
 		pMsg = new DHUDMessageFadeOut( szString,
@@ -1908,7 +1920,7 @@ void SCOREBOARD_DisplayFragMessage( player_s *pFraggedPlayer )
 			2.5f,
 			0.5f );
 
-		StatusBar->AttachMessage( pMsg, 'PLAC' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('P','L','A','C') );
 	}
 }
 
@@ -1936,18 +1948,18 @@ void SCOREBOARD_DisplayFraggedMessage( player_s *pFraggingPlayer )
 		2.5f,
 		0.5f );
 
-	StatusBar->AttachMessage( pMsg, 'FRAG' );
+	StatusBar->AttachMessage( pMsg, MAKE_ID('F','R','A','G') );
 	screen->SetFont( SmallFont );
 
 	if ( teamplay )
 	{
 		// Build the score message.
 		if ( TEAM_GetFragCount( TEAM_RED ) == TEAM_GetFragCount( TEAM_BLUE ))
-			sprintf( szString, "Teams are tied at %d", TEAM_GetFragCount( TEAM_RED ));
+			sprintf( szString, "Teams are tied at %d", static_cast<int> (TEAM_GetFragCount( TEAM_RED )));
 		else if ( TEAM_GetFragCount( TEAM_RED ) > TEAM_GetFragCount( TEAM_BLUE ))
-			sprintf( szString, "\\cG%s\\c- leads %d to %d", TEAM_GetName( TEAM_RED ), TEAM_GetFragCount( TEAM_RED ), TEAM_GetFragCount( TEAM_BLUE ));
+			sprintf( szString, "\\cG%s\\c- leads %d to %d", TEAM_GetName( TEAM_RED ), static_cast<int> (TEAM_GetFragCount( TEAM_RED )), static_cast<int> (TEAM_GetFragCount( TEAM_BLUE )));
 		else
-			sprintf( szString, "\\cH%s\\c- leads %d to %d", TEAM_GetName( TEAM_BLUE ), TEAM_GetFragCount( TEAM_BLUE ), TEAM_GetFragCount( TEAM_RED ));
+			sprintf( szString, "\\cH%s\\c- leads %d to %d", TEAM_GetName( TEAM_BLUE ), static_cast<int> (TEAM_GetFragCount( TEAM_BLUE )), static_cast<int> (TEAM_GetFragCount( TEAM_RED )));
 
 		V_ColorizeString( szString );
 		pMsg = new DHUDMessageFadeOut( szString,
@@ -1959,17 +1971,17 @@ void SCOREBOARD_DisplayFraggedMessage( player_s *pFraggingPlayer )
 			2.5f,
 			0.5f );
 
-		StatusBar->AttachMessage( pMsg, 'PLAC' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('P','L','A','C') );
 	}
 	else if ( teamgame || teampossession )
 	{
 		// Build the score message.
 		if ( TEAM_GetScore( TEAM_RED ) == TEAM_GetScore( TEAM_BLUE ))
-			sprintf( szString, "Teams are tied at %d", TEAM_GetScore( TEAM_RED ));
+			sprintf( szString, "Teams are tied at %d", static_cast<int> (TEAM_GetScore( TEAM_RED )));
 		else if ( TEAM_GetScore( TEAM_RED ) > TEAM_GetScore( TEAM_BLUE ))
-			sprintf( szString, "\\cG%s\\c- leads %d to %d", TEAM_GetName( TEAM_RED ), TEAM_GetScore( TEAM_RED ), TEAM_GetScore( TEAM_BLUE ));
+			sprintf( szString, "\\cG%s\\c- leads %d to %d", TEAM_GetName( TEAM_RED ), static_cast<int> (TEAM_GetScore( TEAM_RED )), static_cast<int> (TEAM_GetScore( TEAM_BLUE )));
 		else
-			sprintf( szString, "\\cH%s\\c- leads %d to %d", TEAM_GetName( TEAM_BLUE ), TEAM_GetScore( TEAM_BLUE ), TEAM_GetScore( TEAM_RED ));
+			sprintf( szString, "\\cH%s\\c- leads %d to %d", TEAM_GetName( TEAM_BLUE ), static_cast<int> (TEAM_GetScore( TEAM_BLUE )), static_cast<int> (TEAM_GetScore( TEAM_RED )));
 
 		V_ColorizeString( szString );
 		pMsg = new DHUDMessageFadeOut( szString,
@@ -1981,7 +1993,7 @@ void SCOREBOARD_DisplayFraggedMessage( player_s *pFraggingPlayer )
 			2.5f,
 			0.5f );
 
-		StatusBar->AttachMessage( pMsg, 'PLAC' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('P','L','A','C') );
 	}
 	else if (( deathmatch ) && ( lastmanstanding == false ) && ( teamlms == false ))
 	{
@@ -1993,7 +2005,7 @@ void SCOREBOARD_DisplayFraggedMessage( player_s *pFraggingPlayer )
 		if ( bIsTied )
 			sprintf( szString, "Tied for " );
 		else
-			sprintf( szString, "" );
+			szString[0] = 0;
 
 		// Determine  what color and number to print for their rank.
 		switch ( g_ulRank )
@@ -2012,13 +2024,13 @@ void SCOREBOARD_DisplayFraggedMessage( player_s *pFraggingPlayer )
 			break;
 		default:
 
-			sprintf( szString, "%s%dth ", szString, ( g_ulRank + 1 ));
+			sprintf( szString, "%s%dth ", szString, static_cast<unsigned int> ( g_ulRank + 1 ));
 			break;
 		}
 
 		// Tack on the rest of the string.
 		if ( possession || teampossession )
-			sprintf( szString, "%s\\c-place with %d point%s", szString, players[consoleplayer].lPointCount, players[consoleplayer].lPointCount == 1 ? "" : "s" );
+			sprintf( szString, "%s\\c-place with %d point%s", szString, static_cast<int> (players[consoleplayer].lPointCount), players[consoleplayer].lPointCount == 1 ? "" : "s" );
 		else
 			sprintf( szString, "%s\\c-place with %d frag%s", szString, players[consoleplayer].fragcount, players[consoleplayer].fragcount == 1 ? "" : "s" );
 
@@ -2032,7 +2044,7 @@ void SCOREBOARD_DisplayFraggedMessage( player_s *pFraggingPlayer )
 			2.5f,
 			0.5f );
 
-		StatusBar->AttachMessage( pMsg, 'PLAC' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('P','L','A','C') );
 	}
 }
 
@@ -2354,14 +2366,14 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 						if (( deh.MaxSoulsphere - (LONG)players[ulPlayer].userinfo.lHandicap ) < 1 )
 							sprintf( szHandicapString, "(1)" );
 						else
-							sprintf( szHandicapString, "(%d)", deh.MaxArmor - (LONG)players[ulPlayer].userinfo.lHandicap );
+							sprintf( szHandicapString, "(%d)", static_cast<int> (deh.MaxArmor - (LONG)players[ulPlayer].userinfo.lHandicap) );
 					}
 					else
 					{
 						if (( deh.StartHealth - (LONG)players[ulPlayer].userinfo.lHandicap ) < 1 )
 							sprintf( szHandicapString, "(1)" );
 						else
-							sprintf( szHandicapString, "(%d)", deh.StartHealth - (LONG)players[ulPlayer].userinfo.lHandicap );
+							sprintf( szHandicapString, "(%d)", static_cast<int> (deh.StartHealth - (LONG)players[ulPlayer].userinfo.lHandicap) );
 					}
 					
 					lXPosOffset -= SmallFont->StringWidth ( szHandicapString );
@@ -2415,7 +2427,7 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 				// Draw a bot icon if this player is a bot.
 				if ( players[ulPlayer].bIsBot )
 				{
-					sprintf( szPatchName, "BOTSKIL%d", botskill.GetGenericRep( CVAR_Int ));
+					sprintf( szPatchName, "BOTSKIL%d", botskill.GetGenericRep( CVAR_Int ).Int);
 
 					lXPosOffset -= TexMan[szPatchName]->GetWidth();
 					if ( g_bScale )
@@ -2517,7 +2529,7 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 						}
 						else
 						{
-							screen->DrawText( ( CALLVOTE_GetVoteCaller() == consoleplayer ) ? CR_RED : CR_GOLD,
+							screen->DrawText( ( static_cast<signed> (CALLVOTE_GetVoteCaller()) == consoleplayer ) ? CR_RED : CR_GOLD,
 								(LONG)( g_aulColumnX[ulIdx] * CleanXfac ) + lXPosOffset,
 								g_ulCurYPos,
 								szVoteString,
@@ -2532,11 +2544,11 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 				break;
 			case COLUMN_TIME:	
 
-				sprintf( szString, "%d", players[ulPlayer].ulTime / ( TICRATE * 60 ));
+				sprintf( szString, "%d", static_cast<unsigned int> (players[ulPlayer].ulTime / ( TICRATE * 60 )));
 				break;
 			case COLUMN_PING:
 
-				sprintf( szString, "%d", players[ulPlayer].ulPing );
+				sprintf( szString, "%d", static_cast<unsigned int> (players[ulPlayer].ulPing) );
 				break;
 			case COLUMN_FRAGS:
 
@@ -2560,7 +2572,7 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 				break;
 			case COLUMN_POINTS:
 
-				sprintf( szString, "%d", players[ulPlayer].lPointCount );
+				sprintf( szString, "%d", static_cast<int> (players[ulPlayer].lPointCount) );
 				
 				// If the player isn't really playing, change this.
 				if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) &&
@@ -2580,7 +2592,7 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 				break;
 
 			case COLUMN_POINTSASSISTS:
-				sprintf(szString, "%d / %d", players[ulPlayer].lPointCount, players[ulPlayer].ulMedalCount[14]);
+				sprintf(szString, "%d / %d", static_cast<int> (players[ulPlayer].lPointCount), static_cast<unsigned int> (players[ulPlayer].ulMedalCount[14]));
 
 				// If the player isn't really playing, change this.
 				if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) &&
@@ -2600,11 +2612,11 @@ static void scoreboard_RenderIndividualPlayer( ULONG ulDisplayPlayer, ULONG ulPl
 				break;
 
 			case COLUMN_DEATHS:
-				sprintf(szString, "%d", players[ulPlayer].ulDeathCount);
+				sprintf(szString, "%d", static_cast<unsigned int> (players[ulPlayer].ulDeathCount));
 				break;
 
 			case COLUMN_WINS:
-				sprintf(szString, "%d", players[ulPlayer].ulWins);
+				sprintf(szString, "%d", static_cast<unsigned int> (players[ulPlayer].ulWins));
 
 				// If the player isn't really playing, change this.
 				if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) &&
@@ -2738,7 +2750,7 @@ static void scoreboard_DrawLimits( void )
 			if ( lFragsLeft < 0 )
 				lFragsLeft = 0;
 
-			sprintf( szString, "%d frag%s remain%s", lFragsLeft, ( lFragsLeft != 1 ) ? "s" : "", ( lFragsLeft == 1 ) ? "s" : "" );
+			sprintf( szString, "%d frag%s remain%s", static_cast<int> (lFragsLeft), ( lFragsLeft != 1 ) ? "s" : "", ( lFragsLeft == 1 ) ? "s" : "" );
 
 			if ( g_bScale )
 			{
@@ -2769,7 +2781,7 @@ static void scoreboard_DrawLimits( void )
 		// Get the number of duels that have been played.
 		lNumDuels = DUEL_GetNumDuels( );
 
-		sprintf( szString, "%d duel%s remain%s", duellimit - lNumDuels, (( duellimit - lNumDuels ) == 1 ) ? "" : "s", (( duellimit - lNumDuels ) == 1 ) ? "s" : "" );
+		sprintf( szString, "%d duel%s remain%s", static_cast<int> (duellimit - lNumDuels), (( duellimit - lNumDuels ) == 1 ) ? "" : "s", (( duellimit - lNumDuels ) == 1 ) ? "s" : "" );
 
 		if ( g_bScale )
 		{
@@ -2815,7 +2827,7 @@ static void scoreboard_DrawLimits( void )
 				bDraw = false;
 		}
 		else
-			sprintf( szString, "Champion is %s \\c-with %d win%s", players[lWinner].userinfo.netname, players[lWinner].ulWins, players[lWinner].ulWins == 1 ? "" : "s" );
+			sprintf( szString, "Champion is %s \\c-with %d win%s", players[lWinner].userinfo.netname, static_cast<unsigned int> (players[lWinner].ulWins), players[lWinner].ulWins == 1 ? "" : "s" );
 
 		if ( bDraw )
 		{
@@ -2852,7 +2864,7 @@ static void scoreboard_DrawLimits( void )
 		ulPointsLeft = SCOREBOARD_GetLeftToLimit( );
 		if ( ulPointsLeft > 0 )
 		{
-			sprintf( szString, "%d point%s remain%s", ulPointsLeft, ( ulPointsLeft != 1 ) ? "s" : "", ( ulPointsLeft == 1 ) ? "s" : "" );
+			sprintf( szString, "%d point%s remain%s", static_cast<unsigned int> (ulPointsLeft), ( ulPointsLeft != 1 ) ? "s" : "", ( ulPointsLeft == 1 ) ? "s" : "" );
 
 			if ( g_bScale )
 			{
@@ -2881,7 +2893,7 @@ static void scoreboard_DrawLimits( void )
 	if (( lastmanstanding || teamlms ) && winlimit && gamestate == GS_LEVEL )
 	{
 		ULONG	ulWinsLeft = SCOREBOARD_GetLeftToLimit( );
-		sprintf( szString, "%d win%s remain%s", ulWinsLeft, ( ulWinsLeft != 1 ) ? "s" : "", ( ulWinsLeft == 1 ) ? "s" : "" );
+		sprintf( szString, "%d win%s remain%s", static_cast<unsigned int> (ulWinsLeft), ( ulWinsLeft != 1 ) ? "s" : "", ( ulWinsLeft == 1 ) ? "s" : "" );
 		
 		if ( g_bScale )
 		{
@@ -2911,7 +2923,7 @@ static void scoreboard_DrawLimits( void )
 		ULONG	ulWavesLeft;
 
 		ulWavesLeft = wavelimit - INVASION_GetCurrentWave( );
-		sprintf( szString, "%d wave%s remain%s", ulWavesLeft, ( ulWavesLeft != 1 ) ? "s" : "", ( ulWavesLeft == 1 ) ? "s" : "" );
+		sprintf( szString, "%d wave%s remain%s", static_cast<unsigned int> (ulWavesLeft), ( ulWavesLeft != 1 ) ? "s" : "", ( ulWavesLeft == 1 ) ? "s" : "" );
 		
 		if ( g_bScale )
 		{
@@ -2957,16 +2969,16 @@ static void scoreboard_DrawLimits( void )
 		if ( lastmanstanding || teamlms )
 		{
 			if ( ulHours )
-				sprintf( szString, "Round ends in %02d:%02d:%02d", ulHours, ulMinutes, ulSeconds );
+				sprintf( szString, "Round ends in %02d:%02d:%02d", static_cast<unsigned int> (ulHours), static_cast<unsigned int> (ulMinutes), static_cast<unsigned int> (ulSeconds) );
 			else
-				sprintf( szString, "Round ends in %02d:%02d", ulMinutes, ulSeconds );
+				sprintf( szString, "Round ends in %02d:%02d", static_cast<unsigned int> (ulMinutes), static_cast<unsigned int> (ulSeconds) );
 		}
 		else
 		{
 			if ( ulHours )
-				sprintf( szString, "Level ends in %02d:%02d:%02d", ulHours, ulMinutes, ulSeconds );
+				sprintf( szString, "Level ends in %02d:%02d:%02d", static_cast<unsigned int> (ulHours), static_cast<unsigned int> (ulMinutes), static_cast<unsigned int> (ulSeconds) );
 			else
-				sprintf( szString, "Level ends in %02d:%02d", ulMinutes, ulSeconds );
+				sprintf( szString, "Level ends in %02d:%02d", static_cast<unsigned int> (ulMinutes), static_cast<unsigned int> (ulSeconds) );
 		}
 		
 		if ( g_bScale )
@@ -2995,7 +3007,7 @@ static void scoreboard_DrawLimits( void )
 	if (( deathmatch == false ) && ( teamgame == false ) && ( gamestate == GS_LEVEL ))
 	{
 		LONG	lNumMonstersRemaining = SCOREBOARD_GetLeftToLimit( );
-		sprintf( szString, "%d monster%s remaining", lNumMonstersRemaining, lNumMonstersRemaining == 1 ? "" : "s" );
+		sprintf( szString, "%d monster%s remaining", static_cast<int> (lNumMonstersRemaining), lNumMonstersRemaining == 1 ? "" : "s" );
 		
 		if ( g_bScale )
 		{
@@ -3035,7 +3047,7 @@ static void scoreboard_DrawTeamScores( ULONG ulPlayer )
 				// If the teams are tied...
 				if ( TEAM_GetFragCount( TEAM_RED ) == TEAM_GetFragCount( TEAM_BLUE ))
 				{
-					sprintf( szString, "Teams are tied at %d\n", TEAM_GetFragCount( TEAM_RED ));
+					sprintf( szString, "Teams are tied at %d\n", static_cast<int> (TEAM_GetFragCount( TEAM_RED )));
 					if ( g_bScale )
 					{
 						screen->DrawText( CR_GREY,
@@ -3058,9 +3070,9 @@ static void scoreboard_DrawTeamScores( ULONG ulPlayer )
 				else
 				{
 					if ( TEAM_GetFragCount( TEAM_RED ) > TEAM_GetFragCount( TEAM_BLUE ))
-						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_RED ), TEAM_GetFragCount( TEAM_RED ), TEAM_GetFragCount( TEAM_BLUE ));
+						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_RED ), static_cast<int> (TEAM_GetFragCount( TEAM_RED )), static_cast<int> (TEAM_GetFragCount( TEAM_BLUE )));
 					else
-						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_BLUE ), TEAM_GetFragCount( TEAM_BLUE ), TEAM_GetFragCount( TEAM_RED ));
+						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_BLUE ), static_cast<int> (TEAM_GetFragCount( TEAM_BLUE )), static_cast<int> (TEAM_GetFragCount( TEAM_RED )));
 
 					if ( g_bScale )
 					{
@@ -3087,7 +3099,7 @@ static void scoreboard_DrawTeamScores( ULONG ulPlayer )
 				// If the teams are tied...
 				if ( TEAM_GetWinCount( TEAM_RED ) == TEAM_GetWinCount( TEAM_BLUE ))
 				{
-					sprintf( szString, "Teams are tied at %d\n", TEAM_GetWinCount( TEAM_RED ));
+					sprintf( szString, "Teams are tied at %d\n", static_cast<int> (TEAM_GetWinCount( TEAM_RED )));
 					if ( g_bScale )
 					{
 						screen->DrawText( CR_GREY,
@@ -3110,9 +3122,9 @@ static void scoreboard_DrawTeamScores( ULONG ulPlayer )
 				else
 				{
 					if ( TEAM_GetWinCount( TEAM_RED ) > TEAM_GetWinCount( TEAM_BLUE ))
-						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_RED ), TEAM_GetWinCount( TEAM_RED ), TEAM_GetWinCount( TEAM_BLUE ));
+						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_RED ), static_cast<int> (TEAM_GetWinCount( TEAM_RED )), static_cast<int> (TEAM_GetWinCount( TEAM_BLUE )));
 					else
-						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_BLUE ), TEAM_GetWinCount( TEAM_BLUE ), TEAM_GetWinCount( TEAM_RED ));
+						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_BLUE ), static_cast<int> (TEAM_GetWinCount( TEAM_BLUE )), static_cast<int> (TEAM_GetWinCount( TEAM_RED )));
 
 					if ( g_bScale )
 					{
@@ -3139,7 +3151,7 @@ static void scoreboard_DrawTeamScores( ULONG ulPlayer )
 				// If the teams are tied...
 				if ( TEAM_GetScore( TEAM_RED ) == TEAM_GetScore( TEAM_BLUE ))
 				{
-					sprintf( szString, "Teams are tied at %d\n", TEAM_GetScore( TEAM_RED ));
+					sprintf( szString, "Teams are tied at %d\n", static_cast<int> (TEAM_GetScore( TEAM_RED )));
 					if ( g_bScale )
 					{
 						screen->DrawText( CR_GREY,
@@ -3162,9 +3174,9 @@ static void scoreboard_DrawTeamScores( ULONG ulPlayer )
 				else
 				{
 					if ( TEAM_GetScore( TEAM_RED ) > TEAM_GetScore( TEAM_BLUE ))
-						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_RED ), TEAM_GetScore( TEAM_RED ), TEAM_GetScore( TEAM_BLUE ));
+						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_RED ), static_cast<int> (TEAM_GetScore( TEAM_RED )), static_cast<int> (TEAM_GetScore( TEAM_BLUE )));
 					else
-						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_BLUE ), TEAM_GetScore( TEAM_BLUE ), TEAM_GetScore( TEAM_RED ));
+						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_BLUE ), static_cast<int> (TEAM_GetScore( TEAM_BLUE )), static_cast<int> (TEAM_GetScore( TEAM_RED )));
 
 					if ( g_bScale )
 					{
@@ -3196,7 +3208,7 @@ static void scoreboard_DrawTeamScores( ULONG ulPlayer )
 				// If the teams are tied...
 				if ( TEAM_GetFragCount( TEAM_RED ) == TEAM_GetFragCount( TEAM_BLUE ))
 				{
-					sprintf( szString, "Teams tied at %d\n", TEAM_GetFragCount( TEAM_RED ));
+					sprintf( szString, "Teams tied at %d\n", static_cast<int> (TEAM_GetFragCount( TEAM_RED )));
 					if ( g_bScale )
 					{
 						screen->DrawText( CR_GREY,
@@ -3219,9 +3231,9 @@ static void scoreboard_DrawTeamScores( ULONG ulPlayer )
 				else
 				{
 					if ( TEAM_GetFragCount( TEAM_RED ) > TEAM_GetFragCount( TEAM_BLUE ))
-						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_RED ), TEAM_GetFragCount( TEAM_RED ), TEAM_GetFragCount( TEAM_BLUE ));
+						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_RED ), static_cast<int> (TEAM_GetFragCount( TEAM_RED )), static_cast<int> (TEAM_GetFragCount( TEAM_BLUE )));
 					else
-						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_BLUE ), TEAM_GetFragCount( TEAM_BLUE ), TEAM_GetFragCount( TEAM_RED ));
+						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_BLUE ), static_cast<int> (TEAM_GetFragCount( TEAM_BLUE )), static_cast<int> (TEAM_GetFragCount( TEAM_RED )));
 
 					if ( g_bScale )
 					{
@@ -3248,7 +3260,7 @@ static void scoreboard_DrawTeamScores( ULONG ulPlayer )
 				// If the teams are tied...
 				if ( TEAM_GetWinCount( TEAM_RED ) == TEAM_GetWinCount( TEAM_BLUE ))
 				{
-					sprintf( szString, "Teams tied at %d\n", TEAM_GetWinCount( TEAM_RED ));
+					sprintf( szString, "Teams tied at %d\n", static_cast<int> (TEAM_GetWinCount( TEAM_RED )));
 					if ( g_bScale )
 					{
 						screen->DrawText( CR_GREY,
@@ -3271,9 +3283,9 @@ static void scoreboard_DrawTeamScores( ULONG ulPlayer )
 				else
 				{
 					if ( TEAM_GetWinCount( TEAM_RED ) > TEAM_GetWinCount( TEAM_BLUE ))
-						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_RED ), TEAM_GetWinCount( TEAM_RED ), TEAM_GetWinCount( TEAM_BLUE ));
+						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_RED ), static_cast<int> (TEAM_GetWinCount( TEAM_RED )), static_cast<int> (TEAM_GetWinCount( TEAM_BLUE )));
 					else
-						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_BLUE ), TEAM_GetWinCount( TEAM_BLUE ), TEAM_GetWinCount( TEAM_RED ));
+						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_BLUE ), static_cast<int> (TEAM_GetWinCount( TEAM_BLUE )), static_cast<int> (TEAM_GetWinCount( TEAM_RED )));
 
 					if ( g_bScale )
 					{
@@ -3300,7 +3312,7 @@ static void scoreboard_DrawTeamScores( ULONG ulPlayer )
 				// If the teams are tied...
 				if ( TEAM_GetScore( TEAM_RED ) == TEAM_GetScore( TEAM_BLUE ))
 				{
-					sprintf( szString, "Teams tied at %d\n", TEAM_GetScore( TEAM_RED ));
+					sprintf( szString, "Teams tied at %d\n", static_cast<int> (TEAM_GetScore( TEAM_RED )));
 					if ( g_bScale )
 					{
 						screen->DrawText( CR_GREY,
@@ -3323,9 +3335,9 @@ static void scoreboard_DrawTeamScores( ULONG ulPlayer )
 				else
 				{
 					if ( TEAM_GetScore( TEAM_RED ) > TEAM_GetScore( TEAM_BLUE ))
-						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_RED ), TEAM_GetScore( TEAM_RED ), TEAM_GetScore( TEAM_BLUE ));
+						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_RED ), static_cast<int> (TEAM_GetScore( TEAM_RED )), static_cast<int> (TEAM_GetScore( TEAM_BLUE )));
 					else
-						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_BLUE ), TEAM_GetScore( TEAM_BLUE ), TEAM_GetScore( TEAM_RED ));
+						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_BLUE ), static_cast<int> (TEAM_GetScore( TEAM_BLUE )), static_cast<int> (TEAM_GetScore( TEAM_RED )));
 
 					if ( g_bScale )
 					{
@@ -3369,7 +3381,7 @@ static void scoreboard_DrawMyRank( ULONG ulPlayer )
 		if ( bIsTied )
 			sprintf( szString, "Tied for " );
 		else
-			sprintf( szString, "" );
+			szString[0] = 0;
 
 		// Determine  what color and number to print for their rank.
 		switch ( g_ulRank )
@@ -3388,15 +3400,15 @@ static void scoreboard_DrawMyRank( ULONG ulPlayer )
 			break;
 		default:
 
-			sprintf( szString, "%s%dth ", szString, ( g_ulRank + 1 ));
+			sprintf( szString, "%s%dth ", szString, static_cast<unsigned int> ( g_ulRank + 1 ));
 			break;
 		}
 
 		// Tack on the rest of the string.
 		if ( lastmanstanding )
-			sprintf( szString, "%s\\c-place with %d win%s", szString, players[ulPlayer].ulWins, players[ulPlayer].ulWins == 1 ? "" : "s" );
+			sprintf( szString, "%s\\c-place with %d win%s", szString, static_cast<unsigned int> (players[ulPlayer].ulWins), players[ulPlayer].ulWins == 1 ? "" : "s" );
 		else if ( possession )
-			sprintf( szString, "%s\\c-place with %d point%s", szString, players[ulPlayer].lPointCount, players[ulPlayer].fragcount == 1 ? "" : "s" );
+			sprintf( szString, "%s\\c-place with %d point%s", szString, static_cast<int> (players[ulPlayer].lPointCount), players[ulPlayer].fragcount == 1 ? "" : "s" );
 		else
 			sprintf( szString, "%s\\c-place with %d frag%s", szString, players[ulPlayer].fragcount, players[ulPlayer].fragcount == 1 ? "" : "s" );
 		V_ColorizeString( szString );

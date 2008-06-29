@@ -1604,7 +1604,7 @@ void FBaseStatusBar::DrawTargetName ()
 			2.f,
 			0.35f );
 
-		AttachMessage( pMsg, 'PNAM' );
+		AttachMessage( pMsg, MAKE_ID('P','N','A','M') );
 	}
 }
 

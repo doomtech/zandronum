@@ -740,10 +740,10 @@ CCMD( announcers )
 	{
 		if ( g_AnnouncerProfile[ulIdx] != NULL )
 		{
-			Printf( "%d. %s\n", ulIdx + 1, g_AnnouncerProfile[ulIdx]->szName );
+			Printf( "%d. %s\n", static_cast<unsigned int> (ulIdx + 1), g_AnnouncerProfile[ulIdx]->szName );
 			ulNumProfiles++;
 		}
 	}
 
-	Printf( "\n%d announcer profile(s) loaded.\n", ulNumProfiles );
+	Printf( "\n%d announcer profile(s) loaded.\n", static_cast<unsigned int> (ulNumProfiles) );
 }

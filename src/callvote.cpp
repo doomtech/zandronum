@@ -139,7 +139,7 @@ void CALLVOTE_Tick( void )
 					if ( strncmp( g_VoteCommand, "kick ", 5 ) == 0 )
 					{
 						g_VoteCommand = "kick_idx ";
-						g_VoteCommand.AppendFormat( "%d", g_ulKickVoteTargetPlayerIdx );
+						g_VoteCommand.AppendFormat( "%d", static_cast<unsigned int> (g_ulKickVoteTargetPlayerIdx) );
 					}
 
 					AddCommandString( (char *)g_VoteCommand.GetChars( ));
@@ -472,7 +472,7 @@ static void callvote_EndVote( void )
 			3.0f,
 			2.0f );
 
-		StatusBar->AttachMessage( pMsg, 'CNTR' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 		screen->SetFont( SmallFont );
 	}
 

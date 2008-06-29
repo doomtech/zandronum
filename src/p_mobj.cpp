@@ -4484,7 +4484,7 @@ void P_SpawnPlayer (mapthing2_t *mthing, bool bClientUpdate, player_t *p, bool t
 	else
 		lSkin = p->userinfo.skin;
 
-	if (( lSkin < 0 ) || ( lSkin >= numskins ))
+	if (( lSkin < 0 ) || ( static_cast<unsigned> (lSkin) >= numskins ))
 		lSkin = R_FindSkin( "base", p->CurrentPlayerClass );
 
 	mobj->sprite = skins[lSkin].sprite;
@@ -6195,7 +6195,7 @@ ADD_STAT( spawns )
 	FString	Out;
 
 	Out.Format( "Actors spawned: %d in %04.1f ms",
-		g_lStaleSpawnCount, SecondsPerCycle * (double)g_StaleSpawnCycles * 1000 );
+		static_cast<int> (g_lStaleSpawnCount), SecondsPerCycle * (double)g_StaleSpawnCycles * 1000 );
 
 	return ( Out );
 }
@@ -6208,7 +6208,7 @@ CCMD( dumpactors )
 	AActor						*pActor;
 	TThinkerIterator<AActor>	Iterator;
 
-	while ( pActor = Iterator.Next( ))
+	while ( (pActor = Iterator.Next( )))
 		Printf( "%s (%d, %d)\n", pActor->GetClass( )->TypeName.GetChars( ), pActor->x >> FRACBITS, pActor->y >> FRACBITS );
 }
 
@@ -6222,7 +6222,7 @@ CCMD( respawnactors )
 	fixed_t						Z;
 	TThinkerIterator<AActor>	Iterator;
 
-	while ( pActor = Iterator.Next( ))
+	while ( (pActor = Iterator.Next( )))
 	{
 		if (( pActor->state == &AInventory::States[0] ) ||
 			( pActor->state == &AInventory::States[3] ) ||

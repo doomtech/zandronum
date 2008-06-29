@@ -608,9 +608,9 @@ void huffman_BuildTree( float *freq )
 			}
 		}
 		if (minat1<0)
-			I_FatalError("minatl: %f",minat1);
+			I_FatalError("minatl: %d",minat1);
 		if (minat2<0)
-			I_FatalError("minat2: %f",minat2);
+			I_FatalError("minat2: %d",minat2);
 		
 		tmp= (huffnode_s *)M_Malloc(sizeof(huffnode_t));
 		

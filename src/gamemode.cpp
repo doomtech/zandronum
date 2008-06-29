@@ -341,7 +341,7 @@ void GAMEMODE_DisplayStandardMessage( const char *pszMessage )
 			3.0f,
 			2.0f );
 
-		StatusBar->AttachMessage( pMsg, 'CNTR' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 		screen->SetFont( SmallFont );
 	}
 }

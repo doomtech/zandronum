@@ -1256,7 +1256,7 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 		SERVERCOMMANDS_PrintMOTD( motd.GetChars(), g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 	// [BB] Client is using the "join full server from localhost" hack. Inform him about it!
-	if ( ( SERVER_CalcNumPlayers( ) > sv_maxclients ) )
+	if ( ( SERVER_CalcNumPlayers( ) > static_cast<unsigned> (sv_maxclients) ) )
 		SERVERCOMMANDS_PrintMOTD( "Emergency!\n\nYou are joining from localhost even though the server is full.\nDo whatever is necessary to clean the situation and disconnect afterwards.\n", g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 	// If we're in a duel or LMS mode, tell him the state of the game mode.
@@ -1633,7 +1633,7 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 			return;
 		// [BB] 200 was CLCC_ATTEMPTCONNECTION in 97d-beta4.3 and earlier versions.
 		case 200: 
-			Printf( "Challenge (%d) from (%s). Likely an old client (97d-beta4.3 or older) trying to connect. Informing the client and ignoring IP for 10 seconds.\n", lCommand, NETWORK_AddressToString( NETWORK_GetFromAddress( )));
+			Printf( "Challenge (%d) from (%s). Likely an old client (97d-beta4.3 or older) trying to connect. Ignoring IP for 10 seconds.\n", static_cast<int> (lCommand), NETWORK_AddressToString( NETWORK_GetFromAddress( )));
 			// [BB] Block all further challenges of this IP for ten seconds to prevent log flooding.
 			g_floodProtectionIPQueue.addAddress ( NETWORK_GetFromAddress( ), g_lGameTime / 1000 );
 			// [BB] Try to tell the client in a 97d-beta4.3 compatible way, that his version is too old.
@@ -1660,7 +1660,7 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 			return;
 		default:
 
-			Printf( "Unknown challenge (%d) from %s. Ignoring IP for 10 seconds.\n", lCommand, NETWORK_AddressToString( NETWORK_GetFromAddress( )));
+			Printf( "Unknown challenge (%d) from %s. Ignoring IP for 10 seconds.\n", static_cast<int> (lCommand), NETWORK_AddressToString( NETWORK_GetFromAddress( )));
 			// [BB] Block all further challenges of this IP for ten seconds to prevent log flooding.
 			g_floodProtectionIPQueue.addAddress ( NETWORK_GetFromAddress( ), g_lGameTime / 1000 );
 
@@ -1712,7 +1712,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 		lClient = SERVER_FindFreeClientSlot( );
 
 		// If the server is full, send him a packet saying that it is.
-		if (( lClient == -1 ) || ( SERVER_CalcNumPlayers( ) >= sv_maxclients && !bAdminClientConnecting ))
+		if (( lClient == -1 ) || ( SERVER_CalcNumPlayers( ) >= static_cast<unsigned> (sv_maxclients) && !bAdminClientConnecting ))
 		{
 			// Tell the client a packet saying the server is full.
 			SERVER_ConnectionError( AddressFrom, "Server is full." );
@@ -2051,7 +2051,7 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 
 //*****************************************************************************
 //
-void SERVER_ConnectionError( NETADDRESS_s Address, char *pszMessage )
+void SERVER_ConnectionError( NETADDRESS_s Address, const char *pszMessage )
 {
 	NETBUFFER_s	TempBuffer;
 
@@ -2706,7 +2706,7 @@ void SERVER_UpdateSectors( ULONG ulClient )
 	if ( SERVER_IsValidClient( ulClient ) == false )
 		return;
 
-	for ( ulIdx = 0; ulIdx < numsectors; ulIdx++ )
+	for ( ulIdx = 0; static_cast<signed> (ulIdx) < numsectors; ulIdx++ )
 	{
 		pSector = &sectors[ulIdx];
 
@@ -2793,7 +2793,7 @@ void SERVER_UpdateSectors( ULONG ulClient )
 		}
 	}
 
-	for ( ulIdx = 0; ulIdx <= po_NumPolyobjs; ulIdx++ )
+	for ( ulIdx = 0; static_cast<signed> (ulIdx) <= po_NumPolyobjs; ulIdx++ )
 	{
 		pPoly = GetPolyobjByIndex( ulIdx );
 		if ( pPoly == NULL )
@@ -2926,7 +2926,7 @@ void SERVER_LoadNewLevel( const char *pszMapName )
 
 //*****************************************************************************
 //
-void SERVER_KickPlayer( ULONG ulPlayer, char *pszReason )
+void SERVER_KickPlayer( ULONG ulPlayer, const char *pszReason )
 {
 	ULONG	ulIdx;
 	char	szKickString[512];
@@ -2975,7 +2975,7 @@ void SERVER_KickPlayer( ULONG ulPlayer, char *pszReason )
 
 //*****************************************************************************
 //
-void SERVER_KickPlayerFromGame( ULONG ulPlayer, char *pszReason )
+void SERVER_KickPlayerFromGame( ULONG ulPlayer, const char *pszReason )
 {
 	ULONG	ulIdx;
 	char	szKickString[512];
@@ -3611,7 +3611,7 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 		return ( server_InventoryDrop( pByteStream ));
 	default:
 
-		Printf( PRINT_HIGH, "SERVER_ParseCommands: Unknown client message: %d\n", lCommand );
+		Printf( PRINT_HIGH, "SERVER_ParseCommands: Unknown client message: %d\n", static_cast<int> (lCommand) );
         return ( true );
 	}
 
@@ -4095,7 +4095,7 @@ static bool server_RequestJoin( BYTESTREAM_s *pByteStream )
 	// If there aren't currently any slots available, just put the person in line.
 	Val = sv_maxplayers.GetGenericRep( CVAR_Int );
 	if (( duel && DUEL_CountActiveDuelers( ) >= 2 ) ||
-		( SERVER_CalcNumNonSpectatingPlayers( MAXPLAYERS ) >= Val.Int ) ||
+		( static_cast<signed> (SERVER_CalcNumNonSpectatingPlayers( MAXPLAYERS )) >= Val.Int ) ||
 		( SURVIVAL_GetState( ) == SURVS_INPROGRESS ) ||
 		( SURVIVAL_GetState( ) == SURVS_MISSIONFAILED ) ||
 		(( lastmanstanding || teamlms ) && (( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) || ( LASTMANSTANDING_GetState( ) == LMSS_WINSEQUENCE ))) ||
@@ -4207,7 +4207,7 @@ static bool server_Suicide( BYTESTREAM_s *pByteStream )
 		return ( false );
 
 	// If this player has tried to suicide recently, ignore the request.
-	if ( gametic < ( g_aClients[g_lCurrentClient].ulLastSuicideTime + ( TICRATE * 10 )))
+	if ( gametic < static_cast<signed> ( g_aClients[g_lCurrentClient].ulLastSuicideTime + ( TICRATE * 10 )))
 		return ( false );
 
 	// [BB] The server may forbid suiciding completely.
@@ -4258,7 +4258,7 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 		return ( false );
 
 	// If this player has tried to change teams recently, ignore the request.
-	if ( gametic < ( g_aClients[g_lCurrentClient].ulLastChangeTeamTime + ( TICRATE * 10 )))
+	if ( gametic < static_cast<signed> ( g_aClients[g_lCurrentClient].ulLastChangeTeamTime + ( TICRATE * 10 )))
 		return ( false );
 
 	g_aClients[g_lCurrentClient].ulLastChangeTeamTime = gametic;
@@ -4268,7 +4268,7 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 		lDesiredTeam = TEAM_ChooseBestTeamForPlayer( );
 
 	// If the desired team matches our current team, break out.
-	if (( players[g_lCurrentClient].bOnTeam ) && ( lDesiredTeam == players[g_lCurrentClient].ulTeam ))
+	if (( players[g_lCurrentClient].bOnTeam ) && ( lDesiredTeam == static_cast<signed> (players[g_lCurrentClient].ulTeam) ))
 	{
 		SERVER_PrintfPlayer( PRINT_HIGH, g_lCurrentClient, "You are already on the %s team!\n", TEAM_GetName( lDesiredTeam ));
 		return ( false );
@@ -4301,7 +4301,7 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 
 	Val = sv_maxplayers.GetGenericRep( CVAR_Int );
 	if (( players[g_lCurrentClient].bSpectating ) && 
-		(( SERVER_CalcNumNonSpectatingPlayers( MAXPLAYERS ) >= Val.Int ) ||		
+		(( static_cast<signed> (SERVER_CalcNumNonSpectatingPlayers( MAXPLAYERS )) >= Val.Int ) ||		
 		( teamlms && ( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) && ( PLAYER_IsTrueSpectator( &players[g_lCurrentClient] )))))
 	{
 		JOINSLOT_t	JoinSlot;
@@ -4316,9 +4316,9 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 	}
 
 	// If this player was eligible to get an assist, cancel that.
-	if ( TEAM_GetAssistPlayer( TEAM_BLUE ) == g_lCurrentClient )
+	if ( TEAM_GetAssistPlayer( TEAM_BLUE ) == static_cast<unsigned> (g_lCurrentClient) )
 		TEAM_SetAssistPlayer( TEAM_BLUE, MAXPLAYERS );
-	if ( TEAM_GetAssistPlayer( TEAM_RED ) == g_lCurrentClient )
+	if ( TEAM_GetAssistPlayer( TEAM_RED ) == static_cast<unsigned> (g_lCurrentClient) )
 		TEAM_SetAssistPlayer( TEAM_RED, MAXPLAYERS );
 
 	// Don't allow him to "take" flags or skulls with him. If he was carrying any,
@@ -4773,7 +4773,7 @@ static bool server_CallVote( BYTESTREAM_s *pByteStream )
 	pszParameters = NETWORK_ReadString( pByteStream );
 
 	// Display the callvote in the console for logging purposes.
-	Printf( "Vote ATTEMPT (%d \"%s\") called by %s (%s)\n", ulVoteCmd, pszParameters, players[g_lCurrentClient].userinfo.netname, NETWORK_AddressToString( g_aClients[g_lCurrentClient].Address ));
+	Printf( "Vote ATTEMPT (%d \"%s\") called by %s (%s)\n", static_cast<unsigned int> (ulVoteCmd), pszParameters, players[g_lCurrentClient].userinfo.netname, NETWORK_AddressToString( g_aClients[g_lCurrentClient].Address ));
 
 	// Don't allow one person to call a vote, and vote by himself.
 	// Also, don't allow votes if the server has them disabled.

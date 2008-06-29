@@ -764,7 +764,10 @@ static SOCKET network_AllocateSocket( void )
 	// Allocate a socket.
 	Socket = socket( PF_INET, SOCK_DGRAM, IPPROTO_UDP );
 	if ( Socket == INVALID_SOCKET )
-		network_Error( "network_AllocateSocket: Couldn't create socket!" );
+	{
+		static char network_AllocateSocket[] = "network_AllocateSocket: Couldn't create socket!";
+		network_Error( network_AllocateSocket );
+	}
 
 	return ( Socket );
 }

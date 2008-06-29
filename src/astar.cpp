@@ -578,7 +578,7 @@ void ASTAR_ShowCosts( POS_t Position )
 
 	if ( pNode )
 	{
-		Printf( "(%d, %d) (%s)\n", pNode->lXNodeIdx, pNode->lYNodeIdx, pNode->lDirection[1] == 0 ? "N" :
+		Printf( "(%d, %d) (%s)\n", static_cast<int> (pNode->lXNodeIdx), static_cast<int> (pNode->lYNodeIdx), pNode->lDirection[1] == 0 ? "N" :
 			pNode->lDirection[1] == 1 ? "NE" : 
 			pNode->lDirection[1] == 2 ? "E" : 
 			pNode->lDirection[1] == 3 ? "SE" : 
@@ -587,9 +587,9 @@ void ASTAR_ShowCosts( POS_t Position )
 			pNode->lDirection[1] == 6 ? "W" : 
 			pNode->lDirection[1] == 7 ? "NW" : "UNKNOWN"
 		);
-		Printf( "From start (g): %d\n", pNode->lCostFromStart[1] );
-		Printf( "From goal (h): %d\n", pNode->lTotalCost[1] - pNode->lCostFromStart[1] );
-		Printf( "Total (f): %d\n", pNode->lTotalCost[1] );
+		Printf( "From start (g): %d\n", static_cast<int> (pNode->lCostFromStart[1]) );
+		Printf( "From goal (h): %d\n", static_cast<int> (pNode->lTotalCost[1] - pNode->lCostFromStart[1]) );
+		Printf( "Total (f): %d\n", static_cast<int> (pNode->lTotalCost[1]) );
 	}
 }
 
@@ -823,7 +823,7 @@ static LONG astar_GetCostToGoalEstimate( ASTARPATH_t *pPath, ASTARNODE_t *pNode 
 	PosGoal = ASTAR_GetPosition( pPath->pGoalNode );
 
 	return ( P_AproxDistance( PosNode.x - PosGoal.x, PosNode.y - PosGoal.y ));
-/*
+
 //	return (( abs( pPath->pGoalNode->lXNodeIdx - pNode->lXNodeIdx ) + ( abs( pPath->pGoalNode->lYNodeIdx - pNode->lYNodeIdx ))) * 64 );
 
 	LONG	lXDiff;
@@ -841,7 +841,7 @@ static LONG astar_GetCostToGoalEstimate( ASTARPATH_t *pPath, ASTARNODE_t *pNode 
 	return ( (LONG)sqrt(((( pPath->pGoalNode->lXNodeIdx - pNode->lXNodeIdx ) * 64 ) ^ 2 ) + ((( pPath->pGoalNode->lYNodeIdx - pNode->lYNodeIdx ) * 64 ) ^ 2 )));
 
 //	return (( abs( pPath->pGoalNode->lXNodeIdx - pNode->lXNodeIdx ) + abs( pPath->pGoalNode->lYNodeIdx - pNode->lYNodeIdx )) * 15 );
-/*
+
 	return (( abs( pPath->pGoalNode->lXNodeIdx - pNode->lXNodeIdx ) * abs( pPath->pGoalNode->lXNodeIdx - pNode->lXNodeIdx )) + 
 			( abs( pPath->pGoalNode->lYNodeIdx - pNode->lYNodeIdx ) * abs( pPath->pGoalNode->lYNodeIdx - pNode->lYNodeIdx )));
 */
@@ -1217,7 +1217,7 @@ ADD_STAT( pathing )
 
 	Out.Format( "Pathing cycles = %04.1f ms (%3d nodes pathed)", 
 		(double)g_PathingCycles * SecondsPerCycle * 1000,
-		g_lNumSearchedNodes
+		static_cast<int> (g_lNumSearchedNodes)
 		);
 
 	return ( Out );

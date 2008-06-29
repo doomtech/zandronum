@@ -936,7 +936,7 @@ void IPList::addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP
 	szOutString[0] = 0;
 	if ( pszPlayerName )
 	{
-		sprintf( szOutString, "%s", szOutString, pszPlayerName );
+		sprintf( szOutString, "%s", szOutString );
 		if ( pszComment )
 			sprintf( szOutString, "%s:", szOutString );
 	}

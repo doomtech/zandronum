@@ -547,13 +547,13 @@ void BOTCMD_Construct( void )
 //
 void BOTCMD_RunCommand( BOTCMD_e Command, CSkullBot *pBot )
 {
-	LONG	lNumArgs;
+	SDWORD	sdwNumArgs;
 //	LONG	lExpectedStackPosition;
 
-	pBot->GetRawScriptData( )->Read( &lNumArgs, sizeof( LONG ));
-	pBot->IncrementScriptPosition( sizeof( LONG ));
+	pBot->GetRawScriptData( )->Read( &sdwNumArgs, sizeof( SDWORD ));
+	pBot->IncrementScriptPosition( sizeof( SDWORD ));
 
-//	if ( lNumArgs != g_BotCommands[Command].lNumArgs )
+//	if ( sdwNumArgs != g_BotCommands[Command].lNumArgs )
 	if ( pBot->m_ScriptData.lStackPosition < g_BotCommands[Command].lNumArgs )
 		I_Error( "Wrong number of arguments (%d) in bot command, %s!", pBot->m_ScriptData.lStackPosition, g_BotCommands[Command].pszName );
 	if ( pBot->m_ScriptData.lStringStackPosition < g_BotCommands[Command].lNumStringArgs )

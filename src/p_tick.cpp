@@ -251,7 +251,7 @@ void P_Ticker (void)
 				0.f,
 				0.35f );
 
-			StatusBar->AttachMessage( pMsg, 'OBST' );
+			StatusBar->AttachMessage( pMsg, MAKE_ID('O','B','S','T') );
 		}
 
 		if ( botdebug_obstructiontest > 0 )
@@ -280,7 +280,7 @@ void P_Ticker (void)
 				0.f,
 				0.35f );
 
-			StatusBar->AttachMessage( pMsg, 'OBST' );
+			StatusBar->AttachMessage( pMsg, MAKE_ID('O','B','S','T') );
 		}
 	}
 
@@ -314,7 +314,7 @@ void P_Ticker (void)
 			continue;
 
 		// Console player thinking is handled by player prediction.
-		if (( ulIdx == consoleplayer ) &&
+		if (( static_cast<signed> (ulIdx) == consoleplayer ) &&
 			(( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))))
 		{
 			continue;

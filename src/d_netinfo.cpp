@@ -757,8 +757,8 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 					 info->gender == GENDER_FEMALE ? "female" :
 						info->gender == GENDER_NEUTER ? "other" : "male",
 					 info->switchonpickup,
-					 info->lRailgunTrailColor,
-					 info->lHandicap,
+					 static_cast<int> (info->lRailgunTrailColor),
+					 static_cast<int> (info->lHandicap),
 					 (float)(info->MoveBob) / 65536.f,
 					 (float)(info->StillBob) / 65536.f,
 					 info->PlayerClass == -1 ? "Random" :
@@ -790,8 +790,8 @@ void D_WriteUserInfoStrings (int i, BYTE **stream, bool compact)
 				info->gender == GENDER_FEMALE ? "female" :
 					info->gender == GENDER_NEUTER ? "other" : "male",
 				info->switchonpickup,
-				info->lRailgunTrailColor,
-				info->lHandicap,
+				static_cast<int> (info->lRailgunTrailColor),
+				static_cast<int> (info->lHandicap),
 				(float)(info->MoveBob) / 65536.f,
 				(float)(info->StillBob) / 65536.f,
 				info->PlayerClass == -1 ? "Random" :

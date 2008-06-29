@@ -268,6 +268,8 @@ void LASTMANSTANDING_Tick( void )
 			}
 		}
 		break;
+	default:
+		break;
 	}
 }
 
@@ -467,7 +469,7 @@ void LASTMANSTANDING_DoFight( void )
 			2.0f,
 			1.0f );
 
-		StatusBar->AttachMessage( pMsg, 'CNTR' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 		screen->SetFont( SmallFont );
 	}
 	// Display a little thing in the server window so servers can know when matches begin.
@@ -555,7 +557,7 @@ void LASTMANSTANDING_DoWinSequence( ULONG ulWinner )
 			3.0f,
 			2.0f );
 
-		StatusBar->AttachMessage( pMsg, 'CNTR' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 		screen->SetFont( SmallFont );
 
 		szString[0] = 0;
@@ -568,7 +570,7 @@ void LASTMANSTANDING_DoWinSequence( ULONG ulWinner )
 			3.0f,
 			2.0f );
 
-		StatusBar->AttachMessage( pMsg, 'FRAG' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('F','R','A','G') );
 
 		pMsg = new DHUDMessageFadeOut( szString,
 			0.0f,
@@ -579,7 +581,7 @@ void LASTMANSTANDING_DoWinSequence( ULONG ulWinner )
 			3.0f,
 			2.0f );
 
-		StatusBar->AttachMessage( pMsg, 'PLAC' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('P','L','A','C') );
 	}
 
 	// Award a victory or perfect medal to the winner.
@@ -704,12 +706,12 @@ void LASTMANSTANDING_TimeExpired( void )
 					3.0f,
 					2.0f );
 
-				StatusBar->AttachMessage( pMsg, 'CNTR' );
+				StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 				screen->SetFont( SmallFont );
 			}
 			else
 			{
-				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", false, 'CNTR' );
+				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", false, MAKE_ID('C','N','T','R') );
 			}
 		}
 
@@ -816,6 +818,8 @@ void LASTMANSTANDING_SetState( LMSSTATE_e State )
 			// Let anyone who's been waiting in line join now.
 			JOINQUEUE_PopQueue( -1 );
 		}
+		break;
+	default:
 		break;
 	}
 

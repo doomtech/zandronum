@@ -3454,7 +3454,7 @@ void P_RemoveThings( void )
 	// [BB] Buckshot only makes sense if this is a Doom, but not a Doom 1 game.
 	const bool bBuckshotPossible = ((gameinfo.gametype == GAME_Doom) && gamemission != doom );
 
-	while ( pActor = Iterator.Next( ))
+	while ( (pActor = Iterator.Next( )))
 	{
 		// No special items are spawned during instagib, shotgun battle, or LMS.
 		if ((( instagib || (buckshot && bBuckshotPossible) ) && ( deathmatch || teamgame )) || ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DONTSPAWNMAPTHINGS ))

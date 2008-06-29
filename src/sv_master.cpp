@@ -546,7 +546,7 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 
 //*****************************************************************************
 //
-char *SERVER_MASTER_GetGameName( void )
+const char *SERVER_MASTER_GetGameName( void )
 {	
 	switch ( gameinfo.gametype )
 	{
@@ -644,7 +644,7 @@ CCMD( wads )
 		ulNumPWADs++;
 	}
 
-	Printf( "Num PWADs: %d\n", ulNumPWADs );
+	Printf( "Num PWADs: %d\n", static_cast<unsigned int> (ulNumPWADs) );
 	for ( ulIdx = 0; Wads.GetWadName( ulIdx ) != NULL; ulIdx++ )
 	{
 		// Skip the IWAD file index, skulltag.wad/pk3, files that were automatically

@@ -107,7 +107,7 @@ CUSTOM_CVAR( Int, cl_skins, 1, CVAR_ARCHIVE )
 
 		// If the skin is valid, set the player's sprite to the skin's sprite, and adjust
 		// the player's scale accordingly.
-		if (( lSkin >= 0 ) && ( lSkin < numskins ))
+		if (( lSkin >= 0 ) && ( static_cast<unsigned> (lSkin) < numskins ))
 		{
 			players[ulIdx].mo->sprite = skins[lSkin].sprite;
 			players[ulIdx].mo->scaleX = players[ulIdx].mo->scaleY = skins[lSkin].Scale;
@@ -545,7 +545,7 @@ void R_InitSkins (void)
 			{
 				// [BC] MAX_SKIN_NAME.
 				strncpy (skins[i].name, sc_String, MAX_SKIN_NAME);
-				for (j = 0; (size_t)j < i; j++)
+				for (j = 0; j < i; j++)
 				{
 					if (stricmp (skins[i].name, skins[j].name) == 0)
 					{
@@ -797,7 +797,7 @@ void R_InitSkins (void)
 
 		if (remove)
 		{
-			if (i < numskins-1)
+			if (static_cast<unsigned> (i) < numskins-1)
 				memmove (&skins[i], &skins[i+1], sizeof(skins[0])*(numskins-i-1));
 			i--;
 			continue;
@@ -1122,7 +1122,7 @@ void R_InitSkins (void)
 								continue;
 
 							// Loop through all the lumps searching for frames for this skin.
-							for ( ulIdx = 0; ulIdx < Wads.GetNumLumps( ); ulIdx++ )
+							for ( ulIdx = 0; static_cast<signed> (ulIdx) < Wads.GetNumLumps( ); ulIdx++ )
 							{
 								// Only process skin entries from the wad the SKININFO lump is in.
 								// NOTE: If this isn't done, Skulltag doesn't work with hr.wad.
@@ -1169,7 +1169,7 @@ void R_InitSkins (void)
 
 				if ( remove )
 				{
-					if (i < numskins-1)
+					if (static_cast<unsigned> (i) < numskins-1)
 						memmove (&skins[i], &skins[i+1], sizeof(skins[0])*(numskins-i-1));
 					i--;
 					continue;
@@ -1257,7 +1257,7 @@ CCMD (skins)
 	{
 		if ( skins[i].bRevealed )
 		{
-			Printf ("% 3d %s\n", ulNumSkins, skins[i].name);
+			Printf ("% 3d %s\n", static_cast<unsigned int> (ulNumSkins), skins[i].name);
 			ulNumSkins++;
 		}
 		else
@@ -1267,7 +1267,7 @@ CCMD (skins)
 	if ( ulNumHiddenSkins == 0 )
 		Printf( "\n%d skins; All hidden skins unlocked!\n", (int)numskins );
 	else
-		Printf( "\n%d skins; %d remain%s hidden.\n", (int)numskins, ulNumHiddenSkins, ulNumHiddenSkins == 1 ? "s" : "" );
+		Printf( "\n%d skins; %d remain%s hidden.\n", (int)numskins, static_cast<unsigned int> (ulNumHiddenSkins), ulNumHiddenSkins == 1 ? "s" : "" );
 }
 
 //

@@ -1429,7 +1429,7 @@ void G_Ticker ()
 
 					default:
 
-						Printf( "Unknown command from master server: %d\n", lCommand );
+						Printf( "Unknown command from master server: %d\n", static_cast<int> (lCommand) );
 						break;
 					}
 				}
@@ -1637,7 +1637,7 @@ void G_Ticker ()
 				if ( duel )
 				{
 					// If the player must win all duels, and lost this one, then he's DONE!
-					if (( DUEL_GetLoser( ) == consoleplayer ) && ( CAMPAIGN_InCampaign( )) && ( CAMPAIGN_GetCampaignInfo( level.mapname )->bMustWinAllDuels ))
+					if (( DUEL_GetLoser( ) == static_cast<unsigned> (consoleplayer) ) && ( CAMPAIGN_InCampaign( )) && ( CAMPAIGN_GetCampaignInfo( level.mapname )->bMustWinAllDuels ))
 					{
 						// Tell the player he loses!
 						Printf( "You lose!\n" );
@@ -1649,7 +1649,7 @@ void G_Ticker ()
 						DUEL_SetStartNextDuelOnLevelLoad( true );
 					}
 					// If we've reached the duel limit, exit the level.
-					else if (( duellimit > 0 ) && ( DUEL_GetNumDuels( ) >= duellimit ))
+					else if (( duellimit > 0 ) && ( static_cast<signed> (DUEL_GetNumDuels( )) >= duellimit ))
 					{
 						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 							SERVER_Printf( PRINT_HIGH, "Duellimit hit.\n" );
@@ -1682,7 +1682,7 @@ void G_Ticker ()
 								if (( playeringame[ulIdx] == false ) || ( PLAYER_IsTrueSpectator( &players[ulIdx] )))
 									continue;
 
-								if ( players[ulIdx].ulWins >= winlimit )
+								if ( static_cast<signed> (players[ulIdx].ulWins) >= winlimit )
 								{
 									bLimitHit = true;
 									break;
@@ -2642,7 +2642,7 @@ void G_DoReborn (int playernum, bool freshbot)
 				AActor						*pActor;
 				TThinkerIterator<AActor>	Iterator;
 				
-				while ( pActor = Iterator.Next( ))
+				while ( (pActor = Iterator.Next( )))
 				{
 					if ( pActor->target == pOldBody )
 						pActor->target = players[playernum].mo;
@@ -2666,7 +2666,7 @@ void G_DoReborn (int playernum, bool freshbot)
 				AActor						*pActor;
 				TThinkerIterator<AActor>	Iterator;
 				
-				while ( pActor = Iterator.Next( ))
+				while ( (pActor = Iterator.Next( )))
 				{
 					if ( pActor->target == pOldBody )
 						pActor->target = players[playernum].mo;
@@ -2684,7 +2684,7 @@ void G_DoReborn (int playernum, bool freshbot)
 			AActor						*pActor;
 			TThinkerIterator<AActor>	Iterator;
 			
-			while ( pActor = Iterator.Next( ))
+			while ( (pActor = Iterator.Next( )))
 			{
 				if ( pActor->target == pOldBody )
 					pActor->target = players[playernum].mo;
@@ -2781,7 +2781,7 @@ void GAME_CheckMode( void )
 
 			ulNumFlags = 0;
 			ulNumSkulls = 0;
-			while ( pActor = iterator.Next( ))
+			while ( (pActor = iterator.Next( )))
 			{
 				if ( pActor->IsKindOf( PClass::FindClass( "BlueSkull" )))
 					ulNumSkulls++;
@@ -2877,9 +2877,9 @@ void GAME_CheckMode( void )
 	// In a campaign, just use whatever dmflags are assigned.
 	if ( CAMPAIGN_InCampaign( ) == false )
 	{
-		if ( dmflags != ulFlags )
+		if ( static_cast<unsigned> (dmflags) != ulFlags )
 			dmflags = ulFlags;
-		if ( dmflags2 != ulFlags2 )
+		if ( static_cast<unsigned> (dmflags2) != ulFlags2 )
 			dmflags2 = ulFlags2;
 	}
 
@@ -2893,7 +2893,7 @@ void GAME_CheckMode( void )
 		{
 			TEAM_SetSimpleCTFMode( true );
 
-			while ( pActor = iterator.Next( ))
+			while ( (pActor = iterator.Next( )))
 			{
 				if ( pActor->IsKindOf( PClass::FindClass( "BlueFlag" )))
 				{
@@ -2934,7 +2934,7 @@ void GAME_CheckMode( void )
 		{
 			TEAM_SetSimpleSTMode( true );
 
-			while ( pActor = iterator.Next( ))
+			while ( (pActor = iterator.Next( )))
 			{
 				if ( pActor->IsKindOf( PClass::FindClass( "BlueSkull" )))
 				{
@@ -3092,7 +3092,7 @@ void GAME_ResetMap( bool bRunEnterScripts )
 	}
 
 	// [BB] Reset the polyobjs.
-	for ( ulIdx = 0; ulIdx <= po_NumPolyobjs; ulIdx++ )
+	for ( ulIdx = 0; ulIdx <= static_cast<unsigned> (po_NumPolyobjs); ulIdx++ )
 	{
 		polyobj_t *pPoly = GetPolyobjByIndex( ulIdx );
 		if ( pPoly == NULL )

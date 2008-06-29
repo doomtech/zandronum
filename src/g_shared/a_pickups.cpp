@@ -553,7 +553,7 @@ bool AInventory::SpecialDropAction (AActor *dropper)
 
 bool AInventory::ShouldRespawn ()
 {
-	// [BB] Force respawning íf items with the IF_FORCERESPAWNINSURVIVAL flag in survival.
+	// [BB] Force respawning if items with the IF_FORCERESPAWNINSURVIVAL flag in survival.
 	if ( survival && (ItemFlags & IF_FORCERESPAWNINSURVIVAL) ) return true;
 
 	if ((ItemFlags & IF_BIGPOWERUP) && !(dmflags & DF_RESPAWN_SUPER)) return false;

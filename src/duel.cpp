@@ -138,6 +138,8 @@ void DUEL_Tick( void )
 				ANNOUNCER_PlayEntry( cl_announcer, "One" );
 		}
 		break;
+	default: //Satisfy GCC
+		break;
 	}
 }
 
@@ -261,7 +263,7 @@ void DUEL_DoFight( void )
 			2.0f,
 			1.0f );
 
-		StatusBar->AttachMessage( pMsg, 'CNTR' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 		screen->SetFont( SmallFont );
 	}
 	// Display a little thing in the server window so servers can know when matches begin.
@@ -337,7 +339,7 @@ void DUEL_DoWinSequence( ULONG ulPlayer )
 			3.0f,
 			2.0f );
 
-		StatusBar->AttachMessage( pMsg, 'CNTR' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 		screen->SetFont( SmallFont );
 	}
 
@@ -455,12 +457,12 @@ void DUEL_TimeExpired( void )
 					3.0f,
 					2.0f );
 
-				StatusBar->AttachMessage( pMsg, 'CNTR' );
+				StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 				screen->SetFont( SmallFont );
 			}
 			else
 			{
-				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", false, 'CNTR' );
+				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", false, MAKE_ID('C','N','T','R') );
 			}
 		}
 
@@ -557,6 +559,8 @@ void DUEL_SetState( DUELSTATE_e State )
 
 		// Zero out the countdown ticker.
 		DUEL_SetCountdownTicks( 0 );
+		break;
+	default: //Satisfy GCC
 		break;
 	}
 }

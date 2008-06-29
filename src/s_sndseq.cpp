@@ -762,7 +762,7 @@ static bool TwiddleSeqNum (int &sequence, seqtype_t type)
 	}
 
 	// [BC] Added check since servers don't load sequences.
-	if (sequence == -1 || ( sequence >= Sequences.Size( )) || Sequences[sequence] == NULL)
+	if (sequence == -1 || ( static_cast<unsigned> (sequence) >= Sequences.Size( )) || Sequences[sequence] == NULL)
 		return false;
 	else
 		return true;

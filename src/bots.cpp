@@ -3198,7 +3198,6 @@ void CSkullBot::EndTick( void )
 //
 void CSkullBot::PostEvent( BOTEVENT_e Event )
 {
-//	LONG		lBuffer;
 	LONG		lIdx;
 	BOTSKILL_e	Skill;
 
@@ -3310,9 +3309,9 @@ void CSkullBot::PostEvent( BOTEVENT_e Event )
 void CSkullBot::ParseScript( void )
 {
 	bool	bStopParsing;
-	LONG	lCommandHeader;
-	LONG	lBuffer;
-	LONG	lVariable;
+	SDWORD	sdwCommandHeader;
+	SDWORD	sdwBuffer;
+	SDWORD	sdwVariable;
 	LONG	lNumOperations = 0;
 //	LONG	lExpectedStackPosition;
 
@@ -3320,18 +3319,18 @@ void CSkullBot::ParseScript( void )
 	while ( bStopParsing == false )
 	{
 		m_ScriptData.RawData.Seek( m_ScriptData.lScriptPos, SEEK_SET );
-		m_ScriptData.RawData.Read( &lCommandHeader, sizeof( LONG ));
-		m_ScriptData.lScriptPos += sizeof( LONG );
+		m_ScriptData.RawData.Read( &sdwCommandHeader, sizeof( SDWORD ));
+		m_ScriptData.lScriptPos += sizeof( SDWORD );
 
 		if ( botdebug_dataheaders )
-			Printf( "%s\n", g_pszDataHeaders[lCommandHeader] );
+			Printf( "%s\n", g_pszDataHeaders[sdwCommandHeader] );
 
 		if ( lNumOperations++ >= 8192 )
 			I_Error( "ParseScript: Infinite loop detected in bot %s's script!", GetPlayer( )->userinfo.netname );
 
-//		lExpectedStackPosition = m_ScriptData.lStackPosition + g_lExpectedStackChange[lCommandHeader];
-//		g_lLastHeader = lCommandHeader;
-		switch ( lCommandHeader )
+//		lExpectedStackPosition = m_ScriptData.lStackPosition + g_lExpectedStackChange[sdwCommandHeader];
+//		g_lLastHeader = sdwCommandHeader;
+		switch ( sdwCommandHeader )
 		{
 		// Looped back around to the beginning of the main loop.
 		case DH_MAINLOOP:
@@ -3341,13 +3340,13 @@ void CSkullBot::ParseScript( void )
 		case DH_COMMAND:
 
 			// Read in the command.
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-			if (( lBuffer < 0 ) || ( lBuffer >= NUM_BOTCMDS ))
-				I_Error( "ParseScript: Unknown command %d, in state %s!", lBuffer, m_ScriptData.szStateName[m_ScriptData.lCurrentStateIdx] );
+			if (( sdwBuffer < 0 ) || ( sdwBuffer >= NUM_BOTCMDS ))
+				I_Error( "ParseScript: Unknown command %d, in state %s!", sdwBuffer, m_ScriptData.szStateName[m_ScriptData.lCurrentStateIdx] );
 			else
-				BOTCMD_RunCommand( (BOTCMD_e)lBuffer, this );
+				BOTCMD_RunCommand( (BOTCMD_e)sdwBuffer, this );
 
 			if ( m_ScriptData.bExitingState && ( m_ScriptData.bInOnExit == false ))
 			{
@@ -3406,10 +3405,10 @@ void CSkullBot::ParseScript( void )
 		case DH_ENDONENTER:
 
 			// Read the next longword. It must be the start of the main loop.
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-			if ( lBuffer != DH_MAINLOOP )
+			if ( sdwBuffer != DH_MAINLOOP )
 				I_Error( "ParseSecton: Missing mainloop in state %s!", m_ScriptData.szStateName[m_ScriptData.lCurrentStateIdx] );
 
 //			if ( m_ScriptData.lStackPosition != 0 )
@@ -3470,62 +3469,62 @@ void CSkullBot::ParseScript( void )
 			break;
 		case DH_PUSHNUMBER:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-			PushToStack( lBuffer );
+			PushToStack( sdwBuffer );
 			break;
 		case DH_PUSHSTRINGINDEX:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-			PushToStringStack( m_ScriptData.szStringList[lBuffer] );
+			PushToStringStack( m_ScriptData.szStringList[sdwBuffer] );
 			break;
 		case DH_PUSHGLOBALVAR:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-			PushToStack( m_ScriptData.alScriptVariables[lBuffer] );
+			PushToStack( m_ScriptData.alScriptVariables[sdwBuffer] );
 			break;
 		case DH_PUSHLOCALVAR:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-			PushToStack( m_ScriptData.alStateVariables[m_ScriptData.lCurrentStateIdx][lBuffer] );
+			PushToStack( m_ScriptData.alStateVariables[m_ScriptData.lCurrentStateIdx][sdwBuffer] );
 			break;
 		case DH_IFGOTO:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
 			if ( m_ScriptData.alStack[m_ScriptData.lStackPosition - 1] )
 			{
-				m_ScriptData.lScriptPos = lBuffer;
+				m_ScriptData.lScriptPos = sdwBuffer;
 				m_ScriptData.RawData.Seek( m_ScriptData.lScriptPos, SEEK_SET );
 			}
 			PopStack( );
 			break;
 		case DH_IFNOTGOTO:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
 			if ( m_ScriptData.alStack[m_ScriptData.lStackPosition - 1] == 0 )
 			{
-				m_ScriptData.lScriptPos = lBuffer;
+				m_ScriptData.lScriptPos = sdwBuffer;
 				m_ScriptData.RawData.Seek( m_ScriptData.lScriptPos, SEEK_SET );
 			}
 			PopStack( );
 			break;
 		case DH_GOTO:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-			m_ScriptData.lScriptPos = lBuffer;
+			m_ScriptData.lScriptPos = sdwBuffer;
 			m_ScriptData.RawData.Seek( m_ScriptData.lScriptPos, SEEK_SET );
 			break;
 		case DH_DROPSTACKPOSITION:
@@ -3636,150 +3635,150 @@ void CSkullBot::ParseScript( void )
 		case DH_SCRIPTVARLIST:
 
 			// This doesn't do much now.
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_INCGLOBALVAR:
 
-			m_ScriptData.RawData.Read( &lVariable, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwVariable, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-			m_ScriptData.alScriptVariables[lVariable]++;
+			m_ScriptData.alScriptVariables[sdwVariable]++;
 			break;
 		case DH_DECGLOBALVAR:
 
-			m_ScriptData.RawData.Read( &lVariable, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwVariable, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-			m_ScriptData.alScriptVariables[lVariable]--;
+			m_ScriptData.alScriptVariables[sdwVariable]--;
 			break;
 		case DH_ASSIGNGLOBALVAR:
 
-			m_ScriptData.RawData.Read( &lVariable, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwVariable, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-			m_ScriptData.alScriptVariables[lVariable] = m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
+			m_ScriptData.alScriptVariables[sdwVariable] = m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
 			PopStack( );
 			break;
 		case DH_ADDGLOBALVAR:
 
-			m_ScriptData.RawData.Read( &lVariable, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwVariable, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-			m_ScriptData.alScriptVariables[lVariable] += m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
+			m_ScriptData.alScriptVariables[sdwVariable] += m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
 			PopStack( );
 			break;
 		case DH_SUBGLOBALVAR:
 
-			m_ScriptData.RawData.Read( &lVariable, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwVariable, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-			m_ScriptData.alScriptVariables[lVariable] -= m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
+			m_ScriptData.alScriptVariables[sdwVariable] -= m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
 			PopStack( );
 			break;
 		case DH_MULGLOBALVAR:
 
-			m_ScriptData.RawData.Read( &lVariable, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwVariable, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-			m_ScriptData.alScriptVariables[lVariable] *= m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
+			m_ScriptData.alScriptVariables[sdwVariable] *= m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
 			PopStack( );
 			break;
 		case DH_DIVGLOBALVAR:
 
-			m_ScriptData.RawData.Read( &lVariable, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwVariable, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
 			if ( m_ScriptData.alStack[m_ScriptData.lStackPosition - 1] == 0 )
 				I_Error( "ParseScript: Illegal divide by 0 occured while trying to divide global variable in bot %s's script!!", m_pPlayer->userinfo.netname );
 
-			m_ScriptData.alScriptVariables[lVariable] /= m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
+			m_ScriptData.alScriptVariables[sdwVariable] /= m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
 			PopStack( );
 			break;
 		case DH_MODGLOBALVAR:
 
-			m_ScriptData.RawData.Read( &lVariable, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwVariable, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-			m_ScriptData.alScriptVariables[lVariable] %= m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
+			m_ScriptData.alScriptVariables[sdwVariable] %= m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
 			PopStack( );
 			break;
 		case DH_INCLOCALVAR:
 
-			m_ScriptData.RawData.Read( &lVariable, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwVariable, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-			m_ScriptData.alStateVariables[m_ScriptData.lCurrentStateIdx][lVariable]++;
+			m_ScriptData.alStateVariables[m_ScriptData.lCurrentStateIdx][sdwVariable]++;
 			break;
 		case DH_DECLOCALVAR:
 
-			m_ScriptData.RawData.Read( &lVariable, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwVariable, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-			m_ScriptData.alStateVariables[m_ScriptData.lCurrentStateIdx][lVariable]--;
+			m_ScriptData.alStateVariables[m_ScriptData.lCurrentStateIdx][sdwVariable]--;
 			break;
 		case DH_ASSIGNLOCALVAR:
 
-			m_ScriptData.RawData.Read( &lVariable, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwVariable, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-			m_ScriptData.alStateVariables[m_ScriptData.lCurrentStateIdx][lVariable] = m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
+			m_ScriptData.alStateVariables[m_ScriptData.lCurrentStateIdx][sdwVariable] = m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
 			PopStack( );
 			break;
 		case DH_ADDLOCALVAR:
 
-			m_ScriptData.RawData.Read( &lVariable, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwVariable, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-			m_ScriptData.alStateVariables[m_ScriptData.lCurrentStateIdx][lVariable] += m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
+			m_ScriptData.alStateVariables[m_ScriptData.lCurrentStateIdx][sdwVariable] += m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
 			PopStack( );
 			break;
 		case DH_SUBLOCALVAR:
 
-			m_ScriptData.RawData.Read( &lVariable, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwVariable, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-			m_ScriptData.alStateVariables[m_ScriptData.lCurrentStateIdx][lVariable] -= m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
+			m_ScriptData.alStateVariables[m_ScriptData.lCurrentStateIdx][sdwVariable] -= m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
 			PopStack( );
 			break;
 		case DH_MULLOCALVAR:
 
-			m_ScriptData.RawData.Read( &lVariable, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwVariable, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-			m_ScriptData.alStateVariables[m_ScriptData.lCurrentStateIdx][lVariable] *= m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
+			m_ScriptData.alStateVariables[m_ScriptData.lCurrentStateIdx][sdwVariable] *= m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
 			PopStack( );
 			break;
 		case DH_DIVLOCALVAR:
 
-			m_ScriptData.RawData.Read( &lVariable, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwVariable, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
 			if ( m_ScriptData.alStack[m_ScriptData.lStackPosition - 1] == 0 )
 				I_Error( "ParseScript: Illegal divide by 0 occured while trying to divide local variable in bot %s's script!", m_pPlayer->userinfo.netname );
 
-			m_ScriptData.alStateVariables[m_ScriptData.lCurrentStateIdx][lVariable] /= m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
+			m_ScriptData.alStateVariables[m_ScriptData.lCurrentStateIdx][sdwVariable] /= m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
 			PopStack( );
 			break;
 		case DH_MODLOCALVAR:
 
-			m_ScriptData.RawData.Read( &lVariable, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwVariable, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-			m_ScriptData.alStateVariables[m_ScriptData.lCurrentStateIdx][lVariable] %= m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
+			m_ScriptData.alStateVariables[m_ScriptData.lCurrentStateIdx][sdwVariable] %= m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
 			PopStack( );
 			break;
 		case DH_CASEGOTO:
 
-			m_ScriptData.RawData.Read( &lVariable, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwVariable, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-			if ( m_ScriptData.alStack[m_ScriptData.lStackPosition - 1] == lVariable )
+			if ( m_ScriptData.alStack[m_ScriptData.lStackPosition - 1] == sdwVariable )
 			{
-				m_ScriptData.lScriptPos = lBuffer;
+				m_ScriptData.lScriptPos = sdwBuffer;
 				m_ScriptData.RawData.Seek( m_ScriptData.lScriptPos, SEEK_SET );
 
 				PopStack( );
@@ -3796,10 +3795,10 @@ void CSkullBot::ParseScript( void )
 
 				lIdx = m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
 
-				m_ScriptData.RawData.Read( &lVariable, sizeof( LONG ));
-				m_ScriptData.lScriptPos += sizeof( LONG );
+				m_ScriptData.RawData.Read( &sdwVariable, sizeof( SDWORD ));
+				m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-				m_ScriptData.alScriptArrays[lVariable][lIdx]++;
+				m_ScriptData.alScriptArrays[sdwVariable][lIdx]++;
 				PopStack( );
 			}
 			break;
@@ -3810,76 +3809,76 @@ void CSkullBot::ParseScript( void )
 
 				lIdx = m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
 
-				m_ScriptData.RawData.Read( &lVariable, sizeof( LONG ));
-				m_ScriptData.lScriptPos += sizeof( LONG );
+				m_ScriptData.RawData.Read( &sdwVariable, sizeof( SDWORD ));
+				m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-				m_ScriptData.alScriptArrays[lVariable][lIdx]--;
+				m_ScriptData.alScriptArrays[sdwVariable][lIdx]--;
 				PopStack( );
 			}
 			break;
 		case DH_ASSIGNGLOBALARRAY:
 
-			m_ScriptData.RawData.Read( &lVariable, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwVariable, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-			m_ScriptData.alScriptArrays[lVariable][m_ScriptData.alStack[m_ScriptData.lStackPosition - 2]] = m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
+			m_ScriptData.alScriptArrays[sdwVariable][m_ScriptData.alStack[m_ScriptData.lStackPosition - 2]] = m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
 			PopStack( );
 			PopStack( );
 			break;
 		case DH_ADDGLOBALARRAY:
 
-			m_ScriptData.RawData.Read( &lVariable, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwVariable, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-			m_ScriptData.alScriptArrays[lVariable][m_ScriptData.alStack[m_ScriptData.lStackPosition - 2]] += m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
+			m_ScriptData.alScriptArrays[sdwVariable][m_ScriptData.alStack[m_ScriptData.lStackPosition - 2]] += m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
 			PopStack( );
 			PopStack( );
 			break;
 		case DH_SUBGLOBALARRAY:
 
-			m_ScriptData.RawData.Read( &lVariable, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwVariable, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-			m_ScriptData.alScriptArrays[lVariable][m_ScriptData.alStack[m_ScriptData.lStackPosition - 2]] -= m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
+			m_ScriptData.alScriptArrays[sdwVariable][m_ScriptData.alStack[m_ScriptData.lStackPosition - 2]] -= m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
 			PopStack( );
 			PopStack( );
 			break;
 		case DH_MULGLOBALARRAY:
 
-			m_ScriptData.RawData.Read( &lVariable, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwVariable, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-			m_ScriptData.alScriptArrays[lVariable][m_ScriptData.alStack[m_ScriptData.lStackPosition - 2]] *= m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
+			m_ScriptData.alScriptArrays[sdwVariable][m_ScriptData.alStack[m_ScriptData.lStackPosition - 2]] *= m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
 			PopStack( );
 			PopStack( );
 			break;
 		case DH_DIVGLOBALARRAY:
 
-			m_ScriptData.RawData.Read( &lVariable, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwVariable, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
 			if ( m_ScriptData.alStack[m_ScriptData.lStackPosition - 1] == 0 )
 				I_Error( "ParseScript: Illegal divide by 0 occured while trying to divide array in bot %s's script!", m_pPlayer->userinfo.netname );
 
-			m_ScriptData.alScriptArrays[lVariable][m_ScriptData.alStack[m_ScriptData.lStackPosition - 2]] /= m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
+			m_ScriptData.alScriptArrays[sdwVariable][m_ScriptData.alStack[m_ScriptData.lStackPosition - 2]] /= m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
 			PopStack( );
 			PopStack( );
 			break;
 		case DH_MODGLOBALARRAY:
 
-			m_ScriptData.RawData.Read( &lVariable, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwVariable, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-			m_ScriptData.alScriptArrays[lVariable][m_ScriptData.alStack[m_ScriptData.lStackPosition - 2]] %= m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
+			m_ScriptData.alScriptArrays[sdwVariable][m_ScriptData.alStack[m_ScriptData.lStackPosition - 2]] %= m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
 			PopStack( );
 			PopStack( );
 			break;
 		case DH_PUSHGLOBALARRAY:
 
-			m_ScriptData.RawData.Read( &lVariable, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwVariable, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-			m_ScriptData.alStack[m_ScriptData.lStackPosition - 1] = m_ScriptData.alScriptArrays[lVariable][m_ScriptData.alStack[m_ScriptData.lStackPosition - 1]];
+			m_ScriptData.alStack[m_ScriptData.lStackPosition - 1] = m_ScriptData.alScriptArrays[sdwVariable][m_ScriptData.alStack[m_ScriptData.lStackPosition - 1]];
 			break;
 		case DH_SWAP:
 
@@ -3928,17 +3927,17 @@ void CSkullBot::ParseScript( void )
 			{
 				char	szCommandHeader[32];
 
-				itoa( lCommandHeader, szCommandHeader, 10 );
-				I_Error( "ParseScript: Invalid command, %s, in state %s!", lCommandHeader < NUM_DATAHEADERS ? g_pszDataHeaders[lCommandHeader] : szCommandHeader, m_ScriptData.szStateName[m_ScriptData.lCurrentStateIdx] );
+				itoa( sdwCommandHeader, szCommandHeader, 10 );
+				I_Error( "ParseScript: Invalid command, %s, in state %s!", sdwCommandHeader < NUM_DATAHEADERS ? g_pszDataHeaders[sdwCommandHeader] : szCommandHeader, m_ScriptData.szStateName[m_ScriptData.lCurrentStateIdx] );
 			}
 			break;
 		}
 /*
 		if (( lExpectedStackPosition != m_ScriptData.lStackPosition ) &&
-			( lCommandHeader != DH_COMMAND ) &&
-			( lCommandHeader != DH_CASEGOTO ))
+			( sdwCommandHeader != DH_COMMAND ) &&
+			( sdwCommandHeader != DH_CASEGOTO ))
 		{
-			I_Error( "ParseScript: Something's screwey about %s!", g_pszDataHeaders[lCommandHeader] );
+			I_Error( "ParseScript: Something's screwey about %s!", g_pszDataHeaders[sdwCommandHeader] );
 		}
 */
 	}
@@ -3949,36 +3948,36 @@ void CSkullBot::ParseScript( void )
 void CSkullBot::GetStatePositions( void )
 {
 	bool		bStopParsing;
-	LONG		lCommandHeader;
-	LONG		lLastCommandHeader;
-	LONG		lBuffer;
+	SDWORD		sdwCommandHeader;
+	SDWORD		sdwLastCommandHeader;
+	SDWORD		sdwBuffer;
 
 	bStopParsing = false;
-	lCommandHeader = -1;
+	sdwCommandHeader = -1;
 	while ( bStopParsing == false )
 	{
-		lLastCommandHeader = lCommandHeader;
+		sdwLastCommandHeader = sdwCommandHeader;
 
 		// Hit the end of the file.
 		m_ScriptData.RawData.Seek( m_ScriptData.lScriptPos, SEEK_SET );
-		if ( m_ScriptData.RawData.Read( &lCommandHeader, sizeof( LONG )) < static_cast<LONG>(sizeof( LONG )))
+		if ( m_ScriptData.RawData.Read( &sdwCommandHeader, sizeof( SDWORD )) < static_cast<LONG>(sizeof( SDWORD )))
 			return;
-		m_ScriptData.lScriptPos += sizeof( LONG );
+		m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-		switch ( lCommandHeader )
+		switch ( sdwCommandHeader )
 		{
 		case DH_COMMAND:
 
 			// Read in the command.
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-			if (( lBuffer < 0 ) || ( lBuffer >= NUM_BOTCMDS ))
-				I_Error( "GetStatePositions: Unknown command %d, in state %s!", lBuffer, m_ScriptData.szStateName[m_ScriptData.lCurrentStateIdx] );
+			if (( sdwBuffer < 0 ) || ( sdwBuffer >= NUM_BOTCMDS ))
+				I_Error( "GetStatePositions: Unknown command %d, in state %s!", sdwBuffer, m_ScriptData.szStateName[m_ScriptData.lCurrentStateIdx] );
 
 			// Read in the argument list.
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_ONENTER:
 
@@ -4004,8 +4003,8 @@ void CSkullBot::GetStatePositions( void )
 		case DH_EVENT:
 
 			// Read in the event.
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
 			if ( m_ScriptData.lCurrentStateIdx == -1 )
 			{
@@ -4013,7 +4012,7 @@ void CSkullBot::GetStatePositions( void )
 					I_Error( "GetStatePositions: Too many global events in bot %s's script!", GetPlayer( )->userinfo.netname );
 
 				m_ScriptData.GlobalEventPositions[m_ScriptData.lNumGlobalEvents].lPos = m_ScriptData.lScriptPos;
-				m_ScriptData.GlobalEventPositions[m_ScriptData.lNumGlobalEvents].Event = (BOTEVENT_e)lBuffer;
+				m_ScriptData.GlobalEventPositions[m_ScriptData.lNumGlobalEvents].Event = (BOTEVENT_e)sdwBuffer;
 				m_ScriptData.lNumGlobalEvents++;
 			}
 			else
@@ -4022,7 +4021,7 @@ void CSkullBot::GetStatePositions( void )
 					I_Error( "GetStatePositions: Too many events in bot %s's state, %s!", GetPlayer( )->userinfo.netname, m_ScriptData.szStateName[m_ScriptData.lCurrentStateIdx] );
 
 				m_ScriptData.EventPositions[m_ScriptData.lCurrentStateIdx][m_ScriptData.lNumEvents[m_ScriptData.lCurrentStateIdx]].lPos = m_ScriptData.lScriptPos;
-				m_ScriptData.EventPositions[m_ScriptData.lCurrentStateIdx][m_ScriptData.lNumEvents[m_ScriptData.lCurrentStateIdx]].Event = (BOTEVENT_e)lBuffer;
+				m_ScriptData.EventPositions[m_ScriptData.lCurrentStateIdx][m_ScriptData.lNumEvents[m_ScriptData.lCurrentStateIdx]].Event = (BOTEVENT_e)sdwBuffer;
 				m_ScriptData.lNumEvents[m_ScriptData.lCurrentStateIdx]++;
 			}
 			break;
@@ -4041,28 +4040,30 @@ void CSkullBot::GetStatePositions( void )
 		case DH_STATENAME:
 
 			{
-				LONG	lNameLength;
+				SDWORD	sdwNameLength;
 				char	szStateName[256];
 
 				// Read in the string length of the script name.
-				m_ScriptData.RawData.Read( &lNameLength, sizeof( LONG ));
-				m_ScriptData.lScriptPos += sizeof( LONG );
+				m_ScriptData.RawData.Read( &sdwNameLength, sizeof( SDWORD ));
+				m_ScriptData.lScriptPos += sizeof( SDWORD );
 
 				// Now, read in the string name.
-				m_ScriptData.RawData.Read( szStateName, lNameLength );
-				m_ScriptData.lScriptPos += lNameLength;
+				m_ScriptData.RawData.Read( szStateName, sdwNameLength );
+				m_ScriptData.lScriptPos += sdwNameLength;
 
-				szStateName[lNameLength] = 0;
+				szStateName[sdwNameLength] = 0;
 
 				// Read in the string length of the script name.
-				m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-				m_ScriptData.lScriptPos += sizeof( LONG );
+				m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+				m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-				if ( lBuffer != DH_STATEIDX )
+				if ( sdwBuffer != DH_STATEIDX )
 					I_Error( "GetStatePositions: Expected state index after state, %s!", szStateName );
 
-				m_ScriptData.RawData.Read( &m_ScriptData.lCurrentStateIdx, sizeof( LONG ));
-				m_ScriptData.lScriptPos += sizeof( LONG );
+				SDWORD sdwTemp;
+				m_ScriptData.RawData.Read( &sdwTemp, sizeof( SDWORD ));
+				m_ScriptData.lCurrentStateIdx = sdwTemp;
+				m_ScriptData.lScriptPos += sizeof( SDWORD );
 
 				m_ScriptData.StatePositions[m_ScriptData.lCurrentStateIdx].lPos = m_ScriptData.lScriptPos;
 				sprintf( m_ScriptData.szStateName[m_ScriptData.lCurrentStateIdx], szStateName );
@@ -4073,8 +4074,10 @@ void CSkullBot::GetStatePositions( void )
 		case DH_STATEIDX:
 
 			{
-				m_ScriptData.RawData.Read( &m_ScriptData.lCurrentStateIdx, sizeof( LONG ));
-				m_ScriptData.lScriptPos += sizeof( LONG );
+				SDWORD sdwTemp;
+				m_ScriptData.RawData.Read( &sdwTemp, sizeof( SDWORD ));
+				m_ScriptData.lCurrentStateIdx = sdwTemp;
+				m_ScriptData.lScriptPos += sizeof( SDWORD );
 
 				m_ScriptData.StatePositions[m_ScriptData.lCurrentStateIdx].lPos = m_ScriptData.lScriptPos;
 			}
@@ -4082,38 +4085,38 @@ void CSkullBot::GetStatePositions( void )
 			break;
 		case DH_PUSHNUMBER:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_PUSHSTRINGINDEX:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_PUSHGLOBALVAR:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_PUSHLOCALVAR:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_IFGOTO:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_IFNOTGOTO:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_GOTO:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_ORLOGICAL:
 		case DH_ANDLOGICAL:
@@ -4140,168 +4143,168 @@ void CSkullBot::GetStatePositions( void )
 			break;
 		case DH_SCRIPTVARLIST:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_STRINGLIST:
 
 			{
 				char	szString[MAX_STRING_LENGTH];
-				LONG	lNumStrings;
+				SDWORD	sdwNumStrings;
 				ULONG	ulIdx;
 
-				m_ScriptData.RawData.Read( &lNumStrings, sizeof( LONG ));
-				m_ScriptData.lScriptPos += sizeof( LONG );
+				m_ScriptData.RawData.Read( &sdwNumStrings, sizeof( SDWORD ));
+				m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-				for ( ulIdx = 0; ulIdx < (ULONG)lNumStrings; ulIdx++ )
+				for ( ulIdx = 0; ulIdx < (ULONG)sdwNumStrings; ulIdx++ )
 				{
 					// This is the string length.
-					m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-					m_ScriptData.lScriptPos += sizeof( LONG );
+					m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+					m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-					m_ScriptData.RawData.Read( &szString, lBuffer );
-					m_ScriptData.lScriptPos += lBuffer;
+					m_ScriptData.RawData.Read( &szString, sdwBuffer );
+					m_ScriptData.lScriptPos += sdwBuffer;
 
-					szString[lBuffer] = 0;
+					szString[sdwBuffer] = 0;
 					sprintf( m_ScriptData.szStringList[ulIdx], szString );
 				}
 			}
 			break;
 		case DH_INCGLOBALVAR:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_DECGLOBALVAR:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_ASSIGNGLOBALVAR:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_ADDGLOBALVAR:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_SUBGLOBALVAR:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_MULGLOBALVAR:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_DIVGLOBALVAR:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_MODGLOBALVAR:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_INCLOCALVAR:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_DECLOCALVAR:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_ASSIGNLOCALVAR:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_ADDLOCALVAR:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_SUBLOCALVAR:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_MULLOCALVAR:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_DIVLOCALVAR:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_MODLOCALVAR:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_CASEGOTO:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_DROP:
 
 			break;
 		case DH_INCGLOBALARRAY:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_DECGLOBALARRAY:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_ASSIGNGLOBALARRAY:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_ADDGLOBALARRAY:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_SUBGLOBALARRAY:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_MULGLOBALARRAY:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_DIVGLOBALARRAY:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_MODGLOBALARRAY:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_PUSHGLOBALARRAY:
 
-			m_ScriptData.RawData.Read( &lBuffer, sizeof( LONG ));
-			m_ScriptData.lScriptPos += sizeof( LONG );
+			m_ScriptData.RawData.Read( &sdwBuffer, sizeof( SDWORD ));
+			m_ScriptData.lScriptPos += sizeof( SDWORD );
 			break;
 		case DH_SWAP:
 
@@ -4311,7 +4314,7 @@ void CSkullBot::GetStatePositions( void )
 			break;
 		default:
 
-			I_Error( "GetStatePositions: Unknown header, %d in bot %s's script at position, %d! (Last known header: %d)", lCommandHeader, m_pPlayer->userinfo.netname, m_ScriptData.lScriptPos - sizeof( LONG ), lLastCommandHeader );
+			I_Error( "GetStatePositions: Unknown header, %d in bot %s's script at position, %d! (Last known header: %d)", sdwCommandHeader, m_pPlayer->userinfo.netname, m_ScriptData.lScriptPos - sizeof( SDWORD ), sdwLastCommandHeader );
 			break;
 		}
 	}
@@ -5157,4 +5160,5 @@ ADD_STAT( bots )
 
 	return ( Out );
 }
+
 

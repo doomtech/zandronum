@@ -277,7 +277,7 @@ void POSSESSION_Render( void )
 		bScale = false;
 
 	ulColor = ( g_ulPSNArtifactHoldTicks > ( 3 * TICRATE )) ? CR_GRAY : CR_RED;
-	sprintf( szString , "%02d:%02d", ( g_ulPSNArtifactHoldTicks + TICRATE ) / ( TICRATE * 60 ), (( g_ulPSNArtifactHoldTicks + TICRATE ) - ((( g_ulPSNArtifactHoldTicks + TICRATE ) / ( TICRATE * 60 )) * ( TICRATE * 60 ))) / TICRATE );
+	sprintf( szString , "%02d:%02d", static_cast<unsigned int> (( g_ulPSNArtifactHoldTicks + TICRATE ) / ( TICRATE * 60 )), static_cast<unsigned int> ((( g_ulPSNArtifactHoldTicks + TICRATE ) - ((( g_ulPSNArtifactHoldTicks + TICRATE ) / ( TICRATE * 60 )) * ( TICRATE * 60 ))) / TICRATE) );
 	V_ColorizeString( szString );
 
 	// [RC] Hide this when the scoreboard is up to prevent overlapping.
@@ -437,7 +437,7 @@ void POSSESSION_DoFight( void )
 			2.0f,
 			1.0f );
 
-		StatusBar->AttachMessage( pMsg, 'CNTR' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 		screen->SetFont( SmallFont );
 	}
 	// Display a little thing in the server window so servers can know when matches begin.
@@ -535,7 +535,7 @@ void POSSESSION_ScorePossessionPoint( player_s *pPlayer )
 		return;
 
 	// Don't do anything unless we're actually in possession mode.
-	if (( possession == NULL ) && ( teampossession == NULL ))
+	if (( possession == false ) && ( teampossession == false ))
 		return;
 
 	// Change the game state to the score sequence.
@@ -619,7 +619,7 @@ void POSSESSION_ArtifactPickedUp( player_s *pPlayer, ULONG ulTicks )
 			CR_RED,
 			3.0f,
 			0.25f );
-		StatusBar->AttachMessage( pMsg, 'CNTR' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 		screen->SetFont( SmallFont );
 	}
 
@@ -667,7 +667,7 @@ void POSSESSION_ArtifactDropped( void )
 			CR_RED,
 			3.0f,
 			0.25f );
-		StatusBar->AttachMessage( pMsg, 'CNTR' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 		screen->SetFont( SmallFont );
 	}
 
@@ -730,12 +730,12 @@ void POSSESSION_TimeExpired( void )
 					3.0f,
 					2.0f );
 
-				StatusBar->AttachMessage( pMsg, 'CNTR' );
+				StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 				screen->SetFont( SmallFont );
 			}
 			else
 			{
-				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", false, 'CNTR' );
+				SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", false, MAKE_ID('C','N','T','R') );
 			}
 		}
 
@@ -874,7 +874,7 @@ void possession_DisplayScoreInfo( ULONG ulPlayer )
 			3.0f,
 			2.0f );
 
-		StatusBar->AttachMessage( pMsg, 'CNTR' );
+		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 		screen->SetFont( SmallFont );
 
 		// [RC] Display small HUD message for the scorer
@@ -888,14 +888,14 @@ void possession_DisplayScoreInfo( ULONG ulPlayer )
 					CR_RED,
 					3.0f,
 					2.0f );
-			StatusBar->AttachMessage( pMsg, 'SUBS' );
+			StatusBar->AttachMessage( pMsg, MAKE_ID('S','U','B','S') );
 		}
 	}
 	else
 	{
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", false, 'CNTR' );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", false, MAKE_ID('C','N','T','R') );
 		if ( teampossession && ( players[ulPlayer].bOnTeam ))
-			SERVERCOMMANDS_PrintHUDMessageFadeOut( szScorer, 160.4f, 90.0f, 320, 200, CR_RED, 3.0f, 2.0f, "SmallFont", false, 'SUBS' );
+			SERVERCOMMANDS_PrintHUDMessageFadeOut( szScorer, 160.4f, 90.0f, 320, 200, CR_RED, 3.0f, 2.0f, "SmallFont", false, MAKE_ID('S','U','B','S') );
 	}
 }
 

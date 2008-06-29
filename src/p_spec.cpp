@@ -724,12 +724,12 @@ void P_UpdateSpecials ()
 							3.0f,
 							2.0f );
 
-						StatusBar->AttachMessage( pMsg, 'CNTR' );
+						StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
 						screen->SetFont( SmallFont );
 					}
 					else
 					{
-						SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", false, 'CNTR' );
+						SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", false, MAKE_ID('C','N','T','R') );
 					}
 
 					GAME_SetEndLevelDelay( 5 * TICRATE );
