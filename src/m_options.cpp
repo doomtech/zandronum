@@ -265,7 +265,7 @@ value_t TeamVals[2] = {
 	{ 1.0, "Red" },
 };
 
-value_t GameModeVals[15] = {
+value_t GameModeVals[16] = {
 	{ 0.0, "Normal (cooperative)" },
 	{ 1.0, "Survival cooperative" },
 	{ 2.0, "Invasion" },
@@ -281,6 +281,7 @@ value_t GameModeVals[15] = {
 	{ 12.0, "Capture the flag" },
 	{ 13.0, "One flag CTF" },
 	{ 14.0, "Skulltag" },
+	{ 15.0, "Domination" },
 };
 
 value_t ServerTypeVals[2] = {
@@ -295,7 +296,7 @@ value_t ServerSortTypeVals[4] = {
 	{ 3.0, "Players" },
 };
 
-value_t ServerGameModeVals[16] = {
+value_t ServerGameModeVals[17] = {
 	{ 0.0, "Any mode" },
 	{ 1.0, "Cooperative" },
 	{ 2.0, "Survival cooperative" },
@@ -312,6 +313,7 @@ value_t ServerGameModeVals[16] = {
 	{ 13.0, "Capture the flag" },
 	{ 14.0, "One flag CTF" },
 	{ 15.0, "Skulltag" },
+	{ 16.0, "Domination" },
 };
 
 value_t SwitchOnPickupVals[3] = {
@@ -1943,7 +1945,7 @@ CVAR( Bool, menu_browser_showfull, true, CVAR_ARCHIVE )
 static menuitem_t BrowserItems[] =
 {
 	{ discrete, "Servers",				{&menu_browser_servers},		{2.0}, {0.0},	{0.0}, {ServerTypeVals} },
-	{ discrete, "Gametype",				{&menu_browser_gametype},		{16.0}, {0.0},	{0.0}, {ServerGameModeVals} },
+	{ discrete, "Gametype",				{&menu_browser_gametype},		{17.0}, {0.0},	{0.0}, {ServerGameModeVals} },
 	{ discrete, "Sort by",				{&menu_browser_sortby},			{4.0}, {0.0},	{0.0}, {ServerSortTypeVals} },
 	{ discrete, "Show empty",			{&menu_browser_showempty},		{2.0}, {0.0},	{0.0}, {YesNo} },
 	{ discrete,	"Show full",			{&menu_browser_showfull},		{2.0}, {0.0},	{0.0}, {YesNo} },
@@ -2950,7 +2952,7 @@ CVAR( Int, menu_modifier, 0, CVAR_ARCHIVE );
 
 static menuitem_t SkirmishItems[] = {
 	{ levelslot,"Level",					{&menu_level},			{0.0}, {0.0}, {0.0}, {NULL}  },
-	{ discrete,	"Game mode",				{&menu_gamemode},		{15.0}, {0.0}, {0.0}, {GameModeVals} },
+	{ discrete,	"Game mode",				{&menu_gamemode},		{16.0}, {0.0}, {0.0}, {GameModeVals} },
 	{ discrete, "Modifier",					{&menu_modifier},		{3.0}, {0.0}, {0.0}, {ModifierVals} },
 	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
 	{ number,	"Timelimit",				{&menu_timelimit},		{0.0}, {100.0}, {1.0}, {NULL}  },
@@ -3003,7 +3005,8 @@ void M_ClearBotSlotList( void )
 		( menu_gamemode == GAMEMODE_TEAMGAME ) ||
 		( menu_gamemode == GAMEMODE_CTF ) ||
 		( menu_gamemode == GAMEMODE_ONEFLAGCTF ) ||
-		( menu_gamemode == GAMEMODE_SKULLTAG ))
+		( menu_gamemode == GAMEMODE_SKULLTAG ) ||
+		( menu_gamemode == GAMEMODE_DOMINATION ))
 	{
 		for ( ulIdx = 0; ulIdx < 16; ulIdx++ )
 		{
@@ -3151,6 +3154,10 @@ void M_StartSkirmishGame( void )
 
 		skulltag.ForceSet( Val, CVAR_Bool );
 		break;
+	case GAMEMODE_DOMINATION:
+
+		domination.ForceSet( Val, CVAR_Bool );
+		break;
 	}
 
 	// [RC] Set modifier (instagib / buckshot).
@@ -3201,7 +3208,8 @@ void M_StartSkirmishGame( void )
 		( menu_gamemode == GAMEMODE_TEAMGAME ) ||
 		( menu_gamemode == GAMEMODE_CTF ) ||
 		( menu_gamemode == GAMEMODE_ONEFLAGCTF ) ||
-		( menu_gamemode == GAMEMODE_SKULLTAG ))
+		( menu_gamemode == GAMEMODE_SKULLTAG ) ||
+		( menu_gamemode == GAMEMODE_DOMINATION ))
 	{
 		for ( ulIdx = 0; ulIdx < 16; ulIdx++ )
 		{
@@ -3406,7 +3414,8 @@ void M_BotSetup( void )
 		( menu_gamemode == GAMEMODE_TEAMGAME ) ||
 		( menu_gamemode == GAMEMODE_CTF ) ||
 		( menu_gamemode == GAMEMODE_ONEFLAGCTF ) ||
-		( menu_gamemode == GAMEMODE_SKULLTAG ))
+		( menu_gamemode == GAMEMODE_SKULLTAG ) ||
+		( menu_gamemode == GAMEMODE_DOMINATION ))
 	{
 		for ( ulIdx = 0; ulIdx < 16; ulIdx++ )
 		{
@@ -3982,7 +3991,7 @@ bool M_JoinMenu ( void )
 	}
 
 	// ST/CTF without a selection room, or another team game.
-	if (( teamplay || ( teamgame && TemporaryTeamStarts.Size( ) == 0 ) || teamlms || teampossession ) && (( dmflags2 & DF2_NO_TEAM_SELECT ) == false ))
+	if (( teamplay || ( teamgame && TemporaryTeamStarts.Size( ) == 0 ) || teamlms || teampossession || domination ) && (( dmflags2 & DF2_NO_TEAM_SELECT ) == false ))
 	{
 		M_StartControlPanel( true );
 		M_StartJoinTeamMenu( );
@@ -4599,7 +4608,8 @@ void M_OptDrawer ()
 						( menu_gamemode == GAMEMODE_TEAMGAME ) ||
 						( menu_gamemode == GAMEMODE_CTF ) ||
 						( menu_gamemode == GAMEMODE_ONEFLAGCTF ) ||
-						( menu_gamemode == GAMEMODE_SKULLTAG ))
+						( menu_gamemode == GAMEMODE_SKULLTAG ) ||
+						( menu_gamemode == GAMEMODE_DOMINATION ))
 					{
 						if ( i < 13 )
 							sprintf( szCVarName, "menu_teambotspawn%d", i - 5 );
@@ -5437,7 +5447,8 @@ void M_OptResponder (event_t *ev)
 						( menu_gamemode == GAMEMODE_TEAMGAME ) ||
 						( menu_gamemode == GAMEMODE_CTF ) ||
 						( menu_gamemode == GAMEMODE_ONEFLAGCTF ) ||
-						( menu_gamemode == GAMEMODE_SKULLTAG ))
+						( menu_gamemode == GAMEMODE_SKULLTAG ) ||
+						( menu_gamemode == GAMEMODE_DOMINATION ))
 					{
 						if ( CurrentItem < 13 )
 							sprintf( szCVarName, "menu_teambotspawn%d", CurrentItem - 5 );
@@ -5840,7 +5851,8 @@ void M_OptResponder (event_t *ev)
 						( menu_gamemode == GAMEMODE_TEAMGAME ) ||
 						( menu_gamemode == GAMEMODE_CTF ) ||
 						( menu_gamemode == GAMEMODE_ONEFLAGCTF ) ||
-						( menu_gamemode == GAMEMODE_SKULLTAG ))
+						( menu_gamemode == GAMEMODE_SKULLTAG ) ||
+						( menu_gamemode == GAMEMODE_DOMINATION ))
 					{
 						if ( CurrentItem < 13 )
 							sprintf( szCVarName, "menu_teambotspawn%d", CurrentItem - 5 );

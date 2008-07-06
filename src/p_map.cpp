@@ -64,6 +64,9 @@
 #include "cl_main.h"
 #include "gamemode.h"
 
+//[BL] New Include
+#include "domination.h"
+
 #define WATER_SINK_FACTOR		3
 #define WATER_SINK_SMALL_FACTOR	4
 #define WATER_SINK_SPEED		(FRACUNIT/2)
@@ -2083,6 +2086,12 @@ bool P_TryMove (AActor *thing, fixed_t x, fixed_t y,
 				act |= SECSPAC_HitFakeFloor;
 			}
 			newsec->SecActTarget->TriggerAction (thing, act);
+		}
+
+		// [BL] Trigger Domination check if player enters a new sector in Domination
+		if (thing->player)
+		{
+			DOMINATION_EnterSector(thing->player);
 		}
 	}
 	return true;

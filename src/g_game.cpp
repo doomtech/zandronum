@@ -96,6 +96,7 @@
 #include "cl_commands.h"
 #include "possession.h"
 #include "statnums.h"
+#include "domination.h"
 #include "win32/g15/g15.h"
 #include "gl/gl_lights.h"
 
@@ -1593,6 +1594,9 @@ void G_Ticker ()
 
 			// Tick the invasion module.
 			INVASION_Tick( );
+
+			// Tick the domination module.
+			DOMINATION_Tick( );
 
 			// Reset the bot cycles counter before we tick their logic.
 			BOTS_ResetCyclesCounter( );

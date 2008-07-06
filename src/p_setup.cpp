@@ -76,6 +76,7 @@
 #include "survival.h"
 #include "possession.h"
 #include "cl_demo.h"
+#include "domination.h"
 
 #include "gl/gl_functions.h"
 #include "gl/gl_lights.h"
@@ -1346,6 +1347,9 @@ void P_LoadSectors (MapData * map)
 		// This is so that R_FakeFlat copies can still retrieve the sector's index.
 		ss->sectornum = i;
 	}
+
+	DOMINATION_Init(); //Call Init function to set sector colors if in Domination
+
 	delete[] msp;
 }
 

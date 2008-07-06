@@ -70,6 +70,7 @@
 #include "survival.h"
 #include "vectors.h"
 #include "r_translate.h"
+#include "domination.h"
 
 CVAR (Bool, sv_showwarnings, true, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
 
@@ -3356,6 +3357,35 @@ void SERVERCOMMANDS_DoGameModeWinSequence( ULONG ulWinner, ULONG ulPlayerExtra, 
 }
 
 //*****************************************************************************
+//
+void SERVERCOMMANDS_SetDominationState( ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	ULONG	ulIdx;
+
+	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_IsValidClient( ulIdx ) == false )
+			continue;
+
+		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
+			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
+		{
+			continue;
+		}
+
+		unsigned int NumPoints = DOMINATION_NumPoints();
+		unsigned int *PointOwners = DOMINATION_PointOwners();
+		SERVER_CheckClientBuffer( ulIdx, NumPoints + 5, true);
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETDOMINATIONSTATE );
+		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, NumPoints );
+		for(unsigned int i = 0;i < NumPoints;i++)
+		{
+			//one byte should be enough to hold the value of the team.
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, PointOwners[i] );
+		}
+	}
+}
+
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetTeamFrags( ULONG ulTeam, LONG lFrags, bool bAnnounce, ULONG ulPlayerExtra, ULONG ulFlags )

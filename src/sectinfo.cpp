@@ -3,6 +3,8 @@
 #include "sc_man.h"
 #include "r_defs.h"
 #include "g_level.h"
+#include "cmdlib.h"
+#include "gstrings.h"
 #include "sectinfo.h"
 
 SectInfo::SectInfo()
@@ -17,6 +19,10 @@ SectInfo::~SectInfo()
 	Names.Clear();
 	Base[0].Clear();
 	Base[1].Clear();
+	for(unsigned int i = 0;i < Points.Size();i++)
+		Points[i]->Clear();
+	Points.Clear();
+	PointNames.Clear();
 }
 
 void SECTINFO_Load()
@@ -34,6 +40,7 @@ void SECTINFO_Load()
 //The next few functions do not need to be public so lets define them here:
 void SECTINFO_ParseNames(FScanner &sc, TArray<FString *> &SectorNames);
 void SECTINFO_ParseSectors(FScanner &sc, TArray<bool> &Sectors);
+void SECTINFO_ParsePoints(FScanner &sc, TArray< TArray<unsigned int> *> &Points, TArray<FString *> &PointNames);
 
 // Valid properties
 static const char *SectInfoProperties[] =
@@ -41,6 +48,8 @@ static const char *SectInfoProperties[] =
 	"names",
 	"base0",
 	"base1",
+	//Skulltag Additions
+	"points",
 	NULL
 };
 enum
@@ -48,6 +57,8 @@ enum
 	SECTINFO_NAMES,
 	SECTINFO_BASE0,
 	SECTINFO_BASE1,
+	//Skulltag Additions
+	SECTINFO_POINTS,
 };
 
 void SECTINFO_Parse(int lump)
@@ -83,6 +94,11 @@ void SECTINFO_Parse(int lump)
 				case SECTINFO_BASE1:
 					SECTINFO_ParseSectors(sc, mapinfo->SectorInfo.Base[1]);
 					break;
+				case SECTINFO_POINTS:
+					SECTINFO_ParsePoints(sc, mapinfo->SectorInfo.Points, mapinfo->SectorInfo.PointNames);
+					//The following two arrays should be the same size
+					assert(mapinfo->SectorInfo.Points.Size() == mapinfo->SectorInfo.PointNames.Size());
+					break;
 			}
 		}
 		else
@@ -99,7 +115,11 @@ void SECTINFO_ParseNames(FScanner &sc, TArray<FString *> &SectorNames)
 	while(!sc.CheckToken('}'))
 	{
 		sc.MustGetToken(TK_StringConst);
-		FString *name = new FString(sc.String);
+		FString *name;
+		if(sc.String[0] == '$') //Allow language lump lookup in SECTINFO
+			name = new FString(GStrings(sc.String+1));
+		else
+			name = new FString(sc.String);
 		sc.MustGetToken('=');
 		sc.MustGetToken('{');
 		while(!sc.CheckToken('}'))
@@ -158,6 +178,54 @@ void SECTINFO_ParseSectors(FScanner &sc, TArray<bool> &Sectors)
 		}
 		for(int i = range_start;i <= range_end;i++)
 			Sectors[i] = true;
+		if(!sc.CheckToken(','))
+		{
+			sc.MustGetToken('}');
+			break;
+		}
+	}
+}
+
+void SECTINFO_ParsePoints(FScanner &sc, TArray< TArray<unsigned int> *> &Points, TArray<FString *> &PointNames)
+{
+	TArray<unsigned int> *Point;
+	sc.MustGetToken('=');
+	sc.MustGetToken('{');
+	while(!sc.CheckToken('}'))
+	{
+		Point = new TArray<unsigned int>();
+		sc.MustGetToken(TK_StringConst);
+		FString *name;
+		if(sc.String[0] == '$') //Allow language lump lookup in SECTINFO
+			name = new FString(GStrings(sc.String+1));
+		else
+			name = new FString(sc.String);
+		sc.MustGetToken('=');
+		sc.MustGetToken('{');
+		while(!sc.CheckToken('}'))
+		{
+			sc.MustGetToken(TK_IntConst);
+			int range_start = sc.Number;
+			int range_end = sc.Number;
+			if(sc.CheckToken('-'))
+			{
+				sc.MustGetToken(TK_IntConst);
+				range_end = sc.Number;
+			}
+			int range = range_end - range_start + 1;
+			Point->Resize(Point->Size() + range);
+			for(int i = 0;i < range;i++)
+			{
+				(*Point)[Point->Size() - range + i] = range_start+i;
+			}
+			if(!sc.CheckToken(','))
+			{
+				sc.MustGetToken('}');
+				break;
+			}
+		}
+		Points.Push(Point);
+		PointNames.Push(name);
 		if(!sc.CheckToken(','))
 		{
 			sc.MustGetToken('}');

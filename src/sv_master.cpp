@@ -341,7 +341,7 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 
 	// If the launcher desires to know the team damage, but we're not in a game mode where
 	// team damage applies, then don't send back team damage information.
-	if (( teamplay || teamgame || teamlms || teampossession || (( deathmatch == false ) && ( teamgame == false ))) == false )
+	if (( teamplay || teamgame || teamlms || teampossession || domination ||  (( deathmatch == false ) && ( teamgame == false ))) == false )
 	{
 		if ( ulBits & SQF_TEAMDAMAGE )
 			ulBits &= ~SQF_TEAMDAMAGE;
@@ -483,7 +483,7 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 	}
 
 	// Send the team damage scale.
-	if ( teamplay || teamgame || teamlms || teampossession || (( deathmatch == false ) && ( teamgame == false )))
+	if ( teamplay || teamgame || teamlms || teampossession || domination || (( deathmatch == false ) && ( teamgame == false )))
 	{
 		if ( ulBits & SQF_TEAMDAMAGE )
 			NETWORK_WriteFloat( &g_MasterServerBuffer.ByteStream, teamdamage );
@@ -517,7 +517,7 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 				continue;
 
 			NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, players[ulIdx].userinfo.netname );
-			if ( teamgame || possession || teampossession )
+			if ( teamgame || possession || teampossession || domination )
 				NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, players[ulIdx].lPointCount );
 			else if ( deathmatch )
 				NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, players[ulIdx].fragcount );

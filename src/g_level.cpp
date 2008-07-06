@@ -2466,6 +2466,10 @@ void G_DoLoadLevel (int position, bool autosave)
 
 				skulltag.ForceSet( Val, CVAR_Bool );
 				break;
+			case GAMEMODE_DOMINATION:
+
+				domination.ForceSet( Val, CVAR_Bool );
+				break;	
 			default:
 
 				I_Error( "G_DoLoadLevel: Invalid campaign game type, %d!", pInfo->GameMode );

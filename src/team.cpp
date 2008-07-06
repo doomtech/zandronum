@@ -1388,7 +1388,7 @@ CUSTOM_CVAR( Bool, skulltag, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGN
 CCMD( team )
 {
 	// Not a valid team mode. Ignore.
-	if (( teamgame == false ) && ( teamplay == false ) && ( teamlms == false ) && ( teampossession == false ))
+	if (( teamgame == false ) && ( teamplay == false ) && ( teamlms == false ) && ( teampossession == false ) && ( domination == false ))
 		return;
 
 	// If the played inputted a team they'd like to join (such as, "team red"), handle that

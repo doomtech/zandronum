@@ -75,6 +75,7 @@
 #include "v_video.h"
 #include "w_wad.h"
 #include "c_bind.h"	// [RC] To tell user what key to press to vote.
+#include "domination.h"
 
 //*****************************************************************************
 //	VARIABLES
@@ -588,7 +589,7 @@ void SCOREBOARD_RenderBoard( ULONG ulDisplayPlayer )
 	}
 
 	// The 5 column display is only availible for modes that support it.
-	if (( ulNumIdealColumns == 5 ) && !( teamgame || possession || teampossession || ctf || skulltag || lastmanstanding ))
+	if (( ulNumIdealColumns == 5 ) && !( teamgame || possession || teampossession || ctf || skulltag || lastmanstanding || domination ))
 		ulNumIdealColumns = 4;
 
 	if ( ulNumIdealColumns == 5 )
@@ -806,6 +807,11 @@ void SCOREBOARD_RenderStats_Holders( void )
 				szString,
 				TAG_DONE );
 		}
+	}
+	//Domination can have an indefinite amount
+	else if ( domination )
+	{
+		DOMINATION_DrawHUD(g_bScale);
 	}
 }
 
@@ -2187,7 +2193,7 @@ LONG SCOREBOARD_GetLeftToLimit( void )
 		return ( fraglimit - lHighestFragcount );
 	}
 	// POINT-based mode.
-	else if (( teamgame || possession || teampossession ) && ( pointlimit > 0 ))
+	else if (( teamgame || possession || teampossession || domination ) && ( pointlimit > 0 ))
 	{
 		ULONG	ulPointsLeft;
 		ULONG	ulBluePoints;
@@ -2857,7 +2863,7 @@ static void scoreboard_DrawLimits( void )
 	}
 
 	// Render the pointlimit string.
-	if (( teamgame || possession || teampossession ) && ( pointlimit ) && ( gamestate == GS_LEVEL ))
+	if (( teamgame || possession || teampossession || domination ) && ( pointlimit ) && ( gamestate == GS_LEVEL ))
 	{
 		ULONG	ulPointsLeft;
 		

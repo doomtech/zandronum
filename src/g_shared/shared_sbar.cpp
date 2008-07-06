@@ -1430,7 +1430,7 @@ void DBaseStatusBar::DrawTeamScores ()
 			TAG_DONE);
 
 		DrBNumberOuter( MIN( (int)TEAM_GetScore( TEAM_RED ), 99 ), 16, -( BigHeight * 3 ) - 18 - 24 - 16 );
-	}	
+	}
 }
 
 

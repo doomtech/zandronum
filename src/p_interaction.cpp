@@ -585,7 +585,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 			}
 
 			// Play announcer sounds for amount of frags remaining.
-			if (( lastmanstanding == false ) && ( teamlms == false ) && ( possession == false ) && ( teampossession == false ) && deathmatch && fraglimit )
+			if (( lastmanstanding == false ) && ( teamlms == false ) && ( possession == false ) && ( teampossession == false ) && ( domination == false ) && deathmatch && fraglimit )
 			{
 				// [RH] Implement fraglimit
 				// [BC] Betterized!
@@ -2372,6 +2372,7 @@ bool PLAYER_ShouldSpawnAsSpectator( player_t *pPlayer )
 		if (( teamplay && (( dmflags2 & DF2_NO_TEAM_SELECT ) == false )) ||
 			( teamlms && (( dmflags2 & DF2_NO_TEAM_SELECT ) == false )) ||
 			( teampossession && (( dmflags2 & DF2_NO_TEAM_SELECT ) == false )) ||
+			( domination && (dmflags2 & DF2_NO_TEAM_SELECT ) == false ) ||
 			( teamgame && (( dmflags2 & DF2_NO_TEAM_SELECT ) == false ) && ( TemporaryTeamStarts.Size( ) == 0 )))
 		{
 			return ( true );
