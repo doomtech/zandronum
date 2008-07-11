@@ -871,10 +871,13 @@ public:
 	fixed_t PrevX, PrevY, PrevZ;
 
 	// [BB] Last tic in which the server sent a xyz-position / movedir update about this actor to the clients.
-	int	lastNetXUpdateTic, lastNetYUpdateTic, lastNetZUpdateTic, lastNetMovedirUpdateTic;
+	int	lastNetXUpdateTic, lastNetYUpdateTic, lastNetZUpdateTic, lastNetMomXUpdateTic, lastNetMomYUpdateTic, lastNetMomZUpdateTic, lastNetMovedirUpdateTic;
 
 	// [BB] Last xyz-position that was sent to the client.
 	fixed_t lastX, lastY, lastZ;
+
+	// [BB] Last xyz-momentum that was sent to the client.
+	fixed_t lastMomx, lastMomy, lastMomz;
 
 	// [BB] Last movedir that was sent to the client.
 	BYTE lastMovedir;
