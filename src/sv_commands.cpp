@@ -70,7 +70,7 @@
 #include "survival.h"
 #include "vectors.h"
 
-CVAR (Bool, sv_showwarnings, true, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
+CVAR (Bool, sv_showwarnings, false, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
 
 // :((((((
 polyobj_t	*GetPolyobj( int polyNum );
