@@ -2346,7 +2346,7 @@ void CLIENT_PrintCommand( LONG lCommand )
 
 //*****************************************************************************
 //
-void CLIENT_QuitNetworkGame( char *pszString )
+void CLIENT_QuitNetworkGame( const char *pszString )
 {
 	ULONG	ulIdx;
 
