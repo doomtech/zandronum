@@ -32,6 +32,7 @@ v0.97d2
 		- Now fully fixed: Attack animations are not always displayed properly in demos if you are spying a player that you didn't spy when recording the demo.
 		- When using coop spy, other players may get stuck in the attack state locally.
 !	- Changed default value of the CVAR sv_showwarnings to false. Should only be turned on for debugging purposes. [Torr Samaho]
+!	- Increased the packet buffer size from 256 to 1024. Hopefully this reduces the chance of being forced to quit a network game due to packet loss. [Torr Samaho]
 
 v0.97d2 RC3
 -----------
