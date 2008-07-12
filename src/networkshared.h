@@ -66,6 +66,9 @@
 // Maximum size of the packets sent out by the server.
 #define	MAX_UDP_PACKET				8192
 
+// [BB] Number of packets that are stored to recover from packet loss.
+#define PACKET_BUFFER_SIZE 256
+
 // [RC] A security debug feature to catch malicious packets.
 // #define CREATE_PACKET_LOG
 

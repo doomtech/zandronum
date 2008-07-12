@@ -364,7 +364,7 @@ void SERVER_Construct( void )
 		NETWORK_ClearBuffer( &g_aClients[ulIdx].PacketBuffer );
 
 		// Initialize the saved packet buffer.
-		NETWORK_InitBuffer( &g_aClients[ulIdx].SavedPacketBuffer, g_ulMaxPacketSize * 256, BUFFERTYPE_WRITE );
+		NETWORK_InitBuffer( &g_aClients[ulIdx].SavedPacketBuffer, g_ulMaxPacketSize * PACKET_BUFFER_SIZE, BUFFERTYPE_WRITE );
 		NETWORK_ClearBuffer( &g_aClients[ulIdx].SavedPacketBuffer );
 
 		// Initialize the unreliable packet buffer.
@@ -779,9 +779,9 @@ void SERVER_SendClientPacket( ULONG ulClient, bool bReliable )
 
 		// Save where the beginning is and the size of each packet within the reliable packets
 		// buffer.
-		pClient->lPacketBeginning[( pClient->ulPacketSequence ) % 256] = pClient->SavedPacketBuffer.ulCurrentSize;
-		pClient->lPacketSize[( pClient->ulPacketSequence ) % 256] = pClient->PacketBuffer.ulCurrentSize;
-		pClient->lPacketSequence[( pClient->ulPacketSequence ) % 256] = pClient->ulPacketSequence;
+		pClient->lPacketBeginning[( pClient->ulPacketSequence ) % PACKET_BUFFER_SIZE] = pClient->SavedPacketBuffer.ulCurrentSize;
+		pClient->lPacketSize[( pClient->ulPacketSequence ) % PACKET_BUFFER_SIZE] = pClient->PacketBuffer.ulCurrentSize;
+		pClient->lPacketSequence[( pClient->ulPacketSequence ) % PACKET_BUFFER_SIZE] = pClient->ulPacketSequence;
 
 		// Write what we want to send out to our reliable packets buffer, so that it can be
 		// retransmitted later if necessary.
@@ -1751,7 +1751,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	NETWORK_ClearBuffer( &g_aClients[lClient].PacketBuffer );
 	NETWORK_ClearBuffer( &g_aClients[lClient].SavedPacketBuffer );
 	NETWORK_ClearBuffer( &g_aClients[lClient].UnreliablePacketBuffer );
-	for ( ulIdx = 0; ulIdx < 256; ulIdx++ )
+	for ( ulIdx = 0; ulIdx < PACKET_BUFFER_SIZE; ulIdx++ )
 	{
 		g_aClients[lClient].lPacketBeginning[ulIdx] = 0;
 		g_aClients[lClient].lPacketSize[ulIdx] = 0;
@@ -3886,11 +3886,11 @@ static bool server_MissingPacket( BYTESTREAM_s *pByteStream )
 		}
 		lLastPacket = lPacket;
 
-		// Search through all 256 of the stored packets. We're looking for the packet that
+		// Search through all PACKET_BUFFER_SIZE of the stored packets. We're looking for the packet that
 		// that we want to send to the client by matching the sequences. If we cannot find
 		// the packet, then we much send a full update to the client.
 		bFullUpdateRequired = true;
-		for ( ulIdx = 0; ulIdx < 256; ulIdx++ )
+		for ( ulIdx = 0; ulIdx < PACKET_BUFFER_SIZE; ulIdx++ )
 		{
 			if ( g_aClients[g_lCurrentClient].lPacketSequence[ulIdx] == lPacket )
 			{

@@ -161,18 +161,18 @@ typedef struct
 	// A seperate buffer for non-critical commands that do not require sequencing.
 	NETBUFFER_s		UnreliablePacketBuffer;
 
-	// We back up the last 256 packets we've sent to the client so that we can
+	// We back up the last PACKET_BUFFER_SIZE packets we've sent to the client so that we can
 	// retransmit them if necessary.
 	NETBUFFER_s		SavedPacketBuffer;
 
 	// This is the position of each saved packet within SavedPacketBuffer.
-	LONG			lPacketBeginning[256];
+	LONG			lPacketBeginning[PACKET_BUFFER_SIZE];
 
-	// This is the packet size for each of the 256 stored packets.
-	LONG			lPacketSize[256];
+	// This is the packet size for each of the PACKET_BUFFER_SIZE stored packets.
+	LONG			lPacketSize[PACKET_BUFFER_SIZE];
 
-	// This is the packet sequence for each of the 256 stored packets.
-	LONG			lPacketSequence[256];
+	// This is the packet sequence for each of the PACKET_BUFFER_SIZE stored packets.
+	LONG			lPacketSequence[PACKET_BUFFER_SIZE];
 
 	// Last packet number sent to this client.
 	ULONG			ulPacketSequence;
