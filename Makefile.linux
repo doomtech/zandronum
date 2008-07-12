@@ -108,7 +108,7 @@ toolsandpk3: ccdv tools/makewad/makewad tools/dehsupp/dehsupp tools/xlatcc/xlatc
 	$(MAKE) -C wadsrc/
 
 zdoom.pk3: toolsandpk3
-	ln -sf wadsrc/zdoom.pk3 ./
+	cp wadsrc/skulltag.pk3 ../skulltag.pk3
 
 tools/makewad/makewad:
 	$(MAKE) -C tools/makewad/
