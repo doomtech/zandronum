@@ -70,7 +70,7 @@
 #include "survival.h"
 #include "vectors.h"
 
-CVAR (Bool, sv_showwarnings, true, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
+CVAR (Bool, sv_showwarnings, false, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
 
 // :((((((
 polyobj_t	*GetPolyobj( int polyNum );
@@ -105,6 +105,12 @@ void RemoveUnnecessaryPositionUpdateFlags( AActor *pActor, ULONG &ulBits )
 		ulBits  &= ~CM_Y;
 	if ( (pActor->lastNetZUpdateTic == gametic) && (pActor->lastZ == pActor->z) )
 		ulBits  &= ~CM_Z;
+	if ( (pActor->lastNetMomXUpdateTic == gametic) && (pActor->lastMomx == pActor->momx) )
+		ulBits  &= ~CM_MOMX;
+	if ( (pActor->lastNetMomYUpdateTic == gametic) && (pActor->lastMomy == pActor->momy) )
+		ulBits  &= ~CM_MOMY;
+	if ( (pActor->lastNetMomZUpdateTic == gametic) && (pActor->lastMomz == pActor->momz) )
+		ulBits  &= ~CM_MOMZ;
 	if ( (pActor->lastNetMovedirUpdateTic == gametic) && (pActor->lastMovedir == pActor->movedir) )
 		ulBits  &= ~CM_MOVEDIR;
 }
@@ -128,6 +134,21 @@ void ActorNetPositionUpdated( AActor *pActor, ULONG &ulBits )
 	{
 		pActor->lastNetZUpdateTic = gametic;
 		pActor->lastZ = pActor->z;
+	}
+	if ( ulBits & CM_MOMX )
+	{
+		pActor->lastNetMomXUpdateTic = gametic;
+		pActor->lastMomx = pActor->momx;
+	}
+	if ( ulBits & CM_MOMY )
+	{
+		pActor->lastNetMomYUpdateTic = gametic;
+		pActor->lastMomy = pActor->momy;
+	}
+	if ( ulBits & CM_MOMZ )
+	{
+		pActor->lastNetMomZUpdateTic = gametic;
+		pActor->lastMomz = pActor->momz;
 	}
 	if ( ulBits & CM_MOVEDIR )
 	{

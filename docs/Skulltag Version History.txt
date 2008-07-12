@@ -27,9 +27,11 @@ v0.97d2
 -	- Fixed: After using the CCMD map on the server, clients may accidentally be blocked for 10 seconds before they can enter the new map. [Torr Samaho]
 -	- Fixed: Clients are not informed if the current sky differs from the default map sky when connecting to a server. [Torr Samaho]
 -	- Fixed: In competitive game modes with sv_noexit == true, players are not killed when trying to exit a map while being in a sector with sector special 75 (dDamage_End). This happened for example in exec.wad on map09. [Torr Samaho]
+-	- Fixed online monster sync problems involving the MF2_BLASTED flag. Among others, this affected A_RadiusThrust. [Torr Samaho]
 !	- Changed: Clients are now always informed when other players are pressing any attack buttons. This is done in a way that doesn't increase net traffic at all and fixes several problems: [Torr Samaho]
 		- Now fully fixed: Attack animations are not always displayed properly in demos if you are spying a player that you didn't spy when recording the demo.
 		- When using coop spy, other players may get stuck in the attack state locally.
+!	- Changed default value of the CVAR sv_showwarnings to false. Should only be turned on for debugging purposes. [Torr Samaho]
 
 v0.97d2 RC3
 -----------
