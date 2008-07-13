@@ -24,6 +24,9 @@
 #include "r_data.h"
 #include "p_spec.h"
 #include "c_cvars.h"
+// [CW] New includes.
+#include "cl_demo.h"
+#include "sv_commands.h"
 
 // [RH]
 // P_NextSpecialSector()
@@ -685,12 +688,28 @@ fixed_t sector_t::FindLowestCeilingPoint (vertex_t **v) const
 
 void sector_t::SetColor(int r, int g, int b, int desat)
 {
+	// [CW] Clients should not do this.
+	if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))))
+		return;
+
 	PalEntry color = PalEntry (r,g,b);
 	ColorMap = GetSpecialLights (color, ColorMap->Fade, desat);
+
+	// Tell clients about the sector color update.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SetSectorColor( sectornum );
 }
 
 void sector_t::SetFade(int r, int g, int b)
 {
+	// [CW] Clients should not do this.
+	if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))))
+		return;
+
 	PalEntry fade = PalEntry (r,g,b);
 	ColorMap = GetSpecialLights (ColorMap->Color, fade, ColorMap->Desaturate);
+
+	// [BC] Tell clients about the sector fade update.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SetSectorFade( sectornum );
 }

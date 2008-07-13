@@ -2327,10 +2327,6 @@ FUNC(LS_Sector_SetColor)
 	while ((secnum = P_FindSectorFromTag (arg0, secnum)) >= 0)
 	{
 		sectors[secnum].SetColor(arg1, arg2, arg3, arg4);
-
-		// Tell clients about the sector color update.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetSectorColor( secnum );
 	}
 
 	return true;
@@ -2344,10 +2340,6 @@ FUNC(LS_Sector_SetFade)
 	while ((secnum = P_FindSectorFromTag (arg0, secnum)) >= 0)
 	{
 		sectors[secnum].SetFade(arg1, arg2, arg3);
-
-		// [BC] Tell clients about the sector fade update.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SetSectorFade( secnum );
 	}
 	return true;
 }

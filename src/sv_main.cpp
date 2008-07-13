@@ -4258,7 +4258,7 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 		return ( false );
 
 	// If this player has tried to change teams recently, ignore the request.
-	if ( gametic < static_cast<signed> ( g_aClients[g_lCurrentClient].ulLastChangeTeamTime + ( TICRATE * 10 )))
+	if (!( ( lastmanstanding || teamlms ) && ( LASTMANSTANDING_GetState( ) == LMSS_COUNTDOWN ) ) && gametic < static_cast<signed> ( g_aClients[g_lCurrentClient].ulLastChangeTeamTime + ( TICRATE * 10 )))
 		return ( false );
 
 	g_aClients[g_lCurrentClient].ulLastChangeTeamTime = gametic;
