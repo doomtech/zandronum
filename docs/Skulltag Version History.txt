@@ -35,6 +35,7 @@
 -	- Fixed: the 'ColorSetter' and 'FadeSetter' actors were broken online. [Karate Chis]
 -	- Fixed the fake players exploit; introduced sv_maxclientsperip, which defaults to 2. [Rivecoder]
 -	- Fixed an exploit in the name code which allowed invisible names. [Rivecoder]
+-	- Fixed: the 'GetPlayerInfo' ACS command didn't return the correct team. [Karate Chris]
 !	- Changed up the display of medals when you have the key down. Higher medals are now on the right, opposite their subordinates. [Rivecoder]
 !	- Each player's "ready to go on" status, shown at the intermission, can now only be turned on. Hopefully, this will help clear up what this command is for and prevent rapid toggling of it. [Rivecoder]
 !	- Rank/Spread is no longer drawn if there's only one player. [Rivecoder]

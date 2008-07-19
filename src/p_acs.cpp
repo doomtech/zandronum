@@ -5611,7 +5611,8 @@ int DLevelScript::RunScript ()
 				userinfo_t *userinfo = &players[STACK(2)].userinfo;
 				switch (STACK(1))
 				{
-				case PLAYERINFO_TEAM:			STACK(2) = userinfo->team; break;
+				// [CW] PLAYERINFO_TEAM needs to use ulTeam rather than the one in userinfo_t.
+				case PLAYERINFO_TEAM:			STACK(2) = players[STACK( 2 )].ulTeam; break;
 				case PLAYERINFO_AIMDIST:		STACK(2) = userinfo->aimdist; break;
 				case PLAYERINFO_COLOR:			STACK(2) = userinfo->color; break;
 				case PLAYERINFO_GENDER:			STACK(2) = userinfo->gender; break;
