@@ -1712,7 +1712,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 		if ( sv_maxclientsperip > 0 && ulOtherClientsFromIP >= sv_maxclientsperip )
 		{
 			// Printf( "Connection from %s refused: too many connections from that IP. (sv_maxclientsperip is %d.)", NETWORK_AddressToString( AddressFrom ),  sv_maxclientsperip );
-			SERVER_ConnectionError( AddressFrom, "Too many connections from your IP.", NETWORK_ERRORCODE_TOOMANYCONNECTIONSFROMIP );
+			SERVER_ConnectionError( AddressFrom, "Too many connections from this IP.", NETWORK_ERRORCODE_TOOMANYCONNECTIONSFROMIP );
 			return;
 		}
 	}
