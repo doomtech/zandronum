@@ -1409,6 +1409,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 				sprintf( szErrorString, "Failed to send userinfo." );
 				break;
+			case NETWORK_ERRORCODE_TOOMANYCONNECTIONSFROMIP:
+
+				sprintf( szErrorString, "Too many connections from your IP." );
+				break;
 			default:
 
 				sprintf( szErrorString, "Unknown error code: %d!\n\nYour version may be different. Please check http://www.skulltag.com/ for updates.", ulErrorCode );
