@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="skulltag"
 	ProjectGUID="{8049475B-5C87-46F9-9358-635218A4EF18}"
 	RootNamespace=" zdoom"
@@ -92,7 +92,7 @@
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="gdi32.lib user32.lib comctl32.lib shell32.lib advapi32.lib comdlg32.lib ole32.lib dxguid.lib dsound.lib ddraw.lib dinput8.lib strmiids.lib wsock32.lib winmm.lib fmodvc.lib setupapi.lib ws2_32.lib opengl32.lib glu32.lib"
 				ShowProgress="0"
-				OutputFile="..\$(ProjectName).exe"
+				OutputFile="..\Bay_Trunk\$(ProjectName).exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				IgnoreDefaultLibraryNames=""

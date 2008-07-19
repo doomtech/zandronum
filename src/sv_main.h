@@ -282,7 +282,7 @@ void		SERVER_AuthenticateClientLevel( BYTESTREAM_s *pByteStream );
 bool		SERVER_PerformAuthenticationChecksum( BYTESTREAM_s *pByteStream );
 void		SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream );
 bool		SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick );
-void		SERVER_ConnectionError( NETADDRESS_s Address, char *pszMessage );
+void		SERVER_ConnectionError( NETADDRESS_s Address, const char *pszMessage, ULONG ulErrorCode );
 void		SERVER_ClientError( ULONG ulClient, ULONG ulErrorCode );
 void		SERVER_SendFullUpdate( ULONG ulClient );
 void		SERVER_WriteCommands( void );

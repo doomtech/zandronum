@@ -559,6 +559,10 @@ bool v_IsCharacterWhitespace ( char c )
 	if ( c <= 31 )
 		return true;
 
+	// Text colorization.
+	if ( c == TEXTCOLOR_ESCAPE )
+		return true;
+
 	// Space.
 	if ( c == 32 )
 		return true;
@@ -578,11 +582,13 @@ bool v_IsCharacterWhitespace ( char c )
 // [RC] Conforms names to meet standards.
 void V_CleanPlayerName( char *pszString )
 {
+	char	*pszStart;
 	char	*p;
 	char	c;
 	ULONG	ulStringLength;
 	ULONG   ulTotalLength;
 	ULONG   ulNonWhitespace;
+	char	szColorlessName[256];
 
 	ulStringLength = static_cast<ULONG>(strlen( pszString ));
 	ulTotalLength = 0;
@@ -590,6 +596,7 @@ void V_CleanPlayerName( char *pszString )
 
 	// Start at the beginning of the string.
 	p = pszString;
+	pszStart = pszString;
 
 	// The name must be longer than three characters.
 	if ( ulStringLength < 3 )
@@ -616,22 +623,28 @@ void V_CleanPlayerName( char *pszString )
 		else
 		{
 			pszString++;
-
-			if ( !v_IsCharacterWhitespace(c) )
-				ulNonWhitespace++;
 			ulTotalLength++;
 		}
 	}
 
 	// Cut the string at its new end.
 	*pszString = 0;
+
+	// Determine the name's actual length.
+	strncpy( szColorlessName, pszStart, 256 );
+	V_RemoveColorCodes( szColorlessName );
+	
+	p = szColorlessName;
+	ulNonWhitespace = 0;
+	while ( (c = *p++) )
+	{
+		if ( !v_IsCharacterWhitespace(c) )
+			ulNonWhitespace++;
+	}
 		
 	// Check the length again, as characters were removed.
-	if(ulNonWhitespace < 3)
-	{
-		pszString -= ulTotalLength;
-		strcpy( pszString, "Player" );
-	}
+	if ( ulNonWhitespace < 3 )
+		strcpy( pszStart, "Player" );
 }
 
 // [BB] Version of V_CleanPlayerName that accepts a FString as argument.
