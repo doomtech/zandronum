@@ -33,6 +33,8 @@
 -	- Fixed: In competitive game modes with sv_noexit == true, players are not killed when trying to exit a map while being in a sector with sector special 75 (dDamage_End). This happened for example in exec.wad on map09. [Torr Samaho]
 -	- Fixed online monster sync problems involving the MF2_BLASTED flag. Among others, this affected A_RadiusThrust. [Torr Samaho]
 -	- Fixed: the 'ColorSetter' and 'FadeSetter' actors were broken online. [Karate Chis]
+- - Fixed the fake players exploit; introduced sv_maxclientsperip, which defaults to 2. [Rivecoder]
+- - Fixed an exploit in the name code which allowed invisible names. [Rivecoder]
 !	- Changed up the display of medals when you have the key down. Higher medals are now on the right, opposite their subordinates. [Rivecoder]
 !	- Each player's "ready to go on" status, shown at the intermission, can now only be turned on. Hopefully, this will help clear up what this command is for and prevent rapid toggling of it. [Rivecoder]
 !	- Rank/Spread is no longer drawn if there's only one player. [Rivecoder]

@@ -242,6 +242,7 @@ CVAR( Bool, sv_markchatlines, false, CVAR_ARCHIVE )
 CVAR( Bool, sv_nokill, false, CVAR_ARCHIVE )
 CVAR( Bool, sv_nodrop, false, CVAR_ARCHIVE )
 CVAR( Bool, sv_pure, true, CVAR_SERVERINFO | CVAR_LATCH )
+CVAR( Int, sv_maxclientsperip, 2, CVAR_ARCHIVE )
 
 CUSTOM_CVAR( String, sv_adminlistfile, "adminlist.txt", CVAR_ARCHIVE )
 {
@@ -1697,6 +1698,25 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	// Grab the IP address of the packet we've just received.
 	AddressFrom = NETWORK_GetFromAddress( );
 
+	// [RC] Prevent the fakeplayers exploit. 
+	{
+		// [RC] Count how many other clients are using this IP.
+		ULONG ulOtherClientsFromIP = 0;
+		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+		{
+			if ( NETWORK_CompareAddress( AddressFrom, g_aClients[ulIdx].Address, true ))
+				ulOtherClientsFromIP++;
+		}
+
+		// [RC] Kick if necessary.
+		if ( sv_maxclientsperip > 0 && ulOtherClientsFromIP >= sv_maxclientsperip )
+		{
+			// Printf( "Connection from %s refused: too many connections from that IP. (sv_maxclientsperip is %d.)", NETWORK_AddressToString( AddressFrom ),  sv_maxclientsperip );
+			SERVER_ConnectionError( AddressFrom, "Too many connections from your IP.", NETWORK_ERRORCODE_TOOMANYCONNECTIONSFROMIP );
+			return;
+		}
+	}
+
 	if ( bNewPlayer )
 	{
 		// [BB]: In case of emergency you should be able to join your own server,
@@ -1715,7 +1735,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 		if (( lClient == -1 ) || ( SERVER_CalcNumPlayers( ) >= static_cast<unsigned> (sv_maxclients) && !bAdminClientConnecting ))
 		{
 			// Tell the client a packet saying the server is full.
-			SERVER_ConnectionError( AddressFrom, "Server is full." );
+			SERVER_ConnectionError( AddressFrom, "Server is full.", NETWORK_ERRORCODE_SERVERISFULL );
 
 			// User sent the version, password, start as spectator, restore frags, and network protcol version along with the challenge.
 			NETWORK_ReadString( pByteStream );
@@ -2051,7 +2071,7 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 
 //*****************************************************************************
 //
-void SERVER_ConnectionError( NETADDRESS_s Address, const char *pszMessage )
+void SERVER_ConnectionError( NETADDRESS_s Address, const char *pszMessage, ULONG ulErrorCode )
 {
 	NETBUFFER_s	TempBuffer;
 
@@ -2059,14 +2079,14 @@ void SERVER_ConnectionError( NETADDRESS_s Address, const char *pszMessage )
 	NETWORK_ClearBuffer( &TempBuffer );
 
 	// Display error message locally in the console.
-	Printf( "%s\n", pszMessage );
+	Printf( "Denied connection for %s: %s\n", NETWORK_AddressToString( Address ), pszMessage );
 
 	// Make sure the packet has a packet header. The client is expecting this!
 	NETWORK_WriteHeader( &TempBuffer.ByteStream, SVC_HEADER );
 	NETWORK_WriteLong( &TempBuffer.ByteStream, 0 );
 
 	NETWORK_WriteByte( &TempBuffer.ByteStream, SVCC_ERROR );
-	NETWORK_WriteByte( &TempBuffer.ByteStream, NETWORK_ERRORCODE_SERVERISFULL );
+	NETWORK_WriteByte( &TempBuffer.ByteStream, ulErrorCode );
 
 //	NETWORK_LaunchPacket( TempBuffer, Address, true );
 	NETWORK_LaunchPacket( &TempBuffer, Address );
