@@ -1671,6 +1671,32 @@ void DACSThinker::StopScriptsFor (AActor *actor)
 	}
 }
 
+void DACSThinker::StopAndDestroyAllScripts ()
+{
+	// [BB] Unlink and destroy all running scripts.
+	for (int i = 0; i < 1000; i++)
+	{
+		DLevelScript *script = RunningScripts[i];
+		if ( script != NULL )
+		{
+			script->Unlink ();
+			RunningScripts[i] = NULL;
+			script->Destroy ();
+		}
+	}
+
+	DLevelScript *script = Scripts;
+
+	// [BB] Now remove all remaining scripts.
+	while (script != NULL)
+	{
+		DLevelScript *next = script->next;
+		script->Unlink ();
+		script->Destroy ();
+		script = next;
+	}
+}
+
 IMPLEMENT_POINTY_CLASS (DLevelScript)
  DECLARE_POINTER (activator)
 END_POINTERS

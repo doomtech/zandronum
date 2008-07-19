@@ -710,6 +710,8 @@ public:
 
 	void DumpScriptStatus();
 	void StopScriptsFor (AActor *actor);
+	// [BB] Added StopAndDestroyAllScripts, which is needed in GAME_ResetMap.
+	void StopAndDestroyAllScripts ();
 
 private:
 	DLevelScript *LastScript;
