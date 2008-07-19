@@ -30,6 +30,9 @@ v0.97d2 RC4
 -	- Fixed: Clients are not informed if the current sky differs from the default map sky when connecting to a server. [Torr Samaho]
 -	- Fixed: In competitive game modes with sv_noexit == true, players are not killed when trying to exit a map while being in a sector with sector special 75 (dDamage_End). This happened for example in exec.wad on map09. [Torr Samaho]
 -	- Fixed online monster sync problems involving the MF2_BLASTED flag. Among others, this affected A_RadiusThrust. [Torr Samaho]
+-	- Fixed: The 'GetPlayerInfo' ACS command didn't return the correct team. [Karate Chris]
+-	- Fixed: Maps using ACS possibly crash during a map reset. Kudos to SuperGod for finding a way to reproduce this nasty bug! [Torr Samaho]
+-	- Fixed: When a client disconnects from a server, then changes its name in the console, and then reconnects, the server is not informed about the name change. [Torr Samaho]
 !	- Changed: Clients are now always informed when other players are pressing any attack buttons. This is done in a way that doesn't increase net traffic at all and fixes several problems: [Torr Samaho]
 		- Now fully fixed: Attack animations are not always displayed properly in demos if you are spying a player that you didn't spy when recording the demo.
 		- When using coop spy, other players may get stuck in the attack state locally.

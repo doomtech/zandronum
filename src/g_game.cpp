@@ -3626,26 +3626,8 @@ void GAME_ResetMap( bool bRunEnterScripts )
 	FBehavior::StaticUnloadModules( );
 	if ( DACSThinker::ActiveThinker != NULL )
 	{
-		// [BB] Mark all running scripts for removal.
-		for (int i = 0; i < 1000; i++)
-		{
-			if ( DACSThinker::ActiveThinker->RunningScripts[i] != NULL )
-				DACSThinker::ActiveThinker->RunningScripts[i]->SetState(DLevelScript::SCRIPT_PleaseRemove);
-		}
-
-		// [BB] Stop the scripts attached to the ingame players.
-		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-		{
-			if (( playeringame[ulIdx] ) &&
-				( players[ulIdx].bSpectating == false ) &&
-				( players[ulIdx].mo ))
-			{
-				FBehavior::StaticStopMyScripts (players[ulIdx].mo);
-			}
-		}
-
-		// [BB] Remove all marked scripts.
-		DACSThinker::ActiveThinker->Tick();
+		// [BB] Stop and destroy all active ACS scripts.
+		DACSThinker::ActiveThinker->StopAndDestroyAllScripts();
 	}
 
 	// Open the current map and load its BEHAVIOR lump.

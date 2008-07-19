@@ -1671,6 +1671,32 @@ void DACSThinker::StopScriptsFor (AActor *actor)
 	}
 }
 
+void DACSThinker::StopAndDestroyAllScripts ()
+{
+	// [BB] Unlink and destroy all running scripts.
+	for (int i = 0; i < 1000; i++)
+	{
+		DLevelScript *script = RunningScripts[i];
+		if ( script != NULL )
+		{
+			script->Unlink ();
+			RunningScripts[i] = NULL;
+			script->Destroy ();
+		}
+	}
+
+	DLevelScript *script = Scripts;
+
+	// [BB] Now remove all remaining scripts.
+	while (script != NULL)
+	{
+		DLevelScript *next = script->next;
+		script->Unlink ();
+		script->Destroy ();
+		script = next;
+	}
+}
+
 IMPLEMENT_POINTY_CLASS (DLevelScript)
  DECLARE_POINTER (activator)
 END_POINTERS
@@ -5611,7 +5637,8 @@ int DLevelScript::RunScript ()
 				userinfo_t *userinfo = &players[STACK(2)].userinfo;
 				switch (STACK(1))
 				{
-				case PLAYERINFO_TEAM:			STACK(2) = userinfo->team; break;
+				// [CW] PLAYERINFO_TEAM needs to use ulTeam rather than the one in userinfo_t.
+				case PLAYERINFO_TEAM:			STACK(2) = players[STACK( 2 )].ulTeam; break;
 				case PLAYERINFO_AIMDIST:		STACK(2) = userinfo->aimdist; break;
 				case PLAYERINFO_COLOR:			STACK(2) = userinfo->color; break;
 				case PLAYERINFO_GENDER:			STACK(2) = userinfo->gender; break;
