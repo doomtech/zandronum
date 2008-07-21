@@ -38,6 +38,7 @@
 -	- Fixed: The 'GetPlayerInfo' ACS command didn't return the correct team. [Karate Chris]
 -	- Fixed: Maps using ACS possibly crash during a map reset. Kudos to SuperGod for finding a way to reproduce this nasty bug! [Torr Samaho]
 -	- Fixed: When a client disconnects from a server, then changes its name in the console, and then reconnects, the server is not informed about the name change. [Torr Samaho]
+-	- Fixed: A single malformed packet could crash any server. Again thanks to Luigi Auriemma for a detailed report on this issue. [Torr Samaho]
 !	- Changed up the display of medals when you have the key down. Higher medals are now on the right, opposite their subordinates. [Rivecoder]
 !	- Each player's "ready to go on" status, shown at the intermission, can now only be turned on. Hopefully, this will help clear up what this command is for and prevent rapid toggling of it. [Rivecoder]
 !	- Rank/Spread is no longer drawn if there's only one player. [Rivecoder]
