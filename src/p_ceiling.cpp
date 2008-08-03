@@ -262,6 +262,7 @@ void DCeiling::UpdateToClient( ULONG ulClient )
 DCeiling::DCeiling (sector_t *sec)
 	: DMovingCeiling (sec)
 {
+	m_lCeilingID = -1;
 }
 
 DCeiling::DCeiling (sector_t *sec, fixed_t speed1, fixed_t speed2, int silent)
@@ -271,6 +272,7 @@ DCeiling::DCeiling (sector_t *sec, fixed_t speed1, fixed_t speed2, int silent)
 	m_Speed = m_Speed1 = speed1;
 	m_Speed2 = speed2;
 	m_Silent = silent;
+	m_lCeilingID = -1;
 }
 
 LONG DCeiling::GetID( void )
@@ -403,9 +405,7 @@ manual_ceiling:
 		spot = sec->lines[0]->v1;
 
 		// [BC] If we're not a client, assign a network ID to the ceiling.
-		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
-			ceiling->m_lCeilingID = -1;
-		else
+		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && !( CLIENTDEMO_IsPlaying( )))
 			ceiling->m_lCeilingID = P_GetFirstFreeCeilingID( );
 
 		switch (type)
@@ -722,27 +722,5 @@ DCeiling *P_GetCeilingByID( LONG lID )
 //
 LONG P_GetFirstFreeCeilingID( void )
 {
-	LONG		lIdx;
-	DCeiling	*pCeiling;
-	bool		bIDIsAvailable;
-
-	for ( lIdx = 0; lIdx < 8192; lIdx++ )
-	{
-		TThinkerIterator<DCeiling>		Iterator;
-
-		bIDIsAvailable = true;
-		while (( pCeiling = Iterator.Next( )))
-		{
-			if ( pCeiling->GetID( ) == lIdx )
-			{
-				bIDIsAvailable = false;
-				break;
-			}
-		}
-
-		if ( bIDIsAvailable )
-			return ( lIdx );
-	}
-
-	return ( -1 );
+	return NETWORK_GetFirstFreeID<DCeiling>();
 }
