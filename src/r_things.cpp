@@ -1414,6 +1414,72 @@ void R_InitSprites ()
 		}
 	}
 
+	// [BB] Check if any of the skin sprites are ridiculously big to prevent
+	// abusing the possibility to replace the skin sprites.
+	for ( int skinIdx = 0; skinIdx < numskins; skinIdx++ )
+	{
+		// [BB] If the skin doesn't have a name, it's removed and doesn't need to be checked.
+		// Removed skins for example are Doom skins in a Hexen games.
+		if ( skins[skinIdx].name[0] == 0 )
+			continue;
+
+		int maxwidth = 0, maxheight = 0;
+		char	szTempLumpName[9];
+
+		// [BB] Loop through all the lumps searching for sprites of this skin.
+		// This may look very inefficient, but since this is only called once on
+		// startup it's ok.
+		for ( ULONG ulIdx = 0; static_cast<signed> (ulIdx) < Wads.GetNumLumps( ); ulIdx++ )
+		{
+			Wads.GetLumpName( szTempLumpName, ulIdx );
+			if ( strnicmp ( szTempLumpName, sprites[skins[skinIdx].sprite].name, 4 ) == 0 )
+			{
+				int texnum = TexMan.CheckForTexture (szTempLumpName, FTexture::TEX_Sprite);
+				FTexture *tex = (texnum != -1) ? TexMan[ texnum ] : NULL;
+				if ( tex )
+				{
+					maxheight = MAX ( maxheight, tex->GetHeight() );
+					maxwidth = MAX ( maxwidth, tex->GetWidth() );
+				}
+			}
+		}
+
+		int classSkinIdx = -1;
+
+		// [BB] Find the player class this skin belongs to.
+		if ( !skins[skinIdx].othergame )
+		{
+			for ( int pcIdx = 0; pcIdx < PlayerClasses.Size(); pcIdx++ )
+			{
+				if ( classSkinIdx != -1 )
+					break;
+
+				for ( int pcSkinIdx = 0; pcSkinIdx < PlayerClasses[pcIdx].Skins.Size(); pcSkinIdx++ )
+				{
+					if ( PlayerClasses[pcIdx].Skins[pcSkinIdx] == skinIdx )
+					{
+						classSkinIdx = pcIdx;
+						break;
+					}
+				}
+			}
+		}
+		else
+		{
+			// [BB] The skin doesn't belong to this game, so just check it against the standard player class.
+			classSkinIdx = 0;
+		}
+
+		// [BB] Compare the maximal sprite height/width to the height/radius of the player class this skin belongs to.
+		// Massmouth is very big, so we have to be pretty lenient here with the checks.
+		if ( maxheight*FIXED2FLOAT(skins[skinIdx].Scale) > 2*FIXED2FLOAT(GetDefaultByType( PlayerClasses[classSkinIdx].Type )->height) )
+			I_FatalError ("Effective sprite height of skin %s too big!", skins[skinIdx].name );
+
+		// [BB] 2*radius is approximately the actor width.
+		if ( maxwidth*FIXED2FLOAT(skins[skinIdx].Scale) > 4*2*FIXED2FLOAT(GetDefaultByType( PlayerClasses[classSkinIdx].Type )->radius) )
+			I_FatalError ("Effective sprite width of skin %s too big!", skins[skinIdx].name );
+	}
+
 	// [RH] Sort the skins, but leave base as skin 0
 	qsort (&skins[PlayerClasses.Size ()], numskins-PlayerClasses.Size (), sizeof(FPlayerSkin), skinsorter);
 }

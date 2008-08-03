@@ -2515,6 +2515,13 @@ bool SERVER_IsValidPlayer( ULONG ulPlayer )
 
 //*****************************************************************************
 //
+bool SERVER_IsValidPlayerWithMo( ULONG ulPlayer )
+{
+	return ( SERVER_IsValidPlayer ( ulPlayer ) && players[ulPlayer].mo );
+}
+
+//*****************************************************************************
+//
 void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 {
 	ULONG	ulIdx;
@@ -4907,7 +4914,7 @@ static bool server_VoteNo( BYTESTREAM_s *pByteStream )
 //
 static bool server_InventoryUseAll( BYTESTREAM_s *pByteStream )
 {
-	if (gamestate == GS_LEVEL && !paused)
+	if (gamestate == GS_LEVEL && !paused && SERVER_IsValidPlayerWithMo(g_lCurrentClient) )
 	{
 		AInventory *item = players[g_lCurrentClient].mo->Inventory;
 
@@ -4930,7 +4937,7 @@ static bool server_InventoryUse( BYTESTREAM_s *pByteStream )
 {
 	const char* pszString = NETWORK_ReadString( pByteStream );
 
-	if (gamestate == GS_LEVEL && !paused)
+	if (gamestate == GS_LEVEL && !paused && SERVER_IsValidPlayerWithMo(g_lCurrentClient) )
 	{
 		AInventory *item = players[g_lCurrentClient].mo->FindInventory (PClass::FindClass (pszString));
 		if (item != NULL)
@@ -4951,12 +4958,6 @@ static bool server_InventoryDrop( BYTESTREAM_s *pByteStream )
 
 	pszString = NETWORK_ReadString( pByteStream );
 
-	if (( gamestate != GS_LEVEL ) ||
-		( paused ))
-	{
-		return ( false );
-	}
-
 	// [BB] The server may forbid dropping completely.
 	if ( sv_nodrop )
 	{
@@ -4964,9 +4965,12 @@ static bool server_InventoryDrop( BYTESTREAM_s *pByteStream )
 		return ( false );
 	}
 
-	pItem = players[g_lCurrentClient].mo->FindInventory( PClass::FindClass( pszString ));
-	if ( pItem )
-		players[g_lCurrentClient].mo->DropInventory( pItem );
+	if (gamestate == GS_LEVEL && !paused && SERVER_IsValidPlayerWithMo(g_lCurrentClient) )
+	{
+		pItem = players[g_lCurrentClient].mo->FindInventory( PClass::FindClass( pszString ));
+		if ( pItem )
+			players[g_lCurrentClient].mo->DropInventory( pItem );
+	}
 
 	return ( false );
 }
