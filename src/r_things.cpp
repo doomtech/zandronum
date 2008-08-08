@@ -1432,7 +1432,9 @@ void R_InitSprites ()
 		for ( ULONG ulIdx = 0; static_cast<signed> (ulIdx) < Wads.GetNumLumps( ); ulIdx++ )
 		{
 			Wads.GetLumpName( szTempLumpName, ulIdx );
-			if ( strnicmp ( szTempLumpName, sprites[skins[skinIdx].sprite].name, 4 ) == 0 )
+			if ( ( strnicmp ( szTempLumpName, sprites[skins[skinIdx].sprite].name, 4 ) == 0 )
+			     // [BB] Only check lumps that possibly can be used as sprite frames.
+			     && ( static_cast<unsigned> ( szTempLumpName[4] - 'A' ) < MAX_SPRITE_FRAMES ) )
 			{
 				int texnum = TexMan.CheckForTexture (szTempLumpName, FTexture::TEX_Sprite);
 				FTexture *tex = (texnum != -1) ? TexMan[ texnum ] : NULL;
