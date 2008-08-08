@@ -504,8 +504,9 @@ void P_PlayerInSpecialSector (player_t *player, sector_t * sector)
 			if (!(level.time & 0x1f))
 				P_DamageMobj (player->mo, NULL, NULL, 20, NAME_None);
 
-			// [BC] Don't do this in teamgame, either.
-			if (player->health <= 10 && ((!deathmatch && !teamgame) || !(dmflags & DF_NO_EXIT)))
+			// [BB] Also do a CheckIfExitIsGood good check to properly handle DF_NO_EXIT.
+			// This check kills the player in case exiting is forbidden.
+			if (player->health <= 10 && CheckIfExitIsGood ( player->mo ) )
 				G_ExitLevel(0, false);
 			break;
 

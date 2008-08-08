@@ -3653,11 +3653,23 @@ void P_FreeLevelData ()
 	}
 	if (subsectors != NULL)
 	{
+		// [BB] This case is not handled by gl_CleanLevelData, but it is crucial to do this.
+		if ( gamesubsectors == subsectors )
+		{
+			gamesubsectors = NULL;
+			numgamesubsectors = 0;
+		}
 		delete[] subsectors;
 		subsectors = NULL;
 	}
 	if (nodes != NULL)
 	{
+		// [BB] This case is not handled by gl_CleanLevelData, but it is crucial to do this.
+		if ( gamenodes == nodes )
+		{
+			gamenodes = NULL;
+			numgamenodes = 0;
+		}
 		delete[] nodes;
 		nodes = NULL;
 	}

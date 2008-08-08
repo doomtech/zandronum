@@ -70,8 +70,11 @@ CVAR (Float,	autoaim,				5000.f,		CVAR_USERINFO | CVAR_ARCHIVE);
 // [BB] Changed name to be a CUSTOM_CVAR.
 CUSTOM_CVAR (String,	name,					"Player",	CVAR_USERINFO | CVAR_ARCHIVE)
 {
-	V_CleanPlayerName ( self.GetGenericRep( CVAR_String ).String );
-	strncpy (players[consoleplayer].userinfo.netname, name, MAXPLAYERNAME);
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+	{
+		V_CleanPlayerName ( self.GetGenericRep( CVAR_String ).String );
+		strncpy (players[consoleplayer].userinfo.netname, name, MAXPLAYERNAME);
+	}
 }
 CVAR (Color,	color,					0x40cf00,	CVAR_USERINFO | CVAR_ARCHIVE);
 CVAR (String,	skin,					"base",		CVAR_USERINFO | CVAR_ARCHIVE);
