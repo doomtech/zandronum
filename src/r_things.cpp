@@ -1434,7 +1434,9 @@ void R_InitSprites ()
 			Wads.GetLumpName( szTempLumpName, ulIdx );
 			if ( ( strnicmp ( szTempLumpName, sprites[skins[skinIdx].sprite].name, 4 ) == 0 )
 			     // [BB] Only check lumps that possibly can be used as sprite frames.
-			     && ( static_cast<unsigned> ( szTempLumpName[4] - 'A' ) < MAX_SPRITE_FRAMES ) )
+			     && ( static_cast<unsigned> ( szTempLumpName[4] - 'A' ) < MAX_SPRITE_FRAMES )
+			     // [BB] No need to check Death/XDeath frames.
+			     && ( szTempLumpName[4] < 'H' ) )
 			{
 				int texnum = TexMan.CheckForTexture (szTempLumpName, FTexture::TEX_Sprite);
 				FTexture *tex = (texnum != -1) ? TexMan[ texnum ] : NULL;
