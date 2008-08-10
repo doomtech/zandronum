@@ -1474,14 +1474,30 @@ void R_InitSprites ()
 			classSkinIdx = 0;
 		}
 
+		// [BB] If a skin sprite violates the limits, just downsize it.
+		bool sizeLimitsExceeded = false;
 		// [BB] Compare the maximal sprite height/width to the height/radius of the player class this skin belongs to.
 		// Massmouth is very big, so we have to be pretty lenient here with the checks.
-		if ( maxheight*FIXED2FLOAT(skins[skinIdx].Scale) > 2*FIXED2FLOAT(GetDefaultByType( PlayerClasses[classSkinIdx].Type )->height) )
-			I_FatalError ("Effective sprite height of skin %s too big!", skins[skinIdx].name );
+		if ( maxheight*FIXED2FLOAT(skins[skinIdx].Scale) > 1.68*FIXED2FLOAT(GetDefaultByType( PlayerClasses[classSkinIdx].Type )->height) )
+		{
+			sizeLimitsExceeded = true;
+			Printf ( "\\cgEffective sprite height of skin %s too big! Downsizing.\n", skins[skinIdx].name );
+			skins[skinIdx].Scale = 1.68*(GetDefaultByType( PlayerClasses[classSkinIdx].Type )->height) / maxheight;
+		}
 
 		// [BB] 2*radius is approximately the actor width.
-		if ( maxwidth*FIXED2FLOAT(skins[skinIdx].Scale) > 4*2*FIXED2FLOAT(GetDefaultByType( PlayerClasses[classSkinIdx].Type )->radius) )
-			I_FatalError ("Effective sprite width of skin %s too big!", skins[skinIdx].name );
+		if ( maxwidth*FIXED2FLOAT(skins[skinIdx].Scale) > 3.44*2*FIXED2FLOAT(GetDefaultByType( PlayerClasses[classSkinIdx].Type )->radius) )
+		{
+			skins[skinIdx].Scale = 3.44*2*(GetDefaultByType( PlayerClasses[classSkinIdx].Type )->radius) / maxwidth;
+			sizeLimitsExceeded = true;
+			Printf ( "\\cgEffective sprite width of skin %s too big! Downsizing.\n", skins[skinIdx].name );
+		}
+
+		// [BB] Don't allow the base skin sprites of the player classes to exceed the limits.
+		if ( sizeLimitsExceeded && ( skinIdx < PlayerClasses.Size () ) )
+		{
+			I_FatalError ( "The base skin sprite of player class %s exceeds the limits!\n", PlayerClasses[skinIdx].Type->TypeName.GetChars() );
+		}
 	}
 
 	// [RH] Sort the skins, but leave base as skin 0
