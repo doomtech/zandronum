@@ -220,7 +220,9 @@ void			NETWORK_WriteHeader( BYTESTREAM_s *pByteStream, int Byte );
 bool			NETWORK_CompareAddress( NETADDRESS_s Address1, NETADDRESS_s Address2, bool bIgnorePort );
 bool			NETWORK_StringToAddress( const char *pszString, NETADDRESS_s *pAddress );
 void			NETWORK_SocketAddressToNetAddress( struct sockaddr_in *s, NETADDRESS_s *a );
+void			NETWORK_NetAddressToSocketAddress( NETADDRESS_s &Address, struct sockaddr_in &SocketAddress );
 bool			NETWORK_StringToIP( const char *pszAddress, char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 );
+const char	*NETWORK_GetHostByIPAddress( NETADDRESS_s Address );
 
 std::string GenerateCouldNotOpenFileErrorString( const char *pszFunctionHeader, const char *pszFileName, LONG lErrorCode );
 

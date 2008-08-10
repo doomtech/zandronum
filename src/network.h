@@ -556,7 +556,6 @@ NETADDRESS_s	NETWORK_GetFromAddress( void );
 void			NETWORK_LaunchPacket( NETBUFFER_s *pBuffer, NETADDRESS_s Address );
 const char		*NETWORK_AddressToString( NETADDRESS_s Address );
 const char		*NETWORK_AddressToStringIgnorePort( NETADDRESS_s Address );
-void			NETWORK_NetAddressToSocketAddress( NETADDRESS_s &Address, struct sockaddr_in &SocketAddress );
 void			NETWORK_SetAddressPort( NETADDRESS_s &Address, USHORT usPort );
 NETADDRESS_s	NETWORK_GetLocalAddress( void );
 NETBUFFER_s		*NETWORK_GetNetworkMessageBuffer( void );
