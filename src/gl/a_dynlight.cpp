@@ -63,6 +63,8 @@ IMPLEMENT_STATELESS_ACTOR (ADynamicLight, Any, -1, 0)
    PROP_Flags (MF_NOBLOCKMAP|MF_NOGRAVITY)
    PROP_Flags4(MF4_FIXMAPTHINGPOS)	// don't let lights lie directly on a linedef.
    PROP_RenderFlags (RF_INVISIBLE)
+   // [BB] The server doesn't handle dynamic lights, so allow the clients to spawn them.
+   PROP_FlagsNetwork( NETFL_ALLOWCLIENTSPAWN )
 END_DEFAULTS
 
 IMPLEMENT_STATELESS_ACTOR (APointLight, Any, 9800, 0)

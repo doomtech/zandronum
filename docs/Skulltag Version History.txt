@@ -54,6 +54,7 @@
 !	- Increased the packet buffer size from 256 to 1024. Hopefully this reduces the chance of being forced to quit a network game due to packet loss. [Torr Samaho]
 !	- You no longer have to wait 10 seconds to change your team during the team last man standing countdown. [Karate Chris]
 !	- The maximum allowed effective skin sprite width/height is now limited corresponding to the width/radius of the player class the skin belongs to. This fixes an exploit of the skin dir. [Torr Samaho]
+!	- Added the ALLOWCLIENTSPAWN flag to the DynamicLight actor. This fixes that map spawned dynamic lights are not working online, but comes with the drawbacks of ALLOWCLIENTSPAWN. [Torr Samaho, Karate Chris]
 
 v0.97d2 RC3
 -----------
