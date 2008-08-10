@@ -36,12 +36,15 @@ v0.97d2 RC5
 -	- Fixed: A single malformed packet could crash any server. Again thanks to Luigi Auriemma for a detailed report on this issue. [Torr Samaho]
 -	- Fixed: Assigning a net id to a moving ceiling used much more CPU time than necessary. This caused certain wads to be displayed at less than 1 fps. [Torr Samaho, SuperGod]
 -	- Fixed some map change related crashes. [Torr Samaho]
+-	- Fixed: Thing_Hate caused serious monster position sync issues online. [Torr Samaho, SuperGod]
+-	- Fixed: Removing SectorAction and derived actors in game modes that reset, didn't remove those from the sector's list of actions. [Torr Samaho]
 !	- Changed: Clients are now always informed when other players are pressing any attack buttons. This is done in a way that doesn't increase net traffic at all and fixes several problems: [Torr Samaho]
 		- Now fully fixed: Attack animations are not always displayed properly in demos if you are spying a player that you didn't spy when recording the demo.
 		- When using coop spy, other players may get stuck in the attack state locally.
 !	- Changed default value of the CVAR sv_showwarnings to false. Should only be turned on for debugging purposes. [Torr Samaho]
 !	- Increased the packet buffer size from 256 to 1024. Hopefully this reduces the chance of being forced to quit a network game due to packet loss. [Torr Samaho]
 !	- The maximum allowed effective skin sprite width/height is now limited corresponding to the width/radius of the player class the skin belongs to. This fixes an exploit of the skin dir. [Torr Samaho]
+!	- Added the ALLOWCLIENTSPAWN flag to the DynamicLight actor. This fixes that map spawned dynamic lights are not working online, but comes with the drawbacks of ALLOWCLIENTSPAWN. [Torr Samaho, Karate Chris]
 
 v0.97d2 RC3
 -----------

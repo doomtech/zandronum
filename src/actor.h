@@ -907,6 +907,8 @@ public:
 	bool SetStateNF (FState *newstate);
 	// [BB] Completely hides the actor if it's still needed for a map reset, otherwise destroys the actor.
 	void HideOrDestroyIfSafe ();
+	// [BB] Called before being hidden by HideOrDestroyIfSafe().
+	virtual void PrepareForHiding ();
 	// [BC]
 	bool InSpawnState( );
 	bool InDeathState();

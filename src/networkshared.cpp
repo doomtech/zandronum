@@ -434,6 +434,21 @@ void NETWORK_SocketAddressToNetAddress( struct sockaddr_in *s, NETADDRESS_s *a )
 
 //*****************************************************************************
 //
+void NETWORK_NetAddressToSocketAddress( NETADDRESS_s &Address, struct sockaddr_in &SocketAddress )
+{
+	// Initialize the socket address.
+	memset( &SocketAddress, 0, sizeof( SocketAddress ));
+
+	// Set the socket's address and port.
+	*(int *)&SocketAddress.sin_addr = *(int *)&Address.abIP;
+	SocketAddress.sin_port = Address.usPort;
+
+	// Set the socket address's family (what does this do?).
+	SocketAddress.sin_family = AF_INET;
+}
+
+//*****************************************************************************
+//
 bool NETWORK_StringToIP( const char *pszAddress, char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 )
 {
 	char	szCopy[16];
@@ -526,6 +541,28 @@ bool NETWORK_StringToIP( const char *pszAddress, char *pszIP0, char *pszIP1, cha
 		return ( false );
 
     return ( true );
+}
+
+//*****************************************************************************
+//
+const char *NETWORK_GetHostByIPAddress( NETADDRESS_s Address )
+{
+	//gethostbyaddr();
+	struct hostent *hp;
+	struct sockaddr_in socketAddress;// = (struct sockaddr_in *) (&sa);
+	static char		s_szName[256];
+
+	// Convert the IP address to a socket address.
+	NETWORK_NetAddressToSocketAddress ( Address, socketAddress );
+
+	hp = gethostbyaddr( (char *) &(socketAddress.sin_addr), sizeof(socketAddress.sin_addr), AF_INET );
+
+	if ( hp )
+		strncpy ( s_szName, (char *)hp->h_name, sizeof(s_szName) - 1 );
+	else
+		sprintf ( s_szName, "host_not_found" );
+
+	return s_szName;
 }
 
 //*****************************************************************************

@@ -550,21 +550,6 @@ const char *NETWORK_AddressToStringIgnorePort( NETADDRESS_s Address )
 
 //*****************************************************************************
 //
-void NETWORK_NetAddressToSocketAddress( NETADDRESS_s &Address, struct sockaddr_in &SocketAddress )
-{
-	// Initialize the socket address.
-	memset( &SocketAddress, 0, sizeof( SocketAddress ));
-
-	// Set the socket's address and port.
-	*(int *)&SocketAddress.sin_addr = *(int *)&Address.abIP;
-	SocketAddress.sin_port = Address.usPort;
-
-	// Set the socket address's family (what does this do?).
-	SocketAddress.sin_family = AF_INET;
-}
-
-//*****************************************************************************
-//
 void NETWORK_SetAddressPort( NETADDRESS_s &Address, USHORT usPort )
 {
 	Address.usPort = htons( usPort );

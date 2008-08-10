@@ -1388,7 +1388,14 @@ FUNC(LS_Thing_Hate)
 				hater->target = hatee;
 				if (!(hater->flags2 & MF2_DORMANT))
 				{
-					if (hater->health > 0) hater->SetState (hater->SeeState);
+					if (hater->health > 0)
+					{
+						// [BB] If we're the server, tell clients to put the thing into its see state.
+						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+							SERVERCOMMANDS_SetThingState( hater, STATE_SEE );
+
+						hater->SetState (hater->SeeState);
+					}
 				}
 			}
 		}
