@@ -40,7 +40,7 @@
 
 /** Lots of different version numbers **/
 
-#define DOTVERSIONSTR "0.97d2-RC5"
+#define DOTVERSIONSTR "0.97d2-RC6"
 #define DOTVERSIONSTR_NOREV DOTVERSIONSTR
 
 // [BB] The version string that includes revision / compatibility data.

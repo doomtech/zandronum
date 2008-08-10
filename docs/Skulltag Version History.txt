@@ -12,7 +12,7 @@
 ===============================================================================================================
 
 
-v0.97d2 RC5
+v0.97d2 RC6
 -----------
 
 *+	- Optimized the monster movement code. Under some circumstances this drastically decreases network traffic. Compare map09 of dr2008v2.zip to see an example, where a lot of bandwidth is saved. Special thanks to SuperGod for finding a way to reproduce the excessive net traffic. Without it, this problem would still silently be wasting net traffic. [Torr Samaho]
