@@ -42,6 +42,7 @@
 -	- Fixed: Assigning a net id to a moving ceiling used much more CPU time than necessary. This caused certain wads to be displayed at less than 1 fps. [Torr Samaho, SuperGod]
 -	- Fixed some map change related crashes. [Torr Samaho]
 -	- Fixed: Thing_Hate caused serious monster position sync issues online. [Torr Samaho, SuperGod]
+-	- Fixed: Removing SectorAction and derived actors in game modes that reset, didn't remove those from the sector's list of actions. [Torr Samaho]
 !	- Changed up the display of medals when you have the key down. Higher medals are now on the right, opposite their subordinates. [Rivecoder]
 !	- Each player's "ready to go on" status, shown at the intermission, can now only be turned on. Hopefully, this will help clear up what this command is for and prevent rapid toggling of it. [Rivecoder]
 !	- Rank/Spread is no longer drawn if there's only one player. [Rivecoder]

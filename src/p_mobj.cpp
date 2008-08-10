@@ -690,6 +690,9 @@ void AActor::HideOrDestroyIfSafe ()
 		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
 		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
+		// [BB] Do any actor specific things that are necessary to properly hide this thing.
+		PrepareForHiding();
+
 		// unlink from sector and block lists
 		UnlinkFromWorld ();
 		flags |= MF_NOSECTOR|MF_NOBLOCKMAP;
@@ -701,6 +704,17 @@ void AActor::HideOrDestroyIfSafe ()
 	else
 		Destroy();
 }
+
+//----------------------------------------------------------------------------
+//
+// [BB] AActor::PrepareForHiding
+//
+//----------------------------------------------------------------------------
+
+void AActor::PrepareForHiding ()
+{
+}
+
 //----------------------------------------------------------------------------
 //
 // [BC] AActor::InSpawnState

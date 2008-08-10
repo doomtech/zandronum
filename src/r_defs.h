@@ -121,8 +121,12 @@ public:
 	void Activate (AActor *source);
 	void Deactivate (AActor *source);
 	virtual bool TriggerAction (AActor *triggerer, int activationType);
+	// [BB] Added PrepareForHiding ();
+	virtual void PrepareForHiding ();
 protected:
 	bool CheckTrigger (AActor *triggerer) const;
+	// [BB] Added RemoveFromSectorActionsList ();
+	void RemoveFromSectorActionsList ();
 };
 
 class ASkyViewpoint;
