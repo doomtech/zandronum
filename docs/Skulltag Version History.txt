@@ -20,6 +20,7 @@
 +	- Added an "in console" icon that's shown above a player's head when he's in the menu or console. [Rivecoder]
 +	- The five/one minute warning announcer sounds are now played. [Rivecoder]
 +	- Added new CVAR sv_nodrop. If set to true on a server, clients can't use the drop CCMD online. [Torr Samaho]
++	- Added constant SXF_CLIENTSIDE for the "client side spawn" option of A_SpawnItemEx. [Torr Samaho]
 -	- Fixed: The reflection rune's obituary would read "[victim] was killed via [victim]'s reflection rune". [Rivecoder]
 -	- Fixed: Joining a survival invasion server with "start as spectator" off would make you join immediately.  [Rivecoder]
 -	- Fixed: Clients sometimes accidentally switch the weapon of one of the other players locally. [Torr Samaho]
@@ -56,6 +57,7 @@
 !	- You no longer have to wait 10 seconds to change your team during the team last man standing countdown. [Karate Chris]
 !	- The maximum allowed effective skin sprite width/height is now limited corresponding to the width/radius of the player class the skin belongs to. This fixes an exploit of the skin dir. [Torr Samaho]
 !	- Added the ALLOWCLIENTSPAWN flag to the DynamicLight actor. This fixes that map spawned dynamic lights are not working online, but comes with the drawbacks of ALLOWCLIENTSPAWN. [Torr Samaho, Karate Chris]
+!	- Renamed the Heretic spawner HexenGhostSpot to HereticGhostSpot. [Torr Samaho]
 
 v0.97d2 RC3
 -----------
