@@ -1704,7 +1704,10 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 		ULONG ulOtherClientsFromIP = 0;
 		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 		{
-			if ( NETWORK_CompareAddress( AddressFrom, g_aClients[ulIdx].Address, true ))
+			// [BB] Consider timeouts here. This is necessary because of non finished connection
+			// attempts, e.g. done by http://aluigi.org/poc/skulltagod.zip.
+			if ( NETWORK_CompareAddress( AddressFrom, g_aClients[ulIdx].Address, true )
+			     && ( ( gametic - g_aClients[ulIdx].ulLastCommandTic ) < ( CLIENT_TIMEOUT * TICRATE ) ) )
 				ulOtherClientsFromIP++;
 		}
 

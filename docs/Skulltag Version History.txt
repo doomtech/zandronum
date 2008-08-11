@@ -27,6 +27,11 @@
 !	- You can now join the game while spectating during intermission. [Rivecoder]
 !	- You no longer have to wait 10 seconds to change your team during the team last man standing countdown. [Karate Chris]
 
+v0.97d2
+-------
+
+-	- Fixed: The sv_maxclientsperip code didn't take into account timeouts of non finished connection attempts. [Torr Samaho]
+
 v0.97d2 RC6
 -----------
 
