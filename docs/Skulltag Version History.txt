@@ -15,10 +15,22 @@
 <trunk>
 -------
 
-*+	- Optimized the monster movement code. Under some circumstances this drastically decreases network traffic. Compare map09 of dr2008v2.zip to see an example, where a lot of bandwidth is saved. Special thanks to SuperGod for finding a way to reproduce the excessive net traffic. Without it, this problem would still silently be wasting net traffic. [Torr Samaho]
 +	- Added medal families: "higher" medals, such as incredible, now immediately replace lower medals, such as excellent. This means that when on a spree, you can go right from excellent to incredible, accuracy to precision, impressive to most impressive, and so on without waiting for the lower medal to slide off. Overall this makes the queue run a lot faster, especially if you have a large backlog of medals. [Rivecoder]
 +	- Added an "in console" icon that's shown above a player's head when he's in the menu or console. [Rivecoder]
 +	- The five/one minute warning announcer sounds are now played. [Rivecoder]
+-	- Fixed a positioning bug with rank/spread on the classic HUD when st_scale was off. [Rivecoder]
+-	- Fixed: the 'ColorSetter' and 'FadeSetter' actors were broken online. [Karate Chis]
+!	- Changed up the display of medals when you have the key down. Higher medals are now on the right, opposite their subordinates. [Rivecoder]
+!	- Each player's "ready to go on" status, shown at the intermission, can now only be turned on. Hopefully, this will help clear up what this command is for and prevent rapid toggling of it. [Rivecoder]
+!	- Rank/Spread is no longer drawn if there's only one player. [Rivecoder]
+!	- Armor is no longer drawn on the new HUD if you don't have any. [Rivecoder]
+!	- You can now join the game while spectating during intermission. [Rivecoder]
+!	- You no longer have to wait 10 seconds to change your team during the team last man standing countdown. [Karate Chris]
+
+v0.97d2 RC6
+-----------
+
+*+	- Optimized the monster movement code. Under some circumstances this drastically decreases network traffic. Compare map09 of dr2008v2.zip to see an example, where a lot of bandwidth is saved. Special thanks to SuperGod for finding a way to reproduce the excessive net traffic. Without it, this problem would still silently be wasting net traffic. [Torr Samaho]
 +	- Added new CVAR sv_nodrop. If set to true on a server, clients can't use the drop CCMD online. [Torr Samaho]
 +	- Added constant SXF_CLIENTSIDE for the "client side spawn" option of A_SpawnItemEx. [Torr Samaho]
 -	- Fixed: The reflection rune's obituary would read "[victim] was killed via [victim]'s reflection rune". [Rivecoder]
@@ -26,16 +38,14 @@
 -	- Fixed: Clients sometimes accidentally switch the weapon of one of the other players locally. [Torr Samaho]
 -	- Fixed a typo in the callvote code. [Rivecoder]
 -	- Fixed a typo in the BFG10k's obituary. [Rivecoder]
--	- Fixed a positioning bug with rank/spread on the classic HUD when st_scale was off. [Rivecoder]
+-	- Fixed the fake players exploit; introduced sv_maxclientsperip, which defaults to 2. [Rivecoder]
+-	- Fixed an exploit in the name code which allowed invisible names. [Rivecoder]
 -	- Fixed: Clients may completely freeze, i.e. get stuck in an infinite loop, when handling actors with a looping death state that loops over multiple frames, but doesn't loop back to the beginning of the death state. [Torr Samaho]
 -	- Fixed: The first player waiting in line in a survival invasion game joins the game when one of the in game players leave. [Torr Samaho]
 -	- Fixed: After using the CCMD map on the server, clients may accidentally be blocked for 10 seconds before they can enter the new map. [Torr Samaho]
 -	- Fixed: Clients are not informed if the current sky differs from the default map sky when connecting to a server. [Torr Samaho]
 -	- Fixed: In competitive game modes with sv_noexit == true, players are not killed when trying to exit a map while being in a sector with sector special 75 (dDamage_End). This happened for example in exec.wad on map09. [Torr Samaho]
 -	- Fixed online monster sync problems involving the MF2_BLASTED flag. Among others, this affected A_RadiusThrust. [Torr Samaho]
--	- Fixed: the 'ColorSetter' and 'FadeSetter' actors were broken online. [Karate Chis]
--	- Fixed the fake players exploit; introduced sv_maxclientsperip, which defaults to 2. [Rivecoder]
--	- Fixed an exploit in the name code which allowed invisible names. [Rivecoder]
 -	- Fixed: The 'GetPlayerInfo' ACS command didn't return the correct team. [Karate Chris]
 -	- Fixed: Maps using ACS possibly crash during a map reset. Kudos to SuperGod for finding a way to reproduce this nasty bug! [Torr Samaho]
 -	- Fixed: When a client disconnects from a server, then changes its name in the console, and then reconnects, the server is not informed about the name change. [Torr Samaho]
@@ -44,17 +54,11 @@
 -	- Fixed some map change related crashes. [Torr Samaho]
 -	- Fixed: Thing_Hate caused serious monster position sync issues online. [Torr Samaho, SuperGod]
 -	- Fixed: Removing SectorAction and derived actors in game modes that reset, didn't remove those from the sector's list of actions. [Torr Samaho]
-!	- Changed up the display of medals when you have the key down. Higher medals are now on the right, opposite their subordinates. [Rivecoder]
-!	- Each player's "ready to go on" status, shown at the intermission, can now only be turned on. Hopefully, this will help clear up what this command is for and prevent rapid toggling of it. [Rivecoder]
-!	- Rank/Spread is no longer drawn if there's only one player. [Rivecoder]
-!	- Armor is no longer drawn on the new HUD if you don't have any. [Rivecoder]
-!	- You can now join the game while spectating during intermission. [Rivecoder]
 !	- Changed: Clients are now always informed when other players are pressing any attack buttons. This is done in a way that doesn't increase net traffic at all and fixes several problems: [Torr Samaho]
 		- Now fully fixed: Attack animations are not always displayed properly in demos if you are spying a player that you didn't spy when recording the demo.
 		- When using coop spy, other players may get stuck in the attack state locally.
 !	- Changed default value of the CVAR sv_showwarnings to false. Should only be turned on for debugging purposes. [Torr Samaho]
 !	- Increased the packet buffer size from 256 to 1024. Hopefully this reduces the chance of being forced to quit a network game due to packet loss. [Torr Samaho]
-!	- You no longer have to wait 10 seconds to change your team during the team last man standing countdown. [Karate Chris]
 !	- The maximum allowed effective skin sprite width/height is now limited corresponding to the width/radius of the player class the skin belongs to. This fixes an exploit of the skin dir. [Torr Samaho]
 !	- Added the ALLOWCLIENTSPAWN flag to the DynamicLight actor. This fixes that map spawned dynamic lights are not working online, but comes with the drawbacks of ALLOWCLIENTSPAWN. [Torr Samaho, Karate Chris]
 !	- Renamed the Heretic spawner HexenGhostSpot to HereticGhostSpot. [Torr Samaho]
