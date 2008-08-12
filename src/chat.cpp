@@ -643,7 +643,7 @@ void chat_DoSubstitution( FString &Input )
 
 					if ( pReadyWeapon->Ammo2 )
 					{
-						Output.AppendFormat( "%s%s", "/", pReadyWeapon->Ammo2->GetClass( )->TypeName.GetChars( ));
+						Output.AppendFormat( "/%s", pReadyWeapon->Ammo2->GetClass( )->TypeName.GetChars( ));
 					}
 				}
 				else

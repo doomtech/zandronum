@@ -1064,3 +1064,30 @@ CCMD( multiplayer )
 {
 	C_DoCommand( "netgame", 0 );
 }
+
+//*****************************************************************************
+//	A console command to emulate a single player game while in mutliplayer mode.
+CCMD( singleplayer )
+{
+	if ( NETWORK_GetState( ) != NETSTATE_SINGLE_MULTIPLAYER )
+		Printf( "Single player already enabled/emulated.\n" );
+	else
+	{
+		ULONG ulCount = 0;
+
+		for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++)
+		{
+			if (playeringame[ulCount])
+				ulCount++;
+
+			if (ulCount > 1)
+			{
+				Printf ("Cannot enable single player emulation as there are other players on the map!\n");
+				return;
+			}
+		}
+
+		NETWORK_SetState( NETSTATE_SINGLE );
+		Printf( "Single player emulation enabled.\n" );
+	}
+}
