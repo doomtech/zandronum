@@ -94,6 +94,10 @@ CVAR( String, chatmacro7, "Come here!", CVAR_ARCHIVE )
 CVAR( String, chatmacro8, "I'll take care of it.", CVAR_ARCHIVE )
 CVAR( String, chatmacro9, "Yes", CVAR_ARCHIVE )
 CVAR( String, chatmacro0, "No", CVAR_ARCHIVE )
+
+// [CW]
+CVAR( Bool, chat_substitution, false, CVAR_ARCHIVE )
+
 EXTERN_CVAR( Int, con_colorinmessages );
 EXTERN_CVAR( Int, chat_sound );
 
@@ -120,6 +124,8 @@ void	chat_SendMessage( ULONG ulMode, const char *pszString );
 void	chat_ClearChatMessage( void );
 void	chat_AddChar( char cChar );
 void	chat_DeleteChar( void );
+// [CW]
+void	chat_DoSubstitution( FString &Input );
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -543,10 +549,15 @@ void chat_SetChatMode( ULONG ulMode )
 //
 void chat_SendMessage( ULONG ulMode, const char *pszString )
 {
+	FString ChatMessage = pszString;
+
+	// [CW] Substitute the message if necessary.
+	chat_DoSubstitution( ChatMessage );
+
 	// If we're the client, let the server handle formatting/sending the msg to other players.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 	{
-		CLIENTCOMMANDS_Say( ulMode, pszString );
+		CLIENTCOMMANDS_Say( ulMode, ChatMessage.GetChars( ));
 		return;
 	}
 
@@ -554,10 +565,10 @@ void chat_SendMessage( ULONG ulMode, const char *pszString )
 	{
 		Net_WriteByte( DEM_SAY );
 		Net_WriteByte( ulMode );
-		Net_WriteString( pszString );
+		Net_WriteString( ChatMessage.GetChars( ));
 	}
 	else
-		CHAT_PrintChatString( consoleplayer, ulMode, pszString );
+		CHAT_PrintChatString( consoleplayer, ulMode, ChatMessage.GetChars( ));
 }
 
 //*****************************************************************************
@@ -591,6 +602,92 @@ void chat_DeleteChar( void )
 {
 	if ( g_lStringLength )
 		g_szChatBuffer[--g_lStringLength] = 0;
+}
+
+//*****************************************************************************
+//
+// [CW]
+void chat_DoSubstitution( FString &Input )
+{
+	player_t *pPlayer = &players[consoleplayer];
+	AWeapon *pReadyWeapon = pPlayer->ReadyWeapon;
+
+	if ( chat_substitution )
+	{
+		FString Output;
+		const char *pszString = Input.GetChars( );
+
+		for ( ; *pszString != NULL; pszString++ )
+		{
+			if ( !strncmp( pszString, "$ammocount", 10 ))
+			{
+				if ( pReadyWeapon && pReadyWeapon->Ammo1 )
+				{
+					Output.AppendFormat( "%d", pReadyWeapon->Ammo1->Amount );
+
+					if ( pReadyWeapon->Ammo2 )
+						Output.AppendFormat( "/%d", pReadyWeapon->Ammo2->Amount );
+				}
+				else
+				{
+					Output.AppendFormat( "no ammo" );
+				}
+
+				pszString += 9;
+			}
+			else if ( !strncmp( pszString, "$ammo", 5 ))
+			{
+				if ( pReadyWeapon && pReadyWeapon->Ammo1 )
+				{
+					Output.AppendFormat( pReadyWeapon->Ammo1->GetClass( )->TypeName.GetChars( ) );
+
+					if ( pReadyWeapon->Ammo2 )
+					{
+						Output.AppendFormat( "%s%s", "/", pReadyWeapon->Ammo2->GetClass( )->TypeName.GetChars( ));
+					}
+				}
+				else
+				{
+					Output.AppendFormat( "no ammo" );
+				}
+
+				pszString += 4;
+			}
+			else if ( !strncmp( pszString, "$armor", 6 ))
+			{
+				AInventory *pArmor = pPlayer->mo->FindInventory<ABasicArmor>( );
+				int iArmorCount = 0;
+				
+				if ( pArmor )
+					iArmorCount = pArmor->Amount;
+
+				Output.AppendFormat( "%d", iArmorCount );
+
+				pszString += 5;
+			}
+			else if ( !strncmp( pszString, "$health", 7 ))
+			{
+				Output.AppendFormat ("%d", pPlayer->health);
+
+				pszString += 6;
+			}
+			else if ( !strncmp( pszString, "$weapon", 7 ))
+			{
+				if ( pReadyWeapon )
+					Output.AppendFormat( pReadyWeapon->GetClass( )->TypeName.GetChars( ) );
+				else
+					Output.AppendFormat( "no weapon" );
+
+				pszString += 6;
+			}
+			else
+			{
+				Output.AppendCStrPart( pszString, 1 );
+			}
+		}
+
+		Input = Output;
+	}
 }
 
 //*****************************************************************************
