@@ -1950,7 +1950,8 @@ void DrawFullHUD_GameInformation()
 
 		}
   
-		if (FacePriority < 6)
+		// [CW] If we are spectating, then don't show the 'pissed off' face.
+		if (FacePriority < 6 && !CPlayer->bSpectating)
 		{
 			// rapid firing
 			if ((CPlayer->cmd.ucmd.buttons & (BT_ATTACK|BT_ALTATTACK)) && !(CPlayer->cheats & (CF_FROZEN | CF_TOTALLYFROZEN)))

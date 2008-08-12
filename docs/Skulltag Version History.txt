@@ -1,6 +1,6 @@
 ===============================================================================================================
 = SKULLTAG Version History
-= Skulltag is availible at www.skulltag.com
+= Skulltag is available at www.skulltag.com
 ===============================================================================================================
 =
 = *+   Major new feature, or major overhaul to an area.
@@ -32,6 +32,7 @@ v0.97d2
 -------
 
 -	- Fixed: The sv_maxclientsperip code didn't take into account timeouts of non finished connection attempts. [Torr Samaho]
+-	- Fixed: the pissed of player face should not work in spectator mode. [Karate Chris]
 
 v0.97d2 RC6
 -----------
