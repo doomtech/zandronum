@@ -35,6 +35,7 @@ v0.97d2
 
 -	- Fixed: The sv_maxclientsperip code didn't take into account timeouts of non finished connection attempts. [Torr Samaho]
 -	- Fixed: the pissed of player face should not work in spectator mode. [Karate Chris]
+-	- Fixed: In game modes that reset, P_DoCrunch and A_BarrelDestroy gave the actor to be destroyed the MF_NOBLOCKMAP flag without unlinking it from the blockmap by calling UnlinkFromWorld(). This possibly caused some strange survival crashes. [Torr Samaho, SuperGod]
 
 v0.97d2 RC6
 -----------
