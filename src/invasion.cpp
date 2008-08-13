@@ -823,7 +823,25 @@ void INVASION_StartCountdown( ULONG ulTicks )
 				continue;
 			}
 
+			// [BB] Get rid of any hostile monsters that are still alive. This should only
+			// happen on buggy maps, nevertheless we have to catch this case to prevent
+			// sync problems between client and server.
+			if ( pActor->health > 0 )
+			{
+				// [BB] Let the server handle this buggy case.
+				if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+					( CLIENTDEMO_IsPlaying( ) == false ))
+				{
+					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						SERVERCOMMANDS_DestroyThing( pActor );
+
+					pActor->Destroy( );
+				}
+				continue;
+			}
+
 			// Get rid of any bodies that didn't come from a spawner.
+			// [BB] Clients don't know by which monster spot something was spawned.
 			if (( pActor->pMonsterSpot == NULL ) &&
 				( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
 				( CLIENTDEMO_IsPlaying( ) == false ))
@@ -833,6 +851,8 @@ void INVASION_StartCountdown( ULONG ulTicks )
 			}
 
 			// Also, get rid of any bodies from previous waves.
+			// [BB] Clients just slap the ulInvasionWave value to everything spawned in CLIENT_SpawnThing,
+			// therefore they know what to do here.
 			if (( g_ulCurrentWave > 1 ) &&
 				( pActor->ulInvasionWave == ( g_ulCurrentWave - 1 )))
 			{
