@@ -317,11 +317,20 @@ void AActor::UnlinkFromWorld ()
 		// pointers, allows head node pointers to be treated like everything else
 		AActor **prev = sprev;
 		AActor  *next = snext;
-		// [BB] The additional check for (prev != NULL) fixes the client crash when
-		// switching from map02 to map03 in terdelux_final.wad online in survival.
-		// But should this check be necessary at all?
-		if (prev && (*prev = next))  // unlink from sector list
-			next->sprev = prev;
+		// [BB] If this condition is not fulfilled, UnlinkFromWorld erroneously has
+		// been called twice. Definitely this has to be caused by a bug in the code,
+		// nevertheless I don't want this to crash Skulltag. A warning should be
+		// sufficient to track down this bug.
+		if ( prev != (AActor **)(size_t)0xBeefCafe )
+		{
+			// [BB] The additional check for (prev != NULL) fixes the client crash when
+			// switching from map02 to map03 in terdelux_final.wad online in survival.
+			// But should this check be necessary at all?
+			if (prev && (*prev = next))  // unlink from sector list
+				next->sprev = prev;
+		}
+		else
+			Printf ( "\\cgWarning: 0xBeefCafe encountered!\n" );
 		snext = NULL;
 		sprev = (AActor **)(size_t)0xBeefCafe;	// Woo! Bug-catching value!
 
