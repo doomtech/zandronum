@@ -123,7 +123,7 @@ bool AAmmo::HandlePickup (AInventory *item)
 					// [BC] If we're a client, tell the server we're switching weapons.
 					if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( Owner->player - players ) == consoleplayer ))
 					{
-						CLIENTCOMMANDS_WeaponSelect( best->GetClass( )->TypeName.GetChars( ) );
+						CLIENTCOMMANDS_WeaponSelect( best->GetClass( ));
 
 						if ( CLIENTDEMO_IsRecording( ))
 							CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, best->GetClass( )->TypeName.GetChars( ) );

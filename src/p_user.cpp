@@ -709,7 +709,7 @@ AWeapon *APlayerPawn::PickNewWeapon (const PClass *ammotype)
 		// [BC] In client mode, tell the server which weapon we're using.
 		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( player - players == consoleplayer ))
 		{
-			CLIENTCOMMANDS_WeaponSelect( best->GetClass( )->TypeName.GetChars( ) );
+			CLIENTCOMMANDS_WeaponSelect( best->GetClass( ));
 
 			if (( CLIENTDEMO_IsRecording( )) &&
 				( CLIENT_IsParsingPacket( ) == false ))
@@ -1078,7 +1078,7 @@ void APlayerPawn::GiveDefaultInventory ()
 				// [BC] If we're a client, tell the server we're switching weapons.
 				if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) == consoleplayer ))
 				{
-					CLIENTCOMMANDS_WeaponSelect( pInventory->GetClass( )->TypeName.GetChars( ) );
+					CLIENTCOMMANDS_WeaponSelect( pInventory->GetClass( ));
 
 					if ( CLIENTDEMO_IsRecording( ))
 						CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, pInventory->GetClass( )->TypeName.GetChars( ) );
@@ -1107,7 +1107,7 @@ void APlayerPawn::GiveDefaultInventory ()
 				// [BC] If we're a client, tell the server we're switching weapons.
 				if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) == consoleplayer ))
 				{
-					CLIENTCOMMANDS_WeaponSelect( pInventory->GetClass( )->TypeName.GetChars( ) );
+					CLIENTCOMMANDS_WeaponSelect( pInventory->GetClass( ));
 
 					if ( CLIENTDEMO_IsRecording( ))
 						CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, pInventory->GetClass( )->TypeName.GetChars( ) );
@@ -1164,7 +1164,7 @@ void APlayerPawn::GiveDefaultInventory ()
 	// [BB] If we're a client, tell the server the weapon we selected from the default inventory.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) == consoleplayer ) && player->PendingWeapon )
 	{
-		CLIENTCOMMANDS_WeaponSelect( player->PendingWeapon->GetClass( )->TypeName.GetChars( ) );
+		CLIENTCOMMANDS_WeaponSelect( player->PendingWeapon->GetClass( ));
 
 		if ( CLIENTDEMO_IsRecording( ))
 			CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, player->PendingWeapon->GetClass( )->TypeName.GetChars( ) );
@@ -1298,7 +1298,7 @@ void APlayerPawn::GiveDefaultInventory ()
 			// [BC] If we're a client, tell the server we're switching weapons.
 			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) == consoleplayer ))
 			{
-				CLIENTCOMMANDS_WeaponSelect( pPendingWeapon->GetClass( )->TypeName.GetChars( ) );
+				CLIENTCOMMANDS_WeaponSelect( pPendingWeapon->GetClass( ));
 
 				if ( CLIENTDEMO_IsRecording( ))
 					CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, pPendingWeapon->GetClass( )->TypeName.GetChars( ) );
@@ -1338,7 +1338,7 @@ void APlayerPawn::GiveDefaultInventory ()
 			// and "Pistol" player->ReadyWeapon can be equal to NULL.
 			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) == consoleplayer ) && player->ReadyWeapon )
 			{
-				CLIENTCOMMANDS_WeaponSelect( player->ReadyWeapon->GetClass( )->TypeName.GetChars( ) );
+				CLIENTCOMMANDS_WeaponSelect( player->ReadyWeapon->GetClass( ));
 
 				if ( CLIENTDEMO_IsRecording( ))
 					CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, player->ReadyWeapon->GetClass( )->TypeName.GetChars( ) );
@@ -1422,7 +1422,7 @@ void APlayerPawn::GiveDefaultInventory ()
 			// [BC] If we're a client, tell the server we're switching weapons.
 			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) == consoleplayer ))
 			{
-				CLIENTCOMMANDS_WeaponSelect( pPendingWeapon->GetClass( )->TypeName.GetChars( ) );
+				CLIENTCOMMANDS_WeaponSelect( pPendingWeapon->GetClass( ));
 
 				if ( CLIENTDEMO_IsRecording( ))
 					CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, pPendingWeapon->GetClass( )->TypeName.GetChars( ) );

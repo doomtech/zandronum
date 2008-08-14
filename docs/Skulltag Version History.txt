@@ -15,12 +15,14 @@
 <trunk>
 -------
 
+*+	- Optimized the actor spawning code. The name of the actors used to be sent across the network, but now only a 'short' is sent. [Karate Chris]
 +	- Added medal families: "higher" medals, such as incredible, now immediately replace lower medals, such as excellent. This means that when on a spree, you can go right from excellent to incredible, accuracy to precision, impressive to most impressive, and so on without waiting for the lower medal to slide off. Overall this makes the queue run a lot faster, especially if you have a large backlog of medals. [Rivecoder]
 +	- Added an "in console" icon that's shown above a player's head when he's in the menu or console. [Rivecoder]
 +	- The five/one minute warning announcer sounds are now played. [Rivecoder]
 +	- Added chat substitution inspired by ZDoom. [Karate Chris]
 +	- Added a chat sound for Strife. [Karate Chris]
 +	- Added a 'singleplayer' console command, complimentary to the 'multiplayer' / 'netgame' console command. [Karate Chris]
++	- Added CKeen's submission for an updated Italian language file. [Karate Chris]
 -	- Fixed a positioning bug with rank/spread on the classic HUD when st_scale was off. [Rivecoder]
 -	- Fixed: the 'ColorSetter' and 'FadeSetter' actors were broken online. [Karate Chris]
 !	- Changed up the display of medals when you have the key down. Higher medals are now on the right, opposite their subordinates. [Rivecoder]

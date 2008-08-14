@@ -3753,7 +3753,7 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 	angle_t			Pitch;
 	ULONG			ulGametic;
 	ULONG			ulBits;
-	const char		*pszWeapon;
+	USHORT			usClassIndex;
 	const PClass	*pType;
 	AInventory		*pInventory;
 //	ULONG			ulIdx;
@@ -3809,14 +3809,14 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 	// If the client is attacking, he always sends the name of the weapon he's using.
 	if ( pCmd->ucmd.buttons & BT_ATTACK )
 	{
-		pszWeapon = NETWORK_ReadString( pByteStream );
+		usClassIndex = NETWORK_ReadShort( pByteStream );
 		if ( pPlayer->ReadyWeapon )
 		{
 			// If the name of the weapon the client is using doesn't match the name of the
 			// weapon we think he's using, do something to rectify the situation.
-			if ( stricmp( pPlayer->ReadyWeapon->GetClass( )->TypeName.GetChars( ), pszWeapon ) != 0 )
+			if ( pPlayer->ReadyWeapon->GetClass( )->ClassIndex != usClassIndex )
 			{
-				pType = PClass::FindClass( pszWeapon );
+				pType = NETWORK_GetClassFromIdentification( usClassIndex );
 				if (( pType ) && ( pType->IsDescendantOf( RUNTIME_CLASS( AWeapon ))))
 				{
 					if ( pPlayer->mo )
@@ -3838,7 +3838,7 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 				}
 				else
 				{
-					if( stricmp( pszWeapon, "NULL" ) == 0 )
+					if( usClassIndex == PClass::m_Types.Size( ))
 					{
 						// [BB] For some reason the clients think he as no ready weapon, 
 						// but the server thinks he as one. Although this should not happen,
@@ -3988,26 +3988,21 @@ static bool server_UpdateClientPing( BYTESTREAM_s *pByteStream )
 //
 static bool server_WeaponSelect( BYTESTREAM_s *pByteStream )
 {
-	const char		*pszWeapon;
+	USHORT			usClassIndex;
 	const PClass	*pType;
 	AInventory		*pInventory;
 
-	// Read in the name of the weapon the player is selecting.
-	pszWeapon = NETWORK_ReadString( pByteStream );
+	// Read in the identification of the weapon the player is selecting.
+	usClassIndex = NETWORK_ReadShort( pByteStream );
 
 	// If the player doesn't have a body, break out.
 	if ( players[g_lCurrentClient].mo == NULL )
 		return ( false );
 
-	// Some optimization. For standard Doom weapons, to reduce the size of the string
-	// that's sent out, just send some key character that identifies the weapon, instead
-	// of the full name.
-	NETWORK_ConvertWeaponKeyLetterToFullString( pszWeapon );
-
 	// Try to find the class that corresponds to the name of the weapon the client
 	// is sending us. If it doesn't exist, or the class isn't a type of weapon, boot
 	// them.
-	pType = PClass::FindClass( pszWeapon );
+	pType = NETWORK_GetClassFromIdentification( usClassIndex );
 	if (( pType == NULL ) ||
 		( pType->IsDescendantOf( RUNTIME_CLASS( AWeapon )) == false ))
 	{
@@ -4932,11 +4927,11 @@ static bool server_InventoryUseAll( BYTESTREAM_s *pByteStream )
 //
 static bool server_InventoryUse( BYTESTREAM_s *pByteStream )
 {
-	const char* pszString = NETWORK_ReadString( pByteStream );
+	USHORT usClassIndex = NETWORK_ReadShort( pByteStream );
 
 	if (gamestate == GS_LEVEL && !paused && SERVER_IsValidPlayerWithMo(g_lCurrentClient) )
 	{
-		AInventory *item = players[g_lCurrentClient].mo->FindInventory (PClass::FindClass (pszString));
+		AInventory *item = players[g_lCurrentClient].mo->FindInventory (NETWORK_GetClassNameFromIdentification( usClassIndex));
 		if (item != NULL)
 		{
 			players[g_lCurrentClient].mo->UseInventory (item);
@@ -4950,10 +4945,10 @@ static bool server_InventoryUse( BYTESTREAM_s *pByteStream )
 //
 static bool server_InventoryDrop( BYTESTREAM_s *pByteStream )
 {
-	const char	*pszString;
+	USHORT		usClassIndex = PClass::m_Types.Size( );
 	AInventory	*pItem;
 
-	pszString = NETWORK_ReadString( pByteStream );
+	usClassIndex = NETWORK_ReadShort( pByteStream );
 
 	// [BB] The server may forbid dropping completely.
 	if ( sv_nodrop )
@@ -4964,7 +4959,7 @@ static bool server_InventoryDrop( BYTESTREAM_s *pByteStream )
 
 	if (gamestate == GS_LEVEL && !paused && SERVER_IsValidPlayerWithMo(g_lCurrentClient) )
 	{
-		pItem = players[g_lCurrentClient].mo->FindInventory( PClass::FindClass( pszString ));
+		pItem = players[g_lCurrentClient].mo->FindInventory( NETWORK_GetClassNameFromIdentification( usClassIndex ));
 		if ( pItem )
 			players[g_lCurrentClient].mo->DropInventory( pItem );
 	}

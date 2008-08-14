@@ -199,9 +199,9 @@ void CLIENTCOMMANDS_ClientMove( void )
 	if ( pCmd->ucmd.buttons & BT_ATTACK )
 	{
 		if ( players[consoleplayer].ReadyWeapon == NULL )
-			NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, "NULL" );
+			NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, PClass::m_Types.Size( ));
 		else
-			NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].ReadyWeapon->GetClass( )->TypeName.GetChars( ));
+			NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].ReadyWeapon->GetClass( )->ClassIndex );
 	}
 }
 
@@ -221,15 +221,10 @@ void CLIENTCOMMANDS_Pong( ULONG ulTime )
 
 //*****************************************************************************
 //
-void CLIENTCOMMANDS_WeaponSelect( const char *pszWeapon )
+void CLIENTCOMMANDS_WeaponSelect( const PClass *pType )
 {
-	// Some optimization. For standard Doom weapons, to reduce the size of the string
-	// that's sent out, just send some key character that identifies the weapon, instead
-	// of the full name.
-	NETWORK_ConvertWeaponNameToKeyLetter( pszWeapon );
-
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_WEAPONSELECT );
-	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, pszWeapon );
+	NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, pType->ClassIndex );
 }
 
 //*****************************************************************************
@@ -391,13 +386,10 @@ void CLIENTCOMMANDS_RequestInventoryUse( AInventory *item )
 	if ( item == NULL )
 		return;
 
-	const char *pszString = item->GetClass( )->TypeName.GetChars( );
-
-	if ( pszString == NULL )
-		return;
+	USHORT usClassIndex = item->GetClass( )->ClassIndex;
 
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_INVENTORYUSE );
-	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, pszString );
+	NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, usClassIndex );
 }
 
 //*****************************************************************************
@@ -416,17 +408,15 @@ void CLIENTCOMMANDS_RequestInventoryDrop( AInventory *pItem )
 		return;
 	}
 
-	const char	*pszString;
+	USHORT	usClassIndex = PClass::m_Types.Size( );
 
 	if ( pItem == NULL )
 		return;
 
-	pszString = pItem->GetClass( )->TypeName.GetChars( );
-	if ( pszString == NULL )
-		return;
+	usClassIndex = pItem->GetClass( )->ClassIndex;
 
 	g_ulLastDropTime = gametic;
 
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_INVENTORYDROP );
-	NETWORK_WriteString( &CLIENT_GetLocalBuffer( )->ByteStream, pszString );
+	NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, usClassIndex );
 }

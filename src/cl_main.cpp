@@ -2503,22 +2503,17 @@ void CLIENT_AuthenticateLevel( const char *pszMapName )
 
 //*****************************************************************************
 //
-AActor *CLIENT_SpawnThing( const char *pszName, fixed_t X, fixed_t Y, fixed_t Z, LONG lNetID )
+AActor *CLIENT_SpawnThing( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z, LONG lNetID )
 {
 	AActor			*pActor;
-	const PClass	*pType;
 
 	// Only spawn actors if we're actually in a level.
 	if ( gamestate != GS_LEVEL )
 		return ( NULL );
 
-	// Some optimization. For some actors that are sent in bunches, to reduce the size,
-	// just send some key letter that identifies the actor, instead of the full name.
-	NETWORK_ConvertKeyLetterToFullString( (const char *&)pszName, !!cl_showspawnnames );
-
 	// Potentially print the name, position, and network ID of the thing spawning.
 	if ( cl_showspawnnames )
-		Printf( "Name: %s: (%d, %d, %d), %d\n", pszName, X >> FRACBITS, Y >> FRACBITS, Z >> FRACBITS, static_cast<int> (lNetID) );
+		Printf( "Name: %s: (%d, %d, %d), %d\n", pType->TypeName.GetChars( ), X >> FRACBITS, Y >> FRACBITS, Z >> FRACBITS, static_cast<int> (lNetID) );
 
 	// If there's already an actor with the network ID of the thing we're spawning, kill it!
 	pActor = CLIENT_FindThingByNetID( lNetID );
@@ -2537,15 +2532,14 @@ AActor *CLIENT_SpawnThing( const char *pszName, fixed_t X, fixed_t Y, fixed_t Z,
 	}
 
 	// Get the class of the thing we're trying to spawn.
-	pType = PClass::FindClass( pszName );
 	if ( pType == NULL )
 	{
-		Printf( "CLIENT_SpawnThing: Unknown actor type: %s!\n", pszName );
+		Printf( "CLIENT_SpawnThing: Unknown actor type: %s!\n", pType->TypeName.GetChars( ));
 		return NULL;
 	}
 
 	// Handle sprite/particle display options.
-	if ( stricmp( pszName, "blood" ) == 0 )
+	if ( stricmp( pType->TypeName.GetChars( ), "blood" ) == 0 )
 	{
 		if ( cl_bloodtype >= 1 )
 		{
@@ -2560,7 +2554,7 @@ AActor *CLIENT_SpawnThing( const char *pszName, fixed_t X, fixed_t Y, fixed_t Z,
 			return ( NULL );
 	}
 
-	if ( stricmp( pszName, "BulletPuff" ) == 0 )
+	if ( stricmp( pType->TypeName.GetChars( ), "BulletPuff" ) == 0 )
 	{
 		if ( cl_pufftype )
 		{
@@ -2587,7 +2581,7 @@ AActor *CLIENT_SpawnThing( const char *pszName, fixed_t X, fixed_t Y, fixed_t Z,
 		pActor->SpawnPoint[1] = Y >> FRACBITS;
 
 		// Whenever blood spawns, its momz is always 2 * FRACUNIT.
-		if ( stricmp( pszName, "blood" ) == 0 )
+		if ( stricmp( pType->TypeName.GetChars( ), "blood" ) == 0 )
 			pActor->momz = FRACUNIT*2;
 
 		// Allow for client-side body removal in invasion mode.
@@ -2600,22 +2594,17 @@ AActor *CLIENT_SpawnThing( const char *pszName, fixed_t X, fixed_t Y, fixed_t Z,
 
 //*****************************************************************************
 //
-void CLIENT_SpawnMissile( const char *pszName, fixed_t X, fixed_t Y, fixed_t Z, fixed_t MomX, fixed_t MomY, fixed_t MomZ, LONG lNetID, LONG lTargetNetID )
+void CLIENT_SpawnMissile( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z, fixed_t MomX, fixed_t MomY, fixed_t MomZ, LONG lNetID, LONG lTargetNetID )
 {
 	AActor				*pActor;
-	const PClass		*pType;
 
 	// Only spawn missiles if we're actually in a level.
 	if ( gamestate != GS_LEVEL )
 		return;
 
-	// Some optimization. For some actors that are sent in bunches, to reduce the size,
-	// just send some key letter that identifies the actor, instead of the full name.
-	NETWORK_ConvertKeyLetterToFullString( (const char *&)pszName, !!cl_showspawnnames );
-
 	// Potentially print the name, position, and network ID of the thing spawning.
 	if ( cl_showspawnnames )
-		Printf( "Name: %s: (%d, %d, %d), %d\n", pszName, X >> FRACBITS, Y >> FRACBITS, Z >> FRACBITS, static_cast<int> (lNetID) );
+		Printf( "Name: %s: (%d, %d, %d), %d\n", pType->TypeName.GetChars( ), X >> FRACBITS, Y >> FRACBITS, Z >> FRACBITS, static_cast<int> (lNetID) );
 
 	// If there's already an actor with the network ID of the thing we're spawning, kill it!
 	pActor = CLIENT_FindThingByNetID( lNetID );
@@ -2634,10 +2623,9 @@ void CLIENT_SpawnMissile( const char *pszName, fixed_t X, fixed_t Y, fixed_t Z, 
 	}
 
 	// Get the class of the thing we're trying to spawn.
-	pType = PClass::FindClass( pszName );
 	if ( pType == NULL )
 	{
-		Printf( "CLIENT_SpawnMissile: Unknown actor type: %s!\n", pszName );
+		Printf( "CLIENT_SpawnMissile: Unknown actor type: %s!\n", pType->TypeName.GetChars( ));
 		return;
 	}
 
@@ -3271,7 +3259,7 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	bool			bWasWatchingPlayer;
 	AActor			*pCameraActor;
 	APlayerPawn		*pOldActor;
-	const char		*pszString = NULL;
+	USHORT			usClassIndex;
 	const PClass	*pType;
 
 	// Which player is being spawned?
@@ -3308,8 +3296,8 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 
 	if ( bMorph )
 	{
-		// [BB] Read in the name of the morphed playerpawn
-		pszString = NETWORK_ReadString( pByteStream );
+		// [BB] Read in the identification of the morphed playerpawn
+		usClassIndex = NETWORK_ReadShort( pByteStream );
 	}
 
 	// Invalid player ID or not in a level.
@@ -3408,7 +3396,7 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	if ( bMorph )
 	{
 		// [BB] Get the morphed player class.
-		pType = PClass::FindClass( pszString );
+		pType = NETWORK_GetClassFromIdentification( usClassIndex );
 		if ( pType )
 			pPlayer->cls = pType;
 	}
@@ -3778,7 +3766,7 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 	LONG		lInflictorID;
 	LONG		lHealth;
 	FName		MOD;
-	const char	*pszString;
+	USHORT		usClassIndex;
 	FName		DamageType;
 	AActor		*pSource;
 	AActor		*pInflictor;
@@ -3804,9 +3792,9 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 	// Read in the thing's damage type.
 	DamageType = NETWORK_ReadString( pByteStream );
 
-	// Read in the player who did the killing's ready weapon so we can properly do obituary
+	// Read in the player who did the killing's ready weapon's identification so we can properly do obituary
 	// messages.
-	pszString = NETWORK_ReadString( pByteStream );
+	usClassIndex = NETWORK_ReadShort( pByteStream );
 
 	// Check to make sure everything is valid. If not, break out.
 	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
@@ -3886,13 +3874,13 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 		}
 	}
 
-	if (( pszString == NULL ) || ( *pszString == 0 ))
+	if ( usClassIndex == PClass::m_Types.Size( ))
 		players[ulSourcePlayer].ReadyWeapon = NULL;
 	else if (( ulSourcePlayer < MAXPLAYERS ) && ( players[ulSourcePlayer].mo ))
 	{
-		pWeapon = static_cast<AWeapon *>( players[ulSourcePlayer].mo->FindInventory( PClass::FindClass( pszString )));
+		pWeapon = static_cast<AWeapon *>( players[ulSourcePlayer].mo->FindInventory( NETWORK_GetClassFromIdentification( usClassIndex )));
 		if ( pWeapon == NULL )
-			pWeapon = static_cast<AWeapon *>( players[ulSourcePlayer].mo->GiveInventoryType( PClass::FindClass( pszString )));
+			pWeapon = static_cast<AWeapon *>( players[ulSourcePlayer].mo->GiveInventoryType( NETWORK_GetClassFromIdentification( usClassIndex )));
 
 		if ( pWeapon )
 			players[ulSourcePlayer].ReadyWeapon = pWeapon;
@@ -4439,15 +4427,15 @@ static void client_SetPlayerPoisonCount( BYTESTREAM_s *pByteStream )
 static void client_SetPlayerAmmoCapacity( BYTESTREAM_s *pByteStream )
 {
 	ULONG			ulPlayer;
-	const char		*pszName;
+	USHORT			usClassIndex;
 	LONG			lMaxAmount;
 	AInventory		*pAmmo;
 
 	// Read in the player ID.
 	ulPlayer = NETWORK_ReadByte( pByteStream );
 
-	// Read in the name of the type of item to give.
-	pszName = NETWORK_ReadString( pByteStream );
+	// Read in the identification of the type of item to give.
+	usClassIndex = NETWORK_ReadShort( pByteStream );
 
 	// Read in the amount of this inventory type the player has.
 	lMaxAmount = NETWORK_ReadShort( pByteStream );
@@ -4456,7 +4444,7 @@ static void client_SetPlayerAmmoCapacity( BYTESTREAM_s *pByteStream )
 	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
 		return;
 
-	pAmmo = CLIENT_FindPlayerInventory( ulPlayer, pszName );
+	pAmmo = CLIENT_FindPlayerInventory( ulPlayer, NETWORK_GetClassFromIdentification( usClassIndex ));
 
 	if ( pAmmo == NULL )
 		return;
@@ -4496,30 +4484,23 @@ static void client_SetPlayerCheats( BYTESTREAM_s *pByteStream )
 static void client_SetPlayerPendingWeapon( BYTESTREAM_s *pByteStream )
 {
 	ULONG			ulPlayer;
-	const char		*pszPendingWeapon;
+	USHORT			usClassIndex;
 	const PClass	*pType = NULL;
 	AWeapon			*pWeapon = NULL;
 
 	// Read in the player whose info is about to be updated.
 	ulPlayer = NETWORK_ReadByte( pByteStream );
 
-	// Read in the name of the weapon.
-	pszPendingWeapon = NETWORK_ReadString( pByteStream );
-
-	// Some optimization. For standard Doom weapons, to reduce the size of the string
-	// that's sent out, just send some key character that identifies the weapon, instead
-	// of the full name.
-	NETWORK_ConvertWeaponKeyLetterToFullString( pszPendingWeapon );
+	// Read in the identification of the weapon.
+	usClassIndex = NETWORK_ReadShort( pByteStream );
 
 	// If the player doesn't exist, get out!
 	if (( players[ulPlayer].mo == NULL ) || ( playeringame[ulPlayer] == false ))
 		return;
 
-	if (( pszPendingWeapon ) &&
-		( stricmp( pszPendingWeapon, "NULL" ) != 0 ) &&
-		( pszPendingWeapon[0] != '\0' ))
+	if ( usClassIndex != PClass::m_Types.Size( ))
 	{
-		pType = PClass::FindClass( pszPendingWeapon );
+		pType = NETWORK_GetClassFromIdentification( usClassIndex );
 		if (( pType != NULL ) &&
 			( pType->IsDescendantOf( RUNTIME_CLASS( AWeapon ))))
 		{
@@ -4532,7 +4513,7 @@ static void client_SetPlayerPendingWeapon( BYTESTREAM_s *pByteStream )
 			if ( pWeapon == NULL )
 			{
 #ifdef CLIENT_WARNING_MESSAGES
-				Printf( "client_SetPlayerPendingWeapon: Failed to give inventory type, %s!\n", pszName );
+				Printf( "client_SetPlayerPendingWeapon: Failed to give inventory type, %s!\n", NETWORK_GetClassNameFromIdentification( usClassIndex ));
 #endif
 				return;
 			}
@@ -5010,7 +4991,7 @@ static void client_PlayerRespawnInvulnerability( BYTESTREAM_s *pByteStream )
 static void client_PlayerUseInventory( BYTESTREAM_s *pByteStream )
 {
 	ULONG			ulPlayer;
-	const char		*pszName;
+	USHORT			usClassIndex;
 	const PClass	*pType;
 	AInventory		*pInventory;
 
@@ -5018,13 +4999,13 @@ static void client_PlayerUseInventory( BYTESTREAM_s *pByteStream )
 	ulPlayer = NETWORK_ReadByte( pByteStream );
 
 	// Read the name of the inventory item we shall use.
-	pszName = NETWORK_ReadString( pByteStream );
+	usClassIndex = NETWORK_ReadShort( pByteStream );
 
 	// Check to make sure everything is valid. If not, break out.
 	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
 		return;
 
-	pType = PClass::FindClass( pszName );
+	pType = NETWORK_GetClassFromIdentification( usClassIndex );
 	if ( pType == NULL )
 		return;
 
@@ -5039,7 +5020,7 @@ static void client_PlayerUseInventory( BYTESTREAM_s *pByteStream )
 	if ( pInventory == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
-		Printf( "client_PlayerUseInventory: Failed to give inventory type, %s!\n", pszName );
+		Printf( "client_PlayerUseInventory: Failed to give inventory type, %s!\n", NETWORK_GetClassNameFromIdentification( usClassIndex ));
 #endif
 		return;
 	}
@@ -5053,21 +5034,21 @@ static void client_PlayerUseInventory( BYTESTREAM_s *pByteStream )
 static void client_PlayerDropInventory( BYTESTREAM_s *pByteStream )
 {
 	ULONG			ulPlayer;
-	const char		*pszName;
+	USHORT			usClassIndex;
 	const PClass	*pType;
 	AInventory		*pInventory;
 
 	// Read in the player dropping an inventory item.
 	ulPlayer = NETWORK_ReadByte( pByteStream );
 
-	// Read the name of the inventory item we shall drop.
-	pszName = NETWORK_ReadString( pByteStream );
+	// Read the identification of the inventory item we shall drop.
+	usClassIndex = NETWORK_ReadShort( pByteStream );
 
 	// Check to make sure everything is valid. If not, break out.
 	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
 		return;
 
-	pType = PClass::FindClass( pszName );
+	pType = NETWORK_GetClassFromIdentification( usClassIndex );
 	if ( pType == NULL )
 		return;
 
@@ -5082,7 +5063,7 @@ static void client_PlayerDropInventory( BYTESTREAM_s *pByteStream )
 	if ( pInventory == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
-		Printf( "client_PlayerDropInventory: Failed to give inventory type, %s!\n", pszName );
+		Printf( "client_PlayerDropInventory: Failed to give inventory type, %s!\n", NETWORK_GetClassNameFromIdentification( usClassIndex ));
 #endif
 		return;
 	}
@@ -5098,7 +5079,7 @@ static void client_SpawnThing( BYTESTREAM_s *pByteStream )
 	fixed_t			X;
 	fixed_t			Y;
 	fixed_t			Z;
-	const char		*pszName;
+	USHORT			usClassIndex;
 	LONG			lID;
 
 	// Read in the XYZ location of the item.
@@ -5106,14 +5087,14 @@ static void client_SpawnThing( BYTESTREAM_s *pByteStream )
 	Y = NETWORK_ReadShort( pByteStream ) << FRACBITS;
 	Z = NETWORK_ReadShort( pByteStream ) << FRACBITS;
 
-	// Read in the name of the item.
-	pszName = NETWORK_ReadString( pByteStream );
+	// Read in the identification of the item class.
+	usClassIndex = NETWORK_ReadShort( pByteStream );
 
 	// Read in the network ID of the item.
 	lID = NETWORK_ReadShort( pByteStream );
 
 	// Finally, spawn the thing.
-	CLIENT_SpawnThing( pszName, X, Y, Z, lID );
+	CLIENT_SpawnThing( NETWORK_GetClassFromIdentification( usClassIndex ), X, Y, Z, lID );
 }
 
 //*****************************************************************************
@@ -5123,18 +5104,18 @@ static void client_SpawnThingNoNetID( BYTESTREAM_s *pByteStream )
 	fixed_t			X;
 	fixed_t			Y;
 	fixed_t			Z;
-	const char		*pszName;
+	USHORT			usClassIndex;
 
 	// Read in the XYZ location of the item.
 	X = NETWORK_ReadShort( pByteStream ) << FRACBITS;
 	Y = NETWORK_ReadShort( pByteStream ) << FRACBITS;
 	Z = NETWORK_ReadShort( pByteStream ) << FRACBITS;
 
-	// Read in the name of the item.
-	pszName = NETWORK_ReadString( pByteStream );
+	// Read in the identification of the item class.
+	usClassIndex = NETWORK_ReadShort( pByteStream );
 
 	// Finally, spawn the thing.
-	CLIENT_SpawnThing( pszName, X, Y, Z, -1 );
+	CLIENT_SpawnThing( NETWORK_GetClassFromIdentification( usClassIndex ), X, Y, Z, -1 );
 }
 
 //*****************************************************************************
@@ -5144,7 +5125,7 @@ static void client_SpawnThingExact( BYTESTREAM_s *pByteStream )
 	fixed_t			X;
 	fixed_t			Y;
 	fixed_t			Z;
-	const char		*pszName;
+	USHORT			usClassIndex;
 	LONG			lID;
 
 	// Read in the XYZ location of the item.
@@ -5152,14 +5133,14 @@ static void client_SpawnThingExact( BYTESTREAM_s *pByteStream )
 	Y = NETWORK_ReadLong( pByteStream );
 	Z = NETWORK_ReadLong( pByteStream );
 
-	// Read in the name of the item.
-	pszName = NETWORK_ReadString( pByteStream );
+	// Read in the identification of the item class.
+	usClassIndex = NETWORK_ReadShort( pByteStream );
 
 	// Read in the network ID of the item.
 	lID = NETWORK_ReadShort( pByteStream );
 
 	// Finally, spawn the thing.
-	CLIENT_SpawnThing( pszName, X, Y, Z, lID );
+	CLIENT_SpawnThing( NETWORK_GetClassFromIdentification( usClassIndex ), X, Y, Z, lID );
 }
 
 //*****************************************************************************
@@ -5169,18 +5150,18 @@ static void client_SpawnThingExactNoNetID( BYTESTREAM_s *pByteStream )
 	fixed_t			X;
 	fixed_t			Y;
 	fixed_t			Z;
-	const char		*pszName;
+	USHORT			usClassIndex;
 
 	// Read in the XYZ location of the item.
 	X = NETWORK_ReadLong( pByteStream );
 	Y = NETWORK_ReadLong( pByteStream );
 	Z = NETWORK_ReadLong( pByteStream );
 
-	// Read in the name of the item.
-	pszName = NETWORK_ReadString( pByteStream );
+	// Read in the identification of the item class.
+	usClassIndex = NETWORK_ReadShort( pByteStream );
 
 	// Finally, spawn the thing.
-	CLIENT_SpawnThing( pszName, X, Y, Z, -1 );
+	CLIENT_SpawnThing( NETWORK_GetClassFromIdentification( usClassIndex ), X, Y, Z, -1 );
 }
 
 //*****************************************************************************
@@ -6631,7 +6612,7 @@ static void client_SpawnPuff( BYTESTREAM_s *pByteStream )
 	fixed_t			X;
 	fixed_t			Y;
 	fixed_t			Z;
-	const char		*pszName;
+	USHORT			usClassIndex;
 	ULONG			ulState;
 	bool			bReceiveTranslation;
 	AActor			*pActor;
@@ -6642,8 +6623,8 @@ static void client_SpawnPuff( BYTESTREAM_s *pByteStream )
 	Y = NETWORK_ReadShort( pByteStream ) << FRACBITS;
 	Z = NETWORK_ReadShort( pByteStream ) << FRACBITS;
 
-	// Read in the name of the item.
-	pszName = NETWORK_ReadString( pByteStream );
+	// Read in the identification of the item.
+	usClassIndex = NETWORK_ReadShort( pByteStream );
 
 	// Read in the state of the puff.
 	ulState = NETWORK_ReadByte( pByteStream );
@@ -6652,7 +6633,7 @@ static void client_SpawnPuff( BYTESTREAM_s *pByteStream )
 	bReceiveTranslation = !!NETWORK_ReadByte( pByteStream );
 
 	// Finally, spawn the thing.
-	pActor = CLIENT_SpawnThing( pszName, X, Y, Z, -1 );
+	pActor = CLIENT_SpawnThing( NETWORK_GetClassFromIdentification( usClassIndex ), X, Y, Z, -1 );
 	if ( pActor == NULL )
 		return;
 
@@ -7560,7 +7541,7 @@ static void client_TeamFlagDropped( BYTESTREAM_s *pByteStream )
 //
 static void client_SpawnMissile( BYTESTREAM_s *pByteStream )
 {
-	const char			*pszName;
+	USHORT				usClassIndex;
 	fixed_t				X;
 	fixed_t				Y;
 	fixed_t				Z;
@@ -7580,22 +7561,22 @@ static void client_SpawnMissile( BYTESTREAM_s *pByteStream )
 	MomY = NETWORK_ReadLong( pByteStream );
 	MomZ = NETWORK_ReadLong( pByteStream );
 
-	// Read in the name of the missile.
-	pszName = NETWORK_ReadString( pByteStream );
+	// Read in the identification of the missile.
+	usClassIndex = NETWORK_ReadShort( pByteStream );
 
 	// Read in the network ID of the missile, and its target.
 	lID = NETWORK_ReadShort( pByteStream );
 	lTargetID = NETWORK_ReadShort( pByteStream );
 
 	// Finally, spawn the missile.
-	CLIENT_SpawnMissile( pszName, X, Y, Z, MomX, MomY, MomZ, lID, lTargetID );
+	CLIENT_SpawnMissile( NETWORK_GetClassFromIdentification( usClassIndex ), X, Y, Z, MomX, MomY, MomZ, lID, lTargetID );
 }
 
 //*****************************************************************************
 //
 static void client_SpawnMissileExact( BYTESTREAM_s *pByteStream )
 {
-	const char			*pszName;
+	USHORT				usClassIndex;
 	fixed_t				X;
 	fixed_t				Y;
 	fixed_t				Z;
@@ -7615,15 +7596,15 @@ static void client_SpawnMissileExact( BYTESTREAM_s *pByteStream )
 	MomY = NETWORK_ReadLong( pByteStream );
 	MomZ = NETWORK_ReadLong( pByteStream );
 
-	// Read in the name of the missile.
-	pszName = NETWORK_ReadString( pByteStream );
+	// Read in the identification of the missile.
+	usClassIndex = NETWORK_ReadShort( pByteStream );
 
 	// Read in the network ID of the missile, and its target.
 	lID = NETWORK_ReadShort( pByteStream );
 	lTargetID = NETWORK_ReadShort( pByteStream );
 
 	// Finally, spawn the missile.
-	CLIENT_SpawnMissile( pszName, X, Y, Z, MomX, MomY, MomZ, lID, lTargetID );
+	CLIENT_SpawnMissile( NETWORK_GetClassFromIdentification( usClassIndex ), X, Y, Z, MomX, MomY, MomZ, lID, lTargetID );
 }
 
 //*****************************************************************************
@@ -7733,27 +7714,22 @@ static void client_WeaponSound( BYTESTREAM_s *pByteStream )
 static void client_WeaponChange( BYTESTREAM_s *pByteStream )
 {
 	ULONG			ulPlayer;
-	const char		*pszString;
+	USHORT			usClassIndex;
 	const PClass	*pType;
 	AWeapon			*pWeapon;
 
 	// Read in the player whose info is about to be updated.
 	ulPlayer = NETWORK_ReadByte( pByteStream );
 
-	// Read in the name of the weapon we're supposed to switch to.
-	pszString = NETWORK_ReadString( pByteStream );
-
-	// Some optimization. For standard Doom weapons, to reduce the size of the string
-	// that's sent out, just send some key character that identifies the weapon, instead
-	// of the full name.
-	NETWORK_ConvertWeaponKeyLetterToFullString( pszString );
+	// Read in the identification of the weapon we're supposed to switch to.
+	usClassIndex = NETWORK_ReadShort( pByteStream );
 
 	// If the player doesn't exist, get out!
 	if (( players[ulPlayer].mo == NULL ) || ( playeringame[ulPlayer] == false ))
 		return;
 
 	// If it's an invalid class, or not a weapon, don't switch.
-	pType = PClass::FindClass( pszString );
+	pType = NETWORK_GetClassFromIdentification( usClassIndex );
 	if (( pType == NULL ) || !( pType->IsDescendantOf( RUNTIME_CLASS( AWeapon ))))
 		return;
 
@@ -7766,7 +7742,7 @@ static void client_WeaponChange( BYTESTREAM_s *pByteStream )
 	if ( pWeapon == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
-		Printf( "client_WeaponChange: Failed to give inventory type, %s!\n", pszName );
+		Printf( "client_WeaponChange: Failed to give inventory type, %s!\n", NETWORK_GetClassNameFromIdentification( usClassIndex ));
 #endif
 		return;
 	}
@@ -7779,7 +7755,7 @@ static void client_WeaponChange( BYTESTREAM_s *pByteStream )
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) &&
 		( ulPlayer == static_cast<ULONG>(consoleplayer) ))
 	{
-		CLIENTCOMMANDS_WeaponSelect( pWeapon->GetClass( )->TypeName.GetChars( ));
+		CLIENTCOMMANDS_WeaponSelect( pWeapon->GetClass( ));
 	}
 }
 
@@ -9248,15 +9224,15 @@ static void client_GiveInventory( BYTESTREAM_s *pByteStream )
 {
 	const PClass	*pType;
 	ULONG			ulPlayer;
-	const char		*pszName;
+	USHORT			usClassIndex;
 	LONG			lAmount;
 	AInventory		*pInventory;
 
 	// Read in the player ID.
 	ulPlayer = NETWORK_ReadByte( pByteStream );
 
-	// Read in the name of the type of item to give.
-	pszName = NETWORK_ReadString( pByteStream );
+	// Read in the identification of the type of item to give.
+	usClassIndex = NETWORK_ReadShort( pByteStream );
 
 	// Read in the amount of this inventory type the player has.
 	lAmount = NETWORK_ReadShort( pByteStream );
@@ -9265,7 +9241,7 @@ static void client_GiveInventory( BYTESTREAM_s *pByteStream )
 	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
 		return;
 
-	pType = PClass::FindClass( pszName );
+	pType = NETWORK_GetClassFromIdentification( usClassIndex );
 	if ( pType == NULL )
 		return;
 
@@ -9306,7 +9282,7 @@ static void client_GiveInventory( BYTESTREAM_s *pByteStream )
 	if ( pInventory == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
-		Printf( "client_GiveInventory: Failed to give inventory type, %s!\n", pszName );
+		Printf( "client_GiveInventory: Failed to give inventory type, %s!\n", NETWORK_GetClassNameFromIdentification( usClassIndex ));
 #endif
 		return;
 	}
@@ -9404,7 +9380,7 @@ static void client_GivePowerup( BYTESTREAM_s *pByteStream )
 {
 	const PClass	*pType;
 	ULONG			ulPlayer;
-	const char		*pszName;
+	USHORT			usClassIndex;
 	LONG			lAmount;
 	LONG			lEffectTics;
 	AInventory		*pInventory;
@@ -9412,8 +9388,8 @@ static void client_GivePowerup( BYTESTREAM_s *pByteStream )
 	// Read in the player ID.
 	ulPlayer = NETWORK_ReadByte( pByteStream );
 
-	// Read in the name of the type of item to give.
-	pszName = NETWORK_ReadString( pByteStream );
+	// Read in the identification of the type of item to give.
+	usClassIndex = NETWORK_ReadShort( pByteStream );
 
 	// Read in the amount of this inventory type the player has.
 	lAmount = NETWORK_ReadShort( pByteStream );
@@ -9425,7 +9401,7 @@ static void client_GivePowerup( BYTESTREAM_s *pByteStream )
 	if (( CLIENT_IsValidPlayer( ulPlayer ) == false ) || ( players[ulPlayer].mo == NULL ))
 		return;
 
-	pType = PClass::FindClass( pszName );
+	pType = NETWORK_GetClassFromIdentification( usClassIndex );
 	if ( pType == NULL )
 		return;
 
@@ -9444,7 +9420,7 @@ static void client_GivePowerup( BYTESTREAM_s *pByteStream )
 	if ( pInventory == NULL )
 	{
 #ifdef CLIENT_WARNING_MESSAGES
-		Printf( "client_TakeInventory: Failed to give inventory type, %s!\n", pszName );
+		Printf( "client_TakeInventory: Failed to give inventory type, %s!\n", NETWORK_GetClassNameFromIdentification( usClassIndex ));
 #endif
 		return;
 	}

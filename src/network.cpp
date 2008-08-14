@@ -80,54 +80,6 @@ void SERVERCONSOLE_UpdateIP( NETADDRESS_s LocalAddress );
 //*****************************************************************************
 //	VARIABLES
 
-// [BB]: Some optimization. For some actors that are sent in bunches, to reduce the size,
-// just send some key letter that identifies the actor, instead of the full name.
-const char	*g_szActorKeyLetter[NUMBER_OF_ACTOR_NAME_KEY_LETTERS] = 
-{
-	"1",
-	"2",
-	"3",
-};
-
-//*****************************************************************************
-const char	*g_szActorFullName[NUMBER_OF_ACTOR_NAME_KEY_LETTERS] =
-{
-	"BulletPuff",
-	"Blood",
-	"PlasmaBall",
-};
-
-//*****************************************************************************
-const char	*g_szWeaponKeyLetter[NUMBER_OF_WEAPON_NAME_KEY_LETTERS] = 
-{
-	"1",
-	"2",
-	"3",
-	"4",
-	"5",
-	"6",
-	"7",
-	"8",
-	"9",
-	"0",
-};
-
-//*****************************************************************************
-const char	*g_szWeaponFullName[NUMBER_OF_WEAPON_NAME_KEY_LETTERS] =
-{
-	"Fist",
-	"Pistol",
-	"Shotgun",
-	"SuperShotgun",
-	"RocketLauncher",
-	"GrenadeLauncher",
-	"PlasmaRifle",
-	"Railgun",
-	"BFG9000",
-	"BFG10K",
-};
-
-//*****************************************************************************
 FString g_lumpsAuthenticationChecksum;
 
 // The current network state. Single player, client, server, etc.
@@ -609,73 +561,6 @@ USHORT NETWORK_GetLocalPort( void )
 
 //*****************************************************************************
 //
-void NETWORK_ConvertNameToKeyLetter( const char *&pszName )
-{
-	//Printf( "converted %s ", pszName );
-	for( int i = 0; i < NUMBER_OF_ACTOR_NAME_KEY_LETTERS; i++ )
-	{
-		if ( stricmp( pszName, g_szActorFullName[i] ) == 0 )
-		{
-			pszName = g_szActorKeyLetter[i];
-			break;
-		}
-	}
-	//Printf( "to to %s\n", pszName );
-}
-
-//*****************************************************************************
-//
-void NETWORK_ConvertWeaponNameToKeyLetter( const char *&pszName )
-{
-	//Printf( "converted %s ", pszName );
-	for( int i = 0; i < NUMBER_OF_WEAPON_NAME_KEY_LETTERS; i++ )
-	{
-		if ( stricmp( pszName, g_szWeaponFullName[i] ) == 0 )
-		{
-			pszName = g_szWeaponKeyLetter[i];
-			break;
-		}
-	}
-	//Printf( "to to %s\n", pszName );
-}
-
-//*****************************************************************************
-//
-void NETWORK_ConvertKeyLetterToFullString( const char *&pszName, bool bPrintKeyLetter )
-{
-	//Printf( "recieved %s ", pszName );
-	for( int i = 0; i < NUMBER_OF_ACTOR_NAME_KEY_LETTERS; i++ )
-	{
-		if ( stricmp( pszName, g_szActorKeyLetter[i] ) == 0 )
-		{
-			if ( bPrintKeyLetter )
-				Printf( "Key letter: %s\n", pszName );
-
-			pszName = g_szActorFullName[i];
-			break;
-		}
-	}
-	//Printf( "converted to %s\n", pszName );
-}
-
-//*****************************************************************************
-//
-void NETWORK_ConvertWeaponKeyLetterToFullString( const char *&pszName )
-{
-	//Printf( "recieved %s ", pszName );
-	for( int i = 0; i < NUMBER_OF_WEAPON_NAME_KEY_LETTERS; i++ )
-	{
-		if ( stricmp( pszName, g_szWeaponKeyLetter[i] ) == 0 )
-		{
-			pszName = g_szWeaponFullName[i];
-			break;
-		}
-	}
-	//Printf( "converted to %s\n", pszName );
-}
-
-//*****************************************************************************
-//
 void NETWORK_GenerateMapLumpMD5Hash( MapData *Map, const LONG LumpNumber, FString &MD5Hash )
 {
 	LONG lLumpSize = Map->Size( LumpNumber );
@@ -704,6 +589,22 @@ void NETWORK_GenerateLumpMD5Hash( const int LumpNum, FString &MD5Hash )
 	// Perform the checksum on our buffer, and free it.
 	CMD5Checksum::GetMD5( pbData, lumpSize, MD5Hash );
 	delete ( pbData );
+}
+
+// [CW]
+//*****************************************************************************
+//
+const char *NETWORK_GetClassNameFromIdentification( USHORT usClassIndex )
+{
+	return PClass::m_Types[usClassIndex]->TypeName.GetChars( );
+}
+
+// [CW]
+//*****************************************************************************
+//
+const PClass *NETWORK_GetClassFromIdentification( USHORT usClassIndex )
+{
+	return PClass::m_Types[usClassIndex];
 }
 
 //*****************************************************************************

@@ -216,9 +216,10 @@ void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlay
 	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	const char *PlayerPawnName = NULL;
+	USHORT usClassIndex = PClass::m_Types.Size( );
+
 	if ( players[ulPlayer].mo )
-		PlayerPawnName = players[ulPlayer].mo->GetClass()->TypeName.GetChars();
+		usClassIndex = players[ulPlayer].mo->GetClass( )->ClassIndex;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -233,7 +234,7 @@ void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlay
 
 		if ( bMorph )
 		{
-			SERVER_CheckClientBuffer( ulIdx, 26 + (ULONG)strlen( PlayerPawnName ), true );
+			SERVER_CheckClientBuffer( ulIdx, 28, true );
 			NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SPAWNMORPHPLAYER );
 		}
 		else
@@ -256,7 +257,7 @@ void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlay
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].CurrentPlayerClass );
 		//NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].userinfo.PlayerClass );
 		if ( bMorph )
-			NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, PlayerPawnName );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usClassIndex );
 	}
 	// [BB]: Inform the player about its health, otherwise it won't be displayed properly.
 	// The armor display is handled in SERVER_ResetInventory.
@@ -382,14 +383,14 @@ void SERVERCOMMANDS_DamagePlayer( ULONG ulPlayer )
 void SERVERCOMMANDS_KillPlayer( ULONG ulPlayer, AActor *pSource, AActor *pInflictor, ULONG ulMOD )
 {
 	ULONG	ulIdx;
-	const char	*pszString;
+	USHORT	usClassIndex = PClass::m_Types.Size( );
 	LONG	lSourceID;
 	LONG	lInflictorID;
 
 	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	pszString = NULL;
+	usClassIndex = PClass::m_Types.Size( );
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		if (( playeringame[ulIdx] == false ) ||
@@ -401,9 +402,9 @@ void SERVERCOMMANDS_KillPlayer( ULONG ulPlayer, AActor *pSource, AActor *pInflic
 		if ( players[ulIdx].mo == pSource )
 		{
 			if ( players[ulIdx].ReadyWeapon != NULL )
-				pszString = players[ulIdx].ReadyWeapon->GetClass( )->TypeName.GetChars( );
+				usClassIndex = players[ulIdx].ReadyWeapon->GetClass( )->ClassIndex;
 			else
-				pszString = NULL;
+				usClassIndex = PClass::m_Types.Size( );
 			break;
 		}
 	}
@@ -423,8 +424,8 @@ void SERVERCOMMANDS_KillPlayer( ULONG ulPlayer, AActor *pSource, AActor *pInflic
 		if ( SERVER_IsValidClient( ulIdx ) == false )
 			continue;
 
-		if ( pszString )
-			SERVER_CheckClientBuffer( ulIdx, 9 + (ULONG)strlen(players[ulPlayer].mo->DamageType.GetChars()) + (ULONG)strlen( pszString ), true );
+		if ( usClassIndex != PClass::m_Types.Size( ))
+			SERVER_CheckClientBuffer( ulIdx, 11 + (ULONG)strlen(players[ulPlayer].mo->DamageType.GetChars()), true );
 		else
 			SERVER_CheckClientBuffer( ulIdx, 9 + (ULONG)strlen(players[ulPlayer].mo->DamageType.GetChars()), true );
 
@@ -435,7 +436,7 @@ void SERVERCOMMANDS_KillPlayer( ULONG ulPlayer, AActor *pSource, AActor *pInflic
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].mo->health );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulMOD );
 		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].mo->DamageType.GetChars() );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszString );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usClassIndex );
 	}
 }
 
@@ -809,10 +810,10 @@ void SERVERCOMMANDS_SetPlayerAmmoCapacity( ULONG ulPlayer, AInventory *pAmmo, UL
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 4 + (ULONG)strlen( pAmmo->GetClass( )->TypeName.GetChars( )), true );
+		SERVER_CheckClientBuffer( ulIdx, 6, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERAMMOCAPACITY );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pAmmo->GetClass( )->TypeName.GetChars( ));
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pAmmo->GetClass( )->ClassIndex );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pAmmo->MaxAmount );
 	}
 }
@@ -849,7 +850,7 @@ void SERVERCOMMANDS_SetPlayerCheats( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG 
 void SERVERCOMMANDS_SetPlayerPendingWeapon( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG		ulIdx;
-	const char	*pszPendingWeaponString = "NULL";
+	USHORT		usClassIndex = PClass::m_Types.Size( );
 
 	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
 		return;
@@ -857,15 +858,10 @@ void SERVERCOMMANDS_SetPlayerPendingWeapon( ULONG ulPlayer, ULONG ulPlayerExtra,
 	if (( players[ulPlayer].PendingWeapon != WP_NOCHANGE ) &&
 		( players[ulPlayer].PendingWeapon != NULL ))
 	{
-		pszPendingWeaponString = players[ulPlayer].PendingWeapon->GetClass( )->TypeName.GetChars( );
+		usClassIndex = players[ulPlayer].PendingWeapon->GetClass( )->ClassIndex;
 	}
 	else
 		return;
-
-	// Some optimization. For standard Doom weapons, to reduce the size of the string
-	// that's sent out, just send some key character that identifies the weapon, instead
-	// of the full name.
-	NETWORK_ConvertWeaponNameToKeyLetter( pszPendingWeaponString );
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -884,10 +880,10 @@ void SERVERCOMMANDS_SetPlayerPendingWeapon( ULONG ulPlayer, ULONG ulPlayerExtra,
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 2 + (ULONG)strlen( pszPendingWeaponString ), true );
+		SERVER_CheckClientBuffer( ulIdx, 4, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERPENDINGWEAPON );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszPendingWeaponString );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usClassIndex );
 	}
 }
 
@@ -1325,7 +1321,7 @@ void SERVERCOMMANDS_PlayerRespawnInvulnerability( ULONG ulPlayer, ULONG ulPlayer
 void SERVERCOMMANDS_PlayerUseInventory( ULONG ulPlayer, AInventory *pItem, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG		ulIdx;
-	const char	*pszString;
+	USHORT		usClassIndex = PClass::m_Types.Size( );
 
 	if (( SERVER_IsValidPlayer( ulPlayer ) == false ) ||
 		( pItem == NULL ))
@@ -1333,8 +1329,8 @@ void SERVERCOMMANDS_PlayerUseInventory( ULONG ulPlayer, AInventory *pItem, ULONG
 		return;
 	}
 
-	pszString = pItem->GetClass( )->TypeName.GetChars( );
-	if ( pszString == NULL )
+	usClassIndex = pItem->GetClass( )->ClassIndex;
+	if ( usClassIndex == PClass::m_Types.Size( ))
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1348,10 +1344,10 @@ void SERVERCOMMANDS_PlayerUseInventory( ULONG ulPlayer, AInventory *pItem, ULONG
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 2 + (ULONG)strlen( pszString ), true );
+		SERVER_CheckClientBuffer( ulIdx, 4, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_PLAYERUSEINVENTORY );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszString );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usClassIndex );
 	}
 }
 
@@ -1360,7 +1356,7 @@ void SERVERCOMMANDS_PlayerUseInventory( ULONG ulPlayer, AInventory *pItem, ULONG
 void SERVERCOMMANDS_PlayerDropInventory( ULONG ulPlayer, AInventory *pItem, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG		ulIdx;
-	const char	*pszString;
+	USHORT		usClassIndex = PClass::m_Types.Size( );
 
 	if (( SERVER_IsValidPlayer( ulPlayer ) == false ) ||
 		( pItem == NULL ))
@@ -1368,8 +1364,8 @@ void SERVERCOMMANDS_PlayerDropInventory( ULONG ulPlayer, AInventory *pItem, ULON
 		return;
 	}
 
-	pszString = pItem->GetClass( )->TypeName.GetChars( );
-	if ( pszString == NULL )
+	usClassIndex = pItem->GetClass( )->ClassIndex;
+	if ( usClassIndex == PClass::m_Types.Size( ))
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1383,10 +1379,10 @@ void SERVERCOMMANDS_PlayerDropInventory( ULONG ulPlayer, AInventory *pItem, ULON
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 2 + (ULONG)strlen( pszString ), true );
+		SERVER_CheckClientBuffer( ulIdx, 4, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_PLAYERDROPINVENTORY );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszString );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usClassIndex );
 	}
 }
 
@@ -1396,7 +1392,7 @@ void SERVERCOMMANDS_PlayerDropInventory( ULONG ulPlayer, AInventory *pItem, ULON
 void SERVERCOMMANDS_SpawnThing( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG		ulIdx;
-	const char	*pszName;
+	USHORT		usClassIndex = PClass::m_Types.Size( );
 
 	if ( pActor == NULL )
 		return;
@@ -1408,11 +1404,7 @@ void SERVERCOMMANDS_SpawnThing( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFla
 		return;
 	}
 
-	pszName = pActor->GetClass( )->TypeName.GetChars( );
-
-	// Some optimization. For some actors that are sent in bunches, to reduce the size,
-	// just send some key letter that identifies the actor, instead of the full name.
-	NETWORK_ConvertNameToKeyLetter( pszName );
+	usClassIndex = pActor->GetClass( )->ClassIndex;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -1425,12 +1417,12 @@ void SERVERCOMMANDS_SpawnThing( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFla
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 9 + (ULONG)strlen( pszName ), true );
+		SERVER_CheckClientBuffer( ulIdx, 11, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SPAWNTHING );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->x >> FRACBITS );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->y >> FRACBITS );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->z >> FRACBITS );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszName );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usClassIndex );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
 	}
 }
@@ -1440,16 +1432,12 @@ void SERVERCOMMANDS_SpawnThing( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFla
 void SERVERCOMMANDS_SpawnThingNoNetID( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG		ulIdx;
-	const char	*pszName;
+	USHORT		usClassIndex = PClass::m_Types.Size( );
 
 	if ( pActor == NULL )
 		return;
 
-	pszName = pActor->GetClass( )->TypeName.GetChars( );
-
-	// Some optimization. For some actors that are sent in bunches, to reduce the size,
-	// just send some key letter that identifies the actor, instead of the full name.
-	NETWORK_ConvertNameToKeyLetter( pszName );
+	usClassIndex = pActor->GetClass( )->ClassIndex;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -1462,12 +1450,12 @@ void SERVERCOMMANDS_SpawnThingNoNetID( AActor *pActor, ULONG ulPlayerExtra, ULON
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 7 + (ULONG)strlen( pszName ), true );
+		SERVER_CheckClientBuffer( ulIdx, 9, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SPAWNTHINGNONETID );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->x >> FRACBITS );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->y >> FRACBITS );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->z >> FRACBITS );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszName );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usClassIndex );
 	}
 }
 
@@ -1476,7 +1464,7 @@ void SERVERCOMMANDS_SpawnThingNoNetID( AActor *pActor, ULONG ulPlayerExtra, ULON
 void SERVERCOMMANDS_SpawnThingExact( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG		ulIdx;
-	const char	*pszName;
+	USHORT		usClassIndex = PClass::m_Types.Size( );
 
 	if ( pActor == NULL )
 		return;
@@ -1488,11 +1476,7 @@ void SERVERCOMMANDS_SpawnThingExact( AActor *pActor, ULONG ulPlayerExtra, ULONG 
 		return;
 	}
 
-	pszName = pActor->GetClass( )->TypeName.GetChars( );
-
-	// Some optimization. For some actors that are sent in bunches, to reduce the size,
-	// just send some key letter that identifies the actor, instead of the full name.
-	NETWORK_ConvertNameToKeyLetter( pszName );
+	usClassIndex = pActor->GetClass( )->ClassIndex;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -1505,12 +1489,12 @@ void SERVERCOMMANDS_SpawnThingExact( AActor *pActor, ULONG ulPlayerExtra, ULONG 
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 15 + (ULONG)strlen( pszName ), true );
+		SERVER_CheckClientBuffer( ulIdx, 17, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SPAWNTHINGEXACT );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->x );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->y );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->z );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszName );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usClassIndex );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
 	}
 }
@@ -1520,16 +1504,12 @@ void SERVERCOMMANDS_SpawnThingExact( AActor *pActor, ULONG ulPlayerExtra, ULONG 
 void SERVERCOMMANDS_SpawnThingExactNoNetID( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG		ulIdx;
-	const char	*pszName;
+	USHORT		usClassIndex = PClass::m_Types.Size( );
 
 	if ( pActor == NULL )
 		return;
 
-	pszName = pActor->GetClass( )->TypeName.GetChars( );
-
-	// Some optimization. For some actors that are sent in bunches, to reduce the size,
-	// just send some key letter that identifies the actor, instead of the full name.
-	NETWORK_ConvertNameToKeyLetter( pszName );
+	usClassIndex = pActor->GetClass( )->ClassIndex;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -1542,12 +1522,12 @@ void SERVERCOMMANDS_SpawnThingExactNoNetID( AActor *pActor, ULONG ulPlayerExtra,
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 13 + (ULONG)strlen( pszName ), true );
+		SERVER_CheckClientBuffer( ulIdx, 15, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SPAWNTHINGEXACTNONETID );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->x );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->y );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->z );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszName );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usClassIndex );
 	}
 }
 
@@ -2715,16 +2695,12 @@ void SERVERCOMMANDS_SpawnBlood( fixed_t x, fixed_t y, fixed_t z, angle_t dir, in
 void SERVERCOMMANDS_SpawnPuff( AActor *pActor, ULONG ulState, bool bSendTranslation, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG		ulIdx;
-	const char	*pszName;
+	USHORT		usClassIndex = PClass::m_Types.Size( );
 
 	if ( pActor == NULL )
 		return;
 
-	pszName = pActor->GetClass( )->TypeName.GetChars( );
-
-	// Some optimization. For some actors that are sent in bunches, to reduce the size,
-	// just send some key letter that identifies the actor, instead of the full name.
-	NETWORK_ConvertNameToKeyLetter( pszName );
+	usClassIndex = pActor->GetClass( )->ClassIndex;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -2738,14 +2714,14 @@ void SERVERCOMMANDS_SpawnPuff( AActor *pActor, ULONG ulState, bool bSendTranslat
 		}
 
 		if ( bSendTranslation )
-			SERVER_CheckClientBuffer( ulIdx, 13 + (ULONG)strlen( pszName ), true );
+			SERVER_CheckClientBuffer( ulIdx, 15, true );
 		else
-			SERVER_CheckClientBuffer( ulIdx, 9 + (ULONG)strlen( pszName ), true );
+			SERVER_CheckClientBuffer( ulIdx, 11, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SPAWNPUFF );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->x >> FRACBITS );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->y >> FRACBITS );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->z >> FRACBITS );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszName );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usClassIndex );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulState );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, !!bSendTranslation );
 		if ( bSendTranslation )
@@ -3546,16 +3522,12 @@ void SERVERCOMMANDS_TeamFlagDropped( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG 
 void SERVERCOMMANDS_SpawnMissile( AActor *pMissile, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG		ulIdx;
-	const char	*pszName;
+	USHORT		usClassIndex = PClass::m_Types.Size( );
 
 	if ( pMissile == NULL )
 		return;
 
-	pszName = pMissile->GetClass( )->TypeName.GetChars( );
-
-	// Some optimization. For some actors that are sent in bunches, to reduce the size,
-	// just send some key letter that identifies the actor, instead of the full name.
-	NETWORK_ConvertNameToKeyLetter( pszName );
+	usClassIndex = pMissile->GetClass( )->ClassIndex;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -3568,7 +3540,7 @@ void SERVERCOMMANDS_SpawnMissile( AActor *pMissile, ULONG ulPlayerExtra, ULONG u
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 23 + (ULONG)strlen( pMissile->GetClass( )->TypeName.GetChars( )), true );
+		SERVER_CheckClientBuffer( ulIdx, 25, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SPAWNMISSILE );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->x >> FRACBITS );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->y >> FRACBITS );
@@ -3576,7 +3548,7 @@ void SERVERCOMMANDS_SpawnMissile( AActor *pMissile, ULONG ulPlayerExtra, ULONG u
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->momx );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->momy );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->momz );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszName );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usClassIndex );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->lNetID );
 		if ( pMissile->target )
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->target->lNetID );
@@ -3594,16 +3566,12 @@ void SERVERCOMMANDS_SpawnMissile( AActor *pMissile, ULONG ulPlayerExtra, ULONG u
 void SERVERCOMMANDS_SpawnMissileExact( AActor *pMissile, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG		ulIdx;
-	const char	*pszName;
+	USHORT		usClassIndex = PClass::m_Types.Size( );
 
 	if ( pMissile == NULL )
 		return;
 
-	pszName = pMissile->GetClass( )->TypeName.GetChars( );
-
-	// Some optimization. For some actors that are sent in bunches, to reduce the size,
-	// just send some key letter that identifies the actor, instead of the full name.
-	NETWORK_ConvertNameToKeyLetter( pszName );
+	usClassIndex = pMissile->GetClass( )->ClassIndex;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -3616,7 +3584,7 @@ void SERVERCOMMANDS_SpawnMissileExact( AActor *pMissile, ULONG ulPlayerExtra, UL
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 29 + (ULONG)strlen( pMissile->GetClass( )->TypeName.GetChars( )), true );
+		SERVER_CheckClientBuffer( ulIdx, 31, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SPAWNMISSILEEXACT );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->x );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->y );
@@ -3624,7 +3592,7 @@ void SERVERCOMMANDS_SpawnMissileExact( AActor *pMissile, ULONG ulPlayerExtra, UL
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->momx );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->momy );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->momz );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszName );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usClassIndex );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->lNetID );
 		if ( pMissile->target )
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->target->lNetID );
@@ -3703,19 +3671,15 @@ void SERVERCOMMANDS_WeaponSound( ULONG ulPlayer, const char *pszSound, ULONG ulP
 void SERVERCOMMANDS_WeaponChange( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
+	USHORT	usClassIndex = PClass::m_Types.Size( );
 
 	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	const char* pszWeaponString = "NULL";
 	if ( players[ulPlayer].ReadyWeapon != NULL )
-		pszWeaponString = players[ulPlayer].ReadyWeapon->GetClass( )->TypeName.GetChars( );
+		usClassIndex = players[ulPlayer].ReadyWeapon->GetClass( )->ClassIndex;
 	else
 		return;
-	// Some optimization. For standard Doom weapons, to reduce the size of the string
-	// that's sent out, just send some key character that identifies the weapon, instead
-	// of the full name.
-	NETWORK_ConvertWeaponNameToKeyLetter( pszWeaponString );
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -3728,10 +3692,10 @@ void SERVERCOMMANDS_WeaponChange( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulF
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 2 + (ULONG)strlen( pszWeaponString ), true );
+		SERVER_CheckClientBuffer( ulIdx, 4, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_WEAPONCHANGE );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pszWeaponString );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usClassIndex );
 	}
 }
 
@@ -5202,10 +5166,10 @@ void SERVERCOMMANDS_GiveInventory( ULONG ulPlayer, AInventory *pInventory, ULONG
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 4 + (ULONG)strlen( pInventory->GetClass( )->TypeName.GetChars( )), true );
+		SERVER_CheckClientBuffer( ulIdx, 6, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_GIVEINVENTORY );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pInventory->GetClass( )->TypeName.GetChars( ));
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pInventory->GetClass( )->ClassIndex );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pInventory->Amount );
 	}
 }
@@ -5282,10 +5246,10 @@ void SERVERCOMMANDS_GivePowerup( ULONG ulPlayer, APowerup *pPowerup, ULONG ulPla
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 4 + (ULONG)strlen( pPowerup->GetClass( )->TypeName.GetChars( )), true );
+		SERVER_CheckClientBuffer( ulIdx, 6, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_GIVEPOWERUP );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pPowerup->GetClass( )->TypeName.GetChars( ));
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pPowerup->GetClass( )->ClassIndex );
 		// Can we have multiple amounts of a powerup? Probably not, but I'll be safe for now.
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pPowerup->Amount );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pPowerup->EffectTics );
