@@ -2286,6 +2286,16 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 			continue;
 		}
 
+		// [BB] Don't spawn things hidden by AActor::HideOrDestroyIfSafe().
+		// The clients don't need them at all, since the server will tell
+		// them to spawn a new actor during GAME_ResetMap anyway.
+		if ( !( pActor->IsKindOf( RUNTIME_CLASS( AInventory ) ) )
+		     && ( pActor->state == &AInventory::States[17] ) // S_HIDEINDEFINITELY 
+		   )
+		{
+			continue;
+		}
+
 		// Spawn a missile. Missiles must be handled differently because they have
 		// velocity.
 		if ( pActor->flags & MF_MISSILE )
