@@ -596,7 +596,10 @@ void NETWORK_GenerateLumpMD5Hash( const int LumpNum, FString &MD5Hash )
 //
 const char *NETWORK_GetClassNameFromIdentification( USHORT usClassIndex )
 {
-	return PClass::m_Types[usClassIndex]->TypeName.GetChars( );
+	if ( usClassIndex >= PClass::m_Types.Size() )
+		return NULL;
+	else
+		return PClass::m_Types[usClassIndex]->TypeName.GetChars( );
 }
 
 // [CW]
@@ -604,7 +607,10 @@ const char *NETWORK_GetClassNameFromIdentification( USHORT usClassIndex )
 //
 const PClass *NETWORK_GetClassFromIdentification( USHORT usClassIndex )
 {
-	return PClass::m_Types[usClassIndex];
+	if ( usClassIndex >= PClass::m_Types.Size() )
+		return NULL;
+	else
+		return PClass::m_Types[usClassIndex];
 }
 
 //*****************************************************************************

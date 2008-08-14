@@ -424,10 +424,7 @@ void SERVERCOMMANDS_KillPlayer( ULONG ulPlayer, AActor *pSource, AActor *pInflic
 		if ( SERVER_IsValidClient( ulIdx ) == false )
 			continue;
 
-		if ( usClassIndex != PClass::m_Types.Size( ))
-			SERVER_CheckClientBuffer( ulIdx, 11 + (ULONG)strlen(players[ulPlayer].mo->DamageType.GetChars()), true );
-		else
-			SERVER_CheckClientBuffer( ulIdx, 9 + (ULONG)strlen(players[ulPlayer].mo->DamageType.GetChars()), true );
+		SERVER_CheckClientBuffer( ulIdx, 11 + (ULONG)strlen(players[ulPlayer].mo->DamageType.GetChars()), true );
 
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_KILLPLAYER );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
@@ -1330,7 +1327,7 @@ void SERVERCOMMANDS_PlayerUseInventory( ULONG ulPlayer, AInventory *pItem, ULONG
 	}
 
 	usClassIndex = pItem->GetClass( )->ClassIndex;
-	if ( usClassIndex == PClass::m_Types.Size( ))
+	if ( usClassIndex >= PClass::m_Types.Size( ))
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1365,7 +1362,7 @@ void SERVERCOMMANDS_PlayerDropInventory( ULONG ulPlayer, AInventory *pItem, ULON
 	}
 
 	usClassIndex = pItem->GetClass( )->ClassIndex;
-	if ( usClassIndex == PClass::m_Types.Size( ))
+	if ( usClassIndex >= PClass::m_Types.Size( ))
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )

@@ -223,6 +223,9 @@ void CLIENTCOMMANDS_Pong( ULONG ulTime )
 //
 void CLIENTCOMMANDS_WeaponSelect( const PClass *pType )
 {
+	if ( pType == NULL )
+		return;
+
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_WEAPONSELECT );
 	NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, pType->ClassIndex );
 }
@@ -386,7 +389,7 @@ void CLIENTCOMMANDS_RequestInventoryUse( AInventory *item )
 	if ( item == NULL )
 		return;
 
-	USHORT usClassIndex = item->GetClass( )->ClassIndex;
+	const USHORT usClassIndex = item->GetClass( )->ClassIndex;
 
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_INVENTORYUSE );
 	NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, usClassIndex );
@@ -408,12 +411,10 @@ void CLIENTCOMMANDS_RequestInventoryDrop( AInventory *pItem )
 		return;
 	}
 
-	USHORT	usClassIndex = PClass::m_Types.Size( );
-
 	if ( pItem == NULL )
 		return;
 
-	usClassIndex = pItem->GetClass( )->ClassIndex;
+	const USHORT usClassIndex = pItem->GetClass( )->ClassIndex;
 
 	g_ulLastDropTime = gametic;
 

@@ -2511,6 +2511,9 @@ AActor *CLIENT_SpawnThing( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z,
 	if ( gamestate != GS_LEVEL )
 		return ( NULL );
 
+	if ( pType == NULL )
+		return NULL;
+
 	// Potentially print the name, position, and network ID of the thing spawning.
 	if ( cl_showspawnnames )
 		Printf( "Name: %s: (%d, %d, %d), %d\n", pType->TypeName.GetChars( ), X >> FRACBITS, Y >> FRACBITS, Z >> FRACBITS, static_cast<int> (lNetID) );
@@ -2529,13 +2532,6 @@ AActor *CLIENT_SpawnThing( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z,
 		}
 */
 		pActor->Destroy( );
-	}
-
-	// Get the class of the thing we're trying to spawn.
-	if ( pType == NULL )
-	{
-		Printf( "CLIENT_SpawnThing: Unknown actor type: %s!\n", pType->TypeName.GetChars( ));
-		return NULL;
 	}
 
 	// Handle sprite/particle display options.
@@ -2602,6 +2598,9 @@ void CLIENT_SpawnMissile( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z, 
 	if ( gamestate != GS_LEVEL )
 		return;
 
+	if ( pType == NULL )
+		return;
+
 	// Potentially print the name, position, and network ID of the thing spawning.
 	if ( cl_showspawnnames )
 		Printf( "Name: %s: (%d, %d, %d), %d\n", pType->TypeName.GetChars( ), X >> FRACBITS, Y >> FRACBITS, Z >> FRACBITS, static_cast<int> (lNetID) );
@@ -2620,13 +2619,6 @@ void CLIENT_SpawnMissile( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z, 
 		}
 */
 		pActor->Destroy( );
-	}
-
-	// Get the class of the thing we're trying to spawn.
-	if ( pType == NULL )
-	{
-		Printf( "CLIENT_SpawnMissile: Unknown actor type: %s!\n", pType->TypeName.GetChars( ));
-		return;
 	}
 
 	// Now that all checks have been done, spawn the actor.
@@ -3874,7 +3866,7 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 		}
 	}
 
-	if ( usClassIndex == PClass::m_Types.Size( ))
+	if ( usClassIndex >= PClass::m_Types.Size( ))
 		players[ulSourcePlayer].ReadyWeapon = NULL;
 	else if (( ulSourcePlayer < MAXPLAYERS ) && ( players[ulSourcePlayer].mo ))
 	{
@@ -4498,7 +4490,7 @@ static void client_SetPlayerPendingWeapon( BYTESTREAM_s *pByteStream )
 	if (( players[ulPlayer].mo == NULL ) || ( playeringame[ulPlayer] == false ))
 		return;
 
-	if ( usClassIndex != PClass::m_Types.Size( ))
+	if ( usClassIndex < PClass::m_Types.Size( ) )
 	{
 		pType = NETWORK_GetClassFromIdentification( usClassIndex );
 		if (( pType != NULL ) &&
