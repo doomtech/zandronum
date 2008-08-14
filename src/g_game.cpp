@@ -2056,6 +2056,10 @@ void G_PlayerReborn (int player)
 	p->ulTime = ulTime;
 	if ( lCheats & CF_FREEZE )
 		p->cheats |= CF_FREEZE;
+	// [BB] Players who were able to move while a APowerTimeFreezer is active,
+	// should also be able to do so after being reborn.
+	if ( lCheats & CF_TIMEFREEZE )
+		p->cheats |= CF_TIMEFREEZE;
 
 	p->bIsBot = p->pSkullBot ? true : false;
 
