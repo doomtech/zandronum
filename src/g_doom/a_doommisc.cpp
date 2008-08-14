@@ -73,18 +73,8 @@ void A_BarrelDestroy (AActor *actor)
 	}
 	else
 	{
-		// [BC] We may need to preserve these.
-		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_MAPRESETS )
-		{
-			actor->SetState( &AInventory::States[17] );
-
-			actor->height = actor->GetDefault()->height;
-			actor->renderflags |= RF_INVISIBLE;
-			actor->flags |= MF_NOBLOCKMAP;
-			actor->flags &= ~MF_SOLID;
-		}
-		else
-			actor->Destroy ();
+		// [BB] Only destroy the actor if it's not needed for a map reset. Otherwise just hide it.
+		actor->HideOrDestroyIfSafe ();
 	}
 }
 
