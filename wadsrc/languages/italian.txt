@@ -723,14 +723,14 @@ PICKUP_MAXARMORBONUS = "Raccolto un max. bonus di armatura.";
 
 PICKUP_TURBOSPHERE = "Turbosfera!";
 PICKUP_ANTIGRAVBELT = "Cinghia anti gravita'! Wheee!";
-PICKUP_TIMEFREEZER = "Time freeze!";
+PICKUP_TIMEFREEZER = "Sfera del Tempo!";
 PICKUP_INFRAREDGOGGLES = "Occhiali a Infrarossi";
 PICKUP_INFRAREDTRACKER = "Infrared tracker";
 PICKUP_INVISIBILITY = "Invisibilita'";
-PICKUP_DOOMSPHERE = "Sfera Del Destino";
+PICKUP_DOOMSPHERE = "Sfera Del Destino!";
 PICKUP_GUARDSPHERE = "Sfera-Guardia";
 PICKUP_TERMINATOR = "Terminator!";
-PICKUP_POSSESSIONSTONE = "Pietra Dell'Inferno!";
+PICKUP_POSSESSIONSTONE = "Pietra Infernale!";
 
 PICKUP_BLUEFLAG = "HAI PRESO LA BANDIERA BLU!";
 PICKUP_BLUESKULL_ST = "HAI PRESO IL TESCHIO BLU!";
@@ -759,8 +759,8 @@ PICKUP_RAILGUN = "Hai trovato un railgun!";
 PICKUP_BFG10K = "Hai trovato il BFG10000!  Oh, si!";
 
 // Possession strings.
-POSSESSIONARTIFACT_PICKEDUP = "Hellstone Raccolta!";
-POSSESSIONARTIFACT_DROPPED = "Hellstone Persa!";
+POSSESSIONARTIFACT_PICKEDUP = "Pietra Infernale Raccolta!";
+POSSESSIONARTIFACT_DROPPED = "Pietra Infernale Persa!";
 
 // Obituary strings.
 OB_FIST_2 = "%o e' stato picchiato a sangue da %k.";
@@ -783,7 +783,7 @@ OB_GRENADE_SELF = "%o si e' ucciso con la propria granata.";
 OB_PLASMARIFLE_RARE = "%o e' stato ownato dal plasma gun di %k.";
 OB_BFG_GIB_RARE = "%o e' stato castrato dalla grossa fottuta arma di %k.";
 OB_BFG10K = "%o e' stato annientato dal BFG10K di %k.";
-OB_BFG10K_RARE = "%o got a blast in the ass from %k's BFG10K.";
+OB_BFG10K_RARE = "%o e' stato inculato dal BFG10K di %k.";
 OB_BFG10K_SELF = "%o si e' ucciso col suo BFG10K.";
 
 OB_CACODEMON_MELEE_RARE = "%o ha provato a fare amicizia con un cacodemone.";

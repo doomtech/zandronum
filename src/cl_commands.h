@@ -64,7 +64,7 @@ void	CLIENTCOMMANDS_Say( ULONG ulMode, const char *pszString );
 void	CLIENTCOMMANDS_ClientMove( void );
 void	CLIENTCOMMANDS_MissingPacket( void );
 void	CLIENTCOMMANDS_Pong( ULONG ulTime );
-void	CLIENTCOMMANDS_WeaponSelect( const char *pszWeapon );
+void	CLIENTCOMMANDS_WeaponSelect( const PClass *pType );
 void	CLIENTCOMMANDS_Taunt( void );
 void	CLIENTCOMMANDS_Spectate( void );
 void	CLIENTCOMMANDS_RequestJoin( char *pszJoinPassword );

@@ -1225,6 +1225,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\domination.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\doomdef.cpp"
 				>
 				<FileConfiguration
@@ -4417,6 +4421,10 @@
 			</File>
 			<File
 				RelativePath=".\src\dobjtype.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\domination.h"
 				>
 			</File>
 			<File
