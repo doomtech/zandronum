@@ -5328,22 +5328,8 @@ void P_DoCrunch (AActor *thing, FChangePosition *cpos)
 		}
 		else
 		{
-			// [BC] If we're playing a game mode in which the map resets, and this is something
-			// that is level spawned, don't destroy it. Instead, put it in a temporary invisibile
-			// state.
-			if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_MAPRESETS ) &&
-				( thing->ulSTFlags & STFL_LEVELSPAWNED ) &&
-				( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-				( CLIENTDEMO_IsPlaying( ) == false ))
-			{
-				thing->renderflags |= RF_INVISIBLE;
-				thing->flags |= MF_NOBLOCKMAP;
-				thing->flags &= ~MF_SOLID;
-				thing->SetState( &AInventory::States[17] );
-				return;
-			}
-
-			thing->Destroy ();
+			// [BB] Only destroy the actor if it's not needed for a map reset. Otherwise just hide it.
+			thing->HideOrDestroyIfSafe ();
 		}
 		return;		// keep checking
 	}
@@ -5358,22 +5344,8 @@ void P_DoCrunch (AActor *thing, FChangePosition *cpos)
 		// [BC] Don't destroy items in client mode; the server will tell us to.
 		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 		{
-			// [BC] If we're playing a game mode in which the map resets, and this is something
-			// that is level spawned, don't destroy it. Instead, put it in a temporary invisibile
-			// state.
-			if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_MAPRESETS ) &&
-				( thing->ulSTFlags & STFL_LEVELSPAWNED ) &&
-				( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-				( CLIENTDEMO_IsPlaying( ) == false ))
-			{
-				thing->renderflags |= RF_INVISIBLE;
-				thing->flags |= MF_NOBLOCKMAP;
-				thing->flags &= ~MF_SOLID;
-				thing->SetState( &AInventory::States[17] );
-				return;
-			}
-
-			thing->Destroy ();
+			// [BB] Only destroy the actor if it's not needed for a map reset. Otherwise just hide it.
+			thing->HideOrDestroyIfSafe ();
 		}
 		return;		// keep checking
 	}

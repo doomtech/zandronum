@@ -311,7 +311,8 @@ gameinfo_t StrifeGameInfo =
 	280/35,
 	0,
 	200/35,
-	"Chat",
+	// [CW] New chat sound for Strife.
+	"misc/chat",
 	"d_intro",
 	"-NOFLAT",
 	"CREDIT",
@@ -340,7 +341,8 @@ gameinfo_t StrifeTeaserGameInfo =
 	280/35,
 	0,
 	200/35,
-	"Chat",
+	// [CW] New chat sound for Strife.
+	"misc/chat",
 	"d_intro",
 	"-NOFLAT",
 	"CREDIT",
@@ -369,7 +371,8 @@ gameinfo_t StrifeTeaser2GameInfo =
 	280/35,
 	0,
 	200/35,
-	"Chat",
+	// [CW] New chat sound for Strife.
+	"misc/chat",
 	"d_intro",
 	"-NOFLAT",
 	"CREDIT",

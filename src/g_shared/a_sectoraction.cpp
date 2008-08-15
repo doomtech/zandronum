@@ -42,7 +42,9 @@ IMPLEMENT_STATELESS_ACTOR (ASectorAction, Any, -1, 0)
 	PROP_Flags3 (MF3_DONTSPLASH)
 END_DEFAULTS
 
-void ASectorAction::Destroy ()
+// [BB] Moved the code from ASectorAction::Destroy() here, so that it also can
+// be used in ASectorAction::PrepareForHiding()
+void ASectorAction::RemoveFromSectorActionsList ()
 {
 	// Remove ourself from this sector's list of actions
 	AActor *probe = Sector->SecActTarget;
@@ -62,6 +64,18 @@ void ASectorAction::Destroy ()
 	{
 		*prev.act = probe->tracer;
 	}
+}
+
+void ASectorAction::PrepareForHiding ()
+{
+	RemoveFromSectorActionsList();
+	Super::PrepareForHiding ();
+}
+
+void ASectorAction::Destroy ()
+{
+	// [BB] Moved code from here into the new function called below.
+	RemoveFromSectorActionsList();
 
 	Super::Destroy ();
 }

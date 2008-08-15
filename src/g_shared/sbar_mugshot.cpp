@@ -421,7 +421,8 @@ int FMugShot::UpdateState(player_t *player, bool xdeath, bool animated_god_mode)
 			}
 		}
 
-		if (RampageTimer == ST_RAMPAGEDELAY)
+		// [CW] If we are spectating, then don't show the 'pissed off' face.
+		if ( (RampageTimer == ST_RAMPAGEDELAY) && !player->bSpectating )
 		{
 			SetState("rampage", !bNormal); //If we have nothing better to show, use the rampage face.
 			return 0;

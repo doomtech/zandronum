@@ -685,11 +685,10 @@ ACTOR HereticMonsterSpot : CustomMonsterInvasionSpot 5453
 	DropItem "Wizard"
 }
 
-ACTOR HexenGhostSpot : CustomMonsterInvasionSpot 5454
+ACTOR HereticGhostSpot : CustomMonsterInvasionSpot 5454
 {
 	Game Heretic
 	DropItem "MummyGhost"
 	DropItem "MummyLeaderGhost"
 	DropItem "KnightGhost"
 }
-
