@@ -557,7 +557,6 @@ NETADDRESS_s	NETWORK_GetFromAddress( void );
 void			NETWORK_LaunchPacket( NETBUFFER_s *pBuffer, NETADDRESS_s Address );
 const char		*NETWORK_AddressToString( NETADDRESS_s Address );
 const char		*NETWORK_AddressToStringIgnorePort( NETADDRESS_s Address );
-void			NETWORK_NetAddressToSocketAddress( NETADDRESS_s &Address, struct sockaddr_in &SocketAddress );
 void			NETWORK_SetAddressPort( NETADDRESS_s &Address, USHORT usPort );
 NETADDRESS_s	NETWORK_GetLocalAddress( void );
 NETBUFFER_s		*NETWORK_GetNetworkMessageBuffer( void );
@@ -581,5 +580,33 @@ void			I_DoSelect( void );
 #ifdef	_DEBUG
 void	NETWORK_FillBufferWithShit( NETBUFFER_s *pBuffer, ULONG ulSize );
 #endif
+
+/**
+ * \author BB
+ */
+template <typename T>
+LONG NETWORK_GetFirstFreeID ( void )
+{
+	T	*pT;
+
+	std::vector<bool> idUsed ( 8192 );
+
+	TThinkerIterator<T>		Iterator;
+
+	while (( pT = Iterator.Next( )))
+	{
+		if ( (pT->GetID( ) >= 0) )
+			idUsed[pT->GetID( )] = true;
+	}
+
+	for ( unsigned int i = 0; i < idUsed.size(); i++ )
+	{
+		if ( idUsed[i] == false )
+			return i;
+	}
+
+	Printf( "NETWORK_GetFirstFreeID: ID limit reached (>=8192)\n" );
+	return ( -1 );
+}
 
 #endif	// __NETWORK_H__
