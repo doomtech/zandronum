@@ -527,7 +527,7 @@ void P_PlayerInSpecialSector (player_t *player, sector_t * sector)
 
 			// [BB] Also do a CheckIfExitIsGood good check to properly handle DF_NO_EXIT.
 			// This check kills the player in case exiting is forbidden.
-			if (player->health <= 10 && CheckIfExitIsGood ( player->mo ) )
+			if (player->health <= 10 && CheckIfExitIsGood ( player->mo, NULL ) )
 				G_ExitLevel(0, false);
 			break;
 

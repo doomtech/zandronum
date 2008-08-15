@@ -1489,17 +1489,23 @@ void R_InitSprites ()
 		bool sizeLimitsExceeded = false;
 		// [BB] Compare the maximal sprite height/width to the height/radius of the player class this skin belongs to.
 		// Massmouth is very big, so we have to be pretty lenient here with the checks.
-		if ( maxheight*FIXED2FLOAT(skins[skinIdx].Scale) > 1.68*FIXED2FLOAT(GetDefaultByType( PlayerClasses[classSkinIdx].Type )->height) )
+		if ( maxheight*FIXED2FLOAT(skins[skinIdx].ScaleY) > 1.68*FIXED2FLOAT(GetDefaultByType( PlayerClasses[classSkinIdx].Type )->height) )
 		{
 			sizeLimitsExceeded = true;
 			Printf ( "\\cgEffective sprite height of skin %s too big! Downsizing.\n", skins[skinIdx].name );
-			skins[skinIdx].Scale = 1.68*(GetDefaultByType( PlayerClasses[classSkinIdx].Type )->height) / maxheight;
+			const fixed_t oldScaleY = skins[skinIdx].ScaleY;
+			skins[skinIdx].ScaleY = 1.68*(GetDefaultByType( PlayerClasses[classSkinIdx].Type )->height) / maxheight;
+			// [BB] Preserve the aspect ration of the sprites.
+			skins[skinIdx].ScaleX *= FIXED2FLOAT( skins[skinIdx].ScaleY ) / FIXED2FLOAT( oldScaleY );
 		}
 
 		// [BB] 2*radius is approximately the actor width.
-		if ( maxwidth*FIXED2FLOAT(skins[skinIdx].Scale) > 3.44*2*FIXED2FLOAT(GetDefaultByType( PlayerClasses[classSkinIdx].Type )->radius) )
+		if ( maxwidth*FIXED2FLOAT(skins[skinIdx].ScaleX) > 3.44*2*FIXED2FLOAT(GetDefaultByType( PlayerClasses[classSkinIdx].Type )->radius) )
 		{
-			skins[skinIdx].Scale = 3.44*2*(GetDefaultByType( PlayerClasses[classSkinIdx].Type )->radius) / maxwidth;
+			const fixed_t oldScaleX = skins[skinIdx].ScaleX;
+			skins[skinIdx].ScaleX = 3.44*2*(GetDefaultByType( PlayerClasses[classSkinIdx].Type )->radius) / maxwidth;
+			// [BB] Preserve the aspect ration of the sprites.
+			skins[skinIdx].ScaleY *= FIXED2FLOAT( skins[skinIdx].ScaleX ) / FIXED2FLOAT( oldScaleX );
 			sizeLimitsExceeded = true;
 			Printf ( "\\cgEffective sprite width of skin %s too big! Downsizing.\n", skins[skinIdx].name );
 		}
