@@ -193,7 +193,7 @@ void A_Summon (AActor *actor)
 		// [BC]
 		AActor	*pSmoke;
 		pSmoke = Spawn<AMinotaurSmoke> (actor->x, actor->y, actor->z, ALLOW_REPLACE);
-		S_SoundID (actor, CHAN_VOICE, mo->ActiveSound, 1, ATTN_NORM);
+		S_Sound (actor, CHAN_VOICE, mo->ActiveSound, 1, ATTN_NORM);
 				
 		// [BC] If we're the server, spawn the smoke, and play the active sound.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )

@@ -2513,7 +2513,7 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 		break;
 
 	case APROP_SeeSound:
-		actor->SeeSound = S_FindSound (FBehavior::StaticLookupString (value));
+		actor->SeeSound = FBehavior::StaticLookupString(value);
 
 		// [BC] If we're the server, tell clients to update this actor property.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -2521,7 +2521,7 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 		break;
 
 	case APROP_AttackSound:
-		actor->AttackSound = S_FindSound (FBehavior::StaticLookupString (value));
+		actor->AttackSound = FBehavior::StaticLookupString(value);
 
 		// [BC] If we're the server, tell clients to update this actor property.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -2529,7 +2529,7 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 		break;
 
 	case APROP_PainSound:
-		actor->PainSound = S_FindSound (FBehavior::StaticLookupString (value));
+		actor->PainSound = FBehavior::StaticLookupString(value);
 
 		// [BC] If we're the server, tell clients to update this actor property.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -2537,7 +2537,7 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 		break;
 
 	case APROP_DeathSound:
-		actor->DeathSound = S_FindSound (FBehavior::StaticLookupString (value));
+		actor->DeathSound = FBehavior::StaticLookupString(value);
 
 		// [BC] If we're the server, tell clients to update this actor property.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -2545,7 +2545,7 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 		break;
 
 	case APROP_ActiveSound:
-		actor->ActiveSound = S_FindSound (FBehavior::StaticLookupString (value));
+		actor->ActiveSound = FBehavior::StaticLookupString(value);
 
 		// [BC] If we're the server, tell clients to update this actor property.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -4598,7 +4598,7 @@ int DLevelScript::RunScript ()
 			{
 				if (activationline)
 				{
-					SN_StartSequence (activationline->frontsector, lookup, 0, true);
+					SN_StartSequence (activationline->frontsector, CHAN_FULLHEIGHT, lookup, 0);
 				}
 			}
 			sp--;

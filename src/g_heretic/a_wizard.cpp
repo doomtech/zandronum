@@ -194,7 +194,7 @@ void A_WizAtk3 (AActor *actor)
 	{
 		return;
 	}
-	S_SoundID (actor, CHAN_WEAPON, actor->AttackSound, 1, ATTN_NORM);
+	S_Sound (actor, CHAN_WEAPON, actor->AttackSound, 1, ATTN_NORM);
 
 	// [BB] If we're the server, tell the clients to play the sound.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )

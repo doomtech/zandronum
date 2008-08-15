@@ -264,7 +264,7 @@ void A_ImpMeAttack (AActor *self)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		S_SoundID( self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM );
+		S_Sound( self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM );
 		return;
 	}
 
@@ -272,7 +272,7 @@ void A_ImpMeAttack (AActor *self)
 	{
 		return;
 	}
-	S_SoundID (self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM);
+	S_Sound (self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM);
 	if (self->CheckMeleeRange ())
 	{
 		int damage = 5+(pr_impmeatk()&7);
@@ -311,7 +311,7 @@ void A_ImpMsAttack (AActor *self)
 	}
 	dest = self->target;
 	self->flags |= MF_SKULLFLY;
-	S_SoundID (self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM);
+	S_Sound (self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM);
 	A_FaceTarget (self);
 	an = self->angle >> ANGLETOFINESHIFT;
 	self->momx = FixedMul (12*FRACUNIT, finecosine[an]);
@@ -349,7 +349,7 @@ void A_ImpMsAttack2 (AActor *self)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		S_SoundID( self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM );
+		S_Sound( self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM );
 		return;
 	}
 
@@ -357,7 +357,7 @@ void A_ImpMsAttack2 (AActor *self)
 	{
 		return;
 	}
-	S_SoundID (self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM);
+	S_Sound (self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM);
 	if (self->CheckMeleeRange ())
 	{
 		int damage = 5+(pr_impmsatk2()&7);

@@ -541,7 +541,7 @@ void AInventory::Serialize (FArchive &arc)
 	{
 		Icon = TexMan.ReadTexture (arc);
 	}
-	arc << AR_SOUNDW(PickupSound);
+	arc << PickupSound;
 }
 
 //===========================================================================
@@ -1238,7 +1238,7 @@ const char *AInventory::PickupAnnouncerEntry( )
 
 void AInventory::PlayPickupSound (AActor *toucher)
 {
-	S_SoundID (toucher, CHAN_PICKUP, PickupSound, 1,
+	S_Sound (toucher, CHAN_PICKUP, PickupSound, 1,
 		(ItemFlags & IF_FANCYPICKUPSOUND) &&
 		(toucher == NULL || toucher->CheckLocalView (consoleplayer))
 		? ATTN_NONE : ATTN_NORM);

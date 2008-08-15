@@ -43,7 +43,7 @@ DEarthquake::DEarthquake (AActor *center, int intensity, int duration,
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( center ))
 		SERVERCOMMANDS_Earthquake( center, intensity, duration, tremrad );
 
-	m_QuakeSFX = S_FindSound ("world/quake");
+	m_QuakeSFX = "world/quake";
 	m_Spot = center;
 	// Radii are specified in tile units (64 pixels)
 	m_DamageRadius = damrad << (FRACBITS+6);
@@ -63,7 +63,7 @@ void DEarthquake::Serialize (FArchive &arc)
 	Super::Serialize (arc);
 	arc << m_Spot << m_Intensity << m_Countdown
 		<< m_TremorRadius << m_DamageRadius;
-	m_QuakeSFX = S_FindSound ("world/quake");
+	m_QuakeSFX = "world/quake";
 }
 
 //==========================================================================
@@ -87,7 +87,7 @@ void DEarthquake::Tick ()
 
 	if (!S_IsActorPlayingSomething (m_Spot, CHAN_BODY, m_QuakeSFX))
 	{
-		S_SoundID (m_Spot, CHAN_BODY | CHAN_LOOP, m_QuakeSFX, 1, ATTN_NORM);
+		S_Sound (m_Spot, CHAN_BODY | CHAN_LOOP, m_QuakeSFX, 1, ATTN_NORM);
 	}
 	if (m_DamageRadius > 0)
 	{

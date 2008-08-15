@@ -2656,7 +2656,7 @@ void CLIENT_SpawnMissile( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z, 
 
 	// Play the seesound if this missile has one.
 	if ( pActor->SeeSound )
-		S_SoundID( pActor, CHAN_VOICE, pActor->SeeSound, 1, ATTN_NORM );
+		S_Sound( pActor, CHAN_VOICE, pActor->SeeSound, 1, ATTN_NORM );
 
 	pActor->target = CLIENT_FindThingByNetID( lTargetNetID );
 }
@@ -5932,23 +5932,23 @@ static void client_SetThingSound( BYTESTREAM_s *pByteStream )
 	{
 	case ACTORSOUND_SEESOUND:
 
-		pActor->SeeSound = S_FindSound( pszSound );
+		pActor->SeeSound = pszSound;
 		break;
 	case ACTORSOUND_ATTACKSOUND:
 
-		pActor->AttackSound = S_FindSound( pszSound );
+		pActor->AttackSound = pszSound;
 		break;
 	case ACTORSOUND_PAINSOUND:
 
-		pActor->PainSound = S_FindSound( pszSound );
+		pActor->PainSound = pszSound;
 		break;
 	case ACTORSOUND_DEATHSOUND:
 
-		pActor->DeathSound = S_FindSound( pszSound );
+		pActor->DeathSound = pszSound;
 		break;
 	case ACTORSOUND_ACTIVESOUND:
 
-		pActor->ActiveSound = S_FindSound( pszSound );
+		pActor->ActiveSound = pszSound;
 		break;
 	default:
 
@@ -8962,7 +8962,7 @@ static void client_SoundPoint( BYTESTREAM_s *pByteStream )
 	lAttenuation = NETWORK_ReadByte( pByteStream );
 
 	// Finally, play the sound.
-	S_SoundID ( X, Y, Z, CHAN_BODY, S_FindSound(pszSoundString), (float)lVolume / 127.f, lAttenuation );
+	S_Sound ( X, Y, Z, CHAN_BODY, S_FindSound(pszSoundString), (float)lVolume / 127.f, lAttenuation );
 }
 
 //*****************************************************************************
@@ -8986,7 +8986,7 @@ static void client_StartSectorSequence( BYTESTREAM_s *pByteStream )
 		return;
 
 	// Finally, play the given sound sequence for this sector.
-	SN_StartSequence( pSector, pszSequence, 0, false );
+	SN_StartSequence( pSector, CHAN_CEILING, pszSequence, 0 );
 }
 
 //*****************************************************************************
@@ -10157,7 +10157,7 @@ static void client_PlayPlatSound( BYTESTREAM_s *pByteStream )
 		break;
 	case 2:
 
-		SN_StartSequence( pPlat->GetSector( ), "Silence", 0, false );
+		SN_StartSequence( pPlat->GetSector( ), CHAN_FLOOR, "Silence", 0 );
 		break;
 	case 3:
 
@@ -10324,9 +10324,9 @@ static void client_DoPillar( BYTESTREAM_s *pByteStream )
 
 	// Begin playing the sound sequence for the pillar.
 	if ( pSector->seqType >= 0 )
-		SN_StartSequence( pSector, pSector->seqType, SEQ_PLATFORM, 0, false );
+		SN_StartSequence( pSector, CHAN_FLOOR, pSector->seqType, SEQ_PLATFORM, 0 );
 	else
-		SN_StartSequence( pSector, "Floor", 0, false );
+		SN_StartSequence( pSector, CHAN_FLOOR, "Floor", 0 );
 }
 
 //*****************************************************************************

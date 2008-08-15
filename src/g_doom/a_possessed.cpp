@@ -70,14 +70,14 @@ void A_SPosAttackUseAtkSound (AActor *self)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		S_SoundID ( self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM );
+		S_Sound ( self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM );
 		return;
 	}
 
 	if (!self->target)
 		return;
 
-	S_SoundID (self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM);
+	S_Sound (self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM);
 	A_SPosAttack2 (self);
 }
 
@@ -158,7 +158,7 @@ void A_CPosAttack (AActor *self)
 			self->visdir = 1;
 		}
 
-		S_SoundID ( self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM );
+		S_Sound ( self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM );
 		return;
 	}
 
@@ -171,7 +171,7 @@ void A_CPosAttack (AActor *self)
 		self->visdir = 1;
 	}
 
-	S_SoundID (self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM);
+	S_Sound (self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM);
 	A_FaceTarget (self);
 	bangle = self->angle;
 	slope = P_AimLineAttack (self, bangle, MISSILERANGE);

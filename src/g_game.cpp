@@ -2074,39 +2074,6 @@ void G_PlayerReborn (int player)
 		actor->GiveDefaultInventory ();
 		p->ReadyWeapon = p->PendingWeapon;
 	}
-
-	// [BC] Apply temporary invulnerability when respawned.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
-		( CLIENTDEMO_IsPlaying( ) == false ) &&
-		(( dmflags2 & DF2_NO_RESPAWN_INVUL ) == false ) &&
-		( deathmatch || teamgame || alwaysapplydmflags ) &&
-		( p->bSpectating == false ))
-	{
-		APowerup *invul = static_cast<APowerup*>(actor->GiveInventoryType (RUNTIME_CLASS(APowerInvulnerable)));
-		invul->EffectTics = 2*TICRATE;
-		invul->BlendColor = 0;				// don't mess with the view
-/*
-		AInventory	*pInventory;
-
-		// If we're the server, send the powerup update to clients.
-		pInventory = actor->FindInventory( RUNTIME_CLASS( APowerInvulnerable ));
-		if (( pInventory ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
-			SERVERCOMMANDS_GiveInventory( p - players, pInventory );
-*/
-		// Apply respawn invulnerability effect.
-		switch ( cl_respawninvuleffect )
-		{
-		case 1:
-
-			actor->RenderStyle = STYLE_Translucent;
-			actor->effects |= FX_VISIBILITYFLICKER;
-			break;
-		case 2:
-
-			actor->effects |= FX_RESPAWNINVUL;	// [RH] special effect
-			break;
-		}
-	}
 }
 
 //

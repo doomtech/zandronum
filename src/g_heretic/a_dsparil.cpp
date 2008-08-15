@@ -466,7 +466,7 @@ void A_Srcr1Attack (AActor *actor)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		S_SoundID (actor, CHAN_BODY, actor->AttackSound, 1, ATTN_NORM);
+		S_Sound (actor, CHAN_BODY, actor->AttackSound, 1, ATTN_NORM);
 		return;
 	}
 
@@ -474,7 +474,7 @@ void A_Srcr1Attack (AActor *actor)
 	{
 		return;
 	}
-	S_SoundID (actor, CHAN_BODY, actor->AttackSound, 1, ATTN_NORM);
+	S_Sound (actor, CHAN_BODY, actor->AttackSound, 1, ATTN_NORM);
 	if (actor->CheckMeleeRange ())
 	{
 		int damage = pr_scrc1atk.HitDice (8);
@@ -679,7 +679,7 @@ void A_Srcr2Attack (AActor *actor)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		S_SoundID (actor, CHAN_BODY, actor->AttackSound, 1, ATTN_NONE);
+		S_Sound (actor, CHAN_BODY, actor->AttackSound, 1, ATTN_NONE);
 		return;
 	}
 
@@ -687,7 +687,7 @@ void A_Srcr2Attack (AActor *actor)
 	{
 		return;
 	}
-	S_SoundID (actor, CHAN_BODY, actor->AttackSound, 1, ATTN_NONE);
+	S_Sound (actor, CHAN_BODY, actor->AttackSound, 1, ATTN_NONE);
 	if (actor->CheckMeleeRange())
 	{
 		int damage = pr_s2a.HitDice (20);

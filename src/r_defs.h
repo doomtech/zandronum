@@ -340,7 +340,6 @@ struct extsector_t
 	void Serialize(FArchive &arc);
 };
 
-
 struct FTransform
 {
 	// killough 3/7/98: floor and ceiling texture offsets
@@ -379,6 +378,7 @@ struct sector_t
 	void AdjustFloorClip () const;
 	void SetColor(int r, int g, int b, int desat);
 	void SetFade(int r, int g, int b);
+	void ClosestPoint(fixed_t x, fixed_t y, fixed_t &ox, fixed_t &oy) const;
 
 	DInterpolation *SetInterpolation(int position, bool attach);
 	void StopInterpolation(int position);

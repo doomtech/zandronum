@@ -38,7 +38,7 @@ void A_SkullAttack (AActor *self)
 	dest = self->target;		
 	self->flags |= MF_SKULLFLY;
 
-	S_SoundID (self, CHAN_VOICE, self->AttackSound, 1, ATTN_NORM);
+	S_Sound (self, CHAN_VOICE, self->AttackSound, 1, ATTN_NORM);
 
 	// [BC] If we're the server, tell clients play this sound.
 	// [BB] And tell them of MF_SKULLFLY.

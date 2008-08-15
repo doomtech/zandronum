@@ -98,11 +98,12 @@ extern float S_GetMusicVolume (const char *music);
 
 // PUBLIC FUNCTION PROTOTYPES ----------------------------------------------
 
+FSoundChan *S_StartSound(fixed_t *pt, AActor *mover, sector_t *sec, int channel,
+	FSoundID sound_id, float volume, float attenuation);
+
 // PRIVATE FUNCTION PROTOTYPES ---------------------------------------------
 
 static fixed_t P_AproxDistance2(fixed_t *listener, fixed_t x, fixed_t y);
-static void S_StartSound(fixed_t *pt, AActor *mover, int channel,
-	int sound_id, float volume, float attenuation);
 static bool S_CheckSoundLimit(sfxinfo_t *sfx, float pos[3], int NearLimit);
 static void S_ActivatePlayList(bool goBack);
 static void CalcPosVel(fixed_t *pt, AActor *mover, int constz, float pos[3],
@@ -688,8 +689,8 @@ void CalcPosVel (fixed_t *pt, AActor *mover, int constz,
 //		calculating volume
 //==========================================================================
 
-static void S_StartSound (fixed_t *pt, AActor *mover, int channel,
-	int sound_id, float volume, float attenuation)
+FSoundChan *S_StartSound (fixed_t *pt, AActor *mover, sector_t *sec, int channel,
+	FSoundID sound_id, float volume, float attenuation)
 {
 	sfxinfo_t *sfx;
 	int chanflags;
@@ -703,10 +704,10 @@ static void S_StartSound (fixed_t *pt, AActor *mover, int channel,
 
 	// [BC] Server doesn't use music/sound.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		return;
+		return NULL;
 
 	if (sound_id <= 0 || volume <= 0 || GSnd == NULL)
-		return;
+		return NULL;
 
 	org_id = sound_id;
 	chanflags = channel & ~7;
@@ -741,7 +742,7 @@ static void S_StartSound (fixed_t *pt, AActor *mover, int channel,
 		{
 			if (mover != NULL && mover != players[consoleplayer].camera)
 			{
-				return;
+				return NULL;
 			}
 		}
 		channel &= 7;
@@ -752,7 +753,7 @@ static void S_StartSound (fixed_t *pt, AActor *mover, int channel,
 	// Scale volume according to SNDINFO data.
 	volume = MIN(volume * sfx->Volume, 1.f);
 	if (volume <= 0)
-		return;
+		return NULL;
 
 	// When resolving a link we do not want to get the NearLimit of
 	// the referenced sound so some additional checks are required
@@ -763,17 +764,17 @@ static void S_StartSound (fixed_t *pt, AActor *mover, int channel,
 	{
 		if (sfx->bPlayerReserve)
 		{
-			sound_id = S_FindSkinnedSound (mover, sound_id);
+			sound_id = FSoundID(S_FindSkinnedSound (mover, sound_id));
 			NearLimit = S_sfx[sound_id].NearLimit;
 		}
 		else if (sfx->bRandomHeader)
 		{
-			sound_id = S_PickReplacement (sound_id);
+			sound_id = FSoundID(S_PickReplacement (sound_id));
 			if (NearLimit < 0) NearLimit = S_sfx[sound_id].NearLimit;
 		}
 		else
 		{
-			sound_id = sfx->link;
+			sound_id = FSoundID(sfx->link);
 			if (NearLimit < 0) NearLimit = S_sfx[sound_id].NearLimit;
 		}
 		sfx = &S_sfx[sound_id];
@@ -781,13 +782,13 @@ static void S_StartSound (fixed_t *pt, AActor *mover, int channel,
 
 	// If this is a singular sound, don't play it if it's already playing.
 	if (sfx->bSingular && S_CheckSingular(sound_id))
-		return;
+		return NULL;
 
 	// If this sound doesn't like playing near itself, don't play it if
 	// that's what would happen.
 	if (NearLimit > 0 && pt != NULL && mover != players[consoleplayer].camera &&
 		S_CheckSoundLimit(sfx, pos, NearLimit))
-		return;
+		return NULL;
 
 	// Make sure the sound is loaded.
 	if (sfx->data == NULL)
@@ -802,7 +803,7 @@ static void S_StartSound (fixed_t *pt, AActor *mover, int channel,
 	// The empty sound never plays.
 	if (sfx->lumpnum == sfx_empty)
 	{
-		return;
+		return NULL;
 	}
 
 	// Select priority.
@@ -835,7 +836,7 @@ static void S_StartSound (fixed_t *pt, AActor *mover, int channel,
 			}
 			if (channel == 0)
 			{ // Crap. No free channels.
-				return;
+				return NULL;
 			}
 		}
 	}
@@ -865,7 +866,7 @@ static void S_StartSound (fixed_t *pt, AActor *mover, int channel,
 
 	if (attenuation > 0)
 	{
-		chan = GSnd->StartSound3D (sfx, volume, attenuation, pitch, basepriority, pos, vel, chanflags);
+		chan = GSnd->StartSound3D (sfx, volume, attenuation, pitch, basepriority, pos, vel, sec, channel, chanflags);
 		chanflags |= CHAN_IS3D;
 	}
 	else
@@ -879,6 +880,7 @@ static void S_StartSound (fixed_t *pt, AActor *mover, int channel,
 		chan->OrgID = org_id;
 		chan->Mover = mover;
 		chan->Pt = pt != NULL ? pt : &chan->X;
+		chan->Sector = sec;
 		chan->SfxInfo = sfx;
 		chan->EntChannel = channel;
 		chan->Volume = volume;
@@ -891,101 +893,71 @@ static void S_StartSound (fixed_t *pt, AActor *mover, int channel,
 			mover->SoundChans |= 1 << channel;
 		}
 	}
+	return chan;
 }
 
 //==========================================================================
 //
-// S_SoundID
+// S_Sound - Unpositioned version
 //
 //==========================================================================
 
-void S_SoundID (int channel, int sound_id, float volume, int attenuation)
+void S_Sound (int channel, FSoundID sound_id, float volume, int attenuation)
 {
-	S_StartSound ((fixed_t *)NULL, NULL, channel, sound_id, volume, SELECT_ATTEN(attenuation));
+	S_StartSound ((fixed_t *)NULL, NULL, NULL, channel, sound_id, volume, SELECT_ATTEN(attenuation));
 }
 
-void S_SoundID (AActor *ent, int channel, int sound_id, float volume, int attenuation)
+//==========================================================================
+//
+// S_Sound - Actor is source
+//
+//==========================================================================
+
+void S_Sound (AActor *ent, int channel, FSoundID sound_id, float volume, int attenuation)
 {
 	// [BB] For some reason, this check is necessary in Heretic survival.
 	if (ent == NULL)
 		return;
 	if (ent->Sector->Flags & SECF_SILENT)
 		return;
-	S_StartSound (&ent->x, ent, channel, sound_id, volume, SELECT_ATTEN(attenuation));
+	S_StartSound (&ent->x, ent, NULL, channel, sound_id, volume, SELECT_ATTEN(attenuation));
 }
 
-void S_SoundID (fixed_t *pt, int channel, int sound_id, float volume, int attenuation)
+//==========================================================================
+//
+// S_Sound - A random coordinate is source
+//
+//==========================================================================
+
+void S_Sound (fixed_t *pt, int channel, FSoundID sound_id, float volume, int attenuation)
 {
-	S_StartSound (pt, NULL, channel, sound_id, volume, SELECT_ATTEN(attenuation));
+	S_StartSound (pt, NULL, NULL, channel, sound_id, volume, SELECT_ATTEN(attenuation));
 }
 
-void S_SoundID (fixed_t x, fixed_t y, fixed_t z, int channel, int sound_id, float volume, int attenuation)
+//==========================================================================
+//
+// S_Sound - A point is source
+//
+//==========================================================================
+
+void S_Sound (fixed_t x, fixed_t y, fixed_t z, int channel, FSoundID sound_id, float volume, int attenuation)
 {
 	fixed_t pt[3];
 	pt[0] = x;
 	pt[1] = y;
 	pt[2] = z;
-	S_StartSound (pt, NULL, channel|CHAN_IMMOBILE, sound_id, volume, SELECT_ATTEN(attenuation));
+	S_StartSound (pt, NULL, NULL, channel|CHAN_IMMOBILE, sound_id, volume, SELECT_ATTEN(attenuation));
 }
 
 //==========================================================================
 //
-// S_StartNamedSound
+// S_Sound - An entire sector is source
 //
 //==========================================================================
 
-void S_StartNamedSound (AActor *ent, fixed_t *pt, int channel, 
-	const char *name, float volume, float attenuation)
+void S_Sound (sector_t *sec, int channel, FSoundID sfxid, float volume, int attenuation)
 {
-	int sfx_id;
-	
-	// [BC] Server doesn't use music/sound.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		return;
-
-	if (name == NULL || (ent != NULL && ent->Sector->Flags & SECF_SILENT))
-	{
-		return;
-	}
-
-	sfx_id = S_FindSound (name);
-	if (sfx_id == 0)
-		DPrintf ("Unknown sound %s\n", name);
-
-	if (ent)
-		S_StartSound (&ent->x, ent, channel, sfx_id, volume, attenuation);
-	else
-		S_StartSound (pt, NULL, channel, sfx_id, volume, attenuation);
-}
-
-//==========================================================================
-//
-// S_Sound
-//
-//==========================================================================
-
-void S_Sound (int channel, const char *name, float volume, int attenuation)
-{
-	S_StartNamedSound ((AActor *)NULL, NULL, channel, name, volume, SELECT_ATTEN(attenuation));
-}
-
-void S_Sound (AActor *ent, int channel, const char *name, float volume, int attenuation)
-{
-	S_StartNamedSound (ent, NULL, channel, name, volume, SELECT_ATTEN(attenuation));
-}
-
-void S_Sound (fixed_t *pt, int channel, const char *name, float volume, int attenuation)
-{
-	S_StartNamedSound (NULL, pt, channel, name, volume, SELECT_ATTEN(attenuation));
-}
-
-void S_Sound (fixed_t x, fixed_t y, int channel, const char *name, float volume, int attenuation)
-{
-	fixed_t pt[3];
-	pt[0] = x;
-	pt[1] = y;
-	S_StartNamedSound (NULL, pt, channel|CHAN_LISTENERZ|CHAN_IMMOBILE,
-		name, volume, SELECT_ATTEN(attenuation));
+	S_StartSound (sec->soundorg, NULL, sec, channel, sfxid, volume, attenuation);
 }
 
 //==========================================================================
@@ -1290,6 +1262,26 @@ void S_UpdateSounds (void *listener_p)
 	GSnd->UpdateListener();
 	GSnd->UpdateSounds();
 }
+
+//==========================================================================
+//
+// FArchive & << FSoundID &
+//
+//==========================================================================
+
+FArchive &operator<<(FArchive &arc, FSoundID &sid)
+{
+	if (arc.IsStoring())
+	{
+		arc.WriteName((const char *)sid);
+	}
+	else
+	{
+		sid = arc.ReadName();
+	}
+	return arc;
+}
+
 
 //==========================================================================
 //
@@ -1955,8 +1947,8 @@ CCMD (cachesound)
 	}
 	for (int i = 1; i < argv.argc(); ++i)
 	{
-		int sfxnum = S_FindSound (argv[i]);
-		if (sfxnum > 0)
+		FSoundID sfxnum = argv[i];
+		if (sfxnum != 0)
 		{
 			S_CacheSound (&S_sfx[sfxnum]);
 		}

@@ -270,7 +270,7 @@ static void DragonSeek (AActor *actor, angle_t thresh, angle_t turnMax)
 				int damage = pr_dragonseek.HitDice (10);
 				P_DamageMobj (actor->target, actor, actor, damage, NAME_Melee);
 				P_TraceBleed (damage, actor->target, actor);
-				S_SoundID (actor, CHAN_WEAPON, actor->AttackSound, 1, ATTN_NORM);
+				S_Sound (actor, CHAN_WEAPON, actor->AttackSound, 1, ATTN_NORM);
 
 				// [BB] If we're the server, tell the clients to play the sound.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -279,7 +279,7 @@ static void DragonSeek (AActor *actor, angle_t thresh, angle_t turnMax)
 			else if (pr_dragonseek() < 128 && P_CheckMissileRange(actor))
 			{
 				AActor *missile = P_SpawnMissile(actor, target, RUNTIME_CLASS(ADragonFireball));						
-				S_SoundID (actor, CHAN_WEAPON, actor->AttackSound, 1, ATTN_NORM);
+				S_Sound (actor, CHAN_WEAPON, actor->AttackSound, 1, ATTN_NORM);
 
 				// [BB] If we're the server, tell the clients to play the sound and spawn the missile.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -414,7 +414,7 @@ void A_DragonFlight (AActor *actor)
 			int damage = pr_dragonflight.HitDice (8);
 			P_DamageMobj (actor->target, actor, actor, damage, NAME_Melee);
 			P_TraceBleed (damage, actor->target, actor);
-			S_SoundID (actor, CHAN_WEAPON, actor->AttackSound, 1, ATTN_NORM);
+			S_Sound (actor, CHAN_WEAPON, actor->AttackSound, 1, ATTN_NORM);
 
 			// [BB] If we're the server, tell the clients to play the sound.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -430,7 +430,7 @@ void A_DragonFlight (AActor *actor)
 			}
 
 			actor->SetState (actor->MissileState);
-			S_SoundID (actor, CHAN_WEAPON, actor->AttackSound, 1, ATTN_NORM);
+			S_Sound (actor, CHAN_WEAPON, actor->AttackSound, 1, ATTN_NORM);
 		}
 	}
 	else

@@ -207,7 +207,7 @@ void P_BringUpWeapon (player_t *player)
 	{
 		if (weapon->UpSound)
 		{
-			S_SoundID (player->mo, CHAN_WEAPON, weapon->UpSound, 1, ATTN_NORM);
+			S_Sound (player->mo, CHAN_WEAPON, weapon->UpSound, 1, ATTN_NORM);
 		}
 		newstate = weapon->GetUpState ();
 	}
@@ -427,7 +427,7 @@ void A_WeaponReady(AActor *actor)
 	{
 		if (!(weapon->WeaponFlags & WIF_READYSNDHALF) || pr_wpnreadysnd() < 128)
 		{
-			S_SoundID (actor, CHAN_WEAPON, weapon->ReadySound, 1, ATTN_NORM);
+			S_Sound (actor, CHAN_WEAPON, weapon->ReadySound, 1, ATTN_NORM);
 
 			// [BC] If we're the server, tell other clients to play the sound.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )

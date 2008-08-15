@@ -205,8 +205,9 @@ void A_Saw (AActor *actor)
 		return;
 	}
 	
-	int fullsound;
-	int hitsound;
+	FSoundID fullsound;
+	FSoundID hitsound;
+
 	const PClass * pufftype = NULL;
 
 	if (NULL == (player = actor->player))
@@ -224,15 +225,15 @@ void A_Saw (AActor *actor)
 	int index = CheckIndex (4, NULL);
 	if (index >= 0) 
 	{
-		fullsound = StateParameters[index];
-		hitsound = StateParameters[index+1];
+		fullsound = FSoundID(StateParameters[index]);
+		hitsound = FSoundID(StateParameters[index+1]);
 		damage = EvalExpressionI (StateParameters[index+2], actor);
 		pufftype = PClass::FindClass ((ENamedName)StateParameters[index+3]);
 	}
 	else
 	{
-		fullsound = S_FindSound("weapons/sawfull");
-		hitsound = S_FindSound("weapons/sawhit");
+		fullsound = "weapons/sawfull";
+		hitsound = "weapons/sawhit";
 	}
 	if (pufftype == NULL) pufftype = PClass::FindClass(NAME_BulletPuff);
 	if (damage == 0) damage = 2;
@@ -270,14 +271,14 @@ void A_Saw (AActor *actor)
 
 	if (!linetarget)
 	{
-		S_SoundID (actor, CHAN_WEAPON, fullsound, 1, ATTN_NORM);
+		S_Sound (actor, CHAN_WEAPON, fullsound, 1, ATTN_NORM);
 
 		// [BC] If we're the server, tell clients to play the saw sound.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, S_GetName( fullsound ), 1, ATTN_NORM );
 		return;
 	}
-	S_SoundID (actor, CHAN_WEAPON, hitsound, 1, ATTN_NORM);
+	S_Sound (actor, CHAN_WEAPON, hitsound, 1, ATTN_NORM);
 	// [BC] If we're the server, tell clients to play the saw sound.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, S_GetName( hitsound ), 1, ATTN_NORM );

@@ -247,7 +247,7 @@ static void DoAttack (AActor *self, bool domelee, bool domissile)
 		int damage = pr_camelee.HitDice(MeleeDamage);
 		if (MeleeSound)
 		{
-			S_SoundID (self, CHAN_WEAPON, MeleeSound, 1, ATTN_NORM);
+			S_Sound (self, CHAN_WEAPON, MeleeSound, 1, ATTN_NORM);
 
 			// [BC] If we're the server, make the sound on the client end.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -325,7 +325,7 @@ static void DoPlaySound(AActor * self, int channel)
 	}
 
 	int soundid = StateParameters[index];
-	S_SoundID (self, channel, soundid, 1, ATTN_NORM);
+	S_Sound (self, channel, soundid, 1, ATTN_NORM);
 
 	// [BC] If we're the server, tell clients to play the sound.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -374,13 +374,13 @@ void A_PlaySoundEx (AActor *self)
 
 	if (!looping)
 	{
-		S_SoundID (self, channel - NAME_Auto, soundid, 1, attenuation);
+		S_Sound (self, channel - NAME_Auto, soundid, 1, attenuation);
 	}
 	else
 	{
 		if (!S_IsActorPlayingSomething (self, channel - NAME_Auto, soundid))
 		{
-			S_SoundID (self, (channel - NAME_Auto) | CHAN_LOOP, soundid, 1, attenuation);
+			S_Sound (self, (channel - NAME_Auto) | CHAN_LOOP, soundid, 1, attenuation);
 		}
 	}
 }
@@ -431,7 +431,7 @@ void A_BulletAttack (AActor *self)
 
 	slope = P_AimLineAttack (self, bangle, MISSILERANGE);
 
-	S_SoundID (self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM);
+	S_Sound (self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM);
 
 	// [BC] If we're the server, tell clients to play the sound.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -1034,7 +1034,7 @@ void A_CustomBulletAttack (AActor *self)
 
 		bslope = P_AimLineAttack (self, bangle, MISSILERANGE);
 
-		S_SoundID (self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM);
+		S_Sound (self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NORM);
 
 		// [BB] If we're the server, make the sound on the client end.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -1074,13 +1074,13 @@ void A_CustomMeleeAttack (AActor *self)
 	A_FaceTarget (self);
 	if (self->CheckMeleeRange ())
 	{
-		if (MeleeSound) S_SoundID (self, CHAN_WEAPON, MeleeSound, 1, ATTN_NORM);
+		if (MeleeSound) S_Sound (self, CHAN_WEAPON, MeleeSound, 1, ATTN_NORM);
 		P_DamageMobj (self->target, self, self, damage, DamageType);
 		if (bleed) P_TraceBleed (damage, self->target, self);
 	}
 	else
 	{
-		if (MissSound) S_SoundID (self, CHAN_WEAPON, MissSound, 1, ATTN_NORM);
+		if (MissSound) S_Sound (self, CHAN_WEAPON, MissSound, 1, ATTN_NORM);
 	}
 }
 
@@ -1119,7 +1119,7 @@ void A_CustomComboAttack (AActor *self)
 		if (DamageType==NAME_None) DamageType = NAME_Melee;	// Melee is the default type
 		if (MeleeSound)
 		{
-			S_SoundID (self, CHAN_WEAPON, MeleeSound, 1, ATTN_NORM);
+			S_Sound (self, CHAN_WEAPON, MeleeSound, 1, ATTN_NORM);
 
 			// [BB] If we're the server, make the sound on the client end.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -1268,7 +1268,7 @@ void A_CustomFireBullets( AActor *self,
 	// firing the sound. Otherwise the sound is played because of the SERVERCOMMANDS_WeaponSound command.
 	// We always have to play our own sounds though.
 	if ( (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false )) || ( player && (player->mo->CheckLocalView( consoleplayer ) || (player==&players[consoleplayer])) ) )
-		S_SoundID (self, CHAN_WEAPON, weapon->AttackSound, 1, ATTN_NORM);
+		S_Sound (self, CHAN_WEAPON, weapon->AttackSound, 1, ATTN_NORM);
 
 	// [BC] Weapons are handled by the server.
 	// [BB] To make hitscan decals kinda work online, we may not stop here yet.
@@ -1534,7 +1534,7 @@ void A_CustomPunch (AActor *self)
 	// turn to face target
 	if (linetarget)
 	{
-		S_SoundID (self, CHAN_WEAPON, weapon->AttackSound, 1, ATTN_NORM);
+		S_Sound (self, CHAN_WEAPON, weapon->AttackSound, 1, ATTN_NORM);
 
 		self->angle = R_PointToAngle2 (self->x,
 										self->y,

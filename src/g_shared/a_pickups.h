@@ -4,6 +4,7 @@
 #include "dobject.h"
 #include "actor.h"
 #include "info.h"
+#include "s_sound.h"
 
 #define MAX_MANA				200
 
@@ -143,7 +144,7 @@ public:
 	DWORD ItemFlags;
 	const PClass *PickupFlash;	// actor to spawn as pickup flash
 
-	WORD PickupSound;
+	FSoundIDNoInit PickupSound;
 
 	// [BC]
 	char	szPickupAnnouncerEntry[32];
@@ -218,7 +219,7 @@ public:
 //	int AmmoUseDM1, AmmoUseDM2;				// [BC] How much ammo should be used with each shot during deathmatch/teamgame mode?
 	int Kickback;
 	fixed_t YAdjust;						// For viewing the weapon fullscreen
-	WORD UpSound, ReadySound;				// Sounds when coming up and idle
+	FSoundIDNoInit UpSound, ReadySound;		// Sounds when coming up and idle
 	const PClass *SisterWeaponType;			// Another weapon to pick up with this one
 	const PClass *ProjectileType;			// Projectile used by primary attack
 	const PClass *AltProjectileType;		// Projectile used by alternate attack

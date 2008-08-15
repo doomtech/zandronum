@@ -1606,7 +1606,7 @@ END_DEFAULTS
 void APowerDamage::InitEffect( )
 {
 	// Use sound channel 5 to avoid interference with other actions.
-	if (Owner != NULL) S_SoundID(Owner, 5, SeeSound, 1.0f, ATTN_NONE);
+	if (Owner != NULL) S_Sound(Owner, 5, SeeSound, 1.0f, ATTN_NONE);
 }
 
 //===========================================================================
@@ -1618,7 +1618,7 @@ void APowerDamage::InitEffect( )
 void APowerDamage::EndEffect( )
 {
 	// Use sound channel 5 to avoid interference with other actions.
-	if (Owner != NULL) S_SoundID(Owner, 5, DeathSound, 1.0f, ATTN_NONE);
+	if (Owner != NULL) S_Sound(Owner, 5, DeathSound, 1.0f, ATTN_NONE);
 }
 
 //===========================================================================
@@ -1641,7 +1641,7 @@ void APowerDamage::ModifyDamage(int damage, FName damageType, int &newdamage, bo
 
 			damage = newdamage = FixedMul(damage, *pdf);
 			if (*pdf > 0 && damage == 0) damage = newdamage = 1;	// don't allow zero damage as result of an underflow
-			if (Owner != NULL && *pdf > FRACUNIT) S_SoundID(Owner, 5, ActiveSound, 1.0f, ATTN_NONE);
+			if (Owner != NULL && *pdf > FRACUNIT) S_Sound(Owner, 5, ActiveSound, 1.0f, ATTN_NONE);
 		}
 	}
 	if (Inventory != NULL) Inventory->ModifyDamage(damage, damageType, newdamage, passive);
@@ -1662,7 +1662,7 @@ END_DEFAULTS
 void APowerProtection::InitEffect( )
 {
 	// Use sound channel 5 to avoid interference with other actions.
-	if (Owner != NULL) S_SoundID(Owner, 5, SeeSound, 1.0f, ATTN_NONE);
+	if (Owner != NULL) S_Sound(Owner, 5, SeeSound, 1.0f, ATTN_NONE);
 }
 
 //===========================================================================
@@ -1674,7 +1674,7 @@ void APowerProtection::InitEffect( )
 void APowerProtection::EndEffect( )
 {
 	// Use sound channel 5 to avoid interference with other actions.
-	if (Owner != NULL) S_SoundID(Owner, 5, DeathSound, 1.0f, ATTN_NONE);
+	if (Owner != NULL) S_Sound(Owner, 5, DeathSound, 1.0f, ATTN_NONE);
 }
 
 //===========================================================================
@@ -1696,7 +1696,7 @@ void APowerProtection::ModifyDamage(int damage, FName damageType, int &newdamage
 			if (pdf == NULL) pdf = &def;
 
 			damage = newdamage = FixedMul(damage, *pdf);
-			if (Owner != NULL && *pdf < FRACUNIT) S_SoundID(Owner, 5, ActiveSound, 1.0f, ATTN_NONE);
+			if (Owner != NULL && *pdf < FRACUNIT) S_Sound(Owner, 5, ActiveSound, 1.0f, ATTN_NONE);
 		}
 	}
 	if (Inventory != NULL) Inventory->ModifyDamage(damage, damageType, newdamage, passive);

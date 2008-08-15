@@ -671,7 +671,7 @@ bool APlayerPawn::UseInventory (AInventory *item)
 	}
 	else if (player == &players[consoleplayer])
 	{
-		S_SoundID (this, CHAN_ITEM, item->UseSound, 1, ATTN_NORM);
+		S_Sound (this, CHAN_ITEM, item->UseSound, 1, ATTN_NORM);
 		StatusBar->FlashItem (itemtype);
 	}
 	return true;
@@ -824,8 +824,6 @@ void APlayerPawn::FilterCoopRespawnInventory (APlayerPawn *oldplayer)
 		return;
 	}
 
-	// If we don't want to lose anything, then we don't need to bother checking
-	// the old inventory.
 	if (dmflags &  (DF_COOP_LOSE_KEYS |
 					DF_COOP_LOSE_WEAPONS |
 					DF_COOP_LOSE_AMMO |
@@ -857,10 +855,24 @@ void APlayerPawn::FilterCoopRespawnInventory (APlayerPawn *oldplayer)
 				item->Destroy();
 			}
 			else if ((dmflags & DF_COOP_LOSE_ARMOR) &&
-				defitem == NULL &&
 				item->IsKindOf(RUNTIME_CLASS(AArmor)))
 			{
-				item->Destroy();
+				if (defitem != NULL)
+				{
+					item->Destroy();
+				}
+				else if (item->IsKindOf(RUNTIME_CLASS(ABasicArmor)))
+				{
+					static_cast<ABasicArmor*>(item)->SavePercent = static_cast<ABasicArmor*>(defitem)->SavePercent;
+					item->Amount = defitem->Amount;
+				}
+				else if (item->IsKindOf(RUNTIME_CLASS(AHexenArmor)))
+				{
+					static_cast<AHexenArmor*>(item)->Slots[0] = static_cast<AHexenArmor*>(defitem)->Slots[0];
+					static_cast<AHexenArmor*>(item)->Slots[1] = static_cast<AHexenArmor*>(defitem)->Slots[1];
+					static_cast<AHexenArmor*>(item)->Slots[2] = static_cast<AHexenArmor*>(defitem)->Slots[2];
+					static_cast<AHexenArmor*>(item)->Slots[3] = static_cast<AHexenArmor*>(defitem)->Slots[3];
+				}
 			}
 			else if ((dmflags & DF_COOP_LOSE_POWERUPS) &&
 				defitem == NULL &&
@@ -1995,7 +2007,7 @@ void A_PlayerScream (AActor *self)
 
 	if (self->player == NULL || self->DeathSound != 0)
 	{
-		S_SoundID (self, CHAN_VOICE, self->DeathSound, 1, ATTN_NORM);
+		S_Sound (self, CHAN_VOICE, self->DeathSound, 1, ATTN_NORM);
 		return;
 	}
 
@@ -2044,7 +2056,7 @@ void A_PlayerScream (AActor *self)
 			}
 		}
 	}
-	S_SoundID (self, chan, sound, 1, ATTN_NORM);
+	S_Sound (self, chan, sound, 1, ATTN_NORM);
 }
 
 
@@ -2820,7 +2832,7 @@ void P_DeathThink (player_t *player)
 	}
 /*
 	if ((player->cmd.ucmd.buttons & BT_USE ||
-		((deathmatch || alwaysapplydmflags) && (dmflags & DF_FORCE_RESPAWN))) && !(dmflags2 & DF2_NO_RESPAWN))
+		((multiplayer || alwaysapplydmflags) && (dmflags & DF_FORCE_RESPAWN))) && !(dmflags2 & DF2_NO_RESPAWN))
 	{
 		if (level.time >= player->respawn_time || ((player->cmd.ucmd.buttons & BT_USE) && !player->isbot))
 		{
@@ -3361,7 +3373,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 			int id = S_FindSkinnedSound (player->mo, "*falling");
 			if (id != 0 && !S_IsActorPlayingSomething (player->mo, CHAN_VOICE, id))
 			{
-				S_SoundID (player->mo, CHAN_VOICE, id, 1, ATTN_NORM);
+				S_Sound (player->mo, CHAN_VOICE, id, 1, ATTN_NORM);
 			}
 		}
 		// check for use

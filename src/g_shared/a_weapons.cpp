@@ -55,7 +55,7 @@ void AWeapon::Serialize (FArchive &arc)
 //		<< AmmoUseDM1 << AmmoUseDM2
 		<< Kickback
 		<< YAdjust
-		<< AR_SOUNDW(UpSound) << AR_SOUNDW(ReadySound)
+		<< UpSound << ReadySound
 		<< SisterWeaponType
 		<< ProjectileType << AltProjectileType
 		<< SelectionOrder

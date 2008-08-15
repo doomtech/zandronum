@@ -1154,7 +1154,7 @@ void A_MinotaurChase (AActor *actor)
 	{
 		if (actor->AttackSound)
 		{
-			S_SoundID (actor, CHAN_WEAPON, actor->AttackSound, 1, ATTN_NORM);
+			S_Sound (actor, CHAN_WEAPON, actor->AttackSound, 1, ATTN_NORM);
 		}
 
 		// [BC] If we're the server, play the attack sound and update the thing's state.
