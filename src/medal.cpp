@@ -1202,13 +1202,9 @@ void medal_SelectIcon( ULONG ulPlayer )
 		{
 			if (( pPlayer->pIcon == NULL ) || ( ulDesiredSprite != ulActualSprite ))
 			{
-				if ( pPlayer->pIcon )
-				{
-					pPlayer->pIcon->Destroy( );
-					pPlayer->pIcon = NULL;
-				}
+				if ( pPlayer->pIcon == NULL )
+					pPlayer->pIcon = Spawn<AFloatyIcon>( pPlayer->mo->x, pPlayer->mo->y, pPlayer->mo->z + pPlayer->mo->height + ( 4 * FRACUNIT ), NO_REPLACE );
 
-				pPlayer->pIcon = Spawn<AFloatyIcon>( pPlayer->mo->x, pPlayer->mo->y, pPlayer->mo->z + pPlayer->mo->height + ( 4 * FRACUNIT ), NO_REPLACE );
 				if ( pPlayer->pIcon )
 				{
 					pPlayer->pIcon->SetTracer( pPlayer->mo );

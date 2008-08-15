@@ -247,9 +247,9 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 	std::vector<std::string>	lumpsToAuthenticate;
 	std::vector<LumpAuthenticationMode>	lumpsToAuthenticateMode;
 
-	lumpsToAuthenticate.push_back( "PLAYPAL" );
-	lumpsToAuthenticateMode.push_back( LAST_LUMP );
 	lumpsToAuthenticate.push_back( "COLORMAP" );
+	lumpsToAuthenticateMode.push_back( LAST_LUMP );
+	lumpsToAuthenticate.push_back( "PLAYPAL" );
 	lumpsToAuthenticateMode.push_back( LAST_LUMP );
 	lumpsToAuthenticate.push_back( "HTICDEFS" );
 	lumpsToAuthenticateMode.push_back( ALL_LUMPS );

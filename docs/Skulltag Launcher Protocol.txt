@@ -1,38 +1,59 @@
-==========================
-SKULLTAG Launcher Protocol
-==========================
+==============================================================================
 
-Version 0.2 by Rivecoder ~ April 9, 2008
------------------------------------------
+  SKULLTAG Launcher Protocol
+  ==========================
 
-There's been a lot of demand for out launcher protocol by people who would like to create their own custom utilities and launchers. Well, we've decided to release this publicly, so here it is!
+  v0.3 by Rivecoder
+    July 15, 2008
 
-** Definitions
-*********************************************************************************
+  Version history:
+    - 0.2 -> 0.3: Improved style and phrasing.
+                  Fixed mistake with the time left under SQF_LIMITS.             
+    - 0.1 -> 0.2: Misc. fixes
+
+===============================================================================
+
+========================================
+ Abstract
+========================================
+
+This launcher protocol lets you to talk to servers and get information from them, allowing you to
+make your own custom programs like browsers, stat tools, and so on.
+
+========================================
+ Definitions
+========================================
+
 All Skulltag servers and masters use UDP as their protocol.
+
 Definition of types:
   Byte: 8 bit integer
   Short: 16 bit integer
   Long: 32 bit integer
   Float: Long representation of a float
 
-** Huffman
-*********************************************************************************
-All Skulltag network traffic uses Huffman compression. You'll need a copy of huffman.cpp or huffman.java to encode and decode your traffic appropiately.
+========================================
+ Huffman
+========================================
 
-** Getting the list of servers
-*********************************************************************************
+All Skulltag network traffic uses Huffman compression to save bandwidth.
+You'll need a copy of huffman.cpp or huffman.java (included) to encode and decode your traffic appropiately.
+
+========================================
+ Getting the list of servers
+========================================
+
 This is very easy, accomplished by sending a single long to the server:
 
   Type    Value       Description
   -------------------------------
   Long    199         Launcher challenge
   
-The server will respond, either with:
+The server will respond with one of the following:
 
   Type    Value       Description
   -------------------------------
-  Long    0           Beginning of list 
+  Long    0           Beginning of list
   Byte    3           Denied; your IP is banned
   Byte    4           Denied; your IP has made a request in the past 10 seconds
   
@@ -53,8 +74,10 @@ Finally, the response should end with this:
   -------------------------------
   Byte    2           End of list 
 
-** Querying individual servers
-*********************************************************************************
+========================================
+ Querying individual servers
+========================================
+
 As with the master, you begin with the challenge long.
 
   Type    Value       Description
@@ -98,7 +121,7 @@ Next you send the time. This will be sent back to you so you can determine ping.
   -------------------------------
   Long    Time        The current time
   
-The server will respond, either with:
+The server will respond with one of the following:
 
   Type    Value       Description
   -------------------------------
@@ -140,7 +163,7 @@ Next, assuming you were accepted, you'll get:
   Long                SQF_DMFLAGS           Compatflags
   Short               SQF_LIMITS            fraglimit
   Short               SQF_LIMITS            timelimit
-  Short               SQF_LIMITS            time left (seconds)
+  Short               SQF_LIMITS            time left (minutes), if timelimit > 0
   Short               SQF_LIMITS            duellimit
   Short               SQF_LIMITS            pointlimit
   Short               SQF_LIMITS            winlimit
@@ -152,14 +175,19 @@ Next, assuming you were accepted, you'll get:
   Short               SQF_PLAYERDATA        This player's ping
   Byte                SQF_PLAYERDATA        Whether this player is spectating - true (1) / false (0)
   Byte                SQF_PLAYERDATA        Whether this player is a bot - true (1) / false (0)
-  Byte    index/255   SQF_PLAYERDATA        Which team this player is on (in teamgames). 255 if no team.
+  Byte  index or 255  SQF_PLAYERDATA        Which team this player is on (in teamgames). 255 if no team.
   Byte                SQF_PLAYERDATA        Time, in seconds, that this player has been in the server.
   
 And that's it!  
-* Note on flags: If you request team-based info but the server isn't in a teamgame, it will automatically remove the flag from your query.
-  Similarly, if you request SQF_PLAYERDATA it will alse add SQF_NUMPLAYERS.
-  Take care to use this new value when parsing the server's response.
-* Note on game modes: They are covered like so.
+
+========================================
+ Notes
+========================================
+
+* Flags: The server will automatically correct your request if you made a mistake (like request team scores in cooperative games), 
+         so always use the flags it sends back to you when reading your data.
+                 
+* Game modes: Game modes are defined as:
 	0   GAMEMODE_COOPERATIVE
 	1   GAMEMODE_SURVIVAL
 	2   GAMEMODE_INVASION
@@ -176,8 +204,8 @@ And that's it!
 	13  GAMEMODE_ONEFLAGCTF
 	14  GAMEMODE_SKULLTAG
 
+* Mistakes: This spec is volatile and imperfect. Please look out for updates as we change the protocol from time to time.
 
-Note that this spec is volatile and can change between versions.
 Happy coding!
 
-Rivecoder
+~Rivecoder

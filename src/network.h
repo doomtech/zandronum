@@ -201,6 +201,9 @@ enum
 	// Client failed to send userinfo when connecting.
 	NETWORK_ERRORCODE_FAILEDTOSENDUSERINFO,
 
+	// [RC] Too many connections from the IP.
+	NETWORK_ERRORCODE_TOOMANYCONNECTIONSFROMIP,
+
 	NUM_NETWORK_ERRORCODES
 };
 

@@ -56,6 +56,8 @@
 #include "r_state.h"
 #include "v_text.h" // [RC] To conform player names
 #include "gamemode.h"
+#include "lastmanstanding.h"
+#include "deathmatch.h"
 
 //*****************************************************************************
 //	VARIABLES
@@ -286,7 +288,7 @@ void CLIENTCOMMANDS_Suicide( void )
 //
 void CLIENTCOMMANDS_ChangeTeam( char *pszJoinPassword, LONG lDesiredTeam )
 {
-	if (( g_ulLastChangeTeamTime > 0 ) && ( (ULONG)gametic < ( g_ulLastChangeTeamTime + ( TICRATE * 10 ))))
+	if (!( ( lastmanstanding || teamlms ) && ( LASTMANSTANDING_GetState( ) == LMSS_COUNTDOWN ) ) && ( g_ulLastChangeTeamTime > 0 ) && ( (ULONG)gametic < ( g_ulLastChangeTeamTime + ( TICRATE * 10 ))))
 	{
 		Printf( "You must wait at least 10 seconds before changing teams again.\n" );
 		return;
