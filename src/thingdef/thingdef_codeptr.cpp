@@ -742,6 +742,13 @@ void A_JumpIfInTargetInventory(AActor * self)
 
 void A_ExplodeParms (AActor *self)
 {
+	// [BB] This is server side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	int damage;
 	int distance;
 	bool hurtSource;
@@ -778,6 +785,13 @@ void A_ExplodeParms (AActor *self)
 
 void A_RadiusThrust (AActor *self)
 {
+	// [BB] This is server side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
 	int force = 0;
 	int distance = 0;
 	bool affectSource = true;
