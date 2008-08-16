@@ -385,7 +385,8 @@ void P_PlayerStartStomp (AActor *actor)
 		if (actor->z + actor->height < th->z)
 			continue;        // underneath
 
-		P_DamageMobj (th, actor, actor, 1000000, NAME_Telefrag);
+		// [BB] ST distinguishes between NAME_SpawnTelefrag and NAME_Telefrag.
+		P_DamageMobj (th, actor, actor, 1000000, NAME_SpawnTelefrag);
 	}
 }
 
