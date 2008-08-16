@@ -82,6 +82,7 @@ int palette_brightness;
 long gl_frameMS;
 int gl_spriteindex;
 float gl_sky1pos, gl_sky2pos;
+int gl_lightcount;
 
 Clock ProcessAll;
 Clock RenderAll;
@@ -428,7 +429,7 @@ void gl_DrawScene()
 
 	// second pass: draw lights (on fogged surfaces they are added to the textures!)
 	gl.DepthMask(false);
-	if (gl_lights && !gl_fixedcolormap)
+	if (gl_lights && gl_lightcount && !gl_fixedcolormap)
 	{
 		if (gl_SetupLightTexture())
 		{
@@ -462,7 +463,7 @@ void gl_DrawScene()
 
 	// fourth pass: additive lights
 	gl_EnableFog(true);
-	if (gl_lights && !gl_fixedcolormap)
+	if (gl_lights && gl_lightcount && !gl_fixedcolormap)
 	{
 		gl.BlendFunc(GL_ONE, GL_ONE);
 		gl.DepthFunc(GL_EQUAL);
@@ -786,6 +787,11 @@ static GLDrawInfo GlobalDrawInfo;
 
 sector_t * gl_RenderView (AActor * camera, GL_IRECT * bounds, float fov, float ratio, float fovratio, bool mainview)
 {       
+	TThinkerIterator<ADynamicLight> it(STAT_DLIGHT);
+
+	// Check if there's some lights. If not some code can be skipped.
+	gl_lightcount = (it.Next()!=NULL);
+
 	sector_t * retval;
 	R_SetupFrame (camera);
 	gl_SetViewArea();

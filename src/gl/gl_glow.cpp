@@ -80,10 +80,10 @@ void gl_InitGlow(FScanner &sc)
 			while (!sc.CheckString("}"))
 			{
 				sc.MustGetString();
-				int flump=TexMan.CheckForTexture(sc.String, FTexture::TEX_Flat,FTextureManager::TEXMAN_TryAny);
-				if (flump!=-1 && flump<MaxGlowingTexture) 
+				FTextureID flump=TexMan.CheckForTexture(sc.String, FTexture::TEX_Flat,FTextureManager::TEXMAN_TryAny);
+				if (flump.isValid() && flump.GetIndex()<MaxGlowingTexture) 
 				{
-					GlowingTextures[flump]=true;
+					GlowingTextures[flump.GetIndex()]=true;
 				}	 
 			}
 		}
@@ -94,10 +94,10 @@ void gl_InitGlow(FScanner &sc)
 			while (!sc.CheckString("}"))
 			{
 				sc.MustGetString();
-				int flump=TexMan.CheckForTexture(sc.String, FTexture::TEX_Wall,FTextureManager::TEXMAN_TryAny);
-				if (flump!=-1 && flump<MaxGlowingTexture) 
+				FTextureID flump=TexMan.CheckForTexture(sc.String, FTexture::TEX_Wall,FTextureManager::TEXMAN_TryAny);
+				if (flump.isValid() && flump.GetIndex()<MaxGlowingTexture) 
 				{
-					GlowingTextures[flump]=true;
+					GlowingTextures[flump.GetIndex()]=true;
 				}	 
 			}
 		}
@@ -110,11 +110,11 @@ void gl_InitGlow(FScanner &sc)
 //	Gets the average color of a texture for use as a glow color
 //
 //===========================================================================
-void gl_GetGlowColor(unsigned int texno, float * data)
+void gl_GetGlowColor(FTextureID texno, float * data)
 {
-	if (texno<MaxGlowingTexture)
+	if (texno.GetIndex()<MaxGlowingTexture)
 	{
-		if (GlowingColors[texno].a==0)
+		if (GlowingColors[texno.GetIndex()].a==0)
 		{
 			FGLTexture * tex = FGLTexture::ValidateTexture(texno);
 			if (tex)
@@ -124,15 +124,15 @@ void gl_GetGlowColor(unsigned int texno, float * data)
 
 				if (buffer)
 				{
-					GlowingColors[texno]=averageColor((unsigned long *) buffer, w*h, true);
+					GlowingColors[texno.GetIndex()]=averageColor((unsigned long *) buffer, w*h, true);
 					delete buffer;
-					GlowingColors[texno].a=1;	// mark as processed
+					GlowingColors[texno.GetIndex()].a=1;	// mark as processed
 				}
 			}
 		}
-		data[0]=GlowingColors[texno].r/255.0f;
-		data[1]=GlowingColors[texno].g/255.0f;
-		data[2]=GlowingColors[texno].b/255.0f;
+		data[0]=GlowingColors[texno.GetIndex()].r/255.0f;
+		data[1]=GlowingColors[texno.GetIndex()].g/255.0f;
+		data[2]=GlowingColors[texno.GetIndex()].b/255.0f;
 	}
 	else
 	{
@@ -148,9 +148,9 @@ void gl_GetGlowColor(unsigned int texno, float * data)
 // Does this texture emit a glow?
 //
 //==========================================================================
-bool gl_isGlowingTexture(unsigned int texno)
+bool gl_isGlowingTexture(FTextureID texno)
 {
-	if (texno<(unsigned)MaxGlowingTexture) return GlowingTextures[texno];
+	if (texno.isValid() && texno.GetIndex()<MaxGlowingTexture) return GlowingTextures[texno.GetIndex()];
 	return false;
 }
 
@@ -173,7 +173,7 @@ void gl_CheckGlowing(GLWall * wall)
 // Checks whether a sprite should be affected by a glow
 //
 //==========================================================================
-int gl_CheckSpriteGlow(int floorpic, int lightlevel, fixed_t floordiff)
+int gl_CheckSpriteGlow(FTextureID floorpic, int lightlevel, fixed_t floordiff)
 {
 	if (gl_isGlowingTexture(floorpic))
 	{

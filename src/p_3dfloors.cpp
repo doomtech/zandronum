@@ -202,9 +202,10 @@ static int P_Set3DFloor(line_t * line, int param,int param2, int alpha)
 			if (param2&32) flags|=FF_LOWERTEXTURE;
 			if (param2&64) flags|=FF_ADDITIVETRANS|FF_TRANSLUCENT;
 			if (param2&512) flags|=FF_FADEWALLS;
-			if (sides[line->sidenum[0]].GetTexture(side_t::top)<0 && alpha<255)
+			FTextureID tex = sides[line->sidenum[0]].GetTexture(side_t::top);
+			if (!tex.isValid() && alpha<255)
 			{
-				alpha=clamp(-sides[line->sidenum[0]].GetTexture(side_t::top), 0, 255);
+				alpha=clamp(-tex.GetIndex(), 0, 255);
 			}
 			if (alpha==0) flags&=~(FF_RENDERALL|FF_BOTHPLANES|FF_ALLSIDES);
 			else if (alpha!=255) flags|=FF_TRANSLUCENT;
@@ -213,7 +214,8 @@ static int P_Set3DFloor(line_t * line, int param,int param2, int alpha)
 		P_Add3DFloor(ss, sec, line, flags, alpha);
 	}
 	// To be 100% safe this should be done even if the alpha by texture value isn't used.
-	if (sides[line->sidenum[0]].GetTexture(side_t::top)<0) sides[line->sidenum[0]].SetTexture(side_t::top, 0);
+	if (!sides[line->sidenum[0]].GetTexture(side_t::top).isValid()) 
+		sides[line->sidenum[0]].SetTexture(side_t::top, FNullTextureID());
 	return 1;
 }
 
@@ -560,9 +562,11 @@ void P_LineOpening_XFloors (FLineOpening &open, AActor * thing, const line_t *li
 			fixed_t    lowestfloor[2] = {
 				linedef->frontsector->floorplane.ZatPoint(x, y), 
 				linedef->backsector->floorplane.ZatPoint(x, y) };
-			int highestfloorpic = -1;
-			int lowestceilingpic = -1;
+			FTextureID highestfloorpic;
+			FTextureID lowestceilingpic;
 			
+			highestfloorpic.SetInvalid();
+			lowestceilingpic.SetInvalid();
 			thingtop = thing->z + (thing->height==0? 1:thing->height);
 			
 			for(int j=0;j<2;j++)

@@ -726,7 +726,7 @@ LONG P_GetFirstFreeDoorID( void )
 	return ( -1 );
 }
 
-// Strife's animated doors. Based on Doom's unused sliding doors, but slightly different.
+// Strife's animated doors. Based on Doom's unused sliding doors, but significantly improved.
 
 class DeletingDoorArray : public TArray<FDoorAnimation>
 {
@@ -741,16 +741,6 @@ public:
 				delete [] ani->TextureFrames;
 				ani->TextureFrames = NULL;
 			}
-			if (ani->OpenSound != NULL)
-			{
-				delete [] ani->OpenSound;
-				ani->OpenSound = NULL;
-			}
-			if (ani->CloseSound != NULL)
-			{
-				delete [] ani->CloseSound;
-				ani->CloseSound = NULL;
-			}
 		}
 	}
 };
@@ -764,7 +754,7 @@ DeletingDoorArray DoorAnimations;
 //
 // Return index into "DoorAnimations" array for which door type to use
 //
-static int P_FindSlidingDoorType (int picnum)
+static int P_FindSlidingDoorType (FTextureID picnum)
 {
 	unsigned int i;
 
@@ -808,7 +798,7 @@ bool DAnimatedDoor::StartClosing ()
 		SERVERCOMMANDS_SetSectorCeilingPlane( ULONG( m_Sector - sectors ));
 	}
 
-	if (ani.CloseSound != NULL)
+	if (ani.CloseSound != NAME_None)
 	{
 		SN_StartSequence (m_Sector, CHAN_CEILING, ani.CloseSound, 1);
 	}
@@ -948,22 +938,21 @@ DAnimatedDoor::DAnimatedDoor (sector_t *sec)
 void DAnimatedDoor::Serialize (FArchive &arc)
 {
 	Super::Serialize (arc);
+
+	FTextureID basetex = DoorAnimations[m_WhichDoorIndex].BaseTexture;
+
 	arc << m_Line1 << m_Line2
 		<< m_Frame
 		<< m_Timer
 		<< m_BotDist
 		<< m_Status
 		<< m_Speed
-		<< m_Delay;
+		<< m_Delay
+		<< basetex;
 
-	if (arc.IsStoring())
+	if (arc.IsLoading())
 	{
-		TexMan.WriteTexture (arc, DoorAnimations[m_WhichDoorIndex].BaseTexture);
-	}
-	else
-	{
-		int picnum = TexMan.ReadTexture (arc);
-		m_WhichDoorIndex = P_FindSlidingDoorType (picnum);
+		m_WhichDoorIndex = P_FindSlidingDoorType (basetex);
 		if (m_WhichDoorIndex == -1)
 		{ // Oh no! The door animation doesn't exist anymore!
 			m_WhichDoorIndex = 0;
@@ -975,7 +964,7 @@ DAnimatedDoor::DAnimatedDoor (sector_t *sec, line_t *line, int speed, int delay)
 	: DMovingCeiling (sec)
 {
 	fixed_t topdist;
-	int picnum;
+	FTextureID picnum;
 
 	// The DMovingCeiling constructor automatically sets up an interpolation for us.
 	// Stop it, since the ceiling is moving instantly here.
@@ -1043,7 +1032,7 @@ DAnimatedDoor::DAnimatedDoor (sector_t *sec, line_t *line, int speed, int delay)
 
 	m_BotDist = m_Sector->ceilingplane.d;
 	MoveCeiling (2048*FRACUNIT, topdist, 1);
-	if (DoorAnimations[m_WhichDoorIndex].OpenSound != NULL)
+	if (DoorAnimations[m_WhichDoorIndex].OpenSound != NAME_None)
 	{
 		SN_StartSequence (m_Sector, CHAN_FULLHEIGHT, DoorAnimations[m_WhichDoorIndex].OpenSound, 1);
 	}
@@ -1126,16 +1115,14 @@ void P_ParseAnimatedDoor(FScanner &sc)
 {
 	const BITFIELD texflags = FTextureManager::TEXMAN_Overridable | FTextureManager::TEXMAN_TryAny;
 	FDoorAnimation anim;
-	TArray<int> frames;
+	TArray<FTextureID> frames;
 	bool error = false;
-	int v;
+	FTextureID v;
 
 	sc.MustGetString();
 	anim.BaseTexture = TexMan.CheckForTexture (sc.String, FTexture::TEX_Wall, texflags);
-	anim.OpenSound = NULL;
-	anim.CloseSound = NULL;
 
-	if (anim.BaseTexture == -1)
+	if (!anim.BaseTexture.Exists())
 	{
 		error = true;
 	}
@@ -1145,24 +1132,24 @@ void P_ParseAnimatedDoor(FScanner &sc)
 		if (sc.Compare ("opensound"))
 		{
 			sc.MustGetString ();
-			anim.OpenSound = copystring (sc.String);
+			anim.OpenSound = sc.String;
 		}
 		else if (sc.Compare ("closesound"))
 		{
 			sc.MustGetString ();
-			anim.CloseSound = copystring (sc.String);
+			anim.CloseSound = sc.String;
 		}
 		else if (sc.Compare ("pic"))
 		{
 			sc.MustGetString ();
 			if (IsNum (sc.String))
 			{
-				v = atoi(sc.String) + anim.BaseTexture -1;
+				v = anim.BaseTexture + (atoi(sc.String) - 1);
 			}
 			else
 			{
 				v = TexMan.CheckForTexture (sc.String, FTexture::TEX_Wall, texflags);
-				if (v == -1 && anim.BaseTexture >= 0 && !error)
+				if (!v.Exists() && anim.BaseTexture.Exists() && !error)
 				{
 					sc.ScriptError ("Unknown texture %s", sc.String);
 				}
@@ -1177,14 +1164,9 @@ void P_ParseAnimatedDoor(FScanner &sc)
 	}
 	if (!error)
 	{
-		anim.TextureFrames = new int[frames.Size()];
-		memcpy (anim.TextureFrames, &frames[0], sizeof(int) * frames.Size());
+		anim.TextureFrames = new FTextureID[frames.Size()];
+		memcpy (anim.TextureFrames, &frames[0], sizeof(FTextureID) * frames.Size());
 		anim.NumTextureFrames = frames.Size();
 		DoorAnimations.Push (anim);
-	}
-	else
-	{
-		if (anim.OpenSound!=NULL) delete [] anim.OpenSound;
-		if (anim.CloseSound!=NULL) delete [] anim.CloseSound;
 	}
 }

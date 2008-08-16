@@ -2419,7 +2419,8 @@ void G_DeathMatchSpawnPlayer( int playernum, bool bClientUpdate )
 	if ( spot == NULL )
 		I_Error( "Could not find a valid deathmatch spot! (this should not happen)" );
 
-	P_SpawnPlayer( spot, bClientUpdate, &players[playernum] );
+	AActor *mo = P_SpawnPlayer( spot, bClientUpdate, &players[playernum] );
+	if (mo != NULL) P_PlayerStartStomp(mo);
 }
 
 void G_TemporaryTeamSpawnPlayer( ULONG ulPlayer, bool bClientUpdate )
@@ -2466,7 +2467,8 @@ void G_TemporaryTeamSpawnPlayer( ULONG ulPlayer, bool bClientUpdate )
 	if ( pSpot == NULL )
 		I_Error( "Could not find a valid temporary spot! (this should not happen)" );
 
-	P_SpawnPlayer( pSpot, bClientUpdate, &players[ulPlayer] );
+	AActor *mo = P_SpawnPlayer( pSpot, bClientUpdate, &players[ulPlayer] );
+	if (mo != NULL) P_PlayerStartStomp(mo);
 }
 
 void G_TeamgameSpawnPlayer( ULONG ulPlayer, ULONG ulTeam, bool bClientUpdate )
@@ -2497,7 +2499,8 @@ void G_TeamgameSpawnPlayer( ULONG ulPlayer, ULONG ulTeam, bool bClientUpdate )
 	if ( pSpot == NULL )
 		I_Error( "Could not find a valid temporary spot! (this should not happen)" );
 
-	P_SpawnPlayer( pSpot, bClientUpdate, &players[ulPlayer] );
+	AActor *mo = P_SpawnPlayer( pSpot, bClientUpdate, &players[ulPlayer] );
+	if (mo != NULL) P_PlayerStartStomp(mo);
 }
 
 void G_CooperativeSpawnPlayer( ULONG ulPlayer, bool bClientUpdate, bool bTempPlayer )
@@ -2509,7 +2512,8 @@ void G_CooperativeSpawnPlayer( ULONG ulPlayer, bool bClientUpdate, bool bTempPla
 	// If there's a valid start for this player, spawn him there.
 	if (( playerstarts[ulPlayer].type != 0 ) && ( G_CheckSpot( ulPlayer, &playerstarts[ulPlayer] )))
 	{
-		P_SpawnPlayer( &playerstarts[ulPlayer], bClientUpdate, NULL, bTempPlayer );
+		AActor *mo = P_SpawnPlayer( &playerstarts[ulPlayer], bClientUpdate, NULL, bTempPlayer );
+		if (mo != NULL) P_PlayerStartStomp(mo);
 		return;
 	}
 
@@ -2530,7 +2534,8 @@ void G_CooperativeSpawnPlayer( ULONG ulPlayer, bool bClientUpdate, bool bTempPla
 	if ( pSpot == NULL )
 		I_Error( "Could not find a valid deathmatch spot! (this should not happen)" );
 
-	P_SpawnPlayer( pSpot, bClientUpdate, &players[ulPlayer], bTempPlayer );
+	AActor *mo = P_SpawnPlayer( pSpot, bClientUpdate, &players[ulPlayer], bTempPlayer );
+	if (mo != NULL) P_PlayerStartStomp(mo);
 }
 
 //
@@ -2804,7 +2809,8 @@ void GAME_CheckMode( void )
 				if ( playeringame[ulIdx] == false )
 					continue;
 
-				P_SpawnPlayer( &playerstarts[ulIdx], false, NULL );
+				AActor *mo = P_SpawnPlayer( &playerstarts[ulIdx], false, NULL );
+				if (mo != NULL) P_PlayerStartStomp(mo);
 			}
 		}
 */

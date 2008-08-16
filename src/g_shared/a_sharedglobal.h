@@ -26,7 +26,7 @@ public:
 
 	void Serialize (FArchive &arc);
 	void Destroy ();
-	int StickToWall (side_t *wall, fixed_t x, fixed_t y, F3DFloor * ffloor = NULL);
+	FTextureID StickToWall (side_t *wall, fixed_t x, fixed_t y, F3DFloor * ffloor = NULL);
 	fixed_t GetRealZ (const side_t *wall) const;
 	void SetShade (DWORD rgb);
 	void SetShade (int r, int g, int b);
@@ -42,8 +42,8 @@ public:
 	fixed_t ScaleX, ScaleY;
 	fixed_t Alpha;
 	DWORD AlphaColor;
-	WORD Translation;
-	WORD PicNum;
+	int Translation;
+	FTextureID PicNum;
 	DWORD RenderFlags;
 	FRenderStyle RenderStyle;
 	sector_t * Sector;	// required for 3D floors

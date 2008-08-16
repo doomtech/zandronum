@@ -14,6 +14,7 @@
 #include "a_keys.h"
 #include "a_strifeglobal.h"
 #include "gi.h"
+// [BB] New #includes.
 #include "deathmatch.h"
 
 // Number of tics to move the popscreen up and down.
@@ -449,7 +450,7 @@ private:
 					DTA_Alpha, FRACUNIT - ItemFlash,
 					TAG_DONE);
 			}
-			if (item->Icon != 0)
+			if (item->Icon.isValid())
 			{
 				DrawDimImage (TexMan(item->Icon), 48 + 35*i, 14, item->Amount <= 0);
 			}
@@ -549,7 +550,7 @@ private:
 							DTA_Alpha, TRANSLUC75,
 							TAG_DONE);
 					}
-					if (item->Icon != 0)
+					if (item->Icon.isValid())
 					{
 						screen->DrawTexture (TexMan(item->Icon), -94 + i*35, -19,
 							DTA_HUDRules, HUD_HorizCenter,

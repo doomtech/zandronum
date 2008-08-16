@@ -157,11 +157,18 @@ bool GLPortal::Start(bool usestencil, bool doquery)
 
 		if (NeedDepthBuffer())
 		{
+			if (gl_noquery) doquery = false;
+			
 			// If occlusion query is supported let's use it to avoid rendering portals that aren't visible
 			if (doquery && gl.flags&RFL_OCCLUSION_QUERY)
 			{
 				if (!QueryObject) gl.GenQueries(1, &QueryObject);
-				gl.BeginQuery(GL_SAMPLES_PASSED_ARB, QueryObject);
+				if (QueryObject) 
+				{
+					gl.BeginQuery(GL_SAMPLES_PASSED_ARB, QueryObject);
+				}
+				else doquery = false;	// some kind of error happened
+					
 			}
 
 			DrawPortalStencil();

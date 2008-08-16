@@ -415,7 +415,7 @@ int P_GetFriction (const AActor *mo, int *frictionfactor)
 	{
 		friction = FRICTION_FLY;
 	}
-	else if (!(mo->flags & MF_NOGRAVITY) && mo->waterlevel > 1 ||
+	else if ((!(mo->flags & MF_NOGRAVITY) && mo->waterlevel > 1) ||
 		(mo->waterlevel == 1 && mo->z > mo->floorz + 6*FRACUNIT))
 	{
 		friction = secfriction (mo->Sector);
@@ -2563,6 +2563,7 @@ void FSlide::HitSlideLine (line_t* ld)
 //
 void FSlide::SlideTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_t endy)
 {
+	FLineOpening open;
 	FPathTraverse it(startx, starty, endx, endy, PT_ADDLINES);
 	intercept_t *in;
 
@@ -2601,7 +2602,6 @@ void FSlide::SlideTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_
 			goto isblocking;
 		}
 
-		FLineOpening open;
 		// set openrange, opentop, openbottom
 		P_LineOpening (open, slidemo, li, it.Trace().x + FixedMul (it.Trace().dx, in->frac),
 			it.Trace().y + FixedMul (it.Trace().dy, in->frac));
@@ -3077,6 +3077,7 @@ const secplane_t * P_CheckSlopeWalk (AActor *actor, fixed_t &xmove, fixed_t &ymo
 
 bool FSlide::BounceTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_t endy)
 {
+	FLineOpening open;
 	FPathTraverse it(startx, starty, endx, endy, PT_ADDLINES);
 	intercept_t *in;
 
@@ -3104,7 +3105,6 @@ bool FSlide::BounceTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed
 			goto bounceblocking;
 		}
 
-		FLineOpening open;
 
 		P_LineOpening (open, slidemo, li, it.Trace().x + FixedMul (it.Trace().dx, in->frac),
 			it.Trace().y + FixedMul (it.Trace().dy, in->frac));	// set openrange, opentop, openbottom
@@ -4153,9 +4153,9 @@ void P_RailAttack (AActor *source, int damage, int offset, int color1, int color
 	{
 		fixed_t savex, savey, savez;
 		fixed_t savefloor, saveceil, savedropoff;
-		int savefloorpic;
+		FTextureID savefloorpic;
 		sector_t *savefloorsec;
-		int saveceilingpic;
+		FTextureID saveceilingpic;
 		sector_t *saveceilingsec;
 
 		savex = source->x;

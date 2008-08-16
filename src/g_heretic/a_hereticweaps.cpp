@@ -1046,7 +1046,7 @@ BEGIN_DEFAULTS (AMace, Heretic, -1, 0)
 	PROP_Inventory_PickupMessage("$TXT_WPNMACE")
 END_DEFAULTS
 
-IMPLEMENT_STATELESS_ACTOR (AMacePowered, Heretic, -1, 0)
+IMPLEMENT_STATELESS_ACTOR (AMacePowered, Heretic, -1, 31)
 	PROP_Weapon_Flags (WIF_POWERED_UP)
 	PROP_Weapon_AmmoUse1 (USE_MACE_AMMO_2)
 	PROP_Weapon_AmmoGive1 (0)
@@ -2526,7 +2526,6 @@ void A_FireBlasterPL1 (AActor *actor)
 
 void A_FireBlasterPL2 (AActor *actor)
 {
-	AActor *mo;
 	player_t *player;
 
 	if (NULL == (player = actor->player))
@@ -2549,7 +2548,7 @@ void A_FireBlasterPL2 (AActor *actor)
 		return;
 	}
 
-	mo = P_SpawnPlayerMissile (actor, RUNTIME_CLASS(ABlasterFX1));
+	P_SpawnPlayerMissile (actor, RUNTIME_CLASS(ABlasterFX1));
 
 	// [BC] Apply spread.
 	if ( player->cheats & CF_SPREAD )
@@ -2558,7 +2557,7 @@ void A_FireBlasterPL2 (AActor *actor)
 		P_SpawnPlayerMissile( actor, RUNTIME_CLASS( ABlasterFX1 ), actor->angle - ( ANGLE_45 / 3 ));
 	}
 
-	S_Sound (mo, CHAN_WEAPON, "weapons/blastershoot", 1, ATTN_NORM);
+	S_Sound (actor, CHAN_WEAPON, "weapons/blastershoot", 1, ATTN_NORM);
 
 	// [BC] If we're the server, tell clients that a weapon is being fired.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )

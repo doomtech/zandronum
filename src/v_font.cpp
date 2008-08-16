@@ -235,8 +235,8 @@ FFont *V_GetFont(const char *name)
 		}
 		if (font == NULL)
 		{
-			int picnum = TexMan.CheckForTexture (name, FTexture::TEX_Any);
-			if (picnum > 0)
+			FTextureID picnum = TexMan.CheckForTexture (name, FTexture::TEX_Any);
+			if (picnum.isValid())
 			{
 				font = new FSinglePicFont (name);
 			}
@@ -851,7 +851,7 @@ FSingleLumpFont::FSingleLumpFont (const char *name, int lump)
 //
 //==========================================================================
 
-void FSingleLumpFont::CreateFontFromPic (int picnum)
+void FSingleLumpFont::CreateFontFromPic (FTextureID picnum)
 {
 	FTexture *pic = TexMan[picnum];
 
@@ -1135,9 +1135,9 @@ void FSingleLumpFont::FixupPalette (BYTE *identity, double *luminosity, const BY
 
 FSinglePicFont::FSinglePicFont(const char *picname)
 {
-	int picnum = TexMan.CheckForTexture (picname, FTexture::TEX_Any);
+	FTextureID picnum = TexMan.CheckForTexture (picname, FTexture::TEX_Any);
 
-	if (picnum <= 0)
+	if (!picnum.isValid())
 	{
 		I_FatalError ("%s is not a font or texture", picname);
 	}

@@ -227,8 +227,8 @@ struct FLineOpening
 	fixed_t			lowfloor;
 	sector_t		*bottomsec;
 	sector_t		*topsec;
-	int				ceilingpic;
-	int				floorpic;
+	FTextureID		ceilingpic;
+	FTextureID		floorpic;
 	bool			touchmidtex;
 };
 
@@ -333,9 +333,9 @@ struct FCheckPosition
 	fixed_t			floorz;
 	fixed_t			ceilingz;
 	fixed_t			dropoffz;
-	fixed_t			floorpic;
+	FTextureID		floorpic;
 	sector_t		*floorsector;
-	fixed_t			ceilingpic;
+	FTextureID		ceilingpic;
 	sector_t		*ceilingsector;
 	bool			touchmidtex;
 	bool			floatok;

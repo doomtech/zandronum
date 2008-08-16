@@ -2359,7 +2359,7 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 		// CANTLEAVEFLOORPIC handling was completely missing in the non-serpent functions.
 		fixed_t oldX = actor->x;
 		fixed_t oldY = actor->y;
-		int oldFloor = actor->floorpic;
+		FTextureID oldFloor = actor->floorpic;
 
 		// [BC] In client mode, just keep walking until the server tells us to
 		// change directions.
@@ -2454,6 +2454,9 @@ static bool P_CheckForResurrection(AActor *self, bool usevilestates)
 			raisestate = corpsehit->FindState(NAME_Raise);
 			if (raisestate == NULL)
 				continue;	// monster doesn't have a raise state
+
+			if (corpsehit->IsKindOf(RUNTIME_CLASS(APlayerPawn)))
+				continue;	// do not resurrect players
 
 			// use the current actor's radius instead of the Arch Vile's default.
 			fixed_t maxdist = corpsehit->GetDefault()->radius + self->radius; 

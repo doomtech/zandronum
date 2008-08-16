@@ -67,7 +67,7 @@ void GLWall::DrawDecal(DBaseDecal *actor, seg_t *seg, sector_t *frontSector, sec
 	float a;
 	bool flipx, flipy, loadAlpha;
 	DecalVertex dv[4];
-	int decalTile;
+	FTextureID decalTile;
 	
 
 	if (actor->RenderFlags & RF_INVISIBLE) return;
@@ -165,7 +165,7 @@ void GLWall::DrawDecal(DBaseDecal *actor, seg_t *seg, sector_t *frontSector, sec
 
 		gl_GetLightColor(light, rel, &p, &red, &green, &blue);
 		
-		if (gl_lights && !gl_fixedcolormap && gl_light_sprites)
+		if (gl_lights && gl_lightcount && !gl_fixedcolormap && gl_light_sprites)
 		{
 			float result[3];
 			fixed_t x, y;

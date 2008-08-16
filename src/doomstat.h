@@ -250,7 +250,6 @@ extern	int 			bodyqueslot;
 // Needed to store the number of the dummy sky flat.
 // Used for rendering,
 //	as well as tracking projectiles etc.
-extern int				skyflatnum;
 
 
 

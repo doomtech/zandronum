@@ -1691,12 +1691,12 @@ void R_RenderViewToCanvas (AActor *actor, DCanvas *canvas,
 //
 //==========================================================================
 
-void FCanvasTextureInfo::Add (AActor *viewpoint, int picnum, int fov)
+void FCanvasTextureInfo::Add (AActor *viewpoint, FTextureID picnum, int fov)
 {
 	FCanvasTextureInfo *probe;
 	FCanvasTexture *texture;
 
-	if (picnum < 0)
+	if (!picnum.isValid())
 	{
 		return;
 	}
@@ -1793,8 +1793,7 @@ void FCanvasTextureInfo::Serialize (FArchive &arc)
 		{
 			if (probe->Texture != NULL && probe->Viewpoint != NULL)
 			{
-				arc << probe->Viewpoint << probe->FOV;
-				TexMan.WriteTexture (arc, probe->PicNum);
+				arc << probe->Viewpoint << probe->FOV << probe->PicNum;
 			}
 		}
 		AActor *nullactor = NULL;
@@ -1803,16 +1802,14 @@ void FCanvasTextureInfo::Serialize (FArchive &arc)
 	else
 	{
 		AActor *viewpoint;
-		int picnum, fov;
+		int fov;
+		FTextureID picnum;
 		
 		EmptyList ();
-		arc << viewpoint;
-		while (viewpoint != NULL)
+		while (arc << viewpoint, viewpoint != NULL)
 		{
-			arc << fov;
-			picnum = TexMan.ReadTexture (arc);
+			arc << fov << picnum;
 			Add (viewpoint, picnum, fov);
-			arc << viewpoint;
 		}
 	}
 }

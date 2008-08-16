@@ -5993,6 +5993,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\src\g_shared\a_randomspawner.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\g_shared\a_returnzone.cpp"
 				>
 			</File>
@@ -9301,6 +9305,10 @@
 				</File>
 				<File
 					RelativePath=".\src\textures\texturemanager.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\textures\textures.h"
 					>
 				</File>
 				<File

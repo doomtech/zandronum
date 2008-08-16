@@ -217,8 +217,7 @@ void GLWall::RenderFogBoundary()
 //==========================================================================
 void GLWall::RenderMirrorSurface()
 {
-	int lump=TexMan.CheckForTexture("MIRROR", FTexture::TEX_MiscPatch,FTextureManager::TEXMAN_TryAny);
-	if (lump<0) return;
+	if (mirrortexture == NULL) return;
 
 	// Use sphere mapping for this
 	gl.Enable(GL_TEXTURE_GEN_T);
@@ -232,7 +231,7 @@ void GLWall::RenderMirrorSurface()
 	gl.DepthFunc(GL_LEQUAL);
 	gl_SetFog(lightlevel, Colormap.FadeColor, true, Colormap.LightColor.a);
 
-	FGLTexture * pat=FGLTexture::ValidateTexture(lump);
+	FGLTexture * pat=FGLTexture::ValidateTexture(mirrortexture);
 	pat->BindPatch(Colormap.LightColor.a, 0);
 
 	RenderWall(0,NULL);

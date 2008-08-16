@@ -50,6 +50,7 @@
 #include "gl/gl_basic.h"
 #include "gl/gl_functions.h"
 #include "vectors.h"
+#include "r_sky.h"
 
 UniqueList<GLSkyInfo> UniqueSkies;
 UniqueList<GLHorizonInfo> UniqueHorizons;
@@ -486,7 +487,6 @@ bool GLWall::DoHorizon(seg_t * seg,sector_t * fs, vertex_t * v1,vertex_t * v2)
 
 			if (gl_fixedcolormap) hi.colormap.GetFixedColormap();
 			horizon=&hi;
-			topflat=1;
 			PutWall(0);
 		}
 		ztop[1]=ztop[0]=zbottom[0];
@@ -516,7 +516,6 @@ bool GLWall::DoHorizon(seg_t * seg,sector_t * fs, vertex_t * v1,vertex_t * v2)
 
 			if (gl_fixedcolormap) hi.colormap.GetFixedColormap();
 			horizon=&hi;
-			topflat=0;
 			PutWall(0);
 		}
 	}
@@ -1026,7 +1025,7 @@ void GLWall::BuildFFBlock(seg_t * seg, F3DFloor * rover,
 	}
 	else
 	{
-		int texno;
+		FTextureID texno;
 		
 		if (rover->flags&FF_UPPERTEXTURE) texno = seg->sidedef->GetTexture(side_t::top);
 		else if (rover->flags&FF_LOWERTEXTURE) texno = seg->sidedef->GetTexture(side_t::bottom);

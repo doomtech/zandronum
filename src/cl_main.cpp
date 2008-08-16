@@ -8086,7 +8086,7 @@ static void client_SetSectorFlat( BYTESTREAM_s *pByteStream )
 	LONG			lSectorID;
 	char			szCeilingFlatName[MAX_NETWORK_STRING];
 	const char		*pszFloorFlatName;
-	LONG			lFlatLump;
+	FTextureID		flatLump;
 
 	// Read in the sector ID.
 	lSectorID = NETWORK_ReadShort( pByteStream );
@@ -8111,11 +8111,11 @@ static void client_SetSectorFlat( BYTESTREAM_s *pByteStream )
 		return; 
 	}
 
-	lFlatLump = TexMan.GetTexture( szCeilingFlatName, FTexture::TEX_Flat );
-	pSector->ceilingpic = lFlatLump;
+	flatLump = TexMan.GetTexture( szCeilingFlatName, FTexture::TEX_Flat );
+	pSector->ceilingpic = flatLump;
 
-	lFlatLump = TexMan.GetTexture( pszFloorFlatName, FTexture::TEX_Flat );
-	pSector->floorpic = lFlatLump;
+	flatLump = TexMan.GetTexture( pszFloorFlatName, FTexture::TEX_Flat );
+	pSector->floorpic = flatLump;
 }
 
 //*****************************************************************************
@@ -8712,7 +8712,7 @@ static void client_SetLineTexture( BYTESTREAM_s *pByteStream )
 	const char	*pszTextureName;
 	ULONG		ulSide;
 	ULONG		ulPosition;
-	LONG		lTexture;
+	FTextureID	texture;
 
 	// Read in the line to have its alpha altered.
 	ulLineIdx = NETWORK_ReadShort( pByteStream );
@@ -8735,9 +8735,9 @@ static void client_SetLineTexture( BYTESTREAM_s *pByteStream )
 		return;
 	}
 
-	lTexture = TexMan.CheckForTexture( pszTextureName, FTexture::TEX_Wall );
+	texture = TexMan.CheckForTexture( pszTextureName, FTexture::TEX_Wall );
 
-	if ( lTexture < 0 )
+	if ( !texture.Exists() )
 		return;
 
 	if ( pLine->sidenum[ulSide] == NO_SIDE )
@@ -8749,15 +8749,15 @@ static void client_SetLineTexture( BYTESTREAM_s *pByteStream )
 	{
 	case 0 /*TEXTURE_TOP*/:
 			
-		pSide->SetTexture(side_t::top, lTexture);
+		pSide->SetTexture(side_t::top, texture);
 		break;
 	case 1 /*TEXTURE_MIDDLE*/:
 
-		pSide->SetTexture(side_t::mid, lTexture);
+		pSide->SetTexture(side_t::mid, texture);
 		break;
 	case 2 /*TEXTURE_BOTTOM*/:
 
-		pSide->SetTexture(side_t::bottom, lTexture);
+		pSide->SetTexture(side_t::bottom, texture);
 		break;
 	default:
 
@@ -11036,7 +11036,7 @@ static void client_SetCameraToTexture( BYTESTREAM_s *pByteStream )
 	const char	*pszTexture;
 	LONG		lFOV;
 	AActor		*pCamera;
-	LONG		lPicNum;
+	FTextureID	picNum;
 
 	// Read in the ID of the camera.
 	lID = NETWORK_ReadShort( pByteStream );
@@ -11053,14 +11053,14 @@ static void client_SetCameraToTexture( BYTESTREAM_s *pByteStream )
 	if ( pCamera == NULL )
 		return;
 
-	lPicNum = TexMan.CheckForTexture( pszTexture, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable );
-	if ( lPicNum < 0 )
+	picNum = TexMan.CheckForTexture( pszTexture, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable );
+	if ( !picNum.Exists() )
 	{
 		Printf( "client_SetCameraToTexture: %s is not a texture\n", pszTexture );
 		return;
 	}
 
-	FCanvasTextureInfo::Add( pCamera, lPicNum, lFOV );
+	FCanvasTextureInfo::Add( pCamera, picNum, lFOV );
 }
 
 //*****************************************************************************

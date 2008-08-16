@@ -1884,6 +1884,7 @@ void AAmbientSound::Serialize (FArchive &arc)
 	}
 }
 
+
 void AAmbientSound::Tick ()
 {
 	Super::Tick ();
@@ -1904,7 +1905,7 @@ void AAmbientSound::Tick ()
 
 		if (ambient->sound[0])
 		{
-			S_StartSound (NULL, this, NULL, CHAN_BODY|CHAN_LOOP, ambient->sound,
+			S_StartSound (&this->x, this, NULL, CHAN_BODY|CHAN_LOOP, ambient->sound,
 				ambient->volume, ambient->attenuation);
 			SetTicker (ambient);
 		}
@@ -1927,6 +1928,7 @@ void AAmbientSound::Tick ()
 		}
 	}
 }
+
 
 void AAmbientSound::SetTicker (struct AmbientSound *ambient)
 {

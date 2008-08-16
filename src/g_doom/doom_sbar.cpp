@@ -895,7 +895,7 @@ void DrawFullHUD_Rune()
 	while (( pInventory ) && ( pInventory->IsKindOf( PClass::FindClass( "Rune" )) == false ))
 		pInventory = pInventory->Inventory;
 
-	if (( pInventory ) && ( pInventory->Icon != 0 ))
+	if (( pInventory ) && ( pInventory->Icon.isValid() ))
 	{
 		if ( bScale )
 			ulCurXPos = ValWidth.Int * 1 / 4;
@@ -1524,7 +1524,7 @@ void DrawFullHUD_GameInformation()
 
 			for (item = CPlayer->mo->Inventory; item != NULL; item = item->Inventory)
 			{
-				if (item->Icon > 0 && item->IsKindOf (RUNTIME_CLASS(AKey)))
+				if (item->Icon.isValid() && item->IsKindOf (RUNTIME_CLASS(AKey)))
 				{
 					FTexture *keypic = TexMan(item->Icon);
 					if (keypic != NULL)
@@ -1575,7 +1575,7 @@ void DrawFullHUD_GameInformation()
 			pInventory = NULL;
 		for ( ; pInventory != NULL; pInventory = pInventory->Inventory )
 		{
-			if (( pInventory->IsKindOf( RUNTIME_CLASS( AKey ))) && ( pInventory->Icon > 0 ))
+			if (( pInventory->IsKindOf( RUNTIME_CLASS( AKey ))) && ( pInventory->Icon.isValid() ))
 			{
 				if ( bScale )
 				{

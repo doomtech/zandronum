@@ -289,10 +289,10 @@ shaders/tex/tex_warp2.fp                          gzd/shaders/tex/tex_warp2.fp
 
 
 
-textures/gllight.png		gzd/textures/gllight.png
-textures/glpart.png			gzd/textures/glpart.png
-textures/glpart2.png		gzd/textures/glpart2.png
-textures/mirror.png			gzd/textures/mirror.png
+glstuff/gllight.png			gzd/textures/gllight.png
+glstuff/glpart.png			gzd/textures/glpart.png
+glstuff/glpart2.png			gzd/textures/glpart2.png
+glstuff/mirror.png			gzd/textures/mirror.png
 decorate.z					gzd/decorate.gzd
 
 

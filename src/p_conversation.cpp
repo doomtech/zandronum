@@ -323,16 +323,16 @@ static FStrifeDialogueNode *ReadRetailNode (FileReader *lump, DWORD &prevSpeaker
 	node->Dialogue = ncopystring (speech.Dialogue);
 
 	// The speaker's portrait, if any.
-	speech.Backdrop[8] = 0;
+	speech.Dialogue[0] = 0; 	//speech.Backdrop[8] = 0;
 	node->Backdrop = TexMan.CheckForTexture (speech.Backdrop, FTexture::TEX_MiscPatch);
 
 	// The speaker's voice for this node, if any.
-	speech.Sound[8] = 0;
+	speech.Backdrop[0] = 0; 	//speech.Sound[8] = 0;
 	sprintf (fullsound, "svox/%s", speech.Sound);
 	node->SpeakerVoice = fullsound;
 
 	// The speaker's name, if any.
-	speech.Name[16] = 0;
+	speech.Sound[0] = 0; 		//speech.Name[16] = 0;
 	node->SpeakerName = ncopystring (speech.Name);
 
 	// The item the speaker should drop when killed.
@@ -392,7 +392,7 @@ static FStrifeDialogueNode *ReadTeaserNode (FileReader *lump, DWORD &prevSpeaker
 	node->Dialogue = ncopystring (speech.Dialogue);
 
 	// The Teaser version doesn't have portraits.
-	node->Backdrop = -1;
+	node->Backdrop.SetInvalid();
 
 	// The speaker's voice for this node, if any.
 	if (speech.VoiceNumber != 0)
@@ -406,7 +406,7 @@ static FStrifeDialogueNode *ReadTeaserNode (FileReader *lump, DWORD &prevSpeaker
 	}
 
 	// The speaker's name, if any.
-	speech.Name[16] = 0;
+	speech.Dialogue[0] = 0; 	//speech.Name[16] = 0;
 	node->SpeakerName = ncopystring (speech.Name);
 
 	// The item the speaker should drop when killed.
@@ -853,7 +853,7 @@ static void DrawConversationMenu ()
 		menuactive = MENU_On;
 	}
 
-	if (CurNode->Backdrop >= 0)
+	if (CurNode->Backdrop.isValid())
 	{
 		screen->DrawTexture (TexMan(CurNode->Backdrop), 0, 0, DTA_320x200, true, TAG_DONE);
 	}
@@ -876,7 +876,7 @@ static void DrawConversationMenu ()
 	}
 
 	// Dim the screen behind the dialogue (but only if there is no backdrop).
-	if (CurNode->Backdrop <= 0)
+	if (!CurNode->Backdrop.isValid())
 	{
 		for (i = 0; DialogueLines[i].Width >= 0; ++i)
 		{ }

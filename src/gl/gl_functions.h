@@ -28,6 +28,7 @@ bool gl_LoadGLNodes(MapData * map);
 void gl_InitData();
 void gl_CleanLevelData();
 void gl_PreprocessLevel(void);
+void gl_AddMapinfoParser();
 
 // Light + color
 
@@ -93,7 +94,7 @@ void gl_SetFogLight(int lightlevel);
 void gl_EnableTexture(bool on);
 
 
-int gl_GetSpriteFrame(unsigned sprite, int frame, int rot, angle_t angle=0);
+FTextureID gl_GetSpriteFrame(unsigned sprite, int frame, int rot, angle_t angle, bool *mirror);
 
 
 #ifndef max

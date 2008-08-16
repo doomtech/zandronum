@@ -71,7 +71,7 @@ enum HWRenderStyle
 
 struct GLSectorPlane
 {
-	int texture;
+	FTextureID texture;
 	secplane_t plane;
 	fixed_t texheight;
 	fixed_t xoffs,  yoffs;
@@ -160,7 +160,7 @@ public:
 	};
 
 
-	int topflat,bottomflat;
+	FTextureID topflat,bottomflat;
 
 	// these are not the same as ytop and ybottom!!!
 	float zceil[2];

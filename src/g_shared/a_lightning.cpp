@@ -6,6 +6,7 @@
 #include "templates.h"
 #include "s_sound.h"
 #include "p_acs.h"
+#include "r_sky.h"
 // [BC] New #includes.
 #include "network.h"
 #include "sv_commands.h"

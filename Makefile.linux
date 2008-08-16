@@ -1,9 +1,9 @@
 # created on 4/12/2006 by James Bentler
 
-
 FMOD_PREFIX = ../fmodapi41404linux/api
 CXX = apg++
 CC = apgcc
+
 NASM ?= nasm
 CCDV = @./ccdv
 
@@ -41,6 +41,12 @@ ifndef SERVERONLY
 endif
 
 NASMFLAGS += -f elf -DM_TARGET_LINUX
+
+ifdef VALGRIND
+  NOSTRIP = 1
+  NASMFLAGS += -DVALGRIND_AWARE
+endif
+
 SRCDIRS = src/ $(addprefix src/,g_doom/ g_heretic/ g_hexen/ g_raven/ g_shared/ g_strife/ MD5/ oplsynth/ sound/ sdl/ textures/ thingdef/ win32/g15/ xlat/)
 ifndef SERVERONLY
   SRCDIRS += $(addprefix src/,gl/ gl/r_render/)
@@ -60,6 +66,9 @@ endif
 
 CPPSRCS = $(wildcard $(addsuffix *.cpp,$(SRCDIRS)))
 CSRCS = $(filter-out src/xlat/xlat_parser.c, $(wildcard $(addsuffix *.c,$(SRCDIRS))))
+ifdef X64
+  NOASM=1
+endif
 ifdef NOASM
   CFLAGS += -DNOASM
 else

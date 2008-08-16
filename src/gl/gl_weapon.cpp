@@ -73,10 +73,9 @@ static void DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed_t sy,
 	}
 
 	// decide which patch to use
-	int lump = gl_GetSpriteFrame(psp->state->sprite.index, psp->state->GetFrame(), 0);
-	bool mirror = lump < 0;
-	lump = abs(lump);
-	if (lump==INVALID_SPRITE) return;
+	bool mirror;
+	FTextureID lump = gl_GetSpriteFrame(psp->state->sprite.index, psp->state->GetFrame(), 0, 0, &mirror);
+	if (!lump.isValid()) return;
 
 	FGLTexture * tex=FGLTexture::ValidateTexture(lump, false);
 	if (!tex) return;

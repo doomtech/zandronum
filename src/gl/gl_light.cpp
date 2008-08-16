@@ -494,10 +494,9 @@ bool gl_SetupLight(Plane & p, ADynamicLight * light, Vector & nearPt, Vector & u
 //==========================================================================
 bool gl_SetupLightTexture()
 {
-	int lump=TexMan.CheckForTexture("GLLIGHT", FTexture::TEX_MiscPatch,FTextureManager::TEXMAN_TryAny);
 
-	if (lump<0) return false;
-	FGLTexture * pat=FGLTexture::ValidateTexture(lump, false);
+	if (gllight == NULL) return false;
+	FGLTexture * pat = FGLTexture::ValidateTexture(gllight);
 	pat->BindPatch(CM_DEFAULT, 0);
 	return true;
 }
@@ -692,7 +691,7 @@ void gl_SetSpriteLighting(FRenderStyle style, AActor *thing, int lightlevel, int
 	}
 	else
 	{
-		if (gl_light_sprites && gl_lights && !fullbright)
+		if (gl_light_sprites && gl_lights && gl_lightcount && !fullbright)
 		{
 			gl_SetSpriteLight(thing, lightlevel, rellight, cm, alpha, ThingColor, weapon);
 		}

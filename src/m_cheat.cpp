@@ -736,7 +736,7 @@ void cht_Give (player_t *player, const char *name, int amount)
 			if (type->IsDescendantOf (RUNTIME_CLASS(AInventory)))
 			{
 				AInventory *def = (AInventory*)GetDefaultByType (type);
-				if (def->Icon > 0 && def->MaxAmount > 1 &&
+				if (def->Icon.isValid() && def->MaxAmount > 1 &&
 					!type->IsDescendantOf (RUNTIME_CLASS(APuzzleItem)) &&
 					!type->IsDescendantOf (RUNTIME_CLASS(APowerup)) &&
 					!type->IsDescendantOf (RUNTIME_CLASS(AArmor)))
@@ -757,7 +757,7 @@ void cht_Give (player_t *player, const char *name, int amount)
 			if (type->IsDescendantOf (RUNTIME_CLASS(APuzzleItem)))
 			{
 				AInventory *def = (AInventory*)GetDefaultByType (type);
-				if (def->Icon > 0)
+				if (def->Icon.isValid())
 				{
 					GiveSpawner (player, type, 1);
 				}

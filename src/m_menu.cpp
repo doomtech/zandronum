@@ -1638,7 +1638,7 @@ void M_DrawReadThis ()
 		{
 			tex = TexMan[gameinfo.info.infoPage[InfoType-1]];
 		}
-		else if ( TexMan.CheckForTexture( GAMEMODE_GetF1Texture( GAMEMODE_GetCurrentMode( )), 0, 0 ) != -1 )
+		else if ( TexMan.CheckForTexture( GAMEMODE_GetF1Texture( GAMEMODE_GetCurrentMode( )), 0, 0 ).Exists() )
 			tex = TexMan[GAMEMODE_GetF1Texture( GAMEMODE_GetCurrentMode( ))];
 		if (InfoType > 1)
 		{
@@ -3485,12 +3485,14 @@ void M_Drawer ()
 	int i, x, y, max;
 	PalEntry fade = 0;
 
-	const player_t *player = &players[consoleplayer];
-	if (!screen->Accel2D && player->camera != NULL && (gamestate == GS_LEVEL || gamestate == GS_TITLELEVEL))
+	player_t *player = &players[consoleplayer];
+	AActor *camera = player->camera;
+
+	if (!screen->Accel2D && camera != NULL && (gamestate == GS_LEVEL || gamestate == GS_TITLELEVEL))
 	{
-		if (player->camera->player != NULL)
+		if (camera->player != NULL)
 		{
-			player = player->camera->player;
+			player = camera->player;
 		}
 		fade = PalEntry (BYTE(player->BlendA*255), BYTE(player->BlendR*255), BYTE(player->BlendG*255), BYTE(player->BlendB*255));
 	}

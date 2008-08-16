@@ -47,6 +47,7 @@
 #include "gl/gl_portal.h"
 #include "gl/gl_basic.h"
 #include "gl/gl_functions.h"
+#include "r_sky.h"
 
 
 extern Clock RenderWall,SetupWall,ClipWall;

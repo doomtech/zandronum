@@ -180,7 +180,7 @@ public:
 
 	static void FlushAll();
 	static FGLTexture * ValidateTexture(FTexture * tex);
-	static FGLTexture * ValidateTexture(int no, bool translate=true);
+	static FGLTexture * ValidateTexture(FTextureID no, bool translate=true);
 
 	// Patch drawing utilities
 

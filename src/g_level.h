@@ -122,7 +122,8 @@
 #define LEVEL_CONV_SINGLE_UNFREEZE	UCONST64(0x10000000000000)
 #define LEVEL_RAILINGHACK			UCONST64(0x20000000000000)	// but UDMF requires them to be separate to have more control
 #define LEVEL_DUMMYSWITCHES			UCONST64(0x40000000000000)
-#define	LEVEL_NOBOTNODES			UCONST64(0x80000000000000)	// [BC] Level does not use bot nodes.
+#define LEVEL_HEXENHACK				UCONST64(0x80000000000000)	// Level was defined in a Hexen style MAPINFO
+#define	LEVEL_NOBOTNODES			UCONST64(0x100000000000000)	// [BC] Level does not use bot nodes.
 
 
 struct acsdefered_s;
@@ -137,6 +138,21 @@ struct FSpecialAction
 
 class FCompressedMemFile;
 class DScroller;
+
+class FScanner;
+struct level_info_t;
+typedef void (*MIParseFunc)(FScanner &sc, level_info_t *info);
+
+void AddOptionalMapinfoParser(const char *keyword, MIParseFunc parsefunc);
+
+struct FOptionalMapinfoData
+{
+	FOptionalMapinfoData *Next;
+	FName identifier;
+	FOptionalMapinfoData() { Next = NULL; identifier = NAME_None; }
+	virtual ~FOptionalMapinfoData() {}
+	virtual FOptionalMapinfoData *Clone() const = 0;
+};
 
 struct level_info_t
 {
@@ -189,12 +205,10 @@ struct level_info_t
 	char		*sndseq;
 	char		bordertexture[9];
 
-	int			fogdensity;
-	int			outsidefogdensity;
-	int			skyfog;
-	FSpecialAction * specialactions;
-
 	float		teamdamage;
+
+	FSpecialAction * specialactions;
+	FOptionalMapinfoData *opdata;
 
 	//[BL] Link a sectinfo to a map
 	SectInfo	SectorInfo;

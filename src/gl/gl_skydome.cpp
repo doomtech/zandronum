@@ -154,7 +154,7 @@ CVAR (Int, gl_sky_detail, 16, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 EXTERN_CVAR (Bool, r_stretchsky)
 
 static TArray<PalEntry> SkyColors;
-size_t MaxSkyTexture;	// TexMan.NumTextures can't be used because it may change after allocating the array here!
+unsigned MaxSkyTexture;	// TexMan.NumTextures can't be used because it may change after allocating the array here!
 extern int skyfog;
 
 //===========================================================================
@@ -162,7 +162,7 @@ extern int skyfog;
 //	Gets the average color of a texture for use as a sky cap color
 //
 //===========================================================================
-static PalEntry SkyCapColor(unsigned int texno, bool bottom)
+static PalEntry SkyCapColor(FTextureID texno, bool bottom)
 {
 	PalEntry col;
 
@@ -173,9 +173,9 @@ static PalEntry SkyCapColor(unsigned int texno, bool bottom)
 		memset(&SkyColors[0], 0, sizeof(PalEntry)*MaxSkyTexture);
 	}
 
-	if (texno<MaxSkyTexture)
+	if (texno.isValid() && texno.GetIndex()<MaxSkyTexture)
 	{
-		if (SkyColors[texno].a==0)
+		if (SkyColors[texno.GetIndex()].a==0)
 		{
 			FGLTexture * tex = FGLTexture::ValidateTexture(texno);
 			if (tex)
@@ -186,18 +186,18 @@ static PalEntry SkyCapColor(unsigned int texno, bool bottom)
 
 				if (buffer)
 				{
-					SkyColors[texno]=averageColor((unsigned long *) buffer, w * MIN(30, h), false);
+					SkyColors[texno.GetIndex()]=averageColor((unsigned long *) buffer, w * MIN(30, h), false);
 					if (h>30)
 					{
-						SkyColors[texno+MaxSkyTexture]=	averageColor(((unsigned long *) buffer)+(h-30)*w, w * 30, false);
+						SkyColors[texno.GetIndex()+MaxSkyTexture] = averageColor(((unsigned long *) buffer)+(h-30)*w, w * 30, false);
 					}
-					else SkyColors[texno+MaxSkyTexture]=SkyColors[texno];
+					else SkyColors[texno.GetIndex() + MaxSkyTexture] = SkyColors[texno.GetIndex()];
 					delete buffer;
-					SkyColors[texno].a=1;	// mark as processed
+					SkyColors[texno.GetIndex()].a=1;	// mark as processed
 				}
 			}
 		}
-		return SkyColors[texno+MaxSkyTexture*bottom];
+		return SkyColors[texno.GetIndex() + MaxSkyTexture*bottom];
 	}
 	else
 	{
@@ -377,7 +377,7 @@ static void RenderSkyHemisphere(int hemi)
 //
 //-----------------------------------------------------------------------------
 
-static void RenderDome(int texno, FGLTexture * tex, float x_offset, float y_offset, int CM_Index)
+static void RenderDome(FTextureID texno, FGLTexture * tex, float x_offset, float y_offset, int CM_Index)
 {
 	int texh;
 
@@ -484,7 +484,7 @@ static void RenderDome(int texno, FGLTexture * tex, float x_offset, float y_offs
 //
 //-----------------------------------------------------------------------------
 
-static void RenderBox(int texno, FGLTexture * gltex, float x_offset, int CM_Index)
+static void RenderBox(FTextureID texno, FGLTexture * gltex, float x_offset, int CM_Index)
 {
 	FSkyBox * sb = static_cast<FSkyBox*>(gltex->tex);
 	int faces;
@@ -703,7 +703,7 @@ void GLSkyPortal::DrawContents()
 		if (origin->doublesky && origin->texture[1])
 		{
 			secondlayer=true;
-			RenderDome(0, origin->texture[1], origin->x_offset[1], origin->y_offset, CM_Index);
+			RenderDome(FNullTextureID(), origin->texture[1], origin->x_offset[1], origin->y_offset, CM_Index);
 			secondlayer=false;
 		}
 
@@ -712,7 +712,7 @@ void GLSkyPortal::DrawContents()
 			gl_EnableTexture(false);
 			foglayer=true;
 			gl.Color4f(FadeColor.r/255.0f,FadeColor.g/255.0f,FadeColor.b/255.0f,skyfog/255.0f);
-			RenderDome(0, NULL, 0, 0, CM_DEFAULT);
+			RenderDome(FNullTextureID(), NULL, 0, 0, CM_DEFAULT);
 			gl_EnableTexture(true);
 			foglayer=false;
 		}

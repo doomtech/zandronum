@@ -239,7 +239,7 @@ void APowerup::Destroy ()
 
 bool APowerup::DrawPowerup (int x, int y)
 {
-	if (Icon <= 0)
+	if (!Icon.isValid())
 	{
 		return false;
 	}
@@ -1075,10 +1075,10 @@ bool APowerFlight::DrawPowerup (int x, int y)
 {
 	if (EffectTics > BLINKTHRESHOLD || !(EffectTics & 16))
 	{
-		int picnum = TexMan.CheckForTexture ("SPFLY0", FTexture::TEX_MiscPatch);
+		FTextureID picnum = TexMan.CheckForTexture ("SPFLY0", FTexture::TEX_MiscPatch);
 		int frame = (level.time/3) & 15;
 
-		if (picnum <= 0)
+		if (!picnum.isValid())
 		{
 			return false;
 		}

@@ -47,6 +47,7 @@
 #include "gl/gl_intern.h"
 #include "gl/gl_basic.h"
 #include "gl/gl_shader.h"
+#include "r_sky.h"
 
 
 EXTERN_CVAR (Bool, gl_lights_checkside);
@@ -377,7 +378,7 @@ inline void GLFlat::PutFlat()
 		{
 			foggy = !gl_isBlack (Colormap.FadeColor) || level.flags&LEVEL_HASFADETABLE;
 
-			if (gl_lights)	// Are lights touching this sector?
+			if (gl_lights && gl_lightcount)	// Are lights touching this sector?
 			{
 				for(int i=0;i<sector->subsectorcount;i++) if (sector->subsectors[i]->lighthead[0] != NULL)
 				{

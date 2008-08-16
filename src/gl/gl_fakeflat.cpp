@@ -1,6 +1,7 @@
 #include "gl/gl_include.h"
 #include "gl/gl_intern.h"
 #include "p_local.h"
+#include "r_sky.h"
 
 
 //==========================================================================

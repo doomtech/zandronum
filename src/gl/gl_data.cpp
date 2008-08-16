@@ -47,9 +47,37 @@
 #include "gl/gl_models.h"
 #include "gl/gl_renderstruct.h"
 #include "gl/gl_functions.h"
+#include "r_sky.h"
+#include "sc_man.h"
+#include "w_wad.h"
 // [BC]
 #include "network.h"
 #include "sv_commands.h"
+
+
+
+
+FTexture *glpart2;
+FTexture *glpart;
+FTexture *mirrortexture;
+FTexture *gllight;
+
+static void DeleteGLTextures()
+{
+	if (glpart2) delete glpart2;
+	if (glpart) delete glpart;
+	if (mirrortexture) delete mirrortexture;
+	if (gllight) delete gllight;
+}
+
+AT_GAME_SET(gltextures)
+{
+	glpart2 = FTexture::CreateTexture(Wads.GetNumForFullName("glstuff/glpart2.png"), FTexture::TEX_MiscPatch);
+	glpart = FTexture::CreateTexture(Wads.GetNumForFullName("glstuff/glpart.png"), FTexture::TEX_MiscPatch);
+	mirrortexture = FTexture::CreateTexture(Wads.GetNumForFullName("glstuff/mirror.png"), FTexture::TEX_MiscPatch);
+	gllight = FTexture::CreateTexture(Wads.GetNumForFullName("glstuff/gllight.png"), FTexture::TEX_MiscPatch);
+	atterm(DeleteGLTextures);
+}
 
 // [BC] Moved to p_lnspec.cpp.
 /*
@@ -90,6 +118,95 @@ extern bool gl_disabled;
 // A simple means so that I don't have to link to the debug stuff when I don't need it!
 void (*gl_DebugHook)();
 
+
+
+//==========================================================================
+//
+// MAPINFO stuff
+//
+//==========================================================================
+
+struct FGLROptions : public FOptionalMapinfoData
+{
+	FGLROptions()
+	{
+		identifier = "gl_renderer";
+		fogdensity = 0;
+		outsidefogdensity = 0;
+		skyfog = 0;
+	}
+	virtual FOptionalMapinfoData *Clone() const
+	{
+		FGLROptions *newopt = new FGLROptions;
+		newopt->identifier = identifier;
+		newopt->fogdensity = fogdensity;
+		newopt->outsidefogdensity = outsidefogdensity;
+		newopt->skyfog = skyfog;
+		return newopt;
+	}
+	int			fogdensity;
+	int			outsidefogdensity;
+	int			skyfog;
+};
+
+static void ParseFunc(FScanner &sc, level_info_t *info)
+{
+	FName id = "gl_renderer";
+	FOptionalMapinfoData *dat = info->opdata;
+
+	while (dat && dat->identifier != id) dat = dat->Next;
+	if (!dat) dat = new FGLROptions;
+	dat->Next = info->opdata;
+	info->opdata = dat;
+
+	FGLROptions *opt = static_cast<FGLROptions*>(dat);
+
+	while (!sc.CheckString("}"))
+	{
+		sc.MustGetString();
+		if (sc.Compare("fogdensity"))
+		{
+			sc.MustGetNumber();
+			opt->fogdensity = sc.Number;
+		}
+		else if (sc.Compare("outsidefogdensity"))
+		{
+			sc.MustGetNumber();
+			opt->outsidefogdensity = sc.Number;
+		}
+		else if (sc.Compare("skyfog"))
+		{
+			sc.MustGetNumber();
+			opt->skyfog = sc.Number;
+		}
+		else
+		{
+			sc.ScriptError("Unknown keyword %s", sc.String);
+		}
+	}
+}
+
+void gl_AddMapinfoParser() 
+{ 
+	AddOptionalMapinfoParser("gl_renderer", ParseFunc);
+}
+
+static void InitGLRMapinfoData()
+{
+	FName id = "gl_renderer";
+	FOptionalMapinfoData *dat = level.info->opdata;
+
+	while (dat && dat->identifier != id) dat = dat->Next;
+	if (dat != NULL)
+	{
+		FGLROptions *opt = static_cast<FGLROptions*>(dat);
+		gl_SetFogParams(opt->fogdensity, level.info->outsidefog, opt->outsidefogdensity, opt->skyfog);
+	}
+	else
+	{
+		gl_SetFogParams(0, level.info->outsidefog, 0, 0);
+	}
+}
 
 //==========================================================================
 //
@@ -383,8 +500,8 @@ static void PrepareTransparentDoors(sector_t * sector)
 					sector->transdoor=false;
 					return;
 				}
-				if (sides[sector->lines[i]->sidenum[1-side]].GetTexture(side_t::top) == 0) notextures++;
-				if (sides[sector->lines[i]->sidenum[1-side]].GetTexture(side_t::bottom) == 0) nobtextures++;
+				if (!sides[sector->lines[i]->sidenum[1-side]].GetTexture(side_t::top).isValid()) notextures++;
+				if (!sides[sector->lines[i]->sidenum[1-side]].GetTexture(side_t::bottom).isValid()) nobtextures++;
 			}
 		}
 		if (selfref+notextures==sector->linecount || sector->ceilingpic==skyflatnum)
@@ -514,46 +631,9 @@ void gl_PreprocessLevel()
 	if (currentrenderer!=0) gl.ArrayPointer(&gl_vertices[0], sizeof(GLVertex));
 
 	if (gl_DebugHook) gl_DebugHook();
+	InitGLRMapinfoData();
 }
 
-
-CCMD(dumpgeometry)
-{
-	for(int i=0;i<numsectors;i++)
-	{
-		sector_t * sector = &sectors[i];
-
-		Printf("Sector %d\n",i);
-		for(int j=0;j<sector->subsectorcount;j++)
-		{
-			subsector_t * sub = sector->subsectors[j];
-
-			Printf("    Subsector %d - real sector = %d - %s\n", sub-subsectors, sub->sector->sectornum, sub->hacked&1? "hacked":"");
-			for(DWORD k=0;k<sub->numlines;k++)
-			{
-				seg_t * seg = &segs[sub->firstline+k];
-				if (seg->linedef)
-				{
-				Printf("      (%4.4f, %4.4f), (%4.4f, %4.4f) - seg %d, linedef %d, side %d", 
-					TO_MAP(seg->v1->x), TO_MAP(seg->v1->y), TO_MAP(seg->v2->x), TO_MAP(seg->v2->y),
-					seg-segs, seg->linedef-lines, seg->sidedef!=&sides[seg->linedef->sidenum[0]]);
-				}
-				else
-				{
-					Printf("      (%4.4f, %4.4f), (%4.4f, %4.4f) - seg %d, miniseg", 
-						TO_MAP(seg->v1->x), TO_MAP(seg->v1->y), TO_MAP(seg->v2->x), TO_MAP(seg->v2->y),
-						seg-segs);
-				}
-				if (seg->PartnerSeg) 
-				{
-					subsector_t * sub2 = seg->PartnerSeg->Subsector;
-					Printf(", back sector = %d, real back sector = %d", sub2->render_sector->sectornum, seg->PartnerSeg->frontsector->sectornum);
-				}
-				Printf("\n");
-			}
-		}
-	}
-}
 
 //==========================================================================
 //
@@ -592,5 +672,47 @@ void gl_CleanLevelData()
 	gl_CleanVertexData();
 }
 
+//==========================================================================
+//
+// dumpgeometry
+//
+//==========================================================================
 
+CCMD(dumpgeometry)
+{
+	for(int i=0;i<numsectors;i++)
+	{
+		sector_t * sector = &sectors[i];
+
+		Printf("Sector %d\n",i);
+		for(int j=0;j<sector->subsectorcount;j++)
+		{
+			subsector_t * sub = sector->subsectors[j];
+
+			Printf("    Subsector %d - real sector = %d - %s\n", sub-subsectors, sub->sector->sectornum, sub->hacked&1? "hacked":"");
+			for(DWORD k=0;k<sub->numlines;k++)
+			{
+				seg_t * seg = &segs[sub->firstline+k];
+				if (seg->linedef)
+				{
+				Printf("      (%4.4f, %4.4f), (%4.4f, %4.4f) - seg %d, linedef %d, side %d", 
+					TO_MAP(seg->v1->x), TO_MAP(seg->v1->y), TO_MAP(seg->v2->x), TO_MAP(seg->v2->y),
+					seg-segs, seg->linedef-lines, seg->sidedef!=&sides[seg->linedef->sidenum[0]]);
+				}
+				else
+				{
+					Printf("      (%4.4f, %4.4f), (%4.4f, %4.4f) - seg %d, miniseg", 
+						TO_MAP(seg->v1->x), TO_MAP(seg->v1->y), TO_MAP(seg->v2->x), TO_MAP(seg->v2->y),
+						seg-segs);
+				}
+				if (seg->PartnerSeg) 
+				{
+					subsector_t * sub2 = seg->PartnerSeg->Subsector;
+					Printf(", back sector = %d, real back sector = %d", sub2->render_sector->sectornum, seg->PartnerSeg->frontsector->sectornum);
+				}
+				Printf("\n");
+			}
+		}
+	}
+}
 

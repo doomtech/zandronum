@@ -1532,7 +1532,7 @@ FGLTexture * FGLTexture::ValidateTexture(FTexture * tex)
 	return NULL;
 }
 
-FGLTexture * FGLTexture::ValidateTexture(int no, bool translate)
+FGLTexture * FGLTexture::ValidateTexture(FTextureID no, bool translate)
 {
 	return FGLTexture::ValidateTexture(translate? TexMan(no) : TexMan[no]);
 }
@@ -1560,7 +1560,7 @@ void gl_ParseBrightmap(FScanner &sc, int deflump)
 	else sc.UnGet();
 
 	sc.MustGetString();
-	int no = TexMan.CheckForTexture(sc.String, type);
+	FTextureID no = TexMan.CheckForTexture(sc.String, type);
 	FTexture *tex = TexMan[no];
 
 	sc.MustGetToken('{');

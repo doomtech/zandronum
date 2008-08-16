@@ -1574,7 +1574,7 @@ FMOD_MODE FMODSoundRenderer::SetChanHeadSettings(FMOD::Channel *chan, sfxinfo_t 
 		{
 			cz = MIN(sec->floorplane.ZatPoint(cx, cy), players[consoleplayer].camera->z);
 		}
-		else if (channum = CHAN_CEILING)
+		else if (channum == CHAN_CEILING)
 		{
 			cz = MAX(sec->ceilingplane.ZatPoint(cx, cy), players[consoleplayer].camera->z);
 		}

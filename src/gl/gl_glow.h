@@ -11,16 +11,16 @@
 #ifndef NO_GLOW
 
 void gl_InitGlow(const char * lumpnm);
-bool gl_isGlowingTexture(unsigned int texno);
+bool gl_isGlowingTexture(FTextureID texno);
 void gl_CheckGlowing(GLWall * wall);
-int gl_CheckSpriteGlow(int floorpic, int lightlevel, fixed_t floordiff);
+int gl_CheckSpriteGlow(FTextureID floorpic, int lightlevel, fixed_t floordiff);
 
 #else
 
 inline void gl_InitGlow(const char * lumpnm) {}
 inline bool gl_isGlowingTexture(unsigned int texno) { return false; }
 inline void gl_CheckGlowing(GLWall * wall) {}
-inline int gl_CheckSpriteGlow(int floorpic, int lightlevel, fixed_t floordiff) { return lightlevel; }
+inline int gl_CheckSpriteGlow(FTextureID floorpic, int lightlevel, fixed_t floordiff) { return lightlevel; }
 
 #endif
 

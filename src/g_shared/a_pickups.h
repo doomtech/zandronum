@@ -138,7 +138,7 @@ public:
 	int Amount;					// Amount of item this instance has
 	int MaxAmount;				// Max amount of item this instance can have
 	int RespawnTics;			// Tics from pickup time to respawn time
-	int Icon;					// Icon to show on status bar or HUD
+	FTextureID Icon;					// Icon to show on status bar or HUD
 	int DropTime;				// Countdown after dropping
 
 	DWORD ItemFlags;
@@ -225,6 +225,7 @@ public:
 	const PClass *AltProjectileType;		// Projectile used by alternate attack
 	int SelectionOrder;						// Lower-numbered weapons get picked first
 	fixed_t MoveCombatDist;					// Used by bots, but do they *really* need it?
+	int ReloadCounter;						// For A_CheckForReload
 
 	// In-inventory instance variables
 	TObjPtr<AAmmo> Ammo1, Ammo2;

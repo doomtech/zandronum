@@ -451,19 +451,22 @@ void SBarInfo::ParseSBarInfoBlock(FScanner &sc, SBarInfoBlock &block)
 					}
 					else
 					{
+						//sc.CheckToken(TK_Identifier);
 						cmd.flags |= DRAWIMAGE_INVENTORYICON;
 						const PClass* item = PClass::FindClass(sc.String);
 						if(item == NULL || !PClass::FindClass("Inventory")->IsAncestorOf(item)) //must be a kind of Inventory
 						{
 							sc.ScriptError("'%s' is not a type of inventory item.", sc.String);
 						}
-						cmd.sprite = ((AInventory *)GetDefaultByType(item))->Icon;
+						cmd.sprite_index = ((AInventory *)GetDefaultByType(item))->Icon;
+						cmd.image_index = -1;
 					}
 				}
 				if(getImage)
 				{
 					sc.MustGetToken(TK_StringConst);
-					cmd.sprite = newImage(sc.String);
+					cmd.image_index = newImage(sc.String);
+					cmd.sprite_index.SetInvalid();
 				}
 				sc.MustGetToken(',');
 				this->getCoordinates(sc, cmd);
@@ -806,7 +809,8 @@ void SBarInfo::ParseSBarInfoBlock(FScanner &sc, SBarInfoBlock &block)
 				break;
 			case SBARINFO_DRAWBAR:
 				sc.MustGetToken(TK_StringConst);
-				cmd.sprite = newImage(sc.String);
+				cmd.image_index = newImage(sc.String);
+				cmd.sprite_index.SetInvalid();
 				sc.MustGetToken(',');
 				sc.MustGetToken(TK_StringConst);
 				cmd.special = newImage(sc.String);
@@ -947,7 +951,8 @@ void SBarInfo::ParseSBarInfoBlock(FScanner &sc, SBarInfoBlock &block)
 				cmd.special = newImage(sc.String);
 				sc.MustGetToken(',');
 				sc.MustGetToken(TK_StringConst); //gem
-				cmd.sprite = newImage(sc.String);
+				cmd.image_index = newImage(sc.String);
+				cmd.sprite_index.SetInvalid();
 				sc.MustGetToken(',');
 				cmd.special2 = this->getSignedInteger(sc);
 				sc.MustGetToken(',');
@@ -1379,7 +1384,8 @@ SBarInfoCommand::SBarInfoCommand() //sets the default values for more predicable
 	x = 0;
 	y = 0;
 	value = 0;
-	sprite = 0;
+	image_index = 0;
+	sprite_index.SetInvalid();
 	translation = CR_UNTRANSLATED;
 	translation2 = CR_UNTRANSLATED;
 	translation3 = CR_UNTRANSLATED;

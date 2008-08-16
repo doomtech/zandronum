@@ -83,7 +83,7 @@ OpenGLFrameBuffer::~OpenGLFrameBuffer()
 	// all native textures must be completely removed before destroying the frame buffer
 	for(int i=0; i<TexMan.NumTextures();i++)
 	{
-		TexMan[i]->KillNative();
+		TexMan.ByIndex(i)->KillNative();
 	}
 	GLShader::Clear();
 }

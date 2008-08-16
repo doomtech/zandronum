@@ -98,7 +98,8 @@ enum
 	DEPF_LOWGRAVITY,
 	DEPF_LONGMELEERANGE,
 	DEPF_SHORTMISSILERANGE,
-	DEPF_PICKUPFLASH
+	DEPF_PICKUPFLASH,
+	DEPF_QUARTERGRAVITY,
 };
 
 static flagdef ActorFlags[]=
@@ -253,7 +254,8 @@ static flagdef ActorFlags[]=
 	DEFINE_FLAG(STFL, SUPERARMOR, AActor, ulSTFlags),
 	DEFINE_FLAG(STFL, SCOREPILLAR, AActor, ulSTFlags),
 	DEFINE_FLAG(STFL, NODE, AActor, ulSTFlags),
-	DEFINE_FLAG(STFL, QUARTERGRAVITY, AActor, ulSTFlags),
+	// [BB] Now a deprecated ZDoom flag.
+	//DEFINE_FLAG(STFL, QUARTERGRAVITY, AActor, ulSTFlags),
 	DEFINE_FLAG(STFL, EXPLODEONDEATH, AActor, ulSTFlags),
 
 	// [BB] New DECORATE network related flag defines here.
@@ -274,6 +276,9 @@ static flagdef ActorFlags[]=
 	DEFINE_DEPRECATED_FLAG(LOWGRAVITY),
 	DEFINE_DEPRECATED_FLAG(SHORTMISSILERANGE),
 	DEFINE_DEPRECATED_FLAG(LONGMELEERANGE),
+	DEFINE_DEPRECATED_FLAG(QUARTERGRAVITY),
+	// [BB] ST supports ALLOWCLIENTSPAWN.
+	//DEFINE_DUMMY_FLAG(ALLOWCLIENTSPAWN),
 };
 
 static flagdef InventoryFlags[] =
@@ -311,7 +316,6 @@ static flagdef WeaponFlags[] =
 	DEFINE_FLAG(WIF, PRIMARY_USES_BOTH, AWeapon, WeaponFlags),
 	DEFINE_FLAG(WIF, WIMPY_WEAPON, AWeapon, WeaponFlags),
 	DEFINE_FLAG(WIF, POWERED_UP, AWeapon, WeaponFlags),
-	//DEFINE_FLAG(WIF, EXTREME_DEATH, AWeapon, WeaponFlags),	// this should be removed now!
 	DEFINE_FLAG(WIF, STAFF2_KICKBACK, AWeapon, WeaponFlags),
 	DEFINE_FLAG(WIF_BOT, EXPLOSIVE, AWeapon, WeaponFlags),
 	DEFINE_FLAG2(WIF_BOT_MELEE, MELEEWEAPON, AWeapon, WeaponFlags),
@@ -442,6 +446,9 @@ static void HandleDeprecatedFlags(AActor *defaults, bool set, int index)
 		break;
 	case DEPF_LONGMELEERANGE:
 		defaults->meleethreshold = set? 196*FRACUNIT : 0;
+		break;
+	case DEPF_QUARTERGRAVITY:
+		defaults->gravity = set? FRACUNIT/4 : FRACUNIT;
 		break;
 	case DEPF_PICKUPFLASH:
 		if (set)
@@ -753,7 +760,7 @@ static bool CheckNumParm(FScanner &sc)
 	}
 	else
 	{
-		return !!sc.CheckNumber();
+		return sc.CheckNumber();
 	}
 }
 
@@ -1889,10 +1896,10 @@ static void InventoryIcon (FScanner &sc, AInventory *defaults, Baggage &bag)
 {
 	sc.MustGetString();
 	defaults->Icon = TexMan.AddPatch (sc.String);
-	if (defaults->Icon <= 0)
+	if (!defaults->Icon.isValid())
 	{
 		defaults->Icon = TexMan.AddPatch (sc.String, ns_sprites);
-		if (defaults->Icon<=0)
+		if (!defaults->Icon.isValid())
 		{
 			// Don't print warnings if the item is for another game or if this is a shareware IWAD. 
 			// Strife's teaser doesn't contain all the icon graphics of the full game.
@@ -2512,10 +2519,10 @@ static void PlayerScoreIcon (FScanner &sc, APlayerPawn *defaults, Baggage &bag)
 {
 	sc.MustGetString ();
 	defaults->ScoreIcon = TexMan.AddPatch (sc.String);
-	if (defaults->ScoreIcon <= 0)
+	if (!defaults->ScoreIcon.isValid())
 	{
 		defaults->ScoreIcon = TexMan.AddPatch (sc.String, ns_sprites);
-		if (defaults->ScoreIcon <= 0)
+		if (!defaults->ScoreIcon.isValid())
 		{
 			Printf("Icon '%s' for '%s' not found\n", sc.String, bag.Info->Class->TypeName.GetChars ());
 		}

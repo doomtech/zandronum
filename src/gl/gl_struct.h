@@ -120,7 +120,7 @@ struct GLSkyInfo
 	float x_offset[2];
 	float y_offset;		// doubleskies don't have a y-offset
 	FGLTexture * texture[2];
-	int skytexno1;
+	FTextureID skytexno1;
 	bool mirrored;
 	bool doublesky;
 	PalEntry fadecolor;	// if this isn't made part of the dome things will become more complicated when sky fog is used.

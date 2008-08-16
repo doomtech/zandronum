@@ -116,7 +116,7 @@ void GLWall::SkyTexture(int sky1,ASkyViewpoint * skyboxx, bool ceiling)
 			const side_t *s = &sides[l->sidenum[0]];
 			int pos;
 			
-			if (level.flags & LEVEL_SWAPSKIES && s->GetTexture(side_t::bottom) != 0)
+			if (level.flags & LEVEL_SWAPSKIES && s->GetTexture(side_t::bottom).isValid())
 			{
 				pos = side_t::bottom;
 			}
@@ -125,7 +125,7 @@ void GLWall::SkyTexture(int sky1,ASkyViewpoint * skyboxx, bool ceiling)
 				pos = side_t::top;
 			}
 
-			int texno = s->GetTexture(pos);
+			FTextureID texno = s->GetTexture(pos);
 			skyinfo.texture[0] = FGLTexture::ValidateTexture(texno);
 			if (!skyinfo.texture[0] || skyinfo.texture[0]->tex->UseType == FTexture::TEX_Null) goto normalsky;
 			skyinfo.skytexno1 = texno;

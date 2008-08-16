@@ -6,6 +6,8 @@
 #include "s_sound.h"
 #include "a_doomglobal.h"
 #include "statnums.h"
+#include "thingdef/thingdef.h"
+// [BB] New #includes.
 #include "cl_demo.h"
 #include "deathmatch.h"
 #include "team.h"
@@ -253,12 +255,18 @@ void A_BrainSpit (AActor *self)
 
 	if (targ != NULL)
 	{
+		const PClass *spawntype = NULL;
+		int index = CheckIndex (1, NULL);
+		if (index >= 0) spawntype = PClass::FindClass ((ENamedName)StateParameters[index]);
+		if (spawntype == NULL) spawntype = RUNTIME_CLASS(ASpawnShot);
+
 		// spawn brain missile
-		spit = P_SpawnMissile (self, targ, RUNTIME_CLASS(ASpawnShot));
+		spit = P_SpawnMissile (self, targ, spawntype);
 
 		if (spit != NULL)
 		{
 			spit->target = targ;
+			spit->master = self;
 			// [RH] Do this correctly for any trajectory. Doom would divide by 0
 			// if the target had the same y coordinate as the spitter.
 			if ((spit->momx | spit->momy) == 0)
@@ -273,18 +281,31 @@ void A_BrainSpit (AActor *self)
 			{
 				spit->reactiontime = (targ->x - self->x) / spit->momx;
 			}
-			spit->reactiontime /= spit->state->GetTics();
+			// [GZ] Calculates when the projectile will have reached destination
+			spit->reactiontime += level.maptime;
 
 			// [BC] If we're the server, tell clients to spawn the actor.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_SpawnMissile( spit );
 		}
 
-		S_Sound (self, CHAN_WEAPON, "brain/spit", 1, ATTN_NONE);
+		if (index >= 0)
+		{
+			S_Sound(self, CHAN_WEAPON, self->AttackSound, 1, ATTN_NONE);
 
-		// [BC] If we're the server, tell clients create the sound.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SoundPoint( self->x, self->y, self->z, CHAN_WEAPON, "brain/spit", 1, ATTN_NONE );
+			// [BC] If we're the server, tell clients create the sound.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SoundPoint( self->x, self->y, self->z, CHAN_WEAPON, self->AttackSound, 1, ATTN_NONE );
+		}
+		else
+		{
+			// compatibility fallback
+			S_Sound (self, CHAN_WEAPON, "brain/spit", 1, ATTN_NONE);
+
+			// [BC] If we're the server, tell clients create the sound.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_SoundPoint( self->x, self->y, self->z, CHAN_WEAPON, "brain/spit", 1, ATTN_NONE );
+		}
 	}
 }
 
@@ -294,7 +315,6 @@ void A_SpawnFly (AActor *self)
 	AActor *fog;
 	AActor *targ;
 	int r;
-	const char *type;
 		
 	// [BC] Brain spitting is server-side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -303,14 +323,30 @@ void A_SpawnFly (AActor *self)
 		return;
 	}
 
-	if (--self->reactiontime)
+	// [GZ] Should be more fiable than a countdown...
+	if (self->reactiontime > level.maptime)
 		return; // still flying
 		
 	targ = self->target;
 
-	// First spawn teleport fire.
-	fog = Spawn<ASpawnFire> (targ->x, targ->y, targ->z, ALLOW_REPLACE);
-	S_Sound (fog, CHAN_BODY, "brain/spawn", 1, ATTN_NORM);
+
+	const PClass *spawntype = NULL;
+	int index = CheckIndex (1, NULL);
+		// First spawn teleport fire.
+	if (index >= 0) 
+	{
+		spawntype = PClass::FindClass ((ENamedName)StateParameters[index]);
+		if (spawntype != NULL) 
+		{
+			fog = Spawn (spawntype, targ->x, targ->y, targ->z, ALLOW_REPLACE);
+			if (fog != NULL) S_Sound (fog, CHAN_BODY, fog->SeeSound, 1, ATTN_NORM);
+		}
+	}
+	else
+	{
+		fog = Spawn<ASpawnFire> (targ->x, targ->y, targ->z, ALLOW_REPLACE);
+		if (fog != NULL) S_Sound (fog, CHAN_BODY, "brain/spawn", 1, ATTN_NORM);
+	}
 
 	// [BC] If we're the server, spawn the fire, and tell clients to play the sound.
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( fog ))
@@ -319,47 +355,90 @@ void A_SpawnFly (AActor *self)
 		SERVERCOMMANDS_SoundPoint( fog->x, fog->y, fog->z, CHAN_BODY, "brain/spawn", 1, ATTN_NORM );
 	}
 
-	// Randomly select monster to spawn.
-	r = pr_spawnfly ();
+	FName SpawnName;
 
-	// Probability distribution (kind of :),
-	// decreasing likelihood.
-		 if (r < 50)  type = "DoomImp";
-	else if (r < 90)  type = "Demon";
-	else if (r < 120) type = "Spectre";
-	else if (r < 130) type = "PainElemental";
-	else if (r < 160) type = "Cacodemon";
-	else if (r < 162) type = "Archvile";
-	else if (r < 172) type = "Revenant";
-	else if (r < 192) type = "Arachnotron";
-	else if (r < 222) type = "Fatso";
-	else if (r < 246) type = "HellKnight";
-	else			  type = "BaronOfHell";
-
-	newmobj = Spawn (type, targ->x, targ->y, targ->z, ALLOW_REPLACE);
-	if (newmobj != NULL)
+	if (self->master != NULL)
 	{
-		// Make the new monster hate what the boss eye hates
-		AActor *eye = self->target;
+		FDropItem *di;   // di will be our drop item list iterator
+		FDropItem *drop; // while drop stays as the reference point.
+		int n=0;
 
-		if (eye != NULL)
+		drop = di = GetDropItems(self->master->GetClass());
+		if (di != NULL)
 		{
-			newmobj->CopyFriendliness (eye, false);
-		}
-		if (newmobj->SeeState != NULL && P_LookForPlayers (newmobj, true))
-			newmobj->SetState (newmobj->SeeState);
-
-		if (!(newmobj->ObjectFlags & OF_EuthanizeMe))
-		{
-			// telefrag anything in this spot
-			P_TeleportMove (newmobj, newmobj->x, newmobj->y, newmobj->z, true);
-
-			// [BC] If we're the server, tell clients to spawn the new monster.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			while (di != NULL)
 			{
-				SERVERCOMMANDS_SpawnThing( newmobj );
-				if ( newmobj->state == newmobj->SeeState )
-					SERVERCOMMANDS_SetThingState( newmobj, STATE_SEE );
+				if (di->Name != NAME_None)
+				{
+					if (di->amount < 0) di->amount = 1; // default value is -1, we need a positive value.
+					n += di->amount; // this is how we can weight the list.
+					di = di->Next;
+				}
+			}
+			di = drop;
+			n = pr_spawnfly(n);
+			while (n > 0)
+			{
+				if (di->Name != NAME_None)
+				{
+					n -= di->amount; // logically, none of the -1 values have survived by now.
+					if (n > -1) di = di->Next; // If we get into the negatives, we've reached the end of the list.
+				}
+			}
+
+			SpawnName = di->Name;
+		}
+	}
+	if (SpawnName == NAME_None)
+	{
+		const char *type;
+		// Randomly select monster to spawn.
+		r = pr_spawnfly ();
+
+		// Probability distribution (kind of :),
+		// decreasing likelihood.
+			 if (r < 50)  type = "DoomImp";
+		else if (r < 90)  type = "Demon";
+		else if (r < 120) type = "Spectre";
+		else if (r < 130) type = "PainElemental";
+		else if (r < 160) type = "Cacodemon";
+		else if (r < 162) type = "Archvile";
+		else if (r < 172) type = "Revenant";
+		else if (r < 192) type = "Arachnotron";
+		else if (r < 222) type = "Fatso";
+		else if (r < 246) type = "HellKnight";
+		else			  type = "BaronOfHell";
+
+		SpawnName = type;
+	}
+	spawntype = PClass::FindClass(SpawnName);
+	if (spawntype != NULL)
+	{
+		newmobj = Spawn (spawntype, targ->x, targ->y, targ->z, ALLOW_REPLACE);
+		if (newmobj != NULL)
+		{
+			// Make the new monster hate what the boss eye hates
+			AActor *eye = self->target;
+
+			if (eye != NULL)
+			{
+				newmobj->CopyFriendliness (eye, false);
+			}
+			if (newmobj->SeeState != NULL && P_LookForPlayers (newmobj, true))
+				newmobj->SetState (newmobj->SeeState);
+
+			if (!(newmobj->ObjectFlags & OF_EuthanizeMe))
+			{
+				// telefrag anything in this spot
+				P_TeleportMove (newmobj, newmobj->x, newmobj->y, newmobj->z, true);
+
+				// [BC] If we're the server, tell clients to spawn the new monster.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				{
+					SERVERCOMMANDS_SpawnThing( newmobj );
+					if ( newmobj->state == newmobj->SeeState )
+						SERVERCOMMANDS_SetThingState( newmobj, STATE_SEE );
+				}
 			}
 		}
 	}
@@ -420,3 +499,4 @@ void DBrainState::Serialize (FArchive &arc)
 		arc << SerialTarget;
 	}
 }
+

@@ -47,6 +47,7 @@
 #include "gl/gl_portal.h"
 #include "gl/gl_models.h"
 #include "gl/gl_shader.h"
+#include "r_sky.h"
 
 CVAR(Bool, gl_usecolorblending, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 CVAR(Bool, gl_sprite_blend, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG);
@@ -59,9 +60,6 @@ extern bool r_showviewer;
 EXTERN_CVAR (Float, transsouls)
 
 const BYTE SF_FRAMEMASK  = 0x1f;
-
-int glpart2=-2;
-int glpart=-2;
 
 //==========================================================================
 //
@@ -452,9 +450,10 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 	{
 		angle_t ang = R_PointToAngle(thingx, thingy);
 
-		int patch = gl_GetSpriteFrame(thing->sprite, thing->frame, -1, ang - thing->angle);
-		if (patch==INVALID_SPRITE) return;
-		gltexture=FGLTexture::ValidateTexture(abs(patch), false);
+		bool mirror;
+		FTextureID patch = gl_GetSpriteFrame(thing->sprite, thing->frame, -1, ang - thing->angle, &mirror);
+		if (!patch.isValid()) return;
+		gltexture=FGLTexture::ValidateTexture(patch, false);
 		if (!gltexture) return;
 
 		const PatchTextureInfo * pti = gltexture->GetPatchTextureInfo();
@@ -462,7 +461,7 @@ void GLSprite::Process(AActor* thing,sector_t * sector)
 		vt=pti->GetVT();
 		vb=pti->GetVB();
 		gltexture->GetRect(&r, FGLTexture::GLUSE_PATCH);
-		if (patch<0)
+		if (mirror)
 		{
 			r.left=-r.width-r.left;	// mirror the sprite's x-offset
 			ul=pti->GetUL();
@@ -774,25 +773,19 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 	// [BB] Load the texture for round or smooth particles
 	if (gl_particles_style)
 	{
-		int lump = -1;
+		FTexture *lump = NULL;
 		if (gl_particles_style == 1)
 		{
-			if (glpart2 == -2)
-				glpart2=TexMan.CheckForTexture("GLPART2", FTexture::TEX_MiscPatch,FTextureManager::TEXMAN_TryAny);
-
 			lump = glpart2;
 		}
 		else if (gl_particles_style == 2)
 		{
-			if (glpart == -2)
-				glpart=TexMan.CheckForTexture("GLPART", FTexture::TEX_MiscPatch,FTextureManager::TEXMAN_TryAny);
-
 			lump = glpart;
 		}
 
-		if ( lump > 0 )
+		if (lump != NULL)
 		{
-			gltexture=FGLTexture::ValidateTexture(lump, false);
+			gltexture=FGLTexture::ValidateTexture(lump);
 			translation = 0;
 			const PatchTextureInfo * pti = gltexture->GetPatchTextureInfo();
 
@@ -842,14 +835,14 @@ void GLSprite::ProcessParticle (particle_t *particle, sector_t *sector)//, int s
 extern TArray<spritedef_t> sprites;
 extern TArray<spriteframe_t> SpriteFrames;
 
-int gl_GetSpriteFrame(unsigned sprite, int frame, int rot, angle_t ang)
+FTextureID gl_GetSpriteFrame(unsigned sprite, int frame, int rot, angle_t ang, bool *mirror)
 {
 	frame&=SF_FRAMEMASK;
 	spritedef_t *sprdef = &sprites[sprite];
 	if (frame >= sprdef->numframes)
 	{
 		// If there are no frames at all for this sprite, don't draw it.
-		return INVALID_SPRITE;
+		return FNullTextureID();
 	}
 	else
 	{
@@ -867,9 +860,8 @@ int gl_GetSpriteFrame(unsigned sprite, int frame, int rot, angle_t ang)
 				rot = (ang + (angle_t)(ANGLE_45/2)*9-(angle_t)(ANGLE_180/16)) >> 28;
 			}
 		}
-		int rv = sprframe->Texture[rot];
-		if (sprframe->Flip&(1<<rot)) rv=-rv;
-		return rv;
+		if (mirror) *mirror = !!(sprframe->Flip&(1<<rot));
+		return sprframe->Texture[rot];
 	}
 }
 
