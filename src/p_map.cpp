@@ -357,6 +357,10 @@ bool P_TeleportMove (AActor *thing, fixed_t x, fixed_t y, fixed_t z, bool telefr
 //
 void P_PlayerStartStomp (AActor *actor)
 {
+	// [BB] Spectators don't telefrag anything.
+	if ( actor->player && actor->player->bSpectating )
+		return;
+
 	AActor *th;
 	FBlockThingsIterator it(FBoundingBox(actor->x, actor->y, actor->radius));
 
