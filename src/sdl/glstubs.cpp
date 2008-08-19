@@ -141,4 +141,9 @@ void FTexture::PrecacheGL()
 {
 }
 
+// [BB] Check if the server really doesn't need this!
+void gl_AddMapinfoParser()
+{
+}
+
 #endif
