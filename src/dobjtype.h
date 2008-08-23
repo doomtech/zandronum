@@ -102,6 +102,12 @@ struct PClass
 	unsigned short		 ClassIndex;
 	PSymbolTable		 Symbols;
 
+	// [BB] Added ActorNetworkIndex and corresponding access function.
+	unsigned short		 ActorNetworkIndex;
+	unsigned short getActorNetworkIndex () const {
+		return ActorNetworkIndex;
+	}
+
 	void (*ConstructNative)(void *);
 
 	// The rest are all functions and static data ----------------

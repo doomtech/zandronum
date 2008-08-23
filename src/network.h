@@ -565,8 +565,8 @@ USHORT			NETWORK_GetLocalPort( void );
 void			NETWORK_GenerateMapLumpMD5Hash( MapData *Map, const LONG LumpNumber, FString &MD5Hash );
 void			NETWORK_GenerateLumpMD5Hash( const int LumpNum, FString &MD5Hash );
 
-const char		*NETWORK_GetClassNameFromIdentification( USHORT usClassIndex );
-const PClass	*NETWORK_GetClassFromIdentification( USHORT usClassIndex );
+const char		*NETWORK_GetClassNameFromIdentification( USHORT usActorNetworkIndex );
+const PClass	*NETWORK_GetClassFromIdentification( USHORT usActorNetworkIndex );
 
 // Access functions.
 LONG			NETWORK_GetState( void );
