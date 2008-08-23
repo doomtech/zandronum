@@ -83,8 +83,6 @@ NETADDRESS_s	NETWORK_GetFromAddress( void );
 void			NETWORK_LaunchPacket( NETBUFFER_s *pBuffer, NETADDRESS_s Address, bool bEncode );
 char			*NETWORK_AddressToString( NETADDRESS_s Address );
 char			*NETWORK_AddressToStringIgnorePort( NETADDRESS_s Address );
-bool			NETWORK_CompareAddress( NETADDRESS_s Address1, NETADDRESS_s Address2, bool bIgnorePort );
-void			NETWORK_NetAddressToSocketAddress( NETADDRESS_s &Address, struct sockaddr_in &SocketAddress );
 void			NETWORK_SetAddressPort( NETADDRESS_s &Address, USHORT usPort );
 NETADDRESS_s	NETWORK_GetLocalAddress( void );
 NETBUFFER_s		*NETWORK_GetNetworkMessageBuffer( void );

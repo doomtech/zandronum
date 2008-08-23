@@ -173,6 +173,12 @@ void ABaseMonsterInvasionSpot::Tick( void )
 			return;
 		}
 
+		// [BB] The just spawned thing doesn't count as kill. Since the invasion code assumes
+		// that each successful spawn of a monster spawner is a hostile monster, we need to
+		// adapt the monster count here.
+		if ( !pActor->CountsAsKill() )
+			INVASION_UpdateMonsterCount( pActor, true );
+
 		// Since the actor successfully spawned, tell clients.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SpawnThing( pActor );
@@ -1019,6 +1025,12 @@ void INVASION_BeginWave( ULONG ulWave )
 			pMonsterSpot->lNextSpawnTick = 0;
 			continue;
 		}
+
+		// [BB] The just spawned thing doesn't count as kill. Since the invasion code assumes
+		// that each successful spawn of a monster spawner is a hostile monster, we need to
+		// adapt the monster count here.
+		if ( !pActor->CountsAsKill() )
+			INVASION_UpdateMonsterCount( pActor, true );
 
 		// Since the actor successfully spawned, tell clients.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
