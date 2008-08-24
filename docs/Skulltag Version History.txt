@@ -47,6 +47,7 @@ v0.97d2
 -	- Fixed: In game modes that reset, when an actor is hidden instead of being destroyed, P_DelSector_List() is not called. This caused some strange survival crashes. [Torr Samaho, SuperGod]
 -	- Fixed: If there is only one player class, the client tells the server that it's going to send the name of it's class (on connect and when changing the CVAR playerclass), but didn't actually do so. This led to network packet parsing errors on the server. [Torr Samaho, SuperGod]
 -	- Fixed: In game modes that reset when using COMPATF_LIMITPAIN, hidden lost souls were counted to the number of lost souls when checking if a pain elemental may spawn a new lost soul. [Torr Samaho, SuperGod]
+-	- Fixed: When a client is kicked because of user info change flood, the server doesn't finish parsing the user info packet, resulting in network packet parsing errors. [Torr Samaho, SuperGod]
 !	- Changed: Instead of crashing the game when being called twice, AActor::UnlinkFromWorld() now just gives a warning to signal that a bug in the code was encountered. [Torr Samaho]
 !	- Changed: Calling a vote during intermission is not allowed anymore. [Torr Samaho, SuperGod]
 
