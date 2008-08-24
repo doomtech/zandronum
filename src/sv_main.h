@@ -298,7 +298,7 @@ void		SERVER_UpdateLines( ULONG ulClient );
 void		SERVER_UpdateSides( ULONG ulClient );
 void		SERVER_ReconnectNewLevel( const char *pszMapName );
 void		SERVER_LoadNewLevel( const char *pszMapName );
-void		SERVER_KickPlayer( ULONG ulPlayer, char *pszReason );
+void		SERVER_KickPlayer( ULONG ulPlayer, const char *pszReason );
 void		SERVER_KickPlayerFromGame( ULONG ulPlayer, char *pszReason );
 void		SERVER_AddCommand( char *pszCommand );
 void		SERVER_DeleteCommand( void );

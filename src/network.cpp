@@ -154,6 +154,8 @@ static	UCHAR			g_ucHuffmanBuffer[131072];
 // Our local address;
 NETADDRESS_s	g_LocalAddress;
 
+EXTERN_CVAR (Float, turbo)
+
 //*****************************************************************************
 //	PROTOTYPES
 
@@ -722,6 +724,12 @@ void NETWORK_SetState( LONG lState )
 		return;
 
 	g_lNetworkState = lState;
+
+	// [BB] Limit CVAR turbo on clients to 100. Needs to be done here in addition
+	// to where the CVAR turbo is implemented, because the check over there is not
+	// applied when the network state changes.
+	if ( ( g_lNetworkState == NETSTATE_CLIENT ) && ( turbo > 100.f ) )
+		turbo = 100.f;
 
 	// Alert the status bar that multiplayer status has changed.
 	if (( g_lNetworkState != NETSTATE_SERVER ) &&
