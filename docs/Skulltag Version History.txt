@@ -45,6 +45,7 @@ v0.97d2
 -	- Fixed: When an Archvile raises a monster online, on the clients the total monsters counter is increased by two instead of one. [Torr Samaho, SuperGod]
 -	- Fixed: If an invasion monster spawner is hijacked to spawn something that is not a monster, the remaining monster count is not adapted accordingly. [Torr Samaho]
 -	- Fixed: In game modes that reset, when an actor is hidden instead of being destroyed, P_DelSector_List() is not called. This caused some strange survival crashes. [Torr Samaho, SuperGod]
+-	- Fixed: If there is only one player class, the client tells the server that it's going to send the name of it's class (on connect and when changing the CVAR playerclass), but didn't actually do so. This led to network packet parsing errors on the server. [Torr Samaho, SuperGod]
 !	- Changed: Instead of crashing the game when being called twice, AActor::UnlinkFromWorld() now just gives a warning to signal that a bug in the code was encountered. [Torr Samaho]
 !	- Changed: Calling a vote during intermission is not allowed anymore. [Torr Samaho, SuperGod]
 

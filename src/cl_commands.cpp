@@ -77,6 +77,14 @@ void CLIENTCOMMANDS_UserInfo( ULONG ulFlags )
 	if ( CLIENT_GetAllowSendingOfUserInfo( ) == false )
 		return;
 
+	// [BB] It's pointless to tell the server of the class, if only one class is available.
+	if (( PlayerClasses.Size( ) == 1 ) && ( ulFlags & USERINFO_PLAYERCLASS ))
+		ulFlags  &= ~USERINFO_PLAYERCLASS;
+
+	// [BB] Nothing changed, nothing to send.
+	if ( ulFlags == 0 )
+		return;
+
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_USERINFO );
 
 	// Tell the server which items are being updated.
