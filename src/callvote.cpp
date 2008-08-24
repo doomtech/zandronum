@@ -668,6 +668,13 @@ CCMD( callvote )
 		return;
 	}
 
+	// [BB] No voting when not in a level, e.g. during intermission.
+	if ( gamestate != GS_LEVEL )
+	{
+		Printf( "You cannot call a vote when not in a level!\n" );
+		return;
+	}
+
 	// Don't allow one person to call a vote, and vote by himself.
 	if ( CALLVOTE_CountNumEligibleVoters( ) < 2 )
 	{

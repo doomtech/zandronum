@@ -23,7 +23,10 @@ v0.97d2
 -	- Fixed: When a player respawns while a time freezer owned by another player is active, the respawned player can't move anymore as long as the freezer is active. [Torr Samaho, SuperGod]
 -	- Fixed: In cooperative game modes, when the players travel from any map to a map with fewer player starts than players, some of them may end up in a zombie like state. [Torr Samaho, SuperGod]
 -	- Fixed: When an Archvile raises a monster online, on the clients the total monsters counter is increased by two instead of one. [Torr Samaho, SuperGod]
+-	- Fixed: If an invasion monster spawner is hijacked to spawn something that is not a monster, the remaining monster count is not adapted accordingly. [Torr Samaho]
+-	- Fixed: In game modes that reset, when an actor is hidden instead of being destroyed, P_DelSector_List() is not called. This caused some strange survival crashes. [Torr Samaho, SuperGod]
 !	- Changed: Instead of crashing the game when being called twice, AActor::UnlinkFromWorld() now just gives a warning to signal that a bug in the code was encountered. [Torr Samaho]
+!	- Changed: Calling a vote during intermission is not allowed anymore. [Torr Samaho, SuperGod]
 
 v0.97d2 RC6
 -----------

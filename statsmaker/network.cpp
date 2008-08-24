@@ -440,40 +440,9 @@ char *NETWORK_AddressToStringIgnorePort( NETADDRESS_s Address )
 
 //*****************************************************************************
 //
-void NETWORK_NetAddressToSocketAddress( NETADDRESS_s &Address, struct sockaddr_in &SocketAddress )
-{
-	// Initialize the socket address.
-	memset( &SocketAddress, 0, sizeof( SocketAddress ));
-
-	// Set the socket's address and port.
-	*(int *)&SocketAddress.sin_addr = *(int *)&Address.abIP;
-	SocketAddress.sin_port = Address.usPort;
-
-	// Set the socket address's family (what does this do?).
-	SocketAddress.sin_family = AF_INET;
-}
-
-//*****************************************************************************
-//
 void NETWORK_SetAddressPort( NETADDRESS_s &Address, USHORT usPort )
 {
 	Address.usPort = htons( usPort );
-}
-
-//*****************************************************************************
-//
-bool NETWORK_CompareAddress( NETADDRESS_s Address1, NETADDRESS_s Address2, bool bIgnorePort )
-{
-	if (( Address1.abIP[0] == Address2.abIP[0] ) &&
-		( Address1.abIP[1] == Address2.abIP[1] ) &&
-		( Address1.abIP[2] == Address2.abIP[2] ) &&
-		( Address1.abIP[3] == Address2.abIP[3] ) &&
-		( bIgnorePort ? 1 : ( Address1.usPort == Address2.usPort )))
-	{
-		return ( true );
-	}
-
-	return ( false );
 }
 
 //*****************************************************************************
