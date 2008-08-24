@@ -3035,6 +3035,13 @@ void G_FinishTravel ()
 		{
 			oldpawn = pawndup;
 
+			// [BB] On a map with fewer player starts than players, some player already
+			// will be telefragged here. To ensure that they can respawn properly
+			// and don't end up in a zombie state, let them be reborn when respawn
+			// the next time.
+			if ( pawn->player->health <= 0 )
+				pawn->player->playerstate = PST_REBORN;
+
 			// The player being spawned here is a short lived dummy and
 			// must not start any ENTER script or big problems will happen.
 			//pawndup = P_SpawnPlayer (&playerstarts[pawn->player - players], true);
