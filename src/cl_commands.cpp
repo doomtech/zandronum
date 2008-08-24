@@ -199,9 +199,9 @@ void CLIENTCOMMANDS_ClientMove( void )
 	if ( pCmd->ucmd.buttons & BT_ATTACK )
 	{
 		if ( players[consoleplayer].ReadyWeapon == NULL )
-			NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, PClass::m_Types.Size( ));
+			NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, 0 );
 		else
-			NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].ReadyWeapon->GetClass( )->ClassIndex );
+			NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, players[consoleplayer].ReadyWeapon->GetClass( )->getActorNetworkIndex() );
 	}
 }
 
@@ -227,7 +227,7 @@ void CLIENTCOMMANDS_WeaponSelect( const PClass *pType )
 		return;
 
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_WEAPONSELECT );
-	NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, pType->ClassIndex );
+	NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, pType->getActorNetworkIndex() );
 }
 
 //*****************************************************************************
@@ -389,10 +389,10 @@ void CLIENTCOMMANDS_RequestInventoryUse( AInventory *item )
 	if ( item == NULL )
 		return;
 
-	const USHORT usClassIndex = item->GetClass( )->ClassIndex;
+	const USHORT usActorNetworkIndex = item->GetClass( )->getActorNetworkIndex();
 
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_INVENTORYUSE );
-	NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, usClassIndex );
+	NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, usActorNetworkIndex );
 }
 
 //*****************************************************************************
@@ -414,10 +414,10 @@ void CLIENTCOMMANDS_RequestInventoryDrop( AInventory *pItem )
 	if ( pItem == NULL )
 		return;
 
-	const USHORT usClassIndex = pItem->GetClass( )->ClassIndex;
+	const USHORT usActorNetworkIndex = pItem->GetClass( )->getActorNetworkIndex();
 
 	g_ulLastDropTime = gametic;
 
 	NETWORK_WriteByte( &CLIENT_GetLocalBuffer( )->ByteStream, CLC_INVENTORYDROP );
-	NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, usClassIndex );
+	NETWORK_WriteShort( &CLIENT_GetLocalBuffer( )->ByteStream, usActorNetworkIndex );
 }

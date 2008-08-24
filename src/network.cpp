@@ -106,6 +106,9 @@ static	UCHAR			g_ucHuffmanBuffer[131072];
 // Our local address;
 NETADDRESS_s	g_LocalAddress;
 
+// [BB]
+static	TArray<const PClass*> g_ActorNetworkIndexClassPointerMap;
+
 //*****************************************************************************
 //	PROTOTYPES
 
@@ -240,6 +243,18 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 		}
 	}
 	CMD5Checksum::GetMD5( reinterpret_cast<const BYTE *>(longChecksum.GetChars()), longChecksum.Len(), g_lumpsAuthenticationChecksum );
+
+	// [BB] Initialize the actor network class indices.
+	for ( unsigned int i = 0; i < PClass::m_Types.Size(); i++ )
+	{
+		PClass* cls = PClass::m_Types[i];
+		if ( (cls->IsDescendantOf(RUNTIME_CLASS(AActor)))
+		     // [BB] The server only binaries don't know DynamicLight and derived classes.
+		     && !(cls->IsDescendantOf(PClass::FindClass("DynamicLight"))) )
+			cls->ActorNetworkIndex = 1 + g_ActorNetworkIndexClassPointerMap.Push ( cls );
+		else
+			cls->ActorNetworkIndex = 0;
+	}
 
 	// Call NETWORK_Destruct() when Skulltag closes.
 	atterm( NETWORK_Destruct );
@@ -594,23 +609,23 @@ void NETWORK_GenerateLumpMD5Hash( const int LumpNum, FString &MD5Hash )
 // [CW]
 //*****************************************************************************
 //
-const char *NETWORK_GetClassNameFromIdentification( USHORT usClassIndex )
+const char *NETWORK_GetClassNameFromIdentification( USHORT usActorNetworkIndex )
 {
-	if ( usClassIndex >= PClass::m_Types.Size() )
+	if ( (usActorNetworkIndex == 0) || (usActorNetworkIndex > g_ActorNetworkIndexClassPointerMap.Size()) )
 		return NULL;
 	else
-		return PClass::m_Types[usClassIndex]->TypeName.GetChars( );
+		return g_ActorNetworkIndexClassPointerMap[usActorNetworkIndex-1]->TypeName.GetChars( );
 }
 
 // [CW]
 //*****************************************************************************
 //
-const PClass *NETWORK_GetClassFromIdentification( USHORT usClassIndex )
+const PClass *NETWORK_GetClassFromIdentification( USHORT usActorNetworkIndex )
 {
-	if ( usClassIndex >= PClass::m_Types.Size() )
+	if ( (usActorNetworkIndex == 0) || (usActorNetworkIndex > g_ActorNetworkIndexClassPointerMap.Size()) )
 		return NULL;
 	else
-		return PClass::m_Types[usClassIndex];
+		return g_ActorNetworkIndexClassPointerMap[usActorNetworkIndex-1];
 }
 
 //*****************************************************************************

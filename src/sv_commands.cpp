@@ -218,10 +218,10 @@ void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlay
 	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	USHORT usClassIndex = PClass::m_Types.Size( );
+	USHORT usActorNetworkIndex = 0;
 
 	if ( players[ulPlayer].mo )
-		usClassIndex = players[ulPlayer].mo->GetClass( )->ClassIndex;
+		usActorNetworkIndex = players[ulPlayer].mo->GetClass( )->getActorNetworkIndex();
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -259,7 +259,7 @@ void SERVERCOMMANDS_SpawnPlayer( ULONG ulPlayer, LONG lPlayerState, ULONG ulPlay
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].CurrentPlayerClass );
 		//NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].userinfo.PlayerClass );
 		if ( bMorph )
-			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usClassIndex );
+			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usActorNetworkIndex );
 	}
 	// [BB]: Inform the player about its health, otherwise it won't be displayed properly.
 	// The armor display is handled in SERVER_ResetInventory.
@@ -385,14 +385,13 @@ void SERVERCOMMANDS_DamagePlayer( ULONG ulPlayer )
 void SERVERCOMMANDS_KillPlayer( ULONG ulPlayer, AActor *pSource, AActor *pInflictor, ULONG ulMOD )
 {
 	ULONG	ulIdx;
-	USHORT	usClassIndex = PClass::m_Types.Size( );
+	USHORT	usActorNetworkIndex = 0;
 	LONG	lSourceID;
 	LONG	lInflictorID;
 
 	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
-	usClassIndex = PClass::m_Types.Size( );
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		if (( playeringame[ulIdx] == false ) ||
@@ -404,9 +403,9 @@ void SERVERCOMMANDS_KillPlayer( ULONG ulPlayer, AActor *pSource, AActor *pInflic
 		if ( players[ulIdx].mo == pSource )
 		{
 			if ( players[ulIdx].ReadyWeapon != NULL )
-				usClassIndex = players[ulIdx].ReadyWeapon->GetClass( )->ClassIndex;
+				usActorNetworkIndex = players[ulIdx].ReadyWeapon->GetClass( )->getActorNetworkIndex();
 			else
-				usClassIndex = PClass::m_Types.Size( );
+				usActorNetworkIndex = 0;
 			break;
 		}
 	}
@@ -435,7 +434,7 @@ void SERVERCOMMANDS_KillPlayer( ULONG ulPlayer, AActor *pSource, AActor *pInflic
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].mo->health );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulMOD );
 		NETWORK_WriteString( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].mo->DamageType.GetChars() );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usClassIndex );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usActorNetworkIndex );
 	}
 }
 
@@ -812,7 +811,7 @@ void SERVERCOMMANDS_SetPlayerAmmoCapacity( ULONG ulPlayer, AInventory *pAmmo, UL
 		SERVER_CheckClientBuffer( ulIdx, 6, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERAMMOCAPACITY );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pAmmo->GetClass( )->ClassIndex );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pAmmo->GetClass( )->getActorNetworkIndex() );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pAmmo->MaxAmount );
 	}
 }
@@ -849,7 +848,7 @@ void SERVERCOMMANDS_SetPlayerCheats( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG 
 void SERVERCOMMANDS_SetPlayerPendingWeapon( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG		ulIdx;
-	USHORT		usClassIndex = PClass::m_Types.Size( );
+	USHORT		usActorNetworkIndex = 0;
 
 	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
 		return;
@@ -857,7 +856,7 @@ void SERVERCOMMANDS_SetPlayerPendingWeapon( ULONG ulPlayer, ULONG ulPlayerExtra,
 	if (( players[ulPlayer].PendingWeapon != WP_NOCHANGE ) &&
 		( players[ulPlayer].PendingWeapon != NULL ))
 	{
-		usClassIndex = players[ulPlayer].PendingWeapon->GetClass( )->ClassIndex;
+		usActorNetworkIndex = players[ulPlayer].PendingWeapon->GetClass( )->getActorNetworkIndex();
 	}
 	else
 		return;
@@ -882,7 +881,7 @@ void SERVERCOMMANDS_SetPlayerPendingWeapon( ULONG ulPlayer, ULONG ulPlayerExtra,
 		SERVER_CheckClientBuffer( ulIdx, 4, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERPENDINGWEAPON );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usClassIndex );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usActorNetworkIndex );
 	}
 }
 
@@ -1320,7 +1319,7 @@ void SERVERCOMMANDS_PlayerRespawnInvulnerability( ULONG ulPlayer, ULONG ulPlayer
 void SERVERCOMMANDS_PlayerUseInventory( ULONG ulPlayer, AInventory *pItem, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG		ulIdx;
-	USHORT		usClassIndex = PClass::m_Types.Size( );
+	USHORT		usActorNetworkIndex = 0;
 
 	if (( SERVER_IsValidPlayer( ulPlayer ) == false ) ||
 		( pItem == NULL ))
@@ -1328,8 +1327,8 @@ void SERVERCOMMANDS_PlayerUseInventory( ULONG ulPlayer, AInventory *pItem, ULONG
 		return;
 	}
 
-	usClassIndex = pItem->GetClass( )->ClassIndex;
-	if ( usClassIndex >= PClass::m_Types.Size( ))
+	usActorNetworkIndex = pItem->GetClass( )->getActorNetworkIndex();
+	if ( NETWORK_GetClassNameFromIdentification ( usActorNetworkIndex ) == NULL )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1346,7 +1345,7 @@ void SERVERCOMMANDS_PlayerUseInventory( ULONG ulPlayer, AInventory *pItem, ULONG
 		SERVER_CheckClientBuffer( ulIdx, 4, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_PLAYERUSEINVENTORY );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usClassIndex );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usActorNetworkIndex );
 	}
 }
 
@@ -1355,7 +1354,7 @@ void SERVERCOMMANDS_PlayerUseInventory( ULONG ulPlayer, AInventory *pItem, ULONG
 void SERVERCOMMANDS_PlayerDropInventory( ULONG ulPlayer, AInventory *pItem, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG		ulIdx;
-	USHORT		usClassIndex = PClass::m_Types.Size( );
+	USHORT		usActorNetworkIndex = 0;
 
 	if (( SERVER_IsValidPlayer( ulPlayer ) == false ) ||
 		( pItem == NULL ))
@@ -1363,8 +1362,8 @@ void SERVERCOMMANDS_PlayerDropInventory( ULONG ulPlayer, AInventory *pItem, ULON
 		return;
 	}
 
-	usClassIndex = pItem->GetClass( )->ClassIndex;
-	if ( usClassIndex >= PClass::m_Types.Size( ))
+	usActorNetworkIndex = pItem->GetClass( )->getActorNetworkIndex();
+	if ( NETWORK_GetClassNameFromIdentification ( usActorNetworkIndex ) == NULL )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1381,7 +1380,7 @@ void SERVERCOMMANDS_PlayerDropInventory( ULONG ulPlayer, AInventory *pItem, ULON
 		SERVER_CheckClientBuffer( ulIdx, 4, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_PLAYERDROPINVENTORY );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usClassIndex );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usActorNetworkIndex );
 	}
 }
 
@@ -1391,7 +1390,7 @@ void SERVERCOMMANDS_PlayerDropInventory( ULONG ulPlayer, AInventory *pItem, ULON
 void SERVERCOMMANDS_SpawnThing( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG		ulIdx;
-	USHORT		usClassIndex = PClass::m_Types.Size( );
+	USHORT		usActorNetworkIndex = 0;
 
 	if ( pActor == NULL )
 		return;
@@ -1403,7 +1402,7 @@ void SERVERCOMMANDS_SpawnThing( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFla
 		return;
 	}
 
-	usClassIndex = pActor->GetClass( )->ClassIndex;
+	usActorNetworkIndex = pActor->GetClass( )->getActorNetworkIndex();
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -1421,7 +1420,7 @@ void SERVERCOMMANDS_SpawnThing( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFla
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->x >> FRACBITS );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->y >> FRACBITS );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->z >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usClassIndex );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usActorNetworkIndex );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
 	}
 }
@@ -1431,12 +1430,12 @@ void SERVERCOMMANDS_SpawnThing( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFla
 void SERVERCOMMANDS_SpawnThingNoNetID( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG		ulIdx;
-	USHORT		usClassIndex = PClass::m_Types.Size( );
+	USHORT		usActorNetworkIndex = 0;
 
 	if ( pActor == NULL )
 		return;
 
-	usClassIndex = pActor->GetClass( )->ClassIndex;
+	usActorNetworkIndex = pActor->GetClass( )->getActorNetworkIndex();
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -1454,7 +1453,7 @@ void SERVERCOMMANDS_SpawnThingNoNetID( AActor *pActor, ULONG ulPlayerExtra, ULON
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->x >> FRACBITS );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->y >> FRACBITS );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->z >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usClassIndex );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usActorNetworkIndex );
 	}
 }
 
@@ -1463,7 +1462,7 @@ void SERVERCOMMANDS_SpawnThingNoNetID( AActor *pActor, ULONG ulPlayerExtra, ULON
 void SERVERCOMMANDS_SpawnThingExact( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG		ulIdx;
-	USHORT		usClassIndex = PClass::m_Types.Size( );
+	USHORT		usActorNetworkIndex = 0;
 
 	if ( pActor == NULL )
 		return;
@@ -1475,7 +1474,7 @@ void SERVERCOMMANDS_SpawnThingExact( AActor *pActor, ULONG ulPlayerExtra, ULONG 
 		return;
 	}
 
-	usClassIndex = pActor->GetClass( )->ClassIndex;
+	usActorNetworkIndex = pActor->GetClass( )->getActorNetworkIndex();
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -1493,7 +1492,7 @@ void SERVERCOMMANDS_SpawnThingExact( AActor *pActor, ULONG ulPlayerExtra, ULONG 
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->x );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->y );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->z );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usClassIndex );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usActorNetworkIndex );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->lNetID );
 	}
 }
@@ -1503,12 +1502,12 @@ void SERVERCOMMANDS_SpawnThingExact( AActor *pActor, ULONG ulPlayerExtra, ULONG 
 void SERVERCOMMANDS_SpawnThingExactNoNetID( AActor *pActor, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG		ulIdx;
-	USHORT		usClassIndex = PClass::m_Types.Size( );
+	USHORT		usActorNetworkIndex = 0;
 
 	if ( pActor == NULL )
 		return;
 
-	usClassIndex = pActor->GetClass( )->ClassIndex;
+	usActorNetworkIndex = pActor->GetClass( )->getActorNetworkIndex();
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -1526,7 +1525,7 @@ void SERVERCOMMANDS_SpawnThingExactNoNetID( AActor *pActor, ULONG ulPlayerExtra,
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->x );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->y );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->z );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usClassIndex );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usActorNetworkIndex );
 	}
 }
 
@@ -2694,12 +2693,12 @@ void SERVERCOMMANDS_SpawnBlood( fixed_t x, fixed_t y, fixed_t z, angle_t dir, in
 void SERVERCOMMANDS_SpawnPuff( AActor *pActor, ULONG ulState, bool bSendTranslation, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG		ulIdx;
-	USHORT		usClassIndex = PClass::m_Types.Size( );
+	USHORT		usActorNetworkIndex = 0;
 
 	if ( pActor == NULL )
 		return;
 
-	usClassIndex = pActor->GetClass( )->ClassIndex;
+	usActorNetworkIndex = pActor->GetClass( )->getActorNetworkIndex();
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -2720,7 +2719,7 @@ void SERVERCOMMANDS_SpawnPuff( AActor *pActor, ULONG ulState, bool bSendTranslat
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->x >> FRACBITS );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->y >> FRACBITS );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pActor->z >> FRACBITS );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usClassIndex );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usActorNetworkIndex );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulState );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, !!bSendTranslation );
 		if ( bSendTranslation )
@@ -3550,12 +3549,12 @@ void SERVERCOMMANDS_TeamFlagDropped( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG 
 void SERVERCOMMANDS_SpawnMissile( AActor *pMissile, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG		ulIdx;
-	USHORT		usClassIndex = PClass::m_Types.Size( );
+	USHORT		usActorNetworkIndex = 0;
 
 	if ( pMissile == NULL )
 		return;
 
-	usClassIndex = pMissile->GetClass( )->ClassIndex;
+	usActorNetworkIndex = pMissile->GetClass( )->getActorNetworkIndex();
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -3576,7 +3575,7 @@ void SERVERCOMMANDS_SpawnMissile( AActor *pMissile, ULONG ulPlayerExtra, ULONG u
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->momx );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->momy );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->momz );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usClassIndex );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usActorNetworkIndex );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->lNetID );
 		if ( pMissile->target )
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->target->lNetID );
@@ -3594,12 +3593,12 @@ void SERVERCOMMANDS_SpawnMissile( AActor *pMissile, ULONG ulPlayerExtra, ULONG u
 void SERVERCOMMANDS_SpawnMissileExact( AActor *pMissile, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG		ulIdx;
-	USHORT		usClassIndex = PClass::m_Types.Size( );
+	USHORT		usActorNetworkIndex = 0;
 
 	if ( pMissile == NULL )
 		return;
 
-	usClassIndex = pMissile->GetClass( )->ClassIndex;
+	usActorNetworkIndex = pMissile->GetClass( )->getActorNetworkIndex();
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -3620,7 +3619,7 @@ void SERVERCOMMANDS_SpawnMissileExact( AActor *pMissile, ULONG ulPlayerExtra, UL
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->momx );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->momy );
 		NETWORK_WriteLong( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->momz );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usClassIndex );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usActorNetworkIndex );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->lNetID );
 		if ( pMissile->target )
 			NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pMissile->target->lNetID );
@@ -3699,13 +3698,13 @@ void SERVERCOMMANDS_WeaponSound( ULONG ulPlayer, const char *pszSound, ULONG ulP
 void SERVERCOMMANDS_WeaponChange( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
-	USHORT	usClassIndex = PClass::m_Types.Size( );
+	USHORT	usActorNetworkIndex = 0;
 
 	if ( SERVER_IsValidPlayer( ulPlayer ) == false )
 		return;
 
 	if ( players[ulPlayer].ReadyWeapon != NULL )
-		usClassIndex = players[ulPlayer].ReadyWeapon->GetClass( )->ClassIndex;
+		usActorNetworkIndex = players[ulPlayer].ReadyWeapon->GetClass( )->getActorNetworkIndex();
 	else
 		return;
 
@@ -3723,7 +3722,7 @@ void SERVERCOMMANDS_WeaponChange( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulF
 		SERVER_CheckClientBuffer( ulIdx, 4, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_WEAPONCHANGE );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usClassIndex );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, usActorNetworkIndex );
 	}
 }
 
@@ -5198,7 +5197,7 @@ void SERVERCOMMANDS_GiveInventory( ULONG ulPlayer, AInventory *pInventory, ULONG
 		SERVER_CheckClientBuffer( ulIdx, 6, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_GIVEINVENTORY );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pInventory->GetClass( )->ClassIndex );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pInventory->GetClass( )->getActorNetworkIndex() );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pInventory->Amount );
 	}
 }
@@ -5278,7 +5277,7 @@ void SERVERCOMMANDS_GivePowerup( ULONG ulPlayer, APowerup *pPowerup, ULONG ulPla
 		SERVER_CheckClientBuffer( ulIdx, 6, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_GIVEPOWERUP );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
-		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pPowerup->GetClass( )->ClassIndex );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pPowerup->GetClass( )->getActorNetworkIndex() );
 		// Can we have multiple amounts of a powerup? Probably not, but I'll be safe for now.
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pPowerup->Amount );
 		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, pPowerup->EffectTics );
