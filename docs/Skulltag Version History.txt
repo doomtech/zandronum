@@ -50,6 +50,7 @@ v0.97d2
 -	- Fixed: When a client is kicked because of user info change flood, the server doesn't finish parsing the user info packet, resulting in network packet parsing errors. [Torr Samaho, SuperGod]
 !	- Changed: Instead of crashing the game when being called twice, AActor::UnlinkFromWorld() now just gives a warning to signal that a bug in the code was encountered. [Torr Samaho]
 !	- Changed: Calling a vote during intermission is not allowed anymore. [Torr Samaho, SuperGod]
+!	- Changed: Clients can't set the CVAR turbo higher than 100 anymore. [Torr Samaho, SuperGod]
 
 v0.97d2 RC6
 -----------
