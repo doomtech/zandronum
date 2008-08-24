@@ -3408,7 +3408,7 @@ static void scoreboard_DrawMyRank( ULONG ulPlayer )
 		if ( lastmanstanding )
 			sprintf( szString, "%s\\c-place with %d win%s", szString, static_cast<unsigned int> (players[ulPlayer].ulWins), players[ulPlayer].ulWins == 1 ? "" : "s" );
 		else if ( possession )
-			sprintf( szString, "%s\\c-place with %d point%s", szString, static_cast<int> (players[ulPlayer].lPointCount), players[ulPlayer].fragcount == 1 ? "" : "s" );
+			sprintf( szString, "%s\\c-place with %d point%s", szString, static_cast<int> (players[ulPlayer].lPointCount), players[ulPlayer].lPointCount == 1 ? "" : "s" );
 		else
 			sprintf( szString, "%s\\c-place with %d frag%s", szString, players[ulPlayer].fragcount, players[ulPlayer].fragcount == 1 ? "" : "s" );
 		V_ColorizeString( szString );

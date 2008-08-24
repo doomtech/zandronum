@@ -51,6 +51,7 @@ v0.97d2
 -	- Fixed: The line special Ceiling_CrushStop doesn't work properly online, the crusher is stopped on the server but continues to move on the clients. [Torr Samaho, SuperGod]
 -	- Fixed: The server doesn't inform the clients about the arguments of the SoundEnvironment actor. This prevented reverbs from working online. [Torr Samaho, SuperGod]
 -	- Fixed: A_PlaySound and similar functions didn't work online on actors that don't have a net id, e.g. Blood and derived actors. [Torr Samaho, SuperGod]
+-	- Fixed: A minor grammar error in the possession scoreboard code. [Torr Samaho]
 !	- Changed: Instead of crashing the game when being called twice, AActor::UnlinkFromWorld() now just gives a warning to signal that a bug in the code was encountered. [Torr Samaho]
 !	- Changed: Calling a vote during intermission is not allowed anymore. [Torr Samaho, SuperGod]
 !	- Changed: Clients can't set the CVAR turbo higher than 100 anymore. [Torr Samaho, SuperGod]
