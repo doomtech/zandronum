@@ -5486,14 +5486,12 @@ static void client_SetThingState( BYTESTREAM_s *pByteStream )
 		return;
 	case STATE_HEAL:
 
+		// [BB] The monster count is increased when STATE_RAISE is set, so
+		// don't do it here.
 		if ( pActor->FindState(NAME_Heal) )
 		{
 			pNewState = pActor->FindState(NAME_Heal);
 			S_Sound( pActor, CHAN_BODY, "vile/raise", 1, ATTN_IDLE );
-
-			// Since the arch-vile is reviving a monster at this point, increment the total number
-			// of monsters remaining on the level.
-			level.total_monsters++;
 		}
 		else if ( pActor->IsKindOf( PClass::FindClass("Archvile")))
 		{
@@ -5503,10 +5501,6 @@ static void client_SetThingState( BYTESTREAM_s *pByteStream )
 				pNewState = archvile->ActorInfo->FindState(NAME_Heal);
 			}
 			S_Sound( pActor, CHAN_BODY, "vile/raise", 1, ATTN_IDLE );
-
-			// Since the arch-vile is reviving a monster at this point, increment the total number
-			// of monsters remaining on the level.
-			level.total_monsters++;
 		}
 		else
 			return;

@@ -21,6 +21,8 @@ v0.97d2
 -	- Fixed: Monsters that are alive when a countdown is started in Invasion are not handled properly causing online sync problems. Clients wrongly deleted friendly monsters locally two waves after they have been spawned. Furthermore, the server deleted living hostile monsters that didn't come from an Invasion spawner without notifying the clients about this. Now all living hostile monsters (that can only exist because of bugs or cheats anyway) are deleted when the countdown is started. [Torr Samaho, SuperGod]
 -	- Fixed: In game modes that reset, the server tells newly connecting clients to spawn certain kind of actors even though they are already destroyed, e.g. exploded ExplosiveBarrels. [Torr Samaho, SuperGod]
 -	- Fixed: When a player respawns while a time freezer owned by another player is active, the respawned player can't move anymore as long as the freezer is active. [Torr Samaho, SuperGod]
+-	- Fixed: In cooperative game modes, when the players travel from any map to a map with fewer player starts than players, some of them may end up in a zombie like state. [Torr Samaho, SuperGod]
+-	- Fixed: When an Archvile raises a monster online, on the clients the total monsters counter is increased by two instead of one. [Torr Samaho, SuperGod]
 !	- Changed: Instead of crashing the game when being called twice, AActor::UnlinkFromWorld() now just gives a warning to signal that a bug in the code was encountered. [Torr Samaho]
 
 v0.97d2 RC6
