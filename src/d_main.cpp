@@ -456,7 +456,8 @@ CVAR (Flag, sv_keepteams,		dmflags2, DF2_YES_KEEP_TEAMS);
 
 int i_compatflags;	// internal compatflags composed from the compatflags CVAR and MAPINFO settings
 
-CUSTOM_CVAR (Int, compatflags, 0, CVAR_ARCHIVE|CVAR_SERVERINFO)
+// [BB] Removed the CVAR_ARCHIVE flag.
+CUSTOM_CVAR (Int, compatflags, 0, CVAR_SERVERINFO)
 {
 	if (level.info == NULL) i_compatflags = self;
 	else i_compatflags = (self & ~level.info->compatmask) | (level.info->compatflags & level.info->compatmask);

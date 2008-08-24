@@ -52,6 +52,7 @@ v0.97d2
 !	- Changed: Instead of crashing the game when being called twice, AActor::UnlinkFromWorld() now just gives a warning to signal that a bug in the code was encountered. [Torr Samaho]
 !	- Changed: Calling a vote during intermission is not allowed anymore. [Torr Samaho, SuperGod]
 !	- Changed: Clients can't set the CVAR turbo higher than 100 anymore. [Torr Samaho, SuperGod]
+!	- Changed: For consistency with the handling of the CVARs dmflags and dmflags2, the value of the CVAR compatflags is not archived in the ini any more. [Torr Samaho, SuperGod]
 
 v0.97d2 RC6
 -----------
