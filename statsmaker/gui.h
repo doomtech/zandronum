@@ -1,7 +1,7 @@
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 //
 // Skulltag Statsmaker Source
-// Copyright (C) 2007 Brad Carney
+// Copyright (C) 2008 Rivecoder
 // Copyright (C) 2007-2012 Skulltag Development Team
 // All rights reserved.
 //
@@ -39,29 +39,22 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-// Date created:  11/10/07
+// Date created:  8/15/08
 //
 //
-// Filename: protocol_skulltag.cpp
+// Filename: gui.h
 //
 // Description: 
 //
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 
-#ifndef	__PROTOCOL_SKULLTAG_H__
-#define	__PROTOCOL_SKULLTAG_H__
 
-#include "main.h"
+#ifndef __GUI_H__
+#define __GUI_H__
 
-//*****************************************************************************
-//	PROTOTYPES
+void GUI_CreateDialog( );
+void GUI_UpdateStatisticsDisplay( void );
+void GUI_SetWritingMode( bool bWriting );
+void GUI_UpdateTrayTooltip( const char *szTooltip );
 
-void			SKULLTAG_Construct( void );
-void			SKULLTAG_Destruct( void );
-
-void			SKULLTAG_QueryMasterServer( void );
-bool			SKULLTAG_ParseMasterServerResponse( BYTESTREAM_s *pByteStream, TArray<SERVER_s>&aServerInfo, TArray<QUERY_s>&aQueryInfo );
-void			SKULLTAG_QueryServer( SERVER_s *pServer );
-bool			SKULLTAG_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVER_s *pServer, TArray<QUERY_s>&aQueryInfo );
-
-#endif	// __PROTOCOL_SKULLTAG_H__
+#endif

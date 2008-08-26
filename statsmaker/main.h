@@ -1,7 +1,7 @@
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 //
-// Skulltag Statistics Reporter Source
-// Copyright (C) 2005 Brad Carney
+// Skulltag Statsmaker Source
+// Copyright (C) 2005 Brad Carney, 2008 Rivecoder
 // Copyright (C) 2007-2012 Skulltag Development Team
 // All rights reserved.
 //
@@ -42,37 +42,34 @@
 // Date created:  4/4/05
 //
 //
-// Filename: main.cpp
+// Filename: main.h
 //
 // Description: 
 //
-//-----------------------------------------------------------------------------
-
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 
 #ifndef __MAIN_H__
 #define __MAIN_H__
+
 #define _WIN32_IE 0x0501
 #include <windows.h>
 #include "network.h"
 #include "..\src\tarray.h"
 
-//*****************************************************************************
-//	DEFINES
-
-// This is what displays in the main window.
-#define	MAIN_TITLESTRING	"Skulltag Statistics Reporter"
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+//-- DEFINES ---------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------
 
 #define	SERVERCONSOLE_TEXTLENGTH	4096
 
 // How long can the name of a port be?
 #define	MAX_PORT_NAME_LENGTH		16
 
-#define	DESIRED_FRAMERATE	50
-
-#define	SECOND				50
-#define	MINUTE				( SECOND * 60 )
-#define	HOUR				( MINUTE * 60 )
-#define	DAY					( HOUR * 24 )
+// Time values (based on time.h)
+#define SECOND						1
+#define	MINUTE						( SECOND * 60 )
+#define	HOUR						( MINUTE * 60 )
+#define	DAY							( HOUR * 24 )
 
 // Server query flags.
 #define	SQF_NAME					0x00000001
@@ -102,7 +99,6 @@ typedef enum
 	AS_INACTIVE,
 	AS_WAITINGFORREPLY,
 	AS_ACTIVE,
-//	AS_IGNORED,
 	AS_BANNED,
 
 	NUM_ACTIVESTATES
@@ -140,8 +136,9 @@ enum
 	NUM_PORTS
 };
 
-//*****************************************************************************
-//	STRUCTURES
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+//-- STRUCTURES ------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //*****************************************************************************
 typedef struct
@@ -152,18 +149,38 @@ typedef struct
 	// IP address of this server.
 	NETADDRESS_s			Address;
 
-} SERVERINFO_s;
+	// When did we last query this server?
+	time_t					tLastQuery;
+
+} SERVER_s;
 
 //*****************************************************************************
 typedef struct
 {
-	// How many players are playing this query?
+	// How many players are playing?
 	LONG					lNumPlayers;
 
-	// How many servers are present this query?
+	// How many servers are running?
 	LONG					lNumServers;
 
-} QUERYINFO_s;
+	// How many of those players are spectating?
+	LONG					lNumSpectators;
+
+} QSTAT_s;
+
+//*****************************************************************************
+typedef struct
+{
+	// What time was the query made?
+	time_t					tTime;
+
+	// General statistics.
+	QSTAT_s					qTotal;
+
+	// Statistics broken down by game mode.
+	QSTAT_s					qByGameMode[NUM_GAMETYPES];	
+
+} QUERY_s;
 
 //*****************************************************************************
 typedef struct
@@ -171,71 +188,51 @@ typedef struct
 	// What is the name of this port?
 	char					szName[MAX_PORT_NAME_LENGTH];
 
-	// List of servers for this port.
-	TArray<SERVERINFO_s>	aServerInfo;
+	// Is this port enabled?
+	bool					bEnabled;
 
-	// Data for each query.
-	TArray<QUERYINFO_s>		aQueryInfo;
+	// List of servers for this port.
+	TArray<SERVER_s>		aServerInfo;
+
+	// The statistics taken for each query.
+	TArray<QUERY_s>			aQueryInfo;
 
 	// Info for the master server (address, etc.).
-	SERVERINFO_s			MasterServerInfo;
-
-	// Maximum number of players seen at once.
-	LONG					lMaxNumPlayers;
-
-	// Maximum numbers of servers seen at once.
-	LONG					lMaxNumServers;
-
-	// Average number of players. This is calculated continuously.
-	FLOAT					fAverageNumPlayers;
-
-	// Average number of servers. This is calculated continuously.
-	FLOAT					fAverageNumServers;
+	SERVER_s				MasterServerInfo;
 
 	// Does this port use Huffman compression?
 	bool					bHuffman;
+
+	// Dialog that contains the labels showing this port's statistics.
+	HWND					hDlg;
+
+	// Control ID of the port's labels for number of players on the "Overview" tab.
+	int						iOverviewNowLabelID, iOverviewTodayLabelID;
+
+	// Control ID of the icons shown on the "Overview" tab when this port has the most players.
+	int						iOnTopNowIconID, iOnTopTodayIconID;
 
 	// Routine run for querying the master servers.
 	void					(*pvQueryMasterServer)( void );
 
 	// Routine run for parsing master server responses.
-	bool					(*pvParseMasterServerResponse)( BYTESTREAM_s *pByteStream, TArray<SERVERINFO_s>&aServerInfo, TArray<QUERYINFO_s>&aQueryInfo );
+	bool					(*pvParseMasterServerResponse)( BYTESTREAM_s *pByteStream, TArray<SERVER_s>&aServerInfo, TArray<QUERY_s>&aQueryInfo );
 
 	// Routine run for querying servers.
-	void					(*pvQueryServer)( SERVERINFO_s *pServer );
+	void					(*pvQueryServer)( SERVER_s *pServer );
 
 	// Routine run for parsing server responses.
-	bool					(*pvParseServerResponse)( BYTESTREAM_s *pByteStream, SERVERINFO_s *pServer, TArray<QUERYINFO_s>&aQueryInfo );
+	bool					(*pvParseServerResponse)( BYTESTREAM_s *pByteStream, SERVER_s *pServer, TArray<QUERY_s>&aQueryInfo );
 
-	// Dialog that displays this port's statistics.
-	HWND					hDlg;
+} PORT_s;
 
-} PORTINFO_s;
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+//-- PROTOTYPES ------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------
 
-//*****************************************************************************
-typedef struct
-{
-	LONG		lMonth;
-
-	LONG		lDay;
-
-	LONG		lHour;
-
-	LONG		lMinute;
-
-	LONG		lSecond;
-
-} UPDATETIME_s;
-
-//*****************************************************************************
-//	PROTOTYPES
-
-BOOL CALLBACK	MAIN_MainDialogBoxCallback( HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam );
-
-DWORD WINAPI	MAIN_RunMainThread( LPVOID );
-
-void	Printf( const char *pszString, ... );
-void	VPrintf( const char *pszString, va_list Parms );
-void	MAIN_Print( char *pszString );
+SERVER_s		*MAIN_FindServerByAddress( NETADDRESS_s Address );
+void			Printf( const char *pszString, ... );
+void			VPrintf( const char *pszString, va_list Parms );
+void			MAIN_Print( char *pszString );
 
 #endif	// __MAIN_H__

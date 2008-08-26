@@ -2,9 +2,10 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="Skulltag Stats Maker"
+	Name="statsmaker"
 	ProjectGUID="{45BB0A1D-9FC1-49C7-AABB-9066DC64D2A9}"
 	RootNamespace="Skulltag Stats Maker"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -49,7 +50,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories=".\"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS; _CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -81,6 +82,8 @@
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/Skulltag Stats Maker.pdb"
 				SubSystem="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -102,9 +105,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -176,6 +176,8 @@
 				SuppressStartupBanner="true"
 				ProgramDatabaseFile=".\Release/Skulltag Stats Maker.pdb"
 				SubSystem="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -199,9 +201,6 @@
 				Name="VCAppVerifierTool"
 			/>
 			<Tool
-				Name="VCWebDeploymentTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -213,6 +212,14 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
+			<File
+				RelativePath=".\collector.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\gui.cpp"
+				>
+			</File>
 			<File
 				RelativePath="huffman.cpp"
 				>
@@ -234,24 +241,8 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="m_alloc.cpp"
+				RelativePath=".\m_alloc.cpp"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="main.cpp"
@@ -311,11 +302,19 @@
 			Filter="h;hpp;hxx;hm;inl"
 			>
 			<File
+				RelativePath=".\collector.h"
+				>
+			</File>
+			<File
+				RelativePath=".\gui.h"
+				>
+			</File>
+			<File
 				RelativePath="huffman.h"
 				>
 			</File>
 			<File
-				RelativePath="m_alloc.h"
+				RelativePath=".\m_alloc.h"
 				>
 			</File>
 			<File
@@ -342,17 +341,17 @@
 				RelativePath=".\protocol_zdaemon.h"
 				>
 			</File>
-			<File
-				RelativePath="resource.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 			>
 			<File
-				RelativePath="Script1.rc"
+				RelativePath="resource.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Script1.rc"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"

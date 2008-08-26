@@ -207,29 +207,29 @@ int NETWORK_GetPackets( void )
         errno = WSAGetLastError( );
 
         if ( errno == WSAEWOULDBLOCK )
-            return ( false );
+            return FALSE;
 
 		// Connection reset by peer. Doesn't mean anything to the server.
 		if ( errno == WSAECONNRESET )
-			return ( false );
+			return FALSE;
 
         if ( errno == WSAEMSGSIZE )
 		{
              Printf( "NETWORK_GetPackets:  WARNING! Oversize packet from %s\n", NETWORK_AddressToString( g_AddressFrom ));
-             return ( false );
+             return FALSE;
         }
 
         Printf( "NETWORK_GetPackets: WARNING!: Error #%d: %s\n", errno, strerror( errno ));
-		return ( false );
+		return FALSE;
 #else
         if ( errno == EWOULDBLOCK )
-            return ( false );
+            return FALSE;
 
         if ( errno == ECONNREFUSED )
-            return ( false );
+            return FALSE;
 
         Printf( "NETWORK_GetPackets: WARNING!: Error #%d: %s\n", errno, strerror( errno ));
-        return ( false );
+        return FALSE;
 #endif
     }
 
@@ -293,29 +293,29 @@ int NETWORK_GetLANPackets( void )
         errno = WSAGetLastError( );
 
         if ( errno == WSAEWOULDBLOCK )
-            return ( false );
+            return FALSE;
 
 		// Connection reset by peer. Doesn't mean anything to the server.
 		if ( errno == WSAECONNRESET )
-			return ( false );
+			return FALSE;
 
         if ( errno == WSAEMSGSIZE )
 		{
              Printf( "NETWORK_GetPackets:  WARNING! Oversize packet from %s\n", NETWORK_AddressToString( g_AddressFrom ));
-             return ( false );
+             return FALSE;
         }
 
         Printf( "NETWORK_GetPackets: WARNING!: Error #%d: %s\n", errno, strerror( errno ));
-		return ( false );
+		return FALSE;
 #else
         if ( errno == EWOULDBLOCK )
-            return ( false );
+            return FALSE;
 
         if ( errno == ECONNREFUSED )
-            return ( false );
+            return FALSE;
 
         Printf( "NETWORK_GetPackets: WARNING!: Error #%d: %s\n", errno, strerror( errno ));
-        return ( false );
+        return FALSE;
 #endif
     }
 
@@ -380,7 +380,7 @@ void NETWORK_LaunchPacket( NETBUFFER_s *pBuffer, NETADDRESS_s Address, bool bEnc
 		INT	iError = WSAGetLastError( );
 
 		// Wouldblock is silent.
-		if ( iError == WSAEWOULDBLOCK )
+		if ( iError == WSAEWOULDBLOCK || iError == 10004 )
 			return;
 
 		switch ( iError )
@@ -539,9 +539,9 @@ bool network_BindSocketToPort( SOCKET Socket, USHORT usPort, bool bReUse )
 
 	iErrorCode = bind( Socket, (sockaddr *)&address, sizeof( address ));
 	if ( iErrorCode == SOCKET_ERROR )
-		return ( false );
+		return FALSE;
 
-	return ( true );
+	return TRUE;
 }
 
 
