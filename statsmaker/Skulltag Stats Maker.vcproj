@@ -221,27 +221,11 @@
 				>
 			</File>
 			<File
-				RelativePath="huffman.cpp"
+				RelativePath="..\src\huffman.cpp"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\m_alloc.cpp"
+				RelativePath="..\src\m_alloc.cpp"
 				>
 			</File>
 			<File
@@ -310,11 +294,11 @@
 				>
 			</File>
 			<File
-				RelativePath="huffman.h"
+				RelativePath="..\src\huffman.h"
 				>
 			</File>
 			<File
-				RelativePath=".\m_alloc.h"
+				RelativePath="..\src\m_alloc.h"
 				>
 			</File>
 			<File

@@ -59,7 +59,7 @@
 #include <ctype.h>
 #include <math.h>
 
-#include "huffman.h"
+#include "../src/huffman.h"
 #include "main.h"
 
 //*****************************************************************************
