@@ -9,6 +9,9 @@
 #include "gstrings.h"
 #include "a_action.h"
 #include "thingdef/thingdef.h"
+// [BB] New #includes.
+#include "cl_demo.h"
+#include "sv_commands.h"
 
 /*
 - in the decorate definition define multiple drop items
@@ -30,6 +33,13 @@ class ARandomSpawner : public AActor
 		int n=0;
 
 		Super::PostBeginPlay();
+
+		// [BB] This is server-side.
+		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+			( CLIENTDEMO_IsPlaying( )))
+		{
+			return;
+		}
 
 		drop = di = GetDropItems(RUNTIME_TYPE(this));
 		// Always make sure it actually exists.
@@ -76,6 +86,10 @@ class ARandomSpawner : public AActor
 				newmobj->momy = momy;
 				newmobj->momz = momz;
 				newmobj->CopyFriendliness(this, false);
+
+				// [BB] If we're the server, tell clients to spawn the actor.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_SpawnThing( newmobj );
 			}
 		}
 	}
