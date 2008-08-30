@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 //
-// Skulltag Statistics Reporter Source
+// Skulltag Statsmaker Source
 // Copyright (C) 2007 Brad Carney
 // Copyright (C) 2007-2012 Skulltag Development Team
 // All rights reserved.
@@ -100,12 +100,12 @@ void ZDAEMON_QueryMasterServer( void )
 
 //*****************************************************************************
 //
-bool ZDAEMON_ParseMasterServerResponse( BYTESTREAM_s *pByteStream, TArray<SERVERINFO_s>&aServerInfo, TArray<QUERYINFO_s>&aQueryInfo )
+bool ZDAEMON_ParseMasterServerResponse( BYTESTREAM_s *pByteStream, TArray<SERVER_s>&aServerInfo, TArray<QUERY_s>&aQueryInfo )
 {
 	LONG			lIdx;
 	LONG			lCommand;
-	//SERVERINFO_s	ServerInfo;
-	QUERYINFO_s		QueryInfo;
+	//SERVER_s	ServerInfo;
+	QUERY_s		QueryInfo;
 	LONG			lNumServers;
 
 	lCommand = NETWORK_ReadLong( pByteStream );
@@ -114,8 +114,8 @@ bool ZDAEMON_ParseMasterServerResponse( BYTESTREAM_s *pByteStream, TArray<SERVER
 	case ZDAEMON_MASTER_PLAYERLIST:
 
 		// Add a new query.
-		QueryInfo.lNumPlayers = 0;
-		QueryInfo.lNumServers = 0;
+		QueryInfo.qTotal.lNumPlayers = 0;
+		QueryInfo.qTotal.lNumServers = 0;
 		aQueryInfo.Push( QueryInfo );
 
 		// Clear out the server list.
@@ -143,20 +143,20 @@ bool ZDAEMON_ParseMasterServerResponse( BYTESTREAM_s *pByteStream, TArray<SERVER
 			ServerInfo.Address.usPort = htons( NETWORK_ReadShort( pByteStream ));
 
 			// Add this server's info to our list, and query it.
-			ulIdx = aServerInfo.Push( ServerInfo );
-			SKULLTAG_QueryServer( &aServerInfo[ulIdx] );
+			i = aServerInfo.Push( ServerInfo );
+			SKULLTAG_QueryServer( &aServerInfo[i] );
 		}
 */
 		// Since we got the server list, return true.
-		return ( true );
+		return TRUE;
 	}
 
-	return ( false );
+	return FALSE;
 }
 
 //*****************************************************************************
 //
-void ZDAEMON_QueryServer( SERVERINFO_s *pServer )
+void ZDAEMON_QueryServer( SERVER_s *pServer )
 {
 	return;
 	// Clear out the buffer, and write out launcher challenge.
@@ -171,14 +171,14 @@ void ZDAEMON_QueryServer( SERVERINFO_s *pServer )
 
 //*****************************************************************************
 //
-bool ZDAEMON_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVERINFO_s *pServer, TArray<QUERYINFO_s>&aQueryInfo )
+bool ZDAEMON_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVER_s *pServer, TArray<QUERY_s>&aQueryInfo )
 {
 	//LONG		lCommand;
 	LONG		lGameType = GAMETYPE_COOPERATIVE;
 	LONG		lNumPWADs;
 	LONG		lNumPlayers;
 	LONG		lNumRealPlayers;
-	ULONG		ulIdx;
+	ULONG		i;
 	//ULONG		ulBits;
 
 	// Make sure this is a server we're actually waiting for a reply from.
@@ -187,7 +187,7 @@ bool ZDAEMON_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVERINFO_s *pServ
 		while ( NETWORK_ReadByte( pByteStream ) != -1 )
 			;
 
-		return ( false );
+		return FALSE;
 	}
 
 	// This server is now active.
@@ -207,7 +207,7 @@ bool ZDAEMON_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVERINFO_s *pServ
 
 	// Read in the PWAD information.
 	lNumPWADs = NETWORK_ReadByte( pByteStream );
-	for ( ulIdx = 0; ulIdx < (ULONG)lNumPWADs; ulIdx++ )
+	for ( i = 0; i < (ULONG)lNumPWADs; i++ )
 		NETWORK_ReadString( pByteStream );
 
 	// Read the game type.
@@ -236,7 +236,7 @@ bool ZDAEMON_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVERINFO_s *pServ
 	lNumPlayers = NETWORK_ReadByte( pByteStream );
 	lNumRealPlayers = lNumPlayers;
 
-	for ( ulIdx = 0; ulIdx < (ULONG)lNumPlayers; ulIdx++ )
+	for ( i = 0; i < (ULONG)lNumPlayers; i++ )
 	{
 		// Read in this player's name.
 		NETWORK_ReadString( pByteStream );
@@ -260,9 +260,9 @@ bool ZDAEMON_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVERINFO_s *pServ
 
 	// And we don't care about anything else.
 
-	aQueryInfo[aQueryInfo.Size( ) - 1].lNumPlayers += lNumRealPlayers;
-	aQueryInfo[aQueryInfo.Size( ) - 1].lNumServers++;
+	aQueryInfo[aQueryInfo.Size( ) - 1].qTotal.lNumPlayers += lNumRealPlayers;
+	aQueryInfo[aQueryInfo.Size( ) - 1].qTotal.lNumServers++;
 
 	// Success!
-	return ( true );
+	return TRUE;
 }

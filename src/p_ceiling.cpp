@@ -698,6 +698,10 @@ bool EV_CeilingCrushStop (int tag)
 			scan->m_OldDirection = scan->m_Direction;
 			scan->m_Direction = 0;		// in-stasis;
 			rtn = true;
+
+			// [BB] Also tell the updated direction to the clients.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_ChangeCeilingDirection( scan->GetID( ), scan->GetDirection( ));
 		}
 	}
 

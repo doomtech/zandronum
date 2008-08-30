@@ -173,6 +173,12 @@ void ABaseMonsterInvasionSpot::Tick( void )
 			return;
 		}
 
+		// [BB] The just spawned thing doesn't count as kill. Since the invasion code assumes
+		// that each successful spawn of a monster spawner is a hostile monster, we need to
+		// adapt the monster count here.
+		if ( !pActor->CountsAsKill() )
+			INVASION_UpdateMonsterCount( pActor, true );
+
 		// Since the actor successfully spawned, tell clients.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SpawnThing( pActor );
@@ -1020,6 +1026,12 @@ void INVASION_BeginWave( ULONG ulWave )
 			continue;
 		}
 
+		// [BB] The just spawned thing doesn't count as kill. Since the invasion code assumes
+		// that each successful spawn of a monster spawner is a hostile monster, we need to
+		// adapt the monster count here.
+		if ( !pActor->CountsAsKill() )
+			INVASION_UpdateMonsterCount( pActor, true );
+
 		// Since the actor successfully spawned, tell clients.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			SERVERCOMMANDS_SpawnThing( pActor );
@@ -1375,7 +1387,7 @@ void INVASION_WriteSaveInfo( FILE *pFile )
 	FPNGChunkArchive	arc( pFile, MAKE_ID( 'i','n','V','s' ));
 
 	ulInvasionState = (ULONG)g_InvasionState;
-	arc << (DWORD &)g_ulNumMonstersLeft << (DWORD &)g_ulInvasionCountdownTicks << (DWORD &)g_ulCurrentWave << (DWORD &)ulInvasionState << (DWORD &)g_ulNumBossMonsters;
+	arc << (DWORD &)g_ulNumMonstersLeft << (DWORD &)g_ulInvasionCountdownTicks << (DWORD &)g_ulCurrentWave << (DWORD &)ulInvasionState << (DWORD &)g_ulNumBossMonsters << (DWORD &) g_ulNumArchVilesLeft;
 }
 
 //*****************************************************************************
@@ -1390,7 +1402,7 @@ void INVASION_ReadSaveInfo( PNGHandle *pPng )
 		ULONG				ulInvasionState;
 		FPNGChunkArchive	arc( pPng->File->GetFile( ), MAKE_ID( 'i','n','V','s' ), Length );
 
-		arc << (DWORD &)g_ulNumMonstersLeft << (DWORD &)g_ulInvasionCountdownTicks << (DWORD &)g_ulCurrentWave << (DWORD &)ulInvasionState << (DWORD &)g_ulNumBossMonsters;
+		arc << (DWORD &)g_ulNumMonstersLeft << (DWORD &)g_ulInvasionCountdownTicks << (DWORD &)g_ulCurrentWave << (DWORD &)ulInvasionState << (DWORD &)g_ulNumBossMonsters << (DWORD &) g_ulNumArchVilesLeft;
 		g_InvasionState = (INVASIONSTATE_e)ulInvasionState;
 	}
 }

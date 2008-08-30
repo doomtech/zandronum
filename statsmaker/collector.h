@@ -1,7 +1,7 @@
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 //
 // Skulltag Statsmaker Source
-// Copyright (C) 2007 Brad Carney
+// Copyright (C) 2008 Rivecoder
 // Copyright (C) 2007-2012 Skulltag Development Team
 // All rights reserved.
 //
@@ -39,29 +39,31 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-// Date created:  11/10/07
+// Date created:  8/16/08
 //
 //
-// Filename: protocol_skulltag.cpp
+// Filename: collector.h
 //
 // Description: 
 //
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 
-#ifndef	__PROTOCOL_SKULLTAG_H__
-#define	__PROTOCOL_SKULLTAG_H__
+#ifndef __COLLECTOR_H__
+#define __COLLECTOR_H__
 
 #include "main.h"
 
-//*****************************************************************************
-//	PROTOTYPES
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+//-- DEFINES ---------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------
 
-void			SKULLTAG_Construct( void );
-void			SKULLTAG_Destruct( void );
+#define MASTER_REQUERY_RATE	( 5  * MINUTE )
+#define SERVER_RETRY_RATE ( 10 * SECOND )
 
-void			SKULLTAG_QueryMasterServer( void );
-bool			SKULLTAG_ParseMasterServerResponse( BYTESTREAM_s *pByteStream, TArray<SERVER_s>&aServerInfo, TArray<QUERY_s>&aQueryInfo );
-void			SKULLTAG_QueryServer( SERVER_s *pServer );
-bool			SKULLTAG_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVER_s *pServer, TArray<QUERY_s>&aQueryInfo );
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+//-- PROTOTYPES ------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------
 
-#endif	// __PROTOCOL_SKULLTAG_H__
+DWORD WINAPI COLLECTOR_StartCollecting( LPVOID );
+
+#endif

@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 //
-// Skulltag Statistics Reporter Source
+// Skulltag Statsmaker Source
 // Copyright (C) 2007 Brad Carney
 // Copyright (C) 2007-2012 Skulltag Development Team
 // All rights reserved.
@@ -50,6 +50,7 @@
 
 #include "..\src\networkheaders.h"
 #include "..\src\networkshared.h"
+#include <time.h>
 #include "main.h"
 #include "protocol_skulltag.h"
 
@@ -100,12 +101,13 @@ void SKULLTAG_QueryMasterServer( void )
 
 //*****************************************************************************
 //
-bool SKULLTAG_ParseMasterServerResponse( BYTESTREAM_s *pByteStream, TArray<SERVERINFO_s>&aServerInfo, TArray<QUERYINFO_s>&aQueryInfo )
+bool SKULLTAG_ParseMasterServerResponse( BYTESTREAM_s *pByteStream, TArray<SERVER_s>&aServerInfo, TArray<QUERY_s>&aQueryInfo )
 {
-	ULONG			ulIdx;
+	ULONG			i;
 	LONG			lCommand;
-	SERVERINFO_s	ServerInfo;
-	QUERYINFO_s		QueryInfo;
+	SERVER_s	ServerInfo;
+	QUERY_s		QueryInfo;
+	time_t		tNow;
 
 	lCommand = NETWORK_ReadLong( pByteStream );
 	switch ( lCommand )
@@ -113,15 +115,26 @@ bool SKULLTAG_ParseMasterServerResponse( BYTESTREAM_s *pByteStream, TArray<SERVE
 	case MSC_BEGINSERVERLIST:
 
 		// Add a new query.
-		QueryInfo.lNumPlayers = 0;
-		QueryInfo.lNumServers = 0;
+		QueryInfo.qTotal.lNumPlayers = 0;
+		QueryInfo.qTotal.lNumServers = 0;
+		QueryInfo.qTotal.lNumSpectators = 0;
+
+		for ( unsigned int g = 0; g < NUM_GAMETYPES; g++ )
+		{	
+			QueryInfo.qByGameMode[g].lNumPlayers = 0;
+			QueryInfo.qByGameMode[g].lNumServers = 0;
+			QueryInfo.qByGameMode[g].lNumSpectators = 0;
+		}
+
+		time( &QueryInfo.tTime );
 		aQueryInfo.Push( QueryInfo );
 
 		// Clear out the server list.
 		aServerInfo.Clear( );
 
-		// Get the list of servers.
-		Printf( "Receiving Skulltag server list...\n" );
+		time( &tNow );
+
+		// Get the list of servers.		
 		while ( NETWORK_ReadByte( pByteStream ) != MSC_ENDSERVERLIST )
 		{
 			ServerInfo.ulActiveState = AS_WAITINGFORREPLY;
@@ -133,26 +146,30 @@ bool SKULLTAG_ParseMasterServerResponse( BYTESTREAM_s *pByteStream, TArray<SERVE
 			ServerInfo.Address.abIP[3] = NETWORK_ReadByte( pByteStream );
 			ServerInfo.Address.usPort = htons( NETWORK_ReadShort( pByteStream ));
 
-			// Add this server's info to our list, and query it.
-			ulIdx = aServerInfo.Push( ServerInfo );
-			SKULLTAG_QueryServer( &aServerInfo[ulIdx] );
+			ServerInfo.tLastQuery = tNow;
+
+			// Add this server's info to our list, and query it.			
+			i = aServerInfo.Push( ServerInfo );
+			SKULLTAG_QueryServer( &aServerInfo[i] );
 		}
 
+		Printf( "Received %d Skulltag servers.\n", aServerInfo.Size( ));
+
 		// Since we got the server list, return true.
-		return ( true );
+		return TRUE;
 	}
 
-	return ( false );
+	return FALSE;
 }
 
 //*****************************************************************************
 //
-void SKULLTAG_QueryServer( SERVERINFO_s *pServer )
+void SKULLTAG_QueryServer( SERVER_s *pServer )
 {
 	// Clear out the buffer, and write out launcher challenge.
 	NETWORK_ClearBuffer( &g_MessageBuffer );
 	NETWORK_WriteLong( &g_MessageBuffer.ByteStream, LAUNCHER_SERVER_CHALLENGE );
-	NETWORK_WriteLong( &g_MessageBuffer.ByteStream, SQF_NUMPLAYERS|SQF_PLAYERDATA );
+	NETWORK_WriteLong( &g_MessageBuffer.ByteStream, SQF_NUMPLAYERS|SQF_PLAYERDATA|SQF_GAMETYPE );
 	NETWORK_WriteLong( &g_MessageBuffer.ByteStream, 0 );
 
 	// Send the server our packet.
@@ -161,14 +178,15 @@ void SKULLTAG_QueryServer( SERVERINFO_s *pServer )
 
 //*****************************************************************************
 //
-bool SKULLTAG_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVERINFO_s *pServer, TArray<QUERYINFO_s>&aQueryInfo )
+bool SKULLTAG_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVER_s *pServer, TArray<QUERY_s>&aQueryInfo )
 {
 	LONG		lCommand;
 	LONG		lGameType = GAMETYPE_COOPERATIVE;
 	LONG		lNumPWADs;
 	LONG		lNumPlayers;
 	LONG		lNumRealPlayers;
-	ULONG		ulIdx;
+	LONG		lSpectators = 0;
+	ULONG		i;
 	ULONG		ulBits;
 
 	// Check to see if we got an "ignored" or "banned" response.
@@ -178,11 +196,12 @@ bool SKULLTAG_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVERINFO_s *pSer
 	case SERVER_LAUNCHER_IGNORING:
 
 //		pServer->ulActiveState = AS_IGNORED;
-		return ( false );
+		return FALSE;
 	case SERVER_LAUNCHER_BANNED:
 
 		pServer->ulActiveState = AS_BANNED;
-		return ( false );
+		Printf( "We're BANNED! AAAAHH!\n" );
+		return FALSE;
 	}
 
 	// Make sure this is a server we're actually waiting for a reply from.
@@ -191,7 +210,7 @@ bool SKULLTAG_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVERINFO_s *pSer
 		while ( NETWORK_ReadByte( pByteStream ) != -1 )
 			;
 
-		return ( false );
+		return FALSE;
 	}
 
 	// This server is now active.
@@ -206,7 +225,7 @@ bool SKULLTAG_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVERINFO_s *pSer
 		while ( NETWORK_ReadByte( pByteStream ) != -1 )
 			;
 
-		return ( false );
+		return FALSE;
 	}
 
 	// Read in the bits.
@@ -240,7 +259,7 @@ bool SKULLTAG_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVERINFO_s *pSer
 	if ( ulBits & SQF_PWADS )
 	{
 		lNumPWADs = NETWORK_ReadByte( pByteStream );
-		for ( ulIdx = 0; ulIdx < (ULONG)lNumPWADs; ulIdx++ )
+		for ( i = 0; i < (ULONG)lNumPWADs; i++ )
 			NETWORK_ReadString( pByteStream );
 	}
 
@@ -299,7 +318,7 @@ bool SKULLTAG_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVERINFO_s *pSer
 		NETWORK_ReadShort( pByteStream );
 	}
 
-		// Team damage scale.
+	// Team damage scale.
 	if ( ulBits & SQF_TEAMDAMAGE )
 		NETWORK_ReadFloat( pByteStream );
 
@@ -320,7 +339,7 @@ bool SKULLTAG_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVERINFO_s *pSer
 
 		if ( ulBits & SQF_PLAYERDATA )
 		{
-			for ( ulIdx = 0; ulIdx < (ULONG)lNumPlayers; ulIdx++ )
+			for ( i = 0; i < (ULONG)lNumPlayers; i++ )
 			{
 				// Read in this player's name.
 				NETWORK_ReadString( pByteStream );
@@ -332,7 +351,8 @@ bool SKULLTAG_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVERINFO_s *pSer
 				NETWORK_ReadShort( pByteStream );
 
 				// Read in whether or not the player is spectating.
-				NETWORK_ReadByte( pByteStream );
+				if ( NETWORK_ReadByte( pByteStream ) )
+					lSpectators++;
 
 				// Read in whether or not the player is a bot.
 				if ( NETWORK_ReadByte( pByteStream ))
@@ -355,9 +375,14 @@ bool SKULLTAG_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVERINFO_s *pSer
 		}
 	}
 
-	aQueryInfo[aQueryInfo.Size( ) - 1].lNumPlayers += lNumRealPlayers;
-	aQueryInfo[aQueryInfo.Size( ) - 1].lNumServers++;
+	aQueryInfo[aQueryInfo.Size( ) - 1].qTotal.lNumPlayers += lNumRealPlayers;
+	aQueryInfo[aQueryInfo.Size( ) - 1].qTotal.lNumSpectators += lSpectators;
+	aQueryInfo[aQueryInfo.Size( ) - 1].qTotal.lNumServers++;
+
+	aQueryInfo[aQueryInfo.Size( ) - 1].qByGameMode[lGameType].lNumPlayers += lNumRealPlayers;
+	aQueryInfo[aQueryInfo.Size( ) - 1].qByGameMode[lGameType].lNumSpectators += lSpectators;
+	aQueryInfo[aQueryInfo.Size( ) - 1].qByGameMode[lGameType].lNumServers++;
 
 	// Success!
-	return ( true );
+	return TRUE;
 }

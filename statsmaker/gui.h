@@ -1,7 +1,7 @@
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 //
-// Skulltag Source
-// Copyright (C) 2007 Brad Carney
+// Skulltag Statsmaker Source
+// Copyright (C) 2008 Rivecoder
 // Copyright (C) 2007-2012 Skulltag Development Team
 // All rights reserved.
 //
@@ -39,44 +39,22 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-// Date created: 
+// Date created:  8/15/08
 //
 //
-// Filename: huffman.h
+// Filename: gui.h
 //
 // Description: 
 //
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 
-#ifndef __HUFFMAN_H__
-#define __HUFFMAN_H__
 
-//*****************************************************************************
-//	STRUCTURES
+#ifndef __GUI_H__
+#define __GUI_H__
 
-typedef struct huffnode_s
-{
-	struct huffnode_s *zero;
-	struct huffnode_s *one;
-	unsigned char val;
-	float freq;
+void GUI_CreateDialog( );
+void GUI_UpdateStatisticsDisplay( void );
+void GUI_SetWritingMode( bool bWriting );
+void GUI_UpdateTrayTooltip( const char *szTooltip );
 
-} huffnode_t;
-
-typedef struct
-{
-	unsigned int bits;
-	int len;
-
-} hufftab_t;
-
-//*****************************************************************************
-//	PROTOTYPES
-
-void HUFFMAN_Construct( void );
-void HUFFMAN_Destruct( void );
-
-void HUFFMAN_Encode( unsigned char *in, unsigned char *out, int inlen, int *outlen );
-void HUFFMAN_Decode( unsigned char *in, unsigned char *out, int inlen, int *outlen );
-
-#endif // __HUFFMAN_H__
+#endif

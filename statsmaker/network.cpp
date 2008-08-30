@@ -59,7 +59,7 @@
 #include <ctype.h>
 #include <math.h>
 
-#include "huffman.h"
+#include "../src/huffman.h"
 #include "main.h"
 
 //*****************************************************************************
@@ -207,29 +207,29 @@ int NETWORK_GetPackets( void )
         errno = WSAGetLastError( );
 
         if ( errno == WSAEWOULDBLOCK )
-            return ( false );
+            return FALSE;
 
 		// Connection reset by peer. Doesn't mean anything to the server.
 		if ( errno == WSAECONNRESET )
-			return ( false );
+			return FALSE;
 
         if ( errno == WSAEMSGSIZE )
 		{
              Printf( "NETWORK_GetPackets:  WARNING! Oversize packet from %s\n", NETWORK_AddressToString( g_AddressFrom ));
-             return ( false );
+             return FALSE;
         }
 
         Printf( "NETWORK_GetPackets: WARNING!: Error #%d: %s\n", errno, strerror( errno ));
-		return ( false );
+		return FALSE;
 #else
         if ( errno == EWOULDBLOCK )
-            return ( false );
+            return FALSE;
 
         if ( errno == ECONNREFUSED )
-            return ( false );
+            return FALSE;
 
         Printf( "NETWORK_GetPackets: WARNING!: Error #%d: %s\n", errno, strerror( errno ));
-        return ( false );
+        return FALSE;
 #endif
     }
 
@@ -293,29 +293,29 @@ int NETWORK_GetLANPackets( void )
         errno = WSAGetLastError( );
 
         if ( errno == WSAEWOULDBLOCK )
-            return ( false );
+            return FALSE;
 
 		// Connection reset by peer. Doesn't mean anything to the server.
 		if ( errno == WSAECONNRESET )
-			return ( false );
+			return FALSE;
 
         if ( errno == WSAEMSGSIZE )
 		{
              Printf( "NETWORK_GetPackets:  WARNING! Oversize packet from %s\n", NETWORK_AddressToString( g_AddressFrom ));
-             return ( false );
+             return FALSE;
         }
 
         Printf( "NETWORK_GetPackets: WARNING!: Error #%d: %s\n", errno, strerror( errno ));
-		return ( false );
+		return FALSE;
 #else
         if ( errno == EWOULDBLOCK )
-            return ( false );
+            return FALSE;
 
         if ( errno == ECONNREFUSED )
-            return ( false );
+            return FALSE;
 
         Printf( "NETWORK_GetPackets: WARNING!: Error #%d: %s\n", errno, strerror( errno ));
-        return ( false );
+        return FALSE;
 #endif
     }
 
@@ -380,7 +380,7 @@ void NETWORK_LaunchPacket( NETBUFFER_s *pBuffer, NETADDRESS_s Address, bool bEnc
 		INT	iError = WSAGetLastError( );
 
 		// Wouldblock is silent.
-		if ( iError == WSAEWOULDBLOCK )
+		if ( iError == WSAEWOULDBLOCK || iError == 10004 )
 			return;
 
 		switch ( iError )
@@ -440,40 +440,9 @@ char *NETWORK_AddressToStringIgnorePort( NETADDRESS_s Address )
 
 //*****************************************************************************
 //
-void NETWORK_NetAddressToSocketAddress( NETADDRESS_s &Address, struct sockaddr_in &SocketAddress )
-{
-	// Initialize the socket address.
-	memset( &SocketAddress, 0, sizeof( SocketAddress ));
-
-	// Set the socket's address and port.
-	*(int *)&SocketAddress.sin_addr = *(int *)&Address.abIP;
-	SocketAddress.sin_port = Address.usPort;
-
-	// Set the socket address's family (what does this do?).
-	SocketAddress.sin_family = AF_INET;
-}
-
-//*****************************************************************************
-//
 void NETWORK_SetAddressPort( NETADDRESS_s &Address, USHORT usPort )
 {
 	Address.usPort = htons( usPort );
-}
-
-//*****************************************************************************
-//
-bool NETWORK_CompareAddress( NETADDRESS_s Address1, NETADDRESS_s Address2, bool bIgnorePort )
-{
-	if (( Address1.abIP[0] == Address2.abIP[0] ) &&
-		( Address1.abIP[1] == Address2.abIP[1] ) &&
-		( Address1.abIP[2] == Address2.abIP[2] ) &&
-		( Address1.abIP[3] == Address2.abIP[3] ) &&
-		( bIgnorePort ? 1 : ( Address1.usPort == Address2.usPort )))
-	{
-		return ( true );
-	}
-
-	return ( false );
 }
 
 //*****************************************************************************
@@ -570,9 +539,9 @@ bool network_BindSocketToPort( SOCKET Socket, USHORT usPort, bool bReUse )
 
 	iErrorCode = bind( Socket, (sockaddr *)&address, sizeof( address ));
 	if ( iErrorCode == SOCKET_ERROR )
-		return ( false );
+		return FALSE;
 
-	return ( true );
+	return TRUE;
 }
 
 

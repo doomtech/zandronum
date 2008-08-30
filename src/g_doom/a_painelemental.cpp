@@ -73,6 +73,11 @@ void A_PainShootSkull (AActor *self, angle_t angle, const PClass *spawntype)
 
 		while ( (othink = iterator.Next ()) )
 		{
+			// [BB] Don't count actors hidden by HideOrDestroyIfSafe().
+			AActor *actor = static_cast<AActor *> ( othink );
+			if ( actor && ( actor->state == &AInventory::States[17] ) )
+				++count;
+
 			if (--count == 0)
 				return;
 		}

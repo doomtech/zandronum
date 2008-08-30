@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 //
-// Skulltag Statistics Reporter Source
+// Skulltag Statsmaker Source
 // Copyright (C) 2007 Brad Carney
 // Copyright (C) 2007-2012 Skulltag Development Team
 // All rights reserved.
@@ -68,8 +68,8 @@ void			ZDAEMON_Construct( void );
 void			ZDAEMON_Destruct( void );
 
 void			ZDAEMON_QueryMasterServer( void );
-bool			ZDAEMON_ParseMasterServerResponse( BYTESTREAM_s *pByteStream, TArray<SERVERINFO_s>&aServerInfo, TArray<QUERYINFO_s>&aQueryInfo );
-void			ZDAEMON_QueryServer( SERVERINFO_s *pServer );
-bool			ZDAEMON_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVERINFO_s *pServer, TArray<QUERYINFO_s>&aQueryInfo );
+bool			ZDAEMON_ParseMasterServerResponse( BYTESTREAM_s *pByteStream, TArray<SERVER_s>&aServerInfo, TArray<QUERY_s>&aQueryInfo );
+void			ZDAEMON_QueryServer( SERVER_s *pServer );
+bool			ZDAEMON_ParseServerResponse( BYTESTREAM_s *pByteStream, SERVER_s *pServer, TArray<QUERY_s>&aQueryInfo );
 
 #endif	// __PROTOCOL_ZDAEMON_H__

@@ -48,6 +48,8 @@ latestzdoom branch
 +	- Added CKeen's submission for an updated Italian language file. [Karate Chris]
 -	- Fixed a positioning bug with rank/spread on the classic HUD when st_scale was off. [Rivecoder]
 -	- Fixed: the 'ColorSetter' and 'FadeSetter' actors were broken online. [Karate Chris]
+-	- Fixed: SKININFO skins couldn't use sounds from the Sounds subdirectory of PK3s/ZIPs. [Torr Samaho]
+-	- Fixed: Save games were missing the number of remaining Archviles in Invasion. [Torr Samaho]
 !	- Changed up the display of medals when you have the key down. Higher medals are now on the right, opposite their subordinates. [Rivecoder]
 !	- Each player's "ready to go on" status, shown at the intermission, can now only be turned on. Hopefully, this will help clear up what this command is for and prevent rapid toggling of it. [Rivecoder]
 !	- Rank/Spread is no longer drawn if there's only one player. [Rivecoder]
@@ -66,7 +68,19 @@ v0.97d2
 -	- Fixed: When a player respawns while a time freezer owned by another player is active, the respawned player can't move anymore as long as the freezer is active. [Torr Samaho, SuperGod]
 -	- Fixed: In cooperative game modes, when the players travel from any map to a map with fewer player starts than players, some of them may end up in a zombie like state. [Torr Samaho, SuperGod]
 -	- Fixed: When an Archvile raises a monster online, on the clients the total monsters counter is increased by two instead of one. [Torr Samaho, SuperGod]
+-	- Fixed: If an invasion monster spawner is hijacked to spawn something that is not a monster, the remaining monster count is not adapted accordingly. [Torr Samaho]
+-	- Fixed: In game modes that reset, when an actor is hidden instead of being destroyed, P_DelSector_List() is not called. This caused some strange survival crashes. [Torr Samaho, SuperGod]
+-	- Fixed: If there is only one player class, the client tells the server that it's going to send the name of it's class (on connect and when changing the CVAR playerclass), but didn't actually do so. This led to network packet parsing errors on the server. [Torr Samaho, SuperGod]
+-	- Fixed: In game modes that reset when using COMPATF_LIMITPAIN, hidden lost souls were counted to the number of lost souls when checking if a pain elemental may spawn a new lost soul. [Torr Samaho, SuperGod]
+-	- Fixed: When a client is kicked because of user info change flood, the server doesn't finish parsing the user info packet, resulting in network packet parsing errors. [Torr Samaho, SuperGod]
+-	- Fixed: The line special Ceiling_CrushStop doesn't work properly online, the crusher is stopped on the server but continues to move on the clients. [Torr Samaho, SuperGod]
+-	- Fixed: The server doesn't inform the clients about the arguments of the SoundEnvironment actor. This prevented reverbs from working online. [Torr Samaho, SuperGod]
+-	- Fixed: A_PlaySound and similar functions didn't work online on actors that don't have a net id, e.g. Blood and derived actors. [Torr Samaho, SuperGod]
+-	- Fixed: A minor grammar error in the possession scoreboard code. [Torr Samaho]
 !	- Changed: Instead of crashing the game when being called twice, AActor::UnlinkFromWorld() now just gives a warning to signal that a bug in the code was encountered. [Torr Samaho]
+!	- Changed: Calling a vote during intermission is not allowed anymore. [Torr Samaho, SuperGod]
+!	- Changed: Clients can't set the CVAR turbo higher than 100 anymore. [Torr Samaho, SuperGod]
+!	- Changed: For consistency with the handling of the CVARs dmflags and dmflags2, the value of the CVAR compatflags is not archived in the ini any more. [Torr Samaho, SuperGod]
 
 v0.97d2 RC6
 -----------

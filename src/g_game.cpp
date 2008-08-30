@@ -233,6 +233,10 @@ EXTERN_CVAR (Int, team)
 // [RH] Allow turbo setting anytime during game
 CUSTOM_CVAR (Float, turbo, 100.f, 0)
 {
+	// [BB] Limit CVAR turbo on clients to 100.
+	if ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( self > 100.f ) )
+		self = 100.f;
+
 	if (self < 10.f)
 	{
 		self = 10.f;

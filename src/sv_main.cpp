@@ -1907,16 +1907,19 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 //
 bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 {
-//	ULONG		ulIdx;
 	ULONG		ulFlags;
-    player_t	*pPlayer;
+	player_t	*pPlayer;
 	FString		nameString;
 	char		szSkin[64];
 	char		szClass[64];
 	char		szOldPlayerName[64];
 	ULONG		ulUserInfoInstance;
+	// [BB] We may only kick the player after completely parsing the current message,
+	// otherwise we'll get network parsing errors.
+	bool		bKickPlayer = false;
+	FString kickReason;
 
-    pPlayer = &players[g_lCurrentClient];
+	pPlayer = &players[g_lCurrentClient];
 
 	if ( bAllowKick )
 	{
@@ -1931,8 +1934,8 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 				( g_aClients[g_lCurrentClient].lUserInfoInstances[( ulUserInfoInstance + MAX_USERINFOINSTANCE_STORAGE - 1 ) % MAX_USERINFOINSTANCE_STORAGE] )
 				<= 7 )
 			{
-				SERVER_KickPlayer( g_lCurrentClient, "User info change flood." );
-				return ( false );
+				bKickPlayer = true;
+				kickReason = "User info change flood.";
 			}
 		}
 
@@ -1944,8 +1947,8 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 				( g_aClients[g_lCurrentClient].lUserInfoInstances[( ulUserInfoInstance + MAX_USERINFOINSTANCE_STORAGE - 2 ) % MAX_USERINFOINSTANCE_STORAGE] )
 				<= 42 )
 			{
-				SERVER_KickPlayer( g_lCurrentClient, "User info change flood." );
-				return ( false );
+				bKickPlayer = true;
+				kickReason = "User info change flood.";
 			}
 		}
 
@@ -1957,8 +1960,8 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 				( g_aClients[g_lCurrentClient].lUserInfoInstances[( ulUserInfoInstance + MAX_USERINFOINSTANCE_STORAGE - 3 ) % MAX_USERINFOINSTANCE_STORAGE] )
 				<= 105 )
 			{
-				SERVER_KickPlayer( g_lCurrentClient, "User info change flood." );
-				return ( false );
+				bKickPlayer = true;
+				kickReason = "User info change flood.";
 			}
 		}
 	}
@@ -1982,8 +1985,8 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 		// The user really shouldn't have an invalid name unless they are using a hacked executable.
 		if ( nameString.Compare( pPlayer->userinfo.netname ) != 0 )
 		{
-			SERVER_KickPlayer( g_lCurrentClient, "User name contains illegal characters." );
-			return ( false );
+			bKickPlayer = true;
+			kickReason = "User name contains illegal characters." ;
 		}
 
 		if ( g_aClients[g_lCurrentClient].State == CLS_SPAWNED )
@@ -2061,6 +2064,12 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 		strncpy( g_aClients[g_lCurrentClient].szSkin, szSkin, MAX_SKIN_NAME + 1 );
 
 		pPlayer->userinfo.skin = R_FindSkin( szSkin, pPlayer->userinfo.PlayerClass );
+	}
+
+	if ( bKickPlayer )
+	{
+		SERVER_KickPlayer( g_lCurrentClient, kickReason.GetChars() );
+		return ( false );
 	}
 
 	// Now send out the player's userinfo out to other players.
@@ -4825,7 +4834,9 @@ static bool server_CallVote( BYTESTREAM_s *pByteStream )
 
 	// Don't allow one person to call a vote, and vote by himself.
 	// Also, don't allow votes if the server has them disabled.
-	if (( CALLVOTE_CountNumEligibleVoters( ) < 2 ) || ( sv_nocallvote == 1) || (sv_nocallvote == 2 && players[g_lCurrentClient].bSpectating ))
+	if (( CALLVOTE_CountNumEligibleVoters( ) < 2 ) || ( sv_nocallvote == 1) || (sv_nocallvote == 2 && players[g_lCurrentClient].bSpectating )
+	    // [BB] Further no votes, when not in a level, e.g. during intermission.
+	    || ( gamestate != GS_LEVEL ) )
 		return ( false );
 
 	switch ( ulVoteCmd )

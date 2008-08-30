@@ -49,6 +49,8 @@ public:
 IMPLEMENT_STATELESS_ACTOR (ASoundEnvironment, Any, 9048, 0)
 	PROP_Flags (MF_NOBLOCKMAP|MF_NOSECTOR|MF_NOGRAVITY)
 	PROP_Flags3 (MF3_DONTSPLASH)
+	// [BB] The clients need to know the arguments.
+	PROP_FlagsNetwork( NETFL_UPDATEARGUMENTS )
 END_DEFAULTS
 
 void ASoundEnvironment::PostBeginPlay ()
