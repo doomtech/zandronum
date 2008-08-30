@@ -1041,6 +1041,10 @@ void R_InitSkins (void)
 								// Replacement not found, try finding it in the global namespace.
 								if ( sndlumps[ulIdx] == -1 )
 									sndlumps[ulIdx] = Wads.CheckNumForName( szValue );
+
+								// [BB] Replacement still not found, try finding it in the Sounds subdirectory of the loaded zips/pk3s.
+								if ( sndlumps[ulIdx] == -1 )
+									sndlumps[ulIdx] = Wads.CheckNumForName( szValue, ns_sounds );
 							}
 						}
 					}
