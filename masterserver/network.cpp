@@ -49,6 +49,7 @@
 //-----------------------------------------------------------------------------
 
 #include "../src/networkheaders.h"
+#include "../src/networkshared.h"
 
 #include <stdlib.h>
 #include <string.h>

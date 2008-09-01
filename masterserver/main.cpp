@@ -50,7 +50,7 @@
 
 #include "../src/networkheaders.h"
 #include "../src/networkshared.h"
-#include "../src/svnrevision.h"
+#include "svnrevision.h"
 #include "network.h"
 #include "main.h"
 
@@ -75,11 +75,14 @@ static	NETBUFFER_s				g_MessageBuffer;
 static	long					g_lCurrentTime;
 
 // Global list of banned IPs.
-static	IPList	g_BannedIPs;
-static	IPList	g_BannedIPExemptions;
+static	IPList					g_BannedIPs;
+static	IPList					g_BannedIPExemptions;
 
 // List of IP address that this server has been queried by recently.
-static	QueryIPQueue g_queryIPQueue;
+static	QueryIPQueue			g_queryIPQueue;
+
+// [RC] IPs that are completely ignored.
+static	QueryIPQueue			g_floodProtectionIPQueue;
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -118,9 +121,7 @@ int I_GetTime (void)
 //
 long MASTERSERVER_CheckIfServerAlreadyExists( NETADDRESS_s Address )
 {
-	unsigned long	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAX_SERVERS; ulIdx++ )
+	for ( unsigned long	 ulIdx = 0; ulIdx < MAX_SERVERS; ulIdx++ )
 	{
 		// This slot is not active. Skip over it.
 		if ( g_Servers[ulIdx].bAvailable == true )
@@ -171,6 +172,7 @@ void MASTERSERVER_InitializeBans( void )
 	if ( !(g_BannedIPExemptions.clearAndLoadFromFile( "whitelist.txt" )) )
 		std::cerr << g_BannedIPExemptions.getErrorMessage();
 
+	std::cerr << "\nBan list: " << g_BannedIPs.size() << " banned IPs, " << g_BannedIPExemptions.size() << " exemptions." << std::endl;
 /*
   // [BB] Print all banned IPs, to make sure the IP list has been parsed successfully.
 	std::cerr << "Entries in blacklist:\n";
@@ -186,157 +188,115 @@ void MASTERSERVER_InitializeBans( void )
 
 //*****************************************************************************
 //
-bool MASTERSERVER_IsIPBanned( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 )
-{
-	if( g_BannedIPExemptions.isIPInList( pszIP0, pszIP1, pszIP2, pszIP3 ) )
-		return false;
-	else
-		return g_BannedIPs.isIPInList( pszIP0, pszIP1, pszIP2, pszIP3 );
-}
-
-//*****************************************************************************
-//
 void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 {
 	long			lCommand;
-	char			szAddress[4][4];
-	NETADDRESS_s	AddressTemp;
 	NETADDRESS_s	AddressFrom;
 
-	lCommand = NETWORK_ReadLong( pByteStream );
-
-	// First, is this IP banned from the master server? If so, ignore the request.
 	AddressFrom = NETWORK_GetFromAddress( );
-	AddressTemp = AddressFrom;
-	AddressTemp.usPort = 0;
 
-	_itoa( AddressTemp.abIP[0], szAddress[0], 10 );
-	_itoa( AddressTemp.abIP[1], szAddress[1], 10 );
-	_itoa( AddressTemp.abIP[2], szAddress[2], 10 );
-	_itoa( AddressTemp.abIP[3], szAddress[3], 10 );
-	if ( MASTERSERVER_IsIPBanned( szAddress[0], szAddress[1], szAddress[2], szAddress[3] ))
+	// [RC] If this IP is in our flood queue, ignore it completely.
+	if ( g_floodProtectionIPQueue.addressInQueue( AddressFrom ))
 	{
-		printf( "Ignoring challenge from banned IP: %s.\n", NETWORK_AddressToString( AddressFrom ));
-
-		// Clear out the message buffer.
-		NETWORK_ClearBuffer( &g_MessageBuffer );
-
-		// Write our message header to the launcher.
-		NETWORK_WriteLong( &g_MessageBuffer.ByteStream, MSC_IPISBANNED );
-
-		// Send the launcher our packet.
-		NETWORK_LaunchPacket( &g_MessageBuffer, AddressFrom );
+		while ( NETWORK_ReadByte( pByteStream ) != -1 ) // [RC] Is this really necessary?
+			;
 		return;
 	}
 
+	// Is this IP banned? Send the user an explanation, and ignore the IP for 30 seconds.
+	if ( !g_BannedIPExemptions.isIPInList( AddressFrom ) && g_BannedIPs.isIPInList( AddressFrom ))
+	{
+		NETWORK_ClearBuffer( &g_MessageBuffer );
+		NETWORK_WriteLong( &g_MessageBuffer.ByteStream, MSC_IPISBANNED );
+		NETWORK_LaunchPacket( &g_MessageBuffer, AddressFrom );
+
+		printf( "* Received challenge from banned IP (%s). Ignoring for 30 seconds.\n", NETWORK_AddressToString( AddressFrom ));
+		g_queryIPQueue.addAddress( AddressFrom, g_lCurrentTime, &std::cerr, 30 );
+		return;
+	}
+
+	lCommand = NETWORK_ReadLong( pByteStream );
 	switch ( lCommand )
 	{
+
 	// Server is telling master server of its existance.
 	case SERVER_MASTER_CHALLENGE:
 	case SERVER_MASTER_CHALLENGE_OVERRIDE:
-
 		{
 			long			lServerIdx;
 			NETADDRESS_s	Address;
 
 			if ( lCommand == SERVER_MASTER_CHALLENGE )
-			{
 				Address = AddressFrom;
-				lServerIdx = MASTERSERVER_CheckIfServerAlreadyExists( Address );
-			}
 			else
 			{
 				char	szAddress[32];
-				ULONG	ulIP1;
-				ULONG	ulIP2;
-				ULONG	ulIP3;
-				ULONG	ulIP4;
-				ULONG	ulPort;
 
-				// Read in the data for the overridden IP the server is sending us.
-				ulIP1 = NETWORK_ReadByte( pByteStream );
-				ulIP2 = NETWORK_ReadByte( pByteStream );
-				ulIP3 = NETWORK_ReadByte( pByteStream );
-				ulIP4 = NETWORK_ReadByte( pByteStream );
-				ulPort = NETWORK_ReadShort( pByteStream );
+				// Read in the overridden IP that the server is sending us.
+				ULONG	ulIP1 = NETWORK_ReadByte( pByteStream );
+				ULONG	ulIP2 = NETWORK_ReadByte( pByteStream );
+				ULONG	ulIP3 = NETWORK_ReadByte( pByteStream );
+				ULONG	ulIP4 = NETWORK_ReadByte( pByteStream );
+				ULONG	ulPort = NETWORK_ReadShort( pByteStream );
 
 				// Make sure it's valid.
-				if (( ulIP1 > 255 ) ||
-					( ulIP2 > 255 ) ||
-					( ulIP3 > 255 ) ||
-					( ulIP4 > 255 ) ||
-					( ulPort > 65535 ))
+				if (( ulIP1 > 255 ) || ( ulIP2 > 255 ) || ( ulIP3 > 255 ) || ( ulIP4 > 255 ) || ( ulPort > 65535 ))
 				{
-					printf( "Invalid overriden IP (%d.%d.%d.%d:%d) from %s.\n", ulIP1, ulIP2, ulIP3, ulIP4, ulPort, NETWORK_AddressToString( NETWORK_GetFromAddress( )));
+					printf( "* Invalid overriden IP (%d.%d.%d.%d:%d) from %s.\n", ulIP1, ulIP2, ulIP3, ulIP4, ulPort, NETWORK_AddressToString( NETWORK_GetFromAddress( )));
 					return;
 				}
 
 				// Build the IP string.
 				sprintf( szAddress, "%d.%d.%d.%d:%d", ulIP1, ulIP2, ulIP3, ulIP4, ulPort );
-
 				NETWORK_StringToAddress( szAddress, &Address );
-				lServerIdx = MASTERSERVER_CheckIfServerAlreadyExists( Address );
 			}
 
-			if ( lServerIdx != -1 )
+			lServerIdx = MASTERSERVER_CheckIfServerAlreadyExists( Address );
+
+			// This is a new server; add it to the list.
+			if ( lServerIdx == -1 )
 			{
-				// Command is from a server already on the list. It's
-				// just sending us a heartbeat.
-				g_Servers[lServerIdx].lLastReceived = g_lCurrentTime;
-				return;
-			}
-			else
-			{
-				// This is a new server; add it to the list.
 				lServerIdx = MASTERSERVER_AddServerToList( Address );
 				if ( lServerIdx == -1 )
-				{
 					printf( "ERROR: Server list full!\n" );
-					return;
+				else
+				{
+					g_Servers[lServerIdx].lLastReceived = g_lCurrentTime;
+					printf( "+ Adding %s to the server list.\n", NETWORK_AddressToString( g_Servers[lServerIdx].Address ));
 				}
-
-				g_Servers[lServerIdx].lLastReceived = g_lCurrentTime;
-				printf( "Server challenge from: %s.\n", NETWORK_AddressToString( g_Servers[lServerIdx].Address ));
-
-				return;
 			}
+
+			// Command is from a server already on the list. It's just sending us a heartbeat.
+			else
+				g_Servers[lServerIdx].lLastReceived = g_lCurrentTime;
+
+			return;
 		}
 	// Launcher is asking master server for server list.
 	case LAUNCHER_SERVER_CHALLENGE:
-
 		{
 			unsigned long	ulIdx;
 
-			// Display the launcher challenge in the main window.
-			printf( "Launcher challenge from: %s.\n", NETWORK_AddressToString( AddressFrom ));
-
-			// Clear out the message buffer.
 			NETWORK_ClearBuffer( &g_MessageBuffer );
 
-			// Check to see if this IP exists in our stored query IP list. If it does, then
-			// ignore it, since it queried us less than 10 seconds ago.
-			if ( g_queryIPQueue.addressInQueue ( AddressFrom ) )
+			// Did this IP query us recently? If so, send it an explanation, and ignore it completely for 3 seconds.
+			if ( g_queryIPQueue.addressInQueue( AddressFrom ))
 			{
-				// Write our header.
 				NETWORK_WriteLong( &g_MessageBuffer.ByteStream, MSC_REQUESTIGNORED );
-
-				// Send the packet.
 				NETWORK_LaunchPacket( &g_MessageBuffer, AddressFrom );
 
-				printf( "Ignored launcher challenge.\n" );
-
-				// Nothing more to do here.
+				printf( "* Extra launcher challenge from %s. Ignoring for 3 seconds.\n", NETWORK_AddressToString( AddressFrom ));
+				g_queryIPQueue.addAddress( AddressFrom, g_lCurrentTime, &std::cerr, 3 );
 				return;
 			}
+			
+			printf( "-> Sending server list to %s.\n", NETWORK_AddressToString( AddressFrom ));
 
-			// This IP didn't exist in the list. and it wasn't banned. 
-			// So, add it, and keep it there for 10 seconds.
-			g_queryIPQueue.addAddress ( AddressFrom, g_lCurrentTime, &std::cerr );
+			// Wait 10 seconds before sending this IP the server list again.
+			g_queryIPQueue.addAddress( AddressFrom, g_lCurrentTime, &std::cerr );
 
-			// Write our message header to the launcher.
+			// Send the list of servers.
 			NETWORK_WriteLong( &g_MessageBuffer.ByteStream, MSC_BEGINSERVERLIST );
-
-			// Now, loop through and send back the data of each active server.
 			for ( ulIdx = 0; ulIdx < MAX_SERVERS; ulIdx++ )
 			{
 				// Not an active server.
@@ -361,7 +321,8 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 		}
 	}
 
-	printf( "WARNING: Unknown challenge (%d) from: %s!\n", lCommand, NETWORK_AddressToString( AddressFrom ));
+	printf( "* Received unknown challenge (%d) from %s. Ignoring for 10 seconds...\n", lCommand, NETWORK_AddressToString( AddressFrom ));
+	g_floodProtectionIPQueue.addAddress( AddressFrom, g_lCurrentTime, &std::cerr );
 }
 
 //*****************************************************************************
@@ -380,7 +341,7 @@ void MASTERSERVER_CheckTimeouts( void )
 		if (( g_lCurrentTime - g_Servers[ulIdx].lLastReceived ) >= 60 )
 		{
 			g_Servers[ulIdx].bAvailable = true;
-			printf( "Server %s timed out.\n", NETWORK_AddressToString( g_Servers[ulIdx].Address ));
+			printf( "- Server at %s timed out.\n", NETWORK_AddressToString( g_Servers[ulIdx].Address ));
 		}
 	}
 }
@@ -392,10 +353,9 @@ int main( )
 	BYTESTREAM_s	*pByteStream;
 	unsigned long	ulIdx;
 
-	std::cerr << "=== S K U L L T A G ===\n";
-	std::cerr << "\nMaster server v1.6-"SVN_REVISION_STRING"\n";
-
-	std::cerr << "Initializing on port: " << DEFAULT_MASTER_PORT << std::endl;
+	std::cerr << "=== S K U L L T A G | Master ===\n";
+	std::cerr << "Revision: "SVN_REVISION_STRING"\n";
+	std::cerr << "Port: " << DEFAULT_MASTER_PORT << std::endl << std::endl;
 
 	// Initialize the network system.
 	NETWORK_Construct( DEFAULT_MASTER_PORT );
@@ -413,7 +373,7 @@ int main( )
 	int lastParsingTime = I_GetTime( );
 
 	// Done setting up!
-	std::cerr << "Master server initialized!\n\n";
+	std::cerr << "\n=== Master server started! ===\n";
 
 	while ( 1 )
 	{
@@ -431,7 +391,9 @@ int main( )
 			MASTERSERVER_ParseCommands( pByteStream );
 		}
 
+		// Update the ignore queues.
 		g_queryIPQueue.adjustHead ( g_lCurrentTime );
+		g_floodProtectionIPQueue.adjustHead ( g_lCurrentTime );
 
 		// See if any servers have timed out.
 		MASTERSERVER_CheckTimeouts( );
@@ -439,7 +401,7 @@ int main( )
 		// [BB] Reparse the ban list every 15 minutes.
 		if ( g_lCurrentTime > lastParsingTime + 15*60 )
 		{
-			std::cerr << "Reparsing ban list...\n";
+			std::cerr << "~ Reparsing the ban lists...\n";
 			MASTERSERVER_InitializeBans( );
 			lastParsingTime = g_lCurrentTime;
 		}
