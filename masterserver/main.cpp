@@ -77,6 +77,7 @@ static	long					g_lCurrentTime;
 // Global list of banned IPs.
 static	IPList					g_BannedIPs;
 static	IPList					g_BannedIPExemptions;
+static	IPList					g_MultiServerExceptions;
 
 // List of IP address that this server has been queried by recently.
 static	QueryIPQueue			g_queryIPQueue;
@@ -140,9 +141,7 @@ long MASTERSERVER_CheckIfServerAlreadyExists( NETADDRESS_s Address )
 //
 long MASTERSERVER_AddServerToList( NETADDRESS_s Address )
 {
-	unsigned long	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAX_SERVERS; ulIdx++ )
+	for ( unsigned long	ulIdx = 0; ulIdx < MAX_SERVERS; ulIdx++ )
 	{
 		// This slot is not active. Use it.
 		if ( g_Servers[ulIdx].bAvailable == true )
@@ -172,7 +171,12 @@ void MASTERSERVER_InitializeBans( void )
 	if ( !(g_BannedIPExemptions.clearAndLoadFromFile( "whitelist.txt" )) )
 		std::cerr << g_BannedIPExemptions.getErrorMessage();
 
+	if ( !(g_MultiServerExceptions.clearAndLoadFromFile( "multiserver_whitelist.txt" )) )
+		std::cerr << g_MultiServerExceptions.getErrorMessage();
+
 	std::cerr << "\nBan list: " << g_BannedIPs.size() << " banned IPs, " << g_BannedIPExemptions.size() << " exemptions." << std::endl;
+	std::cerr << "Multi-server exceptions: " << g_MultiServerExceptions.size() << "." << std::endl;
+
 /*
   // [BB] Print all banned IPs, to make sure the IP list has been parsed successfully.
 	std::cerr << "Entries in blacklist:\n";
@@ -256,13 +260,27 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 			// This is a new server; add it to the list.
 			if ( lServerIdx == -1 )
 			{
-				lServerIdx = MASTERSERVER_AddServerToList( Address );
-				if ( lServerIdx == -1 )
-					printf( "ERROR: Server list full!\n" );
+				unsigned int iNumOtherServers = 0;
+
+				// First count the number of servers from this IP.
+				for ( unsigned long	ulIdx = 0; ulIdx < MAX_SERVERS; ulIdx++ )
+				{
+					if ( g_Servers[ulIdx].bAvailable && NETWORK_CompareAddress( g_Servers[ulIdx].Address, AddressFrom, true ))
+						iNumOtherServers++;
+				}
+
+				if ( iNumOtherServers > 10 && !g_MultiServerExceptions.isIPInList( Address ))
+					printf( "* More than 10 servers received from %s. Ignoring request...\n", NETWORK_AddressToString( Address ));
 				else
 				{
-					g_Servers[lServerIdx].lLastReceived = g_lCurrentTime;
-					printf( "+ Adding %s to the server list.\n", NETWORK_AddressToString( g_Servers[lServerIdx].Address ));
+					lServerIdx = MASTERSERVER_AddServerToList( Address );
+					if ( lServerIdx == -1 )
+						printf( "ERROR: Server list full!\n" );
+					else
+					{
+						g_Servers[lServerIdx].lLastReceived = g_lCurrentTime;
+						printf( "+ Adding %s to the server list.\n", NETWORK_AddressToString( g_Servers[lServerIdx].Address ));
+					}
 				}
 			}
 
@@ -270,6 +288,8 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 			else
 				g_Servers[lServerIdx].lLastReceived = g_lCurrentTime;
 
+			// Ignore IP for 10 seconds.
+			g_floodProtectionIPQueue.addAddress( AddressFrom, g_lCurrentTime, &std::cerr );
 			return;
 		}
 	// Launcher is asking master server for server list.
