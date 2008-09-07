@@ -28,6 +28,7 @@
 -	- Fixed: SKININFO skins couldn't use sounds from the Sounds subdirectory of PK3s/ZIPs. [Torr Samaho]
 -	- Fixed: Save games were missing the number of remaining Archviles in Invasion. [Torr Samaho]
 -	- Fixed: The Logitech G15 code possibly caused a crash after a map change. [Torr Samaho]
+-	- Fixed: If a player is respawned online with a different player class than before, the skin of this player is not adjusted to the new class on the clients. [Torr Samaho]
 !	- Changed up the display of medals when you have the key down. Higher medals are now on the right, opposite their subordinates. [Rivecoder]
 !	- Each player's "ready to go on" status, shown at the intermission, can now only be turned on. Hopefully, this will help clear up what this command is for and prevent rapid toggling of it. [Rivecoder]
 !	- Rank/Spread is no longer drawn if there's only one player. [Rivecoder]
