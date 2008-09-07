@@ -195,9 +195,17 @@ bool P_MoveThing(AActor *source, fixed_t x, fixed_t y, fixed_t z, bool fog)
 		source->PrevY=y;
 		source->PrevZ=z;
 
+		ULONG ulFlags = 0;
+		if ( oldx != source->x )
+			ulFlags |= CM_X;
+		if ( oldy != source->y )
+			ulFlags |= CM_Y;
+		if ( oldz != source->z )
+			ulFlags |= CM_Z;
+
 		// [BC] If we're the server, tell clients to move the object.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_MoveThing( source, CM_X|CM_Y|CM_Z|CM_MOMX|CM_MOMY|CM_MOMZ );
+			SERVERCOMMANDS_MoveThing( source, ulFlags );
 
 		return true;
 	}
