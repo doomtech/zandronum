@@ -2001,6 +2001,9 @@ void PLAYER_SetTeam( player_s *pPlayer, ULONG ulTeam, bool bNoBroadcast )
 	// Set the team.
 	pPlayer->ulTeam = ulTeam;
 
+	// [BB] Make sure that the player only uses a class available to his team.
+	TEAM_EnsurePlayerHasValidClass ( pPlayer );
+
 	// If we're the server, tell clients about this team change.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{

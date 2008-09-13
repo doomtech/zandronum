@@ -1718,6 +1718,15 @@ static void ActorProjectile (AActor *defaults, Baggage &bag)
 }
 
 //==========================================================================
+// [BB]
+//==========================================================================
+static void ActorLimitedToTeam (AActor *defaults, Baggage &bag)
+{
+	SC_MustGetNumber();
+	defaults->ulLimitedToTeam=sc_Number+1;
+}
+
+//==========================================================================
 //
 // Special inventory properties
 //
@@ -2625,6 +2634,7 @@ static const ActorProps props[] =
 	{ "inventory.pickupsound",		(apf)InventoryPickupsound,	RUNTIME_CLASS(AInventory) },
 	{ "inventory.respawntics",		(apf)InventoryRespawntics,	RUNTIME_CLASS(AInventory) },
 	{ "inventory.usesound",			(apf)InventoryUsesound,		RUNTIME_CLASS(AInventory) },
+	{ "limitedtoteam",						ActorLimitedToTeam,				RUNTIME_CLASS(AActor) }, // [BB] added
 	{ "mass",						ActorMass,					RUNTIME_CLASS(AActor) },
 	{ "maxdropoffheight",			ActorMaxDropoffHeight,		RUNTIME_CLASS(AActor) },
 	{ "maxstepheight",				ActorMaxStepHeight,			RUNTIME_CLASS(AActor) },

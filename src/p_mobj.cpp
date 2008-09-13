@@ -343,6 +343,7 @@ void AActor::Serialize (FArchive &arc)
 		<< DamageType
 		<< gravity
 		<< FastChaseStrafeCount
+		<< (DWORD &)ulLimitedToTeam // [BB]
 		<< (DWORD &)lNetID // [BC] We need to archive this so that it's restored properly when going between maps in a hub.
 		<< (DWORD &)ulSTFlags
 		<< (DWORD &)ulNetworkFlags
@@ -4392,6 +4393,9 @@ void P_SpawnPlayer (mapthing2_t *mthing, bool bClientUpdate, player_t *p, bool t
 	}
 	else
 		playernum = p - players;
+
+	// [BB] Make sure that the player only uses a class available to his team.
+	TEAM_EnsurePlayerHasValidClass ( p );
 
 	// [BB] The (p->userinfo.PlayerClass != p->CurrentPlayerClass) check allows the player to change its class when respawning.
 	if (p->cls == NULL || (p->userinfo.PlayerClass != p->CurrentPlayerClass))
