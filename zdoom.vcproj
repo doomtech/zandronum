@@ -4180,7 +4180,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\thingdef_codeptr.cpp"
+					RelativePath=".\src\thingdef\thingdef_codeptr.cpp"
 					>
 				</File>
 				<File
