@@ -4,7 +4,7 @@
 	Version="9.00"
 	Name="masterserver"
 	ProjectGUID="{D59FD170-A144-4081-8233-9720B0FCC3DB}"
-	RootNamespace="Skulltag Master Server Source"
+	RootNamespace="masterserver"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -40,7 +40,7 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName=".\Debug/Skulltag Master Server Source.tlb"
+				TypeLibraryName=".\Debug/masterserver.tlb"
 				HeaderFileName=""
 			/>
 			<Tool
@@ -51,7 +51,7 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\Debug/Skulltag Master Server Source.pch"
+				PrecompiledHeaderFile=".\Debug/masterserver.pch"
 				AssemblerListingLocation=".\Debug/"
 				ObjectFile=".\Debug/"
 				ProgramDataBaseFileName=".\Debug/"
@@ -95,7 +95,7 @@
 			<Tool
 				Name="VCBscMakeTool"
 				SuppressStartupBanner="true"
-				OutputFile=".\Debug/Skulltag Master Server Source.bsc"
+				OutputFile=".\Debug/masterserver.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -132,7 +132,7 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName=".\Release/Skulltag Master Server Source.tlb"
+				TypeLibraryName=".\Release/masterserver.tlb"
 				HeaderFileName=""
 			/>
 			<Tool
@@ -144,7 +144,7 @@
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
-				PrecompiledHeaderFile=".\Release/Skulltag Master Server Source.pch"
+				PrecompiledHeaderFile=".\Release/masterserver.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
 				ProgramDataBaseFileName=".\Release/"
@@ -168,7 +168,7 @@
 				OutputFile=".\Release\master-97.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				ProgramDatabaseFile=".\Release/Skulltag Master Server Source.pdb"
+				ProgramDatabaseFile=".\Release/masterserver.pdb"
 				SubSystem="1"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -186,7 +186,7 @@
 			<Tool
 				Name="VCBscMakeTool"
 				SuppressStartupBanner="true"
-				OutputFile=".\Release/Skulltag Master Server Source.bsc"
+				OutputFile=".\Release/masterserver.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
