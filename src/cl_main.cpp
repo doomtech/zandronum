@@ -3816,6 +3816,9 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 	// Kill the player.
 	players[ulPlayer].mo->Die( pSource, pInflictor );
 
+	// [BB] Set the attacker, necessary to let the death view follow the killer.
+	players[ulPlayer].attacker = pSource;
+
 	// Free the player's body's network ID.
 	if ( players[ulPlayer].mo->lNetID != -1 )
 	{
