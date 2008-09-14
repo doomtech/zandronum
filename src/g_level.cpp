@@ -76,6 +76,7 @@
 #include "deathmatch.h"
 #include "network.h"
 #include "sv_commands.h"
+#include "sv_rcon.h"
 #include "team.h"
 #include "maprotation.h"
 #include "campaign.h"
@@ -2425,6 +2426,9 @@ void G_DoLoadLevel (int position, bool autosave)
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
 		Printf( "\n*** %s: %s ***\n\n", level.mapname, level.level_name );
+
+		// [RC] Update clients using the RCON utility.
+		SERVER_RCON_UpdateInfo( SVRC_MAPCHANGE );
 	}
 	else
 	{
@@ -2433,6 +2437,9 @@ void G_DoLoadLevel (int position, bool autosave)
 				"\36\36\36\36\36\36\36\36\36\36\36\36\37\n\n"
 				TEXTCOLOR_BOLD "%s - %s\n\n",
 				level.mapname, level.level_name);
+		
+		// [RC] Update the G15 display.
+		G15_NextLevel( level.mapname, level.level_name );
 	}
 
 	if (wipegamestate == GS_LEVEL)
@@ -2508,9 +2515,6 @@ void G_DoLoadLevel (int position, bool autosave)
 
 	// Refresh the HUD.
 	SCOREBOARD_RefreshHUD( );
-
-	// [RC] Update the G15 display.
-	G15_NextLevel( level.mapname, level.level_name );
 
 	// Set number of duels to 0.
 	DUEL_SetNumDuels( 0 );
