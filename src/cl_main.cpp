@@ -3540,7 +3540,7 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	{
 		pPlayer->mo->flags2 |= (MF2_CANNOTPUSH);
 		pPlayer->mo->flags &= ~(MF_SOLID|MF_SHOOTABLE|MF_PICKUP);
-		pPlayer->mo->flags2 &= ~(MF2_PASSMOBJ);
+		pPlayer->mo->flags2 &= ~(MF2_PASSMOBJ|MF2_FLOATBOB);
 		pPlayer->mo->RenderStyle = STYLE_None;
 
 		// Make me flat!

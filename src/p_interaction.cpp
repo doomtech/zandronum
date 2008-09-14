@@ -2137,7 +2137,7 @@ void PLAYER_SetSpectator( player_s *pPlayer, bool bBroadcast, bool bDeadSpectato
 		// Make the player unshootable, etc.
 		pPlayer->mo->flags2 |= (MF2_CANNOTPUSH);
 		pPlayer->mo->flags &= ~(MF_SOLID|MF_SHOOTABLE|MF_PICKUP);
-		pPlayer->mo->flags2 &= ~(MF2_PASSMOBJ);
+		pPlayer->mo->flags2 &= ~(MF2_PASSMOBJ|MF2_FLOATBOB);
 		pPlayer->mo->RenderStyle = STYLE_None;
 
 		// Make the player flat, so he can travel under doors and such.
