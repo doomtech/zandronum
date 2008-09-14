@@ -114,6 +114,7 @@ typedef enum {
 	absslider,
 	inverter,
 	discrete,
+	discretes,
 	cdiscrete,
 	discrete_guid,
 	control,
@@ -176,6 +177,7 @@ typedef struct menuitem_s {
 	} d;
 	union {
 		struct value_s	 *values;
+		struct valuestring_t *valuestrings;
 		GUIDName		 *guidvalues;
 		char			 *command;
 		void			(*cfunc)(FBaseCVar *cvar, float newval);
@@ -213,6 +215,11 @@ typedef struct value_s {
 	float		value;
 	const char	*name;
 } value_t;
+
+struct valuestring_t {
+	float		value;
+	FString		name;
+};
 
 typedef struct
 {

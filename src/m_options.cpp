@@ -3914,6 +3914,17 @@ int M_FindCurVal (float cur, value_t *values, int numvals)
 	return v;
 }
 
+int M_FindCurVal (float cur, valuestring_t *values, int numvals)
+{
+	int v;
+
+	for (v = 0; v < numvals; v++)
+		if (values[v].value == cur)
+			break;
+
+	return v;
+}
+
 int M_FindCurGUID (const GUID &guid, GUIDName *values, int numvals)
 {
 	int v;
@@ -4098,6 +4109,8 @@ void M_OptDrawer ()
 
 			}
 			break;
+
+			case discretes:
 			case discrete:
 			case cdiscrete:
 			case inverter:
@@ -4130,7 +4143,14 @@ void M_OptDrawer ()
 					{
 						vals = (int)item->b.numvalues;
 					}
+				if (item->type != discretes)
+				{
 					v = M_FindCurVal (value.Float, item->e.values, vals);
+				}
+				else
+				{
+					v = M_FindCurVal (value.Float, item->e.valuestrings, vals);
+				}
 
 					if (v == vals)
 					{
@@ -4140,7 +4160,8 @@ void M_OptDrawer ()
 					else
 					{
 						screen->DrawText (item->type == cdiscrete ? v : ValueColor,
-							x, y, item->e.values[v].name,
+						x, y,
+						item->type != discretes ? item->e.values[v].name : item->e.valuestrings[v].name.GetChars(),
 							DTA_Clean, true, TAG_DONE);
 					}
 				}
@@ -5009,6 +5030,7 @@ void M_OptResponder (event_t *ev)
 				S_Sound (CHAN_VOICE, "menu/cursor", 1, ATTN_NONE);
 				break;
 
+			case discretes:
 			case discrete:
 			case cdiscrete:
 				{
@@ -5038,11 +5060,18 @@ void M_OptResponder (event_t *ev)
 
 						numvals = (int)item->b.min;
 						value = item->a.cvar->GetGenericRep (CVAR_Float);
+					if (item->type != discretes)
+					{
 						cur = M_FindCurVal (value.Float, item->e.values, numvals);
+					}
+					else
+					{
+						cur = M_FindCurVal (value.Float, item->e.valuestrings, numvals);
+					}
 						if (--cur < 0)
 							cur = numvals - 1;
 
-						value.Float = item->e.values[cur].value;
+						value.Float = item->type != discretes ? item->e.values[cur].value : item->e.valuestrings[cur].value;
 						item->a.cvar->SetGenericRep (value, CVAR_Float);
 
 						// Hack hack. Rebuild list of resolutions
@@ -5394,6 +5423,7 @@ void M_OptResponder (event_t *ev)
 				S_Sound (CHAN_VOICE, "menu/cursor", 1, ATTN_NONE);
 				break;
 
+			case discretes:
 			case discrete:
 			case cdiscrete:
 				{
@@ -5423,11 +5453,18 @@ void M_OptResponder (event_t *ev)
 
 						numvals = (int)item->b.min;
 						value = item->a.cvar->GetGenericRep (CVAR_Float);
+					if (item->type != discretes)
+					{
 						cur = M_FindCurVal (value.Float, item->e.values, numvals);
+					}
+					else
+					{
+						cur = M_FindCurVal (value.Float, item->e.valuestrings, numvals);
+					}
 						if (++cur >= numvals)
 							cur = 0;
 
-						value.Float = item->e.values[cur].value;
+						value.Float = item->type != discretes ? item->e.values[cur].value : item->e.valuestrings[cur].value;
 						item->a.cvar->SetGenericRep (value, CVAR_Float);
 
 						// Hack hack. Rebuild list of resolutions
@@ -5772,18 +5809,25 @@ void M_OptResponder (event_t *ev)
 				item->e.mfunc();
 			}
 		}
-		else if (item->type == discrete || item->type == cdiscrete)
+		else if (item->type == discrete || item->type == cdiscrete || item->type == discretes)
 		{
 			int cur;
 			int numvals;
 
 			numvals = (int)item->b.min;
 			value = item->a.cvar->GetGenericRep (CVAR_Float);
-			cur = M_FindCurVal (value.Float, item->e.values, numvals);
+			if (item->type != discretes)
+			{
+				cur = M_FindCurVal (value.Float, item->e.values, numvals);
+			}
+			else
+			{
+				cur = M_FindCurVal (value.Float, item->e.valuestrings, numvals);
+			}
 			if (++cur >= numvals)
 				cur = 0;
 
-			value.Float = item->e.values[cur].value;
+			value.Float = item->type != discretes ? item->e.values[cur].value : item->e.valuestrings[cur].value;
 			item->a.cvar->SetGenericRep (value, CVAR_Float);
 
 			// Hack hack. Rebuild list of resolutions
