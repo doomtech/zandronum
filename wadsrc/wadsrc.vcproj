@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="9.00"
 	Name="wadsrc"
 	ProjectGUID="{1D179D4B-F008-431B-8C72-111F8372584F}"
 	RootNamespace="wadsrc"
 	Keyword="MakeFileProj"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -40,27 +41,6 @@
 			/>
 		</Configuration>
 		<Configuration
-			Name="Debug|x64"
-			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
-			ConfigurationType="0"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
-			>
-			<Tool
-				Name="VCNMakeTool"
-				BuildCommandLine="nmake /nologo MAKEWAD=..\tools\makewad\makewad NOLOGO=/nologo andcopy"
-				ReBuildCommandLine="nmake /nologo MAKEWAD=..\tools\makewad\makewad NOLOGO=/nologo nrebuild"
-				CleanCommandLine="del wadmake zdoom.pk3"
-				Output="zdoom.pk3"
-				PreprocessorDefinitions=""
-				IncludeSearchPath=""
-				ForcedIncludes=""
-				AssemblySearchPath=""
-				ForcedUsingAssemblies=""
-				CompileAsManaged=""
-			/>
-		</Configuration>
-		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="Release"
 			IntermediateDirectory="Release"
@@ -72,6 +52,27 @@
 				BuildCommandLine="nmake /nologo RM=&quot;del /f /q&quot; SLASH=\ andcopy"
 				ReBuildCommandLine="nmake /nologo RM=&quot;del /f /q&quot; SLASH=\ nrebuild"
 				CleanCommandLine="nmake /nologo RM=&quot;del /f /q&quot; SLASH=\ clean"
+				Output="zdoom.pk3"
+				PreprocessorDefinitions=""
+				IncludeSearchPath=""
+				ForcedIncludes=""
+				AssemblySearchPath=""
+				ForcedUsingAssemblies=""
+				CompileAsManaged=""
+			/>
+		</Configuration>
+		<Configuration
+			Name="Debug|x64"
+			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			ConfigurationType="0"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			>
+			<Tool
+				Name="VCNMakeTool"
+				BuildCommandLine="nmake /nologo MAKEWAD=..\tools\makewad\makewad NOLOGO=/nologo andcopy"
+				ReBuildCommandLine="nmake /nologo MAKEWAD=..\tools\makewad\makewad NOLOGO=/nologo nrebuild"
+				CleanCommandLine="del wadmake zdoom.pk3"
 				Output="zdoom.pk3"
 				PreprocessorDefinitions=""
 				IncludeSearchPath=""

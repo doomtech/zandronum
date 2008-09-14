@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="9.00"
 	Name="statsmaker"
 	ProjectGUID="{45BB0A1D-9FC1-49C7-AABB-9066DC64D2A9}"
 	RootNamespace="Skulltag Stats Maker"
