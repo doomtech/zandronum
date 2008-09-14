@@ -267,7 +267,8 @@ private:
  *
  * \author BB
  */
-class IPList{
+class IPList
+{
 	std::vector<IPADDRESSBAN_s> _ipVector;
 	std::string _filename;
 	std::string _error;
@@ -304,10 +305,14 @@ private:
  *
  * \author BB
  */
-class QueryIPQueue {
+class QueryIPQueue
+{
 
 	typedef struct
 	{
+		// Is this slot free?
+		bool			bFree;
+
 		// The IP address of someone who just queried the master server.
 		NETADDRESS_s	Address;
 
@@ -316,52 +321,81 @@ class QueryIPQueue {
 
 	} STORED_QUERY_IP_t;
 
-	//! This is the maximum number of IPs that we can store in our query list.
+	// How many IPs we can store in our query list.
 	static const int maxStoredQueryIPs	= 512;
 
 	STORED_QUERY_IP_t _StoredQueryIPs[maxStoredQueryIPs];
-	LONG _storedQueryIPHead;
-	LONG _storedQueryIPTail;
+
 public:
-	QueryIPQueue ()
-		: _storedQueryIPHead ( 0 ),
-		  _storedQueryIPTail ( 0 )
+
+	//==========================================================================
+	//
+	// adjustHead
+	//
+	// Removes any old enties.
+	//
+	//==========================================================================
+
+	void adjustHead ( const LONG CurrentTime )
 	{
-	}
-
-	void adjustHead ( const LONG CurrentTime ) {
-		while (( _storedQueryIPHead != _storedQueryIPTail ) && ( CurrentTime >= _StoredQueryIPs[_storedQueryIPHead].lNextAllowedTime ) )
+		for	( unsigned int i = 0; i < maxStoredQueryIPs; i++ )
 		{
-			_storedQueryIPHead++;
-			_storedQueryIPHead = _storedQueryIPHead % maxStoredQueryIPs;
+			if ( !_StoredQueryIPs[i].bFree && ( CurrentTime >= _StoredQueryIPs[i].lNextAllowedTime ))
+				_StoredQueryIPs[i].bFree = true;
 		}
 	}
 
-	bool addressInQueue ( const NETADDRESS_s AddressFrom ) const {
-		// If head == tail, the 
-		if ( _storedQueryIPHead != _storedQueryIPTail )
-		{
-			ULONG ulIdx = _storedQueryIPHead;
-			while ( ulIdx != static_cast<ULONG>(_storedQueryIPTail) )
-			{
-				if ( NETWORK_CompareAddress( AddressFrom, _StoredQueryIPs[ulIdx].Address, true ))
-					return true;
+	//==========================================================================
+	//
+	// addressInQueue
+	//
+	// Returns whether the given IP is in the queue.
+	//
+	//==========================================================================
 
-				ulIdx++;
-				ulIdx = ulIdx % maxStoredQueryIPs;
-			}
+	bool addressInQueue ( const NETADDRESS_s AddressFrom ) const
+	{
+		for	( unsigned int i = 0; i < maxStoredQueryIPs; i++ )
+		{
+			if ( !_StoredQueryIPs[i].bFree && NETWORK_CompareAddress( AddressFrom, _StoredQueryIPs[i].Address, true ))
+				return true;
 		}
+
 		return false;
 	}
-	void addAddress ( const NETADDRESS_s AddressFrom, const LONG CurrentTime, std::ostream *errorOut = NULL ) {
-		_StoredQueryIPs[_storedQueryIPTail].Address = AddressFrom;
-		_StoredQueryIPs[_storedQueryIPTail].lNextAllowedTime = CurrentTime + 10;
 
-		_storedQueryIPTail++;
-		_storedQueryIPTail = _storedQueryIPTail % maxStoredQueryIPs;
+	//==========================================================================
+	//
+	// addAddress
+	//
+	// Adds the given address to the queue. (If the queue is full, an error written to errorOut)
+	//
+	//==========================================================================
 
-		if ( (_storedQueryIPTail == _storedQueryIPHead) && errorOut )
-			*errorOut << "WARNING! _storedQueryIPTail == _storedQueryIPHead\n";
+	void addAddress ( const NETADDRESS_s AddressFrom, const LONG lCurrentTime, const LONG lLength = 10, std::ostream *errorOut = NULL )
+	{
+		int		iIndex = -1;
+
+		// Look for a free slot.
+		for	( unsigned int i = 0; i < maxStoredQueryIPs; i++ )
+		{
+			if ( _StoredQueryIPs[i].bFree )
+			{
+				iIndex = i;
+				break;
+			}
+		}
+
+		// Oh no! The queue is full! Just exit.
+		if ( iIndex == -1 )
+		{
+			*errorOut << "WARNING! This IP queue is full!\n";
+			return;
+		}
+
+		_StoredQueryIPs[iIndex].Address = AddressFrom;
+		_StoredQueryIPs[iIndex].bFree = false;
+		_StoredQueryIPs[iIndex].lNextAllowedTime = lCurrentTime + lLength;
 	}
 };
 

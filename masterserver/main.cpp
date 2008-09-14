@@ -215,7 +215,7 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 		NETWORK_LaunchPacket( &g_MessageBuffer, AddressFrom );
 
 		printf( "* Received challenge from banned IP (%s). Ignoring for 30 seconds.\n", NETWORK_AddressToString( AddressFrom ));
-		g_queryIPQueue.addAddress( AddressFrom, g_lCurrentTime, &std::cerr, 30 );
+		g_queryIPQueue.addAddress( AddressFrom, g_lCurrentTime, 30, &std::cerr );
 		return;
 	}
 
@@ -230,9 +230,9 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 			long			lServerIdx;
 			NETADDRESS_s	Address;
 
-			if ( lCommand == SERVER_MASTER_CHALLENGE )
+//			if ( lCommand == SERVER_MASTER_CHALLENGE )
 				Address = AddressFrom;
-			else
+/*			else
 			{
 				char	szAddress[32];
 
@@ -254,7 +254,7 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 				sprintf( szAddress, "%d.%d.%d.%d:%d", ulIP1, ulIP2, ulIP3, ulIP4, ulPort );
 				NETWORK_StringToAddress( szAddress, &Address );
 			}
-
+*/
 			lServerIdx = MASTERSERVER_CheckIfServerAlreadyExists( Address );
 
 			// This is a new server; add it to the list.
@@ -265,11 +265,11 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 				// First count the number of servers from this IP.
 				for ( unsigned long	ulIdx = 0; ulIdx < MAX_SERVERS; ulIdx++ )
 				{
-					if ( g_Servers[ulIdx].bAvailable && NETWORK_CompareAddress( g_Servers[ulIdx].Address, AddressFrom, true ))
+					if ( !g_Servers[ulIdx].bAvailable && NETWORK_CompareAddress( g_Servers[ulIdx].Address, Address, true ))
 						iNumOtherServers++;
 				}
 
-				if ( iNumOtherServers > 10 && !g_MultiServerExceptions.isIPInList( Address ))
+				if ( iNumOtherServers >= 10 && !g_MultiServerExceptions.isIPInList( Address ))
 					printf( "* More than 10 servers received from %s. Ignoring request...\n", NETWORK_AddressToString( Address ));
 				else
 				{
@@ -289,7 +289,8 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 				g_Servers[lServerIdx].lLastReceived = g_lCurrentTime;
 
 			// Ignore IP for 10 seconds.
-			g_floodProtectionIPQueue.addAddress( AddressFrom, g_lCurrentTime, &std::cerr );
+		//	if ( !g_MultiServerExceptions.isIPInList( Address ) )
+		//		g_floodProtectionIPQueue.addAddress( AddressFrom, g_lCurrentTime, &std::cerr );
 			return;
 		}
 	// Launcher is asking master server for server list.
@@ -306,14 +307,14 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 				NETWORK_LaunchPacket( &g_MessageBuffer, AddressFrom );
 
 				printf( "* Extra launcher challenge from %s. Ignoring for 3 seconds.\n", NETWORK_AddressToString( AddressFrom ));
-				g_queryIPQueue.addAddress( AddressFrom, g_lCurrentTime, &std::cerr, 3 );
+				g_queryIPQueue.addAddress( AddressFrom, g_lCurrentTime, 3, &std::cerr );
 				return;
 			}
 			
 			printf( "-> Sending server list to %s.\n", NETWORK_AddressToString( AddressFrom ));
 
 			// Wait 10 seconds before sending this IP the server list again.
-			g_queryIPQueue.addAddress( AddressFrom, g_lCurrentTime, &std::cerr );
+			g_queryIPQueue.addAddress( AddressFrom, g_lCurrentTime, 10, &std::cerr );
 
 			// Send the list of servers.
 			NETWORK_WriteLong( &g_MessageBuffer.ByteStream, MSC_BEGINSERVERLIST );
@@ -342,7 +343,7 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 	}
 
 	printf( "* Received unknown challenge (%d) from %s. Ignoring for 10 seconds...\n", lCommand, NETWORK_AddressToString( AddressFrom ));
-	g_floodProtectionIPQueue.addAddress( AddressFrom, g_lCurrentTime, &std::cerr );
+	g_floodProtectionIPQueue.addAddress( AddressFrom, g_lCurrentTime, 10, &std::cerr );
 }
 
 //*****************************************************************************
