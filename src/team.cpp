@@ -1264,23 +1264,12 @@ bool TEAM_IsActorAllowedForPlayer( AActor *pActor, player_t *pPlayer )
 	if ( (pActor == NULL) || (pPlayer == NULL) )
 		return false;
 
-	// [BB] No teamgame, so no team restrictions apply.
-	if ( !( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) )
-		return true;
-
-	// [BB] This actor is not restricted to a certain team.
-	if ( pActor->ulLimitedToTeam == 0 )
-		return true;
-
 	// [BB] Allow all actors to players not on a team.
 	if ( pPlayer->bOnTeam == false )
 		return true;
 
-	// [BB] The player is on the team to which this actor is restricted to.
-	if ( pPlayer->ulTeam == (pActor->ulLimitedToTeam - 1) == 0 )
-		return true;
-	
-	return false;
+	// [BB] Check if the actor is allowed for the team the player is on.
+	return TEAM_IsActorAllowedForTeam( pActor, pPlayer->ulTeam );
 }
 
 //****************************************************************************
@@ -1292,6 +1281,44 @@ bool TEAM_IsClassAllowedForPlayer( ULONG ulClass, player_t *pPlayer )
 		return false;
 
 	return TEAM_IsActorAllowedForPlayer ( GetDefaultByType(PlayerClasses[ulClass].Type), pPlayer );
+}
+
+//****************************************************************************
+//
+bool TEAM_IsActorAllowedForTeam( AActor *pActor, ULONG ulTeam )
+{
+	// [BB] Safety checks.
+	if ( (pActor == NULL) )
+		return false;
+
+	// [BB] No teamgame, so no team restrictions apply.
+	if ( !( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) )
+		return true;
+
+	// [BB] This actor is not restricted to a certain team.
+	if ( pActor->ulLimitedToTeam == 0 )
+		return true;
+
+	// [BB] Allow all actors to "no team".
+	if ( ulTeam == NUM_TEAMS )
+		return true;
+
+	// [BB] The team is the one to which this actor is restricted to.
+	if ( ulTeam == (pActor->ulLimitedToTeam - 1) )
+		return true;
+	
+	return false;
+}
+
+//****************************************************************************
+//
+bool TEAM_IsClassAllowedForTeam( ULONG ulClass, ULONG ulTeam )
+{
+	// [BB] Safety checks.
+	if ( ulClass >= PlayerClasses.Size() )
+		return false;
+
+	return TEAM_IsActorAllowedForTeam ( GetDefaultByType(PlayerClasses[ulClass].Type), ulTeam );
 }
 
 //****************************************************************************
