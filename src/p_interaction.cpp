@@ -2157,6 +2157,11 @@ void PLAYER_SetSpectator( player_s *pPlayer, bool bBroadcast, bool bDeadSpectato
 		pPlayer->poisoncount = 0;
 		pPlayer->inventorytics = 0;
 
+		// [BB] We also need to stop all sounds associated to the player pawn, spectators
+		// aren't supposed to make any sounds. This is especially crucial if a looping sound
+		// is played by the player pawn.
+		S_StopAllSoundsFromActor ( pPlayer->mo );
+
 		if (( bDeadSpectator == false ) && bBroadcast )
 		{
 			// Send out a message saying this player joined the spectators.

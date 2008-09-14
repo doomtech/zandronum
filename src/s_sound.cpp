@@ -1216,6 +1216,18 @@ void S_StopAllChannels ()
 
 //==========================================================================
 //
+// [BB] S_StopAllSoundsFromActor
+//
+//==========================================================================
+
+void S_StopAllSoundsFromActor (AActor *ent)
+{
+	for (int i = 0; i < numChannels; i++)
+		S_StopSound (&ent->x, i);
+}
+
+//==========================================================================
+//
 // S_RelinkSound
 //
 // Moves all the sounds from one thing to another. If the destination is
