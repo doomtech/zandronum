@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="9.00"
 	Name="masterserver"
 	ProjectGUID="{D59FD170-A144-4081-8233-9720B0FCC3DB}"
 	RootNamespace="Skulltag Master Server Source"
