@@ -41,6 +41,7 @@
 !	- You can now join the game while spectating during intermission. [Rivecoder]
 !	- You no longer have to wait 10 seconds to change your team during the team last man standing countdown. [Karate Chris]
 !	- Changed: The FLOATBOB flag is not applied to spectators anymore, no matter if the corresponding player class has it or not. [Torr Samaho]
+!	- Changed: Spectators now always have forwardmove 1, sidemove 1 and viewheight 41 (default values from PlayerPawn), no matter how the values of the corresponding player class are. [Torr Samaho]
 
 v0.97d2
 -------
