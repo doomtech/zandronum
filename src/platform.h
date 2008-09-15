@@ -46,6 +46,10 @@ typedef bool BOOL;
 #ifdef _MSC_VER
 // [BB] Silence the "'stricmp': The POSIX name for this item is deprecated." warning.
 #pragma warning(disable:4996)
+// [BB] This is necessary under VC++ 2008 along with the _DO_NOT_DECLARE_INTERLOCKED_INTRINSICS_IN_MEMORY
+// define to be able to include <intrin.h> and <memory>, because they contain conflicting definitions
+// of the interlocked intrinsics.
+#include <intrin.h>
 #endif
 
 #endif

@@ -48,9 +48,10 @@
 //
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
+#include "sv_rcon.h"
+// [BB] Do not include these system headers earlier to prevent header inclusion conflicts.
 #include <list>
 #include <time.h>
-#include "sv_rcon.h"
 #include "sv_ban.h"
 #include "c_console.h"
 #include "network.h"
