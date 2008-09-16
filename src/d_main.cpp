@@ -109,7 +109,6 @@
 #include "lastmanstanding.h"
 #include "campaign.h"
 #include "sv_save.h"
-#include "sv_admin.h"
 #include "callvote.h"
 #include "invasion.h"
 #include "survival.h"
@@ -2525,12 +2524,6 @@ void D_DoomMain (void)
 	// Initialize the campaign module.
 	CAMPAIGN_Construct( );
 	CAMPAIGN_ParseCampaignInfo( );
-
-	// Initialize the saved player information.
-	SERVER_SAVE_Construct( );
-
-	// Initialize the server admin module.
-	SERVER_ADMIN_Construct( );
 
 	// [RH] Initialize localizable strings.
 	GStrings.LoadStrings (false);

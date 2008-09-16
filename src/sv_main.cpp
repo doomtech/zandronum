@@ -101,7 +101,6 @@
 #include "invasion.h"
 #include "lastmanstanding.h"
 #include "survival.h"
-#include "sv_admin.h"
 #include "sv_commands.h"
 #include "sv_save.h"
 #include "sv_rcon.h"
@@ -420,9 +419,9 @@ void SERVER_Construct( void )
 	// Call SERVER_Destruct() when Skulltag closes.
 	atterm( SERVER_Destruct );
 
-	// Finally, setup the master server communication module.
+	// Setup the child modules.
 	SERVER_MASTER_Construct( );
-
+	SERVER_SAVE_Construct( );
 	SERVER_RCON_Construct( );
 }
 
@@ -1873,7 +1872,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	itoa( g_aClients[lClient].Address.abIP[1], szAddress[1], 10 );
 	itoa( g_aClients[lClient].Address.abIP[2], szAddress[2], 10 );
 	itoa( g_aClients[lClient].Address.abIP[3], szAddress[3], 10 );
-	if (( sv_enforcebans ) && ( SERVERBAN_IsIPBanned( szAddress[0], szAddress[1], szAddress[2], szAddress[3] )) && ( SERVER_ADMIN_IsAdministrator( g_aClients[lClient].Address ) == false ))
+	if (( sv_enforcebans ) && ( SERVERBAN_IsIPBanned( szAddress[0], szAddress[1], szAddress[2], szAddress[3] )))
 	{
 		// Client has been banned! GET THE FUCK OUT OF HERE!
 		SERVER_ClientError( lClient, NETWORK_ERRORCODE_BANNED );
@@ -3019,10 +3018,6 @@ void SERVER_KickPlayer( ULONG ulPlayer, const char *pszReason )
 
 	// Make sure the target is valid and applicable.
 	if (( ulPlayer >= MAXPLAYERS ) || ( !playeringame[ulPlayer] ))
-		return;
-
-	// Don't kick our admins.
-	if ( SERVER_ADMIN_IsAdministrator( g_aClients[ulPlayer].Address ))
 		return;
 
 	sprintf( szName, players[ulPlayer].userinfo.netname );
@@ -4261,13 +4256,11 @@ static bool server_RCONCommand( BYTESTREAM_s *pByteStream )
 	// Read in the command the user sent us.
 	pszCommand = NETWORK_ReadString( pByteStream );
 
-	// If they don't have RCON access, and aren't an adminstrator, deny them the ability to do this.
-	if (( g_aClients[g_lCurrentClient].bRCONAccess == false ) && ( SERVER_ADMIN_IsAdministrator( g_aClients[g_lCurrentClient].Address ) == false ))
+	// If they don't have RCON access, quit.
+	if ( !g_aClients[g_lCurrentClient].bRCONAccess )
 		return ( false );
 
-	// Admins can operate incognito.
-	if ( SERVER_ADMIN_IsAdministrator( g_aClients[g_lCurrentClient].Address ) == false )
-		Printf( "%s RCON (%s)\n", players[g_lCurrentClient].userinfo.netname, pszCommand );
+	Printf( "-> %s (RCON by %s - %s)\n", pszCommand, players[g_lCurrentClient].userinfo.netname, NETWORK_AddressToString( SERVER_GetClient( g_lCurrentClient )->Address ));
 
 	// Set the RCON player so that output displays on his end.
 	CONSOLE_SetRCONPlayer( g_lCurrentClient );
@@ -5178,9 +5171,6 @@ CCMD( kickfromgame )
 
 		if ( stricmp( szPlayerName, argv[1] ) == 0 )
 		{
-			if ( SERVER_ADMIN_IsAdministrator( g_aClients[ulIdx].Address ))
-				continue;
-
 			// Already a spectator!
 			if ( PLAYER_IsTrueSpectator( &players[g_lCurrentClient] ))
 				continue;
