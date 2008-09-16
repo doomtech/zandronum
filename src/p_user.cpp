@@ -2437,7 +2437,8 @@ void P_MovePlayer (player_t *player, ticcmd_t *cmd)
 			fprintf (debugfile, "]\n");
 		}
 */
-		if ( (CLIENT_PREDICT_IsPredicting( ) == false) && (forwardmove|sidemove) )//(!(player->cheats & CF_PREDICTING))
+		// [BB] Spectators shall stay in their spawn state and don't execute any code pointers.
+		if ( (CLIENT_PREDICT_IsPredicting( ) == false) && (forwardmove|sidemove) && (player->bSpectating == false) )//(!(player->cheats & CF_PREDICTING))
 		{
 			player->mo->PlayRunning ();
 		}

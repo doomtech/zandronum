@@ -3671,6 +3671,10 @@ void AActor::Tick ()
 	if ( CLIENT_PREDICT_IsPredicting( ))
 		return;
 
+	// [BB] Spectators shall stay in their spawn state and don't execute any code pointers.
+	if ( this->player && this->player->bSpectating )
+		return;
+
 	// cycle through states, calling action functions at transitions
 	if (tics != -1)
 	{
