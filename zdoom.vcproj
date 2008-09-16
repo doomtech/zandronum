@@ -4685,10 +4685,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\sv_admin.h"
-				>
-			</File>
-			<File
 				RelativePath=".\src\sv_ban.h"
 				>
 			</File>
