@@ -470,8 +470,13 @@ void AActor::Die (AActor *source, AActor *inflictor)
 	}
 
 	if (CountsAsKill())
+	{
 		level.killed_monsters++;
 		
+		// [BB] The number of remaining monsters decreased, update the invasion monster count accordingly.
+		INVASION_UpdateMonsterCount ( this, true );
+	}
+
 	if (source && source->player)
 	{
 		// [BC] Don't do this in client mode.
@@ -481,19 +486,6 @@ void AActor::Die (AActor *source, AActor *inflictor)
 		{ // count for intermission
 			source->player->killcount++;
 			
-			if (( invasion ) &&
-				(( INVASION_GetState( ) == IS_INPROGRESS ) || ( INVASION_GetState( ) == IS_BOSSFIGHT )))
-			{
-				INVASION_SetNumMonstersLeft( INVASION_GetNumMonstersLeft( ) - 1 );
-
-				if ( GetClass( ) == PClass::FindClass("Archvile") )
-					INVASION_SetNumArchVilesLeft( INVASION_GetNumArchVilesLeft( ) - 1 );
-
-				// If we're the server, tell the client how many monsters are left.
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_SetInvasionNumMonstersLeft( );
-			}
-
 			// Update the clients with this player's updated killcount.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
@@ -676,18 +668,6 @@ void AActor::Die (AActor *source, AActor *inflictor)
 		// Meh, just do it in single player.
 		if ( NETWORK_GetState( ) == NETSTATE_SINGLE )
 			players[0].killcount++;
-		if (( invasion ) &&
-			(( INVASION_GetState( ) == IS_INPROGRESS ) || ( INVASION_GetState( ) == IS_BOSSFIGHT )))
-		{
-			INVASION_SetNumMonstersLeft( INVASION_GetNumMonstersLeft( ) - 1 );
-
-			if ( GetClass( ) == PClass::FindClass("Archvile") )
-				INVASION_SetNumArchVilesLeft( INVASION_GetNumArchVilesLeft( ) - 1 );
-
-			// If we're the server, tell the client how many monsters are left.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SetInvasionNumMonstersLeft( );
-		}
 
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
