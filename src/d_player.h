@@ -449,6 +449,8 @@ inline FArchive &operator<< (FArchive &arc, player_s *&p)
 
 void	PLAYER_SetFragcount( player_s *pPlayer, LONG lFragCount, bool bAnnounce, bool bUpdateTeamFrags );
 void	PLAYER_ResetAllPlayersFragcount( void );
+void	PLAYER_ResetAllPlayersSpecialCounters( void );
+void	PLAYER_ResetSpecialCounters ( player_t *pPlayer );
 void	PLAYER_GivePossessionPoint( player_s *pPlayer );
 void	PLAYER_SetTeam( player_s *pPlayer, ULONG ulTeam, bool bNoBroadcast );
 void	PLAYER_SetSpectator( player_s *pPlayer, bool bBroadcast, bool bDeadSpectator );

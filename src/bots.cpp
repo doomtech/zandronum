@@ -2924,16 +2924,9 @@ CSkullBot::CSkullBot( char *pszName, char *pszTeamName, ULONG ulPlayerNum )
 	m_pPlayer->playerstate = PST_ENTER;
 	m_pPlayer->fragcount = 0;
 	m_pPlayer->killcount = 0;	
-	m_pPlayer->ulDeathsWithoutFrag = 0;
-	m_pPlayer->ulConsecutiveHits = 0;
-	m_pPlayer->ulConsecutiveRailgunHits = 0;
 	m_pPlayer->ulDeathCount = 0;
-	m_pPlayer->ulFragsWithoutDeath = 0;
-	m_pPlayer->ulLastExcellentTick = 0;
-	m_pPlayer->ulLastFragTick = 0;
-	m_pPlayer->ulLastBFGFragTick = 0;
-	m_pPlayer->ulRailgunShots = 0;
 	m_pPlayer->ulTime = 0;
+	PLAYER_ResetSpecialCounters ( m_pPlayer );
 
 	// Load the bot's script. If he doesn't have a script, inform the user.
 	if ( g_BotInfo[m_ulBotInfoIdx]->szScriptName[0] )

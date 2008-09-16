@@ -1894,15 +1894,8 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	players[lClient].killcount = 0;
 	players[lClient].lPointCount = 0;
 	players[lClient].ulWins = 0;
-	players[lClient].ulDeathsWithoutFrag = 0;
-	players[lClient].ulConsecutiveHits = 0;
-	players[lClient].ulConsecutiveRailgunHits = 0;
+	PLAYER_ResetSpecialCounters ( &players[lClient] );
 	players[lClient].ulDeathCount = 0;
-	players[lClient].ulFragsWithoutDeath = 0;
-	players[lClient].ulLastExcellentTick = 0;
-	players[lClient].ulLastFragTick = 0;
-	players[lClient].ulLastBFGFragTick = 0;
-	players[lClient].ulRailgunShots = 0;
 	players[lClient].ulTime = 0;
 	players[lClient].bSpectating = false;
 	players[lClient].bDeadSpectator = false;

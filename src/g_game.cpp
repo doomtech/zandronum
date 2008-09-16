@@ -1924,13 +1924,7 @@ void G_PlayerFinishLevel (int player, EFinishLevelType mode, bool resetinventory
 	}
 
 	// [BC] Reset a bunch of other Skulltag stuff.
-	p->ulConsecutiveHits = 0;
-	p->ulConsecutiveRailgunHits = 0;
-	p->ulDeathsWithoutFrag = 0;
-	p->ulFragsWithoutDeath = 0;
-	p->ulLastExcellentTick = 0;
-	p->ulLastFragTick = 0;
-	p->ulLastBFGFragTick = 0;
+	PLAYER_ResetSpecialCounters ( p );
 	if ( p->pIcon )
 		p->pIcon->Destroy( );
 

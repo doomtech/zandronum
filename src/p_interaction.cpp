@@ -1813,6 +1813,31 @@ void PLAYER_ResetAllPlayersFragcount( void )
 
 //*****************************************************************************
 //
+void PLAYER_ResetAllPlayersSpecialCounters ( )
+{
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+		PLAYER_ResetSpecialCounters ( &players[ulIdx] );
+}
+
+//*****************************************************************************
+//
+void PLAYER_ResetSpecialCounters ( player_t *pPlayer )
+{
+	if ( pPlayer == NULL )
+		return;
+
+	pPlayer->ulLastExcellentTick = 0;
+	pPlayer->ulLastFragTick = 0;
+	pPlayer->ulLastBFGFragTick = 0;
+	pPlayer->ulConsecutiveHits = 0;
+	pPlayer->ulConsecutiveRailgunHits = 0;
+	pPlayer->ulDeathsWithoutFrag = 0;
+	pPlayer->ulFragsWithoutDeath = 0;
+	pPlayer->ulRailgunShots = 0;
+}
+
+//*****************************************************************************
+//
 void PLAYER_GivePossessionPoint( player_s *pPlayer )
 {
 	char				szString[64];
