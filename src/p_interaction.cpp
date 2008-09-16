@@ -2134,33 +2134,11 @@ void PLAYER_SetSpectator( player_s *pPlayer, bool bBroadcast, bool bDeadSpectato
 			}
 		}
 
-		// Make the player unshootable, etc.
-		pPlayer->mo->flags2 |= (MF2_CANNOTPUSH);
-		pPlayer->mo->flags &= ~(MF_SOLID|MF_SHOOTABLE|MF_PICKUP);
-		pPlayer->mo->flags2 &= ~(MF2_PASSMOBJ|MF2_FLOATBOB);
-		pPlayer->mo->RenderStyle = STYLE_None;
-
-		// [BB] Speed and viewheight of spectators should be independent of the player class.
-		pPlayer->mo->ForwardMove1 = pPlayer->mo->ForwardMove2 = FRACUNIT;
-		pPlayer->mo->SideMove1 = pPlayer->mo->SideMove2 = FRACUNIT;
-		pPlayer->mo->ViewHeight = 41*FRACUNIT;
-
-		// Make the player flat, so he can travel under doors and such.
-		pPlayer->mo->height = 0;
-
-		// Make monsters unable to "see" this player.
-		pPlayer->cheats |= CF_NOTARGET;
+		// [BB] Set a bunch of stuff, e.g. make the player unshootable, etc.
+		PLAYER_SetDefaultSpectatorValues ( pPlayer );
 
 		// Take away all of the player's inventory.
 		pPlayer->mo->DestroyAllInventory( );
-
-		// Reset a bunch of other stuff.
-		pPlayer->extralight = 0;
-		pPlayer->fixedcolormap = 0;
-		pPlayer->damagecount = 0;
-		pPlayer->bonuscount = 0;
-		pPlayer->poisoncount = 0;
-		pPlayer->inventorytics = 0;
 
 		// [BB] We also need to stop all sounds associated to the player pawn, spectators
 		// aren't supposed to make any sounds. This is especially crucial if a looping sound
@@ -2205,6 +2183,42 @@ void PLAYER_SetSpectator( player_s *pPlayer, bool bBroadcast, bool bDeadSpectato
 	// Update this player's info on the scoreboard.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCONSOLE_UpdatePlayerInfo( pPlayer - players, UDF_FRAGS );
+}
+
+//*****************************************************************************
+//
+void PLAYER_SetDefaultSpectatorValues( player_t *pPlayer )
+{
+	if ( ( pPlayer == NULL ) || ( pPlayer->mo == NULL ) )
+		return;
+
+	// Make the player unshootable, etc.
+	pPlayer->mo->flags2 |= (MF2_CANNOTPUSH);
+	pPlayer->mo->flags &= ~(MF_SOLID|MF_SHOOTABLE|MF_PICKUP);
+	pPlayer->mo->flags2 &= ~(MF2_PASSMOBJ|MF2_FLOATBOB);
+	pPlayer->mo->flags3 = MF3_NOBLOCKMONST;
+	pPlayer->mo->flags4 = 0;
+	pPlayer->mo->flags5 = 0;
+	pPlayer->mo->RenderStyle = STYLE_None;
+
+	// [BB] Speed and viewheight of spectators should be independent of the player class.
+	pPlayer->mo->ForwardMove1 = pPlayer->mo->ForwardMove2 = FRACUNIT;
+	pPlayer->mo->SideMove1 = pPlayer->mo->SideMove2 = FRACUNIT;
+	pPlayer->mo->ViewHeight = 41*FRACUNIT;
+
+	// Make the player flat, so he can travel under doors and such.
+	pPlayer->mo->height = 0;
+
+	// Make monsters unable to "see" this player.
+	pPlayer->cheats |= CF_NOTARGET;
+
+	// Reset a bunch of other stuff.
+	pPlayer->extralight = 0;
+	pPlayer->fixedcolormap = 0;
+	pPlayer->damagecount = 0;
+	pPlayer->bonuscount = 0;
+	pPlayer->poisoncount = 0;
+	pPlayer->inventorytics = 0;
 }
 
 //*****************************************************************************

@@ -452,6 +452,7 @@ void	PLAYER_ResetAllPlayersFragcount( void );
 void	PLAYER_GivePossessionPoint( player_s *pPlayer );
 void	PLAYER_SetTeam( player_s *pPlayer, ULONG ulTeam, bool bNoBroadcast );
 void	PLAYER_SetSpectator( player_s *pPlayer, bool bBroadcast, bool bDeadSpectator );
+void	PLAYER_SetDefaultSpectatorValues( player_t *pPlayer );
 void	PLAYER_SetWins( player_s *pPlayer, ULONG ulWins );
 void	PLAYER_GetName( player_s *pPlayer, char *pszOutBuf );
 bool	PLAYER_IsTrueSpectator( player_s *pPlayer );
