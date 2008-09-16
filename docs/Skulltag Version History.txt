@@ -25,6 +25,7 @@
 +	- Added CKeen's submission for an updated Italian language file. [Karate Chris]
 +	- Significantly reduced the net traffic used by P_MoveThing, e.g. used by SetActorPosition. [Torr Samaho]
 +	- Added new actor property "limitedtoteam", currently only has any effect when applied to a player class: When a player joins a team with a player class that is limited to be used only by another team, the player is immediately respawned with the first class that is open to the team just joined. [Torr Samaho]
++	- Added new team class selection menu: When joining a team from the team selection menu and more than one player class is available, there now is a menu that lets you select among the available classes (respects limitedtoteam). [Torr Samaho]
 -	- Fixed a positioning bug with rank/spread on the classic HUD when st_scale was off. [Rivecoder]
 -	- Fixed: the 'ColorSetter' and 'FadeSetter' actors were broken online. [Karate Chris]
 -	- Fixed: SKININFO skins couldn't use sounds from the Sounds subdirectory of PK3s/ZIPs. [Torr Samaho]
