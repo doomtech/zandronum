@@ -381,7 +381,8 @@ void SelectWeaponAndDisplayName ( AWeapon *pSelectedWeapon )
 		SendItemUse = pSelectedWeapon;
 
 	// [BC] Option to display the name of the weapon being cycled to.
-	if ( cl_showweapnameoncycle && ( players[consoleplayer].PendingWeapon != NULL ) )
+	if ( cl_showweapnameoncycle && ( players[consoleplayer].PendingWeapon != NULL )
+	     && ( players[consoleplayer].PendingWeapon != WP_NOCHANGE ) )
 	{
 		char				szString[64];
 		DHUDMessageFadeOut	*pMsg;
