@@ -1390,6 +1390,16 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 		}
 	}
 
+	// [BB] Save the damage the player has dealt to monsters here, it's only converted to points
+	// though if DF2_AWARD_DAMAGE_INSTEAD_KILLS is set.
+	if ( source && source->player
+	     && ( target->player == false )
+	     && ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	     && ( CLIENTDEMO_IsPlaying( ) == false ))
+	{
+		source->player->ulUnrewardedDamageDealt += MIN( (int)lOldTargetHealth, damage );
+	}
+
 	// [BC] Tell clients that this thing was damaged.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
@@ -1834,6 +1844,7 @@ void PLAYER_ResetSpecialCounters ( player_t *pPlayer )
 	pPlayer->ulDeathsWithoutFrag = 0;
 	pPlayer->ulFragsWithoutDeath = 0;
 	pPlayer->ulRailgunShots = 0;
+	pPlayer->ulUnrewardedDamageDealt = 0;
 }
 
 //*****************************************************************************
@@ -2430,6 +2441,40 @@ LONG PLAYER_GetRailgunColor( player_s *pPlayer )
 	case RAILCOLOR_RAINBOW:
 
 		return ( -2 );
+	}
+}
+
+//*****************************************************************************
+//
+void PLAYER_AwardDamagePointsForAllPlayers( void )
+{
+	if ( (dmflags2 & DF2_AWARD_DAMAGE_INSTEAD_KILLS)
+		&& (GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNKILLS) )
+	{
+		for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+		{
+			if ( playeringame[ulIdx] == false )
+				continue;
+
+			player_t *p = &players[ulIdx];
+
+			int points = p->ulUnrewardedDamageDealt / 100;
+			if ( points > 0 )
+			{
+				p->lPointCount += points;
+				p->ulUnrewardedDamageDealt -= 100 * points;
+
+				// Update the clients with this player's updated points.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				{
+					SERVERCOMMANDS_SetPlayerPoints( static_cast<ULONG>( p - players ) );
+
+					// Also, update the scoreboard.
+					SERVERCONSOLE_UpdatePlayerInfo( static_cast<ULONG>( p - players ), UDF_FRAGS );
+					SERVERCONSOLE_UpdateScoreboard( );
+				}
+			}
+		}
 	}
 }
 

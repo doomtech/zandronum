@@ -290,6 +290,7 @@ player_s::player_s()
   ulConsecutiveRailgunHits( 0 ),
   ulFragsWithoutDeath( 0 ),
   ulDeathsWithoutFrag( 0 ),
+  ulUnrewardedDamageDealt( 0 ),
   bChatting( 0 ),
   bSpectating( 0 ),
   bDeadSpectator( 0 ),

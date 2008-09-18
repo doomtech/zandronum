@@ -274,6 +274,9 @@ enum
 
 	// Player keeps his team after a map change.
 	DF2_YES_KEEP_TEAMS		= 1 << 13,
+
+	// [BB] Award actual damage dealt instead of kills.
+	DF2_AWARD_DAMAGE_INSTEAD_KILLS		= 1 << 20,
 };
 
 // [RH] Compatibility flags.
