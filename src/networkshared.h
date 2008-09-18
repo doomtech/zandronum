@@ -51,6 +51,7 @@
 #ifndef __NETWORKSHARED_H__
 #define __NETWORKSHARED_H__
 
+#include "platform.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
