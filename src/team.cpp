@@ -1256,6 +1256,89 @@ void TEAM_SetAssistPlayer( ULONG ulTeamIdx, ULONG ulPlayer )
 	g_ulAssistPlayer[ulTeamIdx] = ulPlayer;
 }
 
+//****************************************************************************
+//
+bool TEAM_IsActorAllowedForPlayer( AActor *pActor, player_t *pPlayer )
+{
+	// [BB] Safety checks.
+	if ( (pActor == NULL) || (pPlayer == NULL) )
+		return false;
+
+	// [BB] No teamgame, so no team restrictions apply.
+	if ( !( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) )
+		return true;
+
+	// [BB] This actor is not restricted to a certain team.
+	if ( pActor->ulLimitedToTeam == 0 )
+		return true;
+
+	// [BB] Allow all actors to players not on a team.
+	if ( pPlayer->bOnTeam == false )
+		return true;
+
+	// [BB] The player is on the team to which this actor is restricted to.
+	if ( pPlayer->ulTeam == (pActor->ulLimitedToTeam - 1) == 0 )
+		return true;
+	
+	return false;
+}
+
+//****************************************************************************
+//
+bool TEAM_IsClassAllowedForPlayer( ULONG ulClass, player_t *pPlayer )
+{
+	// [BB] Safety checks.
+	if ( ulClass >= PlayerClasses.Size() )
+		return false;
+
+	return TEAM_IsActorAllowedForPlayer ( GetDefaultByType(PlayerClasses[ulClass].Type), pPlayer );
+}
+
+//****************************************************************************
+//
+ULONG TEAM_FindValidClassForPlayer( player_t *pPlayer )
+{
+	// [BB] Safety checks.
+	if ( pPlayer == NULL )
+		return 0;
+
+	for ( ULONG ulIdx = 0; ulIdx < PlayerClasses.Size(); ++ulIdx )
+	{
+		if ( TEAM_IsClassAllowedForPlayer ( ulIdx, pPlayer ) )
+		{
+			return ulIdx;
+		}
+	}
+
+	return 0;
+}
+
+//****************************************************************************
+//
+void TEAM_EnsurePlayerHasValidClass( player_t *pPlayer )
+{
+	// [BB] This is server side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
+	// [BB] Safety checks.
+	if ( pPlayer == NULL )
+		return;
+
+	// [BB] The class is valid, nothing to do.
+	if ( TEAM_IsClassAllowedForPlayer ( pPlayer->userinfo.PlayerClass, pPlayer ) )
+		return;
+
+	// [BB] The current class is invalid, select a valid one.
+	pPlayer->userinfo.PlayerClass = TEAM_FindValidClassForPlayer ( pPlayer );
+	// [BB] This should respawn the player at the appropriate spot. Set the player state to
+	// PST_REBORNNOINVENTORY so everything (weapons, etc.) is cleared.
+	pPlayer->playerstate = PST_REBORNNOINVENTORY;
+}
+
 //*****************************************************************************
 //	CONSOLE COMMANDS/VARIABLES
 

@@ -754,6 +754,9 @@ public:
 	DWORD			flags4;			// [RH] Even more flags!
 	DWORD			flags5;			// OMG! We need another one.
 
+	// [BB] If 0, not limited to any team, if > 0, limited to the team with number (ulLimitedToTeam-1).
+	ULONG			ulLimitedToTeam;
+
 	// [BC] A new set of flags that ST uses.
 	ULONG			ulSTFlags;
 

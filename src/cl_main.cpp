@@ -3459,6 +3459,9 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	// Set the player's bot status.
 	pPlayer->bIsBot = bIsBot;
 
+	// [GRB] Reset skin
+	pPlayer->userinfo.skin = R_FindSkin (skins[pPlayer->userinfo.skin].name, pPlayer->CurrentPlayerClass);
+
 	// [RH] set color translations for player sprites
 	pActor->Translation = TRANSLATION( TRANSLATION_Players, ulPlayer );
 	pActor->angle = Angle;

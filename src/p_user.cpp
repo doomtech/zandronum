@@ -1362,7 +1362,8 @@ void APlayerPawn::GiveDefaultInventory ()
 			player->ReadyWeapon = player->PendingWeapon = pPendingWeapon;
 
 			// [BC] If we're a client, tell the server we're switching weapons.
-			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) == consoleplayer ))
+			// [BB] It's possible, that a mod doesn't give the player any weapons. Therefore we also must check pPendingWeapon.
+			if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && (( player - players ) == consoleplayer ) && pPendingWeapon )
 			{
 				CLIENTCOMMANDS_WeaponSelect( pPendingWeapon->GetClass( ));
 

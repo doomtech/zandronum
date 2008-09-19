@@ -217,7 +217,7 @@ void G15_Tick( void )
 			g_LCD->SetText(g_hHUD_armor,text);
 
 			// Update ammo (if the player isn't using an ammo-less weapon).
-			if ( players[consoleplayer].ReadyWeapon->Ammo1 )
+			if ( players[consoleplayer].ReadyWeapon && players[consoleplayer].ReadyWeapon->Ammo1 )
 			{
 				text.Format("%d", players[consoleplayer].ReadyWeapon->Ammo1->Amount);
 				g_LCD->SetVisible(g_hHUD_ammo, TRUE);

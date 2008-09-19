@@ -201,6 +201,11 @@ void		TEAM_SetRedSkullOrigin( POS_t Origin );
 ULONG		TEAM_GetAssistPlayer( ULONG ulTeamIdx );
 void		TEAM_SetAssistPlayer( ULONG ulTeamIdx, ULONG ulPlayer );
 
+bool		TEAM_IsActorAllowedForPlayer( AActor *pActor, player_t *pPlayer );
+bool		TEAM_IsClassAllowedForPlayer( ULONG ulClass, player_t *pPlayer );
+ULONG		TEAM_FindValidClassForPlayer( player_t *pPlayer );
+void		TEAM_EnsurePlayerHasValidClass( player_t *pPlayer );
+
 //*****************************************************************************
 //  EXTERNAL CONSOLE VARIABLES
 
