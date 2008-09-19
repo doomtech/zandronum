@@ -2294,7 +2294,7 @@ void SERVERCOMMANDS_SetThingGravity( AActor *pActor, ULONG ulPlayerExtra, ULONG 
 void SERVERCOMMANDS_SetThingFrame( AActor *pActor, FState *pState, ULONG ulPlayerExtra, ULONG ulFlags, bool bCallStateFunction )
 {
 	FString stateLabel;
-	LONG		lOffset;
+	LONG		lOffset = 0;
 	ULONG		ulIdx;
 	FState		*pCompareState;
 

@@ -323,7 +323,7 @@ class QueryIPQueue
 	} STORED_QUERY_IP_t;
 
 	// How many IPs we can store in our query list.
-	static const int maxStoredQueryIPs	= 512;
+	static const unsigned int maxStoredQueryIPs	= 512;
 
 	STORED_QUERY_IP_t _StoredQueryIPs[maxStoredQueryIPs];
 
