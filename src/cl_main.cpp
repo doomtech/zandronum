@@ -2296,7 +2296,7 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 #ifdef _DEBUG
 		sprintf( szString, "CLIENT_ParsePacket: Illegible server message: %d\nLast command: (%s)\n", static_cast<int> (lCommand), g_pszHeaderNames[g_lLastCmd] );
 #else
-		sprintf( szString, "CLIENT_ParsePacket: Illegible server message: %d\nLast command: %d\n", lCommand, g_lLastCmd );
+		sprintf( szString, "CLIENT_ParsePacket: Illegible server message: %d\nLast command: %d\n", static_cast<int> (lCommand), static_cast<int> (g_lLastCmd) );
 #endif
 		CLIENT_QuitNetworkGame( szString );
 		return;
@@ -3244,7 +3244,7 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	bool			bWasWatchingPlayer;
 	AActor			*pCameraActor;
 	APlayerPawn		*pOldActor;
-	USHORT			usActorNetworkIndex;
+	USHORT			usActorNetworkIndex = 0;
 	const PClass	*pType;
 
 	// Which player is being spawned?

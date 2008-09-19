@@ -617,7 +617,7 @@ void chat_DoSubstitution( FString &Input )
 		FString Output;
 		const char *pszString = Input.GetChars( );
 
-		for ( ; *pszString != NULL; pszString++ )
+		for ( ; *pszString != 0; pszString++ )
 		{
 			if ( !strncmp( pszString, "$ammocount", 10 ))
 			{
