@@ -2185,8 +2185,13 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 		// Make the player unshootable, etc.
 		pPlayer->mo->flags2 |= (MF2_CANNOTPUSH);
 		pPlayer->mo->flags &= ~(MF_SOLID|MF_SHOOTABLE|MF_PICKUP);
-		pPlayer->mo->flags2 &= ~(MF2_PASSMOBJ);
+		pPlayer->mo->flags2 &= ~(MF2_PASSMOBJ|MF2_FLOATBOB);
 		pPlayer->mo->RenderStyle = STYLE_None;
+
+		// [BB] Speed and viewheight of spectators should be independent of the player class.
+		pPlayer->mo->ForwardMove1 = pPlayer->mo->ForwardMove2 = FRACUNIT;
+		pPlayer->mo->SideMove1 = pPlayer->mo->SideMove2 = FRACUNIT;
+		pPlayer->mo->ViewHeight = 41*FRACUNIT;
 
 		// Make the player flat, so he can travel under doors and such.
 		pPlayer->mo->height = 0;

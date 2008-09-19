@@ -104,6 +104,7 @@
 #include "sv_admin.h"
 #include "sv_commands.h"
 #include "sv_save.h"
+#include "sv_rcon.h"
 #include "gamemode.h"
 #include "domination.h"
 
@@ -422,6 +423,8 @@ void SERVER_Construct( void )
 
 	// Finally, setup the master server communication module.
 	SERVER_MASTER_Construct( );
+
+	SERVER_RCON_Construct( );
 }
 
 //*****************************************************************************
@@ -604,6 +607,9 @@ void SERVER_Tick( void )
 			// Potentially send an update to the master server.
 			SERVER_MASTER_Tick( );
 
+			// Time out any old RCON sessions.
+			SERVER_RCON_Tick( );
+
 			// Broadcast the server signal so it can be detected on a LAN.
 			SERVER_MASTER_Broadcast( );
 
@@ -707,8 +713,7 @@ void SERVER_Tick( void )
 */
 		g_lGameTime = lNowTime;
 
-		// [BB] Remove IP adresses from g_floodProtectionIPQueue that have been in
-		// there long enough.
+		// [BB] Remove IP adresses from g_floodProtectionIPQueue that have been in there long enough.
 		g_floodProtectionIPQueue.adjustHead ( g_lGameTime / 1000 );
 	}
 
@@ -909,6 +914,22 @@ ULONG SERVER_CalcNumPlayers( void )
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		if ( playeringame[ulIdx] )
+			ulNumPlayers++;
+	}
+
+	return ( ulNumPlayers );
+}
+
+//*****************************************************************************
+//
+// [RC] TODO 9/3/08: Globally replace SERVER_CalcNumPlayers and SERVER_CalcNumNonSpectatingPlayers with this (should be its own commit).
+ULONG SERVER_CountPlayers( bool bCountBots )
+{
+	ULONG	ulNumPlayers = 0;
+
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( playeringame[ulIdx] && ( !players[ulIdx].bIsBot || ( players[ulIdx].bIsBot && bCountBots )))
 			ulNumPlayers++;
 	}
 
@@ -1536,6 +1557,9 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 	// Update this client's state. He's in the game now!
 	g_aClients[g_lCurrentClient].State = CLS_SPAWNED;
 
+	// [RC] Update clients using the RCON utility.
+	SERVER_RCON_UpdateInfo( SVRC_PLAYERCOUNT );
+
 	// Tell the client that the snapshot is done.
 	SERVERCOMMANDS_EndSnapshot( g_lCurrentClient );
 }
@@ -1567,7 +1591,16 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 	if ( lCommand != CLCC_ATTEMPTCONNECTION )
 	{
 		switch ( lCommand )
-		{
+		{		
+		// [RC] An RCON utility is trying to connect to/control this server.
+		case CLRC_BEGINCONNECTION:
+		case CLRC_PASSWORD:
+		case CLRC_COMMAND:
+		case CLRC_PONG:
+		case CLRC_DISCONNECT:
+
+			SERVER_RCON_ParseMessage( NETWORK_GetFromAddress( ), lCommand, pByteStream );
+			return;
 		// Launcher is querying this server.
 		case LAUNCHER_SERVER_CHALLENGE:
 
@@ -2637,6 +2670,9 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 	// Redo the scoreboard.
 	SERVERCONSOLE_ReListPlayers( );
 
+	// [RC] Update clients using the RCON utility.
+	SERVER_RCON_UpdateInfo( SVRC_PLAYERCOUNT );
+
 	// Clear the client's buffers.
 	NETWORK_ClearBuffer( &g_aClients[ulClient].PacketBuffer );
 	NETWORK_ClearBuffer( &g_aClients[ulClient].UnreliablePacketBuffer );
@@ -3075,7 +3111,7 @@ void SERVER_KickPlayerFromGame( ULONG ulPlayer, const char *pszReason )
 
 //*****************************************************************************
 //
-void SERVER_AddCommand( char *pszCommand )
+void SERVER_AddCommand( const char *pszCommand )
 {
 	g_ServerCommandQueue.Push( pszCommand );
 }
@@ -3356,6 +3392,13 @@ void SERVER_ErrorCleanup( void )
 	// Reload the map.
 	sprintf( szString, "map %s", level.mapname );
 	AddCommandString( szString );
+}
+
+//*****************************************************************************
+//
+void SERVER_IgnoreIP( NETADDRESS_s Address, LONG lSeconds )
+{
+	g_floodProtectionIPQueue.addAddress( Address, g_lGameTime / 1000, lSeconds );
 }
 
 //*****************************************************************************
@@ -4934,7 +4977,6 @@ static bool server_VoteNo( BYTESTREAM_s *pByteStream )
 
 	return ( false );
 }
-
 
 //*****************************************************************************
 //

@@ -276,6 +276,7 @@ LONG		SERVER_FindFreeClientSlot( void );
 LONG		SERVER_FindClientByAddress( NETADDRESS_s *pAddress );
 CLIENT_s	*SERVER_GetClient( ULONG ulIdx );
 ULONG		SERVER_CalcNumPlayers( void );
+ULONG		SERVER_CountPlayers( bool bCountBots );
 ULONG		SERVER_CalcNumNonSpectatingPlayers( ULONG ulExcludePlayer );
 void		SERVER_CheckTimeouts( void );
 void		SERVER_GetPackets( void );
@@ -304,7 +305,7 @@ void		SERVER_ReconnectNewLevel( const char *pszMapName );
 void		SERVER_LoadNewLevel( const char *pszMapName );
 void		SERVER_KickPlayer( ULONG ulPlayer, const char *pszReason );
 void		SERVER_KickPlayerFromGame( ULONG ulPlayer, const char *pszReason );
-void		SERVER_AddCommand( char *pszCommand );
+void		SERVER_AddCommand( const char *pszCommand );
 void		SERVER_DeleteCommand( void );
 bool		SERVER_IsEveryoneReadyToGoOn( void );
 bool		SERVER_IsPlayerVisible( ULONG ulPlayer, ULONG ulPlayer2 );
@@ -329,6 +330,7 @@ bool		SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream );
 ULONG		SERVER_GetPlayerIndexFromName( const char *pszString );
 LONG		SERVER_GetCurrentClient( void );
 void		SERVER_GiveInventoryToPlayer( const player_t *player, AInventory *pInventory );
+void		SERVER_IgnoreIP( NETADDRESS_s Address, LONG lSeconds );
 
 // From sv_master.cpp
 void		SERVER_MASTER_Construct( void );

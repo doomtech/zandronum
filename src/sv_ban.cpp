@@ -135,6 +135,16 @@ bool SERVERBAN_IsIPBanned( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP
 
 //*****************************************************************************
 //
+bool SERVERBAN_IsIPBanned( const NETADDRESS_s &Address )
+{
+	if( g_ServerBanExemptions.isIPInList( Address ) )
+		return false;
+	else
+		return g_ServerBans.isIPInList( Address );
+}
+
+//*****************************************************************************
+//
 ULONG SERVERBAN_DoesBanExist( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 )
 {
 	return g_ServerBans.doesEntryExist( pszIP0, pszIP1, pszIP2, pszIP3 );

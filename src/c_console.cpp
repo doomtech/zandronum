@@ -73,6 +73,7 @@
 #include "network.h"
 #include "win32/g15/g15.h"
 #include "gi.h"
+#include "sv_rcon.h"
 
 #define CONSOLESIZE	16384	// Number of characters to store in console
 #define CONSOLELINES 256	// Max number of lines of console text
@@ -952,6 +953,10 @@ int PrintString (int printlevel, const char *outline)
 			SERVER_PrintfPlayer( printlevel, g_ulRCONPlayer, outlinecopy );
 
 		SERVERCONSOLE_Print( outlinecopy );
+
+		// [RC] Send this to any connected RCON clients.
+		SERVER_RCON_Printf( outlinecopy );
+		
 		const int length = static_cast<int>(strlen (outlinecopy));
 		delete [] outlinecopy;
 		return length;

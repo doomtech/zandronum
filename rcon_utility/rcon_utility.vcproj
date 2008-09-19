@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="masterserver"
-	ProjectGUID="{D59FD170-A144-4081-8233-9720B0FCC3DB}"
-	RootNamespace="masterserver"
+	Name="rcon_utility"
+	ProjectGUID="{175EE94F-6232-4618-AE8E-087E51D22E94}"
+	RootNamespace="rcon_utility"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -17,17 +17,12 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory=".\Debug"
-			IntermediateDirectory=".\Debug"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="$(InputDir)..\Debug\updaterevision.exe $(InputDir) $(InputDir)svnrevision.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -40,46 +35,38 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName=".\Debug/Skulltag Master Server Source.tlb"
-				HeaderFileName=""
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".\"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
-				MinimalRebuild="true"
+				AdditionalIncludeDirectories=".\;.\..\src;"
+				PreprocessorDefinitions="_WIN32; DEBUG; _DEBUG; WIN32; _CRT_SECURE_NO_DEPRECATE"
+				StringPooling="false"
+				MinimalRebuild="false"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\Debug/Skulltag Master Server Source.pch"
-				AssemblerListingLocation=".\Debug/"
-				ObjectFile=".\Debug/"
-				ProgramDataBaseFileName=".\Debug/"
-				WarningLevel="3"
-				SuppressStartupBanner="true"
+				EnableFunctionLevelLinking="true"
+				WarningLevel="1"
 				DebugInformationFormat="4"
-				DisableSpecificWarnings="4996"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG"
-				Culture="1033"
+				ShowProgress="true"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="winmm.lib wsock32.lib"
-				OutputFile=".\Debug\master-97.exe"
+				AdditionalDependencies="user32.lib wsock32.lib winmm.lib shell32.lib gdi32.lib user32.lib comctl32.lib shell32.lib advapi32.lib comdlg32.lib ole32.lib dxguid.lib dsound.lib ddraw.lib dinput8.lib strmiids.lib wsock32.lib winmm.lib setupapi.lib ws2_32.lib opengl32.lib glu32.lib fmodvc.lib"
+				OutputFile="./Debug/$(ProjectName).exe"
 				LinkIncremental="2"
-				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Debug/master-97.pdb"
-				SubSystem="1"
+				GenerateMapFile="true"
+				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 				TargetMachine="1"
@@ -95,8 +82,6 @@
 			/>
 			<Tool
 				Name="VCBscMakeTool"
-				SuppressStartupBanner="true"
-				OutputFile=".\Debug/Skulltag Master Server Source.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -110,17 +95,12 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory=".\Release"
-			IntermediateDirectory=".\Release"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="$(InputDir)..\Release\updaterevision.exe $(InputDir) $(InputDir)svnrevision.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -133,48 +113,31 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName=".\Release/Skulltag Master Server Source.tlb"
-				HeaderFileName=""
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
-				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories=".\"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
+				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="0"
+				AdditionalIncludeDirectories=".\;.\..\src;"
+				PreprocessorDefinitions="RELEASE; WIN32; _WIN32; _CRT_SECURE_NO_DEPRECATE"
 				StringPooling="true"
-				RuntimeLibrary="0"
-				EnableFunctionLevelLinking="true"
-				PrecompiledHeaderFile=".\Release/Skulltag Master Server Source.pch"
-				AssemblerListingLocation=".\Release/"
-				ObjectFile=".\Release/"
-				ProgramDataBaseFileName=".\Release/"
-				WarningLevel="3"
-				SuppressStartupBanner="true"
-				DisableSpecificWarnings="4996"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"
-				Culture="1033"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="winmm.lib wsock32.lib"
-				OutputFile=".\Release\master-97.exe"
-				LinkIncremental="1"
-				SuppressStartupBanner="true"
-				ProgramDatabaseFile=".\Release/Skulltag Master Server Source.pdb"
-				SubSystem="1"
+				AdditionalDependencies="gdi32.lib user32.lib comctl32.lib shell32.lib advapi32.lib comdlg32.lib ole32.lib dxguid.lib dsound.lib ddraw.lib dinput8.lib strmiids.lib wsock32.lib winmm.lib fmodvc.lib setupapi.lib ws2_32.lib opengl32.lib glu32.lib"
+				OutputFile="./Release/$(ProjectName).exe"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -187,8 +150,6 @@
 			/>
 			<Tool
 				Name="VCBscMakeTool"
-				SuppressStartupBanner="true"
-				OutputFile=".\Release/Skulltag Master Server Source.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -206,8 +167,13 @@
 	<Files>
 		<Filter
 			Name="Source Files"
-			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
+			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
+			<File
+				RelativePath="..\src\configfile.cpp"
+				>
+			</File>
 			<File
 				RelativePath="..\src\huffman.cpp"
 				>
@@ -227,6 +193,10 @@
 						PreprocessorDefinitions=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\src\m_alloc.cpp"
+				>
 			</File>
 			<File
 				RelativePath="main.cpp"
@@ -249,7 +219,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="network.cpp"
+				RelativePath="..\src\MD5\MD5Checksum.cpp"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -264,19 +234,37 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
+						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""
 					/>
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\masterserver\network.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\networkshared.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\zstrformat.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\zstring.cpp"
 				>
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl"
+			Filter="h;hpp;hxx;hm;inl;inc;xsd"
+			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath="..\src\configfile.h"
+				>
+			</File>
 			<File
 				RelativePath="..\src\huffman.h"
 				>
@@ -290,7 +278,7 @@
 				>
 			</File>
 			<File
-				RelativePath="network.h"
+				RelativePath="..\masterserver\network.h"
 				>
 			</File>
 			<File
@@ -301,11 +289,28 @@
 				RelativePath="..\src\networkshared.h"
 				>
 			</File>
+			<File
+				RelativePath="..\src\zstring.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
-			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
+			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
+			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
+			<File
+				RelativePath=".\rcon_utility.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\resource.h"
+				>
+			</File>
+			<File
+				RelativePath=".\resource.rc"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

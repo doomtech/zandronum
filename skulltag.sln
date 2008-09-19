@@ -1,5 +1,5 @@
 Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
+# Visual C++ Express 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "skulltag", "zdoom.vcproj", "{8049475B-5C87-46F9-9358-635218A4EF18}"
 	ProjectSection(ProjectDependencies) = postProject
 		{8997289F-10BF-4678-8BAA-3BB509C84953} = {8997289F-10BF-4678-8BAA-3BB509C84953}
@@ -26,7 +26,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "statsmaker", "statsmaker\Sk
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fixrtext", "tools\fixrtext\fixrtext.vcproj", "{DA47396F-60C1-4BDE-A977-7F7DE461CF77}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "masterserver", "masterserver\Skulltag Master Server Source.vcproj", "{D59FD170-A144-4081-8233-9720B0FCC3DB}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "masterserver", "masterserver\masterserver.vcproj", "{D59FD170-A144-4081-8233-9720B0FCC3DB}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "snes_spc", "snes_spc\snes_spc.vcproj", "{E83FD370-2E72-4D4C-9427-FF9D9DED1E88}"
 EndProject
@@ -41,6 +41,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "makewad", "tools\makewad\ma
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dumb_static", "dumb\vc6\dumb_static\dumb_static.vcproj", "{8997289F-10BF-4678-8BAA-3BB509C84953}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rcon_utility", "rcon_utility\rcon_utility.vcproj", "{175EE94F-6232-4618-AE8E-087E51D22E94}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -220,6 +222,18 @@ Global
 		{8997289F-10BF-4678-8BAA-3BB509C84953}.Release|Win32.ActiveCfg = Release|Win32
 		{8997289F-10BF-4678-8BAA-3BB509C84953}.Release|Win32.Build.0 = Release|Win32
 		{8997289F-10BF-4678-8BAA-3BB509C84953}.Release|x64.ActiveCfg = Release|Win32
+		{175EE94F-6232-4618-AE8E-087E51D22E94}.Debug DLL|Win32.ActiveCfg = Debug|Win32
+		{175EE94F-6232-4618-AE8E-087E51D22E94}.Debug DLL|Win32.Build.0 = Debug|Win32
+		{175EE94F-6232-4618-AE8E-087E51D22E94}.Debug DLL|x64.ActiveCfg = Debug|Win32
+		{175EE94F-6232-4618-AE8E-087E51D22E94}.Debug|Win32.ActiveCfg = Debug|Win32
+		{175EE94F-6232-4618-AE8E-087E51D22E94}.Debug|Win32.Build.0 = Debug|Win32
+		{175EE94F-6232-4618-AE8E-087E51D22E94}.Debug|x64.ActiveCfg = Debug|Win32
+		{175EE94F-6232-4618-AE8E-087E51D22E94}.Release DLL|Win32.ActiveCfg = Release|Win32
+		{175EE94F-6232-4618-AE8E-087E51D22E94}.Release DLL|Win32.Build.0 = Release|Win32
+		{175EE94F-6232-4618-AE8E-087E51D22E94}.Release DLL|x64.ActiveCfg = Release|Win32
+		{175EE94F-6232-4618-AE8E-087E51D22E94}.Release|Win32.ActiveCfg = Release|Win32
+		{175EE94F-6232-4618-AE8E-087E51D22E94}.Release|Win32.Build.0 = Release|Win32
+		{175EE94F-6232-4618-AE8E-087E51D22E94}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

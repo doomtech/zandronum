@@ -3780,6 +3780,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\sv_rcon.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\sv_save.cpp"
 				>
 			</File>
@@ -4768,6 +4772,10 @@
 			</File>
 			<File
 				RelativePath=".\src\sv_main.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\sv_rcon.h"
 				>
 			</File>
 			<File

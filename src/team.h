@@ -203,6 +203,8 @@ void		TEAM_SetAssistPlayer( ULONG ulTeamIdx, ULONG ulPlayer );
 
 bool		TEAM_IsActorAllowedForPlayer( AActor *pActor, player_t *pPlayer );
 bool		TEAM_IsClassAllowedForPlayer( ULONG ulClass, player_t *pPlayer );
+bool		TEAM_IsActorAllowedForTeam( AActor *pActor, ULONG ulTeam );
+bool		TEAM_IsClassAllowedForTeam( ULONG ulClass, ULONG ulTeam );
 ULONG		TEAM_FindValidClassForPlayer( player_t *pPlayer );
 void		TEAM_EnsurePlayerHasValidClass( player_t *pPlayer );
 

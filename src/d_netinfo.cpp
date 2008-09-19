@@ -70,15 +70,7 @@ extern bool st_firsttime;
 EXTERN_CVAR (Bool, teamplay)
 
 CVAR (Float,	autoaim,				5000.f,		CVAR_USERINFO | CVAR_ARCHIVE);
-// [BB] Changed name to be a CUSTOM_CVAR.
-CUSTOM_CVAR (String,	name,					"Player",	CVAR_USERINFO | CVAR_ARCHIVE)
-{
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-	{
-		V_CleanPlayerName ( self.GetGenericRep( CVAR_String ).String );
-		strncpy (players[consoleplayer].userinfo.netname, name, MAXPLAYERNAME);
-	}
-}
+CVAR (String,	name,					"Player",	CVAR_USERINFO | CVAR_ARCHIVE);
 CVAR (Color,	color,					0x40cf00,	CVAR_USERINFO | CVAR_ARCHIVE);
 CVAR (String,	skin,					"base",		CVAR_USERINFO | CVAR_ARCHIVE);
 // [BC] "team" is no longer a cvar.
@@ -589,28 +581,23 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 		pStream -= ( strlen( foo ) + 1 );
 		M_Free( pStream );
 	}
+	// Is the demo stuff necessary at all for ST?
 	else
 	{
 		Net_WriteByte (DEM_UINFCHANGED);
 		Net_WriteString (foo);
 	}
-/*
+
 	// [BB] D_SetupUserInfo has to be executed in any case, if we are
 	// not the server. If we for example are not connected to a server,
 	// change our name in the console and connect to a server then,
 	// we won't tell the new name to the server.
-	// Is the demo stuff necessary at all for ST?
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-	{
-		Net_WriteByte (DEM_UINFCHANGED);
-		Net_WriteString (foo);
-	}
-	else
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
 		if ( gamestate != GS_STARTUP )
 			D_SetupUserInfo( );
 	}
-*/
+
 	// Send updated userinfo to the server.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( CLIENT_GetConnectionState( ) >= CTS_REQUESTINGSNAPSHOT ) && ( ulUpdateFlags > 0 ))
 	{
