@@ -2333,7 +2333,9 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 		&& !actor->threshold
 		&& ( NETWORK_GetState( ) != NETSTATE_CLIENT )
 		&& ( CLIENTDEMO_IsPlaying( ) == false )
-		&& !P_CheckSight (actor, actor->target, 0) )
+		// [BB] In invasion mode, player doesn't have to be visible to be chased by monsters.
+		// [BB] The flags argument of P_CheckSight has to be the same here as it is in P_LookForPlayers.
+		&& !P_CheckSight (actor, actor->target, 2) && ( invasion == false ) )
 	{
 		bool lookForBetter = false;
 		bool gotNew;
