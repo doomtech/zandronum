@@ -26,7 +26,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "statsmaker", "statsmaker\Sk
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fixrtext", "tools\fixrtext\fixrtext.vcproj", "{DA47396F-60C1-4BDE-A977-7F7DE461CF77}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Skulltag Master Server Source", "masterserver\Skulltag Master Server Source.vcproj", "{D59FD170-A144-4081-8233-9720B0FCC3DB}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "masterserver", "masterserver\Skulltag Master Server Source.vcproj", "{D59FD170-A144-4081-8233-9720B0FCC3DB}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "snes_spc", "snes_spc\snes_spc.vcproj", "{E83FD370-2E72-4D4C-9427-FF9D9DED1E88}"
 EndProject

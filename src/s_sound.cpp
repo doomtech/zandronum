@@ -1079,6 +1079,23 @@ void S_StopAllChannels ()
 
 //==========================================================================
 //
+// [BB] S_StopAllSoundsFromActor
+//
+//==========================================================================
+
+void S_StopAllSoundsFromActor (AActor *ent)
+{
+	for (FSoundChan *chan = Channels; chan != NULL; chan = chan->NextChan)
+	{
+		if ( chan->Pt == &ent->x )
+		{
+			GSnd->StopSound(chan);
+		}
+	}
+}
+
+//==========================================================================
+//
 // S_RelinkSound
 //
 // Moves all the sounds from one thing to another. If the destination is
