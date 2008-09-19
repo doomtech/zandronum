@@ -1355,6 +1355,11 @@ void TEAM_EnsurePlayerHasValidClass( player_t *pPlayer )
 	if ( pPlayer == NULL )
 		return;
 
+	// [BB] The random class is available to all players, P_SpawnPlayer needs to take 
+	// care of only selecting valid random classes.
+	if ( pPlayer->userinfo.PlayerClass == -1 )
+		return;
+
 	// [BB] The class is valid, nothing to do.
 	if ( TEAM_IsClassAllowedForPlayer ( pPlayer->userinfo.PlayerClass, pPlayer ) )
 		return;
@@ -1364,6 +1369,30 @@ void TEAM_EnsurePlayerHasValidClass( player_t *pPlayer )
 	// [BB] This should respawn the player at the appropriate spot. Set the player state to
 	// PST_REBORNNOINVENTORY so everything (weapons, etc.) is cleared.
 	pPlayer->playerstate = PST_REBORNNOINVENTORY;
+}
+
+//****************************************************************************
+//
+LONG TEAM_SelectRandomValidPlayerClass( ULONG ulTeam )
+{
+	if ( ulTeam >= NUM_TEAMS )
+		return ( M_Random() % PlayerClasses.Size () );
+
+	// [BB] It's pretty inefficient to rebuild the list of available classes
+	// every time when calling this function, but since it's not called to
+	// often and the number of player classes is usually rather small, I
+	// don't care about this for now.
+	TArray<ULONG> _availablePlayerClasses;
+	for ( ULONG ulIdx = 0; ulIdx < PlayerClasses.Size(); ++ulIdx )
+	{
+		if ( TEAM_IsClassAllowedForTeam( ulIdx, ulTeam ) )
+			_availablePlayerClasses.Push ( ulIdx );
+	}
+
+	if ( _availablePlayerClasses.Size () == 0 )
+		return 0;
+
+	return _availablePlayerClasses[ M_Random() % _availablePlayerClasses.Size () ];
 }
 
 //*****************************************************************************

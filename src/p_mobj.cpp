@@ -3819,7 +3819,7 @@ bool AActor::UpdateWaterLevel (fixed_t oldz, bool dosplash)
 		}
 	}
 		
-	// some additional checks to make deep sectors à la Boom splash without setting
+	// some additional checks to make deep sectors ï¿½la Boom splash without setting
 	// the water flags. 
 	if (boomwaterlevel == 0 && waterlevel != 0 && dosplash) P_HitWater(this, Sector, fh);
 	boomwaterlevel=waterlevel;
@@ -4420,7 +4420,11 @@ void P_SpawnPlayer (mapthing2_t *mthing, bool bClientUpdate, player_t *p, bool t
 				type = p->userinfo.PlayerClass;
 				if (type < 0)
 				{
-					type = pr_multiclasschoice() % PlayerClasses.Size ();
+					// [BB] If the player is on a team, only a class valid for this team may be selected.
+					if ( p->bOnTeam )
+						type = TEAM_SelectRandomValidPlayerClass( p->ulTeam );
+					else
+						type = pr_multiclasschoice() % PlayerClasses.Size ();
 				}
 			}
 			p->CurrentPlayerClass = type;
