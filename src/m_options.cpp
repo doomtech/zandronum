@@ -3453,8 +3453,86 @@ void M_BotSetup( void )
 	}
 }
 
+/*=======================================
+ *
+ * [BB] Player Class Selection Menu
+ *
+ *=======================================*/
 
+CVAR( Int, menu_teamplayerclass, 0, 0 );
 
+static TArray<valuestring_t> AvailablePlayerClasses;
+static ULONG g_ulDesiredTeam = NUM_TEAMS;
+
+static	void	SelectClassAndJoinTeam( void );
+
+static menuitem_t PlayerClassSelectionItems[] =
+{
+	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
+	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
+	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
+	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
+	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
+	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
+	{ discretes,	"Class",				{&menu_teamplayerclass},		   		{1.0}, {0.0},	{0.0}, {NULL} },
+	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
+	{ more,		"Join game",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)SelectClassAndJoinTeam} },
+	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
+	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
+	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
+};
+
+// [BB] Line number of the "Class" entry from PlayerClassSelectionItems.
+// If the line number is changed, the value has to be adjusted.
+#define PLAYERCLASSES_INDEX 6
+
+static void SelectClassAndJoinTeam( void )
+{
+	char command[1024];
+
+	playerclass = AvailablePlayerClasses[menu_teamplayerclass].name.GetChars();
+	sprintf ( command, "team %s", TEAM_GetName( g_ulDesiredTeam ) );
+	AddCommandString( command );
+	M_ClearMenus( );
+}
+
+menu_t PlayerClassSelectionMenu =
+{
+	"Player Class Selection",
+	8,
+	countof(PlayerClassSelectionItems),
+	0,
+	PlayerClassSelectionItems,
+	0,
+	0,
+	0,
+	NULL,
+	false,
+	NULL,
+	MNF_ALIGNLEFT,
+};
+
+static void InitAvailablePlayerClassList( ULONG ulTeam )
+{
+	valuestring_t value;
+	g_ulDesiredTeam = ulTeam;
+	AvailablePlayerClasses.Clear();
+	for ( ULONG ulIdx = 0; ulIdx < PlayerClasses.Size(); ++ulIdx )
+	{
+		if ( TEAM_IsClassAllowedForTeam( ulIdx, ulTeam ) )
+		{
+			value.value = static_cast<float> ( AvailablePlayerClasses.Size() );
+			value.name = PlayerClasses[ulIdx].Type->Meta.GetMetaString (APMETA_DisplayName);
+			AvailablePlayerClasses.Push ( value );
+		}
+	}
+	value.value = static_cast<float> ( AvailablePlayerClasses.Size() );
+	static char random[] = "Random";
+	value.name = random;
+	AvailablePlayerClasses.Push ( value );
+	PlayerClassSelectionItems[PLAYERCLASSES_INDEX].b.numvalues = static_cast<float>(AvailablePlayerClasses.Size());
+	PlayerClassSelectionItems[PLAYERCLASSES_INDEX].e.valuestrings = &AvailablePlayerClasses[0];
+}
 
 /*=======================================
  *
@@ -3503,20 +3581,30 @@ static void ShowHelp( void )
 	AddCommandString( menu_help );
 }
 
+static void JoinTeam ( ULONG ulTeam )
+{
+	if( PlayerClasses.Size() > 1 )
+	{
+		InitAvailablePlayerClassList( ulTeam );
+		M_SwitchMenu (&PlayerClassSelectionMenu);
+	}
+	else
+	{
+		char command[1024];
+		sprintf ( command, "team %s", TEAM_GetName( ulTeam ) );
+		AddCommandString( command );
+		M_ClearMenus( );
+	}
+}
+
 static void JoinRed( void )
 {
-	char command[1024];
-	sprintf ( command, "team %s", TEAM_GetName( TEAM_RED ) );
-	AddCommandString( command );
-	M_ClearMenus( );
+	JoinTeam ( TEAM_RED );
 }
 
 static void JoinBlue( void )
 {
-	char command[1024];
-	sprintf ( command, "team %s", TEAM_GetName( TEAM_BLUE ) );
-	AddCommandString( command );
-	M_ClearMenus( );
+	JoinTeam ( TEAM_BLUE );
 }
 
 static void JoinRandom( void )

@@ -249,6 +249,9 @@ enum
 	DF2_YES_LOSEFRAG		= 1 << 16,	// Lose a frag when killed. More incentive to try to
 //										// not get yerself killed
 	DF2_INFINITE_INVENTORY	= 1 << 17,	// Infinite inventory.
+
+	// [BB] Award actual damage dealt instead of kills.
+	DF2_AWARD_DAMAGE_INSTEAD_KILLS		= 1 << 20,
 };
 
 // [RH] Compatibility flags.

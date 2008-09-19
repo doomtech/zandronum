@@ -44,7 +44,7 @@
 //
 // Filename: sv_save.cpp
 //
-// Description: 
+// Description: Saves players' scores when they leave the server, and restores it when they return.
 //
 //-----------------------------------------------------------------------------
 
@@ -115,7 +115,7 @@ void SERVER_SAVE_ClearList( void )
 		g_SavedPlayerInfo[ulIdx].lPointCount = 0;
 		g_SavedPlayerInfo[ulIdx].lWinCount = 0;
 		g_SavedPlayerInfo[ulIdx].szName[0] = 0;
-		g_SavedPlayerInfo[ulIdx].ulTime = 0; // [RC] Time
+		g_SavedPlayerInfo[ulIdx].ulTime = 0;
 	}
 }
 
@@ -162,7 +162,7 @@ void server_save_UpdateSlotWithInfo( ULONG ulSlot, PLAYERSAVEDINFO_t *pInfo )
 	g_SavedPlayerInfo[ulSlot].lFragCount		= pInfo->lFragCount;
 	g_SavedPlayerInfo[ulSlot].lPointCount		= pInfo->lPointCount;
 	g_SavedPlayerInfo[ulSlot].lWinCount			= pInfo->lWinCount;
-	g_SavedPlayerInfo[ulSlot].ulTime			= pInfo->ulTime; // [RC] And the time
+	g_SavedPlayerInfo[ulSlot].ulTime			= pInfo->ulTime;
 	sprintf( g_SavedPlayerInfo[ulSlot].szName, pInfo->szName );
 
 	V_RemoveColorCodes( g_SavedPlayerInfo[ulSlot].szName );

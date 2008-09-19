@@ -48,6 +48,8 @@ latestzdoom branch
 +	- Added CKeen's submission for an updated Italian language file. [Karate Chris]
 +	- Significantly reduced the net traffic used by P_MoveThing, e.g. used by SetActorPosition. [Torr Samaho]
 +	- Added new actor property "limitedtoteam", currently only has any effect when applied to a player class: When a player joins a team with a player class that is limited to be used only by another team, the player is immediately respawned with the first class that is open to the team just joined. [Torr Samaho]
++	- Added new team class selection menu: When joining a team from the team selection menu and more than one player class is available, there now is a menu that lets you select among the available classes (respects limitedtoteam). [Torr Samaho]
++	- Added new dmflag "award damage dealt instead of kills", controlled by the new CVAR sv_awarddamageinsteadkills. If enabled, a player gets one point per 100 damage dealt and doesn't get any extra points for killing monsters. The scaling is done, so that players don't get outrageous amounts of points. Internally no rounding is done, so you'll get your points no matter if you dealt the damage in one or in several attacks. The flag works in all gamemodes, where kills are awarded (coop, survival, invasion). [Torr Samaho]
 -	- Fixed a positioning bug with rank/spread on the classic HUD when st_scale was off. [Rivecoder]
 -	- Fixed: the 'ColorSetter' and 'FadeSetter' actors were broken online. [Karate Chris]
 -	- Fixed: SKININFO skins couldn't use sounds from the Sounds subdirectory of PK3s/ZIPs. [Torr Samaho]
@@ -57,14 +59,16 @@ latestzdoom branch
 -	- Fixed: A client entering a LMS/TeamLMS server crashes, if the wads running on the server give the player no starting weapon at all. [Torr Samaho]
 -	- Fixed: If a player is killed online, its death view doesn't follow the killer. [Torr Samaho]
 -	- Fixed: If a player turns into a spectator, the currently active sounds associated to it are not stopped. [Torr Samaho]
+-	- Fixed: Using weapnext or weapprev while recording a single player demo crashed the game. Nevertheless, single player demos are not supported and will go out of sync quickly. Use client demos instead. [Torr Samaho]
 !	- Changed up the display of medals when you have the key down. Higher medals are now on the right, opposite their subordinates. [Rivecoder]
 !	- Each player's "ready to go on" status, shown at the intermission, can now only be turned on. Hopefully, this will help clear up what this command is for and prevent rapid toggling of it. [Rivecoder]
 !	- Rank/Spread is no longer drawn if there's only one player. [Rivecoder]
 !	- Armor is no longer drawn on the new HUD if you don't have any. [Rivecoder]
 !	- You can now join the game while spectating during intermission. [Rivecoder]
 !	- You no longer have to wait 10 seconds to change your team during the team last man standing countdown. [Karate Chris]
-!	- Changed: The FLOATBOB flag is not applied to spectators anymore, no matter if the corresponding player class has it or not. [Torr Samaho]
+!	- Changed: The FLOATBOB flag is not applied to spectators anymore, no matter if the corresponding player class has it or not. Furthermore, spectators now always have flags3 = MF3_NOBLOCKMONST, flags4 = 0 and flags5 = 0. [Torr Samaho]
 !	- Changed: Spectators now always have forwardmove 1, sidemove 1 and viewheight 41 (default values from PlayerPawn), no matter how the values of the corresponding player class are. [Torr Samaho]
+!	- Changed: Spectators are fixed in their spawn state and don't execute any code pointers. [Torr Samaho]
 
 v0.97d2
 -------

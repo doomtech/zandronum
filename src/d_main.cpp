@@ -109,7 +109,6 @@
 #include "lastmanstanding.h"
 #include "campaign.h"
 #include "sv_save.h"
-#include "sv_admin.h"
 #include "callvote.h"
 #include "invasion.h"
 #include "survival.h"
@@ -460,6 +459,7 @@ CVAR (Flag, sv_norespawn,			dmflags2, DF2_NO_RESPAWN);
 CVAR (Flag, sv_losefrag,			dmflags2, DF2_YES_LOSEFRAG);
 CVAR (Flag, sv_norespawninvul,		dmflags2, DF2_NO_RESPAWN_INVUL);
 CVAR (Flag, sv_samespawnspot,		dmflags2, DF2_SAME_SPAWN_SPOT);
+CVAR (Flag, sv_awarddamageinsteadkills,		dmflags2, DF2_AWARD_DAMAGE_INSTEAD_KILLS);
 
 CVAR (Flag, sv_norunes,				dmflags2, DF2_NO_RUNES);
 CVAR (Flag, sv_instantreturn,		dmflags2, DF2_INSTANT_RETURN);
@@ -2519,12 +2519,6 @@ void D_DoomMain (void)
 	// Initialize the campaign module.
 	CAMPAIGN_Construct( );
 	CAMPAIGN_ParseCampaignInfo( );
-
-	// Initialize the saved player information.
-	SERVER_SAVE_Construct( );
-
-	// Initialize the server admin module.
-	SERVER_ADMIN_Construct( );
 
 	// [RH] Initialize localizable strings.
 	GStrings.LoadStrings (false);

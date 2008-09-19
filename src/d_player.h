@@ -375,6 +375,9 @@ public:
 	// Amount of deaths this player has gotten without getting a frag.
 	ULONG		ulDeathsWithoutFrag;
 
+	// [BB] Amount of damage dealt, that has not been converted to points (kills) yet.
+	ULONG		ulUnrewardedDamageDealt;
+
 	// This player is chatting.
 	bool		bChatting;
 
@@ -484,9 +487,12 @@ inline FArchive &operator<< (FArchive &arc, player_t *&p)
 
 void	PLAYER_SetFragcount( player_t *pPlayer, LONG lFragCount, bool bAnnounce, bool bUpdateTeamFrags );
 void	PLAYER_ResetAllPlayersFragcount( void );
+void	PLAYER_ResetAllPlayersSpecialCounters( void );
+void	PLAYER_ResetSpecialCounters ( player_t *pPlayer );
 void	PLAYER_GivePossessionPoint( player_t *pPlayer );
 void	PLAYER_SetTeam( player_t *pPlayer, ULONG ulTeam, bool bNoBroadcast );
 void	PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectator );
+void	PLAYER_SetDefaultSpectatorValues( player_t *pPlayer );
 void	PLAYER_SetWins( player_t *pPlayer, ULONG ulWins );
 void	PLAYER_GetName( player_t *pPlayer, char *pszOutBuf );
 bool	PLAYER_IsTrueSpectator( player_t *pPlayer );
@@ -494,6 +500,7 @@ void	PLAYER_StruckPlayer( player_t *pPlayer );
 bool	PLAYER_ShouldSpawnAsSpectator( player_t *pPlayer );
 bool	PLAYER_Taunt( player_t *pPlayer );
 LONG	PLAYER_GetRailgunColor( player_t *pPlayer );
+void	PLAYER_AwardDamagePointsForAllPlayers( void );
 
 void P_CheckPlayerSprites();
 

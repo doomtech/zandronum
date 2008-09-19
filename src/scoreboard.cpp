@@ -3510,6 +3510,25 @@ static void scoreboard_Prepare5ColumnDisplay( void )
 
 //*****************************************************************************
 //
+static void scoreboard_SetColumnZeroToKillsAndSortPlayers( void )
+{
+	if ( dmflags2 & DF2_AWARD_DAMAGE_INSTEAD_KILLS )
+	{
+		g_aulColumnType[0] = COLUMN_POINTS;
+
+		// Sort players based on their points.
+		scoreboard_SortPlayers( ST_POINTCOUNT );
+	}
+	else
+	{
+		g_aulColumnType[0] = COLUMN_KILLS;
+
+		// Sort players based on their killcount.
+		scoreboard_SortPlayers( ST_KILLCOUNT );
+	}
+}
+//*****************************************************************************
+//
 static void scoreboard_Prepare4ColumnDisplay( void )
 {
 	// Set all to empty.
@@ -3527,15 +3546,12 @@ static void scoreboard_Prepare4ColumnDisplay( void )
 	// Build columns for modes in which players try to earn kills.
 	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNKILLS )
 	{
-		g_aulColumnType[0] = COLUMN_KILLS;
+		scoreboard_SetColumnZeroToKillsAndSortPlayers();
 		g_aulColumnType[1] = COLUMN_NAME;
 		g_aulColumnType[2] = COLUMN_DEATHS;
 		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 			g_aulColumnType[2] = COLUMN_PING;
 		g_aulColumnType[3] = COLUMN_TIME;
-
-		// Sort players based on their killcount.
-		scoreboard_SortPlayers( ST_KILLCOUNT );
 	}
 
 	// Build columns for modes in which players try to earn frags.
@@ -3621,10 +3637,7 @@ static void scoreboard_Prepare3ColumnDisplay( void )
 	// Build columns for modes in which players try to earn kills.
 	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNKILLS )
 	{
-		g_aulColumnType[0] = COLUMN_KILLS;
-
-		// Sort players based on their killcount.
-		scoreboard_SortPlayers( ST_KILLCOUNT );
+		scoreboard_SetColumnZeroToKillsAndSortPlayers();
 	}
 
 	// Build columns for modes in which players try to earn frags.

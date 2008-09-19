@@ -382,7 +382,8 @@ void SelectWeaponAndDisplayName ( AWeapon *pSelectedWeapon )
 		SendItemUse = pSelectedWeapon;
 
 	// [BC] Option to display the name of the weapon being cycled to.
-	if ( cl_showweapnameoncycle && ( players[consoleplayer].PendingWeapon != NULL ) )
+	if ( cl_showweapnameoncycle && ( players[consoleplayer].PendingWeapon != NULL )
+	     && ( players[consoleplayer].PendingWeapon != WP_NOCHANGE ) )
 	{
 		char				szString[64];
 		DHUDMessageFadeOut	*pMsg;
@@ -1607,6 +1608,10 @@ void G_Ticker ()
 
 			// Tick the callvote module.
 			CALLVOTE_Tick( );
+
+			// [BB] Possibly award points for the damage players dealt.
+			// Is there a better place to put this?
+			PLAYER_AwardDamagePointsForAllPlayers( );
 		}
 
 		// [BB] Don't call P_Ticker on the server if there are no players.
@@ -1932,13 +1937,7 @@ void G_PlayerFinishLevel (int player, EFinishLevelType mode, bool resetinventory
 	}
 
 	// [BC] Reset a bunch of other Skulltag stuff.
-	p->ulConsecutiveHits = 0;
-	p->ulConsecutiveRailgunHits = 0;
-	p->ulDeathsWithoutFrag = 0;
-	p->ulFragsWithoutDeath = 0;
-	p->ulLastExcellentTick = 0;
-	p->ulLastFragTick = 0;
-	p->ulLastBFGFragTick = 0;
+	PLAYER_ResetSpecialCounters ( p );
 	if ( p->pIcon )
 		p->pIcon->Destroy( );
 
@@ -1997,6 +1996,7 @@ void G_PlayerReborn (int player)
 	ULONG		ulConsecutiveHits;
 	ULONG		ulConsecutiveRailgunHits;
 	ULONG		ulDeathsWithoutFrag;
+	ULONG		ulUnrewardedDamageDealt;
 	ULONG		ulMedalCount[NUM_MEDALS];
 	CSkullBot	*pSkullBot;
 	ULONG		ulPing;
@@ -2027,6 +2027,7 @@ void G_PlayerReborn (int player)
 	ulConsecutiveHits = p->ulConsecutiveHits;
 	ulConsecutiveRailgunHits = p->ulConsecutiveRailgunHits;
 	ulDeathsWithoutFrag = p->ulDeathsWithoutFrag;
+	ulUnrewardedDamageDealt = p->ulUnrewardedDamageDealt;
 	memcpy( &ulMedalCount, &p->ulMedalCount, sizeof( ulMedalCount ));
 	pSkullBot = p->pSkullBot;
 	ulPing = p->ulPing;
@@ -2061,6 +2062,7 @@ void G_PlayerReborn (int player)
 	p->ulConsecutiveHits = ulConsecutiveHits;
 	p->ulConsecutiveRailgunHits = ulConsecutiveRailgunHits;
 	p->ulDeathsWithoutFrag = ulDeathsWithoutFrag;
+	p->ulUnrewardedDamageDealt = ulUnrewardedDamageDealt;
 	memcpy( &p->ulMedalCount, &ulMedalCount, sizeof( ulMedalCount ));
 	p->pSkullBot = pSkullBot;
 	p->ulPing = ulPing;

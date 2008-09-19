@@ -2687,16 +2687,9 @@ void G_DoLoadLevel (int position, bool autosave)
 		// Reset a bunch of other stuff too.
 		players[i].ulDeathCount = 0;
 		players[i].ulWins = 0;
-		players[i].ulConsecutiveHits = 0;
-		players[i].ulConsecutiveRailgunHits = 0;
-		players[i].ulDeathsWithoutFrag = 0;
-		players[i].ulFragsWithoutDeath = 0;
-		players[i].ulLastExcellentTick = 0;
-		players[i].ulLastFragTick = 0;
-		players[i].ulLastBFGFragTick = 0;
 		players[i].lPointCount = 0;
-		players[i].ulRailgunShots = 0;
 		players[i].ulTime = 0;
+		PLAYER_ResetSpecialCounters ( &players[i] );
 //		players[i].bDeadSpectator = false;
 
 		// If we're the server, update the console.

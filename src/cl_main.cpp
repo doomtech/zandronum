@@ -3015,18 +3015,11 @@ void CLIENT_ResetPlayerData( player_t *pPlayer )
 	pPlayer->ulTeam = 0;
 	pPlayer->lPointCount = 0;
 	pPlayer->ulDeathCount = 0;
-	pPlayer->ulLastFragTick = 0;
-	pPlayer->ulLastExcellentTick = 0;
-	pPlayer->ulLastBFGFragTick = 0;
-	pPlayer->ulConsecutiveHits = 0;
-	pPlayer->ulConsecutiveRailgunHits = 0;
-	pPlayer->ulFragsWithoutDeath = 0;
-	pPlayer->ulDeathsWithoutFrag = 0;
+	PLAYER_ResetSpecialCounters ( pPlayer );
 	pPlayer->bChatting = 0;
 	pPlayer->bSpectating = 0;
 	pPlayer->bDeadSpectator = 0;
 	pPlayer->bStruckPlayer = 0;
-	pPlayer->ulRailgunShots = 0;
 	pPlayer->pIcon = 0;
 	pPlayer->lMaxHealthBonus = 0;
 	pPlayer->ulWins = 0;
@@ -3550,27 +3543,8 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	// If the player is a spectator, set some properties.
 	if ( pPlayer->bSpectating )
 	{
-		pPlayer->mo->flags2 |= (MF2_CANNOTPUSH);
-		pPlayer->mo->flags &= ~(MF_SOLID|MF_SHOOTABLE|MF_PICKUP);
-		pPlayer->mo->flags2 &= ~(MF2_PASSMOBJ|MF2_FLOATBOB);
-		pPlayer->mo->RenderStyle = STYLE_None;
-
-		// [BB] Speed and viewheight of spectators should be independent of the player class.
-		pPlayer->mo->ForwardMove1 = pPlayer->mo->ForwardMove2 = FRACUNIT;
-		pPlayer->mo->SideMove1 = pPlayer->mo->SideMove2 = FRACUNIT;
-		pPlayer->mo->ViewHeight = 41*FRACUNIT;
-
-		// Make me flat!
-		pPlayer->mo->height = 0;
-		pPlayer->cheats |= CF_NOTARGET;
-
-		// Reset a bunch of other stuff.
-		pPlayer->extralight = 0;
-		pPlayer->fixedcolormap = 0;
-		pPlayer->damagecount = 0;
-		pPlayer->bonuscount = 0;
-		pPlayer->poisoncount = 0;
-		pPlayer->inventorytics = 0;
+		// [BB] Set a bunch of stuff, e.g. make the player unshootable, etc.
+		PLAYER_SetDefaultSpectatorValues ( pPlayer );
 
 		// Don't lag anymore if we're a spectator.
 		if ( ulPlayer == static_cast<ULONG>(consoleplayer) )

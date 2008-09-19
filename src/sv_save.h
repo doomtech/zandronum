@@ -44,7 +44,7 @@
 //
 // Filename: sv_save.h
 //
-// Description: 
+// Description: Saves players' scores when they leave the server, and restores it when they return.
 //
 //-----------------------------------------------------------------------------
 
@@ -52,9 +52,6 @@
 #define __SV_SAVE_H__
 
 #include "network.h"
-
-//*****************************************************************************
-//	DEFINES
 
 //*****************************************************************************
 //	STRUCTURES
@@ -67,7 +64,7 @@ typedef struct
 	// Address of the player whose information is being saved.
 	NETADDRESS_s	Address;
 
-	// Is this slot initialzed?
+	// Is this slot initialized?
 	bool			bInitialized;
 
 	// How many frags did this player have?
@@ -79,7 +76,7 @@ typedef struct
 	// Points?
 	LONG			lPointCount;
 
-	// [RC] Time
+	// [RC] Time in game.
 	ULONG			ulTime;
 
 } PLAYERSAVEDINFO_t;

@@ -503,8 +503,13 @@ void AActor::Die (AActor *source, AActor *inflictor)
 	}
 
 	if (CountsAsKill())
+	{
 		level.killed_monsters++;
 		
+		// [BB] The number of remaining monsters decreased, update the invasion monster count accordingly.
+		INVASION_UpdateMonsterCount ( this, true );
+	}
+
 	if (source && source->player)
 	{
 		// [BC] Don't do this in client mode.
@@ -514,19 +519,6 @@ void AActor::Die (AActor *source, AActor *inflictor)
 		{ // count for intermission
 			source->player->killcount++;
 			
-			if (( invasion ) &&
-				(( INVASION_GetState( ) == IS_INPROGRESS ) || ( INVASION_GetState( ) == IS_BOSSFIGHT )))
-			{
-				INVASION_SetNumMonstersLeft( INVASION_GetNumMonstersLeft( ) - 1 );
-
-				if ( GetClass( ) == PClass::FindClass("Archvile") )
-					INVASION_SetNumArchVilesLeft( INVASION_GetNumArchVilesLeft( ) - 1 );
-
-				// If we're the server, tell the client how many monsters are left.
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_SetInvasionNumMonstersLeft( );
-			}
-
 			// Update the clients with this player's updated killcount.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
@@ -712,18 +704,6 @@ void AActor::Die (AActor *source, AActor *inflictor)
 		// Meh, just do it in single player.
 		if ( NETWORK_GetState( ) == NETSTATE_SINGLE )
 			players[0].killcount++;
-		if (( invasion ) &&
-			(( INVASION_GetState( ) == IS_INPROGRESS ) || ( INVASION_GetState( ) == IS_BOSSFIGHT )))
-		{
-			INVASION_SetNumMonstersLeft( INVASION_GetNumMonstersLeft( ) - 1 );
-
-			if ( GetClass( ) == PClass::FindClass("Archvile") )
-				INVASION_SetNumArchVilesLeft( INVASION_GetNumArchVilesLeft( ) - 1 );
-
-			// If we're the server, tell the client how many monsters are left.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SetInvasionNumMonstersLeft( );
-		}
 
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
@@ -1457,6 +1437,16 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 		}
 	}
 
+	// [BB] Save the damage the player has dealt to monsters here, it's only converted to points
+	// though if DF2_AWARD_DAMAGE_INSTEAD_KILLS is set.
+	if ( source && source->player
+	     && ( target->player == false )
+	     && ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+	     && ( CLIENTDEMO_IsPlaying( ) == false ))
+	{
+		source->player->ulUnrewardedDamageDealt += MIN( (int)lOldTargetHealth, damage );
+	}
+
 	// [BC] Tell clients that this thing was damaged.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
@@ -1881,6 +1871,32 @@ void PLAYER_ResetAllPlayersFragcount( void )
 
 //*****************************************************************************
 //
+void PLAYER_ResetAllPlayersSpecialCounters ( )
+{
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+		PLAYER_ResetSpecialCounters ( &players[ulIdx] );
+}
+
+//*****************************************************************************
+//
+void PLAYER_ResetSpecialCounters ( player_t *pPlayer )
+{
+	if ( pPlayer == NULL )
+		return;
+
+	pPlayer->ulLastExcellentTick = 0;
+	pPlayer->ulLastFragTick = 0;
+	pPlayer->ulLastBFGFragTick = 0;
+	pPlayer->ulConsecutiveHits = 0;
+	pPlayer->ulConsecutiveRailgunHits = 0;
+	pPlayer->ulDeathsWithoutFrag = 0;
+	pPlayer->ulFragsWithoutDeath = 0;
+	pPlayer->ulRailgunShots = 0;
+	pPlayer->ulUnrewardedDamageDealt = 0;
+}
+
+//*****************************************************************************
+//
 void PLAYER_GivePossessionPoint( player_t *pPlayer )
 {
 	char				szString[64];
@@ -2182,33 +2198,11 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 			}
 		}
 
-		// Make the player unshootable, etc.
-		pPlayer->mo->flags2 |= (MF2_CANNOTPUSH);
-		pPlayer->mo->flags &= ~(MF_SOLID|MF_SHOOTABLE|MF_PICKUP);
-		pPlayer->mo->flags2 &= ~(MF2_PASSMOBJ|MF2_FLOATBOB);
-		pPlayer->mo->RenderStyle = STYLE_None;
-
-		// [BB] Speed and viewheight of spectators should be independent of the player class.
-		pPlayer->mo->ForwardMove1 = pPlayer->mo->ForwardMove2 = FRACUNIT;
-		pPlayer->mo->SideMove1 = pPlayer->mo->SideMove2 = FRACUNIT;
-		pPlayer->mo->ViewHeight = 41*FRACUNIT;
-
-		// Make the player flat, so he can travel under doors and such.
-		pPlayer->mo->height = 0;
-
-		// Make monsters unable to "see" this player.
-		pPlayer->cheats |= CF_NOTARGET;
+		// [BB] Set a bunch of stuff, e.g. make the player unshootable, etc.
+		PLAYER_SetDefaultSpectatorValues ( pPlayer );
 
 		// Take away all of the player's inventory.
 		pPlayer->mo->DestroyAllInventory( );
-
-		// Reset a bunch of other stuff.
-		pPlayer->extralight = 0;
-		pPlayer->fixedcolormap = 0;
-		pPlayer->damagecount = 0;
-		pPlayer->bonuscount = 0;
-		pPlayer->poisoncount = 0;
-		pPlayer->inventorytics = 0;
 
 		// [BB] We also need to stop all sounds associated to the player pawn, spectators
 		// aren't supposed to make any sounds. This is especially crucial if a looping sound
@@ -2253,6 +2247,42 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 	// Update this player's info on the scoreboard.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCONSOLE_UpdatePlayerInfo( pPlayer - players, UDF_FRAGS );
+}
+
+//*****************************************************************************
+//
+void PLAYER_SetDefaultSpectatorValues( player_t *pPlayer )
+{
+	if ( ( pPlayer == NULL ) || ( pPlayer->mo == NULL ) )
+		return;
+
+	// Make the player unshootable, etc.
+	pPlayer->mo->flags2 |= (MF2_CANNOTPUSH);
+	pPlayer->mo->flags &= ~(MF_SOLID|MF_SHOOTABLE|MF_PICKUP);
+	pPlayer->mo->flags2 &= ~(MF2_PASSMOBJ|MF2_FLOATBOB);
+	pPlayer->mo->flags3 = MF3_NOBLOCKMONST;
+	pPlayer->mo->flags4 = 0;
+	pPlayer->mo->flags5 = 0;
+	pPlayer->mo->RenderStyle = STYLE_None;
+
+	// [BB] Speed and viewheight of spectators should be independent of the player class.
+	pPlayer->mo->ForwardMove1 = pPlayer->mo->ForwardMove2 = FRACUNIT;
+	pPlayer->mo->SideMove1 = pPlayer->mo->SideMove2 = FRACUNIT;
+	pPlayer->mo->ViewHeight = 41*FRACUNIT;
+
+	// Make the player flat, so he can travel under doors and such.
+	pPlayer->mo->height = 0;
+
+	// Make monsters unable to "see" this player.
+	pPlayer->cheats |= CF_NOTARGET;
+
+	// Reset a bunch of other stuff.
+	pPlayer->extralight = 0;
+	pPlayer->fixedcolormap = 0;
+	pPlayer->damagecount = 0;
+	pPlayer->bonuscount = 0;
+	pPlayer->poisoncount = 0;
+	pPlayer->inventorytics = 0;
 }
 
 //*****************************************************************************
@@ -2460,6 +2490,40 @@ LONG PLAYER_GetRailgunColor( player_t *pPlayer )
 	case RAILCOLOR_RAINBOW:
 
 		return ( -2 );
+	}
+}
+
+//*****************************************************************************
+//
+void PLAYER_AwardDamagePointsForAllPlayers( void )
+{
+	if ( (dmflags2 & DF2_AWARD_DAMAGE_INSTEAD_KILLS)
+		&& (GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSEARNKILLS) )
+	{
+		for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+		{
+			if ( playeringame[ulIdx] == false )
+				continue;
+
+			player_t *p = &players[ulIdx];
+
+			int points = p->ulUnrewardedDamageDealt / 100;
+			if ( points > 0 )
+			{
+				p->lPointCount += points;
+				p->ulUnrewardedDamageDealt -= 100 * points;
+
+				// Update the clients with this player's updated points.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				{
+					SERVERCOMMANDS_SetPlayerPoints( static_cast<ULONG>( p - players ) );
+
+					// Also, update the scoreboard.
+					SERVERCONSOLE_UpdatePlayerInfo( static_cast<ULONG>( p - players ), UDF_FRAGS );
+					SERVERCONSOLE_UpdateScoreboard( );
+				}
+			}
+		}
 	}
 }
 

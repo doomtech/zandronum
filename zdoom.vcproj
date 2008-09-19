@@ -3760,10 +3760,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\sv_admin.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\sv_ban.cpp"
 				>
 			</File>
@@ -4756,10 +4752,6 @@
 			</File>
 			<File
 				RelativePath=".\src\survival.h"
-				>
-			</File>
-			<File
-				RelativePath=".\src\sv_admin.h"
 				>
 			</File>
 			<File

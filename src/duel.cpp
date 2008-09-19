@@ -227,20 +227,9 @@ void DUEL_DoFight( void )
 	// Reset level time to 0.
 	level.time = 0;
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		// Since the level time is being reset, also reset the last frag/excellent time for
-		// each player.
-		players[ulIdx].ulLastExcellentTick = 0;
-		players[ulIdx].ulLastFragTick = 0;
-		players[ulIdx].ulLastBFGFragTick = 0;
-
-		players[ulIdx].ulConsecutiveHits = 0;
-		players[ulIdx].ulConsecutiveRailgunHits = 0;
-		players[ulIdx].ulDeathsWithoutFrag = 0;
-		players[ulIdx].ulFragsWithoutDeath = 0;
-		players[ulIdx].ulRailgunShots = 0;
-	}
+	// Since the level time is being reset, also reset the last frag/excellent time for
+	// each player.
+	PLAYER_ResetAllPlayersSpecialCounters();
 
 	// Tell clients to "fight!".
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
