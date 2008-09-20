@@ -2304,6 +2304,10 @@ bool P_TryMove (AActor *thing, fixed_t x, fixed_t y,
 		}
 	}
 
+	// [BB] Spectators don't trigger transitions.
+	if ( thing->player && thing->player->bSpectating )
+		return true;
+
 	// [RH] If changing sectors, trigger transitions
 	if (oldsec != newsec)
 	{
