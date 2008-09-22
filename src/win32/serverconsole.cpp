@@ -147,6 +147,17 @@ static	ULONG				g_compatFlagsControlIDs[NUMBER_OF_COMPATFLAGS] =
 };
 
 //*****************************************************************************
+//
+void appendFormattedDataAmount ( FString &DataString, float fData ){
+	if ( fData > GIGABYTE )
+		DataString.AppendFormat( "%0.2fKB (%0.2fGB)", fData / (float)KILOBYTE, fData / GIGABYTE );
+	else if ( fData > MEGABYTE )
+		DataString.AppendFormat( "%0.2fKB (%0.2fMB)", fData / (float)KILOBYTE, fData / MEGABYTE );
+	else
+		DataString.AppendFormat( "%0.2fKB", fData / (float)KILOBYTE );
+}
+
+//*****************************************************************************
 //	GLOBAL VARIABLES
 
 extern	HINSTANCE	g_hInst;
@@ -2090,39 +2101,33 @@ BOOL CALLBACK SERVERCONSOLE_ServerStatisticsCallback( HWND hDlg, UINT Message, W
 
 		{
 			char		szString[256];
+			FString		string;
+			QWORD		qwData;
 			LONG		lData;
 
 			g_hStatisticDlg = hDlg;
 
 			// Total INBOUND data transfer.
-			lData = SERVER_STATISTIC_GetTotalInboundDataTransferred( ); 
-			if ( lData > GIGABYTE )
-				sprintf( szString, "Total data transfer (in): %0.2fKB (%0.2fGB)", (float)lData / (float)KILOBYTE, (float)lData / GIGABYTE );
-			else if ( lData > MEGABYTE )
-				sprintf( szString, "Total data transfer (in): %0.2fKB (%0.2fMB)", (float)lData / (float)KILOBYTE, (float)lData / MEGABYTE );
-			else
-				sprintf( szString, "Total data transfer (in): %0.2fKB", (float)lData / (float)KILOBYTE );
-			SetDlgItemText( hDlg, IDC_TOTALINBOUNDDATATRANSFER, szString );
+			qwData = SERVER_STATISTIC_GetTotalInboundDataTransferred( ); 
+			string = "Total data transfer (in): ";
+			appendFormattedDataAmount ( string, static_cast<float>(qwData) );
+			SetDlgItemText( hDlg, IDC_TOTALINBOUNDDATATRANSFER, string.GetChars() );
 
 			// Total OUTBOUND data transfer.
-			lData = SERVER_STATISTIC_GetTotalOutboundDataTransferred( ); 
-			if ( lData > GIGABYTE )
-				sprintf( szString, "Total data transfer (out): %0.2fKB (%0.2fGB)", (float)lData / (float)KILOBYTE, (float)lData / GIGABYTE );
-			else if ( lData > MEGABYTE )
-				sprintf( szString, "Total data transfer (out): %0.2fKB (%0.2fMB)", (float)lData / (float)KILOBYTE, (float)lData / MEGABYTE );
-			else
-				sprintf( szString, "Total data transfer (out): %0.2fKB", (float)lData / (float)KILOBYTE );
-			SetDlgItemText( hDlg, IDC_TOTALOUTBOUNDDATATRANSFER, szString );
+			qwData = SERVER_STATISTIC_GetTotalOutboundDataTransferred( ); 
+			string = "Total data transfer (out): ";
+			appendFormattedDataAmount ( string, static_cast<float>(qwData) );
+			SetDlgItemText( hDlg, IDC_TOTALOUTBOUNDDATATRANSFER, string.GetChars() );
 
 			// Average INBOUND data transfer.
-			lData = SERVER_STATISTIC_GetTotalInboundDataTransferred( ); 
+			qwData = SERVER_STATISTIC_GetTotalInboundDataTransferred( ); 
 			if ( SERVER_STATISTIC_GetTotalSecondsElapsed( ) == 0 )
 				sprintf( szString, "Average data transfer: 0B/s (in)" );
 			else
 			{
 				float	fDataPerSecond;
 
-				fDataPerSecond = (float)lData / (float)SERVER_STATISTIC_GetTotalSecondsElapsed( );
+				fDataPerSecond = (float)qwData / (float)SERVER_STATISTIC_GetTotalSecondsElapsed( );
 				if ( fDataPerSecond > KILOBYTE )
 					sprintf( szString, "Average data transfer (in): %0.2fB/s (%0.2fKB/s)", fDataPerSecond, fDataPerSecond / (float)KILOBYTE );
 				else
@@ -2131,14 +2136,14 @@ BOOL CALLBACK SERVERCONSOLE_ServerStatisticsCallback( HWND hDlg, UINT Message, W
 			SetDlgItemText( hDlg, IDC_AVERAGEINBOUNDDATATRANSFER, szString );
 
 			// Average OUTBOUND data transfer.
-			lData = SERVER_STATISTIC_GetTotalOutboundDataTransferred( ); 
+			qwData = SERVER_STATISTIC_GetTotalOutboundDataTransferred( ); 
 			if ( SERVER_STATISTIC_GetTotalSecondsElapsed( ) == 0 )
 				sprintf( szString, "Average data transfer (out): 0B/s" );
 			else
 			{
 				float	fDataPerSecond;
 
-				fDataPerSecond = (float)lData / (float)SERVER_STATISTIC_GetTotalSecondsElapsed( );
+				fDataPerSecond = (float)qwData / (float)SERVER_STATISTIC_GetTotalSecondsElapsed( );
 				if ( fDataPerSecond > KILOBYTE )
 					sprintf( szString, "Average data transfer (out): %0.2fB/s (%0.2fKB/s)", fDataPerSecond, fDataPerSecond / (float)KILOBYTE );
 				else
@@ -3064,26 +3069,19 @@ void SERVERCONSOLE_UpdateScoreboard( void )
 
 //*****************************************************************************
 //
-void SERVERCONSOLE_UpdateTotalOutboundDataTransfer( LONG lData )
+void SERVERCONSOLE_UpdateTotalOutboundDataTransfer( QWORD qwData )
 {
-	char	szString[256];
-
 	if ( g_hStatisticDlg == NULL )
 		return;
 
-	if ( lData > GIGABYTE )
-		sprintf( szString, "Total data transfer (out) %0.2fKB (%0.2fGB)", (float)lData / (float)KILOBYTE, (float)lData / GIGABYTE );
-	else if ( lData > MEGABYTE )
-		sprintf( szString, "Total data transfer (out): %0.2fKB (%0.2fMB)", (float)lData / (float)KILOBYTE, (float)lData / MEGABYTE );
-	else
-		sprintf( szString, "Total data transfer (out): %0.2fKB", (float)lData / (float)KILOBYTE );
-
-	SetDlgItemText( g_hStatisticDlg, IDC_TOTALOUTBOUNDDATATRANSFER, szString );
+	FString string = "Total data transfer (out): ";
+	appendFormattedDataAmount ( string, static_cast<float>(qwData) );
+	SetDlgItemText( g_hStatisticDlg, IDC_TOTALOUTBOUNDDATATRANSFER, string.GetChars() );
 }
 
 //*****************************************************************************
 //
-void SERVERCONSOLE_UpdateAverageOutboundDataTransfer( LONG lData )
+void SERVERCONSOLE_UpdateAverageOutboundDataTransfer( QWORD qwData )
 {
 	char	szString[256];
 	float	fDataPerSecond;
@@ -3095,7 +3093,7 @@ void SERVERCONSOLE_UpdateAverageOutboundDataTransfer( LONG lData )
 		sprintf( szString, "Average data transfer (out): 0B/s" );
 	else
 	{
-		fDataPerSecond = (float)lData / (float)SERVER_STATISTIC_GetTotalSecondsElapsed( );
+		fDataPerSecond = (float)qwData / (float)SERVER_STATISTIC_GetTotalSecondsElapsed( );
 		if ( fDataPerSecond > KILOBYTE )
 			sprintf( szString, "Average data transfer (out): %0.2fB/s (%0.2fKB/s)", fDataPerSecond, fDataPerSecond / (float)KILOBYTE );
 		else
@@ -3141,26 +3139,19 @@ void SERVERCONSOLE_UpdateCurrentOutboundDataTransfer( LONG lData )
 
 //*****************************************************************************
 //
-void SERVERCONSOLE_UpdateTotalInboundDataTransfer( LONG lData )
+void SERVERCONSOLE_UpdateTotalInboundDataTransfer( QWORD qwData )
 {
-	char	szString[256];
-
 	if ( g_hStatisticDlg == NULL )
 		return;
 
-	if ( lData > GIGABYTE )
-		sprintf( szString, "Total data transfer (in): %0.2fKB (%0.2fGB)", (float)lData / (float)KILOBYTE, (float)lData / GIGABYTE );
-	else if ( lData > MEGABYTE )
-		sprintf( szString, "Total data transfer (in): %0.2fKB (%0.2fMB)", (float)lData / (float)KILOBYTE, (float)lData / MEGABYTE );
-	else
-		sprintf( szString, "Total data transfer (in): %0.2fKB", (float)lData / (float)KILOBYTE );
-
-	SetDlgItemText( g_hStatisticDlg, IDC_TOTALINBOUNDDATATRANSFER, szString );
+	FString string = "Total data transfer (in): ";
+	appendFormattedDataAmount ( string, static_cast<float>(qwData) );
+	SetDlgItemText( g_hStatisticDlg, IDC_TOTALINBOUNDDATATRANSFER, string.GetChars() );
 }
 
 //*****************************************************************************
 //
-void SERVERCONSOLE_UpdateAverageInboundDataTransfer( LONG lData )
+void SERVERCONSOLE_UpdateAverageInboundDataTransfer( QWORD qwData )
 {
 	char	szString[256];
 	float	fDataPerSecond;
@@ -3172,7 +3163,7 @@ void SERVERCONSOLE_UpdateAverageInboundDataTransfer( LONG lData )
 		sprintf( szString, "Average data transfer (in): 0B/s" );
 	else
 	{
-		fDataPerSecond = (float)lData / (float)SERVER_STATISTIC_GetTotalSecondsElapsed( );
+		fDataPerSecond = (float)qwData / (float)SERVER_STATISTIC_GetTotalSecondsElapsed( );
 		if ( fDataPerSecond > KILOBYTE )
 			sprintf( szString, "Average data transfer (in): %0.2fB/s (%0.2fKB/s)", fDataPerSecond, fDataPerSecond / (float)KILOBYTE );
 		else
