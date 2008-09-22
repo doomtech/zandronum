@@ -6136,6 +6136,14 @@ static void SpawnDeepSplash (AActor *t1, const FTraceResults &trace, AActor *puf
 	fixed_t num, den, hitdist;
 	const secplane_t *plane = &trace.CrossedWater->heightsec->floorplane;
 
+	// [BB] Gross hack to prevent the crashes in thunpeak.zip most likely caused
+	// by the rewrite of the interpolation code in GZDoom revision 117.
+	if ( plane < reinterpret_cast<const secplane_t *>(static_cast<size_t>(0x0001000)) )
+	{
+		Printf ( "Warning, invalid pointer in SpawnDeepSplash!\n" );
+		return;
+	}
+
 	den = TMulScale16 (plane->a, vx, plane->b, vy, plane->c, vz);
 	if (den != 0)
 	{
