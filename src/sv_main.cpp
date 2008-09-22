@@ -187,11 +187,11 @@ static	LONG		g_lTotalServerSeconds = 0;
 static	LONG		g_lTotalNumPlayers = 0;
 static	LONG		g_lMaxNumPlayers = 0;
 static	LONG		g_lTotalNumFrags = 0;
-static	LONG		g_lTotalOutboundDataTransferred = 0;
+static	QWORD		g_qwTotalOutboundDataTransferred = 0;
 static	LONG		g_lMaxOutboundDataTransfer = 0;
 static	LONG		g_lCurrentOutboundDataTransfer = 0;
 static	LONG		g_lOutboundDataTransferLastSecond = 0;
-static	LONG		g_lTotalInboundDataTransferred = 0;
+static	QWORD		g_qwTotalInboundDataTransferred = 0;
 static	LONG		g_lMaxInboundDataTransfer = 0;
 static	LONG		g_lCurrentInboundDataTransfer = 0;
 static	LONG		g_lInboundDataTransferLastSecond = 0;
@@ -451,12 +451,12 @@ void SERVER_Destruct( void )
 
 //DWORD	g_LastMS, g_LastSec, g_FrameCount, g_LastCount, g_LastTic;
 
-void			SERVERCONSOLE_UpdateTotalOutboundDataTransfer( LONG lData );
-void			SERVERCONSOLE_UpdateAverageOutboundDataTransfer( LONG lData );
+void			SERVERCONSOLE_UpdateTotalOutboundDataTransfer( QWORD qwData );
+void			SERVERCONSOLE_UpdateAverageOutboundDataTransfer( QWORD qwData );
 void			SERVERCONSOLE_UpdatePeakOutboundDataTransfer( LONG lData );
 void			SERVERCONSOLE_UpdateCurrentOutboundDataTransfer( LONG lData );
-void			SERVERCONSOLE_UpdateTotalInboundDataTransfer( LONG lData );
-void			SERVERCONSOLE_UpdateAverageInboundDataTransfer( LONG lData );
+void			SERVERCONSOLE_UpdateTotalInboundDataTransfer( QWORD qwData );
+void			SERVERCONSOLE_UpdateAverageInboundDataTransfer( QWORD qwData );
 void			SERVERCONSOLE_UpdatePeakInboundDataTransfer( LONG lData );
 void			SERVERCONSOLE_UpdateCurrentInboundDataTransfer( LONG lData );
 void			SERVERCONSOLE_UpdateTotalUptime( LONG lData );
@@ -671,7 +671,7 @@ void SERVER_Tick( void )
 				g_lCurrentOutboundDataTransfer = 0;
 
 				SERVERCONSOLE_UpdateCurrentOutboundDataTransfer( g_lOutboundDataTransferLastSecond );
-				SERVERCONSOLE_UpdateAverageOutboundDataTransfer( g_lTotalOutboundDataTransferred );
+				SERVERCONSOLE_UpdateAverageOutboundDataTransfer( g_qwTotalOutboundDataTransferred );
 
 				if ( g_lCurrentInboundDataTransfer > g_lMaxInboundDataTransfer )
 				{
@@ -683,7 +683,7 @@ void SERVER_Tick( void )
 				g_lCurrentInboundDataTransfer = 0;
 
 				SERVERCONSOLE_UpdateCurrentInboundDataTransfer( g_lInboundDataTransferLastSecond );
-				SERVERCONSOLE_UpdateAverageInboundDataTransfer( g_lTotalInboundDataTransferred );
+				SERVERCONSOLE_UpdateAverageInboundDataTransfer( g_qwTotalInboundDataTransferred );
 			}
 
 			//DObject::EndFrame ();
@@ -3427,9 +3427,9 @@ void SERVER_STATISTIC_AddToTotalFrags( void )
 
 //*****************************************************************************
 //
-LONG SERVER_STATISTIC_GetTotalOutboundDataTransferred( void )
+QWORD SERVER_STATISTIC_GetTotalOutboundDataTransferred( void )
 {
-	return ( g_lTotalOutboundDataTransferred );
+	return ( g_qwTotalOutboundDataTransferred );
 }
 
 //*****************************************************************************
@@ -3443,10 +3443,10 @@ LONG SERVER_STATISTIC_GetPeakOutboundDataTransfer( void )
 //
 void SERVER_STATISTIC_AddToOutboundDataTransfer( ULONG ulNumBytes )
 {
-	g_lTotalOutboundDataTransferred += ulNumBytes;
+	g_qwTotalOutboundDataTransferred += ulNumBytes;
 	g_lCurrentOutboundDataTransfer += ulNumBytes;
 
-	SERVERCONSOLE_UpdateTotalOutboundDataTransfer( g_lTotalOutboundDataTransferred );
+	SERVERCONSOLE_UpdateTotalOutboundDataTransfer( g_qwTotalOutboundDataTransferred );
 }
 
 //*****************************************************************************
@@ -3458,9 +3458,9 @@ LONG SERVER_STATISTIC_GetCurrentOutboundDataTransfer( void )
 
 //*****************************************************************************
 //
-LONG SERVER_STATISTIC_GetTotalInboundDataTransferred( void )
+QWORD SERVER_STATISTIC_GetTotalInboundDataTransferred( void )
 {
-	return ( g_lTotalInboundDataTransferred );
+	return ( g_qwTotalInboundDataTransferred );
 }
 
 //*****************************************************************************
@@ -3474,10 +3474,10 @@ LONG SERVER_STATISTIC_GetPeakInboundDataTransfer( void )
 //
 void SERVER_STATISTIC_AddToInboundDataTransfer( ULONG ulNumBytes )
 {
-	g_lTotalInboundDataTransferred += ulNumBytes;
+	g_qwTotalInboundDataTransferred += ulNumBytes;
 	g_lCurrentInboundDataTransfer += ulNumBytes;
 
-	SERVERCONSOLE_UpdateTotalInboundDataTransfer( g_lTotalInboundDataTransferred );
+	SERVERCONSOLE_UpdateTotalInboundDataTransfer( g_qwTotalInboundDataTransferred );
 }
 
 //*****************************************************************************
