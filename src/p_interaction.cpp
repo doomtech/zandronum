@@ -2167,6 +2167,14 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 			TEAM_SetAssistPlayer( TEAM_RED, MAXPLAYERS );
 	}
 
+	// [BB] Morphed players need to be unmorphed before being changed to spectators.
+	if (( pPlayer->morphTics ) &&
+		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
+		( CLIENTDEMO_IsPlaying( ) == false ))
+	{
+		P_UndoPlayerMorph ( pPlayer, pPlayer );
+	}
+
 	if ( pPlayer->mo )
 	{
 		// Before we start fucking with the player's body, drop important items

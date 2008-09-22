@@ -2592,6 +2592,10 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 			Printf( "%s \\c-disconnected.\n", NETWORK_AddressToString( g_aClients[ulClient].Address ));
 	}
 
+	// [BB] Morphed players need to be unmorphed before disconnecting.
+	if (players[ulClient].morphTics)
+		P_UndoPlayerMorph (&players[ulClient], &players[ulClient]);
+
 	// Inform the other clients that this player has been disconnected.
 	SERVERCOMMANDS_DisconnectPlayer( ulClient );
 
