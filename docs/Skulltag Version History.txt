@@ -42,6 +42,7 @@
 -	- Fixed: Some sight check related problems in A_DoChase occurred in games with more than one player. Offline this caused monsters to move strangely, online this caused monster movement sync issues. [Torr Samaho]
 -	- Fixed: Spectators could trigger sector transitions offline. [Torr Samaho]
 -	- Fixed: When using space as jump key, using the in game join menu made the player jump continuously after spawning. [Torr Samaho]
+-	- Fixed: The scoreboard of the win32 server console is not updated when changing to intermission. [Torr Samaho]
 !	- Changed up the display of medals when you have the key down. Higher medals are now on the right, opposite their subordinates. [Rivecoder]
 !	- Each player's "ready to go on" status, shown at the intermission, can now only be turned on. Hopefully, this will help clear up what this command is for and prevent rapid toggling of it. [Rivecoder]
 !	- Rank/Spread is no longer drawn if there's only one player. [Rivecoder]
