@@ -179,7 +179,7 @@ static	NETBUFFER_s		g_PacketLossBuffer;
 static	IPList			g_AdminIPList;
 
 // List of IP address that we want to ignore for a short amount of time.
-static	QueryIPQueue	g_floodProtectionIPQueue;
+static	QueryIPQueue	g_floodProtectionIPQueue( 10 );
 
 // Statistics.
 static	LONG		g_lTotalServerSeconds = 0;
@@ -1570,9 +1570,8 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 	ULONG	ulTime;
 	LONG	lCommand;
 
-	// [BB] We recently got something from this IP that may be used to flood the log.
-	// Ignore the new command to prevent flooding.
-	if ( g_floodProtectionIPQueue.addressInQueue( NETWORK_GetFromAddress( ) ) )
+	// If either this IP is in our flood protection queue, or the queue is full (DOS), ignore the request.
+	if ( g_floodProtectionIPQueue.isFull( ) || g_floodProtectionIPQueue.addressInQueue( NETWORK_GetFromAddress( )))
 		return;
 
 	lCommand = NETWORK_ReadByte( pByteStream );
@@ -3373,9 +3372,9 @@ void SERVER_ErrorCleanup( void )
 
 //*****************************************************************************
 //
-void SERVER_IgnoreIP( NETADDRESS_s Address, LONG lSeconds )
+void SERVER_IgnoreIP( NETADDRESS_s Address )
 {
-	g_floodProtectionIPQueue.addAddress( Address, g_lGameTime / 1000, lSeconds );
+	g_floodProtectionIPQueue.addAddress( Address, g_lGameTime / 1000 );
 }
 
 //*****************************************************************************

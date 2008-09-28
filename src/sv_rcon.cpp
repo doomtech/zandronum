@@ -76,6 +76,9 @@ static	TArray<RCONCLIENT_s>			g_AuthedClients;
 // The last 32 lines that were printed in the console; sent to clients when they connect. (The server doesn't use the c_console buffer.)
 static	std::list<FString>				g_RecentConsoleLines;
 
+// IPs that we're ignoring (bad passwords, old protocol versions) to prevent flooding.
+static	QueryIPQueue					g_BadRequestFloodQueue( BAD_QUERY_IGNORE_TIME );
+
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 //-- PROTOTYPES ------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -134,6 +137,8 @@ void SERVER_RCON_Tick( )
 		else
 			i++;
 	}
+
+	g_BadRequestFloodQueue.adjustHead( gametic / 1000 );
 }
 
 //==========================================================================
@@ -281,7 +286,7 @@ static void server_rcon_HandleNewConnection( NETADDRESS_s Address,  int iProtoco
 	{
 		NETWORK_WriteByte( &g_MessageBuffer.ByteStream, SVRC_BANNED );
 		NETWORK_LaunchPacket( &g_MessageBuffer, Address );
-		SERVER_IgnoreIP( Address, WRONGPASSWORD_IGNORE_TIME );
+		g_BadRequestFloodQueue.addAddress( Address, gametic / 1000 );
 		return;
 	}
 
@@ -292,7 +297,7 @@ static void server_rcon_HandleNewConnection( NETADDRESS_s Address,  int iProtoco
 		NETWORK_WriteByte( &g_MessageBuffer.ByteStream, PROTOCOL_VERSION );
 		NETWORK_WriteString( &g_MessageBuffer.ByteStream, DOTVERSIONSTR );
 		NETWORK_LaunchPacket( &g_MessageBuffer, Address );
-		SERVER_IgnoreIP( Address, 2 );
+		g_BadRequestFloodQueue.addAddress( Address, gametic / 1000 );
 		return;
 	}
 
@@ -347,7 +352,7 @@ static void server_rcon_HandleLogin( int iCandidateIndex, const char *pszHash )
 		NETWORK_LaunchPacket( &g_MessageBuffer, g_Candidates[iCandidateIndex].Address ); // [RC] Note: Be sure to finish any packets before calling Printf(). Otherwise SERVER_RCON_Printf will clear your buffer.
 
 		// To prevent mass password flooding, ignore the IP for a few seconds.
-		SERVER_IgnoreIP( g_Candidates[iCandidateIndex].Address, WRONGPASSWORD_IGNORE_TIME );
+		g_BadRequestFloodQueue.addAddress( g_Candidates[iCandidateIndex].Address, gametic / 1000 );
 
 		Printf( "Failed RCON login from %s. Ignoring IP for 10 seconds...\n", NETWORK_AddressToString( g_Candidates[iCandidateIndex].Address ));
 	}

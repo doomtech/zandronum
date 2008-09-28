@@ -79,11 +79,13 @@ static	IPList					g_BannedIPs;
 static	IPList					g_BannedIPExemptions;
 static	IPList					g_MultiServerExceptions;
 
-// List of IP address that this server has been queried by recently.
-static	QueryIPQueue			g_queryIPQueue;
+// IPs of launchers that we've sent full lists to recently.
+static	QueryIPQueue			g_queryIPQueue( 10 );
 
 // [RC] IPs that are completely ignored.
-static	QueryIPQueue			g_floodProtectionIPQueue;
+static	QueryIPQueue			g_floodProtectionIPQueue( 10 );
+static	QueryIPQueue			g_ShortFloodQueue( 3 );
+
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -200,7 +202,7 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 	AddressFrom = NETWORK_GetFromAddress( );
 
 	// [RC] If this IP is in our flood queue, ignore it completely.
-	if ( g_floodProtectionIPQueue.addressInQueue( AddressFrom ))
+	if ( g_floodProtectionIPQueue.addressInQueue( AddressFrom ) || g_ShortFloodQueue.addressInQueue( AddressFrom ))
 	{
 		while ( NETWORK_ReadByte( pByteStream ) != -1 ) // [RC] Is this really necessary?
 			;
@@ -214,8 +216,8 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 		NETWORK_WriteLong( &g_MessageBuffer.ByteStream, MSC_IPISBANNED );
 		NETWORK_LaunchPacket( &g_MessageBuffer, AddressFrom );
 
-		printf( "* Received challenge from banned IP (%s). Ignoring for 30 seconds.\n", NETWORK_AddressToString( AddressFrom ));
-		g_queryIPQueue.addAddress( AddressFrom, g_lCurrentTime, 30, &std::cerr );
+		printf( "* Received challenge from banned IP (%s). Ignoring for 10 seconds.\n", NETWORK_AddressToString( AddressFrom ));
+		g_queryIPQueue.addAddress( AddressFrom, g_lCurrentTime, &std::cerr );
 		return;
 	}
 
@@ -307,14 +309,14 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 				NETWORK_LaunchPacket( &g_MessageBuffer, AddressFrom );
 
 				printf( "* Extra launcher challenge from %s. Ignoring for 3 seconds.\n", NETWORK_AddressToString( AddressFrom ));
-				g_queryIPQueue.addAddress( AddressFrom, g_lCurrentTime, 3, &std::cerr );
+				g_ShortFloodQueue.addAddress( AddressFrom, g_lCurrentTime, &std::cerr );
 				return;
 			}
 			
 			printf( "-> Sending server list to %s.\n", NETWORK_AddressToString( AddressFrom ));
 
 			// Wait 10 seconds before sending this IP the server list again.
-			g_queryIPQueue.addAddress( AddressFrom, g_lCurrentTime, 10, &std::cerr );
+			g_queryIPQueue.addAddress( AddressFrom, g_lCurrentTime, &std::cerr );
 
 			// Send the list of servers.
 			NETWORK_WriteLong( &g_MessageBuffer.ByteStream, MSC_BEGINSERVERLIST );
@@ -343,7 +345,7 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 	}
 
 	printf( "* Received unknown challenge (%d) from %s. Ignoring for 10 seconds...\n", lCommand, NETWORK_AddressToString( AddressFrom ));
-	g_floodProtectionIPQueue.addAddress( AddressFrom, g_lCurrentTime, 10, &std::cerr );
+	g_floodProtectionIPQueue.addAddress( AddressFrom, g_lCurrentTime, &std::cerr );
 }
 
 //*****************************************************************************
@@ -415,6 +417,7 @@ int main( )
 		// Update the ignore queues.
 		g_queryIPQueue.adjustHead ( g_lCurrentTime );
 		g_floodProtectionIPQueue.adjustHead ( g_lCurrentTime );
+		g_ShortFloodQueue.adjustHead ( g_lCurrentTime );
 
 		// See if any servers have timed out.
 		MASTERSERVER_CheckTimeouts( );

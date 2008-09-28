@@ -206,13 +206,13 @@ DWORD WINAPI main_Loop( LPVOID )
 		if ( g_tLastIncorrectLogin > 0 && ( timeGetTime( ) - g_lLastCountdownTime > 250 ))
 		{
 			g_lLastCountdownTime = timeGetTime( );
-			if ( tNow - g_tLastIncorrectLogin < WRONGPASSWORD_IGNORE_TIME )
-				sprintf( szBuffer, "Connect [%d]", WRONGPASSWORD_IGNORE_TIME - ( tNow - g_tLastIncorrectLogin ));
+			if ( tNow - g_tLastIncorrectLogin < BAD_QUERY_IGNORE_TIME )
+				sprintf( szBuffer, "Connect [%d]", BAD_QUERY_IGNORE_TIME - ( tNow - g_tLastIncorrectLogin ));
 			else
 				strcpy( szBuffer, "Connect" );
 
 			SetDlgItemText( g_hDlg, IDOK, szBuffer );
-			EnableWindow( GetDlgItem( g_hDlg, IDOK ), ( tNow - g_tLastIncorrectLogin >= WRONGPASSWORD_IGNORE_TIME ) && ( g_State == STATE_WAITING ));
+			EnableWindow( GetDlgItem( g_hDlg, IDOK ), ( tNow - g_tLastIncorrectLogin >= BAD_QUERY_IGNORE_TIME ) && ( g_State == STATE_WAITING ));
 		}
 
 		// If we've been waiting for a while without response, try again, then error out.
@@ -445,7 +445,7 @@ static void main_EnableConnectionButtons( BOOL bEnable )
 	time_t tNow;
 	time( &tNow );
 
-	EnableWindow( GetDlgItem( g_hDlg, IDOK ), bEnable && ( tNow - g_tLastIncorrectLogin >= WRONGPASSWORD_IGNORE_TIME ));
+	EnableWindow( GetDlgItem( g_hDlg, IDOK ), bEnable && ( tNow - g_tLastIncorrectLogin >= BAD_QUERY_IGNORE_TIME ));
 	EnableWindow( GetDlgItem( g_hDlg, IDC_SERVERIP ), bEnable );
 	EnableWindow( GetDlgItem( g_hDlg, IDC_PASSWORD ), bEnable );
 }
