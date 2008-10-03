@@ -347,12 +347,9 @@ class QueryIPQueue
 	// How long entries will last (seconds).
 	unsigned int				_iEntryLength;
 
-	// The current number of entries.
-	unsigned int				_iNumberOfEntries;
-
 //*************************************************************************
 public:
-	QueryIPQueue( int iEntryLength ) : _iQueueHead( 0 ), _iQueueTail( 0 ), _iNumberOfEntries( 0 ), _iEntryLength( iEntryLength )
+	QueryIPQueue( int iEntryLength ) : _iQueueHead( 0 ), _iQueueTail( 0 ), _iEntryLength( iEntryLength )
 	{
 	}
 

@@ -1122,7 +1122,6 @@ void QueryIPQueue::adjustHead( const LONG CurrentTime )
 	while (( _iQueueHead != _iQueueTail ) && ( CurrentTime >= _IPQueue[_iQueueHead].lNextAllowedTime ))
 	{
 		_iQueueHead = ( _iQueueHead + 1 ) % MAX_QUERY_IPS;
-		_iNumberOfEntries--;
 	}
 }
 
@@ -1158,7 +1157,7 @@ bool QueryIPQueue::addressInQueue( const NETADDRESS_s AddressFrom ) const
 
 bool QueryIPQueue::isFull( ) const
 {
-	return ( _iNumberOfEntries == MAX_QUERY_IPS );
+	return ( ( ( _iQueueTail + 1 ) % MAX_QUERY_IPS ) == _iQueueHead );
 }
 
 //==========================================================================
@@ -1184,6 +1183,4 @@ void QueryIPQueue::addAddress( const NETADDRESS_s AddressFrom, const LONG lCurre
 
 		_iQueueHead = ( _iQueueHead + 1 ) % MAX_QUERY_IPS; // [RC] Start removing older entries. Also prevents the queue from getting stuck.
 	}
-
-	_iNumberOfEntries++;
 }
