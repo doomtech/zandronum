@@ -71,6 +71,7 @@
 #include "version.h"
 #include "network.h"
 #include "survival.h"
+#include "gamemode.h"
 
 #ifdef	GUI_SERVER_CONSOLE
 
@@ -2703,7 +2704,7 @@ void SERVERCONSOLE_UpdateScoreboard( void )
 	}
 
 	// Render the current team scores.
-	if ( teamplay || teamgame || teamlms )
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 	{
 		if ( gamestate == GS_LEVEL )
 		{
