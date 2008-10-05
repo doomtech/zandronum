@@ -1251,7 +1251,7 @@ void DrawFullHUD_GameInformation()
 		{
 			screen->DrawText( CR_GRAY,
 				ulCurXPos,
-				(LONG)( ulCurYPos * fYScale ),
+				ulCurYPos,
 				szString,
 				DTA_VirtualWidth, ValWidth.Int,
 				DTA_VirtualHeight, ValHeight.Int,
