@@ -105,6 +105,7 @@
 #include "sv_save.h"
 #include "sv_rcon.h"
 #include "gamemode.h"
+#include "domination.h"
 
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
@@ -2261,6 +2262,12 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 			for ( ulIdx = 0; ulIdx < NUM_TEAMS; ulIdx++ )
 				SERVERCOMMANDS_SetTeamWins( ulIdx, TEAM_GetWinCount( ulIdx ), false, ulClient, SVCF_ONLYTHISCLIENT );
 		}
+
+		//Send Domination State
+		if ( domination )
+		{
+			SERVERCOMMANDS_SetDominationState( ulClient, SVCF_ONLYTHISCLIENT );
+		}
 	}
 	// If we're in a teamgame, or team possession, update the team scores.
 	else if ( teamgame || teampossession )
@@ -2697,6 +2704,10 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 
 		// Also, potentially restart the map after 5 minutes.
 		g_lMapRestartTimer = TICRATE * 60 * 5;
+
+		// If playing Domination reset ownership
+		if ( domination )
+			DOMINATION_Reset();
 	}
 }
 
@@ -4195,7 +4206,7 @@ static bool server_RequestJoin( BYTESTREAM_s *pByteStream )
 	// [BB] It's possible that you are watching through the eyes of someone else
 	// upon joining. Doesn't hurt to reset it.
 	g_aClients[g_lCurrentClient].ulDisplayPlayer = g_lCurrentClient;
-	if ( teamplay || ( teamgame && TemporaryTeamStarts.Size( ) == 0 ) || teamlms || teampossession )
+	if ( teamplay || ( teamgame && TemporaryTeamStarts.Size( ) == 0 ) || teamlms || teampossession || domination )
 	{
 		players[g_lCurrentClient].bOnTeam = true;
 		players[g_lCurrentClient].ulTeam = TEAM_ChooseBestTeamForPlayer( );
@@ -4320,7 +4331,7 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 		return ( false );
 
 	// Not a teamgame.
-	if (( teamgame == false ) && ( teamplay == false ) && ( teamlms == false ) && ( teampossession == false ))
+	if (( teamgame == false ) && ( teamplay == false ) && ( teamlms == false ) && ( teampossession == false ) && (domination == false))
 		return ( false );
 
 	// Player can't rejoin their LMS game if they are dead.

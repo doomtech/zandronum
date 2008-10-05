@@ -13,6 +13,10 @@ struct SectInfo
 
 	TArray<FString *> Names;
 	TArray<bool> Base[2];
+
+	//Domination Points
+	TArray< TArray<unsigned int> *> Points;
+	TArray<FString *> PointNames;
 };
 
 #endif //__SECTINFO_H__

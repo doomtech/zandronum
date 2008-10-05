@@ -73,6 +73,7 @@
 #include "survival.h"
 #include "possession.h"
 #include "cl_demo.h"
+#include "domination.h"
 
 #include "gl/gl_functions.h"
 #include "gl/gl_lights.h"
@@ -1203,6 +1204,9 @@ void P_LoadSectors (MapData * map)
 		ss->movefactor = ORIG_FRICTION_FACTOR;
 	}
 	P_CreateExtSectors();
+
+	DOMINATION_Init(); //Call Init function to set sector colors if in Domination
+
 	delete[] msp;
 }
 

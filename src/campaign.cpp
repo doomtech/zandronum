@@ -235,7 +235,7 @@ bool CAMPAIGN_DidPlayerBeatMap( void )
 	}
 
 	// If it's a deathmatch, check the player's spread.
-	if (( deathmatch ) && ( teampossession == false ) && ( teamlms == false ) && ( teamplay == false ))
+	if (( deathmatch ) && ( teampossession == false ) && ( teamlms == false ) && ( teamplay == false ) && ( domination == false ))
 	{
 		if ( SCOREBOARD_CalcSpread( consoleplayer ) < 0 )
 			return ( false );
@@ -383,6 +383,8 @@ static void campaign_ParseCampaignInfoLump( void )
 					pInfo->GameMode = GAMEMODE_ONEFLAGCTF;
 				else if ( stricmp( szValue, "skulltag" ) == 0 )
 					pInfo->GameMode = GAMEMODE_SKULLTAG;
+				else if ( stricmp( szValue, "domination" ) == 0 )
+					pInfo->GameMode = GAMEMODE_DOMINATION;
 				else
 					I_Error( "CAMPAIGN_ParseCampaignInfo: Unknown gamemode type, \"%s\"!", szValue );
 			}

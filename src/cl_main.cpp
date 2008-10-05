@@ -101,6 +101,7 @@
 #include "callvote.h"
 #include "invasion.h"
 #include "r_sky.h"
+#include "domination.h"
 
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
@@ -238,6 +239,7 @@ static	void	client_DoPossessionArtifactDropped( BYTESTREAM_s *pByteStream );
 static	void	client_DoGameModeFight( BYTESTREAM_s *pByteStream );
 static	void	client_DoGameModeCountdown( BYTESTREAM_s *pByteStream );
 static	void	client_DoGameModeWinSequence( BYTESTREAM_s *pByteStream );
+static	void	client_SetDominationState( BYTESTREAM_s *pByteStream );
 
 // Team commands.
 static	void	client_SetTeamFrags( BYTESTREAM_s *pByteStream );
@@ -879,6 +881,7 @@ void CLIENT_SetConnectionState( CONNECTIONSTATE_e State )
 		teamlms.ForceSet( Val, CVAR_Bool );
 		possession.ForceSet( Val, CVAR_Bool );
 		teampossession.ForceSet( Val, CVAR_Bool );
+		domination.ForceSet( Val, CVAR_Bool );
 
 		teamgame.ForceSet( Val, CVAR_Bool );
 		ctf.ForceSet( Val, CVAR_Bool );
@@ -1846,6 +1849,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_DOGAMEMODEWINSEQUENCE:
 
 		client_DoGameModeWinSequence( pByteStream );
+		break;
+	case SVC_SETDOMINATIONSTATE:
+
+		client_SetDominationState( pByteStream );
 		break;
 	case SVC_SETTEAMFRAGS:
 
@@ -7066,6 +7073,11 @@ static void client_SetGameMode( BYTESTREAM_s *pByteStream )
 
 		skulltag.ForceSet( Value, CVAR_Bool );
 		break;
+
+	case GAMEMODE_DOMINATION:
+	
+		domination.ForceSet( Value, CVAR_Bool );
+		break;
 	}
 
 	Value.Bool = !!NETWORK_ReadByte( pByteStream );
@@ -7386,6 +7398,19 @@ static void client_DoGameModeWinSequence( BYTESTREAM_s *pByteStream )
 //		POSSESSION_DoWinSequence( ulWinner );
 	else if ( invasion )
 		INVASION_DoWaveComplete( );
+}
+
+//*****************************************************************************
+//
+static void client_SetDominationState( BYTESTREAM_s *pByteStream )
+{
+	unsigned int NumPoints = NETWORK_ReadLong( pByteStream );
+	unsigned int *PointOwners = new unsigned int[NumPoints];
+	for(unsigned int i = 0;i < NumPoints;i++)
+	{
+		PointOwners[i] = NETWORK_ReadByte( pByteStream );
+	}
+	DOMINATION_LoadInit(NumPoints, PointOwners);
 }
 
 //*****************************************************************************

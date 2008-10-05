@@ -262,7 +262,7 @@ private:
 		{
 			StatusBarTex.DrawToBar ("STARMS", 104, 0);
 		}
-		else if ( teamgame || possession || teampossession )
+		else if ( teamgame || possession || teampossession || domination )
 			StatusBarTex.DrawToBar( "STPTS", 104, 0 );
 
 		StatusBarTex.DrawToBar ("STTPRCNT", 90, 3);		// Health %
@@ -281,7 +281,7 @@ private:
 		DrawFace ();
 		DrawKeys ();
 
-		if ( possession || teampossession || teamgame )
+		if ( possession || teampossession || teamgame || domination )
 		{
 			if ( OldPoints != CPlayer->lPointCount )
 			{

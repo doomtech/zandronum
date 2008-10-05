@@ -587,7 +587,8 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 					( GameMode == GAMEMODE_TEAMPOSSESSION ) ||
 					( GameMode == GAMEMODE_SKULLTAG ) ||
 					( GameMode == GAMEMODE_CTF ) ||
-					( GameMode == GAMEMODE_ONEFLAGCTF ))
+					( GameMode == GAMEMODE_ONEFLAGCTF ) ||
+					( GameMode == GAMEMODE_DOMINATION ))
 				{
 					// Team.
 					NETWORK_ReadByte( pByteStream );
@@ -777,7 +778,8 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 					( g_BrowserServerList[lServer].GameMode == GAMEMODE_TEAMPOSSESSION ) ||
 					( g_BrowserServerList[lServer].GameMode == GAMEMODE_SKULLTAG ) ||
 					( g_BrowserServerList[lServer].GameMode == GAMEMODE_CTF ) ||
-					( g_BrowserServerList[lServer].GameMode == GAMEMODE_ONEFLAGCTF ))
+					( g_BrowserServerList[lServer].GameMode == GAMEMODE_ONEFLAGCTF ) ||
+					( g_BrowserServerList[lServer].GameMode == GAMEMODE_DOMINATION ))
 				{
 					// Team.
 					NETWORK_ReadByte( pByteStream );

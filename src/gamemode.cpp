@@ -151,6 +151,11 @@ void GAMEMODE_Construct( void )
 	strncpy( g_GameModes[GAMEMODE_SKULLTAG].szShortName, "ST", 8 );
 	strncpy( g_GameModes[GAMEMODE_SKULLTAG].szF1Texture, "F1_ST", 8 );
 
+	// Domination
+	g_GameModes[GAMEMODE_DOMINATION].ulFlags = GMF_TEAMGAME|GMF_PLAYERSEARNPOINTS|GMF_PLAYERSONTEAMS;
+	strncpy( g_GameModes[GAMEMODE_SKULLTAG].szShortName, "DOM", 8 );
+	strncpy( g_GameModes[GAMEMODE_SKULLTAG].szF1Texture, "F1_DOM", 8 );
+
 	// Our default game mode is co-op.
 	g_CurrentGameMode = GAMEMODE_COOPERATIVE;
 }
@@ -218,6 +223,8 @@ void GAMEMODE_DetermineGameMode( void )
 		g_CurrentGameMode = GAMEMODE_ONEFLAGCTF;
 	if ( skulltag )
 		g_CurrentGameMode = GAMEMODE_SKULLTAG;
+	if ( domination )
+		g_CurrentGameMode = GAMEMODE_DOMINATION;
 }
 
 //*****************************************************************************

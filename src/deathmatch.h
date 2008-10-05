@@ -81,6 +81,7 @@ EXTERN_CVAR( Bool, lastmanstanding )
 EXTERN_CVAR( Bool, teamlms )
 EXTERN_CVAR( Bool, possession )
 EXTERN_CVAR( Bool, teampossession )
+EXTERN_CVAR( Bool, domination )
 
 EXTERN_CVAR( Int, fraglimit )
 EXTERN_CVAR( Float, timelimit )
