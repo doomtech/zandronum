@@ -39,6 +39,8 @@
 #include "m_fixed.h"
 #include "tarray.h"
 #include "name.h"
+//[BL] New Includes
+#include "sectinfo.h"
 
 #define NUM_WORLDVARS			256
 #define NUM_GLOBALVARS			64
@@ -185,6 +187,9 @@ struct level_info_s
 	int			fogdensity;
 	int			outsidefogdensity;
 	int			skyfog;
+
+	//[BL] Link a sectinfo to a map
+	SectInfo	SectorInfo;
 };
 typedef struct level_info_s level_info_t;
 
