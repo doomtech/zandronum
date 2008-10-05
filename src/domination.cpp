@@ -15,6 +15,7 @@
 #include "sv_commands.h"
 #include "team.h"
 #include "sectinfo.h"
+#include "cl_demo.h"
 
 #define SCORERATE	(TICRATE*3)
 
@@ -98,6 +99,10 @@ void DOMINATION_Tick(void)
 		return;
 
 	if(finished)
+		return;
+
+	// [BB] Scoring is server-side.
+	if ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )) )
 		return;
 
 	if(!(level.maptime % SCORERATE))
