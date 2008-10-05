@@ -105,6 +105,17 @@ static	MEDAL_t	g_Medals[NUM_MEDALS] =
 	{ "FISTA0", S_FISTING, "Fisting!", CR_GRAY, "Fisting", NUM_MEDALS, {NULL}, },
 };
 
+enum
+{
+	SPRITE_CHAT,
+	SPRITE_INCONSOLE,
+	SPRITE_ALLY,
+	SPRITE_FLAG_OR_SKULL,
+	SPRITE_TERMINATORARTIFACT,
+	SPRITE_LAG,
+	SPRITE_POSSESSIONARTIFACT
+};
+
 static	MEDALQUEUE_t	g_MedalQueue[MAXPLAYERS][MEDALQUEUE_DEPTH];
 
 // Has the first frag medal been awarded this round?
@@ -991,7 +1002,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 				pPlayer->pIcon = NULL;
 			}
 			else
-				ulActualSprite = 12;
+				ulActualSprite = SPRITE_CHAT;
 			break;
 		// In console icon. Delete it if the player is no longer in the console.
 		case S_INCONSOLE:
@@ -1003,7 +1014,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 				pPlayer->pIcon = NULL;
 			}
 			else
-				ulActualSprite = 1;
+				ulActualSprite = SPRITE_INCONSOLE;
 			break;
 
 		// Ally icon. Delete it if the player is now our enemy or if we're spectating.
@@ -1015,7 +1026,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 				pPlayer->pIcon = NULL;
 			}
 			else
-				ulActualSprite = 1;
+				ulActualSprite = SPRITE_ALLY;
 			break;
 		// Flag/skull icon. Delete it if the player no longer has it.
 		case S_BLUESKULL:
@@ -1069,7 +1080,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 					pPlayer->pIcon = NULL;
 				}
 				else
-					ulActualSprite = 2;
+					ulActualSprite = SPRITE_FLAG_OR_SKULL;
 			}
 
 			break;
@@ -1085,7 +1096,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 				pPlayer->pIcon = NULL;
 			}
 			else
-				ulActualSprite = 3;
+				ulActualSprite = SPRITE_TERMINATORARTIFACT;
 			break;
 		// Lag icon. Delete it if the player is no longer lagging.
 		case S_LAG:
@@ -1098,7 +1109,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 				pPlayer->pIcon = NULL;
 			}
 			else
-				ulActualSprite = 4;
+				ulActualSprite = SPRITE_LAG;
 			break;
 		// Possession artifact icon. Delete it if the player no longer has it.
 		case S_POSSESSIONARTIFACT:
@@ -1112,7 +1123,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 				pPlayer->pIcon = NULL;
 			}
 			else
-				ulActualSprite = 5;
+				ulActualSprite = SPRITE_POSSESSIONARTIFACT;
 			break;
 		}
 	}
@@ -1128,7 +1139,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 			if ( pPlayer->mo->IsTeammate( players[SCOREBOARD_GetViewPlayer()].mo ) && !players[SCOREBOARD_GetViewPlayer()].bSpectating)
 			{
 				ulFrame = S_ALLY;
-				ulDesiredSprite = 2;
+				ulDesiredSprite = SPRITE_ALLY;
 			}
 		}
 
@@ -1136,21 +1147,21 @@ void medal_SelectIcon( ULONG ulPlayer )
 		if ( pPlayer->bChatting )
 		{
 			ulFrame = S_CHAT;
-			ulDesiredSprite = 12;
+			ulDesiredSprite = SPRITE_CHAT;
 		}
 
 		// Draw a console icon over the player if they're in the console.
 		if ( pPlayer->bInConsole )
 		{
 			ulFrame = S_INCONSOLE;
-			ulDesiredSprite = 1;
+			ulDesiredSprite = SPRITE_INCONSOLE;
 		}
 
 		// Draw a lag icon over their head if they're lagging.
 		if ( pPlayer->bLagging )
 		{
 			ulFrame = S_LAG;
-			ulDesiredSprite = 4;
+			ulDesiredSprite = SPRITE_LAG;
 		}
 
 		// Draw a flag/skull above this player if he's carrying one.
@@ -1164,7 +1175,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 					if ( pInventory )
 					{
 						ulFrame = S_WHITEFLAG;
-						ulDesiredSprite = 2;
+						ulDesiredSprite = SPRITE_FLAG_OR_SKULL;
 					}
 				}
 				else
@@ -1177,7 +1188,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 						else
 							ulFrame = ( ctf ) ? (USHORT)S_BLUEFLAG : (USHORT)S_BLUESKULL;
 
-						ulDesiredSprite = 2;
+						ulDesiredSprite = SPRITE_FLAG_OR_SKULL;
 					}
 				}
 			}
@@ -1187,14 +1198,14 @@ void medal_SelectIcon( ULONG ulPlayer )
 		if ( terminator && ( pPlayer->cheats & CF_TERMINATORARTIFACT ))
 		{
 			ulFrame = S_TERMINATORARTIFACT;
-			ulDesiredSprite = 3;
+			ulDesiredSprite = SPRITE_TERMINATORARTIFACT;
 		}
 
 		// Draw the possession artifact over the player.
 		if (( possession || teampossession ) && ( pPlayer->cheats & CF_POSSESSIONARTIFACT ))
 		{
 			ulFrame = S_POSSESSIONARTIFACT;
-			ulDesiredSprite = 5;
+			ulDesiredSprite = SPRITE_POSSESSIONARTIFACT;
 		}
 
 		// We have an icon that needs to be spawned.
