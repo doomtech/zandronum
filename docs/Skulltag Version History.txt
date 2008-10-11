@@ -48,6 +48,7 @@
 -	- Fixed: The game crashed while spawning a player in certain game modes (e.g. lms), when certain inventory items (e.g. weapons) were replaced by actors that are not inventory items. [Torr Samaho]
 -	- Fixed: When entering the name of the save game in the save menu, the underscore denoting the cursor position is possibly displayed too far to the right. [Torr Samaho]
 -	- Fixed: The points of the teams in team possession are not displayed on the new fullscreen HUD if text scaling is activated. [Torr Samaho]
+-	- Fixed: A single malformed packet could possibly crash any client. [Torr Samaho, SuperGod]
 !	- Changed up the display of medals when you have the key down. Higher medals are now on the right, opposite their subordinates. [Rivecoder]
 !	- Each player's "ready to go on" status, shown at the intermission, can now only be turned on. Hopefully, this will help clear up what this command is for and prevent rapid toggling of it. [Rivecoder]
 !	- Rank/Spread is no longer drawn if there's only one player. [Rivecoder]

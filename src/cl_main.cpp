@@ -2798,6 +2798,9 @@ void CLIENT_RestoreSpecialDoomThing( AActor *pActor, bool bFog )
 		pActor->flags &= ~MF_NOGRAVITY;
 
 	// Should this item even respawn?
+	// [BB] You can call DoRespawn only on AInventory and descendants.
+	if ( !(pActor->IsKindOf( RUNTIME_CLASS( AInventory ))) )
+		return;
 	if ( static_cast<AInventory *>( pActor )->DoRespawn( ))
 	{
 		// Put the actor back to its spawn state.
