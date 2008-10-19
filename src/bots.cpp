@@ -2622,7 +2622,7 @@ char *BOTINFO_GetChatLump( ULONG ulIdx )
 //*****************************************************************************
 //*****************************************************************************
 //
-void BOTSPAWN_AddToTable( char *pszBotName, char *pszBotTeam )
+void BOTSPAWN_AddToTable( const char *pszBotName, const char *pszBotTeam )
 {
 	ULONG	ulIdx;
 	ULONG	ulTick;

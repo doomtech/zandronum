@@ -192,43 +192,49 @@ void G15_Tick( void )
 {
 	if ( G15_IsReady( ) )
 	{
-		// Update message mode.
-		if ( g_ulMessageTicks > 0)
+		// Update the message mode.
+		if ( g_ulMessageTicks > 0 )
 		{
 			g_ulMessageTicks--;
 			if ( g_CurrentLCDMode != LCDMODE_MESSAGE )
 				g15_ChangeMode( LCDMODE_MESSAGE );
 		}
 
-		// Update the HUD elements in-game.
-		else if ( ( gamestate == GS_LEVEL )  && ( players[consoleplayer].mo ) && ( !players[consoleplayer].bSpectating ) )
+		// Update the in-game HUD.
+		else if (( gamestate == GS_LEVEL )  && ( players[consoleplayer].mo ) && ( !players[consoleplayer].bSpectating ))
 		{
-			if ( g_CurrentLCDMode != LCDMODE_HUD )
-				g15_ChangeMode( LCDMODE_HUD );
+			FString		text;
 
-			FString text;
+			if ( g_CurrentLCDMode != LCDMODE_HUD )
+				g15_ChangeMode( LCDMODE_HUD );			
 			
 			// Update health.
-			text.Format("%d", players[consoleplayer].health);
-			g_LCD->SetText(g_hHUD_health,text);
+			text.Format( "%d", players[consoleplayer].health );
+			g_LCD->SetText( g_hHUD_health, text );
 
 			// Update armor.
-			text.Format("%d", players[consoleplayer].mo->FindInventory<ABasicArmor>( )->Amount);
-			g_LCD->SetText(g_hHUD_armor,text);
+			{
+				ABasicArmor		*pInventory = players[consoleplayer].mo->FindInventory<ABasicArmor>( );
+				
+				if ( pInventory )
+				{
+					text.Format( "%d", pInventory->Amount );
+					g_LCD->SetText( g_hHUD_armor, text );
+				}
+				g_LCD->SetVisible( g_hHUD_armor, pInventory != NULL );
+			}
 
 			// Update ammo (if the player isn't using an ammo-less weapon).
-			if ( players[consoleplayer].ReadyWeapon && players[consoleplayer].ReadyWeapon->Ammo1 )
 			{
-				text.Format("%d", players[consoleplayer].ReadyWeapon->Ammo1->Amount);
-				g_LCD->SetVisible(g_hHUD_ammo, TRUE);
+				bool	bAmmo = ( players[consoleplayer].ReadyWeapon && players[consoleplayer].ReadyWeapon->Ammo1 );
+				
+				if ( bAmmo )
+				{
+					text.Format("%d", players[consoleplayer].ReadyWeapon->Ammo1->Amount);			
+					g_LCD->SetText( g_hHUD_ammo, text );
+				}
+				g_LCD->SetVisible( g_hHUD_ammo, bAmmo );
 			}
-			else
-			{
-				text = "";
-				g_LCD->SetVisible(g_hHUD_ammo, FALSE);
-			}
-
-			g_LCD->SetText(g_hHUD_ammo,text);
 		}
 
 		// Otherwise, just show the Skulltag logo.
@@ -236,8 +242,8 @@ void G15_Tick( void )
 			g15_ChangeMode( LCDMODE_LOGO );
 
 		// Update the LCD.
-		g_LCD->SetExpiration(INFINITE);
-		g_LCD->Update();
+		g_LCD->SetExpiration( INFINITE );
+		g_LCD->Update( );
 	}
 }
 
