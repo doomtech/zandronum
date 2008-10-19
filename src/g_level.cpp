@@ -2564,7 +2564,7 @@ void G_DoLoadLevel (int position, bool autosave)
 			for ( i = 0; i < MAXPLAYERS; i++ )
 			{
 				if ( pInfo->BotSpawn[i].szBotName[0] )
-					BOTSPAWN_AddToTable( pInfo->BotSpawn[i].szBotName, pInfo->BotSpawn[i].szBotTeam );
+					BOTSPAWN_AddToTable( pInfo->BotSpawn[i].szBotName, pInfo->BotSpawn[i].BotTeamName.GetChars() );
 			}
 
 			// Also, clear out existing bots.
@@ -2573,20 +2573,20 @@ void G_DoLoadLevel (int position, bool autosave)
 			// We're now in a campaign.
 			CAMPAIGN_SetInCampaign( true );
 
-			if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) && ( pInfo->szPlayerTeam[0] != 0 ))
+			if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) && ( pInfo->PlayerTeamName.IsNotEmpty() ))
 			{
-				if ( stricmp( pInfo->szPlayerTeam, "red" ) == 0 )
+				if ( stricmp( pInfo->PlayerTeamName.GetChars(), "red" ) == 0 )
 				{
 					players[consoleplayer].ulTeam = TEAM_RED;
 					players[consoleplayer].bOnTeam = true;
 				}
-				else if ( stricmp( pInfo->szPlayerTeam, "blue" ) == 0 )
+				else if ( stricmp( pInfo->PlayerTeamName.GetChars(), "blue" ) == 0 )
 				{
 					players[consoleplayer].ulTeam = TEAM_BLUE;
 					players[consoleplayer].bOnTeam = true;
 				}
 				else
-					I_Error( "G_DoLoadLevel: Invalid player team, \"%s\"!", pInfo->szPlayerTeam );
+					I_Error( "G_DoLoadLevel: Invalid player team, \"%s\"!", pInfo->PlayerTeamName.GetChars() );
 			}
 		}
 		else

@@ -283,7 +283,7 @@ static void campaign_ParseCampaignInfoLump( FScanner &sc )
 		pInfo->lDMFlags2			= -1;
 		pInfo->lCompatFlags			= -1;
 		pInfo->szMapName[0]			= 0;
-		pInfo->szPlayerTeam[0]		= 0;
+		pInfo->PlayerTeamName		= "";
 		pInfo->bMustWinAllDuels		= true;
 		pInfo->pNextInfo			= NULL;
 		pInfo->lPossessionHoldTime	= 0;
@@ -292,7 +292,7 @@ static void campaign_ParseCampaignInfoLump( FScanner &sc )
 		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 		{
 			pInfo->BotSpawn[ulIdx].szBotName[0] = 0;
-			pInfo->BotSpawn[ulIdx].szBotTeam[0] = 0;
+			pInfo->BotSpawn[ulIdx].BotTeamName = "";
 		}
 
 		while ( sc.String[0] != '{' )
@@ -400,8 +400,7 @@ static void campaign_ParseCampaignInfoLump( FScanner &sc )
 			}
 			else if ( stricmp( szKey, "playerteam" ) == 0 )
 			{
-				strncpy( pInfo->szPlayerTeam, szValue, 7 );
-				pInfo->szPlayerTeam[7] = 0;
+				pInfo->PlayerTeamName = szValue;
 			}
 			else if ( stricmp( szKey, "mustwinallduels" ) == 0 )
 			{
@@ -461,8 +460,7 @@ static void campaign_ParseCampaignInfoLump( FScanner &sc )
 				if (( lBotIndex < 0 ) || ( lBotIndex >= MAXPLAYERS ))
 					I_Error( "CAMPAIGN_ParseCampaignInfo: Invalid \"botteam\" index, %d!", static_cast<int> (lBotIndex) );
 
-				strncpy( pInfo->BotSpawn[lBotIndex].szBotTeam, szValue, 7 );
-				pInfo->BotSpawn[lBotIndex].szBotTeam[7] = 0;
+				pInfo->BotSpawn[lBotIndex].BotTeamName = szValue;
 			}
 			else if ( strnicmp( szKey, "bot", strlen( "bot" )) == 0 )
 			{

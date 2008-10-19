@@ -64,7 +64,7 @@ typedef struct
 	char	szBotName[32];
 
 	// The team this bot's on when he spawns in.
-	char	szBotTeam[8];
+	FString	BotTeamName;
 
 } BOTSPAWNINFO_t;
 
@@ -105,7 +105,7 @@ typedef struct CAMPAIGNINFO_s
 	char			szMapName[9];
 
 	// If this is a teamgame, which team should the player be on?
-	char			szPlayerTeam[8];
+	FString		PlayerTeamName;
 
 	// If this is a duel, does the player have to win every single duel to beat the level?
 	bool			bMustWinAllDuels;

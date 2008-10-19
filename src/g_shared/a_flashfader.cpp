@@ -21,7 +21,8 @@ DFlashFader::DFlashFader (float r1, float g1, float b1, float a1,
 	Blends[1][0]=r2; Blends[1][1]=g2; Blends[1][2]=b2; Blends[1][3]=a2;
 
 	// [CW] If we're the server, tell this client to do the fade.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	// [BB] Only possible if who is not a NULL pointer.
+	if ( who && (NETWORK_GetState( ) == NETSTATE_SERVER) )
 		SERVERCOMMANDS_DoFlashFader( Blends[0][0], Blends[0][1], Blends[0][2], Blends[0][3], Blends[1][0], Blends[1][1], Blends[1][2], Blends[1][3], time, ULONG( who->player - players));
 }
 

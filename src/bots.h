@@ -733,7 +733,7 @@ bool			BOTINFO_GetRevealed( ULONG ulIdx );
 char			*BOTINFO_GetChatFile( ULONG ulIdx );
 char			*BOTINFO_GetChatLump( ULONG ulIdx );
 
-void		BOTSPAWN_AddToTable( char *pszBotName, char *pszBotTeam );
+void		BOTSPAWN_AddToTable( const char *pszBotName, const char *pszBotTeam );
 void		BOTSPAWN_BlockClearTable( void );
 void		BOTSPAWN_ClearTable( void );
 
