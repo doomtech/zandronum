@@ -294,6 +294,7 @@ enum
 	MF5_NOPAIN			= 0x00004000,	// If set the pain state won't be entered
 	MF5_ALWAYSFAST		= 0x00008000,	// always uses 'fast' attacking logic
 	MF5_NEVERFAST		= 0x00010000,	// never uses 'fast' attacking logic
+	MF5_NOINTERACTION	= 0x00200000,	// Thing is completely excluded from any gameplay related checks
 
 	// [BC] More object flags for Skulltag.
 
