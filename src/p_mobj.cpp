@@ -4479,7 +4479,11 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 				type = p->userinfo.PlayerClass;
 				if (type < 0)
 				{
-					type = pr_multiclasschoice() % PlayerClasses.Size ();
+					// [BB] If the player is on a team, only a class valid for this team may be selected.
+					if ( p->bOnTeam )
+						type = TEAM_SelectRandomValidPlayerClass( p->ulTeam );
+					else
+						type = pr_multiclasschoice() % PlayerClasses.Size ();
 				}
 			}
 			p->CurrentPlayerClass = type;

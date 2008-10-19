@@ -62,6 +62,8 @@ latestzdoom branch
 -	- Fixed: If a player is killed online, its death view doesn't follow the killer. [Torr Samaho]
 -	- Fixed: If a player turns into a spectator, the currently active sounds associated to it are not stopped. [Torr Samaho]
 -	- Fixed: Using weapnext or weapprev while recording a single player demo crashed the game. Nevertheless, single player demos are not supported and will go out of sync quickly. Use client demos instead. [Torr Samaho]
+-	- Fixed: Some sight check related problems in A_DoChase occurred in games with more than one player. Offline this caused monsters to move strangely, online this caused monster movement sync issues. [Torr Samaho]
+-	- Fixed: Spectators could trigger sector transitions offline. [Torr Samaho]
 !	- Changed up the display of medals when you have the key down. Higher medals are now on the right, opposite their subordinates. [Rivecoder]
 !	- Each player's "ready to go on" status, shown at the intermission, can now only be turned on. Hopefully, this will help clear up what this command is for and prevent rapid toggling of it. [Rivecoder]
 !	- Rank/Spread is no longer drawn if there's only one player. [Rivecoder]
@@ -71,6 +73,7 @@ latestzdoom branch
 !	- Changed: The FLOATBOB flag is not applied to spectators anymore, no matter if the corresponding player class has it or not. Furthermore, spectators now always have flags3 = MF3_NOBLOCKMONST, flags4 = 0 and flags5 = 0. [Torr Samaho]
 !	- Changed: Spectators now always have forwardmove 1, sidemove 1 and viewheight 41 (default values from PlayerPawn), no matter how the values of the corresponding player class are. [Torr Samaho]
 !	- Changed: Spectators are fixed in their spawn state and don't execute any code pointers. [Torr Samaho]
+!	- Changed: If a player selects the "Random" player class, a new class is selected randomly every time the player respawns. [Torr Samaho]
 
 v0.97d2
 -------

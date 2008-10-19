@@ -2068,12 +2068,7 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 
 	if ( szClass[0] )
 	{
-		// [BB] We can't use -1 here for random, in this case the skin check below crashes.
-		// Therefore the server just randomly selects a class. Seems to work well.
-		if ( stricmp( szClass, "random" ) == 0 )
-			pPlayer->userinfo.PlayerClass = (M_Random() % PlayerClasses.Size () );
-		else
-			pPlayer->userinfo.PlayerClass = D_PlayerClassToInt( szClass );
+		pPlayer->userinfo.PlayerClass = D_PlayerClassToInt( szClass );
 
 		// If the player class is changed, we also have to reset cls.
 		// Otherwise cls will not be reinitialized in P_SpawnPlayer. 
@@ -2088,7 +2083,10 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 		// even if the server doesn't have the skin loaded.
 		strncpy( g_aClients[g_lCurrentClient].szSkin, szSkin, MAX_SKIN_NAME + 1 );
 
-		pPlayer->userinfo.skin = R_FindSkin( szSkin, pPlayer->userinfo.PlayerClass );
+		// [BB] This can't be done if PlayerClass == -1, but shouldn't be necessary anyway,
+		// since it's done as soon as the player is spawned in P_SpawnPlayer.
+		if ( pPlayer->userinfo.PlayerClass != -1 )
+			pPlayer->userinfo.skin = R_FindSkin( szSkin, pPlayer->userinfo.PlayerClass );
 	}
 
 	if ( bKickPlayer )
