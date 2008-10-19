@@ -661,6 +661,9 @@ public:
 	// Adds one item of a particular type. Returns NULL if it could not be added.
 	AInventory *GiveInventoryType (const PClass *type);
 
+	// [BB] Adds one item of a particular type or its replacement. Returns NULL if it could not be added.
+	AInventory *GiveInventoryTypeRespectingReplacements (const PClass *type);
+
 	// Returns the first item held with IF_INVBAR set.
 	AInventory *FirstInv ();
 

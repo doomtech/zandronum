@@ -1307,8 +1307,11 @@ bool V_DoModeSetup (int width, int height, int bits)
 */
 	CleanWidth = width / CleanXfac;
 	CleanHeight = height / CleanYfac;
+
+/* [RC] This triggers in 640x480 due to the "ugly vertical menu scaling" fix.
 	assert(CleanWidth >= 320);
 	assert(CleanHeight >= 200);
+*/
 
 	DisplayWidth = width;
 	DisplayHeight = height;

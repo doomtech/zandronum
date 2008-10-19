@@ -43,8 +43,7 @@
 //
 // Filename: networkshared.h
 //
-// Description: Contains network related code shared between
-// Skulltag and the master server.
+// Description: Contains shared network code shared between Skulltag and its satellites (master server, statsmaker, rcon utility, etc).
 //
 //-----------------------------------------------------------------------------
 
@@ -57,18 +56,20 @@
 #include <stdio.h>
 #include <iostream>
 #include <vector>
+#include <list>
 
 #include <ctype.h>
 #include <math.h>
 
-//*****************************************************************************
-//	DEFINES
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+//-- DEFINES ---------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Maximum size of the packets sent out by the server.
 #define	MAX_UDP_PACKET				8192
 
 // [BB] Number of packets that are stored to recover from packet loss.
-#define PACKET_BUFFER_SIZE		1024
+#define PACKET_BUFFER_SIZE			1024
 
 // [RC] A security debug feature to catch malicious packets.
 // #define CREATE_PACKET_LOG
@@ -81,6 +82,7 @@ typedef enum
 
 } BUFFERTYPE_e;
 
+//*****************************************************************************
 enum
 {
 	// Server is letting master server of its existance.
@@ -113,18 +115,20 @@ enum
 // Launcher is querying the server, or master server.
 #define	LAUNCHER_SERVER_CHALLENGE	199
 
-#define	DEFAULT_SERVER_PORT		10666
-#define	DEFAULT_CLIENT_PORT		10667
-#define	DEFAULT_MASTER_PORT		15300
-#define	DEFAULT_BROADCAST_PORT	15101
-#define	DEFAULT_STATS_PORT		15201
+#define	DEFAULT_SERVER_PORT			10666
+#define	DEFAULT_CLIENT_PORT			10667
+#define	DEFAULT_MASTER_PORT			15300
+#define	DEFAULT_BROADCAST_PORT		15101
+#define	DEFAULT_STATS_PORT			15201
 
 // This is the longest possible string we can pass over the network.
 #define	MAX_NETWORK_STRING			2048
 
-//*****************************************************************************
-//	STRUCTURES
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+//-- STRUCTURES ------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------
 
+//*****************************************************************************
 typedef struct
 {
 	// Four digit IP address.
@@ -190,214 +194,169 @@ typedef struct
 
 } IPADDRESSBAN_s;
 
-//*****************************************************************************
-//	PROTOTYPES
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+//-- PROTOTYPES ------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------
 
 void			NETWORK_InitBuffer( NETBUFFER_s *pBuffer, ULONG ulLength, BUFFERTYPE_e BufferType );
 void			NETWORK_FreeBuffer( NETBUFFER_s *pBuffer );
 void			NETWORK_ClearBuffer( NETBUFFER_s *pBuffer );
 LONG			NETWORK_CalcBufferSize( NETBUFFER_s *pBuffer );
-
-int				NETWORK_ReadByte( BYTESTREAM_s *pByteStream );
-void			NETWORK_WriteByte( BYTESTREAM_s *pByteStream, int Byte );
-
-int				NETWORK_ReadShort( BYTESTREAM_s *pByteStream );
-void			NETWORK_WriteShort( BYTESTREAM_s *pByteStream, int Short );
-
-int				NETWORK_ReadLong( BYTESTREAM_s *pByteStream );
-void			NETWORK_WriteLong( BYTESTREAM_s *pByteStream, int Long );
-
-float			NETWORK_ReadFloat( BYTESTREAM_s *pByteStream );
-void			NETWORK_WriteFloat( BYTESTREAM_s *pByteStream, float Float );
-
-const char		*NETWORK_ReadString( BYTESTREAM_s *pByteStream );
-void			NETWORK_WriteString( BYTESTREAM_s *pByteStream, const char *pszString );
-
 void			NETWORK_WriteBuffer( BYTESTREAM_s *pByteStream, const void *pvBuffer, int nLength );
 
-// Debugging function.
-void			NETWORK_WriteHeader( BYTESTREAM_s *pByteStream, int Byte );
+int				NETWORK_ReadByte( BYTESTREAM_s *pByteStream );
+int				NETWORK_ReadShort( BYTESTREAM_s *pByteStream );
+int				NETWORK_ReadLong( BYTESTREAM_s *pByteStream );
+float			NETWORK_ReadFloat( BYTESTREAM_s *pByteStream );
+const char		*NETWORK_ReadString( BYTESTREAM_s *pByteStream );
+void			NETWORK_WriteByte( BYTESTREAM_s *pByteStream, int Byte );
+void			NETWORK_WriteShort( BYTESTREAM_s *pByteStream, int Short );
+void			NETWORK_WriteLong( BYTESTREAM_s *pByteStream, int Long );
+void			NETWORK_WriteFloat( BYTESTREAM_s *pByteStream, float Float );
+void			NETWORK_WriteString( BYTESTREAM_s *pByteStream, const char *pszString );
 
+void			NETWORK_WriteHeader( BYTESTREAM_s *pByteStream, int Byte );
 bool			NETWORK_CompareAddress( NETADDRESS_s Address1, NETADDRESS_s Address2, bool bIgnorePort );
 bool			NETWORK_StringToAddress( const char *pszString, NETADDRESS_s *pAddress );
 void			NETWORK_SocketAddressToNetAddress( struct sockaddr_in *s, NETADDRESS_s *a );
 void			NETWORK_NetAddressToSocketAddress( NETADDRESS_s &Address, struct sockaddr_in &SocketAddress );
 bool			NETWORK_StringToIP( const char *pszAddress, char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 );
-const char	*NETWORK_GetHostByIPAddress( NETADDRESS_s Address );
+const char		*NETWORK_GetHostByIPAddress( NETADDRESS_s Address );
+std::string		GenerateCouldNotOpenFileErrorString( const char *pszFunctionHeader, const char *pszFileName, LONG lErrorCode );
 
-std::string GenerateCouldNotOpenFileErrorString( const char *pszFunctionHeader, const char *pszFileName, LONG lErrorCode );
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+//-- CLASSES ---------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------
 
-/**
- * Class to read IP file lists from files, supports wildcards.
- *
- * Based on the ban file parsing C-code written by BC.
- *
- * \author BB
- */
-class IPFileParser{
-	const unsigned int _listLength;
-	ULONG _numberOfEntries;
-	char _errorMessage[1024];
+//==========================================================================
+//
+// IPFileParser
+//
+// Reads a list of IPs from a file (ie, a banlist). Supports wildcards and comments.
+// @author Benjamin Berkels, Brad Carney
+//
+//==========================================================================
+
+class IPFileParser
+{
+	const unsigned int	_listLength;
+	ULONG				_numberOfEntries;
+	char				_errorMessage[1024];
+
+//*************************************************************************
 public:
-	IPFileParser ( const int IPListLength )
-		: _listLength(IPListLength)
+	IPFileParser( const int IPListLength ) : _listLength( IPListLength )
 	{
 		_errorMessage[0] = '\0';
 	}
 		
-	const char* getErrorMessage()
+	const char* getErrorMessage( )
 	{
 		return _errorMessage;
 	}
 
-	ULONG getNumberOfEntries ()
+	ULONG getNumberOfEntries ( )
 	{
 		return _numberOfEntries;
 	}
 
 	bool parseIPList( const char* FileName, std::vector<IPADDRESSBAN_s> &IPArray );
+
+//*************************************************************************
 private:
-	char skipWhitespace( FILE *pFile );
-	char skipComment( FILE *pFile );
-	void readReason( FILE *pFile, char *Reason, const int MaxReasonLength );
-	bool parseNextLine( FILE *pFile, IPADDRESSBAN_s &IP, ULONG &BanIdx );
+	char		skipWhitespace( FILE *pFile );
+	char		skipComment( FILE *pFile );
+	void		readReason( FILE *pFile, char *Reason, const int MaxReasonLength );
+	bool		parseNextLine( FILE *pFile, IPADDRESSBAN_s &IP, ULONG &BanIdx );
 };
 
-/**
- * Class to store a list of IPs, supports wildcards.
- *
- * \author BB
- */
+//==========================================================================
+//
+// IPList
+//
+// Stores a list of IPs. Supports wildcards.
+// @author Benjamin Berkels
+//
+//==========================================================================
+
 class IPList
 {
-	std::vector<IPADDRESSBAN_s> _ipVector;
-	std::string _filename;
-	std::string _error;
+	std::vector<IPADDRESSBAN_s>		_ipVector;
+	std::string						_filename;
+	std::string						_error;
+
+//*************************************************************************
 public:
-	bool clearAndLoadFromFile( const char *Filename );
-	bool isIPInList( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3 ) const;
-	bool isIPInList( const NETADDRESS_s &Address ) const;
-	ULONG doesEntryExist( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3 ) const;
-	IPADDRESSBAN_s getEntry( const ULONG ulIdx ) const;
-	std::string getEntryAsString( const ULONG ulIdx ) const;
-	ULONG getEntryIndex( const NETADDRESS_s &Address ) const; // [RC]
-	const char *getEntryComment( const NETADDRESS_s &Address ) const; // [RC]
-	void addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3, const char *pszPlayerName, const char *pszComment, std::string &Message );
-	void addEntry( const char *pszIPAddress, const char *pszPlayerName, const char *pszComment, std::string &Message );
-	void removeEntry( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3, std::string &Message );
-	void removeEntry( const char *pszIPAddress, std::string &Message );
+	bool			clearAndLoadFromFile( const char *Filename );
+	bool			isIPInList( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3 ) const;
+	bool			isIPInList( const NETADDRESS_s &Address ) const;
+	ULONG			doesEntryExist( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3 ) const;
+	IPADDRESSBAN_s	getEntry( const ULONG ulIdx ) const;
+	std::string		getEntryAsString( const ULONG ulIdx ) const;
+	ULONG			getEntryIndex( const NETADDRESS_s &Address ) const; // [RC]
+	const char		*getEntryComment( const NETADDRESS_s &Address ) const; // [RC]
+	void			addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3, const char *pszPlayerName, const char *pszComment, std::string &Message );
+	void			addEntry( const char *pszIPAddress, const char *pszPlayerName, const char *pszComment, std::string &Message );
+	void			removeEntry( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3, std::string &Message );
+	void			removeEntry( const char *pszIPAddress, std::string &Message );
 
-	unsigned int size() const { return static_cast<unsigned int>(_ipVector.size()); }
+	unsigned int	size() const { return static_cast<unsigned int>( _ipVector.size( )); }
+	void			clear() { _ipVector.clear(); }
+	void			push_back ( IPADDRESSBAN_s &IP ) { _ipVector.push_back(IP); }
+	const char*		getErrorMessage() const { return _error.c_str(); }
+	
+	std::vector<IPADDRESSBAN_s>&	getVector() { return _ipVector; }
 
-	void clear() { _ipVector.clear(); }
-
-	void push_back ( IPADDRESSBAN_s &IP ) { _ipVector.push_back(IP); }
-
-	std::vector<IPADDRESSBAN_s>& getVector() { return _ipVector; }
-
-	const char* getErrorMessage() const { return _error.c_str(); }
-
+//*************************************************************************
 private:
 	bool rewriteListToFile ();
 };
 
-/**
- * Class to store a list of IP address that this server has been queried by recently.
- *
- * \author BB
- */
+//==========================================================================
+//
+// QueryIPQueue
+//
+// Stores IPs that have recently queried us to prevent flooding.
+// @author Benjamin Berkels, Rivecoder
+//
+//==========================================================================
+
 class QueryIPQueue
 {
-
-	typedef struct
+	//*************************************************************************
+	typedef struct 
 	{
-		// Is this slot free?
-		bool			bFree;
+		// The IP address.
+		NETADDRESS_s		Address;
 
-		// The IP address of someone who just queried the master server.
-		NETADDRESS_s	Address;
-
-		// This is the next time we're allowed to respond to a query from this IP address.
-		long			lNextAllowedTime;
+		// Expiration date.
+		long				lNextAllowedTime;
 
 	} STORED_QUERY_IP_t;
 
-	// How many IPs we can store in our query list.
-	static const unsigned int maxStoredQueryIPs	= 512;
+	// The maximum number of entries that we can store.
+	static const unsigned int	MAX_QUERY_IPS = 512;
 
-	STORED_QUERY_IP_t _StoredQueryIPs[maxStoredQueryIPs];
+	// The array of IPs.
+	STORED_QUERY_IP_t			_IPQueue[MAX_QUERY_IPS];
 
+	// Head and tail of the queue.
+	unsigned int				_iQueueHead;
+	unsigned int				_iQueueTail;
+
+	// How long entries will last (seconds).
+	unsigned int				_iEntryLength;
+
+//*************************************************************************
 public:
-
-	//==========================================================================
-	//
-	// adjustHead
-	//
-	// Removes any old enties.
-	//
-	//==========================================================================
-
-	void adjustHead ( const LONG CurrentTime )
+	QueryIPQueue( int iEntryLength ) : _iQueueHead( 0 ), _iQueueTail( 0 ), _iEntryLength( iEntryLength )
 	{
-		for	( unsigned int i = 0; i < maxStoredQueryIPs; i++ )
-		{
-			if ( !_StoredQueryIPs[i].bFree && ( CurrentTime >= _StoredQueryIPs[i].lNextAllowedTime ))
-				_StoredQueryIPs[i].bFree = true;
-		}
 	}
 
-	//==========================================================================
-	//
-	// addressInQueue
-	//
-	// Returns whether the given IP is in the queue.
-	//
-	//==========================================================================
-
-	bool addressInQueue ( const NETADDRESS_s AddressFrom ) const
-	{
-		for	( unsigned int i = 0; i < maxStoredQueryIPs; i++ )
-		{
-			if ( !_StoredQueryIPs[i].bFree && NETWORK_CompareAddress( AddressFrom, _StoredQueryIPs[i].Address, true ))
-				return true;
-		}
-
-		return false;
-	}
-
-	//==========================================================================
-	//
-	// addAddress
-	//
-	// Adds the given address to the queue. (If the queue is full, an error written to errorOut)
-	//
-	//==========================================================================
-
-	void addAddress ( const NETADDRESS_s AddressFrom, const LONG lCurrentTime, const LONG lLength = 10, std::ostream *errorOut = NULL )
-	{
-		int		iIndex = -1;
-
-		// Look for a free slot.
-		for	( unsigned int i = 0; i < maxStoredQueryIPs; i++ )
-		{
-			if ( _StoredQueryIPs[i].bFree )
-			{
-				iIndex = i;
-				break;
-			}
-		}
-
-		// Oh no! The queue is full! Just exit.
-		if ( iIndex == -1 )
-		{
-			*errorOut << "WARNING! This IP queue is full!\n";
-			return;
-		}
-
-		_StoredQueryIPs[iIndex].Address = AddressFrom;
-		_StoredQueryIPs[iIndex].bFree = false;
-		_StoredQueryIPs[iIndex].lNextAllowedTime = lCurrentTime + lLength;
-	}
+	void	adjustHead( const LONG CurrentTime );
+	bool	addressInQueue( const NETADDRESS_s AddressFrom ) const;
+	void	addAddress( const NETADDRESS_s AddressFrom, const LONG lCurrentTime, std::ostream *errorOut = NULL );
+	bool	isFull( ) const;
 };
 
 #endif	// __NETWORKSHARED_H__

@@ -1104,3 +1104,83 @@ bool IPList::rewriteListToFile ()
 		return false;
 	}
 }
+
+//==========================================================================
+// QueryIPQueue
+//==========================================================================
+
+//==========================================================================
+//
+// adjustHead
+//
+// Removes any old enties.
+//
+//==========================================================================
+
+void QueryIPQueue::adjustHead( const LONG CurrentTime )
+{
+	while (( _iQueueHead != _iQueueTail ) && ( CurrentTime >= _IPQueue[_iQueueHead].lNextAllowedTime ))
+	{
+		_iQueueHead = ( _iQueueHead + 1 ) % MAX_QUERY_IPS;
+	}
+}
+
+//==========================================================================
+//
+// addressInQueue
+//
+// Returns whether the given IP is in the queue.
+//
+//==========================================================================
+
+bool QueryIPQueue::addressInQueue( const NETADDRESS_s AddressFrom ) const
+{
+	// Search through the queue.
+	for ( unsigned int i = _iQueueHead; i != _iQueueTail; i = ( i + 1 ) % MAX_QUERY_IPS )
+	{
+		if ( NETWORK_CompareAddress( AddressFrom, _IPQueue[i].Address, true ))
+			return true;
+	}
+
+	// Not found, or the queue is empty.
+	return false;
+}
+
+//==========================================================================
+//
+// isFull
+//
+// Returns if the queue is full.
+// This will only happen if the server is being attacked by a DOS with >= MAX_QUERY_IPS computers. The sever should stop processing new requests at that point.
+//
+//==========================================================================
+
+bool QueryIPQueue::isFull( ) const
+{
+	return ( ( ( _iQueueTail + 1 ) % MAX_QUERY_IPS ) == _iQueueHead );
+}
+
+//==========================================================================
+//
+// addAddress
+//
+// Adds the given address to the queue. (If the queue is full, an error written to errorOut)
+//
+//==========================================================================
+
+void QueryIPQueue::addAddress( const NETADDRESS_s AddressFrom, const LONG lCurrentTime, std::ostream *errorOut )
+{
+	// Add and advance the tail.
+	_IPQueue[_iQueueTail].Address = AddressFrom;
+	_IPQueue[_iQueueTail].lNextAllowedTime = lCurrentTime + _iEntryLength;
+	_iQueueTail = ( _iQueueTail + 1 ) % MAX_QUERY_IPS;
+
+	// Is the queue full?
+	if (_iQueueTail == _iQueueHead )
+	{
+		if ( errorOut )
+			*errorOut << "WARNING! The IP flood queue is full.\n";
+
+		_iQueueHead = ( _iQueueHead + 1 ) % MAX_QUERY_IPS; // [RC] Start removing older entries. Also prevents the queue from getting stuck.
+	}
+}

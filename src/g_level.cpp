@@ -2186,6 +2186,7 @@ void G_SecretExitLevel (int position)
 	G_ChangeLevel(G_GetSecretExitMap(), position, false);
 }
 
+void SERVERCONSOLE_UpdateScoreboard( void );
 void G_DoCompleted (void)
 {
 	int i; 
@@ -2344,6 +2345,10 @@ void G_DoCompleted (void)
 //		memcpy (statcopy, &wminfo, sizeof(wminfo));
 
 	WI_Start (&wminfo);
+
+	// [BB] If we're server, update the scoreboard on the server console.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCONSOLE_UpdateScoreboard( );
 }
 
 class DAutosaver : public DThinker
@@ -2367,7 +2372,6 @@ void DAutosaver::Tick ()
 extern gamestate_t 	wipegamestate; 
  
 void SERVERCONSOLE_SetCurrentMapname( const char *pszString );
-void SERVERCONSOLE_UpdateScoreboard( void );
 void SERVERCONSOLE_UpdatePlayerInfo( LONG lPlayer, ULONG ulUpdateFlags );
 void G_DoLoadLevel (int position, bool autosave)
 {

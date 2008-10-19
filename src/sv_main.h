@@ -330,7 +330,7 @@ bool		SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream );
 ULONG		SERVER_GetPlayerIndexFromName( const char *pszString );
 LONG		SERVER_GetCurrentClient( void );
 void		SERVER_GiveInventoryToPlayer( const player_t *player, AInventory *pInventory );
-void		SERVER_IgnoreIP( NETADDRESS_s Address, LONG lSeconds );
+void		SERVER_IgnoreIP( NETADDRESS_s Address );
 
 // From sv_master.cpp
 void		SERVER_MASTER_Construct( void );

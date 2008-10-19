@@ -60,7 +60,7 @@
 #define PROTOCOL_VERSION			1
 #define RCON_CANDIDATE_TIMEOUT_TIME 10
 #define RCON_CLIENT_TIMEOUT_TIME	40
-#define WRONGPASSWORD_IGNORE_TIME	5
+#define BAD_QUERY_IGNORE_TIME		4
 
 //*****************************************************************************
 // Messages sent from server to the RCON utility.
@@ -119,7 +119,7 @@ void SERVER_RCON_Destruct( );
 void SERVER_RCON_Tick( );
 void SERVER_RCON_ParseMessage( NETADDRESS_s Address, LONG lMessage, BYTESTREAM_s *pByteStream );
 void SERVER_RCON_Printf( const char *pszString );
-void		SERVER_RCON_UpdateInfo( int iUpdateType );
+void SERVER_RCON_UpdateInfo( int iUpdateType );
 
 #endif
 

@@ -995,6 +995,23 @@ AInventory *AActor::GiveInventoryType (const PClass *type)
 
 //============================================================================
 //
+// [BB] AActor :: GiveInventoryTypeRespectingReplacements
+//
+//============================================================================
+
+AInventory *AActor::GiveInventoryTypeRespectingReplacements (const PClass *type)
+{
+	const PClass *pReplacementClass = type->ActorInfo->GetReplacement( )->Class;
+	// [BB] If the replacement is something, that is not of type AInventory, we
+	// can't give it to the actor.
+	if ( pReplacementClass->IsDescendantOf( RUNTIME_CLASS( AInventory )) )
+		return GiveInventoryType ( pReplacementClass );
+	else
+		return NULL;
+}
+
+//============================================================================
+//
 // AActor :: GiveAmmo
 //
 // Returns true if the ammo was added, false if not.
