@@ -2011,7 +2011,8 @@ void A_SpawnItemEx(AActor * self)
 	if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) &&
 		(( flags & SIXF_CLIENTSIDESPAWN ) == false ))
 	{
-		return;
+		if (( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false )
+			return;
 	}
 
 	// [BB] The server doesn't spawn the client side items.

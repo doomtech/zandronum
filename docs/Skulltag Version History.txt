@@ -51,6 +51,7 @@
 -	- Fixed: The points of the teams in team possession are not displayed on the new fullscreen HUD if text scaling is activated. [Torr Samaho]
 -	- Fixed: A single malformed packet could possibly crash any client. [Torr Samaho, SuperGod]
 -	- Fixed: Under rare circumstances the server crashed when creating a FlashFader. [Torr Samaho, SuperGod]
+-	- Fixed: If an actor is spawned client side with A_SpawnItemEx, A_SpawnItemEx calls without the client side flag made by this actor don't spawn anything at all. [Torr Samaho]
 !	- Changed up the display of medals when you have the key down. Higher medals are now on the right, opposite their subordinates. [Rivecoder]
 !	- Each player's "ready to go on" status, shown at the intermission, can now only be turned on. Hopefully, this will help clear up what this command is for and prevent rapid toggling of it. [Rivecoder]
 !	- Rank/Spread is no longer drawn if there's only one player. [Rivecoder]
