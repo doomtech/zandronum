@@ -1586,8 +1586,16 @@ CCMD( changeteam )
 	// Can't change teams in a campaign!
 	if ( CAMPAIGN_InCampaign( ))
 	{
-		Printf( "You cannot change teams in the middle of a campaign!\n" );
-		return;
+		CAMPAIGNINFO_s *pInfo = CAMPAIGN_GetCampaignInfo( level.mapname );
+
+		// [BB] Allow the player to join the team, he is supposed to have.
+		if ( players[consoleplayer].bOnTeam
+		     || ( pInfo == NULL )
+		     || ( stricmp( pInfo->PlayerTeamName.GetChars(), argv[1] ) != 0 ) )
+		{
+			Printf( "You cannot change teams in the middle of a campaign!\n" );
+			return;
+		}
 	}
 
 	lDesiredTeam = NUM_TEAMS;

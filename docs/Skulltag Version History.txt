@@ -62,6 +62,7 @@
 !	- Changed: Spectators now always have forwardmove 1, sidemove 1 and viewheight 41 (default values from PlayerPawn), no matter how the values of the corresponding player class are. [Torr Samaho]
 !	- Changed: Spectators are fixed in their spawn state and don't execute any code pointers. [Torr Samaho]
 !	- Changed: If a player selects the "Random" player class, a new class is selected randomly every time the player respawns. [Torr Samaho]
+!	- Changed: In a single player campaign with a team based game mode, you can now rejoin after spectating with the in game join team menu, if you select the team the campaign wants you to have. [Torr Samaho]
 
 v0.97d2
 -------
