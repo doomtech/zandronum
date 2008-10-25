@@ -31,6 +31,7 @@
 +	- Added new team class selection menu: When joining a team from the team selection menu and more than one player class is available, there now is a menu that lets you select among the available classes (respects limitedtoteam). [Torr Samaho]
 +	- Added new dmflag "award damage dealt instead of kills", controlled by the new CVAR sv_awarddamageinsteadkills. If enabled, a player gets one point per 100 damage dealt and doesn't get any extra points for killing monsters. The scaling is done, so that players don't get outrageous amounts of points. Internally no rounding is done, so you'll get your points no matter if you dealt the damage in one or in several attacks. The flag works in all gamemodes, where kills are awarded (coop, survival, invasion). [Torr Samaho]
 +	- Added NOINTERACTION flag which completely disables all physics related code for any actor with this flag. Mostly useful for particle effects where the actors just move a certain distance and then disappear. (ported from ZDoom revision 876). [Torr Samaho]
++	- Added a new entry to the HUD options menu to toggle cl_drawcoopinfo. [Torr Samaho]
 -	- Fixed a positioning bug with rank/spread on the classic HUD when st_scale was off. [Rivecoder]
 -	- Fixed: the 'ColorSetter' and 'FadeSetter' actors were broken online. [Karate Chris]
 -	- Fixed: SKININFO skins couldn't use sounds from the Sounds subdirectory of PK3s/ZIPs. [Torr Samaho]

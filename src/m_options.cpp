@@ -812,6 +812,7 @@ static menuitem_t HUDMenuItems[] = {
 	{ discrete, "Large frag messages",		{&cl_showlargefragmessages},{2.0}, {0.0},	{0.0}, {YesNo} },
 //	{ discrete, "GZDoom HUD",				{&hud_althud},				{2.0}, {0.0},	{0.0}, {OnOff} },
 	{ discrete, "One key display",			{&cl_onekey},				{2.0}, {0.0},	{0.0}, {YesNo} },
+	{ discrete, "Draw coop info",		{&cl_drawcoopinfo},{2.0}, {0.0},	{0.0}, {YesNo} },
 
 
 };
