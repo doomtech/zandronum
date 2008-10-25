@@ -3137,6 +3137,10 @@ void CSkullBot::Tick( void )
 	if ( level.flags & LEVEL_FROZEN )
 		return;
 
+	// [BB] Don't run their script if they are frozen either.
+	if ( ( m_pPlayer->cheats & CF_TOTALLYFROZEN ) || ( m_pPlayer->cheats & CF_FROZEN ) )
+		return;
+
 	// Check to see if there's any events that need to be executed.
 	while ( m_lQueueHead != m_lQueueTail )
 	{
