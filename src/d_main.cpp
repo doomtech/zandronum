@@ -2542,10 +2542,10 @@ void D_DoomMain (void)
 		Printf ("V_Init: allocate screen.\n");
 		V_Init ();
 	}
-	// [BC] We still need to call FreeSpecialLights() to prevent a memory
-	// leak.
+	// [BB] We still need to initialize the palette for the ACS
+	// function CreateTranslation.
 	else
-		atterm( FreeSpecialLights );
+		InitPalette ();
 
 	// Base systems have been inited; enable cvar callbacks
 	FBaseCVar::EnableCallbacks ();
