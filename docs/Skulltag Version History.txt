@@ -57,6 +57,7 @@
 -	- Fixed: Bots were not affected by PROP_FROZEN or PROP_TOTALLYFROZEN. [Torr Samaho]
 -	- Fixed: Player names ending with "\c" caused various glitches. [Torr Samaho]
 -	- Fixed: The ACS function CreateTranslation with syntax "a:b=[red1,green1,blue1]:[red2,green2,blue2]" didn't work properly online. [Torr Samaho]
+-	- Fixed: The code to check the maximum allowed effective skin sprite width/height checked some textures it shouldn't have checked. [Torr Samaho]
 !	- Changed up the display of medals when you have the key down. Higher medals are now on the right, opposite their subordinates. [Rivecoder]
 !	- Each player's "ready to go on" status, shown at the intermission, can now only be turned on. Hopefully, this will help clear up what this command is for and prevent rapid toggling of it. [Rivecoder]
 !	- Rank/Spread is no longer drawn if there's only one player. [Rivecoder]
