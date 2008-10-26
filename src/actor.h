@@ -391,8 +391,10 @@ enum
 	// Handle the pickup of this item in a "special" way.
 	NETFL_SPECIALPICKUP		= 0x00000008,
 
-	// Actor was spawned client-side.
-	NETFL_CLIENTSPAWNED		= 0x00000010,
+	// [BB] This actor was only spawned by the clients or is supposed to be.
+	// The server doesn't spawn it at all.
+	// Only use it on actors that don't affect the game in any way (visuals aside).
+	NETFL_CLIENTSIDEONLY		= 0x00000010,
 
 	// [BC] End of new ST flags.
 

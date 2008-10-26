@@ -2573,6 +2573,11 @@ void G_DoLoadLevel (int position, bool autosave)
 			// We're now in a campaign.
 			CAMPAIGN_SetInCampaign( true );
 
+			// [BB] To properly handle limitedtoteam in single player campaigns
+			// we need to put the game into a "fake multiplayer" mode.
+			if ( NETWORK_GetState( ) == NETSTATE_SINGLE )
+				NETWORK_SetState( NETSTATE_SINGLE_MULTIPLAYER );
+
 			if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) && ( pInfo->PlayerTeamName.IsNotEmpty() ))
 			{
 				if ( stricmp( pInfo->PlayerTeamName.GetChars(), "red" ) == 0 )

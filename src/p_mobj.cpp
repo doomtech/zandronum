@@ -5171,7 +5171,8 @@ AActor *P_SpawnMapThing (FMapThing *mthing, int position)
 	// [BC] If we're a client, there's no need to spawn map things (unless specified).
 	if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( ))) && 
-		(( info->ulNetworkFlags & NETFL_ALLOWCLIENTSPAWN ) == false ))
+		(( info->ulNetworkFlags & NETFL_ALLOWCLIENTSPAWN ) == false ) &&
+		(( info->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false ))
 	{
 		return NULL;
 	}

@@ -105,6 +105,33 @@ StateCallData * pStateCall;
 
 //==========================================================================
 //
+// [BB] Used in all code pointers that spawn actors to handle
+// the NETFL_CLIENTSIDEONLY property.
+//
+//==========================================================================
+bool shouldActorNotBeSpawned ( const AActor *pSpawner, const PClass *pSpawnType, const bool bForceClientSide = false )
+{
+	// [BB] Nothing to spawn.
+	if ( pSpawnType == NULL )
+		return true;
+
+	bool bSpawnOnClient = ( bForceClientSide
+	                        || ( pSpawner && ( pSpawner->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) )
+	                        || ( GetDefaultByType(pSpawnType)->ulNetworkFlags & NETFL_CLIENTSIDEONLY )
+	                      );
+
+	// [BB] Clients don't spawn non-client side only things.
+	if ( ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ) ) ) && !bSpawnOnClient )
+		return true;
+	// [BB] The server doesn't spawn client side only things.
+	else if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && bSpawnOnClient )
+		return true;
+	else
+		return false;
+}
+
+//==========================================================================
+//
 // ACustomInventory :: CallStateChain
 //
 // Executes the code pointers in a chain of states
@@ -220,7 +247,7 @@ static void DoAttack (AActor *self, bool domelee, bool domissile)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		if (( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false )
+		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
 			return;
 	}
 
@@ -320,7 +347,7 @@ static void DoPlaySound(AActor * self, int channel)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		if (( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false )
+		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
 			return;
 	}
 
@@ -579,7 +606,7 @@ void A_Jump(AActor * self)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		if (( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false )
+		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
 			return;
 	}
 
@@ -614,7 +641,7 @@ void A_JumpIfHealthLower(AActor * self)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		if (( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false )
+		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
 			return;
 	}
 
@@ -639,7 +666,7 @@ void A_JumpIfCloser(AActor * self)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		if (( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false )
+		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
 			return;
 	}
 
@@ -690,7 +717,7 @@ void DoJumpIfInventory(AActor * self, AActor * owner)
 		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 			( CLIENTDEMO_IsPlaying( )))
 		{
-			if ((( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false ) &&
+			if ((( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false ) &&
 				(( self->player == NULL ) || (( self->player - players ) != consoleplayer )))
 			{
 				return;
@@ -827,7 +854,7 @@ void A_CallSpecial(AActor * self)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		if (( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false )
+		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
 		{
 			if (pStateCall != NULL)
 				pStateCall->Result = false;
@@ -872,14 +899,6 @@ enum CM_Flags
 
 void A_CustomMissile(AActor * self)
 {
-	// [BB] The server handles the spawning of the missle.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
-	{
-		if (( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false )
-			return;
-	}
-
 	int index=CheckIndex(6);
 	if (index<0) return;
 
@@ -893,6 +912,10 @@ void A_CustomMissile(AActor * self)
 
 	AActor * targ;
 	AActor * missile;
+
+	// [BB] Should the actor not be spawned, taking in account client side only actors?
+	if ( shouldActorNotBeSpawned ( self, PClass::FindClass(MissileName) ) )
+		return;
 
 	if (self->target != NULL || aimmode==2)
 	{
@@ -988,6 +1011,9 @@ void A_CustomMissile(AActor * self)
 				// [BC] If we're the server, tell clients to spawn the missile.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 					SERVERCOMMANDS_SpawnMissile( missile );
+				// [BB] The client did the spawning, so this has to be a client side only actor.
+				else if ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ) ) )
+					missile->ulNetworkFlags |= NETFL_CLIENTSIDEONLY;
 			}
 		}
 	}
@@ -1414,7 +1440,7 @@ void A_FireCustomMissile (AActor * self)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		if (( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false )
+		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
 			return;
 	}
 
@@ -1501,7 +1527,7 @@ void A_CustomPunch (AActor *self)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		if (( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false )
+		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
 			return;
 	}
 
@@ -1582,7 +1608,7 @@ void A_RailAttack (AActor * self)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		if (( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false )
+		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
 			return;
 	}
 
@@ -1948,13 +1974,9 @@ void A_SpawnItem(AActor * self)
 		if (useammo && !weapon->DepleteAmmo(weapon->bAltFire)) return;
 	}
 
-	// [BB] The server handles the spawning of the item.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
-	{
-		if (( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false )
-			return;
-	}
+	// [BB] Should the actor not be spawned, taking in account client side only actors?
+	if ( shouldActorNotBeSpawned ( self, missile ) )
+		return;
 
 	AActor * mo = Spawn( missile, 
 					self->x + FixedMul(distance, finecosine[self->angle>>ANGLETOFINESHIFT]), 
@@ -1964,16 +1986,22 @@ void A_SpawnItem(AActor * self)
 	int flags = (transfer_translation? SIXF_TRANSFERTRANSLATION:0) + (useammo? SIXF_SETMASTER:0);
 	bool bSpawnSuccessful = InitSpawnedItem(self, mo, flags);
 
-	// [BC] If we're the server and the spawn was not blocked, tell clients to spawn the item.
-	if ( mo && bSpawnSuccessful && (NETWORK_GetState( ) == NETSTATE_SERVER) )
+	if ( mo && bSpawnSuccessful )
 	{
-		SERVERCOMMANDS_SpawnThing( mo );
+		// [BC] If we're the server and the spawn was not blocked, tell clients to spawn the item.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		{
+			SERVERCOMMANDS_SpawnThing( mo );
 
-		if ( mo->angle != 0 )
-			SERVERCOMMANDS_SetThingAngle( mo );
+			if ( mo->angle != 0 )
+				SERVERCOMMANDS_SetThingAngle( mo );
 
-		if ( mo->Translation )
-			SERVERCOMMANDS_SetThingTranslation( mo );
+			if ( mo->Translation )
+				SERVERCOMMANDS_SetThingTranslation( mo );
+		}
+		// [BB] The client did the spawning, so this has to be a client side only actor.
+		else if ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ) ) )
+			mo->ulNetworkFlags |= NETFL_CLIENTSIDEONLY;
 	}
 }
 
@@ -2043,19 +2071,9 @@ void A_SpawnItemEx(AActor * self)
 		xmom = newxmom;
 	}
 
-	// [BB] The server handles the spawning of the item.
-	if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) &&
-		(( flags & SIXF_CLIENTSIDESPAWN ) == false ))
-	{
+	// [BB] Should the actor not be spawned, taking in account client side only actors?
+	if ( shouldActorNotBeSpawned ( self, missile, !!( flags & SIXF_CLIENTSIDESPAWN ) ) )
 		return;
-	}
-
-	// [BB] The server doesn't spawn the client side items.
-	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
-		( flags & SIXF_CLIENTSIDESPAWN ))
-	{
-		return;
-	}
 
 	AActor * mo = Spawn( missile, x, y, self->z - self->floorclip + zofs, ALLOW_REPLACE);
 	bool bSpawnSuccessful = InitSpawnedItem(self, mo, flags);
@@ -2095,7 +2113,7 @@ void A_SpawnItemEx(AActor * self)
 		if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 			( CLIENTDEMO_IsPlaying( )))
 		{
-			mo->ulNetworkFlags |= NETFL_CLIENTSPAWNED;
+			mo->ulNetworkFlags |= NETFL_CLIENTSIDEONLY;
 		}
 	}
 }
@@ -2132,7 +2150,7 @@ void A_ThrowGrenade(AActor * self)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		if (( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false )
+		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
 			return;
 	}
 
@@ -2420,7 +2438,7 @@ void A_DropInventory(AActor * self)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		if (( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false )
+		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
 			return;
 	}
 
@@ -2473,7 +2491,7 @@ void A_JumpIf(AActor * self)
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
 		( CLIENTDEMO_IsPlaying( )))
 	{
-		if (( self->ulNetworkFlags & NETFL_CLIENTSPAWNED ) == false )
+		if (( self->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) == false )
 			return;
 	}
 

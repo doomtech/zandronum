@@ -62,5 +62,6 @@
 EXTERN_CVAR( Bool, cooperative )
 EXTERN_CVAR( Bool, survival )
 EXTERN_CVAR( Bool, invasion )
+EXTERN_CVAR( Bool, cl_drawcoopinfo )
 
 #endif	// __COOPERATIVE_H__
