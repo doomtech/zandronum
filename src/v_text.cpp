@@ -308,6 +308,14 @@ int FFont::StringWidth (const BYTE *string) const
 // function so that we can colorize lots of things.
 void V_ColorizeString( char *pszString )
 {
+	// [BB] If the string ends with "\c", i.e. an incomplete color code, remove it.
+	const int length = strlen ( pszString );
+	if ( ( length > 1 ) && ( pszString[length-2] == '\\' ) && ( pszString[length-1] == 'c' ) )
+	{
+		pszString[length-2] = 0;
+		pszString[length-1] = 0;
+	}
+
 	char *p = pszString, c;
 	int i;
 
