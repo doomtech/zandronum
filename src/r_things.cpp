@@ -1452,6 +1452,17 @@ void R_InitSprites ()
 			     // [BB] No need to check Death/XDeath frames.
 			     && ( szTempLumpName[4] < 'H' ) )
 			{
+				// [BB] Check if the lump can be used as sprite. If not, no need to check it.
+				unsigned rotation = 17;
+
+				if (szTempLumpName[5] >= '0' && szTempLumpName[5] <= '9')
+					rotation = szTempLumpName[5] - '0';
+				else if (szTempLumpName[5] >= 'A')
+					rotation = szTempLumpName[5] - 'A' + 10;
+
+				if ( rotation > 16 )
+					continue;
+
 				FTextureID texnum = TexMan.CheckForTexture (szTempLumpName, FTexture::TEX_Sprite);
 				FTexture *tex = (texnum.Exists()) ? TexMan[ texnum ] : NULL;
 				if ( tex )
