@@ -115,6 +115,9 @@ enum
 // Launcher is querying the server, or master server.
 #define	LAUNCHER_SERVER_CHALLENGE	199
 
+// Master server is sending its banlist to a server.
+#define MASTER_SERVER_BANLIST		205
+
 #define	DEFAULT_SERVER_PORT			10666
 #define	DEFAULT_CLIENT_PORT			10667
 #define	DEFAULT_MASTER_PORT			15300
@@ -292,7 +295,7 @@ public:
 	bool			isIPInList( const NETADDRESS_s &Address ) const;
 	ULONG			doesEntryExist( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3 ) const;
 	IPADDRESSBAN_s	getEntry( const ULONG ulIdx ) const;
-	std::string		getEntryAsString( const ULONG ulIdx ) const;
+	std::string		getEntryAsString( const ULONG ulIdx, bool bIncludeComment = true ) const;
 	ULONG			getEntryIndex( const NETADDRESS_s &Address ) const; // [RC]
 	const char		*getEntryComment( const NETADDRESS_s &Address ) const; // [RC]
 	void			addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3, const char *pszPlayerName, const char *pszComment, std::string &Message );

@@ -1619,6 +1619,12 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 
 			SERVER_MASTER_SendServerInfo( NETWORK_GetFromAddress( ), ulFlags, ulTime, false );
 			return;
+		// [RC] Master server is sending us the holy banlist.
+		case MASTER_SERVER_BANLIST:
+
+			if ( NETWORK_CompareAddress( NETWORK_GetFromAddress( ), SERVER_MASTER_GetMasterAddress( ), false ))
+				SERVERBAN_ReadMasterServerBans( pByteStream );
+			return;
 		// Ignore; possibly a client who thinks he's still in a game, but isn't.
 		case CLC_USERINFO:
 		case CLC_QUIT:

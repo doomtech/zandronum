@@ -119,6 +119,29 @@ int I_GetTime (void)
 #endif
 }
 
+//*****************************************************************************
+//
+void MASTERSERVER_SendBanlistToServer( SERVER_s &Server )
+{
+#ifndef STAY_97D2_COMPATIBLE
+	NETWORK_ClearBuffer( &g_MessageBuffer );
+	NETWORK_WriteByte( &g_MessageBuffer.ByteStream, MASTER_SERVER_BANLIST );
+
+	// Write all the bans.
+	NETWORK_WriteLong( &g_MessageBuffer.ByteStream, g_BannedIPs.size( ));
+	for ( ULONG i = 0; i < g_BannedIPs.size( ); i++ )
+		NETWORK_WriteString( &g_MessageBuffer.ByteStream, g_BannedIPs.getEntryAsString( i, false ).c_str( ));
+
+	// Write all the exceptions.
+	NETWORK_WriteLong( &g_MessageBuffer.ByteStream, g_BannedIPExemptions.size( ));
+	for ( ULONG i = 0; i < g_BannedIPExemptions.size( ); i++ )
+		NETWORK_WriteString( &g_MessageBuffer.ByteStream, g_BannedIPExemptions.getEntryAsString( i, false ).c_str( ));
+
+	NETWORK_LaunchPacket( &g_MessageBuffer, Server.Address );
+	Server.lBanlistTime = g_lCurrentTime;
+	printf( "-> Banlist sent to %s.\n", NETWORK_AddressToString( Server.Address ));
+#endif
+}
 
 //*****************************************************************************
 //
@@ -280,8 +303,9 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 						printf( "ERROR: Server list full!\n" );
 					else
 					{
-						g_Servers[lServerIdx].lLastReceived = g_lCurrentTime;
+						g_Servers[lServerIdx].lLastReceived = g_lCurrentTime;						
 						printf( "+ Adding %s to the server list.\n", NETWORK_AddressToString( g_Servers[lServerIdx].Address ));
+						MASTERSERVER_SendBanlistToServer( g_Servers[lServerIdx] );
 					}
 				}
 			}
@@ -366,6 +390,10 @@ void MASTERSERVER_CheckTimeouts( void )
 			g_Servers[ulIdx].bAvailable = true;
 			printf( "- Server at %s timed out.\n", NETWORK_AddressToString( g_Servers[ulIdx].Address ));
 		}
+
+		// Periodically send the banlist to servers.
+		if (( g_lCurrentTime - g_Servers[ulIdx].lBanlistTime ) >= 60 )
+			MASTERSERVER_SendBanlistToServer( g_Servers[ulIdx] );
 	}
 }
 
@@ -378,6 +406,12 @@ int main( )
 
 	std::cerr << "=== S K U L L T A G | Master ===\n";
 	std::cerr << "Revision: "SVN_REVISION_STRING"\n";
+
+#ifdef STAY_97D2_COMPATIBLE
+	std::cerr << "Compatible with: 0.97d2" << std::endl;
+#else
+	std::cerr << "Compatible with: 0.97d3" << std::endl;
+#endif
 	std::cerr << "Port: " << DEFAULT_MASTER_PORT << std::endl << std::endl;
 
 	// Initialize the network system.

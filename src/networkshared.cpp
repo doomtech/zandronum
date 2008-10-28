@@ -908,20 +908,25 @@ IPADDRESSBAN_s IPList::getEntry( const ULONG ulIdx ) const
 
 //*****************************************************************************
 //
-std::string IPList::getEntryAsString( const ULONG ulIdx ) const
+std::string IPList::getEntryAsString( const ULONG ulIdx, bool bIncludeComment ) const
 {
 	std::stringstream entryStream;
 
-	if( ulIdx < _ipVector.size() )
+	if ( ulIdx < _ipVector.size() )
 	{
 		entryStream << _ipVector[ulIdx].szIP[0] << "."
 					<< _ipVector[ulIdx].szIP[1] << "."
 					<< _ipVector[ulIdx].szIP[2] << "."
 					<< _ipVector[ulIdx].szIP[3];
-		if ( _ipVector[ulIdx].szComment[0] )
+
+		// Optionally append the comment.
+		if ( _ipVector[ulIdx].szComment[0] && bIncludeComment )
+		{
 			entryStream << ":" << _ipVector[ulIdx].szComment;
-		entryStream << std::endl;
+			entryStream << std::endl;
+		}
 	}
+
 	return entryStream.str();
 }
 
