@@ -392,7 +392,7 @@ void MASTERSERVER_CheckTimeouts( void )
 		}
 
 		// Periodically send the banlist to servers.
-		if (( g_lCurrentTime - g_Servers[ulIdx].lBanlistTime ) >= 60 )
+		if (( g_lCurrentTime - g_Servers[ulIdx].lBanlistTime ) >= 60 * 15 )
 			MASTERSERVER_SendBanlistToServer( g_Servers[ulIdx] );
 	}
 }
