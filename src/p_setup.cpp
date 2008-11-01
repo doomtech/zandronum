@@ -62,6 +62,7 @@
 #include "s_sndseq.h"
 #include "sbar.h"
 #include "p_setup.h"
+// [BB] New #includes.
 #include "deathmatch.h"
 #include "duel.h"
 #include "team.h"
@@ -72,6 +73,7 @@
 #include "invasion.h"
 #include "survival.h"
 #include "possession.h"
+#include "joinqueue.h"
 #include "cl_demo.h"
 #include "domination.h"
 
@@ -4164,6 +4166,9 @@ void P_SetupLevel (char *lumpname, int position)
 				if ( PLAYER_ShouldSpawnAsSpectator( &players[i] ))
 				{
 					players[i].bSpectating = true;
+
+					// [BB] If the player was in the join queue, remove him.
+					JOINQUEUE_RemovePlayerFromQueue ( i, false );
 
 					// If this bot spawned as a spectator, let him know.
 					if ( players[i].pSkullBot )

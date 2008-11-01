@@ -84,10 +84,48 @@ void JOINQUEUE_Construct( void )
 
 //*****************************************************************************
 //
+void JOINQUEUE_RemovePlayerAtPosition ( ULONG ulPosition )
+{
+	// [BB] Position in queue.
+	if ( ulPosition >= MAXPLAYERS )
+		return;
+
+	// Shift all the slot positions after ulPosition up one.
+	for ( ULONG ulIdx = ulPosition; ulIdx < ( MAXPLAYERS - 1 ); ulIdx++ )
+	{
+		g_lJoinQueue[ulIdx].ulPlayer = g_lJoinQueue[ulIdx + 1].ulPlayer;
+		g_lJoinQueue[ulIdx].ulTeam = g_lJoinQueue[ulIdx + 1].ulTeam;
+	}
+
+	// Clear out the last slot.
+	g_lJoinQueue[MAXPLAYERS - 1].ulPlayer = MAXPLAYERS;
+}
+
+//*****************************************************************************
+//
+void JOINQUEUE_RemovePlayerFromQueue ( ULONG ulPlayer, bool bBroadcast )
+{
+	// [BB] Invalid player.
+	if ( ulPlayer >= MAXPLAYERS )
+		return;
+
+	LONG lJoinqueuePosition = JOINQUEUE_GetPositionInLine ( ulPlayer );
+	if ( lJoinqueuePosition != -1 )
+	{
+		JOINQUEUE_RemovePlayerAtPosition ( lJoinqueuePosition );
+
+		// If we're the server, tell everyone their new position in line
+		// (but only if we are supposed to broadcast).
+		if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && bBroadcast )
+			SERVERCOMMANDS_SetQueuePosition( );
+	}
+}
+
+//*****************************************************************************
+//
 void JOINQUEUE_PlayerLeftGame( bool bWantPop )
 {
 	bool	bPop = true;
-	ULONG	ulIdx;
 
 	// If we're in a duel, revert to the "waiting for players" state.
 	if ( duel )
@@ -186,102 +224,16 @@ void JOINQUEUE_PlayerLeftGame( bool bWantPop )
 	// Potentially let one person join the game.
 	if ( bPop && bWantPop )
 		JOINQUEUE_PopQueue( 1 );
-	return;
-
-	// Nothing to do if there's nobody waiting in the queue.
-	if ( g_lJoinQueue[0].ulPlayer == MAXPLAYERS )
-		return;
-
-	// Try to find the next person in line.
-	ulIdx = 0;
-	while ( 1 )
-	{
-		// Found end of list.
-		if (( g_lJoinQueue[ulIdx].ulPlayer == MAXPLAYERS ) || ( ulIdx == MAXPLAYERS ))
-			break;
-
-		// Found a player waiting in line. They will now join the game!
-		if ( playeringame[g_lJoinQueue[ulIdx].ulPlayer] )
-		{
-			players[g_lJoinQueue[ulIdx].ulPlayer].playerstate = PST_ENTERNOINVENTORY;
-			players[g_lJoinQueue[ulIdx].ulPlayer].bSpectating = false;
-			players[g_lJoinQueue[ulIdx].ulPlayer].bDeadSpectator = false;
-
-			if ( players[g_lJoinQueue[ulIdx].ulPlayer].pSkullBot )
-				players[g_lJoinQueue[ulIdx].ulPlayer].pSkullBot->PostEvent( BOTEVENT_JOINEDGAME );
-
-			// Begin the duel countdown.
-			if ( duel )
-			{
-				if ( sv_duelcountdowntime > 0 )
-					DUEL_StartCountdown(( sv_duelcountdowntime * TICRATE ) - 1 );
-				else
-					DUEL_StartCountdown(( 10 * TICRATE ) - 1 );
-			}
-			// Begin the LMS countdown.
-			else if ( lastmanstanding )
-			{
-				if ( sv_lmscountdowntime > 0 )
-					LASTMANSTANDING_StartCountdown(( sv_lmscountdowntime * TICRATE ) - 1 );
-				else
-					LASTMANSTANDING_StartCountdown(( 10 * TICRATE ) - 1 );
-			}
-			else
-			{
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVER_Printf( PRINT_HIGH, "%s \\c-joined the game.\n", players[g_lJoinQueue[ulIdx].ulPlayer].userinfo.netname );
-				else
-					Printf( "%s \\c-joined the game.\n", players[g_lJoinQueue[ulIdx].ulPlayer].userinfo.netname );
-			}
-
-			break;
-		}
-
-		ulIdx++;
-	}
-
-	// Shift all the slot positions up one.
-	for ( ulIdx = 0; ulIdx < ( MAXPLAYERS - 1 ); ulIdx++ )
-	{
-		g_lJoinQueue[ulIdx].ulPlayer = g_lJoinQueue[ulIdx + 1].ulPlayer;
-		g_lJoinQueue[ulIdx].ulTeam = g_lJoinQueue[ulIdx + 1].ulTeam;
-	}
-
-	// Clear out the last slot.
-	g_lJoinQueue[MAXPLAYERS - 1].ulPlayer = MAXPLAYERS;
-
-	// If we're the server, tell everyone their new position in line.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetQueuePosition( );
 }
 
 //*****************************************************************************
 //
 void JOINQUEUE_SpectatorLeftGame( ULONG ulPlayer )
 {
-	ULONG	ulIdx;
-	ULONG	ulIdx2;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		// Hit the end of the list.
-		if ( g_lJoinQueue[ulIdx].ulPlayer == MAXPLAYERS )
-			continue;
-
-		// This player was in line. Bump everyone in line after him up one position.
-		if ( g_lJoinQueue[ulIdx].ulPlayer == ulPlayer )
-			break;
-	}
-
-	if ( ulIdx == MAXPLAYERS )
-		return;
-
-	for ( ulIdx2 = ulIdx; ulIdx2 < ( MAXPLAYERS - 1 ); ulIdx2++ )
-		g_lJoinQueue[ulIdx2].ulPlayer = g_lJoinQueue[ulIdx2+1].ulPlayer;
-
-	// If we're the server, tell everyone their new position in line.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetQueuePosition( );
+	// [BB] The only things we have to do if a spectator leaves the game are
+	// to remove him from the queue and to notify the others about their updated
+	// queue positions.
+	JOINQUEUE_RemovePlayerFromQueue ( ulPlayer, true );
 }
 
 //*****************************************************************************
@@ -289,7 +241,6 @@ void JOINQUEUE_SpectatorLeftGame( ULONG ulPlayer )
 void JOINQUEUE_PopQueue( LONG lNumSlots )
 {
 	ULONG	ulIdx;
-	ULONG	ulIdx2;
 
 	// Nothing to do if there's nobody waiting in the queue.
 	if ( g_lJoinQueue[0].ulPlayer == MAXPLAYERS )
@@ -376,15 +327,7 @@ void JOINQUEUE_PopQueue( LONG lNumSlots )
 					Printf( "%s \\c-joined the game.\n", players[g_lJoinQueue[ulIdx].ulPlayer].userinfo.netname );
 			}
 
-			// Shift all the slot positions up one.
-			for ( ulIdx2 = 0; ulIdx2 < ( MAXPLAYERS - 1 ); ulIdx2++ )
-			{
-				g_lJoinQueue[ulIdx2].ulPlayer = g_lJoinQueue[ulIdx2 + 1].ulPlayer;
-				g_lJoinQueue[ulIdx2].ulTeam = g_lJoinQueue[ulIdx2 + 1].ulTeam;
-			}
-
-			// Clear out the last slot.
-			g_lJoinQueue[MAXPLAYERS - 1].ulPlayer = -1;
+			JOINQUEUE_RemovePlayerAtPosition ( ulIdx );
 
 			if ( lNumSlots > 0 )
 				lNumSlots--;

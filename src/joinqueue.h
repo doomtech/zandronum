@@ -71,6 +71,7 @@ typedef struct {
 
 void	JOINQUEUE_Construct( void );
 
+void	JOINQUEUE_RemovePlayerFromQueue ( ULONG ulPlayer, bool bBroadcast );
 void	JOINQUEUE_PlayerLeftGame( bool bWantPop );
 void	JOINQUEUE_SpectatorLeftGame( ULONG ulPlayer );
 void	JOINQUEUE_PopQueue( LONG lNumSlots );
