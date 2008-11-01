@@ -139,7 +139,7 @@ void MASTERSERVER_SendBanlistToServer( SERVER_s &Server )
 		NETWORK_WriteString( &g_MessageBuffer.ByteStream, g_BannedIPExemptions.getEntryAsString( i, false ).c_str( ));
 
 	NETWORK_LaunchPacket( &g_MessageBuffer, Server.Address );
-	Server.lBanlistTime = g_lCurrentTime;
+	Server.bHasLatestBanList = true;
 	printf( "-> Banlist sent to %s.\n", NETWORK_AddressToString( Server.Address ));
 #endif
 }
@@ -221,7 +221,13 @@ void MASTERSERVER_InitializeBans( void )
 	std::cerr << "Multi-server exceptions: " << g_MultiServerExceptions.size() << "." << std::endl;
 
 	if ( BannedIPsChanged || BannedIPExemptionsChanged )
+	{
+		// [BB] The ban list was changed, so no server has the latest list anymore.
+		for ( ULONG ulIdx = 0; ulIdx < MAX_SERVERS; ulIdx++ )
+			g_Servers[ulIdx].bHasLatestBanList = false;
+
 		std::cerr << "Ban lists were changed since last refresh\n";
+	}
 /*
   // [BB] Print all banned IPs, to make sure the IP list has been parsed successfully.
 	std::cerr << "Entries in blacklist:\n";
@@ -409,10 +415,13 @@ void MASTERSERVER_CheckTimeouts( void )
 		{
 			g_Servers[ulIdx].bAvailable = true;
 			printf( "- Server at %s timed out.\n", NETWORK_AddressToString( g_Servers[ulIdx].Address ));
+			continue;
 		}
 
-		// Periodically send the banlist to servers.
-		if (( g_lCurrentTime - g_Servers[ulIdx].lBanlistTime ) >= 60 * 15 )
+		// [BB] If the server doesn't have the latest ban list, send it now.
+		// This construction has the drawback that all servers are updated at once.
+		// Possibly it will be necessary to do this differently.
+		if ( g_Servers[ulIdx].bHasLatestBanList == false )
 			MASTERSERVER_SendBanlistToServer( g_Servers[ulIdx] );
 	}
 }

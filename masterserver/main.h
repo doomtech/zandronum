@@ -71,8 +71,8 @@ typedef struct
 	// The last time we heard from this server (used for timeouts).
 	long			lLastReceived;
 
-	// [RC] The last time we sent this server the holy banlist.
-	long			lBanlistTime;
+	// [BB] Does the server have the latest version of the holy banlist?
+	bool			bHasLatestBanList;
 
 	// Is this server slot active or inactive?
 	bool			bAvailable;
