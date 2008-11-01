@@ -907,6 +907,9 @@ IPADDRESSBAN_s IPList::getEntry( const ULONG ulIdx ) const
 }
 
 //*****************************************************************************
+// NOTE:
+// If bIncludeComment == true, the returned string is terminated with '\n'.
+// If bIncludeComment == false, the returned string is NOT terminated with '\n'.
 //
 std::string IPList::getEntryAsString( const ULONG ulIdx, bool bIncludeComment ) const
 {

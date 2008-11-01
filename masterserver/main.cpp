@@ -53,6 +53,7 @@
 #include "svnrevision.h"
 #include "network.h"
 #include "main.h"
+#include <sstream>
 
 // [BB] Needed for I_GetTime.
 #ifdef _MSC_VER
@@ -188,13 +189,30 @@ long MASTERSERVER_AddServerToList( NETADDRESS_s Address )
 
 //*****************************************************************************
 //
+bool MASTERSERVER_RefreshIPList( IPList &List, const char *FileName )
+{
+	std::stringstream oldIPs;
+
+	for ( ULONG ulIdx = 0; ulIdx < List.size(); ulIdx++ )
+		oldIPs << List.getEntryAsString ( ulIdx, false ).c_str() << "-";
+
+	if ( !(List.clearAndLoadFromFile( FileName )) )
+		std::cerr << List.getErrorMessage();
+
+	std::stringstream newIPs;
+
+	for ( ULONG ulIdx = 0; ulIdx < List.size(); ulIdx++ )
+		newIPs << List.getEntryAsString ( ulIdx, false ).c_str() << "-";
+
+	return ( strcmp ( newIPs.str().c_str(), oldIPs.str().c_str() ) != 0 );
+}
+
+//*****************************************************************************
+//
 void MASTERSERVER_InitializeBans( void )
 {
-	if ( !(g_BannedIPs.clearAndLoadFromFile( "banlist.txt" )) )
-		std::cerr << g_BannedIPs.getErrorMessage();
-
-	if ( !(g_BannedIPExemptions.clearAndLoadFromFile( "whitelist.txt" )) )
-		std::cerr << g_BannedIPExemptions.getErrorMessage();
+	const bool BannedIPsChanged = MASTERSERVER_RefreshIPList ( g_BannedIPs, "banlist.txt" );
+	const bool BannedIPExemptionsChanged = MASTERSERVER_RefreshIPList ( g_BannedIPExemptions, "whitelist.txt" );
 
 	if ( !(g_MultiServerExceptions.clearAndLoadFromFile( "multiserver_whitelist.txt" )) )
 		std::cerr << g_MultiServerExceptions.getErrorMessage();
@@ -202,6 +220,8 @@ void MASTERSERVER_InitializeBans( void )
 	std::cerr << "\nBan list: " << g_BannedIPs.size() << " banned IPs, " << g_BannedIPExemptions.size() << " exemptions." << std::endl;
 	std::cerr << "Multi-server exceptions: " << g_MultiServerExceptions.size() << "." << std::endl;
 
+	if ( BannedIPsChanged || BannedIPExemptionsChanged )
+		std::cerr << "Ban lists were changed since last refresh\n";
 /*
   // [BB] Print all banned IPs, to make sure the IP list has been parsed successfully.
 	std::cerr << "Entries in blacklist:\n";
