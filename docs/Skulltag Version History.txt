@@ -61,6 +61,7 @@
 -	- Fixed: If a spectator that is waiting in line leaves the game, the join queue is not updated properly. [Torr Samaho]
 -	- Fixed: After a map change in CTF/ST to a map without a team selection room, the players who were waiting in line in the previous map were not removed from their join queue positions. [Torr Samaho]
 -	- Fixed: Under some conditions one could exit a map during the countdown in survival, e.g. with line special LS_Teleport_NewMap. Now players trying to exit during the countdown are killed. [Torr Samaho]
+-	- Fixed: Several code pointers didn't work properly online in the death state of a player, e.g. A_PlaySound. [Torr Samaho]
 !	- Changed up the display of medals when you have the key down. Higher medals are now on the right, opposite their subordinates. [Rivecoder]
 !	- Each player's "ready to go on" status, shown at the intermission, can now only be turned on. Hopefully, this will help clear up what this command is for and prevent rapid toggling of it. [Rivecoder]
 !	- Rank/Spread is no longer drawn if there's only one player. [Rivecoder]

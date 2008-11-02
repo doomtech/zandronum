@@ -3808,20 +3808,12 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 	// [BB] Set the attacker, necessary to let the death view follow the killer.
 	players[ulPlayer].attacker = pSource;
 
-	// Free the player's body's network ID.
-	if ( players[ulPlayer].mo->lNetID != -1 )
-	{
-		g_NetIDList[players[ulPlayer].mo->lNetID].bFree = true;
-		g_NetIDList[players[ulPlayer].mo->lNetID].pActor = NULL;
-
-		players[ulPlayer].mo->lNetID = -1;
-	}
-
 	// If health on the status bar is less than 0%, make it 0%.
 	if ( players[ulPlayer].health <= 0 )
 		players[ulPlayer].health = 0;
 
 	// Potentially get rid of some corpses. This isn't necessarily client-only.
+	// [BB] This will eventually free the player's body's network ID.
 	CLIENT_RemoveCorpses( );
 
 	ulSourcePlayer = MAXPLAYERS;
