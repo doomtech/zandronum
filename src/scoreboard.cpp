@@ -2193,7 +2193,7 @@ LONG SCOREBOARD_GetLeftToLimit( void )
 		return ( fraglimit - lHighestFragcount );
 	}
 	// POINT-based mode.
-	else if (( teamgame || possession || teampossession || domination ) && ( pointlimit > 0 ))
+	else if (( teamgame || possession || teampossession ) && ( pointlimit > 0 ))
 	{
 		ULONG	ulPointsLeft;
 		ULONG	ulBluePoints;
@@ -2863,7 +2863,7 @@ static void scoreboard_DrawLimits( void )
 	}
 
 	// Render the pointlimit string.
-	if (( teamgame || possession || teampossession || domination ) && ( pointlimit ) && ( gamestate == GS_LEVEL ))
+	if (( teamgame || possession || teampossession ) && ( pointlimit ) && ( gamestate == GS_LEVEL ))
 	{
 		ULONG	ulPointsLeft;
 		

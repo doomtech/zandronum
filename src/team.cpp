@@ -1419,6 +1419,7 @@ CUSTOM_CVAR( Bool, teamgame, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGN
 		ctf.ForceSet( Val, CVAR_Bool );
 		oneflagctf.ForceSet( Val, CVAR_Bool );
 		skulltag.ForceSet( Val, CVAR_Bool );
+		domination.ForceSet( Val, CVAR_Bool );
 
 		// If deathmatch is also disabled, enable cooperative mode.
 		if ( deathmatch == false )
@@ -1450,6 +1451,7 @@ CUSTOM_CVAR( Bool, ctf, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGNLOCK 
 		// Disable other modes.
 		oneflagctf.ForceSet( Val, CVAR_Bool );
 		skulltag.ForceSet( Val, CVAR_Bool );
+		domination.ForceSet( Val, CVAR_Bool );
 
 		g_Team[TEAM_BLUE].FlagItem = PClass::FindClass( "BlueFlag" );
 		g_Team[TEAM_RED].FlagItem = PClass::FindClass( "RedFlag" );
@@ -1488,6 +1490,7 @@ CUSTOM_CVAR( Bool, oneflagctf, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAI
 		// Disable other modes.
 		ctf.ForceSet( Val, CVAR_Bool );
 		skulltag.ForceSet( Val, CVAR_Bool );
+		domination.ForceSet( Val, CVAR_Bool );
 
 		g_Team[TEAM_BLUE].FlagItem = PClass::FindClass( "BlueFlag" );
 		g_Team[TEAM_RED].FlagItem = PClass::FindClass( "RedFlag" );
@@ -1513,6 +1516,7 @@ CUSTOM_CVAR( Bool, skulltag, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGN
 		// Disable other modes.
 		ctf.ForceSet( Val, CVAR_Bool );
 		oneflagctf.ForceSet( Val, CVAR_Bool );
+		domination.ForceSet( Val, CVAR_Bool );
 
 		g_Team[TEAM_BLUE].FlagItem = PClass::FindClass( "BlueSkullST" );
 		g_Team[TEAM_RED].FlagItem = PClass::FindClass( "RedSkullST" );
@@ -1524,10 +1528,33 @@ CUSTOM_CVAR( Bool, skulltag, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGN
 
 //*****************************************************************************
 //
+CUSTOM_CVAR( Bool, domination, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGNLOCK )
+{
+	UCVarValue	Val;
+
+	if ( self == true )
+	{
+		Val.Bool = true;
+		// Enable teamgame if we're playing CTF.
+		teamgame.ForceSet( Val, CVAR_Bool );
+
+		Val.Bool = false;
+		// Disable other modes.
+		ctf.ForceSet( Val, CVAR_Bool );
+		oneflagctf.ForceSet( Val, CVAR_Bool );
+		skulltag.ForceSet( Val, CVAR_Bool );
+	}
+
+	// Reset what the current game mode is.
+	GAMEMODE_DetermineGameMode( );
+}
+
+//*****************************************************************************
+//
 CCMD( team )
 {
 	// Not a valid team mode. Ignore.
-	if (( teamgame == false ) && ( teamplay == false ) && ( teamlms == false ) && ( teampossession == false ) && ( domination == false ))
+	if (( teamgame == false ) && ( teamplay == false ) && ( teamlms == false ) && ( teampossession == false ))
 		return;
 
 	// If the played inputted a team they'd like to join (such as, "team red"), handle that

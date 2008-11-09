@@ -7072,6 +7072,8 @@ static void client_SetGameMode( BYTESTREAM_s *pByteStream )
 	case GAMEMODE_DOMINATION:
 	
 		domination.ForceSet( Value, CVAR_Bool );
+		// [BB] The client doesn't necessarily know the game mode in P_SetupLevel, so we have to call this here.
+		DOMINATION_Init();
 		break;
 	}
 

@@ -99,7 +99,6 @@ CUSTOM_CVAR( Bool, deathmatch, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAI
 		teamlms.ForceSet( Val, CVAR_Bool );
 		possession.ForceSet( Val, CVAR_Bool );
 		teampossession.ForceSet( Val, CVAR_Bool );
-		domination.ForceSet( Val, CVAR_Bool );
 
 		// If teamgame is also disabled, enable cooperative mode.
 		if ( teamgame == false )
@@ -135,7 +134,6 @@ CUSTOM_CVAR( Bool, teamplay, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGN
 		teamlms.ForceSet( Val, CVAR_Bool );
 		possession.ForceSet( Val, CVAR_Bool );
 		teampossession.ForceSet( Val, CVAR_Bool );
-		domination.ForceSet( Val, CVAR_Bool );
 	}
 
 	// Reset what the current game mode is.
@@ -162,7 +160,6 @@ CUSTOM_CVAR( Bool, duel, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGNLOCK
 		teamlms.ForceSet( Val, CVAR_Bool );
 		possession.ForceSet( Val, CVAR_Bool );
 		teampossession.ForceSet( Val, CVAR_Bool );
-		domination.ForceSet( Val, CVAR_Bool );
 	}
 
 	// Reset what the current game mode is.
@@ -189,7 +186,6 @@ CUSTOM_CVAR( Bool, terminator, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAI
 		teamlms.ForceSet( Val, CVAR_Bool );
 		possession.ForceSet( Val, CVAR_Bool );
 		teampossession.ForceSet( Val, CVAR_Bool );
-		domination.ForceSet( Val, CVAR_Bool );
 	}
 
 	// Reset what the current game mode is.
@@ -216,7 +212,6 @@ CUSTOM_CVAR( Bool, lastmanstanding, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_C
 		teamlms.ForceSet( Val, CVAR_Bool );
 		possession.ForceSet( Val, CVAR_Bool );
 		teampossession.ForceSet( Val, CVAR_Bool );
-		domination.ForceSet( Val, CVAR_Bool );
 	}
 
 	// Reset what the current game mode is.
@@ -243,7 +238,6 @@ CUSTOM_CVAR( Bool, teamlms, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGNL
 		lastmanstanding.ForceSet( Val, CVAR_Bool );
 		possession.ForceSet( Val, CVAR_Bool );
 		teampossession.ForceSet( Val, CVAR_Bool );
-		domination.ForceSet( Val, CVAR_Bool );
 	}
 
 	// Reset what the current game mode is.
@@ -270,7 +264,6 @@ CUSTOM_CVAR( Bool, possession, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAI
 		lastmanstanding.ForceSet( Val, CVAR_Bool );
 		teamlms.ForceSet( Val, CVAR_Bool );
 		teampossession.ForceSet( Val, CVAR_Bool );
-		domination.ForceSet( Val, CVAR_Bool );
 	}
 
 	// Reset what the current game mode is.
@@ -297,33 +290,9 @@ CUSTOM_CVAR( Bool, teampossession, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CA
 		lastmanstanding.ForceSet( Val, CVAR_Bool );
 		teamlms.ForceSet( Val, CVAR_Bool );
 		possession.ForceSet( Val, CVAR_Bool );
-		domination.ForceSet( Val, CVAR_Bool );
 	}
 
 	// Reset what the current game mode is.
-	GAMEMODE_DetermineGameMode( );
-}
-
-//*****************************************************************************
-//
-CUSTOM_CVAR( Bool, domination, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGNLOCK )
-{
-	UCVarValue Val;
-	if ( self == true )
-	{
-		Val.Bool = true; //Enable Deathmatch
-		deathmatch.ForceSet( Val, CVAR_Bool );
-
-		Val.Bool = false;
-		teamplay.ForceSet( Val, CVAR_Bool );
-		duel.ForceSet( Val, CVAR_Bool );
-		terminator.ForceSet( Val, CVAR_Bool );
-		lastmanstanding.ForceSet( Val, CVAR_Bool );
-		teamlms.ForceSet( Val, CVAR_Bool );
-		possession.ForceSet( Val, CVAR_Bool );
-		teampossession.ForceSet( Val, CVAR_Bool );
-	}
-
 	GAMEMODE_DetermineGameMode( );
 }
 

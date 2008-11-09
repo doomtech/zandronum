@@ -2830,6 +2830,13 @@ void GAME_CheckMode( void )
 
 				skulltag.ForceSet( Val, CVAR_Bool );
 			}
+			// [BB] There are domination points, but no skulls/flags. Activate domination.
+			else if ( level.info->SectorInfo.Points.Size() > 0 )
+			{
+				Val.Bool = true;
+
+				domination.ForceSet( Val, CVAR_Bool );
+			}
 		}
 	}
 

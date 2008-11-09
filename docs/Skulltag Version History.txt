@@ -25,7 +25,7 @@
 +	- Added CKeen's submission for an updated Italian language file. [Karate Chris]
 +	- Significantly reduced the net traffic used by P_MoveThing, e.g. used by SetActorPosition. [Torr Samaho]
 +	- Added basic SECTINFO support, currently only displayed in coop info. The SECTINFO parser supports use with the LANGUAGE lump to allow translatable locations. [Blzut3]
-+	- Added Domination as a built in game mode. [Blzut3]
++	- Added Domination as a built in game mode. [Blzut3, Torr Samaho]
 +	- Added new actor property "limitedtoteam", currently only has any effect when applied to a player class: When a player joins a team with a player class that is limited to be used only by another team, the player is immediately respawned with the first class that is open to the team just joined. [Torr Samaho]
 +	- Improved Skulltag's response to DOS attacks. Players will be able to keep on playing even if the server is being massively attacked (by several hundred computers or more). In that case, Skulltag will shut off all new connections until the attack subsides. [Rivecoder]
 +	- Added new team class selection menu: When joining a team from the team selection menu and more than one player class is available, there now is a menu that lets you select among the available classes (respects limitedtoteam). [Torr Samaho]

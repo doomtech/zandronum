@@ -216,6 +216,7 @@ EXTERN_CVAR( Bool, teamgame )
 EXTERN_CVAR( Bool, ctf )
 EXTERN_CVAR( Bool, oneflagctf )
 EXTERN_CVAR( Bool, skulltag )
+EXTERN_CVAR( Bool, domination )
 
 EXTERN_CVAR( Int, pointlimit )
 EXTERN_CVAR( Int, sv_flagreturntime )

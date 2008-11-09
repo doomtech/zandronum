@@ -1206,9 +1206,6 @@ void P_LoadSectors (MapData * map)
 		ss->movefactor = ORIG_FRICTION_FACTOR;
 	}
 	P_CreateExtSectors();
-
-	DOMINATION_Init(); //Call Init function to set sector colors if in Domination
-
 	delete[] msp;
 }
 
@@ -4310,6 +4307,9 @@ void P_SetupLevel (char *lumpname, int position)
 			LASTMANSTANDING_SetStartNextMatchOnLevelLoad( false );
 		}
 	}
+
+	// Call Init function to set sector colors if in Domination
+	DOMINATION_Init();
 
 	// [BB] Notify software users if 3d floors are present.
 	if( ( currentrenderer == 0) && (NETWORK_GetState( ) != NETSTATE_SERVER) && mapUses3DFloors && screen && StatusBar )
