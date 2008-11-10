@@ -248,6 +248,30 @@ bool CAMPAIGN_DidPlayerBeatMap( void )
 //*****************************************************************************
 //*****************************************************************************
 //
+static LONG campaign_ParseBracketIndex( const char *pszPropertyName, const char *pszKeyToParse )
+{
+	FString	indexString;
+
+	const char *pszString = pszKeyToParse + strlen( pszPropertyName );
+	if ( *pszString != '[' )
+		I_Error( "CAMPAIGN_ParseCampaignInfo: Expected '[' after \"%s\"!", pszPropertyName );
+	pszString++;
+
+	while ( *pszString != ']' )
+	{
+		if ( *pszString == 0 )
+			I_Error( "CAMPAIGN_ParseCampaignInfo: Missing ']' after \"%s\"!", pszPropertyName );
+
+		indexString += *pszString;
+		pszString++;
+	}
+
+	return atoi( indexString.GetChars() );
+}
+
+//*****************************************************************************
+//*****************************************************************************
+//
 static void campaign_ParseCampaignInfoLump( void )
 {
 	char			szKey[32];
@@ -437,28 +461,7 @@ static void campaign_ParseCampaignInfoLump( void )
 			}
 			else if ( strnicmp( szKey, "botteam", strlen( "botteam" )) == 0 )
 			{
-				char	*pszString;
-				char	szIndex[16];
-				char	*pszIndex;
-				LONG	lBotIndex;
-
-				pszString = szKey + strlen( "botteam" );
-				if ( *pszString != '[' )
-					I_Error( "CAMPAIGN_ParseCampaignInfo: Expected '[' after \"botteam\"!" );
-				pszString++;
-
-				pszIndex = szIndex;
-				while ( *pszString != ']' )
-				{
-					if ( *pszString == 0 )
-						I_Error( "CAMPAIGN_ParseCampaignInfo: Missing ']' after \"botteam\"!" );
-
-					*pszIndex = *pszString;
-					pszIndex++;
-					pszString++;
-				}
-
-				lBotIndex = atoi( szIndex );
+				LONG lBotIndex = campaign_ParseBracketIndex( "botteam", szKey );
 				if (( lBotIndex < 0 ) || ( lBotIndex >= MAXPLAYERS ))
 					I_Error( "CAMPAIGN_ParseCampaignInfo: Invalid \"botteam\" index, %d!", static_cast<int> (lBotIndex) );
 
@@ -466,35 +469,7 @@ static void campaign_ParseCampaignInfoLump( void )
 			}
 			else if ( strnicmp( szKey, "bot", strlen( "bot" )) == 0 )
 			{
-				char	*pszString;
-				char	szIndex[16];
-				char	*pszIndex;
-				LONG	lBotIndex;
-				int	iIndex = 0;
-
-				pszString = szKey + strlen( "bot" );
-				if ( *pszString != '[' )
-					I_Error( "CAMPAIGN_ParseCampaignInfo: Expected '[' after \"bot\"!" );
-				pszString++;
-
-				pszIndex = szIndex;
-				while ( *pszString != ']' )
-				{
-					if ( *pszString == 0 )
-						I_Error( "CAMPAIGN_ParseCampaignInfo: Missing ']' after \"bot\"!" );
-
-					if ( iIndex == 15 )
-						I_Error( "CAMPAIGN_ParseCampaignInfo: Too many chars after \"bot\" and before ']'!" );
-
-					*pszIndex = *pszString;
-					pszIndex++;
-					pszString++;
-					iIndex++;
-				}
-				// [BB] We need to terminate szIndex. 
-				*pszIndex = '\0';
-
-				lBotIndex = atoi( szIndex );
+				LONG lBotIndex = campaign_ParseBracketIndex( "bot", szKey );
 				if (( lBotIndex < 0 ) || ( lBotIndex >= MAXPLAYERS ))
 					I_Error( "CAMPAIGN_ParseCampaignInfo: Invalid \"bot\" index, %d!", static_cast<int> (lBotIndex) );
 
