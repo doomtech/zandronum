@@ -288,12 +288,7 @@ void JOINQUEUE_PopQueue( LONG lNumSlots )
 		// Found a player waiting in line. They will now join the game!
 		if ( playeringame[g_lJoinQueue[ulIdx].ulPlayer] )
 		{
-			players[g_lJoinQueue[ulIdx].ulPlayer].playerstate = PST_ENTERNOINVENTORY;
-			players[g_lJoinQueue[ulIdx].ulPlayer].bSpectating = false;
-			players[g_lJoinQueue[ulIdx].ulPlayer].bDeadSpectator = false;
-
-			if ( players[g_lJoinQueue[ulIdx].ulPlayer].pSkullBot )
-				players[g_lJoinQueue[ulIdx].ulPlayer].pSkullBot->PostEvent( BOTEVENT_JOINEDGAME );
+			PLAYER_SpectatorJoinsGame ( &players[g_lJoinQueue[ulIdx].ulPlayer] );
 
 			if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 			{

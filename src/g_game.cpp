@@ -2644,8 +2644,19 @@ void G_DoReborn (int playernum, bool freshbot)
 		pOldBody = players[playernum].mo;
 		if ( players[playernum].mo )
 		{
-			G_QueueBody (players[playernum].mo);
+			// [BB] Skulltag has its own body queue. If G_QueueBody is used, the
+			// STFL_OBSOLETE_SPECTATOR_BODY code below has to be adapted.
+			//G_QueueBody (players[playernum].mo);
 			players[playernum].mo->player = NULL;
+		}
+		// [BB] The old body is not a corpse, but an obsolete spectator body. Remove it.
+		if ( pOldBody && ( pOldBody->ulSTFlags & STFL_OBSOLETE_SPECTATOR_BODY ) )
+		{
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_DestroyThing( pOldBody );
+
+			pOldBody->Destroy( );
+			pOldBody = NULL;
 		}
 
 		// spawn at random spot if in death match

@@ -4206,9 +4206,7 @@ static bool server_RequestJoin( BYTESTREAM_s *pByteStream )
 	}
 
 	// Everything's okay! Go ahead and join!
-	players[g_lCurrentClient].playerstate = PST_ENTERNOINVENTORY;
-	players[g_lCurrentClient].bSpectating = false;
-	players[g_lCurrentClient].bDeadSpectator = false;
+	PLAYER_SpectatorJoinsGame ( &players[g_lCurrentClient] );
 	// [BB] It's possible that you are watching through the eyes of someone else
 	// upon joining. Doesn't hurt to reset it.
 	g_aClients[g_lCurrentClient].ulDisplayPlayer = g_lCurrentClient;

@@ -2247,6 +2247,27 @@ void PLAYER_SetDefaultSpectatorValues( player_t *pPlayer )
 
 //*****************************************************************************
 //
+void PLAYER_SpectatorJoinsGame( player_t *pPlayer )
+{
+	if ( pPlayer == NULL )
+		return;
+
+	pPlayer->playerstate = PST_ENTERNOINVENTORY;
+	// [BB] Mark the spectator body as obsolete, but don't delete it before the
+	// player gets a new body.
+	if ( pPlayer->mo && pPlayer->bSpectating )
+		pPlayer->mo->ulSTFlags |= STFL_OBSOLETE_SPECTATOR_BODY;
+
+	pPlayer->bSpectating = false;
+	pPlayer->bDeadSpectator = false;
+
+	// [BB] If he's a bot, tell him that he successfully joined.
+	if ( pPlayer->pSkullBot )
+		pPlayer->pSkullBot->PostEvent( BOTEVENT_JOINEDGAME );
+}
+
+//*****************************************************************************
+//
 void PLAYER_SetWins( player_s *pPlayer, ULONG ulWins )
 {
 	// Set the player's fragcount.

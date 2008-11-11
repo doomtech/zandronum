@@ -2453,13 +2453,10 @@ static void botcmd_TryToJoinGame( CSkullBot *pBot )
 	}
 
 	// Everything's okay! Go ahead and join!
-	pBot->GetPlayer( )->playerstate = PST_ENTERNOINVENTORY;
-	pBot->GetPlayer( )->bSpectating = false;
+	PLAYER_SpectatorJoinsGame ( pBot->GetPlayer( ) );
+
 	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 		PLAYER_SetTeam( pBot->GetPlayer( ), TEAM_ChooseBestTeamForPlayer( ), true );
-
-	// Tell the bot that he successfully joined.
-	pBot->PostEvent( BOTEVENT_JOINEDGAME );
 
 	Printf( "%s \\c-joined the game.\n", pBot->GetPlayer( )->userinfo.netname );
 }
