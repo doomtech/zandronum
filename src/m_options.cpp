@@ -4079,8 +4079,8 @@ bool M_JoinMenu ( void )
 		return ( true );
 	}
 
-	// ST/CTF without a selection room, or another team game.
-	if (( teamplay || ( teamgame && TemporaryTeamStarts.Size( ) == 0 ) || teamlms || teampossession || domination ) && (( dmflags2 & DF2_NO_TEAM_SELECT ) == false ))
+	// ST/CTF/domination without a selection room, or another team game.
+	if (( teamplay || ( teamgame && TemporaryTeamStarts.Size( ) == 0 ) || teamlms || teampossession ) && (( dmflags2 & DF2_NO_TEAM_SELECT ) == false ))
 	{
 		M_StartControlPanel( true );
 		M_StartJoinTeamMenu( );

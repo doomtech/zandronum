@@ -493,6 +493,7 @@ void	PLAYER_GivePossessionPoint( player_t *pPlayer );
 void	PLAYER_SetTeam( player_t *pPlayer, ULONG ulTeam, bool bNoBroadcast );
 void	PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectator );
 void	PLAYER_SetDefaultSpectatorValues( player_t *pPlayer );
+void	PLAYER_SpectatorJoinsGame ( player_t *pPlayer );
 void	PLAYER_SetWins( player_t *pPlayer, ULONG ulWins );
 void	PLAYER_GetName( player_t *pPlayer, char *pszOutBuf );
 bool	PLAYER_IsTrueSpectator( player_t *pPlayer );

@@ -4320,16 +4320,14 @@ void AActor::Destroy ()
 	ULONG	ulIdx;
 
 	// [BC] Free it's network ID.
-//	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
-//	{
-		if ( lNetID && ( lNetID < 65536 ))
-		{
-			g_NetIDList[lNetID].bFree = true;
-			g_NetIDList[lNetID].pActor = NULL;
-		}
-//	}
+	// [BB] Actors may have lNetID == -1. 
+	if ( ( lNetID >= 0 ) && ( lNetID < MAX_NETID ) )
+	{
+		g_NetIDList[lNetID].bFree = true;
+		g_NetIDList[lNetID].pActor = NULL;
+	}
 
-	lNetID = 0;
+	lNetID = -1;
 
 	// [BB] If this is a monster corpse, we potentially have to NULL out the reference to it.
 	if ( invasion )

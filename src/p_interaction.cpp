@@ -577,7 +577,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 			}
 
 			// Play announcer sounds for amount of frags remaining.
-			if (( lastmanstanding == false ) && ( teamlms == false ) && ( possession == false ) && ( teampossession == false ) && ( domination == false ) && deathmatch && fraglimit )
+			if (( lastmanstanding == false ) && ( teamlms == false ) && ( possession == false ) && ( teampossession == false ) && deathmatch && fraglimit )
 			{
 				// [RH] Implement fraglimit
 				// [BC] Betterized!
@@ -2295,6 +2295,27 @@ void PLAYER_SetDefaultSpectatorValues( player_t *pPlayer )
 
 //*****************************************************************************
 //
+void PLAYER_SpectatorJoinsGame( player_t *pPlayer )
+{
+	if ( pPlayer == NULL )
+		return;
+
+	pPlayer->playerstate = PST_ENTERNOINVENTORY;
+	// [BB] Mark the spectator body as obsolete, but don't delete it before the
+	// player gets a new body.
+	if ( pPlayer->mo && pPlayer->bSpectating )
+		pPlayer->mo->ulSTFlags |= STFL_OBSOLETE_SPECTATOR_BODY;
+
+	pPlayer->bSpectating = false;
+	pPlayer->bDeadSpectator = false;
+
+	// [BB] If he's a bot, tell him that he successfully joined.
+	if ( pPlayer->pSkullBot )
+		pPlayer->pSkullBot->PostEvent( BOTEVENT_JOINEDGAME );
+}
+
+//*****************************************************************************
+//
 void PLAYER_SetWins( player_t *pPlayer, ULONG ulWins )
 {
 	// Set the player's fragcount.
@@ -2423,7 +2444,6 @@ bool PLAYER_ShouldSpawnAsSpectator( player_t *pPlayer )
 		if (( teamplay && (( dmflags2 & DF2_NO_TEAM_SELECT ) == false )) ||
 			( teamlms && (( dmflags2 & DF2_NO_TEAM_SELECT ) == false )) ||
 			( teampossession && (( dmflags2 & DF2_NO_TEAM_SELECT ) == false )) ||
-			( domination && (dmflags2 & DF2_NO_TEAM_SELECT ) == false ) ||
 			( teamgame && (( dmflags2 & DF2_NO_TEAM_SELECT ) == false ) && ( TemporaryTeamStarts.Size( ) == 0 )))
 		{
 			return ( true );

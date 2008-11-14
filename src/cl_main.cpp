@@ -159,6 +159,7 @@ static	void	client_SetPlayerCheats( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerPendingWeapon( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerPieces( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerPSprite( BYTESTREAM_s *pByteStream );
+static	void	client_SetPlayerBlend( BYTESTREAM_s *pByteStream );
 static	void	client_UpdatePlayerPing( BYTESTREAM_s *pByteStream );
 static	void	client_UpdatePlayerExtraData( BYTESTREAM_s *pByteStream );
 static	void	client_UpdatePlayerTime( BYTESTREAM_s *pByteStream );
@@ -513,6 +514,7 @@ static	const char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETPLAYERPENDINGWEAPON",
 	"SVC_SETPLAYERPIECES",
 	"SVC_SETPLAYERPSPRITE",
+	"SVC_SETPLAYERBLEND"
 	"SVC_UPDATEPLAYERPING",
 	"SVC_UPDATEPLAYEREXTRADATA",
 	"SVC_UPDATEPLAYERTIME",
@@ -1546,6 +1548,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETPLAYERPSPRITE:
 
 		client_SetPlayerPSprite( pByteStream );
+		break;
+	case SVC_SETPLAYERBLEND:
+
+		client_SetPlayerBlend( pByteStream );
 		break;
 	case SVC_UPDATEPLAYERPING:
 
@@ -3813,20 +3819,12 @@ static void client_KillPlayer( BYTESTREAM_s *pByteStream )
 	// [BB] Set the attacker, necessary to let the death view follow the killer.
 	players[ulPlayer].attacker = pSource;
 
-	// Free the player's body's network ID.
-	if ( players[ulPlayer].mo->lNetID != -1 )
-	{
-		g_NetIDList[players[ulPlayer].mo->lNetID].bFree = true;
-		g_NetIDList[players[ulPlayer].mo->lNetID].pActor = NULL;
-
-		players[ulPlayer].mo->lNetID = -1;
-	}
-
 	// If health on the status bar is less than 0%, make it 0%.
 	if ( players[ulPlayer].health <= 0 )
 		players[ulPlayer].health = 0;
 
 	// Potentially get rid of some corpses. This isn't necessarily client-only.
+	// [BB] This will eventually free the player's body's network ID.
 	CLIENT_RemoveCorpses( );
 
 	ulSourcePlayer = MAXPLAYERS;
@@ -4569,6 +4567,31 @@ static void client_SetPlayerPSprite( BYTESTREAM_s *pByteStream )
 	pNewState = players[ulPlayer].ReadyWeapon->GetClass( )->ActorInfo->FindState( StateList.Size( ), &StateList[0] );
 	if ( pNewState )
 		P_SetPsprite( &players[ulPlayer], ps_weapon, pNewState + lOffset );
+}
+
+//*****************************************************************************
+//
+static void client_SetPlayerBlend( BYTESTREAM_s *pByteStream )
+{
+	ULONG			ulPlayer;
+
+	// Read in the player.
+	ulPlayer = NETWORK_ReadByte( pByteStream );
+
+	if ( ulPlayer < MAXPLAYERS )
+	{
+		players[ulPlayer].BlendR = NETWORK_ReadFloat( pByteStream );
+		players[ulPlayer].BlendG = NETWORK_ReadFloat( pByteStream );
+		players[ulPlayer].BlendB = NETWORK_ReadFloat( pByteStream );
+		players[ulPlayer].BlendA = NETWORK_ReadFloat( pByteStream );
+	}
+	else
+	{
+		NETWORK_ReadFloat( pByteStream );
+		NETWORK_ReadFloat( pByteStream );
+		NETWORK_ReadFloat( pByteStream );
+		NETWORK_ReadFloat( pByteStream );
+	}
 }
 
 //*****************************************************************************
@@ -7086,6 +7109,8 @@ static void client_SetGameMode( BYTESTREAM_s *pByteStream )
 	case GAMEMODE_DOMINATION:
 	
 		domination.ForceSet( Value, CVAR_Bool );
+		// [BB] The client doesn't necessarily know the game mode in P_SetupLevel, so we have to call this here.
+		DOMINATION_Init();
 		break;
 	}
 

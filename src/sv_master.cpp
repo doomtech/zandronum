@@ -44,8 +44,7 @@
 //
 // Filename: sv_master.cpp
 //
-// Description: Contains variables and routines related to the master server
-// of the program.
+// Description: Server-to-Master and Server-to-Launcher protocol.
 //
 //-----------------------------------------------------------------------------
 
@@ -66,8 +65,9 @@
 #include "sv_ban.h"
 #include "version.h"
 
-//*****************************************************************************
-//	VARIABLES
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+//-- VARIABLES -------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Address of master server.
 static	NETADDRESS_s		g_AddressMasterServer;
@@ -86,9 +86,12 @@ static	LONG				g_lStoredQueryIPTail;
 
 extern	NETADDRESS_s		g_LocalAddress;
 
-//*****************************************************************************
-//	FUNCTIONS
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+//-- FUNCTIONS -------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------
 
+//*****************************************************************************
+//
 void SERVER_MASTER_Construct( void )
 {
 	char	*pszPort;
@@ -341,7 +344,7 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 
 	// If the launcher desires to know the team damage, but we're not in a game mode where
 	// team damage applies, then don't send back team damage information.
-	if (( teamplay || teamgame || teamlms || teampossession || domination ||  (( deathmatch == false ) && ( teamgame == false ))) == false )
+	if (( teamplay || teamgame || teamlms || teampossession || (( deathmatch == false ) && ( teamgame == false ))) == false )
 	{
 		if ( ulBits & SQF_TEAMDAMAGE )
 			ulBits &= ~SQF_TEAMDAMAGE;
@@ -483,7 +486,7 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 	}
 
 	// Send the team damage scale.
-	if ( teamplay || teamgame || teamlms || teampossession || domination || (( deathmatch == false ) && ( teamgame == false )))
+	if ( teamplay || teamgame || teamlms || teampossession || (( deathmatch == false ) && ( teamgame == false )))
 	{
 		if ( ulBits & SQF_TEAMDAMAGE )
 			NETWORK_WriteFloat( &g_MasterServerBuffer.ByteStream, teamdamage );
@@ -517,7 +520,7 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 				continue;
 
 			NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, players[ulIdx].userinfo.netname );
-			if ( teamgame || possession || teampossession || domination )
+			if ( teamgame || possession || teampossession )
 				NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, players[ulIdx].lPointCount );
 			else if ( deathmatch )
 				NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, players[ulIdx].fragcount );
@@ -573,7 +576,15 @@ const char *SERVER_MASTER_GetGameName( void )
 }
 
 //*****************************************************************************
-//	CONSOLE VARIABLES/COMMANDS
+//
+NETADDRESS_s SERVER_MASTER_GetMasterAddress( void )
+{
+	return g_AddressMasterServer;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+//-- CONSOLE ---------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Should the server inform the master server of its existance?
 CVAR( Bool, sv_updatemaster, true, CVAR_SERVERINFO )

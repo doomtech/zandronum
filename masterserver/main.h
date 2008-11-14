@@ -54,9 +54,11 @@
 //*****************************************************************************
 //	DEFINES
 
-// This is the maximum number of servers we can store in our list. Hopefully ST won't grow
-// so big that this number can't hold them all!
+// This is the maximum number of servers we can store in our list. Hopefully ST won't grow so big that this number can't hold them all!
 #define	MAX_SERVERS						512
+
+// [RC] If this is defined, the server won't send out the banlist to servers.
+// #define STAY_97D2_COMPATIBLE
 
 //*****************************************************************************
 //	STRUCTURES
@@ -68,6 +70,9 @@ typedef struct
 
 	// The last time we heard from this server (used for timeouts).
 	long			lLastReceived;
+
+	// [BB] Does the server have the latest version of the holy banlist?
+	bool			bHasLatestBanList;
 
 	// Is this server slot active or inactive?
 	bool			bAvailable;

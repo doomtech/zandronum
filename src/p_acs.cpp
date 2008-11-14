@@ -2293,6 +2293,10 @@ showme:
 					viewer->BlendG = fg2;
 					viewer->BlendB = fb2;
 					viewer->BlendA = fa2;
+
+					// [BB] Inform the clients about the blend.
+					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						SERVERCOMMANDS_SetPlayerBlend ( ULONG ( viewer - players ) );
 				}
 				else
 				{

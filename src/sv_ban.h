@@ -43,8 +43,7 @@
 //
 // Filename: sv_ban.h
 //
-// Description: Contains variables and routines related to the server ban
-// of the program.
+// Description: Support for banning IPs from the server.
 //
 //-----------------------------------------------------------------------------
 
@@ -53,26 +52,23 @@
 
 #include "sv_main.h"
 
-//*****************************************************************************
-//	DEFINES
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+//-- PROTOTYPES ------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------
 
-#define	BANFILE_REPARSE_TIME	( TICRATE * 60 * 10 )
-
-//*****************************************************************************
-//	PROTOTYPES
-
-void	SERVERBAN_Tick( void );
-bool	SERVERBAN_IsIPBanned( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 );
-bool	SERVERBAN_IsIPBanned( const NETADDRESS_s &Address );
-ULONG	SERVERBAN_DoesBanExist( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 );
-void	SERVERBAN_AddBan( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3, char *pszPlayerName, char *pszComment );
-bool	SERVERBAN_StringToBan( char *pszAddress, char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 );
-void	SERVERBAN_ClearBans( void );
-ULONG	SERVERBAN_GetNumBans( void );
+void			SERVERBAN_Tick( void );
+bool			SERVERBAN_IsIPBanned( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 );
+bool			SERVERBAN_IsIPBanned( const NETADDRESS_s &Address );
+void			SERVERBAN_AddBan( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3, char *pszPlayerName, char *pszComment );
+bool			SERVERBAN_StringToBan( char *pszAddress, char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 );
+void			SERVERBAN_ClearBans( void );
+ULONG			SERVERBAN_GetNumBans( void );
+void			SERVERBAN_ReadMasterServerBans( BYTESTREAM_s *pByteStream );
 IPADDRESSBAN_s	SERVERBAN_GetBan( ULONG ulIdx );
 
-//*****************************************************************************
-//	EXTERNAL CONSOLE VARIABLES
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+//-- EXTERNAL CONSOLE VARIABLES --------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------
 
 EXTERN_CVAR( Bool, sv_enforcebans );
 EXTERN_CVAR( String, sv_banfile );

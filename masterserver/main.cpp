@@ -53,6 +53,7 @@
 #include "svnrevision.h"
 #include "network.h"
 #include "main.h"
+#include <sstream>
 
 // [BB] Needed for I_GetTime.
 #ifdef _MSC_VER
@@ -119,6 +120,29 @@ int I_GetTime (void)
 #endif
 }
 
+//*****************************************************************************
+//
+void MASTERSERVER_SendBanlistToServer( SERVER_s &Server )
+{
+#ifndef STAY_97D2_COMPATIBLE
+	NETWORK_ClearBuffer( &g_MessageBuffer );
+	NETWORK_WriteByte( &g_MessageBuffer.ByteStream, MASTER_SERVER_BANLIST );
+
+	// Write all the bans.
+	NETWORK_WriteLong( &g_MessageBuffer.ByteStream, g_BannedIPs.size( ));
+	for ( ULONG i = 0; i < g_BannedIPs.size( ); i++ )
+		NETWORK_WriteString( &g_MessageBuffer.ByteStream, g_BannedIPs.getEntryAsString( i, false ).c_str( ));
+
+	// Write all the exceptions.
+	NETWORK_WriteLong( &g_MessageBuffer.ByteStream, g_BannedIPExemptions.size( ));
+	for ( ULONG i = 0; i < g_BannedIPExemptions.size( ); i++ )
+		NETWORK_WriteString( &g_MessageBuffer.ByteStream, g_BannedIPExemptions.getEntryAsString( i, false ).c_str( ));
+
+	NETWORK_LaunchPacket( &g_MessageBuffer, Server.Address );
+	Server.bHasLatestBanList = true;
+	printf( "-> Banlist sent to %s.\n", NETWORK_AddressToString( Server.Address ));
+#endif
+}
 
 //*****************************************************************************
 //
@@ -165,13 +189,30 @@ long MASTERSERVER_AddServerToList( NETADDRESS_s Address )
 
 //*****************************************************************************
 //
+bool MASTERSERVER_RefreshIPList( IPList &List, const char *FileName )
+{
+	std::stringstream oldIPs;
+
+	for ( ULONG ulIdx = 0; ulIdx < List.size(); ulIdx++ )
+		oldIPs << List.getEntryAsString ( ulIdx, false ).c_str() << "-";
+
+	if ( !(List.clearAndLoadFromFile( FileName )) )
+		std::cerr << List.getErrorMessage();
+
+	std::stringstream newIPs;
+
+	for ( ULONG ulIdx = 0; ulIdx < List.size(); ulIdx++ )
+		newIPs << List.getEntryAsString ( ulIdx, false ).c_str() << "-";
+
+	return ( strcmp ( newIPs.str().c_str(), oldIPs.str().c_str() ) != 0 );
+}
+
+//*****************************************************************************
+//
 void MASTERSERVER_InitializeBans( void )
 {
-	if ( !(g_BannedIPs.clearAndLoadFromFile( "banlist.txt" )) )
-		std::cerr << g_BannedIPs.getErrorMessage();
-
-	if ( !(g_BannedIPExemptions.clearAndLoadFromFile( "whitelist.txt" )) )
-		std::cerr << g_BannedIPExemptions.getErrorMessage();
+	const bool BannedIPsChanged = MASTERSERVER_RefreshIPList ( g_BannedIPs, "banlist.txt" );
+	const bool BannedIPExemptionsChanged = MASTERSERVER_RefreshIPList ( g_BannedIPExemptions, "whitelist.txt" );
 
 	if ( !(g_MultiServerExceptions.clearAndLoadFromFile( "multiserver_whitelist.txt" )) )
 		std::cerr << g_MultiServerExceptions.getErrorMessage();
@@ -179,6 +220,14 @@ void MASTERSERVER_InitializeBans( void )
 	std::cerr << "\nBan list: " << g_BannedIPs.size() << " banned IPs, " << g_BannedIPExemptions.size() << " exemptions." << std::endl;
 	std::cerr << "Multi-server exceptions: " << g_MultiServerExceptions.size() << "." << std::endl;
 
+	if ( BannedIPsChanged || BannedIPExemptionsChanged )
+	{
+		// [BB] The ban list was changed, so no server has the latest list anymore.
+		for ( ULONG ulIdx = 0; ulIdx < MAX_SERVERS; ulIdx++ )
+			g_Servers[ulIdx].bHasLatestBanList = false;
+
+		std::cerr << "Ban lists were changed since last refresh\n";
+	}
 /*
   // [BB] Print all banned IPs, to make sure the IP list has been parsed successfully.
 	std::cerr << "Entries in blacklist:\n";
@@ -280,8 +329,9 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 						printf( "ERROR: Server list full!\n" );
 					else
 					{
-						g_Servers[lServerIdx].lLastReceived = g_lCurrentTime;
+						g_Servers[lServerIdx].lLastReceived = g_lCurrentTime;						
 						printf( "+ Adding %s to the server list.\n", NETWORK_AddressToString( g_Servers[lServerIdx].Address ));
+						MASTERSERVER_SendBanlistToServer( g_Servers[lServerIdx] );
 					}
 				}
 			}
@@ -365,7 +415,14 @@ void MASTERSERVER_CheckTimeouts( void )
 		{
 			g_Servers[ulIdx].bAvailable = true;
 			printf( "- Server at %s timed out.\n", NETWORK_AddressToString( g_Servers[ulIdx].Address ));
+			continue;
 		}
+
+		// [BB] If the server doesn't have the latest ban list, send it now.
+		// This construction has the drawback that all servers are updated at once.
+		// Possibly it will be necessary to do this differently.
+		if ( g_Servers[ulIdx].bHasLatestBanList == false )
+			MASTERSERVER_SendBanlistToServer( g_Servers[ulIdx] );
 	}
 }
 
@@ -378,6 +435,12 @@ int main( )
 
 	std::cerr << "=== S K U L L T A G | Master ===\n";
 	std::cerr << "Revision: "SVN_REVISION_STRING"\n";
+
+#ifdef STAY_97D2_COMPATIBLE
+	std::cerr << "Compatible with: 0.97d2" << std::endl;
+#else
+	std::cerr << "Compatible with: 0.97d3" << std::endl;
+#endif
 	std::cerr << "Port: " << DEFAULT_MASTER_PORT << std::endl << std::endl;
 
 	// Initialize the network system.

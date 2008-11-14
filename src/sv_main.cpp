@@ -1619,6 +1619,12 @@ void SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream )
 
 			SERVER_MASTER_SendServerInfo( NETWORK_GetFromAddress( ), ulFlags, ulTime, false );
 			return;
+		// [RC] Master server is sending us the holy banlist.
+		case MASTER_SERVER_BANLIST:
+
+			if ( NETWORK_CompareAddress( NETWORK_GetFromAddress( ), SERVER_MASTER_GetMasterAddress( ), false ))
+				SERVERBAN_ReadMasterServerBans( pByteStream );
+			return;
 		// Ignore; possibly a client who thinks he's still in a game, but isn't.
 		case CLC_USERINFO:
 		case CLC_QUIT:
@@ -4202,13 +4208,11 @@ static bool server_RequestJoin( BYTESTREAM_s *pByteStream )
 	}
 
 	// Everything's okay! Go ahead and join!
-	players[g_lCurrentClient].playerstate = PST_ENTERNOINVENTORY;
-	players[g_lCurrentClient].bSpectating = false;
-	players[g_lCurrentClient].bDeadSpectator = false;
+	PLAYER_SpectatorJoinsGame ( &players[g_lCurrentClient] );
 	// [BB] It's possible that you are watching through the eyes of someone else
 	// upon joining. Doesn't hurt to reset it.
 	g_aClients[g_lCurrentClient].ulDisplayPlayer = g_lCurrentClient;
-	if ( teamplay || ( teamgame && TemporaryTeamStarts.Size( ) == 0 ) || teamlms || teampossession || domination )
+	if ( teamplay || ( teamgame && TemporaryTeamStarts.Size( ) == 0 ) || teamlms || teampossession )
 	{
 		players[g_lCurrentClient].bOnTeam = true;
 		players[g_lCurrentClient].ulTeam = TEAM_ChooseBestTeamForPlayer( );
@@ -4333,7 +4337,7 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 		return ( false );
 
 	// Not a teamgame.
-	if (( teamgame == false ) && ( teamplay == false ) && ( teamlms == false ) && ( teampossession == false ) && (domination == false))
+	if (( teamgame == false ) && ( teamplay == false ) && ( teamlms == false ) && ( teampossession == false ))
 		return ( false );
 
 	// Player can't rejoin their LMS game if they are dead.

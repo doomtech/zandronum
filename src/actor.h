@@ -376,6 +376,9 @@ enum
 	// Has the object moved from its original position on the map?
 	STFL_POSITIONCHANGED	= 0x00100000,
 
+	// [BB] The actor is an obsolete spectator body, that should be deleted once the player is reborn.
+	STFL_OBSOLETE_SPECTATOR_BODY		= 0x00200000,
+
 // More flags for Skulltag... these having to do with the network.
 
 	// This object does not have a network ID.

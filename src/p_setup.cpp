@@ -77,6 +77,7 @@
 #include "invasion.h"
 #include "survival.h"
 #include "possession.h"
+#include "joinqueue.h"
 #include "cl_demo.h"
 #include "domination.h"
 
@@ -1349,9 +1350,6 @@ void P_LoadSectors (MapData * map)
 		// This is so that R_FakeFlat copies can still retrieve the sector's index.
 		ss->sectornum = i;
 	}
-
-	DOMINATION_Init(); //Call Init function to set sector colors if in Domination
-
 	delete[] msp;
 }
 
@@ -3961,6 +3959,9 @@ void P_SetupLevel (char *lumpname, int position)
 				{
 					players[i].bSpectating = true;
 
+					// [BB] If the player was in the join queue, remove him.
+					JOINQUEUE_RemovePlayerFromQueue ( i, false );
+
 					// If this bot spawned as a spectator, let him know.
 					if ( players[i].pSkullBot )
 						players[i].pSkullBot->PostEvent( BOTEVENT_SPECTATING );
@@ -4102,6 +4103,9 @@ void P_SetupLevel (char *lumpname, int position)
 			LASTMANSTANDING_SetStartNextMatchOnLevelLoad( false );
 		}
 	}
+
+	// Call Init function to set sector colors if in Domination
+	DOMINATION_Init();
 
 	// [BB] Notify software users if 3d floors are present.
 	if( ( currentrenderer == 0) && (NETWORK_GetState( ) != NETSTATE_SERVER) && mapUses3DFloors && screen && StatusBar )

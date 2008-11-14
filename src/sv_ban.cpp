@@ -43,8 +43,7 @@
 //
 // Filename: sv_ban.cpp
 //
-// Description: Contains variables and routines related to the server ban
-// of the program.
+// Description: Support for banning IPs from the server.
 //
 //-----------------------------------------------------------------------------
 
@@ -57,69 +56,72 @@
 #include "sv_ban.h"
 #include "v_text.h"
 
-//*****************************************************************************
-//	PROTOTYPES
-
-static	void	serverban_LoadBans( void );
-static	void	serverban_LoadBansAndBanExemptions( void );
-
-//*****************************************************************************
-//	VARIABLES
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+//-- VARIABLES -------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------
 
 static	IPList	g_ServerBans;
 static	IPList	g_ServerBanExemptions;
-static	ULONG	g_ulBanReParseTicker;
 
-//*****************************************************************************
-//	CONSOLE VARIABLES
+static	IPList	g_MasterServerBans;
+static	IPList	g_MasterServerBanExemptions;
+
+static	ULONG	g_ulReParseTicker;
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+//-- PROTOTYPES ------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+
+static	void	serverban_LoadBansAndBanExemptions( void );
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+//-- CONSOLE ----------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------
 
 CVAR( Bool, sv_enforcebans, true, CVAR_ARCHIVE )
 CVAR( Int, sv_banfilereparsetime, 0, CVAR_ARCHIVE )
+CVAR( Bool, sv_enforcemasterbanlist, true, CVAR_ARCHIVE )
+
+//*****************************************************************************
+//
 CUSTOM_CVAR( String, sv_banfile, "banlist.txt", CVAR_ARCHIVE )
 {
-	UCVarValue	Val;
-
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		return;
 
-	g_ServerBans.clear();
+	if ( !( g_ServerBans.clearAndLoadFromFile( sv_banfile.GetGenericRep( CVAR_String ).String )))
+		Printf( "%s", g_ServerBans.getErrorMessage( ));
 
-	// Load the banfile, and initialize the bans.
-	serverban_LoadBans( );
-
-	// Re-parse the ban file in a certain amount of time.
-	Val = sv_banfilereparsetime.GetGenericRep( CVAR_Int );
-	g_ulBanReParseTicker = Val.Int * TICRATE;
+	// Re-parse the file periodically.
+	g_ulReParseTicker = sv_banfilereparsetime.GetGenericRep( CVAR_Int ).Int * TICRATE;
 }
+
+//*****************************************************************************
+//
 CUSTOM_CVAR( String, sv_banexemptionfile, "whitelist.txt", CVAR_ARCHIVE )
 {
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		return;
 
-	if ( !(g_ServerBanExemptions.clearAndLoadFromFile( sv_banexemptionfile.GetGenericRep( CVAR_String ).String )) )
-		Printf( "%s", g_ServerBanExemptions.getErrorMessage() );
+	if ( ! ( g_ServerBanExemptions.clearAndLoadFromFile( sv_banexemptionfile.GetGenericRep( CVAR_String ).String )))
+		Printf( "%s", g_ServerBanExemptions.getErrorMessage( ));
 }
 
-//*****************************************************************************
-//	FUNCTIONS
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+//-- FUNCTIONS -------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------
 
+//*****************************************************************************
+//
 void SERVERBAN_Tick( void )
 {
-	UCVarValue	Val;
-
-	if ( g_ulBanReParseTicker )
+	// Is it time to re-parse the ban lists?
+	if ( g_ulReParseTicker && (( --g_ulReParseTicker ) == 0 ))
 	{
-		// Re-parse the ban list.
-		if (( --g_ulBanReParseTicker ) == 0 )
-		{
-			Val = sv_banfilereparsetime.GetGenericRep( CVAR_Int );
-			g_ulBanReParseTicker = Val.Int * TICRATE;
+		serverban_LoadBansAndBanExemptions( );
 
-			g_ServerBans.clear();
-
-			// Load the banfile, and initialize the bans.
-			serverban_LoadBansAndBanExemptions( );
-		}
+		// Parse again periodically.
+		g_ulReParseTicker = sv_banfilereparsetime.GetGenericRep( CVAR_Int ).Int * TICRATE;
 	}
 }
 
@@ -127,27 +129,24 @@ void SERVERBAN_Tick( void )
 //
 bool SERVERBAN_IsIPBanned( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 )
 {
-	if( g_ServerBanExemptions.isIPInList( pszIP0, pszIP1, pszIP2, pszIP3 ) )
-		return false;
-	else
-		return g_ServerBans.isIPInList( pszIP0, pszIP1, pszIP2, pszIP3 );
+	// Is this address is banned on the master server?
+	if ( sv_enforcemasterbanlist && g_MasterServerBans.isIPInList( pszIP0, pszIP1, pszIP2, pszIP3 ) && !g_MasterServerBanExemptions.isIPInList( pszIP0, pszIP1, pszIP2, pszIP3 ))
+		return true;
+
+	// If not, let the server decide.
+	return ( g_ServerBans.isIPInList( pszIP0, pszIP1, pszIP2, pszIP3 ) && !g_ServerBanExemptions.isIPInList( pszIP0, pszIP1, pszIP2, pszIP3 ));
 }
 
 //*****************************************************************************
 //
 bool SERVERBAN_IsIPBanned( const NETADDRESS_s &Address )
 {
-	if( g_ServerBanExemptions.isIPInList( Address ) )
-		return false;
-	else
-		return g_ServerBans.isIPInList( Address );
-}
+	// Is this address is banned on the master server?
+	if ( sv_enforcemasterbanlist && g_MasterServerBans.isIPInList( Address ) && !g_MasterServerBanExemptions.isIPInList( Address ))
+		return true;
 
-//*****************************************************************************
-//
-ULONG SERVERBAN_DoesBanExist( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 )
-{
-	return g_ServerBans.doesEntryExist( pszIP0, pszIP1, pszIP2, pszIP3 );
+	// If not, let the server decide.
+	return ( g_ServerBans.isIPInList( Address ) && !g_ServerBanExemptions.isIPInList( Address ));
 }
 
 //*****************************************************************************
@@ -201,43 +200,41 @@ IPADDRESSBAN_s SERVERBAN_GetBan( ULONG ulIdx )
 
 //*****************************************************************************
 //
-static void serverban_LoadBans( void )
-{
-	UCVarValue	Val;
+void SERVERBAN_ReadMasterServerBans( BYTESTREAM_s *pByteStream )
+{	
+	g_MasterServerBans.clear( );
+	g_MasterServerBanExemptions.clear( );
 
-	// Open the banfile.
-	Val = sv_banfile.GetGenericRep( CVAR_String );
-
-	// [RC] Escape backslashes so that paths can be used.
-	// [BB] Why is this necessary? Paths can be used with slashes anyway.
-	FString fsFilePath = Val.String;
-	int index;
-	int last_index = -1;
-
-	while( true )
+	// Read the list of bans.
+	for ( LONG i = 0, lNumEntries = NETWORK_ReadLong( pByteStream ); i < lNumEntries; i++ )
 	{
-		index = fsFilePath.IndexOf("\\");
+		const char		*pszBan = NETWORK_ReadString( pByteStream );
+		std::string		Message;
 
-		// Don't get stuck in the loop.
-		if(( index == last_index ) || ( index  ==  last_index + 1 ))
-			break;
-
-		last_index = index;
-		fsFilePath.Insert(index, '\\');
+		g_MasterServerBans.addEntry( pszBan, "", "", Message );
 	}
 
-	if ( !(g_ServerBans.clearAndLoadFromFile( fsFilePath.GetChars() )) )
-		Printf( "%s", g_ServerBans.getErrorMessage() );
+	// Read the list of exemptions.
+	for ( LONG i = 0, lNumEntries = NETWORK_ReadLong( pByteStream ); i < lNumEntries; i++ )
+	{
+		const char		*pszBan = NETWORK_ReadString( pByteStream );
+		std::string		Message;
+
+		g_MasterServerBanExemptions.addEntry( pszBan, "", "", Message );
+	}
+
+	// Printf( "Imported %d bans, %d exceptions from the master.\n", g_MasterServerBans.size( ), g_MasterServerBanExemptions.size( ));
 }
 
 //*****************************************************************************
 //
 static void serverban_LoadBansAndBanExemptions( void )
 {
-	serverban_LoadBans();
+	if ( !( g_ServerBans.clearAndLoadFromFile( sv_banfile.GetGenericRep( CVAR_String ).String )))
+		Printf( "%s", g_ServerBans.getErrorMessage( ));
 
-	if ( !(g_ServerBanExemptions.clearAndLoadFromFile( sv_banexemptionfile.GetGenericRep( CVAR_String ).String )) )
-		Printf( "%s", g_ServerBanExemptions.getErrorMessage() );
+	if ( !( g_ServerBanExemptions.clearAndLoadFromFile( sv_banexemptionfile.GetGenericRep( CVAR_String ).String )))
+		Printf( "%s", g_ServerBanExemptions.getErrorMessage( ));
 }
 
 //*****************************************************************************
@@ -565,8 +562,5 @@ CCMD( clearbans )
 //
 CCMD( reloadbans )
 {
-	g_ServerBans.clear();
-
-	// Load the banfile, and initialize the bans.
 	serverban_LoadBansAndBanExemptions( );
 }

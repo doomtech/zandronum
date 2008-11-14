@@ -150,7 +150,10 @@ bool CheckIfExitIsGood (AActor *self, level_info_t *info)
 
 	// Is this a deathmatch game and we're not allowed to exit?
 	// [BC] Teamgame, too.
-	if ((deathmatch || teamgame || alwaysapplydmflags) && (dmflags & DF_NO_EXIT))
+	if ( ((deathmatch || teamgame || alwaysapplydmflags) && (dmflags & DF_NO_EXIT))
+	     // [BB] Don't allow anybody to exit during the survival countdown.
+	     || (( survival ) && ( SURVIVAL_GetState( ) == SURVS_COUNTDOWN ))
+	   )
 	{
 		P_DamageMobj (self, self, self, 1000000, NAME_Exit);
 		return false;
