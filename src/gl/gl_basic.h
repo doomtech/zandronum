@@ -70,7 +70,7 @@ template <class T> struct FreeList
 template<class T> class UniqueList
 {
 	TArray<T*> Array;
-	FreeList<T>	FreeList;
+	FreeList<T>	Freelist;
 
 public:
 
@@ -80,7 +80,7 @@ public:
 		{
 			if (!memcmp(t, Array[i], sizeof(T))) return Array[i];
 		}
-		T * newo=FreeList.GetNew();
+		T * newo=Freelist.GetNew();
 
 		*newo=*t;
 		Array.Push(newo);
@@ -89,7 +89,7 @@ public:
 
 	void Clear()
 	{
-		for(unsigned i=0;i<Array.Size();i++) FreeList.Release(Array[i]);
+		for(unsigned i=0;i<Array.Size();i++) Freelist.Release(Array[i]);
 		Array.Clear();
 	}
 
