@@ -448,6 +448,7 @@ CVAR (Flag, sv_shotgunstart,	dmflags2, DF2_COOP_SHOTGUNSTART);
 CVAR (Flag, sv_samespawnspot,	dmflags2, DF2_SAME_SPAWN_SPOT);
 CVAR (Flag, sv_keepteams,		dmflags2, DF2_YES_KEEP_TEAMS);
 CVAR (Flag, sv_awarddamageinsteadkills,		dmflags2, DF2_AWARD_DAMAGE_INSTEAD_KILLS);
+CVAR (Flag, sv_forcealpha,		dmflags2, DF2_FORCE_ALPHA);
 
 //==========================================================================
 //

@@ -2076,7 +2076,8 @@ static bool stencilling;
 
 static bool R_SetBlendFunc (fixed_t fglevel, fixed_t bglevel)
 {
-	if (!r_drawtrans || (fglevel == BL_ONE && bglevel == BL_ZERO))
+	// [BB] DF2_FORCE_ALPHA overrides the r_drawtrans setting.
+	if (!(r_drawtrans || (dmflags2 & DF2_FORCE_ALPHA) ) || (fglevel == BL_ONE && bglevel == BL_ZERO))
 	{
 		if (stencilling)
 		{
