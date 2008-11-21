@@ -94,7 +94,6 @@ static	FRandom		BotRemove( "BotRemove" );
 static	FRandom		g_RandomBotAimSeed( "RandomBotAimSeed" );
 static	BOTSPAWN_t	g_BotSpawn[MAXPLAYERS];
 static	BOTINFO_s	*g_BotInfo[MAX_BOTINFO];
-static	BOTINFO_s	g_HardcodedBotInfo[NUM_HARDCODED_BOTS];
 static	cycle_t		g_BotCycles;
 static	bool		g_bBotIsInitialized[MAXPLAYERS];
 static	LONG		g_lLastHeader;
@@ -374,6 +373,77 @@ EXTERN_CVAR( Bool, sv_cheats );
 
 void BOTS_Construct( void )
 {
+	// [BB] All the legacy code for the hardcoded bots is collected here.
+	enum
+	{
+		// This is the list of hardcoded bots.
+
+		/**************** HUMANS *****************/
+		BOT_CHUBBS,
+		BOT_DEIMOS,
+		BOT_ALDEBARAN,
+		BOT_CRASH,
+		BOT_PROCYON,
+		BOT_SIRIUS,
+		BOT_RIGEL,
+		BOT_SEENAS,
+		BOT_SYNAS,
+		BOT_CYGNUS,
+		/**************** ROBOTS *****************/
+		BOT_ALPHUS,
+		BOT_PROTOS,
+		BOT_BETUS,
+		BOT_SCYON,
+		BOT_GAMMA,
+		BOT_SCYTHE,
+		BOT_ELECTRA,
+		BOT_OMICRON,
+		BOT_CRYON,
+		BOT_OMEGA,
+		/**************** INSECT BOSSES *****************/
+		BOT_PREY,
+		BOT_MANEK,
+		/**************** DEMONS *****************/
+		BOT_LINGUICA,
+		BOT_TORRENT,
+		BOT_CATACLYSM,
+		BOT_VEX,
+		BOT_OBELISK,
+		BOT_DAEMOS,
+		BOT_MAABUS,
+		BOT_SLYOR,
+		/**************** FINAL BOSSES *****************/
+		BOT_ORION,
+		BOT_ULTIMUS,
+		/**************** EXTRAS *****************/
+		BOT_ROMERO,
+		BOT_H4X0R,
+		BOT_FRAD,
+		BOT_MEWSE,
+		BOT_HISSY,
+		BOT_MASSMOUTH,
+		BOT_DOOMCRATE,
+		BOT_ZOMBIEMAN,
+		BOT_SHOTGUNGUY,
+		BOT_BIGCHAINGUNGUY,
+		BOT_SUPERSHOTGUNNER,
+		BOT_SSNAZI,
+		BOT_NAZIGUARD,
+		BOT_NAZICHAINGUNNER,
+		BOT_STRIFEGUY,
+		BOT_XXENEMYXX,
+		BOT_FIFFY,
+		BOT_MEEPY,
+		BOT_CHEXMAN,
+		BOT_DAISY,
+		BOT_LINMENGJU,
+		BOT_GOLDENFATTIE,
+		BOT_QUOTEBOT,
+
+		NUM_HARDCODED_BOTS
+	};
+	BOTINFO_s	g_HardcodedBotInfo[NUM_HARDCODED_BOTS];
+
 	ULONG	ulIdx;
 
 	// Set up all the hardcoded bot info.
@@ -1597,13 +1667,11 @@ void BOTS_Construct( void )
 
 	// Initialize all botinfo pointers.
 	for ( ulIdx = 0; ulIdx < MAX_BOTINFO; ulIdx++ )
-	{
-		// We have a bunch of bots that are hardcoded.
-		if ( ulIdx < NUM_HARDCODED_BOTS )
-			g_BotInfo[ulIdx] = &g_HardcodedBotInfo[ulIdx];
-		else
-			g_BotInfo[ulIdx] = NULL;
-	}
+		g_BotInfo[ulIdx] = NULL;
+
+	// We have a bunch of bots that are hardcoded.
+	for ( ulIdx = 0; ulIdx < NUM_HARDCODED_BOTS; ulIdx++ )
+		BOTS_AddBotInfo( &g_HardcodedBotInfo[ulIdx] );
 
 	// Initialize the botspawn table.
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1669,9 +1737,6 @@ void BOTS_Destruct( void )
 	// First, go through and free all additional botinfo's.
 	for ( ulIdx = 0; ulIdx < MAX_BOTINFO; ulIdx++ )
 	{
-		if ( ulIdx < NUM_HARDCODED_BOTS )
-			continue;
-
 		if ( g_BotInfo[ulIdx] != NULL )
 		{
 			free( g_BotInfo[ulIdx] );
