@@ -80,8 +80,12 @@
 extern FILE *Logfile;
 extern bool insave;
 
-// [BC] Store the name of the file we're currently logging to.
-extern char g_szLogFilename[256];
+// [BC] The user's desired name of the logfile.
+extern char g_szDesiredLogFilename[MAX_PATH];
+
+// [RC] The actual name of the logfile (most likely g_szDesiredLogFilename with a timestamp).
+extern char g_szActualLogFilename[MAX_PATH];
+
 
 CVAR (Bool, sv_cheats, false, CVAR_SERVERINFO | CVAR_LATCH)
 CVAR (Bool, sv_logfilenametimestamp, true, CVAR_ARCHIVE)
@@ -105,6 +109,41 @@ bool CheckCheatmode ()
 	else
 	{
 		return false;
+	}
+}
+
+// [RC] Creates the log file and starts logging to it.
+void StartLogging( const char *szFileName )
+{
+	char		logfilename[512];
+	time_t		tNow;
+	struct tm	*lt = localtime( &tNow );
+
+	// [BB] If sv_logfilenametimestamp, we append the current date/time to the logfile name.
+	if ( lt != NULL && sv_logfilenametimestamp )
+		sprintf( logfilename, "%s__%d_%02d_%02d-%02d_%02d_%02d.log", szFileName, lt->tm_year + 1900, lt->tm_mon + 1, lt->tm_mday, lt->tm_hour, lt->tm_min, lt->tm_sec);
+	else
+		strncpy( logfilename, szFileName, 256 );
+
+	if (( Logfile = fopen( logfilename, "w" )))
+	{
+		sprintf( g_szDesiredLogFilename, szFileName );
+		sprintf( g_szActualLogFilename, logfilename );
+		Printf( "Log started: %s, %s", g_szActualLogFilename, myasctime( ));
+	}
+	else
+		Printf( "Could not start log: %s.\n", szFileName );
+}
+
+// Closes the log file, if there is one.
+void StopLogging( void )
+{
+	if ( Logfile )
+	{
+		Printf( "Log stopped: %s, %s", g_szActualLogFilename, myasctime() );
+		fclose( Logfile );
+		Logfile = NULL;
+		g_szActualLogFilename[0] = 0;
 	}
 }
 
@@ -583,43 +622,15 @@ CCMD (exec)
 
 CCMD (logfile)
 {
-	const char *timestr = myasctime ();
-
 	// This function may not be used by ConsoleCommand.
 	if ( ACS_IsCalledFromConsoleCommand( ))
 		return;
 
-	if (Logfile)
-	{
-		Printf ("Log stopped: %s\n", timestr);
-		fclose (Logfile);
-		Logfile = NULL;
-	}
+	if ( Logfile )
+		StopLogging( );
 
-	if (argv.argc() >= 2)
-	{
-		// [BB] In case (sv_logfilenametimestamp == true) we append the current date/time to the logfile name
-		char logfilename[256];
-
-		time_t clock;
-		struct tm *lt;
-		time (&clock);
-		lt = localtime (&clock);
-		if (lt != NULL && sv_logfilenametimestamp )
-			sprintf( logfilename, "%s__%d_%02d_%02d-%02d_%02d_%02d", argv[1], lt->tm_year + 1900, lt->tm_mon + 1, lt->tm_mday, lt->tm_hour, lt->tm_min, lt->tm_sec);
-		else
-			sprintf( logfilename, "%s", argv[1]);
-
-		if ( (Logfile = fopen (logfilename, "w")) )
-		{
-			sprintf( g_szLogFilename, argv[1] );
-			Printf ("Log started: %s\n", timestr);
-		}
-		else
-		{
-			Printf ("Could not start log\n");
-		}
-	}
+	if ( argv.argc() >= 2 )
+		StartLogging( argv[1] );
 }
 
 CCMD (puke)
