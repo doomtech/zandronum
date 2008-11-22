@@ -241,6 +241,7 @@ static	void	client_DoGameModeFight( BYTESTREAM_s *pByteStream );
 static	void	client_DoGameModeCountdown( BYTESTREAM_s *pByteStream );
 static	void	client_DoGameModeWinSequence( BYTESTREAM_s *pByteStream );
 static	void	client_SetDominationState( BYTESTREAM_s *pByteStream );
+static	void	client_SetDominationPointOwnership( BYTESTREAM_s *pByteStream );
 
 // Team commands.
 static	void	client_SetTeamFrags( BYTESTREAM_s *pByteStream );
@@ -590,6 +591,8 @@ static	const char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_DOGAMEMODEFIGHT",
 	"SVC_DOGAMEMODECOUNTDOWN",
 	"SVC_DOGAMEMODEWINSEQUENCE",
+	"SVC_SETDOMINATIONSTATE",
+	"SVC_SETDOMINATIONPOINTOWNER",
 	"SVC_SETTEAMFRAGS",
 	"SVC_SETTEAMSCORE",
 	"SVC_SETTEAMWINS",
@@ -1859,6 +1862,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETDOMINATIONSTATE:
 
 		client_SetDominationState( pByteStream );
+		break;
+	case SVC_SETDOMINATIONPOINTOWNER:
+
+		client_SetDominationPointOwnership( pByteStream );
 		break;
 	case SVC_SETTEAMFRAGS:
 
@@ -7439,6 +7446,20 @@ static void client_SetDominationState( BYTESTREAM_s *pByteStream )
 		PointOwners[i] = NETWORK_ReadByte( pByteStream );
 	}
 	DOMINATION_LoadInit(NumPoints, PointOwners);
+}
+
+//*****************************************************************************
+//
+static void client_SetDominationPointOwnership( BYTESTREAM_s *pByteStream )
+{
+	unsigned int ulPoint = NETWORK_ReadByte( pByteStream );
+	unsigned int ulPlayer = NETWORK_ReadByte( pByteStream );
+
+	// If this is an invalid player, break out.
+	if ( CLIENT_IsValidPlayer( ulPlayer ) == false )
+		return;
+
+	DOMINATION_SetOwnership(ulPoint, &players[ulPlayer]);
 }
 
 //*****************************************************************************
