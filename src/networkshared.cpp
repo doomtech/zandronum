@@ -171,7 +171,7 @@ float NETWORK_ReadFloat( BYTESTREAM_s *pByteStream )
 //
 const char *NETWORK_ReadString( BYTESTREAM_s *pByteStream )
 {
-	char			c;
+	int c;
 	static char		s_szString[MAX_NETWORK_STRING];
 
 	// Read in characters until we've reached the end of the string.
@@ -183,7 +183,7 @@ const char *NETWORK_ReadString( BYTESTREAM_s *pByteStream )
 			break;
 
 		// Place this character into our string.
-		s_szString[ulIdx++] = c;
+		s_szString[ulIdx++] = static_cast<char> ( c );
 
 	} while ( ulIdx < ( MAX_NETWORK_STRING - 1 ));
 
