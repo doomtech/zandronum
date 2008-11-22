@@ -94,6 +94,17 @@ typedef enum
 } GAMEMODE_e;
 
 //*****************************************************************************
+typedef enum
+{
+	MODIFIER_NONE,
+	MODIFIER_INSTAGIB,
+	MODIFIER_BUCKSHOT,
+
+	NUM_MODIFIERS
+
+} MODIFIER_e;
+
+//*****************************************************************************
 //	STRUCTURES
 
 typedef struct
@@ -127,5 +138,7 @@ void		GAMEMODE_DisplayStandardMessage( const char *pszMessage );
 
 GAMEMODE_e	GAMEMODE_GetCurrentMode( void );
 void		GAMEMODE_SetCurrentMode( GAMEMODE_e GameMode );
+MODIFIER_e	GAMEMODE_GetModifier( void );
+void		GAMEMODE_SetModifier( MODIFIER_e Modifier );
 
 #endif // __GAMEMODE_H__
