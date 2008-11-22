@@ -43,8 +43,7 @@
 //
 // Filename: networkshared.cpp
 //
-// Description: Contains network related code shared between
-// Skulltag and the master server.
+// Description: Contains shared network code shared between Skulltag and its satellites (master server, statsmaker, rcon utility, etc).
 //
 //-----------------------------------------------------------------------------
 
@@ -100,15 +99,17 @@ LONG NETWORK_CalcBufferSize( NETBUFFER_s *pBuffer )
 		return ( LONG( pBuffer->ByteStream.pbStream - pBuffer->pbData ));
 }
 
+//================================================================================
+// IO read functions
+//================================================================================
+
 //*****************************************************************************
 //
 int NETWORK_ReadByte( BYTESTREAM_s *pByteStream )
 {
-	int	Byte;
+	int	Byte = -1;
 
-	if (( pByteStream->pbStream + 1 ) > pByteStream->pbStreamEnd )
-		Byte = -1;
-	else
+	if (( pByteStream->pbStream + 1 ) <= pByteStream->pbStreamEnd )
 		Byte = *pByteStream->pbStream;
 
 	// Advance the pointer.
@@ -116,6 +117,83 @@ int NETWORK_ReadByte( BYTESTREAM_s *pByteStream )
 
 	return ( Byte );
 }
+
+//*****************************************************************************
+//
+int NETWORK_ReadShort( BYTESTREAM_s *pByteStream )
+{
+	int	Short = -1;
+
+	if (( pByteStream->pbStream + 2 ) <= pByteStream->pbStreamEnd )
+		Short = (short)(( pByteStream->pbStream[0] ) + ( pByteStream->pbStream[1] << 8 ));
+
+	// Advance the pointer.
+	pByteStream->pbStream += 2;
+
+	return ( Short );
+}
+
+//*****************************************************************************
+//
+int NETWORK_ReadLong( BYTESTREAM_s *pByteStream )
+{
+	int	Long = -1;
+
+	if (( pByteStream->pbStream + 4 ) <= pByteStream->pbStreamEnd )
+	{
+		Long = (( pByteStream->pbStream[0] )
+		+ ( pByteStream->pbStream[1] << 8 )
+		+ ( pByteStream->pbStream[2] << 16 )
+		+ ( pByteStream->pbStream[3] << 24 ));
+	}
+
+	// Advance the pointer.
+	pByteStream->pbStream += 4;
+
+	return ( Long );
+}
+
+//*****************************************************************************
+//
+float NETWORK_ReadFloat( BYTESTREAM_s *pByteStream )
+{
+	union
+	{
+		float	f;
+		int		i;
+	} dat;
+
+	dat.i = NETWORK_ReadLong( pByteStream );
+	return ( dat.f );
+}
+
+//*****************************************************************************
+//
+const char *NETWORK_ReadString( BYTESTREAM_s *pByteStream )
+{
+	char			c;
+	static char		s_szString[MAX_NETWORK_STRING];
+
+	// Read in characters until we've reached the end of the string.
+	ULONG ulIdx = 0;
+	do
+	{
+		c = NETWORK_ReadByte( pByteStream );
+		if ( c <= 0 )
+			break;
+
+		// Place this character into our string.
+		s_szString[ulIdx++] = c;
+
+	} while ( ulIdx < ( MAX_NETWORK_STRING - 1 ));
+
+	s_szString[ulIdx] = '\0';
+	return ( s_szString );
+}
+
+//================================================================================
+// IO write functions
+//================================================================================
 
 //*****************************************************************************
 //
@@ -131,32 +209,6 @@ void NETWORK_WriteByte( BYTESTREAM_s *pByteStream, int Byte )
 
 	// Advance the pointer.
 	pByteStream->pbStream += 1;
-/*
-	BYTE	*pbBuf;
-
-	pbBuf = NETWORK_GetSpace( pBuffer, 1 );
-	pbBuf[0] = Byte;
-*/
-}
-
-//*****************************************************************************
-//
-int NETWORK_ReadShort( BYTESTREAM_s *pByteStream )
-{
-	int	Short;
-
-	if (( pByteStream->pbStream + 2 ) > pByteStream->pbStreamEnd )
-		Short = -1;
-	else
-	{
-		Short = (short)(( pByteStream->pbStream[0] )
-		+ ( pByteStream->pbStream[1] << 8 ));
-	}
-
-	// Advance the pointer.
-	pByteStream->pbStream += 2;
-
-	return ( Short );
 }
 
 //*****************************************************************************
@@ -174,35 +226,6 @@ void NETWORK_WriteShort( BYTESTREAM_s *pByteStream, int Short )
 
 	// Advance the pointer.
 	pByteStream->pbStream += 2;
-/*
-	BYTE	*pbBuf;
-
-	pbBuf = NETWORK_GetSpace( pBuffer, 2 );
-	pbBuf[0] = Short & 0xff;
-	pbBuf[1] = Short >> 8;
-*/
-}
-
-//*****************************************************************************
-//
-int NETWORK_ReadLong( BYTESTREAM_s *pByteStream )
-{
-	int	Long;
-
-	if (( pByteStream->pbStream + 4 ) > pByteStream->pbStreamEnd )
-		Long = -1;
-	else
-	{
-		Long = (( pByteStream->pbStream[0] )
-		+ ( pByteStream->pbStream[1] << 8 )
-		+ ( pByteStream->pbStream[2] << 16 )
-		+ ( pByteStream->pbStream[3] << 24 ));
-	}
-
-	// Advance the pointer.
-	pByteStream->pbStream += 4;
-
-	return ( Long );
 }
 
 //*****************************************************************************
@@ -222,29 +245,6 @@ void NETWORK_WriteLong( BYTESTREAM_s *pByteStream, int Long )
 
 	// Advance the pointer.
 	pByteStream->pbStream += 4;
-/*
-	BYTE	*pbBuf;
-
-	pbBuf = NETWORK_GetSpace( pBuffer, 4 );
-	pbBuf[0] = Long & 0xff;
-	pbBuf[1] = ( Long >> 8 ) & 0xff;
-	pbBuf[2] = ( Long >> 16 ) & 0xff;
-	pbBuf[3] = ( Long >> 24 );
-*/
-}
-
-//*****************************************************************************
-//
-float NETWORK_ReadFloat( BYTESTREAM_s *pByteStream )
-{
-	union
-	{
-		float	f;
-		int		i;
-	} dat;
-
-	dat.i = NETWORK_ReadLong( pByteStream );
-	return ( dat.f );
 }
 
 //*****************************************************************************
@@ -254,42 +254,12 @@ void NETWORK_WriteFloat( BYTESTREAM_s *pByteStream, float Float )
 	union
 	{
 		float	f;
-		int	l;
+		int		l;
 	} dat;
 
 	dat.f = Float;
-	//dat.l = LittleLong (dat.l);
 
 	NETWORK_WriteLong( pByteStream, dat.l );
-}
-
-//*****************************************************************************
-//
-const char *NETWORK_ReadString( BYTESTREAM_s *pByteStream )
-{
-	char			c;
-	ULONG			ulIdx;
-	static char		s_szString[MAX_NETWORK_STRING];
-
-	// Build our string by reading in one character at a time. If the character is 0 or
-	// -1, we've reached the end of the string.
-	ulIdx = 0;
-	do
-	{
-		c = NETWORK_ReadByte( pByteStream );
-		if (( c == -1 ) ||
-			( c == 0 ))
-		{
-			break;
-		}
-
-		// Place this character into our string.
-		s_szString[ulIdx++] = c;
-
-	} while ( ulIdx < ( MAX_NETWORK_STRING - 1 ));
-
-	s_szString[ulIdx] = '\0';
-	return ( s_szString );
 }
 
 //*****************************************************************************
@@ -332,49 +302,28 @@ void NETWORK_WriteBuffer( BYTESTREAM_s *pByteStream, const void *pvBuffer, int n
 
 	// Advance the pointer.
 	pByteStream->pbStream += nLength;
-/*
-	BYTE	*pbDatapos;
-
-	if ( g_lNetworkState == NETSTATE_CLIENT )
-		memcpy( NETWORK_GetSpace( pBuffer, nLength ), pvData, nLength );
-	else
-	{
-		pbDatapos = NETWORK_GetSpace( pBuffer, nLength );
-
-		// Bad getspace.
-		if ( pbDatapos == 0 )
-		{
-			Printf( "NETWORK_Write: Couldn't get %d bytes of space!\n", nLength );
-			return;
-		}
-		
-		memcpy( pbDatapos, pvData, nLength );
-	}
-*/
 }
 
 //*****************************************************************************
 //
 void NETWORK_WriteHeader( BYTESTREAM_s *pByteStream, int Byte )
 {
-//	Printf( "%s\n", g_pszHeaderNames[Byte] );
 	NETWORK_WriteByte( pByteStream, Byte );
 }
+
+//=============================================================================
+// Utility/Conversion functions
+//=============================================================================
 
 //*****************************************************************************
 //
 bool NETWORK_CompareAddress( NETADDRESS_s Address1, NETADDRESS_s Address2, bool bIgnorePort )
 {
-	if (( Address1.abIP[0] == Address2.abIP[0] ) &&
+	return (( Address1.abIP[0] == Address2.abIP[0] ) &&
 		( Address1.abIP[1] == Address2.abIP[1] ) &&
 		( Address1.abIP[2] == Address2.abIP[2] ) &&
 		( Address1.abIP[3] == Address2.abIP[3] ) &&
-		( bIgnorePort ? 1 : ( Address1.usPort == Address2.usPort )))
-	{
-		return ( true );
-	}
-
-	return ( false );
+		( bIgnorePort ? 1 : ( Address1.usPort == Address2.usPort )));
 }
 
 //*****************************************************************************
@@ -636,8 +585,14 @@ std::string GenerateCouldNotOpenFileErrorString( const char *pszFunctionHeader, 
 	return errorMessage.str();
 }
 
-//*****************************************************************************
-//
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+//-- CLASSES ---------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+
+//=============================================================================
+// IPFileParser
+//=============================================================================
+
 bool IPFileParser::parseIPList( const char* FileName, std::vector<IPADDRESSBAN_s> &IPArray )
 {
 	FILE			*pFile;
@@ -818,6 +773,10 @@ void IPFileParser::readReason( FILE *pFile, char *Reason, const int MaxReasonLen
 		skipComment( pFile );
 }
 
+//=============================================================================
+// IPList
+//=============================================================================
+
 //*****************************************************************************
 //
 bool IPList::clearAndLoadFromFile( const char *Filename )
@@ -871,7 +830,7 @@ bool IPList::isIPInList( const NETADDRESS_s &Address ) const
 //
 ULONG IPList::doesEntryExist( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3 ) const
 {
-	for ( ULONG ulIdx = 0; ulIdx < _ipVector.size(); ulIdx++ )
+	for ( ULONG ulIdx = 0; ulIdx < _ipVector.size( ); ulIdx++ )
 	{
 		if (( stricmp( pszIP0, _ipVector[ulIdx].szIP[0] ) == 0 ) &&
 			( stricmp( pszIP1, _ipVector[ulIdx].szIP[1] ) == 0 ) &&
@@ -907,11 +866,8 @@ IPADDRESSBAN_s IPList::getEntry( const ULONG ulIdx ) const
 }
 
 //*****************************************************************************
-// NOTE:
-// If bIncludeComment == true, the returned string is terminated with '\n'.
-// If bIncludeComment == false, the returned string is NOT terminated with '\n'.
 //
-std::string IPList::getEntryAsString( const ULONG ulIdx, bool bIncludeComment ) const
+std::string IPList::getEntryAsString( const ULONG ulIdx, bool bIncludeCommentAndNewline ) const
 {
 	std::stringstream entryStream;
 
@@ -923,7 +879,7 @@ std::string IPList::getEntryAsString( const ULONG ulIdx, bool bIncludeComment ) 
 					<< _ipVector[ulIdx].szIP[3];
 
 		// Optionally append the comment.
-		if ( _ipVector[ulIdx].szComment[0] && bIncludeComment )
+		if ( _ipVector[ulIdx].szComment[0] && bIncludeCommentAndNewline )
 		{
 			entryStream << ":" << _ipVector[ulIdx].szComment;
 			entryStream << std::endl;
@@ -1025,9 +981,7 @@ void IPList::addEntry( const char *pszIPAddress, const char *pszPlayerName, cons
 	char			szStringBan[4][4];
 
 	if ( NETWORK_StringToIP( pszIPAddress, szStringBan[0], szStringBan[1], szStringBan[2], szStringBan[3] ))
-	{
 		addEntry( szStringBan[0], szStringBan[1], szStringBan[2], szStringBan[3], pszPlayerName, pszComment, Message );
-	}
 	else if ( NETWORK_StringToAddress( pszIPAddress, &BanAddress ))
 	{
 		itoa( BanAddress.abIP[0], szStringBan[0], 10 );
@@ -1080,9 +1034,7 @@ void IPList::removeEntry( const char *pszIPAddress, std::string &Message )
 	char			szStringBan[4][4];
 
 	if ( NETWORK_StringToIP( pszIPAddress, szStringBan[0], szStringBan[1], szStringBan[2], szStringBan[3] ))
-	{
 		removeEntry( szStringBan[0], szStringBan[1], szStringBan[2], szStringBan[3], Message );
-	}
 	else
 	{
 		Message = "Invalid IP address string: ";
@@ -1113,33 +1065,31 @@ bool IPList::rewriteListToFile ()
 	}
 }
 
-//==========================================================================
+//=============================================================================
 // QueryIPQueue
-//==========================================================================
+//=============================================================================
 
-//==========================================================================
+//=============================================================================
 //
 // adjustHead
 //
 // Removes any old enties.
 //
-//==========================================================================
+//=============================================================================
 
 void QueryIPQueue::adjustHead( const LONG CurrentTime )
 {
 	while (( _iQueueHead != _iQueueTail ) && ( CurrentTime >= _IPQueue[_iQueueHead].lNextAllowedTime ))
-	{
 		_iQueueHead = ( _iQueueHead + 1 ) % MAX_QUERY_IPS;
-	}
 }
 
-//==========================================================================
+//=============================================================================
 //
 // addressInQueue
 //
 // Returns whether the given IP is in the queue.
 //
-//==========================================================================
+//=============================================================================
 
 bool QueryIPQueue::addressInQueue( const NETADDRESS_s AddressFrom ) const
 {
@@ -1154,27 +1104,27 @@ bool QueryIPQueue::addressInQueue( const NETADDRESS_s AddressFrom ) const
 	return false;
 }
 
-//==========================================================================
+//=============================================================================
 //
 // isFull
 //
 // Returns if the queue is full.
 // This will only happen if the server is being attacked by a DOS with >= MAX_QUERY_IPS computers. The sever should stop processing new requests at that point.
 //
-//==========================================================================
+//=============================================================================
 
 bool QueryIPQueue::isFull( ) const
 {
-	return ( ( ( _iQueueTail + 1 ) % MAX_QUERY_IPS ) == _iQueueHead );
+	return ((( _iQueueTail + 1 ) % MAX_QUERY_IPS ) == _iQueueHead );
 }
 
-//==========================================================================
+//=============================================================================
 //
 // addAddress
 //
 // Adds the given address to the queue. (If the queue is full, an error written to errorOut)
 //
-//==========================================================================
+//=============================================================================
 
 void QueryIPQueue::addAddress( const NETADDRESS_s AddressFrom, const LONG lCurrentTime, std::ostream *errorOut )
 {
@@ -1189,6 +1139,6 @@ void QueryIPQueue::addAddress( const NETADDRESS_s AddressFrom, const LONG lCurre
 		if ( errorOut )
 			*errorOut << "WARNING! The IP flood queue is full.\n";
 
-		_iQueueHead = ( _iQueueHead + 1 ) % MAX_QUERY_IPS; // [RC] Start removing older entries. Also prevents the queue from getting stuck.
+		_iQueueHead = ( _iQueueHead + 1 ) % MAX_QUERY_IPS; // [RC] Start removing older entries.
 	}
 }
