@@ -2959,7 +2959,7 @@ void M_StartSkirmishGame( void )
 	dmflags2.ForceSet( Val, CVAR_Int );
 
 	GAMEMODE_SetCurrentMode( (GAMEMODE_e) menu_gamemode.GetGenericRep( CVAR_Int ).Int );
-	GAMEMODE_SetModifier( (MODIFIER_e) menu_gamemode.GetGenericRep( CVAR_Int ).Int );
+	GAMEMODE_SetModifier( (MODIFIER_e) menu_modifier.GetGenericRep( CVAR_Int ).Int );
 
 	// Remove all the existing bots.
 	BOTS_RemoveAllBots( false );
