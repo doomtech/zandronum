@@ -929,8 +929,8 @@ FString I_GetSteamPath()
 	return path;
 }
 
-// [RC] Lunches the path given.
-void launchProgram( FString path )
+// [RC] Lunches the path given. This was encapsulated to make wragling with #includes easier.
+void I_RunProgram( const char *szPath )
 {
-	ShellExecute( NULL, "open", path, NULL, NULL, 0 );
+	ShellExecute( NULL, "open", szPath, NULL, NULL, 0 );
 }

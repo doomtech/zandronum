@@ -1786,7 +1786,13 @@ CVAR( Bool, menu_browser_showfull, true, CVAR_ARCHIVE )
 
 // [RC] In Windows, a menu to launch IDEse or the internal browser is shown. There currently isn't an IDEse for Linux.
 #ifdef WIN32
-	void M_StartIdeSe( void );	
+
+	void M_StartIdeSe( void )
+	{
+		I_RunProgram( "idese.exe" );
+		exit( 0 );
+	}
+
 	static menuitem_t BrowserTypeItems[] = 
 	{
 		{ more,		"IDEse",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_StartIdeSe} },
@@ -1805,14 +1811,8 @@ CVAR( Bool, menu_browser_showfull, true, CVAR_ARCHIVE )
 		0,
 		false,
 		NULL,
-	};
+	};	
 
-	void M_StartIdeSe( void )
-	{
-		FString path = progdir; path.AppendFormat("idese.exe");
-		launchProgram(path);
-		exit(0);
-	}
 #endif
 
 static menuitem_t BrowserItems[] =
@@ -2959,7 +2959,7 @@ void M_StartSkirmishGame( void )
 	dmflags2.ForceSet( Val, CVAR_Int );
 
 	GAMEMODE_SetCurrentMode( (GAMEMODE_e) menu_gamemode.GetGenericRep( CVAR_Int ).Int );
-	GAMEMODE_SetModifier( MODIFIER_INSTAGIB );////(MODIFIER_e) menu_modifier.GetGenericRep( CVAR_Int ).Int );
+	GAMEMODE_SetModifier( (MODIFIER_e) menu_gamemode.GetGenericRep( CVAR_Int ).Int );
 
 	// Remove all the existing bots.
 	BOTS_RemoveAllBots( false );
