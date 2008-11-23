@@ -5660,6 +5660,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\src\g_shared\a_flags.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\g_shared\a_flashfader.cpp"
 				>
 				<FileConfiguration
@@ -6600,10 +6604,6 @@
 						AdditionalOptions="&quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot; "
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\src\g_doom\a_doomflags.cpp"
-				>
 			</File>
 			<File
 				RelativePath=".\src\g_doom\a_doomglobal.h"

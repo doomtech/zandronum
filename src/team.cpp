@@ -77,31 +77,15 @@
 //*****************************************************************************
 //	MISC CRAP THAT SHOULDN'T BE HERE BUT HAS TO BE BECAUSE OF SLOPPY CODING
 
-void	G_PlayerReborn( int player );
-
 void	SERVERCONSOLE_UpdateScoreboard( void );
-EXTERN_CVAR( Int,  cl_respawninvuleffect )
 
 //*****************************************************************************
 //	VARIABLES
 
-static	TEAM_t	g_Team[NUM_TEAMS];
-static	bool	g_bSimpleCTFMode;
-static	bool	g_bSimpleSTMode;
-static	bool	g_bBlueFlagTaken;
-static	bool	g_bRedFlagTaken;
+static	bool	g_bSimpleCTFSTMode;
 static	bool	g_bWhiteFlagTaken;
-static	bool	g_bBlueSkullTaken;
-static	bool	g_bRedSkullTaken;
-static	POS_t	g_BlueFlagOrigin;
-static	POS_t	g_RedFlagOrigin;
 static	POS_t	g_WhiteFlagOrigin;
-static	POS_t	g_BlueSkullOrigin;
-static	POS_t	g_RedSkullOrigin;
 static	ULONG	g_ulWhiteFlagReturnTicks;
-
-// Keep track of players eligable for assist medals.
-static	ULONG	g_ulAssistPlayer[NUM_TEAMS] = { MAXPLAYERS, MAXPLAYERS };
 
 // Are we spawning a temporary flag? If so, ignore return zones.
 static	bool	g_bSpawningTemporaryFlag = false;
@@ -113,45 +97,39 @@ static FRandom	g_JoinTeamSeed( "JoinTeamSeed" );
 
 void TEAM_Construct( void )
 {
-	g_Team[TEAM_BLUE].FlagItem = PClass::FindClass( "BlueSkullST" );
-//	g_Team[TEAM_BLUE].Icon = S_BSKULL;
-	g_Team[TEAM_BLUE].lScore = 0;
-	g_Team[TEAM_BLUE].lRailColor = V_GetColorFromString( NULL, "00 00 ff" );
-	g_Team[TEAM_BLUE].ulReturnTicks = 0;
-	g_Team[TEAM_BLUE].ulTextColor = CR_BLUE;
-	g_Team[TEAM_BLUE].ulReturnScriptOffset = SCRIPT_BlueReturn;
-	g_Team[TEAM_BLUE].lFragCount = 0;
-	g_Team[TEAM_BLUE].lDeathCount = 0;
-	g_Team[TEAM_BLUE].lWinCount = 0;
+	for ( ULONG i = 0; i < teams.Size( ); i++ )
+	{
+		TEAM_SetScore( i, 0, false );
+		TEAM_SetReturnTicks( i, 0 );
+		TEAM_SetFragCount( i, 0, false );
+		TEAM_SetDeathCount( i, 0 );
+		TEAM_SetWinCount( i, 0, false );
+		TEAM_SetCarrier( i, NULL );
+		TEAM_SetItemTaken( i, false );
+		TEAM_SetAnnouncedLeadState( i, false );
+		TEAM_SetAssistPlayer( i, MAXPLAYERS );
 
-	sprintf( g_Team[TEAM_BLUE].szColor, "00 00 bf" );
-	sprintf( g_Team[TEAM_BLUE].szName, "Blue" );
+		teams[i].g_Origin.x = NULL;
+		teams[i].g_Origin.y = NULL;
+		teams[i].g_Origin.z = NULL;
 
-	g_Team[TEAM_RED].FlagItem = PClass::FindClass( "RedSkullST" );
-//	g_Team[TEAM_RED].Icon = S_RSKULL;
-	g_Team[TEAM_RED].lScore = 0;
-	g_Team[TEAM_RED].lRailColor = V_GetColorFromString( NULL, "ff 00 00" );
-	g_Team[TEAM_RED].ulReturnTicks = 0;
-	g_Team[TEAM_RED].ulTextColor = CR_RED;
-	g_Team[TEAM_RED].ulReturnScriptOffset = SCRIPT_RedReturn;
-	g_Team[TEAM_RED].lFragCount = 0;
-	g_Team[TEAM_RED].lDeathCount = 0;
-	g_Team[TEAM_RED].lWinCount = 0;
+		switch ( i )
+		{
+		case 0:
+			teams[i].ulReturnScriptOffset = SCRIPT_BlueReturn;
+			break;
+		case 1:
+			teams[i].ulReturnScriptOffset = SCRIPT_RedReturn;
+			break;
+		default:
+			break;
+		}
+	}
 
-	sprintf( g_Team[TEAM_RED].szColor, "bf 00 00" );
-	sprintf( g_Team[TEAM_RED].szName, "Red" );
+	// Start off in regular CTF/ST mode.
+	TEAM_SetSimpleCTFSTMode( false );
 
-	// Start off in regular CTF mode.
-	g_bSimpleCTFMode = false;
-	g_bBlueFlagTaken = false;
-	g_bRedFlagTaken = false;
-	g_bWhiteFlagTaken = false;
-
-	// Start off in regular ST mode.
-	g_bSimpleSTMode = false;
-	g_bBlueSkullTaken = false;
-	g_bRedSkullTaken = false;
-
+	TEAM_SetWhiteFlagTaken( false );
 	g_ulWhiteFlagReturnTicks = 0;
 }
 
@@ -161,12 +139,12 @@ void TEAM_Tick( void )
 {
 	ULONG	ulIdx;
 
-	for ( ulIdx = 0; ulIdx < NUM_TEAMS; ulIdx++ )
+	for ( ulIdx = 0; ulIdx < teams.Size( ); ulIdx++ )
 	{
-		if ( g_Team[ulIdx].ulReturnTicks )
+		if ( teams[ulIdx].ulReturnTicks )
 		{
-			g_Team[ulIdx].ulReturnTicks--;
-			if ( g_Team[ulIdx].ulReturnTicks == 0 )
+			teams[ulIdx].ulReturnTicks--;
+			if ( teams[ulIdx].ulReturnTicks == 0 )
 				TEAM_ExecuteReturnRoutine( ulIdx, NULL );
 		}
 	}
@@ -183,25 +161,36 @@ void TEAM_Tick( void )
 //
 void TEAM_Reset( void )
 {
-	g_Team[TEAM_BLUE].lScore = 0;
-	g_Team[TEAM_BLUE].ulReturnTicks = 0;
-	g_Team[TEAM_BLUE].lFragCount = 0;
-	g_Team[TEAM_BLUE].lDeathCount = 0;
-	g_Team[TEAM_BLUE].lWinCount = 0;
+	for ( ULONG i = 0; i < teams.Size( ); i++ )
+	{
+		TEAM_SetScore( i, 0, false );
+		TEAM_SetReturnTicks( i, 0 );
+		TEAM_SetFragCount( i, 0, false );
+		TEAM_SetDeathCount( i, 0 );
+		TEAM_SetWinCount( i, 0, false );
+		TEAM_SetCarrier( i, NULL );
+		TEAM_SetItemTaken( i, false );
+		TEAM_SetAnnouncedLeadState( i, false );
+		TEAM_SetAssistPlayer( i, MAXPLAYERS );
 
-	g_Team[TEAM_RED].lScore = 0;
-	g_Team[TEAM_RED].ulReturnTicks = 0;
-	g_Team[TEAM_RED].lFragCount = 0;
-	g_Team[TEAM_RED].lDeathCount = 0;
-	g_Team[TEAM_RED].lWinCount = 0;
+		teams[i].g_Origin.x = NULL;
+		teams[i].g_Origin.y = NULL;
+		teams[i].g_Origin.z = NULL;
 
-	g_bBlueFlagTaken = false;
-	g_bRedFlagTaken = false;
-	g_bWhiteFlagTaken = false;
+		switch ( i )
+		{
+		case 0:
+			teams[i].ulReturnScriptOffset = SCRIPT_BlueReturn;
+			break;
+		case 1:
+			teams[i].ulReturnScriptOffset = SCRIPT_RedReturn;
+			break;
+		default:
+			break;
+		}
+	}
 
-	g_bBlueSkullTaken = false;
-	g_bRedSkullTaken = false;
-
+	TEAM_SetWhiteFlagTaken( false );
 	g_ulWhiteFlagReturnTicks = 0;
 }
 
@@ -237,11 +226,11 @@ ULONG TEAM_CountLivingPlayers( ULONG ulTeamIdx )
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		// Don't count players not in the game or spectators.
-		if (( playeringame[ulIdx] == false ) || ( PLAYER_IsTrueSpectator( &players[ulIdx] )))
+		if (( playeringame[ulIdx] == false ) || ( PLAYER_IsTrueSpectator( &players[ulIdx] )) || ( players[ulIdx].bDeadSpectator == true ))
 			continue;
 
 		// Don't count dead players.
-		if ( players[ulIdx].health > 0 )
+		if ( players[ulIdx].health <= 0 )
 			continue;
 
 		if ( players[ulIdx].bOnTeam && ( players[ulIdx].ulTeam == ulTeamIdx ))
@@ -253,68 +242,83 @@ ULONG TEAM_CountLivingPlayers( ULONG ulTeamIdx )
 
 //*****************************************************************************
 //
+ULONG TEAM_TeamsWithPlayersOn( void )
+{
+	ULONG ulTeamsWithPlayersOn = 0;
+
+	for ( ULONG i = 0; i < teams.Size( ); i++ )
+	{
+		if (TEAM_CountPlayers (i) > 0)
+			ulTeamsWithPlayersOn ++;
+	}
+
+	return ulTeamsWithPlayersOn;
+}
+
+
+//*****************************************************************************
+//
 void TEAM_ExecuteReturnRoutine( ULONG ulTeamIdx, AActor *pReturner )
 {
-	AActor						*pFlag;
+	AActor						*pTeamItem;
 	const PClass				*pClass;
 	TThinkerIterator<AActor>	Iterator;
 
-	if ( ulTeamIdx > NUM_TEAMS )
+	if ( TEAM_CheckIfValid( ulTeamIdx ) == false )
 		return;
 
 	// Execute the return scripts.
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 	{
-		// I don't like these hacks :((((((((((((((
-		if ( ulTeamIdx == NUM_TEAMS )
+		if ( ulTeamIdx == teams.Size( ) )
 			FBehavior::StaticStartTypedScripts( SCRIPT_WhiteReturn, NULL, true );
 		else
 			FBehavior::StaticStartTypedScripts( TEAM_GetReturnScriptOffset( ulTeamIdx ), NULL, true );
 	}
 
-	if ( ulTeamIdx == NUM_TEAMS )
+	if ( ulTeamIdx == teams.Size( ) )
 		pClass = PClass::FindClass( "WhiteFlag" );
 	else
-		pClass = TEAM_GetFlagItem( ulTeamIdx );
+		pClass = TEAM_GetItem( ulTeamIdx );
 
 	g_bSpawningTemporaryFlag = true;
-	pFlag = Spawn( pClass, 0, 0, 0, NO_REPLACE );
+	pTeamItem = Spawn( pClass, 0, 0, 0, NO_REPLACE );
 	g_bSpawningTemporaryFlag = false;
-	if ( pFlag->IsKindOf( PClass::FindClass( "Flag" )) == false )
+	if ( pTeamItem->IsKindOf( PClass::FindClass( "TeamItem" )) == false )
 	{
-		pFlag->Destroy( );
+		pTeamItem->Destroy( );
 		return;
 	}
 
 	// In non-simple CTF mode, scripts take care of the returning and displaying messages.
-	if ( TEAM_GetSimpleCTFMode( ) || TEAM_GetSimpleSTMode( ))
+	if ( TEAM_GetSimpleCTFSTMode( ))
 	{
 		if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
-			static_cast<AFlag *>( pFlag )->ReturnFlag( pReturner );
-		static_cast<AFlag *>( pFlag )->DisplayFlagReturn( );
+			static_cast<ATeamItem *>( pTeamItem )->ReturnFlag( pReturner );
+		static_cast<ATeamItem *>( pTeamItem )->DisplayFlagReturn( );
 	}
 
-	static_cast<AFlag *>( pFlag )->ResetReturnTicks( );
-	static_cast<AFlag *>( pFlag )->AnnounceFlagReturn( );
+	static_cast<ATeamItem *>( pTeamItem )->ResetReturnTicks( );
+	static_cast<ATeamItem *>( pTeamItem )->AnnounceFlagReturn( );
 
 	// Destroy the temporarily created flag.
-	pFlag->Destroy( );
-	pFlag = NULL;
+	pTeamItem->Destroy( );
+	pTeamItem = NULL;
 
 	// Destroy any sitting flags that being returned from the return ticks running out,
 	// or whatever reason.
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 	{
-		while ( (pFlag = Iterator.Next( )))
+		while (( pTeamItem = Iterator.Next( )))
 		{
-			if (( pFlag->GetClass( ) != pClass ) || (( pFlag->flags & MF_DROPPED ) == false ))
+			if (( pTeamItem->GetClass( ) != pClass ) || (( pTeamItem->flags & MF_DROPPED ) == false ))
 				continue;
 
 			// If we're the server, tell clients to destroy the flag.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_DestroyThing( pFlag );
+				SERVERCOMMANDS_DestroyThing( pTeamItem );
 
-			pFlag->Destroy( );
+			pTeamItem->Destroy( );
 		}
 	}
 
@@ -327,52 +331,116 @@ void TEAM_ExecuteReturnRoutine( ULONG ulTeamIdx, AActor *pReturner )
 
 //*****************************************************************************
 //
-bool TEAM_IsFlagMode( void )
-{
-	if ( ctf || oneflagctf )
-		return ( true );
-
-	return ( false );
-}
-
-//*****************************************************************************
-//
 ULONG TEAM_ChooseBestTeamForPlayer( void )
 {
-	LONG	lBlueScore;
-	LONG	lRedScore;
+	// Possible teams to select.
+	bool bPossibleTeams[MAX_TEAMS];
 
-	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS )
+	// The score used for each team.
+	LONG lGotScore[MAX_TEAMS];
+
+	// The lowest amount of players on any team.
+	ULONG ulLowestPlayerCount = ULONG_MAX;
+
+	// The amount of possible teams to choose from.
+	ULONG ulPossibleTeamCount = teams.Size( );
+
+	// The lowest score on any team.
+	LONG lLowestScoreCount = LONG_MAX;
+
+	for ( ULONG i = 0; i < MAX_TEAMS; i++)
 	{
-		lBlueScore = TEAM_GetFragCount( TEAM_BLUE );
-		lRedScore = TEAM_GetFragCount( TEAM_RED );
-	}
-	else if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )
-	{
-		lBlueScore = TEAM_GetWinCount( TEAM_BLUE );
-		lRedScore = TEAM_GetWinCount( TEAM_RED );
-	}
-	else
-	{
-		lBlueScore = TEAM_GetScore( TEAM_BLUE );
-		lRedScore = TEAM_GetScore( TEAM_RED );
+		bPossibleTeams[i] = false;
+
+		if ( TEAM_CheckIfValid( i ) == false )
+			continue;
+
+		if ( TEAM_ShouldUseTeam( i ) == false )
+			continue;
+
+		bPossibleTeams[i] = true;
+		lGotScore[i] = LONG_MIN;
 	}
 
-	// Blue has less players, so stick him on blue.
-	if ( TEAM_CountPlayers( TEAM_BLUE ) < TEAM_CountPlayers( TEAM_RED ))
-		return ( TEAM_BLUE );
-	// Red has less players, so stick him on red.
-	else if ( TEAM_CountPlayers( TEAM_RED ) < TEAM_CountPlayers( TEAM_BLUE ))
-		return ( TEAM_RED );
-	// Blue is losing, so stick him on blue.
-	else if ( lBlueScore < lRedScore )
-		return ( TEAM_BLUE );
-	// Red is losing, so stick him on red.
-	else if ( lRedScore < lBlueScore )
-		return ( TEAM_RED );
-	// Teams are tied and have equal players; pick a random team.
-	else
-		return ( M_Random( ) % NUM_TEAMS );
+	for ( ULONG i = 0; i < teams.Size( ); i++ )
+	{
+		if ( bPossibleTeams[i] == false )
+			continue;
+
+		if ( TEAM_CountPlayers( i ) < ulLowestPlayerCount )
+			ulLowestPlayerCount = TEAM_CountPlayers( i );
+	}
+
+	for ( ULONG i = 0; i < teams.Size( ); i++ )
+	{
+		if ( TEAM_CountPlayers( i ) != ulLowestPlayerCount )
+		{
+			bPossibleTeams[i] = false;
+			ulPossibleTeamCount--;
+		}
+	}
+
+	if ( ulPossibleTeamCount == 1 )
+	{
+		for ( ULONG i = 0; i < teams.Size( ); i++ )
+		{
+			if ( bPossibleTeams[i] )
+				return ( i );
+		}
+	}
+
+	for ( ULONG i = 0; i < teams.Size( ); i++ )
+	{
+		if ( bPossibleTeams[i] == false )
+			continue;
+
+		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS )
+		{
+			if ( lLowestScoreCount > TEAM_GetFragCount( i ))
+				lLowestScoreCount = TEAM_GetFragCount( i );
+		}
+		else if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )
+		{
+			if ( lLowestScoreCount > TEAM_GetWinCount( i ))
+				lLowestScoreCount = TEAM_GetWinCount( i );
+		}
+		else
+		{
+			if ( lLowestScoreCount > TEAM_GetScore( i ))
+				lLowestScoreCount = TEAM_GetScore( i );
+		}
+	}
+
+	for ( ULONG i = 0; i < teams.Size( ); i++ )
+	{
+		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS )
+			lGotScore[i] = TEAM_GetFragCount( i );
+		else if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )
+			lGotScore[i] = TEAM_GetWinCount( i );
+		else
+			lGotScore[i] = TEAM_GetScore( i );
+	}
+
+	for ( ULONG i = 0; i < teams.Size( ); i++ )
+	{
+		if ( lGotScore[i] != lLowestScoreCount )
+		{
+			bPossibleTeams[i] = false;
+			ulPossibleTeamCount--;
+		}
+	}
+
+	while( true )
+	{
+		ULONG ulRandomTeam;
+
+		ulRandomTeam = g_JoinTeamSeed.Random( ) % teams.Size( );
+
+		if ( bPossibleTeams[ulRandomTeam] == false )
+			continue;
+
+		return ( ulRandomTeam );
+	}
 }
 
 //*****************************************************************************
@@ -386,6 +454,7 @@ void TEAM_ScoreSkulltagPoint( player_s *pPlayer, ULONG ulNumPoints, AActor *pPil
 	AInventory			*pInventory;
 	bool				bAssisted;
 	bool				bSelfAssisted;
+	ULONG				ulTeamIdx;
 
 	// Determine who assisted.
 	bAssisted = ( TEAM_GetAssistPlayer( pPlayer->ulTeam ) != MAXPLAYERS );
@@ -493,7 +562,7 @@ void TEAM_ScoreSkulltagPoint( player_s *pPlayer, ULONG ulNumPoints, AActor *pPil
 			TEAM_MESSAGE_Y_AXIS_SUB,
 			0,
 			0,
-			pPlayer->ulTeam == TEAM_BLUE ? CR_BLUE : CR_RED,
+			(EColorRange)(TEAM_GetTextColor (pPlayer->ulTeam)),
 			3.0f,
 			0.5f );
 		StatusBar->AttachMessage( pMsg, MAKE_ID('S','U','B','S') );
@@ -511,19 +580,29 @@ void TEAM_ScoreSkulltagPoint( player_s *pPlayer, ULONG ulNumPoints, AActor *pPil
 		SERVERCOMMANDS_SetPlayerPoints( ULONG( pPlayer - players ));
 
 	// Take the skull away.
-	pInventory = pPlayer->mo->FindInventory( TEAM_GetFlagItem( !pPlayer->ulTeam ));
+	for ( ULONG i = 0; i < teams.Size( ); i++ )
+	{
+		pInventory = pPlayer->mo->FindInventory( TEAM_GetItem( i ));
+
+		if ( pInventory )
+		{
+			ulTeamIdx = i;
+			break;
+		}
+	}
+
 	if ( pInventory )
 		pPlayer->mo->RemoveInventory( pInventory );
 
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_TakeInventory( ULONG( pPlayer - players ), TEAM_GetFlagItem( !pPlayer->ulTeam )->TypeName.GetChars( ), 0 );
+		SERVERCOMMANDS_TakeInventory( ULONG( pPlayer - players ), TEAM_GetItem( ulTeamIdx )->TypeName.GetChars( ), 0 );
 	else
 		SCOREBOARD_RefreshHUD( );
 
 	// Respawn the skull.
-	SkullOrigin = pPlayer->ulTeam == TEAM_BLUE ? TEAM_GetRedSkullOrigin( ) : TEAM_GetBlueSkullOrigin( );
+	SkullOrigin = TEAM_GetItemOrigin( ulTeamIdx );
 
-	pActor = Spawn( TEAM_GetFlagItem( !pPlayer->ulTeam ), SkullOrigin.x, SkullOrigin.y, SkullOrigin.z, NO_REPLACE );
+	pActor = Spawn( TEAM_GetItem( ulTeamIdx ), SkullOrigin.x, SkullOrigin.y, SkullOrigin.z, NO_REPLACE );
 
 	// Since all inventory spawns with the MF_DROPPED flag, we need to unset it.
 	if ( pActor )
@@ -534,7 +613,7 @@ void TEAM_ScoreSkulltagPoint( player_s *pPlayer, ULONG ulNumPoints, AActor *pPil
 		SERVERCOMMANDS_SpawnThing( pActor );
 
 	// Mark the skull as no longer being taken.
-	( pPlayer->ulTeam == TEAM_BLUE ) ? TEAM_SetRedSkullTaken( false ) : TEAM_SetBlueSkullTaken( false );
+	TEAM_SetItemTaken( ulTeamIdx, false );
 
 	// Award the scorer with a "Tag!" medal.
 	MEDAL_GiveMedal( ULONG( pPlayer - players ), MEDAL_TAG );
@@ -555,27 +634,18 @@ void TEAM_ScoreSkulltagPoint( player_s *pPlayer, ULONG ulNumPoints, AActor *pPil
 		TEAM_SetAssistPlayer( pPlayer->ulTeam, MAXPLAYERS );
 	}
 
-	// Finally, set the appropriate state of the score pillar to that show the skull in hand.
-	if ( pPlayer->ulTeam == TEAM_RED )
-	{
-		if ( pPillar->MeleeState )
-		{
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SetThingState( pPillar, STATE_MELEE );
+	FString Name;
+	
+	Name = "Tag";
+	Name += TEAM_GetName( ulTeamIdx );
+	Name += "Skull";
 
-			pPillar->SetState( pPillar->MeleeState );
-		}
-	}
-	else
-	{
-		if ( pPillar->MissileState )
-		{
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_SetThingState( pPillar, STATE_MISSILE );
+	FState *SkulltagScoreState = pPillar->FindState( (FName)Name.GetChars( ));
 
-			pPillar->SetState( pPillar->MissileState );
-		}
-	}
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SetThingFrame( pPillar, SkulltagScoreState );
+
+	pPillar->SetState( SkulltagScoreState );
 }
 
 //*****************************************************************************
@@ -589,10 +659,8 @@ void TEAM_DisplayNeedToReturnSkullMessage( player_s *pPlayer )
 		return;
 
 	// Create the message.
-	if ( pPlayer->ulTeam == TEAM_BLUE )
-		sprintf( szString, "\\cHThe blue skull must be returned first!" );
-	else
-		sprintf( szString, "\\cGThe red skull must be returned first!" );
+	sprintf( szString, "\\c%cThe %s skull must be returned first!", V_GetColorChar( TEAM_GetTextColor( pPlayer->ulTeam )), TEAM_GetName( pPlayer->ulTeam ));
+
 	V_ColorizeString( szString );
 
 	// Now, print it.
@@ -603,7 +671,7 @@ void TEAM_DisplayNeedToReturnSkullMessage( player_s *pPlayer )
 			TEAM_MESSAGE_Y_AXIS,
 			0,
 			0,
-			CR_RED,
+			CR_UNTRANSLATED,
 			1.0f,
 			0.25f );
 		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
@@ -617,7 +685,7 @@ void TEAM_DisplayNeedToReturnSkullMessage( player_s *pPlayer )
 
 //*****************************************************************************
 //
-void TEAM_FlagDropped( player_s *pPlayer )
+void TEAM_FlagDropped( player_s *pPlayer, ULONG ulTeamIdx )
 {
 	DHUDMessageFadeOut	*pMsg;
 	char				szString[64];
@@ -627,7 +695,7 @@ void TEAM_FlagDropped( player_s *pPlayer )
 		(( pPlayer - players ) >= MAXPLAYERS ) ||
 		(( pPlayer - players ) < 0 ) ||
 		( pPlayer->bOnTeam == false ) ||
-		( pPlayer->ulTeam >= NUM_TEAMS ))
+		( TEAM_CheckIfValid( pPlayer->ulTeam ) == false ))
 	{
 		return;
 	}
@@ -635,15 +703,15 @@ void TEAM_FlagDropped( player_s *pPlayer )
 	// If we're the server, just tell clients to do this.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
-		SERVERCOMMANDS_TeamFlagDropped( ULONG( pPlayer - players ));
+		SERVERCOMMANDS_TeamFlagDropped( ULONG( pPlayer - players ), ulTeamIdx );
 		return;
 	}
 
 	// Add the console message.
-	Printf( "%s %s dropped!\n", ( pPlayer->ulTeam != TEAM_BLUE ) ? "Blue" : "Red", ( skulltag ) ? "skull" : "flag" );
+	Printf( "%s %s dropped!\n", TEAM_GetName( ulTeamIdx ), ( skulltag ) ? "skull" : "flag" );
 
 	// Next, build the dropped message.
-	sprintf( szString, "\\c%s%s %s dropped!", ( pPlayer->ulTeam != TEAM_BLUE ) ? "H" : "G", ( pPlayer->ulTeam != TEAM_BLUE ) ? "Blue" : "Red", ( skulltag ) ? "skull" : "flag" );
+	sprintf( szString, "\\c%c%s %s dropped!", V_GetColorChar( TEAM_GetTextColor( ulTeamIdx )), TEAM_GetName( ulTeamIdx ), ( skulltag ) ? "skull" : "flag" );
 
 	// Colorize it.
 	V_ColorizeString( szString );
@@ -662,7 +730,7 @@ void TEAM_FlagDropped( player_s *pPlayer )
 	screen->SetFont( SmallFont );
 
 	// Finally, play the announcer entry associated with this event.
-	sprintf( szString, "%s%sDropped", ( pPlayer->ulTeam != TEAM_BLUE ) ? "Blue" : "Red", ( skulltag ) ? "skull" : "flag" );
+	sprintf( szString, "%s%sDropped", TEAM_GetName( ulTeamIdx ), ( skulltag ) ? "skull" : "flag" );
 	ANNOUNCER_PlayEntry( cl_announcer, szString );
 }
 
@@ -670,8 +738,8 @@ void TEAM_FlagDropped( player_s *pPlayer )
 //
 WORD TEAM_GetReturnScriptOffset( ULONG ulTeamIdx )
 {
-	if ( ulTeamIdx < NUM_TEAMS )
-		return ( (WORD)g_Team[ulTeamIdx].ulReturnScriptOffset );
+	if ( TEAM_CheckIfValid( ulTeamIdx ))
+		return ( (WORD)teams[ulTeamIdx].ulReturnScriptOffset );
 	else
 		return ( -1 );
 }
@@ -696,7 +764,7 @@ void TEAM_DoWinSequence( ULONG ulTeamIdx )
 			75.0f,
 			320,
 			200,
-			CR_RED,
+			CR_UNTRANSLATED,
 			3.0f,
 			2.0f );
 
@@ -713,29 +781,46 @@ void TEAM_DoWinSequence( ULONG ulTeamIdx )
 //
 void TEAM_TimeExpired( void )
 {
-	LONG				lDifference;
 	LONG				lWinner;
 	DHUDMessageFadeOut	*pMsg;
 	char				szString[64];
+	ULONG				lHighestScore;
+	ULONG				ulLeadingTeamsCount;
 
 	// If there are players on the map, either declare a winner or sudden death. If
 	// there aren't any, then just end the map.
 	if ( SERVER_CalcNumPlayers( ))
 	{
-		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode() ) & GMF_PLAYERSEARNPOINTS ) 
-			lDifference = TEAM_GetScore( TEAM_BLUE ) - TEAM_GetScore( TEAM_RED );
+		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode() ) & GMF_PLAYERSEARNPOINTS )
+			lHighestScore = TEAM_GetHighestScoreCount( );
 		else
-			lDifference = TEAM_GetFragCount( TEAM_BLUE ) - TEAM_GetFragCount( TEAM_RED );
+			lHighestScore = TEAM_GetHighestFragCount( );
 
-		if ( lDifference > 0 )
-			lWinner = TEAM_BLUE;
-		else if ( lDifference < 0 )
-			lWinner = TEAM_RED;
-		else
-			lWinner = NUM_TEAMS;
+		for ( ULONG i = 0; i < teams.Size( ); i++ )
+		{
+			if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode() ) & GMF_PLAYERSEARNPOINTS )
+			{
+				if ( lHighestScore == TEAM_GetScore( i ))
+				{
+					ulLeadingTeamsCount++;
+					lWinner = i;
+				}
+			}
+			else
+			{
+				if ( lHighestScore == TEAM_GetFragCount( i ))
+				{
+					ulLeadingTeamsCount++;
+					lWinner = i;
+				}
+			}
+		}
+
+		if ( ulLeadingTeamsCount > 1 )
+			lWinner = teams.Size( );
 
 		// If there was a tie, then go into sudden death!
-		if ( lWinner == NUM_TEAMS )
+		if ( lWinner == teams.Size( ) )
 		{
 			// Only print the message the instant we reach sudden death.
 			if ( level.time == (int)( timelimit * TICRATE * 60 ))
@@ -753,7 +838,7 @@ void TEAM_TimeExpired( void )
 						75.0f,
 						320,
 						200,
-						CR_RED,
+						CR_UNTRANSLATED,
 						3.0f,
 						2.0f );
 
@@ -791,64 +876,109 @@ bool TEAM_SpawningTemporaryFlag( void )
 //*****************************************************************************
 //*****************************************************************************
 //
+bool TEAM_CheckIfValid( ULONG ulTeamIdx )
+{
+	if ( ulTeamIdx < 0 || ulTeamIdx >= teams.Size( ))
+		return ( false );
+
+	return ( true );
+}
+
+//*****************************************************************************
+//
 const char *TEAM_GetName( ULONG ulTeamIdx )
 {
-	if ( ulTeamIdx < NUM_TEAMS )
-		return ( g_Team[ulTeamIdx].szName );
+	if ( TEAM_CheckIfValid( ulTeamIdx ))
+		return ( teams[ulTeamIdx].Name.GetChars( ) );
 	else
-		return ( NULL );
+		return ( "" );
 }
 
 //*****************************************************************************
 //
 void TEAM_SetName( ULONG ulTeamIdx, const char *pszName )
 {
-	if ( ulTeamIdx < NUM_TEAMS )
-		sprintf( g_Team[ulTeamIdx].szName, pszName );
+	teams[ulTeamIdx].Name = pszName;
 }
 
 //*****************************************************************************
 //
-const char *TEAM_GetColor( ULONG ulTeamIdx )
+ULONG TEAM_GetTeamNumberByName( const char *pszName )
 {
-	if ( ulTeamIdx < NUM_TEAMS )
-		return ( g_Team[ulTeamIdx].szColor );
+	for ( ULONG i = 0; i < teams.Size( ); i++ )
+	{
+		if ( !stricmp( pszName, TEAM_GetName( i ) ) )
+			return i;
+	}
+
+	return teams.Size( );
+}
+
+//*****************************************************************************
+//
+int TEAM_GetColor( ULONG ulTeamIdx )
+{
+	if ( TEAM_CheckIfValid( ulTeamIdx ))
+		return ( teams[ulTeamIdx].lPlayerColor );
 	else
 		return ( NULL );
 }
 
 //*****************************************************************************
 //
-void TEAM_SetColor( ULONG ulTeamIdx, const char *pszColor )
+void TEAM_SetColor( ULONG ulTeamIdx, int r, int g, int b )
 {
-	if ( ulTeamIdx < NUM_TEAMS )
-		sprintf( g_Team[ulTeamIdx].szColor, pszColor );
+	if ( TEAM_CheckIfValid( ulTeamIdx ))
+		teams[ulTeamIdx].lPlayerColor = MAKERGB (r, g, b);
+}
+
+//*****************************************************************************
+//
+bool TEAM_IsCustomPlayerColorAllowed( ULONG ulTeamIdx )
+{
+	if ( TEAM_CheckIfValid( ulTeamIdx ))
+		return ( teams[ulTeamIdx].bCustomPlayerColorAllowed );
+	// [BB] Players on an invalid team (or not on a team) are free to choose their color
+	else
+		return true;
 }
 
 //*****************************************************************************
 //
 ULONG TEAM_GetTextColor( ULONG ulTeamIdx )
 {
-	if ( ulTeamIdx < NUM_TEAMS )
-		return ( g_Team[ulTeamIdx].ulTextColor );
-	else
-		return ( NULL );
+	if ( TEAM_CheckIfValid( ulTeamIdx ))
+	{
+		if ( teams[ulTeamIdx].TextColor.IsEmpty( ))
+		{
+			return ( CR_UNTRANSLATED );
+		}
+		const BYTE *cp = (const BYTE *)teams[ulTeamIdx].TextColor.GetChars( );
+		LONG lColor = V_ParseFontColor( cp, 0, 0 );
+		if ( lColor == CR_UNDEFINED )
+		{
+			lColor = CR_UNTRANSLATED;
+		}
+		return ( lColor );
+	}
+
+	return ( CR_UNTRANSLATED );
 }
 
 //*****************************************************************************
 //
 void TEAM_SetTextColor( ULONG ulTeamIdx, ULONG ulColor )
 {
-	if ( ulTeamIdx < NUM_TEAMS )
-		g_Team[ulTeamIdx].ulTextColor = ulColor;
+	if ( TEAM_CheckIfValid( ulTeamIdx ))
+		teams[ulTeamIdx].ulTextColor = ulColor;
 }
 
 //*****************************************************************************
 //
 LONG TEAM_GetRailgunColor( ULONG ulTeamIdx )
 {
-	if ( ulTeamIdx < NUM_TEAMS )
-		return ( g_Team[ulTeamIdx].lRailColor );
+	if ( TEAM_CheckIfValid( ulTeamIdx ))
+		return ( teams[ulTeamIdx].lRailColor );
 	else
 		return ( NULL );
 }
@@ -857,16 +987,16 @@ LONG TEAM_GetRailgunColor( ULONG ulTeamIdx )
 //
 void TEAM_SetRailgunColor( ULONG ulTeamIdx, LONG lColor )
 {
-	if ( ulTeamIdx < NUM_TEAMS )
-		g_Team[ulTeamIdx].lRailColor = lColor;
+	if ( TEAM_CheckIfValid( ulTeamIdx ))
+		teams[ulTeamIdx].lRailColor = lColor;
 }
 
 //*****************************************************************************
 //
 LONG TEAM_GetScore( ULONG ulTeamIdx )
 {
-	if ( ulTeamIdx < NUM_TEAMS )
-		return ( g_Team[ulTeamIdx].lScore );
+	if ( TEAM_CheckIfValid( ulTeamIdx ))
+		return ( teams[ulTeamIdx].lScore );
 	else
 		return ( NULL );
 }
@@ -877,18 +1007,23 @@ void TEAM_SetScore( ULONG ulTeamIdx, LONG lScore, bool bAnnouncer )
 {
 	LONG				lOldScore;
 
-	if ( ulTeamIdx >= NUM_TEAMS )
+	if ( TEAM_CheckIfValid( ulTeamIdx ) == false )
 		return;
 
-	lOldScore = g_Team[ulTeamIdx].lScore;
-	g_Team[ulTeamIdx].lScore = lScore;
-	if ( bAnnouncer && ( g_Team[ulTeamIdx].lScore > lOldScore ))
+	lOldScore = TEAM_GetScore( ulTeamIdx );
+	teams[ulTeamIdx].lScore = lScore;
+	if ( bAnnouncer && ( TEAM_GetScore( ulTeamIdx ) > lOldScore ))
 	{
+		// Build the message.
+		// Whatever the team's name is, is the first part of the message. For example:
+		// if the "blue" team has been defined then the message will be "BlueScores".
+		// This way we don't have to change every announcer to use a new system. 
+		FString name;
+		name += TEAM_GetName( ulTeamIdx );
+		name += "Scores";
+
 		// Play the announcer sound for scoring.
-		if ( ulTeamIdx == TEAM_BLUE )
-			ANNOUNCER_PlayEntry( cl_announcer, "BlueScores" );
-		else
-			ANNOUNCER_PlayEntry( cl_announcer, "RedScores" );
+		ANNOUNCER_PlayEntry( cl_announcer, name.GetChars( ));
 	}
 
 	// If we're the server, tell clients about the team score update.
@@ -904,12 +1039,12 @@ void TEAM_SetScore( ULONG ulTeamIdx, LONG lScore, bool bAnnouncer )
 	if ( pointlimit <= 0 || ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
 		return;
 
-	if ( g_Team[ulTeamIdx].lScore >= (LONG)pointlimit )
+	if ( TEAM_GetScore( ulTeamIdx ) >= (LONG)pointlimit )
 	{
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVER_Printf( PRINT_HIGH, "%s has won the game!\n", g_Team[ulTeamIdx].szName );
+			SERVER_Printf( PRINT_HIGH, "%s has won the game!\n", TEAM_GetName( ulTeamIdx ));
 		else
-			Printf( "%s has won the game!\n", g_Team[ulTeamIdx].szName );
+			Printf( "%s has won the game!\n", TEAM_GetName( ulTeamIdx ));
 
 		// Do the win sequence for the winner.
 		TEAM_DoWinSequence( ulTeamIdx );
@@ -921,21 +1056,188 @@ void TEAM_SetScore( ULONG ulTeamIdx, LONG lScore, bool bAnnouncer )
 
 //*****************************************************************************
 //
-const PClass *TEAM_GetFlagItem( ULONG ulTeamIdx )
+const char *TEAM_GetSmallHUDIcon( ULONG ulTeamIdx )
 {
-	if ( ulTeamIdx < NUM_TEAMS )
-		return ( g_Team[ulTeamIdx].FlagItem );
+	if ( TEAM_CheckIfValid( ulTeamIdx ))
+	{
+		if ( ctf || oneflagctf )
+			return ( teams[ulTeamIdx].SmallFlagHUDIcon.GetChars( ));
+		else
+			return ( teams[ulTeamIdx].SmallSkullHUDIcon.GetChars( ) );
+	}
+
+	return ( "" );
+}
+
+//*****************************************************************************
+//
+void TEAM_SetSmallHUDIcon( ULONG ulTeamIdx, const char *pszName, bool bFlag )
+{
+	if ( TEAM_CheckIfValid( ulTeamIdx ))
+	{
+		if ( bFlag )
+			teams[ulTeamIdx].SmallFlagHUDIcon = pszName;
+		else
+			teams[ulTeamIdx].SmallSkullHUDIcon = pszName;
+	}
+}
+
+//*****************************************************************************
+//
+const char *TEAM_GetLargeHUDIcon( ULONG ulTeamIdx )
+{
+	if ( ulTeamIdx < teams.Size( ))
+	{
+		if ( ctf || oneflagctf )
+			return ( teams[ulTeamIdx].LargeFlagHUDIcon.GetChars( ));
+		else
+			return ( teams[ulTeamIdx].LargeSkullHUDIcon.GetChars( ) );
+	}
+
+	return ( "" );
+}
+
+//*****************************************************************************
+//
+void TEAM_SetLargeHUDIcon( ULONG ulTeamIdx, const char *pszName, bool bFlag )
+{
+	if ( TEAM_CheckIfValid( ulTeamIdx ))
+	{
+		if ( bFlag )
+			teams[ulTeamIdx].LargeFlagHUDIcon = pszName;
+		else
+			teams[ulTeamIdx].LargeSkullHUDIcon = pszName;
+	}
+}
+
+//*****************************************************************************
+//
+bool TEAM_HasCustomString( ULONG ulTeamIdx, const FString TEAMINFO::*stringPointer )
+{
+	if ( TEAM_CheckIfValid( ulTeamIdx ))
+		return ( (teams[ulTeamIdx].*stringPointer).IsNotEmpty() );
 	else
-		return ( NULL );
+		return false;
+}
+
+//*****************************************************************************
+//
+const char *TEAM_GetCustomString( ULONG ulTeamIdx, const FString TEAMINFO::*stringPointer )
+{
+	if ( TEAM_CheckIfValid( ulTeamIdx ))
+		return ( (teams[ulTeamIdx].*stringPointer).GetChars() );
+	else
+		return ( "" );
+}
+
+//*****************************************************************************
+//
+const char *TEAM_SelectCustomStringForPlayer( player_t *pPlayer, const FString TEAMINFO::*stringPointer, const char *pszDefaultString )
+{
+	if ( pPlayer == NULL )
+		return pszDefaultString;
+
+	if ( pPlayer->bOnTeam && TEAM_HasCustomString ( pPlayer->ulTeam, stringPointer ) )
+		return TEAM_GetCustomString ( pPlayer->ulTeam, stringPointer );
+	else
+		return pszDefaultString;
+}
+
+//*****************************************************************************
+//
+const PClass *TEAM_GetItem( ULONG ulTeamIdx )
+{
+	if ( TEAM_CheckIfValid( ulTeamIdx ))
+	{
+		if ( ctf || oneflagctf )
+			return ( PClass::FindClass( teams[ulTeamIdx].FlagItem.GetChars( )));
+		else
+			return ( PClass::FindClass( teams[ulTeamIdx].SkullItem.GetChars( )));
+	}
+
+	return ( NULL );
+}
+
+//*****************************************************************************
+//
+void TEAM_SetItem( ULONG ulTeamIdx, const PClass *pType, bool bFlag )
+{
+	if ( TEAM_CheckIfValid( ulTeamIdx ))
+	{
+		if ( bFlag )
+			teams[ulTeamIdx].FlagItem = pType->TypeName.GetChars( );
+		else
+			teams[ulTeamIdx].SkullItem = pType->TypeName.GetChars( );
+	}
+}
+
+//*****************************************************************************
+//
+AInventory *TEAM_FindOpposingTeamsItemInPlayersInventory( player_t *pPlayer )
+{
+	if ( pPlayer == NULL || pPlayer->mo == NULL )
+		return NULL;
+
+	// [BB] A player can't pickup the team item of his team or more than one
+	// team item (cf. ATeamItem::AllowFlagPickup),so we don't have to take this
+	// into account here.
+	for ( ULONG i = 0; i < teams.Size( ); i++ )
+	{
+		if ( TEAM_ShouldUseTeam( i ) == false )
+			continue;
+
+		AInventory* pInventory = pPlayer->mo->FindInventory( TEAM_GetItem( i ) );
+
+		if ( pInventory )
+			return pInventory;
+	}
+
+	return NULL;
+}
+
+//*****************************************************************************
+//
+player_s *TEAM_GetCarrier( ULONG ulTeamIdx )
+{
+	if ( TEAM_CheckIfValid( ulTeamIdx ))
+		return ( teams[ulTeamIdx].g_pCarrier );
+
+	return ( NULL );
+}
+
+//*****************************************************************************
+//
+void TEAM_SetCarrier( ULONG ulTeamIdx, player_s *player )
+{
+	if ( TEAM_CheckIfValid( ulTeamIdx ))
+		teams[ulTeamIdx].g_pCarrier = player;
+}
+
+//*****************************************************************************
+//
+bool TEAM_GetAnnouncedLeadState( ULONG ulTeamIdx )
+{
+	if ( TEAM_CheckIfValid( ulTeamIdx ))
+		return teams[ulTeamIdx].bAnnouncedLeadState;
+
+	return false;
+}
+
+//*****************************************************************************
+//
+void TEAM_SetAnnouncedLeadState( ULONG ulTeamIdx, bool bAnnouncedLeadState )
+{
+	if ( TEAM_CheckIfValid( ulTeamIdx ))
+		teams[ulTeamIdx].bAnnouncedLeadState = bAnnouncedLeadState;
 }
 
 //*****************************************************************************
 //
 ULONG TEAM_GetReturnTicks( ULONG ulTeamIdx )
 {
-	if ( ulTeamIdx < NUM_TEAMS )
-		return ( g_Team[ulTeamIdx].ulReturnTicks );
-	else if ( ulTeamIdx == NUM_TEAMS )
+	if ( TEAM_CheckIfValid( ulTeamIdx ))
+		return ( teams[ulTeamIdx].ulReturnTicks );
+	else if ( ulTeamIdx == teams.Size( ) )
 		return ( g_ulWhiteFlagReturnTicks );
 	else
 		return ( NULL );
@@ -945,33 +1247,22 @@ ULONG TEAM_GetReturnTicks( ULONG ulTeamIdx )
 //
 void TEAM_SetReturnTicks( ULONG ulTeamIdx, ULONG ulTicks )
 {
-	switch ( ulTeamIdx )
-	{
-	case TEAM_BLUE:
-	case TEAM_RED:
-
-		g_Team[ulTeamIdx].ulReturnTicks = ulTicks;
-		break;
-	case NUM_TEAMS:
-
+	if ( TEAM_CheckIfValid( ulTeamIdx ) )
+		teams[ulTeamIdx].ulReturnTicks = ulTicks;
+	else
 		g_ulWhiteFlagReturnTicks = ulTicks;
-		break;
-	default:
-
-		return;
-	}
 
 	// If we're the server, tell clients to update their team return ticks.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetTeamReturnTicks( ulTeamIdx, ( ulTeamIdx == NUM_TEAMS ) ? g_ulWhiteFlagReturnTicks : g_Team[ulTeamIdx].ulReturnTicks );
+		SERVERCOMMANDS_SetTeamReturnTicks( ulTeamIdx, ( ulTeamIdx == teams.Size( ) ) ? g_ulWhiteFlagReturnTicks : teams[ulTeamIdx].ulReturnTicks );
 }
 
 //*****************************************************************************
 //
 LONG TEAM_GetFragCount( ULONG ulTeamIdx )
 {
-	if ( ulTeamIdx < NUM_TEAMS )
-		return ( g_Team[ulTeamIdx].lFragCount );
+	if ( TEAM_CheckIfValid( ulTeamIdx ))
+		return ( teams[ulTeamIdx].lFragCount );
 	else
 		return ( NULL );
 }
@@ -981,7 +1272,7 @@ LONG TEAM_GetFragCount( ULONG ulTeamIdx )
 void TEAM_SetFragCount( ULONG ulTeamIdx, LONG lFragCount, bool bAnnounce )
 {
 	// Invalid team.
-	if ( ulTeamIdx >= NUM_TEAMS )
+	if ( TEAM_CheckIfValid( ulTeamIdx ) == false )
 		return;
 
 	// Potentially play some announcer sounds resulting from this frag ("Teams are tied!"),
@@ -991,11 +1282,11 @@ void TEAM_SetFragCount( ULONG ulTeamIdx, LONG lFragCount, bool bAnnounce )
 		( teampossession == false ) &&
 		( teamgame == false ))
 	{
-		ANNOUNCER_PlayTeamFragSounds( ulTeamIdx, g_Team[ulTeamIdx].lFragCount, lFragCount );
+		ANNOUNCER_PlayTeamFragSounds( ulTeamIdx, teams[ulTeamIdx].lFragCount, lFragCount );
 	}
 
 	// Set the fragcount.
-	g_Team[ulTeamIdx].lFragCount = lFragCount;
+	teams[ulTeamIdx].lFragCount = lFragCount;
 
 	// If we're the server, let clients know that the score has changed.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -1011,8 +1302,8 @@ void TEAM_SetFragCount( ULONG ulTeamIdx, LONG lFragCount, bool bAnnounce )
 //
 LONG TEAM_GetDeathCount( ULONG ulTeamIdx )
 {
-	if ( ulTeamIdx < NUM_TEAMS )
-		return ( g_Team[ulTeamIdx].lDeathCount );
+	if ( TEAM_CheckIfValid( ulTeamIdx ))
+		return ( teams[ulTeamIdx].lDeathCount );
 	else
 		return ( NULL );
 }
@@ -1022,18 +1313,18 @@ LONG TEAM_GetDeathCount( ULONG ulTeamIdx )
 void TEAM_SetDeathCount( ULONG ulTeamIdx, LONG lDeathCount )
 {
 	// Invalid team.
-	if ( ulTeamIdx >= NUM_TEAMS )
+	if ( TEAM_CheckIfValid( ulTeamIdx ) == false )
 		return;
 	else
-		g_Team[ulTeamIdx].lDeathCount = lDeathCount;
+		teams[ulTeamIdx].lDeathCount = lDeathCount;
 }
 
 //*****************************************************************************
 //
 LONG TEAM_GetWinCount( ULONG ulTeamIdx )
 {
-	if ( ulTeamIdx < NUM_TEAMS )
-		return ( g_Team[ulTeamIdx].lWinCount );
+	if ( TEAM_CheckIfValid( ulTeamIdx ))
+		return ( teams[ulTeamIdx].lWinCount );
 	else
 		return ( NULL );
 }
@@ -1044,18 +1335,23 @@ void TEAM_SetWinCount( ULONG ulTeamIdx, LONG lWinCount, bool bAnnounce )
 {
 	LONG	lOldWinCount;
 
-	if ( ulTeamIdx >= NUM_TEAMS )
+	if ( TEAM_CheckIfValid( ulTeamIdx ) == false )
 		return;
 
-	lOldWinCount = g_Team[ulTeamIdx].lWinCount;
-	g_Team[ulTeamIdx].lWinCount = lWinCount;
-	if (( bAnnounce ) && ( g_Team[ulTeamIdx].lWinCount > lOldWinCount ))
+	lOldWinCount = teams[ulTeamIdx].lWinCount;
+	teams[ulTeamIdx].lWinCount = lWinCount;
+	if (( bAnnounce ) && ( teams[ulTeamIdx].lWinCount > lOldWinCount ))
 	{
+		// Build the message.
+		// Whatever the team's name is, is the first part of the message. For example:
+		// if the "blue" team has been defined then the message will be "BlueScores".
+		// This way we don't have to change every announcer to use a new system. 
+		FString name;
+		name += TEAM_GetName( ulTeamIdx );
+		name += "Scores";
+
 		// Play the announcer sound for scoring.
-		if ( ulTeamIdx == TEAM_BLUE )
-			ANNOUNCER_PlayEntry( cl_announcer, "BlueScores" );
-		else
-			ANNOUNCER_PlayEntry( cl_announcer, "RedScores" );
+		ANNOUNCER_PlayEntry( cl_announcer, name.GetChars( ));
 	}
 
 	// If we're the server, tell clients about the team score update.
@@ -1070,58 +1366,30 @@ void TEAM_SetWinCount( ULONG ulTeamIdx, LONG lWinCount, bool bAnnounce )
 
 //*****************************************************************************
 //
-bool TEAM_GetSimpleCTFMode( void )
+bool TEAM_GetSimpleCTFSTMode( void )
 {
-	return ( g_bSimpleCTFMode );
+	return ( g_bSimpleCTFSTMode );
 }
 
 //*****************************************************************************
 //
-void TEAM_SetSimpleCTFMode( bool bSimple )
+void TEAM_SetSimpleCTFSTMode( bool bSimple )
 {
-	g_bSimpleCTFMode = bSimple;
+	g_bSimpleCTFSTMode = bSimple;
 }
 
 //*****************************************************************************
 //
-bool TEAM_GetSimpleSTMode( void )
+bool TEAM_GetItemTaken( ULONG ulTeamIdx )
 {
-	return ( g_bSimpleSTMode );
+	return ( teams[ulTeamIdx].g_bTaken );
 }
 
 //*****************************************************************************
 //
-void TEAM_SetSimpleSTMode( bool bSimple )
+void TEAM_SetItemTaken( ULONG ulTeamIdx, bool bTaken )
 {
-	g_bSimpleSTMode = bSimple;
-}
-
-//*****************************************************************************
-//
-bool TEAM_GetBlueFlagTaken( void )
-{
-	return ( g_bBlueFlagTaken );
-}
-
-//*****************************************************************************
-//
-void TEAM_SetBlueFlagTaken( bool bTaken )
-{
-	g_bBlueFlagTaken = bTaken;
-}
-
-//*****************************************************************************
-//
-bool TEAM_GetRedFlagTaken( void )
-{
-	return ( g_bRedFlagTaken );
-}
-
-//*****************************************************************************
-//
-void TEAM_SetRedFlagTaken( bool bTaken )
-{
-	g_bRedFlagTaken = bTaken;
+	teams[ulTeamIdx].g_bTaken = bTaken;
 }
 
 //*****************************************************************************
@@ -1140,58 +1408,16 @@ void TEAM_SetWhiteFlagTaken( bool bTaken )
 
 //*****************************************************************************
 //
-bool TEAM_GetBlueSkullTaken( void )
+POS_t TEAM_GetItemOrigin( ULONG ulTeamIdx )
 {
-	return ( g_bBlueSkullTaken );
+	return ( teams[ulTeamIdx].g_Origin );
 }
 
 //*****************************************************************************
 //
-void TEAM_SetBlueSkullTaken( bool bTaken )
+void TEAM_SetTeamItemOrigin( ULONG ulTeamIdx, POS_t Origin )
 {
-	g_bBlueSkullTaken = bTaken;
-}
-
-//*****************************************************************************
-//
-bool TEAM_GetRedSkullTaken( void )
-{
-	return ( g_bRedSkullTaken );
-}
-
-//*****************************************************************************
-//
-void TEAM_SetRedSkullTaken( bool bTaken )
-{
-	g_bRedSkullTaken = bTaken;
-}
-
-//*****************************************************************************
-//
-POS_t TEAM_GetBlueFlagOrigin( void )
-{
-	return ( g_BlueFlagOrigin );
-}
-
-//*****************************************************************************
-//
-void TEAM_SetBlueFlagOrigin( POS_t Origin )
-{
-	g_BlueFlagOrigin = Origin;
-}
-
-//*****************************************************************************
-//
-POS_t TEAM_GetRedFlagOrigin( void )
-{
-	return ( g_RedFlagOrigin );
-}
-
-//*****************************************************************************
-//
-void TEAM_SetRedFlagOrigin( POS_t Origin )
-{
-	g_RedFlagOrigin = Origin;
+	teams[ulTeamIdx].g_Origin = Origin;
 }
 
 //*****************************************************************************
@@ -1210,50 +1436,270 @@ void TEAM_SetWhiteFlagOrigin( POS_t Origin )
 
 //*****************************************************************************
 //
-POS_t TEAM_GetBlueSkullOrigin( void )
-{
-	return ( g_BlueSkullOrigin );
-}
-
-//*****************************************************************************
-//
-void TEAM_SetBlueSkullOrigin( POS_t Origin )
-{
-	g_BlueSkullOrigin = Origin;
-}
-
-//*****************************************************************************
-//
-POS_t TEAM_GetRedSkullOrigin( void )
-{
-	return ( g_RedSkullOrigin );
-}
-
-//*****************************************************************************
-//
-void TEAM_SetRedSkullOrigin( POS_t Origin )
-{
-	g_RedSkullOrigin = Origin;
-}
-
-//*****************************************************************************
-//
 ULONG TEAM_GetAssistPlayer( ULONG ulTeamIdx )
 {
-	if ( ulTeamIdx >= NUM_TEAMS )
+	if ( TEAM_CheckIfValid( ulTeamIdx ) == false )
 		return ( MAXPLAYERS );
 
-	return ( g_ulAssistPlayer[ulTeamIdx] );
+	return ( teams[ulTeamIdx].g_ulAssistPlayer );
 }
 
 //*****************************************************************************
 //
 void TEAM_SetAssistPlayer( ULONG ulTeamIdx, ULONG ulPlayer )
 {
-	if (( ulTeamIdx >= NUM_TEAMS ) || ( ulPlayer > MAXPLAYERS ))
+	if (( TEAM_CheckIfValid( ulTeamIdx ) == false ) || ( ulPlayer > MAXPLAYERS ))
 		return;
 
-	g_ulAssistPlayer[ulTeamIdx] = ulPlayer;
+	teams[ulTeamIdx].g_ulAssistPlayer = ulPlayer;
+}
+
+//*****************************************************************************
+//
+void TEAM_CancelAssistsOfPlayer( ULONG ulPlayer )
+{
+	if ( ulPlayer >= MAXPLAYERS )
+		return;
+
+	for ( ULONG i = 0; i < teams.Size( ); i++ )
+	{
+		if ( TEAM_GetAssistPlayer( i ) != ulPlayer )
+			continue;
+
+		TEAM_SetAssistPlayer( i, MAXPLAYERS );
+		break;
+	}
+}
+
+//*****************************************************************************
+//
+bool TEAM_CheckAllTeamsHaveEqualFrags( void )
+{
+	LONG lPointsToCompare = teams[0].lFragCount;
+
+	for ( ULONG i = 0; i < teams.Size( ); i++ )
+	{
+		if ( TEAM_ShouldUseTeam( i ) == false )
+			continue;
+
+		if ( TEAM_GetFragCount( i ) != lPointsToCompare )
+			return false;
+	}
+
+	return ( true );
+}
+
+//*****************************************************************************
+//
+bool TEAM_CheckAllTeamsHaveEqualWins( void )
+{
+	LONG lPointsToCompare = teams[0].lWinCount;
+
+	for ( ULONG i = 0; i < teams.Size( ); i++ )
+	{
+		if ( TEAM_ShouldUseTeam( i ) == false )
+			continue;
+
+		if ( TEAM_GetWinCount( i ) != lPointsToCompare )
+			return false;
+	}
+
+	return ( true );
+}
+
+//*****************************************************************************
+//
+bool TEAM_CheckAllTeamsHaveEqualScores( void )
+{
+	LONG lPointsToCompare = teams[0].lScore;
+
+	for ( ULONG i = 0; i < teams.Size( ); i++ )
+	{
+		if ( TEAM_ShouldUseTeam( i ) == false )
+			continue;
+
+		if ( TEAM_GetScore( i ) != lPointsToCompare )
+			return false;
+	}
+
+	return ( true );
+}
+
+//*****************************************************************************
+//
+bool TEAM_ShouldUseTeam( ULONG ulTeam )
+{
+	if ( TEAM_CheckIfValid( ulTeam ) == false )
+		return ( false );
+
+	if ( teamgame && teams[ulTeam].TeamStarts.Size( ) < 1 )
+		return ( false );
+
+	return ( true );
+}
+
+//*****************************************************************************
+//
+LONG TEAM_GetHighestFragCount( void )
+{
+	LONG lFragCount = LONG_MIN;
+
+	for ( ULONG i = 0; i < teams.Size( ); i++ )
+	{
+		if ( TEAM_CountPlayers( i ) < 1 )
+			continue;
+
+		if ( lFragCount < TEAM_GetFragCount( i ))
+			lFragCount = TEAM_GetFragCount( i );
+	}
+
+	return lFragCount;
+}
+
+//*****************************************************************************
+//
+LONG TEAM_GetHighestWinCount( void )
+{
+	LONG lWinCount = LONG_MIN;
+
+	for ( ULONG i = 0; i < teams.Size( ); i++ )
+	{
+		if ( TEAM_CountPlayers( i ) < 1 )
+			continue;
+
+		if ( lWinCount < TEAM_GetWinCount( i ))
+			lWinCount = TEAM_GetWinCount( i );
+	}
+
+	return lWinCount;
+}
+
+//*****************************************************************************
+//
+LONG TEAM_GetHighestScoreCount( void )
+{
+	LONG lScoreCount = LONG_MIN;
+
+	for ( ULONG i = 0; i < teams.Size( ); i++ )
+	{
+		if ( teamgame == false && TEAM_CountPlayers( i ) < 1 )
+			continue;
+
+		if ( lScoreCount < TEAM_GetScore( i ))
+			lScoreCount = TEAM_GetScore( i );
+	}
+
+	return lScoreCount;
+}
+
+//*****************************************************************************
+//
+LONG TEAM_GetSpread ( ULONG ulTeam, LONG (*GetCount) ( ULONG ulTeam ) )
+{
+	bool	bInit = true;
+	LONG	lHighestCount;
+
+	if ( TEAM_CheckIfValid( ulTeam ) == false )
+		return 0;
+
+	// First, find the highest count that isn't ours.
+	for ( ULONG ulIdx = 0; ulIdx < teams.Size( ); ulIdx++ )
+	{
+		if ( ulTeam == ulIdx )
+			continue;
+
+		if ( bInit )
+		{
+			lHighestCount = (*GetCount) ( ulIdx );
+			bInit = false;
+		}
+
+		if ( (*GetCount) ( ulIdx ) > lHighestCount )
+			lHighestCount = (*GetCount) ( ulIdx );
+	}
+
+	// If we're the only team in the game...
+	if ( bInit )
+		lHighestCount = (*GetCount) ( ulTeam );
+
+	// Finally, simply return the difference.
+	return ( (*GetCount) ( ulTeam ) - lHighestCount );
+}
+
+//*****************************************************************************
+//
+LONG TEAM_GetFragCountSpread ( ULONG ulTeam )
+{
+	return TEAM_GetSpread ( ulTeam, &TEAM_GetFragCount );
+}
+
+//*****************************************************************************
+//
+LONG TEAM_GetWinCountSpread ( ULONG ulTeam )
+{
+	return TEAM_GetSpread ( ulTeam, &TEAM_GetWinCount );
+}
+
+//*****************************************************************************
+//
+LONG TEAM_GetScoreCountSpread ( ULONG ulTeam )
+{
+	return TEAM_GetSpread ( ulTeam, &TEAM_GetScore );
+}
+
+//*****************************************************************************
+//
+ULONG TEAM_CountFlags( void )
+{
+	AFlag *pItem;
+	TThinkerIterator<AFlag>	iterator;
+	ULONG ulCounted = 0;
+
+	while ( pItem = iterator.Next( ))
+		ulCounted++;
+
+	return ulCounted;
+}
+
+//*****************************************************************************
+//
+ULONG TEAM_CountSkulls( void )
+{
+	ASkull *pItem;
+	TThinkerIterator<ASkull>	iterator;
+	ULONG ulCounted = 0;
+
+	while ( pItem = iterator.Next( ))
+		ulCounted++;
+
+	return ulCounted;
+}
+
+//*****************************************************************************
+//
+ULONG TEAM_GetTeamFromItem( AActor *pActor )
+{
+	for ( ULONG i = 0; i < teams.Size( ); i++ )
+	{
+		if ( pActor->GetClass( ) == TEAM_GetItem( i ))
+			return i;
+	}
+
+	return teams.Size( );
+}
+
+//*****************************************************************************
+//
+ULONG TEAM_GetNextTeam( ULONG ulTeamIdx )
+{
+	ULONG ulNewTeamIdx;
+
+	ulNewTeamIdx = ulTeamIdx + 1;
+
+	if ( TEAM_CheckIfValid( ulNewTeamIdx ) == false )
+		ulNewTeamIdx = 0;
+
+	return ( ulNewTeamIdx );
 }
 
 //****************************************************************************
@@ -1300,7 +1746,7 @@ bool TEAM_IsActorAllowedForTeam( AActor *pActor, ULONG ulTeam )
 		return true;
 
 	// [BB] Allow all actors to "no team".
-	if ( ulTeam == NUM_TEAMS )
+	if ( ulTeam == teams.Size( ) )
 		return true;
 
 	// [BB] The team is the one to which this actor is restricted to.
@@ -1375,7 +1821,7 @@ void TEAM_EnsurePlayerHasValidClass( player_t *pPlayer )
 //
 LONG TEAM_SelectRandomValidPlayerClass( ULONG ulTeam )
 {
-	if ( ulTeam >= NUM_TEAMS )
+	if ( TEAM_CheckIfValid ( ulTeam ) == false )
 		return ( M_Random() % PlayerClasses.Size () );
 
 	// [BB] It's pretty inefficient to rebuild the list of available classes
@@ -1452,23 +1898,7 @@ CUSTOM_CVAR( Bool, ctf, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGNLOCK 
 		oneflagctf.ForceSet( Val, CVAR_Bool );
 		skulltag.ForceSet( Val, CVAR_Bool );
 		domination.ForceSet( Val, CVAR_Bool );
-
-		g_Team[TEAM_BLUE].FlagItem = PClass::FindClass( "BlueFlag" );
-		g_Team[TEAM_RED].FlagItem = PClass::FindClass( "RedFlag" );
 	}
-/*
-	else
-	{
-		if ( TEAM_IsFlagMode( ) == false )
-		{
-			g_Team[TEAM_BLUE].FlagHeld = it_blueskull;
-			g_Team[TEAM_BLUE].FlagItem = RUNTIME_CLASS( ABlueSkull );
-
-			g_Team[TEAM_RED].FlagHeld = it_redskull;
-			g_Team[TEAM_RED].FlagItem = RUNTIME_CLASS( ARedSkull );
-		}
-	}
-*/
 
 	// Reset what the current game mode is.
 	GAMEMODE_DetermineGameMode( );
@@ -1491,9 +1921,6 @@ CUSTOM_CVAR( Bool, oneflagctf, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAI
 		ctf.ForceSet( Val, CVAR_Bool );
 		skulltag.ForceSet( Val, CVAR_Bool );
 		domination.ForceSet( Val, CVAR_Bool );
-
-		g_Team[TEAM_BLUE].FlagItem = PClass::FindClass( "BlueFlag" );
-		g_Team[TEAM_RED].FlagItem = PClass::FindClass( "RedFlag" );
 	}
 
 	// Reset what the current game mode is.
@@ -1517,9 +1944,6 @@ CUSTOM_CVAR( Bool, skulltag, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGN
 		ctf.ForceSet( Val, CVAR_Bool );
 		oneflagctf.ForceSet( Val, CVAR_Bool );
 		domination.ForceSet( Val, CVAR_Bool );
-
-		g_Team[TEAM_BLUE].FlagItem = PClass::FindClass( "BlueSkullST" );
-		g_Team[TEAM_RED].FlagItem = PClass::FindClass( "RedSkullST" );
 	}
 
 	// Reset what the current game mode is.
@@ -1563,7 +1987,7 @@ CCMD( team )
 	{
 		char	szCommand[64];
 
-		sprintf( szCommand, "changeteam %s", argv[1] );
+		sprintf( szCommand, "changeteam \"%s\"", argv[1] );
 		AddCommandString( szCommand );
 	}
 	// If they didn't, just display which team they're on.
@@ -1625,7 +2049,7 @@ CCMD( changeteam )
 		}
 	}
 
-	lDesiredTeam = NUM_TEAMS;
+	lDesiredTeam = teams.Size( );
 
 	// If we're a client, just send out the "change team" message.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
@@ -1636,17 +2060,23 @@ CCMD( changeteam )
 		{
 			if ( stricmp( argv[1], "random" ) == 0 )
 			{
-				lDesiredTeam = g_JoinTeamSeed.Random( ) % NUM_TEAMS;
+				while( true )
+				{
+					lDesiredTeam = g_JoinTeamSeed.Random( ) % teams.Size( );
+
+					if ( TEAM_CheckIfValid( lDesiredTeam ) && TEAM_ShouldUseTeam( lDesiredTeam ))
+						break;
+				}
 			}
 			else if ( stricmp( argv[1], "autoselect" ) == 0 )
-				lDesiredTeam = NUM_TEAMS;
+				lDesiredTeam = teams.Size( );
 			else
 			{
 				ULONG	ulIdx;
 
 				// If the arg we passed in matches the team index or the team name, set that
 				// team as the desired team.
-				for ( ulIdx = 0; ulIdx < NUM_TEAMS; ulIdx++ )
+				for ( ulIdx = 0; ulIdx < teams.Size( ); ulIdx++ )
 				{
 					if (( (ULONG)atoi( argv[1] ) == ulIdx ) || ( stricmp( argv[1], TEAM_GetName( ulIdx )) == 0 ))
 						lDesiredTeam = ulIdx;
@@ -1654,13 +2084,13 @@ CCMD( changeteam )
 			}
 		}
 		// We did not pass in a team, so we must want to toggle our team.
-		else if ( lDesiredTeam == NUM_TEAMS )
+		else if ( lDesiredTeam == teams.Size( ) )
 		{
 			// Can't toggle our teams if we're not on a team!
 			if ( players[consoleplayer].bOnTeam == false )
 				return;
 
-			lDesiredTeam = !players[consoleplayer].ulTeam;
+			lDesiredTeam = TEAM_GetNextTeam( players[consoleplayer].ulTeam );
 		}
 
 		Val = cl_joinpassword.GetGenericRep( CVAR_String );
@@ -1672,7 +2102,13 @@ CCMD( changeteam )
 	{
 		if ( stricmp( argv[1], "random" ) == 0 )
 		{
-			lDesiredTeam = g_JoinTeamSeed.Random( ) % NUM_TEAMS;
+			while( true )
+			{
+				lDesiredTeam = g_JoinTeamSeed.Random( ) % teams.Size( );
+
+				if ( TEAM_CheckIfValid( lDesiredTeam ) && TEAM_ShouldUseTeam( lDesiredTeam ))
+					break;
+			}
 		}
 		else if ( stricmp( argv[1], "autoselect" ) == 0 )
 			lDesiredTeam = TEAM_ChooseBestTeamForPlayer( );
@@ -1682,7 +2118,7 @@ CCMD( changeteam )
 
 			// If the arg we passed in matches the team index or the team name, set that
 			// team as the desired team.
-			for ( ulIdx = 0; ulIdx < NUM_TEAMS; ulIdx++ )
+			for ( ulIdx = 0; ulIdx < teams.Size( ); ulIdx++ )
 			{
 				if (( (ULONG)atoi( argv[1] ) == ulIdx ) || ( stricmp( argv[1], TEAM_GetName( ulIdx )) == 0 ))
 					lDesiredTeam = ulIdx;
@@ -1696,7 +2132,7 @@ CCMD( changeteam )
 		if ( players[consoleplayer].bOnTeam == false )
 			return;
 
-		lDesiredTeam = !players[consoleplayer].ulTeam;
+		lDesiredTeam = TEAM_GetNextTeam( players[consoleplayer].ulTeam );
 	}
 
 	// If the desired team matches our current team, break out.

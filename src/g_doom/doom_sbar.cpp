@@ -1087,7 +1087,7 @@ void DrawFullHUD_GameInformation()
 		if ( CPlayer->bOnTeam )
 		{
 			// First, check to see if the player is carrying the opposing team's flag/skull.
-			pInventory = CPlayer->mo->FindInventory( TEAM_GetFlagItem( !CPlayer->ulTeam ));
+			pInventory = TEAM_FindOpposingTeamsItemInPlayersInventory ( CPlayer );
 
 			// If they're not, then check to see if they're carrying the white flag in one
 			// flag CTF.
@@ -1132,110 +1132,73 @@ void DrawFullHUD_GameInformation()
 		else
 			ulCurYPos = SCREENHEIGHT - 4 - ( TexMan["MEDIA0"]->GetHeight( ) + 4 ) - ( TexMan["ARM1A0"]->GetHeight( ) + 4 ) - 14;
 
-		if ( ctf || oneflagctf )
-			sprintf( szPatchName, "BFLASMAL" );
-		else
-			sprintf( szPatchName, "BSKUA0" );
-		if ( bScale )
+		for ( LONG i = teams.Size( ) - 1; i >= 0; i-- )
 		{
-			screen->DrawTexture( TexMan[szPatchName],
-				ulCurXPos + TexMan[szPatchName]->GetWidth( ) / 2,
-				ulCurYPos,
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
-				TAG_DONE );
-		}
-		else
-		{
-			screen->DrawTexture( TexMan[szPatchName],
-				ulCurXPos + TexMan[szPatchName]->GetWidth( ) / 2,
-				ulCurYPos,
-				TAG_DONE );
-		}
+			if ( TEAM_ShouldUseTeam( i ) == false )
+				continue;
 
-		sprintf( szString, "%d", static_cast<int> (TEAM_GetScore( TEAM_BLUE )));
-		if ( bScale )
-		{
-			screen->DrawText( CR_RED,
-				ulCurXPos + TexMan[szPatchName]->GetWidth( ) + 16,
-				ulCurYPos - ( TexMan[szPatchName]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
-				szString,
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
-				TAG_DONE );
-		}
-		else
-		{
-			screen->DrawText( CR_RED,
-				ulCurXPos + TexMan[szPatchName]->GetWidth( ) + 16,
-				ulCurYPos - ( TexMan[szPatchName]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
-				szString,
-				TAG_DONE );
-		}
+			sprintf( szPatchName, TEAM_GetLargeHUDIcon( i ));
 
-		ulCurYPos -= TexMan[szPatchName]->GetHeight( ) + 8;
+			if ( bScale )
+			{
+				screen->DrawTexture( TexMan[szPatchName],
+					ulCurXPos + TexMan[szPatchName]->GetWidth( ) / 2,
+					ulCurYPos,
+					DTA_VirtualWidth, ValWidth.Int,
+					DTA_VirtualHeight, ValHeight.Int,
+					TAG_DONE );
+			}
+			else
+			{
+				screen->DrawTexture( TexMan[szPatchName],
+					ulCurXPos + TexMan[szPatchName]->GetWidth( ) / 2,
+					ulCurYPos,
+					TAG_DONE );
+			}
 
-		if ( ctf || oneflagctf )
-			sprintf( szPatchName, "RFLASMAL" );
-		else
-			sprintf( szPatchName, "RSKUA0" );
-		if ( bScale )
-		{
-			screen->DrawTexture( TexMan[szPatchName],
-				ulCurXPos + TexMan[szPatchName]->GetWidth( ) / 2,
-				ulCurYPos,
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
-				TAG_DONE );
-		}
-		else
-		{
-			screen->DrawTexture( TexMan[szPatchName],
-				ulCurXPos + TexMan[szPatchName]->GetWidth( ) / 2,
-				ulCurYPos,
-				TAG_DONE );
-		}
+			sprintf( szString, "%d", static_cast<int>( TEAM_GetScore( i )));
+			if ( bScale )
+			{
+				screen->DrawText( TEAM_GetTextColor( i ),
+					ulCurXPos + TexMan[szPatchName]->GetWidth( ) + 16,
+					ulCurYPos - ( TexMan[szPatchName]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
+					szString,
+					DTA_VirtualWidth, ValWidth.Int,
+					DTA_VirtualHeight, ValHeight.Int,
+					TAG_DONE );
+			}
+			else
+			{
+				screen->DrawText( TEAM_GetTextColor( i ),
+					ulCurXPos + TexMan[szPatchName]->GetWidth( ) + 16,
+					ulCurYPos - ( TexMan[szPatchName]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
+					szString,
+					TAG_DONE );
+			}
 
-		sprintf( szString, "%d", static_cast<int> (TEAM_GetScore( TEAM_RED )));
-		if ( bScale )
-		{
-			screen->DrawText( CR_RED,
-				ulCurXPos + TexMan[szPatchName]->GetWidth( ) + 16,
-				ulCurYPos - ( TexMan[szPatchName]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
-				szString,
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
-				TAG_DONE );
-		}
-		else
-		{
-			screen->DrawText( CR_RED,
-				ulCurXPos + TexMan[szPatchName]->GetWidth( ) + 16,
-				ulCurYPos - ( TexMan[szPatchName]->GetHeight( ) / 2 ) - ( ConFont->GetHeight( ) / 2 ),
-				szString,
-				TAG_DONE );
+			ulCurYPos -= TexMan[szPatchName]->GetHeight( ) + 8;
 		}
 	}
+
 	// [RC] If the game is team-based but isn't an a team
 	// article game (ST/CTF), just show the scores / frags.
 	else if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 	{
-		ULONG	ulRedPoints; // Frags or points
-		ULONG	ulBluePoints;
+		ULONG	ulPoints[MAX_TEAMS]; // Frags or points
 		if ( teamlms )
 		{
-			ulBluePoints = TEAM_GetWinCount( TEAM_BLUE );
-			ulRedPoints = TEAM_GetWinCount( TEAM_RED );
+			for ( ULONG i = 0; i < teams.Size( ); i++ )
+				ulPoints[i] = TEAM_GetWinCount( i );
 		}			
 		else if ( teamplay )
 		{
-			ulBluePoints = TEAM_GetFragCount( TEAM_BLUE );
-			ulRedPoints = TEAM_GetFragCount( TEAM_RED );
+			for ( ULONG i = 0; i < teams.Size( ); i++ )
+				ulPoints[i] = TEAM_GetFragCount( i );;
 		}
 		else
 		{
-			ulBluePoints = TEAM_GetScore( TEAM_BLUE );
-			ulRedPoints = TEAM_GetScore( TEAM_RED );
+			for ( ULONG i = 0; i < teams.Size( ); i++ )
+				ulPoints[i] = TEAM_GetScore( i );
 		}
 		ulCurXPos = 4;
 		if ( bScale )
@@ -1243,27 +1206,49 @@ void DrawFullHUD_GameInformation()
 		else
 			ulCurYPos = SCREENHEIGHT - 4 - ( TexMan["MEDIA0"]->GetHeight( ) + 4 ) - ( TexMan["ARM1A0"]->GetHeight( ) + 4 ) - 14;
 
-		sprintf( szString , "\\cG%d \\cb- \\ch%d", static_cast<unsigned int> (ulRedPoints), static_cast<unsigned int> (ulBluePoints));
-		V_ColorizeString( szString );
 		ulCurYPos -= ((ConFont->GetHeight( ) + 1) * 5);
+
+		LONG lSlot = 0;
 
 		if ( bScale )
 		{
-			screen->DrawText( CR_GRAY,
-				ulCurXPos,
-				ulCurYPos,
-				szString,
-				DTA_VirtualWidth, ValWidth.Int,
-				DTA_VirtualHeight, ValHeight.Int,
-				TAG_DONE );
+			for ( ULONG i = 0; i < teams.Size( ); i++ )
+			{
+				if ( TEAM_CountPlayers( i ) < 1 )
+					continue;
+
+				sprintf( szString , "\\c%c%d\n", V_GetColorChar( TEAM_GetTextColor ( i ) ),  static_cast<int>( ulPoints[i] ));
+				V_ColorizeString( szString );
+
+				screen->DrawText( CR_GRAY,
+					ulCurXPos,
+					ulCurYPos + (lSlot * SCREENHEIGHT / 40),
+					szString,
+					DTA_VirtualWidth, ValWidth.Int,
+					DTA_VirtualHeight, ValHeight.Int,
+					TAG_DONE );
+
+				lSlot++;
+			}
 		}
 		else
 		{
-			screen->DrawText( CR_GRAY,
-				ulCurXPos,
-				ulCurYPos,
-				szString,
-				TAG_DONE );
+			for ( LONG i = teams.Size( ) - 1; i >= 0; i-- )
+			{
+				if ( TEAM_CountPlayers( i ) < 1 )
+					continue;
+
+				sprintf( szString , "\\c%c%d\n", V_GetColorChar( TEAM_GetTextColor ( i ) ), ulPoints[i]);
+				V_ColorizeString( szString );
+
+				screen->DrawText( CR_GRAY,
+					ulCurXPos,
+					ulCurYPos - (lSlot * SCREENHEIGHT / 40),
+					szString,
+					TAG_DONE );
+
+				lSlot++;
+			}
 		}
 	}
 

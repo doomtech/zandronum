@@ -53,6 +53,7 @@
 #include "thingdef/thingdef.h"
 // [BB] New #includes.
 #include "sv_commands.h"
+#include "a_doomglobal.h"
 #include "deathmatch.h"
 #include "duel.h"
 #include "g_game.h"
@@ -1475,7 +1476,7 @@ void APlayerPawn::ActivateMorphWeapon ()
 
 void APlayerPawn::Die (AActor *source, AActor *inflictor)
 {
-	AActor			*pFlag;
+	AActor			*pTeamItem;
 	AInventory		*pInventory;
 	bool			bCarryingTerminatorArtifact;
 	bool			bCarryingPossessionArtifact;
@@ -1594,58 +1595,67 @@ void APlayerPawn::Die (AActor *source, AActor *inflictor)
 	// If this is a teamgame and the player is carrying the opponents "flag", drop it.
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ) && ( CLIENTDEMO_IsPlaying( ) == false ) && teamgame && player->bOnTeam )
 	{
-		pInventory = this->FindInventory( TEAM_GetFlagItem( !player->ulTeam ));
-		if ( pInventory )
+		for ( ULONG i = 0; i < teams.Size( ); i++ )
 		{
-			this->RemoveInventory( pInventory );
+			pInventory = this->FindInventory( TEAM_GetItem( i ));
 
-			// Tell the clients that this player no longer possesses a flag.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_TakeInventory( player - players, TEAM_GetFlagItem( !player->ulTeam )->TypeName.GetChars( ), 0 );
-			else
-				SCOREBOARD_RefreshHUD( );
-
-			pFlag = Spawn( TEAM_GetFlagItem( !player->ulTeam ), x, y, z, NO_REPLACE );
-			if ( pFlag )
+			if ( pInventory )
 			{
-				pFlag->flags |= MF_DROPPED;
+				this->RemoveInventory( pInventory );
 
-				// Tag blue flags/skulls with TID 666; red 667.
-				if ( player->ulTeam == TEAM_RED )
-					pFlag->tid = 666;
+				// Tell the clients that this player no longer possesses a flag.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_TakeInventory( player - players, TEAM_GetItem( i )->TypeName.GetChars( ), 0 );
 				else
-					pFlag->tid = 667;
-				pFlag->AddToHash( );
+					SCOREBOARD_RefreshHUD( );
 
-				// If the flag spawned in an instant return zone, the return routine
-				// has already been executed. No need to do anything!
-				if ( pFlag->Sector && (( pFlag->Sector->MoreFlags & SECF_RETURNZONE ) == false ))
+				pTeamItem = Spawn( TEAM_GetItem( i ), x, y, z, NO_REPLACE );
+
+				if ( pTeamItem )
 				{
-					if ( dmflags2 & DF2_INSTANT_RETURN )
-						TEAM_ExecuteReturnRoutine( !player->ulTeam, inflictor );
-					else
+					pTeamItem->flags |= MF_DROPPED;
+
+					// If the flag spawned in an instant return zone, the return routine
+					// has already been executed. No need to do anything!
+					if ( pTeamItem->Sector && (( pTeamItem->Sector->MoreFlags & SECF_RETURNZONE ) == false ))
 					{
-						TEAM_SetReturnTicks( !player->ulTeam, sv_flagreturntime * TICRATE );
+						if ( dmflags2 & DF2_INSTANT_RETURN )
+							TEAM_ExecuteReturnRoutine( i, inflictor );
+						else
+						{
+							TEAM_SetReturnTicks( i, sv_flagreturntime * TICRATE );
 
-						// Print "Blue flag dropped!", etc. messages and do announcer stuff.
-						TEAM_FlagDropped( player );
+							// Print flag dropped message and do announcer stuff.
+							TEAM_FlagDropped( player, i );
 
-						// If we're the server, spawn the item to clients.
-						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-							SERVERCOMMANDS_SpawnThing( pFlag );
+							// If we're the server, spawn the item to clients.
+							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+								SERVERCOMMANDS_SpawnThing( pTeamItem );
+						}
 					}
 				}
-			}
 
-			// Cancel out the potential for an assist.
-			TEAM_SetAssistPlayer( player->ulTeam, MAXPLAYERS );
+				// Cancel out the potential for an assist.
+				TEAM_SetAssistPlayer( player->ulTeam, MAXPLAYERS );
 
-			// Award a "Defense!" medal to the player who fragged this flag carrier.
-			if (( source ) && ( source->player ) && ( source->IsTeammate( this ) == false ))
-			{
-				MEDAL_GiveMedal( source->player - players, MEDAL_DEFENSE );
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_GivePlayerMedal( source->player - players, MEDAL_DEFENSE );
+				// Award a "Defense!" medal to the player who fragged this flag carrier.
+				// [BB] but only if the flag belongs to the team of the fragger.
+				if (( source ) && ( source->player ) && ( source->IsTeammate( this ) == false ) && ( source->player->ulTeam == i ))
+				{
+					MEDAL_GiveMedal( source->player - players, MEDAL_DEFENSE );
+					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						SERVERCOMMANDS_GivePlayerMedal( source->player - players, MEDAL_DEFENSE );
+				}
+
+				FState *TeamItemDroppedState = pTeamItem->FindState( "Drop" );
+
+				if ( TeamItemDroppedState )
+				{
+					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						SERVERCOMMANDS_SetThingFrame( pTeamItem, TeamItemDroppedState );
+
+					pTeamItem->SetState( TeamItemDroppedState );
+				}
 			}
 		}
 
@@ -1661,32 +1671,42 @@ void APlayerPawn::Die (AActor *source, AActor *inflictor)
 			else
 				SCOREBOARD_RefreshHUD( );
 
-			pFlag = Spawn( PClass::FindClass( "WhiteFlag" ), x, y, z, NO_REPLACE );
-			if ( pFlag )
+			pTeamItem = Spawn( PClass::FindClass( "WhiteFlag" ), x, y, z, NO_REPLACE );
+			if ( pTeamItem )
 			{
-				pFlag->flags |= MF_DROPPED;
+				pTeamItem->flags |= MF_DROPPED;
 
-				pFlag->tid = 668;
-				pFlag->AddToHash( );
+				pTeamItem->tid = 668;
+				pTeamItem->AddToHash( );
 
 				// If the flag spawned in an instant return zone, the return routine
 				// has already been executed. No need to do anything!
-				if ( pFlag->Sector && (( pFlag->Sector->MoreFlags & SECF_RETURNZONE ) == false ))
+				if ( pTeamItem->Sector && (( pTeamItem->Sector->MoreFlags & SECF_RETURNZONE ) == false ))
 				{
 					if ( dmflags2 & DF2_INSTANT_RETURN )
-						TEAM_ExecuteReturnRoutine( NUM_TEAMS, NULL );
+						TEAM_ExecuteReturnRoutine( teams.Size( ), NULL );
 					else
 					{
-						TEAM_SetReturnTicks( NUM_TEAMS, sv_flagreturntime * TICRATE );
+						TEAM_SetReturnTicks( teams.Size( ), sv_flagreturntime * TICRATE );
 
 						// If we're the server, spawn the item to clients.
 						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-							SERVERCOMMANDS_SpawnThing( pFlag );
+							SERVERCOMMANDS_SpawnThing( pTeamItem );
 					}
 				}
 
 //				if ( dmflags2 & DF2_INSTANT_RETURN )
 //					FBehavior::StaticStartTypedScripts( SCRIPT_WhiteReturn, this );
+
+				FState *TeamItemDroppedState = pTeamItem->FindState( "Dropped" );
+
+				if ( TeamItemDroppedState )
+				{
+					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						SERVERCOMMANDS_SetThingFrame( pTeamItem, TeamItemDroppedState );
+
+					pTeamItem->SetState( TeamItemDroppedState );
+				}
 			}
 
 			// Award a "Defense!" medal to the player who fragged this flag carrier.
@@ -1726,7 +1746,7 @@ void APlayerPawn::Die (AActor *source, AActor *inflictor)
 
 void APlayerPawn::DropImportantItems( bool bLeavingGame )
 {
-	AActor		*pFlag;
+	AActor		*pTeamItem;
 	AInventory	*pInventory;
 
 	if ( player == NULL )
@@ -1737,42 +1757,40 @@ void APlayerPawn::DropImportantItems( bool bLeavingGame )
 	if (( teamgame ) && ( player->bOnTeam ))
 	{
 		// Check if he's carrying the opponents' flag.
-		pInventory = this->FindInventory( TEAM_GetFlagItem( !player->ulTeam ));
-		if ( pInventory )
+		for ( ULONG i = 0; i < teams.Size( ); i++ )
 		{
-			this->RemoveInventory( pInventory );
-			if (( bLeavingGame == false ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
-				SERVERCOMMANDS_TakeInventory( player - players, TEAM_GetFlagItem( !player->ulTeam )->TypeName.GetChars( ), 0 );
+			pInventory = this->FindInventory( TEAM_GetItem( i ));
 
-			// Spawn a new flag.
-			pFlag = Spawn( TEAM_GetFlagItem( !player->ulTeam ), player->mo->x, player->mo->y, ONFLOORZ, NO_REPLACE );
-			if ( pFlag )
+			if ( pInventory )
 			{
-				pFlag->flags |= MF_DROPPED;
+				this->RemoveInventory( pInventory );
+				if (( bLeavingGame == false ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
+					SERVERCOMMANDS_TakeInventory( player - players, TEAM_GetItem( i )->TypeName.GetChars( ), 0 );
 
-				// Tag blue flags/skulls with TID 666; red 667.
-				if ( player->ulTeam == TEAM_RED )
-					pFlag->tid = 666;
-				else
-					pFlag->tid = 667;
-				pFlag->AddToHash( );
+				// Spawn a new flag.
+				pTeamItem = Spawn( TEAM_GetItem( i ), player->mo->x, player->mo->y, ONFLOORZ, NO_REPLACE );
 
-				// If the flag spawned in an instant return zone, the return routine
-				// has already been executed. No need to do anything!
-				if (( pFlag->Sector->MoreFlags & SECF_RETURNZONE ) == false )
+				if ( pTeamItem )
 				{
-					if ( dmflags2 & DF2_INSTANT_RETURN )
-						TEAM_ExecuteReturnRoutine( !player->ulTeam, NULL );
-					else
+					pTeamItem->flags |= MF_DROPPED;
+
+					// If the flag spawned in an instant return zone, the return routine
+					// has already been executed. No need to do anything!
+					if (( pTeamItem->Sector->MoreFlags & SECF_RETURNZONE ) == false )
 					{
-						TEAM_SetReturnTicks( !player->ulTeam, sv_flagreturntime * TICRATE );
+						if ( dmflags2 & DF2_INSTANT_RETURN )
+							TEAM_ExecuteReturnRoutine( i, NULL );
+						else
+						{
+							TEAM_SetReturnTicks( i, sv_flagreturntime * TICRATE );
 
-						// Print "Blue flag dropped!", etc. messages and do announcer stuff.
-						TEAM_FlagDropped( player );
+							// Print flag dropped message and do announcer stuff.
+							TEAM_FlagDropped( player, i );
 
-						// If we're the server, spawn the item to clients.
-						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-							SERVERCOMMANDS_SpawnThing( pFlag );
+							// If we're the server, spawn the item to clients.
+							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+								SERVERCOMMANDS_SpawnThing( pTeamItem );
+						}
 					}
 				}
 			}
@@ -1787,26 +1805,26 @@ void APlayerPawn::DropImportantItems( bool bLeavingGame )
 				SERVERCOMMANDS_TakeInventory( player - players, "WhiteFlag", 0 );
 
 			// Spawn a new flag.
-			pFlag = Spawn( PClass::FindClass( "WhiteFlag" ), player->mo->x, player->mo->y, ONFLOORZ, NO_REPLACE );
-			if ( pFlag )
+			pTeamItem = Spawn( PClass::FindClass( "WhiteFlag" ), player->mo->x, player->mo->y, ONFLOORZ, NO_REPLACE );
+			if ( pTeamItem )
 			{
-				pFlag->flags |= MF_DROPPED;
+				pTeamItem->flags |= MF_DROPPED;
 
-				pFlag->tid = 668;
-				pFlag->AddToHash( );
+				pTeamItem->tid = 668;
+				pTeamItem->AddToHash( );
 
 				// If the flag spawned in an instant return zone, the return routine
 				// has already been executed. No need to do anything!
-				if (( pFlag->Sector->MoreFlags & SECF_RETURNZONE ) == false )
+				if (( pTeamItem->Sector->MoreFlags & SECF_RETURNZONE ) == false )
 				{
 					if ( dmflags2 & DF2_INSTANT_RETURN )
 						FBehavior::StaticStartTypedScripts( SCRIPT_WhiteReturn, player->mo, true );
 					else
-						TEAM_SetReturnTicks( NUM_TEAMS, sv_flagreturntime * TICRATE );
+						TEAM_SetReturnTicks( teams.Size( ), sv_flagreturntime * TICRATE );
 
 						// If we're the server, spawn the item to clients.
 						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-							SERVERCOMMANDS_SpawnThing( pFlag );
+							SERVERCOMMANDS_SpawnThing( pTeamItem );
 				}
 			}
 		}
@@ -2803,7 +2821,7 @@ void PLAYER_JoinGameFromSpectators( int iChar )
 		JOINSLOT_t	JoinSlot;
 
 		JoinSlot.ulPlayer = consoleplayer;
-		JoinSlot.ulTeam = NUM_TEAMS;
+		JoinSlot.ulTeam = teams.Size( );
 		ulResult = JOINQUEUE_AddPlayer( JoinSlot );
 		if ( ulResult == MAXPLAYERS )
 			Printf( "Join queue full!\n" );

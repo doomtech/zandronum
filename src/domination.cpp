@@ -146,11 +146,8 @@ void DOMINATION_SetOwnership(unsigned int point, player_t *toucher)
 	{
 		unsigned int secnum = (*level.info->SectorInfo.Points[point])[i];
 
-		//To be replaced with TEAMINFO compatible code
-		if(team == TEAM_BLUE)
-			sectors[secnum].SetFade(0x00, 0x00, 0xFF);
-		else
-			sectors[secnum].SetFade(0xFF, 0x00, 0x00);
+		int color = TEAM_GetColor ( team );
+		sectors[secnum].SetFade( RPART(color), GPART(color), BPART(color) );
 	}
 }
 
@@ -201,10 +198,8 @@ void DOMINATION_DrawHUD(bool scaled)
 	for(int i = NumPoints-1;i >= 0;i--)
 	{
 		FString str;
-		if(PointOwners[i] == TEAM_BLUE) //To be replaced with more teaminfo compatible code
-			str << "\\ch" << TEAM_GetName(PointOwners[i]);
-		else if(PointOwners[i] == TEAM_RED)
-			str << "\\cg" << TEAM_GetName(PointOwners[i]);
+		if( TEAM_CheckIfValid ( PointOwners[i] ) )
+			str << "\\c" << V_GetColorChar( TEAM_GetTextColor( PointOwners[i] )) << TEAM_GetName(PointOwners[i]);
 		else
 			str << "-";
 		str << "\\c- :" << *level.info->SectorInfo.PointNames[i];

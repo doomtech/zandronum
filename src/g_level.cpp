@@ -2195,7 +2195,7 @@ void G_DoLoadLevel (int position, bool autosave)
 	UCVarValue			Val;
 
 	// Loop through the teams, and reset the scores.
-	for ( i = 0; i < NUM_TEAMS; i++ )
+	for ( i = 0; i < teams.Size( ); i++ )
 	{
 		TEAM_SetFragCount( i, 0, false );
 		TEAM_SetDeathCount( i, 0 );
@@ -2211,7 +2211,7 @@ void G_DoLoadLevel (int position, bool autosave)
 		// Clear everyone's team.
 		for (i = 0; i < MAXPLAYERS; i++)
 		{
-			players[i].ulTeam = NUM_TEAMS;
+			players[i].ulTeam = teams.Size( );
 			players[i].bOnTeam = false;
 		}
 	}
@@ -2229,7 +2229,7 @@ void G_DoLoadLevel (int position, bool autosave)
 				if ( playeringame[i] == false )
 					continue;
 
-				if (( players[i].bOnTeam == false ) && ( players[i].ulTeam == NUM_TEAMS ))
+				if (( players[i].bOnTeam == false ) && ( players[i].ulTeam == teams.Size( ) ))
 					lNumNeedingTeam++;
 			}
 
@@ -2238,7 +2238,7 @@ void G_DoLoadLevel (int position, bool autosave)
 				do
 				{
 					lRand = ( M_Random( ) % MAXPLAYERS );
-				} while (( playeringame[lRand] == false ) || ( players[lRand].bOnTeam ) || ( players[lRand].ulTeam != NUM_TEAMS ));
+				} while (( playeringame[lRand] == false ) || ( players[lRand].bOnTeam ) || ( players[lRand].ulTeam != teams.Size( ) ));
 
 				PLAYER_SetTeam( &players[lRand], TEAM_ChooseBestTeamForPlayer( ), true );
 			}
@@ -2251,7 +2251,7 @@ void G_DoLoadLevel (int position, bool autosave)
 		if ( !(dmflags2 & DF2_YES_KEEP_TEAMS) )
 		{
 			for (i = 0; i < MAXPLAYERS; i++)
-				PLAYER_SetTeam( &players[i], NUM_TEAMS, true );
+				PLAYER_SetTeam( &players[i], teams.Size( ), true );
 		}
 	}
 
@@ -2374,7 +2374,10 @@ void G_DoLoadLevel (int position, bool autosave)
 
 			for ( i = 0; i < MAXPLAYERS; i++ )
 			{
-				if ( pInfo->BotSpawn[i].szBotName[0] )
+				// [BB] If this is not a team game, there is no need to check or pass BotTeamName.
+				if ( !( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) )
+					BOTSPAWN_AddToTable( pInfo->BotSpawn[i].szBotName, NULL );
+				else if ( pInfo->BotSpawn[i].BotTeamName.IsNotEmpty() && TEAM_ShouldUseTeam ( TEAM_GetTeamNumberByName (  pInfo->BotSpawn[i].BotTeamName.GetChars() ) ) )
 					BOTSPAWN_AddToTable( pInfo->BotSpawn[i].szBotName, pInfo->BotSpawn[i].BotTeamName.GetChars() );
 			}
 
@@ -2391,14 +2394,11 @@ void G_DoLoadLevel (int position, bool autosave)
 
 			if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) && ( pInfo->PlayerTeamName.IsNotEmpty() ))
 			{
-				if ( stricmp( pInfo->PlayerTeamName.GetChars(), "red" ) == 0 )
+				ULONG ulTeam = TEAM_GetTeamNumberByName ( pInfo->PlayerTeamName.GetChars() );
+
+				if ( TEAM_CheckIfValid ( ulTeam ) )
 				{
-					players[consoleplayer].ulTeam = TEAM_RED;
-					players[consoleplayer].bOnTeam = true;
-				}
-				else if ( stricmp( pInfo->PlayerTeamName.GetChars(), "blue" ) == 0 )
-				{
-					players[consoleplayer].ulTeam = TEAM_BLUE;
+					players[consoleplayer].ulTeam = ulTeam;
 					players[consoleplayer].bOnTeam = true;
 				}
 				else

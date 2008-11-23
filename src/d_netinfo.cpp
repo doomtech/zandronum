@@ -217,16 +217,12 @@ void D_GetPlayerColor (int player, float *h, float *s, float *v)
 
 	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 	{
-		if ( players[player].bOnTeam )
+		if ( players[player].bOnTeam && ( TEAM_IsCustomPlayerColorAllowed ( players[player].ulTeam ) == false ) )
 		{
 			int			nColor;
-			const char	*pszColor;
 
 			// Get the color string from the team object.
-			pszColor = TEAM_GetColor( players[player].ulTeam );
-
-			// Build the color based on the string.
-			nColor = V_GetColorFromString( NULL, pszColor );
+			nColor = TEAM_GetColor( players[player].ulTeam );
 
 			// Convert.
 			RGBtoHSV( RPART( nColor ) / 255.f, GPART( nColor ) / 255.f, BPART( nColor ) / 255.f,
@@ -234,7 +230,7 @@ void D_GetPlayerColor (int player, float *h, float *s, float *v)
 		}
 	}
 
-	if (teamplay && players[player].userinfo.team < NUM_TEAMS)
+	if (teamplay && players[player].userinfo.team < (signed)teams.Size ())
 	{
 /*
 		// In team play, force the player to use the team's hue

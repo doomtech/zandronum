@@ -2611,11 +2611,11 @@ static void botcmd_GetGameMode( CSkullBot *pBot )
 static void botcmd_GetSpread( CSkullBot *pBot )
 {
 	if (( teamgame || teampossession ) && ( pBot->GetPlayer( )->bOnTeam ))
-		g_iReturnInt = TEAM_GetScore( pBot->GetPlayer( )->ulTeam ) - TEAM_GetScore( !pBot->GetPlayer( )->ulTeam );
+		g_iReturnInt = TEAM_GetScoreCountSpread( pBot->GetPlayer( )->ulTeam );
 	else if ( teamplay )
-		g_iReturnInt = TEAM_GetFragCount( pBot->GetPlayer( )->ulTeam ) - TEAM_GetFragCount( !pBot->GetPlayer( )->ulTeam );
+		g_iReturnInt = TEAM_GetFragCountSpread( pBot->GetPlayer( )->ulTeam );
 	else if ( teamlms )
-		g_iReturnInt = TEAM_GetWinCount( pBot->GetPlayer( )->ulTeam ) - TEAM_GetWinCount( !pBot->GetPlayer( )->ulTeam );
+		g_iReturnInt = TEAM_GetWinCountSpread( pBot->GetPlayer( )->ulTeam );
 	else
 		g_iReturnInt = SCOREBOARD_CalcSpread( pBot->GetPlayer( ) - players );
 }

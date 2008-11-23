@@ -1912,10 +1912,7 @@ void BOTS_RemoveBot( ULONG ulPlayerIdx, bool bExitMsg )
 		players[ulPlayerIdx].mo->DropImportantItems( true );
 
 	// If this bot was eligible to get an assist, cancel that.
-	if ( TEAM_GetAssistPlayer( TEAM_BLUE ) == ulPlayerIdx )
-		TEAM_SetAssistPlayer( TEAM_BLUE, MAXPLAYERS );
-	if ( TEAM_GetAssistPlayer( TEAM_RED ) == ulPlayerIdx )
-		TEAM_SetAssistPlayer( TEAM_RED, MAXPLAYERS );
+	TEAM_CancelAssistsOfPlayer ( ulPlayerIdx );
 
 	playeringame[ulPlayerIdx] = false;
 
@@ -2962,14 +2959,12 @@ CSkullBot::CSkullBot( char *pszName, char *pszTeamName, ULONG ulPlayerNum )
 	m_pPlayer->userinfo.gender = D_GenderToInt( g_BotInfo[m_ulBotInfoIdx]->szGender );
 	if ( pszTeamName )
 	{
-		// If we're in teamgame mode, put the bot on red or blue.
+		// If we're in teamgame mode, put the bot on a defined team.
 		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 		{
-			// Pick a team for our bot
-			if ( !stricmp( pszTeamName, TEAM_GetName( TEAM_BLUE )))
-				PLAYER_SetTeam( m_pPlayer, TEAM_BLUE, true );
-			else if ( !stricmp( pszTeamName, TEAM_GetName( TEAM_RED )))
-				PLAYER_SetTeam( m_pPlayer, TEAM_RED, true );
+			ULONG ulTeam = TEAM_GetTeamNumberByName ( pszTeamName );
+			if ( TEAM_CheckIfValid ( ulTeam ) )
+				PLAYER_SetTeam(m_pPlayer, ulTeam, true);
 			else
 				PLAYER_SetTeam( m_pPlayer, TEAM_ChooseBestTeamForPlayer( ), true );
 		}
@@ -5068,7 +5063,7 @@ CCMD( addbot )
 	// Break if we have the wrong amount of arguments.
 	if ( argv.argc( ) > 3 )
 	{
-		Printf( "addbot [botname] [red/blue]: add a bot to the game\n" );
+		Printf( "addbot [botname] [team name]: add a bot to the game\n" );
 		return;
 	}
 

@@ -2369,6 +2369,7 @@ void SERVERCONSOLE_UpdateBroadcasting( void )
 
 //*****************************************************************************
 //
+void SCOREBOARD_BuildPointString( char *pszString, const char *pszPointName, bool (*CheckAllEqual) ( void ), LONG (*GetHighestCount) ( void ), LONG (*GetCount) ( ULONG ulTeam ) );
 void SERVERCONSOLE_UpdateScoreboard( void )
 {
 	char		szString[256];
@@ -2392,10 +2393,7 @@ void SERVERCONSOLE_UpdateScoreboard( void )
 		// If we're in a teamplay, just go by whichever team has the most frags.
 		if ( teamplay )
 		{
-			if ( TEAM_GetFragCount( TEAM_BLUE ) >= TEAM_GetFragCount( TEAM_RED ))
-				lHighestFragcount = TEAM_GetFragCount( TEAM_BLUE );
-			else
-				lHighestFragcount = TEAM_GetFragCount( TEAM_RED );
+			lHighestFragcount = TEAM_GetHighestFragCount( );
 		}
 		// Otherwise, find the player with the most frags.
 		else
@@ -2543,14 +2541,7 @@ void SERVERCONSOLE_UpdateScoreboard( void )
 	// Render the pointlimit string.
 	if ( teamgame && pointlimit && gamestate == GS_LEVEL )
 	{
-		ULONG	ulPointsLeft;
-		ULONG	ulBluePoints;
-		ULONG	ulRedPoints;
-
-		ulBluePoints = TEAM_GetScore( TEAM_BLUE );
-		ulRedPoints = TEAM_GetScore( TEAM_RED );
-
-		ulPointsLeft = pointlimit - (( ulBluePoints >= ulRedPoints ) ? ulBluePoints : ulRedPoints );
+		ULONG	ulPointsLeft = pointlimit - TEAM_GetHighestScoreCount( );
 		sprintf( szString, "%ld points remain", ulPointsLeft );
 		switch ( ulLine )
 		{
@@ -2588,10 +2579,7 @@ void SERVERCONSOLE_UpdateScoreboard( void )
 		// If we're in a teamplay, just go by whichever team has the most frags.
 		if ( teamlms )
 		{
-			if ( TEAM_GetScore( TEAM_BLUE ) >= TEAM_GetScore( TEAM_RED ))
-				lHighestWincount = TEAM_GetScore( TEAM_BLUE );
-			else
-				lHighestWincount = TEAM_GetScore( TEAM_RED );
+			lHighestWincount = TEAM_GetHighestWinCount( );
 		}
 		// Otherwise, find the player with the most frags.
 		else
@@ -2706,332 +2694,39 @@ void SERVERCONSOLE_UpdateScoreboard( void )
 	// Render the current team scores.
 	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 	{
-		if ( gamestate == GS_LEVEL )
-		{
-			if ( teamplay )
-			{
-				// If the teams are tied...
-				if ( TEAM_GetFragCount( TEAM_RED ) == TEAM_GetFragCount( TEAM_BLUE ))
-				{
-					sprintf( szString, "Teams are tied at %ld\n", TEAM_GetFragCount( TEAM_RED ));
-					switch ( ulLine )
-					{
-					case 0:
-						
-						lTextBox = IDC_SCOREBOARD1;
-						break;
-					case 1:
-						
-						lTextBox = IDC_SCOREBOARD2;
-						break;
-					case 2:
-						
-						lTextBox = IDC_SCOREBOARD3;
-						break;
-					case 3:
-						
-						lTextBox = IDC_SCOREBOARD4;
-						break;
-					default:
-
-						lTextBox = IDC_SCOREBOARD4;
-					}
-					SetDlgItemText( g_hDlg, lTextBox, szString );
-					ulLine++;
-				}
-				else
-				{
-					if ( TEAM_GetFragCount( TEAM_RED ) > TEAM_GetFragCount( TEAM_BLUE ))
-						sprintf( szString, "%s leads %ld to %ld", TEAM_GetName( TEAM_RED ), TEAM_GetFragCount( TEAM_RED ), TEAM_GetFragCount( TEAM_BLUE ));
-					else
-						sprintf( szString, "%s leads %ld to %ld", TEAM_GetName( TEAM_BLUE ), TEAM_GetFragCount( TEAM_BLUE ), TEAM_GetFragCount( TEAM_RED ));
-
-					switch ( ulLine )
-					{
-					case 0:
-						
-						lTextBox = IDC_SCOREBOARD1;
-						break;
-					case 1:
-						
-						lTextBox = IDC_SCOREBOARD2;
-						break;
-					case 2:
-						
-						lTextBox = IDC_SCOREBOARD3;
-						break;
-					case 3:
-						
-						lTextBox = IDC_SCOREBOARD4;
-						break;
-					default:
-
-						lTextBox = IDC_SCOREBOARD4;
-					}
-					SetDlgItemText( g_hDlg, lTextBox, szString );
-					ulLine++;
-				}
-			}
-			else if ( teamlms )
-			{
-				// If the teams are tied...
-				if ( TEAM_GetWinCount( TEAM_RED ) == TEAM_GetWinCount( TEAM_BLUE ))
-				{
-					sprintf( szString, "Teams are tied at %ld\n", TEAM_GetWinCount( TEAM_RED ));
-					switch ( ulLine )
-					{
-					case 0:
-						
-						lTextBox = IDC_SCOREBOARD1;
-						break;
-					case 1:
-						
-						lTextBox = IDC_SCOREBOARD2;
-						break;
-					case 2:
-						
-						lTextBox = IDC_SCOREBOARD3;
-						break;
-					case 3:
-						
-						lTextBox = IDC_SCOREBOARD4;
-						break;
-					default:
-
-						lTextBox = IDC_SCOREBOARD4;
-					}
-					SetDlgItemText( g_hDlg, lTextBox, szString );
-					ulLine++;
-				}
-				else
-				{
-					if ( TEAM_GetWinCount( TEAM_RED ) > TEAM_GetWinCount( TEAM_BLUE ))
-						sprintf( szString, "%s leads %ld to %ld", TEAM_GetName( TEAM_RED ), TEAM_GetWinCount( TEAM_RED ), TEAM_GetWinCount( TEAM_BLUE ));
-					else
-						sprintf( szString, "%s leads %ld to %ld", TEAM_GetName( TEAM_BLUE ), TEAM_GetWinCount( TEAM_BLUE ), TEAM_GetWinCount( TEAM_RED ));
-
-					switch ( ulLine )
-					{
-					case 0:
-						
-						lTextBox = IDC_SCOREBOARD1;
-						break;
-					case 1:
-						
-						lTextBox = IDC_SCOREBOARD2;
-						break;
-					case 2:
-						
-						lTextBox = IDC_SCOREBOARD3;
-						break;
-					case 3:
-						
-						lTextBox = IDC_SCOREBOARD4;
-						break;
-					default:
-
-						lTextBox = IDC_SCOREBOARD4;
-					}
-					SetDlgItemText( g_hDlg, lTextBox, szString );
-					ulLine++;
-				}
-			}
-			else
-			{
-				// If the teams are tied...
-				if ( TEAM_GetScore( TEAM_RED ) == TEAM_GetScore( TEAM_BLUE ))
-				{
-					sprintf( szString, "Teams are tied at %ld\n", TEAM_GetScore( TEAM_RED ));
-					switch ( ulLine )
-					{
-					case 0:
-						
-						lTextBox = IDC_SCOREBOARD1;
-						break;
-					case 1:
-						
-						lTextBox = IDC_SCOREBOARD2;
-						break;
-					case 2:
-						
-						lTextBox = IDC_SCOREBOARD3;
-						break;
-					case 3:
-						
-						lTextBox = IDC_SCOREBOARD4;
-						break;
-					default:
-
-						lTextBox = IDC_SCOREBOARD4;
-					}
-					SetDlgItemText( g_hDlg, lTextBox, szString );
-					ulLine++;
-				}
-				else
-				{
-					if ( TEAM_GetScore( TEAM_RED ) > TEAM_GetScore( TEAM_BLUE ))
-						sprintf( szString, "%s leads %ld to %ld", TEAM_GetName( TEAM_RED ), TEAM_GetScore( TEAM_RED ), TEAM_GetScore( TEAM_BLUE ));
-					else
-						sprintf( szString, "%s leads %ld to %ld", TEAM_GetName( TEAM_BLUE ), TEAM_GetScore( TEAM_BLUE ), TEAM_GetScore( TEAM_RED ));
-
-					switch ( ulLine )
-					{
-					case 0:
-						
-						lTextBox = IDC_SCOREBOARD1;
-						break;
-					case 1:
-						
-						lTextBox = IDC_SCOREBOARD2;
-						break;
-					case 2:
-						
-						lTextBox = IDC_SCOREBOARD3;
-						break;
-					case 3:
-						
-						lTextBox = IDC_SCOREBOARD4;
-						break;
-					default:
-
-						lTextBox = IDC_SCOREBOARD4;
-					}
-					SetDlgItemText( g_hDlg, lTextBox, szString );
-					ulLine++;
-				}
-			}
-		}
+		if ( teamplay )
+			SCOREBOARD_BuildPointString ( szString, "frag", &TEAM_CheckAllTeamsHaveEqualFrags, &TEAM_GetHighestFragCount, &TEAM_GetFragCount );
+		else if ( teamlms )
+			SCOREBOARD_BuildPointString( szString, "win", &TEAM_CheckAllTeamsHaveEqualWins, &TEAM_GetHighestWinCount, &TEAM_GetWinCount );
 		else
+			SCOREBOARD_BuildPointString( szString, "score", &TEAM_CheckAllTeamsHaveEqualScores, &TEAM_GetHighestScoreCount, &TEAM_GetScore );
+
+		V_StripColors ( szString );
+
+		switch ( ulLine )
 		{
-			if ( teamplay )
-			{
-				// If the teams are tied...
-				if ( TEAM_GetFragCount( TEAM_RED ) == TEAM_GetFragCount( TEAM_BLUE ))
-				{
-					sprintf( szString, "Teams tied at %ld\n", TEAM_GetFragCount( TEAM_RED ));
-					switch ( ulLine )
-					{
-					case 0:
-						
-						lTextBox = IDC_SCOREBOARD1;
-						break;
-					case 1:
-						
-						lTextBox = IDC_SCOREBOARD2;
-						break;
-					case 2:
-						
-						lTextBox = IDC_SCOREBOARD3;
-						break;
-					case 3:
-						
-						lTextBox = IDC_SCOREBOARD4;
-						break;
-					default:
+		case 0:
 
-						lTextBox = IDC_SCOREBOARD4;
-					}
-					SetDlgItemText( g_hDlg, lTextBox, szString );
-					ulLine++;
-				}
-				else
-				{
-					if ( TEAM_GetFragCount( TEAM_RED ) > TEAM_GetFragCount( TEAM_BLUE ))
-						sprintf( szString, "%s has won %ld to %ld", TEAM_GetName( TEAM_RED ), TEAM_GetFragCount( TEAM_RED ), TEAM_GetFragCount( TEAM_BLUE ));
-					else
-						sprintf( szString, "%s has won %ld to %ld", TEAM_GetName( TEAM_BLUE ), TEAM_GetFragCount( TEAM_BLUE ), TEAM_GetFragCount( TEAM_RED ));
+			lTextBox = IDC_SCOREBOARD1;
+			break;
+		case 1:
 
-					switch ( ulLine )
-					{
-					case 0:
-						
-						lTextBox = IDC_SCOREBOARD1;
-						break;
-					case 1:
-						
-						lTextBox = IDC_SCOREBOARD2;
-						break;
-					case 2:
-						
-						lTextBox = IDC_SCOREBOARD3;
-						break;
-					case 3:
-						
-						lTextBox = IDC_SCOREBOARD4;
-						break;
-					default:
+			lTextBox = IDC_SCOREBOARD2;
+			break;
+		case 2:
 
-						lTextBox = IDC_SCOREBOARD4;
-					}
-					SetDlgItemText( g_hDlg, lTextBox, szString );
-					ulLine++;
-				}
-			}
-			else
-			{
-				// If the teams are tied...
-				if ( TEAM_GetScore( TEAM_RED ) == TEAM_GetScore( TEAM_BLUE ))
-				{
-					sprintf( szString, "Teams tied at %ld\n", TEAM_GetScore( TEAM_RED ));
-					switch ( ulLine )
-					{
-					case 0:
-						
-						lTextBox = IDC_SCOREBOARD1;
-						break;
-					case 1:
-						
-						lTextBox = IDC_SCOREBOARD2;
-						break;
-					case 2:
-						
-						lTextBox = IDC_SCOREBOARD3;
-						break;
-					case 3:
-						
-						lTextBox = IDC_SCOREBOARD4;
-						break;
-					default:
+			lTextBox = IDC_SCOREBOARD3;
+			break;
+		case 3:
 
-						lTextBox = IDC_SCOREBOARD4;
-					}
-					SetDlgItemText( g_hDlg, lTextBox, szString );
-					ulLine++;
-				}
-				else
-				{
-					if ( TEAM_GetScore( TEAM_RED ) > TEAM_GetScore( TEAM_BLUE ))
-						sprintf( szString, "%s has won %ld to %ld", TEAM_GetName( TEAM_RED ), TEAM_GetScore( TEAM_RED ), TEAM_GetScore( TEAM_BLUE ));
-					else
-						sprintf( szString, "%s has won %ld to %ld", TEAM_GetName( TEAM_BLUE ), TEAM_GetScore( TEAM_BLUE ), TEAM_GetScore( TEAM_RED ));
+			lTextBox = IDC_SCOREBOARD4;
+			break;
+		default:
 
-					switch ( ulLine )
-					{
-					case 0:
-						
-						lTextBox = IDC_SCOREBOARD1;
-						break;
-					case 1:
-						
-						lTextBox = IDC_SCOREBOARD2;
-						break;
-					case 2:
-						
-						lTextBox = IDC_SCOREBOARD3;
-						break;
-					case 3:
-						
-						lTextBox = IDC_SCOREBOARD4;
-						break;
-					default:
-
-						lTextBox = IDC_SCOREBOARD4;
-					}
-					SetDlgItemText( g_hDlg, lTextBox, szString );
-					ulLine++;
-				}
-			}
+			lTextBox = IDC_SCOREBOARD4;
 		}
+		SetDlgItemText( g_hDlg, lTextBox, szString );
+		ulLine++;
 	}
 
 	// Render the number of monsters left in coop.

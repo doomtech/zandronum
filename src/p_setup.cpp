@@ -197,12 +197,6 @@ TArray<mapthing2_t> deathmatchstarts (16);
 // [BC] Temporary team spawn spots.
 TArray<mapthing2_t>	TemporaryTeamStarts( 16 );
 
-// [BC] Blue team spawn spots.
-TArray<mapthing2_t>	BlueTeamStarts( 16 );
-
-// [BC] Red team spawn spots.
-TArray<mapthing2_t>	RedTeamStarts( 16 );
-
 // [BC] Generic invasion spawn spots.
 TArray<mapthing2_t>	GenericInvasionStarts( 16 );
 
@@ -4072,11 +4066,12 @@ void P_SetupLevel (char *lumpname, int position)
 
 	deathmatchstarts.Clear ();
 	TemporaryTeamStarts.Clear( );
-	BlueTeamStarts.Clear( );
-	RedTeamStarts.Clear( );
 	GenericInvasionStarts.Clear( );
 	PossessionStarts.Clear();
 	TerminatorStarts.Clear();
+
+	for ( ULONG i = 0; i < teams.Size( ); i++ )
+		teams[i].TeamStarts.Clear( );
 
 	for ( i = 0; i < MAXPLAYERS; i++ )
 		playerstarts[i].type = 0;

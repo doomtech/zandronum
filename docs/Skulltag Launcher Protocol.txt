@@ -104,9 +104,13 @@ The flags are:
 	SQF_DMFLAGS					  0x00004000
 	SQF_LIMITS					  0x00010000
 	SQF_TEAMDAMAGE				0x00020000
-	SQF_TEAMSCORES				0x00040000
+	SQF_TEAMSCORES				0x00040000 // Deprecated
 	SQF_NUMPLAYERS				0x00080000
 	SQF_PLAYERDATA				0x00100000
+	SQF_TEAMINFO_NUMBER			0x00200000
+	SQF_TEAMINFO_NAME			0x00400000
+	SQF_TEAMINFO_COLOR			0x00800000
+	SQF_TEAMINFO_SCORE			0x01000000
 	
 For example, to get the server's name and player count, you'd use (SQF_NAME|SQF_NUMPLAYERS).
 Please use these flags appropiately; it saves your users' and server hosters' bandwidth.
@@ -168,7 +172,7 @@ Next, assuming you were accepted, you'll get:
   Short               SQF_LIMITS            pointlimit
   Short               SQF_LIMITS            winlimit
   Float               SQF_TEAMDAMAGE        The team damage scalar (teamdamage)
-  Short               SQF_TEAMSCORES        This team's fragcount/wincount/score  ] Repeated for each team (blue, then red)
+  Short               SQF_TEAMSCORES        [Deprecated] This team's fragcount/wincount/score  ] Repeated for each team (blue, then red)
   Byte                SQF_NUMPLAYERS        The number of players in the server
   String              SQF_PLAYERDATA        This player's name
   Short               SQF_PLAYERDATA        This player's pointcount/fragcount/killcount
@@ -177,6 +181,10 @@ Next, assuming you were accepted, you'll get:
   Byte                SQF_PLAYERDATA        Whether this player is a bot - true (1) / false (0)
   Byte  index or 255  SQF_PLAYERDATA        Which team this player is on (in teamgames). 255 if no team.
   Byte                SQF_PLAYERDATA        Time, in seconds, that this player has been in the server.
+  Byte                SQF_TEAMINFO_NUMBER   The number of teams used.
+  String              SQF_TEAMINFO_NAME     The team's name. (Sent for each team.)
+  Long                SQF_TEAMINFO_COLOR    The team's color. (Sent for each team.)
+  Short               SQF_TEAMINFO_SCORE    The team's score. (Sent for each team.)
 
 And that's it!
 

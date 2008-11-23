@@ -332,7 +332,7 @@ ULONG WI_CalcRank( void )
 		if ( players[consoleplayer].bOnTeam == false )
 			return ( 2 );
 
-		if ( TEAM_GetFragCount( players[consoleplayer].ulTeam ) > TEAM_GetFragCount( !players[consoleplayer].ulTeam ))
+		if ( TEAM_GetFragCount( players[consoleplayer].ulTeam ) == TEAM_GetHighestFragCount( ))
 			return ( 1 );
 		else
 			return ( 2 );
@@ -346,7 +346,7 @@ ULONG WI_CalcRank( void )
 		if ( players[consoleplayer].bOnTeam == false )
 			return ( 2 );
 
-		if ( TEAM_GetWinCount( players[consoleplayer].ulTeam ) > TEAM_GetWinCount( !players[consoleplayer].ulTeam ))
+		if ( TEAM_GetWinCount( players[consoleplayer].ulTeam ) == TEAM_GetHighestWinCount( ))
 			return ( 1 );
 		else
 			return ( 2 );
@@ -360,7 +360,7 @@ ULONG WI_CalcRank( void )
 		if ( players[consoleplayer].bOnTeam == false )
 			return ( 2 );
 
-		if ( TEAM_GetScore( players[consoleplayer].ulTeam ) > TEAM_GetScore( !players[consoleplayer].ulTeam ))
+		if ( TEAM_GetScore( players[consoleplayer].ulTeam ) == TEAM_GetHighestScoreCount( ))
 			return ( 1 );
 		else
 			return ( 2 );
@@ -475,10 +475,11 @@ void WI_LoadBackground(bool isenterpic)
 				// [BC] 
 				if ( WI_UseSkulltagIntermissionAndMusic( ))
 				{
+					// [BB] Possibly select a custom winner / loser pic.
 					if ( WI_CalcRank( ) <= 1 )
-						lumpname = "WINERPIC";
+						lumpname = TEAM_SelectCustomStringForPlayer( &players[consoleplayer], &TEAMINFO::WinnerPic, "WINERPIC" );
 					else
-						lumpname = "LOSERPIC";
+						lumpname = TEAM_SelectCustomStringForPlayer( &players[consoleplayer], &TEAMINFO::LoserPic, "LOSERPIC" );
 				}
 				else
 					lumpname = "INTERPIC";
@@ -1338,7 +1339,7 @@ void WI_UpdateCampaignStats( void )
 		{
 			cnt_Frags = TEAM_GetFragCount( players[consoleplayer].ulTeam );
 			cnt_Deaths = TEAM_GetDeathCount( players[consoleplayer].ulTeam );
-			if ( TEAM_GetFragCount( players[consoleplayer].ulTeam ) >= TEAM_GetFragCount( !players[consoleplayer].ulTeam ))
+			if ( TEAM_GetFragCount( players[consoleplayer].ulTeam ) >= TEAM_GetHighestFragCount( ))
 				cnt_Rank = 1;
 			else
 				cnt_Rank = 2;
@@ -1355,7 +1356,7 @@ void WI_UpdateCampaignStats( void )
 		{
 			cnt_Frags = TEAM_GetWinCount( players[consoleplayer].ulTeam );
 			cnt_Deaths = TEAM_GetFragCount( players[consoleplayer].ulTeam );
-			if ( TEAM_GetWinCount( players[consoleplayer].ulTeam ) >= TEAM_GetWinCount( !players[consoleplayer].ulTeam ))
+			if ( TEAM_GetWinCount( players[consoleplayer].ulTeam ) >= TEAM_GetHighestWinCount( ))
 				cnt_Rank = 1;
 			else
 				cnt_Rank = 2;
@@ -1494,7 +1495,7 @@ void WI_UpdateCampaignStats( void )
 
 		if (( teamplay ) && ( players[consoleplayer].bOnTeam ))
 		{
-			if ( TEAM_GetFragCount( players[consoleplayer].ulTeam ) >= TEAM_GetFragCount( !players[consoleplayer].ulTeam ))
+			if ( TEAM_GetFragCount( players[consoleplayer].ulTeam ) >= TEAM_GetHighestFragCount( ))
 			{
 				if ( cnt_Rank > 1 )
 					cnt_Rank = 1;
@@ -1507,7 +1508,7 @@ void WI_UpdateCampaignStats( void )
 		}
 		else if (( teamlms ) && ( players[consoleplayer].bOnTeam ))
 		{
-			if ( TEAM_GetWinCount( players[consoleplayer].ulTeam ) >= TEAM_GetWinCount( !players[consoleplayer].ulTeam ))
+			if ( TEAM_GetWinCount( players[consoleplayer].ulTeam ) >= TEAM_GetHighestWinCount( ))
 			{
 				if ( cnt_Rank > 1 )
 					cnt_Rank = 1;
@@ -2511,9 +2512,9 @@ void WI_Ticker(void)
 			if ( WI_UseSkulltagIntermissionAndMusic( ))
 			{
 				if ( CAMPAIGN_DidPlayerBeatMap( ))
-					S_ChangeMusic( "d_stwin" );
+					S_ChangeMusic( TEAM_SelectCustomStringForPlayer( &players[consoleplayer], &TEAMINFO::WinnerTheme, "d_stwin" ) );
 				else
-					S_ChangeMusic( "d_stlose" );
+					S_ChangeMusic( TEAM_SelectCustomStringForPlayer( &players[consoleplayer], &TEAMINFO::LoserTheme, "d_stlose" ) );
 			}
 			// [BC] Otherwise, use the default doom2 intermission music.
 			else

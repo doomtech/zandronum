@@ -7317,16 +7317,13 @@ static void client_SetInvasionWave( BYTESTREAM_s *pByteStream )
 //
 static void client_SetSimpleCTFSTMode( BYTESTREAM_s *pByteStream )
 {
-	bool	bSimpleCTF;
-	bool	bSimpleST;
+	bool	bSimpleCTFST;
 
 	// Read in whether or not we're in the simple version of these game modes.
-	bSimpleCTF = !!NETWORK_ReadByte( pByteStream );
-	bSimpleST = !!NETWORK_ReadByte( pByteStream );
+	bSimpleCTFST = !!NETWORK_ReadByte( pByteStream );
 
 	// Set the simple CTF/ST mode.
-	TEAM_SetSimpleCTFMode( bSimpleCTF );
-	TEAM_SetSimpleSTMode( bSimpleST );
+	TEAM_SetSimpleCTFSTMode( bSimpleCTFST );
 }
 
 //*****************************************************************************
@@ -7571,12 +7568,14 @@ static void client_TeamFlagReturned( BYTESTREAM_s *pByteStream )
 static void client_TeamFlagDropped( BYTESTREAM_s *pByteStream )
 {
 	ULONG	ulPlayer;
+	ULONG	ulTeamIdx;
 
 	// Read in the player that dropped a flag.
 	ulPlayer = NETWORK_ReadByte( pByteStream );
+	ulTeamIdx = NETWORK_ReadByte( pByteStream );
 
 	// Finally, just call this function that does all the dirty work.
-	TEAM_FlagDropped( &players[ulPlayer] );
+	TEAM_FlagDropped( &players[ulPlayer], ulTeamIdx );
 }
 
 //*****************************************************************************

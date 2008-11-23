@@ -543,6 +543,10 @@ public:
 		PCD_PRINTBIND,
 		PCD_SETACTORSTATE,
 		PCD_THINGDAMAGE2,
+		// [CW] Begin team additions.
+		PCD_GETTEAMPLAYERCOUNT,
+		PCD_GETTEAMSCORE,
+		// [CW] End team additions.
 
 		PCODE_COMMAND_COUNT
 	};

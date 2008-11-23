@@ -1463,7 +1463,7 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 				continue;
 
 			// See if this player is carrying the opponents flag/skull.
-			pInventory = players[ulIdx].mo->FindInventory( TEAM_GetFlagItem( !players[ulIdx].ulTeam ));
+			pInventory = TEAM_FindOpposingTeamsItemInPlayersInventory ( &players[ulIdx] );
 			if ( pInventory )
 				SERVERCOMMANDS_GiveInventory( ulIdx, pInventory, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
@@ -1474,10 +1474,10 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 		}
 
 		// Also let the client know if flags/skulls are on the ground.
-		for ( ulIdx = 0; ulIdx < NUM_TEAMS; ulIdx++ )
+		for ( ulIdx = 0; ulIdx < teams.Size( ); ulIdx++ )
 			SERVERCOMMANDS_SetTeamReturnTicks( ulIdx, TEAM_GetReturnTicks( ulIdx ), g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
-		SERVERCOMMANDS_SetTeamReturnTicks( NUM_TEAMS, TEAM_GetReturnTicks( NUM_TEAMS ), g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_SetTeamReturnTicks( teams.Size( ), TEAM_GetReturnTicks( teams.Size( ) ), g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 	}
 
 	// If we're playing terminator, potentially tell the client who's holding the terminator
@@ -1905,7 +1905,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	players[lClient].ulTime = 0;
 	players[lClient].bSpectating = false;
 	players[lClient].bDeadSpectator = false;
-	players[lClient].ulTeam = NUM_TEAMS;
+	players[lClient].ulTeam = teams.Size( );
 	players[lClient].bOnTeam = false;
 
 	g_aClients[lClient].bRCONAccess = false;
@@ -2258,14 +2258,14 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 		// If we're in a teamplay deathmatch, update the team scores.
 		if ( teamplay )
 		{
-			for ( ulIdx = 0; ulIdx < NUM_TEAMS; ulIdx++ )
+			for ( ulIdx = 0; ulIdx < teams.Size( ); ulIdx++ )
 				SERVERCOMMANDS_SetTeamFrags( ulIdx, TEAM_GetFragCount( ulIdx ), false, ulClient, SVCF_ONLYTHISCLIENT );
 		}
 
 		// If we're playing team LMS, update the team win count.
 		if ( teamlms )
 		{
-			for ( ulIdx = 0; ulIdx < NUM_TEAMS; ulIdx++ )
+			for ( ulIdx = 0; ulIdx < teams.Size( ); ulIdx++ )
 				SERVERCOMMANDS_SetTeamWins( ulIdx, TEAM_GetWinCount( ulIdx ), false, ulClient, SVCF_ONLYTHISCLIENT );
 		}
 
@@ -2278,7 +2278,7 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 	// If we're in a teamgame, or team possession, update the team scores.
 	else if ( teamgame || teampossession )
 	{
-		for ( ulIdx = 0; ulIdx < NUM_TEAMS; ulIdx++ )
+		for ( ulIdx = 0; ulIdx < teams.Size( ); ulIdx++ )
 			SERVERCOMMANDS_SetTeamScore( ulIdx, TEAM_GetScore( ulIdx ), false, ulClient, SVCF_ONLYTHISCLIENT );
 
 		// Also tell the score of each player.
@@ -2638,10 +2638,7 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 	}
 
 	// If this player was eligible to get an assist, cancel that.
-	if ( TEAM_GetAssistPlayer( TEAM_BLUE ) == ulClient )
-		TEAM_SetAssistPlayer( TEAM_BLUE, MAXPLAYERS );
-	if ( TEAM_GetAssistPlayer( TEAM_RED ) == ulClient )
-		TEAM_SetAssistPlayer( TEAM_RED, MAXPLAYERS );
+	TEAM_CancelAssistsOfPlayer ( ulClient );
 
 	// Destroy the actor attached to the player.
 	if ( players[ulClient].mo )
@@ -2696,17 +2693,13 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 	// If nobody's left on the server, zero out the scores.
 	if (( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS ) && ( SERVER_CalcNumPlayers( ) == 0 ))
 	{
-		TEAM_SetScore( TEAM_BLUE, 0, false );
-		TEAM_SetScore( TEAM_RED, 0, false );
-
-		TEAM_SetFragCount( TEAM_BLUE, 0, false );
-		TEAM_SetFragCount( TEAM_RED, 0, false );
-
-		TEAM_SetDeathCount( TEAM_BLUE, 0 );
-		TEAM_SetDeathCount( TEAM_RED, 0 );
-
-		TEAM_SetWinCount( TEAM_BLUE, 0, false );
-		TEAM_SetWinCount( TEAM_RED, 0, false );
+		for ( ULONG i = 0; i < teams.Size( ); i++ )
+		{
+			TEAM_SetScore( i, 0, false );
+			TEAM_SetFragCount( i, 0, false );
+			TEAM_SetDeathCount( i, 0 );
+			TEAM_SetWinCount( i, 0, false );
+		}
 
 		// Also, potentially restart the map after 5 minutes.
 		g_lMapRestartTimer = TICRATE * 60 * 5;
@@ -3322,7 +3315,7 @@ void SERVER_ResetInventory( ULONG ulClient )
 				pInventory->Amount = 1;
 
 			// [BB] All clients need to be informed about some special iventory kinds.
-			if ( pInventory->IsKindOf( RUNTIME_CLASS( AFlag )) )
+			if ( pInventory->IsKindOf( RUNTIME_CLASS( ATeamItem )) )
 				SERVERCOMMANDS_GiveInventory( ulClient, pInventory );
 			else
 				SERVERCOMMANDS_GiveInventory( ulClient, pInventory, ulClient, SVCF_ONLYTHISCLIENT );
@@ -4197,7 +4190,7 @@ static bool server_RequestJoin( BYTESTREAM_s *pByteStream )
 		JOINSLOT_t	JoinSlot;
 
 		JoinSlot.ulPlayer = g_lCurrentClient;
-		JoinSlot.ulTeam = NUM_TEAMS;
+		JoinSlot.ulTeam = teams.Size( );
 		JOINQUEUE_AddPlayer( JoinSlot );
 
 		// Tell the client what his position in line is.
@@ -4352,8 +4345,8 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 
 	g_aClients[g_lCurrentClient].ulLastChangeTeamTime = gametic;
 
-	// If the team isn't "blue" or "red", just pick the best team for the player to be on.
-	if (( lDesiredTeam != TEAM_BLUE ) && ( lDesiredTeam != TEAM_RED ))
+	// If the team isn't valid, just pick the best team for the player to be on.
+	if ( TEAM_CheckIfValid( lDesiredTeam ) == false )
 		lDesiredTeam = TEAM_ChooseBestTeamForPlayer( );
 
 	// If the desired team matches our current team, break out.
@@ -4405,10 +4398,7 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 	}
 
 	// If this player was eligible to get an assist, cancel that.
-	if ( TEAM_GetAssistPlayer( TEAM_BLUE ) == static_cast<unsigned> (g_lCurrentClient) )
-		TEAM_SetAssistPlayer( TEAM_BLUE, MAXPLAYERS );
-	if ( TEAM_GetAssistPlayer( TEAM_RED ) == static_cast<unsigned> (g_lCurrentClient) )
-		TEAM_SetAssistPlayer( TEAM_RED, MAXPLAYERS );
+	TEAM_CancelAssistsOfPlayer ( static_cast<unsigned>( g_lCurrentClient ) );
 
 	// Don't allow him to "take" flags or skulls with him. If he was carrying any,
 	// spawn what he was carrying on the ground.
@@ -4423,18 +4413,12 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 	// Player was on a team, so tell everyone that he's changing teams.
 	if ( bOnTeam )
 	{
-		if ( players[g_lCurrentClient].ulTeam == TEAM_BLUE )
-			SERVER_Printf( PRINT_HIGH, "%s \\c-defected to the \\ch%s \\c-team.\n", players[g_lCurrentClient].userinfo.netname, TEAM_GetName( players[g_lCurrentClient].ulTeam ));
-		else
-			SERVER_Printf( PRINT_HIGH, "%s \\c-defected to the \\cg%s \\c-team.\n", players[g_lCurrentClient].userinfo.netname, TEAM_GetName( players[g_lCurrentClient].ulTeam ));
+		SERVER_Printf( PRINT_HIGH, "%s \\c-defected to the \\c%c%s \\c-team.\n", players[g_lCurrentClient].userinfo.netname, V_GetColorChar( TEAM_GetTextColor( players[g_lCurrentClient].ulTeam )), TEAM_GetName( players[g_lCurrentClient].ulTeam ));
 	}
 	// Otherwise, tell everyone he's joining a team.
 	else
 	{
-		if ( players[g_lCurrentClient].ulTeam == TEAM_BLUE )
-			SERVER_Printf( PRINT_HIGH, "%s \\c-joined the \\ch%s \\c-team.\n", players[g_lCurrentClient].userinfo.netname, TEAM_GetName( players[g_lCurrentClient].ulTeam ));
-		else
-			SERVER_Printf( PRINT_HIGH, "%s \\c-joined the \\cg%s \\c-team.\n", players[g_lCurrentClient].userinfo.netname, TEAM_GetName( players[g_lCurrentClient].ulTeam ));
+		SERVER_Printf( PRINT_HIGH, "%s \\c-joined the \\c%c%s \\c-team.\n", players[g_lCurrentClient].userinfo.netname, V_GetColorChar( TEAM_GetTextColor( players[g_lCurrentClient].ulTeam )), TEAM_GetName( players[g_lCurrentClient].ulTeam ));
 	}
 
 	if ( players[g_lCurrentClient].mo )

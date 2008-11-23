@@ -19,14 +19,14 @@ ACTOR HellScorePillar 5020
 	Spawn:
 		HLSP A -1
 		Stop
-	Melee:
+	TagBlueSkull:
 		HLSP B 35
-		HLSP c 140
+		HLSP C 140
 		Goto Spawn
-	Missile:
+	TagRedSkull:
 		HLSP D 35
 		HLSP E 140
-		Goto Spawn	
+		Goto Spawn
 	}
 }
 

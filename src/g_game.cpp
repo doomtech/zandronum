@@ -1708,7 +1708,7 @@ void G_Ticker ()
 						}
 						else
 						{
-							if (( TEAM_GetWinCount( TEAM_BLUE ) >= winlimit ) || ( TEAM_GetWinCount( TEAM_RED ) >= winlimit ))
+							if ( TEAM_GetHighestWinCount( ) >= winlimit)
 								bLimitHit = true;
 						}
 
@@ -1759,7 +1759,7 @@ void G_Ticker ()
 						}
 						else
 						{
-							if (( TEAM_GetScore( TEAM_BLUE ) >= pointlimit ) || ( TEAM_GetScore( TEAM_RED ) >= pointlimit ))
+							if ( TEAM_GetHighestScoreCount( ) >= pointlimit)
 								bLimitHit = true;
 						}
 
@@ -2362,8 +2362,8 @@ static mapthing2_t *SelectTemporaryTeamSpot( USHORT usPlayer, ULONG ulNumSelecti
 	return ( &TemporaryTeamStarts[ulSelection] );
 }
 
-// Select a blue team spawn spot at random.
-static mapthing2_t *SelectRandomBlueTeamSpot( USHORT usPlayer, ULONG ulNumSelections )
+// Select a team spawn spot at random.
+static mapthing2_t *SelectRandomTeamSpot( USHORT usPlayer, ULONG ulTeam, ULONG ulNumSelections )
 {
 	ULONG	ulNumAttempts;
 	ULONG	ulSelection;
@@ -2372,30 +2372,12 @@ static mapthing2_t *SelectRandomBlueTeamSpot( USHORT usPlayer, ULONG ulNumSelect
 	for ( ulNumAttempts = 0; ulNumAttempts < 20; ulNumAttempts++ )
 	{
 		ulSelection = ( pr_dmspawn( ) % ulNumSelections );
-		if ( G_CheckSpot( usPlayer, &BlueTeamStarts[ulSelection] ))
-			return ( &BlueTeamStarts[ulSelection] );
+		if ( G_CheckSpot( usPlayer, &teams[ulTeam].TeamStarts[ulSelection] ))
+			return ( &teams[ulTeam].TeamStarts[ulSelection] );
 	}
 
 	// Return a spot anyway, since we allow telefragging when a player spawns.
-	return ( &BlueTeamStarts[ulSelection] );
-}
-
-// Select a blue team spawn spot at random.
-static mapthing2_t *SelectRandomRedTeamSpot( USHORT usPlayer, ULONG ulNumSelections )
-{
-	ULONG	ulNumAttempts;
-	ULONG	ulSelection;
-
-	// Try up to 20 times to find a valid spot.
-	for ( ulNumAttempts = 0; ulNumAttempts < 20; ulNumAttempts++ )
-	{
-		ulSelection = ( pr_dmspawn( ) % ulNumSelections );
-		if ( G_CheckSpot( usPlayer, &RedTeamStarts[ulSelection] ))
-			return ( &RedTeamStarts[ulSelection] );
-	}
-
-	// Return a spot anyway, since we allow telefragging when a player spawns.
-	return ( &RedTeamStarts[ulSelection] );
+	return ( &teams[ulTeam].TeamStarts[ulSelection] );
 }
 
 // Select a cooperative spawn spot at random.
@@ -2475,30 +2457,45 @@ void G_TemporaryTeamSpawnPlayer( ULONG ulPlayer, bool bClientUpdate )
 	// If there aren't any temporary starts, just spawn them at a random team location.
 	if ( ulNumSelections < 1 )
 	{
-		bool	bCanUseRedStarts = false;
-		bool	bCanUseBlueStarts = false;
-		LONG	lTeam;
+		bool	bCanUseStarts[MAX_TEAMS];
+		LONG	lAllowedTeamCount = 0;
+		ULONG	ulTeam;
+		ULONG	ulOnTeamNum = 0;
 
-		bCanUseRedStarts = RedTeamStarts.Size( ) > 0;
-		bCanUseBlueStarts = BlueTeamStarts.Size( ) > 0;
+		// Set each of these to specific values.
+		for ( ULONG i = 0; i < MAX_TEAMS; i++ )
+			bCanUseStarts[i] = false;
 
-		if ( bCanUseRedStarts && bCanUseBlueStarts )
+		for ( ULONG i = 0; i < teams.Size( ); i++ )
 		{
-			FRandom	TeamSeed( "TeamSeed" );
+			if ( teams[i].TeamStarts.Size( ) < 0 )
+				continue;
 
-			lTeam = TeamSeed.Random( ) % 2;
+			bCanUseStarts[i] = true;
+			lAllowedTeamCount++;
 		}
-		else if ( bCanUseRedStarts )
-			lTeam = TEAM_RED;
-		else if ( bCanUseBlueStarts )
-			lTeam = TEAM_BLUE;
+
+		if ( lAllowedTeamCount > 0 )
+		{
+			ulTeam = M_Random( ) % lAllowedTeamCount;
+		}
 		else
-			lTeam = NUM_TEAMS;
-
-		if ( lTeam == NUM_TEAMS )
+		{
 			I_Error( "No teamgame starts!" );
+		}
 
-		G_TeamgameSpawnPlayer( ulPlayer, lTeam, bClientUpdate );
+		for ( ULONG i = 0; i < teams.Size( ); i++ )
+		{
+			if ( bCanUseStarts[i] == false )
+				continue;
+
+			ulOnTeamNum++;
+
+			if ( ulOnTeamNum == ulTeam )
+				ulTeam = i;
+		}
+
+		G_TeamgameSpawnPlayer( ulPlayer, ulTeam, bClientUpdate );
 		return;
 	}
 
@@ -2517,24 +2514,12 @@ void G_TeamgameSpawnPlayer( ULONG ulPlayer, ULONG ulTeam, bool bClientUpdate )
 	ULONG		ulNumSelections;
 	mapthing2_t	*pSpot;
 
-	if ( ulTeam == TEAM_BLUE )
-	{
-		ulNumSelections = BlueTeamStarts.Size( );
-		if ( ulNumSelections < 1 )
-			I_Error( "No blue team starts!" );
+	ulNumSelections = teams[ulTeam].TeamStarts.Size( );
+	if ( ulNumSelections < 1 )
+		I_Error( "No %s team starts!", TEAM_GetName( ulTeam ));
 
-		// SelectBlueTeamSpot should always return a valid spot. If not, we have a problem.
-		pSpot = SelectRandomBlueTeamSpot( ulPlayer, ulNumSelections );
-	}
-	else
-	{
-		ulNumSelections = RedTeamStarts.Size( );
-		if ( ulNumSelections < 1 )
-			I_Error( "No red team starts!" );
-
-		// SelectRedTeamSpot should always return a valid spot. If not, we have a problem.
-		pSpot = SelectRandomRedTeamSpot( ulPlayer, ulNumSelections );
-	}
+	// SelectRandomTeamSpot should always return a valid spot. If not, we have a problem.
+	pSpot = SelectRandomTeamSpot( ulPlayer, ulTeam, ulNumSelections );
 
 	// ANAMOLOUS HAPPENING!!!
 	if ( pSpot == NULL )
@@ -2732,7 +2717,8 @@ void GAME_CheckMode( void )
 	ULONG						ulNumFlags;
 	ULONG						ulNumSkulls;
 	bool						bPlayerStarts = false;
-	AActor						*pActor;
+	bool						bTeamStarts = false;
+	AActor						*pItem;
 	AActor						*pNewSkull;
 	cluster_info_t				*pCluster;
 	TThinkerIterator<AActor>	iterator;
@@ -2745,8 +2731,7 @@ void GAME_CheckMode( void )
 	}
 
 	// By default, we're in regular CTF/ST mode.
-	TEAM_SetSimpleCTFMode( false );
-	TEAM_SetSimpleSTMode( false );
+	TEAM_SetSimpleCTFSTMode( false );
 
 	// Also, reset the team module.
 	TEAM_Reset( );
@@ -2761,9 +2746,19 @@ void GAME_CheckMode( void )
 		}
 	}
 
+	// [CW] Check whether any team starts are available.
+	for ( ULONG i = 0; i < teams.Size( ); i++ )
+	{
+		if ( teams[i].TeamStarts.Size( ) != 0 )
+		{
+			bTeamStarts = true;
+			break;
+		}
+	}
+
 	// We have deathmatch starts, but nothing else.
 	if (( deathmatchstarts.Size( ) > 0 ) && 
-		( TemporaryTeamStarts.Size( ) == 0 ) && ( BlueTeamStarts.Size( ) == 0 ) && ( RedTeamStarts.Size( ) == 0 ) &&
+		( TemporaryTeamStarts.Size( ) == 0 ) && !bTeamStarts && 
 		 bPlayerStarts == false )
 	{
 		// Since we only have deathmatch starts, enable deathmatch, and disable teamgame/coop.
@@ -2785,7 +2780,7 @@ void GAME_CheckMode( void )
 	}
 
 	// We have team starts, but nothing else.
-	if ((( TemporaryTeamStarts.Size( ) > 0 ) || ( BlueTeamStarts.Size( ) > 0 ) || ( RedTeamStarts.Size( ) > 0 )) &&
+	if ((( TemporaryTeamStarts.Size( ) > 0 ) || bTeamStarts ) &&
 		( deathmatchstarts.Size( ) == 0 ) &&
 		bPlayerStarts == false )
 	{
@@ -2808,22 +2803,8 @@ void GAME_CheckMode( void )
 		{
 			TThinkerIterator<AActor>	iterator;
 
-			ulNumFlags = 0;
-			ulNumSkulls = 0;
-			while ( (pActor = iterator.Next( )))
-			{
-				if ( pActor->IsKindOf( PClass::FindClass( "BlueSkull" )))
-					ulNumSkulls++;
-
-				if ( pActor->IsKindOf( PClass::FindClass( "RedSkull" )))
-					ulNumSkulls++;
-
-				if ( pActor->IsKindOf( PClass::FindClass( "BlueFlag" )))
-					ulNumFlags++;
-
-				if ( pActor->IsKindOf( PClass::FindClass( "RedFlag" )))
-					ulNumFlags++;
-			}
+			ulNumFlags = TEAM_CountFlags( );
+			ulNumSkulls = TEAM_CountSkulls( );
 
 			// We found flags but no skulls. Set CTF mode.
 			if ( ulNumFlags && ( ulNumSkulls == 0 ))
@@ -2853,7 +2834,7 @@ void GAME_CheckMode( void )
 
 	// We have single player starts, but nothing else.
 	if ( bPlayerStarts == true &&
-		( TemporaryTeamStarts.Size( ) == 0 ) && ( BlueTeamStarts.Size( ) == 0 ) && ( RedTeamStarts.Size( ) == 0 ) &&
+		( TemporaryTeamStarts.Size( ) == 0 ) && !bTeamStarts &&
 		( deathmatchstarts.Size( ) == 0 ))
 	{
 /*
@@ -2921,91 +2902,104 @@ void GAME_CheckMode( void )
 
 	// If there aren't any pickup, blue return, or red return scripts, then use the
 	// simplified, hardcoded version of the CTF or ST modes.
-	if (( FBehavior::StaticCountTypedScripts( SCRIPT_Pickup ) == 0 ) ||
-		( FBehavior::StaticCountTypedScripts( SCRIPT_BlueReturn ) == 0 ) ||
-		( FBehavior::StaticCountTypedScripts( SCRIPT_RedReturn ) == 0 ))
+	// [BB] The loop over the teams is a tricky way to check if at least one of the
+	// scripts necessary is missing and works because of the break further down.
+	for ( ULONG i = 0; i < teams.Size( ); i++ )
 	{
-		if ( ctf || oneflagctf )
+		if (( FBehavior::StaticCountTypedScripts( SCRIPT_Pickup ) == 0 ) ||
+			( FBehavior::StaticCountTypedScripts( TEAM_GetReturnScriptOffset( i ) ) == 0 ))
 		{
-			TEAM_SetSimpleCTFMode( true );
-
-			while ( (pActor = iterator.Next( )))
+			if ( ctf || oneflagctf )
 			{
-				if ( pActor->IsKindOf( PClass::FindClass( "BlueFlag" )))
+				TEAM_SetSimpleCTFSTMode( true );
+
+				while ( (pItem = iterator.Next( )))
 				{
-					POS_t	Origin;
+					for ( ULONG i = 0; i < teams.Size( ); i++ )
+					{
+						if ( pItem->GetClass( ) == TEAM_GetItem( i ))
+						{
+							POS_t	Origin;
 
-					Origin.x = pActor->x;
-					Origin.y = pActor->y;
-					Origin.z = pActor->z;
+							Origin.x = pItem->x;
+							Origin.y = pItem->y;
+							Origin.z = pItem->z;
 
-					TEAM_SetBlueFlagOrigin( Origin );
-				}
+							TEAM_SetTeamItemOrigin( i, Origin );
+						}
+					}
 
-				if ( pActor->IsKindOf( PClass::FindClass( "RedFlag" )))
-				{
-					POS_t	Origin;
+					if ( pItem->IsKindOf( PClass::FindClass( "WhiteFlag" )))
+					{
+						POS_t	Origin;
 
-					Origin.x = pActor->x;
-					Origin.y = pActor->y;
-					Origin.z = pActor->z;
+						Origin.x = pItem->x;
+						Origin.y = pItem->y;
+						Origin.z = pItem->z;
 
-					TEAM_SetRedFlagOrigin( Origin );
-				}
-
-				if ( pActor->IsKindOf( PClass::FindClass( "WhiteFlag" )))
-				{
-					POS_t	Origin;
-
-					Origin.x = pActor->x;
-					Origin.y = pActor->y;
-					Origin.z = pActor->z;
-
-					TEAM_SetWhiteFlagOrigin( Origin );
+						TEAM_SetWhiteFlagOrigin( Origin );
+					}
 				}
 			}
-		}
-		// We found skulls but no flags. Set Skulltag mode.
-		else if ( skulltag )
-		{
-			TEAM_SetSimpleSTMode( true );
-
-			while ( (pActor = iterator.Next( )))
+			// We found skulls but no flags. Set Skulltag mode.
+			else if ( skulltag )
 			{
-				if ( pActor->IsKindOf( PClass::FindClass( "BlueSkull" )))
+				TEAM_SetSimpleCTFSTMode( true );
+
+				while ( (pItem = iterator.Next( )))
 				{
-					POS_t	Origin;
+					for ( ULONG i = 0; i < teams.Size( ); i++ )
+					{
+						if ( pItem->GetClass( ) == TEAM_GetItem( i ))
+						{
+							POS_t	Origin;
 
-					// Replace this skull with skulltag mode's version of the skull.
-					pNewSkull = Spawn( PClass::FindClass( "BlueSkullST" ), pActor->x, pActor->y, pActor->z, NO_REPLACE );
-					if ( pNewSkull )
-						pNewSkull->flags &= ~MF_DROPPED;
+							Origin.x = pItem->x;
+							Origin.y = pItem->y;
+							Origin.z = pItem->z;
 
-					Origin.x = pActor->x;
-					Origin.y = pActor->y;
-					Origin.z = pActor->z;
+							TEAM_SetTeamItemOrigin( i, Origin );
+						}
+					}
 
-					TEAM_SetBlueSkullOrigin( Origin );
-					pActor->Destroy( );
-				}
+					if ( pItem->IsKindOf( PClass::FindClass( "BlueSkull" )))
+					{
+						POS_t	Origin;
 
-				if ( pActor->IsKindOf( PClass::FindClass( "RedSkull" )))
-				{
-					POS_t	Origin;
+						// Replace this skull with skulltag mode's version of the skull.
+						pNewSkull = Spawn( PClass::FindClass( "BlueSkullST" ), pItem->x, pItem->y, pItem->z, NO_REPLACE );
+						if ( pNewSkull )
+							pNewSkull->flags &= ~MF_DROPPED;
 
-					// Replace this skull with skulltag mode's version of the skull.
-					pNewSkull = Spawn( PClass::FindClass( "RedSkullST" ), pActor->x, pActor->y, pActor->z, NO_REPLACE );
-					if ( pNewSkull )
-						pNewSkull->flags &= ~MF_DROPPED;
+						Origin.x = pItem->x;
+						Origin.y = pItem->y;
+						Origin.z = pItem->z;
 
-					Origin.x = pActor->x;
-					Origin.y = pActor->y;
-					Origin.z = pActor->z;
+						TEAM_SetTeamItemOrigin( 0, Origin );
+						pItem->Destroy( );
+					}
 
-					TEAM_SetRedSkullOrigin( Origin );
-					pActor->Destroy( );
+					if ( pItem->IsKindOf( PClass::FindClass( "RedSkull" )))
+					{
+						POS_t	Origin;
+
+						// Replace this skull with skulltag mode's version of the skull.
+						pNewSkull = Spawn( PClass::FindClass( "RedSkullST" ), pItem->x, pItem->y, pItem->z, NO_REPLACE );
+						if ( pNewSkull )
+							pNewSkull->flags &= ~MF_DROPPED;
+
+						Origin.x = pItem->x;
+						Origin.y = pItem->y;
+						Origin.z = pItem->z;
+
+						TEAM_SetTeamItemOrigin( 1, Origin );
+						pItem->Destroy( );
+					}
 				}
 			}
+
+			// [BB] See comment at the "team" loop.
+			break;
 		}
 	}
 

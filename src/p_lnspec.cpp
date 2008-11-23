@@ -1945,7 +1945,7 @@ FUNC(LS_Sector_ChangeSound)
 // [BC] Start of new Skulltag linespecials.
 
 FUNC( LS_Player_SetTeam )
-// Player_SetTeam( blue/red )
+// Player_SetTeam( team id )
 {
 	// Don't set teams on the client end.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( )))
@@ -1956,7 +1956,7 @@ FUNC( LS_Player_SetTeam )
 		return ( false );
 
 	// Verify that we're setting a valid team.
-	if ( arg0 > NUM_TEAMS )
+	if ( TEAM_CheckIfValid( arg0 ) == false )
 		I_Error( "Tried to set player to bad team, %d\n", arg0 );
 
 	// Set the player's team.
@@ -2008,7 +2008,7 @@ FUNC( LS_Team_GivePoints )
 		return ( false );
 
 	// Make sure this is a valid team.
-	if (( arg0 < 0 ) || ( arg0 >= NUM_TEAMS ))
+	if ( TEAM_CheckIfValid( arg0 ) == false )
 		return ( false );
 
 	// Give the point(s) to the team.
@@ -2016,7 +2016,7 @@ FUNC( LS_Team_GivePoints )
 
 	if ( it && it->player && it->player->bOnTeam )
 	{
-		it->player->lPointCount += arg0;
+		it->player->lPointCount += arg1;
 
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{

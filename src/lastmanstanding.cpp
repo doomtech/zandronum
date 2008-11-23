@@ -121,8 +121,7 @@ void LASTMANSTANDING_Tick( void )
 
 		if ( teamlms )
 		{
-			if (( LASTMANSTANDING_TeamCountActivePlayers( TEAM_BLUE ) >= 1 ) &&
-				( LASTMANSTANDING_TeamCountActivePlayers( TEAM_RED ) >= 1 ))
+			if ( TEAM_TeamsWithPlayersOn( ) > 1 )
 			{
 				if ( sv_lmscountdowntime > 0 )
 					LASTMANSTANDING_StartCountdown(( sv_lmscountdowntime * TICRATE ) - 1 );
@@ -218,7 +217,7 @@ void LASTMANSTANDING_Tick( void )
 		// Check to see how many men are left standing on each team.
 		if ( teamlms )
 		{
-			if (( LASTMANSTANDING_TeamCountMenStanding( TEAM_BLUE ) == 0 ) || ( LASTMANSTANDING_TeamCountMenStanding( TEAM_RED ) == 0 ))
+			if ( LASTMANSTANDING_TeamsWithAlivePlayersOn( ) <= 1)
 			{
 				LONG	lWinner;
 
@@ -261,7 +260,7 @@ void LASTMANSTANDING_Tick( void )
 							Printf( "DRAW GAME!\n" );
 
 						// Pause for five seconds for the win sequence.
-						LASTMANSTANDING_DoWinSequence( NUM_TEAMS );
+						LASTMANSTANDING_DoWinSequence( teams.Size( ) );
 						GAME_SetEndLevelDelay( 5 * TICRATE );
 					}
 				}
@@ -372,6 +371,21 @@ LONG LASTMANSTANDING_TeamGetLastManStanding( void )
 
 //*****************************************************************************
 //
+LONG LASTMANSTANDING_TeamsWithAlivePlayersOn( void )
+{
+	LONG lTeamsWithAlivePlayersOn = 0;
+
+	for ( ULONG i = 0; i < teams.Size( ); i++ )
+	{
+		if (TEAM_CountLivingPlayers (i) > 0)
+			lTeamsWithAlivePlayersOn ++;
+	}
+
+	return lTeamsWithAlivePlayersOn;
+}
+
+//*****************************************************************************
+//
 void LASTMANSTANDING_StartCountdown( ULONG ulTicks )
 {
 	ULONG	ulIdx;
@@ -392,8 +406,8 @@ void LASTMANSTANDING_StartCountdown( ULONG ulTicks )
 	}
 */
 /*
-	TEAM_SetFragCount( TEAM_BLUE, 0, false );
-	TEAM_SetFragCount( TEAM_RED, 0, false );
+	for ( ULONG i = 0; i < teams.Size( ); i++ )
+		TEAM_SetFragCount( i, 0, false );
 */
 	// Put the game in a countdown state.
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
@@ -523,12 +537,10 @@ void LASTMANSTANDING_DoWinSequence( ULONG ulWinner )
 
 		if ( teamlms )
 		{
-			if ( ulWinner == NUM_TEAMS )
-				sprintf( szString, "\\cdDRAW GAME!" );
-			else if ( ulWinner == TEAM_BLUE )
-				sprintf( szString, "\\chBLUE WINS!" );
+			if ( ulWinner == teams.Size( ) )
+				sprintf( szString, "\\cdDraw Game!" );
 			else
-				sprintf( szString, "\\cgRED WINS!" );
+				sprintf( szString, "\\c%c%s Wins!", V_GetColorChar( TEAM_GetTextColor( ulWinner ) ), TEAM_GetName( ulWinner ));
 		}
 		else if ( ulWinner == MAXPLAYERS )
 			sprintf( szString, "\\cdDRAW GAME!" );
@@ -608,7 +620,6 @@ void LASTMANSTANDING_TimeExpired( void )
 	bool				bTie = false;
 	bool				bFoundPlayer = false;
 	LONG				lWinner = -1;
-	LONG				lDifference;
 	DHUDMessageFadeOut	*pMsg;
 	char				szString[64];
 
@@ -648,14 +659,17 @@ void LASTMANSTANDING_TimeExpired( void )
 	}
 	else if ( teamlms )
 	{
-		lDifference = TEAM_CountLivingPlayers( TEAM_BLUE ) - TEAM_CountLivingPlayers( TEAM_RED );
-		if ( lDifference > 0 )
-			lWinner = TEAM_BLUE;
-		else if ( lDifference < 0 )
-			lWinner = TEAM_RED;
+		if ( LASTMANSTANDING_TeamsWithAlivePlayersOn( ) == 1 )
+		{
+			for ( ULONG i = 0; i < teams.Size( ); i++ )
+			{
+				if ( TEAM_CountLivingPlayers( i ) )
+					lWinner = i;
+			}
+		}
 		else
 		{
-			lWinner = NUM_TEAMS;
+			lWinner = teams.Size( );
 			bTie = true;
 		}
 	}
