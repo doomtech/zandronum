@@ -11,7 +11,7 @@
 #include "network.h"
 
 static FRandom pr_bruisattack ("BruisAttack");
-
+/*
 void A_BruisAttack (AActor *);
 void A_BelphegorAttack (AActor *);
 
@@ -292,7 +292,7 @@ IMPLEMENT_ACTOR (ABelphegor, Doom, 5008, 215)
 	PROP_HitObituary ("$OB_BELPHEGOR_MELEE")
 
 END_DEFAULTS
-
+*/
 void A_BruisAttack (AActor *self)
 {
 	AActor	*pMissile;
@@ -315,13 +315,13 @@ void A_BruisAttack (AActor *self)
 	}
 	
 	// launch a missile
-	pMissile = P_SpawnMissile (self, self->target, RUNTIME_CLASS(ABaronBall));
+	pMissile = P_SpawnMissile (self, self->target, PClass::FindClass("BaronBall"));
 
 	// [BC] If we're the server, tell clients to spawn the missile.
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( pMissile ))
 		SERVERCOMMANDS_SpawnMissile( pMissile );
 }
-
+/*
 void A_BelphegorAttack (AActor *self)
 {
 	AActor	*pMissile;
@@ -350,3 +350,4 @@ void A_BelphegorAttack (AActor *self)
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( pMissile ))
 		SERVERCOMMANDS_SpawnMissile( pMissile );
 }
+*/

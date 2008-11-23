@@ -201,3 +201,61 @@ ACTOR AbaddonBall
 		Stop
 	}
 }
+
+//=================================================================================================
+//
+// Belphegor
+//
+//=================================================================================================
+
+ACTOR Belphegor : HellKnight 5008
+{
+	SpawnID 215
+	Health 1500
+	PainChance 25
+	SeeSound "baron/sight"
+	PainSound "baron/pain"
+	DeathSound "baron/death"
+	ActiveSound "baron/active"
+	Obituary "$OB_BELPHEGOR"
+	HitObituary "$OB_BELPHEGOR_MELEE"
+	States
+	{
+	Spawn:
+		BOS3 AB 10 A_Look
+		Loop
+	See:
+		BOS3 AABBCCDD 3 A_Chase
+		Loop
+	Pain:
+		BOS3 H 2
+		BOS3 H 2 A_Pain
+		Goto See
+	Melee:
+	Missile:
+		BOS3 EF 6 A_FaceTarget
+		BOS3 G 6 A_BasicAttack (10, "baron/melee", "BelphegorBall", 32)
+		BOS3 EF 6 A_FaceTarget
+		BOS3 G 6 A_BasicAttack (10, "baron/melee", "BelphegorBall", 32)
+		BOS3 EF 6 A_FaceTarget
+		BOS3 G 6 A_BasicAttack (10, "baron/melee", "BelphegorBall", 32)
+		Goto See
+	Death:
+		BOS3 I 8
+		BOS3 J 8 A_Scream
+		BOS3 K 8
+		BOS3 L 8 A_NoBlocking
+		BOS3 MN 8
+		BOS3 O -1 A_BossDeath
+		Stop
+	Raise:
+		BOS3 ONMLKJI 8
+		Goto See
+	}
+}
+
+ACTOR BelphegorBall : BaronBall
+{
+	SpawnID 154
+	Speed 20
+}
