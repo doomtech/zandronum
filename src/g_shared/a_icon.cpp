@@ -17,34 +17,14 @@ FState AFloatyIcon::States[] =
 	S_BRIGHT( CNSL, 'B',	9,	NULL,				&States[S_INCONSOLE+0]),
 #define S_ALLY			( S_INCONSOLE + 2 )
 	S_NORMAL( ALLY, 'A',	-1,	NULL,				NULL ),
-#define	S_BLUEFLAG		( S_ALLY + 1 )
-	S_NORMAL (BFLS, 'A',   3, NULL 				, &States[S_BLUEFLAG+1]),
-	S_NORMAL (BFLS, 'B',   3, NULL 				, &States[S_BLUEFLAG+2]),
-	S_NORMAL (BFLS, 'C',   3, NULL 				, &States[S_BLUEFLAG+3]),
-	S_BRIGHT (BFLS, 'D',   3, NULL 				, &States[S_BLUEFLAG+4]),
-	S_BRIGHT (BFLS, 'E',   3, NULL 				, &States[S_BLUEFLAG+5]),
-	S_BRIGHT (BFLS, 'F',   3, NULL 				, &States[S_BLUEFLAG+0]),
-#define	S_REDFLAG		( S_BLUEFLAG + 6 )
-	S_NORMAL (RFLS, 'A',   3, NULL 				, &States[S_REDFLAG+1]),
-	S_NORMAL (RFLS, 'B',   3, NULL 				, &States[S_REDFLAG+2]),
-	S_NORMAL (RFLS, 'C',   3, NULL 				, &States[S_REDFLAG+3]),
-	S_BRIGHT (RFLS, 'D',   3, NULL 				, &States[S_REDFLAG+4]),
-	S_BRIGHT (RFLS, 'E',   3, NULL 				, &States[S_REDFLAG+5]),
-	S_BRIGHT (RFLS, 'F',   3, NULL 				, &States[S_REDFLAG+0]),
-#define	S_WHITEFLAG		( S_REDFLAG + 6 )
+#define	S_WHITEFLAG		( S_ALLY + 1 )
 	S_NORMAL (WFLS, 'A',   3, NULL 				, &States[S_WHITEFLAG+1]),
 	S_NORMAL (WFLS, 'B',   3, NULL 				, &States[S_WHITEFLAG+2]),
 	S_NORMAL (WFLS, 'C',   3, NULL 				, &States[S_WHITEFLAG+3]),
 	S_BRIGHT (WFLS, 'D',   3, NULL 				, &States[S_WHITEFLAG+4]),
 	S_BRIGHT (WFLS, 'E',   3, NULL 				, &States[S_WHITEFLAG+5]),
 	S_BRIGHT (WFLS, 'F',   3, NULL 				, &States[S_WHITEFLAG+0]),
-#define	S_BLUESKULL		( S_WHITEFLAG + 6 )
-	S_NORMAL (BSKU, 'A',   10, NULL 				, &States[S_BLUESKULL+1]),
-	S_BRIGHT (BSKU, 'B',   10, NULL 				, &States[S_BLUESKULL+0]),
-#define	S_REDSKULL		( S_BLUESKULL + 2 )
-	S_NORMAL (RSKU, 'A',   10, NULL 				, &States[S_REDSKULL+1]),
-	S_BRIGHT (RSKU, 'B',   10, NULL 				, &States[S_REDSKULL+0]),
-#define	S_EXCELLENT		( S_REDSKULL + 2 )
+#define	S_EXCELLENT		( S_WHITEFLAG + 6 )
 	S_NORMAL( EXCL, 'A',   -1, NULL,				NULL ),
 #define	S_INCREDIBLE	( S_EXCELLENT + 1 )
 	S_NORMAL( INCR, 'A',   -1, NULL,				NULL ),
@@ -103,6 +83,13 @@ IMPLEMENT_ACTOR( AFloatyIcon, Any, -1, -1 )
 
 	PROP_SpawnState( 0 )
 END_DEFAULTS
+
+void AFloatyIcon::Serialize( FArchive &arc )
+{
+	Super::Serialize( arc );
+
+	arc << bTeamItemFloatyIcon;
+}
 
 void AFloatyIcon::BeginPlay( )
 {

@@ -736,7 +736,7 @@ void SERVERCOMMANDS_SetPlayerTeam( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ul
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETPLAYERTEAM );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
 		if ( players[ulPlayer].bOnTeam == false )
-			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, NUM_TEAMS );
+			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, teams.Size( ) );
 		else
 			NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].ulTeam );
 	}
@@ -3252,10 +3252,9 @@ void SERVERCOMMANDS_SetSimpleCTFSTMode( ULONG ulPlayerExtra, ULONG ulFlags )
 			continue;
 		}
 
-		SERVER_CheckClientBuffer( ulIdx, 3, true );
+		SERVER_CheckClientBuffer( ulIdx, 2, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSIMPLECTFSTMODE );
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, !!TEAM_GetSimpleCTFMode( ));
-		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, !!TEAM_GetSimpleSTMode( ));
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, !!TEAM_GetSimpleCTFSTMode( ));
     }
 }
 
@@ -3435,7 +3434,7 @@ void SERVERCOMMANDS_SetTeamFrags( ULONG ulTeam, LONG lFrags, bool bAnnounce, ULO
 {
 	ULONG	ulIdx;
 
-	if ( ulTeam >= NUM_TEAMS )
+	if ( TEAM_CheckIfValid( ulTeam ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -3463,7 +3462,7 @@ void SERVERCOMMANDS_SetTeamScore( ULONG ulTeam, LONG lScore, bool bAnnounce, ULO
 {
 	ULONG	ulIdx;
 
-	if ( ulTeam >= NUM_TEAMS )
+	if ( TEAM_CheckIfValid( ulTeam ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -3491,7 +3490,7 @@ void SERVERCOMMANDS_SetTeamWins( ULONG ulTeam, LONG lWins, bool bAnnounce, ULONG
 {
 	ULONG	ulIdx;
 
-	if ( ulTeam >= NUM_TEAMS )
+	if ( TEAM_CheckIfValid( ulTeam ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -3520,7 +3519,7 @@ void SERVERCOMMANDS_SetTeamReturnTicks( ULONG ulTeam, ULONG ulReturnTicks, ULONG
 	ULONG	ulIdx;
 
 	// Allow NUM_TEAMS here, since we could be updating the return ticks of the white flag.
-	if ( ulTeam > NUM_TEAMS )
+	if ( TEAM_CheckIfValid ( ulTeam ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -3547,7 +3546,7 @@ void SERVERCOMMANDS_TeamFlagReturned( ULONG ulTeam, ULONG ulPlayerExtra, ULONG u
 {
 	ULONG	ulIdx;
 
-	if ( ulTeam > NUM_TEAMS )
+	if ( TEAM_CheckIfValid ( ulTeam ) == false )
 		return;
 
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -3569,7 +3568,7 @@ void SERVERCOMMANDS_TeamFlagReturned( ULONG ulTeam, ULONG ulPlayerExtra, ULONG u
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_TeamFlagDropped( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
+void SERVERCOMMANDS_TeamFlagDropped( ULONG ulPlayer, ULONG ulTeam, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
 
@@ -3590,6 +3589,8 @@ void SERVERCOMMANDS_TeamFlagDropped( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG 
 		SERVER_CheckClientBuffer( ulIdx, 2, true );
 		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_TEAMFLAGDROPPED );
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulPlayer );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulTeam );
+
     }
 }
 

@@ -4168,14 +4168,14 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 		( NETWORK_GetState( ) != NETSTATE_CLIENT ) &&
 		( CLIENTDEMO_IsPlaying( ) == false ))
 	{
-		if ( actor->GetClass( ) == TEAM_GetFlagItem( TEAM_BLUE ))
-			TEAM_ExecuteReturnRoutine( TEAM_BLUE, NULL );
-
-		if ( actor->GetClass( ) == TEAM_GetFlagItem( TEAM_RED ))
-			TEAM_ExecuteReturnRoutine( TEAM_RED, NULL );
+		for ( ULONG i = 0; i < teams.Size( ); i++ )
+		{
+			if ( actor->GetClass( ) == TEAM_GetItem( i ))
+				TEAM_ExecuteReturnRoutine( i, NULL );
+		}
 
 		if (( oneflagctf ) && ( actor->GetClass( ) == PClass::FindClass( "WhiteFlag" )))
-			TEAM_ExecuteReturnRoutine( NUM_TEAMS, NULL );
+			TEAM_ExecuteReturnRoutine( teams.Size( ), NULL );
 	}
 
 	gl_SetActorLights(actor);
@@ -4866,18 +4866,14 @@ AActor *P_SpawnMapThing (FMapThing *mthing, int position)
 		return NULL;
 	}
 
-	// [BC] Count blue team starts.
-	if ( mthing->type == 5080 )
+	// [CW] Count team starts.
+	for ( ULONG i = 0; i < teams.Size( ); i++ )
 	{
-		BlueTeamStarts.Push( *mthing );
-		return NULL;
-	}
-
-	// [BC] Count red team starts.
-	if ( mthing->type == 5081 )
-	{
-		RedTeamStarts.Push( *mthing );
-		return NULL;
+		if ( mthing->type == teams[i].ulPlayerStartThingNumber )
+		{
+			teams[i].TeamStarts.Push( *mthing );
+			return NULL;
+		}
 	}
 
 	// [RC] Catalog possession starts

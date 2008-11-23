@@ -627,12 +627,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 						if (( NETWORK_GetState( ) == NETSTATE_SINGLE_MULTIPLAYER ) && ( players[consoleplayer].mo->CheckLocalView( source->player - players )))
 							sprintf( szString, "\\cGYOU WIN!" );
 						else if (( teamplay ) && ( source->player->bOnTeam ))
-						{
-							if ( source->player->ulTeam == TEAM_BLUE )
-								sprintf( szString, "\\cH%s wins!\n", TEAM_GetName( source->player->ulTeam ));
-							else
-								sprintf( szString, "\\cG%s wins!\n", TEAM_GetName( source->player->ulTeam ));
-						}
+							sprintf( szString, "\\c%c%s wins!\n", V_GetColorChar( TEAM_GetTextColor( source->player->ulTeam )), TEAM_GetName( source->player->ulTeam ));
 						else
 							sprintf( szString, "%s \\cGWINS!", players[source->player - players].userinfo.netname );
 						V_ColorizeString( szString );
@@ -1998,10 +1993,7 @@ void PLAYER_GivePossessionPoint( player_t *pPlayer )
 					ANNOUNCER_PlayEntry( cl_announcer, "YouWin" );
 			}
 
-			if ( pPlayer->ulTeam == TEAM_BLUE )
-				sprintf( szString, "\\chBLUE WINS!" );
-			else
-				sprintf( szString, "\\cgRED WINS!" );
+			sprintf( szString, "\\c%%s WINS!", V_GetColorChar( TEAM_GetTextColor( pPlayer->ulTeam )), TEAM_GetName( pPlayer->ulTeam ));
 			V_ColorizeString( szString );
 
 			if ( NETWORK_GetState( ) != NETSTATE_SERVER )
@@ -2040,13 +2032,13 @@ void PLAYER_SetTeam( player_t *pPlayer, ULONG ulTeam, bool bNoBroadcast )
 
 	if (
 		// Player was removed from a team.
-		( pPlayer->bOnTeam && ulTeam == NUM_TEAMS ) || 
+		( pPlayer->bOnTeam && ulTeam == teams.Size( ) ) || 
 
 		// Player was put on a team after not being on one.
-		( pPlayer->bOnTeam == false && ulTeam < NUM_TEAMS ) ||
+		( pPlayer->bOnTeam == false && ulTeam < teams.Size( ) ) ||
 		
 		// Player is on a team, but is being put on a different team.
-		( pPlayer->bOnTeam && ( ulTeam < NUM_TEAMS ) && ( ulTeam != pPlayer->ulTeam ))
+		( pPlayer->bOnTeam && ( ulTeam < teams.Size( ) ) && ( ulTeam != pPlayer->ulTeam ))
 		)
 	{
 		bBroadcastChange = true;
@@ -2057,7 +2049,7 @@ void PLAYER_SetTeam( player_t *pPlayer, ULONG ulTeam, bool bNoBroadcast )
 		bBroadcastChange = false;
 
 	// Set whether or not this player is on a team.
-	if ( ulTeam == NUM_TEAMS )
+	if ( ulTeam == teams.Size( ) )
 		pPlayer->bOnTeam = false;
 	else
 		pPlayer->bOnTeam = true;
@@ -2160,12 +2152,7 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 
 	// If this player was eligible to get an assist, cancel that.
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
-	{
-		if ( TEAM_GetAssistPlayer( TEAM_BLUE ) == static_cast<unsigned> (pPlayer - players) )
-			TEAM_SetAssistPlayer( TEAM_BLUE, MAXPLAYERS );
-		if ( TEAM_GetAssistPlayer( TEAM_RED ) == static_cast<unsigned> (pPlayer - players) )
-			TEAM_SetAssistPlayer( TEAM_RED, MAXPLAYERS );
-	}
+		TEAM_CancelAssistsOfPlayer ( static_cast<unsigned>( pPlayer - players ) );
 
 	// [BB] Morphed players need to be unmorphed before being changed to spectators.
 	if (( pPlayer->morphTics ) &&

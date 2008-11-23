@@ -4434,29 +4434,29 @@ int DLevelScript::RunScript ()
 
 		case PCD_BLUETEAMCOUNT:
 			
-			PushToStack( TEAM_CountPlayers( TEAM_BLUE ));
+			PushToStack( TEAM_CountPlayers( 0 ));
 			break;
 		case PCD_REDTEAMCOUNT:
 			
-			PushToStack( TEAM_CountPlayers( TEAM_RED ));
+			PushToStack( TEAM_CountPlayers( 1 ));
 			break;
 		case PCD_BLUETEAMSCORE:
 			
 			if ( teamplay )
-				PushToStack( TEAM_GetFragCount( TEAM_BLUE ));
+				PushToStack( TEAM_GetFragCount( 0 ));
 			else if ( teamlms )
-				PushToStack( TEAM_GetWinCount( TEAM_BLUE ));
+				PushToStack( TEAM_GetWinCount( 0 ));
 			else
-				PushToStack( TEAM_GetScore( TEAM_BLUE ));
+				PushToStack( TEAM_GetScore( 0 ));
 			break;
 		case PCD_REDTEAMSCORE:
 			
 			if ( teamplay )
-				PushToStack( TEAM_GetFragCount( TEAM_RED ));
+				PushToStack( TEAM_GetFragCount( 1 ));
 			else if ( teamlms )
-				PushToStack( TEAM_GetWinCount( TEAM_RED ));
+				PushToStack( TEAM_GetWinCount( 1 ));
 			else
-				PushToStack( TEAM_GetScore( TEAM_RED ));
+				PushToStack( TEAM_GetScore( 1 ));
 			break;
 		case PCD_ISONEFLAGCTF:
 
@@ -6041,6 +6041,22 @@ int DLevelScript::RunScript ()
 				sp -= 1;
 			}	
 			break;
+
+		// [CW] Begin team additions.
+		case PCD_GETTEAMPLAYERCOUNT:
+			STACK( 1 ) = TEAM_CountPlayers( STACK( 1 ));
+			sp--;
+			break;
+
+		case PCD_GETTEAMSCORE:
+			if ( teamplay )
+				STACK( 1 ) = TEAM_GetFragCount( STACK( 1 ));
+			else if ( teamlms )
+				STACK( 1 ) = TEAM_GetWinCount( STACK( 1 ));
+			else
+				STACK( 1 ) = TEAM_GetScore( STACK( 1 ));
+			break;
+		// [CW] End team additions.
  		}
  	}
 

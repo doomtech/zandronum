@@ -1114,14 +1114,14 @@ bool PIT_CheckThing (AActor *thing, FCheckPosition &tm)
 		( solid ) &&
 		( thing->ulSTFlags & STFL_BUMPSPECIAL ))
 	{
-		if (( TEAM_GetSimpleSTMode( )) && ( tm.thing->player ) && ( tm.thing->player->bOnTeam ))
+		if (( TEAM_GetSimpleCTFSTMode( )) && ( tm.thing->player ) && ( tm.thing->player->bOnTeam ))
 		{
 			if (( thing->ulSTFlags & STFL_SCOREPILLAR ) &&
-				( tm.thing->FindInventory( TEAM_GetFlagItem( !tm.thing->player->ulTeam ))) &&
-				( thing->args[0] == NUM_TEAMS || static_cast<signed> (tm.thing->player->ulTeam) == thing->args[0] ) &&
+				( TEAM_FindOpposingTeamsItemInPlayersInventory ( tm.thing->player ) ) &&
+				( thing->args[0] == teams.Size( ) || static_cast<signed>( tm.thing->player->ulTeam ) == thing->args[0] ) &&
 				( thing->args[1] > 0 ))
 			{
-				if (( tm.thing->player->ulTeam == TEAM_BLUE ) ? ( TEAM_GetBlueSkullTaken( ) == false ) : ( TEAM_GetRedSkullTaken( ) == false ))
+				if ( !TEAM_GetItemTaken( tm.thing->player->ulTeam ) )
 					TEAM_ScoreSkulltagPoint( tm.thing->player, thing->args[1], thing );
 				else
 					TEAM_DisplayNeedToReturnSkullMessage( tm.thing->player );
@@ -5256,9 +5256,9 @@ void P_DoCrunch (AActor *thing, FChangePosition *cpos)
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 	{
 		// [BC] If this item is a flag belonging to a team, return it, and/or don't do shit!
-		for ( ulIdx = 0; ulIdx < NUM_TEAMS; ulIdx++ )
+		for ( ulIdx = 0; ulIdx < teams.Size( ); ulIdx++ )
 		{
-			if ( thing->GetClass( ) == TEAM_GetFlagItem( ulIdx ))
+			if ( thing->GetClass( ) == TEAM_GetItem( ulIdx ))
 			{
 				if ( thing->flags & MF_DROPPED )
 					TEAM_ExecuteReturnRoutine( ulIdx, NULL );
@@ -5271,7 +5271,7 @@ void P_DoCrunch (AActor *thing, FChangePosition *cpos)
 		if ( thing->GetClass( ) == PClass::FindClass( "WhiteFlag" ))
 		{
 			if ( thing->flags & MF_DROPPED )
-				TEAM_ExecuteReturnRoutine( NUM_TEAMS, NULL );
+				TEAM_ExecuteReturnRoutine( teams.Size( ), NULL );
 
 			return;
 		}

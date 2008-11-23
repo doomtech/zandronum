@@ -107,12 +107,6 @@ static	player_t	*g_pTerminatorArtifactCarrier = NULL;
 // Who has the possession artifact?
 static	player_t	*g_pPossessionArtifactCarrier = NULL;
 
-// Who is carrying the red flag/skull?
-static	player_t	*g_pRedCarrier = NULL;
-
-// Who is carrying the red flag/skull?
-static	player_t	*g_pBlueCarrier = NULL;
-
 // Who is carrying the white flag?
 static	player_t	*g_pWhiteCarrier = NULL;
 
@@ -651,10 +645,8 @@ void SCOREBOARD_RenderStats_Holders( void )
 				if ( teampossession )
 				{
 					V_RemoveColorCodes( szName );
-					if ( g_pPossessionArtifactCarrier->ulTeam == TEAM_BLUE )
-						sprintf( szString, "\\cH%s \\cG:", szName );
-					else
-						sprintf( szString, "\\cG%s :", szName );
+					if ( TEAM_CheckIfValid ( g_pPossessionArtifactCarrier->ulTeam ) )
+						sprintf( szString, "\\c%c%s :", V_GetColorChar( TEAM_GetTextColor( g_pPossessionArtifactCarrier->ulTeam )), szName );
 				}
 				else
 					sprintf( szString, "%s \\cG:", szName );
@@ -674,13 +666,11 @@ void SCOREBOARD_RenderStats_Holders( void )
 			{
 				sprintf( szName, "%s", g_pWhiteCarrier->userinfo.netname );
 				V_RemoveColorCodes( szName );
-				if ( g_pWhiteCarrier->ulTeam == TEAM_BLUE )
-					sprintf( szString, "\\cH%s \\cG:", szName );
-				else
-					sprintf( szString, "\\cG%s :", szName );
+				if ( TEAM_CheckIfValid ( g_pWhiteCarrier->ulTeam ) )
+					sprintf( szString, "\\cC%s \\cC:", szName );
 			}
 			else
-				sprintf( szString, "\\cC%s \\cG:", TEAM_GetReturnTicks( NUM_TEAMS ) ? "?" : "-" );
+				sprintf( szString, "\\cC%s \\cC:", TEAM_GetReturnTicks( teams.Size( ) ) ? "?" : "-" );
 		}
 
 		// Now, draw it.
@@ -721,91 +711,53 @@ void SCOREBOARD_RenderStats_Holders( void )
 	// Draw the carrier information for TWO objects (ST, CTF).
 	else if ( ctf || skulltag )
 	{
-		ulYPos = ST_Y - g_ulTextHeight * 2 + 1;
-		if ( ctf )
-			sprintf( szPatchName, "STFLA2" );
-		else
-			sprintf( szPatchName, "STKEYS5" );
+		ulYPos = ST_Y - g_ulTextHeight * 3 + 1;
+
+		for ( LONG i = teams.Size( ) - 1; i >= 0; i-- )
+		{
+			if ( TEAM_ShouldUseTeam( i ) == false )
+				continue;
+
+			sprintf( szPatchName, TEAM_GetSmallHUDIcon( i ));
 		
-		if ( g_bScale )
-		{
-			screen->DrawTexture( TexMan[szPatchName],
-				( g_ValWidth.Int ) - ( TexMan[szPatchName]->GetWidth( )),
-				(LONG)( ulYPos * g_rYScale ),
-				DTA_VirtualWidth, g_ValWidth.Int,
-				DTA_VirtualHeight, g_ValHeight.Int,
-				TAG_DONE );
+			if ( g_bScale )
+			{
+				screen->DrawTexture( TexMan[szPatchName],
+					( g_ValWidth.Int ) - ( TexMan[szPatchName]->GetWidth( )),
+					(LONG)( ulYPos * g_rYScale ),
+					DTA_VirtualWidth, g_ValWidth.Int,
+					DTA_VirtualHeight, g_ValHeight.Int,
+					TAG_DONE );
 
-			sprintf( szString, "\\cC%s \\cG:", g_pRedCarrier ? g_pRedCarrier->userinfo.netname : TEAM_GetReturnTicks( TEAM_RED ) ? "?" : "-" );
-			V_ColorizeString( szString );
+				sprintf( szString, "\\cC%s \\c%c:", TEAM_GetCarrier( i ) ? TEAM_GetCarrier( i )->userinfo.netname : TEAM_GetReturnTicks( i ) ? "?" : "-", V_GetColorChar( TEAM_GetTextColor( i )));
+				V_ColorizeString( szString );
 
-			screen->DrawText( CR_GRAY,
-				( g_ValWidth.Int ) - ( TexMan[szPatchName]->GetWidth( )) - ( SmallFont->StringWidth( szString )),
-				(LONG)( ulYPos * g_rYScale ),
-				szString,
-				DTA_VirtualWidth, g_ValWidth.Int,
-				DTA_VirtualHeight, g_ValHeight.Int,
-				TAG_DONE );
-		}
-		else
-		{
-			screen->DrawTexture( TexMan[szPatchName],
-				( SCREENWIDTH ) - ( TexMan[szPatchName]->GetWidth( )),
-				ulYPos,
-				TAG_DONE );
+				screen->DrawText( CR_GRAY,
+					( g_ValWidth.Int ) - ( TexMan[szPatchName]->GetWidth( )) - ( SmallFont->StringWidth( szString )),
+					(LONG)( ulYPos * g_rYScale ),
+					szString,
+					DTA_VirtualWidth, g_ValWidth.Int,
+					DTA_VirtualHeight, g_ValHeight.Int,
+					TAG_DONE );
+			}
+			else
+			{
+				screen->DrawTexture( TexMan[szPatchName],
+					( SCREENWIDTH ) - ( TexMan[szPatchName]->GetWidth( )),
+					ulYPos,
+					TAG_DONE );
 
-			sprintf( szString, "\\cC%s \\cG:", g_pRedCarrier ? g_pRedCarrier->userinfo.netname : TEAM_GetReturnTicks( TEAM_RED ) ? "?" : "-" );
-			V_ColorizeString( szString );
+				sprintf( szString, "\\cC%s \\c%c:", TEAM_GetCarrier( i ) ? TEAM_GetCarrier( i )->userinfo.netname : TEAM_GetReturnTicks( i ) ? "?" : "-", V_GetColorChar( TEAM_GetTextColor( i )));
+				V_ColorizeString( szString );
 
-			screen->DrawText( CR_GRAY,
-				( SCREENWIDTH ) - ( TexMan[szPatchName]->GetWidth( )) - ( SmallFont->StringWidth( szString )),
-				ulYPos,
-				szString,
-				TAG_DONE );
-		}
+				screen->DrawText( CR_GRAY,
+					( SCREENWIDTH ) - ( TexMan[szPatchName]->GetWidth( )) - ( SmallFont->StringWidth( szString )),
+					ulYPos,
+					szString,
+					TAG_DONE );
+			}
 
-		ulYPos += g_ulTextHeight;
-
-		if ( ctf )
-			sprintf( szPatchName, "STFLA1" );
-		else
-			sprintf( szPatchName, "STKEYS3" );
-
-		if ( g_bScale )
-		{
-			screen->DrawTexture( TexMan[szPatchName],
-				( g_ValWidth.Int ) - ( TexMan[szPatchName]->GetWidth( )),
-				(LONG)( ulYPos * g_rYScale ),
-				DTA_VirtualWidth, g_ValWidth.Int,
-				DTA_VirtualHeight, g_ValHeight.Int,
-				TAG_DONE );
-
-			sprintf( szString, "\\cC%s \\cG:", g_pBlueCarrier ? g_pBlueCarrier->userinfo.netname : TEAM_GetReturnTicks( TEAM_BLUE ) ? "?" : "-" );
-			V_ColorizeString( szString );
-
-			screen->DrawText( CR_GRAY,
-				( g_ValWidth.Int ) - ( TexMan[szPatchName]->GetWidth( )) - ( SmallFont->StringWidth( szString )),
-				(LONG)( ulYPos * g_rYScale ),
-				szString,
-				DTA_VirtualWidth, g_ValWidth.Int,
-				DTA_VirtualHeight, g_ValHeight.Int,
-				TAG_DONE );
-		}
-		else
-		{
-			screen->DrawTexture( TexMan[szPatchName],
-				( SCREENWIDTH ) - ( TexMan[szPatchName]->GetWidth( )),
-				ulYPos,
-				TAG_DONE );
-
-			sprintf( szString, "\\cC%s \\cG:", g_pBlueCarrier ? g_pBlueCarrier->userinfo.netname : TEAM_GetReturnTicks( TEAM_BLUE ) ? "?" : "-" );
-			V_ColorizeString( szString );
-
-			screen->DrawText( CR_GRAY,
-				( SCREENWIDTH ) - ( TexMan[szPatchName]->GetWidth( )) - ( SmallFont->StringWidth( szString )),
-				ulYPos,
-				szString,
-				TAG_DONE );
+			ulYPos -= g_ulTextHeight;
 		}
 	}
 	//Domination can have an indefinite amount
@@ -822,8 +774,7 @@ void SCOREBOARD_RenderStats_TeamScores( void )
 {	
 	ULONG		ulYPos;
 	char		szString[160];
-	LONG		lRedScore;
-	LONG		lBlueScore;
+	LONG		lTeamScore[MAX_TEAMS];
 	
 	// The classic sbar HUD for Doom, Heretic, and Hexen has its own display for CTF and Skulltag scores.
 	if( (gameinfo.gametype == GAME_Doom) || ( gameinfo.gametype == GAME_Heretic) || ( gameinfo.gametype == GAME_Hexen) )
@@ -835,71 +786,51 @@ void SCOREBOARD_RenderStats_TeamScores( void )
 
 	if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSONTEAMS )
 	{
-		if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )
+		for ( ULONG i = 0; i < teams.Size( ); i++ )
 		{
-			lRedScore = TEAM_GetWinCount( TEAM_RED );
-			lBlueScore = TEAM_GetWinCount( TEAM_BLUE );
-		}
-		else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNPOINTS )
-		{
-			lRedScore = TEAM_GetScore( TEAM_RED );
-			lBlueScore = TEAM_GetScore( TEAM_BLUE );
-		}
-		else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS )
-		{
-			lRedScore = TEAM_GetFragCount( TEAM_RED );
-			lBlueScore = TEAM_GetFragCount( TEAM_BLUE );
-		}
-		else
-			return;
+			if ( TEAM_ShouldUseTeam( i ) == false )
+				continue;
 
-		sprintf( szString , "\\cG%s: \\cC%d", TEAM_GetName( TEAM_RED ), static_cast<int> (lRedScore) );
-		V_ColorizeString( szString );
-
-		if ( g_bScale )
-		{
-			screen->DrawText( CR_GRAY,
-				0,
-				(LONG)( ulYPos * g_rYScale ),
-				szString,
-				DTA_VirtualWidth, g_ValWidth.Int,
-				DTA_VirtualHeight, g_ValHeight.Int,
-				TAG_DONE );
-		}
-		else
-		{
-			screen->DrawText( CR_GRAY,
-				0,
-				ulYPos,
-				szString,
-				TAG_DONE );
+			if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )
+				lTeamScore[i] = TEAM_GetWinCount( i );
+			else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNPOINTS )
+				lTeamScore[i] = TEAM_GetScore( i );
+			else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS )
+				lTeamScore[i] = TEAM_GetFragCount( i );
+			else
+				return;
 		}
 
-		ulYPos += g_ulTextHeight;
-
-		sprintf( szString , "\\cG%s: \\cC%d", TEAM_GetName( TEAM_BLUE ), static_cast<int> (lBlueScore) );
-		V_ColorizeString( szString );
-
-		if ( g_bScale )
+		for ( LONG i = teams.Size( ) - 1; i >= 0; i-- )
 		{
-			screen->DrawText( CR_GRAY,
-				0,
-				(LONG)( ulYPos * g_rYScale ),
-				szString,
-				DTA_VirtualWidth, g_ValWidth.Int,
-				DTA_VirtualHeight, g_ValHeight.Int,
-				TAG_DONE );
-		}
-		else
-		{
-			screen->DrawText( CR_GRAY,
-				0,
-				ulYPos,
-				szString,
-				TAG_DONE );
+			if ( TEAM_CountPlayers( i ) < 1 )
+				continue;
+
+			sprintf( szString , "\\c%c%s: \\cC%d", V_GetColorChar( TEAM_GetTextColor ( i )), TEAM_GetName( i ), static_cast<int>( lTeamScore[i] ));
+			V_ColorizeString ( szString );
+
+			ulYPos -= g_ulTextHeight;
+
+			if ( g_bScale )
+			{
+				screen->DrawText( CR_GRAY,
+					0,
+					(LONG)( ulYPos * g_rYScale ),
+					szString,
+					DTA_VirtualWidth, g_ValWidth.Int,
+					DTA_VirtualHeight, g_ValHeight.Int,
+					TAG_DONE );
+			}
+			else
+			{
+				screen->DrawText( CR_GRAY,
+					0,
+					ulYPos,
+					szString,
+					TAG_DONE );
+			}
 		}
 	}
-
 }
 //*****************************************************************************
 //
@@ -1770,6 +1701,86 @@ bool SCOREBOARD_IsTied( ULONG ulPlayerNum )
 
 //*****************************************************************************
 //
+void SCOREBOARD_BuildPointString( char *pszString, const char *pszPointName, bool (*CheckAllEqual) ( void ), LONG (*GetHighestCount) ( void ), LONG (*GetCount) ( ULONG ulTeam ) )
+{
+	// Build the score message.
+	if ( CheckAllEqual( ))
+	{
+		sprintf( pszString, "Teams are tied at %d", static_cast<int>( GetCount( 0 )));
+	}
+	else
+	{
+		LONG lHighestCount = GetHighestCount( );
+		LONG lFirstTeamCount = LONG_MIN;
+		ULONG ulNumberOfTeams = 0;
+		FString OutString;
+
+		for ( ULONG i = 0; i < teams.Size( ); i++ )
+		{
+			if ( TEAM_ShouldUseTeam( i ) == false )
+				continue;
+
+			if ( lHighestCount == GetCount( i ) )
+			{
+				ulNumberOfTeams++;
+
+				if ( lFirstTeamCount == LONG_MIN )
+				{
+					OutString = "\\c";
+					OutString += V_GetColorChar( TEAM_GetTextColor( i ));
+					OutString += TEAM_GetName( i );
+
+					lFirstTeamCount = GetCount( i );
+				}
+				else
+				{
+					OutString += "\\c-, ";
+					OutString += "\\c";
+					OutString += V_GetColorChar( TEAM_GetTextColor( i ));
+					OutString += TEAM_GetName( i );
+				}
+			}
+		}
+
+		if ( teams.Size( ) > 2 )
+		{
+			if ( gamestate == GS_LEVEL )
+			{
+				if ( ulNumberOfTeams == 1 )
+					sprintf( pszString, "%s\\c- leads with %d %s%s", OutString.GetChars( ), static_cast<int>( lHighestCount ), pszPointName, static_cast<int>( lHighestCount ) != 1 ? "s" : "" );
+				else
+					sprintf( pszString, "Teams leading with %d %s%s: %s", static_cast<int>( lHighestCount ), pszPointName, static_cast<int>( lHighestCount ) != 1 ? "s" : "", OutString.GetChars( ));
+			}
+			else
+			{
+				if (ulNumberOfTeams != 1)
+					sprintf( pszString, "Teams that won with %d %s%s: %s", static_cast<int>( lHighestCount ), pszPointName, static_cast<int>( lHighestCount ) != 1 ? "s" : "", OutString.GetChars( ) );
+				else
+					sprintf( pszString, "%s\\c- has won with %d %s%s", OutString.GetChars( ), static_cast<int>( lHighestCount ), pszPointName, static_cast<int>( lHighestCount ) != 1 ? "s" : "" );
+			}
+		}
+		else
+		{
+			if ( gamestate == GS_LEVEL )
+			{
+				if ( GetCount( 1 ) > GetCount( 0 ))
+					sprintf( pszString, "\\c%c%s\\c- leads %d to %d", V_GetColorChar( TEAM_GetTextColor( 1 )), TEAM_GetName( 1 ), static_cast<int>( GetCount( 1 )), static_cast<int>( GetCount( 0 )));
+				else
+					sprintf( pszString, "\\c%c%s\\c- leads %d to %d", V_GetColorChar( TEAM_GetTextColor( 0 )), TEAM_GetName( 0 ), static_cast<int>( GetCount( 0 )), static_cast<int>( GetCount( 1 )));
+			}
+			else
+			{
+				if ( GetCount( 1 ) > GetCount( 0 ))
+					sprintf( pszString, "\\c%c%s\\c- has won %d to %d", V_GetColorChar( TEAM_GetTextColor( 1 )), TEAM_GetName( 1 ), static_cast<int>( GetCount( 1 )), static_cast<int>( GetCount( 0 )));
+				else
+					sprintf( pszString, "\\c%c%s\\c- has won %d to %d", V_GetColorChar( TEAM_GetTextColor( 0 )), TEAM_GetName( 0 ), static_cast<int>( GetCount( 0 )), static_cast<int>( GetCount( 1 )));
+			}
+		}
+	}
+}
+
+//*****************************************************************************
+//
 void SCOREBOARD_DisplayFragMessage( player_t *pFraggedPlayer )
 {
 	char	szString[128];
@@ -1795,49 +1806,17 @@ void SCOREBOARD_DisplayFragMessage( player_t *pFraggedPlayer )
 	StatusBar->AttachMessage( pMsg, MAKE_ID('F','R','A','G') );
 	screen->SetFont( SmallFont );
 
+	szString[0] = 0;
+
 	if ( teamplay )
 	{
 		// Build the score message.
-		if ( TEAM_GetFragCount( TEAM_RED ) == TEAM_GetFragCount( TEAM_BLUE ))
-			sprintf( szString, "Teams are tied at %d", static_cast<int> (TEAM_GetFragCount( TEAM_RED )));
-		else if ( TEAM_GetFragCount( TEAM_RED ) > TEAM_GetFragCount( TEAM_BLUE ))
-			sprintf( szString, "\\cG%s\\c- leads %d to %d", TEAM_GetName( TEAM_RED ), static_cast<int> (TEAM_GetFragCount( TEAM_RED )), static_cast<int> (TEAM_GetFragCount( TEAM_BLUE )));
-		else
-			sprintf( szString, "\\cH%s\\c- leads %d to %d", TEAM_GetName( TEAM_BLUE ), static_cast<int> (TEAM_GetFragCount( TEAM_BLUE )), static_cast<int> (TEAM_GetFragCount( TEAM_RED )));
-
-		V_ColorizeString( szString );
-		pMsg = new DHUDMessageFadeOut( szString,
-			1.5f,
-			0.375f,
-			0,
-			0,
-			CR_RED,
-			2.5f,
-			0.5f );
-
-		StatusBar->AttachMessage( pMsg, MAKE_ID('P','L','A','C') );
+		SCOREBOARD_BuildPointString( szString, "frag", &TEAM_CheckAllTeamsHaveEqualFrags, &TEAM_GetHighestFragCount, &TEAM_GetFragCount );
 	}
 	else if ( teamgame || teampossession )
 	{
 		// Build the score message.
-		if ( TEAM_GetScore( TEAM_RED ) == TEAM_GetScore( TEAM_BLUE ))
-			sprintf( szString, "Teams are tied at %d", static_cast<int> (TEAM_GetScore( TEAM_RED )));
-		else if ( TEAM_GetScore( TEAM_RED ) > TEAM_GetScore( TEAM_BLUE ))
-			sprintf( szString, "\\cG%s\\c- leads %d to %d", TEAM_GetName( TEAM_RED ), static_cast<int> (TEAM_GetScore( TEAM_RED )), static_cast<int> (TEAM_GetScore( TEAM_BLUE )));
-		else
-			sprintf( szString, "\\cH%s\\c- leads %d to %d", TEAM_GetName( TEAM_BLUE ), static_cast<int> (TEAM_GetScore( TEAM_BLUE )), static_cast<int> (TEAM_GetScore( TEAM_RED )));
-
-		V_ColorizeString( szString );
-		pMsg = new DHUDMessageFadeOut( szString,
-			1.5f,
-			0.375f,
-			0,
-			0,
-			CR_RED,
-			2.5f,
-			0.5f );
-
-		StatusBar->AttachMessage( pMsg, MAKE_ID('P','L','A','C') );
+		SCOREBOARD_BuildPointString( szString, "score", &TEAM_CheckAllTeamsHaveEqualScores, &TEAM_GetHighestScoreCount, &TEAM_GetScore );
 	}
 	else if (( deathmatch ) && ( lastmanstanding == false ) && ( teamlms == false ))
 	{
@@ -1877,18 +1856,6 @@ void SCOREBOARD_DisplayFragMessage( player_t *pFraggedPlayer )
 			sprintf( szString, "%s\\c-place with %d point%s", szString, static_cast<int> (players[consoleplayer].lPointCount), players[consoleplayer].lPointCount == 1 ? "" : "s" );
 		else
 			sprintf( szString, "%s\\c-place with %d frag%s", szString, players[consoleplayer].fragcount, players[consoleplayer].fragcount == 1 ? "" : "s" );
-
-		V_ColorizeString( szString );
-		pMsg = new DHUDMessageFadeOut( szString,
-			1.5f,
-			0.375f,
-			0,
-			0,
-			CR_RED,
-			2.5f,
-			0.5f );
-
-		StatusBar->AttachMessage( pMsg, MAKE_ID('P','L','A','C') );
 	}
 	else if ( lastmanstanding )
 	{
@@ -1896,26 +1863,27 @@ void SCOREBOARD_DisplayFragMessage( player_t *pFraggedPlayer )
 
 		lMenLeftStanding = GAME_CountLivingPlayers( ) - 1;
 		sprintf( szString, "%d opponent%s left standing", static_cast<int> (lMenLeftStanding), ( lMenLeftStanding != 1 ) ? "s" : "" );
-
-		V_ColorizeString( szString );
-		pMsg = new DHUDMessageFadeOut( szString,
-			1.5f,
-			0.375f,
-			0,
-			0,
-			CR_RED,
-			2.5f,
-			0.5f );
-
-		StatusBar->AttachMessage( pMsg, MAKE_ID('P','L','A','C') );
 	}
 	else if (( teamlms ) && ( players[consoleplayer].bOnTeam ))
 	{
-		LONG	lMenLeftStanding;
+		LONG	lMenLeftStanding = 0;
 
-		lMenLeftStanding = LASTMANSTANDING_TeamCountMenStanding( !players[consoleplayer].ulTeam );
-		sprintf( szString, "%d opponent%s left standing", static_cast<int> (lMenLeftStanding), ( lMenLeftStanding != 1 ) ? "s" : "" );
+		for ( ULONG i = 0; i < teams.Size( ); i++ )
+		{
+			if ( TEAM_ShouldUseTeam( i ) == false )
+				continue;
 
+			if ( i == players[consoleplayer].ulTeam )
+				continue;
+
+			lMenLeftStanding += LASTMANSTANDING_TeamCountMenStanding( i );
+		}
+
+		sprintf( szString, "%d opponent%s left standing", lMenLeftStanding, ( lMenLeftStanding != 1 ) ? "s" : "" );
+	}
+
+	if ( szString[0] != 0 )
+	{
 		V_ColorizeString( szString );
 		pMsg = new DHUDMessageFadeOut( szString,
 			1.5f,
@@ -1960,12 +1928,7 @@ void SCOREBOARD_DisplayFraggedMessage( player_t *pFraggingPlayer )
 	if ( teamplay )
 	{
 		// Build the score message.
-		if ( TEAM_GetFragCount( TEAM_RED ) == TEAM_GetFragCount( TEAM_BLUE ))
-			sprintf( szString, "Teams are tied at %d", static_cast<int> (TEAM_GetFragCount( TEAM_RED )));
-		else if ( TEAM_GetFragCount( TEAM_RED ) > TEAM_GetFragCount( TEAM_BLUE ))
-			sprintf( szString, "\\cG%s\\c- leads %d to %d", TEAM_GetName( TEAM_RED ), static_cast<int> (TEAM_GetFragCount( TEAM_RED )), static_cast<int> (TEAM_GetFragCount( TEAM_BLUE )));
-		else
-			sprintf( szString, "\\cH%s\\c- leads %d to %d", TEAM_GetName( TEAM_BLUE ), static_cast<int> (TEAM_GetFragCount( TEAM_BLUE )), static_cast<int> (TEAM_GetFragCount( TEAM_RED )));
+		SCOREBOARD_BuildPointString( szString, "frag", &TEAM_CheckAllTeamsHaveEqualFrags, &TEAM_GetHighestFragCount, &TEAM_GetFragCount );
 
 		V_ColorizeString( szString );
 		pMsg = new DHUDMessageFadeOut( szString,
@@ -1982,12 +1945,7 @@ void SCOREBOARD_DisplayFraggedMessage( player_t *pFraggingPlayer )
 	else if ( teamgame || teampossession )
 	{
 		// Build the score message.
-		if ( TEAM_GetScore( TEAM_RED ) == TEAM_GetScore( TEAM_BLUE ))
-			sprintf( szString, "Teams are tied at %d", static_cast<int> (TEAM_GetScore( TEAM_RED )));
-		else if ( TEAM_GetScore( TEAM_RED ) > TEAM_GetScore( TEAM_BLUE ))
-			sprintf( szString, "\\cG%s\\c- leads %d to %d", TEAM_GetName( TEAM_RED ), static_cast<int> (TEAM_GetScore( TEAM_RED )), static_cast<int> (TEAM_GetScore( TEAM_BLUE )));
-		else
-			sprintf( szString, "\\cH%s\\c- leads %d to %d", TEAM_GetName( TEAM_BLUE ), static_cast<int> (TEAM_GetScore( TEAM_BLUE )), static_cast<int> (TEAM_GetScore( TEAM_RED )));
+		SCOREBOARD_BuildPointString( szString, "score", &TEAM_CheckAllTeamsHaveEqualScores, &TEAM_GetHighestScoreCount, &TEAM_GetScore );
 
 		V_ColorizeString( szString );
 		pMsg = new DHUDMessageFadeOut( szString,
@@ -2066,8 +2024,10 @@ void SCOREBOARD_RefreshHUD( void )
 	g_ulNumPlayers = 0;
 	g_pTerminatorArtifactCarrier = NULL;
 	g_pPossessionArtifactCarrier = NULL;
-	g_pRedCarrier = NULL;
-	g_pBlueCarrier = NULL;
+
+	for ( ULONG i = 0; i < teams.Size( ); i++ )
+		TEAM_SetCarrier ( i, NULL );
+
 	g_pWhiteCarrier = NULL;
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
@@ -2091,11 +2051,13 @@ void SCOREBOARD_RefreshHUD( void )
 					g_pPossessionArtifactCarrier = &players[ulIdx];
 				else if ( players[ulIdx].mo )
 				{
-					if ( players[ulIdx].mo->FindInventory( TEAM_GetFlagItem( TEAM_BLUE )))
-						g_pBlueCarrier = &players[ulIdx];
-					else if ( players[ulIdx].mo->FindInventory( TEAM_GetFlagItem( TEAM_RED )))
-						g_pRedCarrier = &players[ulIdx];
-					else if ( players[ulIdx].mo->FindInventory( PClass::FindClass( "WhiteFlag" )))
+					for ( ULONG i = 0; i < teams.Size( ); i++ )
+					{
+						if ( players[ulIdx].mo->FindInventory( TEAM_GetItem( i )))
+							TEAM_SetCarrier( i, &players[ulIdx] );
+					}
+
+					if ( players[ulIdx].mo->FindInventory( PClass::FindClass( "WhiteFlag" )))
 						g_pWhiteCarrier = &players[ulIdx];
 				}
 			}
@@ -2163,6 +2125,20 @@ LONG SCOREBOARD_GetLeftToLimit( void )
 	if ( gamestate != GS_LEVEL )
 		return ( 0 );
 
+	// [BB] In a team game with only empty teams, just return the appropriate limit.
+	if ( ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
+	     && ( TEAM_TeamsWithPlayersOn() == 0 ) )
+	{
+		if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNWINS )
+			return winlimit;
+		else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNPOINTS )
+			return pointlimit;
+		else if ( GAMEMODE_GetFlags(GAMEMODE_GetCurrentMode()) & GMF_PLAYERSEARNFRAGS )
+			return fraglimit;
+		else
+			return 0;
+	}
+
 	// FRAG-based mode.
 	if (( lastmanstanding == false ) && ( teamlms == false ) && ( possession == false ) && ( teampossession == false ) && deathmatch && ( fraglimit > 0 ))
 	{
@@ -2171,10 +2147,7 @@ LONG SCOREBOARD_GetLeftToLimit( void )
 		// If we're in a teamplay, just go by whichever team has the most frags.
 		if ( teamplay )
 		{
-			if ( TEAM_GetFragCount( TEAM_BLUE ) >= TEAM_GetFragCount( TEAM_RED ))
-				lHighestFragcount = TEAM_GetFragCount( TEAM_BLUE );
-			else
-				lHighestFragcount = TEAM_GetFragCount( TEAM_RED );
+			lHighestFragcount = TEAM_GetHighestFragCount( );
 		}
 		// Otherwise, find the player with the most frags.
 		else
@@ -2196,17 +2169,12 @@ LONG SCOREBOARD_GetLeftToLimit( void )
 	else if (( teamgame || possession || teampossession ) && ( pointlimit > 0 ))
 	{
 		ULONG	ulPointsLeft;
-		ULONG	ulBluePoints;
-		ULONG	ulRedPoints;
 		ULONG	ulIdx;
 		LONG	lHighestPointCount;
 
 		if ( teamgame || teampossession )
 		{
-			ulBluePoints = TEAM_GetScore( TEAM_BLUE );
-			ulRedPoints = TEAM_GetScore( TEAM_RED );
-
-			ulPointsLeft = pointlimit - (( ulBluePoints >= ulRedPoints ) ? ulBluePoints : ulRedPoints );
+			ulPointsLeft = pointlimit - TEAM_GetHighestScoreCount( );
 		}
 		// Must be possession mode.
 		else
@@ -2242,10 +2210,7 @@ LONG SCOREBOARD_GetLeftToLimit( void )
 		// If we're in a teamplay, just go by whichever team has the most frags.
 		if ( teamlms )
 		{
-			if ( TEAM_GetWinCount( TEAM_BLUE ) >= TEAM_GetWinCount( TEAM_RED ))
-				lHighestWincount = TEAM_GetWinCount( TEAM_BLUE );
-			else
-				lHighestWincount = TEAM_GetWinCount( TEAM_RED );
+			lHighestWincount = TEAM_GetHighestWinCount( );
 		}
 		// Otherwise, find the player with the most frags.
 		else
@@ -3046,325 +3011,35 @@ static void scoreboard_DrawTeamScores( ULONG ulPlayer )
 
 	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 	{
-		if ( gamestate == GS_LEVEL )
+		if ( gamestate != GS_LEVEL )
+			g_ulCurYPos += 10;
+
+		if ( teamplay )
+			SCOREBOARD_BuildPointString( szString, "frag", &TEAM_CheckAllTeamsHaveEqualFrags, &TEAM_GetHighestFragCount, &TEAM_GetFragCount );
+		else if ( teamlms )
+			SCOREBOARD_BuildPointString( szString, "win", &TEAM_CheckAllTeamsHaveEqualWins, &TEAM_GetHighestWinCount, &TEAM_GetWinCount );
+		else
+			SCOREBOARD_BuildPointString( szString, "score", &TEAM_CheckAllTeamsHaveEqualScores, &TEAM_GetHighestScoreCount, &TEAM_GetScore );
+
+		V_ColorizeString ( szString );
+
+		if ( g_bScale )
 		{
-			if ( teamplay )
-			{
-				// If the teams are tied...
-				if ( TEAM_GetFragCount( TEAM_RED ) == TEAM_GetFragCount( TEAM_BLUE ))
-				{
-					sprintf( szString, "Teams are tied at %d\n", static_cast<int> (TEAM_GetFragCount( TEAM_RED )));
-					if ( g_bScale )
-					{
-						screen->DrawText( CR_GREY,
-							(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-							g_ulCurYPos,
-							szString,
-							DTA_VirtualWidth, g_ValWidth.Int,
-							DTA_VirtualHeight, g_ValHeight.Int,
-							TAG_DONE );
-					}
-					else
-					{
-						screen->DrawText( CR_GREY,
-							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-							g_ulCurYPos,
-							szString,
-							TAG_DONE );
-					}
-				}
-				else
-				{
-					if ( TEAM_GetFragCount( TEAM_RED ) > TEAM_GetFragCount( TEAM_BLUE ))
-						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_RED ), static_cast<int> (TEAM_GetFragCount( TEAM_RED )), static_cast<int> (TEAM_GetFragCount( TEAM_BLUE )));
-					else
-						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_BLUE ), static_cast<int> (TEAM_GetFragCount( TEAM_BLUE )), static_cast<int> (TEAM_GetFragCount( TEAM_RED )));
-
-					if ( g_bScale )
-					{
-						screen->DrawText( CR_GREY,
-							(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-							g_ulCurYPos,
-							szString,
-							DTA_VirtualWidth, g_ValWidth.Int,
-							DTA_VirtualHeight, g_ValHeight.Int,
-							TAG_DONE );
-					}
-					else
-					{
-						screen->DrawText( CR_GREY,
-							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-							g_ulCurYPos,
-							szString,
-							TAG_DONE );
-					}
-				}
-			}
-			else if ( teamlms )
-			{
-				// If the teams are tied...
-				if ( TEAM_GetWinCount( TEAM_RED ) == TEAM_GetWinCount( TEAM_BLUE ))
-				{
-					sprintf( szString, "Teams are tied at %d\n", static_cast<int> (TEAM_GetWinCount( TEAM_RED )));
-					if ( g_bScale )
-					{
-						screen->DrawText( CR_GREY,
-							(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-							g_ulCurYPos,
-							szString,
-							DTA_VirtualWidth, g_ValWidth.Int,
-							DTA_VirtualHeight, g_ValHeight.Int,
-							TAG_DONE );
-					}
-					else
-					{
-						screen->DrawText( CR_GREY,
-							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-							g_ulCurYPos,
-							szString,
-							TAG_DONE );
-					}
-				}
-				else
-				{
-					if ( TEAM_GetWinCount( TEAM_RED ) > TEAM_GetWinCount( TEAM_BLUE ))
-						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_RED ), static_cast<int> (TEAM_GetWinCount( TEAM_RED )), static_cast<int> (TEAM_GetWinCount( TEAM_BLUE )));
-					else
-						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_BLUE ), static_cast<int> (TEAM_GetWinCount( TEAM_BLUE )), static_cast<int> (TEAM_GetWinCount( TEAM_RED )));
-
-					if ( g_bScale )
-					{
-						screen->DrawText( CR_GREY,
-							(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-							g_ulCurYPos,
-							szString,
-							DTA_VirtualWidth, g_ValWidth.Int,
-							DTA_VirtualHeight, g_ValHeight.Int,
-							TAG_DONE );
-					}
-					else
-					{
-						screen->DrawText( CR_GREY,
-							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-							g_ulCurYPos,
-							szString,
-							TAG_DONE );
-					}
-				}
-			}
-			else
-			{
-				// If the teams are tied...
-				if ( TEAM_GetScore( TEAM_RED ) == TEAM_GetScore( TEAM_BLUE ))
-				{
-					sprintf( szString, "Teams are tied at %d\n", static_cast<int> (TEAM_GetScore( TEAM_RED )));
-					if ( g_bScale )
-					{
-						screen->DrawText( CR_GREY,
-							(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-							g_ulCurYPos,
-							szString,
-							DTA_VirtualWidth, g_ValWidth.Int,
-							DTA_VirtualHeight, g_ValHeight.Int,
-							TAG_DONE );
-					}
-					else
-					{
-						screen->DrawText( CR_GREY,
-							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-							g_ulCurYPos,
-							szString,
-							TAG_DONE );
-					}
-				}
-				else
-				{
-					if ( TEAM_GetScore( TEAM_RED ) > TEAM_GetScore( TEAM_BLUE ))
-						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_RED ), static_cast<int> (TEAM_GetScore( TEAM_RED )), static_cast<int> (TEAM_GetScore( TEAM_BLUE )));
-					else
-						sprintf( szString, "%s leads %d to %d", TEAM_GetName( TEAM_BLUE ), static_cast<int> (TEAM_GetScore( TEAM_BLUE )), static_cast<int> (TEAM_GetScore( TEAM_RED )));
-
-					if ( g_bScale )
-					{
-						screen->DrawText( CR_GREY,
-							(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-							g_ulCurYPos,
-							szString,
-							DTA_VirtualWidth, g_ValWidth.Int,
-							DTA_VirtualHeight, g_ValHeight.Int,
-							TAG_DONE );
-					}
-					else
-					{
-						screen->DrawText( CR_GREY,
-							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-							g_ulCurYPos,
-							szString,
-							TAG_DONE );
-					}
-				}
-			}
-
+			screen->DrawText( CR_GREY,
+				(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
+				g_ulCurYPos,
+				szString,
+				DTA_VirtualWidth, g_ValWidth.Int,
+				DTA_VirtualHeight, g_ValHeight.Int,
+				TAG_DONE );
 		}
 		else
 		{
-			g_ulCurYPos += 10;
-			if ( teamplay )
-			{
-				// If the teams are tied...
-				if ( TEAM_GetFragCount( TEAM_RED ) == TEAM_GetFragCount( TEAM_BLUE ))
-				{
-					sprintf( szString, "Teams tied at %d\n", static_cast<int> (TEAM_GetFragCount( TEAM_RED )));
-					if ( g_bScale )
-					{
-						screen->DrawText( CR_GREY,
-							(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-							g_ulCurYPos,
-							szString,
-							DTA_VirtualWidth, g_ValWidth.Int,
-							DTA_VirtualHeight, g_ValHeight.Int,
-							TAG_DONE );
-					}
-					else
-					{
-						screen->DrawText( CR_GREY,
-							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-							g_ulCurYPos,
-							szString,
-							TAG_DONE );
-					}
-				}
-				else
-				{
-					if ( TEAM_GetFragCount( TEAM_RED ) > TEAM_GetFragCount( TEAM_BLUE ))
-						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_RED ), static_cast<int> (TEAM_GetFragCount( TEAM_RED )), static_cast<int> (TEAM_GetFragCount( TEAM_BLUE )));
-					else
-						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_BLUE ), static_cast<int> (TEAM_GetFragCount( TEAM_BLUE )), static_cast<int> (TEAM_GetFragCount( TEAM_RED )));
-
-					if ( g_bScale )
-					{
-						screen->DrawText( CR_GREY,
-							(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-							g_ulCurYPos,
-							szString,
-							DTA_VirtualWidth, g_ValWidth.Int,
-							DTA_VirtualHeight, g_ValHeight.Int,
-							TAG_DONE );
-					}
-					else
-					{
-						screen->DrawText( CR_GREY,
-							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-							g_ulCurYPos,
-							szString,
-							TAG_DONE );
-					}
-				}
-			}
-			else if ( teamlms )
-			{
-				// If the teams are tied...
-				if ( TEAM_GetWinCount( TEAM_RED ) == TEAM_GetWinCount( TEAM_BLUE ))
-				{
-					sprintf( szString, "Teams tied at %d\n", static_cast<int> (TEAM_GetWinCount( TEAM_RED )));
-					if ( g_bScale )
-					{
-						screen->DrawText( CR_GREY,
-							(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-							g_ulCurYPos,
-							szString,
-							DTA_VirtualWidth, g_ValWidth.Int,
-							DTA_VirtualHeight, g_ValHeight.Int,
-							TAG_DONE );
-					}
-					else
-					{
-						screen->DrawText( CR_GREY,
-							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-							g_ulCurYPos,
-							szString,
-							TAG_DONE );
-					}
-				}
-				else
-				{
-					if ( TEAM_GetWinCount( TEAM_RED ) > TEAM_GetWinCount( TEAM_BLUE ))
-						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_RED ), static_cast<int> (TEAM_GetWinCount( TEAM_RED )), static_cast<int> (TEAM_GetWinCount( TEAM_BLUE )));
-					else
-						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_BLUE ), static_cast<int> (TEAM_GetWinCount( TEAM_BLUE )), static_cast<int> (TEAM_GetWinCount( TEAM_RED )));
-
-					if ( g_bScale )
-					{
-						screen->DrawText( CR_GREY,
-							(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-							g_ulCurYPos,
-							szString,
-							DTA_VirtualWidth, g_ValWidth.Int,
-							DTA_VirtualHeight, g_ValHeight.Int,
-							TAG_DONE );
-					}
-					else
-					{
-						screen->DrawText( CR_GREY,
-							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-							g_ulCurYPos,
-							szString,
-							TAG_DONE );
-					}
-				}
-			}
-			else
-			{
-				// If the teams are tied...
-				if ( TEAM_GetScore( TEAM_RED ) == TEAM_GetScore( TEAM_BLUE ))
-				{
-					sprintf( szString, "Teams tied at %d\n", static_cast<int> (TEAM_GetScore( TEAM_RED )));
-					if ( g_bScale )
-					{
-						screen->DrawText( CR_GREY,
-							(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-							g_ulCurYPos,
-							szString,
-							DTA_VirtualWidth, g_ValWidth.Int,
-							DTA_VirtualHeight, g_ValHeight.Int,
-							TAG_DONE );
-					}
-					else
-					{
-						screen->DrawText( CR_GREY,
-							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-							g_ulCurYPos,
-							szString,
-							TAG_DONE );
-					}
-				}
-				else
-				{
-					if ( TEAM_GetScore( TEAM_RED ) > TEAM_GetScore( TEAM_BLUE ))
-						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_RED ), static_cast<int> (TEAM_GetScore( TEAM_RED )), static_cast<int> (TEAM_GetScore( TEAM_BLUE )));
-					else
-						sprintf( szString, "%s has won %d to %d", TEAM_GetName( TEAM_BLUE ), static_cast<int> (TEAM_GetScore( TEAM_BLUE )), static_cast<int> (TEAM_GetScore( TEAM_RED )));
-
-					if ( g_bScale )
-					{
-						screen->DrawText( CR_GREY,
-							(LONG)(( g_ValWidth.Int / 2 ) - ( SmallFont->StringWidth( szString ) / 2 )),
-							g_ulCurYPos,
-							szString,
-							DTA_VirtualWidth, g_ValWidth.Int,
-							DTA_VirtualHeight, g_ValHeight.Int,
-							TAG_DONE );
-					}
-					else
-					{
-						screen->DrawText( CR_GREY,
-							( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
-							g_ulCurYPos,
-							szString,
-							TAG_DONE );
-					}
-				}
-			}
+			screen->DrawText( CR_GREY,
+				( SCREENWIDTH / 2 ) - ( SmallFont->StringWidth( szString ) / 2 ),
+				g_ulCurYPos,
+				szString,
+				TAG_DONE );
 		}
 
 		g_ulCurYPos += 10;
@@ -3793,7 +3468,7 @@ static void scoreboard_DrawRankings( ULONG ulPlayer )
 	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 	{
 		// Draw players on teams.
-		for ( ulTeamIdx = 0; ulTeamIdx < NUM_TEAMS; ulTeamIdx++ )
+		for ( ulTeamIdx = 0; ulTeamIdx < teams.Size( ); ulTeamIdx++ )
 		{
 			// In team LMS, separate the dead players from the living.
 			if (( teamlms ) && ( gamestate != GS_INTERMISSION ) && ( LASTMANSTANDING_GetState( ) != LMSS_COUNTDOWN ) && ( LASTMANSTANDING_GetState( ) != LMSS_WAITINGFORPLAYERS ))

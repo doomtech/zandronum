@@ -185,12 +185,6 @@ extern TArray<FMapThing> deathmatchstarts;
 // [BC] Temporary team spawn spots.
 extern	TArray<FMapThing>	TemporaryTeamStarts;
 
-// [BC] Blue team spawn spots.
-extern	TArray<FMapThing>	BlueTeamStarts;
-
-// [BC] Red team spawn spots.
-extern	TArray<FMapThing>	RedTeamStarts;
-
 // [RC] Possession starts
 extern	TArray<FMapThing>	PossessionStarts;
 

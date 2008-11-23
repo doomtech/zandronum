@@ -582,7 +582,7 @@ void SBarInfo::ParseSBarInfoBlock(FScanner &sc, SBarInfoBlock &block)
 						int t = -1;
 						for(unsigned int i = 0;i < teams.Size();i++)
 						{
-							if(teams[i].name.CompareNoCase(sc.String) == 0)
+							if(teams[i].Name.CompareNoCase(sc.String) == 0)
 							{
 								t = (int) i;
 								break;
@@ -887,7 +887,7 @@ void SBarInfo::ParseSBarInfoBlock(FScanner &sc, SBarInfoBlock &block)
 					int t = -1;
 					for(unsigned int i = 0;i < teams.Size();i++)
 					{
-						if(teams[i].name.CompareNoCase(sc.String) == 0)
+						if(teams[i].Name.CompareNoCase(sc.String) == 0)
 						{
 							t = (int) i;
 							break;

@@ -100,10 +100,13 @@ bool P_Thing_Spawn (int tid, AActor *source, int type, angle_t angle, bool fog, 
 				bSpawn = false;
 
 			// [BC] However, SKULLTAG FLAGS/SKULLS MUST BE RESPAWNED!
-			if (( mobj->GetClass( ) == TEAM_GetFlagItem( TEAM_BLUE )) || 
-				( mobj->GetClass( ) == TEAM_GetFlagItem( TEAM_RED )))
+			for ( ULONG i = 0; i < teams.Size( ); i++ )
 			{
-				bSpawn = true;
+				if (( mobj->GetClass( ) == TEAM_GetItem( i )))
+				{
+					bSpawn = true;
+					break;
+				}
 			}
 
 			if ( bSpawn )

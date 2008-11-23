@@ -555,6 +555,11 @@ public:
 		PCD_CHECKPLAYERCAMERA,		// [TN]
 		PCD_MORPHACTOR,				// [MH]
 		PCD_UNMORPHACTOR,			// [MH]
+		// [BB] We need to fix the number for the new commands!
+		// [CW] Begin team additions.
+		PCD_GETTEAMPLAYERCOUNT,
+		PCD_GETTEAMSCORE,
+		// [CW] End team additions.
 
 		PCODE_COMMAND_COUNT
 	};

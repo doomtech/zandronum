@@ -356,46 +356,84 @@ void ANNOUNCER_PlayFragSounds( ULONG ulPlayer, LONG lOldFragCount, LONG lNewFrag
 //
 void ANNOUNCER_PlayTeamFragSounds( ULONG ulTeam, LONG lOldFragCount, LONG lNewFragCount )
 {
-	LEADSTATE_e		OldBlueLeadState;
-	LEADSTATE_e		BlueLeadState;
+	LONG			lScore[MAX_TEAMS];
+	LONG			lHighestFragCount = LONG_MIN;
+	bool			bPossibleTeams[MAX_TEAMS];
+	ULONG			ulNumberOfPossibleTeams = 0;
+	ULONG			ulMaxPossibleTeams = 0;
 
 	// The given team is not valid.
-	if ( ulTeam >= NUM_TEAMS )
+	if ( TEAM_CheckIfValid( ulTeam ) == false )
 		return;
 
-	// Determine the lead state by comparing our score to whoever has the highest score that isn't us.
-	if ( ulTeam == TEAM_BLUE )
+	// Set all possible teams to false.
+	for ( ULONG i = 0; i < MAX_TEAMS; i++ )
+		bPossibleTeams[i] = false;
+
+	// Find the scores for each of the teams.
+	for ( ULONG i = 0; i < teams.Size( ); i++ )
 	{
-		OldBlueLeadState = ( lOldFragCount > TEAM_GetFragCount( TEAM_RED )) ? LEADSTATE_INTHELEAD : ( lOldFragCount == TEAM_GetFragCount( TEAM_RED )) ? LEADSTATE_TIEDFORTHELEAD : LEADSTATE_NOTINTHELEAD;
-		BlueLeadState = ( lNewFragCount > TEAM_GetFragCount( TEAM_RED )) ? LEADSTATE_INTHELEAD : ( lNewFragCount == TEAM_GetFragCount( TEAM_RED )) ? LEADSTATE_TIEDFORTHELEAD : LEADSTATE_NOTINTHELEAD;
-	}
-	else
-	{
-		OldBlueLeadState = ( lOldFragCount > TEAM_GetFragCount( TEAM_BLUE )) ? LEADSTATE_NOTINTHELEAD : ( lOldFragCount == TEAM_GetFragCount( TEAM_BLUE )) ? LEADSTATE_TIEDFORTHELEAD : LEADSTATE_INTHELEAD;
-		BlueLeadState = ( lNewFragCount > TEAM_GetFragCount( TEAM_BLUE )) ? LEADSTATE_NOTINTHELEAD : ( lNewFragCount == TEAM_GetFragCount( TEAM_BLUE )) ? LEADSTATE_TIEDFORTHELEAD : LEADSTATE_INTHELEAD;
+		if ( i == ulTeam )
+			lScore[i] = lNewFragCount;
+		else
+			lScore[i] = TEAM_GetFragCount( i );
+
+		if ( lScore[i] > lHighestFragCount)
+			lHighestFragCount = lScore[i];
 	}
 
-	// If blue's lead state has changed, play a sound.
-	if ( OldBlueLeadState != BlueLeadState )
+	for ( ULONG i = 0; i < teams.Size( ); i++ )
 	{
-		switch ( BlueLeadState )
+		// Set the possible teams.
+		if ( lScore[i] == lHighestFragCount )
 		{
-		// Blue is in the lead!
-		case LEADSTATE_INTHELEAD:
-
-			ANNOUNCER_PlayEntry( cl_announcer, "BlueLeads" );
-			break;
-		// Teams are tied!
-		case LEADSTATE_TIEDFORTHELEAD:
-
-			ANNOUNCER_PlayEntry( cl_announcer, "TeamsAreTied" );
-			break;
-		// If blue is not in the lead, then red leads!
-		case LEADSTATE_NOTINTHELEAD:
-
-			ANNOUNCER_PlayEntry( cl_announcer, "RedLeads" );
-			break;
+			bPossibleTeams[i] = true;
+			ulNumberOfPossibleTeams++;
 		}
+
+		// Count the maximum teams used.
+		if ( TEAM_CountPlayers( i ) < 1 )
+			continue;
+
+		ulMaxPossibleTeams++;
+	}
+
+	// Play the "teams are tied" sound if all active teams have equal scores.
+	if ( ulNumberOfPossibleTeams == ulMaxPossibleTeams )
+	{
+		ANNOUNCER_PlayEntry( cl_announcer, "TeamsAreTied");
+		return;
+	}
+
+	// Don't allow any sounds to play if more than one teams are leading.
+	if ( ulNumberOfPossibleTeams > 1 )
+	{
+		return;
+	}
+
+	// Announce the team leading message.
+	for ( ULONG i = 0; i < teams.Size( ); i++ )
+	{
+		if ( bPossibleTeams[i] == false || TEAM_GetAnnouncedLeadState( i ))
+			continue;
+
+		// Lead state - make sure we only announce a team leading once and not
+		// every frag.
+		for ( ULONG j = 0; j < teams.Size( ); j++ )
+			TEAM_SetAnnouncedLeadState( j, false );
+
+		TEAM_SetAnnouncedLeadState( i, true );
+
+		// Build the message.
+		// Whatever the team's name is, is the first part of the message. For example:
+		// if the "blue" team has been defined then the message will be "BlueLeads".
+		// This way we don't have to change every announcer to use a new system. 
+		FString name;
+		name += TEAM_GetName( i );
+		name += "Leads";
+
+		// Finally, play the built message.
+		ANNOUNCER_PlayEntry( cl_announcer, name.GetChars( ));
 	}
 
 	// Potentially play the "3 frags left", etc. announcer sounds.

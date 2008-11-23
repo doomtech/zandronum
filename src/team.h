@@ -50,67 +50,31 @@
 #ifndef __TEAM_H__
 #define __TEAM_H__
 
+#include "a_doomglobal.h"
 #include "a_pickups.h"
 #include "c_cvars.h"
 //#include "keycard.h"
 #include "d_player.h"
+#include "teaminfo.h"
 
 //*****************************************************************************
 //	DEFINES
 
+// [CW] Add to this when bumping 'MAX_TEAMS'.
 enum
 {
-	TEAM_BLUE,
-	TEAM_RED,
-
-	NUM_TEAMS
+	TEAM1_STARTMENUPOS = 5,
+	TEAM2_STARTMENUPOS = 13,
+	TEAM3_STARTMENUPOS = 21,
+	TEAM4_STARTMENUPOS = 29,
 };
 
 // [RC] Global constant for	team messages.
 #define TEAM_MESSAGE_Y_AXIS		0.135f
 #define TEAM_MESSAGE_Y_AXIS_SUB 0.195f
 
-//*****************************************************************************
-//	STRUCTURES
-
-typedef struct
-{
-	// Name of this team ("TEH LEETZORZ!")
-	char		szName[32];
-
-	// Color the players of this team will be.
-	char		szColor[32];
-
-	// Text color we print various team messages in.
-	ULONG		ulTextColor;
-
-	// Color of the railgun trail made by all team members.
-	LONG		lRailColor;
-
-	// Current amount of points this team has.
-	LONG		lScore;
-
-	// Object type of this team's "flag".
-	const PClass		*FlagItem;
-
-	// Icon that appears over a player that posseses this team's "flag".
-//	statenum_t	Icon;
-
-	// Amount of time left before this team's "flag" is returned to it's proper place.
-	ULONG		ulReturnTicks;
-
-	// Offset for the type of scripts that are run to return this team's "flag".
-	ULONG		ulReturnScriptOffset;
-
-	// Number of frags this team has (teamplay deathmatch).
-	LONG		lFragCount;
-
-	// Number of combined deaths this team has (teamplay deathmatch).
-	LONG		lDeathCount;
-
-	// Number of wins this team has (team LMS).
-	LONG		lWinCount;
-} TEAM_t;
+// [CW] The number of bot slots defined in the bot team setup menu.
+#define MAX_BOTTEAMSLOTS MAX_TEAMS * 5
 
 //*****************************************************************************
 //	PROTOTYPES
@@ -120,23 +84,28 @@ void		TEAM_Tick( void );
 void		TEAM_Reset( void );
 ULONG		TEAM_CountPlayers( ULONG ulTeamIdx );
 ULONG		TEAM_CountLivingPlayers( ULONG ulTeamIdx );
+ULONG		TEAM_TeamsWithPlayersOn( void );
 void		TEAM_ExecuteReturnRoutine( ULONG ulTeamIdx, AActor *pReturner );
-bool		TEAM_IsFlagMode( void );
 ULONG		TEAM_ChooseBestTeamForPlayer( void );
 void		TEAM_ScoreSkulltagPoint( player_t *pPlayer, ULONG ulNumPoints, AActor *pPillar );
 void		TEAM_DisplayNeedToReturnSkullMessage( player_t *pPlayer );
-void		TEAM_FlagDropped( player_t *pPlayer );
+void		TEAM_FlagDropped( player_t *pPlayer, ULONG ulTeamIdx );
 WORD		TEAM_GetReturnScriptOffset( ULONG ulTeamIdx );
 void		TEAM_DoWinSequence( ULONG ulTeamIdx );
 void		TEAM_TimeExpired( void );
 bool		TEAM_SpawningTemporaryFlag( void );
 
 // Access functions.
+bool		TEAM_CheckIfValid( ULONG ulTeamIdx );
+
 const char	*TEAM_GetName( ULONG ulTeamIdx );
 void		TEAM_SetName( ULONG ulTeamIdx, const char *pszName );
 
-const char	*TEAM_GetColor( ULONG ulTeamIdx );
-void		TEAM_SetColor( ULONG ulTeamIdx, const char *pszColor );
+ULONG		TEAM_GetTeamNumberByName( const char *pszName );
+
+int			TEAM_GetColor( ULONG ulTeamIdx );
+void		TEAM_SetColor( ULONG ulTeamIdx, int r, int g, int b );
+bool		TEAM_IsCustomPlayerColorAllowed( ULONG ulTeamIdx );
 
 ULONG		TEAM_GetTextColor( ULONG ulTeamIdx );
 void		TEAM_SetTextColor( ULONG ulTeamIdx, USHORT usColor );
@@ -147,8 +116,26 @@ void		TEAM_SetRailgunColor( ULONG ulTeamIdx, LONG lColor );
 LONG		TEAM_GetScore( ULONG ulTeamIdx );
 void		TEAM_SetScore( ULONG ulTeamIdx, LONG lScore, bool bAnnouncer );
 
-const PClass	*TEAM_GetFlagItem( ULONG ulTeamIdx );
-void		TEAM_SetFlagItem( ULONG ulTeamIdx, const PClass *pType );
+const char	*TEAM_GetSmallHUDIcon( ULONG ulTeamIdx );
+void		TEAM_SetSmallHUDIcon( ULONG ulTeamIdx, const char *pszName, bool bFlag );
+
+const char	*TEAM_GetLargeHUDIcon( ULONG ulTeamIdx );
+void		TEAM_SetLargeHUDIcon( ULONG ulTeamIdx, const char *pszName, bool bFlag );
+
+bool		TEAM_HasCustomString( ULONG ulTeamIdx, const FString TEAMINFO::*stringPointer );
+const char	*TEAM_GetCustomString( ULONG ulTeamIdx, const FString TEAMINFO::*stringPointer );
+const char	*TEAM_SelectCustomStringForPlayer( player_t *pPlayer, const FString TEAMINFO::*stringPointer, const char *pszDefaultString );
+
+const PClass	*TEAM_GetItem( ULONG ulTeamIdx );
+void		TEAM_SetItem( ULONG ulTeamIdx, const PClass *pType, bool bFlag );
+
+AInventory	*TEAM_FindOpposingTeamsItemInPlayersInventory( player_t *pPlayer );
+
+player_t	*TEAM_GetCarrier( ULONG ulTeamIdx );
+void		TEAM_SetCarrier( ULONG ulTeamIdx, player_t *player );
+
+bool		TEAM_GetAnnouncedLeadState( ULONG ulTeamIdx );
+void		TEAM_SetAnnouncedLeadState( ULONG ulTeamIdx, bool bAnnouncedLeadState );
 
 ULONG		TEAM_GetReturnTicks( ULONG ulTeamIdx );
 void		TEAM_SetReturnTicks( ULONG ulTeamIdx, ULONG ulTicks );
@@ -162,44 +149,45 @@ void		TEAM_SetDeathCount( ULONG ulTeamIdx, LONG lDeathCount );
 LONG		TEAM_GetWinCount( ULONG ulTeamIdx );
 void		TEAM_SetWinCount( ULONG ulTeamIdx, LONG lWinCount, bool bAnnounce );
 
-bool		TEAM_GetSimpleCTFMode( void );
-void		TEAM_SetSimpleCTFMode( bool bSimple );
+bool		TEAM_GetSimpleCTFSTMode( void );
+void		TEAM_SetSimpleCTFSTMode( bool bSimple );
 
-bool		TEAM_GetSimpleSTMode( void );
-void		TEAM_SetSimpleSTMode( bool bSimple );
-
-bool		TEAM_GetBlueFlagTaken( void );
-void		TEAM_SetBlueFlagTaken( bool bTaken );
-
-bool		TEAM_GetRedFlagTaken( void );
-void		TEAM_SetRedFlagTaken( bool bTaken );
+bool		TEAM_GetItemTaken( ULONG ulTeamIdx );
+void		TEAM_SetItemTaken( ULONG ulTeamIdx, bool bTaken );
 
 bool		TEAM_GetWhiteFlagTaken( void );
 void		TEAM_SetWhiteFlagTaken( bool bTaken );
 
-bool		TEAM_GetBlueSkullTaken( void );
-void		TEAM_SetBlueSkullTaken( bool bTaken );
-
-bool		TEAM_GetRedSkullTaken( void );
-void		TEAM_SetRedSkullTaken( bool bTaken );
-
-POS_t		TEAM_GetBlueFlagOrigin( void );
-void		TEAM_SetBlueFlagOrigin( POS_t Origin );
-
-POS_t		TEAM_GetRedFlagOrigin( void );
-void		TEAM_SetRedFlagOrigin( POS_t Origin );
+POS_t		TEAM_GetItemOrigin( ULONG ulTeamIdx );
+void		TEAM_SetTeamItemOrigin( ULONG ulTeamIdx, POS_t Origin );
 
 POS_t		TEAM_GetWhiteFlagOrigin( void );
 void		TEAM_SetWhiteFlagOrigin( POS_t Origin );
 
-POS_t		TEAM_GetBlueSkullOrigin( void );
-void		TEAM_SetBlueSkullOrigin( POS_t Origin );
-
-POS_t		TEAM_GetRedSkullOrigin( void );
-void		TEAM_SetRedSkullOrigin( POS_t Origin );
-
 ULONG		TEAM_GetAssistPlayer( ULONG ulTeamIdx );
 void		TEAM_SetAssistPlayer( ULONG ulTeamIdx, ULONG ulPlayer );
+void		TEAM_CancelAssistsOfPlayer( ULONG ulPlayer );
+
+bool		TEAM_CheckAllTeamsHaveEqualFrags( void );
+bool		TEAM_CheckAllTeamsHaveEqualWins( void );
+bool		TEAM_CheckAllTeamsHaveEqualScores( void );
+
+bool		TEAM_ShouldUseTeam( ULONG ulTeam );
+
+LONG		TEAM_GetHighestFragCount( void );
+LONG		TEAM_GetHighestWinCount( void );
+LONG		TEAM_GetHighestScoreCount( void );
+
+LONG		TEAM_GetSpread ( ULONG ulTeam, LONG (*GetCount) ( ULONG ulTeam ) );
+LONG		TEAM_GetFragCountSpread ( ULONG ulTeam );
+LONG		TEAM_GetWinCountSpread ( ULONG ulTeam );
+LONG		TEAM_GetScoreCountSpread ( ULONG ulTeam );
+
+ULONG		TEAM_CountFlags( void );
+ULONG		TEAM_CountSkulls( void );
+
+ULONG		TEAM_GetTeamFromItem( AActor *pActor );
+ULONG		TEAM_GetNextTeam( ULONG ulTeamIdx );
 
 bool		TEAM_IsActorAllowedForPlayer( AActor *pActor, player_t *pPlayer );
 bool		TEAM_IsClassAllowedForPlayer( ULONG ulClass, player_t *pPlayer );
@@ -220,5 +208,7 @@ EXTERN_CVAR( Bool, domination )
 
 EXTERN_CVAR( Int, pointlimit )
 EXTERN_CVAR( Int, sv_flagreturntime )
+
+EXTERN_CVAR( Int, menu_team )
 
 #endif	// __TEAM_H__

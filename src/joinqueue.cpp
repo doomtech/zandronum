@@ -171,9 +171,7 @@ void JOINQUEUE_PlayerLeftGame( bool bWantPop )
 	if ( teamlms )
 	{
 		// Someone just won by default!
-		if (( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) &&
-			(( LASTMANSTANDING_TeamCountMenStanding( TEAM_BLUE ) <= 0 ) ||
-			( LASTMANSTANDING_TeamCountMenStanding( TEAM_RED ) <= 0 )))
+		if (( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS ) && LASTMANSTANDING_TeamsWithAlivePlayersOn( ) <= 1)
 		{
 			LONG	lWinner;
 
@@ -202,7 +200,7 @@ void JOINQUEUE_PlayerLeftGame( bool bWantPop )
 
 			GAME_SetEndLevelDelay( 5 * TICRATE );
 		}
-		else if (( TEAM_CountPlayers( TEAM_BLUE ) == 0 ) || ( TEAM_CountPlayers( TEAM_RED ) == 0 ))
+		else if ( TEAM_TeamsWithPlayersOn( ) <= 1 )
 			LASTMANSTANDING_SetState( LMSS_WAITINGFORPLAYERS );
 	}
 
@@ -210,7 +208,7 @@ void JOINQUEUE_PlayerLeftGame( bool bWantPop )
 	if ( possession && ( SERVER_CalcNumNonSpectatingPlayers( MAXPLAYERS ) < 1 ))
 		POSSESSION_SetState( PSNS_WAITINGFORPLAYERS );
 
-	if ( teampossession && (( TEAM_CountPlayers( TEAM_BLUE ) == 0 ) || ( TEAM_CountPlayers( TEAM_RED ) == 0 )))
+	if ( teampossession && ( TEAM_TeamsWithPlayersOn( ) <= 1 ) )
 		POSSESSION_SetState( PSNS_WAITINGFORPLAYERS );
 
 	// If we're in invasion mode, revert to the "waiting for players" state.
@@ -292,7 +290,7 @@ void JOINQUEUE_PopQueue( LONG lNumSlots )
 
 			if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 			{
-				if (( g_lJoinQueue[ulIdx].ulTeam == TEAM_BLUE ) || ( g_lJoinQueue[ulIdx].ulTeam == TEAM_RED ))
+				if ( TEAM_CheckIfValid ( g_lJoinQueue[ulIdx].ulTeam ) )
 					PLAYER_SetTeam( &players[g_lJoinQueue[ulIdx].ulPlayer], g_lJoinQueue[ulIdx].ulTeam, true );
 				else
 					PLAYER_SetTeam( &players[g_lJoinQueue[ulIdx].ulPlayer], TEAM_ChooseBestTeamForPlayer( ), true );

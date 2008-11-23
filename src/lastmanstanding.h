@@ -95,6 +95,7 @@ LONG	LASTMANSTANDING_TeamCountMenStanding( ULONG ulTeam );
 LONG	LASTMANSTANDING_TeamCountEnemiesStanding( ULONG ulTeam ); // [RC] 
 LONG	LASTMANSTANDING_GetLastManStanding( void );
 LONG	LASTMANSTANDING_TeamGetLastManStanding( void );
+LONG	LASTMANSTANDING_TeamsWithAlivePlayersOn( void );
 void	LASTMANSTANDING_StartCountdown( ULONG ulTicks );
 void	LASTMANSTANDING_DoFight( void );
 void	LASTMANSTANDING_DoWinSequence( ULONG ulWinner );

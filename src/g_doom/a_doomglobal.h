@@ -57,22 +57,4 @@ protected:
 	int SpriteOverride;
 };
 
-// [BC]
-class AFlag : public AInventory
-{
-	DECLARE_STATELESS_ACTOR( AFlag, AInventory )
-public:
-	virtual bool ShouldRespawn( );
-	virtual bool TryPickup( AActor *pToucher );
-	virtual bool HandlePickup( AInventory *pItem );
-	virtual LONG AllowFlagPickup( AActor *pToucher );
-	virtual void AnnounceFlagPickup( AActor *pToucher );
-	virtual void DisplayFlagTaken( AActor *pToucher );
-	virtual void MarkFlagTaken( bool bTaken );
-	virtual void ResetReturnTicks( void );
-	virtual void ReturnFlag( AActor *pReturner );
-	virtual void AnnounceFlagReturn( void );
-	virtual void DisplayFlagReturn( void );
-};
-
 #endif //__A_DOOMGLOBAL_H__

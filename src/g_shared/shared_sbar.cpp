@@ -1395,41 +1395,47 @@ void DBaseStatusBar::DrawTeamScores ()
 	// [BC] Draw skulls and flags in team game.
 	char	szPatchName[16];
 	int BigHeight =  Images[imgBNumbers]->GetHeight();
+	LONG lY;
+
 	if ( ctf || oneflagctf)
 	{
-		sprintf( szPatchName, "BFLASMAL" );
-		screen->DrawTexture (TexMan[szPatchName], 18, -( BigHeight * 3 ) - 18,
-			DTA_HUDRules, HUD_Normal,
-			DTA_CenterBottomOffset, true,
-			TAG_DONE);
+		lY = -( BigHeight * 3 ) - 18;
 
-		DrBNumberOuter( MIN( (int)TEAM_GetScore( TEAM_BLUE ), 99 ), 28, -( BigHeight * 3 ) - 18 - 29 );
+		for ( LONG i = teams.Size( ) - 1; i >= 0; i-- )
+		{
+			if ( TEAM_ShouldUseTeam( i ) == false )
+				continue;
 
-		sprintf( szPatchName, "RFLASMAL" );
-		screen->DrawTexture (TexMan[szPatchName], 18, -( BigHeight * 3 ) - 18 - 51,
-			DTA_HUDRules, HUD_Normal,
-			DTA_CenterBottomOffset, true,
-			TAG_DONE);
+			sprintf( szPatchName, TEAM_GetLargeHUDIcon( i ));
+			screen->DrawTexture (TexMan[szPatchName], 18, lY,
+				DTA_HUDRules, HUD_Normal,
+				DTA_CenterBottomOffset, true,
+				TAG_DONE);
 
-		DrBNumberOuter( MIN( (int)TEAM_GetScore( TEAM_RED ), 99 ), 28, -( BigHeight * 3 ) - 18 - 51 - 29 );
+			DrBNumberOuter( MIN( (int)TEAM_GetScore( i ), 99 ), 28, lY - 29 );
+
+			lY -= 51;
+		}
 	}
 	else if ( skulltag )
 	{
-		sprintf( szPatchName, "BSKUA0" );
-		screen->DrawTexture (TexMan[szPatchName], 12, -( BigHeight * 3 ) - 18,
-			DTA_HUDRules, HUD_Normal,
-			DTA_CenterBottomOffset, true,
-			TAG_DONE);
+		lY = -( BigHeight * 3 ) - 18 - 24;
 
-		DrBNumberOuter( MIN( (int)TEAM_GetScore( TEAM_BLUE ), 99 ), 16, -( BigHeight * 3 ) - 18 - 16 );
+		for ( LONG i = teams.Size( ) - 1; i >= 0; i-- )
+		{
+			if ( TEAM_ShouldUseTeam( i ) == false )
+				continue;
 
-		sprintf( szPatchName, "RSKUA0" );
-		screen->DrawTexture (TexMan[szPatchName], 12, -( BigHeight * 3 ) - 18 - 24,
-			DTA_HUDRules, HUD_Normal,
-			DTA_CenterBottomOffset, true,
-			TAG_DONE);
+			sprintf( szPatchName, TEAM_GetLargeHUDIcon( i ));
+			screen->DrawTexture (TexMan[szPatchName], 12, lY,
+				DTA_HUDRules, HUD_Normal,
+				DTA_CenterBottomOffset, true,
+				TAG_DONE);
 
-		DrBNumberOuter( MIN( (int)TEAM_GetScore( TEAM_RED ), 99 ), 16, -( BigHeight * 3 ) - 18 - 24 - 16 );
+			DrBNumberOuter( MIN( (int)TEAM_GetScore( i ), 99 ), 16, lY - 16 );
+
+			lY -= 24;
+		}
 	}
 }
 

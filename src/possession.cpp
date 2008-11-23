@@ -116,8 +116,7 @@ void POSSESSION_Tick( void )
 
 		if ( teampossession )
 		{
-			if (( TEAM_CountPlayers( TEAM_BLUE ) >= 1 ) &&
-				( TEAM_CountPlayers( TEAM_RED ) >= 1 ))
+			if ( TEAM_TeamsWithPlayersOn( ) > 1 )
 			{
 				if ( sv_possessioncountdowntime > 0 )
 					POSSESSION_StartCountdown(( sv_possessioncountdowntime * TICRATE ) - 1 );
@@ -205,8 +204,7 @@ void POSSESSION_Tick( void )
 
 		if ( teampossession )
 		{
-			if (( TEAM_CountPlayers( TEAM_BLUE ) >= 1 ) &&
-				( TEAM_CountPlayers( TEAM_RED ) >= 1 ))
+			if ( TEAM_TeamsWithPlayersOn( ) > 1 )
 			{
 				if ( sv_possessioncountdowntime > 0 )
 					POSSESSION_StartNextRoundCountdown(( sv_possessioncountdowntime * TICRATE ) - 1 );
@@ -829,16 +827,8 @@ void possession_DisplayScoreInfo( ULONG ulPlayer )
 	// [RC] On team possession, state who scored.
 	if ( teampossession && ( players[ulPlayer].bOnTeam ))
 	{
-		if ( players[ulPlayer].ulTeam == TEAM_BLUE )
-		{
-			sprintf( szString, "\\chBLUE %s!", bPointLimitReached ? "WINS" : "SCORES" );
-			sprintf( szScorer, "\\chScored by: %s", players[ulPlayer].userinfo.netname );
-		}
-		else
-		{
-			sprintf( szString, "\\cGRED %s!", bPointLimitReached ? "WINS" : "SCORES" );
-			sprintf( szScorer, "\\cgScored by: %s", players[ulPlayer].userinfo.netname );
-		}
+		sprintf( szString, "\\c%c%s %s!", V_GetColorChar( TEAM_GetTextColor( players[ulPlayer].ulTeam )), TEAM_GetName( players[ulPlayer].ulTeam ) ,bPointLimitReached ? "WINS" : "SCORES" );
+		sprintf( szScorer, "\\c%cScored by: %s", V_GetColorChar( TEAM_GetTextColor( players[ulPlayer].ulTeam )), players[ulPlayer].userinfo.netname );
 
 		V_RemoveColorCodes( szScorer );
 		V_ColorizeString( szScorer );

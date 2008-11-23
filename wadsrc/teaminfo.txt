@@ -2,48 +2,32 @@ ClearTeams
 
 Team "Blue"
 {
-	PlayerColor "00 00 FF"
+	PlayerColor "00 00 BF"
 	TextColor "Blue"
+	RailColor "00 00 FF"
+
+	FlagItem "BlueFlag"
+	SkullItem "BlueSkullST"
+
+	PlayerStartThingNumber 5080
+	SmallFlagHUDIcon "STFLA1"
+	SmallSkullHUDIcon "STKEYS3"
+	LargeFlagHUDIcon "BFLASMAL"
+	LargeSkullHUDIcon "BSKUA0"
 }
 
 Team "Red"
 {
-	PlayerColor "FF 00 00"
+	PlayerColor "BF 00 00"
 	TextColor "Red"
-}
+	RailColor "FF 00 00"
 
-Team "Green"
-{
-	PlayerColor "00 FF 00"
-	TextColor "Green"
-}
+	FlagItem "RedFlag"
+	SkullItem "RedSkullST"
 
-Team "Gold"
-{
-	PlayerColor "FF FF 00"
-	TextColor "Gold"
-}
-
-Team "Black"
-{
-	PlayerColor "00 00 00"
-	TextColor "Black"
-}
-
-Team "White"
-{
-	PlayerColor "FF FF FF"
-	TextColor "White"
-}
-
-Team "Orange"
-{
-	PlayerColor "FF 80 00"
-	TextColor "Orange"
-}
-
-Team "Purple"
-{
-	PlayerColor "FF 00 FF"
-	TextColor "Purple"
+	PlayerStartThingNumber 5081
+	SmallFlagHUDIcon "STFLA2"
+	SmallSkullHUDIcon "STKEYS5"
+	LargeFlagHUDIcon "RFLASMAL"
+	LargeSkullHUDIcon "RSKUA0"
 }

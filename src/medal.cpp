@@ -110,10 +110,11 @@ enum
 	SPRITE_CHAT,
 	SPRITE_INCONSOLE,
 	SPRITE_ALLY,
-	SPRITE_FLAG_OR_SKULL,
+	SPRITE_WHITEFLAG,
 	SPRITE_TERMINATORARTIFACT,
 	SPRITE_LAG,
-	SPRITE_POSSESSIONARTIFACT
+	SPRITE_POSSESSIONARTIFACT,
+	SPRITE_TEAMITEM
 };
 
 static	MEDALQUEUE_t	g_MedalQueue[MAXPLAYERS][MEDALQUEUE_DEPTH];
@@ -816,27 +817,11 @@ bool medal_PlayerHasCarrierIcon ( ULONG ulPlayer )
 	bool bHasIcon = true;
 
 	// Verify that our current icon is valid.
-	if ( pPlayer->pIcon )
+	if ( pPlayer->pIcon && pPlayer->pIcon->bTeamItemFloatyIcon == false )
 	{
 		switch ( (ULONG)( pPlayer->pIcon->state - pPlayer->pIcon->SpawnState ))
 		{
 		// Flag/skull icon. Delete it if the player no longer has it.
-		case S_BLUESKULL:
-		case ( S_BLUESKULL + 1 ):
-		case S_BLUEFLAG:
-		case ( S_BLUEFLAG + 1 ):
-		case ( S_BLUEFLAG + 2 ):
-		case ( S_BLUEFLAG + 3 ):
-		case ( S_BLUEFLAG + 4 ):
-		case ( S_BLUEFLAG + 5 ):
-		case S_REDSKULL:
-		case ( S_REDSKULL + 1 ):
-		case S_REDFLAG:
-		case ( S_REDFLAG + 1 ):
-		case ( S_REDFLAG + 2 ):
-		case ( S_REDFLAG + 3 ):
-		case ( S_REDFLAG + 4 ):
-		case ( S_REDFLAG + 5 ):
 		case S_WHITEFLAG:
 		case ( S_WHITEFLAG + 1 ):
 		case ( S_WHITEFLAG + 2 ):
@@ -856,15 +841,7 @@ bool medal_PlayerHasCarrierIcon ( ULONG ulPlayer )
 
 				// Delete the white flag if the player no longer has it.
 				pInventory = pPlayer->mo->FindInventory( PClass::FindClass( "WhiteFlag" ));
-				if (( oneflagctf ) && ( pInventory == NULL ))
-				{
-					bInvalid = true;
-					break;
-				}
-
-				// Delete the flag/skull if the player no longer has it.
-				pInventory = pPlayer->mo->FindInventory( TEAM_GetFlagItem( !pPlayer->ulTeam ));
-				if (( oneflagctf == false ) && ( pInventory == NULL ))
+				if ( pInventory == NULL )
 				{
 					bInvalid = true;
 					break;
@@ -895,6 +872,12 @@ bool medal_PlayerHasCarrierIcon ( ULONG ulPlayer )
 			bHasIcon = false;
 			break;
 		}
+	}
+
+	if ( pPlayer->pIcon && pPlayer->pIcon->bTeamItemFloatyIcon )
+	{
+		if ( ctf || oneflagctf || skulltag )
+			bInvalid = ( TEAM_FindOpposingTeamsItemInPlayersInventory ( pPlayer ) == NULL );
 	}
 
 	// Remove it.
@@ -967,6 +950,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 	AInventory	*pInventory;
 	player_t	*pPlayer;
 	ULONG		ulActualSprite = 65535;
+	ULONG		ulThisTeam = teams.Size( );
 
 	if ( ulPlayer >= MAXPLAYERS )
 		return;
@@ -989,7 +973,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 
 	// Verify that our current icon is valid. (i.e. We may have had a chat bubble, then
 	// stopped talking, so we need to delete it).
-	if ( pPlayer->pIcon )
+	if ( pPlayer->pIcon && pPlayer->pIcon->bTeamItemFloatyIcon == false )
 	{
 		switch ( (ULONG)( pPlayer->pIcon->state - pPlayer->pIcon->SpawnState ))
 		{
@@ -1029,22 +1013,6 @@ void medal_SelectIcon( ULONG ulPlayer )
 				ulActualSprite = SPRITE_ALLY;
 			break;
 		// Flag/skull icon. Delete it if the player no longer has it.
-		case S_BLUESKULL:
-		case ( S_BLUESKULL + 1 ):
-		case S_BLUEFLAG:
-		case ( S_BLUEFLAG + 1 ):
-		case ( S_BLUEFLAG + 2 ):
-		case ( S_BLUEFLAG + 3 ):
-		case ( S_BLUEFLAG + 4 ):
-		case ( S_BLUEFLAG + 5 ):
-		case S_REDSKULL:
-		case ( S_REDSKULL + 1 ):
-		case S_REDFLAG:
-		case ( S_REDFLAG + 1 ):
-		case ( S_REDFLAG + 2 ):
-		case ( S_REDFLAG + 3 ):
-		case ( S_REDFLAG + 4 ):
-		case ( S_REDFLAG + 5 ):
 		case S_WHITEFLAG:
 		case ( S_WHITEFLAG + 1 ):
 		case ( S_WHITEFLAG + 2 ):
@@ -1068,11 +1036,6 @@ void medal_SelectIcon( ULONG ulPlayer )
 				if (( oneflagctf ) && ( pInventory == NULL ))
 					bDelete = true;
 
-				// Delete the flag/skull if the player no longer has it.
-				pInventory = pPlayer->mo->FindInventory( TEAM_GetFlagItem( !pPlayer->ulTeam ));
-				if (( oneflagctf == false ) && ( pInventory == NULL ))
-					bDelete = true;
-
 				// We wish to delete the icon, so do that now.
 				if ( bDelete )
 				{
@@ -1080,7 +1043,7 @@ void medal_SelectIcon( ULONG ulPlayer )
 					pPlayer->pIcon = NULL;
 				}
 				else
-					ulActualSprite = SPRITE_FLAG_OR_SKULL;
+					ulActualSprite = SPRITE_WHITEFLAG;
 			}
 
 			break;
@@ -1133,6 +1096,20 @@ void medal_SelectIcon( ULONG ulPlayer )
 		ULONG	ulFrame = 65535;
 		ULONG	ulDesiredSprite = 65535;
 
+		if ( pPlayer->pIcon && pPlayer->pIcon->bTeamItemFloatyIcon )
+		{
+			if ( ( ctf == false && skulltag == false ) || ( teamgame == false ) || ( pPlayer->bOnTeam == false )
+			     || ( TEAM_FindOpposingTeamsItemInPlayersInventory ( pPlayer ) == NULL ) )
+			{
+				pPlayer->pIcon->Destroy( );
+				pPlayer->pIcon = NULL;
+			}
+			else
+			{
+				ulActualSprite = SPRITE_TEAMITEM;
+			}
+		}
+
 		// Draw an ally icon if this person is on our team. Would this be useful for co-op, too?
 		if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
 		{
@@ -1175,20 +1152,20 @@ void medal_SelectIcon( ULONG ulPlayer )
 					if ( pInventory )
 					{
 						ulFrame = S_WHITEFLAG;
-						ulDesiredSprite = SPRITE_FLAG_OR_SKULL;
+						ulDesiredSprite = SPRITE_WHITEFLAG;
 					}
 				}
-				else
-				{
-					pInventory = pPlayer->mo->FindInventory( TEAM_GetFlagItem( !pPlayer->ulTeam ));
-					if ( pInventory )
-					{
-						if ( pPlayer->ulTeam == TEAM_BLUE )
-							ulFrame = ( ctf ) ? (USHORT)S_REDFLAG : (USHORT)S_REDSKULL;
-						else
-							ulFrame = ( ctf ) ? (USHORT)S_BLUEFLAG : (USHORT)S_BLUESKULL;
 
-						ulDesiredSprite = SPRITE_FLAG_OR_SKULL;
+				if ( ctf || skulltag )
+				{
+					for ( ulThisTeam = 0; ulThisTeam < teams.Size( ); ulThisTeam++ )
+					{
+						if ( pPlayer->mo->FindInventory( TEAM_GetItem( ulThisTeam )))
+						{
+							ulFrame = 0;
+							ulDesiredSprite = SPRITE_TEAMITEM;
+							break;
+						}
 					}
 				}
 			}
@@ -1209,17 +1186,48 @@ void medal_SelectIcon( ULONG ulPlayer )
 		}
 
 		// We have an icon that needs to be spawned.
-		if (( ulFrame != 65535 ) && ( ulDesiredSprite != 65535 ))
+		if ((( ulFrame != 65535 ) && ( ulDesiredSprite != 65535 )))
 		{
 			if (( pPlayer->pIcon == NULL ) || ( ulDesiredSprite != ulActualSprite ))
 			{
 				if ( pPlayer->pIcon == NULL )
-					pPlayer->pIcon = Spawn<AFloatyIcon>( pPlayer->mo->x, pPlayer->mo->y, pPlayer->mo->z + pPlayer->mo->height + ( 4 * FRACUNIT ), NO_REPLACE );
+				{
+					if ( ulThisTeam != teams.Size( ))
+					{
+						ATeamItem *pTeamItem = static_cast<ATeamItem *>( Spawn( TEAM_GetItem( ulThisTeam ), pPlayer->mo->x, pPlayer->mo->y, pPlayer->mo->z + pPlayer->mo->height + ( 4 * FRACUNIT ), NO_REPLACE ));
+
+						pPlayer->pIcon = (AFloatyIcon *)pTeamItem;
+						pPlayer->pIcon->bTeamItemFloatyIcon = true;
+						pPlayer->pIcon->pTeamItem = pTeamItem;
+
+						FName Name;
+	
+						Name = "Carry";
+
+						FState *CarryState = pPlayer->pIcon->FindState( Name );
+
+						if ( CarryState )
+						{
+							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+								SERVERCOMMANDS_SetThingFrame( pPlayer->pIcon, CarryState );
+
+							pPlayer->pIcon->SetState( CarryState );
+						}
+					}
+					else
+					{
+						pPlayer->pIcon = Spawn<AFloatyIcon>( pPlayer->mo->x, pPlayer->mo->y, pPlayer->mo->z + pPlayer->mo->height + ( 4 * FRACUNIT ), NO_REPLACE );
+						pPlayer->pIcon->bTeamItemFloatyIcon = false;
+						pPlayer->pIcon->pTeamItem = NULL;
+					}
+				}
 
 				if ( pPlayer->pIcon )
 				{
 					pPlayer->pIcon->SetTracer( pPlayer->mo );
-					pPlayer->pIcon->SetState( pPlayer->pIcon->SpawnState + ulFrame );
+
+					if ( pPlayer->pIcon->bTeamItemFloatyIcon == false )
+						pPlayer->pIcon->SetState( pPlayer->pIcon->SpawnState + ulFrame );
 				}
 			}
 		}

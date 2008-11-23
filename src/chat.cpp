@@ -301,7 +301,7 @@ void CHAT_Render( void )
 				DTA_VirtualHeight, ValHeight.Int,
 				TAG_DONE );
 
-			screen->DrawText(( players[consoleplayer].ulTeam == TEAM_BLUE ) ? CR_BLUE : CR_RED,
+			screen->DrawText((TEAM_GetTextColor (players[consoleplayer].ulTeam)),
 				SmallFont->StringWidth( g_pszChatPrompt ),
 				(LONG)( ulYPos * fYScale ),
 				g_szChatBuffer + lIdx,
@@ -334,7 +334,7 @@ void CHAT_Render( void )
 				g_pszChatPrompt,
 				TAG_DONE );
 
-			screen->DrawText(( players[consoleplayer].ulTeam == TEAM_BLUE ) ? CR_BLUE : CR_RED,
+			screen->DrawText((TEAM_GetTextColor (players[consoleplayer].ulTeam)),
 				SmallFont->StringWidth( g_pszChatPrompt ),
 				ulYPos,
 				g_szChatBuffer + lIdx,
@@ -449,11 +449,9 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 	else if ( ulMode == CHATMODE_TEAM )
 	{
 		ulChatLevel = PRINT_TEAMCHAT;
-
-		if ( players[consoleplayer].ulTeam == TEAM_BLUE )
-			OutString = "\\cH<TEAM> ";
-		else
-			OutString = "\\cG<TEAM> ";
+		OutString = "\\c";
+		OutString += V_GetColorChar( TEAM_GetTextColor( players[consoleplayer].ulTeam ));
+		OutString += "<TEAM> ";
 
 		// Special support for "/me" commands.
 		if ( strnicmp( "/me", pszString, 3 ) == 0 )

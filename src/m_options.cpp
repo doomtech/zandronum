@@ -261,9 +261,12 @@ value_t ModifierVals[3] = {
 	{ 2.0, "Buckshot" },
 };
 
-value_t TeamVals[2] = {
-	{ 0.0, "Blue" },
-	{ 1.0, "Red" },
+// [CW] Add to this when bumping 'MAX_TEAMS'.
+value_t TeamVals[MAX_TEAMS] = {
+	{ 0.0, "Team 1" },
+	{ 1.0, "Team 2" },
+	{ 2.0, "Team 3" },
+	{ 3.0, "Team 4" },
 };
 
 value_t GameModeVals[16] = {
@@ -2948,6 +2951,10 @@ CVAR( Int, menu_teambotspawn12, -1, CVAR_ARCHIVE );
 CVAR( Int, menu_teambotspawn13, -1, CVAR_ARCHIVE );
 CVAR( Int, menu_teambotspawn14, -1, CVAR_ARCHIVE );
 CVAR( Int, menu_teambotspawn15, -1, CVAR_ARCHIVE );
+CVAR( Int, menu_teambotspawn16, -1, CVAR_ARCHIVE );
+CVAR( Int, menu_teambotspawn17, -1, CVAR_ARCHIVE );
+CVAR( Int, menu_teambotspawn18, -1, CVAR_ARCHIVE );
+CVAR( Int, menu_teambotspawn19, -1, CVAR_ARCHIVE );
 CVAR( Int, menu_dmflags, 20612, CVAR_ARCHIVE );
 CVAR( Int, menu_dmflags2, 512, CVAR_ARCHIVE );
 CVAR( Int, menu_modifier, 0, CVAR_ARCHIVE );
@@ -3010,7 +3017,7 @@ void M_ClearBotSlotList( void )
 		( menu_gamemode == GAMEMODE_SKULLTAG ) ||
 		( menu_gamemode == GAMEMODE_DOMINATION ))
 	{
-		for ( ulIdx = 0; ulIdx < 16; ulIdx++ )
+		for ( ulIdx = 0; ulIdx < MAX_BOTTEAMSLOTS; ulIdx++ )
 		{
 			sprintf( szCVarName, "menu_teambotspawn%d", static_cast<unsigned int> (ulIdx) );
 			pVar = FindCVar( szCVarName, NULL );
@@ -3129,7 +3136,7 @@ void M_StartSkirmishGame( void )
 		( menu_gamemode == GAMEMODE_SKULLTAG ) ||
 		( menu_gamemode == GAMEMODE_DOMINATION ))
 	{
-		for ( ulIdx = 0; ulIdx < 16; ulIdx++ )
+		for ( ulIdx = 0; ulIdx < MAX_BOTTEAMSLOTS; ulIdx++ )
 		{
 			sprintf( szCVarName, "menu_teambotspawn%d", static_cast<unsigned int> (ulIdx) );
 			pVar = FindCVar( szCVarName, NULL );
@@ -3140,23 +3147,38 @@ void M_StartSkirmishGame( void )
 				sprintf( szBuffer, BOTINFO_GetName( Val.Int ));
 				V_ColorizeString( szBuffer );
 				V_RemoveColorCodes( szBuffer );
-				if ( ulIdx < 5 )
+
+				// [CW] Add to this when bumping 'MAX_TEAMS'.
+				if ( ulIdx >= 15 )
 				{
-					static char red[] = "red";
-					BOTSPAWN_AddToTable( szBuffer, red );
+					if ( teams.Size( ) >= 4 )
+						BOTSPAWN_AddToTable( szBuffer, (char *)TEAM_GetName( 3 ));
+				}
+				else if ( ulIdx >= 10 )
+				{
+					if ( teams.Size( ) >= 3 )
+						BOTSPAWN_AddToTable( szBuffer, (char *)TEAM_GetName( 2 ) );
+				}
+				else if ( ulIdx >= 5 )
+				{
+					if ( teams.Size( ) >= 2 )
+						BOTSPAWN_AddToTable( szBuffer, (char *)TEAM_GetName( 1 ) );
 				}
 				else
 				{
-					static char blue[] = "blue";
-					BOTSPAWN_AddToTable( szBuffer, blue );
+					BOTSPAWN_AddToTable( szBuffer, (char *)TEAM_GetName( 0 ) );
 				}
 			}
 		}
 
-		if (( menu_team == TEAM_BLUE ) || ( menu_team == TEAM_RED ))
+		for ( ULONG i = 0; i < teams.Size( ); i++ )
 		{
-			players[consoleplayer].bOnTeam = true;
-			players[consoleplayer].ulTeam = menu_team;
+			if ( menu_team == i )
+			{
+				players[consoleplayer].bOnTeam = true;
+				players[consoleplayer].ulTeam = menu_team;
+				break;
+			}
 		}
 	}
 	else
@@ -3280,11 +3302,12 @@ menu_t BotSetupMenu = {
  *
  *=======================================*/
 
+// [CW] Add to this when bumping 'MAX_TEAMS'.
 static menuitem_t TeamBotSetupItems[] = {
 	{ discrete,	"Botskill",					{&menu_botskill},		{5.0}, {0.0}, {0.0}, {BotskillVals} },
-	{ discrete,	"Player team",				{&menu_team},			{2.0}, {0.0}, {0.0}, {TeamVals} },
+	{ discrete,	"Player team",				{&menu_team},			{MAX_TEAMS}, {0.0}, {0.0}, {TeamVals} },
 	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
-	{ redtext,	"Red Team",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ redtext,	"Team 1",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
 	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
 	{ botslot,	"Slot 1:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
 	{ botslot,	"Slot 2:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
@@ -3292,7 +3315,23 @@ static menuitem_t TeamBotSetupItems[] = {
 	{ botslot,	"Slot 4:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
 	{ botslot,	"Slot 5:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
 	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
-	{ redtext,	"Blue Team",				{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ redtext,	"Team 2",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ botslot,	"Slot 1:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ botslot,	"Slot 2:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ botslot,	"Slot 3:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ botslot,	"Slot 4:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ botslot,	"Slot 5:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ redtext,	"Team 3",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ botslot,	"Slot 1:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ botslot,	"Slot 2:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ botslot,	"Slot 3:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ botslot,	"Slot 4:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ botslot,	"Slot 5:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
+	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
+	{ redtext,	"Team 4",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
 	{ redtext,	" ",						{NULL},					{0.0}, {0.0}, {0.0}, {NULL}  },
 	{ botslot,	"Slot 1:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
 	{ botslot,	"Slot 2:",					{NULL},					{0.0}, {0.0}, {0.0}, {NULL} },
@@ -3335,7 +3374,7 @@ void M_BotSetup( void )
 		( menu_gamemode == GAMEMODE_SKULLTAG ) ||
 		( menu_gamemode == GAMEMODE_DOMINATION ))
 	{
-		for ( ulIdx = 0; ulIdx < 16; ulIdx++ )
+		for ( ulIdx = 0; ulIdx < MAX_BOTTEAMSLOTS; ulIdx++ )
 		{
 			sprintf( szCVarName, "menu_teambotspawn%d", static_cast<unsigned int> (ulIdx) );
 			pVar = FindCVar( szCVarName, NULL );
@@ -3380,7 +3419,7 @@ void M_BotSetup( void )
 CVAR( Int, menu_teamplayerclass, 0, 0 );
 
 static TArray<valuestring_t> AvailablePlayerClasses;
-static ULONG g_ulDesiredTeam = NUM_TEAMS;
+static ULONG g_ulDesiredTeam = 0;
 
 static	void	SelectClassAndJoinTeam( void );
 
@@ -3409,7 +3448,7 @@ static void SelectClassAndJoinTeam( void )
 	char command[1024];
 
 	playerclass = AvailablePlayerClasses[menu_teamplayerclass].name.GetChars();
-	sprintf ( command, "team %s", TEAM_GetName( g_ulDesiredTeam ) );
+	sprintf ( command, "team \"%s\"", TEAM_GetName( g_ulDesiredTeam ) );
 	AddCommandString( command );
 	M_ClearMenus( );
 }
@@ -3458,9 +3497,12 @@ static void InitAvailablePlayerClassList( ULONG ulTeam )
  *
  *=======================================*/
 
+CVAR( Int, menu_teamidxjointeammenu, 0, 0 );
+
+static TArray<valuestring_t> AvailableTeams;
+
 static	void	AutoSelectTeam( void );
-static	void	JoinRed( void );
-static	void	JoinBlue( void );
+static	void	JoinTeam( void );
 static	void	JoinRandom( void );
 static	void	ShowHelp( void );
 
@@ -3473,16 +3515,18 @@ static menuitem_t JoinTeamItems[] =
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ more,		"Auto-select",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)AutoSelectTeam} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
-	{ more,		"Join red",				{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)JoinRed} },
-	{ more,		"Join blue",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)JoinBlue} },
-	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
-	{ more,		"Join random",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)JoinRandom} },
+	{ discretes,	"Team",				{&menu_teamidxjointeammenu},		   		{1.0}, {0.0},	{0.0}, {NULL} },
+	{ more,		"Join game",			{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)JoinTeam} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ more,		"How to play",			{NULL},					{0.0}, {0.0},	{0.0}, { (value_t *)ShowHelp} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 };
+
+// [BB] Line number of the "Team" entry from JoinTeamItems.
+// If the line number is changed, the value has to be adjusted.
+#define PLAYERTEAMS_INDEX 7
 
 static void AutoSelectTeam( void )
 {
@@ -3499,37 +3543,23 @@ static void ShowHelp( void )
 	AddCommandString( menu_help );
 }
 
-static void JoinTeam ( ULONG ulTeam )
+static void JoinTeam( void )
 {
-	if( PlayerClasses.Size() > 1 )
+	// [BB] Get the name of the selected team, "random" in case "( menu_teamidxjointeammenu == ( AvailableTeams.Size() - 1 ) )"
+	FString teamName = AvailableTeams[menu_teamidxjointeammenu].name.GetChars();
+	V_RemoveColorCodes ( teamName );
+	if( (PlayerClasses.Size() > 1) && ( menu_teamidxjointeammenu < ( AvailableTeams.Size() - 1 ) ) )
 	{
-		InitAvailablePlayerClassList( ulTeam );
+		InitAvailablePlayerClassList( TEAM_GetTeamNumberByName ( teamName ) );
 		M_SwitchMenu (&PlayerClassSelectionMenu);
 	}
 	else
 	{
 		char command[1024];
-		sprintf ( command, "team %s", TEAM_GetName( ulTeam ) );
+		sprintf ( command, "team \"%s\"", teamName.GetChars() );
 		AddCommandString( command );
 		M_ClearMenus( );
 	}
-}
-
-static void JoinRed( void )
-{
-	JoinTeam ( TEAM_RED );
-}
-
-static void JoinBlue( void )
-{
-	JoinTeam ( TEAM_BLUE );
-}
-
-static void JoinRandom( void )
-{
-	static char team_random[] = "team random";
-	AddCommandString( team_random );
-	M_ClearMenus( );
 }
 
 menu_t JoinTeamMenu =
@@ -3545,8 +3575,30 @@ menu_t JoinTeamMenu =
 	NULL,
 	false,
 	NULL,
-	MNF_CENTERED,
+	MNF_ALIGNLEFT,
 };
+
+static void InitAvailableTeamsList( )
+{
+	valuestring_t value;
+	AvailableTeams.Clear();
+	for ( ULONG ulIdx = 0; ulIdx < teams.Size(); ++ulIdx )
+	{
+		if ( TEAM_CheckIfValid( ulIdx ) )
+		{
+			value.value = static_cast<float> ( AvailableTeams.Size() );
+			value.name.Format ( "\\c%c%s", V_GetColorChar( TEAM_GetTextColor( ulIdx ) ), TEAM_GetName ( ulIdx ) );
+			V_ColorizeString ( value.name );
+			AvailableTeams.Push ( value );
+		}
+	}
+	value.value = static_cast<float> ( AvailableTeams.Size() );
+	static char random[] = "Random";
+	value.name = random;
+	AvailableTeams.Push ( value );
+	JoinTeamItems[PLAYERTEAMS_INDEX].b.numvalues = static_cast<float>(AvailableTeams.Size());
+	JoinTeamItems[PLAYERTEAMS_INDEX].e.valuestrings = &AvailableTeams[0];
+}
 
 /*=======================================
  *
@@ -4014,6 +4066,7 @@ bool M_JoinMenu ( void )
 bool M_StartJoinTeamMenu (void)
 {
 	OptionsActive = true;
+	InitAvailableTeamsList ();
 	M_SwitchMenu (&JoinTeamMenu);
 	return true;
 }
@@ -4625,10 +4678,44 @@ void M_OptDrawer ()
 						( menu_gamemode == GAMEMODE_SKULLTAG ) ||
 						( menu_gamemode == GAMEMODE_DOMINATION ))
 					{
-						if ( i < 13 )
+						// [CW] Add to this when bumping 'MAX_TEAMS'.
+						switch( i )
+						{
+						case TEAM1_STARTMENUPOS:
+						case TEAM1_STARTMENUPOS + 1:
+						case TEAM1_STARTMENUPOS + 2:
+						case TEAM1_STARTMENUPOS + 3:
+						case TEAM1_STARTMENUPOS + 4:
 							sprintf( szCVarName, "menu_teambotspawn%d", i - 5 );
-						else
+							break;
+
+						case TEAM2_STARTMENUPOS:
+						case TEAM2_STARTMENUPOS + 1:
+						case TEAM2_STARTMENUPOS + 2:
+						case TEAM2_STARTMENUPOS + 3:
+						case TEAM2_STARTMENUPOS + 4:
 							sprintf( szCVarName, "menu_teambotspawn%d", i - 8 );
+							break;
+
+						case TEAM3_STARTMENUPOS:
+						case TEAM3_STARTMENUPOS + 1:
+						case TEAM3_STARTMENUPOS + 2:
+						case TEAM3_STARTMENUPOS + 3:
+						case TEAM3_STARTMENUPOS + 4:
+							sprintf( szCVarName, "menu_teambotspawn%d", i - 11 );
+							break;
+
+						case TEAM4_STARTMENUPOS:
+						case TEAM4_STARTMENUPOS + 1:
+						case TEAM4_STARTMENUPOS + 2:
+						case TEAM4_STARTMENUPOS + 3:
+						case TEAM4_STARTMENUPOS + 4:
+							sprintf( szCVarName, "menu_teambotspawn%d", i - 14 );
+							break;
+
+						default:
+							break;
+						}
 					}
 					else
 						sprintf( szCVarName, "menu_botspawn%d", i - 2 );
@@ -5464,10 +5551,44 @@ void M_OptResponder (event_t *ev)
 						( menu_gamemode == GAMEMODE_SKULLTAG ) ||
 						( menu_gamemode == GAMEMODE_DOMINATION ))
 					{
-						if ( CurrentItem < 13 )
+						// [CW] Add to this when bumping 'MAX_TEAMS'.
+						switch( CurrentItem )
+						{
+						case TEAM1_STARTMENUPOS:
+						case TEAM1_STARTMENUPOS + 1:
+						case TEAM1_STARTMENUPOS + 2:
+						case TEAM1_STARTMENUPOS + 3:
+						case TEAM1_STARTMENUPOS + 4:
 							sprintf( szCVarName, "menu_teambotspawn%d", CurrentItem - 5 );
-						else
+							break;
+
+						case TEAM2_STARTMENUPOS:
+						case TEAM2_STARTMENUPOS + 1:
+						case TEAM2_STARTMENUPOS + 2:
+						case TEAM2_STARTMENUPOS + 3:
+						case TEAM2_STARTMENUPOS + 4:
 							sprintf( szCVarName, "menu_teambotspawn%d", CurrentItem - 8 );
+							break;
+
+						case TEAM3_STARTMENUPOS:
+						case TEAM3_STARTMENUPOS + 1:
+						case TEAM3_STARTMENUPOS + 2:
+						case TEAM3_STARTMENUPOS + 3:
+						case TEAM3_STARTMENUPOS + 4:
+							sprintf( szCVarName, "menu_teambotspawn%d", CurrentItem - 11 );
+							break;
+
+						case TEAM4_STARTMENUPOS:
+						case TEAM4_STARTMENUPOS + 1:
+						case TEAM4_STARTMENUPOS + 2:
+						case TEAM4_STARTMENUPOS + 3:
+						case TEAM4_STARTMENUPOS + 4:
+							sprintf( szCVarName, "menu_teambotspawn%d", CurrentItem - 14 );
+							break;
+
+						default:
+							break;
+						}
 					}
 					else
 						sprintf( szCVarName, "menu_botspawn%d", CurrentItem - 2 );
@@ -5868,10 +5989,44 @@ void M_OptResponder (event_t *ev)
 						( menu_gamemode == GAMEMODE_SKULLTAG ) ||
 						( menu_gamemode == GAMEMODE_DOMINATION ))
 					{
-						if ( CurrentItem < 13 )
+						// [CW] Add to this when bumping 'MAX_TEAMS'.
+						switch( CurrentItem )
+						{
+						case TEAM1_STARTMENUPOS:
+						case TEAM1_STARTMENUPOS + 1:
+						case TEAM1_STARTMENUPOS + 2:
+						case TEAM1_STARTMENUPOS + 3:
+						case TEAM1_STARTMENUPOS + 4:
 							sprintf( szCVarName, "menu_teambotspawn%d", CurrentItem - 5 );
-						else
+							break;
+
+						case TEAM2_STARTMENUPOS:
+						case TEAM2_STARTMENUPOS + 1:
+						case TEAM2_STARTMENUPOS + 2:
+						case TEAM2_STARTMENUPOS + 3:
+						case TEAM2_STARTMENUPOS + 4:
 							sprintf( szCVarName, "menu_teambotspawn%d", CurrentItem - 8 );
+							break;
+
+						case TEAM3_STARTMENUPOS:
+						case TEAM3_STARTMENUPOS + 1:
+						case TEAM3_STARTMENUPOS + 2:
+						case TEAM3_STARTMENUPOS + 3:
+						case TEAM3_STARTMENUPOS + 4:
+							sprintf( szCVarName, "menu_teambotspawn%d", CurrentItem - 11 );
+							break;
+
+						case TEAM4_STARTMENUPOS:
+						case TEAM4_STARTMENUPOS + 1:
+						case TEAM4_STARTMENUPOS + 2:
+						case TEAM4_STARTMENUPOS + 3:
+						case TEAM4_STARTMENUPOS + 4:
+							sprintf( szCVarName, "menu_teambotspawn%d", CurrentItem - 14 );
+							break;
+
+						default:
+							break;
+						}
 					}
 					else
 						sprintf( szCVarName, "menu_botspawn%d", CurrentItem - 2 );

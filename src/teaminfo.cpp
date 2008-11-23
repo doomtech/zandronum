@@ -34,11 +34,16 @@
 
 // HEADER FILES ------------------------------------------------------------
 
+#include "d_player.h"
 #include "i_system.h"
 #include "sc_man.h"
 #include "teaminfo.h"
 #include "v_palette.h"
 #include "w_wad.h"
+
+// [CW] New includes.
+#include "team.h"
+#include "version.h"
 
 // MACROS ------------------------------------------------------------------
 
@@ -51,7 +56,9 @@
 void TEAMINFO_Init ();
 void TEAMINFO_ParseTeam (FScanner &sc);
 
-bool TEAMINFO_IsValidTeam (int team);
+// [CW] See 'TEAM_CheckIfValid' in 'team.cpp'.
+
+//bool TEAMINFO_IsValidTeam (int team);
 
 // PRIVATE FUNCTION PROTOTYPES ---------------------------------------------
 
@@ -67,6 +74,19 @@ static const char *keywords_teaminfo [] = {
 	"PLAYERCOLOR",
 	"TEXTCOLOR",
 	"LOGO",
+	"FLAGITEM",
+	"SKULLITEM",
+	"RAILCOLOR",
+	"PLAYERSTARTTHINGNUMBER",
+	"SMALLFLAGHUDICON",
+	"SMALLSKULLHUDICON",
+	"LARGEFLAGHUDICON",
+	"LARGESKULLHUDICON",
+	"WINNERPIC",
+	"LOSERPIC",
+	"WINNERTHEME",
+	"LOSERTHEME",
+	"ALLOWCUSTOMPLAYERCOLOR",
 	NULL
 };
 
@@ -98,6 +118,9 @@ void TEAMINFO_Init ()
 
 	if (teams.Size () < 2)
 		I_FatalError ("At least two teams must be defined in TEAMINFO");
+
+	if ( teams.Size( ) > MAX_TEAMS )
+		I_FatalError ( "Only %d teams can be defined in TEAMINFO", MAX_TEAMS );
 }
 
 //==========================================================================
@@ -109,10 +132,15 @@ void TEAMINFO_Init ()
 void TEAMINFO_ParseTeam (FScanner &sc)
 {
 	TEAMINFO team;
+
+	// [BB] Initialize some values.
+	team.bCustomPlayerColorAllowed = false;
+
 	int i;
+	char *color;
 
 	sc.MustGetString ();
-	team.name = sc.String;
+	team.Name = sc.String;
 
 	sc.MustGetStringName("{");
 	while (!sc.CheckString("}"))
@@ -122,27 +150,99 @@ void TEAMINFO_ParseTeam (FScanner &sc)
 		{
 		case 0:
 			sc.MustGetString ();
-			team.playercolor = V_GetColor (NULL, sc.String);
+			color = sc.String;
+			team.lPlayerColor = V_GetColor (NULL, color);
 			break;
 
 		case 1:
 			sc.MustGetString();
-			team.textcolor = '[';
-			team.textcolor << sc.String << ']';
+			team.TextColor = '[';
+			team.TextColor += sc.String;
+			team.TextColor += ']';
 			break;
 
 		case 2:
-			sc.MustGetString ();
-			team.logo = sc.String;
+			sc.MustGetString( );
+			// [CW] 'Logo' isn't supported by Skulltag.
+			Printf( "WARNING: 'Logo' is not a supported TEAMINFO option in "GAMENAME".\n" );
+			break;
+
+		case 3:
+			sc.MustGetString( );
+			team.FlagItem = sc.String;
+			break;
+
+		case 4:
+			sc.MustGetString( );
+			team.SkullItem = sc.String;
+			break;
+
+		case 5:
+			sc.MustGetString( );
+			team.lRailColor = V_GetColorFromString( NULL, sc.String );
+			break;
+
+		case 6:
+			sc.MustGetNumber( );
+			team.ulPlayerStartThingNumber = sc.Number;
+			break;
+
+		case 7:
+			sc.MustGetString( );
+			team.SmallFlagHUDIcon = sc.String;
+			break;
+
+		case 8:
+			sc.MustGetString( );
+			team.SmallSkullHUDIcon = sc.String;
+			break;
+
+		case 9:
+			sc.MustGetString( );
+			team.LargeFlagHUDIcon = sc.String;
+			break;
+
+		case 10:
+			sc.MustGetString( );
+			team.LargeSkullHUDIcon = sc.String;
+			break;
+
+		case 11:
+			sc.MustGetString( );
+			team.WinnerPic = sc.String;
+			break;
+
+		case 12:
+			sc.MustGetString( );
+			team.LoserPic = sc.String;
+			break;
+
+		case 13:
+			sc.MustGetString( );
+			team.WinnerTheme = sc.String;
+			break;
+
+		case 14:
+			sc.MustGetString( );
+			team.LoserTheme = sc.String;
+			break;
+
+		case 15:
+			team.bCustomPlayerColorAllowed = true;
 			break;
 
 		default:
+			I_FatalError( "Unknown option '%s', on line %d in TEAMINFO.", sc.String, sc.Line );
 			break;
 		}
 	}
 
 	teams.Push (team);
 }
+
+/*
+
+// [CW] See 'TEAM_CheckIfValid' in 'team.cpp'.
 
 //==========================================================================
 //
@@ -159,6 +259,8 @@ bool TEAMINFO_IsValidTeam (int team)
 
 	return true;
 }
+
+// [CW] See 'TEAM_GetTextColor' in 'team.cpp'.
 
 //==========================================================================
 //
@@ -181,3 +283,5 @@ int TEAMINFO::GetTextColor () const
 	}
 	return color;
 }
+
+*/
