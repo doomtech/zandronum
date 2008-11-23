@@ -259,3 +259,44 @@ ACTOR BelphegorBall : BaronBall
 	SpawnID 154
 	Speed 20
 }
+
+//=================================================================================================
+//
+// BloodDemon
+//
+//=================================================================================================
+
+ACTOR BloodDemon : Demon 5004
+{
+	SpawnID 156
+	Health 300
+	Obituary "$OB_BLOODDEMON_MELEE"
+	States
+	{
+	Spawn:
+		SRG2 AB 10 A_Look
+		Loop
+	See:
+		SRG2 AABBCCDD 2 A_Chase
+		Loop
+	Pain:
+		SRG2 H 2
+		SRG2 H 2 A_Pain
+		Goto See
+	Melee:
+		SRG2 EF 8 A_FaceTarget
+		SRG2 G 8 A_SargAttack
+		Goto See
+	Death:
+		SRG2 I 8
+		SRG2 J 8 A_Scream
+		SRG2 K 4
+		SRG2 L 4 A_NoBlocking
+		SRG2 M 4
+		SRG2 N -1
+		Stop
+	Raise:
+		SRG2 NMLKJI 5
+		Goto See
+	}
+}

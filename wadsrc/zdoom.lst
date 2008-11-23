@@ -316,7 +316,7 @@ actors/shared/soundsequence.txt				decorate/shared/soundsequence.txt
 actors/doom/doomplayer.txt					decorate/doom/doomplayer.txt
 actors/doom/possessed.txt					decorate/doom/possessed.txt
 actors/doom/doomimp.txt						decorate/doom/doomimp.txt
-#actors/doom/demon.txt						decorate/doom/demon.txt
+actors/doom/demon.txt						decorate/doom/demon.txt
 actors/doom/lostsoul.txt					decorate/doom/lostsoul.txt
 actors/doom/cacodemon.txt					decorate/doom/cacodemon.txt
 actors/doom/bruiser.txt						decorate/doom/bruiser.txt

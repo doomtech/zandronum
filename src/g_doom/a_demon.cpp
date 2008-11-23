@@ -7,7 +7,7 @@
 #include "a_action.h"
 
 static FRandom pr_sargattack ("SargAttack");
-
+/*
 void A_SargAttack (AActor *);
 
 class ADemon : public AActor
@@ -159,7 +159,7 @@ IMPLEMENT_STATELESS_ACTOR (ASpectre, Doom, 58, 9)
 	PROP_ActiveSound ("spectre/active")
 	PROP_HitObituary ("$OB_SPECTREHIT")
 END_DEFAULTS
-
+*/
 void A_SargAttack (AActor *self)
 {
 	if (!self->target)
