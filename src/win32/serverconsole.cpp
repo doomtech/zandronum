@@ -163,7 +163,7 @@ void appendFormattedDataAmount ( FString &DataString, float fData ){
 
 extern	HINSTANCE	g_hInst;
 extern	FILE		*Logfile;
-extern	char		g_szLogFilename[256];
+extern	char		g_szDesiredLogFilename[256];
 
 // For the right click|ban dialogs.
 bool	g_Scoreboard_IsBan;
@@ -1075,7 +1075,7 @@ BOOL CALLBACK SERVERCONSOLE_MessagesCallback( HWND hDlg, UINT Message, WPARAM wP
 			else
 				SendDlgItemMessage( hDlg, IDC_ENABLELOGGING, BM_SETCHECK, BST_UNCHECKED, 0 );
 
-			SetDlgItemText( hDlg, IDC_LOGFILE, g_szLogFilename );
+			SetDlgItemText( hDlg, IDC_LOGFILE, g_szDesiredLogFilename );
 		}
 
 		break;
@@ -1105,7 +1105,7 @@ BOOL CALLBACK SERVERCONSOLE_MessagesCallback( HWND hDlg, UINT Message, WPARAM wP
 					else
 						sv_colorstripmethod = 0;
 
-					GetDlgItemText( hDlg, IDC_LOGFILE, g_szLogFilename, 1024 );
+					GetDlgItemText( hDlg, IDC_LOGFILE, g_szDesiredLogFilename, 1024 );
 
 					if ( SendDlgItemMessage( hDlg, IDC_ENABLELOGGING, BM_GETCHECK, 0, 0 ) == BST_CHECKED )
 					{
@@ -1117,7 +1117,7 @@ BOOL CALLBACK SERVERCONSOLE_MessagesCallback( HWND hDlg, UINT Message, WPARAM wP
 							Logfile = NULL;
 						}
 
-						if ( Logfile = fopen( g_szLogFilename, "w" ))
+						if ( Logfile = fopen( g_szDesiredLogFilename, "w" ))
 							Printf( "Log started: %s\n", myasctime( ));
 						else
 							Printf( "Could not start log\n" );

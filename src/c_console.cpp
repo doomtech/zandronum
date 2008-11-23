@@ -221,8 +221,12 @@ int PrintColors[PRINTLEVELS+2] = { CR_RED, CR_GOLD, CR_GRAY, CR_GREEN, CR_BRICK,
 static void setmsgcolor (int index, int color);
 
 FILE *Logfile = NULL;
-// [BC] Save the logfile name for the server console.
-char g_szLogFilename[256];
+
+// [BC] The user's desired name of the logfile.
+char g_szDesiredLogFilename[MAX_PATH];
+
+// [RC] The actual name of the logfile (most likely g_szLogFilename with a timestamp).
+char g_szActualLogFilename[MAX_PATH];
 
 void C_AddNotifyString (int printlevel, const char *source);
 
@@ -335,7 +339,8 @@ void DequeueConsoleText ()
 void C_InitConsole (int width, int height, bool ingame)
 {
 	// [BC] Initialize the name of the logfile.
-	g_szLogFilename[0] = 0;
+	g_szDesiredLogFilename[0] = 0;
+	g_szActualLogFilename[0] = 0;
 
 	// [BC] The server has no use for a console.
 	if ( Args->CheckParm( "-host" ))

@@ -63,6 +63,12 @@
 #include "v_video.h"
 
 //*****************************************************************************
+//	CONSOLE VARIABLES
+
+CVAR( Bool, instagib, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGNLOCK );
+CVAR( Bool, buckshot, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGNLOCK );
+
+//*****************************************************************************
 //	VARIABLES
 
 // Data for all our game modes.
@@ -354,7 +360,6 @@ void GAMEMODE_DisplayStandardMessage( const char *pszMessage )
 }
 
 //*****************************************************************************
-//*****************************************************************************
 //
 GAMEMODE_e GAMEMODE_GetCurrentMode( void )
 {
@@ -365,5 +370,120 @@ GAMEMODE_e GAMEMODE_GetCurrentMode( void )
 //
 void GAMEMODE_SetCurrentMode( GAMEMODE_e GameMode )
 {
-	g_CurrentGameMode = GameMode;
+	UCVarValue	 Val;
+	g_CurrentGameMode = GameMode;	
+	
+	// [RC] Set all the CVars. We can't just use "= true;" because of the latched cvars.
+	// (Hopefully Blzut's update will save us from this garbage.)
+
+	Val.Bool = false;
+	deathmatch.ForceSet( Val, CVAR_Bool );
+	teamgame.ForceSet( Val, CVAR_Bool );
+	instagib.ForceSet( Val, CVAR_Bool );
+	buckshot.ForceSet( Val, CVAR_Bool );
+
+	Val.Bool = true;
+	switch ( GameMode )
+	{
+	case GAMEMODE_COOPERATIVE:
+
+		cooperative.ForceSet( Val, CVAR_Bool );
+		break;
+	case GAMEMODE_SURVIVAL:
+
+		survival.ForceSet( Val, CVAR_Bool );
+		break;
+	case GAMEMODE_INVASION:
+
+		invasion.ForceSet( Val, CVAR_Bool );
+		break;
+	case GAMEMODE_DEATHMATCH:
+
+		deathmatch.ForceSet( Val, CVAR_Bool );
+		break;
+	case GAMEMODE_TEAMPLAY:
+
+		teamplay.ForceSet( Val, CVAR_Bool );
+		break;
+	case GAMEMODE_DUEL:
+
+		duel.ForceSet( Val, CVAR_Bool );
+		break;
+	case GAMEMODE_TERMINATOR:
+
+		terminator.ForceSet( Val, CVAR_Bool );
+		break;
+	case GAMEMODE_LASTMANSTANDING:
+
+		lastmanstanding.ForceSet( Val, CVAR_Bool );
+		break;
+	case GAMEMODE_TEAMLMS:
+
+		teamlms.ForceSet( Val, CVAR_Bool );
+		break;
+	case GAMEMODE_POSSESSION:
+
+		possession.ForceSet( Val, CVAR_Bool );
+		break;
+	case GAMEMODE_TEAMPOSSESSION:
+
+		teampossession.ForceSet( Val, CVAR_Bool );
+		break;
+	case GAMEMODE_TEAMGAME:
+
+		teamgame.ForceSet( Val, CVAR_Bool );
+		break;
+	case GAMEMODE_CTF:
+
+		ctf.ForceSet( Val, CVAR_Bool );
+		break;
+	case GAMEMODE_ONEFLAGCTF:
+
+		oneflagctf.ForceSet( Val, CVAR_Bool );
+		break;
+	case GAMEMODE_SKULLTAG:
+
+		skulltag.ForceSet( Val, CVAR_Bool );
+		break;
+	case GAMEMODE_DOMINATION:
+
+		domination.ForceSet( Val, CVAR_Bool );
+		break;
+	}
+}
+
+//*****************************************************************************
+//
+MODIFIER_e GAMEMODE_GetModifier( void )
+{
+	if ( instagib )
+		return MODIFIER_INSTAGIB;
+	else if ( buckshot )
+		return MODIFIER_BUCKSHOT;
+	else
+		return MODIFIER_NONE;
+}
+
+//*****************************************************************************
+//
+void GAMEMODE_SetModifier( MODIFIER_e Modifier )
+{
+	UCVarValue	 Val;
+
+	// Turn them all off.
+	Val.Bool = false;
+	instagib.ForceSet( Val, CVAR_Bool );
+	buckshot.ForceSet( Val, CVAR_Bool );
+
+	// Turn the selected one on.
+	Val.Bool = true;
+	switch ( Modifier )
+	{
+	case MODIFIER_INSTAGIB:
+		instagib.ForceSet( Val, CVAR_Bool );
+		break;
+	case MODIFIER_BUCKSHOT:
+		buckshot.ForceSet( Val, CVAR_Bool );
+		break;		
+	}
 }

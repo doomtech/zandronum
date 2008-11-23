@@ -148,6 +148,17 @@ typedef struct
 //*****************************************************************************
 typedef struct
 {
+	// The IP address in char form (can be a number or a wildcard).
+	char		szIP[4][4];
+
+	// Comment regarding the banned address.
+	char		szComment[128];
+
+} IPADDRESSBAN_s;
+
+//*****************************************************************************
+typedef struct
+{
 	// Pointer to our stream of data.
 	BYTE		*pbStream;
 
@@ -164,6 +175,7 @@ typedef struct
 #endif
 
 } BYTESTREAM_s;
+
 
 //*****************************************************************************
 typedef struct
@@ -186,16 +198,6 @@ typedef struct
 
 } NETBUFFER_s;
 
-//*****************************************************************************
-typedef struct
-{
-	// The IP address that is banned in char form. Can be a number or a wildcard.
-	char		szIP[4][4];
-
-	// Comment regarding the banned address.
-	char		szComment[128];
-
-} IPADDRESSBAN_s;
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 //-- PROTOTYPES ------------------------------------------------------------------------------------------------------------------------------------
@@ -295,7 +297,7 @@ public:
 	bool			isIPInList( const NETADDRESS_s &Address ) const;
 	ULONG			doesEntryExist( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3 ) const;
 	IPADDRESSBAN_s	getEntry( const ULONG ulIdx ) const;
-	std::string		getEntryAsString( const ULONG ulIdx, bool bIncludeComment = true ) const;
+	std::string		getEntryAsString( const ULONG ulIdx, bool bIncludeCommentAndNewline = true ) const;
 	ULONG			getEntryIndex( const NETADDRESS_s &Address ) const; // [RC]
 	const char		*getEntryComment( const NETADDRESS_s &Address ) const; // [RC]
 	void			addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3, const char *pszPlayerName, const char *pszComment, std::string &Message );

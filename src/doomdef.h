@@ -252,6 +252,9 @@ enum
 
 	// [BB] Award actual damage dealt instead of kills.
 	DF2_AWARD_DAMAGE_INSTEAD_KILLS		= 1 << 20,
+
+	// [BB] Enforces clients to display alpha, i.e. render as if r_drawtrans == 1.
+	DF2_FORCE_ALPHA		= 1 << 21,
 };
 
 // [RH] Compatibility flags.

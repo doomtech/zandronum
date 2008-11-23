@@ -102,6 +102,7 @@
 #include "win32/g15/g15.h"
 #include "gl/gl_functions.h"
 #include "team.h"
+#include "gamemode.h"
 
 // EXTERNAL FUNCTION PROTOTYPES --------------------------------------------
 
@@ -266,19 +267,19 @@ value_t TeamVals[2] = {
 };
 
 value_t GameModeVals[16] = {
-	{ 0.0, "Normal (cooperative)" },
-	{ 1.0, "Survival cooperative" },
+	{ 0.0, "Cooperative" },
+	{ 1.0, "Survival Cooperative" },
 	{ 2.0, "Invasion" },
-	{ 3.0, "Deathmatch (free for all)" },
-	{ 4.0, "Teamplay deathmatch" },
-	{ 5.0, "Duel deathmatch" },
-	{ 6.0, "Terminator deathmatch" },
-	{ 7.0, "Last man standing deathmatch" },
-	{ 8.0, "Team last man standing" },
-	{ 9.0, "Possession deathmatch" },
-	{ 10.0, "Team possession" },
-	{ 11.0, "Teamgame" },
-	{ 12.0, "Capture the flag" },
+	{ 3.0, "Deathmatch" },
+	{ 4.0, "Team Deathmatch" },
+	{ 5.0, "Duel" },
+	{ 6.0, "Terminator" },
+	{ 7.0, "Last Man Standing" },
+	{ 8.0, "Team Last Man Standing" },
+	{ 9.0, "Possession" },
+	{ 10.0, "Team Possession" },
+	{ 11.0, "Teamgame (ACS)" },
+	{ 12.0, "Capture the Flag" },
 	{ 13.0, "One flag CTF" },
 	{ 14.0, "Skulltag" },
 	{ 15.0, "Domination" },
@@ -1914,7 +1915,13 @@ CVAR( Bool, menu_browser_showfull, true, CVAR_ARCHIVE )
 
 // [RC] In Windows, a menu to launch IDEse or the internal browser is shown. There currently isn't an IDEse for Linux.
 #ifdef WIN32
-	void M_StartIdeSe( void );	
+
+	void M_StartIdeSe( void )
+	{
+		I_RunProgram( "idese.exe" );
+		exit( 0 );
+	}
+
 	static menuitem_t BrowserTypeItems[] = 
 	{
 		{ more,		"IDEse",		{NULL},					{0.0}, {0.0},	{0.0}, {(value_t *)M_StartIdeSe} },
@@ -1933,14 +1940,8 @@ CVAR( Bool, menu_browser_showfull, true, CVAR_ARCHIVE )
 		0,
 		false,
 		NULL,
-	};
+	};	
 
-	void M_StartIdeSe( void )
-	{
-		FString path = progdir; path.AppendFormat("idese.exe");
-		launchProgram(path);
-		exit(0);
-	}
 #endif
 
 static menuitem_t BrowserItems[] =
@@ -3086,92 +3087,8 @@ void M_StartSkirmishGame( void )
 	Val = menu_dmflags2.GetGenericRep( CVAR_Int );
 	dmflags2.ForceSet( Val, CVAR_Int );
 
-	Val.Bool = false;
-	deathmatch.ForceSet( Val, CVAR_Bool );
-	teamgame.ForceSet( Val, CVAR_Bool );
-	instagib.ForceSet( Val, CVAR_Bool );
-	buckshot.ForceSet( Val, CVAR_Bool );
-
-	Val.Bool = true;
-	switch ( menu_gamemode )
-	{
-	case GAMEMODE_COOPERATIVE:
-
-		cooperative.ForceSet( Val, CVAR_Bool );
-		break;
-	case GAMEMODE_SURVIVAL:
-
-		survival.ForceSet( Val, CVAR_Bool );
-		break;
-	case GAMEMODE_INVASION:
-
-		invasion.ForceSet( Val, CVAR_Bool );
-		break;
-	case GAMEMODE_DEATHMATCH:
-
-		deathmatch.ForceSet( Val, CVAR_Bool );
-		break;
-	case GAMEMODE_TEAMPLAY:
-
-		teamplay.ForceSet( Val, CVAR_Bool );
-		break;
-	case GAMEMODE_DUEL:
-
-		duel.ForceSet( Val, CVAR_Bool );
-		break;
-	case GAMEMODE_TERMINATOR:
-
-		terminator.ForceSet( Val, CVAR_Bool );
-		break;
-	case GAMEMODE_LASTMANSTANDING:
-
-		lastmanstanding.ForceSet( Val, CVAR_Bool );
-		break;
-	case GAMEMODE_TEAMLMS:
-
-		teamlms.ForceSet( Val, CVAR_Bool );
-		break;
-	case GAMEMODE_POSSESSION:
-
-		possession.ForceSet( Val, CVAR_Bool );
-		break;
-	case GAMEMODE_TEAMPOSSESSION:
-
-		teampossession.ForceSet( Val, CVAR_Bool );
-		break;
-	case GAMEMODE_TEAMGAME:
-
-		teamgame.ForceSet( Val, CVAR_Bool );
-		break;
-	case GAMEMODE_CTF:
-
-		ctf.ForceSet( Val, CVAR_Bool );
-		break;
-	case GAMEMODE_ONEFLAGCTF:
-
-		oneflagctf.ForceSet( Val, CVAR_Bool );
-		break;
-	case GAMEMODE_SKULLTAG:
-
-		skulltag.ForceSet( Val, CVAR_Bool );
-		break;
-	case GAMEMODE_DOMINATION:
-
-		domination.ForceSet( Val, CVAR_Bool );
-		break;
-	}
-
-	// [RC] Set modifier (instagib / buckshot).
-	Val.Bool = true;
-	switch ( menu_modifier.GetGenericRep( CVAR_Int ).Int )
-	{
-	case 1:
-		instagib.ForceSet( Val, CVAR_Bool );
-		break;
-	case 2:
-		buckshot.ForceSet( Val, CVAR_Bool );
-		break;		
-	}
+	GAMEMODE_SetCurrentMode( (GAMEMODE_e) menu_gamemode.GetGenericRep( CVAR_Int ).Int );
+	GAMEMODE_SetModifier( (MODIFIER_e) menu_modifier.GetGenericRep( CVAR_Int ).Int );
 
 	// Remove all the existing bots.
 	BOTS_RemoveAllBots( false );

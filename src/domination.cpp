@@ -130,12 +130,18 @@ void DOMINATION_WinSequence(unsigned int winner)
 	finished = true;
 }
 
-void DOMINATION_SetOwnership(unsigned int point, unsigned int team)
+void DOMINATION_SetOwnership(unsigned int point, player_t *toucher)
 {
 	if(!domination)
 		return;
 
+	if(!toucher->bOnTeam) //The toucher must be on a team
+		return;
+
+	unsigned int team = toucher->ulTeam;
+
 	PointOwners[point] = team;
+	Printf ( "%s\\c- has taken control of %s\n", toucher->userinfo.netname, (*level.info->SectorInfo.PointNames[point]).GetChars() );
 	for(unsigned int i = 0;i < level.info->SectorInfo.Points[point]->Size();i++)
 	{
 		unsigned int secnum = (*level.info->SectorInfo.Points[point])[i];
@@ -145,9 +151,6 @@ void DOMINATION_SetOwnership(unsigned int point, unsigned int team)
 			sectors[secnum].SetFade(0x00, 0x00, 0xFF);
 		else
 			sectors[secnum].SetFade(0xFF, 0x00, 0x00);
-
-		if(NETWORK_GetState() == NETSTATE_SERVER)
-			SERVERCOMMANDS_SetSectorFade(secnum);
 	}
 }
 
@@ -155,6 +158,13 @@ void DOMINATION_EnterSector(player_t *toucher)
 {
 	if(!domination)
 		return;
+
+	// [BB] This is server side.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
 
 	if(!toucher->bOnTeam) //The toucher must be on a team
 		return;
@@ -167,7 +177,15 @@ void DOMINATION_EnterSector(player_t *toucher)
 			if(toucher->mo->Sector->sectornum != static_cast<signed> ((*level.info->SectorInfo.Points[point])[i]))
 				continue;
 
-			DOMINATION_SetOwnership(point, toucher->ulTeam);
+			// [BB] The team already owns the point, nothing to do.
+			if ( toucher->ulTeam == PointOwners[point] )
+				continue;
+
+			DOMINATION_SetOwnership(point, toucher);
+
+			// [BB] Let the clients know about the point ownership change.
+			if( NETWORK_GetState() == NETSTATE_SERVER )
+				SERVERCOMMANDS_SetDominationPointOwnership ( point, static_cast<ULONG> ( toucher - players ) );
 		}
 	}
 }

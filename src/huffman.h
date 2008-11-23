@@ -44,7 +44,7 @@
 //
 // Filename: huffman.h
 //
-// Description: 
+// Description: Compresses network traffic
 //
 //-----------------------------------------------------------------------------
 

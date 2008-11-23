@@ -460,6 +460,7 @@ CVAR (Flag, sv_losefrag,			dmflags2, DF2_YES_LOSEFRAG);
 CVAR (Flag, sv_norespawninvul,		dmflags2, DF2_NO_RESPAWN_INVUL);
 CVAR (Flag, sv_samespawnspot,		dmflags2, DF2_SAME_SPAWN_SPOT);
 CVAR (Flag, sv_awarddamageinsteadkills,		dmflags2, DF2_AWARD_DAMAGE_INSTEAD_KILLS);
+CVAR (Flag, sv_forcealpha,		dmflags2, DF2_FORCE_ALPHA);
 
 CVAR (Flag, sv_norunes,				dmflags2, DF2_NO_RUNES);
 CVAR (Flag, sv_instantreturn,		dmflags2, DF2_INSTANT_RETURN);

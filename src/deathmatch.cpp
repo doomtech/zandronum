@@ -365,9 +365,6 @@ CUSTOM_CVAR( Float, timelimit, 0.0f, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK )
 	}
 }
 
-CVAR( Bool, instagib, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGNLOCK );
-CVAR( Bool, buckshot, false, CVAR_SERVERINFO | CVAR_LATCH | CVAR_CAMPAIGNLOCK );
-
 // Is this a good place for these variables?
 CVAR( Bool, cl_noammoswitch, true, CVAR_ARCHIVE );
 CVAR( Bool, cl_useoriginalweaponorder, false, CVAR_ARCHIVE );

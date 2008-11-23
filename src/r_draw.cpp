@@ -2115,7 +2115,8 @@ static bool R_SetBlendFunc (int op, fixed_t fglevel, fixed_t bglevel, int flags)
 {
 	// r_drawtrans is a seriously bad thing to turn off. I wonder if I should
 	// just remove it completely.
-	if (!r_drawtrans || (op == STYLEOP_Add && fglevel == FRACUNIT && bglevel == 0 && !(flags & STYLEF_InvertSource)))
+	// [BB] DF2_FORCE_ALPHA overrides the r_drawtrans setting.
+	if (!(r_drawtrans || (dmflags2 & DF2_FORCE_ALPHA) ) || (op == STYLEOP_Add && fglevel == FRACUNIT && bglevel == 0 && !(flags & STYLEF_InvertSource)))
 	{
 		if (flags & STYLEF_ColorIsFixed)
 		{

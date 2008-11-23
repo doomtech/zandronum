@@ -219,8 +219,8 @@ void I_SetWndProc();
 // directories for IWADs if the user purchased any through Steam.
 FString I_GetSteamPath();
 
-// [RC] Lunches the path given. (A simple encapsulation of the Win32 method).
-void launchProgram( FString path );
+// [RC] Lunches the path given. This was encapsulated to make wragling with #includes easier.
+void I_RunProgram( const char *szPath );
 
 // Damn Microsoft for doing Get/SetWindowLongPtr half-assed. Instead of
 // giving them proper prototypes under Win32, they are just macros for

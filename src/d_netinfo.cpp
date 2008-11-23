@@ -479,7 +479,8 @@ void D_SetupUserInfo ()
 		coninfo->aimdist = abs ((int)(autoaim * (float)ANGLE_1));
 	}
 	coninfo->color = color;
-	coninfo->skin = R_FindSkin (skin, 0);
+	// [BB] We need to take into account CurrentPlayerClass when determining the skin.
+	coninfo->skin = R_FindSkin (skin, players[consoleplayer].CurrentPlayerClass);
 	coninfo->gender = D_GenderToInt (gender);
 	coninfo->switchonpickup = switchonpickup;
 
