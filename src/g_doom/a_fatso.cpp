@@ -10,7 +10,7 @@
 // [BC] New #includes.
 #include "network.h"
 #include "sv_commands.h"
-
+/*
 void A_FatRaise (AActor *);
 void A_FatAttack1 (AActor *);
 void A_FatAttack2 (AActor *);
@@ -246,27 +246,27 @@ IMPLEMENT_ACTOR (AHectShot, Doom, -1, 0)
 	PROP_DeathState (S_HECTSHOTX)
 
 END_DEFAULTS
-
+*/
 //
 // Mancubus attack,
 // firing three missiles in three different directions?
 // Doesn't look like it.
 //
 #define FATSPREAD (ANG90/8)
-#define HECTSPREAD (ANG90/8)
+//#define HECTSPREAD (ANG90/8)
 
 void A_FatRaise (AActor *self)
 {
 	A_FaceTarget (self);
 	S_Sound (self, CHAN_WEAPON, "fatso/raiseguns", 1, ATTN_NORM);
 }
-
+/*
 void A_HectRaise (AActor *self)
 {
 	A_FaceTarget (self);
 	S_Sound (self, CHAN_WEAPON, "fatso/raiseguns", 1, ATTN_NORM);
 }
-
+*/
 void A_FatAttack1 (AActor *self)
 {
 	AActor *missile;
@@ -380,7 +380,7 @@ void A_FatAttack3 (AActor *self)
 			SERVERCOMMANDS_SpawnMissile( missile );
 	}
 }
-
+/*
 void A_HectAttack1 (AActor *self)
 {
 	AActor *missile;
@@ -576,7 +576,7 @@ void A_HectAttack3 (AActor *self)
 			SERVERCOMMANDS_SpawnMissile( missile );
 	}
 }
-
+*/
 //
 // killough 9/98: a mushroom explosion effect, sorta :)
 // Original idea: Linguica

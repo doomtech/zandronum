@@ -19,7 +19,7 @@
 #include "actors/doom/bruiser.txt"
 #include "actors/doom/revenant.txt"
 #include "actors/doom/arachnotron.txt"
-//#include "actors/doom/fatso.txt"
+#include "actors/doom/fatso.txt"
 #include "actors/doom/painelemental.txt"
 #include "actors/doom/archvile.txt"
 #include "actors/doom/cyberdemon.txt"
