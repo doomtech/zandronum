@@ -223,10 +223,10 @@ static void setmsgcolor (int index, int color);
 FILE *Logfile = NULL;
 
 // [BC] The user's desired name of the logfile.
-char g_szDesiredLogFilename[MAX_PATH];
+char g_szDesiredLogFilename[256];
 
 // [RC] The actual name of the logfile (most likely g_szLogFilename with a timestamp).
-char g_szActualLogFilename[MAX_PATH];
+char g_szActualLogFilename[256];
 
 void C_AddNotifyString (int printlevel, const char *source);
 
