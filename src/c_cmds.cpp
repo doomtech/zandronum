@@ -81,10 +81,10 @@ extern FILE *Logfile;
 extern bool insave;
 
 // [BC] The user's desired name of the logfile.
-extern char g_szDesiredLogFilename[MAX_PATH];
+extern char g_szDesiredLogFilename[256];
 
 // [RC] The actual name of the logfile (most likely g_szDesiredLogFilename with a timestamp).
-extern char g_szActualLogFilename[MAX_PATH];
+extern char g_szActualLogFilename[256];
 
 
 CVAR (Bool, sv_cheats, false, CVAR_SERVERINFO | CVAR_LATCH)
