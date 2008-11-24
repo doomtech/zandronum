@@ -2269,10 +2269,10 @@ void bots_ParseBotInfoLump( void )
 
 		while ( sc_String[0] != '{' )
 		{
-			SC_GetString( );
 			// [BB] We can clear all previously defined bots by just calling BOTS_Destruct().
 			if (SC_Compare("CLEARBOTS"))
 				BOTS_Destruct();
+			SC_GetString( );
 		}
 
 		// We've encountered a starting bracket. Now continue to parse until we hit an end bracket.
