@@ -408,6 +408,9 @@ actors/doom/doomspawners.txt					decorate/doom/doomspawners.txt
 actors/heretic/hereticspawners.txt		decorate/heretic/hereticspawners.txt
 actors/hexen/hexenspawners.txt		decorate/hexen/hexenspawners.txt
 
+# Bot definitions
+botinfo.txt									botinfo.txt
+
 # The bots' chatfiles.
 bots/chatfiles/1337.txt						bots/chatfiles/1337.txt
 bots/chatfiles/chubbs.txt					bots/chatfiles/chubbs.txt

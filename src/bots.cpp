@@ -98,7 +98,7 @@ static	cycle_t		g_BotCycles;
 static	bool		g_bBotIsInitialized[MAXPLAYERS];
 static	LONG		g_lLastHeader;
 static	bool		g_bBlockClearTable = false;
-static	char		*g_pszDataHeaders[NUM_DATAHEADERS] =
+static	const char	*g_pszDataHeaders[NUM_DATAHEADERS] =
 {
 	"DH_COMMAND",
 	"DH_STATEIDX",
@@ -250,7 +250,7 @@ static	LONG	g_lExpectedStackChange[NUM_DATAHEADERS] =
 };
 
 //*****************************************************************************
-static	char	*g_pszEventNames[NUM_BOTEVENTS] =
+static	const char	*g_pszEventNames[NUM_BOTEVENTS] =
 {
 	"BOTEVENT_KILLED_BYENEMY",
 	"BOTEVENT_KILLED_BYPLAYER",
@@ -373,1305 +373,15 @@ EXTERN_CVAR( Bool, sv_cheats );
 
 void BOTS_Construct( void )
 {
-	// [BB] All the legacy code for the hardcoded bots is collected here.
-	enum
-	{
-		// This is the list of hardcoded bots.
-
-		/**************** HUMANS *****************/
-		BOT_CHUBBS,
-		BOT_DEIMOS,
-		BOT_ALDEBARAN,
-		BOT_CRASH,
-		BOT_PROCYON,
-		BOT_SIRIUS,
-		BOT_RIGEL,
-		BOT_SEENAS,
-		BOT_SYNAS,
-		BOT_CYGNUS,
-		/**************** ROBOTS *****************/
-		BOT_ALPHUS,
-		BOT_PROTOS,
-		BOT_BETUS,
-		BOT_SCYON,
-		BOT_GAMMA,
-		BOT_SCYTHE,
-		BOT_ELECTRA,
-		BOT_OMICRON,
-		BOT_CRYON,
-		BOT_OMEGA,
-		/**************** INSECT BOSSES *****************/
-		BOT_PREY,
-		BOT_MANEK,
-		/**************** DEMONS *****************/
-		BOT_LINGUICA,
-		BOT_TORRENT,
-		BOT_CATACLYSM,
-		BOT_VEX,
-		BOT_OBELISK,
-		BOT_DAEMOS,
-		BOT_MAABUS,
-		BOT_SLYOR,
-		/**************** FINAL BOSSES *****************/
-		BOT_ORION,
-		BOT_ULTIMUS,
-		/**************** EXTRAS *****************/
-		BOT_ROMERO,
-		BOT_H4X0R,
-		BOT_FRAD,
-		BOT_MEWSE,
-		BOT_HISSY,
-		BOT_MASSMOUTH,
-		BOT_DOOMCRATE,
-		BOT_ZOMBIEMAN,
-		BOT_SHOTGUNGUY,
-		BOT_BIGCHAINGUNGUY,
-		BOT_SUPERSHOTGUNNER,
-		BOT_SSNAZI,
-		BOT_NAZIGUARD,
-		BOT_NAZICHAINGUNNER,
-		BOT_STRIFEGUY,
-		BOT_XXENEMYXX,
-		BOT_FIFFY,
-		BOT_MEEPY,
-		BOT_CHEXMAN,
-		BOT_DAISY,
-		BOT_LINMENGJU,
-		BOT_GOLDENFATTIE,
-		BOT_QUOTEBOT,
-
-		NUM_HARDCODED_BOTS
-	};
-	BOTINFO_s	g_HardcodedBotInfo[NUM_HARDCODED_BOTS];
-
 	ULONG	ulIdx;
 
 	// Set up all the hardcoded bot info.
 
-	/**************** HUMANS *****************/
-
-	// BOT_CHUBBS	(9/30)
-	sprintf( g_HardcodedBotInfo[BOT_CHUBBS].szName, "Chubbs" );
-	g_HardcodedBotInfo[BOT_CHUBBS].Accuracy = BOTSKILL_LOW;
-	g_HardcodedBotInfo[BOT_CHUBBS].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_CHUBBS].Evade = BOTSKILL_LOW;
-	g_HardcodedBotInfo[BOT_CHUBBS].Anticipation = BOTSKILL_POOR;
-	g_HardcodedBotInfo[BOT_CHUBBS].ReactionTime = BOTSKILL_LOW;
-	g_HardcodedBotInfo[BOT_CHUBBS].Perception = BOTSKILL_LOW;
-	sprintf( g_HardcodedBotInfo[BOT_CHUBBS].szFavoriteWeapon, "supershotgun" );
-	sprintf( g_HardcodedBotInfo[BOT_CHUBBS].szColor, "00 bf 00" );
-	sprintf( g_HardcodedBotInfo[BOT_CHUBBS].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_CHUBBS].szSkinName, "big fat doomguy" );
-	sprintf( g_HardcodedBotInfo[BOT_CHUBBS].szClassName, "fighter" );
-	g_HardcodedBotInfo[BOT_CHUBBS].ulRailgunColor = RAILCOLOR_BLUE;
-	g_HardcodedBotInfo[BOT_CHUBBS].ulChatFrequency = 75;
-	g_HardcodedBotInfo[BOT_CHUBBS].bRevealed = true;
-	g_HardcodedBotInfo[BOT_CHUBBS].bRevealedByDefault = true;
-	sprintf( g_HardcodedBotInfo[BOT_CHUBBS].szScriptName, "fatbot" );
-	g_HardcodedBotInfo[BOT_CHUBBS].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_CHUBBS].szChatLump, "bots/chatfiles/chubbs.txt" );
-
-	// BOT_DEIMOS	(13/30)
-	sprintf( g_HardcodedBotInfo[BOT_DEIMOS].szName, "Deimos" );
-	g_HardcodedBotInfo[BOT_DEIMOS].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_DEIMOS].Intellect = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_DEIMOS].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_DEIMOS].Anticipation = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_DEIMOS].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_DEIMOS].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_DEIMOS].szFavoriteWeapon, "supershotgun" );
-	sprintf( g_HardcodedBotInfo[BOT_DEIMOS].szColor, "5f bf c0" );
-	sprintf( g_HardcodedBotInfo[BOT_DEIMOS].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_DEIMOS].szSkinName, "" );
-	sprintf( g_HardcodedBotInfo[BOT_DEIMOS].szClassName, "cleric" );
-	g_HardcodedBotInfo[BOT_DEIMOS].ulRailgunColor = RAILCOLOR_WHITE;
-	g_HardcodedBotInfo[BOT_DEIMOS].ulChatFrequency = 33;
-	g_HardcodedBotInfo[BOT_DEIMOS].bRevealed = true;
-	g_HardcodedBotInfo[BOT_DEIMOS].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_DEIMOS].szScriptName, "SOLDRBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_DEIMOS].szScriptName, "humanbot" );
-	g_HardcodedBotInfo[BOT_DEIMOS].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_DEIMOS].szChatLump, "bots/chatfiles/soldier.txt" );
-
-	// BOT_ALDEBARAN	(13/30)
-	sprintf( g_HardcodedBotInfo[BOT_ALDEBARAN].szName, "Aldebaran" );
-	g_HardcodedBotInfo[BOT_ALDEBARAN].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_ALDEBARAN].Intellect = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_ALDEBARAN].Evade = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_ALDEBARAN].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_ALDEBARAN].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_ALDEBARAN].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_ALDEBARAN].szFavoriteWeapon, "rocketlauncher" );
-	sprintf( g_HardcodedBotInfo[BOT_ALDEBARAN].szColor, "ff 60 00" );
-	sprintf( g_HardcodedBotInfo[BOT_ALDEBARAN].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_ALDEBARAN].szSkinName, "phobos" );
-	sprintf( g_HardcodedBotInfo[BOT_ALDEBARAN].szClassName, "cleric" );
-	g_HardcodedBotInfo[BOT_ALDEBARAN].ulRailgunColor = RAILCOLOR_ORANGE;
-	g_HardcodedBotInfo[BOT_ALDEBARAN].ulChatFrequency = 33;
-	g_HardcodedBotInfo[BOT_ALDEBARAN].bRevealed = true;
-	g_HardcodedBotInfo[BOT_ALDEBARAN].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_ALDEBARAN].szScriptName, "SOLDRBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_ALDEBARAN].szScriptName, "humanbot" );
-	g_HardcodedBotInfo[BOT_ALDEBARAN].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_ALDEBARAN].szChatLump, "bots/chatfiles/soldier.txt" );
-
-	// BOT_CRASH	(6/30)
-	sprintf( g_HardcodedBotInfo[BOT_CRASH].szName, "Crash" );
-	g_HardcodedBotInfo[BOT_CRASH].Accuracy = BOTSKILL_LOW;
-	g_HardcodedBotInfo[BOT_CRASH].Intellect = BOTSKILL_LOW;
-	g_HardcodedBotInfo[BOT_CRASH].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_CRASH].Anticipation = BOTSKILL_LOW;
-	g_HardcodedBotInfo[BOT_CRASH].ReactionTime = BOTSKILL_LOW;
-	g_HardcodedBotInfo[BOT_CRASH].Perception = BOTSKILL_LOW;
-	sprintf( g_HardcodedBotInfo[BOT_CRASH].szFavoriteWeapon, "grenadelauncher" );
-	sprintf( g_HardcodedBotInfo[BOT_CRASH].szColor, "00 00 bf" );
-	sprintf( g_HardcodedBotInfo[BOT_CRASH].szGender, "female" );
-	sprintf( g_HardcodedBotInfo[BOT_CRASH].szSkinName, "crash" );
-	sprintf( g_HardcodedBotInfo[BOT_CRASH].szClassName, "mage" );
-	g_HardcodedBotInfo[BOT_CRASH].ulRailgunColor = RAILCOLOR_PURPLE;
-	g_HardcodedBotInfo[BOT_CRASH].ulChatFrequency = 90;
-	g_HardcodedBotInfo[BOT_CRASH].bRevealed = true;
-	g_HardcodedBotInfo[BOT_CRASH].bRevealedByDefault = true;
-	sprintf( g_HardcodedBotInfo[BOT_CRASH].szScriptName, "crashbot" );
-	g_HardcodedBotInfo[BOT_CRASH].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_CRASH].szChatLump, "bots/chatfiles/crash.txt" );
-
-	// BOT_PROCYON	(16/30)
-	sprintf( g_HardcodedBotInfo[BOT_PROCYON].szName, "Procyon" );
-	g_HardcodedBotInfo[BOT_PROCYON].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_PROCYON].Intellect = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_PROCYON].Evade = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_PROCYON].Anticipation = BOTSKILL_EXCELLENT;
-	g_HardcodedBotInfo[BOT_PROCYON].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_PROCYON].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_PROCYON].szFavoriteWeapon, "minigun" );
-	sprintf( g_HardcodedBotInfo[BOT_PROCYON].szColor, "9f 6f 3f" );
-	sprintf( g_HardcodedBotInfo[BOT_PROCYON].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_PROCYON].szSkinName, "procyon" );
-	sprintf( g_HardcodedBotInfo[BOT_PROCYON].szClassName, "cleric" );
-	g_HardcodedBotInfo[BOT_PROCYON].ulRailgunColor = RAILCOLOR_RED;
-	g_HardcodedBotInfo[BOT_PROCYON].ulChatFrequency = 33;
-	g_HardcodedBotInfo[BOT_PROCYON].bRevealed = true;
-	g_HardcodedBotInfo[BOT_PROCYON].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_PROCYON].szScriptName, "SOLDRBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_PROCYON].szScriptName, "humanbot" );
-	g_HardcodedBotInfo[BOT_PROCYON].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_PROCYON].szChatLump, "bots/chatfiles/soldier.txt" );
-
-	// BOT_SIRIUS	(17/25)
-	sprintf( g_HardcodedBotInfo[BOT_SIRIUS].szName, "Sirius" );
-	g_HardcodedBotInfo[BOT_SIRIUS].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_SIRIUS].Intellect = BOTSKILL_EXCELLENT;
-	g_HardcodedBotInfo[BOT_SIRIUS].Evade = BOTSKILL_EXCELLENT;
-	g_HardcodedBotInfo[BOT_SIRIUS].Anticipation = BOTSKILL_EXCELLENT;
-	g_HardcodedBotInfo[BOT_SIRIUS].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_SIRIUS].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_SIRIUS].szFavoriteWeapon, "rocketlauncher" );
-	sprintf( g_HardcodedBotInfo[BOT_SIRIUS].szColor, "90 90 ff" );
-	sprintf( g_HardcodedBotInfo[BOT_SIRIUS].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_SIRIUS].szSkinName, "Base II" );
-	sprintf( g_HardcodedBotInfo[BOT_SIRIUS].szClassName, "cleric" );
-	g_HardcodedBotInfo[BOT_SIRIUS].ulRailgunColor = RAILCOLOR_RED;
-	g_HardcodedBotInfo[BOT_SIRIUS].ulChatFrequency = 33;
-	g_HardcodedBotInfo[BOT_SIRIUS].bRevealed = true;
-	g_HardcodedBotInfo[BOT_SIRIUS].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_SIRIUS].szScriptName, "SOLDRBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_SIRIUS].szScriptName, "humanbot" );
-	g_HardcodedBotInfo[BOT_SIRIUS].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_SIRIUS].szChatLump, "bots/chatfiles/soldier.txt" );
-
-	// BOT_RIGEL	(18/30)
-	sprintf( g_HardcodedBotInfo[BOT_RIGEL].szName, "Rigel" );
-	g_HardcodedBotInfo[BOT_RIGEL].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_RIGEL].Intellect = BOTSKILL_EXCELLENT;
-	g_HardcodedBotInfo[BOT_RIGEL].Evade = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_RIGEL].Anticipation = BOTSKILL_EXCELLENT;
-	g_HardcodedBotInfo[BOT_RIGEL].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_RIGEL].Perception = BOTSKILL_HIGH;
-	sprintf( g_HardcodedBotInfo[BOT_RIGEL].szFavoriteWeapon, "rocketlauncher" );
-	sprintf( g_HardcodedBotInfo[BOT_RIGEL].szColor, "00 00 ff" );
-	sprintf( g_HardcodedBotInfo[BOT_RIGEL].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_RIGEL].szSkinName, "Base II" );
-	sprintf( g_HardcodedBotInfo[BOT_RIGEL].szClassName, "cleric" );
-	g_HardcodedBotInfo[BOT_RIGEL].ulRailgunColor = RAILCOLOR_RED;
-	g_HardcodedBotInfo[BOT_RIGEL].ulChatFrequency = 33;
-	g_HardcodedBotInfo[BOT_RIGEL].bRevealed = true;
-	g_HardcodedBotInfo[BOT_RIGEL].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_RIGEL].szScriptName, "SOLDRBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_RIGEL].szScriptName, "humanbot" );
-	g_HardcodedBotInfo[BOT_RIGEL].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_RIGEL].szChatLump, "bots/chatfiles/soldier.txt" );
-
-	// BOT_SEENAS	(14/30)
-	sprintf( g_HardcodedBotInfo[BOT_SEENAS].szName, "Seenas" );
-	g_HardcodedBotInfo[BOT_SEENAS].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_SEENAS].Intellect = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_SEENAS].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_SEENAS].Anticipation = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_SEENAS].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_SEENAS].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_SEENAS].szFavoriteWeapon, "rocketlauncher" );
-	sprintf( g_HardcodedBotInfo[BOT_SEENAS].szColor, "b0 af 4f" );
-	sprintf( g_HardcodedBotInfo[BOT_SEENAS].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_SEENAS].szSkinName, "seenas" );
-	sprintf( g_HardcodedBotInfo[BOT_SEENAS].szClassName, "cleric" );
-	g_HardcodedBotInfo[BOT_SEENAS].ulRailgunColor = RAILCOLOR_RED;
-	g_HardcodedBotInfo[BOT_SEENAS].ulChatFrequency = 50;
-	g_HardcodedBotInfo[BOT_SEENAS].bRevealed = true;
-	g_HardcodedBotInfo[BOT_SEENAS].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_SEENAS].szScriptName, "SOLDRBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_SEENAS].szScriptName, "humanbot" );
-	g_HardcodedBotInfo[BOT_SEENAS].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_SEENAS].szChatLump, "bots/chatfiles/soldier.txt" );
-
-	// BOT_SYNAS	(18/30)
-	sprintf( g_HardcodedBotInfo[BOT_SYNAS].szName, "Synas" );
-	g_HardcodedBotInfo[BOT_SYNAS].Accuracy = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_SYNAS].Intellect = BOTSKILL_EXCELLENT;
-	g_HardcodedBotInfo[BOT_SYNAS].Evade = BOTSKILL_EXCELLENT;
-	g_HardcodedBotInfo[BOT_SYNAS].Anticipation = BOTSKILL_EXCELLENT;
-	g_HardcodedBotInfo[BOT_SYNAS].ReactionTime = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_SYNAS].Perception = BOTSKILL_HIGH;
-	sprintf( g_HardcodedBotInfo[BOT_SYNAS].szFavoriteWeapon, "grenadelauncher" );
-	sprintf( g_HardcodedBotInfo[BOT_SYNAS].szColor, "8f 00 00" );
-	sprintf( g_HardcodedBotInfo[BOT_SYNAS].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_SYNAS].szSkinName, "synas" );
-	sprintf( g_HardcodedBotInfo[BOT_SYNAS].szClassName, "fighter" );
-	g_HardcodedBotInfo[BOT_SYNAS].ulRailgunColor = RAILCOLOR_RED;
-	g_HardcodedBotInfo[BOT_SYNAS].ulChatFrequency = 33;
-	g_HardcodedBotInfo[BOT_SYNAS].bRevealed = true;
-	g_HardcodedBotInfo[BOT_SYNAS].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_SYNAS].szScriptName, "SOLDRBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_SYNAS].szScriptName, "humanbot" );
-	g_HardcodedBotInfo[BOT_SYNAS].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_SYNAS].szChatLump, "bots/chatfiles/soldier.txt" );
-
-	// BOT_CYGNUS	(19/30)
-	sprintf( g_HardcodedBotInfo[BOT_CYGNUS].szName, "Cygnus" );
-	g_HardcodedBotInfo[BOT_CYGNUS].Accuracy = BOTSKILL_SUPREME;
-	g_HardcodedBotInfo[BOT_CYGNUS].Intellect = BOTSKILL_SUPREME;
-	g_HardcodedBotInfo[BOT_CYGNUS].Evade = BOTSKILL_SUPREME;
-	g_HardcodedBotInfo[BOT_CYGNUS].Anticipation = BOTSKILL_SUPREME;
-	g_HardcodedBotInfo[BOT_CYGNUS].ReactionTime = BOTSKILL_POOR;
-	g_HardcodedBotInfo[BOT_CYGNUS].Perception = BOTSKILL_POOR;
-	sprintf( g_HardcodedBotInfo[BOT_CYGNUS].szFavoriteWeapon, "supershotgun" );
-	sprintf( g_HardcodedBotInfo[BOT_CYGNUS].szColor, "c0 bf 6f" );
-	sprintf( g_HardcodedBotInfo[BOT_CYGNUS].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_CYGNUS].szSkinName, "cygnus" );
-	sprintf( g_HardcodedBotInfo[BOT_CYGNUS].szClassName, "fighter" );
-	g_HardcodedBotInfo[BOT_CYGNUS].ulRailgunColor = RAILCOLOR_SILVER;
-	g_HardcodedBotInfo[BOT_CYGNUS].ulChatFrequency = 15;
-	g_HardcodedBotInfo[BOT_CYGNUS].bRevealed = true;
-	g_HardcodedBotInfo[BOT_CYGNUS].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_CYGNUS].szScriptName, "CYGNSBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_CYGNUS].szScriptName, "humanbot" );
-	g_HardcodedBotInfo[BOT_CYGNUS].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_CYGNUS].szChatLump, "bots/chatfiles/cygnus.txt" );
-
-	/**************** ROBOTS *****************/
-
-	// BOT_ALPHUS	(18/30)
-	sprintf( g_HardcodedBotInfo[BOT_ALPHUS].szName, "Alphus" );
-	g_HardcodedBotInfo[BOT_ALPHUS].Accuracy = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_ALPHUS].Intellect = BOTSKILL_EXCELLENT;
-	g_HardcodedBotInfo[BOT_ALPHUS].Evade = BOTSKILL_EXCELLENT;
-	g_HardcodedBotInfo[BOT_ALPHUS].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_ALPHUS].ReactionTime = BOTSKILL_VERYPOOR;
-	g_HardcodedBotInfo[BOT_ALPHUS].Perception = BOTSKILL_VERYPOOR;
-	sprintf( g_HardcodedBotInfo[BOT_ALPHUS].szFavoriteWeapon, "supershotgun" );
-	sprintf( g_HardcodedBotInfo[BOT_ALPHUS].szColor, "c0 bf 6f" );
-	sprintf( g_HardcodedBotInfo[BOT_ALPHUS].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_ALPHUS].szSkinName, "gamma" );
-	sprintf( g_HardcodedBotInfo[BOT_ALPHUS].szClassName, "fighter" );
-	g_HardcodedBotInfo[BOT_ALPHUS].ulRailgunColor = RAILCOLOR_SILVER;
-	g_HardcodedBotInfo[BOT_ALPHUS].ulChatFrequency = 20;
-	g_HardcodedBotInfo[BOT_ALPHUS].bRevealed = true;
-	g_HardcodedBotInfo[BOT_ALPHUS].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_ALPHUS].szScriptName, "ROBOBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_ALPHUS].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_ALPHUS].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_ALPHUS].szChatLump, "bots/chatfiles/robot.txt" );
-
-	// BOT_PROTOS
-	sprintf( g_HardcodedBotInfo[BOT_PROTOS].szName, "Protos" );
-	g_HardcodedBotInfo[BOT_PROTOS].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_PROTOS].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_PROTOS].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_PROTOS].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_PROTOS].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_PROTOS].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_PROTOS].szFavoriteWeapon, "supershotgun" );
-	sprintf( g_HardcodedBotInfo[BOT_PROTOS].szColor, "00 00 00" );
-	sprintf( g_HardcodedBotInfo[BOT_PROTOS].szGender, "cyborg" );
-	sprintf( g_HardcodedBotInfo[BOT_PROTOS].szSkinName, "" );
-	sprintf( g_HardcodedBotInfo[BOT_PROTOS].szClassName, "fighter" );
-	g_HardcodedBotInfo[BOT_PROTOS].ulRailgunColor = RAILCOLOR_YELLOW;
-	g_HardcodedBotInfo[BOT_PROTOS].ulChatFrequency = 20;
-	g_HardcodedBotInfo[BOT_PROTOS].bRevealed = true;
-	g_HardcodedBotInfo[BOT_PROTOS].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_PROTOS].szScriptName, "ROBOBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_PROTOS].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_PROTOS].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_PROTOS].szChatLump, "bots/chatfiles/robot.txt" );
-
-	// BOT_BETUS	(18/30)
-	sprintf( g_HardcodedBotInfo[BOT_BETUS].szName, "Betus" );
-	g_HardcodedBotInfo[BOT_BETUS].Accuracy = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_BETUS].Intellect = BOTSKILL_EXCELLENT;
-	g_HardcodedBotInfo[BOT_BETUS].Evade = BOTSKILL_EXCELLENT;
-	g_HardcodedBotInfo[BOT_BETUS].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_BETUS].ReactionTime = BOTSKILL_VERYPOOR;
-	g_HardcodedBotInfo[BOT_BETUS].Perception = BOTSKILL_VERYPOOR;
-	sprintf( g_HardcodedBotInfo[BOT_BETUS].szFavoriteWeapon, "supershotgun" );
-	sprintf( g_HardcodedBotInfo[BOT_BETUS].szColor, "c0 bf 6f" );
-	sprintf( g_HardcodedBotInfo[BOT_BETUS].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_BETUS].szSkinName, "gamma" );
-	sprintf( g_HardcodedBotInfo[BOT_BETUS].szClassName, "fighter" );
-	g_HardcodedBotInfo[BOT_BETUS].ulRailgunColor = RAILCOLOR_SILVER;
-	g_HardcodedBotInfo[BOT_BETUS].ulChatFrequency = 20;
-	g_HardcodedBotInfo[BOT_BETUS].bRevealed = true;
-	g_HardcodedBotInfo[BOT_BETUS].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_BETUS].szScriptName, "ROBOBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_BETUS].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_BETUS].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_BETUS].szChatLump, "bots/chatfiles/robot.txt" );
-
-	// BOT_SCYON
-	sprintf( g_HardcodedBotInfo[BOT_SCYON].szName, "Scyon" );
-	g_HardcodedBotInfo[BOT_SCYON].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_SCYON].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_SCYON].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_SCYON].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_SCYON].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_SCYON].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_SCYON].szFavoriteWeapon, "rocketlauncher" );
-	sprintf( g_HardcodedBotInfo[BOT_SCYON].szColor, "00 00 00" );
-	sprintf( g_HardcodedBotInfo[BOT_SCYON].szGender, "cyborg" );
-	sprintf( g_HardcodedBotInfo[BOT_SCYON].szSkinName, "" );
-	sprintf( g_HardcodedBotInfo[BOT_SCYON].szClassName, "random" );
-	g_HardcodedBotInfo[BOT_SCYON].ulRailgunColor = RAILCOLOR_RED;
-	g_HardcodedBotInfo[BOT_SCYON].ulChatFrequency = 20;
-	g_HardcodedBotInfo[BOT_SCYON].bRevealed = true;
-	g_HardcodedBotInfo[BOT_SCYON].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_SCYON].szScriptName, "ROBOBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_SCYON].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_SCYON].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_SCYON].szChatLump, "bots/chatfiles/robot.txt" );
-
-	// BOT_GAMMA	(18/30)
-	sprintf( g_HardcodedBotInfo[BOT_GAMMA].szName, "Gamma" );
-	g_HardcodedBotInfo[BOT_GAMMA].Accuracy = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_GAMMA].Intellect = BOTSKILL_EXCELLENT;
-	g_HardcodedBotInfo[BOT_GAMMA].Evade = BOTSKILL_EXCELLENT;
-	g_HardcodedBotInfo[BOT_GAMMA].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_GAMMA].ReactionTime = BOTSKILL_VERYPOOR;
-	g_HardcodedBotInfo[BOT_GAMMA].Perception = BOTSKILL_VERYPOOR;
-	sprintf( g_HardcodedBotInfo[BOT_GAMMA].szFavoriteWeapon, "supershotgun" );
-	sprintf( g_HardcodedBotInfo[BOT_GAMMA].szColor, "c0 bf 6f" );
-	sprintf( g_HardcodedBotInfo[BOT_GAMMA].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_GAMMA].szSkinName, "gamma" );
-	sprintf( g_HardcodedBotInfo[BOT_GAMMA].szClassName, "fighter" );
-	g_HardcodedBotInfo[BOT_GAMMA].ulRailgunColor = RAILCOLOR_SILVER;
-	g_HardcodedBotInfo[BOT_GAMMA].ulChatFrequency = 20;
-	g_HardcodedBotInfo[BOT_GAMMA].bRevealed = true;
-	g_HardcodedBotInfo[BOT_GAMMA].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_GAMMA].szScriptName, "ROBOBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_GAMMA].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_GAMMA].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_GAMMA].szChatLump, "bots/chatfiles/robot.txt" );
-
-	// BOT_SCYTHE
-	sprintf( g_HardcodedBotInfo[BOT_SCYTHE].szName, "Scythe" );
-	g_HardcodedBotInfo[BOT_SCYTHE].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_SCYTHE].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_SCYTHE].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_SCYTHE].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_SCYTHE].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_SCYTHE].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_SCYTHE].szFavoriteWeapon, "grenadelauncher" );
-	sprintf( g_HardcodedBotInfo[BOT_SCYTHE].szColor, "00 00 00" );
-	sprintf( g_HardcodedBotInfo[BOT_SCYTHE].szGender, "female" );
-	sprintf( g_HardcodedBotInfo[BOT_SCYTHE].szSkinName, "" );
-	sprintf( g_HardcodedBotInfo[BOT_SCYTHE].szClassName, "random" );
-	g_HardcodedBotInfo[BOT_SCYTHE].ulRailgunColor = RAILCOLOR_BLUE;
-	g_HardcodedBotInfo[BOT_SCYTHE].ulChatFrequency = 20;
-	g_HardcodedBotInfo[BOT_SCYTHE].bRevealed = true;
-	g_HardcodedBotInfo[BOT_SCYTHE].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_SCYTHE].szScriptName, "ROBOBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_SCYTHE].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_SCYTHE].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_SCYTHE].szChatLump, "bots/chatfiles/robot.txt" );
-
-	// BOT_ELECTRA
-	sprintf( g_HardcodedBotInfo[BOT_ELECTRA].szName, "Electra" );
-	g_HardcodedBotInfo[BOT_ELECTRA].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_ELECTRA].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_ELECTRA].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_ELECTRA].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_ELECTRA].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_ELECTRA].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_ELECTRA].szFavoriteWeapon, "railgun" );
-	sprintf( g_HardcodedBotInfo[BOT_ELECTRA].szColor, "df 00 df" );
-	sprintf( g_HardcodedBotInfo[BOT_ELECTRA].szGender, "female" );
-	sprintf( g_HardcodedBotInfo[BOT_ELECTRA].szSkinName, "" );
-	sprintf( g_HardcodedBotInfo[BOT_ELECTRA].szClassName, "mage" );
-	g_HardcodedBotInfo[BOT_ELECTRA].ulRailgunColor = RAILCOLOR_PURPLE;
-	g_HardcodedBotInfo[BOT_ELECTRA].ulChatFrequency = 20;
-	g_HardcodedBotInfo[BOT_ELECTRA].bRevealed = true;
-	g_HardcodedBotInfo[BOT_ELECTRA].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_ELECTRA].szScriptName, "ROBOBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_ELECTRA].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_ELECTRA].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_ELECTRA].szChatLump, "bots/chatfiles/robot.txt" );
-
-	// BOT_OMICRON
-	sprintf( g_HardcodedBotInfo[BOT_OMICRON].szName, "Omicron" );
-	g_HardcodedBotInfo[BOT_OMICRON].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_OMICRON].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_OMICRON].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_OMICRON].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_OMICRON].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_OMICRON].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_OMICRON].szFavoriteWeapon, "grenadelauncher" );
-	sprintf( g_HardcodedBotInfo[BOT_OMICRON].szColor, "00 00 00" );
-	sprintf( g_HardcodedBotInfo[BOT_OMICRON].szGender, "female" );
-	sprintf( g_HardcodedBotInfo[BOT_OMICRON].szSkinName, "" );
-	sprintf( g_HardcodedBotInfo[BOT_OMICRON].szClassName, "random" );
-	g_HardcodedBotInfo[BOT_OMICRON].ulRailgunColor = RAILCOLOR_BLUE;
-	g_HardcodedBotInfo[BOT_OMICRON].ulChatFrequency = 20;
-	g_HardcodedBotInfo[BOT_OMICRON].bRevealed = true;
-	g_HardcodedBotInfo[BOT_OMICRON].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_OMICRON].szScriptName, "ROBOBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_OMICRON].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_OMICRON].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_OMICRON].szChatLump, "bots/chatfiles/robot.txt" );
-
-	// BOT_CRYON
-	sprintf( g_HardcodedBotInfo[BOT_CRYON].szName, "Cryon" );
-	g_HardcodedBotInfo[BOT_CRYON].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_CRYON].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_CRYON].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_CRYON].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_CRYON].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_CRYON].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_CRYON].szFavoriteWeapon, "railgun" );
-	sprintf( g_HardcodedBotInfo[BOT_CRYON].szColor, "00 00 00" );
-	sprintf( g_HardcodedBotInfo[BOT_CRYON].szGender, "cyborg" );
-	sprintf( g_HardcodedBotInfo[BOT_CRYON].szSkinName, "" );
-	sprintf( g_HardcodedBotInfo[BOT_CRYON].szClassName, "fighter" );
-	g_HardcodedBotInfo[BOT_CRYON].ulRailgunColor = RAILCOLOR_BLACK;
-	g_HardcodedBotInfo[BOT_CRYON].ulChatFrequency = 20;
-	g_HardcodedBotInfo[BOT_CRYON].bRevealed = true;
-	g_HardcodedBotInfo[BOT_CRYON].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_CRYON].szScriptName, "ROBOBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_CRYON].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_CRYON].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_CRYON].szChatLump, "bots/chatfiles/robot.txt" );
-
-	// BOT_OMEGA
-	sprintf( g_HardcodedBotInfo[BOT_OMEGA].szName, "Omega" );
-	g_HardcodedBotInfo[BOT_OMEGA].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_OMEGA].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_OMEGA].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_OMEGA].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_OMEGA].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_OMEGA].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_OMEGA].szFavoriteWeapon, "railgun" );
-	sprintf( g_HardcodedBotInfo[BOT_OMEGA].szColor, "00 00 00" );
-	sprintf( g_HardcodedBotInfo[BOT_OMEGA].szGender, "cyborg" );
-	sprintf( g_HardcodedBotInfo[BOT_OMEGA].szSkinName, "" );
-	sprintf( g_HardcodedBotInfo[BOT_OMEGA].szClassName, "fighter" );
-	g_HardcodedBotInfo[BOT_OMEGA].ulRailgunColor = RAILCOLOR_BLACK;
-	g_HardcodedBotInfo[BOT_OMEGA].ulChatFrequency = 20;
-	g_HardcodedBotInfo[BOT_OMEGA].bRevealed = true;
-	g_HardcodedBotInfo[BOT_OMEGA].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_OMEGA].szScriptName, "ROBOBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_OMEGA].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_OMEGA].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_OMEGA].szChatLump, "bots/chatfiles/robot.txt" );
-
-	/**************** INSECT BOSSES *****************/
-
-	// BOT_PREY		(18/30)
-	sprintf( g_HardcodedBotInfo[BOT_PREY].szName, "Prey" );
-	g_HardcodedBotInfo[BOT_PREY].Accuracy = BOTSKILL_LOW;
-	g_HardcodedBotInfo[BOT_PREY].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_PREY].Evade = BOTSKILL_SUPREME;
-	g_HardcodedBotInfo[BOT_PREY].Anticipation = BOTSKILL_LOW;
-	g_HardcodedBotInfo[BOT_PREY].ReactionTime = BOTSKILL_EXCELLENT;
-	g_HardcodedBotInfo[BOT_PREY].Perception = BOTSKILL_EXCELLENT;
-	sprintf( g_HardcodedBotInfo[BOT_PREY].szFavoriteWeapon, "railgun" );
-	sprintf( g_HardcodedBotInfo[BOT_PREY].szColor, "00 5f 00" );
-	sprintf( g_HardcodedBotInfo[BOT_PREY].szGender, "cyborg" );
-	sprintf( g_HardcodedBotInfo[BOT_PREY].szSkinName, "" );
-	sprintf( g_HardcodedBotInfo[BOT_PREY].szClassName, "mage" );
-	g_HardcodedBotInfo[BOT_PREY].ulRailgunColor = RAILCOLOR_GREEN;
-	g_HardcodedBotInfo[BOT_PREY].ulChatFrequency = 50;
-	g_HardcodedBotInfo[BOT_PREY].bRevealed = true;
-	g_HardcodedBotInfo[BOT_PREY].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_PREY].szScriptName, "INSCTBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_PREY].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_PREY].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_PREY].szChatLump, "bots/chatfiles/insect.txt" );
-
-	// BOT_MANEK	(21/30)
-	sprintf( g_HardcodedBotInfo[BOT_MANEK].szName, "Manek" );
-	g_HardcodedBotInfo[BOT_MANEK].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_MANEK].Intellect = BOTSKILL_SUPREME;
-	g_HardcodedBotInfo[BOT_MANEK].Evade = BOTSKILL_EXCELLENT;
-	g_HardcodedBotInfo[BOT_MANEK].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_MANEK].ReactionTime = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_MANEK].Perception = BOTSKILL_HIGH;
-	sprintf( g_HardcodedBotInfo[BOT_MANEK].szFavoriteWeapon, "railgun" );
-	sprintf( g_HardcodedBotInfo[BOT_MANEK].szColor, "5f 00 00" );
-	sprintf( g_HardcodedBotInfo[BOT_MANEK].szGender, "cyborg" );
-	sprintf( g_HardcodedBotInfo[BOT_MANEK].szSkinName, "" );
-	sprintf( g_HardcodedBotInfo[BOT_MANEK].szClassName, "mage" );
-	g_HardcodedBotInfo[BOT_MANEK].ulRailgunColor = RAILCOLOR_GREEN;
-	g_HardcodedBotInfo[BOT_MANEK].ulChatFrequency = 50;
-	g_HardcodedBotInfo[BOT_MANEK].bRevealed = true;
-	g_HardcodedBotInfo[BOT_MANEK].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_MANEK].szScriptName, "INSCTBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_MANEK].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_MANEK].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_MANEK].szChatLump, "bots/chatfiles/insect.txt" );
-
-	/**************** DEMONS *****************/
-
-	// BOT_LINGUICA		(19/25)
-	sprintf( g_HardcodedBotInfo[BOT_LINGUICA].szName, "Linguica" );
-	g_HardcodedBotInfo[BOT_LINGUICA].Accuracy = BOTSKILL_EXCELLENT;
-	g_HardcodedBotInfo[BOT_LINGUICA].Intellect = BOTSKILL_SUPREME;
-	g_HardcodedBotInfo[BOT_LINGUICA].Evade = BOTSKILL_EXCELLENT;
-	g_HardcodedBotInfo[BOT_LINGUICA].Anticipation = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_LINGUICA].ReactionTime = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_LINGUICA].Perception = BOTSKILL_HIGH;
-	sprintf( g_HardcodedBotInfo[BOT_LINGUICA].szFavoriteWeapon, "plasmarifle" );
-	sprintf( g_HardcodedBotInfo[BOT_LINGUICA].szColor, "ff 00 00" );
-	sprintf( g_HardcodedBotInfo[BOT_LINGUICA].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_LINGUICA].szSkinName, "hissy hogger" );
-	sprintf( g_HardcodedBotInfo[BOT_LINGUICA].szClassName, "random" );
-	g_HardcodedBotInfo[BOT_LINGUICA].ulRailgunColor = RAILCOLOR_GREEN;
-	g_HardcodedBotInfo[BOT_LINGUICA].ulChatFrequency = 75;
-	g_HardcodedBotInfo[BOT_LINGUICA].bRevealed = true;
-	g_HardcodedBotInfo[BOT_LINGUICA].bRevealedByDefault = true;
-	sprintf( g_HardcodedBotInfo[BOT_LINGUICA].szScriptName, "sausgbot" );
-	g_HardcodedBotInfo[BOT_LINGUICA].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_LINGUICA].szChatLump, "bots/chatfiles/linguica.txt" );
-
-	// BOT_TORRENT
-	sprintf( g_HardcodedBotInfo[BOT_TORRENT].szName, "Torrent" );
-	g_HardcodedBotInfo[BOT_TORRENT].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_TORRENT].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_TORRENT].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_TORRENT].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_TORRENT].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_TORRENT].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_TORRENT].szFavoriteWeapon, "railgun" );
-	sprintf( g_HardcodedBotInfo[BOT_TORRENT].szColor, "00 00 00" );
-	sprintf( g_HardcodedBotInfo[BOT_TORRENT].szGender, "cyborg" );
-	sprintf( g_HardcodedBotInfo[BOT_TORRENT].szSkinName, "" );
-	sprintf( g_HardcodedBotInfo[BOT_TORRENT].szClassName, "fighter" );
-	g_HardcodedBotInfo[BOT_TORRENT].ulRailgunColor = RAILCOLOR_RED;
-	g_HardcodedBotInfo[BOT_TORRENT].ulChatFrequency = 10;
-	g_HardcodedBotInfo[BOT_TORRENT].bRevealed = true;
-	g_HardcodedBotInfo[BOT_TORRENT].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_TORRENT].szScriptName, "DEMONBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_TORRENT].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_TORRENT].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_TORRENT].szChatLump, "bots/chatfiles/demon.txt" );
-
-	// BOT_CATACLYSM
-	sprintf( g_HardcodedBotInfo[BOT_CATACLYSM].szName, "Cataclysm" );
-	g_HardcodedBotInfo[BOT_CATACLYSM].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_CATACLYSM].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_CATACLYSM].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_CATACLYSM].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_CATACLYSM].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_CATACLYSM].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_CATACLYSM].szFavoriteWeapon, "railgun" );
-	sprintf( g_HardcodedBotInfo[BOT_CATACLYSM].szColor, "00 00 00" );
-	sprintf( g_HardcodedBotInfo[BOT_CATACLYSM].szGender, "cyborg" );
-	sprintf( g_HardcodedBotInfo[BOT_CATACLYSM].szSkinName, "" );
-	sprintf( g_HardcodedBotInfo[BOT_CATACLYSM].szClassName, "fighter" );
-	g_HardcodedBotInfo[BOT_CATACLYSM].ulRailgunColor = RAILCOLOR_RED;
-	g_HardcodedBotInfo[BOT_CATACLYSM].ulChatFrequency = 10;
-	g_HardcodedBotInfo[BOT_CATACLYSM].bRevealed = true;
-	g_HardcodedBotInfo[BOT_CATACLYSM].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_CATACLYSM].szScriptName, "DEMONBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_CATACLYSM].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_CATACLYSM].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_CATACLYSM].szChatLump, "bots/chatfiles/demon.txt" );
-
-	// BOT_VEX
-	sprintf( g_HardcodedBotInfo[BOT_VEX].szName, "Vex" );
-	g_HardcodedBotInfo[BOT_VEX].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_VEX].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_VEX].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_VEX].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_VEX].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_VEX].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_VEX].szFavoriteWeapon, "railgun" );
-	sprintf( g_HardcodedBotInfo[BOT_VEX].szColor, "00 00 00" );
-	sprintf( g_HardcodedBotInfo[BOT_VEX].szGender, "cyborg" );
-	sprintf( g_HardcodedBotInfo[BOT_VEX].szSkinName, "" );
-	sprintf( g_HardcodedBotInfo[BOT_VEX].szClassName, "fighter" );
-	g_HardcodedBotInfo[BOT_VEX].ulRailgunColor = RAILCOLOR_RED;
-	g_HardcodedBotInfo[BOT_VEX].ulChatFrequency = 10;
-	g_HardcodedBotInfo[BOT_VEX].bRevealed = true;
-	g_HardcodedBotInfo[BOT_VEX].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_VEX].szScriptName, "DEMONBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_VEX].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_VEX].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_VEX].szChatLump, "bots/chatfiles/demon.txt" );
-
-	// BOT_OBELISK
-	sprintf( g_HardcodedBotInfo[BOT_OBELISK].szName, "Obelisk" );
-	g_HardcodedBotInfo[BOT_OBELISK].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_OBELISK].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_OBELISK].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_OBELISK].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_OBELISK].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_OBELISK].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_OBELISK].szFavoriteWeapon, "railgun" );
-	sprintf( g_HardcodedBotInfo[BOT_OBELISK].szColor, "00 00 00" );
-	sprintf( g_HardcodedBotInfo[BOT_OBELISK].szGender, "cyborg" );
-	sprintf( g_HardcodedBotInfo[BOT_OBELISK].szSkinName, "" );
-	sprintf( g_HardcodedBotInfo[BOT_OBELISK].szClassName, "fighter" );
-	g_HardcodedBotInfo[BOT_OBELISK].ulRailgunColor = RAILCOLOR_RED;
-	g_HardcodedBotInfo[BOT_OBELISK].ulChatFrequency = 10;
-	g_HardcodedBotInfo[BOT_OBELISK].bRevealed = true;
-	g_HardcodedBotInfo[BOT_OBELISK].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_OBELISK].szScriptName, "DEMONBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_OBELISK].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_OBELISK].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_OBELISK].szChatLump, "bots/chatfiles/demon.txt" );
-
-	// BOT_DAEMOS
-	sprintf( g_HardcodedBotInfo[BOT_DAEMOS].szName, "Daemos" );
-	g_HardcodedBotInfo[BOT_DAEMOS].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_DAEMOS].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_DAEMOS].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_DAEMOS].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_DAEMOS].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_DAEMOS].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_DAEMOS].szFavoriteWeapon, "supershotgun" );
-	sprintf( g_HardcodedBotInfo[BOT_DAEMOS].szColor, "5f bf c0" );
-	sprintf( g_HardcodedBotInfo[BOT_DAEMOS].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_DAEMOS].szSkinName, "" );
-	sprintf( g_HardcodedBotInfo[BOT_DAEMOS].szClassName, "cleric" );
-	g_HardcodedBotInfo[BOT_DAEMOS].ulRailgunColor = RAILCOLOR_BLACK;
-	g_HardcodedBotInfo[BOT_DAEMOS].ulChatFrequency = 10;
-	g_HardcodedBotInfo[BOT_DAEMOS].bRevealed = true;
-	g_HardcodedBotInfo[BOT_DAEMOS].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_DAEMOS].szScriptName, "DEMONBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_DAEMOS].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_DAEMOS].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_DAEMOS].szChatLump, "bots/chatfiles/demon.txt" );
-
-	// BOT_MAABUS	(23/25)
-	sprintf( g_HardcodedBotInfo[BOT_MAABUS].szName, "Maabus" );
-	g_HardcodedBotInfo[BOT_MAABUS].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_MAABUS].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_MAABUS].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_MAABUS].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_MAABUS].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_MAABUS].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_MAABUS].szFavoriteWeapon, "railgun" );
-	sprintf( g_HardcodedBotInfo[BOT_MAABUS].szColor, "bf bf 00" );
-	sprintf( g_HardcodedBotInfo[BOT_MAABUS].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_MAABUS].szSkinName, "" );
-	sprintf( g_HardcodedBotInfo[BOT_MAABUS].szClassName, "random" );
-	g_HardcodedBotInfo[BOT_MAABUS].ulRailgunColor = RAILCOLOR_GOLD;
-	g_HardcodedBotInfo[BOT_MAABUS].ulChatFrequency = 10;
-	g_HardcodedBotInfo[BOT_MAABUS].bRevealed = true;
-	g_HardcodedBotInfo[BOT_MAABUS].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_MAABUS].szScriptName, "DEMONBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_MAABUS].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_MAABUS].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_MAABUS].szChatLump, "bots/chatfiles/demon.txt" );
-
-	// BOT_SLYOR	(23/25)
-	sprintf( g_HardcodedBotInfo[BOT_SLYOR].szName, "Slyor" );
-	g_HardcodedBotInfo[BOT_SLYOR].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_SLYOR].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_SLYOR].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_SLYOR].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_SLYOR].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_SLYOR].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_SLYOR].szFavoriteWeapon, "railgun" );
-	sprintf( g_HardcodedBotInfo[BOT_SLYOR].szColor, "8f 8f 00" );
-	sprintf( g_HardcodedBotInfo[BOT_SLYOR].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_SLYOR].szSkinName, "slyor" );
-	sprintf( g_HardcodedBotInfo[BOT_SLYOR].szClassName, "random" );
-	g_HardcodedBotInfo[BOT_SLYOR].ulRailgunColor = RAILCOLOR_GOLD;
-	g_HardcodedBotInfo[BOT_SLYOR].ulChatFrequency = 10;
-	g_HardcodedBotInfo[BOT_SLYOR].bRevealed = true;
-	g_HardcodedBotInfo[BOT_SLYOR].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_SLYOR].szScriptName, "DEMONBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_SLYOR].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_SLYOR].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_SLYOR].szChatLump, "bots/chatfiles/demon.txt" );
-
-	/**************** FINAL BOSSES *****************/
-
-	// BOT_ORION	(25/30)
-	sprintf( g_HardcodedBotInfo[BOT_ORION].szName, "Orion" );
-	g_HardcodedBotInfo[BOT_ORION].Accuracy = BOTSKILL_SUPREME;
-	g_HardcodedBotInfo[BOT_ORION].Intellect = BOTSKILL_SUPREME;
-	g_HardcodedBotInfo[BOT_ORION].Evade = BOTSKILL_EXCELLENT;
-	g_HardcodedBotInfo[BOT_ORION].Anticipation = BOTSKILL_SUPREME;
-	g_HardcodedBotInfo[BOT_ORION].ReactionTime = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_ORION].Perception = BOTSKILL_HIGH;
-	sprintf( g_HardcodedBotInfo[BOT_ORION].szFavoriteWeapon, "railgun" );
-	sprintf( g_HardcodedBotInfo[BOT_ORION].szColor, "bf bf 00" );
-	sprintf( g_HardcodedBotInfo[BOT_ORION].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_ORION].szSkinName, "orion" );
-	sprintf( g_HardcodedBotInfo[BOT_ORION].szClassName, "fighter" );
-	g_HardcodedBotInfo[BOT_ORION].ulRailgunColor = RAILCOLOR_GOLD;
-	g_HardcodedBotInfo[BOT_ORION].ulChatFrequency = 33;
-	g_HardcodedBotInfo[BOT_ORION].bRevealed = true;
-	g_HardcodedBotInfo[BOT_ORION].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_ORION].szScriptName, "OREOBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_ORION].szScriptName, "humanbot" );
-	g_HardcodedBotInfo[BOT_ORION].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_ORION].szChatLump, "bots/chatfiles/orion.txt" );
-
-	// BOT_ULTIMUS	(30/30)
-	sprintf( g_HardcodedBotInfo[BOT_ULTIMUS].szName, "Ultimus" );
-	g_HardcodedBotInfo[BOT_ULTIMUS].Accuracy = BOTSKILL_PERFECT;
-	g_HardcodedBotInfo[BOT_ULTIMUS].Intellect = BOTSKILL_PERFECT;
-	g_HardcodedBotInfo[BOT_ULTIMUS].Evade = BOTSKILL_PERFECT;
-	g_HardcodedBotInfo[BOT_ULTIMUS].Anticipation = BOTSKILL_PERFECT;
-	g_HardcodedBotInfo[BOT_ULTIMUS].ReactionTime = BOTSKILL_PERFECT;
-	g_HardcodedBotInfo[BOT_ULTIMUS].Perception = BOTSKILL_PERFECT;
-	sprintf( g_HardcodedBotInfo[BOT_ULTIMUS].szFavoriteWeapon, "railgun" );
-	sprintf( g_HardcodedBotInfo[BOT_ULTIMUS].szColor, "c0 8f 60" );
-	sprintf( g_HardcodedBotInfo[BOT_ULTIMUS].szGender, "cyborg" );
-	sprintf( g_HardcodedBotInfo[BOT_ULTIMUS].szSkinName, "ultimus" );
-	sprintf( g_HardcodedBotInfo[BOT_ULTIMUS].szClassName, "fighter" );
-	g_HardcodedBotInfo[BOT_ULTIMUS].ulRailgunColor = RAILCOLOR_BLACK;
-	g_HardcodedBotInfo[BOT_ULTIMUS].ulChatFrequency = 25;
-	g_HardcodedBotInfo[BOT_ULTIMUS].bRevealed = true;
-	g_HardcodedBotInfo[BOT_ULTIMUS].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_ULTIMUS].szScriptName, "ULTIBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_ULTIMUS].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_ULTIMUS].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_ULTIMUS].szChatLump, "bots/chatfiles/ultimus.txt" );
-
 	/**************** EXTRA BOTS *****************/
-
-	// BOT_ROMERO
-	sprintf( g_HardcodedBotInfo[BOT_ROMERO].szName, "Romero" );
-	g_HardcodedBotInfo[BOT_ROMERO].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_ROMERO].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_ROMERO].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_ROMERO].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_ROMERO].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_ROMERO].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_ROMERO].szFavoriteWeapon, "chaingun" );
-	sprintf( g_HardcodedBotInfo[BOT_ROMERO].szColor, "7f 80 3f" );
-	sprintf( g_HardcodedBotInfo[BOT_ROMERO].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_ROMERO].szSkinName, "john romero" );
-	sprintf( g_HardcodedBotInfo[BOT_ROMERO].szClassName, "mage" );
-	g_HardcodedBotInfo[BOT_ROMERO].ulRailgunColor = RAILCOLOR_RAINBOW;
-	g_HardcodedBotInfo[BOT_ROMERO].ulChatFrequency = 50;
-	g_HardcodedBotInfo[BOT_ROMERO].bRevealed = false;
-	g_HardcodedBotInfo[BOT_ROMERO].bRevealedByDefault = false;
-//	sprintf( g_HardcodedBotInfo[BOT_ROMERO].szScriptName, "POGOBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_ROMERO].szScriptName, "humanbot" );
-	g_HardcodedBotInfo[BOT_ROMERO].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_ROMERO].szChatLump, "bots/chatfiles/romero.txt" );
-
-	// BOT_H4X0R
-	sprintf( g_HardcodedBotInfo[BOT_H4X0R].szName, "h4x0r" );
-	g_HardcodedBotInfo[BOT_H4X0R].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_H4X0R].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_H4X0R].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_H4X0R].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_H4X0R].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_H4X0R].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_H4X0R].szFavoriteWeapon, "railgun" );
-	sprintf( g_HardcodedBotInfo[BOT_H4X0R].szColor, "bf bf 60" );
-	sprintf( g_HardcodedBotInfo[BOT_H4X0R].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_H4X0R].szSkinName, "" );
-	sprintf( g_HardcodedBotInfo[BOT_H4X0R].szClassName, "random" );
-	g_HardcodedBotInfo[BOT_H4X0R].ulRailgunColor = RAILCOLOR_PURPLE;
-	g_HardcodedBotInfo[BOT_H4X0R].ulChatFrequency = 75;
-	g_HardcodedBotInfo[BOT_H4X0R].bRevealed = true;
-	g_HardcodedBotInfo[BOT_H4X0R].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_H4X0R].szScriptName, "HAXORBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_H4X0R].szScriptName, "humanbot" );
-	g_HardcodedBotInfo[BOT_H4X0R].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_H4X0R].szChatLump, "bots/chatfiles/1337.txt" );
-
-	// BOT_FRAD
-	sprintf( g_HardcodedBotInfo[BOT_FRAD].szName, "frad" );
-	g_HardcodedBotInfo[BOT_FRAD].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_FRAD].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_FRAD].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_FRAD].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_FRAD].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_FRAD].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_FRAD].szFavoriteWeapon, "railgun" );
-	sprintf( g_HardcodedBotInfo[BOT_FRAD].szColor, "00 00 00" );
-	sprintf( g_HardcodedBotInfo[BOT_FRAD].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_FRAD].szSkinName, "" );
-	sprintf( g_HardcodedBotInfo[BOT_FRAD].szClassName, "random" );
-	g_HardcodedBotInfo[BOT_FRAD].ulRailgunColor = RAILCOLOR_RED;
-	g_HardcodedBotInfo[BOT_FRAD].ulChatFrequency = 70;
-	g_HardcodedBotInfo[BOT_FRAD].bRevealed = false;
-	g_HardcodedBotInfo[BOT_FRAD].bRevealedByDefault = false;
-//	sprintf( g_HardcodedBotInfo[BOT_FRAD].szScriptName, "FRADBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_FRAD].szScriptName, "humanbot" );
-	g_HardcodedBotInfo[BOT_FRAD].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_FRAD].szChatLump, "bots/chatfiles/frad.txt" );
-
-	// BOT_MEWSE
-	sprintf( g_HardcodedBotInfo[BOT_MEWSE].szName, "mewse" );
-	g_HardcodedBotInfo[BOT_MEWSE].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_MEWSE].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_MEWSE].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_MEWSE].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_MEWSE].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_MEWSE].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_MEWSE].szFavoriteWeapon, "railgun" );
-	sprintf( g_HardcodedBotInfo[BOT_MEWSE].szColor, "00 00 00" );
-	sprintf( g_HardcodedBotInfo[BOT_MEWSE].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_MEWSE].szSkinName, "" );
-	sprintf( g_HardcodedBotInfo[BOT_MEWSE].szClassName, "random" );
-	g_HardcodedBotInfo[BOT_MEWSE].ulRailgunColor = RAILCOLOR_RAINBOW;
-	g_HardcodedBotInfo[BOT_MEWSE].ulChatFrequency = 75;
-	g_HardcodedBotInfo[BOT_MEWSE].bRevealed = false;
-	g_HardcodedBotInfo[BOT_MEWSE].bRevealedByDefault = false;
-//	sprintf( g_HardcodedBotInfo[BOT_MEWSE].szScriptName, "MEWSEBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_MEWSE].szScriptName, "humanbot" );
-	g_HardcodedBotInfo[BOT_MEWSE].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_MEWSE].szChatLump, "bots/chatfiles/mewse.txt" );
-
-	// BOT_HISSY
-	sprintf( g_HardcodedBotInfo[BOT_HISSY].szName, "Hissy" );
-	g_HardcodedBotInfo[BOT_HISSY].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_HISSY].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_HISSY].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_HISSY].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_HISSY].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_HISSY].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_HISSY].szFavoriteWeapon, "railgun" );
-	sprintf( g_HardcodedBotInfo[BOT_HISSY].szColor, "00 ff 00" );
-	sprintf( g_HardcodedBotInfo[BOT_HISSY].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_HISSY].szSkinName, "hissy" );
-	sprintf( g_HardcodedBotInfo[BOT_HISSY].szClassName, "mage" );
-	g_HardcodedBotInfo[BOT_HISSY].ulRailgunColor = RAILCOLOR_RAINBOW;
-	g_HardcodedBotInfo[BOT_HISSY].ulChatFrequency = 65;
-	g_HardcodedBotInfo[BOT_HISSY].bRevealed = true;
-	g_HardcodedBotInfo[BOT_HISSY].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_HISSY].szScriptName, "HISSYBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_HISSY].szScriptName, "humanbot" );
-	g_HardcodedBotInfo[BOT_HISSY].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_HISSY].szChatLump, "bots/chatfiles/hissy.txt" );
-
-	// BOT_MASSMOUTH
-	sprintf( g_HardcodedBotInfo[BOT_MASSMOUTH].szName, "Massmouth" );
-	g_HardcodedBotInfo[BOT_MASSMOUTH].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_MASSMOUTH].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_MASSMOUTH].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_MASSMOUTH].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_MASSMOUTH].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_MASSMOUTH].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_MASSMOUTH].szFavoriteWeapon, "chaingun" );
-	sprintf( g_HardcodedBotInfo[BOT_MASSMOUTH].szColor, "00 b0 00" );
-	sprintf( g_HardcodedBotInfo[BOT_MASSMOUTH].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_MASSMOUTH].szSkinName, "Massmouth 2" );
-	sprintf( g_HardcodedBotInfo[BOT_MASSMOUTH].szClassName, "random" );
-	g_HardcodedBotInfo[BOT_MASSMOUTH].ulRailgunColor = RAILCOLOR_WHITE;
-	g_HardcodedBotInfo[BOT_MASSMOUTH].ulChatFrequency = 65;
-	g_HardcodedBotInfo[BOT_MASSMOUTH].bRevealed = true;
-	g_HardcodedBotInfo[BOT_MASSMOUTH].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_MASSMOUTH].szScriptName, "MOUTHBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_MASSMOUTH].szScriptName, "humanbot" );
-	g_HardcodedBotInfo[BOT_MASSMOUTH].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_MASSMOUTH].szChatLump, "bots/chatfiles/massmouth.txt" );
-
-	// BOT_DOOMCRATE
-	sprintf( g_HardcodedBotInfo[BOT_DOOMCRATE].szName, "Doomcrate" );
-	g_HardcodedBotInfo[BOT_DOOMCRATE].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_DOOMCRATE].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_DOOMCRATE].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_DOOMCRATE].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_DOOMCRATE].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_DOOMCRATE].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_DOOMCRATE].szFavoriteWeapon, "chaingun" );
-	sprintf( g_HardcodedBotInfo[BOT_DOOMCRATE].szColor, "ef c0 80" );
-	sprintf( g_HardcodedBotInfo[BOT_DOOMCRATE].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_DOOMCRATE].szSkinName, "doomcrate" );
-	sprintf( g_HardcodedBotInfo[BOT_DOOMCRATE].szClassName, "random" );
-	g_HardcodedBotInfo[BOT_DOOMCRATE].ulRailgunColor = RAILCOLOR_SILVER;
-	g_HardcodedBotInfo[BOT_DOOMCRATE].ulChatFrequency = 10;
-	g_HardcodedBotInfo[BOT_DOOMCRATE].bRevealed = true;
-	g_HardcodedBotInfo[BOT_DOOMCRATE].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_DOOMCRATE].szScriptName, "BOXBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_DOOMCRATE].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_DOOMCRATE].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_DOOMCRATE].szChatLump, "bots/chatfiles/doomcrate.txt" );
-
-	// BOT_ZOMBIEMAN
-	sprintf( g_HardcodedBotInfo[BOT_ZOMBIEMAN].szName, "Zombieman" );
-	g_HardcodedBotInfo[BOT_ZOMBIEMAN].Accuracy = BOTSKILL_LOW;
-	g_HardcodedBotInfo[BOT_ZOMBIEMAN].Intellect = BOTSKILL_LOW;
-	g_HardcodedBotInfo[BOT_ZOMBIEMAN].Evade = BOTSKILL_LOW;
-	g_HardcodedBotInfo[BOT_ZOMBIEMAN].Anticipation = BOTSKILL_LOW;
-	g_HardcodedBotInfo[BOT_ZOMBIEMAN].ReactionTime = BOTSKILL_LOW;
-	g_HardcodedBotInfo[BOT_ZOMBIEMAN].Perception = BOTSKILL_LOW;
-	sprintf( g_HardcodedBotInfo[BOT_ZOMBIEMAN].szFavoriteWeapon, "chaingun" );
-	sprintf( g_HardcodedBotInfo[BOT_ZOMBIEMAN].szColor, "bf 8f 5f" );
-	sprintf( g_HardcodedBotInfo[BOT_ZOMBIEMAN].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_ZOMBIEMAN].szSkinName, "zombieman" );
-	sprintf( g_HardcodedBotInfo[BOT_ZOMBIEMAN].szClassName, "random" );
-	g_HardcodedBotInfo[BOT_ZOMBIEMAN].ulRailgunColor = RAILCOLOR_BLUE;
-	g_HardcodedBotInfo[BOT_ZOMBIEMAN].ulChatFrequency = 0;
-	g_HardcodedBotInfo[BOT_ZOMBIEMAN].bRevealed = true;
-	g_HardcodedBotInfo[BOT_ZOMBIEMAN].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_ZOMBIEMAN].szScriptName, "ZMBIEBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_ZOMBIEMAN].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_ZOMBIEMAN].szChatFile[0] = 0;
-	g_HardcodedBotInfo[BOT_ZOMBIEMAN].szChatLump[0] = 0;
-
-	// BOT_SHOTGUNGUY
-	sprintf( g_HardcodedBotInfo[BOT_SHOTGUNGUY].szName, "Shotgunner" );
-	g_HardcodedBotInfo[BOT_SHOTGUNGUY].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_SHOTGUNGUY].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_SHOTGUNGUY].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_SHOTGUNGUY].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_SHOTGUNGUY].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_SHOTGUNGUY].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_SHOTGUNGUY].szFavoriteWeapon, "shotgun" );
-	sprintf( g_HardcodedBotInfo[BOT_SHOTGUNGUY].szColor, "df 20 20" );
-	sprintf( g_HardcodedBotInfo[BOT_SHOTGUNGUY].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_SHOTGUNGUY].szSkinName, "shotgun guy" );
-	sprintf( g_HardcodedBotInfo[BOT_SHOTGUNGUY].szClassName, "fighter" );
-	g_HardcodedBotInfo[BOT_SHOTGUNGUY].ulRailgunColor = RAILCOLOR_BLUE;
-	g_HardcodedBotInfo[BOT_SHOTGUNGUY].ulChatFrequency = 0;
-	g_HardcodedBotInfo[BOT_SHOTGUNGUY].bRevealed = true;
-	g_HardcodedBotInfo[BOT_SHOTGUNGUY].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_SHOTGUNGUY].szScriptName, "ZMBIEBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_SHOTGUNGUY].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_SHOTGUNGUY].szChatFile[0] = 0;
-	g_HardcodedBotInfo[BOT_SHOTGUNGUY].szChatLump[0] = 0;
-
-	// BOT_BIGCHAINGUNGUY
-	sprintf( g_HardcodedBotInfo[BOT_BIGCHAINGUNGUY].szName, "Chaingunner" );
-	g_HardcodedBotInfo[BOT_BIGCHAINGUNGUY].Accuracy = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_BIGCHAINGUNGUY].Intellect = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_BIGCHAINGUNGUY].Evade = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_BIGCHAINGUNGUY].Anticipation = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_BIGCHAINGUNGUY].ReactionTime = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_BIGCHAINGUNGUY].Perception = BOTSKILL_HIGH;
-	sprintf( g_HardcodedBotInfo[BOT_BIGCHAINGUNGUY].szFavoriteWeapon, "chaingun" );
-	sprintf( g_HardcodedBotInfo[BOT_BIGCHAINGUNGUY].szColor, "ef 00 00" );
-	sprintf( g_HardcodedBotInfo[BOT_BIGCHAINGUNGUY].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_BIGCHAINGUNGUY].szSkinName, "big chaingun guy" );
-	sprintf( g_HardcodedBotInfo[BOT_BIGCHAINGUNGUY].szClassName, "fighter" );
-	g_HardcodedBotInfo[BOT_BIGCHAINGUNGUY].ulRailgunColor = RAILCOLOR_BLUE;
-	g_HardcodedBotInfo[BOT_BIGCHAINGUNGUY].ulChatFrequency = 0;
-	g_HardcodedBotInfo[BOT_BIGCHAINGUNGUY].bRevealed = true;
-	g_HardcodedBotInfo[BOT_BIGCHAINGUNGUY].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_BIGCHAINGUNGUY].szScriptName, "ZMBIEBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_BIGCHAINGUNGUY].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_BIGCHAINGUNGUY].szChatFile[0] = 0;
-	g_HardcodedBotInfo[BOT_BIGCHAINGUNGUY].szChatLump[0] = 0;
-
-	// BOT_SUPERSHOTGUNNER
-	sprintf( g_HardcodedBotInfo[BOT_SUPERSHOTGUNNER].szName, "Super Shotgunner" );
-	g_HardcodedBotInfo[BOT_SUPERSHOTGUNNER].Accuracy = BOTSKILL_EXCELLENT;
-	g_HardcodedBotInfo[BOT_SUPERSHOTGUNNER].Intellect = BOTSKILL_EXCELLENT;
-	g_HardcodedBotInfo[BOT_SUPERSHOTGUNNER].Evade = BOTSKILL_EXCELLENT;
-	g_HardcodedBotInfo[BOT_SUPERSHOTGUNNER].Anticipation = BOTSKILL_EXCELLENT;
-	g_HardcodedBotInfo[BOT_SUPERSHOTGUNNER].ReactionTime = BOTSKILL_EXCELLENT;
-	g_HardcodedBotInfo[BOT_SUPERSHOTGUNNER].Perception = BOTSKILL_EXCELLENT;
-	sprintf( g_HardcodedBotInfo[BOT_SUPERSHOTGUNNER].szFavoriteWeapon, "supershotgun" );
-	sprintf( g_HardcodedBotInfo[BOT_SUPERSHOTGUNNER].szColor, "00 ff 00" );
-	sprintf( g_HardcodedBotInfo[BOT_SUPERSHOTGUNNER].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_SUPERSHOTGUNNER].szSkinName, "super shotgun guy" );
-	sprintf( g_HardcodedBotInfo[BOT_SUPERSHOTGUNNER].szClassName, "fighter" );
-	g_HardcodedBotInfo[BOT_SUPERSHOTGUNNER].ulRailgunColor = RAILCOLOR_GREEN;
-	g_HardcodedBotInfo[BOT_SUPERSHOTGUNNER].ulChatFrequency = 0;
-	g_HardcodedBotInfo[BOT_SUPERSHOTGUNNER].bRevealed = true;
-	g_HardcodedBotInfo[BOT_SUPERSHOTGUNNER].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_SUPERSHOTGUNNER].szScriptName, "ZMBIEBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_SUPERSHOTGUNNER].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_SUPERSHOTGUNNER].szChatFile[0] = 0;
-	g_HardcodedBotInfo[BOT_SUPERSHOTGUNNER].szChatLump[0] = 0;
-
-	// BOT_SSNAZI	(12/30)
-	sprintf( g_HardcodedBotInfo[BOT_SSNAZI].szName, "SS Nazi" );
-	g_HardcodedBotInfo[BOT_SSNAZI].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_SSNAZI].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_SSNAZI].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_SSNAZI].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_SSNAZI].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_SSNAZI].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_SSNAZI].szFavoriteWeapon, "shotgun" );
-	sprintf( g_HardcodedBotInfo[BOT_SSNAZI].szColor, "00 00 ff" );
-	sprintf( g_HardcodedBotInfo[BOT_SSNAZI].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_SSNAZI].szSkinName, "SS Nazi" );
-	sprintf( g_HardcodedBotInfo[BOT_SSNAZI].szClassName, "fighter" );
-	g_HardcodedBotInfo[BOT_SSNAZI].ulRailgunColor = RAILCOLOR_BLUE;
-	g_HardcodedBotInfo[BOT_SSNAZI].ulChatFrequency = 0;
-	g_HardcodedBotInfo[BOT_SSNAZI].bRevealed = true;
-	g_HardcodedBotInfo[BOT_SSNAZI].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_SSNAZI].szScriptName, "ENEMYBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_SSNAZI].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_SSNAZI].szChatFile[0] = 0;
-	g_HardcodedBotInfo[BOT_SSNAZI].szChatLump[0] = 0;
-
-	// BOT_NAZIGUARD	(12/30)
-	sprintf( g_HardcodedBotInfo[BOT_NAZIGUARD].szName, "Nazi Guard" );
-	g_HardcodedBotInfo[BOT_NAZIGUARD].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_NAZIGUARD].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_NAZIGUARD].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_NAZIGUARD].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_NAZIGUARD].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_NAZIGUARD].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_NAZIGUARD].szFavoriteWeapon, "shotgun" );
-	sprintf( g_HardcodedBotInfo[BOT_NAZIGUARD].szColor, "b0 b0 b0" );
-	sprintf( g_HardcodedBotInfo[BOT_NAZIGUARD].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_NAZIGUARD].szSkinName, "Nazi Guard" );
-	sprintf( g_HardcodedBotInfo[BOT_NAZIGUARD].szClassName, "fighter" );
-	g_HardcodedBotInfo[BOT_NAZIGUARD].ulRailgunColor = RAILCOLOR_BLUE;
-	g_HardcodedBotInfo[BOT_NAZIGUARD].ulChatFrequency = 0;
-	g_HardcodedBotInfo[BOT_NAZIGUARD].bRevealed = true;
-	g_HardcodedBotInfo[BOT_NAZIGUARD].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_NAZIGUARD].szScriptName, "ENEMYBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_NAZIGUARD].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_NAZIGUARD].szChatFile[0] = 0;
-	g_HardcodedBotInfo[BOT_NAZIGUARD].szChatLump[0] = 0;
-
-	// BOT_NAZICHAINGUNNER	(18/30)
-	sprintf( g_HardcodedBotInfo[BOT_NAZICHAINGUNNER].szName, "Nazi Chaingunner" );
-	g_HardcodedBotInfo[BOT_NAZICHAINGUNNER].Accuracy = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_NAZICHAINGUNNER].Intellect = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_NAZICHAINGUNNER].Evade = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_NAZICHAINGUNNER].Anticipation = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_NAZICHAINGUNNER].ReactionTime = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_NAZICHAINGUNNER].Perception = BOTSKILL_HIGH;
-	sprintf( g_HardcodedBotInfo[BOT_NAZICHAINGUNNER].szFavoriteWeapon, "shotgun" );
-	sprintf( g_HardcodedBotInfo[BOT_NAZICHAINGUNNER].szColor, "00 00 ef" );
-	sprintf( g_HardcodedBotInfo[BOT_NAZICHAINGUNNER].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_NAZICHAINGUNNER].szSkinName, "Nazi Chaingunner" );
-	sprintf( g_HardcodedBotInfo[BOT_NAZICHAINGUNNER].szClassName, "fighter" );
-	g_HardcodedBotInfo[BOT_NAZICHAINGUNNER].ulRailgunColor = RAILCOLOR_BLUE;
-	g_HardcodedBotInfo[BOT_NAZICHAINGUNNER].ulChatFrequency = 0;
-	g_HardcodedBotInfo[BOT_NAZICHAINGUNNER].bRevealed = true;
-	g_HardcodedBotInfo[BOT_NAZICHAINGUNNER].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_NAZICHAINGUNNER].szScriptName, "ENEMYBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_NAZICHAINGUNNER].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_NAZICHAINGUNNER].szChatFile[0] = 0;
-	g_HardcodedBotInfo[BOT_NAZICHAINGUNNER].szChatLump[0] = 0;
-
-	// BOT_STRIFEGUY	(18/30)
-	sprintf( g_HardcodedBotInfo[BOT_STRIFEGUY].szName, "Strife Guy" );
-	g_HardcodedBotInfo[BOT_STRIFEGUY].Accuracy = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_STRIFEGUY].Intellect = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_STRIFEGUY].Evade = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_STRIFEGUY].Anticipation = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_STRIFEGUY].ReactionTime = BOTSKILL_HIGH;
-	g_HardcodedBotInfo[BOT_STRIFEGUY].Perception = BOTSKILL_HIGH;
-	sprintf( g_HardcodedBotInfo[BOT_STRIFEGUY].szFavoriteWeapon, "shotgun" );
-	sprintf( g_HardcodedBotInfo[BOT_STRIFEGUY].szColor, "bf 8f 5f" );
-	sprintf( g_HardcodedBotInfo[BOT_STRIFEGUY].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_STRIFEGUY].szSkinName, "Strife Guy" );
-	sprintf( g_HardcodedBotInfo[BOT_STRIFEGUY].szClassName, "fighter" );
-	g_HardcodedBotInfo[BOT_STRIFEGUY].ulRailgunColor = RAILCOLOR_BLUE;
-	g_HardcodedBotInfo[BOT_STRIFEGUY].ulChatFrequency = 0;
-	g_HardcodedBotInfo[BOT_STRIFEGUY].bRevealed = true;
-	g_HardcodedBotInfo[BOT_STRIFEGUY].bRevealedByDefault = true;
-//	sprintf( g_HardcodedBotInfo[BOT_STRIFEGUY].szScriptName, "ENEMYBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_STRIFEGUY].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_STRIFEGUY].szChatFile[0] = 0;
-	g_HardcodedBotInfo[BOT_STRIFEGUY].szChatLump[0] = 0;
-
-	// BOT_XXENEMYXX
-	sprintf( g_HardcodedBotInfo[BOT_XXENEMYXX].szName, "xxEnemyxx" );
-	g_HardcodedBotInfo[BOT_XXENEMYXX].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_XXENEMYXX].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_XXENEMYXX].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_XXENEMYXX].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_XXENEMYXX].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_XXENEMYXX].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_XXENEMYXX].szFavoriteWeapon, "chaingun" );
-	sprintf( g_HardcodedBotInfo[BOT_XXENEMYXX].szColor, "7f 80 3f" );
-	sprintf( g_HardcodedBotInfo[BOT_XXENEMYXX].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_XXENEMYXX].szSkinName, "" );
-	sprintf( g_HardcodedBotInfo[BOT_XXENEMYXX].szClassName, "random" );
-	g_HardcodedBotInfo[BOT_XXENEMYXX].ulRailgunColor = RAILCOLOR_RED;
-	g_HardcodedBotInfo[BOT_XXENEMYXX].ulChatFrequency = 80;
-	g_HardcodedBotInfo[BOT_XXENEMYXX].bRevealed = false;
-	g_HardcodedBotInfo[BOT_XXENEMYXX].bRevealedByDefault = false;
-//	sprintf( g_HardcodedBotInfo[BOT_XXENEMYXX].szScriptName, "ENEMYBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_XXENEMYXX].szScriptName, "humanbot" );
-	g_HardcodedBotInfo[BOT_XXENEMYXX].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_XXENEMYXX].szChatLump, "bots/chatfiles/xxenemyxx.txt" );
-
-	// BOT_FIFFY
-	sprintf( g_HardcodedBotInfo[BOT_FIFFY].szName, "King REoL" );
-	g_HardcodedBotInfo[BOT_FIFFY].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_FIFFY].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_FIFFY].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_FIFFY].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_FIFFY].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_FIFFY].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_FIFFY].szFavoriteWeapon, "chaingun" );
-	sprintf( g_HardcodedBotInfo[BOT_FIFFY].szColor, "7f 80 3f" );
-	sprintf( g_HardcodedBotInfo[BOT_FIFFY].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_FIFFY].szSkinName, "" );
-	sprintf( g_HardcodedBotInfo[BOT_FIFFY].szClassName, "mage" );
-	g_HardcodedBotInfo[BOT_FIFFY].ulRailgunColor = RAILCOLOR_PURPLE;
-	g_HardcodedBotInfo[BOT_FIFFY].ulChatFrequency = 65;
-	g_HardcodedBotInfo[BOT_FIFFY].bRevealed = false;
-	g_HardcodedBotInfo[BOT_FIFFY].bRevealedByDefault = false;
-//	sprintf( g_HardcodedBotInfo[BOT_FIFFY].szScriptName, "REOLBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_FIFFY].szScriptName, "humanbot" );
-	g_HardcodedBotInfo[BOT_FIFFY].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_FIFFY].szChatLump, "bots/chatfiles/reol.txt" );
-
-	// BOT_MEEPY
-	sprintf( g_HardcodedBotInfo[BOT_MEEPY].szName, "Meepy" );
-	g_HardcodedBotInfo[BOT_MEEPY].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_MEEPY].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_MEEPY].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_MEEPY].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_MEEPY].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_MEEPY].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_MEEPY].szFavoriteWeapon, "chaingun" );
-	sprintf( g_HardcodedBotInfo[BOT_MEEPY].szColor, "7f 80 3f" );
-	sprintf( g_HardcodedBotInfo[BOT_MEEPY].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_MEEPY].szSkinName, "meepy" );
-	sprintf( g_HardcodedBotInfo[BOT_MEEPY].szClassName, "mage" );
-	g_HardcodedBotInfo[BOT_MEEPY].ulRailgunColor = RAILCOLOR_BLUE;
-	g_HardcodedBotInfo[BOT_MEEPY].ulChatFrequency = 33;
-	g_HardcodedBotInfo[BOT_MEEPY].bRevealed = false;
-	g_HardcodedBotInfo[BOT_MEEPY].bRevealedByDefault = false;
-//	sprintf( g_HardcodedBotInfo[BOT_MEEPY].szScriptName, "MEEPYBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_MEEPY].szScriptName, "humanbot" );
-	g_HardcodedBotInfo[BOT_MEEPY].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_MEEPY].szChatLump, "bots/chatfiles/meepy.txt" );
-
-	// BOT_CHEXMAN
-	sprintf( g_HardcodedBotInfo[BOT_CHEXMAN].szName, "Chexman" );
-	g_HardcodedBotInfo[BOT_CHEXMAN].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_CHEXMAN].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_CHEXMAN].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_CHEXMAN].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_CHEXMAN].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_CHEXMAN].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_CHEXMAN].szFavoriteWeapon, "chaingun" );
-	sprintf( g_HardcodedBotInfo[BOT_CHEXMAN].szColor, "7f 80 3f" );
-	sprintf( g_HardcodedBotInfo[BOT_CHEXMAN].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_CHEXMAN].szSkinName, "chexman" );
-	sprintf( g_HardcodedBotInfo[BOT_CHEXMAN].szClassName, "cleric" );
-	g_HardcodedBotInfo[BOT_CHEXMAN].ulRailgunColor = RAILCOLOR_YELLOW;
-	g_HardcodedBotInfo[BOT_CHEXMAN].ulChatFrequency = 33;
-	g_HardcodedBotInfo[BOT_CHEXMAN].bRevealed = false;
-	g_HardcodedBotInfo[BOT_CHEXMAN].bRevealedByDefault = false;
-//	sprintf( g_HardcodedBotInfo[BOT_CHEXMAN].szScriptName, "CHEXBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_CHEXMAN].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_CHEXMAN].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_CHEXMAN].szChatLump, "bots/chatfiles/chexman.txt" );
-
-	// BOT_DAISY
-	sprintf( g_HardcodedBotInfo[BOT_DAISY].szName, "Daisy" );
-	g_HardcodedBotInfo[BOT_DAISY].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_DAISY].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_DAISY].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_DAISY].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_DAISY].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_DAISY].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_DAISY].szFavoriteWeapon, "chaingun" );
-	sprintf( g_HardcodedBotInfo[BOT_DAISY].szColor, "7f 80 3f" );
-	sprintf( g_HardcodedBotInfo[BOT_DAISY].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_DAISY].szSkinName, "daisy" );
-	sprintf( g_HardcodedBotInfo[BOT_DAISY].szClassName, "cleric" );
-	g_HardcodedBotInfo[BOT_DAISY].ulRailgunColor = RAILCOLOR_RAINBOW;
-	g_HardcodedBotInfo[BOT_DAISY].ulChatFrequency = 50;
-	g_HardcodedBotInfo[BOT_DAISY].bRevealed = false;
-	g_HardcodedBotInfo[BOT_DAISY].bRevealedByDefault = false;
-	sprintf( g_HardcodedBotInfo[BOT_DAISY].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_DAISY].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_DAISY].szChatLump, "bots/chatfiles/daisy.txt" );
-
-	// BOT_LINMENGJU
-	sprintf( g_HardcodedBotInfo[BOT_LINMENGJU].szName, "\\cgL\\ciI\\cfN \\cdM\\cfe\\chn\\cgg\\ccj\\ciu" );
-	g_HardcodedBotInfo[BOT_LINMENGJU].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_LINMENGJU].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_LINMENGJU].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_LINMENGJU].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_LINMENGJU].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_LINMENGJU].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_LINMENGJU].szFavoriteWeapon, "shotgun" );
-	sprintf( g_HardcodedBotInfo[BOT_LINMENGJU].szColor, "8f 5f 2f" );
-	sprintf( g_HardcodedBotInfo[BOT_LINMENGJU].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_LINMENGJU].szSkinName, "base" );
-	sprintf( g_HardcodedBotInfo[BOT_LINMENGJU].szClassName, "cleric" );
-	g_HardcodedBotInfo[BOT_LINMENGJU].ulRailgunColor = RAILCOLOR_RED;
-	g_HardcodedBotInfo[BOT_LINMENGJU].ulChatFrequency = 80;
-	g_HardcodedBotInfo[BOT_LINMENGJU].bRevealed = false;
-	g_HardcodedBotInfo[BOT_LINMENGJU].bRevealedByDefault = false;
-	sprintf( g_HardcodedBotInfo[BOT_LINMENGJU].szScriptName, "humanbot" );
-	g_HardcodedBotInfo[BOT_LINMENGJU].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_LINMENGJU].szChatLump, "bots/chatfiles/fob.txt" );
-
-	// BOT_GOLDENFATTIE
-	sprintf( g_HardcodedBotInfo[BOT_GOLDENFATTIE].szName, "Golden Fattie" );
-	g_HardcodedBotInfo[BOT_GOLDENFATTIE].Accuracy = BOTSKILL_SUPREME;
-	g_HardcodedBotInfo[BOT_GOLDENFATTIE].Intellect = BOTSKILL_SUPREME;
-	g_HardcodedBotInfo[BOT_GOLDENFATTIE].Evade = BOTSKILL_SUPREME;
-	g_HardcodedBotInfo[BOT_GOLDENFATTIE].Anticipation = BOTSKILL_SUPREME;
-	g_HardcodedBotInfo[BOT_GOLDENFATTIE].ReactionTime = BOTSKILL_SUPREME;
-	g_HardcodedBotInfo[BOT_GOLDENFATTIE].Perception = BOTSKILL_SUPREME;
-	sprintf( g_HardcodedBotInfo[BOT_GOLDENFATTIE].szFavoriteWeapon, "minigun" );
-	sprintf( g_HardcodedBotInfo[BOT_GOLDENFATTIE].szColor, "a0 a0 00" );
-	sprintf( g_HardcodedBotInfo[BOT_GOLDENFATTIE].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_GOLDENFATTIE].szSkinName, "big fat doomguy" );
-	sprintf( g_HardcodedBotInfo[BOT_GOLDENFATTIE].szClassName, "cleric" );
-	g_HardcodedBotInfo[BOT_GOLDENFATTIE].ulRailgunColor = RAILCOLOR_GOLD;
-	g_HardcodedBotInfo[BOT_GOLDENFATTIE].ulChatFrequency = 33;
-	g_HardcodedBotInfo[BOT_GOLDENFATTIE].bRevealed = false;
-	g_HardcodedBotInfo[BOT_GOLDENFATTIE].bRevealedByDefault = false;
-	sprintf( g_HardcodedBotInfo[BOT_GOLDENFATTIE].szScriptName, "fatbot" );
-//	sprintf( g_HardcodedBotInfo[BOT_GOLDENFATTIE].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_GOLDENFATTIE].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_GOLDENFATTIE].szChatLump, "bots/chatfiles/chubbs.txt" );
-
-	// BOT_QUOTEBOT
-	sprintf( g_HardcodedBotInfo[BOT_QUOTEBOT].szName, "Quotebot" );
-	g_HardcodedBotInfo[BOT_QUOTEBOT].Accuracy = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_QUOTEBOT].Intellect = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_QUOTEBOT].Evade = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_QUOTEBOT].Anticipation = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_QUOTEBOT].ReactionTime = BOTSKILL_MEDIUM;
-	g_HardcodedBotInfo[BOT_QUOTEBOT].Perception = BOTSKILL_MEDIUM;
-	sprintf( g_HardcodedBotInfo[BOT_QUOTEBOT].szFavoriteWeapon, "chaingun" );
-	sprintf( g_HardcodedBotInfo[BOT_QUOTEBOT].szColor, "ef c0 80" );
-	sprintf( g_HardcodedBotInfo[BOT_QUOTEBOT].szGender, "male" );
-	sprintf( g_HardcodedBotInfo[BOT_QUOTEBOT].szSkinName, "doomcrate" );
-	sprintf( g_HardcodedBotInfo[BOT_QUOTEBOT].szClassName, "random" );
-	g_HardcodedBotInfo[BOT_QUOTEBOT].ulRailgunColor = RAILCOLOR_BLUE;
-	g_HardcodedBotInfo[BOT_QUOTEBOT].ulChatFrequency = 95;
-	g_HardcodedBotInfo[BOT_QUOTEBOT].bRevealed = false;
-	g_HardcodedBotInfo[BOT_QUOTEBOT].bRevealedByDefault = false;
-//	sprintf( g_HardcodedBotInfo[BOT_QUOTEBOT].szScriptName, "QUOTEBOT" );
-	sprintf( g_HardcodedBotInfo[BOT_QUOTEBOT].szScriptName, "dfultbot" );
-	g_HardcodedBotInfo[BOT_QUOTEBOT].szChatFile[0] = 0;
-	sprintf( g_HardcodedBotInfo[BOT_QUOTEBOT].szChatLump, "bots/chatfiles/quotebot.txt" );
 
 	// Initialize all botinfo pointers.
 	for ( ulIdx = 0; ulIdx < MAX_BOTINFO; ulIdx++ )
 		g_BotInfo[ulIdx] = NULL;
-
-	// We have a bunch of bots that are hardcoded.
-	for ( ulIdx = 0; ulIdx < NUM_HARDCODED_BOTS; ulIdx++ )
-		BOTS_AddBotInfo( &g_HardcodedBotInfo[ulIdx] );
 
 	// Initialize the botspawn table.
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1836,7 +546,7 @@ bool BOTS_IsValidName( char *pszName )
 			if ( g_BotInfo[ulIdx] == NULL )
 				continue;
 
-			sprintf( szName, g_BotInfo[ulIdx]->szName );
+			sprintf( szName, "%s", g_BotInfo[ulIdx]->szName );
 			V_ColorizeString( szName );
 			V_RemoveColorCodes( szName );
 			if ( stricmp( szName, pszName ) == 0 )
@@ -2133,7 +843,7 @@ void BOTS_RestoreRevealedBotsAndSkins( FConfigFile &config )
 			if ( g_BotInfo[ulIdx]->bRevealed )
 				continue;
 
-			sprintf( szBuffer, g_BotInfo[ulIdx]->szName );
+			sprintf( szBuffer, "%s", g_BotInfo[ulIdx]->szName );
 			V_ColorizeString( szBuffer );
 			V_RemoveColorCodes( szBuffer );
 
@@ -2148,7 +858,7 @@ void BOTS_RestoreRevealedBotsAndSkins( FConfigFile &config )
 			if ( skins[ulIdx].bRevealed )
 				continue;
 
-			sprintf( szBuffer, skins[ulIdx].name );
+			sprintf( szBuffer, "%s", skins[ulIdx].name );
 			V_ColorizeString( szBuffer );
 			V_RemoveColorCodes( szBuffer );
 
@@ -2260,10 +970,10 @@ void bots_ParseBotInfoLump( FScanner &sc )
 		sprintf( BotInfo.szColor,			"00 00 00" );
 		sprintf( BotInfo.szGender,			"male" );
 		sprintf( BotInfo.szName,			"UNNAMED BOT" );
-		sprintf( BotInfo.szScriptName,		"" );
+		BotInfo.szScriptName[0]				= 0;
 		sprintf( BotInfo.szSkinName,		"base" );
-		sprintf( BotInfo.szChatFile,		"" );
-		sprintf( BotInfo.szChatLump,		"" );
+		BotInfo.szChatFile[0]				= 0;
+		BotInfo.szChatLump[0]				= 0;
 
 		while ( sc.String[0] != '{' )
 		{
@@ -2296,24 +1006,28 @@ void bots_ParseBotInfoLump( FScanner &sc )
 			// Now try to match our key with a valid bot info field.
 			if ( stricmp( szKey, "name" ) == 0 )
 			{
-				strncpy( BotInfo.szName, szValue, 31 );
-				BotInfo.szName[31] = 0;
+				strncpy( BotInfo.szName, szValue, 63 );
+				BotInfo.szName[63] = 0;
 			}
 			else if ( stricmp( szKey, "accuracy" ) == 0 )
 			{
 				switch ( atoi( szValue ))
 				{
+				case -2:
+				case -1:
 				case 0:
 				case 1:
 				case 2:
 				case 3:
 				case 4:
+				case 5:
+				case 6:
 
 					BotInfo.Accuracy = (BOTSKILL_e)( atoi( szValue ) + (LONG)BOTSKILL_LOW );
 					break;
 				default:
 
-					I_Error( "BOTS_ParseBotInfo: Expected value from 0-4 for field \"accuracy\"!" );
+					I_Error( "BOTS_ParseBotInfo: Expected value from -2-6 for field \"accuracy\"!" );
 					break;
 				}
 			}
@@ -2321,17 +1035,21 @@ void bots_ParseBotInfoLump( FScanner &sc )
 			{
 				switch ( atoi( szValue ))
 				{
+				case -2:
+				case -1:
 				case 0:
 				case 1:
 				case 2:
 				case 3:
 				case 4:
+				case 5:
+				case 6:
 
 					BotInfo.Intellect = (BOTSKILL_e)( atoi( szValue ) + (LONG)BOTSKILL_LOW );
 					break;
 				default:
 
-					I_Error( "BOTS_ParseBotInfo: Expected value from 0-4 for field \"intellect\"!" );
+					I_Error( "BOTS_ParseBotInfo: Expected value from -2-6 for field \"intellect\"!" );
 					break;
 				}
 			}
@@ -2339,17 +1057,21 @@ void bots_ParseBotInfoLump( FScanner &sc )
 			{
 				switch ( atoi( szValue ))
 				{
+				case -2:
+				case -1:
 				case 0:
 				case 1:
 				case 2:
 				case 3:
 				case 4:
+				case 5:
+				case 6:
 
 					BotInfo.Evade = (BOTSKILL_e)( atoi( szValue ) + (LONG)BOTSKILL_LOW );
 					break;
 				default:
 
-					I_Error( "BOTS_ParseBotInfo: Expected value from 0-4 for field \"evade\"!" );
+					I_Error( "BOTS_ParseBotInfo: Expected value from -2-6 for field \"evade\"!" );
 					break;
 				}
 			}
@@ -2357,17 +1079,21 @@ void bots_ParseBotInfoLump( FScanner &sc )
 			{
 				switch ( atoi( szValue ))
 				{
+				case -2:
+				case -1:
 				case 0:
 				case 1:
 				case 2:
 				case 3:
 				case 4:
+				case 5:
+				case 6:
 
 					BotInfo.Anticipation = (BOTSKILL_e)( atoi( szValue ) + (LONG)BOTSKILL_LOW );
 					break;
 				default:
 
-					I_Error( "BOTS_ParseBotInfo: Expected value from 0-4 for field \"anticipation\"!" );
+					I_Error( "BOTS_ParseBotInfo: Expected value from -2-6 for field \"anticipation\"!" );
 					break;
 				}
 			}
@@ -2375,17 +1101,21 @@ void bots_ParseBotInfoLump( FScanner &sc )
 			{
 				switch ( atoi( szValue ))
 				{
+				case -2:
+				case -1:
 				case 0:
 				case 1:
 				case 2:
 				case 3:
 				case 4:
+				case 5:
+				case 6:
 
 					BotInfo.ReactionTime = (BOTSKILL_e)( atoi( szValue ) + (LONG)BOTSKILL_LOW );
 					break;
 				default:
 
-					I_Error( "BOTS_ParseBotInfo: Expected value from 0-4 for field \"reactiontime\"!" );
+					I_Error( "BOTS_ParseBotInfo: Expected value from -2-6 for field \"reactiontime\"!" );
 					break;
 				}
 			}
@@ -2393,39 +1123,43 @@ void bots_ParseBotInfoLump( FScanner &sc )
 			{
 				switch ( atoi( szValue ))
 				{
+				case -2:
+				case -1:
 				case 0:
 				case 1:
 				case 2:
 				case 3:
 				case 4:
+				case 5:
+				case 6:
 
 					BotInfo.Perception = (BOTSKILL_e)( atoi( szValue ) + (LONG)BOTSKILL_LOW );
 					break;
 				default:
 
-					I_Error( "BOTS_ParseBotInfo: Expected value from 0-4 for field \"perception\"!" );
+					I_Error( "BOTS_ParseBotInfo: Expected value from -2-6 for field \"perception\"!" );
 					break;
 				}
 			}
 			else if ( stricmp( szKey, "favoriteweapon" ) == 0 )
 			{
-				sprintf( BotInfo.szFavoriteWeapon, szValue );
+				sprintf( BotInfo.szFavoriteWeapon, "%s", szValue );
 			}
 			else if ( stricmp( szKey, "class" ) == 0 )
 			{
-				sprintf( BotInfo.szClassName, szValue );
+				sprintf( BotInfo.szClassName, "%s", szValue );
 			}
 			else if ( stricmp( szKey, "color" ) == 0 )
 			{
-				sprintf( BotInfo.szColor, szValue );
+				sprintf( BotInfo.szColor, "%s", szValue );
 			}
 			else if ( stricmp( szKey, "gender" ) == 0 )
 			{
-				sprintf( BotInfo.szGender, szValue );
+				sprintf( BotInfo.szGender, "%s", szValue );
 			}
 			else if ( stricmp( szKey, "skin" ) == 0 )
 			{
-				sprintf( BotInfo.szSkinName, szValue );
+				sprintf( BotInfo.szSkinName, "%s", szValue );
 			}
 			else if ( stricmp( szKey, "railcolor" ) == 0 )
 			{
@@ -2476,18 +1210,18 @@ void bots_ParseBotInfoLump( FScanner &sc )
 				if ( strlen( szValue ) > 8 )
 					I_Error( "BOTS_ParseBotInfo: Value for BOTINFO property \"script\" (\"%s\") cannot exceed 8 characters!", szValue );
 
-				sprintf( BotInfo.szScriptName, szValue );
+				sprintf( BotInfo.szScriptName, "%s", szValue );
 			}
 			else if ( stricmp( szKey, "chatfile" ) == 0 )
 			{
-				sprintf( BotInfo.szChatFile, szValue );
+				sprintf( BotInfo.szChatFile, "%s", szValue );
 			}
 			else if ( stricmp( szKey, "chatlump" ) == 0 )
 			{
-				if ( strlen( szValue ) > 8 )
-					I_Error( "BOTS_ParseBotInfo: Value for BOTINFO property \"chatlump\" (\"%s\") cannot exceed 8 characters!", szValue );
+				if ( strlen( szValue ) > 31 )
+					I_Error( "BOTS_ParseBotInfo: Value for BOTINFO property \"chatlump\" (\"%s\") cannot exceed 31 characters!", szValue );
 
-				sprintf( BotInfo.szChatLump, szValue );
+				sprintf( BotInfo.szChatLump, "%s", szValue );
 			}
 			else
 				I_Error( "BOTS_ParseBotInfo: Unknown BOTINFO property, \"%s\"!", szKey );
@@ -2704,11 +1438,11 @@ void BOTSPAWN_AddToTable( const char *pszBotName, const char *pszBotTeam )
 			continue;
 		}
 
-		sprintf( g_BotSpawn[ulIdx].szName, pszBotName );
+		sprintf( g_BotSpawn[ulIdx].szName, "%s", pszBotName );
 		if (( pszBotTeam == NULL ) || ( pszBotTeam[0] == 0 ))
 			g_BotSpawn[ulIdx].szTeam[0] = 0;
 		else
-			sprintf( g_BotSpawn[ulIdx].szTeam, pszBotTeam );
+			sprintf( g_BotSpawn[ulIdx].szTeam, "%s", pszBotTeam );
 		g_BotSpawn[ulIdx].ulTick = ulTick;
 		break;
 	}
@@ -2761,7 +1495,7 @@ void BOTSPAWN_SetName( ULONG ulIdx, char *pszName )
 	if ( pszName == NULL )
 		g_BotSpawn[ulIdx].szName[0] = 0;
 	else
-		sprintf( g_BotSpawn[ulIdx].szName, pszName );
+		sprintf( g_BotSpawn[ulIdx].szName, "%s", pszName );
 }
 
 //*****************************************************************************
@@ -2781,7 +1515,7 @@ void BOTSPAWN_SetTeam( ULONG ulIdx, char *pszTeam )
 	if ( ulIdx >= MAXPLAYERS )
 		return;
 
-	sprintf( g_BotSpawn[ulIdx].szTeam, pszTeam );
+	sprintf( g_BotSpawn[ulIdx].szTeam, "%s", pszTeam );
 }
 
 //*****************************************************************************
@@ -2869,7 +1603,7 @@ CSkullBot::CSkullBot( char *pszName, char *pszTeamName, ULONG ulPlayerNum )
 		{
 			if ( g_BotInfo[ulIdx] != NULL )
 			{
-				sprintf( szName, g_BotInfo[ulIdx]->szName );
+				sprintf( szName, "%s", g_BotInfo[ulIdx]->szName );
 				V_ColorizeString( szName );
 				V_RemoveColorCodes( szName );
 				if ( stricmp( szName, pszName ) == 0 )
@@ -3976,9 +2710,9 @@ void CSkullBot::ParseScript( void )
 				lHighestVal = m_ScriptData.alStack[m_ScriptData.lStackPosition - 1];
 
 				if (( lArray < 0 ) || ( lArray >= MAX_SCRIPT_ARRAYS ))
-					I_Error( "ParseScript: Invalid array index, %d, in command \"arrayset\"!", lArray );
+					I_Error( "ParseScript: Invalid array index, %d, in command \"arrayset\"!", static_cast<int> (lArray) );
 				if (( lHighestVal < 0 ) || ( lHighestVal >= MAX_SCRIPTARRAY_SIZE ))
-					I_Error( "ParseScript: Invalid array maximum index, %d, in command \"arrayset\"!", lHighestVal );
+					I_Error( "ParseScript: Invalid array maximum index, %d, in command \"arrayset\"!", static_cast<int> (lHighestVal) );
 
 				memset( m_ScriptData.alScriptArrays[lArray], lVal, lHighestVal * sizeof( LONG ));
 				PopStack( );
@@ -4130,7 +2864,7 @@ void CSkullBot::GetStatePositions( void )
 				m_ScriptData.lScriptPos += sizeof( SDWORD );
 
 				m_ScriptData.StatePositions[m_ScriptData.lCurrentStateIdx].lPos = m_ScriptData.lScriptPos;
-				sprintf( m_ScriptData.szStateName[m_ScriptData.lCurrentStateIdx], szStateName );
+				sprintf( m_ScriptData.szStateName[m_ScriptData.lCurrentStateIdx], "%s", szStateName );
 			}
 
 			// All done.
@@ -4230,7 +2964,7 @@ void CSkullBot::GetStatePositions( void )
 					m_ScriptData.lScriptPos += sdwBuffer;
 
 					szString[sdwBuffer] = 0;
-					sprintf( m_ScriptData.szStringList[ulIdx], szString );
+					sprintf( m_ScriptData.szStringList[ulIdx], "%s", szString );
 				}
 			}
 			break;
@@ -4378,7 +3112,7 @@ void CSkullBot::GetStatePositions( void )
 			break;
 		default:
 
-			I_Error( "GetStatePositions: Unknown header, %d in bot %s's script at position, %d! (Last known header: %d)", sdwCommandHeader, m_pPlayer->userinfo.netname, m_ScriptData.lScriptPos - sizeof( SDWORD ), sdwLastCommandHeader );
+			I_Error( "GetStatePositions: Unknown header, %d in bot %s's script at position, %d! (Last known header: %d)", sdwCommandHeader, m_pPlayer->userinfo.netname, static_cast<int> (m_ScriptData.lScriptPos - sizeof( SDWORD )), sdwLastCommandHeader );
 			break;
 		}
 	}
@@ -4470,7 +3204,7 @@ void CSkullBot::PushToStack( LONG lValue )
 	m_ScriptData.alStack[m_ScriptData.lStackPosition++] = lValue;
 	
 	if ( botdebug_showstackpushes )
-		Printf( "%s: PushToStack: %d\n", m_pPlayer->userinfo.netname, m_ScriptData.lStackPosition );
+		Printf( "%s: PushToStack: %d\n", m_pPlayer->userinfo.netname, static_cast<int> (m_ScriptData.lStackPosition) );
 
 	if ( m_ScriptData.lStackPosition >= BOTSCRIPT_STACK_SIZE )
 		I_Error( "PushToStack: Stack size exceeded in bot %s's script!", m_pPlayer->userinfo.netname );
@@ -4483,7 +3217,7 @@ void CSkullBot::PopStack( void )
 	m_ScriptData.lStackPosition--;
 	
 	if ( botdebug_showstackpushes )
-		Printf( "%s: PopStack: %d\n", m_pPlayer->userinfo.netname, m_ScriptData.lStackPosition );
+		Printf( "%s: PopStack: %d\n", m_pPlayer->userinfo.netname, static_cast<int> (m_ScriptData.lStackPosition) );
 
 	if ( m_ScriptData.lStackPosition < 0 )
 		I_Error( "PopStack: Bot stack position went below 0 in bot %s's script!", m_pPlayer->userinfo.netname );
@@ -4493,10 +3227,10 @@ void CSkullBot::PopStack( void )
 //
 void CSkullBot::PushToStringStack( char *pszString )
 {
-	sprintf( m_ScriptData.aszStringStack[m_ScriptData.lStringStackPosition++], pszString );
+	sprintf( m_ScriptData.aszStringStack[m_ScriptData.lStringStackPosition++], "%s", pszString );
 	
 	if ( botdebug_showstackpushes )
-		Printf( "PushToStringStack: %d\n", m_ScriptData.lStringStackPosition );
+		Printf( "PushToStringStack: %d\n", static_cast<int> (m_ScriptData.lStringStackPosition) );
 
 	if ( m_ScriptData.lStringStackPosition >= BOTSCRIPT_STACK_SIZE )
 		I_Error( "PushToStringStack: Stack size exceeded!" );
@@ -4509,7 +3243,7 @@ void CSkullBot::PopStringStack( void )
 	m_ScriptData.lStringStackPosition--;
 	
 	if ( botdebug_showstackpushes )
-		Printf( "PopStringStack: %d\n", m_ScriptData.lStackPosition );
+		Printf( "PopStringStack: %d\n", static_cast<int> (m_ScriptData.lStackPosition) );
 
 	if ( m_ScriptData.lStringStackPosition < 0 )
 		I_Error( "PopStringStack: Bot stack position went below 0!" );
@@ -4616,7 +3350,7 @@ void CSkullBot::HandleAiming( void )
 				angle_t		Angle;
 				angle_t		AngleDifference;
 				angle_t		AngleDesired;
-				angle_t		AngleRange;
+				angle_t		AngleRange = 0;
 				angle_t		AngleRandom;
 				angle_t		AngleFinal;
 
@@ -4855,7 +3589,7 @@ POS_t CSkullBot::GetEnemyPosition( void )
 		{
 			POS_t	ZeroPos;
 		
-			I_Error( "GetEnemyPosition: Unknown bot skill level, %d!", (LONG)Skill );
+			I_Error( "GetEnemyPosition: Unknown bot skill level, %d!", Skill );
 
 			// To shut the compiler up...
 			ZeroPos.x = ZeroPos.y = ZeroPos.z = 0;
@@ -4992,7 +3726,7 @@ CCMD( reveal )
 		if ( g_BotInfo[ulIdx]->bRevealed )
 			continue;
 
-		sprintf( szBuffer, g_BotInfo[ulIdx]->szName );
+		sprintf( szBuffer, "%s", g_BotInfo[ulIdx]->szName );
 		V_ColorizeString( szBuffer );
 		V_RemoveColorCodes( szBuffer );
 
@@ -5008,7 +3742,7 @@ CCMD( reveal )
 		if ( skins[ulIdx].bRevealed )
 			continue;
 
-		sprintf( szBuffer, skins[ulIdx].name );
+		sprintf( szBuffer, "%s", skins[ulIdx].name );
 		V_ColorizeString( szBuffer );
 		V_RemoveColorCodes( szBuffer );
 
@@ -5157,7 +3891,7 @@ CCMD( removebot )
 			if (( playeringame[ulIdx] == false ) || ( players[ulIdx].pSkullBot == NULL ))
 				continue;
 
-			sprintf( szName, players[ulIdx].userinfo.netname );
+			sprintf( szName, "%s", players[ulIdx].userinfo.netname );
 			V_RemoveColorCodes( szName );
 			if ( stricmp( szName, argv[1] ) == 0 )
 			{
@@ -5210,7 +3944,7 @@ CCMD( listbots )
 		}
 	}
 
-	Printf( "\n%d bot%s.\n", ulNumBots, ulNumBots == 1 ? "" : "s" );
+	Printf( "\n%u bot%s.\n", static_cast<unsigned int> (ulNumBots), ulNumBots == 1 ? "" : "s" );
 }
 
 //*****************************************************************************
