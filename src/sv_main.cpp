@@ -228,7 +228,7 @@ CUSTOM_CVAR( String, sv_hackerlistfile, "hackerlist.txt", CVAR_ARCHIVE )
 //*****************************************************************************
 //	CONSOLE VARIABLES
 
-CVAR( String, sv_motd, "\\cgWelcome to this Skulltag v" DOTVERSIONSTR " server!\n\n\\ccHope you enjoy your stay!\n\\ccIf you have any questions or requests,\n\\ccplease talk to the admin of this server. Thanks!", CVAR_ARCHIVE )
+CVAR( String, sv_motd, "", CVAR_ARCHIVE )
 CVAR( Bool, sv_defaultdmflags, true, 0 )
 CVAR( Bool, sv_forcepassword, false, CVAR_ARCHIVE )
 CVAR( Bool, sv_forcejoinpassword, false, CVAR_ARCHIVE )

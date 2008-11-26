@@ -637,10 +637,10 @@ CUSTOM_CVAR( String, sv_hostname, "Unnamed Skulltag server", CVAR_ARCHIVE )
 }
 
 // Website that has the wad this server is using, possibly with other info.
-CVAR( String, sv_website, "http://www.skulltag.com/", CVAR_ARCHIVE )
+CVAR( String, sv_website, "", CVAR_ARCHIVE )
 
 // E-mail address of the person running this server.
-CVAR( String, sv_hostemail, "bradc@doomworld.com", CVAR_ARCHIVE )
+CVAR( String, sv_hostemail, "", CVAR_ARCHIVE )
 
 // IP address of the master server.
 // [BB] Client and server use this now, therefore the name doesn't begin with "sv_"
