@@ -232,7 +232,7 @@ void MEDAL_Render( void )
 	ulTick	= g_MedalQueue[ulPlayer][0].ulTick;
 
 	// Get the graphic from the global array.
-	sprintf( szPatchName, g_Medals[ulMedal].szLumpName );
+	sprintf( szPatchName, "%s", g_Medals[ulMedal].szLumpName );
 	if ( szPatchName[0] )
 	{
 		ULONG	ulCurXPos;
@@ -307,7 +307,7 @@ void MEDAL_Render( void )
 void MEDAL_GiveMedal( ULONG ulPlayer, ULONG ulMedal )
 {
 	player_t	*pPlayer;
-	ULONG		ulWhereToInsertMedal = -1;
+	ULONG		ulWhereToInsertMedal = static_cast<unsigned int> (-1);
 
 	// Make sure all inputs are valid first.
 	if (( ulPlayer >= MAXPLAYERS ) ||
@@ -338,7 +338,7 @@ void MEDAL_GiveMedal( ULONG ulPlayer, ULONG ulMedal )
 				 g_MedalQueue[ulPlayer][ulQueueIdx].ulMedal == ulMedal )
 			{
 				// Commandeer its slot!
-				if ( ulWhereToInsertMedal == -1 )
+				if ( ulWhereToInsertMedal == static_cast<unsigned int> (-1) )
 				{
 					ulWhereToInsertMedal = ulQueueIdx;
 					ulQueueIdx++;
@@ -357,7 +357,7 @@ void MEDAL_GiveMedal( ULONG ulPlayer, ULONG ulMedal )
 	}
 
 	// [RC] No special place for the medal, so just queue it.
-	if ( ulWhereToInsertMedal == -1 )
+	if ( ulWhereToInsertMedal == static_cast<unsigned int> (-1) )
 		medal_AddToQueue( ulPlayer, ulMedal );
 	else
 	{
@@ -415,7 +415,7 @@ void MEDAL_RenderAllMedals( LONG lYOffset )
 	{
 		if ( pPlayer->ulMedalCount[ulIdx] )
 		{
-			sprintf( szPatchName, g_Medals[ulIdx].szLumpName );
+			sprintf( szPatchName, "%s", g_Medals[ulIdx].szLumpName );
 			if ( szPatchName[0] )
 				ulLength += ( TexMan[szPatchName]->GetWidth( ) * pPlayer->ulMedalCount[ulIdx] );
 		}
@@ -434,7 +434,7 @@ void MEDAL_RenderAllMedals( LONG lYOffset )
 			if ( pPlayer->ulMedalCount[ulIdx] == 0 )
 				continue;
 
-			sprintf( szPatchName, g_Medals[ulIdx].szLumpName );
+			sprintf( szPatchName, "%s", g_Medals[ulIdx].szLumpName );
 			if ( szPatchName[0] )
 				ulLength += TexMan[szPatchName]->GetWidth( );
 		}
@@ -454,7 +454,7 @@ void MEDAL_RenderAllMedals( LONG lYOffset )
 			if ( pPlayer->ulMedalCount[ulIdx] == 0 )
 				continue;
 
-			sprintf( szPatchName, g_Medals[ulIdx].szLumpName );
+			sprintf( szPatchName, "%s", g_Medals[ulIdx].szLumpName );
 			if ( szPatchName[0] )
 			{
 				screen->DrawTexture( TexMan[szPatchName],
@@ -477,7 +477,7 @@ void MEDAL_RenderAllMedals( LONG lYOffset )
 		ulCurXPos = 160 - ( ulLength / 2 );
 		for ( ulIdx = 0; ulIdx < NUM_MEDALS; ulIdx++ )
 		{
-			sprintf( szPatchName, g_Medals[ulIdx].szLumpName );
+			sprintf( szPatchName, "%s", g_Medals[ulIdx].szLumpName );
 			if ( szPatchName[0] )
 			{
 				ULONG	ulMedalIdx;
@@ -503,11 +503,11 @@ void MEDAL_RenderAllMedalsFullscreen( player_t *pPlayer )
 	char		szString[8];
 	UCVarValue	ValWidth;
 	UCVarValue	ValHeight;
-	float		fXScale;
+	float		fXScale = 0.0f;
 	float		fYScale;
-	ULONG		ulMaxMedalHeight;
+	ULONG		ulMaxMedalHeight = 0;
 	ULONG		ulNumMedal;
-	ULONG		ulLastMedal;
+	ULONG		ulLastMedal = 0;
 
 	ValWidth = con_virtualwidth.GetGenericRep( CVAR_Int );
 	ValHeight = con_virtualheight.GetGenericRep( CVAR_Int );

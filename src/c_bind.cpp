@@ -689,7 +689,7 @@ void C_FindBind(char *Command, char *Key) {
 	if(key1 <= 0)
 		sprintf(Key, "None");
 	else
-		sprintf(Key, KeyNames[key1]);
+		sprintf(Key, "%s", KeyNames[key1]);
 }
 
 

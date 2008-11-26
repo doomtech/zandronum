@@ -569,7 +569,7 @@ static bool callvote_CheckValidity( FString &Command, FString &Parameters )
 			}
 
 			// Compare the parameter to the version of the player's name without color codes.
-			sprintf( szPlayerName, players[ulIdx].userinfo.netname );
+			sprintf( szPlayerName, "%s", players[ulIdx].userinfo.netname );
 			V_RemoveColorCodes( szPlayerName );
 			if ( Parameters.CompareNoCase( szPlayerName ) == 0 ){
 				// to prevent a player from escaping a kick vote by renaming, we store his ID at the beginning of the vote

@@ -710,7 +710,7 @@ void DrawFullHUD_Armor()
 		return;
 
 	if ( pArmor )
-		sprintf( szPatchName, TexMan[pArmor->Icon]->Name );
+		sprintf( szPatchName, "%s", TexMan[pArmor->Icon]->Name );
 	else
 		sprintf( szPatchName, "ARM1A0" );
 
@@ -1042,7 +1042,7 @@ void DrawFullHUD_GameInformation()
 			if ( TEAM_ShouldUseTeam( i ) == false )
 				continue;
 
-			sprintf( szPatchName, TEAM_GetLargeHUDIcon( i ));
+			sprintf( szPatchName, "%s", TEAM_GetLargeHUDIcon( i ));
 
 			if ( bScale )
 			{
@@ -1143,7 +1143,7 @@ void DrawFullHUD_GameInformation()
 				if ( TEAM_CountPlayers( i ) < 1 )
 					continue;
 
-				sprintf( szString , "\\c%c%d\n", V_GetColorChar( TEAM_GetTextColor ( i ) ), ulPoints[i]);
+				sprintf( szString , "\\c%c%u\n", V_GetColorChar( TEAM_GetTextColor ( i ) ), static_cast<unsigned int> (ulPoints[i]));
 				V_ColorizeString( szString );
 
 				screen->DrawText( CR_GRAY,

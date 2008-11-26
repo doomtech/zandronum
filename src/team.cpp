@@ -451,10 +451,10 @@ void TEAM_ScoreSkulltagPoint( player_t *pPlayer, ULONG ulNumPoints, AActor *pPil
 	POS_t				SkullOrigin;
 	DHUDMessageFadeOut	*pMsg;
 	AActor				*pActor;
-	AInventory			*pInventory;
+	AInventory			*pInventory = NULL;
 	bool				bAssisted;
-	bool				bSelfAssisted;
-	ULONG				ulTeamIdx;
+	bool				bSelfAssisted = false;
+	ULONG				ulTeamIdx = 0;
 
 	// Determine who assisted.
 	bAssisted = ( TEAM_GetAssistPlayer( pPlayer->ulTeam ) != MAXPLAYERS );
@@ -781,11 +781,11 @@ void TEAM_DoWinSequence( ULONG ulTeamIdx )
 //
 void TEAM_TimeExpired( void )
 {
-	LONG				lWinner;
+	LONG				lWinner = 0;
 	DHUDMessageFadeOut	*pMsg;
 	char				szString[64];
 	ULONG				lHighestScore;
-	ULONG				ulLeadingTeamsCount;
+	ULONG				ulLeadingTeamsCount = 0;
 
 	// If there are players on the map, either declare a winner or sudden death. If
 	// there aren't any, then just end the map.
@@ -800,7 +800,7 @@ void TEAM_TimeExpired( void )
 		{
 			if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode() ) & GMF_PLAYERSEARNPOINTS )
 			{
-				if ( lHighestScore == TEAM_GetScore( i ))
+				if ( lHighestScore == static_cast<unsigned> (TEAM_GetScore( i )))
 				{
 					ulLeadingTeamsCount++;
 					lWinner = i;
@@ -808,7 +808,7 @@ void TEAM_TimeExpired( void )
 			}
 			else
 			{
-				if ( lHighestScore == TEAM_GetFragCount( i ))
+				if ( lHighestScore == static_cast<unsigned> (TEAM_GetFragCount( i )))
 				{
 					ulLeadingTeamsCount++;
 					lWinner = i;
@@ -1597,7 +1597,7 @@ LONG TEAM_GetHighestScoreCount( void )
 LONG TEAM_GetSpread ( ULONG ulTeam, LONG (*GetCount) ( ULONG ulTeam ) )
 {
 	bool	bInit = true;
-	LONG	lHighestCount;
+	LONG	lHighestCount = 0;
 
 	if ( TEAM_CheckIfValid( ulTeam ) == false )
 		return 0;
@@ -1655,7 +1655,7 @@ ULONG TEAM_CountFlags( void )
 	TThinkerIterator<AFlag>	iterator;
 	ULONG ulCounted = 0;
 
-	while ( pItem = iterator.Next( ))
+	while ( (pItem = iterator.Next( )))
 		ulCounted++;
 
 	return ulCounted;
@@ -1669,7 +1669,7 @@ ULONG TEAM_CountSkulls( void )
 	TThinkerIterator<ASkull>	iterator;
 	ULONG ulCounted = 0;
 
-	while ( pItem = iterator.Next( ))
+	while ( (pItem = iterator.Next( )))
 		ulCounted++;
 
 	return ulCounted;

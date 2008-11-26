@@ -143,7 +143,7 @@ void DrawHUD_CoopInfo()
 		// [BL] Draw the player's location, [BB] but only if the map has any SectorInfo.
 		if ( level.info->SectorInfo.Names.Size() > 0 )
 		{
-			if(level.info->SectorInfo.Names.Size() > players[i].mo->Sector->sectornum && level.info->SectorInfo.Names[players[i].mo->Sector->sectornum] != NULL)
+			if(level.info->SectorInfo.Names.Size() > static_cast<unsigned> (players[i].mo->Sector->sectornum) && level.info->SectorInfo.Names[players[i].mo->Sector->sectornum] != NULL)
 				drawString = *level.info->SectorInfo.Names[players[i].mo->Sector->sectornum];
 			else
 				drawString = FString("\\cmUnknown Location\\c-");

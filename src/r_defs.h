@@ -848,6 +848,13 @@ struct subsector_t
 	bool			degenerate;
 	char			hacked;			// 1: is part of a render hack
 									// 2: has one-sided walls
+
+	// [BL] Constructor to init GZDoom data
+	subsector_t() : render_sector(NULL), firstvertex(0), numvertices(0), validcount2(0), degenerate(0), hacked(0)
+	{
+		bbox[0] = bbox[1] = bbox[2] = bbox[3] = 0;
+		lighthead[0] = lighthead[1] = NULL;
+	}
 };
 
 //

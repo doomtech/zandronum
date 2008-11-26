@@ -6692,7 +6692,7 @@ static void client_Print( BYTESTREAM_s *pByteStream )
 	pszString = NETWORK_ReadString( pByteStream );
 
 	// Print out the message.
-	Printf( ulPrintLevel, pszString );
+	Printf( ulPrintLevel, "%s", pszString );
     
 	// If the server is saying something to us, play the chat sound.
 	if (( strnicmp( "<server>", pszString, 8 ) == 0 ) || ( strnicmp( "* <server>", pszString, 10 ) == 0 ))
@@ -8116,7 +8116,7 @@ static void client_SetSectorFlat( BYTESTREAM_s *pByteStream )
 	lSectorID = NETWORK_ReadShort( pByteStream );
 
 	// Read in the ceiling flat name.
-	sprintf( szCeilingFlatName, NETWORK_ReadString( pByteStream ));
+	sprintf( szCeilingFlatName, "%s", NETWORK_ReadString( pByteStream ));
 
 	// Read in the floor flat name.
 	pszFloorFlatName = NETWORK_ReadString( pByteStream );
@@ -9505,7 +9505,7 @@ static void client_DoInventoryPickup( BYTESTREAM_s *pByteStream )
 	ulPlayer = NETWORK_ReadByte( pByteStream );
 
 	// Read in the class name of the item.
-	sprintf( szClassName, NETWORK_ReadString( pByteStream ));
+	sprintf( szClassName, "%s", NETWORK_ReadString( pByteStream ));
 
 	// Read in the pickup message.
 	pszPickupMessage = NETWORK_ReadString( pByteStream );

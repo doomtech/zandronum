@@ -718,7 +718,7 @@ void SCOREBOARD_RenderStats_Holders( void )
 			if ( TEAM_ShouldUseTeam( i ) == false )
 				continue;
 
-			sprintf( szPatchName, TEAM_GetSmallHUDIcon( i ));
+			sprintf( szPatchName, "%s", TEAM_GetSmallHUDIcon( i ));
 		
 			if ( g_bScale )
 			{
@@ -1351,7 +1351,7 @@ void SCOREBOARD_RenderPossessionCountdown( const char *pszString, ULONG ulTimeLe
 		{
 			screen->SetFont( BigFont );
 
-			sprintf( szString, pszString );
+			sprintf( szString, "%s", pszString );
 			screen->DrawText( gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
 				160 - ( BigFont->StringWidth( szString ) / 2 ),
 				ulCurYPos,
@@ -1368,7 +1368,7 @@ void SCOREBOARD_RenderPossessionCountdown( const char *pszString, ULONG ulTimeLe
 		{
 			screen->SetFont( BigFont );
 
-			sprintf( szString, pszString );
+			sprintf( szString, "%s", pszString );
 			screen->DrawText( gameinfo.gametype == GAME_Doom ? CR_RED : CR_UNTRANSLATED,
 				160 - ( BigFont->StringWidth( szString ) / 2 ),
 				ulCurYPos,
@@ -1566,7 +1566,7 @@ LONG SCOREBOARD_CalcSpread( ULONG ulPlayerNum )
 {
 	bool	bInit = true;
 	ULONG	ulIdx;
-	LONG	lHighestFrags;
+	LONG	lHighestFrags = 0;
 
 	// First, find the highest fragcount that isn't ours.
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
@@ -1789,7 +1789,7 @@ void SCOREBOARD_DisplayFragMessage( player_t *pFraggedPlayer )
 	sprintf( szString, "You fragged %s\\c-!\n", pFraggedPlayer->userinfo.netname );
 
 	// Print the frag message out in the console.
-	Printf( szString );
+	Printf( "%s", szString );
 
 	V_ColorizeString( szString );
 
@@ -1879,7 +1879,7 @@ void SCOREBOARD_DisplayFragMessage( player_t *pFraggedPlayer )
 			lMenLeftStanding += LASTMANSTANDING_TeamCountMenStanding( i );
 		}
 
-		sprintf( szString, "%d opponent%s left standing", lMenLeftStanding, ( lMenLeftStanding != 1 ) ? "s" : "" );
+		sprintf( szString, "%d opponent%s left standing", static_cast<int> (lMenLeftStanding), ( lMenLeftStanding != 1 ) ? "s" : "" );
 	}
 
 	if ( szString[0] != 0 )
@@ -1908,7 +1908,7 @@ void SCOREBOARD_DisplayFraggedMessage( player_t *pFraggingPlayer )
 	sprintf( szString, "You were fragged by %s\\c-.\n", pFraggingPlayer->userinfo.netname );
 
 	// Print the frag message out in the console.
-	Printf( szString );
+	Printf( "%s", szString );
 
 	V_ColorizeString( szString );
 
@@ -2205,7 +2205,7 @@ LONG SCOREBOARD_GetLeftToLimit( void )
 	else if (( lastmanstanding || teamlms ) && ( winlimit > 0 ))
 	{
 		bool	bFoundPlayer = false;
-		LONG	lHighestWincount;
+		LONG	lHighestWincount = 0;
 
 		// If we're in a teamplay, just go by whichever team has the most frags.
 		if ( teamlms )

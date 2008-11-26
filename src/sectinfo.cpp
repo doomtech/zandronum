@@ -63,7 +63,7 @@ enum
 
 void SECTINFO_Parse(int lump)
 {
-	level_info_t *mapinfo;
+	level_info_t *mapinfo = NULL;
 
 	FScanner sc(lump);
 	sc.SetCMode(true);

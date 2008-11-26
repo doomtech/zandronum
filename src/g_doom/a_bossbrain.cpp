@@ -312,7 +312,7 @@ void A_BrainSpit (AActor *self)
 void A_SpawnFly (AActor *self)
 {
 	AActor *newmobj;
-	AActor *fog;
+	AActor *fog = NULL;
 	AActor *targ;
 	int r;
 		

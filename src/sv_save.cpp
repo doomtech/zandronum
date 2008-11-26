@@ -163,7 +163,7 @@ void server_save_UpdateSlotWithInfo( ULONG ulSlot, PLAYERSAVEDINFO_t *pInfo )
 	g_SavedPlayerInfo[ulSlot].lPointCount		= pInfo->lPointCount;
 	g_SavedPlayerInfo[ulSlot].lWinCount			= pInfo->lWinCount;
 	g_SavedPlayerInfo[ulSlot].ulTime			= pInfo->ulTime;
-	sprintf( g_SavedPlayerInfo[ulSlot].szName, pInfo->szName );
+	sprintf( g_SavedPlayerInfo[ulSlot].szName, "%s", pInfo->szName );
 
 	V_RemoveColorCodes( g_SavedPlayerInfo[ulSlot].szName );
 }

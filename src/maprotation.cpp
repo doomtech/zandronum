@@ -232,7 +232,7 @@ static void maprotation_AddMap( char *pszMapName )
 	if ( ulIdx == MAX_MAPROTATIONLIST_ENTRIES )
 		return;
 
-	sprintf( g_MapRotationEntries[ulIdx].szMapName, pszMapName );
+	sprintf( g_MapRotationEntries[ulIdx].szMapName, "%s", pszMapName );
 	g_MapRotationEntries[ulIdx].bUsed = false;
 
 	MAPROTATION_SetPositionToMap( level.mapname );

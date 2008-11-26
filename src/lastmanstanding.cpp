@@ -616,7 +616,7 @@ void LASTMANSTANDING_DoWinSequence( ULONG ulWinner )
 void LASTMANSTANDING_TimeExpired( void )
 {
 	ULONG				ulIdx;
-	LONG				lHighestHealth;
+	LONG				lHighestHealth = 0;
 	bool				bTie = false;
 	bool				bFoundPlayer = false;
 	LONG				lWinner = -1;

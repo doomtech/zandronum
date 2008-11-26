@@ -95,7 +95,7 @@ typedef struct
 {		
 	NETADDRESS_s	Address;
 
-	char			szSalt[32];	
+	char			szSalt[33];	
 
 	int				iLastMessageTic;
 

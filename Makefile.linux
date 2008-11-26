@@ -35,10 +35,17 @@ ifdef SERVERONLY
 else
   CFLAGS += `pkg-config gtk+-2.0 --cflags` -I$(FMOD_PREFIX)/inc/
 endif
+ifdef X64
+  CFLAGS += -DNO_GL
+endif
 LDFLAGS += -lz -ljpeg `sdl-config --libs`
 ifndef SERVERONLY
-  LDFLAGS += libsnes_spc.so -lfmodex -lGL -lGLU `pkg-config gtk+-2.0 --libs`
+  LDFLAGS += libsnes_spc.so -lfmodex -lGLU `pkg-config gtk+-2.0 --libs`
+ifndef X64
+  LDFLAGS += -lGL
 endif
+endif
+
 
 NASMFLAGS += -f elf -DM_TARGET_LINUX
 
@@ -49,7 +56,9 @@ endif
 
 SRCDIRS = src/ $(addprefix src/,g_doom/ g_heretic/ g_hexen/ g_raven/ g_shared/ g_strife/ MD5/ oplsynth/ sound/ sdl/ textures/ thingdef/ win32/g15/ xlat/)
 ifndef SERVERONLY
+ifndef X64
   SRCDIRS += $(addprefix src/,gl/ gl/r_render/)
+endif
 endif
 VPATH = $(SRCDIRS)
 INCLUDES = $(addprefix -I,$(SRCDIRS) src/gl)
