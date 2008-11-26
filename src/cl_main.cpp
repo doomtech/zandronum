@@ -1405,8 +1405,19 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 				break;
 			case NETWORK_ERRORCODE_BANNED:
 
-				sprintf( szErrorString, "Couldn't connect. You have been banned from this server!" );
-				break;
+				{
+					sprintf( szErrorString, "Couldn't connect. \\cgYou have been banned from this server!\\c-" );
+
+					// [RC] Read the reason for this ban.
+					const char		*pszBanReason = NETWORK_ReadString( pByteStream );
+					char			szShortBanReason[128]; // Don't allow servers to overflow szErrorString.
+					if ( strlen( pszBanReason ))
+					{
+						strncpy( szShortBanReason, pszBanReason, 128 );
+						sprintf( szErrorString, "%s\nReason for ban: %s", szErrorString, szShortBanReason );
+					}
+					break;
+				}				
 			case NETWORK_ERRORCODE_SERVERISFULL:
 
 				sprintf( szErrorString, "Server is full." );

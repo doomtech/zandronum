@@ -2157,7 +2157,10 @@ void SERVER_ClientError( ULONG ulClient, ULONG ulErrorCode )
 		break;
 	case NETWORK_ERRORCODE_BANNED:
 
-		Printf( "Client banned.\n" );
+		Printf( "Client banned.\n" );	
+
+		// Tell the client why he was banned.
+		NETWORK_WriteString( &g_aClients[ulClient].PacketBuffer.ByteStream, SERVERBAN_GetBanList( )->getEntryComment( g_aClients[ulClient].Address ));
 		break;
 	case NETWORK_ERRORCODE_AUTHENTICATIONFAILED:
 

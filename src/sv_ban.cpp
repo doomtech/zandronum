@@ -228,6 +228,20 @@ void SERVERBAN_ReadMasterServerBans( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
+IPList *SERVERBAN_GetBanList( void )
+{
+	return &g_ServerBans;
+}
+
+//*****************************************************************************
+//
+IPList *SERVERBAN_GetBanExemptionList( void )
+{
+	return &g_ServerBanExemptions;
+}
+
+//*****************************************************************************
+//
 static void serverban_LoadBansAndBanExemptions( void )
 {
 	if ( !( g_ServerBans.clearAndLoadFromFile( sv_banfile.GetGenericRep( CVAR_String ).String )))
