@@ -327,7 +327,7 @@ void		SERVER_ClearEditedTranslations( void );
 void		SERVER_ErrorCleanup( void );
 void		SERVER_ParsePacket( BYTESTREAM_s *pByteStream );
 bool		SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream );
-ULONG		SERVER_GetPlayerIndexFromName( const char *pszString );
+ULONG		SERVER_GetPlayerIndexFromName( const char *pszName, bool bIgnoreColors, bool bReturnBots );
 LONG		SERVER_GetCurrentClient( void );
 void		SERVER_GiveInventoryToPlayer( const player_t *player, AInventory *pInventory );
 void		SERVER_IgnoreIP( NETADDRESS_s Address );

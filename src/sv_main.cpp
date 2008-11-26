@@ -3714,20 +3714,32 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 //*****************************************************************************
 //*****************************************************************************
 //
-ULONG SERVER_GetPlayerIndexFromName( const char *pszString )
+// [RC] Finds the first player (or, optionally, bot) with the given name; returns MAXPLAYERS if none were found.
+ULONG SERVER_GetPlayerIndexFromName( const char *pszName, bool bIgnoreColors, bool bReturnBots )
 {
-	ULONG ulIdx;
+	char	szPlayerName[64];
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
+		if ( playeringame[ulIdx] == false )
 			continue;
 
-		if ( stricmp( pszString, players[ulIdx].userinfo.netname ) == 0 )
-			return ( ulIdx );
+		// Optionally remove the color codes from the player name.
+		if ( bIgnoreColors )
+		{
+			sprintf( szPlayerName, players[ulIdx].userinfo.netname );
+			V_RemoveColorCodes( szPlayerName );
+		}
+
+		if ( stricmp( bIgnoreColors ? szPlayerName : players[ulIdx].userinfo.netname, pszName ) == 0 )
+		{
+			if ( !players[ulIdx].bIsBot || bReturnBots )
+				return ulIdx;
+		}
 	}
 
-	return ( MAXPLAYERS );
+	// None found.
+	return MAXPLAYERS;
 }
 
 //*****************************************************************************
