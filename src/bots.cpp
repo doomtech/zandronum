@@ -3283,8 +3283,8 @@ void CSkullBot::HandleAiming( void )
 	{
 		fixed_t	Distance;
 		fixed_t	ShootZ;
-		LONG	lTopPitch;
-		LONG	lBottomPitch;
+		SDWORD	lTopPitch;
+		SDWORD	lBottomPitch;
 		POS_t	EnemyPos;
 
 		// Get the current enemy position.
@@ -3309,8 +3309,8 @@ void CSkullBot::HandleAiming( void )
 		ShootZ = m_pPlayer->mo->z - m_pPlayer->mo->floorclip + ( m_pPlayer->mo->height >> 1 ) + ( 8 * FRACUNIT );
 		Distance = P_AproxDistance( m_pPlayer->mo->x - EnemyPos.x, m_pPlayer->mo->y - EnemyPos.y );
 //		m_pPlayer->mo->pitch = R_PointToAngle( Distance, ( EnemyPos.z + ( players[m_ulPlayerEnemy].mo->height / 2 )) - m_pPlayer->mo->z );
-		lTopPitch = -(LONG)R_PointToAngle2( 0, ShootZ, Distance, EnemyPos.z + players[m_ulPlayerEnemy].mo->height );
-		lBottomPitch = -(LONG)R_PointToAngle2( 0, ShootZ, Distance, EnemyPos.z );
+		lTopPitch = -(SDWORD)R_PointToAngle2( 0, ShootZ, Distance, EnemyPos.z + players[m_ulPlayerEnemy].mo->height );
+		lBottomPitch = -(SDWORD)R_PointToAngle2( 0, ShootZ, Distance, EnemyPos.z );
 
 		m_pPlayer->mo->pitch = ( lTopPitch / 2 ) + ( lBottomPitch / 2 );
 /*
