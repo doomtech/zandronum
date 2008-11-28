@@ -520,30 +520,6 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 					NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, TEAM_GetScore( ulIdx ));
 			}
 		}
-
-		if ( ulBits & SQF_TEAMINFO_NUMBER )
-			NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, teams.Size( ));
-
-		if ( ulBits & SQF_TEAMINFO_NAME )
-			for ( ulIdx = 0; ulIdx < teams.Size( ); ulIdx++ )
-				NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, TEAM_GetName( ulIdx ));
-
-		if ( ulBits & SQF_TEAMINFO_COLOR )
-			for ( ulIdx = 0; ulIdx < teams.Size( ); ulIdx++ )
-				NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, TEAM_GetColor( ulIdx ));
-
-		if ( ulBits & SQF_TEAMINFO_SCORE )
-		{
-			for ( ulIdx = 0; ulIdx < teams.Size( ); ulIdx++ )
-			{
-				if ( teamplay )
-					NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, TEAM_GetFragCount( ulIdx ));
-				else if ( teamlms )
-					NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, TEAM_GetWinCount( ulIdx ));
-				else
-					NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, TEAM_GetScore( ulIdx ));
-			}
-		}
 	}
 
 	if ( ulBits & SQF_NUMPLAYERS )
@@ -577,6 +553,33 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 			}
 
 			NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, players[ulIdx].ulTime / ( TICRATE * 60 ));
+		}
+	}
+
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
+	{
+		if ( ulBits & SQF_TEAMINFO_NUMBER )
+			NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, teams.Size( ));
+
+		if ( ulBits & SQF_TEAMINFO_NAME )
+			for ( ulIdx = 0; ulIdx < teams.Size( ); ulIdx++ )
+				NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, TEAM_GetName( ulIdx ));
+
+		if ( ulBits & SQF_TEAMINFO_COLOR )
+			for ( ulIdx = 0; ulIdx < teams.Size( ); ulIdx++ )
+				NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, TEAM_GetColor( ulIdx ));
+
+		if ( ulBits & SQF_TEAMINFO_SCORE )
+		{
+			for ( ulIdx = 0; ulIdx < teams.Size( ); ulIdx++ )
+			{
+				if ( teamplay )
+					NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, TEAM_GetFragCount( ulIdx ));
+				else if ( teamlms )
+					NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, TEAM_GetWinCount( ulIdx ));
+				else
+					NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, TEAM_GetScore( ulIdx ));
+			}
 		}
 	}
 
