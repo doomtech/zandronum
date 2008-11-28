@@ -2159,8 +2159,9 @@ void SERVER_ClientError( ULONG ulClient, ULONG ulErrorCode )
 
 		Printf( "Client banned.\n" );	
 
-		// Tell the client why he was banned.
+		// Tell the client why he was banned, and when his ban expires.
 		NETWORK_WriteString( &g_aClients[ulClient].PacketBuffer.ByteStream, SERVERBAN_GetBanList( )->getEntryComment( g_aClients[ulClient].Address ));
+		NETWORK_WriteLong( &g_aClients[ulClient].PacketBuffer.ByteStream, (LONG) SERVERBAN_GetBanList( )->getEntryExpiration( g_aClients[ulClient].Address ));
 		break;
 	case NETWORK_ERRORCODE_AUTHENTICATIONFAILED:
 
@@ -3255,6 +3256,13 @@ char *SERVER_GetMapMusic( void )
 
 //*****************************************************************************
 //
+IPList *SERVER_GetAdminList( void )
+{
+	return &g_AdminIPList;
+}
+
+//*****************************************************************************
+//
 void SERVER_SetMapMusic( const char *pszMusic )
 {
 	if ( pszMusic )
@@ -3710,11 +3718,10 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	}
 
 	// Return false if the player was not kicked as a result of processing
-	// this command.
 	return ( false );
 }
 
-//*****************************************************************************
+
 //*****************************************************************************
 //
 // [RC] Finds the first player (or, optionally, bot) with the given name; returns MAXPLAYERS if none were found.

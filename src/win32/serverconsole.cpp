@@ -392,12 +392,12 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 					// Immediately kick or ban the player.
 					if(iSelection == IDR_PLAYER_KICK)
 					{
-						sprintf( szCommand, "kick \"%s\"", g_szScoreboard_SelectedUser );
+						sprintf( szCommand, "kick \"%s\" perm", g_szScoreboard_SelectedUser );
 						SERVER_AddCommand( szCommand );
 					}
 					else if(iSelection == IDR_PLAYER_BAN)
 					{
-						sprintf( szCommand, "ban \"%s\"", g_szScoreboard_SelectedUser );
+						sprintf( szCommand, "ban \"%s\" perm", g_szScoreboard_SelectedUser );
 						SERVER_AddCommand( szCommand );
 					}
 
@@ -1670,9 +1670,9 @@ BOOL CALLBACK SERVERCONSOLE_BanIPCallback( HWND hDlg, UINT Message, WPARAM wPara
 
 						// Build and execute the command string.
 						if ( strlen( szComment ) > 0 )
-							sprintf( szString, "addban %s \"%s\"", szBuffer, szComment );
+							sprintf( szString, "addban %s perm \"%s\"", szBuffer, szComment );
 						else
-							sprintf( szString, "addban %s", szBuffer );
+							sprintf( szString, "addban %s perm", szBuffer );
 						SERVER_AddCommand( szString );
 					}
 				}
@@ -1726,23 +1726,7 @@ BOOL CALLBACK SERVERCONSOLE_BanListCallback( HWND hDlg, UINT Message, WPARAM wPa
 
 			// Populate the box with the current ban list.
 			for ( ulIdx = 0; ulIdx < SERVERBAN_GetNumBans(); ulIdx++ )
-			{
-				Ban = SERVERBAN_GetBan( ulIdx );
-				if (( stricmp( Ban.szIP[0], "0" ) != 0 ) ||
-					( stricmp( Ban.szIP[1], "0" ) != 0 ) ||
-					( stricmp( Ban.szIP[2], "0" ) != 0 ) ||
-					( stricmp( Ban.szIP[3], "0" ) != 0 ))
-				{
-					sprintf( szString, "%s.%s.%s.%s", Ban.szIP[0],
-						Ban.szIP[1],
-						Ban.szIP[2],
-						Ban.szIP[3] );
-					if ( Ban.szComment[0] )
-						sprintf( szString, "%s:%s", szString, Ban.szComment );
-
-					SendDlgItemMessage( hDlg, IDC_BANLIST, LB_INSERTSTRING, -1, (LPARAM)szString );
-				}
-			}
+				SendDlgItemMessage( hDlg, IDC_BANLIST, LB_INSERTSTRING, -1, (LPARAM)SERVERBAN_GetBanList( )->getEntryAsString( ulIdx, true, true, false ).c_str( ));
 		}
 
 		break;
@@ -1818,6 +1802,7 @@ BOOL CALLBACK SERVERCONSOLE_BanListCallback( HWND hDlg, UINT Message, WPARAM wPa
 						char	szIP[32];
 						char	*pszComment;
 						char	szComment[224];
+						char	szDate[128];
 						char	*pszBuffer;
 
 						for ( lIdx = 0; lIdx < lCount; lIdx++ )
@@ -1826,10 +1811,11 @@ BOOL CALLBACK SERVERCONSOLE_BanListCallback( HWND hDlg, UINT Message, WPARAM wPa
 
 							pszIP = szIP;
 							*pszIP = 0;
+							szDate[0] = 0;
 							pszComment = szComment;
 							*pszComment = 0;
 							pszBuffer = szBuffer;
-							while ( *pszBuffer != 0 && *pszBuffer != ':' && *pszBuffer != '/' )
+							while ( *pszBuffer != 0 && *pszBuffer != ':' && *pszBuffer != '/' && *pszBuffer != '<' )
 							{
 								*pszIP = *pszBuffer;
 								pszBuffer++;
@@ -1837,8 +1823,59 @@ BOOL CALLBACK SERVERCONSOLE_BanListCallback( HWND hDlg, UINT Message, WPARAM wPa
 								*pszIP = 0;
 							}
 
+							//======================================================================================================
+							// [RC] Read the expiration date.
+							// This is a very klunky temporary solution that I've already fixed it in my redo of the server dialogs.
+							//======================================================================================================
+
+							time_t tExpiration = NULL;
+							if ( *pszBuffer == '<' )
+							{							
+								int	iMonth = 0, iDay = 0, iYear = 0, iHour = 0, iMinute = 0;
+
+								pszBuffer++;
+								iMonth = strtol( pszBuffer, NULL, 10 );
+								pszBuffer += 3;
+								iDay = strtol( pszBuffer, NULL, 10 );
+								pszBuffer += 3;
+								iYear = strtol( pszBuffer, NULL, 10 );
+								pszBuffer += 5;
+								iHour = strtol( pszBuffer, NULL, 10 );
+								pszBuffer += 3;
+								iMinute = strtol( pszBuffer, NULL, 10 );
+								pszBuffer += 2;
+																
+								// If fewer than 5 elements (the %ds) were read, the user probably edited the file incorrectly.
+								if ( *pszBuffer != '>' )
+								{
+									Printf("parseNextLine: WARNING! Failure to read the ban expiration date!" );
+									return NULL;
+								}
+								pszBuffer++;
+								
+								// Create the time structure, based on the current time.
+								time_t		tNow;
+								time( &tNow );
+								struct tm	*pTimeInfo = localtime( &tNow );
+
+								// Edit the values, and stitch them into a new time.
+								pTimeInfo->tm_mon = iMonth - 1;
+								pTimeInfo->tm_mday = iDay;
+
+								if ( iYear < 100 )
+									pTimeInfo->tm_year = iYear + 2000;
+								else
+									pTimeInfo->tm_year = iYear - 1900;
+
+								pTimeInfo->tm_hour = iHour;
+								pTimeInfo->tm_min = iMinute;
+								pTimeInfo->tm_sec = 0;
+								
+								tExpiration = mktime( pTimeInfo );							
+							}
+
 							// Don't include the comment denotion character in the comment string.
-							if ( *pszBuffer == ':' || *pszBuffer == '/' )
+							while ( *pszBuffer == ':' || *pszBuffer == '/' )
 								pszBuffer++;
 
 							while ( *pszBuffer != 0 )
@@ -1849,11 +1886,8 @@ BOOL CALLBACK SERVERCONSOLE_BanListCallback( HWND hDlg, UINT Message, WPARAM wPa
 								*pszComment = 0;
 							}
 
-							if ( strlen( szComment ))
-								sprintf( szString, "addban %s \"%s\"", szIP, szComment );
-							else
-								sprintf( szString, "addban %s", szIP );
-							SERVER_AddCommand( szString );
+							std::string Message;
+							SERVERBAN_GetBanList( )->addEntry( szIP, "", szComment, Message, tExpiration );
 						}
 					}
 				}

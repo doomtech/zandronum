@@ -1416,6 +1416,18 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 						strncpy( szShortBanReason, pszBanReason, 128 );
 						sprintf( szErrorString, "%s\nReason for ban: %s", szErrorString, szShortBanReason );
 					}
+
+					// [RC] Read the expiration date for this ban.
+					time_t			tExpiration = (time_t) NETWORK_ReadLong( pByteStream );
+					if ( tExpiration > 0 )
+					{
+						struct tm	*pTimeInfo;
+						char		szDate[32];
+
+						pTimeInfo = localtime( &tExpiration );
+						strftime( szDate, 32, "%m/%d/%Y %H:%M", pTimeInfo);
+						sprintf( szErrorString, "%s\nYour ban expires on: %s (server time)", szErrorString, szDate );
+					}
 					break;
 				}				
 			case NETWORK_ERRORCODE_SERVERISFULL:

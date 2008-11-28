@@ -94,6 +94,7 @@
 #define	MINUTE						60
 #define	HOUR						( MINUTE * 60 )
 #define	DAY							( HOUR * 24 )
+#define WEEK						( DAY * 7 )
 
 // Server query flags.
 #define	SQF_NAME					0x00000001
@@ -331,6 +332,7 @@ ULONG		SERVER_GetPlayerIndexFromName( const char *pszName, bool bIgnoreColors, b
 LONG		SERVER_GetCurrentClient( void );
 void		SERVER_GiveInventoryToPlayer( const player_t *player, AInventory *pInventory );
 void		SERVER_IgnoreIP( NETADDRESS_s Address );
+IPList		*SERVER_GetAdminList( void );
 
 // From sv_master.cpp
 void		SERVER_MASTER_Construct( void );

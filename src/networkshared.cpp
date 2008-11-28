@@ -51,6 +51,8 @@
 #include "networkshared.h"
 #include <sstream>
 #include <errno.h>
+#include <iostream>
+#include <algorithm>
 #include "i_system.h"
 
 //*****************************************************************************
@@ -407,10 +409,6 @@ bool NETWORK_StringToIP( const char *pszAddress, char *pszIP0, char *pszIP1, cha
 	ULONG	ulIdx;
 	ULONG	ulNumPeriods;
 
-	// Too long.
-	if ( strlen( pszAddress ) > 15 )
-		return ( false );
-
 	// First, get rid of anything after the colon (if it exists).
 	strcpy( szCopy, pszAddress );
 	for ( pszCopy = szCopy; *pszCopy; pszCopy++ )
@@ -421,6 +419,10 @@ bool NETWORK_StringToIP( const char *pszAddress, char *pszIP0, char *pszIP1, cha
 			break;
 		}
 	}
+
+	// Too long.
+	if ( strlen( szCopy ) > 15 )
+		return ( false );
 
 	// Next, make sure there's at least 3 periods.
 	ulNumPeriods = 0;
@@ -606,6 +608,7 @@ bool IPFileParser::parseIPList( const char* FileName, std::vector<IPADDRESSBAN_s
 		while ( true )
 		{
 			IPADDRESSBAN_s IP;
+			IP.tExpirationDate = NULL;
 			ULONG oldNumberOfEntries = _numberOfEntries;
 			bool parsingDone = !parseNextLine( pFile, IP, _numberOfEntries );
 
@@ -628,6 +631,8 @@ bool IPFileParser::parseIPList( const char* FileName, std::vector<IPADDRESSBAN_s
 	}
 
 	fclose( pFile );
+	if ( _numberOfEntries > 0 )
+		Printf( "%s: %d entr%s loaded.\n", FileName, _numberOfEntries, ( _numberOfEntries == 1 ) ? "y" : "ies" );
 	return true;
 }
 
@@ -680,7 +685,7 @@ bool IPFileParser::parseNextLine( FILE *pFile, IPADDRESSBAN_s &IP, ULONG &BanIdx
 
 	while ( 1 )
 	{
-		if ( curChar == '\r' || curChar == '\n' || curChar == ':' || curChar == '/' || curChar == -1 )
+		if ( curChar == '\r' || curChar == '\n' || curChar == ':' || curChar == '<' || curChar == '/' || curChar == -1 )
 		{
 			if ( lPosition > 0 )
 			{
@@ -690,15 +695,26 @@ bool IPFileParser::parseNextLine( FILE *pFile, IPADDRESSBAN_s &IP, ULONG &BanIdx
 					{
 						sprintf( _errorMessage, "parseNextLine: WARNING! Maximum number of IPs (%d) exceeded!\n", _listLength );
 						return ( false );
-					}
+					}					
 
-					BanIdx++;
-					// [BB] If there is a reason given why the IP is on the list, read it now.
-					if ( curChar == ':' )
-						readReason( pFile, IP.szComment, 128 );
+					// [RC] Read the expiration date.
+					if ( curChar == '<' )
+					{
+						IP.tExpirationDate = readExpirationDate( pFile );
+						curChar = fgetc( pFile );
+						continue;
+					}
 					else
-						IP.szComment[0] = 0;
-					return ( true );
+					{
+						BanIdx++;
+
+						// [BB] If there is a reason given why the IP is on the list, read it now.
+						if ( curChar == ':' )
+							readReason( pFile, IP.szComment, 128 );
+						else
+							IP.szComment[0] = 0;
+						return ( true );
+					}
 				}
 				else if ( NETWORK_StringToAddress( szIP, &IPAddress ))
 				{
@@ -712,6 +728,8 @@ bool IPFileParser::parseNextLine( FILE *pFile, IPADDRESSBAN_s &IP, ULONG &BanIdx
 					_itoa( IPAddress.abIP[1], IP.szIP[1], 10 );
 					_itoa( IPAddress.abIP[2], IP.szIP[2], 10 );
 					_itoa( IPAddress.abIP[3], IP.szIP[3], 10 );
+					IP.tExpirationDate = NULL;
+
 					BanIdx++;
 					// [BB] If there is a reason given why the IP is on the list, read it now.
 					if ( curChar == ':' )
@@ -779,6 +797,55 @@ void IPFileParser::readReason( FILE *pFile, char *Reason, const int MaxReasonLen
 
 //*****************************************************************************
 //
+// [RC] Reads the entry's expiration date.
+time_t IPFileParser::readExpirationDate( FILE *pFile )
+{
+	int	iMonth = 0, iDay = 0, iYear = 0, iHour = 0, iMinute = 0;
+	
+	int iResult = fscanf( pFile, "%d/%d/%d %d:%d>", &iMonth, &iDay, &iYear, &iHour, &iMinute );
+
+	// If fewer than 5 elements (the %ds) were read, the user probably edited the file incorrectly.
+	if ( iResult < 5 )
+	{
+		Printf("parseNextLine: WARNING! Failure to read the ban expiration date! (%d fields read)\n", iResult );
+		return NULL;
+	}	
+	
+	// Create the time structure, based on the current time.
+	time_t		tNow;
+	time( &tNow );
+	struct tm	*pTimeInfo = localtime( &tNow );
+
+	// Edit the values, and stitch them into a new time.
+	pTimeInfo->tm_mon = iMonth - 1;
+	pTimeInfo->tm_mday = iDay;
+
+	if ( iYear < 100 )
+		pTimeInfo->tm_year = iYear + 2000;
+	else
+		pTimeInfo->tm_year = iYear - 1900;
+
+	pTimeInfo->tm_hour = iHour;
+	pTimeInfo->tm_min = iMinute;
+	pTimeInfo->tm_sec = 0;
+	
+	return mktime( pTimeInfo );
+}
+
+//*****************************************************************************
+//
+void IPList::copy( IPList &destination )
+{
+	destination.clear( );
+
+	for ( ULONG ulIdx = 0; ulIdx < _ipVector.size( ); ulIdx++ )
+		destination.push_back( _ipVector[ulIdx] );
+
+	destination.sort( );
+}
+
+//*****************************************************************************
+//
 bool IPList::clearAndLoadFromFile( const char *Filename )
 {
 	bool success = false;
@@ -792,6 +859,48 @@ bool IPList::clearAndLoadFromFile( const char *Filename )
 		_error = parser.getErrorMessage();
 
 	return success;
+}
+
+//*****************************************************************************
+//
+// [RC] Removes any	temporary entries that have expired.
+void IPList::removeExpiredEntries( void )
+{
+	time_t		tNow;
+
+	time ( &tNow );
+	for ( ULONG ulIdx = 0; ulIdx < _ipVector.size(); )
+	{
+		// If this entry isn't infinite, and expires in the past (or now), remove it.
+		if (( _ipVector[ulIdx].tExpirationDate != NULL ) && ( _ipVector[ulIdx].tExpirationDate - tNow <= 0))
+		{
+			char		szMessage[256];
+
+			sprintf( szMessage, "Temporary ban for %s.%s.%s.%s", _ipVector[ulIdx].szIP[0], _ipVector[ulIdx].szIP[1], _ipVector[ulIdx].szIP[2], _ipVector[ulIdx].szIP[3] );
+			
+			// Add the ban reason.
+			if ( _ipVector[ulIdx].szComment && strlen( _ipVector[ulIdx].szComment ))
+				sprintf( szMessage, "%s (%s)", szMessage,  _ipVector[ulIdx].szComment );
+
+			sprintf( szMessage, "%s has expired", szMessage );
+
+			// If the entry expired while the server was offline, say when it expired.
+			if ( _ipVector[ulIdx].tExpirationDate - tNow <= -3 )
+			{
+				char		szDate[32];
+				struct tm	*pTimeInfo;
+
+				pTimeInfo = localtime( &_ipVector[ulIdx].tExpirationDate );
+				strftime( szDate, 32, "%m/%d/%Y %H:%M", pTimeInfo);
+				sprintf( szMessage, "%s (ended on %s)", szMessage, szDate );
+			} 
+				
+			Printf( "%s.\n", szMessage );
+			removeEntry( ulIdx );
+		}
+		else
+			ulIdx++;
+	}
 }
 
 //*****************************************************************************
@@ -858,6 +967,7 @@ IPADDRESSBAN_s IPList::getEntry( const ULONG ulIdx ) const
 		sprintf( ZeroBan.szIP[3], "0" );
 
 		ZeroBan.szComment[0] = 0;
+		ZeroBan.tExpirationDate = NULL;
 
 		return ( ZeroBan );
 	}
@@ -866,31 +976,6 @@ IPADDRESSBAN_s IPList::getEntry( const ULONG ulIdx ) const
 }
 
 //*****************************************************************************
-//
-std::string IPList::getEntryAsString( const ULONG ulIdx, bool bIncludeCommentAndNewline ) const
-{
-	std::stringstream entryStream;
-
-	if ( ulIdx < _ipVector.size() )
-	{
-		entryStream << _ipVector[ulIdx].szIP[0] << "."
-					<< _ipVector[ulIdx].szIP[1] << "."
-					<< _ipVector[ulIdx].szIP[2] << "."
-					<< _ipVector[ulIdx].szIP[3];
-
-		// Optionally append the comment.
-		if ( _ipVector[ulIdx].szComment[0] && bIncludeCommentAndNewline )
-		{
-			entryStream << ":" << _ipVector[ulIdx].szComment;
-			entryStream << std::endl;
-		}
-	}
-
-	return entryStream.str();
-}
-
-//*****************************************************************************
-// [RC]
 //
 ULONG IPList::getEntryIndex( const NETADDRESS_s &Address ) const
 {
@@ -908,20 +993,62 @@ ULONG IPList::getEntryIndex( const NETADDRESS_s &Address ) const
 //
 const char *IPList::getEntryComment( const NETADDRESS_s &Address ) const
 {
-	ULONG ulIdx = getEntryIndex(Address);
-
-	if( ulIdx < _ipVector.size() )
-		return _ipVector[ulIdx].szComment;
-
-	return NULL;
+	ULONG ulIdx = getEntryIndex( Address );
+	return ( ulIdx < _ipVector.size( )) ? _ipVector[ulIdx].szComment : NULL;
 }
 
 //*****************************************************************************
 //
-void IPList::addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3, const char *pszPlayerName, const char *pszComment, std::string &Message )
+time_t IPList::getEntryExpiration( const NETADDRESS_s &Address ) const
+{
+	ULONG ulIdx = getEntryIndex( Address );
+	return ( ulIdx < _ipVector.size( )) ? _ipVector[ulIdx].tExpirationDate : NULL;
+}
+
+//*****************************************************************************
+//
+std::string IPList::getEntryAsString( const ULONG ulIdx, bool bIncludeComment, bool bIncludeExpiration, bool bInludeNewline ) const
+{
+	std::stringstream entryStream;
+
+	if ( ulIdx < _ipVector.size() )
+	{
+		// Address.
+		entryStream << _ipVector[ulIdx].szIP[0] << "."
+					<< _ipVector[ulIdx].szIP[1] << "."
+					<< _ipVector[ulIdx].szIP[2] << "."
+					<< _ipVector[ulIdx].szIP[3];
+
+		// Expiration date.
+		if ( bIncludeExpiration && _ipVector[ulIdx].tExpirationDate != NULL && _ipVector[ulIdx].tExpirationDate != -1 )
+		{			
+			struct tm	*pTimeInfo;
+			char		szDate[32];
+
+			pTimeInfo = localtime( &(_ipVector[ulIdx].tExpirationDate) );
+			strftime( szDate, 32, "%m/%d/%Y %H:%M", pTimeInfo );
+			entryStream << "<" << szDate << ">";
+		}
+
+		// Comment.
+		if ( bIncludeComment && _ipVector[ulIdx].szComment[0] )
+			entryStream << ":" << _ipVector[ulIdx].szComment;
+
+		// Newline.
+		if ( bInludeNewline )
+			entryStream << std::endl;
+	}
+
+	return entryStream.str();
+}
+
+//*****************************************************************************
+//
+void IPList::addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3, const char *pszPlayerName, const char *pszComment, std::string &Message, time_t tExpiration )
 {
 	FILE		*pFile;
 	char		szOutString[512];
+	char		szDate[32];
 	ULONG		ulIdx;
 	std::stringstream messageStream;
 
@@ -935,10 +1062,10 @@ void IPList::addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP
 	}
 
 	szOutString[0] = 0;
-	if ( pszPlayerName )
+	if ( pszPlayerName && strlen( pszPlayerName ))
 	{
 		sprintf( szOutString, "%s", szOutString );
-		if ( pszComment )
+		if ( pszComment && strlen( pszComment ))
 			sprintf( szOutString, "%s:", szOutString );
 	}
 	if ( pszComment )
@@ -951,37 +1078,55 @@ void IPList::addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP
 	sprintf( newIPEntry.szIP[2], pszIP2 );
 	sprintf( newIPEntry.szIP[3], pszIP3 );
 	sprintf( newIPEntry.szComment, "%s", szOutString );
+	newIPEntry.tExpirationDate = tExpiration;
 	_ipVector.push_back( newIPEntry );
 
 	// Finally, append the IP to the file.
 	if ( (pFile = fopen( _filename.c_str(), "a" )) )
 	{
 		sprintf( szOutString, "\n%s.%s.%s.%s", pszIP0, pszIP1, pszIP2, pszIP3 );
-		if ( pszPlayerName )
+
+		// [RC] Write the expiration date of this ban.
+		if ( tExpiration )
+		{			
+			struct tm	*pTimeInfo;
+
+			pTimeInfo = localtime( &tExpiration );
+			strftime( szDate, 32, "%m/%d/%Y %H:%M", pTimeInfo);
+			sprintf( szOutString, "%s<%s>", szOutString, szDate );
+		}
+
+		if ( pszPlayerName && strlen( pszPlayerName ))
 			sprintf( szOutString, "%s:%s", szOutString, pszPlayerName );
-		if ( pszComment )
+		if ( pszComment && strlen( pszComment ))
 			sprintf( szOutString, "%s:%s", szOutString, pszComment );
 		fputs( szOutString, pFile );
 		fclose( pFile );
 
-		messageStream << pszIP0 << "." << pszIP1 << "."	<< pszIP2 << "." << pszIP3 << " added to list.\n";
+		messageStream << pszIP0 << "." << pszIP1 << "."	<< pszIP2 << "." << pszIP3 << " added to list.";
+		if ( tExpiration )
+			messageStream << " It expires on " << szDate << ".";
+		
+		messageStream << "\n";
+
 		Message = messageStream.str();
 	}
 	else
 	{
 		Message = GenerateCouldNotOpenFileErrorString( "IPList::addEntry", _filename.c_str(), errno );
 	}
+
 }
 
 //*****************************************************************************
 //
-void IPList::addEntry( const char *pszIPAddress, const char *pszPlayerName, const char *pszComment, std::string &Message )
+void IPList::addEntry( const char *pszIPAddress, const char *pszPlayerName, const char *pszComment, std::string &Message, time_t tExpiration )
 {
 	NETADDRESS_s	BanAddress;
 	char			szStringBan[4][4];
 
 	if ( NETWORK_StringToIP( pszIPAddress, szStringBan[0], szStringBan[1], szStringBan[2], szStringBan[3] ))
-		addEntry( szStringBan[0], szStringBan[1], szStringBan[2], szStringBan[3], pszPlayerName, pszComment, Message );
+		addEntry( szStringBan[0], szStringBan[1], szStringBan[2], szStringBan[3], pszPlayerName, pszComment, Message, tExpiration );
 	else if ( NETWORK_StringToAddress( pszIPAddress, &BanAddress ))
 	{
 		itoa( BanAddress.abIP[0], szStringBan[0], 10 );
@@ -989,7 +1134,7 @@ void IPList::addEntry( const char *pszIPAddress, const char *pszPlayerName, cons
 		itoa( BanAddress.abIP[2], szStringBan[2], 10 );
 		itoa( BanAddress.abIP[3], szStringBan[3], 10 );
 
-		addEntry( szStringBan[0], szStringBan[1], szStringBan[2], szStringBan[3], pszPlayerName, pszComment, Message );
+		addEntry( szStringBan[0], szStringBan[1], szStringBan[2], szStringBan[3], pszPlayerName, pszComment, Message, tExpiration );
 	}
 	else
 	{
@@ -1001,6 +1146,19 @@ void IPList::addEntry( const char *pszIPAddress, const char *pszPlayerName, cons
 
 //*****************************************************************************
 //
+// [RC] Removes the entry at the given index.
+void IPList::removeEntry( ULONG ulEntryIdx )
+{
+	for ( ULONG ulIdx = ulEntryIdx; ulIdx < _ipVector.size() - 1; ulIdx++ )
+			_ipVector[ulIdx] = _ipVector[ulIdx+1];
+
+	_ipVector.pop_back();
+	rewriteListToFile ();
+}
+
+//*****************************************************************************
+//
+// Removes the entry with the given IP. Writes a success/failure message to Message.
 void IPList::removeEntry( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3, std::string &Message )
 {
 	ULONG entryIdx = doesEntryExist( pszIP0, pszIP1, pszIP2, pszIP3 );
@@ -1010,12 +1168,7 @@ void IPList::removeEntry( const char *pszIP0, const char *pszIP1, const char *ps
 
 	if ( entryIdx < _ipVector.size() )
 	{
-		for ( ULONG ulIdx = entryIdx; ulIdx < _ipVector.size() - 1; ulIdx++ )
-			_ipVector[ulIdx] = _ipVector[ulIdx+1];
-
-		_ipVector.pop_back();
-
-		rewriteListToFile ();
+		removeEntry( entryIdx );		
 
 		messageStream << " removed from list.\n";
 		Message = messageStream.str();
@@ -1029,6 +1182,7 @@ void IPList::removeEntry( const char *pszIP0, const char *pszIP1, const char *ps
 
 //*****************************************************************************
 //
+// Removes the entry with the given address. Writes a success/failure message to Message.
 void IPList::removeEntry( const char *pszIPAddress, std::string &Message )
 {
 	char			szStringBan[4][4];
@@ -1050,7 +1204,7 @@ bool IPList::rewriteListToFile ()
 	FILE		*pFile;
 	std::string	outString;
 
-	if ( (pFile = fopen( _filename.c_str(), "w" )) )
+	if ( (pF ile = fopen( _filename.c_str(), "w" )) )
 	{
 		for ( ULONG ulIdx = 0; ulIdx < size(); ulIdx++ )
 			fputs( getEntryAsString(ulIdx).c_str(), pFile );
@@ -1063,6 +1217,31 @@ bool IPList::rewriteListToFile ()
 		_error = GenerateCouldNotOpenFileErrorString( "IPList::addEntry", _filename.c_str(), errno );
 		return false;
 	}
+}
+
+//*****************************************************************************
+//
+struct ASCENDINGIPSORT_S
+{
+	// [RC] Sorts the list ascendingly by IP, then by comment.
+	bool operator()( IPADDRESSBAN_s rpStart, IPADDRESSBAN_s rpEnd )
+	{
+		// Check each IP component.
+		for ( int i = 0; i < 4; i++ )
+		{
+			if ( atoi( rpStart.szIP[i] ) != atoi( rpEnd.szIP[i] ))
+				return ( atoi( rpStart.szIP[i] ) < atoi(rpEnd.szIP[i] ));
+		}
+
+		return strcmp( rpEnd.szComment, rpStart.szComment );
+	}
+};
+
+//*****************************************************************************
+//
+void IPList::sort()
+{
+	std::sort( _ipVector.begin(), _ipVector.end(), ASCENDINGIPSORT_S() );
 }
 
 //=============================================================================
