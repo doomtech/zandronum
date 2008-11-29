@@ -1699,8 +1699,6 @@ BOOL CALLBACK SERVERCONSOLE_BanListCallback( HWND hDlg, UINT Message, WPARAM wPa
 {
 	ULONG		ulIdx;
 	UCVarValue	Val;
-	char		szString[256];
-	IPADDRESSBAN_s		Ban;
 
 	Val = sv_banfile.GetGenericRep( CVAR_String );
 
@@ -2016,6 +2014,7 @@ BOOL CALLBACK SERVERCONSOLE_ServerInformationCallback( HWND hDlg, UINT Message, 
 			sprintf( szString, "Gameplay mode: %s", skulltag ? "Skulltag" :
 				oneflagctf ? "One flag CTF" :
 				ctf ? "Capture the flag" :
+				domination ? "Domination" :
 				teamgame ? "Teamgame" :
 				teampossession ? "Team possession" :
 				possession ? "Possession" :
