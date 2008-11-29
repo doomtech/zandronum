@@ -1413,7 +1413,8 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 					char			szShortBanReason[128]; // Don't allow servers to overflow szErrorString.
 					if ( strlen( pszBanReason ))
 					{
-						strncpy( szShortBanReason, pszBanReason, 128 );
+						strncpy( szShortBanReason, pszBanReason, 127 );
+						szShortBanReason[127] = 0;
 						sprintf( szErrorString, "%s\nReason for ban: %s", szErrorString, szShortBanReason );
 					}
 
@@ -1429,7 +1430,7 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 						sprintf( szErrorString, "%s\nYour ban expires on: %s (server time)", szErrorString, szDate );
 					}
 					break;
-				}				
+				}
 			case NETWORK_ERRORCODE_SERVERISFULL:
 
 				sprintf( szErrorString, "Server is full." );
