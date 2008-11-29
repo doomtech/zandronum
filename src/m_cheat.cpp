@@ -553,9 +553,8 @@ void cht_Give (player_t *player, const char *name, int amount)
 		// [BB]: The server has to inform the player that its health has changed.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
-			ULONG playerIdx = SERVER_GetPlayerIndexFromName( player->userinfo.netname, false, false );
-			if ( playerIdx < MAXPLAYERS )
-				SERVERCOMMANDS_SetPlayerHealth( playerIdx, playerIdx, SVCF_ONLYTHISCLIENT );
+			ULONG playerIdx = static_cast<ULONG> ( player - players );
+			SERVERCOMMANDS_SetPlayerHealth( playerIdx, playerIdx, SVCF_ONLYTHISCLIENT );
 		}
 
 		if (!giveall)
