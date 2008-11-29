@@ -1204,17 +1204,17 @@ bool IPList::rewriteListToFile ()
 	FILE		*pFile;
 	std::string	outString;
 
-	if ( (pF ile = fopen( _filename.c_str(), "w" )) )
+	if (( pFile = fopen( _filename.c_str( ), "w" )))
 	{
 		for ( ULONG ulIdx = 0; ulIdx < size(); ulIdx++ )
-			fputs( getEntryAsString(ulIdx).c_str(), pFile );
+			fputs( getEntryAsString( ulIdx ).c_str( ), pFile );
 
 		fclose( pFile );
 		return true;
 	}
 	else
 	{
-		_error = GenerateCouldNotOpenFileErrorString( "IPList::addEntry", _filename.c_str(), errno );
+		_error = GenerateCouldNotOpenFileErrorString( "IPList::rewriteListToFile", _filename.c_str(), errno );
 		return false;
 	}
 }
