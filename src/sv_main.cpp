@@ -2002,7 +2002,7 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 	// Read in the player's name.
 	if ( ulFlags & USERINFO_NAME )
 	{
-		sprintf( szOldPlayerName, pPlayer->userinfo.netname );
+		sprintf( szOldPlayerName, "%s", pPlayer->userinfo.netname );
 		nameString = NETWORK_ReadString( pByteStream );
 
 		if ( nameString.Len() > MAXPLAYERNAME )
@@ -2024,8 +2024,8 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 			char	szPlayerNameNoColor[32];
 			char	szOldPlayerNameNoColor[32];
 
-			sprintf( szPlayerNameNoColor, pPlayer->userinfo.netname );
-			sprintf( szOldPlayerNameNoColor, szOldPlayerName );
+			sprintf( szPlayerNameNoColor, "%s", pPlayer->userinfo.netname );
+			sprintf( szOldPlayerNameNoColor, "%s", szOldPlayerName );
 
 			V_ColorizeString( szPlayerNameNoColor );
 			V_ColorizeString( szOldPlayerNameNoColor );
@@ -2617,7 +2617,7 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 		Info.lPointCount	= players[ulClient].lPointCount;
 		Info.lWinCount		= players[ulClient].ulWins;
 		Info.ulTime			= players[ulClient].ulTime; // [RC] Save time
-		sprintf( Info.szName, players[ulClient].userinfo.netname );
+		sprintf( Info.szName, "%s", players[ulClient].userinfo.netname );
 
 		SERVER_SAVE_SaveInfo( &Info );
 	}
@@ -2748,7 +2748,7 @@ void STACK_ARGS SERVER_Printf( ULONG ulPrintLevel, const char *pszString, ... )
 	va_end( argptr );
 
 	// Print message locally in console window.
-	Printf( szStringBuf );
+	Printf( "%s", szStringBuf );
 
 	// Send the message out to clients for them to print.
 	SERVERCOMMANDS_Print( szStringBuf, ulPrintLevel );
@@ -3028,12 +3028,12 @@ void SERVER_KickPlayer( ULONG ulPlayer, const char *pszReason )
 	if (( ulPlayer >= MAXPLAYERS ) || ( !playeringame[ulPlayer] ))
 		return;
 
-	sprintf( szName, players[ulPlayer].userinfo.netname );
+	sprintf( szName, "%s", players[ulPlayer].userinfo.netname );
 	V_RemoveColorCodes( szName );
 
 	// Build the full kick string.
 	sprintf( szKickString, "\\ci%s\\ci was kicked from the server! Reason: %s\n", szName, pszReason );
-	Printf( szKickString );
+	Printf( "%s", szKickString );
 
 	// Rebuild the string that will be displayed to clients. This time, color codes are allowed.
 	sprintf( szKickString, "\\ci%s\\ci was kicked from the server! Reason: %s\n", players[ulPlayer].userinfo.netname, pszReason );
@@ -3073,12 +3073,12 @@ void SERVER_KickPlayerFromGame( ULONG ulPlayer, const char *pszReason )
 	if (( ulPlayer >= MAXPLAYERS ) || ( !playeringame[ulPlayer] ))
 		return;
 
-	sprintf( szName, players[ulPlayer].userinfo.netname );
+	sprintf( szName, "%s", players[ulPlayer].userinfo.netname );
 	V_RemoveColorCodes( szName );
 
 	// Build the full kick string.
 	sprintf( szKickString, "\\ci%s\\ci has been forced to spectate! Reason: %s\n", szName, pszReason );
-	Printf( szKickString );
+	Printf( "%s", szKickString );
 
 	// Rebuild the string that will be displayed to clients. This time, color codes are allowed.
 	sprintf( szKickString, "\\ci%s\\ci has been forced to spectate! Reason: %s\n", players[ulPlayer].userinfo.netname, pszReason );
@@ -3179,7 +3179,7 @@ const char *SERVER_GetCurrentFont( void )
 //
 void SERVER_SetCurrentFont( const char *pszFont )
 {
-	sprintf( g_szCurrentFont, pszFont );
+	sprintf( g_szCurrentFont, "%s", pszFont );
 }
 
 //*****************************************************************************
@@ -3193,7 +3193,7 @@ const char *SERVER_GetScriptActiveFont( void )
 //
 void SERVER_SetScriptActiveFont( const char *pszFont )
 {
-	sprintf( g_szScriptActiveFont, pszFont );
+	sprintf( g_szScriptActiveFont, "%s", pszFont );
 }
 
 //*****************************************************************************
@@ -3266,7 +3266,7 @@ IPList *SERVER_GetAdminList( void )
 void SERVER_SetMapMusic( const char *pszMusic )
 {
 	if ( pszMusic )
-		sprintf( g_szMapMusic, pszMusic );
+		sprintf( g_szMapMusic, "%s", pszMusic );
 	else
 		g_szMapMusic[0] = 0;
 }
@@ -5113,7 +5113,7 @@ CCMD( kick )
 			continue;
 
 		// Removes the color codes from the player name so it appears as the server sees it in the window.
-		sprintf( szPlayerName, players[ulIdx].userinfo.netname );
+		sprintf( szPlayerName, "%s", players[ulIdx].userinfo.netname );
 		V_RemoveColorCodes( szPlayerName );
 
 		if ( stricmp( szPlayerName, argv[1] ) == 0 )
@@ -5182,7 +5182,7 @@ CCMD( kickfromgame )
 			continue;
 
 		// Removes the color codes from the player name so it appears as the server sees it in the window.
-		sprintf( szPlayerName, players[ulIdx].userinfo.netname );
+		sprintf( szPlayerName, "%s", players[ulIdx].userinfo.netname );
 		V_RemoveColorCodes( szPlayerName );
 
 		if ( stricmp( szPlayerName, argv[1] ) == 0 )

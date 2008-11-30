@@ -871,7 +871,7 @@ void R_InitSkins (void)
 				{
 					// The current token should be our key. (key = value) If it's an end bracket, break.
 					SC_GetString( );
-					sprintf( szKey, sc_String );
+					sprintf( szKey, "%s", sc_String );
 					if ( sc_String[0] == '}' )
 						break;
 
@@ -882,7 +882,7 @@ void R_InitSkins (void)
 
 					// The last token should be our value.
 					SC_GetString( );
-					sprintf( szValue, sc_String );
+					sprintf( szValue, "%s", sc_String );
 
 					// Now try to match our key with a valid bot info field.
 					if ( stricmp( szKey, "name" ) == 0 )
@@ -932,7 +932,7 @@ void R_InitSkins (void)
 							skins[i].bCheat = false;
 					}
 					else if ( stricmp( szKey, "color" ) == 0 )
-						sprintf( skins[i].szColor, szValue );
+						sprintf( skins[i].szColor, "%s", szValue );
 					else if ( stricmp( szKey, "scale" ) == 0 )
 						skins[i].Scale = clamp<fixed_t> (FLOAT2FIXED(atof (szValue)), 1, 256*FRACUNIT);
 					else if ( stricmp( szKey, "game" ) == 0 )
@@ -1420,7 +1420,7 @@ void R_InitSprites ()
 
 	// [BB] Check if any of the skin sprites are ridiculously big to prevent
 	// abusing the possibility to replace the skin sprites.
-	for ( int skinIdx = 0; skinIdx < numskins; skinIdx++ )
+	for ( unsigned int skinIdx = 0; skinIdx < numskins; skinIdx++ )
 	{
 		// [BB] If the skin doesn't have a name, it's removed and doesn't need to be checked.
 		// Removed skins for example are Doom skins in a Hexen games.
@@ -1468,14 +1468,14 @@ void R_InitSprites ()
 		// [BB] Find the player class this skin belongs to.
 		if ( !skins[skinIdx].othergame )
 		{
-			for ( int pcIdx = 0; pcIdx < PlayerClasses.Size(); pcIdx++ )
+			for ( unsigned int pcIdx = 0; pcIdx < PlayerClasses.Size(); pcIdx++ )
 			{
 				if ( classSkinIdx != -1 )
 					break;
 
-				for ( int pcSkinIdx = 0; pcSkinIdx < PlayerClasses[pcIdx].Skins.Size(); pcSkinIdx++ )
+				for ( unsigned int pcSkinIdx = 0; pcSkinIdx < PlayerClasses[pcIdx].Skins.Size(); pcSkinIdx++ )
 				{
-					if ( PlayerClasses[pcIdx].Skins[pcSkinIdx] == skinIdx )
+					if ( PlayerClasses[pcIdx].Skins[pcSkinIdx] == static_cast<int> (skinIdx) )
 					{
 						classSkinIdx = pcIdx;
 						break;

@@ -2459,7 +2459,7 @@ void G_TemporaryTeamSpawnPlayer( ULONG ulPlayer, bool bClientUpdate )
 	{
 		bool	bCanUseStarts[MAX_TEAMS];
 		LONG	lAllowedTeamCount = 0;
-		ULONG	ulTeam;
+		ULONG	ulTeam = 0;
 		ULONG	ulOnTeamNum = 0;
 
 		// Set each of these to specific values.

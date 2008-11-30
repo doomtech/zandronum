@@ -250,7 +250,7 @@ void POSSESSION_Render( void )
 	UCVarValue	ValWidth;
 	UCVarValue	ValHeight;
 	float		fXScale;
-	float		fYScale;
+	float		fYScale = 0.0f;
 
 	// If the artifact isn't being held by anyone, just break out since we
 	// don't have a timer to draw.

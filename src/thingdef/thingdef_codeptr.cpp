@@ -587,7 +587,7 @@ static void DoJump(AActor * self, FState * CallingState, int offset, ULONG ulCli
 //==========================================================================
 void A_Jump(AActor * self)
 {
-	FState * CallingState;
+	FState * CallingState = NULL;
 	int index = CheckIndex(3, &CallingState);
 	int maxchance;
 
@@ -623,7 +623,7 @@ void A_Jump(AActor * self)
 //==========================================================================
 void A_JumpIfHealthLower(AActor * self)
 {
-	FState * CallingState;
+	FState * CallingState = NULL;
 	int index=CheckIndex(2, &CallingState);
 
 	// [BC] Don't jump here in client mode.

@@ -451,7 +451,7 @@ CCMD( ban_idx )
 		return;
 
 	// Removes the color codes from the player name so it appears as the server sees it in the window.
-	sprintf( szPlayerName, players[ulIdx].userinfo.netname );
+	sprintf( szPlayerName, "%s", players[ulIdx].userinfo.netname );
 	V_RemoveColorCodes( szPlayerName );
 
 	// Can't ban a bot!

@@ -169,7 +169,7 @@ void A_SentinelBob (AActor *self)
 
 void A_SentinelAttack (AActor *self)
 {
-	AActor *missile, *trail;
+	AActor *missile = NULL, *trail;
 
 	// [CW] If we aren't a client, spawn the missile.
 	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( !CLIENTDEMO_IsPlaying( )))

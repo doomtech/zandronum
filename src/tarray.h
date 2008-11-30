@@ -72,7 +72,8 @@ public:
 		Most = max;
 		Count = 0;
 		Array = (T *)M_Malloc (sizeof(T)*max);
-		memset(Array, 0, sizeof(T) * max); // [ZDoomGL] - initialize the array to 0
+		if(max != 0) // [BL] GCC will throw a warning if max is 0
+			memset(Array, 0, sizeof(T) * max); // [ZDoomGL] - initialize the array to 0
 	}
 	TArray (const TArray<T> &other)
 	{

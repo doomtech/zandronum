@@ -532,6 +532,7 @@ POS_t ASTAR_GetPosition( ASTARNODE_t *pNode )
 //	Position.y = ( pNode->lYNodeIdx << ASTAR_NODE_SHIFT ) + (((( g_lMapYMin / FRACUNIT ) / 64 ) * 64 ) * FRACUNIT ) + ( 32 << FRACBITS );
 	Position.x = ( pNode->lXNodeIdx << ASTAR_NODE_SHIFT ) + (( g_lMapXMin >> ASTAR_NODE_SHIFT ) << ASTAR_NODE_SHIFT ) + ( 32 << FRACBITS );
 	Position.y = ( pNode->lYNodeIdx << ASTAR_NODE_SHIFT ) + (( g_lMapYMin >> ASTAR_NODE_SHIFT ) << ASTAR_NODE_SHIFT ) + ( 32 << FRACBITS );
+	Position.z = 0;
 
 	return ( Position );
 }
@@ -544,6 +545,7 @@ POS_t ASTAR_GetPositionFromIndex( LONG lXIdx, LONG lYIdx )
 
 	Position.x = ( lXIdx << ASTAR_NODE_SHIFT ) + (( g_lMapXMin >> ASTAR_NODE_SHIFT ) << ASTAR_NODE_SHIFT ) + ( 32 << FRACBITS );
 	Position.y = ( lYIdx << ASTAR_NODE_SHIFT ) + (( g_lMapYMin >> ASTAR_NODE_SHIFT ) << ASTAR_NODE_SHIFT ) + ( 32 << FRACBITS );
+	Position.z = 0;
 
 	return ( Position );
 }

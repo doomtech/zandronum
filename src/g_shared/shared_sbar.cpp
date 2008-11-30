@@ -1275,7 +1275,7 @@ void FBaseStatusBar::DrawTeamScores ()
 			if ( TEAM_ShouldUseTeam( i ) == false )
 				continue;
 
-			sprintf( szPatchName, TEAM_GetLargeHUDIcon( i ));
+			sprintf( szPatchName, "%s", TEAM_GetLargeHUDIcon( i ));
 			screen->DrawTexture (TexMan[szPatchName], 18, lY,
 				DTA_HUDRules, HUD_Normal,
 				DTA_CenterBottomOffset, true,
@@ -1295,7 +1295,7 @@ void FBaseStatusBar::DrawTeamScores ()
 			if ( TEAM_ShouldUseTeam( i ) == false )
 				continue;
 
-			sprintf( szPatchName, TEAM_GetLargeHUDIcon( i ));
+			sprintf( szPatchName, "%s", TEAM_GetLargeHUDIcon( i ));
 			screen->DrawTexture (TexMan[szPatchName], 12, lY,
 				DTA_HUDRules, HUD_Normal,
 				DTA_CenterBottomOffset, true,

@@ -247,7 +247,7 @@ void CLIENTDEMO_WriteUserInfo( void )
 //
 void CLIENTDEMO_ReadUserInfo( void )
 {
-	sprintf( players[consoleplayer].userinfo.netname, NETWORK_ReadString( &g_ByteStream ));
+	sprintf( players[consoleplayer].userinfo.netname, "%s", NETWORK_ReadString( &g_ByteStream ));
 	players[consoleplayer].userinfo.gender = NETWORK_ReadByte( &g_ByteStream );
 	players[consoleplayer].userinfo.color = NETWORK_ReadLong( &g_ByteStream );
 	players[consoleplayer].userinfo.aimdist = NETWORK_ReadLong( &g_ByteStream );

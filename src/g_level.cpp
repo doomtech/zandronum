@@ -1256,13 +1256,13 @@ static void ParseEpisodeInfo ()
 		else if ( SC_Compare( "botskillname" ))
 		{
 			SC_MustGetString( );
-			sprintf( szBotSkillTitle, sc_String );
+			sprintf( szBotSkillTitle, "%s", sc_String );
 			bBotSkillPicIsGFX = false;
 		}
 		else if ( SC_Compare( "botskillpicname" ))
 		{
 			SC_MustGetString( );
-			sprintf( szBotSkillTitle, sc_String );
+			sprintf( szBotSkillTitle, "%s", sc_String );
 			bBotSkillPicIsGFX = true;
 		}
 		else
@@ -1330,7 +1330,7 @@ static void ParseEpisodeInfo ()
 		EpisodeMenu[i].bBotSkillFullText = !bBotSkillPicIsGFX;
 		strncpy (EpisodeMaps[i], map, 8);
 		if ( bBotEpisode )
-			sprintf( EpisodeSkillHeaders[i], szBotSkillTitle );
+			sprintf( EpisodeSkillHeaders[i], "%s", szBotSkillTitle );
 
 		if (picisgfx)
 		{
@@ -2188,7 +2188,7 @@ void G_DoLoadLevel (int position, bool autosave)
 {
 	static int lastposition = 0;
 	gamestate_t oldgs = gamestate;
-	int i;
+	unsigned int i;
 	// [BC]
 	char				szString[256];
 	CAMPAIGNINFO_s		*pInfo;

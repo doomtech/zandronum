@@ -505,7 +505,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 			if ( source->player->pSkullBot )
 			{
 				source->player->pSkullBot->m_ulPlayerKilled = player - players;
-				if (( player - players ) == source->player->pSkullBot->m_ulPlayerEnemy )
+				if (( player - players ) == static_cast<int> (source->player->pSkullBot->m_ulPlayerEnemy) )
 					source->player->pSkullBot->PostEvent( BOTEVENT_ENEMY_KILLED );
 			}
 
@@ -690,7 +690,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 			{
 				if ( source->player == player )
 					player->pSkullBot->PostEvent( BOTEVENT_KILLED_BYSELF );
-				else if (( source->player - players ) == player->pSkullBot->m_ulPlayerEnemy )
+				else if (( source->player - players ) == static_cast<int> (player->pSkullBot->m_ulPlayerEnemy) )
 					player->pSkullBot->PostEvent( BOTEVENT_KILLED_BYENEMY );
 				else
 					player->pSkullBot->PostEvent( BOTEVENT_KILLED_BYPLAYER );
@@ -1945,7 +1945,7 @@ void PLAYER_GivePossessionPoint( player_s *pPlayer )
 					ANNOUNCER_PlayEntry( cl_announcer, "YouWin" );
 			}
 
-			sprintf( szString, "\\c%%s WINS!", V_GetColorChar( TEAM_GetTextColor( pPlayer->ulTeam )), TEAM_GetName( pPlayer->ulTeam ));
+			sprintf( szString, "\\c%c%s WINS!", V_GetColorChar( TEAM_GetTextColor( pPlayer->ulTeam )), TEAM_GetName( pPlayer->ulTeam ));
 			V_ColorizeString( szString );
 
 			if ( NETWORK_GetState( ) != NETSTATE_SERVER )

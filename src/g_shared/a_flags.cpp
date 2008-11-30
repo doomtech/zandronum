@@ -733,11 +733,11 @@ void AFlag::DisplayFlagTaken( AActor *pToucher )
 	{
 		sprintf( szString, "\\c%cYou have the %s flag!", V_GetColorChar( TEAM_GetTextColor( TEAM_GetTeamFromItem( this ))), TEAM_GetName( TEAM_GetTeamFromItem( this )));
 		V_ColorizeString( szString );
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_UNTRANSLATED, 3.0f, 0.25f, "BigFont", false, 'CNTR', ULONG( pToucher->player - players ), SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_UNTRANSLATED, 3.0f, 0.25f, "BigFont", false, MAKE_ID('C','N','T','R'), ULONG( pToucher->player - players ), SVCF_ONLYTHISCLIENT );
 
 		sprintf( szString, "\\c%c%s flag taken!", V_GetColorChar( TEAM_GetTextColor( TEAM_GetTeamFromItem( this ))), TEAM_GetName( TEAM_GetTeamFromItem( this )));
 		V_ColorizeString( szString );
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_UNTRANSLATED, 3.0f, 0.25f, "BigFont", false, 'CNTR', ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_UNTRANSLATED, 3.0f, 0.25f, "BigFont", false, MAKE_ID('C','N','T','R'), ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT );
 	}
 
 	// [RC] Create the "held by" message for the team.
@@ -765,7 +765,7 @@ void AFlag::DisplayFlagTaken( AActor *pToucher )
 	}
 	// If necessary, send it to clients.
 	else
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_UNTRANSLATED, 3.0f, 0.25f, "SmallFont", false, 'SUBS', ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT  );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_UNTRANSLATED, 3.0f, 0.25f, "SmallFont", false, MAKE_ID('S','U','B','S'), ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT  );
 }
 
 //===========================================================================
@@ -1193,11 +1193,11 @@ void AWhiteFlag::DisplayFlagTaken( AActor *pToucher )
 	{
 		sprintf( szString, "\\cCYou have the flag!" );
 		V_ColorizeString( szString );
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_WHITE, 3.0f, 0.25f, "BigFont", false, 'CNTR', ULONG( pToucher->player - players ), SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_WHITE, 3.0f, 0.25f, "BigFont", false, MAKE_ID('C','N','T','R'), ULONG( pToucher->player - players ), SVCF_ONLYTHISCLIENT );
 
 		sprintf( szString, "\\cCWhite flag taken!" );
 		V_ColorizeString( szString );
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_WHITE, 3.0f, 0.25f, "BigFont", false, 'CNTR', ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_WHITE, 3.0f, 0.25f, "BigFont", false, MAKE_ID('C','N','T','R'), ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT );
 	}
 
 	// [BC] Rivecoder's "held by" messages.
@@ -1227,7 +1227,7 @@ void AWhiteFlag::DisplayFlagTaken( AActor *pToucher )
 	}
 	// If necessary, send it to clients.
 	else
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_UNTRANSLATED, 3.0f, 0.25f, "SmallFont", false, 'SUBS', ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT  );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_UNTRANSLATED, 3.0f, 0.25f, "SmallFont", false, MAKE_ID('S','U','B','S'), ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT  );
 }
 
 //===========================================================================
@@ -1434,11 +1434,11 @@ void ASkull::DisplayFlagTaken( AActor *pToucher )
 	{
 		sprintf( szString, "\\c%cYou have the %s skull!", V_GetColorChar( TEAM_GetTextColor( TEAM_GetTeamFromItem( this ))), TEAM_GetName( TEAM_GetTeamFromItem( this )));
 		V_ColorizeString( szString );
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_UNTRANSLATED, 3.0f, 0.25f, "BigFont", false, 'CNTR', ULONG( pToucher->player - players ), SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_UNTRANSLATED, 3.0f, 0.25f, "BigFont", false, MAKE_ID('C','N','T','R'), ULONG( pToucher->player - players ), SVCF_ONLYTHISCLIENT );
 
 		sprintf( szString, "\\c%c%s skull taken!", V_GetColorChar( TEAM_GetTextColor( TEAM_GetTeamFromItem( this ))), TEAM_GetName( TEAM_GetTeamFromItem( this )));
 		V_ColorizeString( szString );
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_UNTRANSLATED, 3.0f, 0.25f, "BigFont", false, 'CNTR', ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_UNTRANSLATED, 3.0f, 0.25f, "BigFont", false, MAKE_ID('C','N','T','R'), ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT );
 	}
 
 	// [RC] Create the "held by" message for this team.
@@ -1466,7 +1466,7 @@ void ASkull::DisplayFlagTaken( AActor *pToucher )
 	}
 	// If necessary, send it to clients.
 	else
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_UNTRANSLATED, 3.0f, 0.25f, "SmallFont", false, 'SUBS', ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT  );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_UNTRANSLATED, 3.0f, 0.25f, "SmallFont", false, MAKE_ID('S','U','B','S'), ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT  );
 }
 
 //===========================================================================

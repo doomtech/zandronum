@@ -4082,7 +4082,7 @@ int DLevelScript::RunScript ()
 					float x = FIXED2FLOAT(Stack[optstart-3]);
 					float y = FIXED2FLOAT(Stack[optstart-2]);
 					float holdTime = FIXED2FLOAT(Stack[optstart-1]);
-					DHUDMessage *msg;
+					DHUDMessage *msg = NULL;
 
 					if (type & HUDMSG_COLORSTRING)
 					{

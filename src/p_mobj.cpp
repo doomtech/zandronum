@@ -1657,7 +1657,7 @@ void P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 	// that large thrusts can't propel an actor through a wall, because wall
 	// running depends on the player's original movement continuing even after
 	// it gets blocked.
-	if (mo->player != NULL && (i_compatflags & COMPATF_WALLRUN) || (mo->waterlevel >= 1) ||
+	if ((mo->player != NULL && (i_compatflags & COMPATF_WALLRUN)) || (mo->waterlevel >= 1) ||
 		(mo->player != NULL && mo->player->crouchfactor < FRACUNIT*3/4))
 	{
 		// preserve the direction instead of clamping x and y independently.
@@ -4787,7 +4787,7 @@ void P_SpawnMapThing (mapthing2_t *mthing, int position)
 	// [CW] Count team starts.
 	for ( ULONG i = 0; i < teams.Size( ); i++ )
 	{
-		if ( mthing->type == teams[i].ulPlayerStartThingNumber )
+		if ( mthing->type == static_cast<int> (teams[i].ulPlayerStartThingNumber) )
 		{
 			teams[i].TeamStarts.Push( *mthing );
 			return;

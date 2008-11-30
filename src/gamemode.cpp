@@ -449,6 +449,8 @@ void GAMEMODE_SetCurrentMode( GAMEMODE_e GameMode )
 
 		domination.ForceSet( Val, CVAR_Bool );
 		break;
+	default:
+		break;
 	}
 }
 
@@ -484,6 +486,8 @@ void GAMEMODE_SetModifier( MODIFIER_e Modifier )
 		break;
 	case MODIFIER_BUCKSHOT:
 		buckshot.ForceSet( Val, CVAR_Bool );
-		break;		
+		break;
+	default:
+		break;
 	}
 }

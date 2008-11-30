@@ -129,8 +129,8 @@ void StartLogging( const char *szFileName )
 
 	if (( Logfile = fopen( logfilename, "w" )))
 	{
-		sprintf( g_szDesiredLogFilename, szFileName );
-		sprintf( g_szActualLogFilename, logfilename );
+		sprintf( g_szDesiredLogFilename, "%s", szFileName );
+		sprintf( g_szActualLogFilename, "%s", logfilename );
 		Printf( "Log started: %s, %s", g_szActualLogFilename, myasctime( ));
 	}
 	else

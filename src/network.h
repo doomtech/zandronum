@@ -245,7 +245,7 @@ enum
 //*****************************************************************************
 // Note: If the number of enumerated messages goes beyond 255, commands will need 
 // to be changed to a short. Hopefully that won't have to happen.
-typedef enum
+enum
 {
 	SVC_HEADER = NUM_SERVERCONNECT_COMMANDS,	// GENERAL PROTOCOL COMMANDS
 	SVC_UNRELIABLEPACKET,

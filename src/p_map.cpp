@@ -1276,7 +1276,7 @@ bool PIT_CheckThing (AActor *thing)
 		{
 			if (( thing->ulSTFlags & STFL_SCOREPILLAR ) &&
 				( TEAM_FindOpposingTeamsItemInPlayersInventory ( tmthing->player ) ) &&
-				( thing->args[0] == teams.Size( ) || static_cast<signed>( tmthing->player->ulTeam ) == thing->args[0] ) &&
+				( thing->args[0] == static_cast<int> (teams.Size( )) || static_cast<signed>( tmthing->player->ulTeam ) == thing->args[0] ) &&
 				( thing->args[1] > 0 ))
 			{
 				if ( !TEAM_GetItemTaken( tmthing->player->ulTeam ) )

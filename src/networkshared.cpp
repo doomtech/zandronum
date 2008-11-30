@@ -1070,10 +1070,10 @@ void IPList::addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP
 
 	// Add the entry and comment into memory.
 	IPADDRESSBAN_s newIPEntry;
-	sprintf( newIPEntry.szIP[0], pszIP0 );
-	sprintf( newIPEntry.szIP[1], pszIP1 );
-	sprintf( newIPEntry.szIP[2], pszIP2 );
-	sprintf( newIPEntry.szIP[3], pszIP3 );
+	sprintf( newIPEntry.szIP[0], "%s", pszIP0 );
+	sprintf( newIPEntry.szIP[1], "%s", pszIP1 );
+	sprintf( newIPEntry.szIP[2], "%s", pszIP2 );
+	sprintf( newIPEntry.szIP[3], "%s", pszIP3 );
 	sprintf( newIPEntry.szComment, "%s", szOutString );
 	newIPEntry.tExpirationDate = tExpiration;
 	_ipVector.push_back( newIPEntry );

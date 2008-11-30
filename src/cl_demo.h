@@ -59,7 +59,7 @@
 //	DEFINES
 
 //*****************************************************************************
-typedef enum 
+enum 
 {
 	// [BC] Message headers with bytes starting with 0 and going sequentially
 	// isn't very distinguishing from other formats (such as normal ZDoom demos),

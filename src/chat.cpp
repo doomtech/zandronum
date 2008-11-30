@@ -637,7 +637,7 @@ void chat_DoSubstitution( FString &Input )
 			{
 				if ( pReadyWeapon && pReadyWeapon->Ammo1 )
 				{
-					Output.AppendFormat( pReadyWeapon->Ammo1->GetClass( )->TypeName.GetChars( ) );
+					Output.AppendFormat( "%s", pReadyWeapon->Ammo1->GetClass( )->TypeName.GetChars( ) );
 
 					if ( pReadyWeapon->Ammo2 )
 					{
@@ -672,7 +672,7 @@ void chat_DoSubstitution( FString &Input )
 			else if ( !strncmp( pszString, "$weapon", 7 ))
 			{
 				if ( pReadyWeapon )
-					Output.AppendFormat( pReadyWeapon->GetClass( )->TypeName.GetChars( ) );
+					Output.AppendFormat( "%s", pReadyWeapon->GetClass( )->TypeName.GetChars( ) );
 				else
 					Output.AppendFormat( "no weapon" );
 

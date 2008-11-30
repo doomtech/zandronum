@@ -1245,7 +1245,12 @@ static char VMTestText[] = "T to test mode for 5 seconds";
 static menuitem_t ModesItems[] = {
 //	{ discrete, "Screen mode",			{&DummyDepthCvar},		{0.0}, {0.0},	{0.0}, {Depths} },
 	{ discrete, "Aspect ratio",			{&menu_screenratios},	{4.0}, {0.0},	{0.0}, {Ratios} },
+#ifndef NO_GL
 	{ discrete,	"Renderer",				{&vid_renderer},		{2.0}, {0.0},	{0.0}, {Renderers} }, // [ZDoomGL]
+#else
+	// Keep array size the same
+	{ redtext,	" ",					{NULL},					{0.0},	{0.0},	{0.0}, {NULL} },
+#endif
 	{ discrete, "Fullscreen",			{&fullscreen},			{2.0}, {0.0},	{0.0}, {YesNo} },
 	{ discrete, "Enable 5:4 aspect ratio",{&vid_tft},			{2.0}, {0.0},	{0.0}, {YesNo} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
@@ -1933,7 +1938,7 @@ void M_CheckConnectToServer( void )
 
 			if ( ulIdx + 1 < static_cast<unsigned> (BROWSER_GetNumPWADs( g_lSelectedServer )))
 			{
-				char	szSpace[1];
+				char	szSpace[2];
 
 				sprintf( szSpace, " " );
 				strcat( szWadList, szSpace );
@@ -2493,7 +2498,7 @@ void M_AcceptPlayerSetupChanges( void )
 
 	// [RC] Clean the name
 	char	szPlayerName[64];
-	sprintf( szPlayerName, menu_name );
+	sprintf( szPlayerName, "%s", (const char*) menu_name );
 	V_CleanPlayerName(szPlayerName);
 	menu_name = szPlayerName;
 
@@ -2923,7 +2928,7 @@ void M_StartSkirmishGame( void )
 	char		szBuffer[256];
 
 	// Setup the level name.
-	sprintf( szLevelName, wadlevelinfos[menu_level].mapname );
+	sprintf( szLevelName, "%s", wadlevelinfos[menu_level].mapname );
 
 	// Invalid level selected.
 	if ( stricmp( szLevelName, "(null)" ) == 0 )
@@ -3015,7 +3020,7 @@ void M_StartSkirmishGame( void )
 			Val = pVar->GetGenericRep( CVAR_Int );
 			if (( BOTINFO_GetRevealed( Val.Int )) && (  BOTINFO_GetName( Val.Int ) != NULL ))
 			{
-				sprintf( szBuffer, BOTINFO_GetName( Val.Int ));
+				sprintf( szBuffer, "%s", BOTINFO_GetName( Val.Int ));
 				V_ColorizeString( szBuffer );
 				V_RemoveColorCodes( szBuffer );
 
@@ -3044,7 +3049,7 @@ void M_StartSkirmishGame( void )
 
 		for ( ULONG i = 0; i < teams.Size( ); i++ )
 		{
-			if ( menu_team == i )
+			if ( menu_team == static_cast<int> (i) )
 			{
 				players[consoleplayer].bOnTeam = true;
 				players[consoleplayer].ulTeam = menu_team;
@@ -3062,7 +3067,7 @@ void M_StartSkirmishGame( void )
 			Val = pVar->GetGenericRep( CVAR_Int );
 			if (( BOTINFO_GetRevealed( Val.Int )) && (  BOTINFO_GetName( Val.Int ) != NULL ))
 			{
-				sprintf( szBuffer, BOTINFO_GetName( Val.Int ));
+				sprintf( szBuffer, "%s", BOTINFO_GetName( Val.Int ));
 				V_ColorizeString( szBuffer );
 				V_RemoveColorCodes( szBuffer );
 				BOTSPAWN_AddToTable( szBuffer, NULL );
@@ -3419,7 +3424,7 @@ static void JoinTeam( void )
 	// [BB] Get the name of the selected team, "random" in case "( menu_teamidxjointeammenu == ( AvailableTeams.Size() - 1 ) )"
 	FString teamName = AvailableTeams[menu_teamidxjointeammenu].name.GetChars();
 	V_RemoveColorCodes ( teamName );
-	if( (PlayerClasses.Size() > 1) && ( menu_teamidxjointeammenu < ( AvailableTeams.Size() - 1 ) ) )
+	if( (PlayerClasses.Size() > 1) && ( static_cast<unsigned> (menu_teamidxjointeammenu) < ( AvailableTeams.Size() - 1 ) ) )
 	{
 		InitAvailablePlayerClassList( TEAM_GetTeamNumberByName ( teamName ) );
 		M_SwitchMenu (&PlayerClassSelectionMenu);
@@ -3637,7 +3642,7 @@ void TextScalingMenuDrawer( void )
 	UCVarValue	ValWidth;
 	UCVarValue	ValHeight;
 	float		fXScale;
-	float		fYScale;
+	float		fYScale = 0.0f;
 	bool		bScale;
 
 	bScale = false;
@@ -4006,8 +4011,8 @@ int M_FindCurGUID (const GUID &guid, GUIDName *values, int numvals)
 
 void M_OptDrawer ()
 {
-	EColorRange color;
-	int y, width, i, x, ytop, fontheight;
+	EColorRange color = CR_UNDEFINED;
+	int y, width, i, x = 0, ytop, fontheight;
 	menuitem_t *item;
 	UCVarValue value;
 	int labelofs;
@@ -4527,7 +4532,7 @@ void M_OptDrawer ()
 						screen->DrawText( CR_GREY, x, y, "-", DTA_Clean, true, TAG_DONE );
 					else
 					{
-						sprintf( szBuffer, BOTINFO_GetName( Val.Int ));
+						sprintf( szBuffer, "%s", BOTINFO_GetName( Val.Int ));
 						V_ColorizeString( szBuffer );
 						screen->DrawText( CR_GREY, x, y, szBuffer, DTA_Clean, true, TAG_DONE );
 					}
@@ -6046,7 +6051,7 @@ void M_OptResponder (event_t *ev)
 		else if (( item->type == string ) || ( item->type == pwstring ))
 		{
 			// Copy the current value into our temporary string buffer.
-			sprintf( g_szStringInputBuffer, *item->a.stringcvar );
+			sprintf( g_szStringInputBuffer, "%s", (const char*) *item->a.stringcvar );
 
 			// Enter string input mode.
 			g_bStringInput = true;
@@ -6058,7 +6063,7 @@ void M_OptResponder (event_t *ev)
 			Val = item->a.intcvar->GetGenericRep( CVAR_Int );
 
 			// Copy the current value into our temporary string buffer.
-			sprintf( g_szStringInputBuffer, itoa( Val.Int, g_szStringInputBuffer, 10 ));
+			sprintf( g_szStringInputBuffer, "%s", itoa( Val.Int, g_szStringInputBuffer, 10 ));
 
 			// Enter string input mode.
 			g_bStringInput = true;
