@@ -64,8 +64,6 @@ void			SERVERBAN_AddBan( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3,
 bool			SERVERBAN_StringToBan( char *pszAddress, char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3 );
 void			SERVERBAN_ClearBans( void );
 ULONG			SERVERBAN_GetNumBans( void );
-IPList			*SERVERBAN_GetBanList( void );
-IPList			*SERVERBAN_GetBanExemptionList( void );
 void			SERVERBAN_ReadMasterServerBans( BYTESTREAM_s *pByteStream );
 IPList			*SERVERBAN_GetBanList( void );
 IPList			*SERVERBAN_GetBanExemptionList( void );

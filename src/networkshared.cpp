@@ -410,7 +410,8 @@ bool NETWORK_StringToIP( const char *pszAddress, char *pszIP0, char *pszIP1, cha
 	ULONG	ulNumPeriods;
 
 	// First, get rid of anything after the colon (if it exists).
-	strcpy( szCopy, pszAddress );
+	strncpy( szCopy, pszAddress, 15 );
+	szCopy[15] = 0;
 	for ( pszCopy = szCopy; *pszCopy; pszCopy++ )
 	{
 		if ( *pszCopy == ':' )
@@ -419,10 +420,6 @@ bool NETWORK_StringToIP( const char *pszAddress, char *pszIP0, char *pszIP1, cha
 			break;
 		}
 	}
-
-	// Too long.
-	if ( strlen( szCopy ) > 15 )
-		return ( false );
 
 	// Next, make sure there's at least 3 periods.
 	ulNumPeriods = 0;
@@ -695,7 +692,7 @@ bool IPFileParser::parseNextLine( FILE *pFile, IPADDRESSBAN_s &IP, ULONG &BanIdx
 					{
 						sprintf( _errorMessage, "parseNextLine: WARNING! Maximum number of IPs (%d) exceeded!\n", _listLength );
 						return ( false );
-					}					
+					}
 
 					// [RC] Read the expiration date.
 					if ( curChar == '<' )
@@ -801,7 +798,7 @@ void IPFileParser::readReason( FILE *pFile, char *Reason, const int MaxReasonLen
 time_t IPFileParser::readExpirationDate( FILE *pFile )
 {
 	int	iMonth = 0, iDay = 0, iYear = 0, iHour = 0, iMinute = 0;
-	
+
 	int iResult = fscanf( pFile, "%d/%d/%d %d:%d>", &iMonth, &iDay, &iYear, &iHour, &iMinute );
 
 	// If fewer than 5 elements (the %ds) were read, the user probably edited the file incorrectly.
@@ -810,7 +807,7 @@ time_t IPFileParser::readExpirationDate( FILE *pFile )
 		Printf("parseNextLine: WARNING! Failure to read the ban expiration date! (%d fields read)\n", iResult );
 		return NULL;
 	}	
-	
+
 	// Create the time structure, based on the current time.
 	time_t		tNow;
 	time( &tNow );
@@ -828,7 +825,7 @@ time_t IPFileParser::readExpirationDate( FILE *pFile )
 	pTimeInfo->tm_hour = iHour;
 	pTimeInfo->tm_min = iMinute;
 	pTimeInfo->tm_sec = 0;
-	
+
 	return mktime( pTimeInfo );
 }
 
@@ -863,7 +860,7 @@ bool IPList::clearAndLoadFromFile( const char *Filename )
 
 //*****************************************************************************
 //
-// [RC] Removes any	temporary entries that have expired.
+// [RC] Removes any temporary entries that have expired.
 void IPList::removeExpiredEntries( void )
 {
 	time_t		tNow;
@@ -1168,7 +1165,7 @@ void IPList::removeEntry( const char *pszIP0, const char *pszIP1, const char *ps
 
 	if ( entryIdx < _ipVector.size() )
 	{
-		removeEntry( entryIdx );		
+		removeEntry( entryIdx );
 
 		messageStream << " removed from list.\n";
 		Message = messageStream.str();
@@ -1233,7 +1230,7 @@ struct ASCENDINGIPSORT_S
 				return ( atoi( rpStart.szIP[i] ) < atoi(rpEnd.szIP[i] ));
 		}
 
-		return strcmp( rpEnd.szComment, rpStart.szComment );
+		return ( strcmp( rpEnd.szComment, rpStart.szComment ) != 0 );
 	}
 };
 

@@ -392,7 +392,7 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 					// Immediately kick or ban the player.
 					if(iSelection == IDR_PLAYER_KICK)
 					{
-						sprintf( szCommand, "kick \"%s\" perm", g_szScoreboard_SelectedUser );
+						sprintf( szCommand, "kick \"%s\"", g_szScoreboard_SelectedUser );
 						SERVER_AddCommand( szCommand );
 					}
 					else if(iSelection == IDR_PLAYER_BAN)

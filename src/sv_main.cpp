@@ -3718,6 +3718,7 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	}
 
 	// Return false if the player was not kicked as a result of processing
+	// this command.
 	return ( false );
 }
 
