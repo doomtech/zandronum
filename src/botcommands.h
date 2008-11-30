@@ -185,7 +185,7 @@ typedef enum
 typedef struct
 {
 	// Text name of this command.
-	char		*pszName;
+	const char	*pszName;
 
 	// Function that corresponds to this bot command.
 	void		(*pvFunction)( CSkullBot *pBot );

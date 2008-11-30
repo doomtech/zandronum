@@ -484,7 +484,7 @@ CHATFILESECTION_t *CChatFile::AddSection( char *pszName )
 	if ( ulIdx == 64 )
 		return ( NULL );
 
-	sprintf( Sections[ulIdx].szName, pszName );
+	sprintf( Sections[ulIdx].szName, "%s", pszName );
 	return ( &Sections[ulIdx] );
 }
 
@@ -496,7 +496,7 @@ void CChatFile::AddEntry( CHATFILESECTION_t *pSection, char *pszName )
 	if ( pSection->lNumEntries == 64 )
 		return;
 
-	sprintf( pSection->szEntry[pSection->lNumEntries++], pszName );
+	sprintf( pSection->szEntry[pSection->lNumEntries++], "%s", pszName );
 }
 
 //*****************************************************************************
@@ -523,7 +523,10 @@ char *CChatFile::ChooseRandomEntry( char *pszSection )
 
 	lIdx = FindSection( pszSection );
 	if (( lIdx == -1 ) || ( Sections[lIdx].lNumEntries <= 0 ))
-		return ( "NULL" );
+	{
+		static char str_null[5] = "NULL";
+		return ( str_null );
+	}
 
 	lIdx2 = g_RandomBotChatSeed.Random( ) % Sections[lIdx].lNumEntries;
 	return ( Sections[lIdx].szEntry[lIdx2] );
@@ -555,9 +558,9 @@ void BOTCMD_RunCommand( BOTCMD_e Command, CSkullBot *pBot )
 
 //	if ( sdwNumArgs != g_BotCommands[Command].lNumArgs )
 	if ( pBot->m_ScriptData.lStackPosition < g_BotCommands[Command].lNumArgs )
-		I_Error( "Wrong number of arguments (%d) in bot command, %s!", pBot->m_ScriptData.lStackPosition, g_BotCommands[Command].pszName );
+		I_Error( "Wrong number of arguments (%d) in bot command, %s!", static_cast<int> (pBot->m_ScriptData.lStackPosition), g_BotCommands[Command].pszName );
 	if ( pBot->m_ScriptData.lStringStackPosition < g_BotCommands[Command].lNumStringArgs )
-		I_Error( "Wrong number of arguments (%d) in bot command, %s!", pBot->m_ScriptData.lStringStackPosition, g_BotCommands[Command].pszName );
+		I_Error( "Wrong number of arguments (%d) in bot command, %s!", static_cast<int> (pBot->m_ScriptData.lStringStackPosition), g_BotCommands[Command].pszName );
 
 	// This is the expected stack position after the function is called.
 //	lExpectedStackPosition = pBot->m_ScriptData.lStackPosition - g_BotCommands[Command].lNumArgs;
@@ -615,7 +618,7 @@ void BOTCMD_SetLastChatPlayer( const char *pszString )
 //
 void BOTCMD_SetLastJoinedPlayer( const char *pszString )
 {
-	sprintf( g_szLastJoinedPlayer, pszString );
+	sprintf( g_szLastJoinedPlayer, "%s", pszString );
 }
 
 //*****************************************************************************
@@ -723,7 +726,7 @@ void BOTCMD_DoChatStringSubstitutions( CSkullBot *pBot, const char *pszInString,
 					{
 						ulPlayer = g_RandomBotCmdSeed.Random( ) % MAXPLAYERS;
 					}
-					while (( ulPlayer == ( pBot->GetPlayer( ) - players )) || ( playeringame[ulPlayer] == false ));
+					while (( ulPlayer == static_cast<unsigned> ( pBot->GetPlayer( ) - players )) || ( playeringame[ulPlayer] == false ));
 				}
 				
 				sprintf( pszOutString, "%s\\c-", players[ulPlayer].userinfo.netname );
@@ -804,7 +807,7 @@ static void botcmd_ChangeState( CSkullBot *pBot )
 	pBot->PopStack( );
 
 	if (( lBuffer < 0 ) || ( lBuffer >= MAX_NUM_STATES ))
-		I_Error( "botcmd_ChangeState: Illegal state index, %d!", lBuffer );
+		I_Error( "botcmd_ChangeState: Illegal state index, %d!", static_cast<int> (lBuffer) );
 
 	// Don't change to another state while we're in the middle of changing to a state.
 	if ( pBot->m_ScriptData.bExitingState )
@@ -824,7 +827,7 @@ static void botcmd_Delay( CSkullBot *pBot )
 	pBot->PopStack( );
 
 	if ( lBuffer < 0 )
-		I_Error( "botcmd_Delay: Illegal delay value, %d", lBuffer );
+		I_Error( "botcmd_Delay: Illegal delay value, %d", static_cast<int> (lBuffer) );
 
 	// Set the script delay.
 	if ( pBot->m_ScriptData.bInEvent )
@@ -868,11 +871,11 @@ static void botcmd_StringsAreEqual( CSkullBot *pBot )
 	char	szString2[256];
 
 	// Read in the string index of our first argument.
-	sprintf( szString1, pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
+	sprintf( szString1, "%s", pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
 	pBot->PopStringStack( );
 
 	// Read in the string index of our second argument.
-	sprintf( szString2, pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
+	sprintf( szString2, "%s", pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
 	pBot->PopStringStack( );
 
 	if (( strlen( szString1 ) >= 256 ) || ( strlen( szString2 ) >= 256 ))
@@ -895,7 +898,7 @@ static void botcmd_LookForPowerups( CSkullBot *pBot )
 	pBot->PopStack( );
 
 	if (( lIdx < 0 ) || ( lIdx >= MAX_NETID ))
-		I_Error( "botcmd_LookForPowerups: Illegal item index, %d!", lIdx );
+		I_Error( "botcmd_LookForPowerups: Illegal item index, %d!", static_cast<int> (lIdx) );
 
 	while (( BOTCMD_IgnoreItem( pBot, lIdx, bVisibilityCheck )) ||
 		( g_NetIDList[lIdx].pActor->GetClass( )->IsDescendantOf( RUNTIME_CLASS( APowerupGiver )) == false ))
@@ -924,7 +927,7 @@ static void botcmd_LookForWeapons( CSkullBot *pBot )
 	pBot->PopStack( );
 
 	if (( lIdx < 0 ) || ( lIdx >= MAX_NETID ))
-		I_Error( "botcmd_LookForWeapons: Illegal item index, %d!", lIdx );
+		I_Error( "botcmd_LookForWeapons: Illegal item index, %d!", static_cast<int> (lIdx) );
 
 	while (( BOTCMD_IgnoreItem( pBot, lIdx, bVisibilityCheck )) ||
 		( g_NetIDList[lIdx].pActor->GetClass( )->IsDescendantOf( RUNTIME_CLASS( AWeapon )) == false ))
@@ -953,7 +956,7 @@ static void botcmd_LookForAmmo( CSkullBot *pBot )
 	pBot->PopStack( );
 
 	if (( lIdx < 0 ) || ( lIdx >= MAX_NETID ))
-		I_Error( "botcmd_LookForAmmo: Illegal item index, %d!", lIdx );
+		I_Error( "botcmd_LookForAmmo: Illegal item index, %d!", static_cast<int> (lIdx) );
 
 	while (( BOTCMD_IgnoreItem( pBot, lIdx, bVisibilityCheck )) ||
 		( g_NetIDList[lIdx].pActor->GetClass( )->IsDescendantOf( RUNTIME_CLASS( AAmmo )) == false ))
@@ -982,7 +985,7 @@ static void botcmd_LookForBaseHealth( CSkullBot *pBot )
 	pBot->PopStack( );
 
 	if (( lIdx < 0 ) || ( lIdx >= MAX_NETID ))
-		I_Error( "botcmd_LookForBaseHealth: Illegal item index, %d!", lIdx );
+		I_Error( "botcmd_LookForBaseHealth: Illegal item index, %d!", static_cast<int> (lIdx) );
 
 	while (( BOTCMD_IgnoreItem( pBot, lIdx, bVisibilityCheck )) ||
 		(( g_NetIDList[lIdx].pActor->ulSTFlags & STFL_BASEHEALTH ) == false ))
@@ -1011,7 +1014,7 @@ static void botcmd_LookForBaseArmor( CSkullBot *pBot )
 	pBot->PopStack( );
 
 	if (( lIdx < 0 ) || ( lIdx >= MAX_NETID ))
-		I_Error( "botcmd_LookForBaseArmor: Illegal item index, %d!", lIdx );
+		I_Error( "botcmd_LookForBaseArmor: Illegal item index, %d!", static_cast<int> (lIdx) );
 
 	while (( BOTCMD_IgnoreItem( pBot, lIdx, bVisibilityCheck )) ||
 		(( g_NetIDList[lIdx].pActor->ulSTFlags & STFL_BASEARMOR ) == false ))
@@ -1040,7 +1043,7 @@ static void botcmd_LookForSuperHealth( CSkullBot *pBot )
 	pBot->PopStack( );
 
 	if (( lIdx < 0 ) || ( lIdx >= MAX_NETID ))
-		I_Error( "botcmd_LookForSuperHealth: Illegal item index, %d!", lIdx );
+		I_Error( "botcmd_LookForSuperHealth: Illegal item index, %d!", static_cast<int> (lIdx) );
 
 	while (( BOTCMD_IgnoreItem( pBot, lIdx, bVisibilityCheck )) ||
 		(( g_NetIDList[lIdx].pActor->ulSTFlags & STFL_SUPERHEALTH ) == false ))
@@ -1069,7 +1072,7 @@ static void botcmd_LookForSuperArmor( CSkullBot *pBot )
 	pBot->PopStack( );
 
 	if (( lIdx < 0 ) || ( lIdx >= MAX_NETID ))
-		I_Error( "botcmd_LookForSuperArmor: Illegal item index, %d!", lIdx );
+		I_Error( "botcmd_LookForSuperArmor: Illegal item index, %d!", static_cast<int> (lIdx) );
 
 	while (( BOTCMD_IgnoreItem( pBot, lIdx, bVisibilityCheck )) ||
 		(( g_NetIDList[lIdx].pActor->ulSTFlags & STFL_SUPERARMOR ) == false ))
@@ -1095,7 +1098,7 @@ static void botcmd_LookForPlayerEnemies( CSkullBot *pBot )
 	pBot->PopStack( );
 
 	if (( lStartPlayer < 0 ) || ( lStartPlayer >= MAXPLAYERS ))
-		I_Error( "botcmd_LookForPlayerEnemies: Illegal player start index, %d!", lStartPlayer );
+		I_Error( "botcmd_LookForPlayerEnemies: Illegal player start index, %d!", static_cast<int> (lStartPlayer) );
 
 	if ( pBot->GetPlayer( )->health <= 0 )
 		g_iReturnInt = -1;
@@ -1142,7 +1145,7 @@ static void botcmd_GetClosestPlayerEnemy( CSkullBot *pBot )
 {
 	ULONG	ulIdx;
 	LONG	lDistance;
-	LONG	lClosestDistance;
+	LONG	lClosestDistance = 0;
 	LONG	lClosestPlayer;
 	angle_t	Angle;
 
@@ -1706,7 +1709,7 @@ static void botcmd_GetPathingCostToItem( CSkullBot *pBot )
 	pBot->PopStack( );
 
 	if (( lItem < 0 ) || ( lItem >= MAX_NETID ))
-		I_Error( "botcmd_GetPathingCostToItem: Illegal item index, %d", lItem );
+		I_Error( "botcmd_GetPathingCostToItem: Illegal item index, %d", static_cast<int> (lItem) );
 
 	if (( g_NetIDList[lItem].bFree ) || ( g_NetIDList[lItem].pActor == NULL ))
 	{
@@ -1742,7 +1745,7 @@ static void botcmd_GetDistanceToItem( CSkullBot *pBot )
 	pBot->PopStack( );
 
 	if (( lItem < 0 ) || ( lItem >= MAX_NETID ))
-		I_Error( "botcmd_GetDistanceToItem: Illegal item index, %d", lItem );
+		I_Error( "botcmd_GetDistanceToItem: Illegal item index, %d", static_cast<int> (lItem) );
 
 	if (( g_NetIDList[lItem].bFree == false ) && ( g_NetIDList[lItem].pActor ))
 	{
@@ -1763,12 +1766,12 @@ static void botcmd_GetItemName( CSkullBot *pBot )
 	pBot->PopStack( );
 
 	if (( lItem < 0 ) || ( lItem >= MAX_NETID ))
-		I_Error( "botcmd_GetItemName: Illegal item index, %d", lItem );
+		I_Error( "botcmd_GetItemName: Illegal item index, %d", static_cast<int> (lItem) );
 
 	if (( g_NetIDList[lItem].bFree == false ) && ( g_NetIDList[lItem].pActor ))
 	{
 		if ( strlen( g_NetIDList[lItem].pActor->GetClass( )->TypeName.GetChars( )) < BOTCMD_RETURNSTRING_SIZE )
-			sprintf( g_szReturnString, g_NetIDList[lItem].pActor->GetClass( )->TypeName.GetChars( ));
+			sprintf( g_szReturnString, "%s", g_NetIDList[lItem].pActor->GetClass( )->TypeName.GetChars( ));
 		else
 			g_szReturnString[0] = 0;
 	}
@@ -1787,7 +1790,7 @@ static void botcmd_IsItemVisible( CSkullBot *pBot )
 	pBot->PopStack( );
 
 	if (( lIdx < 0 ) || ( lIdx >= MAX_NETID ))
-		I_Error( "botcmd_IsItemVisible: Illegal item index, %d", lIdx );
+		I_Error( "botcmd_IsItemVisible: Illegal item index, %d", static_cast<int> (lIdx) );
 
 	if (( g_NetIDList[lIdx].bFree == false ) && ( g_NetIDList[lIdx].pActor ))
 	{
@@ -1833,7 +1836,7 @@ static void botcmd_SetGoal( CSkullBot *pBot )
 	pBot->PopStack( );
 
 	if (( lIdx < 0 ) || ( lIdx >= MAX_NETID ))
-		I_Error( "botcmd_SetGoal: Illegal item index, %d", lIdx );
+		I_Error( "botcmd_SetGoal: Illegal item index, %d", static_cast<int> (lIdx) );
 
 	if (( g_NetIDList[lIdx].bFree == false ) && ( g_NetIDList[lIdx].pActor != NULL ))
 	{
@@ -1841,7 +1844,7 @@ static void botcmd_SetGoal( CSkullBot *pBot )
 		pBot->m_ulPathType = BOTPATHTYPE_NONE;
 	}
 	else
-		Printf( "botcmd_SetGoal: WARNING! Tried to set goal to bad item ID, %d!\n", lIdx );
+		Printf( "botcmd_SetGoal: WARNING! Tried to set goal to bad item ID, %d!\n", static_cast<int> (lIdx) );
 }
 
 //*****************************************************************************
@@ -1894,7 +1897,7 @@ static void botcmd_SetEnemy( CSkullBot *pBot )
 	pBot->PopStack( );
 
 	if (( lPlayer < 0 ) || ( lPlayer >= MAXPLAYERS ))
-		I_Error( "botcmd_SetEnemy: Illegal player index, %d", lPlayer );
+		I_Error( "botcmd_SetEnemy: Illegal player index, %d", static_cast<int> (lPlayer) );
 
 	pBot->m_ulPlayerEnemy = lPlayer;
 }
@@ -1999,7 +2002,7 @@ static void botcmd_GetCurrentWeapon( CSkullBot *pBot )
 		if ( pBot->GetPlayer( )->ReadyWeapon )
 		{
 			if ( strlen( pBot->GetPlayer( )->ReadyWeapon->GetClass( )->TypeName.GetChars( )) < BOTCMD_RETURNSTRING_SIZE )
-				sprintf( g_szReturnString, pBot->GetPlayer( )->ReadyWeapon->GetClass( )->TypeName.GetChars( ));
+				sprintf( g_szReturnString, "%s", pBot->GetPlayer( )->ReadyWeapon->GetClass( )->TypeName.GetChars( ));
 			else
 				g_szReturnString[0] = 0;
 		}
@@ -2009,7 +2012,7 @@ static void botcmd_GetCurrentWeapon( CSkullBot *pBot )
 	else
 	{
 		if ( strlen( pBot->GetPlayer( )->PendingWeapon->GetClass( )->TypeName.GetChars( )) < BOTCMD_RETURNSTRING_SIZE )
-			sprintf( g_szReturnString, pBot->GetPlayer( )->PendingWeapon->GetClass( )->TypeName.GetChars( ));
+			sprintf( g_szReturnString, "%s", pBot->GetPlayer( )->PendingWeapon->GetClass( )->TypeName.GetChars( ));
 		else
 			g_szReturnString[0] = 0;
 	}
@@ -2023,7 +2026,7 @@ static void botcmd_ChangeWeapon( CSkullBot *pBot )
 	AWeapon			*pWeapon;
 	char			szWeapon[1024];
 
-	sprintf( szWeapon, pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
+	sprintf( szWeapon, "%s", pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
 	pBot->PopStringStack( );
 
 	pType = PClass::FindClass( szWeapon );
@@ -2056,7 +2059,7 @@ static void botcmd_GetWeaponFromItem( CSkullBot *pBot )
 	pBot->PopStack( );
 
 	if (( lItem < 0 ) || ( lItem >= MAX_NETID ))
-		I_Error( "botcmd_GetWeaponFromItem: Illegal item index, %d", lItem );
+		I_Error( "botcmd_GetWeaponFromItem: Illegal item index, %d", static_cast<int> (lItem) );
 
 	if (( g_NetIDList[lItem].bFree == false ) && ( g_NetIDList[lItem].pActor ))
 	{
@@ -2084,7 +2087,7 @@ static void botcmd_IsWeaponOwned( CSkullBot *pBot )
 	pBot->PopStack( );
 
 	if (( lItem < 0 ) || ( lItem >= MAX_NETID ))
-		I_Error( "botcmd_IsWeaponOwned: Illegal item index, %d", lItem );
+		I_Error( "botcmd_IsWeaponOwned: Illegal item index, %d", static_cast<int> (lItem) );
 
 	if (( g_NetIDList[lItem].bFree == false ) && ( g_NetIDList[lItem].pActor ))
 	{
@@ -2103,7 +2106,7 @@ static void botcmd_IsFavoriteWeapon( CSkullBot *pBot )
 {
 	char	szWeapon[1024];
 
-	sprintf( szWeapon, pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
+	sprintf( szWeapon, "%s", pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
 	pBot->PopStringStack( );
 
 	g_bReturnBool = ( stricmp( szWeapon, BOTINFO_GetFavoriteWeapon( pBot->m_ulBotInfoIdx )) == 0 );
@@ -2116,7 +2119,7 @@ static void botcmd_Say( CSkullBot *pBot )
 	char	szInString[1024];
 	char	szOutString[1024];
 
-	sprintf( szInString, pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
+	sprintf( szInString, "%s", pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
 	pBot->PopStringStack( );
 
 	if ( bot_allowchat )
@@ -2151,10 +2154,10 @@ static void botcmd_SayFromFile( CSkullBot *pBot )
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_SetPlayerChatStatus( pBot->GetPlayer( ) - players );
 
-	sprintf( szSection, pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
+	sprintf( szSection, "%s", pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
 	pBot->PopStringStack( );
 
-	sprintf( szFilename, pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
+	sprintf( szFilename, "%s", pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
 	pBot->PopStringStack( );
 
 	pFile = new CChatFile;
@@ -2173,7 +2176,7 @@ static void botcmd_SayFromFile( CSkullBot *pBot )
 		return;
 	}
 
-	sprintf( szInString, pFile->ChooseRandomEntry( szSection ));
+	sprintf( szInString, "%s", pFile->ChooseRandomEntry( szSection ));
 	if ( stricmp( szInString, "NULL" ) == 0 )
 	{
 		// Temporarily disable the use of color codes.
@@ -2219,10 +2222,10 @@ static void botcmd_SayFromChatFile( CSkullBot *pBot )
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_SetPlayerChatStatus( pBot->GetPlayer( ) - players );
 
-	sprintf( szSection, pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
+	sprintf( szSection, "%s", pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
 	pBot->PopStringStack( );
 
-	sprintf( szFilename, BOTINFO_GetChatFile( pBot->m_ulBotInfoIdx ));
+	sprintf( szFilename, "%s", BOTINFO_GetChatFile( pBot->m_ulBotInfoIdx ));
 
 	pFile = new CChatFile;
 	if ( pFile->LoadChatFile( szFilename ) == false )
@@ -2240,7 +2243,7 @@ static void botcmd_SayFromChatFile( CSkullBot *pBot )
 		return;
 	}
 
-	sprintf( szInString, pFile->ChooseRandomEntry( szSection ));
+	sprintf( szInString, "%s", pFile->ChooseRandomEntry( szSection ));
 	if ( stricmp( szInString, "NULL" ) == 0 )
 	{
 		// Temporarily disable the use of color codes.
@@ -2298,11 +2301,11 @@ static void botcmd_ChatSectionExists( CSkullBot *pBot )
 	CChatFile	*pFile;
 
 	// Read in the string index of our first argument.
-	sprintf( szSection, pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
+	sprintf( szSection, "%s", pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
 	pBot->PopStringStack( );
 
 	// Set the filename.
-	sprintf( szFilename, BOTINFO_GetChatFile( pBot->m_ulBotInfoIdx ));
+	sprintf( szFilename, "%s", BOTINFO_GetChatFile( pBot->m_ulBotInfoIdx ));
 
 	pFile = new CChatFile;
 	if ( pFile->LoadChatFile( szFilename ) == false )
@@ -2333,11 +2336,11 @@ static void botcmd_ChatSectionExistsInFile( CSkullBot *pBot )
 	CChatFile	*pFile;
 
 	// Read in the string index of our first argument.
-	sprintf( szSection, pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
+	sprintf( szSection, "%s", pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
 	pBot->PopStringStack( );
 
 	// Read in the string index of our second argument.
-	sprintf( szFilename, pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
+	sprintf( szFilename, "%s", pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
 	pBot->PopStringStack( );
 
 	pFile = new CChatFile;
@@ -2365,7 +2368,7 @@ static void botcmd_ChatSectionExistsInFile( CSkullBot *pBot )
 static void botcmd_GetLastChatString( CSkullBot *pBot )
 {
 	if ( strlen( g_szLastChatString ) < BOTCMD_RETURNSTRING_SIZE )
-		sprintf( g_szReturnString, g_szLastChatString );
+		sprintf( g_szReturnString, "%s", g_szLastChatString );
 	else
 		g_szReturnString[0] = 0;
 }
@@ -2375,7 +2378,7 @@ static void botcmd_GetLastChatString( CSkullBot *pBot )
 static void botcmd_GetLastChatPlayer( CSkullBot *pBot )
 {
 	if ( strlen( g_szLastChatPlayer ) < BOTCMD_RETURNSTRING_SIZE )
-		sprintf( g_szReturnString, g_szLastChatPlayer );
+		sprintf( g_szReturnString, "%s", g_szLastChatPlayer );
 	else
 		g_szReturnString[0] = 0;
 }
@@ -2441,7 +2444,7 @@ static void botcmd_TryToJoinGame( CSkullBot *pBot )
 
 	// If there aren't currently any slots available, just put the person in line.
 	if (( duel && DUEL_CountActiveDuelers( ) >= 2 ) ||
-		( SERVER_CalcNumNonSpectatingPlayers( MAXPLAYERS ) >= sv_maxplayers ) ||
+		( SERVER_CalcNumNonSpectatingPlayers( MAXPLAYERS ) >= static_cast<unsigned> (sv_maxplayers) ) ||
 		(( lastmanstanding || teamlms ) && ( LASTMANSTANDING_GetState( ) == LMSS_INPROGRESS )))
 	{
 		JOINSLOT_t	JoinSlot;
@@ -2625,7 +2628,7 @@ static void botcmd_GetSpread( CSkullBot *pBot )
 static void botcmd_GetLastJoinedPlayer( CSkullBot *pBot )
 {
 	if ( strlen( g_szLastJoinedPlayer ) < BOTCMD_RETURNSTRING_SIZE )
-		sprintf( g_szReturnString, g_szLastJoinedPlayer );
+		sprintf( g_szReturnString, "%s", g_szLastJoinedPlayer );
 	else
 		g_szReturnString[0] = 0;
 }
@@ -2640,10 +2643,10 @@ static void botcmd_GetPlayerName( CSkullBot *pBot )
 	pBot->PopStack( );
 
 	if (( lPlayer < 0 ) || ( lPlayer >= MAXPLAYERS ))
-		I_Error( "botcmd_GetPlayerName: Invalid player index, %d", lPlayer );
+		I_Error( "botcmd_GetPlayerName: Invalid player index, %d", static_cast<int> (lPlayer) );
 
 	if ( strlen( players[lPlayer].userinfo.netname ) < BOTCMD_RETURNSTRING_SIZE )
-		sprintf( g_szReturnString, players[lPlayer].userinfo.netname );
+		sprintf( g_szReturnString, "%s", players[lPlayer].userinfo.netname );
 	else
 		g_szReturnString[0] = 0;
 }
@@ -2695,7 +2698,7 @@ static void botcmd_ACS_Execute( CSkullBot *pBot )
 static void botcmd_GetFavoriteWeapon( CSkullBot *pBot )
 {
 	if ( strlen( BOTINFO_GetFavoriteWeapon( pBot->m_ulBotInfoIdx )) < BOTCMD_RETURNSTRING_SIZE )
-		sprintf( g_szReturnString, BOTINFO_GetFavoriteWeapon( pBot->m_ulBotInfoIdx ));
+		sprintf( g_szReturnString, "%s", BOTINFO_GetFavoriteWeapon( pBot->m_ulBotInfoIdx ));
 	else
 		g_szReturnString[0] = 0;
 }
@@ -2715,10 +2718,10 @@ static void botcmd_SayFromLump( CSkullBot *pBot )
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_SetPlayerChatStatus( pBot->GetPlayer( ) - players );
 
-	sprintf( szSection, pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
+	sprintf( szSection, "%s", pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
 	pBot->PopStringStack( );
 
-	sprintf( szLumpname, pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
+	sprintf( szLumpname, "%s", pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
 	pBot->PopStringStack( );
 
 	pFile = new CChatFile;
@@ -2737,7 +2740,7 @@ static void botcmd_SayFromLump( CSkullBot *pBot )
 		return;
 	}
 
-	sprintf( szInString, pFile->ChooseRandomEntry( szSection ));
+	sprintf( szInString, "%s", pFile->ChooseRandomEntry( szSection ));
 	if ( stricmp( szInString, "NULL" ) == 0 )
 	{
 		// Temporarily disable the use of color codes.
@@ -2783,10 +2786,10 @@ static void botcmd_SayFromChatLump( CSkullBot *pBot )
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_SetPlayerChatStatus( pBot->GetPlayer( ) - players );
 
-	sprintf( szSection, pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
+	sprintf( szSection, "%s", pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
 	pBot->PopStringStack( );
 
-	sprintf( szLumpname, BOTINFO_GetChatLump( pBot->m_ulBotInfoIdx ));
+	sprintf( szLumpname, "%s", BOTINFO_GetChatLump( pBot->m_ulBotInfoIdx ));
 
 	pFile = new CChatFile;
 	if ( pFile->LoadChatLump( szLumpname ) == false )
@@ -2804,7 +2807,7 @@ static void botcmd_SayFromChatLump( CSkullBot *pBot )
 		return;
 	}
 
-	sprintf( szInString, pFile->ChooseRandomEntry( szSection ));
+	sprintf( szInString, "%s", pFile->ChooseRandomEntry( szSection ));
 	if ( stricmp( szInString, "NULL" ) == 0 )
 	{
 		// Temporarily disable the use of color codes.
@@ -2844,11 +2847,11 @@ static void botcmd_ChatSectionExistsInLump( CSkullBot *pBot )
 	CChatFile	*pFile;
 
 	// Read in the string index of our first argument.
-	sprintf( szSection, pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
+	sprintf( szSection, "%s", pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
 	pBot->PopStringStack( );
 
 	// Read in the string index of our second argument.
-	sprintf( szLumpname, pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
+	sprintf( szLumpname, "%s", pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
 	pBot->PopStringStack( );
 
 	pFile = new CChatFile;
@@ -2880,11 +2883,11 @@ static void botcmd_ChatSectionExistsInChatLump( CSkullBot *pBot )
 	CChatFile	*pFile;
 
 	// Read in the string index of our first argument.
-	sprintf( szSection, pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
+	sprintf( szSection, "%s", pBot->m_ScriptData.aszStringStack[pBot->m_ScriptData.lStringStackPosition - 1] );
 	pBot->PopStringStack( );
 
 	// Set the lumpname.
-	sprintf( szLumpname, BOTINFO_GetChatLump( pBot->m_ulBotInfoIdx ));
+	sprintf( szLumpname, "%s", BOTINFO_GetChatLump( pBot->m_ulBotInfoIdx ));
 
 	pFile = new CChatFile;
 	if ( pFile->LoadChatLump( szLumpname ) == false )

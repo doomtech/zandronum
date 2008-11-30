@@ -83,6 +83,7 @@
 !	- Changed: Spectators are fixed in their spawn state and don't execute any code pointers. [Torr Samaho]
 !	- Changed: If a player selects the "Random" player class, a new class is selected randomly every time the player respawns. [Torr Samaho]
 !	- Changed: In a single player campaign with a team based game mode, you can now rejoin after spectating with the in game join team menu, if you select the team the campaign wants you to have. [Torr Samaho]
+!	- Hard-coded bots have been exported to BOTINFO. [Blzut3]
 
 v0.97d2
 -------
