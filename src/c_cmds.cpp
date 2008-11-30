@@ -117,6 +117,8 @@ void StartLogging( const char *szFileName )
 {
 	char		logfilename[512];
 	time_t		tNow;
+	// [BB] Write the current system time to tNow.
+	time (&tNow);
 	struct tm	*lt = localtime( &tNow );
 
 	// [BB] If sv_logfilenametimestamp, we append the current date/time to the logfile name.
