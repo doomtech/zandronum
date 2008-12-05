@@ -102,9 +102,13 @@ class CImage
 
   public:
     int  Init( int Xres, int Yres, unsigned short BitPerPixel );
+    int  SetImage(unsigned char *img, int width, int height, int bpp);
+    int  Destroy();
     int  ConvertTo32( void );
     int  ConvertTo24( void );
     int  ConvertTo16( void );
+    int  Convert8To17( int transindex );
+    int  Convert32To17( void );
     int  SaveBmp(char *szFilename);
     int  LoadBmp(char *szFilename);
     int  SaveTga(char *szFilename, bool bCompressed );
@@ -121,6 +125,7 @@ class CImage
   public:
     int              m_Xres, m_Yres;
     unsigned short   m_BitPerPixel;
+    unsigned short   m_BytePerPixel;
     unsigned char  * m_pBitmap;
     _BGR             m_Pal[256];
 

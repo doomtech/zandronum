@@ -24,8 +24,8 @@
 #include <windows.h>
 #include "Image.h"
 
-static int   LUT16to32[65536];
-static int   RGBtoYUV[65536];
+static int   LUT16to32[65536*2];
+static int   RGBtoYUV[65536*2];
 static int   YUV1, YUV2;
 const  int   Ymask = 0x00FF0000;
 const  int   Umask = 0x0000FF00;
@@ -233,10 +233,9 @@ inline bool Diff(unsigned int w1, unsigned int w2)
            ( abs((YUV1 & Vmask) - (YUV2 & Vmask)) > trV ) );
 }
 
-void hq4x_32( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int BpL )
+void hq4x_32( int * pIn, unsigned char * pOut, int Xres, int Yres, int BpL )
 {
   int  i, j, k;
-  int  prevline, nextline;
   int  w[10];
   int  c[10];
 
@@ -251,41 +250,62 @@ void hq4x_32( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int
   //   | w7 | w8 | w9 |
   //   +----+----+----+
 
-  for (j=0; j<Yres; j++)
+  for (j = 0; j < Yres; j++)
   {
-    if (j>0)      prevline = -Xres*2; else prevline = 0;
-    if (j<Yres-1) nextline =  Xres*2; else nextline = 0;
-
-    for (i=0; i<Xres; i++)
+    for (i = 0; i < Xres; i++)
     {
-      w[2] = *((unsigned short*)(pIn + prevline));
-      w[5] = *((unsigned short*)pIn);
-      w[8] = *((unsigned short*)(pIn + nextline));
-
-      if (i>0)
+      if (j == 0)
       {
-        w[1] = *((unsigned short*)(pIn + prevline - 2));
-        w[4] = *((unsigned short*)(pIn - 2));
-        w[7] = *((unsigned short*)(pIn + nextline - 2));
+        w[1] = 0;
+        w[2] = 0;
+        w[3] = 0;
       }
       else
       {
-        w[1] = w[2];
-        w[4] = w[5];
-        w[7] = w[8];
+        if (i > 0)
+           w[1] = *(pIn - Xres - 1);
+        else
+           w[1] = 0;
+
+        w[2] = *(pIn - Xres);
+
+        if (i < Xres - 1)
+           w[3] = *(pIn - Xres + 1);
+        else
+           w[3] = 0;
       }
 
-      if (i<Xres-1)
+      if (i > 0)
+         w[4] = *(pIn - 1);
+      else
+         w[4] = 0;
+
+      w[5] = *(pIn);
+
+      if (i < Xres - 1)
+         w[6] = *(pIn + 1);
+      else
+         w[6] = 0;
+
+      if (j == Yres - 1)
       {
-        w[3] = *((unsigned short*)(pIn + prevline + 2));
-        w[6] = *((unsigned short*)(pIn + 2));
-        w[9] = *((unsigned short*)(pIn + nextline + 2));
+        w[7] = 0;
+        w[8] = 0;
+        w[9] = 0;
       }
       else
       {
-        w[3] = w[2];
-        w[6] = w[5];
-        w[9] = w[8];
+        if (i > 0)
+           w[7] = *(pIn + Xres - 1);
+        else
+           w[7] = 0;
+
+        w[8] = *(pIn + Xres);
+
+        if (i < Xres-1)
+           w[9] = *(pIn + Xres + 1);
+        else
+           w[9] = 0;
       }
 
       int pattern = 0;
@@ -5285,21 +5305,33 @@ void hq4x_32( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int
           break;
         }
       }
-      pIn+=2;
-      pOut+=16;
+      pIn++; // next source pixel (just increment since it's an int*)
+      pOut += 16; // skip 4 pixels (4 bytes * 4 pixels)
     }
-    pOut+=BpL;
-    pOut+=BpL;
-    pOut+=BpL;
+    pOut += BpL; // skip next 3 rows
+    pOut += BpL;
+    pOut += BpL;
   }
 }
 
-void InitLUTs(void)
+void InitLUTs()
 {
   int i, j, k, r, g, b, Y, u, v;
 
+#if 0 // colorOutlines() after hqresize
+  for (i=0; i<65536; i++)
+    LUT16to32[i] = 0x00404040;
+  for (i=0; i<65536; i++)
+    LUT16to32[i+65536] = 0xFF000000 + ((i & 0xF800) << 8) + ((i & 0x07E0) << 5) + ((i & 0x001F) << 3);
+#else // colorOutlines() before hqresize
   for (i=0; i<65536; i++)
     LUT16to32[i] = ((i & 0xF800) << 8) + ((i & 0x07E0) << 5) + ((i & 0x001F) << 3);
+  for (i=0; i<65536; i++)
+    LUT16to32[i+65536] = 0xFF000000 + LUT16to32[i];
+#endif
+
+  for (i=0; i<65536; i++)
+    RGBtoYUV[i] = 0xFF000000;
 
   for (i=0; i<32; i++)
   for (j=0; j<64; j++)
@@ -5311,7 +5343,7 @@ void InitLUTs(void)
     Y = (r + g + b) >> 2;
     u = 128 + ((r - b) >> 2);
     v = 128 + ((-r + 2*g -b)>>3);
-    RGBtoYUV[ (i << 11) + (j << 5) + k ] = (Y<<16) + (u<<8) + v;
+    RGBtoYUV[ 65536 + (i << 11) + (j << 5) + k ] = (Y<<16) + (u<<8) + v;
   }
 }
 
@@ -5345,13 +5377,11 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  if ( ImageIn.m_BitPerPixel != 16 ) 
+  ImageIn.ConvertTo32();
+  if ( ImageIn.Convert32To17() != 0 )
   {
-    if ( ImageIn.ConvertTo16() != 0 )
-    {
-      printf( "ERROR: '%s' conversion to 16 bit failed\n", szFilenameIn );
-      return 1;
-    }
+	  printf( "ERROR: '%s' conversion to 17 bit failed\n", szFilenameIn );
+	  return 1;
   }
 
   printf( "\n%s is %ix%ix%i\n", szFilenameIn, ImageIn.m_Xres, ImageIn.m_Yres, ImageIn.m_BitPerPixel );
@@ -5364,7 +5394,7 @@ int main(int argc, char* argv[])
 
   InitLUTs();
 
-  hq4x_32( ImageIn.m_pBitmap, ImageOut.m_pBitmap, ImageIn.m_Xres, ImageIn.m_Yres, ImageOut.m_Xres*4 );
+  hq4x_32( (int*)ImageIn.m_pBitmap, ImageOut.m_pBitmap, ImageIn.m_Xres, ImageIn.m_Yres, ImageOut.m_Xres*4 );
 
   nRes = ImageOut.Save( szFilenameOut );
   if ( nRes != 0 )

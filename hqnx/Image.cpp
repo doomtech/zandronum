@@ -17,7 +17,7 @@
 //Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 #include <stdlib.h>
-#include <malloc.h>
+//#include <malloc.h>
 #include <string.h>
 #include "Image.h"
 
@@ -29,8 +29,7 @@ CImage::CImage()
 
 CImage::~CImage()
 {
-  if (m_pBitmap != NULL)
-    free(m_pBitmap);
+  Destroy();
 }
 
 int CImage::Init( int X, int Y, unsigned short BitPerPixel )
@@ -41,10 +40,64 @@ int CImage::Init( int X, int Y, unsigned short BitPerPixel )
   m_Xres = X;
   m_Yres = Y;
   m_BitPerPixel = BitPerPixel<=8 ? 8 : BitPerPixel<=16 ? 16 : BitPerPixel<=24 ? 24 : 32;
+  m_BytePerPixel = m_BitPerPixel >> 3;
   m_NumPixel = m_Xres*m_Yres;
   int size = m_NumPixel*((m_BitPerPixel+7)/8);
   m_pBitmap=(unsigned char *)malloc(size);
   return (m_pBitmap != NULL) ? 0 : 1;
+}
+
+int CImage::SetImage(unsigned char *img, int width, int height, int bpp)
+{
+   Init(width, height, bpp);
+
+   memcpy(m_pBitmap, img, m_NumPixel * m_BytePerPixel);
+
+   return 0;
+}
+
+int CImage::Destroy()
+{
+   if (m_pBitmap)
+   {
+      free(m_pBitmap);
+      m_pBitmap = NULL;
+   }
+   m_Xres = 0;
+   m_Yres = 0;
+   m_NumPixel = 0;
+   m_BitPerPixel = 0;
+   return 0;
+}
+
+int CImage::Convert32To17( void )
+{
+  int nRes = eConvUnknownFormat;
+
+  if ( m_BitPerPixel == 32 )
+  {
+    if ( m_pBitmap != NULL )
+    {
+      unsigned char * pTemp8 = m_pBitmap;
+      unsigned int * pTemp32 = (unsigned int *)m_pBitmap;
+      unsigned int a, r, g, b;
+      for ( int i=0; i<m_NumPixel; i++ )
+      {
+        b = (*(pTemp8++)) >> 3;
+        g = (*(pTemp8++)) >> 2;
+        r = (*(pTemp8++)) >> 3;
+        a = *(pTemp8++);
+        *pTemp32 = (r << 11) + (g << 5) + b + (a > 127 ? 0x10000 : 0);
+        pTemp32++;
+      }
+    }
+    else
+      nRes = eConvSourceMemory;
+
+    nRes = 0;
+  }
+
+  return nRes;
 }
 
 int CImage::ConvertTo32( void )
@@ -314,6 +367,40 @@ int CImage::ConvertTo16( void )
   return nRes;
 }
 
+int CImage::Convert8To17( int transindex )
+{
+  int nRes = eConvUnknownFormat;
+
+  if ( m_BitPerPixel == 8 )
+  {
+    m_BitPerPixel = 32;
+    unsigned char * pNewBitmap = (unsigned char *)malloc(m_NumPixel*4);
+    if ( pNewBitmap != NULL )
+    {
+      unsigned char * pTemp8 = m_pBitmap;
+      unsigned int * pTemp32 = (unsigned int *)pNewBitmap;
+      unsigned int r, g, b;
+      unsigned char c;
+      for ( int i=0; i<m_NumPixel; i++ )
+      {
+        c = *(pTemp8++);
+        r = m_Pal[c].r >> 3;
+        g = m_Pal[c].g >> 2;
+        b = m_Pal[c].b >> 3;
+        *(pTemp32++) = (r << 11) + (g << 5) + b + (transindex != c ? 0x10000 : 0);
+      }
+      free(m_pBitmap);
+      m_pBitmap = pNewBitmap;
+    }
+    else
+      nRes = eConvDestMemory;
+
+    nRes = 0;
+  }
+
+  return nRes;
+}
+
 int CImage::SaveBmp(char *szFilename)
 {
   _BMPFILEHEADER     fh;
@@ -347,9 +434,9 @@ int CImage::SaveBmp(char *szFilename)
     if (fwrite(&ih, 40, 1, f) != 1) return eSaveBmpFileWrite;
     for (i=0; i<256; i++)
     {
-      BmpPal[i][0]=m_Pal[i].r;
+      BmpPal[i][0]=m_Pal[i].b;
       BmpPal[i][1]=m_Pal[i].g;
-      BmpPal[i][2]=m_Pal[i].b;
+      BmpPal[i][2]=m_Pal[i].r;
       BmpPal[i][3]=0;
     }
     if (fwrite(&BmpPal, 1024, 1, f) != 1) return eSaveBmpFileWrite;
@@ -445,9 +532,9 @@ int CImage::LoadBmp(char *szFilename)
     if (fread(&BmpPal, 1024, 1, f) != 1) return eLoadBmpFileRead;
     for (i=0; i<256; i++)
     {
-      m_Pal[i].r=BmpPal[i][0];
+      m_Pal[i].b=BmpPal[i][0];
       m_Pal[i].g=BmpPal[i][1];
-      m_Pal[i].b=BmpPal[i][2];
+      m_Pal[i].r=BmpPal[i][2];
     }
     pBuf=m_pBitmap;
     pBuf+=m_NumPixel;
@@ -824,9 +911,9 @@ int CImage::LoadTga(char *szFilename)
 
         for (i=0; i<fh.tiPaletteSize; i++)
         {
-          m_Pal[i].r = BmpPal[i][0];
+          m_Pal[i].b = BmpPal[i][0];
           m_Pal[i].g = BmpPal[i][1];
-          m_Pal[i].b = BmpPal[i][2];
+          m_Pal[i].r = BmpPal[i][2];
         }
       }
     }
