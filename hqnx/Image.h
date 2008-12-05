@@ -16,6 +16,12 @@
 //License along with this program; if not, write to the Free Software
 //Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
+#ifdef WIN32
+#define DLL __declspec(dllexport)
+#else
+#define DLL
+#endif
+
 #include <stdio.h>
 #pragma once
 #pragma warning(disable: 4103)
@@ -27,8 +33,8 @@ typedef struct { unsigned char b, g, r, a; } _BGRA;
 class CImage
 {
   public:
-    CImage();
-    ~CImage();
+    DLL CImage();
+    DLL ~CImage();
 
   enum CImageErrors
   {
@@ -101,20 +107,20 @@ class CImage
   };
 
   public:
-    int  Init( int Xres, int Yres, unsigned short BitPerPixel );
-    int  SetImage(unsigned char *img, int width, int height, int bpp);
-    int  Destroy();
-    int  ConvertTo32( void );
-    int  ConvertTo24( void );
-    int  ConvertTo16( void );
-    int  Convert8To17( int transindex );
-    int  Convert32To17( void );
+    int  DLL Init( int Xres, int Yres, unsigned short BitPerPixel );
+    int  DLL SetImage(unsigned char *img, int width, int height, int bpp);
+    int  DLL Destroy();
+    int  DLL ConvertTo32( void );
+    int  DLL ConvertTo24( void );
+    int  DLL ConvertTo16( void );
+    int  DLL Convert8To17( int transindex );
+    int  DLL Convert32To17( void );
     int  SaveBmp(char *szFilename);
     int  LoadBmp(char *szFilename);
     int  SaveTga(char *szFilename, bool bCompressed );
     int  LoadTga(char *szFilename);
-    int  Load(char *szFilename);
-    int  Save(char *szFilename);
+    int  DLL Load(char *szFilename);
+    int  DLL Save(char *szFilename);
 
   private:
     void Output( char * pcData, int nSize );

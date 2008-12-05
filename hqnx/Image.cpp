@@ -21,18 +21,18 @@
 #include <string.h>
 #include "Image.h"
 
-CImage::CImage() 
+DLL CImage::CImage() 
 { 
   m_Xres = m_Yres = m_NumPixel = 0; 
   m_pBitmap = NULL; 
 }
 
-CImage::~CImage()
+DLL CImage::~CImage()
 {
   Destroy();
 }
 
-int CImage::Init( int X, int Y, unsigned short BitPerPixel )
+int DLL CImage::Init( int X, int Y, unsigned short BitPerPixel )
 {
   if (m_pBitmap != NULL)
     free(m_pBitmap);
@@ -47,7 +47,7 @@ int CImage::Init( int X, int Y, unsigned short BitPerPixel )
   return (m_pBitmap != NULL) ? 0 : 1;
 }
 
-int CImage::SetImage(unsigned char *img, int width, int height, int bpp)
+int DLL CImage::SetImage(unsigned char *img, int width, int height, int bpp)
 {
    Init(width, height, bpp);
 
@@ -56,7 +56,7 @@ int CImage::SetImage(unsigned char *img, int width, int height, int bpp)
    return 0;
 }
 
-int CImage::Destroy()
+int DLL CImage::Destroy()
 {
    if (m_pBitmap)
    {
@@ -70,7 +70,7 @@ int CImage::Destroy()
    return 0;
 }
 
-int CImage::Convert32To17( void )
+int DLL CImage::Convert32To17( void )
 {
   int nRes = eConvUnknownFormat;
 
@@ -100,7 +100,7 @@ int CImage::Convert32To17( void )
   return nRes;
 }
 
-int CImage::ConvertTo32( void )
+int DLL CImage::ConvertTo32( void )
 {
   int nRes = eConvUnknownFormat;
 
@@ -275,7 +275,7 @@ int CImage::ConvertTo24( void )
   return nRes;
 }
 
-int CImage::ConvertTo16( void )
+int DLL CImage::ConvertTo16( void )
 {
   int nRes = eConvUnknownFormat;
 
@@ -1116,7 +1116,7 @@ int CImage::LoadTga(char *szFilename)
   return 0;
 }
 
-int CImage::Load(char *szFilename)
+int DLL CImage::Load(char *szFilename)
 {
   int nRes = 0;
 
@@ -1139,7 +1139,7 @@ int CImage::Load(char *szFilename)
   return nRes;
 }
 
-int CImage::Save(char *szFilename)
+int DLL CImage::Save(char *szFilename)
 {
   int nRes = 0;
   int nNotTGA = 1;

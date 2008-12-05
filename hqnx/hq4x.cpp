@@ -21,8 +21,7 @@
 #include <stdlib.h>
 #include <conio.h>
 #include <string.h>
-#include <windows.h>
-#include "Image.h"
+#include "hqnx.h"
 
 static int   LUT16to32[65536*2];
 static int   RGBtoYUV[65536*2];
@@ -233,7 +232,7 @@ inline bool Diff(unsigned int w1, unsigned int w2)
            ( abs((YUV1 & Vmask) - (YUV2 & Vmask)) > trV ) );
 }
 
-void hq4x_32( int * pIn, unsigned char * pOut, int Xres, int Yres, int BpL )
+void DLL hq4x_32( int * pIn, unsigned char * pOut, int Xres, int Yres, int BpL )
 {
   int  i, j, k;
   int  w[10];
@@ -5314,7 +5313,7 @@ void hq4x_32( int * pIn, unsigned char * pOut, int Xres, int Yres, int BpL )
   }
 }
 
-void InitLUTs()
+void DLL InitLUTs()
 {
   int i, j, k, r, g, b, Y, u, v;
 
@@ -5347,44 +5346,13 @@ void InitLUTs()
   }
 }
 
-int main(int argc, char* argv[])
+int DLL hq4x_32 ( CImage &ImageIn, CImage &ImageOut )
 {
-  int         nRes;
-  CImage      ImageIn;
-  CImage      ImageOut;
-  char      * szFilenameIn;
-  char      * szFilenameOut;
-  
-  if (argc <= 2)
-  {
-    printf("\nUsage: hq4x.exe input.bmp output.bmp\n");
-    printf("supports .bmp and .tga formats\n");
-    return 1;
-  }
-
-  szFilenameIn = argv[1];
-  szFilenameOut = argv[2];
-
-  if ( GetFileAttributes( szFilenameIn ) == -1 )
-  {
-    printf( "ERROR: file '%s'\n not found", szFilenameIn );
-    return 1;
-  }
-
-  if ( ImageIn.Load( szFilenameIn ) != 0 )
-  {
-    printf( "ERROR: can't load '%s'\n", szFilenameIn );
-    return 1;
-  }
-
-  ImageIn.ConvertTo32();
   if ( ImageIn.Convert32To17() != 0 )
   {
-	  printf( "ERROR: '%s' conversion to 17 bit failed\n", szFilenameIn );
+	  printf( "ERROR: conversion to 17 bit failed\n" );
 	  return 1;
   }
-
-  printf( "\n%s is %ix%ix%i\n", szFilenameIn, ImageIn.m_Xres, ImageIn.m_Yres, ImageIn.m_BitPerPixel );
 
   if ( ImageOut.Init( ImageIn.m_Xres*4, ImageIn.m_Yres*4, 32 ) != 0 )
   {
@@ -5393,16 +5361,7 @@ int main(int argc, char* argv[])
   };
 
   InitLUTs();
-
   hq4x_32( (int*)ImageIn.m_pBitmap, ImageOut.m_pBitmap, ImageIn.m_Xres, ImageIn.m_Yres, ImageOut.m_Xres*4 );
-
-  nRes = ImageOut.Save( szFilenameOut );
-  if ( nRes != 0 )
-  {
-    printf( "ERROR %i: ImageOut.Save(\"%s\")\n", nRes, szFilenameOut );
-    return nRes;
-  }
-  printf( "%s is %ix%ix%i\n", szFilenameOut, ImageOut.m_Xres, ImageOut.m_Yres, ImageOut.m_BitPerPixel );
 
   printf( "\nOK\n" );
   return 0;
