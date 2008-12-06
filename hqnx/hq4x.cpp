@@ -25,59 +25,149 @@
 
 static int   LUT16to32[65536*2];
 static int   RGBtoYUV[65536*2];
-static int   YUV1, YUV2;
-const  int   Ymask = 0x00FF0000;
-const  int   Umask = 0x0000FF00;
-const  int   Vmask = 0x000000FF;
-const  int   trY   = 0x00300000;
-const  int   trU   = 0x00000700;
-const  int   trV   = 0x00000006;
+
+static const __int64 reg_blank = 0;
+static const __int64 const3    = 0x0003000300030003;
+static const __int64 const5    = 0x0005000500050005;
+static const __int64 const6    = 0x0006000600060006;
+static const __int64 const7    = 0x0007000700070007;
+static const __int64 treshold  = 0x0000000000300706;
+
 
 inline void Interp1(unsigned char * pc, int c1, int c2)
 {
-  *((int*)pc) = (c1*3+c2) >> 2;
+  //*((int*)pc) = (c1*3+c2)/4;
+  __asm
+  {
+    mov        eax, pc
+    movd       mm1, c1
+    movd       mm2, c2
+    punpcklbw  mm1, reg_blank
+    punpcklbw  mm2, reg_blank
+    pmullw     mm1, const3
+    paddw      mm1, mm2
+    psrlw      mm1, 2
+    packuswb   mm1, reg_blank
+    movd       [eax], mm1
+  }
 }
 
 inline void Interp2(unsigned char * pc, int c1, int c2, int c3)
 {
-  *((int*)pc) = (c1*2+c2+c3) >> 2;
+//  *((int*)pc) = (c1*2+c2+c3)/4;
+  __asm
+  {
+    mov        eax, pc
+    movd       mm1, c1
+    movd       mm2, c2
+    movd       mm3, c3
+    punpcklbw  mm1, reg_blank
+    punpcklbw  mm2, reg_blank
+    punpcklbw  mm3, reg_blank
+    psllw      mm1, 1
+    paddw      mm1, mm2
+    paddw      mm1, mm3
+    psrlw      mm1, 2
+    packuswb   mm1, reg_blank
+    movd       [eax], mm1
+  }
 }
 
 inline void Interp3(unsigned char * pc, int c1, int c2)
 {
   //*((int*)pc) = (c1*7+c2)/8;
-
-  *((int*)pc) = ((((c1 & 0x00FF00)*7 + (c2 & 0x00FF00) ) & 0x0007F800) +
-                 (((c1 & 0xFF00FF)*7 + (c2 & 0xFF00FF) ) & 0x07F807F8)) >> 3;
+  __asm
+  {
+    mov        eax, pc
+    movd       mm1, c1
+    movd       mm2, c2
+    punpcklbw  mm1, reg_blank
+    punpcklbw  mm2, reg_blank
+    pmullw     mm1, const7
+    paddw      mm1, mm2
+    psrlw      mm1, 3
+    packuswb   mm1, reg_blank
+    movd       [eax], mm1
+  }
 }
 
 inline void Interp5(unsigned char * pc, int c1, int c2)
 {
-  *((int*)pc) = (c1+c2) >> 1;
+  //*((int*)pc) = (c1+c2)/2;
+  __asm
+  {
+    mov        eax, pc
+    movd       mm1, c1
+    movd       mm2, c2
+    punpcklbw  mm1, reg_blank
+    punpcklbw  mm2, reg_blank
+    paddw      mm1, mm2
+    psrlw      mm1, 1
+    packuswb   mm1, reg_blank
+    movd       [eax], mm1
+  }
 }
 
 inline void Interp6(unsigned char * pc, int c1, int c2, int c3)
 {
   //*((int*)pc) = (c1*5+c2*2+c3)/8;
-
-  *((int*)pc) = ((((c1 & 0x00FF00)*5 + (c2 & 0x00FF00)*2 + (c3 & 0x00FF00) ) & 0x0007F800) +
-                 (((c1 & 0xFF00FF)*5 + (c2 & 0xFF00FF)*2 + (c3 & 0xFF00FF) ) & 0x07F807F8)) >> 3;
+  __asm
+  {
+    mov        eax, pc
+    movd       mm1, c1
+    movd       mm2, c2
+    movd       mm3, c3
+    punpcklbw  mm1, reg_blank
+    punpcklbw  mm2, reg_blank
+    punpcklbw  mm3, reg_blank
+    pmullw     mm1, const5
+    psllw      mm2, 1
+    paddw      mm1, mm3
+    paddw      mm1, mm2
+    psrlw      mm1, 3
+    packuswb   mm1, reg_blank
+    movd       [eax], mm1
+  }
 }
 
 inline void Interp7(unsigned char * pc, int c1, int c2, int c3)
 {
   //*((int*)pc) = (c1*6+c2+c3)/8;
-
-  *((int*)pc) = ((((c1 & 0x00FF00)*6 + (c2 & 0x00FF00) + (c3 & 0x00FF00) ) & 0x0007F800) +
-                 (((c1 & 0xFF00FF)*6 + (c2 & 0xFF00FF) + (c3 & 0xFF00FF) ) & 0x07F807F8)) >> 3;
+  __asm
+  {
+    mov        eax, pc
+    movd       mm1, c1
+    movd       mm2, c2
+    movd       mm3, c3
+    punpcklbw  mm1, reg_blank
+    punpcklbw  mm2, reg_blank
+    punpcklbw  mm3, reg_blank
+    pmullw     mm1, const6
+    paddw      mm2, mm3
+    paddw      mm1, mm2
+    psrlw      mm1, 3
+    packuswb   mm1, reg_blank
+    movd       [eax], mm1
+  }
 }
 
 inline void Interp8(unsigned char * pc, int c1, int c2)
 {
   //*((int*)pc) = (c1*5+c2*3)/8;
-
-  *((int*)pc) = ((((c1 & 0x00FF00)*5 + (c2 & 0x00FF00)*3 ) & 0x0007F800) +
-                 (((c1 & 0xFF00FF)*5 + (c2 & 0xFF00FF)*3 ) & 0x07F807F8)) >> 3;
+  __asm
+  {
+    mov        eax, pc
+    movd       mm1, c1
+    movd       mm2, c2
+    punpcklbw  mm1, reg_blank
+    punpcklbw  mm2, reg_blank
+    pmullw     mm1, const5
+    pmullw     mm2, const3
+    paddw      mm1, mm2
+    psrlw      mm1, 3
+    packuswb   mm1, reg_blank
+    movd       [eax], mm1
+  }
 }
 
 #define PIXEL00_0     *((int*)(pOut)) = c[5];
@@ -222,15 +312,32 @@ inline void Interp8(unsigned char * pc, int c1, int c2)
 #define PIXEL33_82    Interp8(pOut+BpL+BpL+BpL+12, c[5], c[8]);
 
 
+#pragma warning(disable: 4035)
 
-inline bool Diff(unsigned int w1, unsigned int w2)
+int Diff(unsigned int w5, unsigned int w1)
 {
-  YUV1 = RGBtoYUV[w1];
-  YUV2 = RGBtoYUV[w2];
-  return ( ( abs((YUV1 & Ymask) - (YUV2 & Ymask)) > trY ) ||
-           ( abs((YUV1 & Umask) - (YUV2 & Umask)) > trU ) ||
-           ( abs((YUV1 & Vmask) - (YUV2 & Vmask)) > trV ) );
+  __asm
+  {
+    xor     eax,eax
+    mov     ebx,w5
+    mov     edx,w1
+    cmp     ebx,edx
+    je      FIN
+    mov     ecx,offset RGBtoYUV 
+    movd    mm1,[ecx + ebx*4]
+    movq    mm5,mm1
+    movd    mm2,[ecx + edx*4]
+    psubusb mm1,mm2
+    psubusb mm2,mm5
+    por     mm1,mm2
+    psubusb mm1,treshold
+    movd    eax,mm1
+FIN:
+  }
 }
+// returns result in eax register
+
+#pragma warning(default: 4035)
 
 void DLL hq4x_32( int * pIn, unsigned char * pOut, int Xres, int Yres, int BpL )
 {
@@ -308,24 +415,15 @@ void DLL hq4x_32( int * pIn, unsigned char * pOut, int Xres, int Yres, int BpL )
       }
 
       int pattern = 0;
-      int flag = 1;
 
-      YUV1 = RGBtoYUV[w[5]];
-
-      for (k=1; k<=9; k++)
-      {
-        if (k==5) continue;
-
-        if ( w[k] != w[5] )
-        {
-          YUV2 = RGBtoYUV[w[k]];
-          if ( ( abs((YUV1 & Ymask) - (YUV2 & Ymask)) > trY ) ||
-               ( abs((YUV1 & Umask) - (YUV2 & Umask)) > trU ) ||
-               ( abs((YUV1 & Vmask) - (YUV2 & Vmask)) > trV ) )
-            pattern |= flag;
-        }
-        flag <<= 1;
-      }
+      if ( Diff(w[5],w[1]) ) pattern |= 0x0001;
+      if ( Diff(w[5],w[2]) ) pattern |= 0x0002;
+      if ( Diff(w[5],w[3]) ) pattern |= 0x0004;
+      if ( Diff(w[5],w[4]) ) pattern |= 0x0008;
+      if ( Diff(w[5],w[6]) ) pattern |= 0x0010;
+      if ( Diff(w[5],w[7]) ) pattern |= 0x0020;
+      if ( Diff(w[5],w[8]) ) pattern |= 0x0040;
+      if ( Diff(w[5],w[9]) ) pattern |= 0x0080;
 
       for (k=1; k<=9; k++)
         c[k] = LUT16to32[w[k]];
@@ -5311,6 +5409,7 @@ void DLL hq4x_32( int * pIn, unsigned char * pOut, int Xres, int Yres, int BpL )
     pOut += BpL;
     pOut += BpL;
   }
+  __asm emms
 }
 
 void DLL InitLUTs()
