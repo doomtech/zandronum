@@ -91,6 +91,7 @@ latestzdoom branch
 -	- Fixed: Under certain conditions the CMPGNINF parser didn't accept proper botteam entries. [Torr Samaho]
 -	- Fixed: Player classes using certain code pointers caused "ghost" players to appear under certain conditions. For example this affected Sjas in GvH. [Torr Samaho]
 -	- Fixed: Under certain circumstances changing the CVAR playerclass messed up the ColorRange property of the console player skin (fixed itself upon respawning). [Torr Samaho]
+-	- Fixed: Instagib ignored the ammo types of Railgun replacements. [Blzut3]
 !	- Changed up the display of medals when you have the key down. Higher medals are now on the right, opposite their subordinates. [Rivecoder]
 !	- Each player's "ready to go on" status, shown at the intermission, can now only be turned on. Hopefully, this will help clear up what this command is for and prevent rapid toggling of it. [Rivecoder]
 !	- Rank/Spread is no longer drawn if there's only one player. [Rivecoder]
