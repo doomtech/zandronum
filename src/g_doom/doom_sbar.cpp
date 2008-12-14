@@ -1521,7 +1521,8 @@ void DrawFullHUD_GameInformation()
 		AInventory		*pRune;
 
 		// No need to draw this if we're spectating.
-		if ( CPlayer->bSpectating )
+		// [BB] We can't draw this, if CPlayer doesn't have a body.
+		if ( CPlayer->bSpectating || ( CPlayer->mo == NULL ) )
 			return;
 
 		// Draw health

@@ -1069,8 +1069,14 @@ void APlayerPawn::GiveDefaultInventory ()
 		// possible.
 		if (( instagib ) && ( deathmatch || teamgame ))
 		{
+			// [BL] This used to call GiveInventoryTypeRespectingReplacements, but we also want to be sure
+			// the railgun is a weapon so that we can be sure we give the player the proper kind of ammo.
+			const PClass *pRailgun = PClass::FindClass( "Railgun" )->ActorInfo->GetReplacement( )->Class;
+			if(!pRailgun->IsDescendantOf( RUNTIME_CLASS( AWeapon ) ))
+				I_Error("Tried to give an improperly defined weapon.\n");
+
 			// Give the player the weapon.
-			pInventory = player->mo->GiveInventoryTypeRespectingReplacements( PClass::FindClass( "Railgun" ) );
+			pInventory = player->mo->GiveInventoryType( pRailgun );
 
 			if ( pInventory )
 			{
@@ -1085,12 +1091,15 @@ void APlayerPawn::GiveDefaultInventory ()
 					if ( CLIENTDEMO_IsRecording( ))
 						CLIENTDEMO_WriteLocalCommand( CLD_INVUSE, pInventory->GetClass( )->TypeName.GetChars( ) );
 				}
-			}
 
-			// Find the player's ammo for the weapon in his inventory, and max. out the amount.
-			pInventory = player->mo->FindInventory( PClass::FindClass( "Cell" ));
-			if ( pInventory != NULL )
-				pInventory->Amount = pInventory->MaxAmount;
+				// Find the player's ammo for the weapon in his inventory, and max. out the amount.
+				AInventory *ammo1 = player->mo->FindInventory( static_cast<AWeapon *> (pInventory)->AmmoType1 );
+				AInventory *ammo2 = player->mo->FindInventory( static_cast<AWeapon *> (pInventory)->AmmoType2 );
+				if ( ammo1 != NULL )
+					ammo1->Amount = ammo1->MaxAmount;
+				if ( ammo2 != NULL )
+					ammo2->Amount = ammo2->MaxAmount;
+			}
 
 			return;
 		}
