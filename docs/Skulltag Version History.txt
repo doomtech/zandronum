@@ -73,6 +73,7 @@
 -	- Removed sv_nochangemapvote. Changemap votes are now controlled by sv_nomapvote (since they're essentially the same). [Rivecoder]
 -	- Removed the default values for sv_motd, sv_website, and sv_hostemail. sv_motd would show the wrong version over time, and the others should be blank if not set by the server hoster. [Rivecoder]
 -	- Fixed: Online a player and all its corpses used the same translation, i.e. if a player changed his color all corpses of this player changed their color too. [Torr Samaho]
+-	- Fixed: The new fullscreen HUD doesn't respect the maxplayer property of the current player class. [Torr Samaho]
 !	- Changed up the display of medals when you have the key down. Higher medals are now on the right, opposite their subordinates. [Rivecoder]
 !	- Each player's "ready to go on" status, shown at the intermission, can now only be turned on. Hopefully, this will help clear up what this command is for and prevent rapid toggling of it. [Rivecoder]
 !	- Rank/Spread is no longer drawn if there's only one player. [Rivecoder]
