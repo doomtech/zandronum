@@ -478,6 +478,9 @@ static	LONG				g_lHighestReceivedSequence;
 // Delay for sending a request missing packets.
 static	LONG				g_lMissingPacketTicks;
 
+// [BB] Needed to handle the storage of the translation of player corpses.
+static	LONG				g_CorpseTranslationQueueSlot = 0;
+
 // Debugging variables.
 static	LONG				g_lLastCmd;
 #ifdef _DEBUG
@@ -3412,6 +3415,15 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 		{
 			pOldActor->player = NULL;
 			pOldActor->id = -1;
+
+			int translationslot = g_CorpseTranslationQueueSlot%BODYQUESIZE;
+
+			// Copy the player's translation, so that if they change their color later, only
+			// their current body will change and not all their old corpses.
+			R_CopyTranslation (TRANSLATION(TRANSLATION_PlayerCorpses,translationslot), pOldActor->Translation);
+			pOldActor->Translation = TRANSLATION(TRANSLATION_PlayerCorpses,translationslot);
+
+			g_CorpseTranslationQueueSlot++;
 		}
 		else
 		{
@@ -3491,6 +3503,9 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	// [GRB] Reset skin
 	pPlayer->userinfo.skin = R_FindSkin (skins[pPlayer->userinfo.skin].name, pPlayer->CurrentPlayerClass);
 
+	// [RH] Be sure the player has the right translation
+	R_BuildPlayerTranslation ( ulPlayer );
+
 	// [RH] set color translations for player sprites
 	pActor->Translation = TRANSLATION( TRANSLATION_Players, ulPlayer );
 	pActor->angle = Angle;
@@ -3499,7 +3514,7 @@ static void client_SpawnPlayer( BYTESTREAM_s *pByteStream, bool bMorph )
 	pActor->lFixedColormap = 0;
 
 	//Added by MC: Identification (number in the players[MAXPLAYERS] array)
-    pActor->id = ulPlayer;
+	pActor->id = ulPlayer;
 
 	// [RH] Set player sprite based on skin
 	// [BC] Handle cl_skins here.
