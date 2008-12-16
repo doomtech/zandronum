@@ -77,6 +77,7 @@
 -	- Fixed: Instagib ignored the ammo types of Railgun replacements. [Blzut3]
 -	- Fixed: After changing the map online or a map reset, the game possibly crashes when using cl_stfullscreenhud == false. [Torr Samaho]
 -	- Fixed: ParticleFountain doesn't work properly online for the first player that connects to a server. [Torr Samaho]
+-	- Fixed: Things like DeadDemon are not spawned on the clients online. [Torr Samaho]
 !	- Changed up the display of medals when you have the key down. Higher medals are now on the right, opposite their subordinates. [Rivecoder]
 !	- Each player's "ready to go on" status, shown at the intermission, can now only be turned on. Hopefully, this will help clear up what this command is for and prevent rapid toggling of it. [Rivecoder]
 !	- Rank/Spread is no longer drawn if there's only one player. [Rivecoder]
