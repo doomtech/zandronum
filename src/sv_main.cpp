@@ -904,6 +904,22 @@ CLIENT_s *SERVER_GetClient( ULONG ulIdx )
 }
 
 //*****************************************************************************
+// [BB] Returns the number of clients that are somehow connected to the server.
+// They don't need to be actually in the game yet, to count as connected client.
+ULONG SERVER_CalcNumConnectedClients( void )
+{
+	ULONG	ulNumConnectedClients = 0;
+
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_GetClient( ulIdx )->State != CLS_FREE )
+			ulNumConnectedClients++;
+	}
+
+	return ( ulNumConnectedClients );
+}
+
+//*****************************************************************************
 //
 ULONG SERVER_CalcNumPlayers( void )
 {
