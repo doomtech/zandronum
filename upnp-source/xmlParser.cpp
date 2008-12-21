@@ -670,7 +670,7 @@ int XMLNode::ParseClearTag(void *px, void *pa)
     XML *pXML=(XML *)px;
     ClearTag *pClear=(ClearTag *)pa;
     int cbTemp = 0;
-    LPTSTR lpszTemp;
+    LPCTSTR lpszTemp;
     LPCTSTR lpszXML = &pXML->lpXML[pXML->nIndex];
 
     // Find the closing tag
@@ -1723,7 +1723,7 @@ int XMLNode::nChildNode(LPCTSTR name)
 XMLNode XMLNode::getChildNode(LPCTSTR name, int *j)
 {
 	char temp[1024];
-	char *p = NULL;
+	const char *p = NULL;
     if (!d) return emptyXMLNode;
     int i=0,n=d->nChild;
     if (j) i=*j;

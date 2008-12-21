@@ -141,6 +141,13 @@ bool UPNPNAT::tcp_connect(const char * _host,unsigned short int _port)
 {
 	int ret,i;
 	tcp_socket_fd=socket(AF_INET,SOCK_STREAM,0);
+
+	// [BB] Set a proper timeout, otherwise recv may get stuck.
+	struct timeval tv;
+	tv.tv_sec = 3;
+	tv.tv_usec = 0;
+	ret=setsockopt(tcp_socket_fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof ( tv ) ); 
+
 	struct sockaddr_in r_address;
 
     r_address.sin_family = AF_INET;
