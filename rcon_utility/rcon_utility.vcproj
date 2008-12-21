@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="8.00"
 	Name="rcon_utility"
 	ProjectGUID="{175EE94F-6232-4618-AE8E-087E51D22E94}"
 	RootNamespace="rcon_utility"
