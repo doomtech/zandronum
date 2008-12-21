@@ -9,11 +9,7 @@
 #define DefaultTimeOut  10
 #define DefaultInterval 200
 
-#ifdef WIN32
-class __declspec (dllexport) UPNPNAT
-#else
 class UPNPNAT
-#endif
 {
 public:
 

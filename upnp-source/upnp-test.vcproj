@@ -2,8 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8,00"
-	Name="upnp-source"
+	Name="upnp-test"
 	ProjectGUID="{E762C353-F7DC-47B6-B21A-526F849F7019}"
+	RootNamespace="upnp-test"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -61,10 +62,10 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="wsock32.lib AdvAPI32.Lib"
-				OutputFile="$(OutDir)/upnp-source.exe"
+				OutputFile="$(OutDir)/$(ProjectName).exe"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(OutDir)/upnp-source.pdb"
+				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
 				SubSystem="1"
 				TargetMachine="1"
 			/>
@@ -137,7 +138,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="wsock32.lib AdvAPI32.Lib"
-				OutputFile="$(OutDir)/upnp-source.exe"
+				OutputFile="$(OutDir)/$(ProjectName).exe"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
 				SubSystem="1"
@@ -183,28 +184,12 @@
 				RelativePath=".\test.cpp"
 				>
 			</File>
-			<File
-				RelativePath=".\upnpnat.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\xmlParser.cpp"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
-			<File
-				RelativePath=".\upnpnat.h"
-				>
-			</File>
-			<File
-				RelativePath=".\xmlParser.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
