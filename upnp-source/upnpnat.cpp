@@ -1,4 +1,14 @@
+#ifdef WIN32
 #include <winsock2.h>
+#else
+// [BB] Some platform specific includes and defines to make the Windows code compile under Linux.
+#include <arpa/inet.h>
+#include <sys/ioctl.h>
+#define _sleep(x) usleep(x*1000)
+#define SOCKET_ERROR -1
+#define closesocket close
+#define ioctlsocket ioctl
+#endif
 #include <iostream>
 #include <string>
 
@@ -127,6 +137,7 @@ bool UPNPNAT::init(int time,int inter)
 	interval=inter;
 	status=NAT_INIT;
 
+#ifdef WIN32
     WORD wVersionRequested;
     WSADATA wsaData;
     int err;
@@ -134,6 +145,7 @@ bool UPNPNAT::init(int time,int inter)
     err = WSAStartup (wVersionRequested, &wsaData);
 	if(err != 0)
 		return false;
+#endif
 	return true;
 }
 
