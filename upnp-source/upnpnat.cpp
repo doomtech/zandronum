@@ -20,7 +20,7 @@
 static bool parseUrl(const char* url,std::string& host,unsigned short* port,std::string& path)
 {
 	std::string str_url=url;
-	
+
 	std::string::size_type pos1,pos2,pos3;
 	pos1=str_url.find("://");
 	if(pos1==std::string::npos)
@@ -38,7 +38,7 @@ static bool parseUrl(const char* url,std::string& host,unsigned short* port,std:
 		{
 			return false;
 		}
-		
+
 		host=str_url.substr(pos1,pos3-pos1);
 	}
 	else
@@ -49,11 +49,11 @@ static bool parseUrl(const char* url,std::string& host,unsigned short* port,std:
 		{
 			return false;
 		}
-		
+
 		std::string str_port=str_url.substr(pos2+1,pos3-pos2-1);
 		*port=(unsigned short)atoi(str_port.c_str());
 	}
-	
+
 	if(pos3+1>=str_url.size())
 	{
 		path="/";
@@ -74,10 +74,10 @@ static bool parseUrl(const char* url,std::string& host,unsigned short* port,std:
 #define HTTPMU_HOST_PORT 1900
 #define SEARCH_REQUEST_STRING "M-SEARCH * HTTP/1.1\r\n"            \
                               "ST:UPnP:rootdevice\r\n"             \
-															"MX: 3\r\n"                          \
-															"Man:\"ssdp:discover\"\r\n"          \
+                              "MX: 3\r\n"                          \
+                              "Man:\"ssdp:discover\"\r\n"          \
                               "HOST: 239.255.255.250:1900\r\n"     \
-															"\r\n"
+                              "\r\n"
 #define HTTP_OK "200 OK"
 #define DEFAULT_HTTP_PORT 80
 
@@ -138,11 +138,11 @@ bool UPNPNAT::init(int time,int inter)
 	status=NAT_INIT;
 
 #ifdef WIN32
-    WORD wVersionRequested;
-    WSADATA wsaData;
-    int err;
-    wVersionRequested = MAKEWORD (2, 2);
-    err = WSAStartup (wVersionRequested, &wsaData);
+	WORD wVersionRequested;
+	WSADATA wsaData;
+	int err;
+	wVersionRequested = MAKEWORD (2, 2);
+	err = WSAStartup (wVersionRequested, &wsaData);
 	if(err != 0)
 		return false;
 #endif
@@ -162,15 +162,15 @@ bool UPNPNAT::tcp_connect(const char * _host,unsigned short int _port)
 
 	struct sockaddr_in r_address;
 
-    r_address.sin_family = AF_INET;
+	r_address.sin_family = AF_INET;
 	r_address.sin_port=htons(_port);
-    r_address.sin_addr.s_addr=inet_addr(_host);
+	r_address.sin_addr.s_addr=inet_addr(_host);
 
 	for(i=1;i<=time_out;i++)
 	{	
 		if(i>1)
 			_sleep(1000);
-		
+
 		ret=connect(tcp_socket_fd,(const struct sockaddr *)&r_address,sizeof(struct sockaddr_in) );
 		if(ret==0)
 		{
@@ -189,49 +189,49 @@ bool UPNPNAT::tcp_connect(const char * _host,unsigned short int _port)
 
 bool UPNPNAT::discovery()
 {
-    udp_socket_fd=socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);
-    int i,ret;
-    std::string send_buff=SEARCH_REQUEST_STRING;
-    std::string recv_buff;
-    char buff[MAX_BUFF_SIZE+1]; //buff should be enough big
-   
-    struct sockaddr_in r_address;
-    r_address.sin_family=AF_INET;
-    r_address.sin_port=htons(HTTPMU_HOST_PORT);
-    r_address.sin_addr.s_addr=inet_addr(HTTPMU_HOST_ADDRESS);
+	udp_socket_fd=socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);
+	int i,ret;
+	std::string send_buff=SEARCH_REQUEST_STRING;
+	std::string recv_buff;
+	char buff[MAX_BUFF_SIZE+1]; //buff should be enough big
 
-    bool bOptVal = true;
-    int bOptLen = sizeof(bool);
-    int iOptLen = sizeof(int);
+	struct sockaddr_in r_address;
+	r_address.sin_family=AF_INET;
+	r_address.sin_port=htons(HTTPMU_HOST_PORT);
+	r_address.sin_addr.s_addr=inet_addr(HTTPMU_HOST_ADDRESS);
 
-    ret=setsockopt(udp_socket_fd, SOL_SOCKET, SO_BROADCAST, (char*)&bOptVal, bOptLen); 
+	bool bOptVal = true;
+	int bOptLen = sizeof(bool);
+	int iOptLen = sizeof(int);
 
-    ret=sendto(udp_socket_fd,send_buff.c_str(),send_buff.size(),0,(struct sockaddr*)&r_address,sizeof(struct sockaddr_in));
-   
+	ret=setsockopt(udp_socket_fd, SOL_SOCKET, SO_BROADCAST, (char*)&bOptVal, bOptLen); 
+
+	ret=sendto(udp_socket_fd,send_buff.c_str(),send_buff.size(),0,(struct sockaddr*)&r_address,sizeof(struct sockaddr_in));
+
 	for(i=1;i<=time_out;i++)
-    {
+	{
 		u_long val = 1;
 		ioctlsocket (udp_socket_fd,FIONBIO,&val);//none block
 
 		memset(buff, 0, sizeof(buff));
-        ret=recvfrom(udp_socket_fd,buff,MAX_BUFF_SIZE,0,NULL,NULL);
+		ret=recvfrom(udp_socket_fd,buff,MAX_BUFF_SIZE,0,NULL,NULL);
 		if(ret==SOCKET_ERROR){
 			_sleep(1000);
-            continue;
+			continue;
 		}
 
 		recv_buff=buff;
-        ret=recv_buff.find(HTTP_OK);
-        if(ret==std::string::npos)
+		ret=recv_buff.find(HTTP_OK);
+		if(ret==std::string::npos)
 			continue;                       //invalid response
 
-        std::string::size_type begin=recv_buff.find("http://");
-        if(begin==std::string::npos)
-            continue;                       //invalid response
-        std::string::size_type end=recv_buff.find("\r",begin);
-        if(end==std::string::npos)
+		std::string::size_type begin=recv_buff.find("http://");
+		if(begin==std::string::npos)
+			continue;                       //invalid response
+		std::string::size_type end=recv_buff.find("\r",begin);
+		if(end==std::string::npos)
 			continue;    //invalid response
-		
+
 		describe_url=describe_url.assign(recv_buff,begin,end-begin);
 
 		if(!get_description()){
@@ -244,15 +244,15 @@ bool UPNPNAT::discovery()
 			continue;
 		}
 
-        closesocket(udp_socket_fd);
+		closesocket(udp_socket_fd);
 		status=NAT_FOUND;					//find a router
 		return true ;
-    }
+	}
 
 	status=NAT_ERROR;
 	last_error="Fail to find an UPNP NAT.\n";
 
-    return false;                               //no router finded 
+	return false;                               //no router finded 
 }
 
 bool UPNPNAT::get_description()
@@ -266,17 +266,17 @@ bool UPNPNAT::get_description()
 		last_error="Failed to parseURl: "+describe_url+"\n";
 		return false;
 	}
-	
+
 	//connect 
 	ret=tcp_connect(host.c_str(),port);
 	if(!ret){
 		return false;
 	}
-	
+
 	char request[200];
 	sprintf (request,"GET %s HTTP/1.1\r\nHost: %s:%d\r\n\r\n",path.c_str(),host.c_str(),port); 
 	std::string http_request=request;
-	
+
 	//send request
 	ret=send(tcp_socket_fd,http_request.c_str(),http_request.size(),0);
 	//get description xml file
@@ -303,7 +303,7 @@ bool UPNPNAT::parser_description()
 		last_error="The device descripe XML file is not a valid XML file. Cann't find root element.\n";
 		return false;
 	}
-	
+
 	XMLNode baseURL_node=node.getChildNode("URLBase",0);
 	if(!baseURL_node.getText())
 	{
@@ -318,7 +318,7 @@ bool UPNPNAT::parser_description()
 	}
 	else
 		base_url=baseURL_node.getText();
-	
+
 	int num,i;
 	XMLNode device_node,deviceList_node,deviceType_node;
 	num=node.nChildNode("device");
@@ -391,7 +391,7 @@ bool UPNPNAT::parser_description()
 		last_error="Fail to find device \"urn:schemas-upnp-org:device:WANConnectionDevice:1\"\n";
 		return false;
 	}	
-	
+
 	XMLNode serviceList_node,service_node,serviceType_node;
 	serviceList_node=device_node.getChildNode("serviceList",0);
 	if(serviceList_node.isEmpty())
@@ -428,7 +428,7 @@ bool UPNPNAT::parser_description()
 	}
 
 	this->service_type=serviceType;
-	
+
 	XMLNode controlURL_node=service_node.getChildNode("controlURL");
 	control_url=controlURL_node.getText();
 
@@ -437,7 +437,7 @@ bool UPNPNAT::parser_description()
 		control_url=base_url+control_url;
 	if(service_describe_url.find("http://")==std::string::npos&&service_describe_url.find("HTTP://")==std::string::npos)
 		service_describe_url=base_url+service_describe_url;
-	
+
 	closesocket(tcp_socket_fd);
 	status=NAT_GETCONTROL;
 	return true;	
@@ -457,24 +457,24 @@ bool UPNPNAT::add_port_mapping(char * _description, char * _destination_ip, unsi
 		last_error="Fail to parseURl: "+describe_url+"\n";
 		return false;
 	}
-	
+
 	//connect 
 	ret=tcp_connect(host.c_str(),port);
 	if(!ret)
 		return false;
-	
+
 	char buff[MAX_BUFF_SIZE+1];
 	sprintf(buff,ADD_PORT_MAPPING_PARAMS,_port_ex,_protocal,_port_in,_destination_ip,_description);
 	std::string action_params=buff;
-	
+
 	sprintf(buff,SOAP_ACTION,ACTION_ADD,service_type.c_str(),action_params.c_str(),ACTION_ADD);
 	std::string soap_message=buff;
-    
+
 	sprintf(buff,HTTP_HEADER_ACTION,path.c_str(),host.c_str(),port,service_type.c_str(),ACTION_ADD,soap_message.size());
 	std::string action_message=buff;
-	
+
 	std::string http_request=action_message+soap_message;
-	
+
 	//send request
 	ret=send(tcp_socket_fd,http_request.c_str(),http_request.size(),0);
 

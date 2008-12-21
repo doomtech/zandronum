@@ -16,7 +16,7 @@ class UPNPNAT
 #endif
 {
 public:
- 
+
 	bool init(int time_out=DefaultTimeOut,int interval=DefaultInterval); //init
 	bool discovery();//find router
 
@@ -50,8 +50,8 @@ private:
 		NAT_ERROR
 	} NAT_STAT;
 	NAT_STAT status;
-    int time_out;
-    int interval;
+	int time_out;
+	int interval;
 	std::string service_type;
 	std::string describe_url;
 	std::string control_url;
