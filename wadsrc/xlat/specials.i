@@ -8,6 +8,8 @@
 //**************************************************************************
 
 special
+	160:Sector_Set3DFloor(1,4),
+	54:FS_Execute(1,2),
 	80:ACS_Execute(2,5),
 	81:ACS_Suspend(2),
 	82:ACS_Terminate(2),
