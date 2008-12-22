@@ -400,6 +400,10 @@ actors/hexen/hexenspawners.txt		decorate/hexen/hexenspawners.txt
 # Bot definitions
 botinfo.txt									botinfo.txt
 
+# [RC] "In console" icon.
+sprites/CNSLA0.png							CNSLA0.png
+sprites/CNSLB0.png							CNSLB0.png
+
 # The bots' chatfiles.
 bots/chatfiles/1337.txt						bots/chatfiles/1337.txt
 bots/chatfiles/chubbs.txt					bots/chatfiles/chubbs.txt
