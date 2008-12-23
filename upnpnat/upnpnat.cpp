@@ -444,7 +444,7 @@ bool UPNPNAT::parser_description()
 }
 
 
-bool UPNPNAT::add_port_mapping(char * _description, char * _destination_ip, unsigned short int _port_ex, unsigned short int _port_in, char * _protocal)
+bool UPNPNAT::add_port_mapping(const char * _description, const char * _destination_ip, unsigned short int _port_ex, unsigned short int _port_in, const char * _protocal)
 {
 	int ret;
 

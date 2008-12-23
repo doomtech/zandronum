@@ -23,7 +23,7 @@ public:
 	 **** _destination_port: internal port
 	 **** _protocal: TCP or UDP
 	 ***/
-	bool add_port_mapping(char * _description, char * _destination_ip, unsigned short int _port_ex, unsigned short int _destination_port, char * _protocal);//add port mapping
+	bool add_port_mapping(const char * _description, const char * _destination_ip, unsigned short int _port_ex, unsigned short int _destination_port, const char * _protocal);//add port mapping
 
 	const char * get_last_error(){ return last_error.c_str();}//get last error
 private:

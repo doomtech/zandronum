@@ -557,6 +557,13 @@ NETADDRESS_s NETWORK_GetLocalAddress( void )
 
 //*****************************************************************************
 //
+NETADDRESS_s	NETWORK_GetCachedLocalAddress( void )
+{
+	return g_LocalAddress;
+}
+
+//*****************************************************************************
+//
 NETBUFFER_s *NETWORK_GetNetworkMessageBuffer( void )
 {
 	return ( &g_NetworkMessage );
