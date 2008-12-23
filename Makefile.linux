@@ -56,6 +56,9 @@ CPPOBJFILES = $(notdir $(patsubst %.cpp,%.o,$(CPPSRCS)))
 COBJFILES = $(notdir $(patsubst %.c,%.o,$(CSRCS)))
 AOBJFILES = $(notdir $(patsubst %.nas,%.o,$(ASRCS)))
 
+VPATH += upnpnat/
+CPPSRCS += upnpnat/upnpnat.cpp upnpnat/xmlParser.cpp
+
 ifndef SERVERONLY
   ZDOOM = ../skulltag
   ZDOOMDEBUG = ../skulltag-debug
