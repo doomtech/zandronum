@@ -60,6 +60,8 @@
 #include "gl/gl_functions.h"
 #include "gl/gl_shader.h"
 
+#include "gl/gl_hqresize.h"
+
 CUSTOM_CVAR(Bool, gl_warp_shader, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
 {
 	if (self && !(gl.flags & RFL_GLSL)) self=0;
@@ -1752,6 +1754,9 @@ unsigned char * FGLTexture::CreateTexBuffer(int _cm, int translation, const byte
 				GetTopOffset() - tex->TopOffset, cm, translation);
 	}
 	*/
+
+	// [BB] Potentially upsample the buffer.
+	buffer = gl_CreateUpsampledTextureBuffer ( this, buffer, Width, Height, w, h );
 
 	return buffer;
 }

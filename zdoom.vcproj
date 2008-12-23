@@ -10113,6 +10113,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\gl\gl_hqresize.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\gl\gl_light.cpp"
 					>
 				</File>
@@ -10242,6 +10246,10 @@
 				</File>
 				<File
 					RelativePath=".\src\gl\gl_glow.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\gl\gl_hqresize.h"
 					>
 				</File>
 				<File
