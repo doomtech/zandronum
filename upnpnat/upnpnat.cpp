@@ -2,6 +2,8 @@
 #include <winsock2.h>
 #else
 // [BB] Some platform specific includes and defines to make the Windows code compile under Linux.
+#include <sys/socket.h>
+#include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/ioctl.h>
 #define _sleep(x) usleep(x*1000)
