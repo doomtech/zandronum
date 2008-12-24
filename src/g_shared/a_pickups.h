@@ -283,6 +283,7 @@ enum
 	WIF_ALLOW_WITH_RESPAWN_INVUL	= 0x00004000,	// The player can continue to wield this weapon even with respawn invulnerability active.
 	WIF_RADIUSDAMAGE_BOSSES			= 0x00008000,	// This weapon does damage to bosses and other monsters that have the MF3_NORADIUSDMG flag.
 	WIF_NOLMS						= 0x00010000,	// Don't give this weapon in LMS games.
+	WIF_NOAUTOAIM				= 0x00020000, // [BB] If the level allows freelook, this weapon behaves as if CVAR autoaim was 0.
 
 	WIF_CHEATNOTWEAPON	=	1<<27,		// Give cheat considers this not a weapon (used by Sigil)
 
