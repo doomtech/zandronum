@@ -57,6 +57,11 @@ CUSTOM_CVAR(Int, gl_texture_hqresize, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR
 	FGLTexture::FlushAll();
 }
 
+CUSTOM_CVAR(Int, gl_texture_hqresize_maxinputsize, 512, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
+{
+	FGLTexture::FlushAll();
+}
+
 void scale2x ( uint32* inputBuffer, uint32* outputBuffer, int inWidth, int inHeight )
 {
 	const int width = 2* inWidth;
@@ -180,6 +185,10 @@ unsigned char *scaleNxHelper( void (*scaleNxFunction) ( uint32* , uint32* , int 
 //===========================================================================
 unsigned char *gl_CreateUpsampledTextureBuffer ( const FGLTexture *inputGLTexture, unsigned char *inputBuffer, const int inWidth, const int inHeight, int &outWidth, int &outHeight )
 {
+	// [BB] Don't resample if the width or height of the input texture is bigger than gl_texture_hqresize_maxinputsize.
+	if ( ( inWidth > gl_texture_hqresize_maxinputsize ) || ( inHeight > gl_texture_hqresize_maxinputsize ) )
+		return inputBuffer;
+
 	bool upsample = false;
 /*
 	BYTE useType = inputGLTexture->tex->UseType;
@@ -200,11 +209,11 @@ unsigned char *gl_CreateUpsampledTextureBuffer ( const FGLTexture *inputGLTextur
 		int type = gl_texture_hqresize;
 		switch (type)
 		{
-		case 2:
+		case 1:
 			return scaleNxHelper( &scale2x, 2, inputBuffer, inWidth, inHeight, outWidth, outHeight );
-		case 3:
+		case 2:
 			return scaleNxHelper( &scale3x, 3, inputBuffer, inWidth, inHeight, outWidth, outHeight );
-		case 4:
+		case 3:
 			return scaleNxHelper( &scale4x, 4, inputBuffer, inWidth, inHeight, outWidth, outHeight );
 		}
 	}

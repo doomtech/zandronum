@@ -17,11 +17,11 @@
 
 *+	- Added full TEAMINFO support across all game modes. [Karate Chris, Torr Samaho]
 *+	- Optimized the actor spawning code. The name of the actors used to be sent across the network, but now only a 'short' is sent. [Karate Chris, Torr Samaho]
-*+	- Added a custom implementation of the Scale2x/3x/4x algorithm as proposed in http://scale2x.sourceforge.net/ to the OpenGL renderer. This should get rid of the blurriness caused by OpenGL filtering and is controlled by the new CVAR gl_texture_hqresize, which defaults to 0. [Torr Samaho]
+*+	- Added a custom implementation of the Scale2x/3x/4x algorithm as proposed in http://scale2x.sourceforge.net/ to the OpenGL renderer. This should get rid of the blurriness caused by OpenGL filtering and is controlled by the new CVAR gl_texture_hqresize, which defaults to 0. Textures/sprites whose width or height exceeds the new CVAR gl_texture_hqresize_maxinputsize (default 512) are not upsampled. [Torr Samaho]
 		gl_texture_hqresize == 0 : no scaling
-		gl_texture_hqresize == 2 : Scale2x algorithm
-		gl_texture_hqresize == 3 : Scale3x algorithm
-		gl_texture_hqresize == 4 : Scale4x algorithm
+		gl_texture_hqresize == 1 : Scale2x algorithm
+		gl_texture_hqresize == 2 : Scale3x algorithm
+		gl_texture_hqresize == 3 : Scale4x algorithm
 +	- Added UPnP support (invoked by the command line parameter "-upnp"). If used, the server tries to automatically add a port mapping on the router that connects the server to the internet. The external port of the mapping can be overridden by #n, if Skulltag is invoked with "-upnp #n". [Torr Samaho]
 +	- Added medal families: "higher" medals, such as incredible, now immediately replace lower medals, such as excellent. This means that when on a spree, you can go right from excellent to incredible, accuracy to precision, impressive to most impressive, and so on without waiting for the lower medal to slide off. Overall this makes the queue run a lot faster, especially if you have a large backlog of medals. [Rivecoder]
 +	- Added an "in console" icon that's shown above a player's head when he's in the menu or console. [Rivecoder, Torr Samaho]

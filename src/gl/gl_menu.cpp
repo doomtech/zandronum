@@ -35,6 +35,7 @@ EXTERN_CVAR(Bool, gl_brightmap_shader)
 EXTERN_CVAR (Float, gl_light_ambient)
 EXTERN_CVAR(Int, gl_billboard_mode)
 EXTERN_CVAR(Int, gl_particles_style)
+EXTERN_CVAR(Int, gl_texture_hqresize)
 
 static value_t SpriteclipModes[]=
 {
@@ -120,6 +121,13 @@ static value_t Particles[] =
 	{ 2.0, "Smooth" },
 };
 
+static value_t HqResizeModes[] =
+{
+   { 0.0, "Off" },
+   { 1.0, "Scale2x" },
+   { 2.0, "Scale3x" },
+   { 3.0, "Scale4x" },
+};
 
 
 menuitem_t OpenGLItems[] = {
@@ -150,6 +158,7 @@ menuitem_t OpenGLItems[] = {
 	{ discrete, "Anisotropic filter",		{&gl_texture_filter_anisotropic},{5.0},{0.0}, {0.0}, {Anisotropy} },
 	{ discrete, "Texture Format",			{&gl_texture_format},			{8.0}, {0.0}, {0.0}, {TextureFormats} },
 	{ discrete, "Enable hires textures",	{&gl_texture_usehires},			{2.0}, {0.0}, {0.0}, {YesNo} },
+	{ discrete, "High Quality Resize mode",	{&gl_texture_hqresize},			{4.0}, {0.0}, {0.0}, {HqResizeModes} },
 	{ discrete, "Precache GL textures",		{&gl_precache},					{2.0}, {0.0}, {0.0}, {YesNo} },
 };
 
