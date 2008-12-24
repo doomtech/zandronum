@@ -62,6 +62,11 @@ CUSTOM_CVAR(Int, gl_texture_hqresize_maxinputsize, 512, CVAR_ARCHIVE | CVAR_GLOB
 	FGLTexture::FlushAll();
 }
 
+CUSTOM_CVAR(Int, gl_texture_hqresize_target, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
+{
+	FGLTexture::FlushAll();
+}
+
 void scale2x ( uint32* inputBuffer, uint32* outputBuffer, int inWidth, int inHeight )
 {
 	const int width = 2* inWidth;
@@ -189,18 +194,28 @@ unsigned char *gl_CreateUpsampledTextureBuffer ( const FGLTexture *inputGLTextur
 	if ( ( inWidth > gl_texture_hqresize_maxinputsize ) || ( inHeight > gl_texture_hqresize_maxinputsize ) )
 		return inputBuffer;
 
-	bool upsample = false;
-/*
-	BYTE useType = inputGLTexture->tex->UseType;
-	if ( ( useType == FTexture::TEX_Sprite )
-	     || ( useType == FTexture::TEX_SkinSprite )
-	     || ( useType == FTexture::TEX_FontChar ) )
-		upsample = true;
-*/
+	// [BB] The hqnx upsampling (not the scaleN one) destroys partial transparency, don't upsamle textures using it.
+	if ( inputGLTexture->bIsTransparent == 1 )
+		return inputBuffer;
 
-	// [BB] The hqnx upsampling destroys partial transparency, don't upsamle textures using it.
-	if ( inputGLTexture->bIsTransparent != 1 )
-		upsample = true;
+	bool upsample = false;
+
+	switch (gl_texture_hqresize_target)
+	{
+	case 0:
+		{
+			upsample = true;
+			break;
+		}
+	case 1:
+		{
+			BYTE useType = inputGLTexture->tex->UseType;
+			if ( ( useType == FTexture::TEX_Sprite )
+				|| ( useType == FTexture::TEX_SkinSprite )
+				|| ( useType == FTexture::TEX_FontChar ) )
+				upsample = true;
+		}
+	}
 
 	if ( inputBuffer && upsample )
 	{

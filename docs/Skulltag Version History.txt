@@ -17,7 +17,7 @@
 
 *+	- Added full TEAMINFO support across all game modes. [Karate Chris, Torr Samaho]
 *+	- Optimized the actor spawning code. The name of the actors used to be sent across the network, but now only a 'short' is sent. [Karate Chris, Torr Samaho]
-*+	- Added a custom implementation of the Scale2x/3x/4x algorithm as proposed in http://scale2x.sourceforge.net/ to the OpenGL renderer. This should get rid of the blurriness caused by OpenGL filtering and is controlled by the new CVAR gl_texture_hqresize, which defaults to 0. Textures/sprites whose width or height exceeds the new CVAR gl_texture_hqresize_maxinputsize (default 512) are not upsampled. [Torr Samaho]
+*+	- Added a custom implementation of the Scale2x/3x/4x algorithm as proposed in http://scale2x.sourceforge.net/ to the OpenGL renderer. This should get rid of the blurriness caused by OpenGL filtering and is controlled by the new CVAR gl_texture_hqresize, which defaults to 0. Textures/sprites whose width or height exceeds the new CVAR gl_texture_hqresize_maxinputsize (default 512) are not upsampled. The new CVAR gl_texture_hqresize_target (default 0) controls whether everything should be upsampled (value 0) or sprites and fonts only (value 1). [Torr Samaho]
 		gl_texture_hqresize == 0 : no scaling
 		gl_texture_hqresize == 1 : Scale2x algorithm
 		gl_texture_hqresize == 2 : Scale3x algorithm
