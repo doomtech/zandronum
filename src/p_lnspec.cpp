@@ -867,7 +867,7 @@ FUNC(LS_ThrustThing)
 static void ThrustThingHelper (AActor *it, angle_t angle, int force, INTBOOL nolimit)
 {
 	// [BB] This is server side.
-	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+	if ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) && !( it->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) )
 		return;
 
 	angle >>= ANGLETOFINESHIFT;
