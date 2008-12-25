@@ -4937,7 +4937,7 @@ static bool server_CallVote( BYTESTREAM_s *pByteStream )
 		break;
 	case VOTECMD_CHANGEMAP:
 
-		if ( sv_nomapvote )
+		if ( sv_nochangemapvote )
 			return ( false );
 		sprintf( szCommand, "changemap" );
 		break;
