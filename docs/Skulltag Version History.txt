@@ -101,6 +101,7 @@
 !	- Changed: In a single player campaign with a team based game mode, you can now rejoin after spectating with the in game join team menu, if you select the team the campaign wants you to have. [Torr Samaho]
 !	- Hard-coded bots have been exported to BOTINFO. [Blzut3]
 !	- Changed: If ArtiTeleport is used in a team game and the user is on a team with valid starts on the current map, the user is now teleported to a random team start of the user's team. [Torr Samaho]
+!	- Changed: GrenadeLauncher doesn't auto aim anymore (it now has the NOAUTOAIM weapon flag). [Torr Samaho]
 
 v0.97d2
 -------
