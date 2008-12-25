@@ -997,6 +997,10 @@ void FBaseStatusBar::DrawCrosshair ()
 		return;
 	}
 
+	// [BB] Don't draw the crosshair if the compatflags forbid it.
+	if ( compatflags & COMPATF_NO_CROSSHAIR )
+		return;
+
 	if (crosshairscale)
 	{
 		size = SCREENHEIGHT * FRACUNIT / 200;
