@@ -1,0 +1,13 @@
+===============================================================================
+
+	RCON Utility - "To Do" List
+	
+===============================================================================
+
+- Favorites list
+	- Store IP, name, password
+	- Fast access via menu
+- Improve support for multiple sessions
+	- mIRC-like MDI setup?
+- Player list
+	- Kick/ban menu, etc
