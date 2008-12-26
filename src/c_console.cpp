@@ -1567,6 +1567,16 @@ void C_HideConsole ()
 		ConsoleState = c_up;
 		ConBottom = 0;
 		HistPos = NULL;
+
+		// [BB] We are not in console anymore, so set bInConsole if necessary.
+		if ( players[consoleplayer].bInConsole )
+		{
+			players[consoleplayer].bInConsole = false;
+
+			// [RC] Tell the server so our "in console" icon is removed.
+			if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
+				CLIENTCOMMANDS_ExitConsole( );
+		}
 	}
 }
 
