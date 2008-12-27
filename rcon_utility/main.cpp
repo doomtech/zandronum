@@ -264,6 +264,7 @@ DWORD WINAPI main_Loop( LPVOID )
 				main_ShowMessage( "That address doesn't seem valid; there was no response.", MB_ICONEXCLAMATION );
 				main_SetState( STATE_WAITING );
 				main_EnableConnectionButtons( TRUE );
+				g_iRetries = 0;
 			}
 		}
 
