@@ -89,7 +89,7 @@ v0.97d3 RC1
 -	- Fixed: Under certain circumstances changing the CVAR playerclass messed up the ColorRange property of the console player skin (fixed itself upon respawning). [Torr Samaho]
 -	- Removed the default values for sv_motd, sv_website, and sv_hostemail. sv_motd would show the wrong version over time, and the others should be blank if not set by the server hoster. [Rivecoder]
 -	- Fixed: Online a player and all its corpses used the same translation, i.e. if a player changed his color all corpses of this player changed their color too. [Torr Samaho]
--	- Fixed: The new fullscreen HUD doesn't respect the maxplayer property of the current player class. [Torr Samaho]
+-	- Fixed: The new fullscreen HUD doesn't respect the maxhealth property of the current player class. [Torr Samaho]
 -	- Fixed: Instagib ignored the ammo types of Railgun replacements. [Blzut3]
 -	- Fixed: After changing the map online or a map reset, the game possibly crashes when using cl_stfullscreenhud == false. [Torr Samaho]
 -	- Fixed: ParticleFountain doesn't work properly online for the first player that connects to a server. [Torr Samaho]
