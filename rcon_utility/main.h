@@ -63,6 +63,7 @@ typedef enum
 
 typedef struct
 {
+	char	szName[128];
 	char	szAddress[128];
 	char	szPassword[128];
 

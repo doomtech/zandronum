@@ -4,8 +4,6 @@
 	
 ===============================================================================
 
-- Favorites list
-	- Store name
 - Improve support for multiple sessions
 	- mIRC-like MDI setup?
 - Player list

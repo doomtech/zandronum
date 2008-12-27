@@ -169,6 +169,7 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 	g_Config.ChangePathName( "settings.ini" );
 	g_Config.LoadConfigFile( NULL, NULL );
 
+	// Read the user's favorites.
 	if ( g_Config.SetSection("Favorites"))
 	{			
 		const char *key;
@@ -177,8 +178,14 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 		while ( g_Config.NextInSection( key, value ))
 		{
 			FAVORITE_s fav;
-			strncpy( fav.szAddress, key, 128 );
-			strncpy( fav.szPassword, value, 128 );
+
+			strncpy( fav.szName, key, 128 );
+			fav.szName[128] = 0;
+			strncpy( fav.szAddress, value, strchr( value, '/' ) - value );
+			fav.szAddress[strchr( value, '/' ) - value] = 0;
+			strncpy( fav.szPassword, strchr( value, '/' ) + 1, 128 );
+			fav.szPassword[128] = 0;
+
 			g_Favorites.push_back( fav );			
 		}
 	}
@@ -384,7 +391,7 @@ BOOL CALLBACK main_ConnectDialogCallback( HWND hDlg, UINT Message, WPARAM wParam
 			g_hFavoritesMenu = CreatePopupMenu( );
 			int iIndex = 1;
 			for( std::vector<FAVORITE_s>::iterator i = g_Favorites.begin(); i != g_Favorites.end(); ++i )			
-				AppendMenu( g_hFavoritesMenu, MF_STRING, IDR_DYNAMIC_MENU + iIndex++, (LPCTSTR)(&(*i->szAddress)) );
+				AppendMenu( g_hFavoritesMenu, MF_STRING, IDR_DYNAMIC_MENU + iIndex++, (LPCTSTR)(&(*i->szName)) );
 
 			// Create the tray menu.
 			g_hTrayMenu = CreatePopupMenu( );
