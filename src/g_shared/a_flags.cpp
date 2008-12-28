@@ -339,14 +339,18 @@ bool ATeamItem::HandlePickup( AInventory *pItem )
 
 LONG ATeamItem::AllowFlagPickup( AActor *pToucher )
 {
-	// [BB] Only players can pick up team items.
-	if ( pToucher->player == NULL )
+	// [BB] Only players on a team can pick up team items.
+	if (( pToucher == NULL ) || ( pToucher->player == NULL ) || ( pToucher->player->bOnTeam == false ))
 		return ( DENY_PICKUP );
 
 	// [BB] Players are always allowed to return their own dropped team item.
 	if (( this->GetClass( ) == TEAM_GetItem( pToucher->player->ulTeam )) &&
 		( this->flags & MF_DROPPED ))
 		return ( RETURN_FLAG );
+
+	// [BB] If a client gets here, the server already made all necessary checks. So just allow the pickup.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ) == true ))
+		return ( ALLOW_PICKUP );
 
 	// [BB] If a player already carries an enemy team item, don't let him pick up another one.
 	if ( TEAM_FindOpposingTeamsItemInPlayersInventory ( pToucher->player ) )
@@ -356,6 +360,7 @@ LONG ATeamItem::AllowFlagPickup( AActor *pToucher )
 	if ( TEAM_CountPlayers ( TEAM_GetTeamFromItem ( this ) ) == 0 )
 		return ( DENY_PICKUP );
 
+	/* [BB] What is this check for? The server doesn't spawn pIcon, so we can't use it for any comparison.
 	for ( ULONG i = 0; i < MAXPLAYERS; i++ )
 	{
 		if ( playeringame[i] )
@@ -364,8 +369,13 @@ LONG ATeamItem::AllowFlagPickup( AActor *pToucher )
 				return ( DENY_PICKUP );
 		}
 	}
+	*/
 
-	return ( ALLOW_PICKUP );
+	// Player is touching the enemy flag.
+	if ( this->GetClass( ) != TEAM_GetItem( pToucher->player->ulTeam ))
+		return ( ALLOW_PICKUP );
+
+	return ( DENY_PICKUP );
 }
 
 //===========================================================================
@@ -648,24 +658,7 @@ LONG AFlag::AllowFlagPickup( AActor *pToucher )
 	if ( oneflagctf )
 		return ( DENY_PICKUP );
 
-	if (( pToucher == NULL ) || ( pToucher->player == NULL ) || ( pToucher->player->bOnTeam == false ))
-		return ( DENY_PICKUP );
-
-	if ( Super::AllowFlagPickup( pToucher ) == DENY_PICKUP )
-		return ( DENY_PICKUP );
-
-	// Player is touching the enemy flag.
-	if ( this->GetClass( ) != TEAM_GetItem( pToucher->player->ulTeam ))
-		return ( ALLOW_PICKUP );
-
-	// Player is touching his own flag. If it's dropped, allow him to return it.
-	if (( this->GetClass( ) == TEAM_GetItem( pToucher->player->ulTeam )) &&
-		( this->flags & MF_DROPPED ))
-	{
-		return ( RETURN_FLAG );
-	}
-
-	return ( DENY_PICKUP );
+	return Super::AllowFlagPickup( pToucher );
 }
 
 //===========================================================================
@@ -1349,24 +1342,7 @@ END_DEFAULTS
 
 LONG ASkull::AllowFlagPickup( AActor *pToucher )
 {
-	if (( pToucher == NULL ) || ( pToucher->player == NULL ) || ( pToucher->player->bOnTeam == false ))
-		return ( DENY_PICKUP );
-
-	if ( Super::AllowFlagPickup( pToucher ) == DENY_PICKUP )
-		return ( DENY_PICKUP );
-
-	// Player is touching the enemy flag.
-	if ( this->GetClass( ) != TEAM_GetItem( pToucher->player->ulTeam ))
-		return ( ALLOW_PICKUP );
-
-	// Player is touching his own flag. If it's dropped, allow him to return it.
-	if (( this->GetClass( ) == TEAM_GetItem( pToucher->player->ulTeam )) &&
-		( this->flags & MF_DROPPED ))
-	{
-		return ( RETURN_FLAG );
-	}
-
-	return ( DENY_PICKUP );
+	return Super::AllowFlagPickup( pToucher );
 }
 
 //===========================================================================
