@@ -18,6 +18,7 @@
 -	- Fixed: When using the CCMD kill in the console, the "in console" icon over the player's head was not removed. [Torr Samaho]
 -	- Fixed: Detection of the local IP under Linux did not work properly. [Torr Samaho]
 -	- Fixed: The ScaleNx code messed up camera textures. [Torr Samaho]
+-	- Fixed some seemingly random problems occurring to clients in CTF or Skulltag games. [Torr Samaho]
 
 v0.97d3 RC1
 -----------

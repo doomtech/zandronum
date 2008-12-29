@@ -77,75 +77,6 @@ END_DEFAULTS
 
 //===========================================================================
 //
-// ATeamItem :: Tick
-//
-// Move the flag above a player's head when necessary.
-//
-//===========================================================================
-
-void ATeamItem::Tick( )
-{
-	Super::Tick( );
-
-	// Delete stray icons. This shouldn't ever happen.
-	if ( !tracer || !tracer->player || !tracer->player->pIcon || tracer->player->pIcon->GetClass( ) != this->GetClass( ))
-		return;
-
-	// Make the icon float directly above the player's head.
-	SetOrigin( tracer->x, tracer->y, tracer->z + tracer->height + ( 4 * FRACUNIT ));
-
-	this->alpha = OPAQUE;
-	this->RenderStyle = STYLE_Normal;
-
-	if ( this->lTick )
-	{
-		this->lTick--;
-		if ( this->lTick )
-		{
-			// If the icon is fading out, ramp down the alpha.
-			if ( this->lTick <= TICRATE )
-			{
-				this->alpha = (LONG)( OPAQUE * (float)( (float)lTick / (float)TICRATE ));
-				this->RenderStyle = STYLE_Translucent;
-			}
-		}
-		else
-			return;
-	}
-
-	// If the tracer has some type of visibility affect, apply it to the icon.
-	if ( tracer->RenderStyle != STYLE_Normal || tracer->alpha != OPAQUE )
-	{
-		this->RenderStyle = tracer->RenderStyle;
-		this->alpha = tracer->alpha;
-	}
-}
-
-//===========================================================================
-//
-// ATeamItem :: SetTracer
-//
-// Set the tracer.
-//
-//===========================================================================
-
-void ATeamItem::SetTracer( AActor *pTracer )
-{
-	tracer = pTracer;
-
-	// Make the icon float directly above the tracer's head.
-	SetOrigin( tracer->x, tracer->y, tracer->z + tracer->height + ( 4 * FRACUNIT ));
-
-	// If the tracer has some type of visibility affect, apply it to the icon.
-	if ( tracer->RenderStyle != STYLE_Normal || tracer->alpha != OPAQUE )
-	{
-		this->RenderStyle = tracer->RenderStyle;
-		this->alpha = tracer->alpha;
-	}
-}
-
-//===========================================================================
-//
 // ATeamItem :: ShouldRespawn
 //
 // A flag should never respawn, so this function should always return false.
@@ -359,17 +290,6 @@ LONG ATeamItem::AllowFlagPickup( AActor *pToucher )
 	// [BB] If the team the item belongs to doesn't have any players, don't let it be picked up.
 	if ( TEAM_CountPlayers ( TEAM_GetTeamFromItem ( this ) ) == 0 )
 		return ( DENY_PICKUP );
-
-	/* [BB] What is this check for? The server doesn't spawn pIcon, so we can't use it for any comparison.
-	for ( ULONG i = 0; i < MAXPLAYERS; i++ )
-	{
-		if ( playeringame[i] )
-		{ 
-			if ( players[i].pIcon && players[i].pIcon->pTeamItem == this )
-				return ( DENY_PICKUP );
-		}
-	}
-	*/
 
 	// Player is touching the enemy flag.
 	if ( this->GetClass( ) != TEAM_GetItem( pToucher->player->ulTeam ))

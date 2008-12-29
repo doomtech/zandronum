@@ -950,7 +950,11 @@ void medal_SelectIcon( ULONG ulPlayer )
 	AInventory	*pInventory;
 	player_s	*pPlayer;
 	ULONG		ulActualSprite = 65535;
-	ULONG		ulThisTeam = teams.Size( );
+	// [BB] If ulPlayer carries a TeamItem, e.g. flag or skull, we store a pointer
+	// to it in pTeamItem and set the floaty icon to the carry (or spawn) state of
+	// the TeamItem. We also need to copy the Translation of the TeamItem to the
+	// FloatyIcon.
+	AInventory	*pTeamItem = NULL;
 
 	if ( ulPlayer >= MAXPLAYERS )
 		return;
@@ -1158,9 +1162,10 @@ void medal_SelectIcon( ULONG ulPlayer )
 
 				if ( ctf || skulltag )
 				{
-					for ( ulThisTeam = 0; ulThisTeam < teams.Size( ); ulThisTeam++ )
+					for ( ULONG ulThisTeam = 0; ulThisTeam < teams.Size( ); ulThisTeam++ )
 					{
-						if ( pPlayer->mo->FindInventory( TEAM_GetItem( ulThisTeam )))
+						pTeamItem = pPlayer->mo->FindInventory( TEAM_GetItem( ulThisTeam ));
+						if ( pTeamItem )
 						{
 							ulFrame = 0;
 							ulDesiredSprite = SPRITE_TEAMITEM;
@@ -1192,33 +1197,26 @@ void medal_SelectIcon( ULONG ulPlayer )
 			{
 				if ( pPlayer->pIcon == NULL )
 				{
-					if ( ulThisTeam != teams.Size( ))
+					pPlayer->pIcon = Spawn<AFloatyIcon>( pPlayer->mo->x, pPlayer->mo->y, pPlayer->mo->z + pPlayer->mo->height + ( 4 * FRACUNIT ), NO_REPLACE );
+					if ( pTeamItem )
 					{
-						ATeamItem *pTeamItem = static_cast<ATeamItem *>( Spawn( TEAM_GetItem( ulThisTeam ), pPlayer->mo->x, pPlayer->mo->y, pPlayer->mo->z + pPlayer->mo->height + ( 4 * FRACUNIT ), NO_REPLACE ));
-
-						pPlayer->pIcon = (AFloatyIcon *)pTeamItem;
 						pPlayer->pIcon->bTeamItemFloatyIcon = true;
-						pPlayer->pIcon->pTeamItem = pTeamItem;
 
-						FName Name;
-	
-						Name = "Carry";
+						FName Name = "Carry";
 
-						FState *CarryState = pPlayer->pIcon->FindState( Name );
+						FState *CarryState = pTeamItem->FindState( Name );
 
+						// [BB] If the TeamItem has a Carry state (like the built in flags), use it.
+						// Otherwise use the spawn state (the built in skulls don't have a carry state).
 						if ( CarryState )
-						{
-							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-								SERVERCOMMANDS_SetThingFrame( pPlayer->pIcon, CarryState );
-
 							pPlayer->pIcon->SetState( CarryState );
-						}
+						else
+							pPlayer->pIcon->SetState( pTeamItem->SpawnState );
+						pPlayer->pIcon->Translation = pTeamItem->Translation;
 					}
 					else
 					{
-						pPlayer->pIcon = Spawn<AFloatyIcon>( pPlayer->mo->x, pPlayer->mo->y, pPlayer->mo->z + pPlayer->mo->height + ( 4 * FRACUNIT ), NO_REPLACE );
 						pPlayer->pIcon->bTeamItemFloatyIcon = false;
-						pPlayer->pIcon->pTeamItem = NULL;
 					}
 				}
 
