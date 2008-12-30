@@ -65,6 +65,7 @@
 #include "r_state.h"
 #include "sbar.h"
 #include "version.h"
+#include "templates.h"
 
 //*****************************************************************************
 //	PROTOTYPES
@@ -248,7 +249,8 @@ void CLIENTDEMO_WriteUserInfo( void )
 void CLIENTDEMO_ReadUserInfo( void )
 {
 	sprintf( players[consoleplayer].userinfo.netname, "%s", NETWORK_ReadString( &g_ByteStream ));
-	players[consoleplayer].userinfo.gender = NETWORK_ReadByte( &g_ByteStream );
+	// [BB] Make sure that the gender is valid.
+	players[consoleplayer].userinfo.gender = clamp ( NETWORK_ReadByte( &g_ByteStream ), 0, 2 );
 	players[consoleplayer].userinfo.color = NETWORK_ReadLong( &g_ByteStream );
 	players[consoleplayer].userinfo.aimdist = NETWORK_ReadLong( &g_ByteStream );
 	players[consoleplayer].userinfo.skin = R_FindSkin( NETWORK_ReadString( &g_ByteStream ), players[consoleplayer].CurrentPlayerClass );
