@@ -174,7 +174,6 @@ public:
 	virtual void ReturnFlag( AActor *pReturner );
 	virtual void AnnounceFlagReturn( void );
 	virtual void DisplayFlagReturn( void );
-	virtual void Destroy( void );
 
 	LONG lTick;
 };

@@ -383,33 +383,6 @@ void ATeamItem::DisplayFlagReturn( void )
 {
 }
 
-//===========================================================================
-//
-// ATeamItem :: DisplayFlagReturn
-//
-// Special handling for destroying team items.
-//
-//===========================================================================
-
-void ATeamItem::Destroy( void )
-{
-	player_t *pPlayer;
-	ULONG ulPlayerIdx;
-
-	for ( ulPlayerIdx = 0; ulPlayerIdx < MAXPLAYERS; ulPlayerIdx++ )
-	{
-		pPlayer = &players[ulPlayerIdx];
-
-		if ( pPlayer && pPlayer->pIcon && pPlayer->pIcon->bTeamItemFloatyIcon )
-			break;
-	}
-
-	if ( pPlayer && pPlayer->mo )
-		Owner = pPlayer->mo;
-
-	Super::Destroy( );
-}
-
 // Skulltag flag ------------------------------------------------------------
 
 IMPLEMENT_STATELESS_ACTOR( AFlag, Any, -1, 0 )
