@@ -354,7 +354,7 @@ BOOL CALLBACK main_ConnectDialogCallback( HWND hDlg, UINT Message, WPARAM wParam
 			PAINTSTRUCT Ps;
 			RECT r;
 			r.left = 0;
-			r.top = 2;
+			r.top = 3;
 			r.bottom = 55;
 			r.right = 400;
 			main_PaintRectangle( BeginPaint(hDlg, &Ps), &r, RGB(255, 255, 255));
