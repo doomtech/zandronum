@@ -729,61 +729,21 @@ void AFlag::ReturnFlag( AActor *pReturner )
 		}
 	}
 
+	char szString[256];
 	if ( pReturner && pReturner->player )
 	{
 		// [RC] Create the "returned by" message for this team.
-		char szString[256];
-		DHUDMessageFadeOut	*pMsg;
 		ULONG playerIndex = ULONG( pReturner->player - players );
 		sprintf( szString, "\\c%cReturned by: %s", V_GetColorChar( TEAM_GetTextColor( players[playerIndex].ulTeam )), players[playerIndex].userinfo.netname );
-
-		V_ColorizeString( szString );
-
-		// Now, print it.
-		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-		{
-			screen->SetFont( SmallFont );
-			pMsg = new DHUDMessageFadeOut( szString,
-				1.5f,
-				TEAM_MESSAGE_Y_AXIS_SUB,
-				0,
-				0,
-				CR_UNTRANSLATED,
-				3.0f,
-				0.25f );
-			StatusBar->AttachMessage( pMsg, MAKE_ID( 'S','U','B','S' ));
-		}
-		// If necessary, send it to clients.
-		else
-			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_UNTRANSLATED, 3.0f, 0.25f, "SmallFont", false, MAKE_ID( 'S','U','B','S' ));
 	}
 	else
 	{
 		// [RC] Create the "returned automatically" message for this team.
-		char szString[256];
-		DHUDMessageFadeOut	*pMsg;
 		sprintf( szString, "\\c%cReturned automatically.", V_GetColorChar( TEAM_GetTextColor( TEAM_GetTeamFromItem( this ))));
-
-		V_ColorizeString( szString );
-
-		// Now, print it.
-		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-		{
-			screen->SetFont( SmallFont );
-			pMsg = new DHUDMessageFadeOut( szString,
-				1.5f,
-				TEAM_MESSAGE_Y_AXIS_SUB,
-				0,
-				0,
-				CR_UNTRANSLATED,
-				3.0f,
-				0.25f );
-			StatusBar->AttachMessage( pMsg, MAKE_ID( 'S','U','B','S' ));
-		}
-		// If necessary, send it to clients.
-		else
-			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_UNTRANSLATED, 3.0f, 0.25f, "SmallFont", false, MAKE_ID( 'S','U','B','S' ));
 	}
+
+	V_ColorizeString( szString );
+	GAMEMODE_DisplaySUBSMessage( szString, true );
 }
 
 //===========================================================================
@@ -817,28 +777,13 @@ void AFlag::AnnounceFlagReturn( void )
 void AFlag::DisplayFlagReturn( void )
 {
 	char						szString[256];
-	DHUDMessageFadeOut			*pMsg;
 
 	// Create the "returned" message.
 	sprintf( szString, "\\c%c%s flag returned", V_GetColorChar( TEAM_GetTextColor ( TEAM_GetTeamFromItem( this ))), TEAM_GetName ( TEAM_GetTeamFromItem( this )));
 
 	V_ColorizeString( szString );
 
-	// Now, print it.
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-	{
-		screen->SetFont( BigFont );
-		pMsg = new DHUDMessageFadeOut( szString,
-			1.5f,
-			TEAM_MESSAGE_Y_AXIS,
-			0,
-			0,
-			CR_UNTRANSLATED,
-			3.0f,
-			0.25f );
-		StatusBar->AttachMessage( pMsg, MAKE_ID( 'C','N','T','R' ));
-		screen->SetFont( SmallFont );
-	}
+	GAMEMODE_DisplayCNTRMessage( szString, false );
 }
 
 // White flag ---------------------------------------------------------------
@@ -1200,27 +1145,12 @@ void AWhiteFlag::AnnounceFlagReturn( void )
 void AWhiteFlag::DisplayFlagReturn( void )
 {
 	char						szString[256];
-	DHUDMessageFadeOut			*pMsg;
 
 	// Create the "returned" message.
 	sprintf( szString, "\\cCWhite flag returned" );
 	V_ColorizeString( szString );
 
-	// Now, print it.
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-	{
-		screen->SetFont( BigFont );
-		pMsg = new DHUDMessageFadeOut( szString,
-			1.5f,
-			TEAM_MESSAGE_Y_AXIS,
-			0,
-			0,
-			CR_WHITE,
-			3.0f,
-			0.25f );
-		StatusBar->AttachMessage( pMsg, MAKE_ID( 'C','N','T','R' ));
-		screen->SetFont( SmallFont );
-	}
+	GAMEMODE_DisplayCNTRMessage( szString, false );
 }
 
 // Skulltag skull -----------------------------------------------------------
@@ -1413,62 +1343,21 @@ void ASkull::ReturnFlag( AActor *pReturner )
 		}
 	}
 
+	char szString[256];
 	if ( pReturner && pReturner->player )
 	{
 		// [RC] Create the "returned by" message for this team.
-		char szString[256];
-		DHUDMessageFadeOut	*pMsg;
 		ULONG playerIndex = ULONG( pReturner->player - players );
 		sprintf( szString, "\\c%cReturned by: %s", V_GetColorChar( TEAM_GetTextColor( players[playerIndex].ulTeam )), players[playerIndex].userinfo.netname );
-
-		V_ColorizeString( szString );
-
-		// Now, print it.
-		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-		{
-			screen->SetFont( SmallFont );
-			pMsg = new DHUDMessageFadeOut( szString,
-				1.5f,
-				TEAM_MESSAGE_Y_AXIS_SUB,
-				0,
-				0,
-				CR_UNTRANSLATED,
-				3.0f,
-				0.25f );
-			StatusBar->AttachMessage( pMsg, MAKE_ID( 'S','U','B','S' ));
-		}
-		// If necessary, send it to clients.
-		else
-			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_UNTRANSLATED, 3.0f, 0.25f, "SmallFont", false, MAKE_ID( 'S','U','B','S' ));
 	}
 	else
 	{
 		// [RC] Create the "returned automatically" message for this team.
-		char szString[256];
-		DHUDMessageFadeOut	*pMsg;
 		sprintf( szString, "\\c%cReturned automatically.", V_GetColorChar( TEAM_GetTextColor( TEAM_GetTeamFromItem( this ))));
-
-		V_ColorizeString( szString );
-
-		// Now, print it.
-		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-		{
-			screen->SetFont( SmallFont );
-			pMsg = new DHUDMessageFadeOut( szString,
-				1.5f,
-				TEAM_MESSAGE_Y_AXIS_SUB,
-				0,
-				0,
-				CR_UNTRANSLATED,
-				3.0f,
-				0.25f );
-			StatusBar->AttachMessage( pMsg, MAKE_ID( 'S','U','B','S' ));
-		}
-		// If necessary, send it to clients.
-		else
-			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_UNTRANSLATED, 3.0f, 0.25f, "SmallFont", false, MAKE_ID( 'S','U','B','S' ));
 	}
 
+	V_ColorizeString( szString );
+	GAMEMODE_DisplaySUBSMessage( szString, true );
 }
 
 //===========================================================================
@@ -1502,26 +1391,11 @@ void ASkull::AnnounceFlagReturn( void )
 void ASkull::DisplayFlagReturn( void )
 {
 	char						szString[256];
-	DHUDMessageFadeOut			*pMsg;
 
 	// Create the "returned" message.
 	sprintf( szString, "\\c%c%s skull returned", V_GetColorChar( TEAM_GetTextColor( TEAM_GetTeamFromItem( this ))), TEAM_GetName( TEAM_GetTeamFromItem( this )));
 
 	V_ColorizeString( szString );
 
-	// Now, print it.
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-	{
-		screen->SetFont( BigFont );
-		pMsg = new DHUDMessageFadeOut( szString,
-			1.5f,
-			TEAM_MESSAGE_Y_AXIS,
-			0,
-			0,
-			CR_UNTRANSLATED,
-			3.0f,
-			0.25f );
-		StatusBar->AttachMessage( pMsg, MAKE_ID( 'C','N','T','R' ));
-		screen->SetFont( SmallFont );
-	}
+	GAMEMODE_DisplayCNTRMessage( szString, false );
 }

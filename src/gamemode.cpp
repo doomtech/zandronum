@@ -398,13 +398,13 @@ void GAMEMODE_DisplaySUBSMessage( const char *pszMessage, const bool bInformClie
 			0,
 			CR_UNTRANSLATED,
 			3.0f,
-			0.5f );
+			0.25f );
 		StatusBar->AttachMessage( pMsg, MAKE_ID( 'S','U','B','S' ));
 	}
 	// If necessary, send it to clients.
 	else if ( bInformClients )
 	{
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( pszMessage, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_UNTRANSLATED, 3.0f, 0.5f, "SmallFont", false, MAKE_ID( 'S','U','B','S' ), ulPlayerExtra, ulFlags );
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( pszMessage, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_UNTRANSLATED, 3.0f, 0.25f, "SmallFont", false, MAKE_ID( 'S','U','B','S' ), ulPlayerExtra, ulFlags );
 	}
 }
 
