@@ -696,7 +696,7 @@ static void main_ParseCommands( BYTESTREAM_s *pByteStream )
 
 			// Ignore the protocol version.
 			NETWORK_ReadByte( pByteStream );
-			sprintf( szBuffer, "The server is using a newer version than you are (%s).", NETWORK_ReadString( pByteStream ));
+			sprintf( szBuffer, "The server is using a newer version than you are (%s).\nThis version is compatible with %s.", NETWORK_ReadString( pByteStream ), COMPATIBLE_WITH );
 			main_ShowMessage( szBuffer, MB_ICONEXCLAMATION );
 			main_SetState( STATE_WAITING );
 			main_EnableConnectionButtons( TRUE );
