@@ -60,6 +60,7 @@
 #include "team.h"
 #include "v_text.h"
 #include "v_video.h"
+#include "gamemode.h"
 
 //*****************************************************************************
 //	DEFINES
@@ -289,7 +290,11 @@ LONG ATeamItem::AllowFlagPickup( AActor *pToucher )
 
 	// [BB] If the team the item belongs to doesn't have any players, don't let it be picked up.
 	if ( TEAM_CountPlayers ( TEAM_GetTeamFromItem ( this ) ) == 0 )
+	{
+		FString message = "You can't pick up the flag\nof a team with no players!";
+		GAMEMODE_DisplaySUBSMessage( message.GetChars(), true, static_cast<ULONG>(pToucher->player - players), SVCF_ONLYTHISCLIENT );
 		return ( DENY_PICKUP );
+	}
 
 	// Player is touching the enemy flag.
 	if ( this->GetClass( ) != TEAM_GetItem( pToucher->player->ulTeam ))

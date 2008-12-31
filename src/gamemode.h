@@ -52,6 +52,7 @@
 #define __GAMEMODE_H__
 
 #include "doomtype.h"
+#include "doomdef.h"
 
 //*****************************************************************************
 //	DEFINES
@@ -135,6 +136,8 @@ void		GAMEMODE_ResetPlayersKillCount( void );
 
 // [BB] This function doesn't really belong here. Find a better place for it.
 void		GAMEMODE_DisplayStandardMessage( const char *pszMessage );
+void		GAMEMODE_DisplayCNTRMessage( const char *pszMessage, const bool bInformClients, const ULONG ulPlayerExtra = MAXPLAYERS, const ULONG ulFlags = 0 );
+void		GAMEMODE_DisplaySUBSMessage( const char *pszMessage, const bool bInformClients, const ULONG ulPlayerExtra = MAXPLAYERS, const ULONG ulFlags = 0 );
 
 GAMEMODE_e	GAMEMODE_GetCurrentMode( void );
 void		GAMEMODE_SetCurrentMode( GAMEMODE_e GameMode );

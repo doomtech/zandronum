@@ -21,6 +21,7 @@
 -	- Fixed some seemingly random problems occurring to clients in CTF or Skulltag games. [Torr Samaho]
 -	- Fixed an exploit that allowed to crash servers. Kudos to kgsws for submitting a detailed report on this issue. [Torr Samaho]
 -	- Fixed: Seemingly randomly clients completely froze in CTF / Skulltag. [Torr Samaho]
+!	- Changed: Players are now notified that they can only pick up a team's flag if there are people on that team. [Torr Samaho]
 
 v0.97d3 RC1
 -----------
