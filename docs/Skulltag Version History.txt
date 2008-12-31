@@ -22,6 +22,7 @@
 -	- Fixed an exploit that allowed to crash servers. Kudos to kgsws for submitting a detailed report on this issue. [Torr Samaho]
 -	- Fixed: Seemingly randomly clients completely froze in CTF / Skulltag. [Torr Samaho]
 !	- Changed: Players are now notified that they can only pick up a team's flag if there are people on that team. [Torr Samaho]
+!	- Changed the SSDP packet the server sends to find the UPnP root device. This should make the UPnP support compatible with more routers. [Torr Samaho]
 
 v0.97d3 RC1
 -----------
