@@ -54,6 +54,7 @@ v0.97d3 RC1
 +	- Added a new entry to the HUD options menu to toggle cl_drawcoopinfo. [Torr Samaho]
 +	- Added new DECORATE actor flag CLIENTSIDEONLY. The server doesn't spawn such actors, the clients spawn them on their own. Therefore, they never should need any network bandwidth. Only use it on actors that don't affect the game in any way (visuals aside) and only use it, if you know what you are doing! [Torr Samaho]
 +	- Added new dmflag "force alpha", controlled by the new CVAR sv_forcealpha. If this is enabled, clients are enforced to display alpha, i.e. render as if r_drawtrans == 1. [Torr Samaho]
++	- Added the cvar sv_enforcemasterbanlist; if true, the server enforces the master server's banlist. This is totally optional and is provided as a convenience to the server hoster and Skulltag staff. [Rivecoder]
 +	- Added new command ClearBots to BOTINFO (has to be used outside the braces), that clears all previously defined bots (including Skulltag's hardcoded bots). [Torr Samaho]
 +	- Banned clients are now told the reason for their ban. [Rivecoder]
 +	- Added new DECORATE weapon flag NOAUTOAIM. Weapons with this flag behave as if CVAR autoaim was 0 (as long as the level allows freelook). [Torr Samaho]
