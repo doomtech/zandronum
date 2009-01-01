@@ -134,6 +134,7 @@ static	HMENU					g_hTrayMenu;
 
 BOOL	CALLBACK		main_ConnectDialogCallback( HWND hDlg, UINT Message, WPARAM wParam, LPARAM lParam );
 BOOL	CALLBACK		main_RCONDialogCallback( HWND hDlg, UINT Message, WPARAM wParam, LPARAM lParam );
+BOOL	CALLBACK		main_AboutDialogCallback( HWND hDlg, UINT Message, WPARAM wParam, LPARAM lParam );
 DWORD	WINAPI			main_Loop( LPVOID );
 DWORD	WINAPI			main_Show( LPVOID );
 static	void			main_Quit( );
@@ -404,10 +405,15 @@ BOOL CALLBACK main_ConnectDialogCallback( HWND hDlg, UINT Message, WPARAM wParam
 			HMENU hFileMenu = CreatePopupMenu( );
 			AppendMenu( hFileMenu, MF_STRING, IDR_EXIT, "Exit" );
 
+			// Create the file menu.
+			HMENU hHelpMenu = CreatePopupMenu( );
+			AppendMenu( hHelpMenu, MF_STRING, IDR_ABOUT, "About..." );
+
 			// Create the main menu.
 			g_hMainMenu = CreateMenu( );
 			AppendMenu( g_hMainMenu, MF_STRING|MF_POPUP, (UINT)hFileMenu, "File" );
 			AppendMenu( g_hMainMenu, MF_STRING|MF_POPUP, (UINT)g_hFavoritesMenu, "Favorites");
+			AppendMenu( g_hMainMenu, MF_STRING|MF_POPUP, (UINT)hHelpMenu, "Help");
 			AppendMenu( g_hMainMenu, MF_SEPARATOR, 0, 0 );
 			SetMenu( hDlg, g_hMainMenu );
 
@@ -482,6 +488,10 @@ BOOL CALLBACK main_ConnectDialogCallback( HWND hDlg, UINT Message, WPARAM wParam
 			case IDR_EXIT:
 				
 				main_Quit( );
+				break;
+			case IDR_ABOUT:
+
+				DialogBox( g_hInst, MAKEINTRESOURCE( IDD_ABOUTDIALOG ), hDlg, main_AboutDialogCallback );
 				break;
 			}
 			break;
@@ -1135,4 +1145,73 @@ BOOL CALLBACK main_RCONDialogCallback( HWND hDlg, UINT Message, WPARAM wParam, L
 	}
 
 	return TRUE; // If this is false, minimizing the window won't hide it.
+}
+
+//==========================================================================
+//
+// main_AboutDialogCallback
+//
+// Callback for the "About" dialog box.
+//
+//==========================================================================
+
+BOOL CALLBACK main_AboutDialogCallback( HWND hDlg, UINT Message, WPARAM wParam, LPARAM lParam )
+{
+	switch ( Message )
+	{
+	case WM_CTLCOLORSTATIC:
+
+		switch ( GetDlgCtrlID( (HWND) lParam ))
+		{
+		// Paint these things white.
+		case IDC_DESCTEXT:
+		case IDC_REVISION:
+		case IDC_INTROTEXT:
+
+			return (LRESULT) g_hWhiteBrush;
+		// Ignore everything else.
+		default:
+
+			return NULL;
+		}
+		break;
+	case WM_PAINT:
+		{
+			// Paint the top of the form white.
+			PAINTSTRUCT Ps;
+			RECT r;
+			r.left = 0;
+			r.top = 0;
+			r.bottom = 109;
+			r.right = 800;
+			main_PaintRectangle( BeginPaint(hDlg, &Ps), &r, RGB(255, 255, 255));
+		}
+		break;
+	case WM_INITDIALOG:
+
+		// Fonts.
+		SendMessage( GetDlgItem( hDlg, IDC_INTROTEXT ), WM_SETFONT, (WPARAM) CreateFont( 17, 0, 0, 0, 600, 0, 0, 0, 0, 0, 0, 0, 0, "Tahoma" ), (LPARAM) 1 );
+		SendMessage( GetDlgItem( hDlg, IDC_DESCTEXT ), WM_SETFONT, (WPARAM) CreateFont( 13, 0, 0, 0, 0, TRUE, 0, 0, 0, 0, 0, 0, 0, "Tahoma" ), (LPARAM) 1 );
+
+		SetDlgItemText( hDlg, IDC_REVISION, "Revision "SVN_REVISION_STRING" - compatible with "COMPATIBLE_WITH"." );
+
+		break;
+	case WM_COMMAND:
+
+			switch ( LOWORD( wParam ))
+			{
+			
+			case IDOK:
+			case IDCANCEL: // This also occurs when esc is pressed.
+				
+				EndDialog( hDlg, -1 );
+				break;
+			}
+		break;
+	default:
+
+		return FALSE;
+	}
+
+	return TRUE;
 }
