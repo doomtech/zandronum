@@ -58,6 +58,7 @@
 #include "i_system.h"
 #include "m_random.h"
 #include "version.h"
+#include "v_text.h"
 #include "MD5/MD5Checksum.h"
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -269,8 +270,19 @@ static void server_WriteUpdateInfo( BYTESTREAM_s *pByteStream, int iUpdateType )
 	{
 	// Update the player data.
 	case SVRCU_PLAYERDATA:
-		
+
 		NETWORK_WriteByte( pByteStream, SERVER_CountPlayers( true ));
+		for ( unsigned int i = 0; i < MAXPLAYERS; i++ )
+		{
+			if ( playeringame[i] )
+			{
+				FString		fsName;
+
+				fsName.Format( "%s", players[i].userinfo.netname );
+				V_RemoveColorCodes( fsName );
+				NETWORK_WriteString( pByteStream, fsName );
+			}
+		}
 		break;
 	// Update the current map.
 	case SVRCU_MAP:
@@ -396,8 +408,6 @@ static void server_rcon_HandleLogin( int iCandidateIndex, const char *pszHash )
 			NETWORK_WriteString( &g_MessageBuffer.ByteStream, *i );
 
 		NETWORK_LaunchPacket( &g_MessageBuffer, g_Candidates[iCandidateIndex].Address );
-
-		Printf( "Successful RCON login from %s.\n", NETWORK_AddressToString( g_Candidates[iCandidateIndex].Address ));
 		SERVER_RCON_UpdateInfo( SVRCU_ADMINCOUNT );
 	}
 

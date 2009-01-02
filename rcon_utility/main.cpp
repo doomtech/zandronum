@@ -96,12 +96,13 @@ static	NETBUFFER_s				g_MessageBuffer;
 static	char					g_szPassword[128];
 static	char					g_szHostname[256];
 static	char					g_szMapname[32];
+static	std::list<FString>		g_InitialPlayers;
 static	int						g_iServerProtocolVersion;
 static	int						g_iNumPlayers;
 static	int						g_iNumOtherAdmins;
 static	int						g_iLines;
 static	std::list<FString>		g_RecentConsoleHistory;
-static	bool					g_bShowRCONDialog = false;
+static	bool					g_bRCONDialogVisible = false;
 static	time_t					g_tLastIncorrectLogin;
 static	std::vector<FAVORITE_s>	g_Favorites;
 
@@ -767,7 +768,25 @@ static void main_ParseUpdate( BYTESTREAM_s *pByteStream )
 	{
 	case SVRCU_PLAYERDATA:
 
-		g_iNumPlayers = NETWORK_ReadByte( pByteStream );	
+		g_iNumPlayers = NETWORK_ReadByte( pByteStream );
+
+		// Add the players to the list.
+		SendDlgItemMessage( g_hDlg, IDC_PLAYERLIST, LVM_DELETEALLITEMS, 0, 0 ) ;
+		LVITEM		Item;
+		Item.mask = LVIF_TEXT;
+		Item.iSubItem = COLUMN_NAME;
+		Item.iItem = MAXPLAYERS;
+		for ( LONG lIdx = 0; lIdx < g_iNumPlayers; lIdx++ )
+		{
+			// A yummy hack. At the beginning, the player list doesn't exist yet, so we need to cache the list of names until it does.
+			if ( g_bRCONDialogVisible )
+			{
+				Item.pszText = (LPSTR) NETWORK_ReadString( pByteStream );
+				SendDlgItemMessage( g_hDlg, IDC_PLAYERLIST, LVM_INSERTITEM, 0, (LPARAM)&Item ) ;
+			}
+			else
+				g_InitialPlayers.push_front( NETWORK_ReadString( pByteStream ));
+		}		
 		main_UpdateServerStatus( );
 		break;
 	case SVRCU_MAP:
@@ -1093,6 +1112,28 @@ BOOL CALLBACK main_RCONDialogCallback( HWND hDlg, UINT Message, WPARAM wParam, L
 		g_hWhiteBrush = CreateBrushIndirect( &LogBrush );
 		main_UpdateServerStatus( );
 
+		// Set up the player list
+		LVCOLUMN	ColumnData;
+		ColumnData.mask = LVCF_FMT|LVCF_TEXT|LVCF_WIDTH;
+		ColumnData.fmt = LVCFMT_LEFT;
+		ColumnData.cx = 192;
+		ColumnData.pszText = "Name";
+		ColumnData.cchTextMax = 64;
+		ColumnData.iSubItem = 0;
+		SendDlgItemMessage( hDlg, IDC_PLAYERLIST, LVM_INSERTCOLUMN, COLUMN_NAME, (LPARAM)&ColumnData );
+
+		// Add the cached list of players.
+		LVITEM		Item;
+		Item.mask = LVIF_TEXT;
+		Item.iSubItem = COLUMN_NAME;
+		Item.iItem = MAXPLAYERS;
+		while ( g_InitialPlayers.size( ) )
+		{
+			Item.pszText = (LPSTR) g_InitialPlayers.front( ).GetChars( );
+			g_InitialPlayers.pop_front( );
+			SendDlgItemMessage( g_hDlg, IDC_PLAYERLIST, LVM_INSERTITEM, 0, (LPARAM)&Item ) ;
+		}
+
 		// Load the icon.
 		SendMessage( hDlg, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM) (HICON) LoadImage( g_hInst,	MAKEINTRESOURCE( AAA_MAIN_ICON ), IMAGE_ICON, 16, 16, LR_SHARED ));
 		SendMessage( hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)LoadIcon( g_hInst, MAKEINTRESOURCE( AAA_MAIN_ICON )));
@@ -1100,6 +1141,7 @@ BOOL CALLBACK main_RCONDialogCallback( HWND hDlg, UINT Message, WPARAM wParam, L
 		// Set up the status bar.
 		g_hDlgStatusBar = CreateStatusWindow(WS_CHILD | WS_VISIBLE, (LPCTSTR)NULL, hDlg, IDC_STATIC);
 
+		g_bRCONDialogVisible = true;
 		break;
 	case WM_COMMAND:
 

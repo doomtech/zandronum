@@ -2074,7 +2074,12 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 			V_RemoveColorCodes( szOldPlayerNameNoColor );
 
 			if ( stricmp( szPlayerNameNoColor, szOldPlayerNameNoColor ) != 0 )
+			{
 				SERVER_Printf( PRINT_HIGH, "%s \\c-is now known as %s\n", szOldPlayerName, pPlayer->userinfo.netname );
+
+				// [RC] Update clients using the RCON utility.
+				SERVER_RCON_UpdateInfo( SVRCU_PLAYERDATA );
+			}
 		}
 	}
 

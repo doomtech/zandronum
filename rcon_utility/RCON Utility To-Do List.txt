@@ -6,5 +6,4 @@
 
 - Improve support for multiple sessions
 	- mIRC-like MDI setup?
-- Player list
-	- Kick/ban menu, etc
+- Player list kick/ban menu, etc

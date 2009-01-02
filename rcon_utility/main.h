@@ -72,6 +72,8 @@ typedef struct
 
 } FAVORITE_s;
 
+#define	COLUMN_NAME			0
+
 int				Printf( const char *pszString, ... );
 int				Printf_NoTimestamp( const char *pszString, ... );
 void			VPrintf( bool bTimestamp, const char *pszString, va_list Parms );
