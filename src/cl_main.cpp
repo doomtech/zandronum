@@ -6650,7 +6650,9 @@ static void client_SpawnBlood( BYTESTREAM_s *pByteStream )
 	// Find the originator by its NetID.
 	pOriginator = CLIENT_FindThingByNetID( lID );
 
-	P_SpawnBlood (X, Y, Z, Dir, Damage, pOriginator);
+	// [BB] P_SpawnBlood crashes if pOriginator is a NULL pointer.
+	if ( pOriginator )
+		P_SpawnBlood (X, Y, Z, Dir, Damage, pOriginator);
 }
 
 //*****************************************************************************

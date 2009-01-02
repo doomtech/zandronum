@@ -21,7 +21,8 @@
 		- Added file version metadata and an "about" screen.
 		- Fixed: If you tried to reconnect to a nonexistent server, you wouldn't get 3 retries.
 -	- Fixed: The code to check the maximum allowed effective skin sprite width/height didn't work with UDMX under Linux. [Torr Samaho]
--	- Fixed: For the purpose of sv_smartaim, players of different teams were considered to be friends in non-deathmatch based team game modes, e.g. CTF. [Torr Samaho]
+-	- Fixed: For the purpose of sv_smartaim, players of different teams were considered to be friends in non-deathmatch based team game modes, e.g. CTF. [Torr Samaho, SuperGod]
+-	- Fixed: A client possibly crashed when the server instructed it to spawn blood of an actor the client doesn't know. [Torr Samaho]
 
 v0.97d3 RC2
 -----------
