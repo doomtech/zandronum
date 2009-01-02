@@ -24,6 +24,7 @@
 -	- Fixed: For the purpose of sv_smartaim, players of different teams were considered to be friends in non-deathmatch based team game modes, e.g. CTF. [Torr Samaho, SuperGod]
 -	- Fixed: A client possibly crashed when the server instructed it to spawn blood of an actor the client doesn't know. [Torr Samaho]
 -	- Fixed: The network traffic needed by Sector_SetFade increased linearly with the number of sectors that have the given tag instead of being constant. [Torr Samaho, SuperGod]
+-	- Fixed: If the model flag rotation-speed was used with a value other than 1, the rotation "skipped" every five seconds. [Torr Samaho]
 
 v0.97d3 RC2
 -----------
