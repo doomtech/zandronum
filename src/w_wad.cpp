@@ -1933,6 +1933,24 @@ bool FWadCollection::GetLoadedAutomatically( int wadnum ) const
 
 //==========================================================================
 //
+// [BB] GetWadnumFromLumpnum
+//
+// Returns the number of the wad this given lump is in. Returns a negative
+// value if the lump doesn't exist.
+//
+//==========================================================================
+
+int FWadCollection::GetWadnumFromLumpnum( int lumpnum ) const
+{
+	if ((unsigned)lumpnum >= (unsigned)LumpInfo.Size())
+		return -1;
+
+	LumpRecord *l = &LumpInfo[lumpnum];
+	return l->wadnum;
+}
+
+//==========================================================================
+//
 // IsUncompressedFile
 //
 // Returns true when the lump is available as an uncompressed portion of
