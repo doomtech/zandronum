@@ -268,7 +268,7 @@ static	void	client_SetSectorFloorPlaneSlope( BYTESTREAM_s *pByteStream );
 static	void	client_SetSectorCeilingPlaneSlope( BYTESTREAM_s *pByteStream );
 static	void	client_SetSectorLightLevel( BYTESTREAM_s *pByteStream );
 static	void	client_SetSectorColor( BYTESTREAM_s *pByteStream );
-static	void	client_SetSectorFade( BYTESTREAM_s *pByteStream );
+static	void	client_SetSectorFade( BYTESTREAM_s *pByteStream, bool bIdentifySectorsByTag = false );
 static	void	client_SetSectorFlat( BYTESTREAM_s *pByteStream );
 static	void	client_SetSectorPanning( BYTESTREAM_s *pByteStream );
 static	void	client_SetSectorRotation( BYTESTREAM_s *pByteStream );
@@ -615,6 +615,7 @@ static	const char				*g_pszHeaderNames[NUM_SERVER_COMMANDS] =
 	"SVC_SETSECTORLIGHTLEVEL",
 	"SVC_SETSECTORCOLOR",
 	"SVC_SETSECTORFADE",
+	"SVC_SETSECTORFADEBYTAG",
 	"SVC_SETSECTORFLAT",
 	"SVC_SETSECTORPANNING",
 	"SVC_SETSECTORROTATION",
@@ -1969,6 +1970,10 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_SETSECTORFADE:
 
 		client_SetSectorFade( pByteStream );
+		break;
+	case SVC_SETSECTORFADEBYTAG:
+
+		client_SetSectorFade( pByteStream, true );
 		break;
 	case SVC_SETSECTORFLAT:
 
@@ -8106,9 +8111,9 @@ static void client_SetSectorColor( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-static void client_SetSectorFade( BYTESTREAM_s *pByteStream )
+static void client_SetSectorFade( BYTESTREAM_s *pByteStream, bool bIdentifySectorsByTag )
 {
-	LONG		lSectorID;
+	LONG		lSectorIDOrTag;
 	LONG		lR;
 	LONG		lG;
 	LONG		lB;
@@ -8116,26 +8121,35 @@ static void client_SetSectorFade( BYTESTREAM_s *pByteStream )
 	PalEntry	Fade;
 
 	// Read in the sector to have its panning altered.
-	lSectorID = NETWORK_ReadShort( pByteStream );
+	lSectorIDOrTag = NETWORK_ReadShort( pByteStream );
 
 	// Read in the RGB.
 	lR = NETWORK_ReadByte( pByteStream );
 	lG = NETWORK_ReadByte( pByteStream );
 	lB = NETWORK_ReadByte( pByteStream );
 
-	// Now find the sector.
-	pSector = CLIENT_FindSectorByID( lSectorID );
-	if ( pSector == NULL )
-	{ 
-#ifdef CLIENT_WARNING_MESSAGES
-		Printf( "client_SetSectorFade: Cannot find sector: %d\n", lSectorID );
-#endif
-		return; 
-	}
+	if ( bIdentifySectorsByTag )
+	{
+		int secnum = -1;
 
-	// Finally, set the fade.
-	Fade = PalEntry( lR, lG, lB );
-	pSector->ColorMap = GetSpecialLights( pSector->ColorMap->Color, Fade, pSector->ColorMap->Desaturate );
+		while ((secnum = P_FindSectorFromTag (lSectorIDOrTag, secnum)) >= 0)
+			sectors[secnum].SetFade(lR, lG, lB, false, true);
+	}
+	else
+	{
+		// Now find the sector.
+		pSector = CLIENT_FindSectorByID( lSectorIDOrTag );
+		if ( pSector == NULL )
+		{ 
+#ifdef CLIENT_WARNING_MESSAGES
+			Printf( "client_SetSectorFade: Cannot find sector: %d\n", lSectorID );
+#endif
+			return; 
+		}
+
+		// Finally, set the fade.
+		pSector->SetFade(lR, lG, lB, false, true);
+	}
 }
 
 //*****************************************************************************

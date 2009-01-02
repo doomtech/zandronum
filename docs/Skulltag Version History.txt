@@ -23,6 +23,7 @@
 -	- Fixed: The code to check the maximum allowed effective skin sprite width/height didn't work with UDMX under Linux. [Torr Samaho]
 -	- Fixed: For the purpose of sv_smartaim, players of different teams were considered to be friends in non-deathmatch based team game modes, e.g. CTF. [Torr Samaho, SuperGod]
 -	- Fixed: A client possibly crashed when the server instructed it to spawn blood of an actor the client doesn't know. [Torr Samaho]
+-	- Fixed: The network traffic needed by Sector_SetFade increased linearly with the number of sectors that have the given tag instead of being constant. [Torr Samaho, SuperGod]
 
 v0.97d3 RC2
 -----------

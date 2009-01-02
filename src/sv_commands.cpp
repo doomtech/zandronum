@@ -4016,6 +4016,30 @@ void SERVERCOMMANDS_SetSectorFade( ULONG ulSector, ULONG ulPlayerExtra, ULONG ul
 
 //*****************************************************************************
 //
+void SERVERCOMMANDS_SetSectorFadeByTag( ULONG ulTag, ULONG ulRed, ULONG ulGreen, ULONG ulBlue, ULONG ulPlayerExtra, ULONG ulFlags )
+{
+	for ( ULONG	ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_IsValidClient( ulIdx ) == false )
+			continue;
+
+		if ((( ulFlags & SVCF_SKIPTHISCLIENT ) && ( ulPlayerExtra == ulIdx )) ||
+			(( ulFlags & SVCF_ONLYTHISCLIENT ) && ( ulPlayerExtra != ulIdx )))
+		{
+			continue;
+		}
+
+		SERVER_CheckClientBuffer( ulIdx, 6, true );
+		NETWORK_WriteHeader( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, SVC_SETSECTORFADEBYTAG );
+		NETWORK_WriteShort( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulTag );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulRed );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulGreen );
+		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, ulBlue );
+	}
+}
+
+//*****************************************************************************
+//
 void SERVERCOMMANDS_SetSectorFlat( ULONG ulSector, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG	ulIdx;
