@@ -1598,7 +1598,7 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 	g_aClients[g_lCurrentClient].State = CLS_SPAWNED;
 
 	// [RC] Update clients using the RCON utility.
-	SERVER_RCON_UpdateInfo( SVRC_PLAYERCOUNT );
+	SERVER_RCON_UpdateInfo( SVRCU_PLAYERDATA );
 
 	// Tell the client that the snapshot is done.
 	SERVERCOMMANDS_EndSnapshot( g_lCurrentClient );
@@ -2715,7 +2715,7 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 	SERVERCONSOLE_ReListPlayers( );
 
 	// [RC] Update clients using the RCON utility.
-	SERVER_RCON_UpdateInfo( SVRC_PLAYERCOUNT );
+	SERVER_RCON_UpdateInfo( SVRCU_PLAYERDATA );
 
 	// Clear the client's buffers.
 	NETWORK_ClearBuffer( &g_aClients[ulClient].PacketBuffer );

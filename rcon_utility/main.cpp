@@ -96,6 +96,7 @@ static	NETBUFFER_s				g_MessageBuffer;
 static	char					g_szPassword[128];
 static	char					g_szHostname[256];
 static	char					g_szMapname[32];
+static	int						g_iServerProtocolVersion;
 static	int						g_iNumPlayers;
 static	int						g_iNumOtherAdmins;
 static	int						g_iLines;
@@ -145,6 +146,7 @@ static	void			main_UpdateServerStatus( );
 static	void			main_ShowMessage( const char *pszMessage, UINT uType );
 static	void			main_EnableConnectionButtons( BOOL bEnable );
 static	void			main_ParseCommands( BYTESTREAM_s *pByteStream );
+static	void			main_ParseUpdate( BYTESTREAM_s *pByteStream );
 static	void			main_SendPassword( const char *pszSalt );
 static	void			main_ToggleWindow( HWND hDlg );
 static	void			main_UpdateTrayTooltip( const char *szTooltip );
@@ -690,9 +692,7 @@ static void main_SetState( STATE_e NewState )
 
 static void main_ParseCommands( BYTESTREAM_s *pByteStream )
 {	
-	int lCommand = NETWORK_ReadByte( pByteStream );	
-
-	switch ( lCommand )
+	switch ( NETWORK_ReadByte( pByteStream ))
 	{
 	case SVRC_BANNED:
 				
@@ -727,10 +727,11 @@ static void main_ParseCommands( BYTESTREAM_s *pByteStream )
 	case SVRC_LOGGEDIN:
 	
 		// Read in info about the server.
+		g_iServerProtocolVersion = NETWORK_ReadByte( pByteStream );
 		strncpy( g_szHostname, NETWORK_ReadString( pByteStream ), 256 );
-		strncpy( g_szMapname, NETWORK_ReadString( pByteStream ), 32 );
-		g_iNumPlayers = NETWORK_ReadByte( pByteStream );
-		g_iNumOtherAdmins = NETWORK_ReadByte( pByteStream );
+		
+		for ( int i = 0, num = NETWORK_ReadByte( pByteStream ); i < num; i++ )
+			main_ParseUpdate( pByteStream );
 
 		// Read the console history.
 		g_iLines = NETWORK_ReadByte( pByteStream );
@@ -745,17 +746,36 @@ static void main_ParseCommands( BYTESTREAM_s *pByteStream )
 		if ( g_State == STATE_CONNECTED )
 			Printf( NETWORK_ReadString( pByteStream ));
 		break;
-	case SVRC_PLAYERCOUNT:
+	case SVRC_UPDATE:
 
-		g_iNumPlayers = NETWORK_ReadByte( pByteStream );
+		main_ParseUpdate( pByteStream );
+		break;
+	}
+}
+
+//==========================================================================
+//
+// main_ParseUpdate
+//
+// Reads an SVRC_UPDATE message.
+//
+//==========================================================================
+
+static void main_ParseUpdate( BYTESTREAM_s *pByteStream )
+{
+	switch ( NETWORK_ReadByte( pByteStream ))
+	{
+	case SVRCU_PLAYERDATA:
+
+		g_iNumPlayers = NETWORK_ReadByte( pByteStream );	
 		main_UpdateServerStatus( );
 		break;
-	case SVRC_MAPCHANGE:
+	case SVRCU_MAP:
 
 		strncpy( g_szMapname, NETWORK_ReadString( pByteStream ), 32 );
 		main_UpdateServerStatus( );
 		break;
-	case SVRC_ADMINCOUNT:
+	case SVRCU_ADMINCOUNT:
 
 		g_iNumOtherAdmins = NETWORK_ReadByte( pByteStream );
 		main_UpdateServerStatus( );
