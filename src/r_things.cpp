@@ -1335,6 +1335,20 @@ ULONG R_CountSkinInfoSkins( void )
 }
 
 
+// [BB] Helper code for the effective skin sprite width/height check.
+static bool R_IsCharUsuableAsSpriteRotation ( const char rot )
+{
+	unsigned rotation = 17;
+
+	if (rot >= '0' && rot <= '9')
+		rotation = rot - '0';
+	else if (rot >= 'A')
+		rotation = rot - 'A' + 10;
+
+	return ( rotation <= 16 );
+}
+
+
 //
 // R_InitSprites
 // Called at program start.
@@ -1443,15 +1457,14 @@ void R_InitSprites ()
 			     && ( szTempLumpName[4] < 'H' ) )
 			{
 				// [BB] Check if the lump can be used as sprite. If not, no need to check it.
-				unsigned rotation = 17;
-
-				if (szTempLumpName[5] >= '0' && szTempLumpName[5] <= '9')
-					rotation = szTempLumpName[5] - '0';
-				else if (szTempLumpName[5] >= 'A')
-					rotation = szTempLumpName[5] - 'A' + 10;
-
-				if ( rotation > 16 )
+				if ( R_IsCharUsuableAsSpriteRotation ( szTempLumpName[5] ) == false )
 					continue;
+
+				if ( szTempLumpName[6] )
+				{
+					if ( R_IsCharUsuableAsSpriteRotation ( szTempLumpName[7] ) == false )
+						continue;
+				}
 
 				int texnum = TexMan.CheckForTexture (szTempLumpName, FTexture::TEX_Sprite);
 				FTexture *tex = (texnum != -1) ? TexMan[ texnum ] : NULL;
