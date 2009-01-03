@@ -228,7 +228,7 @@ CUSTOM_CVAR( String, sv_hackerlistfile, "hackerlist.txt", CVAR_ARCHIVE )
 //*****************************************************************************
 //	CONSOLE VARIABLES
 
-CVAR( String, sv_motd, "\\cgWelcome to this Skulltag v" DOTVERSIONSTR " server!\n\n\\ccHope you enjoy your stay!\n\\ccIf you have any questions or requests,\n\\ccplease talk to the admin of this server. Thanks!", CVAR_ARCHIVE )
+CVAR( String, sv_motd, "", CVAR_ARCHIVE )
 CVAR( Bool, sv_defaultdmflags, true, 0 )
 CVAR( Bool, sv_forcepassword, false, CVAR_ARCHIVE )
 CVAR( Bool, sv_forcejoinpassword, false, CVAR_ARCHIVE )
@@ -2158,6 +2158,10 @@ void SERVER_ClientError( ULONG ulClient, ULONG ulErrorCode )
 	case NETWORK_ERRORCODE_BANNED:
 
 		Printf( "Client banned.\n" );
+
+		// Tell the client why he was banned, and when his ban expires.
+		NETWORK_WriteString( &g_aClients[ulClient].PacketBuffer.ByteStream, SERVERBAN_GetBanList( )->getEntryComment( g_aClients[ulClient].Address ));
+		NETWORK_WriteLong( &g_aClients[ulClient].PacketBuffer.ByteStream, (LONG) SERVERBAN_GetBanList( )->getEntryExpiration( g_aClients[ulClient].Address ));
 		break;
 	case NETWORK_ERRORCODE_AUTHENTICATIONFAILED:
 
@@ -3252,6 +3256,13 @@ char *SERVER_GetMapMusic( void )
 
 //*****************************************************************************
 //
+IPList *SERVER_GetAdminList( void )
+{
+	return &g_AdminIPList;
+}
+
+//*****************************************************************************
+//
 void SERVER_SetMapMusic( const char *pszMusic )
 {
 	if ( pszMusic )
@@ -3713,23 +3724,35 @@ bool SERVER_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	return ( false );
 }
 
-//*****************************************************************************
+
 //*****************************************************************************
 //
-ULONG SERVER_GetPlayerIndexFromName( const char *pszString )
+// [RC] Finds the first player (or, optionally, bot) with the given name; returns MAXPLAYERS if none were found.
+ULONG SERVER_GetPlayerIndexFromName( const char *pszName, bool bIgnoreColors, bool bReturnBots )
 {
-	ULONG ulIdx;
+	char	szPlayerName[64];
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
-		if ( SERVER_IsValidClient( ulIdx ) == false )
+		if ( playeringame[ulIdx] == false )
 			continue;
 
-		if ( stricmp( pszString, players[ulIdx].userinfo.netname ) == 0 )
-			return ( ulIdx );
+		// Optionally remove the color codes from the player name.
+		if ( bIgnoreColors )
+		{
+			sprintf( szPlayerName, players[ulIdx].userinfo.netname );
+			V_RemoveColorCodes( szPlayerName );
+		}
+
+		if ( stricmp( bIgnoreColors ? szPlayerName : players[ulIdx].userinfo.netname, pszName ) == 0 )
+		{
+			if ( !players[ulIdx].bIsBot || bReturnBots )
+				return ulIdx;
+		}
 	}
 
-	return ( MAXPLAYERS );
+	// None found.
+	return MAXPLAYERS;
 }
 
 //*****************************************************************************
@@ -4873,7 +4896,7 @@ static bool server_CallVote( BYTESTREAM_s *pByteStream )
 		break;
 	case VOTECMD_CHANGEMAP:
 
-		if ( sv_nochangemapvote )
+		if ( sv_nomapvote )
 			return ( false );
 		sprintf( szCommand, "changemap" );
 		break;

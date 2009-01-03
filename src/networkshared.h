@@ -57,7 +57,7 @@
 #include <iostream>
 #include <vector>
 #include <list>
-
+#include <time.h>
 #include <ctype.h>
 #include <math.h>
 
@@ -154,6 +154,9 @@ typedef struct
 	// Comment regarding the banned address.
 	char		szComment[128];
 
+	// [RC] Time that the ban expires, or NULL for an infinite ban.
+	time_t		tExpirationDate;
+
 } IPADDRESSBAN_s;
 
 //*****************************************************************************
@@ -197,7 +200,6 @@ typedef struct
 	BUFFERTYPE_e	BufferType;
 
 } NETBUFFER_s;
-
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 //-- PROTOTYPES ------------------------------------------------------------------------------------------------------------------------------------
@@ -272,6 +274,7 @@ private:
 	char		skipWhitespace( FILE *pFile );
 	char		skipComment( FILE *pFile );
 	void		readReason( FILE *pFile, char *Reason, const int MaxReasonLength );
+	time_t		readExpirationDate( FILE *pFile );
 	bool		parseNextLine( FILE *pFile, IPADDRESSBAN_s &IP, ULONG &BanIdx );
 };
 
@@ -297,13 +300,18 @@ public:
 	bool			isIPInList( const NETADDRESS_s &Address ) const;
 	ULONG			doesEntryExist( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3 ) const;
 	IPADDRESSBAN_s	getEntry( const ULONG ulIdx ) const;
-	std::string		getEntryAsString( const ULONG ulIdx, bool bIncludeCommentAndNewline = true ) const;
+	std::string		getEntryAsString( const ULONG ulIdx, bool bIncludeComment = true, bool bIncludeExpiration = true, bool bInludeNewline = true ) const;
 	ULONG			getEntryIndex( const NETADDRESS_s &Address ) const; // [RC]
 	const char		*getEntryComment( const NETADDRESS_s &Address ) const; // [RC]
-	void			addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3, const char *pszPlayerName, const char *pszComment, std::string &Message );
-	void			addEntry( const char *pszIPAddress, const char *pszPlayerName, const char *pszComment, std::string &Message );
+	time_t			getEntryExpiration( const NETADDRESS_s &Address ) const; // [RC]
+	void			addEntry( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3, const char *pszPlayerName, const char *pszComment, std::string &Message, time_t tExpiration );
+	void			addEntry( const char *pszIPAddress, const char *pszPlayerName, const char *pszComment, std::string &Message, time_t tExpiration );
 	void			removeEntry( const char *pszIP0, const char *pszIP1, const char *pszIP2, const char *pszIP3, std::string &Message );
 	void			removeEntry( const char *pszIPAddress, std::string &Message );
+	void			removeEntry( ULONG ulEntryIdx ); // [RC]
+	void			copy( IPList &destination ); // [RC]
+	void			sort(); // [RC]
+	void			removeExpiredEntries( void ); // [RC]
 
 	unsigned int	size() const { return static_cast<unsigned int>( _ipVector.size( )); }
 	void			clear() { _ipVector.clear(); }

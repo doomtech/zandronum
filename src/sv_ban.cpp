@@ -49,7 +49,6 @@
 
 #include <stdio.h>
 #include <errno.h>
-//#include <vector>
 
 #include "c_dispatch.h"
 #include "network.h"
@@ -75,7 +74,7 @@ static	ULONG	g_ulReParseTicker;
 static	void	serverban_LoadBansAndBanExemptions( void );
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------
-//-- CONSOLE ----------------------------------------------------------------------------------------------------------------------------------------
+//-- CVARS -----------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 
 CVAR( Bool, sv_enforcebans, true, CVAR_ARCHIVE )
@@ -115,6 +114,9 @@ CUSTOM_CVAR( String, sv_banexemptionfile, "whitelist.txt", CVAR_ARCHIVE )
 //
 void SERVERBAN_Tick( void )
 {
+	// [RC] Remove any old tempbans.
+	g_ServerBans.removeExpiredEntries( );
+
 	// Is it time to re-parse the ban lists?
 	if ( g_ulReParseTicker && (( --g_ulReParseTicker ) == 0 ))
 	{
@@ -151,10 +153,10 @@ bool SERVERBAN_IsIPBanned( const NETADDRESS_s &Address )
 
 //*****************************************************************************
 //
-void SERVERBAN_AddBan( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3, char *pszPlayerName, char *pszComment )
+void SERVERBAN_AddBan( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3, char *pszPlayerName, char *pszComment, time_t tExpiration )
 {
 	std::string message;
-	g_ServerBans.addEntry( pszIP0, pszIP1, pszIP2, pszIP3, pszPlayerName, pszComment, message );
+	g_ServerBans.addEntry( pszIP0, pszIP1, pszIP2, pszIP3, pszPlayerName, pszComment, message, tExpiration );
 	Printf( "addban: %s", message.c_str() );
 }
 
@@ -163,25 +165,20 @@ void SERVERBAN_AddBan( char *pszIP0, char *pszIP1, char *pszIP2, char *pszIP3, c
 void SERVERBAN_ClearBans( void )
 {
 	FILE		*pFile;
-	UCVarValue	Val;
 
 	// Clear out the existing bans in memory.
-	g_ServerBans.clear();
+	g_ServerBans.clear( );
 
-	// Also, export the new (cleared) banlist.
-	Val = sv_banfile.GetGenericRep( CVAR_String );
-	if (( pFile = fopen( Val.String, "w" )) != NULL )
+	// Export the cleared banlist.
+	if (( pFile = fopen( sv_banfile.GetGenericRep( CVAR_String ).String, "w" )) != NULL )
 	{
-		char	szString[1024];
-
-		sprintf( szString, "%s", "// This is the Skulltag server ban list.\n// Below are the IP addresses of those who pissed the admin off.\n" );
-		fputs( szString, pFile );
+		fputs( "// This is a Skulltag server IP list.\n// Format: 0.0.0.0 <mm/dd/yy> :optional comment\n\n", pFile );
 		fclose( pFile );
 
 		Printf( "Banlist cleared.\n" );
 	}
 	else
-		Printf( "%s", GenerateCouldNotOpenFileErrorString( "SERVERBAN_ClearBans", Val.String, errno ).c_str() );
+		Printf( "%s", GenerateCouldNotOpenFileErrorString( "SERVERBAN_ClearBans", sv_banfile.GetGenericRep( CVAR_String ).String, errno ).c_str() );
 }
 
 //*****************************************************************************
@@ -211,7 +208,7 @@ void SERVERBAN_ReadMasterServerBans( BYTESTREAM_s *pByteStream )
 		const char		*pszBan = NETWORK_ReadString( pByteStream );
 		std::string		Message;
 
-		g_MasterServerBans.addEntry( pszBan, "", "", Message );
+		g_MasterServerBans.addEntry( pszBan, "", "", Message, NULL );
 	}
 
 	// Read the list of exemptions.
@@ -220,7 +217,7 @@ void SERVERBAN_ReadMasterServerBans( BYTESTREAM_s *pByteStream )
 		const char		*pszBan = NETWORK_ReadString( pByteStream );
 		std::string		Message;
 
-		g_MasterServerBanExemptions.addEntry( pszBan, "", "", Message );
+		g_MasterServerBanExemptions.addEntry( pszBan, "", "", Message, NULL );
 	}
 
 	// Printf( "Imported %d bans, %d exceptions from the master.\n", g_MasterServerBans.size( ), g_MasterServerBanExemptions.size( ));
@@ -238,92 +235,194 @@ static void serverban_LoadBansAndBanExemptions( void )
 }
 
 //*****************************************************************************
-//	CONSOLE COMMANDS
+//
+// [RC] Helper method for serverban_ParseLength.
+static LONG serverban_ExtractBanLength( FString fSearchString, const char *pszPattern )
+{
+	// Look for the pattern (e.g, "min").
+	LONG lIndex = fSearchString.IndexOf( pszPattern );
+
+	if ( lIndex > 0 )
+	{
+		// Extract the number preceding it ("45min" becomes 45).
+		return atoi( fSearchString.Left( lIndex ));
+	}
+	else
+		return 0;
+}
+
+//*****************************************************************************
+//
+// [RC] Helper method for serverban_ParseLength.
+static time_t serverban_CreateBanDate( LONG lAmount, ULONG ulUnitSize, time_t tNow )
+{
+	// Convert to a time in the future (45 MINUTEs becomes 2,700 seconds).
+	if ( lAmount > 0 )		
+		return tNow + ulUnitSize * lAmount;
+
+	// Not found, or bad format.
+	else
+		return NULL;
+}
+
+//*****************************************************************************
+//
+// Parses the given ban expiration string, returnining either the time_t, NULL for infinite, or -1 for an error.
+time_t SERVERBAN_ParseBanLength( const char *szLengthString )
+{
+	time_t	tExpiration;
+	time_t	tNow;
+
+	FString	fInput = szLengthString;	
+
+	// If the ban is permanent, use NULL.
+	if ( stricmp( szLengthString, "perm" ) == 0 )
+		return NULL;
+	else
+	{		
+		time( &tNow );
+		tExpiration = NULL;
+
+		// Now we check for patterns in the string.
+
+		// Minutes: covers "min", "minute", "minutes".
+		if ( tExpiration == NULL )
+			tExpiration = serverban_CreateBanDate( serverban_ExtractBanLength( fInput, "min" ), MINUTE, tNow );
+
+		// Hours: covers "hour", "hours".
+		if ( tExpiration == NULL )
+			tExpiration = serverban_CreateBanDate( serverban_ExtractBanLength( fInput, "hour" ), HOUR, tNow );
+
+		// Hours: covers "hr", "hrs".
+		if ( tExpiration == NULL )
+			tExpiration = serverban_CreateBanDate( serverban_ExtractBanLength( fInput, "hr" ), HOUR, tNow );
+
+		// Days: covers "day", "days".
+		if ( tExpiration == NULL )
+			tExpiration = serverban_CreateBanDate( serverban_ExtractBanLength( fInput, "day" ), DAY, tNow );
+
+		// Days: covers "dy", "dys".
+		if ( tExpiration == NULL )
+			tExpiration = serverban_CreateBanDate( serverban_ExtractBanLength( fInput, "dy" ), DAY, tNow );
+
+		// Weeks: covers "week", "weeks".
+		if ( tExpiration == NULL )
+			tExpiration = serverban_CreateBanDate( serverban_ExtractBanLength( fInput, "week" ), WEEK, tNow );
+
+		// Weeks: covers "wk", "wks".
+		if ( tExpiration == NULL )
+			tExpiration = serverban_CreateBanDate( serverban_ExtractBanLength( fInput, "wk" ), WEEK, tNow );
+
+		// Months work a bit differently, since we don't have an arbitrary number of days to move.
+		if ( tExpiration == NULL )
+		{
+			LONG lAmount = serverban_ExtractBanLength( fInput, "mon" );
+
+			if ( lAmount > 0 )
+			{
+				// Create a new time structure based on the current time.
+				struct tm	*pTimeInfo = localtime( &tNow );
+
+				// Move the month forward, and stitch it into a new time.
+				pTimeInfo->tm_mon += lAmount;
+				tExpiration = mktime( pTimeInfo );
+			}
+		}
+
+		// So do years (because of leap years).
+		if ( tExpiration == NULL )
+		{
+			LONG lAmount = serverban_ExtractBanLength( fInput, "year" );
+			if ( lAmount <= 0 )
+				lAmount = serverban_ExtractBanLength( fInput, "yr" );
+			if ( lAmount <= 0 )
+				lAmount = serverban_ExtractBanLength( fInput, "decade" ) * 10; // :)
+
+			if ( lAmount > 0 )
+			{
+				// Create a new time structure based on the current time.
+				struct tm	*pTimeInfo = localtime( &tNow );
+
+				// Move the year forward, and stitch it into a new time.
+				pTimeInfo->tm_year += lAmount;
+				tExpiration = mktime( pTimeInfo );
+			}
+		}
+	}
+
+	if ( tExpiration == NULL )
+		return -1;
+
+	return tExpiration;
+}
+
+//*****************************************************************************
+//
+IPList *SERVERBAN_GetBanList( void )
+{
+	return &g_ServerBans;
+}
+
+//*****************************************************************************
+//
+IPList *SERVERBAN_GetBanExemptionList( void )
+{
+	return &g_ServerBanExemptions;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+//-- CCMDS -----------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------
 
 CCMD( getIP )
 {
-	ULONG	ulIdx;
-	char	szPlayerName[64];
-
 	// Only the server can look this up.
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		return;
 
 	if ( argv.argc( ) < 2 )
 	{
-		Printf( "Usage: getIP <playername> \n" );
+		Printf( "Usage: getIP <playername> \nDescription: Returns the player's IP address." );
 		return;
 	}
 
-	// Loop through all the players, and try to find one that matches the given name.
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	// Look up the player.
+	ULONG ulIdx = SERVER_GetPlayerIndexFromName( argv[1], true, false );
+	if ( SERVER_IsValidClient( ulIdx ))
+		Printf( "%s\\c-'s IP is: %s\n", players[ulIdx].userinfo.netname, NETWORK_AddressToString( SERVER_GetClient( ulIdx )->Address ));
+	else
 	{
-		if ( playeringame[ulIdx] == false )
-			continue;
-
-		// Removes the color codes from the player name so it appears as the server sees it in the window.
-		sprintf( szPlayerName, "%s", players[ulIdx].userinfo.netname );
-		V_RemoveColorCodes( szPlayerName );
-
-		if ( stricmp( szPlayerName, argv[1] ) == 0 )
-		{
-			// Bots do not have IPs.
-			if ( players[ulIdx].bIsBot )
-			{
-				Printf( "That user is a bot.\n" );
-				return;
-			}
-
-			Printf("IP is: %d.%d.%d.%d\n", 
-				SERVER_GetClient( ulIdx )->Address.abIP[0],
-				SERVER_GetClient( ulIdx )->Address.abIP[1],
-				SERVER_GetClient( ulIdx )->Address.abIP[2],
-				SERVER_GetClient( ulIdx )->Address.abIP[3]);
-			return;
-		}
+		if ( SERVER_GetPlayerIndexFromName( argv[1], true, true ) != MAXPLAYERS )
+			Printf( "%s\\c- is a bot.", argv[1] );
+		else
+			Printf( "Unknown player: %s\\c-\n",argv[1] );
 	}
-	
-	// Didn't find a player that matches the name.
-	Printf( "Unknown player: %s\n", argv[1] );
-	return;
 }
 
 //*****************************************************************************
 //
 CCMD( getIP_idx )
 {
-	ULONG	ulIdx;
-
 	// Only the server can look this up.
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		return;
 
 	if ( argv.argc( ) < 2 )
 	{
-		Printf( "Usage: getIP_idx <player index>\nYou can get the list of players and indexes with the ccmd playerinfo.\n" );
+		Printf( "Usage: getIP_idx <player index>\nDescription: Returns the player's IP, via his index. You can get the list of players' indexes via the ccmd playerinfo.\n" );
 		return;
 	}
 
-	ulIdx = atoi(argv[1]);
+	ULONG ulIdx = atoi( argv[1] );
 
-	// Make sure the target is valid and applicable.
+	// Make sure the target is valid.
 	if (( ulIdx >= MAXPLAYERS ) || ( !playeringame[ulIdx] ))
 		return;
 
-	// Bots do not have IPs.
 	if ( players[ulIdx].bIsBot )
-	{
-		Printf( "That user is a bot.\n" );
-		return;
-	}
-
-	Printf("IP is: %d.%d.%d.%d\n", 
-		SERVER_GetClient( ulIdx )->Address.abIP[0],
-		SERVER_GetClient( ulIdx )->Address.abIP[1],
-		SERVER_GetClient( ulIdx )->Address.abIP[2],
-		SERVER_GetClient( ulIdx )->Address.abIP[3]);
-	return;
-
+		Printf( "%s\\c- is a bot. ", players[ulIdx].userinfo.netname );
+	else
+		Printf( "%s\\c-'s IP is: %s\n", players[ulIdx].userinfo.netname, NETWORK_AddressToString( SERVER_GetClient( ulIdx )->Address ));
 }
 
 //*****************************************************************************
@@ -333,18 +432,19 @@ CCMD( ban_idx )
 	ULONG	ulIdx;
 	char	szPlayerName[64];
 	char	szBanAddress[4][4];
+	time_t	tExpiration;
 
 	// Only the server can ban players!
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		return;
 
-	if ( argv.argc( ) < 2 )
+	if ( argv.argc( ) < 3 )
 	{
-		Printf( "Usage: ban_idx <player index> [reason]\nYou can get the list of players and indexes with the ccmd playerinfo.\n" );
+		Printf( "Usage: ban_idx <player index> <duration> [reason]\nDescriptions: Bans the player, via his index, for the given duration (\"perm\" for a permanent ban).\n To see the list of players' indexes, try the ccmd playerinfo.\n" );
 		return;
 	}
 
-	ulIdx =  atoi(argv[1]);
+	ulIdx = atoi(argv[1]);
 
 	// Make sure the target is valid and applicable.
 	if (( ulIdx >= MAXPLAYERS ) || ( !playeringame[ulIdx] ))
@@ -366,16 +466,24 @@ CCMD( ban_idx )
 	itoa( SERVER_GetClient( ulIdx )->Address.abIP[2], szBanAddress[2], 10 );
 	itoa( SERVER_GetClient( ulIdx )->Address.abIP[3], szBanAddress[3], 10 );
 
+	// [RC]
+	tExpiration = SERVERBAN_ParseBanLength( argv[2] );
+	if ( tExpiration == -1 )
+	{
+		Printf("Error: couldn't read that length. Try something like \\cg6day\\c- or \\cg\"5 hours\"\\c-.\n");
+		return;
+	}
+
 	// Add the new ban and kick the player.
 	char	szString[256];
-	if ( argv.argc( ) >= 3 )
+	if ( argv.argc( ) >= 4 )
 	{
-		SERVERBAN_AddBan( szBanAddress[0], szBanAddress[1], szBanAddress[2], szBanAddress[3], szPlayerName, argv[2] );
-		sprintf( szString, "kick_idx %d \"%s\"", static_cast<unsigned int> (ulIdx), argv[2] );
+		SERVERBAN_AddBan( szBanAddress[0], szBanAddress[1], szBanAddress[2], szBanAddress[3], szPlayerName, argv[3], tExpiration );
+		sprintf( szString, "kick_idx %d \"%s\"", static_cast<unsigned int> (ulIdx), argv[3] );
 	}
 	else
 	{
-		SERVERBAN_AddBan( szBanAddress[0], szBanAddress[1], szBanAddress[2], szBanAddress[3], szPlayerName, NULL );
+		SERVERBAN_AddBan( szBanAddress[0], szBanAddress[1], szBanAddress[2], szBanAddress[3], szPlayerName, NULL, tExpiration );
 		sprintf( szString, "kick_idx %d", static_cast<unsigned int> (ulIdx) );
 	}
 
@@ -387,103 +495,58 @@ CCMD( ban_idx )
 CCMD( ban )
 {
 	ULONG	ulIdx;
-	char	szPlayerName[64];
-	char	szBanAddress[4][4];
 
 	// Only the server can ban players!
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		return;
 
-	if ( argv.argc( ) < 2 )
+	if ( argv.argc( ) < 3 )
 	{
-		Printf( "Usage: ban <playername> [reason]\n" );
+		Printf( "Usage: ban <playername> <duration> [reason]\nDescription: Bans the player for the given duration  (\"perm\" for a permanent ban).\n" );
 		return;
 	}
 
-	// Loop through all the players, and try to find one that matches the given name.
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	// Get the index.
+	ulIdx = SERVER_GetPlayerIndexFromName( argv[1], true, false );
+
+	// Found him?
+	if ( ulIdx != MAXPLAYERS )
 	{
-		if ( playeringame[ulIdx] == false )
-			continue;
+		char	szString[256];
 
-		// Removes the color codes from the player name so it appears as the server sees it in the window.
-		sprintf( szPlayerName, "%s", players[ulIdx].userinfo.netname );
-		V_RemoveColorCodes( szPlayerName );
-
-		if ( stricmp( szPlayerName, argv[1] ) == 0 )
-		{
-			char	szString[256];
-
-			// Can't ban a bot!
-			if ( players[ulIdx].bIsBot )
-			{
-				Printf( "You cannot ban a bot!\n" );
-				return;
-			}
-
-			itoa( SERVER_GetClient( ulIdx )->Address.abIP[0], szBanAddress[0], 10 );
-			itoa( SERVER_GetClient( ulIdx )->Address.abIP[1], szBanAddress[1], 10 );
-			itoa( SERVER_GetClient( ulIdx )->Address.abIP[2], szBanAddress[2], 10 );
-			itoa( SERVER_GetClient( ulIdx )->Address.abIP[3], szBanAddress[3], 10 );
-			// Add the new ban and kick the player.
-			if ( argv.argc( ) >= 3 )
-			{
-				SERVERBAN_AddBan( szBanAddress[0], szBanAddress[1], szBanAddress[2], szBanAddress[3], argv[1], argv[2] );
-				sprintf( szString, "kick \"%s\" \"%s\"", argv[1], argv[2] );
-			}
-			else
-			{
-				SERVERBAN_AddBan( szBanAddress[0], szBanAddress[1], szBanAddress[2], szBanAddress[3], argv[1], NULL );
-				sprintf( szString, "kick \"%s\"", argv[1] );
-			}
-
-			SERVER_AddCommand( szString );
-			return;
-		}
+		// Ban via the index.
+		sprintf( szString, "ban_idx %d \"%s\" \"%s\"", ulIdx, argv[2], (argv.argc( ) >= 4) ? argv[3] : "" );
+		SERVER_AddCommand( szString );
 	}
-
-	// Didn't find a player that matches the name.
-	Printf( "Unknown player: %s\n", argv[1] );
-	return;
+	else
+	{
+		if ( SERVER_GetPlayerIndexFromName( argv[1], true, true ) != MAXPLAYERS )
+			Printf( "%s\\c- is a bot.", argv[1] );
+		else
+			Printf( "Unknown player: %s\\c-\n",argv[1] );
+	}
 }
 
 //*****************************************************************************
 //
-// [BB] Reduce code duplication by making this exactly like addbanexemption.
-// Don't change this before the final release of 97D though.
 CCMD( addban )
 {
-	NETADDRESS_s	BanAddress;
-	char			szStringBan[4][4];
-
-	if ( argv.argc( ) < 2 )
+	if ( argv.argc( ) < 3 )
 	{
-		Printf( "Usage: addban <IP address> [comment]\n" );
+		Printf( "Usage: addban <IP address> <duration> [comment]\nDescription: bans the given IP address.\n" );
 		return;
 	}
 
-	if ( NETWORK_StringToIP( argv[1], szStringBan[0], szStringBan[1], szStringBan[2], szStringBan[3] ))
+	time_t tExpiration = SERVERBAN_ParseBanLength( argv[2] );
+	if ( tExpiration == -1 )
 	{
-		if ( argv.argc( ) >= 3 )
-			SERVERBAN_AddBan( szStringBan[0], szStringBan[1], szStringBan[2], szStringBan[3], NULL, argv[2] );
-		else
-			SERVERBAN_AddBan( szStringBan[0], szStringBan[1], szStringBan[2], szStringBan[3], NULL, NULL );
-			
+		Printf("Error: couldn't read that length. Try something like \\cg6day\\c- or \\cg\"5 hours\"\\c-.\n");
+		return;
 	}
-	else if ( NETWORK_StringToAddress( argv[1], &BanAddress ))
-	{
-		itoa( BanAddress.abIP[0], szStringBan[0], 10 );
-		itoa( BanAddress.abIP[1], szStringBan[1], 10 );
-		itoa( BanAddress.abIP[2], szStringBan[2], 10 );
-		itoa( BanAddress.abIP[3], szStringBan[3], 10 );
 
-		if ( argv.argc( ) >= 3 )
-			SERVERBAN_AddBan( szStringBan[0], szStringBan[1], szStringBan[2], szStringBan[3], NULL, argv[2] );
-		else
-			SERVERBAN_AddBan( szStringBan[0], szStringBan[1], szStringBan[2], szStringBan[3], NULL, NULL );
-	}
-	else
-		Printf( "Invalid ban string: %s\n", argv[1] );
+	std::string message;
+	g_ServerBans.addEntry( argv[1], NULL, (argv.argc( ) >= 4) ? argv[3] : NULL, message, tExpiration );
+	Printf( "addban: %s", message.c_str() );
 }
 
 //*****************************************************************************
@@ -512,7 +575,7 @@ CCMD( addbanexemption )
 	}
 
 	std::string message;
-	g_ServerBanExemptions.addEntry( argv[1], NULL, (argv.argc( ) >= 3) ? argv[2] : NULL, message );
+	g_ServerBanExemptions.addEntry( argv[1], NULL, (argv.argc( ) >= 3) ? argv[2] : NULL, message, NULL );
 	Printf( "addbanexemption: %s", message.c_str() );
 }
 
@@ -535,12 +598,8 @@ CCMD( delbanexemption )
 //
 CCMD( viewbanlist )
 {
-	ULONG		ulIdx;
-
-	for ( ulIdx = 0; ulIdx < g_ServerBans.size(); ulIdx++ )
-	{
-		Printf( "%s", g_ServerBans.getEntryAsString(ulIdx).c_str() );
-	}
+	for ( ULONG ulIdx = 0; ulIdx < g_ServerBans.size(); ulIdx++ )
+		Printf( "%s", g_ServerBans.getEntryAsString(ulIdx).c_str( ));
 }
 
 //*****************************************************************************
@@ -548,7 +607,7 @@ CCMD( viewbanlist )
 CCMD( viewbanexemptionlist )
 {
 	for ( ULONG ulIdx = 0; ulIdx < g_ServerBanExemptions.size(); ulIdx++ )
-		Printf( "%s", g_ServerBanExemptions.getEntryAsString(ulIdx).c_str() );
+		Printf( "%s", g_ServerBanExemptions.getEntryAsString(ulIdx).c_str( ));
 }
 
 //*****************************************************************************

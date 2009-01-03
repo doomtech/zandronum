@@ -520,30 +520,6 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 					NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, TEAM_GetScore( ulIdx ));
 			}
 		}
-
-		if ( ulBits & SQF_TEAMINFO_NUMBER )
-			NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, teams.Size( ));
-
-		if ( ulBits & SQF_TEAMINFO_NAME )
-			for ( ulIdx = 0; ulIdx < teams.Size( ); ulIdx++ )
-				NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, TEAM_GetName( ulIdx ));
-
-		if ( ulBits & SQF_TEAMINFO_COLOR )
-			for ( ulIdx = 0; ulIdx < teams.Size( ); ulIdx++ )
-				NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, TEAM_GetColor( ulIdx ));
-
-		if ( ulBits & SQF_TEAMINFO_SCORE )
-		{
-			for ( ulIdx = 0; ulIdx < teams.Size( ); ulIdx++ )
-			{
-				if ( teamplay )
-					NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, TEAM_GetFragCount( ulIdx ));
-				else if ( teamlms )
-					NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, TEAM_GetWinCount( ulIdx ));
-				else
-					NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, TEAM_GetScore( ulIdx ));
-			}
-		}
 	}
 
 	if ( ulBits & SQF_NUMPLAYERS )
@@ -577,6 +553,33 @@ void SERVER_MASTER_SendServerInfo( NETADDRESS_s Address, ULONG ulFlags, ULONG ul
 			}
 
 			NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, players[ulIdx].ulTime / ( TICRATE * 60 ));
+		}
+	}
+
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
+	{
+		if ( ulBits & SQF_TEAMINFO_NUMBER )
+			NETWORK_WriteByte( &g_MasterServerBuffer.ByteStream, teams.Size( ));
+
+		if ( ulBits & SQF_TEAMINFO_NAME )
+			for ( ulIdx = 0; ulIdx < teams.Size( ); ulIdx++ )
+				NETWORK_WriteString( &g_MasterServerBuffer.ByteStream, TEAM_GetName( ulIdx ));
+
+		if ( ulBits & SQF_TEAMINFO_COLOR )
+			for ( ulIdx = 0; ulIdx < teams.Size( ); ulIdx++ )
+				NETWORK_WriteLong( &g_MasterServerBuffer.ByteStream, TEAM_GetColor( ulIdx ));
+
+		if ( ulBits & SQF_TEAMINFO_SCORE )
+		{
+			for ( ulIdx = 0; ulIdx < teams.Size( ); ulIdx++ )
+			{
+				if ( teamplay )
+					NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, TEAM_GetFragCount( ulIdx ));
+				else if ( teamlms )
+					NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, TEAM_GetWinCount( ulIdx ));
+				else
+					NETWORK_WriteShort( &g_MasterServerBuffer.ByteStream, TEAM_GetScore( ulIdx ));
+			}
 		}
 	}
 
@@ -637,10 +640,10 @@ CUSTOM_CVAR( String, sv_hostname, "Unnamed Skulltag server", CVAR_ARCHIVE )
 }
 
 // Website that has the wad this server is using, possibly with other info.
-CVAR( String, sv_website, "http://www.skulltag.com/", CVAR_ARCHIVE )
+CVAR( String, sv_website, "", CVAR_ARCHIVE )
 
 // E-mail address of the person running this server.
-CVAR( String, sv_hostemail, "bradc@doomworld.com", CVAR_ARCHIVE )
+CVAR( String, sv_hostemail, "", CVAR_ARCHIVE )
 
 // IP address of the master server.
 // [BB] Client and server use this now, therefore the name doesn't begin with "sv_"

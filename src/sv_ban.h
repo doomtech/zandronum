@@ -50,6 +50,7 @@
 #ifndef __SV_BAN_H__
 #define __SV_BAN_H__
 
+#include <time.h>
 #include "sv_main.h"
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -64,6 +65,9 @@ bool			SERVERBAN_StringToBan( char *pszAddress, char *pszIP0, char *pszIP1, char
 void			SERVERBAN_ClearBans( void );
 ULONG			SERVERBAN_GetNumBans( void );
 void			SERVERBAN_ReadMasterServerBans( BYTESTREAM_s *pByteStream );
+IPList			*SERVERBAN_GetBanList( void );
+IPList			*SERVERBAN_GetBanExemptionList( void );
+time_t			SERVERBAN_ParseBanLength( const char *szLengthString );
 IPADDRESSBAN_s	SERVERBAN_GetBan( ULONG ulIdx );
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -72,5 +76,7 @@ IPADDRESSBAN_s	SERVERBAN_GetBan( ULONG ulIdx );
 
 EXTERN_CVAR( Bool, sv_enforcebans );
 EXTERN_CVAR( String, sv_banfile );
+EXTERN_CVAR( String, sv_banexemptionfile );
+EXTERN_CVAR( String, sv_adminlistfile );
 
 #endif	// __SV_BAN_H__

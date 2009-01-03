@@ -564,31 +564,6 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 			NETWORK_ReadShort( pByteStream );
 		}
 
-		// [CW] Read in the number of the teams.
-		if ( ulFlags & SQF_TEAMINFO_NUMBER )
-			g_ulNumberOfTeams = NETWORK_ReadByte( pByteStream );
-
-		// [CW] Read in the name of the teams.
-		if ( ulFlags & SQF_TEAMINFO_NAME )
-		{
-			for ( ULONG ulIdx = 0; ulIdx < g_ulNumberOfTeams; ulIdx++ )
-				NETWORK_ReadString( pByteStream );
-		}
-
-		// [CW] Read in the color of the teams.
-		if ( ulFlags & SQF_TEAMINFO_COLOR )
-		{
-			for ( ULONG ulIdx = 0; ulIdx < g_ulNumberOfTeams; ulIdx++ )
-				NETWORK_ReadLong( pByteStream );
-		}
-
-		// [CW] Read in the score of the teams.
-		if ( ulFlags & SQF_TEAMINFO_SCORE )
-		{
-			for ( ULONG ulIdx = 0; ulIdx < g_ulNumberOfTeams; ulIdx++ )
-				NETWORK_ReadShort( pByteStream );
-		}
-
 		// Read in the number of players.
 		if ( ulFlags & SQF_NUMPLAYERS )
 			ulDummyNumPlayers = NETWORK_ReadByte( pByteStream );
@@ -626,6 +601,31 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 				// Time.
 				NETWORK_ReadByte( pByteStream );
 			}
+		}
+
+		// [CW] Read in the number of the teams.
+		if ( ulFlags & SQF_TEAMINFO_NUMBER )
+			g_ulNumberOfTeams = NETWORK_ReadByte( pByteStream );
+
+		// [CW] Read in the name of the teams.
+		if ( ulFlags & SQF_TEAMINFO_NAME )
+		{
+			for ( ULONG ulIdx = 0; ulIdx < g_ulNumberOfTeams; ulIdx++ )
+				NETWORK_ReadString( pByteStream );
+		}
+
+		// [CW] Read in the color of the teams.
+		if ( ulFlags & SQF_TEAMINFO_COLOR )
+		{
+			for ( ULONG ulIdx = 0; ulIdx < g_ulNumberOfTeams; ulIdx++ )
+				NETWORK_ReadLong( pByteStream );
+		}
+
+		// [CW] Read in the score of the teams.
+		if ( ulFlags & SQF_TEAMINFO_SCORE )
+		{
+			for ( ULONG ulIdx = 0; ulIdx < g_ulNumberOfTeams; ulIdx++ )
+				NETWORK_ReadShort( pByteStream );
 		}
 
 		return;
@@ -778,31 +778,6 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 		NETWORK_ReadShort( pByteStream );
 	}
 
-	// [CW] Read in the number of the teams.
-	if ( ulFlags & SQF_TEAMINFO_NUMBER )
-		g_ulNumberOfTeams = NETWORK_ReadByte( pByteStream );
-
-	// [CW] Read in the name of the teams.
-	if ( ulFlags & SQF_TEAMINFO_NAME )
-	{
-		for ( ULONG ulIdx = 0; ulIdx < g_ulNumberOfTeams; ulIdx++ )
-			NETWORK_ReadString( pByteStream );
-	}
-
-	// [CW] Read in the color of the teams.
-	if ( ulFlags & SQF_TEAMINFO_COLOR )
-	{
-		for ( ULONG ulIdx = 0; ulIdx < g_ulNumberOfTeams; ulIdx++ )
-			NETWORK_ReadLong( pByteStream );
-	}
-
-	// [CW] Read in the score of the teams.
-	if ( ulFlags & SQF_TEAMINFO_SCORE )
-	{
-		for ( ULONG ulIdx = 0; ulIdx < g_ulNumberOfTeams; ulIdx++ )
-			NETWORK_ReadShort( pByteStream );
-	}
-
 	// Read in the number of players.
 	if ( ulFlags & SQF_NUMPLAYERS )
 		g_BrowserServerList[lServer].lNumPlayers = NETWORK_ReadByte( pByteStream );
@@ -844,6 +819,31 @@ void BROWSER_ParseServerQuery( BYTESTREAM_s *pByteStream, bool bLAN )
 				NETWORK_ReadByte( pByteStream );
 			}
 		}
+	}
+
+	// [CW] Read in the number of the teams.
+	if ( ulFlags & SQF_TEAMINFO_NUMBER )
+		g_ulNumberOfTeams = NETWORK_ReadByte( pByteStream );
+
+	// [CW] Read in the name of the teams.
+	if ( ulFlags & SQF_TEAMINFO_NAME )
+	{
+		for ( ULONG ulIdx = 0; ulIdx < g_ulNumberOfTeams; ulIdx++ )
+			NETWORK_ReadString( pByteStream );
+	}
+
+	// [CW] Read in the color of the teams.
+	if ( ulFlags & SQF_TEAMINFO_COLOR )
+	{
+		for ( ULONG ulIdx = 0; ulIdx < g_ulNumberOfTeams; ulIdx++ )
+			NETWORK_ReadLong( pByteStream );
+	}
+
+	// [CW] Read in the score of the teams.
+	if ( ulFlags & SQF_TEAMINFO_SCORE )
+	{
+		for ( ULONG ulIdx = 0; ulIdx < g_ulNumberOfTeams; ulIdx++ )
+			NETWORK_ReadShort( pByteStream );
 	}
 
 	// Now that this server has been read in, resort the servers in the menu.

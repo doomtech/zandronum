@@ -977,10 +977,10 @@ void bots_ParseBotInfoLump( FScanner &sc )
 
 		while ( sc.String[0] != '{' )
 		{
-			sc.GetString( );
 			// [BB] We can clear all previously defined bots by just calling BOTS_Destruct().
 			if (sc.Compare("CLEARBOTS"))
 				BOTS_Destruct();
+			sc.GetString( );
 		}
 
 		// We've encountered a starting bracket. Now continue to parse until we hit an end bracket.

@@ -131,12 +131,12 @@ void MASTERSERVER_SendBanlistToServer( SERVER_s &Server )
 	// Write all the bans.
 	NETWORK_WriteLong( &g_MessageBuffer.ByteStream, g_BannedIPs.size( ));
 	for ( ULONG i = 0; i < g_BannedIPs.size( ); i++ )
-		NETWORK_WriteString( &g_MessageBuffer.ByteStream, g_BannedIPs.getEntryAsString( i, false ).c_str( ));
+		NETWORK_WriteString( &g_MessageBuffer.ByteStream, g_BannedIPs.getEntryAsString( i, false, false, false ).c_str( ));
 
 	// Write all the exceptions.
 	NETWORK_WriteLong( &g_MessageBuffer.ByteStream, g_BannedIPExemptions.size( ));
 	for ( ULONG i = 0; i < g_BannedIPExemptions.size( ); i++ )
-		NETWORK_WriteString( &g_MessageBuffer.ByteStream, g_BannedIPExemptions.getEntryAsString( i, false ).c_str( ));
+		NETWORK_WriteString( &g_MessageBuffer.ByteStream, g_BannedIPExemptions.getEntryAsString( i, false, false, false ).c_str( ));
 
 	NETWORK_LaunchPacket( &g_MessageBuffer, Server.Address );
 	Server.bHasLatestBanList = true;
