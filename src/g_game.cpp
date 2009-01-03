@@ -1620,8 +1620,8 @@ void G_Ticker ()
 
 		// [BB] Don't call P_Ticker on the server if there are no players.
 		// This significantly reduces CPU usage on maps with many monsters
-		// (of course only as long as there are no players).
-		if ( ( NETWORK_GetState( ) != NETSTATE_SERVER ) || ( SERVER_CalcNumPlayers() > 0 ) )
+		// (of course only as long as there are no connected clients).
+		if ( ( NETWORK_GetState( ) != NETSTATE_SERVER ) || ( SERVER_CalcNumConnectedClients() > 0 ) )
 			P_Ticker ();
 		AM_Ticker ();
 

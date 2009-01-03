@@ -904,6 +904,22 @@ CLIENT_s *SERVER_GetClient( ULONG ulIdx )
 }
 
 //*****************************************************************************
+// [BB] Returns the number of clients that are somehow connected to the server.
+// They don't need to be actually in the game yet, to count as connected client.
+ULONG SERVER_CalcNumConnectedClients( void )
+{
+	ULONG	ulNumConnectedClients = 0;
+
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	{
+		if ( SERVER_GetClient( ulIdx )->State != CLS_FREE )
+			ulNumConnectedClients++;
+	}
+
+	return ( ulNumConnectedClients );
+}
+
+//*****************************************************************************
 //
 ULONG SERVER_CalcNumPlayers( void )
 {
@@ -2327,11 +2343,13 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 		// Don't spawn players, items about to be deleted, inventory items
 		// that have an owner, or items that the client spawns himself.
 		// [BB] Don't spawn dead actors that are not corpses.
+		// [BB] The ( pActor->health <= 0 ) check is necessary, otherwise
+		// things like DeadDemon are not spawned.
 		if (( pActor->IsKindOf( RUNTIME_CLASS( APlayerPawn ))) ||
 			( pActor->state == &AInventory::States[16] ) ||	// S_HOLDANDDESTROY
 			( pActor->state == &AInventory::States[15] ) || // S_HELD
 			( pActor->ulNetworkFlags & NETFL_ALLOWCLIENTSPAWN ) ||
-			(/*( pActor->health <= 0 ) && */(( pActor->flags & MF_COUNTKILL ) == false ) && ( pActor->InDeathState( ))))
+			(( pActor->health <= 0 ) && (( pActor->flags & MF_COUNTKILL ) == false ) && ( pActor->InDeathState( ))))
 		{
 			continue;
 		}

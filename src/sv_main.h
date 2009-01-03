@@ -280,6 +280,7 @@ void		SERVER_CheckClientBuffer( ULONG ulClient, ULONG ulSize, bool bReliable );
 LONG		SERVER_FindFreeClientSlot( void );
 LONG		SERVER_FindClientByAddress( NETADDRESS_s *pAddress );
 CLIENT_s	*SERVER_GetClient( ULONG ulIdx );
+ULONG		SERVER_CalcNumConnectedClients( void );
 ULONG		SERVER_CalcNumPlayers( void );
 ULONG		SERVER_CountPlayers( bool bCountBots );
 ULONG		SERVER_CalcNumNonSpectatingPlayers( ULONG ulExcludePlayer );
