@@ -6,10 +6,14 @@
 #include "gi.h"
 #include "s_sound.h"
 #include "m_random.h"
+// [BB] New #includes.
 #include "cl_demo.h"
 #include "deathmatch.h"
 #include "network.h"
 #include "sv_commands.h"
+#include "teaminfo.h"
+#include "gamemode.h"
+#include "team.h"
 
 static FRandom pr_tele ("TeleportSelf");
 
@@ -55,7 +59,20 @@ bool AArtiTeleport::Use (bool pickup)
 		return ( true );
 	}
 
-	if (deathmatch)
+	// [BB] If this is a team game and there are valid team starts for the team
+	// the owner is on, teleport to one of the team starts.
+	const ULONG ownerTeam = Owner->player ? Owner->player->ulTeam : teams.Size( );
+	if ( ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_PLAYERSONTEAMS )
+	     && TEAM_CheckIfValid ( ownerTeam )
+	     && ( teams[ownerTeam].TeamStarts.Size( ) > 0 ) )
+	{
+		unsigned int selections = teams[ownerTeam].TeamStarts.Size ();
+		unsigned int i = pr_tele() % selections;
+		destX = teams[ownerTeam].TeamStarts[i].x << FRACBITS;
+		destY = teams[ownerTeam].TeamStarts[i].y << FRACBITS;
+		destAngle = ANG45 * (teams[ownerTeam].TeamStarts[i].angle/45);
+	}
+	else if (deathmatch)
 	{
 		unsigned int selections = deathmatchstarts.Size ();
 		unsigned int i = pr_tele() % selections;

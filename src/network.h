@@ -561,6 +561,7 @@ const char		*NETWORK_AddressToString( NETADDRESS_s Address );
 const char		*NETWORK_AddressToStringIgnorePort( NETADDRESS_s Address );
 void			NETWORK_SetAddressPort( NETADDRESS_s &Address, USHORT usPort );
 NETADDRESS_s	NETWORK_GetLocalAddress( void );
+NETADDRESS_s	NETWORK_GetCachedLocalAddress( void );
 NETBUFFER_s		*NETWORK_GetNetworkMessageBuffer( void );
 ULONG			NETWORK_ntohs( ULONG ul );
 USHORT			NETWORK_GetLocalPort( void );

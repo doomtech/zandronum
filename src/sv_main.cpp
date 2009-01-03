@@ -55,6 +55,8 @@
 #include "MD5Checksum.h"
 #include "MD5ChecksumDefines.h"
 
+#include "../upnpnat/upnpnat.h"
+
 // [BB] Needed for timeGetTime() in SERVER_Tick().
 #ifdef _MSC_VER
 #include <mmsystem.h>
@@ -351,6 +353,29 @@ void SERVER_Construct( void )
 
 	// Set up a socket and network message buffer.
 	NETWORK_Construct( usPort, false );
+
+	// [BB] Forward the external port with UPnP.
+	if ( Args->CheckParm ( "-upnp" ) )
+	{
+		UPNPNAT nat;
+		nat.init(5,10);
+
+		int externalPort = NETWORK_GetLocalPort();
+
+		if ( Args->CheckValue( "-upnp" ) != NULL )
+			externalPort = atoi( Args->CheckValue( "-upnp" ) );
+
+		if( !nat.discovery() )
+		{
+			Printf( "NAT discovery error: %s\n", nat.get_last_error() );
+		}
+		else if ( !nat.add_port_mapping("test",NETWORK_AddressToStringIgnorePort( NETWORK_GetCachedLocalAddress() ), externalPort, NETWORK_GetLocalPort(),"UDP") )
+		{
+			Printf( "Error adding port mapping: %s\n",nat.get_last_error() );
+		}
+		else
+			Printf( "Sucessfully added port mapping.\n" );
+	}
 
 	// Initizlize the playeringame array (is this necessary?).
 	memset( playeringame, 0, sizeof( playeringame ));

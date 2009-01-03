@@ -57,6 +57,8 @@
 #include "gl/gl_shader.h"
 #include "gl/gl_translate.h"
 
+#include "gl/gl_hqresize.h"
+
 CUSTOM_CVAR(Bool, gl_warp_shader, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL)
 {
 	if (self && !(gl.flags & RFL_GLSL)) self=0;
@@ -1238,6 +1240,9 @@ unsigned char * FGLTexture::CreateTexBuffer(ETexUse use, int _cm, int translatio
 		// to do all the dirty work for us. ;)
 		tex->FTexture::CopyTrueColorPixels(&bmp, GetLeftOffset(use) - tex->LeftOffset, GetTopOffset(use) - tex->TopOffset);
 	}
+
+	// [BB] Potentially upsample the buffer.
+	buffer = gl_CreateUpsampledTextureBuffer ( this, buffer, W, H, w, h );
 
 	return buffer;
 }

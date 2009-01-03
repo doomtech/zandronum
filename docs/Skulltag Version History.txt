@@ -39,6 +39,12 @@ latestzdoom branch
 
 *+	- Added full TEAMINFO support across all game modes. [Karate Chris, Torr Samaho]
 *+	- Optimized the actor spawning code. The name of the actors used to be sent across the network, but now only a 'short' is sent. [Karate Chris, Torr Samaho]
+*+	- Added a custom implementation of the Scale2x/3x/4x algorithm as proposed in http://scale2x.sourceforge.net/ to the OpenGL renderer. This should get rid of the blurriness caused by OpenGL filtering and is controlled by the new CVAR gl_texture_hqresize, which defaults to 0. Textures/sprites whose width or height exceeds the new CVAR gl_texture_hqresize_maxinputsize (default 512) are not upsampled. The new CVAR gl_texture_hqresize_target (default 0) controls whether everything should be upsampled (value 0) or sprites and fonts only (value 1). [Torr Samaho]
+		gl_texture_hqresize == 0 : no scaling
+		gl_texture_hqresize == 1 : Scale2x algorithm
+		gl_texture_hqresize == 2 : Scale3x algorithm
+		gl_texture_hqresize == 3 : Scale4x algorithm
++	- Added UPnP support (invoked by the command line parameter "-upnp"). If used, the server tries to automatically add a port mapping on the router that connects the server to the internet. The external port of the mapping can be overridden by #n, if Skulltag is invoked with "-upnp #n". [Torr Samaho]
 +	- Added medal families: "higher" medals, such as incredible, now immediately replace lower medals, such as excellent. This means that when on a spree, you can go right from excellent to incredible, accuracy to precision, impressive to most impressive, and so on without waiting for the lower medal to slide off. Overall this makes the queue run a lot faster, especially if you have a large backlog of medals. [Rivecoder]
 +	- Added an "in console" icon that's shown above a player's head when he's in the menu or console. [Rivecoder, Torr Samaho]
 +	- The five/one minute warning announcer sounds are now played. [Rivecoder]
@@ -59,6 +65,7 @@ latestzdoom branch
 +	- Added new dmflag "force alpha", controlled by the new CVAR sv_forcealpha. If this is enabled, clients are enforced to display alpha, i.e. render as if r_drawtrans == 1. [Torr Samaho]
 +	- Added new command ClearBots to BOTINFO (has to be used outside the braces), that clears all previously defined bots (including Skulltag's hardcoded bots). [Torr Samaho]
 +	- Banned clients are now told the reason for their ban. [Rivecoder]
++	- Added new DECORATE weapon flag NOAUTOAIM. Weapons with this flag behave as if CVAR autoaim was 0 (as long as the level allows freelook). [Torr Samaho]
 -	- Fixed a positioning bug with rank/spread on the classic HUD when st_scale was off. [Rivecoder]
 -	- Fixed: the 'ColorSetter' and 'FadeSetter' actors were broken online. [Karate Chris]
 -	- Fixed: SKININFO skins couldn't use sounds from the Sounds subdirectory of PK3s/ZIPs. [Torr Samaho]
@@ -112,6 +119,7 @@ latestzdoom branch
 !	- Changed: If a player selects the "Random" player class, a new class is selected randomly every time the player respawns. [Torr Samaho]
 !	- Changed: In a single player campaign with a team based game mode, you can now rejoin after spectating with the in game join team menu, if you select the team the campaign wants you to have. [Torr Samaho]
 !	- Hard-coded bots have been exported to BOTINFO. [Blzut3]
+!	- Changed: If ArtiTeleport is used in a team game and the user is on a team with valid starts on the current map, the user is now teleported to a random team start of the user's team. [Torr Samaho]
 
 v0.97d2
 -------
