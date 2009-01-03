@@ -124,6 +124,7 @@ EXTERN_CVAR (Float, turbo)
 static	void			network_Error( char *pszError );
 static	SOCKET			network_AllocateSocket( void );
 static	bool			network_BindSocketToPort( SOCKET Socket, USHORT usPort, bool bReUse );
+static	bool			network_GenerateLumpMD5HashAndWarnIfNeeded( const int LumpNum, const char *LumpName, FString &MD5Hash );
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -230,12 +231,14 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 	lumpsToAuthenticate.push_back( "LOADACS" );
 	lumpsToAuthenticateMode.push_back( ALL_LUMPS );
 	FString checksum, longChecksum;
+	bool noProtectedLumpsAutoloaded = true;
 
 	for ( unsigned int i = 0; i < lumpsToAuthenticate.size(); i++ )
 	{
 		switch ( lumpsToAuthenticateMode[i] ){
 			case LAST_LUMP:
-				NETWORK_GenerateLumpMD5Hash( Wads.GetNumForName (lumpsToAuthenticate[i].c_str()), checksum );
+				if ( !network_GenerateLumpMD5HashAndWarnIfNeeded( Wads.GetNumForName (lumpsToAuthenticate[i].c_str()), lumpsToAuthenticate[i].c_str(), checksum ) )
+					noProtectedLumpsAutoloaded = false;
 				longChecksum += checksum;
 				break;
 
@@ -245,13 +248,25 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 				lastLump = 0;
 				while ((workingLump = Wads.FindLump(lumpsToAuthenticate[i].c_str(), &lastLump)) != -1)
 				{
-					NETWORK_GenerateLumpMD5Hash( workingLump, checksum );
+					if ( !network_GenerateLumpMD5HashAndWarnIfNeeded( workingLump, lumpsToAuthenticate[i].c_str(), checksum ) )
+						noProtectedLumpsAutoloaded = false;
 					longChecksum += checksum;
 				}
 				break;
 		}
 	}
 	CMD5Checksum::GetMD5( reinterpret_cast<const BYTE *>(longChecksum.GetChars()), longChecksum.Len(), g_lumpsAuthenticationChecksum );
+
+	// [BB] Warn the user about problematic auto-loaded files.
+	if ( noProtectedLumpsAutoloaded == false )
+	{
+		Printf ( PRINT_BOLD, "Warning: Above auto-laded files contain protected lumps.\n" );
+		if ( Args->CheckParm( "-host" ) )
+			Printf ( PRINT_BOLD, "Clients without these files can't connect to this server.\n" );
+		else
+			Printf ( PRINT_BOLD, "You can't connect to servers without these files.\n" );
+	}
+
 
 	// [BB] Initialize the actor network class indices.
 	for ( unsigned int i = 0; i < PClass::m_Types.Size(); i++ )
@@ -677,6 +692,23 @@ void NETWORK_GenerateLumpMD5Hash( const int LumpNum, FString &MD5Hash )
 	// Perform the checksum on our buffer, and free it.
 	CMD5Checksum::GetMD5( pbData, lumpSize, MD5Hash );
 	delete ( pbData );
+}
+
+//*****************************************************************************
+//
+bool network_GenerateLumpMD5HashAndWarnIfNeeded( const int LumpNum, const char *LumpName, FString &MD5Hash )
+{
+	NETWORK_GenerateLumpMD5Hash( LumpNum, MD5Hash );
+
+	int wadNum = Wads.GetWadnumFromLumpnum ( LumpNum );
+	if ( ( wadNum >= 0 ) && Wads.GetLoadedAutomatically ( wadNum ) )
+	{
+		Printf ( PRINT_BOLD, "%s contains protected lump %s\n", Wads.GetWadFullName( wadNum ), LumpName );
+		return false;
+	}
+	else
+		return true;
+
 }
 
 // [CW]

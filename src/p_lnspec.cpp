@@ -2435,8 +2435,13 @@ FUNC(LS_Sector_SetFade)
 
 	while ((secnum = P_FindSectorFromTag (arg0, secnum)) >= 0)
 	{
-		sectors[secnum].SetFade(arg1, arg2, arg3);
+		// [BB] Don't update the clients for each sector separately.
+		sectors[secnum].SetFade(arg1, arg2, arg3, false);
 	}
+	// [BB] Tell clients to set the fade for all sectors with tag arg0.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SetSectorFadeByTag( arg0, arg1, arg2, arg3 );
+
 	return true;
 }
 

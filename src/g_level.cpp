@@ -2638,7 +2638,7 @@ void G_DoLoadLevel (int position, bool autosave)
 		Printf( "\n*** %s: %s ***\n\n", level.mapname, level.level_name );
 
 		// [RC] Update clients using the RCON utility.
-		SERVER_RCON_UpdateInfo( SVRC_MAPCHANGE );
+		SERVER_RCON_UpdateInfo( SVRCU_MAP );
 	}
 	else
 	{

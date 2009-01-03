@@ -58,6 +58,7 @@
 #include "i_system.h"
 #include "m_random.h"
 #include "version.h"
+#include "v_text.h"
 #include "MD5/MD5Checksum.h"
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -83,6 +84,7 @@ static	QueryIPQueue					g_BadRequestFloodQueue( BAD_QUERY_IGNORE_TIME );
 //-- PROTOTYPES ------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 
+static	void							server_WriteUpdateInfo( BYTESTREAM_s *pByteStream, int iUpdateType );
 static	void							server_rcon_HandleNewConnection( NETADDRESS_s Address, int iProtocolVersion );
 static	void							server_rcon_HandleLogin( int iCandidateIndex, const char *pszHash );
 static	void							server_rcon_CreateSalt( char *pszBuffer );
@@ -132,7 +134,7 @@ void SERVER_RCON_Tick( )
 		{
 			Printf( "RCON client at %s timed out.\n", NETWORK_AddressToString( g_AuthedClients[i].Address ));
 			g_AuthedClients.Delete( i );
-			SERVER_RCON_UpdateInfo( SVRC_ADMINCOUNT );
+			SERVER_RCON_UpdateInfo( SVRCU_ADMINCOUNT );
 		}
 		else
 			i++;
@@ -187,7 +189,7 @@ void SERVER_RCON_ParseMessage( NETADDRESS_s Address, LONG lMessage, BYTESTREAM_s
 		if ( iIndex != -1 )	
 		{
 			g_AuthedClients.Delete( iIndex );
-			SERVER_RCON_UpdateInfo( SVRC_ADMINCOUNT );
+			SERVER_RCON_UpdateInfo( SVRCU_ADMINCOUNT );
 			Printf( "RCON client at %s disconnected.\n", NETWORK_AddressToString( Address ));
 		}
 		break;
@@ -233,7 +235,7 @@ void SERVER_RCON_Printf( const char *pszString )
 
 //==========================================================================
 //
-// SERVER_RCON_PlayerCountChanged
+// SERVER_RCON_UpdateInfo
 //
 // Updates the connected admins about the server's information (map, # players, # admins).
 //
@@ -241,33 +243,57 @@ void SERVER_RCON_Printf( const char *pszString )
 
 void SERVER_RCON_UpdateInfo( int iUpdateType )
 {
-	int		iNumPlayers = (int) SERVER_CountPlayers( false );
+	int		iNumPlayers = (int) SERVER_CountPlayers( true );
 
 	for ( unsigned int i = 0; i < g_AuthedClients.Size( ); i++ )
 	{	
 		NETWORK_ClearBuffer( &g_MessageBuffer );
-		NETWORK_WriteByte( &g_MessageBuffer.ByteStream, iUpdateType );
-
-		switch ( iUpdateType )
-		{
-		// Update the number of players.
-		case SVRC_PLAYERCOUNT:
-
-			NETWORK_WriteByte( &g_MessageBuffer.ByteStream, iNumPlayers );
-			break;
-		// Update the current map.
-		case SVRC_MAPCHANGE:
-
-			NETWORK_WriteString( &g_MessageBuffer.ByteStream, level.mapname );
-			break;
-		// Update the number of other admins.
-		case SVRC_ADMINCOUNT:
-
-			NETWORK_WriteByte( &g_MessageBuffer.ByteStream, g_AuthedClients.Size() - 1 );
-			break;
-		}
-
+		NETWORK_WriteByte( &g_MessageBuffer.ByteStream, SVRC_UPDATE );		
+		server_WriteUpdateInfo( &g_MessageBuffer.ByteStream, iUpdateType );
 		NETWORK_LaunchPacket( &g_MessageBuffer, g_AuthedClients[i].Address );
+	}
+}
+
+//==========================================================================
+//
+// server_WriteUpdateInfo
+//
+// Writes the actual update data for SERVER_RCON_UpdateInfo.
+//
+//==========================================================================
+
+static void server_WriteUpdateInfo( BYTESTREAM_s *pByteStream, int iUpdateType )
+{
+	NETWORK_WriteByte( &g_MessageBuffer.ByteStream, iUpdateType );
+
+	switch ( iUpdateType )
+	{
+	// Update the player data.
+	case SVRCU_PLAYERDATA:
+
+		NETWORK_WriteByte( pByteStream, SERVER_CountPlayers( true ));
+		for ( unsigned int i = 0; i < MAXPLAYERS; i++ )
+		{
+			if ( playeringame[i] )
+			{
+				FString		fsName;
+
+				fsName.Format( "%s", players[i].userinfo.netname );
+				V_RemoveColorCodes( fsName );
+				NETWORK_WriteString( pByteStream, fsName );
+			}
+		}
+		break;
+	// Update the current map.
+	case SVRCU_MAP:
+
+		NETWORK_WriteString( pByteStream, level.mapname );
+		break;
+	// Update the number of other admins.
+	case SVRCU_ADMINCOUNT:
+
+		NETWORK_WriteByte( pByteStream, g_AuthedClients.Size() - 1 );
+		break;
 	}
 }
 
@@ -357,15 +383,24 @@ static void server_rcon_HandleLogin( int iCandidateIndex, const char *pszHash )
 		Printf( "Failed RCON login from %s. Ignoring IP for 10 seconds...\n", NETWORK_AddressToString( g_Candidates[iCandidateIndex].Address ));
 	}
 	else
-	{
+	{		
 		// Correct password. Promote him to an authed client.
+		RCONCLIENT_s Client;
+		Client.Address = g_Candidates[iCandidateIndex].Address;
+		Client.iLastMessageTic = gametic;
+		g_AuthedClients.Push( Client );
+
+		NETWORK_ClearBuffer( &g_MessageBuffer );
 		NETWORK_WriteByte( &g_MessageBuffer.ByteStream, SVRC_LOGGEDIN );
-		
+
 		// Tell him some info about the server.
+		NETWORK_WriteByte( &g_MessageBuffer.ByteStream, PROTOCOL_VERSION );
 		NETWORK_WriteString( &g_MessageBuffer.ByteStream, sv_hostname.GetGenericRep( CVAR_String ).String );
-		NETWORK_WriteString( &g_MessageBuffer.ByteStream, level.mapname );
-		NETWORK_WriteByte( &g_MessageBuffer.ByteStream, SERVER_CountPlayers( false ));
-		NETWORK_WriteByte( &g_MessageBuffer.ByteStream, g_AuthedClients.Size( ) - 1 );
+		
+		// Send updates.
+		NETWORK_WriteByte( &g_MessageBuffer.ByteStream, NUM_RCON_UPDATES );
+		for ( int i = 0; i < NUM_RCON_UPDATES; i++ )
+			server_WriteUpdateInfo( &g_MessageBuffer.ByteStream, i );
 
 		// Send the console history.
 		NETWORK_WriteByte( &g_MessageBuffer.ByteStream, g_RecentConsoleLines.size() );
@@ -373,14 +408,7 @@ static void server_rcon_HandleLogin( int iCandidateIndex, const char *pszHash )
 			NETWORK_WriteString( &g_MessageBuffer.ByteStream, *i );
 
 		NETWORK_LaunchPacket( &g_MessageBuffer, g_Candidates[iCandidateIndex].Address );
-
-		RCONCLIENT_s Client;
-		Client.Address = g_Candidates[iCandidateIndex].Address;
-		Client.iLastMessageTic = gametic;
-		g_AuthedClients.Push( Client );
-
-		Printf( "Successful RCON login from %s.\n", NETWORK_AddressToString( g_Candidates[iCandidateIndex].Address ));
-		SERVER_RCON_UpdateInfo( SVRC_ADMINCOUNT );
+		SERVER_RCON_UpdateInfo( SVRCU_ADMINCOUNT );
 	}
 
 	// Remove his temporary slot.	

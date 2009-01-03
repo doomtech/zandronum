@@ -96,11 +96,13 @@ static	NETBUFFER_s				g_MessageBuffer;
 static	char					g_szPassword[128];
 static	char					g_szHostname[256];
 static	char					g_szMapname[32];
+static	std::list<FString>		g_InitialPlayers;
+static	int						g_iServerProtocolVersion;
 static	int						g_iNumPlayers;
 static	int						g_iNumOtherAdmins;
 static	int						g_iLines;
 static	std::list<FString>		g_RecentConsoleHistory;
-static	bool					g_bShowRCONDialog = false;
+static	bool					g_bRCONDialogVisible = false;
 static	time_t					g_tLastIncorrectLogin;
 static	std::vector<FAVORITE_s>	g_Favorites;
 
@@ -134,6 +136,7 @@ static	HMENU					g_hTrayMenu;
 
 BOOL	CALLBACK		main_ConnectDialogCallback( HWND hDlg, UINT Message, WPARAM wParam, LPARAM lParam );
 BOOL	CALLBACK		main_RCONDialogCallback( HWND hDlg, UINT Message, WPARAM wParam, LPARAM lParam );
+BOOL	CALLBACK		main_AboutDialogCallback( HWND hDlg, UINT Message, WPARAM wParam, LPARAM lParam );
 DWORD	WINAPI			main_Loop( LPVOID );
 DWORD	WINAPI			main_Show( LPVOID );
 static	void			main_Quit( );
@@ -144,6 +147,7 @@ static	void			main_UpdateServerStatus( );
 static	void			main_ShowMessage( const char *pszMessage, UINT uType );
 static	void			main_EnableConnectionButtons( BOOL bEnable );
 static	void			main_ParseCommands( BYTESTREAM_s *pByteStream );
+static	void			main_ParseUpdate( BYTESTREAM_s *pByteStream );
 static	void			main_SendPassword( const char *pszSalt );
 static	void			main_ToggleWindow( HWND hDlg );
 static	void			main_UpdateTrayTooltip( const char *szTooltip );
@@ -354,7 +358,7 @@ BOOL CALLBACK main_ConnectDialogCallback( HWND hDlg, UINT Message, WPARAM wParam
 			PAINTSTRUCT Ps;
 			RECT r;
 			r.left = 0;
-			r.top = 2;
+			r.top = 3;
 			r.bottom = 55;
 			r.right = 400;
 			main_PaintRectangle( BeginPaint(hDlg, &Ps), &r, RGB(255, 255, 255));
@@ -404,10 +408,15 @@ BOOL CALLBACK main_ConnectDialogCallback( HWND hDlg, UINT Message, WPARAM wParam
 			HMENU hFileMenu = CreatePopupMenu( );
 			AppendMenu( hFileMenu, MF_STRING, IDR_EXIT, "Exit" );
 
+			// Create the file menu.
+			HMENU hHelpMenu = CreatePopupMenu( );
+			AppendMenu( hHelpMenu, MF_STRING, IDR_ABOUT, "About..." );
+
 			// Create the main menu.
 			g_hMainMenu = CreateMenu( );
 			AppendMenu( g_hMainMenu, MF_STRING|MF_POPUP, (UINT)hFileMenu, "File" );
 			AppendMenu( g_hMainMenu, MF_STRING|MF_POPUP, (UINT)g_hFavoritesMenu, "Favorites");
+			AppendMenu( g_hMainMenu, MF_STRING|MF_POPUP, (UINT)hHelpMenu, "Help");
 			AppendMenu( g_hMainMenu, MF_SEPARATOR, 0, 0 );
 			SetMenu( hDlg, g_hMainMenu );
 
@@ -482,6 +491,10 @@ BOOL CALLBACK main_ConnectDialogCallback( HWND hDlg, UINT Message, WPARAM wParam
 			case IDR_EXIT:
 				
 				main_Quit( );
+				break;
+			case IDR_ABOUT:
+
+				DialogBox( g_hInst, MAKEINTRESOURCE( IDD_ABOUTDIALOG ), hDlg, main_AboutDialogCallback );
 				break;
 			}
 			break;
@@ -680,9 +693,7 @@ static void main_SetState( STATE_e NewState )
 
 static void main_ParseCommands( BYTESTREAM_s *pByteStream )
 {	
-	int lCommand = NETWORK_ReadByte( pByteStream );	
-
-	switch ( lCommand )
+	switch ( NETWORK_ReadByte( pByteStream ))
 	{
 	case SVRC_BANNED:
 				
@@ -696,7 +707,7 @@ static void main_ParseCommands( BYTESTREAM_s *pByteStream )
 
 			// Ignore the protocol version.
 			NETWORK_ReadByte( pByteStream );
-			sprintf( szBuffer, "The server is using a newer version than you are (%s).", NETWORK_ReadString( pByteStream ));
+			sprintf( szBuffer, "The server is using a newer version than you are (%s).\nThis version is compatible with %s.", NETWORK_ReadString( pByteStream ), COMPATIBLE_WITH );
 			main_ShowMessage( szBuffer, MB_ICONEXCLAMATION );
 			main_SetState( STATE_WAITING );
 			main_EnableConnectionButtons( TRUE );
@@ -717,10 +728,11 @@ static void main_ParseCommands( BYTESTREAM_s *pByteStream )
 	case SVRC_LOGGEDIN:
 	
 		// Read in info about the server.
+		g_iServerProtocolVersion = NETWORK_ReadByte( pByteStream );
 		strncpy( g_szHostname, NETWORK_ReadString( pByteStream ), 256 );
-		strncpy( g_szMapname, NETWORK_ReadString( pByteStream ), 32 );
-		g_iNumPlayers = NETWORK_ReadByte( pByteStream );
-		g_iNumOtherAdmins = NETWORK_ReadByte( pByteStream );
+		
+		for ( int i = 0, num = NETWORK_ReadByte( pByteStream ); i < num; i++ )
+			main_ParseUpdate( pByteStream );
 
 		// Read the console history.
 		g_iLines = NETWORK_ReadByte( pByteStream );
@@ -735,17 +747,54 @@ static void main_ParseCommands( BYTESTREAM_s *pByteStream )
 		if ( g_State == STATE_CONNECTED )
 			Printf( NETWORK_ReadString( pByteStream ));
 		break;
-	case SVRC_PLAYERCOUNT:
+	case SVRC_UPDATE:
+
+		main_ParseUpdate( pByteStream );
+		break;
+	}
+}
+
+//==========================================================================
+//
+// main_ParseUpdate
+//
+// Reads an SVRC_UPDATE message.
+//
+//==========================================================================
+
+static void main_ParseUpdate( BYTESTREAM_s *pByteStream )
+{
+	switch ( NETWORK_ReadByte( pByteStream ))
+	{
+	case SVRCU_PLAYERDATA:
 
 		g_iNumPlayers = NETWORK_ReadByte( pByteStream );
+
+		// Add the players to the list.
+		SendDlgItemMessage( g_hDlg, IDC_PLAYERLIST, LVM_DELETEALLITEMS, 0, 0 ) ;
+		LVITEM		Item;
+		Item.mask = LVIF_TEXT;
+		Item.iSubItem = COLUMN_NAME;
+		Item.iItem = MAXPLAYERS;
+		for ( LONG lIdx = 0; lIdx < g_iNumPlayers; lIdx++ )
+		{
+			// A yummy hack. At the beginning, the player list doesn't exist yet, so we need to cache the list of names until it does.
+			if ( g_bRCONDialogVisible )
+			{
+				Item.pszText = (LPSTR) NETWORK_ReadString( pByteStream );
+				SendDlgItemMessage( g_hDlg, IDC_PLAYERLIST, LVM_INSERTITEM, 0, (LPARAM)&Item ) ;
+			}
+			else
+				g_InitialPlayers.push_front( NETWORK_ReadString( pByteStream ));
+		}		
 		main_UpdateServerStatus( );
 		break;
-	case SVRC_MAPCHANGE:
+	case SVRCU_MAP:
 
 		strncpy( g_szMapname, NETWORK_ReadString( pByteStream ), 32 );
 		main_UpdateServerStatus( );
 		break;
-	case SVRC_ADMINCOUNT:
+	case SVRCU_ADMINCOUNT:
 
 		g_iNumOtherAdmins = NETWORK_ReadByte( pByteStream );
 		main_UpdateServerStatus( );
@@ -1063,6 +1112,28 @@ BOOL CALLBACK main_RCONDialogCallback( HWND hDlg, UINT Message, WPARAM wParam, L
 		g_hWhiteBrush = CreateBrushIndirect( &LogBrush );
 		main_UpdateServerStatus( );
 
+		// Set up the player list
+		LVCOLUMN	ColumnData;
+		ColumnData.mask = LVCF_FMT|LVCF_TEXT|LVCF_WIDTH;
+		ColumnData.fmt = LVCFMT_LEFT;
+		ColumnData.cx = 192;
+		ColumnData.pszText = "Name";
+		ColumnData.cchTextMax = 64;
+		ColumnData.iSubItem = 0;
+		SendDlgItemMessage( hDlg, IDC_PLAYERLIST, LVM_INSERTCOLUMN, COLUMN_NAME, (LPARAM)&ColumnData );
+
+		// Add the cached list of players.
+		LVITEM		Item;
+		Item.mask = LVIF_TEXT;
+		Item.iSubItem = COLUMN_NAME;
+		Item.iItem = MAXPLAYERS;
+		while ( g_InitialPlayers.size( ) )
+		{
+			Item.pszText = (LPSTR) g_InitialPlayers.front( ).GetChars( );
+			g_InitialPlayers.pop_front( );
+			SendDlgItemMessage( g_hDlg, IDC_PLAYERLIST, LVM_INSERTITEM, 0, (LPARAM)&Item ) ;
+		}
+
 		// Load the icon.
 		SendMessage( hDlg, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM) (HICON) LoadImage( g_hInst,	MAKEINTRESOURCE( AAA_MAIN_ICON ), IMAGE_ICON, 16, 16, LR_SHARED ));
 		SendMessage( hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)LoadIcon( g_hInst, MAKEINTRESOURCE( AAA_MAIN_ICON )));
@@ -1070,6 +1141,7 @@ BOOL CALLBACK main_RCONDialogCallback( HWND hDlg, UINT Message, WPARAM wParam, L
 		// Set up the status bar.
 		g_hDlgStatusBar = CreateStatusWindow(WS_CHILD | WS_VISIBLE, (LPCTSTR)NULL, hDlg, IDC_STATIC);
 
+		g_bRCONDialogVisible = true;
 		break;
 	case WM_COMMAND:
 
@@ -1135,4 +1207,73 @@ BOOL CALLBACK main_RCONDialogCallback( HWND hDlg, UINT Message, WPARAM wParam, L
 	}
 
 	return TRUE; // If this is false, minimizing the window won't hide it.
+}
+
+//==========================================================================
+//
+// main_AboutDialogCallback
+//
+// Callback for the "About" dialog box.
+//
+//==========================================================================
+
+BOOL CALLBACK main_AboutDialogCallback( HWND hDlg, UINT Message, WPARAM wParam, LPARAM lParam )
+{
+	switch ( Message )
+	{
+	case WM_CTLCOLORSTATIC:
+
+		switch ( GetDlgCtrlID( (HWND) lParam ))
+		{
+		// Paint these things white.
+		case IDC_DESCTEXT:
+		case IDC_REVISION:
+		case IDC_INTROTEXT:
+
+			return (LRESULT) g_hWhiteBrush;
+		// Ignore everything else.
+		default:
+
+			return NULL;
+		}
+		break;
+	case WM_PAINT:
+		{
+			// Paint the top of the form white.
+			PAINTSTRUCT Ps;
+			RECT r;
+			r.left = 0;
+			r.top = 0;
+			r.bottom = 109;
+			r.right = 800;
+			main_PaintRectangle( BeginPaint(hDlg, &Ps), &r, RGB(255, 255, 255));
+		}
+		break;
+	case WM_INITDIALOG:
+
+		// Fonts.
+		SendMessage( GetDlgItem( hDlg, IDC_INTROTEXT ), WM_SETFONT, (WPARAM) CreateFont( 17, 0, 0, 0, 600, 0, 0, 0, 0, 0, 0, 0, 0, "Tahoma" ), (LPARAM) 1 );
+		SendMessage( GetDlgItem( hDlg, IDC_DESCTEXT ), WM_SETFONT, (WPARAM) CreateFont( 13, 0, 0, 0, 0, TRUE, 0, 0, 0, 0, 0, 0, 0, "Tahoma" ), (LPARAM) 1 );
+
+		SetDlgItemText( hDlg, IDC_REVISION, "Revision "SVN_REVISION_STRING" - compatible with "COMPATIBLE_WITH"." );
+
+		break;
+	case WM_COMMAND:
+
+			switch ( LOWORD( wParam ))
+			{
+			
+			case IDOK:
+			case IDCANCEL: // This also occurs when esc is pressed.
+				
+				EndDialog( hDlg, -1 );
+				break;
+			}
+		break;
+	default:
+
+		return FALSE;
+	}
+
+	return TRUE;
 }

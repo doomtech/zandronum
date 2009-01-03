@@ -701,17 +701,20 @@ void sector_t::SetColor(int r, int g, int b, int desat)
 		SERVERCOMMANDS_SetSectorColor( sectornum );
 }
 
-void sector_t::SetFade(int r, int g, int b)
+// [BB] Added bInformClients and bExecuteOnClient.
+void sector_t::SetFade(int r, int g, int b, bool bInformClients, bool bExecuteOnClient)
 {
 	// [CW] Clients should not do this.
-	if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))))
+	// [BB] Except if explicitly instructed to do so.
+	if ((( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ))) && !bExecuteOnClient)
 		return;
 
 	PalEntry fade = PalEntry (r,g,b);
 	ColorMap = GetSpecialLights (ColorMap->Color, fade, ColorMap->Desaturate);
 
 	// [BC] Tell clients about the sector fade update.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	// [BB] Only if instructed to.
+	if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && bInformClients )
 		SERVERCOMMANDS_SetSectorFade( sectornum );
 }
 

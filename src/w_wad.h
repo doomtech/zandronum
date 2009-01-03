@@ -227,6 +227,9 @@ public:
 	// [BC] Was this wad loaded automatically?
 	bool	GetLoadedAutomatically( int wadnum ) const;
 
+	// [BB] Returns the number of the wad this given lump is in.
+	int GetWadnumFromLumpnum ( int lumpnum ) const;
+
 protected:
 	class WadFileRecord;
 	struct LumpRecord;

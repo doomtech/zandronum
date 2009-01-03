@@ -379,7 +379,8 @@ struct sector_t
 	fixed_t FindHighestFloorPoint (vertex_t **v) const;
 	void AdjustFloorClip () const;
 	void SetColor(int r, int g, int b, int desat);
-	void SetFade(int r, int g, int b);
+	// [BB] Added bInformClients and bExecuteOnClient.
+	void SetFade(int r, int g, int b, bool bInformClients = true, bool bExecuteOnClient = false);
 	void ClosestPoint(fixed_t x, fixed_t y, fixed_t &ox, fixed_t &oy) const;
 
 	DInterpolation *SetInterpolation(int position, bool attach);

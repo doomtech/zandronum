@@ -77,6 +77,7 @@
 #include "st_stuff.h"
 #include "stats.h"
 #include "sv_commands.h"
+#include "sv_rcon.h"
 #include "team.h"
 #include "vectors.h"
 #include "version.h"
@@ -623,10 +624,15 @@ void BOTS_RemoveBot( ULONG ulPlayerIdx, bool bExitMsg )
 	TEAM_CancelAssistsOfPlayer ( ulPlayerIdx );
 
 	playeringame[ulPlayerIdx] = false;
-
-	// Redo the scoreboard.
+	
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		// Redo the scoreboard.
 		SERVERCONSOLE_ReListPlayers( );
+	
+		// [RC] Update clients using the RCON utility.
+		SERVER_RCON_UpdateInfo( SVRCU_PLAYERDATA );
+	}
 
 	if ( g_bBotIsInitialized[ulPlayerIdx] )
 		players[ulPlayerIdx].pSkullBot->PreDelete( );
@@ -1861,6 +1867,9 @@ CSkullBot::CSkullBot( char *pszName, char *pszTeamName, ULONG ulPlayerNum )
 
 		// Redo the scoreboard.
 		SERVERCONSOLE_ReListPlayers( );
+
+		// [RC] Update clients using the RCON utility.
+		SERVER_RCON_UpdateInfo( SVRCU_PLAYERDATA );
 
 		// Now send out the player's userinfo out to other players.
 		SERVERCOMMANDS_SetPlayerUserInfo( ulPlayerNum, USERINFO_ALL );

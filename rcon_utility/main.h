@@ -51,7 +51,10 @@
 #ifndef __MAIN_H__
 #define __MAIN_H__
 
+#include "../src/version.h"
+
 #define	RCONCONSOLE_TEXTLENGTH	4096
+#define COMPATIBLE_WITH "stock "DOTVERSIONSTR_NOREV" servers"
 
 typedef enum
 {
@@ -68,6 +71,8 @@ typedef struct
 	char	szPassword[128];
 
 } FAVORITE_s;
+
+#define	COLUMN_NAME			0
 
 int				Printf( const char *pszString, ... );
 int				Printf_NoTimestamp( const char *pszString, ... );

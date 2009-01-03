@@ -594,10 +594,10 @@ void gl_RenderModel(GLSprite * spr, int cm)
 	if( smf->flags & MDL_ROTATING )
 	{
 		float offsetAngle = 0.;
-		const float time = GetTimeFloat()/200.;
+		const float time = smf->rotationSpeed*GetTimeFloat()/200.;
 		offsetAngle = ( (time - static_cast<int>(time)) *360. );
 		gl.Translatef(smf->rotationCenterX, smf->rotationCenterY, smf->rotationCenterZ);
-		gl.Rotatef(offsetAngle*smf->rotationSpeed, smf->xrotate, smf->yrotate, smf->zrotate);
+		gl.Rotatef(offsetAngle, smf->xrotate, smf->yrotate, smf->zrotate);
 		gl.Translatef(-smf->rotationCenterX, -smf->rotationCenterY, -smf->rotationCenterZ);
 	}
 

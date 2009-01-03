@@ -3529,7 +3529,11 @@ void aim_t::AimTraverse (fixed_t startx, fixed_t starty, fixed_t endx, fixed_t e
 		{
 			// try to be a little smarter about what to aim at!
 			// In particular avoid autoaiming at friends amd barrels.
-			if (th->IsFriend(shootthing))
+			if (th->IsFriend(shootthing)
+				// [BB] If shooter and target are both players, they are only considered to be friends,
+				// if they are teammates. For the time being I don't want to put this in IsFriend
+				// to not risk any negative side effects in 97d3.
+				&& ( th->IsTeammate( shootthing ) || ( th->player == NULL ) || ( shootthing->player == NULL ) ) )
 			{
 				if (sv_smartaim < 2)
 				{

@@ -51,19 +51,21 @@
 #ifndef __SV_RCON_H__
 #define __SV_RCON_H__
 
+#ifndef IN_RCON_UTILITY
 #include "network.h"
+#endif
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 //-- DEFINES ---------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 
-#define PROTOCOL_VERSION			1
+#define PROTOCOL_VERSION			3
 #define RCON_CANDIDATE_TIMEOUT_TIME 10
 #define RCON_CLIENT_TIMEOUT_TIME	40
 #define BAD_QUERY_IGNORE_TIME		4
 
 //*****************************************************************************
-// Messages sent from server to the RCON utility.
+// Messages sent from the server to the RCON utility.
 enum
 {
 	SVRC_OLDPROTOCOL = 32,
@@ -72,13 +74,11 @@ enum
 	SVRC_LOGGEDIN,
 	SVRC_INVALIDPASSWORD,
 	SVRC_MESSAGE,
-	SVRC_PLAYERCOUNT,
-	SVRC_MAPCHANGE,
-	SVRC_ADMINCOUNT,
+	SVRC_UPDATE,
 };
 
 //*****************************************************************************
-// Messages sent from RCON utility to the server.
+// Messages sent from the RCON utility to the server.
 enum
 {
 	CLRC_BEGINCONNECTION = 52,
@@ -86,6 +86,17 @@ enum
 	CLRC_COMMAND,
 	CLRC_PONG,
 	CLRC_DISCONNECT,
+};
+
+//*****************************************************************************
+// Various types of updates sent from the server to the RCON utility.
+enum
+{
+	SVRCU_PLAYERDATA,
+	SVRCU_ADMINCOUNT,
+	SVRCU_MAP,
+
+	NUM_RCON_UPDATES
 };
 
 #ifndef IN_RCON_UTILITY
