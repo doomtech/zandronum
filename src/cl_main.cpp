@@ -4150,9 +4150,10 @@ static void client_SetPlayerUserInfo( BYTESTREAM_s *pByteStream )
 		}
 	}
 
-    // Other info.
+	// Other info.
+	// [BB] Make sure that the gender is valid.
 	if ( ulFlags & USERINFO_GENDER )
-		pPlayer->userinfo.gender = lGender;
+		pPlayer->userinfo.gender = clamp ( static_cast<int>(lGender), 0, 2 );
 	if ( ulFlags & USERINFO_COLOR )
 	    pPlayer->userinfo.color = lColor;
 	if ( ulFlags & USERINFO_RAILCOLOR )

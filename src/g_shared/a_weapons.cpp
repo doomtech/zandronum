@@ -290,7 +290,7 @@ void AWeapon::AttachToOwner (AActor *other)
 
 			// [BC] Handle the "switchonpickup" userinfo cvar. If it's >= 2, then
 			// we always want to switch our weapon when we pickup a new one.
-			if (Owner->player->userinfo.switchonpickup >= 2)
+			if ( (Owner->player->userinfo.switchonpickup >= 2) || ( compatflags & COMPATF_OLD_WEAPON_SWITCH ) )
 			{
 				Owner->player->PendingWeapon = this;
 

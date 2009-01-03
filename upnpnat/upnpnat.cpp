@@ -75,9 +75,9 @@ static bool parseUrl(const char* url,std::string& host,unsigned short* port,std:
 #define HTTPMU_HOST_ADDRESS "239.255.255.250"
 #define HTTPMU_HOST_PORT 1900
 #define SEARCH_REQUEST_STRING "M-SEARCH * HTTP/1.1\r\n"            \
-                              "ST:UPnP:rootdevice\r\n"             \
+                              "ST: upnp:rootdevice\r\n"            \
                               "MX: 3\r\n"                          \
-                              "Man:\"ssdp:discover\"\r\n"          \
+                              "MAN: \"ssdp:discover\"\r\n"         \
                               "HOST: 239.255.255.250:1900\r\n"     \
                               "\r\n"
 #define HTTP_OK "200 OK"

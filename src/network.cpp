@@ -50,6 +50,13 @@
 
 #include "networkheaders.h"
 
+// [BB] Special things necessary for NETWORK_GetLocalAddress() under Linux.
+#ifdef unix
+#include <net/if.h>
+#define inaddrr(x) (*(struct in_addr *) &ifr->x[sizeof sa.sin_port])
+#define IFRSIZE   ((int)(size * sizeof (struct ifreq)))
+#endif
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -539,7 +546,7 @@ NETADDRESS_s NETWORK_GetLocalAddress( void )
 	szBuffer[512-1] = 0;
 
 	// Convert the host name to our local 
-	NETWORK_StringToAddress( szBuffer, &Address );
+	bool stringToAddress = NETWORK_StringToAddress( szBuffer, &Address );
 
 	iNameLength = sizeof( SocketAddress );
 #ifndef	WIN32
@@ -550,6 +557,63 @@ NETADDRESS_s NETWORK_GetLocalAddress( void )
 	{
 		Printf( "NETWORK_GetLocalAddress: Error getting socket name: %s", strerror( errno ));
 	}
+
+#ifdef unix
+	// [BB] The "gethostname -> gethostbyname" trick didn't reveal the local IP.
+	// Now we need to resort to something more complicated.
+	if ( stringToAddress == false );
+	{
+		unsigned char      *u;
+		int                size  = 1;
+		struct ifreq       *ifr;
+		struct ifconf      ifc;
+		struct sockaddr_in sa;
+		
+		ifc.ifc_len = IFRSIZE;
+		ifc.ifc_req = NULL;
+		
+		do {
+			++size;
+			/* realloc buffer size until no overflow occurs  */
+			if (NULL == (ifc.ifc_req = (ifreq*)realloc(ifc.ifc_req, IFRSIZE)))
+			{
+				fprintf(stderr, "Out of memory.\n");
+				exit(EXIT_FAILURE);
+			}
+			ifc.ifc_len = IFRSIZE;
+			if (ioctl(g_NetworkSocket, SIOCGIFCONF, &ifc))
+			{
+				perror("ioctl SIOCFIFCONF");
+				exit(EXIT_FAILURE);
+			}
+		} while  (IFRSIZE <= ifc.ifc_len);
+		
+		ifr = ifc.ifc_req;
+		for (;(char *) ifr < (char *) ifc.ifc_req + ifc.ifc_len; ++ifr)
+		{
+		
+			if (ifr->ifr_addr.sa_data == (ifr+1)->ifr_addr.sa_data)
+			{
+				continue;  /* duplicate, skip it */
+			}
+		
+			if (ioctl(g_NetworkSocket, SIOCGIFFLAGS, ifr))
+			{
+				continue;  /* failed to get flags, skip it */
+			}
+		
+			Printf("Found interface %s", ifr->ifr_name);
+			Printf(" with IP address: %s\n", inet_ntoa(inaddrr(ifr_addr.sa_data)));
+			*(int *)&Address.abIP = *(int *)&inaddrr(ifr_addr.sa_data);
+			if ( Address.abIP[0] != 127 )
+			{
+				Printf ( "Using IP address of interface %s as local address.\n", ifr->ifr_name );
+				break;
+			}
+		}
+
+	}
+#endif
 
 	Address.usPort = SocketAddress.sin_port;
 	return ( Address );

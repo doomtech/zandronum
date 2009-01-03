@@ -641,6 +641,7 @@ static bool callvote_CheckValidity( FString &Command, FString &Parameters )
 CVAR( Int, sv_nocallvote, 0, CVAR_ARCHIVE ); // 0 - everyone can call votes. 1 - nobody can. 2 - only players can.
 CVAR( Bool, sv_nokickvote, false, CVAR_ARCHIVE );
 CVAR( Bool, sv_nomapvote, false, CVAR_ARCHIVE );
+CVAR( Bool, sv_nochangemapvote, false, CVAR_ARCHIVE );
 CVAR( Bool, sv_nofraglimitvote, false, CVAR_ARCHIVE );
 CVAR( Bool, sv_notimelimitvote, false, CVAR_ARCHIVE );
 CVAR( Bool, sv_nowinlimitvote, false, CVAR_ARCHIVE );

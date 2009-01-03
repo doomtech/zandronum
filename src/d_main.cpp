@@ -516,6 +516,8 @@ CVAR (Flag, compat_originalsoundcurve,	compatflags, COMPATF_ORIGINALSOUNDCURVE);
 CVAR (Flag, compat_oldintermission,	compatflags, COMPATF_OLDINTERMISSION);
 CVAR (Flag, compat_disablestealthmonsters,	compatflags, COMPATF_DISABLESTEALTHMONSTERS);
 //CVAR (Flag, compat_disablecooperativebackpacks,	compatflags, COMPATF_DISABLECOOPERATIVEBACKPACKS);
+CVAR (Flag, compat_nocrosshair,		compatflags, COMPATF_NO_CROSSHAIR);
+CVAR (Flag, compat_oldweaponswitch,		compatflags, COMPATF_OLD_WEAPON_SWITCH);
 
 //==========================================================================
 //

@@ -360,6 +360,55 @@ void GAMEMODE_DisplayStandardMessage( const char *pszMessage )
 }
 
 //*****************************************************************************
+// [BB] Expects pszMessage already to be colorized with V_ColorizeString.
+void GAMEMODE_DisplayCNTRMessage( const char *pszMessage, const bool bInformClients, const ULONG ulPlayerExtra, const ULONG ulFlags )
+{
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+	{
+		screen->SetFont( BigFont );
+		DHUDMessageFadeOut *pMsg = new DHUDMessageFadeOut( pszMessage,
+			1.5f,
+			TEAM_MESSAGE_Y_AXIS,
+			0,
+			0,
+			CR_UNTRANSLATED,
+			3.0f,
+			0.25f );
+		StatusBar->AttachMessage( pMsg, MAKE_ID( 'C','N','T','R' ));
+		screen->SetFont( SmallFont );
+	}
+	// If necessary, send it to clients.
+	else if ( bInformClients )
+	{
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( pszMessage, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_UNTRANSLATED, 3.0f, 0.25f, "BigFont", false, MAKE_ID('C','N','T','R'), ulPlayerExtra, ulFlags );
+	}
+}
+
+//*****************************************************************************
+// [BB] Expects pszMessage already to be colorized with V_ColorizeString.
+void GAMEMODE_DisplaySUBSMessage( const char *pszMessage, const bool bInformClients, const ULONG ulPlayerExtra, const ULONG ulFlags )
+{
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+	{
+		screen->SetFont( SmallFont );
+		DHUDMessageFadeOut *pMsg = new DHUDMessageFadeOut( pszMessage,
+			1.5f,
+			TEAM_MESSAGE_Y_AXIS_SUB,
+			0,
+			0,
+			CR_UNTRANSLATED,
+			3.0f,
+			0.25f );
+		StatusBar->AttachMessage( pMsg, MAKE_ID( 'S','U','B','S' ));
+	}
+	// If necessary, send it to clients.
+	else if ( bInformClients )
+	{
+		SERVERCOMMANDS_PrintHUDMessageFadeOut( pszMessage, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_UNTRANSLATED, 3.0f, 0.25f, "SmallFont", false, MAKE_ID( 'S','U','B','S' ), ulPlayerExtra, ulFlags );
+	}
+}
+
+//*****************************************************************************
 //
 GAMEMODE_e GAMEMODE_GetCurrentMode( void )
 {

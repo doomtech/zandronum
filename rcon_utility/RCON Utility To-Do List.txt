@@ -1,0 +1,10 @@
+===============================================================================
+
+	RCON Utility - "To Do" List
+	
+===============================================================================
+
+- Improve support for multiple sessions
+	- mIRC-like MDI setup?
+- Player list
+	- Kick/ban menu, etc

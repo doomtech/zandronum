@@ -37,6 +37,19 @@ latestzdoom branch
 <trunk>
 -------
 
+-	- Fixed: When using the CCMD kill in the console, the "in console" icon over the player's head was not removed. [Torr Samaho]
+-	- Fixed: Detection of the local IP under Linux did not work properly. [Torr Samaho]
+-	- Fixed: The ScaleNx code messed up camera textures. [Torr Samaho]
+-	- Fixed some seemingly random problems occurring to clients in CTF or Skulltag games. [Torr Samaho]
+-	- Fixed an exploit that allowed to crash servers. Kudos to kgsws for submitting a detailed report on this issue. [Torr Samaho]
+-	- Fixed: Seemingly randomly clients completely froze in CTF / Skulltag. [Torr Samaho]
+!	- Changed: Players are now notified that they can only pick up a team's flag if there are people on that team. [Torr Samaho]
+!	- Changed the SSDP packet the server sends to find the UPnP root device. This should make the UPnP support compatible with more routers. [Torr Samaho]
+
+v0.97d3 RC1
+-----------
+
+*+	- Added temporary bans! [Rivecoder]
 *+	- Added full TEAMINFO support across all game modes. [Karate Chris, Torr Samaho]
 *+	- Optimized the actor spawning code. The name of the actors used to be sent across the network, but now only a 'short' is sent. [Karate Chris, Torr Samaho]
 *+	- Added a custom implementation of the Scale2x/3x/4x algorithm as proposed in http://scale2x.sourceforge.net/ to the OpenGL renderer. This should get rid of the blurriness caused by OpenGL filtering and is controlled by the new CVAR gl_texture_hqresize, which defaults to 0. Textures/sprites whose width or height exceeds the new CVAR gl_texture_hqresize_maxinputsize (default 512) are not upsampled. The new CVAR gl_texture_hqresize_target (default 0) controls whether everything should be upsampled (value 0) or sprites and fonts only (value 1). [Torr Samaho]
@@ -66,6 +79,8 @@ latestzdoom branch
 +	- Added new command ClearBots to BOTINFO (has to be used outside the braces), that clears all previously defined bots (including Skulltag's hardcoded bots). [Torr Samaho]
 +	- Banned clients are now told the reason for their ban. [Rivecoder]
 +	- Added new DECORATE weapon flag NOAUTOAIM. Weapons with this flag behave as if CVAR autoaim was 0 (as long as the level allows freelook). [Torr Samaho]
++	- Added new compatflag "no crosshair", controlled by the new CVAR compat_nocrosshair. If this is enabled, clients are not allowed to use a crosshair. [Torr Samaho, SuperGod]
++	- Added new compatflag "old weapon switch", controlled by the new CVAR compat_oldweaponswitch. If this is enabled, players always switch weapons on pickup (as in vanilla Doom). [Torr Samaho, SuperGod]
 -	- Fixed a positioning bug with rank/spread on the classic HUD when st_scale was off. [Rivecoder]
 -	- Fixed: the 'ColorSetter' and 'FadeSetter' actors were broken online. [Karate Chris]
 -	- Fixed: SKININFO skins couldn't use sounds from the Sounds subdirectory of PK3s/ZIPs. [Torr Samaho]
@@ -99,14 +114,14 @@ latestzdoom branch
 -	- Fixed: Under certain conditions the CMPGNINF parser didn't accept proper botteam entries. [Torr Samaho]
 -	- Fixed: Player classes using certain code pointers caused "ghost" players to appear under certain conditions. For example this affected Sjas in GvH. [Torr Samaho]
 -	- Fixed: Under certain circumstances changing the CVAR playerclass messed up the ColorRange property of the console player skin (fixed itself upon respawning). [Torr Samaho]
--	- Removed sv_nochangemapvote. Changemap votes are now controlled by sv_nomapvote (since they're essentially the same). [Rivecoder]
 -	- Removed the default values for sv_motd, sv_website, and sv_hostemail. sv_motd would show the wrong version over time, and the others should be blank if not set by the server hoster. [Rivecoder]
 -	- Fixed: Online a player and all its corpses used the same translation, i.e. if a player changed his color all corpses of this player changed their color too. [Torr Samaho]
--	- Fixed: The new fullscreen HUD doesn't respect the maxplayer property of the current player class. [Torr Samaho]
+-	- Fixed: The new fullscreen HUD doesn't respect the maxhealth property of the current player class. [Torr Samaho]
 -	- Fixed: Instagib ignored the ammo types of Railgun replacements. [Blzut3]
 -	- Fixed: After changing the map online or a map reset, the game possibly crashes when using cl_stfullscreenhud == false. [Torr Samaho]
 -	- Fixed: ParticleFountain doesn't work properly online for the first player that connects to a server. [Torr Samaho]
 -	- Fixed: Things like DeadDemon are not spawned on the clients online. [Torr Samaho]
+-	- Fixed: Legacy-style 3D floors/liquid linetypes didn't work for Doom-format maps. [Torr Samaho]
 !	- Changed up the display of medals when you have the key down. Higher medals are now on the right, opposite their subordinates. [Rivecoder]
 !	- Each player's "ready to go on" status, shown at the intermission, can now only be turned on. Hopefully, this will help clear up what this command is for and prevent rapid toggling of it. [Rivecoder]
 !	- Rank/Spread is no longer drawn if there's only one player. [Rivecoder]
@@ -120,6 +135,7 @@ latestzdoom branch
 !	- Changed: In a single player campaign with a team based game mode, you can now rejoin after spectating with the in game join team menu, if you select the team the campaign wants you to have. [Torr Samaho]
 !	- Hard-coded bots have been exported to BOTINFO. [Blzut3]
 !	- Changed: If ArtiTeleport is used in a team game and the user is on a team with valid starts on the current map, the user is now teleported to a random team start of the user's team. [Torr Samaho]
+!	- Changed: GrenadeLauncher doesn't auto aim anymore (it now has the NOAUTOAIM weapon flag). [Torr Samaho]
 
 v0.97d2
 -------

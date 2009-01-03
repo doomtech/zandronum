@@ -305,6 +305,12 @@ enum
 
 	// Disable cooperative backpacks.
 //	COMPATF_DISABLECOOPERATIVEBACKPACKS	= 1 << 24,
+
+	// [BB] Clients are not allowed to use a crosshair.
+	COMPATF_NO_CROSSHAIR		= 1 << 25,
+
+	// [BB] Clients use the vanilla Doom weapon on pickup behavior.
+	COMPATF_OLD_WEAPON_SWITCH		= 1 << 26,
 };
 
 // phares 3/20/98:

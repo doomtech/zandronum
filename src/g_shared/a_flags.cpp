@@ -60,6 +60,7 @@
 #include "team.h"
 #include "v_text.h"
 #include "v_video.h"
+#include "gamemode.h"
 
 //*****************************************************************************
 //	DEFINES
@@ -74,75 +75,6 @@ IMPLEMENT_STATELESS_ACTOR( ATeamItem, Any, -1, 0 )
  PROP_Inventory_FlagsSet( IF_INTERHUBSTRIP )
  PROP_Inventory_PickupSound( "misc/k_pkup" )
 END_DEFAULTS
-
-//===========================================================================
-//
-// ATeamItem :: Tick
-//
-// Move the flag above a player's head when necessary.
-//
-//===========================================================================
-
-void ATeamItem::Tick( )
-{
-	Super::Tick( );
-
-	// Delete stray icons. This shouldn't ever happen.
-	if ( !tracer || !tracer->player || !tracer->player->pIcon || tracer->player->pIcon->GetClass( ) != this->GetClass( ))
-		return;
-
-	// Make the icon float directly above the player's head.
-	SetOrigin( tracer->x, tracer->y, tracer->z + tracer->height + ( 4 * FRACUNIT ));
-
-	this->alpha = OPAQUE;
-	this->RenderStyle = STYLE_Normal;
-
-	if ( this->lTick )
-	{
-		this->lTick--;
-		if ( this->lTick )
-		{
-			// If the icon is fading out, ramp down the alpha.
-			if ( this->lTick <= TICRATE )
-			{
-				this->alpha = (LONG)( OPAQUE * (float)( (float)lTick / (float)TICRATE ));
-				this->RenderStyle = STYLE_Translucent;
-			}
-		}
-		else
-			return;
-	}
-
-	// If the tracer has some type of visibility affect, apply it to the icon.
-	if ( !( tracer->RenderStyle == LegacyRenderStyles[STYLE_Normal] ) || tracer->alpha != OPAQUE )
-	{
-		this->RenderStyle = tracer->RenderStyle;
-		this->alpha = tracer->alpha;
-	}
-}
-
-//===========================================================================
-//
-// ATeamItem :: SetTracer
-//
-// Set the tracer.
-//
-//===========================================================================
-
-void ATeamItem::SetTracer( AActor *pTracer )
-{
-	tracer = pTracer;
-
-	// Make the icon float directly above the tracer's head.
-	SetOrigin( tracer->x, tracer->y, tracer->z + tracer->height + ( 4 * FRACUNIT ));
-
-	// If the tracer has some type of visibility affect, apply it to the icon.
-	if ( !( tracer->RenderStyle == LegacyRenderStyles[STYLE_Normal] ) || tracer->alpha != OPAQUE )
-	{
-		this->RenderStyle = tracer->RenderStyle;
-		this->alpha = tracer->alpha;
-	}
-}
 
 //===========================================================================
 //
@@ -339,8 +271,8 @@ bool ATeamItem::HandlePickup( AInventory *pItem )
 
 LONG ATeamItem::AllowFlagPickup( AActor *pToucher )
 {
-	// [BB] Only players can pick up team items.
-	if ( pToucher->player == NULL )
+	// [BB] Only players on a team can pick up team items.
+	if (( pToucher == NULL ) || ( pToucher->player == NULL ) || ( pToucher->player->bOnTeam == false ))
 		return ( DENY_PICKUP );
 
 	// [BB] Players are always allowed to return their own dropped team item.
@@ -348,24 +280,27 @@ LONG ATeamItem::AllowFlagPickup( AActor *pToucher )
 		( this->flags & MF_DROPPED ))
 		return ( RETURN_FLAG );
 
+	// [BB] If a client gets here, the server already made all necessary checks. So just allow the pickup.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ) == true ))
+		return ( ALLOW_PICKUP );
+
 	// [BB] If a player already carries an enemy team item, don't let him pick up another one.
 	if ( TEAM_FindOpposingTeamsItemInPlayersInventory ( pToucher->player ) )
 		return ( DENY_PICKUP );
 
 	// [BB] If the team the item belongs to doesn't have any players, don't let it be picked up.
 	if ( TEAM_CountPlayers ( TEAM_GetTeamFromItem ( this ) ) == 0 )
-		return ( DENY_PICKUP );
-
-	for ( ULONG i = 0; i < MAXPLAYERS; i++ )
 	{
-		if ( playeringame[i] )
-		{ 
-			if ( players[i].pIcon && players[i].pIcon->pTeamItem == this )
-				return ( DENY_PICKUP );
-		}
+		FString message = "You can't pick up the flag\nof a team with no players!";
+		GAMEMODE_DisplaySUBSMessage( message.GetChars(), true, static_cast<ULONG>(pToucher->player - players), SVCF_ONLYTHISCLIENT );
+		return ( DENY_PICKUP );
 	}
 
-	return ( ALLOW_PICKUP );
+	// Player is touching the enemy flag.
+	if ( this->GetClass( ) != TEAM_GetItem( pToucher->player->ulTeam ))
+		return ( ALLOW_PICKUP );
+
+	return ( DENY_PICKUP );
 }
 
 //===========================================================================
@@ -451,33 +386,6 @@ void ATeamItem::AnnounceFlagReturn( void )
 
 void ATeamItem::DisplayFlagReturn( void )
 {
-}
-
-//===========================================================================
-//
-// ATeamItem :: DisplayFlagReturn
-//
-// Special handling for destroying team items.
-//
-//===========================================================================
-
-void ATeamItem::Destroy( void )
-{
-	player_t *pPlayer;
-	ULONG ulPlayerIdx;
-
-	for ( ulPlayerIdx = 0; ulPlayerIdx < MAXPLAYERS; ulPlayerIdx++ )
-	{
-		pPlayer = &players[ulPlayerIdx];
-
-		if ( pPlayer && pPlayer->pIcon && pPlayer->pIcon->bTeamItemFloatyIcon )
-			break;
-	}
-
-	if ( pPlayer && pPlayer->mo )
-		Owner = pPlayer->mo;
-
-	Super::Destroy( );
 }
 
 // Skulltag flag ------------------------------------------------------------
@@ -648,24 +556,7 @@ LONG AFlag::AllowFlagPickup( AActor *pToucher )
 	if ( oneflagctf )
 		return ( DENY_PICKUP );
 
-	if (( pToucher == NULL ) || ( pToucher->player == NULL ) || ( pToucher->player->bOnTeam == false ))
-		return ( DENY_PICKUP );
-
-	if ( Super::AllowFlagPickup( pToucher ) == DENY_PICKUP )
-		return ( DENY_PICKUP );
-
-	// Player is touching the enemy flag.
-	if ( this->GetClass( ) != TEAM_GetItem( pToucher->player->ulTeam ))
-		return ( ALLOW_PICKUP );
-
-	// Player is touching his own flag. If it's dropped, allow him to return it.
-	if (( this->GetClass( ) == TEAM_GetItem( pToucher->player->ulTeam )) &&
-		( this->flags & MF_DROPPED ))
-	{
-		return ( RETURN_FLAG );
-	}
-
-	return ( DENY_PICKUP );
+	return Super::AllowFlagPickup( pToucher );
 }
 
 //===========================================================================
@@ -838,61 +729,21 @@ void AFlag::ReturnFlag( AActor *pReturner )
 		}
 	}
 
+	char szString[256];
 	if ( pReturner && pReturner->player )
 	{
 		// [RC] Create the "returned by" message for this team.
-		char szString[256];
-		DHUDMessageFadeOut	*pMsg;
 		ULONG playerIndex = ULONG( pReturner->player - players );
 		sprintf( szString, "\\c%cReturned by: %s", V_GetColorChar( TEAM_GetTextColor( players[playerIndex].ulTeam )), players[playerIndex].userinfo.netname );
-
-		V_ColorizeString( szString );
-
-		// Now, print it.
-		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-		{
-			screen->SetFont( SmallFont );
-			pMsg = new DHUDMessageFadeOut( szString,
-				1.5f,
-				TEAM_MESSAGE_Y_AXIS_SUB,
-				0,
-				0,
-				CR_UNTRANSLATED,
-				3.0f,
-				0.25f );
-			StatusBar->AttachMessage( pMsg, MAKE_ID( 'S','U','B','S' ));
-		}
-		// If necessary, send it to clients.
-		else
-			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_UNTRANSLATED, 3.0f, 0.25f, "SmallFont", false, MAKE_ID( 'S','U','B','S' ));
 	}
 	else
 	{
 		// [RC] Create the "returned automatically" message for this team.
-		char szString[256];
-		DHUDMessageFadeOut	*pMsg;
 		sprintf( szString, "\\c%cReturned automatically.", V_GetColorChar( TEAM_GetTextColor( TEAM_GetTeamFromItem( this ))));
-
-		V_ColorizeString( szString );
-
-		// Now, print it.
-		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-		{
-			screen->SetFont( SmallFont );
-			pMsg = new DHUDMessageFadeOut( szString,
-				1.5f,
-				TEAM_MESSAGE_Y_AXIS_SUB,
-				0,
-				0,
-				CR_UNTRANSLATED,
-				3.0f,
-				0.25f );
-			StatusBar->AttachMessage( pMsg, MAKE_ID( 'S','U','B','S' ));
-		}
-		// If necessary, send it to clients.
-		else
-			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_UNTRANSLATED, 3.0f, 0.25f, "SmallFont", false, MAKE_ID( 'S','U','B','S' ));
 	}
+
+	V_ColorizeString( szString );
+	GAMEMODE_DisplaySUBSMessage( szString, true );
 }
 
 //===========================================================================
@@ -926,28 +777,13 @@ void AFlag::AnnounceFlagReturn( void )
 void AFlag::DisplayFlagReturn( void )
 {
 	char						szString[256];
-	DHUDMessageFadeOut			*pMsg;
 
 	// Create the "returned" message.
 	sprintf( szString, "\\c%c%s flag returned", V_GetColorChar( TEAM_GetTextColor ( TEAM_GetTeamFromItem( this ))), TEAM_GetName ( TEAM_GetTeamFromItem( this )));
 
 	V_ColorizeString( szString );
 
-	// Now, print it.
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-	{
-		screen->SetFont( BigFont );
-		pMsg = new DHUDMessageFadeOut( szString,
-			1.5f,
-			TEAM_MESSAGE_Y_AXIS,
-			0,
-			0,
-			CR_UNTRANSLATED,
-			3.0f,
-			0.25f );
-		StatusBar->AttachMessage( pMsg, MAKE_ID( 'C','N','T','R' ));
-		screen->SetFont( SmallFont );
-	}
+	GAMEMODE_DisplayCNTRMessage( szString, false );
 }
 
 // White flag ---------------------------------------------------------------
@@ -1309,27 +1145,12 @@ void AWhiteFlag::AnnounceFlagReturn( void )
 void AWhiteFlag::DisplayFlagReturn( void )
 {
 	char						szString[256];
-	DHUDMessageFadeOut			*pMsg;
 
 	// Create the "returned" message.
 	sprintf( szString, "\\cCWhite flag returned" );
 	V_ColorizeString( szString );
 
-	// Now, print it.
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-	{
-		screen->SetFont( BigFont );
-		pMsg = new DHUDMessageFadeOut( szString,
-			1.5f,
-			TEAM_MESSAGE_Y_AXIS,
-			0,
-			0,
-			CR_WHITE,
-			3.0f,
-			0.25f );
-		StatusBar->AttachMessage( pMsg, MAKE_ID( 'C','N','T','R' ));
-		screen->SetFont( SmallFont );
-	}
+	GAMEMODE_DisplayCNTRMessage( szString, false );
 }
 
 // Skulltag skull -----------------------------------------------------------
@@ -1349,24 +1170,7 @@ END_DEFAULTS
 
 LONG ASkull::AllowFlagPickup( AActor *pToucher )
 {
-	if (( pToucher == NULL ) || ( pToucher->player == NULL ) || ( pToucher->player->bOnTeam == false ))
-		return ( DENY_PICKUP );
-
-	if ( Super::AllowFlagPickup( pToucher ) == DENY_PICKUP )
-		return ( DENY_PICKUP );
-
-	// Player is touching the enemy flag.
-	if ( this->GetClass( ) != TEAM_GetItem( pToucher->player->ulTeam ))
-		return ( ALLOW_PICKUP );
-
-	// Player is touching his own flag. If it's dropped, allow him to return it.
-	if (( this->GetClass( ) == TEAM_GetItem( pToucher->player->ulTeam )) &&
-		( this->flags & MF_DROPPED ))
-	{
-		return ( RETURN_FLAG );
-	}
-
-	return ( DENY_PICKUP );
+	return Super::AllowFlagPickup( pToucher );
 }
 
 //===========================================================================
@@ -1539,62 +1343,21 @@ void ASkull::ReturnFlag( AActor *pReturner )
 		}
 	}
 
+	char szString[256];
 	if ( pReturner && pReturner->player )
 	{
 		// [RC] Create the "returned by" message for this team.
-		char szString[256];
-		DHUDMessageFadeOut	*pMsg;
 		ULONG playerIndex = ULONG( pReturner->player - players );
 		sprintf( szString, "\\c%cReturned by: %s", V_GetColorChar( TEAM_GetTextColor( players[playerIndex].ulTeam )), players[playerIndex].userinfo.netname );
-
-		V_ColorizeString( szString );
-
-		// Now, print it.
-		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-		{
-			screen->SetFont( SmallFont );
-			pMsg = new DHUDMessageFadeOut( szString,
-				1.5f,
-				TEAM_MESSAGE_Y_AXIS_SUB,
-				0,
-				0,
-				CR_UNTRANSLATED,
-				3.0f,
-				0.25f );
-			StatusBar->AttachMessage( pMsg, MAKE_ID( 'S','U','B','S' ));
-		}
-		// If necessary, send it to clients.
-		else
-			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_UNTRANSLATED, 3.0f, 0.25f, "SmallFont", false, MAKE_ID( 'S','U','B','S' ));
 	}
 	else
 	{
 		// [RC] Create the "returned automatically" message for this team.
-		char szString[256];
-		DHUDMessageFadeOut	*pMsg;
 		sprintf( szString, "\\c%cReturned automatically.", V_GetColorChar( TEAM_GetTextColor( TEAM_GetTeamFromItem( this ))));
-
-		V_ColorizeString( szString );
-
-		// Now, print it.
-		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-		{
-			screen->SetFont( SmallFont );
-			pMsg = new DHUDMessageFadeOut( szString,
-				1.5f,
-				TEAM_MESSAGE_Y_AXIS_SUB,
-				0,
-				0,
-				CR_UNTRANSLATED,
-				3.0f,
-				0.25f );
-			StatusBar->AttachMessage( pMsg, MAKE_ID( 'S','U','B','S' ));
-		}
-		// If necessary, send it to clients.
-		else
-			SERVERCOMMANDS_PrintHUDMessageFadeOut( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_UNTRANSLATED, 3.0f, 0.25f, "SmallFont", false, MAKE_ID( 'S','U','B','S' ));
 	}
 
+	V_ColorizeString( szString );
+	GAMEMODE_DisplaySUBSMessage( szString, true );
 }
 
 //===========================================================================
@@ -1628,26 +1391,11 @@ void ASkull::AnnounceFlagReturn( void )
 void ASkull::DisplayFlagReturn( void )
 {
 	char						szString[256];
-	DHUDMessageFadeOut			*pMsg;
 
 	// Create the "returned" message.
 	sprintf( szString, "\\c%c%s skull returned", V_GetColorChar( TEAM_GetTextColor( TEAM_GetTeamFromItem( this ))), TEAM_GetName( TEAM_GetTeamFromItem( this )));
 
 	V_ColorizeString( szString );
 
-	// Now, print it.
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-	{
-		screen->SetFont( BigFont );
-		pMsg = new DHUDMessageFadeOut( szString,
-			1.5f,
-			TEAM_MESSAGE_Y_AXIS,
-			0,
-			0,
-			CR_UNTRANSLATED,
-			3.0f,
-			0.25f );
-		StatusBar->AttachMessage( pMsg, MAKE_ID( 'C','N','T','R' ));
-		screen->SetFont( SmallFont );
-	}
+	GAMEMODE_DisplayCNTRMessage( szString, false );
 }

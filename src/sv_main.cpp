@@ -2078,9 +2078,10 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick )
 		}
 	}
 
-    // Read in gender, color, and aim distance.
+	// Read in gender, color, and aim distance.
+	// [BB] Make sure that the gender is valid.
 	if ( ulFlags & USERINFO_GENDER )
-		pPlayer->userinfo.gender = NETWORK_ReadByte( pByteStream );
+		pPlayer->userinfo.gender = clamp ( NETWORK_ReadByte( pByteStream ), 0, 2 );
 	if ( ulFlags & USERINFO_COLOR )
 		pPlayer->userinfo.color = NETWORK_ReadLong( pByteStream );
 	if ( ulFlags & USERINFO_AIMDISTANCE )
@@ -4939,7 +4940,7 @@ static bool server_CallVote( BYTESTREAM_s *pByteStream )
 		break;
 	case VOTECMD_CHANGEMAP:
 
-		if ( sv_nomapvote )
+		if ( sv_nochangemapvote )
 			return ( false );
 		sprintf( szCommand, "changemap" );
 		break;

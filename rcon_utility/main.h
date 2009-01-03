@@ -61,6 +61,14 @@ typedef enum
 
 } STATE_e;
 
+typedef struct
+{
+	char	szName[128];
+	char	szAddress[128];
+	char	szPassword[128];
+
+} FAVORITE_s;
+
 int				Printf( const char *pszString, ... );
 int				Printf_NoTimestamp( const char *pszString, ... );
 void			VPrintf( bool bTimestamp, const char *pszString, va_list Parms );

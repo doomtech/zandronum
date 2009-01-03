@@ -892,7 +892,8 @@ IMPLEMENT_ACTOR (AGrenadeLauncher, Doom, 5011, 163)
 	PROP_SpawnState (S_GLAU)
 
 	PROP_Weapon_SelectionOrder (2500)
-	PROP_Weapon_Flags (WIF_NOAUTOFIRE)
+	// [BB] Added WIF_NOAUTOAIM.
+	PROP_Weapon_Flags (WIF_NOAUTOFIRE|WIF_NOAUTOAIM)
 	PROP_Weapon_AmmoUse1 (1)
 	PROP_Weapon_AmmoGive1 (2)
 	PROP_Weapon_UpState (S_GRENADELAUNCHERUP)

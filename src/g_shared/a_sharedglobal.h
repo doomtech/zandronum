@@ -155,8 +155,6 @@ class ATeamItem : public AInventory
 {
 	DECLARE_STATELESS_ACTOR( ATeamItem, AInventory )
 public:
-	virtual void Tick( );
-	virtual void SetTracer( AActor *pTracer );
 	virtual bool ShouldRespawn( );
 	virtual bool TryPickup( AActor *pToucher );
 	virtual bool HandlePickup( AInventory *pItem );
@@ -168,7 +166,6 @@ public:
 	virtual void ReturnFlag( AActor *pReturner );
 	virtual void AnnounceFlagReturn( void );
 	virtual void DisplayFlagReturn( void );
-	virtual void Destroy( void );
 
 	LONG lTick;
 };
@@ -215,7 +212,6 @@ public:
 
 	LONG		lTick;
 	bool		bTeamItemFloatyIcon;
-	ATeamItem	*pTeamItem;
 };
 
 class DEarthquake : public DThinker

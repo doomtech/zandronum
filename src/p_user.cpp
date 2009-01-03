@@ -1677,7 +1677,7 @@ void APlayerPawn::Die (AActor *source, AActor *inflictor)
 	}
 
 	// If this is a teamgame and the player is carrying the opponents "flag", drop it.
-	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ) && ( CLIENTDEMO_IsPlaying( ) == false ) && teamgame && player->bOnTeam )
+	if (( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ) && teamgame && player->bOnTeam )
 	{
 		for ( ULONG i = 0; i < teams.Size( ); i++ )
 		{
@@ -1731,6 +1731,7 @@ void APlayerPawn::Die (AActor *source, AActor *inflictor)
 						SERVERCOMMANDS_GivePlayerMedal( source->player - players, MEDAL_DEFENSE );
 				}
 
+				/* [BB] The flags don't have a "Drop" state, so why should be do this? Is this meant to be a feature for mods that is completely undocumented?
 				FState *TeamItemDroppedState = pTeamItem->FindState( "Drop" );
 
 				if ( TeamItemDroppedState )
@@ -1740,6 +1741,7 @@ void APlayerPawn::Die (AActor *source, AActor *inflictor)
 
 					pTeamItem->SetState( TeamItemDroppedState );
 				}
+				*/
 			}
 		}
 
@@ -1782,6 +1784,7 @@ void APlayerPawn::Die (AActor *source, AActor *inflictor)
 //				if ( dmflags2 & DF2_INSTANT_RETURN )
 //					FBehavior::StaticStartTypedScripts( SCRIPT_WhiteReturn, this );
 
+				/* [BB] For flags it is "Drop" and for the WhiteFlag "Droped"? Makes no sense.
 				FState *TeamItemDroppedState = pTeamItem->FindState( "Dropped" );
 
 				if ( TeamItemDroppedState )
@@ -1791,6 +1794,7 @@ void APlayerPawn::Die (AActor *source, AActor *inflictor)
 
 					pTeamItem->SetState( TeamItemDroppedState );
 				}
+				*/
 			}
 
 			// Award a "Defense!" medal to the player who fragged this flag carrier.

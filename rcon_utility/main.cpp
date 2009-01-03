@@ -65,6 +65,8 @@
 #include <commctrl.h>
 #include <time.h>
 #include <mmsystem.h>
+#include <uxtheme.h>
+#include <shellapi.h>
 
 // Look pretty under XP and Vista.
 #if defined _M_IX86
@@ -100,6 +102,7 @@ static	int						g_iLines;
 static	std::list<FString>		g_RecentConsoleHistory;
 static	bool					g_bShowRCONDialog = false;
 static	time_t					g_tLastIncorrectLogin;
+static	std::vector<FAVORITE_s>	g_Favorites;
 
 // When did we last refresh the connect button?
 static	long					g_lLastCountdownTime;
@@ -114,6 +117,16 @@ static	int						g_iRetries = 0;
 
 // A solid white brush that paints the top of the "connect" dialog.
 static	HBRUSH					g_hWhiteBrush;
+
+// Tray icon data.
+static	NOTIFYICONDATA			g_NotifyIconData;
+static	HICON					g_hSmallIcon = NULL;
+static	char					g_szTooltip[128];
+
+// Menus.
+static	HMENU					g_hMainMenu;
+static	HMENU					g_hFavoritesMenu;
+static	HMENU					g_hTrayMenu;
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 //-- PROTOTYPES ------------------------------------------------------------------------------------------------------------------------------------
@@ -132,6 +145,11 @@ static	void			main_ShowMessage( const char *pszMessage, UINT uType );
 static	void			main_EnableConnectionButtons( BOOL bEnable );
 static	void			main_ParseCommands( BYTESTREAM_s *pByteStream );
 static	void			main_SendPassword( const char *pszSalt );
+static	void			main_ToggleWindow( HWND hDlg );
+static	void			main_UpdateTrayTooltip( const char *szTooltip );
+static	BOOL			main_TrayIconClicked( HWND hDlg, LPARAM lParam );
+static	void			main_SetState( STATE_e NewState );
+static	void			main_ConnectToFavorite( int iIndex );
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 //-- FUNCTIONS -------------------------------------------------------------------------------------------------------------------------------------
@@ -151,8 +169,29 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 	g_Config.ChangePathName( "settings.ini" );
 	g_Config.LoadConfigFile( NULL, NULL );
 
+	// Read the user's favorites.
+	if ( g_Config.SetSection("Favorites"))
+	{			
+		const char *key;
+		const char *value;
+
+		while ( g_Config.NextInSection( key, value ))
+		{
+			FAVORITE_s fav;
+
+			strncpy( fav.szName, key, 128 );
+			fav.szName[128] = 0;
+			strncpy( fav.szAddress, value, strchr( value, '/' ) - value );
+			fav.szAddress[strchr( value, '/' ) - value] = 0;
+			strncpy( fav.szPassword, strchr( value, '/' ) + 1, 128 );
+			fav.szPassword[128] = 0;
+
+			g_Favorites.push_back( fav );			
+		}
+	}
+
 	NETWORK_Construct( 99999 );
-	g_State = STATE_WAITING;
+	main_SetState( STATE_WAITING );
 	DialogBox( g_hInst, MAKEINTRESOURCE( IDD_CONNECTDIALOG ), NULL, main_ConnectDialogCallback );
 }
 
@@ -169,6 +208,7 @@ static void main_Quit( )
 	if ( g_State == STATE_CONNECTED )
 		main_Disconnect( );
 
+	Shell_NotifyIcon( NIM_DELETE, &g_NotifyIconData );
 	EndDialog( g_hDlg, -1 );
 	CloseHandle( g_hThread );
 	exit( 0 );
@@ -224,12 +264,14 @@ DWORD WINAPI main_Loop( LPVOID )
 				g_iRetries++;
 				sprintf( szBuffer, "Retrying (%d) to reach %s...", g_iRetries, NETWORK_AddressToString( g_ServerAddress ));
 				main_UpdateStatusbar( szBuffer );
+				main_UpdateTrayTooltip( szBuffer );
 			}
 			else
 			{
 				main_ShowMessage( "That address doesn't seem valid; there was no response.", MB_ICONEXCLAMATION );
-				g_State = STATE_WAITING;
+				main_SetState( STATE_WAITING );
 				main_EnableConnectionButtons( TRUE );
+				g_iRetries = 0;
 			}
 		}
 
@@ -312,7 +354,7 @@ BOOL CALLBACK main_ConnectDialogCallback( HWND hDlg, UINT Message, WPARAM wParam
 			PAINTSTRUCT Ps;
 			RECT r;
 			r.left = 0;
-			r.top = 0;
+			r.top = 2;
 			r.bottom = 55;
 			r.right = 400;
 			main_PaintRectangle( BeginPaint(hDlg, &Ps), &r, RGB(255, 255, 255));
@@ -320,28 +362,79 @@ BOOL CALLBACK main_ConnectDialogCallback( HWND hDlg, UINT Message, WPARAM wParam
 		break;
 	case WM_INITDIALOG:
 
-		g_hDlg = hDlg;
+		{
+			g_hDlg = hDlg;
 
-		// Load the icon.
-		SendMessage( hDlg, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM) (HICON) LoadImage( g_hInst,	MAKEINTRESOURCE( AAA_MAIN_ICON ), IMAGE_ICON, 16, 16, LR_SHARED ));
-		SendMessage( hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)LoadIcon( g_hInst, MAKEINTRESOURCE( AAA_MAIN_ICON )));
+			// Load the icon.
+			SendMessage( hDlg, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM) (HICON) LoadImage( g_hInst,	MAKEINTRESOURCE( AAA_MAIN_ICON ), IMAGE_ICON, 16, 16, LR_SHARED ));
+			SendMessage( hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)LoadIcon( g_hInst, MAKEINTRESOURCE( AAA_MAIN_ICON )));
 
-		// Set up the status bar.
-		g_hDlgStatusBar = CreateStatusWindow( WS_CHILD | WS_VISIBLE, (LPCTSTR)NULL, hDlg, IDC_STATIC );
+			//==============================
+			// Create the notification icon.
+			//==============================
 
-		// Set up the top, white section.
-		SendMessage( GetDlgItem( g_hDlg, IDC_INTROTEXT ), WM_SETFONT, (WPARAM) CreateFont( 13, 0, 0, 0, 600, 0, 0, 0, 0, 0, 0, 0, 0, "Tahoma" ), (LPARAM) 1 );
-		LOGBRUSH LogBrush;
-		LogBrush.lbStyle = BS_SOLID;
-		LogBrush.lbColor = RGB( 255, 255, 255 );
-		g_hWhiteBrush = CreateBrushIndirect( &LogBrush );
+			ZeroMemory( &g_NotifyIconData, sizeof( g_NotifyIconData ));
+			g_NotifyIconData.cbSize = sizeof( g_NotifyIconData );
+			g_NotifyIconData.hWnd = hDlg;
+			g_NotifyIconData.uID = 0;
+			g_NotifyIconData.uFlags = NIF_ICON|NIF_MESSAGE|NIF_TIP;
+			g_NotifyIconData.uCallbackMessage = UWM_TRAY_TRAYID;
+			g_NotifyIconData.hIcon =  (HICON) LoadImage( g_hInst,	MAKEINTRESOURCE( AAA_MAIN_ICON ), IMAGE_ICON, 16, 16, LR_SHARED );			
+			lstrcpy( g_NotifyIconData.szTip, g_szTooltip );
+			Shell_NotifyIcon( NIM_ADD, &g_NotifyIconData );
 
-		// Load the server address that was used last time.
-		if ( g_Config.HaveSections( ) && g_Config.SetSection( "Settings", true ) && g_Config.GetValueForKey( "LastServer" ) )
-			SetDlgItemText( hDlg, IDC_SERVERIP, g_Config.GetValueForKey( "LastServer" ) );
+			//==================
+			// Create the menus.
+			//==================
+		
+			// Create the favorites menu.
+			g_hFavoritesMenu = CreatePopupMenu( );
+			int iIndex = 1;
+			for( std::vector<FAVORITE_s>::iterator i = g_Favorites.begin(); i != g_Favorites.end(); ++i )			
+				AppendMenu( g_hFavoritesMenu, MF_STRING, IDR_DYNAMIC_MENU + iIndex++, (LPCTSTR)(&(*i->szName)) );
 
+			// Create the tray menu.
+			g_hTrayMenu = CreatePopupMenu( );
+			AppendMenu( g_hTrayMenu, MF_STRING, IDR_TOGGLE, "Show/Hide" );
+			AppendMenu( g_hTrayMenu, MF_STRING|MF_POPUP, (UINT)g_hFavoritesMenu, "Favorites");
+			AppendMenu( g_hTrayMenu, MF_SEPARATOR, 0, 0 );
+			AppendMenu( g_hTrayMenu, MF_STRING, IDR_EXIT, "Exit" );
+
+			// Create the file menu.
+			HMENU hFileMenu = CreatePopupMenu( );
+			AppendMenu( hFileMenu, MF_STRING, IDR_EXIT, "Exit" );
+
+			// Create the main menu.
+			g_hMainMenu = CreateMenu( );
+			AppendMenu( g_hMainMenu, MF_STRING|MF_POPUP, (UINT)hFileMenu, "File" );
+			AppendMenu( g_hMainMenu, MF_STRING|MF_POPUP, (UINT)g_hFavoritesMenu, "Favorites");
+			AppendMenu( g_hMainMenu, MF_SEPARATOR, 0, 0 );
+			SetMenu( hDlg, g_hMainMenu );
+
+			// Set up the status bar.
+			g_hDlgStatusBar = CreateStatusWindow( WS_CHILD | WS_VISIBLE, (LPCTSTR)NULL, hDlg, IDC_STATIC );
+
+			// Set up the top, white section.
+			SendMessage( GetDlgItem( g_hDlg, IDC_INTROTEXT ), WM_SETFONT, (WPARAM) CreateFont( 13, 0, 0, 0, 600, 0, 0, 0, 0, 0, 0, 0, 0, "Tahoma" ), (LPARAM) 1 );
+			LOGBRUSH LogBrush;
+			LogBrush.lbStyle = BS_SOLID;
+			LogBrush.lbColor = RGB( 255, 255, 255 );
+			g_hWhiteBrush = CreateBrushIndirect( &LogBrush );
+
+			// Load the server address that was used last time.
+			if ( g_Config.HaveSections( ) && g_Config.SetSection( "Settings", true ) && g_Config.GetValueForKey( "LastServer" ) )
+				SetDlgItemText( hDlg, IDC_SERVERIP, g_Config.GetValueForKey( "LastServer" ) );
+
+		}
 		break;
 	case WM_COMMAND:
+
+			// Selecting a favorite from the menu?
+			if ( LOWORD( wParam ) > IDR_DYNAMIC_MENU && LOWORD( wParam ) <= IDR_DYNAMIC_MENU + g_Favorites.size( ))
+			{
+				main_ConnectToFavorite( LOWORD( wParam ) - IDR_DYNAMIC_MENU - 1 );
+				return TRUE;
+			}
 
 			switch ( LOWORD( wParam ))
 			{
@@ -350,7 +443,7 @@ BOOL CALLBACK main_ConnectDialogCallback( HWND hDlg, UINT Message, WPARAM wParam
 
 				if ( g_State == STATE_CONNECTING )
 				{
-					g_State = STATE_WAITING;
+					main_SetState( STATE_WAITING );
 					main_EnableConnectionButtons( TRUE );
 					main_UpdateStatusbar( "Cancelled." );
 				}
@@ -385,24 +478,100 @@ BOOL CALLBACK main_ConnectDialogCallback( HWND hDlg, UINT Message, WPARAM wParam
 
 				// Re-enable the form so the user can try again.
 				main_EnableConnectionButtons( TRUE );
-	
+				break;
+			case IDR_EXIT:
+				
+				main_Quit( );
 				break;
 			}
 			break;
+	case WM_SYSCOMMAND:
+
+		// Hide the window when minimized.
+		if ( wParam == SC_MINIMIZE )
+			ShowWindow( hDlg, SW_HIDE );
+		else
+			DefWindowProc( hDlg, Message, wParam, lParam );
+		break;
 	case WM_CLOSE:
 
 		main_Quit( );
 		break;
 	case WM_DESTROY:
 
+		Shell_NotifyIcon( NIM_DELETE, &g_NotifyIconData );
 		PostQuitMessage( 0 );
 		break;
+	case UWM_TRAY_TRAYID:
+
+		return main_TrayIconClicked( hDlg, lParam );		
 	default:
 
 		return FALSE;
 	}
 
 	return TRUE;
+}
+
+//==========================================================================
+//
+// main_TrayIconClicked
+//
+// Toggles the window, or shows a menu.
+//
+//==========================================================================
+
+static BOOL main_TrayIconClicked( HWND hDlg, LPARAM lParam )
+{
+	switch ( lParam )
+	{
+	case WM_LBUTTONDOWN:
+
+		return TRUE;
+	case WM_LBUTTONDBLCLK:
+
+		main_ToggleWindow( g_hDlg );			
+		return TRUE;
+	case WM_RBUTTONUP:
+
+		{
+			// Show the tray menu.
+			POINT	pt;
+			GetCursorPos( &pt );
+			int iSelection = ::TrackPopupMenu( g_hTrayMenu, TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_RETURNCMD | TPM_HORIZONTAL, 
+				pt.x, pt.y, 0, hDlg, NULL );
+
+			if ( iSelection == IDR_EXIT )	
+				main_Quit( );
+			else if ( iSelection == IDR_TOGGLE )
+				main_ToggleWindow( g_hDlg );
+			else if ( iSelection > IDR_DYNAMIC_MENU )
+				main_ConnectToFavorite( iSelection - IDR_DYNAMIC_MENU - 1 );
+		}
+	}
+
+	return FALSE;
+}
+
+//==========================================================================
+//
+// main_ConnectToFavorite
+//
+// Connects to the given favorite.
+//
+//==========================================================================
+
+static void main_ConnectToFavorite( int iIndex )
+{
+	// Update gui.
+	main_EnableConnectionButtons( FALSE );
+	SetDlgItemText( g_hDlg, IDC_SERVERIP, g_Favorites[iIndex].szAddress );
+	SetDlgItemText( g_hDlg, IDC_PASSWORD, g_Favorites[iIndex].szPassword );
+
+	// Connect.
+	NETWORK_StringToAddress( g_Favorites[iIndex].szAddress, &g_ServerAddress );
+	strncpy( g_szPassword, g_Favorites[iIndex].szPassword, 127 );
+	main_AttemptConnection( );
 }
 
 //==========================================================================
@@ -450,6 +619,56 @@ static void main_EnableConnectionButtons( BOOL bEnable )
 	EnableWindow( GetDlgItem( g_hDlg, IDC_PASSWORD ), bEnable );
 }
 
+//==========================================================================
+//
+// main_UpdateTrayTooltip
+//
+// Sets the tooltip of the tray icon.
+//
+//==========================================================================
+
+void main_UpdateTrayTooltip( const char *pszTooltip )
+{
+	strncpy( g_szTooltip, pszTooltip, 128 );
+	lstrcpy( g_NotifyIconData.szTip, g_szTooltip );
+	Shell_NotifyIcon( NIM_MODIFY, &g_NotifyIconData );
+}
+
+//==========================================================================
+//
+// main_ToggleWindow
+//
+// Shows or hides the main window.
+//
+//==========================================================================
+
+static void main_ToggleWindow( HWND hDlg )
+{
+	if ( IsWindowVisible( hDlg ))
+		ShowWindow( hDlg, SW_HIDE );
+	else
+	{
+		ShowWindow( hDlg, SW_SHOW );
+		SetActiveWindow( hDlg );
+		SetForegroundWindow( hDlg );
+	}
+}
+
+//==========================================================================
+//
+// main_SetState
+//
+// Updates the connection state.
+//
+//==========================================================================
+
+static void main_SetState( STATE_e NewState )
+{
+	g_State = NewState;
+
+	if ( g_State == STATE_WAITING )
+		main_UpdateTrayTooltip( "Disconnected" );
+}
 
 //==========================================================================
 //
@@ -468,7 +687,7 @@ static void main_ParseCommands( BYTESTREAM_s *pByteStream )
 	case SVRC_BANNED:
 				
 		main_ShowMessage( "You have been banned from the server!", MB_ICONEXCLAMATION );
-		g_State = STATE_WAITING;
+		main_SetState( STATE_WAITING );
 		main_EnableConnectionButtons( TRUE );		
 		return;
 	case SVRC_OLDPROTOCOL:
@@ -479,7 +698,7 @@ static void main_ParseCommands( BYTESTREAM_s *pByteStream )
 			NETWORK_ReadByte( pByteStream );
 			sprintf( szBuffer, "The server is using a newer version than you are (%s).", NETWORK_ReadString( pByteStream ));
 			main_ShowMessage( szBuffer, MB_ICONEXCLAMATION );
-			g_State = STATE_WAITING;
+			main_SetState( STATE_WAITING );
 			main_EnableConnectionButtons( TRUE );
 			return;
 		}
@@ -488,7 +707,7 @@ static void main_ParseCommands( BYTESTREAM_s *pByteStream )
 
 		time( &g_tLastIncorrectLogin );
 		main_ShowMessage( "Sorry, the password you gave is incorrect.", MB_ICONEXCLAMATION );
-		g_State = STATE_WAITING;
+		main_SetState( STATE_WAITING );
 		main_EnableConnectionButtons( TRUE );
 		return;
 	case SVRC_SALT:
@@ -548,9 +767,10 @@ static void main_AttemptConnection( )
 
 	// Update the GUI.
 	time( &g_tLastSentCommand );
-	g_State = STATE_CONNECTING;
+	main_SetState( STATE_CONNECTING );
 	sprintf( szBuffer, "Connecting to %s...", NETWORK_AddressToString( g_ServerAddress ));
 	main_UpdateStatusbar( szBuffer );
+	main_UpdateTrayTooltip( szBuffer );
 	GetDlgItemText( g_hDlg, IDC_SERVERIP, szBuffer, 128 );
 
 	// Save this server to our config file.
@@ -608,7 +828,7 @@ static void main_Disconnect( )
 	NETWORK_ClearBuffer( &g_MessageBuffer );
 	NETWORK_WriteByte( &g_MessageBuffer.ByteStream, CLRC_DISCONNECT );
 	NETWORK_LaunchPacket( &g_MessageBuffer, g_ServerAddress );
-	g_State = STATE_WAITING;
+	main_SetState( STATE_WAITING );
 }
 
 //*****************************************************************************
@@ -822,13 +1042,14 @@ BOOL CALLBACK main_RCONDialogCallback( HWND hDlg, UINT Message, WPARAM wParam, L
 		SendDlgItemMessage( hDlg, IDC_CONSOLEBOX, EM_SETLIMITTEXT, 4096, 0 );
 		SendDlgItemMessage( hDlg, IDC_INPUTBOX, EM_SETLIMITTEXT, 256, 0 );
 		SetWindowText( hDlg, g_szHostname );
-		g_State = STATE_CONNECTED;
+		main_SetState( STATE_CONNECTED );
 		Printf( "\nMap: %s\n", g_szMapname );
 
 		// Fill the console with the received history.
 		sprintf( szBuffer, "Connected to \"%s\".", g_szHostname );
 		SetDlgItemText( hDlg, IDC_CONSOLEBOX, szBuffer );
-		SetDlgItemText( hDlg, IDC_STATUS, szBuffer );		
+		SetDlgItemText( hDlg, IDC_STATUS, szBuffer );
+		main_UpdateTrayTooltip( szBuffer );
 		Printf_NoTimestamp( "\n" );
 		for( std::list<FString>::iterator i = g_RecentConsoleHistory.begin(); i != g_RecentConsoleHistory.end(); ++i )
 			Printf_NoTimestamp( "%s", *i );
@@ -888,18 +1109,30 @@ BOOL CALLBACK main_RCONDialogCallback( HWND hDlg, UINT Message, WPARAM wParam, L
 				break;
 			}
 			break;
+	case WM_SYSCOMMAND:
+
+		// Hide the window when minimized.
+		if ( wParam == SC_MINIMIZE )
+			ShowWindow( hDlg, SW_HIDE );
+		else
+			DefWindowProc( hDlg, Message, wParam, lParam );
+		break;
 	case WM_CLOSE:
 
 		main_Quit( );
 		break;
 	case WM_DESTROY:
 
+		Shell_NotifyIcon( NIM_DELETE, &g_NotifyIconData );
 		PostQuitMessage( 0 );
 		break;
+	case UWM_TRAY_TRAYID:
+
+		return main_TrayIconClicked( hDlg, lParam );	
 	default:
 
 		return FALSE;
 	}
 
-	return FALSE;
+	return TRUE; // If this is false, minimizing the window won't hide it.
 }
