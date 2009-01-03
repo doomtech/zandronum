@@ -2627,7 +2627,7 @@ void M_AcceptPlayerSetupChanges( void )
 
 	// [RC] Clean the name
 	char	szPlayerName[64];
-	sprintf( szPlayerName, "%s", (const char*) menu_name );
+	sprintf( szPlayerName, "%s", menu_name.GetGenericRep( CVAR_String ).String );
 	V_CleanPlayerName(szPlayerName);
 	menu_name = szPlayerName;
 
@@ -6265,7 +6265,7 @@ void M_OptResponder (event_t *ev)
 		else if (( item->type == string ) || ( item->type == pwstring ))
 		{
 			// Copy the current value into our temporary string buffer.
-			sprintf( g_szStringInputBuffer, "%s", (const char*) *item->a.stringcvar );
+			sprintf( g_szStringInputBuffer, "%s", item->a.stringcvar->GetGenericRep( CVAR_String ).String );
 
 			// Enter string input mode.
 			g_bStringInput = true;

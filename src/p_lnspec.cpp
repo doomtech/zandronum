@@ -933,7 +933,7 @@ FUNC(LS_ThrustThingZ)	// [BC]
 	else if (it)
 	{
 		// [BB] This is server side.
-		if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
+		if ( ( NETWORK_GetState( ) != NETSTATE_CLIENT ) || ( it->ulNetworkFlags & NETFL_CLIENTSIDEONLY ) )
 		{
 			if (!arg3)
 				it->momz = thrust;
