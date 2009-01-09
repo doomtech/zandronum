@@ -20,6 +20,8 @@
 **    covered by the terms of the GNU Lesser General Public License as published
 **    by the Free Software Foundation; either version 2.1 of the License, or (at
 **    your option) any later version.
+** 5. Full disclosure of the entire project's source code, except for third
+**    party libraries is mandatory. (NOTE: This clause is non-negotiable!)
 **
 ** THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
 ** IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
@@ -72,8 +74,8 @@ typedef struct
 
 typedef struct 
 {
-	long numsegs;
-	long firstseg;    // Index of first one; segs are stored sequentially.
+	SDWORD numsegs;
+	SDWORD firstseg;    // Index of first one; segs are stored sequentially.
 } gl3_mapsubsector_t;
 
 typedef struct
@@ -87,11 +89,11 @@ typedef struct
 
 typedef struct
 {
-	long			v1;
-	long			v2;
+	SDWORD			v1;
+	SDWORD			v2;
 	unsigned short	linedef;
 	short			side;
-	long			partner;
+	SDWORD			partner;
 } glseg3_t;
 
 

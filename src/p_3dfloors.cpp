@@ -18,6 +18,8 @@
 **    documentation and/or other materials provided with the distribution.
 ** 3. The name of the author may not be used to endorse or promote products
 **    derived from this software without specific prior written permission.
+** 4. Full disclosure of the entire project's source code, except for third
+**    party libraries is mandatory. (NOTE: This clause is non-negotiable!)
 **
 ** THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
 ** IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
@@ -203,7 +205,7 @@ static int P_Set3DFloor(line_t * line, int param,int param2, int alpha)
 			if (param2&64) flags|=FF_ADDITIVETRANS|FF_TRANSLUCENT;
 			if (param2&512) flags|=FF_FADEWALLS;
 			FTextureID tex = sides[line->sidenum[0]].GetTexture(side_t::top);
-			if (!tex.isValid() && alpha<255)
+			if (!tex.Exists() && alpha<255)
 			{
 				alpha=clamp(-tex.GetIndex(), 0, 255);
 			}

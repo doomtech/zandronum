@@ -1,3 +1,244 @@
+July 20, 2008 (Changes by Graf Zahl)
+- fixed: Textures marked as complex must not redirect to the base patch.
+- fixed: Alpha for composite textures was not applied.
+- fixed: The CentaurMash didn't inherit from the Centaur.
+- added some NULL pointer checks to the sound code.
+
+July 19, 2008 (Changes by Graf Zahl)
+- Fixed: When Heretic's Mace was replaced by a non-child class A_SpawnMace still 
+  treated it as a mace and wrote into some undefined memory.
+- Fixed: A_BishopMissileWeave didn't initialize special2 for proper movement.
+- Added a speed parameter to A_SkullAttack.
+- Fixed: Black as first or only blood color didn't work.
+- Fixed: Sounds played in wi_stuff.cpp and f_finale.cpp need the CHAN_UI flag.
+- Fixed: Spawning a player could play the *gasp sound.
+- Fixed: SBARINFO's health display didn't scale to the proper maximum.
+
+July 18, 2008 (Changes by Graf Zahl)
+- Added const char &operator[] (unsigned int index) to FString class.
+- Added Skulltag's Teleport_NoStop action special.
+
+July 15, 2008 (Changes by Graf Zahl)
+- Fixed: Strife's EntityBoss didn't copy friendliness information to the
+  sub-entities.
+
+July 12, 2008 (Changes by Graf Zahl)
+- Fixed: Friendly spectral monsters should be able to hurt unfriendly ones
+  and vice versa.
+- Fixed: In deathmatch specral missiles spawned by players should hurt other
+  players.
+- Fixed: SpectralLightningBigBall didn't set the proper owner for the lightning
+  projectiles it spawned.
+- Changed the EntityBoss's attack function to call the equivalent spectre
+  functions instead of duplicating their code.
+- Gave many of Strife's code pointers that only had a number as name more
+  meaningful names. 
+- Fixed: All spectral attacks must set 'health' first before P_CheckMissileSpawn
+  is called.
+- Added a compatibility option to play sector sounds from the precalculated
+  center because some maps apparently abuse the behavior to make the sound
+  play somewhere where it can't be heard by the player to fake silent movement.
+- Fixed: The S_Sound variant taking an actor must check if the actor is not
+  NULL.
+- Fixed: ACS's ActivatorSound must check if the activator is valid.
+- Changed stats drawing so that multi-line strings can be used.
+
+July 5, 2008
+- Added a check to G_DoSaveGame() to prevent saving when you're not actually
+  in a level.
+- Fixed: Serialized player data must always be loaded, even if it's simply to
+  be discarded, so that anything serialized after the players will load from
+  the correct position in the file when revisiting a hub map.
+
+July 5, 2008 (Changes by Graf Zahl)
+- Changed: AInventory::Tick now only calls the super method if the item is not
+  owned. Having owned inventory items interact with the world is not supposed
+  to happen.
+- Fixed: case PCD_SECTORDAMAGE in p_acs.cpp was missing a terminating 'break'.
+- Fixed: When a weapon is destroyed, its sister weapon must also be destroyed.
+- Added a check for PUFFGETSOWNER to A_BFGSpray.
+- Moved the PUFFGETSOWNER check into P_SpawnPuff and removed the limitation
+  to players only.
+- Fixed: P_SpawnMapThing still checked FMapThing::flags for the class bits 
+  instead of FMapThing::ClassFilter.
+- Fixed: A_CustomMissile must not let P_SpawnMissile call P_CheckMissileSpawn.
+  It must do this itself after setting the proper owner.
+- Fixed: CCMD(give) increased the total item count.
+- Fixed: A_Stop didn't set the player specific variables to 0.
+
+July 4, 2008
+- Fixed: Screenwipes now pause sounds, since there can be sounds playing
+  during them.
+- UI sounds are now omitted from savegames.
+- Fixed: Menu sounds had been restricted to one at a time again.
+- Moved the P_SerializeSounds() call to the end of G_SerializeLevel() so that
+  it will occur after the players are loaded.
+
+July 2, 2008
+- Added fixes from FreeBSD for 0-length and very large string buffers
+  passed to myvsnprintf.
+- Rewrote myvsnprintf to use the StringFormat routines directly so that no
+  additional memory needs to be allocated from the heap.
+
+July 1, 2008
+- Polyobject sounds now play from their lines, similar to the way sector
+  sounds are handled.
+- Why do polyobjects have a 3D start spot? Flattened it to 2D.
+- Moved the sector sound origin calculation out of fmodsound.cpp and into
+  s_sound.cpp so that the near sound limiting will use the correct sound
+  location for deciding on neighbors.
+
+June 30, 2008
+- Removed the S_Sound() variant that allows for pointing the origin at an
+  arbitrary point. It has been replaced with a variant that takes a polyobject
+  as a source, since that was the only use that couldn't be rewritten with the
+  other variants. This also fixes the bug that polyobject sounds were not
+  successfully saved and caused a crash when reloading the game. Note that
+  this is a significant change to how equality of sound sources is determined,
+  so some things may not behave quite the same as before. (Which would be a
+  bug, but hopefully everything still sounds the same.)
+- Adjusted the noise debug table so that fractional volume levels do not
+  run into the adjacent columns.
+- Added a NullSoundRenderer so that most of the checks against a NULL GSnd
+  can be removed.
+- Fixed: Looping sounds must always successfully allocate a channel, even if
+  it's only a pre-evicted channel.
+
+June 30, 2008 (Changes by Graf Zahl)
+- Added A_ClearReFire code pointer for weapons. Preferably A_WeaponReady should
+  reset this counter but that can't be done due to unwanted side effects with
+  existing weapons.
+- Changed the 'scale' variable in CVAR(turbo) to double because the calculations
+  depended on the current floating point precision setting and only worked properly
+  when set to 'precise' in VC++.
+
+June 29, 2008 (Changes by Graf Zahl)
+- Changed: I_Error and I_FatalError now use ZDoom's internal string formatting
+  code to process their messages. This was necessary to handle the %zu format
+  option used in some memory allocation failure messages.
+- Fixed: The flat texture scaling action specials were completely broken.
+
+June 28, 2008
+- The sound code now handles restarting looping sounds itself. As far as
+  the rest of the game is concerned, these sounds will never stop once they
+  have been started until they are explicitly stopped. If they are evicted
+  from their channels, the sound code will restart them as soon as possible.
+  This means that instead of this:
+	if (!S_IsActorPlayingSomething(actor, CHAN_WEAPON, -1))
+	{
+		S_Sound(actor, CHAN_WEAPON|CHAN_LOOP, soundid, 1, ATTN_NORM);
+	}
+  The following is now just as effective:
+	S_Sound(actor, CHAN_WEAPON|CHAN_LOOP, soundid, 1, ATTN_NORM);
+  There are also a couple of other ramifications presented by this change:
+    * The full state of the sound system (sans music) is now stored in save
+      games. Any sounds that were playing when you saved will still be
+      playing when you load. (Try saving while Korax is making a speech in
+      Hexen to hear it.)
+    * Using snd_reset will also preserve any playing sounds.
+    * Movie playback is disabled, probably forever. I did not want to 
+      update the MovieDisable/ResumeSound stuff for the new eviction
+      tracking code. A properly updated movie player will use the VMR,
+      which doesn't need these functions, since it would pipe the sound
+      straight through the sound system like everything else, so I decided
+      to dump them now, which leaves the movie player in a totally unworkable
+      state.
+
+June 28, 2008 (Changes by Graf Zahl)
+- Removed some unused constant definitions from sc_man.cpp.
+- Fixed: A_FireBlasterPL2 played the weapon sound with the missile as origin
+  instead of the shooting player.
+- Fixed: Dead players didn't get the MF_CORPSE flag set.
+- Fixed: The internal definition of Floor_LowerToNearest had incorrect parameter
+  settings.
+- Fixed: Heretic's ActivatedTimeBomb had the same spawn ID as the inventory item.
+- fixed: Heretic's mace did not have its spawn ID set.
+
+June 26, 2008
+- Changed S_Sound() to take the same floating point attenuation that the
+  internal S_StartSound() uses. Now ambient sounds can use the public
+  S_Sound() interface.
+- Fixed: S_RelinkSound() compared the points of the channels against the
+  from actor's point, rather than checking the channels' mover.
+- Changed Strife's animated doors so that their sounds originate from the
+  interior of the sector making them and not from the entire vertical height
+  of the map.
+- For controls that are not bound, the customize controls menu now displays
+  a black --- instead of ???.
+- Applied Gez's BossBrainPatch3.
+- Fixed: P_BulletSlope() did not return the linetarget. This effected
+  the Sigil, A_JumpIfCloser, and A_JumpIfTargetInLOS.
+
+June 25, 2008
+- Fixed all the new warnings tossed out by GCC 4.3.
+
+June 23, 2008
+- Fixed: PickNext/PrevWeapon() did not check for NULL player actors.
+- Fixed compilation issues with GCC.
+- Removed special case for nobotnodes in MAPINFO.
+
+June 22, 2008 (Changes by Graf Zahl)
+- Added support for ST's QUARTERGRAVITY flag.
+- Added a generalized version of Skulltag's A_CheckRailReload function.
+- Fixed: DrawImage didn't take 0 as a valid image index.
+- Added Gez's RandomSpawner submission with significant changes.
+- Added optional blocks for MAPINFO map definitions. ZDoom doesn't use
+  this feature itself but it allows other ports based on ZDoom
+  to implement their own sets of options without making such a MAPINFO 
+  unreadable by ZDoom.
+  
+June 16, 2008 (Changes by Graf Zahl)
+- Fixed: The mugshot would not reset on re-spawn.
+- Fixed: Picking up a weapon would sometimes not activate the grin.
+- Changed: Line_SetIdentification will ignore extended parameters when
+  used in maps defined Hexen style in MAPINFO.
+- Fixed: Ambient sounds didn't pass their point of origin to S_StartSound.
+- Fixed: UseType was not properly set for textures defined in TEXTURES.
+- Fixed: You couldn't set an offset for sprites defined in TEXTURES.
+- Added read barriers to all actor pointers within player_t except for
+  mo, ReadyWeapon and PendingWeapon.
+
+June 15, 2008 (Changes by Graf Zahl)
+- Added a read barrier to player_t::PrewmorphWeapon.
+- Fixed: After spawning a deathmatch player P_PlayerStartStomp must
+  be called.
+- Fixed: SpawnThings must check if the players were spawned before
+  calling P_PlayerStartStomp.
+- Fixed typo in flat scroll interpolation.
+- Changed FImageCollection to return translated texture indices so
+  that animated icons can be done with it.
+- Changed FImageCollection to use a TArray to hold its data.
+- Fixed: SetChanHeadSettings did an assignment instead of comparing
+  the channel ID witg CHAN_CEILING.
+- Changed sound sequence names for animated doors to FNames.
+- Automatically fixed: DCeiling didn't properly serialize its texture id.
+- Replaced integers as texture ID representation with a specific new type
+  to track down all potentially incorrect uses and remaining WORDs used
+  for texture IDs so that more than 32767 or 65535 textures can be defined.
+
+June 14, 2008
+- Increased the duration of respawn invulnerability by one second.
+- DF2_YES_RESPAWN_INVUL and DF_FORCE_RESPAWN now apply to all multiplayer 
+  games, not just deathmatch, without the need for turning on
+  alwaysapplydmflags.
+- Fixed: DF2_YES_RESPAWN_INVUL only worked in deathmatch, even with
+  alwaysapplydmflags turned on.
+- Fixed: DF_COOP_LOSE_ARMOR did not empty the starting armor items.
+- Replaced the naive area sound implementation with one that takes into
+  consideration the size and shape of the sector producing the sound. See
+  the lifts on Doom 2 MAP30 and compare with previous versions.
+
+June 14, 2008 (Changes by Graf Zahl)
+- Fixed: The UDMF parser stored plane rotation angles as fixed_t, not angle_t.
+- Grouped the sector plane texture transformation values into a separate
+  structure and replaced all access to them with wrapper functions.
+
+June 13, 2008
+- Fixed: The stop sound for sector-based sound sequences was not played with
+  the CHAN_AREA flag.
+- Removed the distinction between S_Sound() and S_SoundID() functions. Use
+  S_Sound() for both names and IDs from now on.
+
 June 12, 2008
 - Add environment 255, 255 as a way to get the software underwater effect in
   any zone you want.

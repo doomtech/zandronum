@@ -5,7 +5,6 @@
 #include "p_enemy.h"
 #include "p_local.h"
 #include "s_sound.h"
-#include "vectors.h"
 // [CW] New includes.
 #include "cl_demo.h"
 #include "sv_commands.h"
@@ -15,9 +14,9 @@ static FRandom pr_atk1 ("FooMelee");
 void A_SentinelBob (AActor *);
 void A_SpawnSpectre5 (AActor *);
 
-void A_20538 (AActor *);
-void A_20598 (AActor *);
-void A_205b0 (AActor *);
+void A_SpectreMelee (AActor *);
+void A_LoremasterAttack (AActor *);
+void A_LoremasterChain (AActor *);
 
 // Loremaster (aka Priest) --------------------------------------------------
 
@@ -46,12 +45,12 @@ FState ALoremaster::States[] =
 
 #define S_PRIEST_MELEE (S_PRIEST_RUN+8)
 	S_NORMAL (PRST, 'E',  4, A_FaceTarget,			&States[S_PRIEST_MELEE+1]),
-	S_NORMAL (PRST, 'F',  4, A_20538,				&States[S_PRIEST_MELEE+2]),
+	S_NORMAL (PRST, 'F',  4, A_SpectreMelee,		&States[S_PRIEST_MELEE+2]),
 	S_NORMAL (PRST, 'E',  4, A_SentinelBob,			&States[S_PRIEST_RUN]),
 
 #define S_PRIEST_MISSILE (S_PRIEST_MELEE+3)
 	S_NORMAL (PRST, 'E',  4, A_FaceTarget,			&States[S_PRIEST_MISSILE+1]),
-	S_NORMAL (PRST, 'F',  4, A_20598,				&States[S_PRIEST_MISSILE+2]),
+	S_NORMAL (PRST, 'F',  4, A_LoremasterAttack,	&States[S_PRIEST_MISSILE+2]),
 	S_NORMAL (PRST, 'E',  4, A_SentinelBob,			&States[S_PRIEST_RUN]),
 
 #define S_PRIEST_DIE (S_PRIEST_MISSILE+3)
@@ -129,7 +128,7 @@ public:
 
 FState ALoreShot::States[] =
 {
-	S_NORMAL (OCLW, 'A', 2, A_205b0,	&States[0]),
+	S_NORMAL (OCLW, 'A', 2, A_LoremasterChain,	&States[0]),
 	S_NORMAL (CCLW, 'A', 6, NULL,		NULL)
 };
 
@@ -188,7 +187,7 @@ IMPLEMENT_ACTOR (ALoreShot2, Strife, -1, 0)
 	PROP_SeeSound ("loremaster/active")
 END_DEFAULTS
 
-void A_20538 (AActor *self)
+void A_SpectreMelee (AActor *self)
 {
 	int damage;
 
@@ -201,7 +200,7 @@ void A_20538 (AActor *self)
 	P_TraceBleed (damage, self->target, self);
 }
 
-void A_20598 (AActor *self)
+void A_LoremasterAttack (AActor *self)
 {
 	if (self->target != NULL)
 	{
@@ -214,7 +213,7 @@ void A_20598 (AActor *self)
 	}
 }
 
-void A_205b0 (AActor *self)
+void A_LoremasterChain (AActor *self)
 {
 	S_Sound (self, CHAN_BODY, "loremaster/active", 1, ATTN_NORM);
 	Spawn<ALoreShot2> (self->x, self->y, self->z, ALLOW_REPLACE);

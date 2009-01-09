@@ -498,7 +498,7 @@ CVAR (Flag, compat_nopassover,	compatflags, COMPATF_NO_PASSMOBJ);
 CVAR (Flag, compat_soundslots,	compatflags, COMPATF_MAGICSILENCE);
 CVAR (Flag, compat_wallrun,		compatflags, COMPATF_WALLRUN);
 CVAR (Flag, compat_notossdrops,	compatflags, COMPATF_NOTOSSDROPS);
-CVAR (Flag, compat_useblocking, compatflags, COMPATF_USEBLOCKING);
+CVAR (Flag, compat_useblocking,	compatflags, COMPATF_USEBLOCKING);
 CVAR (Flag, compat_nodoorlight,	compatflags, COMPATF_NODOORLIGHT);
 CVAR (Flag, compat_ravenscroll,	compatflags, COMPATF_RAVENSCROLL);
 CVAR (Flag, compat_soundtarget,	compatflags, COMPATF_SOUNDTARGET);
@@ -508,6 +508,8 @@ CVAR (Flag, compat_dropoff,		compatflags, COMPATF_DROPOFF);
 CVAR (Flag, compat_boomscroll,	compatflags, COMPATF_BOOMSCROLL);
 CVAR (Flag, compat_invisibility,compatflags, COMPATF_INVISIBILITY);
 CVAR (Flag, compat_silentinstantfloors,compatflags, COMPATF_SILENT_INSTANT_FLOORS);
+CVAR (Flag, compat_sectorsounds,compatflags, COMPATF_SECTORSOUNDS);
+// [BB] Skulltag compat flags.
 CVAR (Flag, compat_limited_airmovement, compatflags, COMPATF_LIMITED_AIRMOVEMENT);
 CVAR (Flag, compat_plasmabump,	compatflags, COMPATF_PLASMA_BUMP_BUG);
 CVAR (Flag, compat_instantrespawn,	compatflags, COMPATF_INSTANTRESPAWN);
@@ -844,7 +846,7 @@ void D_Display ()
 		NoWipe = 10;
 	}
 
-	if (snd_drawoutput && GSnd != NULL)
+	if (snd_drawoutput)
 	{
 		GSnd->DrawWaveDebug(snd_drawoutput);
 	}
@@ -864,6 +866,7 @@ void D_Display ()
 		int wipestart, nowtime, tics;
 		bool done;
 
+		GSnd->SetSfxPaused(true, 1);
 		screen->WipeEndScreen ();
 
 		wipestart = I_GetTime (false);
@@ -883,6 +886,7 @@ void D_Display ()
 			NetUpdate ();
 		} while (!done);
 		screen->WipeCleanup();
+		GSnd->SetSfxPaused(false, 1);
 
 		Net_WriteByte (DEM_WIPEOFF);
 	}

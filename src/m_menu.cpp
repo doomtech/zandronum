@@ -767,28 +767,28 @@ CCMD (menu_class)
 CCMD (quicksave)
 {	// F6
 	//M_StartControlPanel (true);
-	S_Sound (CHAN_VOICE, "menu/activate", 1, ATTN_NONE);
+	S_Sound (CHAN_VOICE | CHAN_UI, "menu/activate", 1, ATTN_NONE);
 	M_QuickSave();
 }
 
 CCMD (quickload)
 {	// F9
 	//M_StartControlPanel (true);
-	S_Sound (CHAN_VOICE, "menu/activate", 1, ATTN_NONE);
+	S_Sound (CHAN_VOICE | CHAN_UI, "menu/activate", 1, ATTN_NONE);
 	M_QuickLoad();
 }
 
 CCMD (menu_endgame)
 {	// F7
 	//M_StartControlPanel (true);
-	S_Sound (CHAN_VOICE, "menu/activate", 1, ATTN_NONE);
+	S_Sound (CHAN_VOICE | CHAN_UI, "menu/activate", 1, ATTN_NONE);
 	M_EndGame(0);
 }
 
 CCMD (menu_quit)
 {	// F10
 	//M_StartControlPanel (true);
-	S_Sound (CHAN_VOICE, "menu/activate", 1, ATTN_NONE);
+	S_Sound (CHAN_VOICE | CHAN_UI, "menu/activate", 1, ATTN_NONE);
 	M_QuitGame(0);
 }
 
@@ -1546,7 +1546,7 @@ void M_QuickSaveResponse (int ch)
 	if (ch == 'y')
 	{
 		M_DoSave (quickSaveSlot);
-		S_Sound (CHAN_VOICE, "menu/dismiss", 1, ATTN_NONE);
+		S_Sound (CHAN_VOICE | CHAN_UI, "menu/dismiss", 1, ATTN_NONE);
 	}
 }
 
@@ -1554,7 +1554,7 @@ void M_QuickSave ()
 {
 	if (!usergame || (players[consoleplayer].health <= 0 && NETWORK_GetState( ) == NETSTATE_SINGLE ))
 	{
-		S_Sound (CHAN_VOICE, "menu/invalid", 1, ATTN_NONE);
+		S_Sound (CHAN_VOICE | CHAN_UI, "menu/invalid", 1, ATTN_NONE);
 		return;
 	}
 
@@ -1582,7 +1582,7 @@ void M_QuickLoadResponse (int ch)
 	if (ch == 'y')
 	{
 		M_LoadSelect (quickSaveSlot);
-		S_Sound (CHAN_VOICE, "menu/dismiss", 1, ATTN_NONE);
+		S_Sound (CHAN_VOICE | CHAN_UI, "menu/dismiss", 1, ATTN_NONE);
 	}
 }
 
@@ -2159,7 +2159,7 @@ void M_EndGame(int choice)
 	choice = 0;
 	if (!usergame)
 	{
-		S_Sound (CHAN_VOICE, "menu/invalid", 1, ATTN_NONE);
+		S_Sound (CHAN_VOICE | CHAN_UI, "menu/invalid", 1, ATTN_NONE);
 		return;
 	}
 		
@@ -2221,7 +2221,7 @@ void M_QuitResponse(int ch)
 	{
 		if (gameinfo.quitSound)
 		{
-			S_Sound (CHAN_VOICE, gameinfo.quitSound, 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, gameinfo.quitSound, 1, ATTN_NONE);
 			I_WaitVBL (105);
 		}
 	}
@@ -3030,8 +3030,8 @@ void M_StartMessage (const char *string, void (*routine)(int), bool input)
 	}
 	if (input)
 	{
-		S_StopSound ((AActor *)NULL, CHAN_VOICE);
-		S_Sound (CHAN_VOICE, "menu/prompt", 1, ATTN_NONE);
+		S_StopSound (CHAN_VOICE);
+		S_Sound (CHAN_VOICE | CHAN_UI, "menu/prompt", 1, ATTN_NONE);
 	}
 	return;
 }
@@ -3187,7 +3187,7 @@ bool M_Responder (event_t *ev)
 		}
 		SB_state = screen->GetPageCount ();	// refresh the statbar
 		BorderNeedRefresh = screen->GetPageCount ();
-		S_Sound (CHAN_VOICE, "menu/dismiss", 1, ATTN_NONE);
+		S_Sound (CHAN_VOICE | CHAN_UI, "menu/dismiss", 1, ATTN_NONE);
 		return true;
 	}
 
@@ -3214,7 +3214,7 @@ bool M_Responder (event_t *ev)
 			if (itemOn+1 > currentMenu->numitems-1)
 				itemOn = 0;
 			else itemOn++;
-			S_Sound (CHAN_VOICE, "menu/cursor", 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, "menu/cursor", 1, ATTN_NONE);
 		} while(currentMenu->menuitems[itemOn].status==-1);
 		return true;
 
@@ -3224,7 +3224,7 @@ bool M_Responder (event_t *ev)
 			if (!itemOn)
 				itemOn = currentMenu->numitems-1;
 			else itemOn--;
-			S_Sound (CHAN_VOICE, "menu/cursor", 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, "menu/cursor", 1, ATTN_NONE);
 		} while(currentMenu->menuitems[itemOn].status==-1);
 		return true;
 
@@ -3232,7 +3232,7 @@ bool M_Responder (event_t *ev)
 		if (currentMenu->menuitems[itemOn].routine &&
 			currentMenu->menuitems[itemOn].status == 2)
 		{
-			S_Sound (CHAN_VOICE, "menu/change", 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE);
 			currentMenu->menuitems[itemOn].routine(0);
 		}
 		return true;
@@ -3241,7 +3241,7 @@ bool M_Responder (event_t *ev)
 		if (currentMenu->menuitems[itemOn].routine &&
 			currentMenu->menuitems[itemOn].status == 2)
 		{
-			S_Sound (CHAN_VOICE, "menu/change", 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE);
 			currentMenu->menuitems[itemOn].routine(1);
 		}
 		return true;
@@ -3254,12 +3254,12 @@ bool M_Responder (event_t *ev)
 			if (currentMenu->menuitems[itemOn].status == 2)
 			{
 				currentMenu->menuitems[itemOn].routine(1);		// right arrow
-				S_Sound (CHAN_VOICE, "menu/change", 1, ATTN_NONE);
+				S_Sound (CHAN_VOICE | CHAN_UI, "menu/change", 1, ATTN_NONE);
 			}
 			else
 			{
 				currentMenu->menuitems[itemOn].routine(itemOn);
-				S_Sound (CHAN_VOICE, "menu/choose", 1, ATTN_NONE);
+				S_Sound (CHAN_VOICE | CHAN_UI, "menu/choose", 1, ATTN_NONE);
 			}
 		}
 		return true;
@@ -3290,7 +3290,7 @@ bool M_Responder (event_t *ev)
 			if (currentMenu->menuitems[i].alphaKey == ch)
 			{
 				itemOn = i;
-				S_Sound (CHAN_VOICE, "menu/cursor", 1, ATTN_NONE);
+				S_Sound (CHAN_VOICE | CHAN_UI, "menu/cursor", 1, ATTN_NONE);
 				return true;
 			}
 		}
@@ -3465,7 +3465,7 @@ void M_StartControlPanel (bool makeSound)
 
 	if (makeSound)
 	{
-		S_Sound (CHAN_VOICE, "menu/activate", 1, ATTN_NONE);
+		S_Sound (CHAN_VOICE | CHAN_UI, "menu/activate", 1, ATTN_NONE);
 	}
 
 	players[consoleplayer].bInConsole = true;
@@ -3712,12 +3712,12 @@ void M_PopMenuStack (void)
 		}
 		drawSkull = MenuStack[MenuStackDepth].drawSkull;
 		++MenuStackDepth;
-		S_Sound (CHAN_VOICE, "menu/backup", 1, ATTN_NONE);
+		S_Sound (CHAN_VOICE | CHAN_UI, "menu/backup", 1, ATTN_NONE);
 	}
 	else
 	{
 		M_ClearMenus ();
-		S_Sound (CHAN_VOICE, "menu/clear", 1, ATTN_NONE);
+		S_Sound (CHAN_VOICE | CHAN_UI, "menu/clear", 1, ATTN_NONE);
 	}
 }
 

@@ -189,8 +189,6 @@ MidiDeviceMap MidiDevices;
 
 // EXTERNAL FUNCTION PROTOTYPES --------------------------------------------
 
-FSoundChan *S_StartSound (fixed_t *pt, AActor *mover, sector_t *sec, int channel,
-	FSoundID sound_id, float volume, float attenuation);
 extern bool IsFloat (const char *str);
 
 // PUBLIC FUNCTION PROTOTYPES ----------------------------------------------
@@ -779,13 +777,10 @@ static void S_ClearSoundData()
 {
 	unsigned int i;
 
-	if (GSnd != NULL)
+	S_StopAllChannels();
+	for (i = 0; i < S_sfx.Size(); ++i)
 	{
-		S_StopAllChannels();
-		for (i = 0; i < S_sfx.Size(); ++i)
-		{
-			GSnd->UnloadSound(&S_sfx[i]);
-		}
+		GSnd->UnloadSound(&S_sfx[i]);
 	}
 	S_sfx.Clear();
 
@@ -1898,34 +1893,28 @@ void AAmbientSound::Tick ()
 	if ( ambient == NULL )
 		return;
 
+	int loop = 0;
+
 	if ((ambient->type & CONTINUOUS) == CONTINUOUS)
 	{
-		if (S_IsActorPlayingSomething (this, CHAN_BODY, -1))
-			return;
+		loop = CHAN_LOOP;
+	}
 
-		if (ambient->sound[0])
+	if (ambient->sound[0])
+	{
+		S_Sound(this, CHAN_BODY | loop, ambient->sound, ambient->volume, ambient->attenuation);
+		if (!loop)
 		{
-			S_StartSound (&this->x, this, NULL, CHAN_BODY|CHAN_LOOP, ambient->sound,
-				ambient->volume, ambient->attenuation);
 			SetTicker (ambient);
 		}
 		else
 		{
-			Destroy ();
+			NextCheck = INT_MAX;
 		}
 	}
 	else
 	{
-		if (ambient->sound[0])
-		{
-			S_StartSound (NULL, this, NULL, CHAN_BODY, ambient->sound,
-				ambient->volume, ambient->attenuation);
-			SetTicker (ambient);
-		}
-		else
-		{
-			Destroy ();
-		}
+		Destroy ();
 	}
 }
 

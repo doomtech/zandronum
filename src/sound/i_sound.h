@@ -89,24 +89,26 @@ public:
 	virtual SoundStream *OpenStream (const char *filename, int flags, int offset, int length) = 0;
 
 	// Starts a sound.
-	virtual FSoundChan *StartSound (sfxinfo_t *sfx, float vol, int pitch, int chanflags) = 0;
-	virtual FSoundChan *StartSound3D (sfxinfo_t *sfx, float vol, float distscale, int pitch, int priority, float pos[3], float vel[3], sector_t *sector, int channum, int chanflags) = 0;
+	virtual FSoundChan *StartSound (sfxinfo_t *sfx, float vol, int pitch, int chanflags, FSoundChan *reuse_chan) = 0;
+	virtual FSoundChan *StartSound3D (sfxinfo_t *sfx, float vol, float distscale, int pitch, int priority, const FVector3 &pos, const FVector3 &vel, const sector_t *sector, int channum, int chanflags, FSoundChan *reuse_chan) = 0;
 
 	// Stops a sound channel.
 	virtual void StopSound (FSoundChan *chan) = 0;
 
+	// Returns position of sound on this channel, in samples.
+	virtual unsigned int GetPosition(FSoundChan *chan) = 0;
+
+	// Synchronizes following sound startups.
+	virtual void Sync (bool sync) = 0;
+
 	// Pauses or resumes all sound effect channels.
-	virtual void SetSfxPaused (bool paused) = 0;
+	virtual void SetSfxPaused (bool paused, int slot) = 0;
 
 	// Pauses or resumes *every* channel, including environmental reverb.
 	virtual void SetInactive(bool inactive) = 0;
 
 	// Updates the volume, separation, and pitch of a sound channel.
-	virtual void UpdateSoundParams3D (FSoundChan *chan, float pos[3], float vel[3]) = 0;
-
-	// For use by I_PlayMovie
-	virtual void MovieDisableSound () = 0;
-	virtual void MovieResumeSound () = 0;
+	virtual void UpdateSoundParams3D (FSoundChan *chan, const FVector3 &pos, const FVector3 &vel) = 0;
 
 	virtual void UpdateListener () = 0;
 	virtual void UpdateSounds () = 0;

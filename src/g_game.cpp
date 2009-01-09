@@ -247,7 +247,7 @@ CUSTOM_CVAR (Float, turbo, 100.f, 0)
 	}
 	else
 	{
-		float scale = self * 0.01f;
+		double scale = self * 0.01;
 
 		forwardmove[0] = (int)(normforwardmove[0]*scale);
 		forwardmove[1] = (int)(normforwardmove[1]*scale);
@@ -4307,6 +4307,13 @@ static void PutSavePic (FILE *file, int width, int height)
 
 void G_DoSaveGame (bool okForQuicksave, FString filename, const char *description)
 {
+	// Do not even try, if we're not in a level. (Can happen after
+	// a demo finishes playback.)
+	if (lines == NULL || sectors == NULL)
+	{
+		return;
+	}
+
 	if (demoplayback)
 	{
 		filename = G_BuildSaveName ("demosave.zds", -1);

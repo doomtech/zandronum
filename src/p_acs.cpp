@@ -53,7 +53,6 @@
 #include "i_system.h"
 #include "i_movie.h"
 #include "sbar.h"
-#include "vectors.h"
 #include "m_swap.h"
 #include "a_sharedglobal.h"
 #include "a_doomglobal.h"
@@ -4526,8 +4525,8 @@ int DLevelScript::RunScript ()
 				if (activationline)
 				{
 					S_Sound (
-						activationline->frontsector->soundorg,
-						CHAN_AUTO,
+						activationline->frontsector,
+						CHAN_AUTO,	// Not CHAN_AREA, because that'd probably break existing scripts.
 						lookup,
 						(float)(STACK(1)) / 127.f,
 						ATTN_NORM);
@@ -4587,13 +4586,26 @@ int DLevelScript::RunScript ()
 			lookup = FBehavior::StaticLookupString (STACK(2));
 			if (lookup != NULL)
 			{
-				S_Sound (activator, CHAN_AUTO,
-						 lookup,
-						 (float)(STACK(1)) / 127.f, ATTN_NORM);
+				if (activator != NULL)
+				{
+					S_Sound (activator, CHAN_AUTO,
+							 lookup,
+							 (float)(STACK(1)) / 127.f, ATTN_NORM);
 
-				// [BC] If we're the server, tell clients to play this sound.
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_SoundActor( activator, CHAN_AUTO, (char *)lookup, (float)STACK( 1 ) / 127.f, ATTN_NORM );
+					// [BC] If we're the server, tell clients to play this sound.
+					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						SERVERCOMMANDS_SoundActor( activator, CHAN_AUTO, lookup, (float)STACK( 1 ) / 127.f, ATTN_NORM );
+				}
+				else
+				{
+					S_Sound (CHAN_AUTO,
+							 lookup,
+							 (float)(STACK(1)) / 127.f, ATTN_NONE);
+
+					// [BB] If we're the server, tell clients to play this sound.
+					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						SERVERCOMMANDS_Sound( CHAN_AUTO, lookup, (float)STACK( 1 ) / 127.f, ATTN_NORM );
+				}
 			}
 			sp -= 2;
 			break;
@@ -5859,6 +5871,7 @@ int DLevelScript::RunScript ()
 					}
 				}
 			}
+			break;
 
 		case PCD_THINGDAMAGE2:
 			STACK(3) = P_Thing_Damage (STACK(3), activator, STACK(2), FName(FBehavior::StaticLookupString(STACK(1))));

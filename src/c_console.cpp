@@ -63,7 +63,6 @@
 #include "doomstat.h"
 #include "d_gui.h"
 #include "v_video.h"
-#include "vectors.h"
 // [BC] New #includes.
 #include "chat.h"
 #include "cl_demo.h"

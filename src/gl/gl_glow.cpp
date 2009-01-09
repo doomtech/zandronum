@@ -22,6 +22,8 @@
 **    covered by the terms of the GNU Lesser General Public License as published
 **    by the Free Software Foundation; either version 2.1 of the License, or (at
 **    your option) any later version.
+** 5. Full disclosure of the entire project's source code, except for third
+**    party libraries is mandatory. (NOTE: This clause is non-negotiable!)
 **
 ** THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
 ** IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
@@ -124,7 +126,7 @@ void gl_GetGlowColor(FTextureID texno, float * data)
 
 				if (buffer)
 				{
-					GlowingColors[texno.GetIndex()]=averageColor((unsigned long *) buffer, w*h, true);
+					GlowingColors[texno.GetIndex()]=averageColor((DWORD *) buffer, w*h, true);
 					delete buffer;
 					GlowingColors[texno.GetIndex()].a=1;	// mark as processed
 				}

@@ -21,6 +21,8 @@
 **    covered by the terms of the GNU Lesser General Public License as published
 **    by the Free Software Foundation; either version 2.1 of the License, or (at
 **    your option) any later version.
+** 5. Full disclosure of the entire project's source code, except for third
+**    party libraries is mandatory. (NOTE: This clause is non-negotiable!)
 **
 ** THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
 ** IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
@@ -54,8 +56,8 @@
 #include "gl/gl_framebuffer.h"
 #include "gl/gl_models.h"
 
-#define DEG2RAD( a ) ( a * M_PI ) / 180.0F
-#define RAD2DEG( a ) ( a / M_PI ) * 180.0F
+//#define DEG2RAD( a ) ( a * M_PI ) / 180.0F
+//#define RAD2DEG( a ) ( a / M_PI ) * 180.0F
 
 //==========================================================================
 //

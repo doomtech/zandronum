@@ -1716,7 +1716,7 @@ void WI_updateDeathmatchStats ()
 			}
 		}
 		
-		S_Sound (CHAN_VOICE, NEXTSTAGE, 1, ATTN_NONE);
+		S_Sound (CHAN_VOICE | CHAN_UI, NEXTSTAGE, 1, ATTN_NONE);
 		*/
 		dm_state = 4;
 	}
@@ -1727,7 +1727,7 @@ void WI_updateDeathmatchStats ()
 		// [BC] No need to do any of this.
 		/*
 		if (!(bcnt&3))
-			S_Sound (CHAN_VOICE, "weapons/pistol", 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, "weapons/pistol", 1, ATTN_NONE);
 		
 		stillticking = false;
 
@@ -1766,7 +1766,7 @@ void WI_updateDeathmatchStats ()
 		}
 		if (!stillticking)
 		{
-			S_Sound (CHAN_VOICE, NEXTSTAGE, 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, NEXTSTAGE, 1, ATTN_NONE);
 			dm_state++;
 		}
 		*/
@@ -1776,7 +1776,7 @@ void WI_updateDeathmatchStats ()
 	{
 		if (acceleratestage)
 		{
-			S_Sound (CHAN_VOICE, "players/male/gibbed", 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, "players/male/gibbed", 1, ATTN_NONE);
 
 			if (gamemode == commercial)
 				WI_initNoState();
@@ -1942,7 +1942,7 @@ void WI_updateNetgameStats ()
 			if (dofrags)
 				cnt_frags[i] = WI_fragSum (i);
 		}
-		S_Sound (CHAN_VOICE, NEXTSTAGE, 1, ATTN_NONE);
+		S_Sound (CHAN_VOICE | CHAN_UI, NEXTSTAGE, 1, ATTN_NONE);
 		*/
 		ng_state = 10;
 	}
@@ -1952,7 +1952,7 @@ void WI_updateNetgameStats ()
 		// [BC] No need to do any of this.
 		/*
 		if (!(bcnt&3))
-			S_Sound (CHAN_VOICE, "weapons/pistol", 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, "weapons/pistol", 1, ATTN_NONE);
 
 		stillticking = false;
 
@@ -1971,7 +1971,7 @@ void WI_updateNetgameStats ()
 		
 		if (!stillticking)
 		{
-			S_Sound (CHAN_VOICE, NEXTSTAGE, 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, NEXTSTAGE, 1, ATTN_NONE);
 			ng_state++;
 		}
 		*/
@@ -1982,7 +1982,7 @@ void WI_updateNetgameStats ()
 		// [BC] No need to do any of this.
 		/*
 		if (!(bcnt&3))
-			S_Sound (CHAN_VOICE, "weapons/pistol", 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, "weapons/pistol", 1, ATTN_NONE);
 
 		stillticking = false;
 
@@ -1999,7 +1999,7 @@ void WI_updateNetgameStats ()
 		}
 		if (!stillticking)
 		{
-			S_Sound (CHAN_VOICE, NEXTSTAGE, 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, NEXTSTAGE, 1, ATTN_NONE);
 			ng_state++;
 		}
 		*/
@@ -2010,7 +2010,7 @@ void WI_updateNetgameStats ()
 		// [BC] No need to do any of this.
 		/*
 		if (!(bcnt&3))
-			S_Sound (CHAN_VOICE, "weapons/pistol", 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, "weapons/pistol", 1, ATTN_NONE);
 
 		stillticking = false;
 
@@ -2029,7 +2029,7 @@ void WI_updateNetgameStats ()
 		
 		if (!stillticking)
 		{
-			S_Sound (CHAN_VOICE, NEXTSTAGE, 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, NEXTSTAGE, 1, ATTN_NONE);
 			ng_state += 1 + 2*!dofrags;
 		}
 		*/
@@ -2040,7 +2040,7 @@ void WI_updateNetgameStats ()
 		// [BC] No need to do any of this.
 		/*
 		if (!(bcnt&3))
-			S_Sound (CHAN_VOICE, "weapons/pistol", 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, "weapons/pistol", 1, ATTN_NONE);
 
 		stillticking = false;
 
@@ -2059,7 +2059,7 @@ void WI_updateNetgameStats ()
 		
 		if (!stillticking)
 		{
-			S_Sound (CHAN_VOICE, "player/male/death1", 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, "player/male/death1", 1, ATTN_NONE);
 			ng_state++;
 		}
 		*/
@@ -2069,7 +2069,7 @@ void WI_updateNetgameStats ()
 	{
 		if (acceleratestage)
 		{
-			S_Sound (CHAN_VOICE, PASTSTATS, 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, PASTSTATS, 1, ATTN_NONE);
 			WI_initShowNextLoc();
 		}
 	}
@@ -2223,7 +2223,7 @@ void WI_updateStats ()
 		{
 			acceleratestage = 0;
 			sp_state = 10;
-			S_Sound (CHAN_VOICE, NEXTSTAGE, 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, NEXTSTAGE, 1, ATTN_NONE);
 		}
 		cnt_kills[0] = plrs[me].skills;
 		cnt_items[0] = plrs[me].sitems;
@@ -2240,12 +2240,12 @@ void WI_updateStats ()
 			cnt_kills[0] += 2;
 
 			if (!(bcnt&3))
-				S_Sound (CHAN_VOICE, "weapons/pistol", 1, ATTN_NONE);
+				S_Sound (CHAN_VOICE | CHAN_UI, "weapons/pistol", 1, ATTN_NONE);
 		}
 		if (cnt_kills[0] >= plrs[me].skills)
 		{
 			cnt_kills[0] = plrs[me].skills;
-			S_Sound (CHAN_VOICE, NEXTSTAGE, 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, NEXTSTAGE, 1, ATTN_NONE);
 			sp_state++;
 		}
 	}
@@ -2256,12 +2256,12 @@ void WI_updateStats ()
 			cnt_items[0] += 2;
 
 			if (!(bcnt&3))
-				S_Sound (CHAN_VOICE, "weapons/pistol", 1, ATTN_NONE);
+				S_Sound (CHAN_VOICE | CHAN_UI, "weapons/pistol", 1, ATTN_NONE);
 		}
 		if (cnt_items[0] >= plrs[me].sitems)
 		{
 			cnt_items[0] = plrs[me].sitems;
-			S_Sound (CHAN_VOICE, NEXTSTAGE, 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, NEXTSTAGE, 1, ATTN_NONE);
 			sp_state++;
 		}
 	}
@@ -2272,12 +2272,12 @@ void WI_updateStats ()
 			cnt_secret[0] += 2;
 
 			if (!(bcnt&3))
-				S_Sound (CHAN_VOICE, "weapons/pistol", 1, ATTN_NONE);
+				S_Sound (CHAN_VOICE | CHAN_UI, "weapons/pistol", 1, ATTN_NONE);
 		}
 		if (cnt_secret[0] >= plrs[me].ssecret)
 		{
 			cnt_secret[0] = plrs[me].ssecret;
-			S_Sound (CHAN_VOICE, NEXTSTAGE, 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, NEXTSTAGE, 1, ATTN_NONE);
 			sp_state++;
 		}
 	}
@@ -2286,7 +2286,7 @@ void WI_updateStats ()
 		if (gameinfo.gametype == GAME_Doom)
 		{
 			if (!(bcnt&3))
-				S_Sound (CHAN_VOICE, "weapons/pistol", 1, ATTN_NONE);
+				S_Sound (CHAN_VOICE | CHAN_UI, "weapons/pistol", 1, ATTN_NONE);
 
 			cnt_time += 3;
 			cnt_par += 3;
@@ -2306,7 +2306,7 @@ void WI_updateStats ()
 			if (cnt_time >= plrs[me].stime / TICRATE)
 			{
 				cnt_total_time = wbs->totaltime / TICRATE;
-				S_Sound (CHAN_VOICE, NEXTSTAGE, 1, ATTN_NONE);
+				S_Sound (CHAN_VOICE | CHAN_UI, NEXTSTAGE, 1, ATTN_NONE);
 				sp_state++;
 			}
 		}
@@ -2315,7 +2315,7 @@ void WI_updateStats ()
 	{
 		if (acceleratestage)
 		{
-			S_Sound (CHAN_VOICE, PASTSTATS, 1, ATTN_NONE);
+			S_Sound (CHAN_VOICE | CHAN_UI, PASTSTATS, 1, ATTN_NONE);
 			WI_initShowNextLoc();
 		}
 	}

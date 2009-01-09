@@ -117,7 +117,7 @@ struct FRemapTable;
 
 class FGLTexture : public FNativeTexture, protected WorldTextureInfo, protected PatchTextureInfo
 {
-	friend void Debug_Patch();	// debug code should have full access
+	friend void AdjustSpriteOffsets();
 
 	static TArray<FGLTexture *> gltextures;
 public:

@@ -1437,6 +1437,7 @@ static menuitem_t CompatibilityItems[] = {
 	{ bitflag,	"Monsters see invisible players",			{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_INVISIBILITY} },
 	{ bitflag,	"Boom scrollers are additive",				{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_BOOMSCROLL} },
 	{ bitflag,	"Inst. moving floors are not silent",		{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_SILENT_INSTANT_FLOORS} },
+	{ bitflag,  "Sector sounds use center as source",		{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_SECTORSOUNDS} },
 	{ bitflag,	"Limited movement in the air",				{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_LIMITED_AIRMOVEMENT} },
 	{ bitflag,	"Plasma bump bug",							{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_PLASMA_BUMP_BUG} },
 	{ bitflag,	"Allow instant respawn",					{&compatflags}, {0}, {0}, {0}, {(value_t *)COMPATF_INSTANTRESPAWN} },

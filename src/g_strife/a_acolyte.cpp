@@ -401,7 +401,7 @@ void A_AcolyteDie (AActor *self)
 
 	players[0].mo->GiveInventoryType (QuestItemClasses[6]);
 	players[0].SetLogNumber (14);
-	S_StopSound ((fixed_t *)NULL, CHAN_VOICE);
+	S_StopSound (CHAN_VOICE);
 
 	// [BC] Play the sound to clients.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )

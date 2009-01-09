@@ -52,14 +52,14 @@
 #include "network.h"
 
 static void CopyPlayer (player_t *dst, player_t *src, const char *name);
-static void ReadOnePlayer (FArchive &arc);
-static void ReadMultiplePlayers (FArchive &arc, int numPlayers, int numPlayersNow);
+static void ReadOnePlayer (FArchive &arc, bool skipload);
+static void ReadMultiplePlayers (FArchive &arc, int numPlayers, int numPlayersNow, bool skipload);
 static void SpawnExtraPlayers ();
 
 //
 // P_ArchivePlayers
 //
-void P_SerializePlayers (FArchive &arc)
+void P_SerializePlayers (FArchive &arc, bool skipload)
 {
 	BYTE numPlayers, numPlayersNow;
 	int i;
@@ -96,20 +96,20 @@ void P_SerializePlayers (FArchive &arc)
 		// first player present, no matter what their name.
 		if (numPlayers == 1)
 		{
-			ReadOnePlayer (arc);
+			ReadOnePlayer (arc, skipload);
 		}
 		else
 		{
-			ReadMultiplePlayers (arc, numPlayers, numPlayersNow);
+			ReadMultiplePlayers (arc, numPlayers, numPlayersNow, skipload);
 		}
-		if (numPlayersNow > numPlayers)
+		if (!skipload && numPlayersNow > numPlayers)
 		{
 			SpawnExtraPlayers ();
 		}
 	}
 }
 
-static void ReadOnePlayer (FArchive &arc)
+static void ReadOnePlayer (FArchive &arc, bool skipload)
 {
 	int i;
 	char *name = NULL;
@@ -126,7 +126,10 @@ static void ReadOnePlayer (FArchive &arc)
 				didIt = true;
 				player_t playerTemp;
 				playerTemp.Serialize (arc);
-				CopyPlayer (&players[i], &playerTemp, name);
+				if (!skipload)
+				{
+					CopyPlayer (&players[i], &playerTemp, name);
+				}
 			}
 			else
 			{
@@ -141,7 +144,7 @@ static void ReadOnePlayer (FArchive &arc)
 	delete[] name;
 }
 
-static void ReadMultiplePlayers (FArchive &arc, int numPlayers, int numPlayersNow)
+static void ReadMultiplePlayers (FArchive &arc, int numPlayers, int numPlayersNow, bool skipload)
 {
 	// For two or more players, read each player into a temporary array.
 	int i, j;
@@ -162,36 +165,19 @@ static void ReadMultiplePlayers (FArchive &arc, int numPlayers, int numPlayersNo
 		playerUsed[i] = playeringame[i] ? 0 : 2;
 	}
 
-	// Now try to match players from the savegame with players present
-	// based on their names. If two players in the savegame have the
-	// same name, then they are assigned to players in the current game
-	// on a first-come, first-served basis.
-	for (i = 0; i < numPlayers; ++i)
+	if (!skipload)
 	{
-		for (j = 0; j < MAXPLAYERS; ++j)
-		{
-			if (playerUsed[j] == 0 && stricmp(players[j].userinfo.netname, nametemp[i]) == 0)
-			{ // Found a match, so copy our temp player to the real player
-				Printf ("Found player %d (%s) at %d\n", i, nametemp[i], j);
-				CopyPlayer (&players[j], &playertemp[i], nametemp[i]);
-				playerUsed[j] = 1;
-				tempPlayerUsed[i] = 1;
-				break;
-			}
-		}
-	}
-
-	// Any players that didn't have matching names are assigned to existing
-	// players on a first-come, first-served basis.
-	for (i = 0; i < numPlayers; ++i)
-	{
-		if (tempPlayerUsed[i] == 0)
+		// Now try to match players from the savegame with players present
+		// based on their names. If two players in the savegame have the
+		// same name, then they are assigned to players in the current game
+		// on a first-come, first-served basis.
+		for (i = 0; i < numPlayers; ++i)
 		{
 			for (j = 0; j < MAXPLAYERS; ++j)
 			{
-				if (playerUsed[j] == 0)
-				{
-					Printf ("Assigned player %d (%s) to %d (%s)\n", i, nametemp[i], j, players[j].userinfo.netname);
+				if (playerUsed[j] == 0 && stricmp(players[j].userinfo.netname, nametemp[i]) == 0)
+				{ // Found a match, so copy our temp player to the real player
+					Printf ("Found player %d (%s) at %d\n", i, nametemp[i], j);
 					CopyPlayer (&players[j], &playertemp[i], nametemp[i]);
 					playerUsed[j] = 1;
 					tempPlayerUsed[i] = 1;
@@ -199,17 +185,37 @@ static void ReadMultiplePlayers (FArchive &arc, int numPlayers, int numPlayersNo
 				}
 			}
 		}
-	}
 
-	// Make sure any extra players don't have actors spawned yet.
-	for (j = 0; j < MAXPLAYERS; ++j)
-	{
-		if (playerUsed[j] == 0)
+		// Any players that didn't have matching names are assigned to existing
+		// players on a first-come, first-served basis.
+		for (i = 0; i < numPlayers; ++i)
 		{
-			if (players[j].mo != NULL)
+			if (tempPlayerUsed[i] == 0)
 			{
-				players[j].mo->Destroy();
-				players[j].mo = NULL;
+				for (j = 0; j < MAXPLAYERS; ++j)
+				{
+					if (playerUsed[j] == 0)
+					{
+						Printf ("Assigned player %d (%s) to %d (%s)\n", i, nametemp[i], j, players[j].userinfo.netname);
+						CopyPlayer (&players[j], &playertemp[i], nametemp[i]);
+						playerUsed[j] = 1;
+						tempPlayerUsed[i] = 1;
+						break;
+					}
+				}
+			}
+		}
+
+		// Make sure any extra players don't have actors spawned yet.
+		for (j = 0; j < MAXPLAYERS; ++j)
+		{
+			if (playerUsed[j] == 0)
+			{
+				if (players[j].mo != NULL)
+				{
+					players[j].mo->Destroy();
+					players[j].mo = NULL;
+				}
 			}
 		}
 	}
@@ -499,6 +505,7 @@ void P_SerializeThinkers (FArchive &arc, bool hubLoad)
 
 void P_SerializeSounds (FArchive &arc)
 {
+	S_SerializeSounds (arc);
 	DSeqNode::SerializeSequences (arc);
 	char *name = NULL;
 	BYTE order;
@@ -536,14 +543,14 @@ void P_SerializePolyobjs (FArchive &arc)
 		for(i = 0, po = polyobjs; i < po_NumPolyobjs; i++, po++)
 		{
 			arc << po->tag << po->angle << po->startSpot[0] <<
-				po->startSpot[1] << po->startSpot[2] << po->interpolation;
+				po->startSpot[1] << po->interpolation;
   		}
 	}
 	else
 	{
 		int data;
 		angle_t angle;
-		fixed_t deltaX, deltaY, deltaZ;
+		fixed_t deltaX, deltaY;
 
 		arc << data;
 		if (data != ASEG_POLYOBJS)
@@ -563,10 +570,9 @@ void P_SerializePolyobjs (FArchive &arc)
 			}
 			arc << angle;
 			PO_RotatePolyobj (po->tag, angle);
-			arc << deltaX << deltaY << deltaZ << po->interpolation;
+			arc << deltaX << deltaY << po->interpolation;
 			deltaX -= po->startSpot[0];
 			deltaY -= po->startSpot[1];
-			deltaZ -= po->startSpot[2];
 			PO_MovePolyobj (po->tag, deltaX, deltaY, true);
 		}
 	}

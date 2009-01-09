@@ -19,6 +19,8 @@
 **    documentation and/or other materials provided with the distribution.
 ** 3. The name of the author may not be used to endorse or promote products
 **    derived from this software without specific prior written permission.
+** 4. Full disclosure of the entire project's source code, except for third
+**    party libraries is mandatory. (NOTE: This clause is non-negotiable!)
 **
 ** THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
 ** IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
@@ -186,10 +188,10 @@ static PalEntry SkyCapColor(FTextureID texno, bool bottom)
 
 				if (buffer)
 				{
-					SkyColors[texno.GetIndex()]=averageColor((unsigned long *) buffer, w * MIN(30, h), false);
+					SkyColors[texno.GetIndex()]=averageColor((DWORD *) buffer, w * MIN(30, h), false);
 					if (h>30)
 					{
-						SkyColors[texno.GetIndex()+MaxSkyTexture] = averageColor(((unsigned long *) buffer)+(h-30)*w, w * 30, false);
+						SkyColors[texno.GetIndex()+MaxSkyTexture] = averageColor(((DWORD *) buffer)+(h-30)*w, w * 30, false);
 					}
 					else SkyColors[texno.GetIndex() + MaxSkyTexture] = SkyColors[texno.GetIndex()];
 					delete buffer;

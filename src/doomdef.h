@@ -279,6 +279,8 @@ enum
 	COMPATF_INVISIBILITY	= 1 << 16,	// Monsters can see semi-invisible players
 	// [BB] Changed from 1 << 17 to 1<<24.
 	COMPATF_SILENT_INSTANT_FLOORS = 1<<24,	// Instantly moving floors are not silent
+	// [BB] Changed from 1 << 18 to 1<<25.
+	COMPATF_SECTORSOUNDS	= 1 << 25,	// Sector sounds use original method for sound origin.
 
 	// [BC] Start of new compatflags.
 

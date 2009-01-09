@@ -59,7 +59,6 @@
 // MACROS ------------------------------------------------------------------
 
 // The maximum number of functions that can be registered with atterm.
-// [BC] Upped to 64.
 #define MAX_TERMS	64
 
 // TYPES -------------------------------------------------------------------

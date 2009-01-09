@@ -114,7 +114,7 @@ sector_t * gl_FakeFlat(sector_t * sec, sector_t * dest, bool back);
 // Data
 
 void SaveGFX(const char * fn, unsigned char * buffer, int w, int h);
-PalEntry averageColor(const unsigned long *data, int size, bool maxout);
+PalEntry averageColor(const DWORD *data, int size, bool maxout);
 void gl_ScreenShot(const char *filename);
 void gl_EnableShader(bool on);
 bool gl_SetShader(int cmap);

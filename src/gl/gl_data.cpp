@@ -21,6 +21,8 @@
 **    covered by the terms of the GNU Lesser General Public License as published
 **    by the Free Software Foundation; either version 2.1 of the License, or (at
 **    your option) any later version.
+** 5. Full disclosure of the entire project's source code, except for third
+**    party libraries is mandatory. (NOTE: This clause is non-negotiable!)
 **
 ** THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
 ** IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
@@ -47,9 +49,11 @@
 #include "gl/gl_models.h"
 #include "gl/gl_renderstruct.h"
 #include "gl/gl_functions.h"
+#include "gl/gl_texture.h"
 #include "r_sky.h"
 #include "sc_man.h"
 #include "w_wad.h"
+#include "gi.h"
 // [BC]
 #include "network.h"
 #include "sv_commands.h"
@@ -77,6 +81,62 @@ AT_GAME_SET(gltextures)
 	mirrortexture = FTexture::CreateTexture(Wads.GetNumForFullName("glstuff/mirror.png"), FTexture::TEX_MiscPatch);
 	gllight = FTexture::CreateTexture(Wads.GetNumForFullName("glstuff/gllight.png"), FTexture::TEX_MiscPatch);
 	atterm(DeleteGLTextures);
+}
+
+//-----------------------------------------------------------------------------
+//
+// Adjust sprite offsets for GL rendering (IWAD resources only)
+//
+// (all I need to do now is to create the offset data files, whenever that
+//  might happen...)
+//
+//-----------------------------------------------------------------------------
+
+void AdjustSpriteOffsets()
+{
+	static bool done=false;
+	char name[30];
+
+	if (done) return;
+	done=true;
+
+	sprintf(name, "sprofs/%s.sprofs", GameNames[gameinfo.gametype]);
+	int lump = Wads.CheckNumForFullName(name);
+	if (lump>=0)
+	{
+		FScanner sc;
+		sc.OpenLumpNum(lump);
+		FGLTexture::FlushAll();
+		while (sc.GetString())
+		{
+			int x,y;
+			FTextureID texno = TexMan.CheckForTexture(sc.String, FTexture::TEX_Sprite);
+			sc.GetNumber();
+			x=sc.Number;
+			sc.GetNumber();
+			y=sc.Number;
+
+			if (texno.isValid())
+			{
+				FTexture * tex = TexMan[texno];
+
+				int lumpnum = tex->GetSourceLump();
+				// We only want to change texture offsets for sprites in the IWAD!
+				if (lumpnum >= 0 && lumpnum < Wads.GetNumLumps())
+				{
+					int wadno = Wads.GetLumpFile(lumpnum);
+					if (wadno==FWadCollection::IWAD_FILENUM)
+					{
+						tex->LeftOffset=x;
+						tex->TopOffset=y;
+						FGLTexture *gltex = FGLTexture::ValidateTexture(tex);
+						gltex->LeftOffset[FGLTexture::GLUSE_PATCH]=x+1;
+						gltex->TopOffset[FGLTexture::GLUSE_PATCH]=y+1;
+					}
+				}
+			}
+		}
+	}
 }
 
 // [BC] Moved to p_lnspec.cpp.
@@ -631,6 +691,7 @@ void gl_PreprocessLevel()
 	if (currentrenderer!=0) gl.ArrayPointer(&gl_vertices[0], sizeof(GLVertex));
 
 	if (gl_DebugHook) gl_DebugHook();
+	AdjustSpriteOffsets();
 	InitGLRMapinfoData();
 }
 

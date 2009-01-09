@@ -1359,9 +1359,12 @@ void A_BFGSpray (AActor *mo)
 		if (!linetarget)
 			continue;
 
-		// [BC] Get a pointer to the spawned tracer so we can send it to clients.
-		pActor = Spawn (spraytype, linetarget->x, linetarget->y,
+		AActor *spray = Spawn (spraytype, linetarget->x, linetarget->y,
 			linetarget->z + (linetarget->height>>2), ALLOW_REPLACE);
+
+		if (spray && (spray->flags5 & MF5_PUFFGETSOWNER))
+			spray->target = mo->target;
+
 		
 		// [BC] Tell clients to spawn the tracers.
 		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( pActor ))

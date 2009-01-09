@@ -435,9 +435,8 @@ static AActor *SelectTeleDest (int tid, int tag)
 	return NULL;
 }
 
-// [BC] Added the bHaltMomentum argument.
 bool EV_Teleport (int tid, int tag, line_t *line, int side, AActor *thing, bool fog,
-				  bool sourceFog, bool keepOrientation, bool bHaltMomentum)
+				  bool sourceFog, bool keepOrientation, bool haltMomentum)
 {
 	AActor *searcher;
 	fixed_t z;
@@ -494,7 +493,7 @@ bool EV_Teleport (int tid, int tag, line_t *line, int side, AActor *thing, bool 
 	{
 		z = ONFLOORZ;
 	}
-	if (P_Teleport (thing, searcher->x, searcher->y, z, searcher->angle, fog, sourceFog, keepOrientation, bHaltMomentum))
+	if (P_Teleport (thing, searcher->x, searcher->y, z, searcher->angle, fog, sourceFog, keepOrientation, haltMomentum))
 	{
 		// [RH] Lee Killough's changes for silent teleporters from BOOM
 		if (!fog && line && keepOrientation)
@@ -512,7 +511,7 @@ bool EV_Teleport (int tid, int tag, line_t *line, int side, AActor *thing, bool 
 		}
 
 		// [BC] Adjust the thing's momentum if we didn't halt it.
-		if ( bHaltMomentum == false )
+		if ( haltMomentum == false )
 		{
 			// Get the angle between the exit thing and source linedef.
 			// Rotate 90 degrees, so that walking perpendicularly across

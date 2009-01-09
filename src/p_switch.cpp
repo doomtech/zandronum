@@ -600,13 +600,12 @@ bool P_ChangeSwitchTexture (side_t *side, int useAgain, BYTE special, bool *ques
 	//		which wasn't necessarily anywhere near the switch if it was
 	//		facing a big sector (and which wasn't necessarily for the
 	//		button just activated, either).
-	fixed_t pt[3];
+	fixed_t pt[2];
 	line_t *line = &lines[side->linenum];
 	bool playsound;
 
 	pt[0] = line->v1->x + (line->dx >> 1);
 	pt[1] = line->v1->y + (line->dy >> 1);
-	pt[2] = 0;
 	side->SetTexture(texture, SwitchList[i]->u[0].Texture);
 
 	// [BC] If we're the server, tell clients to set the line texture.
@@ -619,11 +618,11 @@ bool P_ChangeSwitchTexture (side_t *side, int useAgain, BYTE special, bool *ques
 		playsound = true;
 	if (playsound)
 	{
-		S_Sound (pt, CHAN_VOICE|CHAN_LISTENERZ|CHAN_IMMOBILE, sound, 1, ATTN_STATIC);
+		S_Sound (pt[0], pt[1], 0, CHAN_VOICE|CHAN_LISTENERZ, sound, 1, ATTN_STATIC);
 
 		// [BC] If we're the server, tell clients to play the sound.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SoundPoint( pt[0], pt[1], pt[2], CHAN_VOICE|CHAN_LISTENERZ|CHAN_IMMOBILE, S_GetName( sound ), 1, ATTN_STATIC );
+			SERVERCOMMANDS_SoundPoint( pt[0], pt[1], 0, CHAN_VOICE|CHAN_LISTENERZ, S_GetName( sound ), 1, ATTN_STATIC );
 	}
 	if (quest != NULL)
 	{
@@ -682,22 +681,18 @@ void DActiveButton::Tick ()
 		FSwitchDef *def = SwitchList[m_SwitchDef];
 		if (m_Frame == def->NumFrames - 1)
 		{
-			fixed_t pt[3];
-
 			m_SwitchDef = def->PairIndex;
 			if (m_SwitchDef != 65535)
 			{
 				def = SwitchList[def->PairIndex];
 				m_Frame = 65535;
-				pt[0] = m_X;
-				pt[1] = m_Y;
-				S_Sound (pt, CHAN_VOICE|CHAN_LISTENERZ|CHAN_IMMOBILE,
+				S_Sound (m_X, m_Y, 0, CHAN_VOICE|CHAN_LISTENERZ,
 					def->Sound != 0 ? def->Sound : FSoundID("switches/normbutn"),
 					1, ATTN_STATIC);
 
 				// [BC] If we're the server, tell clients to play the sound.
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_SoundPoint( pt[0], pt[1], pt[2], CHAN_VOICE|CHAN_LISTENERZ|CHAN_IMMOBILE, ( def->Sound != 0 ) ? S_GetName( def->Sound ) : "switches/normbutn", 1, ATTN_STATIC );
+					SERVERCOMMANDS_SoundPoint( m_X, m_Y, 0, CHAN_VOICE|CHAN_LISTENERZ, ( def->Sound != 0 ) ? S_GetName( def->Sound ) : "switches/normbutn", 1, ATTN_STATIC );
 
 				bFlippable = false;
 			}

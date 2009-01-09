@@ -37,6 +37,10 @@
  * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  */
 
+#ifndef I_DO_NOT_LIKE_BIG_DOWNLOADS
+#define I_DO_NOT_LIKE_BIG_DOWNLOADS
+#endif
+
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #define USE_WINDOWS_DWORD
@@ -50,11 +54,6 @@ CUSTOM_CVAR (Float, snd_movievolume, 1.f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 	else if (self > 1.f)
 		self = 1.f;
 }
-
-// The movie player has serious issues with portability and doesn't
-// work without an initialized software renderer.
-// Unless that is fixed in ZDoom I won't make it operable!
-#define I_DO_NOT_LIKE_BIG_DOWNLOADS
 
 #ifdef I_DO_NOT_LIKE_BIG_DOWNLOADS
 
@@ -276,10 +275,7 @@ int I_PlayMovie (const char *name)
 		goto bomb3;
 	}
 
-	if (GSnd != NULL)
-	{
-		GSnd->MovieDisableSound ();
-	}
+	GSnd->MovieDisableSound ();
 	returnSound = true;
 
 	CheckIfVideo ();
@@ -391,10 +387,7 @@ bomb2:
 
 	if (returnSound)
 	{
-		if (GSnd != NULL)
-		{
-			GSnd->MovieResumeSound ();
-		}
+		GSnd->MovieResumeSound ();
 		C_FlushDisplay ();
 	}
 	if (runningFull)

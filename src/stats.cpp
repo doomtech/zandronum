@@ -98,8 +98,9 @@ void FStat::ToggleStat ()
 
 void FStat::PrintStat ()
 {
+	int fontheight = ConFont->GetHeight() + 1;
 	// [BC] The server doesn't actually load any fonts.
-	int y = ( NETWORK_GetState( ) == NETSTATE_SERVER ) ? 0 : SCREENHEIGHT - SmallFont->GetHeight();
+	int y = ( NETWORK_GetState( ) == NETSTATE_SERVER ) ? 0 : SCREENHEIGHT;
 	int count = 0;
 
 	// [BC] The server doesn't actually load any fonts.
@@ -110,14 +111,23 @@ void FStat::PrintStat ()
 		if (stat->m_Active)
 		{
 			FString stattext(stat->GetStats());
-			// [BC] In server mode, just display the stats in the console.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				Printf( "%s\n", stattext.GetChars() );
-			else
+
+			if (stattext.Len() > 0)
 			{
-				screen->DrawText (CR_GREEN, 5, y, stattext, TAG_DONE);
-				y -= SmallFont->GetHeight() + 1;
-				count++;
+				// [BC] In server mode, just display the stats in the console.
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					Printf( "%s\n", stattext.GetChars() );
+				else
+				{
+					y -= fontheight;	// there's at least one line of text
+					for(unsigned i = 0; i < stattext.Len()-1; i++)
+					{
+						// Count number of linefeeds but ignore terminating ones.
+						if (stattext[i] == '\n') y -= fontheight;
+					}
+					screen->DrawText (CR_GREEN, 5, y, stattext, TAG_DONE);
+					count++;
+				}
 			}
 		}
 	}

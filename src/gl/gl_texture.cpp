@@ -23,6 +23,8 @@
 **    covered by the terms of the GNU Lesser General Public License as published
 **    by the Free Software Foundation; either version 2.1 of the License, or (at
 **    your option) any later version.
+** 5. Full disclosure of the entire project's source code, except for third
+**    party libraries is mandatory. (NOTE: This clause is non-negotiable!)
 **
 ** THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
 ** IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
@@ -556,29 +558,29 @@ int FWarpTexture::CopyTrueColorPixels(FBitmap *bmp, int xx, int yy, int rotate, 
 	if (!inb.Create(Width, Height))
 		return false;
 
-	unsigned long * in = (unsigned long *)inb.GetPixels();
-	unsigned long * out;
+	DWORD * in = (DWORD *)inb.GetPixels();
+	DWORD * out;
 	bool direct;
 	
 	FGLTexture *gltex = FGLTexture::ValidateTexture(this);
 	gltex->createWarped = true;
 	if (Width == buf_width && Height == buf_height && xx==0 && yy==0)
 	{
-		out = (unsigned long*)bmp->GetPixels();
+		out = (DWORD*)bmp->GetPixels();
 		direct=true;
 	}
 	else
 	{
-		out = new unsigned long[Width*Height];
+		out = new DWORD[Width*Height];
 		direct=false;
 	}
 
 	GenTime = r_FrameTime;
-	if (SourcePic->bMasked) memset(in, 0, Width*Height*sizeof(long));
+	if (SourcePic->bMasked) memset(in, 0, Width*Height*sizeof(DWORD));
 	int ret = SourcePic->CopyTrueColorPixels(&inb, 0, 0);
 
-	static unsigned long linebuffer[256];	// anything larger will bring down performance so it is excluded above.
-	int timebase = DWORD(r_FrameTime*Speed*23/28);
+	static DWORD linebuffer[256];	// anything larger will bring down performance so it is excluded above.
+	DWORD timebase = DWORD(r_FrameTime*Speed*23/28);
 	int xsize = Width;
 	int ysize = Height;
 	int xmask = xsize - 1;
@@ -591,8 +593,8 @@ int FWarpTexture::CopyTrueColorPixels(FBitmap *bmp, int xx, int yy, int rotate, 
 	for (x = xsize-1; x >= 0; x--)
 	{
 		int yt, yf = (finesine[(timebase+(x+17)*128)&FINEMASK]>>13) & ymask;
-		const unsigned long *source = in + x;
-		unsigned long *dest = out + x;
+		const DWORD *source = in + x;
+		DWORD *dest = out + x;
 		for (yt = ysize; yt; yt--, yf = (yf+1)&ymask, dest += xsize)
 		{
 			*dest = *(source+(yf<<ds_xbits));
@@ -603,13 +605,13 @@ int FWarpTexture::CopyTrueColorPixels(FBitmap *bmp, int xx, int yy, int rotate, 
 	for (y = ysize-1; y >= 0; y--)
 	{
 		int xt, xf = (finesine[(timebase+y*128)&FINEMASK]>>13) & xmask;
-		unsigned long *source = out + (y<<ds_xbits);
-		unsigned long *dest = linebuffer;
+		DWORD *source = out + (y<<ds_xbits);
+		DWORD *dest = linebuffer;
 		for (xt = xsize; xt; xt--, xf = (xf+1)&xmask)
 		{
 			*dest++ = *(source+xf);
 		}
-		memcpy (out+y*xsize, linebuffer, xsize*sizeof(unsigned long));
+		memcpy (out+y*xsize, linebuffer, xsize*sizeof(DWORD));
 	}
 
 	if (!direct)
@@ -618,13 +620,13 @@ int FWarpTexture::CopyTrueColorPixels(FBitmap *bmp, int xx, int yy, int rotate, 
 		if (xx<0) xx=0;
 		if (yy<0) yy=0;
 
-		unsigned long * targ = ((unsigned long*)bmp->GetPixels()) + xx + yy*buf_width;
+		DWORD * targ = ((DWORD*)bmp->GetPixels()) + xx + yy*buf_width;
 		int linelen=MIN<int>(Width, buf_width-xx);
 		int linecount=MIN<int>(Height, buf_height-yy);
 
 		for(i=0;i<linecount;i++)
 		{
-			memcpy(targ, &out[Width*i], linelen*sizeof(unsigned long));
+			memcpy(targ, &out[Width*i], linelen*sizeof(DWORD));
 			targ+=buf_width;
 		}
 		delete [] out;
@@ -658,25 +660,25 @@ int FWarp2Texture::CopyTrueColorPixels(FBitmap *bmp, int xx, int yy, int rotate,
 	if (!inb.Create(Width, Height))
 		return false;
 
-	unsigned long * in = (unsigned long *)inb.GetPixels();
-	unsigned long * out;
+	DWORD * in = (DWORD *)inb.GetPixels();
+	DWORD * out;
 	bool direct;
 	
 	FGLTexture *gltex = FGLTexture::ValidateTexture(this);
 	gltex->createWarped = true;
 	if (Width == buf_width && Height == buf_height && xx==0 && yy==0)
 	{
-		out = (unsigned long*)bmp->GetPixels();
+		out = (DWORD*)bmp->GetPixels();
 		direct=true;
 	}
 	else
 	{
-		out = new unsigned long[Width*Height];
+		out = new DWORD[Width*Height];
 		direct=false;
 	}
 
 	GenTime = r_FrameTime;
-	if (SourcePic->bMasked) memset(in, 0, Width*Height*sizeof(long));
+	if (SourcePic->bMasked) memset(in, 0, Width*Height*sizeof(DWORD));
 	int ret = SourcePic->CopyTrueColorPixels(&inb, 0, 0);
 
 	int xsize = Width;
@@ -700,8 +702,8 @@ int FWarp2Texture::CopyTrueColorPixels(FBitmap *bmp, int xx, int yy, int rotate,
 			int yt = (y + 128
 				+ ((finesine[(y*128 + timebase*3 + 700) & 8191]*2)>>FRACBITS)
 				+ ((finesine[(x*256 + timebase*4 + 1200) & 8191]*2)>>FRACBITS)) & ymask;
-			const unsigned long *source = in + (xt << ybits) + yt;
-			unsigned long *dest = out + (x << ybits) + y;
+			const DWORD *source = in + (xt << ybits) + yt;
+			DWORD *dest = out + (x << ybits) + y;
 			*dest = *source;
 		}
 	}
@@ -713,13 +715,13 @@ int FWarp2Texture::CopyTrueColorPixels(FBitmap *bmp, int xx, int yy, int rotate,
 		if (xx<0) xx=0;
 		if (yy<0) yy=0;
 
-		unsigned long * targ = ((unsigned long*)bmp->GetPixels()) + xx + yy*buf_width;
+		DWORD * targ = ((DWORD*)bmp->GetPixels()) + xx + yy*buf_width;
 		int linelen=MIN<int>(Width, buf_width-xx);
 		int linecount=MIN<int>(Height, buf_height-yy);
 
 		for(i=0;i<linecount;i++)
 		{
-			memcpy(targ, &out[Width*i], linelen*sizeof(unsigned long));
+			memcpy(targ, &out[Width*i], linelen*sizeof(DWORD));
 			targ+=buf_pitch/4;
 		}
 		delete [] out;
@@ -1055,7 +1057,7 @@ bool FGLTexture::FindHoles(const unsigned char * buffer, int w, int h)
 #define SOME_MASK 0x00ffffff
 #endif
 
-#define CHKPIX(ofs) (l1[(ofs)*4+MSB]==255 ? (( ((long*)l1)[0] = ((long*)l1)[ofs]&SOME_MASK), trans=true ) : false)
+#define CHKPIX(ofs) (l1[(ofs)*4+MSB]==255 ? (( ((DWORD*)l1)[0] = ((DWORD*)l1)[ofs]&SOME_MASK), trans=true ) : false)
 
 bool FGLTexture::SmoothEdges(unsigned char * buffer,int w, int h, bool clampsides)
 {

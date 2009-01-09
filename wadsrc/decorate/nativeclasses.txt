@@ -35,7 +35,7 @@ class Actor extends Thinker
 	action native A_SargAttack();
 	action native A_HeadAttack();
 	action native A_BruisAttack();
-	action native A_SkullAttack();
+	action native A_SkullAttack(optional eval float speed);
 	action native A_Metal();
 	action native A_SpidRefire();
 	action native A_BabyMetal();
@@ -212,6 +212,7 @@ class Inventory extends Actor
 	action native A_BFGsound();
 	action native A_FireBFG();
 	action native A_ReFire();
+	action native A_ClearReFire();
 	action native A_CheckReload();
 	action native A_GunFlash();
 	action native A_Saw(optional coerce sound fullsound, optional coerce sound hitsound, optional eval int damage, optional class<Actor> pufftype);

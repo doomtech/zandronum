@@ -1219,6 +1219,37 @@ IMPLEMENT_ACTOR (AMaceSpawner, Heretic, 2002, 0)
 	PROP_SpawnState (0)
 END_DEFAULTS
 
+
+static bool RespawnMace (AActor *mace, AActor *FirstSpot, int NumMaceSpots)
+{
+	// [BC] Don't do this in client mode.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return ( true );
+	}
+
+	if (NumMaceSpots > 0)
+	{
+		int spotnum = pr_macerespawn () % NumMaceSpots;
+		AActor *spot = FirstSpot;
+
+		while (spotnum > 0)
+		{
+			spot = spot->target;
+			spotnum--;
+		}
+
+		mace->SetOrigin (spot->x, spot->y, spot->z);
+		mace->z = mace->floorz;
+
+		// [BC] Tell clients the new position of the mace.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_MoveThingExact( mace, CM_X|CM_Y|CM_Z );
+	}
+	return true;
+}
+
 // Every mace spawn spot will execute this action. The first one
 // will build a list of all mace spots in the level and spawn a
 // mace. The rest of the spots will do nothing.
@@ -1273,11 +1304,17 @@ void A_SpawnMace (AActor *self)
 		return;
 	}
 	mace = Spawn<AMace> (self->x, self->y, self->z, ALLOW_REPLACE);
+
 	if (mace)
 	{
-		mace->FirstSpot = firstSpot;
-		mace->NumMaceSpots = numspots;
-		mace->DoRespawn ();
+		if (mace->IsKindOf(RUNTIME_CLASS(AMace)))
+		{
+			// remember the values for later
+			// (works only for the original mace!)
+			mace->FirstSpot = firstSpot;
+			mace->NumMaceSpots = numspots;
+		}
+		RespawnMace(mace, firstSpot, numspots);
 		// We want this mace to respawn.
 		mace->flags &= ~MF_DROPPED;
 
@@ -1292,32 +1329,7 @@ void A_SpawnMace (AActor *self)
 
 bool AMace::DoRespawn ()
 {
-	// [BC] Don't do this in client mode.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
-	{
-		return ( true );
-	}
-
-	if (NumMaceSpots > 0)
-	{
-		int spotnum = pr_macerespawn () % NumMaceSpots;
-		AActor *spot = FirstSpot;
-
-		while (spotnum > 0)
-		{
-			spot = spot->target;
-			spotnum--;
-		}
-
-		SetOrigin (spot->x, spot->y, spot->z);
-		z = floorz;
-
-		// [BC] Tell clients the new position of the mace.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_MoveThingExact( this, CM_X|CM_Y|CM_Z );
-	}
-	return true;
+	return RespawnMace(this, FirstSpot, NumMaceSpots);
 }
 
 //----------------------------------------------------------------------------

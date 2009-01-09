@@ -1172,9 +1172,8 @@ bool EV_DoChange (line_t *line, EChange changetype, int tag);
 //
 // P_TELEPT
 //
-// [BC] Added the bHaldMomentum argument for the next two.
-bool P_Teleport (AActor *thing, fixed_t x, fixed_t y, fixed_t z, angle_t angle, bool useFog, bool sourceFog, bool keepOrientation, bool bHaltMomentum = true);
-bool EV_Teleport (int tid, int tag, line_t *line, int side, AActor *thing, bool fog, bool sourceFog, bool keepOrientation, bool bHaltMomentum = true);
+bool P_Teleport (AActor *thing, fixed_t x, fixed_t y, fixed_t z, angle_t angle, bool useFog, bool sourceFog, bool keepOrientation, bool haltMomentum = true);
+bool EV_Teleport (int tid, int tag, line_t *line, int side, AActor *thing, bool fog, bool sourceFog, bool keepOrientation, bool haltMomentum = true);
 bool EV_SilentLineTeleport (line_t *line, int side, AActor *thing, int id, INTBOOL reverse);
 bool EV_TeleportOther (int other_tid, int dest_tid, bool fog);
 bool EV_TeleportGroup (int group_tid, AActor *victim, int source_tid, int dest_tid, bool moveSource, bool fog);

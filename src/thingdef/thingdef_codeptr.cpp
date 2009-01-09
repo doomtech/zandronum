@@ -60,7 +60,6 @@
 #include "p_local.h"
 #include "c_console.h"
 #include "doomerrors.h"
-#include "vectors.h"
 #include "a_sharedglobal.h"
 #include "a_doomglobal.h"
 #include "thingdef/thingdef.h"
@@ -289,10 +288,9 @@ static void DoAttack (AActor *self, bool domelee, bool domissile)
 		const PClass * ti=PClass::FindClass(MissileName);
 		if (ti) 
 		{
-			// Although there is a P_SpawnMissileZ function its
-			// aiming is much too bad to be of any use
+			// This seemingly senseless code is needed for proper aiming.
 			self->z+=MissileHeight-32*FRACUNIT;
-			AActor * missile = P_SpawnMissile (self, self->target, ti);
+			AActor * missile = P_SpawnMissileXYZ (self->x, self->y, self->z + 32*FRACUNIT, self, self->target, ti, false);
 			self->z-=MissileHeight-32*FRACUNIT;
 
 			if (missile)
@@ -307,9 +305,10 @@ static void DoAttack (AActor *self, bool domelee, bool domissile)
 				{
 					missile->health=-2;
 				}
+				bool bSucces = P_CheckMissileSpawn(missile);
 
 				// [BC] If we're the server, tell clients to spawn the missile.
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				if ( bSucces && ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
 					SERVERCOMMANDS_SpawnMissile( missile );
 			}
 		}
@@ -935,20 +934,20 @@ void A_CustomMissile(AActor * self)
 				self->x+=x;
 				self->y+=y;
 				self->z+=z;
-				missile = P_SpawnMissile(self, self->target, ti);
+				missile = P_SpawnMissileXYZ(self->x, self->y, self->z + 32*FRACUNIT, self, self->target, ti, false);
 				self->x-=x;
 				self->y-=y;
 				self->z-=z;
 				break;
 
 			case 1:
-				missile = P_SpawnMissileXYZ(self->x+x, self->y+y, self->z+SpawnHeight, self, self->target, ti);
+				missile = P_SpawnMissileXYZ(self->x+x, self->y+y, self->z+SpawnHeight, self, self->target, ti, false);
 				break;
 
 			case 2:
 				self->x+=x;
 				self->y+=y;
-				missile = P_SpawnMissileAngleZ(self, self->z+SpawnHeight, ti, self->angle, 0);
+				missile = P_SpawnMissileAngleZSpeed(self, self->z+SpawnHeight, ti, self->angle, 0, GetDefaultByType(ti)->Speed, self, false);
 				self->x-=x;
 				self->y-=y;
 
@@ -1007,13 +1006,17 @@ void A_CustomMissile(AActor * self)
 				{
 					missile->health=-2;
 				}
+				bool bSucces = P_CheckMissileSpawn(missile);
 
-				// [BC] If we're the server, tell clients to spawn the missile.
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-					SERVERCOMMANDS_SpawnMissile( missile );
-				// [BB] The client did the spawning, so this has to be a client side only actor.
-				else if ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ) ) )
-					missile->ulNetworkFlags |= NETFL_CLIENTSIDEONLY;
+				if ( bSucces )
+				{
+					// [BC] If we're the server, tell clients to spawn the missile.
+					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						SERVERCOMMANDS_SpawnMissile( missile );
+					// [BB] The client did the spawning, so this has to be a client side only actor.
+					else if ( ( NETWORK_GetState( ) == NETSTATE_CLIENT ) || ( CLIENTDEMO_IsPlaying( ) ) )
+						missile->ulNetworkFlags |= NETFL_CLIENTSIDEONLY;
+				}
 			}
 		}
 	}
@@ -1159,10 +1162,9 @@ void A_CustomComboAttack (AActor *self)
 		const PClass * ti=PClass::FindClass(MissileName);
 		if (ti) 
 		{
-			// Although there is a P_SpawnMissileZ function its
-			// aiming is much too bad to be of any use
+			// This seemingly senseless code is needed for proper aiming.
 			self->z+=SpawnHeight-32*FRACUNIT;
-			AActor * missile = P_SpawnMissile (self, self->target, ti);
+			AActor * missile = P_SpawnMissileXYZ (self->x, self->y, self->z + 32*FRACUNIT, self, self->target, ti, false);
 			self->z-=SpawnHeight-32*FRACUNIT;
 
 			if (missile)
@@ -1177,9 +1179,10 @@ void A_CustomComboAttack (AActor *self)
 				{
 					missile->health=-2;
 				}
+				bool bSucces = P_CheckMissileSpawn(missile);
 
 				// [BB] If we're the server, tell clients to spawn this missile.
-				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				if ( bSucces && ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
 					SERVERCOMMANDS_SpawnMissile( missile );
 			}
 		}
@@ -1483,7 +1486,6 @@ void A_FireCustomMissile (AActor * self)
 				misl->momx = FixedMul (missilespeed, finecosine[an]);
 				misl->momy = FixedMul (missilespeed, finesine[an]);
 			}
-			if (misl->flags4&MF4_SPECTRAL) misl->health=-1;
 
 			// [BC] If we're the server, tell clients to spawn this missile.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -2643,6 +2645,12 @@ void A_CheckFloor (AActor *self)
 void A_Stop (AActor *self)
 {
 	self->momx = self->momy = self->momz = 0;
+	if (self->player && self->player->mo == self /*&& !(self->player->cheats & CF_PREDICTING)*/)
+	{
+		self->player->mo->PlayIdle ();
+		self->player->momx = self->player->momy = 0;
+	}
+	
 }
 
 //===========================================================================

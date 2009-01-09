@@ -47,10 +47,6 @@ typedef enum {
 	// [BC]
 	Team_Score = 152,
 	Team_GivePoints = 153,
-
-	// [BC]
-	Teleport_NoStop = 154,
-
 } linespecial_t;
 
 typedef enum {
