@@ -1,6 +1,0 @@
-[KilledStrings]
-"Someone flogged me wellingtons!"
-"Oh ballocks!"
-
-[RoamingStrings]
-"Burping the worm, are we?"

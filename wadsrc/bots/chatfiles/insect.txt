@@ -1,2 +1,0 @@
-[FragStrings]
-"<whirl> <click> <click>"
