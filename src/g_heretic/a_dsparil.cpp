@@ -8,6 +8,8 @@
 #include "m_random.h"
 #include "a_sharedglobal.h"
 #include "gstrings.h"
+#include "a_specialspot.h"
+// [BB] New #includes.
 #include "cl_demo.h"
 #include "network.h"
 #include "sv_commands.h"
@@ -38,30 +40,14 @@ void A_GenWizard (AActor *);
 
 // Boss spot ----------------------------------------------------------------
 
-class ABossSpot : public AActor
+class ABossSpot : public ASpecialSpot
 {
-	DECLARE_STATELESS_ACTOR (ABossSpot, AActor)
-public:
-	ABossSpot *NextSpot;
-	void Serialize (FArchive &arc);
-	void BeginPlay ();
+	DECLARE_STATELESS_ACTOR (ABossSpot, ASpecialSpot)
 };
-
-void ABossSpot::Serialize (FArchive &arc)
-{
-	Super::Serialize (arc);
-	arc << NextSpot;
-}
 
 IMPLEMENT_STATELESS_ACTOR (ABossSpot, Heretic, 56, 141)
 	PROP_RenderFlags (RF_INVISIBLE)
 END_DEFAULTS
-
-void ABossSpot::BeginPlay ()
-{
-	Super::BeginPlay ();
-	NextSpot = NULL;
-}
 
 // Sorcerer (D'Sparil on his serpent) ---------------------------------------
 
@@ -265,29 +251,6 @@ IMPLEMENT_ACTOR (ASorcerer2, Heretic, -1, 143)
 	PROP_Obituary("$OB_DSPARIL2")
 	PROP_HitObituary("$OB_DSPARIL2HIT")
 END_DEFAULTS
-
-void ASorcerer2::Serialize (FArchive &arc)
-{
-	Super::Serialize (arc);
-	arc << NumBossSpots << FirstBossSpot;
-}
-
-void ASorcerer2::BeginPlay ()
-{
-	TThinkerIterator<ABossSpot> iterator;
-	ABossSpot *spot;
-
-	Super::BeginPlay ();
-	NumBossSpots = 0;
-	spot = iterator.Next ();
-	FirstBossSpot = static_cast<ABossSpot *> (spot);
-	while (spot)
-	{
-		NumBossSpots++;
-		spot->NextSpot = iterator.Next ();
-		spot = spot->NextSpot;
-	}
-}
 
 // Sorcerer 2 FX 1 ----------------------------------------------------------
 
@@ -566,14 +529,11 @@ void A_SorcererRise (AActor *actor)
 
 void P_DSparilTeleport (AActor *actor)
 {
-	int i;
 	fixed_t prevX;
 	fixed_t prevY;
 	fixed_t prevZ;
 	AActor *mo;
-	ASorcerer2 *self = static_cast<ASorcerer2 *> (actor);
-	ABossSpot *spot;
-	ABossSpot *initial;
+	AActor *spot;
 
 	// [BC] Don't do this in client mode.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -582,30 +542,12 @@ void P_DSparilTeleport (AActor *actor)
 		return;
 	}
 
-	if (!self->NumBossSpots)
-	{ // No spots
-		return;
-	}
-	i = pr_dst () % self->NumBossSpots;
-	spot = static_cast<ABossSpot *> (self->FirstBossSpot);
-	while (i-- > 0)
-	{
-		spot = spot->NextSpot;
-	}
-	initial = spot;
-	while (P_AproxDistance (actor->x - spot->x, actor->y - spot->y) < 128*FRACUNIT)
-	{
-		spot = spot->NextSpot;
-		if (spot == NULL)
-		{
-			spot = static_cast<ABossSpot *> (self->FirstBossSpot);
-		}
-		if (spot == initial)
-		{
-			// [RH] Don't inifinite loop if no spots further than 128*FRACUNIT
-			return;
-		}
-	}
+	DSpotState *state = DSpotState::GetSpotState();
+	if (state == NULL) return;
+
+	spot = state->GetSpotWithMinDistance(RUNTIME_CLASS(ABossSpot), actor->x, actor->y, 128*FRACUNIT);
+	if (spot == NULL) return;
+
 	prevX = actor->x;
 	prevY = actor->y;
 	prevZ = actor->z;

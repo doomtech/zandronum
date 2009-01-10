@@ -6165,6 +6165,14 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\src\g_shared\a_specialspot.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\g_shared\a_specialspot.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\g_shared\a_springpad.cpp"
 				>
 			</File>

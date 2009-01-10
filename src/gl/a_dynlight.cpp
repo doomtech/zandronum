@@ -237,7 +237,7 @@ void ADynamicLight::Serialize(FArchive &arc)
 //==========================================================================
 void ADynamicLight::BeginPlay()
 {
-	Super::BeginPlay();
+	//Super::BeginPlay();
 	ChangeStatNum(STAT_DLIGHT);
 
 	m_intensity[0] = args[LIGHT_INTENSITY];

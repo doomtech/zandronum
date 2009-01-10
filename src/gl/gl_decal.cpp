@@ -315,7 +315,14 @@ void GLWall::DrawDecal(DBaseDecal *actor, seg_t *seg, sector_t *frontSector, sec
 	}
 	// fog is set once per wall in the calling function and not per decal!
 
-	gl.Color4f(red, green, blue, a);
+	if (loadAlpha)
+	{
+		gl.Color4f(red, green, blue, a);
+	}
+	else
+	{
+		gl_SetColor(lightlevel, rellight + (extralight * gl_weaponlight), &Colormap, a);
+	}
 
 	FRenderStyle style = actor->RenderStyle;
 	style.Flags &= ~STYLEF_ColorIsFixed;	// this is handled differently for decals (see above)

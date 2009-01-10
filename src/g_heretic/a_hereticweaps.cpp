@@ -14,6 +14,8 @@
 #include "p_enemy.h"
 #include "gi.h"
 #include "r_translate.h"
+#include "a_specialspot.h"
+// [BB] New #includes.
 #include "cl_demo.h"
 #include "deathmatch.h"
 #include "network.h"
@@ -967,32 +969,14 @@ void A_DeathBallImpact (AActor *);
 class AMace : public AHereticWeapon
 {
 	DECLARE_ACTOR (AMace, AHereticWeapon)
-	HAS_OBJECT_POINTERS
-public:
-	void Serialize (FArchive &arc);
 protected:
 	bool DoRespawn ();
-	int NumMaceSpots;
-	TObjPtr<AActor> FirstSpot;
-private:
-
-	friend void A_SpawnMace (AActor *self);
 };
 
 class AMacePowered : public AMace
 {
 	DECLARE_STATELESS_ACTOR (AMacePowered, AMace)
 };
-
-IMPLEMENT_POINTY_CLASS (AMace)
- DECLARE_POINTER (FirstSpot)
-END_POINTERS
-
-void AMace::Serialize (FArchive &arc)
-{
-	Super::Serialize (arc);
-	arc << NumMaceSpots << FirstSpot;
-}
 
 FState AMace::States[] =
 {
@@ -1027,7 +1011,7 @@ FState AMace::States[] =
 	S_NORMAL (MACE, 'A',	8, A_ReFire 			, &States[S_MACEREADY])
 };
 
-BEGIN_DEFAULTS (AMace, Heretic, -1, 0)
+IMPLEMENT_ACTOR (AMace, Heretic, -1, 0)
 	PROP_Flags (MF_SPECIAL)
 	PROP_SpawnState (0)
 
@@ -1201,11 +1185,9 @@ int AMaceFX4::DoSpecialDamage (AActor *target, int damage)
 
 void A_SpawnMace (AActor *);
 
-class AMaceSpawner : public AActor
+class AMaceSpawner : public ASpecialSpot
 {
-	DECLARE_ACTOR (AMaceSpawner, AActor)
-
-	// Uses target to point to the next mace spawner in the list
+	DECLARE_ACTOR (AMaceSpawner, ASpecialSpot)
 };
 
 FState AMaceSpawner::States[] =
@@ -1218,37 +1200,6 @@ IMPLEMENT_ACTOR (AMaceSpawner, Heretic, 2002, 0)
 	PROP_Flags (MF_NOSECTOR|MF_NOBLOCKMAP)
 	PROP_SpawnState (0)
 END_DEFAULTS
-
-
-static bool RespawnMace (AActor *mace, AActor *FirstSpot, int NumMaceSpots)
-{
-	// [BC] Don't do this in client mode.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
-	{
-		return ( true );
-	}
-
-	if (NumMaceSpots > 0)
-	{
-		int spotnum = pr_macerespawn () % NumMaceSpots;
-		AActor *spot = FirstSpot;
-
-		while (spotnum > 0)
-		{
-			spot = spot->target;
-			spotnum--;
-		}
-
-		mace->SetOrigin (spot->x, spot->y, spot->z);
-		mace->z = mace->floorz;
-
-		// [BC] Tell clients the new position of the mace.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_MoveThingExact( mace, CM_X|CM_Y|CM_Z );
-	}
-	return true;
-}
 
 // Every mace spawn spot will execute this action. The first one
 // will build a list of all mace spots in the level and spawn a
@@ -1274,47 +1225,23 @@ void A_SpawnMace (AActor *self)
 		return;
 	}
 
-	TThinkerIterator<AMaceSpawner> iterator;
-	AActor *spot;
-	AMaceSpawner *firstSpot;
-	AMace *mace;
-	int numspots = 0;
+	AActor *spot = NULL;
+	DSpotState *state = DSpotState::GetSpotState();
 
-	spot = firstSpot = iterator.Next ();
-	while (spot != NULL)
-	{
-		numspots++;
-		spot->target = iterator.Next ();
-		if (spot->target == NULL)
-		{
-			spot->target = firstSpot;
-			spot = NULL;
-		}
-		else
-		{
-			spot = spot->target;
-		}
-	}
-	if (numspots == 0)
-	{
-		return;
-	}
+	if (state != NULL) spot = state->GetRandomSpot(RUNTIME_TYPE(self), true);
+	if (spot == NULL) return;
+
 	if (!deathmatch && pr_spawnmace() < 64)
 	{ // Sometimes doesn't show up if not in deathmatch
 		return;
 	}
-	mace = Spawn<AMace> (self->x, self->y, self->z, ALLOW_REPLACE);
+
+	AActor *mace = Spawn<AMace> (self->x, self->y, self->z, ALLOW_REPLACE);
 
 	if (mace)
 	{
-		if (mace->IsKindOf(RUNTIME_CLASS(AMace)))
-		{
-			// remember the values for later
-			// (works only for the original mace!)
-			mace->FirstSpot = firstSpot;
-			mace->NumMaceSpots = numspots;
-		}
-		RespawnMace(mace, firstSpot, numspots);
+		mace->SetOrigin (spot->x, spot->y, spot->z);
+		mace->z = mace->floorz;
 		// We want this mace to respawn.
 		mace->flags &= ~MF_DROPPED;
 
@@ -1324,12 +1251,34 @@ void A_SpawnMace (AActor *self)
 	}
 }
 
+// FIXME: Generalize this so that it doesn't depend on item specific implementation!
+
 // AMace::DoRespawn
 // Moves the mace to a different spot when it respawns
 
 bool AMace::DoRespawn ()
 {
-	return RespawnMace(this, FirstSpot, NumMaceSpots);
+	// [BC] Don't do this in client mode.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return ( true );
+	}
+
+	AActor *spot = NULL;
+	DSpotState *state = DSpotState::GetSpotState();
+
+	if (state != NULL) spot = state->GetRandomSpot(RUNTIME_CLASS(AMaceSpawner));
+	if (spot != NULL) 
+	{
+		SetOrigin (spot->x, spot->y, spot->z);
+		z = floorz;
+
+		// [BC] Tell clients the new position of the mace.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_MoveThingExact( this, CM_X|CM_Y|CM_Z );
+	}
+	return true;
 }
 
 //----------------------------------------------------------------------------

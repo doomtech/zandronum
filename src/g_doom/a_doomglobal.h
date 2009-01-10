@@ -4,14 +4,10 @@
 #include "dobject.h"
 #include "info.h"
 #include "d_player.h"
+// [BB] New #includes.
 #include "gstrings.h"
 #include "network.h"
 #include "sv_commands.h"
-
-class ABossBrain : public AActor
-{
-	DECLARE_ACTOR (ABossBrain, AActor)
-};
 
 // [BC]
 class AGrenade : public AActor
