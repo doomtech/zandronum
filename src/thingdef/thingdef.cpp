@@ -287,9 +287,15 @@ static void ParseActionDef (FScanner &sc, PClass *cls)
 static FActorInfo *CreateNewActor(FScanner &sc, FActorInfo **parentc, Baggage *bag)
 {
 	FName typeName;
+	const PClass *replacee = NULL;
+	int DoomEdNum = -1;
+	PClass *ti = NULL;
+	FActorInfo *info = NULL;
+	/* [BB] This does not work with the latest ZDoom changes, but I'm not sure if it is necessary anymore.
 	char ReplaceName[256];
 	char OriginalName[256];
 	ReplaceName[0] = 0;
+	*/
 
 	// Get actor name
 	sc.MustGetString();
@@ -300,6 +306,7 @@ static FActorInfo *CreateNewActor(FScanner &sc, FActorInfo **parentc, Baggage *b
 		*colon++ = 0;
 	}
 
+	/* [BB] This does not work with the latest ZDoom changes, but I'm not sure if it is necessary anymore.
 	if (PClass::FindClass (sc.String) != NULL)
 	{
 		// [BB] I'm tired of the problems caused by PWADs using
@@ -322,6 +329,7 @@ static FActorInfo *CreateNewActor(FScanner &sc, FActorInfo **parentc, Baggage *b
 	if( ReplaceName[0] )
 		typeName = ReplaceName;
 	else
+	*/
 		typeName = sc.String;
 
 	PClass *parent = RUNTIME_CLASS(AActor);
@@ -357,9 +365,13 @@ static FActorInfo *CreateNewActor(FScanner &sc, FActorInfo **parentc, Baggage *b
 			{
 				sc.ScriptError ("Parent type '%s' not found", colon);
 			}
-			else if (parent->ActorInfo == NULL)
+			else if (!parent->IsDescendantOf(RUNTIME_CLASS(AActor)))
 			{
 				sc.ScriptError ("Parent type '%s' is not an actor", colon);
+			}
+			else if (parent->ActorInfo == NULL)
+			{
+				sc.ScriptError ("uninitialized parent type '%s'", colon);
 			}
 			else
 			{
@@ -369,8 +381,57 @@ static FActorInfo *CreateNewActor(FScanner &sc, FActorInfo **parentc, Baggage *b
 		else sc.UnGet();
 	}
 
-	PClass *ti = parent->CreateDerivedClass (typeName, parent->Size);
-	FActorInfo *info = ti->ActorInfo;
+	// Check for "replaces"
+	if (sc.CheckString ("replaces"))
+	{
+
+		// Get actor name
+		sc.MustGetString ();
+		replacee = PClass::FindClass (sc.String);
+
+		if (replacee == NULL)
+		{
+			sc.ScriptError ("Replaced type '%s' not found", sc.String);
+		}
+		else if (replacee->ActorInfo == NULL)
+		{
+			sc.ScriptError ("Replaced type '%s' is not an actor", sc.String);
+		}
+	}
+
+	// Now, after the actor names have been parsed, it is time to switch to C-mode 
+	// for the rest of the actor definition.
+	sc.SetCMode (true);
+	if (sc.CheckNumber()) 
+	{
+		if (sc.Number>=-1 && sc.Number<32768) DoomEdNum = sc.Number;
+		else sc.ScriptError ("DoomEdNum must be in the range [-1,32767]");
+	}
+
+	if (sc.CheckString("native"))
+	{
+		ti = (PClass*)PClass::FindClass(typeName);
+		if (ti == NULL)
+		{
+			sc.ScriptError("Unknown native class '%s'", typeName.GetChars());
+		}
+		else if (ti->ParentClass != parent)
+		{
+			sc.ScriptError("Native class '%s' does not inherit from '%s'", 
+				typeName.GetChars(),parent->TypeName.GetChars());
+		}
+		else if (ti->ActorInfo != NULL)
+		{
+			sc.ScriptMessage("Redefinition of internal class '%s'", typeName.GetChars());
+		}
+		ti->InitializeActorInfo();
+		info = ti->ActorInfo;
+	}
+	else
+	{
+		ti = parent->CreateDerivedClass (typeName, parent->Size);
+		info = ti->ActorInfo;
+	}
 
 	MakeStateDefines(parent->ActorInfo->StateList);
 
@@ -391,30 +452,13 @@ static FActorInfo *CreateNewActor(FScanner &sc, FActorInfo **parentc, Baggage *b
 		*info->PainChances = *parent->ActorInfo->PainChances;
 	}
 
-	// Check for "replaces"
-	sc.MustGetString ();
-	if (sc.Compare ("replaces"))
+	if (replacee != NULL)
 	{
-		const PClass *replacee;
-
-		// Get actor name
-		sc.MustGetString ();
-		replacee = PClass::FindClass (sc.String);
-
-		if (replacee == NULL)
-		{
-			sc.ScriptError ("Replaced type '%s' not found", sc.String);
-		}
-		else if (replacee->ActorInfo == NULL)
-		{
-			sc.ScriptError ("Replaced type '%s' is not an actor", sc.String);
-		}
 		replacee->ActorInfo->Replacement = ti->ActorInfo;
 		ti->ActorInfo->Replacee = replacee->ActorInfo;
 	}
-	else
-	{
-		sc.UnGet();
+
+	/* [BB] This does not work with the latest ZDoom changes, but I'm not sure if it is necessary anymore.
 		// [BB] To prevent a double definition, we altered the actor name.
 		// Now we replace the orginal actor with the new one. This is not
 		// done if the new actor already replaces something.
@@ -426,16 +470,10 @@ static FActorInfo *CreateNewActor(FScanner &sc, FActorInfo **parentc, Baggage *b
 			ti->ActorInfo->Replacee = replacee->ActorInfo;
 			Printf( "%s replacing %s\n", ti->TypeName.GetChars(), replacee->TypeName.GetChars() );
 		}
-	}
+	*/
 
-	// Now, after the actor names have been parsed, it is time to switch to C-mode 
-	// for the rest of the actor definition.
-	sc.SetCMode (true);
-	if (sc.CheckNumber()) 
-	{
-		if (sc.Number>=-1 && sc.Number<32768) info->DoomEdNum = sc.Number;
-		else sc.ScriptError ("DoomEdNum must be in the range [-1,32767]");
-	}
+	info->DoomEdNum = DoomEdNum;
+
 	if (parent == RUNTIME_CLASS(AWeapon))
 	{
 		// preinitialize kickback to the default for the game
@@ -460,6 +498,7 @@ void ParseActor(FScanner &sc)
 		FActorInfo * parent;
 
 		info = CreateNewActor(sc, &parent, &bag);
+		/* [BB] This does not work with the latest ZDoom changes, but I'm not sure if it is necessary anymore.
 		// [BB] If CreateNewActor returns a NULL pointer, the actor definition
 		// should be ignored. In this case we have to parse the whole definition
 		// of the actor to be ignored (everything in the next brace pair).
@@ -480,6 +519,7 @@ void ParseActor(FScanner &sc)
 				sc.GetString ();
 				return;
 		}
+		*/
 		sc.MustGetToken('{');
 		while (sc.MustGetAnyToken(), sc.TokenType != '}')
 		{
@@ -756,8 +796,8 @@ void FinishThingdef()
 	for(int i=0;i<31;i++)
 	{
 		char fmt[20];
-		sprintf(fmt, "QuestItem%d", i+1);
-		QuestItemClasses[i]=PClass::FindClass(fmt);
+		mysnprintf(fmt, countof(fmt), "QuestItem%d", i+1);
+		QuestItemClasses[i] = PClass::FindClass(fmt);
 	}
 
 }

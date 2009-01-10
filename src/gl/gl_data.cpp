@@ -100,7 +100,7 @@ void AdjustSpriteOffsets()
 	if (done) return;
 	done=true;
 
-	sprintf(name, "sprofs/%s.sprofs", GameNames[gameinfo.gametype]);
+	mysnprintf(name, countof(name), "sprofs/%s.sprofs", GameNames[gameinfo.gametype]);
 	int lump = Wads.CheckNumForFullName(name);
 	if (lump>=0)
 	{

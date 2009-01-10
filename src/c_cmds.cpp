@@ -412,7 +412,7 @@ CCMD (idclev)
 	{
 		int epsd, map;
 		char buf[2];
-		char *mapname;
+		FString mapname;
 
 		buf[0] = argv[1][0] - '0';
 		buf[1] = argv[1][1] - '0';
@@ -448,9 +448,9 @@ CCMD (hxvisit)
 
 	if ((argv.argc() > 1) && (*(argv[1] + 2) == 0) && *(argv[1] + 1) && *argv[1])
 	{
-		char mapname[9];
+		FString mapname("&wt@");
 
-		sprintf (mapname, "&wt@%c%c", argv[1][0], argv[1][1]);
+		mapname << argv[1][0] << argv[1][1];
 
 		if (CheckWarpTransMap (mapname, false))
 		{

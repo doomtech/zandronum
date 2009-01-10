@@ -550,7 +550,7 @@ void R_InitSkins (void)
 				{
 					if (stricmp (skins[i].name, skins[j].name) == 0)
 					{
-						sprintf (skins[i].name, "skin%d", (int)i);
+						mysnprintf (skins[i].name, countof(skins[i].name), "skin%d", (int)i);
 						Printf (PRINT_BOLD, "Skin %s duplicated as %s\n",
 							skins[j].name, skins[i].name);
 						break;
@@ -731,7 +731,7 @@ void R_InitSkins (void)
 		if (!remove)
 		{
 			if (skins[i].name[0] == 0)
-				sprintf (skins[i].name, "skin%d", (int)i);
+				mysnprintf (skins[i].name, countof(skins[i].name), "skin%d", (int)i);
 
 			// Now collect the sprite frames for this skin. If the sprite name was not
 			// specified, use whatever immediately follows the specifier lump.

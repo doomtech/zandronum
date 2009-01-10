@@ -51,10 +51,18 @@
 #include "actors/heretic/hereticartifacts.txt"
 #include "actors/heretic/heretickeys.txt"
 #include "actors/heretic/hereticdecorations.txt"
+#include "actors/heretic/hereticmisc.txt"
+#include "actors/heretic/hereticweaps.txt"
 #include "actors/heretic/mummy.txt"
 #include "actors/heretic/clink.txt"
 #include "actors/heretic/beast.txt"
 #include "actors/heretic/snake.txt"
+#include "actors/heretic/hereticimp.txt"
+#include "actors/heretic/knight.txt"
+#include "actors/heretic/wizard.txt"
+#include "actors/heretic/ironlich.txt"
+#include "actors/heretic/dsparil.txt"
+#include "actors/heretic/chicken.txt"
 // [BC] Heretic invasion spawners.
 #include "actors/heretic/hereticspawners.txt"
 

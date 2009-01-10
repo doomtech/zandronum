@@ -561,7 +561,7 @@ void D_UserInfoChanged (FBaseCVar *cvar)
 	if (4 + strlen(cvar->GetName()) + escaped_val.Len() > 256)
 		I_Error ("User info descriptor too big");
 
-	sprintf (foo, "\\%s\\%s", cvar->GetName(), escaped_val.GetChars());
+	mysnprintf (foo, countof(foo), "\\%s\\%s", cvar->GetName(), escaped_val.GetChars());
 
 	// [BC] In client mode, we don't execute DEM_* commands, so we need to execute it
 	// here.

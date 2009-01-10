@@ -979,22 +979,23 @@ void DoMain (HINSTANCE hInstance)
 //
 //==========================================================================
 
-void DoomSpecificInfo (char *buffer)
+void DoomSpecificInfo (char *buffer, size_t bufflen)
 {
 	const char *arg;
+	char *const buffend = buffer + bufflen - 2;	// -2 for CRLF at end
 	int i;
 
-	buffer += wsprintf (buffer, GAMENAME" version " DOTVERSIONSTR_REV " (" __DATE__ ")\r\n");
-	buffer += wsprintf (buffer, "\r\nCommand line: %s\r\n", GetCommandLine());
+	buffer += mysnprintf (buffer, buffend - buffer, GAMENAME" version " DOTVERSIONSTR_REV " (" __DATE__ ")\r\n");
+	buffer += mysnprintf (buffer, buffend - buffer, "\r\nCommand line: %s\r\n", GetCommandLine());
 
 	for (i = 0; (arg = Wads.GetWadName (i)) != NULL; ++i)
 	{
-		buffer += wsprintf (buffer, "\r\nWad %d: %s", i, arg);
+		buffer += mysnprintf (buffer, buffend - buffer, "\r\nWad %d: %s", i, arg);
 	}
 
 	if (gamestate != GS_LEVEL && gamestate != GS_TITLELEVEL)
 	{
-		buffer += wsprintf (buffer, "\r\n\r\nNot in a level.");
+		buffer += mysnprintf (buffer, buffend - buffer, "\r\n\r\nNot in a level.");
 	}
 	else
 	{
@@ -1002,7 +1003,7 @@ void DoomSpecificInfo (char *buffer)
 
 		strncpy (name, level.mapname, 8);
 		name[8] = 0;
-		buffer += wsprintf (buffer, "\r\n\r\nCurrent map: %s", name);
+		buffer += mysnprintf (buffer, buffend - buffer, "\r\n\r\nCurrent map: %s", name);
 
 		// [BC] Also display the network state.
 		char	szNetState[16];
@@ -1033,14 +1034,14 @@ void DoomSpecificInfo (char *buffer)
 
 		if (!viewactive)
 		{
-			buffer += wsprintf (buffer, "\r\n\r\nView not active.");
+			buffer += mysnprintf (buffer, buffend - buffer, "\r\n\r\nView not active.");
 		}
 		else
 		{
-			buffer += wsprintf (buffer, "\r\n\r\nviewx = %d", viewx);
-			buffer += wsprintf (buffer, "\r\nviewy = %d", viewy);
-			buffer += wsprintf (buffer, "\r\nviewz = %d", viewz);
-			buffer += wsprintf (buffer, "\r\nviewangle = %x", viewangle);
+			buffer += mysnprintf (buffer, buffend - buffer, "\r\n\r\nviewx = %d", viewx);
+			buffer += mysnprintf (buffer, buffend - buffer, "\r\nviewy = %d", viewy);
+			buffer += mysnprintf (buffer, buffend - buffer, "\r\nviewz = %d", viewz);
+			buffer += mysnprintf (buffer, buffend - buffer, "\r\nviewangle = %x", viewangle);
 		}
 	}
 	*buffer++ = '\r';
@@ -1135,7 +1136,7 @@ LONG WINAPI CatchAllExceptions (LPEXCEPTION_POINTERS info)
 	char *custominfo = (char *)HeapAlloc (GetProcessHeap(), 0, 16384);
 
 	CrashPointers = *info;
-	DoomSpecificInfo (custominfo);
+	DoomSpecificInfo (custominfo, 16384);
 	CreateCrashLog (custominfo, (DWORD)strlen(custominfo));
 
 	// If the main thread crashed, then make it clean up after itself.

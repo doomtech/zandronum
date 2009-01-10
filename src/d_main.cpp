@@ -204,7 +204,7 @@ bool devparm;				// started game with -devparm
 const char *D_DrawIcon;	// [RH] Patch name of icon to draw on next refresh
 int NoWipe;				// [RH] Allow wipe? (Needs to be set each time)
 bool singletics = false;	// debug flag to cancel adaptiveness
-char startmap[8];
+FString startmap;
 bool autostart;
 bool advancedemo;
 FILE *debugfile;
@@ -1266,7 +1266,7 @@ void D_DoAdvanceDemo (void)
 		{
 			BorderNeedRefresh = screen->GetPageCount ();
 			democount++;
-			sprintf (demoname + 4, "%d", democount);
+			mysnprintf (demoname + 4, countof(demoname) - 4, "%d", democount);
 			if (Wads.CheckNumForName (demoname) < 0)
 			{
 				demosequence = 0;
@@ -2128,7 +2128,7 @@ static const char *BaseFileSearch (const char *file, const char *ext, bool lookf
 
 	if (lookfirstinprogdir)
 	{
-		sprintf (wad, "%s%s%s", progdir.GetChars(), progdir[progdir.Len() - 1] != '/' ? "/" : "", file);
+		mysnprintf (wad, countof(wad), "%s%s%s", progdir.GetChars(), progdir[progdir.Len() - 1] != '/' ? "/" : "", file);
 		if (FileExists (wad))
 		{
 			return wad;
@@ -2137,7 +2137,7 @@ static const char *BaseFileSearch (const char *file, const char *ext, bool lookf
 
 	if (FileExists (file))
 	{
-		sprintf (wad, "%s", file);
+		mysnprintf (wad, countof(wad), "%s", file);
 		return wad;
 	}
 
@@ -2177,7 +2177,7 @@ static const char *BaseFileSearch (const char *file, const char *ext, bool lookf
 				}
 				if (dir != NULL)
 				{
-					sprintf (wad, "%s%s%s", dir, dir[strlen (dir) - 1] != '/' ? "/" : "", file);
+					mysnprintf (wad, countof(wad), "%s%s%s", dir, dir[strlen (dir) - 1] != '/' ? "/" : "", file);
 					if (FileExists (wad))
 					{
 						return wad;
@@ -2638,15 +2638,15 @@ void D_DoomMain (void)
 	// get skill / episode / map from parms
 	if (gameinfo.gametype != GAME_Hexen)
 	{
-		strcpy (startmap, (gameinfo.flags & GI_MAPxx) ? "MAP01" : "E1M1");
+		startmap = (gameinfo.flags & GI_MAPxx) ? "MAP01" : "E1M1";
 	}
 	else
 	{
 		// [BB] The server crashes, if you select "&wt@01" as startmap.
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			strcpy (startmap, "MAP01");
+			startmap = "MAP01";
 		else
-			strcpy (startmap, "&wt@01");
+			startmap = "&wt@01";
 	}
 	autostart = false;
 				
@@ -2678,7 +2678,7 @@ void D_DoomMain (void)
 			}
 		}
 
-		strncpy (startmap, CalcMapName (ep, map), 8);
+		startmap = CalcMapName (ep, map);
 		autostart = true;
 	}
 
@@ -2692,7 +2692,7 @@ void D_DoomMain (void)
 		}
 		else
 		{
-			strncpy (startmap, Args->GetArg (p+1), 8);
+			startmap = Args->GetArg (p + 1);
 			Args->GetArg (p)[0] = '-';
 			autostart = true;
 		}
@@ -2754,7 +2754,7 @@ void D_DoomMain (void)
 	if (autostart)
 	{
 		FString temp;
-		temp.Format ("Warp to map %s, Skill %d ", startmap, gameskill + 1);
+		temp.Format ("Warp to map %s, Skill %d ", startmap.GetChars(), gameskill + 1);
 		StartScreen->AppendStatusLine(temp);
 	}
 

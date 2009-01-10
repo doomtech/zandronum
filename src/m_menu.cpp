@@ -1567,7 +1567,7 @@ void M_QuickSave ()
 		M_SaveGame (0);
 		return;
 	}
-	sprintf (tempstring, GStrings("QSPROMPT"), quickSaveSlot->Title);
+	mysnprintf (tempstring, countof(tempstring), GStrings("QSPROMPT"), quickSaveSlot->Title);
 	strcpy (savegamestring, quickSaveSlot->Title);
 	M_StartMessage (tempstring, M_QuickSaveResponse, true);
 }
@@ -1603,7 +1603,7 @@ void M_QuickLoad ()
 		M_LoadGame (0);
 		return;
 	}
-	sprintf (tempstring, GStrings("QLPROMPT"), quickSaveSlot->Title);
+	mysnprintf (tempstring, countof(tempstring), GStrings("QLPROMPT"), quickSaveSlot->Title);
 	M_StartMessage (tempstring, M_QuickLoadResponse, true);
 }
 
@@ -1686,20 +1686,20 @@ void M_DrawHereticMainMenu ()
 	{
 		int frame = (MenuTime / 5) % 7;
 
-		sprintf (name, "FBUL%c0", (frame+2)%7 + 'A');
+		mysnprintf (name, countof(name), "FBUL%c0", (frame+2)%7 + 'A');
 		screen->DrawTexture (TexMan[name], 37, 80, DTA_Clean, true, TAG_DONE);
 
-		sprintf (name, "FBUL%c0", frame + 'A');
+		mysnprintf (name, countof(name), "FBUL%c0", frame + 'A');
 		screen->DrawTexture (TexMan[name], 278, 80, DTA_Clean, true, TAG_DONE);
 	}
 	else
 	{
 		int frame = (MenuTime / 3) % 18;
 
-		sprintf (name, "M_SKL%.2d", 17 - frame);
+		mysnprintf (name, countof(name), "M_SKL%.2d", 17 - frame);
 		screen->DrawTexture (TexMan[name], 40, 10, DTA_Clean, true, TAG_DONE);
 
-		sprintf (name, "M_SKL%.2d", frame);
+		mysnprintf (name, countof(name), "M_SKL%.2d", frame);
 		screen->DrawTexture (TexMan[name], 232, 10, DTA_Clean, true, TAG_DONE);
 	}
 }
@@ -1840,7 +1840,7 @@ static void DrawClassMenu(void)
 	}
 	screen->DrawTexture (TexMan[boxLumpName[classnum]], 174, 8, DTA_Clean, true, TAG_DONE);
 
-	sprintf (name, walkLumpName[classnum], ((MenuTime >> 3) & 3) + 1);
+	mysnprintf (name, countof(name), walkLumpName[classnum], ((MenuTime >> 3) & 3) + 1);
 	screen->DrawTexture (TexMan[name], 174+24, 8+12, DTA_Clean, true, TAG_DONE);
 }
 
@@ -2949,7 +2949,7 @@ void SendNewColor (int red, int green, int blue)
 {
 	char command[24];
 
-	sprintf (command, "menu_color \"%02x %02x %02x\"", red, green, blue);
+	mysnprintf (command, countof(command), "menu_color \"%02x %02x %02x\"", red, green, blue);
 	C_DoCommand (command);
 
 	g_ulPlayerSetupColor = MAKERGB (red, green, blue);
@@ -3312,7 +3312,7 @@ bool M_SaveLoadResponder (event_t *ev)
 		case GK_F1:
 			if (!SelSaveGame->Filename.IsEmpty())
 			{
-				sprintf (workbuf, "File on disk:\n%s", SelSaveGame->Filename.GetChars());
+				mysnprintf (workbuf, countof(workbuf), "File on disk:\n%s", SelSaveGame->Filename.GetChars());
 				if (SaveComment != NULL)
 				{
 					V_FreeBrokenLines (SaveComment);

@@ -801,12 +801,18 @@ static void G_DoParseMapInfo (int lump)
 			break;
 
 		case MITL_MAP:		// map <MAPNAME> <Nice Name>
+		  {
+			char maptemp[8];
+			char *mapname;
+
 			levelflags = defaultinfo.flags;
 			sc.MustGetString ();
-			if (IsNum (sc.String))
+			mapname = sc.String;
+			if (IsNum (mapname))
 			{	// MAPNAME is a number; assume a Hexen wad
-				int map = atoi (sc.String);
-				sprintf (sc.String, "MAP%02d", map);
+				int mapnum = atoi (mapname);
+				mysnprintf (maptemp, countof(maptemp), "MAP%02d", mapnum);
+				mapname = maptemp;
 				HexenHack = true;
 				// Hexen levels are automatically nointermission,
 				// no auto sound sequences, falling damage,
@@ -821,7 +827,7 @@ static void G_DoParseMapInfo (int lump)
 							| LEVEL_MONSTERFALLINGDAMAGE
 							| LEVEL_HEXENHACK;
 			}
-			levelindex = FindWadLevelInfo (sc.String);
+			levelindex = FindWadLevelInfo (mapname);
 			if (levelindex == -1)
 			{
 				levelindex = wadlevelinfos.Reserve(1);
@@ -845,13 +851,13 @@ static void G_DoParseMapInfo (int lump)
 			{
 				levelinfo->WallHorizLight = levelinfo->WallVertLight = 0;
 			}
-			uppercopy (levelinfo->mapname, sc.String);
+			uppercopy (levelinfo->mapname, mapname);
 			sc.MustGetString ();
 			if (sc.String[0] == '$')
 			{
 				// For consistency with other definitions allow $Stringtablename here, too.
 				levelflags |= LEVEL_LOOKUPLEVELNAME;
-				ReplaceString (&levelinfo->level_name, sc.String+1);
+				ReplaceString (&levelinfo->level_name, sc.String + 1);
 			}
 			else
 			{
@@ -895,6 +901,7 @@ static void G_DoParseMapInfo (int lump)
 				}
 			}
 			break;
+		  }
 
 		case MITL_CLUSTERDEF:	// clusterdef <clusternum>
 			sc.MustGetNumber ();
@@ -1020,22 +1027,26 @@ static void ParseMapInfoLower (FScanner &sc,
 		case MITYPE_MAPNAME: {
 			EndSequence newSeq;
 			bool useseq = false;
+			char maptemp[8];
+			char *mapname;
 
 			sc.MustGetString ();
-			if (IsNum (sc.String))
+			mapname = sc.String;
+			if (IsNum (mapname))
 			{
-				int map = atoi (sc.String);
+				int mapnum = atoi (mapname);
 
 				if (HexenHack)
 				{
-					sprintf (sc.String, "&wt@%02d", map);
+					mysnprintf (maptemp, countof(maptemp), "&wt@%02d", mapnum);
 				}
 				else
 				{
-					sprintf (sc.String, "MAP%02d", map);
+					mysnprintf (maptemp, countof(maptemp), "MAP%02d", mapnum);
 				}
+				mapname = maptemp;
 			}
-			if (sc.Compare ("endgame"))
+			if (stricmp (mapname, "endgame") == 0)
 			{
 				newSeq.Advanced = true;
 				newSeq.EndType = END_Pic1;
@@ -1085,7 +1096,7 @@ static void ParseMapInfoLower (FScanner &sc,
 				}
 				useseq = true;
 			}
-			else if (strnicmp (sc.String, "EndGame", 7) == 0)
+			else if (strnicmp (mapname, "EndGame", 7) == 0)
 			{
 				// If we're in a multiplayer game, don't do the finale, just go back to the
 				// beginning.
@@ -1122,46 +1133,46 @@ static void ParseMapInfoLower (FScanner &sc,
 					useseq = true;
 				}
 			}
-			else if (sc.Compare ("endpic"))
+			else if (stricmp (mapname, "endpic") == 0)
 			{
 				sc.MustGetString ();
 				newSeq.EndType = END_Pic;
 				newSeq.PicName = sc.String;
 				useseq = true;
 			}
-			else if (sc.Compare ("endbunny"))
+			else if (stricmp (mapname, "endbunny") == 0)
 			{
 				newSeq.EndType = END_Bunny;
 				useseq = true;
 			}
-			else if (sc.Compare ("endcast"))
+			else if (stricmp (mapname, "endcast") == 0)
 			{
 				newSeq.EndType = END_Cast;
 				useseq = true;
 			}
-			else if (sc.Compare ("enddemon"))
+			else if (stricmp (mapname, "enddemon") == 0)
 			{
 				newSeq.EndType = END_Demon;
 				useseq = true;
 			}
-			else if (sc.Compare ("endchess"))
+			else if (stricmp (mapname, "endchess") == 0)
 			{
 				newSeq.EndType = END_Chess;
 				useseq = true;
 			}
-			else if (sc.Compare ("endunderwater"))
+			else if (stricmp (mapname, "endunderwater") == 0)
 			{
 				newSeq.EndType = END_Underwater;
 				useseq = true;
 			}
-			else if (sc.Compare ("endbuystrife"))
+			else if (stricmp (mapname, "endbuystrife") == 0)
 			{
 				newSeq.EndType = END_BuyStrife;
 				useseq = true;
 			}
 			else
 			{
-				strncpy ((char *)(info + handler->data1), sc.String, 8);
+				strncpy ((char *)(info + handler->data1), mapname, 8);
 			}
 			if (useseq)
 			{
@@ -1624,26 +1635,22 @@ void P_RemoveDefereds (void)
 	}
 }
 
-bool CheckWarpTransMap (char mapname[9], bool substitute)
+bool CheckWarpTransMap (FString &mapname, bool substitute)
 {
-	if (mapname[0] == '&' && (mapname[1]&223) == 'W' &&
-		(mapname[2]&223) == 'T' && mapname[3] == '@')
+	if (mapname[0] == '&' && (mapname[1] & 0xDF) == 'W' &&
+		(mapname[2] & 0xDF) == 'T' && mapname[3] == '@')
 	{
-		level_info_t *lev = FindLevelByWarpTrans (atoi (mapname + 4));
+		level_info_t *lev = FindLevelByWarpTrans (atoi (&mapname[4]));
 		if (lev != NULL)
 		{
-			strncpy (mapname, lev->mapname, 8);
-			mapname[8] = 0;
+			mapname = lev->mapname;
 			return true;
 		}
 		else if (substitute)
 		{
-			mapname[0] = 'M';
-			mapname[1] = 'A';
-			mapname[2] = 'P';
-			mapname[3] = mapname[4];
-			mapname[4] = mapname[5];
-			mapname[5] = 0;
+			char a = mapname[4], b = mapname[5];
+			mapname = "MAP";
+			mapname << a << b;
 		}
 	}
 	return false;
@@ -1654,12 +1661,12 @@ bool CheckWarpTransMap (char mapname[9], bool substitute)
 // Can be called by the startup code or the menu task,
 // consoleplayer, playeringame[] should be set.
 //
-static char d_mapname[256];
+static FString d_mapname;
 static int d_skill=-1;
 
 void G_DeferedInitNew (const char *mapname, int newskill)
 {
-	strncpy (d_mapname, mapname, 8);
+	d_mapname = mapname;
 	d_skill = newskill;
 	CheckWarpTransMap (d_mapname, true);
 	gameaction = ga_newgame2;
@@ -1718,10 +1725,11 @@ CCMD (open)
 	}
 	if (argv.argc() > 1)
 	{
-		sprintf(d_mapname, "file:%s", argv[1]);
+		d_mapname = "file:";
+		d_mapname += argv[1];
 		if (!P_CheckMapData(d_mapname))
 		{
-			Printf ("No map %s\n", d_mapname);
+			Printf ("No map %s\n", d_mapname.GetChars());
 		}
 		else
 		{
@@ -1793,7 +1801,10 @@ void G_DoNewGame (void)
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 		playeringame[consoleplayer] = 1;
 
-	if (d_skill != -1) gameskill = d_skill;
+	if (d_skill != -1)
+	{
+		gameskill = d_skill;
+	}
 	G_InitNew (d_mapname, false);
 	gameaction = ga_nothing;
 }
@@ -2230,34 +2241,30 @@ void G_DoCompleted (void)
 		AM_Stop ();
 
 	wminfo.finished_ep = level.cluster - 1;
-	strncpy (wminfo.lname0, level.info->pname, 8);
-	strncpy (wminfo.current, level.mapname, 8);
+	wminfo.lname0 = level.info->pname;
+	wminfo.current = level.mapname;
 
 	if (deathmatch &&
 		(dmflags & DF_SAME_LEVEL) &&
 		!(level.flags & LEVEL_CHANGEMAPCHEAT))
 	{
-		strncpy (wminfo.next, level.mapname, 8);
-		strncpy (wminfo.lname1, level.info->pname, 8);
+		wminfo.next = level.mapname;
+		wminfo.lname1 = level.info->pname;
 	}
 	else
 	{
 		if (strncmp (nextlevel, "enDSeQ", 6) == 0)
 		{
-			strncpy (wminfo.next, nextlevel, 8);
-			wminfo.lname1[0] = 0;
+			wminfo.next = FString(nextlevel, 8);
+			wminfo.lname1 = "";
 		}
 		else
 		{
 			level_info_t *nextinfo = FindLevelInfo (nextlevel);
-			strncpy (wminfo.next, nextinfo->mapname, 8);
-			strncpy (wminfo.lname1, nextinfo->pname, 8);
+			wminfo.next = nextinfo->mapname;
+			wminfo.lname1 = nextinfo->pname;
 		}
 	}
-	wminfo.next[8]=0;
-	wminfo.lname0[8]=0;
-	wminfo.lname1[8]=0;
-	wminfo.current[8]=0;
 
 	CheckWarpTransMap (wminfo.next, true);
 
@@ -3278,39 +3285,18 @@ bool FLevelLocals::IsFreelookAllowed() const
 	return !(dmflags & DF_NO_FREELOOK);
 }
 
-char *CalcMapName (int episode, int level)
+FString CalcMapName (int episode, int level)
 {
-	static char lumpname[9];
+	FString lumpname;
 
 	if (gameinfo.flags & GI_MAPxx)
 	{
-		switch ( episode )
-		{
-		case 0:
-		case 1:
-
-			sprintf( lumpname, "MAP%02d", level );
-//			dmflags &= ~DF_NO_MONSTERS;
-//			teamgame.Set( 0.0f );
-//			deathmatch.Set( 0.0f );
-			break;
-		case 2:
-
-			sprintf( lumpname, "D2DM%d", level );
-			break;
-		case 3:
-
-			sprintf( lumpname, "D2ST%d", level );
-			break;
-		}
+		lumpname.Format("MAP%02d", level);
 	}
 	else
 	{
-		lumpname[0] = 'E';
-		lumpname[1] = '0' + episode;
-		lumpname[2] = 'M';
-		lumpname[3] = '0' + level;
-		lumpname[4] = 0;
+		lumpname = "";
+		lumpname << 'E' << ('0' + episode) << 'M' << ('0' + level);
 	}
 	return lumpname;
 }
@@ -3409,11 +3395,11 @@ const char *G_MaybeLookupLevelName (level_info_t *ininfo)
 			// Strip out the header from the localized string
 			if (info->mapname[0] == 'E' && info->mapname[2] == 'M')
 			{
-				sprintf (checkstring, "%s: ", info->mapname);
+				mysnprintf (checkstring, countof(checkstring), "%s: ", info->mapname);
 			}
 			else if (info->mapname[0] == 'M' && info->mapname[1] == 'A' && info->mapname[2] == 'P')
 			{
-				sprintf (checkstring, "%d: ", atoi(info->mapname + 3));
+				mysnprintf (checkstring, countof(checkstring), "%d: ", atoi(info->mapname + 3));
 			}
 			thename = strstr (lookedup, checkstring);
 			if (thename == NULL)

@@ -284,6 +284,7 @@ namespace StringFormat
 		F_SIGNED	= 32,
 		F_NEGATIVE	= 64,
 		F_ZEROVALUE	= 128,
+		F_FPT		= 256,
 
 		// Format specification size prefixes
 		F_HALFHALF	= 0x1000,	// hh

@@ -1095,7 +1095,8 @@ CCMD (weaponsection)
 			tackOn = fullSection + 4;
 		}
 
-		sprintf (tackOn, ".%s.WeaponSlots", WeaponSection.GetChars());
+		mysnprintf (tackOn, countof(fullSection) - (tackOn - fullSection),
+			".%s.WeaponSlots", WeaponSection.GetChars());
 		if (GameConfig->SetSection (fullSection))
 		{
 			LocalWeapons.RestoreSlots (*GameConfig);
@@ -1205,7 +1206,7 @@ void FWeaponSlots::SaveSlots (FConfigFile &config)
 		}
 		if (index > 0)
 		{
-			sprintf (keyname, "Slot[%d]", i);
+			mysnprintf (keyname, countof(keyname), "Slot[%d]", i);
 			config.SetValueForKey (keyname, buff);
 		}
 	}

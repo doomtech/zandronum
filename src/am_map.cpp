@@ -740,7 +740,7 @@ void AM_loadPics ()
 
 	for (i = 0; i < 10; i++)
 	{
-		sprintf (namebuf, "AMMNUM%d", i);
+		mysnprintf (namebuf, countof(namebuf), "AMMNUM%d", i);
 		marknums[i] = TexMan.CheckForTexture (namebuf, FTexture::TEX_MiscPatch);
 	}
 

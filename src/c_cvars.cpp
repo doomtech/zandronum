@@ -284,15 +284,15 @@ char *FBaseCVar::ToString (UCVarValue value, ECVarType type)
 		return value.String;
 
 	case CVAR_Int:
-		sprintf (cstrbuf, "%i", value.Int);
+		mysnprintf (cstrbuf, countof(cstrbuf), "%i", value.Int);
 		break;
 
 	case CVAR_Float:
-		sprintf (cstrbuf, "%g", value.Float);
+		mysnprintf (cstrbuf, countof(cstrbuf), "%g", value.Float);
 		break;
 
 	case CVAR_GUID:
-		FormatGUID (cstrbuf, *value.pGUID);
+		FormatGUID (cstrbuf, countof(cstrbuf), *value.pGUID);
 		break;
 
 	default:
@@ -372,7 +372,7 @@ UCVarValue FBaseCVar::FromInt (int value, ECVarType type)
 		break;
 
 	case CVAR_String:
-		sprintf (cstrbuf, "%i", value);
+		mysnprintf (cstrbuf, countof(cstrbuf), "%i", value);
 		ret.String = cstrbuf;
 		break;
 
@@ -406,7 +406,7 @@ UCVarValue FBaseCVar::FromFloat (float value, ECVarType type)
 		break;
 
 	case CVAR_String:
-		sprintf (cstrbuf, "%g", value);
+		mysnprintf (cstrbuf, countof(cstrbuf), "%g", value);
 		ret.String = cstrbuf;
 		break;
 
@@ -907,8 +907,7 @@ UCVarValue FColorCVar::FromInt2 (int value, ECVarType type)
 	if (type == CVAR_String)
 	{
 		UCVarValue ret;
-
-		sprintf (cstrbuf, "%02x %02x %02x",
+		mysnprintf (cstrbuf, countof(cstrbuf), "%02x %02x %02x",
 			RPART(value), GPART(value), BPART(value));
 		ret.String = cstrbuf;
 		return ret;
