@@ -401,7 +401,6 @@ struct FActorInfo
 	static void StaticInit ();
 	static void StaticGameSet ();
 	static void StaticSetActorNums ();
-	static void StaticSpeedSet ();
 
 	void BuildDefaults ();
 	void ApplyDefaults (BYTE *defaults);

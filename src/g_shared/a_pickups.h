@@ -119,7 +119,6 @@ public:
 	virtual bool ShouldStay ();
 	virtual void Hide ();
 	virtual void HideIndefinitely ();
-	virtual bool DoRespawn ();
 	virtual bool TryPickup (AActor *toucher);
 	virtual void DoPickupSpecial (AActor *toucher);
 	virtual bool SpecialDropAction (AActor *dropper);
@@ -130,6 +129,7 @@ public:
 	virtual const char *PickupAnnouncerEntry ();	// [BC]
 	virtual void PlayPickupSound (AActor *toucher);
 
+	bool DoRespawn ();
 	AInventory *PrevItem();		// Returns the item preceding this one in the list.
 	AInventory *PrevInv();		// Returns the previous item with IF_INVBAR set.
 	AInventory *NextInv();		// Returns the next item with IF_INVBAR set.
@@ -140,6 +140,7 @@ public:
 	int RespawnTics;			// Tics from pickup time to respawn time
 	FTextureID Icon;					// Icon to show on status bar or HUD
 	int DropTime;				// Countdown after dropping
+	const PClass *SpawnPointClass;	// For respawning like Heretic's mace
 
 	DWORD ItemFlags;
 	const PClass *PickupFlash;	// actor to spawn as pickup flash

@@ -2439,7 +2439,14 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 			// [BC] It's not necessarily important for clients to know this, such
 			// as with invasion spawners. You can do it if you want, though! It would
 			// probably save headache later on.
-			if ( pActor->ulNetworkFlags & NETFL_UPDATEARGUMENTS )
+			//if ( pActor->ulNetworkFlags & NETFL_UPDATEARGUMENTS )
+			// [BB] I don't want to export NETFL_UPDATEARGUMENTS to DECORATE, so we have
+			// to tell the clients all the arguments.
+			if ( ( pActor->args[0] != 0 )
+				|| ( pActor->args[1] != 0 )
+				|| ( pActor->args[2] != 0 )
+				|| ( pActor->args[3] != 0 )
+				|| ( pActor->args[4] != 0 ) )
 				SERVERCOMMANDS_SetThingArguments( pActor, ulClient, SVCF_ONLYTHISCLIENT );
 
 			// [BB] Some things like AMovingCamera rely on the AActor tid.

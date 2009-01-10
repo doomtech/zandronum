@@ -1,5 +1,12 @@
-cmake_minimum_required( VERSION 2.6 )
+cmake_minimum_required( VERSION 2.4 )
+
+if( COMMAND cmake_policy )
+	cmake_policy( SET CMP0003 NEW )
+endif( COMMAND cmake_policy )
+
 include( CheckFunctionExists )
+include( FindPkgConfig )
+include( FindOpenGL )
 
 option( NO_ASM "Disable assembly code" )
 if( CMAKE_COMPILER_IS_GNUCXX )
@@ -85,6 +92,7 @@ else( WIN32 )
 		/usr/include
 		/opt/local/include
 		/opt/include )
+	set( FMOD_INC_PATH_SUFFIXES PATH_SUFFIXES fmodex )
 	set( NASM_NAMES nasm )
 	
 	# Non-Windows version also needs SDL
@@ -97,13 +105,13 @@ else( WIN32 )
 
 	# Use GTK+ for the IWAD picker, if available.
 	if( NOT NO_GTK )
-		find_package( GTK )
-		if( GTK_FOUND )
-			set( ZDOOM_LIBS ${ZDOOM_LIBS} ${GTK_LIBRARIES )
-			include_directories( "${GTK_LIBRARIES}" )
-		else( GTK_FOUND )
+		pkg_check_modules( GTK2 gtk+-2.0 )
+		if( GTK2_FOUND )
+			set( ZDOOM_LIBS ${ZDOOM_LIBS} ${GTK2_LIBRARIES} )
+			include_directories( ${GTK2_INCLUDE_DIRS} )
+		else( GTK2_FOUND )
 			set( NO_GTK ON )
-		endif( GTK_FOUND )
+		endif( GTK2_FOUND )
 	endif( NOT NO_GTK )
 	
 	if( NO_GTK )
@@ -114,6 +122,18 @@ endif( WIN32 )
 if( X64 )
 	set( NO_ASM ON )
 endif( X64 )
+
+# Check if we have OpenGL
+
+if( NOT OPENGL_FOUND )
+	message( FATAL_ERROR "OpenGL is required for building." )
+endif( NOT OPENGL_FOUND )
+if( NOT OPENGL_GLU_FOUND )
+	message( FATAL_ERROR "OpenGL GLU is required for building." )
+endif( NOT OPENGL_GLU_FOUND )
+
+set( ZDOOM_LIBS ${ZDOOM_LIBS} ${OPENGL_LIBRARIES} )
+include_directories( ${OPENGL_INCLUDE_DIR} )
 
 # Decide on the name of the FMOD library we want to use.
 
@@ -252,15 +272,12 @@ if( NOT MSVC )
 	add_definitions( -D__forceinline=inline )
 endif( NOT MSVC )
 
-# Update svnrevision.h
-
-add_custom_command( OUTPUT ${CMAKE_SOURCE_DIR}/src/svnrevision.h
-	COMMAND updaterevision . src/svnrevision.h
-	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-	DEPENDS updaterevision )
+# Update svnrevision_gz.h
 
 add_custom_target( revision_check ALL
-	DEPENDS ${CMAKE_SOURCE_DIR}/src/svnrevision.h )
+	COMMAND ${CMAKE_BINARY_DIR}/tools/updaterevision/updaterevision . src/svnrevision_gz.h
+	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+	DEPENDS updaterevision )
 
 # Libraries ZDoom needs
 
@@ -285,6 +302,7 @@ if( WIN32 )
 		win32/i_movie.cpp
 		win32/i_system.cpp
 		win32/st_start.cpp
+		win32/win32gliface.cpp
 		win32/win32video.cpp )
 	if( CMAKE_COMPILER_IS_GNUCXX )
 		# CMake is not set up to compile and link rc files with GCC. :(
@@ -300,10 +318,12 @@ else( WIN32 )
 	set( SYSTEM_SOURCES
 		sdl/crashcatcher.c
 		sdl/hardware.cpp
+		sdl/i_cd.cpp
 		sdl/i_input.cpp
 		sdl/i_main.cpp
 		sdl/i_movie.cpp
 		sdl/i_system.cpp
+		sdl/sdlglvideo.cpp
 		sdl/sdlvideo.cpp
 		sdl/st_start.cpp )
 endif( WIN32 )
@@ -323,12 +343,12 @@ endif( NOT NO_ASM )
 
 add_custom_command( OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/xlat_parser.c ${CMAKE_CURRENT_BINARY_DIR}/xlat_parser.h
 	COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/xlat/xlat_parser.y .
-	COMMAND lemon xlat_parser.y
+	COMMAND ${CMAKE_BINARY_DIR}/tools/lemon/lemon xlat_parser.y
 	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 	DEPENDS lemon ${CMAKE_CURRENT_SOURCE_DIR}/xlat/xlat_parser.y )
 
 add_custom_command( OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/sc_man_scanner.h
-	COMMAND re2c --no-generation-date -s -o ${CMAKE_CURRENT_BINARY_DIR}/sc_man_scanner.h ${CMAKE_CURRENT_SOURCE_DIR}/sc_man_scanner.re
+	COMMAND ${CMAKE_BINARY_DIR}/tools/re2c/re2c --no-generation-date -s -o ${CMAKE_CURRENT_BINARY_DIR}/sc_man_scanner.h ${CMAKE_CURRENT_SOURCE_DIR}/sc_man_scanner.re
 	DEPENDS re2c ${CMAKE_CURRENT_SOURCE_DIR}/sc_man_scanner.re )
 
 include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
@@ -399,6 +419,7 @@ add_executable( zdoom WIN32
 	nodebuild_extract.cpp
 	nodebuild_gl.cpp
 	nodebuild_utility.cpp
+	p_3dfloors.cpp
 	p_3dmidtex.cpp
 	p_acs.cpp
 	p_buildmap.cpp
@@ -473,6 +494,16 @@ add_executable( zdoom WIN32
 	wi_stuff.cpp
 	zstrformat.cpp
 	zstring.cpp
+	fragglescript/t_cmd.cpp
+	fragglescript/t_fspic.cpp
+	fragglescript/t_func.cpp
+	fragglescript/t_load.cpp
+	fragglescript/t_oper.cpp
+	fragglescript/t_parse.cpp
+	fragglescript/t_prepro.cpp
+	fragglescript/t_script.cpp
+	fragglescript/t_spec.cpp
+	fragglescript/t_variable.cpp
 	g_doom/a_arachnotron.cpp
 	g_doom/a_archvile.cpp
 	g_doom/a_bossbrain.cpp
@@ -598,6 +629,45 @@ add_executable( zdoom WIN32
 	g_shared/sbar_mugshot.cpp
 	g_shared/shared_hud.cpp
 	g_shared/shared_sbar.cpp
+	gl/a_dynlight.cpp
+	gl/gfxfuncs.cpp
+	gl/gl_bsp.cpp
+	gl/gl_clipper.cpp
+	gl/gl_cycler.cpp
+	gl/gl_data.cpp
+	gl/gl_decal.cpp
+	gl/gl_drawinfo.cpp
+	gl/gl_dynlight.cpp
+	gl/gl_fakeflat.cpp
+	gl/gl_flats.cpp
+	gl/gl_framebuffer.cpp
+	gl/gl_geometric.cpp
+	gl/gl_glow.cpp
+	gl/gl_hirestex.cpp
+	gl/gl_light.cpp
+	gl/gl_menu.cpp
+	gl/gl_missinglines.cpp
+	gl/gl_missingtexture.cpp
+	gl/gl_models.cpp
+	gl/gl_models_md2.cpp
+	gl/gl_models_md3.cpp
+	gl/gl_nodes.cpp
+	gl/gl_portal.cpp
+	gl/gl_scene.cpp
+	gl/gl_shader.cpp
+	gl/gl_sky.cpp
+	gl/gl_skydome.cpp
+	gl/gl_sprite.cpp
+	gl/gl_swshaders.cpp
+	gl/gl_texture.cpp
+	gl/gltexture.cpp
+	gl/gl_translate.cpp
+	gl/gl_vertex.cpp
+	gl/gl_walls.cpp
+	gl/gl_walls_draw.cpp
+	gl/gl_weapon.cpp
+	gl/gl_wipe.cpp
+	gl/r_render/r_opengl.cpp
 	oplsynth/fmopl.cpp
 	oplsynth/mlopl.cpp
 	oplsynth/mlopl_io.cpp
@@ -666,6 +736,8 @@ include_directories( .
 	g_raven
 	g_strife
 	g_shared
+	fragglescript
+	Linux
 	oplsynth
 	sound
 	textures
@@ -680,8 +752,17 @@ include_directories( .
 
 add_dependencies( zdoom revision_check )
 
+# RUNTIME_OUTPUT_DIRECTORY does not exist in CMake 2.4.
+# Linux distributions are slow to adopt 2.6. :(
 set_target_properties( zdoom PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${ZDOOM_OUTPUT_DIR} )
 set_target_properties( zdoom PROPERTIES OUTPUT_NAME ${ZDOOM_EXE_NAME} )
+
+if( NOT WIN32 )
+	FILE( WRITE ${CMAKE_CURRENT_BINARY_DIR}/link-make "if [ ! -e ${ZDOOM_OUTPUT_DIR}/${ZDOOM_EXE_NAME} ]; then ln -sf ${CMAKE_CURRENT_BINARY_DIR}/${ZDOOM_EXE_NAME} ${ZDOOM_OUTPUT_DIR}/${ZDOOM_EXE_NAME}; fi" )
+	add_custom_command( TARGET zdoom POST_BUILD
+		COMMAND chmod +x ${CMAKE_CURRENT_BINARY_DIR}/link-make
+		COMMAND /bin/sh -c ${CMAKE_CURRENT_BINARY_DIR}/link-make )
+endif( NOT WIN32 )
 
 if( CMAKE_COMPILER_IS_GNUCXX )
 	# GCC misoptimizes this file

@@ -9,6 +9,8 @@
 #include "actors/shared/pickups.txt"
 #include "actors/shared/fountain.txt"
 #include "actors/shared/soundsequence.txt"
+#include "actors/shared/bridge.txt"
+#include "actors/shared/specialspot.txt"
 
 #include "actors/doom/doomplayer.txt"
 #include "actors/doom/possessed.txt"
@@ -44,6 +46,7 @@
 #include "actors/raven/ravenartifacts.txt"
 #include "actors/raven/ravenhealth.txt"
 #include "actors/raven/ravenambient.txt"
+#include "actors/raven/minotaur.txt"
 
 #include "actors/heretic/hereticplayer.txt"
 #include "actors/heretic/hereticammo.txt"
@@ -81,6 +84,19 @@
 #include "actors/hexen/ettin.txt"
 #include "actors/hexen/centaur.txt"
 #include "actors/hexen/demons.txt"
+#include "actors/hexen/clericmace.txt"
+#include "actors/hexen/firedemon.txt"
+#include "actors/hexen/fog.txt"
+#include "actors/hexen/summon.txt"
+#include "actors/hexen/flechette.txt"
+#include "actors/hexen/clericboss.txt"
+#include "actors/hexen/fighterboss.txt"
+#include "actors/hexen/mageboss.txt"
+#include "actors/hexen/bats.txt"
+#include "actors/hexen/bishop.txt"
+#include "actors/hexen/blastradius.txt"
+#include "actors/hexen/boostarmor.txt"
+#include "actors/hexen/clericflame.txt"
 // [BB] Hexen invasion spawners.
 #include "actors/hexen/hexenspawners.txt"
 

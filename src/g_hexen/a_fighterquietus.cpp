@@ -359,41 +359,6 @@ void A_FSwordAttack (AActor *actor)
 
 //============================================================================
 //
-// A_FSwordAttack2
-//
-//============================================================================
-
-void A_FSwordAttack2 (AActor *actor)
-{
-	// [BB] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
-	{
-		return;
-	}
-
-	angle_t angle = actor->angle;
-
-	AActor *missile1 = P_SpawnMissileAngle (actor, RUNTIME_CLASS(AFSwordMissile), angle+ANG45/4, 0);
-	AActor *missile2 = P_SpawnMissileAngle (actor, RUNTIME_CLASS(AFSwordMissile), angle+ANG45/8, 0);
-	AActor *missile3 = P_SpawnMissileAngle (actor, RUNTIME_CLASS(AFSwordMissile), angle,         0);
-	AActor *missile4 = P_SpawnMissileAngle (actor, RUNTIME_CLASS(AFSwordMissile), angle-ANG45/8, 0);
-	AActor *missile5 = P_SpawnMissileAngle (actor, RUNTIME_CLASS(AFSwordMissile), angle-ANG45/4, 0);
-	S_Sound (actor, CHAN_WEAPON, "FighterSwordFire", 1, ATTN_NORM);
-	// [BB] If we're the server, tell the clients to spawn the missiles and play the sound.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-	{
-		SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "FighterSwordFire", 1, ATTN_NORM );
-		if ( missile1 )	SERVERCOMMANDS_SpawnMissile( missile1 );
-		if ( missile2 )	SERVERCOMMANDS_SpawnMissile( missile2 );
-		if ( missile3 )	SERVERCOMMANDS_SpawnMissile( missile3 );
-		if ( missile4 )	SERVERCOMMANDS_SpawnMissile( missile4 );
-		if ( missile5 )	SERVERCOMMANDS_SpawnMissile( missile5 );
-	}
-}
-
-//============================================================================
-//
 // A_FSwordFlames
 //
 //============================================================================
@@ -446,3 +411,24 @@ void AFighterWeaponPiece::BeginPlay ()
 	Super::BeginPlay ();
 	FourthWeaponClass = RUNTIME_CLASS(AFWeapQuietus);
 }
+
+//============================================================================
+//
+// A_FighterAttack
+//
+//============================================================================
+
+void A_FighterAttack (AActor *actor)
+{
+	if (!actor->target) return;
+
+	angle_t angle = actor->angle;
+
+	P_SpawnMissileAngle (actor, RUNTIME_CLASS(AFSwordMissile), angle+ANG45/4, 0);
+	P_SpawnMissileAngle (actor, RUNTIME_CLASS(AFSwordMissile), angle+ANG45/8, 0);
+	P_SpawnMissileAngle (actor, RUNTIME_CLASS(AFSwordMissile), angle,         0);
+	P_SpawnMissileAngle (actor, RUNTIME_CLASS(AFSwordMissile), angle-ANG45/8, 0);
+	P_SpawnMissileAngle (actor, RUNTIME_CLASS(AFSwordMissile), angle-ANG45/4, 0);
+	S_Sound (actor, CHAN_WEAPON, "FighterSwordFire", 1, ATTN_NORM);
+}
+

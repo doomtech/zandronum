@@ -37,12 +37,19 @@
 #include "p_local.h"
 #include "statnums.h"
 #include "i_system.h"
+#include "thingdef/thingdef.h"
+// [BB] New #includes.
+#include "deathmatch.h"
+#include "gamemode.h"
+#include "cl_demo.h"
+#include "sv_commands.h"
 
 static FRandom pr_spot ("SpecialSpot");
+static FRandom pr_spawnmace ("SpawnMace");
 
 
 IMPLEMENT_CLASS(DSpotState)
-IMPLEMENT_ABSTRACT_ACTOR (ASpecialSpot)
+IMPLEMENT_CLASS (ASpecialSpot)
 TObjPtr<DSpotState> DSpotState::SpotState;
 
 //----------------------------------------------------------------------------
@@ -146,6 +153,7 @@ struct FSpotList
 
 	ASpecialSpot *GetSpotWithMinDistance(fixed_t x, fixed_t y, fixed_t distance)
 	{
+		if (Spots.Size() == 0) return NULL;
 		int i = pr_spot() % Spots.Size();
 		int initial = i;
 
@@ -166,7 +174,7 @@ struct FSpotList
 
 	ASpecialSpot *GetRandomSpot(bool onlyfirst)
 	{
-		if (!numcalls)
+		if (Spots.Size() && !numcalls)
 		{
 			int i = pr_spot() % Spots.Size();
 			numcalls++;
@@ -371,4 +379,81 @@ void ASpecialSpot::Destroy()
 	Super::Destroy();
 }
 
+// Mace spawn spot ----------------------------------------------------------
+
+
+// Every mace spawn spot will execute this action. The first one
+// will build a list of all mace spots in the level and spawn a
+// mace. The rest of the spots will do nothing.
+
+void A_SpawnSingleItem (AActor *self)
+{
+	// [BC] The mace spawner object isn't an object that can be picked up, therefore it is
+	// spawned on the map for modes that do not have special objects. Therefore, we need
+	// to do an additional check to not spawn the mace in these modes.
+	if ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_DONTSPAWNMAPTHINGS )
+		return;
+
+	// [BC] Let the server respawn this in client mode.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
+	AActor *spot = NULL;
+	DSpotState *state = DSpotState::GetSpotState();
+
+	if (state != NULL) spot = state->GetRandomSpot(RUNTIME_TYPE(self), true);
+	if (spot == NULL) return;
+
+	int index=CheckIndex(4);
+	if (index<0) return;
+
+	ENamedName SpawnType = (ENamedName)StateParameters[index];
+	int fail_sp = EvalExpressionI (StateParameters[index+1], self);
+	int fail_co = EvalExpressionI (StateParameters[index+2], self);
+	int fail_dm = EvalExpressionI (StateParameters[index+3], self);
+
+	if (( NETWORK_GetState( ) == NETSTATE_SINGLE ) && pr_spawnmace() < fail_sp)
+	{ // Sometimes doesn't show up if not in deathmatch
+		return;
+	}
+
+	if (( NETWORK_GetState( ) != NETSTATE_SINGLE ) && !deathmatch && pr_spawnmace() < fail_co)
+	{
+		return;
+	}
+
+	if (deathmatch && pr_spawnmace() < fail_dm)
+	{
+		return;
+	}
+	const PClass *cls = PClass::FindClass(SpawnType);
+	if (cls == NULL)
+	{
+		return;
+	}
+
+	AActor *spawned = Spawn(cls, self->x, self->y, self->z, ALLOW_REPLACE);
+
+	if (spawned)
+	{
+		spawned->SetOrigin (spot->x, spot->y, spot->z);
+		spawned->z = spawned->floorz;
+		// We want this to respawn.
+		if (!(self->flags & MF_DROPPED)) 
+		{
+			spawned->flags &= ~MF_DROPPED;
+		}
+		if (spawned->IsKindOf(RUNTIME_CLASS(AInventory)))
+		{
+			static_cast<AInventory*>(spawned)->SpawnPointClass = RUNTIME_TYPE(self);
+		}
+
+		// [BC] If we're the server, spawn the mace for clients.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SpawnThing( spawned );
+	}
+}
 

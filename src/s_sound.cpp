@@ -85,7 +85,7 @@
 struct MusPlayingInfo
 {
 	FString name;
-	void *handle;
+	MusInfo *handle;
 	int   baseorder;
 	bool  loop;
 };
@@ -1002,7 +1002,7 @@ static FSoundChan *S_StartSound(AActor *actor, const sector_t *sec, const FPolyO
 	}
 
 	// If this actor is already playing something on the selected channel, stop it.
-	if (type != SOURCE_None && (actor == NULL && channel != CHAN_AUTO) || (actor != NULL && actor->SoundChans & (1 << channel)))
+	if (type != SOURCE_None && ((actor == NULL && channel != CHAN_AUTO) || (actor != NULL && actor->SoundChans & (1 << channel))))
 	{
 		for (chan = Channels; chan != NULL; chan = chan->NextChan)
 		{
@@ -1951,8 +1951,10 @@ bool S_ChangeMusic (const char *musicname, int order, bool looping, bool force)
 	{
 		if (order != mus_playing.baseorder)
 		{
-			mus_playing.baseorder =
-				(I_SetSongPosition (mus_playing.handle, order) ? order : 0);
+			if (mus_playing.handle->SetSubsong(order))
+			{
+				mus_playing.baseorder = order;
+			}
 		}
 		return true;
 	}
@@ -1975,7 +1977,7 @@ bool S_ChangeMusic (const char *musicname, int order, bool looping, bool force)
 		int lumpnum = -1;
 		int offset = 0, length = 0;
 		int device = MDEV_DEFAULT;
-		void *handle = NULL;
+		MusInfo *handle = NULL;
 
 		int *devp = MidiDevices.CheckKey(FName(musicname));
 		if (devp != NULL) device = *devp;
@@ -2045,7 +2047,7 @@ bool S_ChangeMusic (const char *musicname, int order, bool looping, bool force)
 		{
 			mus_playing.loop = looping;
 			mus_playing.name = "";
-			mus_playing.baseorder = 0;
+			mus_playing.baseorder = order;
 			LastSong = musicname;
 			return true;
 		}
@@ -2069,13 +2071,13 @@ bool S_ChangeMusic (const char *musicname, int order, bool looping, bool force)
 
 	mus_playing.loop = looping;
 	mus_playing.name = musicname;
+	mus_playing.baseorder = 0;
 	LastSong = "";
 
 	if (mus_playing.handle != 0)
 	{ // play it
-		I_PlaySong (mus_playing.handle, looping, S_GetMusicVolume (musicname));
-		mus_playing.baseorder =
-			(I_SetSongPosition (mus_playing.handle, order) ? order : 0);
+		I_PlaySong (mus_playing.handle, looping, S_GetMusicVolume (musicname), order);
+		mus_playing.baseorder = order;
 		return true;
 	}
 	return false;

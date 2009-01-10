@@ -70,6 +70,6 @@ protected:
 
 	int m_Lock;
 	Uint16 m_origGamma[3][256];
-	BOOL m_supportsGamma;
+	bool m_supportsGamma;
 };
 #endif

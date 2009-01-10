@@ -349,56 +349,6 @@ bool AMageStaffFX2::SpecialBlastHandling (AActor *source, fixed_t strength)
 
 //============================================================================
 //
-// MStaffSpawn2 - for use by mage class boss
-//
-//============================================================================
-
-void MStaffSpawn2 (AActor *actor, angle_t angle)
-{
-	AActor *mo;
-
-	mo = P_SpawnMissileAngleZ (actor, actor->z+40*FRACUNIT,
-		RUNTIME_CLASS(AMageStaffFX2), angle, 0);
-	if (mo)
-	{
-		mo->target = actor;
-		mo->tracer = P_BlockmapSearch (mo, 10, FrontBlockCheck);
-
-		// [BB] Tell the clients to spawn the missile.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_SpawnMissile( mo );
-	}
-}
-
-//============================================================================
-//
-// A_MStaffAttack2 - for use by mage class boss
-//
-//============================================================================
-
-void A_MStaffAttack2 (AActor *actor)
-{
-	// [BB] Weapons are handled by the server.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
-	{
-		return;
-	}
-
-	angle_t angle;
-	angle = actor->angle;
-	MStaffSpawn2 (actor, angle);
-	MStaffSpawn2 (actor, angle-ANGLE_1*5);
-	MStaffSpawn2 (actor, angle+ANGLE_1*5);
-	S_Sound (actor, CHAN_WEAPON, "MageStaffFire", 1, ATTN_NORM);
-
-	// [BB] If we're the server, tell the clients to play the sound.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "MageStaffFire", 1, ATTN_NORM );
-}
-
-//============================================================================
-//
 // MStaffSpawn
 //
 //============================================================================
@@ -573,3 +523,57 @@ static AActor *FrontBlockCheck (AActor *mo, int index)
 	}
 	return NULL;
 }
+
+//============================================================================
+//
+// MStaffSpawn2 - for use by mage class boss
+//
+//============================================================================
+
+void MStaffSpawn2 (AActor *actor, angle_t angle)
+{
+	AActor *mo;
+
+	mo = P_SpawnMissileAngleZ (actor, actor->z+40*FRACUNIT,
+		RUNTIME_CLASS(AMageStaffFX2), angle, 0);
+	if (mo)
+	{
+		mo->target = actor;
+		mo->tracer = P_BlockmapSearch (mo, 10, FrontBlockCheck);
+
+		// [BB] Tell the clients to spawn the missile.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SpawnMissile( mo );
+	}
+}
+
+//============================================================================
+//
+// A_MStaffAttack2 - for use by mage class boss
+//
+//============================================================================
+
+void A_MageAttack (AActor *actor)
+{
+	// [BB] Weapons are handled by the server.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
+		( CLIENTDEMO_IsPlaying( )))
+	{
+		return;
+	}
+
+
+	if (!actor->target) return;
+
+	angle_t angle;
+	angle = actor->angle;
+	MStaffSpawn2 (actor, angle);
+	MStaffSpawn2 (actor, angle-ANGLE_1*5);
+	MStaffSpawn2 (actor, angle+ANGLE_1*5);
+	S_Sound (actor, CHAN_WEAPON, "MageStaffFire", 1, ATTN_NORM);
+
+	// [BB] If we're the server, tell the clients to play the sound.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SoundActor( actor, CHAN_WEAPON, "MageStaffFire", 1, ATTN_NORM );
+}
+

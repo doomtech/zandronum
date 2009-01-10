@@ -14,6 +14,7 @@
 #include "templates.h"
 #include "a_strifeglobal.h"
 #include "a_morph.h"
+#include "a_specialspot.h"
 // [BB] New #includes.
 #include "deathmatch.h"
 #include "network.h"
@@ -556,7 +557,7 @@ void AInventory::Tick ()
 void AInventory::Serialize (FArchive &arc)
 {
 	Super::Serialize (arc);
-	arc << Owner << Amount << MaxAmount << RespawnTics << ItemFlags << Icon << PickupSound;
+	arc << Owner << Amount << MaxAmount << RespawnTics << ItemFlags << Icon << PickupSound << SpawnPointClass;
 }
 
 //===========================================================================
@@ -1401,6 +1402,18 @@ END_DEFAULTS
 
 bool AInventory::DoRespawn ()
 {
+	if (SpawnPointClass != NULL)
+	{
+		AActor *spot = NULL;
+		DSpotState *state = DSpotState::GetSpotState();
+
+		if (state != NULL) spot = state->GetRandomSpot(SpawnPointClass);
+		if (spot != NULL) 
+		{
+			SetOrigin (spot->x, spot->y, spot->z);
+			z = floorz;
+		}
+	}
 	return true;
 }
 

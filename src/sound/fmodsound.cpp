@@ -103,6 +103,8 @@ EXTERN_CVAR (Int, snd_samplerate)
 EXTERN_CVAR (Bool, snd_pitched)
 EXTERN_CVAR (Int, snd_channels)
 
+extern int sfx_empty;
+
 // PUBLIC DATA DEFINITIONS -------------------------------------------------
 
 ReverbContainer *ForcedEnvironment;
@@ -458,21 +460,16 @@ public:
 		Volume = volume;
 	}
 
-	// Sets the current order number for a MOD-type song, or the position in ms
-	// for anything else.
-	bool SetPosition(int pos)
+	// Sets the position in ms.
+	bool SetPosition(unsigned int ms_pos)
 	{
-		FMOD_SOUND_TYPE type;
+		return FMOD_OK == Channel->setPosition(ms_pos, FMOD_TIMEUNIT_MS);
+	}
 
-		if (FMOD_OK == Stream->getFormat(&type, NULL, NULL, NULL) &&
-			(type == FMOD_SOUND_TYPE_IT ||
-			 type == FMOD_SOUND_TYPE_MOD ||
-			 type == FMOD_SOUND_TYPE_S3M ||
-			 type == FMOD_SOUND_TYPE_XM))
-		{
-			return FMOD_OK == Channel->setPosition(pos, FMOD_TIMEUNIT_MODORDER);
-		}
-		return FMOD_OK == Channel->setPosition(pos, FMOD_TIMEUNIT_MS);
+	// Sets the order number for MOD formats.
+	bool SetOrder(int order_pos)
+	{
+		return FMOD_OK == Channel->setPosition(order_pos, FMOD_TIMEUNIT_MODORDER);
 	}
 
 	FString GetStats()
@@ -2002,6 +1999,7 @@ void FMODSoundRenderer::DoLoad(void **slot, sfxinfo_t *sfx)
 	errcount = 0;
 	while (errcount < 2)
 	{
+		sample = NULL;
 		if (sfxdata != NULL)
 		{
 			delete[] sfxdata;
@@ -2063,6 +2061,11 @@ void FMODSoundRenderer::DoLoad(void **slot, sfxinfo_t *sfx)
 		{
 			exinfo.length = size;
 		}
+		if (exinfo.length == 0)
+		{
+			DPrintf("Sample has a length of 0\n");
+			break;
+		}
 		result = Sys->createSound((char *)sfxstart, samplemode, &exinfo, &sample);
 		if (result != FMOD_OK)
 		{
@@ -2105,7 +2108,7 @@ void FMODSoundRenderer::getsfx(sfxinfo_t *sfx)
 	// If the sound doesn't exist, replace it with the empty sound.
 	if (sfx->lumpnum == -1)
 	{
-		sfx->lumpnum = Wads.GetNumForName("dsempty", ns_sounds);
+		sfx->lumpnum = sfx_empty;
 	}
 	
 	// See if there is another sound already initialized with this lump. If so,
@@ -2120,6 +2123,11 @@ void FMODSoundRenderer::getsfx(sfxinfo_t *sfx)
 		}
 	}
 	DoLoad(&sfx->data, sfx);
+	// If the sound failed to load, make it the empty sound.
+	if (sfx->data == NULL)
+	{
+		sfx->lumpnum = sfx_empty;
+	}
 }
 
 //==========================================================================

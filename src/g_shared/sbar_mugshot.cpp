@@ -376,7 +376,7 @@ int FMugShot::UpdateState(player_t *player, bool xdeath, bool animated_god_mode)
 				}
 			}
 			bool use_ouch = false;
-			if ((FaceHealth != -1 && player->health - FaceHealth > ST_MUCHPAIN) || bOuchActive)
+			if ((FaceHealth != -1 && FaceHealth - player->health > ST_MUCHPAIN) || bOuchActive)
 			{
 				use_ouch = true;
 				full_state_name = "ouch.";
@@ -478,7 +478,7 @@ FTexture *FMugShot::GetFace(player_t *player, const char *default_face, int accu
 {
 	int angle = UpdateState(player, xdeath, animated_god_mode);
 	int level = 0;
-	while (player->health < (4-level) * (player->mo->GetMaxHealth()/5))
+	while (player->health < (accuracy-1-level) * (player->mo->GetMaxHealth()/accuracy))
 	{
 		level++;
 	}

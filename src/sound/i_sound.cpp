@@ -317,7 +317,12 @@ SoundStream::~SoundStream ()
 {
 }
 
-bool SoundStream::SetPosition(int pos)
+bool SoundStream::SetPosition(unsigned int pos)
+{
+	return false;
+}
+
+bool SoundStream::SetOrder(int order)
 {
 	return false;
 }

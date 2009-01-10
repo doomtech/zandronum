@@ -79,7 +79,9 @@ extern "C"
 	CPUInfo		CPU;
 }
 
+#ifndef NO_GTK
 extern bool GtkAvailable;
+#endif
 
 void CalculateCPUSpeed ();
 
@@ -546,7 +548,7 @@ int I_PickIWad (WadStuff *wads, int numwads, bool showwin, int defaultiwad)
 	{
 		return defaultiwad;
 	}
-	
+
 #ifndef NO_GTK
 	if (GtkAvailable)
 	{

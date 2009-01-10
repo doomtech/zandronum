@@ -40,8 +40,6 @@
 #include <signal.h>
 #include <new>
 #include <sys/param.h>
-// [BB] The FreeBSD version is meant to host servers, I don't want it
-// to use more dependencies than necessary.
 #ifndef NO_GTK
 #include <gtk/gtk.h>
 #endif
@@ -75,7 +73,9 @@ extern "C" int cc_install_handlers(int, int*, const char*, int(*)(char*, char*))
 
 // PUBLIC DATA DEFINITIONS -------------------------------------------------
 
+#ifndef NO_GTK
 bool GtkAvailable;
+#endif
 
 // The command line arguments.
 DArgs *Args;
@@ -211,8 +211,6 @@ int main (int argc, char **argv)
     std::set_new_handler (NewFailure);
 
 #ifdef NO_GTK
-	GtkAvailable = false;
-#else
 	GtkAvailable = gtk_init_check (&argc, &argv);
 #endif
 	

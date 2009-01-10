@@ -4519,7 +4519,8 @@ APlayerPawn *P_SpawnPlayer (FMapThing *mthing, bool bClientUpdate, player_t *p, 
 		( teamgame == false ) &&
 		( gameaction != ga_worlddone ) &&
 		( p->bSpawnOkay ) && 
-		( p->mo != NULL ))
+		( p->mo != NULL ) && 
+		( (p->mo->Sector->special & 255) != Damage_InstantDeath ))
 	{
 		spawn_x = p->mo->x;
 		spawn_y = p->mo->y;
