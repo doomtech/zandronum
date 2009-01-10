@@ -8965,7 +8965,7 @@ static void client_Sound( BYTESTREAM_s *pByteStream )
 	lAttenuation = NETWORK_ReadByte( pByteStream );
 
 	// Finally, play the sound.
-	S_Sound( lChannel, pszSoundString, (float)lVolume / 127.f, lAttenuation );
+	S_Sound( lChannel, pszSoundString, (float)lVolume / 127.f, NETWORK_AttenuationIntToFloat ( lAttenuation ) );
 }
 
 //*****************************************************************************
@@ -9007,7 +9007,7 @@ static void client_SoundActor( BYTESTREAM_s *pByteStream )
 	}
 
 	// Finally, play the sound.
-	S_Sound( pActor, lChannel, pszSoundString, (float)lVolume / 127.f, lAttenuation );
+	S_Sound( pActor, lChannel, pszSoundString, (float)lVolume / 127.f, NETWORK_AttenuationIntToFloat ( lAttenuation ) );
 }
 
 //*****************************************************************************
@@ -9042,7 +9042,7 @@ static void client_SoundPoint( BYTESTREAM_s *pByteStream )
 	lAttenuation = NETWORK_ReadByte( pByteStream );
 
 	// Finally, play the sound.
-	S_Sound ( X, Y, Z, CHAN_BODY, S_FindSound(pszSoundString), (float)lVolume / 127.f, lAttenuation );
+	S_Sound ( X, Y, Z, CHAN_BODY, S_FindSound(pszSoundString), (float)lVolume / 127.f, NETWORK_AttenuationIntToFloat ( lAttenuation ) );
 }
 
 //*****************************************************************************

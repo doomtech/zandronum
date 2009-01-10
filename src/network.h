@@ -573,6 +573,21 @@ void			NETWORK_GenerateLumpMD5Hash( const int LumpNum, FString &MD5Hash );
 const char		*NETWORK_GetClassNameFromIdentification( USHORT usActorNetworkIndex );
 const PClass	*NETWORK_GetClassFromIdentification( USHORT usActorNetworkIndex );
 
+// [BB] Sound attenuation is a float, but we only want to sent a byte for the 
+// attenuation to instructs clients to play a sound. The enum is used for the
+// conversion of the neccessary attenuation values.
+enum
+{
+	ATTN_INT_NONE,
+	ATTN_INT_NORM,
+	ATTN_INT_IDLE,
+	ATTN_INT_STATIC,
+};
+
+int				NETWORK_AttenuationFloatToInt ( const float fAttenuation );
+float			NETWORK_AttenuationIntToFloat ( const int iAttenuation );
+
+
 // Access functions.
 LONG			NETWORK_GetState( void );
 void			NETWORK_SetState( LONG lState );

@@ -734,6 +734,48 @@ const PClass *NETWORK_GetClassFromIdentification( USHORT usActorNetworkIndex )
 }
 
 //*****************************************************************************
+//
+int NETWORK_AttenuationFloatToInt ( const float fAttenuation )
+{
+	if ( fAttenuation == ATTN_NONE )
+		return ATTN_INT_NONE;
+	else if ( fAttenuation == ATTN_NORM )
+		return ATTN_INT_NORM;
+	else if ( fAttenuation == ATTN_IDLE )
+		return ATTN_INT_IDLE;
+	else if ( fAttenuation == ATTN_STATIC )
+		return ATTN_INT_STATIC;
+	else
+	{
+		Printf ( "NETWORK_AttenuationFloatToInt: Warning unknown attenuation value\n" );
+		return ATTN_INT_NORM;
+	}
+}
+
+//*****************************************************************************
+//
+float NETWORK_AttenuationIntToFloat ( const int iAttenuation )
+{
+	switch (iAttenuation)
+	{
+	case ATTN_INT_NONE:
+		return ATTN_NONE;
+
+	case ATTN_INT_NORM:
+		return ATTN_NORM;
+
+	case ATTN_INT_IDLE:
+		return ATTN_IDLE;
+
+	case ATTN_INT_STATIC:
+		return ATTN_STATIC;
+	default:
+		Printf ( "NETWORK_AttenuationIntToFloat: Warning unknown attenuation value\n" );
+		return ATTN_NORM;
+	}
+}
+
+//*****************************************************************************
 //*****************************************************************************
 //
 LONG NETWORK_GetState( void )
