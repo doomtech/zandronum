@@ -1,0 +1,33 @@
+ClearTeams
+
+Team "Blue"
+{
+	PlayerColor "00 00 BF"
+	TextColor "Blue"
+	RailColor "00 00 FF"
+
+	FlagItem "BlueFlag"
+	SkullItem "BlueSkullST"
+
+	PlayerStartThingNumber 5080
+	SmallFlagHUDIcon "STFLA1"
+	SmallSkullHUDIcon "STKEYS3"
+	LargeFlagHUDIcon "BFLASMAL"
+	LargeSkullHUDIcon "BSKUA0"
+}
+
+Team "Red"
+{
+	PlayerColor "BF 00 00"
+	TextColor "Red"
+	RailColor "FF 00 00"
+
+	FlagItem "RedFlag"
+	SkullItem "RedSkullST"
+
+	PlayerStartThingNumber 5081
+	SmallFlagHUDIcon "STFLA2"
+	SmallSkullHUDIcon "STKEYS5"
+	LargeFlagHUDIcon "RFLASMAL"
+	LargeSkullHUDIcon "RSKUA0"
+}
