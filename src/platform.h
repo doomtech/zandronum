@@ -26,7 +26,9 @@
 // [BB] Linux specific thigs, mostly missing functions.
 #ifndef _WIN32
 
+#ifndef stricmp
 #define stricmp(x,y) strcasecmp(x,y)
+#endif
 #define _stricmp(x,y) strcasecmp(x,y)
 #define _itoa(x,y,z) itoa(x,y,z)
 

@@ -6,10 +6,10 @@ cmake_minimum_required( VERSION 2.4 )
 #	COMMAND ${CMAKE_BINARY_DIR}/tools/dehsupp/dehsupp ${CMAKE_CURRENT_SOURCE_DIR}/sources/dehsupp.txt ${CMAKE_CURRENT_BINARY_DIR}/generated/dehsupp.lmp
 #	DEPENDS dehsupp ${CMAKE_CURRENT_SOURCE_DIR}/sources/dehsupp.txt )
 
-add_custom_command( OUTPUT ${ZDOOM_OUTPUT_DIR}/gzdoom.pk3
-	COMMAND ${CMAKE_BINARY_DIR}/tools/zipdir/zipdir ${ZDOOM_OUTPUT_DIR}/gzdoom.pk3 ${CMAKE_CURRENT_SOURCE_DIR}/static ${CMAKE_CURRENT_BINARY_DIR}/generated
+add_custom_command( OUTPUT ${ZDOOM_OUTPUT_DIR}/skulltag.pk3
+	COMMAND ${CMAKE_BINARY_DIR}/tools/zipdir/zipdir ${ZDOOM_OUTPUT_DIR}/skulltag.pk3 ${CMAKE_CURRENT_SOURCE_DIR}/static ${CMAKE_CURRENT_BINARY_DIR}/generated
 	DEPENDS zipdir )
 
 add_custom_target( pk3 ALL
-	DEPENDS ${ZDOOM_OUTPUT_DIR}/gzdoom.pk3 )
+	DEPENDS ${ZDOOM_OUTPUT_DIR}/skulltag.pk3 )
 

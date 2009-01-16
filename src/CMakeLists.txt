@@ -117,6 +117,9 @@ else( WIN32 )
 	if( NO_GTK )
 		add_definitions( -DNO_GTK=1 )
 	endif( NO_GTK )
+
+	# [BB] Only the Windows version has the server console GUI.
+	add_definitions( -DNO_SERVER_GUI=1 )
 endif( WIN32 )
 
 if( X64 )
@@ -272,10 +275,10 @@ if( NOT MSVC )
 	add_definitions( -D__forceinline=inline )
 endif( NOT MSVC )
 
-# Update svnrevision_gz.h
+# Update svnrevision.h
 
 add_custom_target( revision_check ALL
-	COMMAND ${CMAKE_BINARY_DIR}/tools/updaterevision/updaterevision . src/svnrevision_gz.h
+	COMMAND ${CMAKE_BINARY_DIR}/tools/updaterevision/updaterevision . src/svnrevision.h
 	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 	DEPENDS updaterevision )
 
@@ -358,35 +361,53 @@ add_executable( zdoom WIN32
 	${ASM_SOURCES}
 	${SYSTEM_SOURCES}
 	am_map.cpp
-	b_bot.cpp
-	b_func.cpp
-	b_game.cpp
-	b_move.cpp
-	b_think.cpp
-	bbannouncer.cpp
+	announcer.cpp #ST
+	astar.cpp #ST
+	#b_bot.cpp
+	#b_func.cpp
+	#b_game.cpp
+	#b_move.cpp
+	#b_think.cpp
+	#bbannouncer.cpp
+	botcommands.cpp #ST
+	botpath.cpp #ST
+	bots.cpp #ST
+	browser.cpp #ST
+	callvote.cpp #ST
+	campaign.cpp #ST
 	c_bind.cpp
 	c_cmds.cpp
 	c_console.cpp
 	c_cvars.cpp
 	c_dispatch.cpp
 	c_expr.cpp
+	chat.cpp #ST
+	cl_commands.cpp #ST
+	cl_demo.cpp #ST
+	cl_main.cpp  #ST
+	cl_pred.cpp #ST
+	cl_statistics.cpp #ST
 	cmdlib.cpp
 	colormatcher.cpp
 	configfile.cpp
-	ct_chat.cpp
+	#ct_chat.cpp
+	cooperative.cpp #ST
 	d_dehacked.cpp
 	d_main.cpp
 	d_net.cpp
 	d_netinfo.cpp
 	d_protocol.cpp
+	deathmatch.cpp #ST
 	decallib.cpp
 	dobject.cpp
 	dobjgc.cpp
 	dobjtype.cpp
+	domination.cpp #ST
 	doomdef.cpp
 	doomstat.cpp
 	dsectoreffect.cpp
 	dthinker.cpp
+	duel.cpp #ST
 	f_finale.cpp
 	f_wipe.cpp
 	farchive.cpp
@@ -395,11 +416,16 @@ add_executable( zdoom WIN32
 	g_hub.cpp
 	g_level.cpp
 	gameconfigfile.cpp
+	gamemode.cpp #ST
 	gi.cpp
-	hu_scores.cpp
+	#hu_scores.cpp
+	huffman.cpp #ST
 	i_net.cpp
 	info.cpp
 	infodefaults.cpp
+	invasion.cpp #ST
+	joinqueue.cpp #ST
+	lastmanstanding.cpp #ST
 	lumpconfigfile.cpp
 	m_alloc.cpp
 	m_argv.cpp
@@ -410,8 +436,12 @@ add_executable( zdoom WIN32
 	m_options.cpp
 	m_png.cpp
 	m_random.cpp
+	maprotation.cpp #ST
+	medal.cpp #ST
 	mus2midi.cpp
 	name.cpp
+	network.cpp #ST
+	networkshared.cpp #ST
 	nodebuild.cpp
 	nodebuild_classify_nosse2.cpp
 	nodebuild_classify_sse2.cpp
@@ -457,7 +487,9 @@ add_executable( zdoom WIN32
 	p_writemap.cpp
 	p_xlat.cpp
 	parsecontext.cpp
+	platform.cpp #ST
 	po_man.cpp
+	possession.cpp #ST
 	r_anim.cpp
 	r_bsp.cpp
 	r_data.cpp
@@ -477,10 +509,20 @@ add_executable( zdoom WIN32
 	s_sndseq.cpp
 	s_sound.cpp
 	sc_man.cpp
+	scoreboard.cpp #ST
+	sectinfo.cpp #ST
 	st_stuff.cpp
 	stats.cpp
 	stringtable.cpp
+	survival.cpp #ST
+	sv_ban.cpp #ST
+	sv_commands.cpp #ST
+	sv_main.cpp #ST
+	sv_master.cpp #ST
+	sv_rcon.cpp #ST
+	sv_save.cpp #ST
 	tables.cpp
+	team.cpp #ST
 	teaminfo.cpp
 	tempfiles.cpp
 	v_collection.cpp
@@ -494,16 +536,16 @@ add_executable( zdoom WIN32
 	wi_stuff.cpp
 	zstrformat.cpp
 	zstring.cpp
-	fragglescript/t_cmd.cpp
-	fragglescript/t_fspic.cpp
-	fragglescript/t_func.cpp
-	fragglescript/t_load.cpp
-	fragglescript/t_oper.cpp
-	fragglescript/t_parse.cpp
-	fragglescript/t_prepro.cpp
-	fragglescript/t_script.cpp
-	fragglescript/t_spec.cpp
-	fragglescript/t_variable.cpp
+	#fragglescript/t_cmd.cpp
+	#fragglescript/t_fspic.cpp
+	#fragglescript/t_func.cpp
+	#fragglescript/t_load.cpp
+	#fragglescript/t_oper.cpp
+	#fragglescript/t_parse.cpp
+	#fragglescript/t_prepro.cpp
+	#fragglescript/t_script.cpp
+	#fragglescript/t_spec.cpp
+	#fragglescript/t_variable.cpp
 	g_doom/a_arachnotron.cpp
 	g_doom/a_archvile.cpp
 	g_doom/a_bossbrain.cpp
@@ -538,14 +580,12 @@ add_executable( zdoom WIN32
 	g_hexen/a_blastradius.cpp
 	g_hexen/a_boostarmor.cpp
 	g_hexen/a_centaur.cpp
-	g_hexen/a_clericboss.cpp
 	g_hexen/a_clericflame.cpp
 	g_hexen/a_clericholy.cpp
 	g_hexen/a_clericmace.cpp
 	g_hexen/a_clericstaff.cpp
 	g_hexen/a_dragon.cpp
 	g_hexen/a_fighteraxe.cpp
-	g_hexen/a_fighterboss.cpp
 	g_hexen/a_fighterhammer.cpp
 	g_hexen/a_fighterplayer.cpp
 	g_hexen/a_fighterquietus.cpp
@@ -557,7 +597,6 @@ add_executable( zdoom WIN32
 	g_hexen/a_hexenspecialdecs.cpp
 	g_hexen/a_iceguy.cpp
 	g_hexen/a_korax.cpp
-	g_hexen/a_mageboss.cpp
 	g_hexen/a_magecone.cpp
 	g_hexen/a_magelightning.cpp
 	g_hexen/a_magestaff.cpp
@@ -600,9 +639,11 @@ add_executable( zdoom WIN32
 	g_shared/a_camera.cpp
 	g_shared/a_debris.cpp
 	g_shared/a_decals.cpp
+	g_shared/a_flags.cpp #ST
 	g_shared/a_flashfader.cpp
 	g_shared/a_fountain.cpp
 	g_shared/a_hatetarget.cpp
+	g_shared/a_icon.cpp #ST
 	g_shared/a_keys.cpp
 	g_shared/a_lightning.cpp
 	g_shared/a_mapmarker.cpp
@@ -629,6 +670,7 @@ add_executable( zdoom WIN32
 	g_shared/sbar_mugshot.cpp
 	g_shared/shared_hud.cpp
 	g_shared/shared_sbar.cpp
+	g_shared/st_hud.cpp #ST
 	gl/a_dynlight.cpp
 	gl/gfxfuncs.cpp
 	gl/gl_bsp.cpp
@@ -644,6 +686,7 @@ add_executable( zdoom WIN32
 	gl/gl_geometric.cpp
 	gl/gl_glow.cpp
 	gl/gl_hirestex.cpp
+	gl/gl_hqresize.cpp #ST
 	gl/gl_light.cpp
 	gl/gl_menu.cpp
 	gl/gl_missinglines.cpp
@@ -668,6 +711,7 @@ add_executable( zdoom WIN32
 	gl/gl_weapon.cpp
 	gl/gl_wipe.cpp
 	gl/r_render/r_opengl.cpp
+	MD5/MD5Checksum.cpp #ST
 	oplsynth/fmopl.cpp
 	oplsynth/mlopl.cpp
 	oplsynth/mlopl_io.cpp
@@ -722,7 +766,10 @@ add_executable( zdoom WIN32
 	timidity/playmidi.cpp
 	timidity/resample.cpp
 	timidity/timidity.cpp
+	win32/g15/g15.cpp #ST
 	xlat/parse_xlat.cpp
+	../upnpnat/upnpnat.cpp #ST
+	../upnpnat/xmlParser.cpp #ST
 	autozend.cpp )
 
 set_source_files_properties( xlat/parse_xlat.cpp PROPERTIES OBJECT_DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/xlat_parser.c" )
@@ -738,6 +785,7 @@ include_directories( .
 	g_shared
 	fragglescript
 	Linux
+	MD5 #ST
 	oplsynth
 	sound
 	textures
@@ -747,6 +795,7 @@ include_directories( .
 	../snes_spc/snes_spc
 	../gdtoa
 	../dumb/include
+	../upnpnat/ #ST
 	${CMAKE_BINARY_DIR}/gdtoa
 	${SYSTEM_SOURCES_DIR} )
 
