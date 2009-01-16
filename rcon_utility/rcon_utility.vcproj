@@ -23,7 +23,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="Getting SVN revision..."
-				CommandLine="$(InputDir)..\Release\updaterevision.exe $(InputDir) $(InputDir)svnrevision.h"
+				CommandLine="$(OutDir)\updaterevision.exe $(InputDir) $(InputDir)svnrevision.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -104,7 +104,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="Getting SVN revision..."
-				CommandLine="$(InputDir)..\Release\updaterevision.exe $(InputDir) $(InputDir)svnrevision.h"
+				CommandLine="$(OutDir)\updaterevision.exe $(InputDir) $(InputDir)svnrevision.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
