@@ -47,7 +47,7 @@ endif
 endif
 
 
-NASMFLAGS += -f elf -DM_TARGET_LINUX
+NASMFLAGS += -f elf -isrc/ -DM_TARGET_LINUX
 
 ifdef VALGRIND
   NOSTRIP = 1
@@ -62,7 +62,7 @@ endif
 endif
 VPATH = $(SRCDIRS)
 INCLUDES = $(addprefix -I,$(SRCDIRS) src/gl)
-INCLUDES += -Isnes_spc/snes_spc/
+INCLUDES += -Isnes_spc/snes_spc/ -Igdtoa/
 CFLAGS += $(INCLUDES)
 
 ifndef SERVERONLY
@@ -120,12 +120,12 @@ COBJS = $(addprefix $(OBJDIR)/,$(CPPOBJFILES) $(COBJFILES))
 DEPS = $(patsubst %.o,%.d,$(COBJS))
 OBJS = $(addprefix $(OBJDIR)/,$(AOBJFILES)) $(COBJS)
 
-all: $(ZDOOMBIN) toolsandpk3 zdoom.pk3
+all: gdtoa/libgdtoa.a $(ZDOOMBIN) toolsandpk3 zdoom.pk3
 
 $(ZDOOMBIN): ccdv updaterev src/xlat/xlat_parser.h src/xlat/xlat_parser.c $(OBJDIR) $(OBJS) snes_spc/libsnes_spc.so dumb/lib/$(DUMBLIB)
 	$(CCDV) $(CXX) $(LDFLAGS) $(OBJDIR)/autostart.o \
 	$(filter-out %/autostart.o %/autozend.o,$(OBJS)) \
-	dumb/lib/$(DUMBLIB) $(OBJDIR)/autozend.o -o $(ZDOOMBIN)
+	dumb/lib/$(DUMBLIB) $(OBJDIR)/autozend.o gdtoa/libgdtoa.a -o $(ZDOOMBIN)
 
 $(OBJDIR)/%.o: %.cpp
 	$(CCDV) $(CXX) $(CXXFLAGS) -o $@ -c $<
@@ -159,6 +159,9 @@ zdoom.pk3: toolsandpk3
 snes_spc/libsnes_spc.so: ccdv
 	$(MAKE) -C snes_spc/
 
+gdtoa/libgdtoa.a:
+	$(MAKE) -C gdtoa/
+
 dumb/lib/libdumb.a: ccdv
 	$(MAKE) -C dumb/
 
@@ -183,6 +186,7 @@ clean: cleanobjs
 	rm -f $(ZDOOMDEBUG) $(ZDOOM) $(ZDOOM).map
 	rm -f ccdv
 	@$(MAKE) -C snes_spc clean
+	@$(MAKE) -C gdtoa clean
 
 cleantools:
 	@$(MAKE) -C wadsrc clean
