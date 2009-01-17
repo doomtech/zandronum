@@ -291,11 +291,6 @@ static FActorInfo *CreateNewActor(FScanner &sc, FActorInfo **parentc, Baggage *b
 	int DoomEdNum = -1;
 	PClass *ti = NULL;
 	FActorInfo *info = NULL;
-	/* [BB] This does not work with the latest ZDoom changes, but I'm not sure if it is necessary anymore.
-	char ReplaceName[256];
-	char OriginalName[256];
-	ReplaceName[0] = 0;
-	*/
 
 	// Get actor name
 	sc.MustGetString();
@@ -306,31 +301,14 @@ static FActorInfo *CreateNewActor(FScanner &sc, FActorInfo **parentc, Baggage *b
 		*colon++ = 0;
 	}
 
-	/* [BB] This does not work with the latest ZDoom changes, but I'm not sure if it is necessary anymore.
+	/*
 	if (PClass::FindClass (sc.String) != NULL)
 	{
-		// [BB] I'm tired of the problems caused by PWADs using
-		// Skulltag actor names. If we encounter an already defined
-		// actor, we just append "2" to the name and try to use this.
-		Printf( "WARNING: Actor %s is already defined.", sc.String);
-		sprintf( OriginalName, "%s", sc.String );
-		sprintf( ReplaceName, "%s2", OriginalName );
-		Printf( "Changing name to %s\n", ReplaceName);
-		if (PClass::FindClass (ReplaceName) != NULL)
-		{
-			// [BB] The new name already exists, so we just ignore the definition.
-			// Not perfect, but this case is unlikely to happen.
-			Printf( "ERROR: Actor %s is already defined. Ignoring definition of %s\n", ReplaceName, OriginalName);
-			return NULL;
-		}
-		//sc.ScriptError ("Actor %s is already defined.", sc.String);
+		sc.ScriptError ("Actor %s is already defined.", sc.String);
 	}
-
-	if( ReplaceName[0] )
-		typeName = ReplaceName;
-	else
 	*/
-		typeName = sc.String;
+
+	typeName = sc.String;
 
 	PClass *parent = RUNTIME_CLASS(AActor);
 	if (parentc)
@@ -458,20 +436,6 @@ static FActorInfo *CreateNewActor(FScanner &sc, FActorInfo **parentc, Baggage *b
 		ti->ActorInfo->Replacee = replacee->ActorInfo;
 	}
 
-	/* [BB] This does not work with the latest ZDoom changes, but I'm not sure if it is necessary anymore.
-		// [BB] To prevent a double definition, we altered the actor name.
-		// Now we replace the orginal actor with the new one. This is not
-		// done if the new actor already replaces something.
-		if( ReplaceName[0] )
-		{
-			const PClass *replacee;
-			replacee = PClass::FindClass (OriginalName);
-			replacee->ActorInfo->Replacement = ti->ActorInfo;
-			ti->ActorInfo->Replacee = replacee->ActorInfo;
-			Printf( "%s replacing %s\n", ti->TypeName.GetChars(), replacee->TypeName.GetChars() );
-		}
-	*/
-
 	info->DoomEdNum = DoomEdNum;
 
 	if (parent == RUNTIME_CLASS(AWeapon))
@@ -498,28 +462,6 @@ void ParseActor(FScanner &sc)
 		FActorInfo * parent;
 
 		info = CreateNewActor(sc, &parent, &bag);
-		/* [BB] This does not work with the latest ZDoom changes, but I'm not sure if it is necessary anymore.
-		// [BB] If CreateNewActor returns a NULL pointer, the actor definition
-		// should be ignored. In this case we have to parse the whole definition
-		// of the actor to be ignored (everything in the next brace pair).
-		// We also have to ignore everything before the opening brace cause
-		// CreateNewActor only parsed the actor name in case it has returned
-		// NULL. It did not parse any "replace" or ":" after the actor name yet.
-		if( info == NULL )
-		{
-				while (!sc.CheckString ("}"))
-				{
-					if (sc.End)
-						sc.ScriptError("Unexpected end of file encountered");
-
-					// Parse everything in the braces.
-					sc.GetString ();
-				}
-				// Parse the closing brace.
-				sc.GetString ();
-				return;
-		}
-		*/
 		sc.MustGetToken('{');
 		while (sc.MustGetAnyToken(), sc.TokenType != '}')
 		{
