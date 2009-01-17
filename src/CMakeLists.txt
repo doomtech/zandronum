@@ -86,6 +86,19 @@ if( WIN32 )
 else( WIN32 )
 	option( NO_GTK "Disable GTK+ dialogs (Not applicable to Windows)" )
 	option( VALGRIND "Add special Valgrind sequences to self-modifying code" )
+	# [BB] Added SERVERONLY, NO_SOUND and NO_GL.
+	option( SERVERONLY "Build a server only binary" )
+	option( NO_SOUND "Turn of sound support" )
+	option( NO_GL "Turn of OpenGL support" )
+
+	# [BB] The server doesn't need sound, GTK or OpenGL.
+	if( SERVERONLY )
+		set( NO_SOUND ON )
+		set( NO_GTK ON )
+		set( NO_GL ON )
+		add_definitions ( -DSERVER_ONLY=1 )
+		set( ZDOOM_EXE_NAME ${ZDOOM_EXE_NAME}-server )
+	endif( SERVERONLY )
 
 	set( FMOD_SEARCH_PATHS
 		/usr/local/include
@@ -120,6 +133,16 @@ else( WIN32 )
 
 	# [BB] Only the Windows version has the server console GUI.
 	add_definitions( -DNO_SERVER_GUI=1 )
+
+	# [BB] Turning off sound needs special handling in the code, activated with the define NO_SOUND.
+	if( NO_SOUND )
+		add_definitions( -DNO_SOUND=1 )
+	endif( NO_SOUND )
+
+	# [BB] Turning off OpenGL needs special handling in the code, activated with the define NO_GL.
+	if( NO_GL )
+		add_definitions( -DNO_GL=1 )
+	endif( NO_GL )
 endif( WIN32 )
 
 if( X64 )
@@ -127,16 +150,18 @@ if( X64 )
 endif( X64 )
 
 # Check if we have OpenGL
-
-if( NOT OPENGL_FOUND )
-	message( FATAL_ERROR "OpenGL is required for building." )
-endif( NOT OPENGL_FOUND )
-if( NOT OPENGL_GLU_FOUND )
-	message( FATAL_ERROR "OpenGL GLU is required for building." )
-endif( NOT OPENGL_GLU_FOUND )
-
-set( ZDOOM_LIBS ${ZDOOM_LIBS} ${OPENGL_LIBRARIES} )
-include_directories( ${OPENGL_INCLUDE_DIR} )
+# [BB] Only if necessary
+if( NOT NO_GL )
+	if( NOT OPENGL_FOUND )
+		message( FATAL_ERROR "OpenGL is required for building." )
+	endif( NOT OPENGL_FOUND )
+	if( NOT OPENGL_GLU_FOUND )
+		message( FATAL_ERROR "OpenGL GLU is required for building." )
+	endif( NOT OPENGL_GLU_FOUND )
+	
+	set( ZDOOM_LIBS ${ZDOOM_LIBS} ${OPENGL_LIBRARIES} )
+	include_directories( ${OPENGL_INCLUDE_DIR} )
+endif( NOT NO_GL )
 
 # Decide on the name of the FMOD library we want to use.
 
@@ -284,7 +309,11 @@ add_custom_target( revision_check ALL
 
 # Libraries ZDoom needs
 
-set( ZDOOM_LIBS ${ZDOOM_LIBS} "${ZLIB_LIBRARIES}" "${JPEG_LIBRARIES}" "${FMOD_LIBRARY}" )
+set( ZDOOM_LIBS ${ZDOOM_LIBS} "${ZLIB_LIBRARIES}" "${JPEG_LIBRARIES}" )
+# [BB] Without sound, we don't need FMOD.
+if ( NOT NO_SOUND )
+	set( ZDOOM_LIBS ${ZDOOM_LIBS} "${FMOD_LIBRARY}" )
+endif ( NOT NO_SOUND )
 include_directories( "${ZLIB_INCLUDE_DIR}" "${JPEG_INCLUDE_DIR}" "${FMOD_INCLUDE_DIR}" )
 
 # Start defining source files for ZDoom
@@ -355,6 +384,55 @@ add_custom_command( OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/sc_man_scanner.h
 	DEPENDS re2c ${CMAKE_CURRENT_SOURCE_DIR}/sc_man_scanner.re )
 
 include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
+
+# [BB] Only complile the gl sources, if we want GL support.
+if( NOT NO_GL )
+	set( GL_SOURCES
+		gl/a_dynlight.cpp
+		gl/gfxfuncs.cpp
+		gl/gl_bsp.cpp
+		gl/gl_clipper.cpp
+		gl/gl_cycler.cpp
+		gl/gl_data.cpp
+		gl/gl_decal.cpp
+		gl/gl_drawinfo.cpp
+		gl/gl_dynlight.cpp
+		gl/gl_fakeflat.cpp
+		gl/gl_flats.cpp
+		gl/gl_framebuffer.cpp
+		gl/gl_geometric.cpp
+		gl/gl_glow.cpp
+		gl/gl_hirestex.cpp
+		gl/gl_hqresize.cpp #ST
+		gl/gl_light.cpp
+		gl/gl_menu.cpp
+		gl/gl_missinglines.cpp
+		gl/gl_missingtexture.cpp
+		gl/gl_models.cpp
+		gl/gl_models_md2.cpp
+		gl/gl_models_md3.cpp
+		gl/gl_nodes.cpp
+		gl/gl_portal.cpp
+		gl/gl_scene.cpp
+		gl/gl_shader.cpp
+		gl/gl_sky.cpp
+		gl/gl_skydome.cpp
+		gl/gl_sprite.cpp
+		gl/gl_swshaders.cpp
+		gl/gl_texture.cpp
+		gl/gltexture.cpp
+		gl/gl_translate.cpp
+		gl/gl_vertex.cpp
+		gl/gl_walls.cpp
+		gl/gl_walls_draw.cpp
+		gl/gl_weapon.cpp
+		gl/gl_wipe.cpp
+		gl/r_render/r_opengl.cpp
+	)
+else( NOT NO_GL )
+	set( GL_SOURCES sdl/glstubs.cpp )
+endif( NOT NO_GL )
+
 
 add_executable( zdoom WIN32
 	autostart.cpp
@@ -671,46 +749,7 @@ add_executable( zdoom WIN32
 	g_shared/shared_hud.cpp
 	g_shared/shared_sbar.cpp
 	g_shared/st_hud.cpp #ST
-	gl/a_dynlight.cpp
-	gl/gfxfuncs.cpp
-	gl/gl_bsp.cpp
-	gl/gl_clipper.cpp
-	gl/gl_cycler.cpp
-	gl/gl_data.cpp
-	gl/gl_decal.cpp
-	gl/gl_drawinfo.cpp
-	gl/gl_dynlight.cpp
-	gl/gl_fakeflat.cpp
-	gl/gl_flats.cpp
-	gl/gl_framebuffer.cpp
-	gl/gl_geometric.cpp
-	gl/gl_glow.cpp
-	gl/gl_hirestex.cpp
-	gl/gl_hqresize.cpp #ST
-	gl/gl_light.cpp
-	gl/gl_menu.cpp
-	gl/gl_missinglines.cpp
-	gl/gl_missingtexture.cpp
-	gl/gl_models.cpp
-	gl/gl_models_md2.cpp
-	gl/gl_models_md3.cpp
-	gl/gl_nodes.cpp
-	gl/gl_portal.cpp
-	gl/gl_scene.cpp
-	gl/gl_shader.cpp
-	gl/gl_sky.cpp
-	gl/gl_skydome.cpp
-	gl/gl_sprite.cpp
-	gl/gl_swshaders.cpp
-	gl/gl_texture.cpp
-	gl/gltexture.cpp
-	gl/gl_translate.cpp
-	gl/gl_vertex.cpp
-	gl/gl_walls.cpp
-	gl/gl_walls_draw.cpp
-	gl/gl_weapon.cpp
-	gl/gl_wipe.cpp
-	gl/r_render/r_opengl.cpp
+	${GL_SOURCES}
 	MD5/MD5Checksum.cpp #ST
 	oplsynth/fmopl.cpp
 	oplsynth/mlopl.cpp
@@ -775,7 +814,12 @@ add_executable( zdoom WIN32
 set_source_files_properties( xlat/parse_xlat.cpp PROPERTIES OBJECT_DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/xlat_parser.c" )
 set_source_files_properties( sc_man.cpp PROPERTIES OBJECT_DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/sc_man_scanner.h" )
 
-target_link_libraries( zdoom ${ZDOOM_LIBS} snes_spc gdtoa dumb )
+# [BB] Without sound, we don't need snes_spc.
+if( NOT NO_SOUND )
+	set( ZDOOM_LIBS ${ZDOOM_LIBS} snes_spc )
+endif( NOT NO_SOUND )
+
+target_link_libraries( zdoom ${ZDOOM_LIBS} gdtoa dumb )
 include_directories( .
 	g_doom
 	g_heretic

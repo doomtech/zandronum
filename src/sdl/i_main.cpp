@@ -210,7 +210,7 @@ int main (int argc, char **argv)
 	seteuid (getuid ());
     std::set_new_handler (NewFailure);
 
-#ifdef NO_GTK
+#ifndef NO_GTK
 	GtkAvailable = gtk_init_check (&argc, &argv);
 #endif
 	
