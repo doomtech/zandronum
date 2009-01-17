@@ -1446,23 +1446,6 @@ IMPLEMENT_STATELESS_ACTOR( APowerTimeFreezer, Any, -1, 0 )
 	PROP_Powerup_EffectTics( TIMEFREEZE_TICS )
 END_DEFAULTS
 
-// Need to set the default for each game here
-AT_GAME_SET( PowerTimeFreezer )
-{
-	APowerTimeFreezer	*pTimeFreezer;
-	
-	pTimeFreezer = GetDefault<APowerTimeFreezer>( );
-	switch ( gameinfo.gametype )
-	{
-	case GAME_Doom:
-
-		pTimeFreezer->BlendColor = GOLDCOLORMAP;
-		break;
-	default:
-		break;
-	}
-}
-
 //===========================================================================
 //
 // APowerTimeFreezer :: InitEffect
