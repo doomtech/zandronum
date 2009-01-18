@@ -790,7 +790,7 @@ void AFlag::DisplayFlagReturn( void )
 
 class AWhiteFlag : public AFlag
 {
-	DECLARE_ACTOR( AWhiteFlag, AFlag )
+	DECLARE_CLASS( AWhiteFlag, AFlag )
 protected:
 
 	virtual bool HandlePickup( AInventory *pItem );
@@ -804,25 +804,7 @@ protected:
 	virtual void DisplayFlagReturn( void );
 };
 
-FState AWhiteFlag::States[] =
-{
-	S_NORMAL (WFLA, 'A',   3, NULL 				, &States[1]),
-	S_NORMAL (WFLA, 'B',   3, NULL 				, &States[2]),
-	S_NORMAL (WFLA, 'C',   3, NULL 				, &States[3]),
-	S_BRIGHT (WFLA, 'D',   3, NULL 				, &States[4]),
-	S_BRIGHT (WFLA, 'E',   3, NULL 				, &States[5]),
-	S_BRIGHT (WFLA, 'F',   3, NULL 				, &States[0]),
-};
-
-IMPLEMENT_ACTOR( AWhiteFlag, Any, 5132, 179 )
-	PROP_RadiusFixed( 20 )
-	PROP_HeightFixed( 16 )
-	PROP_Flags( MF_SPECIAL|MF_NOTDMATCH )
-	PROP_SpawnState( 0 )
-
-	PROP_Inventory_PickupMessage( "$PICKUP_WHITEFLAG" )
-	PROP_Inventory_Icon( "WFLAB0" )
-END_DEFAULTS
+IMPLEMENT_CLASS( AWhiteFlag )
 
 //===========================================================================
 //
