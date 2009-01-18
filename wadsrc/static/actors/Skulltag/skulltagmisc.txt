@@ -99,3 +99,36 @@ ACTOR FloatyIcon native
 		loop
 	}
 }
+
+//=================================================================================================
+//
+// PathNode
+//
+//=================================================================================================
+
+ACTOR PathNode
+{
+	SpawnId 0
+	Radius 8
+	Height 8
+	+NOBLOCKMAP
+	States
+	{
+	Spawn:
+		// Frame 0: This is a node in the open list.
+		NODE A 6 bright
+		loop
+		// Frame 1: This is the node just popped off the open list.
+		NODE B 6 bright
+		loop
+		// Frame 2: This is a node in the closed list.
+		NODE C 6 bright
+		loop
+		// Frame 3: This is a node on the path.
+		NODE D 6 bright
+		loop
+		APBX D 6 bright
+		loop
+
+	}
+}

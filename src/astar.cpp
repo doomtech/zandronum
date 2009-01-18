@@ -81,36 +81,6 @@ static	LONG			g_lCurrentPathIdx;
 static	FRandom			g_RandomRoamSeed( "RoamSeed" );
 static	bool			g_bIsInitialized;
 
-class APathNode : public AActor
-{
-	DECLARE_ACTOR( APathNode, AActor )
-public:
-};
-
-FState APathNode::States[] =
-{
-#define S_PATHNODE 0
-
-	// Frame 0: This is a node in the open list.
-	S_BRIGHT( NODE, 'A',	6, NULL 						, &States[S_PATHNODE] ),
-	// Frame 1: This is the node just popped off the open list.
-	S_BRIGHT( NODE, 'B',	6, NULL 						, &States[S_PATHNODE+1] ),
-	// Frame 2: This is a node in the closed list.
-	S_BRIGHT( NODE, 'C',	6, NULL 						, &States[S_PATHNODE+2] ),
-	// Frame 3: This is a node on the path.
-	S_BRIGHT( NODE, 'D',	6, NULL 						, &States[S_PATHNODE+3] ),
-	S_BRIGHT( APBX, 'D',	6, NULL 						, &States[S_PATHNODE+4] ),
-
-};
-
-IMPLEMENT_ACTOR( APathNode, Any, -1, 0 )
-	PROP_RadiusFixed( 8 )
-	PROP_HeightFixed( 8 )
-	PROP_Flags( MF_NOBLOCKMAP )
-
-	PROP_SpawnState( S_PATHNODE )
-END_DEFAULTS
-
 //*****************************************************************************
 //	PROTOTYPES
 
@@ -776,9 +746,10 @@ static bool astar_PathNextNode( ASTARPATH_t *pPath )
 			if ( botdebug_shownodes )
 			{
 				if ( pPath->paVisualizations[( pPath->pCurrentNode->lXNodeIdx * g_lNumVerticalNodes ) + pPath->pCurrentNode->lYNodeIdx] == NULL )
-					pPath->paVisualizations[( pPath->pCurrentNode->lXNodeIdx * g_lNumVerticalNodes ) + pPath->pCurrentNode->lYNodeIdx] = Spawn( RUNTIME_CLASS( APathNode ), pPath->pCurrentNode->Position.x, pPath->pCurrentNode->Position.y, ONFLOORZ, NO_REPLACE );
+					pPath->paVisualizations[( pPath->pCurrentNode->lXNodeIdx * g_lNumVerticalNodes ) + pPath->pCurrentNode->lYNodeIdx] = Spawn( PClass::FindClass( "PathNode" ), pPath->pCurrentNode->Position.x, pPath->pCurrentNode->Position.y, ONFLOORZ, NO_REPLACE );
 
-				pPath->paVisualizations[( pPath->pCurrentNode->lXNodeIdx * g_lNumVerticalNodes ) + pPath->pCurrentNode->lYNodeIdx]->SetState( &APathNode::States[ASTAR_FRAME_INCLOSED] );
+				AActor * pPathNode = pPath->paVisualizations[( pPath->pCurrentNode->lXNodeIdx * g_lNumVerticalNodes ) + pPath->pCurrentNode->lYNodeIdx];
+				pPathNode->SetState( pPathNode->SpawnState + ASTAR_FRAME_INCLOSED );
 			}
 		}
 
@@ -877,9 +848,10 @@ static bool astar_PullNodeFromOpenList( ASTARPATH_t *pPath )
 	if ( botdebug_shownodes )
 	{
 		if ( pPath->paVisualizations[( pPath->pCurrentNode->lXNodeIdx * g_lNumVerticalNodes ) + pPath->pCurrentNode->lYNodeIdx] == NULL )
-			pPath->paVisualizations[( pPath->pCurrentNode->lXNodeIdx * g_lNumVerticalNodes ) + pPath->pCurrentNode->lYNodeIdx] = Spawn( RUNTIME_CLASS( APathNode ), pPath->pCurrentNode->Position.x, pPath->pCurrentNode->Position.y, ONFLOORZ, NO_REPLACE );
+			pPath->paVisualizations[( pPath->pCurrentNode->lXNodeIdx * g_lNumVerticalNodes ) + pPath->pCurrentNode->lYNodeIdx] = Spawn( PClass::FindClass( "PathNode" ), pPath->pCurrentNode->Position.x, pPath->pCurrentNode->Position.y, ONFLOORZ, NO_REPLACE );
 
-		pPath->paVisualizations[( pPath->pCurrentNode->lXNodeIdx * g_lNumVerticalNodes ) + pPath->pCurrentNode->lYNodeIdx]->SetState( &APathNode::States[ASTAR_FRAME_OFFOPEN] );
+		AActor * pPathNode = pPath->paVisualizations[( pPath->pCurrentNode->lXNodeIdx * g_lNumVerticalNodes ) + pPath->pCurrentNode->lYNodeIdx];
+		pPathNode->SetState( pPathNode->SpawnState + ASTAR_FRAME_OFFOPEN );
 	}
 
 	// If this node is the goal node, we've found the goal node. Now we can construct a path
@@ -900,9 +872,10 @@ static bool astar_PullNodeFromOpenList( ASTARPATH_t *pPath )
 				if ( botdebug_shownodes )
 				{
 					if ( pPath->paVisualizations[( pNextNode->lXNodeIdx * g_lNumVerticalNodes ) + pNextNode->lYNodeIdx] == NULL )
-						pPath->paVisualizations[( pNextNode->lXNodeIdx * g_lNumVerticalNodes ) + pNextNode->lYNodeIdx] = Spawn( RUNTIME_CLASS( APathNode ), pNextNode->Position.x, pNextNode->Position.y, ONFLOORZ, NO_REPLACE );
+						pPath->paVisualizations[( pNextNode->lXNodeIdx * g_lNumVerticalNodes ) + pNextNode->lYNodeIdx] = Spawn( PClass::FindClass( "PathNode" ), pNextNode->Position.x, pNextNode->Position.y, ONFLOORZ, NO_REPLACE );
 
-					pPath->paVisualizations[( pNextNode->lXNodeIdx * g_lNumVerticalNodes ) + pNextNode->lYNodeIdx]->SetState( &APathNode::States[ASTAR_FRAME_ONPATH] );
+					AActor * pPathNode = pPath->paVisualizations[( pNextNode->lXNodeIdx * g_lNumVerticalNodes ) + pNextNode->lYNodeIdx];
+					pPathNode ->SetState( pPathNode->SpawnState + ASTAR_FRAME_ONPATH );
 				}
 			}
 
@@ -1104,9 +1077,10 @@ static void astar_ProcessNextPathNode( ASTARPATH_t *pPath, ASTARNODE_t *pNode, L
 			if ( botdebug_shownodes )
 			{
 				if ( pPath->paVisualizations[( pNode->lXNodeIdx * g_lNumVerticalNodes ) + pNode->lYNodeIdx] == NULL )
-					pPath->paVisualizations[( pNode->lXNodeIdx * g_lNumVerticalNodes ) + pNode->lYNodeIdx] = Spawn( RUNTIME_CLASS( APathNode ), pNode->Position.x, pNode->Position.y, ONFLOORZ, NO_REPLACE );
+					pPath->paVisualizations[( pNode->lXNodeIdx * g_lNumVerticalNodes ) + pNode->lYNodeIdx] = Spawn( PClass::FindClass( "PathNode" ), pNode->Position.x, pNode->Position.y, ONFLOORZ, NO_REPLACE );
 
-				pPath->paVisualizations[( pNode->lXNodeIdx * g_lNumVerticalNodes ) + pNode->lYNodeIdx]->SetState( &APathNode::States[ASTAR_FRAME_INOPEN] );
+				AActor *pPathNode = pPath->paVisualizations[( pNode->lXNodeIdx * g_lNumVerticalNodes ) + pNode->lYNodeIdx];
+				pPathNode->SetState( pPathNode->SpawnState + ASTAR_FRAME_INOPEN );
 			}
 		}
 	}
