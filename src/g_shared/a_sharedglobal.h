@@ -272,18 +272,4 @@ public:
 	void Deactivate (AActor *activator);
 };
 
-// [BC] Cooperative backpacks.
-class ACooperativeBackpack : public AInventory
-{
-	DECLARE_ACTOR( ACooperativeBackpack, AInventory )
-public:
-
-	virtual bool TryPickup( AActor *pToucher );
-	void FillBackpack( player_t *pPlayer );
-protected:
-
-	virtual const char *PickupMessage( );
-	virtual bool ShouldRespawn( );
-};
-
 #endif //__A_SHAREDGLOBAL_H__

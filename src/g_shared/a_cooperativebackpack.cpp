@@ -57,6 +57,20 @@
 // This special backpack is spawned when a player dies. It contains his weapons,
 // ammo, and a normal backpack if the player carried one.
 
+// [BC] Cooperative backpacks.
+class ACooperativeBackpack : public AInventory
+{
+	DECLARE_ACTOR( ACooperativeBackpack, AInventory )
+public:
+
+	virtual bool TryPickup( AActor *pToucher );
+	void FillBackpack( player_t *pPlayer );
+protected:
+
+	virtual const char *PickupMessage( );
+	virtual bool ShouldRespawn( );
+};
+
 FState ACooperativeBackpack::States[] =
 {
 	S_NORMAL( BPK2, 'A',   -1, NULL 						, NULL )
