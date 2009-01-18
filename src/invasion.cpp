@@ -217,16 +217,13 @@ void ABaseMonsterInvasionSpot::Serialize( FArchive &arc )
 }
 
 //*****************************************************************************
-IMPLEMENT_STATELESS_ACTOR( ABaseMonsterInvasionSpot, Any, -1, 0 )
-	PROP_Flags( MF_NOBLOCKMAP|MF_NOSECTOR|MF_NOGRAVITY )
-	PROP_RenderStyle( STYLE_None )
-END_DEFAULTS
+IMPLEMENT_CLASS( ABaseMonsterInvasionSpot )
 
 //*****************************************************************************
 //*****************************************************************************
 class ACustomMonsterInvasionSpot : public ABaseMonsterInvasionSpot
 {
-	DECLARE_STATELESS_ACTOR( ACustomMonsterInvasionSpot, ABaseMonsterInvasionSpot )
+	DECLARE_CLASS( ACustomMonsterInvasionSpot, ABaseMonsterInvasionSpot )
 public:
 
 	virtual char	*GetSpawnName( void );
@@ -273,10 +270,7 @@ char *ACustomMonsterInvasionSpot::GetSpawnName( void )
 }
 
 //*****************************************************************************
-IMPLEMENT_STATELESS_ACTOR( ACustomMonsterInvasionSpot, Any, -1, 0 )
-	PROP_Flags( MF_NOBLOCKMAP|MF_NOSECTOR|MF_NOGRAVITY )
-	PROP_RenderStyle( STYLE_None )
-END_DEFAULTS
+IMPLEMENT_CLASS( ACustomMonsterInvasionSpot )
 
 //*****************************************************************************
 //*****************************************************************************
@@ -417,16 +411,13 @@ void ABasePickupInvasionSpot::PickedUp( void )
 }
 
 //*****************************************************************************
-IMPLEMENT_STATELESS_ACTOR( ABasePickupInvasionSpot, Any, -1, 0 )
-	PROP_Flags( MF_NOBLOCKMAP|MF_NOSECTOR|MF_NOGRAVITY )
-	PROP_RenderStyle( STYLE_None )
-END_DEFAULTS
+IMPLEMENT_CLASS( ABasePickupInvasionSpot )
 
 //*****************************************************************************
 //*****************************************************************************
 class ACustomPickupInvasionSpot : public ABasePickupInvasionSpot
 {
-	DECLARE_STATELESS_ACTOR( ACustomPickupInvasionSpot, ABasePickupInvasionSpot )
+	DECLARE_CLASS( ACustomPickupInvasionSpot, ABasePickupInvasionSpot )
 public:
 
 	virtual char	*GetSpawnName( void );
@@ -473,10 +464,7 @@ char *ACustomPickupInvasionSpot::GetSpawnName( void )
 }
 
 //*****************************************************************************
-IMPLEMENT_STATELESS_ACTOR( ACustomPickupInvasionSpot, Any, -1, 0 )
-	PROP_Flags( MF_NOBLOCKMAP|MF_NOSECTOR|MF_NOGRAVITY )
-	PROP_RenderStyle( STYLE_None )
-END_DEFAULTS
+IMPLEMENT_CLASS( ACustomPickupInvasionSpot )
 
 //*****************************************************************************
 //*****************************************************************************
@@ -568,15 +556,12 @@ void ABaseWeaponInvasionSpot::Serialize( FArchive &arc )
 }
 
 //*****************************************************************************
-IMPLEMENT_STATELESS_ACTOR( ABaseWeaponInvasionSpot, Any, -1, 0 )
-	PROP_Flags( MF_NOBLOCKMAP|MF_NOSECTOR|MF_NOGRAVITY )
-	PROP_RenderStyle( STYLE_None )
-END_DEFAULTS
+IMPLEMENT_CLASS( ABaseWeaponInvasionSpot )
 
 //*****************************************************************************
 class ACustomWeaponInvasionSpot : public ABaseWeaponInvasionSpot
 {
-	DECLARE_STATELESS_ACTOR( ACustomWeaponInvasionSpot, ABaseWeaponInvasionSpot )
+	DECLARE_CLASS( ACustomWeaponInvasionSpot, ABaseWeaponInvasionSpot )
 public:
 
 	virtual char	*GetSpawnName( void );
@@ -623,10 +608,7 @@ char *ACustomWeaponInvasionSpot::GetSpawnName( void )
 }
 
 //*****************************************************************************
-IMPLEMENT_STATELESS_ACTOR( ACustomWeaponInvasionSpot, Any, -1, 0 )
-	PROP_Flags( MF_NOBLOCKMAP|MF_NOSECTOR|MF_NOGRAVITY )
-	PROP_RenderStyle( STYLE_None )
-END_DEFAULTS
+IMPLEMENT_CLASS( ACustomWeaponInvasionSpot )
 
 //*****************************************************************************
 //	FUNCTIONS

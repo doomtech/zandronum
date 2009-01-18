@@ -77,7 +77,7 @@ struct	PNGHandle;
 //*****************************************************************************
 class ABaseMonsterInvasionSpot : public AActor
 {
-	DECLARE_STATELESS_ACTOR( ABaseMonsterInvasionSpot, AActor )
+	DECLARE_CLASS( ABaseMonsterInvasionSpot, AActor )
 public:
 
 	virtual	char	*GetSpawnName( void );
@@ -95,7 +95,7 @@ public:
 //*****************************************************************************
 class ABasePickupInvasionSpot : public AActor
 {
-	DECLARE_STATELESS_ACTOR( ABasePickupInvasionSpot, AActor )
+	DECLARE_CLASS( ABasePickupInvasionSpot, AActor )
 public:
 
 	virtual	char	*GetSpawnName( void );
@@ -114,7 +114,7 @@ public:
 //*****************************************************************************
 class ABaseWeaponInvasionSpot : public AActor
 {
-	DECLARE_STATELESS_ACTOR( ABaseWeaponInvasionSpot, AActor )
+	DECLARE_CLASS( ABaseWeaponInvasionSpot, AActor )
 public:
 
 	virtual	char	*GetSpawnName( void );
