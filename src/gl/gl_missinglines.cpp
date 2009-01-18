@@ -229,11 +229,11 @@ void gl_RenderMissingLines()
 
 		GLWall wall;
 
-		SetupWall.Start(true);
+		SetupWall.Clock();
 
 		wall.Process(seg, sector, backsector, NULL);
 		rendered_lines++;
 
-		SetupWall.Stop(true);
+		SetupWall.Unclock();
 	}
 }

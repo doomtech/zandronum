@@ -46,7 +46,6 @@
 #include "p_acs.h"
 
 #include "a_doomglobal.h"
-#include "a_hereticglobal.h"
 #include "ravenshared.h"
 #include "a_hexenglobal.h"
 #include "a_sharedglobal.h"
@@ -823,7 +822,7 @@ void AActor::Die (AActor *source, AActor *inflictor)
 
 				if (!deh.NoAutofreeze && !(flags4 & MF4_NOICEDEATH) && (player || (flags3 & MF3_ISMONSTER)))
 				{
-					diestate = &AActor::States[S_GENERICFREEZEDEATH];
+					diestate = FindState(NAME_GenericFreezeDeath);
 				}
 			}
 		}
@@ -1462,7 +1461,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 			{ // Check for flame death
 				if (!inflictor ||
 					((target->health > -50) && (damage > 25)) ||
-					!inflictor->IsKindOf (RUNTIME_CLASS(APhoenixFX1)))
+					!(inflictor->flags5 & MF5_SPECIALFIREDAMAGE))
 				{
 					target->DamageType = NAME_Fire;
 				}
@@ -1476,7 +1475,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 		{
 			target->DamageType = mod;
 		}
-		if (source && source->tracer && source->IsKindOf (RUNTIME_CLASS (AMinotaur)))
+		if (source && source->tracer && (source->flags5 & MF5_SUMMONEDMONSTER))
 		{ // Minotaur's kills go to his master
 			// Make sure still alive and not a pointer to fighter head
 			if (source->tracer->player && (source->tracer->player->mo == source->tracer))
@@ -1520,7 +1519,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 	if (!(target->flags5 & MF5_NOPAIN) && (pr_damagemobj() < painchance) && !(target->flags & MF_SKULLFLY) &&
 		 ( NETWORK_GetState( ) != NETSTATE_CLIENT ) && ( CLIENTDEMO_IsPlaying( ) == false ))
 	{
-		if (inflictor && inflictor->IsKindOf (RUNTIME_CLASS(ALightning)))
+		if (mod == NAME_Electric)
 		{
 			if (pr_lightning() < 96)
 			{
@@ -1553,8 +1552,7 @@ void P_DamageMobj (AActor *target, AActor *inflictor, AActor *source, int damage
 			target->flags |= MF_JUSTHIT; // fight back!
 			FState * painstate = target->FindState(NAME_Pain, mod);
 			if (painstate != NULL) target->SetState (painstate);
-
-			if (inflictor && inflictor->IsKindOf (RUNTIME_CLASS(APoisonCloud)))
+			if (mod == NAME_PoisonCloud)
 			{
 				if ((target->flags3 & MF3_ISMONSTER) && pr_poison() < 128)
 				{

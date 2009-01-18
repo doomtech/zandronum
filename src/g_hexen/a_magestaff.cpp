@@ -6,6 +6,7 @@
 #include "p_enemy.h"
 #include "a_hexenglobal.h"
 #include "gstrings.h"
+#include "a_weaponpiece.h"
 // [BB] New #includes.
 #include "cl_demo.h"
 #include "deathmatch.h"
@@ -25,128 +26,48 @@ static divline_t BlockCheckLine;
 
 //==========================================================================
 
-class AMageWeaponPiece : public AFourthWeaponPiece
+class AMageWeaponPiece : public AWeaponPiece
 {
-	DECLARE_STATELESS_ACTOR (AMageWeaponPiece, AFourthWeaponPiece)
-public:
-	void BeginPlay ();
+	DECLARE_CLASS (AMageWeaponPiece, AWeaponPiece)
 protected:
-	bool MatchPlayerClass (AActor *toucher);
+	bool TryPickup (AActor *toucher);
 };
 
-IMPLEMENT_STATELESS_ACTOR (AMageWeaponPiece, Hexen, -1, 0)
-	PROP_Inventory_PickupMessage("$TXT_BLOODSCOURGE_PIECE")
-END_DEFAULTS
+IMPLEMENT_CLASS (AMageWeaponPiece)
 
-bool AMageWeaponPiece::MatchPlayerClass (AActor *toucher)
+bool AMageWeaponPiece::TryPickup (AActor *toucher)
 {
-	return !toucher->IsKindOf (PClass::FindClass(NAME_FighterPlayer)) &&
-		   !toucher->IsKindOf (PClass::FindClass(NAME_ClericPlayer));
+	if (!toucher->IsKindOf (PClass::FindClass(NAME_ClericPlayer)) &&
+		!toucher->IsKindOf (PClass::FindClass(NAME_FighterPlayer)))
+	{
+		return Super::TryPickup(toucher);
+	}
+	else
+	{ // Wrong class, but try to pick up for ammo
+		if (ShouldStay())
+		{
+			// Can't pick up weapons for other classes in coop netplay
+			return false;
+		}
+
+		AWeapon * Defaults=(AWeapon*)GetDefaultByType(WeaponClass);
+
+		bool gaveSome = !!(toucher->GiveAmmo (Defaults->AmmoType1, Defaults->AmmoGive1) +
+						   toucher->GiveAmmo (Defaults->AmmoType2, Defaults->AmmoGive2));
+
+		if (gaveSome)
+		{
+			GoAwayAndDie ();
+		}
+		return gaveSome;
+	}
 }
-
-//==========================================================================
-
-class AMWeaponPiece1 : public AMageWeaponPiece
-{
-	DECLARE_ACTOR (AMWeaponPiece1, AMageWeaponPiece)
-public:
-	void BeginPlay ();
-};
-
-FState AMWeaponPiece1::States[] =
-{
-	S_BRIGHT (WMS1, 'A',   -1, NULL					    , NULL),
-};
-
-IMPLEMENT_ACTOR (AMWeaponPiece1, Hexen, 21, 37)
-	PROP_Flags (MF_SPECIAL)
-	PROP_Flags2 (MF2_FLOATBOB)
-	PROP_SpawnState (0)
-END_DEFAULTS
-
-void AMWeaponPiece1::BeginPlay ()
-{
-	Super::BeginPlay ();
-	PieceValue = WPIECE1<<6;
-}
-
-//==========================================================================
-
-class AMWeaponPiece2 : public AMageWeaponPiece
-{
-	DECLARE_ACTOR (AMWeaponPiece2, AMageWeaponPiece)
-public:
-	void BeginPlay ();
-};
-
-FState AMWeaponPiece2::States[] =
-{
-	S_BRIGHT (WMS2, 'A',   -1, NULL					    , NULL),
-};
-
-IMPLEMENT_ACTOR (AMWeaponPiece2, Hexen, 22, 38)
-	PROP_Flags (MF_SPECIAL)
-	PROP_Flags2 (MF2_FLOATBOB)
-	PROP_SpawnState (0)
-END_DEFAULTS
-
-void AMWeaponPiece2::BeginPlay ()
-{
-	Super::BeginPlay ();
-	PieceValue = WPIECE2<<6;
-}
-
-//==========================================================================
-
-class AMWeaponPiece3 : public AMageWeaponPiece
-{
-	DECLARE_ACTOR (AMWeaponPiece3, AMageWeaponPiece)
-public:
-	void BeginPlay ();
-};
-
-FState AMWeaponPiece3::States[] =
-{
-	S_BRIGHT (WMS3, 'A',   -1, NULL					    , NULL),
-};
-
-IMPLEMENT_ACTOR (AMWeaponPiece3, Hexen, 23, 39)
-	PROP_Flags (MF_SPECIAL)
-	PROP_Flags2 (MF2_FLOATBOB)
-	PROP_SpawnState (0)
-END_DEFAULTS
-
-void AMWeaponPiece3::BeginPlay ()
-{
-	Super::BeginPlay ();
-	PieceValue = WPIECE3<<6;
-}
-
-// An actor that spawns the three pieces of the mage's fourth weapon --------
-
-// This gets spawned if weapon drop is on so that other players can pick up
-// this player's weapon.
-
-class ABloodscourgeDrop : public AActor
-{
-	DECLARE_ACTOR (ABloodscourgeDrop, AActor)
-};
-
-FState ABloodscourgeDrop::States[] =
-{
-	S_NORMAL (TNT1, 'A', 1, NULL, &States[1]),
-	S_NORMAL (TNT1, 'A', 1, A_DropBloodscourgePieces, NULL)
-};
-
-IMPLEMENT_ACTOR (ABloodscourgeDrop, Hexen, -1, 0)
-	PROP_SpawnState (0)
-END_DEFAULTS
 
 // The Mages's Staff (Bloodscourge) -----------------------------------------
 
 class AMWeapBloodscourge : public AMageWeapon
 {
-	DECLARE_ACTOR (AMWeapBloodscourge, AMageWeapon)
+	DECLARE_CLASS (AMWeapBloodscourge, AMageWeapon)
 public:
 	void Serialize (FArchive &arc)
 	{
@@ -160,138 +81,20 @@ public:
 	BYTE MStaffCount;
 };
 
-FState AMWeapBloodscourge::States[] =
-{
-	// Dummy state, because the fourth weapon does not appear in a level directly.
-	S_NORMAL (TNT1, 'A',   -1, NULL					    , NULL),
-
-#define S_MSTAFFREADY 1
-	S_NORMAL (MSTF, 'A',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+1]),
-	S_NORMAL (MSTF, 'A',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+2]),
-	S_NORMAL (MSTF, 'A',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+3]),
-	S_NORMAL (MSTF, 'A',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+4]),
-	S_NORMAL (MSTF, 'A',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+5]),
-	S_NORMAL (MSTF, 'A',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+6]),
-	S_NORMAL (MSTF, 'B',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+7]),
-	S_NORMAL (MSTF, 'B',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+8]),
-	S_NORMAL (MSTF, 'B',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+9]),
-	S_NORMAL (MSTF, 'B',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+10]),
-	S_NORMAL (MSTF, 'B',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+11]),
-	S_NORMAL (MSTF, 'B',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+12]),
-	S_NORMAL (MSTF, 'C',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+13]),
-	S_NORMAL (MSTF, 'C',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+14]),
-	S_NORMAL (MSTF, 'C',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+15]),
-	S_NORMAL (MSTF, 'C',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+16]),
-	S_NORMAL (MSTF, 'C',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+17]),
-	S_NORMAL (MSTF, 'C',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+18]),
-	S_NORMAL (MSTF, 'D',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+19]),
-	S_NORMAL (MSTF, 'D',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+20]),
-	S_NORMAL (MSTF, 'D',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+21]),
-	S_NORMAL (MSTF, 'D',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+22]),
-	S_NORMAL (MSTF, 'D',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+23]),
-	S_NORMAL (MSTF, 'D',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+24]),
-	S_NORMAL (MSTF, 'E',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+25]),
-	S_NORMAL (MSTF, 'E',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+26]),
-	S_NORMAL (MSTF, 'E',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+27]),
-	S_NORMAL (MSTF, 'E',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+28]),
-	S_NORMAL (MSTF, 'E',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+29]),
-	S_NORMAL (MSTF, 'E',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+30]),
-	S_NORMAL (MSTF, 'F',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+31]),
-	S_NORMAL (MSTF, 'F',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+32]),
-	S_NORMAL (MSTF, 'F',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+33]),
-	S_NORMAL (MSTF, 'F',	1, A_WeaponReady		    , &States[S_MSTAFFREADY+34]),
-	S_NORMAL (MSTF, 'F',	1, A_WeaponReady		    , &States[S_MSTAFFREADY]),
-
-#define S_MSTAFFDOWN (S_MSTAFFREADY+35)
-	S_NORMAL (MSTF, 'A',	1, A_Lower				    , &States[S_MSTAFFDOWN]),
-
-#define S_MSTAFFUP (S_MSTAFFDOWN+1)
-	S_NORMAL (MSTF, 'A',	1, A_Raise				    , &States[S_MSTAFFUP]),
-
-#define S_MSTAFFATK (S_MSTAFFUP+1)
-	S_NORMAL2 (MSTF, 'G',	4, NULL					    , &States[S_MSTAFFATK+1], 0, 40),
-	S_BRIGHT2 (MSTF, 'H',	4, A_MStaffAttack		    , &States[S_MSTAFFATK+2], 0, 48),
-	S_BRIGHT2 (MSTF, 'H',	2, A_MStaffPalette		    , &States[S_MSTAFFATK+3], 0, 48),
-	S_NORMAL2 (MSTF, 'I',	2, A_MStaffPalette		    , &States[S_MSTAFFATK+4], 0, 48),
-	S_NORMAL2 (MSTF, 'I',	2, A_MStaffPalette		    , &States[S_MSTAFFATK+5], 0, 48),
-	S_NORMAL2 (MSTF, 'I',	1, NULL					    , &States[S_MSTAFFATK+6], 0, 40),
-	S_NORMAL2 (MSTF, 'J',	5, NULL					    , &States[S_MSTAFFREADY], 0, 36)
-};
-
-IMPLEMENT_ACTOR (AMWeapBloodscourge, Hexen, -1, 0)
-	PROP_Flags (MF_SPECIAL)
-	PROP_SpawnState (0)
-
-	PROP_Weapon_SelectionOrder (3100)
-	PROP_Weapon_Flags (WIF_PRIMARY_USES_BOTH)
-	PROP_Weapon_AmmoUse1 (15)
-	PROP_Weapon_AmmoUse2 (15)
-	PROP_Weapon_UpState (S_MSTAFFUP)
-	PROP_Weapon_DownState (S_MSTAFFDOWN)
-	PROP_Weapon_ReadyState (S_MSTAFFREADY)
-	PROP_Weapon_AtkState (S_MSTAFFATK)
-	PROP_Weapon_Kickback (150)
-	PROP_Weapon_YAdjust (20)
-	PROP_Weapon_AmmoType1 ("Mana1")
-	PROP_Weapon_AmmoType2 ("Mana2")
-	PROP_Weapon_ProjectileType ("MageStaffFX2")
-	PROP_Inventory_PickupMessage("$TXT_WEAPON_M4")
-END_DEFAULTS
+IMPLEMENT_CLASS (AMWeapBloodscourge)
 
 // Mage Staff FX2 (Bloodscourge) --------------------------------------------
 
-void A_BeAdditive (AActor *self)
-{
-	self->RenderStyle = STYLE_Add;
-}
-
 class AMageStaffFX2 : public AActor
 {
-	DECLARE_ACTOR (AMageStaffFX2, AActor)
+	DECLARE_CLASS(AMageStaffFX2, AActor)
 public:
-	void GetExplodeParms (int &damage, int &dist, bool &hurtSource);
 	int SpecialMissileHit (AActor *victim);
 	bool IsOkayToAttack (AActor *link);
 	bool SpecialBlastHandling (AActor *source, fixed_t strength);
 };
 
-FState AMageStaffFX2::States[] =
-{
-#define S_MSTAFF_FX2_1 0
-	S_BRIGHT (MSP2, 'A',	2, A_MStaffTrack		    , &States[S_MSTAFF_FX2_1+1]),
-	S_BRIGHT (MSP2, 'B',	2, A_MStaffTrack		    , &States[S_MSTAFF_FX2_1+2]),
-	S_BRIGHT (MSP2, 'C',	2, A_MStaffTrack		    , &States[S_MSTAFF_FX2_1+3]),
-	S_BRIGHT (MSP2, 'D',	2, A_MStaffTrack		    , &States[S_MSTAFF_FX2_1]),
-
-#define S_MSTAFF_FX2_X1 (S_MSTAFF_FX2_1+4)
-	S_BRIGHT (MSP2, 'E',	4, A_BeAdditive			    , &States[S_MSTAFF_FX2_X1+1]),
-	S_BRIGHT (MSP2, 'F',	5, A_Explode			    , &States[S_MSTAFF_FX2_X1+2]),
-	S_BRIGHT (MSP2, 'G',	5, NULL					    , &States[S_MSTAFF_FX2_X1+3]),
-	S_BRIGHT (MSP2, 'H',	5, NULL					    , &States[S_MSTAFF_FX2_X1+4]),
-	S_BRIGHT (MSP2, 'I',	4, NULL					    , NULL),
-};
-
-IMPLEMENT_ACTOR (AMageStaffFX2, Hexen, -1, 0)
-	PROP_SpeedFixed (17)
-	PROP_HeightFixed (8)
-	PROP_Damage (4)
-	PROP_DamageType (NAME_Fire)
-	PROP_Flags (MF_NOBLOCKMAP|MF_NOGRAVITY|MF_DROPOFF|MF_MISSILE)
-	PROP_Flags2 (MF2_NOTELEPORT|MF2_IMPACT|MF2_PCROSS|MF2_SEEKERMISSILE)
-	PROP_Flags4 (MF4_EXTREMEDEATH)
-
-	PROP_SpawnState (S_MSTAFF_FX2_1)
-	PROP_DeathState (S_MSTAFF_FX2_X1)
-
-	PROP_DeathSound ("MageStaffExplode")
-END_DEFAULTS
-
-void AMageStaffFX2::GetExplodeParms (int &damage, int &dist, bool &hurtSource)
-{
-	damage = 80;
-	dist = 192;
-	hurtSource = false;
-}
+IMPLEMENT_CLASS (AMageStaffFX2)
 
 int AMageStaffFX2::SpecialMissileHit (AActor *victim)
 {
@@ -460,42 +263,6 @@ void A_MStaffTrack (AActor *actor)
 		actor->tracer = P_RoughMonsterSearch (actor, 10);
 	}
 	P_SeekerMissile (actor, ANGLE_1*2, ANGLE_1*10);
-}
-
-//============================================================================
-//
-// A_DropBloodscourgePieces
-//
-//============================================================================
-
-void A_DropBloodscourgePieces (AActor *actor)
-{
-	static const PClass *pieces[3] =
-	{
-		RUNTIME_CLASS(AMWeaponPiece1),
-		RUNTIME_CLASS(AMWeaponPiece2),
-		RUNTIME_CLASS(AMWeaponPiece3)
-	};
-
-	for (int i = 0, j = 0, fineang = 0; i < 3; ++i)
-	{
-		AActor *piece = Spawn (pieces[j], actor->x, actor->y, actor->z, ALLOW_REPLACE);
-		if (piece != NULL)
-		{
-			piece->momx = actor->momx + finecosine[fineang];
-			piece->momy = actor->momy + finesine[fineang];
-			piece->momz = actor->momz;
-			piece->flags |= MF_DROPPED;
-			fineang += FINEANGLES/3;
-			j = (j == 0) ? (pr_bloodscourgedrop() & 1) + 1 : 3-j;
-		}
-	}
-}
-
-void AMageWeaponPiece::BeginPlay ()
-{
-	Super::BeginPlay ();
-	FourthWeaponClass = RUNTIME_CLASS(AMWeapBloodscourge);
 }
 
 //============================================================================

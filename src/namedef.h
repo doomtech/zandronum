@@ -11,6 +11,7 @@ xx(Doom)
 xx(Heretic)
 xx(Hexen)
 xx(Strife)
+xx(Raven)
 
 // blood spawning
 xx(Blood)
@@ -52,7 +53,12 @@ xx(DoorCreak)
 xx(DoorMetal2)
 xx(Wind)
 
+xx(PointPusher)
+xx(PointPuller)
+
 xx(BulletPuff)
+xx(StrifePuff)
+xx(MaulerPuff)
 
 // Special bosses A_BossDeath knows about
 xx(Fatso)
@@ -106,6 +112,11 @@ xx(Cell)
 xx(Mana1)
 xx(Mana2)
 
+// Hexen's fourth weapons
+xx(FWeapQuietus)
+xx(CWeapWraithverge)
+xx(MWeapBloodscourge)
+
 // Ammo and weapon names for the Strife status bar
 xx(ClipOfBullets)
 xx(PoisonBolts)
@@ -121,6 +132,19 @@ xx(FlameThrower)
 xx(MiniMissileLauncher)
 xx(StrifeGrenadeLauncher)
 xx(Mauler)
+
+xx(AcolyteBlue)
+xx(SpectralLightningV1)
+xx(TeleportDest)
+xx(TeleportDest2)
+
+// Strife's spectres
+xx(AlienSpectre1)
+xx(AlienSpectre2)
+xx(AlienSpectre3)
+xx(AlienSpectre4)
+xx(AlienSpectre5)
+xx(Oracle)
 
 xx(Chicken)
 xx(Pig)
@@ -141,6 +165,7 @@ xx(Yes)
 xx(No)
 xx(Greetings)
 xx(Idle)
+xx(GenericFreezeDeath)
 
 // Compatible death names for the decorate parser.
 xx(XDeath)
@@ -169,6 +194,18 @@ xx(Pickup)
 xx(Use)
 xx(Drop)
 
+xx(Fist)
+//xx(Berserk)
+xx(Chainsaw)
+xx(Pistol)
+xx(Shotgun)
+xx(SSG)
+xx(Chaingun)
+xx(Rocket)
+xx(Plasma)
+xx(BFG)
+//xx(Railgun)
+
 // Damage types
 //xx(Fire)		already defined above
 //xx(Ice)
@@ -188,13 +225,13 @@ xx(DrainLife)	// A weapon like the Sigil that drains your life away.
 xx(Massacre)	// For death by a cheater!
 //(Melee)		already defined above, so don't define it again
 xx(InstantDeath)	// Strife "instant death"
+xx(PoisonCloud)	// makes monsters howl.
 
 // Special death name for getting killed excessively. Could be used as
 // a damage type if you wanted to force an extreme death.
 xx(Extreme)
 
 // [BB] Skulltag Damage types
-xx(Rocket)
 xx(Grenade)
 xx(BFG10k)
 xx(SpawnTelefrag)

@@ -53,7 +53,7 @@
 
 class AInterpolationPoint : public AActor
 {
-	DECLARE_STATELESS_ACTOR (AInterpolationPoint, AActor)
+	DECLARE_CLASS (AInterpolationPoint, AActor)
 	HAS_OBJECT_POINTERS
 public:
 	void BeginPlay ();
@@ -70,13 +70,6 @@ public:
 IMPLEMENT_POINTY_CLASS (AInterpolationPoint)
  DECLARE_POINTER (Next)
 END_POINTERS
-
-BEGIN_STATELESS_DEFAULTS (AInterpolationPoint, Any, 9070, 0)
-	PROP_Flags (MF_NOBLOCKMAP|MF_NOGRAVITY)
-	PROP_Flags3 (MF3_DONTSPLASH)
-	PROP_RenderStyle (STYLE_None)
-	PROP_FlagsNetwork( NETFL_UPDATEARGUMENTS )
-END_DEFAULTS
 
 void AInterpolationPoint::Serialize (FArchive &arc)
 {
@@ -140,15 +133,12 @@ AInterpolationPoint *AInterpolationPoint::ScanForLoop ()
 
 class AInterpolationSpecial : public AActor
 {
-	DECLARE_STATELESS_ACTOR (AInterpolationSpecial, AActor)
+	DECLARE_CLASS (AInterpolationSpecial, AActor)
 public:
 	void Tick () {}		// Does absolutely nothing itself
 };
 
-IMPLEMENT_STATELESS_ACTOR (AInterpolationSpecial, Any, 9075, 0)
-	PROP_Flags (MF_NOBLOCKMAP|MF_NOSECTOR)
-	PROP_Flags3 (MF3_DONTSPLASH)
-END_DEFAULTS
+IMPLEMENT_CLASS (AInterpolationSpecial)
 
 /*
 == PathFollower: something that follows a camera path
@@ -168,7 +158,7 @@ END_DEFAULTS
 
 class APathFollower : public AActor
 {
-	DECLARE_STATELESS_ACTOR (APathFollower, AActor)
+	DECLARE_CLASS (APathFollower, AActor)
 	HAS_OBJECT_POINTERS
 public:
 	void BeginPlay ();
@@ -197,12 +187,6 @@ IMPLEMENT_POINTY_CLASS (APathFollower)
  DECLARE_POINTER (PrevNode)
  DECLARE_POINTER (CurrNode)
 END_POINTERS
-
-BEGIN_STATELESS_DEFAULTS (APathFollower, Any, 9071, 0)
-	PROP_Flags (MF_NOBLOCKMAP|MF_NOSECTOR|MF_NOGRAVITY)
-	PROP_Flags3 (MF3_DONTSPLASH)
-	PROP_FlagsNetwork( NETFL_UPDATEARGUMENTS )
-END_DEFAULTS
 
 void APathFollower::Serialize (FArchive &arc)
 {
@@ -549,7 +533,7 @@ bool APathFollower::Interpolate ()
 
 class AActorMover : public APathFollower
 {
-	DECLARE_STATELESS_ACTOR (AActorMover, APathFollower)
+	DECLARE_CLASS (AActorMover, APathFollower)
 public:
 	void PostBeginPlay ();
 	void Activate (AActor *activator);
@@ -558,8 +542,7 @@ protected:
 	bool Interpolate ();
 };
 
-IMPLEMENT_STATELESS_ACTOR (AActorMover, Any, 9074, 0)
-END_DEFAULTS
+IMPLEMENT_CLASS (AActorMover)
 
 void AActorMover::PostBeginPlay ()
 {
@@ -659,7 +642,7 @@ void AActorMover::Deactivate (AActor *activator)
 
 class AMovingCamera : public APathFollower
 {
-	DECLARE_STATELESS_ACTOR (AMovingCamera, APathFollower)
+	DECLARE_CLASS (AMovingCamera, APathFollower)
 	HAS_OBJECT_POINTERS
 public:
 	void PostBeginPlay ();
@@ -674,9 +657,6 @@ protected:
 IMPLEMENT_POINTY_CLASS (AMovingCamera)
  DECLARE_POINTER (Activator)
 END_POINTERS
-
-BEGIN_STATELESS_DEFAULTS (AMovingCamera, Any, 9072, 0)
-END_DEFAULTS
 
 void AMovingCamera::Serialize (FArchive &arc)
 {

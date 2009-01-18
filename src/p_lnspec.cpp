@@ -2824,7 +2824,8 @@ FUNC(LS_SetPlayerProperty)
 			{ // Give power to activator
 				if (power != 4)
 				{
-					it->GiveInventoryType (powers[power]);
+					APowerup *item = static_cast<APowerup*>(it->GiveInventoryType (powers[power]));
+					if (item != NULL && power == 0) item->BlendColor = INVERSECOLOR;
 				}
 				else if (it->player - players == consoleplayer)
 				{

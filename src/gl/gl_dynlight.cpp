@@ -996,7 +996,7 @@ void gl_SetActorLights(AActor *actor)
 {
 	TArray<FInternalLightAssociation *> * l = gl_GetActorLights(actor);
 
-	All.Start();
+	All.Clock();
 	if (l && currentrenderer==1)
 	{
 		TArray<FInternalLightAssociation *> & LightAssociations=*l;
@@ -1004,7 +1004,7 @@ void gl_SetActorLights(AActor *actor)
 		unsigned int i;
 		unsigned int count;
 
-		int sprite = actor->state->sprite.index;
+		int sprite = actor->state->sprite;
 		int frame = actor->state->GetFrame();
 
 		lights = tmpLight = NULL;
@@ -1052,7 +1052,7 @@ void gl_SetActorLights(AActor *actor)
 			actor->dynamiclights[0]->special2=(int)actor->frame;
 		}
 	}
-	All.Stop();
+	All.Unclock();
 }
 
 //==========================================================================

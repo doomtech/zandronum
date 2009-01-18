@@ -603,7 +603,7 @@ sightcounts[2]++;
 
 bool P_CheckSight (const AActor *t1, const AActor *t2, int flags)
 {
-	clock (SightCycles);
+	SightCycles.Clock();
 
 	bool res;
 
@@ -674,7 +674,7 @@ sightcounts[0]++;
 	}
 
 done:
-	unclock (SightCycles);
+	SightCycles.Unclock();
 	return res;
 }
 
@@ -682,8 +682,7 @@ ADD_STAT (sight)
 {
 	FString out;
 	out.Format ("%04.1f ms (%04.1f max), %5d %2d%4d%4d%4d%4d%4d\n",
-		(double)SightCycles * 1000 * SecondsPerCycle,
-		(double)MaxSightCycles * 1000 * SecondsPerCycle,
+		SightCycles.TimeMS(), MaxSightCycles.TimeMS(),
 		sightcounts[3], sightcounts[0], sightcounts[1], sightcounts[2], sightcounts[3], sightcounts[4], sightcounts[5]);
 	return out;
 }
@@ -692,13 +691,13 @@ void P_ResetSightCounters (bool full)
 {
 	if (full)
 	{
-		MaxSightCycles = 0;
+		MaxSightCycles.Reset();
 	}
-	if (SightCycles > MaxSightCycles)
+	if (SightCycles.Time() > MaxSightCycles.Time())
 	{
 		MaxSightCycles = SightCycles;
 	}
-	SightCycles = 0;
+	SightCycles.Reset();
 	memset (sightcounts, 0, sizeof(sightcounts));
 }
 

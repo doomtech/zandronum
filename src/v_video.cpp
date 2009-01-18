@@ -28,6 +28,7 @@
 #include "m_alloc.h"
 
 #include "i_system.h"
+#include "x86.h"
 #include "i_video.h"
 #include "r_local.h"
 #include "r_draw.h"
@@ -1192,7 +1193,6 @@ void DFrameBuffer::PrecacheTexture(FTexture *tex, int cache)
 void DFrameBuffer::RenderView(player_t *player)
 {
 	R_RenderActorView (player->mo);
-	R_DetailDouble ();		// [RH] Apply detail mode expansion
 	// [RH] Let cameras draw onto textures that were visible this frame.
 	FCanvasTextureInfo::UpdateAll ();
 }
@@ -1321,7 +1321,7 @@ bool V_DoModeSetup (int width, int height, int bits)
 
 	RenderTarget = screen;
 	screen->Lock (true);
-	R_SetupBuffer (false);
+	R_SetupBuffer ();
 	screen->Unlock ();
 
 	M_RefreshModesList ();

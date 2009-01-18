@@ -487,6 +487,7 @@ FState *P_GetState(AActor *self, FState *CallingState, int offset)
 	}
 	else if (offset>0)
 	{
+		if (CallingState == NULL) return NULL;
 		return CallingState + offset;
 	}
 	else if (self != NULL)
@@ -778,8 +779,9 @@ void A_ExplodeParms (AActor *self)
 	int damage;
 	int distance;
 	bool hurtSource;
+	bool alert;
 
-	int index=CheckIndex(3);
+	int index=CheckIndex(4);
 	if (index>=0) 
 	{
 		damage = EvalExpressionI (StateParameters[index], self);
@@ -787,12 +789,14 @@ void A_ExplodeParms (AActor *self)
 		hurtSource = EvalExpressionN (StateParameters[index+2], self);
 		if (damage == 0) damage = 128;
 		if (distance == 0) distance = damage;
+		alert = !!EvalExpressionI (StateParameters[index+3], self);
 	}
 	else
 	{
 		damage = self->GetClass()->Meta.GetMetaInt (ACMETA_ExplosionDamage, 128);
 		distance = self->GetClass()->Meta.GetMetaInt (ACMETA_ExplosionRadius, damage);
 		hurtSource = !self->GetClass()->Meta.GetMetaInt (ACMETA_DontHurtShooter);
+		alert = false;
 	}
 
 	P_RadiusAttack (self, self->target, damage, distance, self->DamageType, hurtSource);
@@ -800,8 +804,12 @@ void A_ExplodeParms (AActor *self)
 	{
 		P_HitFloor (self);
 	}
+	if (alert && self->target != NULL && self->target->player != NULL)
+	{
+		validcount++;
+		P_RecursiveSound (self->Sector, self->target, false, 0);
+	}
 }
-
 
 //==========================================================================
 //

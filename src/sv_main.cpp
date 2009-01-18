@@ -2377,8 +2377,8 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 		// [BB] The ( pActor->health <= 0 ) check is necessary, otherwise
 		// things like DeadDemon are not spawned.
 		if (( pActor->IsKindOf( RUNTIME_CLASS( APlayerPawn ))) ||
-			( pActor->state == &AInventory::States[16] ) ||	// S_HOLDANDDESTROY
-			( pActor->state == &AInventory::States[15] ) || // S_HELD
+			( pActor->state == GetDefaultByType ( RUNTIME_CLASS ( AInventory ) )->FindState("HoldAndDestroy") ) ||	// S_HOLDANDDESTROY
+			( pActor->state == GetDefaultByType ( RUNTIME_CLASS ( AInventory ) )->FindState("Held") ) || // S_HELD
 			( pActor->ulNetworkFlags & NETFL_ALLOWCLIENTSPAWN ) ||
 			(( pActor->health <= 0 ) && (( pActor->flags & MF_COUNTKILL ) == false ) && ( pActor->InDeathState( ))))
 		{
@@ -2389,7 +2389,7 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 		// The clients don't need them at all, since the server will tell
 		// them to spawn a new actor during GAME_ResetMap anyway.
 		if ( !( pActor->IsKindOf( RUNTIME_CLASS( AInventory ) ) )
-		     && ( pActor->state == &AInventory::States[17] ) // S_HIDEINDEFINITELY 
+		     && ( pActor->state == GetDefaultByType ( RUNTIME_CLASS ( AInventory ) )->FindState("HideIndefinitely") ) // S_HIDEINDEFINITELY 
 		   )
 		{
 			continue;
@@ -2461,9 +2461,9 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 
 			// This item has been picked up, and is in its hidden, respawn state. Let
 			// the client know that.
-			if (( pActor->state == &AInventory::States[0] ) ||	// S_HIDEDOOMISH
-				( pActor->state == &AInventory::States[3] ) ||	// S_HIDESPECIAL
-				( pActor->state == &AInventory::States[17] ))
+			if (( pActor->state == GetDefaultByType ( RUNTIME_CLASS ( AInventory ) )->FindState("HideDoomish") ) ||	// S_HIDEDOOMISH
+				( pActor->state == GetDefaultByType ( RUNTIME_CLASS ( AInventory ) )->FindState("HideSpecial") ) ||	// S_HIDESPECIAL
+				( pActor->state == GetDefaultByType ( RUNTIME_CLASS ( AInventory ) )->FindState("HideIndefinitely") ))
 			{
 				SERVERCOMMANDS_HideThing( pActor, ulClient, SVCF_ONLYTHISCLIENT );
 			}
@@ -4882,9 +4882,11 @@ static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 	{
 		SERVERCOMMANDS_SpawnPlayer( g_lCurrentClient, PST_REBORNNOINVENTORY, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
+		/* [BB] Does not work with the latest ZDoom changes. Check if it's still necessary.
 		// If the client has weapon pieces, tell them.
 		if ( players[g_lCurrentClient].pieces )
 			SERVERCOMMANDS_SetPlayerPieces( g_lCurrentClient, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
+		*/
 
 		// If the client is dead, tell them that.
 		if ( players[g_lCurrentClient].mo->health <= 0 )

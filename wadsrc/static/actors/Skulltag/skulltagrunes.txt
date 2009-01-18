@@ -1,5 +1,56 @@
 //=================================================================================================
 //
+// Rune
+//
+//=================================================================================================
+
+ACTOR Rune: Inventory native
+{
+}
+
+
+ACTOR RuneDoubleDamage : Rune native
+{
+}
+
+ACTOR RuneDoubleFiringSpeed : Rune native
+{
+}
+
+ACTOR RuneDrain : Rune native
+{
+}
+
+ACTOR RuneSpread : Rune native
+{
+}
+
+ACTOR RuneHalfDamage : Rune native
+{
+}
+
+ACTOR RuneRegeneration : Rune native
+{
+}
+
+ACTOR RuneProsperity : Rune native
+{
+}
+
+ACTOR RuneReflection : Rune native
+{
+}
+
+ACTOR RuneHighJump : Rune native
+{
+}
+
+ACTOR RuneSpeed25 : Rune native
+{
+}
+
+//=================================================================================================
+//
 // RuneGiver
 //
 //=================================================================================================

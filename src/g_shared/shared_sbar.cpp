@@ -204,9 +204,11 @@ void DBaseStatusBar::Destroy ()
 //
 //---------------------------------------------------------------------------
 
-void DBaseStatusBar::SetScaled (bool scale)
+//[BL] Added force argument to have forcescaled mean forcescaled.
+void DBaseStatusBar::SetScaled (bool scale, bool force)
 {
-	Scaled = RelTop != 0 && (SCREENWIDTH != 320 && scale);
+	Scaled = (RelTop != 0 || force) && (SCREENWIDTH != 320 && scale);
+
 	if (!Scaled)
 	{
 		ST_X = (SCREENWIDTH - 320) / 2;
@@ -1098,8 +1100,8 @@ void DBaseStatusBar::DrawCrosshair ()
 	}
 
 	screen->DrawTexture (CrosshairImage,
-		realviewwidth / 2 + viewwindowx,
-		realviewheight / 2 + viewwindowy,
+		viewwidth / 2 + viewwindowx,
+		viewheight / 2 + viewwindowy,
 		DTA_DestWidth, w,
 		DTA_DestHeight, h,
 		DTA_AlphaChannel, true,

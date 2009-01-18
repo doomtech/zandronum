@@ -3,35 +3,10 @@
 
 #include "stats.h"
 
-// Basic data structures used by the GL renderer
-
-struct Clock
-{
-private:
-	cycle_t counter;
-	cycle_t accum;
-
-public:
-	Clock() { accum=counter=0; }
-
-	void Reset() { counter=accum=0; }
-	void Start(bool sub=false) 
-	{ 
-		counter=GetClockCycle(); 
-	}
-	void Stop(bool sub=false) 
-	{ 
-		accum+=GetClockCycle()-counter; 
-	}
-
-	cycle_t LastCycle() { return GetClockCycle()-counter; }
-	cycle_t operator *() { return accum; }
-};
-
-extern Clock RenderWall,SetupWall,ClipWall;
-extern Clock RenderFlat,SetupFlat;
-extern Clock RenderSprite,SetupSprite;
-extern Clock All, Finish, PortalAll;
+extern cycle_t RenderWall,SetupWall,ClipWall;
+extern cycle_t RenderFlat,SetupFlat;
+extern cycle_t RenderSprite,SetupSprite;
+extern cycle_t All, Finish, PortalAll;
 extern int vertexcount, flatvertices, flatprimitives;
 
 

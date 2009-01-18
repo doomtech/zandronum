@@ -673,7 +673,6 @@ static void InitCrosshairsList();
 	static void StartG15Menu (void);
 #endif
 EXTERN_CVAR (Bool, st_scale)
-EXTERN_CVAR (Int,  r_detail)
 EXTERN_CVAR (Bool, r_stretchsky)
 EXTERN_CVAR (Int,  r_columnmethod)
 EXTERN_CVAR (Bool, r_drawfuzz)
@@ -692,14 +691,6 @@ EXTERN_CVAR (Bool, cl_capfps)
 
 
 static TArray<valuestring_t> Crosshairs;
-
-static value_t DetailModes[] =
-{
-	{ 0.0, "Normal" },
-	{ 1.0, "Double Horizontally" },
-	{ 2.0, "Double Vertically" },
-	{ 3.0, "Double Horiz and Vert" }
-};
 
 static value_t ColumnMethods[] = {
 	{ 0.0, "Original" },
@@ -767,7 +758,6 @@ static menuitem_t VideoItems[] = {
 	{ discrete, "Stretch short skies",	{&r_stretchsky},	   	{2.0}, {0.0},	{0.0}, {OnOff} },
 	{ redtext,	" ",					{NULL},					{0.0}, {0.0},	{0.0}, {NULL} },
 	{ discrete, "Column render mode",	{&r_columnmethod},		{2.0}, {0.0},	{0.0}, {ColumnMethods} },
-	{ discrete, "Detail mode",			{&r_detail},		   	{4.0}, {0.0},	{0.0}, {DetailModes} },
 	{ discrete, "Disable alpha",		{&r_drawtrans},			{2.0}, {0.0},	{0.0}, {NoYes} },
 #ifdef _WIN32
 	{ discrete,	"Show ENDOOM screen",	{&showendoom},			{3.0}, {0.0},	{0.0}, {Endoom} },

@@ -389,28 +389,12 @@ void A_RemoveForceField (AActor *);
 
 class AForceFieldGuard : public AActor
 {
-	DECLARE_ACTOR (AForceFieldGuard, AActor)
+	DECLARE_CLASS (AForceFieldGuard, AActor)
 public:
 	int TakeSpecialDamage (AActor *inflictor, AActor *source, int damage, FName damagetype);
 };
 
-FState AForceFieldGuard::States[] =
-{
-	S_NORMAL (TOKN, 'A', -1, NULL,					NULL),
-	S_NORMAL (XPRK, 'A',  1, A_RemoveForceField,	NULL)
-};
-
-IMPLEMENT_ACTOR (AForceFieldGuard, Strife, 25, 0)
-	PROP_StrifeType (0)
-	PROP_SpawnHealth (10)
-	PROP_SpawnState (0)
-	PROP_DeathState (1)
-	PROP_RadiusFixed (2)
-	PROP_HeightFixed (1)
-	PROP_Mass (10000)
-	PROP_Flags (MF_SHOOTABLE|MF_NOSECTOR)
-	PROP_Flags4 (MF4_INCOMBAT)
-END_DEFAULTS
+IMPLEMENT_CLASS (AForceFieldGuard)
 
 int AForceFieldGuard::TakeSpecialDamage (AActor *inflictor, AActor *source, int damage, FName damagetype)
 {
@@ -452,59 +436,6 @@ void A_GetHurt (AActor *self)
 		self->Die (self->target, self->target);
 	}
 }
-
-class AKneelingGuy : public AActor
-{
-	DECLARE_ACTOR (AKneelingGuy, AActor)
-};
-
-FState AKneelingGuy::States[] =
-{
-#define S_KNEEL	0
-	S_NORMAL (NEAL, 'A',   15, A_LoopActiveSound,	&States[S_KNEEL+1]),
-	S_NORMAL (NEAL, 'B',   40, A_LoopActiveSound,	&States[S_KNEEL]),
-
-#define S_KNEEL_PAIN (S_KNEEL+2)
-	S_NORMAL (NEAL, 'C',	5, A_SetShadow,			&States[S_KNEEL_PAIN+1]),
-	S_NORMAL (NEAL, 'B',	4, A_Pain,				&States[S_KNEEL_PAIN+2]),
-	S_NORMAL (NEAL, 'C',	5, A_ClearShadow,		&States[S_KNEEL]),
-
-#define S_KNEEL_HURT (S_KNEEL_PAIN+3)
-	S_NORMAL (NEAL, 'B',	6, NULL,				&States[S_KNEEL_HURT+1]),
-	S_NORMAL (NEAL, 'C',   13, A_GetHurt,			&States[S_KNEEL_HURT]),
-
-#define S_KNEEL_DIE (S_KNEEL_HURT+2)
-	S_NORMAL (NEAL, 'D',	5, NULL,				&States[S_KNEEL_DIE+1]),
-	S_NORMAL (NEAL, 'E',	5, A_Scream,			&States[S_KNEEL_DIE+2]),
-	S_NORMAL (NEAL, 'F',	6, NULL,				&States[S_KNEEL_DIE+3]),
-	S_NORMAL (NEAL, 'G',	5, A_NoBlocking,		&States[S_KNEEL_DIE+4]),
-	S_NORMAL (NEAL,	'H',	5, NULL,				&States[S_KNEEL_DIE+5]),
-	S_NORMAL (NEAL, 'I',	6, NULL,				&States[S_KNEEL_DIE+6]),
-	S_NORMAL (NEAL, 'J',   -1, NULL,				NULL)
-};
-
-IMPLEMENT_ACTOR (AKneelingGuy, Strife, 204, 0)
-	PROP_SpawnState (S_KNEEL)
-	PROP_SeeState (S_KNEEL)
-	PROP_PainState (S_KNEEL_PAIN)
-	PROP_WoundState (S_KNEEL_HURT)
-	PROP_DeathState (S_KNEEL_DIE)
-
-	PROP_SpawnHealth (51)
-	PROP_PainChance (255)
-	PROP_RadiusFixed (6)
-	PROP_HeightFixed (17)
-	PROP_MassLong (50000)
-	PROP_Flags (MF_SOLID|MF_SHOOTABLE|MF_NOBLOOD)
-	PROP_Flags3 (MF3_ISMONSTER)
-	PROP_Flags4 (MF4_INCOMBAT)
-	PROP_MinMissileChance (150)
-	PROP_StrifeType (37)
-
-	PROP_PainSound ("misc/static")
-	PROP_DeathSound ("misc/static")
-	PROP_ActiveSound ("misc/chant")
-END_DEFAULTS
 
 // Klaxon Warning Light -----------------------------------------------------
 
@@ -561,99 +492,16 @@ void A_KlaxonBlare (AActor *self)
 	}
 }
 
-class AKlaxonWarningLight : public AActor
-{
-	DECLARE_ACTOR (AKlaxonWarningLight, AActor)
-};
-
-FState AKlaxonWarningLight::States[] =
-{
-	S_NORMAL (KLAX, 'A',  5, A_TurretLook,	&States[0]),
-
-	S_NORMAL (KLAX, 'B',  6, A_KlaxonBlare,	&States[2]),
-	S_NORMAL (KLAX, 'C', 60, NULL,			&States[1])
-};
-
-IMPLEMENT_ACTOR (AKlaxonWarningLight, Strife, 24, 0)
-	PROP_SpawnState (0)
-	PROP_SeeState (1)
-	PROP_ReactionTime (60)
-	PROP_RadiusFixed(5)
-	PROP_Flags (MF_NOBLOCKMAP|MF_AMBUSH|MF_SPAWNCEILING|MF_NOGRAVITY)
-	PROP_Flags4 (MF4_FIXMAPTHINGPOS|MF4_NOSPLASHALERT|MF4_SYNCHRONIZED)
-	PROP_StrifeType (121)
-END_DEFAULTS
-
-// CeilingTurret ------------------------------------------------------------
-
-void A_ShootGun (AActor *);
-
-class ACeilingTurret : public AActor
-{
-	DECLARE_ACTOR (ACeilingTurret, AActor)
-};
-
-FState ACeilingTurret::States[] =
-{
-	S_NORMAL (TURT, 'A',  5, A_TurretLook,		&States[0]),
-
-	S_NORMAL (TURT, 'A',  2, A_Chase,			&States[1]),
-
-	S_NORMAL (TURT, 'B',  4, A_ShootGun,		&States[3]),
-	S_NORMAL (TURT, 'D',  3, A_SentinelRefire,	&States[4]),
-	S_NORMAL (TURT, 'A',  4, A_SentinelRefire,  &States[2]),
-
-	S_BRIGHT (BALL, 'A',  6, A_Scream,			&States[6]),
-	S_BRIGHT (BALL, 'B',  6, NULL,				&States[7]),
-	S_BRIGHT (BALL, 'C',  6, NULL,				&States[8]),
-	S_BRIGHT (BALL, 'D',  6, NULL,				&States[9]),
-	S_BRIGHT (BALL, 'E',  6, NULL,				&States[10]),
-	S_NORMAL (TURT, 'C', -1, NULL,				NULL)
-};
-
-IMPLEMENT_ACTOR (ACeilingTurret, Strife, 27, 0)
-	PROP_StrifeType (122)
-	PROP_SpawnHealth (125)
-	PROP_SpawnState (0)
-	PROP_SeeState (1)
-	PROP_PainState (2)
-	PROP_MissileState (2)
-	PROP_DeathState (5)
-	PROP_SpeedFixed (0)
-	PROP_PainChance (0)
-	PROP_MassLong (10000000)
-	PROP_Flags (MF_SHOOTABLE|MF_AMBUSH|MF_SPAWNCEILING|MF_NOGRAVITY|
-				MF_NOBLOOD|MF_COUNTKILL)
-	PROP_Flags4 (MF4_NOSPLASHALERT|MF4_DONTFALL)
-	PROP_MinMissileChance (150)
-	PROP_DeathSound ("turret/death")
-END_DEFAULTS
-
 // Power Coupling -----------------------------------------------------------
 
 class APowerCoupling : public AActor
 {
-	DECLARE_ACTOR (APowerCoupling, AActor)
+	DECLARE_CLASS (APowerCoupling, AActor)
 public:
 	void Die (AActor *source, AActor *inflictor);
 };
 
-FState APowerCoupling::States[] =
-{
-	S_NORMAL (COUP, 'A', 5, NULL, &States[1]),
-	S_NORMAL (COUP, 'B', 5, NULL, &States[0]),
-};
-
-IMPLEMENT_ACTOR (APowerCoupling, Strife, 220, 0)
-	PROP_SpawnState (0)
-	PROP_SpawnHealth (40)
-	PROP_RadiusFixed (17)
-	PROP_HeightFixed (64)
-	PROP_MassLong (999999)
-	PROP_Flags (MF_SOLID|MF_SHOOTABLE|MF_DROPPED|MF_NOBLOOD|MF_NOTDMATCH)
-	PROP_Flags4 (MF4_INCOMBAT)
-	PROP_StrifeType (288)
-END_DEFAULTS
+IMPLEMENT_CLASS (APowerCoupling)
 
 void APowerCoupling::Die (AActor *source, AActor *inflictor)
 {
@@ -686,7 +534,7 @@ void APowerCoupling::Die (AActor *source, AActor *inflictor)
 
 class AMeat : public AActor
 {
-	DECLARE_ACTOR (AMeat, AActor)
+	DECLARE_CLASS (AMeat, AActor)
 public:
 	void BeginPlay ()
 	{
@@ -695,70 +543,7 @@ public:
 	}
 };
 
-FState AMeat::States[] =
-{
-	S_NORMAL (MEAT, 'A', 700, NULL, NULL),
-	S_NORMAL (MEAT, 'B', 700, NULL, NULL),
-	S_NORMAL (MEAT, 'C', 700, NULL, NULL),
-	S_NORMAL (MEAT, 'D', 700, NULL, NULL),
-	S_NORMAL (MEAT, 'E', 700, NULL, NULL),
-	S_NORMAL (MEAT, 'F', 700, NULL, NULL),
-	S_NORMAL (MEAT, 'G', 700, NULL, NULL),
-	S_NORMAL (MEAT, 'H', 700, NULL, NULL),
-	S_NORMAL (MEAT, 'I', 700, NULL, NULL),
-	S_NORMAL (MEAT, 'J', 700, NULL, NULL),
-	S_NORMAL (MEAT, 'K', 700, NULL, NULL),
-	S_NORMAL (MEAT, 'L', 700, NULL, NULL),
-	S_NORMAL (MEAT, 'M', 700, NULL, NULL),
-	S_NORMAL (MEAT, 'N', 700, NULL, NULL),
-	S_NORMAL (MEAT, 'O', 700, NULL, NULL),
-	S_NORMAL (MEAT, 'P', 700, NULL, NULL),
-	S_NORMAL (MEAT, 'Q', 700, NULL, NULL),
-	S_NORMAL (MEAT, 'R', 700, NULL, NULL),
-	S_NORMAL (MEAT, 'S', 700, NULL, NULL),
-	S_NORMAL (MEAT, 'T', 700, NULL, NULL)
-};
-
-IMPLEMENT_ACTOR (AMeat, Any, -1, 0)
-	PROP_SpawnState (0)
-	PROP_Flags (MF_NOCLIP)
-END_DEFAULTS
-
-// Gibs for things that don't bleed -----------------------------------------
-
-class AJunk : public AMeat
-{
-	DECLARE_ACTOR (AJunk, AMeat)
-};
-
-FState AJunk::States[] =
-{
-	S_NORMAL (JUNK, 'A', 700, NULL, NULL),
-	S_NORMAL (JUNK, 'B', 700, NULL, NULL),
-	S_NORMAL (JUNK, 'C', 700, NULL, NULL),
-	S_NORMAL (JUNK, 'D', 700, NULL, NULL),
-	S_NORMAL (JUNK, 'E', 700, NULL, NULL),
-	S_NORMAL (JUNK, 'F', 700, NULL, NULL),
-	S_NORMAL (JUNK, 'G', 700, NULL, NULL),
-	S_NORMAL (JUNK, 'H', 700, NULL, NULL),
-	S_NORMAL (JUNK, 'I', 700, NULL, NULL),
-	S_NORMAL (JUNK, 'J', 700, NULL, NULL),
-	S_NORMAL (JUNK, 'K', 700, NULL, NULL),
-	S_NORMAL (JUNK, 'L', 700, NULL, NULL),
-	S_NORMAL (JUNK, 'M', 700, NULL, NULL),
-	S_NORMAL (JUNK, 'N', 700, NULL, NULL),
-	S_NORMAL (JUNK, 'O', 700, NULL, NULL),
-	S_NORMAL (JUNK, 'P', 700, NULL, NULL),
-	S_NORMAL (JUNK, 'Q', 700, NULL, NULL),
-	S_NORMAL (JUNK, 'R', 700, NULL, NULL),
-	S_NORMAL (JUNK, 'S', 700, NULL, NULL),
-	S_NORMAL (JUNK, 'T', 700, NULL, NULL)
-};
-
-IMPLEMENT_ACTOR (AJunk, Any, -1, 0)
-	PROP_SpawnState (0)
-	PROP_Flags (MF_NOCLIP)
-END_DEFAULTS
+IMPLEMENT_CLASS (AMeat)
 
 //==========================================================================
 //
@@ -768,7 +553,7 @@ END_DEFAULTS
 
 void A_TossGib (AActor *self)
 {
-	const PClass *gibtype = (self->flags & MF_NOBLOOD) ? RUNTIME_CLASS(AJunk) : RUNTIME_CLASS(AMeat);
+	const char *gibtype = (self->flags & MF_NOBLOOD) ? "Junk" : "Meat";
 	AActor *gib = Spawn (gibtype, self->x, self->y, self->z + 24*FRACUNIT, ALLOW_REPLACE);
 	angle_t an;
 	int speed;
@@ -853,110 +638,13 @@ void A_ClearSoundTarget (AActor *self)
 }
 
 
-// Fire Droplet -------------------------------------------------------------
-
-class AFireDroplet : public AActor
-{
-	DECLARE_ACTOR (AFireDroplet, AActor)
-};
-
-// [RH] I think these should be bright, even though they weren't in Strife.
-FState AFireDroplet::States[] =
-{
-	S_BRIGHT (FFOT, 'A', 9, NULL, &States[1]),
-	S_BRIGHT (FFOT, 'B', 9, NULL, &States[2]),
-	S_BRIGHT (FFOT, 'C', 9, NULL, &States[3]),
-	S_BRIGHT (FFOT, 'D', 9, NULL, NULL)
-};
-
-IMPLEMENT_ACTOR (AFireDroplet, Strife, -1, 0)
-	PROP_StrifeType (297)
-	PROP_SpawnState (0)
-	PROP_Flags (MF_NOBLOCKMAP|MF_NOCLIP)
-END_DEFAULTS
-
-// Humanoid Base Class ------------------------------------------------------
-
-void A_ItBurnsItBurns (AActor *);
-void A_DropFire (AActor *);
-void A_CrispyPlayer (AActor *);
-void A_HandLower (AActor *);
-void A_Yeargh (AActor *);
-
-FState AStrifeHumanoid::States[] =
-{
-#define S_FIREHANDS 0
-	S_BRIGHT (WAVE, 'A', 3, NULL,				&States[S_FIREHANDS+1]),
-	S_BRIGHT (WAVE, 'B', 3, NULL,				&States[S_FIREHANDS+2]),
-	S_BRIGHT (WAVE, 'C', 3, NULL,				&States[S_FIREHANDS+3]),
-	S_BRIGHT (WAVE, 'D', 3, NULL,				&States[S_FIREHANDS]),
-
-	// [RH] These weren't bright in Strife, but I think they should be.
-	// (After all, they are now a light source.)
-#define S_HUMAN_BURNDEATH (S_FIREHANDS+4)
-	S_BRIGHT (BURN, 'A', 3, A_ItBurnsItBurns,	&States[S_HUMAN_BURNDEATH+1]),
-	S_BRIGHT (BURN, 'B', 3, A_DropFire,			&States[S_HUMAN_BURNDEATH+2]),
-	S_BRIGHT (BURN, 'C', 3, A_Wander,			&States[S_HUMAN_BURNDEATH+3]),
-	S_BRIGHT (BURN, 'D', 3, A_NoBlocking,		&States[S_HUMAN_BURNDEATH+4]),
-	S_BRIGHT (BURN, 'E', 5, A_DropFire,			&States[S_HUMAN_BURNDEATH+5]),
-	S_BRIGHT (BURN, 'F', 5, A_Wander,			&States[S_HUMAN_BURNDEATH+6]),
-	S_BRIGHT (BURN, 'G', 5, A_Wander,			&States[S_HUMAN_BURNDEATH+7]),
-	S_BRIGHT (BURN, 'H', 5, A_Wander,			&States[S_HUMAN_BURNDEATH+8]),
-	S_BRIGHT (BURN, 'I', 5, A_DropFire,			&States[S_HUMAN_BURNDEATH+9]),
-	S_BRIGHT (BURN, 'J', 5, A_Wander,			&States[S_HUMAN_BURNDEATH+10]),
-	S_BRIGHT (BURN, 'K', 5, A_Wander,			&States[S_HUMAN_BURNDEATH+11]),
-	S_BRIGHT (BURN, 'L', 5, A_Wander,			&States[S_HUMAN_BURNDEATH+12]),
-	S_BRIGHT (BURN, 'M', 3, A_DropFire,			&States[S_HUMAN_BURNDEATH+13]),
-	S_BRIGHT (BURN, 'N', 3, NULL,				&States[S_HUMAN_BURNDEATH+14]),
-	S_BRIGHT (BURN, 'O', 5, NULL,				&States[S_HUMAN_BURNDEATH+15]),
-	S_BRIGHT (BURN, 'P', 5, NULL,				&States[S_HUMAN_BURNDEATH+16]),
-	S_BRIGHT (BURN, 'Q', 5, NULL,				&States[S_HUMAN_BURNDEATH+17]),
-	S_BRIGHT (BURN, 'P', 5, NULL,				&States[S_HUMAN_BURNDEATH+18]),
-	S_BRIGHT (BURN, 'Q', 5, NULL,				&States[S_HUMAN_BURNDEATH+19]),
-	S_BRIGHT (BURN, 'R', 7, NULL,				&States[S_HUMAN_BURNDEATH+20]),
-	S_BRIGHT (BURN, 'S', 7, NULL,				&States[S_HUMAN_BURNDEATH+21]),
-	S_BRIGHT (BURN, 'T', 7, NULL,				&States[S_HUMAN_BURNDEATH+22]),
-	S_BRIGHT (BURN, 'U', 7, NULL,				&States[S_HUMAN_BURNDEATH+23]),
-	S_BRIGHT (BURN, 'V',700,NULL,				NULL),
-
-#define S_HUMAN_ZAPDEATH (S_HUMAN_BURNDEATH+24)
-	S_NORMAL (DISR, 'A', 5, A_Yeargh,			&States[S_HUMAN_ZAPDEATH+1]),
-	S_NORMAL (DISR, 'B', 5, NULL,				&States[S_HUMAN_ZAPDEATH+2]),
-	S_NORMAL (DISR, 'C', 5, NULL,				&States[S_HUMAN_ZAPDEATH+3]),
-	S_NORMAL (DISR, 'D', 5, A_NoBlocking,		&States[S_HUMAN_ZAPDEATH+4]),
-	S_NORMAL (DISR, 'E', 5, NULL,				&States[S_HUMAN_ZAPDEATH+5]),
-	S_NORMAL (DISR, 'F', 5, NULL,				&States[S_HUMAN_ZAPDEATH+6]),
-	S_NORMAL (DISR, 'G', 4, NULL,				&States[S_HUMAN_ZAPDEATH+7]),
-	S_NORMAL (DISR, 'H', 4, NULL,				&States[S_HUMAN_ZAPDEATH+8]),
-	S_NORMAL (DISR, 'I', 4, NULL,				&States[S_HUMAN_ZAPDEATH+9]),
-	S_NORMAL (DISR, 'J', 4, NULL,				&States[S_HUMAN_ZAPDEATH+10]),
-	S_NORMAL (MEAT, 'D',700,NULL,				NULL),
-
-#define S_FIREHANDS2 (S_HUMAN_ZAPDEATH+11)
-	S_BRIGHT (WAVE, 'A', 3, A_HandLower,		&States[S_FIREHANDS2+1]),
-	S_BRIGHT (WAVE, 'B', 3, A_HandLower,		&States[S_FIREHANDS2+2]),
-	S_BRIGHT (WAVE, 'C', 3, A_HandLower,		&States[S_FIREHANDS2+3]),
-	S_BRIGHT (WAVE, 'D', 3, A_HandLower,		&States[S_FIREHANDS2]),
-};
-
-IMPLEMENT_ACTOR (AStrifeHumanoid, Any, -1, 0)
-	PROP_BDeathState (S_HUMAN_BURNDEATH)
-	PROP_EDeathState (S_HUMAN_ZAPDEATH)
-	PROP_MaxStepHeight (16)
-	PROP_MaxDropOffHeight (32)
-END_DEFAULTS
-
 void A_ItBurnsItBurns (AActor *self)
 {
-	FSoundID burnsound = "human/imonfire";
-	if (burnsound != 0)
-	{
-		self->DeathSound = burnsound;
-	}
-	A_Scream (self);
+	S_Sound (self, CHAN_VOICE, "human/imonfire", 1, ATTN_NORM);
+
 	if (self->player != NULL && self->player->mo == self)
 	{
-		P_SetPsprite (self->player, ps_weapon, &AStrifeHumanoid::States[S_FIREHANDS]);
+		P_SetPsprite (self->player, ps_weapon, self->FindState("FireHands"));
 		P_SetPsprite (self->player, ps_flash, NULL);
 		self->player->ReadyWeapon = NULL;
 		self->player->PendingWeapon = WP_NOCHANGE;
@@ -966,7 +654,7 @@ void A_ItBurnsItBurns (AActor *self)
 
 void A_DropFire (AActor *self)
 {
-	AActor *drop = Spawn<AFireDroplet> (self->x, self->y, self->z + 24*FRACUNIT, ALLOW_REPLACE);
+	AActor *drop = Spawn("FireDroplet", self->x, self->y, self->z + 24*FRACUNIT, ALLOW_REPLACE);
 	drop->momz = -FRACUNIT;
 	P_RadiusAttack (self, self, 64, 64, NAME_Fire, false);
 }
@@ -976,8 +664,9 @@ void A_CrispyPlayer (AActor *self)
 	if (self->player != NULL && self->player->mo == self)
 	{
 		self->player->playerstate = PST_DEAD;
-		P_SetPsprite (self->player, ps_weapon, &AStrifeHumanoid::States[S_FIREHANDS2 +
-			(self->player->psprites[ps_weapon].state - &AStrifeHumanoid::States[S_FIREHANDS])]);
+		P_SetPsprite (self->player, ps_weapon,
+			self->player->psprites[ps_weapon].state +
+			(self->FindState("FireHandsLower") - self->FindState("FireHands")));
 	}
 }
 
@@ -993,10 +682,4 @@ void A_HandLower (AActor *self)
 		}
 	}
 }
-
-void A_Yeargh (AActor *self)
-{
-	S_Sound (self, CHAN_VOICE, "misc/disruptordeath", 1, ATTN_NORM);
-}
-
 

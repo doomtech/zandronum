@@ -8,6 +8,7 @@
 #include "sc_man.h"
 #include "v_palette.h"
 #include "w_wad.h"
+// [BB] New #includes.
 #include "network.h"
 #include "sv_commands.h"
 
@@ -443,10 +444,7 @@ bool P_CheckKeys (AActor *owner, int keynum, bool remote)
 //
 //==========================================================================
 
-IMPLEMENT_STATELESS_ACTOR (AKey, Any, -1, 0)
- PROP_Inventory_FlagsSet (IF_INTERHUBSTRIP)
- PROP_Inventory_PickupSound ("misc/k_pkup")
-END_DEFAULTS
+IMPLEMENT_CLASS (AKey)
 
 bool AKey::HandlePickup (AInventory *item)
 {

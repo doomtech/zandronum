@@ -618,7 +618,7 @@ bool SCOREBOARD_IsHudVisible( void )
 
 bool SCOREBOARD_IsHudFullscreen( void )
 {
-	if (realviewheight == SCREENHEIGHT)
+	if (viewheight == SCREENHEIGHT)
 		return true;
 	else
 		return false;

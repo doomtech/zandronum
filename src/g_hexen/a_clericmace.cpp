@@ -34,16 +34,16 @@ void A_CMaceAttack (AActor *actor)
 		slope = P_AimLineAttack (player->mo, angle, 2*MELEERANGE, &linetarget);
 		if (linetarget)
 		{
-			P_LineAttack (player->mo, angle, 2*MELEERANGE, slope, damage, NAME_Melee, RUNTIME_CLASS(AHammerPuff), true);
+			P_LineAttack (player->mo, angle, 2*MELEERANGE, slope, damage, NAME_Melee, PClass::FindClass ("HammerPuff"), true);
 			AdjustPlayerAngle (player->mo, linetarget);
 
 			// [BC] Apply spread.
 			if ( player->cheats & CF_SPREAD )
 			{
-				P_LineAttack (player->mo, angle + ( ANGLE_45 / 3 ), 2*MELEERANGE, slope, damage, NAME_Melee, RUNTIME_CLASS(AHammerPuff), true);
+				P_LineAttack (player->mo, angle + ( ANGLE_45 / 3 ), 2*MELEERANGE, slope, damage, NAME_Melee, PClass::FindClass ("HammerPuff"), true);
 				AdjustPlayerAngle (player->mo, linetarget);
 
-				P_LineAttack (player->mo, angle - ( ANGLE_45 / 3 ), 2*MELEERANGE, slope, damage, NAME_Melee, RUNTIME_CLASS(AHammerPuff), true);
+				P_LineAttack (player->mo, angle - ( ANGLE_45 / 3 ), 2*MELEERANGE, slope, damage, NAME_Melee, PClass::FindClass ("HammerPuff"), true);
 				AdjustPlayerAngle (player->mo, linetarget);
 			}
 
@@ -55,16 +55,16 @@ void A_CMaceAttack (AActor *actor)
 		slope = P_AimLineAttack (player->mo, angle, 2*MELEERANGE, &linetarget);
 		if (linetarget)
 		{
-			P_LineAttack (player->mo, angle, 2*MELEERANGE, slope, damage, NAME_Melee, RUNTIME_CLASS(AHammerPuff), true);
+			P_LineAttack (player->mo, angle, 2*MELEERANGE, slope, damage, NAME_Melee, PClass::FindClass ("HammerPuff"), true);
 			AdjustPlayerAngle (player->mo, linetarget);
 
 			// [BC] Apply spread.
 			if ( player->cheats & CF_SPREAD )
 			{
-				P_LineAttack (player->mo, angle + ( ANGLE_45 / 3 ), 2*MELEERANGE, slope, damage, NAME_Melee, RUNTIME_CLASS(AHammerPuff), true);
+				P_LineAttack (player->mo, angle + ( ANGLE_45 / 3 ), 2*MELEERANGE, slope, damage, NAME_Melee, PClass::FindClass ("HammerPuff"), true);
 				AdjustPlayerAngle (player->mo, linetarget);
 
-				P_LineAttack (player->mo, angle - ( ANGLE_45 / 3 ), 2*MELEERANGE, slope, damage, NAME_Melee, RUNTIME_CLASS(AHammerPuff), true);
+				P_LineAttack (player->mo, angle - ( ANGLE_45 / 3 ), 2*MELEERANGE, slope, damage, NAME_Melee, PClass::FindClass ("HammerPuff"), true);
 				AdjustPlayerAngle (player->mo, linetarget);
 			}
 
@@ -78,13 +78,13 @@ void A_CMaceAttack (AActor *actor)
 
 	angle = player->mo->angle;
 	slope = P_AimLineAttack (player->mo, angle, MELEERANGE, &linetarget);
-	P_LineAttack (player->mo, angle, MELEERANGE, slope, damage, NAME_Melee, RUNTIME_CLASS(AHammerPuff));
+	P_LineAttack (player->mo, angle, MELEERANGE, slope, damage, NAME_Melee, PClass::FindClass ("HammerPuff"));
 
 	// [BC] Apply spread.
 	if ( player->cheats & CF_SPREAD )
 	{
-		P_LineAttack( player->mo, angle + ( ANGLE_45 / 3 ), MELEERANGE, slope, damage, NAME_Melee, RUNTIME_CLASS( AHammerPuff ));
-		P_LineAttack( player->mo, angle - ( ANGLE_45 / 3 ), MELEERANGE, slope, damage, NAME_Melee, RUNTIME_CLASS( AHammerPuff ));
+		P_LineAttack( player->mo, angle + ( ANGLE_45 / 3 ), MELEERANGE, slope, damage, NAME_Melee, PClass::FindClass ("HammerPuff"));
+		P_LineAttack( player->mo, angle - ( ANGLE_45 / 3 ), MELEERANGE, slope, damage, NAME_Melee, PClass::FindClass ("HammerPuff"));
 	}
 
 macedone:

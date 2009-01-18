@@ -35,14 +35,12 @@
 #include "actor.h"
 #include "a_sharedglobal.h"
 #include "p_local.h"
+// [BB] New #includes.
 #include "network.h"
 
 // arg0 = Visibility*4 for this skybox
 
-IMPLEMENT_STATELESS_ACTOR (ASkyViewpoint, Any, 9080, 0)
-	PROP_Flags (MF_NOBLOCKMAP|MF_NOSECTOR|MF_NOGRAVITY)
-	PROP_Flags3 (MF3_DONTSPLASH)
-END_DEFAULTS
+IMPLEMENT_CLASS (ASkyViewpoint)
 
 // If this actor has no TID, make it the default sky box
 // [BB] The clients don't know the TIDs yet when calling
@@ -104,16 +102,12 @@ void ASkyViewpoint::Destroy ()
 
 class ASkyPicker : public AActor
 {
-	DECLARE_STATELESS_ACTOR (ASkyPicker, AActor)
+	DECLARE_CLASS (ASkyPicker, AActor)
 public:
 	void PostBeginPlay ();
 };
 
-IMPLEMENT_STATELESS_ACTOR (ASkyPicker, Any, 9081, 0)
-	PROP_Flags (MF_NOBLOCKMAP|MF_NOSECTOR|MF_NOGRAVITY)
-	PROP_Flags3 (MF3_DONTSPLASH)
-	PROP_FlagsNetwork( NETFL_UPDATEARGUMENTS )
-END_DEFAULTS
+IMPLEMENT_CLASS (ASkyPicker)
 
 void ASkyPicker::PostBeginPlay ()
 {
@@ -159,15 +153,12 @@ void ASkyPicker::PostBeginPlay ()
 
 class AStackPoint : public ASkyViewpoint
 {
-	DECLARE_STATELESS_ACTOR (AStackPoint, ASkyViewpoint)
+	DECLARE_CLASS (AStackPoint, ASkyViewpoint)
 public:
 	void BeginPlay ();
 };
 
-IMPLEMENT_STATELESS_ACTOR(AStackPoint,Any,-1,0)
-	// [BB] This fixes problems with stacked sectors online.
-	PROP_FlagsNetwork( NETFL_UPDATEARGUMENTS )
-END_DEFAULTS
+IMPLEMENT_CLASS (AStackPoint)
 
 void AStackPoint::BeginPlay ()
 {
@@ -182,23 +173,20 @@ void AStackPoint::BeginPlay ()
 
 class AUpperStackLookOnly : public AStackPoint
 {
-	DECLARE_STATELESS_ACTOR (AUpperStackLookOnly, AStackPoint)
+	DECLARE_CLASS (AUpperStackLookOnly, AStackPoint)
 public:
 	void PostBeginPlay ();
 };
 
 class ALowerStackLookOnly : public AStackPoint
 {
-	DECLARE_STATELESS_ACTOR (ALowerStackLookOnly, AStackPoint)
+	DECLARE_CLASS (ALowerStackLookOnly, AStackPoint)
 public:
 	void PostBeginPlay ();
 };
 
-IMPLEMENT_STATELESS_ACTOR (AUpperStackLookOnly, Any, 9077, 0)
-END_DEFAULTS
-
-IMPLEMENT_STATELESS_ACTOR (ALowerStackLookOnly, Any, 9078, 0)
-END_DEFAULTS
+IMPLEMENT_CLASS (AUpperStackLookOnly)
+IMPLEMENT_CLASS (ALowerStackLookOnly)
 
 void AUpperStackLookOnly::PostBeginPlay ()
 {
@@ -228,16 +216,13 @@ void ALowerStackLookOnly::PostBeginPlay ()
 
 class ASectorSilencer : public AActor
 {
-	DECLARE_STATELESS_ACTOR (ASectorSilencer, AActor)
+	DECLARE_CLASS (ASectorSilencer, AActor)
 public:
 	void BeginPlay ();
 	void Destroy ();
 };
 
-IMPLEMENT_STATELESS_ACTOR (ASectorSilencer, Any, 9082, 0)
-	PROP_Flags (MF_NOBLOCKMAP|MF_NOGRAVITY)
-	PROP_RenderStyle (STYLE_None)
-END_DEFAULTS
+IMPLEMENT_CLASS (ASectorSilencer)
 
 void ASectorSilencer::BeginPlay ()
 {

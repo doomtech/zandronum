@@ -591,7 +591,7 @@ void F_StartCast (void)
 	wipegamestate = GS_FORCEWIPE;
 	castnum = 0;
 	caststate = castorder[castnum].info->SeeState;
-	castsprite = caststate->sprite.index;
+	castsprite = caststate->sprite;
 	casttranslation = NULL;
 	// [GZDoom]
 	castScaleX = castorder[castnum].info->scaleX;
@@ -647,7 +647,7 @@ void F_CastTicker (void)
 		}
 		else
 		{
-			castsprite = caststate->sprite.index;
+			castsprite = caststate->sprite;
 			casttranslation = NULL;
 			// [GZDoom]
 			castScaleX = castorder[castnum].info->scaleX;

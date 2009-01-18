@@ -29,3 +29,29 @@ ACTOR MaxArmorBonus : BasicArmorBonus 5091
 	}
 }
 
+
+
+//=================================================================================================
+//
+// Red Armor
+//
+//=================================================================================================
+
+ACTOR RedArmor : BasicArmorPickup 5040 native
+{
+	Game Doom
+	SpawnID 168
+	Radius 20
+	Height 16
+	Armor.Savepercent 66.66666
+	Armor.Saveamount 200
+	Inventory.Icon "ARM3A0"
+	Inventory.Pickupmessage "$PICKUP_REDARMOR"
+	States
+	{
+	Spawn:
+		ARM3 A 6
+		ARM3 B 6 bright
+		goto Spawn
+	}
+}

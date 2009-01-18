@@ -165,6 +165,11 @@ static void ParseActionDef (FScanner &sc, PClass *cls)
 	AFuncDesc *afd;
 	FName funcname;
 	FString args;
+	
+	if (sc.LumpNum == -1 || Wads.GetLumpFile(sc.LumpNum) > 0)
+	{
+		sc.ScriptError ("action functions can only be imported by internal class and actor definitions!");
+	}
 
 	sc.MustGetToken(TK_Native);
 	sc.MustGetToken(TK_Identifier);
@@ -393,7 +398,7 @@ static FActorInfo *CreateNewActor(FScanner &sc, FActorInfo **parentc, Baggage *b
 		{
 			sc.ScriptError("Unknown native class '%s'", typeName.GetChars());
 		}
-		else if (ti->ParentClass != parent)
+		else if (ti != RUNTIME_CLASS(AActor) && ti->ParentClass->NativeClass() != parent->NativeClass())
 		{
 			sc.ScriptError("Native class '%s' does not inherit from '%s'", 
 				typeName.GetChars(),parent->TypeName.GetChars());
@@ -437,13 +442,6 @@ static FActorInfo *CreateNewActor(FScanner &sc, FActorInfo **parentc, Baggage *b
 	}
 
 	info->DoomEdNum = DoomEdNum;
-
-	if (parent == RUNTIME_CLASS(AWeapon))
-	{
-		// preinitialize kickback to the default for the game
-		((AWeapon*)(info->Class->Defaults))->Kickback=gameinfo.defKickback;
-	}
-
 	return info;
 }
 
@@ -546,15 +544,24 @@ void FinishThingdef()
 			isRuntimeActor=true;
 		}
 
-		// Friendlies never count as kills!
-		if (GetDefaultByType(ti)->flags & MF_FRIENDLY)
+		AActor *def = GetDefaultByType(ti);
+
+		if (!def)
 		{
-			GetDefaultByType(ti)->flags &=~MF_COUNTKILL;
+			Printf("No ActorInfo defined for class '%s'\n", ti->TypeName.GetChars());
+			errorcount++;
+			continue;
+		}
+
+		// Friendlies never count as kills!
+		if (def->flags & MF_FRIENDLY)
+		{
+			def->flags &=~MF_COUNTKILL;
 		}
 
 		if (ti->IsDescendantOf(RUNTIME_CLASS(AInventory)))
 		{
-			AInventory * defaults=(AInventory *)ti->Defaults;
+			AInventory * defaults=(AInventory *)def;
 			fuglyname v;
 
 			v = defaults->PickupFlash;
@@ -575,7 +582,7 @@ void FinishThingdef()
 		if (ti->IsDescendantOf(RUNTIME_CLASS(APowerupGiver)) && ti != RUNTIME_CLASS(APowerupGiver))
 		{
 			FString typestr;
-			APowerupGiver * defaults=(APowerupGiver *)ti->Defaults;
+			APowerupGiver * defaults=(APowerupGiver *)def;
 			fuglyname v;
 
 			v = defaults->PowerupType;
@@ -610,7 +617,7 @@ void FinishThingdef()
 		// the typeinfo properties of weapons have to be fixed here after all actors have been declared
 		if (ti->IsDescendantOf(RUNTIME_CLASS(AWeapon)))
 		{
-			AWeapon * defaults=(AWeapon *)ti->Defaults;
+			AWeapon * defaults=(AWeapon *)def;
 			fuglyname v;
 
 			v = defaults->AmmoType1;
@@ -709,7 +716,7 @@ void FinishThingdef()
 		// same for the weapon type of weapon pieces.
 		else if (ti->IsDescendantOf(RUNTIME_CLASS(AWeaponPiece)))
 		{
-			AWeaponPiece * defaults=(AWeaponPiece *)ti->Defaults;
+			AWeaponPiece * defaults=(AWeaponPiece *)def;
 			fuglyname v;
 
 			v = defaults->WeaponClass;
@@ -744,61 +751,3 @@ void FinishThingdef()
 
 }
 
-//==========================================================================
-//
-// ParseClass
-//
-// A minimal placeholder so that I can assign properties to some native
-// classes. Please, no end users use this until it's finalized.
-//
-//==========================================================================
-
-void ParseClass(FScanner &sc)
-{
-	Baggage bag;
-	PClass *cls;
-	FName classname;
-	FName supername;
-
-	sc.MustGetToken(TK_Identifier);	// class name
-	classname = sc.String;
-	sc.MustGetToken(TK_Extends);	// because I'm not supporting Object
-	sc.MustGetToken(TK_Identifier);	// superclass name
-	supername = sc.String;
-	sc.MustGetToken(TK_Native);		// use actor definitions for your own stuff
-	sc.MustGetToken('{');
-
-	cls = const_cast<PClass*>(PClass::FindClass (classname));
-	if (cls == NULL)
-	{
-		sc.ScriptError ("'%s' is not a native class", classname.GetChars());
-	}
-	if (cls->ParentClass == NULL || cls->ParentClass->TypeName != supername)
-	{
-		sc.ScriptError ("'%s' does not extend '%s'", classname.GetChars(), supername.GetChars());
-	}
-	bag.Info = cls->ActorInfo;
-
-	sc.MustGetAnyToken();
-	while (sc.TokenType != '}')
-	{
-		if (sc.TokenType == TK_Action)
-		{
-			ParseActionDef(sc, cls);
-		}
-		else if (sc.TokenType == TK_Const)
-		{
-			ParseConstant(sc, &cls->Symbols, cls);
-		}
-		else if (sc.TokenType == TK_Enum)
-		{
-			ParseEnum(sc, &cls->Symbols, cls);
-		}
-		else
-		{
-			FString tokname = sc.TokenName(sc.TokenType, sc.String);
-			sc.ScriptError ("Expected 'action', 'const' or 'enum' but got %s", tokname.GetChars());
-		}
-		sc.MustGetAnyToken();
-	}
-}

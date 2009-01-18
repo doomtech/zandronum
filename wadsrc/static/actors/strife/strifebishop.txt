@@ -45,8 +45,7 @@ ACTOR StrifeBishop 187
 		MLDR G 3 Bright
 		MLDR H 5 Bright A_Scream
 		MLDR I 4 Bright A_TossGib
-		MLDR J 0 Bright A_AlertMonsters
-		MLDR J 4 Bright A_Explode(64,64)
+		MLDR J 4 Bright A_Explode(64,64,1,1)
 		MLDR KL 3 Bright
 		MLDR M 4 Bright A_NoBlocking
 		MLDR N 4 Bright
@@ -80,17 +79,13 @@ ACTOR BishopMissile
 	States
 	{
 	Spawn:
-		MISS A 4 Bright
+		MISS A 4 Bright A_RocketInFlight
 		MISS B 3 Bright A_Tracer2
-		MISS A 0 Bright A_PlaySoundEx("misc/missileinflight", "Voice")
-		MISS A 0 Bright A_SpawnItemEx("MiniMissilePuff", 0,0, random2[BishopMissile]()*0.015625)
-		MISS A 4 Bright A_SpawnItemEx("RocketTrail", -momx,-momy,0, 0,0,1)
-		Goto Spawn+1
+		Loop
 	Death:
 		SMIS A 0 Bright A_SetTranslucent(1,1)
 		SMIS A 0 Bright A_StopSoundEx("Voice")
-		SMIS A 0 Bright A_AlertMonsters
-		SMIS A 5 Bright A_Explode(64,64)
+		SMIS A 5 Bright A_Explode(64,64,1,1)
 		SMIS B 5 Bright
 		SMIS C 4 Bright
 		SMIS DEFG 2 Bright

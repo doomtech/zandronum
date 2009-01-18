@@ -1727,7 +1727,7 @@ void DrawFullHUD_GameInformation()
 		// face, for lack of a better place to put it.
 		if (CPlayer->mo->InvSel == NULL || (level.flags & LEVEL_NOINVENTORYBAR))
 		{
-			FTexture *face = MugShot.GetFace(CPlayer, "STF", 5, false, false);
+			FTexture *face = MugShot.GetFace(CPlayer, "STF", 5);
 			if (face != NULL)
 			{
 				DrawPartialImage(&StatusBarTex, 142, 37);

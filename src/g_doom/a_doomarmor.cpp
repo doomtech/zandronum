@@ -57,31 +57,14 @@
 
 class ARedArmor : public ABasicArmorPickup
 {
-	DECLARE_ACTOR( ARedArmor, ABasicArmorPickup )
+	DECLARE_CLASS( ARedArmor, ABasicArmorPickup )
 public:
 
 	bool	Use( bool bPickup );
 //	void	AbsorbDamage( int damage, int damageType, int &newdamage );
 };
 
-FState ARedArmor::States[ ] =
-{
-	S_NORMAL( ARM3, 'A',	6, NULL 				, &States[1] ),
-	S_BRIGHT( ARM3, 'B',	6, NULL 				, &States[0] )
-};
-
-IMPLEMENT_ACTOR( ARedArmor, Doom, 5040, 168 )
-	PROP_RadiusFixed( 20 )
-	PROP_HeightFixed( 16 )
-	PROP_Flags( MF_SPECIAL )
-	PROP_FlagsST( STFL_SUPERARMOR )
-	PROP_SpawnState( 0 )
-
-	PROP_BasicArmorPickup_SavePercent( 66 )
-	PROP_BasicArmorPickup_SaveAmount( 200 )
-	PROP_Inventory_Icon( "ARM3A0" )
-	PROP_Inventory_PickupMessage( "$PICKUP_REDARMOR" )
-END_DEFAULTS
+IMPLEMENT_CLASS( ARedArmor )
 
 bool ARedArmor::Use( bool bPickup )
 {

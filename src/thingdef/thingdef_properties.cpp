@@ -105,6 +105,7 @@ enum
 static flagdef ActorFlags[]=
 {
 	DEFINE_FLAG(MF, PICKUP, APlayerPawn, flags),
+	DEFINE_FLAG(MF, SPECIAL, APlayerPawn, flags),
 	DEFINE_FLAG(MF, SOLID, AActor, flags),
 	DEFINE_FLAG(MF, SHOOTABLE, AActor, flags),
 	DEFINE_FLAG(MF, NOSECTOR, AActor, flags),
@@ -167,6 +168,7 @@ static flagdef ActorFlags[]=
 	DEFINE_FLAG(MF3, CEILINGHUGGER, AActor, flags3),
 	DEFINE_FLAG(MF3, NORADIUSDMG, AActor, flags3),
 	DEFINE_FLAG(MF3, GHOST, AActor, flags3),
+	DEFINE_FLAG(MF3, SPECIALFLOORCLIP, AActor, flags3),
 	DEFINE_FLAG(MF3, ALWAYSPUFF, AActor, flags3),
 	DEFINE_FLAG(MF3, DONTSPLASH, AActor, flags3),
 	DEFINE_FLAG(MF3, DONTOVERLAP, AActor, flags3),
@@ -243,6 +245,9 @@ static flagdef ActorFlags[]=
 	DEFINE_FLAG(MF5, NOINTERACTION, AActor, flags5),
 	DEFINE_FLAG(MF5, NOTIMEFREEZE, AActor, flags5),
 	DEFINE_FLAG(MF5, PUFFGETSOWNER, AActor, flags5), // [BB] added PUFFGETSOWNER
+	DEFINE_FLAG(MF5, SPECIALFIREDAMAGE, AActor, flags5),
+	DEFINE_FLAG(MF5, SUMMONEDMONSTER, AActor, flags5),
+	DEFINE_FLAG(MF5, NOVERTICALMELEERANGE, AActor, flags5),
 
 	// [BC] New DECORATE flag defines here.
 	DEFINE_FLAG(STFL, BLUETEAM, AActor, ulSTFlags),
@@ -324,7 +329,6 @@ static flagdef WeaponFlags[] =
 	DEFINE_FLAG(WIF_BOT, BFG, AWeapon, WeaponFlags),
 	DEFINE_FLAG(WIF, CHEATNOTWEAPON, AWeapon, WeaponFlags),
 	DEFINE_FLAG(WIF, NO_AUTO_SWITCH, AWeapon, WeaponFlags),
-	//WIF_BOT_REACTION_SKILL_THING = 1<<31, // I don't understand this
 	DEFINE_FLAG(WIF, ALLOW_WITH_RESPAWN_INVUL, AWeapon, WeaponFlags), // [BB] Marks weapons that can be used while respawn invulnerability is active.
 	DEFINE_FLAG(WIF, NOLMS, AWeapon, WeaponFlags), // [BB] Marks weapons that are not given to the player in LMS.
 	DEFINE_FLAG(WIF, NOAUTOAIM, AWeapon, WeaponFlags), // [BB] If the level allows freelook, this weapon behaves as if CVAR autoaim was 0.
@@ -1923,7 +1927,7 @@ static void InventoryIcon (FScanner &sc, AInventory *defaults, Baggage &bag)
 			// Don't print warnings if the item is for another game or if this is a shareware IWAD. 
 			// Strife's teaser doesn't contain all the icon graphics of the full game.
 			if ((bag.Info->GameFilter == GAME_Any || bag.Info->GameFilter & gameinfo.gametype) &&
-				!(gameinfo.flags&GI_SHAREWARE))
+				!(gameinfo.flags&GI_SHAREWARE) && Wads.GetLumpFile(sc.LumpNum) != 0)
 			{
 				Printf("Icon '%s' for '%s' not found\n", sc.String, bag.Info->Class->TypeName.GetChars());
 			}
@@ -2131,6 +2135,14 @@ static void WeaponKickback (FScanner &sc, AWeapon *defaults, Baggage &bag)
 //==========================================================================
 //
 //==========================================================================
+static void WeaponDefKickback (FScanner &sc, AWeapon *defaults, Baggage &bag)
+{
+	defaults->Kickback = gameinfo.defKickback;
+}
+
+//==========================================================================
+//
+//==========================================================================
 static void WeaponReadySound (FScanner &sc, AWeapon *defaults, Baggage &bag)
 {
 	sc.MustGetString();
@@ -2200,6 +2212,20 @@ static void PowerupColor (FScanner &sc, APowerupGiver *defaults, Baggage &bag)
 	int g;
 	int b;
 	int alpha;
+	PalEntry * pBlendColor;
+
+	if (bag.Info->Class->IsDescendantOf(RUNTIME_CLASS(APowerup)))
+	{
+		pBlendColor = &((APowerup*)defaults)->BlendColor;
+	}
+	else if (bag.Info->Class->IsDescendantOf(RUNTIME_CLASS(APowerupGiver)))
+	{
+		pBlendColor = &((APowerupGiver*)defaults)->BlendColor;
+	}
+	else
+	{
+		sc.ScriptError("\"%s\" requires an actor of type \"Powerup\"\n", sc.String);
+	}
 
 	if (sc.CheckNumber())
 	{
@@ -2246,8 +2272,8 @@ static void PowerupColor (FScanner &sc, APowerupGiver *defaults, Baggage &bag)
 	sc.MustGetFloat();
 	alpha=int(sc.Float*255);
 	alpha=clamp<int>(alpha, 0, 255);
-	if (alpha!=0) defaults->BlendColor = MAKEARGB(alpha, r, g, b);
-	else defaults->BlendColor = 0;
+	if (alpha!=0) *pBlendColor = MAKEARGB(alpha, r, g, b);
+	else *pBlendColor = 0;
 }
 
 //==========================================================================
@@ -2255,8 +2281,23 @@ static void PowerupColor (FScanner &sc, APowerupGiver *defaults, Baggage &bag)
 //==========================================================================
 static void PowerupDuration (FScanner &sc, APowerupGiver *defaults, Baggage &bag)
 {
+	int *pEffectTics;
+
+	if (bag.Info->Class->IsDescendantOf(RUNTIME_CLASS(APowerup)))
+	{
+		pEffectTics = &((APowerup*)defaults)->EffectTics;
+	}
+	else if (bag.Info->Class->IsDescendantOf(RUNTIME_CLASS(APowerupGiver)))
+	{
+		pEffectTics = &((APowerupGiver*)defaults)->EffectTics;
+	}
+	else
+	{
+		sc.ScriptError("\"%s\" requires an actor of type \"Powerup\"\n", sc.String);
+	}
+
 	sc.MustGetNumber();
-	defaults->EffectTics = sc.Number;
+	*pEffectTics = sc.Number>=0? sc.Number : -sc.Number*TICRATE;
 }
 
 //==========================================================================
@@ -2879,8 +2920,8 @@ static const ActorProps props[] =
 	{ "powermorph.morphstyle",			(apf)PowerMorphMorphStyle,		RUNTIME_CLASS(APowerMorph) },
 	{ "powermorph.playerclass",			(apf)PowerMorphPlayerClass,		RUNTIME_CLASS(APowerMorph) },
 	{ "powermorph.unmorphflash",		(apf)PowerMorphUnMorphFlash,	RUNTIME_CLASS(APowerMorph) },
-	{ "powerup.color",					(apf)PowerupColor,				RUNTIME_CLASS(APowerupGiver) },
-	{ "powerup.duration",				(apf)PowerupDuration,			RUNTIME_CLASS(APowerupGiver) },
+	{ "powerup.color",					(apf)PowerupColor,				RUNTIME_CLASS(AInventory) },
+	{ "powerup.duration",				(apf)PowerupDuration,			RUNTIME_CLASS(AInventory) },
 	{ "powerup.mode",					(apf)PowerupMode,				RUNTIME_CLASS(APowerupGiver) },
 	{ "powerup.type",					(apf)PowerupType,				RUNTIME_CLASS(APowerupGiver) },
 	{ "projectile",						ActorProjectile,				RUNTIME_CLASS(AActor) },
@@ -2917,6 +2958,7 @@ static const ActorProps props[] =
 	{ "weapon.ammouse",					(apf)WeaponAmmoUse1,			RUNTIME_CLASS(AWeapon) },
 	{ "weapon.ammouse1",				(apf)WeaponAmmoUse1,			RUNTIME_CLASS(AWeapon) },
 	{ "weapon.ammouse2",				(apf)WeaponAmmoUse2,			RUNTIME_CLASS(AWeapon) },
+	{ "weapon.defaultkickback",			(apf)WeaponDefKickback,			RUNTIME_CLASS(AWeapon) },
 	{ "weapon.kickback",				(apf)WeaponKickback,			RUNTIME_CLASS(AWeapon) },
 	{ "weapon.readysound",				(apf)WeaponReadySound,			RUNTIME_CLASS(AWeapon) },
 	{ "weapon.selectionorder",			(apf)WeaponSelectionOrder,		RUNTIME_CLASS(AWeapon) },
@@ -2994,7 +3036,6 @@ void FinishActor(FScanner &sc, FActorInfo *info, Baggage &bag)
 
 	FinishStates (sc, info, defaults, bag);
 	InstallStates (info, defaults);
-	ProcessStates (info->OwnedStates, info->NumOwnedStates);
 	if (bag.DropItemSet)
 	{
 		if (bag.DropItemList == NULL)

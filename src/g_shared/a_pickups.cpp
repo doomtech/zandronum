@@ -6,7 +6,6 @@
 #include "s_sound.h"
 #include "gi.h"
 #include "p_lnspec.h"
-#include "a_hereticglobal.h"
 #include "sbar.h"
 #include "statnums.h"
 #include "c_dispatch.h"
@@ -31,10 +30,7 @@
 
 static FRandom pr_restore ("RestorePos");
 
-IMPLEMENT_STATELESS_ACTOR (AAmmo, Any, -1, 0)
-	PROP_Inventory_FlagsSet (IF_KEEPDEPLETED)
-	PROP_Inventory_PickupSound ("misc/ammo_pkup")
-END_DEFAULTS
+IMPLEMENT_CLASS (AAmmo)
 
 //===========================================================================
 //
@@ -169,11 +165,11 @@ AInventory *AAmmo::CreateCopy (AActor *other)
 			// [BC] In certain modes, hide this item indefinitely so we can respawn it if
 			// necessary.
 			if ((( flags & MF_DROPPED ) == false ) && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_MAPRESETS ))
-				SetState( &AInventory::States[17] );
+				SetState ( FindState("HideIndefinitely") );
 			// [BC] Changed this so it stays around for one frame.
 			else
 			{
-				SetState (&AInventory::States[16]);
+				SetState ( FindState("HoldAndDestroy") );
 //				Destroy ();
 			}
 		}
@@ -430,67 +426,6 @@ void A_RestoreSpecialPosition (AActor *self)
 	}
 }
 
-// Pickup flash -------------------------------------------------------------
-
-class APickupFlash : public AActor
-{
-	DECLARE_ACTOR (APickupFlash, AActor)
-};
-
-FState APickupFlash::States[] =
-{
-	S_NORMAL (ACLO, 'D',    3, NULL                         , &States[1]),
-	S_NORMAL (ACLO, 'C',    3, NULL                         , &States[2]),
-	S_NORMAL (ACLO, 'D',    3, NULL                         , &States[3]),
-	S_NORMAL (ACLO, 'C',    3, NULL                         , &States[4]),
-	S_NORMAL (ACLO, 'B',    3, NULL                         , &States[5]),
-	S_NORMAL (ACLO, 'C',    3, NULL                         , &States[6]),
-	S_NORMAL (ACLO, 'B',    3, NULL                         , &States[7]),
-	S_NORMAL (ACLO, 'A',    3, NULL                         , &States[8]),
-	S_NORMAL (ACLO, 'B',    3, NULL                         , &States[9]),
-	S_NORMAL (ACLO, 'A',    3, NULL                         , NULL)
-};
-
-IMPLEMENT_ACTOR (APickupFlash, Raven, -1, 0)
-	PROP_SpawnState (0)
-	PROP_Flags (MF_NOGRAVITY)
-END_DEFAULTS
-
-/***************************************************************************/
-/* AInventory implementation											   */
-/***************************************************************************/
-
-FState AInventory::States[] =
-{
-#define S_HIDEDOOMISH 0
-	S_NORMAL (TNT1, 'A', 1050, NULL							, &States[S_HIDEDOOMISH+1]),
-	S_NORMAL (TNT1, 'A',	0, A_RestoreSpecialPosition		, &States[S_HIDEDOOMISH+2]),
-	S_NORMAL (TNT1, 'A',    1, A_RestoreSpecialDoomThing	, NULL),
-
-#define S_HIDESPECIAL (S_HIDEDOOMISH+3)
-	S_NORMAL (ACLO, 'E', 1400, NULL                         , &States[S_HIDESPECIAL+1]),
-	S_NORMAL (ACLO, 'A',	0, A_RestoreSpecialPosition		, &States[S_HIDESPECIAL+2]),
-	S_NORMAL (ACLO, 'A',    4, A_RestoreSpecialThing1       , &States[S_HIDESPECIAL+3]),
-	S_NORMAL (ACLO, 'B',    4, NULL                         , &States[S_HIDESPECIAL+4]),
-	S_NORMAL (ACLO, 'A',    4, NULL                         , &States[S_HIDESPECIAL+5]),
-	S_NORMAL (ACLO, 'B',    4, NULL                         , &States[S_HIDESPECIAL+6]),
-	S_NORMAL (ACLO, 'C',    4, NULL                         , &States[S_HIDESPECIAL+7]),
-	S_NORMAL (ACLO, 'B',    4, NULL                         , &States[S_HIDESPECIAL+8]),
-	S_NORMAL (ACLO, 'C',    4, NULL                         , &States[S_HIDESPECIAL+9]),
-	S_NORMAL (ACLO, 'D',    4, NULL                         , &States[S_HIDESPECIAL+10]),
-	S_NORMAL (ACLO, 'C',    4, NULL                         , &States[S_HIDESPECIAL+11]),
-	S_NORMAL (ACLO, 'D',    4, A_RestoreSpecialThing2       , NULL),
-
-#define S_HELD (S_HIDESPECIAL+12)
-	S_NORMAL (TNT1, 'A',   -1, NULL							, NULL),
-
-#define S_HOLDANDDESTROY (S_HELD+1)
-	S_NORMAL (TNT1, 'A',	1, NULL							, NULL),
-
-// [BC] Hide this item until told to return.
-#define S_HIDEINDEFINITELY (S_HOLDANDDESTROY+1)
-	S_NORMAL (TNT1, 'A', 1050, NULL							, &States[S_HIDEINDEFINITELY]),
-};
 
 int AInventory::StaticLastMessageTic;
 const char *AInventory::StaticLastMessage;
@@ -498,13 +433,6 @@ const char *AInventory::StaticLastMessage;
 IMPLEMENT_POINTY_CLASS (AInventory)
  DECLARE_POINTER (Owner)
 END_POINTERS
-
-BEGIN_DEFAULTS (AInventory, Any, -1, 0)
-	PROP_Inventory_Amount (1)
-	PROP_Inventory_MaxAmount (1)
-	PROP_UseSound ("misc/invuse")
-	PROP_Inventory_PickupSound ("misc/i_pkup")
-END_DEFAULTS
 
 //===========================================================================
 //
@@ -736,9 +664,9 @@ void AInventory::GoAwayAndDie ()
 		// [BC] In certain modes, hide this item indefinitely so we can respawn it if
 		// necessary.
 		if ((( flags & MF_DROPPED ) == false ) && ( GAMEMODE_GetFlags( GAMEMODE_GetCurrentMode( )) & GMF_MAPRESETS ))
-			SetState( &States[S_HIDEINDEFINITELY] );
+			SetState(FindState("HideIndefinitely"));
 		else
-			SetState (&States[S_HOLDANDDESTROY]);
+			SetState (FindState("HoldAndDestroy"));
 	}
 }
 
@@ -785,7 +713,7 @@ AInventory *AInventory::CreateTossable ()
 
 	// If this actor lacks a SpawnState, don't drop it. (e.g. A base weapon
 	// like the fist can't be dropped because you'll never see it.)
-	if (SpawnState == &AActor::States[AActor::S_NULL] ||
+	if (SpawnState == ::GetDefault<AActor>()->SpawnState ||
 		SpawnState == NULL)
 	{
 		return NULL;
@@ -847,7 +775,7 @@ void AInventory::BecomeItem ()
 	}
 	RemoveFromHash ();
 	flags &= ~MF_SPECIAL;
-	SetState (&States[S_HELD]);
+	SetState (FindState("Held"));
 }
 
 //===========================================================================
@@ -975,10 +903,10 @@ bool AInventory::Use (bool pickup)
 
 void AInventory::Hide ()
 {
-	ULONG	ulIdx;
+	FState *HideSpecialState = NULL, *HideDoomishState = NULL;
 
 	// [BC] If this is a bot's goal object, tell the bot it's been removed.
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 	{
 		if ( playeringame[ulIdx] == false )
 			continue;
@@ -997,16 +925,39 @@ void AInventory::Hide ()
 
  	flags = (flags & ~MF_SPECIAL) | MF_NOGRAVITY;
 	renderflags |= RF_INVISIBLE;
+
 	if (gameinfo.gametype & GAME_Raven)
 	{
-		SetState (&States[S_HIDESPECIAL]);
-		tics = 1400;
-		if (PickupFlash != NULL) tics += 30;
+		HideSpecialState = FindState("HideSpecial");
+		if (HideSpecialState == NULL)
+		{
+			HideDoomishState = FindState("HideDoomish");
+		}
 	}
 	else
 	{
-		SetState (&States[S_HIDEDOOMISH]);
+		HideDoomishState = FindState("HideDoomish");
+		if (HideDoomishState == NULL)
+		{
+			HideSpecialState = FindState("HideSpecial");
+		}
+	}
+
+	if (HideSpecialState != NULL)
+	{
+		SetState (HideSpecialState);
+		tics = 1400;
+		if (PickupFlash != NULL) tics += 30;
+	}
+	else if (HideDoomishState != NULL)
+	{
+		SetState (HideDoomishState);
 		tics = 1050;
+	}
+	else
+	{
+		GoAwayAndDie();
+		return;
 	}
 	if (RespawnTics != 0)
 	{
@@ -1044,7 +995,7 @@ void AInventory::HideIndefinitely ()
 	flags = (flags & ~MF_SPECIAL) | MF_NOGRAVITY;
 	renderflags |= RF_INVISIBLE;
 
-	SetState (&States[S_HIDEINDEFINITELY]);
+	SetState(FindState("HideIndefinitely"));
 }
 
 //===========================================================================
@@ -1183,15 +1134,15 @@ void AInventory::Touch (AActor *toucher)
 	{
 		// If this item was destroyed, and we're the server, tell clients to
 		// destroy the object.
-		if (( this->state == &States[S_HOLDANDDESTROY] ) ||
-			( this->state == &States[S_HELD] ))
+		if (( this->state == FindState("HoldAndDestroy") ) ||
+			( this->state == FindState("Held") ))
 		{
 			SERVERCOMMANDS_DestroyThing( this );
 		}
 		// If this item was hidden, tell clients to hide the object.
-		else if (( this->state == &States[S_HIDEINDEFINITELY] ) ||
-			( this->state == &States[S_HIDEDOOMISH] ) ||
-			( this->state == &States[S_HIDESPECIAL] ))
+		else if (( this->state == FindState("HideIndefinitely") ) ||
+			( this->state == FindState("HideDoomish") ) ||
+			( this->state == FindState("HideSpecial") ))
 		{
 			SERVERCOMMANDS_HideThing( this );
 		}
@@ -1384,11 +1335,7 @@ bool AInventory::DrawPowerup (int x, int y)
 /* AArtifact implementation												   */
 /***************************************************************************/
 
-IMPLEMENT_STATELESS_ACTOR (APowerupGiver, Any, -1, 0)
-	PROP_Inventory_DefMaxAmount
-	PROP_Inventory_FlagsSet (IF_INVBAR|IF_FANCYPICKUPSOUND)
-	PROP_Inventory_PickupSound ("misc/p_pkup")
-END_DEFAULTS
+IMPLEMENT_CLASS (APowerupGiver)
 
 IMPLEMENT_CLASS (ARuneGiver)
 
@@ -1510,7 +1457,7 @@ bool AInventory::TryPickup (AActor *toucher)
 				if (--copy->Amount <= 0)
 				{
 					copy->flags &= ~MF_SPECIAL;
-					copy->SetState (&States[S_HOLDANDDESTROY]);
+					copy->SetState (copy->FindState("HoldAndDestroy"));
 				}
 			}
 		}
@@ -1581,8 +1528,7 @@ void AInventory::DetachFromOwner ()
 {
 }
 
-IMPLEMENT_STATELESS_ACTOR (ACustomInventory, Any, -1, 0)
-END_DEFAULTS
+IMPLEMENT_CLASS (ACustomInventory)
 
 //===========================================================================
 //
@@ -1628,12 +1574,7 @@ bool ACustomInventory::TryPickup (AActor *toucher)
 	return useok;
 }
 
-IMPLEMENT_STATELESS_ACTOR (AHealth, Any, -1, 0)
-	PROP_Inventory_Amount (1)
-	PROP_Inventory_MaxAmount (0)
-	PROP_Inventory_PickupSound ("misc/health_pkup")
-END_DEFAULTS
-
+IMPLEMENT_CLASS (AHealth)
 
 //===========================================================================
 //
@@ -1733,10 +1674,7 @@ bool AHealth::TryPickup (AActor *other)
 	return true;
 }
 
-IMPLEMENT_STATELESS_ACTOR (AHealthPickup, Any, -1, 0)
-	PROP_Inventory_DefMaxAmount
-	PROP_Inventory_FlagsSet (IF_INVBAR)
-END_DEFAULTS
+IMPLEMENT_CLASS (AHealthPickup)
 
 //===========================================================================
 //
@@ -2069,9 +2007,9 @@ void ABackpackItem::DetachFromOwner ()
 //
 //===========================================================================
 
-IMPLEMENT_ABSTRACT_ACTOR(ABackpackItem)
+IMPLEMENT_CLASS(ABackpackItem)
 
-IMPLEMENT_ABSTRACT_ACTOR (AMapRevealer)
+IMPLEMENT_CLASS (AMapRevealer)
 
 //===========================================================================
 //

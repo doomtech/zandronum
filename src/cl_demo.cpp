@@ -267,8 +267,8 @@ void CLIENTDEMO_ReadUserInfo( void )
 	if ( players[consoleplayer].mo != NULL )
 	{
 		if (players[consoleplayer].cls != NULL &&
-			players[consoleplayer].mo->state->sprite.index ==
-			GetDefaultByType (players[consoleplayer].cls)->SpawnState->sprite.index)
+			players[consoleplayer].mo->state->sprite ==
+			GetDefaultByType (players[consoleplayer].cls)->SpawnState->sprite)
 		{ // Only change the sprite if the player is using a standard one
 			players[consoleplayer].mo->sprite = skins[players[consoleplayer].userinfo.skin].sprite;
 			players[consoleplayer].mo->scaleX = skins[players[consoleplayer].userinfo.skin].ScaleX;

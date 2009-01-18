@@ -157,7 +157,8 @@ static	void	client_SetPlayerPoisonCount( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerAmmoCapacity( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerCheats( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerPendingWeapon( BYTESTREAM_s *pByteStream );
-static	void	client_SetPlayerPieces( BYTESTREAM_s *pByteStream );
+// [BB] Does not work with the latest ZDoom changes. Check if it's still necessary.
+//static	void	client_SetPlayerPieces( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerPSprite( BYTESTREAM_s *pByteStream );
 static	void	client_SetPlayerBlend( BYTESTREAM_s *pByteStream );
 static	void	client_UpdatePlayerPing( BYTESTREAM_s *pByteStream );
@@ -1572,10 +1573,12 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		client_SetPlayerPendingWeapon( pByteStream );
 		break;
+	/* [BB] Does not work with the latest ZDoom changes. Check if it's still necessary.
 	case SVC_SETPLAYERPIECES:
 
 		client_SetPlayerPieces( pByteStream );
 		break;
+	*/
 	case SVC_SETPLAYERPSPRITE:
 
 		client_SetPlayerPSprite( pByteStream );
@@ -3023,7 +3026,6 @@ void CLIENT_ResetPlayerData( player_t *pPlayer )
 	pPlayer->health = 0;
 	pPlayer->inventorytics = 0;
 	pPlayer->CurrentPlayerClass = 0;
-	pPlayer->pieces = 0;
 	pPlayer->backpack = 0;
 	pPlayer->fragcount = 0;
 	pPlayer->ReadyWeapon = 0;
@@ -4565,6 +4567,7 @@ static void client_SetPlayerPendingWeapon( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
+/* [BB] Does not work with the latest ZDoom changes. Check if it's still necessary.
 static void client_SetPlayerPieces( BYTESTREAM_s *pByteStream )
 {
 	ULONG			ulPlayer;
@@ -4582,6 +4585,7 @@ static void client_SetPlayerPieces( BYTESTREAM_s *pByteStream )
 
 	players[ulPlayer].pieces = ulPieces;
 }
+*/
 
 //*****************************************************************************
 //
@@ -6629,7 +6633,7 @@ static void client_RespawnRavenThing( BYTESTREAM_s *pByteStream )
 	pActor->renderflags &= ~RF_INVISIBLE;
 	S_Sound( pActor, CHAN_VOICE, "misc/spawn", 1, ATTN_IDLE );
 
-	pActor->SetState( &AInventory::States[6] );
+	pActor->SetState( GetDefaultByType ( RUNTIME_CLASS ( AInventory ) )->FindState("HideSpecial") + 3 );
 }
 
 //*****************************************************************************

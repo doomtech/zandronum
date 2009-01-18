@@ -56,6 +56,7 @@
 #include "stats.h"
 #include "doomerrors.h"
 #include "p_setup.h"
+#include "x86.h"
 
 node_t * gamenodes;
 int numgamenodes;

@@ -69,7 +69,7 @@ class FLightDefaults;
 
 class ADynamicLight : public AActor
 {
-	DECLARE_STATELESS_ACTOR (ADynamicLight, AActor)
+	DECLARE_CLASS (ADynamicLight, AActor)
 public:
 	virtual void Tick();
 	void Serialize(FArchive &arc);
@@ -126,119 +126,56 @@ public:
 
 class APointLight : public ADynamicLight
 {
-	DECLARE_STATELESS_ACTOR (APointLight, ADynamicLight)
+	DECLARE_CLASS (APointLight, ADynamicLight)
 public:
    virtual void BeginPlay();
 };
 
 class APointLightPulse : public APointLight
 {
-   DECLARE_STATELESS_ACTOR (APointLightPulse, APointLight)
+   DECLARE_CLASS (APointLightPulse, APointLight)
 public:
    virtual void BeginPlay();
 };
 
 class APointLightFlicker : public APointLight
 {
-   DECLARE_STATELESS_ACTOR (APointLightFlicker, APointLight)
+   DECLARE_CLASS (APointLightFlicker, APointLight)
 public:
    virtual void BeginPlay();
 };
 
 class APointLightFlickerRandom : public APointLight
 {
-   DECLARE_STATELESS_ACTOR (APointLightFlickerRandom, APointLight)
+   DECLARE_CLASS (APointLightFlickerRandom, APointLight)
 public:
    virtual void BeginPlay();
 };
 
 class ASectorPointLight : public APointLight
 {
-   DECLARE_STATELESS_ACTOR (ASectorPointLight, APointLight)
+   DECLARE_CLASS (ASectorPointLight, APointLight)
 public:
    virtual void BeginPlay();
 };
 
-
-// additive variants
-class APointLightAdditive : public APointLight
-{
-	DECLARE_STATELESS_ACTOR (APointLightAdditive, APointLight)
-public:
-};
-
-class APointLightPulseAdditive : public APointLightPulse
-{
-   DECLARE_STATELESS_ACTOR (APointLightPulseAdditive, APointLightPulse)
-public:
-};
-
-class APointLightFlickerAdditive : public APointLightFlicker
-{
-   DECLARE_STATELESS_ACTOR (APointLightFlickerAdditive, APointLightFlicker)
-public:
-};
-
-class APointLightFlickerRandomAdditive : public APointLightFlickerRandom
-{
-   DECLARE_STATELESS_ACTOR (APointLightFlickerRandomAdditive, APointLightFlickerRandom)
-public:
-};
-
-class ASectorPointLightAdditive : public ASectorPointLight
-{
-   DECLARE_STATELESS_ACTOR (ASectorPointLightAdditive, ASectorPointLight)
-public:
-};
-
-// subtractive variants
-class APointLightSubtractive : public APointLight
-{
-	DECLARE_STATELESS_ACTOR (APointLightSubtractive, APointLight)
-public:
-};
-
-class APointLightPulseSubtractive : public APointLightPulse
-{
-   DECLARE_STATELESS_ACTOR (APointLightPulseSubtractive, APointLightPulse)
-public:
-};
-
-class APointLightFlickerSubtractive : public APointLightFlicker
-{
-   DECLARE_STATELESS_ACTOR (APointLightFlickerSubtractive, APointLightFlicker)
-public:
-};
-
-class APointLightFlickerRandomSubtractive : public APointLightFlickerRandom
-{
-   DECLARE_STATELESS_ACTOR (APointLightFlickerRandomSubtractive, APointLightFlickerRandom)
-public:
-};
-
-class ASectorPointLightSubtractive : public ASectorPointLight
-{
-   DECLARE_STATELESS_ACTOR (ASectorPointLightSubtractive, ASectorPointLight)
-public:
-};
-
 class AVavoomLight : public ADynamicLight
 {
-   DECLARE_STATELESS_ACTOR (AVavoomLight, ADynamicLight)
+   DECLARE_CLASS (AVavoomLight, ADynamicLight)
 public:
    virtual void BeginPlay();
 };
 
 class AVavoomLightWhite : public AVavoomLight
 {
-   DECLARE_STATELESS_ACTOR (AVavoomLightWhite, AVavoomLight)
+   DECLARE_CLASS (AVavoomLightWhite, AVavoomLight)
 public:
    virtual void BeginPlay();
 };
 
 class AVavoomLightColor : public AVavoomLight
 {
-   DECLARE_STATELESS_ACTOR (AVavoomLightColor, AVavoomLight)
+   DECLARE_CLASS (AVavoomLightColor, AVavoomLight)
 public:
 	void BeginPlay();
 };

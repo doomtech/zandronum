@@ -40,7 +40,7 @@
 
 class AParticleFountain : public AActor
 {
-	DECLARE_STATELESS_ACTOR (AParticleFountain, AActor)
+	DECLARE_CLASS (AParticleFountain, AActor)
 public:
 	void PostBeginPlay ();
 	void Activate (AActor *activator);
@@ -49,12 +49,7 @@ public:
 	bool IsActive( void );
 };
 
-IMPLEMENT_STATELESS_ACTOR (AParticleFountain, Any, -1, 0)
-	PROP_HeightFixed (0)
-	PROP_Flags (MF_NOBLOCKMAP|MF_NOGRAVITY)
-	PROP_RenderFlags (RF_INVISIBLE)
-END_DEFAULTS
-
+IMPLEMENT_CLASS (AParticleFountain)
 void AParticleFountain::PostBeginPlay ()
 {
 	Super::PostBeginPlay ();

@@ -81,41 +81,16 @@ private:
 	DImpactDecal();
 };
 
-class AAmbientSound : public AActor
-{
-	DECLARE_STATELESS_ACTOR (AAmbientSound, AActor)
-public:
-	void Serialize (FArchive &arc);
-
-	void BeginPlay ();
-	void Tick ();
-	void Activate (AActor *activator);
-	void Deactivate (AActor *activator);
-	// [BC]
-	bool IsActive( void );
-
-protected:
-	bool bActive;
-private:
-	void SetTicker (struct AmbientSound *ambient);
-	int NextCheck;
-};
-
 class ATeleportFog : public AActor
 {
-	DECLARE_ACTOR (ATeleportFog, AActor)
+	DECLARE_CLASS (ATeleportFog, AActor)
 public:
 	void PostBeginPlay ();
 };
 
-class ATeleportDest : public AActor
-{
-	DECLARE_STATELESS_ACTOR (ATeleportDest, AActor)
-};
-
 class ASkyViewpoint : public AActor
 {
-	DECLARE_STATELESS_ACTOR (ASkyViewpoint, AActor)
+	DECLARE_CLASS (ASkyViewpoint, AActor)
 public:
 	void Serialize (FArchive &arc);
 	void PostBeginPlay ();
@@ -238,7 +213,7 @@ private:
 
 class AMorphProjectile : public AActor
 {
-	DECLARE_ACTOR (AMorphProjectile, AActor)
+	DECLARE_CLASS (AMorphProjectile, AActor)
 public:
 	int DoSpecialDamage (AActor *target, int damage);
 	void Serialize (FArchive &arc);
@@ -249,7 +224,7 @@ public:
 
 class AMorphedMonster : public AActor
 {
-	DECLARE_ACTOR (AMorphedMonster, AActor)
+	DECLARE_CLASS (AMorphedMonster, AActor)
 	HAS_OBJECT_POINTERS
 public:
 	void Tick ();
@@ -265,7 +240,7 @@ public:
 
 class AMapMarker : public AActor
 {
-	DECLARE_ACTOR(AMapMarker, AActor)
+	DECLARE_CLASS(AMapMarker, AActor)
 public:
 	void BeginPlay ();
 	void Activate (AActor *activator);

@@ -70,7 +70,7 @@ class	AFloatyIcon;
 
 class APlayerPawn : public AActor
 {
-	DECLARE_STATELESS_ACTOR (APlayerPawn, AActor)
+	DECLARE_CLASS (APlayerPawn, AActor)
 	HAS_OBJECT_POINTERS
 public:
 	virtual void Serialize (FArchive &arc);
@@ -145,7 +145,7 @@ public:
 
 class APlayerChunk : public APlayerPawn
 {
-	DECLARE_STATELESS_ACTOR (APlayerChunk, APlayerPawn)
+	DECLARE_CLASS (APlayerChunk, APlayerPawn)
 };
 
 //
@@ -267,7 +267,6 @@ public:
 
 	int			inventorytics;
 	BYTE		CurrentPlayerClass;		// class # for this player instance
-	int			pieces;					// Fourth Weapon pieces
 	bool		backpack;
 	
 	int			fragcount;				// [RH] Cumulative frags for this player

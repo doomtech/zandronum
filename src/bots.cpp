@@ -689,7 +689,7 @@ void BOTS_RemoveAllBots( bool bExitMsg )
 //
 void BOTS_ResetCyclesCounter( void )
 {
-	g_BotCycles = 0;
+	g_BotCycles.Reset();
 }
 
 //*****************************************************************************
@@ -1922,7 +1922,7 @@ void CSkullBot::Tick( void )
 {
 	ticcmd_t	*cmd = &m_pPlayer->cmd;
 
-	clock( g_BotCycles );
+	g_BotCycles.Clock();
 
 	// Don't execute bot logic during demos, or if the console player is a client.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -1995,7 +1995,7 @@ void CSkullBot::EndTick( void )
 		m_pPlayer->cmd.ucmd.sidemove = m_lSideMove << 8;
 	m_pPlayer->cmd.ucmd.buttons |= m_lButtons;
 
-	unclock( g_BotCycles );
+	g_BotCycles.Unclock();
 
 	if ( botdebug_states && ( m_pPlayer->mo->CheckLocalView( consoleplayer )) && ( NETWORK_GetState( ) != NETSTATE_SERVER ))
 		Printf( "%s: %s\n", m_pPlayer->userinfo.netname, m_ScriptData.szStateName[m_ScriptData.lCurrentStateIdx] );
@@ -3962,7 +3962,7 @@ ADD_STAT( bots )
 	FString	Out;
 
 	Out.Format( "Bot cycles = %04.1f ms",
-		(double)g_BotCycles * SecondsPerCycle * 1000
+		g_BotCycles.TimeMS()
 		);
 
 	return ( Out );

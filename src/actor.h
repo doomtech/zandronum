@@ -304,6 +304,10 @@ enum
 	MF5_NOINTERACTION	= 0x00200000,	// Thing is completely excluded from any gameplay related checks
 	MF5_NOTIMEFREEZE	= 0x00400000,	// Actor is not affected by time freezer
 	MF5_PUFFGETSOWNER	= 0x00800000,	// [BB] Sets the owner of the puff to the player who fired it
+	MF5_SPECIALFIREDAMAGE=0x01000000,	// Special treatment of PhoenixFX1 turned into a flag to removr
+										// dependence of main engine code of specific actor types.
+	MF5_SUMMONEDMONSTER	= 0x02000000,	// To mark the friendly Minotaur. Hopefully to be generalized later.
+	MF5_NOVERTICALMELEERANGE=0x04000000,// Does not check vertical distance for melee range
 
 	// [BC] More object flags for Skulltag.
 
@@ -553,6 +557,17 @@ public:
 		return (AActor *)(RUNTIME_TYPE(this)->Defaults);
 	}
 
+
+	// Return true if the monster should use a missile attack, false for melee
+	bool SuggestMissileAttack (fixed_t dist);
+
+	// Adjusts the angle for deflection/reflection of incoming missiles
+	// Returns true if the missile should be allowed to explode anyway
+	bool AdjustReflectionAngle (AActor *thing, angle_t &angle);
+
+	// Returns true if this actor is within melee range of its target
+	bool CheckMeleeRange ();
+
 	// BeginPlay: Called just after the actor is created
 	virtual void BeginPlay ();
 	// LevelSpawned: Called after BeginPlay if this actor was spawned by the world
@@ -570,14 +585,8 @@ public:
 	// Smallest yaw interval for a mapthing to be spawned with
 	virtual angle_t AngleIncrements ();
 
-	// Return true if the monster should use a missile attack, false for melee
-	virtual bool SuggestMissileAttack (fixed_t dist);
-
 	// Called when actor dies
 	virtual void Die (AActor *source, AActor *inflictor);
-
-	// Called by A_Explode just before exploding the actor
-	virtual void PreExplode ();
 
 	// Called by A_Explode to find out how much damage to do
 	virtual void GetExplodeParms (int &damage, int &dist, bool &hurtSource);
@@ -593,24 +602,11 @@ public:
 	// Made a metadata property so no longer virtual
 	void Howl ();
 
-	// Called by A_NoBlocking in case the actor wants to drop some presents
-	virtual void NoBlockingSet ();
-
-	// Called by A_SinkMobj
-	virtual fixed_t GetSinkSpeed ();
-
-	// Called by A_RaiseMobj
-	virtual fixed_t GetRaiseSpeed ();
-
 	// Actor just hit the floor
 	virtual void HitFloor ();
 
 	// Called when an actor with MF_MISSILE and MF2_FLOORBOUNCE hits the floor
 	virtual bool FloorBounceMissile (secplane_t &plane);
-
-	// Adjusts the angle for deflection/reflection of incoming missiles
-	// Returns true if the missile should be allowed to explode anyway
-	virtual bool AdjustReflectionAngle (AActor *thing, angle_t &angle);
 
 	// Called when an actor is to be reflected by a disc of repulsion.
 	// Returns true to continue normal blast processing.
@@ -633,9 +629,6 @@ public:
 
 	// Returns true if it's okay to switch target to "other" after being attacked by it.
 	virtual bool OkayToSwitchTarget (AActor *other);
-
-	// Returns true if this actor is within melee range of its target
-	virtual bool CheckMeleeRange ();
 
 	// Something just touched this actor.
 	virtual void Touch (AActor *toucher);

@@ -75,10 +75,10 @@ extern int viewpitch;
  
 int rendered_lines,rendered_flats,rendered_sprites,render_vertexsplit,render_texsplit,rendered_decals;
 int iter_dlightf, iter_dlight, draw_dlight, draw_dlightf;
-Clock RenderWall,SetupWall,ClipWall;
-Clock RenderFlat,SetupFlat;
-Clock RenderSprite,SetupSprite;
-Clock All, Finish, PortalAll;
+cycle_t RenderWall,SetupWall,ClipWall;
+cycle_t RenderFlat,SetupFlat;
+cycle_t RenderSprite,SetupSprite;
+cycle_t All, Finish, PortalAll;
 int vertexcount, flatvertices, flatprimitives;
 int palette_brightness;
 long gl_frameMS;
@@ -86,8 +86,8 @@ int gl_spriteindex;
 float gl_sky1pos, gl_sky2pos;
 int gl_lightcount;
 
-Clock ProcessAll;
-Clock RenderAll;
+cycle_t ProcessAll;
+cycle_t RenderAll;
 
 extern UniqueList<GLSkyInfo> UniqueSkies;
 extern UniqueList<GLHorizonInfo> UniqueHorizons;
@@ -202,8 +202,8 @@ static void gl_StartDrawScene(GL_IRECT * bounds, float fov, float ratio, float f
 		int trueheight = static_cast<OpenGLFrameBuffer*>(screen)->GetTrueHeight();	// ugh...
 		int bars = (trueheight-screen->GetHeight())/2; 
 
-		int vw = realviewwidth;
-		int vh = realviewheight;
+		int vw = viewwidth;
+		int vh = viewheight;
 		gl.Viewport(viewwindowx, trueheight-bars-(height+viewwindowy-((height-vh)/2)), vw, height);
 		gl.Scissor(viewwindowx, trueheight-bars-(vh+viewwindowy), vw, vh);
 	}
@@ -348,7 +348,7 @@ void gl_DrawScene()
 	// reset the portal manager
 	GLPortal::StartFrame();
 
-	ProcessAll.Start();
+	ProcessAll.Clock();
 
 	// clip the scene and fill the drawlists
 	gl_spriteindex=0;
@@ -361,8 +361,8 @@ void gl_DrawScene()
 	gl_drawinfo->HandleHackedSubsectors();	// open sector hacks for deep water
 	gl_drawinfo->ProcessSectorStacks();		// merge visplanes of sector stacks
 
-	ProcessAll.Stop();
-	RenderAll.Start();
+	ProcessAll.Unclock();
+	RenderAll.Clock();
 
 	if (!gl_no_skyclear) GLPortal::RenderFirstSkyPortal(recursion);
 
@@ -507,7 +507,7 @@ void gl_DrawScene()
 	gl.PolygonOffset(0.0f, 0.0f);
 	gl.Disable(GL_POLYGON_OFFSET_FILL);
 
-	RenderAll.Stop();
+	RenderAll.Unclock();
 	// Handle all portals after rendering the opaque objects but before
 	// doing all translucent stuff
 	gl.DepthMask(true);
@@ -516,7 +516,7 @@ void gl_DrawScene()
 	recursion--;
 	gl.DepthMask(false);
 
-	RenderAll.Start();
+	RenderAll.Clock();
 
 	gl_SetCamera(TO_MAP(viewx), TO_MAP(viewy), TO_MAP(viewz));
 
@@ -532,7 +532,7 @@ void gl_DrawScene()
 	gl.DepthMask(true);
 
 	gl.AlphaFunc(GL_GEQUAL,0.5f);
-	RenderAll.Stop();
+	RenderAll.Unclock();
 }
 
 
@@ -981,7 +981,7 @@ void OpenGLFrameBuffer::RenderView (player_t* player)
 
 	//Printf("Starting scene\n");
 	All.Reset();
-	All.Start();
+	All.Clock();
 	PortalAll.Reset();
 	RenderAll.Reset();
 	ProcessAll.Reset();
@@ -1018,7 +1018,7 @@ void OpenGLFrameBuffer::RenderView (player_t* player)
 	sector_t * viewsector = gl_RenderView(player->camera, NULL, FieldOfView * 360.0f / FINEANGLES, ratio, fovratio, true);
 	gl_EndDrawScene(viewsector);
 
-	All.Stop();
+	All.Unclock();
 }
 
 //-----------------------------------------------------------------------------
@@ -1034,19 +1034,9 @@ ADD_STAT(rendertimes)
 	if (t-lasttime>1000) 
 	{
 		buff.Format("W: Render=%2.2f, Setup=%2.2f, Clip=%2.2f - F: Render=%2.2f, Setup=%2.2f - S: Render=%2.2f, Setup=%2.2f - All=%2.2f, Render=%2.2f, Setup=%2.2f, Portal=%2.2f, Finish=%2.2f\n",
-		SecondsPerCycle * (double)*RenderWall * 1000,
-		SecondsPerCycle * (double)* SetupWall * 1000,
-		SecondsPerCycle * (double)*  ClipWall * 1000,
-		SecondsPerCycle * (double)*RenderFlat * 1000,
-		SecondsPerCycle * (double)* SetupFlat * 1000,
-		SecondsPerCycle * (double)*RenderSprite* 1000,
-		SecondsPerCycle * (double)* SetupSprite* 1000,
-		SecondsPerCycle * (double)((*       All)+(*Finish)) * 1000,
-		SecondsPerCycle * (double)* RenderAll * 1000,
-		SecondsPerCycle * (double)*ProcessAll * 1000,
-		SecondsPerCycle * (double)*PortalAll * 1000,
-		SecondsPerCycle * (double)*    Finish * 1000);
-
+		RenderWall.Time(), SetupWall.Time(), ClipWall.Time(), RenderFlat.Time(), SetupFlat.Time(),
+		RenderSprite.Time(), SetupSprite.Time(), All.Time() + Finish.Time(), RenderAll.Time(),
+		ProcessAll.Time(), PortalAll.Time(), Finish.Time());
 		lasttime=t;
 	}
 	return buff;

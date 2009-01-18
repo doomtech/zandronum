@@ -60,6 +60,9 @@ IMPLEMENT_CLASS(OpenGLFrameBuffer)
 EXTERN_CVAR (Float, vid_brightness)
 EXTERN_CVAR (Float, vid_contrast)
 
+void gl_InitSpecialTextures();
+void gl_FreeSpecialTextures();
+
 //==========================================================================
 //
 //
@@ -78,15 +81,20 @@ OpenGLFrameBuffer::OpenGLFrameBuffer(int width, int height, int bits, int refres
 
 	InitializeState();
 	gl_GenerateGlobalBrightmapFromColormap();
+	gl_InitSpecialTextures();
 }
 
 OpenGLFrameBuffer::~OpenGLFrameBuffer()
 {
+	gl_FreeSpecialTextures();
 	// all native textures must be completely removed before destroying the frame buffer
+	FGLTexture::DeleteAll();
+	/*
 	for(int i=0; i<TexMan.NumTextures();i++)
 	{
 		TexMan.ByIndex(i)->KillNative();
 	}
+	*/
 	GLShader::Clear();
 }
 
@@ -214,9 +222,9 @@ void OpenGLFrameBuffer::Update()
 	}
 
 	Finish.Reset();
-	Finish.Start();
+	Finish.Clock();
 	gl.Finish();
-	Finish.Stop();
+	Finish.Unclock();
 	gl.SwapBuffers();
 	Unlock();
 }

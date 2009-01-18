@@ -244,10 +244,13 @@ bool AActor::CheckMeleeRange ()
 		return true;
 
 	// [RH] Don't melee things too far above or below actor.
-	if (pl->z > z + height)
-		return false;
-	if (pl->z + pl->height < z)
-		return false;
+	if (!(flags5 & MF5_NOVERTICALMELEERANGE))
+	{
+		if (pl->z > z + height)
+			return false;
+		if (pl->z + pl->height < z)
+			return false;
+	}
 		
 	if (!P_CheckSight (this, pl, 0))
 		return false;
@@ -2771,12 +2774,61 @@ void A_XXScream (AActor *actor)
 
 //---------------------------------------------------------------------------
 //
+// Modifies the drop amount of this item according to the current skill's
+// settings (also called by ADehackedPickup::TryPickup)
+//
+//---------------------------------------------------------------------------
+void ModifyDropAmount(AInventory *inv, int dropamount)
+{
+	int flagmask = IF_IGNORESKILL;
+	fixed_t dropammofactor = G_SkillProperty(SKILLP_DropAmmoFactor);
+	// Default drop amount is half of regular amount * regular ammo multiplication
+	if (dropammofactor == -1) 
+	{
+		dropammofactor = FRACUNIT/2;
+		flagmask = 0;
+	}
+
+	if (dropamount > 0)
+	{
+		if (flagmask != 0 && inv->IsKindOf(RUNTIME_CLASS(AAmmo)))
+		{
+			inv->Amount = FixedMul(dropamount, dropammofactor);
+			inv->ItemFlags |= IF_IGNORESKILL;
+		}
+		else
+		{
+			inv->Amount = dropamount;
+		}
+	}
+	else if (inv->IsKindOf (RUNTIME_CLASS(AAmmo)))
+	{
+		// Half ammo when dropped by bad guys.
+		inv->Amount = inv->GetClass()->Meta.GetMetaInt (AIMETA_DropAmount, MAX(1, FixedMul(inv->Amount, dropammofactor)));
+		inv->ItemFlags|=flagmask;
+	}
+	else if (inv->IsKindOf (RUNTIME_CLASS(AWeapon)))
+	{
+		// The same goes for ammo from a weapon.
+		static_cast<AWeapon *>(inv)->AmmoGive1 = FixedMul(static_cast<AWeapon *>(inv)->AmmoGive1, dropammofactor);
+		static_cast<AWeapon *>(inv)->AmmoGive2 = FixedMul(static_cast<AWeapon *>(inv)->AmmoGive2, dropammofactor);
+		inv->ItemFlags|=flagmask;
+	}			
+	else if (inv->IsKindOf (RUNTIME_CLASS(ADehackedPickup)))
+	{
+		// For weapons and ammo modified by Dehacked we need to flag the item.
+		static_cast<ADehackedPickup *>(inv)->droppedbymonster = true;
+	}
+}
+
+//---------------------------------------------------------------------------
+//
 // PROC P_DropItem
 //
 //---------------------------------------------------------------------------
 CVAR(Int, sv_dropstyle, 0, CVAR_SERVERINFO | CVAR_ARCHIVE);
 
-AInventory *P_DropItem (AActor *source, const PClass *type, int special, int chance)
+AInventory *P_DropItem (AActor *source, const PClass *type, int dropamount, int chance)
 {
 	// [BC] This is handled server side.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -2816,42 +2868,24 @@ AInventory *P_DropItem (AActor *source, const PClass *type, int special, int cha
 		if (mo->IsKindOf (RUNTIME_CLASS(AInventory)))
 		{
 			AInventory * inv = static_cast<AInventory *>(mo);
-			if (special > 0)
-			{
-				inv->Amount = special;
-			}
-			else if (mo->IsKindOf (RUNTIME_CLASS(AAmmo)))
-			{
-				// Half ammo when dropped by bad guys.
-				inv->Amount = inv->GetClass()->Meta.GetMetaInt (AIMETA_DropAmount, MAX(1, inv->Amount / 2 ));
-			}
-			else if (mo->IsKindOf (RUNTIME_CLASS(AWeapon)))
-			{
-				// The same goes for ammo from a weapon.
-				static_cast<AWeapon *>(mo)->AmmoGive1 /= 2;
-				static_cast<AWeapon *>(mo)->AmmoGive2 /= 2;
+			ModifyDropAmount(inv, dropamount);
 
 				// [BB] Now that the ammo amount from weapon pickups is handled on the server
 				// this shouldn't be necessary anymore. Remove after thorough testing.
 				// [BC] If we're the server, tell clients that the thing is dropped.
 				//if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				//	SERVERCOMMANDS_SetWeaponAmmoGive( mo );
-			}			
-			else if (mo->IsKindOf (RUNTIME_CLASS(ADehackedPickup)))
-			{
-				// For weapons and ammo modified by Dehacked we need to flag the item.
-				static_cast<ADehackedPickup *>(mo)->droppedbymonster = true;
-			}
 			if (inv->SpecialDropAction (source))
 			{
 				return NULL;
 			}
+			return inv;
 		}
 		if (!(i_compatflags & COMPATF_NOTOSSDROPS))
 		{
 			P_TossItem (mo);
 		}
-		return static_cast<AInventory *>(mo);
+		// we can't really return an AInventory pointer to a non-inventory item here, can we?
 	}
 	return NULL;
 }
@@ -2998,7 +3032,6 @@ void A_Explode (AActor *thing)
 		return;
 	}
 
-	thing->PreExplode ();
 	thing->GetExplodeParms (damage, distance, hurtSource);
 	P_RadiusAttack (thing, thing->target, damage, distance, thing->DamageType, hurtSource);
 	if (thing->z <= thing->floorz + (distance<<FRACBITS))
@@ -3014,23 +3047,6 @@ void A_Explode (AActor *thing)
 			PLAYER_StruckPlayer( thing->target->player );
 		else
 			thing->target->player->ulConsecutiveHits = 0;
-	}
-}
-
-void A_ExplodeAndAlert (AActor *thing)
-{
-	// [BC] This is handled server-side.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
-		( CLIENTDEMO_IsPlaying( )))
-	{
-		return;
-	}
-
-	A_Explode (thing);
-	if (thing->target != NULL && thing->target->player != NULL)
-	{
-		validcount++;
-		P_RecursiveSound (thing->Sector, thing->target, false, 0);
 	}
 }
 
@@ -3214,11 +3230,11 @@ int P_Massacre ()
 // Sink a mobj incrementally into the floor
 //
 
-bool A_SinkMobj (AActor *actor)
+bool A_SinkMobj (AActor *actor, fixed_t speed)
 {
 	if (actor->floorclip < actor->height)
 	{
-		actor->floorclip += actor->GetSinkSpeed ();
+		actor->floorclip += speed;
 		return false;
 	}
 	return true;
@@ -3229,14 +3245,14 @@ bool A_SinkMobj (AActor *actor)
 // Raise a mobj incrementally from the floor to 
 // 
 
-bool A_RaiseMobj (AActor *actor)
+bool A_RaiseMobj (AActor *actor, fixed_t speed)
 {
 	bool done = true;
 
 	// Raise a mobj from the ground
 	if (actor->floorclip > 0)
 	{
-		actor->floorclip -= actor->GetRaiseSpeed ();
+		actor->floorclip -= speed;
 		if (actor->floorclip <= 0)
 		{
 			actor->floorclip = 0;

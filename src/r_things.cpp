@@ -719,7 +719,7 @@ void R_InitSkins (void)
 				const PClass *type = PlayerClasses[j].Type;
 
 				if (type->IsDescendantOf (basetype) &&
-					GetDefaultByType (type)->SpawnState->sprite.index == GetDefaultByType (basetype)->SpawnState->sprite.index &&
+					GetDefaultByType (type)->SpawnState->sprite == GetDefaultByType (basetype)->SpawnState->sprite &&
 					type->Meta.GetMetaInt (APMETA_ColorRange) == basetype->Meta.GetMetaInt (APMETA_ColorRange))
 				{
 					PlayerClasses[j].Skins.Push ((int)i);
@@ -1078,7 +1078,7 @@ void R_InitSkins (void)
 						const PClass	*pType = PlayerClasses[ulIdx].Type;
 
 						if (( pType->IsDescendantOf( basetype )) &&
-							( GetDefaultByType( pType )->SpawnState->sprite.index == GetDefaultByType( basetype )->SpawnState->sprite.index ) &&
+							( GetDefaultByType( pType )->SpawnState->sprite == GetDefaultByType( basetype )->SpawnState->sprite ) &&
 							( pType->Meta.GetMetaInt( APMETA_ColorRange ) == basetype->Meta.GetMetaInt( APMETA_ColorRange )))
 						{
 							PlayerClasses[ulIdx].Skins.Push( i );
@@ -1392,7 +1392,7 @@ void R_InitSprites ()
 		skins[i].ScaleY = GetDefaultByType (type)->scaleY;
 		// [BC] We need to initialize the default sprite, because when we create a skin
 		// using SKININFO, we don't necessarily specify a sprite.
-		skins[i].sprite = GetDefaultByType (type)->SpawnState->sprite.index;
+		skins[i].sprite = GetDefaultByType (type)->SpawnState->sprite;
 		skins[i].bRevealed = true;
 		skins[i].bRevealedByDefault = true;
 	}
@@ -1409,7 +1409,7 @@ void R_InitSprites ()
 		const char *pclassface = basetype->Meta.GetMetaString (APMETA_Face);
 
 		strcpy (skins[i].name, "Base");
-		if (strcmp(pclassface, "None") == 0)
+		if (pclassface == NULL || strcmp(pclassface, "None") == 0)
 		{
 			skins[i].face[0] = 'S';
 			skins[i].face[1] = 'T';
@@ -1424,7 +1424,7 @@ void R_InitSprites ()
 		skins[i].range0end = basetype->Meta.GetMetaInt (APMETA_ColorRange) >> 8;
 		skins[i].ScaleX = GetDefaultByType (basetype)->scaleX;
 		skins[i].ScaleY = GetDefaultByType (basetype)->scaleY;
-		skins[i].sprite = GetDefaultByType (basetype)->SpawnState->sprite.index;
+		skins[i].sprite = GetDefaultByType (basetype)->SpawnState->sprite;
 		skins[i].namespc = ns_global;
 
 		PlayerClasses[i].Skins.Push (i);
@@ -2200,15 +2200,15 @@ void R_DrawPSprite (pspdef_t* psp, int pspnum, AActor *owner, fixed_t sx, fixed_
 	vissprite_t 		avis;
 
 	// decide which patch to use
-	if ( (unsigned)psp->state->sprite.index >= (unsigned)sprites.Size ())
+	if ( (unsigned)psp->state->sprite >= (unsigned)sprites.Size ())
 	{
-		DPrintf ("R_DrawPSprite: invalid sprite number %i\n", psp->state->sprite.index);
+		DPrintf ("R_DrawPSprite: invalid sprite number %i\n", psp->state->sprite);
 		return;
 	}
-	sprdef = &sprites[psp->state->sprite.index];
+	sprdef = &sprites[psp->state->sprite];
 	if (psp->state->GetFrame() >= sprdef->numframes)
 	{
-		DPrintf ("R_DrawPSprite: invalid sprite frame %i : %i\n", psp->state->sprite.index, psp->state->GetFrame());
+		DPrintf ("R_DrawPSprite: invalid sprite frame %i : %i\n", psp->state->sprite, psp->state->GetFrame());
 		return;
 	}
 	sprframe = &SpriteFrames[sprdef->spriteframes + psp->state->GetFrame()];
@@ -2248,7 +2248,7 @@ void R_DrawPSprite (pspdef_t* psp, int pspnum, AActor *owner, fixed_t sx, fixed_
 
 
 	if (camera->player && (RenderTarget != screen ||
-		realviewheight == RenderTarget->GetHeight() ||
+		viewheight == RenderTarget->GetHeight() ||
 		(RenderTarget->GetWidth() > 320 && !st_scale)))
 	{	// Adjust PSprite for fullscreen views
 		AWeapon *weapon = NULL;
@@ -2258,7 +2258,7 @@ void R_DrawPSprite (pspdef_t* psp, int pspnum, AActor *owner, fixed_t sx, fixed_
 		}
 		if (pspnum <= ps_flash && weapon != NULL && weapon->YAdjust != 0)
 		{
-			if (RenderTarget != screen || realviewheight == RenderTarget->GetHeight())
+			if (RenderTarget != screen || viewheight == RenderTarget->GetHeight())
 			{
 				vis->texturemid -= weapon->YAdjust;
 			}
@@ -3176,7 +3176,7 @@ void R_DrawParticle (vissprite_t *vis)
 		fg = fg2rgb[color];
 	}
 
-	spacing = (RenderTarget->GetPitch()<<detailyshift) - countbase;
+	spacing = RenderTarget->GetPitch() - countbase;
 	dest = ylookup[yl] + x1 + dc_destorg;
 
 	do

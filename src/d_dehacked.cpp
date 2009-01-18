@@ -152,9 +152,6 @@ IMPLEMENT_POINTY_CLASS (ADehackedPickup)
  DECLARE_POINTER (RealPickup)
 END_POINTERS
 
-BEGIN_STATELESS_DEFAULTS (ADehackedPickup, Any, -1, 0)
-END_DEFAULTS
-
 TArray<PClass *> TouchedActors;
 
 char *UnchangedSpriteNames;
@@ -1184,7 +1181,7 @@ static int PatchFrame (int frameNum)
 				{
 					if (memcmp (OrgSprNames[val], sprites[i].name, 4) == 0)
 					{
-						info->sprite.index = (int)i;
+						info->sprite = (int)i;
 						break;
 					}
 				}
@@ -1224,11 +1221,10 @@ static int PatchFrame (int frameNum)
 		{
 			Printf ("Frame %d: Subnumber must be in range [0,63]\n", frameNum);
 		}
-		info->Tics = (tics+1) & 255;
-		info->Misc1 = ((tics+1)>>8) | misc1;
+		info->Tics = tics;
+		info->Misc1 = misc1;
 		info->Frame = (frame & 0x3f) |
-			(frame & 0x8000 ? SF_FULLBRIGHT : 0) |
-			(tics > 254 ? SF_BIGTIC : 0);
+			(frame & 0x8000 ? SF_FULLBRIGHT : 0);
 	}
 
 	return result;
@@ -2619,6 +2615,8 @@ void FinishDehPatch ()
 	}
 }
 
+void ModifyDropAmount(AInventory *inv, int dropamount);
+
 bool ADehackedPickup::TryPickup (AActor *toucher)
 {
 	const PClass *type = DetermineType ();
@@ -2634,18 +2632,10 @@ bool ADehackedPickup::TryPickup (AActor *toucher)
 			RealPickup->flags &= ~MF_DROPPED;
 		}
 		// If this item has been dropped by a monster the
-		// amount of ammo this gives must be halved.
+		// amount of ammo this gives must be adjusted.
 		if (droppedbymonster)
 		{
-			if (RealPickup->IsKindOf(RUNTIME_CLASS(AWeapon)))
-			{
-				static_cast<AWeapon *>(RealPickup)->AmmoGive1 /= 2;
-				static_cast<AWeapon *>(RealPickup)->AmmoGive2 /= 2;
-			}
-			else if (RealPickup->IsKindOf(RUNTIME_CLASS(AAmmo)))
-			{
-				RealPickup->Amount /= 2;
-			}
+			ModifyDropAmount(RealPickup, 0);
 		}
 		if (!RealPickup->TryPickup (toucher))
 		{

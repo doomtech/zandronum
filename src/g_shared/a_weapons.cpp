@@ -13,6 +13,8 @@
 #include "cmdlib.h"
 #include "templates.h"
 #include "sbar.h"
+#include "thingdef/thingdef.h"
+// [BB] New #includes.
 #include "deathmatch.h"
 #include "team.h"
 #include "cl_commands.h"
@@ -22,20 +24,11 @@
 
 #define BONUSADD 6
 
-FState AWeapon::States[] =
-{
-	S_NORMAL (SHTG, 'E',	0, A_Light0 			, NULL)
-};
-
 IMPLEMENT_POINTY_CLASS (AWeapon)
  DECLARE_POINTER (Ammo1)
  DECLARE_POINTER (Ammo2)
  DECLARE_POINTER (SisterWeapon)
 END_POINTERS
-
-BEGIN_DEFAULTS (AWeapon, Any, -1, 0)
- PROP_Inventory_PickupSound ("misc/w_pkup")
-END_DEFAULTS
 
 //===========================================================================
 //
@@ -77,7 +70,7 @@ bool AWeapon::TryPickup (AActor *toucher)
 {
 	FState * ReadyState = FindState(NAME_Ready);
 	if (ReadyState != NULL &&
-		ReadyState->GetFrame() < sprites[ReadyState->sprite.index].numframes)
+		ReadyState->GetFrame() < sprites[ReadyState->sprite].numframes)
 	{
 		return Super::TryPickup (toucher);
 	}
@@ -738,6 +731,40 @@ FState *AWeapon::GetAltAtkState (bool hold)
 	if (hold) state = FindState(NAME_AltHold);
 	if (state == NULL) state = FindState(NAME_AltFire);
 	return state;
+}
+
+/* Weapon giver ***********************************************************/
+
+class AWeaponGiver : public AWeapon
+{
+	DECLARE_CLASS(AWeaponGiver, AWeapon)
+
+public:
+	bool TryPickup(AActor *toucher);
+};
+
+IMPLEMENT_CLASS(AWeaponGiver)
+
+bool AWeaponGiver::TryPickup(AActor *toucher)
+{
+	FDropItem *di = GetDropItems(GetClass());
+
+	if (di != NULL)
+	{
+		const PClass *ti = PClass::FindClass(di->Name);
+		if (ti->IsDescendantOf(RUNTIME_CLASS(AWeapon)))
+		{
+			AWeapon *weap = static_cast<AWeapon*>(Spawn(di->Name, 0, 0, 0, NO_REPLACE));
+			if (weap != NULL)
+			{
+				bool res = weap->TryPickup(toucher);
+				if (!res) weap->Destroy();
+				else GoAwayAndDie();
+				return res;
+			}
+		}
+	}
+	return false;
 }
 
 /* Weapon slots ***********************************************************/

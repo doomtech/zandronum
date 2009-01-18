@@ -81,7 +81,7 @@ public:
 
 	static DThinker *FirstThinker (int statnum);
 
-protected:
+private:
 	enum no_link_type { NO_LINK };
 	DThinker(no_link_type) throw();
 	static void DestroyThinkersInList (FThinkerList &list);
@@ -131,6 +131,9 @@ public:
 	{
 	}
 	TThinkerIterator (FName subclass, int statnum=MAX_STATNUM+1) : FThinkerIterator(PClass::FindClass(subclass), statnum)
+	{
+	}
+	TThinkerIterator (ENamedName subclass, int statnum=MAX_STATNUM+1) : FThinkerIterator(PClass::FindClass(subclass), statnum)
 	{
 	}
 	TThinkerIterator (const char *subclass, int statnum=MAX_STATNUM+1) : FThinkerIterator(PClass::FindClass(subclass), statnum)

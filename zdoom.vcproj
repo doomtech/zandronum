@@ -1703,42 +1703,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\src\infodefaults.cpp"
-				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalOptions="&quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot; "
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalOptions="&quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot; "
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalOptions="&quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot; "
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalOptions="&quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot; "
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath=".\src\invasion.cpp"
 				>
 			</File>
@@ -4189,6 +4153,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\src\x86.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\zstrformat.cpp"
 				>
 			</File>
@@ -4857,7 +4825,7 @@
 			Filter="nas; asm"
 			>
 			<File
-				RelativePath=".\src\a.nas"
+				RelativePath=".\src\asm_ia32\a.asm"
 				>
 				<FileConfiguration
 					Name="Release|Win32"
@@ -4903,7 +4871,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\src\misc.nas"
+				RelativePath=".\src\asm_ia32\misc.asm"
 				>
 				<FileConfiguration
 					Name="Release|Win32"
@@ -4949,7 +4917,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\src\tmap.nas"
+				RelativePath=".\src\asm_ia32\tmap.asm"
 				>
 				<FileConfiguration
 					Name="Release|Win32"
@@ -4995,7 +4963,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\src\tmap2.nas"
+				RelativePath=".\src\asm_ia32\tmap2.asm"
 				>
 				<FileConfiguration
 					Name="Release|Win32"
@@ -5041,7 +5009,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\src\tmap3.nas"
+				RelativePath=".\src\asm_ia32\tmap3.asm"
 				>
 				<FileConfiguration
 					Name="Release|Win32"
@@ -5491,7 +5459,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\src\win32\wrappers.nas"
+				RelativePath=".\src\win32\wrappers.asm"
 				>
 			</File>
 		</Filter>
@@ -5653,10 +5621,6 @@
 						AdditionalOptions="&quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot; "
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\src\g_shared\a_cooperativebackpack.cpp"
-				>
 			</File>
 			<File
 				RelativePath=".\src\g_shared\a_debris.cpp"
@@ -7335,42 +7299,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\src\g_heretic\a_heretickeys.cpp"
-				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalOptions="&quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot; "
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalOptions="&quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot; "
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalOptions="&quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot; "
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalOptions="&quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot; "
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath=".\src\g_heretic\a_hereticmisc.cpp"
 				>
 				<FileConfiguration
@@ -8581,10 +8509,6 @@
 						AdditionalOptions="&quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot;  &quot;  /I /fmod/api/inc&quot; "
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="src\g_hexen\a_weaponpieces.cpp"
-				>
 			</File>
 			<File
 				RelativePath=".\src\g_hexen\a_wraith.cpp"

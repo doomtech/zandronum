@@ -52,7 +52,6 @@
 #include "r_sky.h"
 
 
-extern Clock RenderWall,SetupWall,ClipWall;
 EXTERN_CVAR(Bool, gl_render_segs)
 
 Clipper clipper;
@@ -182,14 +181,14 @@ static void AddLine (seg_t *seg,sector_t * sector,subsector_t * polysub)
 	sector_t * backsector = NULL;
 	sector_t bs;
 
-	ClipWall.Start(true);
+	ClipWall.Clock();
 	if (GLPortal::mirrorline)
 	{
 		// this seg is completely behind the mirror!
 		if (P_PointOnLineSide(seg->v1->x, seg->v1->y, GLPortal::mirrorline) &&
 			P_PointOnLineSide(seg->v2->x, seg->v2->y, GLPortal::mirrorline)) 
 		{
-			ClipWall.Stop(true);
+			ClipWall.Unclock();
 			return;
 		}
 	}
@@ -200,13 +199,13 @@ static void AddLine (seg_t *seg,sector_t * sector,subsector_t * polysub)
 	// Back side, i.e. backface culling	- read: endAngle >= startAngle!
 	if (startAngle-endAngle<ANGLE_180 || !seg->linedef)  
 	{
-		ClipWall.Stop(true);
+		ClipWall.Unclock();
 		return;
 	}
 
 	if (!clipper.SafeCheckRange(startAngle, endAngle)) 
 	{
-		ClipWall.Stop(true);
+		ClipWall.Unclock();
 		return;
 	}
 
@@ -222,7 +221,7 @@ static void AddLine (seg_t *seg,sector_t * sector,subsector_t * polysub)
 			if (!tex || tex->UseType==FTexture::TEX_Null) 
 			{
 				// nothing to do here!
-				ClipWall.Stop();
+				ClipWall.Unclock();
 				seg->linedef->validcount=validcount;
 				return;
 			}
@@ -263,7 +262,7 @@ static void AddLine (seg_t *seg,sector_t * sector,subsector_t * polysub)
 	}
 
 	seg->linedef->flags |= ML_MAPPED;
-	ClipWall.Stop();
+	ClipWall.Unclock();
 
 	if (!gl_render_segs)
 	{
@@ -275,12 +274,12 @@ static void AddLine (seg_t *seg,sector_t * sector,subsector_t * polysub)
 
 	GLWall wall;
 
-	SetupWall.Start(true);
+	SetupWall.Clock();
 
 	wall.Process(seg, sector, backsector, polysub);
 	rendered_lines++;
 
-	SetupWall.Stop(true);
+	SetupWall.Unclock();
 }
 
 
@@ -327,7 +326,7 @@ static inline void RenderThings(subsector_t * sub, sector_t * sector)
 {
 	GLSprite glsprite;
 
-	SetupSprite.Start();
+	SetupSprite.Clock();
 	sector_t * sec=sub->sector;
 	// BSP is traversed by subsector.
 	// A sector might have been split into several
@@ -344,7 +343,7 @@ static inline void RenderThings(subsector_t * sub, sector_t * sector)
 			glsprite.Process(thing, sector);
 		}
 	}
-	SetupSprite.Stop();
+	SetupSprite.Unclock();
 }
 
 //==========================================================================
@@ -408,9 +407,9 @@ static void DoSubsector(subsector_t * sub)
 				// This means we need the heightsec parts and light info of the render sector, not the actual one!
 				fakesector = gl_FakeFlat(sector, &fake, false);
 			}
-			SetupFlat.Start(true);
+			SetupFlat.Clock();
 			glflat.ProcessSector(fakesector, sub);
-			SetupFlat.Stop(true);
+			SetupFlat.Unclock();
 		}
 	}
 }

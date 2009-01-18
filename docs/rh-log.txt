@@ -1,4 +1,167 @@
+August 10, 2008
+- Changed Windows to use the performance counter instead of rdtsc.
+- Changed Linux to use clock_gettime for profiling instead of rdtsc. This
+  avoids potential erroneous results on multicore and variable speed
+  processors.
+
+August 9, 2008 (Changes by Graf Zahl)
+- Converted the last of Hexen's inventory items to DECORATE so that I could
+  export AInventory.
+- Removed AT_GAME_SET because it's no longer used anywhere.
+- Converted the last remaining global classes to DECORATE.
+- Fixed: Inventory.PickupFlash requires an class name as parameter not an
+  integer. Some Hexen definitions got it wrong.
+- Converted Hexen's Pig to DECORATE.
+- Replaced the ActorInfo definitions of all internal inventory classes with 
+  DECORATE definitions.
+- Added option to specify a powerup's duration in second by using a negative
+  number.
+
+August 8, 2008
+- Added Gez's Freedoom detection patch.
+- SBARINFO update:
+  * Added: The ability to have drawkeybar auto detect spacing.
+  * Added: Offset parameter to drawkeybar to allow two key bars with
+    different keys.
+  * Added: Multi-row/column keybar parameters.  Spacing can also be auto.
+    These  defualt to left to right/top to bottom but can be switched.
+  * Added: Drawshadow flag to drawnumber.  This will draw a solid color and
+    translucent number under the normal number.
+  * Added: hexenarmor to drawimage.  This takes a parameter for a hexen
+    armor type and will fade the image like the hexen status bar.
+  * Added: centerbottom offset to draw(switchable)image.
+  * Added: translucent flag to drawinventorybar.
+  * Fixed: Accidentally removed flag from DrawTexture that allowed negative
+    coordinates to work with fullscreenoffsets.  Hopefully this is the last
+    major bug in the fullscreenoffsets system.
+- Ported vlinetallasm4 to AMD64 assembly. Even with the increased number of
+  registers AMD64 provides, this routine still needs to be written as self-
+  modifying code for maximum performance. The additional registers do allow
+  for further optimization over the x86 version by allowing all four pixels
+  to be in flight at the same time. The end result is that AMD64 ASM is about
+  2.18 times faster than AMD64 C and about 1.06 times faster than x86 ASM.
+  (For further comparison, AMD64 C and x86 C are practically the same for
+  this function.) Should I port any more assembly to AMD64, mvlineasm4 is the
+  most likely candidate, but it's not used enough at this point to bother.
+  Also, this may or may not work with Linux at the moment, since it doesn't
+  have the eh_handler metadata. Win64 is easier, since I just need to
+  structure the function prologue and epilogue properly and use some
+  assembler directives/macros to automatically generate the metadata. And
+  that brings up another point: You need YASM to assemble the AMD64 code,
+  because NASM doesn't support the Win64 metadata directives.
+
+August 8, 2008 (Changes by Graf Zahl)
+- Replaced the ActorInfo definitions of several internal classes with DECORATE definitions
+- Converted teleport fog and destinations to DECORATE.
+- AActor::PreExplode is gone now that the last item that was using it has been converted.
+- Converted the Sigil and the remaining things in a_strifeitems.cpp to DECORATE.
+- Exported Point pushers, CustomSprite and AmbientSound to DECORATE.
+- Changed increased lightning damage for Centaurs into a damage factor.
+- Changed PoisonCloud and Lightning special treatment in P_DamageMobj to use damage
+  types instead to keep dependencies on specific actor types out of the main engine code.
+- Added Korax DECORATE conversion by Gez and a few others by Karate Chris.
+- Removed FourthWeaponClass and based Hexen's fourth weapons on the generic weapon
+  pieces.
+- Added DECORATE conversions for Hexen's Fighter weapons by Karate Chris.
+- Added aWeaponGiver class to generalize the standing AssaultGun.
+- converted a_Strifeweapons.cpp to DECORATE, except for the Sigil.
+
+August 7, 2008
+- Added an SSE version of DoBlending. This is strictly C intrinsics.
+  VC++ still throws around unneccessary register moves. GCC seems to be
+  pretty close to optimal, requiring only about 2 cycles/color. They're
+  both faster than my hand-written MMX routine, so I don't need to feel
+  bad about not hand-optimizing this for x64 builds.
+- Removed an extra instruction from DoBlending_MMX, transposed two
+  instructions, and unrolled it once, shaving off about 80 cycles from the
+  time required to blend 256 palette entries. Why? Because I tried writing
+  a C version of the routine using compiler intrinsics and was appalled by
+  all the extra movq's VC++ added to the code. GCC was better, but still
+  generated extra instructions. I only wanted a C version because I can't
+  use inline assembly with VC++'s x64 compiler, and x64 assembly is a bit
+  of a pain. (It's a pain because Linux and Windows have different calling
+  conventions, and you need to maintain extra metadata for functions.) So,
+  the assembly version stays and the C version stays out.
+
+August 7, 2008 (Changes by Graf Zahl)
+- Converted the rest of a_strifestuff.cpp to DECORATE.
+- Fixed: AStalker::CheckMeleeRange did not perform all checks of AActor::CheckMeleeRange.
+  I replaced this virtual override with a new flag MF5_NOVERTICALMELEERANGE so that
+  this feature can also be used by other actors.
+- Converted Strife's Stalker to DECORATE.
+- Converted ArtiTeleport to DECORATE.
+- Removed the NoBlockingSet method from AActor because everything using it has been
+  converted to DECORATE using DropItem instead.
+- Changed: Macil doesn't need the StrifeHumanoid's special death states so he might
+  as well inherit directly from AActor.
+- Converted Strife's Coin, Oracle, Macil and StrifeHumanoid to DECORATE. Also moved
+  the burning hand states to StrifePlayer where they really belong.
+- Added Gez's dropammofactor submission with some necessary changes. Also merged
+  redundant ammo multiplication code from P_DropItem and ADehackedPickup::TryPickup.
+- Restricted native action function definitions to zdoom.pk3.
+- Fixed. The Firedemon was missing a game filter.
+
+August 7, 2008 (SBARINfO update)
+- Added: disablegrin, disableouch, disablepain, and disablerampage flags to
+  drawmugshot.
+- Fixed: LowerHealthCap did not work properly.
+- Fixed: Various bugs I noticed in the fullscreenoffsets code.
+
+August 6, 2008
+- Removed all the pixel doubling r_detail modes, since the one platform they
+  were intended to assist (486) actually sees very little benefit from them.
+- Rewrote CheckMMX in C and renamed it to CheckCPU.
+- Fixed: CPUID function 0x80000005 is specified to return detailed L1 cache
+  only for AMD processors, so we must not use it on other architectures, or
+  we end up overwriting the L1 cache line size with 0 or some other number
+  we don't actually understand.
+- The x87 precision control is now explicitly set for double precision, since
+  GCC defaults to extended precision instead, unlike Visual C++.
+
+August 6, 2008 (Changes by Graf Zahl)
+- Converted Strife's Programmer, Loremaster and Thingstoblowup to DECORATE.
+- Fixed: Attacking a merchant in Strife didn't alert the enemies.
+- Removed AT_GAME_SET(PowerInvulnerable) due to the problems it caused. The two
+  occurences in the code that depended on it were changed accordingly.
+  Invulnerability colormaps are now being set by the items exclusively.
+- Changed many checks for the friendly Minotaur to a new flag MF5_SUMMONEDMONSTER
+  so that it can hopefully be generalized to be usable elsewhere later.
+- Added Gez's submission for converting the Minotaur to DECORATE.
+- Fixed a few minor DECORATE bugs.
+- Changed coordinate storage for EntityBoss so that it works properly even
+  when the pod is not used to spawn it.
+- Converted Strife's Spectres and Entity to DECORATE.
+
+August 6, 2008 (SBARINfO update)
+- Added: fullscreenoffsets flag for status bars.  This changes the coordinate
+  system to be relative to the top left corner of the screen.  This is useful
+  for full screen status bars.
+- Changed: drawinventorybar will use the width of artibox or invcurs (strife)
+  to determine the spacing.  Let me know if this breaks any released mods.
+- Fixed: If a status bar height of 0 was specified in SBarInfo the wrong bar
+  would be shown.
+- Fixed: If a static inventory bar was used the user still had to press invuse
+  in order to get rid of the "overlay".
+- Fixed: forcescaled would not work if the height of the bar was 0.
+- Added: keyslot to drawswitchableimage.
+- Fixed: The transition effects for the log and keys popups were switched.
+
+August 5, 2008 (Changes by Graf Zahl)
+- Converted Strife's Crusader, Inquisitor and spectral missiles to
+  DECORATE.
+- Converted Strife's Acolytes, Rebels, Sentinel, Reaver and Templar to
+  DECORATE.
+- Added DECORATE conversions for Hexen's Cleric weapons by Karate Chris.
+- Added a check to Zipdir that excludes files with a .orig extension. These
+  can be left behind by patch.exe and create problems.
+- fixed: Unmorphing from chicken caused a crash when reading non-existent
+  meta-data strings.
+- Converted the ScriptedMarines to DECORATE.
+- Fixed: DLightTransfer and DWallLightTransfer were declared as actors.
+
 August 3, 2008 (Changes by Graf Zahl)
+- Converted the PhoenixRod and associated classes to DECORATE to make
+  the Heretic conversion complete.
 - Converted the Minotaur's projectiles to DECORATE so that I can get
   rid of the AT_SPEED_SET code.
 - Converted Heretic's Blaster and SkullRod to DECORATE.

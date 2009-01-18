@@ -43,9 +43,9 @@ static FRandom pr_torch ("Torch");
 
 EXTERN_CVAR (Bool, r_drawfuzz);
 
-IMPLEMENT_ABSTRACT_ACTOR (APowerup)
+IMPLEMENT_CLASS (APowerup)
 // [BC]
-IMPLEMENT_ABSTRACT_ACTOR (ARune)
+IMPLEMENT_CLASS (ARune)
 
 // Powerup-Giver -------------------------------------------------------------
 
@@ -359,30 +359,8 @@ void APowerup::OwnerDied ()
 
 // Invulnerability Powerup ---------------------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR (APowerInvulnerable, Any, -1, 0)
-	PROP_Powerup_EffectTics (INVULNTICS)
-	PROP_Inventory_Icon ("SPSHLD0")
-END_DEFAULTS
+IMPLEMENT_CLASS (APowerInvulnerable)
 
-// Need to set the default for each game here
-AT_GAME_SET(PowerInvulnerable)
-{
-	APowerInvulnerable * invul = GetDefault<APowerInvulnerable>();
-	switch (gameinfo.gametype)
-	{
-	case GAME_Doom:
-	case GAME_Strife:
-		invul->BlendColor = INVERSECOLOR;
-		break;
-
-	case GAME_Heretic:
-		invul->BlendColor = GOLDCOLOR;
-		break;
-
-	default:
-		break;
-	}
-}
 //===========================================================================
 //
 // APowerInvulnerable :: InitEffect
@@ -522,11 +500,7 @@ int APowerInvulnerable::AlterWeaponSprite (vissprite_t *vis)
 
 // Strength (aka Berserk) Powerup --------------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR (APowerStrength, Any, -1, 0)
-	PROP_Powerup_EffectTics (1)
-	PROP_Powerup_Color (128, 255, 0, 0)
-	PROP_Inventory_FlagsSet (IF_HUBPOWER)
-END_DEFAULTS
+IMPLEMENT_CLASS (APowerStrength)
 
 //===========================================================================
 //
@@ -590,9 +564,7 @@ PalEntry APowerStrength::GetBlend ()
 
 // Invisibility Powerup ------------------------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR (APowerInvisibility, Any, -1, 0)
-	PROP_Powerup_EffectTics (INVISTICS)
-END_DEFAULTS
+IMPLEMENT_CLASS (APowerInvisibility)
 
 //===========================================================================
 //
@@ -676,9 +648,7 @@ int APowerInvisibility::AlterWeaponSprite (vissprite_t *vis)
 
 // Ghost Powerup (Heretic's version of invisibility) -------------------------
 
-IMPLEMENT_STATELESS_ACTOR (APowerGhost, Any, -1, 0)
-	PROP_Powerup_EffectTics (INVISTICS)
-END_DEFAULTS
+IMPLEMENT_CLASS (APowerGhost)
 
 //===========================================================================
 //
@@ -721,10 +691,7 @@ int APowerGhost::AlterWeaponSprite (vissprite_t *vis)
 
 // Shadow Powerup (Strife's version of invisibility) -------------------------
 
-IMPLEMENT_STATELESS_ACTOR (APowerShadow, Any, -1, 0)
-	PROP_Powerup_EffectTics (55*TICRATE)
-	PROP_Inventory_FlagsSet (IF_HUBPOWER)
-END_DEFAULTS
+IMPLEMENT_CLASS (APowerShadow)
 
 //===========================================================================
 //
@@ -805,10 +772,7 @@ int APowerShadow::AlterWeaponSprite (vissprite_t *vis)
 
 // Ironfeet Powerup ----------------------------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR (APowerIronFeet, Any, -1, 0)
-	PROP_Powerup_EffectTics (IRONTICS)
-	PROP_Powerup_Color (32, 0, 255, 0)
-END_DEFAULTS
+IMPLEMENT_CLASS (APowerIronFeet)
 
 //===========================================================================
 //
@@ -834,12 +798,7 @@ void APowerIronFeet::AbsorbDamage (int damage, FName damageType, int &newdamage)
 
 // Strife Environment Suit Powerup -------------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR (APowerMask, Any, -1, 0)
-	PROP_Powerup_EffectTics (80*TICRATE)
-	PROP_Powerup_Color (0, 0, 0, 0)
-	PROP_Inventory_FlagsSet (IF_HUBPOWER)
-	PROP_Inventory_Icon ("I_MASK")
-END_DEFAULTS
+IMPLEMENT_CLASS (APowerMask)
 
 //===========================================================================
 //
@@ -876,9 +835,7 @@ void APowerMask::DoEffect ()
 
 // Light-Amp Powerup ---------------------------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR (APowerLightAmp, Any, -1, 0)
-	PROP_Powerup_EffectTics (INFRATICS)
-END_DEFAULTS
+IMPLEMENT_CLASS (APowerLightAmp)
 
 //===========================================================================
 //
@@ -919,9 +876,7 @@ void APowerLightAmp::EndEffect ()
 
 // Torch Powerup -------------------------------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR (APowerTorch, Any, -1, 0)
-	PROP_Powerup_EffectTics (INFRATICS)
-END_DEFAULTS
+IMPLEMENT_CLASS (APowerTorch)
 
 //===========================================================================
 //
@@ -983,10 +938,7 @@ void APowerTorch::DoEffect ()
 
 // Flight (aka Wings of Wrath) powerup ---------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR (APowerFlight, Any, -1, 0)
-	PROP_Powerup_EffectTics (FLIGHTTICS)
-	PROP_Inventory_FlagsSet (IF_HUBPOWER)
-END_DEFAULTS
+IMPLEMENT_CLASS (APowerFlight)
 
 //===========================================================================
 //
@@ -1117,10 +1069,7 @@ bool APowerFlight::DrawPowerup (int x, int y)
 
 // Weapon Level 2 (aka Tome of Power) Powerup --------------------------------
 
-IMPLEMENT_STATELESS_ACTOR (APowerWeaponLevel2, Any, -1, 0)
-	PROP_Powerup_EffectTics (WPNLEV2TICS)
-	PROP_Inventory_Icon ("SPINBK0")
-END_DEFAULTS
+IMPLEMENT_CLASS (APowerWeaponLevel2)
 
 //===========================================================================
 //
@@ -1189,16 +1138,12 @@ void APowerWeaponLevel2::EndEffect ()
 
 class APlayerSpeedTrail : public AActor
 {
-	DECLARE_STATELESS_ACTOR (APlayerSpeedTrail, AActor)
+	DECLARE_CLASS (APlayerSpeedTrail, AActor)
 public:
 	void Tick ();
 };
 
-IMPLEMENT_STATELESS_ACTOR (APlayerSpeedTrail, Any, -1, 0)
-	PROP_Flags (MF_NOBLOCKMAP|MF_NOGRAVITY)
-	PROP_Alpha (FRACUNIT*6/10)
-	PROP_RenderStyle (STYLE_Translucent)
-END_DEFAULTS
+IMPLEMENT_CLASS (APlayerSpeedTrail)
 
 //===========================================================================
 //
@@ -1221,11 +1166,7 @@ void APlayerSpeedTrail::Tick ()
 
 // Speed Powerup -------------------------------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR (APowerSpeed, Any, -1, 0)
-	PROP_SpeedLong(3*FRACUNIT/2)
-	PROP_Powerup_EffectTics (SPEEDTICS)
-	PROP_Inventory_Icon ("SPBOOT0")
-END_DEFAULTS
+IMPLEMENT_CLASS (APowerSpeed)
 
 //===========================================================================
 //
@@ -1310,24 +1251,11 @@ void APowerSpeed::DoEffect ()
 
 // Minotaur (aka Dark Servant) powerup ---------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR (APowerMinotaur, Any, -1, 0)
-	PROP_Powerup_EffectTics (MAULATORTICS)
-	PROP_Inventory_Icon ("SPMINO0")
-END_DEFAULTS
+IMPLEMENT_CLASS (APowerMinotaur)
 
 // Targeter powerup ---------------------------------------------------------
 
-FState APowerTargeter::States[] =
-{
-	S_NORMAL (TRGT, 'A', -1, NULL, NULL),
-	S_NORMAL (TRGT, 'B', -1, NULL, NULL),
-	S_NORMAL (TRGT, 'C', -1, NULL, NULL)
-};
-
-IMPLEMENT_ACTOR (APowerTargeter, Any, -1, 0)
-	PROP_Powerup_EffectTics (160*TICRATE)
-	PROP_Inventory_FlagsSet (IF_HUBPOWER)
-END_DEFAULTS
+IMPLEMENT_CLASS (APowerTargeter)
 
 void APowerTargeter::Travelled ()
 {
@@ -1341,9 +1269,14 @@ void APowerTargeter::InitEffect ()
 	if ((player = Owner->player) == NULL)
 		return;
 
-	P_SetPsprite (player, ps_targetcenter, &States[0]);
-	P_SetPsprite (player, ps_targetleft, &States[1]);
-	P_SetPsprite (player, ps_targetright, &States[2]);
+	FState *state = FindState("Targeter");
+
+	if (state != NULL)
+	{
+		P_SetPsprite (player, ps_targetcenter, state + 0);
+		P_SetPsprite (player, ps_targetleft, state + 1);
+		P_SetPsprite (player, ps_targetright, state + 2);
+	}
 
 	player->psprites[ps_targetcenter].sx = (160-3)*FRACUNIT;
 	player->psprites[ps_targetcenter].sy =
@@ -1363,15 +1296,20 @@ void APowerTargeter::DoEffect ()
 		PositionAccuracy ();
 		if (EffectTics < 5*TICRATE)
 		{
-			if (EffectTics & 32)
+			FState *state = FindState("Targeter");
+
+			if (state != NULL)
 			{
-				P_SetPsprite (player, ps_targetright, NULL);
-				P_SetPsprite (player, ps_targetleft, &States[1]);
-			}
-			else if (EffectTics & 16)
-			{
-				P_SetPsprite (player, ps_targetright, &States[2]);
-				P_SetPsprite (player, ps_targetleft, NULL);
+				if (EffectTics & 32)
+				{
+					P_SetPsprite (player, ps_targetright, NULL);
+					P_SetPsprite (player, ps_targetleft, state+1);
+				}
+				else if (EffectTics & 16)
+				{
+					P_SetPsprite (player, ps_targetright, state+2);
+					P_SetPsprite (player, ps_targetleft, NULL);
+				}
 			}
 		}
 	}
@@ -1400,9 +1338,7 @@ void APowerTargeter::PositionAccuracy ()
 
 // Frightener Powerup --------------------------------
 
-IMPLEMENT_STATELESS_ACTOR (APowerFrightener, Any, -1, 0)
-	PROP_Powerup_EffectTics (60*TICRATE)
-END_DEFAULTS
+IMPLEMENT_CLASS (APowerFrightener)
 
 //===========================================================================
 //
@@ -1434,17 +1370,11 @@ void APowerFrightener::EndEffect ()
 
 // Scanner powerup ----------------------------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR (APowerScanner, Any, -1, 0)
-	PROP_Powerup_EffectTics (80*TICRATE)
-	PROP_Inventory_FlagsSet (IF_HUBPOWER)
-END_DEFAULTS
-
+IMPLEMENT_CLASS (APowerScanner)
 // [BC] Start of new Skulltag powerup types.
 // Time freezer powerup -----------------------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR( APowerTimeFreezer, Any, -1, 0 )
-	PROP_Powerup_EffectTics( TIMEFREEZE_TICS )
-END_DEFAULTS
+IMPLEMENT_CLASS( APowerTimeFreezer)
 
 //===========================================================================
 //
@@ -1578,9 +1508,7 @@ void APowerTimeFreezer::EndEffect( )
 
 // Damage powerup ------------------------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR( APowerDamage, Any, -1, 0 )
-	PROP_Powerup_EffectTics( 25*TICRATE )
-END_DEFAULTS
+IMPLEMENT_CLASS( APowerDamage)
 
 //===========================================================================
 //
@@ -1634,9 +1562,7 @@ void APowerDamage::ModifyDamage(int damage, FName damageType, int &newdamage, bo
 
 // Quarter damage powerup ------------------------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR( APowerProtection, Any, -1, 0 )
-	PROP_Powerup_EffectTics( 25*TICRATE )
-END_DEFAULTS
+IMPLEMENT_CLASS( APowerProtection)
 
 //===========================================================================
 //
@@ -1689,9 +1615,7 @@ void APowerProtection::ModifyDamage(int damage, FName damageType, int &newdamage
 
 // Drain rune -------------------------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR( APowerDrain, Any, -1, 0 )
-	PROP_Powerup_EffectTics( 60*TICRATE )
-END_DEFAULTS
+IMPLEMENT_CLASS( APowerDrain)
 
 //===========================================================================
 //
@@ -1727,9 +1651,7 @@ void APowerDrain::EndEffect( )
 
 // Regeneration rune -------------------------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR( APowerRegeneration, Any, -1, 0 )
-	PROP_Powerup_EffectTics( 120*TICRATE )
-END_DEFAULTS
+IMPLEMENT_CLASS( APowerRegeneration)
 
 //===========================================================================
 //
@@ -1764,8 +1686,7 @@ void APowerRegeneration::EndEffect( )
 
 // High jump rune -------------------------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR( APowerHighJump, Any, -1, 0 )
-END_DEFAULTS
+IMPLEMENT_CLASS( APowerHighJump)
 
 //===========================================================================
 //
@@ -1800,9 +1721,7 @@ void APowerHighJump::EndEffect( )
 
 // Morph powerup ------------------------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR( APowerMorph, Any, -1, 0 )
-	PROP_Powerup_EffectTics( MORPHTICS )
-END_DEFAULTS
+IMPLEMENT_CLASS( APowerMorph)
 
 //===========================================================================
 //
@@ -1897,9 +1816,7 @@ void APowerMorph::EndEffect( )
 
 // Possession artifact powerup -------------------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR( APowerPossessionArtifact, Any, -1, 0 )
-	PROP_Powerup_EffectTics( 0 )
-END_DEFAULTS
+IMPLEMENT_CLASS( APowerPossessionArtifact )
 
 //===========================================================================
 //
@@ -1961,9 +1878,7 @@ void APowerPossessionArtifact::EndEffect( )
 
 // Terminator artifact powerup -------------------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR( APowerTerminatorArtifact, Any, -1, 0 )
-	PROP_Powerup_EffectTics( 0 )
-END_DEFAULTS
+IMPLEMENT_CLASS( APowerTerminatorArtifact )
 
 //===========================================================================
 //
@@ -2041,9 +1956,7 @@ void APowerTerminatorArtifact::ModifyDamage( int damage, FName damageType, int &
 
 // Translucency Powerup (Skulltag's version of invisibility) ----------------
 
-IMPLEMENT_STATELESS_ACTOR( APowerTranslucency, Any, -1, 0 )
-	PROP_Powerup_EffectTics( TRANSLUCENCY_TICS )
-END_DEFAULTS
+IMPLEMENT_CLASS( APowerTranslucency )
 
 //===========================================================================
 //
@@ -2331,8 +2244,7 @@ void ARune::DetachFromOwner( )
 
 // Double damage rune -------------------------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR( ARuneDoubleDamage, Any, -1, 0 )
-END_DEFAULTS
+IMPLEMENT_CLASS( ARuneDoubleDamage )
 
 //===========================================================================
 //
@@ -2355,8 +2267,7 @@ void ARuneDoubleDamage::ModifyDamage( int damage, FName damageType, int &newdama
 
 // Double firing speed rune -------------------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR( ARuneDoubleFiringSpeed, Any, -1, 0 )
-END_DEFAULTS
+IMPLEMENT_CLASS( ARuneDoubleFiringSpeed )
 
 //===========================================================================
 //
@@ -2398,8 +2309,7 @@ void ARuneDoubleFiringSpeed::EndEffect( )
 // [BB] The code for ARuneDrain is nearly identical to the code from APowerDrain.
 // TO DO: Find a way to get rid of this code duplication.
 
-IMPLEMENT_STATELESS_ACTOR( ARuneDrain, Any, -1, 0 )
-END_DEFAULTS
+IMPLEMENT_CLASS( ARuneDrain )
 
 //===========================================================================
 //
@@ -2434,8 +2344,7 @@ void ARuneDrain::EndEffect( )
 
 // Spread rune -------------------------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR( ARuneSpread, Any, -1, 0 )
-END_DEFAULTS
+IMPLEMENT_CLASS( ARuneSpread )
 
 //===========================================================================
 //
@@ -2475,8 +2384,7 @@ void ARuneSpread::EndEffect( )
 
 // Half damage rune -------------------------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR( ARuneHalfDamage, Any, -1, 0 )
-END_DEFAULTS
+IMPLEMENT_CLASS( ARuneHalfDamage )
 
 //===========================================================================
 //
@@ -2501,8 +2409,7 @@ void ARuneHalfDamage::ModifyDamage( int damage, FName damageType, int &newdamage
 // [BB] The code for ARuneRegeneration is nearly identical to the code from APowerRegeneration.
 // TO DO: Find a way to get rid of this code duplication.
 
-IMPLEMENT_STATELESS_ACTOR( ARuneRegeneration, Any, -1, 0 )
-END_DEFAULTS
+IMPLEMENT_CLASS( ARuneRegeneration )
 
 //===========================================================================
 //
@@ -2537,8 +2444,7 @@ void ARuneRegeneration::EndEffect( )
 
 // Prosperity rune -------------------------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR( ARuneProsperity, Any, -1, 0 )
-END_DEFAULTS
+IMPLEMENT_CLASS( ARuneProsperity )
 
 //===========================================================================
 //
@@ -2578,8 +2484,7 @@ void ARuneProsperity::EndEffect( )
 
 // Reflection rune -------------------------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR( ARuneReflection, Any, -1, 0 )
-END_DEFAULTS
+IMPLEMENT_CLASS( ARuneReflection )
 
 //===========================================================================
 //
@@ -2621,8 +2526,7 @@ void ARuneReflection::EndEffect( )
 // [BB] The code for ARuneHighJump is nearly identical to the code from APowerHighJump.
 // TO DO: Find a way to get rid of this code duplication.
 
-IMPLEMENT_STATELESS_ACTOR( ARuneHighJump, Any, -1, 0 )
-END_DEFAULTS
+IMPLEMENT_CLASS( ARuneHighJump )
 
 //===========================================================================
 //
@@ -2657,8 +2561,7 @@ void ARuneHighJump::EndEffect( )
 
 // Speed +25% rune -------------------------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR( ARuneSpeed25, Any, -1, 0 )
-END_DEFAULTS
+IMPLEMENT_CLASS( ARuneSpeed25 )
 
 //===========================================================================
 //

@@ -811,7 +811,9 @@ CUSTOM_CVAR (Bool, forcewater, false, CVAR_ARCHIVE|CVAR_SERVERINFO)
 
 class DLightTransfer : public DThinker
 {
-	DECLARE_ACTOR (DLightTransfer, DThinker)
+	DECLARE_CLASS (DLightTransfer, DThinker)
+
+	DLightTransfer() {}
 public:
 	DLightTransfer (sector_t *srcSec, int target, bool copyFloor);
 	void Serialize (FArchive &arc);
@@ -893,7 +895,8 @@ class DWallLightTransfer : public DThinker
 		WLF_NOFAKECONTRAST=4
 	};
 
-	DECLARE_ACTOR (DWallLightTransfer, DThinker)
+	DECLARE_CLASS (DWallLightTransfer, DThinker)
+	DWallLightTransfer() {}
 public:
 	DWallLightTransfer (sector_t *srcSec, int target, BYTE flags);
 	void Serialize (FArchive &arc);
@@ -1979,26 +1982,6 @@ void P_SetSectorFriction (int tag, int amount, bool alterFlag)
 // types 1 & 2 is the sector containing the MT_PUSH/MT_PULL Thing.
 
 
-class APointPusher : public AActor
-{
-	DECLARE_STATELESS_ACTOR (APointPusher, AActor)
-};
-
-IMPLEMENT_STATELESS_ACTOR (APointPusher, Any, 5001, 0)
-	PROP_Flags (MF_NOBLOCKMAP)
-	PROP_RenderFlags (RF_INVISIBLE)
-END_DEFAULTS
-
-class APointPuller : public AActor
-{
-	DECLARE_STATELESS_ACTOR (APointPuller, AActor)
-};
-
-IMPLEMENT_STATELESS_ACTOR (APointPuller, Any, 5002, 0)
-	PROP_Flags (MF_NOBLOCKMAP)
-	PROP_RenderFlags (RF_INVISIBLE)
-END_DEFAULTS
-
 #define PUSH_FACTOR 7
 
 /////////////////////////////
@@ -2095,7 +2078,7 @@ void DPusher::Tick ()
 				if ((speed > 0) && (P_CheckSight (thing, m_Source, 1)))
 				{
 					angle_t pushangle = R_PointToAngle2 (thing->x, thing->y, sx, sy);
-					if (m_Source->IsA (RUNTIME_CLASS(APointPusher)))
+					if (m_Source->GetClass()->TypeName == NAME_PointPusher)
 						pushangle += ANG180;    // away
 					pushangle >>= ANGLETOFINESHIFT;
 					thing->momx += FixedMul (speed, finecosine[pushangle]);
@@ -2191,8 +2174,8 @@ AActor *P_GetPushThing (int s)
 	thing = sec->thinglist;
 
 	while (thing &&
-		   !thing->IsA (RUNTIME_CLASS(APointPusher)) &&
-		   !thing->IsA (RUNTIME_CLASS(APointPuller)))
+		thing->GetClass()->TypeName != NAME_PointPusher &&
+		thing->GetClass()->TypeName != NAME_PointPuller)
 	{
 		thing = thing->snext;
 	}
@@ -2242,10 +2225,12 @@ static void P_SpawnPushers ()
 
 				while ( (thing = iterator.Next ()) )
 				{
-					if (thing->IsA (RUNTIME_CLASS(APointPuller)) ||
-						thing->IsA (RUNTIME_CLASS(APointPusher)))
+					if (thing->GetClass()->TypeName == NAME_PointPusher ||
+						thing->GetClass()->TypeName == NAME_PointPuller)
+					{
 						new DPusher (DPusher::p_push, l->args[3] ? l : NULL, l->args[2],
 									 0, thing, thing->Sector - sectors);
+					}
 				}
 			}
 			break;

@@ -52,6 +52,8 @@
 #include "cl_statistics.h"
 #include "doomtype.h"
 #include "stats.h"
+#include "doomdef.h"
+#include "doomstat.h"
 
 //*****************************************************************************
 //	VARIABLES

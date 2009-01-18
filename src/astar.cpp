@@ -375,9 +375,9 @@ ASTARRETURNSTRUCT_t ASTAR_Path( ULONG ulPathIdx, POS_t GoalPoint, float fMaxSear
 		}
 	}
 
-	g_PathingCycles = 0;
+	g_PathingCycles.Reset();
 
-	clock( g_PathingCycles );
+	g_PathingCycles.Clock();
 
 	// Begin the pathing process.
 	g_lNumSearchedNodes = 0;
@@ -435,7 +435,7 @@ ASTARRETURNSTRUCT_t ASTAR_Path( ULONG ulPathIdx, POS_t GoalPoint, float fMaxSear
 			ReturnVal.pNode = pPath->pGoalNode;
 			ReturnVal.ulFlags = pPath->ulFlags;
 
-			unclock( g_PathingCycles );
+			g_PathingCycles.Unclock();
 			return ( ReturnVal );
 		}
 	}
@@ -487,7 +487,7 @@ ASTARRETURNSTRUCT_t ASTAR_Path( ULONG ulPathIdx, POS_t GoalPoint, float fMaxSear
 		ReturnVal.lTotalCost = 0;
 	}
 
-	unclock( g_PathingCycles );
+	g_PathingCycles.Unclock();
 	return ( ReturnVal );
 }
 
@@ -1192,7 +1192,7 @@ ADD_STAT( pathing )
 	FString	Out;
 
 	Out.Format( "Pathing cycles = %04.1f ms (%3d nodes pathed)", 
-		(double)g_PathingCycles * SecondsPerCycle * 1000,
+		g_PathingCycles.TimeMS(),
 		static_cast<int> (g_lNumSearchedNodes)
 		);
 

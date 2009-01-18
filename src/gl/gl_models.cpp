@@ -534,19 +534,19 @@ void gl_RenderFrameModels( const FSpriteModelFrame *smf,
 				if ( (smf->flags & MDL_INTERPOLATEDOUBLEDFRAMES) )
 				{
 					const FState *prevState = curState - 1;
-					if ( (curState->sprite.index == prevState->sprite.index) && ( curState->Frame == prevState->Frame) )
+					if ( (curState->sprite == prevState->sprite) && ( curState->Frame == prevState->Frame) )
 					{
 						inter /= 2.;
 						inter += 0.5;
 					}
-					if ( (curState->sprite.index == nextState->sprite.index) && ( curState->Frame == nextState->Frame) )
+					if ( (curState->sprite == nextState->sprite) && ( curState->Frame == nextState->Frame) )
 					{
 						inter /= 2.;
 						nextState = nextState->GetNextState( );
 					}
 				}
 				if ( inter != 0.0 )
-					smfNext = gl_FindModelFrame(ti, nextState->sprite.index, nextState->Frame);
+					smfNext = gl_FindModelFrame(ti, nextState->sprite, nextState->Frame);
 			}
 		}
 	}
@@ -645,7 +645,7 @@ void gl_RenderModel(GLSprite * spr, int cm)
 void gl_RenderHUDModel(pspdef_t *psp, fixed_t ofsx, fixed_t ofsy, int cm)
 {
 	AActor * playermo=players[consoleplayer].camera;
-	FSpriteModelFrame *smf = gl_FindModelFrame(playermo->player->ReadyWeapon->GetClass(), psp->state->sprite.index, psp->state->GetFrame());
+	FSpriteModelFrame *smf = gl_FindModelFrame(playermo->player->ReadyWeapon->GetClass(), psp->state->sprite, psp->state->GetFrame());
 
 	// [BB] No model found for this sprite, so we can't render anything.
 	if ( smf == NULL )
@@ -705,6 +705,6 @@ bool gl_IsHUDModelForPlayerAvailable (player_t * player)
 		return false;
 
 	FState* state = player->psprites[0].state;
-	FSpriteModelFrame *smf = gl_FindModelFrame(player->ReadyWeapon->GetClass(), state->sprite.index, state->GetFrame());
+	FSpriteModelFrame *smf = gl_FindModelFrame(player->ReadyWeapon->GetClass(), state->sprite, state->GetFrame());
 	return ( smf != NULL );
 }

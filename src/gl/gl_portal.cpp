@@ -145,7 +145,7 @@ CVAR(Bool, gl_noquery, false, 0)
 
 bool GLPortal::Start(bool usestencil, bool doquery)
 {
-	PortalAll.Start();
+	PortalAll.Clock();
 	if (usestencil)
 	{
 		// Create stencil 
@@ -244,7 +244,7 @@ bool GLPortal::Start(bool usestencil, bool doquery)
 	if (clipsave) gl.Disable(GL_CLIP_PLANE0+renderdepth-1);
 
 
-	PortalAll.Stop();
+	PortalAll.Unclock();
 
 	// save viewpoint
 	savedviewx=viewx;
@@ -297,7 +297,7 @@ void GLPortal::End(bool usestencil)
 {
 	bool needdepth = NeedDepthBuffer();
 
-	PortalAll.Start();
+	PortalAll.Clock();
 	if (clipsave) gl.Enable (GL_CLIP_PLANE0+renderdepth-1);
 	if (usestencil)
 	{
@@ -378,7 +378,7 @@ void GLPortal::End(bool usestencil)
 		gl.ColorMask(1,1,1,1);
 		gl.DepthFunc(GL_LESS);
 	}
-	PortalAll.Stop();
+	PortalAll.Unclock();
 }
 
 
@@ -738,7 +738,7 @@ void GLMirrorPortal::DrawContents()
 //-----------------------------------------------------------------------------
 void GLHorizonPortal::DrawContents()
 {
-	PortalAll.Start();
+	PortalAll.Clock();
 
 	GLSectorPlane * sp=&origin->plane;
 	FGLTexture * gltexture;
@@ -844,7 +844,7 @@ void GLHorizonPortal::DrawContents()
 	gl.PopMatrix();
 	gl.MatrixMode(GL_MODELVIEW);
 
-	PortalAll.Stop();
+	PortalAll.Unclock();
 
 }
 

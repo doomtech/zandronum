@@ -36,6 +36,11 @@
 #include <sys/stat.h>
 #endif
 
+#ifdef HAVE_FPU_CONTROL
+#include <fpu_control.h>
+#endif
+#include <float.h>
+
 #ifdef unix
 #include <unistd.h>
 #endif
@@ -237,7 +242,8 @@ const IWADInfo IWADInfos[NUM_IWAD_TYPES] =
 	{ "DOOM Registered",						"Doom1",	MAKERGB(84,84,84),		MAKERGB(168,168,168) },
 	{ "Strife: Quest for the Sigil",			NULL,		MAKERGB(224,173,153),	MAKERGB(0,107,101) },
 	{ "Strife: Teaser (Old Version)",			NULL,		MAKERGB(224,173,153),	MAKERGB(0,107,101) },
-	{ "Strife: Teaser (New Version)",			NULL,		MAKERGB(224,173,153),	MAKERGB(0,107,101) }
+	{ "Strife: Teaser (New Version)",			NULL,		MAKERGB(224,173,153),	MAKERGB(0,107,101) },
+	{ "Freedoom",								"Freedoom",	MAKERGB(50,84,67),		MAKERGB(198,220,209) },
 };
 
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
@@ -261,6 +267,7 @@ static const char *IWADNames[] =
 	"hexdd.wad",
 	"strife1.wad",
 	"strife0.wad",
+	"freedoom.wad", // Freedoom.wad is distributed as Doom2.wad, but this allows to have both in the same directory.
 #ifdef unix
 	"DOOM2.WAD",    // Also look for all-uppercase names
 	"PLUTONIA.WAD",
@@ -273,6 +280,7 @@ static const char *IWADNames[] =
 	"HEXDD.WAD",
 	"STRIFE1.WAD",
 	"STRIFE0.WAD",
+	"FREEDOOM.WAD",
 #endif
 	NULL
 };
@@ -541,8 +549,10 @@ void D_Display ()
 	if (nodrawers)
 		return; 				// for comparative timing / profiling
 	
-	cycle_t cycles = 0;
-	clock (cycles);
+	cycle_t cycles;
+	
+	cycles.Reset();
+	cycles.Clock();
 
 	if (players[consoleplayer].camera == NULL)
 	{
@@ -652,7 +662,7 @@ void D_Display ()
 					StatusBar->BlendView (blend);
 				}
 				screen->SetBlendingRect(viewwindowx, viewwindowy,
-					viewwindowx + realviewwidth, viewwindowy + realviewheight);
+					viewwindowx + viewwidth, viewwindowy + viewheight);
 				P_CheckPlayerSprites();
 				// [BB] This check shouldn't be necessary, but should completely prevent
 				// the "tried to render NULL actor" errors.
@@ -671,8 +681,13 @@ void D_Display ()
 			}
 			if (automapactive)
 			{
-				int saved_ST_Y=ST_Y;
-				//if (hud_althud && realviewheight == SCREENHEIGHT) ST_Y=realviewheight;
+				int saved_ST_Y = ST_Y;
+				/*
+				if (hud_althud && viewheight == SCREENHEIGHT)
+				{
+					ST_Y = viewheight;
+				}
+				*/
 				AM_Drawer ();
 				ST_Y = saved_ST_Y;
 			}
@@ -681,13 +696,13 @@ void D_Display ()
 				R_RefreshViewBorder ();
 			}
 
-			if (hud_althud && realviewheight == SCREENHEIGHT)
+			if (hud_althud && viewheight == SCREENHEIGHT)
 			{
 				if (DrawFSHUD || automapactive) DrawHUD();
 				StatusBar->DrawTopStuff (HUD_None);
 			}
 			else 
-			if (realviewheight == SCREENHEIGHT && viewactive)
+			if (viewheight == SCREENHEIGHT && viewactive)
 			{
 				StatusBar->Draw (DrawFSHUD ? HUD_Fullscreen : HUD_None);
 				StatusBar->DrawTopStuff (DrawFSHUD ? HUD_Fullscreen : HUD_None);
@@ -891,7 +906,7 @@ void D_Display ()
 		Net_WriteByte (DEM_WIPEOFF);
 	}
 
-	unclock (cycles);
+	cycles.Unclock();
 	FrameCycles = cycles;
 }
 
@@ -1588,6 +1603,7 @@ static void SetIWAD (const char *iwadpath, EIWADType type)
 		{ commercial,	&StrifeGameInfo,		doom2 },		// Strife
 		{ commercial,	&StrifeTeaserGameInfo,	doom2 },		// StrifeTeaser
 		{ commercial,	&StrifeTeaser2GameInfo,	doom2 },		// StrifeTeaser2
+		{ commercial,	&CommercialGameInfo,	doom2 },		// FreeDoom
 	};
 
 	D_AddFile (iwadpath, false);	// [BC]
@@ -1630,6 +1646,7 @@ static EIWADType ScanIWAD (const char *iwad)
 		"ENDSTRF",
 		"MAP33",
 		"INVCURS",
+		{ 'F','R','E','E','D','O','O','M' },
 		"E2M1","E2M2","E2M3","E2M4","E2M5","E2M6","E2M7","E2M8","E2M9",
 		"E3M1","E3M2","E3M3","E3M4","E3M5","E3M6","E3M7","E3M8","E3M9",
 		"DPHOOF","BFGGA0","HEADA1","CYBRA1",
@@ -1649,6 +1666,7 @@ static EIWADType ScanIWAD (const char *iwad)
 		Check_endstrf,
 		Check_map33,
 		Check_invcurs,
+		Check_FreeDoom,
 		Check_e2m1
 	};
 	int lumpsfound[NUM_CHECKLUMPS];
@@ -1715,6 +1733,10 @@ static EIWADType ScanIWAD (const char *iwad)
 			if (lumpsfound[Check_title])
 			{
 				return IWAD_Hexen;
+			}
+			else if (lumpsfound[Check_FreeDoom])
+			{
+				return IWAD_FreeDoom;
 			}
 			else
 			{
@@ -2338,6 +2360,23 @@ void D_DoomMain (void)
 
 	srand(I_MSTime());
 
+	// Set the FPU precision to 53 significant bits. This is the default
+	// for Visual C++, but not for GCC, so some slight math variances
+	// might crop up if we leave it alone.
+#if defined(_FPU_GETCW)
+	{
+		int cw;
+		_FPU_GETCW(cw);
+		cw = (cw & ~_FPU_EXTENDED) | _FPU_DOUBLE;
+		_FPU_SETCW(cw);
+	}
+#elif defined(_PC_53)
+// On the x64 architecture, changing the floating point precision is not supported.
+#ifndef _WIN64
+	int cfp = _control87(_PC_53, _MCW_PC);
+#endif
+#endif
+
 	PClass::StaticInit ();
 	atterm (C_DeinitConsole);
 
@@ -2814,7 +2853,6 @@ void D_DoomMain (void)
 		I_FatalError ("No player classes defined");
 	}
 
-	FActorInfo::StaticGameSet ();
 	StartScreen->Progress ();
 
 	Printf ("R_Init: Init %s refresh subsystem.\n", GameNames[gameinfo.gametype]);
@@ -3101,11 +3139,7 @@ ADD_STAT (fps)
 {
 	FString out;
 	out.Format("frame=%04.1f ms  walls=%04.1f ms  planes=%04.1f ms  masked=%04.1f ms",
-		(double)FrameCycles * SecondsPerCycle * 1000,
-		(double)WallCycles * SecondsPerCycle * 1000,
-		(double)PlaneCycles * SecondsPerCycle * 1000,
-		(double)MaskedCycles * SecondsPerCycle * 1000
-		);
+		FrameCycles.TimeMS(), WallCycles.TimeMS(), PlaneCycles.TimeMS(), MaskedCycles.TimeMS());
 	return out;
 }
 
@@ -3117,14 +3151,15 @@ ADD_STAT (fps)
 //
 //==========================================================================
 
-static cycle_t bestwallcycles = INT_MAX;
+static double bestwallcycles = HUGE_VAL;
 
 ADD_STAT (wallcycles)
 {
 	FString out;
-	if (WallCycles && WallCycles < bestwallcycles)
-		bestwallcycles = WallCycles;
-	out.Format ("%llu", bestwallcycles);
+	double cycles = WallCycles.Time();
+	if (cycles && cycles < bestwallcycles)
+		bestwallcycles = cycles;
+	out.Format ("%g", bestwallcycles);
 	return out;
 }
 
@@ -3138,24 +3173,25 @@ ADD_STAT (wallcycles)
 
 CCMD (clearwallcycles)
 {
-	bestwallcycles = INT_MAX;
+	bestwallcycles = HUGE_VAL;
 }
 
 #if 1
 // To use these, also uncomment the clock/unclock in wallscan
-static cycle_t bestscancycles = INT_MAX;
+static double bestscancycles = HUGE_VAL;
 
 ADD_STAT (scancycles)
 {
 	FString out;
-	if (WallScanCycles && WallScanCycles < bestscancycles)
-		bestscancycles = WallScanCycles;
-	out.Format ("%llu", bestscancycles);
+	double scancycles = WallScanCycles.Time();
+	if (scancycles && scancycles < bestscancycles)
+		bestscancycles = scancycles;
+	out.Format ("%g", bestscancycles);
 	return out;
 }
 
 CCMD (clearscancycles)
 {
-	bestscancycles = INT_MAX;
+	bestscancycles = HUGE_VAL;
 }
 #endif

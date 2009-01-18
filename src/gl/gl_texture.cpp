@@ -1506,6 +1506,21 @@ void FGLTexture::FlushAll()
 
 //==========================================================================
 //
+// Deletes all hardware dependent data
+//
+//==========================================================================
+
+void FGLTexture::DeleteAll()
+{
+	for(int i=gltextures.Size()-1;i>=0;i--)
+	{
+		gltextures[i]->tex->KillNative();
+	}
+	gltextures.Clear();
+}
+
+//==========================================================================
+//
 // Gets a texture from the texture manager and checks its validity for
 // GL rendering. 
 //

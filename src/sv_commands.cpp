@@ -887,6 +887,7 @@ void SERVERCOMMANDS_SetPlayerPendingWeapon( ULONG ulPlayer, ULONG ulPlayerExtra,
 
 //*****************************************************************************
 //
+/* [BB] Does not work with the latest ZDoom changes. Check if it's still necessary.
 void SERVERCOMMANDS_SetPlayerPieces( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG ulFlags )
 {
 	ULONG		ulIdx;
@@ -911,6 +912,7 @@ void SERVERCOMMANDS_SetPlayerPieces( ULONG ulPlayer, ULONG ulPlayerExtra, ULONG 
 		NETWORK_WriteByte( &SERVER_GetClient( ulIdx )->PacketBuffer.ByteStream, players[ulPlayer].pieces );
 	}
 }
+*/
 
 //*****************************************************************************
 //

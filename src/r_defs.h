@@ -113,7 +113,7 @@ enum
 
 class ASectorAction : public AActor
 {
-	DECLARE_ACTOR (ASectorAction, AActor)
+	DECLARE_CLASS (ASectorAction, AActor)
 public:
 	void Destroy ();
 	void BeginPlay ();

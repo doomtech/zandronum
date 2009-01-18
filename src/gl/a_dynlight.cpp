@@ -58,18 +58,15 @@ EXTERN_CVAR (Bool, gl_lights_additive);
 // which is controlled by flags
 //
 //==========================================================================
-IMPLEMENT_STATELESS_ACTOR (ADynamicLight, Any, -1, 0)
-   PROP_HeightFixed (0)
-   PROP_Radius(FRACUNIT/10)
-   PROP_Flags (MF_NOBLOCKMAP|MF_NOGRAVITY)
-   PROP_Flags4(MF4_FIXMAPTHINGPOS)	// don't let lights lie directly on a linedef.
-   PROP_RenderFlags (RF_INVISIBLE)
-   // [BB] The server doesn't handle dynamic lights, so allow the clients to spawn them.
-   PROP_FlagsNetwork( NETFL_ALLOWCLIENTSPAWN )
-END_DEFAULTS
-
-IMPLEMENT_STATELESS_ACTOR (APointLight, Any, 9800, 0)
-END_DEFAULTS
+IMPLEMENT_CLASS (ADynamicLight)
+IMPLEMENT_CLASS (APointLight)
+IMPLEMENT_CLASS (APointLightPulse)
+IMPLEMENT_CLASS (APointLightFlicker)
+IMPLEMENT_CLASS (ASectorPointLight)
+IMPLEMENT_CLASS (APointLightFlickerRandom)
+IMPLEMENT_CLASS (AVavoomLight)
+IMPLEMENT_CLASS (AVavoomLightWhite)
+IMPLEMENT_CLASS (AVavoomLightColor)
 
 void APointLight::BeginPlay ()
 {
@@ -77,17 +74,11 @@ void APointLight::BeginPlay ()
 	lighttype = PointLight;
 }
 
-IMPLEMENT_STATELESS_ACTOR (APointLightPulse, Any, 9801, 0)
-END_DEFAULTS
-
 void APointLightPulse::BeginPlay ()
 {
 	Super::BeginPlay();
 	lighttype = PulseLight;
 }
-
-IMPLEMENT_STATELESS_ACTOR (APointLightFlicker, Any, 9802, 0)
-END_DEFAULTS
 
 void APointLightFlicker::BeginPlay ()
 {
@@ -95,74 +86,17 @@ void APointLightFlicker::BeginPlay ()
 	lighttype = FlickerLight;
 }
 
-IMPLEMENT_STATELESS_ACTOR (ASectorPointLight, Any, 9803, 0)
-END_DEFAULTS
-
 void ASectorPointLight::BeginPlay ()
 {
 	Super::BeginPlay();
 	lighttype = SectorLight;
 }
 
-IMPLEMENT_STATELESS_ACTOR (APointLightFlickerRandom, Any, 9804, 0)
-END_DEFAULTS
-
 void APointLightFlickerRandom::BeginPlay ()
 {
 	Super::BeginPlay();
 	lighttype=RandomFlickerLight;
 }
-
-
-//IMPLEMENT_STATELESS_ACTOR (ASpotLight, Any, 9850, 0)
-//END_DEFAULTS
-
-//IMPLEMENT_STATELESS_ACTOR (ASpotTarget, Any, 9851, 0)
-//END_DEFAULTS
-
-IMPLEMENT_STATELESS_ACTOR (APointLightAdditive, Any, 9810, 0)
-   PROP_Flags4Set (MF4_ADDITIVE)
-END_DEFAULTS
-
-IMPLEMENT_STATELESS_ACTOR (APointLightPulseAdditive, Any, 9811, 0)
-   PROP_Flags4Set (MF4_ADDITIVE)
-END_DEFAULTS
-
-IMPLEMENT_STATELESS_ACTOR (APointLightFlickerAdditive, Any, 9812, 0)
-   PROP_Flags4Set (MF4_ADDITIVE)
-END_DEFAULTS
-
-IMPLEMENT_STATELESS_ACTOR (ASectorPointLightAdditive, Any, 9813, 0)
-   PROP_Flags4Set (MF4_ADDITIVE)
-END_DEFAULTS
-
-IMPLEMENT_STATELESS_ACTOR (APointLightFlickerRandomAdditive, Any, 9814, 0)
-   PROP_Flags4Set (MF4_ADDITIVE)
-END_DEFAULTS
-
-IMPLEMENT_STATELESS_ACTOR (APointLightSubtractive, Any, 9820, 0)
-   PROP_Flags4Set (MF4_SUBTRACTIVE)
-END_DEFAULTS
-
-IMPLEMENT_STATELESS_ACTOR (APointLightPulseSubtractive, Any, 9821, 0)
-   PROP_Flags4Set (MF4_SUBTRACTIVE)
-END_DEFAULTS
-
-IMPLEMENT_STATELESS_ACTOR (APointLightFlickerSubtractive, Any, 9822, 0)
-   PROP_Flags4Set (MF4_SUBTRACTIVE)
-END_DEFAULTS
-
-IMPLEMENT_STATELESS_ACTOR (ASectorPointLightSubtractive, Any, 9823, 0)
-   PROP_Flags4Set (MF4_SUBTRACTIVE)
-END_DEFAULTS
-
-IMPLEMENT_STATELESS_ACTOR (APointLightFlickerRandomSubtractive, Any, 9824, 0)
-   PROP_Flags4Set (MF4_SUBTRACTIVE)
-END_DEFAULTS
-
-
-IMPLEMENT_STATELESS_ACTOR (AVavoomLight, Any, 9825, 0)
-END_DEFAULTS
 
 void AVavoomLight::BeginPlay ()
 {
@@ -171,9 +105,6 @@ void AVavoomLight::BeginPlay ()
 	if (Sector) z -= Sector->floorplane.ZatPoint(x, y);
 	lighttype = PointLight;
 }
-
-IMPLEMENT_STATELESS_ACTOR (AVavoomLightWhite, Any, 1502, 0)
-END_DEFAULTS
 
 void AVavoomLightWhite::BeginPlay ()
 {
@@ -187,9 +118,6 @@ void AVavoomLightWhite::BeginPlay ()
 
 	Super::BeginPlay();
 }
-
-IMPLEMENT_STATELESS_ACTOR (AVavoomLightColor, Any, 1503, 0)
-END_DEFAULTS
 
 void AVavoomLightColor::BeginPlay ()
 {

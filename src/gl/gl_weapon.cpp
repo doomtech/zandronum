@@ -76,7 +76,7 @@ static void DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed_t sy,
 
 	// decide which patch to use
 	bool mirror;
-	FTextureID lump = gl_GetSpriteFrame(psp->state->sprite.index, psp->state->GetFrame(), 0, 0, &mirror);
+	FTextureID lump = gl_GetSpriteFrame(psp->state->sprite, psp->state->GetFrame(), 0, 0, &mirror);
 	if (!lump.isValid()) return;
 
 	FGLTexture * tex=FGLTexture::ValidateTexture(lump, false);
@@ -85,8 +85,8 @@ static void DrawPSprite (player_t * player,pspdef_t *psp,fixed_t sx, fixed_t sy,
 	const PatchTextureInfo * pti = tex->BindPatch(cm_index);
 	if (!pti) return;
 
-	int vw = realviewwidth;
-	int vh = realviewheight;
+	int vw = viewwidth;
+	int vh = viewheight;
 
 	// calculate edges of the shape
 	scalex=FRACUNIT * vw / 320 * BaseRatioSizes[WidescreenRatio][3] / 48;

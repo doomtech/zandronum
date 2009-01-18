@@ -179,6 +179,7 @@ public:
 	void Clean(bool all);
 
 	static void FlushAll();
+	static void DeleteAll();
 	static FGLTexture * ValidateTexture(FTexture * tex);
 	static FGLTexture * ValidateTexture(FTextureID no, bool translate=true);
 

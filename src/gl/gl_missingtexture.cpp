@@ -61,8 +61,8 @@ FreeList<gl_subsectorrendernode> SSR_List;
 // profiling data
 static int totalupper, totallower, totalsectors;
 static int lowershcount, uppershcount;
-static QWORD totalms, showtotalms;
-static QWORD totalssms;
+static cycle_t totalms, showtotalms;
+static cycle_t totalssms;
 static sector_t fakesec;
 
 //==========================================================================
@@ -106,7 +106,7 @@ void GLDrawInfo::AddUpperMissingTexture(seg_t * seg, fixed_t backheight)
 {
 	if (!seg->backsector) return;
 
-	clock(totalms);
+	totalms.Clock();
 	MissingTextureInfo mti = {};
 	MissingSegInfo msi;
 
@@ -122,7 +122,7 @@ void GLDrawInfo::AddUpperMissingTexture(seg_t * seg, fixed_t backheight)
 
 	if (sub->render_sector != sub->sector || seg->frontsector != sub->sector) 
 	{
-		unclock(totalms);
+		totalms.Unclock();
 		return;
 	}
 
@@ -141,7 +141,7 @@ void GLDrawInfo::AddUpperMissingTexture(seg_t * seg, fixed_t backheight)
 			msi.seg=seg;
 			MissingUpperSegs.Push(msi);
 
-			unclock(totalms);
+			totalms.Unclock();
 			return;
 		}
 	}
@@ -151,7 +151,7 @@ void GLDrawInfo::AddUpperMissingTexture(seg_t * seg, fixed_t backheight)
 	msi.MTI_Index = MissingUpperTextures.Push(mti);
 	msi.seg=seg;
 	MissingUpperSegs.Push(msi);
-	unclock(totalms);
+	totalms.Unclock();
 }
 
 //==========================================================================
@@ -167,7 +167,7 @@ void GLDrawInfo::AddLowerMissingTexture(seg_t * seg, fixed_t backheight)
 		if (seg->backsector->transdoorheight == seg->backsector->floortexz) return;
 	}
 
-	clock(totalms);
+	totalms.Clock();
 	MissingTextureInfo mti = {};
 	MissingSegInfo msi;
 
@@ -183,14 +183,14 @@ void GLDrawInfo::AddLowerMissingTexture(seg_t * seg, fixed_t backheight)
 
 	if (sub->render_sector != sub->sector || seg->frontsector != sub->sector) 
 	{
-		unclock(totalms);
+		totalms.Unclock();
 		return;
 	}
 
 	// Ignore FF_FIX's because they are designed to abuse missing textures
 	if (seg->backsector->e->XFloor.ffloors.Size() && seg->backsector->e->XFloor.ffloors[0]->flags&FF_FIX)
 	{
-		unclock(totalms);
+		totalms.Unclock();
 		return;
 	}
 
@@ -209,7 +209,7 @@ void GLDrawInfo::AddLowerMissingTexture(seg_t * seg, fixed_t backheight)
 			msi.seg=seg;
 			MissingLowerSegs.Push(msi);
 
-			unclock(totalms);
+			totalms.Unclock();
 			return;
 		}
 	}
@@ -219,7 +219,7 @@ void GLDrawInfo::AddLowerMissingTexture(seg_t * seg, fixed_t backheight)
 	msi.MTI_Index = MissingLowerTextures.Push(mti);
 	msi.seg=seg;
 	MissingLowerSegs.Push(msi);
-	unclock(totalms);
+	totalms.Unclock();
 }
 
 
@@ -455,7 +455,7 @@ bool GLDrawInfo::DoFakeCeilingBridge(subsector_t * subsec, fixed_t planez)
 void GLDrawInfo::HandleMissingTextures()
 {
 	sector_t fake;
-	clock(totalms);
+	totalms.Clock();
 	totalupper=MissingUpperTextures.Size();
 	totallower=MissingLowerTextures.Size();
 
@@ -600,9 +600,9 @@ void GLDrawInfo::HandleMissingTextures()
 		}
 	}
 
-	unclock(totalms);
+	totalms.Unclock();
 	showtotalms=totalms;
-	totalms=0;
+	totalms.Reset();
 }
 
 //==========================================================================
@@ -921,7 +921,7 @@ ADD_STAT(missingtextures)
 {
 	FString out;
 	out.Format("Missing textures: %d upper, %d lower, %.3f ms\n", 
-		totalupper, totallower, SecondsPerCycle*showtotalms*1000);
+		totalupper, totallower, showtotalms.Time());
 	return out;
 }
 
@@ -1155,8 +1155,9 @@ bool GLDrawInfo::CollectSubsectorsCeiling(subsector_t * sub, sector_t * anchor)
 void GLDrawInfo::HandleHackedSubsectors()
 {
 	GLWall wall;
-	lowershcount=uppershcount=totalssms=0;
-	clock(totalssms);
+	lowershcount=uppershcount=0;
+	totalssms.Reset();
+	totalssms.Clock();
 
 	viewsubsector = R_PointInSubsector(viewx, viewy);
 
@@ -1215,13 +1216,13 @@ void GLDrawInfo::HandleHackedSubsectors()
 
 
 	SubsectorHacks.Clear();
-	unclock(totalssms);
+	totalssms.Unclock();
 }
 
 ADD_STAT(sectorhacks)
 {
 	FString out;
-	out.Format("sectorhacks = %.3f ms, %d upper, %d lower\n", SecondsPerCycle*totalssms*1000, uppershcount, lowershcount);
+	out.Format("sectorhacks = %.3f ms, %d upper, %d lower\n", totalssms.Time(), uppershcount, lowershcount);
 	return out;
 }
 

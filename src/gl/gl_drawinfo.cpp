@@ -676,27 +676,27 @@ void GLDrawList::DoDraw(int pass, int i)
 	case GLDIT_FLAT:
 		{
 			GLFlat * f=&flats[drawitems[i].index];
-			RenderFlat.Start();
+			RenderFlat.Clock();
 			f->Draw(pass);
-			RenderFlat.Stop();
+			RenderFlat.Unclock();
 		}
 		break;
 
 	case GLDIT_WALL:
 		{
 			GLWall * w=&walls[drawitems[i].index];
-			RenderWall.Start();
+			RenderWall.Clock();
 			w->Draw(pass);
-			RenderWall.Stop();
+			RenderWall.Unclock();
 		}
 		break;
 
 	case GLDIT_SPRITE:
 		{
 			GLSprite * s=&sprites[drawitems[i].index];
-			RenderSprite.Start();
+			RenderSprite.Clock();
 			s->Draw(pass);
-			RenderSprite.Stop();
+			RenderSprite.Unclock();
 		}
 		break;
 	case GLDIT_POLY: break;

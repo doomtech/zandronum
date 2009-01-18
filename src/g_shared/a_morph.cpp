@@ -277,31 +277,34 @@ bool P_UndoPlayerMorph (player_t *activator, player_t *player, bool force)
 	// taking events, reset up the face, if any;
 	// this is only needed for old-skool skins
 	// and for the original DOOM status bar.
-	if ((player == &players[consoleplayer]) && 
-		(strcmp(pmo->GetClass()->Meta.GetMetaString (APMETA_Face), "None") != 0))
+	if ((player == &players[consoleplayer]))
 	{
-		// Assume root-level base skin to begin with
-		size_t skinindex = 0;
-		// If a custom skin was in use, then reload it
-		// or else the base skin for the player class.
-		if ((unsigned int)player->userinfo.skin >= PlayerClasses.Size () &&
-			(size_t)player->userinfo.skin < numskins)
+		const char *face = pmo->GetClass()->Meta.GetMetaString (APMETA_Face);
+		if (face != NULL && strcmp(face, "None") != 0)
 		{
-			skinindex = player->userinfo.skin;
-		}
-		else if (PlayerClasses.Size () > 1)
-		{
-			const PClass *whatami = player->mo->GetClass();
-			for (unsigned int i = 0; i < PlayerClasses.Size (); ++i)
+			// Assume root-level base skin to begin with
+			size_t skinindex = 0;
+			// If a custom skin was in use, then reload it
+			// or else the base skin for the player class.
+			if ((unsigned int)player->userinfo.skin >= PlayerClasses.Size () &&
+				(size_t)player->userinfo.skin < numskins)
 			{
-				if (PlayerClasses[i].Type == whatami)
+				skinindex = player->userinfo.skin;
+			}
+			else if (PlayerClasses.Size () > 1)
+			{
+				const PClass *whatami = player->mo->GetClass();
+				for (unsigned int i = 0; i < PlayerClasses.Size (); ++i)
 				{
-					skinindex = i;
-					break;
+					if (PlayerClasses[i].Type == whatami)
+					{
+						skinindex = i;
+						break;
+					}
 				}
 			}
+			StatusBar->SetFace(&skins[skinindex]);
 		}
-		StatusBar->SetFace(&skins[skinindex]);
 	}
 
 	angle = mo->angle >> ANGLETOFINESHIFT;
@@ -556,11 +559,7 @@ bool P_MorphedDeath(AActor *actor, AActor **morphed, int *morphedstyle, int *mor
 
 // Base class for morphing projectiles --------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR(AMorphProjectile, Any, -1, 0)
-	PROP_Damage (1)
-	PROP_Flags (MF_NOBLOCKMAP|MF_MISSILE|MF_DROPOFF|MF_NOGRAVITY)
-	PROP_Flags2 (MF2_NOTELEPORT)
-END_DEFAULTS
+IMPLEMENT_CLASS(AMorphProjectile)
 
 int AMorphProjectile::DoSpecialDamage (AActor *target, int damage)
 {
@@ -591,12 +590,6 @@ void AMorphProjectile::Serialize (FArchive &arc)
 IMPLEMENT_POINTY_CLASS (AMorphedMonster)
  DECLARE_POINTER (UnmorphedMe)
 END_POINTERS
-
-BEGIN_STATELESS_DEFAULTS (AMorphedMonster, Any, -1, 0)
-	PROP_Flags (MF_SOLID|MF_SHOOTABLE)
-	PROP_Flags2 (MF2_MCROSS|MF2_FLOORCLIP|MF2_PASSMOBJ|MF2_PUSHWALL)
-	PROP_Flags3 (MF3_DONTMORPH|MF3_ISMONSTER)
-END_DEFAULTS
 
 void AMorphedMonster::Serialize (FArchive &arc)
 {

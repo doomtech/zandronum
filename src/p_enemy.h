@@ -19,6 +19,7 @@ enum dirtype_t
 
 extern fixed_t xspeed[8], yspeed[8];
 
+void P_RecursiveSound (sector_t *sec, AActor *soundtarget, bool splash, int soundblocks);
 bool P_HitFriend (AActor *self);
 void P_NoiseAlert (AActor *target, AActor *emmiter, bool splash=false);
 bool P_CheckMeleeRange2 (AActor *actor);
@@ -46,15 +47,14 @@ void A_Pain (AActor *actor);
 void A_Die (AActor *actor);
 void A_Detonate (AActor *mo);
 void A_Explode (AActor *thing);
-void A_ExplodeAndAlert (AActor *thing);
 void A_Mushroom (AActor *actor);
 void A_BossDeath (AActor *actor);
 void A_FireScream (AActor *mo);
 void A_PlayerScream (AActor *mo);
 void A_ClassBossHealth (AActor *);
 
-bool A_RaiseMobj (AActor *);
-bool A_SinkMobj (AActor *);
+bool A_RaiseMobj (AActor *, fixed_t speed);
+bool A_SinkMobj (AActor *, fixed_t speed);
 
 bool CheckBossDeath (AActor *);
 int P_Massacre ();

@@ -6,6 +6,8 @@
 #include "p_enemy.h"
 #include "a_hexenglobal.h"
 #include "gstrings.h"
+#include "a_weaponpiece.h"
+// [BB] New #includes.
 #include "cl_demo.h"
 #include "deathmatch.h"
 #include "network.h"
@@ -21,7 +23,6 @@ static FRandom pr_checkscream ("CCheckScream");
 static FRandom pr_spiritslam ("CHolySlam");
 static FRandom pr_wraithvergedrop ("WraithvergeDrop");
 
-void A_CHolySpawnPuff (AActor *);
 void A_CHolyAttack2 (AActor *);
 void A_CHolyTail (AActor *);
 void A_CHolySeek (AActor *);
@@ -35,129 +36,48 @@ void SpawnSpiritTail (AActor *spirit);
 
 //==========================================================================
 
-class AClericWeaponPiece : public AFourthWeaponPiece
+class AClericWeaponPiece : public AWeaponPiece
 {
-	DECLARE_STATELESS_ACTOR (AClericWeaponPiece, AFourthWeaponPiece)
-public:
-	void BeginPlay ();
+	DECLARE_CLASS (AClericWeaponPiece, AWeaponPiece)
 protected:
-	bool MatchPlayerClass (AActor *toucher);
+	bool TryPickup (AActor *toucher);
 };
 
-IMPLEMENT_STATELESS_ACTOR (AClericWeaponPiece, Hexen, -1, 0)
-	PROP_Inventory_PickupMessage("$TXT_WRAITHVERGE_PIECE")
-END_DEFAULTS
+IMPLEMENT_CLASS (AClericWeaponPiece)
 
-bool AClericWeaponPiece::MatchPlayerClass (AActor *toucher)
+bool AClericWeaponPiece::TryPickup (AActor *toucher)
 {
-	return !toucher->IsKindOf (PClass::FindClass(NAME_FighterPlayer)) &&
-		   !toucher->IsKindOf (PClass::FindClass(NAME_MagePlayer));
+	if (!toucher->IsKindOf (PClass::FindClass(NAME_MagePlayer)) &&
+		!toucher->IsKindOf (PClass::FindClass(NAME_FighterPlayer)))
+	{
+		return Super::TryPickup(toucher);
+	}
+	else
+	{ // Wrong class, but try to pick up for ammo
+		if (ShouldStay())
+		{
+			// Can't pick up weapons for other classes in coop netplay
+			return false;
+		}
+
+		AWeapon * Defaults=(AWeapon*)GetDefaultByType(WeaponClass);
+
+		bool gaveSome = !!(toucher->GiveAmmo (Defaults->AmmoType1, Defaults->AmmoGive1) +
+						   toucher->GiveAmmo (Defaults->AmmoType2, Defaults->AmmoGive2));
+
+		if (gaveSome)
+		{
+			GoAwayAndDie ();
+		}
+		return gaveSome;
+	}
 }
-
-//==========================================================================
-
-class ACWeaponPiece1 : public AClericWeaponPiece
-{
-	DECLARE_ACTOR (ACWeaponPiece1, AClericWeaponPiece)
-public:
-	void BeginPlay ();
-};
-
-FState ACWeaponPiece1::States[] =
-{
-	S_BRIGHT (WCH1, 'A',   -1, NULL					    , NULL),
-};
-
-IMPLEMENT_ACTOR (ACWeaponPiece1, Hexen, 18, 33)
-	PROP_Flags (MF_SPECIAL)
-	PROP_Flags2 (MF2_FLOATBOB)
-	PROP_SpawnState (0)
-END_DEFAULTS
-
-void ACWeaponPiece1::BeginPlay ()
-{
-	Super::BeginPlay ();
-	PieceValue = WPIECE1<<3;
-}
-
-//==========================================================================
-
-class ACWeaponPiece2 : public AClericWeaponPiece
-{
-	DECLARE_ACTOR (ACWeaponPiece2, AClericWeaponPiece)
-public:
-	void BeginPlay ();
-};
-
-FState ACWeaponPiece2::States[] =
-{
-	S_BRIGHT (WCH2, 'A',   -1, NULL					    , NULL),
-};
-
-IMPLEMENT_ACTOR (ACWeaponPiece2, Hexen, 19, 34)
-	PROP_Flags (MF_SPECIAL)
-	PROP_Flags2 (MF2_FLOATBOB)
-	PROP_SpawnState (0)
-END_DEFAULTS
-
-void ACWeaponPiece2::BeginPlay ()
-{
-	Super::BeginPlay ();
-	PieceValue = WPIECE2<<3;
-}
-
-//==========================================================================
-
-class ACWeaponPiece3 : public AClericWeaponPiece
-{
-	DECLARE_ACTOR (ACWeaponPiece3, AClericWeaponPiece)
-public:
-	void BeginPlay ();
-};
-
-FState ACWeaponPiece3::States[] =
-{
-	S_BRIGHT (WCH3, 'A',   -1, NULL					    , NULL),
-};
-
-IMPLEMENT_ACTOR (ACWeaponPiece3, Hexen, 20, 35)
-	PROP_Flags (MF_SPECIAL)
-	PROP_Flags2 (MF2_FLOATBOB)
-	PROP_SpawnState (0)
-END_DEFAULTS
-
-void ACWeaponPiece3::BeginPlay ()
-{
-	Super::BeginPlay ();
-	PieceValue = WPIECE3<<3;
-}
-
-// An actor that spawns the three pieces of the cleric's fourth weapon ------
-
-// This gets spawned if weapon drop is on so that other players can pick up
-// this player's weapon.
-
-class AWraithvergeDrop : public AActor
-{
-	DECLARE_ACTOR (AWraithvergeDrop, AActor)
-};
-
-FState AWraithvergeDrop::States[] =
-{
-	S_NORMAL (TNT1, 'A', 1, NULL, &States[1]),
-	S_NORMAL (TNT1, 'A', 1, A_DropWraithvergePieces, NULL)
-};
-
-IMPLEMENT_ACTOR (AWraithvergeDrop, Hexen, -1, 0)
-	PROP_SpawnState (0)
-END_DEFAULTS
-
 
 // Cleric's Wraithverge (Holy Symbol?) --------------------------------------
 
 class ACWeapWraithverge : public AClericWeapon
 {
-	DECLARE_ACTOR (ACWeapWraithverge, AClericWeapon)
+	DECLARE_CLASS (ACWeapWraithverge, AClericWeapon)
 public:
 	void Serialize (FArchive &arc)
 	{
@@ -171,170 +91,11 @@ public:
 	BYTE CHolyCount;
 };
 
-FState ACWeapWraithverge::States[] =
-{
-	// Dummy state, because the fourth weapon does not appear in a level directly.
-	S_NORMAL (TNT1, 'A',   -1, NULL					    , NULL),
-
-#define S_CHOLYREADY 1
-	S_NORMAL (CHLY, 'A',	1, A_WeaponReady		    , &States[S_CHOLYREADY]),
-
-#define S_CHOLYDOWN (S_CHOLYREADY+1)
-	S_NORMAL (CHLY, 'A',	1, A_Lower				    , &States[S_CHOLYDOWN]),
-
-#define S_CHOLYUP (S_CHOLYDOWN+1)
-	S_NORMAL (CHLY, 'A',	1, A_Raise				    , &States[S_CHOLYUP]),
-
-#define S_CHOLYATK (S_CHOLYUP+1)
-	S_BRIGHT2 (CHLY, 'A',	1, NULL					    , &States[S_CHOLYATK+1], 0, 40),
-	S_BRIGHT2 (CHLY, 'B',	1, NULL					    , &States[S_CHOLYATK+2], 0, 40),
-	S_BRIGHT2 (CHLY, 'C',	2, NULL					    , &States[S_CHOLYATK+3], 0, 43),
-	S_BRIGHT2 (CHLY, 'D',	2, NULL					    , &States[S_CHOLYATK+4], 0, 43),
-	S_BRIGHT2 (CHLY, 'E',	2, NULL					    , &States[S_CHOLYATK+5], 0, 45),
-	S_BRIGHT2 (CHLY, 'F',	6, A_CHolyAttack		    , &States[S_CHOLYATK+6], 0, 48),
-	S_BRIGHT2 (CHLY, 'G',	2, A_CHolyPalette		    , &States[S_CHOLYATK+7], 0, 40),
-	S_BRIGHT2 (CHLY, 'G',	2, A_CHolyPalette		    , &States[S_CHOLYATK+8], 0, 40),
-	S_BRIGHT2 (CHLY, 'G',	2, A_CHolyPalette		    , &States[S_CHOLYREADY], 0, 36)
-};
-
-IMPLEMENT_ACTOR (ACWeapWraithverge, Hexen, -1, 0)
-	PROP_Flags (MF_SPECIAL)
-	PROP_SpawnState (0)
-
-	PROP_Weapon_SelectionOrder (3000)
-	PROP_Weapon_Flags (WIF_PRIMARY_USES_BOTH)
-	PROP_Weapon_AmmoUse1 (18)
-	PROP_Weapon_AmmoUse2 (18)
-	PROP_Weapon_AmmoGive1 (0)
-	PROP_Weapon_AmmoGive2 (0)
-	PROP_Weapon_UpState (S_CHOLYUP)
-	PROP_Weapon_DownState (S_CHOLYDOWN)
-	PROP_Weapon_ReadyState (S_CHOLYREADY)
-	PROP_Weapon_AtkState (S_CHOLYATK)
-	PROP_Weapon_Kickback (150)
-	PROP_Weapon_AmmoType1 ("Mana1")
-	PROP_Weapon_AmmoType2 ("Mana2")
-	PROP_Weapon_ProjectileType ("HolyMissile")
-	PROP_Inventory_PickupMessage("$TXT_WEAPON_C4")
-END_DEFAULTS
-
-// Holy Missile -------------------------------------------------------------
-
-class AHolyMissile : public AActor
-{
-	DECLARE_ACTOR (AHolyMissile, AActor)
-};
-
-FState AHolyMissile::States[] =
-{
-	S_BRIGHT (SPIR, 'P',	3, A_CHolySpawnPuff		    , &States[1]),
-	S_BRIGHT (SPIR, 'P',	3, A_CHolySpawnPuff		    , &States[2]),
-	S_BRIGHT (SPIR, 'P',	3, A_CHolySpawnPuff		    , &States[3]),
-	S_BRIGHT (SPIR, 'P',	3, A_CHolySpawnPuff		    , &States[4]),
-	S_BRIGHT (SPIR, 'P',	1, A_CHolyAttack2		    , NULL),
-};
-
-IMPLEMENT_ACTOR (AHolyMissile, Hexen, -1, 0)
-	PROP_SpeedFixed (30)
-	PROP_RadiusFixed (15)
-	PROP_HeightFixed (8)
-	PROP_Damage (4)
-	PROP_Flags (MF_NOBLOCKMAP|MF_NOGRAVITY|MF_DROPOFF|MF_MISSILE)
-	PROP_Flags2 (MF2_NOTELEPORT)	
-	PROP_Flags4 (MF4_EXTREMEDEATH)
-
-	PROP_SpawnState (0)
-	PROP_DeathState (4)
-END_DEFAULTS
-
-// Holy Missile Puff --------------------------------------------------------
-
-class AHolyMissilePuff : public AActor
-{
-	DECLARE_ACTOR (AHolyMissilePuff, AActor)
-};
-
-FState AHolyMissilePuff::States[] =
-{
-	S_NORMAL (SPIR, 'Q',	3, NULL					    , &States[1]),
-	S_NORMAL (SPIR, 'R',	3, NULL					    , &States[2]),
-	S_NORMAL (SPIR, 'S',	3, NULL					    , &States[3]),
-	S_NORMAL (SPIR, 'T',	3, NULL					    , &States[4]),
-	S_NORMAL (SPIR, 'U',	3, NULL					    , NULL),
-};
-
-IMPLEMENT_ACTOR (AHolyMissilePuff, Hexen, -1, 0)
-	PROP_RadiusFixed (4)
-	PROP_HeightFixed (8)
-	PROP_Flags (MF_NOBLOCKMAP|MF_NOGRAVITY|MF_DROPOFF)
-	PROP_Flags2 (MF2_NOTELEPORT)
-	PROP_RenderStyle (STYLE_Translucent)
-	PROP_Alpha (HX_ALTSHADOW)
-
-	PROP_SpawnState (0)
-END_DEFAULTS
-
-// Holy Puff ----------------------------------------------------------------
-
-class AHolyPuff : public AActor
-{
-	DECLARE_ACTOR (AHolyPuff, AActor)
-};
-
-FState AHolyPuff::States[] =
-{
-	S_NORMAL (SPIR, 'K',	3, NULL					    , &States[1]),
-	S_NORMAL (SPIR, 'L',	3, NULL					    , &States[2]),
-	S_NORMAL (SPIR, 'M',	3, NULL					    , &States[3]),
-	S_NORMAL (SPIR, 'N',	3, NULL					    , &States[4]),
-	S_NORMAL (SPIR, 'O',	3, NULL					    , NULL),
-};
-
-IMPLEMENT_ACTOR (AHolyPuff, Hexen, -1, 0)
-	PROP_Flags (MF_NOBLOCKMAP|MF_NOGRAVITY)
-	PROP_RenderStyle (STYLE_Translucent)
-	PROP_Alpha (HX_SHADOW)
-	PROP_SpawnState (0)
-END_DEFAULTS
-
+IMPLEMENT_CLASS (ACWeapWraithverge)
 
 // Holy Spirit --------------------------------------------------------------
 
-FState AHolySpirit::States[] =
-{
-#define S_HOLY_FX1 0
-	S_NORMAL (SPIR, 'A',	2, A_CHolySeek			    , &States[S_HOLY_FX1+1]),
-	S_NORMAL (SPIR, 'A',	2, A_CHolySeek			    , &States[S_HOLY_FX1+2]),
-	S_NORMAL (SPIR, 'B',	2, A_CHolySeek			    , &States[S_HOLY_FX1+3]),
-	S_NORMAL (SPIR, 'B',	2, A_CHolyCheckScream	    , &States[S_HOLY_FX1]),
-
-#define S_HOLY_FX_X1 (S_HOLY_FX1+4)
-	S_NORMAL (SPIR, 'D',	4, NULL					    , &States[S_HOLY_FX_X1+1]),
-	S_NORMAL (SPIR, 'E',	4, A_Scream				    , &States[S_HOLY_FX_X1+2]),
-	S_NORMAL (SPIR, 'F',	4, NULL					    , &States[S_HOLY_FX_X1+3]),
-	S_NORMAL (SPIR, 'G',	4, NULL					    , &States[S_HOLY_FX_X1+4]),
-	S_NORMAL (SPIR, 'H',	4, NULL					    , &States[S_HOLY_FX_X1+5]),
-	S_NORMAL (SPIR, 'I',	4, NULL					    , NULL),
-};
-
-IMPLEMENT_ACTOR (AHolySpirit, Hexen, -1, 0)
-	PROP_SpawnHealth (105)
-	PROP_SpeedFixed (12)
-	PROP_RadiusFixed (10)
-	PROP_HeightFixed (6)
-	PROP_Damage (3)
-	PROP_Flags (MF_NOBLOCKMAP|MF_NOGRAVITY|MF_DROPOFF|MF_MISSILE)
-	PROP_Flags2 (MF2_NOTELEPORT|MF2_RIP|MF2_IMPACT|MF2_PCROSS|MF2_SEEKERMISSILE)
-	PROP_Flags3 (MF3_FOILINVUL|MF3_SKYEXPLODE|MF3_NOEXPLODEFLOOR|MF3_CANBLAST)
-	PROP_Flags4 (MF4_EXTREMEDEATH)
-	PROP_RenderStyle (STYLE_Translucent)
-	PROP_Alpha (HX_ALTSHADOW)
-
-	PROP_SpawnState (S_HOLY_FX1)
-	PROP_DeathState (S_HOLY_FX_X1)
-
-	PROP_DeathSound ("SpiritDie")
-END_DEFAULTS
+IMPLEMENT_CLASS (AHolySpirit)
 
 bool AHolySpirit::Slam (AActor *thing)
 {
@@ -367,7 +128,7 @@ bool AHolySpirit::Slam (AActor *thing)
 			P_DamageMobj (thing, this, target, dam, NAME_Melee);
 			if (pr_spiritslam() < 128)
 			{
-				Spawn<AHolyPuff> (x, y, z, ALLOW_REPLACE);
+				Spawn ("HolyPuff", x, y, z, ALLOW_REPLACE);
 				S_Sound (this, CHAN_WEAPON, "SpiritAttack", 1, ATTN_NORM);
 				if (thing->flags3&MF3_ISMONSTER && pr_spiritslam() < 128)
 				{
@@ -424,43 +185,6 @@ bool AHolySpirit::IsOkayToAttack (AActor *link)
 	return false;
 }
 
-
-// Holy Tail ----------------------------------------------------------------
-
-class AHolyTail : public AActor
-{
-	DECLARE_ACTOR (AHolyTail, AActor)
-};
-
-FState AHolyTail::States[] =
-{
-	S_NORMAL (SPIR, 'C',	1, A_CHolyTail			    , &States[0]),
-	S_NORMAL (SPIR, 'D',   -1, NULL					    , NULL),
-};
-
-IMPLEMENT_ACTOR (AHolyTail, Hexen, -1, 0)
-	PROP_RadiusFixed (1)
-	PROP_HeightFixed (1)
-	PROP_Flags (MF_NOBLOCKMAP|MF_NOGRAVITY|MF_DROPOFF|MF_NOCLIP)
-	PROP_Flags2 (MF2_NOTELEPORT)
-	PROP_RenderStyle (STYLE_Translucent)
-	PROP_Alpha (HX_ALTSHADOW)
-
-	PROP_SpawnState (0)
-END_DEFAULTS
-
-// Holy Tail Trail ---------------------------------------------------------
-
-class AHolyTailTrail : public AHolyTail
-{
-	DECLARE_STATELESS_ACTOR (AHolyTailTrail, AHolyTail)
-};
-
-
-IMPLEMENT_STATELESS_ACTOR (AHolyTailTrail, Hexen, -1, 0)
-	PROP_SpawnState (1)
-END_DEFAULTS
-
 //============================================================================
 //
 // A_CHolyAttack3
@@ -477,7 +201,7 @@ void A_CHolyAttack3 (AActor *actor)
 		return;
 	}
 
-	AActor * missile = P_SpawnMissileZ (actor, actor->z + 40*FRACUNIT, actor->target, RUNTIME_CLASS(AHolyMissile));
+	AActor * missile = P_SpawnMissileZ (actor, actor->z + 40*FRACUNIT, actor->target, PClass::FindClass ("HolyMissile"));
 	if (missile != NULL) missile->tracer = NULL;	// No initial target
 	S_Sound (actor, CHAN_WEAPON, "HolySymbolFire", 1, ATTN_NORM);
 
@@ -556,11 +280,11 @@ void SpawnSpiritTail (AActor *spirit)
 	AActor *tail, *next;
 	int i;
 	
-	tail = Spawn<AHolyTail> (spirit->x, spirit->y, spirit->z, ALLOW_REPLACE);
+	tail = Spawn ("HolyTail", spirit->x, spirit->y, spirit->z, ALLOW_REPLACE);
 	tail->target = spirit; // parent
 	for (i = 1; i < 3; i++)
 	{
-		next = Spawn<AHolyTailTrail> (spirit->x, spirit->y, spirit->z, ALLOW_REPLACE);
+		next = Spawn ("HolyTailTrail", spirit->x, spirit->y, spirit->z, ALLOW_REPLACE);
 		tail->tracer = next;
 		tail = next;
 	}
@@ -598,17 +322,17 @@ void A_CHolyAttack (AActor *actor)
 		return;
 	}
 
-	AActor * missile = P_SpawnPlayerMissile (actor, 0,0,0, RUNTIME_CLASS(AHolyMissile), actor->angle, &linetarget);
+	AActor * missile = P_SpawnPlayerMissile (actor, 0,0,0, PClass::FindClass ("HolyMissile"), actor->angle, &linetarget);
 	if (missile != NULL) missile->tracer = linetarget;
 
 	// [BC] Apply spread.
 	if ( player->cheats & CF_SPREAD )
 	{
-		missile = P_SpawnPlayerMissile (actor, 0,0,0, RUNTIME_CLASS(AHolyMissile), actor->angle + ( ANGLE_45 / 3 ), &linetarget);
+		missile = P_SpawnPlayerMissile (actor, 0,0,0, PClass::FindClass ("HolyMissile"), actor->angle + ( ANGLE_45 / 3 ), &linetarget);
 		if ( missile != NULL )
 			missile->tracer = linetarget;
 
-		missile = P_SpawnPlayerMissile (actor, 0,0,0, RUNTIME_CLASS(AHolyMissile), actor->angle - ( ANGLE_45 / 3 ), &linetarget);
+		missile = P_SpawnPlayerMissile (actor, 0,0,0, PClass::FindClass ("HolyMissile"), actor->angle - ( ANGLE_45 / 3 ), &linetarget);
 		if ( missile != NULL )
 			missile->tracer = linetarget;
 	}
@@ -907,53 +631,6 @@ void A_CHolyCheckScream (AActor *actor)
 	if (!actor->tracer)
 	{
 		CHolyFindTarget(actor);
-	}
-}
-
-//============================================================================
-//
-// A_CHolySpawnPuff
-//
-//============================================================================
-
-void A_CHolySpawnPuff (AActor *actor)
-{
-	Spawn<AHolyMissilePuff> (actor->x, actor->y, actor->z, ALLOW_REPLACE);
-}
-
-void AClericWeaponPiece::BeginPlay ()
-{
-	Super::BeginPlay ();
-	FourthWeaponClass = RUNTIME_CLASS(ACWeapWraithverge);
-}
-
-//============================================================================
-//
-// A_DropWraithvergePieces
-//
-//============================================================================
-
-void A_DropWraithvergePieces (AActor *actor)
-{
-	static const PClass *pieces[3] =
-	{
-		RUNTIME_CLASS(ACWeaponPiece1),
-		RUNTIME_CLASS(ACWeaponPiece2),
-		RUNTIME_CLASS(ACWeaponPiece3)
-	};
-
-	for (int i = 0, j = 0, fineang = 0; i < 3; ++i)
-	{
-		AActor *piece = Spawn (pieces[j], actor->x, actor->y, actor->z, ALLOW_REPLACE);
-		if (piece != NULL)
-		{
-			piece->momx = actor->momx + finecosine[fineang];
-			piece->momy = actor->momy + finesine[fineang];
-			piece->momz = actor->momz;
-			piece->flags |= MF_DROPPED;
-			fineang += FINEANGLES/3;
-			j = (j == 0) ? (pr_wraithvergedrop() & 1) + 1 : 3-j;
-		}
 	}
 }
 
