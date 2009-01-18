@@ -232,7 +232,7 @@ const char *ARandomPowerup::PickupMessage( )
 
 class AHissy : public AActor
 {
-	DECLARE_ACTOR( AHissy, AActor )
+	DECLARE_CLASS( AHissy, AActor )
 public:
 	void Tick( )
 	{
@@ -261,15 +261,4 @@ public:
 	}
 };
 
-FState AHissy::States[] =
-{
-	S_NORMAL( HISY, 'B',	-1,	NULL,				NULL ),
-	S_NORMAL( HISY, 'A',	-1,	NULL,				NULL ),
-};
-
-IMPLEMENT_ACTOR( AHissy, Doom, 5057, 0 )
-	PROP_RadiusFixed( 20 )
-	PROP_HeightFixed( 26 )
-	PROP_Flags( MF_SOLID )
-	PROP_SpawnState( 0 )
-END_DEFAULTS
+IMPLEMENT_CLASS( AHissy )
