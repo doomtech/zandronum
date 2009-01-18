@@ -376,3 +376,65 @@ ACTOR HectShot : FatShot
       Stop
    }
 }
+
+//=================================================================================================
+//
+// SuperShotgunGuy
+//
+//=================================================================================================
+
+ACTOR SuperShotgunGuy 5005
+{
+   Game Doom
+   SpawnID 157
+   Health 120
+   Radius 20
+   Height 56
+   Mass 100
+   Speed 8
+   PainChance 170
+   SeeSound "chainguy/sight"
+   PainSound "chainguy/pain"
+   DeathSound "chainguy/death"
+   ActiveSound "chainguy/active"
+   AttackSound "ssgguy/attack"
+   MONSTER
+   +FLOORCLIP
+   Obituary "$OB_SSGGUY"
+   DropItem "SuperShotgun"
+   States
+   {
+      Spawn:
+         GPOS AB 10 A_Look
+         Loop
+      See:
+         GPOS AABBCCDD 4 A_Chase
+         Loop
+      Missile:
+         GPOS E 10 A_FaceTarget
+         GPOS F 8 Bright A_CustomBulletAttack(8, 7, 7, 5, "BulletPuff")
+         GPOS E 8
+         Goto See
+      Pain:
+         GPOS G 3
+         GPOS G 3 A_Pain
+         Goto See
+      Death:
+         GPOS H 5
+         GPOS I 5 A_Scream
+         GPOS J 5 A_NoBlocking
+         GPOS KLM 5
+         GPOS N -1
+         Stop
+      XDeath:
+         GPOS O 5
+         GPOS P 5 A_XScream
+         GPOS Q 5 A_NoBlocking
+         GPOS RS 5
+         GPOS T -1
+         Stop
+      Raise:
+         GPOS LKJIH 5
+         Goto See
+   }
+}
