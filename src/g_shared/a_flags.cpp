@@ -71,10 +71,7 @@
 
 // Base team item -----------------------------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR( ATeamItem, Any, -1, 0 )
- PROP_Inventory_FlagsSet( IF_INTERHUBSTRIP )
- PROP_Inventory_PickupSound( "misc/k_pkup" )
-END_DEFAULTS
+IMPLEMENT_CLASS( ATeamItem )
 
 //===========================================================================
 //
@@ -390,10 +387,7 @@ void ATeamItem::DisplayFlagReturn( void )
 
 // Skulltag flag ------------------------------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR( AFlag, Any, -1, 0 )
- PROP_Inventory_FlagsSet( IF_INTERHUBSTRIP )
- PROP_Inventory_PickupSound( "misc/k_pkup" )
-END_DEFAULTS
+IMPLEMENT_CLASS( AFlag )
 
 //===========================================================================
 //
@@ -1137,10 +1131,7 @@ void AWhiteFlag::DisplayFlagReturn( void )
 
 // Skulltag skull -----------------------------------------------------------
 
-IMPLEMENT_STATELESS_ACTOR( ASkull, Any, -1, 0 )
- PROP_Inventory_FlagsSet( IF_INTERHUBSTRIP )
- PROP_Inventory_PickupSound( "misc/k_pkup" )
-END_DEFAULTS
+IMPLEMENT_CLASS( ASkull )
 
 //===========================================================================
 //

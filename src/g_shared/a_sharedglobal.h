@@ -153,7 +153,7 @@ protected:
 // [BC]
 class ATeamItem : public AInventory
 {
-	DECLARE_STATELESS_ACTOR( ATeamItem, AInventory )
+	DECLARE_CLASS( ATeamItem, AInventory )
 public:
 	virtual bool ShouldRespawn( );
 	virtual bool TryPickup( AActor *pToucher );
@@ -172,7 +172,7 @@ public:
 
 class AFlag : public ATeamItem
 {
-	DECLARE_STATELESS_ACTOR( AFlag, ATeamItem )
+	DECLARE_CLASS( AFlag, ATeamItem )
 public:
 	virtual bool HandlePickup( AInventory *pItem );
 	virtual LONG AllowFlagPickup( AActor *pToucher );
@@ -187,7 +187,7 @@ public:
 
 class ASkull : public ATeamItem
 {
-	DECLARE_ACTOR( ASkull, ATeamItem )
+	DECLARE_CLASS( ASkull, ATeamItem )
 protected:
 
 	virtual LONG AllowFlagPickup( AActor *pToucher );
