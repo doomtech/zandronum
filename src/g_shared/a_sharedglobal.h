@@ -202,7 +202,7 @@ protected:
 
 class AFloatyIcon : public AActor
 {
-	DECLARE_ACTOR( AFloatyIcon, AActor )
+	DECLARE_CLASS( AFloatyIcon, AActor )
 public:
 	void		Serialize( FArchive &arc );
 	void		BeginPlay( );

@@ -105,6 +105,7 @@
 #include "actors/skulltag/skulltagartifacts.txt"
 #include "actors/skulltag/skulltagdeadthings.txt"
 #include "actors/skulltag/skulltagdecorations.txt"
+#include "actors/skulltag/skulltagfloatyicon.txt"
 #include "actors/skulltag/skulltaghealth.txt"
 #include "actors/skulltag/skulltagmonsters.txt"
 #include "actors/skulltag/skulltagrunes.txt"
