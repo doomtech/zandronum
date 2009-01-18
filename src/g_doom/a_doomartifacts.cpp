@@ -31,7 +31,7 @@
 
 class ARandomPowerup : public AInventory
 {
-	DECLARE_ACTOR (ARandomPowerup, AInventory)
+	DECLARE_CLASS (ARandomPowerup, AInventory)
 public:
 	virtual bool	Use (bool pickup);
 	void			Serialize( FArchive &arc );
@@ -76,26 +76,7 @@ void A_RandomPowerupFrame( AActor *pActor )
 		pRandomPowerup->ulCurrentFrame = ulFrame;
 }
 
-FState ARandomPowerup::States[] =
-{
-	S_BRIGHT (MEGA, 'A',	6, A_RandomPowerupFrame			, &States[1]),
-	S_BRIGHT (SOUL, 'A',	6, A_RandomPowerupFrame			, &States[2]),
-	S_BRIGHT (GARD, 'A',	6, A_RandomPowerupFrame			, &States[3]),
-	S_BRIGHT (PINS, 'A',	6, A_RandomPowerupFrame			, &States[4]),
-	S_BRIGHT (TIME, 'A',	6, A_RandomPowerupFrame			, &States[5]),
-	S_BRIGHT (SINV, 'A',	6, A_RandomPowerupFrame			, &States[6]),
-	S_BRIGHT (DOOM, 'A',	6, A_RandomPowerupFrame			, &States[7]),
-	S_BRIGHT (TURB, 'A',	6, A_RandomPowerupFrame			, &States[0]),
-};
-
-IMPLEMENT_ACTOR (ARandomPowerup, Doom, 5039, 176)
-	PROP_Flags (MF_SPECIAL|MF_COUNTITEM|MF_NOGRAVITY)
-	PROP_Inventory_FlagsSet (IF_AUTOACTIVATE|IF_ALWAYSPICKUP)
-	PROP_Inventory_MaxAmount (0)
-	PROP_FlagsNetwork( NETFL_UPDATEARGUMENTS|NETFL_SPECIALPICKUP )
-	PROP_RenderFlags( RF_RANDOMPOWERUPHACK )
-	PROP_SpawnState (0)
-END_DEFAULTS
+IMPLEMENT_CLASS (ARandomPowerup)
 
 bool ARandomPowerup::Use (bool pickup)
 {
@@ -166,7 +147,8 @@ bool ARandomPowerup::Use (bool pickup)
 			// [BC] Tell the client that he successfully picked up the item.
 			if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
 				( Owner->player ) &&
-				( this->ulNetworkFlags & NETFL_SPECIALPICKUP ))
+				// [BB] Special handling for RandomPowerup, formerly done with NETFL_SPECIALPICKUP.
+				( this->GetClass( )->IsDescendantOf( PClass::FindClass( "RandomPowerup" ) ) ))
 			{
 				SERVERCOMMANDS_GiveInventory( ULONG( Owner->player - players ), pItem );
 

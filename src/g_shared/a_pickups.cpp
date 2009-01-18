@@ -1101,7 +1101,8 @@ void AInventory::Touch (AActor *toucher)
 	// [BC] Tell the client that he successfully picked up the item.
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) &&
 		( toucher->player ) &&
-		(( this->ulNetworkFlags & NETFL_SPECIALPICKUP ) == false ) &&
+		// [BB] Special handling for RandomPowerup, formerly done with NETFL_SPECIALPICKUP.
+		(( this->GetClass( )->IsDescendantOf( PClass::FindClass( "RandomPowerup" ) ) ) == false ) &&
 		( this->GetClass( )->IsDescendantOf( PClass::FindClass( "DehackedPickup" )) == false ))
 	{
 		pInventory = toucher->FindInventory( this->GetClass( ));
@@ -1118,7 +1119,8 @@ void AInventory::Touch (AActor *toucher)
 		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		{
 			if (( toucher->player ) &&
-				(( this->ulNetworkFlags & NETFL_SPECIALPICKUP ) == false ) &&
+				// [BB] Special handling for RandomPowerup, formerly done with NETFL_SPECIALPICKUP.
+				(( this->GetClass( )->IsDescendantOf( PClass::FindClass( "RandomPowerup" ) ) ) == false ) &&
 				( this->GetClass( )->IsDescendantOf( PClass::FindClass( "DehackedPickup" )) == false ))
 			{
 				SERVERCOMMANDS_DoInventoryPickup( ULONG( toucher->player - players ), this->GetClass( )->TypeName.GetChars( ), this->PickupMessage( ));

@@ -211,3 +211,37 @@ ACTOR PossessionStone : PowerupGiver -1
 		Loop
 	}
 }
+
+
+//=================================================================================================
+//
+// RandomPowerup
+//
+//=================================================================================================
+
+ACTOR RandomPowerup : Inventory 5039 native
+{
+	Game Doom
+	SpawnID 176
+	+COUNTITEM
+	+NOGRAVITY
+	+INVENTORY.AUTOACTIVATE
+	+INVENTORY.ALWAYSPICKUP
+	Inventory.MaxAmount 0
+
+	action native A_RandomPowerupFrame ();
+
+	States
+	{
+	Spawn:
+		MEGA A 6 Bright A_RandomPowerupFrame
+		SOUL A 6 Bright A_RandomPowerupFrame
+		GARD A 6 Bright A_RandomPowerupFrame
+		PINS A 6 Bright A_RandomPowerupFrame
+		TIME A 6 Bright A_RandomPowerupFrame
+		SINV A 6 Bright A_RandomPowerupFrame
+		DOOM A 6 Bright A_RandomPowerupFrame
+		TURB A 6 Bright A_RandomPowerupFrame
+		Loop
+	}
+}
