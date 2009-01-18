@@ -58,6 +58,35 @@ ACTOR MegasphereHealth : Health	// for manipulation by Dehacked
 	+INVENTORY.ALWAYSPICKUP
 }
 
+// DeHackEd can only modify the blue armor's type, not the megasphere's.
+actor BlueArmorForMegasphere : BlueArmor
+{
+	Armor.SavePercent 50
+	Armor.SaveAmount 200
+}
+
+ACTOR Megasphere : CustomInventory 83
+{
+	Game Doom
+	SpawnID 132
+	+COUNTITEM
+	+NOGRAVITY
+	+INVENTORY.ALWAYSPICKUP
+	Inventory.PickupMessage "$GOTMSPHERE"
+	Inventory.PickupSound "misc/p_pkup"
+	Inventory.PickupAnnouncerEntry "megasphere"
+	States
+	{
+	Spawn:
+		MEGA ABCD 6 BRIGHT
+		Loop
+	Pickup:
+		TNT1 A 0 A_GiveInventory("BlueArmorForMegasphere", 1)
+		TNT1 A 0 A_GiveInventory("MegasphereHealth", 1)
+		Stop
+	}
+}	
+
 // Invisibility -------------------------------------------------------------
 
 ACTOR BlurSphere : PowerupGiver 2024
@@ -145,3 +174,26 @@ ACTOR Allmap : MapRevealer 2026
 	}
 }
 
+// Berserk ------------------------------------------------------------------
+
+ACTOR Berserk : CustomInventory 2023
+{
+	Game Doom
+	SpawnID 134
+	+COUNTITEM
+	+INVENTORY.ALWAYSPICKUP
+	Inventory.PickupMessage "$GOTBERSERK"
+	Inventory.PickupSound "misc/p_pkup"
+	States
+	{
+	Spawn:
+		PSTR A -1
+		Stop
+	Pickup:
+		TNT1 A 0 A_GiveInventory("PowerStrength")
+		TNT1 A 0 HealThing(100, 0)
+		TNT1 A 0 A_SelectWeapon("Fist")
+		Stop
+	}
+}
+	
