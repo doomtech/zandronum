@@ -9,18 +9,6 @@
 #include "network.h"
 #include "sv_commands.h"
 
-// [BC]
-class AGrenade : public AActor
-{
-	DECLARE_ACTOR (AGrenade, AActor)
-public:
-	void BeginPlay ();
-	void Tick ();
-	bool	FloorBounceMissile( secplane_t &plane );
-
-	void	PreExplode( );
-};
-
 class AScriptedMarine : public AActor
 {
 	DECLARE_ACTOR (AScriptedMarine, AActor)

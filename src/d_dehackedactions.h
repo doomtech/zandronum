@@ -109,5 +109,6 @@ ACTOR(LowGravity)
 
 // [BB] Skulltag specific code pointers
 ACTOR(CheckRailReload)
+ACTOR(FireSTGrenade)
 #undef WEAPON
 #undef ACTOR

@@ -853,7 +853,7 @@ void A_FireMissile (AActor *actor)
 
 void A_FireSTGrenade (AActor *);
 void A_Explode (AActor *);
-
+/*
 class AGrenadeLauncher : public AWeapon
 {
 	DECLARE_ACTOR (AGrenadeLauncher, AWeapon)
@@ -907,7 +907,22 @@ IMPLEMENT_ACTOR (AGrenadeLauncher, Doom, 5011, 163)
 	//PROP_Weapon_ProjectileType ("Rocket")
 	PROP_Inventory_PickupMessage("$PICKUP_GRENADELAUNCHER")
 END_DEFAULTS
+*/
 
+// [BC]
+class AGrenade : public AActor
+{
+	DECLARE_CLASS (AGrenade, AActor)
+public:
+	void BeginPlay ();
+	void Tick ();
+	bool	FloorBounceMissile( secplane_t &plane );
+
+	void	PreExplode( );
+};
+
+IMPLEMENT_CLASS ( AGrenade )
+/*
 FState AGrenade::States[] =
 {
 #define S_GRENADE 0
@@ -940,7 +955,7 @@ IMPLEMENT_ACTOR (AGrenade, Doom, -1, 216)
 	PROP_Obituary("$OB_GRENADE")
 
 END_DEFAULTS
-
+*/
 void AGrenade::BeginPlay ()
 {
 	Super::BeginPlay ();
@@ -1318,8 +1333,6 @@ void A_BFGSpray (AActor *mo)
 	int					numrays = 40;
 	int					damagecnt = 15;
 	AActor				*linetarget;
-	// [BC] Pointer to the spawned tracer that we send to clients.
-	AActor				*pActor;
 
 	// [BC] This is not done on the client end.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) ||
@@ -1364,11 +1377,10 @@ void A_BFGSpray (AActor *mo)
 
 		if (spray && (spray->flags5 & MF5_PUFFGETSOWNER))
 			spray->target = mo->target;
-
 		
 		// [BC] Tell clients to spawn the tracers.
-		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( pActor ))
-			SERVERCOMMANDS_SpawnThing( pActor );
+		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( spray ))
+			SERVERCOMMANDS_SpawnThing( spray );
 
 		damage = 0;
 		for (j = 0; j < damagecnt; ++j)

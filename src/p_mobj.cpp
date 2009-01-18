@@ -1436,7 +1436,7 @@ bool AActor::FloorBounceMissile (secplane_t &plane)
 	angle = R_PointToAngle2 (0, 0, momx, momy);
 
 	// [BC] Actors don't yet have a bounce sound, so this will have to be hacked for now.
-	if ( this->GetClass( ) == RUNTIME_CLASS( AGrenade ))
+	if ( this->GetClass( ) == PClass::FindClass( "Grenade" ) )
 		S_Sound( this, CHAN_VOICE, "weapons/grbnce", 1, ATTN_IDLE );
 	else if (SeeSound && !(flags4 & MF4_NOBOUNCESOUND))
 	{
@@ -1892,7 +1892,7 @@ void P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 							mo->momx = FixedMul (speed, finecosine[angle]);
 							mo->momy = FixedMul (speed, finesine[angle]);
 							// [BC] Actors don't yet have a bounce sound, so this will have to be hacked for now.
-							if ( mo->GetClass( ) == RUNTIME_CLASS( AGrenade ))
+							if ( mo->GetClass( ) == PClass::FindClass( "Grenade" ) )
 								S_Sound( mo, CHAN_VOICE, "weapons/grbnce", 1, ATTN_IDLE );
 							else if (mo->SeeSound && !(mo->flags4&MF4_NOBOUNCESOUND))
 							{
@@ -1927,7 +1927,7 @@ void P_XYMovement (AActor *mo, fixed_t scrollx, fixed_t scrolly)
 						if (( mo->ObjectFlags & OF_EuthanizeMe ) == false )
 						{
 							// [BC] Actors don't yet have a bounce sound, so this will have to be hacked for now.
-							if ( mo->GetClass( ) == RUNTIME_CLASS( AGrenade ) && !(mo->flags3 & MF3_NOWALLBOUNCESND))
+							if ( mo->GetClass( ) == PClass::FindClass( "Grenade" ) && !(mo->flags3 & MF3_NOWALLBOUNCESND))
 								S_Sound( mo, CHAN_VOICE, "weapons/grbnce", 1, ATTN_IDLE );
 							else if (mo->SeeSound && !(mo->flags3 & MF3_NOWALLBOUNCESND))
 							{

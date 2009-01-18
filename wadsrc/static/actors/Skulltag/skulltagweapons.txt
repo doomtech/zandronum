@@ -199,3 +199,89 @@ ACTOR BFG10kShot
 		Stop
 	}
 }
+
+
+//=================================================================================================
+//
+// AGrenadeLauncher
+//
+//=================================================================================================
+
+ACTOR GrenadeLauncher : DoomWeapon 5011
+{
+	SpawnID 163
+	Radius 20
+	Height 16
+	Weapon.Selectionorder 2500
+	+WEAPON.NOAUTOFIRE
+	+WEAPON.NOAUTOAIM
+	Weapon.AmmoUse 1
+	Weapon.AmmoGive 2
+	Weapon.AmmoType "RocketAmmo"
+	Weapon.Kickback 100
+	Inventory.PickupMessage "$PICKUP_GRENADELAUNCHER"
+
+	action native A_FireSTGrenade ();
+
+	States
+	{
+	Spawn:
+		GLAU A -1
+		stop
+	Ready:
+		GRLG A 1 A_WeaponReady
+		loop
+	Deselect:
+		GRLG A 1 A_Lower
+		loop
+	Select: 
+		GRLG A 1 A_Raise
+		loop
+	Fire: 
+		GRLG B 8 A_GunFlash
+		GRLG B 12 A_FireSTGrenade
+		GRLG B 0 A_ReFire
+		goto Ready 
+	Flash: 
+		GRLF A	3 bright A_Light1
+		GRLF B	4 bright
+		GRLF C 4 bright A_Light2
+		GRLF D 4 bright A_Light2
+		Goto LightDone
+	}
+
+}
+
+ACTOR Grenade native
+{
+	SpawnID 216
+	Radius 8
+	Height 8
+	Speed 25
+	Damage 20
+	Projectile
+	-NOGRAVITY
+	+DOOMBOUNCE
+	+RANDOMIZE
+	+DEHEXPLOSION
+	+GRENADETRAIL
+	+QUARTERGRAVITY
+	+EXPLODEONDEATH
+	SeeSound "weapons/grenlf"
+	DeathSound "weapons/grenlx"
+	Obituary "$OB_GRENADE"
+	DamageType Grenade
+
+	States
+	{
+	Spawn:
+		SGRN A 1 bright 
+		loop
+	Death:
+		MISL B 8 bright A_Explode
+		MISL C 6 bright
+		MISL D 4 bright
+		stop
+	}
+
+}
