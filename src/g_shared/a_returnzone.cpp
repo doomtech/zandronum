@@ -55,15 +55,12 @@
 
 class AReturnZone : public AActor
 {
-	DECLARE_STATELESS_ACTOR( AReturnZone, AActor )
+	DECLARE_CLASS( AReturnZone, AActor )
 public:
 	void	PostBeginPlay( );
 };
 
-IMPLEMENT_STATELESS_ACTOR( AReturnZone, Any, 5067, 0 )
-	PROP_Flags( MF_NOBLOCKMAP|MF_NOSECTOR|MF_NOGRAVITY )
-	PROP_Flags3( MF3_DONTSPLASH )
-END_DEFAULTS
+IMPLEMENT_CLASS( AReturnZone )
 
 void AReturnZone::PostBeginPlay( )
 {

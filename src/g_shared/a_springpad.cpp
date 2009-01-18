@@ -55,16 +55,12 @@
 
 class ASpringPadZone : public AActor
 {
-	DECLARE_STATELESS_ACTOR( ASpringPadZone, AActor )
+	DECLARE_CLASS( ASpringPadZone, AActor )
 public:
 	void	PostBeginPlay( );
 };
 
-IMPLEMENT_STATELESS_ACTOR( ASpringPadZone, Any, 5068, 0 )
-	PROP_Flags( MF_NOBLOCKMAP|MF_NOSECTOR|MF_NOGRAVITY )
-	PROP_Flags3( MF3_DONTSPLASH )
-	PROP_FlagsNetwork( NETFL_ALLOWCLIENTSPAWN )
-END_DEFAULTS
+IMPLEMENT_CLASS( ASpringPadZone )
 
 void ASpringPadZone::PostBeginPlay( )
 {
