@@ -331,7 +331,7 @@ public:
 // gives the player health when picked up.
 class AMaxHealth : public AHealth
 {
-	DECLARE_STATELESS_ACTOR( AMaxHealth, AHealth )
+	DECLARE_CLASS( AMaxHealth, AHealth )
 public:
 	virtual bool TryPickup( AActor *pOther );
 };

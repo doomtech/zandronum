@@ -325,7 +325,7 @@ protected:
 
 class ARuneGiver : public AInventory
 {
-	DECLARE_STATELESS_ACTOR (ARuneGiver, AInventory)
+	DECLARE_CLASS (ARuneGiver, AInventory)
 public:
 	virtual bool Use (bool pickup);
 	virtual void Serialize (FArchive &arc);
